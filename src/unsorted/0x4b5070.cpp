@@ -1,112 +1,77 @@
-// Decompiled by space-bunny-free, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Claude Fable 5.1. Names are provisional.
 // Reads the installed DirectX version: first through dsetup.dll's
 // DirectXSetupGetVersion, then, if that fails, through
 // HKLM\Software\Microsoft\DirectX (the "InstalledVersion" DWORD on NT, the
 // "Version" string on Win9x), and compares the result with the wanted version.
+// The caller (0x4263b0) asks for 4.05.00.0155 (DirectX 5), or 3 on NT.
 //
-// Found this pass, all measured with tools/scratch/0x4b5070 (see the notes
-// there for the sweeps):
-//  * The two failure exits share ONE memset tail, so they must be reached with
-//    `goto fail`, not with two inline `memset(version, 0, 16); return 0;`.
-//    Two inline tails cost 31 extra bytes (637) because the 12-instruction
-//    epilogue is emitted twice; one shared tail is 613.
-//  * The four halves are re-zeroed at the top of the registry block. Without
-//    that, the earlier version's version was 18 bytes long; the source needs
-//    `majhi = majlo = minhi = minlo = 0;` there (chained, one zero register).
-//  * `status = 0;` must come BEFORE LoadLibraryA, or MSVC sinks the store and
-//    the `mov [esp+0x14], esi` that precedes the call disappears.
-//  * `HKEY hKey` must be declared at FUNCTION scope. In the block it shares
-//    dwMaj's slot and the frame is 0xc8; at function scope it gets its own
-//    slot, the frame becomes the original's 0xcc, version lands at 0x28 and
-//    osvi at 0x48. That single declaration was worth 5 bytes and every
-//    [esp+N] operand in the function.
-//  * The extraction order majhi, majlo, minlo, minhi is the best of the 24
-//    (others: 55-64%).
-//
-// Still open, in order of size:
-//  * dwMin is at [esp+0x24] here and at [esp+0x1c] in the original; `type`
-//    shares lib's slot [esp+0x20] here and has [esp+0x24] there. The original's
-//    six own slots, read off MSVC's /FA listing, are dwMaj 0x10, status 0x14,
-//    isNT 0x18, dwMin 0x1c, lib 0x20, type 0x24, then version 0x28 and osvi
-//    0x48; here they are dwMaj 0x10, status 0x14, isNT 0x18, hKey 0x1c, lib
-//    0x20, dwMin 0x24. Measured and all worse (see "measured and rejected"):
-//    the only shape that gives hKey no slot of its own puts it at 0x0c and
-//    steals dwMin's.
-//  * The register map is rotated one step: here majhi/majlo/minhi/minlo land in
-//    esi/ebx/ebp/edi, the original has them in ebx/ebp/edi/esi. Same rotation
-//    as the slot order. It answers to the extraction order, but only ever
-//    produces two mappings (see "measured and rejected"): the six orders that
-//    keep all four halves in registers give esi/ebx/ebp/edi, and none of the
-//    24 gives ebx/ebp/edi/esi.
-//  * The top of the function zeroes with `xor ebp,ebp / xor ebx,ebx / xor
-//    edi,edi`; the original uses `mov ebp,esi / mov ebx,esi / mov edi,esi` off
-//    the zero already in esi. Same byte count, different opcode: MSVC propagates
-//    esi's zero into the other three there but not here.
-//  * Because ebp is not known zero here, the three `push 0` for lpReserved cost
-//    2 bytes each where the original has `push ebp`.
-//  * The extraction is 10 instructions here and 9 in the original, which copies
-//    dwMaj and dwMin into ebx and edi first and then shifts; only the six
-//    orders above reach that shape and they cost 625 bytes.
-//  * The re-zeroing at the top of the registry block is emitted three times
-//    here (edi, ebp, esi); the original emits six stores. MSVC folds the other
-//    three because it still knows those registers hold the zero from the top of
-//    the function; in the original it does not.
-//  * Also unexplained: the original's `mov [esp+0x30], esi` at 0x4b510a, a
-//    dword store into version[4] at the top of the registry block.
-//
-// Measured and rejected this pass, all worse than the 63.6% in the file
-// (compile-only ranking in build/scratch/0x4b5070):
-//  * 120 permutations of the declaration order of isNT/status/lib/version and
-//    the four halves: all compile to byte-identical code. Declaration order is
-//    not a lever here, which is worth recording.
-//  * 24 permutations of the declaration order of the four halves x 3 re-zero
-//    spellings x 4 spellings of how size/type are declared: 384 variants, the
-//    frame is 0xcc only when hKey is at function scope, otherwise 0xc8.
-//  * The 24 extraction orders, twice, on two different bases: best 613 bytes
-//    / 64.6%, worst 624 bytes / 32.9%.
-//  * Two inline `memset(version, 0, 16); return 0;` tails instead of the shared
-//    one: 637 bytes / 55.4%, the version this file replaces.
-//  * `type` at function scope with hKey in the registry block: 0xc8 frame,
-//    dwMin and hKey share a slot at 0x0c, every offset from dwMin up is 4 low.
-//  * dwMaj, dwMin and type all at function scope: 0xd0 frame, every offset
-//    wrong.
-//  * dwMaj at function scope as the key handle (`(HKEY *)&dwMaj`), with and
-//    without `type` at function scope: 0xc8 frame, dwMin shares size's slot.
-//  * Re-zeroing spelled `minlo = majhi = minhi = isNT = 0; majlo = 0;` or with
-//    isNT in the chain, and one zero statement per variable: 617-622 bytes.
-//  * proc, err, size or type moved one scope in or out: 610-618 bytes, frame
-//    0xc8 unless hKey is at function scope.
-//  * An explicit `isNT = 0;` at the top of the registry block: 621 bytes and
-//    59.4% (checked, not just ranked). It does bring the instruction count to
-//    the original's 197, but MSVC emits the store as an 8-byte immediate where
-//    the original has a 4-byte register store, and that costs more than the
-//    extra store gains. A good reminder that this checker's score is byte
-//    similarity, so an instruction-sequence ratio is only a filter.
+// Claude Fable 5.1: 63.6% -> 94.9% at the original's 619 bytes. The shape that
+// did it, in the order it was found:
+//  * The four version halves are the fields of one small struct that is zeroed
+//    with memset (here through its constructor) and promoted to registers. A
+//    memset's zero is stored from a register and the field reads are forwarded
+//    from those stores, so the halves come out as copies of one zero register
+//    (`xor esi,esi; mov ebx,esi; mov ebp,esi; mov edi,esi`). Any chain of
+//    `= 0` assignments, a reference helper, the C front-end, or an aggregate
+//    initialiser materialises each register with its own xor instead.
+//  * Zeroing the struct again at the top of the registry block with a plain
+//    memset (not a temporary `v = DXVersion()`, which adds a `mov eax,esi`
+//    detour) gives the original's `mov [esp+0x30],esi`: the dead store of the
+//    majlo field, which both arms reassign, lands at the struct's home +4. The
+//    struct's home shares its slot with the registry block's `version` buffer,
+//    exactly as in the original (both at L0x18, frame 0xcc).
+//  * `isNT = 0` after that memset then stores from the same zero register
+//    without turning isNT into a register variable (it did when the zeroing was
+//    a chain or a temporary).
+//  * HIWORD/LOWORD in the order majhi, minhi, majlo, minlo fixes the dsetup
+//    extraction and the register assignment ebx/ebp/edi/esi.
+//  * Frame slots: MSVC 5 shares slots by liveness and orders them by reference
+//    count (most referenced lowest). hKey block-scoped shares dwMaj's slot;
+//    one `size` at registry-block level (used by the NT arm) shares lib's; a
+//    second length local in the Win9x arm shares dwMin's; `type` gets its own.
+//  * `err = RegOpenKeyExA(...); if (err == 0)` gives the `cmp eax,ebp` test.
+// Still differing: status and isNT have their slots swapped (ours isNT at
+// [esp+0x14] and status at [esp+0x18], the original the reverse). Both have six
+// references, so the tie-break is the open question; declaration order, types,
+// names, the position of the top-level `isNT = 0`, a dead initialiser, and a
+// folded extra test of status all leave it unchanged, and a real extra store
+// to status flips it but costs 6 bytes (t5 in the scratch notes). The permuter
+// then found that zeroing isNT before LoadLibraryA and status after it makes
+// the two top stores byte-identical (the aliased status store stays after the
+// call, the isNT store sinks to the same place), 93.9% to 94.9%; the twelve
+// remaining lines are the other references to the two swapped slots. The
+// original most likely has `status = 0` before the call with the slots the
+// other way round, so whoever flips the slots should restore that order.
 //
 // Two things in the original look like Cavedog's own bugs, kept here as they
-// are: the "installed version is older" arm at 0x4b5233 compares the major half
-// against argument 2 (the minor half) instead of against argument 1, and the
-// Win9x query passes a 30-byte size for a buffer the frame only has room for
-// from 0x28 to 0x45.
+// are: the "installed major version differs" arm at 0x4b5233 compares the major
+// half against argument 2 (the minor half) instead of against argument 1, and
+// the NT path reads the InstalledVersion value into the status variable.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
 
 typedef int (__stdcall *FN_DIRECTXSETUPGETVERSION)(DWORD* major, DWORD* minor);
 
+struct DXVersion {
+    unsigned int majhi;
+    unsigned int majlo;
+    unsigned int minhi;
+    unsigned int minlo;
+    DXVersion() { memset(this, 0, sizeof(*this)); }
+};
+
 // FUNCTION: 0x4b5070
 int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4)
 {
     int isNT = 0;
-    unsigned int minhi = 0, majlo = 0, minlo = 0, majhi = 0;
+    DXVersion v;
     DWORD status;
     HMODULE lib;
-    HKEY hKey;
-    char version[30];
 
-    status = 0;
-    lib = LoadLibraryA("dsetup.dll");
     isNT = 0;
+    lib = LoadLibraryA("dsetup.dll");
+    status = 0;
     if (lib) {
         FARPROC proc = GetProcAddress(lib, "DirectXSetupGetVersion");
         if (proc) {
@@ -115,10 +80,10 @@ int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4
 
             status = ((FN_DIRECTXSETUPGETVERSION)proc)(&dwMaj, &dwMin);
             if (status) {
-                majhi = dwMaj >> 16;
-                majlo = dwMaj & 0xffff;
-                minlo = dwMin & 0xffff;
-                minhi = dwMin >> 16;
+                v.majhi = HIWORD(dwMaj);
+                v.minhi = HIWORD(dwMin);
+                v.majlo = LOWORD(dwMaj);
+                v.minlo = LOWORD(dwMin);
             }
         }
         FreeLibrary(lib);
@@ -128,52 +93,56 @@ int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4
         DWORD type;
         DWORD size;
         LONG err;
+        char version[30];
+        HKEY hKey;
 
-        majhi = majlo = minhi = minlo = 0;
+        memset(&v, 0, sizeof(v));
+        isNT = 0;
         osvi.dwOSVersionInfoSize = sizeof(osvi);
         if (GetVersionExA(&osvi)) {
             isNT = osvi.dwPlatformId == 2;
         }
         hKey = 0;
-        if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\DirectX", 0, KEY_READ, &hKey) == 0) {
+        err = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\DirectX", 0, KEY_READ, &hKey);
+        if (err == 0) {
             status = 0;
             if (isNT) {
                 size = 4;
                 err = RegQueryValueExA(hKey, "InstalledVersion", 0, &type, (LPBYTE)&status, &size);
             } else {
-                size = 30;
-                err = RegQueryValueExA(hKey, "Version", 0, &type, (LPBYTE)version, &size);
+                DWORD len = sizeof(version);
+                err = RegQueryValueExA(hKey, "Version", 0, &type, (LPBYTE)version, &len);
             }
             RegCloseKey(hKey);
             if (err) {
                 goto fail;
             }
             if (isNT) {
-                majlo = status & 0xff;
+                v.majlo = status & 0xff;
             } else {
-                majhi = atoi(strtok(version, "."));
-                majlo = atoi(strtok(0, "."));
-                minhi = atoi(strtok(0, "."));
-                minlo = atoi(strtok(0, "."));
+                v.majhi = atoi(strtok(version, "."));
+                v.majlo = atoi(strtok(0, "."));
+                v.minhi = atoi(strtok(0, "."));
+                v.minlo = atoi(strtok(0, "."));
             }
         } else {
             goto fail;
         }
     }
     if (isNT) {
-        return majlo >= (unsigned int)want4;
+        return v.majlo >= (unsigned int)want4;
     }
-    if (majhi == (unsigned int)want0) {
-        if (majlo == (unsigned int)want1) {
-            if (minhi == (unsigned int)want2) {
-                return minlo >= (unsigned int)want3;
+    if (v.majhi == (unsigned int)want0) {
+        if (v.majlo == (unsigned int)want1) {
+            if (v.minhi == (unsigned int)want2) {
+                return v.minlo >= (unsigned int)want3;
             }
-            return minhi >= (unsigned int)want2;
+            return v.minhi >= (unsigned int)want2;
         }
-        return majlo >= (unsigned int)want1;
+        return v.majlo >= (unsigned int)want1;
     }
-    return majhi >= (unsigned int)want1;
+    return v.majhi >= (unsigned int)want1;
 fail:
-    memset(version, 0, 16);
+    memset(&v, 0, sizeof(v));
     return 0;
 }

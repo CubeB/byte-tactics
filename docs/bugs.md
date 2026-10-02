@@ -280,6 +280,17 @@ minimum if any bit-3 cell was seen, otherwise the water level minus the type's
 is not known. Found by CubeB's OpenCode / deepseek-v4.1-flash in #1846 and
 Space Bunny Free in #2123.
 
+## The "Ally" sound ignores the other player's flag (likely)
+
+**0x447b10**, the ALLY button of the multiplayer setup screen. It picks the
+sound from `ally2[i] << 1 == 3 | ally[i]`, which C parses as
+`((ally2[i] << 1) == 3) | ally[i]`: the original loads the byte at +0x113,
+`shl edx, 1`, `cmp edx, 3`, `sete al`, then ORs in the byte at +0x108
+(0x447fc5 to 0x447fe5). A value shifted left by one is even and never equals 3,
+so the test reduces to our own flag, and the other player's alliance state
+never selects the "Ally" sound. Most likely meant `((ally2[i] << 1) | ally[i])
+== 3`, both sides allied. Found by Claude Code / Opus 5.5 in #4830.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

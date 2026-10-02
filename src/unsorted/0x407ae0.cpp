@@ -1,4 +1,89 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+//
+// Space Bunny Free pass (2026-10-02, 91.1% -> 92.1%, 601 of 601 bytes, about 300
+// compiles via build/scratch/0x407ae0/sweep.py). One real gain, and it is the
+// statement ORDER of the second roll inside the scatter loop, not its name:
+//
+//     int dx = FUN_004b6c30(w) - hw;
+//     dest.x = pos.x.value + (dx << 16);
+//     int dz = FUN_004b6c30(h) - hh;      <-- here, after the dest.x store
+//     dest.y = pos.y.value;
+//     dest.z = pos.z.value + (dz << 16);
+//
+// Naming the second roll and putting its declaration AFTER the dest.x store
+// makes MSVC issue the second call before dest.y is written, which reshapes the
+// whole first half of the loop body and is worth a point at an unchanged 601
+// bytes. The older notes recorded "naming dz" as 58.6%/613 bytes, which is
+// right but was always measured with the declaration BEFORE the sums; position
+// is the whole lever, and `dest.z` before `dest.y` ties at 92.1% too. Three
+// more body shapes tie at 92.1%: `dx` inlined (only dz named), `dest.z` before
+// `dest.y`, and the reversed addends `(dz << 16) + pos.z.value`. Measured
+// negatives against this body, all 601 bytes unless noted: dz before the sums
+// 58.6%, dz between dest.y and dest.z 91.1%, dest.y assigned first 91.6%,
+// `int dz = FUN_004b6c30(h); dest.z = ... ((dz - hh) << 16)` 92.1% (tie),
+// dx inlined and dz named 92.1% (tie). Which locals exist is the other knob
+// (guide item 19), and it is a measured 48-case cross product of the five
+// choices: `delay`, `dz`, `hw` and `hh` must all be named (inline the delay and
+// it falls to 74.4%, hw to 88.8%, hh to 91.6%, dz to 91.1%) and `dx` is
+// optional, because inlining it still gives 92.1% at 601 bytes.
+//
+// Cheap checks run and recorded, both of which the older passes left open:
+// * Declaration order is INERT here. All 120 permutations of the five
+//   scatter-loop declarations (declared together, assigned in source order) are
+//   byte-identical at 92.1% / 601 bytes (build/scratch/0x407ae0/declorder.py).
+//   That is the fifth function on this tree where a measured sweep proves it.
+// * tools/permute.py has now run here seven times. Seeds 61 and 91 on the 91.1%
+//   file (1604 and 1770 candidates, structural kinds only in the second) both
+//   ended 91.1% -> 91.1%, score 1120 -> 1120. Seed 5 on the 92.1% file ran 3070
+//   candidates and ended 92.1% -> 92.1%, so the permuter's own metric agrees
+//   this file is better (the fine score drops 1120 -> 985) and finds nothing
+//   left in it.
+//
+// The remaining difference is one hunk, the loop preheader plus the first half
+// of the loop body, and it is now known to be exactly TWO decisions:
+//
+// (1) The block split. The original computes w and h, tests the loop, and only
+//     then computes the two halves:
+//
+//         sar esi, 3 ; sar edi, 3
+//         cmp ecx, ebx ; jle end
+//         mov eax, esi ; cdq ; sub eax, edx ; mov ebp, eax ; sar ebp, 1
+//         mov eax, edi ; cdq ; sub eax, edx ; sar eax, 1
+//         mov [esp + 0x14], eax
+//
+//     Here the halves are computed before the test, so C1 interleaves the two
+//     `sar ..., 3` with them and the spill of hh lands last. Every shape that
+//     gets the halves after the test does so by putting them in a nested scope
+//     (inside the loop body, or between a guard and a do-while), and every one
+//     of those costs the allocation: `this` then takes ebx, the counter takes
+//     ebp and both halves go to the stack, which is 52.9-59.0% at 595-597 bytes
+//     (measured: hw/hh declared in the body, assigned in the body, a guarded
+//     do-while, a guarded for, `for(;;)` with `if (++i == n) break;`, the
+//     negative `if (n > i)`, and half/half variants of each). This file's
+//     register allocation is the original's exactly (esi = w, edi = h, ebx = i,
+//     ebp = hw, [esp+0x10] = this, [esp+0x14] = hh), so the split is the only
+//     thing that has to move, and every way of moving it moves this too.
+//     Re-measured against the 92.1% body the split is one thing and nothing
+//     else: every spelling that declares hw/hh where LICM can hoist them gives
+//     the same 59.0% at 597 bytes (body-declared, assigned-in-body, w and h
+//     declared in the for-init with the halves in the body, copies of the
+//     halves taken in the body), and every spelling that declares them before
+//     the loop gives 92.1%, including a plain `{}` block wrapped around both
+//     the halves and the loop, which is byte-identical. So the split is a
+//     scope, not a statement order, and no scope buys it without the register
+//     change.
+//
+// (2) The entry guard. The original spells the first test `cmp ecx, ebx; jle`,
+//     that is `n <= i` with ebx holding i, and C1 did not fold i to the constant
+//     zero it was assigned two hundred bytes earlier. Here the same test is
+//     `test ecx, ecx`. Roughly sixty spellings fold it: for-init, branch-scope,
+//     function-scope and do-while counters, `i != n`, `i + 1 <= n`, `n - 1 >= i`,
+//     `n > i`, `i = i + 1`, `++i`, an outer `if (n > 0)` guard (which then adds
+//     a SECOND guard), and pointers to the counter. Only something MSVC 5
+//     cannot constant-fold would stop it, and the only such thing available for
+//     a local is `volatile`, which is not allowed. So (2) looks unreachable and
+//     (1) is the only lead left.
+//
 // claude-sonnet-5-5 pass (2026-10-02, still 91.1%): the guard is the key. `if (n > 0)` written
 // as a source-level test gives the original's `cmp ecx, ebx; jle` BEFORE the halves ONLY when
 // the zero register is live there; with `if (n > 0) { halves; for (int i...) }` (58.7%) the
@@ -21,10 +106,11 @@
 // around it (mode 2 first, then mode 9). A bigger group is sent to a random
 // point on the map edge.
 //
-// Partial (91.1%): everything outside the scatter loop matches byte for byte,
-// including the whole "5 units or more" branch. One hunk differs, the loop
-// preheader plus the first half of the loop body, and it is one block-ordering
-// decision:
+// Partial (92.1% after the Space Bunny Free pass above, 91.1% before it):
+// everything outside the scatter loop matches byte for byte, including the
+// whole "5 units or more" branch. One hunk differs, the loop preheader plus the
+// first half of the loop body, and the pass note above reduces it to the block
+// split and the unfolded entry guard:
 //
 // 30-min checkpoint (space-bunny-free, 2026-10-02, second pass). Still 91.1%,
 // 601 of 601 bytes, the file below is unchanged from the previous passes. All
@@ -381,8 +467,9 @@ void Class_00407a90::FUN_00407380()
             for (int i = 0; i < n; i++) {
                 int dx = FUN_004b6c30(w) - hw;
                 dest.x = pos.x.value + (dx << 16);
+                int dz = FUN_004b6c30(h) - hh;
                 dest.y = pos.y.value;
-                dest.z = pos.z.value + ((FUN_004b6c30(h) - hh) << 16);
+                dest.z = pos.z.value + (dz << 16);
                 if (i == 0)
                     FUN_00480460(((Group_00407ae0*)field_8)->player, ((Group_00407ae0*)field_8)->id,
                                  2, 0, 0, &dest, 0, 0);

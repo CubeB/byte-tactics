@@ -1,4 +1,61 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free 2026-10-02: still BEST 55.9% (419/423), no MATCH. Roughly
+// 230 further shapes scored with check.py --sym from a generator harness (build/
+// scratch/0x4b91b0/gen.py) and every one landed on 55.9%, 54.5%, 53.8%, 53.3%,
+// 52.6% or below. tools/permute.py also ran a full 15 minutes (1116 candidates)
+// and stayed at 55.9%. What I established beyond the notes above:
+//  - The register family is a hard two-way split, and the ONLY shapes that reach
+//    the original's family (w->ebp, h->esi, pitch->edi, count->ebx, f spilled
+//    to the dead arg1 slot) are `count = pitch * h` with `pitch` a NAMED local
+//    declared before it, and they all cost 2-3 bytes and drop to 52.6%. The
+//    shapes that keep 55.9% (count = (w*2)*h declared first) fold to
+//    `imul esi, ebp` and put count in h's register. Confirmed by dumping the
+//    .asm prologues directly (build/scratch/0x4b91b0/prog.py): no variant
+//    reaches better than 3/6 prologue markers, and the two that get
+//    pitch->edi are the 52.6% family.
+//  - `double scale = lens;` must stay the FIRST statement: declared last it
+//    costs 8 points (47.2-47.4%), which is the fild/fstp pair moving ahead of
+//    the pitch/count multiply.
+//  - hw and hh must be `short`, and the `f->half_width`/`f->half_height` stores
+//    must repeat `(short)(w / 2)` / `(short)(h / 2)` rather than reuse the
+//    locals: int locals with (short) casts score 34-37%, using the locals 54.5%.
+//    Confirmed over every hw/hh typing in {short, int, unsigned short} x {store
+//    from local, store from expression} x {cast or no cast in the loop}.
+//  - The loop must keep `for (y = 0; y < h; y++, base += w)` with the inner
+//    `for (x = 0; x < w; x++)`: while/do-while forms, a shared `int idx`
+//    (which also flips the pre-call family and then collapses the loop into a
+//    walking pointer, 34.7%), `unsigned short* cells = f->cells` in the loop
+//    (41.1%), and hoisting dy/dy2/thresh into an explicit `if (w > 0)` block
+//    (37.6%) are all worse.
+//  - Moving any per-cell work into a `static inline` helper (SetCell, CellValue,
+//    Falloff, and a NotDone loop condition helper) costs 12-31 points: the
+//    expansion changes the frame. The 0x4c6f80 alloc+init helper is also worse
+//    here (52.6% in all three argument shapes I tried), because this function's
+//    own frame is already at the 9-dword maximum.
+//  - The alloc+init helper form is NOT the missing piece here, unlike at
+//    0x4c6f80: with the helper, h loses its register again.
+//
+// UNTESTED leads for whoever picks this up:
+//  - The `add eax, ebx` for `f->end` (the original adds count INTO the data
+//    register; ours emitted `add esi, eax`, the other way round) IS fixed by an
+//    `unsigned short* p = f->cells;` local feeding the data and end stores, and
+//    it is score-neutral (55.9% either way), so the file below now carries it.
+//    But the same local used by the LOOP as well costs ~20 points (35-41%): MSVC
+//    then rewrites the loop into a walking pointer.
+//  - `sub esp, 0x24` matches and both keep 9 dwords of locals, so the frame is
+//    right; the residual is purely which value gets which callee-saved register
+//    across the alloc call.
+//  - The struct's declared shape does not drive the register choice: reordering
+//    it into a nested tail, aliasing it through a second struct with the same
+//    layout, or writing the pitch field through a `unsigned char*` base are all
+//    55.9%. Only making `cells` a separate `unsigned short*` MEMBER (instead of
+//    a trailing array) is different (41.6%), and worse.
+//  - Adding extra long-lived locals (copies of `w` and `h` used as the loop
+//    bounds) does not push MSVC over the edge into the 4-way split either: all
+//    such variants stay at 55.9%. So "the original has more values live across
+//    the call" is not the lever either, and the choice really is decided by the
+//    order the multiply operands are written in.
+//
 // deepseek-v4.1-flash 2026-10-01 (session 2): BEST 55.9% (419/423), up from
 // 54.5%. The win is the outer loop written as a for with TWO induction
 // variables in its head, `for (y = 0; y < h; y++, base += w)` (the guide's
@@ -300,9 +357,10 @@ unsigned char* __stdcall FUN_004b91b0(int w, int h, int lens)
     int count = (w * 2) * h;
     int pitch = w * 2;
     LensFrame_4b91b0* f = (LensFrame_4b91b0*)FUN_004d83b0("LensFrame", count * 2 + 0x18);
+    unsigned short* p = f->cells;
     f->pitch = (unsigned short)pitch;
-    f->data = f->cells;
-    f->end = (char*)f->data + count;
+    f->data = p;
+    f->end = (char*)p + count;
     f->height = (unsigned short)h;
     f->half_width = 0;
     f->half_height = 0;

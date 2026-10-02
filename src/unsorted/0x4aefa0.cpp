@@ -1,5 +1,55 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
 //
+//
+// DeepSeek V4.1 Flash, retry with tools/stackcmp.py + the permuter's --stack
+// mode. Best is 73.1 % (893 of 895 bytes, was 72.2 % / 882). Alignment-only
+// changes found by the permuter, all functionally faithful, account for it;
+// none moves the one real allocator tie.
+//
+// The first fill loop is now a bottom-tested do/while whose bound is named in a
+// bool first:
+//     i = 0;
+//     bool any = count > i;
+//     if (any) do {
+//         char* item = FUN_004b6af0(list1, i);
+//         ptr1[i] = item;
+//         if (list2)
+//             ptr2[i] = FUN_004b6af0(list2, i);
+//         if (ptr1[i][0] == '\\')
+//             n = i;
+//     } while (++i < count);
+// The `bool any` guard and the temp for the first call are what difflib aligns:
+// each alone is inert, the do/while alone is 72.2 %, and the loop bound may be
+// any of `++i < count`, `(i += 1) < count`, `count > ++i` at the same 73.1 %.
+// Semantics are unchanged (any = count > 0; the loop runs i = 0..count-1).
+//
+// The real gap is unchanged. The original keeps ptr1 in ebx and the ptr2-ptr1
+// stride in ebp and reloads count from [esp+0x44] at the latch; this file
+// coalesces ptr1 with the loop cursor in edi, puts the stride in ebx and count
+// in ebp, and the four low slots come out swapped/ptr2/n/ptr1 at
+// 0x10/0x14/0x18/0x1c instead of ptr2/ptr1/swapped/n. Those are exactly the
+// two missing instructions (`mov edi,ebx` in the preheader and
+// `mov eax,[esp+0x44]` at the latch): 893 + those 2 = the original's 895 bytes.
+//
+// Tried this pass, all scored in one process with build/scratch/0x4aefa0/
+// probe.py (about 0.19 s per candidate), none beat 73.1 %:
+//   - 24 permutations of the four low declarations: every one dumps the same
+//     slots, so the slot order is not declaration order (confirmed again).
+//   - nine first-loop forms (for, while, do/while, `i != count`,
+//     `while(1)+break`, prefix/postfix) with and without bool/int/char temps:
+//     the do/while with the `bool any` guard is the only one above 72.2 %.
+//   - `*(ptr1+i)`, `(*(ptr1+i))[0]`, `**(ptr1+i)`, a separate `char** p1`
+//     cursor for the test only, cursors advancing in the for-header, and the
+//     test moved before the second store: 55 to 70 %.
+//   - bool/int temps at the two bubble-pass `diff > 0` sites and the
+//     `if (keys)` guard: 41 to 70 %, all worse.
+//   - alias `char** base = ptr1;` right after the loop (folds), `ptr1 = ptr1`,
+//     `(void)ptr1`, `if (!ptr1) n = n;`: byte-identical.
+//   - `register` on count/i/ptr1, `++i`, the declaration-order and 128
+//     header-set sweeps from earlier passes: inert.
+// Permuter runs at seeds 123 and 2024 (three minutes each) plateaued at 72.5;
+// the candidate from the seed-2024 run whose `temp_intro` reached 73.1 also
+// produced the do/while first-loop shape kept here.
 // Space Bunny Free (issue 4155). Baseline recorded before starting: 72.2 %,
 // 882 of 895 bytes. Left at the same 72.2 % / 882 bytes: about eighty source
 // shapes and two permuter runs (seeds 11 and 404, 2416+ candidates) all land
@@ -385,13 +435,16 @@ void __stdcall FUN_004aefa0(char* list1, char* list2, int* keys, int count)
     ptr1 = (char**)FUN_004d83b0("PTR LIST1", 0x2ee0);
     ptr2 = (char**)FUN_004d83b0("PTR LIST2", 0x2ee0);
     n = -1;
-    for (i = 0; i < count; i++) {
-        ptr1[i] = FUN_004b6af0(list1, i);
+    i = 0;
+    bool any = count > i;
+    if (any) do {
+        char* item = FUN_004b6af0(list1, i);
+        ptr1[i] = item;
         if (list2)
             ptr2[i] = FUN_004b6af0(list2, i);
         if (ptr1[i][0] == '\\')
             n = i;
-    }
+    } while (++i < count);
     if (n != -1) {
         do {
             swapped = 0;

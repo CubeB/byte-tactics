@@ -1,4 +1,104 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Space Bunny Free pass (issue #4682): still 84.7%, 354 of 354 bytes, the file's
+// version left in place. New result this pass, and the reason the earlier notes'
+// searches kept missing: there is a much better screen than check.py's ratio, and
+// it settles the question. It is the register PAIR, not the percentage.
+// TOOL FOR THE NEXT PASS: build/scratch/0x4851c0/probe.py compiles a whole
+// directory of variants in parallel (one out_dir per thread) and prints, per
+// variant, the byte size, how many leading instructions are textually identical
+// to the original's, the check.py percentage, and the (dx, abs) register pair.
+// 16 variants take 0.6 s against 7 s for one check.py run, and the pair moves
+// with no movement at all in the ratio, so the pair is the screen. dump.py
+// prints a full unified diff of a variant against the original and cmp.py diffs
+// two variants against each other.
+// 1. THE RULE, measured over 33 fresh shapes (build/scratch/0x4851c0/b1, b2):
+//    write the x difference either as a QFIELD (in place on the by-value
+//    parameter, `b.x -= a.x`, which is what the dead stores require) or as a
+//    level-0 temp (a `static inline` helper result, `d.x = Dx(a, b)`, or
+//    `d.x = b.x - a.x` into a local's field), and the pairing is forced:
+//      x difference a QFIELD   ->  y difference eax, x difference esi
+//                                  (a callee-saved one; the load of b.x cannot be
+//                                  hoisted, which is the whole residual), and
+//                                  the abs/divisor chain then takes ecx;
+//      x difference a temp     ->  x difference eax, y difference ecx, both
+//                                  loads hoisted, in the order b.x then b.y;
+//    and in the second case that is true for EVERY source order and every
+//    spelling (in place on b, in place on a local, through a helper, through a
+//    scalar local, the field or the parameter as the destination, y first or x
+//    first in the source): 12 of 12 shapes give b.x -> eax and b.y -> ecx. The
+//    only shape that hoists the loads in the ORIGINAL's order, b.y then b.x, is
+//    the all-helpers one (both differences through helpers into d's fields), and
+//    there the registers are still b.y -> ecx and b.x -> eax, i.e. the original
+//    with its two scratch registers exchanged, at 358 to 360 bytes.
+//    So the original is "a QFIELD y difference and a temp x difference that is
+//    walked second", and no spelling reaches it: a temp x difference is always
+//    walked first.
+// 2. WHY the walk order cannot be flipped from the source, which is new: the
+//    walk follows the QFIELD number, and the QFIELD number follows the field
+//    order of the struct. With {x, y, z} d.x is field 0 and is always walked
+//    first, in every shape measured. The one way to put the y difference first
+//    is to declare the struct {y, x, z}, and the frame forbids it: the loop
+//    reads the x step from [esp+0x10] (= entry esp - 0xc + 0, the first local
+//    dword) and the z step from [esp+0x18] (= the third), so d.x is the first
+//    field. The dead store of the y difference into that same first slot is the
+//    MSVC 5 slot mixup earlier passes reported, not evidence for a different
+//    field order: with {y, x, z} the post-division store of d.x would land in
+//    [esp+0x14], and the original's lands in [esp+0x10].
+// 3. Cross-check against the exe, redone this pass with the two-hoist-plus-
+//    `push ebx` prologue as the pattern: 23 hits, 19 of them already MATCHed, so
+//    the near-copy is a dead end. The two that resemble a subtraction of two
+//    by-value struct fields, 0x44d350 (`int dx = abs(px - x);`) and 0x440830
+//    (`int left = a.x - field_4;`), get a QFIELD of a by-value parameter into
+//    ecx/edx only because the subtraction sits INSIDE the abs as a level-0
+//    expression temp; here that means spelling the x difference twice (once for
+//    the max, once for d.x), which is 356 bytes. Both spellings of that were
+//    scored this pass: naming the difference in a local that the max reads
+//    (`int rx = b.x - a.x; d.x = rx; n = (abs(rx) < abs(d.z) ? ...)`, and the
+//    three-field version) gives 337 to 360 bytes, and `abs(b.x - a.x)` spelled
+//    twice gives 354 bytes at 83.9%, both with dx still in esi or eax.
+// 4b. Two more families scored this pass, both aimed at making the x difference
+//    a level-0 temp WITHOUT naming it in a local: an addressable d (a pointer
+//    derived from the local, `pd->x = b.x - a.x`, and a `static inline` setter
+//    that takes the difference as an argument, `SetX(&d, b.x - a.x)`), with the
+//    y difference in place, with both differences through setters, and the
+//    setters taking a pointer or a reference. Every one that keeps the in-place
+//    preamble and the 354 bytes still gives b.x -> eax and b.y -> ecx (77.4%),
+//    and the one that re-assigns d.x after the in-place x subtraction
+//    (`SetX(&d, d.x)`) is byte-identical to this file at 84.7%: making d.x
+//    addressable does not change its class, so the destination cannot be what
+//    decides it either.
+// 4. Also scored this pass, all 84.7% or worse: the n expression in eleven
+//    spellings (named max local, named abs locals, an AbsI helper, a MaxAbs
+//    helper, `1 + m / 0x100000`, `>> 20` instead of `/ 0x100000`, `n++` on its
+//    own line, unsigned and long and short and char and unsigned short n), the
+//    three differences in six orders with three spellings each crossed with
+//    those n expressions (115 files), a `Vec3&` alias and a `Vec3*` alias of the
+//    parameter, the copy written twice, `-=` versus `= b.f - a.f`, and the
+//    division order. tools/headers.py, all 128 sets, flat at 84.7%.
+// 4c. The best lead the exe offers, found by scanning for the WHOLE preamble
+//    shape rather than the prologue (scan3.py, scan4.py in the same scratch
+//    folder: every function with a `sar reg, 0x14` and two register-register
+//    `sub`s; 0x4851c0 is the only one in the exe with this shape, so there is
+//    no near-copy). The one analogue worth reading is 0x47e2d0 (MATCHed, 658
+//    bytes): `short a = (v.x - (footprint.x << 19) + 0x80000) >> 20;` and the
+//    same for z land in EAX and ECX, two scratch registers, both loads of v's
+//    fields hoisted. The difference from here is visible in that source: its
+//    SUBTRAHEND is a level-0 expression temp (`footprint.x << 19`), ours is a
+//    QFIELD of a by-value parameter. So the rule to test next is "a subtraction
+//    whose subtrahend is an expression temp lands in a scratch register". The
+//    three ways of making a.y/a.x a temp that keep the code otherwise identical
+//    were all folded by MSVC 5 this pass and leave the prologue byte-identical:
+//    a `static inline int Sub(int m, int s)` helper (all four of the y, z, x,
+//    and helper-vs-in-place combinations, 81.5% with this file's prologue), a
+//    `static inline void SubX(Vec3&, int)` member helper, and a named local
+//    holding the field. Only a shift, which changes the arithmetic, survives,
+//    and that cannot be the original's source.
+// 5. tools/permute.py, as the 0x47e5c0 note suggests, run from the WORSE
+//    plausible shapes rather than the best file, with --jobs 4: from the 67.2%
+//    all-helpers shape (seed 31, 5159 candidates) it reached 70.4%, and from the
+//    77.4% `b.y -= a.y; b.z -= a.z; d = b; d.x = b.x - a.x;` shape (seed 32,
+//    3880 candidates) 77.4%, i.e. neither beats the file. Both stalls, both
+//    checked with check.py afterwards (360 bytes and 354 bytes).
 // Space Bunny Free pass (issue #4667): still 84.7%, 354 of 354 bytes, size exact,
 // the file's version left in place. A systematic 750-shape sweep and two of the
 // three levers tried on other functions today both failed, but the sweep pins the

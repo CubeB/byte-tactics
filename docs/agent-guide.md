@@ -209,6 +209,18 @@ their whole budget.
 
 ## When the registers or the order won't budge
 
+**Get the frame layout from the reference counts.** MSVC 5 orders a
+function's stack locals by how often the code refers to each one relative to
+its size (references per byte): the most used sit nearest esp. Scalars,
+arrays and compiler temporaries are mixed, ties go to the earlier
+declaration, and dead locals share slots. So count the original's references
+to each `[esp+N]` slot to predict the order, and give every local its real
+size: a 20-byte box where the original has a 16-byte Rect sorts to the wrong
+place (0x495a30 matched once that was fixed). A file that packs its locals
+into one struct to force a layout can never reproduce this, and rewriting
+0x468cf0 with plain locals put every slot right (84.2% to 91.4% at once). Use
+`uv run tools/stackcmp.py <addr>` to see which locals sit in the wrong slots.
+
 **Run the permuter when a function is close and stuck.** At about 90% or
 more, `uv run tools/permute.py <addr>` searches meaning-preserving rewrites of
 the file (statement and declaration order, temporaries, operand order, loop
@@ -593,10 +605,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **When a match needs the function before it compiled first** (a loop guard
   gets its own copy of a call, or a tail merge differs, only in a file with no
   earlier function): define the real preceding function (`ctx.py` on the
-  address just before yours) in the same file, above yours, with its own
-  `// FUNCTION:` annotation. That is how the original file was laid out, so it
-  is not a trick; never define made-up functions for this. See
-  `src/unsorted/0x4b0830.cpp`.
+  address just before yours) in the same file, above yours. That is how the
+  original file was laid out, so it is not a trick; never define made-up
+  functions for this. See `src/unsorted/0x4b0830.cpp`. If that function
+  already has its own file under `src/`, define it **without** a
+  `// FUNCTION:` line: an address annotated in two files stops the progress
+  check ("duplicate of"). 0x43f0e0 (copying 0x43e490), 0x49b720 (0x49b6e0)
+  and 0x4a7960 (0x4a7830) all matched or moved this way on 2026-10-02.
 - **Ordinal-only imports** (DPLAYX, smackw32) are called through `jmp [iat]`
   thunks; declare the real API with `extern "C" ... __stdcall`.
 - **Calling a constructor callee on `this` first, then copying fields and

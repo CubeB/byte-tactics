@@ -1,4 +1,129 @@
-// Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free pass (2026-10-02, #4737): 99.6% re-confirmed (546 of 546
+// bytes, check.py), still only the swapped SIB byte at 0x46e708, and this pass
+// adds WHY it cannot be reached from source, which closes the whole family
+// (0x408f30, 0x425210, 0x44ec30, 0x476210, 0x475bd0) rather than just this file.
+//   * THE INSTRUCTION IS NOT EXPRESSIBLE IN C++. `int* + int*` is C2110, "cannot
+//     add two pointers" (measured, build/scratch/46e640/mp3.cpp: six such errors
+//     at lines 10, 12, 19, 20, 36 and 63). So the two-pointer add at 0x46e708 is
+//     not a source expression at all: it exists only inside the loop
+//     optimiser's synthesised linear function for the third _Ucopy's derived
+//     source, IV*1 + (_P - _Q - _M*4). Nothing in the file can name that node,
+//     reorder its children, or make the emitter pick the other base/index slot,
+//     because MSVC 5 builds the node after the front end. Every "spelling" in
+//     the older notes is a spelling of the CALL, and the call is not what the
+//     byte comes from. That is the one thing none of the older passes could see.
+//   * The emitter's rule, measured (build/scratch/46e640/mp2.cpp): an unscaled
+//     two-register lea is CANONICALISED, not source-ordered.
+//     `int __fastcall r1(int a, int b) {return a+b;}` and the same body with
+//     `b+a` both emit `lea eax,[edx+ecx]`, and it does not matter which registers
+//     the allocator picks. A *scaled* lea is the opposite, source-ordered:
+//     `_Q + _M` gives `lea ecx,[edx+edi]` and `_P + _M` gives `lea edx,[esi+edi]`,
+//     both with the source expression's first operand in the base. So the only
+//     knob at 0x46e708 is the order in which the optimiser lists the two
+//     children of its own synthesised add, and no source text lists them.
+//     The loop optimiser also only ever builds these sums one way round: with a
+//     plain `for (; s != l; ++s, ++d) if (d) *d = *s;` over two pointers
+//     (build/scratch/46e640/mp1.cpp p1 for int and p7 for char) it produces a
+//     four-instruction `mov eax,ecx / sub / add / sub` form with no unscaled
+//     two-register lea at all. The three-instruction lea only appears inside a
+//     bigger function, which is why a micro benchmark cannot show the rule.
+//   * What the source CAN reach is the association, and only two values of it
+//     exist here. The plain real header, with no clone at all (just
+//     `#include <vector>`, `typedef std::vector<int> Vec;` and
+//     `InsertFn g = &Vec::insert;`, build/scratch/46e640/a_realheader.cpp),
+//     emits the four-instruction form `mov eax,ecx / sub eax,edx / add eax,ebx
+//     / sub eax,edi`, i.e. ((dest - _Q) + _P) - _M*4, difference-first. That is
+//     the association the MATCHed siblings 0x4c4d70 (547 bytes) and 0x488fb0
+//     (649 bytes) compile, because both are the plain header. The original at
+//     0x46e640 is 546 bytes, so it is NOT that build: it is
+//     ((dest + _P) - _Q) - _M*4, which only exists because the sum is short
+//     enough for a `lea`. In other words the wanted shape has no matched
+//     compilation anywhere in the exe: of the 29 `insert@?$vector` rows in
+//     data/progress.csv the twelve that match are 449, 467, 547, 547, 622, 622,
+//     649, 649, 649, 755, 773 and 785 bytes, and all three 546-byte rows
+//     (0x408f30, 0x44ec30 and this one) are still partial. That is outcome (1)
+//     of the guide's twin test
+//     (docs/agent-guide.md line 2221: "the twin uses a different
+//     instruction shape, so your shape has no matched compilation and the
+//     residual is unreachable", named for 0x408f30 with 0x4c4d70). 0x46e640 is
+//     the same case. The older note that reads all six sites in the exe
+//     (0x408ff8, 0x4252d1, 0x44ecf8, 0x46e708, 0x475d01, 0x4762f0) as "the
+//     original agrees with the other five, so our reproduction is the anomaly"
+//     is true about the base slot but does not help: all six are copies of this
+//     same template in the same build, none of them is matched, and none of them
+//     has a second matched copy to copy the operand order from.
+//   * A cheap pre-screener for the next pass (about 0.5 s a variant, no
+//     check.py and no objdump): build/scratch/46e640/sweep.py compiles a scratch
+//     .cpp with the check.py flags, pulls the `?insert@?$vector@H` body out of
+//     the /Fa listing, canonicalises it, and prints the differing-instruction
+//     count plus the third _Ucopy's four synthesised-source instructions.
+//     w.sh compiles one file and greps its listing, p.sh prints one PROC, mp1 to
+//     mp3 are the emitter probes. Baseline: 260 canonical instructions and
+//     `lea eax,[ecx+ebx] | sub eax,edx | sub eax,edi`. Across 53 variants the
+//     synthesised add's operands were always `[ecx+ebx]` (sometimes into a
+//     different destination register, `lea edx,[ecx+ebx]`), or the whole add was
+//     the four-instruction mov+add form, and never `[ebx+ecx]`. There is no
+//     third shape, so the pre-screener can rule a variant out in half a second
+//     that would otherwise cost a check.py run.
+//   * Measured this pass with the pre-screener, 52 variants, plus 4 emitter
+//     probes. Not one 260-instruction build gave `[ebx+ecx]`, and none reached
+//     MATCH or any different single-instruction diff. Byte-identical at 260:
+//     _Ucopy's body written directly (`if (_P != 0) *_P = *_F;`), its
+//     increments swapped, a while form, the increments moved into the body, a
+//     spelled-out loop init, raw `int*` parameters, `capacity()` declared after
+//     insert, `allocator.allocate(_N, 0)`, the negated first test, _Ucopy's
+//     parameters in the order (first, dest, limit), the third copy's source as
+//     `*(const_iterator *)&_P`, `_P + 0`, `_P - (_P - _P)`, a comma expression, a
+//     dead self-phi and `_Q = _Q;`, its destination as `&_Q[_M]`, `_M + _Q`,
+//     `_Q + _M + _M - _M` and a comma expression, a member typedef, a friend
+//     declaration and `reserve`. A second, void helper for the third copy alone
+//     with the parameters (source, dest, limit) costs 4 instructions and keeps
+//     the order. Moved to the mov+add form
+//     (261 instructions) and therefore worse: `size_type _Mc = _M;` for either
+//     or both of the second and third copies, `const_iterator _Ps = _P;`,
+//     `_Q + (int)_M`, `_Q + (size_type)((size_type)_M)`, a `size_type _Z` dead
+//     local, a dead `if (_M)`, the dead self-phi `_P = _P ? _P : _P;`, a
+//     trailing dead statement after the third copy, a pointer-typed cast on the
+//     third copy's source, an empty `_Xran`, a copy constructor and a private
+//     no-op member. Two more are 261 instructions but keep the synthesised add:
+//     `_First = _S` written first (66 differing instructions) and `_Destroy`
+//     before the fill (9). Four moved further away: `_Ufill` before the first
+//     _Ucopy (89 differing instructions, and the synthesised lea is then
+//     `lea edx,[ecx+ebx]`, same order), the third copy before the fill (64, 259
+//     instructions), a dead local alias of _S (65 in an earlier pass), and
+//     `allocator` after the three pointers (32, which moves the data members
+//     and is not this function's layout).
+//   * tools/headers.py 0x46e640 re-measured on this file: 256 sets, 0 compile
+//     failures, no set matches and the best is 99.6% (including with
+//     <windows.h>, <stdio.h>, <stdlib.h> or <string.h>). The guide's windows.h
+//     SIB lever (0x4bc370, 0x40d290) does not reach this lea, consistent with
+//     every earlier pass.
+//   * tools/permute.py 0x46e640, 15 min, 4 jobs, run twice: the default seed
+//     gave 3438 candidates and --seed 20261002 gave 2211, both with 0 compile
+//     failures, both 99.6% -> 99.6%, score 5 -> 5, both with an empty best.diff.
+//     Note that build/scratch/46e640/perm.sh forwards a seed, which the shared
+//     bt.sh permute wrapper cannot, so that second run is not reproducible from
+//     bt.cmd.
+//   * Two things ruled out by measurement, so nobody retries them here (both
+//     from docs/agents.md). (a) `/GX`: check.py's flags are
+//     "/O2 /Ob2 /MT /Gz" and nothing in tools/ adds it, so the exception frame
+//     problem 0x46ea10 has cannot arise; our ?insert listing contains no `fs:`
+//     at all, and data/functions.csv has seh=0, frame_pointer=1, params=3,
+//     locals=2 for 0x46e640, which our prologue already reproduces
+//     (`sub esp,8 / push ebx / push ebp`). The residual is not an exception
+//     prologue. (b) `/Zp1` and `#pragma pack(1)`: the shipped source has no
+//     pragma at all, and the only pack I tried was `#pragma pack(push, 8)`
+//     (natural alignment, byte-identical at 260). The one `/Zp1` in the tree is
+//     setup_toolchain.sh line 85, which only builds the zlib block, nowhere near
+//     this address.
+//   * Verdict: the best reachable source is the one below, unchanged from main.
+//     Do not spend another pass on expression shapes here. The only thing that
+//     could still move this byte is a build of the loop optimiser's own linear
+//     function with its two children the other way round, and that node has no
+//     source spelling, so it needs a matched copy of the same 546-byte shape to
+//     copy, which the exe does not contain.
+// Best source kept below unchanged.
 // space-bunny-free pass (2026-10-02, #4672, tool-assisted): 99.6% re-confirmed
 // (546 of 546 bytes, check.py), still only the swapped SIB byte at 0x46e708. The
 // best source below is unchanged from main, because nothing I tried moved it.

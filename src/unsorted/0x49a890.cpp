@@ -1,4 +1,76 @@
-// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro, re-verified by space-bunny-free. Names are provisional.
+// space-bunny-free (issue #4502): still 83.6% (488/488), no MATCH, but the middle is now
+// explained, and the explanation rules OUT every spelling tried so far. Re-derived the x87
+// schedule by simulating the raw bytes of both the original and our own object
+// (build/scratch/49a890/sim.py, symbolic x87 interpreter; build/scratch/49a890/r5.py,
+// r6.py score the variants in ~0.2 s each).
+//
+//   1. THE ORIGINAL'S disc, confirmed (every value below read off the simulated stack):
+//        d4 = d*d            (materialised as its own value, 0x49a912, before A)
+//        A  = s2 - gh*-2.0   (0x49a91c fsubr)
+//        T  = A*s2           (0x49a930)
+//        h2gg = h2*gg        (0x49a93a)
+//        sum = h2 + d        (0x49a940)
+//        d4gg = d4*gg        (0x49a94a)
+//        T' = T + h2gg       (0x49a950 faddp st(3))
+//        disc = T'*d4 - d4gg*sum      (0x49a95e, 0x49a964 fsubp st(1))
+//      So d4 is a first-class value reused by two products, and the faddp is st(3) because
+//      d4gg already sits on the stack when T + h2gg is formed. Value at g=98, h=50, R=1000,
+//      v=500: 8.27265625e22, which is the intended quadratic discriminant.
+//
+//   2. WHY NO SPELLING OF THE DISC EVER GETS THERE: MSVC 5 rewrites the value. Our own
+//      object, simulated, computes T'*d*gg - sum*d*d*d, not the T'*d*d - d*d*gg*sum that
+//      the source below spells: it moves one factor of d from the first term to the
+//      second (-2.4455e24 instead of 8.2727e22 at the sample values). That is a
+//      value-changing reassociation of the x87 multiply tree, so the shape this source
+//      produces can never be the original's, no matter how the load order is fixed. The
+//      original's own code preserves the value, so Cavedog's source must have hidden the
+//      shared d*d behind something the optimiser would not look through (a named local).
+//      Every named-local spelling tried does reach the original's tail shape
+//      (faddp st(3), fstp, fmul, fxch, fmul, fsubp) but only at 75-78% and it costs the
+//      post-hypot load order as well, so the two levers have to be found together.
+//
+//   3. SCORES THIS ROUND (base = 83.6%, 488 bytes): explicit (d*d) parens 56.4% / 490;
+//      (d*d)*(gg*sum) 71.5% / 494; sum*((d*d)*gg) 75.7% / 492; the addends of X in the
+//      other order 44-47%; named d4 with (d4*gg)*sum 75.7% / 492, with d4*gg*sum 60.4%;
+//      named d4 before `sum` and (d4*gg)*sum 78.0% / 488 (exact size, closest overall);
+//      named t/hh intermediates 53.9-67.1% / 500-504. The base spelling, with four
+//      separate `* d` multiplies and no d*d grouping, is still the best of them.
+// space-bunny-free (issue #4352): best stays 83.6% (488/488 bytes), no MATCH. Re-derived the
+// original's x87 schedule with a numeric x87 interpreter run over the raw bytes
+// (build/scratch/0x49a890/x87run.py) rather than by eye. Two things settled; the first is a
+// trap nobody should walk into twice.
+//
+//   * THE `disc` SPELLED BELOW IS CORRECT. A hand symbolic trace produces a different but
+//     plausible discriminant, (q + h2*gg)*A - A*gg*sum with q = d*d*s2, because it reads
+//     `fxch st(3)` as a reversal of the stack. `fxch st(N)` swaps only st(0) and st(N): on
+//     [gg, A, d4, h2] at 0x49a924 it gives [h2, A, d4, gg], so the multiply after it is
+//     A*s2, not d4*s2. Simulating the bytes at g=98, h=50, R=1000, v=500 gives 5.5346e22,
+//     which is exactly what this file's expression evaluates to; the wrong tree gives
+//     6.4950e22. Spelling the wrong one costs about 18 points (best 65.5%), and every form
+//     of it with A named or inlined grows the frame to `sub esp,0x38`.
+//
+//   * VERIFIED TREE (dist = _hypot(x,z), d = dist*dist, s2 = speed*speed, h2 = height*height,
+//     gh = g*height, A = s2 - gh*-2.0, gg = g*g, sum = h2 + d):
+//         disc = (A*s2 + h2*gg)*d*d - (d*d)*gg*sum
+//         num = (s2+gh)*d ; high = (sqrt(disc)+num)/(2*sum) ; low = (num-sqrt(disc))/(2*sum)
+//     The original evaluates in this order: gh, d, s2, h2, gh*-2, d*d, A, (fild gg), A*s2,
+//     h2*gg, sum, (d*d)*gg, (A*s2)+(h2*gg), (d*d)*gg*sum, then the product, then the fsubp.
+//     Constants read out of the image: 0x4fda60 = -2.0, 0x4fda68 = 0.0, 0x4fda78 = pi/2,
+//     0x4fda80 = pi/4, 0x4fda88 = 32768.0, 0x4fda90 = 1/(2*pi).
+//
+// The one remaining difference is still only the commutative fild order right after the
+// _hypot call (the original converts g, then height, then does the gh multiply, then speed;
+// ours converts height, g and speed, then does the multiply), and the `add esp,0x10` rides
+// along with it because that add is the caller-side pop of the two doubles pushed for _hypot,
+// not a frame teardown. It did not move for anything tried: 9 gh spellings x 6 statement
+// orders; a 1440-candidate cross-product of gh spelling x statement order x distance/d naming
+// x sum spelling x discriminant spelling x the `disc < 0.0` test, 54 of which tie at 83.6%;
+// 6 tail shapes; 0 to 5400 unused file-scope prototypes above the function (the 0x4b6c30
+// trick); and the real neighbours 0x49a0c0, 0x49a850 and 0x49adf0 defined above it in both
+// orders. That makes it the guide's "operand order that nothing changes" case: the cause is
+// compiler state from the original file's other contents, not from this source. Everything
+// from the `fcom` at 0x49a966 to the end is byte-identical.
 // mimo-v2.6-pro (issue #4035): best stays 83.6% (488/488 bytes). The one diff hunk is the
 // post-_hypot x87 schedule, rooted in the commutative fild order of the gh multiply: the
 // original filds g then height, ours filds height then g and batches speed's fild before the

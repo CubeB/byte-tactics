@@ -1,4 +1,76 @@
-// Decompiled by Space Bunny Free, finished by space-bunny-free and GPT-6.1-sol, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free and GPT-6.1-sol, edited by deepseek-v4.1, retried by Sonnet 5.5, retried by space-bunny-free. Names are provisional.
+// RETRY NOTES (space-bunny-free, issue 3331, second pass, still 98.1%, no
+// MATCH; 48 scratch variants scored, none better). The file below is
+// unchanged from the 98.1% version. Three displacement-only hunks remain:
+//   * the `this` spill (0x4db459 / 0x4db4fc) is at esp0-0x0c here and at
+//     esp0-0x14 in the original, which is n's home;
+//   * the first erase's out-pointer is `&n` at esp0-0x14 and the original has
+//     esp0-0x10 there, which is it2's home;
+//   * (the second erase's out-pointer and the insert's iterator argument are
+//     already esp0-0x10 and match.)
+// WHAT THE MATCHED SIBLING SAYS ABOUT THE ERASE (new, and probably the real
+// shape). 0x4db000 is a MATCH and calls the same callee 0x4dc130, which it
+// declares as `Class_004dd2a0 FUN_004dc130(Class_004dd2a0 it)`: by value in,
+// by value out, result discarded. So the "out-pointer" declaration used here
+// is a displacement-shaped stand-in for a by-value return, and the original
+// almost certainly reads
+//     it2 = ((Class_004dc130*)this)->FUN_004dc130(n);
+//     ...
+//     it2 = ((Class_004dc130*)this)->FUN_004dc130(it);
+// with the dead assignments to one function-scope object, which is the same
+// idiom 0x4db000 needs for its three FUN_004ddbe0 calls. The callee's hidden
+// return pointer is then `&it2`, which is exactly why both erase `lea`s in
+// the original are `lea reg, [esp + 0x18]` = esp0-0x10 = it2's home.
+// Scored: that shape is 87.2% (K1) because MSVC 5 swaps the two iterator
+// homes (n to esp0-0x10, it2 to esp0-0x14). Assigning the two erase results
+// to `n` instead of `it2`, either or both, is 90.4% (L2, L3, L4); assigning
+// them to `it2` and giving the insert `&n` is 87.2% (L5). With the by-value
+// return and the result simply discarded, with no assignment at all (B1), the
+// score is 97.4% and the two hidden-return temps land at esp0-0x0c, sharing
+// the this-spill's slot, while n (esp0-0x14) and it2 (esp0-0x10) are already
+// right. So B1 is the closest of the three shapes: it needs its two temps to
+// overlay it2's home instead of taking the free dword.
+// HOW THE FRAME IS HANDED OUT (the useful part of this pass). There is one
+// 8-byte local, the value_type `p`, at esp0-0x08/esp0-0x04, i.e. at the
+// bottom of the five-dword local area; the two 4-byte iterator locals are
+// handed out top-down in ALLOCATE order (n = esp0-0x14, it2 = esp0-0x10,
+// because n's address is first taken at the lower_bound call); and every
+// temporary (the `this` spill, and in B1 the by-value return temps) is then
+// given the lowest still-free 4-byte slot, esp0-0x0c. To match, the `this`
+// spill and the return temps must instead OVERLAY n's and it2's homes, and
+// MSVC 5 will not do that here: a temp can only take a local's home when that
+// local is dead first, and n and it2 are both live across the erases in every
+// spelling that reaches esp0-0x10.
+// Inert this pass, all 98.1% with the same three hunks: `self` as a named
+// local at the top of the body, at the tail, or as `Class* const` / `Class&`
+// (MSVC folds it back into `this`, so it can never own a frame home while
+// `this` is live across the reservation loop: the value is the same value, so
+// the parameter stays live and the spill stays); the `it` alias declared
+// first; the erase out-parameter as a `Class_004dd2a0&`; the erase value
+// parameter as `Node_004db450*`; `FUN_004dbeb0` returning void instead of
+// `int*`; the insert's iterator parameter as a reference; `n` and `it2`
+// initialised with `Class_004dd2a0()`; `len` assigned after its declaration;
+// `base = 0` in its declaration; a folded-branch dead store pinning `n` or
+// `it2` (at the top of the body, just before `it = n`, and after the insert);
+// `&n` / `&it2` spelled through a ternary or an extra cast; an inline no-op
+// helper taking `int&`/`int&` called on a dead local, to try to make esp0-0x0c
+// a real reserved home (three spellings, no effect, so a local whose address is
+// only ever taken by an inlined no-op still gets no frame slot); and the
+// by-value erase with a dead self-assignment `n = n;` after the insert, or with
+// a dead folded store pinning `n` there, or with the insert taking `&n`
+// (all 87.2%, the same swap).
+// Worse this pass: a third iterator local for the first erase's out-parameter
+// (79.2% in three declaration orders); splitting the begin result and the
+// erase out-pointers into two separate variables so their (disjoint) live
+// ranges could share a slot (83.1%); wrapping the whole tail in a nested
+// block, or just `it2`, or just `n` (83.8% / 83.8% / 85.1%); splitting `p`
+// into two 4-byte locals (56.4% / 57.5%, so the 8-byte value_type sitting at
+// the bottom of the frame is load-bearing); the pair's `length` field first
+// (91.6%); the begin() test written `it.ptr == it2.ptr` (83.9%); and the
+// merge tests through `Neq` with explicit iterator copies (88.0%); and `it2`
+// typed `Node_004db450*` with a cast at each of its four out-uses (83.9%).
+// Confirmed still best: `FUN_004dc130(&n, n)` plus `FUN_004dc130(&it2, it)`,
+// 98.1%, tied with `(&it2, &n)`.
 // GPT-6.1-sol issue #3131 retry: 97.4% (444/444), eight check.py invocations
 // including the worker's checks, no MATCH. `this` alias and reversed local
 // order tied; 128 header sets also tied. Four stack-home displacements remain.
@@ -86,95 +158,93 @@
 //     `total` to +0x14: 81.8%;
 //   * a real named local for `it` instead of the parameter-slot alias: 81.8%,
 //     so the alias onto the dead `size` slot is load bearing.
-// Added by deepseek-v4.1-flash, both still 92.9% and 444 of 444 bytes with the
-// identical nine-hunk slot rotation this file already had:
-//   * declaring the lower_bound callee as `Class_004dd2a0 FUN_004dc620(const
-//     unsigned int&)` and writing `Class_004dd2a0 n = ...FUN_004dc620(p.offset)`
-//     compiles byte-for-byte the same object as the explicit
-//     `void FUN_004dc620(Class_004dd2a0*, const unsigned int&)` out-param call,
-//     so MSVC 5 elides the copy and the frame is not reachable that way either;
-//   * moving the `it` reference alias to the top of the declaration list (and
-//     deleting it from its old position) changes nothing, so the alias's
-//     position is inert too.
-// Added by space-bunny-free, all 92.9% and 444 of 444 bytes unless stated, so
-// the slot order here is inert to everything a reader would try next:
-//   * the two 4-byte homes are also inert to the LOCAL NAMES. Renaming `n`/`it2`
-//     to aaa/zzz, to zzz/aaa and to q1/q2, declarations and code otherwise
-//     untouched, gives three byte-identical objects. Together with the 24
-//     declaration orders above this rules out both "declaration order" and
-//     "symbol name" as the driver, so the layout is not a hash or source order
-//     effect that a rename or a reorder can reach;
-//   * `base` as a `char*` instead of an `unsigned int`, with
-//     `(unsigned int)(base + len) <= 0x80000000u` and a plain `VirtualFree(base,
-//     ...)`: still `lea edx,[esi + eax]`, so the SIB base/index choice for the
-//     one `lea` difference is NOT driven by the operand being pointer
-//     arithmetic rather than integer addition. This is the natural next guess
-//     for that single instruction and it is wrong;
-//   * the two calls declared as the real STL shapes (the lower_bound returning
-//     the iterator by value into `n`: 55.4% and 438 bytes, it deletes the
-//     `total += len` store; the begin() returning the iterator by value, with
-//     `it2 = *f(&it2)`: 84.1% and 446 bytes, the copy is NOT elided, MSVC emits
-//     the extra store and reorders `total += len` ahead of it). Both are worse
-//     than the explicit out-parameter calls, so the out-parameter spelling in
-//     this file is the right one, not an accident.
-// Grows the allocator: reserves a block of at least `size` bytes with
-// VirtualAlloc (rounded up to 8k, and doubled so the block has room to grow),
-// retrying with half the size while the reservation lands above 2Gb, and then
-// records the block in the free-block map, merging it with the neighbours it
-// touches. Same std::map idiom as 0x4db000: the block is the map's value_type,
-// a base pointer and a length, and the _Ubound result plus the decremented
-// iterator are compared with the tree's head (End()).
-// UPDATED by deepseek-v4.1: the residual is now EIGHT hunks at 93.5% (was nine at
-// 92.9%). The fix was declaration order after all: with `unsigned int len` and
-// `unsigned int base` declared BEFORE `Pair_004db450 p` and the two iterators
-// declared LAST, the commutative `base + len` in the 2Gb test compiles to the
-// original `lea edx,[eax + esi]` instead of `lea edx,[esi + eax]`, so the
-// earlier note that declaration order is inert is WRONG (that note only ever
-// permuted the four dword locals n/it2/base/p; moving `len` in front of `base`
-// is what flips the SIB base/index choice). What is still wrong is only the
-// home rotation: the original keeps the spilled `this` AND the _Ubound result
-// in the first frame dword (esp0-0x14) and the begin() result in esp0-0x10,
-// leaving esp0-0x0c unused, while this file gives esp0-0x14 to the begin()
-// result, esp0-0x10 to the _Ubound result and esp0-0x0c to the `this` spill.
-// Everything else (444 of 444 bytes) is identical. Tried here and inert:
-// a named `self = this` local instead of the parameter (same 9 hunks), the
-// _Ubound destination declared as `Node_004db450*` (worse, 85.4%, and it also
-// loses the Neq idiom), n and it2 in one declaration statement (92.9%),
-// n/it2 declared after len+base+p in the ORIGINAL order (93.5%, this file).
-// Added by deepseek-v4.1 (all 93.5%, 444 of 444 bytes, the same eight hunks):
-//   * declaration orders len/base/n/it2/p, len/base/n/p/it2, len/base/it2/n/p,
-//     n/it2/len/base/p, p/n/it2/len/base, n/len/base/it2/p and
-//     len/n/it2/base/p: byte-identical objects, so the slot rotation is not
-//     reachable by reordering the declaration block;
-//   * declaring n, it2, p and base at their point of use (a seed pattern from
-//     the board) is inert too, and so is an extra dead 4-byte local;
-//   * the erase and the insert declared as by-value-returning STL shapes
-//     (`it2 = f(x)`): 456 bytes, 87.2%, the hidden return pointer grows the
-//     frame to 0x18.
-// The single root difference left: it2 lands at temp0 here and temp1 in the
-// original (n and the spilled `this` follow it one slot down), so the erase
-// pair temp sits at temp0/temp1 here instead of temp1/temp2. The emitted
-// instruction sequence is otherwise identical, so that one allocation state is
-// not steered by anything the declaration list or the call spelling can reach.
-// UPDATED by deepseek-v4.1-flash (retry, issue 2942): 93.5% -> 97.4%, still 444
-// of 444 bytes. The lever was the ERASE declaration, not the declaration list:
-// `FUN_004dc130` must be declared with its real by-value signature
-// `Class_004dd2a0 FUN_004dc130(Class_004dd2a0 it)` and its result DISCARDED
-// (`((Class_004dc130*)this)->FUN_004dc130(n);`), replacing the previous
-// out-parameter spelling `void FUN_004dc130(Class_004dd2a0* out, ...)` that
-// passed `&it2` explicitly. With the by-value spelling MSVC treats the hidden
-// return pointer as a compiler temporary, and that alone flips the permanent
-// local order so `n` lands at esp0-0x14 and `it2` at esp0-0x10, which is the
-// original: the four n/it2 hunks collapse. Tried with it and inert/worse:
-// declaring `n` and `it2` at their point of use (97.4%, same), assigning the
-// erase result to `it2` (`it2 = FUN_004dc130(n)`, 456 bytes, 87.2%), and
-// wrapping the map block in a scope (93.5%). What still differs (four hunks,
-// all displacement-only): the spilled `this` sits at esp0-0x0c here but
-// esp0-0x14 in the original (sharing `n`'s dead home), and both erase hidden
-// return temps sit at esp0-0x0c here but esp0-0x10 in the original (sharing
-// `it2`'s dead home). So the original's temporaries reuse the dead permanent
-// slots while this compile gives them the one unused frame dword instead; that
-// residual is a temp-pool allocation state, not a source shape.
+// RETRY NOTES (space-bunny-free, issue 3331, 98.1% now, no MATCH; was 97.4%).
+// THE LEVER WAS THE ERASE'S OUT-PARAMETER SPELLING, and it is worth another
+// pass. Declaring
+//     void FUN_004dc130(Class_004dd2a0* out, Class_004dd2a0 it);
+// and calling it as `FUN_004dc130(&n, n)` for the first merge and
+// `FUN_004dc130(&it2, it)` for the second takes the score from 97.4% to 98.1%
+// (three displacement-only hunks left, 444 of 444 bytes). So the discarded
+// by-value result (which gave a hidden return pointer at a fresh temp slot) is
+// NOT what the original has: it passes an out-pointer, and the two out-pointers
+// are `&n` and `&it2` themselves. Note how much the spelling moves the frame:
+// with `&n` and `&it2` the two four-byte homes are n at esp0-0x14, it2 at
+// esp0-0x10, the this-spill at esp0-0x0c and no hole; with `&it2` for BOTH
+// erases MSVC 5 swaps the two homes (it2 at esp0-0x14, n at esp0-0x10) and the
+// score drops to 93.5%, and the same swap happens whatever the declaration
+// order is. Combinations of {&n, &it2, &it} for the two erases, all scored:
+// (&n,&it2) 98.1%, (&it2,&n) 98.1%, (&n,&n) 97.4%, (&it,&it) 97.4%, (&it,&it2)
+// 93.5%, (&it2,&it) 93.5%, (&it2,&it2) 93.5%; the same again with the
+// lower_bound out-parameter as a reference: (&n,&it2) 98.1%, (&it2,&it) 93.5%,
+// the rest unchanged.
+// The frame layout is pinned exactly and it is the SAME in the original and
+// here: n at esp0-0x14, it2 at esp0-0x10, a four-byte slot at esp0-0x0c,
+// p.offset at esp0-0x08 and p.length at esp0-0x04 (every [esp+N] of the
+// original was re-derived from the push count at each site, so esp0-0x0c
+// really is unreferenced). What is left is one allocation state: in the
+// original the this-spill (0x4db459/0x4db4fc) shares esp0-0x14 with n and
+// both erase out-pointers share esp0-0x10 with it2, so esp0-0x0c is a hole;
+// here the this-spill takes esp0-0x0c and the first erase's out-pointer is
+// `&n` at esp0-0x14, and that last one is the only hunk that is not a
+// displacement of the this-spill. n and it2 already have the right slots
+// (0x4db508's `lea ecx,[esp+0x10]` and 0x4db525's `lea eax,[esp+0x14]` are
+// not in the diff), so this is a temp-versus-dead-local slot reuse decision,
+// not a layout difference: the this-spill is a compiler temporary whose live
+// range [0x4db459, 0x4db4fc] is disjoint from n's, and MSVC 5 gives it the
+// one otherwise-unused frame dword instead of reusing n's dead home. Putting
+// the first out-pointer at esp0-0x10 needs `&it2`, and that spelling is the
+// one that swaps n and it2.
+// Re-tried on the 98.1% base and all inert (same three hunks): dead stores in
+// six positions, `self` as `Class* const` and `Class&`, `total = len + total`,
+// `total += len` through an inline `AddTotal` member, an uncalled
+// `static inline`, `n` and `it2` at their point of use, a `Node*` temporary
+// for the first merge test, `p = Pair(base, len)` with a Pair constructor, a
+// POD iterator, `Neq` as a free inline function, the lower_bound out-parameter
+// as a reference and the insert's two parameters as references, and seven
+// declaration orders of p/n/it2.
+// Tried at 97.4% and inert (same four displacement-only hunks, 444 of 444
+// bytes): 1, 2, 3 and 4 uncalled `static inline` functions, an `Identity`
+// wrapper uncalled and called on the `it = n` copy, Key/Length/Head/MkPair
+// inline helpers folded into the existing uses, dead stores in ten positions,
+// `self` as `Class*`, `Class* const`, `Class&` and a point-of-use declaration
+// with all four calls rewritten to it, `total = total + len`, `total = len +
+// total`, the three p-store orders, `p = Pair(base, len)` with and without a
+// Pair constructor, the iterator class with no default constructor, as a POD
+// (with an `It()` helper for `head`), with an explicit copy constructor
+// (48.3%) or `operator=`, the lower_bound and begin out-params as references
+// instead of pointers, the insert's two parameters as references, `it` as a
+// `Class_004dd2a0*` pointer alias instead of a reference, `Neq` as a free
+// inline function, with pointer or const-reference parameters, `head` through
+// a local, each merge test in its own nested scope, `p` through a reference,
+// the reservation loop restructured with a `continue`, the `it` alias through
+// two different casts, and the whole reservation loop moved into an inline
+// `Grow` member taking the pair by reference (63.5%) or returning it (71.4%).
+// Worse: an inline wrapper returning the iterator by value around lower_bound
+// (56.0%), around begin (88.0%), around both (44.6%), a live extra 4-byte
+// local (58.4%), a named `Node*` for the lower_bound result (51.1%), the two
+// iterators in an array (87.7%), a copy of `p` for the insert (73.1%), a union
+// holding `this` and the lower_bound result so they share one slot (71.6%),
+// and the by-value erase's result assigned to `it2` (87.2% for both, 89.0%
+// for the second only). Not tried: giving esp0-0x0c a real home, i.e. a
+// named local there, which is what the 0x4db7d0 notes call "a genuine hole
+// at 0x1c" on this same allocator.
+// Two permuter runs on the 98.1% base (seeds 11 and 12, 6 minutes each, 1300
+// and 1555 candidates) found nothing, so the residual is not reachable by
+// meaning-preserving rewrites of this function and the `Neq` helper. The
+// iterator pair in one named two-member struct, with the erase out-pointers
+// naming its members, is 87.7% in all four combinations, so forcing the two
+// homes adjacent does not help either.
+// TECHNIQUE WORTH A GUIDE ENTRY (it moved this function 97.4% -> 98.1%): when
+// a call's RESULT IS DISCARDED and the callee returns a class with a
+// constructor, MSVC 5 materialises a hidden return pointer in a fresh frame
+// temp. Declaring the same callee with an explicit out-pointer instead, and
+// passing the address of a local you already have, removes that temp and moves
+// the frame. The choice of WHICH local to pass is itself a strong lever: here
+// `FUN_004dc130(&n, n)` and `FUN_004dc130(&it2, it)` give 98.1% while
+// `FUN_004dc130(&it2, n)` and `FUN_004dc130(&it2, it)` swap the two iterator
+// homes and give 93.5%, and declaration order cannot pull them back. So when
+// two four-byte homes keep the wrong order, try naming each of them as an
+// out-pointer argument before you try the declaration list.
 #include <windows.h>
 
 struct Node_004db450 {
@@ -211,7 +281,7 @@ public:
 
 class Class_004dc130 {
 public:
-    Class_004dd2a0 FUN_004dc130(Class_004dd2a0 it);
+    void FUN_004dc130(Class_004dd2a0* out, Class_004dd2a0 it);
 };
 
 // begin(), out of line: it stores the tree's first node through its argument.
@@ -281,14 +351,14 @@ bool Class_004db450::FUN_004db450(unsigned int size)
     if (Neq(n, Class_004dd2a0(head))) {
         if (n.ptr->key == p.offset + p.length) {
             p.length = p.length + n.ptr->length;
-            ((Class_004dc130*)this)->FUN_004dc130(n);
+            ((Class_004dc130*)this)->FUN_004dc130(&n, n);
         }
     }
     if (Neq(it, Class_004dd2a0(head))) {
         if (it.ptr->key + it.ptr->length == p.offset) {
             p.length = p.length + it.ptr->length;
             p.offset = it.ptr->key;
-            ((Class_004dc130*)this)->FUN_004dc130(it);
+            ((Class_004dc130*)this)->FUN_004dc130(&it2, it);
         }
     }
     ((Class_004dbec0*)this)->FUN_004dbec0(&it2, &p);

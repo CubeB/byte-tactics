@@ -1,4 +1,47 @@
 // Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// space-bunny-free pass (2026-10-02, #4510): 99.6% re-confirmed, 546 of 546
+// bytes, the one swapped SIB byte at 0x46e708 is still the only difference, and
+// this pass adds the measurements below rather than a fix. Two new facts narrow
+// what the byte is, and one closes off a lever the older notes left open.
+//   * An exe-wide scan of .text for this shape (build/scratch/46e640/scan2.py:
+//     `lea r32,[b+i]; sub r32,x; sub r32,y` with scale 1 and both base and index
+//     general registers, no displacement) finds exactly SIX copies in the whole
+//     executable: 0x408ff8 (0x408f30), 0x4252d1 (0x425210), 0x44ecf8
+//     (0x44ec30), 0x46e708 (this one), 0x475d01 (0x475bd0) and 0x4762f0
+//     (0x476210). All six put the HIGHER-numbered register in the base slot
+//     (ebx over ecx three times, esi over edx, edi over edx), so the wanted
+//     byte is what this compiler always produced for this shape and the
+//     [ecx+ebx] order never appears in the original at all. 0x475bd0 is not in
+//     the stuck list the guide keeps for this template, so it is the one of the
+//     six worth a look next if the SIB is ever cracked.
+//   * The lea emitter keeps the tree's operand order, it does not canonicalise
+//     by register number, so the order here is the order the loop optimiser
+//     built the sum in: our own matching `lea ecx, [edx+edi]` at 0x46e701 (the
+//     third copy's destination, written `_Q + _M`) and `lea edx, [esi+edi]` at
+//     0x46e79a (`_P + _M`) both carry the source expression's first operand in
+//     the base, exactly as written. Note that those two are the opposite rule
+//     to the six above (edx 2 over edi 7, esi 6 over edi 7), so no register
+//     numbering rule can produce both. What differs between the builds is only
+//     which of the two operands of that synthesised sum comes first.
+//   * `template class std::vector<int>;` on the clone, which forces every
+//     member of the class out of line at once and so changes the state of the
+//     translation unit far more than any dummy-declaration padding the older
+//     passes swept, is 546 bytes with this same single SIB diff. Together with
+//     the padding sweeps already recorded below, that closes the "compiler
+//     state" lever for this function: the wanted byte needs a different SOURCE
+//     shape, not a differently sized translation unit.
+//   * Flat at 546/99.6 with the same diff: _Ucopy with a non-const `iterator`
+//     source parameter, the `++_F, ++_P` increment order, `size()` returning
+//     `difference_type`, and `insert` declared after the protected helpers in
+//     the class (all four leave the class layout and the loop alone).
+//   * Regressions, so the statement order of the grow branch is right as
+//     written: _Ufill and the third _Ucopy swapped 77.5%, _Destroy and
+//     deallocate swapped 93.3%, the three pointer resets moved before them
+//     45.8%, `iterator _Q = _S;` with the first _Ucopy's result discarded 65.5%
+//     (the real header's `_Tmp` has to come from the return value), a _Ucopy
+//     body that reads the source into a local before the store 46.3%, and an
+//     extra `allocator.construct(_Q + _M, _X)` 69.8%.
+// Best source kept below unchanged.
 // space-bunny-free pass (2026-10-01, this run): 99.6% re-confirmed, 546 of 546
 // bytes, the one swapped SIB byte at 0x46e708 is still the only difference.
 // Four new measurements, all scored with check.py --sym on scratch copies:

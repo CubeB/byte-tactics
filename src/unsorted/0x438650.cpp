@@ -140,6 +140,68 @@
 // clock) finished with an empty best.diff: nothing it tried beat 96.6%, which
 // agrees with the hand search above, where the only two reachable shapes are
 // 96.6% (narrowing cast, mask and all) and 52.9% (mask free, quotient first).
+// A second run (seed 11, 9 minutes, 2851 candidates) also found nothing.
+//
+// space-bunny-free in #4577. What blocks the swap is now pinned down: it is a
+// CONVERSION NODE on one of the two operands of the first multiply, and every
+// cast that emits no code is folded away before the pass that reorders runs.
+//   * Tried and folded (all 52.9%, i.e. the quotient goes first): the comma,
+//     the double negation, `+ 0u`, `* 1u`, `<< 0`, `/ 1`, `& 0xffffffffu`,
+//     `(unsigned)`, `(int)`, `(long)`, `(unsigned short)`, an enum cast and a
+//     class conversion operator on field_1fe, and an inline Identity()
+//     wrapper around the whole product.
+//   * Casts that survive block it: `(unsigned short)` on the quotient (this
+//     file, 96.6%, paying the 6-byte `and edx, 0xffff`) or a 32-bit
+//     `unsigned int field_1fe : 16` bitfield (92.0%: A goes straight into
+//     edi with `and edi, 0xffff`). The same cast on the parenthesised `Q * F`
+//     does NOT block it (49.4%), so the barrier has to sit directly on an
+//     operand of the multiply that gets swapped.
+//   * MSVC 5 does know one range fact: `(unsigned short)(x / 5)` with x a
+//     16-bit value emits no mask, because a 16-bit value divided by 5 still
+//     fits in 16 bits. So `(unsigned short)((unsigned short)(b8 + 5) / 5)`
+//     only moves the mask onto the sum (92.1%), and that mask costs the
+//     `xor ecx, ecx` as well: MSVC does the add in 16 bits (`add cx, 5`) and
+//     has to re-extend afterwards.
+//   * A THIRD shape, and the only mask-free way to get `fild qword` with the
+//     original's operand order: an intervening statement blocks the type
+//     propagation from the conversion back into the chain. `int p = A * Q *
+//     F * n; int t = 0; if (t) { p = 0; } int r = (int)((double)(unsigned
+//     int)p / (v * 300.0f));` gives the field_1fe load first, `fild qword`
+//     and no mask at all (62.8%). The dead store emits no code, and a dead
+//     store to an unrelated variable between the two statements works too.
+//     What it does not give is the original's register allocation: MSVC
+//     hoists `mov ecx, edx` to just after the field_1fe load and accumulates
+//     in ecx, while the original keeps A in edx, puts b8 in ecx, accumulates
+//     in edi (and that is what fixes `push edi`, `imul edi, [esp + 0x1c]` and
+//     the fild operand's offsets). Nothing tried moved that: the statement
+//     forms, groupings, factor orders, the blocker on p or on another
+//     variable, two blockers, the float statement's placement, int/unsigned/
+//     unsigned short locals, the 32-bit bitfield, N = 0..6 uncalled static
+//     inline helpers and all 128 header sets (headers.py) all stay at 62.8%.
+//     Two more facts about that shape, both worth knowing: the dead store also
+//     works when it hits an unrelated variable between the two statements, and
+//     once it is there the operand order is field_1fe first no matter which
+//     factor is written first (`Q * A * F * n`, `A * F * Q * n` and
+//     `F * A * Q * n` all compile to the same 62.8% code), so in that shape
+//     the order is not decided by the expression tree at all. A 10-minute
+//     permute.py run seeded 21 on it tried 4685 candidates and found nothing.
+//     So the free barrier and the original's schedule are two separate
+//     problems, and this pass found no way to buy one with the other.
+//   * Re-confirmed and now measured one by one: with field_1fa unsigned
+//     instead of the cast, MSVC also folds the /5 through the multiply
+//     (`((b8 + 5) * A) / 5`, 56.5%), while `(unsigned)` around the product
+//     alone only reorders (52.9%); all 24 factor orders, `p = p * q`
+//     accumulations, `(unsigned)` on each factor in turn, `__int64` and
+//     `unsigned __int64` casts, a `__int64` local, double/float locals,
+//     helpers whose parameter is `unsigned`, unions, arrays and references
+//     all reorder. A signed chain still reproduces the original's integer
+//     block byte for byte (77.6%) with `fild dword`, so inside one expression
+//     the original's order and its `fild qword` really are mutually
+//     exclusive; the only way out is the free barrier above. The harness used
+//     to search all this (generate a variant, compile it, report the score and
+//     whether the field_1fe load, the 0xffff mask and fild dword/qword are
+//     there) is build/scratch/0x438650/h.py with gen2.py beside it, about
+//     0.7 s per variant.
 
 #pragma pack(push, 1)
 struct UnitType_00438650 {

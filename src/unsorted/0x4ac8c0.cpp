@@ -1,6 +1,170 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free,
-// claude-opus-5-5 (#4373), GPT-6.1-sol, mimo-v2.6-pro and finished by
-// space-bunny-free (#4489). Names are provisional.
+// claude-opus-5-5 (#4373), GPT-6.1-sol, mimo-v2.6-pro, space-bunny-free (#4489)
+// and space-bunny-free (#4539), space-bunny-free (#4652). Names are provisional.
+// space-bunny-free pass (issue 4652): best stays 89.8% (6 differing bytes, the same
+// 2 in the prologue and 4 in the loop). Byte-level scorer plus a differ built at
+// build/scratch/0x4ac8c0 (h.py scores a source file by differing bytes and prints a
+// short signature of the loop window; sweep.py scores a list of variants in six
+// parallel Wine compiles, about 1.2 s each; differ.py is the aligned OK/DIF
+// listing). Measured here, all new, do not repeat:
+//  - a self-conditional on the surface (S(s) = s ? s : s), on &p.r, on the colour,
+//    on x or on y, with or without the W flip, and at the reload, at the call or
+//    as the first statement of the loop body, is completely inert: 6 bytes with
+//    the plain source and exactly the 18-byte state B with the flip. So the phi it
+//    creates does not move the surface load's rank.
+//  - a loop-invariant assignment as the first statement of the loop body (p.surface
+//    = p.surface, p.surface = s, p.surface = gadgets->surface, p.r = p.r,
+//    grid = grid, grid = &gadgets[index]) changes nothing when the value is already
+//    in hand; the two that re-read a live memory or member object (gadgets->surface,
+//    s) blow the frame up (178 and 181 bytes).
+//  - the hoisted pair is the ebx-derived one in ALL 24 store orders (measured with
+//    signatures, not just byte counts: every one of the 24 prints
+//    "lea eax,[ebx+7] | lea edx,[esp+0x14] | mov [esp+0x20],eax | mov eax,[esp+0x10]").
+//    It is not "the last store" and it does not follow the source order at all.
+//  - 100 asymmetric spellings of the two +7 values (x+7, x+8-1, 7+x, x+4+3,
+//    x+7+0, x-1+8, (x+8)-1, x+(3+4), x+7*1, x-(-7)) crossed on right and bottom
+//    are all 6 bytes in state A.
+//  - the full 10x10 matrix of self-conditional SPELLINGS on the two x stores splits
+//    cleanly in three: only `0 ? v : v`, `!(v < v) ? v : v` and `v < v ? v : v`
+//    leave state A, and only when BOTH stores use one of them; the other seven
+//    (v ? v : v, v == 0 ? v : v, v != 0 ? v : v, v && v ? v : v, v || 0 ? v : v,
+//    W(v,v), (v|0) ? v : v) all give the same byte-identical state B.
+//  - the same is true for a self-conditional on the y pair (state A), and with the
+//    flip plus a further self-conditional on the colour, on &p.r, on x or on y
+//    (still state B).
+//  - 24 store orders with the W flip on both x stores: 18 bytes when right is 1st,
+//    2nd or 3rd, and 19 bytes when right is LAST, and in every single one of the
+//    24 the surface load is scheduled FIRST. So under the flip the surface load is
+//    never at rank 4, in any store order and with any spelling.
+//  - helpers that hold the x pair (SetX(&p.r,x)), the whole rect
+//    (SetRect(&p.r,x,y)), the call (Draw(s,r,c)) or the whole loop body
+//    (Cell(&p,x,y,color)) all stay in state A; with the W flip inside SetX they give
+//    state B. Plus7(v), a comma or a self-assignment on the x values, the colour as
+//    col + row*16, (row << 4) + col, row*16+col in a temp, and 0 to 6 uncalled
+//    file-scope byte-cast inline helpers: all 6 bytes, state A.
+//  - the surface in a local of its own next to a separate rect local reaches the
+//    SAME stack offsets (surf at esp+0x10, &r at esp+0x14) and produces the state
+//    B schedule all by itself, with no ternary: 34 bytes, window "mov edx,[esp+0x10]
+//    | lea eax,[esi+7] | lea ecx,[esp+0x14] | mov [esp+0x1c],eax | push edi".
+//    Same for the surface in a one-member struct and the rect separate, and in
+//    either declaration order. So the two properties of the missing state C are
+//    tied to one thing: the surface shares an aggregate with the rect (reload at
+//    rank 4) or it does not (reload at rank 1), and the hoist follows: aggregate
+//    means the ebx (y) pair, separate locals mean the esi (x) pair. With the W flip
+//    the aggregate gives the esi pair but drags the reload to rank 1 again.
+//    Separate locals PLUS the W flip is a fourth state, 43 bytes:
+//    "mov ecx,[esp+0x10] | lea eax,[esi+7] | mov [esp+0x1c],eax | lea eax,[ebx+7]
+//    | mov [esp+0x20],eax | lea eax,[esp+0x14]" (the &r lea goes last, not second).
+//    Reaching the rect through a pointer or a reference to the Pair (q->r, q.r, a
+//    one-member Box struct) costs 93 to 94 bytes, so none of those is the shape.
+//  - BIG ONE, measured, settles the prologue question: the order of the prologue's
+//    seven statements really does decide the loop's hoist, so the schedule is a
+//    whole-function decision, not a local one. All 7! = 5040 linear orders were
+//    compiled (build/scratch/0x4ac8c0/e15.py). Only 234 of them keep the function
+//    at exactly 167 bytes; of those the loop region scores 4 bytes for 66 orders
+//    (every one of them state A, with prologue 2), 15 bytes for 138 and 16 for 30.
+//    So NO order of these seven statements gives loop = 0 or loop = 2, and the 48
+//    orders within 12 bytes are all state A. Two hand-picked orders (y_first, y_late)
+//    do hoist the esi pair and reach a state the other shapes never reach, but they
+//    cost 106 and 112 bytes.
+//  - the same 5040 orders with the W flip on both x stores (e16.py) keep exactly the
+//    same 234 orders at 167 bytes and the loop histogram only gets worse: 16 bytes
+//    for 66 orders, 18 for 138, 25 for 30. So the flip never helps at any prologue
+//    order either, and state C is not reachable from these seven statements.
+//  - the copy-index probe (build/scratch/0x4ac8c0/probe.py, 32 copies of the same
+//    body in one translation unit, each scored separately) gives 6 bytes and state A
+//    for all 32, so the choice is deterministic per source, not a front-end coin flip
+//    that some other spelling would win.
+//  - the same stack layout reached through different IR (surface + rect in a nested
+//    one-member Box, the rect as r[1], the rect inside a union member, the Box as an
+//    array) compiles byte-identically in all four shapes, with and without the flip,
+//    so the aggregate's IR shape is not a lever either.
+//  - the outer loop's shape: int x = x0 as a declaration, as an assignment at the top
+//    or at the bottom of the outer body, x declared outside, row/col declared
+//    outside, for (row = 16; row--; ), for (col = 16; col--; ), y += 8 at the top of
+//    the outer body, y as an outer local, and the colour as a running counter: only
+//    the standard form is 6 bytes, everything else is 49 to 130.
+//  - 22 prologue spellings and types (y += grid->y, y = grid->y + y,
+//    y = gadgets->y + grid->y and the reverse, casts to int/short, int gy and short gy
+//    temporaries, gadgets[index].y, grid as gadgets + index, (*grid).y,
+//    *(short*)((char*)grid + 0x15), the surface store direct instead of through s,
+//    three more statement orders, unsigned x0, long y, double y) all stay at 6 bytes
+//    with grid->y in eax; only double y and the merged one-statement sums move it.
+// Still differs, unchanged: the original loads grid->y into edx (we use eax) at
+// 0x4ac90e, and it hoists the (x + 7, right) pair above the pushes with the surface
+// reload second, where we hoist (y + 7, bottom). Both are the same tie as before,
+// and the new measurements above say the surface reload's rank 4 is only ever
+// reachable together with the ebx-derived hoist, and the esi-derived hoist only
+// ever with the reload at rank 1. The next thing worth trying is a shape that puts
+// the surface in a local of its own while keeping it at esp+0x10 and the rect at
+// esp+0x14 (measured at 84.7% before, but never with the loop signature printed).
+// space-bunny-free pass (issue 4539): best stays 89.8% (6 differing bytes, the same
+// 2 in the prologue and 4 in the loop). The three loop states are confirmed again and
+// the W(a,b) = a?b:b flip is the only lever found that reaches "right pair first",
+// and it always brings the surface reload's lift with it. Measured here, do not
+// repeat: the flip needs BOTH x-axis stores wrapped, and with only the right store
+// wrapped the compiler rotates the loop instead (x + 7 lives in esi and left is
+// esi - 7, 170 bytes). The full 16-subset matrix over the four rect stores, in all
+// 24 store orders, and the fold forms a&&b?b:b / a|b?b:b / 0?b:b: only 0?b:b and the
+// non-conditional injections (x|0, x*1, x^0, x<<0, x&-1, comma, x-(x-x),
+// x|(x&&0), !(x<x)?x:x, x<x?x:x) leave state A; every conditional form flips to state
+// B (18 bytes). Also flat at 6, all with and without the flip: a surface temp before
+// or after the stores, a dead store in a folded branch (if (t) p.surface = 0,
+// if (t) t = 1) with and without the flip, wrapping the surface or &p.r or the colour
+// in a folded ternary (before or after the flip), stores through an inline
+// Set(int&,int), ten unused locals of ten types in five positions, 0 to 8 uncalled
+// file-scope inline helpers, an Identity wrapper on the colour, eight more prologue
+// shapes, and all 222 linear extensions of the prologue's seven statements (the
+// prologue's edx/eax tie never moves). tools/permute.py: seed 11, 8 minutes, 4 jobs,
+// 5657 candidates, 89.8% -> 89.8% (build/permute/0x4ac8c0/best.diff is empty), which
+// now agrees with the two default-seed runs. Byte-level scorer for free variant
+// scoring, splitting the prologue and loop hunks, in build/scratch/0x4ac8c0/score.py
+// and sweep.py (hunk.py prints the loop window next to the original); exp1 to exp8
+// are this pass's sweeps.
+// What still differs: the original's grid->y goes to edx (the register the surface
+// load just freed) where we put it in eax, and the original hoists the (x + 7,
+// right) pair while we hoist (y + 7, bottom). The lead for the next pass is that the
+// flip and the lift are two effects of one COND node in the x-store path (the
+// scheduler's tree order keeps the folded node's rank, so the COND that forces the
+// right pair also drags the reload to rank 1 instead of 4). A flip from anything that
+// is not a COND node on the left and right stores, or a way to keep the reload at
+// rank 4 once the COND is there, would be the win; both are scheduler (SCHED tree
+// order) decisions, not register allocation, which is why unused locals and file-scope
+// helpers do nothing.
+// Second measurement in the same pass: nothing can shift the reload's rank once the
+// COND is there, and dead code cannot even reach SCHED. All of these are 6 bytes in
+// state A and 18 in the flipped state, never in between: eight kinds of real dead
+// store to a local scalar (dead = x, dead = x + y, dead = x + 7, dead = row*16+col,
+// dead = p.surface != 0, dead = p.r.left, dead++, dead += x) in three positions each,
+// two dead stores at once, a dead store in the outer loop, a duplicated (dead) store
+// to p.r.left and p.r.right, and the folded-branch dead stores while (t), for (k = 0;
+// k < 0; k++), if (t & 0), if (!p.surface); also an identity wrapper on the surface
+// passed inline and through a temp, `*(&p.r.left) = x`, and a conditional whose arms
+// are the assignments themselves. So the dead-store lever does not work here, unlike
+// the function it fixed at 98.9%, and the surface's identity wrapper is as inert as
+// the ternary. One more fact for the next pass: VC5 folds the conditional only when
+// its condition is built from the same variable as its arms. `x > 0 ? x : x` and
+// W(x, x) fold to 167 bytes, but `col ? x : x` keeps a real branch and costs 23
+// bytes (190), so the COND's shape, not just its presence, is what ranks the block.
+// Third measurement, same pass: every flip produces byte-identical state B (checked
+// with hunk.py on the x > 0 ? x : x, the x < y ? x : x, the temp-and-ternary and the
+// re-spelled-arm shapes: all emit mov edx,[esp+0x10] first, then lea eax,[esi+7],
+// lea ecx,[esp+0x14], mov [esp+0x1c],eax), so the flip is one switch with no
+// intermediate position to catch. Which conditionals fold is also fragile and not
+// worth a rule: `x ? x : x`, `x == 0 ? x : x`, `x != 0 ? x : x`, `x && x ? x : x` and
+// `x || 0 ? x : x` fold to 167 bytes, while `x > 0 ? x : x`, `x < 0 ? x : x` and
+// `col ? x : x` keep a real branch (180 to 190 bytes), and a branch on the left store
+// with `(x + 7) > 0` on the right folds while the same one with `x > 0` on both does
+// not. The conditionals built from the same variable as their arms (x < x, !(x < x))
+// fold before SCHED and leave state A alone. A named temp for x + 7, for x, or a
+// re-spelled arm with a comma all just move the flip to state B (18 bytes).
+// A sixth permuter run (seed 21, --minutes 9 --jobs 2, started 02:23) also wrote an
+// empty build/permute/0x4ac8c0/best.diff, and its log.txt holds only the start line,
+// so it looks like it exits early here rather than using its budget.
+// The seed sweep is worth repeating for this address: tools/permute.py found nothing
+// on seeds 11, 12 and 13 (8, 8 and 6 minutes, 4 jobs: 5657, 4887 and 1774 candidates,
+// all 89.8% -> 89.8%, empty best.diff), which now makes five runs in total on this
+// file.
 // space-bunny-free pass (issue 4489): best stays 89.8% (6 differing bytes), but the
 // loop hunk is now understood well enough to name the missing shape. The two
 // remaining hunks are each one allocator tie, and both are strong attractors:

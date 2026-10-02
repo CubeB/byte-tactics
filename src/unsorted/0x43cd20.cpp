@@ -1,6 +1,58 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
-// deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro.
+// deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro,
+// finished by space-bunny-free.
 // Names are provisional.
+//
+// space-bunny-free, 2026-10-02 (about 15 check/compile rounds, best still
+// 94.8%, file unchanged). New measurements, all on the 94.8% base:
+//  - arm, the fold can be stopped. Taking the address of the v5 result keeps
+//    the `mov [esi+0x24],ax` store: `int* hp = &hasPath; turn = *hp;` compiles
+//    the store from ax (VC5's conditional propagation cannot see through the
+//    pointer, and the back end still coalesces the load), whether `hp` is
+//    declared before the `if` or inside the arm, and also with a local
+//    `Unit* u = unit` next to it. So the store form is no longer the blocker.
+//    What is still missing is the position: the unit load sinks past the store
+//    in every combination (hp alone, u alone, both, and rate-first), and
+//    rate-first plus the pointer store is 92.9 (966 bytes), worse than the
+//    94.8 store-first version. The two requirements really are antagonistic:
+//    store first keeps the rotation (unit=eax, type=ecx, rate=edx), rate
+//    first keeps the rotation the original wants (unit=ecx, type=edx,
+//    rate=eax) but moves the store after all three loads instead of after the
+//    first one, and folds it.
+//  - tail, new positive result: the original's diamond (one shared call, the
+//    then arm ending in `jmp` over the else arm) IS reachable. Selecting a
+//    POINTER rather than a value leaves the join alone:
+//      int negrate = -rate;
+//      int amount = *(d1 > lim && d2 > r ? &unit->type->field_19e : &negrate);
+//    compiles to `mov eax,[edi+0x92]; add eax,0x19e; jmp $L; $L: lea
+//    eax,_negrate; $L: mov edx,[eax]; mov ecx,_this; push edx; push edi;
+//    call`. Every value phi with two non-empty arms is duplicated into both
+//    arms by VC5 instead (if/else assign, ternary assigned or as the argument,
+//    braces, else first, goto, switch, and an inline helper returning the
+//    amount: all 986 bytes, 82.6%). The join also survives when the else arm
+//    is EMPTY, because the CFG is then not a diamond:
+//      int amount = -rate; if (d1 > lim && d2 > r) amount = unit->type->field_19e;
+//    keeps one call, but hoists `neg` above the tests, lands the phi in esi
+//    (callee-saved) and needs no `jmp`. Note the criterion is the empty arm,
+//    not a value before the branch: `int amount = rate; if (...) amount =
+//    field_19e; else amount = -amount;` still duplicates. So for the original
+//    the remaining lead is the duplication threshold: the pointer join is 11
+//    instructions against the value join's 10, so if a select can be spelled
+//    with one more instruction in the join (or one less in each arm) the
+//    shared call may survive.
+//  - imul: the one-operand `imul ecx` is reachable from the 64-bit spelling,
+//    but not inside this function. Standalone, `(__int64)(unsigned short)a *
+//    s->f / s->m` (a, s->f, s->m all different pointers, member field_20
+//    through this too) compiles to `and eax,0xffff; imul DWORD PTR [ecx];
+//    mov esi,edx; ...; cdq; push edx; push eax; push esi; push ecx; call
+//    _alldiv`, exactly the original's shape. Inside 0x43cd20 every spelling
+//    drops to `_allmul` with an early `cdq` (87.7%, 972 bytes): the member or
+//    a local copy of field_20, either operand order, and an `unsigned short`
+//    temp for the other operand all behave the same. So this is register
+//    pressure where the multiply sits, not the expression, and it is worth
+//    revisiting only together with a fix for the tail (the two interact: the
+//    64-bit form moves the _alldiv arguments and the whole tail block with
+//    them).
 //
 // mimo-v2.6-pro, 2026-10-01 third retry (fresh continuation worker): re-ran
 // check.py on the file as it stands: 94.8% (original 943, ours 964), kept.

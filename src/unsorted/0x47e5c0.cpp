@@ -1,74 +1,72 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
-// GPT-6.1-sol retry (#2427): best remains 67.5% (382/386), no MATCH after 3 checks. Remaining mismatch is register allocation: target keeps grid in edi and inner y in esi, with size.y loaded into edx before saved-register pushes; current build assigns grid to esi and y to ecx. Swapping sum order and sumy operands did not improve it.
-// Pass #1958 (space-bunny-free): still 67.5% (382/386), no MATCH, 1 check.py
-// run. What is new and worth keeping:
-// (1) The frame CONTENT already matches exactly: both have the same eight
-// dword homes, sumx at +0x00, the two Pt copies at +0x0c/+0x10, xend at
-// +0x1c, and the same 0x20 frame, with sumy in the dead arg2 slot and the
-// inner counter reloaded from the arg3 slot. Only FOUR slots are permuted
-// (original: grid +0x04, x +0x08, yend +0x14, y +0x18; ours: x +0x04,
-// y +0x08, grid +0x14, yend +0x18). So do not chase the frame layout: it is
-// a symptom. The single root cause is the callee-saved assignment, and it
-// cascades into the slot order.
-// (2) The original's [esp+0x10] compare in the overlap test is sumx, not the
-// grid pointer: with push ebp in effect [esp+0x10] is frame+0x00, which holds
-// the sumx spill. There is no stray-pointer bug in the test, the four
-// conditions read pos.x, sumx, pos.y (arg1.y at [esp+0x36]) and sumy
-// (arg2 slot at [esp+0x38]) exactly as written.
-// (3) Hoisting is now measured against the original's own code ORDER (all
-// four cell bounds computed before the first guard, in the order y, xend,
-// yend, x) and it still loses: 41.5% (379 B) to 44.5% (381 B) for six
-// declaration orders and both for-init styles, versus 67.5% for the
-// combined-init inner for. Hoisting only yend is 54.3% (384 B), hoisting
-// only x is 67.5% (382 B, same code), moving the grid declaration after the
-// sums is 54.5% (383 B). The 67.5% allocation is a strong local optimum:
-// swapping the guards, merging them into one if, and both operand orders of
-// sumx and sumy all give byte-identical 382-byte output.
-// (4) Still to find: how to make the allocator give esi to the inner
-// counter y and edi to the grid pointer, with size.y in the volatile edx
-// (the original loads size.y into edx BEFORE the pushes, which is why its
-// lea of the grid can take edi; in the 67.5% shape size.y is loaded after
-// the pushes and takes edi itself).
-// Retry #1748: GPT-6.1-sol confirmed 67.5% (382/386) after eight checks; no MATCH. The best source still differs in register allocation and stack-slot placement.
-// Claude Sonnet 5.5 pass (#746): no change beat 67.5% (382 bytes). Compiler state
-// is not the lever: the declaration-count sweep (0 to 400) is 67.5% only for N = 0
-// and 8 and worse (43.3 to 58.1%) everywhere else, and no header set beats 67.5%
-// (best other set 51.2%). Source shapes scored on top of the older list: the two
-// overlap tests as a `static inline Hits(pos, sumx, sumy, o)` helper and as one taking
-// a four-int rect (both 390 bytes, 51.2%); declaring all four grid bounds
-// (x1, y1, x2, y2) before the loops in eight orders and looping `for (x = x1; x <= x2;
-// ...) for (y = y1; y <= y2; ...)` (all 386 bytes, the original size, but 50.8 to
-// 54.0%). In those the frame slots differ from the original by one dword: the original
-// keeps sumx at [esp+0xc], the grid pointer at [esp+0x10] (edi), xstart at [esp+0x14],
-// sumy in the dead arg slot [esp+0x34], yend at [esp+0x20], ystart at [esp+0x24] and
-// xend at [esp+0x28], while these put grid at [esp+0x1c] and xstart at [esp+0x10].
-// 67.5%: the loop bodies and the value sequence match, but MSVC picks a
-// different set of registers. The original loads size.y into edx before the
-// pushes, keeps the grid pointer in edi and the y counter in esi; this source
-// gets size.y into edi after the pushes, grid in esi and the y counter in ecx,
-// then spills y. Hoisting ystart/yend/xend as separate variables, swapping the
-// sum operand order or making Pt copies all compile to the same (wrong)
-// allocation or worse; any change that moves size.y before the pushes flips
-// the whole allocation.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// MATCH (space-bunny-free). The blocker the earlier notes describe is real, and it is
+// a register-allocation symptom of ONE thing: the original computes all four cell
+// bounds plus both sums in the function's straight-line preheader, before the outer
+// loop guard, while the 67.5% shape sinks the two y bounds past that guard.
+// build/scratch/0x47e5c0/differ.py aligns 83 of the original's 124 instructions with
+// ours and shows the 18 differing blocks all cascading from that one scheduling
+// choice, so the winning shape hoists xstart/ystart/sumx/xend out of the for-inits.
+// All 720 orders of the six hoisted declarations and 192 structural loop shapes built
+// on them were swept and none beat 54%, because the hoisted shape then gives edi to ye
+// and esi to the grid, where the original has ye in the volatile eax and the grid in
+// edi. What matched came from running the permuter FROM the hoisted shape, which it had
+// never been given: `uv run tools/permute.py 0x47e5c0 --file
+// build/scratch/0x47e5c0/hoisted2.cpp --minutes 11 --seed 13 --jobs 10` went 54.0% ->
+// 67.5% -> 75.8% -> 80.6% -> 100% in 14 seconds. Its score is a finer measure than
+// check.py's ratio, and that is what found this.
 //
-// Retry notes (deepseek-v4.1-flash): computing ys right after y2 into its own
-// local (instead of in the inner for-init) does put size.y back in edx and
-// size.x in ecx, but the allocator still gives the grid pointer esi and the
-// loop counters end up elsewhere, scoring 45-52 percent. Declaring x1/y1/x2/y2
-// plus all four bounds collapses to the v1 allocation (grid esi, x ecx, y edx).
-// What is still missing is making the y counter outrank the grid pointer for
-// esi (so grid takes edi); no source-level ordering tried made that happen.
+// Three things in the body look redundant and are NOT. Each was checked, and the score
+// in brackets is what removing it gives.
+//  - `#include <math.h>` is load-bearing [41.3%]; <stdio.h> is not, so only <math.h>
+//    is included.
+//  - `int sumy;` is declared and only assigned four lines below [initialising it at the
+//    declaration: 43.4%]. The split stops MSVC fusing the two uses of the sum, which is
+//    what keeps sumy in the volatile edx.
+//  - `ye` recomputes `pos.y + size.y` rather than shifting `sumy` [75.5%]. Writing the
+//    sum twice, once through the local and once spelled out, leaves the shift unfusable
+//    and keeps ye in eax, as the original has it.
+// The declaration order (xstart, ystart, sumx, xend, sumy, ye) is load bearing too: the
+// natural order (sumx, sumy, xstart, xend, ystart, ye) is 54%.
 //
-// More retries (deepseek-v4.1-flash): the 67.5% shape is the combined-init
-// `for (int y = (pos.y>>3)-1, ye = (sumy>>3)+1; y <= ye; y++)`, still the best
-// found. Neither operand order in sumx/sumy (`size.x + pos.x` etc.), nor
-// old-style `int x, y;` declarations, nor `while` loops, nor hoisting size.y
-// into its own local, nor computing xend before sumy beats it. They all land
-// in the same allocation: MSVC loads size.y into edi just after the pushes
-// (so the `lea` of the grid pointer takes esi), keeps the x counter in edx and
-// the y counter in ecx. The original instead loads size.y into edx before the
-// pushes, then `lea edi, [eax+0x1429f]` for the grid, and keeps y in esi.
-// What is needed is to stop size.y from occupying edi at the grid lea point.
+// The record of what was tried and did not work follows.
+//
+// Tried and worth not repeating (all verified with check.py):
+//  - The byte differ's first finding: the frame CONTENT already matched in the 67.5%
+//    shape (same eight dword homes, sumx at +0x00, the two Pt copies at +0x0c/+0x10,
+//    sumy in the dead `size` argument slot, the inner counter reloaded from the dead
+//    argument slot). Only four slots were permuted, all of it downstream of the
+//    callee-saved assignment, so the frame layout was never the thing to chase.
+//  - The original's [esp+0x10] compare in the overlap test IS sumx (frame+0x00 with
+//    push ebp in effect), not a stray grid pointer: the four conditions read pos.x,
+//    sumx, pos.y (arg1.y) and sumy (the arg2 slot) exactly as written.
+//  - Declaration-order sweep of the hoisted shape: 720 orders x 2 operand orders of
+//    sumx and sumy, best 54.0%. Structural sweep (bounds hoisted or inline x 2 y-init
+//    forms x 3 guard shapes x guard order x grid via helper x sum operand order x 2
+//    x-bounds placements, 192 shapes): best 67.5%, i.e. the old local optimum.
+//  - Compiler-state sweeps on the 67.5% shape: 0 to 16 uncalled `static inline`
+//    functions in four body shapes. Good only for N = 0..4 (67.5%), then 386 bytes
+//    at 58.1% for N = 5..6 and 390 at 51.2% for N = 7..9. Nothing better.
+//  - By-value and scalar helpers: CellLo/CellHi on the bounds, SumXY/SumYX taking the
+//    two points by value, the overlap test as one helper taking the rect, HeadAt /
+//    HeadOf on the cell, GridOf() with no argument: all 51-68%, none better. On the
+//    hoisted shape the same helpers made it worse (43-54%).
+//  - The 0x47eee0 mechanism (a pointer re-assigned as the first statement of a loop
+//    body to block a [reg+disp] fold and let LICM hoist the lea): `Grid* g = grid;` at
+//    the top of the row or column loop, a row pointer `grid->cells + grid->width * y`,
+//    a cell pointer, a cells pointer. All four compile to exactly the same 382 bytes as
+//    the base, so MSVC 5 folds every one of them away here.
+//  - The code-free dead store and the self-assignment: `int t = 0; if (t) sumy =
+//    sumy | t;` before and after the sums, on sumx, on xend, on the y counter, and
+//    `size = size;` / `pos = pos;` at the head: all byte-identical to the base, except
+//    a store to a still-live variable, which costs 8 points (52.6% at 384 bytes).
+//  - `register` on the counters, the grid declared after the sums, `Grid* const`,
+//    no grid local at all (writing g_game->grid.width out four times, as the matched
+//    siblings 0x47e750 and 0x47e890 do), the outer loop as a `while`, the inner one
+//    too: 42-67.5%, nothing better.
+//  - Five permuter runs on the 67.5% file (seeds 11, 12, 7, 13, 21, 3768/3748/1380
+//    candidates) found no improvement at all. The permuter only paid once it was
+//    pointed at the hoisted shape (see above), which is the single useful lesson here.
+#include <math.h>
 
 struct Obj_0047e5c0;
 
@@ -117,12 +115,16 @@ extern Game_0047e5c0* g_game;
 // FUNCTION: 0x47e5c0
 void __stdcall FUN_0047e5c0(Pt_0047db20 pos, Pt_0047db20 size, Class_0047db20* visitor)
 {
+    int sumy;
     Grid_0047e5c0* grid = &g_game->grid;
+    int xstart = -1 + (pos.x >> 3);
+    int ystart = -1 + (pos.y >> 3);
     int sumx = pos.x + size.x;
-    int sumy = pos.y + size.y;
+    sumy = pos.y + size.y;
     int xend = (sumx >> 3) + 1;
-    for (int x = (pos.x >> 3) - 1; x <= xend; x++) {
-        for (int y = (pos.y >> 3) - 1, ye = (sumy >> 3) + 1; y <= ye; y++) {
+    int ye = ((pos.y + size.y) >> 3) + 1;
+    for (int x = xstart; x <= xend; x++) {
+        for (int y = ystart; y <= ye; y++) {
             if (x >= grid->width) {
                 continue;
             }
@@ -138,7 +140,7 @@ void __stdcall FUN_0047e5c0(Pt_0047db20 pos, Pt_0047db20 size, Class_0047db20* v
                 for (Obj_0047e5c0* c = o->child; c != 0; c = c->next) {
                     Pt_0047db20 cs = c->size;
                     Pt_0047db20 cp = c->pos;
-                    if (pos.x < cs.x + cp.x && sumx > cp.x && pos.y < cs.y + cp.y && sumy > cp.y) {
+                    if (pos.x < cs.x + cp.x && sumx > cp.x && pos.y < cp.y + cs.y && sumy > cp.y) {
                         visitor->FUN_0047ed30(c);
                     }
                 }

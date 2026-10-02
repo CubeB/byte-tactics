@@ -1,5 +1,117 @@
-// Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol and space-bunny-free. Names are provisional.
 //
+// space-bunny-free pass (#4547): still 80.0%, 280 bytes (exact size), no MATCH;
+// the body below is unchanged and remains the best. New harness in
+// build/scratch/0x4c71f0/ (harness.py scores six variants per 0.7 s and tags
+// each of the original's four case blocks OK/DIFF by searching for the block's
+// instruction text, so a variant that fixes one case and breaks another is
+// visible at once; gen1.py, gen2.py write the variants from the base file,
+// anchored on code so no comment is ever rewritten).
+//   * The residual is one decision per block: whether the at_high stack load is
+//     hoisted to the earliest point where its register is free. Ours hoists it
+//     (case 1: into eax, which `sub ecx,eax` frees, before the store; case 2:
+//     into edx, free from the top, before `add esp,0xc` and the result store),
+//     the original keeps it at its point of use. Since both blocks then hand
+//     the earliest free register to whichever load comes first in the emitted
+//     order, the global lands in eax (original) only because at_high yields it.
+//     "Which load gets the first free register" is therefore not the lever;
+//     the hoisting is. Hoisting across the same store does happen in the
+//     original, in case 3 (`mov edx,[esp+0x1c]` above `mov [esi],0`), so the
+//     original is not simply refusing to cross stores; case 3's store writes an
+//     immediate and so takes no register.
+//   * Ruled out this pass, every one byte-identical to the body below, so do
+//     not retry: the 0x463610 member-sub-object shape in full (a `RangeSlot`
+//     sub-object with an inline `Set`, all four case bodies rewritten to
+//     `out->low.Set(...)`); references to both fields taken once per case
+//     (`int& lo = out->low; int& hi = out->high;`), a reference to at_high
+//     (`const int& a = at_high;`), and at_high read as
+//     `*(int*)((char*)&at_low + 4)`; each case body inside its own inlined
+//     helper taking out/at_low/at_high (and d, or offset and size) by value;
+//     SetLow/SetHigh helpers on all four cases; `int* p = (int*)out` with p[0]
+//     and p[1] on all four cases; `Range* o = Id(out)` on the stores; one, two,
+//     three, five and eight uncalled `static inline` functions at file scope;
+//     the dead-store-in-a-folded-branch trick aimed the other way (`int t = 0;
+//     if (t) bits = 0;` with bits = at_high, and `if (t) at_high = 0;` itself),
+//     so a folded dead store naming the parameter does not block the hoist
+//     either; `int d = size - offset;` in a braced case 1; `if (!size) return;`
+//     and `if (size) { switch ... }`; and a SetBoth(out, lo, hi) helper, which
+//     is 276 bytes / 77.8%, worse.
+//   * MEASURED, and the sharpest fact of this pass: a micro copy of this
+//     function (build/scratch/0x4c71f0/mi2_*.cpp, mi.sh compiles one and prints
+//     the asm) localises the hoist to the SEARCH LOOP, not to anything in the
+//     case bodies. With the loop the case-1 load of at_high is hoisted above the
+//     store; delete the whole `while` (keeping every table read) and the same
+//     body emits the original's order, with the load last:
+//         mov esi,[out]; mov edx,[at_low]; sub eax,ecx; mov [esi],edx;
+//         mov edx,[G]; push edx; push eax; mov eax,[at_high]; push eax; call
+//     It is not the loop's mere presence, nor its stores, nor its table read:
+//     a dummy loop over a counter, over a global and over `table[j].field_4`
+//     all keep the load late, and so does forcing two values live across the
+//     call; but removing any single statement of the real loop still hoists
+//     (no `i = DAT_0051fea0[i]`, no `j = DAT_0051fea0[j]`, no global stores).
+//     So the trigger is the loop keeping i, j and table live across its back
+//     edge into the switch: that is the register-pressure context the whole
+//     switch is numbered in, which is why no spelling of the two failing
+//     bodies moves them and why the original's own loop must have had an IR
+//     shape no wording tried here reproduces. The sibling 0x4c70d0 lands in the
+//     same shape by accident: there arg2 is `offset` in eax, live until its
+//     push, so the at_high load is forced late by pressure instead.
+//   * The sibling 0x4c70d0 is the best lead in the game and nobody has pushed
+//     it: its case 0 is `out->low = 0; out->high = FUN_004b7381(at_high,
+//     size - offset, DAT_0051fef0);`, i.e. our case 1's argument shape with an
+//     immediate store instead of `out->low = at_low`, and OUR build of the
+//     sibling emits exactly the schedule we want here:
+//         mov esi,[out]; sub ecx,eax; mov [esi],0; mov eax,[DAT]; push eax;
+//         push ecx; mov ecx,[esp+0x24]; push ecx; call
+//     (and matches it; 0x4c70d0 is at 78.9% for its case 1 and case 3 only).
+//     So the same argument shape can be scheduled both ways in one compiler,
+//     and the deciding factor is the rest of the switch, not the case: our
+//     micro confirms it is not the store value either, since changing only
+//     `out->low = at_low` to `out->low = 0` in a copy of this function still
+//     hoists, while the same change in the micro with the sibling's case set
+//     does not.
+//   * Also ruled out this pass, all byte-identical to the body below: the
+//     search loop written through an inlined `More(a,b)` helper returning
+//     `a > b` (300 bytes: cl5 5 does NOT fold `setg al; test al,al` back into
+//     the compare, so the helper shape cannot produce this loop's bytes), the
+//     same helper written as `if (a > b) return 1; return 0;` (276 bytes), the
+//     loop's four body statements moved into an inlined `Step(int*, int*)`
+//     (identical), and the loop condition spelled `table[j].field_4 < value`
+//     (75.7%, the compare's operands swap but cases 1 and 2 do not move, so
+//     the loop's tree shape is not what decides them); no-op conversions as the
+//     guide recommends for stopping a hoist (`(int)(long)` on the at_high
+//     argument, on the store value, on the call result, and all three
+//     together); each case body wrapped in `do { ... } while (0);`; a lone `;`
+//     after the first store of every case; the matching case bodies (0 and 3,
+//     which are byte-correct) perturbed through `Id()` on their at_low/at_high,
+//     a field reference for case 3's `out->low`, a comma joining case 0's two
+//     stores, and braces on both, in case the switch's shared allocation
+//     follows them (it does not move); and a compiler-state sweep through the
+//     declared types: Range before Chunk, Range with a third field (size 12),
+//     Range with a leading pad (71.7%, the store offsets move), an unused
+//     struct ahead of both, Range as a union, unused typedefs, dead static
+//     arrays/text/pointers, and dead `static inline` helpers N = 0 to 8.
+//   * And the argument list itself cannot be made opaque: an inlined helper
+//     with an unused trailing parameter, with an unused leading one, and with
+//     an unused `float` one; a helper taking the first argument by reference;
+//     and two of the three arguments travelling in a two-int struct passed BY
+//     VALUE (cl5 scalarises it and the bytes do not move at all), all on case 1
+//     and, for the float one, on case 2 as well. Only a helper that also does
+//     the low store changes anything, and it is worse (276 bytes / 78.9%).
+//   * Permuter, seed 11, 7 minutes, 1867 candidates, 122 compile errors: no
+//     change, 80.0%, so the file is a local maximum of that mutation set.
+//   * Next attempt: the micro says the hoist is a consequence of i, j and
+//     table being live across the loop's back edge, and every spelling of the
+//     loop that keeps the same bytes leaves those live ranges spanning the
+//     back edge, so the next attempt needs a loop whose IR is genuinely
+//     different at the same bytes. Worth trying: the body in an inlined helper
+//     that returns the pair (i, j) rather than taking pointers, a loop whose
+//     induction variable is `value` itself, and a `#include` set that shifts
+//     cl5's inline budget (the loop through a helper is the only shape found
+//     so far that changes anything at all: an inlined `More(a, b)` returning
+//     `a > b` gives 300 bytes, because cl5 5 does not fold `setg al;
+//     test al,al` back into the compare, so this loop's bytes require a plain
+//     condition).
 // space-bunny-free pass (#4488): still 80.0%, 280 bytes (exact size), no MATCH;
 // the body below is unchanged and remains the best. About 2700 fresh shapes
 // were scored with a local harness in build/scratch/0x4c71f0/ (harness.py scores six

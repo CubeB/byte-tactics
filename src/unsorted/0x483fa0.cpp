@@ -1,4 +1,34 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free continued from 68.6% to 72.9% (1041 bytes against 1046).
+// WHAT WORKED: an exhaustive greedy search over the ORDER of declarations and
+// statements inside each block, scored with check.py. Declaration order does not
+// change MSVC's frame slots by itself, but it changes how the scheduler and
+// register allocator lay the code out, and three orders were worth +4.3%:
+//   (a) block 3 now declares `int y = ay; unsigned short s = stride; int
+//       stride2 = s * 2; int offset = (py * s + px) * 2; int n = w2;`, with n
+//       LAST (it was first). That is the original's order: the original stores
+//       n = w2 (mov [esp+0x34], esi) after y = ay, and only then computes s.
+//       69.9% -> 71.7%.
+//   (b) the `if (ry != 0)` adjust block is `w2--; ay += 32 - ry; py++;` (w2--
+//       FIRST). The original emits `mov edx,[ay]; mov esi,[w2]; mov eax,0x20;
+//       dec esi; sub eax,edi`, i.e. it loads w2 and decrements it between the
+//       two halves of the 32 - ry arithmetic. Earlier passes tried this and it
+//       lost; on top of (a) it wins. 71.7% -> 72.9%.
+//   (c) block 1 declares `int n = w2; int base = ...; p1; p2; int y = ay;`
+//       (n first, y last). 69.3% -> 69.9%.
+// Block 2 wants `p1; p2; int x = ax; int n = w1;` (n last); the permuter's
+// `p1; n; p2; x` scored the same on its own fine score but 0.1% lower here.
+// Still tried and all NEUTRAL or worse: `static inline` helpers for the icon
+// lookup (`g_game->iconSet->cell[v][0][0]` with the IconSet typed as
+// `unsigned char (*cell)[32][32]` the way 0x466780 has it, or the flat
+// `+ v * 0x400` form), a helper that assigns bmp.data and calls FUN_004b8150,
+// `const` on stride/base/s/rx/ry, `void*` for bmp.data and iconSet->data, the
+// callee parameter types from 0x4b8150's own file, `for`/nested-if/`while`
+// rewrites of every loop, and swapping the operands of every commutative
+// expression (MSVC canonicalises those, so they compile identically).
+// tools/headers.py over all 128 header sets: only <windows.h> and <ddreach.h>
+// reach the same 72.9%, so <windows.h> is required and no header is the lever.
+// A 9 minute permuter run from the 69.3% file found nothing (score 3277 flat).
 // claude-sonnet-5-5 continued: best 68.6% (1033 bytes against 1046), from
 // 66.2%. Two source-order changes helped: (a) bmp.dx/bmp.dy = 0 now sit
 // before the `if (rem1 != 0)` tests (the other bmp stores stay after them),
@@ -122,23 +152,21 @@ void __stdcall FUN_00483fa0(void* surface)
     int rem2 = vh - w2 * 32 + ry;
     bmp.dx = 0;
     bmp.dy = 0;
-    if (rem1 != 0)
-        w1++;
     if (rem2 != 0)
         w2++;
+    if (rem1 != 0)
+        w1++;
     int stride = g_game->mapWidth / 2;
-
-
     bmp.width = 32;
     bmp.height = 32;
     bmp.flag9 = 0;
     bmp.count = 0;
     if (rx != 0 || rem1 != 0) {
+        int n = w2;
         int base = py * stride + px;
         unsigned short* p1 = g_game->mapValues + base;
         unsigned short* p2 = g_game->mapValues + base + w1 - 1;
         int y = ay;
-        int n = w2;
         if (n > 0) do {
             if (rx != 0) {
                 bmp.data = g_game->iconSet->data + *p1 * 0x400;
@@ -157,8 +185,8 @@ void __stdcall FUN_00483fa0(void* surface)
     if (ry != 0 || rem2 != 0) {
         unsigned short* p1 = g_game->mapValues + py * stride + px;
         unsigned short* p2 = g_game->mapValues + (py + w2 - 1) * stride + px;
-        int n = w1;
         int x = ax;
+        int n = w1;
         if (n > 0) do {
             if (ry != 0) {
                 bmp.data = g_game->iconSet->data + *p1 * 0x400;
@@ -190,11 +218,11 @@ void __stdcall FUN_00483fa0(void* surface)
         w2--;
 
     if (w2 > 0) {
-        int n = w2;
         int y = ay;
         unsigned short s = stride;
         int stride2 = s * 2;
         int offset = (py * s + px) * 2;
+        int n = w2;
         do {
             unsigned short* p = (unsigned short*)((char*)g_game->mapValues + offset);
             int m = w1;

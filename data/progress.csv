@@ -2676,7 +2676,7 @@ address,size,file,symbol,status,similarity
 0x4bf7b0,261,src/unsorted/0x4bf7b0.cpp,?FUN_004bf7b0@@YGPAUSurface_004bf7b0@@PAU1@PAHH@Z,matched,100.0
 0x4bf8c0,1172,src/unsorted/0x4bf8c0.cpp,?FUN_004bf8c0@@YGHPAUSurface_004bf8c0@@PAURect_004bf8c0@@H@Z,matched,100.0
 0x4bfd60,167,src/unsorted/0x4bfd60.cpp,?FUN_004bfd60@@YGHPAUSurface_004bfd60@@PAURect_004bfd60@@H@Z,matched,100.0
-0x4bfe10,267,src/unsorted/0x4bfe10.cpp,?FUN_004bfe10@@YGHPAUSurface_004bfe10@@PAURect_004bfe10@@@Z,partial,74.9
+0x4bfe10,267,src/unsorted/0x4bfe10.cpp,?FUN_004bfe10@@YGHPAUSurface_004bfe10@@PAURect_004bfe10@@@Z,matched,100.0
 0x4bff20,332,src/unsorted/0x4bff20.cpp,?FUN_004bff20@@YGHPAUSurface_004bff20@@PAURect_004bff20@@H@Z,matched,100.0
 0x4c0070,301,src/unsorted/0x4c0070.cpp,?FUN_004c0070@@YGXPAUSurface_004c0070@@HHHH@Z,matched,100.0
 0x4c01a0,353,src/unsorted/0x4c01a0.cpp,?FUN_004c01a0@@YGXPAUSurface_004c01a0@@HHHHHH@Z,matched,100.0

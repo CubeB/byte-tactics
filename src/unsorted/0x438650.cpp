@@ -84,6 +84,62 @@
 //
 // What still differs (96.6%): one extra "and edx, 0xffff" before
 // "imul edi, edx", which shifts the jg target (0x4386ef vs 0x4386e9).
+//
+// space-bunny-free, 30-minute checkpoint on the issue-4462 worktree (file
+// unchanged, still 96.6%, about 100 scratch variants scored with a probe that
+// compiles each one and reports whether the field_1fe load precedes the magic
+// multiply, whether the 0xffff mask is there and whether the conversion is
+// fild dword or fild qword). What is now settled, beyond the earlier notes:
+//
+// 1. The swap is caused by the UNSIGNED numerator conversion, not by the chain
+//    type, the statement form, a helper or the position of the cast. A signed
+//    chain with a signed conversion gives the original's order (77.6%, the
+//    integer block byte for byte); the same chain with only `(unsigned)` added
+//    around the whole product gives the flipped order (52.9%). Every unsigned
+//    spelling flips it: the single expression, `p = p*q; p = p*f; p = p*n;`,
+//    `p *= q; ...`, the quotient or the whole product or the division inside a
+//    `static inline` helper, an `__int64` local holding the product (the trick
+//    the MATCHed 0x48b3f0 uses for its own fild qword), a `double`/`float`
+//    local, `(unsigned)` on each factor in turn, `unsigned` parameters for n
+//    and field_1fa, and every no-op cast ((int), (unsigned), (long),
+//    (unsigned int), (short) on the divisor). So the mask-free spelling of the
+//    unsigned conversion does not exist in this compiler's space, and the
+//    16-bit cast in this file is not a redundant leftover: it is the only
+//    thing that buys the original's operand order.
+// 2. The cast has to be on the QUOTIENT. `(unsigned short)A * Q * F * n`
+//    emits no mask at all (the field is already 16 bits) but gives the flipped
+//    order. MSVC evaluates the narrowed operand second, so the narrowed
+//    operand must be the right one of `field_1fe * quotient`.
+// 3. A third shape exists and nobody had recorded it: `(unsigned)(A*Q*F*n)`
+//    alone (56.5%) makes MSVC fold the /5 through the multiply and compute
+//    `((b8+5) * A) / 5`, with the magic multiply running on the product. That
+//    is a real strength reduction MSVC5 only does for unsigned, and it is why
+//    the original (whose magic multiply runs on `b8+5` alone) cannot be a
+//    plain unsigned chain. But the original's fild qword with a constant 0 in
+//    the high word is exactly the unsigned conversion, so the two facts still
+//    contradict each other; that contradiction is what is left to solve.
+// 4. The unsigned 52.9% shape is always: field_1fe loaded second, into ecx,
+//    after the quotient is in edx, and `imul edx, ecx`. The original is
+//    always: field_1fe first, into edx, `mov edi,edx`, then `imul edi,edx`.
+// 5. Argument mapping confirmed: the second parameter is loaded first and its
+//    type pointer is homed in esi (field_18a at +0x18a and field_1fa at
+//    +0x1fa); the first parameter is loaded second, at [esp+0x14] after the
+//    frame, and supplies field_1fe through its type and field_b8 directly.
+//    Swapping the two in the source costs 4 points (92.1% and 75.3%) even
+//    though the field offsets are identical, so the source must touch the
+//    second parameter first.
+//
+// Best lead left: the original's order is the signed one and its conversion is
+// the unsigned one, so the missing piece is a source whose numerator is
+// unsigned without MSVC5 folding the /5 into the product and without the
+// commutative canonicalisation putting the quotient first, most likely a
+// compiler-state difference in the original file (what the permuter hunts) or
+// a spelled-out helper with a 16-bit *parameter* whose mask the caller never
+// sees.
+// A 12-minute permute.py run on this file (--jobs 4, about 25 minutes wall
+// clock) finished with an empty best.diff: nothing it tried beat 96.6%, which
+// agrees with the hand search above, where the only two reachable shapes are
+// 96.6% (narrowing cast, mask and all) and 52.9% (mask free, quotient first).
 
 #pragma pack(push, 1)
 struct UnitType_00438650 {

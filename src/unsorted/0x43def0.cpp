@@ -158,6 +158,64 @@
 // function scope, `(void)block` / `block;` / `block = block;` to keep ecx
 // live, and a sweep of unused `extern int` declarations before the function
 // (N = 0..30 all give this same 4-line diff; N >= 31 degrades).
+//
+// 30-min checkpoint (space-bunny-free): still 99.2%, this file is unchanged
+// and is the best. New this pass, every form scored on a /Fa harness that
+// compares only the range block: the 6 statement orders, the 6 chained forms,
+// the 6 grouped and two-statement forms, cross-field copies, `((int*)&w)[k]`
+// index writes, comma forms, 9 zero expressions that do not look foldable
+// (`index - index`, `index & 0`, `~index & 0`, ...), 21 dead-code inserts
+// (`int t = 0; if (t) w.f = 1;`, `while (t)`, a dead `for`, a dead local
+// array element, a null-pointer test, `bits & 0`) in every position and on
+// every field, a `Vec3` class with a 3-int ctor in all 6 body orders and all
+// 6 parameter orders, `v = Vec3(0, 0, 0)`, `Vec3 v(0, 0, 0)`,
+// `return Vec3(0, 0, 0)`, an inline `Zero3()` helper returned and called
+// through a pointer, and a dead `Zero()` call. Every one either keeps x, z, y
+// or merges the two zero blocks (87.3). The only form that moves the ecx and
+// esi xors is the ctor with a z, y, x body, and it emits all three xors
+// before `mov edi, eax`, the wrong shape. A scanned whole-exe search found
+// only three blocks of this shape in TotalA.exe (0x424265, matched, which
+// 0x424050.cpp writes as `spot->vel = Vec3(0, 0, 0)` into a *member*, and our
+// two), so there is no near-copy to lift the spelling from.
+//
+// Wrap-up (space-bunny-free): 99.2%, the sixth-pass file is still the best and
+// is unchanged apart from these notes. Also tried this pass, all on the same
+// /Fa harness: sharing one Vec3 between the range block and the null block or
+// the end block (tA/tB/tC/tD), a second struct type with the fields declared
+// in all 6 orders crossed with the 6 assignment orders (36 forms, fo_*), the
+// 6 assignment orders through a union's `int[3]` view (un_*), an `Identity`
+// / `Touch` / `Add3` inline helper around one zeroed field and around the whole
+// zero (id_z, touch_y, add3), a shared `int z = 0` local read by two fields
+// (shared_x/y/z), reading the fields back after zeroing (read_y, readall), a
+// loop over the fields in 12 spellings (short/uchar/long index, while, do-while,
+// reverse, through `int*`, `&w.x`, of `-0`, of a folded local), a loop copy
+// from a separately zeroed local in all 6 zeroing orders (cp_*), five control
+// flow shapes around the zeroing (`if (1)`, `do {} while (0)`, `switch (0)`,
+// `1 &&`, a ternary), a function-scope `Zero3()`/`Mk3(a,b,c)` helper with the
+// zeroing in all 6 orders, five range-test spellings that keep `jl`/`jge`
+// (swapped operands, `!(a && b)`, an unsigned compare, two separate tests, a
+// `goto`), and N = 1..12 uncalled `static inline` functions at file scope plus
+// six single uncalled helpers. Nothing reaches y before z: the only forms that
+// reorder the xors at all put all three before `mov edi, eax`, and the only
+// ones that keep the right register mapping always emit ecx before esi.
+//
+// Leads for the next attempt (not tried, out of time):
+// - `tools/permute.py 0x43def0 --seed 11/12/13` (the default-seed run of 6
+//   minutes on this file found nothing, but a seed sweep fixed another
+//   address today at seed 11). The permuter's statement-order and temporaries
+//   mutations cannot reach this pair on their own, so give it the range block
+//   as the only focus.
+// - The original's range block is one basic block with two predecessors; every
+//   shape tried here still reaches it from two. A spelling that gives it three
+//   predecessors (pd_triple was 3 stores but the two blocks merged) or that
+//   keeps `block` live across the branch so ecx cannot go to the first zero
+//   was not found; kp_* (a `block->count` local, a redundant second compare,
+//   `w.z = block->count - block->count`) is the unfinished half of that idea.
+// - The end block only matched as an unrolled loop *copy*, so the range block
+//   may want a loop copy too, but from a source MSVC cannot fold to one shared
+//   zero register. Every zero source tried (a local, an array, a union, an
+//   inline helper) folds, so the source has to be something whose zeros are
+//   only known at run time and still cost one `xor` each.
 
 #include <string.h>
 

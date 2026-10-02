@@ -1,5 +1,22 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// 30-min checkpoint (space-bunny-free): best 87.1 percent, 344 of 342 bytes,
+// up from the 86.8 percent the earlier passes left here. Everything except the
+// map-index block in the feature == 0xfffe arm matches, jump targets included.
+// What still differs is that block, 2 bytes over: the original zero-extends
+// both byte fields, keeps the width as the memory operand of the multiply and
+// adds the second byte, ours loads the width into ecx and multiplies reg,reg.
+// What I tried: about 60 scratch spellings of the index expression, the arm,
+// the unit block, the height/slope tail and the whole-body helper frame, all
+// flat; inert declarations of six kinds and an uncalled-inline sweep at N = 0
+// to 8; a micro testbed of eight contexts; and three permuter runs (12 min,
+// 10 min, and 5.5 min at seed 11, over 12000 candidates, the first of which
+// found the 0.3 percent below and the others nothing). The 0xfffe arm now
+// reads the width into a local and spells the neighbour index twice, which is
+// the only shape found that shortens the
+// block; a single use of g_game->width never folds the multiply. Notes below
+// are the earlier passes, kept in order.
+//
 // deepseek-v4.1-flash pass (#1182): tested the header lever. The matched sibling
 // 0x47dfc0, which contains the same feature dispatch and the same unit-reference
 // block, only reached MATCH after a header set was added (its file note credits
@@ -174,6 +191,62 @@
 // `imul eax/ecx, [game+0x14233]`; here g_game is pinned in edx from the first
 // instruction (`mov edx,[0x511de8]`) and that pinned pair (eax, ecx) is what
 // makes c1 copy the spotY byte out of eax and load the width into it.
+//
+// space-bunny-free pass, 45 scratch variants plus a micro testbed, all 86.8
+// percent and 346 bytes with the block byte-identical except where noted.
+// What is new:
+//  - the six ex sites of this expression (0x421e60, 0x4246b0, 0x47db70,
+//    0x47dfc0, 0x47e2d0, 0x47de60) all fold except in our build, and the
+//    base register table says why this one is unique: g_game is in edi in
+//    0x47db70/0x47dfc0/0x47e2d0, in ebp in 0x47d2e0, in ecx in 0x4246b0, and
+//    in 0x421e60 it is loaded into edx immediately before the block and dies
+//    at the imul. Only 0x47de60 has g_game pinned in edx for the whole
+//    function, and it is also the only one whose two temps are (eax, ecx):
+//    everywhere else they are (eax, edx) or (ecx, edx). So the wanted
+//    `imul eax, [edx+0x14233]` needs the width to stay a memory operand,
+//    which c1 will only do when the second temp is not ecx;
+//  - a micro testbed (build/scratch/0x47de60/micro1.cpp, 8 functions from the
+//    0x421e60 shape to the full body) folds in none of them, including the
+//    one that reproduces 0x421e60's fresh `mov edx, [g_game]` and one that
+//    hoists g_game into a register for the whole function. So the fold needs
+//    a context this function's size does not provide, not an operand shape;
+//  - hoisting `int w = g_game->width;` to the top, the way the matched
+//    0x47e2d0 and 0x47db70 do, is the one thing that changes the block at
+//    all: c1 materialises w in ecx at the top (`mov ecx, [edx+0x14233]`) and
+//    emits `xor eax; mov al; imul eax,ecx; xor ecx,ecx; mov cl; add`, which
+//    is 344 bytes and 84.1 percent, so it is a trap and was not taken. A
+//    second, folded use of w (`w+0`, `w*1`, `w?w:w`, `0*w`, `w|0`) does not
+//    make c1 rematerialise it (all 344), unlike 0x47db70, where the width has
+//    three real uses and is rematerialised at the imul.
+// Still flat: `cell -= ...` (the matched 0x4246b0 compound-assignment
+// spelling), an `Other(cell, g_game)` inline helper returning the pointer,
+// comma-ordered leaves, `k *= width`, split subtractions, `cell + -(...)`, the
+// union/anonymous-struct cell of 0x4246b0 (`cell->sf.offsetY`), a hoisted
+// `Game* g = g_game`, and eight RHS-side wrappers on the width (`+0`, `*1`,
+// unary `+`, `-0`, `(unsigned)`, `|0`, `&-1`, a short round trip): every one
+// is 86.8 percent. Inert file-scope declarations of five kinds never tried
+// before (static int, static fn, extern array, struct, static const, at 8, 24
+// and 64 each) are flat too, so the `extern int` sweep's flatness is not just
+// about that one kind. Restructuring the arm's else (the 0xfffe test nested
+// inside the else) merges the two `mov eax,1; jmp` tails and drops to 84.1,
+// and the shared `FeatBlocked(unsigned short)` helper spelling is 83.0.
+//
+// space-bunny-free, 30-min checkpoint and after: tools/permute.py (run from a
+// copy of the tools outside the tree) turned up a spelling worth 0.3 percent,
+// now in the file: give the width a local and spell the neighbour index out
+// twice. c1 then materialises the width in ecx and emits
+// `mov ecx,[edx+0x14233]; xor eax,eax; mov al,[esi+0xa]; imul eax,ecx;
+// xor ecx,ecx; mov cl,[esi+0xb]; add eax,ecx`, 344 bytes, 87.1 percent, two
+// bytes and one instruction closer than the eight-instruction block it
+// replaces (it is the only shape found in any pass that shortens the block).
+// The imul still does not take the width as a memory operand, so this is a
+// near miss, not progress towards the fold: the width has two uses now, so a
+// memory operand is impossible at both. Read through an `other` local instead
+// (348 bytes, 84.2 percent), or with the width hoisted to the top of the
+// function (344, 84.1), or with the two copies written differently (347,
+// 61.8), and it is worse. What still differs is unchanged: the original keeps
+// the width as the memory operand of `imul eax, [edx+0x14233]` and has both
+// zero-extensions before the multiply.
 #pragma pack(push, 1)
 struct Feature_0047de60 {
     char unknown_0[0xfe];
@@ -251,10 +324,13 @@ int __stdcall FUN_0047de60(Pathfinder_0047de60* obj, Cell_0047de60* cell)
     } else if (feature != 0xfffe) {
         blocked = 1;
     } else {
-        Cell_0047de60* other =
-            cell - (cell->spotY * g_game->width + cell->spotX);
-        unsigned short f2 = other->feature;
-        if (f2 >= 0xfffb) {
+        // The width gets a local and the neighbour index is spelled out twice:
+        // that is what makes c1 materialise the width in ecx instead of copying
+        // spotY out of eax, which is the closest this block has come.
+        int width = g_game->width;
+        unsigned short f2 =
+            (cell - (cell->spotY * width + cell->spotX))->feature;
+        if (0xfffb <= (cell - (cell->spotY * width + cell->spotX))->feature) {
             blocked = 0;
         } else {
             blocked = (g_game->features[f2].flags >> 6) & 1;

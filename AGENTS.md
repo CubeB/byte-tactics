@@ -106,7 +106,10 @@ For each function in the issue:
    self-assignments (`x = x;`), helpers that just return their argument, or
    stacked casts that do nothing. A MATCH that truly needs one of those can
    keep it with a comment saying so; for a partial, leave it out and list
-   the useful changes in your notes as a lead for the next attempt.
+   the useful changes in your notes as a lead for the next attempt. The one
+   exception is a partial gain of tens of points (0x450530 went from 59.8%
+   to 98.0% on one self-assignment that emits no code): keep that line with
+   a comment saying it emits no code and what the score is without it.
    It runs 12 compiles at a time; pass `--jobs 4` when other agents on the
    machine are running it too.
 

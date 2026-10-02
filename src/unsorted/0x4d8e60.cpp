@@ -233,6 +233,7 @@ void __cdecl FUN_004ded60(char* dst, int size);
 void __cdecl FUN_004de110();
 
 static inline DWORD* inl0(DWORD written) { return &written; }
+static inline char* inl1(char* p) { return p + strlen(p); }
 
 // FUNCTION: 0x4d8e60
 int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
@@ -294,29 +295,27 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     }
     // REGION r2 end
 
-    // REGION r3 begin
-    log[0] = 0;
+    //     log[0] = 0;
     { size_t L;
     L = strlen(log); sprintf(log + L, "Exception handler called in %s. ", ((char*)handlerName)); }
     FUN_004ded60(log + strlen(log), 0x7358 - strlen(log));
-    { size_t L = strlen(log); do sprintf(log + L, "Instruction pointer is %08lX\n", ctx->Eip); while (0); }
-    { size_t L;
-    L = strlen(log); do sprintf(log + (L), "ExceptionCode = %08lX", rec->ExceptionCode); while (0); }
-    { size_t L;
-    L = strlen(log); do sprintf(L + log, " - %s\n", (char*)file); while (0); }
+    { char* d = log + strlen(log); sprintf(d, "Instruction pointer is %08lX\n", ctx->Eip); }
+    { char* d = log + strlen(log); sprintf(d, "ExceptionCode = %08lX", rec->ExceptionCode); }
+    { char* d = log + strlen(log); sprintf(d, " - %s\n", (char*)file); }
     if (0xc0000005 == rec->ExceptionCode) {
         if (rec->NumberParameters >= 2) goto skip12;
         goto skip6;
-    skip12:;
-        if (0 != ((char(__cdecl*)(unsigned long))FUN_004d8680)(rec->ExceptionInformation[1])) { size_t L = strlen(log);
-                                                                    L = L; do sprintf(log + ((size_t)L), "Error: Write to read only memory attempted\n"); while (0); }
+skip12:;
+        if (0 != ((char(__cdecl*)(unsigned long))FUN_004d8680)(rec->ExceptionInformation[1])) { char* d = log + strlen(log);
+                                                                    do sprintf(d, "Error: Write to read only memory attempted\n"); while (0); }
                                                                 { size_t tmp6, L = strlen(log);
                                                                 tmp6 = (size_t)L;
                                                                 sprintf((((size_t)tmp6)) + log, "Access violation: Illegal %s, data address 0x%08lX\n",
                                                                         0 != rec->ExceptionInformation[0] ? "write" : "read", rec->ExceptionInformation[1]); }
-    skip6:;
+skip6:;
     }
     // REGION r3 end
+
 
     // REGION r4 begin
     { size_t L = strlen(log), same0 = L, same3;
@@ -346,20 +345,18 @@ skip4:;
     { size_t L;
     L = strlen(log); sprintf(log + L, "\n"); }
     { size_t L = strlen(log); sprintf(log + L, "Registers:\n"); }
-    { size_t L;
-    L = strlen(log); tmp4 = (size_t)L;
-    sprintf(log + ((size_t)tmp4), "EAX=%08lX CS=%04lX EIP=%08lX EFLGS=%08lX\n",
+    { char* d = log + strlen(log);
+    sprintf(d, "EAX=%08lX CS=%04lX EIP=%08lX EFLAGS=%08lX\n",
             ctx->Eax, ctx->SegCs, ctx->Eip, ctx->EFlags); }
-    { {
-            size_t L = strlen(log); do sprintf(L + log, "EBX=%08lX SS=%04lX ESP=%08lX EBP=%08lX\n",
-                            ctx->Ebx, ctx->SegSs, ctx->Esp, ctx->Ebp); while (0);
-        } }
-    { size_t L = strlen(log); do sprintf(L + log, "ECX=%08lX DS=%04lX ESI=%08lX FS=%08lX\n",
-                ctx->Ecx, ctx->SegDs, ctx->Esi, ctx->SegFs); while (0); }
-    { size_t L = strlen(log); do sprintf(log + ((size_t)L), "EDX=%08lX ES=%04lX EDI=%08lX GS=%08lX\n",
-                ctx->Edx, ctx->SegEs, ctx->Edi, ctx->SegGs); while (0); }
-    // REGION r4 end
-
+    { char* d = log + strlen(log);
+    sprintf(d, "EBX=%08lX SS=%04lX ESP=%08lX EBP=%08lX\n",
+            ctx->Ebx, ctx->SegSs, ctx->Esp, ctx->Ebp); }
+    { char* d = log + strlen(log);
+    sprintf(d, "ECX=%08lX DS=%04lX ESI=%08lX FS=%08lX\n",
+            ctx->Ecx, ctx->SegDs, ctx->Esi, ctx->SegFs); }
+    { char* d = log + strlen(log);
+    sprintf(d, "EDX=%08lX ES=%04lX EDI=%08lX GS=%08lX\n",
+            ctx->Edx, ctx->SegEs, ctx->Edi, ctx->SegGs); }
     // REGION r5 begin
     { size_t L = strlen(log); sprintf(log + L, "\n"); }
     { {
@@ -382,44 +379,33 @@ skip5:;
     // REGION r5 end
 
     // REGION r6 begin
-    int room = 0x7358 - (int)strlen(log);
-    room = ((((int)room)) - 0x3e8);
-    if (0 < room) goto skip11;
-    do goto skip8; while (0);
-skip11:;
-    lstrcpynA(log + strlen(log), obj.dump_text, ((int)room));
+    if (0x7358 - (int)strlen(log) - 0x3e8 > 0) {
+        lstrcpynA(log + strlen(log), obj.dump_text,
+                  0x7358 - (int)strlen(log) - 0x3e8);
+    }
     { size_t L = strlen(log);
     L = ((L)); sprintf(log + ((size_t)L), "\n"); }
-    { size_t L = strlen(log); 
-    sprintf(log + ((size_t)L), "Dr0 = %08lX\t", ctx->Dr0); }
-    { size_t L = strlen(log); sprintf(L + log, "Dr1 = %08lX\t", ctx->Dr1); }
-    { size_t L = strlen(log); sprintf(log + (L), "Dr2 = %08lX\n", ctx->Dr2); }
-    { size_t L = strlen(log); sprintf(log + ((size_t)L), "Dr3 = %08lX\t", ctx->Dr3); }
-    { size_t L = strlen(log); do sprintf(log + ((size_t)L), "Dr6 = %08lX\t", ctx->Dr6); while (0); }
-    { size_t L;
-    L = strlen(log); sprintf(((size_t)L) + log, "Dr7 = %08lX\n", ctx->Dr7); }
-    { {
+    { char* d = log + strlen(log); sprintf(d, "Dr0 = %08lX\t", ctx->Dr0); }
+    { char* d = log + strlen(log); sprintf(d, "Dr1 = %08lX\t", ctx->Dr1); }
+    { char* d = log + strlen(log); sprintf(d, "Dr2 = %08lX\n", ctx->Dr2); }
+    { char* d = log + strlen(log); sprintf(d, "Dr3 = %08lX\t", ctx->Dr3); }
+    { char* d = log + strlen(log); sprintf(d, "Dr6 = %08lX\t", ctx->Dr6); }
+    { char* d = log + strlen(log); sprintf(d, "Dr7 = %08lX\n", ctx->Dr7); }    { {
         size_t tmp2;
         size_t L = strlen(log); tmp2 = ((size_t)L);
         sprintf((((size_t)tmp2)) + log, "\n");
     } }
-    { size_t L = strlen(log);
-    L = ((size_t)L); sprintf(log + L, "ContextFlags = %08lX\n", ctx->ContextFlags); }
-    { size_t L = strlen(log); sprintf(L + log, "Control Word = %08lX\t\t", ctx->FloatSave.ControlWord); }
-    { size_t L = strlen(log); sprintf(log + L, "StatusWord = %08lX\n", ctx->FloatSave.StatusWord); }
-    { size_t L;
-    L = strlen(log); sprintf(log + ((size_t)L), "TagWord = %08lX\t\t", ctx->FloatSave.TagWord); }
-    { 
-    size_t L = strlen(log); sprintf(((size_t)L) + log, "ErrorOffset = %08lX\n", ctx->FloatSave.ErrorOffset); }
-    { size_t L = strlen(log), tmp3 = (size_t)L;
-    sprintf((tmp3) + log, "ErrorSelector = %08lX\t", ctx->FloatSave.ErrorSelector); }
-    { size_t L = strlen(log); sprintf(log + L, "DataOffset = %08lX\n", ctx->FloatSave.DataOffset); }
-    { size_t L;
-    L = strlen(log); sprintf(log + ((size_t)L), "DataSelector = %08lX\t\t", ctx->FloatSave.DataSelector); }
-    // REGION r6 end
+    { char* d = log + strlen(log); sprintf(d, "ContextFlags = %08lX\n", ctx->ContextFlags); }
+    { char* d = log + strlen(log); sprintf(d, "Control Word = %08lX\t\t", ctx->FloatSave.ControlWord); }
+    { char* d = log + strlen(log); sprintf(d, "StatusWord = %08lX\n", ctx->FloatSave.StatusWord); }
+    { char* d = log + strlen(log); sprintf(d, "TagWord = %08lX\t\t", ctx->FloatSave.TagWord); }
+    { char* d = log + strlen(log); sprintf(d, "ErrorOffset = %08lX\n", ctx->FloatSave.ErrorOffset); }
+    { char* d = log + strlen(log); sprintf(d, "ErrorSelector = %08lX\t", ctx->FloatSave.ErrorSelector); }
+    { char* d = log + strlen(log); sprintf(d, "DataOffset = %08lX\n", ctx->FloatSave.DataOffset); }
+    { char* d = log + strlen(log); sprintf(d, "DataSelector = %08lX\t\t", ctx->FloatSave.DataSelector); }    // REGION r6 end
 
     // REGION r7 begin
-    { size_t L = strlen(log); sprintf(log + ((size_t)L), "Cr0NpxState = %08lX\n", ctx->FloatSave.Cr0NpxState); }
+    { char* d = log + strlen(log); sprintf(d, "Cr0NpxState = %08lX\n", ctx->FloatSave.Cr0NpxState); }
     { size_t L;
     L = strlen(log); sprintf(log + ((size_t)L), "\n\n\n\n\n"); }
 skip8:;

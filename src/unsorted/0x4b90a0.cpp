@@ -1,4 +1,209 @@
-// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by space-bunny-free. Names are provisional.
+//
+// space-bunny-free pass (#4686), 87.1% again, 4 check.py runs plus ~85 free
+// whole function compiles scored with the probe below (nine whole-function
+// batches, a 26-function micro-benchmark and a header sweep). FOUR things
+// settled, three of them closing levers other passes were told to try:
+//
+//  1. THE PIN LEVER IS DEAD BECAUSE MSVC 5 FOLDS THE CONDITIONAL. The hand-off
+//     note suggested `rp = rp ? rp : rp` on the derived plane pointer (worth 15
+//     points on 0x473a00). It does nothing here, and the reason is now
+//     measured, not guessed: with identical arms the ?: is collapsed at the
+//     FRONT END, so no phi is ever created and not one instruction is emitted.
+//     Eleven pin shapes (dp0 through a fresh rp, both planes, dp0 in place,
+//     dst, src, the plane array &dst->plane0, xoff, stride, yoff, and the
+//     same sum built as an unsigned then cast) all compile byte for byte to
+//     the same 256-byte file with the same 87.1% and the same 9-instruction
+//     head. So do four REAL phi-creating shapes, where the conditional cannot
+//     be folded away: `row ? (xoff + dst->plane0) : (xoff + dst->plane0)`,
+//     the same as an if/else with identical arms, a plane pointer declared in
+//     the for-init and reassigned in its increment list (a genuine back-edge
+//     phi), and a dummy counter whose increment does the assignment in a comma.
+//     MSVC 5 collapses identical operands of a ?: and of an if/else, and
+//     propagates the loop-init value of the third, so none of them survives
+//     either. Do not re-try the pin or a same-armed conditional here.
+//  2. THE YOFF SPILL MOVES ONLY AS A WHOLE BLOCK, AND DEFINING `yoff` ONLY IN
+//     THE FOR-INIT (the shape that would put its store in the preheader by
+//     construction) DOES NOT DO IT. Re-measured on this build: the
+//     `yoff = stride;` copy (register-only local, textually AFTER the two
+//     source-plane assignments, the shape #4523 measured at 87.1%) does not put
+//     the store in the loop preheader on its own. MSVC emits it immediately
+//     after xoff's store, in the guard block, before the first `jl`, in every
+//     placement tried: after the guard, before the plane loads, as the for-init
+//     comma `(yoff = stride, 0)`, and the shape that keeps the guard reading
+//     yoff. So `yoff` is NOT stored where the source puts it: MSVC emits both
+//     outgoing spills as one pair right after the `test` that fixes their
+//     signs, and the source placement is irrelevant. That is store-at-death,
+//     and the store is at the death of the register, which is before both
+//     guards whatever the source says.
+//     New this pass, the four shapes that should have forced the store into the
+//     preheader, all 87.1% with the store in exactly the same place: (a) yoff
+//     declared and initialised only in the for-init (`for (int row = 0, yoff =
+//     dst->field_6 - src->field_6 + y; ...)`) with the guard testing the raw
+//     expression, so yoff has no definition before the loop at all; (b) the
+//     same with yoff initialised before the loop as well; (c) a `yoff0` that
+//     dies at the guard and `yoff = yoff0` in the for-init; (d) yoff listed
+//     before row in the for-init. In (a) MSVC common-subexpression-eliminates
+//     the guard's copy of the expression into the for-init copy, the register
+//     is therefore born before the guards, and both spills land together again.
+//     The original instead has `mov [esp+0x14],eax` after the `jbe`, i.e. a
+//     loop-header phi copy, so the original's build kept yoff's register alive
+//     to the loop head. Store-at-death versus loop-header phi is an allocation
+//     decision, not a source spelling, and no spelling of either the definition
+//     or the loop's use moves it. That is why the 87.1% cannot be raised from
+//     the source.
+//  3. The row head is unchanged and still the whole 4-byte gap: `mov
+//     esi,[edx+0x10]; add esi,ebx` here against `mov esi,ebx; mov
+//     eax,[edx+0x10]; add esi,eax` in the original. Thirty-four more whole
+//     function variants scored this pass, all emitting the same 9-instruction
+//     head and all at 87.1%: the sum split into three statements per row,
+//     `dp0 = plane; dp0 += stride` and `dp0 = plane; dp0 = dp0 + stride` and
+//     their two-statement siblings, the same four again with the two plane
+//     statements before the `stride = dst->width * yoff` line instead of after
+//     it (the original copies xoff into esi before the imul, so the schedule
+//     was worth varying too), `dst->plane0[xoff + stride]`, the plane written
+//     first, the int sum written first `(xoff + stride) + plane`, an
+//     `(unsigned)xoff` cast, `plane + xoff - (0 - stride)`, the planes as
+//     integers summed as integers and cast once, an `int ox = xoff` copy, the
+//     two planes read into pointer locals before the loop, four inline helpers
+//     (a plane accessor per row, a 3-argument row helper with the pointer
+//     first and last, and an identity function around the plane), the two row
+//     statements in either order, `n = src->width` first, the two increment
+//     orders swapped, the plane fields swapped between the rows, a fresh value
+//     number for row 0's offset, row 1's offset, both, the stride or the second
+//     stride, or one row given fresh copies of BOTH its operands (4 more), a
+//     local `unsigned char* d[2]` for the two row pointers (both assigned then
+//     read, and with an initialiser list), `*(unsigned char**)
+//     &dst->plane1`, and `&dst->plane0` indexed as `pp[0]`/`pp[1]`. So the
+//     fold is not a function of the statement order, the term order, the casts,
+//     the operand types, the number of uses, a helper boundary or an array:
+//     this build always puts the plane load in the add's destination.
+//
+//     WHAT THE FOLD ACTUALLY IS, from a 26-function micro-benchmark this pass
+//     (build/scratch/0x4b90a0/micro.py and micro2.py, one scratch function per
+//     spelling, all compiled and read back; the two files are worth reusing).
+//     Three findings, and together they close the question:
+//     (a) `mem + reg` ALWAYS folds the memory into the destination. All 14
+//         spellings of `p0 + i` produce `mov dst,[b+0x10]; add dst,reg`: term
+//         order both ways, the two-statement split, `+=`, `&p0[i]`, `(short)`
+//         and `(long)` casts, `(int)` and `(unsigned)` planes summed as
+//         integers, `p0 - (0 - i)`, the plane in a pointer local, a three-term
+//         sum, and two row pointers live at once (which still gives
+//         `mov eax,ebx; mov ebx,[ecx+0x10]; add eax,ebx`). So the fold is not
+//         an artefact of a pointer type or of a cast.
+//     (b) `mem + reg` DOES NOT fold when the index has to be materialised
+//         into the destination first, i.e. when its own load changes width:
+//         `p0 + (short)i` gives `movsx eax,word ptr [esp+8]; mov edx,[ecx+0x10];
+//         add eax,edx`, which is the original's shape. This is the guide's
+//         0x473590 rule in its real form: the destination register is already
+//         committed, so the load is forced to materialise elsewhere. It cannot
+//         be used here, because the original's own index is a plain 32-bit
+//         register copy (`mov esi,ebx`), two bytes, not a widening load.
+//     (c) `mem + mem` does NOT fold and keeps source order, and this build
+//         already matches such a site: 0x43e060 is MATCH with the source
+//         `obj->pos + FUN_0043def0(obj, param)` and the code
+//         `mov ecx,[esi+0x6a]; mov eax,[edx]; add ecx,eax`, i.e. the LEFT
+//         memory load in the destination and the right one in a scratch. So
+//         source order is preserved when both operands are loads, and lost
+//         exactly when one of them is a register. A scan of the whole exe for
+//         the un-folded three-instruction shape `mov dst,src / mov tmp,[m] /
+//         add dst,tmp` finds only 7 sites, 6 of them `rep movsd` prologues,
+//         and the one real site (0x43e07a) is the `mem + mem` case above.
+//     Together: the original's build evaluates `xoff + plane0` as two operands
+//     with the index in the destination, and this build folds the memory load
+//     into the destination whenever the index is a plain register. It should
+//     resolve when the file is regrouped into its original translation unit.
+//
+//     THE MOST IMPORTANT THING FOUND THIS PASS, and it corrects the six passes
+//     above that called this a build difference: THIS BUILD PRODUCES BOTH FORMS,
+//     in one MATCHED sibling, from near-identical source. 0x4b9d70 is MATCH
+//     with the source
+//         unsigned char* s = src->data + srcRow * src->width + srcCol;
+//         unsigned char* d = dst->data + dstRow * dst->width + dstCol;
+//     and the code
+//         mov eax,ebp / imul eax,ebx / add eax,[esi+0x10] / add eax,ecx
+//         mov ecx,edx / imul ecx,ebx / mov ebx,[edi+0x10] / add ecx,ebx
+//         mov ebx,[esp+0x14] / add ecx,ebx
+//     i.e. row 0 is the MEMORY OPERAND form (`add reg,[m]`) and row 1 is the
+//     form this function needs (`mov dst,index` ... `mov tmp,[m]` ... `add
+//     dst,tmp`), which is byte for byte 0x4b9106's row head. The two rows have
+//     the same source shape and differ only in which register was dead after
+//     the imul: for row 1 `ebx` (the width) dies, so MSVC reused it for the
+//     plane pointer; for row 0 nothing was free, so the memory operand went
+//     straight into the add. So the choice is a register-allocation decision
+//     inside this build, NOT a difference between builds, and source can reach
+//     it in principle. A scan of every byte of the exe for the exact shape
+//     (a `mov d,s` within 16 bytes of a `mov t,[r+disp8]` that a `add d,t`
+//     immediately follows) finds only 5 sites: 0x4b9106 (this function),
+//     0x4b9e12 (0x4b9d70, MATCH, above), 0x4c6f50, 0x4c7029 and 0x4e63ed. So
+//     it is rare, but it is not exclusive to this function, and the sibling is
+//     the reference to work from. What still has to be found is the source
+//     shape that makes the allocator free a register at the row sum here. The
+//     obvious candidate was the sibling's own shape, the multiply inline in the
+//     row expression instead of in the named `stride` local (the sibling has no
+//     named stride): all 6 spellings of that, with the multiply written
+//     `dst->width * yoff` and `yoff * dst->width`, as the first, middle or
+//     last term, parenthesised or not, and the two orders of the plane terms,
+//     still give this function's folded head, 87.1%. Inlining the multiply
+//     also does not move the imul here, contrary to what the #3409 notes say.
+//
+// The byte view of the residual, which is worth keeping because it says exactly
+// how little is left (this pass compared the 256 compiled bytes against the
+// original's 260: common prefix 53 bytes, common suffix 13, and the whole rest
+// differs only as below).
+//   OURS      89 44 24 14              mov [esp+0x14],eax   <- yoff spill, too early
+//             0f 8c ..                 jl                   <- one byte short
+//             ... 0f 86 ..             jbe
+//             33 c9                    xor ecx,ecx
+//             8b 72 10                 mov esi,[edx+0x10]   <- folded plane load
+//             66 8b 0a                 mov cx,[edx]
+//             03 f3                    add esi,ebx
+//             0f af c8                 imul ecx,eax
+//             8b 42 14                 mov eax,[edx+0x14]
+//             03 f1 03 c3 03 c1        add esi,ecx / add eax,ebx / add eax,ecx
+//   ORIGINAL  ... 0f 86 ..
+//             89 44 24 14              mov [esp+0x14],eax   <- yoff spill, loop head
+//             33 c9                    xor ecx,ecx
+//             8b f3                    mov esi,ebx          <- copy of xoff
+//             66 8b 0a                 mov cx,[edx]
+//             0f af c8                 imul ecx,eax
+//             8b 42 10                 mov eax,[edx+0x10]   <- plane into a scratch
+//             03 f0                    add esi,eax
+//             8b c3                    mov eax,ebx          <- second copy of xoff
+//             8b 5a 14                 mov ebx,[edx+0x14]   <- ebx is plane1 now
+//             03 f1 03 c3 03 c1        add esi,ecx / add eax,ebx / add eax,ecx
+// So ebx holds xoff in our build and is used by both adds, and in the original
+// it is freed for plane1 after xoff has been copied into esi and eax. That is a
+// register-allocation difference on top of the codegen difference, and neither
+// moves: the two row statements in either order, with `n = src->width` first,
+// with the plane fields swapped, with the two increment orders swapped, and
+// with a fresh value number for row 0's offset, row 1's offset, both, the
+// stride or the second stride (10 more whole-function compiles) all emit the
+// same head byte for byte.
+// The probe used this pass is cheap and worth reusing: build/scratch/0x4b90a0/
+// gen.py (writes a variant from a %s template of the row block), b1.py to b9.py
+// (the whole-function batches named above), micro.py and micro2.py (the 26
+// one-function-per-spelling probes), probe.py (imports tools/check.py, compiles
+// with C.compile_source and prints size and difflib ratio, i.e. exactly what
+// check.py would say) and pre.py (prints the prologue through the row head so
+// the two spill stores can be seen). A variant is free to score; a check.py run
+// is only needed to confirm.
+//
+// If you pick this up: do not spend another pass on expression spelling, term
+// order, parenthesisation, casts, operand types, statement order, header sets
+// (tools/headers.py re-run this pass at this 87.1% baseline: 128 sets, "none"
+// is best at 87.1%, <memory.h> 82.8%, everything else 53.8% or worse), the pin
+// or any same-armed conditional, where yoff is defined, or inlining the
+// multiply into the row expression. The guide's inline accessor lever was worth
+// a try here too and cuts the wrong way: an accessor for `width`, for `height`
+// or for `colorKey` each costs 4.3 points (82.8) and all three cost 18.3
+// (68.8), with the row head unchanged in every case. That leaves the register
+// allocation of the row sum, which item 3 shows is reachable in this build and
+// points at 0x4b9d70 as the reference: the goal is a source shape that leaves a
+// register dead after the `imul ecx,eax`, so MSVC materialises the plane load
+// into it instead of folding the load into the destination. One permuter round
+// on the yoff-preheader shape (7309 candidates, 12 minutes, 4 jobs) was flat at
+// 87.1%, score 365 unchanged, and nothing to read in best.diff.
 //
 // space-bunny-free pass (#4523), 87.1% confirmed unchanged, and the residual is
 // now MEASURED to be exactly one thing. 6 counted check.py runs plus ~50 free

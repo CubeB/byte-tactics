@@ -63,6 +63,7 @@
 //    original's shape but stops the inlining: 41.9%, 2764 bytes.
 //  - the underline call's x and y are in the opposite registers, and the
 //    `field_137 != 0` test is `test al, al` here and `test eax, eax` there.
+#include <memory.h>
 #include <windows.h>
 #include <stdio.h>
 
@@ -168,8 +169,8 @@ void __stdcall FUN_004b04e0(void* surface, Rect_004a5f40* rect, unsigned int a, 
 
 static inline int Measure_004a5f40(char* text)
 {
-    int width = 0;
     char* p = text;
+    int width = 0;
     if (p != 0) {
         if (DAT_0051fba4->language == 0) {
             width = FUN_004c1480(FUN_004c1440(), text);
@@ -195,17 +196,17 @@ static inline void MeasureInto_004a5f40(char* text, int& acc)
     char* p = text;
     if (p != 0) {
         acc = 0;
-        if (DAT_0051fba4->language == 0) {
-            acc = FUN_004c1480(FUN_004c1440(), text);
-        } else {
+        if (DAT_0051fba4->language != 0) {
             while (*p != 0) {
                 char ch = *p;
                 Glyph_004a5f40* glyph = FUN_004b7f30(
                     (GafEntry_004a5f40*)DAT_0051fba4->language->glyphs, (unsigned char)ch);
                 if (glyph != 0)
                     acc += glyph->width;
-                ++p;
+                p += 1;
             }
+        } else {
+            acc = FUN_004c1480(FUN_004c1440(), text);
         }
     }
 }
@@ -218,9 +219,17 @@ static inline int LineHeight_004a5f40()
         (GafEntry_004a5f40*)DAT_0051fba4->language->glyphs, 0x49)->height + 2;
 }
 
+// Reading the field_13c bit through a helper is load bearing: spelled inline
+// here, MSVC 5 lays the loop's frame out differently and the score drops.
+static inline bool Style_004a5f40(Entry_004a5f40* e)
+{
+    return (e->field_13c & 1) != 0;
+}
+
 // FUNCTION: 0x4a5f40
 void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
 {
+    char* p;
     char key1[2];
     char key2[2];
     void* surface;
@@ -238,8 +247,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
     int pass;
     int saved;
     char buf[0x80];
-    int i;
-    int y;
+    int y, i;
 
     border = 0;
     if (menu->layer != 0)
@@ -254,7 +262,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
         rect.top = me->y;
     }
     rect.right = me->w + rect.left - 1;
-    rect.bottom = me->h + rect.top - 1;
+    rect.bottom = rect.top + me->h - 1;
     if (me->flags & 0x8000)
         menu->current = menu->values[1];
 
@@ -288,7 +296,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                 int val = me->gaf->count - 1;
                 if (me->field_138 + 2 < val)
                     val = me->field_138 + 2;
-                glyph = FUN_004b7f30(me->gaf, val + me->field_13b);
+                glyph = FUN_004b7f30(me->gaf, ((int)val) + me->field_13b);
                 if (!(me->flags & 0x80))
                     border = 1;
             }
@@ -303,14 +311,11 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
             else
                 glyph = FUN_004b7f30(me->gaf, me->field_13b);
         }
-        if (glyph != 0) {
-            if (me->colours != 0)
-                FUN_004b8310(surface, glyph, glyph->xoff + rect.left,
-                             glyph->yoff + rect.top, (int)me->colours);
-            else
-                FUN_004b7f90(surface, glyph, glyph->xoff + rect.left,
-                             glyph->yoff + rect.top);
-        }
+        if (0 == glyph) goto skip0;
+        if (me->colours == 0) { FUN_004b7f90(surface, glyph, glyph->xoff + rect.left,
+                         glyph->yoff + rect.top); } else { FUN_004b8310(surface, glyph, glyph->xoff + rect.left,
+                         glyph->yoff + rect.top, (int)me->colours); }
+skip0:;
     } else {
         if (me->field_13c & 1) {
             FUN_004b04b0(surface, &rect, menu->colour_8b2, menu->colour_8c5, menu->colour_8c5);
@@ -335,19 +340,21 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
         else
             FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0());
 
-        char* p = text;
+        p = text;
         if (me->field_136 != 0) {
             int k = me->field_137;
-            do {
-                while (*p != 0)
-                    p++;
+            for (;;) {
+                while (*p != 0) p += 1;
                 p++;
-            } while (--k != 0);
+                if (--k == 0)
+                    break;
+            }
         }
 
         y = LineHeight_004a5f40();
         y = rect.bottom - y;
-        y -= rect.top;
+        int top = rect.top;
+        y -= top;
         y = y / 2 + flagy + rect.top;
         if (me->flags & 0x8000)
             menu->current = menu->values[1];
@@ -363,8 +370,8 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
         } else if (me->flags & 2) {
             x = (rect.right - textw - rect.left) / 2 + t;
             x += rect.left + 1;
-            if (me->field_13a == 0 || (me->field_13c & 1)) {
-                FUN_004a50e0(surface, p, x, y, rect.right - rect.left + 1, 0);
+            if (me->field_13a == 0 || Style_004a5f40(me)) {
+                FUN_004a50e0(surface, p, x, y, 1 + (rect.right - rect.left), 0);
             } else {
                 key1[0] = me->field_13a;
                 width = rect.right - rect.left + 1;
@@ -378,10 +385,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                     FUN_004a50e0(surface, buf, x, y, width, 0);
                     x += Measure_004a5f40(buf);
                     saved = x;
-                    if (me->field_138 != 0)
-                        FUN_004c13a0(menu->colour_8b2, FUN_004c13f0());
-                    else
-                        FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0());
+                    if (me->field_138 == 0) { FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0()); } else { FUN_004c13a0(menu->colour_8b2, FUN_004c13f0()); }
                     FUN_004a50e0(surface, key1, x, y, width, 0);
                     MeasureInto_004a5f40(key1, measured);
                     x += measured;

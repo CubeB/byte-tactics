@@ -227,6 +227,10 @@ class Result:
     refs: list[Ref] = field(default_factory=list)
     diff: str = ""
     error: str = ""
+    # Diagnostics, not part of the score: how much of the residual is only
+    # internal jump targets, which shift whenever an instruction's size differs.
+    shape_ratio: float = 1.0
+    target_only: int = 0
 
     @property
     def matched(self) -> bool:
@@ -272,11 +276,30 @@ def disasm(code: bytes, va: int) -> list:
 HEX = re.compile(r"0x[0-9a-f]+")
 
 
-def normalise(ins, lo: int, hi: int, is_addr) -> str:
+def normalise(ins, lo: int, hi: int, is_addr, mask_targets: bool = False) -> str:
     def sub(m):
         v = int(m.group(), 16)
-        return "<addr>" if is_addr(v) and not lo <= v < hi else m.group()
+        if lo <= v < hi:
+            return "<local>" if mask_targets else m.group()
+        return "<addr>" if is_addr(v) else m.group()
     return f"{ins.mnemonic} {HEX.sub(sub, ins.op_str)}".strip()
+
+
+def split_target_only(theirs_txt: list[str], ours_txt: list[str],
+                      shape_theirs: list[str], shape_ours: list[str]) -> int:
+    """Count the diff lines that differ only because an internal jump target
+    moved. A branch's target is an address, so it shifts whenever an
+    instruction's encoding differs, and the text diff then reports a difference
+    in code that is otherwise identical (0x4c3e40: 25 of the lines)."""
+    n = 0
+    sm = difflib.SequenceMatcher(None, theirs_txt, ours_txt, autojunk=False)
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag != "replace" or (i2 - i1) != (j2 - j1):
+            continue
+        for k in range(i2 - i1):
+            if theirs_txt[i1 + k] != ours_txt[j1 + k] and shape_theirs[i1 + k] == shape_ours[j1 + k]:
+                n += 1
+    return n
 
 
 def link_placeholders(orig: Original, sec, start: int, end: int, data: bytes, address: int,
@@ -366,12 +389,18 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
         return Result(address, name, size, len(data), True, 1.0, refs, "")
     shown_ins = disasm(link_placeholders(orig, sec, start, end, data, address, size), address)
     in_image = lambda v: orig.base <= v < orig.end
-    ours_txt = [normalise(i, lo, hi, in_image) for i in shown_ins]
-    theirs_txt = [normalise(i, lo, hi, in_image) for i in disasm(theirs, address)]
+    ours_ins, theirs_ins = shown_ins, disasm(theirs, address)
+    ours_txt = [normalise(i, lo, hi, in_image) for i in ours_ins]
+    theirs_txt = [normalise(i, lo, hi, in_image) for i in theirs_ins]
     ratio = difflib.SequenceMatcher(None, theirs_txt, ours_txt, autojunk=False).ratio()
+    shape_theirs = [normalise(i, lo, hi, in_image, mask_targets=True) for i in theirs_ins]
+    shape_ours = [normalise(i, lo, hi, in_image, mask_targets=True) for i in ours_ins]
+    shape_ratio = difflib.SequenceMatcher(None, shape_theirs, shape_ours, autojunk=False).ratio()
+    target_only = split_target_only(theirs_txt, ours_txt, shape_theirs, shape_ours)
     diff = "" if bytes_match else "\n".join(
         difflib.unified_diff(theirs_txt, ours_txt, "original", "ours", lineterm="", n=3))
-    return Result(address, name, size, len(data), bytes_match, 1.0 if bytes_match else ratio, refs, diff)
+    return Result(address, name, size, len(data), bytes_match, 1.0 if bytes_match else ratio, refs, diff,
+                  "", shape_ratio, target_only)
 
 
 def check_ref(orig, obj, sec, start, address, off, sym_name, target, addend, by_name, symbols, by_addr) -> Ref:
@@ -495,6 +524,9 @@ def report(res: Result, verbose: bool = True) -> str:
     lines = [f"{res.address:#x}  {res.symbol}  original {res.size} bytes, ours {res.ours_size} bytes  ->  {res.status}"]
     if res.bytes_match and not res.matched:
         lines[0] += "  (bytes match, but a reference is wrong)"
+    if not res.bytes_match and res.target_only:
+        lines.append(f"note: {res.target_only} of the diff lines are only internal jump targets that "
+                     f"moved, not codegen; ignoring those this is {res.shape_ratio * 100:.1f}%")
     if re.match(r"\?[^@]+@@YI", res.symbol):
         lines.append("note: this is a __fastcall free function. If only ecx is an input (edx unused), "
                      "write it as a __thiscall method of a class instead; see docs/agent-guide.md.")

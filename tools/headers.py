@@ -26,7 +26,8 @@ from pathlib import Path
 from check import ROOT, Original, annotations, compare, compile_source, find_source
 from coff import parse_object
 
-HEADERS = ["windows.h", "stdio.h", "stdlib.h", "string.h", "math.h", "memory.h", "ddraw.h"]
+HEADERS = ["windows.h", "stdio.h", "stdlib.h", "string.h", "math.h", "memory.h", "ddraw.h",
+           "minmax.h"]
 CPP_HEADERS = ["string", "vector", "map", "list", "iostream"]
 INCLUDE = re.compile(r"^\s*#\s*include\s*<(%s)>\s*$" % "|".join(re.escape(h) for h in HEADERS), re.M)
 

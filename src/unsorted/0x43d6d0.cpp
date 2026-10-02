@@ -1,4 +1,90 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by Space Bunny Free. Names are provisional.
+//
+// Space Bunny Free, 2026-10-02: 73.9% (original 920 bytes, ours 922), up from
+// 70.9. ONE change is kept: the clamp's test re-spells the expression instead
+// of naming it, `if (field_20 > (u->type->range / 2))` with `int half =
+// u->type->range / 2;` kept only for the two uses inside. VC5 then emits the
+// division a second time at the compare, which is what puts `half` in ebx (as
+// the original has it) and makes the whole cdq/sub/sar/cmp block match
+// byte for byte. Re-measured at this baseline: naming it (`> half`) 70.9;
+// moving the `Vec3 vec;` declaration above `unsigned short angle;` on its own
+// 70.9; both together the same 73.9; declaring `half` after the test 73.9;
+// `>= (u->type->range / 2) + 1` 72.4; `(int)(u->type->range / 2)` 73.9. So it
+// is the re-spelled test, not the declaration move, that is the lever.
+// Found by cleaning up tools/permute.py's best (72.6%, from the 70.9% file,
+// with a do/while(0) pair, an `inl0` helper and other junk); each mutation I
+// re-measured alone: only this `temp_inline` move is worth anything (the
+// cosmetic ones, `if (u->obj)` and braces around the else arm, were not
+// re-measured).
+// The rest are 0.0 or worse at 73.9%: z,y,x declaration order (73.3), the
+// split `int ny = u->pos.y.value + pp->y.value, nx; nx = ...;` (72.6, and 179
+// diff lines against this file's 171, though its shape-only ratio is the
+// better 80.1% against 78.7%), `int nz/nx/ny` split with a separate
+// `Vec3* pp; pp = &p1;` (69.5), `(int)(u->flags & 3) == m` in either test
+// (73.9 and 73.6), `goto skip1/skip0` restructures (73.9), merged declarations
+// `Point draft2 = u->draft, c = u->cell;` (73.9), swapped `+` operands inside
+// the cell and clamp expressions (73.9), `(3 & m) | (u->flags & 0xfffffffc)`
+// and `(u->flags & 0xfffffffc) | (3 & m)` (73.9), `2 == u->target->type`
+// (73.9), swapped z-clamp compares (73.9), `Vec3 v, t = FUN(...)` (73.9).
+// New negative results, all at 73.9% unless stated:
+//   - The clamp's operand cannot be forced back to memory. `pos.z.value` in
+//     the two z compares, `pos.x.value` in the two x compares, both, through a
+//     `pos.Z()` accessor and through a `Vec3* pz` are byte-identical: VC5
+//     forwards the tracked store. Storing the clamp through
+//     `MakeFixed_0043d6d0(...)` or `pos.z.parts.whole/frac` (to make the store
+//     opaque, technique 8) costs 6 to 8 points (941/945/951 bytes).
+//   - The final flags combine cannot be made to emit `and ecx,0xfffffffc; or
+//     eax,ecx`: `(a & 0xfffffffc) + (m & 3)`, the reversed operands, `& ~3`,
+//     `3 & m | ...`, an int temporary, and dropping the mask (919 bytes,
+//     73.7%) all leave VC5's double-`xor` form.
+//   - The seaLevel load's register (g_game in ebx, zero-extended byte in edx)
+//     is not reachable by operand order: seaLevel first, an explicit int cast,
+//     65535 instead of 0xffff, or swapping the MAXM operands are all 73.9 or
+//     70.5 (`(g_game->seaLevel << 16) + ...` collapses to 68.5/901 bytes).
+//   - The three sums' declaration order re-measured here: nx,nz,ny 73.9
+//     (kept), nz,nx,ny 73.3, ny,nx,nz and nx,ny,nz 72.6, nz,ny,nx 72.6,
+//     ny,nz,nx 72.2. The three `pos.*` stores' order makes no difference at
+//     all (all six 73.9), and `int m = mode;` has to stay AFTER `Vec3 pos;`
+//     (m before the sums or before pos = 71.8).
+//   - THE CELL SLOT, the best lead left: a by-value `Point` parameter of an
+//     inlined static helper DOES get a home in the dead incoming-argument slot
+//     [esp+0x3c] that the original uses for cell (`CanPlace_0043d6d0(u, cell,
+//     m)` -> the store and both reads land there, 71.9%). But the copy into it
+//     is one 4-byte `mov [esp+0x3c],eax` where the original writes the two
+//     fields separately, and the named local cell keeps frame+0x10, so adding
+//     the `Point draft` local the original also has pushes the frame to 0x2c
+//     (61.7%). Moving the whole cell computation and tail into an inlined
+//     member function taking Point by value (so the fields would be written
+//     individually into the parameter home) costs more than it wins: 60.8%,
+//     928 bytes, the argument setup is 8 instructions.
+//   - The first block's copy: `Vec3 v; v = FUN_0043e060(...)` is still the only
+//     spelling that produces the original's interleaved load/store copy through
+//     the returned pointer (`mov edi,[eax]; mov [esp+0x20],edi; ...`), but it
+//     puts v at [esp+0x24] with a 0x20 frame (70.0%). The two-object spelling
+//     kept here has the original's slots (sret temp [esp+0x2c], v and pos both
+//     at [esp+0x20]..[esp+0x28]) and only reads the temp's slots instead,
+//     which costs the extra `mov ecx,edi`. A user-defined operator= (47.1%) or
+//     copy constructor (65.2%), a const reference to the call result, a
+//     `*(Vec3*)&t` type pun, and a pointer variable are all worse or
+//     byte-identical: VC5 elides the sret temporary into t's home, which is
+//     why the copy reads fixed slots.
+//   - Frame accounting (both are exactly 10 dwords, confirmed with a slot map
+//     that tracks esp through every push and each callee's `ret N`): the
+//     original's are m at esp+0x10, draft at 0x14, the dead `&p1` store at
+//     0x18, a hole at 0x1c, pos at 0x20..0x2b and the sret temp at
+//     0x2c..0x37, with cell in the dead argument slot at 0x3c and ny reusing
+//     the dead temp's y slot at 0x30; ours are cell at 0x10, m at 0x14, &p1 at
+//     0x18, the same hole, v and pos both at 0x20..0x2b, the temp at
+//     0x2c..0x37, and ny in the dead argument slot at 0x3c. So the only slot
+//     difference is which object owns 0x10/0x14 and that the original's ny
+//     lands inside the dead temp, which needs the temp to be anonymous.
+// What still differs: the first block's grouped copy plus the seaLevel
+// register choice; the second block's interleaving of the three adds (ours
+// nz,nx,ny and p1.y read through &p1, the original nx,ny,nz and p1.z through
+// &p1); the m/draft/cell slot contents and the missing store of pos.y; the
+// clamp's z-operand reload (`mov edx,[esp+0x28]` vs `cmp ebx,eax`) and its
+// tail's load-or-store against the original's in-place `or [esi+0x110],
+// 0x10000`; the final flags `xor` pair.
 //
 // space-bunny-free, 2026-10-02: 70.9% (original 920 bytes, ours 922), up from
 // 69.5. The only change kept is the DECLARATION ORDER of the three sums in the
@@ -402,7 +488,7 @@ void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
         else if (nz < cz - 0x7ffff)
             pos.z.value = cz - 0x7ffff;
         int half = u->type->range / 2;
-        if (field_20 > half) {
+        if (field_20 > (u->type->range / 2)) {
             field_20 = half;
             unsigned short angle = u->f64.y;
             Vec3 vec;

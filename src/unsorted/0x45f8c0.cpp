@@ -117,11 +117,190 @@
 // `int y` declarations to function scope (98.0 to 98.7); reordering the blank
 // stores (98.0); chained blank stores. The register choice is a whole-function
 // colouring tie that no source form of this function reaches.
+// space-bunny-free (issue #4232), about 950 screened variants, still 98.7% with
+// the same one hunk (`lea edx`/`push edx` wanted at 0x45f9f7, `lea ecx`/`push
+// ecx` produced). All of it was screened with the /Fa probe in
+// build/scratch/0x45f8c0/probe/probe.py (~0.2 s a variant against 7 s for
+// check.py): it compiles a file with tools/wcl, prints for every FUN_004b6af0
+// call the register of its value-buffer lea and of the push after it, and counts
+// the differing lines of the function body against base.asm with jump labels
+// normalised. So the register is screened directly, not through the ratio, and
+// a variant whose body is byte-identical to the 98.7% file is instantly
+// distinguishable from one that broke something else. Copy probe.py before use:
+// it is throwaway scratch, not part of the repo.
+//
+// THE ONE POSITIVE LEAD, worth the next attempt: the register at the merge
+// moves to edx (both leas edx, as in the original) when the '|' path ends with
+// the address of a store coming out of a CALL RESULT. Replacing the do-while
+// scan with `strchr(value, '|')[0] = 0;` gives the original's `lea edx` /
+// `push edx` at 0x45f9f7 and leaves the second call's lea alone, at the cost of
+// a real call in the else path (17 changed lines). The same flip comes from
+// `char* q = strchr(value, '|'); q[0] = 0;`, from `strpbrk(value, "|")[0] = 0;`
+// and from replacing the '|' path's `strcpy` with `*value = ' '; value[1] = 0;`.
+// What the flip has in common: the value the last store addresses is a pointer
+// that arrived in eax from a call, not a pointer LCOL allocated itself, and the
+// scan's own pointer temp (`lea eax, [value+1]`) is no longer the last thing
+// eax holds. Since the original's else path is byte for byte the do-while scan
+// (`lea eax,[esp+0x35]` / `mov cl,[eax]` / `inc eax` / `cmp cl,7ch` / `jne` /
+// `mov [eax-1],0`), something else in the original's tree has to make LCOL
+// allocate differently, and no spelling of it has been found yet.
+//
+// Screened here, every one of them byte-identical to this file and still ecx,
+// so none of these families needs another pass: a scope block per statement
+// (first only, second only, both, and each with its own char*/int/layer local);
+// a `do {} while (0)` per half; phi declarations merged across the '|' if/else,
+// by assignment in both branches and by `x ? x : x` ternaries with identical
+// arms (char*, int and layer flavours, used by the first call, the second or
+// both); distinct `char* v` aliases per call, with and without blocks; the text
+// split into a local, one call at a time or both in blocks; pointer temps for
+// the entries table and the mark; AddLine split into two helpers (AddLeft,
+// AddRight) or inlined into the loop with no helper at all; 17 signature and
+// call-site permutations (page passed by reference, `page->blank` passed instead
+// of page in four orders, layer by reference, y first, `const char*`, static
+// not inline, `&value[0]`, an extra parameter, the call site in a block or a
+// do-while, a `char* vp` local at the call); four unused locals in AddLine (int,
+// char*, char[4], char[0x80]) before and after the calls; every spelling of the
+// scan that emits the same six instructions (post-increment split into two
+// statements, `++p`, `p += 1`, `*(p++)`, `(char)'|'`, `0x7c`, `'|' != c`,
+// `c = 0` first, `&value[1]`, a separate `p++`, the while-with-assignment forms,
+// the scan in an inlined Cut helper, `unsigned char c`); `p[-1]`, `*(p - 1)` and
+// sixteen spellings of the store's index arithmetic, all folding to the same
+// `[eax-1]` displacement; extra dead stores and dead self-assigns in either
+// path; an empty inline call and an inlined identity call in either path; an
+// inlined `Next`/`Same` helper feeding the scan pointer; a real `strlen(value)`
+// after the scan (MSVC deletes it, still ecx); a one-line `Text()`, `Blank()`
+// and `Count()` accessor for each of the three folded expressions; and the
+// preheader's ternary identities replaced by an inlined `Id()` identity call,
+// `,`, `&&`, `||`, a cast and a double call (all of which break the imul
+// preheader, so the ternary stays). On top of that, 750 single rewrites from
+// tools/permute_mutate.py over three bases (this file, the helper-inlined file,
+// the two-helper file) all stayed at ecx, so the permuter on this file is not
+// worth 15 minutes: its score cannot see a register-only difference.
 // deepseek-v4.1-flash (issue #3405 rerun): 3 more scored variants, all flat 98.7
 // with the same lea ecx / push ecx hunk: key/value buffers declared inside the
 // do-while body, the '|' cut split into its own static inline CutAtBar helper,
 // and dead int results kept from both FUN_004ab1b0 calls. The merge-block
 // register pick is unchanged.
+//
+// space-bunny-free (issue #4232, this pass): established the MECHANISM of the
+// residual, so the next attempt need not re-derive it. In an isolated model of
+// just the merge (build/scratch/0x45f8c0/min/min.cpp: a local char value[0x80],
+// the same if/else, then F3(... F2(F1(value, 0)) ...)) MSVC 5 reproduces this
+// hunk exactly, `lea ecx` then `lea edx`. Filling the pool with computed values
+// shows the pick is simply the LOWEST-NUMBERED free register out of
+// {eax, ecx, edx, ...}: with nothing live the lea goes to eax, so in this
+// function eax is already spoken for and ecx is the next free one. Therefore
+// the original must have had ecx BUSY at 0x45f9f7, not merely a different value.
+// Confirmed by making a value live across the merge: `int q = in[3];` used in
+// F1's second argument puts q in ecx and the merge's lea moves to edx
+// (min/gen.py a0_live, min/search.py w2_live). The same is true in the real
+// function: ecx is the only difference, and ebx/ebp/edi (y, layer, the loop
+// counter) plus eax already hold every register MSVC will use.
+// So the search is now a single question: what source construct puts a value in
+// ecx at the merge and emits no instruction? Screened here and all flat at
+// diff 0 with the same `ecx edx`: 52 unused `register` variables (int, char*,
+// char, short, long, unsigned, with and without initialisers, one or two of
+// them, in AddLine before the if, in AddLine before the calls, in the function,
+// in the loop body) - MSVC 5 drops an unused register variable before
+// register allocation, so it reserves nothing; 168 declared-type spellings of
+// FUN_004b6af0's and FUN_004c5740's parameters (const, unsigned, void*, FAR*,
+// __ptr, and int/long/short/size_t/char for the second parameter); and
+// tools/headers.py --cpp over all 1536 sets, still flat 98.7 with <windows.h>
+// best. What the flip needs is a temporary MSVC assigns a register to without
+// emitting code for it; the only such thing found so far is a call that clobbers
+// ecx (build/scratch/0x45f8c0/probe/e1.cpp, strchr for the cut, gives `edx edx`
+// but adds a real call, 11 changed lines).
+//
+// space-bunny-free (issue #4232, second half): found the exact LEVER, plus a
+// minimal model of it, so this is now a counting problem rather than a search.
+//
+// An isolated model of just the merge (build/scratch/0x45f8c0/min/min.cpp:
+// local char value[0x80], the same if/else, then F3(..., F2(F1(value,0)), ...))
+// reproduces this hunk byte for byte, and in it the value-buffer lea lands on:
+//
+//   one FUN_004b6af0 call   -> edx
+//   two calls              -> ecx, then edx
+//   three calls            -> ecx, edx, eax
+//   four calls             -> ecx, edx, eax, ecx
+//   five calls             -> ecx, edx, eax, ecx, edx
+//
+// (min/ncall.py.) So MSVC 5 hands out registers for these address temporaries
+// from a three-slot pool that rotates edx -> eax -> ecx, and with more than one
+// use the later call site is assigned first, so the earlier one gets the next
+// slot up. That is why ours is ecx and the second site is edx.
+//
+// The pool position is fixed by how many register-consuming nodes precede the
+// merge in the loop body. Ours has five (the &key and &value addresses of the
+// wsprintf and lookup calls, the strcpy destination, and the scan's &value[1]);
+// the original must have had one more, or two fewer, for the merge to land on
+// edx. Adding one node moves it, and moves BOTH sites at once, because at the
+// second site eax and ecx are genuinely busy with the entry-table arithmetic so
+// edx is the only register left:
+//
+//   FUN_004ab1b0(layer, "TEXT", ..., 0x28, y + 1, 0x4e, 2)   -> edx, edx
+//   FUN_004ab1b0(layer, "TEXT", ..., 0x28, y, y + 1)          -> edx, edx
+//
+// (build/scratch/0x45f8c0/po/sweep2.py, use1 and x_shift.) That is the target
+// register pair, at a cost of exactly one instruction, `lea ecx, [ebx+1]`, which
+// replaces `push 0x4e` with `push ecx` and makes the function 506 bytes instead
+// of 504. So the extra node the original had must emit nothing.
+//
+// Screened here, all flat at zero instruction diff with the same ecx edx, so
+// none of them is that node: the extra argument written every way MSVC might fold
+// it (`y + 1`, `y + 0`, `y & 0x7fffffff`, `y - y`, `y ? y : y`, `(int)y`, and
+// `int q = y` then `q + 0`, `q = y` or `(int)q` for either or both calls
+// (min/copy.py) - they all coalesce back into y's register and shift nothing);
+// locals holding constants for the width, x and attr arguments, for the size and
+// default arguments of the lookup, and a local `char* type = "TEXT"`
+// (min/consts.py - propagated constants never take a register); `&value[0]`,
+// `&key[0]`, `&path[0]`, `&page->blank[0]`, `&DAT_005119b8[0]` and `"Help"[0]`
+// for addresses already in the code (build/scratch/0x45f8c0/pn/sweep.py - they
+// fold into the same node); `parser.current` hoisted into a local `cur`,
+// `(*parser.current).FUN_004c48c0`, `cur->field_0 >= cur->field_0`,
+// `layer->entries == layer->entries`, `sizeof(value)` and
+// `*(short*)(&DAT_00512ef0[0])`; the whole body split into three inline helpers
+// (Cut, AddLeft, AddRight), instruction for instruction identical to this file
+// and still ecx edx; value, key, layer and the lookup's `this` each read through
+// a pointer local; and AddLine's four parameters in all 24 orders, its value
+// parameter as void*, unsigned char*, const char* or char* const, its y
+// parameter by reference, and its layer and page parameters by reference.
+//
+// Also ruled out at zero instruction diff and the same register pair: the loop
+// written as continue / goto / while / for with the test in the header, `!= 0`,
+// a nested block round the body, and the increment folded into the test
+// (build/scratch/0x45f8c0/lf/sweep.py); the two calls each in their own block;
+// 3000 random combinations of nine independent spelling knobs, 2398 of which
+// compile (build/scratch/0x45f8c0/gen3.py with pprobe.py); and, in the minimal
+// model, the depth of the call chain, the presence or absence of either arm of
+// the if/else, the scan's pointer typed void*, unsigned char* or char* const,
+// and the number and placement of the later calls (min/deep.py, ablate.py,
+// ncall.py, cx.py).
+//
+// Three more axes, also flat at zero or near-zero instruction diff with the same
+// ecx edx, all places where an extra pool slot could in principle have come
+// from: the prologue, where &path and &parser are the nodes before the loop
+// (pg/sweep.py: `&path[0]`, `&("gamedata"[0])`, `&("TDF"[0])`, `&("Help"[0])`,
+// `(&parser)`, `(sub)->layer`, `&sub->layer[0]`, `&layer->entries[0]`,
+// `(short)DAT_00512ef0`); the preheader, whose declaration order decides the
+// imul load order (pz/sweep.py: a fifth identity local, `first` and `last` each
+// through further locals, the two operands multiplied the other way round, extra
+// parentheses, `& 0x7fffffff` on either operand, `first + (n ? n : n)`, and the
+// product in a separate local); and the comma operator, which keeps both
+// operands as tree nodes but emits nothing for a side-effect-free left one, on
+// every argument of the lookup, wsprintf, strcpy, the scan pointer, both
+// markers and both FUN_004ab1b0 calls (cm/sweep.py) - MSVC drops the left
+// operand, so none of those twenty adds a slot. tools/permute.py over two bases
+// (this file and the three-helper shape), 8 minutes each, 14559 candidates, also
+// flat at 98.7; as expected, its ratio cannot see a register-only difference.
+//
+// So: the original's tree had one more register-consuming node before the merge
+// than any of about 3000 spellings of this function produce, and that node
+// emitted no instruction. Nothing in C++ that MSVC 5 will keep in a register
+// emits no instruction except a value whose register is a forced one, and the
+// only forced register here is ecx for the __thiscall lookup, which the
+// original emits at 0x45f99d with nothing live afterwards. That is where the
+// next attempt should start: keep the lookup's `this` in ecx across the merge,
+// or give one of the merge's callee-visible values a forced register.
 #include <windows.h>
 #include <string.h>
 

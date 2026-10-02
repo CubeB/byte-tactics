@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Saves every live unit (g_game+0x14357..+0x1435b, stride 0x118) as a 0xb8
 // byte record; inverse of 0x487080/0x486fd0. Record and Piece field maps are
 // complete and confirmed by the 0x487080 loader.
@@ -79,6 +79,18 @@
 //    (84.9% and 73.1%).
 //  - volatile on unit fields (all, flags, f108, fb8, the piece fields) does not
 //    help here (70.8 to 77.7), unlike 0x487bf0.
+// Pass 15 (DeepSeek V4.1 Flash): still 90.1%, no new best. Two 3-minute
+//   permuter runs (seeds 11 and 777, 5168 candidates) found nothing; a third
+//   run started from the 89.9% no-pointer body also found nothing. Swept all
+//   15 adjacent transpositions of the sixteen rec-field stores: none beats
+//   90.1 (best 89.7, s1/s2), s9 (f8b/fb2) and s14 (fb0/fa3) tie at 90.1 with
+//   the same fine score 1278. `int id8b` is byte-identical to `short id8b`;
+//   removing the explicit `& 0xf` on flags.a is byte-identical; `a2 == 0` or
+//   a nested `if` loses the 0x4879d3 xor and drops to 1056/88.8. Everything
+//   points the same way: the sixteen-store block is a stable local optimum,
+//   and the remaining 9.9 points are the f7e->eax/f76->ecx/fb0->ecx register
+//   split which only appears if id8b's ecx dies before the f76 load, and the
+//   f0-first piece-loop iteration.
 #include <string.h>
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);

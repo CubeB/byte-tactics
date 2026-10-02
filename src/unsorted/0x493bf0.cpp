@@ -114,7 +114,7 @@ struct Game_00493bf0 {
     char unknown_2bfc[0x37ebe - 0x2bfc];
     unsigned short flags_37ebe;        // +0x37ebe
     char unknown_37ec0[0x37f2f - 0x37ec0];
-    Bit_00493bf0 field_37f2f;          // +0x37f2f
+    unsigned short field_37f2f;         // +0x37f2f
 };
 #pragma pack(pop)
 
@@ -197,8 +197,8 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
         while (*p && *p == ' ')
             p++;
         if (*p == '+') {
-            short flags = 1;
-            if (flags & g_game->field_37f2f.bit1)
+            int flags = 1;
+            if (flags & (unsigned char)(g_game->field_37f2f >> 1))
                 flags = 7;
             if (DAT_005091cc)
                 flags |= 2;

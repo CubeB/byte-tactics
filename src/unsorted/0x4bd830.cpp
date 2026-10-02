@@ -1,4 +1,31 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// claude-sonnet-5-5: 75.3 -> 77.9 percent (1345 -> 1323 bytes; the original is 1332).
+// The three scramble loops now match the original instruction for instruction
+// (add dl,cl / xor dl,al / xor dl,[ecx+edi] / not dl, key kept in al), which
+// item (3) below calls impossible. The lever is a DECLARATION-ORDER effect on
+// commutative operands: MSVC 5 orders `a + b` and the base/index of an address
+// by variable id, so the loop index must be declared BEFORE `pos` (and `pack`
+// before the index): `unsigned char* pack; int j; long pos;` in the function
+// block, with `for (j = 0; ...)` in all three loops. A loop-scoped `int j` gets
+// the newest id, which gives `mov dl,cl; add dl,al` (j first) and a reloaded
+// key; the early id gives the original `mov dl,[pos]; add dl,cl`. `pack`
+// declared before `j` keeps the address as [ecx+edi] instead of [edi+ecx].
+// What still differs (all register choice, 9 bytes short):
+//  - base/entry registers at the loop head are swapped (ours base ebx, entry
+//    ebp; original the reverse), and the same ebx/ebp swap recurs for
+//    flags/table in the compressed branch (original flags ebx, table ebp,
+//    the latter spilled to [esp+0x34]). Nothing tried flips either pair.
+//  - the original keeps the record array pointer (&dir->entries) in a frame
+//    slot and re-reads the count from memory at the loop bottom. Declaring
+//    `struct Dir {unsigned count; int entries;} *dir`, `recoff = &dir->entries`
+//    and `i < dir->count` in all three places gets the head to within the load
+//    order (73.4 percent / 1328 bytes), but then nblocks() compiles with the
+//    quotient first and the score drops; dir in only one or two of the places
+//    lets recoff be rematerialised (65.3). Re-reading dataptr[1] for
+//    `remaining`, as the original does, gets 65 to 74 percent for the same reason.
+//  - 270 shuffles of the local declaration order, hoisting e/size/blocks/chunk/
+//    len, a Scramble() helper, a key local, key and pos casts and operand
+//    orders were all flat or worse.
 // Space Bunny Free: 66.7% -> 75.3% (1353 -> 1345 bytes; the original is 1332).
 // Two changes won the points:
 // (1) A plain int copy of the compressor's output length, taken after the
@@ -162,6 +189,8 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
     File_004bd830* file;
     int n;
     unsigned i;
+    unsigned char* pack;
+    int j;
     long pos;
     long pos2;
     int* recoff;
@@ -201,7 +230,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                     table = (int*)FUN_004d83b0("Block Sizes", blocks * 4);
                     fwrite(table, blocks, 4, f);
                     packlen = FUN_004d1aa0(0x10000, flags & 0xff);
-                    unsigned char* pack = (unsigned char*)FUN_004d83b0("Pack Buffer", packlen);
+                    pack = (unsigned char*)FUN_004d83b0("Pack Buffer", packlen);
                     data = (unsigned char*)FUN_004d83b0("Data Buffer", 0x10000);
                     remaining = size;
                     n = blocks;
@@ -216,7 +245,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                             pos = ftell(f);
                             int len = clen;
                             if ((char)key != 0) {
-                                for (int j = 0; j < len; j++)
+                                for (j = 0; j < len; j++)
                                     pack[j] = (unsigned char)~((char)pos + (char)j
                                               ^ (char)key ^ pack[j]);
                             }
@@ -229,7 +258,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                     fseek(f, *dataptr, 0);
                     pos2 = ftell(f);
                     if ((char)key != 0) {
-                        for (int j = 0; j < (int)(blocks * 4); j++)
+                        for (j = 0; j < (int)(blocks * 4); j++)
                             ((unsigned char*)table)[j] = (unsigned char)~((char)pos2
                                 + (char)j ^ (char)key ^ ((unsigned char*)table)[j]);
                     }
@@ -244,7 +273,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                         FUN_004bb7c0(file, buffer, chunk);
                         pos = ftell(f);
                         if ((char)key != 0) {
-                            for (int j = 0; j < chunk; j++)
+                            for (j = 0; j < chunk; j++)
                                 buffer[j] = (unsigned char)~((char)pos + (char)j
                                             ^ (char)key ^ buffer[j]);
                         }

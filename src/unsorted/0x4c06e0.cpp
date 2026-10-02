@@ -1,4 +1,146 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
+// SPACE-BUNNY-FREE, fifth pass (issue 4691): still 96.5%, 200 of 200 bytes, no
+// MATCH. About 200 further variants this pass, all byte-identical or worse, and
+// two new results that are worth more than the score.
+//
+// 1. THE COPY IS NEEDED IN *BOTH* ARMS, FOR THE SAME REASON, and that is why
+//    one copy serves both here. In the depth arm `mov bl,[esp+0x20]` clobbers
+//    the low byte of ebx, so the count must be out of ebx first. In the fill
+//    arm the sequence is `mov al,color / lea ecx,[ebx] / mov bl,al / ... /
+//    mov bh,bl`, and `mov bl,al` clobbers ebx there too, so the count must be
+//    out of ebx before it as well. The fill arm's copy is NOT forced by memset
+//    consuming its count register; it is forced by the same colour clobber.
+//    So ebx is the count's home in both arms, each arm takes its own copy out
+//    of it, and the original has exactly the two copies it should. Ours has
+//    one copy, hoisted to the common dominator of the two arms, with the fill
+//    arm taking its copy from that instead of from ebx. The slope/colour load
+//    order and the `lea`-versus-`mov` spelling ride along with the hoist, which
+//    is why the three residual instructions move as one.
+//
+// 2. `lea reg,[reg]` IS NOT A COPY SPELLING MSVC 5 PRODUCES FOR THIS SHAPE.
+//    Both `lea` sites in the exe that copy a register mean something else:
+//    0x40a51b (inside the matched 0x40a260) materialises a SECOND NAME for a
+//    value purely to compare it against the first, `lea eax,[ecx]` followed by
+//    `cmp eax,ecx / je`, which is the self-assignment-guard shape; and
+//    0x4d41f3 (zlib `__tr_stored_block`) is a loop countdown whose source
+//    register is reloaded inside the loop body. Neither is a plain copy. A
+//    108-variant lab (count as int/unsigned/long/unsigned long/short/unsigned
+//    short, three loop forms, five memset spellings, the colour through a
+//    local, the colour as an int) produced ZERO `lea reg,[reg]`: every copy
+//    came out as `mov dst,src`. So `lea` here is not reachable from a source
+//    that merely copies the count, and the two symptoms really are one.
+//
+// 3. The self-conditional pin is DEAD for this function. `n = n ? n : n;` on
+//    the count, on p, d, z, off, start, slope, x2, color, surf and span, at
+//    the top of the function, at the top of each arm, inside the depth loop
+//    body and inside the fill arm, alone and in all six pairs, plus the plain
+//    self-assignment `n = n;` at the same four points, plus a pin with a real
+//    merge (`if (n > 0) n = n; else n = n;`) at three points, plus a pin
+//    combined with a fill-arm temp: 66 variants, every one of them byte
+//    identical to this file. The pin creates a phi, but MSVC 5 folds it away
+//    before the copy that decides the count's home, so it cannot stop the
+//    propagation. The address-taken form (`const int* np = &n;` feeding the
+//    memset) is 73.1%, which is the same promotion-to-a-register result the
+//    earlier passes measured. Conclusion for the next pass: a pin is not a
+//    lever on this compiler, so do not spend time on it again.
+//
+// 4. Also closed this pass, against the CURRENT head (some of these were only
+//    ever measured against the older 84.2% shape): a second count name for
+//    the loop only, as int/unsigned/long/short, in the arm and as a `for`
+//    counter (54.4 to 57.8%, so the head still cannot take a fifth local); a
+//    second count name for the fill arm only (96.5, same residual); both arms
+//    with their own name (54.4%); the fill arm's count through a `const int&`
+//    (96.5, same residual); the colour through a local in the arm (96.5, and
+//    `bl` is still chosen, so a colour local does not stop the clobber);
+//    dropping `off` (78.5%), dropping `z` (65.9%), dropping `start` (85.7%),
+//    the count declared before the guard (61.1%), the guard on an `unsigned`
+//    local (63.7%), the fill arm's count read from the fields (64.4%), an
+//    early `return` after the fill arm (75.1%), thirteen memset count
+//    spellings times two with and without a pin (all 96.5%), and the count's
+//    declared type crossed with seven memset casts, 48 combinations, of which
+//    the six signed ones are 96.5 and every unsigned one is 89.4%.
+//
+// 5. Translation-unit state, the one lever with a measured effect here, is
+//    exhausted in this family too. The fourth pass found that the count block
+//    only reaches the original's `imul eax,[row]` when the file contains an
+//    inline function (1 to 6 uncalled ones give 96.5%, 8 give 88.9%), so the
+//    count of inline functions in the TU visibly moves this function's
+//    allocation. Swept again against the current head, 348 TU states: 15
+//    helper shapes (identity int, identity pointer, `a + 1`, void, char, one
+//    with a loop, two ints, one taking a pointer, one taking a function
+//    pointer, one calling memset, a static variable, a template, a class with
+//    a member, a static const, one taking an array) at 0 to 12 copies each,
+//    one of every shape at once, 66 two-shape mixes over the 6-to-12 window,
+//    and 18 exotic declarations (double, float, two doubles, __int64,
+//    unsigned __int64, a class with virtuals and a destructor, a throw()
+//    specifier, a union, a bitfield struct, a static variable, a non-inline
+//    static function, an enum, an int& parameter, a nested class, an
+//    operator+, an array parameter, a char* parameter) at 1, 2 and 3 copies,
+//    plus one placed inside the struct and one on a function-local static, and
+//    `register` on the count. Result: 217 of the 274 helper-count variants and
+//    35 of the exotic ones at 96.5%, and the rest at 93.4% or lower. The 93.4%
+//    band is just the total-inline-count degradation the fourth pass described,
+//    re-measured at a different point now that the used `Pitch()` member is
+//    itself an inline function (six or more uncalled helpers cost 2.7 points;
+//    12 still give 96.5%, 20 gave 81.2% in the older file). Nothing in any TU
+//    state tips the count copy out of the dominator.
+//
+// 6. New tooling, reusable and left in build/scratch/0x4c06e0/. `differ.py`
+//    scores a compiled `/Fa` listing against the original instruction stream
+//    with the stack slots matched BY NAME (the listing's `_slope$[esp+12]`
+//    and the exe's `[esp+0x18]` are the same slot, and the listing prints
+//    displacements and shift counts in hex with no suffix, which is the one
+//    thing that makes a listing hard to diff by eye). It reproduces this
+//    file's residual exactly and reads 96.1% where check.py reads 96.5%, the
+//    gap being the duplicate jump labels it does not fold, so a 100% on it is
+//    a candidate to confirm with check.py rather than a result. `sweep.py`
+//    compiles a whole batch in parallel, ten at a time, and prints the diff
+//    for anything at or above the base: about 0.4 s per variant against 0.3 s
+//    for a full check.py run, but with ten in flight, which is what makes a
+//    350-variant sweep cost a couple of minutes. `lab.py` plus `genlab.py`
+//    compile a cut-down function and report only the copies, which is how the
+//    zero-`lea` result above was measured. Note the three traps: MSVC's
+//    listing displacements are decimal-looking but hexadecimal (`[ecx+24]` is
+//    0x18); a function that is never called is dropped from the listing
+//    entirely, so a lab function must be extern; and `build/obj/` is
+//    case-insensitive under Wine, so the listing directory is lower-cased.
+//
+// 7. Two permuter runs, both from seeds other than the best file, per the
+//    lesson from 0x47e5c0 that a worse shape can reach a byte-identical match
+//    where the best shape does not. From the arm-extracted seed (the fill arm
+//    as an inline `FillRow`, 96.5% to start): 5905 candidates in 11 minutes,
+//    no improvement. From the separate-loop-counter seed (`int i = n` in the
+//    depth arm, 47.3% to start, 196 bytes), the worst shape anyone has kept
+//    for this function: 11645 candidates in 15 minutes, climbing to 83.0% in
+//    the first 70 seconds and then flat, so that basin does not contain the
+//    96.5% file either and the two shapes are not connected by any of the
+//    rewrites the permuter tries. This file's best shape has now been the
+//    permuter's starting point five times over, and the two alternative seeds
+//    are saved at build/scratch/0x4c06e0/seed_arm.cpp and w2_loopvar_i.cpp
+//    for a future pass that wants to start lower.
+//
+// 8. One thing checked and found sound, recorded because it looks wrong at
+//    first: the exe's first two loads are `mov eax,[esp+0xc]` and
+//    `mov ecx,[esp+8]`, which look like the first and second parameters, but
+//    for __stdcall MSVC 5 frames parameters in DECLARATION order from 8
+//    upwards (a four-parameter test compiles to _p1$=8, _p2$=12, _p3$=16,
+//    _p4$=20, and the return address is at [esp]), so [esp+0xc] is the third
+//    parameter and [esp+8] the second. That is exactly what this file
+//    declares, and the roles check out: the third parameter is dereferenced at
+//    +0x10 and +0x14 for bits and depth, the second at +0, +4, +0x18 and
+//    +0x1c for x1, x2, z1 and z2, and after the four pushes `imul
+//    eax,[esp+0x14]`, `mov eax,[esp+0x18]` and `mov bl,[esp+0x20]` are the
+//    first parameter, the slope's home and the fourth parameter. No bug in the
+//    original here.
+//
+// The bottom line is unchanged from the fourth pass: 96.5% is a local optimum
+// of this source family. What this pass adds is the reason the fill arm shares
+// the depth arm's copy (the colour clobbers ebx in both arms), which closes
+// the "memset consumes the count register" explanation, the measurement that
+// MSVC 5 will not spell a count copy as `lea` here, which removes the other
+// half of the residual as a source-shape question, and the closure of the
+// translation-unit lever over 348 states.
+//
 // SPACE-BUNNY-FREE, fourth pass (issue 4582): best stays 96.5% (200 of 200
 // bytes, size exact) after about 306 scoring runs and a 15-minute permuter run
 // (9887 candidates, no match). The result of this pass is a mechanism, not a

@@ -1,34 +1,76 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
-// Space Bunny Free continued from 68.6% to 72.9% (1041 bytes against 1046).
-// WHAT WORKED: an exhaustive greedy search over the ORDER of declarations and
-// statements inside each block, scored with check.py. Declaration order does not
-// change MSVC's frame slots by itself, but it changes how the scheduler and
-// register allocator lay the code out, and three orders were worth +4.3%:
-//   (a) block 3 now declares `int y = ay; unsigned short s = stride; int
-//       stride2 = s * 2; int offset = (py * s + px) * 2; int n = w2;`, with n
-//       LAST (it was first). That is the original's order: the original stores
-//       n = w2 (mov [esp+0x34], esi) after y = ay, and only then computes s.
-//       69.9% -> 71.7%.
-//   (b) the `if (ry != 0)` adjust block is `w2--; ay += 32 - ry; py++;` (w2--
-//       FIRST). The original emits `mov edx,[ay]; mov esi,[w2]; mov eax,0x20;
-//       dec esi; sub eax,edi`, i.e. it loads w2 and decrements it between the
-//       two halves of the 32 - ry arithmetic. Earlier passes tried this and it
-//       lost; on top of (a) it wins. 71.7% -> 72.9%.
-//   (c) block 1 declares `int n = w2; int base = ...; p1; p2; int y = ay;`
-//       (n first, y last). 69.3% -> 69.9%.
-// Block 2 wants `p1; p2; int x = ax; int n = w1;` (n last); the permuter's
-// `p1; n; p2; x` scored the same on its own fine score but 0.1% lower here.
+// Space Bunny Free continued from 68.6% to 76.9% (1048 bytes against 1046).
+// WHAT WORKED: order, not types. Three passes of search over the ORDER of
+// declarations and statements inside each block, scored with check.py, plus a
+// permuter run that was then stripped of its artifacts.
+// A. Greedy search over block declaration/statement order. Declaration order
+//    does not change MSVC's frame slots by itself, but it changes how the
+//    scheduler and register allocator lay the code out. Five moves were worth
+//    +8.3%:
+//    (a) block 3 declares `int y = ay; unsigned short s = stride; int
+//        stride2 = s * 2; int offset = (py * s + px) * 2; int n = w2;`, n
+//        LAST (it was first). That is the original's order: the original stores
+//        n = w2 (`mov [esp+0x34], esi`) after y = ay and only then computes s.
+//        69.9% -> 71.7%.
+//    (b) the `if (ry != 0)` adjust block is `w2--; ay += 32 - ry; py++;` (w2--
+//        FIRST). The original emits `mov edx,[ay]; mov esi,[w2]; mov eax,0x20;
+//        dec esi; sub eax,edi`, i.e. it loads w2 and decrements it between the
+//        two halves of the 32 - ry arithmetic. Earlier passes tried this alone
+//        and it lost; on top of (a) it wins. 71.7% -> 72.9%.
+//    (c) `if (rem2 != 0) w2++;` comes BEFORE `bmp.dx/bmp.dy = 0` and
+//        `if (rem1 != 0) w1++;` after them. 72.9% -> 74.6%. The original tests
+//        rem1 first and does `inc [w1]` between the two tests; with the source
+//        the other way round MSVC reproduces that sequence.
+//    (d) block 1 declares `int base = ...; p1; p2; int n = w2; int y = ay;`
+//        (y last). On its own from 69.3% this was n first and y last (69.9%);
+//        on top of (a)-(c) it is base, p1, p2, n, y. 74.6% -> 76.9%.
+// B. A 9 minute permuter run from 74.6% reached 75.9% with
+//    empty_then+temp_intro+split_init. Its output had self-assignments
+//    (`ay = ay`, `int same1 = stride2; stride2 = same1`, an `x`/`same0` pair),
+//    a do-nothing `tmp14 = g_game`, empty `else` arms, do-nothing `(int)`
+//    casts and a redundant `if (n > 0) { do ... }` guard. Removing all of them
+//    one at a time and re-checking kept 75.9%, and moving `int base` back into
+//    block 1 (where it belongs) took it to 76.2%. What survived, and is kept
+//    deliberately, is `int topRow = ry != 0;` inside block 2's loop: dropping it
+//    for a plain `if (ry != 0)` costs 2.5% (76.2 -> 73.7), and hoisting it out
+//    of the loop costs 25% (51.3%). Every other spelling tried (`bool`, an
+//    `unsigned`, a split `topRow = ry != 0;`, `0 != ry`) compiles the same, so
+//    this one line is the only unusual spelling in the file.
+// The plain block-2 order `p1; p2; int x = ax; int n = w1;` is right; the
+// permuter's self-store version of it scored the same and was dropped.
 // Still tried and all NEUTRAL or worse: `static inline` helpers for the icon
 // lookup (`g_game->iconSet->cell[v][0][0]` with the IconSet typed as
 // `unsigned char (*cell)[32][32]` the way 0x466780 has it, or the flat
 // `+ v * 0x400` form), a helper that assigns bmp.data and calls FUN_004b8150,
 // `const` on stride/base/s/rx/ry, `void*` for bmp.data and iconSet->data, the
 // callee parameter types from 0x4b8150's own file, `for`/nested-if/`while`
-// rewrites of every loop, and swapping the operands of every commutative
-// expression (MSVC canonicalises those, so they compile identically).
-// tools/headers.py over all 128 header sets: only <windows.h> and <ddreach.h>
-// reach the same 72.9%, so <windows.h> is required and no header is the lever.
-// A 9 minute permuter run from the 69.3% file found nothing (score 3277 flat).
+// rewrites of every loop, splitting rem1/rem2 into two statements, and
+// swapping the operands of every commutative expression (MSVC canonicalises
+// those, so they compile identically). tools/headers.py over all 128 header
+// sets: only <windows.h> and <ddraw.h> reach the same score, so <windows.h> is
+// required and no header is the lever. Two full greedy sweeps (five rounds of
+// climbing over every block) are local optima: no single-block move improves
+// them.
+// WHAT STILL DIFFERS, all of it register colour and scheduling:
+// * The zero register: the original frees ebp by moving rem2 into edx
+//   (`mov edx,ebp; xor ebp,ebp`) and then compares everything against ebp
+//   (`cmp ebx,ebp; cmp edx,ebp; cmp esi,ebp; cmp [esp+0x30],ebp`). Ours keeps
+//   rem2 in ebp, zeroes edx and emits `test esi,esi` plus a separate
+//   `mov edx,[esp+0x30]` for the second half of the block-1 guard.
+// * Slots: ax .20, py .24, w1 .10, w2 .18, stride .28, p2 .2c, rem1 .30,
+//   rem2 .34, n .38, stride2 .3c, p1/y .5c all match; px and ay are a rotation
+//   (original px .14, ay .1c; ours px .1c, ay .18). MSVC picks these from the
+//   liveness of the early stores and no declaration or statement order in any
+//   of the searches above moved it.
+// * Block 1's FIRST call: the original builds the icon pointer in eax
+//   (`xor eax,eax; mov ax,[edx]; shl eax,0xa`) with the map pointer in edx,
+//   ours builds it in edx with the map pointer in eax. The second call in each
+//   block already matches instruction for instruction.
+// * Block 3: the original reloads w1 into ebp in the outer-loop LATCH
+//   (`mov ebp,[esp+0x10]` at 0x484384) with no entry jmp; ours reloads it at
+//   the loop top and carries a two-byte entry `jmp`.
+// * Block 2's setup: the original computes p2 into eax and tests the already
+//   loaded w1 in ebp before storing n; ours reloads w1 into eax for the test.
 // claude-sonnet-5-5 continued: best 68.6% (1033 bytes against 1046), from
 // 66.2%. Two source-order changes helped: (a) bmp.dx/bmp.dy = 0 now sit
 // before the `if (rem1 != 0)` tests (the other bmp stores stay after them),
@@ -148,12 +190,12 @@ void __stdcall FUN_00483fa0(void* surface)
     int w1 = (vw + rx) / 32;
     int vh = g_game->viewH;
     int w2 = (vh + ry) / 32;
-    int rem1 = vw - w1 * 32 + rx;
-    int rem2 = vh - w2 * 32 + ry;
-    bmp.dx = 0;
-    bmp.dy = 0;
+    int rem1 = rx + (vw - 32 * w1);
+    int rem2 = (vh - w2 * 32) + ry;
     if (rem2 != 0)
         w2++;
+    bmp.dx = 0;
+    bmp.dy = 0;
     if (rem1 != 0)
         w1++;
     int stride = g_game->mapWidth / 2;
@@ -162,10 +204,10 @@ void __stdcall FUN_00483fa0(void* surface)
     bmp.flag9 = 0;
     bmp.count = 0;
     if (rx != 0 || rem1 != 0) {
-        int n = w2;
         int base = py * stride + px;
         unsigned short* p1 = g_game->mapValues + base;
         unsigned short* p2 = g_game->mapValues + base + w1 - 1;
+        int n = w2;
         int y = ay;
         if (n > 0) do {
             if (rx != 0) {
@@ -188,7 +230,8 @@ void __stdcall FUN_00483fa0(void* surface)
         int x = ax;
         int n = w1;
         if (n > 0) do {
-            if (ry != 0) {
+            int topRow = ry != 0;
+            if (topRow) {
                 bmp.data = g_game->iconSet->data + *p1 * 0x400;
                 FUN_004b8150(surface, &bmp, x - rx, ay - ry);
             }
@@ -220,7 +263,7 @@ void __stdcall FUN_00483fa0(void* surface)
     if (w2 > 0) {
         int y = ay;
         unsigned short s = stride;
-        int stride2 = s * 2;
+        int stride2 = ((unsigned short)stride) * 2;
         int offset = (py * s + px) * 2;
         int n = w2;
         do {

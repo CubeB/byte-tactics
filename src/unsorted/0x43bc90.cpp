@@ -1,4 +1,16 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash (#4789, this session): baseline reconfirmed at 83.6% / 909 bytes,
+// exact size. permute.py --minutes 3 (2067 candidates) found only cosmetic ties
+// (83.6% / 909 but two more moved jump targets, not kept) and headers.py --cpp
+// (1536 header sets) was flat, as were roughly 25 hand variants: int N = size()+count,
+// size_type N, count+size order, (int) cast, (size_type)count, named locals for from
+// and count, begin()/end() hoisted before reserve, ins declared before reserve, loop
+// forms (i != count, count-down with *from++, pointer from..from+count, while (n--)),
+// literal 0x10, inverted _Sort_0 guard, while-shaped unguarded insert, and last/first
+// declaration order. All tie or drop. Root unchanged: the original's whole-function
+// allocation puts _First in ecx (tested) and _Last in ebp, ours keeps _Last in ecx and
+// _First in ebx, which cascades into reserve's tail, the insert cursor (ebp vs eax) and
+// the sort's stack homes.
 // Space Bunny Free (issue 4150, second pass on this address): baseline reconfirmed at 83.6%
 // and 909 bytes, exactly the original's size, and left unchanged. Forty-odd variants and two
 // seeded permuter runs found nothing better. One correction to the notes below: at the top of

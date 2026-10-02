@@ -1,4 +1,14 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash (issue #4789): best stays 92.0% (732/753), confirmed
+// stuck. A 3-minute permuter run (1865 candidates) found nothing. An empty
+// `static inline` nudge placed after reserve (or at any of ten statement
+// boundaries) does tip the /Ob2 budget and emit the out-of-line `call
+// _Destroy` at 752 bytes, but every such variant lands at 84.3%: the tail
+// reloads `_Last` into ecx and `_First` into eax (original: ebp/eax) and the
+// sort's `mov esi, ebx` copy plus its downstream homes shift. Removing the
+// explicit `template class std::vector<Elem_0043c390>;` with the nudge is
+// worse (82.8%). Reconfirmed the two independent residuals: reserve's
+// inlined-empty `_Destroy` and the sort block's `_F` home.
 // deepseek-v4.1-flash (#4014, 10 min): best stays 92.0% (732/753). Two further
 // levers tested against it, both worse: (1) the 0x43bc90 copy-loop shape
 // (`iterator ins = end(); do { insert(ins,1,*p); ins = end(); ++p; }`) collapses to

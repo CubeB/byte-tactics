@@ -11,6 +11,79 @@
 // including the whole "5 units or more" branch. One hunk differs, the loop
 // preheader plus the first half of the loop body, and it is one block-ordering
 // decision:
+//
+// 30-min checkpoint (space-bunny-free, 2026-10-02, second pass). Still 91.1%,
+// 601 of 601 bytes, the file below is unchanged from the previous passes. All
+// three priority steps are done and every one of them is a negative, which
+// closes off the two hypotheses the older notes above still leave open:
+// * tools/permute.py HAS now been run here (it never had been). Seeds 11 and
+//   12: 2789 and 3973 candidates, both 91.1% -> 91.1%, nothing. Seed 13 climbed
+//   the fine score 1120 -> 920 and check.py to 92.5%, and that 92.5% is a
+//   difflib artifact, not progress: its best.diff (build/permute/0x407ae0/,
+//   snapshot in build/scratch/0x407ae0/s13/) aligns the loop hunk better while
+//   *regressing* a hunk the 91.1% file matches - in the "5 units or more"
+//   branch its `unsigned int tmp1 = FUN_004b6c30(2)` makes MSVC emit
+//   `cmp eax, ebx` where the original has `test eax, eax`. It is also a tangle
+//   of tmp0/inl0 names, a self-store and `do ... while (0)` leftovers. So it is
+//   not taken; the only real thing it found is recorded below.
+// * BT_TOOLCHAIN=msvc5-rtm uv run tools/check.py 0x407ae0 prints 91.1% with the
+//   same 601 bytes. The toolchain is NOT the lever, so every "91.1% local
+//   optimum" note in this file is about the right compiler. Worth one line on
+//   its own: nobody had checked it in five passes.
+// * The unused-declaration sweep and the helper count are both dead. Four
+//   unused-declaration sizes (4, 16, 64, 256) and N = 1..8 uncalled
+//   `static inline` helpers all score exactly 91.1%, so this is source shape
+//   and not MSVC 5 allocator state. A Game* constructor on Vec3_00407410, the
+//   two ctors defined above with a self-store, and MakeFixed reshaped into the
+//   0x407d40 `int` from `double` shape are 91.1% too (83.4% for the MakeFixed
+//   reshape, which is worse).
+// * The guard is not MSVC folding a spelling: asking for the condition twice
+//   does not help. The dead-store / self-store / two-names-for-one-zero levers
+//   applied to the loop *counter* (rather than to n) are 91.1%: a store in a
+//   statically folded branch, `i = i;`, `int z = i; i = z;`, `int i = n - n;`.
+//   And `for (;;) { ... i++; if (!(i < n)) break; }` under `if (i < n)` is
+//   91.1%, so the `cmp ecx,ebx` guard is not just the loop test asked for
+//   twice. Swapping the addends in the two sums - `dest.x = (dx << 16) +
+//   pos.x.value` and `dest.z = ((FUN_004b6c30(h) - hh) << 16) + pos.z.value` -
+//   is 91.1% on its own, though seed 13 needed it together with its tangle to
+//   reach the 92.5% artifact.
+// * A lead the permuter did isolate, worth trying: seed 13's body ends with
+//   pos.x hoisted into a temp, `dest.y` assigned before `dest.x`, and
+//   `dest.x = (shifted random) + (pos.x temp)`, which is what made MSVC put
+//   the sum's destination in the pos.x register (`add ecx, eax`) as the
+//   original has (`add edx, eax`). Clean variants of that on their own are
+//   91.1%, so whatever makes it stick needs something else as well.
+// * Seeds 13 and 14 both climb to the same 92.5% artifact (fine score 920), so
+//   that is a systematic attractor of the permuter's metric, not a find.
+// * Self-assignment and `(void)` forms, now worth measuring per AGENTS.md.
+//   Nine of them, on the values the remaining decision turns on: `i = i;` and
+//   `(void)i;` before the loop, `i = i;` in place of the for-init, `hw = hw;`,
+//   `hh = hh;`, `(void)hh;`, `w = w;`, `(void)n;`, `dx = dx;` and `(void)dx;`
+//   in the body, plus `vx = vx;` on a named x sum. All nine are 91.1% at 601
+//   bytes, so MSVC 5 DELETED every one of them: they emit no code, and they
+//   do not move the score either. "Deleted by the compiler" and "scored the
+//   same" are both true here, and neither makes this a lever. The script is
+//   build/scratch/0x407ae0/hand_s.py.
+// * The body shape above behaves the same way: hoisting pos.x and the shifted
+//   random into their own temps with `dest.y` assigned between them is 91.1%
+//   at 601 bytes, with or without a helper for the pos.y load, and the same
+//   shape applied to the z sum as well is 59.5% at 613 bytes.
+// * The frame map in the notes below is right, and the "10 dword(s) of locals"
+//   from ctx.py checks out: with `sub esp,0x28` plus four pushes the ten
+//   locals are [esp+0x10] (this, spilled at entry, reloaded as field_8 in
+//   both loop arms), [esp+0x14] (hh), [esp+0x18] (n), [esp+0x1c] (the &dest
+//   for FUN_00407410), [esp+0x20] (dest.x), [esp+0x24] (dest.y then dest.z),
+//   [esp+0x28..0x30] (pos.x, pos.y, pos.z) and [esp+0x34]. The return address
+//   is at [esp+0x18] of the *pre-push* frame, i.e. above all of them, which is
+//   why storing this at [esp+0x14] while the argument is pushed is safe.
+//
+// One more thing the older notes above leave open, now confirmed: the original's
+// top guard is commuted (`cmp ecx,ebx` = `n <= i`) while its bottom test is
+// not (`cmp ebx,eax; jl` = `i < n`). Spelling the loop condition `n > i`
+// commutes both, so the loop's own condition is spelled `i < n` and the top
+// guard is a source-level `if` of its own. Every spelling of that `if` tried
+// so far also moves `this` out of esi and drops the file to 52.9%:
+//
 // - The original splits the loop preheader: `sar esi,3; sar edi,3` (w and h)
 //   come before the entry test `cmp ecx,ebx; jle`, and the two halves (ebp =
 //   w/2, [esp+0x14] = h/2) come after it as a block of their own. Here the
@@ -126,6 +199,41 @@
 //   negatives: `if (n > 0)` around only the for loop (halves still outside) is
 //   51.9% / 617 bytes, and `int hw = w / 2, hh = h / 2;` in one declaration is
 //   byte-identical to the two-statement form. The block split stays unreachable.
+//
+// - space-bunny-free (2026-10-02, notes only, nothing compiled): this address
+//   has never been through tools/permute.py (build/permute/ holds only
+//   0x407d40), so all five passes so far were hand work. Sweep seeds, not one
+//   run: permute.py 0x407ae0 --jobs 4 --minutes 10 --seed 11, then 12, 13, 14.
+//   The remaining diff is a scheduler and allocation tie, which is what the
+//   permuter is for.
+// - Levers the permuter cannot reach (it only rewrites this function and the
+//   inline helpers this function calls), none of them tried yet, all written
+//   out and scored by `uv run python build/scratch/0x407ae0/sweep.py` (see the
+//   README beside it; nothing in that batch has been compiled yet):
+//   * N = 1..8 uncalled `static inline` functions in this TU. The guide's
+//     0x4ac970 MATCH keeps one nothing calls, and 0x4c06e0 was fixed by adding
+//     one, so the count is a knob on MSVC 5's allocator state.
+//   * `MakeFixed`, the one helper this function inlines, given 0x407d40's
+//     winning shape: an `int` local declared on its own and assigned in a
+//     separate statement from a `double` local. Also a `same0` self-store in it.
+//   * a `Game*` constructor on Vec3_00407410 in that same shape: on the sibling
+//     the deciding IL nodes were in a neighbouring class's constructor, never
+//     in the function being compiled.
+//   * 0x407350's and 0x407a90's constructors defined above this function with a
+//     self-assign and an `int` from a `double` in a statically dead `if`
+//     (defining them plain was 91.1%, no change).
+//   * `int t = 0; if (t) n = 0;` before the loop, or before `hw = 0` after the
+//     halves: a dead store in a folded branch blocks copy propagation, no code.
+//   * `for (;;) { ...; i++; if (!(i < n)) break; }` under `if (i < n)`: the one
+//     spelling that asks for the loop condition twice, so the top guard cannot
+//     be specialised to `i == 0` and the hoisted halves land after it.
+// - Two rule-outs nobody has run here either, both from the guide: a flat sweep
+//   of unused declarations (0 to 700, guide 0x4624a0 / 0x46e640: if the score
+//   never moves, the difference is source shape, not compiler state; the sweep
+//   script does 4, 16, 64 and 256), and one build with the unpatched compiler,
+//   `BT_TOOLCHAIN=msvc5-rtm uv run tools/check.py 0x407ae0` (guide 0x4732e0).
+//   If that moves the score, every note above about the "91.1% local optimum" is
+//   about the wrong compiler.
 //
 // `field_c = g_game->ticks + FUN_004b6c30(900) + 30` in one expression folds
 // to `lea eax, [eax+edx+0x1e]`; the delay has to be computed first.

@@ -1,4 +1,4 @@
-// Decompiled by Opus, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Opus, edited by deepseek-v4.1, finished by Space Bunny Free. Names are provisional.
 // claude-opus-5-5 (#4428): unchanged; a 10-minute permuter run (about 500 candidates) found nothing.
 // Also tried (all compile to the division-first order, 159 bytes): no cast, a
 // separate int or unsigned local for field_1fe or for the sub-product, compound
@@ -84,6 +84,89 @@
 //
 // What still differs (96.6%): one extra "and edx, 0xffff" before
 // "imul edi, edx", which shifts the jg target (0x4386ef vs 0x4386e9).
+//
+// space-bunny-free in #4680. File unchanged: still 96.6%, still 167 vs 161
+// bytes, still exactly one extra 6-byte instruction. About 500 further scratch
+// variants scored with build/scratch/0x438650/h.py (a probe that compiles a
+// body and reports the score, the A/b8/type/accumulator registers, whether the
+// 0xffff mask is there and whether the conversion is fild dword or fild qword).
+//
+// New facts, all measured:
+//
+// 1. THE MASK AND THE OPERAND ORDER ARE ONE DECISION, now confirmed from both
+//    sides. Earlier notes recorded only that every mask-free spelling reorders.
+//    The reverse is now proved too: every spelling that keeps the original's
+//    order (A first, the original's esi/edi/edx/ecx allocation, fild qword,
+//    "mov [esp+0xc],0", push edi, and the original's exact 161-byte size) pays
+//    the mask. Concretely, `A * (unsigned short)((a->field_b8 + 5) / 5) * F * n`
+//    and `A * Q5(a->field_b8) * F * n` with a 16-bit-parameter helper both
+//    compile to the original's operand order AND its exact register allocation
+//    (A -> edx, b8 -> ecx, a->type -> ecx, accumulator -> edi, fild qword
+//    [esp+8]) at 96.6% / 167 bytes, differing by the and alone. Nothing tried
+//    separates them. The mask is the widening of a 16-bit-typed quotient; a
+//    32-bit-typed quotient is never masked but always reorders.
+//
+// 2. A 16-bit-PARAMETER inline helper is the cheapest way to buy the original's
+//    order: `static inline unsigned short Q5(unsigned short b) { return
+//    (unsigned short)((b + 5) / 5); }` called as `Q5(a->field_b8)` gives
+//    96.6% with A=edx, b8=ecx, type=ecx, mul=edi and fild qword, from a source
+//    that reads as ordinary code. The same helper returning 32-bit is 52.9%
+//    (order flipped), so the 16-bit-ness is doing the work, not the helper.
+//    It still pays the mask, so it is not in the file, but it is the shortest
+//    proof that item 1 is real.
+//
+// 3. A mask-free shape that gets 161 bytes and the original's accumulator does
+//    exist, so the 6 bytes are not simply the price of the whole schedule.
+//    `int s = a->field_b8 + 5; int t = 0; if (t) { s = 0; } int p = A * (s/5)
+//    * F * (unsigned int)n; r = (int)((double)(unsigned int)p / (v*300.0f));`
+//    is 79.5% at exactly 161 bytes, no mask, fild qword, push edi, and the
+//    accumulator in edi. It is lower than 96.6% so it is not in the file. Its
+//    one fault is the a->type pointer landing in edx instead of ecx and A in ax
+//    instead of edx, because the sum statement runs first. Hoisting
+//    `UnitType* at = a->type` and using it for BOTH field_1fe and field_1fa
+//    moves A into edx and reaches 84.1% at 161 bytes, but then a->type sits in
+//    esi and the second +0x92 load moves. Roughly 60 spellings of the sum
+//    split, the pointer hoists, the barrier, the conversion and the statement
+//    order were swept on these two families (79.5% and 84.1%); none reached
+//    96.6%, let alone MATCH.
+//
+// 4. Field widths re-measured on both families (item 24 of the brief). The file's
+//    widths are the original's and are also the best: field_1fe and field_b8
+//    unsigned short, field_1fa unsigned int. field_1fe as unsigned int drops
+//    the cast family to 69.0% and the split family to 69.8% (Qfirst); as short,
+//    92.0% and 86.0%; field_b8 as unsigned int, 48.8% and 75.9%; as short,
+//    90.9% and 75.9%; as unsigned char, 94.4% and 75.0%; field_1fa as int,
+//    76.7% and 79.5% (fild dword, so the conversion goes signed); as unsigned
+//    short, 58.1% and 48.3%. None beats 96.6%.
+//
+// 5. The barrier's own type and statement form are irrelevant; what matters is
+//    only that a statement separates the sum from the product. 30 barrier forms
+//    (int, unsigned short, short, char, unsigned char, long, float, double,
+//    unsigned int constants, +=, *= 1, /1, %1, <<0, &-1, do/while(0),
+//    for(;;), while(0), goto, if/else, two barriers) all compile to the same
+//    62.8% shape from the unsplit product and the same 79.5% shape from the
+//    sum-split one. The forms that emit no code at all (do/while(0), for,
+//    switch(0), goto) are optimised away and collapse the whole function to
+//    73 bytes, so the barrier has to be a real `if` or a real store.
+//
+// 6. Compiler state re-tested against the cast expression: N = 0..120 dummy
+//    `extern int` declarations change the score (96.6% up to N=10, 58.1% at
+//    15..70, 74.2% at 75, 56.8% at 80..120) but the 0xffff mask is present in
+//    every one of them, and no N restores the original's registers. All 256
+//    header sets (tools/headers.py) top out at 96.6%.
+//
+// 7. Two permuter runs on this file found nothing above 96.6%: seed 7 (1615
+//    candidates, 13 min) and seed 23 (4206 candidates, 28 did not compile, 50
+//    duplicates, 13 min). That agrees with the hand search. tools/headers.py
+//    over all 256 header sets also tops out at 96.6%.
+//
+// Still-open lead, narrower than the one above: the 79.5% family needs the
+// a->type load to be emitted BEFORE the field_b8 + 5 group (so that A lands in
+// edx and a->type in ecx) while the sum stays in its own statement (which is
+// what stops the reassociation). Those two requirements fight in every spelling
+// tried: hoisting a->type into a local fixes the order but moves the pointer to
+// esi. A source that evaluates the product's left operand first and the sum
+// second, without a narrowing cast anywhere, is what is missing.
 //
 // space-bunny-free, 30-minute checkpoint on the issue-4462 worktree (file
 // unchanged, still 96.6%, about 100 scratch variants scored with a probe that

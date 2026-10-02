@@ -1,25 +1,35 @@
+#include <windows.h>
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-opus-5-5. Names are provisional.
-// PARTIAL (48.1%). Rewritten by claude-opus-5-5 (#4290) from 28.2%.
-// Block layout lever: MSVC 5 places a goto target right after the LAST code
-// that references it, and pulls an unplaced target in as fall-through after an
-// unconditional jump (tested with small /Fa files). The original emits case
-// 1's head first but the flag37efa block ("multi") and the normal tail
-// ("single") after every other case; that only happens when case 1 is written
-// textually LAST in the switch (after case 2). Its head is still emitted first
-// and the labelled blocks after the switch land behind case 2 (28.2 -> 43.1).
-// The shr/and/neg/sbb returns are single-bit bitfield reads of the def flag
-// words (f245b.b4/b6/b7/b8, f241b.b11), and `if (a || b) return 3;` compound
-// tests in cases 3, 4 and 7 keep the shared-return jumps (-> 45.4).
-// Remaining difference is register allocation. The original: g_game cached in
-// ebx from the prologue (reloaded into ebx after calls inside the inlined
-// lookup), target in edi, friendly in esi with its home at [esp+0x10], enemy
-// in ebp, unit never enregistered (reloaded from [esp+0x1c]), def in ecx and
-// spilled into the dead target slot [esp+0x20]. Without the local `game`
-// (build/scratch/0x43e490/body8.inc, 45.4%) we get the original's one-dword
-// frame, friendly/esi with its home and the def spill to [esp+0x20], but
-// target in ebp, enemy in ebx, unit in edx and def in edi; the local `game`
-// below scores higher (48.1%) although it adds a stack slot. A for(;;) loop
-// with `continue` compiles identically to the restart goto.
+// PARTIAL (60.1%). Rewritten by claude-opus-5-5 (#4290) from 28.2%.
+// PARTIAL (60.1%), up from 48.1% at the start of this pass. What still
+// differs: register allocation, plus 56 bytes of size. The original's frame is
+// one dword (`push ecx` only, no `sub esp`), keeps g_game in ebx from the
+// prologue and reloads ebx from the global after the calls inside the inlined
+// lookup, puts target in edi, friendly in esi with a home in the push-ecx slot,
+// enemy in ebp, def in ecx with a home in target's dead argument slot, and never
+// enregisters `unit` (17 reloads from [esp+0x1c]). Ours spreads the same five
+// values over a different set and reloads g_game from a frame slot.
+// Levers found this pass, in order of what they were worth:
+//  - `#include <windows.h>` alone: +3.5 (55.7 -> 59.2). tools/headers.py, 768
+//    sets, nothing better; run it BEFORE concluding a source sweep is spent.
+//  - the friendly/enemy prologue shape: `friendly = allied ? 1 : 0;
+//    enemy = friendly ? 0 : 1;` instead of the if/else chain, +3.
+//  - dropping the local `def` and writing `unit->def->` inline: +4 (48.1 -> 52.1
+//    on its own). Keeping it costs a second frame slot and rotates everything
+//    (34.4% now), even though the original plainly has def in ecx with a home.
+//  - two extracted one-line helpers: `Moving(unit)` for case 3's
+//    `if (unit->moving)` and `NotCaptureable(unit, friendly)` for case 7's
+//    first test, +0.2 together. The same helpers at their other call sites
+//    (cases 14, 2, 6, 12, 13) each cost 0.7 to 10 points, so only these two.
+//  - tools/permute.py (two 20-minute rounds, resumed): 59.3 -> 60.8, of which
+//    +0.9 survives cleaning. Its leftovers worth knowing: re-reading
+//    `cell->feature` in Lookup's compare, the `goto skip_...` shape for case 12
+//    and the case 1 polarity flip are all free, while undoing its case 13
+//    operand swap or its tail local costs 0.2 and 6.6.
+// Rejected, all byte-identical or worse: permuting the four declarations, the
+// helper parameter orders and the case labels; caching unit->player or
+// unit->moving in locals; dropping the local `game` so the helpers read g_game
+// themselves (43.7%).
 #pragma pack(push, 1)
 
 union Flags110_0043e490 {
@@ -138,113 +148,126 @@ class Class_00489a70 {
     int FUN_00489a90(Unit_0043e490* other);
 };
 
-
 static inline int Visible(Game_0043e490* game, Unit_0043e490* unit, Pos_0043e490* pos) {
+    int y, x;
+    x = pos->x >> 5;
     Player_0043e490* p = unit->player;
-    int x = pos->x >> 5;
-    int y = (pos->z - (pos->y >> 1)) >> 5;
+    y = (pos->z - (pos->y >> 1)) >> 5;
     return (unsigned int)x < p->width && (unsigned int)y < p->height &&
-           ((1 << game->localPlayerBit) & game->visibility[p->width * y + x]) != 0;
+           ((1 << game->localPlayerBit) & g_game->visibility[x + unit->player->width * y]) != 0;
 }
 
 static inline Thing_0043e490* Lookup(Pos_0043e490* pos) {
-    Cell_0043e490* cell = FUN_004815a0(pos);
+    Cell_0043e490* cell = FUN_004815a0(((Pos_0043e490*)pos));
     if (!cell)
         return (Thing_0043e490*)cell;
-    unsigned short id = cell->feature;
-    if (id < 0xfffb) {
+    unsigned short id;
+    id = cell->feature;
+    if (0xfffb > cell->feature) {
         if ((int)id >= g_game->unitCount)
             return 0;
-        return (Thing_0043e490*)g_game->units + id;
+        return id + (Thing_0043e490*)g_game->units;
     }
     if (id != 0xfffe)
         return 0;
-    unsigned short id2 = (cell - (g_game->mapWidth * cell->offsetY + cell->offsetX))->feature;
-    if (id2 >= 0xfffb)
+    unsigned short id2;
+    id2 = (cell - (cell->offsetX + g_game->mapWidth * cell->offsetY))->feature;
+    if (0xfffb <= id2)
         return 0;
-    return (Thing_0043e490*)g_game->units + id2;
+    return (Thing_0043e490*)g_game->units + ((unsigned short)id2);
 }
 
 static inline int Marked(Game_0043e490* game, Unit_0043e490* unit, Pos_0043e490* pos) {
     if (Visible(game, unit, pos)) {
-        Thing_0043e490* t = Lookup(pos);
-        if (t && (t->ffe & 0x80))
+        Thing_0043e490* t;
+        t = Lookup(pos);
+        if (t && (0x80 & t->ffe))
             return 1;
     }
     return 0;
 }
 
 static inline int Capturable(Game_0043e490* game, Unit_0043e490* t) {
-    return t && t->owner == g_game->localPlayer && (t->f110 & 0x20) && t->f104 == 0.0f &&
+    return t && game->localPlayer == t->owner && (t->f110 & 0x20) && t->f104 == 0.0f &&
            t->ffb == 0 && (t->f86 == 0 || (t->f86->f110 & 0x40000000));
+}
+
+static inline bool MultiMode(Game_0043e490* game) { return game->flag37efa == 1; }
+
+static inline int Moving(Unit_0043e490* unit) { return unit->moving; }
+
+static inline bool NotCaptureable(Unit_0043e490* unit, int friendly) {
+    return !(unit->def->f245 & 0x20) || friendly == 0;
 }
 
 // FUNCTION: 0x43e490
 int __stdcall FUN_0043e490(unsigned char mode, Unit_0043e490* unit, Unit_0043e490* target,
                            Pos_0043e490* pos) {
-    int friendly;
+    Game_0043e490* game;
     int enemy;
-    Def_0043e490* def;
-    Game_0043e490* game = g_game;
+    int friendly;
+    game = g_game;
 
 restart:
     friendly = 0;
     enemy = 0;
-    def = unit->def;
     if (target) {
-        if (unit->player->allied[target->player->index])
-            friendly = 1;
-        else
-            enemy = 1;
+        friendly = (unsigned char)unit->player->allied[target->player->index];
+        enemy = friendly ? 0 : 1;
     }
 
     switch (mode) {
     case 3:
-        if ((def->f245 & 0x10) && def->f1ee->f111b.b8)
+        if ((unit->def->f245 & 0x10) && unit->def->f1ee->f111b.b8)
             return 2;
-        if (def->f245b.b4) {
-            Node_0043e490* node = unit->f10;
-            if (unit->moving)
+        if (unit->def->f245b.b4) {
+            Node_0043e490* node;
+            node = unit->f10;
+            if (Moving(unit))
                 return 1;
             if (target)
-                return FUN_0049abb0(unit, target, 0) ? 1 : 3;
+                { if (!FUN_0049abb0(unit, target, 0)) { return 3; } else { return 1; } }
             if (!FUN_0049aa80(unit, (char*)unit + 0x6a, pos, 0) || (node->f111 & 0x20000))
                 return 3;
             return 1;
         }
         return 0x13;
     case 9:
-        return def->f245b.b6 ? 7 : 0x13;
+        return unit->def->f245b.b6 ? 7 : 0x13;
     case 8:
         return ((Class_004899b0*)unit)->FUN_004899b0(target) ? 6 : 0x13;
     case 7:
-        if (!(def->f245 & 0x20) || !friendly)
+        if (NotCaptureable(unit, friendly))
             return 0x13;
-        if ((def->f241 & 0x800) || !(target->def->f241 & 0x800))
+        if ((0x800 & unit->def->f241) || !(target->def->f241 & 0x800))
             return 5;
         return 0x13;
     case 12:
-        if ((def->f245 & 0x400) && Marked(game, unit, pos))
+        if (!(unit->def->f245 & 0x400))
+            goto skip_marked;
+        if (Marked(game, unit, pos))
             return 0xb;
-        if (target && ((Class_00489960*)unit)->FUN_00489960(target))
-            return 0xb;
+    skip_marked:
+        if (target) {
+            if (((Class_00489960*)unit)->FUN_00489960(((Unit_0043e490*)target))) return 0xb;
+        }
         return 0x13;
     case 13:
-        if (!(def->f245 & 0x1000) || !target || unit->player == target->player)
+        if (!(0x1000 & unit->def->f245) || !target || target->player == unit->player)
             return 0x13;
         return 4;
     case 6:
         if (!target || !((Class_00489a70*)unit)->FUN_00489a90(target))
             return 0x13;
-        return def->f241b.b11 ? 8 : 0xc;
+        return unit->def->f241b.b11 ? 8 : 0xc;
     case 5:
-        return def->f245b.b8 ? 0xd : 0x13;
+        return unit->def->f245b.b8 ? 0xd : 0x13;
     case 14:
-        if (def->f156 == 0 || unit->moving == 0)
+        if (unit->def->f156 == 0 || unit->moving == 0)
             return 0x13;
         return 0x10;
     case 4:
-        if (!((def->f245 >> 14) & 1))
+        if (unit->def->f245b.b14 ? 0 : 1)
             return 0x13;
         if (*(float*)((char*)unit->fec + 0x8c) < *(float*)((char*)unit->f48 + 0xc0) ||
             *(float*)((char*)unit->fec + 0x98) < *(float*)((char*)unit->f48 + 0xc4))
@@ -253,36 +276,41 @@ restart:
     case 11:
         return 9;
     case 2:
-        if (!(def->f245 & 0x80))
+        if (!(unit->def->f245 & 0x80))
             return 0x13;
-        if ((def->f245 & 0x800) && Marked(game, unit, pos))
-            return 0xa;
+        if (unit->def->f245 & 0x800) {
+            if (Marked(game, unit, pos))
+                return 0xa;
+        }
         if (!target || !unit->moving)
             return 0xe;
-        if (def->f245 & 0x1000) {
+        if (unit->def->f245 & 0x1000) {
             if (enemy)
                 return 4;
-        } else if (enemy && ((Class_00489960*)unit)->FUN_00489960(target))
+        } else if (enemy && ((Class_00489960*)unit)->FUN_00489960(target)) {
             return 0xb;
+        }
         if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
             return 6;
-        if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target))
+        if (((int)friendly) && ((Class_004899b0*)unit)->FUN_004899b0(target))
             return 6;
-        if ((def->f241 & 0x800) && (target->def->f241 & 0x200))
+        if ((unit->def->f241 & 0x800) && (target->def->f241 & 0x200))
             return 0xd;
         if (((Class_00489a70*)unit)->FUN_00489a90(target))
-            return def->f241b.b11 ? 8 : 0xc;
-        if ((def->f245 & 0x20) && friendly)
+            return unit->def->f241b.b11 ? 8 : 0xc;
+        if ((unit->def->f245 & 0x20) && friendly)
             return 5;
         return 0xe;
     case 1:
-        if (game->flag37efa == 1)
+        if (MultiMode(game))
             goto multi;
-        if ((def->f245 & 0x10) && enemy) {
-            mode = 3;
-            goto restart;
-        }
-        if (!(def->f245 & 0x400) || !enemy)
+        if ((unit->def->f245 & 0x10) && enemy) {
+        } else
+            goto skip_case3;
+        mode = 3;
+        goto restart;
+    skip_case3:
+        if (!(unit->def->f245 & 0x400) || !enemy)
             goto single;
         mode = 0xc;
         goto restart;
@@ -295,22 +323,27 @@ multi:
         return 0xf;
     if (enemy)
         return 0x11;
-    if (friendly)
+    if (friendly != 0)
         return 0x12;
-    if ((def->f245 & 0x800) && Marked(game, unit, pos))
-        return 0x12;
-    if ((def->f245 & 0x400) && Marked(game, unit, pos))
+    if (unit->def->f245 & 0x800) {
+        if (Marked(game, unit, pos))
+            return 0x12;
+    }
+    if ((0x400 & unit->def->f245) && Marked(game, unit, pos))
         return 0x12;
     return 0x13;
 
 single:
     if (target && ((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
-        return 6;
+            return 6;
     if (Capturable(game, target))
         return 0xf;
-    if ((def->f245 & 0x800) && Marked(game, unit, pos))
-        return 0xa;
-    if ((def->f245 & 0x400) && Marked(game, unit, pos))
+    if ((unit->def->f245 & 0x800)) {
+        if (Marked(game, unit, pos)) return 0xa;
+    }
+    if ((unit->def->f245 & 0x400) && Marked(game, unit, pos))
         return 0xb;
-    return def->f245b.b7 ? 0xe : 0x13;
+    // The named local is needed for the tail's instruction order.
+    int tail = unit->def->f245b.b7 ? 0xe : 0x13;
+    return tail;
 }

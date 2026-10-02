@@ -1,6 +1,79 @@
 // Decompiled by Claude Opus 5.5, verified by GPT-6.1-sol, retried by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 #include <string.h>
 //
+// space-bunny-free (2026-10-02, still 88.9%, 537 bytes). New result: the loop
+// head is the lever for THREE of the four diffs at once, and the three come as a
+// locked set, so this is the lead to push on next.
+//
+// * Every spelling that makes MSVC 5 emit the original's `cmp cl, dl` instead of
+//   our `xor dl, cl` ALSO puts `order` in ebp and `queued` in ebx (the original's
+//   callee-saved pair, worth 33 bytes) and shifts the scratch rotation one step
+//   late, so sites A B C D F become ecx edx eax ecx edx where the original has
+//   eax ecx edx eax ecx. Measured: the plain
+//   `node->kind.index == move.index` scores 87.9%, one point under the current
+//   88.9%, because the two wins (35 bytes) are smaller than the phase loss
+//   (40 bytes). Its block layout and temp slots are the original's exactly
+//   (`jne` to the patrol check, QMove block inline, [esp+0x20] for the QMove
+//   result and [esp+0x1c] for the QPatrol result), so with that rotation fixed
+//   this shape would leave only E and G, about 96%.
+// * Spellings measured to give `cmp cl, dl` + the callee-saved pair:
+//     `node->kind.index == move.index`      (any number of extra includes)
+//     if (!(node->kind.index != move.index))
+//     if ((node->kind.index != move.index) == 0)
+//     if (!Same(node->kind.index, move.index))   with a one-line __inline helper
+//     if (node->kind == move)                    with `int operator==(const
+//                                                Class_00438760& o) const
+//                                                { return index == o.index; }`
+//   All of them cost the rotation step. The operand order follows the source:
+//   `move.index == node->kind.index` gives `cmp dl, cl`, still one step late.
+// * Spellings measured to keep `xor dl, cl`, and so the correct rotation and the
+//   wrong callee-saved pair: the `(a ^ b) == 0` form (what this file uses),
+//   `!(a ^ b)`, `a == b` with no include (which instead gives
+//   `mov dl, cl; xor dl, [esp+0x10]`, 88.4%), `(int)a == (int)b`,
+//   `a - b == 0` (breaks the code), and the helper and operator== forms under a
+//   single include.
+// * The pair and the rotation are NOT coupled to each other, only to the
+//   comparison form: `bool queued`, `char queued`, `signed char queued` and
+//   `unsigned char queued` all give the original's pair (order in ebp, queued in
+//   the low byte of ebx) AND the correct rotation (A=eax), with the loop head
+//   still `xor dl, cl`. They score 82.6% because the PARK call then pushes
+//   immediate zeros instead of the register (538 bytes). `short`,
+//   `unsigned short`, `long` and every 4-byte type behave as they do now, and so
+//   do a struct or union wrapper with a single `int` member. So the next attempt
+//   wants two things at once, and only the comparison form moves either:
+//   a 4-byte `queued` that outranks `order`, or a `cmp` spelling that does not
+//   spend the extra rotation slot.
+// * The pair is not decided by either use count: wrapping all four
+//   `FUN_00439e80` calls in an inline helper (which adds a surviving IR use of
+//   `order` each time) changes nothing, and neither does passing `queued` for
+//   the four zero arguments of the PARK call (VC5 folds it, `queued` being 0 on
+//   that arm), nor a byte copy of `queued` through a temporary, a reference or a
+//   pointer, nor a dead `queued = queued`.
+// * One data point on E: spelling the first merge by hand
+//   (`unsigned int tf = order->target->flags; unit->fire = tf & 3;
+//   unit->move = (tf >> 2) & 3;`) does move E to the original's `mov ecx,
+//   [ecx+0x110]`, but the function drops to 522 bytes, so E is reachable and the
+//   merge spelling has to be found without that cost.
+// * Swept this pass, none of which moved anything: ~25 header sets crossed with
+//   both comparison families, a type sweep on `queued`, declaration and scope
+//   sweeps on `queued`, inline identity/wrapper helpers around `queued`,
+//   order/queued/patrol declaration order, goto and label spellings of the two
+//   FUN_0043f0e0 blocks, `while` and declared-outside loop forms, combined
+//   bit-field versus whole-flags merges, Ready() spellings, an extra `unsigned
+//   char k = node->kind.index` copy in the loop head, and the negated comparison
+//   family above. `permute.py 0x402da0 --minutes 6 --seed 11` also found nothing
+//   above 88.9% (its best candidate is 88.9% with four `inlN` helper extractions
+//   and a goto, so nothing worth keeping).
+// * Harness: build/scratch/0x402da0/probe.py compiles a variant and prints one
+//   line with ORD/QUE/A/B/head/E/G and the score without spending a check.py run;
+//   build/scratch/0x402da0/batch.py runs a list of literal-replacement variants
+//   through it (`uv run build/scratch/0x402da0/batch.py b23` for the last set).
+//   Trap: this comment block contains the literal text
+//   `(node->kind.index ^ move.index) == 0`, so a one-line replace in the harness
+//   rewrites the comment and leaves the code alone; anchor on the `if` plus its
+//   `kind = FUN_0043f0e0(2, unit, 0, node->Position());` line instead. Several
+//   variants earlier in this pass were silent no-ops for that reason.
+//
 // deepseek-v4.1-flash (2026-10-01, best 88.9%, 537 bytes): two independent
 // levers found this pass, both needed.
 //
@@ -37,7 +110,10 @@
 // decision. The natural next lead is the callee-saved ranking (see
 // 0x419be0.cpp: MSVC 5 ranks live-across-call values by use count), which is
 // what put order in ebx here; a spelling that puts order back in ebp without
-// losing the phase would be the win.
+// losing the phase would be the win.  The pass above took that lead: the pair is
+// NOT decided by use count (neither adding surviving uses of order nor of
+// queued moves it), it follows the loop head's comparison form, and every form
+// that fixes it costs one rotation slot at sites A B C D F.
 //
 // This pass also tried and measured (all with the phase oracle, scores are
 // check.py --sym): ~60 loop-head spellings (casts, parenthesisation, negation,

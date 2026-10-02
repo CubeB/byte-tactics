@@ -1,5 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
-// PARTIAL 67.7% (ours 1811 bytes = the original's). Notes from the claude-sonnet-5-5 pass:
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// PARTIAL 76.9% (ours 1815 bytes, the original's 1811). Notes from the
+// claude-sonnet-5-5 pass:
 //  - Class_00438760 is trivially copyable (no copy constructor declared). The
 //    string kinds are passed as implicit conversions (`FUN_0043adc0("WAIT", ...)`):
 //    MSVC 5 builds them straight in the argument slot (`push ecx; mov ecx,esp;
@@ -14,13 +15,48 @@
 //    (all dwords from frame 0x00 to 0x3c, buf at 0x40) is only reached with the
 //    locals grouped in small structs (MSVC 5 orders loose scalars by its own
 //    ranking, not by declaration).
-// STILL DIFFERENT: with `volatile unsigned int flags` in Unit_00487bf0 this
-// scores 92.7% (see build/scratch/0x487bf0/t5.cpp): the original reads
-// unit->flags twice back to back in 'O' (edx and eax, no CSE), reads it again
-// after sscanf, does the final `&= ~0x20` as load/and/store, and the sink of
-// the pos.z stores, the B arm's shared push and the prologue order all follow.
-// Only the final `flags &= ~0x20` temp register (ecx in the original, edx here)
-// then differs. Left non-volatile here per the brief; the lead should decide.
+// SUSPECTED ORIGINAL BUG: 'O' builds bits 18-19 of unit->flags from the
+// frame-0x28 word, which that arm never writes. That word is the one 'W'
+// parses its %d into, so 'O' combines an uninitialised local into the flags,
+// and the second number it parses is thrown away (it lands in the frame-0x18
+// word, which nothing reads afterwards). Kept as the original has it.
+// Space Bunny Free pass. build/scratch/0x487bf0/cmp.py diffs the .dis of a
+// scratch variant against the exe's arm by arm (447 of 534 instructions now
+// agree); that plus permute.py took this from 67.7% to 76.9%. What changed:
+//  - 'O': the arm passes &(frame 0x18) as the first %d and &(frame 0x38) as the
+//    second, and combines the frame-0x38 and frame-0x28 words, so the
+//    (flags >> 18) initialiser belongs to the frame-0x18 word (the one 'B'
+//    counts into) and the two initialisers must be written high-pair first for
+//    MSVC to shift >>18 first.
+//  - the isspace skip has to be `if (isspace(*text)) { do text += 1; while
+//    (isspace(*text)); }`, and `count` has to be a function-scope local.
+//  - `Found()` below is a codegen crutch, not Cavedog's spelling. Putting the
+//    G-arm test through one small inlined predicate is what fixes the P, A and
+//    B arms, which share the register allocation the G arm sets up: a `bool`
+//    local in the same place does not (65.2%), an int-returning helper does not
+//    (68.4%), and moving the whole if into a helper does not (68.4%). It costs
+//    three instructions in 'G' (xor eax,eax; setne al; test al,al), so ours is
+//    1815 bytes against the original's 1811.
+// STILL DIFFERENT, register and scheduling noise in four arms:
+//  - 'O': the original loads unit->flags twice with nothing between them
+//    (mov edx,[esi+0x110]; mov eax,[esi+0x110]) and computes the address of
+//    the second sscanf argument before the first; ours folds the pair into one
+//    load plus `mov edx,eax` and takes the addresses the other way round. No
+//    non-volatile spelling reproduces the double load: rewriting the shifts
+//    (build/scratch/0x487bf0/v4.cpp, v5.cpp), reading the fields as bitfields
+//    (v16.cpp), giving each read its own static inline helper (v6.cpp) or one
+//    helper taking the shift (v26.cpp) all still fold. Only `volatile` does
+//    it, and an earlier pass measured that at 92.7% from this file (its
+//    build/scratch/0x487bf0/t5.cpp is gone; it is this code without Found(),
+//    with `volatile unsigned int flags`). Worth a decision from the lead: this
+//    is the only field in the function that re-reads without a barrier.
+//  - 'M' and 'U': same source shape as the (now matching) P and A arms, but the
+//    original computes &pos and &out before the argument pushes and sinks the
+//    pos.z store below them, where ours does the opposite in both, and ours
+//    starts the register rotation one step earlier (edx,eax,ecx against the
+//    original's ecx,edx,eax).
+//  - 'G': register rotation only (edx,eax,ecx against the original's
+//    eax,ecx,edx), plus the three instructions Found() costs.
 
 #include <ctype.h>
 #include <stdio.h>
@@ -63,34 +99,41 @@ struct Outs_t {
     Class_00438760 g, a, m, u, p;
 };
 
+// Codegen crutch, see the note at the top: the test the G arm makes after
+// looking a name up in the script's table.
+static inline bool Found(int target) { return target != 0; }
+
 // FUNCTION: 0x487bf0
 void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* table)
 {
-    char buf[256];
+    int count;
     struct { float f1, f2; int n; Vec3_00487bf0 pos; int move; } L;
-    int selected = 0;
-    struct { float wf; float pf; int fire; } M2;
     Outs_t out;
-    int processed = 0;
+    char buf[256];
+    int processed = 0, selected = 0;
+    struct { float wf; float pf; int fire; } M2;
 
     while (*text != 0) {
-        while (isspace(*text))
-            text++;
+        if (isspace(*text)) {
+            do
+                text += 1;
+            while (isspace(*text));
+        }
         L.n = strcspn(text, ",");
         strncpy(buf, text, L.n);
         text += L.n;
         buf[L.n] = 0;
         if (*text == ',')
-            text++;
+            text = text + 1;
 
         switch (buf[0]) {
         case 'O':
         case 'o': {
-            L.move = (unit->flags >> 0x12) & 3;
             M2.fire = (unit->flags >> 0x14) & 3;
-            sscanf(buf + 1, " %d %d", &L.move, &M2.fire);
-            unit->flags = (unit->flags & 0xffc3ffff)
-                          | ((((M2.fire & 3) << 2) | (L.move & 3)) << 0x12);
+            L.n = (unit->flags >> 0x12) & 3;
+            sscanf(buf + 1, " %d %d", &L.n, &M2.fire);
+            unit->flags = (0xffc3ffff & unit->flags)
+                          | ((((3 & M2.fire) << 2) | (3 & L.move)) << 0x12);
             break;
         }
         case 'M':
@@ -109,7 +152,7 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
             sscanf(buf + 1, " %f %f", &L.f1, &L.f2);
             L.pos.x = (int)(L.f1 * 65536.0);
             L.pos.y = 0;
-            L.pos.z = (int)(L.f2 * 65536.0);
+            L.pos.z = (int)(65536.0 * L.f2);
             FUN_0043f0e0(&out.u, 5, unit, 0, &L.pos);
             FUN_0043adc0(out.u, 1, unit, 0, &L.pos, 0, 0);
             processed = 1;
@@ -119,8 +162,8 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
         case 'g': {
             sscanf(buf + 1, " %[a-zA-Z0-9_.]", buf);
             int target = FUN_00487af0(buf, table, 0);
-            if (target != 0) {
-                    FUN_0043f0e0(&out.g, 7, unit, target, 0);
+            if (Found(target)) {
+                FUN_0043f0e0(&out.g, 7, unit, target, 0);
                 FUN_0043adc0(out.g, 1, unit, target, 0, 0, 0);
                 processed = 1;
             }
@@ -142,13 +185,13 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
         case 'A':
         case 'a': {
             if (sscanf(buf + 1, " %f %f", &L.f1, &L.f2) == 2) {
-                    L.pos.x = (int)(L.f1 * 65536.0);
+                L.pos.x = (int)(L.f1 * 65536.0);
                 L.pos.y = 0;
                 L.pos.z = (int)(L.f2 * 65536.0);
                 FUN_0043f0e0(&out.a, 3, unit, 0, &L.pos);
                 FUN_0043adc0(out.a, 1, unit, 0, &L.pos, 0, 0);
-                processed = 1;
                 selected = 1;
+                processed = 1;
             } else {
                 sscanf(buf + 1, " %[a-zA-Z0-9_.]", buf);
                 unsigned short id = FUN_00488b10(buf);
@@ -169,7 +212,7 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
                 sscanf(buf + 1, " %[a-zA-Z0-9_.] %d %f %f", buf, &L.n, &L.f1, &L.f2);
                 L.pos.x = (int)(L.f1 * 65536.0);
                 L.pos.y = 0;
-                L.pos.z = (int)(L.f2 * 65536.0);
+                L.pos.z = (int)(65536.0 * L.f2);
                 unsigned short id = FUN_00488b10(buf);
                 if (id != 0) {
                     if (unit->field_0 != 0)
@@ -186,7 +229,7 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
         case 'W':
         case 'w':
             if (buf[1] == 'a' || buf[1] == 'A') {
-                int count = sscanf(buf + 2, " %[a-zA-Z0-9.]", buf);
+                count = sscanf(buf + 2, " %[a-zA-Z0-9.]", buf);
                 int target = 0;
                 if (count == 1)
                     target = FUN_00487af0(buf, table, 0);
@@ -205,8 +248,8 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
             break;
         case 'D':
         case 'd':
-            FUN_0043adc0("SELFDESTRUCTFG", 1, unit, 0, 0, 1, 0);
             processed = 1;
+            FUN_0043adc0("SELFDESTRUCTFG", 1, unit, 0, 0, 1, 0);
             selected = 1;
             break;
         case 'S':

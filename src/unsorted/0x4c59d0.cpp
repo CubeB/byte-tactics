@@ -1,4 +1,61 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by mimo-v2.6-pro, retried by space-bunny-free. Names are provisional.
+// space-bunny-free (issue 4579, ~150 scored scratch variants in
+// build/scratch/0x4c59d0/, all four permuter seeds 11/12/13/14): still 93.3%
+// (337 of 367, 415 bytes). Nothing beat the file below, so the body is
+// unchanged. What is new is the measurement, and it narrows the wall:
+// THIS COMPILER PRODUCES EXACTLY TWO TAIL SHAPES AND NOTHING IN BETWEEN.
+//   Shape A (this file, 93.3%, 415 bytes, the only 415-byte one):
+//       _End = s + n; _First = s; _Last = s + size() + 1; return _First + off;
+//     emits the _First store BEFORE the size() call, the call's `mov ecx,esi`
+//     just before the call, and the return as `mov eax,[esi+4]; lea eax,[eax+ecx*8]`.
+//     Note what that means: in this source the size() call reads the NEW
+//     _First, so the source below is not what the original was compiled from
+//     (the original stores _First after the call). It is a codegen artefact
+//     that buys the store order of the other shape, not a faithful statement
+//     order. Do not read the tail of this file as the original's source.
+//   Shape B (80.9%, 412 bytes, every variant of the header order or of a
+//   separate `size_type k = FUN_004c5ba0();`): store order _End, _First, _Last
+//   with the _First store after the call, `mov ecx,esi` hoisted into the
+//   reload delay slot exactly as the original has it, but the return FORWARDS
+//   `s` (`lea eax,[edi+eax*8]`) instead of re-reading _First, so the original's
+//     `mov esi,[esi+4]` (3 bytes) is missing, and the off reload lands before
+//     the two stores instead of between them. Its registers are rotated
+//     against the original too: delete arg edx (want eax), n eax (want edx),
+//     _End sum ecx (want eax), _Last sum edx (want ecx), off eax (want edi).
+//   So the register tie is NOT a consequence of the store order, and shape B
+//   shows the original's `this` hoist is reachable in this compiler: whoever
+//   retries should attack the first temp (the operator delete argument, the
+//   first register the tail asks for), not the statement order.
+// Tried this pass, every one flat at 93.3% or worse, none new:
+//   * the two documented levers for the hoist are dead here: the dead-store-in-
+//     a-folded-branch family (`int t = 0; if (t) _End = 0;` and its while /
+//     dead-for / dead-array / null-pointer equivalents) at all nine anchor
+//     points of the tail emits nothing, and the N-unused-inline-function sweep
+//     (N = 1..6, unused and called) does not move a byte; the inline-function
+//     count is NOT the lever on this address;
+//   * all three self-assignments (`off = off`, `n = n`, `s = s`, `_End = _End`)
+//     at all nine tail anchors, and dead expressions that ought to consume a
+//     register-stack slot (`p + 0;`, `off + 0;`, `(void)_First;`, an unused
+//     inline call) at three anchors, all bit-identical;
+//   * comma-expression statement groups (`_End = s + n, _First = s, _Last = ...`),
+//     braces, `if (1)`, `do {} while (0)`, an empty statement, an extra
+//     `_First = s`, `off = off` before the return, a `(size_t)` / byte-pointer
+//     / `&_First[0]` / `*(Elem**)&_First` / temp-local spelling of the delete
+//     argument, an inline deallocate helper, an allocator member at +0 with
+//     `deallocate(_First, _End - _First)` (that one costs 24 bytes), types
+//     int / size_type / ptrdiff_t for n, off and s, `begin()` vs `_First` vs
+//     `&_First[off]` in the return, `size()` through `this->`, `(*this).` and a
+//     named alias, operand-order swaps, a self-assignment of the store
+//     `iterator e = s + n; _End = e;` and the size() result in a local, all
+//     identical or worse (the aliasing versions cost 3 bytes and drop to 80.9%);
+//   * the permuter (4 seeds, 6 to 8 minutes each, ~1000 candidates per seed)
+//     never beat 585 (= 93.3%), best.cpp is byte-identical to the starting file.
+// Next lever not yet tried: the delete argument is the first temp of the tail
+// and it lands in edx where the original needs eax; the whole tail reads as the
+// same allocation with eax and edx swapped, so a source that changes which
+// register the allocator offers first (a live value that must occupy eax or
+// edx across the delete, e.g. an extra local that lands in a parameter slot
+// the way the fill counter does) is the one thing this pass did not manage.
 // mimo-v2.6-pro retry: re-measured the residue as a single instruction position,
 // not the store order. Everything up to and including the _Destroy call is byte
 // identical to the original; the FIRST divergence is the operator delete

@@ -1,216 +1,68 @@
-// Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
-// mimo-v2.6-pro pass 2 (issue #4106, 60-min box): BEST 81.1% (2653 of 2644
-// bytes), same score as the previous pass but two residual lines are now
-// semantically fixed. Wins this pass: (1) `if (rec->NumberParameters > 0)` at
-// the r4 outer test compiles to `test eax,eax / jbe` like the original (the
-// old `0 !=` gave `je`); check diff at that site is now only the jump target;
-// (2) the lstrcpynA source is obj + 0x2084, not &obj: the original's
-// `lea ecx,[esp+0x9fb4]` at 0x4d9543 with no pushes pending is obj (0x7f30)
-// + 0x2084, so Class_004d9c60 now has `char unknown_0[0x2084]; char
-// dump_text[0xa44c];` and the call passes obj.dump_text (our lea is
-// [esp+0x9fb8], right value, still scheduled after the scasb where the
-// original computes it before the room push). Closed levers this pass, all
-// scored with check.py: &written instead of inl0(written) at both WriteFile
-// calls = 79.7% (inl0 keeps the 81.1%); params-loop redesigns all regress -
-// do-while with rec->NumberParameters re-read at the bottom plus a char-sep
-// statement = 73.3%, the same with the ternary sep = 67.9% (so the
-// tmp0/tmp7/goto cached-n form is a real local optimum, not just untested),
-// char-sep statement on the old skeleton = 80.9%, ternary assigned to a char
-// local = byte-identical; (unsigned long) casts on all 14 r6 ctx-> field
-// args with uniform L-wrappers = byte-identical to the mixed forms. Still
-// differs: per-call arg scheduling around each inline scasb strlen (original
-// pattern at the r6 Dr block is `not ecx / dec ecx / lea dest / mov arg /
-// push arg / push fmt / push dest`; ours loads the arg before `not ecx` and
-// folds the dest lea into the push sequence), the params-loop separator in
-// dl (`mov dl,9 / jne / mov dl,0xa / movsx edx,dl`; ours picks al or cl),
-// the CreateFileA handle copied to esi for its first uses where the original
-// keeps eax and reloads from [esp+0x18], and the reason/base/file slot notes
-// below (the /Fa listing shows our scalars already sit at 0x10/0x14/0x18/
-// 0x1c exactly as the original: reason 0x10, base 0x14, file 0x18, written
-// 0x1c, so the older "slot permutation" notes are stale and the residual
-// there is register choice (esi/edx vs eax) and load scheduling only). One
-// tools/permute.py run (seed 137, 28 min) ran to its limit from the 81.1%
-// base without logging an improvement. Suspected original bugs unchanged:
-// the `i % 3 == 3` test is always false (0x4d92cd's mov dl,0xa is only
-// reachable via i == n-1), CreateFileA's result is tested != 0 instead of
-// != INVALID_HANDLE_VALUE, and the lstrcpynA dump_text buffer at obj+0x2084
-// is copied with room = 0x7358 - strlen(log) - 0x3e8 bytes regardless of
-// the buffer's own length.
-// mimo-v2.6-pro pass (issue #4106, 60-min box): BEST 81.1% (2653 of 2644
-// bytes), up from 78.3%. Wins this pass: (1) direct form
-// `sprintf(log + strlen(log), "%s caused an %s in\n", name, reason)` at the r2
-// first sprintf only (the L-wrapper there forced the scasb before the arg
-// pushes; the original pushes reason/name/fmt first) = 78.3 -> 79.1; (2) direct
-// form at the params-loop "%08lX%c" sprintf = 79.1 -> 79.5; (3) passing reason
-// (not (char*)file) at " - %s\n" = 79.5 -> 80.1 (the earlier passes' 61.5%
-// result was under the old codegen); (4) tools/permute.py hill climb from that
-// base = 80.1 -> 81.1 (mutations kept here: string.h moved first, ctx =
-// (CONTEXT*)ctx, path/name/log merged decl, 0 == / 0 < comparison flips,
-// do-while(0) and if/else brace reshaping, inl0 written-address helper, for ->
-// while in the params and byte loops). Per-site sweep of L-wrapper vs direct at
-// all 39 sprintf sites: the remaining wrapped sites (module %s, Registers,
-// Bytes at CS:EIP, Dr0, ContextFlags, DataSelector, Cr0NpxState, the
-// ExceptionFlags/Address and register-dump lines) all score LOWER with direct
-// form on this base. Still differs: per-call arg scheduling around each inline
-// scasb strlen (the original interleaves arg loads and pushes with the scasb
-// setup differently at nearly every site), the reason/base/file scalar slot
-// permutation (original reason F+0x10, base F+0x14, file F+0x18; ours base
-// F+0x10, file F+0x14, reason F+0x18; renaming and declaration order do not
-// move it, unused-extern sweep 0..400 does not either), the CreateFileA handle
-// kept in esi here vs the original's eax plus stack reload, and the params-loop
-// sep built with setcc here vs the original's mov dl,9 / jne / mov dl,0xa (a
-// char-sep statement form scores 68.9-79.4, cached n beats rec->NumberParameters
-// in the loop tests: 71.6 and 67.4). Suspected original bugs unchanged: the
-// `i % 3 == 3` test is always false (0x4d92cd's mov dl,0xa is only reachable
-// via i == n-1), and CreateFileA's result is tested != 0 instead of !=
-// INVALID_HANDLE_VALUE.
-// deepseek-v4.1-flash worker pass (issue #4017, 10-min box): re-verified BEST
-// 78.3% (2651 of 2644 bytes). One new experiment, worse: dropping the cached
-// `unsigned int n = rec->NumberParameters;` and using rec->NumberParameters
-// directly in both the loop test and the `i == n - 1` test (the pass-2 note's
-// suggestion) scores 71.6% (2650 bytes), so the cached-n form stays. Residual
-// diff unchanged: per-call arg scheduling around each inline scasb strlen, the
-// reason/base/file slot permutation (original reason F+0x10, base F+0x14, file
-// F+0x18; ours base F+0x10, file F+0x14, reason F+0x18), the CreateFileA
-// handle kept in esi vs the original's eax plus spill to the dead outgoing arg
-// slot ([esp+0x18] after `test eax,eax`), and the params-loop separator built
-// with setcc/add instead of the original's `mov dl,9 / jne / mov dl,0xa`.
-
-// deepseek-v4.1-flash worker pass (issue #3875, 10-min box): re-verified BEST
-
-// 78.3% (2651 of 2644 bytes). Two scratch experiments, both byte-identical or
-// worse: (1) renaming the scalars a0_reason/b0_base/c0_file/d0_written to
-// force alphabetical slot order left every slot load unchanged (reason still
-// F+0x18, base still F+0x10), disproving name-driven slots for good; (2)
-// collapsing every `{ size_t L = strlen(log); sprintf(log + L, ...) }` wrapper
-// to direct `sprintf(log + strlen(log), ...)` scores 65.8% (ours 2649), so the
-// L-wrapper forcing the scasb before arg evaluation is still the best form.
-// Residual diff is unchanged: per-call arg scheduling around each inline scasb
-// strlen, the reason/base/file/written slot permutation (ours base,file,reason,
-// written vs original reason,base,file,written, not steerable by name or
-// declaration order), and the CreateFileA handle kept in esi vs the original's
-// eax plus stack reload.
-// deepseek-v4.1-flash pass 3 (issue #3831, timeboxed): re-verified BEST 78.3%
-// (2651 of 2644 bytes) and closed four more levers, all byte-identical at 78.3%
-// or worse: (1) swapping the `unsigned int n` / `unsigned long* info` statement
-// order in the parameters block regresses to 77.7%; (2) declaring `HANDLE file`
-// after `DWORD written; char* reason;` is byte-identical, so the scalar slot
-// order is not declaration order; (3) renaming the handle to `zfile` (so it
-// sorts last) is byte-identical, so the slots are not name-driven either;
-// (4) collapsing the r1 `slash` and r2 `base`/`dot` pointers into one shared
-// `char* p` is byte-identical, so the frame is not overloaded by extra pointer
-// locals. Residual diff is unchanged: per-call arg scheduling around each
-// inline scasb strlen (original loads the fmt arg's value, e.g. reason from its
-// slot, before the lea edi/or ecx/xor eax setup; ours emits the scasb setup
-// first), the reason/base/file scalar slot permutation, and the CreateFileA
-// handle kept in esi here versus the original's store into the outgoing arg
-// slot F-0x04 and reload (the original's `mov [esp+0x18],eax` runs with the
-// seven CreateFileA pushes still pending, i.e. it reuses arg slot 1).
-// deepseek-v4.1-flash second pass (issue #3627, timeboxed): re-verified the file
-// is the fleet best at 78.3% (2651 of 2644 bytes) via tools/check.py, matching
-// the pass note below, so no regression was introduced. No further experiment
-// was run inside the 07:59Z timebox; the residual diff is unchanged (per-call
-// arg scheduling around each `lea log+strlen`, scalar slot permutation
-// reason/base/file/written vs the file's base/file/reason/written, and the
-// CreateFileA handle kept in esi instead of eax plus a stack reload).
-// deepseek-v4.1-flash pass (issue #3627): BEST 78.3% (2651 of 2644 bytes), up
-// from 78.1%. Win: splitting the r6 room computation into two statements
-// (`int room = 0x7358 - (int)strlen(log); room = room - 0x3e8;`) stops MSVC
-// folding the two constants (was `mov eax,0x6f70; sub eax,ecx`); the original
-// `mov eax,0x7358; sub eax,ecx; sub eax,0x3e8` now matches. Cost: +5 bytes
-// (the extra statement forces the 0x7358 load into edx at the Dr0 site and a
-// push of 0x7358 elsewhere). Everything below is the earlier passes' state;
-// still differs: per-call arg scheduling (lea log+strlen mid-push-sequence),
-// scalar slot permutation (ours base,file,reason,written vs original
-// reason,base,file,written) and CreateFileA kept in esi vs the original's eax
-// plus stack reload.
-// deepseek-v4.1-flash pass (issue #3501): BEST 78.1% (2646 of 2644 bytes). Two
-// wins this pass: (1) the params-loop sep char as one select
-// `(i == n-1 || i % 3 == 3) ? '\n' : '\t'` (nested ternary scored 77.3%, an
-// if/else with a char local scored 67.8%); (2) holding the CS:EIP byte base in
-// a named local before the byte loop (77.4% -> 78.1%), which hoists the Eip
-// load out of the loop like the original's `mov ebx,[ebp+0xb8]`. Still differs:
-// the per-call arg scheduling (lea log+strlen lands mid-push-sequence in the
-// original), the scalar slot permutation (ours base,file,reason,written vs
-// original reason,base,file,written, not steerable by name or declaration
-// order), and the CreateFileA result kept in eax vs our esi copy. Using
-// rec->NumberParameters directly in the loop tests (no cached n) scored 66.1%.
-// by forcing MSVC to emit the inline scasb strlen BEFORE the sprintf argument
-// pushes, matching the original's scheduling. There are 40 such call sites.
-// STILL DIFFERS (the residual 22.7%): (1) per-call argument scheduling: the
-// original interleaves each arg's load/push and lands the `lea log+strlen` in
-// the middle of the push sequence, while our build hoists some pure arg loads
-// (e.g. ctx->EFlags at the register-dump sprintfs) before the scasb and emits
-// the lea last; (2) scalar stack slots are permuted (ours base F+0x10, file
-// F+0x14, reason F+0x18, written F+0x1c vs original reason F+0x10, base
-// F+0x14, file F+0x18, written F+0x1c) and I confirmed this is NOT steerable
-// by name OR declaration order (both tested, slots identical), so it is a
-// register-allocator/spill tie; (3) the CreateFileA result is copied to esi
-// (`mov esi,eax`) in ours while the original keeps it in eax and reloads from
-// the stack; (4) the params-loop sep char compiles to `sete al/add eax,9`
-// while the original emits the branchy `mov dl,9/jne/mov dl,0xa`.
-// TRIED THIS PASS (all scored via --sym unless noted): rename reason->cause +
-// base->exename (alphabetical-slot hypothesis) = 64.4% DISPROVEN (slots did not
-// move); reorder the four scalars to reason,base,file,written + move base to
-// top block = 64.4% DISPROVEN (slots did not move); the L-count wrapper =
-// 77.3% (BEST, adopted); pointer-form `char* d=log+strlen(log); sprintf(d,...)`
-// = 68.7% (worse than count form, discarded).
-// Suspected original bugs: (1) the `i % 3 == 3` test in the parameters loop is
-// always false (i % 3 is 0..2), so the per-three newline never fires (the
-// `mov dl,0xa` at 0x4d92cd is dead); (2) the CreateFileA result is compared
-// != 0 (0x4d8f62) when INVALID_HANDLE_VALUE is (HANDLE)-1, so a failed open
-// can pass the check. Note the `" - %s\n"` sprintf at 0x4d9171 loads reason
-// (F+0x10 with pushes pending), not file; the source passes (char*)file only
-// because our slot layout makes that score higher (61.5% when passing reason).
-// ---- earlier passes below ----
-// deepseek-v4.1-flash pass (issue #2875): verified 64.4% (2648 of 2644 bytes),
-// stopped early per the fleet watchdog. Remaining diff is argument scheduling:
-// the original computes strlen(dest) before evaluating sprintf's other
-// arguments while our build interleaves them; and file/reason stack slots are
-// swapped versus the original (ours reason F+0x18, file F+0x14; original
-// reason F+0x10, base F+0x14, file F+0x18, written F+0x1c).
-// Suspected original bugs: (1) the `i % 3 == 3` test in the parameters loop is
-// always false (i % 3 is 0..2), so the per-three newline never fires; (2) the
-// CreateFileA result is compared != 0 when INVALID_HANDLE_VALUE is (HANDLE)-1,
-// so a failed open can pass the check.
-// Advice: REGION comment blocks with locals declared at point of use kept the
-// frame exact while iterating on scheduling.
-// Partial: 64.4%. Fixed the 50.6% version's frame excess. Removing the
-// "for (i=0; i<rec->NumberParameters; i++) rec->ExceptionInformation[i]"
-// form (which MSVC strength-reduced onto ebx, forcing rec into a stack spill
-// at F+0x20 and an 0x143f4 frame) and using an explicit advancing pointer
-// (unsigned long* info = rec->ExceptionInformation; i++, info++) keeps rec in
-// ebx and restores the exact original frame: path F+0x20, name F+0x408,
-// log F+0x7f0, exe F+0x7b48, obj F+0x7f30, size 0x143f0.
-// The remaining 1087 diff lines are mostly argument-scheduling differences:
-// the original computes the strlen(dest) before evaluating sprintf's other
-// arguments, the compiler here interleaves them; and `file` is kept in esi
-// (with slots reason/file swapped: ours reason F+0x18, file F+0x14; original
-// reason F+0x10, base F+0x14, file F+0x18, written F+0x1c). Formatting reason
-// at 0x4d9171 instead of (char*)file scores 40.2%, so (char*)file is retained.
-// Tried: swapping name/exe and scalar declaration orders, function-scope base
-// pointer, reason-vs-file format, explicit pointer variants. The explicit
-// pointer loop is the only one that moved the score.
-// deepseek-v4.1-flash pass 2 (timebox fired before more runs). Still 64.4%.
-// New evidence from the disassembly: (a) the " - %s\n" sprintf at 0x4d9171
-// loads [esp+0x1c] with 3 pushes pending, i.e. F+0x10 = reason (the
-// FUN_004d98c0 result), so the original does print reason there, not file;
-// passing reason in our build scored 61.5% only because our reason sits in
-// slot F+0x18 (the load offset itself then mismatches). (b) Our scalars are
-// slot-assigned base F+0x10, file F+0x14, reason F+0x18, written F+0x1c which
-// is alphabetical by name; the original order (reason, base, file, written)
-// should fall out of renaming locals so their names sort in that order (tried
-// cause/exename/file/written but the timebox fired before scoring it).
-// (c) The byte loop hoists the Eip VALUE into ebx before the loop
-// (mov ebx,[ebp+0xb8] at 0x4d94aa) and indexes [esi+ebx]; our build reloads
-// it in ecx per iteration, fixable by holding it in a named local before the
-// loop. (d) The parameters loop keeps rec in ebx and spills info at F+0x10
-// (shared with reason), re-reading rec->NumberParameters from [ebx+0x10] at
-// the loop bottom; our build advances ebx as the info pointer and caches
-// n-1 at F+0x18, so the source should use rec->NumberParameters directly in
-// both the loop test and the i == n-1 test instead of a cached n.
+// Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free pass (issue #4435): BEST 92.9% (2647 of 2644 bytes), up from
+// the 81.1% the earlier passes reached. The one lever that moved this far is
+// the FORM of the `sprintf` destination, not its value. The earlier passes
+// settled on `{ size_t L = strlen(log); sprintf(log + L, FMT, ...); }` and
+// measured every alternative as worse; that is true of the sites they tried,
+// but it is not the best form everywhere. The original computes the
+// destination pointer into a register BEFORE it pushes any argument, and the
+// pending-push count in the original's `lea` displacement (0x7f0 with none
+// pending, 0x7f8 with two) is the giveaway: the pointer is a value MSVC
+// materialises first, which is what a `char* d = log + strlen(log);` local in
+// front of the call produces. Adopting that form at the right sites was worth
+// 81.1 -> 92.0 in five steps, each measured with check.py on a scratch copy:
+//   (1) the four `EAX=`/`EBX=`/`ECX=`/`EDX=` register-dump lines and the six
+//       `Dr0..Dr7` lines: 81.1 -> 85.0;
+//   (2) the `ContextFlags`/`Control Word`/`StatusWord`/`TagWord`/
+//       `ErrorOffset`/`ErrorSelector`/`DataOffset`/`DataSelector` FPU-save
+//       lines and `Cr0NpxState`: 85.0 -> 87.4, and 87.9 with Cr0NpxState;
+//   (3) the r6 `room` computation and its `lstrcpynA`: the whole guarded block
+//       as one expression, `if (0x7358 - (int)strlen(log) - 0x3e8 > 0) {`,
+//       with the same expression repeated as the third argument, scores
+//       87.9 -> 90.3; hoisting it into an `int room` local is 88.1, and a
+//       single `int room` local shared by the test and the call is 90.8;
+//   (4) the r3 block (`Exception handler called in`, `FUN_004ded60`,
+//       `Instruction pointer`, `ExceptionCode`): 90.3 -> 90.4, and 90.9 once
+//       `FUN_004ded60` also takes a `char* d` destination;
+//   (5) the `%02x%c` byte-dump loop body: 90.9 -> 91.5, and the r6 room
+//       expression split into two statements (`room = 0x7358 - strlen(log);`
+//       then `room = room - 0x3e8;`), the only form that keeps the original's
+//       unfused `mov eax,0x7358 / sub eax,ecx / sub eax,0x3e8`: 91.5 -> 92.0.
+// A sixth, unrelated one: the `" - %s\n"` line of r3 prints `reason`, not the
+// file handle, worth 92.0 -> 92.9. The earlier passes reached the same reading
+// of the disassembly (0x4d9171's `mov eax,[esp+0x1c]`, with three pushes still
+// pending, is F+0x10, the `reason` slot) but kept `(char*)file` because on
+// THEIR skeleton passing `reason` scored lower. On the fixed skeleton it wins,
+// so that earlier measurement was an artefact of the surrounding form, not
+// evidence against the source. The `L + log` and `log + L` spellings of that
+// line are identical, as are the `char*` and `size_t*` casts on it.
+// Still differs, and what I tried: the CreateFileA handle is copied to `esi`
+// where the original keeps it in `eax` and reloads it from F+0x18 (four
+// spellings of the assignment-in-condition all score identically, so this is a
+// register-allocation tie, not a source problem); the parameters loop still
+// uses a cached `n` with a `char`-cast ternary, where the original re-reads
+// `rec->NumberParameters` from `[ebx+0x10]` every iteration, spills `info` to
+// F+0x10 and builds the separator branchily (`mov dl,9 / jne / mov dl,0xa`) in
+// `dl`, and every redesign of that loop I tried scored 88.5-91.9 against the
+// 92.0 this form holds; the Dr0..Dr7 and the FPU-save lines alternate between
+// two argument-scheduling shapes in the original (destination `lea` first for
+// Dr0/Dr2/Dr6, argument load first for Dr1/Dr3/Dr7) and the alternation did
+// not follow the source form in any of the twelve mixes I scored, so it looks
+// like allocator state. Two tools/permute.py runs (16 min from 90.4%, and one
+// from 92.0%) logged no improvement. An `inl1(p)` static inline helper that
+// returns `p + strlen(p)` is WORSE than the plain local (79.6% across all 27
+// destinations), so the win is the named local, not the extra function. The
+// header set is not a lever here: adding <math.h>, or dropping <string.h>,
+// both score identically, as do all four spellings of the "Access violation"
+// write/read select and all four of the "module %s at" argument forms.
+// Suspected original bugs, unchanged: the `i % 3 == 3` test in the parameters
+// loop can never be true, so the per-three newline is dead code; CreateFileA's
+// result is tested against 0 rather than INVALID_HANDLE_VALUE, so a failed
+// open passes the check; and the lstrcpynA dump buffer at obj+0x2084 is copied
+// with room = 0x7358 - strlen(log) - 0x3e8 regardless of its own length.
 #include <windows.h>
 #include <stdio.h>
+#include <string.h>
 
 class Class_004d9c60 {
 public:
@@ -232,9 +84,12 @@ void __cdecl FUN_004da3f0(char* buf, int size);
 void __cdecl FUN_004ded60(char* dst, int size);
 void __cdecl FUN_004de110();
 
+// The address of the byte count WriteFile fills in. Taking it in a helper is
+// what makes the call sites compile to the original's argument sequence.
 static inline DWORD* inl0(DWORD written) { return &written; }
-static inline char* inl1(char* p) { return p + strlen(p); }
 
+// The game's structured-exception reporter: builds a text dump in a 0x7358-byte
+// stack buffer and appends it to ErrorLog.txt next to the executable.
 // FUNCTION: 0x4d8e60
 int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
 {
@@ -259,7 +114,7 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     obj.FUN_004d9c60(ctx->Ebp, ctx->Esp, ctx->Eip, 0);
     ((Class_004d9ca0*)&obj)->FUN_004d9ca0();
 
-    // REGION r1 begin
+    // REGION r1 begin: find the executable's directory and open the log there
     char* slash;
     if (0 == GetModuleFileNameA(0, path, 1000) || !(((slash = strrchr(path, '\\')) != 0) != 0)) { strcpy(path, "C:\\"); } else { slash[1] = 0; }
     strcat(path, "ErrorLog.txt");
@@ -274,7 +129,7 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     reason = reason;
     // REGION r1 end
 
-    // REGION r2 begin
+    // REGION r2 begin: the "what crashed" header, written out early
     if (((0 < GetModuleFileNameA(0, exe, 1000)) != 0)) {
         base = strrchr(exe, '\\');
         base = base != 0 ? 1 + base : exe;
@@ -295,29 +150,30 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     }
     // REGION r2 end
 
-    //     log[0] = 0;
-    { size_t L;
-    L = strlen(log); sprintf(log + L, "Exception handler called in %s. ", ((char*)handlerName)); }
-    FUN_004ded60(log + strlen(log), 0x7358 - strlen(log));
+    // REGION r3 begin: the handler name, the module walk and the code/data
+    // address the fault happened at
+    log[0] = 0;
+    { char* d = log + strlen(log); sprintf(d, "Exception handler called in %s. ", ((char*)handlerName)); }
+    { char* d = log + strlen(log); FUN_004ded60(d, 0x7358 - strlen(log)); }
     { char* d = log + strlen(log); sprintf(d, "Instruction pointer is %08lX\n", ctx->Eip); }
     { char* d = log + strlen(log); sprintf(d, "ExceptionCode = %08lX", rec->ExceptionCode); }
-    { char* d = log + strlen(log); sprintf(d, " - %s\n", (char*)file); }
+    { size_t L = strlen(log);
+    L = strlen(log); do sprintf(L + log, " - %s\n", reason); while (0); }
     if (0xc0000005 == rec->ExceptionCode) {
         if (rec->NumberParameters >= 2) goto skip12;
         goto skip6;
-skip12:;
+    skip12:;
         if (0 != ((char(__cdecl*)(unsigned long))FUN_004d8680)(rec->ExceptionInformation[1])) { char* d = log + strlen(log);
                                                                     do sprintf(d, "Error: Write to read only memory attempted\n"); while (0); }
                                                                 { size_t tmp6, L = strlen(log);
                                                                 tmp6 = (size_t)L;
                                                                 sprintf((((size_t)tmp6)) + log, "Access violation: Illegal %s, data address 0x%08lX\n",
                                                                         0 != rec->ExceptionInformation[0] ? "write" : "read", rec->ExceptionInformation[1]); }
-skip6:;
+    skip6:;
     }
     // REGION r3 end
 
-
-    // REGION r4 begin
+    // REGION r4 begin: the exception record, then the general registers
     { size_t L = strlen(log), same0 = L, same3;
     L = same0; sprintf(((size_t)L) + log, "ExceptionFlags = %08lX\t", rec->ExceptionFlags); }
     { size_t L;
@@ -333,14 +189,14 @@ skip6:;
         tmp7 = (int)(((int)i) >= (tmp0));
         if (!((int)((tmp7)))) { goto skip9; }
         goto skip4;
-skip9:;
-        while (1) { 
+    skip9:;
+        while (1) {
         sprintf(log + strlen(log), "%08lX%c", *info,
                     ((char)(((((int)i) == (n) - 1) || i % 3 == 3) ? '\n' : '\t'))); i++, info++;
             if (((int)i) >= ((unsigned int)n)) { break; } else {
             }
         }
-skip4:;
+    skip4:;
     }
     { size_t L;
     L = strlen(log); sprintf(log + L, "\n"); }
@@ -357,7 +213,9 @@ skip4:;
     { char* d = log + strlen(log);
     sprintf(d, "EDX=%08lX ES=%04lX EDI=%08lX GS=%08lX\n",
             ctx->Edx, ctx->SegEs, ctx->Edi, ctx->SegGs); }
-    // REGION r5 begin
+    // REGION r4 end
+
+    // REGION r5 begin: the 16 bytes of code at the faulting address
     { size_t L = strlen(log); sprintf(log + L, "\n"); }
     { {
         size_t L = strlen(log); sprintf(L + log, "Bytes at CS:EIP:\n");
@@ -368,21 +226,23 @@ skip4:;
     if (i < 0x10) goto skip7;
     goto skip5;
 skip7:;
-    do { size_t L;
-    L = strlen(log); sprintf(log + (L), "%02x%c", code[((int)i)],
+    do { char* d = log + strlen(log);
+    sprintf(d, "%02x%c", code[((int)i)],
                 ((int)i) == 0xf ? '\n' : ' ');
         i = 1 + ((int)i);
     } while (0x10 > i);
 skip5:;
-    { size_t L = strlen(log); 
+    { size_t L = strlen(log);
     sprintf((((size_t)L)) + log, "\n"); }
     // REGION r5 end
 
-    // REGION r6 begin
-    if (0x7358 - (int)strlen(log) - 0x3e8 > 0) {
-        lstrcpynA(log + strlen(log), obj.dump_text,
-                  0x7358 - (int)strlen(log) - 0x3e8);
-    }
+    // REGION r6 begin: the disassembler's own dump, the debug registers and
+    // the saved FPU state
+    { int room = 0x7358 - (int)strlen(log);
+    room = room - 0x3e8;
+    if (room > 0) {
+        lstrcpynA(log + strlen(log), obj.dump_text, room);
+    } }
     { size_t L = strlen(log);
     L = ((L)); sprintf(log + ((size_t)L), "\n"); }
     { char* d = log + strlen(log); sprintf(d, "Dr0 = %08lX\t", ctx->Dr0); }
@@ -404,7 +264,7 @@ skip5:;
     { char* d = log + strlen(log); sprintf(d, "DataOffset = %08lX\n", ctx->FloatSave.DataOffset); }
     { char* d = log + strlen(log); sprintf(d, "DataSelector = %08lX\t\t", ctx->FloatSave.DataSelector); }    // REGION r6 end
 
-    // REGION r7 begin
+    // REGION r7 begin: flush the buffer, close the log and exit the handler
     { char* d = log + strlen(log); sprintf(d, "Cr0NpxState = %08lX\n", ctx->FloatSave.Cr0NpxState); }
     { size_t L;
     L = strlen(log); sprintf(log + ((size_t)L), "\n\n\n\n\n"); }

@@ -576,3 +576,97 @@ void Class_00409730::FUN_00409730()
         e->b = (char)max(0.0f, min(100.0f, (float)(def->field_18a * -0.02f) + (def->field_22d ? 25 : 0) + def->Bonus1ce()));
     }
 }
+
+// space-bunny-free pass (build/scratch/0x409730/): the file is unchanged from
+// the pass below, still 1678 bytes and 99.8%, residual is the single store SIB
+// byte at 0x4099f6. New negatives this pass (all check.py, batch of 11 in
+// ~60 s): at the store, an array slot for the pointer instead of a reference
+// `unsigned char* pbuf[1]; pbuf[0] = vec_8d.begin(); pbuf[0][i] = ...` gives
+// 1675 bytes 86.8% (same shape as the reference form), with an `int` value temp
+// in front of it 1678 bytes 99.8% (still swapped, and the pbuf array costs no
+// frame slot so the size is exact), two chained pointer locals 86.8%, both
+// operands as array slots 86.8%, `*(unsigned char**)&p8 = p8` 86.8%, a
+// function-scope `pbuf` used in a comma inside the store 1695 bytes 83.3%
+// (adds a register-pressure cascade through the second resize's insert).
+// Measured for the first time here: the reference form in a nested block (vb)
+// does give the wanted `mov byte ptr [esi + ecx], al`, so the block, not the
+// spelling, is what puts `mov edx,[esp+0x20]` / `mov esi,[edx+0x91]` two
+// instructions early and rotates ebx (flags word) to eax in the tail.
+
+// space-bunny-free pass 2 (build/scratch/0x409730/, 30 variants + a 20-minute
+// permuter run from the flipped shape): still 99.8%, 1678 bytes, and the file
+// is unchanged. This pass closed the store-SIB search to a single mechanism.
+// Everything that gives the wanted `mov byte ptr [esi + ecx], al` is one of
+// five pointer shapes, and all five behave identically (1675 bytes, 86.8%,
+// two hunks of collateral damage): a reference-bound pointer
+// (`unsigned char* p8 = ...; unsigned char*& rp8 = p8; rp8[i] = ...`),
+// `unsigned char* pbuf[1]` with `pbuf[0][i]`, two chained pointer locals,
+// `*(unsigned char**)&p8 = p8` then `((unsigned char*&)p8)[i]`, and
+// `*(rp8 + i)`. The braces are irrelevant: the block and the flat form compile
+// to byte-identical objects (vm and vb diffs are the same file), so what
+// matters is only that the pointer is a variable. The array-slot and
+// cast-reference forms add no frame slot, so the 1675 vs 1678 gap is not a
+// stack slot; it is the two missing tail instructions.
+// New negatives measured this pass, all 1678-1696 bytes, none flips the byte:
+// inline dereference of the begin slot written straight into the subscript
+// (`(*(unsigned char**)((char*)&vec_8d + 4))[i]`,
+// `(*(unsigned char**)&vec_8d)[1][i]`, `**(unsigned char***)(&vec_8d)[i]`),
+// so the front end folds those back to the plain leaf and the MEM-node rule
+// does not apply to them; member accessors at the store only
+// (`unsigned char*& Begin8() { return *(unsigned char**)&vec_8d; }` 1680 bytes
+// 77.2%, `unsigned char* Begin8()` 99.8%, `unsigned char& Byte8(int)` 99.8%,
+// and the Byte8 built from a raw `(char*)&vec_8d + 4 + j` 1676 bytes 91.0%),
+// and the explicit-`this` spellings (`this->vec_8d[i]`,
+// `*(this->vec_8d.begin() + i)`), both neutral at 99.8%.
+// The one new combination worth recording: a MEM-node pointer only flips the
+// SIB when the clamp is still inline in the assignment. With an `int` value
+// temp in front, both the array-slot and the reference form give the exact
+// 1678-byte schedule and the byte is swapped again (ve 99.8%, vo 99.8%,
+// vn 83.8%): the pointer MEM node and the value temp together rotate the
+// allocation one step instead of hoisting the load.
+// A self-conditional phi on the pointer (`(a > 1000000) ? begin() : begin()`)
+// to force the load to materialise is 74.8%, so it does not reach the store
+// either. A 20-minute permuter run started from the SIB-correct shape (the
+// reference form, 86.8%) climbed only to 95.9% and best.diff shows it kept
+// the same hoisted `mov esi, [edx + 0x91]`, so the flipped shape is not
+// reachable from that direction either. Both collateral effects of the flip
+// are the same in all five shapes: the pair `mov edx,[esp+0x20]` /
+// `mov esi,[edx+0x91]` is emitted two instructions into the previous statement
+// instead of at 0x4099e0/0x4099f0, and ebx takes the `&vec_65[i]` temporary so
+// the flags word moves from ebx to eax with an extra spill. Anyone picking
+// this up: the only untried direction is a pointer whose node is a MEM node
+// AND whose load is generated last, which the source language seems to make
+// unreachable.
+// (Note for the next worker: the vector::insert family warning in the task
+// does not apply here, this function is 1678 bytes, not 546.)
+
+// space-bunny-free pass 3 (build/scratch/0x409730/, 45 more variants): the
+// file is still unchanged, 1678 bytes and 99.8%, one wrong byte at 0x4099f6.
+// The useful new result is the DIAGNOSIS of the coupling, from deleting parts
+// of the loop body and reading the SIB byte out of the objects:
+//   plain read + plain store   read swapped, store swapped   99.6%
+//   trick read + plain store   read right,  store swapped   99.8%  (this file)
+//   trick read + trick store   read right,  store right     86.8%, 61 instr diffs
+//   NO read at all + plain store  store right
+//   phi-indexed read + plain store  store right (1670 bytes)
+// So the store's SIB slot is decided by register pressure from the whole loop
+// body, and the read-side reference trick is one of the things that tips it.
+// The original has both bytes right, so its read must have had less pressure
+// than either of ours, which is where the next attempt should go: a read that
+// puts the pointer in the base slot WITHOUT a second variable. Every cheap
+// variant of the read keeps the exact 1678-byte schedule and the swapped store
+// (x = x + (char)q/2, the value in a local, an extra `x += 0`, the /2 inside
+// the cast, `const` on the pointer, an extra void use of it), so the read's
+// value path is not the lever either.
+// The store flip is now fully priced: all pointer shapes that give the wanted
+// byte cost exactly the same 61 differing instructions, and it is always the
+// same two effects (the `mov edx,[esp+0x20]` / `mov esi,[edx+0x91]` pair two
+// instructions early, and ebx taking `&vec_65[i]` so the flags word moves to
+// eax). Putting the pointer def in the value expression so it cannot be
+// reordered (`((unsigned char*&)t)[i] = ((unsigned char*&)t = begin(), (uchar)clamp)`)
+// still gives 1675 bytes 86.8% with that identical collateral, so the load is
+// generated at the def whenever the pointer is a variable, whatever the source
+// says. Dead locals at the top of the loop (int, char, unsigned char, short,
+// float, one to three of them, and an unused pointer local) are all exactly
+// neutral at 99.8% with the same single byte, so the frame and the register
+// numbers are stable and no decl-count trick can reach this.

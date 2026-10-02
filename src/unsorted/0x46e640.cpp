@@ -1,4 +1,15 @@
-// Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash pass (2026-10-02): 99.6% re-confirmed (546 of 546 bytes,
+// check.py), sole residual still the swapped SIB byte at 0x46e708 (original
+// `lea eax,[ebx+ecx]`, ours `lea eax,[ecx+ebx]`). Ran
+// tools/permute.py 0x46e640 --minutes 3 --jobs 3: 2238 candidates, 0 compile
+// failures, 64 duplicates, 99.6% -> 99.6%, score 5 -> 5, empty best.diff. No
+// source spelling moved the byte. This is the documented family wall: the
+// sum's child order is the loop optimiser's synthesised node, not a source
+// expression (int* + int* is C2110), and the wanted shape has no matched
+// compilation in the exe. tools/stackcmp.py confirms the frame is aligned
+// (0x8 locals + 0x10 saved, 0xc params; 11 frame accesses). Best source kept
+// below unchanged.
 // Space Bunny Free pass (2026-10-02, #4737): 99.6% re-confirmed (546 of 546
 // bytes, check.py), still only the swapped SIB byte at 0x46e708, and this pass
 // adds WHY it cannot be reached from source, which closes the whole family

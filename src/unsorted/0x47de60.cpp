@@ -1,5 +1,48 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
 //
+// MATCH, 342 of 342 bytes (#4818). The fix is one line of the 0xfffe arm: the
+// width was a copy of g_game->width, and it is now a pointer to the field,
+// `int* width = &g_game->width;` with `*width` at the two uses. Nothing else in
+// the file changed, and the file below is the 87.1 percent one otherwise
+// unchanged.
+//
+// Why it works, and what it says about every earlier pass: the whole argument
+// in the notes below is that the two properties the original wants are in
+// tension, so that "fold" (the imul folding `g_game->width` into its memory
+// operand, `imul eax,[edx+0x14233]`) and "shared lookup" (one
+// `mov al,byte ptr [ecx+eax+0xfe]` for both paths) never coexist, and that the
+// only state reaching both (99.3 percent, one SIB swap from MATCH) needs 2386
+// padding declarations to reach. That tension is an artefact of the copy.
+//
+// A copy of the width has two uses, so it must be materialised in a register,
+// and the register it wins is ecx, which the original spends on spotX. That
+// single decision costs both halves at once: `mov ecx,[edx+0x14233]` plus a
+// register-to-register imul instead of a folded one, and the allocator's answer
+// to the extra pressure, which is what pushed the features lookup into the
+// first path and swapped the SIB. Written as a pointer, the width stays an
+// lvalue to the multiply, so the front end folds it and never has to allocate
+// anything for it. Both wanted properties then come from the source directly,
+// with no padding and no compiler state.
+//
+// Measured, all with the real checker, one rewrite each from this file:
+//   int* width = &g_game->width, index spelled twice   MATCH (this file)
+//   the same through const int*                        MATCH
+   //   the same, width as the left operand of the multiply MATCH
+//   the same, index spelled once (test reads f2)      86.8 percent, 346 bytes
+//   the same, neighbour named other                   84.2 percent, 348 bytes
+//   the same, rowbase temp                            86.3 percent, 344 bytes
+// So both halves are needed and they are the halves the notes were measuring:
+// the pointer alone (with one use) does not fold, and the copy alone (with two
+// uses) does not fold either. What was never tried in any of the passes below
+// is the pointer with two uses, because the passes that found the copy treated
+// "give the width a local" and "share the index block" as the same lever.
+//
+// Generalisable, and worth trying before the padding sweeps on any function
+// where a global or field read sits in an arithmetic expression the original
+// folds: ask whether the value can stay an lvalue (`T* p = &obj->f;`) instead
+// of being copied into a local. A copy forces a register, and MSVC 5's
+// allocator then decides the rest of the block.
+//
 // space-bunny-free pass, best unchanged at 87.1 percent, 344 of 342 bytes. Three
 // permuter runs added nothing: unseeded from this file (3627 candidates,
 // 87.1 -> 87.1), seed 7 from this file (4633, 87.1 -> 87.1), and seed 11 from the
@@ -587,13 +630,17 @@ int __stdcall FUN_0047de60(Pathfinder_0047de60* obj, Cell_0047de60* cell)
     } else if (feature != 0xfffe) {
         blocked = 1;
     } else {
-        // The width gets a local and the neighbour index is spelled out twice:
-        // that is what makes c1 materialise the width in ecx instead of copying
-        // spotY out of eax, which is the closest this block has come.
-        int width = g_game->width;
+        // The width stays an lvalue: a pointer to the field, not a copy of it.
+        // A copy has two uses, so it must live in a register, and the one it
+        // wins is ecx, which the original uses for spotX; that costs the
+        // `mov ecx,[edx+0x14233]` and the register-to-register imul. As a
+        // pointer the width folds into `imul eax,[edx+0x14233]` exactly as the
+        // original has it, and the two spelled index uses still share one
+        // block, which is the other half the original wants.
+        int* width = &g_game->width;
         unsigned short f2 =
-            (cell - (cell->spotY * width + cell->spotX))->feature;
-        if (0xfffb <= (cell - (cell->spotY * width + cell->spotX))->feature) {
+            (cell - (cell->spotY * *width + cell->spotX))->feature;
+        if (0xfffb <= (cell - (cell->spotY * *width + cell->spotX))->feature) {
             blocked = 0;
         } else {
             blocked = (g_game->features[f2].flags >> 6) & 1;

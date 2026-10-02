@@ -1,6 +1,113 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free,
 // claude-opus-5-5 (#4373), GPT-6.1-sol, mimo-v2.6-pro, space-bunny-free (#4489)
-// and space-bunny-free (#4539), space-bunny-free (#4652). Names are provisional.
+// and space-bunny-free (#4539), space-bunny-free (#4652), Space Bunny Free (#4688).
+// Names are provisional.
+// Space Bunny Free pass (issue 4688): best stays 89.8% (167/167 bytes, 6 differing
+// bytes). Nothing beat it. The useful new result is the exact byte map of the six
+// bytes (dbytes.py prints them): 0x050 and 0x053 are the destination register of
+// the prologue's grid->y load and of the add that consumes it, and 0x066, 0x06f,
+// 0x076 and 0x085 are, in the loop, the lea ModRM byte, the hoisted store's stack
+// displacement, the second lea's ModRM byte and the second store's displacement.
+// So the loop hunk is exactly "which of the two +7 values the scheduler puts in
+// the hoisted (lea + store) pair", and nothing else: the instruction order, the
+// eax/ecx choice for the two leas, the three pushes and the three plain stores
+// are already in the original's slots.
+// Measured with a split metric (prologue hunk vs loop hunk, build/scratch/0x4ac8c0/
+// h.py score_split and sw.py), all new, do not repeat:
+//  - THE LOOP'S TIE HAS TWO INDEPENDENT HALVES, and a deliberately wrong diagnostic
+//    separates them. With `p.r.right = y + 7; p.r.bottom = x + 7;` (a lie about
+//    the values, only a probe) the loop hunk falls from 4 bytes to 2: the store
+//    displacements then land right (right at 0x1c, bottom at 0x20) because the
+//    hoisted pair belongs to the `right` statement, and only the two lea ModRM
+//    bytes are left. Conclusion: which STATEMENT the hoisted pair belongs to
+//    follows the two +7 statements, and which VALUE it computes is always the one
+//    whose operand sits in ebx. With the honest values the hoist therefore always
+//    lands in the `bottom` slot, so while x stays in esi and y in ebx the loop
+//    hunk cannot go below 4 bytes. Matching needs the compiler to hoist the esi
+//    operand, and only the separate-rect shape does that, at a cost of 18 bytes of
+//    prologue. This also re-confirms, in one run, that the hoist follows ebx in
+//    all 24 store orders (only 4 of the 24 reach 6 bytes; the best are left, top,
+//    right, bottom and its three rotations that keep that relative order).
+//  - THE RECT'S LOCALITY IS THE SWITCH THAT FLIPS BOTH TIES, not the surface's.
+//    Isolated this pass: `Pair p` with the `void* s` temp and `Pair p` with
+//    `p.surface = gadgets->surface` compile byte-identically (6 bytes), and
+//    `void* surface; Rect r;` with and without `s` are byte-identical too (34), so
+//    earlier passes' "the surface in a local of its own" is really about the rect.
+//    Five shapes measured at the SAME frame offsets (surface 0x10, &r 0x14):
+//    the Pair aggregate, surface in a one-member struct with the rect separate,
+//    rect in a one-member struct with the surface separate, two separate locals,
+//    and the base. The aggregate is 6 (pro 2, loop 4); all four others are 34
+//    (pro 18, loop 16), so there is no intermediate: rect separate gives the esi
+//    hoist and the other prologue at the same time.
+//  - THE PROLOGUE'S grid->y REGISTER IS MOVABLE, but only together with that
+//    load's rank, which is why earlier passes called it immovable. Dropping the
+//    `int gx = gadgets->x;` temp (writing `x0 += gadgets->x;`), or moving
+//    `p.surface = s;` ahead of the gx temp, puts `movsx edx, word ptr [eax + 0x15]`
+//    in the original's register, and in every such shape the scheduler then emits
+//    that load BEFORE `add esi, ecx` instead of after it: prologue 14, total 30.
+//    24 statement orders of {gx temp, p.surface = s, x0 += gx, y += grid->y} and
+//    24 of {p.surface = s, x0 += gadgets->x, y += grid->y} were compiled: exactly
+//    one order in the first group (`p.surface = s;` first, g_pgey) moves the
+//    register, and no order holds the register while holding the rank.
+//  - TWIN TEST, SHARP FORM, AND IT IS DECISIVE NEGATIVE: with every immediate and
+//    displacement masked out (opcode, ModRM, SIB and register bytes exact), the
+//    original's 38-byte inner loop (0x4ac925..0x4ac94b) and its 18-byte post-call
+//    block each match exactly ONE place in the whole of .text: the function
+//    itself (twin.py). So there is no matched sibling anywhere in the exe to read
+//    the source spelling off, and this is not a shape the compiler emits twice.
+//  - 24 spellings of `y += grid->y` all keep grid->y in eax (y = grid->y + y,
+//    y = y + grid->y, gadgets[index].y, a short or int gy temp, (*grid).y,
+//    *(short*)grid, *(short*)((char*)grid + 0x15), (short) casts, y += grid->y + 0,
+//    y *= 1 forms, and the same with x0 unsigned or long); only the merged
+//    one-statement sums move it, and those are 46 bytes.
+//  - all 6 bytes, do not repeat: x+7 against 7+x, x+4+3, x+8-1; the member forms
+//    right = p.r.left + 7 and bottom = p.r.top + 7, either one alone and both;
+//    named temps for right and for both; col + row * 16 and a 0x10 loop bound and
+//    an unsigned row; x recomputed as x0 + col * 8 or x0 + (col << 3) instead of
+//    an induction variable; int x at function scope assigned at the top of the
+//    outer body (the bottom-of-body form is 134); a Rect& bound to p.r; a Rect*
+//    per iteration; the four stores in a nested block; one comma statement;
+//    unsigned x and y; an inline Plus7 helper; int x = x0 with col in the inner
+//    for-init; for (int row = 0, x = x0; ...); x = x + 8; x += 8, col++; a
+//    do-while and a while inner loop; for (int row = 16; row--; ). The Pair
+//    declared in the outer body is 94 and in the inner body 121, so function
+//    scope is what this one needs.
+//  - deleting locals: `&gadgets[FUN_0049fdf0(gadgets, "COLS", 6)]` with no index
+//    variable is byte-identical; one merged `int x0 = grid->x + gadgets->x;` is
+//    97. The MATCHed sibling 0x4ac970 needs its CellX helper to be DEFINED even
+//    when the sum is written out inline, and that effect does not reproduce here:
+//    CellX called is 81, CellX merely defined and uncalled is 6, as is CellY.
+//  - the faithful "the other operand first" spellings, `int y = grid->y; y +=
+//    gadgets->y;` and `int x0 = gadgets->x; x0 += grid->x;` crossed both ways and
+//    with and without the gx temp, are 106 to 119 bytes.
+//  - tools/headers.py re-run this pass: 256 header sets, 0 compile failures, all
+//    89.8%, so the older "all 128 header sets stay 89.8%" notes are right in
+//    substance (the tool now tries 256, not 128).
+//  - tools/permute.py against a scratch copy of the file: seed 41 (8 minutes, 1401
+//    candidates), seed 57 (12 minutes, 5152) and seed 91 (10 minutes), all 89.8%
+//    to 89.8% with an empty build/permute/0x4ac8c0/best.diff, which now makes ten
+//    permuter runs on this file across the project.
+// Harness in build/scratch/0x4ac8c0: h.py scores a source file by differing bytes
+// (d=0 means byte-identical, NOT that check.py reports MATCH; dbytes.py prints the
+// exact offsets), sw.py runs a list of variants in parallel with the prologue and
+// loop hunks split at offset 0x58, twin.py is the masked twin search, and t1 to
+// t13 are this pass's sweeps. About 190 free-scored variants, no check.py run was
+// needed to rank them.
+//  - the object-identity lead is CLOSED, not open: writing the rect through an
+//    address cast, `(Rect*)((char*)&p + 4))->left = x`, and through `(&p.r)->left`
+//    are both byte-identical to `p.r.left` (6 bytes, state A). A real
+//    `Rect* rp = &p.r;` local is 186 bytes and reloads the pointer every access.
+//    So no C++ spelling makes the rect's stores a distinct object while the frame
+//    stays one 20-byte object, which is the shape the original needs.
+// What still differs, unchanged: the prologue loads grid->y into eax where the
+// original uses edx, and the loop hoists the (y + 7, bottom) pair where the
+// original hoists (x + 7, right). Both are one allocator or scheduler tie each, and
+// the measurements above say the loop's tie needs the compiler to hoist the esi
+// operand, which only a separate rect does, and that costs the prologue 18 bytes.
+// So what is left is not a source spelling but a compiler state: this file's
+// surface-plus-rect aggregate, its 7-statement prologue and this loop body all
+// produce state A, and no combination measured here reaches the original's third
+// combination of rank 4 reload with the esi hoist.
 // space-bunny-free pass (issue 4652): best stays 89.8% (6 differing bytes, the same
 // 2 in the prologue and 4 in the loop). Byte-level scorer plus a differ built at
 // build/scratch/0x4ac8c0 (h.py scores a source file by differing bytes and prints a

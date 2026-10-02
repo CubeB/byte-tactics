@@ -1,294 +1,70 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
 // deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash,
-// finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by
-// deepseek-v4.1-flash, finished by deepseek-v4.1-flash (pass 6).
-// 2026-10-01 pass 7 (deepseek-v4.1-flash, ~2h, ~30 check runs, no best change; all
-// variants scored in build/scratch/0x497180/). The baseline (82.8, 2846 bytes) is
-// kept. Two NEW mechanisms found, and one sharpened diagnosis:
-// - The zero-extension idiom `xor r,r; mov r8,[mem]` (the original's `xor ebx,ebx;
-//   mov bl,[p2+0x9c]` at 0x497303/0x49733b) is reachable ONLY through a 32-bit
-//   object whose low byte is overwritten: `struct Bits8 { unsigned int lo:8;
-//   unsigned int hi:24; }; m.lo=0; m.hi=0; m.lo=*(unsigned char*)(p2+0x9c);`
-//   compiles to `xor r,r; mov r8,[..]` plus the 32-bit `and r,2` and the plain
-//   and/and/or lane (v5a/v7). Every other spelling folds the extend away (int/
-//   unsigned int temp, casts, volatile byte, union, accumulator `m=0; m|=byte`,
-//   helper calls: all either fold or flip to the `xor al,cl; and eax,2; xor` blend).
-// - `unsigned int m = *(unsigned char*)(p+off) & M; unsigned short ms =
-//   (unsigned short)m; ... | ms` (the "ms" narrowing) is the ONLY spelling that
-//   gives the original's lane SHAPE (`and r32,2` + `and r32,0xfffd` + `or`, no
-//   movzx) while keeping the and/and/or form (w2/w15: 80.4 at 2793-2833 bytes,
-//   the original is 2797). Plain `unsigned int m` (w1) is byte-equivalent but
-//   drops one temp.
-// - Diagnosis sharpened: the base form's lane REGISTERS ARE ALREADY CORRECT
-//   (byte=bl/ebx, ptr=ecx, word=dx/edx, exactly the original's) and only the
-//   shape is wrong (`and bl,imm; movzx si,bl` where the original has `and
-//   ebx,imm` + `xor ebx,ebx`). Every 32-bit spelling (Bits8, ms, plain uint)
-//   fixes the shape but rotates the whole register file by +1 (byte lands in
-//   ecx not ebx, ptr in edx/esi not ecx, word in si/cx not dx) and that
-//   rotation then pollutes every line after the lanes, which is why all of
-//   them score below 82.8 despite being 13-53 bytes CLOSER in size.
-// Per-block ms scores (base is 82.8): case-2 only 82.7 (w12/w19), case-1+2 82.2
-// (w9), pl only 81.0 (w6), case-1 only 80.4 (w11), case-3 only 80.4 (w2/w15),
-// case-1/2+3 80.4 (w4), case-3+pl 78.0 (w5), all four 78.5 (w3), Bits8+ms 80.4
-// (w7/w8). Rotation NOT moved by: 8 header-set permutations (74.8 flat on the
-// word form), N dummy externs 0..400, throwaway loads before the switch and
-// before the lanes (1-3 each), an inlined __thiscall-style method for the lane
-// (v9b), inlining the cur/sel2/p temps (w17/w18/w22/w23), `& one` moved into the
-// pl/case-3 masks to lengthen the constant's range (w21, ties 82.8). Do not
-// re-run these. Still open: find what consumes the first register slot (ebx) in
-// every 32-bit lane form; the base form's 4th temp (the movzx) appears to be
-// what holds the allocation at (ebx, ecx, edx) for the first three.
-// 2026-10-01 pass 6 (deepseek-v4.1-flash, 6 check runs, 3 scored variants): the 32-bit word
-// form moves the bottleneck, it does not remove it. Writing the 0x14281 lanes as a 32-bit
-// word temp with a truncating store,
-//   int w = *(unsigned short*)(g_game + 0x14281);
-//   unsigned int m = *(unsigned char*)(p2 + 0x9c) & M;
-//   w = (w & ~M) | m; *(unsigned short*)(g_game + 0x14281) = (unsigned short)w;
-// in all nine lanes finally produces the original's switch head `mov edi,1` (was edx), the
-// six case-1/2 masks as the 32-bit register form `and ebx,edi` / `and eax,edi` (no movzx),
-// the three case-3 masks as `and edx,2` (no movzx, no `and bl,imm`), and the file shrinks
-// 2846 -> 2800 bytes (original 2797, the closest size yet). The cost: inside every lane the
-// allocator rotates the file one notch, ours is (ptr esi, byte dl, word cx) where the
-// original is (ptr ecx, byte bl, word dx), so the checker score drops to 76.2%; with the
-// 32-bit form only in the six case-1/2 lanes it is 77.7% at 2812 bytes. Separating the
-// conversion from the mask (`unsigned int m = *(uc*)(p2+0x9c);` then `(m & M)`) compiles
-// identically (2800 bytes, 76.2): MSVC folds `(m & M)` into the byte load and never emits
-// the original's redundant `xor ebx,ebx; mov bl,[eax+0x9c]` at 0x497303/0x497353/0x49737a.
-// So both the lane width and the constant's register are reachable from source; what is
-// still missing is the whole-function allocator state that keeps esi/dl/cx from being picked
-// (the same state that the `mov edi,1` head hunk was a symptom of). Baseline left in place.
-// 2026-10-01 pass 5 (deepseek-v4.1-flash, 10 min timebox, 0 scored variants kept,
-// 3 scratch probes): why the case-3 lanes cannot be made 32-bit by spelling alone.
-// - Dropping the `(unsigned short)` cast on a case-2 lane is byte-identical: the
-//   narrowing is not driven by the assignment's type.
-// - vB: with a per-lane `unsigned int m = *(unsigned char*)(p2 + 0x9c) & M;` in the
-//   three case-3 post-loop lanes the AND does become 32-bit (`and ecx,2`, no movzx),
-//   but the byte temp moves to ecx and the word to esi (original: bl and dx):
-//   80.4% (2833 bytes).
-// - vC: splitting the conversion from the AND (`unsigned int m = *(unsigned
-//   char*)(p2 + 0x9c);` then `... | (m & M)`) DOES reproduce the original's
-//   zero-extension idiom (`xor eax,eax; mov al,[..]`) plus the 32-bit `and eax,2`,
-//   but MSVC then rewrites that lane as the xor combine
-//   (`xor al,dl; and eax,2; xor eax,edx`) and puts the word in esi: 79.7% (2827).
-//   So the original's AND/OR lane form only survives while the byte operand stays
-//   narrowed; any 32-bit wide byte operand flips instruction selection to the xor
-//   combine (vC) or rotates the register file (vB). The register file (edi=1,
-//   bl byte temps, dx word) and the lane width are one allocator/IS state.
-// 2026-10-01 pass 4 (deepseek-v4.1-flash, 10 min timebox, 0 scored variants): re-read the
-// switch dispatch and the lane diff with the /Fa-style instruction view, no change kept.
-// Confirmed by direct instruction comparison of the compiled lanes that the case-1/2
-// lanes are the same length in instructions but 4 bytes wider each: ours is
-// `and bl,1; movzx si,bl; shl esi,2` against the original's `and ebx,edi; shl ebx,2`,
-// i.e. the byte temp's conversion is narrowed to 8 bits here and zero-extended (or
-// register-masked) there. Also observed the original spends a redundant `xor ebx,ebx`
-// before `mov bl,[..]` in the three case-3 lanes even though `and ebx,imm` with imm in
-// {1,2,4} clears the top 24 bits anyway, so those three lanes are unambiguously
-// `unsigned int m = *(unsigned char*)(p2 + 0x9c) & M;` temps, while case 1/2 must be
-// `& one` in a register: the two halves of the lane region need different spellings of
-// the same value, and combining them has always rotated the callee-saved file (73-81%).
-// No new lever; the file is left at the 82.8% baseline.
-// 2026-10-01 pass 3 (deepseek-v4.1-flash): re-confirmed 82.8 (2846 vs 2797). The whole 49-byte overage
-// sits before 0x497b30; the head hunks are `mov edi,1` (ours `mov edx,1`) for the `int one = 1;` local
-// plus `mov dx,[eax+0x37eec]` (ours `cx`) and the byte-wise `and bl,imm; movzx si,bl` lane masks where
-// the original masks 32-bit in EBX against the EDI-held 1. All of these are the same allocator state
-// already documented below; no new lever found.
-// 2026-10-01 pass 2 (deepseek-v4.1-flash, 10 min timebox, 1 scored variant): re-confirmed
-// 82.8 (2846 vs 2797). Tried one untried lane respelling: hoisting a per-lane
-// `unsigned short v = *(unsigned short*)(g_game + 0x14281);` temp in the three case-3
-// post-loop lanes so the g_game load precedes the 0x9c byte load (the original's order
-// at 0x4974xx is `mov ecx,[g_game]` then `mov bl,[eax+0x9c]`, ours is the reverse).
-// Result: byte-identical, 2846 bytes / 82.8, so that order is not steered by naming the
-// read. No change kept. Remaining residue unchanged: the CSE'd constant 1 lands in EDX
-// here and EDI in the original, and the nine 0x14281 lanes keep the movzx form.
-// 2026-10-01 pass (deepseek-v4.1-flash): re-confirmed 82.8 (2846 vs 2797 bytes). Remaining
-// diffs are unchanged from the notes below: the CSE'd constant 1 lands in EDX here and EDI
-// in the original, and the nine 0x14281 lanes keep the movzx form.
-// deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash,
-// finished by deepseek-v4.1-flash.
-// Names are provisional.
+// finished by Claude Fable 5.1. Names are provisional.
+// Game start: seeds the random generators, loads the match settings for the
+// current network mode (1 = skirmish defaults, 2 = multiplayer host block,
+// 3 = joined game, from the host player's record), runs the between-missions
+// summary, spawns each player's commander and opens the MAIN2 GUI.
 //
-// 2797 bytes. Best so far: 82.8% (2846 vs 2797 bytes). No MATCH.
-//
-// This pass (deepseek-v4.1-flash, ~15 min, 2 scored runs): re-read the
-// original lane code with fresh eyes, no gain, one new negative and one
-// structural insight worth keeping.
-// - Negative: a single `unsigned int mb;` reused by the three case-3
-//   post-loop lanes (`mb = *(uc*)(p2 + 0x9c) & M;` then `... | mb`) scores
-//   80.4% (2833 bytes). Same failure mode as the per-lane uint temps: the
-//   dword AND is right, the register file rotates.
-// - Insight for the next attempt: in the original, edi holds the CSE'd 1 and
-//   is used as the mask ONLY in the case-1 and case-2 lanes (`and ebx,edi`,
-//   `and edx,edi`, `and eax,edi` at 0x497403/0x497429/0x497444 and
-//   0x49748a/0x4974b0/0x4974cb). The case-3 post-loop lanes
-//   (0x497348/0x49736f/0x497396) and the later pl lanes (0x4975xx) use
-//   immediates instead, because on those paths edi/edx are already holding
-//   the record pointer or g_game. So the source almost certainly references
-//   ONE variable everywhere; the immediate-vs-register split is MSVC
-//   rematerialising where the register is busy. Our build instead folds every
-//   lane to `and r8, imm; movzx`, i.e. the constant never reaches the lanes
-//   as a value. That is a value-numbering/instruction-selection state of the
-//   whole function, not a per-lane spelling, which is why no lane respelling
-//   has ever moved it.
-//
-// - Two /Fa probes run this pass (build/scratch/0x497180/probe*.cpp) pin the
-//   lane shape precisely: `int m = *(unsigned char*)(p + 0x9c) & 2;` followed
-//   by `w = (w & 0xfffd) | m;` is the ONLY spelling that emits the original's
-//   `mov al, byte [p+0x9c]; and eax, 2; or ecx, eax`. Writing the temp as a
-//   byte load and masking on a later line (g1/g2/g3 in the probe) instead
-//   makes MSVC emit the `xor al, cl; and eax, 2; xor cx, ax` combine, and the
-//   whole-expression `(unsigned short)(...)` cast (our current form) makes it
-//   narrow to `and bl, 2; movzx si, bl`. So the shape in the file is known
-//   good; only the register file (ebx vs eax, dx vs cx, edi vs edx) differs.
-// - A 32-bit word temp (`int w3 = *(unsigned short*)(g_game+0x14281);` then
-//   `w3 = (w3 & mask) | ...;` and a truncating store) does produce the 32-bit
-//   `and edx, 2` lanes and is 12 bytes shorter (2834), but scores 81.9%.
-//
-// This pass (deepseek-v4.1-flash, ~8 min, 0 scored check runs, all --sym):
-// re-confirmed the plateaus below, no gain. Three free probes, all flat at 82.8%
-// (2846 bytes) unless noted:
-// - Referencing `one` in the first post-call pl lane (`& one` instead of `& 1`)
-//   does not move the CSE'd 1 into edi; byte-identical to the plain immediate.
-// - Hoisting `char* recbase = g_game + 0x1b63;` before the for-off spawn loop
-//   (rec = recbase + off) regresses to 80.0% (2853 bytes): it strength-reduces
-//   the pointer walk. Keep `rec = g_game + 0x1b63 + off` inline.
-// - Flipping the OR operand order in all six 0x14281 case-3/pl lanes
-//   (`m | (w & ~M)` vs `(w & ~M) | m`) is byte-identical: not a scheduling lever.
-// headers.py sweeps 128 sets and every one is 82.8% with <windows.h> on top, so
-// the lone SIB swap ([ecx+ebx+0x1b63] vs [ebx+ecx+0x1b63]) is compiler state.
-// The remaining gaps are unchanged and all allocator-driven (see the pass notes
-// below): the nine 0x14281 lanes want 32-bit zero-extend + `and ebx,imm` while
-// ours narrow to `and bl,imm; movzx si,bl`, and the switch materialises the
-// CSE'd 1 in edx where the original parks it in the callee-saved edi (which is
-// also why case 3's copies are `mov cx` here vs `mov dx` there).
-//
-// This pass (deepseek-v4.1-flash, ~20 min): re-scored the baseline and the
-// prior lane experiments in build/scratch/0x497180/. Two small wins, both from
-// build/scratch/0x497180/vQ.cpp:
-// - A shared `int one = 1;` before the switch (used in the case-1/2 mask lanes
-//   and the two `DAT_005091cc = one;` case-2/3 stores) changed the xor-lane
-//   allocation in cases 1/2 from edx/esi to ecx/edx and was worth 82.4 -> 82.7.
-// - The mission-count loop rewritten as `int i = 0; while (i < 10) { if (...)
-//   count = i + 1; i++; def += 6; }` puts `i++` before the `def += 6` pointer
-//   add, matching the original's `lea esi,[eax+1]; inc eax; add edx,0x18`, for
-//   82.7 -> 82.8. A plain `for` gives the pointer add first.
-// - Confirmed by isolated /Fa probes that the winner lane shape is
-//   `unsigned int m = *(unsigned char*)(p+off) & M; w = (w & ~M) | m;`
-//   (`and ebx,2` 32-bit, no movzx). Applying it to any subset of the lanes
-//   (p2 only 80.5, pl only 81.0, p2+pl 78.7, all 12 75.0) still loses to the
-//   current 16-bit form, so the remaining lane gap is one allocation state,
-//   not a source-shape problem. Do not re-run those.
-//
-// This pass (deepseek-v4.1, ~12 min, 8 check runs, 80.8 -> 82.4):
-// - The 0x38d75 network flags ARE the volatile field the guide names: writing
-//   `*(volatile unsigned short*)(g_game + 0x38d75) |= 4/2` reproduces the
-//   original's `mov dx,[g+0x38d75]; or edx,4; mov [g+0x38d75],dx` exactly
-//   (80.8 -> 81.7, then 82.0 with both sites).
-// - The bit-6 test at +0x9b is a real 1-bit bitfield: `struct { unsigned short
-//   : 6; unsigned short b6 : 1; ... }` over lp+0x9b gives the original's
-//   `mov al,[lp+0x9b]; shr al,6; test al,1` (82.0 -> 82.3); the plain
-//   `unsigned char v = ..; v >>= 6; if (v & 1)` folds to `test byte ptr,0x40`.
-// - The mission-count clamp reads better with the count on the left:
-//   `if (count > cur)` gives the original's `cmp esi,eax; jle` (82.3 -> 82.4).
-// - Tried and reverted: `unsigned int` byte temps in the case-3 and post-loop
-//   lanes (64.6, they rotate the whole register file, not just the lanes; the
-//   old note had 74.4 for all six lanes), and `int one = 1;` used for the
-//   DAT_005091cc stores (byte-identical to the plain constant: MSVC propagates
-//   the constant, so it cannot force a register-held 1).
-//
-// This pass (deepseek-v4.1, second 12 min, 8 check runs): confirmed the
-// 32-bit byte temp is what the original lanes use (it is the only spelling
-// that makes MSVC emit the `xor r,r; mov r8,mem` zero-extension idiom at
-// 0x497303/0x497353/0x49737a), but MSVC then rewrites `(w & ~2) | (b & 2)` as
-// `xor b,w; and b,2; xor b,w` and moves g_game to esi and the byte to
-// eax/ecx/edx: 73.3% with all nine lanes, 80.2% with case 3 only and 76.0%
-// with just the two shift lanes (case 1/2), all worse than 82.4%. Read it as
-// a live-range effect: here the const 1 in edx dies before the case-3 calls,
-// so edx is enough; the original's `and reg,edi` inside the post-call lanes
-// keeps it live across them and that is what forces edi.
-//
-// This pass (deepseek-v4.1, 12 min, 4 check runs): two fresh angles, both worse.
-// - Case 1/2 lanes with `unsigned int` byte temps (b0/b1/b2 locals, 6 lanes):
-//   77.9%, it still emits `and bl,imm; movzx si,bl` and rotates the file.
-// - Case-3-tail lanes with `unsigned int m = *(uc*)(p2+0x9c) & 2;` temps:
-//   79.8% (2827 bytes vs the 2846 baseline), closer in size but wrong regs.
-// The const 1 cannot be kept live across a call by source means: `one` is a
-// known constant, so every use folds to an immediate, and the register it is
-// cached in (edx here, edi in the original) is a whole-function allocator
-// decision. Fixing the case-1/2 lanes therefore needs the other 49 bytes of
-// code size corrected first, not a local respelling.
-//
-// Still open, in order of how much they cost on the diff:
-// - The nine 0x14281 lane updates: the original zero-extends the byte into a
-//   32-bit register (`xor ebx,ebx; mov bl,[..]`), masks 32-bit (`and ebx,2`,
-//   `and ebx,edi` for the mask 1 lanes) and ORs `or edx,ebx`; ours narrows to
-//   `and bl,2; movzx si,bl`. Every 32-bit-temp spelling tried rotates the
-//   register file globally and scores far lower, so the allocator state at the
-//   switch has to be reproduced first.
-// - `mov edi,1` at the switch (ours `mov edx,1`), which also makes case 3's
-//   16-bit copies `mov dx,[..]` instead of `mov cx,[..]`. The constant is
-//   CSE'd into one register in both; which one is an allocator choice.
-// - One `mov eax,[ecx+ebx+0x1b63]` / `lea esi,[ecx+ebx+0x1b63]` where ours
-//   encodes the base and index the other way round ([ebx+ecx+..]).
-//
-// This pass (deepseek-v4.1, 12 min, 3 check runs): no gain, two negatives.
-// - The three post-call pl lanes with a shared 32-bit `unsigned int pb`
-//   temp (xor edx,edx / mov dl,[..] / and edx,imm) still rotate the
-//   function file: 75.2% at 2831 bytes. Do not retry that site either.
-// - `v ^ ((v ^ b) & one)` compiles byte-identically to `((v ^ b) & one) ^ v`
-//   (82.8%, 2846 bytes), so the xor-lane operand order is not the lever;
-//   MSVC folds both to the (v & 0xfffe) ^ (b & 1) form because the mask is
-//   the immediate 1 here, while the original masks with the edi register.
-//
-// Earlier passes (still in this file) fixed the Fixed union, the __stdcall
-// declarations, the int sel/sel2 locals and the initial `==3` guard.
-//
-// What the pass before fixed, 78.6 -> 80.8:
-// - The FUN_0041c4c0 call after the 0x9b bit-6 test was duplicated in both
-//   branches here; the original computes the two ints in each arm and has ONE
-//   shared call (`jmp` into a common `push 0; push eax; push esi; call`).
-//   Rewritten as two ints set in the if/else plus one call.
-// - The three ten-player walks: indexing a record as
-//   `g_game + 0x1b63 + 0x14b * (unsigned char)i` instead of `* i` stops MSVC
-//   strength-reducing the multiply into a pointer walk, reproducing the
-//   original's `mov eax,ebx; and eax,0xff; ...; lea eax,[edx+ecx*2+..]` with a
-//   live index (`inc ebx`). 69.8 -> 78.3, the single biggest win.
-// - `std::random_shuffle(order, order + n)` from <algorithm> replaces the
-//   hand-rolled shuffle loop; the header's _Rm/_Rn scaling loop compiles
-//   byte-exactly. 66.8 -> 68.1.
-// - The mission block after FUN_004816a0 is nested the original's way,
-//   `if (mission != 0) { summary; if (BetweenMissions()==0) { FUN_00432610;
-//   goto tail; } } else if (state != 1) goto tail;` then the shared
-//   FUN_00488310/FUN_0041d1f0. 68.1 -> 69.7.
-// - `rec+0x149` as a 1-bit `unsigned short` bitfield gives the original's
-//   direct `or byte ptr [rec+0x149],1`; a plain `unsigned char |=` goes
-//   through a register.
-// - The final player-record access goes through a record local (`currec`) so
-//   the pointer chain is `lea ..+0x1b63; mov eax,[rec+0x27];
-//   or byte ptr [eax+0x9b],0x10`, as in the original.
-// - `pos.x.i` before `pos.y.i = 0` (the original's order at 0x4976cd).
-// This pass (deepseek-v4.1-flash, ~15 min, all --sym scratch scores): no gain
-// over the 82.8% baseline. Confirmed the lane region is the sole real diff: the
-// entire tail after the switch matches instruction-for-instruction except for
-// branch targets shifted by the lanes' 49 extra bytes. Tried, all worse:
-// - 32-bit byte temps (`t = *(unsigned char*)p; t &= M;`, and with `t = 0;`)
-//   per lane site: post-loop only 81.0, case-3 only 80.4, case-1/2 only 81.2,
-//   all twelve 77.9. The dword `and` shape is right but the register file
-//   rotates and MSVC never emits the original's `xor ebx,ebx; mov bl,[..]`
-//   zero-extension, so bytes shrink below 2797 and every branch target moves.
-// - case-3 lanes with the mask inline and `fb = 0; fb = byte;`: 79.7; MSVC
-//   folds it to the `xor al,cl; and eax,2; xor eax,ecx` combine, not the
-//   original's separate `and ebx,2; and edx,0xfffd; or edx,ebx`.
-// - `bool`/`short`/`char`/`unsigned int` for `one`: all byte-identical, 82.8.
-// - Compiling the real preceding function (FUN_00497080, already matched in
-//   src/unsorted/0x497080.cpp) above ours in this file: 82.3, allocation
-//   unchanged (still `mov edx,1`), so the edi/edx choice is not file layout.
-// The lane region and `mov edi,1` are one allocator state; no source respelling
-// of the lanes alone moves it.
+// What took this from 82.8% to MATCH (issue 4408):
+// - Cases 1 and 2 are inlined calls of FUN_00496e10 (matched on its own in
+//   0x496e10.cpp, zero callers in the exe because /Ob2 inlined every call):
+//   it copies the settings block's first int to +0x37ef6 and three int flags
+//   into bits 2, 0 and 1 of the view-flags word at +0x14281. The inlined
+//   `int -> 1-bit field` assignments are what mask with the CSE'd constant 1
+//   (`mov edi,1` at the switch head, `and ebx,edi`), while the hand-written
+//   `(w & ~M) | (b & M)` lanes narrow to `and bl,1; movzx si,bl`.
+// - Case 3 and the post-wait block copy BITFIELDS of the player's
+//   `unsigned short` flags at +0x9b: bits 8, 9 and 10 sit in the byte at
+//   +0x9c, and `view->bit1 = pf->b9` (same bit position on both sides) is what
+//   MSVC 5 compiles to the zero-extended byte load plus `and ebx,2` with no
+//   shift; the 2-bit field at bits 11-12 and the 1-bit field at 13 give the
+//   `shr ecx,0xb; and ecx,3` and `shr ecx,0xd; and ecx,1` extracts.
+// - Case 2's statement order is copy 0x37eec -> 0x37ee6 first, then
+//   DAT_005091cc = 1, then the settings block; the store through g_game makes
+//   MSVC reload g_game for the block, as the original does.
+// - The commander spawn loop is `for (int i = 0; i < 10; i++)` indexing
+//   0x14b-byte records; MSVC strength-reduces it to the byte offset in ebx and
+//   that puts g_game in the SIB base. A hand-written `off += 0x14b` loop swaps
+//   the base and index.
+// - QueryPerformanceCounter's halves: `int hi = HighPart; int lo = LowPart;
+//   FUN_004b6ca0(lo + hi)` loads LowPart first; declaration order decides the
+//   load order.
+// Earlier passes fixed: the network flags at +0x38d75 written as volatile
+// (the field the guide names); the +0x9b bit-6 test as a 1-bit bitfield; the
+// mission-count loop with `i++` before `def += 6`; the ten-player walks with
+// `(unsigned char)i` so the multiply is not strength-reduced; the
+// std::random_shuffle call; rec+0x149 as a 1-bit bitfield (direct `or byte`);
+// `pos.x.i` before `pos.y.i = 0`.
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <algorithm>
 #include <time.h>
+
+struct Settings_00496e10 {
+    int value;                          // +0x0
+    int flag_4;                         // +0x4
+    int flag_8;                         // +0x8
+    int flag_c;                         // +0xc
+};
+
+struct ViewFlags_497180 {               // g_game + 0x14281
+    unsigned short bit0 : 1;
+    unsigned short bit1 : 1;
+    unsigned short bit2 : 1;
+    unsigned short rest : 13;
+};
+
+struct PlayerFlags_497180 {             // player + 0x9b
+    unsigned short low : 8;
+    unsigned short b8 : 1;              // +0x9c bit 0
+    unsigned short b9 : 1;              // +0x9c bit 1
+    unsigned short b10 : 1;             // +0x9c bit 2
+    unsigned short b11_12 : 2;
+    unsigned short b13 : 1;
+    unsigned short rest : 2;
+};
 
 union Fixed_497180 {
     int i;                              // 16.16
@@ -361,6 +137,7 @@ public:
 };
 
 extern char* g_game;
+static inline ViewFlags_497180* g_game_view() { return (ViewFlags_497180*)(g_game + 0x14281); }
 extern int DAT_005091cc;
 extern int DAT_00506dbc;
 extern Class_004618a0 DAT_00513000;
@@ -394,6 +171,15 @@ Gadget_497180* __stdcall FUN_004aa8f0(Sub_497180* sub, const char* name, int fla
 void __stdcall FUN_00494890(Gadget_497180* gadget);
 void __cdecl operator delete(void* p);
 
+// Inlined into cases 1 and 2 below (matched on its own in 0x496e10.cpp).
+inline void __stdcall FUN_00496e10(Settings_00496e10* s)
+{
+    *(int*)(g_game + 0x37ef6) = s->value;
+    g_game_view()->bit2 = s->flag_c;
+    g_game_view()->bit0 = s->flag_4;
+    g_game_view()->bit1 = s->flag_8;
+}
+
 // FUNCTION: 0x497180
 void __cdecl FUN_00497180(void)
 {
@@ -403,47 +189,26 @@ void __cdecl FUN_00497180(void)
     int order[10];
 
     QueryPerformanceCounter(&perfCount);
-    FUN_004b6ca0(perfCount.LowPart + perfCount.HighPart);
+    int hi = perfCount.HighPart;
+    int lo = perfCount.LowPart;
+    FUN_004b6ca0(lo + hi);
     srand((unsigned)time(NULL));
     *(int*)(g_game + 0x38a47) = 0;
 
-    int one = 1;
     switch (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100()) {
-    case 1: {
+    case 1:
         DAT_005091cc = 0;
-        char* base = g_game + 0x39219;
-        *(int*)(g_game + 0x37ef6) = *(int*)base;
-        *(unsigned short*)(g_game + 0x14281) =
-            (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffb) |
-                ((*(unsigned char*)(base + 0xc) & one) << 2));
-        unsigned short v = *(unsigned short*)(g_game + 0x14281);
-        unsigned char b = *(unsigned char*)(base + 4);
-        *(unsigned short*)(g_game + 0x14281) = (unsigned short)(((v ^ b) & one) ^ v);
-        *(unsigned short*)(g_game + 0x14281) =
-            (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffd) |
-                ((*(unsigned char*)(base + 8) & one) << 1));
+        FUN_00496e10((Settings_00496e10*)(g_game + 0x39219));
         FUN_00431740();
         break;
-    }
-    case 2: {
-        char* base = (char*)*(void**)(g_game + 0x29a0) + 0x108;
+    case 2:
         *(unsigned short*)(g_game + 0x37ee6) = *(unsigned short*)(g_game + 0x37eec);
-        DAT_005091cc = one;
-        *(int*)(g_game + 0x37ef6) = *(int*)base;
-        *(unsigned short*)(g_game + 0x14281) =
-            (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffb) |
-                ((*(unsigned char*)(base + 0xc) & one) << 2));
-        unsigned short v = *(unsigned short*)(g_game + 0x14281);
-        unsigned char b = *(unsigned char*)(base + 4);
-        *(unsigned short*)(g_game + 0x14281) = (unsigned short)(((v ^ b) & one) ^ v);
-        *(unsigned short*)(g_game + 0x14281) =
-            (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffd) |
-                ((*(unsigned char*)(base + 8) & one) << 1));
+        DAT_005091cc = 1;
+        FUN_00496e10((Settings_00496e10*)((char*)*(void**)(g_game + 0x29a0) + 0x108));
         break;
-    }
     case 3: {
         *(unsigned short*)(g_game + 0x37ee6) = *(unsigned short*)(g_game + 0x37eec);
-        DAT_005091cc = one;
+        DAT_005091cc = 1;
         *(unsigned short*)(g_game + 0x38a51) &= 0xfffe;
 
         int sel = FUN_00456850();
@@ -474,17 +239,12 @@ void __cdecl FUN_00497180(void)
 
         int sel2 = FUN_00456850();
         char* p2 = *(char**)(g_game + 0x1b63 + 0x14b * sel2 + 0x27);
-        DAT_005091cc = (*(unsigned short*)(p2 + 0x9b) >> 0xd) & 1;
-        *(int*)(g_game + 0x37ef6) = (*(unsigned short*)(p2 + 0x9b) >> 0xb) & 3;
-        *(unsigned short*)(g_game + 0x14281) =
-            (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffd) |
-                (*(unsigned char*)(p2 + 0x9c) & 2));
-        *(unsigned short*)(g_game + 0x14281) =
-            (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffb) |
-                (*(unsigned char*)(p2 + 0x9c) & 4));
-        *(unsigned short*)(g_game + 0x14281) =
-            (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffe) |
-                (*(unsigned char*)(p2 + 0x9c) & 1));
+        PlayerFlags_497180* pf = (PlayerFlags_497180*)(p2 + 0x9b);
+        DAT_005091cc = pf->b13;
+        *(int*)(g_game + 0x37ef6) = pf->b11_12;
+        g_game_view()->bit1 = pf->b9;
+        g_game_view()->bit2 = pf->b10;
+        g_game_view()->bit0 = pf->b8;
         *(unsigned short*)(g_game + 0x37ee6) = *(unsigned short*)(p2 + 0xa5);
         break;
     }
@@ -526,19 +286,14 @@ void __cdecl FUN_00497180(void)
 
             int sel = FUN_00456850();
             char* pl = *(char**)(g_game + 0x1b63 + 0x14b * sel + 0x27);
-            *(unsigned short*)(g_game + 0x14281) =
-                (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffe) |
-                    (*(unsigned char*)(pl + 0x9c) & 1));
-            *(unsigned short*)(g_game + 0x14281) =
-                (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffd) |
-                    (*(unsigned char*)(pl + 0x9c) & 2));
-            *(unsigned short*)(g_game + 0x14281) =
-                (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffb) |
-                    (*(unsigned char*)(pl + 0x9c) & 4));
-            *(int*)(g_game + 0x37ef6) = (*(unsigned short*)(pl + 0x9b) >> 0xb) & 3;
+            PlayerFlags_497180* pf = (PlayerFlags_497180*)(pl + 0x9b);
+            g_game_view()->bit0 = pf->b8;
+            g_game_view()->bit1 = pf->b9;
+            g_game_view()->bit2 = pf->b10;
+            *(int*)(g_game + 0x37ef6) = pf->b11_12;
 
-            for (int off = 0; off < 0xcee; off += 0x14b) {
-                char* rec = g_game + 0x1b63 + off;
+            for (int i = 0; i < 10; i++) {
+                char* rec = g_game + 0x1b63 + 0x14b * i;
                 if (*(int*)rec == 0)
                     continue;
                 unsigned char st = *(unsigned char*)(rec + 0x73);

@@ -1,4 +1,20 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, retried by Claude Fable 5.1. Names are provisional.
+// Claude Fable 5.1 retry: no gain over 89.2% (827 bytes), file unchanged below.
+// Measured: the N-declarations sweep is flat (0 to 400), so the residual is
+// the source shape. `wc.style = 8` placed anywhere before the RegisterClassA
+// call, through a WNDCLASSA pointer or reference, a one-element array
+// member, an indexed store, inline helpers for the store, the address or the
+// call, and the global pointer DAT_0051fbd0 all make MSVC keep `&d->wc` in
+// edi across the three calls and spill the height (835 to 837 bytes, 73%);
+// the CSE keys on the address tree `d + 0x18`, which only a differently
+// built tree escapes (a diagnostic `(WNDCLASSA*)&d->wc.lpfnWndProc - 1`
+// freed it, but that is not the same address). A local for the second flag
+// word, with or without a videoFlags local in the first block, makes block
+// 2 exact but rotates every later scratch register by one (67 to 73%), and
+// throwaway temporaries before either block do not rotate them back. Bitfield
+// assignments, operand swaps and value-level spellings of block 1 either
+// merge the two RMWs (818 bytes) or change nothing. tools/permute.py, 20
+// minutes, found nothing.
 // deepseek-v4.1-flash retry 2: seven more variants, all below 89.2%.
 // Two findings for the next attempt. (1) Block 0: the original's early
 // `mov cx,[esi+0x202]` position IS reachable, put `unsigned short vf =

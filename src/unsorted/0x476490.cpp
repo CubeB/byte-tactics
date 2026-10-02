@@ -1,4 +1,84 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+//
+// TWIN TEST, Space Bunny Free pass (#4147): CLOSED, the shape is unreachable.
+// The guide's twin test has four outcomes and this is outcome (1). All 29
+// `insert@?$vector` instantiations the linker names in TotalA.exe are, by size:
+//   matched  449 467 547 547 622 622 649 649 649 755 773 785
+//   partial  477 532 537 537 544 546 546 546 632 636 639 779 781 791 794
+//            798 936
+// 632 occurs exactly ONCE in the whole exe: this function. Only two functions
+// of any kind are 632 bytes and the other one (0x45ead0,
+// `?FUN_0045ead0@@YGXPAUGadget_0045ead0@@@Z`) is an unrelated free function.
+// Masking every branch and call displacement, this original has NO
+// byte-identical twin anywhere in .text (0 hits in 1,026,560 bytes). So no
+// matched compilation of this shape exists to copy and the residual is not
+// reachable, the same verdict 0x46e640 got for its 546-byte shape.
+//   build/scratch/476490/twin.py does the census and the byte search.
+//
+// DIFFERENTIAL TWIN, the useful part of this pass. Compiling this clone for
+// 0x433b20's element type (Elem_00434020, two unsigned shorts, a 4-byte
+// trivial POD, MATCHED in the exe at 547 bytes) scores 86.3% against that
+// original, and the real toolchain header scores byte-exact. So the clone's
+// `_Ucopy` does NOT linearise the way the real <vector> does, and it is the
+// same two defects this file's own residual has:
+//   third copy  original `mov eax,ecx / sub eax,edx / add eax,ebx / sub eax,edi`
+//               clone    `lea eax,[ecx+ebx] / sub eax,edx / sub eax,edi`
+//   tail        the original has the dead pre-delete spill `mov [esp+0x28],eax`
+//               and keeps size()'s load in the taken branch; the clone spills
+//               _First and _Last into the dead _P slot and hoists the load.
+// That corrects an older note in this file, which rejected the real header
+// because "with <stdexcept> MSVC 5 builds the third copy's source pointer as
+// mov eax,edx / sub eax,ebx / add eax,edi / sub eax,ecx where the original
+// wants the single-instruction form". The original does NOT want the
+// single-instruction form. In BOTH 0x476490 (0x47656e: `lea eax,[ebx+ecx]`
+// then `sub edx,ebx / add edx,eax / sub edx,ecx`) and 0x433b20 the wanted
+// form is the four-instruction `mov/sub/add/sub` one, and the header produces
+// it. The older note had the wanted shape backwards.
+//
+// The two spellings are however mutually exclusive with the register family,
+// which is why no rewrite of this file has reached it:
+//   real <vector>, header order (`_Destroy` then deallocate): 246 instructions,
+//     the original's exact count, `_P` held in a register through the whole
+//     reallocating branch, the four-step third copy, and the dead pre-delete
+//     spill, but `this` gets callee-saved EDI (`mov edi,ecx` after the four
+//     pushes) where the original leaves `this` in ECX and spills it to
+//     [esp+0x10]. check.py 60.7%.
+//   this clone, deallocate before `_Destroy`: the right ECX family, but `_P`
+//     is spilled and reloaded, and the third copy is the `lea` form.
+// The `_Destroy`/deallocate ORDER alone decides which family a 32-byte element
+// gets: all 7 orderings of {destroy-call, destroy-loop, deallocate, the three
+// tail stores} measured, best of the alternatives 95 differing lines against
+// this file's 67. The header's whole member set is not the lever: a clone built
+// from the toolchain's own vector<T,A> class body (lines 14-247 of
+// INCLUDE/VECTOR, `build/scratch/476490/mkclone.sh`) with this file's insert
+// body scores 78.8%, 648 bytes with check.py, so the extra ~40 members and the
+// missing <stdexcept> change nothing here; they only change the 4-byte twin's
+// third copy, which is why the real header fixes 0x433b20 and not this.
+//
+// Measured this pass, all inert or worse (instruction-diff count against the
+// original, this file's own build is 67 differing lines of 249; build/scratch/
+// 476490/h.py, 0.5 s per compile against check.py's 60 s):
+//   all 120 declaration orders of the five member functions: 67 differing
+//     lines and 249 instructions every single one, so declaration order is
+//     inert here (as on 0x448c70, 0x4b5070 and 0x459c70).
+//   +<windows.h>, <stdexcept>, <map>, <list>, <xstring>, <iostream>, <string>,
+//   +<iterator>, <new>, <memory.h>, <xmemory>, <stdlib.h>, <assert.h>,
+//   +<time.h>, <math.h>, and #pragma pack(push,8) around the class: 67 every
+//     one, no effect at all on the codegen.
+//   element as a union, char[32], eight separate ints, float[8], with a default
+//     constructor, with an empty copy constructor: 67 (the empty copy
+//     constructor drops to 188).
+//   named `iterator _R = _Q + _M`, `const T& _Xr = _X`, a local `_Y = _X`,
+//     a `const_iterator _p = _P` alias used as both the prefix bound and the
+//     suffix source, `(size_type)` and `(iterator)` casts, `allocate(_N, 0)`,
+//     `_S + (_N)`, `_S + _M + size()`, `_S + (size() + _M)`, a pointer to the
+//     local _M, the `_Ufill` body as `++_F,--_N`, as a while and as a do/while,
+//     the fill and the third copy written out by hand: 67.
+//   the `_Ucopy(_First,_P,_S)` loop with no cached end: 74. The header's
+//     `_Destroy(_First,_Last)` member call after the deallocate: 74.
+// So the 14-byte overshoot really is the one register-allocation decision the
+// older notes named, and no source text reaches it.
+//
 // deepseek-v4.1-flash (#3287): the real-<vector> recipe of the matched sibling
 // 0x43c3a0 (explicit instantiation, 32-byte trivial element) scores 60.7%,
 // 637 bytes, against this clone's 78.9%, 646; the clone stays the best form.

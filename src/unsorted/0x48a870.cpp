@@ -1,4 +1,23 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash. Names are provisional.
+//
+// DeepSeek V4.1 Flash pass (#4698): the permuter ran 3 min on the 88.8% form
+// (2885 candidates) and 4 min on a materialized variant (4322), no gain. Two
+// measured leads, both rejected. (1) Materializing the draft byte through an
+// address-taken local (`unsigned char d; unsigned char* pd = &d;
+// *pd = unit->type->draft;`) DOES reach the original's register assignment for
+// the whole block: product in ecx (`mov ecx,eax; shl ecx,0x10; sub ecx,eax`),
+// g_game in eax via the 5-byte A1 load, and the sea in the pre-zeroed edx. It
+// costs a byte store/reload/and (`mov [esp+0x10],al; mov eax,[esp+0x10]; and
+// eax,0xff`) and the sum still accumulates into edx (`add edx,ecx`) instead of
+// ecx (`add ecx,edx`). Fine score 478 against the base's 166, so the base is
+// much closer. The add destination is the last wall: every non-materializing
+// spelling (with or without the product pointer, either operand order, sea
+// through a local/pointer, int/unsigned char sea) puts the sum in the sea's
+// register. (2) A volatile read of both fields scores 91.4% at 261 bytes but is
+// the folded `(sea - draft) << 16` form (fine score 840) and uses volatile, so
+// it is not usable. Note the coarse check.py percentage favours folded forms
+// (a draft self-conditional scores 89.1% at 258 bytes, fine score 660); the
+// base pointer form below remains the closest.
 //
 // 30-min checkpoint (space-bunny-free, #4496). Best stays 88.8% / 262 bytes, the
 // pointer form at the bottom of this file; nothing below beat it in ~40 check.py

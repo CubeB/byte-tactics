@@ -1,4 +1,115 @@
 // Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// space-bunny-free pass (2026-10-02, #4672, tool-assisted): 99.6% re-confirmed
+// (546 of 546 bytes, check.py), still only the swapped SIB byte at 0x46e708. The
+// best source below is unchanged from main, because nothing I tried moved it.
+// What this pass adds is a cheap pre-screener and a map of the space, for the
+// siblings stuck on the same byte (0x408f30, 0x425210, 0x44ec30, 0x476210 are
+// all std::vector<T>::insert at 99.6% with the same one-byte SIB, so whatever
+// fixes this fixes the family).
+//   * TOOL (copy this, it is 0.5 s a variant against 7 s for check.py, and it
+//     needs no objdump): build/scratch/46e640/fast.py <variant.cpp> compiles
+//     with the check.py flags plus /Fa, pulls the ?insert body out of the
+//     listing, canonicalises it (hex to h, jump labels to l, symbols and stack
+//     slots stripped) and diffs it against ctx.py's instruction list, which
+//     build/scratch/46e640/ref.txt holds. It reports the count of differing
+//     lines, so "225 instrs 2diff, leaeax,[ecx+ebx] vs leaeax,[ebx+ecx]" is the
+//     baseline. batch.py runs a JSON list of variants ({"label", "subs":
+//     [[old,new]], "after": marker, "text": filler}) four at a time and prints
+//     the same one line each; sweep.py does kinds x counts of TU filler.
+//     Beware: cl's listing has CRLF, the symbol line ends in "ENDP" (not
+//     "ENDEF"), and gcc-style re.S makes the greedy `.*\n` swallow the file.
+//   * The dead-statement levers from the guide DO move the association here,
+//     but only into the other (547-byte) shape, never to the wanted SIB: a
+//     self-conditional phi (`_P = _P ? _P : _P;`), a dead local
+//     (`iterator _Z = _Q;`), a dead store in a folded branch (`int t = 0;
+//     if (t) _Q = _P;`) each turn `lea eax,[ecx+ebx]` into
+//     `mov eax,ecx; add eax,ebx` (226 instrs), so they push the third copy out
+//     of the lea regime altogether. The same is true of one or two units of TU
+//     filler; three or more are back to the 546-byte lea.
+//   * 840 TU-filler variants (14 kinds: extern/static/dead function/dead
+//     function with a loop/typedef/struct with a ctor/global+function/
+//     template struct/array-local/double function/branchy function/class with
+//     a member function/throw/switch, counts 1 to 60 each) produce exactly two
+//     shapes and never the wanted byte: 430 builds are 546 bytes with
+//     `lea eax,[ecx+ebx]` and 410 are 547 with `mov eax,ecx; add eax,ebx`.
+//     So the filler axis is not just unsampled, it is saturated on this shape.
+//   * The 546 form needs a *free* register for the result, which is why it is a
+//     lea and not mov+add: the emitter only has a choice of base and index
+//     when the destination is a third register. So the byte is decided by the
+//     order of the two operands in the IV optimiser's synthesised add, and the
+//     dead-statement levers change that add's *shape* rather than its order.
+//   * Reading MSVC 5's own VECTOR (toolchain/msvc5-sp3/INCLUDE/VECTOR) settles
+//     the source question: its insert(iterator, size_type, const _Ty&) and its
+//     _Destroy/_Ucopy/_Ufill are character for character what this clone has,
+//     so the clone is the real header and the byte is not a source typo. It
+//     also means TA's build used a <vector> whose class state differs from this
+//     toolchain's copy, since the real header here compiles to the 547 shape.
+//   * A regularity that holds across every build I made, and the most useful
+//     thing here for the next person: in EVERY 546-byte three-instruction
+//     build, the synthesised add is <basic IV> + <the offset's positive term>,
+//     i.e. the SIB base is always the loop's basic induction variable (the
+//     destination _Q + _M*4, in ecx) and the index is always the offset term
+//     (the _P parameter, in ebx). About 30 further perturbations all agree:
+//     the third copy's argument spellings (_M + _Q, &_Q[_M], _P + 0, a one-line
+//     Base() helper on either side, a cast on _M); a second _Ucopy helper used
+//     only by the third call so that the loop's *init order* is (dest, source,
+//     limit) or (dest, limit, source) - both wreck the function (221 instrs,
+//     226 diffs), and (source, dest, limit) keeps 546 with the same byte; the
+//     while form, ++_F before ++_P, and _L != _F; inline and __forceinline on
+//     _Ucopy; the tail statement order; swapping _Ufill with the third copy
+//     (which changes the synthesised pair to `lea eax,[ecx+esi]`, still
+//     basic-IV first); a second `template class std::vector<int>;` and dead
+//     functions after the class instead of before it; a friend declaration.
+//     So the offset-first form is a THIRD association that no spelling of this
+//     template reaches in this translation-unit state: the reachable set is
+//     {basic-IV-first lea, mov+add}. Do not spend more time on spellings.
+//   * This is one bug in the shared template, so the fix has to be found once
+//     and will fix the siblings. All five are the same three-argument
+//     std::vector<T>::insert at 99.6%, 546 of 546 bytes, with the same single
+//     swapped SIB byte at the same place in the third _Ucopy: 0x408f30
+//     (vector<Unit*>), 0x425210 (vector<short>), 0x44ec30
+//     (vector<UElem_0044ec30>, not a free _Ucopy as I first assumed),
+//     0x476210 (vector<UElem_00476210>) and this one. The pre-screener in
+//     build/scratch/46e640/ is per-function: point it at any of them by
+//     changing the PROC symbol it greps for and ref.txt at ctx.py's output.
+//   * The framing the older notes above get backwards, which matters: the
+//     original is NOT the odd one out. All six sites in the exe with this
+//     synthesised-lea shape put the HIGHER-numbered register in the base slot
+//     (ebx over ecx), and 0x46e708 is one of them, so the original agrees with
+//     the other five. It is our minimal reproduction that always puts the
+//     LOWER register in the base, in all four insert siblings at once. So the
+//     byte is a property of how little translation unit the class is compiled
+//     in, and every one of us has been trying to reproduce a big TU with
+//     padding, which does not work because the reachable shape set has only
+//     two members (basic-IV-first lea, mov+add).
+//   * Total measured this pass: about 3200 builds on twelve axes (filler count
+//     1 to 1600 of extern declarations and 1 to 700 each of dead functions and
+//     dead functions with a loop, 14 filler kinds x 60 counts, dead statements
+//     and phis, argument spellings, one-line helper routing, loop init order,
+//     loop forms, comparison and ternary order, inlining hints, member order
+//     in the class, #pragma pack 1/2/4/8, a second template class
+//     instantiation, other code in the TU that *uses* the class, and 60
+//     cumulative/reverse additions of the real header's 61 public members).
+//     Plus tools/permute.py on a scratch copy of this file: 13655 candidates,
+//     0 compile failures, 99.6% -> 99.6%, empty best.diff. Not one build
+//     produced `lea eax,[ebx+ecx]`. Every 225-instruction build is the
+//     basic-IV-first lea and every 226-instruction build is the mov+add. The
+//     one axis left is a genuinely large translation unit, which padding does
+//     not imitate.
+//   * Ruled out by measurement, do not retry: the RTM compiler
+//     (BT_TOOLCHAIN=msvc5-rtm) emits the same `lea eax,[ecx+ebx]`, so this is
+//     not an SP3 patch difference; and the real header included and fully
+//     instantiated (`#include <vector>` plus `template class std::vector<int>;`
+//     plus the address taken) compiles to 179 instructions against the
+//     original's 225, so it is the 547 shape with much more of it.
+//   * A warning about the sibprobe rule in build/scratch/sibprobe: its
+//     "the SIB base is the first-loaded value" finding is about a *store*
+//     (mov byte ptr [a+b+disp],cl) where the emitter picks base and index. This
+//     residual is a synthesised lea in a loop, whose operand order is the IV
+//     optimiser's term order, and in every build here it is basic-IV-first
+//     whatever the load order is. Applying the sibprobe rule here sends you
+//     looking for a load to move and there is none to move.
+// Best source kept below unchanged.
 // space-bunny-free pass (2026-10-02, #4510): 99.6% re-confirmed, 546 of 546
 // bytes, the one swapped SIB byte at 0x46e708 is still the only difference, and
 // this pass adds the measurements below rather than a fix. Two new facts narrow

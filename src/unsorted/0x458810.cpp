@@ -1,4 +1,13 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// claude-opus-5-5 (#4634): still 87.6% here, but one structural finding for the
+// next attempt: after the optional rebuild call the original re-reads
+// `list->bitmap` (FUN_004586a0 may rebuild it), so the final test is
+// `if (list->bitmap != 0)`, not the cached local. With that change the whole
+// second half (this in ebx, the count-down piece loop with the counter in a
+// stack slot, the duplicated return tails) lines up and the size becomes 425 of
+// 427 bytes, but the head swaps registers (list in esi and x in edi, the
+// original has list in edi and x in esi) and the score drops to 57.2%; a
+// 15-minute permuter run from that version reached only 65.5%.
 // SIXTH PASS (space-bunny-free, issue 3237). The two register ties in this
 // function are INDEPENDENT, and one of them is now off the table: what decides
 // the `bitmap`/`flags` pair is whether the `bitmap` LOCAL exists, and deleting it

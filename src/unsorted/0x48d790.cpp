@@ -1,4 +1,139 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, verified by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Space Bunny Free pass (issue #4607): best now 95.4% (387 of 388 bytes), up from
+// 92.6%, still no MATCH. This pass measures the remat instead of guessing at it,
+// and the measurements below are what the next attempt should build on.
+//  * BEST OF THIS PASS: 95.4% (387 of 388), up from 92.6%. What changed is one
+//    thing in the hit block: a DEAD `u->u.bits.bit4 = 1;` immediately before a
+//    named container temp
+//        u->u.bits.bit4 = 1;
+//        unsigned int f = u->u.flags | flag;
+//        u->u.flags = f;
+//        Game_0048d790* g = g_game;
+//        g->field_37e9c = 0;
+//        g->flags |= flag;
+//    moves the container from EDI to EAX, which is the original's register, and
+//    the first three instructions of the hit block are now byte-identical. The
+//    dead store emits nothing itself; it only shifts which slot the live
+//    container temp gets, i.e. it is a lever on the allocator's ordering, not on
+//    the code. `u->u.flags |= 0;` in the same place works as well (95.4%); the
+//    named temp alone does NOT (92.6%, container back in EDI), and the dead store
+//    after the temp does not either. With the store written through the global
+//    instead of an alias (the split shape) the same hit block gives 392 bytes at
+//    94.9% with the container still in EAX.
+//  * So the residual is now two instructions in one shape, and they are one
+//    decision: `mov edx,0x10` in the block (5 bytes) and the second g_game load
+//    in EAX (5 bytes) instead of EDI (6). Drop the remat and the block has three
+//    temps with EDX pinned, and then the second load has to take the only other
+//    free register, EDI: 6+2+6+5+9+6+7 = 41 = the original, and 388 = 41+347.
+//    The merged shape can never get there (see the register enumeration below).
+//  * BYTE ARITHMETIC, exact now (from the object, not from the diff). The
+//    preheader, both loops and the fallback are byte-identical to the original,
+//    so the whole residual is the 41-byte hit block:
+//        mov eax,[esi+0x110] / or eax,edx / mov [esi+0x110],eax   (6+2+6)
+//        mov eax,[g] / mov word [eax+0x37e9c],0                   (5+9)
+//        mov edi,[g] / or word [edi+0x37ebe],dx                   (6+7)
+//    Split-shape hit block = 45 (+5: the remat), merged-shape hit block = 40 (-1:
+//    the last g_game load is `mov eax,[...]`, 5 bytes, in EAX instead of
+//    `mov edi,[...]`, 6). 388 = 41 + 347 elsewhere.
+//  * THE MERGED SHAPE CANNOT REACH 388, by enumeration: with the container in a
+//    register and g_game in R, the block is 12+2+6+load(R)+store(R)+or(R), and
+//    the three encodings are load 5 / store 9 / or 7 for EAX (21), 6/8/7 for EDI
+//    (21) and 5/8/7 for ECX (20). So every register choice in the merged shape
+//    gives 40 or 39, never 41. The 388-byte shape exists only in the split
+//    shape, and only with the container in EAX, the mask live in EDX and the
+//    second g_game load in EDI.
+//  * WHERE THE REMAT COMES FROM: with the statement order permuted (game writes
+//    first, unit RMW last) MSVC 5 emits `mov edx,0x10` immediately before the
+//    FIRST use in the block that needs a register, then shares that register
+//    with the other use. The original instead reuses the EDX copy made at
+//    0x48d866, so the def is outside the block. The remat and the register
+//    rotation (EDI for the container) are the same decision: the extra def
+//    takes the first-choice slot and the rest slides.
+//  * The dead-store lever, swept (30+ spellings and positions, all on the 95.4%
+//    shape): a dead store to the UNIT's flags word before the named temp always
+//    gives the container EAX and 95.4% (`u->u.bits.bit4 = 1;`,
+//    `u->u.flags |= 0;`, `u->u.flags &= 0xffffffff;`, `u->u.flags =
+//    u->u.flags;`, `u->u.flags = u->u.flags | 0;`, two of them, or the same
+//    store repeated). A dead statement that touches only a LOCAL (`flag =
+//    flag;`) or that sits after the named temp puts the container back in EDI
+//    (92.6%), a dead store between the temp and the alias emits for real
+//    (397 bytes), and a dead store on the other unit (`found->u.bits.bit4 = 1;`)
+//    changes the fallback and gives 410 bytes. The game flags written through a
+//    `unsigned short*` alias: 378 bytes (merged, 94.9%) and 392 (split, 94.9%),
+//    both still with the remat. Nothing in this sweep removed the remat.
+//  * Dead statements on the GAME side are flat as well: a dead `g->flags |= 0;`
+//    before the real RMW, a dead `g->field_37e9c = g->field_37e9c;` (that one is
+//    interesting, 378 bytes at 94.9%: MSVC drops the whole store and the block
+//    loses a temp), a dead `u->u.flags &= 0xffffff2f;` between the temp and the
+//    store, a repeated dead bitfield store, and the RMW written twice (404 bytes)
+//    all leave the remat in place.
+//  * headers.py on this 95.4% shape: all 128 header sets score exactly 95.4%
+//    (none, <windows.h>, <stdio.h>, <stdlib.h>, <string.h> are the closest), so
+//    the residual is not compiler state reachable from the include list either.
+//  * A MINIMAL REPRODUCTION (build/scratch/0x48d790/micro2.cpp, compiled with
+//    tools/wcl and disassembled: 10 variants of the real shape). Every spelling
+//    that gives the constant two uses in a block makes MSVC 5 materialise it
+//    inside the block; with one use it folds the use to an immediate instead
+//    (`or al,0x10`, 2 bytes, in the one-use micro test). Sharing is never
+//    declined, so the original's pattern (both uses register-form off a def
+//    outside the block) is not something MSVC 5 reaches from a constant.
+//  * BISECTED THE TRIGGER (batch F: strip pieces out of the real function and
+//    read the hit block). Removing the clear loop, the FUN_00491d70 call, the
+//    second loop's float test, the owner test or the first loop entirely: the
+//    hit block is unchanged (remat, container in EDI). So none of those causes
+//    it. What does control the pre-loop def is the FALLBACK: with
+//    `found->u.flags |= flag` removed, `mov edx,0x10` at 0x48d866 disappears
+//    entirely (the fallback folds to `or byte [ebx+0x37ebe],0x10`) and the hit
+//    block then folds its own use to an immediate. So the def exists only for
+//    the fallback, and the hit block's copy is a second, block-local one.
+//  * A THIRD ATTRACTOR, not in any earlier note: a mask read from a file-scope
+//    variable with EXTERNAL linkage (`unsigned short g_ext_mask = 0x10; ...`)
+//    gives 396 (split) / 391 (merged) and this hit block:
+//        mov edi,[esi+0x110] / or edi,0x10 / mov [esi+0x110],edi
+//        mov eax,[g] / mov word [eax+0x37e9c],0
+//        mov eax,[g] / or word [eax+0x37ebe],dx
+//    MSVC 5 constant-propagates the initialiser, so the unit RMW folds to an
+//    immediate (3 bytes) while the game RMW keeps the loaded register. That
+//    block is 41 bytes like the original's, by coincidence (3 instead of 2 for
+//    the OR, 5 instead of 6 for the last load), and the def is a 6-byte dword
+//    load, so this route cannot beat 389 even with the registers right. A
+//    file-scope `static` mask is far worse: 423 bytes, 61.6%.
+//  * An `extern` mask MSVC cannot see the value of is worse still: MSVC 5
+//    homes it in a stack slot (`mov word [esp+0x10],dx` / `mov eax,[esp+0x10]`)
+//    for 402 to 411 bytes, and still folds the unit RMW to `or edi,0x10`.
+//  * MEASURED FLAT, 60+ variants, all landing in one of the two attractors: a
+//    phi on the mask at the unit RMW, at the game RMW and at both, with and
+//    without an (unsigned short) cast, in both shapes (`u != 0 ? flag : flag`,
+//    `found != 0 ? 0x10 : 0x10` as the def, a re-assign `flag = (u != 0) ?
+//    0x10 : 0x10;` as the first statement of the hit block and of the second
+//    loop, the same re-assign with the arms in the other order): all folded.
+//    A phi on g_game, on the container pointer and on the value of the
+//    assignment expression (that last one is 407 bytes). The mask as int,
+//    unsigned int, unsigned short, short, char, const and literal: flat. Two
+//    separate 0x10 constants, one for the unit RMW and one for the game RMWs:
+//    MSVC 5 UNIFIES them and shares the copy, so the remat stays (8 variants,
+//    387/392). The container as a named temp, `|= flag` vs `= f | flag`, the
+//    store through a `short*` alias, the RMW and the store through two
+//    different aliases, the alias declared after a re-assign, the two game
+//    writes in either order: flat. Moving the unit RMW after the game writes
+//    gives 387 at 73.1% with a 40-byte block and the remat still inside it.
+//  * LICM lever, measured on the second scan loop: a loop-invariant
+//    `Game_0048d790* g = g_game;` as the first statement of the loop body is
+//    hoisted onto the existing `mov edi,[0x511de8]` at 0x48d85e and extends its
+//    live range into the hit block: 382 bytes (92.1%), the hit block becoming
+//        mov ecx,[esi+0x110] / mov edx,0x10 / or ecx,edx / mov [esi+0x110],ecx
+//        mov word [edi+0x37e9c],0 / or word [edi+0x37ebe],dx
+//    So the hoist works, the mask still remats, and pinning g_game moves the
+//    container to ECX: the hoist and the remat are separable, and the remat is
+//    not what pins the container.
+//  * Permuter, from the WORSE shape this time as the notes above advise:
+//    8942 candidates from the 392-byte split shape, 8 minutes, no gain
+//    (best_ratio == start_ratio, 22 compile errors), and a second run from the
+//    73.1% 387-byte c6 shape (game writes first, unit RMW last: 5803 candidates,
+//    top ratio seen 84.8%, no gain), then a third run from the 95.4% shape of
+//    this pass (see the score in build/permute/0x48d790/best.json; the permuter
+//    scores the 95.4% shape 275 against 141 for the 392-byte one, so this is the
+//    best starting point anyone has had for this function).
 // Space Bunny Free pass (issue #4487): best stays 92.6% (387 of 388 bytes), no
 // MATCH. What this pass adds is the shape of the wall, plus a correction:
 //  * CORRECTION to the #4398 note's lever list: adding a file-scope inline
@@ -406,7 +541,14 @@ void __stdcall FUN_0048d790(void)
                 if ((u->u.flags & 0x20) && u->field_104 == 0.0f && u->field_fb == 0) {
                     Owner_0048d790* owner = u->owner;
                     if (owner == 0 || (owner->flags & 0x40000000)) {
+                        // The bitfield store is dead (the temp below rewrites the
+                        // same word) and MSVC 5 emits nothing for it, but it is
+                        // what puts the container in EAX instead of EDI, so the
+                        // first three instructions of this block match the
+                        // original. Without it this is 92.6%.
                         u->u.bits.bit4 = 1;
+                        unsigned int f = u->u.flags | flag;
+                        u->u.flags = f;
                         Game_0048d790* g = g_game;
                         g->field_37e9c = 0;
                         g->flags |= flag;

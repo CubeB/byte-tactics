@@ -1,4 +1,19 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+//
+// DeepSeek V4.1 Flash retry (2026-10-02, still 92.1%): permute.py --minutes 3
+// --jobs 3 ran 1549 candidates and found nothing (fine score 985 -> 985). About
+// 40 hand variants, all scored. The closest new shape is
+// `if (n > 0) { int hw = w / 2; int hh = h / 2; for (int i = 0; i < n; i++) }`:
+// it keeps the early spill of `this` (this stays in esi), and its `if` guard IS
+// the original's `cmp ecx,ebx; jle`, but the `for` then emits a SECOND guard,
+// `test ecx,ecx; jle`, at 609 bytes / 87.9% raw (93.0% ignoring moved jump
+// targets). Every spelling that leaves a single guard (do-while under the if,
+// for(;;) with a bottom break, while under the if) moves `this` out of esi and
+// collapses to 24-59%. Declaring `int i = 0` at six positions with a
+// `for (; i < n; i++)` loop is 92.1% (byte-identical) whenever the declaration
+// sits inside the <5 branch next to `int n`, and 73-74% at function scope. So
+// the 92.1% file below is still the best; the remaining hunk is the same two
+// decisions the notes already name.
 //
 // Space Bunny Free pass (2026-10-02, 91.1% -> 92.1%, 601 of 601 bytes, about 300
 // compiles via build/scratch/0x407ae0/sweep.py). One real gain, and it is the

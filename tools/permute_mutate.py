@@ -527,6 +527,7 @@ class TargetSpec:
     address: int
     symbol: str | None = None              # explicit symbol from the annotation
     helpers: list[str] = field(default_factory=list)   # names of inline helpers
+    stack_names: set[str] = field(default_factory=set)  # locals stackcmp.py flags as wrong
 
 
 def find_targets(root: Node, text: str, spec: TargetSpec) -> tuple[list[tuple[Node, str | None]], str]:
@@ -1535,17 +1536,35 @@ def region_edit(ctx: Ctx, stmts: list[Node], lo: int, hi: int, order: list[int])
     return (stmts[lo].start_byte, stmts[hi].end_byte, out)
 
 
+def _declarator_name(ctx: Ctx, n: Node) -> str | None:
+    if n.type in ("identifier", "field_identifier"):
+        return ctx.T(n)
+    child = n.child_by_field_name("declarator")
+    if child is not None:
+        return _declarator_name(ctx, child)
+    return next((ctx.T(c) for c in n.named_children if c.type == "identifier"), None)
+
+
+def declared_names(ctx: Ctx, node: Node) -> set[str]:
+    return {n for d in node.children_by_field_name("declarator") if (n := _declarator_name(ctx, d))}
+
+
 def m_move_decl(ctx: Ctx):
     """Move a declaration up or down past statements it does not depend on
     (MSVC 5 hands out stack slots in declaration order)."""
     blocks = [(f, b, s) for f, b, s in ctx.blocks() if len(s) >= 2 and any(x.type == "declaration" for x in s)]
+    wanted = ctx.spec.stack_names
+    named = [blk for blk in blocks if any(x.type == "declaration" and declared_names(ctx, x) & wanted
+                                          for x in blk[2])] if wanted else []
+    blocks = named or blocks
     if not blocks:
         return None
     f, b, stmts = ctx.pick(blocks)
-    idx = [i for i, s in enumerate(stmts) if s.type == "declaration"]
+    decls = [i for i, s in enumerate(stmts) if s.type == "declaration"]
+    idx = [i for i in decls if declared_names(ctx, stmts[i]) & wanted] if named else decls
     i = idx[ctx.pick_index([stmts[k] for k in idx])]
     # prefer moving among the other declarations
-    targets = [j for j in idx if j != i] or [j for j in range(len(stmts)) if j != i]
+    targets = [j for j in decls if j != i] or [j for j in range(len(stmts)) if j != i]
     if not targets:
         return None
     j = ctx.rng.choice(targets)
@@ -2700,6 +2719,259 @@ def original_type_text(ctx: Ctx, f: Func, name: str) -> str | None:
     return None
 
 
+def star_type(prefix: str) -> str:
+    """`int` -> `int* `, `unsigned short` -> `unsigned short* `, keeping any
+    spacing, so the star lands on the type and not on the name."""
+    head = prefix.rstrip()
+    gap = prefix[len(head):] or " "
+    return head + "*" + gap
+
+
+def local_type_text(ctx: Ctx, f: Func, name: str) -> str | None:
+    """The type of local `name` as spelled in its own declaration, or None when
+    it cannot be recovered (a macro, an elaborated type)."""
+    ty = original_type_text(ctx, f, name)
+    return ty if ty is not None and "(" not in ty and "[]" not in ty else None
+
+
+def within(n: Node, *types: str) -> bool:
+    """Is n inside a node of one of these types?"""
+    p = n.parent
+    while p is not None:
+        if p.type in types:
+            return True
+        p = p.parent
+    return False
+
+
+def subscript_index(n: Node) -> Node | None:
+    """The index expression of a subscript. This grammar leaves the `index`
+    field empty and hangs the index off as a `subscript_argument_list`."""
+    idx = n.child_by_field_name("index")
+    if idx is not None:
+        return idx
+    arg = n.child_by_field_name("argument")
+    kids = [c for c in n.named_children if arg is None or c.id != arg.id]
+    if len(kids) != 1:
+        return None
+    idx = kids[0]
+    if idx.type == "subscript_argument_list":
+        kids = idx.named_children
+        idx = kids[0] if len(kids) == 1 else None
+    return idx
+
+
+def addressable_chain(n: Node) -> bool:
+    """An lvalue built only from identifiers, field accesses and subscripts by
+    a constant or a plain name: taking its address has no side effect, so it
+    can be done once where a copy used to be made."""
+    t = n.type
+    if t in ("identifier", "this"):
+        return True
+    if t == "field_expression":
+        return addressable_chain(n.child_by_field_name("argument"))
+    if t == "subscript_expression":
+        idx = subscript_index(n)
+        return idx is not None and idx.type in ("number_literal", "identifier") and \
+            addressable_chain(n.child_by_field_name("argument"))
+    if t == "pointer_expression" and ctx_op(n) == "*":
+        return addressable_chain(n.child_by_field_name("argument"))
+    return False
+
+
+def copy_local(ctx: Ctx, f: Func, n: Node):
+    """`T x = e;` in a block: (declarator, name, type, e) for a local that is
+    initialised once, from an expression, and never declared twice."""
+    if n.type != "declaration" or not in_block(n):
+        return None
+    tnode = n.child_by_field_name("type")
+    head = ctx.text[n.start_byte:(tnode or n).end_byte]
+    if re.search(r"\b(?:static|extern|volatile|register|typedef)\b", head):
+        return None
+    if re.search(r"\bvolatile\b", ctx.text[f.node.start_byte:f.node.end_byte]):
+        return None  # a volatile read repeated is not the same as a read once
+    decls = n.children_by_field_name("declarator")
+    if len(decls) != 1 or decls[0].type != "init_declarator":
+        return None
+    name, suffix, init = unwrap_declarator(decls[0], ctx.text)
+    if name is None or init is None or init.type == "initializer_list" or has_error(init):
+        return None
+    if "&" in suffix or "[]" in suffix or "(" in suffix:
+        return None
+    if f.decl_count.get(name) != 1 or name in f.escaped or name in f.refs:
+        return None
+    ty = make_type(ctx.T(tnode), suffix)
+    if not is_scalar(ty):
+        return None
+    # `&arr` of an array field is a pointer to the array, not to its first
+    # element, so a pointer local cannot take its address this way
+    if is_ptr(ty) and (f.type_of(init) or "").endswith("[]"):
+        return None
+    return decls[0], name, ty, init
+
+
+def ptr_local(ctx: Ctx, f: Func, n: Node):
+    """`T* x = &e;` in a block: the same, for a local initialised with an address."""
+    if n.type != "declaration" or not in_block(n):
+        return None
+    tnode = n.child_by_field_name("type")
+    head = ctx.text[n.start_byte:(tnode or n).end_byte]
+    if re.search(r"\b(?:static|extern|volatile|register|typedef)\b", head):
+        return None
+    if re.search(r"\bvolatile\b", ctx.text[f.node.start_byte:f.node.end_byte]):
+        return None  # a volatile read repeated is not the same as a read once
+    decls = n.children_by_field_name("declarator")
+    if len(decls) != 1 or decls[0].type != "init_declarator":
+        return None
+    name, suffix, init = unwrap_declarator(decls[0], ctx.text)
+    if name is None or init is None or has_error(init):
+        return None
+    if suffix.count("*") != 1 or "&" in suffix or "[]" in suffix or "(" in suffix:
+        return None
+    if f.decl_count.get(name) != 1 or name in f.escaped or name in f.refs:
+        return None
+    while init.type == "parenthesized_expression" and init.named_children:
+        init = init.named_children[0]
+    if init.type != "pointer_expression" or ctx_op(init) != "&":
+        return None
+    arg = init.child_by_field_name("argument")
+    if arg is None or has_error(arg) or not is_scalar(make_type(ctx.T(tnode), suffix)[:-1]):
+        return None
+    return decls[0], name, make_type(ctx.T(tnode), suffix)[:-1], arg
+
+
+def same_type(f: Func, ty: str, n: Node) -> bool:
+    """Is `n` of the type the local was declared with? The array and pointer
+    spellings of one type count as one (`int[]` and `int*`)."""
+    got = f.type_of(n)
+    return got is not None and canon_type(type_text(got)) == canon_type(type_text(ty))
+
+
+def read_only_uses(ctx: Ctx, f: Func, name: str, decl: Node) -> list[Node] | None:
+    """Every use of `name` outside its declaration, or None when one of them is
+    not a plain read (written, incremented, addressed or called through)."""
+    out = []
+    for u in uses_of(ctx, f, name):
+        if decl.start_byte <= u.start_byte < decl.end_byte:
+            continue
+        p = u.parent
+        if p is None:
+            return None
+        if p.type == "assignment_expression" and p.child_by_field_name("left").id == u.id:
+            return None
+        if p.type == "update_expression":
+            return None
+        if p.type == "pointer_expression" and ctx_op(p) == "&":
+            return None
+        if p.type == "call_expression" and p.child_by_field_name("function").id == u.id:
+            return None
+        if within(u, "sizeof_expression", "type_identifier", "template_function",
+                  "qualified_identifier"):
+            return None
+        out.append(u)
+    return out or None
+
+
+def stable_storage(f: Func, path, decl: Node, last: Node) -> bool:
+    """Nothing the function does between the declaration and the last use may
+    write what `path` names: a copy reads it once, a pointer reads it every time.
+
+    Only the statements in that byte range matter. When the path names something
+    outside this function, a write to a local of it is skipped: `f.path` gives an
+    unescaped local the root `L:`, and the address of such a local is never taken,
+    so no pointer in the path can reach it.
+    """
+    lo, hi = decl.end_byte, last.end_byte
+    local_path = str(path[0]).startswith("L:")
+    local_name = str(path[0])[2:] if local_path else None
+    stack = [f.body]
+    while stack:
+        n = stack.pop()
+        if n.type in STATEMENT_TYPES and lo <= n.start_byte <= hi:
+            e = f.effects(n)
+            if e.calls:
+                return False  # an unknown callee may write anything
+            if local_name is not None and local_name in e.writes:
+                return False  # the local the pointer would point at is written
+            for w in e.mwrites:
+                if not local_path and str(w[0]).startswith("L:"):
+                    continue  # a stack slot no pointer in the path can reach
+                if may_alias(f, w, path):
+                    return False
+        stack.extend(n.named_children)
+    return True
+
+
+def m_copy_to_ptr(ctx: Ctx):
+    """`T x = e; ... x` -> `T* x = &e; ... *x`: keep the copy an lvalue.
+
+    A local initialised from a global or a field and read more than once has to
+    live in a register, and which register it wins decides the allocation of the
+    rest of the block (0x47de60: the width's copy took ecx, the register the
+    original spends on spotX, which cost the folded imul and the shared features
+    lookup at once). As a pointer the value stays an lvalue to the multiply, so
+    the front end folds it instead of allocating a register for it.
+    """
+    sites = []
+    for f, n in ctx.of_type("declaration"):
+        got = copy_local(ctx, f, n)
+        if got is None:
+            continue
+        d, name, ty, init = got
+        if not addressable_chain(init) or has_error(init):
+            continue
+        p = f.path(init)
+        if p is None or not same_type(f, ty, init):
+            continue
+        uses = read_only_uses(ctx, f, name, d)
+        if uses is None:
+            continue
+        last = max(uses, key=lambda u: u.start_byte)
+        if not stable_storage(f, p, d, last):
+            continue
+        sites.append((f, n, d, name, init, uses))
+    if not sites:
+        return None
+    f, n, d, name, init, uses = ctx.pick(sites)
+    return [(n.start_byte, n.end_byte,
+             f"{star_type(local_type_text(ctx, f, name))}{name} = &{ctx.T(init)};")] + \
+        [(u.start_byte, u.end_byte, f"(*{name})") for u in uses]
+
+
+def m_ptr_to_copy(ctx: Ctx):
+    """`T* x = &e; ... *x` -> `T x = e; ... x`: the other direction."""
+    sites = []
+    for f, n in ctx.of_type("declaration"):
+        got = ptr_local(ctx, f, n)
+        if got is None:
+            continue
+        d, name, ty, arg = got
+        if not addressable_chain(arg) or has_error(arg):
+            continue
+        p = f.path(arg)
+        if p is None or not same_type(f, ty, arg):
+            continue
+        uses = read_only_uses(ctx, f, name, d)
+        if uses is None:
+            continue
+        last = max(uses, key=lambda u: u.start_byte)
+        if not stable_storage(f, p, d, last):
+            continue
+        sites.append((f, n, d, name, arg, uses))
+    if not sites:
+        return None
+    f, n, d, name, arg, uses = ctx.pick(sites)
+    base = (local_type_text(ctx, f, name) or "").rstrip()
+    edits = [(n.start_byte, n.end_byte,
+              f"{base[:-1].rstrip() if base.endswith('*') else base} {name} = {ctx.T(arg)};")]
+    # a use the forward direction wrote as `(*x)` goes back to `x`
+    for u in uses:
+        p = u.parent
+        if p is not None and p.type == "pointer_expression" and ctx_op(p) == "*" \
+                and p.child_by_field_name("argument").id == u.id and len(p.named_children) == 1:
+            edits.append((p.start_byte, p.end_byte, name))
+    return edits
+
 def m_sign(ctx: Ctx):
     """int <-> unsigned int for a local whose every use is sign-blind."""
     sites = []
@@ -3386,6 +3658,8 @@ MUTATIONS = {
     "zero_compare": (m_zero_compare, 4),
     "cast": (m_cast, 3),
     "sign": (m_sign, 3),
+    "copy_to_ptr": (m_copy_to_ptr, 4),
+    "ptr_to_copy": (m_ptr_to_copy, 2),
     "goto_polarity": (m_goto_polarity, 1),
     "return_var": (m_return_var, 2),
     "dead_decl": (m_dead_decl, 1),
@@ -3409,6 +3683,7 @@ SIMPLIFY = {
     "swap_commutative": 6, "flip_compare": 4, "negate_if": 3, "empty_then": 4, "loop_form": 3,
     "temp_inline": 10, "compound_assign": 3, "incdec": 3, "andor_swap": 2, "do_while0": 3,
     "include": 2, "ternary": 2, "nested_if": 3, "zero_compare": 4, "cast": 4, "sign": 1,
+    "copy_to_ptr": 1, "ptr_to_copy": 6,
     "dead_decl": 8, "strip_parens": 8, "split_multi_decl": 1, "inline_helper": 8, "convention": 1,
     "drop_self_store": 8, "dead_helper": 8, "loop_back": 6, "goto_back": 6, "strip_braces": 6,
 }

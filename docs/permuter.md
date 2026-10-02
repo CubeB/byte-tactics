@@ -40,6 +40,7 @@ dependencies (tree-sitter and its C++ grammar), which `uv run` installs.
 | `--no-helpers` | only rewrite the annotated function, not the inline helpers it calls |
 | `--no-focus` | pick mutation sites anywhere, not mostly on the lines behind differing instructions |
 | `--only a,b` | use only these mutation kinds (names below) |
+| `--stack a,b` | locals whose stack slot is wrong (the last line of `tools/stackcmp.py`); weight up `move_decl` and aim it at those declarations |
 | `--keep-going` | do not stop at the first MATCH |
 | `--cleanup M` | minutes for the final cleanup (default 2, 0 to skip) |
 | `--minimize F` | only clean up an existing candidate F against the starting file |
@@ -104,6 +105,12 @@ A hill climb with random restarts over a small population:
 - A candidate joins the population when it scores at least as well as its
   parent. Equal scores are accepted on purpose, newest first: near misses sit
   on wide plateaus, and the useful rewrite is often two neutral steps away.
+- `copy_to_ptr` is the one kind that adds a lever rather than a rearrangement,
+  so it is worth naming an agent's first target: a local that copies a global
+  or a field and is read more than once has to be given a register, and the
+  register it wins then decides the rest of the block (0x47de60, matched by
+  this kind on its first candidate after five passes and about 11,500 other
+  candidates had failed).
 - Workers mutate, compile (`compile_source` from check.py, each worker in its
   own scratch folder under `build/permute/<address>/work/`) and score in
   parallel processes. Duplicates are skipped by a hash of the text.
@@ -171,6 +178,7 @@ and arguments passed by reference count as memory.
 | `zero_compare` | `!e` and `e == 0`; `if (e)` and `if (e != 0)` | |
 | `cast` | add a cast of a local to its own type, or remove one | |
 | `sign` | `int` and `unsigned int` for a local | only when every use is blind to the sign |
+| `copy_to_ptr`, `ptr_to_copy` | `T x = e;` and its uses to `T* x = &e;` and `*x`, and back | `e` an addressable lvalue of the same type; every use of `x` a plain read; nothing between the declaration and the last use writes `e` or calls anything |
 | `do_while0` | wrap statements in `do { } while (0);`, or unwrap | no `break`/`continue` inside |
 | `goto_polarity` | `if (c) { A }` to `if (!c) goto skip; A; skip:;` (which arm falls through) | no declarations in A |
 | `extract_helper`, `inline_helper` | move a pure expression into `static inline T inlN(...) { return e; }` and back | the inlined boundary changes evaluation order |

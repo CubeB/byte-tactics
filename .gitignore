@@ -13,3 +13,6 @@ __pycache__/
 
 # Per-issue working copies (tools/worktree.sh).
 /.worktrees/
+
+# Compiler listings (/Fa) from agents; never part of the source.
+src/**/*.asm

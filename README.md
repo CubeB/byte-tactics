@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**72.70% of Cavedog's code matched** (618,570 of 850,853 bytes)
+**72.73% of Cavedog's code matched** (618,866 of 850,853 bytes)
 
 `[#############################-----------]`
 
-By count that is 3,080 of the game's 3,267 functions (94.3%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,081 of the game's 3,267 functions (94.3%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,080 | 618,570 |
-| Attempted, not yet matching | 187 | 232,283 |
+| Matched byte-for-byte | 3,081 | 618,866 |
+| Attempted, not yet matching | 186 | 231,987 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -36,7 +36,7 @@ The size bands are the `size:` labels on the issues.
 | --- | ---: | ---: | ---: | --- |
 | small (1 to 64 bytes) | 1,155 of 1,155 | 100.0% | 0 | `##########` |
 | medium (65 to 160 bytes) | 824 of 827 | 99.6% | 346 | `##########` |
-| large (161 to 400 bytes) | 680 of 703 | 96.3% | 6,628 | `##########` |
+| large (161 to 400 bytes) | 681 of 703 | 96.5% | 6,332 | `##########` |
 | xl (401 to 600 bytes) | 199 of 226 | 87.7% | 13,587 | `#########-` |
 | xxl (601 to 1,000 bytes) | 142 of 195 | 72.6% | 40,277 | `#######---` |
 | huge (over 1,000 bytes) | 80 of 161 | 41.3% | 171,445 | `####------` |
@@ -49,7 +49,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 
 | Addresses | Area | Functions matched | Bytes matched | Bytes left | |
 | --- | --- | ---: | ---: | ---: | --- |
-| `0x400000` | Unit orders and unit AI | 195 of 210 | 76.8% | 14,134 | `########--` |
+| `0x400000` | Unit orders and unit AI | 196 of 210 | 77.3% | 13,838 | `########--` |
 | `0x410000` | Orders and VTOL states | 213 of 222 | 78.0% | 14,015 | `########--` |
 | `0x420000` | Frontend shell | 146 of 154 | 69.5% | 19,401 | `#######---` |
 | `0x430000` | Maps, missions, briefings | 211 of 228 | 65.8% | 20,624 | `#######---` |

@@ -1,4 +1,28 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// 2026-10-02 (claude-sonnet-5-5), no score change (67.6% kept, about 25 check runs and
+// 60 scored variants). New facts about the original, for the next pass:
+//  - The 0x20/0x80 walk is a DOUBLE dereference, not the `lea [eax+ecx*4+0x28]` the
+//    note below describes: 0x4a3c80 is `mov ecx,[esi]; mov ecx,[ecx+0x28]`, i.e.
+//    `row = flag8 ? fixed : (*ip)->row` with `Item** ip = (Item**)c6 + bc` (esi) and
+//    `Row* fixed = (Row*)((char*)c6 + bc * 0x18)` (spilled to [esp+0x14]), where
+//    `struct Item { char pad[0x28]; Row* row; }` and `Row`'s ushort at +2 is the
+//    row height. Scratch b3/b4 (both pointers built before the loop, `fixed++; ip++`):
+//    structural ratio 0.936 against 0.927 for the current file, but 66.2 to 67.0%
+//    because the byte count is 1845-1853.
+//  - The original builds only the pointer its path needs (`je` after the `and eax,1`
+//    that makes flag8, a dead `mov esi,[esp+0x50]` on the flag8 path). Writing that
+//    as `Row* fixed; Item** ip; if (flag8) fixed = ...; else ip = ...;` gets the byte
+//    count to 1831 (one short) but moves obj/entries/r.y0 to other registers from the
+//    first instruction on (45%). Initialising ip to (Item**)obj, or `= 0`, or a
+//    function-scope declaration, or an `Object* p = obj` reused as the walk pointer
+//    all land at 43-52%.
+//  - The first loop is indexed in the original, not walked: `lea ecx,[edx+0x15b]` is
+//    emitted AFTER the `jle` that guards the loop, which the explicit `e` pointer
+//    of this file cannot do. Written as `for (i = 1; i < count + 1; i++)` with
+//    `entries[i].type`, the schedule matches but the walk pointer is spilled to
+//    [esp+0x1c] because `n` takes ecx (`mov ecx,[esp+0x18]; cmp ecx,edx`); the
+//    original keeps `n` in memory (`cmp [esp+0x18],edx`) and the pointer in ecx.
+//    scratch z1/z2.
 // 2026-10-02 (Space Bunny Free): 58.1% -> 67.6%, 1843 bytes. Six source changes,
 //   every one scored on its own and in combination. The first two are worth far
 //   more together than apart.

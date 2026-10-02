@@ -298,6 +298,65 @@ static inline int MapRange()
 // function in the same file" (0x408090, 111 bytes, the map bit test, is the real
 // neighbour). Compiler state from an earlier function can decide these, but it
 // needs that function matched first, which is a job of its own.
+//
+// Space Bunny Free: HUNK 1 IS REACHABLE, and the lever is the flag12 arm's
+// `target = origin + d`. Written as three separate stores
+// (`target.x = origin.x + d.x; target.y = origin.y + d.y; target.z = origin.z + d.z;`,
+// the same spelling the len<0x1400000 tail already uses and which this file
+// matches at 0x40856e) the 0x408334 `u->def` load lands AFTER the three
+// `target = origin` stores and hunk 1 disappears: 97.8%, 1221 bytes, two hunks
+// (hunk 2 and hunk 3 only). So the copy hoist is not source order and not an
+// alias barrier, it is the scheduler's view of the whole taken branch.
+// The cost is one register: with the three stores the flag12 arm's `ang` moves
+// from ebx to ebp, so the second trig call is `push ebp` where the original has
+// `push ebx`. Nothing tried here restores it (45 variants from that shape): the
+// expanded `int ang` arm (68.8%), an out-param SetDirection (69.5%), a `Vec3
+// dir` temp, the Direction() helper's x,y,z and y,x,z orders, a second copy of
+// the helper (Direction2), `Direction(int, int)`, a helper without y=0 plus a
+// caller `d.y = 0` (82.8%, the xor still lands after `neg eax`), `d = origin -
+// u->pos` split, a `const` copy, an int temp for d.y, a `Vec3&` alias for d,
+// `Length(origin - u->pos)` (89.6%), an int len local, reversed store orders
+// (96.3%, 96.5%), `target.x += d.x` (68.4%), a store-order tie with a duplicate
+// (96.5%), dropping the user-defined operator= (97.8%), `Vec3 t = origin + d;`
+// then three stores from t (98.5% again, the temp is folded away), a foldable
+// `if (d.y != d.y)`, `d.y = d.y;`, `target.x = target.x;`, both FixMul operand
+// orders, and hoisting the flag12 test or the `kind` local. The 97.8% shape
+// itself is the closest in bytes (about 20 wrong bytes against 37), so it is
+// the one to build on if hunk 2's register ranking is ever solved; everything
+// else in hunk 2 is unchanged by the three stores: our `xor ebp,ebp` still sits
+// after the second call and `neg eax` still precedes `add esp,8`, so those two
+// are one scheduling decision.
+// HUNK 3 re-measured, all 1221 bytes and all 98.5% with the identical hunk:
+// 16 spellings of the first FixMul (`FixMul(s,d.x)`, `FixMul(d.x,s)`,
+// `(__int64)s * d.x`, `(__int64)d.x * s`, both casts to __int64, a __int64
+// product local, an int temp, `(int)d.x`, `(int)s`, an `int&` parameter, a
+// __int64 first parameter and a __int64 local for s). C1 canonicalises the
+// multiply, so the only way left is to stop it being one _allmul call.
+// HUNK 1 re-measured from the 98.5% file, all unchanged or worse: a `def`
+// local before or after the copy, a dead store in a statically folded branch
+// between the load and the copy (`int t = 0; if (t) def->field_152 = 0;`,
+// 83.3%), `def = def ? def : def` (83.3%), `target = target ? target : target`
+// (does not compile), a dead store before or after the copy, a `const Vec3`
+// source copy, `if (def->flag12 != 0)` (77.6%), a foldable `def->field_152`
+// test on the copy (77.7%, 86.1%), and hoisting `u->def` to the top of the
+// loop body (93.8%). Dead statements MSVC deletes are also neutral here
+// (`int t; t = 0;` before or after the copy, `if (t) origin.x = 0;`,
+// `origin.y = origin.y;`, `target.z = target.z;`), so only the three-store
+// spelling moves the load.
+// Also neutral at 98.5% (they change the compiler state but not this
+// function): one to three uncalled `static inline` helpers at file scope,
+// `FUN_0040b6c30`'s return type as `short` (95.8%), a plain `struct Vec3Dir
+// { int x, y, z; }` return type with no operator= behind Direction (the shape
+// the matched 0x4103a0 uses, filled in field by field), a second copy of
+// Direction with the x,y,z statement order, and a three-argument Vec3
+// constructor added alongside the user-defined operator=. Returning
+// `Vec3(-f1(a, s), 0, -f2(a, s))` from that constructor is 70.2% / 1231 bytes.
+// NOT neutral, worth knowing: adding the *matched* 0x408090 (the preceding
+// function, src/unsorted/0x408090.cpp, which only needs playerIndex at
+// g_game+0x2a43 and visibilityMask at g_game+0x14273 added to Game_00408100)
+// to this file flips MapRange's two loads, 98.0% with mapHeight first, so the
+// file's function count really is load-bearing and the mapWidth-first order is
+// a knife edge too.
 // FUNCTION: 0x408100
 void Class_004085d0::FUN_00407380()
 {

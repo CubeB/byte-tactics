@@ -337,16 +337,15 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             FUN_00499eb0(proj, 0);
     }
     proj->radius = (cell->radius + cell->ground) / 2;
-    Game_0049b090* g = g_game;
     if (cell->unit0) {
-        Unit_0049b090* u = &g->units[cell->unit0];
+        Unit_0049b090* u = &g_game->units[cell->unit0];
         if (u->owner != proj->owner && proj->py.i < u->type->high + u->elev) {
             FUN_00499eb0(proj, u);
             return;
         }
     }
     if (cell->unit1) {
-        Unit_0049b090* u = &g->units[cell->unit1];
+        Unit_0049b090* u = &g_game->units[cell->unit1];
         if (u->owner != proj->owner) {
             if (proj->py.i >= u->type->low + u->elev
                 && proj->py.i <= u->type->high + u->elev) {
@@ -355,7 +354,6 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             }
         }
     }
-    g = g_game;
     if (type->flags.raw & 0x4000)
         return;
     {
@@ -364,28 +362,30 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
         unsigned short f = cell->feature;
         MapFeature_0049b090* mf;
         if (f < 0xfffb) {
-            if (f < g->featureCount)
-                mf = g->mapping + f;
+            if (f < g_game->featureCount)
+                mf = g_game->mapping + f;
             else
                 mf = 0;
         } else if (f == 0xfffe) {
-            int n = g->width * cell->offY + cell->offX;
-            unsigned short f2 = (cell - n)->feature;
+            int n = g_game->width * cell->offY + cell->offX;
+            int f2 = (cell - n)->feature;
             if (f2 < 0xfffb)
-                mf = g->mapping + f2;
+                mf = g_game->mapping + f2;
             else
                 mf = 0;
         } else {
             mf = 0;
         }
         if (mf) {
-            if (mf->height + cell->ground <= proj->py.s.hi)
+            if (mf->height + cell->ground > proj->py.s.hi) {
+                if (proj->cellX == cx && proj->cellZ == cz)
+                    mf = 0;
+                else {
+                    proj->cellX = cx;
+                    proj->cellZ = cz;
+                }
+            } else {
                 mf = 0;
-            else if (proj->cellX == cx && proj->cellZ == cz)
-                mf = 0;
-            else {
-                proj->cellX = cx;
-                proj->cellZ = cz;
             }
         }
         if (mf) {
@@ -400,9 +400,9 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
         }
     } else if (type->flags.raw & 0x10000) {
         return;
-    } else if (proj->py.s.hi >= g->limit) {
+    } else if (proj->py.s.hi >= g_game->limit) {
         return;
-    } else if (((Net_0049b090*)g->net)->field_d48) {
+    } else if (((Net_0049b090*)g_game->net)->field_d48) {
         return;
     }
     FUN_00499eb0(proj, 0);

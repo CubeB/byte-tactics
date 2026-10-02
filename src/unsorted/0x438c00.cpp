@@ -1,4 +1,78 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// PASS 14 (Space Bunny Free, 2026-10-02): 54.5 -> 58.1 percent (646 bytes, unchanged size), and the
+// entry register finally lands on EDX. THE LEVER IS THE NUMBER OF REFERENCES TO THE THIRD PARAMETER,
+// not its live range and not the clamp or any statement order: take the address of `order->pos` ONCE,
+// as a `char* const pbase`, and reach pos.y, the timestamp and the owner pointer through it
+// (`pbase + 4`, `pbase + 0x24`, `pbase - 0x14`). That leaves `order` referenced only at the top of
+// the body, and MSVC 5 then gives it EDX and never enregisters it again, exactly as the original
+// does at 0x438c3d / 0x438cbd / 0x438d41.
+//
+// Why this works when the earlier "hoist the owner read" shapes did not: hoisting moves the load to the
+// top and keeps a *copy* live, which costs a frame slot. Reaching it through a pointer costs nothing,
+// because the pointer is the same `&order->pos` the original already materialises and spills at
+// 0x438c3d. Measured on this baseline, all four combinations of {pos.y, timestamp, owner} through the
+// pointer: all three 58.1, timestamp+owner only 53.3, owner only 47.3, timestamp only 46.5, none
+// 54.5. So pos.y through the pointer is what carries it, and the other two are close to free on top.
+// `*out = *(Vec3f*)pbase` instead of `*out = order->pos` is byte-identical (58.1 either way).
+//
+// Still true from the older passes: the bitfield flag test is worse than the mask at this baseline
+// (55.9 against 58.1), and relaying the mid-body projection reads is all 52.8 to 57.0.
+//
+// WHAT THE PROBE NOW SAYS ABOUT THE ALLOCATOR (build/scratch/0x438c00/filter.py). The next wall,
+// after the entry register, is that the original keeps `surface` in a callee-saved register and ours
+// reloads it from its argument slot at every one of the eight calls. The counts: the original loads
+// surface once into EBX at 0x438da0 and pushes EBX eight times; ours pushes EDX, EAX, ECX or EDI each
+// time. The reason is visible one step earlier, in which value EBX holds. The original carries
+// ax in EBP and bx in EBX, so EBX is dead after the `mov [esp+0x14], ebx` spill of dx at 0x438d34
+// and is free for `surface`. Ours carries ax in EBX and bx in EBP, so EBX is live to the last call.
+// MSVC picks EBX for `scroll_y` (0x438c74) and then, after scroll_y dies, for `world.lo.x.whole`.
+// The original instead recycles EBP twice in the middle: px is in EBP at 0x438c23, then pz overwrites
+// it at 0x438c7d, then `world.lo.x.whole` lands in it at 0x438c83; and ECX twice, from &order->pos at
+// 0x438c3a to `view` at 0x438c5e to hi.x.whole at 0x438c94. So the target is not "get surface into a
+// register" but "make scroll_y not land in EBX", which is a statement-order question about the seven
+// projection statements. All 5040 orders are being re-swept at this baseline (PASS 12 swept them at
+// the old 52.7 one, before the entry register was fixed, so the old result does not carry over).
+//
+// The harness that found all of this is build/scratch/0x438c00/: probe.sh drives it (facts = compile
+// only and read the entry register, about 3 s; fast = score a directory in parallel; filter = compile
+// only and count structural features; regs = which register each call pushes; cmp = side-by-side with
+// the original; wparts = the order the five whole-part reads land in). A compile-only iteration instead
+// of a 60 s check.py one is what makes a several-hundred-variant sweep affordable, and the previous
+// passes' sweeps were all done at the older, lower baselines.
+//
+// MEASURED AT 58.1 AND ALL WORSE, so the next pass need not repeat them (this pass is about 90
+// variants, every one compiled and scored with check.py's own comparison):
+//  * the projection statement order. All 5040 orders re-swept at THIS baseline: the best two are
+//    `half, sy, sx, az, bz, ax, bx` (what the file has) and `half, sy, az, sx, bz, ax, bx`, both
+//    58.1, third place 57.6. So that axis is closed again and needs the allocator to move first.
+//  * compiler state: N = 0..129 dummy file-scope `extern int` declarations, flat at 58.1.
+//  * headers: windows.h 54.5, windows.h alone 54.5, string.h 57.2, math.h 57.2. Ruled out.
+//  * the bitfield flag test 55.9, so the mask stays.
+//  * the box as five plain ints, or as a struct of five ints instead of the Fixed struct: 25.0 both,
+//    617 bytes. The whole parts MUST be read back out of memory with movsx, so the box has to be a
+//    real Fixed struct in the frame.
+//  * a union over the two late reads (the brief's technique 8) to force an invalidation: 43.8
+//    through the pointer, 46.5 reading `order` directly. The reloads are not an aliasing effect.
+//  * reading `view` before the box is built (57.2), after the lo.z store (56.8) or after the lo.y
+//    store (55.0), so the original's mid-box `mov ecx, [esp+0x48]` is a scheduler outcome, not a
+//    source order.
+//  * scroll_y read after scroll_x (56.8), inlined into the az expression (56.8), subtracted as its own
+//    step (56.3), the 0x80/0x20 biases as their own step (56.3), and both orders of that (56.3).
+//  * hoisting the timestamp to the top with the owner left late: 53.9. Hoisting both, or hoisting
+//    the owner, or moving the whole colour block up with them: 44.5 to 47.6.
+//  * the 36-way cross product of {pos.y, timestamp, owner, final copy} each spelled direct or
+//    through the pointer (build/scratch/0x438c00/mk3.py, v3/): four members tie at 58.1, namely both
+//    spellings that put timestamp and owner through the pointer, and none beats it. So the choice of
+//    which reads go through `pbase` is settled: it must be the timestamp and the owner.
+//
+// PASS 14b (Space Bunny Free, 2026-10-02): 58.1 -> 58.3 (654 bytes). tools/permute.py (seed 1, 15 min,
+// --jobs 4) found one real edit among the two it returned: compute `dz` before `dx`. It also added a
+// named single-use temporary for `bx` (`int tmp0 = ...; int bx = tmp0 + 0x80;`), which is the
+// permuter's own noise and is worth nothing: measured on its own, bx-temp 58.1, ax-temp 58.1,
+// az-temp 58.1, dz-first alone 58.3, both 58.3. So the 0.2 is entirely the division order, which is
+// also what the original does (the vertical `mov ecx, edi / sub ecx, esi` at 0x438d13 feeds the first
+// `imul ecx`, the horizontal `sub ecx, ebp` at 0x438d07 the second).
+//
 // PASS 13 (claude-sonnet-5-5, 2026-10-02): 52.7 -> 54.5 percent (646 bytes). NEW LEVER: name the two
 // vertical-gap sums `ty = az + dz` and `by = bz - dz` as locals declared right after `dz`, and use them in
 // calls 3, 4, 7 and 8. Declaring them next to their first use (between the calls) is worth nothing; right
@@ -428,8 +502,17 @@ void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* 
     UnitType_00438c00* def = g_game->types + index;
 
     int px = *(int*)&order->pos.x.frac;
-    int py = *(int*)&order->pos.y.frac;
     int pz = *(int*)&order->pos.z.frac;
+    // The whole lever of this pass. `pbase` is &order->pos, so pos.y is
+    // pbase+4, order->timestamp (order+0x46) is pbase+0x24 and order->owner
+    // (order+0xe) is pbase-0x14. Reaching all three through it leaves `order`
+    // itself referenced only at the top of the body (the type, pos.x, pos.z),
+    // which is what the original does: it keeps `order` in EDX for five
+    // instructions and never enregisters it again. Ours used to hold it in ECX
+    // from the entry to the colour test, and that one register is what the
+    // whole downstream cascade came from.
+    char* const pbase = (char*)&order->pos;
+    int py = *(int*)(pbase + 4);
 
     Boxq_00438c00 world;
     *(int*)&world.lo.x.frac = px + *(int*)&def->bounds.lo.x.frac;
@@ -450,15 +533,21 @@ void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* 
     // one alone MSVC value-numbers the two __max subtrees of the __min macro
     // and emits a single evaluation, with a conditional store instead of the
     // original's recomputation in the taken arm.
-    int level = __min(__max((unsigned)(g_game->ticks - order->timestamp), 0), 10);
-    int dx = ((bx - ax) * level) / 10;
+    int level = __min(__max((unsigned)(g_game->ticks - *(int*)(pbase + 0x24)), 0), 10);
+    // dz before dx, not the other way round: the original runs the vertical
+    // division first (0x438d15, off EDI and ESI) and the horizontal one second
+    // (0x438d07 is the `sub ecx, ebp`, but the `imul ecx` at 0x438d0e follows
+    // the vertical `mov ecx, edi`). Worth 0.2 and it is the only part of
+    // tools/permute.py's output worth keeping: it also introduced a named
+    // single-use temporary for `bx`, which is worth nothing (58.1 either way).
     int dz = ((bz - az) * level) / 10;
+    int dx = ((bx - ax) * level) / 10;
     int ty = az + dz;
     int by = bz - dz;
 
     unsigned char color1;
     unsigned char color2;
-    if ((order->owner->flags.flags & 0x10) != 0) {
+    if (((*(Unit_00438c00**)(pbase - 0x14))->flags.flags & 0x10) != 0) {
         color1 = g_game->color_dce;
         color2 = g_game->color_dd5;
     } else {

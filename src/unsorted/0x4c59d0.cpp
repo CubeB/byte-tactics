@@ -1,192 +1,35 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by mimo-v2.6-pro, retried by space-bunny-free. Names are provisional.
-// space-bunny-free (issue 4579, ~150 scored scratch variants in
-// build/scratch/0x4c59d0/, all four permuter seeds 11/12/13/14): still 93.3%
-// (337 of 367, 415 bytes). Nothing beat the file below, so the body is
-// unchanged. What is new is the measurement, and it narrows the wall:
-// THIS COMPILER PRODUCES EXACTLY TWO TAIL SHAPES AND NOTHING IN BETWEEN.
-//   Shape A (this file, 93.3%, 415 bytes, the only 415-byte one):
-//       _End = s + n; _First = s; _Last = s + size() + 1; return _First + off;
-//     emits the _First store BEFORE the size() call, the call's `mov ecx,esi`
-//     just before the call, and the return as `mov eax,[esi+4]; lea eax,[eax+ecx*8]`.
-//     Note what that means: in this source the size() call reads the NEW
-//     _First, so the source below is not what the original was compiled from
-//     (the original stores _First after the call). It is a codegen artefact
-//     that buys the store order of the other shape, not a faithful statement
-//     order. Do not read the tail of this file as the original's source.
-//   Shape B (80.9%, 412 bytes, every variant of the header order or of a
-//   separate `size_type k = FUN_004c5ba0();`): store order _End, _First, _Last
-//   with the _First store after the call, `mov ecx,esi` hoisted into the
-//   reload delay slot exactly as the original has it, but the return FORWARDS
-//   `s` (`lea eax,[edi+eax*8]`) instead of re-reading _First, so the original's
-//     `mov esi,[esi+4]` (3 bytes) is missing, and the off reload lands before
-//     the two stores instead of between them. Its registers are rotated
-//     against the original too: delete arg edx (want eax), n eax (want edx),
-//     _End sum ecx (want eax), _Last sum edx (want ecx), off eax (want edi).
-//   So the register tie is NOT a consequence of the store order, and shape B
-//   shows the original's `this` hoist is reachable in this compiler: whoever
-//   retries should attack the first temp (the operator delete argument, the
-//   first register the tail asks for), not the statement order.
-// Tried this pass, every one flat at 93.3% or worse, none new:
-//   * the two documented levers for the hoist are dead here: the dead-store-in-
-//     a-folded-branch family (`int t = 0; if (t) _End = 0;` and its while /
-//     dead-for / dead-array / null-pointer equivalents) at all nine anchor
-//     points of the tail emits nothing, and the N-unused-inline-function sweep
-//     (N = 1..6, unused and called) does not move a byte; the inline-function
-//     count is NOT the lever on this address;
-//   * all three self-assignments (`off = off`, `n = n`, `s = s`, `_End = _End`)
-//     at all nine tail anchors, and dead expressions that ought to consume a
-//     register-stack slot (`p + 0;`, `off + 0;`, `(void)_First;`, an unused
-//     inline call) at three anchors, all bit-identical;
-//   * comma-expression statement groups (`_End = s + n, _First = s, _Last = ...`),
-//     braces, `if (1)`, `do {} while (0)`, an empty statement, an extra
-//     `_First = s`, `off = off` before the return, a `(size_t)` / byte-pointer
-//     / `&_First[0]` / `*(Elem**)&_First` / temp-local spelling of the delete
-//     argument, an inline deallocate helper, an allocator member at +0 with
-//     `deallocate(_First, _End - _First)` (that one costs 24 bytes), types
-//     int / size_type / ptrdiff_t for n, off and s, `begin()` vs `_First` vs
-//     `&_First[off]` in the return, `size()` through `this->`, `(*this).` and a
-//     named alias, operand-order swaps, a self-assignment of the store
-//     `iterator e = s + n; _End = e;` and the size() result in a local, all
-//     identical or worse (the aliasing versions cost 3 bytes and drop to 80.9%);
-//   * the permuter (4 seeds, 6 to 8 minutes each, ~1000 candidates per seed)
-//     never beat 585 (= 93.3%), best.cpp is byte-identical to the starting file.
-// Next lever not yet tried: the delete argument is the first temp of the tail
-// and it lands in edx where the original needs eax; the whole tail reads as the
-// same allocation with eax and edx swapped, so a source that changes which
-// register the allocator offers first (a live value that must occupy eax or
-// edx across the delete, e.g. an extra local that lands in a parameter slot
-// the way the fill counter does) is the one thing this pass did not manage.
-// mimo-v2.6-pro retry: re-measured the residue as a single instruction position,
-// not the store order. Everything up to and including the _Destroy call is byte
-// identical to the original; the FIRST divergence is the operator delete
-// argument reload (`mov eax, [esi+4]` original, `mov edx, [esi+4]` here), and
-// the whole tail cascade follows from it. Root cause found: in the original the
-// size() thiscall setup `mov ecx, esi` is HOISTED above the `_End = s + n` lea
-// (`mov ecx,esi / lea eax,[edi+edx*8] / mov [esi+0xc],eax / call size`), so ecx
-// is taken before the sum and the sum falls into eax, n into edx. In every one
-// of ~15 tail shapes compiled here (build/scratch/0x4c59d0/vA..vZ) the setup
-// lands AFTER the _End store (`lea / mov [esi+0xc] / mov ecx,esi / call`), the
-// sum goes to ecx and n to eax, and the delete arg to edx. The two shapes that
-// DO hoist it (size() as the first statement, vF/vJ) hoist it all the way to the
-// top before the s/n loads, which is one instruction too early and drops to
-// 79.6%. The target position (after the s/n loads, filling the n load-use delay
-// before the _End lea) was never produced by any statement order tried. Scores
-// of the closest structural matches, all below this file's 93.3%: separate
-// `size_type sz = FUN_004c5ba0();` then `_First=s; _Last=s+sz+1;` gets the
-// correct _End,_First,_Last store order but forwards s into the return (412
-// bytes, 80.9%); `return begin()+off` reloads _First into esi (right base reg)
-// but off still lands in eax not edi (82.4%). Whoever retries should target the
-// this-setup hoist into the n load-use delay slot specifically.
-// space-bunny-free retry: still 93.3% (337/367), the 13 instructions after the
-// operator delete call. New measurement: all six permutations of the three tail
-// stores were compiled and their /Fa listings read instruction by instruction.
-// The header order (_End = s + n; _Last = s + size() + 1; _First = s;) gives
-// 412 bytes and puts the _First store AFTER the _Last store, not before it, and
-// forwards s into the return. So the residue is not the statement order: it is
-// one register decision. In the original the size() `this` (mov ecx, esi) is
-// HOISTED above the _End lea, so ecx is dead after the call and is reused for
-// the _Last value, and n lands in edx. In every ordering tried here n lands in
-// eax and the _End lea result takes ecx, which is what forces the `mov ecx, esi`
-// down next to the call. Whoever takes this should look for the statement shape
-// that lets the thiscall setup be hoisted.
-// #3141 retry by GPT-6.1-sol: worker baseline/helper-setter checks and a cached-return trial all score 93.3% (337/367); no MATCH. One malformed newline compile attempt was corrected. The tail differs in register and store order.
-// #2959 retry by GPT-6.1-sol: one check reconfirmed 93.3% (337/367); the
-// reallocating tail still differs in register and store order. No MATCH.
-// Retry #1769: GPT-6.1-sol confirmed 93.3% (337/367 code bytes) after three normal checks; the final batch did not MATCH. The reallocating tail still changes register and store order.
-// deepseek-v4.1-flash (#2405): still 93.3%. The authentic VC5 header store order
-// (`_End = s + n; _Last = s + size() + 1; _First = s;`) puts the stores right but
-// drops to 412 bytes/80.9% because C1 forwards `s` and uses eax for `off`. A
-// hand-written std::vector clone (flat members and _Vector_val base forms) changed
-// nothing, and headers.py --cpp is flat over all 768 sets. The residue is one
-// C1 per-function allocation tie in the reallocating tail (delete arg eax vs edx,
-// `off` home edi vs eax/ecx, forced _First reload).
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by mimo-v2.6-pro, retried by space-bunny-free, finished by claude-sonnet-5-5. Names are provisional.
+// MATCH, 415/415 bytes. std::vector<Elem_004c5bc0>::insert(iterator, const Elem&)
+// from MSVC 5's <vector> (insert(_P, 1, _X) inlined into insert(_P, _X)), for
+// the reallocating, shift-up and in-place arms. It is the out-of-line
+// instantiation the 0x4c54f0 map code calls.
 //
-// PARTIAL: 93.3% (check.py), 337 of 367 code bytes identical. This is the
-// game's out-of-line vector::insert for the reallocating case: the three STL
-// helpers (_Ucopy, _Ufill, _Destroy) are out of line in this translation
-// unit except the first copy loop and the one-element fill, and so is
-// size(), which the tail calls to get the new _Last (at that point _First is
-// still the old one, so size() is the old count and _Last = s + count + 1).
-//
-// Two things got it from 90.9% to 93.3%.
-//
-// 1. The tail statement order of the six statements after the two inlined
-//    loops, scored by exact byte count rather than by check.py's instruction
-//    diff ratio (the ratio punishes any size change and hid the winner):
-//        FUN_004c5bc0(p, _Last, q + 1);   FUN_004c5b70(_First, _Last);
-//        ::operator delete(_First);       _End = s + n;
-//        _First = s;                      _Last = s + FUN_004c5ba0() + 1;
-//    All 720 permutations were compiled; no ordering beats this one, and the
-//    whole of the second half of the function (the two else-if arms, both
-//    epilogues, the final `lea eax, [esi + edi*8]`) is byte identical only
-//    with this order.
-//
-// 2. The reallocating arm returns `_First + off`, not `begin() + off`. The
-//    two spell the same value, but `begin()` lets the allocator forward the
-//    value of `s` into the return, so the tail's register choices change and
-//    the whole second half stops matching. `return _First + off;` makes the
-//    compiler re-read the member, as the original does
-//    (`mov esi, dword ptr [esi + 4]`).
-//
-// What still differs is the tail of the reallocating arm, and all of it comes
-// from one instruction: the original stores _First (`mov [esi+4], edi`)
-// AFTER the call to FUN_004c5ba0, this file stores it before, which shifts the
-// ten instructions after it by 3 bytes and changes every register in them
-// (the original reuses eax for the delete argument and edx for n, this file
-// uses edx and eax; the original reloads off into edi and _First into esi,
-// this file into ecx and eax). MSVC 5 will not sink a store across a call, so
-// the source has to put something between `_End = s + n;` and `_First = s;`
-// that generates the call, and every such shape tried spills s and n or
-// reorders the two stores (see below). Tried and measured, none better:
-//   * all 720 orderings of the six statements, with and without an early
-//     `return` inside the arm and with the last statements in their own
-//     block;
-//   * the size call as a separate statement (`size_type k = FUN_004c5ba0();`
-//     then `_Last = s + k + 1;`, in every position): correct store order, but
-//     it spills s and n to their stack slots and costs 20 bytes;
-//   * a temporary for the new _Last (`iterator t = s + FUN_004c5ba0() + 1;`
-//     then `_First = s; _Last = t;`) and a `static inline` helper holding all
-//     three stores: 415 bytes but only 119 of 367 correct;
-//   * `_Last = s + 1 + size()`, `s + (size() + 1)`, `n + s` for _End, `int`,
-//     `size_type` and `ptrdiff_t` for off, `size_type` for the capacity, an
-//     `iterator&` bound to _First, a hand-written class with raw pointer
-//     members instead of a real std::vector base, <windows.h> in front, and
-//     every ordering of the declarations of off, n, s and q.
-// So the residue is a statement shape, not a detail of one of the 720
-// orderings; whoever takes this next should look for the one that makes MSVC
-// flush the _First store after the call.
-//
-// deepseek-v4.1-flash addendum: the VC5 header (toolchain/msvc5-sp3/INCLUDE/
-// VECTOR lines 146-161) spells the tail in the order _End = _S + _N;
-// _Last = _S + size() + _M; _First = _S;, with the return as the outer
-// begin() + _O after the whole if/else, exactly reproducing the original's
-// store order (call size() while _First is old, then store _First, then
-// _Last). Writing that authentic shape (also as the real two-function
-// insert(iterator,const _Ty&) calling the inlined insert(iterator,size_type,
-// const _Ty&)) gives the correct store order but only 84.2%: the register
-// allocator then loads the operator delete argument into edx (the original
-// uses eax and reuses it for _End), and every later register follows, while
-// the body-identical end of the function still matches. So the header is the
-// right statement order but MSVC 5 colours this arm differently than the
-// original; the `_First = s` before the call (which the original clearly did
-// not emit) is a hack that buys the delete/return registers at the cost of
-// the store position.
-//
-// deepseek-v4.1 addendum: nine more tail shapes were compiled and measured.
-// Every shape that puts `_First = s;` after the size() call gets the right
-// store position but only 412 bytes / 80.9%: MSVC then forwards s into the
-// return (`lea eax, [edi + eax*8]`, off in eax) instead of the original's
-// reload (`mov esi, [esi+4]; lea eax, [esi + edi*8]`, off in edi). This
-// includes the header's exact order, the order with an `iterator t = s +
-// FUN_004c5ba0() + 1;` temp stored afterwards, the temp plus an explicit
-// `iterator r = _First + off;` before the _Last store, and the same with
-// begin(). Putting `_First = s;` back before the call restores 415 bytes but
-// also restores the wrong store position (93.3%). A separate `size_type k`
-// local costs 3 bytes and drops to 82.4%. So the residue is the register the
-// allocator picks for off (edi in the original, eax here) plus the _First
-// reload it forces; no statement order tried reproduces it.
+// What the earlier passes (stuck at 93.3 percent for ten retries) were
+// missing, found by claude-sonnet-5-5 in issue 4641:
+//  * The tail of the reallocating arm is the header's own order,
+//        _Destroy(_First, _Last);
+//        alloc.deallocate(_First, _End - _First);
+//        _End = _S + _N; _Last = _S + size() + _M; _First = _S;
+//    and the function ends in ONE shared `return begin() + _O;` after the
+//    whole if / else if / else chain (arms 2 and 3 do their own `_Last += 1`).
+//    Both were already known, but together with the next item they were
+//    never tried in the same file: the "authentic" order alone scored 84.2.
+//  * The deallocation must be the header's allocator call with its unused
+//    second argument, `alloc.deallocate(_First, _End - _First)`, a real
+//    member that discards the count. With a bare `::operator delete(_First)`
+//    the delete argument lands in edx and the whole tail rotates its
+//    registers (n, the _End sum and the _Last sum), which is what the old
+//    "allocation tie" notes were chasing. The dead `_End - _First` costs no
+//    code but keeps the register order.
+//  * The vector is a cut-down hand-written std::vector in namespace std
+//    (as in 0x470c10) whose _Ucopy, _Ufill and _Destroy are protected and only
+//    declared. That keeps them out-of-line calls and gives them the exe's
+//    mangled names, so check.py's reference column is ok for them. size() is
+//    the header's inline one; the last use calls the out-of-line copy at
+//    0x4c5ba0 (the inline budget ran out there in the original).
+//  * The first _Ucopy and the one-element _Ufill are written out as loops
+//    over FUN_004c5d60 (inlined in the original); the rest are calls.
 #include <stddef.h>
-#include <vector>
 
 class Class_004c91a0 {
 public:
@@ -201,41 +44,61 @@ struct Elem_004c5bc0 {
     Class_004c91a0 b;                  // +0x4
 };
 
-typedef std::vector<Elem_004c5bc0> Vec_004c5ba0;
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 
-// The game's vector of entries: the same three pointers as std::vector (the
-// empty allocator at +0, _First +4, _Last +8, _End +0xc) and the same STL
-// helpers, but every one of them is out of line here, and so is size().
-class Class_004c5ba0 : public Vec_004c5ba0 {
+// A cut-down MSVC 5 <vector>: only the members this function reaches. The
+// three helpers are declared and not defined, so they stay out-of-line calls
+// with the exe's mangled names (std::vector<Elem>::_Ucopy and friends).
+namespace std {
+    template<class _Ty> inline
+    _Ty* _Allocate(ptrdiff_t _N, _Ty*)
+        {if (_N < 0)
+            _N = 0;
+        return ((_Ty*)operator new((size_t)_N * sizeof(_Ty))); }
+
+    template<class _Ty> class allocator {
+    public:
+        typedef size_t size_type;
+        typedef _Ty* pointer;
+        pointer allocate(size_type _N, const void*)
+            {return ((pointer)_Allocate((ptrdiff_t)_N, (pointer)0)); }
+        void deallocate(void* _P, size_type)
+            {operator delete(_P); }
+    };
+
+    template<class _Ty, class _A = allocator<_Ty> > class vector {
+    public:
+        typedef _A::size_type size_type;
+        typedef _Ty* iterator;
+        typedef const _Ty* const_iterator;
+        iterator begin()
+            {return (_First); }
+        size_type size() const
+            {return (_First == 0 ? 0 : _Last - _First); }
+    protected:
+        iterator _Ucopy(const_iterator _F, const_iterator _L, iterator _P);
+        void _Ufill(iterator _P, size_type _N, const _Ty& _X);
+        void _Destroy(iterator _F, iterator _L);
+        _A alloc;
+        iterator _First;
+        iterator _Last;
+        iterator _End;
+    };
+}
+
+// The game's vector of entries. size() is also reached through the out-of-line
+// copy at 0x4c5ba0 for the last use below.
+class Class_004c5ba0 : public std::vector<Elem_004c5bc0> {
 public:
-    typedef Vec_004c5ba0::iterator iterator;
-    typedef Vec_004c5ba0::const_iterator const_iterator;
-    typedef Vec_004c5ba0::size_type size_type;
-
-    void FUN_004c5b70(iterator first, iterator last);
     int FUN_004c5ba0(void);
-    iterator FUN_004c5bc0(const_iterator first, const_iterator last, iterator dest);
-    void FUN_004c5c20(iterator first, size_type n, const Elem_004c5bc0& x);
-
-    size_type size() { return _First == 0 ? 0 : (size_type)(_Last - _First); }
 
     iterator FUN_004c59d0(iterator p, const Elem_004c5bc0& x);
 };
 
-void* __cdecl operator new(unsigned int size);
-void __cdecl operator delete(void* p);
-
 void __stdcall FUN_004c5d60(Elem_004c5bc0* p, const Elem_004c5bc0& value);
 void __stdcall FUN_004c5cd0(Elem_004c5bc0* first, Elem_004c5bc0* last, const Elem_004c5bc0& x);
 Elem_004c5bc0* __stdcall FUN_004c5d10(Elem_004c5bc0* first, Elem_004c5bc0* last, Elem_004c5bc0* dest);
-
-// allocator::allocate, the header version, inlined
-static inline Elem_004c5bc0* Alloc004c59d0(int n)
-{
-    if (n < 0)
-        n = 0;
-    return (Elem_004c5bc0*)::operator new((unsigned int)n * sizeof(Elem_004c5bc0));
-}
 
 // FUNCTION: 0x4c59d0
 Elem_004c5bc0* Class_004c5ba0::FUN_004c59d0(iterator p, const Elem_004c5bc0& x)
@@ -243,39 +106,35 @@ Elem_004c5bc0* Class_004c5ba0::FUN_004c59d0(iterator p, const Elem_004c5bc0& x)
     size_type off = (size_type)(p - begin());
 
     if ((size_type)(_End - _Last) < 1u) {
-        int n = (int)size() + ((size_type)1 < size() ? (int)size() : 1);
-        iterator s = Alloc004c59d0(n);
+        size_type n = size() + ((size_type)1 < size() ? size() : 1);
+        iterator s = alloc.allocate(n, (void*)0);
         iterator q = s;
-
-        // _Ucopy(_First, p, s), the first of the three, inlined
         for (iterator i = _First; i != p; ++i, ++q)
             FUN_004c5d60(q, *i);
-        // _Ufill(q, 1, x), inlined
         {
             iterator r = q;
-            int count = 1;
+            size_type count = 1;
             do {
                 FUN_004c5d60(r, x);
                 r += 1;
             } while (--count != 0);
         }
-        FUN_004c5bc0(p, _Last, q + 1);
-        FUN_004c5b70(_First, _Last);
-        ::operator delete(_First);
+        _Ucopy(p, _Last, q + 1);
+        _Destroy(_First, _Last);
+        alloc.deallocate(_First, _End - _First);
         _End = s + n;
-        _First = s;
         _Last = s + FUN_004c5ba0() + 1;
-        return _First + off;
-    }
-    if ((size_type)(_Last - p) < 1u) {
-        FUN_004c5bc0(p, _Last, p + 1);
-        FUN_004c5c20(_Last, 1 - (_Last - p), x);
+        _First = s;
+    } else if ((size_type)(_Last - p) < 1u) {
+        _Ucopy(p, _Last, p + 1);
+        _Ufill(_Last, 1 - (_Last - p), x);
         FUN_004c5cd0(p, _Last, x);
+        _Last += 1;
     } else {
-        FUN_004c5bc0(_Last - 1, _Last, _Last);
+        _Ucopy(_Last - 1, _Last, _Last);
         FUN_004c5d10(p, _Last - 1, _Last);
         FUN_004c5cd0(p, p + 1, x);
+        _Last += 1;
     }
-    _Last += 1;
     return begin() + off;
 }

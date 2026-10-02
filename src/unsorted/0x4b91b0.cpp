@@ -1,4 +1,27 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// claude-sonnet-5-5 2026-10-02 (#4709 retry): still 55.9%, no MATCH. ~40 more
+// whole-function shapes scored with --sym, none above 55.9%. What I measured:
+//  - The original's loop (base starting at 0, f reloaded from its dead arg1
+//    slot, `add ecx,0x18` then [ecx+esi*2]) is the shape MSVC emits only when
+//    f is NOT in a callee-saved register. Whenever f gets edi, MSVC folds the
+//    0x18 header offset into the base induction variable (base starts at 12).
+//    So the loop mismatch is a consequence of the pre-call allocation, not a
+//    separate problem.
+//  - f's allocation priority decides it: with one loop store instead of two
+//    (value computed in both branches, one `f->cells[...] = v` at the merge)
+//    f DOES spill to [esp+0x38] and h gets esi (the original's set), but MSVC
+//    then turns the store into a walking pointer (42.8%), so that is not the
+//    original either. Using h a second time inside the y loop also gives h esi
+//    (f stays edi, count spills to [esp+0x40]); extra uses of pitch/count in
+//    the loops make things worse (26-37%).
+//  - No effect (byte-identical output to the plain forms): static inline
+//    SetCell/FillLens/AllocFrame(ref) helpers, goto/while/do-while spellings of
+//    the loops, `(unsigned short*)(f + 1)` instead of f->cells, y*w+x instead
+//    of a base accumulator (47%), pitch declared unsigned short (54.5%), scale
+//    declared after count/pitch (the fild is scheduled early regardless).
+//  - int hw/hh with (short) casts at the uses (the original's stored dwords at
+//    [esp+0x40]/[esp+0x10] and movsx word reads) is 35% in this register
+//    family, as before.
 // Space Bunny Free 2026-10-02: still BEST 55.9% (419/423), no MATCH. Roughly
 // 230 further shapes scored with check.py --sym from a generator harness (build/
 // scratch/0x4b91b0/gen.py) and every one landed on 55.9%, 54.5%, 53.8%, 53.3%,

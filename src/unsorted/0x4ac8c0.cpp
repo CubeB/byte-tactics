@@ -1,6 +1,70 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free,
-// claude-opus-5-5 (#4373), GPT-6.1-sol, mimo-v2.6-pro and finished by
-// space-bunny-free (#4489). Names are provisional.
+// claude-opus-5-5 (#4373), GPT-6.1-sol, mimo-v2.6-pro, space-bunny-free (#4489)
+// and space-bunny-free (#4539). Names are provisional.
+// space-bunny-free pass (issue 4539): best stays 89.8% (6 differing bytes, the same
+// 2 in the prologue and 4 in the loop). The three loop states are confirmed again and
+// the W(a,b) = a?b:b flip is the only lever found that reaches "right pair first",
+// and it always brings the surface reload's lift with it. Measured here, do not
+// repeat: the flip needs BOTH x-axis stores wrapped, and with only the right store
+// wrapped the compiler rotates the loop instead (x + 7 lives in esi and left is
+// esi - 7, 170 bytes). The full 16-subset matrix over the four rect stores, in all
+// 24 store orders, and the fold forms a&&b?b:b / a|b?b:b / 0?b:b: only 0?b:b and the
+// non-conditional injections (x|0, x*1, x^0, x<<0, x&-1, comma, x-(x-x),
+// x|(x&&0), !(x<x)?x:x, x<x?x:x) leave state A; every conditional form flips to state
+// B (18 bytes). Also flat at 6, all with and without the flip: a surface temp before
+// or after the stores, a dead store in a folded branch (if (t) p.surface = 0,
+// if (t) t = 1) with and without the flip, wrapping the surface or &p.r or the colour
+// in a folded ternary (before or after the flip), stores through an inline
+// Set(int&,int), ten unused locals of ten types in five positions, 0 to 8 uncalled
+// file-scope inline helpers, an Identity wrapper on the colour, eight more prologue
+// shapes, and all 222 linear extensions of the prologue's seven statements (the
+// prologue's edx/eax tie never moves). tools/permute.py: seed 11, 8 minutes, 4 jobs,
+// 5657 candidates, 89.8% -> 89.8% (build/permute/0x4ac8c0/best.diff is empty), which
+// now agrees with the two default-seed runs. Byte-level scorer for free variant
+// scoring, splitting the prologue and loop hunks, in build/scratch/0x4ac8c0/score.py
+// and sweep.py (hunk.py prints the loop window next to the original); exp1 to exp8
+// are this pass's sweeps.
+// What still differs: the original's grid->y goes to edx (the register the surface
+// load just freed) where we put it in eax, and the original hoists the (x + 7,
+// right) pair while we hoist (y + 7, bottom). The lead for the next pass is that the
+// flip and the lift are two effects of one COND node in the x-store path (the
+// scheduler's tree order keeps the folded node's rank, so the COND that forces the
+// right pair also drags the reload to rank 1 instead of 4). A flip from anything that
+// is not a COND node on the left and right stores, or a way to keep the reload at
+// rank 4 once the COND is there, would be the win; both are scheduler (SCHED tree
+// order) decisions, not register allocation, which is why unused locals and file-scope
+// helpers do nothing.
+// Second measurement in the same pass: nothing can shift the reload's rank once the
+// COND is there, and dead code cannot even reach SCHED. All of these are 6 bytes in
+// state A and 18 in the flipped state, never in between: eight kinds of real dead
+// store to a local scalar (dead = x, dead = x + y, dead = x + 7, dead = row*16+col,
+// dead = p.surface != 0, dead = p.r.left, dead++, dead += x) in three positions each,
+// two dead stores at once, a dead store in the outer loop, a duplicated (dead) store
+// to p.r.left and p.r.right, and the folded-branch dead stores while (t), for (k = 0;
+// k < 0; k++), if (t & 0), if (!p.surface); also an identity wrapper on the surface
+// passed inline and through a temp, `*(&p.r.left) = x`, and a conditional whose arms
+// are the assignments themselves. So the dead-store lever does not work here, unlike
+// the function it fixed at 98.9%, and the surface's identity wrapper is as inert as
+// the ternary. One more fact for the next pass: VC5 folds the conditional only when
+// its condition is built from the same variable as its arms. `x > 0 ? x : x` and
+// W(x, x) fold to 167 bytes, but `col ? x : x` keeps a real branch and costs 23
+// bytes (190), so the COND's shape, not just its presence, is what ranks the block.
+// Third measurement, same pass: every flip produces byte-identical state B (checked
+// with hunk.py on the x > 0 ? x : x, the x < y ? x : x, the temp-and-ternary and the
+// re-spelled-arm shapes: all emit mov edx,[esp+0x10] first, then lea eax,[esi+7],
+// lea ecx,[esp+0x14], mov [esp+0x1c],eax), so the flip is one switch with no
+// intermediate position to catch. Which conditionals fold is also fragile and not
+// worth a rule: `x ? x : x`, `x == 0 ? x : x`, `x != 0 ? x : x`, `x && x ? x : x` and
+// `x || 0 ? x : x` fold to 167 bytes, while `x > 0 ? x : x`, `x < 0 ? x : x` and
+// `col ? x : x` keep a real branch (180 to 190 bytes), and a branch on the left store
+// with `(x + 7) > 0` on the right folds while the same one with `x > 0` on both does
+// not. The conditionals built from the same variable as their arms (x < x, !(x < x))
+// fold before SCHED and leave state A alone. A named temp for x + 7, for x, or a
+// re-spelled arm with a comma all just move the flip to state B (18 bytes).
+// The seed sweep is worth repeating for this address: tools/permute.py found nothing
+// on seeds 11, 12 and 13 (8, 8 and 6 minutes, 4 jobs: 5657, 4887 and 1774 candidates,
+// all 89.8% -> 89.8%, empty best.diff), which now makes five runs in total on this
+// file.
 // space-bunny-free pass (issue 4489): best stays 89.8% (6 differing bytes), but the
 // loop hunk is now understood well enough to name the missing shape. The two
 // remaining hunks are each one allocator tie, and both are strong attractors:

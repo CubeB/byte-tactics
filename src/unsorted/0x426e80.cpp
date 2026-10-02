@@ -1,4 +1,28 @@
 // Decompiled by longcat-2.5-preview-free, edited and finished by deepseek-v4.1-flash. Names are provisional.
+// Space Bunny Free pass: tools/permute.py (647 candidates, 15 min) found no gain
+// over 86.9, so this file is unchanged from deepseek's best. Three measurements
+// worth keeping, from scratch tools under build/scratch/0x426e80/:
+//  - The score splits into a code region (0x426e80 to 0x42859c, the original's
+//    first jump table) at 0.9516 and a jump-table region at 0.1988. The tables
+//    cannot match until every case body sits at exactly the original's address,
+//    so nearly all the remaining loss is layout, not wrong code.
+//  - The layout drift (build/scratch/0x426e80/drift.py) is only three steps:
+//    delta 0 to 0x426fc4, then -5 for the rest of the first half, then -0x21
+//    from 0x427624 to 0x427af1, then back to 0. The shift is not spread out: it
+//    comes from case 0's tail (one call MSVC merged that the exe keeps inline)
+//    and from the store-tail block the exe places at 0x427603 and we place at
+//    0x427b35. Everything between those two is only shifted, not different.
+//    Getting case 0's tail to emit its own call rather than jumping into the
+//    shared 0x9b-report block is the first lever: it is worth about 0.2% by
+//    itself and it un-shifts every later jump table entry.
+//  - Tried, no change (all stayed at 0.8695): naming one shared store tail for
+//    the 0x55e body, the case-16 0x11 path and the case-17 b2 path (p_share,
+//    p_e, p_g); giving the 0x55e body its own copy of the tail (p_f); giving
+//    case 0's 2bbe store a local (p_d); a dedicated tail_one label for the
+//    0x4a3 path (p_j); a separate player pointer in case 21 to move the SIB
+//    pair (p_h). Moving the 0x55e inner case after case 13 or to the end of the
+//    switch (0.8226) and reading the case-20 bit test with != 0 (0.8243) both
+//    made it clearly worse, so the exe really does use source order there.
 // tools/permute.py pass (6170 candidates, 17 min): 86.8 -> 86.9 via
 // temp_intro + include + do_while0 + zero_compare + strip_parens. Output
 // tidied before adoption: dead same0 removed, tmp0/tmp1 renamed game1/game2,
@@ -635,9 +659,7 @@ void __stdcall FUN_00426e80(void)
                 g_game[0x2bbf] = 0;
                 g_game[0x2bc0] = 0;
                 FUN_004256d0(0x55e, DAT_00503004);
-                g_game[0x2bbf] = 0;
-                g_game[0x2bc0] = 0;
-                return;
+                goto tail_zero;
             }
             strncpy(DAT_00511fb8, DAT_0050324c, 0xf9);
             FUN_004256d0(0x3bc, DAT_00503004);
@@ -904,6 +926,10 @@ void __stdcall FUN_00426e80(void)
         break;
 
     }
+    return;
+tail_zero:
+    g_game[0x2bbf] = 0;
+    g_game[0x2bc0] = 0;
     return;
 tail7:
     g_game[0x2bbe] = 7;

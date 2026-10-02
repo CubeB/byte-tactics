@@ -9,6 +9,16 @@
 // `mov edi,[esi+4]` (3 bytes): our loop reads the y coordinate as
 // g_game->view.y, the original reads it through p, which also lets g_game die
 // at the count2 load (so count2 lands in EAX, not ECX).
+// Third pass (Space Bunny Free, notes at the bottom of this block): the missing
+// piece is now identified but not reproduced. Two shapes get the prologue AND
+// the whole branch B preheader byte-identical: a conditional redefinition of d
+// or result after the squares (95.2%, residual = the guard's 9 bytes) and the
+// && written as a value in an int (94.5%, residual = the bool materialization).
+// Both work by adding a merge point inside the loop body, and every spelling
+// without such a merge is locked at 71.2% (mirrored p/zero) or at this 92.6%.
+// A file claiming one of those statements would be 9 or 10 bytes further from
+// the original than this one, so neither is in the file; both are kept in
+// build/scratch/0x48cd80/ (v/g5_guard_d.cpp, v/q2_int.cpp) with their scores.
 // Structural result (mimo-v2.6-pro, extended by Space Bunny Free): the
 // both-from-p form (dy = s->y - p->y; dx = s->x - p->x) compiles to the exact
 // mirror of the target preheader (s load first, count2 in EAX, mov esi,[edi+4];
@@ -60,6 +70,85 @@
 //    makes MSVC hoist both p loads instead of reloading the y from g_game. A
 //    sign fixup on dx or dy inside the same helper does the same thing
 //    (91.2% and 87.2%) for the same reason.
+// Space Bunny Free, second pass (60 min, ~50 variants scored with --sym): the
+// best lead so far is the blocking guard on d, NOT on dx:
+//     for (...) { int dy = s->y - p->y; int dx = s->x - p->x;
+//                 int d = dx*dx + dy*dy;
+//                 if (d == 0x7fffffff) d = 0;      <-- this one line
+//                 if (d < 4 && d < best) { best = d; result = s->field_0; }
+//                 s++; }
+// scores 95.2% (437 bytes vs 428): prologue, both calls, branch A, the whole
+// branch B preheader (mov edi,[esi+4]; mov esi,[esi]; count2 in EAX) and the
+// whole loop body match, and the only difference left is the guard's own three
+// instructions (cmp eax,0x7fffffff; jne; xor eax,eax, 9 bytes). The dx form of
+// the same guard gives 93.8%, a guard on dy 91.2%: it is the extra
+// redefinition of d after the squares that flips the allocation, not the dx
+// sign fixup. Not in this file because those 9 bytes are not in the original.
+// Measured and rejected in this pass (all with the both-from-p dy-first body,
+// which is the only spelling that gets the preheader right):
+//   declaration order of p/result and one extra unused int local, in all six
+//   orders: 71.2% every time. Unused static inline helpers at file scope, five
+//   shapes x N=0..4: no change at all (VC5 deletes them before allocation).
+//   dead store between the p load and the loop (`int t = 0; if (t) best = 0;`,
+//   a dead for, a dead store to s), p as `Point* const`, p as const Point*,
+//   the guard written d<4&&d<best / nested ifs / else-if / !(d>=4) / 4>d,
+//   continue forms, self-assignments dx=dx, dy=dy, dx+=0, d=d, squares swapped,
+//   DistSq4(s->x,p->x,s->y,p->y) and DistSq4 with y first (80.9%), a
+//   DistSq(Slot*,Point*) helper y-first (71.2%) and x-first (72.7%), the same
+//   helper taking the Point by value (65.0%), s indexed by count2-i (67.9%),
+//   a second pointer q=p in the loop, and reading the first rect through
+//   g_game->view.x/y instead of p: every one of them 71.2% or lower.
+//   The y-from-p, x-from-g_game mix is 90.4% and its preheader puts py in ESI
+//   and px in EDI (the mirror of the wanted one), which is the same mirror the
+//   both-from-p form has.
+// Space Bunny Free, third pass (the mechanism is now known, the neutral spelling
+// is not). TWO shapes produce the byte-identical branch B preheader and the
+// byte-identical prologue, i.e. the original's p=esi / zero=edi allocation and
+// the count2-in-EAX schedule; both leave only their own extra instructions:
+//   A) a conditional redefinition of a value that is live after the merge, just
+//      after the squares:
+//          int d = dx * dx + dy * dy;
+//          if (d == 0x7fffffff) d = 0;          (or: result = 0;)
+//          if (d < 4 && d < best) { best = d; result = s->field_0; }
+//      95.2% (437 bytes vs 428), residual = the guard itself
+//      (cmp eax,0x7fffffff; jne; xor eax,eax, 9 bytes). Redefining dy there
+//      instead does nothing (71.2%, the assignment is dead-store eliminated),
+//      redefining best only reaches 90.8%, and testing dx instead of d
+//      makes it worse (60.8%). File: build/scratch/0x48cd80/v/g5_guard_d.cpp,
+//      or try_guard.cpp (same source, notes stripped).
+//   B) the && as a value instead of a short circuit:
+//          int ok = d < 4 && d < best;   (or bool ok, or while (ok) { ... break; })
+//          if (ok) { best = d; result = s->field_0; }
+//      94.5% (441 bytes), residual = the bool materialization VC5 will not fold
+//      (mov ecx,1; jmp; xor ecx,ecx; test cl,cl; je). Files:
+//      build/scratch/0x48cd80/v/q2_int.cpp and the permuter's independent
+//      spelling of the same idea (build/permute/0x48cd80/best.cpp, 94.5%).
+// So the trigger is an extra MERGE POINT in the loop body for a value live
+// across it, not a register-allocation detail of the preheader: every spelling
+// without such a merge (about sixty of them, listed below) is locked at 71.2%
+// with the p/zero pair mirrored, and the merge always costs code, so the
+// original's merge must be somewhere this reconstruction has not found yet.
+// Locked at 71.2% in this pass, all with the both-from-p dy-first body:
+//   a temp for p->x read inside the loop, a temp for s->y, the two squares in
+//   temps, (int) casts on p and on p->x, a cast on the FUN_0048c6a0 argument,
+//   p from a cast address, do-while and while and while(1)/break loops, an
+//   outer `if (count2 > 0)` around the loop, comma in the for increment, s++
+//   before the body, the loop indexed as list2[count2-i], dx/dy/d/e/i
+//   pre-declared outside the loop (one to three extra locals, 72.7%),
+//   the two-step `int d = dx*dx; d = d + dy*dy;` and `d +=`, two-step squares,
+//   the result assigned before best, a temp for s->field_0, `result = result`,
+//   a pre-declared `unsigned short prev`, dead stores of result/d/best behind a
+//   folded condition, `if (!(d<4 && d<best)) else`, `d >= 4 || d >= best` with
+//   an empty then, goto/continue forms, and (d<4 && d<best) == 1.
+// The two extra permuter runs of this pass are plateaus, as expected: seed 21
+// from lead B, 2988 candidates, 94.5% -> 94.5%; seed 33 from lead A, 2023
+// candidates, 95.2% -> 95.2%. Nothing there can drop the invented statement,
+// so the next attempt has to find the merge in the source, not around it.
+// tools/permute.py on the both-from-p body, seed 11, 9 min, 3423 candidates:
+// 71.2% -> 94.5% (fine score 739 -> 558), winners extract_helper+cast then
+// strip_parens+temp_intro; it re-found lead B on its own, and its best.cpp
+// keeps the preheader right. Two more runs (seed 21 from lead B, seed 33 from
+// lead A) log to build/scratch/0x48cd80/permute_ok.log and permute_guard.log.
 // Rule found: p keeps esi while it is used at most once after the second call,
 // or while FUN_0048c6a0 is evaluated before the field_a6 test. The original
 // does neither, so its branch A must differ from the nested-if shape in some

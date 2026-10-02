@@ -1,12 +1,17 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1,
-// finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
+// finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by deepseek-v4.1-flash. Names are provisional.
 //
-// 99.8%, not a MATCH (1874 of 1874 bytes, one instruction differs): the zeroing loop
-// loads g_game->data[i] as [edx+eax+0x2a47] where the original has [eax+edx+0x2a47]
-// (SIB base and index swapped, same registers). About 25 spellings were tried (struct
-// element `.ptr`, `i[arr]`, pointer arithmetic with i*4, i<<2, a byte-offset loop var,
-// for vs do-while, unsigned/char index, a cached `g_game` local); all emit the same bytes.
-// Probably a register-allocation wall, not a source difference.
+// MATCH (1874 of 1874 bytes). The last residual was the zeroing loop's load
+// g_game->data[i]: [edx+eax+0x2a47] where the original has [eax+edx+0x2a47]
+// (SIB base and index swapped, same registers). About 25 source spellings were
+// tried (struct element `.ptr`, `i[arr]`, pointer arithmetic with i*4, i<<2, a
+// byte-offset loop var, for vs do-while, unsigned/char index, a cached `g_game`
+// local, a block-local pointer with a reference as in 0x409730) and all emit
+// the same bytes. The fix is the include set: `#include <stdio.h>
+// #include <string.h> #include <ddraw.h>`. tools/headers.py found 22 header
+// sets that make the function MATCH (smallest: <stdio.h> <ddraw.h>), so the
+// swapped SIB byte was translation-unit state from the original's header list,
+// not a source difference (same family as 0x408f30's wall).
 //
 // What made the big jump (84.1% -> 99.8%), so nobody has to rediscover it:
 //   * SETTINGS ARE A SEPARATE, NEVER-ADDRESS-TAKEN LOCAL STRUCT (`sb`), not a slice of
@@ -42,8 +47,9 @@
 //     `if (c8) goto conn; if (!a8) { if (!98) {store} goto conn; }` and letting the a8
 //     case FALL INTO the `upd:` label (which is followed by `conn:`). With a plain
 //     `if (a8) goto upd;` MSVC moves a copy of the UPD block next to the a8 test (97.9%).
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
+#include <ddraw.h>
 
 struct Guid_00441460 {
     unsigned long d1, d2, d3, d4;

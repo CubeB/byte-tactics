@@ -1,4 +1,170 @@
-// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, re-tried by space-bunny-free. Names are provisional.
+// space-bunny-free pass (bisection): the answer the previous pass set out to
+// find. Body unchanged, still 98.0% and 322 of 322 bytes, still the same two
+// instructions; what is new is the smallest piece of this function that decides
+// the fold, and it is one line.
+//
+// THE BISECTION (build/scratch/0x47d970/probe.py, one TU holding K copies of a
+// body, parsed with tools/coff.py; "low" means the x add loads 0x76 into the
+// register, which is what the original does, "high" means 0x7e):
+//
+//   body                                                        low / high
+//   tiny      short t = pos.x + size.x; out = t;                 24 / 24  (k=48)
+//   xonly     same, one store                                     24 / 24
+//   sumsbound both sums + `if (xend >= w || yend >= h) return 0` 100 / 100 (k=200)
+//             low at EVERY ODD copy index, exactly
+//   m5/m6     sumsbound + width/height in locals                  24 / 24
+//   m1        sumsbound + `Point p = obj->pos;`, p NOT in the test 0 / 48
+//   sumsboundcopy  m1 + p.x/p.y in the test                        0 / 48
+//   full      the function as it stands                            0 / 200
+//
+// So the one piece that removes the low form is `Point p = obj->pos;`, the
+// four-byte copy, i.e. the dword read `mov edi, dword ptr [ecx + 0x76]`. Not
+// the bounds test, not width or height in locals, not the loop, not the mask,
+// not the cell or field_a8 tests, not `bit`, and not N unused locals of type
+// int, Point or char* at the top of the body (N = 1..6 of each: 0 low, i.e. no
+// effect at all, measured on 48 copies). Add that copy to a body whose fold is
+// otherwise reachable and the fold is gone from every one of 200 copies.
+//
+// Then a second bisection took that apart further, and it is the real finding.
+// Control: one sum, one store (e1/d1), 24 low of 48. Add ONE more read of the
+// same field and the fold dies, and it is not the width, not the store, and not
+// the copy: build/scratch/0x47d970/second.py, all at k = 48.
+//
+//   e1  sum only                                             24 low / 24 high
+//   e3  + one extra read of pos.y                           24 low / 24 high
+//   e5  + one extra read of size.y                          24 low / 24 high
+//   e6  + one extra read of field_a8                        24 low / 24 high
+//   e2  + one extra read of pos.x   (the summed field!)      0, and x=None
+//   e4  + `Point p = obj->pos;`, store p.y only              0 low / 48 high
+//   e8  copy first, sum second                               0 low / 48 high
+//
+// So the rule is: VC5 puts the LOWER displacement in the register for the x add
+// only while 0x76 is read exactly once, by the add. Any second reference to
+// that same 2-byte location, of any width and in any statement position, kills
+// it, and reading the neighbouring fields does not. Reading pos.x twice changes
+// the add's shape instead (reg+reg, hence x=None); reading it once more at
+// 4-byte width leaves the add mem+mem and settles it on 0x7e.
+//
+// That is why the original and this file differ, and it is not a state effect
+// at all. The original reads 0x76 three times: once as `mov ax, word ptr [ecx +
+// 0x76]` in the add, once as `mov edi, dword ptr [ecx + 0x76]` for the Point
+// copy, and once more as `movsx eax, di` off edi for the loop. Yet it chose
+// 0x76. Our source also reads it three times and chooses 0x7e, so the count is
+// not the whole rule either; what the probe establishes is the DIRECTION: every
+// spelling tried here pushes the choice the same way (toward 0x7e), and the
+// original is on the other side of that push. So the remaining search is not for
+// a different declaration state, a different operand order or a different copy
+// (all three are measured dead above) but for the one source shape in which the
+// second read of pos.x does not drag the add's register operand to 0x7e. The
+// cheapest place to look is the width and the provenance of that second read:
+// the `mov edi, dword ptr [ecx + 0x76]` in the original is a copy of a Point,
+// and a Point-typed copy is exactly what e4 and e8 above measure as the blocker.
+//
+// The detector is validated against the exe: validate.py runs probe.xform() on
+// the original's own 322 bytes and prints ('low', 'high'), the shape the
+// original has, so the labelling above is not a detector artefact.
+//
+// Third round, same conclusion from the other side. If the copy is the blocker
+// and the original has the copy, then either the original's source does not
+// make that read the way our source does, or the original was built with the
+// body in a shape that reaches the same machine code by another route. Every
+// alternative route tried this pass lands on 0x7e too (all 48 copies, all
+// 0 low): width.py (w0..w4: the loop bounds off p, off two int locals, off
+// obj->pos directly, copy unused for the bounds), offset2.py (o1..o6: the
+// copy hoisted above the sums, sums through one local each, sums declared
+// uninitialised and assigned, copy of size rather than of pos). Not one body
+// with a second read of pos.x produced x=low, in about 400 compiled bodies
+// across the three rounds. So do not spend another pass on declaration state,
+// TU position, operand order, signedness or the copy's spelling: all measured
+// dead. What is left is the second read's WIDTH and PROVENANCE in a form the
+// front end orders differently, and the machine code says the read is there
+// (`mov edi, dword ptr [ecx + 0x76]`), so the search has to keep the add
+// mem+mem and change only how that dword read is spelled.
+//
+// The probe is cheap and reusable: `uv run build/scratch/0x47d970/probe.py
+// k=48 <body> [<body> ...]` prints one line per body, split by x and y, and
+// flags the x=low/y=high combination the original uses. Bodies are the keys of
+// BODIES in that file (plus bodies.py, combo.py, bisect_copy.py, second.py,
+// dword.py, width.py, offset2.py); add one to try a shape, 48 copies cost one
+// compile. The searches run this pass, all in the same worktree: probe.py for
+// the ladder above, interleave.py (the full body at 48 different TU offsets
+// against 8 filler kinds: x never leaves high, so TU position is dead once the
+// copy is there), offset.py (0..24 fillers in front: moves y, never x),
+// types.py (pos and size the same type, distinct types, size as two flat
+// shorts: all 0 low), signed.py (unsigned pos, unsigned size, both unsigned:
+// all 0 low), combo.py (3 copy placements x 5 copy spellings x 5 sum spellings
+// x 5 extras = 150 bodies, all 0 low), agg1..agg5 in bodies.py (the two ends in
+// a Point, in an array, the sums after width and bit, int aliases for the loop
+// bounds, short aliases of size: all 0 low or the add changes shape).
+// space-bunny-free pass (#3169): same 98.0, 322 of 322 bytes, and the same two
+// instruction residual. Body unchanged. What is new here is the instrument, not
+// the answer: the earlier passes concluded the x operand is unreachable from the
+// source, this pass shows the FORM is reachable in this compiler and then shows
+// it is not reachable from THIS function.
+//
+// 1. The two sums are not symmetric to the code generator, and that is the only
+//    asymmetry between them. `mov dx,[ecx+0x80]` is seven bytes
+//    (66 8b 91 80 00 00 00) because 0x80 does not fit a signed disp8, while the
+//    x pair (0x76, 0x7e) and y's other operand (0x78) are disp8 and four bytes.
+//    Both orders of the y pair cost 11 bytes, so its choice is a coin flip; the x
+//    pair is 8 bytes either way, so its choice looks decided by something else.
+// 2. The lower-displacement-into-register form IS produced by this compiler for
+//    a gap-8 pair. A one-file TU of 48 tiny functions, each `void fN(S* g) { short
+//    t = g->a + g->b; outN = t; }` with the two shorts at 0x76 and 0x7e, gives
+//    copies 8, 20, 32 and 44 as `mov cx,[0x76]; add cx,[0x7e]` and the rest as the
+//    opposite, so the choice flips with the function's position in the TU. The
+//    same TU with 60 copies of THIS function never puts 0x76 in ax (y flips in
+//    blocks: copies 3-8, 15-20, 26-31, 38-43, 50-55), so what decides the x node
+//    here is a property of this function, not of the declaration state alone.
+// 3. Still no flip, all at 322 bytes: 400 random declaration states (22 kinds of
+//    unused declaration, random counts 1..40, five insertion points, checked with
+//    a four-at-a-time wcl harness that reads the .obj directly); ten single-kind
+//    sweeps to N = 120; 25 Point field-name pairs; pos and size as two distinct
+//    Point types in both declaration orders; the Point nested at depth 2 and 3
+//    for pos, for size and for both; four flat short members instead of two
+//    Points, with the Point copy through a cast; 20 spellings of the x sum and 9
+//    of the y sum (explicit and unsigned casts, `+ 0` either side, a deref, an
+//    Identity and an add2 helper, `+=`, a local temp, a Point copy and a Point
+//    reference for size, a ternary, a multiply by 1); scoping variants (register,
+//    a nested block, a comma declaration, static, goto). Every y-flip keeps the
+//    total at 322 bytes and scores 305, never better.
+// 4. Two leads for whoever comes next. First, the y coin flip and the x coin flip
+//    are two different states of the same generator (the y one is reachable by
+//    changing the declaration state, the x one is not), so the useful lever is
+//    probably something that changes this function's expression-tree shape, not
+//    the TU. Second, there is no near-copy to read the answer off: a scan of all
+//    3843 functions in data/functions.csv for `66 03 41` (add ax, word [ecx+d])
+//    preceded by a lower-displacement `66 8b 41` load finds exactly one function,
+//    this one.
+// 5. The permuter agrees. tools/permute.py is missing from this worktree, so it was run
+//    from a copy in build/scratch/0x47d970/pk (with orig, data, src, include and
+//    toolchain symlinked to this worktree, so it scores against this file): seeds 11
+//    and 12, 7 minutes each, 1106 and 1102 candidates, and seed 13 for 6 minutes,
+//    1293 candidates: all 98.0%, no improvement, no match.
+// 30-min checkpoint (space-bunny-free, #3169): best 98.0%, 322 of 322 bytes, unchanged
+// from the start of this pass, so the file's body is still the best version found. What
+// still differs is the first pair of 16-bit adds, and only that: the original puts
+// 0x76 in the register for the x sum and 0x80 for the y sum, this source puts 0x7e and
+// 0x80. About 2500 variants were compiled this pass (all with the same flags, scored by
+// reading the .obj directly, four at a time); none moved the x operand. New facts, in
+// order of usefulness to the next attempt:
+// 1. The x operand CAN take the low form in this compiler, so this is not a rule that
+//    bans it. The evidence is build/scratch/0x47d970/mem.cpp: one TU, 48 tiny functions
+//    each `void fN(S* g) { short t = g->a + g->b; outN = t; }` with the two shorts 8
+//    bytes apart, where copies 8, 20, 32 and 44 compile to `mov cx,[0x76]; add cx,[0x7e]`
+//    and the rest to the opposite. Same 4-byte disp8 pair, same expression, both
+//    outcomes. So the deciding factor is compiler state, and it is reachable, but it is
+//    not reachable from this function: 60 copies of THIS function in one TU never give
+//    x = 0x76, and neither do the probe-shaped preambles tried before it (see below).
+// 2. The one asymmetry between the two sums is the encoding: 0x80 does not fit a signed
+//    disp8, so `mov dx,[ecx+0x80]` is seven bytes while `mov ax,[ecx+0x76]` is four.
+//    Both orders of the y pair cost 11 bytes, both orders of the x pair cost 8, and only
+//    the y choice is state-sensitive. Anything that makes the two x operands cost
+//    different amounts may be what puts the decision on the other side.
+// 3. No near-copy exists to copy the spelling from: scanning all 3843 rows of
+//    data/functions.csv for `66 03 41` preceded by a lower-displacement `66 8b 41`
+//    finds only this function, so the answer is not sitting in a matched sibling.
 // deepseek-v4.1 pass (#2438): swept the inert-declaration state that fixed the
 // sibling 0x47d820 (16 to 80 unused `extern int` lines in front of the first
 // `#pragma pack`). For this function that lever reaches only the y sum:

@@ -114,7 +114,7 @@ struct Game_00493bf0 {
     char unknown_2bfc[0x37ebe - 0x2bfc];
     unsigned short flags_37ebe;        // +0x37ebe
     char unknown_37ec0[0x37f2f - 0x37ec0];
-    Bit_00493bf0 field_37f2f;          // +0x37f2f
+    unsigned short field_37f2f;         // +0x37f2f
 };
 #pragma pack(pop)
 
@@ -152,8 +152,8 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
 {
     char buf2[0x12c];
     char buf[0x100];
-    int mode;
     int oldmode;
+    int mode;
     Entry_00493bf0* entries = gadget->layer->entries;
     if (gadget->field_60 == -1) {
         g_game->flags_37ebe &= ~4;
@@ -197,8 +197,8 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
         while (*p && *p == ' ')
             p++;
         if (*p == '+') {
-            short flags = 1;
-            if (flags & g_game->field_37f2f.bit1)
+            int flags = 1;
+            if (flags & (unsigned char)(g_game->field_37f2f >> 1))
                 flags = 7;
             if (DAT_005091cc)
                 flags |= 2;
@@ -208,36 +208,36 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
                 mode = 0;
         }
         if (strlen(p) != 0) {
-            Saved_00493bf0 saved = *(Saved_00493bf0*)g_game->field_2bf1;
-            Player_00493bf0* base = &g_game->players[g_game->localPlayer];
             oldmode = g_game->mode_2bf0;
             char* to = 0;
-            if (p[1] > ' ' && strchr(DAT_005093f4, p[1]) != 0) {
-                if (isdigit(p[0])) {
-                    int d = p[0] - '0';
-                    if (d < 0 || d > 9 || g_game->players[d].field_4 == 0)
-                        goto clear;
-                    p += 2;
-                    mode = 3;
-                    to = (char*)&g_game->players[d] + 0x2b;
-                    memset(g_game->field_2bf1, 0, 11);
-                    g_game->field_2bf1[d] = 1;
-                } else {
-                    int c = tolower(p[0]);
-                    if (c != 'a') {
-                        if (c == 'e') {
-                            mode = 2;
-                            to = DAT_005093ec;
-                        } else {
-                            goto after;
-                        }
+            Player_00493bf0* base = &g_game->players[g_game->localPlayer];
+            Saved_00493bf0 saved = *(Saved_00493bf0*)g_game->field_2bf1;
+            if (!(' ' < p[1] && strchr(DAT_005093f4, p[1]) != 0)) goto skip0;
+            if (isdigit(p[0])) {
+                int d = p[0] - '0';
+                if (d < 0 || d > 9 || g_game->players[d].field_4 == 0)
+                    goto clear;
+                p += 2;
+                mode = 3;
+                to = (char*)&g_game->players[d] + 0x2b;
+                memset(g_game->field_2bf1, 0, 11);
+                g_game->field_2bf1[d] = 1;
+            } else {
+                int c = tolower(p[0]);
+                if (c != 'a') {
+                    if (c == 'e') {
+                        mode = 2;
+                        to = DAT_005093ec;
                     } else {
-                        mode = 1;
-                        to = DAT_00508384;
+                        goto after;
                     }
-                    p += 2;
+                } else {
+                    mode = 1;
+                    to = DAT_00508384;
                 }
+                p += 2;
             }
+skip0:;
 after:
             g_game->mode_2bf0 = mode;
             memset(buf2, 0, sizeof(buf2));

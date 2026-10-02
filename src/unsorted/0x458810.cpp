@@ -1,4 +1,50 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// SIXTH PASS (space-bunny-free, issue 3237). The two register ties in this
+// function are INDEPENDENT, and one of them is now off the table: what decides
+// the `bitmap`/`flags` pair is whether the `bitmap` LOCAL exists, and deleting it
+// fixes that pair even in the reload family. With every pre-branch use spelled
+// `list->bitmap` (no local at all) and the tail spelled `if (list->bitmap != 0)`,
+// the whole prologue block matches the original: `mov ebx,[edi+0x10]` for the
+// bitmap, `mov edx,[ecx+0x110]` for the flags, `test dh,0x20` and
+// `mov eax,[ebx+0x14]`. That variant is 423 of 427 bytes and 69.4% (v1/d1 in
+// build/scratch/0x458810/), and the tail and the loop match byte for byte.
+// So:
+//   K1 (bitmap local present?)  decides bitmap->ebx vs bitmap->edx.
+//   K2 (tail re-reads the field?) decides esi=x/edi=list vs esi=list/edi=x.
+// K1 wants no local; K2 wants the reload. This file has K1=no local (wrong, it
+// scores 69.4%) or K1=yes + K2=no reload (87.6%, this file), never both.
+//
+// WHY K2 IS A DEAD END (do not re-sweep it). With the reload in place the
+// priority order of the three prologue temps is list, z, x and the register
+// order esi, ebp, edi; without it the order is x, z, list. Only the x/list pair
+// swaps; z->ebp, bitmap->ebx and flags->edx are the same in both. Measured
+// today, all on top of the reload: all 120 permutations of the five declaration
+// statements (max 69.4%, 25 of them 87.0-69.0, none above), the z-before-x read
+// order (55.2%, which does move x and z: ebp and edi), unsigned x/z, the shift
+// split into its own statement, `char* game = g_game` first, a comma
+// declaration, both reads through inline helpers, one read through a helper, an
+// unused inline function in the unit, `Identity()` wrappers, self-assignments
+// (x = x, list = list, bitmap = bitmap, owner = owner), dead stores in folded
+// branches after each of the four loads, an extra unused int local, `result`
+// and `pieceCount` copies, a second List* copy, `visible = 0`, and every
+// placement of coords/local_8 among the other locals. Every one of them is
+// 69.4% or worse, byte for byte the same colouring. The only knob that ever
+// moved anything was the presence of the local (K1).
+//
+// WHAT IS STILL WRONG IN THE 69.4% VARIANT besides x/list, for whoever picks
+// the tie up: the doubled `test eax,eax` at 0x4588bd needs two structurally
+// different expressions for `bitmap->field_14`, and with no local every spelling
+// tried folds (a `char*` cast, a `(Bitmap*)` cast, an inline getter taking the
+// Bitmap* and one taking the List*, the expression written twice); giving the
+// first conjunct a fresh local inside the block gives 431 bytes and 60.0%.
+// Then `local_8` is homed in the `result` argument slot (`mov eax,[esp+0x30]`)
+// where the original reads the dead saved-ebp slot (`mov eax,[esp+0x20]`), and
+// the loop-exit `pop edi` sits before `inc eax` instead of after the store.
+//
+// The permuter agrees and adds nothing here: 3304 candidates (seed 12) from the
+// 87.6% file and 5485 candidates (seed 13) from the 69.4% one both end at exactly
+// the score they started at. Sweeping 1 to 5 uncalled `static inline` functions
+// into the unit (the compiler-state lever) changes neither basin either.
 // Retry (deepseek-v4.1-flash, issue 3042): confirmed the esi/edi priority tie
 // is unreachable. The tail-reload family (this promoted to ebx) recolours
 // identically (esi=list, edi=x, edx=bitmap) at 57.2% across six new spellings

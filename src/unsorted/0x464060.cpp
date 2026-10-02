@@ -1,136 +1,15 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
-// 30-min checkpoint (deepseek-v4.1-flash, issue 4322): still 87.79% / 560
-// bytes / one real hunk, the file is unchanged. New facts, all free-scored:
-//  - The rect block is invariant under 24 store orders x sum/right temps at
-//    every position (360 combos), nested/comma forms, free, member and inline
-//    helpers, aggregate init, int[4], union, pointer/reference/char* views,
-//    read-backs of r.top (MSVC forwards every one), y/t copies, and operand
-//    spellings. None reach `add ecx, eax`.
-//  - What does move it is the FP chain's place in the IL: with the height
-//    emitted before the rect (not sunk) the block comes out in source order
-//    (store r.top, then lea, then add), but the height is then spilled and the
-//    whole allocation changes (48.5%, 580 bytes). So the original has source
-//    order in the rect IL while its height ftol stays last; ours has the
-//    optimizer's "compute RHS values, then store in source order" order.
-//  - Lead: the store must stay above the computations without a reload. In
-//    0x46b900 the same class of diff was solved by a store/copy/read-back
-//    chain that made MSVC reload the field; here every read-back is forwarded.
-//  - Best lead for the next pass: `r.bottom = (r.top = y) + t;` FIRST (a
-//    nested store, so it is not delayed) does emit the r.top store before the
-//    computations, but the sum then comes before the t+138 lea, so edx is
-//    still free and MSVC makes the sum a `lea edx,[eax+ecx]` (82.56%). The
-//    target needs the nested store evaluated before the lea while the sum
-//    stays after it; every attempt to split them (comma in the r.right
-//    statement, helpers returning t+138 or y+t, SetTopGetRight, GetRightSetTop)
-//    either delays the store again or reorders the sum. 400 random statement
-//    mixes over the same block found no `+add ecx, eax`.
-// mimo-v2.6-pro retry: still 87.8%, same single hunk (lea/add above the r.top
-// store, add dest eax not ecx). New facts, all scored free with build/scratch:
-//  - Nested-store tricks do NOT move the r.top store in this block: a comma
-//    expression, `int dummy = (r.top = y)`, a 0x4ba000-style static inline
-//    helper whose return is assigned, a void cast, `y = r.top = y` and a store
-//    through an int* are all byte-identical to base.
-//  - The 0x46b900 pattern (r.bottom = y; r.top = r.bottom; r.bottom += t;)
-//    does put the r.top store first, but MSVC deletes the dead first store and
-//    swaps the two computations: the sum becomes `lea edx,[eax+ecx]` into a
-//    fresh register and t+138 becomes `add eax,ebx` (82.6%, 556 bytes).
-//  - General shape rule seen in this block: whichever of the two integer
-//    computations comes LAST in statement order is emitted as a destructive
-//    `add` into the operand that dies there; earlier ones are `lea` into fresh
-//    registers. Sum after `r.right = t + 138` gives `add eax,ecx` (dest t,
-//    ours); sum before it gives `lea edx,[eax+ecx]`. The original needs the sum
-//    last AND y dead / t live at the sum so the add destroys y (add ecx,eax),
-//    but every shape that keeps t live past the sum also keeps y live (sunk
-//    store), so the destination never flips.
-//  - Operand order (t + y), y and t copies declared before t's declaration,
-//    sum locals and read-backs (r.bottom = r.top + t) are all byte-identical
-//    to base. Moving r.top before the t declaration (82.6%, 564 bytes) and
-//    the height between the rect stores (55.3%) are worse.
-// The jump table hunk is the check.py link_placeholders display artifact
-// (separate check_ref validation), so the one lea/add hunk is the whole gap.
-// GPT-6.1-sol retry in #3179: 9 checker invocations, best remains 87.8%. The y + t register/scheduling hunk remains; comma sequencing scored 86.0%, other declaration and store-order variants tied at 87.8%. A jump-table difference is a linker placeholder artifact.
-// Retry (deepseek-v4.1-flash, issue 2982): re-confirmed 87.8%, one hunk left.
-// The original emits `mov [esp+0x24],ecx` (r.top) then `lea edx,[eax+0x8a];
-// add ecx,eax` (sum into y's register); ours hoists `lea edx,[eax+0x8a];
-// add eax,ecx` above the store and stores eax. This retry: struct-wrapped y and
-// <windows.h> byte-identical, height-before-rect 48.6%, named left temp 86.6%.
-// Regalloc/schedule tie at the run cap.
-// GPT-6.1-sol retry in #1947: baseline, /Gz, and /Gr checks all confirmed 87.8%.
-// Refinement: add/store reorderings scored 82.6%, 77.9%, and 44.7%; the PR best
-// was restored and independently verified. No MATCH.
-// Partial, 87.8%, and exactly the original's 560 bytes. All the code matches
-// except two instructions in the rectangle fill, plus the jump table that
-// follows the code once it does (its bytes only compare equal once the code
-// is identical). The original computes "add ecx, eax", giving the sum y + t to
-// the register holding y, and emits it after the store of r.top; this version
-// computes "add eax, ecx", giving the sum to the register holding t, and
-// hoists both leas above that store.
-// Fixed in the retry: the inner switch on the team nibble needs a
-// "default: show = 0;" (the original's jump table sends 0 and 9..15 to the
-// same show = 0 store as 2, 3, 5, 6 and 7), which took 87.2% to 87.8%.
-// Tried and rejected (none gives "add ecx, eax"): swapping the operands, all 24
-// orders of the four rectangle stores, r.bottom = r.top + t, chained
-// (r.top = y) + t, a temporary for the sum or for y, the rectangle as an
-// aggregate, an int[4], a constructor-like inline helper (by value, pointer,
-// reference, returning the rectangle, containing t and the height as well),
-// wrapping each run of adjacent statements in a static inline function (the
-// trick that finished 0x4644d0), r or t declared at an outer scope, unsigned
-// or long t and y, assignments to t inside the expression, defining the
-// preceding function 0x464000 above, and every header set (with the C++
-// headers too).
-// Additional retry: a local initialized from y then incremented by t, storing top then using r.bottom += t, and saving y, adding t into y, storing it, then restoring y all canonicalized to the same add eax, ecx. The compiler did not preserve an accumulating destination register.
-// The mode 1 arm of the switch leaves the flag local uninitialised in the
-// original (see the note on the switch below), which this reproduces exactly.
-// Retried by deepseek-v4.1-flash: all 24 store orders, four inline setters, a
-// Fill method, free helpers taking (r,y,t), (r,t,y) or (r,l,t,rr,b), a helper
-// returning the rect, aggregate init and a four-argument constructor,
-// intermediates for the sum / y / t, references and pointers to y and
-// r.bottom, r.top + t / r.left + t / height + t, r.bottom = t + y, t + y,
-// 0 + y + t, y - (-t) and += spellings all compile byte-identically to this
-// file. MSVC canonicalises the sum to "add eax, ecx" because t is already in
-// eax from _ftol. Sweeping 0 to 2000 unused declarations or prototypes, the
-// C++ headers (<string>, <vector>, <map>, <iostream>, <list>), every
-// headers.py set, and defining 0x464000 above are all flat at 87.8. The
-// remainder is allocator and scheduler state from the original file's earlier
-// contents, not a source shape in this block.
-// deepseek-v4.1 retry (still 87.8, 3 hunks, file unchanged otherwise): the
-// add destination is decided before scheduling, so no store order can move it.
-// Also flat at 87.8: an inline AddI(y,t) / AddI(t,y) helper, (int)(y + t),
-// 0 + (y + t), (y + t) + 0, 0 + y + t, y - -t, a copy of y, a sum local built
-// by += at three block positions, r.left + t / r.top + t, a Rect* view, and
-// the store orders left,top,right,bottom and top,left,right,bottom. Bottom
-// before right in source reorders the whole store run (83.1, 7 hunks), and
-// long(y) / a braced sum block give 87.2. Everything that scores 87.8 compiles
-// to the exact same bytes: lea edx, [eax+0x8a]; add eax, ecx; mov [esp+0x24],
-// ecx, with the store of r.bottom using eax. The original instead stores
-// r.top first and then does add ecx, eax (destination = the register holding
-// y, which is only legal once the store has consumed y), so the allocator
-// picked a different destination for the same value. No source shape tried by
-// four models reaches that pick; treat 87.8 as this block's cap.
-// Second deepseek-v4.1-flash retry (still 87.8, 3 hunks): the two-instruction
-// gap is scheduling, not spelling. In ours the sum fills the x87 fild/fmul
-// latency slot (`lea edx`+`add eax, ecx` above the `r.top` store); the
-// original fills that slot with the `r.top` store and only then accumulates in
-// ecx. Free-scored `int bottom = y + t;` and `r.left`-before-`r.top` (87.2)
-// confirm neither the temp nor the store order reaches it. See
-// build/scratch/0x464060/ledger.md.
-// deepseek-v4.1 10-minute retry: re-confirmed 87.8 (560 bytes, 2 real hunks).
-// Discovered the third check.py hunk is a display artifact, not a difference:
-// check.py's link_placeholders rewrites the DIR32 jump-table entries to
-// placeholder+section-offset before disassembly, so a table that follows the
-// code can never read equal even when our table points at the same case
-// bodies; the table relocations are validated separately by check_ref. So the
-// whole distance to MATCH is the one hunk: ours emits lea edx,[eax+0x8a] and
-// add eax,ecx above the store of r.top, the original emits the store first and
-// then lea edx,[eax+0x8a]; add ecx,eax, reusing ecx (y, dead after the store)
-// as the accumulator. Tried this session: r.bottom = r.top + t (drops the
-// file to 60.1, 520 bytes, so the read-back changes the whole block shape) and
-// r.bottom = (r.top = y) + t (same 60.1/520), neither reproduces the order.
-// deepseek-v4.1-flash retry (issue 3637, still 87.8, 6 checker runs): a y copy
-// declared after t, `r.bottom = r.top + t` (the reload is forwarded), a const
-// t, and moving the height computation after the FUN_00467c00 call (frame
-// shrinks to add esp,0x1c and the epilogue diverges, worse) all leave the add
-// destination at eax. The single op hunk below is the whole distance.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-alpha. Names are provisional.
+// MATCH. The last two instructions were the only difference for five earlier
+// passes, which all sat at 87.8%: ours hoisted the rectangle fill's two integer
+// computations (lea edx,[eax+0x8a] and the y + t sum) above the store of
+// r.top and gave the sum t's register (add eax,ecx), while the original stores
+// r.top first and then accumulates into y's register (add ecx,eax).
+// The lever was a declaration in the enclosing scope, not a spelling of the
+// block: `t` belongs to the function, not to the `if (id != 10)` body. With
+// `int t` there the store of r.top comes out first and the add drains ecx;
+// declared inside the body it does not, whatever the four stores, the sum, the
+// operand order, the read-backs, the helpers, the aggregates or the position
+// of the height statement are.
 #include <math.h>
 #pragma pack(push, 1)
 
@@ -182,6 +61,7 @@ void __stdcall FUN_004a50e0(void*, void*, int, int, int, int);
 void __stdcall FUN_00464060(void* surf)
 {
     int max_lines = g_game->max_lines;
+    int t;
     if (max_lines == 0)
         return;
     int i = g_game->tail;
@@ -207,7 +87,7 @@ void __stdcall FUN_00464060(void* surf)
                 show = 0;
             break;
         case 2:
-            show = ((g_game->entries[i].flags & 0xf) != 8);
+            show = (g_game->entries[i].flags & 0xf) != 8;
             break;
         case 3:
             if (g_game->unit_type_mask == 0) {
@@ -243,7 +123,7 @@ void __stdcall FUN_00464060(void* surf)
             int height = 138;
             int id = g_game->entries[i].unit;
             if (id != 10) {
-                int t = (int)(FUN_004c1450() * 0.8);
+                t = (int)(FUN_004c1450() * 0.8);
                 Rect_00464060 r;
                 r.top = y;
                 r.left = 138;

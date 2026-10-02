@@ -8,8 +8,8 @@
 // here is the mechanism, the negative results that pin it down, and a census of
 // how the rest of the exe gets the same reload.
 //
-// WHAT STILL DIFFERS (instruction-stream diff, five items, 12 of the 5 missing
-// bytes are item 1):
+// WHAT STILL DIFFERS (instruction-stream diff, five items; the whole 5-byte
+// size deficit is item 1's 12 bytes less the 7 bytes items 2 and 3 spend):
 //  1. Two `mov ebp, [g_game]` re-materialisations the original has at 0x47988e
 //     and 0x4798ed, one after each of the two FUN_004a0bf0 calls in the
 //     switch. They are 6 bytes each and are the whole size deficit (1029 vs
@@ -51,12 +51,12 @@
 //
 // CENSUS OF THE RELOAD IN THE EXE (build/scratch/0x4797e0/findreload2.sh):
 // `mov e(bx|bp|si|di), [0x511de8]` immediately after a `call` occurs 87 times
-// in 50 functions, and every MATCHed one is written with plain `g_game->` and
-// no local. The cleanest example is in this module, MATCHed 0x47a760, whose
-// `mov edi, [0x511de8]` at 0x47a823 sits right after `call 0x464290`; its
-// source has no game local at all. So the idiom is real and this function is
-// the one place in the area where the 24*playerIndex temporary outranks the
-// g_game temporary.
+// in 50 functions. The two MATCHed ones, both in this module, are written with
+// plain `g_game->` and no game local at all: 0x47a760, whose
+// `mov edi, [0x511de8]` at 0x47a823 sits right after `call 0x464290`, and
+// 0x47a0e0, which re-reads the global at nearly every use. So the idiom is
+// real, and this function is the one place in the area where the
+// 24*playerIndex temporary outranks the g_game temporary.
 //
 // ITEM 4 IS LOAD-BEARING, WHICH IS WHY THE FILE KEEPS THE `bool done`.
 // Every spelling of FreeColour's exit test that emits the original's
@@ -124,8 +124,9 @@
 //  * the current player behind a named pointer, an `int*` offset form, and a
 //    countdown loop in case 2: 42.3, 43.9, 84.6 (the case-2 countdown the
 //    compiler already produces is already the original's shape).
-// tools/permute.py ran 15 minutes on this file from the 84.6% start and
-// reported no gain, as in every earlier pass.
+// tools/permute.py ran 15.0 minutes on this file from the 84.6% start: 1994
+// candidates, 32 that did not compile, 18 duplicates, 84.6% -> 84.6% (score
+// 1626 -> 1626), so it confirms the local optimum once more.
 // Follow-up pass (issue #4344, after PR 4474 merged): tools/permute.py's
 // best_ratio.cpp scores 84.6 (1029 of 1034) against this file's 84.0, and the
 // permuter's own log reported no gain, so best_ratio.cpp must be scored by hand

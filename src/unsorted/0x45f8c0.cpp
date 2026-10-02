@@ -181,6 +181,126 @@
 // do-while body, the '|' cut split into its own static inline CutAtBar helper,
 // and dead int results kept from both FUN_004ab1b0 calls. The merge-block
 // register pick is unchanged.
+//
+// space-bunny-free (issue #4232, this pass): established the MECHANISM of the
+// residual, so the next attempt need not re-derive it. In an isolated model of
+// just the merge (build/scratch/0x45f8c0/min/min.cpp: a local char value[0x80],
+// the same if/else, then F3(... F2(F1(value, 0)) ...)) MSVC 5 reproduces this
+// hunk exactly, `lea ecx` then `lea edx`. Filling the pool with computed values
+// shows the pick is simply the LOWEST-NUMBERED free register out of
+// {eax, ecx, edx, ...}: with nothing live the lea goes to eax, so in this
+// function eax is already spoken for and ecx is the next free one. Therefore
+// the original must have had ecx BUSY at 0x45f9f7, not merely a different value.
+// Confirmed by making a value live across the merge: `int q = in[3];` used in
+// F1's second argument puts q in ecx and the merge's lea moves to edx
+// (min/gen.py a0_live, min/search.py w2_live). The same is true in the real
+// function: ecx is the only difference, and ebx/ebp/edi (y, layer, the loop
+// counter) plus eax already hold every register MSVC will use.
+// So the search is now a single question: what source construct puts a value in
+// ecx at the merge and emits no instruction? Screened here and all flat at
+// diff 0 with the same `ecx edx`: 52 unused `register` variables (int, char*,
+// char, short, long, unsigned, with and without initialisers, one or two of
+// them, in AddLine before the if, in AddLine before the calls, in the function,
+// in the loop body) - MSVC 5 drops an unused register variable before
+// register allocation, so it reserves nothing; 168 declared-type spellings of
+// FUN_004b6af0's and FUN_004c5740's parameters (const, unsigned, void*, FAR*,
+// __ptr, and int/long/short/size_t/char for the second parameter); and
+// tools/headers.py --cpp over all 1536 sets, still flat 98.7 with <windows.h>
+// best. What the flip needs is a temporary MSVC assigns a register to without
+// emitting code for it; the only such thing found so far is a call that clobbers
+// ecx (build/scratch/0x45f8c0/probe/e1.cpp, strchr for the cut, gives `edx edx`
+// but adds a real call, 11 changed lines).
+//
+// space-bunny-free (issue #4232, second half): found the exact LEVER, plus a
+// minimal model of it, so this is now a counting problem rather than a search.
+//
+// An isolated model of just the merge (build/scratch/0x45f8c0/min/min.cpp:
+// local char value[0x80], the same if/else, then F3(..., F2(F1(value,0)), ...))
+// reproduces this hunk byte for byte, and in it the value-buffer lea lands on:
+//
+//   one FUN_004b6af0 call   -> edx
+//   two calls              -> ecx, then edx
+//   three calls            -> ecx, edx, eax
+//   four calls             -> ecx, edx, eax, ecx
+//   five calls             -> ecx, edx, eax, ecx, edx
+//
+// (min/ncall.py.) So MSVC 5 hands out registers for these address temporaries
+// from a three-slot pool that rotates edx -> eax -> ecx, and with more than one
+// use the later call site is assigned first, so the earlier one gets the next
+// slot up. That is why ours is ecx and the second site is edx.
+//
+// The pool position is fixed by how many register-consuming nodes precede the
+// merge in the loop body. Ours has five (the &key and &value addresses of the
+// wsprintf and lookup calls, the strcpy destination, and the scan's &value[1]);
+// the original must have had one more, or two fewer, for the merge to land on
+// edx. Adding one node moves it, and moves BOTH sites at once, because at the
+// second site eax and ecx are genuinely busy with the entry-table arithmetic so
+// edx is the only register left:
+//
+//   FUN_004ab1b0(layer, "TEXT", ..., 0x28, y + 1, 0x4e, 2)   -> edx, edx
+//   FUN_004ab1b0(layer, "TEXT", ..., 0x28, y, y + 1)          -> edx, edx
+//
+// (build/scratch/0x45f8c0/po/sweep2.py, use1 and x_shift.) That is the target
+// register pair, at a cost of exactly one instruction, `lea ecx, [ebx+1]`, which
+// replaces `push 0x4e` with `push ecx` and makes the function 506 bytes instead
+// of 504. So the extra node the original had must emit nothing.
+//
+// Screened here, all flat at zero instruction diff with the same ecx edx, so
+// none of them is that node: the extra argument written every way MSVC might fold
+// it (`y + 1`, `y + 0`, `y & 0x7fffffff`, `y - y`, `y ? y : y`, `(int)y`, and
+// `int q = y` then `q + 0`, `q = y` or `(int)q` for either or both calls
+// (min/copy.py) - they all coalesce back into y's register and shift nothing);
+// locals holding constants for the width, x and attr arguments, for the size and
+// default arguments of the lookup, and a local `char* type = "TEXT"`
+// (min/consts.py - propagated constants never take a register); `&value[0]`,
+// `&key[0]`, `&path[0]`, `&page->blank[0]`, `&DAT_005119b8[0]` and `"Help"[0]`
+// for addresses already in the code (build/scratch/0x45f8c0/pn/sweep.py - they
+// fold into the same node); `parser.current` hoisted into a local `cur`,
+// `(*parser.current).FUN_004c48c0`, `cur->field_0 >= cur->field_0`,
+// `layer->entries == layer->entries`, `sizeof(value)` and
+// `*(short*)(&DAT_00512ef0[0])`; the whole body split into three inline helpers
+// (Cut, AddLeft, AddRight), instruction for instruction identical to this file
+// and still ecx edx; value, key, layer and the lookup's `this` each read through
+// a pointer local; and AddLine's four parameters in all 24 orders, its value
+// parameter as void*, unsigned char*, const char* or char* const, its y
+// parameter by reference, and its layer and page parameters by reference.
+//
+// Also ruled out at zero instruction diff and the same register pair: the loop
+// written as continue / goto / while / for with the test in the header, `!= 0`,
+// a nested block round the body, and the increment folded into the test
+// (build/scratch/0x45f8c0/lf/sweep.py); the two calls each in their own block;
+// 3000 random combinations of nine independent spelling knobs, 2398 of which
+// compile (build/scratch/0x45f8c0/gen3.py with pprobe.py); and, in the minimal
+// model, the depth of the call chain, the presence or absence of either arm of
+// the if/else, the scan's pointer typed void*, unsigned char* or char* const,
+// and the number and placement of the later calls (min/deep.py, ablate.py,
+// ncall.py, cx.py).
+//
+// Three more axes, also flat at zero or near-zero instruction diff with the same
+// ecx edx, all places where an extra pool slot could in principle have come
+// from: the prologue, where &path and &parser are the nodes before the loop
+// (pg/sweep.py: `&path[0]`, `&("gamedata"[0])`, `&("TDF"[0])`, `&("Help"[0])`,
+// `(&parser)`, `(sub)->layer`, `&sub->layer[0]`, `&layer->entries[0]`,
+// `(short)DAT_00512ef0`); the preheader, whose declaration order decides the
+// imul load order (pz/sweep.py: a fifth identity local, `first` and `last` each
+// through further locals, the two operands multiplied the other way round, extra
+// parentheses, `& 0x7fffffff` on either operand, `first + (n ? n : n)`, and the
+// product in a separate local); and the comma operator, which keeps both
+// operands as tree nodes but emits nothing for a side-effect-free left one, on
+// every argument of the lookup, wsprintf, strcpy, the scan pointer, both
+// markers and both FUN_004ab1b0 calls (cm/sweep.py) - MSVC drops the left
+// operand, so none of those twenty adds a slot. tools/permute.py over two bases
+// (this file and the three-helper shape), 8 minutes each, 14559 candidates, also
+// flat at 98.7; as expected, its ratio cannot see a register-only difference.
+//
+// So: the original's tree had one more register-consuming node before the merge
+// than any of about 3000 spellings of this function produce, and that node
+// emitted no instruction. Nothing in C++ that MSVC 5 will keep in a register
+// emits no instruction except a value whose register is a forced one, and the
+// only forced register here is ecx for the __thiscall lookup, which the
+// original emits at 0x45f99d with nothing live afterwards. That is where the
+// next attempt should start: keep the lookup's `this` in ecx across the merge,
+// or give one of the merge's callee-visible values a forced register.
 #include <windows.h>
 #include <string.h>
 

@@ -1,123 +1,88 @@
-// Decompiled by Space Bunny Free, finished by GPT-6.1-sol and mimo-v2.6-pro. Names are provisional.
-// claude-opus-5-5 (#4375): still 88.2%. Only the prologue differs (the original loads
-// read straight into ebp and derives the access mask from it). doRead declared first
-// (82.4%), the mask as a separate assignment or an if (81.1%), the mask inlined in each
-// call (29.3%) and a 10-minute permuter run found nothing better.
-// Retry (GPT-6.1-sol, issue 3201): 7 checker invocations in this pass; best
-// remains 88.2%. The arg6 prologue load is the only mismatch. Read-first
-// declaration order scored 82.4%; delayed mask assignment scored 82.4%;
-// if-assignment scored 81.1%; DWORD doRead and an LPDWORD alias matched the
-// 88.2% baseline. No change to prior best source.
-// #2992 retry by GPT-6.1-sol: three checks retained 88.2% (299/297 bytes); an
-// arithmetic-mask variant fell to 82.4%. The prologue parameter load differs.
-// Opens (or creates) HKCU\Software\Cavedog Entertainment\<subKey> and then
-// either reads or writes one REG_DWORD / string / binary value in it.
-// The decorated name is ?FUN_004b6880@@YGHPAD0PAEPAKKK@Z, so six stack
-// arguments, ret 0x18.
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol and mimo-v2.6-pro,
+// finished by Space Bunny Free. Names are provisional.
 //
-// Retry (deepseek-v4.1-flash, issue 2435): re-confirmed 88.2%, 299 vs 297
-// bytes. Only the 2-byte prologue differs: the original loads the 6th param
-// straight into ebp (`mov ebp,[esp+0x30]; mov esi,ebp`) for the mask/doRead,
-// ours hoists the load into eax and adds `mov ebp,eax`. doRead-first shapes
-// make the mask read ebp but still load via eax (298 bytes, 82.4). A dummy
-// sweep 0..64, headers.py (128 C plus 768 --cpp sets) and all order/type/mask
-// spellings are flat, so it is a compiler-state tie.
+// Space Bunny Free pass: MATCH, 297 of 297 bytes, all six linker references ok,
+// from 88.2% (299 bytes). One construct closes the whole residual, and it is
+// the thing eight earlier passes all treated as fixed: THE NINTH ARGUMENT OF THE
+// THREE RegCreateKeyExA CALLS IS NOT `&read`, IT IS THE ADDRESS OF A LOCAL.
 //
-// What this file reproduces:
-// - The goto structure. All the failure exits jump to one `close:` label, and
-//   the two success stores are written out in their own arms, which is what
-//   makes MSVC duplicate `mov edi, 1` and put a `jmp` after each. With one
-//   shared tail the store is emitted once and the function loses 4 bytes.
-// - The frame holds four dwords, zeroed in the order key1, key2, key3, result,
-//   which needs the three HKEYs declared with `= 0` and `result` zeroed by a
-//   statement after them.
-// - The result lives in edi: it is assigned 1 on both success paths and read
-//   back from its stack slot on the failure path, then returned with
-//   `mov eax, edi`.
-// - `samDesired` is read ? KEY_READ : KEY_WRITE (`neg/sbb/and/add` in esi),
-//   the flag copy is in ebp, and ebx holds the constant 0, so every comparison
-//   is `cmp eax, ebx` and every zero argument is `push ebx`.
-// - Every call result is stored in a LONG before it is compared, which is what
-//   gives `cmp eax, ebx` rather than `test eax, eax`.
-// - The read path accepts ERROR_SUCCESS and ERROR_MORE_DATA (0xea).
-// - The ninth argument of all three RegCreateKeyExA calls is the address of
-//   the sixth parameter, not of a local. Passing 0 instead loses the frame slot
-//   and 12 bytes, so keep it.
+// The residual was the prologue: the original loads the sixth parameter straight
+// into ebp between `push ebp` and `push esi` and copies it on to esi, while we
+// hoisted the load into eax and copied out twice, once to esi and once to ebp.
+// Taking the address of the sixth parameter is what stops MSVC 5 promoting it:
+// an address-taken parameter has an indirect home and is reloaded after every
+// call, so `int doRead = read;` has to be a register copy, and the allocator
+// then splits the parameter's web into an early one (eax) and a late one (ebp).
 //
-// Still different (86.0% to 88.2% left on the table):
-// - The prologue. The original loads the flag straight into ebp between the
-//   two pushes and copies it into esi (`mov ebp, [esp+0x30]; push esi; mov esi,
-//   ebp`); here MSVC hoists the load above `push ebx` into a scratch register
-//   and copies it into esi early and ebp late, which costs 2 bytes. The
-//   address of that same parameter is taken (passed as lpdwDisposition), and
-//   that address-taken use is what stops MSVC folding the copy into a load:
-//   every shape tried (flag declared first, samDesired computed from the local,
-//   BOOL/unsigned/long flag, a separate `LPDWORD pRead`, passing 0) either
-//   keeps the hoist or loses the frame.
+// The sibling that decided it is 0x4b4cf0 (Class_004b4cf0::FUN_004b4cf0, MATCH,
+// 115 bytes), found by scanning the exe for `mov ebp,[esp+d]` followed by
+// `push esi ; mov esi,ebp`: there `len` is a parameter whose address is never
+// taken, so MSVC promotes it into ebp and copies it to esi for `len + c->size`,
+// which is exactly our prologue shape. The only difference was that our
+// parameter's address was taken.
 //
-// A later pass (Claude Sonnet 5.5, #566) scored about 30 more shapes with
-// check.py --sym, all worse or equal, so do not repeat them:
-// - every combination of order (`doRead` before or after `samDesired`), source of
-//   the mask (`doRead` or `read`), type of the flag (`int`, `DWORD`,
-//   `unsigned char`) and declaration (initialised or assigned later): 18 files.
-//   `doRead` first with the mask taken from it gives 298 bytes (one over, 82.4
-//   percent) but the load still goes into eax above `push ebx` and is copied to
-//   ebp; `unsigned char` gives 300 to 301 bytes;
-// - probes meant to stop MSVC unifying the two reads of `read` (the 0x4bfd60
-//   trick): `*(int*)&read`, `read + 0`, `(doRead != 0)`, `doRead = doRead`,
-//   reading the mask through `*(int*)&read`; an inline helper
-//   `REGSAM Access(DWORD)` called with `doRead` or `read`, before or after the
-//   flag. All 298 or 299 bytes, none moved the load.
-// The difference is one fact: the original's load of `read` goes straight into
-// ebp after `push ebp` (the flag's own register, so the mask is computed from a
-// copy, `mov esi,ebp; neg esi`), while ours loads a temporary into eax at the
-// top and copies it. Everything else (frame, zeroing order, exits, the doubled
-// success stores) matches, and the 2-byte size difference is only this.
+// So the ninth argument is a local, `DWORD disp`, and the reason it still emits
+// `lea eax,[esp+0x34]` is the lever docs/agent-guide.md records under "locals in
+// parameter slots": `read`'s stack slot is dead after the two reads at the top,
+// so MSVC 5 reuses it for `disp`, and E+0x18 is both `&read` and `&disp`. The
+// generated code is unchanged, the frame is unchanged (still `sub esp,0x10` with
+// key1, key2, key3 and result), and the prologue is byte for byte the original's.
 //
-// Retry (Sonnet 5.5, #1107), no gain, 1 official run: /Gr, /Gz and /Gd give the
-// same 88.2% (the function is already __stdcall and the callees are imports).
-// A 3360-file scripted sweep of every declaration/statement order of result,
-// key1..3, sam, doRead, err and the zeroing (key order fixed) topped out at
-// 88.2% (the current shape, sam before doRead); every order with doRead first
-// gives 298 bytes and 82.4%, where the load goes to eax, is copied to ebp, and
-// the mask is negated in eax then moved to esi. Also flat or worse: if/else and
-// KEY_WRITE + 0x13 forms of the mask, sam re-assigned from itself, the mask
-// spelled in every call, and inline helpers taking DWORD, DWORD& or DWORD*.
-// The original loads read straight into ebp (its own register) and copies it to
-// esi for the neg; MSVC here always folds the two into one temporary.
-// Retry (GPT-6.1-sol, #1164): 11 check.py invocations across both passes,
-// counting the first pre-rebase invocation whose output was not captured. No
-// gain from no-op self-assignment to key1, assigning read to result before its
-// zero initialization, `register` on doRead, `read = read`, or copying doRead
-// back to read. A bool doRead drops to 32.3%. Reversing the ternary condition
-// is byte-identical to the baseline. The residual remains the prologue arg6
-// load: original loads directly into ebp after push ebp; MSVC hoists it into
-// eax and copies it to esi and ebp.
+// Measured while finding it, all compile-only, so none of it cost a check run:
+//   * `&read` in one call only (0 in the other two) is still 291 bytes and still
+//     hoists into eax: one address-taking call is enough to block the promotion,
+//     so it is the address, not the number of calls, that decides;
+//   * `&disp` with `disp` declared first, last or between the flag and `err` all
+//     give 297 bytes and MATCH, so the slot reuse is not order sensitive;
+//   * `DWORD disp = 0;` is 301 bytes: the zeroing store is a real instruction,
+//     so `disp` must be left uninitialised (its value is never read here, only
+//     written by RegCreateKeyExA);
+//   * with `&read` restored and the dead `disp` kept (301 -> 299 bytes, eax),
+//     which confirms the ninth argument is the whole lever.
 //
-// Retry (mimo-v2.6-pro, #3996): no change to the 88.2% best. Confirmed there
-// are exactly two canonical layouts and the original is a third one. Layout
-// (a), two reads of `read` unified into one temp load (the current file): the
-// mask chain runs in the mask web esi with `mov esi,eax`, the flag copy
-// `mov ebp,eax` is placed late (299 bytes). Layout (b), one flag local whose
-// value feeds the chain (`int doRead = read; samDesired = doRead ? ...`): the
-// chain runs destructively in the load's temp register, the flag is copied out
-// early and the chain result moves into the mask web late (298 bytes, 82.4).
-// The original is layout (c): the load lands directly in the flag web ebp (so
-// it is forced below `push ebp`, which is why it sits between `push ebp` and
-// `push esi`), one copy `mov esi,ebp` feeds the chain, and the chain extends
-// the mask web. Every spelling tried here collapses into (a) or (b): const
-// flag, assignment-in-condition `(doRead = read) ? ...`, comma expressions,
-// err declared first, `*(int*)&read` for the second read, explicit maskSrc
-// copies (copy propagation folds them), and mask-source/order swaps.
-// Testing `read` directly (no pre-call copy) makes MSVC reload it after the
-// calls (its address escapes through lpdwDisposition) into a 295-byte shape,
-// so the tested value must be a pre-call register copy. A dummy-declaration
-// sweep of 0..2200 extern ints (step 4/8, parallel check.py --sym) is flat on
-// both layouts (base 88.2 everywhere, layout (b) 82.4 everywhere), so this is
-// not the small compiler-state window kind of residual either. Remaining
-// hypothesis: the original somehow makes the load's web BE the flag web while
-// the chain still coalesces with the mask web, a combination MSVC 5's web
-// construction refused under every source shape on record.
+// Harness for this pass, in build/scratch/0x4b6880/ (all scratch only):
+//   * asmlist.py compiles a variant with tools/wcl and reads the generated code
+//     straight out of the object with objdump, printing the exact size and the
+//     prologue, about 4 s a variant, which is what made a 200-variant sweep
+//     affordable. The size comes from the last instruction's address, which is
+//     why the nop padding after the function does not count.
+//   * variants.py .. variants6.py write the sweep grids (flag and mask spelling,
+//     declaration position, err and result types, helper forms, union and array
+//     flags, and the address-taking variants above).
+//   * sweep.sh prints the distinct prologues of a whole grid at once and counts
+//     how many hit `mov 0x30(%esp),%ebp`, the original's shape.
+//   * scan.py and va.py look for other functions in the exe with this prologue
+//     family; the full nine-byte pattern occurs exactly once, here, but the
+//     six-byte `mov ebp,[esp+d] ; push esi ; mov esi,ebp` occurs twice and
+//     0x4b4cf0 is the other one.
+//   * sw.py scores a set of variants with check.py in parallel.
+//
+// What earlier passes measured, now all explained by the ninth argument: every
+// shape of the flag copy, the mask, the declaration order and the file-scope
+// noise kept `&read`, so they all kept the parameter unpromotable. doRead first
+// (298 bytes), the mask from doRead (298), any type for the flag, `volatile`-free
+// self assignments, inline helpers taking DWORD, DWORD& or DWORD*, a pointer to
+// the flag local, `(read | doRead)` and `(read & doRead)`, arithmetic masks,
+// a dummy-declaration sweep to 2200, headers.py and /Gr /Gz /Gd were all flat,
+// and a 15 minute permuter run over 2197 candidates found nothing. None of them
+// could have worked: with `&read` the load has to go through eax.
+//
+// Historical notes from the passes that got here, kept because the negatives are
+// still true for a body that passes `&read`:
+//
+// The four frame dwords are zeroed in the order key1, key2, key3, result, which
+// needs the three HKEYs declared with `= 0` and result zeroed by a statement
+// after them. The result lives in edi: assigned 1 on both success paths and read
+// back from its stack slot on the failure path, then returned with `mov eax,edi`.
+// All the failure exits jump to one `close:` label and the two success stores are
+// written out in their own arms, which is what makes MSVC duplicate `mov edi,1`
+// and put a `jmp` after each; with one shared tail the store is emitted once and
+// the function loses 4 bytes. `samDesired` is read ? KEY_READ : KEY_WRITE (the
+// neg/sbb/and/add chain in esi), the flag copy is in ebp, and ebx holds the
+// constant 0, so every comparison is `cmp eax,ebx` and every zero argument is
+// `push ebx`. Every call result is stored in a LONG before it is compared, which
+// is what gives `cmp eax,ebx` rather than `test eax,eax`. The read path accepts
+// ERROR_SUCCESS and ERROR_MORE_DATA (0xea).
 #include <windows.h>
 
 // FUNCTION: 0x4b6880
@@ -130,17 +95,20 @@ int __stdcall FUN_004b6880(char* subKey, char* valueName, LPBYTE data, LPDWORD s
     HKEY key3 = 0;
     REGSAM samDesired = read ? KEY_READ : KEY_WRITE;
     int doRead = read;
+    // lpdwDisposition for the three calls. Left uninitialised on purpose: the
+    // key is never read back, and initialising it costs a store (301 bytes).
+    DWORD disp;
     LONG err;
     result = 0;
     err = RegCreateKeyExA(HKEY_CURRENT_USER, "Software", 0, 0, 0, samDesired, 0,
-                          &key1, &read);
+                          &key1, &disp);
     if (err != 0)
         goto close;
     err = RegCreateKeyExA(key1, "Cavedog Entertainment", 0, 0, 0, samDesired, 0,
-                          &key2, &read);
+                          &key2, &disp);
     if (err != 0)
         goto close;
-    err = RegCreateKeyExA(key2, subKey, 0, 0, 0, samDesired, 0, &key3, &read);
+    err = RegCreateKeyExA(key2, subKey, 0, 0, 0, samDesired, 0, &key3, &disp);
     if (err != 0)
         goto close;
     if (doRead) {

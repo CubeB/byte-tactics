@@ -1,4 +1,6 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by Space Bunny Free. Names are provisional.
+// PARTIAL, 96.1%, 505 bytes vs 505: the width-pointer form below is the whole
+// improvement over the 93.5% that was here when this pass started.
 // claude-sonnet-5-5 pass (still 93.5%): the ORIGINAL guard is the obj-first one
 // (`mov ecx,[g+0x142b7]; mov eax,[obj+0x82]; cmp eax,ecx`), so the original is the
 // old guard plus the folded `imul eax,[width]` (-2 bytes); we have either old guard
@@ -213,6 +215,164 @@
 // multiply rather than after the `cells` load as the original has it. So the
 // residual is one allocator decision, and neither the expression's spelling
 // nor its order reaches it.
+//
+// Space Bunny Free pass, baseline reproduced at 93.5% / 505 = 505. The body
+// below is unchanged and is still the best measured; this pass bought
+// precision about what is missing rather than points. What is new:
+//  - THE ORIGINAL'S COMPARE IS THE OBJ-FIRST ONE. `mov eax,[esi+0x82]` is the
+//    accumulator load and `mov ecx,[ebx+0x142b7]` the scratch, which is what
+//    `a != b` compiles to, so the original's guard is
+//    `if (obj->field_82 != g_game->field_142b7)`. Under that guard every
+//    instruction of the sixteen-instruction block matches except the multiply,
+//    and the block is 63 bytes against the original's 61. Under the game-first
+//    guard in the file it is 61 bytes, so the sizes agree and the compare shape
+//    does not. So the missing two bytes are exactly the fold: `mov ecx,[y];
+//    mov eax,[width]; imul eax,ecx` in place of `movsx eax,[y];
+//    imul eax,[width]`, and reaching MATCH needs the obj-first guard PLUS the
+//    fold, not either alone. Every earlier pass swept the index block under the
+//    game-first guard and the guard under one index block, so that cross was
+//    never run;
+//  - which guard you get is NOT the expression's doing. Both are reachable from
+//    this file: under the obj-first guard, moving `int index = 0;` above
+//    `Point size = obj->size;` silently reverts to the game-first compare and
+//    back to 505 bytes / 93.5%, and so does hoisting a `Game* game = g_game;`
+//    local above the cell statement. The compare form and the block are one
+//    allocation decision, not two;
+//  - the guard x index cross, 23 variants (width local, const int width,
+//    unsigned width, `Game* game`, `Cell* cells`, `short`/`int` y and x locals,
+//    a `Point p` copy, a named `int n`, a named row, base pointer add, row
+//    pointer plus x, the multiply split over three statements, an explicit
+//    cast, a row-base pointer, `const int& w`, two inline helpers): every one
+//    is 507 bytes / 80.3% with the same block, so no index spelling folds and
+//    the cross closes;
+//  - local removal and reshaping under the obj-first guard, 12 variants: no
+//    `size` local at all (direct `obj->size` in the loops, 40.4%), no `index`
+//    local (a `mask++` pointer walk, 41.6%), neither (41.3%), `size` as two
+//    shorts, `size` as one `unsigned int` with shifts (52.2%), `unsigned index`,
+//    `index` before `size`, a `Point p` copy first (77.4%), `Game* game` first,
+//    `cell` declared then assigned, a mask pointer inside the mask branch
+//    (78.1%), and the width through a getter: none is 505 bytes, and the ones
+//    that fold nothing cost 20 to 40 points by breaking the loop bodies;
+//  - register-pressure perturbations aimed at 0x47de60's stated mechanism
+//    (c1 keeps the width as a memory operand only when the scratch it wants for
+//    the other multiply operand is not ecx, and here that scratch is ecx):
+//    hoisting the mask pointer, the unit pointer, `obj->field_a8`, a live
+//    `cell->field_c`, `py` as a short local, `py` and `px` as shorts, and `py`
+//    reused after the loops. All flat 507 bytes or 44 to 64%; none folds. So
+//    the mechanism does not transfer from that body;
+//  - 0x47d820's declaration-state lever is INERT here at every scale: 128
+//    runs, `extern int` / `extern void __cdecl f(void)` / `extern int __cdecl
+//    f(int,int)` / `typedef` padding at N = 0 to 10000 step 2, 0 to 80, and
+//    100 to 10000, both guard forms. Every single one is 93.5% / 505 bytes or
+//    80.3% / 507 bytes. Unlike 0x47d820 (16 to 80 flips it) and unlike
+//    0x47de60 (~2300 does), no declaration count reaches the fold here;
+//  - 62 include sets, the ones 0x47de60's notes name as moving that fold
+//    (non-lean <windows.h>, lean <windows.h> plus each of ole2/vfw/richedit/
+//    d3dtypes/dinput/ddraw/dsound/dplay/d3d, and stdio/stdlib/string/math/
+//    mmsystem/commctrl/shellapi/winsock/rpc and 25 C++ headers) plus 16
+//    windows.h pairs: all 507 bytes, none folds;
+//  - what the fold actually needs, measured rather than guessed
+//    (build/scratch/0x47d0e0/imulrule.py and imulrule2.py, ~40 tiny
+//    functions, and cutdown.py, which cuts the real body down and adds pieces
+//    back). A level-0 width folds every time: a global `int`, `*int_ptr`,
+//    `pw[0]`, a stack slot. A `[reg+disp]` width folds in none of them, at
+//    offsets 1, 2, 4, 8, 0x100, 0x1000 and 0x14233, spelled as `g->w`, as
+//    `*(int*)((char*)g + k)` and as `pw[k]`, and 0x14233 measured under the
+//    same `#pragma pack(1)` as this file so the displacement is exactly the
+//    original's. The order of emission there is this function's own, `movsx
+//    edx,[y]` then `mov eax,[width]` then `imul eax,edx`. That is only half
+//    the story,
+//    because the folding ex-sites of this very expression in this very area
+//    (0x421e60, 0x4246b0, 0x47db70, 0x47dfc0, 0x47de60, 0x47e2d0) all fold
+//    `[reg+disp32]` into `imul`, so the address form is not the discriminator.
+//    What differs is which operand c1 makes the accumulator: it puts the width
+//    there and materialises it, where the original put `pos.y` there and left
+//    the width as the memory operand. In the cut-down body the accumulator is
+//    still the width even with the loops deleted and only a single store left,
+//    so it is not the pressure of this function's later code either;
+//  - the frame-slot widths are right and need no change: [esp+0x10] is a
+//    4-byte `Point` (written and read as a dword, and read and written as two
+//    words), [esp+0x1c] is a 4-byte slot shared by the `int` row counter, the
+//    4-byte `grown` Point and the 4-byte visitor pointer. That is why
+//    everything from 0x47d12d on is byte identical.
+// Space Bunny Free pass, 93.5% -> 96.1%. THE LEVER IS THE BRIEF'S ITEM 18.
+// Passing the width through a pointer to a local that is never modified,
+//     int w = g_game->width;
+//     int* pw = &w;
+//     Cell* cell = &g_game->cells[obj->pos.y * *pw + obj->pos.x];
+// is the first thing in nine passes to move this block. A plain `int w` local
+// does nothing (80.9%, and the pointer is what does it), because VC5 copies a
+// plain local straight back into the register the arithmetic freed, while taking
+// its address blocks that propagation. What it changes is the one thing the
+// earlier passes could not reach: pos.y now lands in EAX, which is the
+// original's accumulator. Every earlier spelling put it in ecx, which is why the
+// width had to be materialised there; with eax free at the multiply the width
+// load is the only thing in the way. The width local alone, without the
+// pointer, is 80.3% and byte identical to the 93.5% file's block, so the
+// pointer is the whole of it.
+// Two declaration orders then separate: with `int index = 0;` BEFORE the cell
+// statement it is 94.2% (9 lines), and with it AFTER the cell statement it is
+// 96.1% (6 lines), which is the file below. Moving `Point size = obj->size;`
+// after the cell statement as well, or leaving it before, are both 96.1%, so
+// the index's position relative to the cell statement is what counts.
+// At 96.1% six lines differ and the rest of the function, jump targets
+// included, is byte identical:
+//   original: mov ecx,[ebx+0x142b7] / mov eax,[esi+0x82] / cmp eax,ecx
+//   ours:     mov eax,[ebx+0x142b7] / cmp eax,[esi+0x82]
+//   original: movsx eax,[esi+0x78] / imul eax,[ebx+0x14233]
+//   ours:     movsx eax,[esi+0x78] / mov ecx,[ebx+0x14233] / imul eax,ecx
+//   original: mov ecx,[ebx+0x14287] / mov edi,[esi+0x7e] / lea edx,[eax+eax*2]
+//   ours:     mov edi,[esi+0x7e] / mov [esp+0x10],edi / mov ecx,[ebx+0x14287]
+//             / lea edx,[eax+eax*2]
+// So the compare form and the fold are still one decision and still both
+// needed: the obj-first compare shape alone is 82.8% here, so on top of the
+// width pointer the game-first compare is right, the reverse of the 93.5%
+// file. Swept at this new 96.1% baseline, all flat at 96.1% unless noted:
+//   - the guard: the obj stamp in a local, both operands in locals, `==`
+//     negated, `!=(a,b)` through pointers, an obj reference, the stamp through
+//     a pointer, and `int&` for both sides: 96.1%. A `bool` local is 77.8% and
+//     `int* pw = &g_game->width` is 92.2%;
+//   - the width: `const int w`, `const int* const pw`, two pointers to w, the
+//     multiply written `*pw * pos.y`, the sum written `pos.x + pos.y * *pw`,
+//     and a `short y` local read through its own pointer: 96.1%. A second real
+//     use of w in the row advance is 59.5% and `w + 0` is 96.1%;
+//   - the cell pointer through a pointer to a local, a `Game* game` local, a
+//     `Cell* cells` local, a row pointer plus x, a named `int n`, base pointer
+//     arithmetic, `long index`, a live `rows` int in the mask case, `size`
+//     through a pointer, `pos.x` or `pos.y` through a pointer of its own, and
+//     the width local first, before size, or after both: 96.1%. `pos.x` through
+//     a pointer is 81.6%, and the three orders that put `index` before the cell
+//     statement are 94.2%;
+//   - declaration order, all six of size / width / cell / index: 96.1% for the
+//     four with the cell statement after the width and `index` last, 94.2% for
+//     the two with `index` before the cell statement;
+//   - removing `size` entirely is 41.0%, `Game* game` and `obj` as a reference
+//     are 96.1%, and every row advance through `*pw` instead of
+//     `g_game->width` is 59.5% at 479 bytes, which is shorter only because the
+//     whole mask branch changed, so it was not taken.
+// Declaration state re-swept at the new 96.1% baseline, since every negative
+// above was measured against the old body: 416 runs, eight flavours
+// (`extern int`, `extern void __cdecl f(void)`, `extern int __cdecl f(int,int)`,
+// `typedef`, a struct definition per line, a union per line, an enum per line and
+// a `static int` per line), N = 0 to 10000 including 12, 16, 24, 40, 48, 64, 80,
+// 100, 200, 400, 800, 1600, 2400, 3200, 5000 and 10000, and both guard forms.
+// Nothing improves on 96.1%: the game-first arm is 96.1% up to N = 40 and 92.2%
+// from N = 80 on for every one of the eight flavours (only `typedef` and
+// `static int` hold 96.1% to N = 64), and the obj-first arm is 82.8% or 79.0%
+// throughout. So there is still no declaration count that reaches the fold here,
+// at either scale, which is the same negative as before the fix and now measured
+// on both sides of it. `tools/headers.py` was not re-run at 96.1%; the 62 include
+// sets swept on the 93.5% body all produced the 93.5% block, so they are the
+// wrong lever and the width pointer is the one that moved.
+// A permuter run against the 93.5% body (15 min, 2658 candidates, 11 did not
+// compile, 14 duplicates) found nothing: 93.5% -> 93.5%. It did not run again at
+// 96.1% because the width pointer is not a spelling the permuter generates.
+// Conclusion: 96.1% is the file below. The remaining residual is the fold alone,
+// and with pos.y now in eax it is a single allocator decision rather than the
+// scheduling tangle the earlier passes recorded: we need c1 to leave the width
+// load as the imul's memory operand instead of giving it ecx. The pointer form
+// is worth trying on the two other partials in this area that fold the same
+// multiply, 0x47d2e0 and 0x47de60, since it is what unblocked it here.
 #pragma pack(push, 1)
 
 struct Point {
@@ -282,8 +442,10 @@ void __stdcall FUN_0047d0e0(Obj_0047db20* obj)
 {
     if (g_game->field_142b7 != obj->field_82) {
         Point size = obj->size;
+        int w = g_game->width;
+        int* pw = &w;
+        Cell_0047db20* cell = &g_game->cells[obj->pos.y * *pw + obj->pos.x];
         int index = 0;
-        Cell_0047db20* cell = &g_game->cells[obj->pos.y * g_game->width + obj->pos.x];
         if (obj->flags.all & 0x20000000) {
             for (int j = size.y; j > 0; j--) {
                 for (int i = size.x; i > 0; i--) {

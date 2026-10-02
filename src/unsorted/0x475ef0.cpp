@@ -1,4 +1,19 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash pass (issue 4851): 83.0% RETAINED, 795 of 794 bytes, no
+// source shape found that moves _P into edx. Ran `permute --stack _N` and
+// `permute --stack _N,_S` for 3 minutes each (4515 candidates, 0 gain) and ~35
+// hand variants, none above 83.0: split and fused fills; named locals for the
+// first copy's limit _P, its source _First, its dest _Q and the third copy's
+// dest; no-op self-assignments on _N, _S, _P, _M, _Last and _End; a temp then
+// `_N = _T` to try to move the frame slot; the second and third arm's
+// _Ufill/fill/_Last DAG rewritten; and flipping `a < b` to `b > a` on all three
+// branch guards. New measurement that closes the frame-slot route: with the
+// locals split, this build always puts the FIRST-defined local in the deeper
+// slot (`_T` at -0x8, `_S` at -0x4 in T1), while the original puts _N (defined
+// first, at 0x475f89) in the shallower -0x4 and _S in -0x8, so the original's
+// pair is the same inverted allocator choice as edx, not an independent slot
+// decision. The rest of the diff below (arms 2 and 3) is only the +1 jump-target
+// shift, so the whole 41-line residual is this one allocation.
 // Space Bunny Free pass (issue 4147 follow-up): 83.0% RETAINED, 795 of 794 bytes,
 // unchanged body. This pass ran the masked-byte twin test it was pointed at and
 // then showed that on THIS function the twin test's 0 hits is a false negative

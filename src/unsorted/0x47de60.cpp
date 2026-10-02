@@ -1,5 +1,41 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// claude-sonnet-5-5 pass (#4693), source unchanged at 87.1 percent, 344 of 342
+// bytes. THE RESIDUAL IS COMPILER STATE, NOT SOURCE, and the right source shape is
+// the single-use one (`unsigned short f2 = (cell - (cell->spotY * g_game->width +
+// cell->spotX))->feature; if (f2 >= 0xfffb) ...`, 86.8 percent here), not the
+// width local this file uses to shorten the block. How it was found: an exact copy
+// of 0x4246b0 (which folds the same imul) stops folding when its `#include
+// <windows.h>` is removed, so the fold is a function of what the compiler read
+// before the function. Measured on the single-use form with N unused
+// `struct dumsK { int a; };` lines in front (check.py --sym, nothing committed):
+//   N below ~2310          86.8 percent, 346 bytes: no fold, features lookup shared
+//                          (the wall every earlier pass hit)
+//   N ~2312 to ~4640       83.9 percent, 363 bytes: the imul folds EXACTLY like the
+//                          original (xor eax; xor ecx; mov al; mov cl; imul eax,
+//                          [edx+0x14233]; add eax,ecx), but the features lookup is
+//                          no longer shared (copied into the first path, and the
+//                          neighbour copy reads [eax+ecx+0xfe])
+//   N ~4660 and up         back to 86.8 percent
+//   N = 2386 to 2392, 2400, 2422 to 2426 (and 2440)
+//                          99.3 percent, 342 of 342 bytes: fold AND shared lookup,
+//                          the only difference left is the SIB order of that one
+//                          `mov al, byte ptr [ecx + eax + 0xfe]` (ours [eax+ecx]).
+// The same two-state flip happens with <windows.h> (not lean) alone, and with
+// WIN32_LEAN_AND_MEAN <windows.h> plus ole2.h, vfw.h, richedit.h, d3dtypes.h,
+// dinput.h, ddraw.h, dsound.h, dplay.h or d3d.h (all fold, unshared); lean
+// <windows.h> alone, plus stdio/stdlib/string/math/mmsystem/commctrl/shellapi/
+// winsock/rpc etc., and <windows.h> plus <string> or <iostream> or <vector>+<map>
+// stay in the 86.8 state. 3000 unions or 12000 prototypes/enums flip it too. So the
+// original sits at a header/neighbour state that gives the fold but keeps [ecx+eax];
+// no set tried (about 100 header combinations; the real matched neighbours from
+// 0x47d0e0 or 0x47c150 to 0x47ddc0 prepended with their includes sit in the
+// unshared 83.9 state) lands there. In the 99.3 percent state nine
+// spellings of the features lookup (pointer + index, cast index, local pointer,
+// byte-offset form) leave the SIB order alone, as do the arm spelled with no f2
+// local, `other` pointer and ternary forms. Left in the file: the 87.1 percent
+// version, since it is the best that does not depend on padding.
+//
 // space-bunny-free pass (third), 3 check.py runs, best unchanged at 87.1 percent
 // (the file below), 344 of 342 bytes. This pass went after the mechanism rather
 // than the spelling, with a compile-and-read testbed (build/scratch/0x47de60,

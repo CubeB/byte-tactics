@@ -1,7 +1,127 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
 // deepseek-v4.1, GPT-6.1-sol, finished by deepseek-v4.1-flash,
-// finished by mimo-v2.6-pro. Names are provisional.
-// mimo-v2.6-pro 2026-10-01: 78.3 -> 99.6 percent (1662 bytes, exactly the
+// finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are
+// provisional.
+// Space Bunny Free pass. Baseline reproduced at 99.6% / 1662 bytes, which is
+// the original's exact size, so the shape is right and the whole residual is
+// two swapped instructions at the unit-loop ScaleX multiply:
+//     original: movsx eax, word ptr [ebx + 0x6c]  / movsx ecx, word ptr [esi + 0x142eb]
+//     ours:     movsx eax, word ptr [esi + 0x142eb] / movsx ecx, word ptr [ebx + 0x6c]
+// followed by the same `imul eax, ecx / cdq / idiv dword ptr [esi + 0x1422b]`.
+// Both orders are 11 bytes, so the imul sits at 0x466e8e either way and every
+// later instruction, jump target included, is already byte identical. No gain
+// this pass; what it bought is the first measured answer to why the obvious
+// lever cannot reach this site, and a closed set of negatives.
+//
+// 1. THE ACCUMULATOR AND THE LOAD ORDER ARE TWO SEPARATE DECISIONS, and the
+//    brief's item 18 moves them in OPPOSITE directions from what is needed.
+//    Spelling the zoom as a value behind a pointer to a local, which is exactly
+//    the lever that unblocked 0x47d0e0 (its file's note: "What it changes is
+//    the one thing the earlier passes could not reach: pos.y now lands in EAX"),
+//        int z = g_game->field_142eb;
+//        int* pz = &z;
+//        int x = u->field_6c * *pz / g_game->field_1422b;
+//    DOES reach the original's register assignment, at exactly 1662 bytes:
+//        movsx ecx, word ptr [esi + 0x142eb]   <- zoom into ecx
+//        movsx eax, word ptr [ebx + 0x6c]      <- field_6c into eax
+//    But it emits zoom's load FIRST (the original loads field_6c first) and it
+//    also swaps ecx for edx in the sibling ScaleY multiply, so the file scores
+//    93.0%. The same pointer on the LEFT operand flips only the load ORDER
+//    (field_6c first, zoom still in eax) and scores 92.8%; both pointers
+//    together reproduce the left-pointer result, i.e. 92.8%. So:
+//        base          order = zoom first, accumulator = zoom
+//        pointer right order = zoom first, accumulator = field_6c   <- wanted
+//        pointer left  order = field_6c first, accumulator = zoom
+//        original      order = field_6c first, accumulator = field_6c
+//    No combination of the two reaches the original's cell, and the pointer
+//    forms also damage ScaleY. That is a mechanism, not a shrug.
+//
+// 2. THE <windows.h> LEVER FROM THE MATCHED SIBLING DOES NOT TRANSFER, and the
+//    reason is specific. Nine functions read the same short at +0x142eb (it is
+//    the screen width, not a zoom) and eight of them are MATCHed. The closest is
+//    0x466b70, which computes the same `size * scale / div` shape:
+//        param_1[0] = g_game->sizeX * g_game->scaleX / g_game->divX + g_game->originX;
+//    with sizeX the short at +0x142eb, divX the int at +0x1422b and scaleX an int.
+//    Its own header comment credits <windows.h> with moving the multiply's
+//    registers, and its code confirms the rule:
+//        movsx eax, word ptr [ecx + 0x142eb]      <- the LEFT short into eax
+//        imul  eax, dword ptr [ecx + 0x1431f]     <- the int folds into imul
+//    That is the direction this residual needs, but it does not apply: there
+//    the multiply is short * int, so the int can become imul's memory operand
+//    and the only open question is which register the short gets. Here BOTH
+//    operands are shorts, so both must be materialised and the question is
+//    which of two materialised values gets eax. Measured, at the site:
+//        (no include)                     1662  99.6%   accumulator = zoom
+//        #include <windows.h>             1645  82.9%   accumulator = zoom
+//        WIN32_LEAN_AND_MEAN + windows.h  1654  90.2%   accumulator = zoom
+//    plus NOMINMAX, NOICONS, NOSOUND, NOCOMM, NOHELP, NOMM, STRICT, NOGDI and
+//    six-way combos: 15 header forms, two byte counts (1645 and 1654), and not
+//    one of them moves the site. tools/headers.py over all 256 sets agrees:
+//    best is 99.6%, which is the no-header baseline, and <stdio.h>, <stdlib.h>,
+//    <string.h> and <math.h> all cost 8 bytes for 90.2%.
+//
+// 3. NO MATCHED TWIN EXISTS for the wanted instruction, by two independent
+//    counts. A masked-byte search for `movsx eax,[m]; movsx ecx,[m]; imul eax,ecx`
+//    over the whole exe returns exactly 2 hits in 1,026,560 bytes: 0x42cf5e
+//    (inside partial 0x42bf40) and 0x466e83, ours. A register-role census of all
+//    403 `imul r32, r32` sites finds the pair "a register-local load into eax
+//    against a g_game-global load into ecx" exactly once, at 0x466e83 itself.
+//    So this is not a case of copying an idiom from a matched neighbour, and the
+//    residual is a register choice, which stays legal C++ and so stays open.
+//
+// 4. THE RESIDUAL IS NOT A FRAGILE ALLOCATION ACCIDENT. Eleven flag sets were
+//    measured: /O2 /Ob2 /MT /Gz is the best at 99.6% and 1662 bytes, /Ob1 gives
+//    1622, /Gd /Gs /Gr and no-G at all give 98.9%, and /O1 gives 1192 bytes at
+//    16.6% -- and at /O1, with the unit pointer in esi and g_game in ecx, the
+//    site still reads `movsx eax,[ecx+0x142eb]; movsx edx,[esi+0x6c]`. Across
+//    every configuration reachable from this source the LARGER displacement is
+//    elected as the imul accumulator; the original elects the smaller one.
+//
+// 5. MEASURED NEGATIVES, all on the real file and all with the byte count
+//    checked (a 1662-byte variant is the original's size, so these are exact):
+//    - 235 spellings of the statement, every one 1662 bytes and byte-identical
+//      at 99.6%: operand order both ways; (int), (short), (long), unsigned and
+//      mixed casts on either or both operands; the whole product unsigned and
+//      cast back before the divide; left and right reached through char*,
+//      through a nested-struct cast, through a 16-bit union bitfield, through
+//      an int or short local, through a short*, through a getter, through a
+//      Unit* or Game* or Game& alias, through a reference; parenthesised
+//      product, parenthesised quotient; a difference-of-live-pointers zero
+//      term and +0/-0/&0/-1/&~0 identity terms; statement splits (temp then
+//      multiply, product temp, *= and /= chains, both orders); comma
+//      expressions and folded conditionals on either operand to give it a fresh
+//      value number; an identity helper on either or both operands; helpers
+//      taking (u), (u, g), (coord), (coord, div), (div, coord), (u, zoom, div),
+//      (zoom, u, div) and both argument orders; a by-value Mul and Div pair; an
+//      inlined by-value class multiply (and divide) with both argument orders;
+//      `ScaleX_00466dc0(u)` with and without the divide inside.
+//    - 60 combinations of left shape x right shape x source order: 99.6%
+//      except the two that put a pointer to a local on an operand, 92.8% and
+//      93.0% (see item 1).
+//    - 171 declaration-state runs, nine flavours (extern int, extern void
+//      f(void), extern int f(int,int), typedef, struct / union / enum / static
+//      int / static inline fn per line), N = 1,2,3,4,6,8,12,16,20,24,32,40,
+//      48,64,80,96,128,160,200: flat 99.6% until a flavour's threshold, then
+//      worse. No count moves the site.
+//    - 25 whole-function perturbations far from the residual: seven unused
+//      locals of different types at the top of the function, the extern padding
+//      above, base/out swapped (98.7%), x and y moved to function scope, x and y
+//      split into declarations plus assignments, ScaleY respelled through
+//      char*, through a named temp, and both through one helper: all 99.6%.
+//    - tools/permute.py, 15 minutes, 9,620 candidates over 38 mutation kinds
+//      (1,929 swap_commutative, 1,037 split_init, 1,016 temp_intro, 851
+//      extract_helper, 839 move_decl, 653 cast, 650 include, 492 temp_inline):
+//      99.6% -> 99.6%, fine score 20 -> 20. Scored by hand as the brief requires:
+//      best.cpp is byte-identical to the starting file (same md5), and
+//      best_raw.cpp, best_ratio.cpp and best_search.cpp were never written, so
+//      there is nothing to copy back and no fractional "gain" to distrust.
+//
+//
+// Conclusion: 99.6% / 1662 bytes is this file's best and the body below is
+// unchanged. The remaining two instructions are a register choice that C1 makes
+// identically for every spelling, header, declaration count and flag tried, so
+// closing it needs something outside the statement's spelling, not another
+// spelling of the statement.// mimo-v2.6-pro 2026-10-01: 78.3 -> 99.6 percent (1662 bytes, exactly the
 // original's size). Two things fixed almost everything:
 //   1. OnRadar reshaped: each arm declares tx/ty locals and uses the
 //      MapSize::Contains inline method (the matched 0x408090 spelling).

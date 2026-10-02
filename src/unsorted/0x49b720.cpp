@@ -1,359 +1,358 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 33.0%. Size 1847 vs original 1853 bytes. Best after 12 checker runs.
-// Remaining diffs span entry register allocation through the loop tail. Attempts
-// changing declaration order, local scope, entry guard and base-pointer ordering
-// did not improve the score. The count, s, counter and ec values use different
-// registers early, and later instruction/control-flow differences persist.
-// This session: tail sl as unsigned char (and with a (short) cast) scores
-// 31.6%, worse than the unsigned short form kept here; the original tail uses
-// mov al,[+0x1427f] then xor dx,dx / mov dl,al and a 16-bit cmp word. The
-// loop head reads s via mov cx,[base+off+0xa] before add ebp,esi forms p, and
-// the idx search loop keeps idx in dl with the *7 scratch in ebx (edi stays
-// the zero register); ours allocates bl/edi instead.
-// Key fixes: the Select block is emitted twice (counter==0 path ends at Next,
-// live path ends at TailOnly), and the type flags tests use a 1-bit bitfield
-// union, which makes MSVC emit the original's mov/shr/test sequence instead of
-// folding (x>>N)&1 to test reg,imm.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+//
+// MATCH (claude-opus-5-5, #4267; was 33.0%). The projectile update loop.
+// Rebuilt from the disassembly as one if/else-if chain over the type's flag
+// bits (b20 guided, b0 straight, b1 timed drift, b8 drift, b5 tumbling), with
+// a burst-fire branch for projectiles whose counter is not 0. What decided it:
+//  - FUN_0049b6e0 (the projectile allocator just before this function) is
+//    defined here and inlined, as in the original source file.
+//  - Gravity on the guided arms goes through `Fall(&p->vel)`, a pointer to the
+//    velocity. That store may alias p->type, so MSVC reloads p->type in the
+//    state block (`mov ecx, [ebp]`) and the `type` local is no longer the
+//    same value as p->type. With a plain `p->vel.y -= ...` MSVC propagates
+//    `type` there instead, `type` wins ebx over the cloned projectile `q`,
+//    and the whole function is 53%; the pointer store alone gave 93.1%.
+//  - `type` is read before `oldY`, which orders the two spill stores.
+//  - <stdio.h>: without it the b0 arm loads g_game first and gets the 5-byte
+//    `mov eax, [g_game]` (93.5%, 1852 bytes); tools/headers.py found 120
+//    header sets that match, the sibling 0x49b090 uses <stdio.h> too.
+// Remove() is the inlined "deselect and mark dead" block that 0x49b090 also
+// writes out; it reads p->type again, as the original does.
+
+#include <stdio.h>
 
 #pragma pack(push, 1)
 
-struct Vec_0049b720 {
+struct Vec3_0049b720 {
     int x;
-    int y;
+    union {
+        int y;
+        struct {
+            unsigned short lo;
+            short hi;
+        } yw;
+    };
     int z;
+    Vec3_0049b720& operator+=(const Vec3_0049b720& o)
+    {
+        x += o.x;
+        y += o.y;
+        z += o.z;
+        return *this;
+    }
 };
 
-union UF_0049b720 {
+union TypeFlags_0049b720 {
     unsigned int raw;
     struct {
-        unsigned int b0:1,b1:1,b2:1,b3:1,b4:1,b5:1,b6:1,b7:1;
-        unsigned int b8:1,b9:1,b10:1,b11:1,b12:1,b13:1,b14:1,b15:1;
-        unsigned int b16:1,b17:1,b18:1,b19:1,b20:1,b21:1,b22:1,b23:1;
-        unsigned int b24:1,b25:1,b26:1,b27:1,b28:1,b29:1,b30:1,b31:1;
-    } bits;
+        unsigned int b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1;
+        unsigned int b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;
+        unsigned int b16 : 1, b17 : 1, b18 : 1, b19 : 1, b20 : 1, b21 : 1, b22 : 1, b23 : 1;
+        unsigned int b24 : 1, b25 : 1, b26 : 1, b27 : 1, b28 : 1, b29 : 1, b30 : 1, b31 : 1;
+    } b;
 };
 
-struct WType_0049b720 {
+struct ProjType_0049b720 {
     char unknown_0[0x68];
-    int field_68;                      // +0x68
+    unsigned int maxSpeed;             // +0x68
     char unknown_6c[4];
-    int field_70;                      // +0x70
+    unsigned int accel;                // +0x70
     char unknown_74[0x7c - 0x74];
-    void* field_7c;                    // +0x7c
+    void* splash;                      // +0x7c
     char unknown_80[0xe6 - 0x80];
-    unsigned short field_e6;           // +0xe6
+    unsigned short lifetime;           // +0xe6
     char unknown_e8[0xec - 0xe8];
-    unsigned short field_ec;           // +0xec
-    unsigned short field_ee;           // +0xee
-    unsigned short field_f0;           // +0xf0
-    unsigned short field_f2;           // +0xf2
-    unsigned short field_f4;           // +0xf4
+    unsigned short burstRate;          // +0xec
+    unsigned short spread;             // +0xee
+    unsigned short f0;                 // +0xf0
+    unsigned short lifeRand;           // +0xf2
+    unsigned short sound;              // +0xf4
     char unknown_f6[0xfa - 0xf6];
-    unsigned short field_fa;           // +0xfa
-    unsigned short field_fc;           // +0xfc
-    unsigned short field_fe;           // +0xfe
+    unsigned short smokeRate;          // +0xfa
+    unsigned short fc;                 // +0xfc
+    unsigned short deathSound;         // +0xfe
     char unknown_100[0x111 - 0x100];
-    UF_0049b720 flags;                 // +0x111
+    TypeFlags_0049b720 flags;          // +0x111
+};
+
+struct Weapon_0049b720 {
+    char unknown_0[0x10];
+    ProjType_0049b720* type;           // +0x10
+    char unknown_14[0x1c - 0x14];
+};
+
+struct Unit_0049b720 {
+    Weapon_0049b720 weapons[3];
+};
+
+union Word_0049b720 {
+    int i;
+    struct {
+        unsigned short lo;
+        short hi;
+    } s;
+};
+
+struct ProjFlags_0049b720 {
+    unsigned short b0 : 1;
+    unsigned short dead : 1;
+    unsigned short b2 : 2;
+    unsigned short state : 2;
+    unsigned short rest : 10;
 };
 
 struct Proj_0049b720 {
-    WType_0049b720* type;              // +0x0
-    Vec_0049b720 pos;                  // +0x4
-    Vec_0049b720 start;                // +0x10
-    Vec_0049b720 vel;                  // +0x1c
+    ProjType_0049b720* type;           // +0x0
+    Vec3_0049b720 pos;                 // +0x4
+    Vec3_0049b720 start;               // +0x10
+    Vec3_0049b720 vel;                 // +0x1c
     char unknown_28[0x34 - 0x28];
-    short field_34;                    // +0x34
+    short roll;                        // +0x34
     short heading;                     // +0x36
     short pitch;                       // +0x38
-    int field_3a;                      // +0x3a
-    int field_3e;                      // +0x3e
-    int field_42;                      // +0x42
-    unsigned int field_46;                      // +0x46
-    int field_4a;                      // +0x4a
-    void* field_4e;                    // +0x4e
-    int* field_52;                     // +0x52
-    void* field_56;                    // +0x56
+    unsigned int speed;                // +0x3a
+    unsigned int range;                // +0x3e
+    unsigned int f42;                  // +0x42
+    unsigned int f46;                  // +0x46
+    unsigned int f4a;                  // +0x4a
+    int f4e;                           // +0x4e
+    Unit_0049b720* unit;               // +0x52
+    void* f56;                         // +0x56
     char unknown_5a[0x60 - 0x5a];
-    short counter;                     // +0x60
-    short field_62;                    // +0x62
-    short field_64;                    // +0x64
+    unsigned short counter;            // +0x60
+    unsigned short piece;              // +0x62
+    short f64;                         // +0x64
     char unknown_66[0x69 - 0x66];
-    unsigned short flags69;            // +0x69
+    ProjFlags_0049b720 flags;          // +0x69
+};
+
+struct Net_0049b720 {
+    char unknown_0[0xd48];
+    int field_d48;
+};
+
+struct Game_0049b720 {
+    char unknown_0[0x141f3];
+    int projCount;                     // +0x141f3
+    Proj_0049b720* projs;              // +0x141f7
+    char unknown_141fb[0x14263 - 0x141fb];
+    int gravity;                       // +0x14263
+    char unknown_14267[0x1427f - 0x14267];
+    unsigned char seaLevel;            // +0x1427f
+    char unknown_14280[0x142f7 - 0x14280];
+    Proj_0049b720* selected;           // +0x142f7
+    char unknown_142fb[0x1433f - 0x142fb];
+    Vec3_0049b720 lastPos;             // +0x1433f
+    unsigned short lastSound;          // +0x1434b
+    char unknown_1434d[0x37ecc - 0x1434d];
+    Vec3_0049b720 wind;                // +0x37ecc
+    char unknown_37ed8[0x38a47 - 0x37ed8];
+    unsigned int time;                 // +0x38a47
+    char unknown_38a4b[0x391e9 - 0x38a4b];
+    Net_0049b720* net;                 // +0x391e9
+};
+
+struct Cell_0049b720 {
+    char unknown_0[5];
+    unsigned char height;              // +0x5
 };
 
 #pragma pack(pop)
 
-extern char* g_game;
+extern Game_0049b720* g_game;
 
 void __stdcall FUN_0049ae20();
-int __stdcall FUN_0049b090(WType_0049b720* type, Proj_0049b720* p);
-Vec_0049b720* __stdcall FUN_0049b3e0(Proj_0049b720* p);
-int __stdcall FUN_0049b520(Proj_0049b720* p, Vec_0049b720* target);
+void __stdcall FUN_0049b090(ProjType_0049b720* type, Proj_0049b720* p);
+Vec3_0049b720* __stdcall FUN_0049b3e0(Proj_0049b720* p);
+int __stdcall FUN_0049b520(Proj_0049b720* p, Vec3_0049b720* target);
 void __stdcall FUN_00499eb0(Proj_0049b720* p, void* unit);
-void __stdcall FUN_0043e240(int* arr, Vec_0049b720* pos, unsigned int idx, unsigned int value);
-void __stdcall FUN_0047f300(unsigned int sound, Vec_0049b720* pos, int value);
-void __stdcall FUN_00472810(Vec_0049b720* pos, int value);
-void* __stdcall FUN_004815a0(Vec_0049b720* pos);
-void __stdcall FUN_00420a30(Vec_0049b720* pos, void* value, int a, int b);
+void __stdcall FUN_0043e240(Unit_0049b720* unit, Vec3_0049b720* out, unsigned char weapon, int piece);
+int __stdcall FUN_0047f300(int sound, Vec3_0049b720* pos, int flag);
+void __stdcall FUN_00472810(Vec3_0049b720* pos, short kind);
+Cell_0049b720* __stdcall FUN_004815a0(Vec3_0049b720* pos);
+void __stdcall FUN_00420a30(Vec3_0049b720* pos, void* src, int index, int flag);
 int __stdcall FUN_004b6c30(int range);
-int __cdecl FUN_004b70ef(int angle, int distance);
-int __cdecl FUN_004b7123(int angle, int distance);
+int __cdecl FUN_004b70ef(short angle, int scale);
+int __cdecl FUN_004b7123(short angle, int scale);
+
+// A copy of FUN_0049b6e0 (matched in its own file), the function just before
+// this one in the original source; defined here so that /Ob2 inlines it.
+Proj_0049b720* FUN_0049b6e0()
+{
+    Proj_0049b720* p = 0;
+    if (g_game->projCount < 300) {
+        p = &g_game->projs[g_game->projCount++];
+        p->flags.dead = 0;
+        p->f4e = 0;
+    }
+    return p;
+}
+
+static inline void Fall(Vec3_0049b720* v)
+{
+    v->y -= g_game->gravity;
+}
+
+static inline void Remove(Proj_0049b720* p)
+{
+    if (p == g_game->selected) {
+        g_game->lastPos = g_game->selected->pos;
+        g_game->lastSound = p->type->deathSound;
+        g_game->selected = 0;
+    }
+    p->flags.dead = 1;
+}
 
 // FUNCTION: 0x49b720
 void FUN_0049b720()
 {
-    unsigned char idx;
-    int offset;
-    int count;
-    WType_0049b720* type;
-    int s;
-
-    count = *(int*)(g_game + 0x141f3);
-    if (count > 0) {
-        offset = 0;
-        do {
-        Proj_0049b720* p = (Proj_0049b720*)(*(int*)(g_game + 0x141f7) + offset);
-        s = *(short*)((char*)p + 0xa);
-        type = p->type;
+    int n = g_game->projCount;
+    for (int i = 0; i < n; i++) {
+        Proj_0049b720* p = &g_game->projs[i];
+        ProjType_0049b720* type = p->type;
+        int oldY = p->pos.yw.hi;
 
         if (p->counter != 0) {
-            unsigned short ec = type->field_ec;
-            if (*(int*)(g_game + 0x38a47) < (p->field_42 + (unsigned int)ec))
-                goto Next;
-
-            if (ec >= 5 || (p->counter & 1)) {
-                int* arr = p->field_52;
-                idx = 0;
-                while (1) {
-                    if (*(int*)((char*)arr + idx * 0x1c + 0x10) == (int)type)
-                        break;
-                    idx++;
-                    if (idx >= 3)
-                        break;
+            if (g_game->time >= p->f42 + type->burstRate) {
+                if (type->burstRate >= 5 || (p->counter & 1)) {
+                    unsigned char w;
+                    for (w = 0; w < 3; w++) {
+                        if (p->unit->weapons[w].type == type)
+                            break;
+                    }
+                    FUN_0043e240(p->unit, &p->pos, w, p->piece);
                 }
-                FUN_0043e240(arr, &p->pos, idx, p->field_62);
-            }
-
-            p->counter = p->counter - 1;
-            p->field_42 = p->field_42 + type->field_ec;
-
-            Proj_0049b720* q = 0;
-            if (*(int*)(g_game + 0x141f3) < 300) {
-                q = (Proj_0049b720*)(*(int*)(g_game + 0x141f7)
-                                     + *(int*)(g_game + 0x141f3) * 0x6b);
-                *(int*)(g_game + 0x141f3) = *(int*)(g_game + 0x141f3) + 1;
-                q->flags69 = q->flags69 & 0xfffd;
-                q->field_4e = 0;
-            }
-
-            if (q != 0) {
-                *q = *p;
-                q->field_42 = *(int*)(g_game + 0x38a47);
-                if (type->flags.bits.b11)
-                    FUN_0047f300(type->field_f4, &p->pos, 0);
-                if (type->field_e6 != 0)
-                    q->field_46 = *(int*)(g_game + 0x38a47) + type->field_e6;
-                else
-                    q->field_46 = (p->field_3e + 0x100000) / (unsigned int)p->field_3a
-                                  + *(int*)(g_game + 0x38a47);
-                if (type->field_f2 != 0)
-                    q->field_46 = q->field_46 + FUN_004b6c30(type->field_f2)
-                                  - (type->field_f2 >> 1);
-                q->counter = 0;
-                if (type->field_ee != 0) {
-                    int a = FUN_004b6c30(type->field_ee);
-                    short ang = (short)(p->heading - (type->field_ee >> 1));
-                    int t = FUN_004b7123(p->pitch, type->field_68);
-                    p->vel.x = -FUN_004b70ef(ang + a, t);
-                    p->vel.z = -FUN_004b7123(ang + a, t);
+                p->counter--;
+                p->f42 += type->burstRate;
+                Proj_0049b720* q = FUN_0049b6e0();
+                if (q) {
+                    *q = *p;
+                    q->f42 = g_game->time;
+                    if (type->flags.b.b11)
+                        FUN_0047f300(type->sound, &p->pos, 0);
+                    if (type->lifetime != 0)
+                        q->f46 = g_game->time + type->lifetime;
+                    else
+                        q->f46 = (p->range + 0x100000) / p->speed + g_game->time;
+                    if (type->lifeRand != 0)
+                        q->f46 += FUN_004b6c30(type->lifeRand) - (type->lifeRand >> 1);
+                    q->counter = 0;
+                    if (type->spread != 0) {
+                        short ang = FUN_004b6c30(type->spread) + (short)(p->heading - (type->spread >> 1));
+                        int t = FUN_004b7123(p->pitch, type->maxSpeed);
+                        p->vel.x = -FUN_004b70ef(ang, t);
+                        p->vel.z = -FUN_004b7123(ang, t);
+                    }
                 }
+                if (p->counter == 0)
+                    Remove(p);
             }
-
-            if (p->counter == 0) {
-                Proj_0049b720* sel = *(Proj_0049b720**)(g_game + 0x142f7);
-                if (p == sel) {
-                    *(int*)(g_game + 0x1433f) = sel->pos.x;
-                    *(int*)(g_game + 0x14343) = sel->pos.y;
-                    *(int*)(g_game + 0x14347) = sel->pos.z;
-                    *(short*)(g_game + 0x1434b) = p->type->field_fe;
-                    *(Proj_0049b720**)(g_game + 0x142f7) = 0;
-                }
-                p->flags69 = p->flags69 | 2;
-            }
-            goto Next;
+            continue;
         }
 
-        // counter == 0: live behaviour
-        if (type->flags.bits.b21)
-            p->field_64 = p->field_64 + 0x400;
+        if (type->flags.b.b21)
+            p->f64 += 0x400;
 
-        {
-            unsigned int fl = type->flags.raw;
-            if ((fl >> 0x14) & 1) {
-                if (p->field_46 > *(int*)(g_game + 0x38a47)) {
-                    if (!(fl & 0x10000)
-                        || s < (short)(unsigned char)*(g_game + 0x1427f)) {
-                        int e = p->field_3a;
-                        if ((unsigned int)e < (unsigned int)type->field_68) {
-                            p->field_3a = e + type->field_70;
-                            if ((unsigned int)p->field_3a > (unsigned int)type->field_68)
-                                p->field_3a = type->field_68;
-                        }
-                        int flag = 0;
-                        UF_0049b720 f = type->flags;
-                        if (f.bits.b24) {
-                            if (p->flags69 & 0x30)
-                                flag = 1;
-                        } else if (f.bits.b12) {
-                            flag = 1;
-                        }
-                        if (flag) {
-                            Vec_0049b720* v = FUN_0049b3e0(p);
-                            if (FUN_0049b520(p, v) == 0)
-                                FUN_00499eb0(p, 0);
-                        }
-                        p->vel.y = FUN_004b70ef(p->pitch, p->field_3a);
-                        {
-                            int t = FUN_004b7123(p->pitch, p->field_3a);
-                            p->vel.x = -FUN_004b70ef(p->heading, t);
-                            p->vel.z = -FUN_004b7123(p->heading, t);
-                        }
-                    } else {
-                        p->vel.y = p->vel.y - *(int*)(g_game + 0x14263);
-                        p->pitch = 0;
+        if (type->flags.b.b20) {
+            if (p->f46 > g_game->time) {
+                if ((type->flags.raw & 0x10000) && p->pos.yw.hi >= g_game->seaLevel) {
+                    Fall(&p->vel);
+                    p->pitch = 0;
+                } else {
+                    int seek = 0;
+                    if (p->speed < type->maxSpeed) {
+                        p->speed += type->accel;
+                        if (p->speed > type->maxSpeed)
+                            p->speed = type->maxSpeed;
                     }
-                } else if ((fl >> 0x17) & 1) {
+                    if (type->flags.b.b24) {
+                        if (p->flags.state > 0)
+                            seek = 1;
+                    } else if (type->flags.b.b12) {
+                        seek = 1;
+                    }
+                    if (seek) {
+                        Vec3_0049b720* target = FUN_0049b3e0(p);
+                        if (FUN_0049b520(p, target) == 0)
+                            FUN_00499eb0(p, 0);
+                    }
+                    p->vel.y = FUN_004b70ef(p->pitch, p->speed);
+                    int t = FUN_004b7123(p->pitch, p->speed);
+                    p->vel.x = -FUN_004b70ef(p->heading, t);
+                    p->vel.z = -FUN_004b7123(p->heading, t);
+                }
+            } else if (type->flags.b.b23) {
+                FUN_00499eb0(p, 0);
+            } else {
+                Fall(&p->vel);
+                if (type->flags.b.b24) {
+                    if (p->flags.state == 0) {
+                        p->f46 = g_game->time + p->type->fc;
+                        p->flags.state++;
+                        if (!(p->type->flags.raw & 0x2000)) {
+                            p->f56 = 0;
+                            p->f4e = 0;
+                        }
+                    }
+                }
+            }
+            p->pos += p->vel;
+            FUN_0049b090(type, p);
+        } else if (type->flags.b.b0) {
+            if (p->f46 > g_game->time) {
+                p->pos += p->vel;
+                if (type->flags.b.b3) {
+                    if (p->flags.b0)
+                        p->start += p->vel;
+                    else if (g_game->time > p->f42 + type->f0)
+                        p->flags.b0 = 1;
+                }
+                FUN_0049b090(type, p);
+            } else {
+                Remove(p);
+            }
+        } else if (type->flags.b.b1) {
+            if (type->lifetime != 0) {
+                if (p->f46 > g_game->time) {
+                    p->pos += p->vel;
+                    p->pos += g_game->wind;
+                    p->vel.y -= g_game->gravity;
+                    FUN_0049b090(type, p);
+                } else if (type->flags.b.b23) {
                     FUN_00499eb0(p, 0);
                 } else {
-                    p->vel.y = p->vel.y - *(int*)(g_game + 0x14263);
-                    if (type->flags.bits.b24) {
-                        if ((p->flags69 & 0x30) == 0) {
-                            p->field_46 = *(int*)(g_game + 0x38a47) + p->type->field_fc;
-                            unsigned int e;
-                            e = p->flags69;
-                            p->flags69 = (unsigned short)(((((e & 0xfff0) + 0x10)
-                                                            ^ (e & 0xff)) & 0x30) ^ e);
-                            if (!(p->type->flags.raw & 0x2000)) {
-                                p->field_56 = 0;
-                                p->field_4e = 0;
-                            }
-                        }
-                    }
+                    FUN_00472810(&p->pos, 9);
+                    Remove(p);
                 }
-                goto ApplyVel;
+            } else {
+                p->pos += p->vel;
+                p->pos += g_game->wind;
+                p->vel.y -= g_game->gravity;
+                FUN_0049b090(type, p);
             }
+        } else if (type->flags.b.b8) {
+            p->pos += p->vel;
+            p->pos += g_game->wind;
+            p->vel.y -= g_game->gravity;
+            FUN_0049b090(type, p);
+        } else if (type->flags.b.b5) {
+            p->pos += p->vel;
+            p->roll += ((short*)&p->vel.x)[1] << 8;
+            p->pitch += ((short*)&p->vel.z)[1] << 8;
+            FUN_0049b090(type, p);
+        }
 
-            if (type->flags.raw & 1) {
-                if (p->field_46 > *(int*)(g_game + 0x38a47)) {
-                    p->pos.x += p->vel.x;
-                    p->pos.y += p->vel.y;
-                    p->pos.z += p->vel.z;
-                    if (type->flags.bits.b3) {
-                        if (p->flags69 & 1) {
-                            p->start.x += p->vel.x;
-                            p->start.y += p->vel.y;
-                            p->start.z += p->vel.z;
-                        } else if (p->field_42 + type->field_f0
-                                   < (unsigned int)*(int*)(g_game + 0x38a47)) {
-                            p->flags69 = p->flags69 | 1;
-                        }
-                    }
-                    goto Call090;
-                }
-                goto Select;
-            }
-
-            if (type->flags.bits.b1) {
-                if (type->field_e6 == 0)
-                    goto Drift;
-                if (p->field_46 > *(int*)(g_game + 0x38a47)) {
-                    p->pos.x += p->vel.x;
-                    p->pos.y += p->vel.y;
-                    p->pos.z += p->vel.z;
-                    goto Drift2;
-                }
-                if (type->flags.bits.b23) {
-                    FUN_00499eb0(p, 0);
-                    goto TailOnly;
-                }
+        if (!p->flags.dead) {
+            if ((type->flags.raw & 0x40000) && p->f46 > g_game->time && p->f4a < g_game->time) {
                 FUN_00472810(&p->pos, 9);
-                goto Select;
+                p->f4a += type->smokeRate;
             }
-
-            if (type->flags.bits.b8)
-                goto Drift;
-            if (type->flags.bits.b5) {
-                p->pos.x += p->vel.x;
-                p->pos.y += p->vel.y;
-                p->pos.z += p->vel.z;
-                p->field_34 = (short)(p->field_34
-                                      + (*(short*)((char*)p + 0x1e) << 8));
-                p->pitch = (short)(p->pitch
-                                   + (*(short*)((char*)p + 0x26) << 8));
-                goto Call090;
-            }
-            goto TailOnly;
-        }
-
-    ApplyVel:
-        p->pos.x += p->vel.x;
-        p->pos.y += p->vel.y;
-        p->pos.z += p->vel.z;
-        goto Call090;
-
-    Drift:
-        p->pos.x += p->vel.x;
-        p->pos.y += p->vel.y;
-        p->pos.z += p->vel.z;
-
-    Drift2:
-        p->pos.x += *(int*)(g_game + 0x37ecc);
-        p->pos.y += *(int*)(g_game + 0x37ed0);
-        p->pos.z += *(int*)(g_game + 0x37ed4);
-        p->vel.y = p->vel.y - *(int*)(g_game + 0x14263);
-
-    Call090:
-        FUN_0049b090(type, p);
-        goto TailOnly;
-
-    Select:
-        {
-            Proj_0049b720* sel = *(Proj_0049b720**)(g_game + 0x142f7);
-            if (p == sel) {
-                *(int*)(g_game + 0x1433f) = sel->pos.x;
-                *(int*)(g_game + 0x14343) = sel->pos.y;
-                *(int*)(g_game + 0x14347) = sel->pos.z;
-                *(short*)(g_game + 0x1434b) = p->type->field_fe;
-                *(Proj_0049b720**)(g_game + 0x142f7) = 0;
-            }
-            p->flags69 = p->flags69 | 2;
-        }
-
-    TailOnly:
-        if (!(p->flags69 & 2)) {
-            int gt = *(int*)(g_game + 0x38a47);
-            if ((type->flags.raw & 0x40000)
-                && p->field_46 > gt
-                && p->field_4a < (unsigned int)gt) {
-                FUN_00472810(&p->pos, 9);
-                p->field_4a = p->field_4a + type->field_fa;
-            }
-            {
-                unsigned short sl = *(unsigned char*)(g_game + 0x1427f);
-                if (s > sl && *(short*)((char*)p + 0xa) <= sl) {
-                    void* v = FUN_004815a0(&p->pos);
-                    if (v != 0
-                        && *(unsigned char*)((char*)v + 5) < *(unsigned char*)(g_game + 0x1427f)
-                        && *(int*)(*(int*)(g_game + 0x391e9) + 0xd48) == 0)
-                        FUN_00420a30(&p->pos, type->field_7c, 0, 1);
-                }
+            if (oldY > g_game->seaLevel && p->pos.yw.hi <= g_game->seaLevel) {
+                Cell_0049b720* cell = FUN_004815a0(&p->pos);
+                if (cell && cell->height < g_game->seaLevel && g_game->net->field_d48 == 0)
+                    FUN_00420a30(&p->pos, type->splash, 0, 1);
             }
         }
-
-    Next:
-            offset += 0x6b;
-        } while (--count);
     }
-
     FUN_0049ae20();
 }

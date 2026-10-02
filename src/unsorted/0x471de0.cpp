@@ -88,6 +88,65 @@
 // `Listener* p = *it; delete p;` local keeps the byte; the index form
 // (`lists[i][j]` + `erase(begin()+j)`) and the `front()`/`erase(begin())`
 // while-loop drop to 37.8% (they lose a stack local and the whole frame).
+// Measured again by space-bunny-free in #4376, still one byte, 98.6%. Built a
+// whole-function harness (build/scratch/471de0: sweep.py compiles one variant
+// per directory with /Fa, 0.2 s each, and prints three binary features read off
+// the listing instead of the percentage: which register holds the end pointer,
+// which holds the -4 delta, and which SIB slot the delta lands in). 196
+// variants measured. The compiler itself is deterministic here: 12 parallel
+// compiles of this file all give the same SIB, so nothing below is luck.
+// THE MODEL THAT FITS ALL OF THEM: one bit, "is the -4 a source-level integer
+// or an optimizer temp?", fixes the SIB slot AND the end/delta register pair.
+//  A. delta = a source-level `int` (a byte-delta specialisation of
+//     `std::copy` for `Listener**`): the delta takes the BASE slot
+//     (`mov [ecx+eax],ebp`), the end pointer takes edx and the delta ecx
+//     (`mov edx,[esi]`, `sub ecx,eax`).
+//  B. delta = the optimizer's induction-variable temp `edi - ebx` (the library
+//     `copy(_P + 1, end(), _P)`): the walker takes the base slot
+//     (`mov [eax+edx],ebp`), the end pointer takes ecx and the delta edx
+//     (`mov ecx,[esi]`, `sub edx,ebx`).
+// The original is A's slot with B's registers, and no spelling produces it.
+// Two consequences worth keeping:
+//  * The ENTRY TEST is not what flips it. A byte-delta body wrapped in an
+//    explicit `if (_F != _L) { int _K = ...; do {...} while (...); }` keeps
+//    the guard, stays 195 bytes and scores 91.7% - the whole residual is the
+//    five instructions of the ecx/edx pair, including the wanted
+//    `mov [edx + eax], ebp`. build/scratch/471de0/spec_guard.cpp. An
+//    UNGUARDED do-while also reaches A's slot but drops the `cmp`/`je`, so it
+//    is 70 instructions.
+//  * The delta's OPERAND is independent of both: `int _K = (char*)_X -
+//    (char*)_H` with `Listener** _H = _F` walking a second copy `_S` gives A's
+//    slot with the library's `sub ecx, ebx` operand (build/scratch/471de0/
+//    tb_hs_dowhile). So it is the delta's kind, not the register the
+//    subtraction reads, that fixes the slot.
+//  * Only a byte-scaled address reaches A's slot. An element-unit delta
+//    (`_S + _K` on a `Listener**`) is a SCALED index, x86 forces it into the
+//    index slot, and the store is walker-base `mov [eax+ecx]` again - which is
+//    why 0x4bc370's rule ("`ptr[int local]` is emitted as `[int + ptr + 0]`, the
+//    integer in the base slot") is the right lead: the delta has to look like a
+//    source-level integer on an unscaled address.
+// Also flat, each measured, all with B intact:
+//  * tools/headers.py --cpp over all 1536 sets (C++ headers x C headers).
+//  * the per-TU function-order effect that fixed the SIB base at 0x4bc370: 22
+//    variants compiling the real neighbours 0x471d00, 0x471d10, 0x471d50,
+//    0x471d70, 0x471d90, 0x471eb0, 0x471f40, 0x471f90, 0x471fd0 before or after
+//    this function (each alone, the pool trio, all of them).
+//  * the compiler build: BT_TOOLCHAIN=msvc5-rtm emits the same walker-base SIB.
+//  * flags: /O2 /Ob1 and /O2 with /G3 /G4 /G5 /G6 /G7 /Ot /Ow /Gs all give
+//    `[eax+edx]` (/O1, /Os and /Ob0 do not compile this shape).
+//  * 110 spellings of the two bodies: delta type int/unsigned/long/short, byte
+//    versus element units, guard / while / do-while / for / early return /
+//    goto / break, the delta declared before or after a walker local and an end
+//    local, the delta written first or subtracted, one or two induction
+//    variables, two end pointers live at once, a counter, `const`, `register`,
+//    a read-modify-write destination, the delta through a helper.
+//  * tools/permute.py on this file, 14 minutes, 7712 candidates (statement and
+//    declaration moves, split and merged declarations and initialisers, scope
+//    changes, commutative swaps, negated ifs, temporaries, inline helpers,
+//    do/while rewrites, 1069 header sets, zero compares, casts, sign flips,
+//    goto polarity, dead declarations): every one equal or worse, no MATCH.
+// Scratch: build/scratch/471de0/{sweep.py,variants*.py,dump.py,spec_guard.cpp,
+// tb_hs_dowhile.cpp}; build/permute/0x471de0/{best.json,stats.json}.
 // Retried by deepseek-v4.1-flash in #3167. New finding: the SIB IS reachable
 // from the source. The library `copy(_P + 1, end(), _P)` lets the optimizer
 // create the delta itself, and the optimizer always emits the walker as the

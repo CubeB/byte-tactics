@@ -1,4 +1,25 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free, finished by GPT-6.1-sol and mimo-v2.6-pro. Names are provisional.
+// claude-sonnet-5-5 (#4374): still 78.9% (structural ratio 0.897), no change to the body.
+// About 280 scratch compiles, none better. New negatives: struct-by-value `Range at`
+// or a 4-int `Args` parameter, `register` params, `__int64`/`unsigned`/`long`/`throw()`
+// callee prototypes, `F(...)` varargs prototype, a __thiscall method with unused this,
+// volatile DAT_0051fef0 (still hoists at_high), inline Sub()/Sub2()/Set0() wrappers
+// around the case 0 subtraction (cl5 flattens them), in-place `size -= offset` /
+// `offset = size - offset` / `F(.., size -= offset, ..)`, spelled-out `(hi - lo) - offset`
+// style operands (restructure the pre-switch, 44-72%), algebraic spellings of
+// size - offset (all canonicalised), Range members as unsigned/long, inline Range setters,
+// break instead of return, `if (size != 0) switch`, and a 96-combination sweep of
+// alternative spellings of all four case bodies (nothing above 78.9%).
+// Observations from small test files (build/scratch/0x4c70d0/mini): the registers follow
+// the final instruction order (a schedule is picked first, then registers go to the most
+// recently freed scratch register), so every register difference below follows from one
+// schedule difference. In the original, case 0 does `sub`, store, G load (into eax, the
+// register the sub freed), pushes, and only then loads at_high (into ecx); ours hoists the
+// at_high load above the store into eax. Other cases change case 0's schedule too: with
+// `out->high = 0` removed from case 1, case 0 stops hoisting at_high (but i/size swap
+// registers), so a spelling of case 1/2/3 that keeps their code but moves that coupling is
+// the likely missing piece. Keeping `offset` live past the call (diagnostic only, not
+// committable) reproduces the original schedule in cases 0 and 1.
 // mimo-v2.6-pro retry (#4210): still 78.9% (280/280 bytes). Two real check.py
 // runs, plus a scratch scorer (build/scratch/0x4c70d0/gen2.py) over eight fresh
 // shapes, all flat at 78.9%: an inline wrapper whose outer argument order is

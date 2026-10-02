@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Pass 13 (Space Bunny Free): 83.7 -> 88.6 percent / 1596 bytes (original 1595). Not a MATCH.
 // What moved it (free-scored variants, all kept under build/scratch/0x487080/):
 //  - GetB10F_00487080(unit), a one-line static inline getter for the byte flag field, read
@@ -64,6 +64,21 @@
 //    temporary), each temporary 0.6, and none of the swapped `&`/`|` operands matter at all. A
 //    plain `{ }` block instead of the do/while(0) scores 85.3, so it is the loop, not the
 //    scope, that matters; no natural construct for it was found.
+// Pass 15 (DeepSeek V4.1 Flash): no change, still 88.8 percent / 1596 bytes.
+//  Ran the permuter three times (default, --seed 42, --seed 123 --no-helpers, 3 min
+//  each, ~6000 candidates): no candidate beat 88.8. The seed 123 run reached permute
+//  score 3045 (from 3194) at the SAME 88.8, but only via implausible edits (`1 & (...)`,
+//  an `((unsigned int)u)` cast, a moved unused `int k`); its machine diff is the same
+//  size, so it was not copied.
+//  Manual experiments kept under build/scratch/0x487080/ (a,b,c,d,f,g,h,j,k,l,m,n1,n2,n3,
+//  p,q1,q2,q3), all at or below baseline. Anything that makes the field load a single
+//  local (b, f, g, n*) scores 81 to 82: one fewer load, but the load is scheduled above
+//  the b_fa/b_10e stores and the whole 0x110 register rotation then shifts, losing more
+//  than the extra byte gains. q1 to q3 (statement 1 on the plain field, statements 2-4 on
+//  the getter) get the size right (1595) but the load still hoists and the 0x110 chain
+//  rotates, 80.3 to 82.4. Removing `hi` (d) drops step 1 to a plain `or` but loses 2.4.
+//  Still differs: the one extra hoisted `mov bl,[esi+0x10f]`, the step-1 `xor` vs `or`,
+//  the 0x110 rotation from step 3 on, and the piece loop's first three statement order.
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);

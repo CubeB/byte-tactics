@@ -1,4 +1,4 @@
-// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Pass 13 (Space Bunny Free): 74.4 -> 87.0 percent / 1968 bytes (original 1964). Not a MATCH.
 // What moved it (each change free-scored on top of the previous one):
 //  - `if (((GameBits*)g_game)->b7 != 0)` rather than the bare bitfield: the `!= 0` keeps the
@@ -42,6 +42,26 @@
 // +0x9e / the +0 head. tools/permute.py run from 74.4, 77.1 and 85.7 peaked at 79.8, 82.0
 // and 85.7 percent, none above this file, and its best diffs are full of `tmp0`/`do{}while(0)`
 // artifacts, so nothing from it was taken.
+// Pass 14 (DeepSeek V4.1 Flash): no score change, still 87.0 (1968 bytes) / 89.2 ignoring
+// the 10 moved jump targets. tools/stackcmp.py reports no moved local. Two 3-minute
+// tools/permute.py runs (current file and the 1964-byte bool-comparison variant below) found
+// nothing above 87.0. Everything tried this pass scored lower and was reverted:
+//  - rank-first in the leaderboard: matches the original prologue byte for byte
+//    (`and eax,0xff` / store / `mov edx,eax` / mode test / both `mov ax`), but the loop base
+//    then lands in ecx (`add ecx,0x1b8a`) instead of eax and the loop body loses the
+//    register-for-register match: 76.4. Adding a `base` local did not stop the coalescing:
+//    76.4. rank/mine/best orders B/E/F and a p-first order all scored 74 to 76.
+//  - per-arm sign-extend for `theirs`: `if (mode==2) bt = mine > at<short>(...dd) : ...` and
+//    `bool bt = cond ? cmp : cmp` make the function exactly 1964 bytes and the same 89.2
+//    ignoring jump targets, but shift every internal target (33 moved) so the raw score is
+//    81.9. The separate `int theirs; if/else` form spills `rec` to [esp+0x80]: 77.1.
+//    `(int)` casts on the ternary arms: 72.0.
+//  - the a9a local and `*a9a = 0` are optimal: writing the field back or dropping the local
+//    both give 85.8 (the write must be `mov [edi],ebx`).
+//  - splitting the x87 multiply into two statements, hoisting the 0x92 or parent pointer, and
+//    a `switch` value local all compile to the current code (no change).
+//  - `short theirs`, an inline comparison ternary and type changes to `theirs` compile
+//    identically to the current line (87.0).
 extern void* g_game;
 extern char DAT_00508be8[];
 extern char DAT_00508bf0[];

@@ -1,5 +1,152 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, finished by Space Bunny Free. Names are provisional.
 
+// PARTIAL (73.3%), issue 4635, Space Bunny Free. Baseline was 73.1% at 2160 bytes,
+// the original's size, so only individual instructions differ. One thing moved it:
+//  (1) 73.1 -> 73.3. In the cell branch the original stores yy (its 0x14 slot)
+//      before left (its 0x40 slot), so `int yy = top + 2;` has to come BEFORE
+//      `left = left + 2;`, not after it. That is the whole gain.
+//
+// FRAME-SLOT MAPS, read off both disassemblies side by side. Use
+// build/scratch/0x4a1b40/ours.py: it compiles the file and prints our
+// disassembly with the original's bytes marked `*` where they differ, which is
+// the only way to see these two maps at once (tools/ctx.py prints only the
+// original). Offsets are after the four pushes.
+//   slot  original                          ours
+//   0x10  t, then line, then colPtr         same
+//   0x14  flag, then yy in the cell branch   same
+//   0x18..0x24  x1, cy, x2, cy2 (rowRect)   same
+//   0x28  y                                 same
+//   0x2c  q, overwritten with cy at 0x4a1e32  me (spilled; q has no slot at all)
+//   0x30  yoff                              lh, then cellPtr in the cell branch
+//   0x34  h, then bp in the cell branch      h
+//   0x38  entries                           glyph char byte, then bp in the cell loop
+//   0x3c  lh, then cellPtr                  entries, then bp at 0x4a2076
+//   0x40..0x4c  left, top, right, bottom    same
+//   0x50  me                                xx
+//   0x54  step                              same
+//   0x58  xx                                yoff
+//   0x5c  xw                                same
+//   0x60  font byte                         keepW
+//   0x64  col                               font byte
+//   0x68  glyph char byte                   col
+//   0x00..0x0f unused in both, so no 16-byte padding question remains.
+// Callee-saved registers, in the order the live ranges are first defined:
+//   original  param_1=ebp, zero=ebx, entries=esi, me=edi
+//   ours      param_1=edi, zero=esi, entries=ebx, me=ebp
+// That is exactly two transpositions, param_1<->me and zero<->entries, and the
+// slot map above is downstream of it, so the rotation is the one thing left.
+//
+// The slot map is a chain with two missing links, and both were chased:
+//  - the original keeps `q` in a frame slot AND a register: stored once at the
+//    loop head (0x4a1d21) and reloaded in the two flag branches (0x4a1e05,
+//    0x4a1e13), and at 0x4a1e32 the slot is reused for a COPY of cy, which the
+//    two text calls then read at 0x4a1ecd / 0x4a1ef2. This source keeps q in a
+//    register only and aliases cy onto rowRect.top, so it has neither the store
+//    nor the copy. TWO experiments pin the cause on q and not on cy:
+//    a block-scope `int cy` with `rowRect.top = cy` makes MSVC grow the frame to
+//    0xc0 (2167 bytes, 52.9%), and a function-scope `cyArg` does NOT produce
+//    the copy at all: dumped with ours.py, MSVC coalesces cyArg straight into
+//    rowRect.top's own slot and merely reorders the two stores
+//    (`lea eax,[yoff+top+2] / add ebx,eax / mov [0x1c],eax / mov [0x24],ebx`
+//    against the base's `mov [0x1c],eax / add eax,ebx / mov [0x24],eax`),
+//    72.8%. So `mov [0x2c], eax` is an artefact of q HAVING A HOME that cy is
+//    then given for free, not of cy being a variable of its own, and q is the
+//    only thing left to fix. Nothing tried gives q a home: `char** qAddr = &q;`
+//    with both assignments through it, and a reference to q used at the loop
+//    latch and at the 0x26/0x47 test, are all 73.1, i.e. MSVC 5 folds the
+//    reference away.
+//  - the original RE-READS me->w in the loop (0x4a1d35) so it needs no keepW
+//    slot, which is what frees 0x60 for the font byte. Dropping keepW here is
+//    59.4% (shape 68.3): the extra live range of `me` wrecks the whole loop.
+//
+// BEST SHAPE SEEN, WORSE SCORE: `int HasText(...)` returning int instead of bool
+// drops the entry test onto the original's `mov reg,[me->text] / test reg,reg /
+// je` and gives the best jump-target-free shape measured, 78.9% against the
+// base's 78.5%, but 2153 bytes and 68.5%, because the 7 bytes it frees need the
+// missing `mov [0x2c], eax` of the chain above, which needs a slot to coalesce
+// with. It is the closest anyone has come and it is not reachable from here.
+//
+// CONFIRMED INERT on the 73.3% base (byte-identical or worse, do not retry):
+//  - declaration order of all twelve locals declared before the first statement:
+//    24 orders, including all-scalars-first, all-refs-first, reversed scalars
+//    and 16 seeded random ones, every one BYTE-IDENTICAL. MSVC 5 assigns frame
+//    slots here by use, not by declaration order, so do not sweep it again.
+//  - `!= 0` vs no `!= 0` vs braces around the `step` if, and around the entry
+//    test, and testing HasText first: all byte-identical.
+//  - the two `me->type` arms the other way round: byte-identical.
+//  - `int noText = q == 0;` replaced by a bare `if (q == 0)`: byte-identical.
+//  - a file-scope `extern` prototype: byte-identical.
+//  - tools/headers.py on THIS base: 256 header sets, 0 compile failures, best
+//    still 73.3% with the bare <windows.h> the file already has, so the
+//    SIB-order half of technique 1 does not apply here either.
+// A FILE-SCOPE CONST costs 0.2 (73.3 -> 73.1), which is the only non-function
+// file-level change measured that moves anything.
+//
+// FILE-LEVEL STATE IS A LEVER HERE, AND IT IS A CONSTRAINT: adding ANY second
+// function definition to this file costs exactly 5.0 points and exactly 1 byte,
+// 73.3 -> 68.3 at 2161. Measured for all of these, each on its own: a
+// `static inline` getter for surf / bc.field_bc / holder / colour / colour_8be /
+// flags / text / b6.count / field_da / cells / field_d6 / h / field_c0 /
+// field_ba / colours / type (sixteen of them), `&entries[param_2]` and
+// `holder->entries` behind a helper, a helper wrapping `me->w`, an unused
+// `static int`, an unused `static void`, an unused `struct`, a helper that only
+// returns its argument, and two such helpers. An unused one that wraps nothing
+// is as bad as a used one, so this is not about the expression: this file must
+// contain exactly one function definition, NonZero or HasText, and cannot get a
+// third. The routing trick from 0x487080 / 0x487bf0 is closed here.
+//
+// CONFIRMED WORSE on the 73.3% base, with scores:
+//  - the loop-exit polarity is genuinely inverted and still not worth 4.5
+//    points. The original's two latch tests are BOTH `jl` to the body top
+//    (0x4a2023 and 0x4a203f) with an inline epilogue at 0x4a2045, i.e. it
+//    continues while `h < lh`, so `if (h < lh) break;` is a real misreading and
+//    the original draws one line more than this file says. Fixing the polarity
+//    anyway costs 4.5 points: `if (h >= lh && line + bc >= c0) return;` 68.8,
+//    `if (h >= lh) { if (...) return; }` 68.8, two separate `continue`s 68.8,
+//    `if (A && B) continue; return;` 71.8, `if (h >= lh) break;` alone 73.0.
+//    MSVC keeps putting a `jge shared_exit` in front of the second test.
+//  - `step`: the original stores it ONCE (0x4a1c50) after testing field_da,
+//    this file stores it twice. `me->field_da ? me->field_da : lh + 1` 68.6,
+//    if/else-first 68.4, `if (step == 0) step = lh + 1` 68.4, a `da` local 68.1.
+//  - the entry test: writing `me->text != 0` straight instead of through
+//    HasText is 68.4, so HasText is worth 4.9 points despite emitting four extra
+//    instructions.
+//  - the glyph guard: `if (c != 0)` instead of `if (NonZero(c))` is 55.5, and so
+//    is `NonZero(c) ? true : false` and a `#define` version of NonZero. NonZero
+//    is worth 17.8 points and is the reason the guard materialises a boolean.
+//  - the text-width block without `noText` and without the do/while(0) node
+//    (spelled `int w = 0; if (q != 0) {...}`): 63.3.
+//  - the loop preamble: moving `line = 0`, `y = me->bc.field_bc` and
+//    `yoff = 0` down to just after `q = FUN_004b6af0(...)`, where the original
+//    has all four stores together at 0x4a1d1d..0x4a1d2d: 58.0.
+//  - the cell branch: the original stores `colPtr = 0` in the bp!=0 arm
+//    (0x4a20cd) and never zeroes `lh`, so dropping `lh = 0;` and zeroing
+//    colPtr there should be size neutral: 70.0.
+//  - `int yy = top + 2;` as a function-scope local rather than a block one, with
+//    `rowRect.top = cyArg`: 72.8, and the two calls naming it 56.3.
+//  - giving `q` an address (`char** qAddr = &q;` and both assignments through
+//    it): 73.1. MSVC 5 folds the reference away, so q still has no home. See the
+//    frame-slot note above: this is the one link still missing.
+//  - a reference to q used at the loop latch, and at the 0x26/0x47 test: 73.1.
+//  - the last redundant spellings, all byte-identical to the 73.3% base unless
+//    noted: `FUN_004c13a0(col, font)` and `FUN_004c13a0(col, (int)(font&0xff))`
+//    instead of the double cast, `unsigned int xw`, `int bp`, and
+//    `i == entries->b6.count + 1` instead of `i == 1 + entries->b6.count`.
+//    `int font` for the byte slot is 68.2 / 2165 bytes, `unsigned int xx` 73.1,
+//    and a `short da` hoisted above `step = lh + 1` in the step block 73.1.
+//
+// PERMUTER (Space Bunny Free, issue 4635): seed 4635, 16 minutes, 3 jobs, from
+// the 73.1% base, 2344 candidates compiled and 0 of them better, best.score ==
+// start.score == 5343, best.diff empty. Mutation kinds it did try, all of them
+// at or below the base, with the counts of compiled/equal: move_decl 229/141,
+// move_stmt 225/52, swap_commutative 498/298, split_init 241/169,
+// flip_compare 217, negate_if 203/50, zero_compare 120/77, cast 167/112,
+// nested_if 153/100, temp_intro 246/128, extract_helper 152/44,
+// decl_scope 52/20, loop_form 106/62, do_while0 86/46, goto_polarity 49/16,
+// return_var 83/7, loop_back 39/24. So the meaning-preserving rewrite space
+// around this file really is exhausted at 73%; the next pass should not re-run
+// it before trying something structural.
+//
 // PARTIAL (73.1%), issue 4354. This pass went 66.5% -> 73.1% and the compiled size is
 // back to the original's 2160 bytes. What moved it, in order of size:
 //  (A) 66.5 -> 67.4. The FUN_004be950 colour parameter is `int`, not `unsigned char`.
@@ -81,6 +228,13 @@
 //     initialiser into the branch (65.5), moving `line = 0` after the b6af0 call (61.8)
 //
 // Suspected original bugs:
+//  - the text loop's latch polarity is the other way round from what the code
+//    reads like: both tests at the bottom of the loop (0x4a2023 and 0x4a203f)
+//    are `jl` back to the body top, so the loop CONTINUES while `h < lh`. With
+//    `h` starting at me->h and falling by one line height per pass, the original
+//    draws one line more than an `if (h < lh) break;` reading suggests, which is
+//    the count that fills the rectangle. This file's `break` costs 4.5 points to
+//    correct but is what compiles, see the note above.
 //  - the highlight call at 0x4a1fb6 has both arms dead identical (0x4a1fb8 and
 //    0x4a1fcb both push 0x1e and lea the same [esp+0x1c]), so
 //    `holder->field_20 == param_2` has no effect on the output.
@@ -605,8 +759,10 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
             colPtr = &me->cells[h];
         else
             cellPtr = (char*)me->cells + h * 0x18;
-        left += 2;
+        // The original stores yy (its 0x14 slot) before left (its 0x40 slot);
+        // the other order of these two statements is 73.1% and this is 73.3%.
         int yy = top + 2;
+        left = left + 2;
         y = yy + step;
         if (1) do {
             void* cell;

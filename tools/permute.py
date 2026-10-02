@@ -509,7 +509,7 @@ def permute(address: int, src: Path, minutes: float, jobs: int, seed: int | None
             patience: float = 0.0, max_minutes: float | None = None, helpers: bool = True,
             elite_size: int = 12, keep_going: bool = False, weights: dict | None = None,
             quiet: bool = False, cleanup: float = 2.0, stall: float = 0.0, focus: bool = True,
-            use_ddmin: bool = False) -> Result:
+            use_ddmin: bool = False, stack_names: set[str] | None = None) -> Result:
     say = (lambda *a: None) if quiet else (lambda *a: print(*a, flush=True))
     out = OUT / f"{address:#x}"
     (out / "matches").mkdir(parents=True, exist_ok=True)
@@ -520,6 +520,7 @@ def permute(address: int, src: Path, minutes: float, jobs: int, seed: int | None
         return Result(address, str(src), None, None, 0, 0, out, f"no // FUNCTION: {address:#x} in {src}")
     spec = TargetSpec(address, qualname[1:] if qualname.startswith("=") else None)
     spec.helpers = helper_names(base_text, spec) if helpers else []
+    spec.stack_names = stack_names or set()
 
     # Other annotated functions in the file that match now must keep matching.
     obj_path, log = compile_source(src, out_dir=f"permute/{address:#x}/base")
@@ -784,6 +785,9 @@ def main() -> None:
     ap.add_argument("--resume", action="store_true", help="start from build/permute/<address>/best.cpp if present")
     ap.add_argument("--keep-going", action="store_true", help="do not stop at the first MATCH")
     ap.add_argument("--only", help="comma-separated mutation kinds to use (see docs/permuter.md)")
+    ap.add_argument("--stack", metavar="NAMES",
+                    help="comma-separated locals whose stack slot is wrong (tools/stackcmp.py's last line); "
+                         "aims declaration moves at them")
     ap.add_argument("--cleanup", type=float, default=2.0,
                     help="minutes to spend undoing neutral changes in the best version (default 2, 0: none)")
     ap.add_argument("--ddmin", action="store_true",
@@ -819,6 +823,12 @@ def main() -> None:
         if unknown:
             ap.error(f"unknown mutation kinds: {', '.join(sorted(unknown))}")
         weights = {k: (w if k in kinds else 0) for k, (_, w) in MUTATIONS.items()}
+    stack_names = {n.strip() for n in args.stack.split(",") if n.strip()} if args.stack else set()
+    if stack_names:
+        if weights is not None and not weights["move_decl"]:
+            ap.error("--stack works through move_decl, which --only leaves out")
+        weights = dict(weights or {})
+        weights["move_decl"] = max(weights.get("move_decl", MUTATIONS["move_decl"][1]), 40)
 
     results = []
     for address in addresses:
@@ -836,7 +846,8 @@ def main() -> None:
             src = start_copy
         res = permute(address, src, args.minutes, args.jobs, args.seed, args.patience, args.max_minutes,
                       helpers=not args.no_helpers, keep_going=args.keep_going, weights=weights,
-                      cleanup=args.cleanup, stall=args.stall, focus=not args.no_focus, use_ddmin=args.ddmin)
+                      cleanup=args.cleanup, stall=args.stall, focus=not args.no_focus, use_ddmin=args.ddmin,
+                      stack_names=stack_names)
         if res.error:
             print(f"{address:#x}: {res.error}")
         results.append(res)

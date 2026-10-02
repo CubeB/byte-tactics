@@ -40,6 +40,7 @@ dependencies (tree-sitter and its C++ grammar), which `uv run` installs.
 | `--no-helpers` | only rewrite the annotated function, not the inline helpers it calls |
 | `--no-focus` | pick mutation sites anywhere, not mostly on the lines behind differing instructions |
 | `--only a,b` | use only these mutation kinds (names below) |
+| `--stack a,b` | locals whose stack slot is wrong (the last line of `tools/stackcmp.py`); weight up `move_decl` and aim it at those declarations |
 | `--keep-going` | do not stop at the first MATCH |
 | `--cleanup M` | minutes for the final cleanup (default 2, 0 to skip) |
 | `--minimize F` | only clean up an existing candidate F against the starting file |

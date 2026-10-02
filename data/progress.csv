@@ -2827,7 +2827,7 @@ address,size,file,symbol,status,similarity
 0x4c70d0,280,src/unsorted/0x4c70d0.cpp,?FUN_004c70d0@@YGXHPAURange@@HH@Z,partial,78.9
 0x4c71f0,280,src/unsorted/0x4c71f0.cpp,?FUN_004c71f0@@YGXHPAURange@@HH@Z,partial,80.0
 0x4c7310,617,src/unsorted/0x4c7310.cpp,?FUN_004c7310@@YGXHPAHPAVClass_004c6ae0@@PAUInfo_4c7310@@@Z,matched,100.0
-0x4c7580,1183,src/unsorted/0x4c7580.cpp,?FUN_004c7580@@YGXPAXPAUFrame_004c7580@@PAUQuad_004c7580@@2@Z,partial,85.1
+0x4c7580,1183,src/unsorted/0x4c7580.cpp,?FUN_004c7580@@YGXPAXPAUFrame_004c7580@@PAUQuad_004c7580@@2@Z,partial,86.3
 0x4c7a20,1529,src/unsorted/0x4c7a20.cpp,?FUN_004c7a20@@YGXHPAHPAUSurf_4c7a20@@PAUInfo_4c7a20@@@Z,matched,100.0
 0x4c8020,1845,src/unsorted/0x4c8020.cpp,?FUN_004c8020@@YGXHPAHPAUSurface_004c8020@@1@Z,matched,100.0
 0x4c8760,1094,src/unsorted/0x4c8760.cpp,?FUN_004c8760@@YGXPAUSurface_4c8760@@0PAH1@Z,partial,90.5

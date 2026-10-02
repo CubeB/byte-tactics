@@ -1,6 +1,16 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by Space Bunny Free, finished by Fable 5.1. Names are provisional.
-// Fable 5.1 (#4452): 84.6% -> 93.5%, 1404 bytes. Everything matches except the
-// loop-2 latch (see below). Three structural changes:
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by Space Bunny Free, finished by Fable 5.1, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash (#4855): 93.5% -> MATCH, 1404 bytes. Only the loop-2
+// latch was left. The fix is one declaration: give loop 2 a source pointer
+// `int* up = &used[i];` BEFORE `char* b = (char*)&entries[i].x1;` and read
+// `*up` for the case 2/3 position. The extra source reference to `used[i]`
+// (before the entry pointer's) changes the IV registration order, so MSVC
+// updates the `up` IV before the entry IV at the latch (`mov eax,[esp+0x14];
+// inc edi; add eax,4; add ecx,0x15b; mov [esp+0x14],eax; mov eax,[esp+0x24]`)
+// instead of loading cnt into eax first and updating up in esi. Putting the
+// `up` declaration after `b` (or spelling `used[i]` at the use) leaves the
+// esi latch. Both pointers still strength-reduce to IVs with their setup after
+// the loop guard, so the setup bytes are unchanged.
+// Fable 5.1 (#4452): 84.6% -> 93.5%, 1404 bytes. Three structural changes:
 //   (1) The tail is the real FUN_004a7190 (matched in 0x4a7190.cpp) inlined
 //       twice, called as FUN_004a7190(menu, menu->layer->field_20) behind
 //       `entries[menu->layer->field_20].type == 3`. Its own body reads
@@ -11,24 +21,15 @@
 //       esi away from `layer` (the 75% plateau of every earlier pass).
 //   (3) Both loops index by `i`. Loop 1 as `for (i = 1; i < count + 1; i++)`
 //       over used[i]/entries[i].x0 is what MSVC turns into the original's
-//       countdown (`dec eax` into [esp+0x14]); loop 2's `used[i]` and the
-//       per-iteration `char* b = (char*)&entries[i].x1` become compiler
-//       induction variables, which is why their setup sits AFTER the loop
-//       guard (`jle` then `lea eax,[esp+0x2c]`), where a source pointer
-//       initialised before the loop never goes.
+//       countdown (`dec eax` into [esp+0x14]); loop 2's per-iteration
+//       `int* up = &used[i]` (declared before `b`) and `char* b =
+//       (char*)&entries[i].x1` become compiler induction variables, which is
+//       why their setup sits AFTER the loop guard (`jle` then
+//       `lea eax,[esp+0x2c]`), where a source pointer initialised before the
+//       loop never goes.
 //   The annotated FUN_004a7830 above the function is the real preceding
 //   function (it also MATCHes here); without it the switch tails are not
 //   shared (1440 bytes).
-// Still differs: the loop-2 latch only. The original updates `up` through eax
-//   (`mov eax,[esp+0x14]; inc edi; add eax,4; add ecx,0x15b; mov [esp+0x14],eax;
-//   mov eax,[esp+0x24]`), ours loads cnt into eax first and updates `up` in
-//   esi. A source-level `b` pointer advanced in the for header gives the eax
-//   latch but hoists the pointer setup above the guard; the compiler IV gives
-//   the setup after the guard but the esi latch. A 48-variant cross of loop-1
-//   form x cnt spelling x b form x up form x tail form (build/scratch/0x4a7960/
-//   gen_cross.py) found nothing with both; the latch register follows the `b`
-//   form alone. A 15-minute permuter run from this file (14518 candidates)
-//   found nothing.
 // IV bias rule measured on the way (build/scratch/0x4a7960/iv/): with
 //   `entries[i].f` accesses MSVC 5 biases the walking pointer to the second
 //   field with a non-zero offset in source order; a field accessed twice or
@@ -188,6 +189,7 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
     {
     int pos;
     for (int i = 1; i < entries->data.count + 1; i++) {
+        int* up = &used[i];
         char* b = (char*)&entries[i].x1;
         if (*(signed char*)(b + 0x12) != 0 && !(*(int*)(b + 4) & 0x400)
             && !(*(unsigned char*)(b - 0x17) == 1 && (*(unsigned char*)(b + 0x125) & 1))
@@ -208,7 +210,7 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
                             break;
                         case 2:
                         case 3:
-                            pos = *(short*)(b - 2) + used[i] * 5000;
+                            pos = *(short*)(b - 2) + *up * 5000;
                             break;
                         }
                         switch (dir) {

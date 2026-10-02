@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free. Names are provisional.
 // (previously: deepseek-v4.1-flash, GPT-6, space-bunny-free.)
 //
 // Partial: 99.4% (1116 of 1116 bytes, the byte count already matches).
@@ -12,7 +12,87 @@
 // differs. Everything else, including the 0x37f2f bit test, the strlen block
 // and the memset ordering, matches.
 //
-// Space Bunny Free (issue #4456), this session: took the function from 89.7%
+// Space Bunny Free (issue #4614), this session: no new best (still 99.4%), but
+// the residual is now characterised precisely. Six micro-probe files under
+// build/scratch/493bf0 (p1.cpp, p2.cpp, p4.cpp, p6.cpp, p7.cpp, p8.cpp, p9.cpp,
+// p10.cpp, each compiled with /Fa so the operand lists can be read directly)
+// settle it. Superseding the note further down that claimed "MSVC 5 puts the
+// pointer in the ADDRES base slot only when that pointer is a named local":
+//
+//  * The SIB base slot goes to the *first register-class* address operand, and
+//    an operand that is a direct read of a global (or of an absolute address,
+//    with the array offset folded into it) is *address*-class and always ends
+//    up in the index slot. Measured, base slot in bold:
+//      `g_game->field_2bf1[n] = v`            [esi + edx]  n in base
+//      `*(g_game->field_2bf1 + n) = v`         [esi + edx]  n in base
+//      `*(n + g_game->field_2bf1) = v`         [esi + edx]  n in base
+//      `((unsigned char*)g_game)[0x2bf1+n] = v`[esi + edx]  n in base
+//      `(&g_game->field_2bf1[0])[n] = v`       [esi + edx]  n in base
+//      `g_game->field_2bf1[g_int] = v`         [edx + ecx]  g_int in base
+//      `g_game->field_2bf1[n] = g_arr[0]`      [edx + eax]  n in base
+//      `Game* g = g_game; g->field_2bf1[n] = v`     [ecx + esi] g in base
+//      `Game& g = *g_game; g.field_2bf1[n] = v`     [ecx + esi] g in base
+//      `char* c = (char*)g_game; c[0x2bf1+n] = v`   [ecx + esi] c in base
+//      `SetSel(g_game, n, v)` (inlined helper)      [ecx + esi] g in base
+//    Thirty spellings of the direct-global form all leave it in the index slot
+//    (p9.cpp), so no re-spelling of `g_game->field_2bf1[n]` will move it.
+//
+//  * Register choice is a separate, coupled decision, and it is what makes the
+//    residual unreachable from either side. Measured: an operand that is a
+//    direct read of a global gets EDX here (the global read in `sa`, p6.cpp,
+//    also lands in EDX once EAX is busy), while a named local gets ECX, and
+//    four simultaneous pointer locals in x1.cpp come out in the order EAX,
+//    ECX, EDX, then a callee-saved one for the fourth. So the materialised
+//    global prefers EAX/EDX/ECX and a local prefers EAX/ECX/EDX. At this store
+//    EAX is busy holding the byte being stored (`al` is FUN_004a0ff0's
+//    return), so the direct global gets EDX (right register, wrong slot) and
+//    the alias gets ECX (right slot, wrong register). Getting both would need
+//    the pointer to be a materialised global *and* to beat the index for the
+//    base slot, and the two rules above say no spelling does both. That is
+//    the whole residual: the original has a pointer that keeps EDX and still
+//    wins the base slot, and nothing reproduced here produces that.
+//
+//  * Two by-products worth keeping for other functions:
+//    - Dropping the `unsigned char v` local and storing the call result
+//      directly (`g_game->field_2bf1[n] = FUN_004a0ff0(...)`) moves the
+//      pointer from EDX to ECX without changing the slot, so that local is
+//      what buys EDX today. `= (FUN_004a0ff0(...) != 0)` does the same.
+//    - A self-conditional on the pointer *inside the address expression*
+//      (`(g_game ? g_game : g_game)->field_2bf1[n] = v`) makes the pointer a
+//      phi but does NOT move it into the base slot; it just takes ECX. Only a
+//      named local does that.
+//
+//  * Tried and measured with no effect on either site (all leave the emitted
+//    code byte-identical): ~15 address re-spellings, the displacement attached
+//    to the index term, `n`/`d` as `unsigned int`, `long`, `unsigned long`,
+//    `field_2bf1` as `char`/`signed char`/`char[12]`, `v` as `char`, `v & 0xff`,
+//    `(unsigned char)v`, `v != 0`, storing the call result with and without the
+//    local, a comma expression, `if (n)` around the store, two stores of the
+//    same value, a pointer-to-the-array local, and a self-conditional on
+//    `g_game` before the store. Tried with the alias (all give ECX, never EDX):
+//    a `Base()` by-value helper, a `SetSel()` store helper, `Game* const`,
+//    `void*` plus a cast, `*&g_game`, a split declaration, an extra scope
+//    block, a second alias, a second pointer local, an array-pointer local
+//    with a self-assign, an index local, dead statements (`g = g`, `n = n`,
+//    `v = v`, `g->mode_2bf0 = g->mode_2bf0`, `int t = 0; if (t) ...`,
+//    `mode = mode | (t & 0)`), the alias at the top of the function, before the
+//    LIVEPLYR branch and before the call, and `g = g ? g : g`. The alias
+//    declared *before* the call moves it to EBX instead (it must survive the
+//    call); `g->mode_2bf0 = 0;` after the alias additionally moves `n` out of
+//    ESI into EDI.
+//  * Declaring the alias at *function* scope (`Game_00493bf0* g;` in the
+//    declaration block, `g = g_game;` inside the branch) loses the base slot
+//    again, back to `[esi + ecx + 0x2bf1]`: it is the block-scope declaration
+//    that makes the pointer register-class. Same for a `char*` alias and for
+//    one declared as the very first local. Found by permute.py.
+//
+//  * Two runs of tools/permute.py (28 minutes from this 99.4% file with 4 jobs,
+//    1250+ candidates, and 15 minutes from the alias shape above) found
+//    nothing beyond this: the SIB byte is the only difference and check.py's
+//    ratio does not reward register-only moves, so the fine-grained permuter
+//    score is the only signal and it stayed at 10 / 25.
+//
+// Space Bunny Free (issue #4456), earlier session: took the function from 89.7%
 // to 99.4%. Three findings, all of them needed:
 //  * The strlen block (about 20 instructions of the old diff) only lands when
 //    the four statements that open it are in this order: oldmode, to, base,

@@ -38,6 +38,19 @@
 //   final call; we keep it in edi. The hoisted 1 also reaches START (`cmp
 //   esi,ebp`, the two `push ebp`) and MAP here, but MESSAGE's FUN_004618a0(1)
 //   push in the original. Micro-spellings of every tail branch were flat.
+//
+// DeepSeek V4.1 Flash (round 2): the two halves are coupled. Writing the
+// version test as `else if` (the 0x448c70 form) does give the original's
+// map-check edi/edx, but then the tail gadget moves to ebp, the hoisted 1 to
+// esi, and MSVC duplicates the final FUN_004ab0a0 call into MESSAGE (88.7%,
+// 4423 bytes). The base `||` form keeps the tail constant in ebp but the map
+// check swaps to edx/edi (93.8%). Tried without gain: the permuter twice
+// (3 min on base, 5 min from the else-if file; both settle at 93.8%),
+// headers.py --cpp (1536 header sets), moving the `check` declaration and
+// every declaration order for me/entries/buf, loop forms, a g_game or data
+// local in the map check, tail self-assignments and fold-away uses, and the
+// field_2a3c compare spelled six ways. Best stays 93.8% (97.5% ignoring the
+// moved jump targets).
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>

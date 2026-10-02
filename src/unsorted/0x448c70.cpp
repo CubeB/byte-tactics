@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, edited by Space Bunny Free, finished by Space Bunny Free, rewritten by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, edited by Space Bunny Free, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Refreshes the multiplayer battle room every frame: scrolls the OUTPUT chat
 // list, the MAPNAME/MAP state, the ready bits of the local players, then the
 // ten player rows (CD, PLAYER, LOGO, SIDE, ALLY, TEAMICONS, RES, PING, MEM,
@@ -38,6 +38,30 @@
 //   and shares only the FUN_00435920 call; one call after the if/else shares
 //   the sprintf call too, and a call in each arm gets the arms' registers
 //   rotated (84.5%).
+//
+// DeepSeek V4.1 Flash pass (issue #4831): still 86.2%, no variant scored
+// higher. New evidence, so the next attempt need not repeat it:
+// - Two more full permuter runs (seeds 7 and 21, one --no-focus) plus the
+//   earlier one: 0 gains in about 4500 candidates.
+// - N unused `extern int dummyN;` declarations before the function, N = 0 to
+//   1100 step 1: 86.19% at every N. Not declaration-count compiler state.
+// - The 0x450530 lever: reusing the existing function-scope `int i` (or a new
+//   int) as the row-loop index flips the loop head to the original's ebp = p /
+//   ebx = index, but `me` then stays in esi and every local's slot moves, so
+//   the whole function drops to 67.6%. The int copy has to keep the byte `n`
+//   and not perturb the spill set, which no placement found.
+// - The 0x450530 dead `if (n == 9) p->active = p->active;` (and p->type,
+//   players[n].active, localPlayer, a field, empty block) at the top, middle
+//   and end of the body: emitted bytes unchanged. MSVC 5 drops it here (no
+//   strength reduction to block, unlike 0x450530).
+// - The 0x461b10 self-store `T t = n; n = t;`, the `p = q;` pointer copy,
+//   `register`, `players + n` / `n[players]` / `(char*)players + n*0x14b`,
+//   `Player*&` reference and `* const`, `PlayerAt`/`AllyByte` inline
+//   accessors, reordering the two unannotated helpers, and every boolean
+//   spelling of the TEAMICONS visible test: all byte-identical to this file.
+//   So the TEAMICONS 1-first layout and the MEM arms' separate sprintf calls
+//   are the only non-register codegen diffs left, and they are not fixable by
+//   rewriting those expressions alone.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>

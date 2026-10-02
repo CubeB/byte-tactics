@@ -192,14 +192,14 @@ void Class_00459200::FUN_004589c0(Image_4589c0* bmp, Model_4589c0* model)
             s.y = yv;
             int xoff = s.x.whole;
             int yo = s.y.whole;
-            int cx = cminX + xoff;
-            int cy = cminY + yo;
-            int dx2 = cmaxX + xoff;
-            int dy2 = cmaxY + yo;
-            if (cx < minX) minX = cx;
-            if (dx2 > maxX) maxX = dx2;
-            if (cy < minY) minY = cy;
-            if (dy2 > maxY) maxY = dy2;
+            cminX += xoff;
+            cminY += yo;
+            cmaxX += xoff;
+            cmaxY += yo;
+            if (cminX < minX) minX = cminX;
+            if (cmaxX > maxX) maxX = cmaxX;
+            if (cminY < minY) minY = cminY;
+            if (cmaxY > maxY) maxY = cmaxY;
         }
         child = child->next;
     }

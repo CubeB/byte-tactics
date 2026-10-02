@@ -615,7 +615,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   if (L.local_1ab > L.local_193) {
     L.local_1ab = L.local_193;
   }
-  if (L.local_19f > L.local_18f) {
+  if (L.local_18f < L.local_19f) {
     L.local_19f = L.local_18f;
   }
   if (*(uint *)(((int)iVar12) + 0xf8) < *(uint *)(iVar11 + 0x38a47)) {
@@ -636,9 +636,10 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     iVar11 = (int)g_game + 0x37f3d + uVar19 * 0x232;
     FUN_004c1420((int)(*(int *)(0x22e + iVar11)));
     FUN_004c1450();
-    L.local_208 = (ushort *)((int)g_game + 0xdcb);
+    puVar9 = (ushort *)((int)g_game + 0xdcb);
+    L.local_208 = puVar9;
     iVar8 = FUN_004c13f0();
-    FUN_004c13a0((int)((uint)((byte *)L.local_208)[0xf]),(int)(iVar8));
+    FUN_004c13a0((int)((uint)((byte *)puVar9)[0xf]),(int)(iVar8));
     iVar21 = 0x81;
     do {
       puVar9 = (ushort *)
@@ -701,21 +702,21 @@ LAB_join1:
           }
       }
     }
-    iVar12 = FUN_004c13f0();
-    FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 0xf)),(int)(iVar12));
+    iVar21 = FUN_004c13f0();
+    FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 0xf)),(int)(iVar21));
     sprintf((char*)L.local_170,"%d",(int)L.local_19f);
     FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0x82)),(int)(*(int *)(iVar11 + 0x86)),(int)(-1));
     FUN_004c14f0((int)(L.local_1f0),(int)("0"),(int)(*(int *)(iVar11 + 0xe2)),(int)(*(int *)(iVar11 + 0xe6)),(int)(-1));
     sprintf((char*)L.local_170,"%d",(int)*(float*)(iVar12+0xa8));
-    iVar12 = FUN_004c1480((int)(*(int *)(iVar11 + 0x22e)),(int)(L.local_170));
-    FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0xc2) - iVar12),(int)(*(int *)(iVar11 + 0xc6)),(int)(-1));
+    iVar21 = FUN_004c1480((int)(*(int *)(iVar11 + 0x22e)),(int)(L.local_170));
+    FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0xc2) - iVar21),(int)(*(int *)(iVar11 + 0xc6)),(int)(-1));
     sprintf((char*)L.local_170,"%.1f",L.local_19b);
-    iVar12 = FUN_004c13f0();
-    FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 10)),(int)(iVar12));
+    iVar21 = FUN_004c13f0();
+    FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 10)),(int)(iVar21));
     FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0x112)),(int)(*(int *)(iVar11 + 0x116)),(int)(-1));
     sprintf((char*)L.local_170,"%.1f",fabs(L.local_197));
-    iVar12 = FUN_004c13f0();
-    FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 0xc)),(int)(iVar12));
+    iVar21 = FUN_004c13f0();
+    FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 0xc)),(int)(iVar21));
     FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0x122)),(int)(*(int *)(iVar11 + 0x126)),(int)(-1));
   }
   FUN_0046a860((int)(L.local_1f0));
@@ -727,6 +728,7 @@ LAB_join1:
   pDVar1[14] += DVar7 - *pDVar1;
   *pDVar1 = DVar7;
   L.local_1b4 = *(byte *)(g_game+0x2a43);
+  mv = (MapGrid *)((int)g_game + 0x141fb);
   iVar12 = (int)g_game + (uint)L.local_1b4 * 0x14b;
   iVar11 = iVar12 + 0x1b63;
   FUN_004c1420((int)(*(int *)((int)g_game + 0x3816b +
@@ -737,7 +739,6 @@ LAB_join1:
   pcView = g_game;
   iVar12 = *(int *)((int)pcView + 0x1431f) / 16;
   iVar21 = *(int *)((int)g_game + 0x14323) / 16;
-  mv = (MapGrid *)((int)g_game + 0x141fb);
   if (0 < mv->f54) {
       do {
           iVar14 = mv->f50 * iVar13;
@@ -749,8 +750,8 @@ LAB_join1:
   L.local_210 = mv->f54;
   L.local_1b8 = iVar21 - 0x10;
   if (L.local_1b8 < 0) {
-    L.local_210 = L.local_210 + L.local_1b8;
     L.local_1bc = -L.local_1b8;
+    L.local_210 = L.local_210 - L.local_1bc;
     L.local_1b8 = 0;
   }
   else {

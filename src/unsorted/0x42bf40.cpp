@@ -1,4 +1,42 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 16 (space-bunny-free): still 81.0%, ours 4744 bytes against 4772, and the 28-byte gap is
+// NOT a dropped block of code. Rebuilt three tools in build/scratch/42bf40/ (shape.py: masked
+// instruction-shape diff; align.py: parallel walk with the relocatable fields wildcarded on both
+// sides plus a running offset-delta column; dump.py: raw disassembly of one side over a byte
+// range). The delta column says the loss is concentrated in three windows, all downstream of the
+// one shared-zero register the earlier passes named, and each is a register-allocation
+// consequence of it rather than a separate construct:
+//   1. Yard-map loop (+16 bytes there, the largest single loss). The original keeps its outer y
+//      counter in [esp+0x1c] (`cmp word [ebp+0x14c],bx` / `mov dword [esp+0x1c],ebx` /
+//      `mov ecx,[esp+0x1c]; inc ecx; cmp ecx,edx; mov [esp+0x1c],ecx`), because its jump-table
+//      scratch is edx (`xor edx,edx; mov dl,[ecx+0x42d198]; jmp dword [edx*4+0x42d16c]`) and ebx
+//      still holds the live zero. Ours puts y in edx and hands ebx to the jump table, so y never
+//      spills and we are 16 bytes short before the loop even runs.
+//   2. Yard-map case bodies. The original alternates the yard-map pointer between ecx and edx
+//      from case to case (`mov byte ptr [ecx+eax],0` then `mov byte ptr [edx+eax],0x6f`); ours
+//      always uses ecx with the operands the other way round (`mov byte ptr [eax+ecx],0`), a
+//      different modrm byte, because ebx (not edx) was the scratch.
+//   3. Tail /3. The original materialises p twice (`lea esi,[ebp+0x176]; mov edi,esi`), stores
+//      through edi and then RELOADS p[0] and p[2] from memory (`mov ecx,[ebp+0x17e]; add
+//      ecx,[esi]`); ours keeps both in registers and emits `add ecx,eax`. Same source, different
+//      forwarding decision, downstream of the same allocation.
+// Two more readings the tools settled, both independent of the above:
+//   - The original really has NO zero register live at the movementclass null store: it emits
+//     `mov dword ptr [ebp+0x1b6],0` (10 bytes) where ours emits `mov dword ptr [ebp+0x1b6],ebx`
+//     (6). That is direct evidence for the two-zero-range split the earlier passes inferred
+//     (esi 0x42c0f0..0x42cc5f, fresh `xor ebx,ebx` at 0x42ce00) and it is worth 4 bytes on its own.
+//   - The soundcategory loop's pre-test is `mov ecx,[eax+0x37e17]; test ecx,ecx; jle` in the
+//     original (8 bytes) against our `cmp dword ptr [eax+0x37e17],ebx; jle` (7). The original
+//     proves sound==0 there and loads the count to test it; we compare memory with the zero
+//     register instead. Worth 1 byte.
+// Tried this pass, byte-identical or worse: `!= sound` instead of `!= 0` at the soundcategory
+// test is byte-identical at 4744/81.0% (kept, it is the truer reading of the original's
+// `cmp eax,esi`), MSVC5 still folds sound to a constant and emits `test eax,eax`. Using the live
+// `sound` for the movementclass null store, `*(void**)(unitdef+0x1b6) = (void*)sound;`, is much
+// worse: 70.6% (4756 bytes), it pins esi and adds a second materialisation.
+// Next lever, unchanged and still untried from the source side: the only way I can see to get the
+// yard loop to spill y is for the jump-table scratch to land on edx, which needs ebx to still be
+// holding the live zero when the switch is lowered, which is the shared-zero question again.
 // Pass 14 (deepseek-v4.1-flash): 80.6% (ours 4736 bytes against 4772), up from 65.8%.
 // Five things did it:
 //   1. FUN_004c4800's def parameter is a 4-byte union passed BY VALUE
@@ -622,7 +660,7 @@ void __stdcall FUN_0042bf40(char* fbi_file, char* unitdef) {
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "category", 100, DAT_005119b8);
             ((Class_00488e70*)unitdef)->FUN_00488e70(buf);
             if (((Class_004c48c0*)parser.current)
-                    ->FUN_004c48c0(buf, "soundcategory", 100, DAT_005119b8) != 0) {
+                    ->FUN_004c48c0(buf, "soundcategory", 100, DAT_005119b8) != sound) {
                 while (sound < *(int*)(g_game + 0x37e17)) {
                     if (_strcmpi(*(char**)(g_game + 0x37e13) + sound * 0x160, buf) == 0)
                         goto SOUND_FOUND;

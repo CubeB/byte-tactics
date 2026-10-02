@@ -1,5 +1,39 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by claude-opus-5-5. Names are provisional.
-// PARTIAL (55.6%). claude-opus-5-5 pass (#4272), 47.5 -> 55.6, structural:
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, edited by Space Bunny Free. Names are provisional.
+// PARTIAL (56.0%). Space Bunny Free pass (issue 4387, 50 min box): 55.6 -> 56.0
+// (3902 original / 3913 emitted, was 3917). Tools written to
+// build/scratch/448c70/: shapediff.py (address-anchored diff on instruction
+// SHAPES, immediates and displacements masked) and slots.py (esp tracker that
+// pops the register saves separately from the call arguments, so every [esp+K]
+// maps to a frame slot).
+// - `uVar4` is a `uint`, not a `ushort`: that is what removes the `and ebx,0xffff`
+//   after `mov bx,word ptr [eax+0x2a40]` and gives the original's
+//   `xor ebx,ebx / mov si / mov bx` pair verbatim. An earlier note says "uVar4 as
+//   uint (47.3)", but that was on the pre-55.6 layout, where the frame did not
+//   match; the two changes only pay off together. That is the whole +0.4.
+// - slots.py says the ORIGINAL's frame is, in frame offsets from the 0xd4
+//   bottom: local_c0 0x14, ONE slot 0x18 shared by what we call local_bc and
+//   local_b8, local_b4 0x20, local_b0 0x24, local_ac 0x28. Our /Fa gives
+//   c0 0x14, ac 0x1c, bc 0x20, b8 0x24, b4 0x28, b0 0x2c: same total size, one
+//   slot too many before local_b4 and everything after it shifted up by 8.
+//   So the original has ONE FEWER 4-byte local, not a different order.
+// - Tried and reverted, all flat at 55.6/55.5/55.9 or worse: writing the 0x1b63
+//   sum with the constant last (`pcVar19 + uVar18*0x14a + 0x1b63`, alone or with
+//   the 0x1b8a load too), `pcVar19 + 0x1b63 + idx*330`, splitting the pcVar19
+//   add into two statements (51.0, +1 byte), a separate local for the 0x531
+//   deref, swapping local_c0/local_b4, swapping local_b4/local_b0, moving
+//   local_ac after local_a8, `pcVar19 = g_game + uVar18` (no change), and
+//   casting the local_b4 address through `int`/a char* temp.
+// - Merging local_bc and local_b8 into one int (the reading above) gives 50.4
+//   and 3941 bytes: the counter really is a byte, `inc al; cmp al,0xa`, so the
+//   shared slot cannot be one variable.
+// Still differs: the prologue. The original builds `esi` as `mov esi,edx` +
+//   `add esi,ecx` and folds 0x1b63 into one `lea eax,[esi+eax*2+0x1b63]`; we emit
+//   `lea esi,[ecx+edx]` and split the lea+add. It also keeps the 0x531 deref in
+//   eax (we use ecx) and evaluates `FUN_004a50b0()+2` as `mov ecx,eax; add ecx,2`
+//   rather than `lea ecx,[eax+2]`. shapediff.py puts all of that in the first
+//   ~120 bytes; if the prologue is fixed the rest of the shape residual is
+//   1-3 instructions per hunk in 130-odd places.
+// claude-opus-5-5 pass (#4272), 47.5 -> 55.6, structural:
 // - The per-player branch is `if (!IsPlaying(p) && !IsWatching(p)) { dead
 //   slot } else { live slot }` with two inline helpers (the original re-tests
 //   *p inside the second one and lays the dead slot out first). The merged
@@ -139,7 +173,7 @@ void FUN_00448c70(void)
   ushort *puVar1;
   int *piVar2;
   char cVar3;
-  ushort uVar4;
+  uint uVar4;
   bool bVar5;
   byte bVar6;
   int uVar7;

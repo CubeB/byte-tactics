@@ -21,8 +21,8 @@
 // and the second number it parses is thrown away (it lands in the frame-0x18
 // word, which nothing reads afterwards). Kept as the original has it.
 // Space Bunny Free pass. build/scratch/0x487bf0/cmp.py diffs the .dis of a
-// scratch variant against the exe's arm by arm; that plus permute.py took this
-// from 67.7% to 76.9%. What changed:
+// scratch variant against the exe's arm by arm (447 of 534 instructions now
+// agree); that plus permute.py took this from 67.7% to 76.9%. What changed:
 //  - 'O': the arm passes &(frame 0x18) as the first %d and &(frame 0x38) as the
 //    second, and combines the frame-0x38 and frame-0x28 words, so the
 //    (flags >> 18) initialiser belongs to the frame-0x18 word (the one 'B'
@@ -32,21 +32,29 @@
 //    (isspace(*text)); }`, and `count` has to be a function-scope local.
 //  - `Found()` below is a codegen crutch, not Cavedog's spelling. Putting the
 //    G-arm test through one small inlined predicate is what fixes the P, A and
-//    B arms (they share the register allocation the G arm sets up); a `bool`
-//    local in the same place does not, and an int-returning one does not. It
-//    costs 3 instructions in 'G' (xor eax,eax; setne al; test al,al) and so far
-//    nothing recovers them.
-// STILL DIFFERENT, all pure register/scheduling noise in four arms:
+//    B arms, which share the register allocation the G arm sets up: a `bool`
+//    local in the same place does not (65.2%), an int-returning helper does not
+//    (68.4%), and moving the whole if into a helper does not (68.4%). It costs
+//    three instructions in 'G' (xor eax,eax; setne al; test al,al), so ours is
+//    1815 bytes against the original's 1811.
+// STILL DIFFERENT, register and scheduling noise in four arms:
 //  - 'O': the original loads unit->flags twice with nothing between them
-//    (mov edx,[esi+0x110]; mov eax,[esi+0x110]); ours folds that to one load
-//    plus `mov edx,eax`. No non-volatile spelling reproduces it: rewriting the
-//    shifts (build/scratch/0x487bf0/v4.cpp, v5.cpp), giving each read its own
-//    static inline helper (v6.cpp) and reordering the two statements all still
-//    fold. Only `volatile` does it, and an earlier pass measured that at 92.7%
-//    from here (its t5.cpp is gone; this is the same code without volatile).
+//    (mov edx,[esi+0x110]; mov eax,[esi+0x110]) and computes the address of
+//    the second sscanf argument before the first; ours folds the pair into one
+//    load plus `mov edx,eax` and takes the addresses the other way round. No
+//    non-volatile spelling reproduces the double load: rewriting the shifts
+//    (build/scratch/0x487bf0/v4.cpp, v5.cpp), reading the fields as bitfields
+//    (v16.cpp), giving each read its own static inline helper (v6.cpp) or one
+//    helper taking the shift (v26.cpp) all still fold. Only `volatile` does
+//    it, and an earlier pass measured that at 92.7% from this file (its
+//    build/scratch/0x487bf0/t5.cpp is gone; it is this code without Found(),
+//    with `volatile unsigned int flags`). Worth a decision from the lead: this
+//    is the only field in the function that re-reads without a barrier.
 //  - 'M' and 'U': same source shape as the (now matching) P and A arms, but the
 //    original computes &pos and &out before the argument pushes and sinks the
-//    pos.z store below them, where ours does the opposite in both.
+//    pos.z store below them, where ours does the opposite in both, and ours
+//    starts the register rotation one step earlier (edx,eax,ecx against the
+//    original's ecx,edx,eax).
 //  - 'G': register rotation only (edx,eax,ecx against the original's
 //    eax,ecx,edx), plus the three instructions Found() costs.
 
@@ -260,9 +268,9 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
         }
         }
     }
-    if (processed != 0) {
+    if (processed) {
         unit->flags &= ~0x20u;
-        if (0 == ((int)selected))
+        if (selected == 0)
             FUN_0043adc0("MAKESELECTABLE", 1, unit, 0, 0, 0, 0);
     }
 }

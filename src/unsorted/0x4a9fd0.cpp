@@ -1,6 +1,13 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
 //
-// Partial: 91.0%, 2164 bytes (the original's size). Was 73.5% / 2108 bytes.
+// Partial: 94.4%, 2164 bytes (the original's size). Was 73.5% / 2108 bytes.
+//
+// Permute (91.0 -> 94.4): hoisted `int k; Entry* e;` to the top of the
+// function (they were loop-locals), which re-shuffled the frame and fixed the
+// register noise around case 5, and moved case 13's entry base into the
+// `GetLayer(menu)` inline helper (`menu->layer` through a call changes the
+// evaluation order enough to free a register). The other permuter wins were
+// cosmetic and were dropped.
 //
 // What moved it (73.5 -> 91.0), in order:
 //   * REAL EARLY RETURNS. The original has a full prologue (all four pushes), then
@@ -33,11 +40,18 @@
 // What still differs (register/slot noise only; same instruction sequence):
 //   1. The first clamp's spilled `right` and `bottom` are at [esp+0x20] and
 //      [esp+0x14] here, [esp+0x34] and [esp+0x38] (inside the later `point`
-//      copy's area) in the original. Declaration order of right/bottom/point,
-//      an inline helper for the whole clamp, and the expression inlined into
-//      the call were tried (the last is much worse).
-//   2. Case 13: ba/be are loaded into edx/eax here, eax/ecx in the original.
-//   3. The loop-end increment loads entries into eax/ecx here, ecx/edx there,
+//      copy's area) in the original. They are named locals here, so MSVC gives
+//      them dedicated slots and later shares boxRight's with elapsed/ptr; in
+//      the original they look like optimizer spills that landed in the still
+//      dead `point` block. `permute --stack boxBottom` (twice, 3 min each) and
+//      manual tries (declaration order of right/bottom/point, point declared
+//      at every position, a whole-clamp inline helper, the expression inlined
+//      into the call) all leave the slots where they are; the last is much
+//      worse as it drops the spills entirely.
+//   2. Case 13: the entry base is loaded into eax here, ecx in the original,
+//      and ba/be are loaded into ecx/eax here, edx/eax there. GetLayer()
+//      already moved this from the pre-permute three-register mismatch.
+//   3. The loop-end increment loads entries into edx/eax here, ecx/edx there,
 //      and the lea chain of the help-text block follows with swapped registers.
 //   4. The jump table bytes (the checker verifies the targets).
 #include <windows.h>
@@ -243,9 +257,16 @@ static inline int FindHelp(Entry_004a9fd0* entries)
     return -1;
 }
 
+static inline Layer_004a9fd0* GetLayer(Menu_004a9fd0* menu)
+{
+    return menu->layer;
+}
+
 // FUNCTION: 0x4a9fd0
 int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
 {
+    int k;
+    Entry_004a9fd0* e;
     int i;
     Entry_004a9fd0* entries = 0;
 
@@ -321,7 +342,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
 
     i = 1;
     for (; i < entries->u_b6.anim.count + 1; i++) {
-        Entry_004a9fd0* e = &entries[i];
+        e = &entries[i];
         if (e->field_29 != 0) {
             int x, y;
             if (e->type == 0) {
@@ -336,7 +357,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
             if (point.x >= x && point.x <= right && point.y >= y && point.y <= bottom)
                 menu->field_68 = i;
 
-            int k = FUN_004c1b80(0xfb) == 0 ? key : 0;
+            k = FUN_004c1b80(0xfb) == 0 ? key : 0;
             switch (e->type) {
             case 1:
                 if (FUN_004a6ae0(menu, i, key) == 1)
@@ -402,7 +423,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                 break;
             case 13:
                 {
-                    Entry_004a9fd0* me = &menu->layer->entries[i];
+                    Entry_004a9fd0* me = &GetLayer(menu)->entries[i];
                     if (me->u_b6.anim.field_ce != 0 && me->u_b6.anim.field_ba < me->u_b6.anim.field_be) {
                         if (FUN_004b6340() > me->u_b6.anim.field_c6) {
                             me->u_b6.anim.field_ba += (int)me->u_b6.anim.field_ca;
@@ -418,12 +439,12 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                 break;
             case 12:
                 if (e->u1f.timer != 0 && elapsed) {
-                    e->u1f.timer--;
-                    FUN_004a5e50(menu, i);
-                setdirty:
-                    if (menu->layer != 0)
-                        menu->layer->dirty = 1;
-                }
+                        e->u1f.timer--;
+                        FUN_004a5e50(menu, i);
+                    setdirty:
+                        if (menu->layer != 0)
+                            menu->layer->dirty = 1;
+                    }
                 break;
             }
         }

@@ -1,4 +1,4 @@
-// Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Plots the two end points of one span row: the pixel at each end gets the
 // colour when it passes the depth test (the depth buffer keeps the integer
 // part of the 16.16 depth), or unconditionally when the surface has no depth
@@ -75,6 +75,52 @@
 // variants instead of 60 s per check.py run), probe.sh prints one variant's
 // /Fa listing, sc.sh scores a single scratch file, gen_perm.py,
 // gen_assign.py and gen_both.py write the declaration/assignment order sweeps.
+//
+// DeepSeek V4.1 Flash pass (issue 4814, 3-minute permuter box): best stays
+// 96.2%, 118 of 118 bytes. The 3-minute permuter run from this file (2205
+// candidates) found nothing, and a run from a clean shape-B seed climbed only
+// 56.6 -> 80.0 into implausible source (self-assignments and an empty inline
+// helper), so it is not a lead.
+//
+// New results that map the wall. The prologue needs an entry-block use of
+// surf->depth; a load inside `if (w > 0)` cannot be hoisted across the jle, so
+// only a shape-B source (z initialised above the branch) reproduces the
+// original's depth/x2/bits/x1 load order at all. Shape B with no helper
+// variable still colours surf=edx, w=ecx (the mirror); the three instructions
+// before `xor ebx,ebx` are the only difference, and its own pitch block already
+// matches (`xor ebx,ebx / mov bx,[surf] / mov ecx,[row] / imul ecx,ebx /
+// lea ebx,[ecx+edi]`) with surf/w swapped. The whole residual is therefore the
+// one coloring decision surf=ecx, w=edx, and the load order is free once that
+// is fixed.
+//
+// One source shape does pin surf=ecx while keeping the entry-block depth load:
+// a separate early boolean use of the pointer, `int hd = surf->depth != 0;`
+// before the if with `z = surf->depth;` inside. It scores 82.9% (133 bytes):
+// the prologue and the whole pitch block then match exactly, but the boolean is
+// spilled to a stack slot (`setne dl` / `[esp+0x1c]`) and the arm test becomes
+// `test ebx,ebx` instead of `test eax,eax`. Every boolean spelling tried (int,
+// long, char, unsigned char, bool, with and without casts, and the condition
+// mixed with `z != 0`) is 47.3 to 83.2%, none better than 96.2. So the early
+// use forces surf into ecx but costs the pointer register the test needs.
+//
+// A named pitch local also pins surf=ecx but re-colours the pitch temp. Inside
+// the arm, `short pitch = surf->pitch;` with the offsets reading it is 84.6%
+// (114 bytes): prologue and tail match, the pitch block is `movsx ecx,[ecx] /
+// imul ecx,[row] / lea ebx,[edi+ecx]` instead of the five-instruction original.
+// `unsigned short pitch` is 83.8% (120 bytes, `mov cx,[ecx] / and ecx,0xffff`),
+// `int pitch` 78.1% (116 bytes, surf moves to ebx and the temp to ecx). A named
+// `off` for the product does not separate the two (still 84.6 at best). The
+// original's pitch lives in ebx precisely because it is a compiler CSE temp,
+// not a source local: naming it lets the allocator reuse dead ecx.
+//
+// Also swept and flat at 96.2 or worse for this function: shape A with 0-96
+// `extern int` declarations and 1-32 uncalled inline functions (no TU state
+// hoists the depth load, unlike its sibling 0x4c06e0); shape B with 19 kinds of
+// unused declaration at 1-32 copies each (only 116/119-byte recolourings, none
+// above 78.1); all 256 header sets on the shape-B named-off form (56.6%) and on
+// the inline-offset form (78.1% ceiling). So the only unsolved point is still
+// the compiler's surf/w colouring tie, now with the two shapes that each solve
+// one half of it recorded above.
 
 struct Span_004c0a90 {
     int x1;                            // +0x0

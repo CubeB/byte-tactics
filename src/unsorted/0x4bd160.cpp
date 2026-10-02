@@ -1,5 +1,57 @@
 // Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
 //
+// space-bunny-free session (issue 4366): still 99.1%, and the size is exactly
+// the original's 580 bytes, so the whole remaining difference is the constant
+// encoding in the buffer setup:
+//     original                        ours (the file below)
+//     xor  ecx, ecx                   xor  ecx, ecx
+//     mov  eax, ecx                   mov  eax, 0x14
+//     mov  [sb.buf], ecx              sub  eax, ecx
+//     mov  eax, 0x14                  mov  [sb.buf], ecx
+//     push eax / push str / push ecx  push eax / push str / push ecx
+//     mov  [sb.size], eax             mov  [sb.size], eax
+// `sb.size = 20u - (unsigned)z` is the only spelling found that keeps the
+// aggregate's buf store EARLY (before the three argument pushes) and the size
+// store late (after them), exactly as the original has them; it costs the
+// extra `sub eax,ecx` where the original has the dead `mov eax,ecx`.
+//
+// BIGGEST NEW CLUE (7 of the original's 8 instructions, 578 bytes, 94.8%):
+//     struct HapiBuf sb = {20};
+//     char* z = sb.buf;
+//     sb.size = 20u ^ (unsigned)((size_t)z | 0u);
+//     sb.buf = (char*)FUN_004d84a0(z, "Package Data", sb.size);
+// compiles to exactly
+//     xor ecx,ecx / mov eax,ecx / mov [esp+0x18],ecx / xor eax,0x14
+//     push eax / push 0x0 / push ecx / mov [esp+0x20],eax / call
+// i.e. the DEAD `mov eax,ecx` and the original's exact store schedule and push
+// order both appear, and only the constant is encoded as `xor eax,0x14`
+// instead of `mov eax,0x14` (`&` instead of `^` gives `and eax,0x14`). So the
+// dead copy is the accumulator copy of a bitwise operand whose operation MSVC 5
+// keeps while folding its value to 20, and the original's size is a plain
+// literal node. The spelling needed must both keep a value copy of the zero
+// into eax and leave the folded constant as a literal: `+` forms delete the
+// copy (`xor eax,eax / lea ecx,[eax+0x14]`, or immediate stores), `-` keeps it
+// but needs the live `sub eax,ecx`, `&`/`^` keep it and fold to and/xor.
+// 400+ hand-built variants were compiled this session (harness in
+// build/scratch/4bd160/many*.py, one MSVC run per batch): aggregate forms
+// ({20}, {0}, {20,0}, plain), zero sources (literal, local, member read,
+// computed), casts (`(char*)(size_t)z`, `(unsigned)z`, `(int)z`, `(long)z`),
+// bitwise and arithmetic no-ops on the zero, dead stores, unions, arrays,
+// struct copies, by-value factories, assignment-expression arguments and
+// call-argument spellings. tools/permute.py --jobs 2 also ran 28740 rewrites
+// in 20 minutes from this source and found nothing better.
+//
+// What the dead `mov eax,ecx` is elsewhere in the exe: the image holds only
+// five `xor ecx,ecx / mov eax,ecx` pairs (bytes 33 c9 8b c1) and the other
+// four are in MATCHED functions, all register work rather than a copy of a
+// stored zero: 0x480770 at 0x480a57 is the return value of a `return 0` whose
+// zero sits in ecx after a float compare; 0x42d2e0 at 0x42d622 is the array
+// index scaling of `field_1439b[index]` for `unsigned short index = 0`;
+// 0x4a2e40 at 0x4a3037 is the same index scaling; 0x4ce260 at 0x4ce28d is
+// `for (int i = 0; i < 100; i++) arr[i] = (i % 4) + 1`. A dead copy in the
+// middle of straight-line code is therefore the accumulator copy of an
+// expression, and it only survives when its parent operation survives.
+//
 // deepseek-v4.1-flash, issue 4317 (no change to the 98.3% source below, still
 // differs only at 0x4bd17b..0x4bd198). BIG CLUE found this session: the size
 // CAN fold to `mov eax,0x14` while keeping the fresh zero and the early buf
@@ -267,8 +319,9 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
     if (cb)
         cb(0);
     struct HapiBuf sb = {20};
-    sb.buf = 0;
-    sb.buf = (char*)FUN_004d84a0(sb.buf, "Package Data", sb.size);
+    char* z = sb.buf;
+    sb.size = 20 - (unsigned)z;
+    sb.buf = (char*)FUN_004d84a0(z, "Package Data", sb.size);
     off = FUN_004bd3b0(srcname, &sb.size, &extra);
 
     {

@@ -82,6 +82,66 @@
 //    count the fill arm needs, and nothing in the source can stop that merge
 //    without adding a local, which reallocates the whole function.
 //
+// Space Bunny Free pass (issue #4552): still 96.5 percent, 200 of 200 bytes, no
+// MATCH. About 1400 further variants plus a third permuter run (5681
+// candidates), all flat at 96.5 or worse. They are worth recording because they
+// close off whole families:
+// - Translation-unit state, the lever that got this file to 96.5, is flat. N
+//   uncalled inline functions of two shapes (identity and `a + i`) for N = 1 to
+//   8: 96.5 up to five, 88.9 from six on. N never makes the count copy appear
+//   in the right place. So are 15 kinds of unrelated declaration (extra struct,
+//   class with a member function, template, static variable, non-inline
+//   function, inline function with a loop / taking a pointer / taking two ints /
+//   returning void / returning char, macro, enum, union, typedef) and the
+//   pitch accessor as a member, a const member or a free function, used at any
+//   mix of its four call sites (the two clamp reads and the two offset reads).
+// - The count and the loop: `n` as int / unsigned / unsigned int / long /
+//   unsigned long, six orderings of the four locals, the offset and the start
+//   local as unsigned, eleven spellings of the memset count (`n`, `(size_t)n`,
+//   `(unsigned)n`, `n + 0`, `n * 1`, `n & 0x7fffffff`, `(long)n`, `*(int*)&n`,
+//   a folded ternary, the fields again, `x2 - start`), three colour spellings
+//   and nine loop forms (do/while with `--n`, `n -= 1`, `n-- != 0`, `n-- > 0`,
+//   `while (n) { ... --n; }`, `for (; n > 0; --n)`, `for (int i = n; ...)`, a
+//   separate `int i` inside the arm, `while (--n >= 0)`), every combination of
+//   those three axes: 96.5 percent is the ceiling, 87.7 the common second.
+// - The depth arm's body: the shift as `z >> 16`, `z >> 0x10`, `z / 65536`,
+//   `(unsigned)z >> 16`, `(z >> 16) & 0xff`, the test as `*d <= zi`, `zi >= *d`,
+//   `!(zi < *d)`, the stores in both orders, the four orderings of `p++; d++;`
+//   and `z += slope;`, the colour through a local, `zi` through an int temporary,
+//   the test and the stores as one `&&` expression, and `if (d)` for the arm
+//   test: all 96.5 or worse (reversing the two stores costs two bytes, 87.6).
+// - The head and clip: `span->z1 -= x1 * slope`, `z1 - slope * x1`, `0 > x1`,
+//   the clip as `(int)Pitch() - 1 < x2`, the clamp chained through x2, no
+//   `x2 = span->x2` reload, `x2` initialised after `slope`, no `x2` local at
+//   all, p and d declared in either order, and the five orderings of the four
+//   count-block locals: all 96.5 or worse.
+// - Moving code across the arms, the one thing not yet in the file: the fill
+//   arm as an inline `FillRow(p, n, color)` that calls memset (96.5, and the
+//   same three instructions, so it is not a way in), the depth arm's loop as an
+//   inline helper taking the three pointers by reference (33.5 to 47.3, the
+//   by-pointer-value form 33.7), a top-level `unsigned char c = color` used by
+//   the loop (87.1) or by the loop and the memset (96.5, same residual), a
+//   top-level `int c4 = *(int*)&color` (96.5, same residual), the colour
+//   through `(int)color`, `(int)(char)color` and `*(int*)&color + 0` (92.4,
+//   92.9, 96.5), the arm test on `surf->depth` (57.0), `d == 0` first (74.1),
+//   and the count's guard hoisted into its own local (96.5, same residual).
+//   So even adding a ninth or tenth local leaves the three instructions alone,
+//   which says the count copy is not a register-pressure artefact: the head
+//   can reallocate around it without moving it.
+// Two facts about the residual that a lab file settles, and they say what is
+// left to try. First, the original's two copies are `lea` and ours are `mov`,
+// and the whole exe has only five pure `lea reg,[reg]` copies (0x403f5c is
+// data, not code): two are ours and the other two, 0x40a51b and 0x4d41f3, both
+// copy a pointer. Second, a pointer is not the rule: a lab function whose count
+// is a pointer-typed variable (`unsigned char* n = (unsigned char*)(x2 - x1)`,
+// with a separate pointer induction variable and `memset(p, c, (unsigned)n)`)
+// still copies it with `mov esi,ecx`, and so does the pointer-difference form
+// with both span fields typed as pointers. So `lea` here is not a matter of the
+// count's type, and the pointer-difference reconstruction of the source does not
+// pay. Whatever it is, it is set by the same allocator state that moved the copy
+// out of the arm, so the two symptoms have one cause and the cause is not any
+// spelling of the source tried above.
+//
 // What the 84.2 percent passes established, kept here because it is what makes
 // the 96.5 percent version legible: the matched sibling 0x4c0b10 has the same
 // count block shape (surface pointer in ebp, the 16-bit pitch read off it

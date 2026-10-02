@@ -1,37 +1,84 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
-// Session 13b (mimo-v2.6-pro): best is now 66.7 percent (this file, 1353 bytes).
-// Session 13b change that won 2 points: the table-obfuscation position is a
-// separate local pos2 (declared beside pos). MSVC coalesces pos and pos2 into
-// one slot (+0x24) and the frame-slot map then lands several entries on the
-// original's offsets (nameoff +0x20, n +0x30, i +0x34, packlen +0x40 agree).
-// Also verified from the original's slots: table (+0x24) and the second
-// obfuscation position share a slot, and the third (uncompressed path)
-// position never gets a slot at all (the ftell result stays in eax).
-// What still differs and what I tried in this session:
-// (1) The base/entry register mirror is still wrong (base ebx and entry ebp
-// here, base ebp and entry ebx in the original), and with it the loop head:
-// the original loads nameoff and recarr from slots and computes
-// e = (base + nameoff) + *recarr in ebx, while this file rematerializes
-// *recoff as a folded [off + base + 4] load into ebp. recarr is a real slot
-// local (+0x3c) in the original; our recoff never gets a slot.
-// (2) The obfuscation loops: the original keeps key in the byte register its
-// test used (al in the pack loop, dl in the table and buffer loops) and the
-// accumulator takes the other byte register, folding the buffer read as a
-// memory xor operand; this file reloads key each iteration and uses al as a
-// rolling scratch. Root cause seen in the listing: our loop bound clen is
-// reloaded into eax every iteration (clobbering al), while the original holds
-// clen in ebp across the loop. The buffer loop in the original even keeps the
-// ftell result in eax across the loop (pos read as al). Tried dropping the
-// count local and inlining the loop condition (57.7 percent, the frame
-// shrinks to 0x1238 because recoff stays rematerialized), and declaring the
-// three positions as scoped locals at their point of use (still 66.7).
-// (3) nblocks: all three spellings of w / 65536 + (w % 65536 != 0) compile
-// identically out of line (the mod part into esi first, as in the original),
-// so the interleaved div-first order in this file is inline register pressure
-// (size sits in ebp here, ecx in the original), not the operand order.
-// (4) The callback still interleaves both *90 chains; the original computes
-// the subtracted *(int*)(base + 8) * 90 term fully into ecx first, then
-// *dataptr * 90 into eax, then sub eax, ecx.
+// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free: 66.7% -> 75.3% (1353 -> 1345 bytes; the original is 1332).
+// Two changes won the points:
+// (1) A plain int copy of the compressor's output length, taken after the
+// ftell: `int len = clen;` with the scramble and the fwrite both using len.
+// That is the difference between the loop bound living in a frame slot
+// (reloaded into eax every iteration, which also clobbers al) and living in
+// ebp across the loop, which is what the original does (0x4bdaf4) and reuses
+// for the fwrite count (0x4bdb30). Worth 5 points on its own.
+// (2) The entry pointer through a static inline helper, `entryAt(base,
+// nameoff, recoff)`. Nothing about the expression changes, but the inlining
+// boundary moves the register allocation: the nblocks sequence then matches
+// the original instruction for instruction (the mod part into esi first), and
+// the callback's *dataptr * 90 chain starts before the *(int*)(base + 8) one.
+// Worth 4 points. This is the "missing piece is usually a helper that was
+// inlined" lever; the same treatment for the scramble loops, the size ternary,
+// the progress value, the record setup, the teardown and the path join all
+// compile to identical code (75.3%, no change) or worse.
+// What still differs, with the evidence:
+// (1) The frame-slot map. Ours: data +0x10, pos +0x14, dataptr +0x18,
+// remaining +0x1c, nameoff +0x20, tp +0x24, clen +0x28, table +0x2c, n +0x30,
+// i +0x34, file +0x38, count +0x3c, packlen/pack +0x40. The original's:
+// dataptr +0x10, remaining +0x14, data +0x18, tp +0x1c, nameoff +0x20,
+// table/pos2 +0x24, clen +0x28, file +0x2c, n +0x30, i +0x34, pos +0x38,
+// recarr +0x3c, pack +0x40, so only nameoff, clen, n, i and pack agree. Both
+// have 13 scalar slots, so the frame size and every buffer reference are
+// right; it is the membership that differs: we spend the slot recarr needs on
+// the count local. I measured the map by tracking esp through the object
+// disassembly (build/scratch/0x4bd830/smap.py) and it is NOT the declaration
+// order: reversing all fourteen scalar declarations changes not one slot. The
+// original's map IS its declaration order, so its source declares them
+// dataptr, remaining, data, tp, nameoff, table, clen, file, n, i, pos, recarr,
+// pack. Dropping our count local so the loop test re-reads *(int*)(base+off),
+// as the original does at 0x4bdd4e, does free a slot, but the frame drops to
+// 0x1238: MSVC keeps rematerialising recoff as a folded [off+base+4] load
+// instead of giving it the slot, so every buffer reference shifts by four and
+// the score falls to 61.4%.
+// (2) The base/entry register mirror at the loop head: base ebp and the entry
+// ebx in the original, base ebx and the entry ebp here, which also reverses
+// the order of the entry arithmetic (lea ebx,[ebp+ecx]; add ebx,[recarr] there,
+// a folded load plus two adds here). The loop bottom is the other half of the
+// same tie: the original reloads base and re-reads the count from [base+off]
+// (0x4bdd2c-0x4bdd4e), we keep the count in a slot. A redundant conditional
+// re-assignment that mentions base or the entry (the 0x4b3c60 trick) does not
+// flip it: 69.8% and 69.5%.
+// (3) The three scramble loops. The original keeps the key byte in the
+// register its test used (al in the pack loop, dl in the table loop) and folds
+// the data byte into the xor (`xor dl, al; xor dl, [ecx+edi]`), and delays the
+// store past the loop test. We reload the key and the data byte into al every
+// iteration, which is 14 bytes larger over the three loops. That matters more
+// than it looks: check.py compares in-function branch targets literally, so
+// every je/jne after the first difference is a diff line while the size differs.
+// Every spelling of the expression I tried (operand order either way, the key
+// in a local, the buffer pointer in a local, a shared inline helper, the index
+// declared outside the loop, a reversed while loop) is byte-identical.
+// (4) Two store shapes that the original's disassembly shows and that make the
+// score worse when reproduced, so they are recorded as leads, not adopted: the
+// original stores the Pack Buffer pointer into the clen slot just before the
+// FUN_004d1820 call (0x4bda5e, 0x4bdac8, 0x4bdad4) and re-reads remaining from
+// *(int*)(dataptr+1) after the two FUN_004d83b0 calls (0x4bda86). `clen =
+// (int)pack` scores 67.0% and `remaining = *(int*)(dataptr+1)` 58.6%, both
+// because the store shape changes which values stay live across the calls.
+// (5) The callback: the original computes *(int*)(base+8) * 90 into ecx, then
+// *dataptr * 90 into eax, then sub eax, ecx; we interleave the two chains and
+// use edx. A temporary for either term, or for the whole span, is folded away
+// before allocation and changes nothing.
+// Two 15-minute tools/permute.py runs over this file (it mutates FUN_004bd830,
+// entryAt and nblocks) improved on nothing: the best mutation it completed
+// scored 2562 against the base's 2622. Roughly 70 scored variants were tried
+// in total, so items (1) to (3) are allocator ties I could not reach from the
+// source; the leads worth trying next are in (1) and (4).
+// BUG: the max-output-size argument handed to FUN_004d1820 is a heap address.
+// The original stores the result of FUN_004d83b0("Pack Buffer", packlen) into
+// the very slot whose address it passes as that argument (0x4bda5e stores it,
+// 0x4bdac8 reloads it into eax, 0x4bdad4 stores eax again, and 0x4bdacd's
+// lea edx,[esp+0x34] is the same slot 0x28). 0x4d1820 (MATCH) uses that slot
+// as the limit, `if ((length + 0x13) > *chunkSize) return 5;`, so the "does it
+// fit" test compares a length against a pointer, always passes, and nothing
+// checks the result against the FUN_004d1aa0(0x10000, flags) size the buffer
+// was allocated with. The two other callers of FUN_004d1820 (0x4b3c60, 0x4b39c0,
+// both MATCH) pass a real size.
 #include <stdio.h>
 #include <string.h>
 #include <io.h>
@@ -85,6 +132,12 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                             void (__cdecl* cb)(unsigned), unsigned extra,
                             int key, int flags);
 
+// One record of the package's file table, at the row the running offset names.
+static inline Entry_004bd830* entryAt(char* base, int nameoff, int* rec)
+{
+    return (Entry_004bd830*)(base + nameoff + *rec);
+}
+
 // Whole 64K blocks of a byte size, rounded up.
 static inline int nblocks(int w)
 {
@@ -124,7 +177,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
         nameoff = 0;
         recoff = (int*)(base + off + 4);
         do {
-            Entry_004bd830* e = (Entry_004bd830*)(base + nameoff + *recoff);
+            Entry_004bd830* e = entryAt(base, nameoff, recoff);
             strcpy(full, name);
             strcat(full, (char*)(base + e->name));
             if ((e->flags & 1) != 0) {
@@ -185,7 +238,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                     FUN_004d85a0(table);
                     FUN_004d85a0(pack);
                     FUN_004d85a0(data);
-} else {
+                } else {
                     if (size > 0) do {
                         int chunk = size >= 0x1000 ? 0x1000 : size;
                         FUN_004bb7c0(file, buffer, chunk);
@@ -198,7 +251,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                         fwrite(buffer, chunk, 1, f);
                         size -= chunk;
                     } while (size != 0);
-}
+                }
                 if (file->shared != 0) {
                     file->shared->count--;
                     if (file->shared->count == 0 && file->shared->unknown_10 == 0) {

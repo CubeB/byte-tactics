@@ -3,6 +3,119 @@
 // finished by deepseek-v4.1-flash, finished by Space Bunny Free.
 // Names are provisional.
 //
+// 30-MIN CHECKPOINT (space-bunny-free, 2026-10-02): best is still 68.7%, the same
+// version that shipped, so nothing to flush. ~90 scratch variants scored this
+// pass, all free with check.py --sym, and NOTHING beat 68.7%: the full 32-way
+// matrix over (which array index holds each difference) x (subtraction
+// direction) x (statement order) x (sum order) tops out at this spelling;
+// named __int64 locals (61.8%), a {__int64 dz, dx;} struct (68.7% only in the
+// x-first statement order), int temps, named products, `Vec3* p2 = a2` pointer
+// and `Vec3& v = *a2` reference copies, const parameters, tail differences
+// named or inlined through accessors or a two-pointer helper, a by-value
+// Vec3 tail, moving the weapon lookup later (39.8%), a by-value struct tail
+// (35.3%), and every dead-store / Id() identity placement tried before all
+// come out byte-IDENTICAL to this file at 68.7%, i.e. they are the same code
+// and not the lever. Read with the slot-resolving annotator in
+// build/scratch/0x49aa80/annot2.py (which prints every [esp+N] as an absolute
+// slot from the entry esp and models _allmul as ret 0x10, _allshr as cdecl),
+// the original's first block is:
+//   mov esi, a2 / mov edi, a3 at the TOP of the prologue (interleaved with the
+//   four register pushes), a2->x hoisted into ebp, the Z subtraction issued
+//   FIRST, then the X one, dx.lo promoted to ebp with dx.hi spilled to [E-4],
+//   and dz.hi spilled LATE (after the four argument pushes). Our build loads
+//   a3 into edi in the same place but gives esi to the temporary a2->x, keeps
+//   BOTH dx halves in registers (ecx and ebp), reloads a2 from [E+8] and hoists
+//   a3->x into the dead a4 home. So the whole residual is the same single
+//   register decision the older notes describe: which value gets esi.
+// NEW TOOLING in build/scratch/0x49aa80/ (not committed): annot2.py (absolute
+// slots, see above), mk.py (`submany spec.json` applies a list of old/new
+// source substitutions to this file and scores every one with check.py --sym;
+// `sweep spec.json` writes a variant body and scores it), gen2.py (the 32-way
+// matrix), plus the json specs s1..s23 and every generated .cpp/.obj/.asm.
+//
+// FINAL (space-bunny-free, 2026-10-02, ~55 min, ~150 scratch variants, 2 real
+// check.py runs): best is STILL 68.7% and the shipped source is unchanged, so
+// this pass found no new best. Everything below is measured, not guessed.
+// The permuter (seed 11, 8 min, 2538 candidates) improved three intermediate
+// candidates but finished at the same 68.7% / 310 bytes, and its best.diff is
+// empty, so there is nothing to adopt from it.
+// NEWLY REFUTED IN THIS PASS (each compiled byte-identically to this file at
+// 68.7%, i.e. the same code, so none of them is the lever):
+//   * every dead-store shape again, but placed exactly at the rematerialisation
+//     point: `int t = 0; if (t) wdef = wdef;` between the distance compare and
+//     the flag test, `if (t) d[0] = 0;` between the blocks and after the two
+//     _allmul calls, a dead `for (k = 0; k < 0; k++)`, a `while (t)`, a dead
+//     local array element, `if (wdef->flags.value & 0) t = 1;`. A NULL-pointer
+//     check on a2 is NOT inert (49.8%, 319 bytes) and a dead array element is
+//     not either (48.7%, 329 bytes), so a dead store has to fold completely
+//     away to be inert;
+//   * the trivial-identity wrapper, on the a2 POINTER (`Vec3* q = Idp(a2)`
+//     used in all three blocks), on the three tail differences, and on the
+//     distance sum (`Id((int)(...) + ...)` is 37.6%, 348 bytes, so wrapping the
+//     sum is NOT inert while wrapping the pointer is);
+//   * the compiler-state sweep: N = 0..8 dummy inline functions in front all
+//     score 68.7% except N = 8, which drops to 67.0%, so there is no state
+//     lever here either;
+//   * the include sweep: <windows.h>, <math.h>, <stdlib.h>, <stdio.h>,
+//     <memory.h>, <ctype.h> all 68.7%; <string.h>, <limits.h>, <assert.h>
+//     67.0%. The older note that <math.h> flips the height check's load order
+//     does not reproduce through a plain include swap any more;
+//   * inline accessors per component (`X_(a2) - X_(a3)`) in the tail, in the
+//     height check, in the distance block, or in all of them at once, and
+//     per-component helpers in the first block;
+//   * the weapon lookup shapes: `&a1->weapons[slot]`, a `slot` local, a `u`
+//     unit-pointer local in both blocks, and a `Wdef_(a1, slot)` helper;
+//   * extra genuine uses of a2/a3 that fold away (an `early` local added to
+//     the height sum, three uses of one field, one extra use before or after
+//     the distance block): all worse (39.7% to 50.0%), so this is not a
+//     one-more-use tie in the direction the older notes suggest;
+//   * moving the `if (wdef->flags.bit1)` body out of its own if with an
+//     equivalent early `return 1` (56.1%, 322 bytes).
+// TWO THINGS A LATER PASS SHOULD KNOW. (1) m_zi0_dxx_dzx_second_second scores
+// 64.4% and comes out of the matrix with frame 0x10 and the right slots but
+// computes the Z subtraction FIRST, which is the original's order; it loses only
+// on which operand MSVC keeps in a register. So "assign z first" and "put z in
+// the low frame pair" really are in tension for a two-element __int64 array,
+// and the array spelling cannot satisfy both at once. (2) The original's
+// prologue loads a2 and a3 into esi and edi interleaved with the four register
+// pushes (mov esi between push esi and push edi), which is MSVC's "copy the
+// parameters into callee-saved registers at entry" shape; it only happens when
+// a parameter must survive a call AND the register is still free, so it is the
+// same esi decision seen from the other side, not a separate difference.
+//
+// WRAP-UP (space-bunny-free, 2026-10-02): best 68.7%, 2 real check.py runs,
+// ~150 free check.py --sym variants, no new best. WHAT STILL DIFFERS is one
+// register decision in the first basic block: the original holds a2 in esi and
+// a3 in edi across both __allmul calls (loads interleaved with the four
+// register pushes in the prologue, a2->x hoisted into ebp, Z subtraction
+// issued first, dx.lo in ebp with dx.hi spilled to [E-4]); our build gives esi
+// to the temporary a2->x, reloads a2 from [E+8] three times, keeps BOTH dx
+// halves in registers (ecx and ebp), and hoists a3->x into the dead a4 home at
+// [E+16]. Everything from the distance compare onward matches.
+// LEADS FOR THE NEXT ATTEMPT, in the order I would try them:
+// 1. The Z-first tension is the real constraint, not a spelling accident. For
+//    `__int64 d[2]` the low frame pair belongs to whichever element is assigned
+//    SECOND, so "z in the low pair" needs z second while "z subtracted first"
+//    needs z first, and no matrix member gives both. Find a THIRD container for
+//    the two 64-bit values whose slot order and evaluation order are
+//    independent: a union of a __int64[2] with a struct of two named members
+//    (index through one, name through the other, use only the named side in
+//    the sum) is the obvious untried shape, as is `d[3]` with the z difference
+//    at index 1 or 2 so the unused index absorbs the low pair.
+// 2. Permuter seed sweep: this pass only ran seed 11 (8 min, 2538 candidates,
+//    no gain). Seeds 12, 13 and a longer run are still untried, and the seed
+//    demonstrably decides the outcome on other addresses.
+// 3. The dead-store and identity levers are both exhausted for source that
+//    keeps the four arguments as plain pointers; what has NOT been tried is
+//    dead-store or identity applied to a source that first defeats the
+//    z-first constraint (lead 1), since every attempt here combined the two and
+//    could not separate them.
+// 4. The one place the array forces MSVC's hand that was never isolated: the
+//    sum's first term. m_zi0_dxx_dzx_second_second (z assigned first, z squared
+//    first, 64.4%) has the original's instruction order but the wrong
+//    register; adding an inline helper around ONE of the two squares in that
+//    variant, rather than in this one, is untested.
+//
 // SEMANTIC AUDIT (deepseek-v4.1-flash, 2026-10-01): CONFIRMED ALLOCATOR
 // ARTIFACT, not a missing use. The original reads NO a2/a3 field and makes no
 // other use of the pointer values after the second _allmul call that this

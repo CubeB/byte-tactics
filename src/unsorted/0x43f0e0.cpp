@@ -1,4 +1,4 @@
-// Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
 // claude-sonnet-5-5 pass (60.7%, 4384 vs 4420 bytes, was 53.6%). Not a match. Register-agnostic
 // structure is ~87% identical (instruction stream with registers/jump targets masked); the prologue
 // and all of case 3 (0x43f154..0x43f27e) now match byte for byte. What changed vs the earlier passes:
@@ -25,7 +25,6 @@
 // (5) the unit/def reload after the FUN_004899b0 calls in case 2 (ours reloads unit->def, the original
 // reads the spill slot) but writing def-> there scored lower overall.
 #include <iostream>
-#include <windows.h>
 
 #pragma pack(push, 1)
 class Class_00438760 {
@@ -206,8 +205,7 @@ static inline int IsVtol(Def_0043f0e0* def) { return def->f241bits.flag_11; }
 
 static inline Class_00438760 Pick(Def_0043f0e0* def, const char* vtol, const char* ground) {
     const char* name = vtol;
-    if (def->f241bits.flag_11 ? 0 : 1)
-        name = ground;
+    if (def->f241bits.flag_11 ? 0 : 1) name = ground;
     return Class_00438760(name);
 }
 
@@ -220,36 +218,49 @@ static inline int Visible(Unit_0043f0e0* unit, Pos_0043f0e0* pos) {
 }
 
 static inline Thing_0043f0e0* Lookup(Pos_0043f0e0* pos) {
-    Cell_0043f0e0* cell = FUN_004815a0(pos);
+    Cell_0043f0e0* cell;
+    int idx;
+    cell = FUN_004815a0(pos);
     if (!cell)
         return 0;
-    unsigned short id = cell->feature;
-    if (id < 0xfffb) {
-        int idx = id;
+    unsigned short id;
+    id = cell->feature;
+    id = id;
+    if (0xfffb > id) {
+        idx = id;
         if (idx >= g_game->unitCount)
             return 0;
-        return (Thing_0043f0e0*)(g_game->units + (idx << 8));
+        return (Thing_0043f0e0*)((idx << 8) + g_game->units);
     }
     if (id != 0xfffe)
         return 0;
-    id = (cell - (cell->offsetY * g_game->mapWidth + cell->offsetX))->feature;
+    unsigned short tmp0 = (cell - (cell->offsetY * g_game->mapWidth + (int)cell->offsetX))->feature;
+    id = tmp0;
     if (id >= 0xfffb)
         return 0;
-    return (Thing_0043f0e0*)(g_game->units + (id << 8));
+    return (Thing_0043f0e0*)((id << 8) + g_game->units);
 }
 
-static inline int Marked(Thing_0043f0e0* t) { return t && (t->ffe & 0x80); }
+static inline int Marked(Thing_0043f0e0* t) { return t && (0x80 & t->ffe); }
+
+static inline bool inl1(Unit_0043f0e0*unit, Unit_0043f0e0*target) { return target->player != unit->player; }
 
 // FUNCTION: 0x43f0e0
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                                       Unit_0043f0e0* target, Pos_0043f0e0* pos) {
+    unsigned int tmp3;
+    unsigned int air;
+    int friendly;
+    friendly = 0;
+    Node_0043f0e0* node;
     Def_0043f0e0* def;
-    int friendly = 0;
-    int enemy = 0;
+    int enemy;
+    enemy = 0;
+    unsigned int f;
     if (target) {
         if (!(target->f110 & 0x10000000))
             goto none;
-        if (unit->player->allied[target->player->index] != 0)
+        if (((int)(unit->player->allied[target->player->index] != 0)))
             friendly = 1;
         else
             enemy = 1;
@@ -262,7 +273,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
         Flags110_0043f0e0 flags;
         flags.raw = unit->f110;
         if (flags.flag_31) {
-            Node_0043f0e0* node = unit->f10;
+            node = unit->f10;
             if (!enemy) {
                 if (node->f111bits.flag_17)
                     break;
@@ -273,43 +284,50 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 return Class_00438760("AIRTOGROUND");
             }
             {
-            if ((target->f110 & 3) != 2) {
-                if (node->f111 & 0x20000)
+            if (2 != (target->f110 & 3)) {
+                if (0x20000 & node->f111)
                     break;
             }
-            if (target->def->f170 + target->f70 < g_game->threshold) {
+            if (g_game->threshold > target->def->f170 + target->f70) {
                 if (!(node->f111 & 0x10000)) {
                     if (!(unit->f3b & 2))
                         break;
-                    if (!(unit->f2c->f111 & 0x10000))
+                    if ((0x10000 & unit->f2c->f111) == 0)
                         break;
                 }
             }
             if (target->def->f170 + target->f70 >= g_game->threshold) {
                 if (def->f241 & 0x1000) {
-                    if (node->f111 & 0x10000)
+                    if (0x10000 & node->f111)
                         break;
-                    if ((unit->f3b & 2) && (unit->f2c->f111 & 0x10000))
+                    int tmp1;
+                    tmp1 = 2 & unit->f3b;
+                    if (0 != tmp1 && (unit->f2c->f111 & 0x10000))
                         return Class_00438760();
                 }
             }
-            unsigned int f = def->f241;
+            f = def->f241;
+            f = f;
             if (def->f241bits.flag_11) {
-                unsigned int air = def->f1ee->f111 & 0x100;
+                air = def->f1ee->f111 & 0x100;
+                air = air;
                 if (air && !(target->def->f241 & 0x800))
                     return Class_00438760("AIRSTRIKE");
                 if (!air && (target->def->f241 & 0x800))
                     return Class_00438760("AIRTOAIR");
                 unsigned int tv = target->def->f241 & 0x800;
-                if (!tv && !(f & 0x8000000))
-                    return Class_00438760("AIRTOGROUND");
-                if (!tv && (f & 0x8000000))
+                if (!tv) {
+                    if (!(0x8000000 & f)) return Class_00438760("AIRTOGROUND");
+                }
+                if (!tv && (((unsigned int)f) & 0x8000000))
                     return Class_00438760("AIRTOGROUNDHOVER");
                 break;
             }
-            if (unit->moving != 0)
+            bool tmp6;
+            tmp6 = unit->moving != 0;
+            if (tmp6)
                 return Class_00438760("ATTACK_CHASE");
-            if (flags.raw & 0x20000000)
+            if (0x20000000 & flags.raw)
                 return Class_00438760("ATTACK_NOMOVE");
             }
         }
@@ -319,7 +337,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
     }
     case 9:
         if (unit->def->f245 & 0x40) {
-            if (unit->moving == 0)
+            if (0 == unit->moving)
                 return Class_00438760("QPATROL");
             if (unit->def->f245bits.flag_9) {
                 if (unit->def->f241bits.flag_11)
@@ -342,26 +360,29 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
             break;
         return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
     case 12: {
+        Thing_0043f0e0* t;
         if (!(def->f245 & 0x400))
             break;
-        Thing_0043f0e0* t = Lookup(pos);
+        t = Lookup(pos);
         if (pos) {
-            if ((def->f245 & 0x800) && Visible(unit, pos) && Marked(t))
+            if ((0x800 & def->f245) && Visible(unit, pos) && Marked(t))
                 return Class_00438760("RESURRECT");
-            if (pos && Visible(unit, pos) && Marked(t))
-                return Pick(def, "VTOL_RECLAIM", "RECLAIM");
+            if (pos && Visible(unit, pos)) {
+                unsigned int tmp4 = Marked(t);
+                if (tmp4) return Pick((Def_0043f0e0*)def, "VTOL_RECLAIM", "RECLAIM");
+            }
         }
         if (!target)
             break;
         return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
     }
     case 13:
-        if ((unit->def->f245 & 0x1000) && target && unit->player != target->player)
-            return Class_00438760("CAPTURE");
+        if ((unit->def->f245 & 0x1000) && ((Unit_0043f0e0*)target)) {
+            if (inl1(unit, target)) return Class_00438760("CAPTURE");
+        }
         break;
     case 6:
-        if (!target || !((Class_00489a70*)unit)->FUN_00489a90(target))
-            break;
+        if (!target || !((Class_00489a70*)unit)->FUN_00489a90(target)) break;
         return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
     case 5:
         if ((unit->def->f245 & 0x100) && (unit->def->f241 & 0x800) && target && (target->def->f241 & 0x200))
@@ -391,60 +412,69 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
         {
             if ((unit->def->f245 & 0x1000) && enemy)
                 return Class_00438760("CAPTURE");
-            if ((unit->def->f245 & 0x400) && enemy)
-                return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
+            if ((0x400 & unit->def->f245) && enemy) return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
             if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
                 return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
             if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target) &&
                 (unsigned int)target->f108 < target->def->f1fa)
                 return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
-            if ((unit->def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
-                return Class_00438760("VTOL_LANDING");
-            if (((Class_00489a70*)unit)->FUN_00489a90(target))
+            if ((0x800 & unit->def->f241) && friendly) {
+                if ((target->def->f241 & 0x200)) return Class_00438760("VTOL_LANDING");
+            }
+            tmp3 = ((Class_00489a70*)unit)->FUN_00489a90(target);
+            if (tmp3)
                 return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
-            if ((unit->def->f245 & 0x20) && friendly)
-                return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
+            if ((0x20 & unit->def->f245)) {
+                if (friendly) return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
+            }
             return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
         }
     case 1: {
         if (g_game->flag37efa == 1) {
-            if ((def->f245 & 0x10) && enemy)
-                goto recurse3;
+            if ((def->f245 & 0x10)) {
+                if (enemy) goto recurse3;
+            }
             if ((def->f245 & 0x400) && enemy)
                 return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
             if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
                 return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
-            if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target))
+            if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target) != 0)
                 return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
             if ((def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
                 return Class_00438760("VTOL_LANDING");
-            if (target && ((Class_00489a70*)unit)->FUN_00489a90(target))
-                return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
-            if ((def->f245 & 0x20) && friendly)
+            if (target) {
+                if (((Class_00489a70*)unit)->FUN_00489a90(target)) return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
+            }
+            if ((0x20 & def->f245) && friendly)
                 return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
             if ((def->f245 & 0x800) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
                 return Class_00438760("RESURRECT");
             if ((def->f245 & 0x400) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
                 return Pick(def, "VTOL_RECLAIM", "RECLAIM");
-            if (!(def->f245 & 0x80) || unit->moving == 0)
+            int tmp9 = !(0x80 & def->f245);
+            if (tmp9 != 0 || unit->moving == 0)
                 break;
         } else {
-            if ((def->f245 & 0x10) && enemy)
+            if ((0x10 & def->f245) && enemy)
             recurse3:
                 return FUN_0043f0e0(3, unit, target, pos);
-            if ((def->f245 & 0x400) && enemy)
-                return FUN_0043f0e0(0xc, unit, target, pos);
-            if (target && ((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
-                return FUN_0043f0e0(8, unit, target, pos);
-            if (target && target->unknown_ff[0] == g_game->localPlayer && (target->f110 & 0x20) &&
-                target->f104 == 0.0f && target->ffb == 0 &&
-                (!target->f86 || (target->f86->f110 & 0x40000000)))
-                break;
-            if ((def->f245 & 0x800) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
+            if ((def->f245 & 0x400)) {
+                if (enemy) return FUN_0043f0e0(0xc, unit, target, pos);
+            }
+            if (target && ((Class_004899b0*)unit)->FUN_004899b0(target)) {
+                if (target->f104 != 0.0f) return FUN_0043f0e0(8, unit, target, pos);
+            }
+            if (target && target->unknown_ff[0] == g_game->localPlayer && (0x20 & target->f110) &&
+                target->f104 == 0.0f && target->ffb == 0) {
+                bool tmp8 = !target->f86;
+                if ((tmp8 || (target->f86->f110 & 0x40000000) != 0)) break;
+            }
+            if ((def->f245 & 0x800) != 0 && pos && Visible(unit, (Pos_0043f0e0*)pos) && Marked(Lookup(pos)))
                 return Class_00438760("RESURRECT");
-            if ((def->f245 & 0x400) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
-                return Pick(def, "VTOL_RECLAIM", "RECLAIM");
-            if (!(def->f245 & 0x80) || unit->moving == 0)
+            if ((0x400 & def->f245) && pos && Visible(unit, pos)) {
+                if (Marked(Lookup(pos))) return Pick(def, "VTOL_RECLAIM", "RECLAIM");
+            }
+            if (!(0x80 & def->f245) || 0 == unit->moving)
                 break;
         }
         return Pick(def, "VTOL_MOVE", "MOVE_GROUND");

@@ -18,7 +18,7 @@
 // to the exit. A `for` with the two-return `loopCond` helper keeps the guard
 // but MSVC threads the latch test away (`inc bl / mov / jmp head`); a
 // do-while keeps the latch test but MSVC folds the guard away. The shape that
-// gives both is an `for (;;)` whose first statement is
+// gives both is a `for (;;)` whose first statement is
 // `if (!loopCond(bl)) goto next_bl;` and whose last statement is
 // `if (!more(++bl)) break;`, with every `continue` turned into `goto next_bl`
 // and `more` a SECOND, separately spelled inlined helper
@@ -31,14 +31,27 @@
 // `hh`, `hits`, `zacc`, `outer`, `hw` (instead of `hw`, `hh`, ...) puts MSVC's
 // `shl edi,0x10` after `mov ebx,eax` where the original has it.
 // Still open (99.5%, 2392 bytes, byte count exact):
+// tools/permute.py was run twice on this file (15 min each, 548 candidates) and
+// never beat 85.1% on the pre-union source, so the union and the `for (;;)`
+// loop shape are hand findings, not permuter ones.
 // (a) The two owner loads read +0xbc where the original reads +0xec, the price
-// of lever (1). A correct offset needs the owner to be a member of something
-// MSVC gives a non-zero offset, which then also gives the store a disjoint
-// address and the reload disappears: a nested struct inside the union gives the
-// right offsets and 85.0% (build/scratch/0x464f80/v24.cpp, v36.cpp), an array
-// of the union gives the right offsets and no reload (v23.cpp), and casts
-// through `(char*)unit + 0xec` fold back to the same expression (byte
-// identical). So either the reload or the offsets, not both.
+// of lever (1). The offsets CAN be right: giving the owner a second one-slot
+// union of its own at +0xec (`unit->ow.owner`, build/scratch/0x464f80/v40.cpp)
+// emits `mov eax,[esi+0xec]` in both blocks exactly as the original does, but
+// then MSVC has two disjoint union objects, forwards the pointer again and the
+// score drops back to 85.7. Every other spelling tried either keeps the reload
+// with the wrong offset or keeps the offset and loses the reload: a nested
+// struct inside the union (v24.cpp, v36.cpp) and an array of the union
+// (v23.cpp) give the right offsets and no reload; arrays INSIDE the union
+// (v39.cpp, `unit->w.slot[6]` / `unit->w.owner[12]`) also give the right
+// offsets and no reload; casts through `(char*)unit + 0xec` fold back to the
+// same expression and are byte identical, as are fresh locals for the unit
+// pointer (`Unit* u2 = unit;`), a helper returning the owner, a
+// differently-typed view of the unit, and reading the owner through a pointer
+// parameter. So on this compiler either the reload or the offset, never both:
+// the next worker should look for what makes MSVC's local-value table drop
+// `unit->owner` between the two blocks (pressure or a tracking limit), not for
+// another aliasing trick.
 // (b) At the first `Class_0048ff40::FUN_00490230` call the original hoists
 // `mov eax,[g_game]` between `test eax,eax` and `jne`, so both successors share
 // it and its `jne` lands past the reload inside `countdown_extra`; ours puts the
@@ -307,13 +320,17 @@ struct UnitType_00464f80 {
     char unknown_245[0x249 - 0x245];
 };
 
-// The first scale slot and the owner pointer share one union, which stops MSVC
-// proving the store to the slot disjoint from the owner load the second scale
-// block re-reads. MSVC 5 gives every union member offset 0, so both land on the
-// slot's address; the second scale field stays an ordinary member.
+// The first scale slot and the owner pointer share one union. That is what
+// stops MSVC proving the store to the slot disjoint from the owner load the
+// second scale block re-reads, which is what the original does: it emits
+// `mov eax,[esi+0xec]` in both blocks instead of keeping the pointer in EAX
+// across the first block's switch. The cost is the two owner loads, which land
+// on the slot's address (+0xbc) rather than +0xec, because MSVC 5 gives every
+// union member offset 0. The second scale field stays an ordinary member, so
+// the second block really does re-read it.
 union ScaleW_00464f80 {
-    float f;
-    Player_00464f80* owner;
+    float f;                           // +0xbc
+    Player_00464f80* owner;             // also +0xbc, see above
     char pad[8];
 };
 
@@ -468,6 +485,9 @@ static int loopCond_00464f80(unsigned char i)
     return 1;
 }
 
+// The loop's latch test. It has to be a second, separately spelled inlined
+// helper: with the same expression at both test sites MSVC folds one of them
+// away, and the original keeps both.
 static int more_00464f80(unsigned char i)
 {
     if (i < 0xa)

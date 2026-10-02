@@ -7498,7 +7498,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4c0a90,118,,#4814,assigned,,,"issue #4814, escalated"
 0x438c00,660,,#4817,assigned,,,"issue #4817, escalated"
 0x4394e0,601,,#4817,assigned,,,"issue #4817, escalated"
-0x47de60,342,,#4818,assigned,,,"issue #4818, escalated"
+0x47de60,342,space-bunny-free,#4818,matched,100.0,,"issue #4818, escalated"
 0x47d0e0,505,,#4826,assigned,,,"issue #4826, escalated"
 0x407ae0,601,,#4827,assigned,,,"issue #4827, escalated"
 0x4b4270,737,,#4829,assigned,,,"issue #4829, escalated"

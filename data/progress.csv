@@ -1669,7 +1669,7 @@ address,size,file,symbol,status,similarity
 0x47db20,65,src/unsorted/0x47db20.cpp,?FUN_0047db20@@YGXPAUObj_0047db20@@@Z,matched,100.0
 0x47db70,587,src/unsorted/0x47db70.cpp,?FUN_0047db70@@YGHPAUUnit_0047db70@@0UPoint_0047db70@@H@Z,matched,100.0
 0x47ddc0,158,src/unsorted/0x47ddc0.cpp,?FUN_0047ddc0@@YGXPAUUnit_0047ddc0@@PAUVec3_0047ddc0@@@Z,matched,100.0
-0x47de60,342,src/unsorted/0x47de60.cpp,?FUN_0047de60@@YGHPAUPathfinder_0047de60@@PAUCell_0047de60@@@Z,partial,87.1
+0x47de60,342,src/unsorted/0x47de60.cpp,?FUN_0047de60@@YGHPAUPathfinder_0047de60@@PAUCell_0047de60@@@Z,matched,100.0
 0x47dfc0,559,src/unsorted/0x47dfc0.cpp,?FUN_0047dfc0@@YGHPAUPathfinder_0047dfc0@@HHHH@Z,matched,100.0
 0x47e1f0,224,src/unsorted/0x47e1f0.cpp,?FUN_0047e1f0@@YGIPAVClass_00440830@@HH@Z,matched,100.0
 0x47e2d0,658,src/unsorted/0x47e2d0.cpp,?FUN_0047e2d0@@YGHPAUUnit@@PAUVec3@@@Z,matched,100.0

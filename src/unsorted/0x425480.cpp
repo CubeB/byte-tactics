@@ -1,4 +1,18 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash pass (3 min permuter run plus ~200 scored variants, no
+// new best; the 550-byte / 84.1 percent re-numbered do-while stands). Confirmed
+// on this base that the third copy is the only real diff and that the family is
+// selected by its spelling: any inlined _Ucopy call (member, a second identical
+// helper _Ucopy2, or the real <vector>) flips the whole function to this=ebx /
+// 58 percent, while every hand loop keeps this=ebp. The inlined loop's own
+// artifact is right but comes with the wrong family; the hand loop has the right
+// family but derives the source from the destination. Swept and rejected on
+// this base: _P plus ten different zero terms (2-difference size/end/size-of
+// forms, _End, _Last, _Q, _S, _M, 0; best _P+Z 543/79.3), _Last/_M based affine
+// identities, casts and address-of/deref value-number tricks, an identity helper
+// that inlines to return its argument, and explicit affine-of-destination loops
+// (`_P + (_d - _Q - _M)` per iteration, a size_type count form). All fold, flip
+// the family, or add the same /4 *4 round trip. Stopping per the 30-run rule.
 // Space Bunny Free pass: 81.1 -> 84.1 percent, 534 -> 550 bytes, about 90
 // scratch variants scored free through check.py's own compile and compare
 // (build/scratch/425480/regmap.py prints the growth branch's register

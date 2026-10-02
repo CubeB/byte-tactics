@@ -1,4 +1,9 @@
 // Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, sixth pass by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
+// #4882 subagent retry (deepseek-v4.1-flash): one full 3-minute permute.py
+// run over insert/size/_Destroy/_Ucopy/_Ufill, 2038 candidates, 0 failed to
+// compile, 99.6 percent -> 99.6 percent (544 bytes, same [ecx+ebx] SIB 0x19
+// at 0x4252d1). Best shape unchanged; still only the SIB base/index order
+// differs. No new source lever is left on this plateau.
 // Twelfth pass (space-bunny-free, 45 min, 1 check.py run on the file, 58 scratch
 // scores): the base is unchanged and still 99.6 percent (544 bytes, SIB 0x19 at
 // 0x4252d1, wanted 0x1b). New measurements, all through check.py's own compile

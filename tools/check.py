@@ -527,6 +527,13 @@ def main() -> None:
     warnings = [l for l in log.splitlines() if "warning" in l]
     res = compare(Original(), parse_object(obj_path.read_bytes(), obj_path.name), args.address, args.sym, qualname)
     print(report(res))
+    # Calls from other files resolve through data/symbols.csv, so a definition
+    # under another name breaks them once this function matches (0x40d900, #4596).
+    named = sorted(n for n, a in load_symbols().items() if a == args.address)
+    if qualname and named and qualname not in named:
+        print(f"\nnote: data/symbols.csv names {args.address:#x} {' / '.join(repr(n) for n in named)}, "
+              f"but this file defines {qualname!r}. Use that name, or calls to it from other "
+              f"files stop resolving once it matches.")
     if warnings:
         print("\ncompiler warnings:\n  " + "\n  ".join(warnings[:10]))
     sys.exit(0 if res.matched else 1)

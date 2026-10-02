@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
 // mimo-v2.6-pro pass (build/scratch/0x409730/): still 1678 bytes, 99.8%, the
 // one remaining diff is the store SIB at 0x4099f6 (want `mov byte ptr [esi +
 // ecx], al`, ours `[ecx + esi]`). This pass mapped WHY the fix is hard: the
@@ -317,6 +317,50 @@
 //   -0.02 into a subtraction.
 // - The two flag bits at +0x241 are read from one local copy of the bitfield
 //   word (`mov ecx, ebx; shr ecx, 0xb; test cl, 1`).
+//
+// space-bunny-free pass (build/scratch/0x409730/): still 1678 bytes and 99.8%,
+// and the only diff is the store SIB byte at 0x4099f6 (want
+// `mov byte ptr [esi + ecx], al`, ours `[ecx + esi]`); the read SIB at 0x409b53
+// is fixed and stayed fixed all pass. 15 hand probes plus a full 15-minute
+// permute run (684 candidates, 36 of which did not compile, best.diff empty)
+// scored 99.8% or worse, so this file is unchanged from the pass above.
+// The store-side MEM pointer and the 1678-byte schedule are now confirmed
+// mutually exclusive here, with the cost of each route measured:
+// - reference-bound pointer in a block, clamp still in the assignment: the SIB
+//   flips to the wanted [esi + ecx] and everything from the store onwards still
+//   matches, but `mov edx, [esp + 0x20]` and `mov esi, [edx + 0x91]` schedule
+//   six instructions early, between the two halves of the clamp (1675 bytes,
+//   86.8%). The same with the char add pulled into the block (86.8%), with a
+//   no-op statement between the def and the store (86.8%), or with `*(rp8 + i)`
+//   instead of `rp8[i]` (86.8%): all four byte-identical to each other, so the
+//   hoist comes from the block, not from the spelling of the access.
+// - value split first, then the block: the pointer load now lands exactly where
+//   the original has it, right before the store, and the SIB is right, but the
+//   allocation rotates (value to ecx/cl, pointer to eax, index to edx),
+//   1676 bytes, 83.8%. Narrowing the temp does not bring the value back to al:
+//   unsigned char 1672 bytes 82.1%, char 1672 bytes 82.1%, short 1676 bytes
+//   83.8%, unsigned char at loop scope 1672 bytes 82.1%, and &vec_8d[0] in
+//   place of begin() 1672 bytes 82.1%. So the rotation is the temp, not its
+//   width and not its scope.
+// - one loop-top pointer with a reference, used at both byte sites: 1685 bytes,
+//   51.2%, so the pointer cannot be shared between them.
+// - one comma-assigned pointer at the store: 1683 bytes, 84.1%, and it also
+//   pushes an extra argument into the second resize's out-of-line insert.
+// - a `std::vector<unsigned char>&` block reference: 1681 bytes, 77.2%.
+// - `(*this).vec_8d[i]` is byte-identical at 99.8%, so the implicit `this` is
+//   not the lever.
+// Reading: at 0x409b49/0x409b4f the two operands are both loads from memory
+// (a memreg each), so the SIB order there is decided by the front-end operand
+// order alone, and the reference-bound pointer at the read is what restores it
+// without costing the schedule, because the def sits in the guard's if-body a
+// few instructions above its only use. That is the shape the store would need:
+// a pointer node whose load is scheduled last. Nothing in the source language
+// reaches it, since the pointer has to be a variable and a variable's def is
+// always the earliest point of its live range.
+// Scratch harness for the next pass, about 15 s a variant:
+// build/scratch/0x409730/gen.py, gen2.py and gen3.py build the variants above
+// from v0-baseline.cpp, score2.sh scores them with check.py --sym, and the full
+// diffs are in the same directory.
 #include <windows.h>
 #include <math.h>
 #include <vector>

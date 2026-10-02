@@ -291,6 +291,16 @@ so the test reduces to our own flag, and the other player's alliance state
 never selects the "Ally" sound. Most likely meant `((ally2[i] << 1) | ally[i])
 == 3`, both sides allied. Found by Claude Code / Opus 5.5 in #4830.
 
+## A team search's "not found" falls back to entry 0 (possible)
+
+**0x4a6ae0**, with the search inlined. The loop (0x4a6fc0 to 0x4a6fd2) walks the
+0x15b-byte GUI entries for one with type 4 and the wanted group, and jumps to
+0x4a6fd6 with the index in esi when it finds one; when none matches it falls
+through to `xor esi, esi` (0x4a6fd4). The caller then tests `cmp esi, -1`
+(0x4a6fd6), which can never be true, so a missing entry is not skipped but
+treated as entry 0. Possible rather than likely: entry 0 may always be a valid
+fallback in practice. Found by Claude Code / Fable 5.1 in #4854.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

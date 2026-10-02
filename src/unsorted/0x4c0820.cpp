@@ -1,4 +1,25 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// space-bunny-free session 2 (50 min timebox, harness first): still 99.5, 613 of 613 bytes, the same
+// single hunk. NEW RESULT, now measured rather than guessed: the order of the two live-out reloads
+// at the walk1 latch is NOT reachable by any spelling inside walk1. I built the standalone harness
+// build/scratch/4c0820/h_scan1.cpp (first scan plus walk1 only, 4 params) which reproduces the
+// pattern exactly (fill exit: pts into ebx, then the i-1 CSE temp into edi) and swept it with
+// build/scratch/4c0820/sweep2.py: 1960 combinations of 5 ways to wrap j, 7 head statement orders,
+// 7 latch spellings, 4 loop forms (do/while, for(;;)+break, for(;;)+continue/break, top test),
+// b at function or block scope, and 2 fill forms. Not one emits `mov edi,[tmp]` before
+// `mov ebx,[pts]` with that same register pair. The only shapes that put a load into edi first do
+// it by moving pts itself into edi (head order `b = &pts[j]` first, or `int j = i < 0 ? count : i;
+// j--;` with a continue/break latch), which changes the head bytes, so that is a false lead.
+// Also inert at 99.5/613 on the whole function this session: the latch as if/else (`if (i > 0)
+// i--; else {i = count; i--;}`, and `if (i - 1 < 0) {...} else {i = i - 1;}`), both walks in
+// else form, the guard as `if (!(y0 >= y1))`, the test as `while (!(i == iymax))`, walk1 as
+// `for(;;)` with continue/break, the last scan as a for loop, and the last two together. Note for
+// the next attempt: register number (ebx 3 vs edi 7), slot address ([esp+8] vs [esp+0x24]) and
+// creation order (parameter before the head's CSE temp) all give the SAME answer for our code and
+// for the original, so none of those three can be the rule, and the fill block's own kill order
+// (edi at `h = y1 - y0`, ebx at `x = (x<<16)+0xffff`) is identical in both. The only remaining
+// free variable is the insertion order into the block's live list, which no source shape tried so
+// far reaches; try a lever OUTSIDE walk1 that reorders the whole function's live-range creation.
 // space-bunny-free session (50 min): still 99.5, 613 of 613 bytes, the same single hunk (the walk1
 // latch reloads pts then the index, the original reloads the index then pts). What this session
 // added, all screened on the /Fa listing and all inert (identical latch order, mostly identical

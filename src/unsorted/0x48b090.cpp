@@ -223,8 +223,9 @@
 // unit (the list head at +0xa2) to update, then a network packet (0x11) tells
 // the owner when the owner is a real player (1 or 2).
 //
-// Not a match yet (97.4%, same size). What still differs, after all the
-// passes above:
+// Both hunks that used to stand between this file and a match are now closed;
+// the notes at the top say what closed them and which pieces of the present
+// shape are load-bearing. For the record, the two were:
 // 1. `lost` is computed into al here (`not al; and al, cl`), the original
 //    computes it into cl (`not al; and cl, al`). Fourteen spellings of the
 //    gained/lost pair on top of this body, the mask's narrowing moved, the
@@ -303,6 +304,60 @@
 //   the ?: form all collapse the whole thing to byte ops or hoist the mask load
 //   above the `je` (81.9 to 83.6, 355 to 363 bytes).
 
+// space-bunny-free pass (#4698, MATCH at 367 bytes, up from 97.4%, about 1000
+// scratch variants scored this pass and one permuter run): the two hunks that
+// stood in the way are closed, and how each was closed matters more than the
+// code that does it.
+// - THE PACKET'S CONSTANT STORE (hunk 2) was the `Player_0048b090* p =
+//   player;` local, not the packet at all. With `p` in hand MSVC keeps `p`
+//   live across the three stores, emits `mov edx, [eax+4]` for the call's first
+//   argument out of the same register, and sinks the constant store past the
+//   `lea` and all three pushes, rematerialising it as `mov byte [esp+0x20],
+//   0x11`. Written as `player->active`, `player->kind` and `player->id` with no
+//   local at all, the three stores come out in the original's order and in its
+//   slots: 97.4% becomes 98.3% and hunk 2 is gone. The frame does not move (the
+//   packet is still the dead `mask` argument slot at [esp+0x14]); only the
+//   schedule changes. Everything the passes above tried on this hunk (six field
+//   orders, a byte temp, an aggregate initialiser, sizeof, a helper that fills
+//   the packet, a constructor, a buffer written through a char pointer) failed
+//   because they all kept the shape that sinks it.
+//   How it was found, worth repeating: compile variants with `/Fa` and look at
+//   where the constant store lands, rather than scoring them. A five-function
+//   reduction of this body (build/scratch/0x48b090/mini.cpp in that pass's
+//   scratch) does NOT sink it at all, so the sinking is a property of the whole
+//   block; bisecting by deleting one statement at a time and reading the listing
+//   named the local in a dozen compiles (scripts: build/scratch/0x48b090/bsh_*.py,
+//   fa.py). Scoring alone could not have told `97.4%` from `98.3%` here.
+// - `lost`'s REGISTER (hunk 1) came from the permuter, run on the 98.3% body
+//   above (fine score 10, 2470 candidates, 4.4 min, seed 41, jobs 4). Its
+//   mutation was `merge_decls + extract_helper`, and what the bytes need is:
+//   `lost` computed through a helper that returns `int` and narrows its first
+//   operand (`LostBits`), the result then round-tripped through a byte identity
+//   helper (`AsByte`), and three pieces that emit no code but are load-bearing
+//   anyway: the unused `int isOne, active;` (delete it and it is 98.3%), the
+//   unused `HasBit` helper (delete it and 98.3%) and the unused `GainedBits`
+//   helper (delete it and 83.3%). They are kept because the bytes need them and
+//   the file says what they are; the ones that could go (HasBit's and
+//   GainedBits' call sites, the self-assignments, the `do {...} while (0)`
+//   wrappers, a comma-expression loop, the `0 != (x & 1)` tests, the
+//   `active`/`isOne` assignments and the packet's `tmp1`) were removed and the
+//   check still says MATCH. Hand re-indenting is free; anything else in this
+//   shape was measured and does not survive.
+// - what did NOT move hunk 1 by hand, all at 98.3% on the body above: 110
+//   spellings of the gained/lost pair from a grammar plus 400 more from a
+//   second one (casts on either operand or the whole, `& 0xff`, `0xff ^`,
+//   `x ^ (x & y)`, `x - (x & y)`, int and dword temporaries, both declaration
+//   orders), a self-conditional on `mask`,
+//   `set`, `old` and `now` around either value, an assignment inside the
+//   condition, `register`, `signed char`, function-scope `gained`/`lost`
+//   assigned before the `state` store or inside the block, and one to twelve
+//   unused locals of several types. Only the helper route worked.
+// - advice for docs/agent-guide.md: when a constant store to a local aggregate
+//   is sunk to the end of its block, suspect a pointer local that the block
+//   keeps live; and when the checker sits one hunk away, compile variants with
+//   `/Fa` and read where the instruction landed, because the ratio does not
+//   separate the two cases.
+
 #pragma pack(push, 1)
 
 struct Player_0048b090 {
@@ -363,48 +418,68 @@ void __stdcall FUN_0047f780(Class_0048b090* unit, int kind, char* text);
 void __stdcall FUN_0041c110(Class_0048b090* unit);
 int __stdcall FUN_00451df0(int player, void* data, int size);
 
+static inline int HasBit(unsigned char bits) { return 1 & bits; }
+
+static inline int LostBits(unsigned char was, int is) { return (unsigned char)was & ~is; }
+
+static inline unsigned char GainedBits(unsigned char was, int is) { return (unsigned char)(~was & (int)is); }
+
+static inline unsigned char AsByte(unsigned char bits) { return (unsigned char)bits; }
+
 // FUNCTION: 0x48b090
 void Class_0048b090::FUN_0048b090(int mask, int set)
 {
-    unsigned char old = GetState();
+    unsigned char lost, gained, old = GetState();
+    int isOne, active;
+    Class_004895c0* link;
     int now;
     if (set)
         now = old | (unsigned char)mask;
     else
         now = old & ~(mask & 0xff);
     state = (unsigned char)now;
-    if ((unsigned char)now != old) {
-        unsigned char gained = ~old & now;
-        unsigned char lost = old & ~now;
-        if (gained & 1) {
-            vars->FUN_004b0940("Activate", 0, 0);
-            FUN_0047f780(this, 3, 0);
-        }
-        if (lost & 1) {
-            vars->FUN_004b0940("Deactivate", 0, 0);
-            FUN_0047f780(this, 4, 0);
-        }
-        if (gained & 8)
-            vars->FUN_004b0940("StartBuilding", 0, 0);
-        if (lost & 8)
-            vars->FUN_004b0940("StopBuilding", 0, 0);
-        if (gained & 4) {
-            FUN_0047f780(this, 0xe, 0);
-            for (Class_004895c0* link = head; link; link = link->next) {
-                if (link->value)
-                    link->value->FUN_0043a1e0(0x10000);
+    {
+        if ((unsigned char)now != old) {
+            // LostBits returns int and narrows its first operand, and lost then
+            // goes round AsByte: that pair is what makes MSVC 5 compute `lost`
+            // into cl, the original's register, instead of into al. isOne and
+            // active are unused, and so are HasBit and GainedBits above; all
+            // four are dead weight the bytes need (see the notes at the top).
+            lost = LostBits(old, now);
+            unsigned char newLost = AsByte(lost);
+            gained = ~old & now;
+            lost = (unsigned char)newLost;
+            if (gained & 1) {
+                vars->FUN_004b0940("Activate", 0, 0);
+                FUN_0047f780(this, 3, 0);
             }
-        }
-        if (lost & 4)
-            FUN_0047f780(this, 0xf, 0);
-        FUN_0041c110(this);
-        Player_0048b090* p = player;
-        if (p->active != 0 && (p->kind == 1 || p->kind == 2)) {
-            Packet_0048b090 packet;
-            packet.type = 0x11;
-            packet.field_1 = id;
-            packet.field_3 = state;
-            FUN_00451df0(p->id, &packet, 4);
+            if (lost & 1) {
+                vars->FUN_004b0940("Deactivate", 0, 0);
+                FUN_0047f780(this, 4, 0);
+            }
+            if (gained & 8)
+                vars->FUN_004b0940("StartBuilding", 0, 0);
+            if (lost & 8)
+                vars->FUN_004b0940("StopBuilding", 0, 0);
+            if (gained & 4) {
+                FUN_0047f780(this, 0xe, 0);
+                for (link = head; link; link = link->next) {
+                    if (link->value)
+                        link->value->FUN_0043a1e0(0x10000);
+                }
+            }
+            if (lost & 4)
+                FUN_0047f780(this, 0xf, 0);
+            FUN_0041c110(this);
+            if (player->active != 0) {
+                if (player->kind == 1 || player->kind == 2) {
+                    Packet_0048b090 packet;
+                    packet.type = 0x11;
+                    packet.field_1 = id;
+                    packet.field_3 = state;
+                    FUN_00451df0(player->id, &packet, 4);
+                }
+            }
         }
     }
 }

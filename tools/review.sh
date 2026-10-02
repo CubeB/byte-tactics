@@ -108,8 +108,8 @@ if [ -n "$sources" ]; then
     git diff "$base" HEAD -- $sources | grep '^+' | grep -v '^+++' | grep -v '^+\s*//' \
         | grep -P '(?<![\w.>])(\w+(?:(?:->|\.)\w+)*) = \(?\1\)?;|\b(tmp|inl)[0-9]+\b' | sed 's/^+/  /' | head -10 > build/review-junk.txt || true
     [ -s build/review-junk.txt ] && junk=1
-    # Raw control characters (a tool expanded \\a or \\v while writing the file).
-    if git diff "$base" HEAD -- $sources | grep -a '^+' | LC_ALL=C grep -a -qP '[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]'; then
+    # Raw control characters (a tool expanded \a or \v while writing the file).
+    if git diff "$base" HEAD -- $sources | grep -a '^+' | LC_ALL=C grep -a -qP '[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]'; then
         echo "  control characters in added lines (write them as escapes)" >> build/review-junk.txt; junk=1
     fi
 fi

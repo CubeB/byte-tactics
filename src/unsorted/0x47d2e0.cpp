@@ -5,109 +5,161 @@
 // of the footprint cells that accumulates the build cost into DAT_0051e688 and
 // the height envelope into the returned DAT_0051e684.
 //
-// PARTIAL 82.0% (1339 of 1339 bytes, exact size; was 70.6% at 1337 bytes).
+// PARTIAL 88.5% (1339 of 1339 bytes, exact size; 82.0% before this pass).
 //
-// What moved it, from the 70.6% starting point:
-//  * The ground height is NOT pos.y. The original stores `FUN_00485010(&cell) << 16`
-//    into the dead `los` home slot [esp+0x4c] and reads it back with
-//    `movsx word [esp+0x4e]`, so it is a separate `Fix` local declared beside the
-//    Pos, and both inline helpers take it as a third `Fix*` argument. With the
-//    height inside Pos the helpers keep it there and neither the frame layout nor
-//    the store sequence can match (70.6% -> 69.3% on its own, but it is what makes
-//    the rest reachable).
-//  * Both inline helpers take the player bit as a fourth argument. That stops MSVC
-//    from re-deriving `1 << g_game->player` inside IsSeen, which is what put the
-//    g_game reload and the vis multiply in the wrong basic block (69.3% -> 80.2%).
-//  * The helpers read the position through a six-short `Position` cast
-//    (`(Position_0047d2e0*)&pos`), the shape matched in 0x408090 and 0x465ac0,
-//    instead of `pos->x.p.hi` (80.2% -> 80.7%).
-//  * The bounds guard is the one combined `if` of the 99.1% sibling 0x47d820, with
-//    `short y0` and `short x0` read off the by-value Point first. That is what puts
-//    `movsx edx, cx` (cell.x) before the width load as the original has it
-//    (80.7% -> 80.9%).
-//  * The footprint loop is written in the rotated form the original emits: an
-//    explicit outer guard with a POSITIVE bottom test
-//    (`row = 0; if (origin.y > row) { do { for (col = 0; ...) { ...; ++c; }
-//    row++; c = (width - cols) + c; } while (row < origin.y); }`). The original
-//    has both the guard and the bottom test, and writing the rotation out with the
-//    test positive rather than as a negated `break` is what puts
-//    `cmp edx, ecx / jl` where the original has it (80.9% -> 82.0%). A plain `for`
-//    gives 80.9% (`cmp ecx, edx / jg`), `while (1) { ... if (origin.y <= row)
-//    break; }` gives 81.5%, and a `do/while` with no guard 57%.
+// space-bunny-free pass (#4566, from 82.0%): the file's own note called the
+// prologue's esi/edi choice "a colour tie-break inside MSVC 5's LCL, not a
+// source-order effect" and made it the headline residual. That was wrong, and
+// finding out why is worth the pass: it was the header set. Two levers, both
+// re-checkable in one compile each.
 //
-// Earlier passes, still true:
-//  * `los` is the neighbours' Map: `explored` = ByteMap {data, MapSize{width, height}}
-//    with MapSize::Contains and ByteMap::Get (see 0x4658e0, 0x465ac0, 0x408090).
-//  * The loop's `rr`/Terrain tests are early-return inline helpers (Blocked_,
+// WHAT THIS PASS FOUND, in the order it paid:
+//  1. THE PROLOGUE'S esi/edi TIE-BREAK WAS FRONT-END STATE, NOT THE SOURCE.
+//     The note below called it "a colour tie-break inside MSVC 5's LCL" and
+//     measured it as the dominant item. It is not: it is the header set.
+//     `#include <string.h>` + `#include <math.h>` in front of the file (nothing
+//     from either is used) makes `mov di, word ptr [esp+0x46]` appear where the
+//     original has it, and with it origin.x in esi, `los` in edi, g_game in ebp
+//     and every later use of those three, which is what the whole 82% plateau
+//     was made of. 82.0 -> 86.9 with the header alone. tools/headers.py (all
+//     1536 sets) puts four sets at that 86.9 and no set higher; <stdio.h>
+//     <stdlib.h>, <string.h> <math.h>, <stdio.h> <string.h> <memory.h> and
+//     <string.h> <math.h> <memory.h> <minmax.h> are the four. This is the same
+//     front-end-state lever the permuter result recorded as "#include <math.h>
+//     with nothing from math.h used, worth 6%", and the same one 0x47d820's
+//     notes describe as a symbol-hash coin flip. <windows.h> is NOT it: it makes
+//     the frame 1392 bytes. With the header in place the residual is small and
+//     specific (below), unlike the register-allocation fog it was before.
+//  2. `bit` INITIALISED AFTER THE Contains TEST, not before it. The old notes
+//     say "bit declared BEFORE the Contains test, worth several points through
+//     register allocation only", and that is true of the 82% baseline; with the
+//     header set it inverts. Declaring `unsigned int bit = 1 << g_game->player;`
+//     after the `if (!los->explored.size.Contains(x, y)) return 0;` puts the
+//     shift after the test, which is where the original has it, and stops bit
+//     living in a register across the whole block: 86.9 -> 88.5. Declaring it at
+//     the top of the function and assigning it there scores the same 88.5, and
+//     so does putting it after the `& bit` test, so the order of the two tests
+//     is free.
+//  3. The header sweep on THIS file: `<string.h>` alone and `<math.h>` alone
+//     both reach 88.5 and are byte-identical to the pair, so the two are the
+//     same front-end state; `<memory.h>`, `<crtdbg.h>`, `<cstring>` (87.7),
+//     `<exception>` (87.4) and every other real header in the VC5 include
+//     directory is equal or worse, including `<windows.h>` (1392 bytes). tools/
+//     headers.py on this file: four sets at 88.5, no set higher. Both the
+//     declaration-count probe from 0x47d820 (N = 0..64 unused `extern int`,
+//     `extern void __cdecl f(void)`, `extern int __cdecl f(int,int)`, `typedef`,
+//     `static int` and one `struct` per line) and the symbol-hash probe (the
+//     two LOS helpers, the two terrain helpers and Cell/Los/ByteMap/MapSize
+//     each renamed, the helpers swapped, the terrain helpers moved above them,
+//     the extern globals reordered) are NEGATIVE for this function: 103
+//     declaration-count variants and 20 renaming variants are 88.5 or worse, so
+//     unlike 0x47d820 and 0x47d0e0 this file's residual is not front-end state.
+//  4. Measured flat at 88.5 or worse on top of the file below (each one is
+//     byte-identical unless a number is given): the header sets <stdio.h>
+//     <string.h> (86.4), <memory.h> (81.5), <string.h> (81.2), <minmax.h>
+//     (81.2); the declaration order of x0/y0 (both orders), x0/y0/cols before
+//     `Point origin` (81.5-81.7), cols before y0/x0 (80.4), `int ok` after the
+//     guard (81.5), `ok = 1` before the guard or initialised at the top
+//     (88.2), `unsigned int ok` (64.6), `ok = 1` after the LOS block (45.8);
+//     the DAT pair chained, after the guard (87.4), `if (los)` for
+//     `if (los != 0)`; pos, hgt, bit, x/y moved into or out of the LOS block
+//     (58.7 if bit is initialised in the top block); all 15 permutations of
+//     the nine loop locals' declaration order that keep the initialisers with
+//     their declarations; min6/max5/max5b declared in the top block (41-44),
+//     as `char` (43.3), `int` (63.1), `short` (65.3), comma-separated or in
+//     a different order; the cell index as `cell.x + cell.y * width`,
+//     `width * cell.y`, `cells + y*w + x`, an `int` index local, `(int)` and
+//     `(unsigned)` casts, a `Game*` local or an `int mw` width local (43.6);
+//     the vis test through an `unsigned short*` local, `!(v & bit)`, a `v`
+//     local, `y * width + x`, a `MapSize*` local, a `w` local; the LOS arms
+//     as a ternary (56.4), with the two tests swapped (86.9), with IsSeen
+//     first (60.4), with `(flags & 2) != 2` (86.9), with a flag local;
+//     the helpers taking the bit by pointer, `hgt` by value, `pos` by value,
+//     `los` by reference, a `ByteMap*` (66.8), a `MapSize*` plus data (63.2),
+//     or `(data, width, height)` by value (50.7), as static members of a
+//     wrapper struct (87.9) or of Game (82.0); `Contains` as a free function
+//     (55.1), `Get` returning `int`, `Contains` with a redundant `0 <=`;
+//     `Bit()` and `Clamp()` helpers, a third unused inline helper; `static
+//     unsigned int bit` (71.0, frame 1360), `unsigned short bit` (69.5),
+//     `int bit`, bit used twice; and the braces-around-a-statement lever on the
+//     Contains test and the vis test.
+
+// WHAT IS LEFT, four independent items, in rough order of diff lines:
+//  * The home slot of the `cols` copy of origin.x. The original stores esi
+//    (origin.x) to [esp+0x18], frame offset 8, and reloads it from there after
+//    the LOS block; we store to [esp+0x14], frame offset 4. Offset 4 belongs to
+//    min6 and offset 8 to max5 in BOTH files, so this is not a different set of
+//    slots, it is which byte local MSVC lets the 4-byte cols copy share: theirs
+//    shares with max5 (declared after it, at 0x08), ours with min6 (0x04). A
+//    declaration-order sweep that moves min6's slot did not move this, because
+//    every attempt also moved the `min6 = 0xff` store out of the block the
+//    original has it in.
+//  * The LOS block keeps the map width in a register: ours hoists
+//    `los->explored.size.width` into ebp before the vis index and spills it to
+//    the dead `hgt` slot [esp+0x4c], so the slot holds the width and `bit`
+//    stays in esi; the original spills `bit` to that slot and reloads it five
+//    instructions later (`mov ebx, [esp+0x4c]; test ebp, ebx`), which forces
+//    esi to be free, which is why its second index multiply reuses esi
+//    (`imul esi, eax`) where ours uses eax off the spilled width.
+//  * The cell pointer: the original folds the width into the multiply
+//    (`movsx eax, [esp+0x46]; imul eax, [ebp+0x14233]`), we load the width
+//    into eax first and register-multiply (`mov eax, [ebp+0x14233]; imul
+//    eax, ecx`). 0x47d0e0 has this exact eight-instruction block and settles
+//    the cause with an isolation harness: what decides the fold is WHICH
+//    REGISTER the allocator gives the sign-extended short. Here it is ecx and
+//    there it is eax, so this item, the SIB operand order of the two guard
+//    `lea`s (`lea ecx, [esi+edx]` vs `[edx+esi]`, both operands are already in
+//    registers there, and both expression orders compile identically) and the
+//    ecx/edx choice for the byte temp and the mask pointer in the loop are one
+//    allocator decision, not four source bugs. 0x47d0e0 records that ~90 index
+//    spellings and two permuter runs do not move it, and this pass is the same
+//    result for the same expression (15 spellings here, all byte-identical or
+//    worse).
+//  * The inner loop's byte temp and mask pointer get ecx in the original and
+//    edx here, so `unit` gets edx there and ecx here, and the mask load's SIB
+//    byte comes out `[edi+ecx]` (index in the base slot) here as
+//    `[edx+edi]`. That is the exact residual 0x47d820 is stuck on, in the same
+//    family and with the same `unit->mask[i++]` source, so it is likely the
+//    same one-instruction SIB coin flip rather than a spelling.
+//
+// CARRIED OVER FROM THE EARLIER PASSES, still load bearing:
+//  * The ground height is NOT pos.y. The original stores
+//    `FUN_00485010(&cell) << 16` into the dead `los` home slot [esp+0x4c] and
+//    reads it back with `movsx word [esp+0x4e]`, so it is a separate `Fix`
+//    local declared beside the Pos, and both inline helpers take it as a third
+//    `Fix*` argument.
+//  * Both inline helpers take the player bit as a fourth argument, which stops
+//    MSVC re-deriving `1 << g_game->player` inside IsSeen (69.3 -> 80.2), and
+//    read the position through a six-short `Position` cast.
+//  * `los` is the neighbours' Map: `explored` = ByteMap {data,
+//    MapSize{width, height}} with MapSize::Contains and ByteMap::Get.
+//  * The loop's rr/terrain tests are early-return inline helpers (Blocked_,
 //    Terrain_), which reproduces the `xor ecx,ecx; jmp join` ladders exactly.
 //  * The second visibility test is NOT folded to ok = 1 when it goes through an
-//    inline helper that re-derives tx/ty from `&pos` (IsSeen_/IsExplored_) while the
-//    first test is written by hand (Contains, then `(vis[w*y+x] & bit) == 0`). A
-//    helper taking (los, x, y) is folded again, and so is any hand-written copy.
-//  * `int ok` declared at the very top (assigned before `if (los)`), and `bit`
-//    declared BEFORE the Contains test, each worth several points through register
-//    allocation only.
+//    inline helper that re-derives tx/ty from &pos (IsSeen_/IsExplored_) while
+//    the first test is written by hand (Contains, then
+//    `(vis[w*y+x] & bit) == 0`); a helper taking (los, x, y) is folded again.
+//  * The bounds guard is one combined `if` with `short y0` and `short x0` read
+//    off the by-value Point, which is what puts `movsx edx, cx` before the
+//    width load.
+//  * The footprint loop is the rotated form with an explicit outer guard and a
+//    POSITIVE bottom test. A plain `for` gives 80.9 (`cmp ecx, edx / jg`),
+//    `while (1) { ... if (origin.y <= row) break; }` 81.5, a bare `do/while`
+//    57%.
 //
-// WHAT IS LEFT. The dominant item is one cause: the esi/edi choice in the prologue.
-// The original takes `esi` for origin.x (spilled to [esp+0x18]) and `edi` for `los`;
-// we take `edi` for origin.x ([esp+0x14]) and `esi` for `los`, so every later use of
-// the two is mirrored, `los` has to be reloaded from [esp+0x4c] in the explored arm,
-// and the loop's mask index lands in esi instead of edi. The register the 16-bit
-// cell.y temp takes decides it: the original emits `mov di, word [esp+0x46]`, we emit
-// `mov si, word [esp+0x46]`. It is a colour tie-break inside MSVC 5's LCL, not a
-// source-order effect: the same two values come out in the other order in the
-// sibling 0x47d820, whose notes call the same thing for `esi`/`edi`.
-//
-// Tried and flat at 82.0% or worse (all on top of the best version here, most of
-// them measured on the 80.9% and 81.5% intermediate versions):
-//   - guard: `origin.x + cell.x` / `cols + cell.x` / `cell.x + cols`, `x0 + origin.x`
-//     and `origin.x + x0`; `int width0` cached before or after `cols`; `int rows`,
-//     `int oy`, `int cy` locals; the guard as two `if`s, as one `||`, as an inline
-//     OutOfBounds helper; the two bounds tests swapped; `cols` materialised before
-//     the cell guard; origin read after the guard; `int x0`/`y0` as `int` not
-//     `short`; `cols` declared then assigned; `x0 < 1` as `1 > x0`.
-//   - LOS block: the map width cached in a local `w` (with and without passing it to
-//     the helpers), a `row = width * y` temporary, `g_game` through a `Game*` local,
-//     the first visibility test folded into its own inline helper (54-61%), `los` and
-//     `unit` cached in locals, the helpers re-deriving the bit (69.3%) or taking it
-//     as a pointer, the helpers taking the Fix height by value, `2 == (flags & 2)`,
-//     `0 == Contains`, the explored arm's Contains as a nested `if` or an early
-//     `return 0`, braces on the visibility arms.
-//   - loop: the mask-index spellings (`*(mask + i)`, `mask[i]; i++`, the load before
-//     or after the cost accumulation), `DAT_0051e688 = DAT_0051e688 + c->field_7`,
-//     the 0x40/0x80/owner/type tests as nested `if`s, `8 & m` and `2 & e[0xff]`
-//     operand swaps, `unsigned int ok` (69.3%), merging the latch declarations,
-//     hoisting `g_game->seaLevel - unit->field_1be`, `(unsigned char)min6` in the
-//     spread test, `min6 > max5` for `max5 < min6`, the found80 latch as a nested
-//     `if`, `col = 1 + col` / `++c` alone, `c = (width - cols) + c`, a
-//     `unsigned char hi5 = max5;` local for the loop-exit load, and swapping
-//     min6/max5 (75.5%).
-//   - prologue: adding a second `Game*` local for the cell index (64.6%), a
-//     `CellAt()` helper for it (75.2%), a `GetMask()` helper (80.4%), and
-//     `#include <math.h>` / `<string.h>` / `<memory.h>` / `<stdlib.h>` (66-80%).
-//
-// THE PERMUTER REACHED 91.0% AND ITS RESULT IS NOT USABLE SOURCE. tools/permute.py
-// (1339 candidates, 17 min) got this function from 80.2% to 91.0% at the exact size,
-// and build/permute/0x47d2e0/best.cpp is that result. Every one of its wins is a
-// one-instruction scheduling nudge and none of them survives on its own: reverting
-// any single change costs about 0.6%, and a clean rewrite of the whole function in
-// its shape scores 63.8%. What it adds, none of which I can write as plausible
-// source: `#include <math.h>` with nothing from math.h used (worth 6% on its own,
-// and the same front-end-state lever 0x47d820's notes describe); six one-line
-// helpers that just return a member or a mask (`inl0..inl5`, e.g.
-// `static inline int inl0(int m) { return m & 0x10; }`); `unsigned int ok`; a
-// `goto skip0/skip1/skip2` ladder where the original has none; and
-// `if (1) do { ... } while (1);` around the outer loop, which duplicates the guard
-// the guide warns against. Per the guide's rule, those are recorded here as leads
-// rather than committed. Its guard change is neutral here: best.cpp with this
-// file's guard still scores 91.0%, so the 9 points it holds over this file are
-// front-end state and one-instruction scheduling, not source shape.
-//
-// Also still open, independent of the register flip: the explored arm's own
-// `mov [esp+0x10], 0` block (we share one store with the seen arm), and
-// `movsx eax,[esi+0x46]; imul eax,[ebp+0x14233]` against our width-into-eax form,
-// which is the same sign-extended-short multiply 0x47d0e0 and 0x47d820 both record
-// as unreachable from the source.
+// The permuter reached 91.0% on the 82% base; every one of its wins was a
+// one-instruction scheduling nudge that did not survive on its own, plus six
+// one-line helpers that just return a member, `unsigned int ok`, a
+// `goto skip0/skip1/skip2` ladder and `if (1) do {} while (1)`. Its useful
+// content was the header, and that is now in the file below, which took its
+// score. Re-run on the 88.5% file below (22 min, 9768 candidates, 81 compile
+// failures): NO improvement, its best is the same 88.5% (and its best.cpp is
+// only cosmetically different plus one more equivalent header), so 88.5% is a
+// local optimum of the permuter's mutation space and not just of the spellings
+// in the list above.
+#include <string.h>
+#include <math.h>
+
 #pragma pack(push, 1)
 
 union Fix_0047d2e0 {
@@ -285,9 +337,9 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
         hgt.v = FUN_00485010(&cell) << 16;
         x = pos.x.p.hi >> 5;
         y = (pos.z.p.hi - (hgt.p.hi >> 1)) >> 5;
-        unsigned int bit = 1 << g_game->player;
         if (!los->explored.size.Contains(x, y))
             return 0;
+        unsigned int bit = 1 << g_game->player;
         if ((g_game->field_14273[los->explored.size.width * y + x] & bit) == 0)
             return 0;
         if ((g_game->losFlags & 2) == 2)

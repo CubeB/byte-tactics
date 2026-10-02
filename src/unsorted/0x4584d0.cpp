@@ -1,7 +1,10 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by
-// claude-opus-5-5 (#4634): still 82.3%. An indexed vertex loop (projected[i] / vertices[i])
-// scores 76.9%; a 12-minute permuter run (207 candidates) found nothing.
-// deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// claude-opus-5-5 (#4634), finished by deepseek-v4.1-flash, finished by
+// space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished
+// by Fledge Alpha Free. Names are provisional.
+// claude-opus-5-5 (#4634): still 82.3%. An indexed vertex loop (projected[i] /
+// vertices[i]) scores 76.9%; a 12-minute permuter run (207 candidates) found
+// nothing.
 // Retry (deepseek-v4.1-flash, issue 3042): best unchanged at 79.6% (457 vs 461
 // bytes). Tested register keyword, label+goto / outer-for loop-nesting forms,
 // while-loop copy loop, idx-before-j, function-scope j, and a 0..403
@@ -154,6 +157,42 @@
 //    `info->vertexCount` once more inside the vertex loop in a form that folds
 //    into the load already there, or compare against `info->faceCount` in the
 //    copy loop instead of through the walked `face`.
+// EIGHTH TO TENTH PASS (Fledge Alpha Free, issue 4848): 82.3% -> MATCH.
+//
+// The two ties the seventh pass left were broken by source shape, not by a
+// different compiler state:
+//  1. The vertex loop's SOURCE must be walked through the PARAMETER itself,
+//     `for (i = 0; i < info->vertexCount; i++, vertices++)` with `vertices->x`
+//     etc. An explicit local `Vertex* v = vertices` (or `int* u`) moves off.y
+//     into a register and changes the frame to 0x3f4c; walking the parameter
+//     keeps the frame at 0x3f58 and makes MSVC leave the source pointer
+//     UNBIASED ([eax], [eax+8], then [eax-8]) instead of biasing it +4. The
+//     seventh pass had listed this as "NOT REACHABLE".
+//  2. The `off` aggregate must declare its spilled field in the middle,
+//     `struct Off_4584d0 { int a; int y; int b; };`. With {a,b,y} the frame is
+//     0x3f5c and off.y lands at [esp+0x1c]; with {a,y,b} off.y lands at
+//     [esp+0x18], every displacement matches, and the face-loop eviction flips
+//     to the original's (i gets its home at [esp+0x10], info keeps ebx). That
+//     single field order was worth 12 points (87.2 -> 99.3).
+//  3. The last 0.7% was a schedule tie between the two reloads after the copy
+//     loop (surface then i in the original). A permuter run from the 99.3%
+//     version found the match in 0.32 min with three mutations, two of which
+//     survived cleanup: the copy loop as `if (FaceCount(face) > j) { while (1)
+//     { ...; int count = face->count; if (j >= count) break; } }` and a named
+//     return value inside the guard helper.
+//
+// Load-bearing constructs in the final file, each measured by removing it
+// alone: `#include <string.h>` (without it 55.7%); the FaceCount helper for the
+// copy loop guard (without it 79.9%); the copy loop's `while (1)` shell and its
+// `count` local (a `do/while`, a `for (;;)`, or a direct `j >= face->count`
+// drop to 99.3% or worse); the parameter walk above; and the `{a, y, b}` field
+// order. The eighth pass's other permuter leftovers were tidied back to
+// plausible source: no self-assignments, no leftover temporaries, the both-arms
+// firstFace assignment and the `goto skip0` early exit are all that remain of
+// them. Renaming the helper and the temporary and reindenting do not change the
+// bytes.
+
+#include <string.h>
 extern char* g_game;
 
 #pragma pack(push, 1)
@@ -440,63 +479,66 @@ public:
 // after the vertex loop, 0x458582 before the face pre-test, 0x458686 at the
 // latch), which a plain `info->faceCount` re-read already produces.
 
+static inline int FaceCount(Face_4584d0* face) { return face->count; }
+
 // FUNCTION: 0x4584d0
 void Class_004584d0::FUN_004584d0(Model_4584d0* model, void* surface,
     Vec3_4584d0* camera, PieceInfo_4584d0* info, Vertex_4584d0* vertices,
     unsigned int palette, int useColor)
 {
+    void* pic;
+    int i;
+    int unit;
     Point_4584d0 projected[2000];
     Point_4584d0 poly[25];
-    int i;
     View_4584d0* view = model->view;
-    struct Off_4584d0 { int a; int b; int y; int c; };
+    struct Off_4584d0 { int a; int y; int b; };
     Off_4584d0 off;
     off.a = view->originX - camera->x;
     off.y = view->originY;
     off.b = view->originZ - camera->z;
     {
-        Point_4584d0* q = projected;
-        for (i = 0; i < info->vertexCount; i++, q++) {
-            q->x = (short)((vertices[i].x + off.a) >> 16) + 0x80;
-            q->y = (short)((off.b - vertices[i].z) >> 16)
-                - ((short)((vertices[i].y + off.y) >> 16) >> 1) + 0x20;
+        for (i = 0; i < info->vertexCount; i++, vertices++) {
+            projected[i].x = 0x80 + (short)((vertices->x + off.a) >> 16);
+            projected[i].y = (0x20 + ((short)((off.b - vertices->z) >> 16)
+                - ((short)((off.y + vertices->y) >> 16) >> 1)));
         }
     }
-    Face_4584d0* face = info->faces;
+    Face_4584d0* face;
     if (info->firstFace != -1) {
-        face++;
+        face = info->faces + 1;
         i = 1;
     } else {
+        face = info->faces;
         i = 0;
     }
-    for (; i < info->faceCount; i++, face++) {
+    if (i < info->faceCount) do {
         int j;
         unsigned short* p;
-        for (j = 0, p = face->indices; j < face->count; j++, p++)
-            poly[j] = projected[*p];
+        j = 0, p = face->indices;
+        if (FaceCount(face) > j) {
+            while (1) {
+                poly[j] = projected[*p];
+                j++, p++;
+                int count = face->count;
+                if (j >= count)
+                    break;
+            }
+        }
         Flags_4584d0 flags = face->flags;
         if (!flags.bits.a) {
-            if (face->count == 4) {
-                void* pic;
-                if (flags.bits.b) {
-                    if (flags.bits.c) {
-                        int player = palette & 0xff;
-                        int unit = *(int*)((char*)g_game + 0x1b8a + player * 0x14b);
-                        pic = FUN_004b7f30(face->color, *(unsigned char*)(unit + 0x96));
-                    } else if (useColor) {
-                        pic = FUN_004b7f30(face->color, 0);
-                    } else {
-                        pic = FUN_004b7ee0(&face->pic);
-                    }
-                } else {
-                    pic = face->pic.pic;
-                }
-                FUN_004c7580(surface, pic, poly, 0);
-            }
+            if (face->count != 4) goto skip0;
+            if (flags.bits.b) {
+                if (flags.bits.c) {
+                    unit = *(int*)(((char*)g_game + 0x1b8a) + ((palette & 0xff) * 0x14b));
+                    pic = FUN_004b7f30(face->color, *(unsigned char*)(unit + 0x96));
+                } else pic = useColor ? FUN_004b7f30(face->color, 0) : FUN_004b7ee0(&face->pic);
+            } else pic = face->pic.pic;
+            FUN_004c7580(surface, pic, poly, 0);
+skip0:;
         } else {
             FUN_004c0310(surface, poly, face->count, face->unknown_0);
         }
-
-
-    }
+        i++, face++;
+    } while (i < info->faceCount);
 }

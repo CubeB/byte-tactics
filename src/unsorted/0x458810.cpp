@@ -1,4 +1,61 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free, finished by Fledge Alpha Free. Names are provisional.
+//
+// EIGHTH PASS (Fledge Alpha Free, issue 4848). 427 of 427 bytes, 97.2%, up
+// from 88.9%: the doubled `test eax,eax` at 0x4588bd is back and it is in the
+// right registers. The ONLY thing left is the ORDER of two blocks.
+//
+// THE DOUBLED TEST. Add `Bitmap_458810* bitmap = list->bitmap;` right before
+// the `if ((owner->flags & 0x20000000) != 0)` and spell the LAST field_14
+// conjunct through it (`bitmap->field_14 == 0`; the first stays
+// `list->bitmap->field_14 == 0`). The frontend cannot fold two differently
+// rooted member accesses, the backend still CSEs the load, and both
+// `test eax,eax / jne` pairs appear. This is the #2233 spelling, unchanged.
+//
+// THE ORDER LEVER, which is new. With the local present the frame test and the
+// bitmap test are emitted in SOURCE order, and that order decides the whole
+// colouring:
+//   * bitmap test first, frame test second (THIS FILE): correct colours
+//     (ebx=bitmap, edx=zero, `sete bl`, flags in edx), 427 bytes, and the
+//     whole tail matches. The only diff is that the emitted frame-test block
+//     and bitmap-test block are swapped relative to the original (6 moved
+//     instructions plus their jump targets; 14 diff lines, 97.2%).
+//   * frame test first (the seventh pass's order): the allocator mirrors
+//     ebx/edx (zero in ebx, bitmap in edx, flags in ebx, and the visible else
+//     merges into one store), 425 bytes, 73.8%. The seventh pass's 88.9% base
+//     cannot carry the doubled test for this reason.
+// Diagnostic: with the local present but BOTH field tests spelled through it
+// (they fold into one test), the base is emitted byte for byte (423/88.9), so
+// it is the surviving second test, not the local, that flips the allocator.
+//
+// THE FRAME-FIRST FAMILY, all measured and negative. Everything below keeps
+// the frame test first and the doubled test alive:
+//   * local declared before the frame test: correct colours, but the bitmap
+//     load is hoisted above the frame compare and the frame test becomes
+//     `mov eax,[edi+4]; cmp eax,edx` (429 bytes, 85.9%, shape 98.3%).
+//   * field reference `Bitmap_458810*& bitmap = list->bitmap;` (or a
+//     `Bitmap_458810**` to the field): correct colours and the doubled test,
+//     but the reference reloads the pointer for the second test
+//     (`mov edx,[edi+0x10]; mov eax,[edx+0x14]`), 433 bytes, 88.4%.
+//   * a named `unsigned special = owner->flags & 0x20000000;` in the outer
+//     `if`: correct colours, but the compiler computes the mask in place in
+//     edx and reloads the flags for `test dh,0x20`; 428 bytes, 85.1%. Same
+//     for int/long/bool/const/register spellings and for `owner->flags >> 29`.
+//   * 120 declaration permutations of the five prologue locals, in both the
+//     before-the-flag-if position and the before-the-frame-test position:
+//     max 85.9%.
+//   * headers.py on the recoloured frame-first shape: all 256 sets 73.8%.
+//   * permute.py 15 min from this file and 15 min from the recoloured
+//     frame-first file: no gain (best 85.1%).
+// The tie is between the bitmap value and the zero constant and is decided by
+// the surviving second test, so no local spelling, declaration order, type or
+// header moves it. Do not re-sweep those.
+//
+// WHAT IS STILL DIFFERENT: the original emits
+//   cmp [edi+4],edx / jne / mov [esp+0x10],1 / mov ebx,[edi+0x10] / ...
+// while this file emits the bitmap test first and the frame test after it.
+// Nothing else differs. The frame-first source recolours, so the next attempt
+// has to find a way to make the compiler emit the frame block first without
+// moving the bitmap load (the load's position is what picks the colours).
 //
 // SEVENTH PASS (Space Bunny Free, issue 4723). 423 of 427 bytes, 88.9%, up
 // from 87.6%. Two independent changes, and both of them overturn a negative
@@ -496,16 +553,17 @@ void Class_004581e0::FUN_00458810(List_458810* list, Vec3_458810* result)
     } else {
         visible = *(int*)((char*)owner->relation + 0x20) == 0;
     }
-    if (list->frame == 0)
-        rebuild = 1;
     if (list->bitmap == 0)
         list->field_14 = 0;
+    if (list->frame == 0)
+        rebuild = 1;
+    Bitmap_458810* bitmap = list->bitmap;
     if ((owner->flags & 0x20000000) != 0) {
         if (list->bitmap == 0
             || (owner->intensity != 0.0f
                 && (owner->flags & 0x2000) != 0
                 && list->bitmap->field_14 == 0
-                && list->bitmap->field_14 == 0))
+                && bitmap->field_14 == 0))
             rebuild = 1;
     }
     if (list->bitmap == 0 && (owner->flags & 0x20000000) != 0)

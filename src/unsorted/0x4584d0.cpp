@@ -222,6 +222,113 @@ public:
         int useColor);
 };
 
+// SIXTH PASS (space-bunny-free): 82.3%, 457 of 461 bytes, up from 79.6%. Only
+// ONE change bought it, and it is the inner copy loop. Written as
+//     for (j = 0, p = face->indices; j < face->count; j++, p++)
+//         poly[j] = projected[*p];
+// (a separate walked index pointer, initialised in the for header, instead of
+// `poly[j] = projected[*idx++]` with `idx = face->indices` above the loop) MSVC
+// now agrees with the original on six instructions of that loop: `mov edx,[esi +
+// 0xc]` (index array into edx), `xor ecx,ecx` (j into ecx), `inc ecx`, `add eax,
+// 8`, `add edx,2` and `mov [eax-8],ebp`. Before, edx and ecx held those two the
+// other way round. The same loop as `for (j = 0, k = 0; ... j++, k++) poly[j] =
+// projected[k];` with an `unsigned short k` scores 80.3%: it also gets j into
+// ecx, but then has to zero-extend k (`mov ebx,edx; and ebx,0xffff`) where the
+// original gets the zero extension free from `mov di, word ptr [edx]`. Do not go
+// back to the `*idx++` spelling: with it, j lands in edx and the index pointer in
+// ecx, and the whole function sits at 79.6%.
+//
+// WHAT IS STILL DIFFERENT, from an instruction-level differ
+// (build/scratch/0x4584d0/differ.py, 121 of 151 aligned instructions equal). It
+// is TWO independent ties, and the second one explains thirteen of the thirty
+// remaining instructions.
+//  (1) THE VERTEX LOOP (original instruction indices 20-34, eight instructions).
+//      Which array gets the biased induction variable. The original sinks
+//      `lea ecx,[esp+0xec]` BELOW the `jle` guard and biases the DESTINATION by
+//      +4, with the increment at the top of the body (`add ecx,8`, stores at
+//      [ecx-0xc] and [ecx-8]); the source pointer is unbiased ([eax], [eax+8],
+//      then `add eax,0xc` and [eax-8]). This file hoists the `lea` above the
+//      guard, anchors the DESTINATION at +0 (stores at [ecx] and [ecx-4]) and
+//      biases the SOURCE by +4 instead (`add eax,4`, [eax-4], [eax+4],
+//      [eax-0xc]). MSVC puts the +4 on the source in every spelling I could
+//      reach, including an explicitly walked `Vertex* u`, a walked `int* u`, and
+//      `int* u = (int*)vertices` with u[0], u[2], u[1]. MEASURED DEAD, all on
+//      this base: walked source 55.4% (and it also moves the frame to 0x3f4c and
+//      pushes off.y to a stack slot, so the original cannot have walked the
+//      source), `projected[i]` 76.9%, `q[i]` through a pointer 82.3% (identical
+//      bytes), counting down from vertexCount 70.9% / 71.6%, two induction
+//      variables 82.3% (identical), `char*` offsets 55.4%, x and y stored in the
+//      other order 77.6%, the values computed into locals first 82.3% (identical),
+//      a struct assignment 47.1%, do-while 65.1%, while 74.1%.
+//      The one spelling that DOES produce the original's store offsets is a
+//      biased `int*`: `int* q = (int*)projected + 1; ... q[-3] = x; q[-2] = y;
+//      q += 2` gives `mov [ecx-0xc],ebx` in the right place, but only scores
+//      75.5-76.9% because the `lea` is still hoisted above the guard and the
+//      second store lands at [ecx-0x10]. So the anchor is reachable and the
+//      increment position is not; they are two separate decisions.
+//  (2) THE FACE LOOP EVICTION (indices 44, 45, 50, 53, 55-58, 66, 68, 71, 73-77,
+//      79, 140, 141). Still exactly the `i`-versus-`info` eviction every earlier
+//      pass described, and it is worth thirteen instructions. The copy loop has
+//      seven simultaneously live values (eax poly walk, ebp x scratch, edx index
+//      walk, ecx j, edi index, esi face walk, ebx info) plus the face counter
+//      `i`, so exactly one of them has to live in memory. The original evicts
+//      `i` to frame+0x10 (`mov [esp+0x10],edi` in the preheader, reload
+//      `mov edi,[esp+0x10]` after the copy loop, store again at the latch), which
+//      frees edi for the index temp and leaves `info` in ebx for the whole loop;
+//      with `i` in edi the temp takes ebx instead and `info` is reloaded from its
+//      argument slot once per face. Everything else in that cluster follows from
+//      this one choice: the pre-test materialises the count (`mov eax,[ebx+8];
+//      mov [esp+0x10],edi; cmp edi,eax`) because edi is about to be reused, and
+//      the latch stores `i` again for the same reason.
+//
+// MEASURED DEAD for tie (2), all flat at 82.3% on this base: declaring and
+// assigning the face counter as a separate variable from the vertex counter;
+// swapping the declarations of `j`, `p` and the flags local; `idx[j]` instead of
+// `*p`; `poly` walked as well (73.7%); short, unsigned short and char for `j`
+// (66-74%); a hoisted `int n = face->count` (72.2%); a hoisted
+// `int nf = info->faceCount`; duplicated `info->firstFace`, `info->faceCount`
+// and `info->vertexCount` reads to raise `info`'s priority (53-76%, all worse
+// because the extra compare survives); a null-pointer or dead-store check in the
+// face loop, before it and in the vertex loop; `i = i`, `flags = flags` and
+// `for (i = i, face = face; ...)` self-assignments (all 82.3%, so the
+// self-assignment lever is dead here too); and writing `projected[i]` through a
+// pointer. Uncalled `static inline` helpers at file scope are flat as well: three
+// shapes (identity int, do-nothing int*, unsigned short cast) at N = 0 to 8
+// helpers all score exactly the same, so that lever is exhausted.
+//
+// No suspected bug in the original. The face counter being spilled to the frame
+// and reloaded around the copy loop is an allocation artefact of eight values
+// competing for seven registers, not a mistake.
+// SIXTH PASS (space-bunny-free): best 80.3% (457 of 461 bytes), up from 79.6%.
+// The one change that bought it is the inner copy loop: giving the vertex index
+// its own walked `unsigned short` counter, `for (j = 0, k = 0; j < face->count;
+// j++, k++) poly[j] = projected[k];`, instead of `projected[*idx++]`. That puts
+// `j` in ecx and the index counter in edx, which is what the original does
+// (`xor ecx,ecx` / `inc ecx`, `cmp ecx,edi`), so the copy loop now agrees on two
+// of its three registers where before it had them the other way round.
+// Uncalled `static inline` helpers at file scope are flat here: three shapes
+// (identity int, do-nothing int*, unsigned short) at N = 0 to 8 every score
+// 79.6%, so the "compiler state" reading of the residual is confirmed for that
+// lever. An instruction-level differ (build/scratch/0x4584d0/differ.py) shows
+// 118 of 154 aligned instructions already equal, in three clusters:
+//  (1) the vertex loop (original instruction indices 20-34): the original sinks
+//      `lea ecx,[esp+0xec]` below the `jle` guard and biases the DESTINATION by
+//      +4 with the increment at the top of the body (`add ecx,8`, stores at
+//      [ecx-0xc]/[ecx-8]) while walking the source unbiased; this file hoists
+//      the `lea` above the guard, biases the SOURCE by +4 instead and advances
+//      the destination mid-body. Every spelling of the pair I tried keeps the
+//      bias on the source: walked source (52.7%), walked source with the
+//      countdown (`u++`) (61.9%), `projected[i]` (74.1%), `(int*)projected+1`
+//      with p[-3]/p[-2] (67.3%), counting down from vertexCount (70.9%),
+//      `q[i]` through a pointer (79.6%, identical), two induction variables
+//      (79.6%), char* offsets (74.1%), and x/y swapped in the body (77.6%).
+//  (2) the face loop (44-79): the original gives the face counter `i` a stack
+//      home at frame+0x10 and keeps `info` in ebx, this file keeps `i` in edi,
+//      spends ebx on the copy-loop index and reloads `info` once per face.
+//  (3) the latch (140-141): the extra `mov [esp+0x10],edi`.
+// No suspected bug in the original. The face counter being spilled to the frame
+// and reloaded is an allocation artefact, not a mistake.
+
 // FUNCTION: 0x4584d0
 void Class_004584d0::FUN_004584d0(Model_4584d0* model, void* surface,
     Vec3_4584d0* camera, PieceInfo_4584d0* info, Vertex_4584d0* vertices,
@@ -253,9 +360,9 @@ void Class_004584d0::FUN_004584d0(Model_4584d0* model, void* surface,
     }
     for (; i < info->faceCount; i++, face++) {
         int j;
-        unsigned short* idx = face->indices;
-        for (j = 0; j < face->count; j++)
-            poly[j] = projected[*idx++];
+        unsigned short* p;
+        for (j = 0, p = face->indices; j < face->count; j++, p++)
+            poly[j] = projected[*p];
         Flags_4584d0 flags = face->flags;
         if (!flags.bits.a) {
             if (face->count == 4) {
@@ -278,5 +385,7 @@ void Class_004584d0::FUN_004584d0(Model_4584d0* model, void* surface,
         } else {
             FUN_004c0310(surface, poly, face->count, face->unknown_0);
         }
+
+
     }
 }

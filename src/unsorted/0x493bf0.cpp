@@ -1,50 +1,81 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
 // (previously: deepseek-v4.1-flash, GPT-6, space-bunny-free.)
-// deepseek-v4.1-flash (issue #3941, this session): tried the raw-byte spelling of the
-// 0x37f2f bit 1 test to kill the `test byte [m],2` fold: `int flags` with
-// `(raw >> 1) & flags` still folds (84.8%, 1113 bytes) and `unsigned char flags`
-// with the raw shift shifts the entry frame to [esp+0x10] and drops to 80.7%
-// (1125 bytes), so the stored short-flags plus bitfield shape stays best at 89.7%.
-// deepseek-v4.1-flash (issue #3454): retried the bit test with int flags (84.8)
-// and with the byte cast (84.8, identical); int flags fixes `or al,2` and the
-// direct `push eax` but still folds the shift to `test byte [m],2` and perturbs
-// the strlen block from 34 to 58 diff lines, so the short flags shape stays.
-// Partial: 89.7% (1116 of 1116 bytes). Still differing (scoring with --sym):
-//  * The 0x37f2f bit 1 test: the original materialises `mov dl,[m]; shr dl,1;
-//    test al,dl` (flags is not a known constant there); every spelling tried
-//    (flags & bit1 / bit1 & flags / (m>>1) & flags, byte/word/int bitfield or
-//    plain byte, flags as char/uchar/short/int/uint, flags declared at function
-//    scope, flags &= flags) folds to `test byte [m],2`.
-//  * `flags` is a short here only because that scored best: it costs a
-//    `movsx edx,ax` before the push where the original pushes eax directly.
-//    With `int flags` the push is right and the file is 1113 bytes (83.8%).
-//  * `g_game->field_2bf1[n] = v` and `[d] = 1` come out as [esi+edx+..] and
-//    [eax+edx+..]; the original has g_game (edx) as the SIB base. n[arr], casts,
-//    pointer temporaries, a Game* local and (&mode_2bf0)[n+1] did not flip it.
-//  * Scratch registers in the strlen block (g_game in edx and the player index
-//    in ecx in the original, the other way round here) and the order of the
-//    `push ebp` against the buf2 memset before FUN_00463e50.
-// deepseek-v4.1-flash (this session): tried ~60 more spellings of the 0x37f2f
-// test (byte local `raw`, shift assigned to a byte/short local, `/ 2`, variable
-// shift count, casts through char*/unsigned char, 8-bit bitfields, bitfield on
-// either side of `&`, `!= 0`, uchar/short/ushort/int/char flags, if/else).
-// Every one folds to `test byte [m],2`; the original's
-// `mov dl,[m]; shr dl,1; test al,dl` needs the byte in a register, but MSVC 5
-// copy-propagates any single-use byte local back into the test. Also tried 24
-// permutations of the saved/base/oldmode/to statements plus local-pointer and
-// pointer-arithmetic forms of base: saved-before-base (the current order) is
-// best at 89.7%, base-before-saved drops to 88.7%. Giving the field_2bf1 store
-// a local `Game* g = g_game` fixes the `[edx+esi+0x2bf1]` SIB base but moves
-// g_game to ecx and perturbs the whole strlen block, so it is not worth it.
-// What worked: BOTH mode and oldmode are `int`. With an unsigned char oldmode
-// the working mode took ebx. With both int, oldmode (assigned inside the strlen
-// block) wins ebx and the working mode lives at [esp+0x10] as in the original,
-// which fixed most of the strlen block. Declaration position of the two ints
-// does not matter, only where oldmode is assigned. Also: use gadget->field_60
-// directly instead of an `id` local (gives `lea ecx,[eax*8]` and
-// `lea edx,[ebx+eax]` at the first _strnicmp), and compute `to` for the digit
-// case before the memset (the CSE'd players[d] temp then lives in ebp like the
-// original). Saved copy before base/oldmode scored 1 point higher.
+//
+// Partial: 99.4% (1116 of 1116 bytes, the byte count already matches).
+// Two instructions still differ, both the SIB base/index choice of a byte
+// store through g_game:
+//   original  mov byte ptr [edx + esi + 0x2bf1], al     (edx = g_game base)
+//   ours      mov byte ptr [esi + edx + 0x2bf1], al     (index in the base slot)
+// and the same pair at the digit-case store (`[edx + eax + 0x2bf1]` against
+// `[eax + edx + 0x2bf1]`). The registers are already right (edx = g_game,
+// esi = n / eax = d); only which register MSVC puts in the SIB base slot
+// differs. Everything else, including the 0x37f2f bit test, the strlen block
+// and the memset ordering, matches.
+//
+// Space Bunny Free (issue #4456), this session: took the function from 89.7%
+// to 99.4%. Three findings, all of them needed:
+//  * The strlen block (about 20 instructions of the old diff) only lands when
+//    the four statements that open it are in this order: oldmode, to, base,
+//    saved. The old file had saved first, which is worth a point, and a
+//    `Game* g = g_game` local was tried as well. `saved` really does have to be
+//    the last of the four (all 24 orderings scored: saved-first 89.7,
+//    anything else 88.4 or 88.7).
+//  * The guard on p[1] has to be `if (!cond) goto skip0;` followed by the body
+//    and then `skip0:;` immediately before `after:`. Spelling it as the
+//    natural `if (cond) { ... }` costs 9 points (99.4 -> 88.7), and so does
+//    replacing the extra label with `goto after` (98.4 -> 88.7 by this
+//    session's scoring). The empty statement between the two labels is load
+//    bearing; see `skip0:;` below.
+//  * The 0x37f2f bit test. The original materialises the byte
+//    (`mov dl, [ecx + 0x37f2f]; shr dl, 1; test al, dl`) and pushes the flags
+//    dword (`push eax`), so `flags` must be an `int`. Declaring the field at
+//    0x37f2f as `unsigned short` and casting the shifted value back to
+//    `(unsigned char)` is what stops MSVC 5 folding it to
+//    `test byte ptr [ecx + 0x37f2f], 2`: the shift is then a 16-bit shift whose
+//    result is truncated, so the constant fold `(x >> 1) & 1 -> x & 2` never
+//    applies, and MSVC still narrows the load to a byte. Every spelling with a
+//    byte field (a plain `unsigned char`, a bitfield, `char`, `int`, a local
+//    `raw`, a `static inline` helper, a variable shift count, `/ 2`, `!= 0`,
+//    a ternary) folds, whatever the type of `flags`.
+//    `int flags` on its own is 1113 bytes and duplicates the `or al, 2`
+//    (`test ecx,ecx; je; or al,2; test ecx,ecx; je; or al,2`); the byte count
+//    only comes out at 1116 once the shift is spelled the way above.
+//
+// Earlier leads still worth keeping (from the 89.7% notes):
+//  * Both `mode` and `oldmode` must be `int`. With an `unsigned char oldmode`
+//    the working mode wins ebx and the strlen block falls apart; with both int,
+//    oldmode wins ebx and the working mode lives at [esp+0x10] as in the
+//    original. Declaration position of the two does not matter.
+//  * Use `gadget->field_60` directly instead of an `id` local, and compute the
+//    digit case's `to` before the memset, so the CSE'd players[d] temp lands
+//    in ebp.
+//  * `sizeof(Player_00493bf0)` is 0x14b; 0x14a breaks the players index maths.
+//  * For the SIB slots: MSVC 5 puts the *pointer* in the ADDRES base slot only
+//    when that pointer is a named local (a `Game* g = g_game` local, a
+//    reference `Game& g = *g_game`, an inline member function, a
+//    `static inline void SetSel(Game*, int, unsigned char)` helper, or a
+//    two-level chain such as `h->g->f[n]`); otherwise, when the pointer is a
+//    single-use temporary loaded straight from the global, it goes in the
+//    index slot and the index expression goes in the base slot. Every shape
+//    that fixes the slot moves g_game out of edx (into ecx, or into ebx when
+//    the local is live across the call) and then breaks
+//    `mov eax, [edi + 0x60] / push eax` in the SENDTO branch, for a net loss
+//    of about a point. `0x420960` in this tree is matched and shows the
+//    wanted form (`[ecx + esi*1 + 0x1ab8f]`, pointer in the base slot), but
+//    only because g_game there is loaded once and reused, so the pointer is
+//    not a single-use temporary. Not found: a source spelling that keeps the
+//    direct `g_game->field_2bf1[n]` form and still gets the base slot.
+//    The two stores differ only in the SIB byte (0x32 against 0x16, that is
+//    scale 1 with the operands exchanged). About 150 variants left them
+//    untouched: named locals and references in every position, helpers and
+//    inline members, two-level chains, `*(arr + n)` and `n[arr]`, a
+//    `unsigned char (&f)[11]` array reference, a byte pointer to g_game, a
+//    nested member struct, `(char*)g_game + 0x2bf1 + n`, a nested struct for
+//    field_2bf1, all 24 orders of the four block-opening statements, local
+//    declaration and type permutations, and semantically neutral struct
+//    padding and filler declarations (to shift MSVC's internal node ids).
+//    Two runs of permute.py from 97.6% and from 99.4% (1250 and 5012
+//    candidates) found nothing beyond this.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -88,12 +119,6 @@ struct Saved_00493bf0 {                 // 10 bytes
     short c;                          // +0x08
 };
 
-struct Bit_00493bf0 {
-    unsigned char bit0 : 1;            // +0x00
-    unsigned char bit1 : 1;
-    unsigned char bits2_7 : 6;
-};
-
 struct Flags16_00493bf0 {
     unsigned short bits0_7 : 8;
     unsigned short bit8 : 1;
@@ -114,7 +139,7 @@ struct Game_00493bf0 {
     char unknown_2bfc[0x37ebe - 0x2bfc];
     unsigned short flags_37ebe;        // +0x37ebe
     char unknown_37ec0[0x37f2f - 0x37ec0];
-    unsigned short field_37f2f;         // +0x37f2f
+    unsigned short field_37f2f;        // +0x37f2f, bit 1 is the "verbose" bit
 };
 #pragma pack(pop)
 
@@ -164,6 +189,11 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
         g_game->mode_2bf0 = 3;
         FUN_004a1080(gadget, DAT_00509400, g_game->mode_2bf0);
         int n = atoi(&entries[gadget->field_60].name[8]);
+        // Kept as the original has it: n is never range checked before it
+        // indexes the 11-byte selection mask, so a "LIVEPLYR42" style name
+        // writes outside field_2bf1. The neighbouring mode_2bf0 is clamped
+        // (`if (g_game->mode_2bf0 >= 4) g_game->mode_2bf0 = 0;`), so the
+        // omission looks like an oversight rather than a deliberate choice.
         unsigned char v = (unsigned char)FUN_004a0ff0(gadget, gadget->field_60);
         g_game->field_2bf1[n] = v;
         FUN_0049fa90(gadget);
@@ -198,6 +228,8 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
             p++;
         if (*p == '+') {
             int flags = 1;
+            // The cast keeps the shift a 16-bit one, which is what stops MSVC
+            // folding this into `test byte ptr [g_game + 0x37f2f], 2`.
             if (flags & (unsigned char)(g_game->field_37f2f >> 1))
                 flags = 7;
             if (DAT_005091cc)
@@ -212,6 +244,8 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
             char* to = 0;
             Player_00493bf0* base = &g_game->players[g_game->localPlayer];
             Saved_00493bf0 saved = *(Saved_00493bf0*)g_game->field_2bf1;
+            // Early out rather than a positive `if`, and the empty statement
+            // at skip0 below is load bearing: either change costs 9 points.
             if (!(' ' < p[1] && strchr(DAT_005093f4, p[1]) != 0)) goto skip0;
             if (isdigit(p[0])) {
                 int d = p[0] - '0';

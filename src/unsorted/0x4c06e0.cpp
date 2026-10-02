@@ -1,4 +1,45 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
+// SPACE-BUNNY-FREE, fourth pass (issue 4582): best stays 96.5% (200 of 200
+// bytes, size exact) after about 306 scoring runs and a 15-minute permuter run
+// (9887 candidates, no match). The result of this pass is a mechanism, not a
+// score: the three residual instructions are ONE effect, not three.
+//   * A minimal cut-down lab (only the depth loop uses the count) shows MSVC 5
+//     emits NO COPY AT ALL - the count's own register becomes the loop counter -
+//     and puts the slope load before the colour load, which is the original's
+//     order. The copy appears only when the fill arm also wants the count, and
+//     then it is hoisted to the common dominator, which also drags the colour
+//     load in front of the slope load. So copy placement, `lea` versus `mov`
+//     and the slope/colour order are one effect, caused by the fill arm's use
+//     being copy-propagated into the loop's induction copy. Fixing the
+//     colour/slope order alone is therefore not possible.
+//   * Two escapes killed by experiment: a pointer-typed count gives
+//     byte-identical code (so `lea` is not a type effect), and taking the
+//     count's address (`int* np = &n; memset(..., *np)`) is also identical, so
+//     MSVC promotes it straight back out of the addressable state.
+//   * The wall: every way of giving the fill arm its own count temp costs the
+//     head. An inlined depth-loop helper taking the count by value gives 33.7%
+//     (the head reallocates around the helper's parameters); a pointer-typed
+//     counter MSVC cannot propagate gives 47.3%; a top-level `int i` set from
+//     `n` in the arm is propagated away and is byte-identical to this file.
+//   * Closed this pass, all 96.5% (identical bytes) or worse: 14 invisible-IR
+//     variants (6 loop-body/arm/guard self-assignments, 8 dead stores against z,
+//     slope, start, p, d, color, n in three positions); 21 TU-state shapes
+//     including COMBINATIONS of inline functions and a mini clone of this
+//     function (the clone and non-inline shapes give the 88.9% no-extra-inline
+//     state, the only TU effect found, and it is backwards); pointer-typed /
+//     address-taken / `int&` / recomputed counts; the fill arm as six inline
+//     helper shapes; `Bits()`, `Depth()`, `Width()`, `Z1()`/`Z2()` accessors;
+//     the count block's locals moved into the arm; the p advance duplicated in
+//     both arms; `if (d)`, `if (d == 0)`, `if (!d)`, inverted guards; and a
+//     144-variant combination sweep (five declaration orders x two offset
+//     spellings x three loop forms x three memset spellings x n as
+//     int/unsigned) where 96.5% is the ceiling.
+//   * Also recorded: what the only two `lea reg,[reg]` sites in the exe have in
+//     common - the destination is a temp an implicit operation modifies (the
+//     reloaded-iterator comparison in the matched 0x40a260, and zlib's
+//     `tr_stored_block` counter whose source is clobbered inside the loop).
+//     Neither is reachable from this source shape, which fits the copy being
+//     MSVC's shared count rather than a hand-written copy.
 //
 // Space Bunny Free pass (issue #4498): 84.2 -> 96.5 percent, 200 of 200 bytes,
 // still no MATCH. The count block is now byte-identical, including the two

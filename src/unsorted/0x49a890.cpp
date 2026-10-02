@@ -1,4 +1,41 @@
 // Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro, re-verified by space-bunny-free. Names are provisional.
+// space-bunny-free (issue #4502): still 83.6% (488/488), no MATCH, but the middle is now
+// explained, and the explanation rules OUT every spelling tried so far. Re-derived the x87
+// schedule by simulating the raw bytes of both the original and our own object
+// (build/scratch/49a890/sim.py, symbolic x87 interpreter; build/scratch/49a890/r5.py,
+// r6.py score the variants in ~0.2 s each).
+//
+//   1. THE ORIGINAL'S disc, confirmed (every value below read off the simulated stack):
+//        d4 = d*d            (materialised as its own value, 0x49a912, before A)
+//        A  = s2 - gh*-2.0   (0x49a91c fsubr)
+//        T  = A*s2           (0x49a930)
+//        h2gg = h2*gg        (0x49a93a)
+//        sum = h2 + d        (0x49a940)
+//        d4gg = d4*gg        (0x49a94a)
+//        T' = T + h2gg       (0x49a950 faddp st(3))
+//        disc = T'*d4 - d4gg*sum      (0x49a95e, 0x49a964 fsubp st(1))
+//      So d4 is a first-class value reused by two products, and the faddp is st(3) because
+//      d4gg already sits on the stack when T + h2gg is formed. Value at g=98, h=50, R=1000,
+//      v=500: 8.27265625e22, which is the intended quadratic discriminant.
+//
+//   2. WHY NO SPELLING OF THE DISC EVER GETS THERE: MSVC 5 rewrites the value. Our own
+//      object, simulated, computes T'*d*gg - sum*d*d*d, not the T'*d*d - d*d*gg*sum that
+//      the source below spells: it moves one factor of d from the first term to the
+//      second (-2.4455e24 instead of 8.2727e22 at the sample values). That is a
+//      value-changing reassociation of the x87 multiply tree, so the shape this source
+//      produces can never be the original's, no matter how the load order is fixed. The
+//      original's own code preserves the value, so Cavedog's source must have hidden the
+//      shared d*d behind something the optimiser would not look through (a named local).
+//      Every named-local spelling tried does reach the original's tail shape
+//      (faddp st(3), fstp, fmul, fxch, fmul, fsubp) but only at 75-78% and it costs the
+//      post-hypot load order as well, so the two levers have to be found together.
+//
+//   3. SCORES THIS ROUND (base = 83.6%, 488 bytes): explicit (d*d) parens 56.4% / 490;
+//      (d*d)*(gg*sum) 71.5% / 494; sum*((d*d)*gg) 75.7% / 492; the addends of X in the
+//      other order 44-47%; named d4 with (d4*gg)*sum 75.7% / 492, with d4*gg*sum 60.4%;
+//      named d4 before `sum` and (d4*gg)*sum 78.0% / 488 (exact size, closest overall);
+//      named t/hh intermediates 53.9-67.1% / 500-504. The base spelling, with four
+//      separate `* d` multiplies and no d*d grouping, is still the best of them.
 // space-bunny-free (issue #4352): best stays 83.6% (488/488 bytes), no MATCH. Re-derived the
 // original's x87 schedule with a numeric x87 interpreter run over the raw bytes
 // (build/scratch/0x49a890/x87run.py) rather than by eye. Two things settled; the first is a

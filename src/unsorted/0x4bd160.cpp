@@ -1,5 +1,77 @@
 // Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
 //
+// space-bunny-free session (issue 4714): 99.3%, a real step up from 99.1%, and
+// the ONLY remaining difference is the encoding of the constant 20. The whole
+// nine-instruction buffer-setup region now matches in shape and order:
+//     xor ecx,ecx / mov eax,ecx / mov [esp+0x18],ecx / push eax
+//     push "Package Data" / push ecx / mov [esp+0x20],eax / call
+// reached with the aggregate plus an OPAQUE computed size:
+//     struct HapiBuf sb = {20};
+//     char* z = sb.buf;
+//     sb.size = 20u & ~(unsigned)(size_t)z;
+//     sb.buf = (char*)FUN_004d84a0(sb.buf, "Package Data", sb.size);
+// which compiles to `xor ecx,ecx / mov eax,ecx / mov [esp+0x18],ecx
+// / not eax / and eax,0x14 / push eax / ...`, so only
+//     - mov eax, 0x14        (original)
+//     + not eax / and eax, 0x14   (ours)
+// differs. Both are 580 bytes overall, so nothing else differs.
+// WHAT THIS CONFIRMS (several earlier notes had it backwards): the buffer's
+// zero has to stay OPAQUE to the optimiser. A constant 0 would CSE into ebp
+// (the `extra = 0` value) or become a literal, and the original's `push ecx`
+// plus its fresh `xor ecx,ecx` show the zero is a real runtime value that
+// happens to be zero: the aggregate's zero-fill. With an opaque zero, MSVC 5
+// (a) keeps the copy `mov eax,ecx` that the earlier notes called an
+// unexplainable "dead copy", (b) hoists the buffer store before the three
+// argument pushes, and (c) puts the size store in the call delay slot, exactly
+// as the original has them. The 20 must ALSO come from the `{20}` aggregate
+// initialiser, because that is the only spelling that materialises it in a
+// register (`mov eax,0x14`) shared by the push and the store; a plain
+// `sb.size = 20;` folds both uses into immediates.
+// STILL MISSING: a spelling whose LAST operation on eax folds to the literal
+// 20 while the preceding copy of the zero stays. Measured this session, with
+// `char* z = sb.buf` opaque and `{20}` (about 2900 variants in 14 one-MSLVC-run
+// batches, build/scratch/4bd160/{g,s,grp,pat,mc,b2..b17}.py, all scored with
+// check.py's own ratio and diff in parallel, 0.2 s a shape instead of 7 s):
+//   9/9, 580 b, 99.3%  this file, and 24 byte-identical variants of it:
+//     `z ^ 20u`            -> xor eax,0x14   (3 bytes, function 578)
+//     `20u & ~z`           -> not eax; and eax,0x14  (2+3 = 5 bytes, 580)
+//     mask-folded `&~`     -> same `not eax; and eax,0x14`
+//   8/9, 580 b, 99.1%  the size read back from the aggregate:
+//     `sb.size = sb.size + (unsigned)(size_t)z;` with `{20}` compiles to
+//     mov eax,0x14 / xor ecx,ecx / add eax,ecx / mov [buf],ecx / push eax ...
+//     i.e. the right registers, the right EARLY buffer store and the right
+//     delay-slot size store, with `add eax,ecx` where the original has the
+//     dead `mov eax,ecx` and the constant AFTER the store. This is the closest
+//     structural miss measured anywhere in the exe for this function, and it
+//     says what the original's two instructions are: an INDEPENDENT constant
+//     (`mov eax,0x14`), not the result of any operation on the zero.
+//   2/9, 576 b  every form that folds the block: `20u +/- 0u*z`, all the
+//     algebraic identities (`z^z`, `z-z`, `z*0`, `z&0`), every folded ternary
+//     (`z ? 20u : 20u` and 38 more), `20u` written as 0x14/8+12/'P'-60/
+//     sizeof(Hapi_004bd160)/an enum/hex and octal literals, and every
+//     `sb.size = 20;` (with `{0}`, `{0,0}`, `{20,0}`, a ctor, a nested
+//     `struct HapiBuf t = {20}`, a by-value `Make(20)` helper, or a dead
+//     `sb.size = z` before it). They emit `push 0x14 / mov [mem],0x14`.
+//   Measured dead ends: `tools/headers.py --cpp` over all 1536 header sets
+//     changes nothing (best stays 99.3%); separate `unsigned size; char* buf;`
+//     locals cannot carry the frame at all (0x54 -> 0x50, 567 bytes), so the
+//     struct is required; `sb.size = 20u * (1u+z)` and `(z+1u)*20u` give
+//     `inc eax / lea eax,[eax+eax*4] / shl eax,2`; `20u*(1u+(z&0u))` folds.
+//   Why the copy exists at all: MSVC only breaks the live range of the opaque
+//     zero into eax for an operation that cannot be done in place, because ecx
+//     has to stay live for `push ecx`. That is why `~`, `^` and `&` produce the
+//     copy and `+`, `-` and `*` (doable as `add eax,ecx` in place) do not. The
+//     original's copy is therefore an operation whose result MSVC then dropped
+//     while keeping the operand copy, which no spelling tried this session
+//     (nor in any earlier session's notes) produces: MSVC 5 folds an opaque
+//     operand's operation only when the operation itself disappears, and it
+//     then also deletes the copy. The byte pattern `8b c1 .. b8 14 00 00 00`
+//     (`mov eax,ecx` within 8 bytes of `mov eax,0x14`) occurs EXACTLY ONCE in
+//     the whole exe, here, so there is no near-copy to learn the spelling from.
+//     tools/permute.py found nothing better either: 28740 rewrites in the
+//     issue-4366 session and 7703 candidates in 15 minutes from this source
+//     (both runs flat at the score they started from).
+//
 // claude-sonnet-5-5 (issue 4611): same 99.1% (580 of 580 bytes) with plain code
 // and no dead `z` temporary: `struct HapiBuf sb = {0}; sb.size += 20;
 // sb.buf = FUN(sb.buf, ...)`. Also 99.1% (same bytes): `sb.size = sb.size + 20`,
@@ -329,8 +401,9 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
 
     if (cb)
         cb(0);
-    struct HapiBuf sb = {0};
-    sb.size += 20;
+    struct HapiBuf sb = {20};
+    char* z = sb.buf;
+    sb.size = 20u & ~(unsigned)(size_t)z;
     sb.buf = (char*)FUN_004d84a0(sb.buf, "Package Data", sb.size);
     off = FUN_004bd3b0(srcname, &sb.size, &extra);
 

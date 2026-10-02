@@ -1,17 +1,51 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, refined by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free 2026-10-02 (final pass): 99.5 -> MATCH, and what it took, in
+// order of how much each one was worth:
+// (A) The owner reload, which every earlier pass chased with aliasing tricks
+// and the wrong answer turned out to be one line: the scale blocks write their
+// slot through a LOCAL POINTER (`float* slot = &unit->field_bc; ... *slot =
+// f;`). MSVC 5 then cannot prove that store disjoint from `unit->field_ec`,
+// so it re-reads the owner in the second block (`mov eax,[esi+0xec]`) exactly
+// as the original does, and because the pointer folds straight back to a
+// constant offset the slot accesses still emit `fld [esi+0xbc]` / `fstp
+// [esi+0xbc]`. Both blocks use the pointer, which keeps the two blocks
+// structurally identical. This replaced the ScaleW union the earlier passes
+// needed: with the union MSVC 5 also reloaded, but every union member sits at
+// offset 0, so both owner loads came out at +0xbc instead of +0xec (99.5%).
+// What does NOT defeat the forwarding: two separately spelled inlined helpers,
+// one per slot, taking the unit (the second copy reuses the first's load), a
+// nested struct or arrays inside the union, and a fresh pointer or char* alias
+// for the owner read.
+// (B) The last hunk, at 0x4650d0. The original hoists `mov eax,[g_game]` ABOVE
+// the `jne 0x465881`, so both successors share the reload and the jump lands
+// past the one inside `countdown_extra`; ours put the load after the branch, so
+// the jump target was 0x46587c, five bytes short. Every if/else vs early-goto
+// respelling at that `if` was byte-identical, and the fix is one step further
+// out: the else of `if (g_game->list->FUN_00490230() == 0)` carries its OWN copy
+// of the countdown block instead of `goto countdown_extra`. MSVC 5 then
+// tail-merges the two copies itself and keeps the load in the branch.
+// (C) The string at +0x87f was truncated: the original's is "You are placed in
+// watch mode because you are hosting AI players which are still alive.  If you
+// exit, they will be terminated." (125 characters), not "You are placed in
+// watch mode".
+// (D) The scale constants are named (see the declaration below). This is only
+// about the width of each .rdata object, not about the code: MSVC 5 gives a
+// float LITERAL an 8-byte slot, and with 100.0f spelled as a literal it is the
+// FIRST .rdata object, so the checker compared its 4 padding bytes against the
+// original's next constant (another function's 12700.0f) and called the
+// function 100.0 percent with a bad reference. Naming the constant makes it a
+// 4-byte object, and the declaration order puts it last so nothing follows it.
+// Also settled earlier today: the byte count is exact (2392 = 2392) and the
+// duplicated player guard of 0x464fe1..0x465024 is solved, so every note below
+// about "38 bytes missing before 0x4655a6" is stale.
 // Space Bunny Free 2026-10-02: 85.1 -> 99.5 percent, ours now 2392 bytes, the
 // original's size. THREE LEVERS, all of them load-bearing:
-// (1) The owner reload. The original emits `mov eax,[esi+0xec]` twice, once per
-// scale block, while a plain reading of `unit->owner` in both blocks lets MSVC
-// keep the pointer in EAX across the first block's switch and forward it to the
-// second (`mov edx,[eax] / test edx,edx`, five bytes short, and the first
-// switch's discriminant lands in ECX instead of EAX). A store only invalidates
-// a tracked load when MSVC cannot prove the two addresses disjoint, and here it
-// can (0xbc vs 0xec), so declaring the first scale slot and the owner as
-// members of ONE union is what forces the reload. The cost: this MSVC 5 lays
-// every union member out at offset 0 (proved: `sizeof(union{int;char[0x30];
-// int*;})` is 0x30 and `&p->o` folds to 0), so the two owner loads are emitted
-// at +0xbc instead of +0xec. That is the whole of what is left.
+// (1) The owner reload. SOLVED LATER, see (A) above: a plain reading of
+// `unit->owner` in both blocks lets MSVC keep the pointer in EAX across the
+// first block's switch and forward it to the second (`mov edx,[eax] / test
+// edx,edx`, five bytes short, and the first switch's discriminant lands in ECX
+// instead of EAX). The union below was the price of forcing the reload and is
+// gone again.
 // (2) The loop. The original keeps BOTH the entry guard (`cmp bl,0xa / mov
 // [esp+0x10],bl / jae 0x4655a6`) and a latch test (`inc bl / cmp bl,0xa / mov
 // [esp+0x10],bl / jb body`), and the guard's failure branches to the LATCH, not
@@ -43,7 +77,7 @@
 // with the wrong offset or keeps the offset and loses the reload: a nested
 // struct inside the union (v24.cpp, v36.cpp) and an array of the union
 // (v23.cpp) give the right offsets and no reload; arrays INSIDE the union
-// (v39.cpp, `unit->w.slot[6]` / `unit->w.owner[12]`) also give the right
+// (v39.cpp, `unit->w.slot[6]` / `unit->field_ec[12]`) also give the right
 // offsets and no reload; casts through `(char*)unit + 0xec` fold back to the
 // same expression and are byte identical, as are fresh locals for the unit
 // pointer (`Unit* u2 = unit;`), a helper returning the owner, a
@@ -77,7 +111,7 @@
 // STILL OPEN (all compiler-state register allocation, 2386 vs 2392 = 6 bytes):
 // (1) The first owner block's switch discriminant is in ECX here
 // (`mov ecx,[edx+0x37eee] / sub ecx,0 / dec ecx`) but EAX in the original
-// (`mov eax,[...] / sub eax,0 / dec eax`). Because block1 keeps `unit->w.owner`
+// (`mov eax,[...] / sub eax,0 / dec eax`). Because block1 keeps `unit->field_ec`
 // in EAX and the switch reuses ECX here, EAX (owner) survives into block2, so
 // block2 CACHES owner->active (`mov edx,[eax] / test edx,edx`) instead of
 // RELOADING the owner pointer (`mov eax,[esi+0xec] / cmp [eax],0`) like the
@@ -87,7 +121,7 @@
 // all vanish to identical 85.1 output; the eax-vs-ecx choice is a register
 // allocator coin flip I could not steer. Forcing block2 to reload owner without
 // fixing block1's switch needs an invalidating store between the blocks (there
-// is none: `unit->w.f=f` is a different field of the same struct).
+// is none: `unit->field_bc=f` is a different field of the same struct).
 // (2) Loop head still spills before the test (`mov [esp+0x10],bl / cmp bl,0xa`)
 // where the original tests first (`cmp bl,0xa / mov [esp+0x10],bl`), and the
 // original keeps BOTH a head test and a bottom test (shared failure exit: head
@@ -100,7 +134,7 @@
 // More switch/owner attempts this session, all byte-identical to r2 (85.1,
 // 2386): inline getSw() helper returning field_37eee (block1-only and
 // both-blocks), nested if instead of &&, own/own2 fresh locals for owner,
-// block2 owner via *(Player**)((char*)unit+0xec) and *(int*)((char*)unit->w.owner),
+// block2 owner via *(Player**)((char*)unit+0xec) and *(int*)((char*)unit->field_ec),
 // pre-computed int sw before the if (83.7), switch -> if/else chain (84.2),
 // int sv = field_37eee; switch(sv) both blocks (83.9). None flip block1's
 // switch to EAX. A do-while loop shape (if (loopCond) { do {...} while
@@ -149,7 +183,7 @@
 // Still open beyond those: the `shl edi, 0x10` scheduling in the subscreen
 // setup, the `mov eax,[g_game]` hoisted before the FUN_00490230 jne, the
 // switch value in eax vs ecx (first field_37eee block) and edx vs ecx (second
-// g_game reload), the second owner block re-loading `unit->w.owner` from
+// g_game reload), the second owner block re-loading `unit->field_ec` from
 // `[esi + 0xec]` instead of caching it, and the watch_check player-index
 // computation's lea/mov order.
 // deepseek-v4.1-flash 2026-10-01 (retry 6, timeboxed): no gain, stays 80.2 /
@@ -320,20 +354,6 @@ struct UnitType_00464f80 {
     char unknown_245[0x249 - 0x245];
 };
 
-// The first scale slot and the owner pointer share one union. That is what
-// stops MSVC proving the store to the slot disjoint from the owner load the
-// second scale block re-reads, which is what the original does: it emits
-// `mov eax,[esi+0xec]` in both blocks instead of keeping the pointer in EAX
-// across the first block's switch. The cost is the two owner loads, which land
-// on the slot's address (+0xbc) rather than +0xec, because MSVC 5 gives every
-// union member offset 0. The second scale field stays an ordinary member, so
-// the second block really does re-read it.
-union ScaleW_00464f80 {
-    float f;                           // +0xbc
-    Player_00464f80* owner;             // also +0xbc, see above
-    char pad[8];
-};
-
 // A unit. Only the fields this function reads are named.
 struct Unit_00464f80 {
     char unknown_0[0x92];
@@ -341,11 +361,12 @@ struct Unit_00464f80 {
     char unknown_96[0xa6 - 0x96];
     unsigned short field_a6;           // +0xa6
     char unknown_a8[0xbc - 0xa8];
-    ScaleW_00464f80 w;                 // +0xbc
-    char unknown_c4[0xd4 - 0xc4];
+    float field_bc;                    // +0xbc
+    char unknown_c0[0xd4 - 0xc0];
     float field_d4;                    // +0xd4
     char unknown_d8[0xec - 0xd8];
-    char unknown_ec[0x110 - 0xec];
+    Player_00464f80* field_ec;         // +0xec
+    char unknown_f0[0x110 - 0xf0];
     unsigned int flags_110;            // +0x110
     char unknown_114[0x118 - 0x114];
 };
@@ -495,6 +516,16 @@ static int more_00464f80(unsigned char i)
     return 0;
 }
 
+// The three scale constants, named so that each lands in .rdata as its own
+// object of exactly the original's width, and in this order: MSVC 5 emits a
+// float LITERAL in an 8-byte slot but a named static const float in 4, and
+// literals come after statics, so with 100.0f spelled as a literal it is the
+// first .rdata object and the checker reads its slot's 4 padding bytes as
+// part of it (the original's next constant is another function's 12700.0f).
+static const double kNegSeven = -0.7;
+static const double kNegHalf = -0.5;
+static const float kHundred = 100.0f;
+
 // FUNCTION: 0x464f80
 void __stdcall FUN_00464f80()
 {
@@ -563,7 +594,23 @@ void __stdcall FUN_00464f80()
                         }
                     }
                 } else {
-                    goto countdown_extra;
+                    // This is a second copy of the countdown_extra block, and
+                    // the duplication is load-bearing: with a `goto` here MSVC
+                    // 5 leaves the `mov eax,[g_game]` reload after the `jne`
+                    // and the jump lands on it, where the original hoists the
+                    // reload above the branch and jumps past it. Written out
+                    // twice, MSVC tail-merges the copies and hoists it.
+                    if (g_game->field_39239 < 0) {
+                        g_game->field_39239 = 4;
+                    } else {
+                        g_game->field_39239--;
+                        if (g_game->field_39239 < 0) {
+                            g_game->flags_3923b.w |= 4;
+                            g_game->flags_3923b.b.bit4 = 1;
+                            g_game->flags_3923b.b.bit5 = 1;
+                        }
+                    }
+                    goto skip508;
                 }
             } else if ((pi->active == 0 ||
                         (pi->data->flags_9b & 0x40) == 0) &&
@@ -627,32 +674,42 @@ void __stdcall FUN_00464f80()
                                              self->field_a3 * 100,
                                              self->field_a1 * 100);
                                 {
-                                    float f = (float)self->field_a1 * 100.0f;
-                                    if (unit->w.owner->active != 0 &&
-                                        unit->w.owner->control == 2) {
+                                    // The slot is written through a local
+                                    // pointer because that is what makes MSVC 5
+                                    // re-read unit->field_ec in the next block:
+                                    // it cannot prove the store disjoint from
+                                    // it. Written as `unit->field_bc = f` the
+                                    // pointer is forwarded from the first block
+                                    // instead and the second `mov eax,
+                                    // [esi+0xec]` disappears.
+                                    float* slot = &unit->field_bc;
+                                    float f = (float)self->field_a1 * kHundred;
+                                    if (unit->field_ec->active != 0 &&
+                                        unit->field_ec->control == 2) {
                                         switch (g_game->field_37eee) {
-                                        case 0: f = unit->w.f - f * -0.5; break;
-                                        case 1: f = unit->w.f - f * -0.7; break;
-                                        default: f = unit->w.f + f; break;
+                                        case 0: f = *slot - f * kNegHalf; break;
+                                        case 1: f = *slot - f * kNegSeven; break;
+                                        default: f = *slot + f; break;
                                         }
                                     } else {
-                                        f = unit->w.f + f;
+                                        f = *slot + f;
                                     }
-                                    unit->w.f = f;
+                                    *slot = f;
                                 }
                                 {
-                                    float f = (float)self->field_a3 * 100.0f;
-                                    if (unit->w.owner->active != 0 &&
-                                        unit->w.owner->control == 2) {
+                                    float* slot = &unit->field_d4;
+                                    float f = (float)self->field_a3 * kHundred;
+                                    if (unit->field_ec->active != 0 &&
+                                        unit->field_ec->control == 2) {
                                         switch (g_game->field_37eee) {
-                                        case 0: f = unit->field_d4 - f * -0.5; break;
-                                        case 1: f = unit->field_d4 - f * -0.7; break;
-                                        default: f = unit->field_d4 + f; break;
+                                        case 0: f = *slot - f * kNegHalf; break;
+                                        case 1: f = *slot - f * kNegSeven; break;
+                                        default: f = *slot + f; break;
                                         }
                                     } else {
-                                        f = unit->field_d4 + f;
+                                        f = *slot + f;
                                     }
-                                    unit->field_d4 = f;
+                                    *slot = f;
                                 }
                                 FUN_004816a0(1);
                                 FUN_0048d630(1);
@@ -723,7 +780,7 @@ void __stdcall FUN_00464f80()
                     if (FUN_00457cb0() <= 0)
                         goto skip508;
                     FUN_004abd90(g_game->gui,
-                                 FUN_004c5740("You are placed in watch mode"),
+                                 FUN_004c5740("You are placed in watch mode because you are hosting AI players which are still alive.  If you exit, they will be terminated."),
                                  500, 1, 1);
                     g_game->flags_3923b.w &= 0xffef;
                     goto skip508;

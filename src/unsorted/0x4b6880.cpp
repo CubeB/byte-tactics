@@ -1,4 +1,8 @@
 // Decompiled by Space Bunny Free, finished by GPT-6.1-sol and mimo-v2.6-pro. Names are provisional.
+// claude-opus-5-5 (#4375): still 88.2%. Only the prologue differs (the original loads
+// read straight into ebp and derives the access mask from it). doRead declared first
+// (82.4%), the mask as a separate assignment or an if (81.1%), the mask inlined in each
+// call (29.3%) and a 10-minute permuter run found nothing better.
 // Retry (GPT-6.1-sol, issue 3201): 7 checker invocations in this pass; best
 // remains 88.2%. The arg6 prologue load is the only mismatch. Read-first
 // declaration order scored 82.4%; delayed mask assignment scored 82.4%;

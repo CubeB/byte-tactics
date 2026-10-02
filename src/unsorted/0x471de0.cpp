@@ -1,5 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, second pass
-// by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Retry (deepseek-v4.1-flash, issue 2972): re-confirmed 98.6% (195 bytes both
 // sides). One-byte SIB swap in the inlined erase shift: ours `mov [eax+edx],ebp`
 // vs the original `mov [edx+eax],ebp`; the delta is the literal -4 in edx, and
@@ -180,6 +179,19 @@
 // picks. In this file the delete call before the erase always leaves the
 // walker form, which is why every source spelling lands on 98.6%; the
 // original's TU state produced the delta form for this one inlined copy.
+// Retried by DeepSeek V4.1 Flash in #4800, still one byte, 98.6%. permute.py
+// (3 min, 2186 candidates, statement/declaration/scope/commutative rewrites)
+// found nothing. ~40 hand variants of the explicit specialization (int delta
+// in the library `copy` slot: delta type, declaration order, delta computed
+// from _L / from a dest walker / inside the guarded body, for and do-while and
+// index forms, `(char*)` vs `(int)` subtraction, separate walker and end
+// locals) all give A's slot with the swapped register pair (91.7%) or worse,
+// never the original's end=ecx / delta=edx. Diagnostic: deleting the
+// `delete *it` call entirely (build/scratch/0x471de0/n01) still emits the
+// walker-base SIB `[eax+edx]`, so the minimal-file "one call before the loop"
+// lever does NOT transfer to this function; the inlined copy here always
+// takes the walker form regardless of the call. Scratch:
+// build/scratch/0x471de0/{run.py,drive.py,n01_nodelete.cpp,...}.
 #include <vector>
 
 class Listener_00471de0 {

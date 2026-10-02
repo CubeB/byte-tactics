@@ -330,6 +330,115 @@ public:
 //  (3) the latch (140-141): the extra `mov [esp+0x10],edi`.
 // No suspected bug in the original. The face counter being spilled to the frame
 // and reloaded is an allocation artefact, not a mistake.
+//
+// SEVENTH PASS (space-bunny-free): best UNCHANGED at 82.3% (457 of 461 bytes).
+// Baseline reproduced, then two 15-minute permuter runs: 11320 candidates and
+// 8556 candidates, both 82.3% -> 82.3%. Neither wrote a `best_ratio.cpp`, so
+// there was nothing to copy back, and the file is byte-identical to the version
+// the sixth pass left. What follows is the negative evidence this pass bought,
+// and the one positive finding (the eviction lever is real and is now proved).
+//
+// METHOD, and it is the part worth reusing: a compile-only probe
+// (build/scratch/0x4584d0/probe.py, with the variant generators mk.py, mk2.py,
+// mk3.py, mk4.py, mk5.py beside it) compiles a scratch copy of the file with
+// the project's own flags and reports six facts in about ten seconds instead of
+// a sixty-second `check`: the `_alloca_probe` constant, whether `poly` still
+// has its `lea [esp+0x20]`, whether `lea ecx,[esp+0xec]` lands BELOW the `jle`
+// loop guard or above it, whether the two destination stores are the original's
+// `[ecx-0xc]`/`[ecx-8]` or this file's `[ecx]`/`[ecx-4]`, whether the face
+// counter gets a home at [esp+0x10], and whether the copy loop's index temp is
+// in edi (the original) or ebx (this file). Both remaining clusters here are
+// register and displacement choices rather than structure, so that screening is
+// what found the two facts below. Roughly 60 variants were screened this way
+// and only six were ever worth a real `check`.
+//
+// (1) THE VERTEX LOOP ALREADY HAS THE RIGHT LENGTH, WHICH IS WHY EVERY CHANGE TO
+//     IT COSTS SCORE. Measured encodings: the original's loop is 79 bytes and
+//     this file's is 82, and the whole +3 is `add eax,4` (3) plus `mov
+//     ebx,[eax-4]` (3) against `mov ebx,[eax]` (2), less `mov [ecx],ebx` (2)
+//     against `mov [ecx-0xc],ebx` (3). The totals differ, so touching the loop
+//     shifts every later jump target and the checker's BYTE-similarity
+//     percentage falls even when the instruction stream agrees: this file is
+//     reported as 82.3% with "ignoring internal jump targets" 87.1%, while a
+//     variant that fixes two real instructions and grows by one byte is
+//     reported as 78.2% with 89.8% once jump targets are ignored. Fix the
+//     encodings only if you can fix them at 79 bytes.
+//
+// MEASURED DEAD, an 18-cell destination x source sweep (mk2.py) plus seven
+// single-variable forms (mk.py): the original needs three things at once, and
+// no source produces all three.
+//   - `lea ecx,[esp+0xec]` BELOW the `jle` guard. Reached by an indexed
+//     destination (`projected[i].x`, `projected[i].y`, both arrays indexed), but
+//     that form then writes y at [ecx-4] instead of [ecx-8]. Every hand-biased
+//     destination hoists the `lea` above the guard instead.
+//   - the destination's `add ecx,8` at the TOP of the body with the stores at
+//     [ecx-0xc] and [ecx-8]. Reached, together with `lea ecx,[esp+0xec]` and
+//     the frame still at 0x3f58, by exactly one spelling: a biased `int*`,
+//     `int* r = (int*)projected + 1; for (...) { r += 2; r[-3] = x; r[-2] = y; }`.
+//     It scores 78.2% (458 bytes) because the `lea` is hoisted. Wrapping the
+//     loop in an explicit `if (info->vertexCount > 0)` pushes the `lea` back
+//     below the guard but MSVC then emits the guard test twice: 77.7%, 462
+//     bytes. Both are the wrong trade, correct instructions at the wrong length.
+//   - the source walked UNBIASED (`mov ebx,[eax]`, `mov ebp,[eax+8]`,
+//     `add eax,0xc`, `mov ebp,[eax-8]`). NOT REACHABLE. `vertices[i]`, a walked
+//     `Vertex* u` with `u++`, and a walked `int* u` with `u += 3` and
+//     `u[0]/u[2]/u[1]` all get the +4 bias, and every walked-source form also
+//     moves the frame to 0x3f4c with the arrays at 0x14 and 0xdc, twelve bytes
+//     smaller. The MATCHed sibling 0x4581e0 spells its source as
+//     `Vertex_4581e0* v = piece->vertices; ... v++` and does keep that walk
+//     unbiased, so the bias here really is a tie and the 0x3f4c frame is the
+//     price of every spelling that reaches it, not evidence that the original
+//     did not walk the source.
+//
+// (2) THE FACE LOOP EVICTION IS AN ALLOCATION TIE, AND THIS PASS PROVED IT AND
+//     FOUND THE MISSING PIECE. Adding ONE more live reference to `info` inside
+//     the copy loop flips the eviction exactly as the original has it: bounding
+//     the copy loop by `face->count && j < info->vertexCount` gives the counter
+//     its home at [esp+0x10] AND drops the per-face reload of `info` to zero,
+//     both of which only this file gets wrong. The extra compare survives, so
+//     it is 478 bytes, seventeen over, and the frame moves to 0x3f5c. So the
+//     lever the guide's "register priority" entry asks for is real and is a use
+//     of `info` inside the copy loop that FOLDS AWAY. Nine candidates that add
+//     a reference to `info` without adding an instruction are all byte-identical
+//     to this file: `int& faceCount = info->faceCount` read by both the
+//     pre-test and the latch; `PieceInfo_4584d0& inf = *info`; `int first =
+//     info->firstFace` hoisted; `Face_4584d0* faces = info->faces` hoisted;
+//     `(unsigned)i < (unsigned)info->faceCount`; `i = 0` written before the
+//     firstFace branch (455 bytes, two under); the branch polarity swapped; `p =
+//     face->indices` as its own statement; a null check on the index array.
+//     Ten more that permute the copy loop's per-iteration pointer locals, which
+//     the guide says decides which register holds the loop's end value, all
+//     still put the index temp in ebx: the poly walk declared before the index
+//     pointer (455 bytes), the index pointer initialised on its own, both walks
+//     declared with the index pointer first (455 bytes), two separate
+//     `poly[j].x`/`poly[j].y` stores (456 bytes, and BOTH `mov di` and `mov bx`
+//     disappear, so the index temp is gone entirely), the value through a
+//     temporary, `poly` walked as an `int*`, a `Face_4584d0* f = face` alias, `j`
+//     zeroed before the loop, and the loop as a do/while (449 bytes, zero
+//     reloads of `info`, but twelve under).
+//
+// (3) THE `static inline` PREDICATE IS INERT HERE, IN BOTH DIRECTIONS, WHICH IS
+//     WORTH RECORDING BECAUSE THE BRIEF FLAGS THE RETURN TYPE AS DECISIVE.
+//     `static inline int Less(int a, int b) { return a < b; }` and
+//     `static inline int NotMinus1(int a) { return a != -1; }` around the
+//     vertex loop test, the copy loop test, the face loop pre-test and the
+//     firstFace test, each alone and all four together, are byte-identical to
+//     this file (457 bytes, every probe fact unchanged). The same predicates
+//     returning `bool` are NOT inert: all four together score 37.5% (520 bytes,
+//     frame 0x3f5c, no `mov di` and no `mov bx` at all), because the branch is
+//     materialised. So `int` is the right return type here and buys nothing; the
+//     0x438ea0 and 0x487bf0 results do not transfer to this function.
+//
+// No suspected bug in the original. The face counter being spilled to the frame
+// and reloaded around the copy loop is an allocation artefact of eight values
+// competing for seven registers, and the `info->vertexCount` experiment above
+// reproduces it exactly from the same body, which is the strongest evidence
+// that the source is faithful.
+//
+// No `volatile` field is warranted here and none is used. `info` is a parameter,
+// not a field, and its re-reads sit at post-loop and post-call points (0x458561
+// after the vertex loop, 0x458582 before the face pre-test, 0x458686 at the
+// latch), which a plain `info->faceCount` re-read already produces.
 
 // FUNCTION: 0x4584d0
 void Class_004584d0::FUN_004584d0(Model_4584d0* model, void* surface,

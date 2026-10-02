@@ -1,5 +1,122 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free. Names are provisional.
 
+// space-bunny-free retry 2 (still 98.3%, 473 of 473 bytes, 4 checker runs,
+// about 450 in-process compiles). The big new result is that the pool flip is
+// a WEIGHT RACE on `w` and that the race can be won, only with bytes:
+//   c1 (the two-local body above) plus THREE extra stores of w, e.g.
+//   `p->f9c = w; p->fa0 = w; p->fa4 = w;` just before the f88 line,
+// gives zero=ebp, w=ebx, the four shorts from bp, `cmp eax, ebp` at 21 and
+// `mov [esi+0xf8], TICK` at 22 - the pool and the whole first-block schedule
+// right, and the first 14 instructions byte identical. Those three stores
+// cost 18 bytes, so 491 against 473, and a greedy resync with jump targets
+// wildcarded (build/scratch/464700/align.py) shows what else is left: the
+// third tick still in ecx (twice), the team byte still `mov dl` and the
+// buffer load still `mov eax, [esi + 0x7c]` where the original wants edx and
+// ecx. So the two locals cost four register choices, of which the weight race
+// below is only one. Three extra stores of `h`, or three extra
+// zero stores, or three stores to the SAME field do NOT move the pool, and in
+// the 98.3% body three extra stores of w change nothing while three extra
+// zero stores FLIP it: so ebx goes to whichever of {constant 0, w} the
+// allocator weights higher, and the two locals in the first block land on the
+// same side as three extra zero stores.
+// Twenty spellings of "three more references to w that fold away" all reach
+// the allocator with nothing to show: `w ? w : w`, `w & w`, `w | w`, `w - w`,
+// `w * 0`, `w >> 0`, `w * 1`, `~w & w`, `w / 1`, `w + 0 + 0`, `w = w`,
+// `(void)w`, `unsigned z = w - w;`, identical duplicate stores, an identical
+// `if/else` in both arms and a nested `?:`. All are deleted before the
+// allocator, so no spelling of a folded use can buy the weight.
+// A 1800-variant sweep of the two-local body WITH the three extra w stores in
+// place (tick and ref type x declaration order x four guard spellings x three
+// store spellings x three dummy locals) never once puts the third tick in
+// edx: it is ecx or eax in every one, so the tick register is a second,
+// independent casualty of the same two locals, not a tie-break that the pool
+// fix would also fix. A 960-variant sweep of the same body without the extra
+// stores never once puts the constant 0 back in ebp.
+// A recorded conclusion, refined: it is not "a value live across a store" that
+// flips the pool, it is a NAMED LOCAL. `p->ff8 = g_game->ticks + (p->fac = 0,
+// ..., p->fd4 = 0, 0);` (and the same with `* (..., 1)`) keeps zero in ebp, the
+// tick in edx, w in ebx and the shorts from bp at 473 bytes, with an
+// expression temporary live across the 0x90 store - 96.6%, 13 miss. So the
+// blocker is narrower than it looks: MSVC 5 will not hoist that expression's
+// load above its own side effects (it emits the six stores first and the loads
+// at 19 and 21), and the ONLY construct measured to put a load at the top of
+// this block is a local's definition point - value local, pointer local, or a
+// reference/pointer to g_game, all of which cost the block a register and flip
+// the pool. `int* pt = &g_game->ticks;` does put `mov ecx, [g_game]` at 12 but
+// pays a `lea eax, [ecx + 0x38a47]` and flips the pool too. Also: the six
+// clears in a plain `static inline void six(Player*)` helper are NOT a
+// scheduling barrier - the helper plus the stamp after it is byte for byte the
+// flat 96.6% shape, so the 97.5% the older note reports for its sub-object
+// method must come from the method form, not from the call.
+// Also measured flat, on the two-local body: all 1536 sets of
+// tools/headers.py --cpp (66.4% for every set, so the header set is not what
+// is holding the pool), and the same sweep on THIS file's 98.3% body gives
+// 98.3% for all 1536 sets, so the header set decides nothing here either.
+// Transplanting the neighbouring function 0x4644d0
+// into the file (it does move the compiler state - the 98.3% body drops to
+// 94.1% - but the pool stays flipped), an `int z = 0` named zero, unsigned and
+// long w/h, `unsigned w, h`, the multiply spelled (w * h), `delete p->buffer`,
+// extra parenthesisation, the four short stores' spelling, and every use of a
+// local pointer to the ff8 field.
+
+// space-bunny-free retry (still 98.3%, 473 of 473 bytes, 2 checker runs).
+// Harness: build/scratch/464700/{h,lib,lib2}.py score in process on discrete
+// binary features (where the cmp/ff8 store land, which register the constant
+// 0 and the third tick get, how many instructions miss), not on the ratio.
+// Four measurements, all re-verified against /Fa-free disassembly of our own
+// object (h.py feats()):
+// (1) THE TARGET SCHEDULE IS REACHABLE, AND IT IS EXACTLY TWO LOCALS:
+//   PlayerRef* ref = p->ref;   // third statement
+//   int t = g_game->ticks;     // fourth statement
+//   <the six zero stores>
+//   p->ff8 = t;                // where the store goes
+//   <the sixteen zero stores>
+//   if (!ref) { p->ref = new PlayerRef; }
+// comes out instruction for instruction as the original's first block, with
+// the three loads at 12/13/14, the six zeros at 15-20, `cmp eax, ZERO` at 21,
+// `mov [esi+0xf8], TICK` at 22 and the `jne` at 39. Every one of the 473 bytes
+// matches except that ONE register choice is wrong: the constant 0 lands in ebx
+// instead of ebp, so all 22 stores, the 4 shorts and the 2 cmps read ebx, w
+// takes ebp, the team byte comes in `mov dl` not `mov al`, and the third tick
+// takes ecx (reusing the g_game register) instead of edx. 43 of 119
+// instructions differ, and all 43 are that one swap.
+// (2) THE POOL FLIP IS ABOUT REGISTER PRESSURE, NOT ABOUT HAVING A LOCAL.
+// An enregistered local whose live range crosses even ONE store flips it
+// (`int t = g_game->ticks; p->fac = 0; p->ff8 = t;` -> zero in ebx, 66.4),
+// while the same local with a live range crossing no store is byte for byte
+// this file's 98.3% body, and a local that is only an ADDRESS keeps the pool:
+// `int* pf = &p->ff8; p->fac = 0; *pf = g_game->ticks;` gives 97.5 (10 of 119
+// instructions miss) with zero in ebp, the tick in edx, w in ebx and the shorts
+// from bp. An unused local is deleted by the front end and also keeps the pool
+// (95.8%). So the flip is "the block needs one more register", and a pointer
+// that folds to a constant offset costs none.
+// (3) THE ff8 STORE'S SLOT FOLLOWS THE TREE POSITION OF ITS STATEMENT.
+// Moving the stamp through the six zero stores one at a time (k = how many
+// come first) puts the store at 16, 18, 18, 20, 21, 22, 23. At k = 5, i.e.
+// `p->fcc = 0; p->ff8 = g_game->ticks; p->fd4 = 0;`, the store lands at 22 -
+// the original's exact slot - with every register right; only the three loads
+// stay late (95.0%, 12 miss). So the original's source has its three loads in
+// a statement before the six zeros and the store in a statement after them,
+// and MSVC will not hoist a load above the stores itself: at k = 6 (b1) the
+// loads stay below the six zeros, at k = 0 they are above them but the cmp and
+// the store come up with them (this file). Neither end reaches the original.
+// (4) A header sweep cannot fix it: all 1536 sets of tools/headers.py --cpp
+// on the two-variable body give exactly 66.4%, none moves the pool.
+//
+// Mechanism, stated as precisely as the evidence allows: MSVC 5 materialises
+// the load of a plain non-address-taken local at its DEFINITION point, so the
+// only source construct that puts all three loads at the top of the block and
+// the store 8 instructions below them is a value live across the six zero
+// stores - and any such value costs the block a register, which is what costs
+// the constant 0 its ebp. Loads that MSVC schedules itself never land at the
+// top of this block (measured in (3)), so the original's three loads are
+// either definition-point loads (and the pool then cannot be ebp) or a
+// scheduler result no statement order reproduces. The register allocator's
+// choice between ebp and ebx for the zero is not steerable by declaration
+// order, type, scope, guard spelling, an `int z = 0` named zero, extra dead
+// locals, sibling blocks, a folded extra use of w or h, or the header set -
+// all measured flat at 66.4%.
+
 // claude-sonnet-5-5 retry (still 98.3%, no full check run beat it; permuter 10
 // min, 140 candidates, nothing). Why the pool flips with a tick local, found by
 // scoring micro variants: the flip is a weight race, not a property of the

@@ -1,4 +1,72 @@
-// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, re-tried by space-bunny-free. Names are provisional.
+// space-bunny-free pass (#3169): same 98.0, 322 of 322 bytes, and the same two
+// instruction residual. Body unchanged. What is new here is the instrument, not
+// the answer: the earlier passes concluded the x operand is unreachable from the
+// source, this pass shows the FORM is reachable in this compiler and then shows
+// it is not reachable from THIS function.
+//
+// 1. The two sums are not symmetric to the code generator, and that is the only
+//    asymmetry between them. `mov dx,[ecx+0x80]` is seven bytes
+//    (66 8b 91 80 00 00 00) because 0x80 does not fit a signed disp8, while the
+//    x pair (0x76, 0x7e) and y's other operand (0x78) are disp8 and four bytes.
+//    Both orders of the y pair cost 11 bytes, so its choice is a coin flip; the x
+//    pair is 8 bytes either way, so its choice looks decided by something else.
+// 2. The lower-displacement-into-register form IS produced by this compiler for
+//    a gap-8 pair. A one-file TU of 48 tiny functions, each `void fN(S* g) { short
+//    t = g->a + g->b; outN = t; }` with the two shorts at 0x76 and 0x7e, gives
+//    copies 8, 20, 32 and 44 as `mov cx,[0x76]; add cx,[0x7e]` and the rest as the
+//    opposite, so the choice flips with the function's position in the TU. The
+//    same TU with 60 copies of THIS function never puts 0x76 in ax (y flips in
+//    blocks: copies 3-8, 15-20, 26-31, 38-43, 50-55), so what decides the x node
+//    here is a property of this function, not of the declaration state alone.
+// 3. Still no flip, all at 322 bytes: 400 random declaration states (22 kinds of
+//    unused declaration, random counts 1..40, five insertion points, checked with
+//    a four-at-a-time wcl harness that reads the .obj directly); ten single-kind
+//    sweeps to N = 120; 25 Point field-name pairs; pos and size as two distinct
+//    Point types in both declaration orders; the Point nested at depth 2 and 3
+//    for pos, for size and for both; four flat short members instead of two
+//    Points, with the Point copy through a cast; 20 spellings of the x sum and 9
+//    of the y sum (explicit and unsigned casts, `+ 0` either side, a deref, an
+//    Identity and an add2 helper, `+=`, a local temp, a Point copy and a Point
+//    reference for size, a ternary, a multiply by 1); scoping variants (register,
+//    a nested block, a comma declaration, static, goto). Every y-flip keeps the
+//    total at 322 bytes and scores 305, never better.
+// 4. Two leads for whoever comes next. First, the y coin flip and the x coin flip
+//    are two different states of the same generator (the y one is reachable by
+//    changing the declaration state, the x one is not), so the useful lever is
+//    probably something that changes this function's expression-tree shape, not
+//    the TU. Second, there is no near-copy to read the answer off: a scan of all
+//    3843 functions in data/functions.csv for `66 03 41` (add ax, word [ecx+d])
+//    preceded by a lower-displacement `66 8b 41` load finds exactly one function,
+//    this one.
+// 5. The permuter agrees. tools/permute.py is missing from this worktree, so it was run
+//    from a copy in build/scratch/0x47d970/pk (with orig, data, src, include and
+//    toolchain symlinked to this worktree, so it scores against this file): seeds 11
+//    and 12, 7 minutes each, 1106 and 1102 candidates, and seed 13 for 6 minutes,
+//    1293 candidates: all 98.0%, no improvement, no match.
+// 30-min checkpoint (space-bunny-free, #3169): best 98.0%, 322 of 322 bytes, unchanged
+// from the start of this pass, so the file's body is still the best version found. What
+// still differs is the first pair of 16-bit adds, and only that: the original puts
+// 0x76 in the register for the x sum and 0x80 for the y sum, this source puts 0x7e and
+// 0x80. About 2500 variants were compiled this pass (all with the same flags, scored by
+// reading the .obj directly, four at a time); none moved the x operand. New facts, in
+// order of usefulness to the next attempt:
+// 1. The x operand CAN take the low form in this compiler, so this is not a rule that
+//    bans it. The evidence is build/scratch/0x47d970/mem.cpp: one TU, 48 tiny functions
+//    each `void fN(S* g) { short t = g->a + g->b; outN = t; }` with the two shorts 8
+//    bytes apart, where copies 8, 20, 32 and 44 compile to `mov cx,[0x76]; add cx,[0x7e]`
+//    and the rest to the opposite. Same 4-byte disp8 pair, same expression, both
+//    outcomes. So the deciding factor is compiler state, and it is reachable, but it is
+//    not reachable from this function: 60 copies of THIS function in one TU never give
+//    x = 0x76, and neither do the probe-shaped preambles tried before it (see below).
+// 2. The one asymmetry between the two sums is the encoding: 0x80 does not fit a signed
+//    disp8, so `mov dx,[ecx+0x80]` is seven bytes while `mov ax,[ecx+0x76]` is four.
+//    Both orders of the y pair cost 11 bytes, both orders of the x pair cost 8, and only
+//    the y choice is state-sensitive. Anything that makes the two x operands cost
+//    different amounts may be what puts the decision on the other side.
+// 3. No near-copy exists to copy the spelling from: scanning all 3843 rows of
+//    data/functions.csv for `66 03 41` preceded by a lower-displacement `66 8b 41`
+//    finds only this function, so the answer is not sitting in a matched sibling.
 // deepseek-v4.1 pass (#2438): swept the inert-declaration state that fixed the
 // sibling 0x47d820 (16 to 80 unused `extern int` lines in front of the first
 // `#pragma pack`). For this function that lever reaches only the y sum:

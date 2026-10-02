@@ -703,6 +703,112 @@ cheap and it is silent.
 
 ---
 
+## Part 6: corrections, and one family closed
+
+*Added after Part 5. Two claims in Parts 4 and 5 were too weak and are corrected
+here, and one six-function family is now proven unreachable. Please fold these into
+Parts 4 and 5 rather than leaving them to contradict.*
+
+### `std::vector<T>::insert`: closed, and it is the build, not the source
+
+Part 4 item 6 said "the exe holds both register variants of `vector<T>::insert`,
+so those two are not fixable from source". Part 5 said the byte is "a property of
+the small translation unit". **Both were too weak. The correct statement is
+stronger: the mov/lea split is a property of the compiler build, the six stuck
+inserts cannot be matched with this toolchain, and no source or translation unit
+we can compile reaches it.**
+
+**The evidence is a matched sibling, and it is one comparison.** In the exe,
+`0x408f30` (`vector<Unit*>::insert`, wants `lea eax,[ebx+ecx] / sub / sub`,
+546 bytes) and `0x4c4d70` (`vector<Class_004c3e40*>::insert`, has
+`mov eax,ecx / sub / add / sub`, 547 bytes, **already MATCHED** by
+`src/unsorted/0x4c4d70.cpp`) are **the same template on the same 4-byte
+dword-copied element**. Diff their instruction lists with jump targets masked and
+you get 225 against 226 instructions and **exactly one replace plus one insert**,
+both inside that group — and the same register assignment too (`_P` in ebx, `_Q`
+in edx, dest in ecx, `_M*4` in edi, `_Last` in esi). So the exe's own compiler
+emitted both shapes from one STL source.
+
+- **All ten MATCHED 3-argument vector inserts produce the mov form; the six stuck
+  ones (`0x408f30`, `0x40cca0`, `0x425210`, `0x44ec30`, `0x46e640`, `0x476210`)
+  all want the lea form.**
+- **The element type is not the variable.** Taking the MATCHED `0x4c4d70.cpp`
+  verbatim and changing *only* the element type to `Unit*` — declared exactly as
+  `src/unsorted/0x408f30.cpp` declares it — still gives the mov form at 547
+  bytes. One file style, both pointer-element instantiations, one shape; the exe
+  has two.
+- **~9,700 in-process compiles produced only those two shapes**: about 70 source
+  spellings (destination expression, `_Ucopy` loop form and argument order with
+  the call sites updated, swapped comparison operands, post-increment in the body,
+  dead `(_P - _F)`, fill shape) crossed with 3 to 5 pad counts; 15 filler kinds at
+  counts 0 to 400 plus prototypes to 6000; a genuinely large TU of real game code
+  (832 KB, 32,306 lines, about 700 of our own matched files, each kept only after
+  the whole file still compiled) with `<list>`/`<map>`/`<set>`/`<deque>`/`<string>`
+  instantiation blocks before, after and around it; `BT_TOOLCHAIN=msvc5-rtm`; and
+  24 flag variations. **For 15 different spellings the mov/lea flip happens at
+  exactly the same filler count (17 unused prototypes), so the count decides and
+  the text does not.**
+- In the sibling `0x408f30` both forms are three-byte `lea`s, so the whole question
+  is **one SIB byte** (wanted `0x0b`, ours `0x19`): 300 prototype counts give 126
+  builds at ours and 174 at the mov form, **never `0x0b`**. Twelve parallel
+  compiles of a file produce byte-identical code, so the flat sweeps are facts.
+
+**Conclusion: the wanted byte is a one-byte difference in this compiler's handling
+of the loop optimiser's synthesised add** — which of its two registers goes in the
+SIB base slot when the emitter has a free register for the result. **The fix would
+be a different C1XX/C2 build, not a rewrite. Do not spend boxes on this family.**
+
+### The habit behind that: a matched sibling is a control, not a hint
+
+**When one template instantiation is MATCHED and a sibling of the same template is
+not, diff the two in the exe before spending a box on the sibling.** Here it took
+one comparison and closed six functions. Two supporting habits:
+
+- **A size difference between two instantiations of the same template is evidence,
+  not noise.** 546 against 547 bytes was the entire signal.
+- **Importing `check.py`'s `compile_source()`/`compare()`** scored variants at
+  0.03 s each, which is what made 9,700 compiles affordable inside a timebox —
+  and is the only reason the "exhaustive" claim above is credible rather than
+  aspirational.
+
+### A branch-hygiene incident worth reading
+
+This one nearly destroyed other agents' work, and it is the failure mode the
+parallel loop warned about, so the mechanism is recorded exactly.
+
+I rebased a worktree branch onto moved `main`. `git-safe push` **correctly**
+refused as non-fast-forward. But `gh pr create` still **succeeded** against the
+stale fork branch, and that pull request's diff against `main` was **86 files,
++4,077/−7,272** — including reverts of `tools/check.py`, `tools/headers.py`,
+`tools/record.py`, several `data/*.csv`, and other agents' `src/unsorted/` files.
+Merging it would have reverted a lot of work.
+
+The fix: push the rebased commit to a **fresh branch name**, open a new pull
+request from that, and comment on the bad one asking for closure (this token
+cannot close pull requests itself).
+
+**So: a successful `gh pr create` is not evidence that the diff is right. Always
+check `git diff --stat origin/main <the branch you actually pushed>`, and do it
+after a fetch, immediately before the push.** Part 5's rebase-conflict advice is
+the companion piece: diff `:2:` against `:3:` before choosing, because during a
+rebase *theirs* is your commit.
+
+### For the orchestrator: two `data/symbols.csv` items
+
+1. **`0x40cca0` looks wrong.** `data/symbols.csv` names it
+   `UElem_0040cfb0::?$vector::insert`, but the file defines the decorated
+   `=?insert@?$vector@UElem_0040cfb0@@V?$allocator@UElem_0040cfb0@@@std@@@std@@QAEXPAUElem_0040cfb0@@IABU3@@Z`,
+   and the other `vector::insert` files use the decorated form. `check.py` warns
+   about exactly this mismatch. Suggested: record it decorated, like its siblings.
+2. **Part 4 item 1 is still open and releases four functions**: four are
+   byte-exact and refused by the checker because `data/symbols.csv` folds two
+   COMBAT `std::vector<T>::size` instantiations after their own placeholder file
+   addresses. `0x472d30` and `0x470770` are really `std::vector<T>::size`, and
+   `std::copy` needs an aliases row. Worth doing before more boxes go into this
+   family.
+
+---
+
 *Model: opencode / space-bunny-free. Every function named as MATCH here was
 verified with `tools/check.py` at 100%. Ruled-out levers are reported with the
 measurement that ruled them out, not as "did not work".*

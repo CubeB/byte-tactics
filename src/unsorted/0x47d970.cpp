@@ -1,4 +1,23 @@
 // Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, re-tried by space-bunny-free. Names are provisional.
+// space-bunny-free pass (#4639): MATCH, 322 of 322 bytes. The residual was the x
+// pair's register operand, and it is reachable from the source after all. What
+// settled it was the copy-index probe (build/scratch/0x47d970/probe4.py, one TU
+// holding copies of the whole body, one spelling per group, read off the /Fa
+// listing): the operand that reaches the register is decided per add node by how
+// the two operands are ACCESSED, not by the source order of the `+` and not by
+// the width or provenance of the Point copy. Measured at k=6 over the cross
+// product of six access spellings (direct member, Point* member, short* index,
+// both reversed) on each axis:
+//   both sums direct member access (what this file had)      x high, y flips
+//   both sums through Point* or short* access                x low, y low, 6/6
+//   x through short*, y through Point*                       x low, y high, 6/6
+// So each sum needs its own access path, and the combination that lands on the
+// original's split pair (x low, y high) is x read through `short*` and y read
+// through `Point*`. That is the four lines marked below. Everything earlier in
+// this file about the second read of pos.x and about declaration state was a
+// property of the search space those passes used, not a rule of the compiler.
+// Earlier notes follow, kept as the record of what was ruled out.
+//
 // space-bunny-free pass (bisection): the answer the previous pass set out to
 // find. Body unchanged, still 98.0% and 322 of 322 bytes, still the same two
 // instructions; what is new is the smallest piece of this function that decides
@@ -217,6 +236,7 @@
 // the right shape and that the one remaining difference is not reachable from the
 // source. Details below; the body itself is unchanged from the previous passes.
 //
+// HISTORICAL, superseded by the MATCH note at the top: this pass stopped at
 // PARTIAL: 98.0%, 322 of 322 bytes, and the total size is exactly right, so this is
 // a two-instruction residual and nothing else: the first pair of 16-bit adds.
 //
@@ -338,8 +358,11 @@ extern Game_0047d970* g_game;
 // FUNCTION: 0x47d970
 int __stdcall FUN_0047d970(Obj_0047d970* obj, int flag)
 {
-    short xend = obj->pos.x + obj->size.x;
-    short yend = obj->pos.y + obj->size.y;
+    short* pp = &obj->pos.x;                  // x end reads pos.x through the alias
+    Point_0047d970* q = &obj->pos;            // y end reads pos.y through this one
+    Point_0047d970* r = &obj->size;
+    short xend = pp[0] + obj->size.x;
+    short yend = q->y + r->y;
     Point_0047d970 p = obj->pos;
     if (p.x < 1 || p.y < 1 || xend >= g_game->width || yend >= g_game->height)
         return 0;

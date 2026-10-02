@@ -1,4 +1,16 @@
-// Decompiled by longcat-2.5-preview-free, edited and finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by longcat-2.5-preview-free, edited and finished by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash pass: tools/permute.py (1950 candidates, 3 min) found no
+// gain; the file is unchanged at 86.9. Re-confirmed the first lever is the case
+// 0 tail: ours emits push/push/mov [2bbe],2 then jmp into the bare `call` block
+// at 0x427b30 shared with case 15's 0x55e path, where the exe emits its own
+// `call; jmp 0x427603`. Root cause traced one level deeper than the earlier
+// note: the 0x55e path's `goto tail_zero` is duplicated inline (edx/eax store
+// form at our 0x427b35) instead of jumping to the eax/ecx copy at our 0x428418
+// that the exe uses, so case 0 and 0x55e share one return block. Variants tried
+// this pass, all <= 86.9: case 0 `goto tail_zero` (80.5, 6286 bytes), swapped
+// reset order (83.9, 6342), resets before the call (83.9), local `char z = 0`
+// resets (86.9, same structure), chained `x = y = 0` (83.9), and writing the
+// 0x55e reset explicitly instead of `goto tail_zero` (86.9, same structure).
 // Space Bunny Free pass: tools/permute.py (647 candidates, 15 min) found no gain
 // over 86.9, so this file is unchanged from deepseek's best. Three measurements
 // worth keeping, from scratch tools under build/scratch/0x426e80/:

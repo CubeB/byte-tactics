@@ -287,7 +287,17 @@
 //    `sub eax,0; je; dec eax; je`.
 //  - it is not a toolchain build difference: the unpatched compiler
 //    (BT_TOOLCHAIN=msvc5-rtm) emits the same sunk block as msvc5-sp3.
-//  - permute.py over 25 minutes with 8 jobs found nothing better than 98.7%.
+//  - the delayed group is not positional either, which is the most annoying
+//    fact here. In the pre-loop block the group is `prev, hist, n = 1, state`
+//    with the pointer store and the value store left in place; moving the
+//    unrelated `DAT_0051fdb0 = runStart` from the top of that block to the
+//    bottom (keeping the declaration order, so the frame is unchanged) pulls
+//    the value store into the group and pushes the DAT store to the end of
+//    it, while the loop head is untouched. So whether a given store is
+//    delayed depends on the whole schedule of its block, not on its position
+//    or on any property of the store itself.
+//  - permute.py over 25 minutes with 8 jobs evaluated 3275 candidates (60 did
+//    not compile, 36 duplicates) and found nothing better than 98.7%.
 //
 // What I would try next, in order. (1) The pointer store is the one store in
 // this block that is never delayed, in any of those spellings, so if the

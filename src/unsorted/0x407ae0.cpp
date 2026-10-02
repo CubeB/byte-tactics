@@ -1,4 +1,18 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// claude-sonnet-5-5 pass (2026-10-02, still 91.1%): the guard is the key. `if (n > 0)` written
+// as a source-level test gives the original's `cmp ecx, ebx; jle` BEFORE the halves ONLY when
+// the zero register is live there; with `if (n > 0) { halves; for (int i...) }` (58.7%) the
+// guard and block order match but MSVC then keeps a second `test ecx,ecx` guard for the for,
+// puts `this` in ebp and spills i and hw. do-while forms (`if (n > 0) { int i = 0; do {...}
+// while (++i < n); }`, with i inside or outside, with `i++; while (i < n)`) give a single
+// guard but i and hw go to the stack and this to ebx (52 to 59%): i loses the callee-saved
+// ranking against `this`/hw whenever the for-loop's extra guard use of i is missing.
+// `int i = 0; if (n > 0) do {...} while` with halves BEFORE the if is byte-identical to the
+// 91.1% file. Inline accessors (Grp() for field_8, Rand() wrapper, Coord::V()) are no-ops
+// here. Permuter: 2 more runs (seed 41 from the 58.7% `if (n > 0)` file reached 75.2% with a
+// do/while(0) tangle, seed 52 from the 91.1% file: nothing).
+// Lesson from sibling 0x402da0 (MATCH): a trivial inline accessor (`Unit* Target()`) can be
+// the missing lever, found by permute.py from a structurally right 87.9% start file.
 // Slot 0 of Class_00407a90 (vtable 0x4fc998), derived from Class_00407350
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Sets field_c to 30..929 ticks from now. A group of fewer than 5 units

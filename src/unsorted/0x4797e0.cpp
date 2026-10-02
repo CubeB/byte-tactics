@@ -1,4 +1,132 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.// Follow-up pass (issue #4344, after PR 4474 merged): tools/permute.py's
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// SPACE-BUNNY-FREE pass (issue #4476). STATUS: 84.6% (1029 of 1034 bytes), no
+// MATCH, and no regression: the file was already at 84.6% when this pass
+// started (the 74.1% in my brief is stale, the notes below record the climb).
+// About 80 scratch variants were scored with `check.py --sym` on copies in
+// build/scratch/0x4797e0/; nothing beat the file as it stands, and the residue
+// is still the one allocator coin-flip the earlier passes named. What is new
+// here is the mechanism, the negative results that pin it down, and a census of
+// how the rest of the exe gets the same reload.
+//
+// WHAT STILL DIFFERS (instruction-stream diff, five items, 12 of the 5 missing
+// bytes are item 1):
+//  1. Two `mov ebp, [g_game]` re-materialisations the original has at 0x47988e
+//     and 0x4798ed, one after each of the two FUN_004a0bf0 calls in the
+//     switch. They are 6 bytes each and are the whole size deficit (1029 vs
+//     1034, so the rest of the function is 1 byte over once they are added).
+//  2. At the tail test the original keeps `g_game->players` in ecx with no
+//     spill; ours puts it in edx and spills it to [esp+0x14], and re-reads
+//     g_game and players for the myColour load, so the duplicate-colour block
+//     starts with three extra movs.
+//  3. In the inlined FreeColour the original spills `entries` to [esp+0x14]
+//     and re-reads numPlayers and players out of ebp; ours keeps entries in
+//     ebp (reusing the register the `game` local has just vacated), keeps
+//     numPlayers in the caller's ecx and walks players out of the [esp+0x14]
+//     slot.
+//  4. FreeColour's exit test: the original has `cmp ecx,edx; je`, ours has
+//     `xor edx,edx; cmp eax,ecx; sete dl; test dl,dl; jne`.
+//  5. Twelve bytes of tail padding.
+//
+// WHY ITEM 1 IS UNREACHABLE FROM ANY SPELLING TRIED (the mechanism, finally
+// pinned down). The reload is a re-materialisation of a *temporary* built from
+// a direct read of the global: MSVC keeps such a temp in a callee-saved
+// register and re-loads it after a call instead of keeping a copy across one.
+// It only does that when nothing else wants the register. Two facts fix the
+// sides of the trade:
+//  * A named local (`Game* game = g_game`) always wins the callee-saved
+//    register, because locals are allocated before temporaries, and a local
+//    survives a call in a callee-saved register, so it is never re-loaded.
+//    That is why the file as it stands has ebp = the local and no reload.
+//  * With the local gone (every site spelled `g_game->`) the g_game temporary
+//    gets no register home at all: every use re-reads the global, ebp goes to
+//    the scaled index (24*playerIndex) and the frame grows to 0x8c. Measured
+//    again this pass at 1013 bytes / 43.9%, in five spellings (a blanket
+//    rewrite, one with the helpers reading the global themselves, one with
+//    named `players`/`np` locals, one in the 0x466dc0 inline-helper idiom,
+//    and one with the current player behind a named pointer). Note the
+//    arithmetic: even with both reloads the all-global spelling would be 1025
+//    bytes, still 9 short of 1034, so the original is NOT the all-global
+//    spelling either. It is the local spelling plus two re-materialisations,
+//    and no spelling produces that combination.
+//
+// CENSUS OF THE RELOAD IN THE EXE (build/scratch/0x4797e0/findreload2.sh):
+// `mov e(bx|bp|si|di), [0x511de8]` immediately after a `call` occurs 87 times
+// in 50 functions, and every MATCHed one is written with plain `g_game->` and
+// no local. The cleanest example is in this module, MATCHed 0x47a760, whose
+// `mov edi, [0x511de8]` at 0x47a823 sits right after `call 0x464290`; its
+// source has no game local at all. So the idiom is real and this function is
+// the one place in the area where the 24*playerIndex temporary outranks the
+// g_game temporary.
+//
+// ITEM 4 IS LOAD-BEARING, WHICH IS WHY THE FILE KEEPS THE `bool done`.
+// Every spelling of FreeColour's exit test that emits the original's
+// `cmp/je` collapses the whole function's allocation, whatever else is done
+// around it: g_game falls out of ebp, 24*playerIndex takes ebp, the frame
+// becomes 0x8c and the score drops to 72-74%. Measured this pass: bare
+// `if (k == N) return n;` 73.2, `if (!(k != N))` 73.2, `if (!(k < N))` 73.2,
+// the `for (n=0;n<10;n++)` + `if (k == N) return n;` shape copied from the
+// MATCHed 0x4795e0 72.7 (and it is the closest any variant came on size,
+// 1031 bytes), `int left = N - k; if (0 == left)` 74.0, and bare-test-plus-
+// extra-named-locals 73.2 twice. Combining the bare test with the caller /
+// helper CSE broken by a named `np`, a named `ps`, both, or a named holder
+// gives 62.7, 73.2, 62.7, 73.2, so the collapse is not about which single
+// value is missing either. Only the `sete` form keeps 84.6. The original has
+// no `sete` anywhere, so its pressure comes from item 1, which is the same
+// wall seen from the other side.
+//
+// THE NEAR-COPIES IN THIS MODULE, all MATCHed, all checked again this pass
+// (0x4794d0, 0x479500, 0x479530, 0x479560, 0x479590, 0x4795e0, 0x479620,
+// 0x479660, 0x479760, 0x479c50, 0x47a0e0, 0x47a700, 0x47a760, 0x47acd0,
+// 0x47b9f0; only 0x47ae60 is short at 88.2%):
+//  * 0x4795e0 IS FreeColour: `for (owner = 0; owner < 10; owner++) { int i;
+//    for (i = 0; i < g_game->itemCount; i++) if (g_game->items[i].owner ==
+//    owner) break; if (i == g_game->itemCount) return owner; } return -1;`
+//    Adopting it here is what fcsib above is, and it loses 12 points.
+//  * 0x47acd0 is the duplicate-colour test: an inline `color_taken(me)`
+//    holding the whole loop, with `g_game->table->players[me].color` read
+//    inline in the condition and no myColour local. The in-loop read of the
+//    player's own colour is what the original does at 0x479a09, but writing
+//    it that way here scores 72.4%.
+//  * 0x479660 is the gadget-refresh tail (`entries` local, `index != -1`,
+//    `gadget = &entries[index]`, `if (gadget != 0)`), which this file already
+//    reproduces through its permuter `do {} while (0)` blocks.
+//  * 0x47a760 shows the module's `goto`-shaped search and its own g_game
+//    reload; 0x466dc0 (99.6%) shows the inline-helper idiom this module uses
+//    for repeated menu writes.
+//
+// TRIED THIS PASS, ALL SCORED, NONE BETTER THAN 84.6% (full variant list and
+// the harness that produced them are in build/scratch/0x4797e0/, b1 to b20):
+//  * else-branch shapes: the duplicate-colour condition in the
+//    `A && B && C` form that reproduces the original's branch targets exactly
+//    (four spellings, 84.3), nested `if`s (84.3), `for` and `while` loops
+//    (83.7, 84.0), the myColour read inside the loop body (72.4), through a
+//    named `players` local (84.6), as a second pointer local read after the
+//    FreeColour call (84.6), the sibling's find-a-free loop (72.5-72.7).
+//  * FreeColour shapes: the sibling's `for` + bare test (72.7), the bare test
+//    with named `np`/`ps` locals (73.2), extra named locals with the `sete`
+//    test (84.6, byte-identical), a `for` inner loop (84.6), the helper taking
+//    (players, numPlayers) instead of the game (84.6), the helper taking
+//    `g_game` (52.1), the helper reading the global itself (52.1), the helper
+//    reading through its own named `ps` local (73.2).
+//  * breaking the caller/helper CSE so the FreeColour re-reads players and
+//    numPlayers out of ebp, which is what the original does: passing `g_game`,
+//    passing `g_game` with the store and the entries read also global, and
+//    both together: 52.1, 58.1, 39.0. All three grow the frame to 0x8c.
+//  * forcing the tail test to be a fresh global read (which is the only way
+//    to get item 1): `g_game->players[playerIndex].controller` 68.2, the same
+//    with the helper taking `g_game` 41.8, the local dying at the switch so
+//    ebp is free for the fresh read 43.9, a second named `game2` copy
+//    67.0/43.9, `game = g_game;` after the switch 57.3, at the top of the else
+//    72.8.
+//  * declaration moves: `entries`, `myColor`, `idx`, `e` into inner blocks,
+//    the two buffers swapped, all locals after the buffers: every one
+//    byte-identical at 84.6%.
+//  * the current player behind a named pointer, an `int*` offset form, and a
+//    countdown loop in case 2: 42.3, 43.9, 84.6 (the case-2 countdown the
+//    compiler already produces is already the original's shape).
+// tools/permute.py ran 15 minutes on this file from the 84.6% start and
+// reported no gain, as in every earlier pass.
+// Follow-up pass (issue #4344, after PR 4474 merged): tools/permute.py's
 // best_ratio.cpp scores 84.6 (1029 of 1034) against this file's 84.0, and the
 // permuter's own log reported no gain, so best_ratio.cpp must be scored by hand
 // with `check.py <addr> <file> --sym` rather than trusted. Tidied on adoption:

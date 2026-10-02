@@ -1,4 +1,9 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Orchestrator note (2026-10-02): 94.9% is reachable, but only with unused
+// static inline helpers and unused locals (found by the permuter twice, #4479
+// and #4587); without them the body compiles to the same bytes as this 93.2%
+// version. That is compiler state, not source, so it was not taken (AGENTS.md).
+// A natural spelling that reaches it is still wanted.
 // mimo-v2.6-pro retry (#3772): about 24 scratch variants, best stays 93.2 at
 // 367 bytes. New things measured (all 93.2 unless noted, scored with check.py
 // --sym):

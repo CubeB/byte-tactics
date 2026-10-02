@@ -1,5 +1,25 @@
-// Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
-// STILL PARTIAL: 90.7% (774 bytes, same size as the original). Creates or
+// Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by DeepSeek V4.1 Flash. Names are provisional.
+//
+// DeepSeek V4.1 Flash (issue 4785): 90.7 -> 91.7 (780 bytes against 774, 98.6%
+// ignoring internal jump targets). The only remaining codegen difference is one
+// instruction group: MSVC emits `mov ecx,dword [projCount]; mov edi,ecx; and
+// edi,0xffff` for the loop bound where the original has `mov edi,dword
+// [projCount]`. The source change that got the whole allocator right is the
+// ownerId/n pair: `unsigned short ownerId` (which spills to [esp+0x18] with the
+// original's dword store and 16-bit `cmp word [edx+0xa8], bx` compare, instead
+// of sitting in EDI as an int) plus the loop bound declared as `unsigned short n`
+// and assigned inside the `if (ev->b0)` arm, which is what keeps it in EDI and
+// leaves unit in EBP and the cursor in [esp+0x14]. An `int count` temp feeding
+// `n = count` makes the load a dword and takes one byte off (781 -> 780). With
+// `int n` in the same shape MSVC rematerializes the load in the loop latch
+// (76.7%), so the 16-bit type is load-bearing; the price is the
+// three-instruction zero-extension above. Tried and no better: `int`/`unsigned
+// int`/`long`/`register`/`const` n (rematerialized), a helper-local `int n =
+// count`, inline loops, direct `g_game->projCount` as the argument (frame shrinks
+// to 0xc, unit EDI, cursor EBP), helper ownerId by reference/pointer, helper
+// parameter reordering, and three 3-minute permuter runs on the 90.7% and 91.7%
+// bodies (only gain was the int-temp split).
+// STILL PARTIAL: 91.7% (780 bytes). Creates or
 // updates a projectile for a remote event. The per-team record at
 // g_game+0x2cf3 (0x115 bytes, 0x100 of them) holds the weapon flags at +0x111;
 // the event gives a team byte, an owning unit id, a per-unit entry index and a
@@ -200,12 +220,8 @@ static inline int SamePos_0049d270(Vec3_0049d270& a, Vec3_0049d270& b)
     return a.x == b.x && a.z == b.z && a.y == b.y;
 }
 
-// The scan is an inlined search helper, not a loop written out here: that is
-// what puts the ownerId comparison's `mov bx, word ptr [esp + 0x18]` (the
-// helper's own parameter slot) and the walking cursor in their own slots, and
-// grows the frame from 3 dwords to the original's 4.
 static inline Proj_0049d270* Find_0049d270(Proj_0049d270* p, int n, int lp,
-                                           Vec3_0049d270& pos, int ownerId)
+                                           Vec3_0049d270& pos, unsigned short ownerId)
 {
     for (int i = 0; i < n; i++) {
         Proj_0049d270& q = p[i];
@@ -244,7 +260,6 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
         proj->pos = *pos;
         return;
     }
-    int n = g_game->projCount;
     Unit_0049d270* unit = ev->unitId == 0 ? 0 : &g_game->units[ev->unitId];
     if (!unit)
         return;
@@ -253,13 +268,16 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
     Entry_0049d270* entry = &unit->entries[ev->entryIndex];
     entry->f_18 = ev->f_1d;
     entry->f_16 = ev->f_1b;
-    int ownerId = ev->ownerId;
-    Unit_0049d270* owner = 0;
-    if (ownerId) owner = &g_game->units[ownerId];
-    Proj_0049d270* found = ev->b0
-        ? Find_0049d270(g_game->projs, n,
-                        g_game->localPlayer, ev->pos, ownerId)
-        : 0;
+    unsigned short ownerId = ev->ownerId;
+    Unit_0049d270* owner = ownerId == 0 ? 0 : &g_game->units[ownerId];
+    unsigned short n;
+    Proj_0049d270* found = 0;
+    if (ev->b0) {
+        int count = g_game->projCount;
+        n = count;
+        found = Find_0049d270(g_game->projs, n,
+                        g_game->localPlayer, ev->pos, ownerId);
+    }
     if (def->flags.b1) {
         FUN_0049cde0(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);
         return;

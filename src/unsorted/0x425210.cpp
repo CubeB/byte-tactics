@@ -1,4 +1,73 @@
 // Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, sixth pass by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
+// Twelfth pass (space-bunny-free, 45 min, 1 check.py run on the file, 58 scratch
+// scores): the base is unchanged and still 99.6 percent (544 bytes, SIB 0x19 at
+// 0x4252d1, wanted 0x1b). New measurements, all through check.py's own compile
+// and compare (build/scratch/425210/score.py, which prints the size, the ratio
+// and the SIB byte directly):
+//   * Headers, this carrier: <windows.h>, <math.h>, <stdio.h>, <string.h>,
+//     <windows.h> <math.h>, <windows.h> <stdio.h>, <windows.h> <string.h>,
+//     <ddraw.h> <math.h> and <windows.h> <ddraw.h> <math.h> all stay 544
+//     bytes / 99.6 percent with [ecx + ebx]; <ddraw.h> alone and <windows.h>
+//     <ddraw.h> give the 545-byte association. So the guide's windows.h SIB
+//     lever (0x4bc370, 0x40d290) still does not reach this lea, and the two
+//     states remain the only outcomes.
+//   * Class shape, the untried direction of the member sweep (the earlier
+//     passes deleted members from the real header instead of adding them to
+//     this carrier): the real <vector>'s other members added one at a time
+//     (16 cumulative variants: max_size, empty, operator[], front, back,
+//     reserve, resize, push_back, pop_back, clear, operator==, erase, swap),
+//     1 to 16 copies of a dummy `bool eN() const {return size() == N;}` and 1
+//     to 32 dummy `extern int` after the class. Two outcomes only: two members
+//     (and four externs) give the 545-byte association, every other count is
+//     544 bytes with [ecx + ebx]. No intermediate class reaches the wanted byte.
+//   * Parse order and scope, all 99.6 percent with the same byte: _Destroy,
+//     _Ucopy and _Ufill defined BEFORE insert inside the class; insert defined
+//     last in the class (after the data members); a shadowing copy of the
+//     count (`size_type _Mc = _M;` then _N, _Ufill and the third copy all read
+//     _Mc); and a cast on the third copy's offset, `_Q + (unsigned)_M`.
+//   * Where the third copy's nodes come from: rebuilding its destination from
+//     _S (`_S + (_P - _First) + _M`, `&_S[(_P - _First) + _M]`, discarding
+//     the first _Ucopy's return and recomputing _Q) collapses to 46 to 55
+//     percent, so the first copy's returned pointer is load-bearing. Spelling
+//     the third copy's SOURCE as a fresh but equal expression stays 99.6
+//     percent with the same byte for `_P - 1 + 1`, `(_P + _M) - _M`,
+//     `(iterator)(size_t)_P` and `*(iterator*)&_P`, and collapses to about 55
+//     percent for `_Last - (_Last - _P)` and `_First + (_P - _First)`.
+//   * Two levers do not exist in this compiler, so nobody should retry them:
+//     `__forceinline` on a member defined inside a class is C2501 (missing
+//     decl-specifiers) in VC5 SP3, and a member template's out-of-line
+//     definition is not reachable through this carrier (C2143/C2039).
+//   * The body is exact, so the class around it is the only carrier lever left:
+//     toolchain/msvc5-sp3/INCLUDE/VECTOR lines 150-171 are this file's insert
+//     body character for character.
+//   * The twin does NOT show the wanted form, which corrects the guide's twin
+//     test for this pair. 0x488fb0 (vector<Class_00489260>, 8-byte class
+//     element, the real <vector>) MATCHES today, but its third _Ucopy starts
+//     at `mov esi,edi; sub esi,ebx; add esi,ecx; sub esi,eax`, that is
+//     ((dest - _Q) + _P) - _M, a different association with no two-register lea
+//     at all. The wanted `lea eax, [ebx + ecx]` therefore exists only for the
+//     2-byte element type, and only as this file's association with the two
+//     addends the other way round, so it is a base/index tie inside the A
+//     association and not a state any other insert spelling reaches.
+//   * Why no source spelling can steer it, from micro tests on this compiler
+//     (build/scratch/425210/micro[1-6].cpp): a two-register lea ignores the
+//     source operand order, since `int __fastcall f(int a, int b) {return a+b;}`
+//     and the same body with `b+a` both emit `lea eax,[edx+ecx*1]`, and it
+//     ignores the declaration order of two callee-saved operands (swapping the
+//     declarations gives the same encoding). With one operand a fresh load the
+//     load's register becomes the index (`int u = *p + a;` gives
+//     `lea esi,[ecx+eax*1]`). So the pick is made after value numbering from
+//     the operands' identity, not from an order the source can express: _P is a
+//     parameter, the oldest node in the function, and nothing here can put it
+//     in the base slot.
+//   * The class's typedef chain is not a lever either: spelling size_type and
+//     difference_type as the primitives, the pointers as `_Ty*` and
+//     `const _Ty*`, the references as `_Ty&` and `const _Ty&`, value_type as
+//     `_Ty`, and the member as allocator_type (6 variants) are all 544 bytes
+//     / 99.6 percent with [ecx + ebx].
+// Verdict unchanged: the wanted operand order needs compiler state this
+// translation unit cannot produce. 99.6% is the ceiling for source-reachable
+// shapes here.
 // Ninth pass (deepseek-v4.1-flash, #3897): a live `iterator _P0 = _P;` copy
 // passed as the third _Ucopy's source, and a `size_type _N0 = _M;` alias for
 // the _Ufill count, are both byte-identical at 544 bytes / 99.6 percent, so

@@ -15,7 +15,9 @@
 //   (FUN_004b6cc0), adding the object's base angles on the last node, then
 //   adds its own offset.
 //
-// Still differs from the original: 94.2%, 359 bytes like the original.
+// Still differs from the original: 99.2%, 359 bytes like the original (this
+// line said 94.2% until the tenth pass; see its note at the end of this comment
+// block for what is left).
 //
 // The source shape of the body is right. The old 64% notes blamed the base
 // piece's x load (the original folds it as [ecx+eax*2+0x26] before the item
@@ -339,7 +341,7 @@
 //   folded away before the allocator runs, so the ranking effect that helped
 //   elsewhere does not reach this block.
 //
-// Final state of this pass: 99.2%, 359 of 359 bytes, the body above is
+// Final state of the ninth pass: 99.2%, 359 of 359 bytes, the body above is
 // unchanged from the sixth pass. What still differs is one instruction pair in
 // the range block, and the table above says why: the original needs the xor
 // emission x, y, z with the registers edx, esi, ecx, and every source order
@@ -355,6 +357,93 @@
 // at that point in the function. Nothing in the current frame is (the angles
 // array is three shorts, `result` is live only on the main path), and giving
 // either one a home changes the frame size.
+//
+// Tenth pass (space-bunny-free): still 99.2%, body unchanged. This pass built
+// a compile-only harness (build/scratch/0x43def0/fa.py, about four seconds a
+// variant instead of a check.py run) that prints the two zero-return blocks of
+// every variant, and pinned the allocator down from both blocks instead of one:
+//
+//   - The register preference is the SAME for both zero blocks here, and it is
+//     (ecx, edx, esi): the null block's six statement orders and the range
+//     block's six all obey one rule (null spelled y, z, x and range spelled
+//     z, x, y reproduce their respective targets exactly under it).
+//   - Registers are handed out in source order, so the first statement's value
+//     takes ecx, the second edx, the third esi, whatever field each writes.
+//   - Emission follows that allocation order, except that when the offset-0
+//     value is the second source statement it is emitted first. So source
+//     x, y, z emits x, y, z (and merges with the null block), y, x, z emits
+//     x, y, z with x = edx, and z, x, y emits x, z, y (this file).
+//   - `mov edi, eax` is emitted immediately after the offset-0 value's xor when
+//     x is written first or second, and immediately before it when x is written
+//     third. That is the whole of the remaining difference: the original emits
+//     x, y, z, we emit x, z, y, with the same three registers.
+//   - The target therefore needs source order x, y, z (the only orders that
+//     emit x, y, z) with a preference of edx, esi, ecx, or source z, x, y with
+//     an emission that rotates instead of swapping. Measured over about 250
+//     shapes this pass (below), neither is reachable from the source.
+//
+// New shapes measured this pass, all with the null block left matching (score
+// in brackets, 99.2% is the identical four-byte diff):
+// - Both zero blocks crossed over all six statement orders, 36 forms: the range
+//   block's emission follows the order in every one of them, so the rule above
+//   is a property of the shape, not of one spelling. Only x, y, z merges.
+// - The range block through a `Vec3*` pointer local, through `((int*)&w)[i]`,
+//   through `int* p = (int*)&w; p[i]`, one `static inline int Z()` call per
+//   field, a `Zero3()` helper, a `Mk3(a, b, c)` helper with three by-value ints
+//   (6 body orders x 6 argument orders: the argument order does nothing, the
+//   body order is all), `Vec3(w.a = 0, w.b = 0, w.c = 0)` with a 3-int
+//   constructor (immediate stores, 363 bytes), a label between each assignment,
+//   each assignment wrapped in a scope / `if (1)` / `do {} while (0)` / a dead
+//   `for`, the range test repeated inside the block (402 bytes), `block->count -
+//   block->count` and `index - index` as the first zero, and a local whose field
+//   declaration order differs from `Vec3`'s copied field by field (36 forms,
+//   all 330 bytes: the copy is coalesced into the zeroing, so the local's
+//   layout cannot survive to the allocator). All 99.2% or worse.
+// - Loop copies out of a separately zeroed local, all six zeroing orders, with
+//   `int i`, with the parameter `index` as the counter and hoisted: all 361
+//   bytes (+2), `mov esi, [esp+0x24]` plus a trailing `mov eax, esi`, and the
+//   loop counter takes a register the block needs.
+// - Zeroing `result`'s own frame slots and copying them out (loop and field by
+//   field, all six zeroing orders): 361 bytes with the same two extra bytes, or
+//   330 bytes when the copy is coalesced. So there is still no zero source in
+//   this frame that costs no immediate store.
+//
+// What the probes say about the preference (build/scratch/0x43def0/probe.cpp,
+// throwaway functions compiled next to this one):
+// - The preference is not the register-number order. The same three-value range
+//   block written through an out-parameter gets (ecx, eax, edx), and four
+//   zero values get (eax, ecx, edx, esi). So it is decided by something
+//   function-local, and ebx is never in it even though this function pushes
+//   ebx, esi and edi.
+// - Nothing reachable from this file's source moves it here: the other 355
+//   bytes of the function are byte-identical to the original, so the code the
+//   count is computed from is the original's, and 21 kinds of dead insert, 128
+//   header sets and 0 to 6000 unused file-scope declarations were measured
+//   earlier with no change.
+//
+// Conclusion for the next attempt: the remaining four bytes are the order of two
+// independent `xor` instructions, and in this build that order is decided by
+// the block's register preference, not by anything the source can spell. Do not
+// re-sweep the shapes above; a lever has to change the preference (or the
+// allocation order inside the block) without changing any other instruction in
+// the function, and no source construct tried so far does that.
+//
+// - `tools/permute.py 0x43def0 --minutes 12 --jobs 3 --seed 21`: 2388
+//   candidates, no gain. Seed 22: 1948, seed 23: 1528, seed 24: 1666, none
+//   matched. With the earlier passes' seeds 11 to 15 that is about 20000
+//   candidates over the same body with no gain.
+// - Zero expressions built from a *different* live base per field (`index & 0`,
+//   `block->count - block->count`, `obj->f64 & 0`), from shifts
+//   (`index << 0`, `index >> 0`, `index * 1 - index`), and from a mix of
+//   literal and folded zeros, in all six orders (24 forms): every one obeys the
+//   rule above (99.2% or the merge), and the shift forms are 356 bytes because
+//   two of the three fold to the same node and share ecx.
+//
+// No volatile is warranted here: the only re-read in the function is the
+// function's own `result.z`, and the original reuses the register value from the
+// loop's last store (0x43dfed `mov [esp+0x1c], ecx`, 0x43e00a `neg ecx`) rather
+// than loading it again, which is what a plain `result.z = -result.z` already
+// compiles to here (the end block matches byte for byte).
 
 #include <string.h>
 

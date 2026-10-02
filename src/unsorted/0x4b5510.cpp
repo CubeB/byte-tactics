@@ -453,3 +453,171 @@ fail:
 // (`lea ecx, [esp+0x18]` at 0x4b585a). So the exe really does read a
 // different dword for the bits pointer than the one it passed to
 // CreateDIBSection.
+//
+// space-bunny-free session 2: still 99.7% (1017 = 1017), the one 3-instruction
+// rotation at 0x4b55af. New, and the strongest lead so far: the tree ORDER is
+// plain source order, and the only moving part is WHERE `push 6` lands, so the
+// original's list is [load, h, d, store] with the load the FIRST tree of the
+// block. Measured on all six statement orders again with /Fa listings rather
+// than scores (build/scratch/0x4b5510/gen2.py, key.py prints L/H/D/P6/S):
+//   h,d,c -> H D L P6 S      c,h,d -> L P6 S H D
+//   h,c,d -> H L P6 S D      c,d,h -> L P6 S D H
+//   d,c,h -> D L P6 S H      d,h,c -> D H L P6 S
+// Every one is exactly source order with `push 6` spliced in immediately before
+// the dc store's own store tree, so the residual is purely "the dc store's
+// address load is 4 trees later than in the original", i.e. MSVC put the load
+// in the source slot of the dc-store statement and the original materialised
+// that load before the two handle stores. Nothing about the handle stores can
+// be blamed: a dead `(void)setup.dcSlot;`, `setup.dcSlot = setup.dcSlot;` and a
+// fourth `cleanup->dc = 0;` around the group are all inert (99.7, same diff),
+// and deleting statements one at a time (build/scratch/0x4b5510/gen.py) never
+// flips it: dropping either handle store, both DeleteObject checks, the
+// lock loop, the tail call or the SetWindowPos all keep H D L P6 S (only the
+// scratch register for the address changes, edx -> ecx, which is why the
+// "no anchor" rows in that run are not order changes).
+// The one real order change is the in-place-store effect, which also shows the
+// compiler-side rule: with a 25-line cut-down repro
+// (build/scratch/0x4b5510/mini2.cpp) writing `*slot = 0` FIRST and then the
+// two `p->hpalette`/`p->dib` stores, MSVC emits the through-pointer store at
+// the block head and DEFERS the two in-place stores to the last moment before
+// the SetWindowPos call:
+//   mov [ebx],0 / mov eax,[esi+84] / mov ecx,[esi+80] / mov edx,[esi+64] /
+//   push 6 / push eax / push ecx / push 0 / push 0 / push 0 / push edx /
+//   mov [esi+76],0 / mov [esi+68],0 / call SetWindowPos
+// In this function the two handle stores are in the reverse situation (they
+// are emitted early, at the head of the block, and the through-pointer store
+// last), so the deferred-store window is not what is wrong here; what the
+// repro confirms is that an address load for an in-place store DOES get
+// materialised at the block head when that store is the block's first tree,
+// which is exactly the position the original's `mov edx, [esp + 0x14]` is in.
+// space-bunny-free session 3: 96.4% is the best the copy spelling reaches, so
+// the file keeps the 99.7% version. What is new is that the copy spelling is
+// now MEASURED in the /Fa listing rather than inferred, and it is exactly the
+// original's tree order. A 30-line cut-down repro reproduces the residual
+// byte for byte (build/scratch/0x4b5510/mk4.py, m4_base.cpp emits
+//   mov DWORD PTR [esi+76],0 / mov DWORD PTR [esi+68],0 /
+//   mov eax, DWORD PTR _slot$[esp+12] / push 6 / mov DWORD PTR [eax],0
+// which is H D L P6 S, the same as this function's residual), and adding ONE
+// statement to it fixes the order completely (m4_c2.cpp):
+//   HDC *sp = slot;        <- its own statement, before the two handle stores
+//   p->hpalette = 0; p->dib = 0; *sp = 0;
+//   ->  mov eax, DWORD PTR _slot$[esp+12] / mov DWORD PTR [esi+76],0 /
+//       mov DWORD PTR [esi+68],0 / push 6 / mov DWORD PTR [eax],0
+// which is EXACTLY the original's load, h, d, push 6, store. So the original
+// really did materialise the slot's value in its own statement before the two
+// handle stores; every statement ORDER of the three stores cannot do it, which
+// is why six sessions of reordering all stayed at 99.7.
+// In the real function that exact shape (build/scratch/0x4b5510/r1.cpp) fixes
+// the rotation and keeps `cmp eax, ebp`, 1017 bytes, but scores 96.4: a named
+// copy is allocated EAX, never EDX, and losing EAX to it recolours the whole
+// SetWindowPos argument block (hwnd ecx->eax? no: hwnd into ecx, the height
+// and width loads swap out of ecx/edx, the argument pushes reorder) and the
+// SetCooperativeLevel virtual call (ecx -> edx for the vtable). Chained copies
+// do not help: s2/s3/s4 (two, three and four copies) all propagate back to one
+// load in EAX. Putting the copy in a third member of the setup struct (s6.cpp)
+// DOES restore the SetWindowPos block exactly (ecx = height, edx = width,
+// eax = hwnd, the pushes in the original order) but grows the frame by one
+// dword, so every [esp+N] moves, and it emits two loads (the copy's own in edx
+// plus the store's address load in eax).
+// Conclusion worth carrying on: what is needed is the address materialised by
+// a CODE-GENERATOR temp in EDX at the block head (the baseline's own store temp
+// is EDX, just four trees too late), and a named local never gets EDX because
+// EAX is the allocator's first choice there and EAX is also what the following
+// SetWindowPos block needs. Reusing the else-branch `hdc` local for the copy
+// (u1.cpp, the live ranges do not overlap so no frame slot should be added)
+// still failed to compile inside the timebox and is the obvious next probe.
+//
+// space-bunny-free session 4 (this is the strongest lead yet, 99.7% with the
+// rotation FIXED and only ONE instruction left, see I.cpp below):
+// The compiler rule behind the rotation is now measured, and it is not a
+// scheduler tie at all. MSVC 5 materialises the LOAD of a local's value at the
+// point where the local is DEFINED if the local is a plain (non-address-taken)
+// local, and at the point where it is USED if the local's address is taken
+// (an address-taken variable must stay in memory, so every use re-reads it).
+// So the original's block-head `mov edx, [esp + 0x14]` is the definition-point
+// load of a plain local that was assigned &cleanup->dc BEFORE the two handle
+// stores, and the `mov [edx], ebp` three trees later is the use of it. Proof
+// from the /Fa listings in build/scratch/0x4b5510:
+//   I.cpp    `struct { int lockResult; } setup;` + a plain `HDC *slot;`
+//            -> mov edx, _slot$[esp+...] / mov [edi+76], ebp /
+//               mov [edi+68], ebp / push 6 / mov [edx], ebp
+//            which is the original's five instructions, byte for byte, with
+//            EDX, and it keeps the frame at 0x4d0 and `cmp eax, ebp`;
+//   v1.cpp   the same but `slot` IS address-taken -> the load goes back to
+//            after the two handle stores (position 3, the 99.7% shape here);
+//   t1.cpp   `HDC *sp = setup.dcSlot;` (a copy, address-taken or not, of a
+//            variable that is) -> same order, but the copy is a register and
+//            MSVC picks EAX, which recolours the whole SetWindowPos block;
+//   z1/z2/z3 a copy placed BEFORE the DeleteObject calls so it must survive
+//            them -> MSVC spills it to a new frame slot (0x4d4) and then the
+//            load IS in EDX at the block head, but every [esp+N] moves.
+// I.cpp scores 99.7% / 1017 bytes and its entire residual is:
+//   -lea ecx, [esp + 0x18]      <- the CreateDIBSection bits out-param address
+//   +lea ecx, [esp + 0x1c]
+// i.e. the only thing still wrong is WHICH slot holds the address handed to
+// CreateDIBSection as its `void **` argument. In I.cpp that argument is spelled
+// `(void **)&caps` (caps already lives at [esp + 0x18]) precisely to avoid a new
+// local, because a real `void *bits` local grows the frame to 0x4d4 and wrecks
+// every offset (measured: s6, v3, A, B, C, D, G and the notes' earlier `bits`
+// attempts all do). So the remaining task for a next attempt is: keep the store
+// reading a non-address-taken plain local at [esp + 0x14] (that is what forces
+// the hoisted EDX load) AND land the CreateDIBSection `void **` address on
+// [esp + 0x18] with no extra local. The &temp is the only thing to move: in the
+// 99.7% file `(void **)&setup.dcSlot` gives it [esp + 0x18] for free, so the two
+// requirements look compatible and it is worth hunting for the spelling.
+// Also confirmed here, so it need not be re-measured: the tree order of that
+// block is strict source order with `push 6` spliced in immediately before the
+// through-pointer store, for all six orders of the three zero stores, for extra
+// stores before and after the group (x1..x4 in mk10.py), and in a 30-line
+// cut-down repro of the whole pattern (m4_base.cpp reproduces this function's
+// residual exactly, m4_c2.cpp is the copy and reproduces the original's order).
+// That is why no statement order of the three stores can ever fix it: the load
+// and the store have to come from two different source statements.
+// space-bunny-free session 4, part 2: the two halves of I.cpp turn out to be
+// mutually exclusive in every spelling tried, and the conflict is now measured
+// so nobody has to re-derive it. The CreateDIBSection `void **` argument gets a
+// COMPILER TEMP whose slot is always the address-taken variable's own slot plus
+// four: `(void **)&setup.dcSlot` with dcSlot at 0x14 gives [esp + 0x18] (the
+// 99.7% file), `(void **)&caps` with caps at 0x18 gives [esp + 0x1c] (I.cpp),
+// `(void **)&setup` with setup at 0x10 gives [esp + 0x14] (M.cpp). And the
+// hoisted block-head load needs the slot's value to come from a local that is
+// NOT address taken: O.cpp and Q.cpp make that same plain local address taken
+// (so the CreateDIBSection temp would land at 0x18) and the load drops straight
+// back to position 3, i.e. the 99.7% shape. So `slot` cannot be both at 0x14
+// and address taken, and no third local helps: MSVC 5 does not give a new local
+// a slot that a live local already has, and any extra dword pushes the frame
+// from 0x4d0 to 0x4d4 (measured for `void *bits`, a third struct member, a
+// local declared in the else block, and `HDC *pad`, which MSVC drops entirely).
+// The next thing to try is therefore NOT a local at all: it is a spelling of
+// the CreateDIBSection argument that makes MSVC use [esp + 0x18] as the frame
+// address of a real variable rather than a temp, with `slot` left
+// non-address-taken at 0x14 (I.cpp is that experiment with the address taken
+// wrong, and it is one instruction from the original).
+// space-bunny-free session 5, wrap-up. Best lead is T.cpp (build/scratch/0x4b5510):
+// `struct { int lockResult; } setup;` + a plain, NOT address-taken `HDC *slot;`
+// + `int pad2;` (a dead `pad2 = mode;` is enough to make MSVC 5 lay the slots
+// out in declaration order, which is what puts slot at [esp+0x14] and
+// setup.lockResult at [esp+0x10]), the block then emits the original's five
+// instructions exactly, in EDX, and T.cpp's WHOLE residual is one instruction:
+//   -lea ecx, [esp + 0x18]   /  +lea ecx, [esp + 0x1c]
+// i.e. the address handed to CreateDIBSection as its `void **`. It is not put in
+// the file because `(void **)&caps` is not source anyone wrote (it stores the
+// DIB bits pointer over caps.dwCaps) and because it scores the same 99.7% as the
+// version in this file, which keeps the plausible spelling; S1.cpp is the same
+// thing with `slot` declared at function scope and is equally close.
+// Also measured, do not repeat: permute.py over t1.cpp (the EAX copy) ran 11155
+// candidates in 20 minutes and never beat 96.4%, and over S1.cpp (the shape one
+// instruction from the match, score 5) it ran 3023 candidates in 12 minutes with
+// no gain either, so the last instruction is not reachable by permuting the
+// source as it stands; tools/headers.py --cpp is flat
+// at 99.7% for both the file in src/ and T.cpp, so the header set is not the
+// lever; and making the plain local address taken to move the `void **` temp
+// from 0x1c to 0x18 (U, V3, V4, O, Q) ALWAYS moves the slot pair back to
+// slot 0x10 / setup 0x14 AND puts the reload back at position 3, because MSVC 5
+// allocates an address-taken local in a different pass. That is the whole wall:
+// the hoisted reload needs a plain local, and the 0x18 `void **` temp needs an
+// address-taken variable at 0x14.
+// Final ranking of every shape that reaches the original's five instructions:
+// T.cpp / S1.cpp / I.cpp / A-D (one instruction off, implausible bits argument),
+// z1/z2/z3 (right instructions and registers, frame 0x4d4), t1 (96.4%, EAX),
+// the version in this file (99.7%, three-instruction rotation).

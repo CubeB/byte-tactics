@@ -1,25 +1,106 @@
 // Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash retry (issue 4076, free --sym scratch runs): still 93.1 pct / 629.
-// NEW evidence for the 0x20 arm, which is the only real residual. That arm's
-// shape is reachable by source: keep the union `lines` declaration as it is
-// here, declare `int* p = e->field_c6;` inside the arm BEFORE the
-// `if (count > 0)`, and assign `lines.full` only inside that if (an inline
-// body, not the helper call). That compiles the original 0x20 arm exactly
-// (`movsx eax,[ebx+0xc0] / mov ecx,[ebx+0xc6] / test eax,eax / jle /
-// mov ecx,[ecx] / mov edx,[ecx+0x28] / xor ecx,ecx / mov cx,[edx+2] /
-// imul ecx,eax`), 644 bytes against 629. Everything else in the function is
-// then byte-identical except the +9 shift, so the two remaining faults are:
-//   * the pointer lands in ecx, not edx. That is the ONLY register
-//     difference; with edx the arm would be byte-identical. It needs ecx to
-//     still hold the live zero at the load, which this shape does not do
-//     because the conditional assignment turns `lines` into a stack object.
-//   * the union's 0 initialisation is then emitted as real stores
-//     (`mov dword ptr [esp+0x10],ecx` plus `mov word ptr [esp+0x10],cx`,
-//     8 bytes), where the original value-numbers the 0 and keeps it in ecx.
-// Also measured: `int lines;` uninitialised kills the shared ecx zero at the
-// found test entirely (the compare folds to `test eax,eax`, 637 bytes), so the
-// zero that the original reuses in the 0x10, 0x20 and 0x80 arms must come from
-// an initialisation of `lines`, not from the compare.
+// space-bunny-free retry (issue 4160, probe-driven, 75 min): still 93.1% /
+// 629 bytes. THE RESIDUAL IS ONE REGISTER AND I NOW KNOW WHY. The whole 0x20
+// arm matches the original byte for byte the moment the hoisted `e->field_c6`
+// goes to EDX instead of ECX, and MSVC 5's RGEN will not do that while the
+// shared zero is a union, because a union with two stores of different widths
+// is a memory object whose promotion to a register fails as soon as a
+// conflicting range spans the branch. Details and the two shapes that get
+// closest, with the measurements, below. Reusable probes (they print size and
+// an E/T oracle for the 0x20 arm instead of a percentage, which cannot see a
+// register-only difference) are in build/scratch/4a3ef0/: probe.py, probe2.py,
+// rand.py, gen*.py, plus the MSVC-5 behaviour harnesses min*.cpp compiled to
+// /Fa listings in build/scratch/4a3ef0/asm/.
+//
+// WHAT IS PROVABLY TRUE NOW (build/scratch/4a3ef0/min5.cpp and min6.cpp):
+// * MSVC 5 never hoists a load out of an if-block (min5 fns ta/tg/zg), so the
+//   original's source really does read `e->field_c6` BEFORE `test eax,eax`.
+// * That source shape is reachable and is not flat. With ONE hoisted pointer
+//   and ONE nested expression (no temporaries, no helper parameter):
+//       int count = e->field_c0;
+//       int* p = e->field_c6;
+//       if (count > 0) {
+//           lines.full = *(unsigned short*)((char*)*(int*)((char*)*(int*)p + 0x28) + 2) * count;
+//       }
+//   plus the two-statement denominator, the prologue, the entry search and the
+//   whole deref chain are exact: 644 bytes / 85.4% (shape 98.0%). Every earlier
+//   "every hoist shape is flat" note tested the same hoist with TWO temporaries
+//   or through a helper parameter, which score 34-36% because they reshape the
+//   whole allocation (kind leaves cl). One temp + one expression does not.
+// * In a minimal model of the same code (min5 fn me: union stored word-then-
+//   full, hoisted pointer, idiv by the union, no call) MSVC emits exactly the
+//   original's arm, including `mov edx,[ebx+0xc6]` before `test eax,eax`. So
+//   the shape is not impossible; something else in the full function breaks it.
+// * WHAT BREAKS IT: the union's stores in the order word-then-full make its
+//   value a real range instead of a folded constant. The 0x10 arm's loop
+//   counter (`int n = 0;`) is then value-numbered with it, and the zero has to
+//   survive the 0x10 arm's four calls, so RGEN gives it EBP; `entries` moves to
+//   ECX and the search's kind byte moves from `cl` to `bl`, which is the whole
+//   prologue reshape (62.1%). Changing the counter's type (unsigned, long,
+//   separate assignment) does not break the value numbering.
+// * With the order full-then-word (what this file uses) the zero stays a folded
+//   constant in ECX and the prologue is exact, but then RGEN promotes nothing:
+//   it gives ECX to the hoisted pointer and spills the union, which is exactly
+//   the 644-629 = 15 bytes of difference (two stores after `xor ecx,ecx`, one
+//   `jmp` around the if, one `mov ecx,[esp+0x10]` reload after the join).
+// * The only way measured to force the pointer into EDX is to make the zero a
+//   REAL read before the test, so that it occupies ECX at the load point:
+//       int count = e->field_c0; int* p = e->field_c6;
+//       int zero = lines.full;
+//       if (count > zero) { lines.full = <chain>; }
+//   That gives an exact arm (`cmp eax,ecx` instead of `test eax,eax`, 2 bytes)
+//   but the read costs a reload from the stack: 642 bytes / 86.1%, shape 98.7%.
+//   Reading the union straight in the guard, or `lines.full == 0 && count > 0`,
+//   gives the same thing.
+//
+// MEASURED DEAD ENDS (all with the file otherwise unchanged):
+// `p = p ? p : p` between the two loads is a byte-for-byte no-op (MSVC folds
+// it); a dead store in a statically folded branch between the loads only costs
+// bytes; the union's store order alone (full-word, word-full, fwf, wfw, www,
+// w3, and a `char[4]` view) either keeps the prologue and loses the register
+// or keeps the register and loses the prologue; plain `int`/`short`/`unsigned
+// int`/`unsigned short` divisors score 59-64%; declaring the zero in the arm
+// (before or after the pointer) is 91.6% but still ECX and still spills; the
+// guard spellings `count >= 1` and `0 < count`; reading `e->field_c0` twice so
+// that the CFG might hoist the pointer load (MSVC does not); `(int**)&e->field_c6`
+// and `*(int**)((char*)e+0xc6)` access paths; helper-with-pointer-parameter and
+// helper-returning-the-chain forms (36%); an extra inline helper wrapping the
+// guard or the chain (no change); alias temporaries on the pointer (no change);
+// `uv run tools/headers.py 0x4a3ef0 --cpp` (1536 sets) is flat at 93.1%.
+// A 600-sample randomised structural sweep (build/scratch/4a3ef0/rand.py)
+// never beat 85.6%.
+//
+// NEXT: the missing ingredient is a zero that is a real variable (so RGEN has
+// to keep it in a register rather than fold it) whose range stays OUT of the
+// 0x10 arm so that the value numbering never ties it to the loop counter `n`.
+// Nothing in the original occupies a register between the two loads, so
+// nothing else can hold ECX there for free, and a plain `int lines = 0` cannot
+// keep the prologue (`found != lines` folds to `test eax,eax`). Whoever picks
+// this up: try making the 0x10 arm's counter not a value-numbered 0 (e.g. by
+// counting down from `entries->count`, or by comparing `j - i` against
+// `e->group`), which is the one remaining way to decouple the zero from the
+// calls in the 0x10 arm, and then combine it with the word-then-full union.
+// Earlier passes below; the best variant is the one in this file.
+// Second half of the same pass, kept for the measurement: the residual is one
+// register choice, and 644-629 = 15 bytes is spill overhead (6+4+2+6), not
+// codegen of the arm.
+// STOP NOTE (deepseek-v4.1-flash retry): best stays 93.1 pct / 629 bytes. Two
+// 2-byte hunks remain and cancel in size. (1) The 0x10 arm clamp needs the
+// two-statement form (int other = e->field_da; int denominator = size + 1;
+// if (other > denominator) denominator = other;), which reproduces the
+// original movsx edx / lea edi,[eax+1] / cmp edx,edi / jle / mov edi,edx
+// exactly but costs +2 bytes; a fresh run with that fix confirmed the clamp
+// hunk disappears. (2) The 0x20 arm needs e->field_c6 loaded into EDX before
+// test eax,eax (chain mov ecx,[edx]; mov edx,[ecx+0x28]; xor ecx,ecx;
+// mov cx,[edx+2]; imul ecx,eax). An arm-local hoisted `int* p = e->field_c6;`
+// does hoist the load before the test and fixes the whole deref chain except
+// p lands in ECX not EDX (mov ecx,[ebx+0xc6]; mov ecx,[ecx]), which spills the
+// shared zero `lines` to [esp+0x10] (extra stores and a skip-path reload), so
+// that variant scores 85.4 pct / 644. Applying both fixes together is still
+// the way to MATCH if p can be pushed to EDX (untested scratch shapes for p's
+// register: helper taking the pointer as a parameter, helper with a hoisted
+// pointer local, p declared before count, nested deref expression, all in
+// build/scratch/0x4a3ef0/v2..v5.cpp, never scored).
 // deepseek-v4.1-flash retry (issue 3840, 2 scored runs): still 93.1 pct / 629.
 // The if-statement form of the denominator clamp (int denominator = size + 1;
 // if (e->field_da > denominator) denominator = e->field_da;) regresses to 89.1
@@ -391,3 +472,28 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
     }
     FUN_004a2580(param_1, param_2);
 }
+
+// ---- Preserved from an earlier pass on this function (deepseek-v4.1-flash, issue 4076).
+// Same 644-byte shape, independently reached; kept because it records two facts
+// the newer notes above do not cover.
+// deepseek-v4.1-flash retry (issue 4076, free --sym scratch runs): still 93.1 pct / 629.
+// NEW evidence for the 0x20 arm, which is the only real residual. That arm's
+// shape is reachable by source: keep the union `lines` declaration as it is
+// here, declare `int* p = e->field_c6;` inside the arm BEFORE the
+// `if (count > 0)`, and assign `lines.full` only inside that if (an inline
+// body, not the helper call). That compiles the original 0x20 arm exactly
+// (`movsx eax,[ebx+0xc0] / mov ecx,[ebx+0xc6] / test eax,eax / jle /
+// mov ecx,[ecx] / mov edx,[ecx+0x28] / xor ecx,ecx / mov cx,[edx+2] /
+// imul ecx,eax`), 644 bytes against 629. Everything else in the function is
+// then byte-identical except the +9 shift, so the two remaining faults are:
+//   * the pointer lands in ecx, not edx. That is the ONLY register
+//     difference; with edx the arm would be byte-identical. It needs ecx to
+//     still hold the live zero at the load, which this shape does not do
+//     because the conditional assignment turns `lines` into a stack object.
+//   * the union's 0 initialisation is then emitted as real stores
+//     (`mov dword ptr [esp+0x10],ecx` plus `mov word ptr [esp+0x10],cx`,
+//     8 bytes), where the original value-numbers the 0 and keeps it in ecx.
+// Also measured: `int lines;` uninitialised kills the shared ecx zero at the
+// found test entirely (the compare folds to `test eax,eax`, 637 bytes), so the
+// zero that the original reuses in the 0x10, 0x20 and 0x80 arms must come from
+// an initialisation of `lines`, not from the compare.

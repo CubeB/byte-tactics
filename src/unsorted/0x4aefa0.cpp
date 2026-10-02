@@ -1,4 +1,70 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
+//
+// Space Bunny Free (issue 4155). Baseline recorded before starting: 72.2 %,
+// 882 of 895 bytes. Left at the same 72.2 % / 882 bytes: about eighty source
+// shapes and two permuter runs (seeds 11 and 404, 2416+ candidates) all land
+// on 72.2 % or below. Declaration order and scope are inert once more:
+//   - all 24 orders of the four low declarations (ptr2, ptr1, swapped, n)
+//     compile to the identical 882-byte body, and so do eight declaration
+//     SCOPE variants: swapped/end/start moved into the `if (n != -1)` block,
+//     ptr1/ptr2 declared at their allocations, `int n = -1;` as an
+//     initialiser, `int i;` declared at the first loop.
+//   - six inlined predicates around the loop's own test (the guide's item 6):
+//     the int-returning ones fold to the identical body, the bool-returning
+//     ones materialise `setg dl / test dl,dl` and cost 14 bytes (57.3 %).
+//   - guards around the first loop, all 72.2 % or below: `if (count > 0)` with
+//     do/while, `i = 0; if (i < count)`, `for (n = -1, i = 0; ...)`, `n < 0`,
+//     `list1`, `end = count - 1` hoisted before the loop (70.4 % / 880 bytes)
+//     and before the four allocations.
+// Three new facts about the one open decision, all measured:
+//   1. The z21 family (`if (count > 0) { n = -1; for (i = 0; i < count; i++)
+//      {...} } else { n = -1; }`) is the first shape whose first loop carries
+//      the ORIGINAL'S REGISTER SET: esi/edi/ebx/ebp hold ptr1, i, the cursor
+//      and the ptr2-ptr1 stride, and the latch re-reads count from its
+//      argument slot (`mov eax,[esp+0x44] / inc edi / add ebx,4 / cmp edi,eax`)
+//      exactly as at 0x4af043/0x4af04b. It is one rotation out (ptr1 takes
+//      esi where the original gives it ebx) and the rotation is stable: six
+//      spellings of the same guard, all with `n = -1` still seeded, give
+//      68.2 % / 896 bytes. It also costs 14 bytes on the `n != -1` test, which
+//      then becomes `cmp dword ptr [esp+0x10], -1`.
+//   2. z14 (a `char** p = ptr1` cursor advanced in the `for` header, the
+//      guide's "pointer advances in the for header" shape, with the second
+//      store written `*((char**)((char*)p + d))`) is the first shape whose
+//      first-loop BODY is instruction for instruction the original's, latch
+//      reload included. It pays for it by also spilling the stride to a frame
+//      slot, and lands at 56.6 % / 859 bytes. The same shape with both lists
+//      walked by header cursors (z32) folds straight back to the 882-byte
+//      body, and with the difference written inline instead of named (z40)
+//      it is 58.2 % / 890 bytes.
+//   3. So the missing construct has to keep ptr1's base and the cursor in two
+//      registers without also spilling the stride: z21 gets the set right and
+//      rotates it, z14 gets the body right and spills the stride, and no
+//      spelling of the first loop itself moves either, because the decision is
+//      made before the loop's first instruction is emitted. Only the shape of
+//      the pre-loop guard reaches it.
+// One variant scores above the baseline and was rejected on fidelity:
+// build/scratch/0x4aefa0/z5.cpp and w12.cpp reach 74.2 % / 875 bytes by
+// dropping the `n = -1` seed, which the original has (`or ecx,0xffffffff` at
+// 0x4af001 and `mov [esp+0x1c],ecx` at 0x4af00c). Deleting those two
+// instructions drops one line difflib can never match (`mov [esp+0x18],ecx`
+// against `mov [esp+0x1c],ecx`) and the alignment around it then scores two
+// points better; it is a different, wrong function that can never match, so
+// this file keeps the seed. With the seed back in the same place (w1) it is
+// 72.2 % / 882 bytes again.
+// The measurement rig is left in build/scratch/0x4aefa0/ so a later pass does
+// not rebuild it: `probe.py` scores a list of candidates in one process (one
+// load of the exe, many compiles, about 1.5 s each) and writes the full diff of
+// anything that beats `--best=`; `feat.py` reports the two binary facts about
+// the first loop that the score is really testing (does the latch re-read
+// count from `0x44`, is the preheader the original's three-instruction
+// `mov ebp,eax / mov edi,ebx / sub ebp,ebx`) without running check.py; `sbs.py`
+// prints the original and a candidate side by side by address; `runs.py`
+// groups the diff into runs and separates register-only differences from
+// missing instructions (it is what shows the function is exactly two
+// instructions short, both in the first loop: the `mov edi,ebx` that keeps
+// ptr1's base out of the loop cursor and the `mov eax,[esp+0x44]` that reloads
+// count at the latch); `size.py` prints where the byte delta accumulates.
+// `gen*.py` regenerate the candidate sets. Everything scored is kept there too.
 // Retry (deepseek-v4.1-flash, ten-minute box): spelling the first fill loop
 // as i = 0; while (i < count) { ...; i++; } is byte-identical at 72.2 %
 // (882 bytes), so the count-in-ebp vs count-reload tie is not the loop

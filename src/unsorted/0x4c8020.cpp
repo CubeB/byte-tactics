@@ -7,7 +7,7 @@
 // width. The texture width selects the texel layout: 8/16/32/64/128 pick the
 // sub-texel mask, anything else uses the width itself as a row stride. With no
 // depth buffer the four power-of-two formats dispatch to the FUN_004cd8xx span
-// helpers and the remaining formats run inline loops. alue is one
+// helpers and the remaining formats run inline loops. value is one
 // function-scope temporary shared by every body; giving it a single slot keeps
 // the per-body loop counters in the slots the original used.
 #include <ddraw.h>

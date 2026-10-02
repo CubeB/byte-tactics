@@ -1,4 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash session (2026-10-02): permuter 3 min on this file's
+// shape and 3 min on the T shape (plain `HDC *slot` at 0x14 with the
+// CreateDIBSection arg `(void **)&caps`), no gain, both 99.672131 exact.
+// Confirmed the two residuals are mutually exclusive on this compiler: the
+// block-head reload `mov edx, [esp+0x14]` needs [esp+0x14] to be a plain
+// (non-address-taken) local, while the CreateDIBSection `lea ecx, [esp+0x18]`
+// needs an address-taken local at [esp+0x14] (the compiler always places the
+// `&local` argument temp at local+4, so a local at 0x14 gives 0x18). One local
+// cannot be both, and a separate `void *bits` at 0x18 grows the frame to
+// 0x4d4 because MSVC 5 does not overlap it with the dead `caps` slot. Best
+// version stays the 99.7 file shape below.
 // 2026-10-01 deepseek-v4.1-flash 10-minute retry: still exactly 99.7%
 // (1017 = 1017), the same single 3-instruction scheduler rotation at
 // 0x4b55af. New measurements this session, all inert unless noted:

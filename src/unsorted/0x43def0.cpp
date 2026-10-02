@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, improved by Claude Opus 5.5, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, improved by Claude Opus 5.5, edited by deepseek-v4.1, finished by DeepSeek V4.1 Flash. Names are provisional.
 // claude-opus-5-5 (#4428): unchanged; a 10-minute permuter run (about 500 candidates) found nothing.
 //
 // Returns the world position of animation piece `index` of `obj` (with z
@@ -444,6 +444,27 @@
 // loop's last store (0x43dfed `mov [esp+0x1c], ecx`, 0x43e00a `neg ecx`) rather
 // than loading it again, which is what a plain `result.z = -result.z` already
 // compiles to here (the end block matches byte for byte).
+//
+// Eleventh pass (DeepSeek V4.1 Flash): still 99.2%, body unchanged. A
+// compile-only probe (build/scratch/0x43def0/scan.py and batch*.py, about 150
+// variants) reconfirmed the coupling directly: every construct that reaches
+// the original's range-block mapping (x = edx, y = esi, z = ecx) emits the two
+// zero xors x, z, y, and every construct that emits x, y, z collapses to the
+// null block's (ecx, edx, esi) and merges the two tails (330 bytes). Newly
+// scored, all 99.2 or the merge: chained (`w.z = w.y = w.x = 0`) and comma
+// assignments in all six orders, a `Vec3` class with an empty or a copy
+// constructor, an inline helper returning `Vec3` (six body orders), pointer,
+// reference and `int*` array views of the local in both orders, `memset` with
+// an explicit size, six `short` stores, and zero expressions built from
+// `(block != 0) - (block != 0)` plus five similar folded comparisons
+// (`block == block`, `block->count > 0`, `(int)block - (int)block`,
+// `index == index`, `obj != 0`) placed in each field: the front end folds all
+// of them before liveness, so none keeps `block` (ecx) live across the first
+// two xors. The only live-in register the block could reserve is ecx = block,
+// which is dead at the branch, and no source use that costs no instruction
+// keeps it live. Two 3-minute permuter runs (default seed 3231 candidates,
+// seed 11 4355 candidates) found nothing. The residual is still the order of
+// the ecx and esi xors.
 
 #include <string.h>
 

@@ -1,4 +1,17 @@
-// Decompiled by Opus, edited by deepseek-v4.1, finished by Space Bunny Free. Names are provisional.
+// Decompiled by Opus, edited by deepseek-v4.1, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// MATCHES (161 bytes). The original keeps the field_1fe load first and
+// accumulates in edi only while the 32-bit multiply chain is signed, yet it
+// converts the product to float as unsigned (fild qword with a zero high
+// word). Every explicit unsigned conversion of the 32-bit product makes MSVC 5
+// reassociate the chain and evaluate the /5 quotient first (or, with a 16-bit
+// narrowing cast, keeps the order but pays an "and edx, 0xffff"). The fix is
+// to build the 64-bit numerator by hand: store the signed 32-bit product in
+// the low word of an __int64 and zero the high word. The 32-bit expression
+// stays signed, so the original order and registers survive, and the __int64
+// conversion is the unsigned fild qword the original has. A union with an
+// int lo / int hi pair works; MSVC folds the two stores into the original
+// "mov [esp+8], edi" plus the hoisted "mov [esp+0xc], 0". Verified MATCH with
+// both the union and the equivalent "*(int*)&p = ...; *((int*)&p+1) = 0;".
 // claude-opus-5-5 (#4428): unchanged; a 10-minute permuter run (about 500 candidates) found nothing.
 // Also tried (all compile to the division-first order, 159 bytes): no cast, a
 // separate int or unsigned local for field_1fe or for the sub-product, compound
@@ -303,18 +316,25 @@ struct Unit_00438650 {
 };
 #pragma pack(pop)
 
-// Does not match yet (one extra "and edx, 0xffff"). MSVC re-sorts the
-// multiplication chain: when it is unsigned (field_1fa is unsigned, and the
-// result is converted to float as unsigned), the division is always evaluated
-// before field_1fe; a signed chain gets the original order, but then the float
-// conversion is signed. Narrowing the division result to unsigned short gives
-// the original order and registers at the cost of the mask.
+// The old partial (96.6%, one extra "and edx, 0xffff") came from narrowing the
+// division result to unsigned short: MSVC re-sorts the multiplication chain
+// when the product is converted as unsigned, and only a code-emitting 16-bit
+// narrowing kept the original order. The union above avoids both.
 // FUNCTION: 0x438650
 int __stdcall FUN_00438650(Unit_00438650* a, Unit_00438650* b, int n)
 {
     UnitType_00438650* bt = b->type;
     float v = bt->field_18a > 10.0f ? bt->field_18a : 10.0f;
-    int r = (int)((a->type->field_1fe * (unsigned short)((a->field_b8 + 5) / 5) * bt->field_1fa * n) / (v * 300.0f));
+    union {
+        __int64 q;
+        struct {
+            int lo;
+            int hi;
+        } w;
+    } p;
+    p.w.lo = a->type->field_1fe * ((a->field_b8 + 5) / 5) * (int)bt->field_1fa * n;
+    p.w.hi = 0;
+    int r = (int)((double)p.q / (v * 300.0f));
     if (r <= 1) {
         r = 1;
     }

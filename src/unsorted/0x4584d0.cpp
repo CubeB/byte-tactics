@@ -1,4 +1,6 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by
+// claude-opus-5-5 (#4634): still 82.3%. An indexed vertex loop (projected[i] / vertices[i])
+// scores 76.9%; a 12-minute permuter run (207 candidates) found nothing.
 // deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
 // Retry (deepseek-v4.1-flash, issue 3042): best unchanged at 79.6% (457 vs 461
 // bytes). Tested register keyword, label+goto / outer-for loop-nesting forms,

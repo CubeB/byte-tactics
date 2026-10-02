@@ -103,6 +103,17 @@
 // begin()/end() after size() all keep the same one byte. Swapping _Ucopy's
 // parameter order (destination first) collapses the function to 526 bytes /
 // 40.0%, so the parameter order reaches the code but not this byte.
+// deepseek-v4.1-flash retry (2026-10-02): permuter run (3 min, 2232 candidates,
+// 0 new) and about twenty fresh source shapes, all 99.6% with the same single
+// SIB byte or worse. The fresh shapes were a sixth / both-local destination and
+// source at the third copy, `&_P[0]`, `_P + 0`, `_M + _Q`, `&_Q[_M]`, a dead
+// `_Q = _Ucopy(...)` assignment, `_Last` via a local, a helper returning the
+// destination, a swapped `_N` ternary, a two-temp `_N`, a reordered
+// `_End`/`_Last`/`_First` tail, a source built as `_P + ((_Q + _M) - (_Q +
+// _M))` or `(_Q + _M) + (_P - (_Q + _M))`, and `#include <algorithm>`,
+// `<utility>`, `<new>` after the clone's three headers. `tools/headers.py`
+// re-swept 256 sets, all 99.6%. Confirms the same compiler-state wall the
+// notes above and 0x40cca0 describe. No source text reaches the SIB order.
 #include <climits>
 #include <memory>
 #include <xutility>

@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol,
 // finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash,
-// finished by Space Bunny Free. Names are provisional.
+// finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
 // deepseek-v4.1-flash (3857, 2026-10-01): hoisting `Feature* feats = g_game->features` regresses to 74.8% (649 bytes); the `(f->flags & 2) && f->value != 0.0f` swap gives 88.2%. Best stays 88.7%, same ebx/ebp swap.
 // deepseek-v4.1-flash retry (3312, 2026-10-01): `feature <= 0xfffa` drops to 88.2%; a `(f->flags & 2) != 0` spelling and hoisted x/y declarations stay at 88.7% with the same ebx/ebp swap.
 //
@@ -171,6 +171,20 @@
 // where we emit `lea ecx, [ebp + eax*8]` (4 bytes), because _S is in ebp and ebp
 // as a base needs a disp8; every later address shifts by one. 15 of the diff
 // lines are internal jump targets that moved; ignoring those this is 95.5%.
+//
+// DeepSeek V4.1 Flash retry 4 (2026-10-02): a fresh 3-minute permuter run
+// produced no gain (best.cpp byte-identical to this file). The 644-byte
+// best_ratio candidate is the same prologue-shape trade already rejected above:
+// it carries the identical ebx/ebp residual PLUS real codegen differences, so
+// ignoring moved jump targets it is 94.1% against this file's 95.5%, and it is
+// not adopted. Fresh source levers all failed to flip the pick: an inline
+// wrapper around FUN_00481550 taking the y handle (byte-identical, so the extra
+// use folds), a feature-value inline helper, a static AddCell push_back helper,
+// a do-while with a pre-declared feature pointer, ctor init-list and member
+// assignment orders, dropping the copy ctor or operator<, and feature pointer
+// arithmetic instead of indexing. Rebuilding the insert clone was not pursued:
+// the archived faithful clone already reproduces the same 88.7% wall. Still one
+// byte: the lea base in the reallocating push_back (_S wants ebx, gets ebp).
 #include <vector>
 
 struct Point16 {

@@ -1,5 +1,39 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 98.4% (1654 of 1655 bytes). Every branch, field offset, call target,
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 (#4267): 98.4% -> 99.5% at the exact size (1655 bytes).
+// One register is left: the g_game load for the FUN_00435c00 call at 0x499775
+// is `mov ecx` here and `mov edx` in the original.
+// What moved it: MSVC 5 hands fresh g_game loads out in an eax -> ecx -> edx
+// rotation that runs on from the then arm into the else arm, and a load into
+// a named local does not advance it (the local takes the first free register,
+// eax unless eax is busy). Measured on the version without the `gp` local
+// (`unsigned int saved = g_game->field_2a3c;`, 94.7%): its else arm and whole
+// tail sat exactly one rotation step past the original, and deleting any one
+// g_game load from the then arm's first block put every register from
+// 0x4997a0 to the end in place. So the FUN_00435110 call now goes through
+// `Game_00499200* g = g_game;`: that load is a local (ecx, since eax still
+// holds the FUN_004352b0 result), the rotation no longer advances there, and
+// the else arm and tail match. The cost is that the next rotating load, the
+// FUN_00435c00 one, now gets ecx instead of edx. In rotation terms the
+// original looks like: 0x499763 rotates (ecx), 0x499775 does NOT rotate but
+// still lands in edx, and 0x4997a0 rotates (edx). A local at 0x499775 takes
+// eax (98.1%), so the missing piece is a non-rotating load that avoids eax and
+// ecx there. Also measured: the `bits.b3 = 1` and `|= 4` read-modify-writes
+// in the inner block and the calls do not advance the rotation, a plain store
+// there (`g_game->field_391f1 = 9;`) does.
+// Also kept, both byte-identical to the previous file: the `int four = 4;`
+// local is the literal 4 again (the two `|= 4` copies are what keep 4 in edi),
+// and the five inlined FUN_00491c80 bodies are a SetCursor(n) helper.
+// Unused declarations from 0 to 594 are flat and no header set helps.
+// Tried for 0x499775 without success: locals, references, const locals and
+// inline-helper parameters for g_game or g_game->net at that call (98.1%), the
+// same local reused for both calls (96.8%), int/bool result locals, a switch,
+// `== 0 {} else`, `goto`, swapped arms (88.4%), inline helpers for the shared
+// call head, each arm, the FUN_00435c00 sequence and the whole field_39249
+// block, the gp local before the branch (99.2%, the load is not sunk), inline
+// getters for g_game->net, unused declarations 0 to 594 and every header set
+// on this file (all flat), and permuter runs of 15 minutes from the 98.4% file
+// and 35 minutes from this one (about 37,000 candidates, no gain).
+// Earlier notes (98.4% file): PARTIAL, 98.4% (1654 of 1655 bytes). Every branch, field offset, call target,
 // stack slot, jump target and register role now agrees with the original except
 // ONE instruction: at 0x4997a0 the original loads g_game with
 // `mov edx, dword ptr [0x511de8]` (6 bytes) and we emit the 5-byte A1 form
@@ -294,6 +328,14 @@ void FUN_00499880();
 void FUN_00496bb0();
 void __cdecl FUN_004578f0();
 
+static inline void SetCursor(int n)
+{
+    if (g_game->selected != n) {
+        g_game->selected = n;
+        FUN_004ab400(g_game->field_519, g_game->table[n]);
+    }
+}
+
 // FUNCTION: 0x499200
 void FUN_00499200(void)
 {
@@ -304,17 +346,10 @@ void FUN_00499200(void)
     if ((flags & 2) != 0 && g_game->orderMode == 0xe) {
         FUN_004197d0();
     } else if ((flags & 2) == 0 && (flags & 1) == 0) {
-        if (g_game->selected != 0x13) {
-            g_game->selected = 0x13;
-            FUN_004ab400(g_game->field_519, g_game->table[0x13]);
-        }
+        SetCursor(0x13);
     } else {
         g_game->field_2cba = FUN_0048cd80();
-        int idx = FUN_0048d220(g_game->orderMode);
-        if (g_game->selected != idx) {
-            g_game->selected = (signed char)idx;
-            FUN_004ab400(g_game->field_519, g_game->table[idx]);
-        }
+        SetCursor(FUN_0048d220(g_game->orderMode));
     }
 
     FUN_0041c180();
@@ -381,17 +416,11 @@ void FUN_00499200(void)
             g_game->field_2c9e = g_game->field_2cac;
             g_game->field_2ca2 = g_game->field_2cb0;
             g_game->field_2ca6 = g_game->field_2cb4;
-            if (g_game->selected != 0x13) {
-                g_game->selected = 0x13;
-                FUN_004ab400(g_game->field_519, g_game->table[0x13]);
-            }
+            SetCursor(0x13);
         } else if (g_game->field_37efa == 1) {
             if ((flags & 1) != 0) {
                 g_game->flags_2cc6 = flags | 0x10;
-                if (g_game->selected != 0x13) {
-                    g_game->selected = 0x13;
-                    FUN_004ab400(g_game->field_519, g_game->table[0x13]);
-                }
+                SetCursor(0x13);
             }
         } else if ((flags & 1) != 0) {
             FUN_00498f70(&view);
@@ -406,15 +435,11 @@ void FUN_00499200(void)
         }
     }
 
-    int four = 4;
     if (g_game->field_3923b.bits.b2 || g_game->field_3923b.bits.b4) {
         if (g_game->net->FUN_00435100() != 3 ||
             (((Class_00435100*)g_game->net)->FUN_00435100() == 3 &&
              FUN_004572a0() != 0)) {
-            if (g_game->selected != 0x13) {
-                g_game->selected = 0x13;
-                FUN_004ab400(g_game->field_519, g_game->table[0x13]);
-            }
+            SetCursor(0x13);
             FUN_00491d70(1);
             FUN_004a9660(g_game->field_519);
             if (g_game->net->FUN_00435100() == 3) {
@@ -423,7 +448,7 @@ void FUN_00499200(void)
             }
             FUN_00491b60();
             FUN_004c1a40();
-            g_game->field_10->FUN_004ce690(four);
+            g_game->field_10->FUN_004ce690(4);
             g_game->field_391f1 = 7;
             g_game->field_391f5 = FUN_00499880;
             FUN_004b4fd0(FUN_004578f0, 0);
@@ -439,30 +464,27 @@ void FUN_00499200(void)
             FUN_004257a0();
             int a = ((Class_00435c50*)g_game->net)->FUN_00435c50();
             char* b = ((Class_004352b0*)g_game->net)->FUN_004352b0();
-            ((Class_00435110*)g_game->net)->FUN_00435110(b);
+            Game_00499200* g = g_game;
+            ((Class_00435110*)g->net)->FUN_00435110(b);
             if (((Class_00435c00*)g_game->net)->FUN_00435c00(a) != 0) {
                 g_game->field_2a44.bits.b3 = 1;
-                g_game->field_2a44.value |= four;
+                g_game->field_2a44.value |= 4;
             }
         } else {
-            Game_00499200* gp = g_game;
-            unsigned int saved = gp->field_2a3c;
+            unsigned int saved = g_game->field_2a3c;
             FUN_00491b60();
             FUN_00491d70(1);
             FUN_004a9660(g_game->field_519);
             FUN_004257a0();
-            if (g_game->selected != 0x14) {
-                g_game->selected = 0x14;
-                FUN_004ab400(g_game->field_519, g_game->table[0x14]);
-            }
+            SetCursor(0x14);
             g_game->field_2a3c = saved;
             ((Class_00435a20*)g_game->net)->FUN_00435a20(g_game->field_29a0 + 0x11c);
             FUN_0047a760();
-            g_game->field_2a44.value |= four;
+            g_game->field_2a44.value |= 4;
         }
         g_game->field_391f1 = 2;
         g_game->field_391f5 = FUN_00496bb0;
         FUN_004b4fd0(FUN_004578f0, 0);
-        g_game->field_10->FUN_004ce690(four);
+        g_game->field_10->FUN_004ce690(4);
     }
 }

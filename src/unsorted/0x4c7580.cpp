@@ -1,4 +1,17 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// Session claude-sonnet-5-5 (issue 4530): 86.3 -> 99.7 percent, 1183 of 1183 bytes. Four changes:
+// (1) Check 5 spelled `if (locked > 0)`: gives the original's `mov eax,[locked]; test eax,eax` AND keeps
+//     the fourth FUN_004c5fa0 call site (plain `if (locked)`, `!= 0`, `!locked`, `?:`, `&&` forms all let
+//     MSVC cross-jump the tail into check 2; `== 1` gave `cmp [locked],1`). The signed `> 0` is a
+//     different compare to the tail merger, but it emits `jle` where the original has `je`.
+// (2) The first walk ends `i = i - 1; if (i < 0) i = 3;` (not `i = j;`) and the second ends
+//     `i = (i + 1) & 3;`: with i updated in place, i lives in eax in walk 1 as in the original and the
+//     loop-end `cmp i, imax` has the original's operand registers (86.3 -> 90.1).
+// (3) Only the max-x compare re-reads dst->p[i].x (the permuter's `temp_inline`, 99.2 -> 99.7): the
+//     number of live copies of the x value changes the order of the two cache reloads after each
+//     edge-walk loop (`mov edx,[clip1]` before `mov edi,[dst]`, as in the original).
+// STILL DIFFERS (99.7 percent, one byte): check 5 has `jle`/`jbe` (any `> 0` form) where the original has
+// `je`. Every spelling that emits `je` merges check 5's tail with check 2's (3 call sites, 1148 bytes).
 // Session claude-sonnet-5-5 (issue 4140 retry, no code change, still 66.9%). Findings:
 // (1) The big hunk is check 2 (xmin > clip[2]): MSVC post-RA cross-jumps identical return tails, and
 // whenever two tails get the same `lea` register (here check 2 and check 5, both edx) it turns the
@@ -196,9 +209,9 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
             ymax = y;
             imax = i;
         }
+        if (dst->p[i].x > xmax)
+            xmax = dst->p[i].x;
         int xx = dst->p[i].x;
-        if (xx > xmax)
-            xmax = xx;
         if (xx < xmin)
             xmin = xx;
     }
@@ -225,7 +238,7 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
     if (ymax > clip[3])
         ymax = clip[3];
     if (ymax == ymin) {
-        if (locked == 1)
+        if (locked > 0)
             FUN_004c5fa0(&local);
         return;
     }
@@ -268,7 +281,7 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
                 } while (--n);
             }
         }
-        i = j;
+        i = i - 1;
         if (i < 0)
             i = 3;
         if (i == imax)
@@ -312,7 +325,7 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
                 } while (--n);
             }
         }
-        i = j;
+        i = (i + 1) & 3;
         if (i == imax)
             break;
     }

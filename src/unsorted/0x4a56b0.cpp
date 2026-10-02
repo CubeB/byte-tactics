@@ -1,4 +1,24 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5. Names are provisional.
+// 2026-10-02 (claude-sonnet-5-5): 88.4 -> 96.3%, 1654 bytes. Two changes, both needed:
+//  1. Shape A of the old notes below, rebuilt: the image call is
+//     `FUN_004bf6f0(entries->surface, &rect, ...)` (no `surf` local), `int nx =
+//     rect.left;` comes AFTER it, a local `Entry* entry = &entries[index]` serves
+//     the two align arms, and the arms add `rect.left` (never a separate `x`).
+//     That puts x in ecx, reloaded from rect.left's slot after the call, and
+//     frees edi. Alone it is 86.4%.
+//  2. The inlined Measure helper tests `text` for null FIRST and only declares
+//     the walking pointer `char* p = text;` AFTER the font test. With
+//     `char* p = text;` on top, the buf[]/pat[] instances hoisted
+//     `lea esi,[esp+..]` above the jne (they are array addresses, so p is a
+//     separate lea); declared late it lands where the original has it. With
+//     shape A this is what took 86.6 -> 96.3 (the &2 arm's
+//     `xor eax,eax / cmp edi,eax / mov [esp+0x10],eax` form came with it).
+// Still differs (all in the last statement of the field_147 block): the
+// original spills x0 to [esp+0x18] right after `add ebx,eax`, reloads it as
+// `mov edx,[esp+0x18]; dec edx` for the FUN_004be950 call and reloads obj into
+// ebx (also on the two other exits); here x0 stays in ebx, `dec ebx` is done
+// in place and obj is reloaded into edi. Nothing tried moves it (n1-n4: x1 as the
+// first sum, x1 + w2 inline, x0-- before the call, an `Class* o = obj` alias).
 // 2026-10-02 pass (Space Bunny Free): 87.5% -> 88.4%, still 1654 bytes.
 // One win, found by permute.py and then isolated by reverting its hunks one at
 // a time (every other hunk it applied was no-op churn and changed nothing):
@@ -394,11 +414,11 @@ int __stdcall FUN_004a51d0(void* surface, char* text, int x, int y, int maxw,
 static inline int Measure_004a56b0(char* text)
 {
     int width = 0;
-    char* p = text;
-    if (p == 0)
+    if (text == 0)
         return 0;
     if (DAT_0051fba4->language == 0)
         return FUN_004c1480(FUN_004c1440(), text);
+    char* p = text;
     while (*p != 0) {
         char ch = *p;
         Glyph_004a56b0* glyph = (Glyph_004a56b0*)FUN_004b7f30(
@@ -455,29 +475,28 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
     rect.right = entries[index].w + rect.left - 1;
     rect.bottom = entries[index].h + rect.top - 1;
 
-    int x = rect.left;
-    int nx = x;
-    void* surf = entries->surface;
     if (entries[index].image != 0)
-        FUN_004bf6f0(surf, &rect, obj->colours[entries[index].image]);
+        FUN_004bf6f0(entries->surface, &rect, obj->colours[entries[index].image]);
+    int nx = rect.left;
+    Entry_004a56b0* entry = &entries[index];
 
-    if (entries[index].align & 4) {
-        nx = entries[index].w + x;
-        nx -= Measure_004a56b0(entries[index].b6.text);
-    } else if (entries[index].align & 2) {
-        nx = entries[index].w / 2 + x;
-        int half = Measure_004a56b0(entries[index].b6.text) / 2;
+    if (entry->align & 4) {
+        nx = entry->w + rect.left;
+        nx -= Measure_004a56b0(entry->b6.text);
+    } else if (entry->align & 2) {
+        nx = entry->w / 2 + rect.left;
+        int half = Measure_004a56b0(entry->b6.text) / 2;
         nx -= half;
     }
 
-    if (i >= 0 && (entries[index].align & 8)) {
+    if (i != -1 && (entries[index].align & 8)) {
         FUN_004c13a0(obj->colours[0], FUN_004c13f0());
         FUN_004c14f0(entries->surface, entries[index].b6.text, nx + 1, rect.top + 3, -1);
     }
 
     FUN_004c13a0(entries[index].colours, FUN_004c13f0());
 
-    if (i < 0) {
+    if (i == -1) {
         int lh = LineHeight_004a56b0();
         if (rect.bottom - rect.top > lh * 2)
             FUN_004a51d0(entries->surface, entries[index].b6.text, nx, rect.top,

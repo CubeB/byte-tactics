@@ -1,4 +1,38 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6. Names are provisional.
+// Opus retry (#5288, 2026-10-03), still 98.3%. Read out of C2 under gdb:
+// - The order inside the first block is set by C2's post-allocation list
+//   scheduler (FUN_0040d9be(fn, 0): DAG in FUN_00431ec0, priorities in
+//   FUN_00430b4c, mostly the height (longest path to the block end) << 13,
+//   selection in FUN_0043179a). A store/store or load/store pair through
+//   memory is ordered when FUN_00407fa0 says they may alias.
+// - Every `p->field` access gets a field alias id, numbered in reverse order
+//   of the field's first appearance in the function, and the id's bit is
+//   min(31, id - first): with 41 distinct fields of *p here, the ten that
+//   appear first (ff0, ff4, ff8, fac..fd4, f8c) all share bit 31, so they
+//   count as one location and the scheduler keeps them in source order. That
+//   is why the ff8 store stays above the six clears. *p and *g_game (the
+//   tick loads) always may-alias, so a tick load written after the six
+//   clears can never move above them.
+// - Moving the seven later fields flags, ffc..f106 into a sub-object (or a
+//   pointer to one) gives the six clears their own bits, so the ff8 store no
+//   longer has to precede them. The schedule still came out the same
+//   (98.3%), because the cmp (height 3) and then the ff8 store and the
+//   clears (all height 2) tie, and the tie goes to source order. The
+//   original's order (six clears, cmp, ff8 store) needs the clears ABOVE the
+//   cmp, i.e. chained (one shared bit) while the ff8 store is not in their
+//   chain. With ff8 first in the source that cannot happen, because ff8's bit
+//   is always at least the clears' bits.
+// - So the original very likely did have a tick value live across the
+//   clears. With a tick local in the first block, K there goes from 2 to 3
+//   and the zero constant's priority from 67 to 89 (22 stores, cost 1 each,
+//   times K), above w's 70, which is the ebp/ebx pool flip. For w to win
+//   again the zero stores would have to sit in blocks without the tick,
+//   which a straight-line block cannot give. Not solved.
+// - Also measured flat (98.3%, 96.6% or 66.4%): the clears as an array of
+//   {int a, b} pairs (constant indices get per-element ids too), const on
+//   g_game, on ticks or on p, `*ClearStamps(p) = g_game->ticks` (the left
+//   side is evaluated first, 96.6%), and a 16-bit zero local for the short
+//   stores.
 // Codex GPT-6 retry for #5191 (2026-10-03): current main remains 98.3%.
 // Moving the ff8 tick store below the six clears scores 96.6%; assigning
 // it from ff4 there scores 87.8%. The original schedule remains best.

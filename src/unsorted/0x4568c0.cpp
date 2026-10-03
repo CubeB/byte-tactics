@@ -245,6 +245,17 @@
 // the named `int to = PlayerId_004568c0((unsigned char)k4);` shape: 81.9 at
 // 1306 bytes (the name takes esp+0x18 and pushes the field walk from esi to
 // edi). The manual to/from form in this file is still the best at 86.8.
+// deepseek-v4.1-flash (this pass): re-confirmed 86.8 (1258 bytes) and ran the
+// 3-minute permuter on both the stored body and the named-`to` a3 shape
+// (81.9), no gain. New experiments, all below 86.8: named `to` from the
+// PlayerId helper plus a manual from loop keeps res in edi and the readiness
+// zero in ebx and gets the ebx counter, but the from result lands in esi (not
+// edx), which pushes the field_29d0 walk into edi, puts `to` in ebx and spills
+// the k4 counter to esp+0x18 (frame 0x38), 81.9; explicit field/player pointer
+// walks and declaration hoists do not move that; the ternary / goto / early
+// break from scans (d2 83.5, i1 78.2, i4 ties 86.8) either stay manual-shaped
+// or force the helper colouring (res -> ebp, walk -> edi). So res-in-edi and
+// from-in-edx still look mutually exclusive in every source shape tried.
 #include <stdlib.h>
 // deepseek-v4.1-flash (issue #4125 retry, 10 min timebox): re-confirmed the
 // stored body at 86.8% (1258 of 1310 bytes, frame 0x34, every [esp+..] operand

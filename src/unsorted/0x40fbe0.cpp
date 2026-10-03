@@ -1,4 +1,43 @@
-// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by xiaomi/mimo-v2.6-pro. Names are provisional.
+// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by xiaomi/mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free pass (79.4% -> 91.6%, ours 1990 vs 1976): three source
+// shapes were the whole gap; everything after that is cleanup, each item
+// re-checked on its own and byte-neutral.
+//   1. `order->target->order` written out inline at every use in the
+//      MobileBuild chain, with no local for it. With a named local MSVC keeps
+//      `other` in a callee-saved register across the Class_00438760 calls, has
+//      no callee-saved register left for the block's zero constant, and emits
+//      `push 0` and `mov [ebx+6],0` where the original has `push ebp` and
+//      `mov [ebx+6],ebp`. Spelled inline it reloads order->target and ->order
+//      after every constructor call (as the original does), keeps `other` in
+//      EAX, `building` in EDI and the zero constant in EBP, and
+//      0x40ff60-0x40ffd3 becomes instruction for instruction identical.
+//   2. The weapon loop's flag test in the negative sense with an empty
+//      `then`: `if (!(A && B && !C)) { } else { ... }`. This fixes the whole
+//      loop (89.2%): `lea ecx,[esi+0x1f]`, the pointer at [esp+0x20] and the
+//      byte counter i at [esp+0x1c], no reload at the top, no `mov edx,ecx`
+//      before the `def` load, and `mov al,[i]`, `mov ecx,[ptr]`, `inc al`,
+//      `inc ebp`, `add ecx,0x1c`, `cmp al,3`, `mov [i],al`, `mov [ptr],ecx` at
+//      the bottom. Every other spelling is the same wrong code (i declared
+//      first, `++i` before `weapon++`, for and while loops, `&unit->weapons[i]`,
+//      a byte pointer induction variable, an explicit `wf` local), so this is
+//      a register allocation effect, not a scheduling one.
+//   3. permute.py from the 85.3% file: split_init, flip_compare, temp_inline
+//      and extract_helper took it to 91.6%. What survives is `unit->motion != 0`,
+//      `(0x40&unit->def->flags)` and the single use helper `OrderTarget`
+//      (without the helper 88.7%). Three more permuter rounds found nothing.
+// Still different (91.6%):
+// - the null path of the two `new` sites (+16 bytes). The original has one
+//      shared block at 0x410120, reached by `cmp eax,ebp; je` from both sites,
+//      with each success path inlined and the null block making its own zero
+//      with `xor eax,eap`. Ours gives each site a two byte `xor eax,eap` stub,
+//      a `jmp` and a `cmp eax,ebp` dispatch into a shared block that tests the
+//      pointer again, and site B's success block is out of line. Written any
+//      other way (if/else at either or both sites, two null labels, the label
+//      inside or outside the switch, `cmd==0` against `!cmd`, a null pointer
+//      variable, `cmd?cmd:0`, a shared Issue3 helper) MSVC builds the same
+//      dispatch.
+// - `mov cl,[eax]` instead of `mov al,[eax]` for the "VTOL_HelpBuild" index
+//      store at 0x4100d2; the four other stores in that chain use AL in both.
 // deepseek-v4.1-flash pass (kept 79.4%, 1974 vs 1976): re-verified the baseline
 // and confirmed the whole remaining gap is allocation shape, not missing logic.
 // Tried and rejected, all byte-neutral or worse: the weapon loop as a for-loop,

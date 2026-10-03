@@ -2,6 +2,8 @@
 // GPT-6 retry (#5050): current check.py confirms 88.1% at 1832 bytes. The
 // file's current notes capture the unresolved y1 lea, flags register, and 0x20
 // loop allocation constraints.
+// GPT-6 retry recheck: adding `&& flags` to both flag8-controlled uses is
+// semantically redundant but costs 34 bytes and falls to 80.0%; keep the best.
 // 2026-10-03 (claude-opus-5-5): no gain (88.1%), but the remaining gap now has
 // one known cause. Scratch files and sweep specs: build/scratch/0x4a3780/.
 //  - The 0x20 block's pointer choice tests flag8 itself: the original's `je`

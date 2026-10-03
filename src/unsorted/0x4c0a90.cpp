@@ -1,4 +1,7 @@
 // Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, re-verified by GPT-6, re-examined by Claude Opus 5.5. Names are provisional.
+// #5422 Codex retry: re-confirmed 96.2% at 118 bytes. The shape with the
+// original body has the late depth load; moving that load above the guard
+// restores the prologue but swaps the register allocation for the body.
 // Plots the two end points of one span row: the pixel at each end gets the
 // colour when it passes the depth test (the depth buffer keeps the integer
 // part of the 16.16 depth), or unconditionally when the surface has no depth

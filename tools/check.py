@@ -119,8 +119,19 @@ def mangled_prefixes(qualname: str) -> list[str]:
 
 
 ALIASES = ROOT / "data/aliases.csv"
+CONSTANTS = ROOT / "data/constants.csv"
 PATCHES = ROOT / "data/exe_patches.csv"
 ALIAS_MAP: dict[str, set[int]] = {}
+
+
+def load_constants() -> set[tuple[int, int]]:
+    """(function, value) pairs where a number inside the image's address range
+    is a plain constant, not an address. The exe has no relocation table to
+    tell them apart, so each pair is a reviewed decision (data/constants.csv)."""
+    if not CONSTANTS.exists():
+        return set()
+    with CONSTANTS.open() as fh:
+        return {(int(r["function"], 16), int(r["value"], 16)) for r in csv.DictReader(fh)}
 
 
 def load_aliases() -> dict[str, set[int]]:
@@ -377,12 +388,13 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
     # An address into the original image written as a plain number matches the
     # bytes but not the meaning: the linker could never move it. Require a symbol.
     if bytes_match:
+        constants = load_constants()
         for i in ours_ins:
             if i.address in reloc_ins or i.mnemonic.startswith("j") or i.mnemonic == "call":
                 continue
             for m in HEX.finditer(i.op_str):
                 v = int(m.group(), 16)
-                if 0x401000 <= v < orig.end:
+                if 0x401000 <= v < orig.end and (address, v) not in constants:
                     refs.append(Ref(i.address - address, f"{v:#x}", v, "mismatch",
                                     "hard-coded address: declare the global/vtable/function and refer to it by name"))
         # Matching bytes score 1.0 with no diff, so skip the text comparison.

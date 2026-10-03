@@ -1,0 +1,2 @@
+function,value,note
+0x43cd20,0x500000,"16.16 fixed-point 80.0 compared against a distance (gap1 > 0x500000), not an address (#5020)"

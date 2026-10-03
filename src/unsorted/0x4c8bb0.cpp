@@ -1,4 +1,40 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by fledge-alpha-free, finished by claude-opus-5-5. Names are provisional.
+// Claude Opus 5.5 pass (#5266, 2026-10-03): still 94.2%. This pass measured
+// the residual with C2 hooks: a scratch copy of tools/c2prio.py that also logs
+// each FUN_00435c37 temporary with the rotating pointer at 0x491120, plus C2's
+// frame packing (FUN_00440cbd, symbol name at [[sym]+0x18], refs at +0x34) and
+// its slot sort (FUN_00459eb7).
+// - The du..clamp swap is the rotation phase. The right head's two
+//   temporaries (index*16 in ecx and the vertices reload in edx, on the y0
+//   line) leave the pointer at eax for du. The original's du starts at edx.
+// - Two spellings give the original's du..clamp registers exactly:
+//   (a) `y1=vertices[next*4+1];` (or any second use of vertices+next*16): the
+//       right head computes that address in two more temporaries (eax, ecx).
+//       But the right walk's nextVertex web is then forwarded into the CSE.
+//       nextVertex drops from 6 to 3 frame references, the CSE gets its own
+//       home, and C2's packing moves six slots (88.6%).
+//   (b) `int* currentVertex=vertices+index*4;` right after `next` in the right
+//       walk, with y0, dx, x, z and l read through it: the head has no
+//       temporaries, so du starts at edx. du..clamp and the frame then match.
+//       Only the head differs (`mov ebp,edi; shl ebp,4; add ebp,edx` instead
+//       of `mov ecx,edi; shl ecx,4; lea ebp,[ecx+edx]`, one byte shorter), so
+//       the score ties at 94.18% (98.48% with jump targets masked). Other
+//       spellings and scopes of currentVertex give the same head.
+// - C2's packing list here: y0, y1, x 8; highY 7; nextVertex 6 (3 per walk);
+//   dx, du, dv, dz, out, dl, lowY 6; next 5; the right (index+1)&3 home 4;
+//   lowX, n, lowIndex, n, highIndex 3. dl shares nextVertex's slot only while
+//   nextVertex has at least 4 references, some of them in the right walk (so
+//   that it interferes with the right index home). So the original keeps the
+//   right walk's nextVertex in memory (head store, dz and dl reloads) but
+//   builds it in temporaries (eax, ecx). (a) gets the temporaries without the
+//   frame and (b) gets the rotation without the head. No spelling for both
+//   was found. Also flat: `index=next` variants (42%), splitting or retyping
+//   next, named intermediates in the right head (folded, no temporary), eight
+//   spellings of the nextVertex and y1 addresses, casts on nextVertex with
+//   (a) (still forwarded), (a) or `index=next` combined with (b) (43 to 83%),
+//   nextVertex passed by reference or pointer to an inline slope helper (no
+//   change), and a 15-minute permuter run from (a) with --stack (17499
+//   candidates, 88.6% flat).
 // PARTIAL 94.2% (1279 of 1279 bytes). Rebuilt on the structure of the matched
 // sibling 0x4c8760 (same function with a three-int vertex and no l channel):
 // - Frame (0x7d60, all sixteen slots as in the original): one `nextVertex`,

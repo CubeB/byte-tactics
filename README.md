@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**89.81% of Cavedog's code matched** (764,142 of 850,853 bytes)
+**89.83% of Cavedog's code matched** (764,337 of 850,853 bytes)
 
 `[####################################----]`
 
-By count that is 3,195 of the game's 3,267 functions (97.8%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,196 of the game's 3,267 functions (97.8%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,195 | 764,142 |
-| Attempted, not yet matching | 72 | 86,711 |
+| Matched byte-for-byte | 3,196 | 764,337 |
+| Attempted, not yet matching | 71 | 86,516 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -36,7 +36,7 @@ The size bands are the `size:` labels on the issues.
 | --- | ---: | ---: | ---: | --- |
 | small (1 to 64 bytes) | 1,155 of 1,155 | 100.0% | 0 | `##########` |
 | medium (65 to 160 bytes) | 826 of 827 | 99.9% | 118 | `##########` |
-| large (161 to 400 bytes) | 695 of 703 | 98.7% | 2,419 | `##########` |
+| large (161 to 400 bytes) | 696 of 703 | 98.8% | 2,224 | `##########` |
 | xl (401 to 600 bytes) | 216 of 226 | 95.4% | 5,102 | `##########` |
 | xxl (601 to 1,000 bytes) | 179 of 195 | 91.5% | 12,445 | `#########-` |
 | huge (over 1,000 bytes) | 124 of 161 | 77.2% | 66,627 | `########--` |
@@ -56,7 +56,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x440000` | Multiplayer setup | 242 of 246 | 82.1% | 10,988 | `########--` |
 | `0x450000` | Options and audio menus | 170 of 176 | 92.4% | 4,827 | `#########-` |
 | `0x460000` | Game and skirmish setup, unit classes | 206 of 212 | 89.7% | 6,317 | `#########-` |
-| `0x470000` | Campaign and skirmish screens, resource bars | 252 of 259 | 89.5% | 6,663 | `#########-` |
+| `0x470000` | Campaign and skirmish screens, resource bars | 253 of 259 | 89.8% | 6,468 | `#########-` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 260 of 264 | 96.9% | 1,997 | `##########` |
 | `0x490000` | Config and registry, skirmish summary | 188 of 193 | 91.9% | 4,823 | `#########-` |
 | `0x4a0000` | GUI layout and GAF | 199 of 201 | 96.0% | 2,538 | `##########` |

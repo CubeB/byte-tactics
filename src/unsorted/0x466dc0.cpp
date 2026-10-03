@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
+// Codex GPT-6 retry for #5196 (2026-10-03): current main remains 99.6%.
+// `/Gi` drops this file to 86.8%; the default-flags source is unchanged.
 // deepseek-v4.1, GPT-6.1-sol, finished by deepseek-v4.1-flash,
 // finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by
 // DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.

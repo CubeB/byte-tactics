@@ -2,6 +2,8 @@
 //
 // Claude Opus 5.5, #5302: 94.6% -> 98.6% (1051 bytes, the right size). Two of
 // the three residuals of the 94.6% file are gone; what fixed them:
+// #5368 retry: current main confirms 98.6%; the health-test scratch-register
+// order remains the only mismatch, with no natural source lever in prior sweeps.
 //  * The tail is `order->pos + Offset(...)` again, with no `off` local
 //    (5 IL less), and Offset names its second call's result (`int z`). The
 //    extra candidate in the tail block raises the Offset distance's priority

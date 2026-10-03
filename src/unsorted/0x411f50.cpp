@@ -1,48 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by Claude Opus 5.5. re-verified by GPT-6. Names are provisional.
-// Claude Opus 5.5, issue #5033 (still 97.1%, file unchanged below). New lead
-// on the state-4 x87 block, measured with small scratch files compiled by
-// tools/wcl (build/scratch/0x411f50/mic*.cpp in that session):
-//  - The original's order `fmul [30.0f]` then `fimul [f22]` together with the
-//    positive sum needs a float barrier on the product:
-//    `(int)((float)((float)sqrt(size * 2.0 / rate) * 30.0f) * unit->type->field_22)`.
-//    Without one, VC5 flattens the multiply chain and always puts the integer
-//    memory operand first and the constant last (any operand order, inline
-//    helpers, float/double locals, a const or non-const float variable for
-//    30: all give `fimul; fmul`), and folds a negation into the constant.
-//  - With the barrier, VC5 keeps `fild size; fadd st,st; fidiv [rate]` and
-//    `fimul [f22]` only when `size` and `rate` are not BOTH loaded before the
-//    `if (!rate) break;` test. Loading `size` after the test gives the
-//    original's x87 sequence instruction for instruction (96.2% overall,
-//    since the size load then sits after the `je` and the sum becomes
-//    `lea ebx,[eax+ecx+1]` with def in ebx). With both loaded before the test
-//    (as the original does) every barrier form tried (cast, float local,
-//    struct member, reference helper, `+ 1.0f`) switches to
-//    `fild rate; fild size; fadd; fxch; fdivp` and `fild f22; fmulp`.
-//  - The original's `mov ebx,eax; inc ebx; add ebx,ecx` sum (time kept in ebx
-//    from the ftol on, which is also what pushes def into ebp) did not appear
-//    for any spelling: `time++; time += f216`, `+ (1 + f216)`, a short or
-//    unsigned short time, a function-scope time, and reusing the flags
-//    parameter all give `lea`.
-//  - The only shape that produced `mov ebx,eax; mov eax,[edi+0x16]; inc ebx;
-//    push 0x36` with def in ebp (the original's registers) was
-//    `int time = (int)(...) + 1;` with `+ def->field_216` moved into the
-//    FUN_0044e730 argument and the object chosen by a `?:` inside the call
-//    expression; but VC5 then adds field_216 after the branch, not before
-//    it, and the x87 block falls back to fild/fdivp.
-// GPT-6.1-sol continuation: verified 97.1% (1980 bytes) with check.py; no
-// MATCH. Remaining code differences are the state-4 timing arithmetic at
-// 0x4123ad-0x41240a (the multiply ordering at 0x4123ec), plus the unresolved jump
-// table relocation at 0x4126f0. Preserve this best source for the next retry.
-// Started by an earlier partial (Claude Opus 5.5, GPT-6, deepseek-v4.1-flash);
-// this version keeps that work and was re-verified by deepseek-v4.1.
-// deepseek-v4.1 session 3: the two remaining state-4 sum spellings
-// `def->field_216 + 1 + (int)(...)` and `(int)(...) + (def->field_216 + 1)`
-// compile byte-identically to the current line, so the integer sum is
-// normalised by VC5 (still 96.8%, same 21-line diff).
-// deepseek-v4.1-flash pass: re-verified 97.1% (1980 bytes) baseline; splitting
-// the state-4 sqrt into a `float sf = (float)sqrt(...)` local before the two
-// multiplies is BYTE-IDENTICAL (same 4 hunks: fmul/fimul order, def in ebx vs
-// ebp, the sum shape, and the jump-table display hunk), so it is not the lever.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6. Names are provisional.
 // "Attacking" order handler of aircraft (VTOL). Interrupts hand over to a
 // "VTOL_SEEKATTACK" order; the order follows its target unit and gives up
 // outside its range. State 0 prepares the order (FUN_0040f200 is defined here
@@ -51,97 +7,26 @@
 // state 6 flies on and, when the unit is below three quarters of its health,
 // sends it to a random repair pad ("VTOL_LANDING").
 //
-// Partial: 97.1% (deepseek-v4.1 session 4), same 1980-byte size. Session 4 fixed
-// BOTH remaining lea-order hunks (0x4121d7, 0x4122b0) by giving cases 1 and 2
-// explicit pointer locals that are declared without an initialiser and then
-// ASSIGNED, with &order->pos assigned before &unit->pos:
-//     Vec3* op; Vec3* up; op = &order->pos; up = &unit->pos;
-// In case 1 they sit before the `if`, in case 2 before the `int dist` hypot, so
-// both are live across the _hypot call; VC5 then materialises the pair in
-// assignment order (lea ebp,[edi+0x22] then lea ebx,[esi+0x6a]) and the earlier
-// right-to-left-looking pair vanished. A single declaration with initialisers
-// does not do this (it is folded away, 96.8%); the declared-then-assigned form
-// is what keeps the value live and orders the leas, and the same form applied
-// to unit->def / size / rate in state 4 changes nothing (97.1% either way).
-// What still differs (checked against build/scratch/0x411f50/ctx.txt):
-//  - 0x4123ad and 0x4123ec: state 4, the turn-time formula. The original keeps
-//    unit->def in ebp (mov ebp,[esi+0x92]) and computes
-//    `(int)(sqrt(size * 2.0 / rate) * 30.0f * unit->type->field_22) + 1 +
-//    def->field_216` as `fmul [30.0]`, `fimul [field_22]`, `inc ebx`,
-//    `add ebx, ecx`; VC5 rewrites our spelling into
-//    `field_216 - (int)(sqrt(...) * field_22 * -30.0f) + 1` (fmul of the -30.0f
-//    constant, `sub ebx, eax`) and puts def in ebx. Earlier passes tried five
-//    rewrites plus eleven more source shapes in build/scratch/0x411f50/micro*.cpp
-//    and varA..varP.cpp: the (int) result in its own int local, that local
-//    passed to an inline helper, the sum split over two statements,
-//    `+ def->field_216 + 1`, `1 + ...`, `f216 + 1 + t`, an `unsigned short`
-//    copy of field_216, `(int)(float)(...)`, an `unsigned` sum and a sum whose
-//    field_216 load is a separate local: every shape materialises the sum in a
-//    local first and every one compiles to the negated -30.0f form. The
-//    positive +30.0f form appears only when the sum is folded into an `lea`
-//    inside a call argument, and the original computes the sum before the
-//    if/else (inc/add before the target test), so that shape cannot be used.
-//    tools/headers.py over all 128 header sets gave 96.6% for every set (64
-//    sets fail to compile without <list>/<vector>), so header state does not
-//    flip it either. Naming the product `float sp = (float)sqrt(size * 2.0 /
-//    rate) * 30.0f;` does flip VC5 to the original's constant-first multiply
-//    order, but it then rewrites fidiv into fdivp/fxch, the field_22 multiply
-//    into fild/fmulp and the sum into a single `lea [eax+ecx+1]`, which is 55
-//    differing lines against 12 here at the same 97.1%; and writing the sum as
-//    `(f216 + 1) - (int)(x * -30.0f)` or as `f216 + (1 - (int)(x * -30.0f))`
-//    compiles to the identical negated bytes, so VC5 normalises the sign and
-//    the association after instruction selection, not from the source spelling.
-//  - 0x4126f0: the switch jump table address still shows as <addr>; check.py
-//    resolves relocations only once the code matches, so this may not be a real
-//    difference.
-//
-// Re-verified by deepseek-v4.1-flash: still 96.8% (1980 bytes), first line
-// credit kept. This session re-ran the N-declarations sweep (nd1..nd24 flat at
-// 96.6%, nd60 down to 93.9%, nd180+ shorter and 83 to 86%) and ~40 more shapes
-// in build/scratch/0x411f50/ (cA..cG, h3..h9, kA..kC, q1..q6): pinning the
-// product in a float local, reordering the two multiply operands, int/double/
-// short/size variants, an inline AngleTo() helper and Vec3* locals for the
-// case-1/2 leas. Every one lands on the same 96.8% bytes. The float order IS
-// reachable in a function whose size/rate are parameters: `float x =
-// (float)sqrt(size * 2.0 / rate) * 30.0f;` then `(int)(x * field_22)` gives the
-// original's `fidiv`/`fmul [30.0]`/`fimul [field_22]` (mf.cpp f3), and a micro
-// reproducing the whole state-4 body gives the original's positive sum when the
-// field_22 multiply becomes `fild`/`fmulp` (micro12 m1/m5/m8/m9/m10). Here every
-// shape that keeps `fidiv` reassociates to `fimul field_22; fmul -30.0`, and
-// every shape that keeps +30.0 turns the field_22 multiply into `fild`/`fmulp`
-// and folds the sum into `lea [eax+ecx+1]`, so the two requirements look coupled
-// to file-wide compiler state (the original source's neighbouring functions),
-// not to the state-4 expression. The def-in-ebp vs def-in-ebx difference is the
-// same swap: original keeps the flags parameter (ebx) through the state-4 test
-// and gives def ebp; VC5 reuses the dead ebx here. Forcing flags live with a
-// named copy (d1..d4) did not move it.
-//
-// deepseek-v4.1 session 5 (same 97.1%, 12 differing lines, size still 1980): the
-// negation fold is a backend decision, not a source spelling. New evidence from
-// build/scratch/0x411f50 (v1..v11, w1..w9, x1..x8, y2..y6, z1..z3, g1..g6,
-// q1..q3):
-//  - Replacing the literal with a non-const file-scope float (v1) is the only
-//    shape found that BLOCKS the negation: the sum then compiles to the positive
-//    `lea ebx,[eax+ecx+1]`, but the FP order stays `fimul` then `fmul` and the
-//    constant becomes a new data symbol, so it cannot match (93.6%).
-//  - Every parenthesised shape that puts the constant multiply first, that is
-//    `(S * 30.0f) * f22` in all cast/local/operand-order spellings (x2, x6, x8,
-//    q1..q3), does give the original's `fmul [30.0f]` first (93.2%), but VC5 then
-//    also reloads rate and turns `fidiv` into `fxch`/`fdivp` and renders the
-//    integer multiply as `fild [esp+0x30]; fmulp st(1)` instead of
-//    `fimul [esp+0x30]`. So the positive product and the `fimul`/`fidiv` pair are
-//    mutually exclusive from this expression.
-//  - Statement splits, compound assignment (`time = f216 + 1; time += t`), an int
-//    or unsigned short copy of field_22, `1 + f216 + t`, `t + f216 + 1`, an
-//    inline helper over size/rate and a helper over all four values all compile
-//    to the identical negated bytes (97.1%).
-//  - def in ebx vs ebp is a CONSEQUENCE of the fold, not its cause: in the
-//    negated form the sum register only becomes live at the `sub`, after def's
-//    last use, so VC5 reuses ebx for def; in the original the ftol result goes to
-//    ebx immediately, conflicts with def and pushes def to ebp.
-// What still differs: the state-4 hunk at 0x4123ad and 0x4123ec (fmul/fimul
-// order, `sub`/`-30.0f` versus `inc`/`add`/`+30.0f`, def in ebx), plus the
-// unresolved switch jump table address at 0x4126f0.
+// MATCH (Claude Opus 5.5, #5142). The last difference was state 4's turn
+// time, `fmul [30.0f]` then `fimul [field_22]` and a positive `inc`/`add`
+// sum. Three things together give it:
+//  - the product `(float)sqrt(size * 2.0 / rate) * 30.0f` goes into a float
+//    local `x`, which stops VC5 moving the constant multiply to the outside
+//    (with the constant outermost it folds the sum's sign into it and gives
+//    `fimul; fmul [-30.0f]` and `sub`);
+//  - the time is `(int)(x * field_22) + 1` and field_216 is added in a
+//    second statement, `time += def->field_216;`. With the whole sum in one
+//    statement, or with `time += 1 + field_216`, VC5 evaluates the division's
+//    operands the other way round (`fild rate; fild size; fxch; fdivp`),
+//    multiplies field_22 with `fild; fmulp` and folds the sum into `lea`;
+//    with the int product in its own local (`t + 1 + field_216`) the x87
+//    part is right but the sum is still one `lea`;
+//  - size and rate are still loaded before the `if (!rate) break;` test.
+// In small test functions the same x87 shape flips with code after the
+// expression (a test and call between the sum and its use also gave the fdivp
+// form), so it is decided by the integer sum's shape, not by the float part.
+// Cases 1 and 2 need their pointer locals declared without an initialiser and
+// assigned &order->pos first, which orders the two `lea`s (deepseek-v4.1).
 #include <list>
 #include <windows.h>
 #include <math.h>
@@ -363,7 +248,9 @@ int __stdcall FUN_00411f50(Unit* unit, Order* order, unsigned int flags)
         int rate = g_game->field_391e9->field_d3c;
         if (!rate)
             break;
-        int time = (int)((float)sqrt(size * 2.0 / rate) * 30.0f * unit->type->field_22) + 1 + def->field_216;
+        float x = (float)sqrt(size * 2.0 / rate) * 30.0f;
+        int time = (int)(x * unit->type->field_22) + 1;
+        time += def->field_216;
         Class_0044e2d0* obj;
         if (order->target.owner)
             obj = (Class_0044e2d0*)new Class_0044e190(order, order->target.owner);

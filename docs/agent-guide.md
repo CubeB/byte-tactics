@@ -1563,7 +1563,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   helper's last `return` falls through to its end, the caller keeps
   `mov eax, K; test eax, eax; je`. If the original has no such test, the code
   was not a helper returning a flag. A helper whose value the caller returns
-  directly () leaves nothing (#5172).
+  directly (`int r = Helper(); return r;`) leaves nothing (#5172).
 - **Several `new` branches sharing a tail**: an if/else-if chain that assigns
   one pointer, followed by one shared call, merges the constructor tails the
   way the original does; separate `if (...) { ...; return 3; }` blocks merge

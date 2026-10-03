@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by claude-opus-5-5. re-verified by GPT-6. Names are provisional.
 //
 // Builds the "lens" displacement frame that 0x420620 asks for with
 // (22, 22, 8): a GAF-style frame header with two w*h buffers of 16-bit cells.

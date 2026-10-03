@@ -31,9 +31,10 @@
 //  * the `mov cx, word ptr [esi + 0x202]` of the first flag block sits after
 //    `mov dword ptr [esi + 0x40], ebx` instead of between the scratch[0] and
 //    scratch[1] stores. Reading `d->videoFlags` into an `unsigned short`
-//    before the scratch stores does move that load to the original's offset,
-//    but it also swaps the two values' registers in that block (videoFlags
-//    gets eax, the flag word ecx), which costs more than it gains (91.1%).
+//    before the scratch stores does move that load to the original's offset
+//    (tried at all 14 statement boundaries), but it also swaps the two
+//    values' registers in that block (videoFlags gets eax, the flag word
+//    ecx), which costs more than it gains (91.1%).
 // Leads from earlier attempts, all still true:
 //  * `Flags_4b5980* fl = &d->flags;` declared just before the no_video clear
 //    is what keeps MSVC from folding the bit-11 clear and the bit-10 update
@@ -221,6 +222,9 @@ int __stdcall FUN_004b5980(App_4b5980* d)
     } else {
         d->obj_c4 = 0;
     }
+    // Written as the mask rather than `bits.has_c0` on purpose: the mask is
+    // what keeps the bit tests that follow in the original's dl/al/cx/dl
+    // cycle and lets `d->wc.style = 8` stay where it is (see the note above).
     if (d->flags.value & 0x20) {
         FUN_004ba5c0(d);
     }

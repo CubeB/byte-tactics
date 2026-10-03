@@ -1,70 +1,41 @@
-// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-opus-5-5, checked by GPT-6. Names are provisional.
-// #5138 (no code change; about 300 variants scored, C2 read with
-// tools/c2prio.py). Why the prologue resists, in C2's terms: in the
-// original only the camera's z is a register candidate across the copy
-// (kept in edx, and the x delta's scratch has to fall back to ebx), while x
-// is copied through the eax/ecx/edx rotation and re-read from its slot.
-// Every spelling here gives the opposite. With the union, C2 builds a
-// two-reference candidate for v.v[0] only (copy and delta), never for
-// v.v[2]; with a plain struct (int x, y, z) it builds both at equal
-// priority (56) and colours the one whose copy load comes first, but z still
-// ends in memory when it goes first (copy order z, y, x). Tried and inert or
-// worse: all 6 member-copy orders x 3 delta orders, block copy, memcpy,
-// copy-initialisation, copying through the Fixed view, struct-of-unions,
-// operator=, a delta local (placed in its own slot, 75%), deltas through
-// pointers, references and inline helpers, taking the parameter's address,
-// /Gi. The member-read prologue (cv = v; v.v[0] = model->owner->pos_x -
-// v.v[0]; ...) is still the right shape for everything after it: 97.2%
-// ignoring jump targets, with only the prologue and the b3 arm's `add`
-// differing; the permuter (23 minutes from that form) only re-found the
-// empty do/while for the add.
-// GPT-6 retry (#5025): checkall.py confirms the retained 90.1% / 1494-byte
-// version. The earlier pass notes already cover the measured prologue and
-// register-allocation alternatives.
-// Rechecked for issue #5179 on 2026-10-03; the same 90.1% source remains best.
-// GPT-6 retry (#5221): rechecked at 90.1% (1494 B); the prologue order, one
-// g_game load/hoist and the b3 add destination remain the only code differences.
-// #5270 Codex retry: independently re-confirmed 90.1%; no new source shape
-// was tested because the file already records the prologue and allocator sweeps.
+// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-opus-5-5, checked by GPT-6, finished by claude-opus-5-5. Names are provisional.
+// Draws a model relative to the camera position `v` (the 16.16 vector the
+// callers pass by value), then its attached units.
 //
-// Partial, 90.1% (1494 bytes against 1506; issue #4924 took it from 87.6%).
-//
-// WHAT CHANGED IN #4924 (each measured):
-//  1. The b30 arm's bias is an if/return helper (`team_bias`): with it the
-//     whole b30 arm matches (the original loads this->bitmap into edx between
-//     model->owner and ->field_92). The other two sites keep the ternary
-//     `shade_bias`; using team_bias there costs 4 to 5 points at each.
-//  2. With 1, the second half's altitude test can be written inline,
-//     `model->owner->field_a6 != 0`, which gives the original's
-//     `cmp word ptr [ecx + 0xa6], 0; jne` and no longer rotates the rest. The
-//     old unit_has_altitude helper (setne) is gone.
-//  3. The prologue copies v with `cv = v` and the deltas read the owner's
-//     position through `int* op = &model->owner->pos_x`, the same idiom the
-//     unit loop below uses. That is 90.1% on the checker.
-// STILL DIFFERING:
-//  * Prologue. The original loads the cv copy as x, y, z into eax, ecx, edx,
-//    re-reads v.x from its slot (`sub ebx, [esp + 0x3c]`) and keeps v.z in
-//    edx; the call argument is a separate `lea ecx, [eax + 0x6a]`, so the
-//    deltas read `model->owner->pos_x` directly, not through op. Written that
-//    way (cv = v, member reads) every half below matches, 97.2% ignoring jump
-//    targets, but MSVC loads the copy as y, z, x, keeps x and re-reads z: 2
-//    bytes longer and 86.3% on the checker, so it is not the committed form.
-//    Copy orders x update orders (42), `cv = v`, memcpy, a struct-of-unions
-//    and a plain int[3] vector, reading through cv, `-v + pos`, a pointer to
-//    v, an inline helper taking v by reference: every one compiles to one of
-//    those two prologues.
-//  * With the op-pointer prologue MSVC also gives both halves the same
-//    `mov eax, [g_game]; mov ax, [eax + 0x37f06]` head and hoists it above the
-//    `jne`; with the member-read prologue the first half uses ecx as in the
-//    original and nothing is hoisted.
-//  * The b3 arm adds the bias into its own register (`add ecx, eax`) where the
-//    original adds into diff's (`add eax, ecx`). Every spelling of the sum,
-//    a shared function-scope diff and the bias as a local are identical;
-//    permute.py's ratio output fixed it only with an empty `do {} while (0)`
-//    around the call plus a self-assignment in the first half's piece loop
-//    (88.5%, not kept).
-//  * Header sets (tools/headers.py, 256 sets) and compiling 0x459170 first
-//    change nothing.
+// MATCH (#5309, from 90.1%). The last two changes:
+//  * The camera copy reads the argument list, not `v` itself:
+//    `cv = *(Vec3_459200*)(&param_2 + 2);`. The original loads v.x twice
+//    (for the copy, then `sub ebx, [esp+0x3c]` for the x delta) but keeps
+//    the copy's z in edx for the z delta (`sub eax, edx`). With any copy
+//    that MSVC sees as a read of `v` (`cv = v`, member copies in every order,
+//    memcpy, a pointer to v, inline copy helpers by pointer, reference or
+//    value: several hundred spellings over five passes) the copy's x load becomes
+//    a common subexpression of the x delta's read, and tools/c2prio.py shows
+//    both x and z as 2-reference candidates at the same priority; register
+//    pressure at the x delta (owner, the lea'd argument, bmp, this, model)
+//    then makes C2 split z, the one live through it, and keep x in edx.
+//    Read through another argument's address, the copy's loads belong to
+//    that argument, so the x delta reads v.x afresh and the z delta, which
+//    reads the copy (`cv.v[2]`), gets the copy's own load forwarded in edx.
+//    Anchored on `model` (`&model + 1`) the registers are right but the
+//    owner load stays below the copy's stores (99.8%); a struct view of the
+//    whole argument list or a memcpy from `&param_2 + 2` moves the loop
+//    counters out of param_2's slot (98.7%). Writing the deltas into an
+//    uninitialised local that shares v's dead slot gives the same prologue
+//    code, but then f and d take that slot and the frame shrinks by 4, so
+//    the deltas do live in `v` itself.
+//  * The z delta reads the copy and the x delta reads `v`; reading both from
+//    `v` loads x early into ebx and z from memory (87.1%).
+//  * One empty `do {} while (0);` after `diff += shade_bias(model)` in the b3
+//    arm: it emits no code but ends the code generator's block there, so the
+//    sum goes into diff's register (`add eax, ecx`) as in the original. It is
+//    most likely a debug macro that compiled to nothing (as in 0x459830 and
+//    0x459c70); without it this is 99.6%.
+// Earlier levers that still matter (#4924): the b30 arm's bias is the
+// if/return helper `team_bias` and the other two sites keep the ternary
+// `shade_bias`; the second half's altitude test is the inline
+// `model->owner->field_a6 != 0`; the attached-unit deltas read the owner's
+// position through `int* op` (the original's `add eax, 0x6a` base).
 // BUG/ODDITY (kept as found): the far-sprite test is `field_a6 != 0 || dx >=
 //   field_1427f`, so the sprite is drawn when the unit is off the ground OR
 //   in view range, which reads as if it should be AND. Both halves have it.
@@ -169,9 +140,16 @@ struct Pos_459200 {
     Fixed_459200 z;
 };
 
+struct Ints_459200 {
+    int x;
+    int y;
+    int z;
+};
+
 union Vec3_459200 {
     int v[3];
     Pos_459200 p;
+    Ints_459200 i;
 };
 #pragma pack(pop)
 
@@ -222,12 +200,13 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
 
     Vec3_459200 cv;
     Vec3_459200 d;
-    cv = v;
-    int* op = &model->owner->pos_x;
-    v.v[0] = op[0] - v.v[0];
-    v.v[1] = op[1];
-    v.v[2] = op[2] - v.v[2];
-    int altitude = FUN_00485070((Pos_459200*)op);
+    // The camera copy, read through the argument list rather than `v`: see
+    // the notes at the top.
+    cv = *(Vec3_459200*)(&param_2 + 2);
+    v.v[0] = model->owner->pos_x - v.v[0];
+    v.v[1] = model->owner->pos_y;
+    v.v[2] = model->owner->pos_z - cv.v[2];
+    int altitude = FUN_00485070((Pos_459200*)&model->owner->pos_x);
     int z = v.p.z.whole - (v.p.y.whole >> 1) + 0x20;
     int y = v.p.z.whole - (altitude >> 1) + 0x20;
     short dx = v.p.y.whole;
@@ -307,6 +286,7 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
                                 int diff = g_game->field_1427f - dx;
                                 if (diff > 0) {
                                     diff += shade_bias(model);
+                                    do {} while (0);    // no code: see the notes at the top
                                     FUN_004ba1b0(this->bitmap, diff);
                                 }
                                 FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x85, y);

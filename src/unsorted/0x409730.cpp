@@ -2,6 +2,7 @@
 // #5409 Codex retry: 99.8% remains best. The lone store SIB needs the
 // original's lost symbol-prefix state; real headers and prior source probes
 // do not recreate it.
+// #5424 Codex retry: re-confirmed 99.8%; only the 0x4099f6 store SIB differs.
 // Claude Opus 5.5 (#5374, 2026-10-04): still 99.8%, file unchanged except this
 // note. What decides the store SIB at 0x4099f6, from dummy externs at five
 // positions and a binary search on the window edges (store byte only):

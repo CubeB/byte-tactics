@@ -2,6 +2,7 @@
 // #5409 Codex retry: 98.5% remains best. The MapRange load order, angle/d
 // schedule, and first _allmul call still cannot match together with natural
 // source and symbol states.
+// #5424 Codex retry: re-confirmed 98.5%; all three scheduling differences remain.
 // Claude Opus 5.5 (#5374, 2026-10-04): still 98.5%, file unchanged except this
 // note.
 // - Hunk 3 (first _allmul) follows C2's own symbol ids alone: 59700 to 60100

@@ -6,6 +6,8 @@
     uv run tools/c2prio.py 0x47d2e0 --blocks bit,los   # where each priority comes from
     uv run tools/c2prio.py 0x424c00 --inline           # also the /Ob2 inline decisions
     uv run tools/c2prio.py 0x424c00 --symbols g_game   # also symbol ids and the file's symbol count
+    uv run tools/c2prio.py 0x4c8bb0 --frame            # also the frame layout: counts, slots, offsets
+    uv run tools/c2prio.py 0x4c8bb0 --rotation         # also the expression temporaries' rotation
 
 This compiles the function's file with the real back end (C2.EXE) running under
 a debugger and reads the global register allocator's own data
@@ -55,6 +57,17 @@ declaration in the file with one counter (an unused `extern int` takes 1, a
 prototype 2, a one-member struct 7; there is no separate count of types), and
 some register and operand-order ties follow bits of these ids
 (docs/c2-regalloc.md, "Symbol ids").
+
+--frame adds C2's frame layout, which runs after the allocator: the locals left
+in memory in C2's list order with each one's size and reference count and the
+slot it opens or joins, then the slots in their final order with their offsets
+from the bottom of the locals (docs/agent-guide.md, "Get the frame layout from
+the reference counts"). A compiler temporary's spill home is named after its
+candidate.
+
+--rotation adds the expression temporaries in code-generation order, each with
+the rotating pointer before it, the register it got and the rule that chose it
+(docs/c2-regalloc.md, "Temporaries").
 
 How: a copy of C2.EXE under build/c2prio/<run>/ has `jmp $` at its entry
 point. CL runs that copy (/B2), winedbg attaches to it with its gdb server, and
@@ -117,6 +130,39 @@ BLOCK_WK = 0x40F5F5
 INL_FUNC = 0x42491E
 INL_SITE = 0x424EEF
 INL_DONE = 0x424F95
+
+# The frame layout (FUN_0043f93b), for --frame. It runs after the allocator,
+# during code generation. FRAME_PACK is FUN_00440cbd, called once per local in
+# the list order (size, then reference count): ecx is the symbol (+0 storage
+# record, name at +0x18; +4 kind; +0x20 size; +0x34 reference count; +0x38 its
+# number in the slots' member sets) and edx the frame size so far. It joins the
+# newest earlier slot that is at least half its size and does not interfere
+# with it, or opens a new slot. At FRAME_PACKED (0x43f9dd) every local is
+# packed and [esp+0x10] is the total; above 0x80 bytes C2 then re-sorts the
+# slots with FUN_00459eb7 (by refs * 1000 / size, larger first, unstable), and
+# FRAME_LAID (0x43f9f1) follows either way. The slots are 20-byte entries at
+# [SLOTS], from index [SLOT_LO] to [SLOT_COUNT] - 1: +0 the member set (a bit
+# set over the symbols' numbers), +4 the interference set, +8 size, +0xc
+# reference count. Slot SLOT_LO is nearest esp.
+FRAME_PACK = 0x440CBD
+FRAME_PACKED = 0x43F9DD
+FRAME_LAID = 0x43F9F1
+SLOTS = 0x4910B8
+SLOT_LO = 0x4910B0
+SLOT_COUNT = 0x4910C0
+FRAME_SYMS = 0x4910B4     # the symbols by their number in the member sets
+
+# Expression temporaries (regasg.c's FUN_00435c37, docs/c2-regalloc.md
+# "Temporaries"), for --rotation. TEMP is its entry: edx is the tuple (its line
+# at +0x10), ROT_PTR the rotating pointer into the register table at 0x491100
+# (eax, ecx, edx, then the others). TEMP_REG is FUN_00435f38, which takes the
+# register chosen in ecx; its return address says which of FUN_00435c37's
+# rules chose it.
+TEMP = 0x435C37
+TEMP_REG = 0x435F38
+ROT_PTR = 0x491120
+TEMP_ROUTES = {0x435CF9: "rotation", 0x435DB5: "hint", 0x435E74: "first free",
+               0x435E87: "spill", 0x435E22: "spill", 0x435EEB: "spill"}
 
 # Symbol ids, for --symbols. The front end (C1XX) numbers every symbol it
 # declares, in one counter for the whole file, and writes the number into the
@@ -320,15 +366,17 @@ def tracer() -> None:
                 cur["ids"] = symbol_ids(u32(u32(fn) + 0x28))
             out["functions"].append(cur)
             for cid, sym in hashed():
-                cur["events"].append({"e": "new", "id": cid, "parent": None, "leaf": leaf(sym)})
+                cur["events"].append({"e": "new", "id": cid, "parent": None, "leaf": leaf(sym),
+                                      **({"sym": sym} if cfg.get("frame") else {})})
 
     def on_new():
         c = reg("eax")
         site = u32(reg("esp"))
         parent = u32(reg(PIECE_SITES[site]) + 0x1C) if site in PIECE_SITES else None
         raw = rd(c, 0x20)
+        sym = struct.unpack_from("<I", raw, 0)[0]
         cur["events"].append({"e": "new", "id": struct.unpack_from("<I", raw, 0x1C)[0], "parent": parent,
-                              "leaf": leaf(struct.unpack_from("<I", raw, 0)[0])})
+                              "leaf": leaf(sym), **({"sym": sym} if cfg.get("frame") else {})})
 
     def on_ref(c, rw):
         # FUN_00416a8d's locals: the tuple at [esp+0x14], its number at [esp+0x20].
@@ -458,6 +506,82 @@ def tracer() -> None:
         inline_hooks = [InlineHook(addr, fn) for addr, fn in
                         ((INL_FUNC, on_inl_func), (INL_SITE, on_inl_site), (INL_DONE, on_inl_done))]
 
+    # --frame and --rotation: the frame layout and the expression temporaries
+    # come after the allocator, in code generation, so these hooks are on from
+    # the wanted function's END until the next function's REFS.
+    post = {"fn": None, "temps": []}
+
+    def frame_slots():
+        base, lo, count = u32(SLOTS), u32(SLOT_LO), u32(SLOT_COUNT)
+        slots = []
+        table = u32(FRAME_SYMS)
+        for i in range(count if 0 <= count < 4096 else 0):
+            members, _, size, refs, _ = struct.unpack("<5I", rd(base + 20 * i, 20))
+            nums = bitset(members) or []
+            names = []
+            for m in nums:
+                st = u32(u32(table + 4 * m)) if table else 0
+                names.append(cstr(u32(st + 0x18)) if st else None)
+            slots.append({"size": size, "refs": refs, "members": nums, "names": names, "own": i >= lo})
+        return slots
+
+    def on_frame_pack():
+        s = reg("ecx")
+        raw = rd(s, 0x3C)
+        st = struct.unpack_from("<I", raw, 0)[0]
+        post["fn"]["events"].append({"e": "fpack", "sym": s, "kind": raw[4],
+                                     "name": cstr(u32(st + 0x18)) if st else None,
+                                     "size": struct.unpack_from("<I", raw, 0x20)[0],
+                                     "refs": struct.unpack_from("<i", raw, 0x34)[0],
+                                     "num": struct.unpack_from("<I", raw, 0x38)[0], "total": reg("edx")})
+
+    def on_frame_packed():
+        post["fn"]["events"].append({"e": "frame", "phase": "packed", "total": u32(reg("esp") + 0x10),
+                                     "slots": frame_slots()})
+
+    def on_frame_laid():
+        post["fn"]["events"].append({"e": "frame", "phase": "laid", "slots": frame_slots()})
+
+    def on_temp():
+        t = reg("edx")
+        ptr = u32(ROT_PTR)
+        post["temps"].append(len(post["fn"]["events"]))
+        post["fn"]["events"].append({"e": "temp", "line": struct.unpack("<H", rd(t + 0x10, 2))[0],
+                                     "ptr": u32(ptr) if ptr else 0})
+
+    def on_temp_reg():
+        route = TEMP_ROUTES.get(u32(reg("esp")))
+        if route is None or not post["temps"]:
+            return
+        e = post["fn"]["events"][post["temps"].pop()]
+        ptr = u32(ROT_PTR)
+        e.update(reg=reg("ecx"), route=route, after=u32(ptr) if ptr else 0)
+
+    class PostHook(gdb.Breakpoint):
+        """Like Hook, for code generation after the wanted function's allocation."""
+
+        def __init__(self, addr, fn):
+            super().__init__(f"*{addr:#x}", internal=True)
+            self.fn = fn
+            self.enabled = False
+
+        def stop(self):
+            if post["fn"] is None:
+                return False
+            try:
+                self.fn()
+                return False
+            except Exception:
+                failed.append(traceback.format_exc())
+                return True
+
+    post_hooks = []
+    if cfg.get("frame"):
+        post_hooks += [PostHook(FRAME_PACK, on_frame_pack), PostHook(FRAME_PACKED, on_frame_packed),
+                       PostHook(FRAME_LAID, on_frame_laid)]
+    if cfg.get("rotation"):
+        post_hooks += [PostHook(TEMP, on_temp), PostHook(TEMP_REG, on_temp_reg)]
+
     hooks = [Hook(addr, fn) for addr, fn in handlers.items()]
     block_hooks = [Hook(addr, fn) for addr, fn in block_handlers.items()]
     # Real stops, where the hooks are switched on and off: each function's
@@ -485,9 +609,11 @@ def tracer() -> None:
                 break
             pc = reg("eip")
             if pc == REFS:
+                post["fn"] = None
                 on_refs()
                 first_pass = False
             elif pc == END:
+                post["fn"], post["temps"] = cur, []
                 cur = None
             elif pc == DRIVER:
                 first_pass = cur is not None and not any(e["e"] == "sorted" for e in cur["events"])
@@ -495,6 +621,8 @@ def tracer() -> None:
                 first_pass = False
             for h in hooks:
                 h.enabled = cur is not None
+            for h in post_hooks:
+                h.enabled = post["fn"] is not None
             for h in block_hooks:
                 h.enabled = cur is not None and first_pass
     except Exception:
@@ -502,7 +630,7 @@ def tracer() -> None:
     if failed:
         out["error"] = failed[0]
         try:
-            for h in hooks + block_hooks + inline_hooks:
+            for h in hooks + block_hooks + inline_hooks + post_hooks:
                 h.enabled = False
             gdb.execute("detach", to_string=True)  # let C2 finish without us
         except Exception:
@@ -546,6 +674,12 @@ def host_main() -> None:
     ap.add_argument("--symbols", metavar="NAMES",
                     help="also print the symbol id of each of NAMES (comma-separated globals, functions, "
                          "candidate locals or types) and the file's symbol count")
+    ap.add_argument("--frame", action="store_true",
+                    help="also print C2's frame layout: each local's size and reference count in packing "
+                         "order, the slot it opens or joins, and the slots' final order and offsets")
+    ap.add_argument("--rotation", action="store_true",
+                    help="also print the expression temporaries in code-generation order, with the rotating "
+                         "pointer before each one and the register it gets")
     ap.add_argument("--json", type=Path, help="write the raw trace to this file")
     ap.add_argument("--keep", action="store_true", help="keep the run directory under build/c2prio/")
     args = ap.parse_args()
@@ -642,7 +776,8 @@ def host_main() -> None:
         relay_cmd = " ".join(shlex.quote(a) for a in (sys.executable, me, "--relay", str(port)))
         cfg.write_text(json.dumps({"relay": relay_cmd, "exe": exe.name, "match": match, "out": str(out_json),
                                    "blocks": args.blocks is not None, "inline": args.inline,
-                                   "symbols": args.symbols is not None}))
+                                   "symbols": args.symbols is not None, "frame": args.frame,
+                                   "rotation": args.rotation}))
         g = subprocess.run(["gdb", "-nx", "-q", "-batch", "-x", me],
                            env=dict(env, C2PRIO_CONFIG=str(cfg)), capture_output=True, text=True, timeout=3600)
         (run / "gdb.log").write_text(g.stdout + g.stderr)
@@ -677,6 +812,10 @@ def host_main() -> None:
             if len(fns) > 1:
                 print(f"\nC2 allocated this function {len(fns)} times; run {n + 1}:")
             report(fn, brace, args.trace, args.blocks)
+            if args.frame:
+                print_frame(fn, brace)
+            if args.rotation:
+                print_rotation(fn, brace)
     finally:
         for p in procs:
             if p.poll() is None:
@@ -785,6 +924,7 @@ def model(fn: dict):
         elif k == "new":
             parent = cur.get(e["parent"]) if e["parent"] is not None else None
             c = Cand(e["id"], e["leaf"], parent.root if parent else None)
+            c.sym = e.get("sym")   # the symbol, recorded only with --frame
             if parent:
                 parent.split = True
                 c.root.pieces.append(c)
@@ -1050,6 +1190,94 @@ def print_blocks(events, names: str, show_lines) -> None:
         extra = f" + {b['set']} in C2's set" if b["set"] else ""
         print(f"    B{n:<5} {show_lines(b['lines']):<16} w {b['w']} K {b['K']}{extra}: "
               + ", ".join(f"{label.get(r, '?')} #{r}" for r in refs))
+
+
+def print_frame(fn: dict, brace) -> None:
+    """--frame: C2's frame layout (FUN_0043f93b), read at FRAME_PACK, FRAME_PACKED and FRAME_LAID."""
+    events = fn["events"]
+    packs = [e for e in events if e["e"] == "fpack"]
+    packed = next((e for e in events if e["e"] == "frame" and e["phase"] == "packed"), None)
+    laid = next((e for e in events if e["e"] == "frame" and e["phase"] == "laid"), None)
+    if not packs or packed is None or laid is None:
+        print("\nno frame layout was read for this function (C2 lays out only the locals left in memory)")
+        return
+    by_sym = {}
+    for c in model(fn):
+        for x in [c] + c.pieces:
+            if x.sym is not None:
+                by_sym.setdefault(x.sym, x)
+
+    def label(p, lines=True):
+        if p["name"]:
+            return p["name"][1:] if p["name"].startswith("_") else p["name"]
+        c = by_sym.get(p["sym"])
+        if c is None:
+            return KINDS.get(p["kind"], f"kind {p['kind']}")
+        shown = compress(c.lines if brace is None else [brace - 1 + d for d in c.lines]) if c.lines else ""
+        return f"{describe(c)} #{c.id}" + (f" {shown}" if shown and lines else "")
+
+    names = {p["num"]: label(p) for p in packs}
+    short = {p["num"]: label(p, False) for p in packs}
+    own = [s for s in packed["slots"] if s["own"]]
+    hidden = len(packed["slots"]) - len(own)
+    slot_of = {m: k for k, s in enumerate(own) for m in s["members"]}
+    print("\nframe layout (FUN_0043f93b, in code generation): the locals left in memory in C2's list order "
+          "(size,\nthen reference count, larger first; ties in the order they reached their count). Each "
+          "joins the\nnewest earlier slot that is at least half its size and does not interfere with it, or "
+          "opens a\nnew one (FUN_00440cbd). A temporary is named after the candidate it spills.")
+    print(f"  {'#':>3}  {'local':<36} {'size':>6} {'refs':>4}  slot")
+    opened = set()
+    for n, p in enumerate(packs):
+        k = slot_of.get(p["num"])
+        if k is None:
+            where = "?"
+        elif k not in opened:
+            opened.add(k)
+            where = f"opens S{k}"
+        else:
+            mates = [short.get(m, "?") for m in own[k]["members"] if m != p["num"]]
+            where = f"joins S{k} ({', '.join(mates)})"
+        print(f"  {n:>3}  {label(p):<36.36} {p['size']:>#6x} {p['refs']:>4}  {where}")
+    total = packed["total"]
+    ids = {(s["size"], tuple(s["members"])): k for k, s in enumerate(own)}
+    if total > 0x80:
+        how = (f"the locals total {total:#x}, over 0x80, so C2 re-sorted the slots by\nrefs * 1000 / size, "
+               f"larger first, with an unstable quicksort (FUN_00459eb7)")
+    else:
+        how = f"the locals total {total:#x}, not over 0x80, so the slots keep their packing order"
+    print(f"\nthe slots, nearest esp first: {how}.\nThe offset is from the bottom of the locals; in the body, "
+          f"[esp+N] adds 4 for each register\nthe prologue pushes after reserving them.")
+    print(f"  {'offset':>7} {'slot':>4} {'size':>6} {'refs':>4}  locals")
+    off = 0
+    for s in laid["slots"][hidden:]:
+        k = ids.get((s["size"], tuple(s["members"])))
+        print(f"  {off:>+#7x} {'?' if k is None else f'S{k}':>4} {s['size']:>#6x} {s['refs']:>4}  "
+              + ", ".join(names.get(m, f"#{m}") for m in s["members"]))
+        off += s["size"]
+    if hidden:
+        params = [n[1:] if n and n.startswith("_") else (n or "temp")
+                  for s in packed["slots"][:hidden] for n in s["names"]]
+        print(f"  (C2's slot table starts with {hidden} entr{'ies' if hidden > 1 else 'y'} for the parameters, "
+              f"above the return address: {', '.join(params)})")
+
+
+def print_rotation(fn: dict, brace) -> None:
+    """--rotation: the expression temporaries FUN_00435c37 placed, in order."""
+    temps = [e for e in fn["events"] if e["e"] == "temp"]
+    if not temps:
+        print("\nno expression temporaries were read for this function")
+        return
+    print("\nexpression temporaries in code-generation order (FUN_00435c37; docs/c2-regalloc.md, "
+          "\"Temporaries\"):\nthe rotating pointer (0x491120) before each one, the register it got and the "
+          "rule that chose it.\nrotation: the first free one of eax, ecx, edx from the pointer, which then "
+          "moves past it; hint: the\nregister of a variable it is copied to or from; first free: the first "
+          "free register in table\norder, when the rotation finds none; spill: C2 freed one. Only rotation "
+          "moves the pointer.")
+    print(f"  {'#':>3}  {'line':>5}  {'pointer':<7}  {'register':<8}  {'rule':<10}  pointer after")
+    for n, e in enumerate(temps):
+        line = "?" if not e["line"] else str(e["line"] if brace is None else brace - 1 + e["line"])
+        print(f"  {n:>3}  {line:>5}  {regname(e['ptr']):<7}  {regname(e['reg']) if 'reg' in e else '-':<8}  "
+              f"{e.get('route', 'none'):<10}  {regname(e['after']) if 'after' in e else '-'}")
 
 
 def print_trace(events) -> None:

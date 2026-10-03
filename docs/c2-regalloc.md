@@ -127,6 +127,8 @@ Consequences that agents can use directly:
     uv run tools/c2prio.py 0x47d2e0 --blocks bit,los   # each block's share of a priority
     uv run tools/c2prio.py 0x424c00 --inline           # the /Ob2 inline decisions too
     uv run tools/c2prio.py 0x424c00 --symbols g_game   # symbol ids and the file's symbol count too
+    uv run tools/c2prio.py 0x4c8bb0 --frame            # the frame layout: counts, slots, offsets
+    uv run tools/c2prio.py 0x4c8bb0 --rotation         # the expression temporaries' rotation
 
 It compiles the file with the real C2.EXE under a debugger and prints, for the
 one function, C2's register candidates in the order `FUN_0041bdd7` sorted them,
@@ -220,6 +222,46 @@ vector calls the file's header lists (Patrol's sites start from 1000 - 606 =
 394; units.empty()'s size() gets 302 / 7 = 43 for its 42). Adding the option
 left the default output, `--trace` and `--blocks` the same, line for line, on
 0x4cf570 and 0x47d2e0.
+
+`--frame` prints C2's frame layout (FUN_0043f93b), which runs after the
+allocator, during code generation (the rule is in docs/agent-guide.md, "Get the
+frame layout from the reference counts"). The tool switches these hooks on from
+the function's allocation end until the next function starts. FUN_00440cbd is
+called once per local left in memory, in list order: ecx is the symbol (name
+at `[[ecx]+0x18]`, kind at +4, size at +0x20, reference count at +0x34, its
+number in the slots' member sets at +0x38) and edx the frame size so far. It
+joins the newest earlier slot that is at least half its size and does not
+interfere with it, or opens a new one. At 0x43f9dd the packing is done
+(`[esp+0x10]` is the total), and at 0x43f9f1 it has been re-sorted by
+FUN_00459eb7 (only when the total is over 0x80). The slots are 20-byte entries
+at `[0x4910b8]` from index `[0x4910b0]` to `[0x4910c0]` - 1: +0 the member set,
++4 the interference set, +8 size, +0xc reference count. `[0x4910b4]` maps a
+member number back to its symbol, and the entries before `[0x4910b0]` hold the
+parameters. The tool prints each local in list order with its size, count and
+the slot it opens or joins, then the slots nearest esp first with their offset
+from the bottom of the locals and their members. A compiler temporary's spill
+home is named after its candidate. On 0x4c8bb0 all 16 dword slots and both
+arrays land where the original has them (stackcmp's original column, local
+size 0x7d60), and so do the 14 named slots of the matched 0x4c8760 and the 7 of
+0x4cf570. In 0x4c8bb0 it shows why `y1=vertices[next*4+1]` moves six slots:
+nextVertex drops from 6 references to 3, so dl opens its own slot instead of
+joining nextVertex's.
+
+`--rotation` prints every expression temporary FUN_00435c37 places (see
+"Temporaries" below), in code-generation order, from the same window. At its
+entry edx is the tuple (its line at +0x10) and `[0x491120]` the rotating
+pointer into the register table at 0x491100. FUN_00435f38 receives the
+register chosen in ecx, and its return address gives the rule: 0x435cf9
+rotation (the pointer moves past the register), 0x435db5 hint, 0x435e74 first
+free register in table order (when no scratch register is free; the pointer
+stays), and 0x435e22, 0x435e87 and 0x435eeb spills. On 0x4c8bb0 it shows the
+right walk's two head temporaries (ecx, edx at the `y0=` line) leaving the
+pointer at eax for du, where the original starts at edx. The left walk's
+second head temporary gets esi by the first-free rule and does not move the
+pointer, which is why the two walks, with the same head code, start du on
+different phases. Adding both options left the default output, `--trace`,
+`--blocks`, `--inline` and `--symbols` the same, line for line, on 0x4cf570
+and 0x47d2e0.
 
 ### Symbol ids (`--symbols`)
 

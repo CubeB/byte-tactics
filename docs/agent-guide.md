@@ -247,7 +247,9 @@ variable and let MSVC split it, not a register copy plus a memory copy
 block-scoped ones share with locals dead in their block (a declaration in the
 middle of the body is still function scope). A file that packs its locals into
 one struct can never reproduce any of this. `uv run tools/stackcmp.py <addr>`
-shows which locals sit in the wrong slots.
+shows which locals sit in the wrong slots, and `uv run tools/c2prio.py <addr>
+--frame` prints C2's own packing (each local's count, the slot it joins, the
+slots' order and offsets).
 
 **Get the registers from priority, then the order table.** Also read out of
 C2.EXE (`docs/c2-regalloc.md` has the details, the C2 addresses and the

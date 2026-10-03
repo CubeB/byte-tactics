@@ -1,6 +1,9 @@
 // Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6. Names are provisional.
 // GPT-6 retry: confirmed 98.6%; the single SIB difference remains the base
 // and index order at the inlined erase shift.
+// GPT-6 retry recheck: current main still emits the walker-base SIB. Prior
+// scratch sweeps show the opposite base requires a compiler state this inline
+// erase does not reach, while the standalone destructor twin matches.
 // Retry (deepseek-v4.1-flash, issue 2972): re-confirmed 98.6% (195 bytes both
 // sides). One-byte SIB swap in the inlined erase shift: ours `mov [eax+edx],ebp`
 // vs the original `mov [edx+eax],ebp`; the delta is the literal -4 in edx, and

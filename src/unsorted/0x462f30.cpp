@@ -1,5 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
-// Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%. The class name is
+// Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%.
+// The class name is
 // data/symbols.csv's Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is
 // called through Class_00462d30, its own file's class, and returns Entry_00462d90*.
 //
@@ -29,6 +30,13 @@
 //  * After a failed 0x463790 call the original peeks the ring in both arms
 //    (`if (call) { length = 0; peek } else peek`); written once, MSVC merges them.
 //
+//  * Pass 15: `delete buffer; ... buffer = new char[capacity];` in the receive loop and
+//    `delete entry->field_14; entry->field_14 = new char[length];` in the out-of-order
+//    save, instead of operator delete/new (75.7 -> 76.6 -> 77.6). As in 0x463790 the
+//    operators shift the temporary rotation by one: the grow block's length/capacity
+//    moves and the second receive call's `g_game + 0x14` now use the original's eax,
+//    ecx, edx.
+//
 // Still different:
 //  * entry should live in edi from `entry = 0` after the first loop through the route
 //    (`test edi, edi`, `mov edi, eax` after Find, `lea esi, [edi + 0x18]`). Here the
@@ -40,7 +48,33 @@
 //  * The first loop's found path is a full copy of the memcpy/return; the original
 //    jumps into the end path's copy at `mov edi, [esp + 0x28]` (cross-jumped), and the
 //    `none` block carries the scheduled epilogue. `goto copy_out` shares the code but
-//    puts the src/len moves after the label (66.7%).
+//    puts the src/len moves after the label (66.7%; 70.2% on pass 15's file, 73.3% with
+//    a shared `found:` block taking a tail pointer).
+//
+// Pass 15 notes (tools/c2prio.py, scratch dumps of C2's colouring steps):
+//  * entry is one web from `entry = 0` to the route and is live across region A's
+//    memcpy, so it is only allowed ebx/ebp and gets split. Its big piece (#5, priority
+//    26) loses edi in region A to the e->field_c temporary (priority 28, the
+//    original's `mov edi, [ecx + 0xc]`, so that part is right). The pieces it is then
+//    split into leave the long stretch from `entry = 0` to the route with no
+//    references (spill cost 0), so C2 skips it and net's piece takes edi. The original
+//    must have split it into a piece with references at both ends.
+//  * `if (call) length = 0; src = entry->tail.GetFrame(tick, len);` (the peek written
+//    once) raises that piece to 51, above the temporary, and entry gets edi
+//    everywhere including region A (68.2%). The original's two identical peek copies
+//    jumping to one join look like C2 duplicating a small join block, so the source
+//    may be the single GetFrame; region A would then need something else.
+//  * Loop form: `if (rc != 0) { while (1) { ...; rc = receive(); if (rc == 0) break; } }`
+//    gives the original's latch (`test esi, esi; jne B1; jmp B`) and keeps the error
+//    block after B, but the constant 0 then takes edi through the first half (73.0%).
+//    Replacing either of the loop's two zero compares by a global brings it back
+//    (77.4%), and so does reading the new buffer back through a pointer
+//    (`char** pp = &buffer; if (*pp == 0)`, 79.3%, not plausible, so not used). A
+//    20-minute permuter run reached 79.0% the same way. `while (1)` with the break at
+//    the top cross-jumps the second receive call into the first (77.4%). Measured
+//    before the delete/new change: `for (;;)` with the break at the top is turned into
+//    a rotated while (70.3%), and a switch on rc sorts the cases by value (TOOSMALL
+//    first, 75.5%).
 //
 // Receives the next frame for the local player: first any frame queued in a
 // player's ring whose tick is due, otherwise a saved out-of-order frame or a new
@@ -261,17 +295,16 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
                         goto none;
                     if (rc != (int)0x8877001e)      // DPERR_BUFFERTOOSMALL
                         goto error;
-                    operator delete(buffer);
+                    delete buffer;
                     capacity = length;
                     length = 0;
-                    char* p = (char*)operator new(capacity);
-                    buffer = p;
-                    if (p == 0) {
+                    buffer = new char[capacity];
+                    if (buffer == 0) {
                         capacity = 0;
                         return (int)0x8007000e;
                     }
                     length = capacity;
-                    rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, p, &length);
+                    rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
                 } while (rc != 0);
             }
             if (rc == 0) {
@@ -299,8 +332,8 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
                                         if (entry->field_c <= 0) {
                                             // Out of order: save it in the entry.
                                             if (length > entry->field_10) {
-                                                operator delete(entry->field_14);
-                                                entry->field_14 = (char*)operator new(length);
+                                                delete entry->field_14;
+                                                entry->field_14 = new char[length];
                                                 if (entry->field_14 == 0) {
                                                     FUN_00461170("no memory for allocating saved receive frame\n");
                                                     entry->field_10 = -1;

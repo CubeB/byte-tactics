@@ -1,12 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
-// Rewritten (pass 14, Opus): 75.0% -> 85.2%. Queues one received packet's commands
-// in the ring at +0x10. If frames are already queued, it only re-stamps each of them
-// with the new tick (pop, push) and returns 0. Otherwise it copies the packet into the
-// buffer at +0xc, counts the commands after the 4-byte sequence number (a command is
-// 2..0x2c; 0x2c carries its own 16-bit length, the others' lengths are in the table at
-// 0x512ad8), skips the first n - 0x200 0x2c commands when there are more than 0x200
-// commands, and pushes the rest: spread
-// over up to 30 ticks when a6 is set, all at `tick` otherwise.
+// Rewritten (pass 14, Opus): 75.0% -> 85.2%; pass 15 (Opus): 86.6%. Queues one
+// received packet's commands in the ring at +0x10. If frames are already queued, it
+// only re-stamps each of them with the new tick (pop, push) and returns 0. Otherwise it
+// copies the packet into the buffer at +0xc, counts the commands after the 4-byte
+// sequence number (a command is 2..0x2c; 0x2c carries its own 16-bit length, the
+// others' lengths are in the table at 0x512ad8), skips the first n - 0x200 0x2c
+// commands when there are more than 0x200 commands, and pushes the rest: spread over
+// up to 30 ticks when a6 is set, all at `tick` otherwise.
 //
 // What moved it:
 //  * The ring as a struct with inline Pop and Push (the pop is the same code 0x462f30
@@ -17,24 +17,42 @@
 //    a4/a5 loads and stores around the memcpy (+2 points).
 //  * In the a6 loop's push path, `q += w;` before `remaining -= w;`, so it is not
 //    tail-merged with the 0x2c skip path (+1.7).
-//  * Declaring n, remaining, p in that order (+0.1 over p, remaining, n; the other
-//    orders are 80-81%).
-//  * The tick copy in the a6 path is its own local (x), declared first in the block
-//    and stored to the tick slot (+0.1, and the function comes out at 1040 bytes).
+//  * Declaring n, remaining, p in that order (the other orders are 80-85%).
+//  * The tick copy in the a6 path is its own local (x), stored to the tick slot.
+//  * Pass 15: in the a6 block, i, progress, q and then x defined after the spacing
+//    computation (85.2 -> 86.6). This is what gives the scan its registers (n in ebp,
+//    remaining in edi) and the a6 == 0 loop its registers (left in edi, tick in ebp,
+//    0x200 immediate). Why, from tools/c2prio.py: with this order tick's a6 web
+//    (span, x = tick) overlaps q and takes ebx, so progress takes ebp, and n,
+//    remaining and left (by then allowed only ebp) each run out of registers on their
+//    own and are split one by one (FUN_00439385), which gives the original's scan
+//    and a6 == 0 registers.
+//    With x first (pass 14's order) tick takes esi, progress ebx, and C2 splits n,
+//    remaining, left, this and the constants all at once (FUN_0041ba2b ->
+//    FUN_00437e67); those pieces come out remaining 123, left 44, n -23, so remaining
+//    took ebp for the scan. The order of n, remaining and p acts through the candidate
+//    ids instead: with p, remaining, n the a6 == 0 loop comes out right but n loses a
+//    -10 against -10 tie for edi in the scan (85.0%).
 //
-// Still different, all one register choice: the original colours n before remaining,
-// so n gets ebp for the scan and the a6 loop (reloaded after the push block) and
-// remaining is split (edi in the scan, its stack slot in the a6 loop); here remaining
-// takes ebp and n is split (edi in the scan, memory in the a6 loop). With n in ebp the
-// original's left (= n - 0x200) gets edi in the a6 == 0 loop and tick ebp; here 0x200
-// takes a register there and left stays in memory, which also moves the loop's
-// re-zeroing of edx from the loop head into the latch. Tried without effect: extra
-// reads of n, every order of the three declarations, a for loop, ++n / n += 1,
-// `(remaining -= w) < 0`, int/unsigned i and progress, the a6 path as an inline method
-// (its parameters get new slots), headers, /Gi. A separate counter for the a6 loop
-// (`int k = n;`) gives the original's scan, post-scan and a6 == 0 registers but takes
-// its own slot and changes the requeue loop's constants (78.6%), so the original's
-// counter is n itself; something else lowers remaining's priority there.
+// Still different (37 lines):
+//  * The a6 loop: the original has progress in ebx, x in its slot (+0x2c, loaded into
+//    ebp only for the push block) and n in ebp outside the push block (stored at the
+//    latch, reloaded after the push); here tick's piece and x take ebx, progress ebp,
+//    and n stays in memory there. So the original has tick in esi before the loop
+//    (`mov esi, [esp + 0x2c]; mov ecx, esi`, x stored just before `xor ebx, ebx`),
+//    progress ebx, and x ebp before the split. spacing then lands in +0x34 and c in
+//    +0x38 (here +0x2c and +0x34, since x needs no slot).
+//  * The a6 == 0 loop re-zeroes edx at the loop head (entered with `jmp` past it);
+//    here the `xor edx, edx` sits on the latch path.
+//  * Tried without effect on this: every order of i, progress, q, x (with or without
+//    span/spacing moved), the 6 orders of n, remaining, p crossed with those, the
+//    order of the skip path's three statements and of the push path's tail, x as
+//    unsigned, ++x, x += 1, Push on tick directly (78.6%), a ReadLength inline helper
+//    for the three 0x2c readers, w as int, unsigned or split per branch, while/for/do
+//    forms of the a6 loop, sharing one variable between the requeue count and n or
+//    remaining, /Gi. Pass 14 also tried extra reads of n, ++n / n += 1,
+//    `(remaining -= w) < 0`, int/unsigned i and progress, the a6 path as an inline
+//    method, headers and a separate counter `int k = n;` (78.6%).
 #include <string.h>
 
 void* __cdecl operator new(unsigned int size);
@@ -165,7 +183,6 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
     if (n > 0) {
         int left = n - 0x200;
         if (a6 != 0) {
-            int x = tick;
             int span = tick - field_0;
             if (span > 0x1e)
                 span = 0x1e;
@@ -174,9 +191,10 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
             int spacing = 0x10;
             if (n > span)
                 spacing = (n << 4) / span;
-            unsigned int progress = 0;
             unsigned int i = 0;
+            unsigned int progress = 0;
             char* q = field_c + 4;
+            int x = tick;
             do {
                 unsigned char c = *q;
                 unsigned short w;

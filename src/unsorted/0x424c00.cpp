@@ -1,4 +1,5 @@
-// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free. Names are provisional.
+// fledge-alpha-free: permuter best 77.4% / 1530 bytes (was 69.1% / 1514). What moved it: splitting the Normal tail's loop condition into a helper (Below; removing it drops to 70.4%), splitting the names record loop into do/while with hoisted int j, and int n = ..., k = 0. Still differs: the original reuses ebp as the shared zero and then as `file` across all three tail loops, while ours keeps file in ebx/esi; Below, the do/while, and the found split were the minimal spelling that got the permuter past the register-allocation stall.
 // #4008 deepseek-v4.1-flash (10 min): flat at 69.1% / 1514 bytes. Tested: a Class_004b4ba0* f = file alias for the three tail calls, n declared at function scope, and a live int zero = 0 placed right after the Feature Type Names block feeding the three FUN_004b4800 defaults are all byte-flat. Residual: the original re-zeroes ebp after the names loop so ebp is the shared zero and is then reused for file in all three tail loops; ours keeps file in ebx/esi and rematerialises the zero in edi.
 // #3595 deepseek-v4.1-flash (10 min): re-baselined 69.1%, 1514 bytes. Flat at
 // 69.1: a function-scope int zero = 0 feeding the three FUN_004b4800 defaults,
@@ -275,9 +276,13 @@ public:
 
     ~vector()
     {
-        _Destroy(_First, _Last);
-        operator delete(_First);
-        _First = 0, _Last = 0, _End = 0;
+        iterator* pf = &_First;
+        iterator* pl = &_Last;
+        _Destroy(*pf, *pl);
+        operator delete(*pf);
+        *pf = 0;
+        *pl = 0;
+        _End = 0;
     }
 
 protected:
@@ -375,9 +380,7 @@ void* __stdcall FUN_00423c50(Cell_00424c00* cell, unsigned short feature, void* 
 static inline unsigned short FindName(char* name)
 {
     for (int i = 0; i < g_game->featureCount; i++) {
-        if (_strcmpi(name, g_game->features[i].name) == 0) {
-            return (unsigned short)i;
-        }
+        if (_strcmpi(name, g_game->features[i].name) == 0) return (unsigned short)i;
     }
     return 0xffff;
 }
@@ -399,22 +402,24 @@ static inline void FreeFeatureList()
     DAT_00511fb4 = 0;
 }
 
+static inline bool Below(int k, int n) { return k < n; }  // loop test as an inline helper: 77.4% with it, 70.4% written inline
+
 // FUNCTION: 0x424c00
 void __stdcall FUN_00424c00(Class_004b4ba0* file)
 {
+    int j;
     ((Class_004b4560*)file)->FUN_004b4560("Features");
     std::vector<unsigned short> remap;
     FUN_004222e0();
-    if (file->FUN_004b4ba0("Feature Type Names")) {
+    int found = file->FUN_004b4ba0("Feature Type Names");
+    if (found) {
         int count = ((Class_004b4bf0*)file)->FUN_004b4bf0() / sizeof(FeatureName_00424c00);
         remap.resize1(count, 0);
         std::vector<FeatureName_00424c00> names(count);
         ((Class_004b4c80*)file)->FUN_004b4c80(names.begin(), count * (int)sizeof(FeatureName_00424c00));
-        for (int i = 0; i < count; i++) {
-            if (i < g_game->featureCount && _strcmpi(names[i].name, g_game->features[i].name) == 0) {
-                remap._First[i] = i;
-            } else {
-                int j;
+        int i = 0;
+        if (i < count) do {
+            if (!(i < g_game->featureCount && _strcmpi(names[i].name, g_game->features[i].name) == 0)) {
                 for (j = 0; j < g_game->featureCount; j++) {
                     if (_strcmpi(names[i].name, g_game->features[j].name) == 0) {
                         remap._First[i] = j;
@@ -423,19 +428,19 @@ void __stdcall FUN_00424c00(Class_004b4ba0* file)
                 }
                 remap._First[i] = FeatureIndex(names[i].name);
             found:;
-            }
-        }
+            } else remap._First[i] = i;
+        } while (((i++), (i < count)));
     } else {
         remap.resize2(g_game->featureCount, 0);
-        for (int i = 0; i < g_game->featureCount; i++)
-            remap._First[i] = i;
+        int i = 0;
+        for (; i < g_game->featureCount; i++) remap._First[i] = i;
     }
     FUN_00422ea0();
     FreeFeatureList();
 
-    int n = ((Class_004b4800*)file)->FUN_004b4800("Number of Normal Features", 0);
+    int n = ((Class_004b4800*)file)->FUN_004b4800("Number of Normal Features", 0), k = 0;
     file->FUN_004b4ba0("Normal Features");
-    for (int k = 0; k < n; k++) {
+    for (; Below(k, n); k++) {
         Normal_00424c00 rec;
         ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Normal_00424c00));
         if (((Class_004b4c80*)file)->FUN_004b4c80(&rec, sizeof(Normal_00424c00)) >= sizeof(Normal_00424c00)) {
@@ -465,6 +470,7 @@ void __stdcall FUN_00424c00(Class_004b4ba0* file)
                 break;
             }
             Spot_00424c00* s = &g_game->spots[c->spot];
+
             s->damage = rec.damage;
             s->frame = rec.frame;
             s->animBits = rec.bits & 0xf0;

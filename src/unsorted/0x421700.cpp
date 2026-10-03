@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free. Names are provisional.
 // #4008 deepseek-v4.1-flash (10 min): flat at 71.7% / 1759 bytes. Tested and rejected: grouping the ab/n declarations before the two assignments (flat), a single temp for the two o->verts[k] / o->verts[7-k] stores regresses to 64.4 / 1751, and the !param->scale and for-init k spellings are flat. Residual unchanged: the 0xa8 frame against 0x90 and the nine scaled float x87 load schedule.
 // #3595 deepseek-v4.1-flash (10 min): re-baselined 71.7%, 1759 bytes. Flat at
 // 71.7: hoisting the ni declaration next to v, and declaring n before ab. The
@@ -265,29 +265,29 @@ void __stdcall FUN_00421700(Header_00421700* param)
                 o->verts[7 - k] = verts[desc->prims[i].vindex[k]];
             }
             Vec3_00421700* v = o->verts;
-            float ax = v[0].x * (1.0f / 65535.0f);
-            float ay = v[0].y * (1.0f / 65535.0f);
-            float az = v[0].z * (1.0f / 65535.0f);
-            float bx = v[1].x * (1.0f / 65535.0f);
-            float by = v[1].y * (1.0f / 65535.0f);
-            float bz = v[1].z * (1.0f / 65535.0f);
-            float cx = v[2].x * (1.0f / 65535.0f);
-            float cy = v[2].y * (1.0f / 65535.0f);
-            float cz = v[2].z * (1.0f / 65535.0f);
+            Vec3f_00421700 b, a, c;
+            a.x = v[0].x * (1.0f / 65535.0f);
+            a.y = v[0].y * (1.0f / 65535.0f);
+            a.z = v[0].z * (1.0f / 65535.0f);
+            b.x = v[1].x * (1.0f / 65535.0f);
+            b.y = v[1].y * (1.0f / 65535.0f);
+            b.z = v[1].z * (1.0f / 65535.0f);
+            c.x = v[2].x * (1.0f / 65535.0f);
+            c.y = v[2].y * (1.0f / 65535.0f);
+            c.z = v[2].z * (1.0f / 65535.0f);
             Vec3f_00421700 ab;
-            ab = FUN_004b6eb0(Vec3f_00421700(bx, by, bz), Vec3f_00421700(ax, ay, az));
+            ab = FUN_004b6eb0(Vec3f_00421700(b.x, b.y, b.z), Vec3f_00421700(a.x, a.y, a.z));
             Vec3f_00421700 n;
-            n = FUN_004b6ff0(FUN_004b6f70(FUN_004b6eb0(Vec3f_00421700(bx, by, bz), Vec3f_00421700(cx, cy, cz)), ab));
+            n = FUN_004b6ff0(FUN_004b6f70(FUN_004b6eb0(Vec3f_00421700(b.x, b.y, b.z), Vec3f_00421700(c.x, c.y, c.z)), ab));
             d->vel.x += FUN_004b6c30(200) * (short)(n.x * 512.0f);
             d->vel.z -= FUN_004b6c30(200) * (short)(n.z * 512.0f);
-            Vec3_00421700 ni;
-            ni.x = (int)(n.x * 65535.0f);
-            ni.y = (int)(n.y * 65535.0f);
-            ni.z = (int)(n.z * 65535.0f);
+            int nx = (int)(n.x * 65535.0f);
+            int ny = (int)(n.y * 65535.0f);
+            int nz = (int)(n.z * 65535.0f);
             for (k = 0; k < 4; k++) {
-                o->verts[k + 4].x -= ni.x * param->scale;
-                o->verts[k + 4].y -= ni.y * param->scale;
-                o->verts[k + 4].z -= ni.z * param->scale;
+                o->verts[k + 4].x -= nx * param->scale;
+                o->verts[k + 4].y -= ny * param->scale;
+                o->verts[k + 4].z -= nz * param->scale;
             }
             int sx = 0;
             int sy = 0;

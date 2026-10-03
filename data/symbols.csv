@@ -1400,7 +1400,7 @@ address,name
 0x46e5c0,Class_0046e5c0::FUN_0046e5c0
 0x46e5e0,Class_0046e5e0::~Class_0046e5e0
 0x46e610,Class_0046e610::~Class_0046e610
-0x46e640,Vec_0046d6c0::insert
+0x46e640,std::H::HV?$allocator::?$vector::insert
 0x46e870,UElem_0046faf0::?$vector::_Destroy
 0x46e880,Class_0046e880::FUN_0046e880
 0x46e890,IURect_0046e160::IU?$pair::?$_Tree::erase
@@ -1555,11 +1555,11 @@ address,name
 0x475840,Class_00475840::FUN_00475840
 0x475870,UElem_00475880::?$vector::_Destroy
 0x475880,UElem_00475880::?$vector::_Ucopy
-0x4758c0,List_004737c0::FUN_004758c0
-0x475bd0,Class_00475bd0::FUN_00475bd0
-0x475ef0,List_00474880::FUN_00475ef0
-0x476210,Class_00476210::FUN_00476210
-0x476490,Class_00476490::FUN_00476490
+0x4758c0,UClass_00473590::?$vector::insert
+0x475bd0,URecord_00475bd0::?$vector::insert
+0x475ef0,UElement_00475ef0::?$vector::insert
+0x476210,UElem_00476210::?$vector::insert
+0x476490,UElem_00476490::?$vector::insert
 0x476710,UElem_00475880::?$vector::_Ufill
 0x476740,FUN_00476740
 0x4767e0,FUN_004767e0

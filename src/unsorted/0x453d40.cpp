@@ -51,6 +51,46 @@
 // Remaining: the first block still wants g_game in edx with an immediate
 // store and `messages` at [esp+0x70] (ours [esp+0x3c]); the frame slot
 // order is otherwise right in the 68.7 variant and only messages/to move.
+//
+// claude-opus-5-5 (#4992): still 68.9. Five permuter leftovers removed
+// (tmp8, tmp5/tmp7, tmp1, tmp4/tmp2); the object is byte-identical. What was
+// learned, for the next attempt:
+//  - The 68.9 vs 62.9 step is not about <memory.h>: it repeats with period 16
+//    in the number of symbols declared before the function (a sweep of 0..1023
+//    dummy externs gives 68.9 for n mod 16 in {0, 4}, 62.9 for {8, 12}), and
+//    the only code it changes is case 35's `allies[a->index][b->index]` store
+//    (4 bytes), which shifts every later jump target. Calling the method on
+//    &DAT_00513000 directly and deleting inl1 flips it to 62.9 the same way,
+//    which is why inl1 stays. With jump targets ignored the
+//    file is 83.4%, and that is the number to watch.
+//  - The frame slot order does not depend on symbol ids or declaration order
+//    (the 0..1023 sweep never moved a slot; swapping `int a, b, c, d` in case
+//    5 changes nothing). The /Fa listing's local order is a hash (symbol id
+//    mod 1024), not the sort input. Equal-key locals come out in the order of
+//    the CRT quicksort (pivot lo + (n-1)/2, no insertion cutoff, comparator
+//    returning 1 on ties) applied to the locals in first-reference order:
+//    inverting that permutation on our own layout gives a strictly ascending
+//    first-reference run for 21 consecutive counters, and a scratch function
+//    with 46 inlined lookups reproduces exactly. The keys are not the final
+//    reference counts (temps with 3, 4 and 6 references tie), so the bottom
+//    and top of the frame could not be modelled; build/scratch tools fmap.py,
+//    model2.py, tiefit.py from this attempt are the starting point.
+//  - Opus's 63.3 file (273c1005) is structurally closer than this one: with
+//    frame operands and registers masked it is 96.2% to this file's 95.8%.
+//    Fixing structure there reshuffles the frame and lowers check.py, so each
+//    fix below was scored with frame and registers masked:
+//      * `if (player->state != 1 && player->state != 2 && player->state != 3)
+//        continue;` replaces inl0 (the bool helper adds a setcc block);
+//      * case 5 is `int a, b, c, d; FUN_00451090(name, &d, &c, &b, &a);` with
+//        `if (LocalPlayer()->info->b9b.bit4)` (shr/test form); inl2 merges c
+//        and d into one slot, which is why this frame is 0x518 not 0x51c;
+//      * case 24: the original evaluates InfoPacket before reloading p->id
+//        for the first argument; `g_game->players[i].id` there reproduces the
+//        order but not the [ebx+4] base;
+//      * still open: the zero-initialising loop wants an immediate 0 store,
+//        case 22 keeps the first lookup result in bl and never caches packet,
+//        case 35 reloads packet after FUN_0047f1a0, case 38's memcpy load
+//        order, two `&g_game->players[T]` computations load g_game first.
 #include <memory.h>
 #include <string.h>
 #include <stdio.h>
@@ -728,9 +768,7 @@ skip1:;
             break;
         }
         case 31: {
-            int target;
-            unsigned char tmp8 = FindPlayerIndex(*(int*)(1 + packet));
-            target = tmp8;
+            int target = FindPlayerIndex(*(int*)(1 + packet));
             if (10 != target)
                 g_game->field_29d0[target] = 1;
             break;
@@ -802,11 +840,8 @@ skip1:;
             }
             break;
         case 16: {
-            unsigned short* tmp5;
-            tmp5 = (unsigned short*)(1 + packet);
-            Class_0048b090* unit = UnitAt(*((unsigned short*)tmp5));
-            unsigned int tmp7 = unit->flags_110;
-            if (0x10000000 & tmp7)
+            Class_0048b090* unit = UnitAt(*(unsigned short*)(packet + 1));
+            if (unit->flags_110 & 0x10000000)
                 unit->field_9a->FUN_004b0b00(*(short*)(((unsigned char*)packet) + 3), 0, 0, packet[5],
                                              *(int*)(((unsigned char*)packet) + 6), *(int*)(packet + 10),
                                              *(int*)(packet + 14), *(int*)(packet + 18));
@@ -821,9 +856,7 @@ skip0:;
             break;
         }
         case 18: {
-            Class_0048b090* tmp1;
-            tmp1 = UnitAt(*((unsigned short*)(packet + 1)));
-            Class_0048b090* a = tmp1;
+            Class_0048b090* a = UnitAt(*(unsigned short*)(packet + 1));
             FUN_0041b8d0(UnitAt(*(unsigned short*)(packet + 3)), a);
             break;
         }
@@ -898,9 +931,8 @@ skip2:;
                     ->FUN_00461620(g_game->from_id, *(int*)(packet + 1), *(int*)(5 + packet));
             break;
         case 33: {
-            Player* tmp4 = PlayerByIndex(*(int*)(packet + 2)), * a = tmp4;
-            Player* b;
-            b = PlayerByIndex(*(int*)(6 + packet));
+            Player* a = PlayerByIndex(*(int*)(packet + 2));
+            Player* b = PlayerByIndex(*(int*)(packet + 6));
             if (!IsConnected(&g_game->players[FindHost()]))
                 break;
             if (!a)
@@ -914,8 +946,7 @@ skip2:;
                 reply[5] = a->team;
                 if (!reply[5])
                     break;
-                int tmp2 = FUN_00451df0(FUN_00450030(), reply, 6);
-                tmp2;
+                FUN_00451df0(FUN_00450030(), reply, 6);
             } else {
                 if ((((Player*)b))) {
                     *(int*)(reply + 1) = a->id;

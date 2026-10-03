@@ -600,6 +600,10 @@ effect, the missing piece is usually a helper that was inlined:
   global after the locals gives it a later id: 0x493bf0 and 0x48ad30 matched
   with `extern` for `g_game` declared inside the function after the index
   locals, and 0x48ad30 lost an old `if (0)` hack with it (#5325, #5329).
+  It only helps when no file-scope declaration of the global comes earlier
+  (that makes the block one the same symbol) and no inlined helper reads the
+  global, since each block-scope extern is a separate symbol and the helpers
+  stop sharing its load (0x424c00 fell to 89.9%, 0x41b2e0 to 66.7%; #5401).
 - **No-code temporaries can be what is missing**: when only scratch
   registers differ, throwaway probes can show how many extra temporaries the
   original had around a test (0x410850 needs one or two before its health

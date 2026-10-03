@@ -6,6 +6,8 @@
 // multiply operands preserve layout and emit identical code. Signed int
 // bitfields widen the members and shift following fields, dropping to 85.8%.
 // The retained 99.6% version still differs only in the two swapped movsx loads.
+// Rechecked for issue #5114 on 2026-10-03; the single load-order/register hunk
+// remains unchanged at 99.6%.
 // DeepSeek V4.1 Flash pass 2026-10-02. No gain, stays 99.6% / 1662 bytes.
 // The two-instruction residual is unchanged. This pass pinned the rule down
 // with the real compiler in isolation: for two sign-extended short loads MSVC

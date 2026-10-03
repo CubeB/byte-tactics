@@ -27,6 +27,8 @@
 // GPT-6 retry (#4916): current checkall.py confirms 99.5% at 613 bytes, with
 // the documented walk1 latch reload order as the only code difference.
 // GPT-6 retry (#5226): rechecked at 99.5%; the latch still reloads pts before i.
+// #5317 Codex retry: re-confirmed 99.5%. The early-return first-scan guard
+// variant tested in #5277 scored 86.7%, so the existing source remains best.
 // #5277 Codex retry: re-confirmed the walk1 latch reload order. Moving the
 // first scan's count guard to an early return scored 86.7%, so the saved
 // 99.5% version remains best.

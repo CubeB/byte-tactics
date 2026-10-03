@@ -1,4 +1,60 @@
 // Decompiled by space-bunny-free, improved by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// #4337 (space-bunny-free): still 95.0%, and the remaining difference is STILL
+// only the byte-slot permutation. Everything below is new; the older notes
+// follow. The target layout (from the exe) is curmem 0x12, t 0x13, rep 0x14,
+// next/outer-count 0x15, cnt 0x16, lit 0x17: six slots, seven roles, so the
+// outer flush's count byte shares `next`'s slot.
+//
+// NEW MECHANISM FOUND: MSVC 5 does share a frame slot between a function-scope
+// local and a block-scoped one whose scopes are disjoint (the guide's "never
+// two plain locals share a slot" is about function-scope locals). Declaring the
+// outer count inside the row loop's else block
+//     } else {
+//         unsigned char ocnt;
+//         while (run > 0) { ... ocnt = ...; FUN_004bbbe0(file, &ocnt, 1); ... }
+//     }
+// puts `ocnt` exactly on `next`'s slot 0x15, gives the original's six slots,
+// AND keeps the register allocation (width in ebx, p in ecx, next in bl), which
+// the merged-variable spelling loses. That variant is 92.0%
+// (build/scratch/0x4cac40/v_S1_ocnt_else.cpp); only its order is wrong:
+// rep 0x12, t 0x13, next 0x14, curmem 0x15, lit 0x16, cnt 0x17.
+// The same trick puts a block-scoped `lit` on `curmem`'s slot (harmless there,
+// the value written is the same).
+//
+// What the pool order depends on (all measured from the /Fa listing, 1250+
+// variants compiled):
+// * It is NOT the declaration order (three orders give the identical pool), NOT
+//   the name order, and NOT the order of the tail statements (all 24
+//   permutations of the four tail assignments leave the pool untouched).
+// * It IS a function of which roles share a variable and of how the five dword
+//   locals are declared. Flattening them (five separate ints/pointers instead
+//   of the Locs struct) permutes the byte pool to
+//   rep 0x11, curmem 0x12, t 0x13, ocnt 0x14, next 0x15, cnt 0x16, lit 0x17:
+//   FIVE of the six original byte slots, one transposition from the target
+//   (rep and ocnt exchanged), but the flat dword pool comes out
+//   n 0x18, rows 0x1c, total 0x20 (the int order is reversed), 94.0%. The same
+//   byte pool appears when only one dword is left in the struct.
+//   So the dword declaration style is a lever on the byte pool; finding the
+//   style that keeps total/rows/n/row/p in order AND lands rep on 0x14 is the
+//   most promising lead (32 struct/flat splits x 3 outer-count spellings were
+//   tried, none gave it).
+// * Merging the outer count into each of the six byte locals (6 x 2 dword
+//   styles) gives these pools: into curmem curmem,rep,t,...; into t
+//   t,curmem,rep,...; into rep rep,curmem,t,...; into lit t,rep,curmem,lit;
+//   into cnt t,rep,curmem,cnt; into next next,curmem,rep,t. The needed
+//   rotation of the {curmem,t,rep} group, (curmem,t,rep), was never produced.
+// * Block-scoping is nearly a no-op: 1200 scope placements gave only four
+//   distinct pools. Only `ocnt` and `lit` being block-scoped changes anything.
+//
+// Measured and ruled out this session: the N-unused-declarations sweep (0 to
+// 400 in steps of 4: every one 95.0%), tools/headers.py (128 header sets, best
+// still 95.0%), three permuter runs (6551 candidates, no gain; its best.cpp is
+// byte-identical to this file), a byte struct and an unsigned char[8] pinning
+// the slots by index (52-53%, width/height swap out of ebx), a static inline
+// flush_runs() helper taking the count by pointer (44.7%), a static inline
+// chunkof() helper (95.0%, pool unchanged), and every merge target. Also note
+// the permuter in this tree has no --stack option, so the suggested
+// `permute --stack next,lit,cnt,rep` could not be run.
 // #3959 (mimo-v2.6-pro, 2nd pass): FIXED the scheduler tie (#2) to reach 95.0%.
 // The tail of the changed-byte branch was reordered to
 //   L.total += wrote; curmem = next; run = 1; cur = next;

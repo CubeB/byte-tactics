@@ -1,4 +1,43 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+
+// Space Bunny Free, #4337: 82.2% -> 90.2% (653 bytes against 646). The lever is
+// not the declaration order but MSVC's weighting of register priority by loop
+// nesting: the set scan has to sit one loop level deeper, and then the
+// allocator gives `this` esi (spilled to [esp+0x18], reloaded at 0x4cf650 and
+// 0x4cf699), the shared zero ebp (which later becomes bestidx) and `best` ebx,
+// exactly as the original does. The `do { ... } while (bestidx >= 4);` around
+// the scan is that extra level; it is a semantic no-op (bestidx is a set index,
+// so it stays below 4) and it is what buys the rotation. `best` must be declared
+// inside the do block so its `xor ebx,ebx` lands in a register of its own
+// instead of being coalesced with the shared zero, and the priority update has
+// to read `best = a;` before `bestidx = i;` to match the original's two moves.
+// What still differs (653 against 646 bytes): (1) the do-while test
+// `cmp ebp,4 / jge` after the scan, 6 bytes the original does not have; (2) the
+// original has `mov edi,[esp+0x30]; xor ebx,ebx; cmp edi,ebp` before the
+// `if (set == 0)` branch while ours folds the null test into
+// `cmp DWORD PTR [esp+0x30],ebp` and loads set afterwards, 1 byte. Both follow
+// from the extra loop level: with the plain for loop the second difference goes
+// away but the whole this/zero/bestidx rotation reverts (80.2%).
+// Tried and no better: an outer `for (int k = 0; k < 1; k++)` around the scan
+// (adds a stack slot); `do { ... } while (0)` and `for(;;){...break;}` (MSVC
+// folds them away, no rotation); a do-while test on best, arg2, unit, pos, DAT
+// or set (rotation happens but scores 908 to 1074); a do-while test on a member
+// of `this` (count, field_2c, field_34) which puts `this` back in ebp, so the
+// lever is a live range crossing the back edge rather than nesting as such;
+// giving bestidx one more read inside the scan with a dead
+// `else if (bestidx < 0) bestidx = i;` (right rotation, 654 to 655 bytes,
+// 87.2%); the scan as a pointer walk over buffers (this=esi but the loop becomes
+// lea/sar and scores 76.8%); hoisting the scan index i out of the for (63.8%);
+// a self-assignment `bestidx = bestidx` (emits no code and changes nothing);
+// Class_004cf570 deriving from Class_004cf180 (no change); helpers for the
+// priority fetch, the channel setup and the whole tail (no change); every
+// declaration order of unit/slot/best/bestidx, self assignments, an explicit
+// self pointer, and about 1900 permuter candidates, none better. Best permuter
+// score for this source is 366 (0 would be a MATCH).
+// Not MATCH (90.2% as left here, 82.2% for the version before this one): the
+// notes below record the earlier rounds, all of which failed to move the
+// this/zero/bestidx rotation.
+
 // #3912 (deepseek-v4.1-flash): uninitialized bestidx (74.4%/642B) and swapping the DAT guard with the refresh loop (73.6%/645B) both regress, so 82.2% stands.
 // Issue 2304 retry: baseline 80.2% confirmed; delaying best initialization scored 79.5%.
 // Issue 2486 retry by deepseek-v4.1-flash: still 80.2%. The original's zero
@@ -50,8 +89,9 @@
 // method, argument 3 is a position (int x/y/z). Table fields: count +0x30,
 // counter +0x34, buffers +0x38, priorities +0xb8, flags +0x138, factory +0x24.
 //
-// Not MATCH (80.2 for loop, 82.2 as left here): the code is byte-identical to
-// the original except for one allocator state. The original keeps this in esi
+// Historical (superseded, the version of the file before #4337): not MATCH
+// (80.2 for loop, 82.2 as left then): the code was byte-identical to the
+// original except for one allocator state. The original keeps this in esi
 // and the shared zero constant in ebp, spilling this to [esp+0x18], so ebp later
 // becomes bestidx and esi is reused as the loop index. This version keeps this
 // in ebp and the zero in esi, so bestidx gets a stack slot at [esp+0x1c] and
@@ -180,32 +220,38 @@ int Class_004cf570::FUN_004cf570(Unit_004cf570** set, int arg2, Pos_004cf570* po
     }
     while (count >= field_2c)
         ((Class_004cf180*)this)->FUN_004cf180();
-    unsigned int best = 0;
     if (set == 0)
         return 0;
-    int i = 0;
-    while (1) {
-        if (i >= 4)
-            break;
-        if (set[i] != 0) {
-            Unit_004cf570* c;
-            if (set[i]->FUN_004cf604(&c) != 0)
-                return 0;
-            if (c == 0) {
-                unit = set[i];
-                break;
+    // The scan sits one loop level deeper than the code needs, which is how this
+    // reproduces the original's register allocation: MSVC weights register
+    // priority by loop nesting, and only with the extra level does it keep `this`
+    // in esi (spilled to [esp+0x18] and reloaded after the scan) with the shared
+    // zero in ebp. The test never fires, since bestidx is a set index and stays
+    // below 4, so it is semantically a no-op, but it does cost the six byte
+    // `cmp ebp,4 / jge` after the scan that the original does not have. Without
+    // it the whole rotation reverts and the file drops back to 80.2%.
+    do {
+        unsigned int best = 0;
+        for (int i = 0; i < 4; i++) {
+            if (set[i] != 0) {
+                Unit_004cf570* c;
+                if (set[i]->FUN_004cf604(&c) != 0)
+                    return 0;
+                if (c == 0) {
+                    unit = set[i];
+                    break;
+                }
+                unsigned int a, b;
+                set[i]->FUN_004cf5f0(&a, &b);
+                if (a > best) {
+                    best = a;
+                    bestidx = i;
+                }
+            } else {
+                slot = i;
             }
-            unsigned int a, b;
-            set[i]->FUN_004cf5f0(&a, &b);
-            if (a > best) {
-                bestidx = i;
-                best = a;
-            }
-        } else {
-            slot = i;
         }
-        i++;
-    }
+    } while (bestidx >= 4);
     if (unit == 0) {
         if (slot > 0) {
             if (field_24->FUN_004cf644(set[0], &unit) != 0)

@@ -583,6 +583,14 @@ effect, the missing piece is usually a helper that was inlined:
   only once `u->type` was read through `UnitType*& type = u->type;`. The full
   `<windows.h>` then gave the right ids; check them with
   `tools/c2prio.py --symbols` (#5308).
+- **A tail written in both arms is merged but still moves the rotation**: in
+  0x499200 the three-statement tail appears at the end of both arms of an
+  if/else. MSVC merges the copies back into one, but compiling the then arm's
+  copy moves the eax/ecx/edx rotation two steps before the else arm (#5331).
+- **List-tail appends**: `if (tail) { tail->next = e; tail = e; } else tail =
+  e;` compiles to the same code as the shorter forms but tips the register
+  priorities differently; with `j++` once in the loop latch it matched
+  0x461fd0 (#5318).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

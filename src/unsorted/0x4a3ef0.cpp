@@ -1,347 +1,33 @@
-// Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash retry (issue 4879): still 93.1 pct / 629. About 40 more
-// shapes for the 0x20 hoist, all regressing or reshaping: a guard that reads
-// lines.full or lines.word does put the pointer in edx, but the union is then a
-// stack object and reloads (640/84.1); a separate char/int zero plus an
-// arm-local int lines is 598-606 bytes / 34-35 pct; helper pointer parameters
-// in every order and pointer type reshape (602/34.7); word-then-full union with
-// the hoist reshapes (633/60.1); scalar-then-union and ternary forms are
-// 635-649 / 79.9-83.1; decomposing the deref chain into pointer-typed
-// temporaries all canonicalises back to this file. Nothing keeps the shared
-// zero in ecx and the hoisted pointer in edx at once; the two remaining 2-byte
-// hunks still cancel in size.
-// space-bunny-free retry (issue 4160, probe-driven, 75 min): still 93.1% /
-// 629 bytes. THE RESIDUAL IS ONE REGISTER AND I NOW KNOW WHY. The whole 0x20
-// arm matches the original byte for byte the moment the hoisted `e->field_c6`
-// goes to EDX instead of ECX, and MSVC 5's RGEN will not do that while the
-// shared zero is a union, because a union with two stores of different widths
-// is a memory object whose promotion to a register fails as soon as a
-// conflicting range spans the branch. Details and the two shapes that get
-// closest, with the measurements, below. Reusable probes (they print size and
-// an E/T oracle for the 0x20 arm instead of a percentage, which cannot see a
-// register-only difference) are in build/scratch/4a3ef0/: probe.py, probe2.py,
-// rand.py, gen*.py, plus the MSVC-5 behaviour harnesses min*.cpp compiled to
-// /Fa listings in build/scratch/4a3ef0/asm/.
+// Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// MATCH (claude-opus-5-5, issue 4160), from 93.1%. The list gadget's
+// scroll-up step, the mirror image of 0x4a99c0: find the entry of type 2
+// whose +0x01 byte equals this entry's, then, by the flag bits 0x10, 0x20 and
+// 0x80 of that entry, recompute the size of a line (+0x142) and the scroll
+// position (+0x136), and refresh the gadget with FUN_004a2580.
 //
-// WHAT IS PROVABLY TRUE NOW (build/scratch/4a3ef0/min5.cpp and min6.cpp):
-// * MSVC 5 never hoists a load out of an if-block (min5 fns ta/tg/zg), so the
-//   original's source really does read `e->field_c6` BEFORE `test eax,eax`.
-// * That source shape is reachable and is not flat. With ONE hoisted pointer
-//   and ONE nested expression (no temporaries, no helper parameter):
-//       int count = e->field_c0;
-//       int* p = e->field_c6;
-//       if (count > 0) {
-//           lines.full = *(unsigned short*)((char*)*(int*)((char*)*(int*)p + 0x28) + 2) * count;
-//       }
-//   plus the two-statement denominator, the prologue, the entry search and the
-//   whole deref chain are exact: 644 bytes / 85.4% (shape 98.0%). Every earlier
-//   "every hoist shape is flat" note tested the same hoist with TWO temporaries
-//   or through a helper parameter, which score 34-36% because they reshape the
-//   whole allocation (kind leaves cl). One temp + one expression does not.
-// * In a minimal model of the same code (min5 fn me: union stored word-then-
-//   full, hoisted pointer, idiv by the union, no call) MSVC emits exactly the
-//   original's arm, including `mov edx,[ebx+0xc6]` before `test eax,eax`. So
-//   the shape is not impossible; something else in the full function breaks it.
-// * WHAT BREAKS IT: the union's stores in the order word-then-full make its
-//   value a real range instead of a folded constant. The 0x10 arm's loop
-//   counter (`int n = 0;`) is then value-numbered with it, and the zero has to
-//   survive the 0x10 arm's four calls, so RGEN gives it EBP; `entries` moves to
-//   ECX and the search's kind byte moves from `cl` to `bl`, which is the whole
-//   prologue reshape (62.1%). Changing the counter's type (unsigned, long,
-//   separate assignment) does not break the value numbering.
-// * With the order full-then-word (what this file uses) the zero stays a folded
-//   constant in ECX and the prologue is exact, but then RGEN promotes nothing:
-//   it gives ECX to the hoisted pointer and spills the union, which is exactly
-//   the 644-629 = 15 bytes of difference (two stores after `xor ecx,ecx`, one
-//   `jmp` around the if, one `mov ecx,[esp+0x10]` reload after the join).
-// * The only way measured to force the pointer into EDX is to make the zero a
-//   REAL read before the test, so that it occupies ECX at the load point:
-//       int count = e->field_c0; int* p = e->field_c6;
-//       int zero = lines.full;
-//       if (count > zero) { lines.full = <chain>; }
-//   That gives an exact arm (`cmp eax,ecx` instead of `test eax,eax`, 2 bytes)
-//   but the read costs a reload from the stack: 642 bytes / 86.1%, shape 98.7%.
-//   Reading the union straight in the guard, or `lines.full == 0 && count > 0`,
-//   gives the same thing.
+// The two hunks that were left (the 0x10 arm's denominator registers and the
+// 0x20 arm's `e->field_c6` load before `test eax,eax`) both came from two
+// inline helpers:
+//  - GetGlyph, the one helper for every FUN_004b7f30 glyph fetch (the same
+//    helper matched 0x4a4d70), used for the line height in the 0x10 arm. With
+//    it the ternary denominator compiles to the original's registers.
+//  - LineSize reads the count AND the font pointer before its `count > 0`
+//    test, so the pointer load sits before the test, in edx.
 //
-// MEASURED DEAD ENDS (all with the file otherwise unchanged):
-// `p = p ? p : p` between the two loads is a byte-for-byte no-op (MSVC folds
-// it); a dead store in a statically folded branch between the loads only costs
-// bytes; the union's store order alone (full-word, word-full, fwf, wfw, www,
-// w3, and a `char[4]` view) either keeps the prologue and loses the register
-// or keeps the register and loses the prologue; plain `int`/`short`/`unsigned
-// int`/`unsigned short` divisors score 59-64%; declaring the zero in the arm
-// (before or after the pointer) is 91.6% but still ECX and still spills; the
-// guard spellings `count >= 1` and `0 < count`; reading `e->field_c0` twice so
-// that the CFG might hoist the pointer load (MSVC does not); `(int**)&e->field_c6`
-// and `*(int**)((char*)e+0xc6)` access paths; helper-with-pointer-parameter and
-// helper-returning-the-chain forms (36%); an extra inline helper wrapping the
-// guard or the chain (no change); alias temporaries on the pointer (no change);
-// `uv run tools/headers.py 0x4a3ef0 --cpp` (1536 sets) is flat at 93.1%.
-// A 600-sample randomised structural sweep (build/scratch/4a3ef0/rand.py)
-// never beat 85.6%.
+// The `lines` union is inherited and is still load-bearing: with a plain
+// `int lines` (declared anywhere, or a local of the 0x20 arm) the 0x10 arm's
+// denominator comes out as `inc eax / cmp edi,eax` (89.3%), and the
+// two-statement clamp that fixes that loses the shared ecx zero altogether
+// (36.3%), so the union's two zero stores, which emit no code, are
+// evidently weighed by MSVC's register choices (probably the same decision
+// that keeps the constant 0 in ecx for the found test, the counter `n` and
+// the 0x80 arm's `field_da` compare). A plainer source was not found.
 //
-// NEXT: the missing ingredient is a zero that is a real variable (so RGEN has
-// to keep it in a register rather than fold it) whose range stays OUT of the
-// 0x10 arm so that the value numbering never ties it to the loop counter `n`.
-// Nothing in the original occupies a register between the two loads, so
-// nothing else can hold ECX there for free, and a plain `int lines = 0` cannot
-// keep the prologue (`found != lines` folds to `test eax,eax`). Whoever picks
-// this up: try making the 0x10 arm's counter not a value-numbered 0 (e.g. by
-// counting down from `entries->count`, or by comparing `j - i` against
-// `e->group`), which is the one remaining way to decouple the zero from the
-// calls in the 0x10 arm, and then combine it with the word-then-full union.
-// Earlier passes below; the best variant is the one in this file.
-// Second half of the same pass, kept for the measurement: the residual is one
-// register choice, and 644-629 = 15 bytes is spill overhead (6+4+2+6), not
-// codegen of the arm.
-// STOP NOTE (deepseek-v4.1-flash retry): best stays 93.1 pct / 629 bytes. Two
-// 2-byte hunks remain and cancel in size. (1) The 0x10 arm clamp needs the
-// two-statement form (int other = e->field_da; int denominator = size + 1;
-// if (other > denominator) denominator = other;), which reproduces the
-// original movsx edx / lea edi,[eax+1] / cmp edx,edi / jle / mov edi,edx
-// exactly but costs +2 bytes; a fresh run with that fix confirmed the clamp
-// hunk disappears. (2) The 0x20 arm needs e->field_c6 loaded into EDX before
-// test eax,eax (chain mov ecx,[edx]; mov edx,[ecx+0x28]; xor ecx,ecx;
-// mov cx,[edx+2]; imul ecx,eax). An arm-local hoisted `int* p = e->field_c6;`
-// does hoist the load before the test and fixes the whole deref chain except
-// p lands in ECX not EDX (mov ecx,[ebx+0xc6]; mov ecx,[ecx]), which spills the
-// shared zero `lines` to [esp+0x10] (extra stores and a skip-path reload), so
-// that variant scores 85.4 pct / 644. Applying both fixes together is still
-// the way to MATCH if p can be pushed to EDX (untested scratch shapes for p's
-// register: helper taking the pointer as a parameter, helper with a hoisted
-// pointer local, p declared before count, nested deref expression, all in
-// build/scratch/0x4a3ef0/v2..v5.cpp, never scored).
-// deepseek-v4.1-flash retry (issue 3840, 2 scored runs): still 93.1 pct / 629.
-// The if-statement form of the denominator clamp (int denominator = size + 1;
-// if (e->field_da > denominator) denominator = e->field_da;) regresses to 89.1
-// pct / 631 bytes because the clamp then costs an extra two bytes, and hoisting
-// the field_c6 load out of LineSize's count > 0 guard (to reach the original's
-// pre-test mov edx,[ebx+0xc6]) collapses the whole inlined Find/LineSize layout
-// to 36.3 pct / 604 bytes, so that hoist is not reachable by source shape.
+// Suspected original bug, reproduced: the 0x20 arm divides by the line total
+// unguarded, so a `field_c0` of zero or less divides by zero (the jle at
+// 0x4a40b2 skips the multiply and 0x4a40d1 does `idiv ecx` with ecx = 0),
+// where the 0x80 arm tests both of its divisors first.
 
-// Retry (deepseek-v4.1-flash, issue 3781, 2 scored runs): still 93.1 pct / 629
-// bytes. A named span local (int span = size + 1; then span > field_da ? span
-// : field_da) restores the original jle polarity but scores the same; the
-// field_da temp still lands in edi and the 0x20 arm still loads field_c6 after
-// the test.
-// deepseek-v4.1-flash retry (issue 3704, 10 min, 4 scored variants): best stays 93.1 pct.
-// The swapped ternary (size + 1 < e->field_da) is byte-identical at 93.1;
-// dropping the count parameter from the inline LineSize helper is 85.3. The
-// 0x10 denominator registers and the 0x20 field_c6 load-before-test are untouched,
-// as every source shape for them either folds or reshapes the prologue.
-// GPT-6.1-sol (#3140 retry): six checks, best remains 93.1% (629 bytes), no MATCH.
-// deepseek-v4.1-flash (#3888 retry, four scored runs): still 93.1% / 629 bytes.
-// Naming field_da in a `short da = e->field_da;` local before the clamp collapses
-// the inlined Find/LineSize layout (607 bytes, 34.0 pct), so the field read must
-// stay inline in the ternary. An `unsigned short w = *(unsigned short*)(b + 2);`
-// local, the swapped multiply `count * *(unsigned short*)(b + 2)` and the fully
-// swapped clamp `(size + 1 > e->field_da) ? size + 1 : e->field_da` are all
-// byte-identical at 93.1, so neither operand order nor arm order moves the
-// field_da-to-edx versus edi choice or the imul ecx,eax operand order.
-// The 0x10 denominator selection still has different registers and shorter code;
-// in the 0x20 arm the field_c6 load remains after the count test and zero-extends
-// through edx plus a copy into ecx. Pointer-hoist variants damaged global allocation.
-// Retry (deepseek-v4.1-flash, issue 3076): best stays 93.1% (629 bytes both).
-// The two-statement 0x10 denominator is now proven exact (631 bytes / 90.6%
-// alone); only the 0x20 arm remains, needing `e->field_c6` in edx before
-// `test eax,eax`. Every hoist shape reshapes the global allocation (e: ebx->edi,
-// shared zero leaves ecx; 602-604 bytes / 36%); arm-local `lines2` keeps ecx=0
-// but the load stays after the test (631 / 90.6); a signed `short` gives
-// 627 / 91.0 but is semantically wrong.
-// BUG: `idiv ecx` at 0x4a40d1 divides by the zero register on the
-// `e->field_c0 <= 0` path (the jle at 0x4a40b2 skips the divisor setup), an
-// unguarded divide-by-zero, unlike the 0x80 arm which tests both divisors.
-// deepseek-v4.1-flash retry (issue 2905, 10 min, ~25 free --sym variants, all
-// deepseek-v4.1-flash (#2961 retry): still 93.1%. The 0x10 arm needs the
-// two-statement denominator (+2 -> 631 bytes/90.6%). The 0x20 arm needs
-// `e->field_c6` hoisted to edx before `test eax,eax` (-2); every source shape
-// that makes a live local/param there kills the function-wide shared ecx constant
-// zero and reshapes the prologue (602-604 bytes, ~35%). Single-expression spelling
-// compiles byte-identically to the base. headers.py 128 sets flat.
-// Suspected bug: the 0x20 arm divides by the zero register at 0x4a40d1 when
-// `e->field_c0 <= 0` (the jle at 0x4a40b2 skips the setup), an unguarded
-// divide-by-zero, unlike the 0x80 arm which tests both divisors.
-// scored with check.py --sym). No variant beat the 93.1% already in this file.
-// Confirmed the whole diff is two 2-byte arms that cancel in total size:
-//   * 0x10 arm denominator: the two-statement `int other = e->field_da; int
-//     denominator = size + 1; if (other > denominator) denominator = other;`
-//     gives the original `movsx edx / lea edi,[eax+1] / cmp edx,edi / jle /
-//     mov edi,edx` (+2 bytes vs the ternary here).
-//   * 0x20 arm: the original loads `e->field_c6` into edx BEFORE `test eax,eax`
-//     and zero-extends into ecx (`xor ecx,ecx; mov cx,[edx+2]; imul ecx,eax`);
-//     every source shape here loads it after the test into ecx and then copies
-//     to ecx (`mov ecx,[ebx+0xc6]; ... xor edx,edx; mov dx,...; mov ecx,edx`),
-//     +2 bytes. The copy disappears only when b lands in edx, which needs ecx
-//     to hold the live zero at the load, which needs the pointer load hoisted
-//     before the test.
-// Tried and rejected (free --sym scores): helper with an unconditional
-// pointer/value local (602 bytes, 34.7%, reshapes the prologue so the search's
-// `kind` leaves cl); passing the pointer as a helper parameter (same reshape);
-// function-scope `int lines = 0` with a pointer local or an unconditional `a`
-// load (633 bytes, 60.1%, lines falls to ebp); function-scope `int lines = 0`
-// with an inline `if (count > 0)` body (635 bytes, 61.4%, lines in ebp); a
-// ternary divisor (629 bytes, 92.6%, turns `test eax,eax` into `cmp eax,ecx`);
-// arm-local int/unsigned-short temporaries (633 bytes, 74.9%); union vs plain
-// int and every helper body spelling (629 bytes, 93.1%, unchanged). headers.py
-// (128 sets) changes nothing. The 0x10 fix plus the 0x20 fix would be a MATCH.
-// Retry #1758 (deepseek-v4.1, issue 2461): best stays 93.1% (629 bytes both).
-// The 0x10 arm is now solved exactly: `int other = e->field_da; int
-// denominator = size + 1; if (other > denominator) denominator = other;`
-// gives the original movsx edx / lea edi,[eax+1] / cmp edx,edi / jle / mov
-// edi,edx, but it costs +2 bytes so it scores 90.6% alone (every jump after
-// the arm shifts by 2) until the 0x20 arm also loses its 2 extra bytes.
-// The 0x20 arm needs `mov edx,[ebx+0xc6]` BEFORE `test eax,eax` and the
-// zero-extension in ecx (`xor ecx,ecx; mov cx,[edx+2]; imul ecx,eax`).
-// A pointer local in an inlined helper rewrites the whole entry allocation
-// (kind leaves cl, 34.7 to 36.3%); a pointer local in the arm keeps the
-// allocation but the union needs the unconditional helper assignment, and
-// `?: 0` hoists the pointer into ecx (not edx) plus a redundant join xor
-// (80.4%). Original bug kept: 0x4a40d1 divides by ecx even when the jle at
-// 0x4a40b2 skipped the setup, so `lines` is 0 there and this is a divide by
-// zero (the 0x80 arm guards its divisors with test, this arm does not).
-// Earlier passes below; the best variant is the one in this file.
-// Retry #1758: GPT-6.1-sol best is 93.1% after refinement; latest best check confirmed no MATCH. A single-use helper for the conditional divisor fixes shared-zero stack setup. The 0x10 denominator register choice and 0x20 pointer/divisor sequence still differ.
-// GPT-6.1-sol pass: best measured score 80.9% (650 source bytes vs 629,
-// nine checker runs). The 0x10 arm improved by computing its numerator before
-// selecting the denominator. Remaining differences include zero initialization
-// stores and register allocation around the shared zero, plus the 0x20 arm's
-// divisor load/zero-extension and the 0x80 arm's zero comparison.
-// GPT-6 retry: 78.6%, not MATCH. A zero-initialized full-width union with
-// a short view preserves the complete 32-bit divisor, fixing the byte
-// truncation in the previous attempt while improving the score.
-// Historical measurements and semantic warnings below refer to older code.
-// PARTIAL, 77.2% (633 bytes against 629). The prologue, the entry search, the
-// 0x10 arm and the 0x80 arm now match line for line; the 0x20 arm is off only
-// because of the width of its zero register.
-//
-// deepseek-v4.1-flash (#3076 retry): still 93.1%. The 0x10 arm is now exact
-// with the two-statement denominator (631/90.6 alone). The 0x20 arm is the only
-// residual: it needs `e->field_c6` in edx loaded before `test eax,eax`. Every
-// hoist shape (helper local, arm local, pointer param, unsigned value, hoisted
-// deref) reshapes the global allocation (e: ebx->edi, shared zero leaves ecx;
-// 602-604 bytes/36%). An arm-inline body with an arm-local `lines2` keeps the
-// zero in ecx but the load stays after the test (631/90.6). Signed `short`
-// drops the zero-extend (627/91.0) but is semantically wrong.
-//
-// deepseek-v4.1-flash pass (10 minutes; every figure below measured with
-// `check.py --sym`, which is free). The whole remaining difference is the
-// WIDTH of the one zero register. The original materialises a 32-bit zero in
-// ecx at the compare (0x4a3f4e `xor ecx,ecx; cmp eax,ecx`), keeps it in ecx
-// and reuses it for the 0x10 arm's `n` initial value (0x4a3f8a
-// `mov [esp+0x10],ecx`) and for the 0x20 arm's divisor fallback (0x4a40d1
-// `idiv ecx`). Declaring `lines` as `char` gets the allocation right: MSVC
-// then only needs a BYTE zero (`xor cl,cl`, and it rematerialises the 32-bit
-// zero as the immediate `mov dword ptr [esp+0x10],0`), which leaves ebp free
-// for `entries`. With `int lines` the allocator takes ebp for `lines` and
-// pushes `entries` into ecx and then into a spill slot, which rewrites the
-// whole prologue and drops the score to 56.0 percent.
-//
-// WARNING: `char lines` is semantically WRONG. In the 0x20 arm the original
-// loads a 16-bit value into cx, multiplies into the full 32-bit ecx
-// (0x4a40bb `mov cx,[edx+2]`, 0x4a40bf `imul ecx,eax`) and divides by it,
-// which a char cannot represent. This shape is kept only because it isolates
-// the single remaining decision (a 32-bit zero register) from the allocation
-// of `entries`. The semantically correct `int lines` version is
-// build/scratch/0x4a3ef0/v0.cpp and scores 56.0 percent.
-//
-// What the next attempt needs: the source shape that keeps `entries` in ebp
-// AND `lines` a 32-bit zero in ecx. Measured dead ends (free --sym scores):
-// `unsigned int lines` 55.5, `short lines` 57.7, `unsigned short lines` 38.9,
-// `long lines` 56.0, `if (found != lines)` 56.0 (the front end value-numbers
-// lines to 0 and folds it to `test eax,eax`), `int n = lines` 56.0,
-// `int lines; lines = 0;` 56.0, `lines` declared before `found` 47.2,
-// `lines` declared before `me` 47.2, `lines = lines + 0` 56.0, `(int)lines`
-// at the divide 56.0, an address-taken `lines` 46.0. The front end folds every
-// `found == 0`-equivalent compare to a literal test, so the ecx zero must come
-// from a real variable the allocator will not spill.
-//
-// deepseek-v4.1-flash retry (issue 1644, 10 min, ~20 free --sym variants; see
-// build/scratch/0x4a3ef0/ledger.md for the full table). Confirmed the cause of
-// the int-version regression: `int lines` is linear-live from the compare
-// 0x4a3f4e across the 0x10 arm's calls (0x4a3fd3, 0x4a3fed, 0x4a3fff/0x4a400c),
-// so MSVC gives it a callee-saved register (ebp) and spills `entries`, which
-// rewrites the prologue; the char version folds `lines` and has no allocation
-// pressure, which is the only reason its prologue matches. New dead ends (all
-// free --sym): 0x80 arm comparing `field_da != lines` in the char version folds
-// back to `test dx,dx` (77.2, unchanged); `int n = lines`; lines declared
-// inside the found block (36.8); inside the 0x20 arm (32.6); n hoisted to
-// function scope (16 to 18); the `(field_da > size+1) ? ...` span ternary
-// (56.0, byte-identical); hoisting `field_c0`/`field_c6` before the 0x20 test
-// (30, so the original's load order there is not a hoisted local). Nothing
-// keeps `entries` in ebp and a 32-bit `lines` in ecx at once.
-//
-// The previous pass's notes, still accurate for the int version:
-//
-// PARTIAL, 56.0% (635 bytes against 629), up from 15.0% (Sonnet 5.5 retry, #1080).
-// The list gadget's scroll-up step, the mirror image of 0x4a99c0: find the entry
-// of type 2 whose +0x01 byte equals this entry's, then, by the flag bits 0x10,
-// 0x20 and 0x80 of that entry, recompute the size of a line (+0x142) and the
-// scroll position (+0x136), and refresh the gadget with FUN_004a2580.
-// The one allocator state that is left, and it explains every diff in the file:
-// the original has esi=me, edi=the group loop counter, ebx=the found entry,
-// ebp=entries and the CONSTANT ZERO in ecx. Here it is esi=me, edi=the found
-// entry, ebx=the loop counter, ebp=the constant zero and entries in ecx, which
-// is then spilled to [esp+0x14]. So exactly ONE variable too many is holding a
-// callee-saved register: if the zero would stop needing one, `i` moves to edi,
-// `e` to ebx, `entries` to ebp and the zero to ecx, all five at once, which is
-// the whole diff. The zero gets a callee-saved register because MSVC treats
-// `lines` as a variable with a live range covering the whole function; the
-// original instead value-numbers it as the constant 0 and rematerialises it
-// (that is why the 0x20 arm can divide by whatever happens to be in ecx).
-// Written tries that did NOT produce that, all free scratch scores:
-// - `if (found != lines)` and `if (e->field_da != lines)`: the front end folds
-//   the compare to the literal 0, so it still emits `xor ebp,ebp; test eax,eax`
-//   (56.0% and 54.6%, 631 bytes).
-// - One variable for the group counter AND the 0x20 divisor: MSVC then puts the
-//   counter in memory as a literal 0, spills `entries`, and duplicates the whole
-//   FUN_004a2580 tail into both arms of the 0x10 arm (19.7%, 706 bytes).
-// - The divisor as a local of the 0x20 arm: 41.1%, 561 bytes.
-// - Inlining the span ternary into the step expression (as `(field_da > size+1)
-//   ? field_da : size+1`, the operand order the original's `cmp edx,edi; jle`
-//   needs), inlining the two loads of the 0x20 arm, the size ternary as an
-//   if/else, `unsigned int lines`, and a `holder` local: byte-identical to the
-//   version above, so none of them is a lever on their own.
-// What the retry found (each one is worth a lot, check them before anything else):
-// - The entry search is an INLINE FUNCTION with `return i` inside the loop and
-//   `return 0` after it (the original has `xor eax,eax` on the not-found path and
-//   a join, no compare). A `found = i; break;` loop gives a different shape.
-// - The float block is float arithmetic: `(float)step / last * (me->field_19 - 3)`
-//   gives `fild/fidiv/fimul`; with `(double)` casts MSVC emits `fild/fmulp`.
-// - The 0x10 arm's tail is `if (last <= step) field_136 = 0; else field_136 =
-//   me->field_19 - me->field_142 - 3;` (the false arm falls through, `jg` to the
-//   true one), and the arms share the tail `sub edi,eax; mov [esi+0x136],di`.
-// - A zero-initialised local declared right AFTER the search call and assigned
-//   later in the 0x20 arm (`int lines = 0;`) is what makes MSVC keep a zero in a
-//   register for the whole function: `xor ecx,ecx; cmp eax,ecx`, `n = 0` stored
-//   from it, `cmp dx,cx` in the 0x80 arm and `lines` living in ecx in the 0x20
-//   arm. Declared before the search, or inside the arm, it does not happen.
-// What still differs: the original keeps `entries` in ebp, `me` in esi, the found
-// entry in ebx and the zero in ecx (sharing it with the kind byte cl before it).
-// Here the zero takes ebp and `entries` lives in ecx and is spilled to
-// [esp+0x14]. Declaring `lines` as `char` instead gives the original's allocation
-// for the first 40 instructions (77.2%, 633 bytes) but changes what the code
-// computes (the divisor is truncated to a byte), so it is not used. Moving the
-// declarations of every other local (about 600 random placements), the type of
-// `lines`, a `zero` local used for the compares, and `n` at function scope did
-// not help. The original also loads param_1 before `sub esp,8` and re-reads both
-// parameters from their stack slots; ours loads param_2 into edx early.
-//
-// Suspected original bug: in the 0x20 arm the divisor is left as the zero that
-// the zero register holds when `e->field_c0 <= 0` (the jle at 0x4a40b2 jumps
-// over the setup), and 0x4a40d1 divides by it. The 0x80 arm guards its divisors
-// with `test`, this arm does not.
-
-// deepseek-v4.1-flash (#3076 retry): still 93.1%. The 0x10 arm is now exact
-// with the two-statement denominator (631/90.6 measured alone). The 0x20 arm is
-// the only residual: it needs `e->field_c6` in edx loaded before `test eax,eax`
-// so the chain is `mov ecx,[edx]; mov edx,[ecx+0x28]; xor ecx,ecx; mov cx,[edx+2]`.
-// Every hoist shape (helper local, arm local, pointer param, unsigned value,
-// hoisted deref) reshapes the global allocation (e moves ebx->edi and the shared
-// zero leaves ecx; 602-604 bytes/36%). An arm-inline body with an arm-local
-// `lines2` keeps the zero in ecx and fixes the <=0 divisor fallback but the load
-// stays after the test (631/90.6). Signed `short` drops the zero-extend
-// (627/91.0) but is semantically wrong (the original zero-extends with `mov cx`).
 #pragma pack(push, 1)
 struct Entry_004a3ef0 {                // 0x15b bytes
     unsigned char type;                // +0x00
@@ -357,7 +43,7 @@ struct Entry_004a3ef0 {                // 0x15b bytes
     char unknown_b8[0xc0 - 0xb8];
     short field_c0;                    // +0xc0
     char unknown_c2[0xc6 - 0xc2];
-    int* field_c6;                     // +0xc6
+    struct Font_004a3ef0** font;       // +0xc6
     char unknown_ca[0xd6 - 0xca];
     int id;                            // +0xd6
     short field_da;                    // +0xda
@@ -369,6 +55,13 @@ struct Entry_004a3ef0 {                // 0x15b bytes
     char unknown_144[0x15b - 0x144];
 };
 #pragma pack(pop)
+
+struct Glyph_004a3ef0 { unsigned short width, height; };
+
+struct Font_004a3ef0 {
+    char unknown_0[0x28];
+    Glyph_004a3ef0* glyph;             // +0x28
+};
 
 struct List_004a3ef0 {
     char unknown_0[0x0c];
@@ -394,6 +87,11 @@ int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
 int FUN_004c1450();
 void __stdcall FUN_004a2580(Class_004a3ef0* param_1, int param_2);
 
+static inline Glyph_004a3ef0* GetGlyph_004a3ef0(unsigned char c)
+{
+    return (Glyph_004a3ef0*)FUN_004b7f30(DAT_0051fba4->list->field_0c, c);
+}
+
 static inline int Find_004a3ef0(Entry_004a3ef0* entries, unsigned char kind)
 {
     for (int i = 1; i < entries->count + 1; i++) {
@@ -403,14 +101,13 @@ static inline int Find_004a3ef0(Entry_004a3ef0* entries, unsigned char kind)
     return 0;
 }
 
-static inline int LineSize_004a3ef0(Entry_004a3ef0* e, int count)
+static inline int LineSize_004a3ef0(Entry_004a3ef0* e)
 {
+    int count = e->field_c0;
+    Font_004a3ef0** font = e->font;
     int lines = 0;
-    if (count > 0) {
-        int a = *(int*)e->field_c6;
-        int b = *(int*)(a + 0x28);
-        lines = *(unsigned short*)(b + 2) * count;
-    }
+    if (count > 0)
+        lines = (*font)->glyph->height * count;
     return lines;
 }
 
@@ -443,7 +140,7 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
                     FUN_004c1420(DAT_0051fba4->current);
                 }
                 int size = (DAT_0051fba4->list == 0) ? FUN_004c1450()
-                    : (*(unsigned short*)(FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49) + 2) + 2);
+                    : GetGlyph_004a3ef0(0x49)->height + 2;
                 int numerator = e->field_19 - 2;
                 int denominator = (e->field_da > size + 1) ? e->field_da : size + 1;
                 int step = numerator / denominator;
@@ -459,8 +156,7 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
                     me->field_136 = me->field_19 - me->field_142 - 3;
                 }
             } else if (e->field_1b & 0x20) {
-                int count = e->field_c0;
-                lines.full = LineSize_004a3ef0(e, count);
+                lines.full = LineSize_004a3ef0(e);
                 int s = e->field_19 * me->field_19 / lines.full;
                 me->field_142 = s;
                 if (*(unsigned char*)((char*)me + 0x1b) & 1) {
@@ -483,28 +179,3 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
     }
     FUN_004a2580(param_1, param_2);
 }
-
-// ---- Preserved from an earlier pass on this function (deepseek-v4.1-flash, issue 4076).
-// Same 644-byte shape, independently reached; kept because it records two facts
-// the newer notes above do not cover.
-// deepseek-v4.1-flash retry (issue 4076, free --sym scratch runs): still 93.1 pct / 629.
-// NEW evidence for the 0x20 arm, which is the only real residual. That arm's
-// shape is reachable by source: keep the union `lines` declaration as it is
-// here, declare `int* p = e->field_c6;` inside the arm BEFORE the
-// `if (count > 0)`, and assign `lines.full` only inside that if (an inline
-// body, not the helper call). That compiles the original 0x20 arm exactly
-// (`movsx eax,[ebx+0xc0] / mov ecx,[ebx+0xc6] / test eax,eax / jle /
-// mov ecx,[ecx] / mov edx,[ecx+0x28] / xor ecx,ecx / mov cx,[edx+2] /
-// imul ecx,eax`), 644 bytes against 629. Everything else in the function is
-// then byte-identical except the +9 shift, so the two remaining faults are:
-//   * the pointer lands in ecx, not edx. That is the ONLY register
-//     difference; with edx the arm would be byte-identical. It needs ecx to
-//     still hold the live zero at the load, which this shape does not do
-//     because the conditional assignment turns `lines` into a stack object.
-//   * the union's 0 initialisation is then emitted as real stores
-//     (`mov dword ptr [esp+0x10],ecx` plus `mov word ptr [esp+0x10],cx`,
-//     8 bytes), where the original value-numbers the 0 and keeps it in ecx.
-// Also measured: `int lines;` uninitialised kills the shared ecx zero at the
-// found test entirely (the compare folds to `test eax,eax`, 637 bytes), so the
-// zero that the original reuses in the 0x10, 0x20 and 0x80 arms must come from
-// an initialisation of `lines`, not from the compare.

@@ -1,4 +1,60 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// claude-opus-5-5 (issue 4160): still 86.5%, code unchanged, but the
+// residual is now pinned down to ONE missing zero use, with a body that is
+// otherwise byte-exact. Start the next attempt from this sketch of the focus
+// block (build/scratch/0x4a4170/d3.cpp in the 4160 worktree), not from the
+// body below:
+//     if (!FUN_004ab5b0(obj, 3)) { obj->focus = -1; obj->field_78 = 0; }
+//     int old;
+//     if (obj->field_78) {
+//         old = e->off;
+//         if (e->flags & 1)
+//             e->off = obj->field_94 - obj->saved.x + p.x;
+//         else
+//             e->off = obj->field_94 - obj->saved.y + p.y;
+//     } else {
+//         old = e->off;
+//         if (e->flags & 1) {
+//             if (p.x < r2[0]) e->off--; else if (p.x > r2[2]) e->off++;
+//         } else {
+//             if (p.y < r2[1]) e->off--; else if (p.y > r2[3]) e->off++;
+//         }
+//     }
+//     ...clamp, `if (e->off == old) return;`, holder, calls as below.
+// That is the natural source: `e->off--` gives the original's 16-bit
+// `mov ax,[ebx+0x140]` / `movsx ecx,ax` without the `(short)v` cast, the
+// per-path stores tail-merge into the original's single store AND skip it
+// when nothing changed (the original's jle lands past the store; the shared
+// `e->off = v;` below stores unconditionally, which the original does not),
+// and obj->field_94 read in both drag branches is hoisted as the original
+// does. On its own it scores 74.4% / 729 bytes because the constant 0 does
+// not get a register.
+// THE MEASURED FACT: add one dummy zero store anywhere between the clamp and
+// the FUN_004a2580 call (`e->field_157 = 0;`, a short or a pointer field
+// works too) and the whole function is byte-identical to the original apart
+// from that one store: xor edx,edx in both arms of the ab5b0 test, the
+// memory-form compares, `mov al` in the drag arm, edi/esi in the clamp, the
+// immediates in the tail. So MSVC's decision to keep 0 in a register for the
+// region between the ab5b0 call and the FUN_004a2580 call is one zero store
+// short. Measured on this body: a dummy zero COMPARE does not tip it, a byte
+// store does not, a dummy store before the call or after FUN_004a2580 does
+// not, and earlier in the region (the !ok arm, the drag arm) only partly.
+// Tried and folded before the decision (all byte-identical to 74.4%): dead
+// inits of old (`int old = 0`), redundant repeated zero stores, inline
+// helpers for the clamp, the dirty flag and the redraw (with and without
+// their own null tests), bool/int helpers returning the change, `!= 0` and
+// `== FALSE` spellings, switch on field_78, union and pointer aliases of
+// old, off, field_78 and holder, the preceding function 0x4a3ef0 defined
+// unannotated above (it is matched now), and /Gi. Naming the call result
+// (`int ok = FUN_004ab5b0(obj, 3); if (!ok)`) gets the zero register on this
+// body but spends it on the call test (`xor edx,edx; cmp eax,edx`), 77.7% at
+// 716 bytes. In 0x4a4d70 and 0x4a3ef0 the same family of residual (a zero
+// register the original has and ours lacks) fell to an inline helper around
+// an existing call (GetGlyph around FUN_004b7f30), so look for a helper this
+// function's source used around one of its calls or fields.
+// Not a bug, withdrawn below: `mov ax,[ebp+0x94]; sub ax,[ebp+0x7c]; add
+// eax,esi` only feeds the 16-bit store of e->off, so the high half of eax
+// never matters; that is MSVC narrowing a short assignment.
 // DeepSeek V4.1 Flash (issue 4879): still 86.5%, 714 bytes. Ran the permuter
 // for 3 min (3112 candidates) and it was flat at 86.5%. Compile-only sweeps of
 // the zero value (plain/phi locals of every width, an inline helper returning

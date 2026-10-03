@@ -1,113 +1,46 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
-// mimo-v2.6-pro retry: best 80.6% (was 80.2%). Fix: the j1 = 1 store now sits
-// after the inner-loop guard exactly as in the original. The spelling is
-// `short j = 0; if (0 < num) { int j1 = 1; for (; j < num; j++, j1++) {...} }`
-// (j initialised outside the guard, j1 inside it, empty for-init): MSVC CSEs
-// the guard with the loop test (single `test ax, ax / jle`), keeps j's store
-// before the branch and sinks j1's store after it. `if (j < num)` as the
-// guard CSEs the same way; `if (num > 0)` does not (75.5%, a second test).
-// The earlier 69.2% note came from guarding the whole loop including j = 0;
-// only j1's initialiser belongs inside the guard. Still differs: (1) x is
-// stored at 0x20 and y at 0x1c, the reverse of the original (x=0x1c, y=0x20);
-// the slot pair is bound to the initializer value (params->field_4[0] vs [1]),
-// not to name, declaration order, assignment order or load order (verified
-// again: y-first swaps the two `movsx`/store instructions and keeps the
-// slots). Fold-away pairs do not flip it either: `x += 1; x -= 1;` and
-// `unsigned ix = x; x = ix;` at the declarations fold away but leave both the
-// slots and the esi/ebp register assignment untouched (80.2%); the same pairs
-// inside the outer or inner loop do NOT fold away (820-838 bytes, 58.9-70.8%).
-// int xy[2] / P32 struct aggregates with copies out (xy[0] = field_4[0]; ...
-// int x = xy[0];) coalesce completely to the identical bytes, so the pair is
-// not an aggregate aliasing win. (2) The bestDiff*j1 product loads j1 first
-// (original loads bestDiff first): source operand order (j1 * bestDiff), a
-// static inline Mul(a, b) helper, `bestDiff * j1 < d0 * bestIdx` (78.8%) and
-// a named prod temp all compile byte-identically to the swapped form; the
-// load choice is a tiling/scheduling tie no spelling has moved. (3) Branch 2
-// differs in register allocation (ours: y reloaded into edi, halfH into ecx,
-// nx in eax, loop counter edi, n hoisted to slot 0x44; original: y into ecx,
-// halfH edx, nx edi, counter eax, n = limitX - nx rematerialised in esi each
-// outer iteration), limitX reuses slot 0x34 (j) in ours vs 0x18 (i) in the
-// original, limitY 0x30 (grid) vs 0x34 (j), and the original computes dst
-// before src through the `add reg, 0x7c` grid accessor shape. Moving dst
-// before src collapses the whole function to 38.9-39.0% because the global
-// register allocation reshuffles, so the src-first form was kept.
-// Remaining diff is 54 lines; the `jae 0x482597` vs `0x48259c` targets are
-// just our 5 extra bytes (822 vs 817) and fix themselves when (3) matches.
-// mimo-v2.6-pro retry: best 80.2% (was 79.1%). Fix: both limitX/limitY
-// ternaries spelled in the negated form `(x + frame->width >= halfW) ? halfW - x
-// : frame->width` flips the arm layout to the original's `jl`-to-second-arm with
-// the false arm falling through, and fixes the limitX/limitY codegen
-// instruction for instruction apart from slot/register numbers. Still differs:
-// (1) x is stored at 0x20 and y at 0x1c, the reverse of the original (x=0x1c,
-// y=0x20); the slot pair is bound to the initializer value (params->field_4[0]
-// vs [1]), not to name, declaration order, assignment order, load order, ctor
-// init or split declarations: swapping declarations swaps the loads/stores but
-// field_4[0] keeps 0x20 in every spelling tried (also struct/array aggregates
-// which move the pair to the top of the frame instead). (2) The `mov [esp+0x10],
-// 1` (j1 = 1) sits before the inner-loop `jle` in ours and after it in the
-// original; guarding with `if (0 < num)` drops the score to 69.2%. (3) The
-// bestDiff*j1 product loads j1 first (original loads bestDiff first): source
-// operand order, named temp and j1*bestDiff all still load [esp+0x10] first.
-// (4) Branch 2 differs in register allocation (ours: y reloaded into edi,
-// halfH into ecx, nx in eax, loop counter edi, n hoisted to slot 0x44;
-// original: y into ecx, halfH edx, nx edi, counter eax, n = limitX - nx
-// rematerialised in esi each outer iteration), limitX reuses slot 0x34 (j) in
-// ours vs 0x18 (i) in the original, limitY 0x30 (grid) vs 0x34 (j), and the
-// original computes dst before src through the `add reg, 0x7c` grid accessor
-// shape. Moving dst before src (raw or at() form) collapses the whole function
-// to 38.9-39.0% because the global register allocation reshuffles, so the
-// src-first form was kept.
-// Partial: 79.1%, 822 bytes versus 817. The big win over the previous 66.9%
-// attempt: the inner loop's seemingly dead x2/y2 stores are really the live
-// update of the int e1/e2 locals. Writing `int e1; int e2;` then
-// `e1 += x; e2 += y; short x16 = (short)e1; short y16 = (short)e2;` (instead
-// of separate int x2/y2 locals) is what the original does, and it moved every
-// branch-1 stack slot except x/y onto the original's offsets (e1=0x24,
-// e2=0x14, i=0x18, j=0x34, etc.).
-// Still differs: x sits at 0x20 and y at 0x1c, the reverse of the original
-// (x=0x1c, y=0x20); no declaration order tried (x first, y first, uninitialised
-// then assigned, one combined declaration) moved the slot. Branch 2 still
-// differs over ~70 lines: the original reuses slot 0x18 for limitX and 0x34
-// for limitY, computes dst before src, and runs the scan as a do/while whose
-// entry jumps straight into the body. Rewriting branch 2 with dst first (or
-// with if/else limits, or with a do/while) collapsed the whole function to
-// 39.0% because it reshuffled the global register allocation, so the src-first
-// ternary form was kept. The imul operand order in the bestDiff/bestIdx
-// comparison is also reversed.
-// The LOD selection block now matches
-// the original instruction for instruction: writing the clamp as a ternary
-// directly in the `if` condition (instead of a separate Lod_ helper call or
-// `int v = ...; int lod = ...;` statements) makes MSVC fold the clamp into
-// `sets cl; dec ecx; and ecx, eax` before the FUN_00433520 call. Dropping the
-// redundant `if (count <= 0) return;` and `if (num <= 0) continue;` guards
-// also removed extra tests. What still differs: stack slot numbering for y,
-// i, grid, lod, table, ref and bestDiff (ours 4 to 8 bytes lower than the
-// original), the inner-loop e1/e2 result slots and the dead int stores of
-// x2/y2 that the original keeps, and the branch-2 limitX/limitY branch
-// layout (ours emits `jge` where the original emits `jl`). The distance
-// counter advances even for out-of-bounds points. Grid accessors recover the
-// receiver-relative addressing.
-// GPT-6.1-sol retry in #1932: four checks kept 61.0%; the reversed coordinate
-// declaration tied, while do-while conversions scored 59.1%. Neighbor coordinates
-// need a signed 16-bit cast before an unsigned bounds check (movsx AX then cmp).
-// GPT-6.1-sol refinement: explicit signed-16 locals also tied at 61.0%; the
-// `>> 5` form fell to 58.1% and shared max-LOD temporaries fell to 60.0%.
-// The best source was retained. No MATCH was reached.
-// deepseek-v4.1-flash retry in #2989: nineteen more x/y spellings (split and
-// combined declarations, declaration before halfW/halfH, uninitialised then
-// assigned, comma declarators, pointer deref, y-declared-first, casts) all
-// compile byte-identically to the 79.1% version, so the x=0x20/y=0x1c slot
-// pair is immovable from source. Restructuring branch 2 (limits as if/else,
-// dst before src, src re-association) still collapses to 39.0%.
-// deepseek-v4.1-flash retry in #2819: tried swapping the x/y declaration
-// order (each load order), combined and split declarations, renaming both
-// coordinates, declaring them before/after halfW/halfH, a dummy local
-// between them, short coordinates (collapsed to 40%), and every combination
-// of common headers (headers.py, 128 sets). The x slot stays 0x20 and y stays
-// 0x1c in every variant: the mapping is tied to which params->field_4[] index
-// each value comes from, not to name, declaration order or type. Branch-2
-// reorderings (limitY first 76.9%, nx/ny first 72.6%, dst before src 39.0%)
-// all score worse, so the current src-first form was kept. Best stays 79.1%.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free: MATCH (was 80.6%).
+// The break came from the matched twin 0x481d50 (the same line-of-sight update
+// with a decrement instead of an increment): copying its source shape fixed
+// five things at once.
+// (1) The x/y frame transposition was never a declaration-order question. The
+// x/y slots follow from the whole local set, and this source's extra locals (an
+// `idx` temporary, the ternary limits, direct `player->grid.cells` /
+// `grid.width` pointer arithmetic, and `src` declared before `dst`) had shifted
+// the allocator's order. Removing them puts x back at 0x1c and y at 0x20, and
+// every other slot on the original's offset.
+// (2) The lod clamp is the ternary written inline as the argument of
+// FUN_00433500, with no `idx` local; the spill to 0x34 is then the same.
+// (3) limitX/limitY as `if (c) v = a; else v = b;` statements (not `?:`), and
+// the byte map reached through a named `ByteMap_482270* ex` local inside the
+// loop: that is what gives `mov edx,[ebx]; add edx,0x7c; imul ecx,[edx+4]`
+// and with it the whole `add reg,0x7c` grid-accessor shape in the destination
+// address. Declaring `dst` before `src` then no longer reshuffles the frame (it
+// did before, which is what every earlier attempt ran into), and the loop body,
+// the loop-head reloads and the `limitX - nx` counter recomputed in esi all
+// land on the original's code.
+// (4) The inner loop is `for (int j = nx; j < limitX; j++)`; MSVC proves
+// limitX - nx > 0 from the two guards and rewrites it to `dec esi; jne`.
+// (5) The inner lod loop is `int bestIdx = 0; int j1; int bestDiff = -1;
+// short j = 0;` with `if ((short)num > 0) { j1 = 1; do {...} while (j++, j1++,
+// (short)j < (short)num); }`, and the neighbour coordinates are the int locals
+// `dx`/`dy` used through `(short)`. That declaration order puts bestDiff in eax
+// for `bestDiff * j1` (the imul operand order no source spelling could move on
+// its own) and gives dx/dy slots 0x24/0x14.
+// That left four bytes: the original computes `i * frame->width` as
+// `mov dx,[ebp]; imul edx, eax`, with the 16-bit width as the imul destination
+// and the loop counter as the source, while this source copied the width into
+// esi first (`mov esi,edx; mov edx,eax; imul edx,esi`), i.e. MSVC's canonical
+// operand order for the commutative multiply was the other way round. Source
+// operand order (`i * frame->width` vs `frame->width * i`), casts on either
+// side, a named offset temporary, a hoisted width local, `src += nx` as its own
+// statement, `i` declared outside the loop and a 16-bit cast on `i` were all
+// tried and none flips it. `<math.h>` (used for nothing here) does: it is
+// pure compiler state, it moves the value numbering enough to canonicalise the
+// multiply the other way, and with it the function matches byte for byte.
+// Not used by the code; MSVC 5's value numbering with it in scope
+// canonicalises `i * frame->width` the way the original does (see above).
+#include <math.h>
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -119,12 +52,12 @@ public:
 
 class Class_00433520 {
 public:
-    int FUN_00433520();
+    short FUN_00433520();
 };
 
 class Class_004335c0 {
 public:
-    int FUN_004335c0();
+    short FUN_004335c0();
 };
 
 class Class_4335e0 {
@@ -134,7 +67,7 @@ public:
 
 class Class_004339c0 {
 public:
-    int FUN_004339c0();
+    short FUN_004339c0();
 };
 
 class Class_004339e0 {
@@ -144,18 +77,28 @@ public:
 
 extern char DAT_0051e6a0[];
 
+struct MapSize_482270 {
+    unsigned int width;                // +0x0
+    unsigned int height;               // +0x4
+};
+
+struct ByteMap_482270 {
+    unsigned char* data;               // +0x0
+    MapSize_482270 size;               // +0x4
+    unsigned char& at(int x, int y) { return data[y * size.width + x]; }
+};
+
 struct Grid_482270 {
     unsigned char* cells;              // +0x0
     unsigned int width;                // +0x4
     unsigned int height;               // +0x8
     int field_c;                       // +0xc
-    unsigned char& at(int x, int y) { return cells[y * width + x]; }
 };
 
 struct Player_482270 {
     char unknown_0[0x7c];
-    Grid_482270 grid;                  // +0x7c
-    char unknown_8c[0x146 - 0x8c];
+    ByteMap_482270 grid;              // +0x7c
+    char unknown_88[0x146 - 0x88];
     unsigned char playerIndex;         // +0x146
 };
 
@@ -208,12 +151,6 @@ extern Game_482270* g_game;
 
 Frame_482270* __stdcall FUN_004b7f30(unsigned short* table, int index);
 
-inline int Lod_482270(Params_482270* params)
-{
-    int v = params->field_8 / 32;
-    return v < 0 ? 0 : v;
-}
-
 // FUNCTION: 0x482270
 void __stdcall FUN_00482270(Params_482270* params)
 {
@@ -231,13 +168,14 @@ void __stdcall FUN_00482270(Params_482270* params)
             return;
         if ((unsigned)y >= grid->height)
             return;
-        int idx;
-        if (((params->field_8 / 32 < 0) ? 0 : params->field_8 / 32)
-                < (short)((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
-            idx = (params->field_8 / 32 < 0) ? 0 : params->field_8 / 32;
-        else
-            idx = (short)((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1;
-        void* table = ((Class_00433500*)DAT_0051e6a0)->FUN_00433500(idx);
+        void* table = ((Class_00433500*)DAT_0051e6a0)
+                          ->FUN_00433500(
+                              (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
+                                      < ((Class_00433520*)DAT_0051e6a0)
+                                            ->FUN_00433520() - 1
+                                  ? (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
+                                  : ((Class_00433520*)DAT_0051e6a0)
+                                        ->FUN_00433520() - 1);
         short count = ((Class_004335c0*)table)->FUN_004335c0();
         short i = 0;
         ((Player_482270*)params->field_0)->grid.at(x, y)++;
@@ -245,43 +183,51 @@ void __stdcall FUN_00482270(Params_482270* params)
         for (i = 0; i < count; i++) {
             void* line = ((Class_4335e0*)table)->FUN_004335e0(i);
             short num = ((Class_004339c0*)line)->FUN_004339c0();
-            int bestDiff = -1;
             int bestIdx = 0;
+            int j1;
+            int bestDiff = -1;
             short j = 0;
-            if (0 < num) {
-            int j1 = 1;
-            for (; j < num; j++, j1++) {
-                int e1;
-                int e2;
-                ((Class_004339e0*)line)->FUN_004339e0(j, &e1, &e2);
-                e1 += x;
-                e2 += y;
-                short x16 = (short)e1;
-                short y16 = (short)e2;
-                if ((unsigned)x16 >= grid->width)
-                    continue;
-                if ((unsigned)y16 >= grid->height)
-                    continue;
-                unsigned char* cell =
-                    grid->cells + (y16 * grid->width + x16) * 2;
-                int d1 = cell[1] - ref;
-                int d0 = cell[0] - ref;
-                if (d0 * bestIdx > bestDiff * j1) {
-                    ((Player_482270*)params->field_0)->grid.at(x16, y16)++;
-                    if (d1 * bestIdx > bestDiff * j1) {
-                        bestIdx = j1;
-                        bestDiff = d1;
+            if ((short)num > 0) {
+                j1 = 1;
+                do {
+                    int dx;
+                    int dy;
+                    ((Class_004339e0*)line)->FUN_004339e0(j, &dx, &dy);
+                    dx += x;
+                    dy += y;
+                    if ((unsigned)(short)dx >= grid->width)
+                        continue;
+                    if ((unsigned)(short)dy >= grid->height)
+                        continue;
+                    unsigned char* cell =
+                        grid->cells + ((short)dy * grid->width + (short)dx) * 2;
+                    int d1 = cell[1] - ref;
+                    int d0 = cell[0] - ref;
+                    if (d0 * bestIdx > bestDiff * j1) {
+                        ((Player_482270*)params->field_0)
+                            ->grid.at((short)dx, (short)dy)++;
+                        if (d1 * bestIdx > bestDiff * j1) {
+                            bestIdx = j1;
+                            bestDiff = d1;
+                        }
                     }
-                }
-            }
+                } while (j++, j1++, (short)j < (short)num);
             }
         }
     } else {
         int ref = *params->field_c;
         Frame_482270* frame =
             FUN_004b7f30((unsigned short*)g_game->losTable, ref);
-        int limitX = (x + frame->width >= halfW) ? halfW - x : frame->width;
-        int limitY = (y + frame->height >= halfH) ? halfH - y : frame->height;
+        int limitX;
+        if (x + frame->width >= halfW)
+            limitX = halfW - x;
+        else
+            limitX = frame->width;
+        int limitY;
+        if (y + frame->height >= halfH)
+            limitY = halfH - y;
+        else
+            limitY = frame->height;
         int nx = x < 0 ? -x : 0;
         int ny = y < 0 ? -y : 0;
         if (ny >= limitY)
@@ -289,16 +235,15 @@ void __stdcall FUN_00482270(Params_482270* params)
         if (nx >= limitX)
             return;
         for (int i = ny; i < limitY; i++) {
+            ByteMap_482270* ex = &((Player_482270*)params->field_0)->grid;
+            unsigned char* dst = ex->data + (y + i) * ex->size.width + nx + x;
             unsigned char* src = frame->data + i * frame->width + nx;
-            unsigned char* dst =
-                ((Player_482270*)params->field_0)->grid.cells + (y + i) * ((Player_482270*)params->field_0)->grid.width + nx + x;
-            int n = limitX - nx;
-            do {
+            for (int j = nx; j < limitX; j++) {
                 if (*src != frame->mask)
                     (*dst)++;
                 dst++;
                 src++;
-            } while (--n);
+            }
         }
     }
 }

@@ -1,5 +1,49 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5. Names are provisional.
 //
+// claude-opus-5-5 pass (#5165, 88.5%, no score gain; about 150 variants read
+// with tools/c2prio.py). Block names below: B4 `if (los)`, B5 call + first
+// Contains x test, B6 its y test, B7 the vis test, F the flag test, E1/E2/E3
+// the explored arm's x test, y test and byte read, S1/S2/S3 the seen arm's.
+//  1. PER-BLOCK PRIORITIES, read out of C2. A copy of tools/c2prio.py with five
+//     more hooks in FUN_0040ee1d gives each block's w and K and every
+//     candidate's share: 0x40f5c7 (block end; ebx = list of candidates
+//     referenced, [esp+0x10] = live list, flag 0x10 at +6 = referenced),
+//     0x40f5f5 (edi = w, esi = K), 0x40f70d and 0x40f742 (eax gains
+//     edx * [eax+0x18]), 0x40f72c (eax loses edx). Constants count in K at cost
+//     0. For this file: bit 70 = B7 64 (K 8, cost 8: `1 << player` is 3
+//     references in every spelling tried, the test 1) + S3 12 - F, S1, S2;
+//     W1 38 = B7 32 + S3 12 - 6; los 70 = B4 10 + B5 14 + B6 4 + B7 16 + E1 6
+//     + E2 4 + E3 10 + S1 4 + S2 4 - F 2.
+//  2. THE TARGET IS CONFIRMED BY A FORCED BUILD. With bit kept out of a
+//     register (`volatile`, or a function-scope bit also used at the end, so
+//     it is live through the loop) and two fake width uses in S3 so that W1
+//     outranks los, the LOS block becomes the original's: edi = los in the
+//     prologue, esi = W1, `mov [esp+0x4c], esi` after the shift, `xor ebp, ebp`
+//     moved up, `mov ebx, [esp+0x4c]; test ebp, ebx` (that operand order comes
+//     only with bit a real candidate, not volatile), S1 a memory compare. With
+//     the explored arm spelled as in the matched sibling 0x4658e0,
+//     `m->size.Contains(tx, ty) && m->Get(tx, ty) != 0` (MapSize-level
+//     Contains), E1 also becomes the original's `mov ecx, esi; cmp edx, ecx`.
+//     That copy is NOT a CSE use of W1: c2prio puts E1's reference on los. The
+//     code generator replaces the load of [edi+0x80] with the register it
+//     knows holds it (only along the fall-through path, which is why S1, a
+//     jump target, stays a memory compare). The forced build's only other
+//     difference is the imul operand order (`mov ebx, eax; imul ebx, esi`
+//     against `mov ebx, esi; imul ebx, eax`), which its fake uses may cause.
+//  3. NO PLAUSIBLE SPELLING GETS THERE. The original needs W1 >= los (W1 wins
+//     the tie on +0x40) and bit below the g_game pieces (the ebx piece is 32
+//     after the split) and vis. With the original's visible references (W1:
+//     B7 def and use, S3, perhaps E3; E1 and S1 read memory) W1 is 38 to 44
+//     against los 68 to 70 and bit 70. Measured, W1 - los: both helpers' return
+//     forms (24 combinations of if/&&/r/early-return/ternary) -6 to -14; the
+//     same with IsSeen computing the bit (a CSE temp, 54 to 60, but los then
+//     takes esi) -6 to -12; nine spellings of the bit's definition (all 70);
+//     index and width locals, `m` placement, a helper taking the width, the
+//     vis test through a helper: unchanged. The gap is 25 to 30 points, so
+//     the original's IL must differ in a way the bytes do not show. One lead
+//     not tested: a block boundary inside B7 with no jump (a label), which
+//     would put bit's 3-reference definition in a small-K block.
+//
 // claude-opus-5-5 pass (#5068, 88.457% -> 88.486%; check.py shows both as
 // 88.5%). The body now writes IsExplored through a `ByteMap* m =
 // &los->explored` local with ByteMap-level Contains + Get and no bit

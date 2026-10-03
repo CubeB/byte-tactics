@@ -8,9 +8,10 @@ you some tokens but can't break anything.
 ## Setting up
 
 You need Linux (or WSL) with `wine`, `7z`, `cabextract`, `curl`, `git`, the
-GitHub CLI (`gh`, logged in) and [uv](https://docs.astral.sh/uv/). You also
-need your own copy of Total Annihilation: the Steam version is the one the
-project matches.
+GitHub CLI (`gh`, logged in) and [uv](https://docs.astral.sh/uv/). `gdb` is
+optional; `tools/c2prio.py`, which reads the compiler's register priorities,
+needs it. You also need your own copy of Total Annihilation: the Steam version
+is the one the project matches.
 
 ```sh
 git clone https://github.com/HectorBailey/byte-tactics

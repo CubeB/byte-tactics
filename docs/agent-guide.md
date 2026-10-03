@@ -265,11 +265,17 @@ reference count: 2 per reference, times `1 << (loop depth + 1)`, times the
 number of candidates touched in that block, minus a little for each block the
 value is live through without a reference. In practice one reference inside a
 loop beats 3 to 4 outside it, and one in a nested loop about 12. On equal
-priority the second key is a candidate field at +0x40: in small tests that
-matched first appearance in the code, but in 0x47d2e0 it did not (#5163), so
-treat first appearance as a hint, not a rule. So to move a variable to an earlier register, add weighted
-references or make it appear first. This predicted 1,280 of 1,280 generated
-straight-line tests. A value whose register is taken by higher-priority
+priority the key at +0x40 decides, larger first: the number of the
+candidate's last write, counting the blocks in order but the tuples inside
+each block backwards. So a variable last written in a later block wins, and
+within one block the one written first wins. So to move a variable to an
+earlier register, add weighted references or move its last write. This
+predicted 1,280 of 1,280 generated straight-line tests. **Don't estimate
+priorities by hand when it matters: `uv run tools/c2prio.py <addr> [file]`
+compiles the file with C2 under a debugger and prints every candidate's real
+priority, +0x40 key, list position, name, source lines and register (or
+split) in a few seconds, and `--trace` shows each colouring step**
+(`docs/c2-regalloc.md`, "Reading C2's own numbers"). It needs gdb. A value whose register is taken by higher-priority
 neighbours in part of its range is split, not spilled: it is stored before
 that region and reloaded after (the "`this` spilled at entry" pattern).
 Expression temporaries are placed afterwards (`FUN_00435c37`): a temporary

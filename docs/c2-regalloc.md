@@ -12,6 +12,11 @@ rough, and assertion sites tell you which source file a piece came from: the
 allocator is `color.c` (assertions at 0x4676b7, 0x46915e, 0x4692bb, 0x469309)
 plus code generation's temporary assignment in `regasg.c`.
 
+To see what the allocator actually does with your function, run
+`uv run tools/c2prio.py <addr> [file]` (see "Reading C2's own numbers" below):
+it prints every candidate's priority, tie key, list position and register,
+straight from C2.EXE, in a few seconds.
+
 ## Where it runs
 
 `FUN_00453305` is the per-function pipeline. With global optimisation on
@@ -73,16 +78,18 @@ simplify-and-select:
    without the `K(b)` factor, is the spill cost (+0x3c) used in step 2.
 
 4. **Order.** Candidates are inserted into a list in id order (from a hash on
-   `id & 0x3ff`), sorted by priority, largest first, then by a second key at
-   +0x40 that we did not identify. A new candidate goes **before** equal ones.
-   In the generated tests this worked out as: on a tie, the variable that
-   appears first in the code goes first. **It is not the rule in general:**
-   measuring C2's real list in 0x47d2e0 (#5163, a patched C2.EXE read with
-   winedbg) showed ties going to the larger +0x40 value, with `bit` and the
-   width beating `los` on equal priority although `los` appears first. The
-   sorted priority also did not explain that function's original on its own;
-   FUN_0045aaf9, which can move a candidate down before colouring, is the
-   next thing to trace.
+   `id & 0x3ff`), sorted by priority, largest first, then by the key at +0x40,
+   largest first. A new candidate goes **before** equal ones, so a full tie
+   goes to the higher id. +0x40 is the number of the last tuple that writes
+   the candidate: `FUN_00416a8d` numbers the tuples block by block in block
+   order, but each block's tuples from the last to the first, and stores the
+   number in every candidate a tuple writes (0 for a constant). So on equal
+   priority the candidate whose last write is in a later block goes first,
+   and within one block the one written **earlier** goes first. That is why
+   small straight-line tests looked like "the variable that appears first
+   wins", and why in 0x47d2e0 `bit` (last written in the LOS block) beats the
+   parameter `los` on equal priority. Checked on all 506 candidates of
+   0x4cf570, 0x47d2e0 and 0x453d40 with `tools/c2prio.py`.
 
 5. **Choice** (`FUN_0041b785`). For the candidate at the head of the list, each
    allowed register gets a cost, starting at 0. A neighbour that wants a
@@ -109,7 +116,98 @@ Consequences that agents can use directly:
   fact by `FUN_0042bf00`, which moves a value in ebp to ebx, esi or edi,
   in that order, if one of them ends up unused).
 - To move a variable to an earlier register, give it more weighted references
-  than its rival, or, on a tie, make it appear first in the code.
+  than its rival, or, on a tie, move its last write to a later block (or
+  earlier in the same block). `tools/c2prio.py` shows both numbers.
+
+## Reading C2's own numbers: tools/c2prio.py
+
+    uv run tools/c2prio.py 0x4cf570                    # the file under src/
+    uv run tools/c2prio.py 0x4cf570 build/scratch/0x4cf570/try.cpp
+    uv run tools/c2prio.py 0x4cf570 --trace            # every colouring step too
+
+It compiles the file with the real C2.EXE under a debugger and prints, for the
+one function, C2's register candidates in the order `FUN_0041bdd7` sorted them,
+which is the order `FUN_0041b785` colours them in. Part of 0x4cf570 (matched):
+
+      #   id  candidate              lines              prio +0x40 spill refs  allowed  register
+      0   34  temp                   112                  96    69    24    3  acdsibp  eax
+      1   25  j                      149,151-153          88   215    24    7  acdsibp  eax
+      2   17  i                      102,108,115,118      80    81    36    7  ...sibp  esi
+     ...
+     23   16  bestidx                101,115,127          -7    72    12    3  ...sibp  ebp
+     24    5  this                   87..153             -11     9    58   20  ...sibp  split: esi #36, esi #37
+     ...
+     28    1  const 0                                   -122     0    -1   29  ...sibp  split: ebp #26, 4 pieces immediate
+
+- `#` is the position in the sorted list. `id` is C2's candidate id; ids
+  restart at 1 for each function, and C2 reuses the id of a freed candidate
+  for a new one (the pieces of a split candidate get such ids).
+- `candidate` is the local, parameter or global (globals can be candidates
+  too), `temp` for a compiler temporary (a common subexpression, a hoisted
+  value, an induction variable or a strength-reduced pointer), `local temp`
+  for an unnamed front-end local (an inlined function's argument or result,
+  for one; with its frame offset if it has one), or `const N`. Narrow ones are
+  marked 8-bit or 16-bit. A variable with several webs has one row per web.
+- `lines` are the source lines of the tuples that read or write it. Each tuple
+  carries a line relative to the line before the body's `{`, and inlined code
+  gets the line of the call. Inside loops C2 has restructured they are only
+  roughly right.
+- `prio` (+0x0c), `+0x40`, `spill` (+0x3c) and `refs` (+0x24) are the
+  candidate fields of steps 2 to 4, as they are when the list is built.
+- `allowed` is the registers still allowed then, in the order table's order
+  (a=eax, c=ecx, d=edx, s=esi, i=edi, b=ebx, p=ebp; a dot where not allowed):
+  `...sibp` is a value live across a call.
+- `register` is what `FUN_0041b785` gave it. A split candidate lists the
+  registers its pieces got, with their ids (and how many pieces stayed in
+  memory); `memory`, or `immediate` for a constant, if it never got one. Later
+  passes can still change a few of these (`FUN_0042bf00` moves a lone ebp to
+  ebx, esi or edi; a callee-saved register holding only constants worth less
+  than 3 goes back to immediates).
+
+Under the table come the candidates `FUN_0041a6f8` dropped before the sort,
+and the floating-point ones, which `FUN_0045f4b7` puts on the x87 stack and the
+tool does not trace. `--trace` adds each colouring step in order: the
+candidate, its priority at that moment, the registers still allowed, the
+register it got and `FUN_0041b785`'s nonzero costs (`ebp +8200` is a neighbour
+that has only ebp left, a negative cost is a preference), then splits,
+candidates skipped because their spill cost is not positive, and the re-sorts
+after `FUN_0040ee1d` recomputes the priorities following a split.
+
+How it works: the tool copies C2.EXE to `build/c2prio/<run>/c2p<run>.exe` with
+`jmp $` at the entry point (toolchain/ is never changed) and compiles with
+`/B2` pointing at the copy, so CL runs it with the usual `MSC_CMD_FLAGS`. It
+finds the spinning copy by its unique name in winedbg's `info process`, starts
+`winedbg --gdb` on it, and runs gdb with the tool itself as the gdb Python
+script. That puts the two entry bytes back and records what the allocator does
+at a dozen addresses (listed at the top of the tool), with breakpoints whose
+Python `stop()` returns without stopping. The compile then finishes normally;
+its object is byte-identical to a plain compile. Two quirks needed handling:
+winedbg answers gdb's first packet only after more bytes arrive, so gdb talks
+to it through a small relay in the tool that sends one `+` after that packet
+(otherwise every run waits 2 s for gdb to resend), and gdb must keep the
+breakpoints inserted (`breakpoint always-inserted`) or each stop rewrites all
+of them.
+
+Needs gdb with Python (the distribution's gdb package) and Wine's winedbg; no
+mingw and no change to the Wine prefix. Each run uses its own directory and
+copy of C2, so several agents can run it at once (six parallel runs gave the
+same output as one). Typical times: 2 to 3 s for 0x4cf570, 4 s for 0x47d2e0,
+18 s for 0x453d40 (8944 bytes, 411 candidates); most of it is one stop per
+reference for the `lines` column.
+
+Validated on 0x4cf570 (matched) and 0x47d2e0 (88.5%):
+
+- 0x4cf570: `bestidx` -7 and `this` -11, the numbers #5115 measured for the
+  matched source; `bestidx` gets ebp, `this` is split into two pieces that both
+  get esi (re-sorted at 80 and 22), and `i` esi, `best` ebx, the second loop's
+  pointer edi, `slot` edi and the zero constant ebp all agree with the
+  original's code.
+- 0x47d2e0: `bit` 70, `los` 70 and the width temporary 38, with `bit` ahead of
+  `los` on +0x40 (71 against 26), exactly the numbers in the file's header
+  (#5068). `FUN_0045aaf9` moved nothing in this function.
+- For both functions every colouring step (candidate, priority, register: 30
+  and 55 steps) is identical to an independent trace made the #5115 way (the
+  IL captured by a mingw-built `/B2` wrapper and C2 rerun under gdb).
 
 ## Temporaries (regasg.c): the scratch rotation
 
@@ -226,7 +324,10 @@ validation suite. What the model says about them:
   reaches 90.2% works by raising the loop's weight (`w(b)` doubles per loop
   level and `K(b)` is large there). A version with the same weights and no
   extra test would need another way to add loop-weighted references to bestidx
-  and best, or to remove references to `this` inside the loop.
+  and best, or to remove references to `this` inside the loop. MATCHED in
+  #5164 by reading C2's priorities under a debugger (the method
+  `tools/c2prio.py` now packages): bestidx had to outrank `this` (-7 against
+  -11) so that bestidx takes ebp and `this` is split.
 - **0x487080** (one step of the bit-copy chain on edx instead of ecx):
   MATCHED in #5156, and the hypothesis above it was wrong. Removing any one of
   the 23 calls and copies before the chain, or adding code-free temporaries,
@@ -245,16 +346,16 @@ validation suite. What the model says about them:
   frame, which fits: with only callee-saved registers left, `flags` loses to
   higher-priority locals.
 - **0x453d40** (8944 bytes): too large for hand counting. The rules above say
-  which way each change pushes priorities, but a function this size needs a
-  tool that reproduces C2's blocks and candidates.
+  which way each change pushes priorities; `tools/c2prio.py` lists its 411
+  candidates in about 18 s.
 
 ## Not done
 
-- `tools/regalloc.py`: a predictor would need C2's basic blocks, webs and
-  compiler temporaries, which are not visible in the source. A predictor for
-  straight-line code is in the validation scripts, but it would not help with
-  real functions. The useful next step is the exact `K(b)` count, from the
-  three sets `FUN_0040ee1d` adds up at 0x40f5c9 to 0x40f704.
-- The second sort key at candidate +0x40.
+- A predictor that works from the source alone would need C2's basic blocks,
+  webs and compiler temporaries, which are not visible in the source;
+  `tools/c2prio.py` reads them from C2 instead. The exact `K(b)` count (the
+  three sets `FUN_0040ee1d` adds up at 0x40f5c9 to 0x40f704) is still not
+  written down, and the tool does not yet show each block's share of a
+  priority.
 - `FUN_0041a985` (532 lines), which builds the conflict and preference
   information before each choice, was skimmed, not read.

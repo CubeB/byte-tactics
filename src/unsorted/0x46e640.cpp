@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, verified by GPT-6. Names are provisional.
+// Issue #4927 retry: confirmed MATCH on the current main /Gi source.
 // FLAGS: /Gi
 // std::vector<int>::insert(iterator, size_type, const _Ty&), stock MSVC 5
 // <vector>, emitted out of line through a member pointer. The caller

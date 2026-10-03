@@ -1,285 +1,29 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
-// Session 15 (DeepSeek V4.1 Flash): 91.5 -> 92.6 percent, size now exactly 1148
-// (was 1145). One win, from the permuter: the directory test
-// `if ((fd.attrib & 0x10) != 0)` becomes a call to an inlined helper that takes
-// the attribute as `unsigned short`. Inlining it emits
-// `mov dl,[esp+0x24]; shr dl,4; test dl,1` where the original has
-// `mov dl,[esp+0x24]; test dl,0x10`. The extra `shr dl,4` is 3 bytes, exactly
-// the second allocator block's 3-byte deficit, so from the second strcmp
-// onward every jump target and the function end line up. The helper is a real
-// predicate, not a dummy, but be clear about what it does: the 3 padding bytes
-// land at the attrib test and block 2 below is unchanged. Remove this helper
-// if block 2 is ever fixed (it is worth 1.1 points today).
-// Still differs (register allocation only; semantics believed correct):
-//  - Second allocator block, still the one real blocker, byte-identical to
-//    session 14: original `mov eax,[ebp]; mov esi,eax; mov ecx,[edi+ebx];
-//    mov [esp+0x14],esi; lea edx,[eax+ecx*8]; lea eax,[ecx+edx]`, ours
-//    `mov esi,[ebp]; mov [esp+0x14],esi; mov eax,[edi+ebx];
-//    lea edx,[esi+eax*8]; add eax,edx`. Tried this session: eight fresh
-//    expression spellings (`+=`, count-first, pre-multiplied, two-step
-//    esize+=8 then esize+=count, summed pointer trees), five spellings with a
-//    short-lived `esize` copied into `entries` (declared mid-block and in the
-//    declaration block), five inline-helper forms (grow9/cntAt, value and
-//    pointer arguments), and a named int/unsigned count local. All compile to
-//    the same three instructions or shift the frame and lose points. The
-//    compiler coalesces the load into `entries` (esi) and puts the count in
-//    eax; the original loads into eax and copies to esi. The prologue
-//    temp-then-copy trick does not transfer because the sum is not a single
-//    in-place add.
-//  - The three `(char*)out[1] + entries + ent` pointer sums still load
-//    entries/out[1]/ent in a different order. All 26 per-site
-//    parenthesizations are byte-flat, as session 14's per-site orders were.
-// Permuter: two runs (one interrupted, one full 3 minutes / 2905 candidates)
-// found only this helper; the full run from the 92.6 base found nothing
-// better (fine score 883 -> 883).
-// Session 14 (Space Bunny Free): 89.5 -> 91.5 percent (1145 bytes). Four wins.
-// (1) Prologue, byte-exact now (this was the "front-end copy node" residual
-// twelve sessions called stuck): `unsigned int nsize = out[0]; root = nsize;
-// nsize += 8; out[0] = nsize;` emits `mov eax,[ebp]; mov esi,eax; add eax,8;
-// mov [ebp],eax` AND moves the root spill to the original's late [esp+0x24]
-// slot just before the call, which earlier sessions had treated as two
-// separate stuck items. The old form (`root = out[0]; unsigned int nsize =
-// out[0] + 8; out[0] = nsize;`) lets MSVC pick root's register for the load
-// and rematerialise with a copy. The idea: give MSVC a SHORT-LIVED TEMP to
-// modify in place and copy that temp into the long-lived variable, instead of
-// writing the sum into a freshly allocated register. The load then stays in a
-// scratch register, the long-lived variable gets a plain register copy, and
-// the sum becomes an in-place `add` that MSVC's scheduler sinks to exactly
-// where the original has it. No self-assignment and no dead code is involved:
-// `root = nsize` copies a value that is genuinely used twice.
-// (1) Prologue, byte-exact now (this was the "front-end copy node" residual
-// twelve sessions called stuck): `unsigned int nsize = out[0]; root = nsize;
-// nsize += 8; out[0] = nsize;` emits `mov eax,[ebp]; mov esi,eax; add eax,8;
-// mov [ebp],eax` AND moves the root spill to the original's late [esp+0x24]
-// slot just before the call, which earlier sessions had treated as two
-// separate stuck items. The old form (`root = out[0]; unsigned int nsize =
-// out[0] + 8; out[0] = nsize;`) lets MSVC pick root's register for the load
-// and rematerialise with a copy.
-// (2) Name allocator, byte-exact now: `unsigned int nsize = strlen(fd.name)
-// + 1; nsize += nameOff; out[0] = nsize; ... FUN_004d84a0(..., nsize)` gives
-// the original's in-place `add ecx,ebx` and `push ecx`, and the `out[0]` store
-// sinks to just before the call. Passing `out[0]` as the third argument scores
-// 89.8, one point lower: the argument has to be the temp, not the reload.
-// (3) Leaf: the size store goes FIRST as a plain statement, read back for the
-// accumulate: `*(unsigned int*)(node + 4) = fd.size; ... *total += *(unsigned
-// int*)(node + 4);`. That reproduces `mov ecx,eax` + `add [eax],ecx` and the
-// original's store order. Alone on the old file this cost 2 bytes and scored
-// 89.0; combined with (1) and (2) it is a clear win.
-// (4) The two realloc-result pointers `base` and `nb` are declared with the
-// other locals instead of at their points of use (90.8 -> 91.0 -> 91.5, still
-// 1145 bytes). Moving `base` also fixed the ebx/esi SIB direction, see below.
-// Both items came out of `permute`, but only the declaration moves are kept;
-// see the leads further down for everything in the permuter's result that was
-// left out. All 128 header sets are flat.
-// Still differs (register allocation only; semantics believed correct):
-//  - Second allocator block, the one real blocker: original `mov eax,[ebp];
-//    mov esi,eax; mov ecx,[edi+ebx]; lea edx,[eax+ecx*8]; lea eax,[ecx+edx]`,
-//    ours `mov esi,[ebp]; mov eax,[ebx+edi]; lea edx,[esi+eax*8]; add eax,edx`.
-//    The (1) trick does NOT transfer here. Twenty-odd spellings of the
-//    temp-then-copy shape normalize to the same three instructions: esize /
-//    esize += / constant-add probe / count temp first / count pre-multiplied /
-//    `out[0] +=` / `out[0] = out[0] + ...` / `entries = (esize = out[0]) + ...`
-//    / a `bump()` helper / a `grow9()` helper that loads the count inside /
-//    a `countAt()` helper / operand swaps and parenthesised trees. It is 3
-//    bytes short, and that shift is why every jump target from the second
-//    strcmp onward still mismatches.
-//  - entry pointer sum: original `add eax,edx; add eax,ecx` with `entries`
-//    loaded into eax after the strcpy's rep movsb, ours `lea eax,[ecx+edx]`
-//    with `entries` hoisted before it. Same tree, different register order;
-//    eight trees and two pointer-temp forms are all flat or worse.
-//  - Leaf entry pointer: original `mov ecx,[esp+0x20]; mov edx,[esp+0x1c];
-//    add ecx,eax; mov [ecx+4],esi`, ours loads ent first and folds the address
-//    into `mov [ecx+eax+4],esi`. Both halves are source-order insensitive:
-//    nine spellings (pointer local, parenthesised trees, entries-first,
-//    out[1]-first, an `entryAt()` helper, unsigned ent) are byte-identical.
-//  - ebx/esi SIB direction at the three base+root sites is now RIGHT. It was
-//    stuck for five sessions: five cast spellings, a separate offset local, a
-//    pointer local, all 128 header sets, and even writing the address as an
-//    integer sum so the offset is the FIRST addend (`*(unsigned int*)(root +
-//    (unsigned int)base)`) all gave the same wrong byte, which looked like a
-//    register-allocation tie. (4) broke it: the direction is decided by which
-//    register `base` is in, and moving `base` to the declaration block fixed it.
-//    Worth remembering that an "allocator tie" can be a declaration-order
-//    effect and not a source-shape one.
-// Still open leads from the permuter (all need implausible source, so none
-// were kept): a `temp_inline` helper whose result is discarded, an `inl0()`
-// helper that only returns `e->flags`, `tmp0`/`tmp1`/`tmp3`/`tmp4`/`tmp5`
-// temporaries, `if (1) do { ... break; } while (1);` loop bodies, an empty
-// `if (trailing) { } else` arm and an empty `if (0 <= state) { }` arm. None of
-// them bought a ratio beyond 91.5 once (4) was in.
-//  - The dir-branch store loads out[1]/entries/ent in the other order.
-// The third argument's slot coincides with `out[1]`: ebp holds `out`, so
-// [ebp+4] is out[1] and also the slot the third parameter was passed in. The
-// accumulate and the recursive call's third argument both read that one slot,
-// and out[2] is never touched, so `*total` and `*(int*)out[1]` are the same
-// store. `*total` is the safer spelling: a real `*(int*)out[1]` re-reads a
-// slot MSVC has just written, which it may fold away.
-// Older sessions (all below 89.5 on this file) are kept in the history below.
-// mimo-v2.6-pro session (60-minute box): best unchanged at 89.5 percent,
-// this file. One leaf probe DID reproduce the tail exactly (scratch t3, 89.0
-// percent / 1146 bytes): `*(unsigned int*)(node + 4) = fd.size; ... zeros ...
-// *total += *(unsigned int*)(node + 4);` (reading the size BACK for the +=)
-// forces MSVC to keep the addend with `mov ecx, eax` and the RMW
-// `add [eax], ecx` instead of rematerialising [esp+0x34], and the node stores
-// land in the original order (size first). It scores below 89.5 only because
-// block 2 is then 2 bytes short (`add eax, edx` vs the original
-// `lea eax, [ecx + edx]`); the two effects are traded for each other.
-// Micro-probes with MSVC5 (build/scratch/0x4bd3b0/probe2): every spelling of
-// `entries + count*9` (six tree shapes, register and memory operands) collapses
-// to `lea edx,[entries+count*8]; add count,edx`; the original's
-// `lea eax,[ecx+edx]` form only appears when the dying register is the
-// entries copy (the load/copy direction problem at the top too). The SIB
-// direction of `base + root` is not spelling-driven: five spellings of
-// `*(ptr + off)` all give the same byte in isolation, so it is a register
-// allocation tie like the guide says for 0x4bc370. A chained
-// `root = nsize = out[0]` DOES move the root spill to the original's late
-// slot (just before the call) but merges root and nsize into one register and
-// drops the copy (scratch t4, 82.1 percent). Entry pointer tree reorder
-// (`entries + (char*)out[1] + ent` and `entries + ent + (char*)out[1]` per
-// site, matching the original's per-branch add orders) is byte-flat (t5).
-// The name block's out[0] store does not move after the pushes when written
-// as a call-argument assignment (t1, flat).
-// What still differs vs the original (register allocation / scheduling):
-//  - prologue and second block: original loads out[0] into eax and copies to
-//    esi (`mov eax,[ebp]; mov esi,eax`), ours loads into esi and copies to
-//    eax; the root spill goes late with a copy-shaped def but the copy is the
-//    thing every spelling tested so far coalesces away.
-//  - block 2's `lea eax,[ecx+edx]` (ours: `add eax,edx`) and its 2-byte size
-//    deficit, which is exactly what the t3 leaf spelling needs.
-//  - SIB direction [esi+ebx]/[eax+ebx] vs [ebx+esi]/[ebx+eax] at the three
-//    base+root sites, and the entry data stores ([ecx+eax+4] vs add+store).
-//  - name allocator: original `add ecx,ebx; push ecx` + late `mov [ebp],ecx`,
-//    ours `lea eax,[ecx+ebx]` + early store (nlen+=nameOff and friends all
-//    give the same lea, per earlier sessions).
-//
-// Session 12 (deepseek-v4.1-flash, 10-minute box): one probe, byte-identical
-// to the 89.5 file: `unsigned int nsize = out[0]; root = out[0]; nsize += 8;
-// out[0] = nsize;` emits exactly the v0 sequence (diff of the check outputs is
-// empty), so the load/add split spelling is normalized by VC5 and the top
-// copy-node residual is unchanged (the `nsize = root; nsize = nsize + 8;` form
-// is 83.4 / 1146, same as the earlier nsize-first temp load).
-// Session 11 (deepseek-v4.1-flash, 10-minute box): five probes on the 89.5
-// file, none better. The original's `mov eax,[ebp]; mov esi,eax` top (the load
-// landing in eax and being copied to root's esi) is a front-end copy node, and
-// the spellings that should force it do not: `nsize = (root = out[0]) + 8` and
-// the CSE order `nsize = out[0] + 8; root = out[0]; out[0] = nsize;` both give
-// `mov esi,[ebp]; lea eax,[esi+8]` / `mov esi,[ebp]; mov [esp+0x18],esi;
-// lea eax,[esi+8]` at 83.4 percent / 1146 bytes; the nsize-first temp load is
-// 82.4 / 1146 (its spill placement does match the original's late [esp+0x24],
-// so that ordering comes from the nsize variable's presence, but the whole
-// downstream allocation shifts). Two declaration-order permutations of
-// h/trailing/root/entries are byte flat at 89.5, so the local declaration
-// order is not the lever either. Conclusion unchanged: one front-end copy node
-// decides esi vs eax here, and every spelling tested so far lets MSVC coalesce
-// the load straight into esi.
-// Session 10 (deepseek-v4.1-flash, 10-minute box): three fresh probes on the
-// 89.5 file, none better: nsize-first temp load (`unsigned int nsize = out[0];
-// root = nsize; out[0] = nsize + 8;`) gives the original eax-load/esi-copy top
-// but drops to 82.4 percent / 1146 bytes; the parenthesised count-first sum
-// (`count + (entries + count*8)`) is byte-flat at 89.5 with the same hunks; an
-// e0 temp for the second out[0] read scores 88.2. Residual unchanged.
-// Session 9 (deepseek-v4.1-flash, 10-minute box): the leaf reorder probe (the
-// `*total += (*(unsigned int*)(node + 4) = fd.size);` assignment-expression
-// moved above the two node zero stores) scores 88.3 percent / 1152 bytes, so
-// the 89.5 percent shape needs it last. No other steerable diff found; the
-// residual is the register-allocation list below.
-// Session 8 (deepseek-v4.1-flash): best stays 89.5 percent, size exact 1148. Three
-// fresh probes, all worse or flat on the v0 file: computing `nsize = out[0] + 8;`
-// before `root = out[0];` (so the first read is the nsize addend) drops to 83.4
-// percent / 1146 bytes because it emits `mov esi,[ebp]` then `lea eax,[esi+8]`
-// instead of the original `mov eax,[ebp]; mov esi,eax; add eax,8`; parenthesising
-// the entry pointer as `(char*)out[1] + (entries + ent)` is byte-flat at 89.5; and
-// reusing the one `Entry_004bd3b0* e` local for both `e->data = ...` stores
-// (instead of re-casting out[1]+entries+ent) collapses to 48.4 percent / 1149
-// bytes, so the two re-cast spellings are load-bearing for the folded
-// [ecx+eax+4]/[ecx+eax] stores and must not be "cleaned up". Residual is still
-// the register allocation / scheduling list below.
-// What still differs (all register allocation / scheduling, semantics correct):
-// prologue and second-block load-copy order (eax then esi vs esi then eax),
-// the root spill timing ([esp+0x24] after pushes vs [esp+0x18] before), the
-// ebx/esi SIB direction in three stores, the entries+count*9 lea/add shape
-// (lea eax,[ecx+edx] vs add eax,edx) and the entry data store fold
-// (add ecx,eax / [ecx+4] vs [ecx+eax+4]). Probes this session, all 89.5 flat
-// or worse: temp-first nsize load (82.4), e0 temp for entries (88.2), leaf
-// total-first reorder (88.3), root+(uint)base SIB spelling (89.5 flat),
-// count*8+count sum spelling (89.5 flat), ee temp for entries+ent (77.4),
-// all three main fixes combined (81.4).
-// Session 6 (deepseek-v4.1-flash): 88.3 -> 89.5, size now exactly 1148. The leaf
-// `*total += (*(unsigned int*)(node + 4) = fd.size);` written as one
-// assignment-expression (fd.size read once, value reused for the RMW) gives the
-// original `mov ecx,eax; mov [esi+4],eax; ...; add [eax],ecx`; a separate store
-// plus a second `fd.size` read reloads the slot and is 4 bytes longer. Flat probes
-// on top: `out[0] = (entries = out[0]) + count*9;` (v4, 89.5) and the three
-// root+nb / root+base SIB spellings (v5, 89.5), so the residual is the
-// ebx/esi SIB direction, the [esp+0x24]-after-pushes root spill and the
-// lea/add shape of the entries+count*9 sum.
-// Session 5 (deepseek-v4.1-flash): three more probes, all byte-flat or worse:
-// `(unsigned int)base + root` for the header/inc/count SIB (88.3, unchanged),
-// `unsigned int nsize = root + 8;` (83.6, worse), and re-checking the fsz
-// single-read shape (see session 2). Best remains 88.3 percent, 1152 bytes.
-// Session 4 (deepseek-v4.1-flash): still 88.3 percent / 1152 bytes; two more
-// probes stayed byte-flat: moving `*total += fd.size;` directly under the node
-// size store (so the two fd.size reads have no store between them and can CSE)
-// and spelling the node size store as ((unsigned int*)node)[1] = fd.size. The
-// lead item is still the missing `mov ecx, eax` (fd.size is rematerialised for
-// the `*total += ...` RMW) plus the ebx/esi SIB direction, as recorded below.
-// Best 88.3 percent (1152 vs 1148 bytes). What still differs, all register
-// allocation (semantics are believed correct):
-//  - the top block loads out[0] into esi then copies to eax; the original
-//    loads into eax and copies to esi (byte-neutral), and the original spills
-//    root to [esp+0x18] just before the realloc call, ours earlier.
-//  - the base+root address is emitted as [ebx+esi]; the original as [esi+ebx]
-//    (initial header store and the first-pass count increment).
-//  - the second allocator block: we do `mov esi,[ebp]` where the original does
-//    `mov eax,[ebp]; mov esi,eax`, and the count read is [ebx+edi] vs the
-//    original's [edi+ebx] (keeping base in ebx).
-//  - the name allocator call now reads `not ecx; lea eax,[ecx+ebx]` (nlen temp),
-//    the original `not ecx; add ecx,ebx; push ecx` (byte-neutral, different reg).
-//    Tried nameOff+nlen, nlen+=nameOff, nameOff+strlen+1: all the same lea.
-//  - the entry name/flags store pointer is computed as (ent+entries)+base and
-//    the leaf data address folds the new allocation into the store
-//    ([ecx+eax+4] vs add ecx,eax then [ecx+4]); the `*total += size` store is
-//    a load/add/store instead of the original `add [eax],ecx`.
-// Tried and rejected (all scored below 88.3): moving the entries declaration to
-// its point of use (86.9), out[0]=root+8 with/without an nsize temp (83.5),
-// (unsigned)base in the header address (88.2), #include <windows.h> (no change),
-// a size temp for the leaf branch (87.0-87.2).
-//
-// Session 2 (deepseek-v4.1-flash) findings:
-//  - The 4-byte size excess (1152 vs 1148) is exactly the DOUBLE read of
-//    fd.size in the leaf: base emits two `mov ...,[esp+0x34]` (one for node.size,
-//    one reloading for *total += size). Reading fd.size once via a local `fsz`
-//    makes the size exactly 1148 but the score drops to 87.9%, because fsz then
-//    lands in edi and `*total += fsz` stays a load/add/store (the known stuck
-//    `add [eax],ecx`) while node.size is stored from edi. So the right size and
-//    the best score are currently mutually exclusive here.
-//  - Tried and rejected: `nsize = root + 8` single-read (83.6), `out[0] += 8`
-//    capture (88.3, prologue still `mov esi,[ebp]; mov eax,esi`), `out[0] =
-//    (root = out[0]) + 8` (81.8, gives `lea eax,[esi+8]`), param_2 as a
-//    HapiBuf{size,buf} struct with out->size/out->buf (87.9, prologue unchanged),
-//    `root + base` instead of `base + root` for the header/inc SIB (flat 88.3),
-//    #include <windows.h> (flat 88.3).
-//  - The prologue `mov eax,[mem]; mov esi,eax` vs our `mov esi,[mem]; mov eax,esi`
-//    would not flip with struct access, += capture, or an assignment-expression;
-//    it recurs at the second allocator block too. The name-allocator `add
-//    ecx,ebx; push ecx` vs `lea eax,[ecx+ebx]; push eax` and the `add [eax],ecx`
-//    for *total += size are also stuck (see board). Semantics are believed
-//    correct throughout; what differs is register allocation and scheduling.
-//
-// Session 3 (deepseek-v4.1-flash) findings:
-//  - Reproduced the fsz-capture variant (87.9, exact 1148 bytes) again; kept
-//    this 88.3 version as the file since it scores higher.
-//  - Probed MSVC 5 directly (build/scratch/0x4bd3b0/probe): plain `*total += x`
-//    DOES emit the RMW `add [eax],ecx` with a single read of x in isolation
-//    (int, unsigned, struct fd.size, stores through out[1]-style pointers). A
-//    faithful leaf probe (c.cpp g8: fd stack local, out/total params, a call
-//    mid-block, entry store, node stores) gives the single fd.size read into
-//    ecx (the CSE survives the char store) but still a load/add/store on
-//    *total while total stays register-resident. In the real function total is
-//    spilled and reloaded into eax, where the original's `mov ecx,eax` copy
-//    then `add [eax],ecx` appears. The RMW form looks tied to total being
-//    spilled and the addend living in a second register, not to the spelling
-//    of `+=`.
+// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by opus. Names are provisional.
+// MATCH. Builds one package directory in the growing buffer `out` (size,
+// pointer): a header {count, entries offset}, then one 9-byte entry per file
+// or subdirectory (name offset, data offset, directory bit), recursing into
+// subdirectories and adding a 9-byte file record per file. Returns the
+// header's offset; *total collects the file sizes.
+// What made it match, after many sessions that stopped at or below 92.6:
+//  - The three later allocations go through one inline Grow() helper that
+//    returns the old size. That alone fixed the "second allocator block"
+//    (mov eax,[ebp]; mov esi,eax; ... lea eax,[ecx+edx]) that earlier notes
+//    called an allocator tie, and removed the need for the old isDirAttr
+//    padding hack. The first allocation stays written out: through Grow it
+//    loads out->size straight into root's register (94.9 against 95.6).
+//  - Each entry pointer is built in two steps, `e = (Entry*)(out->buf +
+//    entries); e += k;`. The one-expression form (out->buf + entries + k, any
+//    order, cast or integer form, about 20 spellings, all byte-identical)
+//    lets MSVC regroup it as (entries + k) + buf; the two-step form keeps
+//    (entries + buf) + k and materialises e, as the original does
+//    (95.6 -> 97.9).
+//  - The file record is addressed through the entry's own data field,
+//    `node = out->buf + e->data`, right after storing it. That second use of
+//    e is what stops MSVC folding the entry address into the store
+//    (add ecx,eax; mov [ecx+4],esi), and the read itself is folded away
+//    (97.9 -> MATCH).
+// The entry index k is a plain counter; MSVC strength-reduces it into the
+// k*9 byte offset kept at [esp+0x10].
 #include <io.h>
 #include <string.h>
 
@@ -296,9 +40,21 @@ struct Find_004bd3b0 {
 struct Entry_004bd3b0 {
     unsigned int name;   // +0
     unsigned int data;   // +4
+    unsigned char isDir : 1; // +8
+    unsigned char spare : 7;
+};
+
+struct Node_004bd3b0 {
+    unsigned int offset; // +0
+    unsigned int size;   // +4
     unsigned char flags; // +8
 };
 #pragma pack(pop)
+
+struct HapiBuf_004bd3b0 {
+    unsigned int size;
+    char* buf;
+};
 
 extern char DAT_0050a56c[];  // "Package Data"
 extern char DAT_0050a57c[];  // "\\*"
@@ -311,28 +67,35 @@ void* __cdecl FUN_004d84a0(void* p, const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_004bc4b0(const char* path, struct _finddata_t* fd, int state, char recursive);
 int __stdcall FUN_004bc640(Find_004bd3b0* f, struct _finddata_t* fd);
+unsigned int __stdcall FUN_004bd3b0(char* path, HapiBuf_004bd3b0* out, int* total);
 
-static inline bool isDirAttr(unsigned short attrib) { return (attrib & 0x10) != 0; }
+// Grows the buffer by n bytes and returns the offset of the new space.
+static inline unsigned int Grow(HapiBuf_004bd3b0* b, unsigned int n)
+{
+    unsigned int old = b->size;
+    b->size += n;
+    b->buf = (char*)FUN_004d84a0(b->buf, DAT_0050a56c, b->size);
+    return old;
+}
 
 // FUNCTION: 0x4bd3b0
-unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
+unsigned int __stdcall FUN_004bd3b0(char* path, HapiBuf_004bd3b0* out, int* total)
 {
     char buf[0x104];
     struct _finddata_t fd;
-    char* nb;
     char* base;
     int h;
     int trailing;
     unsigned int root;
     unsigned int entries;
-    int ent;
+    int k;
 
-    unsigned int nsize = out[0];
+    unsigned int nsize = out->size;
     root = nsize;
     nsize += 8;
-    out[0] = nsize;
-    base = (char*)FUN_004d84a0((void*)out[1], DAT_0050a56c, nsize);
-    out[1] = (unsigned int)base;
+    out->size = nsize;
+    base = (char*)FUN_004d84a0(out->buf, DAT_0050a56c, nsize);
+    out->buf = base;
     *(unsigned int*)(base + root) = 0;
 
     strcpy(buf, path);
@@ -357,50 +120,43 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
         }
     }
 
-    entries = out[0];
-    out[0] = entries + *(unsigned int*)(base + root) * 9;
-    nb = (char*)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
-    out[1] = (unsigned int)nb;
-    *(unsigned int*)(nb + root + 4) = entries;
+    entries = Grow(out, *(unsigned int*)(base + root) * 9);
+    *(unsigned int*)(out->buf + root + 4) = entries;
 
     h = FUN_004bc4b0(buf, &fd, -1, 1);
     if (h != -1) {
-        ent = 0;
+        k = 0;
         do {
             if (strcmp(fd.name, DAT_00502910) != 0 && strcmp(fd.name, DAT_0050a548) != 0) {
-                unsigned int nameOff = out[0];
-                unsigned int nsize = strlen(fd.name) + 1;
-                nsize += nameOff;
-                out[0] = nsize;
-                out[1] = (unsigned int)FUN_004d84a0((void*)out[1], DAT_0050a56c, nsize);
-                strcpy((char*)out[1] + nameOff, fd.name);
-                Entry_004bd3b0* e = (Entry_004bd3b0*)((char*)out[1] + entries + ent);
+                unsigned int nameOff = Grow(out, strlen(fd.name) + 1);
+                strcpy(out->buf + nameOff, fd.name);
+                Entry_004bd3b0* e = (Entry_004bd3b0*)(out->buf + entries);
+                e += k;
                 e->name = nameOff;
-                e->flags &= 1;
-                if (isDirAttr(fd.attrib)) {
-                    e->flags |= 1;
+                e->spare = 0;
+                if (fd.attrib & 0x10) {
+                    e->isDir = 1;
                     strcpy(buf, path);
                     if (!trailing)
                         strcat(buf, DAT_00503374);
                     strcat(buf, fd.name);
-                    ((Entry_004bd3b0*)((char*)out[1] + entries + ent))->data =
-                        FUN_004bd3b0(buf, out, total);
+                    unsigned int sub = FUN_004bd3b0(buf, out, total);
+                    e = (Entry_004bd3b0*)(out->buf + entries);
+                    e += k;
+                    e->data = sub;
                 } else {
-                    e->flags &= ~1;
-                    unsigned int nodeOff = out[0];
-                    out[0] = nodeOff + 9;
-                    out[1] = (unsigned int)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
-                    ((Entry_004bd3b0*)((char*)out[1] + entries + ent))->data = nodeOff;
-                    unsigned char* node = (unsigned char*)((char*)out[1] + nodeOff);
-                    // The size is stored first and then read back for the
-                    // accumulate, which is what keeps the addend in a register
-                    // and gives the `mov ecx,eax` + `add [eax],ecx` pair.
-                    *(unsigned int*)(node + 4) = fd.size;
-                    *(unsigned int*)node = 0;
-                    node[8] = 0;
-                    *total += *(unsigned int*)(node + 4);
+                    e->isDir = 0;
+                    unsigned int nodeOff = Grow(out, 9);
+                    e = (Entry_004bd3b0*)(out->buf + entries);
+                    e += k;
+                    e->data = nodeOff;
+                    Node_004bd3b0* node = (Node_004bd3b0*)(out->buf + e->data);
+                    node->size = fd.size;
+                    node->offset = 0;
+                    node->flags = 0;
+                    *total += node->size;
                 }
-                ent += 9;
+                k++;
             }
         } while (FUN_004bc640((Find_004bd3b0*)h, &fd) == 0);
         if (h != 0) {

@@ -1,4 +1,6 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free, finished by Fledge Alpha Free. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free, finished by Fledge Alpha Free, finished by GPT-6. Names are provisional.
+// GPT-6 retry (#4982): best remains 97.2% at 427 bytes. /Gi keeps the same
+// block order; frame-first and goto variants both recolor and score 73.8%.
 //
 // EIGHTH PASS (Fledge Alpha Free, issue 4848). 427 of 427 bytes, 97.2%, up
 // from 88.9%: the doubled `test eax,eax` at 0x4588bd is back and it is in the

@@ -2,6 +2,8 @@
 // Codex GPT-6 retry for #5187 (2026-10-03): current main remains 99.0%.
 // `register`, /Gi, <memory.h>, <stdlib.h>, and branch/increment rewrites
 // all preserve the sole ECX-for-ESI latch mismatch. <windows.h> failed to compile.
+// GPT-6 retry (#5234): rechecked at 99.0%. Carrying c->field_1c from the loop
+// head scored 48.7%; a shared j++ after the field_30 branch scored 69.5%.
 // Grows both pools of a NetBuffer: a new packet-pointer array of `growbufs` more
 // packets and a new entry array of `growpackets` more entries, then moves every
 // entry that still belongs to a packet into the new entry array.

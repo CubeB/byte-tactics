@@ -13,6 +13,12 @@
 //    that count has bit 14 set (about 2300 to 4650 and 7000 to 9300
 //    one-member structs), and the full windows.h lands in such a window
 //    where the lean one does not. Without the header this file is 79.0%.
+//    That count is g_game's symbol id (`c2prio.py --symbols g_game`,
+//    docs/c2-regalloc.md "Symbol ids"; a one-member struct takes 7 ids):
+//    29019 with the full header, 12192 with the lean one; 3748 extra
+//    declarations before g_game (id 32767) still match, 3749 (32768) do
+//    not, and the function's own id or the file total crossing 32768 do
+//    nothing.
 // With both, the guard is the obj-first compare and the width-pointer local
 // of the 96.1% version is not needed.
 

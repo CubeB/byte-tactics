@@ -5,6 +5,7 @@
     uv run tools/c2prio.py 0x4cf570 --trace      # also every colouring step
     uv run tools/c2prio.py 0x47d2e0 --blocks bit,los   # where each priority comes from
     uv run tools/c2prio.py 0x424c00 --inline           # also the /Ob2 inline decisions
+    uv run tools/c2prio.py 0x424c00 --symbols g_game   # also symbol ids and the file's symbol count
 
 This compiles the function's file with the real back end (C2.EXE) running under
 a debugger and reads the global register allocator's own data
@@ -44,6 +45,16 @@ whether it was inlined. A callee is inlined when its IL size is at most the
 budget left, or under 41 whatever the budget. Its cost is its IL size if that
 is 41 or more, else 0; its own sites start from (budget left - cost) / R, and
 every level above loses what is inlined below it as well.
+
+--symbols NAMES adds, before the table, the symbol id of each name
+(comma-separated: a global or function by its plain or mangled name, a local
+or parameter that is a register candidate, or a type, which never reaches C2
+itself, by the first of its members C2 has), in full and in 16 bits, plus the
+file's symbol count and C2's own counter. The front end numbers every
+declaration in the file with one counter (an unused `extern int` takes 1, a
+prototype 2, a one-member struct 7; there is no separate count of types), and
+some register and operand-order ties follow bits of these ids
+(docs/c2-regalloc.md, "Symbol ids").
 
 How: a copy of C2.EXE under build/c2prio/<run>/ has `jmp $` at its entry
 point. CL runs that copy (/B2), winedbg attaches to it with its gdb server, and
@@ -106,6 +117,22 @@ BLOCK_WK = 0x40F5F5
 INL_FUNC = 0x42491E
 INL_SITE = 0x424EEF
 INL_DONE = 0x424F95
+
+# Symbol ids, for --symbols. The front end (C1XX) numbers every symbol it
+# declares, in one counter for the whole file, and writes the number into the
+# IL; FUN_00420250 decodes it (15 bits in two bytes, else 31 in four) and the
+# IL symbol reader FUN_004206b7 stores it at symbol +0x28 (kind at +4, name at
+# +0x18). FUN_0040d5a8 hashes the symbols C2 reads into SYM_HASH by id & 0x3ff
+# (chained at +0; FUN_0041f453 looks them up). The IL's header (read at
+# 0x452f17, once per file) sets FIRST_ID and NEXT_ID to the front end's count
+# at the end of the file, so it covers every declaration in the file, before
+# or after any function. FUN_0040d5d8 then hands out NEXT_ID to the symbols C2
+# creates itself (temporaries, inlined locals, COMDAT sections), for one
+# function after another, never resetting it.
+SYM_HASH = 0x48FB6C
+FIRST_ID = 0x497DF8
+NEXT_ID = 0x491050
+SYM_KINDS = {1: "data", 2: "data", 3: "label", 4: "function", 9: "section", 14: "function", 16: "function"}
 
 # Return addresses of the FUN_0040ebb6 calls that make the pieces of a split
 # candidate, and the register holding the candidate being split at each.
@@ -201,9 +228,10 @@ def tracer() -> None:
             st = struct.unpack_from("<I", raw, 0)[0]
             info = {"kind": raw[4], "type": struct.unpack_from("<H", raw, 0x10)[0]}
             if st:
-                sraw = rd(st, 0x1C)
+                sraw = rd(st, 0x2C)
                 info["name"] = cstr(struct.unpack_from("<I", sraw, 0x18)[0])
                 info["offset"] = struct.unpack_from("<i", sraw, 0xC)[0]
+                info["sid"] = struct.unpack_from("<I", sraw, 0x28)[0]
             if raw[4] == 13:
                 node = struct.unpack_from("<I", raw, 0x28)[0]
                 if node:
@@ -265,6 +293,19 @@ def tracer() -> None:
         cur["events"].append(dict(e=what, id=struct.unpack_from("<I", raw, 0x1C)[0],
                                   prio=struct.unpack_from("<i", raw, 0xC)[0], **extra))
 
+    def symbol_ids(own):
+        """--symbols: every symbol in SYM_HASH as [id, kind, name], and the counters."""
+        syms, table = [], rd(SYM_HASH, 4096)
+        for b in range(1024):
+            s, seen = struct.unpack_from("<I", table, 4 * b)[0], set()
+            while s and s not in seen:
+                seen.add(s)
+                raw = rd(s, 0x2C)
+                syms.append([struct.unpack_from("<I", raw, 0x28)[0], raw[4],
+                             cstr(struct.unpack_from("<I", raw, 0x18)[0])])
+                s = struct.unpack_from("<I", raw, 0)[0]
+        return {"own": own, "first": u32(FIRST_ID), "next": u32(NEXT_ID), "symbols": syms}
+
     def on_refs():
         """FUN_00416a8d(function, candidates by web): every candidate exists by now."""
         nonlocal cur, fn24
@@ -275,6 +316,8 @@ def tracer() -> None:
         if wanted(name):
             fn24 = u32(fn + 0x24)
             cur = {"name": name, "events": []}
+            if cfg.get("symbols"):
+                cur["ids"] = symbol_ids(u32(u32(fn) + 0x28))
             out["functions"].append(cur)
             for cid, sym in hashed():
                 cur["events"].append({"e": "new", "id": cid, "parent": None, "leaf": leaf(sym)})
@@ -500,6 +543,9 @@ def host_main() -> None:
                          "comma-separated names as the table prints them, or #id)")
     ap.add_argument("--inline", action="store_true",
                     help="also print the /Ob2 inliner's decision at each call site (budget, depth, R, IL sizes)")
+    ap.add_argument("--symbols", metavar="NAMES",
+                    help="also print the symbol id of each of NAMES (comma-separated globals, functions, "
+                         "candidate locals or types) and the file's symbol count")
     ap.add_argument("--json", type=Path, help="write the raw trace to this file")
     ap.add_argument("--keep", action="store_true", help="keep the run directory under build/c2prio/")
     args = ap.parse_args()
@@ -595,7 +641,8 @@ def host_main() -> None:
         me = str(Path(__file__).resolve())
         relay_cmd = " ".join(shlex.quote(a) for a in (sys.executable, me, "--relay", str(port)))
         cfg.write_text(json.dumps({"relay": relay_cmd, "exe": exe.name, "match": match, "out": str(out_json),
-                                   "blocks": args.blocks is not None, "inline": args.inline}))
+                                   "blocks": args.blocks is not None, "inline": args.inline,
+                                   "symbols": args.symbols is not None}))
         g = subprocess.run(["gdb", "-nx", "-q", "-batch", "-x", me],
                            env=dict(env, C2PRIO_CONFIG=str(cfg)), capture_output=True, text=True, timeout=3600)
         (run / "gdb.log").write_text(g.stdout + g.stderr)
@@ -624,6 +671,8 @@ def host_main() -> None:
         print(f"{args.address:#x}  {picked[0]}  ({shown}, {elapsed:.1f} s)")
         if args.inline:
             print_inline([f for f in trace.get("inline", []) if f["name"] == picked[0]])
+        if args.symbols is not None:
+            print_symbols(fns[0], [n.strip() for n in args.symbols.split(",") if n.strip()])
         for n, fn in enumerate(fns):
             if len(fns) > 1:
                 print(f"\nC2 allocated this function {len(fns)} times; run {n + 1}:")
@@ -844,6 +893,60 @@ def print_inline(runs) -> None:
             indent = "  " * max(0, s["depth"] - 1)
             print(f"{s['depth']:>5} {s['R']:>4} {s['budget']:>7} {s['size']:>5}  {'yes' if s['inlined'] else 'no':<7}  "
                   f"{indent}{s['callee']}")
+
+
+def print_symbols(fn: dict, names) -> None:
+    """--symbols: the ids of the symbols named (globals from C2's symbol table,
+    locals and parameters from the function's candidates), the file's
+    symbol count and C2's own counter, read when the function's allocation started."""
+    import re
+    from check import base_name  # host_main put tools/ on the path
+    ids = fn.get("ids")
+    if not ids:
+        print("\nno symbol ids were read for this function")
+        return
+    cands = []
+    for c in model(fn):
+        cands += [c] + c.pieces
+    syms = sorted(ids["symbols"])
+    first, nxt = ids["first"], ids["next"]
+    print("\nsymbol ids (docs/c2-regalloc.md, \"Symbol ids\"): one front-end counter numbers every declaration "
+          "in the\nfile, types included (C2 keeps no count of types); the effects measured so far follow the ids "
+          "modulo 65536.")
+    print(f"  file total {first} ({first & 0xFFFF:#06x} in 16 bits, bit 14 {first >> 14 & 1}): the front end's "
+          f"count at the end of the\n  file, from the IL's header, so every declaration in the file moves it. "
+          f"C2 numbers the symbols\n  it makes itself (temporaries, inlined locals, sections) on from there, "
+          f"function after function,\n  and had reached {nxt} ({nxt & 0xFFFF:#06x}) when this function's "
+          f"allocation started.")
+
+    def row(label, kind, sid):
+        print(f"  {label:<34.34} {kind:<9} {sid:>7}  {sid & 0xFFFF:#06x} {sid >> 14 & 1:>7} {sid >> 15 & 1:>7}")
+
+    print(f"  {'name':<34} {'kind':<9} {'id':>7}  {'low 16':<6} {'bit 14':>7} {'bit 15':>7}")
+    own = [s for s in syms if s[0] == ids["own"] and s[1] in (4, 14, 16)]
+    row(f"{base_name(own[0][2]) if own else '?'} (this function)", "function", ids["own"])
+    for name in names:
+        hits = [s for s in syms if s[2] and (s[2] == name or base_name(s[2]) == name)]
+        for sid, kind, sname in hits:
+            row(sname if len(hits) > 1 else name, SYM_KINDS.get(kind, f"kind {kind}"), sid)
+        if hits:
+            continue
+        local = [c for c in cands if c.leaf.get("sid") is not None and c.leaf.get("kind") != 7
+                 and (name in (f"#{c.id}", describe(c)) or describe(c).startswith(name + " ("))]
+        for c in local:
+            kind = KINDS.get(c.leaf.get("kind"), "?")
+            row(f"{describe(c)} #{c.id}" if len(local) > 1 or name.startswith("#") else name, kind, c.leaf["sid"])
+        if local:
+            continue
+        scope = re.compile(r"^\?(?:\?_?[0-9A-Z])?(?:[\w$]+@)?%s@(?:[\w$]+@)*@" % re.escape(name))
+        members = [s for s in syms if s[2] and scope.match(s[2])]
+        if members:
+            print(f"  {name}: a type, which never reaches C2. It was numbered before its members; the first "
+                  f"one C2 has:")
+            row(f"  {base_name(members[0][2])}", SYM_KINDS.get(members[0][1], f"kind {members[0][1]}"), members[0][0])
+        else:
+            print(f"  {name}: neither in C2's symbol table (the global symbols the IL uses) nor a register "
+                  f"candidate\n    here; types and unused declarations never reach C2")
 
 
 def report(fn: dict, brace, trace: bool, blocks=None) -> None:

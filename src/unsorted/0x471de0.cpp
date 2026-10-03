@@ -1,4 +1,17 @@
 // Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5. Names are provisional.
+// Symbol ids, read with `c2prio.py --symbols` (docs/c2-regalloc.md, "Symbol
+// ids"; Claude Opus 5.5): the count below is the file total, the front end's
+// symbol count at the end of the file (5055 here), which seeds the ids C2
+// gives its own symbols; it reaches 5482 by this function's allocation.
+// Declarations at the end of the file alone give the window: MATCH for
+// totals 65257..65554 (and 65556), i.e. 64859 to 65156 symbols of headers
+// counting what they add at the end of the file, where <vector> gives 4657.
+// Nearest real sets: what TA's imports suggest (<windows.h> <ddraw.h>
+// <dsound.h> <dplay.h> <shlobj.h> <imagehlp.h>, six CRT headers, <vector>
+// <list> <map> <algorithm> <string>) gives 42209; every DirectX, shell,
+// CRT, STL and old iostream header together (docs) gives 53234, a total of
+// 53632 here (98.6%), still 11625 short. Only kitchen-sink sets with MAPI,
+// LAN Manager, TAPI and ODBC headers get there.
 // GAVE UP (claude-opus-5-5, #5160), 98.6%. The source is right; the one byte
 // left is compiler state. The SIB register order of the store in the inlined
 // erase's shift loop (original delta-base `mov [edx+eax], ebp`, ours

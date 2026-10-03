@@ -3,6 +3,15 @@
 // the "Normal", "Animating" and "3D" feature records. The save counterpart is
 // 0x424890 (matched, same TU, includes <windows.h>).
 //
+// Symbol ids, read with `c2prio.py --symbols g_game` (docs/c2-regalloc.md,
+// "Symbol ids"; Claude Opus 5.5): the bit 14 rule below is exact. g_game's id
+// is 32690 here; 32767 keeps 99.8% and 32768 gives 97.5% (both stores
+// `spots + offset`), 49151 97.5% and 49152 99.8% again. The file total does
+// not matter: up to 31000 declarations after g_game, which move it and this
+// function's id across 49152, change nothing. So no header set can give the
+// original's mix of one store each way; the two loops must differ in source.
+// Every plausible header set (docs) keeps g_game's bit 14 set, as now.
+//
 // #5201 Claude Opus 5.5: 83.6% to 99.8% (1496 bytes, one SIB byte left).
 //  - DAT_00511fb4 is a file-scope static in this TU (as in 0x4223e0), and the
 //    vectors are the real <vector> with plain resize() calls.

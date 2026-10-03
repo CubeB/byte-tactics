@@ -1,5 +1,20 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
+// Symbol ids, read with `c2prio.py --symbols` (docs/c2-regalloc.md, "Symbol
+// ids"; Claude Opus 5.5): without /Gi the match follows this function's own
+// symbol id (it is 32641 with <vector> <windows.h>). Declarations between
+// g_game and the function move it like those before g_game; g_game's id and
+// declarations after the function (the file total) change nothing. It
+// MATCHES for ids 64543..64575, 64607..64639, 64671..64703, 64735..64767
+// and 64799..64819, and a sweep of the whole 16-bit range in steps of 16
+// found no other window. That needs 64307 to 64583 symbols of headers in
+// front, where <vector> <windows.h> give 32405. Nearest real sets: what TA's
+// imports suggest (<windows.h> <ddraw.h> <dsound.h> <dplay.h> <shlobj.h>
+// <imagehlp.h>, six CRT headers, <vector> <list> <map> <algorithm>
+// <string>) gives 41247; every DirectX, shell, CRT, STL and old iostream
+// header together (docs) gives 52091, function id 52327, 89.0% without /Gi,
+// still 12216 short. Only kitchen-sink sets with MAPI, LAN Manager, TAPI and
+// ODBC headers get there, so the /Gi version stays.
 // #5201 Claude Opus 5.5 (no gain committed; 93.2% from src/unsorted, 94.9%
 // from a scratch path). The source shape is right and this TU is probably
 // not /Gi: with the FLAGS line removed (32.7% as it stands) and N unused

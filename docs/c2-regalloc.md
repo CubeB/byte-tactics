@@ -126,6 +126,7 @@ Consequences that agents can use directly:
     uv run tools/c2prio.py 0x4cf570 --trace            # every colouring step too
     uv run tools/c2prio.py 0x47d2e0 --blocks bit,los   # each block's share of a priority
     uv run tools/c2prio.py 0x424c00 --inline           # the /Ob2 inline decisions too
+    uv run tools/c2prio.py 0x424c00 --symbols g_game   # symbol ids and the file's symbol count too
 
 It compiles the file with the real C2.EXE under a debugger and prints, for the
 one function, C2's register candidates in the order `FUN_0041bdd7` sorted them,
@@ -219,6 +220,141 @@ vector calls the file's header lists (Patrol's sites start from 1000 - 606 =
 394; units.empty()'s size() gets 302 / 7 = 43 for its 42). Adding the option
 left the default output, `--trace` and `--blocks` the same, line for line, on
 0x4cf570 and 0x47d2e0.
+
+### Symbol ids (`--symbols`)
+
+`--symbols NAME[,NAME...]` prints, before the table, the id of each symbol
+named and the counts the ids come from. Part of 0x424c00:
+
+      file total 33860 (0x8444 in 16 bits, bit 14 0): the front end's count at the end of the
+      file, from the IL's header, so every declaration in the file moves it. C2 numbers the symbols
+      it makes itself (temporaries, inlined locals, sections) on from there, function after function,
+      and had reached 34468 (0x86a4) when this function's allocation started.
+      name                               kind           id  low 16  bit 14  bit 15
+      FUN_00424c00 (this function)       function    32883  0x8073       0       1
+      g_game                             data        32690  0x7fb2       1       0
+      Class_004b4560: a type, which never reaches C2. It was numbered before its members; the first one C2 has:
+        Class_004b4560::FUN_004b4560     function    32542  0x7f1e       1       0
+
+Where the numbers come from, read out of C2.EXE:
+
+- The front end (C1XX) numbers every symbol it declares with one counter for
+  the whole file: globals, functions, parameters, locals, struct and class
+  tags, members, enumerators, typedefs and template instantiations. An unused
+  `extern int` takes 1, a prototype with one parameter 2 and a one-member
+  struct 7. There is no separate count of types; a "type count" measured with
+  dummy structs is this counter in steps of 7.
+- C2 does not number them. It reads each symbol's number from the IL
+  (`FUN_00420250` decodes 15 bits in two bytes, or 31 in four) in the symbol
+  reader `FUN_004206b7`, which stores it at symbol +0x28 (kind at +4: 1 data,
+  4 function, 9 section; name at +0x18). `FUN_0040d5a8` hashes the global
+  symbols into 1024 buckets at 0x48fb6c by `id & 0x3ff`; `FUN_0041f453` looks
+  them up. Locals are not hashed; the tool reads theirs through the register
+  candidates, so it finds a local, parameter or global that is a candidate.
+  Types never reach C2: for a class it shows the first member C2 has, which
+  the front end numbered after the class.
+- The IL's header (read at 0x452f17, once per file) holds the counter's value
+  at the end of the file: the "file total", kept at 0x497df8. The front end
+  writes every function's IL after the whole file is parsed, so declarations
+  after a function move this number too (checked with 100 `extern int`s after
+  the last function, and with two functions: both see the same total).
+- C2 numbers the symbols it makes itself (temporaries, the locals of inlined
+  functions, COMDAT sections) with `FUN_0040d5d8`, from a counter at 0x491050
+  that starts at the file total and is never reset, so the k-th function's
+  own symbols come after those of the functions before it.
+
+The effects measured so far follow the ids modulo 65536. Which id decides,
+measured with `--symbols` and unused `extern int`s placed before g_game,
+between g_game and the function, or at the end of the file:
+
+| function | the id that decides | measured |
+|---|---|---|
+| 0x424c00 | g_game's | both spot stores are `offset + spots` while bit 14 of g_game's id is set: g_game 32767 gives 99.8%, 32768 97.5%, 49151 97.5%, 49152 99.8%. Moving the file total by up to 31000 changes nothing. |
+| 0x47d0e0 | g_game's | the `imul` folds while bit 14 of g_game's id is set: 32767 MATCH, 32768 79.0%. The full `<windows.h>` puts g_game at 29019, the lean one at 12192 (79.0%). The function's own id and the file total crossing 32768 change nothing. The "type count" in its notes is this id. |
+| 0x41b2e0 (without /Gi) | the function's own (or its locals', numbered right after it) | MATCH for function ids 64543 to 64575, 64607 to 64639, 64671 to 64703, 64735 to 64767 and 64799 to 64819; g_game's id and declarations after the function change nothing. |
+| 0x471de0 | the file total | MATCH for totals 65257 to 65554 (and 65556) with the declarations at the end of the file, where they move nothing else; the file's notes found the same window with them before g_game. C2's own counter, 427 above the total by this function's allocation, passes 65536 in that window. |
+
+The option reads C2's symbol table once, at the allocator's first stop for
+the function (655 symbols in 0x424c00, well under a second), and the rest of
+the output is unchanged: the default output, `--trace`, `--blocks` and
+`--inline` stayed the same, line for line, on 0x4cf570 and 0x47d2e0.
+
+### Symbols each header adds
+
+Measured with `--symbols g_game` on a probe file: the headers, then
+`struct ProbeG { int a; int b; }; extern ProbeG* g_game;` and one function.
+The count is g_game's id minus 170, its id with no header. "At the end" is
+what a header adds after g_game (STL instantiations the front end makes at
+the end of the file): it moves the file total but not the ids of later
+declarations. All 388 headers of `toolchain/msvc5-sp3/INCLUDE` were measured
+alone and after the full `<windows.h>`; these are the ones that matter:
+
+| header | alone | after `<windows.h>` | at the end |
+|---|---|---|---|
+| `<windows.h>` (full; it includes `<mmsystem.h>`, `<winsock.h>`, `<commdlg.h>`, `<shellapi.h>`, `<ole2.h>`) | 28798 | 0 | 0 |
+| `<windows.h>` with `WIN32_LEAN_AND_MEAN` | 11971 | | 0 |
+| `<winsock2.h>` (instead of `<windows.h>`) | 29220 | | 0 |
+| `<commctrl.h>` | | 1011 | 0 |
+| `<ddraw.h>` | 29460 | 662 | 0 |
+| `<dsound.h>` | 28954 | 156 | 0 |
+| `<dplay.h>` | 28982 | 184 | 0 |
+| `<d3d.h>` | 30619 | 1821 | 0 |
+| `<d3drm.h>` | 32645 | 3847 | 0 |
+| `<vfw.h>` | | 1933 | 0 |
+| `<shlobj.h>` | 30982 | 2184 | 0 |
+| `<imagehlp.h>` | | 410 | 0 |
+| `<stdio.h>` | 302 | 295 | 0 |
+| `<stdlib.h>` | 319 | 0 | 0 |
+| `<string.h>` | 266 | 0 | 0 |
+| `<math.h>` | 340 | 336 | 0 |
+| `<tchar.h>` | 315 | 48 | 0 |
+| `<process.h>`, `<io.h>`, `<mbstring.h>` | 234, 224, 207 | 227, 222, 205 | 0 |
+| `<time.h>`, `<conio.h>`, `<direct.h>`, `<malloc.h>`, `<float.h>`, `<memory.h>` | 36 to 67 | 27 to 65 | 0 |
+| `<vector>` | 4233 | 3579 | 425 |
+| `<list>`, `<deque>`, `<stack>` | 3535, 3385, 3409 | 2881, 2731, 2755 | 109 |
+| `<map>`, `<set>` | 2732, 2694 | 2078, 2040 | 0 |
+| `<algorithm>` | 3049 | 2395 | 0 |
+| `<queue>` | 5433 | 4779 | 425 |
+| `<string>` | 6109 | 5415 | 647 |
+| `<iostream>`, `<fstream>`, `<sstream>`, `<strstream>` | 6072 to 6280 | 5378 to 5586 | 642 to 684 |
+| `<complex>`, `<locale>`, `<bitset>` | 7219, 6663, 6121 | 6525, 5969, 5427 | 647 to 778 |
+| `<iostream.h>`, `<fstream.h>`, `<strstrea.h>`, `<iomanip.h>` | 908, 1117, 1042, 1283 | the same less 1 | 0 |
+| the largest SDK headers: `<inetsdk.h>`, `<comdef.h>`, `<lm.h>`, `<mapix.h>`, `<setupapi.h>`, `<tspi.h>` | | 5355, 4814, 3569, 2407, 2352, 2383 | 0 |
+
+Headers that share includes do not add up (`<string>` after `<vector>` adds
+about 3100, not 5415), and the order matters a little (`<vector>` then
+`<windows.h>` puts g_game at 32575, the other order at 32547), so measure a
+set as a whole. The exe imports DDRAW, DSOUND, DPLAYX, SHELL32, IMAGEHLP,
+ADVAPI32, GDI32, USER32, KERNEL32 and smackw32, which bounds what is
+plausible: `<windows.h>` `<ddraw.h>` `<dsound.h>` `<dplay.h>` `<shlobj.h>`
+`<imagehlp.h>`, six CRT headers and `<vector>` `<list>` `<map>` `<algorithm>`
+`<string>` give 41247 (42209 with what they add at the end), and
+`<windows.h>` `<ddraw.h>` `<dsound.h>` `<dplay.h>`, four CRT headers and
+`<vector>` 33715. Every header of a generous plausible set, added in turn
+after the full `<windows.h>` (`<windowsx.h>`, `<commctrl.h>`, the DirectX
+headers including `<d3d.h>` and `<d3drm.h>`, `<vfw.h>`, `<shlobj.h>`,
+`<richedit.h>`, `<imagehlp.h>`, `<tlhelp32.h>`, every CRT header, every STL
+header that compiles and the old iostream headers on top), puts g_game at
+52261: 52091 symbols of headers, 53234 with what they add at the end. Every header in the
+directory that still compiles together reaches 86525, but only with MAPI, LAN
+Manager, TAPI, setup, ODBC and OLE scripting headers.
+
+What the stuck functions need, in symbols of headers before their own
+declarations (each function's file with its own declarations as they are now):
+
+| function | needs | the largest plausible set gives |
+|---|---|---|
+| 0x41b2e0 (without /Gi) | 64307 to 64339, 64371 to 64403, 64435 to 64467, 64499 to 64531 or 64563 to 64583 (counting `<vector>` and `<windows.h>`, 32405 now) | 52091, 12216 short |
+| 0x471de0 | 64859 to 65156 including what the headers add at the end (`<vector>` alone gives 4657) | 53234, 11625 short |
+| 0x47d0e0 | bit 14 of g_game's id set: 16163 to 32546 or 48931 to 65314 (the full `<windows.h>`, 28798, matches) | matched |
+| 0x424c00 | none: g_game's bit 14 moves both spot stores, and the original has one of each | |
+
+So no plausible set of real headers reaches the two windows: about 12000 more
+symbols have to come from the lost Cavedog headers. The windows of
+0x41b2e0 and 0x471de0 overlap (a 64500-symbol prefix with `<vector>` fits
+both), and the same prefix would give 0x47d0e0's g_game bit 14 and 0x424c00's
+`offset + spots` in the Animating loop, so one large common header in
+front of every file is consistent with all four.
 
 How it works: the tool copies C2.EXE to `build/c2prio/<run>/c2p<run>.exe` with
 `jmp $` at the entry point (toolchain/ is never changed) and compiles with
@@ -406,3 +542,7 @@ validation suite. What the model says about them:
   priority.
 - `FUN_0041a985` (532 lines), which builds the conflict and preference
   information before each choice, was skimmed, not read.
+- Where C2 reads symbol ids in 16 bits is not found: the bit-14 and
+  modulo-65536 rules in "Symbol ids" are measured, not read. One place that
+  keeps only the low 16 bits is at 0x414678, which copies a variable's id
+  into another symbol's +0x3a.

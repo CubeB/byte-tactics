@@ -2,6 +2,8 @@
 // GPT-6 retry (#4911): making sb.size address-taken through a local pointer
 // before the allocator call leaves the 99.3% candidate unchanged. The remaining
 // difference is still `mov eax, 0x14` versus `not eax; and eax, 0x14`.
+// Rechecked for issue #5120 on 2026-10-03; the same constant-encoding hunk
+// remains at 99.3%.
 //
 // DeepSeek V4.1 Flash session (issue 4790): 99.3% unchanged, still only the
 // size constant encoding at 0x4bd183 (`mov eax,0x14` original versus

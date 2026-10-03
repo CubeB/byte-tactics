@@ -1,189 +1,130 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
-// Retry (deepseek-v4.1-flash, ten-minute box): naming the case 6 call result
-// in a local (int hot = FUN_004c46c0("hotornot", 0); x = ((hot ^ x) & 1) ^ x;)
-// regresses 86.2 to 81.5 % (740 bytes), so the statement boundary does not
-// stop the hoist of `mov esi,[ebp-0xe]` above the call. Declaring the loop
-// counter unsigned is byte-neutral at 736 bytes / 86.2 %. Case 6 still needs
-// the post-call `mov ecx,[ebp-0xe]`, and the latch still needs its genuine
-// seventh instruction (see below).
-
-// Retry #3437 (deepseek-v4.1-flash): found the exact mechanism and the best
-// partial so far, 86.2% (736 bytes). The duplicated latch is an /Ot
-// tail-duplication pass whose threshold is SIX instructions for the shared
-// block. The original latch at 0x4aed26 is six instructions (22 bytes) yet was
-// NOT duplicated, so at the moment of that pass it must have had SEVEN
-// instructions, one of which a later pass removed.
-//
-// Proof: adding ANY seventh live instruction to the latch gives exactly one
-// shared latch with the original's top-tested shape (one reset call, 0x4aeb1a
-// reached both by fallthrough and by the latch's jmp). `ret = i;` gave a single
-// latch but moved ret out of its stack slot (frame 0x110, 79.9%); storing i to
-// the element (the PROBE line below) keeps the frame and gives 86.2%, leaving
-// only the probe store and case 6's register different.
-//
-// Every `for`, `do/while`, `for(;;)` and goto-built loop is ROTATED by /O2 (the
-// test is peeled, the reset call is duplicated at the latch, 756 bytes, 74.6%),
-// because MSVC's loop rotator sees the increment-induction pattern. Only
-// `while (1)` with an internal break keeps the test at 0x4aeb1a; it is the
-// right shape and the six-instruction latch is the only thing left.
-//
-// So the source below is right; do not look for a different loop form. Instead
-// find the original's genuine seventh latch instruction, the one MSVC deleted
-// after the duplication pass, and replace the PROBE store with it. Candidates
-// to probe: a redundant register copy or rematerialised load hoisted into the
-// latch (things a late copy-coalescing or peephole pass removes), which would
-// leave the unchanged six-instruction latch and MATCH. Removing the PROBE store
-// returns to the 75.3% duplicated form (880 bytes).
-//
-// Retry (deepseek-v4.1-flash, ten-minute box): folding case 6 back into one
-// statement, `hotornot = ((FUN_004c46c0("hotornot", 0) ^ hotornot) & 1) ^ hotornot`,
-// is byte-neutral at 736 bytes / 86.2 %, so the hoisted `mov esi,[ebp-0xe]`
-// before the call is not a two-statement artifact; the original's post-call
-// `mov ecx,[ebp-0xe]` is still unmatched. No other variant tried in this pass.
-// Retry (deepseek-v4.1-flash): two new probes, both worse than the PROBE store.
-// A source-level twin induction variable (Elem* e = obj outside the loop, e++
-// next to i++, all e uses through the pointer) is IV-eliminated BEFORE the
-// duplication pass: 880 bytes / 75.3%, identical to no probe, so the seventh
-// latch instruction is not an explicit second increment. Swapping the case 6
-// xor operands (e->body.s6.hotornot ^ FUN_004c46c0("hotornot", 0)) is
-// byte-neutral at 736 bytes / 86.2%: MSVC still hoists the field load into esi
-// before the call, so the original's post-call `mov ecx,[ebp-0xe]` is not an
-// operand-order artifact.
-//
-// Probe (deepseek-v4.1-flash, ten-minute box): taking the address of the
-// case 6 field, `unsigned int* hot = &e->body.s6.hotornot; *hot = ((FUN_004c46c0("hotornot", 0) ^ *hot) & 1) ^ *hot;`,
-// is byte-neutral at 86.2 % / 736 bytes (only the $L labels move), so the
-// pre-call `mov esi,[ebp-0xe]` hoist is not an address-visibility artifact.
-// Retry #2812: best remains 75.3% (880 bytes vs. 732). The function body
-// matches except for switch-tail latch duplication and the resulting case-6
-// register choice. Prior variants and all 128 header sets are documented below.
-//
-// 75.3 %. Only the loop's bottom block differs, and one register in case 6
-// follows from it. Everything else is byte-identical.
-//
-// Second pass (space-bunny-free) added: headers.py swept all 128 header sets
-// again, best is still 75.3 % (<windows.h> and <string.h> tie). The diff was
-// read instruction by instruction: OUR build emits a private copy of the latch
-// at the end of every switch case, and those copies are then tail-merged with
-// each other (some copies lose the `add ebp,0x15b` because they jump into the
-// copy that has it). So ours is 880 bytes against the original's 732, and the
-// +148 is exactly that duplication. The `xor ebx,ebx` in the latch is not a
-// source statement in either build: ebx is MSVC's chosen zero register, and it
-// is re-materialised at the loop join point because liveness is imprecise
-// across the switch's indirect jump.
-//
-// The original is a top-tested loop with ONE shared latch at 0x4aed26:
-//   0x4aeb10  mov [esp+0x1c], esi     ; i = 0
-//   0x4aeb14  lea ebp, [eax+0xd6]    ; induction variable = obj + 0xd6
-//   0x4aeb1a  lea ecx, [esp+0x10]    ; LOOP HEAD
-//   0x4aeb1e  call 0x4c3e10          ; FUN_004c3e10 (reset)
-//   0x4aeb23  push esi
-//   0x4aeb24  lea ecx, [esp+0x14]
-//   0x4aeb28  call 0x4c3490          ; FUN_004c3490(i)
-//   0x4aeb2d  test eax, eax
-//   0x4aeb2f  je 0x4aed3c            ; exit
-//   ... switch, every case jmps 0x4aed26 ...
-//   0x4aed26  mov esi, [esp+0x1c]    ; SHARED LATCH
-//   0x4aed2a  add ebp, 0x15b
-//   0x4aed30  inc esi
-//   0x4aed31  xor ebx, ebx
-//   0x4aed33  mov [esp+0x1c], esi
-//   0x4aed37  jmp 0x4aeb1a
-//
-// The top of our loop matches the original exactly. What still differs: MSVC 5
-// copies the latch (inc esi / add ebp / xor ebx) into every switch case instead
-// of jumping to one shared block. The `while (1) { ...; if (!find) break; ... }`
-// form below is the only shape found that keeps the test at the top; every `for`
-// form (`for (i = 0; reset(), find(i); i++)`, `for (;;)` plus break, a
-// `do { } while (1)`, and a goto-built loop) is rotated by /O2, which duplicates
-// the reset/find guard into the latch instead.
-//
-// Tried and still duplicated the latch: an explicit `goto` to a shared label in
-// every case; per-case increments plus a default; `continue` in every case with
-// the increment in a for header; wrapping the condition in a `static inline`
-// helper returning 0/1 (that alone does keep the test at top); an inline helper
-// for the increment; a named `int def = 0` default; an explicit `case 9:` and
-// `default:`; a re-derived element pointer at the latch; replacing the latch's
-// `i++` with `i = i + 1`. None changed the duplication.
-//
-// Case 6 is one register off as a consequence: the original keeps the old
-// hotornot in ecx AFTER the call (`mov ecx,[ebp-0xe]; xor eax,ecx; and eax,1;
-// xor eax,ecx`); ours loads it into esi before the call. All three spellings
-// tried (a local t, one expression, a separate `old` local after the call) put
-// it in esi or edx. Likely snaps once the loop allocation matches.
-//
-// Everything else is byte-identical: the 0x114 frame and local order, the
-// induction variable folded to obj+0xd6 with stride 0x15b, the 11-entry jump
-// table on e->type (case 9 empty, default -> latch), the maxchars clamp, the
-// tail merge of the "text" read that cases 3 and 4 share, the inlined strcpy,
-// and the exit's (short)(i-1) store to obj+0xb6.
-//
-// Rechecked by deepseek-v4.1-flash: headers.py swept all 128 header sets and
-// none changes it. An explicit `Elem* e` induction pointer, a `do/while(1)`
-// (rotates), a goto-built loop, a named `def = 0` default (compiles
-// byte-identically) and `for (i=0;;i++)` (rotates) all leave the same tail
-// duplication. An if/else-if chain instead of the switch scores 75.4% but drops
-// the original 11-entry jump table, so it can never match; the switch version
-// below is the faithful one. The remaining fix is stopping MSVC from
-// tail-duplicating the shared latch into every switch case.
-//
-// Third pass (deepseek-v4.1) measured how that duplication behaves, by
-// compiling the loop under local /Fa listings and counting "add ebp, 0x15b":
-//  - It is a /Ot ("favor fast code") pass. /Os removes it completely, but /Os
-//    also switches the whole function to a frame pointer (ebp), an imul for
-//    the induction and DIFFERENT scheduling, so /Os is not the original's flag
-//    set; /O2 /Ob2 /MT /Os scores far worse. /G3, /G4, /G5, /G6 and the
-//    msvc5-rtm toolchain all leave the duplication in place.
-//  - The pass runs on the post-register-allocation code and duplicates a
-//    target block of at most SIX instructions into every predecessor that ends
-//    in an unconditional jmp. Seven instructions stops it: adding any real
-//    instruction to the latch ("ret = i;", "parser.field_0 = 0;", an extra
-//    call) gives exactly one shared latch, but each of those adds visible
-//    code, so none of them can match. The original's 0x4aed26 is six
-//    instructions, and MSVC's own shared copy here (the $L600 block, which is
-//    what case 10 falls into and what jump-table entry 9 points at) is
-//    instruction for instruction identical to it; only the nine extra copies
-//    are wrong.
-//  - Statements the optimizer drops before that pass cannot enlarge the block:
-//    "i = i;", "i + 0", "i * 1", "i += 0", "(void)i;", "i;", "i | 0",
-//    "i++, 0;", an unused label, an empty inline helper called from the latch,
-//    "if (1) { i++; }", "do { i++; } while (0);", "switch (0) { default: i++; }"
-//    and "i ? i++ : i++" either vanish or change the loop (the last one loses
-//    the induction and drops to 279 lines).
-//  - Loop shapes: only "while (1)" plus an internal "if (!find(i)) break;"
-//    keeps the reset+find guard at the top. for (;;), for (i = 0; ; i++),
-//    do { } while (1), while (reset(), find(i)) and
-//    for (i = 0; reset(), find(i); i++) are all rotated by /O2: the guard
-//    moves to the bottom, an entry test is peeled, and the induction pointer
-//    becomes an imul. So the source below is right and the duplication is the
-//    only remaining difference.
-//  - A scan of the whole exe for latches with five or more predecessor jumps
-//    finds exactly this one function, so MSVC 5 almost always duplicates;
-//    this function is the exception, which points at compiler state or at an
-//    instruction that existed at the duplication pass and was deleted later
-//    (a redundant move, load or store), not at the source shape.
-//  - Preceding dummy functions in the same TU (small, large, or with the same
-//    loop) change nothing either.
-// Fourth pass (deepseek-v4.1): the do-while form
-//   do { reset(); if (!find(i)) break; ...body...; } while (i++, 1);
-// keeps ONE shared latch (all case breaks jump to 0x4aed2a, no copies:
-// 756 bytes total vs our 880), because MSVC only duplicates into
-// predecessors ending in an UNCONDITIONAL jmp and here the back-edge is the
-// loop condition. But /O2 rotates that loop (guard moves to the bottom, an
-// entry test is peeled), which is a different layout from the original, and
-// scores 74.6%. The original has the guard at the top AND a shared latch,
-// so the source shape must be a top-tested loop whose bottom is still not
-// an unconditional-jmp predecessor of the latch; not found within the
-// timebox. Scratch variant kept at build/scratch/0x4aeac0/v1.cpp.
-//
-// Fifth pass (deepseek-v4.1-flash): tested the tail-MERGE hypothesis, that the
-// original writes `i++` at the end of every case and MSVC merges the identical
-// tails into one shared latch rather than duplicating it. Writing `i++` in all
-// ten cases plus an explicit `default: i++; break;` and no shared increment
-// gives 860 bytes and 36.2% (the whole allocation scrambles; the switch layout
-// is not preserved), so the shared post-switch `i++` remains the best form at
-// 75.3%. The only remaining difference is still the 8 copied latches.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by opus. Names are provisional.
+// MATCH. Two things were missing, and earlier notes blamed the wrong one:
+// - The real preceding function, 0x4ae630 (the matching GUI writer, matched
+//   in its own file), is defined above this one without an annotation, as the
+//   guide's preceding-function rule says. Without it MSVC tail-duplicates the
+//   six-instruction loop latch into every switch case (880 bytes, 75.3 %);
+//   with it the latch stays shared as in the original. Earlier passes tried
+//   made-up preceding functions, which did nothing; only the real one works.
+//   No extra latch statement is needed (the old `e->body.nuttin = i;` probe
+//   is gone).
+// - hotornot is a 1-bit bitfield, read through an int local exactly as the
+//   standalone reader 0x4ae410 does. Assigning the call result directly
+//   copies the old field into edx; the hand-written xor/and/xor form loads
+//   the field before the call.
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+// The real preceding function, 0x4ae630, matched in its own file (see the
+// note above). It has no annotation here to avoid a duplicate.
+struct Class_004bbbe0;
+char* __stdcall FUN_004baff0(char*, char*, const char*);
+int __stdcall FUN_004bbc40(char*);
+void __stdcall FUN_004bbc30(char*);
+void __stdcall FUN_004bbc10(char*, char*);
+Class_004bbbe0* __stdcall FUN_004bb6a0(char*);
+void __stdcall FUN_004bb5d0(Class_004bbbe0*);
+unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0*, void*, unsigned int);
+void __stdcall FUN_004accd0(Class_004bbbe0*, int);
+void __stdcall FUN_004acde0(Class_004bbbe0*, char*, char*, int);
+void __stdcall FUN_004ace50(void*, Class_004bbbe0*, int);
+void __stdcall FUN_004ad4f0(void*, Class_004bbbe0*, int);
+
+void __stdcall FUN_004ae630(char* obj, char* name)
+{
+    int index;
+    char button[100];
+    char slider[100];
+    char header[100];
+    char common[100];
+    char gadget[100];
+    char path[256];
+    char backup[256];
+    char hot[100];
+    char edit[100];
+    char empty[100];
+    char list[100];
+    FUN_004baff0(name, path, "GUI");
+    if (FUN_004bbc40(path)) {
+        FUN_004baff0(name, backup, "BGU");
+        FUN_004bbc30(backup);
+        FUN_004bbc10(path, backup);
+    }
+    Class_004bbbe0* out = FUN_004bb6a0(path);
+    char* p = obj;
+    for (index = 0; index < *(short*)(obj + 0xb6) + 1; index++, p += 0x15b) {
+        sprintf(gadget, "GADGET%d", index);
+        sprintf(header, "[%s]", gadget);
+        FUN_004bbbe0(out, header, strlen(header));
+        FUN_004bbbe0(out, "\n", 1);
+        FUN_004accd0(out, 1);
+        FUN_004bbbe0(out, "{\n", 2);
+        sprintf(common, "[%s]", "COMMON");
+        {
+            char t1 = '\t';
+            for (int i = 0; i < 1; i++) FUN_004bbbe0(out, &t1, 1);
+        }
+        FUN_004bbbe0(out, common, strlen(common));
+        FUN_004bbbe0(out, "\n", 1);
+        FUN_004accd0(out, 2);
+        FUN_004bbbe0(out, "{\n", 2);
+        FUN_004ace50(p, out, 2);
+        {
+            int j = 2;
+            char t2 = '\t';
+            do { FUN_004bbbe0(out, &t2, 1); } while (--j);
+        }
+        FUN_004bbbe0(out, "}\n", 2);
+        switch (*(unsigned char*)p) {
+        case 0:
+            FUN_004ad4f0(p, out, 1);
+            break;
+        case 1:
+            FUN_004acde0(out, "status", _itoa(*(short*)(p + 0x138), button, 10), 1);
+            FUN_004acde0(out, "text", p + 0xb6, 1);
+            FUN_004acde0(out, "quickkey", _itoa(*(signed char*)(p + 0x13a), button, 10), 1);
+            FUN_004acde0(out, "grayedout", _itoa(*(unsigned char*)(p + 0x13c) & 1, button, 10), 1);
+            FUN_004acde0(out, "stages", _itoa(*(unsigned char*)(p + 0x136), button, 10), 1);
+            break;
+        case 2:
+            FUN_004acde0(out, "itemheight", _itoa(*(short*)(p + 0xda), list, 10), 1);
+            break;
+        case 3:
+            FUN_004acde0(out, "maxchars", _itoa(*(short*)(p + 0x138), edit, 10), 1);
+            FUN_004acde0(out, "text", p + 0xb6, 1);
+            break;
+        case 4:
+            FUN_004acde0(out, "range", _itoa(*(short*)(p + 0x136), slider, 10), 1);
+            FUN_004acde0(out, "thick", _itoa(*(int*)(p + 0x13c), slider, 10), 1);
+            FUN_004acde0(out, "knobpos", _itoa(*(short*)(p + 0x140), slider, 10), 1);
+            FUN_004acde0(out, "knobsize", _itoa(*(short*)(p + 0x142), slider, 10), 1);
+            break;
+        case 5:
+            FUN_004acde0(out, "text", p + 0xb6, 1);
+            FUN_004acde0(out, "link", p + 0x136, 1);
+            break;
+        case 6:
+            FUN_004acde0(out, "hotornot", _itoa(*(unsigned int*)(p + 0xc8) & 1, hot, 10), 1);
+            break;
+        case 7:
+            FUN_004acde0(out, "filename", p + 0xb6, 1);
+            break;
+        case 8:
+            FUN_004acde0(out, "filename", p + 0xb6, 1);
+            break;
+        case 10:
+            FUN_004acde0(out, "nuttin", _itoa(*(int*)(p + 0xb6), empty, 10), 1);
+            break;
+        }
+        {
+            char t3 = '\t';
+            for (int i = 0; i < 1; i++) FUN_004bbbe0(out, &t3, 1);
+        }
+        FUN_004bbbe0(out, "}\n", 2);
+    }
+    FUN_004bb5d0(out);
+}
 
 class Class_004c46c0 {
 public:
@@ -251,7 +192,7 @@ struct Sub2_004aeac0 {
 
 struct Sub6_004aeac0 {
     char pad0[0xc8 - 0xb6];
-    unsigned int hotornot;             // +0xc8
+    unsigned int hotornot : 1;         // +0xc8, bit 0
     char pad1[0x136 - 0xcc];
 };
 
@@ -353,7 +294,10 @@ int __stdcall FUN_004aeac0(Elem_004aeac0* obj, char* name)
                 ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->tail.s5.link, "link", 0x10, DAT_005119b8);
                 break;
             case 6:
-                e->body.s6.hotornot = ((parser.current->FUN_004c46c0("hotornot", 0) ^ e->body.s6.hotornot) & 1) ^ e->body.s6.hotornot;
+                {
+                    int value = parser.current->FUN_004c46c0("hotornot", 0);
+                    e->body.s6.hotornot = value;
+                }
                 break;
             case 7:
                 ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "filename", 0x20, DAT_005119b8);
@@ -365,11 +309,6 @@ int __stdcall FUN_004aeac0(Elem_004aeac0* obj, char* name)
                 e->body.nuttin = parser.current->FUN_004c46c0("nuttin", 0);
                 break;
             }
-            e->body.nuttin = i; // PROBE, not in the original: a seventh latch
-                                // instruction that stops the tail-duplication
-                                // pass (see the note at the top of the file).
-                                // Remove it once the genuine seventh (later
-                                // removed) instruction is found.
             i++;
         }
         obj->body.total = (short)(i - 1);

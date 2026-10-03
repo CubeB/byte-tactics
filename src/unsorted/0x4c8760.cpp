@@ -1,11 +1,18 @@
 // Decompiled by GPT-6, finished by space-bunny-free, finished by GPT-6.1-sol,
 // finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by
-// claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
-// PARTIAL (was 87.9%). tools/permute.py found the statement shapes below
-// (hoisting the scan counter `i`, `while(i<4)` instead of the for, the nested
-// `if` for the last two raster guards, and the reordered inner-loop bodies),
-// which took 87.9 to 90.5 at the exact 1094 byte count. What still differs is
-// listed at the bottom.
+// claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-opus-5-5.
+// Names are provisional.
+// MATCH. What it took (from 90.5%):
+// - The frame slots: the original keeps one `nextVertex` pointer, one `out`,
+//   `y1` and `x` for both edge walks (declared once in the enclosing block),
+//   `dx`/`du`/`dv` at function scope, but a separate `next` declared inside
+//   each walk's body. MSVC 5 then packs next1 with dv, and next2 with lowX and
+//   the first inner counter, as in the original. A shared `next`, an unnamed
+//   `vertices[next*3+k]` or a per-walk `nextVertex` each cost a slot.
+// - `y0` declared before the slopes, so `dx*y0` loads dx first
+//   (`mov ecx,[dx]; imul ecx,ebp`), the later-declared operand going first.
+// - The right walk recomputes `index=(index+1)&3` rather than `index=next`;
+//   with the copy, MSVC compared next and loaded highIndex into ecx.
 
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
@@ -15,7 +22,8 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
 {
     int i, defaults[8];
     int spans[800][10];
-    int next, dv, dx, du;
+    int y0;
+    int dv, dx, du;
     int lowY, highY, highX, lowX;
     int lowIndex, highIndex;
     if (target && texture && vertices) {
@@ -44,29 +52,30 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                     if(highY>bottom) highY=bottom;
                     if(highY!=lowY) {
                         int y1; int x;
+                        int* out;
+                        int* nextVertex;
                         {
-                            int* out=&spans[0][0], index=lowIndex;
+                            out=&spans[0][0];
+                            int index = lowIndex;
                             do {
-                                next=index-1;
+                                int next=index-1;
                                 if (next<0) next=3;
                                 int* currentVertex=vertices+index*3;
-                                int y0=currentVertex[1];
-                                y1=vertices[next*3+1];
+                                y0=currentVertex[1];
+                                nextVertex=vertices+next*3;
+                                y1=nextVertex[1];
                                 if (y0<y1) {
                                     int dy = y1-y0;
-                                    dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
+                                    dx=((nextVertex[0]-currentVertex[0])*0x10000)/dy;
                                     x=currentVertex[0]*0x10000+0xffff;
                                     int z=currentVertex[2]*0x10000;
                                     int u=coords[index*2]*0x10000;
                                     int v=coords[index*2+1]*0x10000;
-
                                     du=(coords[next*2]*0x10000-u)/dy;
                                     dv=(coords[next*2+1]*0x10000-v)/dy;
-                                    int dz = (vertices[next*3+2]*0x10000-z)/dy;
-
+                                    int dz = (nextVertex[2]*0x10000-z)/dy;
                                     if(y0<0) {
                                         x-=y0*dx; u-=y0*du; v-=y0*dv; z-=y0*dz;
-
                                         y0=0;
                                     }
                                     if(y1>bottom) y1=bottom;
@@ -75,15 +84,11 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                                         do {
                                             out[0]=x>>16; out[2]=u;
                                             x+=dx;
-
                                             out[3]=v;
-
                                             out[6]=z;
-
                                             u+=du;
                                             v+=dv; out+=10;
                                             z+=dz;
-
                                         } while(--n);
                                     }
                                 }
@@ -92,28 +97,26 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                             } while(index!=highIndex);
                         }
                         {
-                            int* out=&spans[0][0];
+                            out=&spans[0][0];
                             int index = lowIndex;
                             do {
-                                next=(index+1)&3;
+                                int next=(index+1)&3;
                                 int* currentVertex=vertices+index*3;
-                                int y0=currentVertex[1];
-                                y1=vertices[next*3+1];
+                                y0=currentVertex[1];
+                                nextVertex=vertices+next*3;
+                                y1=nextVertex[1];
                                 if (y0<y1) {
                                     int dy = y1-y0;
-                                    dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
+                                    dx=((nextVertex[0]-currentVertex[0])*0x10000)/dy;
                                     x=currentVertex[0]*0x10000+0xffff;
                                     int z=currentVertex[2]*0x10000;
                                     int u=coords[index*2]*0x10000;
                                     int v=coords[index*2+1]*0x10000;
-
                                     du=(coords[next*2]*0x10000-u)/dy;
                                     dv=(coords[next*2+1]*0x10000-v)/dy;
-                                    int dz = (vertices[next*3+2]*0x10000-z)/dy;
-
+                                    int dz = (nextVertex[2]*0x10000-z)/dy;
                                     if (y0 < 0) {
                                         x-=dx*y0; u-=du*y0; v-=dv*y0; z-=dz*y0;
-
                                         y0=0;
                                     }
                                     if(y1>bottom) y1=bottom;
@@ -122,20 +125,16 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                                         do {
                                             out[1]=x>>16; x+=dx;
                                             out[4]=u;
-
                                             out[5]=v;
-
                                             out[7]=z;
-
                                             u+=du;
                                             v+=dv; z+=dz;
                                             out+=10;
-
                                         } while(--n);
                                     }
                                 }
-                                index=next;
-                            } while (index != highIndex);
+                                index=(index+1)&3;
+                            } while(index!=highIndex);
                         }
                         int* span=&spans[0][0];
                         for(int row=lowY;row<highY;row++) {

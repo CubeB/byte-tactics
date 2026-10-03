@@ -8,6 +8,7 @@
 // #5341 retry: reversing the f97 MAP-view branch scored 97.0%, so the original
 // 99.2% source is restored; the immediate-versus-ebp push remains.
 // #5367 retry: re-confirmed 99.2%; the MAP call still pushes ebp instead of 1.
+// #5383 retry: re-confirmed 99.2%; the single MAP argument push remains.
 // Battle room button handler: per player slot LOGO, PLAYER, SIDE, ALLY,
 // TEAMICONS, RES and READY, then PREVMENU, MESSAGE, COMMANDER, LOSTYPE,
 // WATCHING, CHEATING, FIXEDLOC, MAPPING, START, GAMEOPEN, RESTRICTIONS and

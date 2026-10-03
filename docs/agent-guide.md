@@ -532,6 +532,15 @@ effect, the missing piece is usually a helper that was inlined:
   ebp. Defining i, progress, q and then x made them run out of registers one
   at a time, as in the original. Check c2prio's split column when a reorder
   moves several registers at once (#5203).
+- **A global may be a file-scope `static`**: 0x4223e0 went from 65.9% to a
+  match by declaring `DAT_00511fb4` `static` in its file, after which a plain
+  `delete` matched. progress.py then names the address after the compiled
+  static (`DAT_00511fb4$S4411`), so a second file using the same static may
+  need a data/aliases.csv row (#5184).
+- **Local declaration order sets operand order in sums**: `Gadget *grid,
+  *gadgets;` rather than the reverse gave 0x4ac8c0's prologue sums the
+  original's operand order. The match is sensitive to the declaration count
+  (one extra `extern int` before it drops it to 91.5%) (#5207).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

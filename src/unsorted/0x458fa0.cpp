@@ -1,4 +1,34 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, verified by GPT-6. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, verified by GPT-6., retried by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (#5098): still 95.2%. Read out of C2 with tools/c2prio.py
+// and a per-block hook in FUN_0040ee1d, so the next attempt can skip the
+// mechanism:
+//  * With the natural guard (`for (k = 0; k < f->count; k++, ip++)`, 455 B,
+//    84.1%) the tie is decided by priority, not by a tie key: view's outer
+//    piece is coloured at 240 and takes ebx before info's piece at 160. Most
+//    of the 240 is the vertex loop: the two `view->field_4/6` loads are
+//    hoisted into temporaries, those temporaries get no register in the
+//    preheader, and their loop pieces re-read view every iteration (the
+//    original's `mov ebp,[esp+0x5f10]` in the loop), which puts view's
+//    references at loop depth 2. Taking out the shade (`bright = 125`) or
+//    either field read flips it (view -92 against info -8); no spelling of
+//    either that keeps the bytes does.
+//  * The bool predicate below works through a different rule, C2's byte
+//    register check in FUN_0041a985 (0x41b426 to 0x41b464): a tuple with an
+//    8-bit value live while eax, ecx and edx are all taken gets flag 2, and
+//    every candidate live there loses ebx. The predicate's `test al` is such
+//    a tuple, view's piece is live there and info's is not, so view is left
+//    with ebp. The original's guard has no 8-bit value, so it most likely
+//    took the priority route, with something that lowers view's loop weight
+//    or raises info's.
+//  * Flat at 84.1% (view in ebx) with the natural guard: bool, char and
+//    unsigned char casts or locals for the guard (all emit setcc), the copy
+//    loop as for, while or index form, a byte colour parameter on both sides
+//    (fixes the reload order after the copy loop, still ebx), inline helpers
+//    for the face, the polygon copy, the offset (`view->Offset(&verts[j])`)
+//    and the face count (no candidate changes at all), shade and pointer
+//    spellings of the vertex loop, `do {} while (0);` at all 35 statement
+//    positions, and 0 to 1160 unused externs (84.1 or 66.9, never ebp).
+//
 // GPT-6 retry: retained 95.2%; the remaining code difference is the two
 // instructions at the copy-loop entry guard described below.
 //

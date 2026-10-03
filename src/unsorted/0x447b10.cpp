@@ -13,6 +13,34 @@
 // only the MAP call from `push 1` to `push ebp`. Issue #4841 adds no new lead
 // for this branch, and its proposal-loop results do not suggest a useful
 // near-miss experiment beyond the source and C2 probes already recorded.
+// claude-opus-5-5 retry (#5412, 2026-10-04): still 99.2%. Traced the regions
+// of every joint split (FUN_00438f79) that holds const 1: 10 candidates when
+// the loop temp takes ebx, 12 when START's g_game takes ebp, 24 when i takes
+// ebp. A block joins the region of its first predecessor that still shares
+// a free register with it. In each split the region holding the after-loop
+// code and the button chain has exactly one free register left (ebp, ebp,
+// then esi), and the MAP tests and body block only eax, ecx and edx, so the
+// MAP test, the MAPNAME test and the body always join that region. Split
+// points then land only at blocks with a successor in another region: in
+// the 12-candidate split `done` is in START's region (its first predecessor
+// is START's `goto done`), so every branch end that jumps to `done` gets a
+// split point at its end. MAP's body is cut off (push 1, no reload) only
+// when every edge into it leaves such a block: MAP alone (the MAP test jumps
+// to done) or a materialised condition (one test block feeds both the body
+// and done). With MAP || MAPNAME only the MAPNAME test reaches done, so the
+// MAP test's edge stays uncut and the body needs a reload (99.0%); the
+// do/while here, or two labels at done (START's goto to the second, the
+// chain falling into the first, 99.2% without the do/while), funnels the
+// branch ends through one empty block and drops even that split point. No
+// label placement can cut the MAP test's edge: both its successors join its
+// region. So the original's allocation must reach this split in a different
+// state; the source differences that would do that are still unknown.
+// Also flat: 0x444be0 inlined with every label combination, a do/while
+// inserted at each of 323 statement positions (with and without the MAP
+// one), the MAP test as `goto` into the body, the body placed before the
+// tests or after the return (C2 reorders the blocks back), /Gi on those.
+// START's and MAP's FUN_00444ea0 tails jumping to one label are merged by
+// C2 only after allocation (97.0%), so sharing them changes nothing here.
 // Battle room button handler: per player slot LOGO, PLAYER, SIDE, ALLY,
 // TEAMICONS, RES and READY, then PREVMENU, MESSAGE, COMMANDER, LOSTYPE,
 // WATCHING, CHEATING, FIXEDLOC, MAPPING, START, GAMEOPEN, RESTRICTIONS and

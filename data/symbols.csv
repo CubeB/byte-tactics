@@ -1415,7 +1415,7 @@ address,name
 0x46ef50,IURect_0046e160::IU?$pair::?$_Tree::insert
 0x46f6d0,IURect_0046e160::IU?$pair::?$_Tree::_Erase
 0x46f720,Class_0046f720::FUN_0046f720
-0x46f7a0,Vec_0046d860::FUN_0046f7a0
+0x46f7a0,VClass_0046ded0::?$vector::insert
 0x46fac0,??Eiterator@?$list@HV?$allocator@H@std@@@std@@QAE?AV012@H@Z
 0x46fad0,Class_0046fad0::Class_0046fad0
 0x46faf0,UElem_0046faf0::?$vector::_Ucopy

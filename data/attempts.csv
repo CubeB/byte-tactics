@@ -7651,7 +7651,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x411f50,1980,opus,#5033,partial,97.1,,"issue #5033, escalated"
 0x4d9ca0,647,opus,#5034,matched,100.0,,"issue #5034, escalated"
 0x4dacf0,780,opus,#5034,partial,79.8,,"issue #5034, escalated"
-0x46f7a0,798,,#5042,assigned,,,"issue #5042, escalated"
+0x46f7a0,798,opus,#5042,matched,100.0,,"issue #5042, escalated"
 0x43bc90,909,,#5044,assigned,,,"issue #5044, escalated"
 0x43c050,753,,#5044,assigned,,,"issue #5044, escalated"
 0x487080,1595,,#5048,assigned,,,"issue #5048, escalated"

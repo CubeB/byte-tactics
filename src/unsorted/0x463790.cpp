@@ -1,4 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by fledge-alpha-free. Names are provisional.
+// Pass 13 (fledge-alpha-free): re-measured 75.0% (1025 vs 1040 bytes); every new spelling was
+// byte-flat or worse, so base kept. Tried: `int tv = a4` temp (flat), `for`-header with n++ in the
+// increment (mangled, reverted), moving `size -= 4` and f14/f18 stores around each other (flat or
+// 71.3), shared `lineLeft` for left1/left2 both (74.9), a6==0 via lineLeft (74.9), a6!=0 via
+// lineLeft (74.9), swapping n/remaining declaration spots (flat), keep-left1-in-EDI into a6==0
+// (73.6, a6==0 web broke: x moved to EDI, left re-cached in ECX). The open items are the same:
+// pop-block r=EAX / n=ECX rotation, scan-loop n=EBP / remaining=EDI rotation, and the merged
+// left1 update block in the a6!=0 path.
 // Pass 12 (deepseek-v4.1-flash, #4105): re-measured 75.0% (1025 vs 1040 bytes), no edit
 // kept. The pop-block rotation is not steered by the outer loop shape or by naming the
 // popped pointer: `for (int i = rows->n; i > 0; i--)` regresses to 70.1% / 1021 bytes,

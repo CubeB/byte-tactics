@@ -1,4 +1,9 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free. Names are provisional.
+// Pass 12 (fledge-alpha-free): re-measured 43.3% (1578 vs 1653 bytes), no edit kept.
+// A goto-based re-layout to defer the three return-only blocks (41.8), a do-while(0)
+// wrap (31.7), and a wrapper around the tuned web (37.8) all moved the blocks but
+// broke the frozen register web, so 43.3 stands. Open items: EBP-resident &length,
+// the single EDI zero, and the 0x4632b5 block shape.
 // Pass 11 (deepseek-v4.1-flash, #4105): re-measured 43.3% (1578 vs 1653 bytes), no edit
 // kept. Not attacked further this pass (short timebox); the open items are the same as in
 // pass 10 below: the EBP-resident &length base, the single EDI zero, and the 0x4632b5 block.

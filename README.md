@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**87.23% of Cavedog's code matched** (742,239 of 850,853 bytes)
+**87.42% of Cavedog's code matched** (743,834 of 850,853 bytes)
 
 `[###################################-----]`
 
-By count that is 3,179 of the game's 3,267 functions (97.3%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,180 of the game's 3,267 functions (97.3%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,179 | 742,239 |
-| Attempted, not yet matching | 88 | 108,614 |
+| Matched byte-for-byte | 3,180 | 743,834 |
+| Attempted, not yet matching | 87 | 107,019 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 693 of 703 | 98.4% | 2,847 | `##########` |
 | xl (401 to 600 bytes) | 212 of 226 | 93.7% | 6,961 | `#########-` |
 | xxl (601 to 1,000 bytes) | 177 of 195 | 90.5% | 13,882 | `#########-` |
-| huge (over 1,000 bytes) | 117 of 161 | 71.0% | 84,679 | `#######---` |
+| huge (over 1,000 bytes) | 118 of 161 | 71.6% | 83,084 | `#######---` |
 
 ### By area
 
@@ -57,7 +57,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x450000` | Options and audio menus | 164 of 176 | 69.7% | 19,141 | `#######---` |
 | `0x460000` | Game and skirmish setup, unit classes | 206 of 212 | 89.7% | 6,317 | `#########-` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 251 of 259 | 88.7% | 7,168 | `#########-` |
-| `0x480000` | Unit definitions, COB scripting, TNT map | 258 of 264 | 93.9% | 3,853 | `#########-` |
+| `0x480000` | Unit definitions, COB scripting, TNT map | 259 of 264 | 96.5% | 2,258 | `##########` |
 | `0x490000` | Config and registry, skirmish summary | 188 of 193 | 91.9% | 4,823 | `#########-` |
 | `0x4a0000` | GUI layout and GAF | 198 of 201 | 95.8% | 2,705 | `##########` |
 | `0x4b0000` | UI controls and file packages | 309 of 314 | 95.3% | 2,911 | `##########` |

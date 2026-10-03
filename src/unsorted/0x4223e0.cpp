@@ -1,4 +1,4 @@
-// Decompiled by Opus, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by Opus, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. re-verified by GPT-6. Names are provisional.
 // Deletes every entry of the global vector at DAT_00511fb4 (see 0x422460),
 // then the vector itself. 0x424c00 inlines this whole function (its copy
 // calls the vector's _Destroy out of line, 0x4251e0).

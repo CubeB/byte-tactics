@@ -1,7 +1,43 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
 // deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro,
-// finished by space-bunny-free, finished by DeepSeek V4.1 Flash.
-// Names are provisional.
+// finished by space-bunny-free, finished by DeepSeek V4.1 Flash, finished by
+// Claude Opus 5.5. Names are provisional.
+//
+// Claude Opus 5.5, 2026-10-03: the bytes now match (943 bytes, up from
+// 94.8%). check.py still prints "bytes match, but a reference is wrong"
+// because it reads the two 0x500000 immediates (`gap1 > 0x500000`, `gap1 -
+// 0x500000`: 80.0 in 16.16 fixed point) as hard-coded addresses; they are
+// plain constants, and no spelling can give them a relocation. Three changes:
+//  1. The real preceding function, Class_0043cc20::FUN_0043cc20 (0x43cc20,
+//     matched in its own file), is defined above this one without its
+//     annotation (the guide's preceding-function rule; it still MATCHes from
+//     this file with `--sym FUN_0043cc20`). With it in the file the two
+//     final calls cross-jump as in the original (one shared `mov
+//     ecx,[esp+0x10]; push eax; push edi; call`, the then arm ending in a
+//     `jmp`): 94.8 -> 96.7. Its Unit and UnitType declarations are merged with
+//     this file's; +0x70 (the whole part of pos.y that 0x43cc20 reads) is a
+//     union view over pos.
+//  2. The `imul ecx`: VC5 only narrows a 64-bit multiply to a one-operand
+//     imul when neither operand's sign extension is shared with another
+//     multiply. `(__int64)field_20 * field_20` below used to CSE the same
+//     `(__int64)field_20`, which forced `_allmul` (87.7). Reading field_20
+//     into a local (`spd`) for that square, and writing the turned product as
+//     `(__int64)(adiff & 0xffff) * (__int64)field_20`, gives the original's
+//     `mov eax,esi; and eax,0xffff; ... imul ecx` (96.7 -> 98.1). The
+//     `(unsigned short)adiff` spelling swaps the operands' registers (95.8).
+//  3. The hasPath==0 arm binds its amount to a const reference,
+//     `const int& amount = -unit->type->field_19a;` (found by permute.py as an
+//     address-taken copy, then reduced to this). The bound temporary is what
+//     makes VC5 load unit into ecx before the `mov [esi+0x24],ax` store and
+//     keep the rate in eax (98.1 -> bytes match). A plain int, a named rate,
+//     `turn = hasPath`, type locals, local unit copies, inline Brake helpers,
+//     an out-parameter helper and every shared-call spelling leave unit in eax
+//     (or edi) there.
+// The turn block also compiles byte-identically as an inlined call of 0x43cbb0
+// (Class_0043cbb0::FUN_0043cbb0(unit, diff), the same clamp, defined above).
+//
+// The older notes below predate these changes; their tail, imul and arm
+// findings were measured without the preceding function and no longer hold.
 //
 // DeepSeek V4.1 Flash, 2026-10-02 (fresh continuation worker, 94.8% kept,
 // no new best). Re-ran check.py on the file as it stands: 94.8% (943 original,
@@ -434,19 +470,34 @@ struct Vec3 {
 };
 
 #pragma pack(push, 1)
+struct Game_0043cc20 {
+    char unknown_0[0x1427f];
+    unsigned char seaLevel;           // +0x1427f
+};
+
 struct UnitType_0043cd20 {
-    char unknown_0[0x19a];
+    char unknown_0[0x192];
+    int field_192;                    // +0x192
+    char unknown_196[0x19a - 0x196];
     int field_19a;                    // +0x19a, the rate
     int field_19e;                    // +0x19e, the long-step distance
     char unknown_1a2[0x1ba - 0x1a2];
     unsigned short max_turn;          // +0x1ba
+    char unknown_1bc[0x241 - 0x1bc];
+    int field_241;                    // +0x241
 };
 
 struct Unit_0043cc20 {
     char unknown_0[0x66];
     short heading;                    // +0x66
-    char unknown_68[0x6a - 0x68];
-    Vec3 pos;                         // +0x6a
+    short field_68;                   // +0x68, in 2048ths of a circle
+    union {
+        Vec3 pos;                     // +0x6a
+        struct {
+            char unknown_6a[0x70 - 0x6a];
+            short field_70;           // +0x70, whole part of pos.y
+        };
+    };
     char unknown_76[0x92 - 0x76];
     UnitType_0043cd20* type;          // +0x92
     char unknown_96[0x110 - 0x96];
@@ -455,6 +506,19 @@ struct Unit_0043cc20 {
     unsigned int flags_17 : 15;
 };
 #pragma pack(pop)
+
+struct Vec3_0043cc20 {
+    int x;
+    int y;
+    int z;
+};
+
+extern Game_0043cc20* g_game;
+extern signed char DAT_00505205[];
+
+// Fixed-point trig helpers written in assembly.
+int __cdecl FUN_004b70ef(short angle, int scale);
+int __cdecl FUN_004b7123(short angle, int scale);
 
 // Hand-written fixed-point atan2 in the gap at 0x4b70a0.
 int __stdcall FUN_0048a980(Vec3* from, Vec3* to);
@@ -471,8 +535,19 @@ public:
     virtual int v5();
 };
 
+static inline void ClampToZero(int& value)
+{
+    if (value < 0)
+        value = 0;
+}
+
 class Class_0043cc20 {
 public:
+    char unknown_0[8];
+    Vec3_0043cc20 pos;                 // +0x8
+    char unknown_14[0x20 - 0x14];
+    int field_20;                      // +0x20
+
     void FUN_0043cc20(Unit_0043cc20* unit, int amount);
 };
 
@@ -486,14 +561,42 @@ public:
     void FUN_0043cd20(Unit_0043cc20* unit);
 };
 
+// The preceding function in the original object file (0x43cc20, matched in
+// its own file), defined here without its annotation: see the note above.
+void Class_0043cc20::FUN_0043cc20(Unit_0043cc20* unit, int amount)
+{
+    field_20 = field_20 + amount;
+    ClampToZero(field_20);
+
+    int idx = unit->field_68 >> 11;
+    if (idx < -5)
+        idx = -5;
+    if (idx > 5)
+        idx = 5;
+
+    int range = (int)(((__int64)(DAT_00505205[idx] << 16) * unit->type->field_192) >> 16);
+    range = (int)(((__int64)range << 16) / 0x640000);
+    if (unit->field_70 < g_game->seaLevel && !(unit->type->field_241 & 0x81000))
+        range = (int)(((__int64)range * 0x8000) >> 16);
+    if (field_20 > range)
+        field_20 = range;
+
+    int dist = field_20;
+    unsigned short angle = unit->heading;
+    Vec3_0043cc20 v;
+    v.x = -FUN_004b70ef(angle, dist);
+    v.y = 0;
+    v.z = -FUN_004b7123(angle, dist);
+    pos = v;
+}
+
 // FUNCTION: 0x43cd20
 void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
 {
-    int hasPath = obj->v5();
-    if (hasPath == 0) {
-        turn = hasPath;
-        int r2 = unit->type->field_19a;
-        ((Class_0043cc20*)this)->FUN_0043cc20(unit, -r2);
+    if (obj->v5() == 0) {
+        turn = 0;
+        const int& amount = -unit->type->field_19a;
+        ((Class_0043cc20*)this)->FUN_0043cc20(unit, amount);
         return;
     }
 
@@ -547,10 +650,11 @@ void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
         turn = 0;
     }
 
-    int turned = (int)(((__int64)((unsigned short)adiff * field_20)
+    int turned = (int)((((__int64)(adiff & 0xffff) * (__int64)field_20)
                         / unit->type->max_turn));
     int rate = unit->type->field_19a;
-    int t = (int)(((__int64)field_20 * field_20) >> 16);
+    int spd = field_20;
+    int t = (int)(((__int64)spd * spd) >> 16);
     int q = (int)(((__int64)t << 16) / (2 * rate));
     int r = (int)(((__int64)q * q) >> 32);
     int lim = (int)(((__int64)turned * turned) >> 32) * 4;

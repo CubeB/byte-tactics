@@ -188,15 +188,32 @@ def winpath(p: Path) -> str:
     return "Z:" + str(p).replace("/", "\\")
 
 
+# Per-file extra compiler flags, `// FLAGS: /Gi` on a line of its own. Some of
+# the original's translation units were built with /Gi (incremental: internal
+# symbols numbered per function), which flips register and slot ties; a whole
+# vector::insert family and 0x4b6c30 match only with it (#5035). Only flags in
+# FILE_FLAGS may be added.
+FILE_FLAGS_LINE = re.compile(r"^//\s*FLAGS:\s*(.*?)\s*$", re.M)
+FILE_FLAGS = {"/Gi"}
+
+
 def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj") -> tuple[Path | None, str]:
     """Returns (object path, compiler output). Object path is None on failure.
 
     out_dir (under build/) keeps concurrent users, e.g. agents running check.py
     while progress.py re-verifies everything, from clobbering each other's objects.
     """
-    bad = FORBIDDEN.search(src.read_text(errors="replace"))
+    text = src.read_text(errors="replace")
+    bad = FORBIDDEN.search(text)
     if bad:
         return None, f"{src}: '{bad.group(0)}' is not allowed; write the function in plain C++"
+    m = FILE_FLAGS_LINE.search(text)
+    if m:
+        extra = m.group(1).split()
+        wrong = [f for f in extra if f not in FILE_FLAGS]
+        if wrong:
+            return None, f"{src}: '// FLAGS:' may only add {sorted(FILE_FLAGS)}, not {wrong}"
+        flags = " ".join(flags.split() + [f for f in extra if f not in flags.split()])
     if src.resolve().is_relative_to(ROOT / "src"):
         rel = src.resolve().relative_to(ROOT / "src")
     else:

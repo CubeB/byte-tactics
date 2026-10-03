@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by space-bunny-free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// FLAGS: /Gi
+// Built with /Gi like the original's translation unit: with it this file
+// matches as it stands, without it 95.0% (#5035).
 // Retry (deepseek-v4.1-flash, 2026-10): confirmed the neg/shl/sub target block
 // appears for EVERY spelling whose correction is a real multiply tree, inline
 // or materialised: ((-q)<<31)-q, q*0x7fffffff, q*-2147483647, -q*2147483648,

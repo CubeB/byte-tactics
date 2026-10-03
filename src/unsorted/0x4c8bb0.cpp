@@ -1,7 +1,12 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by fledge-alpha-free. Names are provisional.
 // PARTIAL, 57.1% (1279 original bytes, 1279 ours; 9 diff hunks, 181 removed /
 // 183 added lines). This is the best of everything tried here and below; the
 // per-pass history in the rest of this header still stands.
+// fledge-alpha-free pass: tools/permute.py (15 min, 2687 evaluated) lowered its
+// register/stack cost score 3284->3009 but did not move check.py off 57.1%, and
+// its best.cpp only differs by inlined helpers/tmp renames, so it was discarded.
+// Also neutral: hoisted-unused `int pad;` (no size change), `bottom` computed
+// before the lowY clamp, and the sibling's nested last-two raster guards.
 // WHAT THIS PASS ADDED (Space Bunny Free). Frame arithmetic, which is easy to
 // get wrong and is worth writing down. After `mov eax,SIZE; call _alloca_probe`
 // esp is entry_esp-SIZE (the call's own return address has already been popped),

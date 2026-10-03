@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**86.22% of Cavedog's code matched** (733,583 of 850,853 bytes)
+**86.29% of Cavedog's code matched** (734,223 of 850,853 bytes)
 
-`[##################################------]`
+`[###################################-----]`
 
-By count that is 3,172 of the game's 3,267 functions (97.1%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,173 of the game's 3,267 functions (97.1%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,172 | 733,583 |
-| Attempted, not yet matching | 95 | 117,270 |
+| Matched byte-for-byte | 3,173 | 734,223 |
+| Attempted, not yet matching | 94 | 116,630 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -38,7 +38,7 @@ The size bands are the `size:` labels on the issues.
 | medium (65 to 160 bytes) | 825 of 827 | 99.7% | 245 | `##########` |
 | large (161 to 400 bytes) | 693 of 703 | 98.4% | 2,847 | `##########` |
 | xl (401 to 600 bytes) | 212 of 226 | 93.7% | 6,961 | `#########-` |
-| xxl (601 to 1,000 bytes) | 172 of 195 | 88.0% | 17,678 | `#########-` |
+| xxl (601 to 1,000 bytes) | 173 of 195 | 88.4% | 17,038 | `#########-` |
 | huge (over 1,000 bytes) | 115 of 161 | 69.4% | 89,539 | `#######---` |
 
 ### By area
@@ -61,7 +61,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x490000` | Config and registry, skirmish summary | 188 of 193 | 91.9% | 4,823 | `#########-` |
 | `0x4a0000` | GUI layout and GAF | 195 of 201 | 87.1% | 8,279 | `#########-` |
 | `0x4b0000` | UI controls and file packages | 309 of 314 | 95.3% | 2,911 | `##########` |
-| `0x4c0000` | TDF parser, CD audio, string handles | 290 of 298 | 90.1% | 5,381 | `#########-` |
+| `0x4c0000` | TDF parser, CD audio, string handles | 291 of 298 | 91.3% | 4,741 | `#########-` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 191 of 197 | 85.6% | 5,425 | `#########-` |
 | `0x4e0000` | Process exit, psapi | 92 of 93 | 93.2% | 801 | `#########-` |
 

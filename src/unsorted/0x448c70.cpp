@@ -1,67 +1,32 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, edited by Space Bunny Free, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, edited by Space Bunny Free, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
 // Refreshes the multiplayer battle room every frame: scrolls the OUTPUT chat
 // list, the MAPNAME/MAP state, the ready bits of the local players, then the
 // ten player rows (CD, PLAYER, LOGO, SIDE, ALLY, TEAMICONS, RES, PING, MEM,
 // READY), and finally the lowest ping limit.
 //
-// PARTIAL (86.2%). claude-opus-5-5 (#4799) rewrote the old Ghidra-shaped
-// version (63.2%) with real types. What paid, largest first:
+// MATCH. What it took, largest first:
 // - Two functions of this file that have no callers are inlined here and are
 //   defined above, unannotated: the map check 0x440cd0 (FUN_00440cd0) and the
 //   SIDE%d update 0x448bf0 (FUN_00448bf0). Both still compile to their own
 //   original bytes out of line.
 // - <windows.h> (the file's other functions use it too): it gives the
-//   original's base/index order and the loop-head shape below.
-// - The mapname text and the PING text share one `char* str` (one frame slot,
-//   0x28); the row loop counter is a plain unsigned char `n` with no int copy.
-//   Together these give the original frame layout exactly.
-// - TEAMICONS writes its visible byte from the expression, not from the
-//   IsWatching helper (the helper's value is materialised and then `sete`d).
+//   original's base/index order and the loop-head shape.
+// - The mapname text and the PING text share one `char* str` (one frame slot);
+//   the row loop counter is a plain unsigned char `n` with no int copy.
+// - MEM writes its whole tail (the FUN_00435920 compare, colour and visible
+//   stores) in each arm of the n/a / %d test. MSVC cross-jumps the two copies
+//   back down to the shared call, but the duplicated tail is what gives `p`
+//   ebp and the int value of `n` ebx through the whole row loop (86.2% to
+//   99.7% in one change). One call per arm with the compare after the if/else
+//   was 84.5%, and the compare and colour per arm with `visible = 1` after it
+//   86.9%, both with the two registers still swapped.
+// - TEAMICONS lays out the 1 before the 0, the layout MSVC gives the last
+//   term of an `||` chain (as in ALLY); the plain IsWatching test gives the 0
+//   first. `|| 0` emits no code and gives that layout; it is probably a term
+//   that the release build compiled to 0.
 // - In FUN_00440cd0 the version test is `if (major >= 2) check = 1; else if
 //   (major == 1 && minor >= 2) check = 1;`. Same bytes out of line, but inlined
-//   it gives the original's edi/edx for g_game/check (the one-`if` form swaps
-//   them). The same holds in 0x447b10.
-//
-// STILL DIFFERS:
-// - The whole row loop has ebx and ebp swapped: the original keeps the int
-//   value of `n` in ebx and the player pointer (and the g_game load it is built
-//   from, from the loop prologue on) in ebp; we do the opposite. The code is
-//   otherwise identical there (47 vs 32 references, mirrored). Not moved by:
-//   20 extra uses of `n`, an `int i = n` copy (fixes the loop head but breaks
-//   the frame and `ready`), loop forms (while/do/for, break at the end), p/e
-//   declared at function scope or shared, helpers as macros, inline helpers vs
-//   inline expressions in every condition, every <windows.h>/<stdio.h>/C++
-//   header set (tools/headers.py --cpp), and two permuter runs.
-// - TEAMICONS lays out the 1 before the 0 (`jne zero; mov ecx,1`); every
-//   spelling of the ternary tried gives the 0 first.
-// - MEM: the original loads g_game->map in each arm of the n/a / %d sprintf
-//   and shares only the FUN_00435920 call; one call after the if/else shares
-//   the sprintf call too, and a call in each arm gets the arms' registers
-//   rotated (84.5%).
-//
-// DeepSeek V4.1 Flash pass (issue #4831): still 86.2%, no variant scored
-// higher. New evidence, so the next attempt need not repeat it:
-// - Two more full permuter runs (seeds 7 and 21, one --no-focus) plus the
-//   earlier one: 0 gains in about 4500 candidates.
-// - N unused `extern int dummyN;` declarations before the function, N = 0 to
-//   1100 step 1: 86.19% at every N. Not declaration-count compiler state.
-// - The 0x450530 lever: reusing the existing function-scope `int i` (or a new
-//   int) as the row-loop index flips the loop head to the original's ebp = p /
-//   ebx = index, but `me` then stays in esi and every local's slot moves, so
-//   the whole function drops to 67.6%. The int copy has to keep the byte `n`
-//   and not perturb the spill set, which no placement found.
-// - The 0x450530 dead `if (n == 9) p->active = p->active;` (and p->type,
-//   players[n].active, localPlayer, a field, empty block) at the top, middle
-//   and end of the body: emitted bytes unchanged. MSVC 5 drops it here (no
-//   strength reduction to block, unlike 0x450530).
-// - The 0x461b10 self-store `T t = n; n = t;`, the `p = q;` pointer copy,
-//   `register`, `players + n` / `n[players]` / `(char*)players + n*0x14b`,
-//   `Player*&` reference and `* const`, `PlayerAt`/`AllyByte` inline
-//   accessors, reordering the two unannotated helpers, and every boolean
-//   spelling of the TEAMICONS visible test: all byte-identical to this file.
-//   So the TEAMICONS 1-first layout and the MEM arms' separate sprintf calls
-//   are the only non-register codegen diffs left, and they are not fixable by
-//   rewriting those expressions alone.
+//   it gives the original's edi/edx for g_game/check.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -507,7 +472,7 @@ void FUN_00448c70()
             sprintf(name, "TEAMICONS%d", n);
             e = FUN_0049ff10(entries, name);
             if (e) {
-                e->visible = (p->active != 0 && (p->info->flags_9b & 0x40)) ? 0 : 1;
+                e->visible = (IsWatching_00448c70(p) || 0) ? 0 : 1;  // see the top
                 FUN_004a1450(g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
             }
             sprintf(name, "RES%d", n);
@@ -542,13 +507,15 @@ void FUN_00448c70()
             }
             sprintf(name, "MEM%d", n);
             e = FUN_004a0180(entries, name);
-            if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p))
+            if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p)) {
                 sprintf(e->text, "%s", "n/a");
-            else
+                e->colour = p->info->memory < ((Class_00435920*)g_game->map)->FUN_00435920() ? 0xc : 0;
+                e->visible = 1;
+            } else {
                 sprintf(e->text, "%d", p->info->memory);
-            int need = ((Class_00435920*)g_game->map)->FUN_00435920();
-            e->colour = p->info->memory < need ? 0xc : 0;
-            e->visible = 1;
+                e->colour = p->info->memory < ((Class_00435920*)g_game->map)->FUN_00435920() ? 0xc : 0;
+                e->visible = 1;
+            }
             sprintf(name, "READY%d", n);
             e = FUN_0049ff10(entries, name);
             if (e) {

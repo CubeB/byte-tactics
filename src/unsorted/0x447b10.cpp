@@ -1,56 +1,60 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by space-bunny-free, rewritten by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by space-bunny-free, rewritten by claude-opus-5-5, finished by claude-opus-5-5. Names are provisional.
 // Battle room button handler: per player slot LOGO, PLAYER, SIDE, ALLY,
 // TEAMICONS, RES and READY, then PREVMENU, MESSAGE, COMMANDER, LOSTYPE,
 // WATCHING, CHEATING, FIXEDLOC, MAPPING, START, GAMEOPEN, RESTRICTIONS and
 // MAP/MAPNAME, and finally FUN_004ab0a0 on the gadget.
 //
-// PARTIAL (93.8%). claude-opus-5-5 (#4799) rewrote the old raw-offset version
-// (83.6%) with the types and helpers of 0x448c70. What paid:
-// - <windows.h> and real Player/Game structs: the loop head now builds the
-//   player pointer from the spilled i*331 the way the original does.
+// PARTIAL (99.0%). What paid, in the order it was found:
+// - <windows.h> and real Player/Game structs: the loop head builds the player
+//   pointer from the spilled i*331 the way the original does.
 // - Functions of this file with no callers, defined above unannotated and
-//   inlined: 0x440cd0 (map check, in READY) and 0x446f50 (colour cycle, in
-//   TEAMICONS; `player` declared before `colour`, which still matches 0x446f50
-//   out of line). START's team test is the CountAlliance helper of 0x446a50
-//   with the flag byte read once, as in 0x4478b0.
+//   inlined: 0x440c10 (free slot search, in PLAYER; it needs `inline`, MSVC
+//   does not inline its two loops on its own), 0x440cd0 (map check, in READY)
+//   and 0x446f50 (colour cycle, in TEAMICONS; `player` declared before
+//   `colour`, which still matches 0x446f50 out of line). START's team test is
+//   the CountAlliance helper of 0x446a50 with the flag byte read once, as in
+//   0x4478b0 (reading g_game->bits.bit2 in the loop, as 0x446a50 does, gives
+//   the same bytes).
+// - The text buffer is 249 or 250 bytes (rounded to 252 in the frame): with
+//   the inlined 0x440c10's used[10] that puts used[] above the text, as in the
+//   original frame (frame order is references per byte; 251 or 252 bytes puts
+//   used[] below). This replaces an older struct that forced the order.
 // - g_game+0x2bee is one 1-bit unsigned short bitfield (`dirty`). In the tail
 //   MSVC hoists the constant 1 into ebp, which gives the original's
 //   `or word ptr [..],bp` next to the plain `or byte ptr [..],1` ones.
 // - The slot loop as `while (1) { ...; i++; if (i >= 10) break; }`: the plain
-//   for loop gives the tail's registers to the wrong values (88.2% now).
-// - `goto done;` at the end of the MESSAGE branch. It emits nothing (the branch
-//   jumps to the final call either way), but without it MSVC copies the final
-//   FUN_004ab0a0 call and epilogue into every branch (88.9% now, 4390 bytes).
-//   A `do { } while (0)` around the final call does the same; no other
-//   placement of the goto, and no plainer spelling, does.
-// - `struct SlotBuf` keeps the text buffer below the used[] array, as in the
-//   original frame (two plain arrays put used[] first: 83.3% now). The
-//   used[] code is 0x440c10's body (it matches that function out of line), but
-//   MSVC does not inline that function here unless it is declared `inline`,
-//   and then used[] lands below the text again.
+//   for loop gives the tail's registers to the wrong values.
+// - The map check's version test is `if (major >= 2) check = 1; else if
+//   (major == 1 && minor >= 2) check = 1;`, as 0x448c70 needs too; the one-`if`
+//   form swaps g_game and `check` (edx/edi) there.
+// - `goto done;` on START's "no map selected" path (93.8% to 99.0%). It emits
+//   nothing, but with it the gadget is kept in esi only for the chain of
+//   button tests and the final FUN_004ab0a0 reloads it from the stack, as in
+//   the original; without it the gadget stays in a register through every
+//   branch and MSVC copies the final call into each one (88.7%, 4423 bytes).
+//   The old `goto done;` at the end of MESSAGE is not needed with it. Only
+//   START's placement works: a goto in GAMEOPEN or RESTRICTIONS undoes it, the
+//   other branches change nothing.
 //
 // STILL DIFFERS:
-// - The inlined map check has g_game and `check` in edx/edi where the original
-//   has edi/edx. The 0x448c70 fix (an `else if` for the version test) gives
-//   the right registers here too, but then the tail's param and constant swap
-//   and the final call is copied again (88.7%).
-// - Tail: the original keeps the gadget in esi and reloads it into edx for the
-//   final call; we keep it in edi. The hoisted 1 also reaches START (`cmp
-//   esi,ebp`, the two `push ebp`) and MAP here, but MESSAGE's FUN_004618a0(1)
-//   push in the original. Micro-spellings of every tail branch were flat.
+// - MAP: FUN_0049fb10(gui, 1) pushes the hoisted 1 (`mov ebp,1` on entry,
+//   `push ebp`) where the original pushes an immediate 1. A `do { } while (0)`
+//   around the f97 if/else (found by the permuter) drops the `mov ebp,1` but
+//   still pushes ebp (99.2%, 1 byte short); two permuter runs from this file
+//   (about 17,800 candidates) stop there. Not moved by: 0x444be0 (the
+//   VIEWMAP code, no callers) as an inlined helper, char/bool/short/pointer
+//   parameter types, the f97 test as a byte mask or an inline helper, `!f97`
+//   with the arms swapped, a block-scope info local, MAP and MAPNAME as two
+//   branches, the MAP condition spelled with `!= 0` or `|| 0`, every subset
+//   of `goto done;` at the ends of the other branches, inline helpers for the
+//   button test and the dirty flag, and `!x` / `^= 1` for the bitfield
+//   stores. With the MAP condition written as `MAP ? 1 : MAPNAME` the push is
+//   the original's `push 1`, but the condition then materialises the 1.
 //
-// DeepSeek V4.1 Flash (round 2): the two halves are coupled. Writing the
-// version test as `else if` (the 0x448c70 form) does give the original's
-// map-check edi/edx, but then the tail gadget moves to ebp, the hoisted 1 to
-// esi, and MSVC duplicates the final FUN_004ab0a0 call into MESSAGE (88.7%,
-// 4423 bytes). The base `||` form keeps the tail constant in ebp but the map
-// check swaps to edx/edi (93.8%). Tried without gain: the permuter twice
-// (3 min on base, 5 min from the else-if file; both settle at 93.8%),
-// headers.py --cpp (1536 header sets), moving the `check` declaration and
-// every declaration order for me/entries/buf, loop forms, a g_game or data
-// local in the map check, tail self-assignments and fold-away uses, and the
-// field_2a3c compare spelled six ways. Best stays 93.8% (97.5% ignoring the
-// moved jump targets).
+// Measured with the volatile read diagnostics in build/scratch only: making
+// the final FUN_004ab0a0 read the gadget opaquely gives the original's whole
+// tail allocation except MAP (99.2%), which is what pointed at the gadget's
+// live range through the branch bodies.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -297,6 +301,27 @@ static inline int CountAlliance_00447b10(int alliance)
     return count;
 }
 
+// The free slot search at 0x440c10, which has no callers. MSVC inlines it only
+// when it is declared inline (it has two loops).
+inline int FUN_00440c10()
+{
+    int used[10];
+    memset(used, 0, sizeof(used));
+    for (int i = 0; i < 10; i++) {
+        Player_00447b10* p = &g_game->players[i];
+        if (p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->field_146 != 10)
+            used[p->info->slot < 9 ? p->info->slot : 9] = 1;
+    }
+    int result = 0;
+    for (int j = 0; j < 10; j++) {
+        if (!used[j]) {
+            result = j;
+            break;
+        }
+    }
+    return result;
+}
+
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
 int FUN_00440cd0()
 {
@@ -308,9 +333,10 @@ int FUN_00440cd0()
     int check = 0;
     if (me != 10) {
         data = g_game->players[me].info;
-        if (data->versionMajor >= 2 || (data->versionMajor == 1 && data->versionMinor >= 2)) {
+        if (data->versionMajor >= 2)
             check = 1;
-        }
+        else if (data->versionMajor == 1 && data->versionMinor >= 2)
+            check = 1;
     }
     if (!check) {
         return 1;
@@ -335,7 +361,7 @@ void __stdcall FUN_00446f50(int index)
 // FUNCTION: 0x447b10
 void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
 {
-    struct SlotBuf { char text[252]; int used[10]; } buf;  // frame order, see the top
+    char text[250];
     Entry_00447b10* entries = gadget->table->entries;
 
     if (gadget->field_60 == -1) {
@@ -353,16 +379,16 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
     while (1) {
         Player_00447b10* p = &g_game->players[i];
 
-        sprintf(buf.text, "LOGO%d", i);
-        if (FUN_0049fd60(gadget, buf.text) && IsLocal_00447b10(p)) {
+        sprintf(text, "LOGO%d", i);
+        if (FUN_0049fd60(gadget, text) && IsLocal_00447b10(p)) {
             FUN_0047f1a0("Multi", 0);
             FUN_004526c0(p->info->slot + 1);
             g_game->dirty = 1;
             FUN_00450f90();
         }
 
-        sprintf(buf.text, "PLAYER%d", i);
-        if (FUN_0049fd60(gadget, buf.text) && i != lp) {
+        sprintf(text, "PLAYER%d", i);
+        if (FUN_0049fd60(gadget, text) && i != lp) {
             FUN_0047f1a0("Multi", 0);
             char type = p->type;
             if (type == 0 && canAdd) {
@@ -390,20 +416,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                 }
                 if (g_game->players[FUN_00456850()].info->b.commander != 2 && !FUN_00457b90()) {
                     FUN_00451220(i, 2);
-                    memset(buf.used, 0, sizeof(buf.used));
-                    for (int j = 0; j < 10; j++) {
-                        Player_00447b10* q = &g_game->players[j];
-                        if (IsPlaying_00447b10(q))
-                            buf.used[q->info->slot < 9 ? q->info->slot : 9] = 1;
-                    }
-                    int slot = 0;
-                    for (int k = 0; k < 10; k++) {
-                        if (!buf.used[k]) {
-                            slot = k;
-                            break;
-                        }
-                    }
-                    p->info->slot = slot;
+                    p->info->slot = FUN_00440c10();
                 }
             }
             g_game->dirty = 1;
@@ -411,8 +424,8 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
             FUN_00450f90();
         }
 
-        sprintf(buf.text, "SIDE%d", i);
-        if (FUN_0049fd60(gadget, buf.text)) {
+        sprintf(text, "SIDE%d", i);
+        if (FUN_0049fd60(gadget, text)) {
             FUN_0047f1a0("Multi", 0);
             if (p->active != 0 && p->info->b.bit6) {
                 p->info->b.bit6 = 0;
@@ -425,7 +438,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                         && p->active != 0 && p->type == 1) {
                         p->info->b.bit6 = 1;
                     } else {
-                        FUN_004a1080(gadget, buf.text, 0);
+                        FUN_004a1080(gadget, text, 0);
                         FUN_004a5f40(gadget, gadget->field_60);
                     }
                 }
@@ -435,8 +448,8 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
             FUN_00450f90();
         }
 
-        sprintf(buf.text, "ALLY%d", i);
-        if (FUN_0049fd60(gadget, buf.text)) {
+        sprintf(text, "ALLY%d", i);
+        if (FUN_0049fd60(gadget, text)) {
             me->ally[i] ^= 1;
             FUN_00452960(me->id, p->id, me->ally[i], 0);
             char same;
@@ -453,23 +466,23 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                 FUN_0047f1a0("Ally", 0);
             else
                 FUN_0047f1a0("Multi", 0);
-            sprintf(buf.text, " %s %s",
+            sprintf(text, " %s %s",
                     FUN_004c5740(me->ally[i] ? "allied with" : "broke alliance with"),
                     g_game->players[i].name);
-            FUN_00463e50(me, buf.text, 4, 0);
+            FUN_00463e50(me, text, 4, 0);
             g_game->dirty = 1;
             FUN_00450f90();
         }
 
-        sprintf(buf.text, "TEAMICONS%d", i);
-        if (FUN_0049fd60(gadget, buf.text)) {
+        sprintf(text, "TEAMICONS%d", i);
+        if (FUN_0049fd60(gadget, text)) {
             FUN_0047f1a0("Ally", 0);
             FUN_00446f50(i);
             FUN_00452bd0(p);
         }
 
-        sprintf(buf.text, "RES%d", i);
-        if (FUN_0049fd60(gadget, buf.text) && IsLocalHuman_00447b10(p)) {
+        sprintf(text, "RES%d", i);
+        if (FUN_0049fd60(gadget, text) && IsLocalHuman_00447b10(p)) {
             FUN_0047f1a0("Multi", 0);
             FUN_00446310();
             FUN_004ab0a0(gadget);
@@ -477,11 +490,11 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
             return;
         }
 
-        sprintf(buf.text, "READY%d", i);
-        if (FUN_0049fd60(gadget, buf.text) && IsLocalHuman_00447b10(p)) {
+        sprintf(text, "READY%d", i);
+        if (FUN_0049fd60(gadget, text) && IsLocalHuman_00447b10(p)) {
             FUN_0047f1a0("Multi", 0);
             if (FUN_00440cd0()) {
-                p->info->b.ready = FUN_004a0f30(g_game->gui, FUN_0049fdf0(entries, buf.text, 1));
+                p->info->b.ready = FUN_004a0f30(g_game->gui, FUN_0049fdf0(entries, text, 1));
                 if (p->info->f97_0) {
                     strcpy(entries->label, "START");
                     g_game->table->field_20 = FUN_0049fdf0(entries, "START", 1);
@@ -494,7 +507,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                 g_game->dirty = 1;
                 FUN_00450f90();
             } else {
-                FUN_004a1110(g_game->gui, buf.text, 0);
+                FUN_004a1110(g_game->gui, text, 0);
             }
         }
         i++;
@@ -531,7 +544,6 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
             strcpy(msg, "");
         }
         FUN_004a7190(g_game->gui, FUN_0049fdf0(g_game->table->entries, "MESSAGE", 3));
-        goto done;  // emits nothing; see the notes at the top
     } else if (FUN_0049fd60(gadget, "COMMANDER")) {
         FUN_0047f1a0("Multi", 0);
         me->info->b.commander++;
@@ -601,26 +613,26 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         if (!((Class_00435c40*)g_game->map)->FUN_00435c40()) {
             FUN_0047f1a0("Multi", 0);
             FUN_00444ea0();
-        } else {
-            if (!me->info->b.watching) {
-                for (int j = 0; j < 10; j++) {
-                    Player_00447b10* q = &g_game->players[j];
-                    if (q->active != 0 && q->type == 3 && (q->info->flags_9b & 0x40))
-                        FUN_00453010(q->id, 9);
-                }
-            }
-            g_game->state = 0x11;
-            me->info->b.started = 1;
-            FUN_00451180();
-            g_game->los = me->info->b.los;
-            g_game->losType = me->info->b.losType;
-            g_game->commander = me->info->b.commander;
-            g_game->options->fixedloc = me->info->b.fixedloc;
-            g_game->mapping = me->info->b.mapping;
-            FUN_00430f00();
-            g_game->field_37eee = 2;
-            return;
+            goto done;
         }
+        if (!me->info->b.watching) {
+            for (int j = 0; j < 10; j++) {
+                Player_00447b10* q = &g_game->players[j];
+                if (q->active != 0 && q->type == 3 && (q->info->flags_9b & 0x40))
+                    FUN_00453010(q->id, 9);
+            }
+        }
+        g_game->state = 0x11;
+        me->info->b.started = 1;
+        FUN_00451180();
+        g_game->los = me->info->b.los;
+        g_game->losType = me->info->b.losType;
+        g_game->commander = me->info->b.commander;
+        g_game->options->fixedloc = me->info->b.fixedloc;
+        g_game->mapping = me->info->b.mapping;
+        FUN_00430f00();
+        g_game->field_37eee = 2;
+        return;
     } else if (FUN_0049fd60(gadget, "GAMEOPEN")) {
         FUN_0047f1a0("Multi", 0);
         me->info->b.closed = FUN_004a0f60(gadget, "GAMEOPEN") == 0;

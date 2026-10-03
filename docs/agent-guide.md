@@ -553,6 +553,24 @@ effect, the missing piece is usually a helper that was inlined:
   three calls sat outside an `if` they belong in, and the checker showed only
   a jump target that differed. When a jump's target is the only difference,
   compare the blocks on each side of it (#5249).
+- **An argument slot read once can be an unassigned local**: a parameter's
+  stack slot read once (`mov reg, [esp+N]`, never stored) while the parameter
+  itself lives in a register everywhere else can be an uninitialised local
+  that MSVC homed in that parameter's dead argument slot. Leave the variable
+  unassigned on that path (0x419be0, after about 150 failed spellings of
+  `cond ? x : button`; see docs/bugs.md) (#5276).
+- **`add eax, 0x1c` then `[eax+4]` and `[eax]` is an inlined method on a
+  sub-object**: write it as a method (`paths->grid.At(x, y)`). In 0x418310
+  that, with two load-sharing fixes, went from 55.5% to 91.5% and fixed a frame
+  layout ten earlier passes had blamed on the slot sort (#5276).
+- **Choosing headers by batch**: when operand order depends on the
+  declaration count, first scan dummy `extern int` counts in a scratch copy to
+  see whether any count matches, then score pairs of real CRT headers in one
+  batch with tools/propose.py (7 of 136 pairs matched 0x418310). Commit only
+  the real headers (#5276).
+- **Retest a /Gi partial without /Gi after structural fixes**: 0x418310 scored
+  higher with /Gi as a partial but matched without it, like its neighbours
+  (#5276).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

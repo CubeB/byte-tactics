@@ -4,6 +4,8 @@
 // `cmp al,2 / jne 0x48afb9` skips them for other kinds (the checker had only
 // reported a moved jump target there). That also moves the cnt reload
 // `mov ebx,[esp+0x18]` to the original's place, after FUN_0048a870.
+// GPT-6 retry (#5251): rechecked at 98.7%; moving the offset init after the
+// cnt store and byte-index init promotes it and drops the score to 75.1%.
 // Still different (2 residuals, all in the prologue and loop head):
 //  * the `off = 0` store is scheduled before `cmp al,0xa`, the original
 //    stores it last, after the byte store of i. Moving `off = 0` after

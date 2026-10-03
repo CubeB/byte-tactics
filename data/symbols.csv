@@ -3100,6 +3100,7 @@ address,name
 0x4dabb0,FUN_004dabb0
 0x4dacf0,FUN_004dacf0
 0x4db000,Class_004db000::FUN_004db000
+0x4db1c0,Class_004db000::FUN_004db1c0
 0x4db450,Class_004db450::FUN_004db450
 0x4db610,FUN_004db610
 0x4db760,FUN_004db760

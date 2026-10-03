@@ -4,6 +4,7 @@
 // it from ff4 there scores 87.8%. The original schedule remains best.
 // GPT-6 retry: the current source remains 98.3%. Existing notes cover the
 // pointer, local, reference and scheduling variants for the remaining block.
+// GPT-6 retry (#5239): rechecked at 98.3%; the six-clear schedule remains best.
 // A new probe took the address of an early tick local and stored through that
 // pointer after the six clears. This forced the value to memory, but still
 // flipped the register pool and scored 66.4%, confirming that spilling the

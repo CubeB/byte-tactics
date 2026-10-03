@@ -6,6 +6,9 @@
 //
 // Status: 96.2% (118 of 118 bytes, ours is already the original's size).
 // GPT-6 retry (#5230): rechecked at 96.2%; the depth/bits/x2 load order remains.
+// #5321 Codex retry: confirmed the documented shape-B `short pitch` candidate
+// at 89.5% with `<windows.h>`; making the local unsigned or casting it back
+// to unsigned scores 73.6%. Restored the 96.2% shape-A best.
 // #5279 Codex retry: re-confirmed 96.2%. The duplicated-product pitch-local
 // variant scored 56.3% with explicit unsigned casts and 37.3% without them;
 // neither combined the depth-load order with the required surf/w colouring.

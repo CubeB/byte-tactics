@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6. Names are provisional.
+// #5393 retry: still 84.7%; the source-shape and symbol-order sweeps remain flat.
+// c2prio could not run here because gdb and winedbg are unavailable.
 // Claude Opus 5.5 pass with tools/c2prio.py (#5260, 2026-10-03): still 84.7%.
 // The residual is one colouring-order decision, now measured, not guessed:
 // - The x difference (the b.x param web) has priority 74 and is coloured after

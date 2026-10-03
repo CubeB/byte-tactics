@@ -1,7 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
 // deepseek-v4.1, GPT-6.1-sol, finished by deepseek-v4.1-flash,
 // finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by
-// DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#4891): signed short 16-bit bitfields for either or both
+// multiply operands preserve layout and emit identical code. Signed int
+// bitfields widen the members and shift following fields, dropping to 85.8%.
+// The retained 99.6% version still differs only in the two swapped movsx loads.
 // DeepSeek V4.1 Flash pass 2026-10-02. No gain, stays 99.6% / 1662 bytes.
 // The two-instruction residual is unchanged. This pass pinned the rule down
 // with the real compiler in isolation: for two sign-extended short loads MSVC

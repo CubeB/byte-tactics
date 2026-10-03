@@ -1,4 +1,7 @@
-// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#4911): making sb.size address-taken through a local pointer
+// before the allocator call leaves the 99.3% candidate unchanged. The remaining
+// difference is still `mov eax, 0x14` versus `not eax; and eax, 0x14`.
 //
 // DeepSeek V4.1 Flash session (issue 4790): 99.3% unchanged, still only the
 // size constant encoding at 0x4bd183 (`mov eax,0x14` original versus

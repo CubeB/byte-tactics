@@ -9,6 +9,10 @@
 // 99.2% source is restored; the immediate-versus-ebp push remains.
 // #5367 retry: re-confirmed 99.2%; the MAP call still pushes ebp instead of 1.
 // #5383 retry: re-confirmed 99.2%; the single MAP argument push remains.
+// #5397 retry: still 99.2%; the shared constant-1 live range still changes
+// only the MAP call from `push 1` to `push ebp`. Issue #4841 adds no new lead
+// for this branch, and its proposal-loop results do not suggest a useful
+// near-miss experiment beyond the source and C2 probes already recorded.
 // Battle room button handler: per player slot LOGO, PLAYER, SIDE, ALLY,
 // TEAMICONS, RES and READY, then PREVMENU, MESSAGE, COMMANDER, LOSTYPE,
 // WATCHING, CHEATING, FIXEDLOC, MAPPING, START, GAMEOPEN, RESTRICTIONS and

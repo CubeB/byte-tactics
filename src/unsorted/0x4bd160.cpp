@@ -1,4 +1,6 @@
 // Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// Codex GPT-6 retry for #5202 (2026-10-03): /Gi scores 97.4%, below
+// the existing 99.3% default-flags source and does not fix the constant.
 // GPT-6 retry (#4911): making sb.size address-taken through a local pointer
 // before the allocator call leaves the 99.3% candidate unchanged. The remaining
 // difference is still `mov eax, 0x14` versus `not eax; and eax, 0x14`.

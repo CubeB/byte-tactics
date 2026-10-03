@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// #5410 Codex retry: re-confirmed 98.6%; the one-byte SIB order and the
+// specialization's swapped register pair remain the only known outcomes.
 // #5395 retry: 98.6% remains best. Issue #4841 confirms the explicit std::copy
 // specialization reaches the delta-base SIB, but swaps the end/delta registers
 // and scores 91.7%, so the original's combined state remains unreachable.

@@ -1,4 +1,138 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash and
+// Space Bunny Free. Names are provisional.
+// Space Bunny Free pass, 60.1% -> 66.4% (777 -> 765 bytes). Measured one at a
+// time on the file this pass started from: the byte-sized loop counter alone
+// takes 60.1% to 61.5% (and only pays off in combination), the named receiver
+// for FUN_004da8d0 takes it to 63.4%, and `res`'s declaration position plus the
+// pair built in registers for FUN_004db000 take it to 66.4%.
+//   * THE LOOP COUNTER IS A BYTE. `char wraps = 0;` instead of `int wraps = 0;`
+//     is what unlocks the original's register allocation. With an int counter
+//     MSVC wants a callee-saved register for the constant 0 before the size
+//     test (`xor ebp,ebp / cmp esi,ebp`), which takes ebp away from `want` and
+//     cascades: `need` ends up memory-only, `want` goes to ebx, and the second
+//     scratch register is edx everywhere. With a char counter that hoisted 0
+//     lands in esi instead, so `need` gets ebx and `want` gets ebp exactly as
+//     the original has them, and `mov dword ptr [esp + 0x44],esi` (0x4dad78)
+//     and `push esi` (0x4dada9) come out of the just-zeroed register as they do
+//     there. Only a ONE byte type does this: `unsigned char` is worse (distance
+//     2024 against 1795) and `short`, `unsigned short`, `int`, `unsigned int`,
+//     `long` and `unsigned long` all fold `wraps` back to the literal 0 and
+//     hoist it into ebp again. The counter never gets past 2, and the
+//     original's `cmp esi,2 / jge` and `inc esi` are what a char counter gives.
+//   * NAME THE RECEIVER when the object expression is itself a call: MSVC
+//     evaluates a by-value argument before the object expression, so
+//     `FUN_004da8d0()->FUN_004dc680(&ins, &rec);` computes the two addresses
+//     before calling FUN_004da8d0, where the original calls it first. Written as
+//     `Class_004dc680* mgr = FUN_004da8d0(); mgr->FUN_004dc680(&ins, &rec);` it
+//     matches, worth 1.9 points on its own. The same for the free-block
+//     hand-back: `Class_004db000* mm = (Class_004db000*)FUN_004db610();`.
+//   * That hand-back builds its PAIR IN REGISTERS, not in p's slot. The
+//     original pushes want and base straight out of registers (0x4daf1c and
+//     0x4daf1d) with no copy into p, so the argument has to be a temporary
+//     built at the call: `mm->FUN_004db000(mkpair(base, want))` gets those two
+//     pushes, while `p.offset = base; p.length = want; mm->FUN_004db000(p);`
+//     costs MSVC the two stores at 0x4daf1f and 0x4daf23 that the original does
+//     not have (65.7% against 66.4%, 775 against 765 bytes). Declaring
+//     FUN_004db000 as two scalars gets the same bytes but spells the callee's
+//     signature differently from the files that own it (see NAMING below).
+//   * `unsigned int res = 0;` belongs between `unsigned int size = n;` and
+//     `if (size == 0) size = 1;`, which is where the original's
+//     `mov dword ptr [esp + 0x24],0` sits, before the test; declared after the
+//     class locals the store lands after `xor esi,esi` instead and the score
+//     falls to 64.2%.
+// Also measured this pass: the second insert's pair is stored offset first
+// (`p.offset = want + base;` then `p.length = key + len - base - want;`), which
+// is the original's store order at 0x4daec5/0x4daec9 (the score is the same
+// either way, so take the one the original has), and every spelling of that
+// length expression (`key - base + len - want`, `len - base + key - want`,
+// `key + len - (base + want)`) compiles to the same object.
+//
+// NAMING, fixed this pass (the checker compares names, not parameter types, so
+// these only show up once the bytes match or when the tree is linked):
+//   * data/symbols.csv calls 0x4dbbc0 `Class_004dce60::FUN_004dbbc0`, not a
+//     member of Class_004db610, so it now has its own Class_004dce60 and is
+//     called through `((Class_004dce60*)map)`. Byte-identical either way, but
+//     the old spelling would be flagged once the code matches.
+//   * The map's value_type pair is the class 0x4db000.cpp and 0x4db1c0.cpp call
+//     `Pair_004db000`, so this file's `Pair_004dacf0` is renamed to match; that
+//     makes FUN_004db000, FUN_004dbbc0 and FUN_004dc620 mangle exactly as those
+//     files spell them (`?FUN_004db000@Class_004db000@@QAEXUPair_004db000@@@Z`)
+//     instead of raising undefined symbols in tools/linkcheck.py.
+//   * `FUN_004db1c0` returns `unsigned int`, as the file that defines it
+//     (0x4db1c0.cpp) declares, rather than `Node_004dacf0*`; the call site's
+//     code is unchanged and its cast goes away.
+// The remaining file-local names in extern parameter lists (Ins_004dacf0,
+// Class_004dbe10, Class_004d8820) are the usual one-class-several-names case
+// docs/consolidation.md describes; tools/linkcheck.py counts them.
+//
+// WHAT STILL DIFFERS, and what I tried:
+//   * ONE REGISTER: the loop counter. The original keeps `wraps` in esi (`inc
+//     esi` at 0x4dae1d, `cmp esi,2` at 0x4dae33); with a char counter MSVC packs
+//     it into bl, because ebx is free once `need` dies at the guard, so we get
+//     `xor bl,bl / inc bl / cmp bl,2` (2 bytes more than the original). Nothing
+//     I tried moves it out of bl: the declaration at each of the eleven
+//     positions in the locals block (all eleven give the same object), at the top
+//     of the function and assigned in place, before the size calls, before
+//     `lock`, `wraps = wraps + 1`, `if (wraps > 1)`, `(unsigned)wraps >= 2`,
+//     `wraps >= (char)2`, `!(wraps < 2)`, `(char)wraps >= 2`, and the three
+//     splittable locals merged into one declaration each (n2/b/cur,
+//     base/len/key).
+//   * That in turn is why one constant 0 survives in esi: the two uses inside
+//     the loop (the second erase's flag and `DAT_005289d4 = 0`) come out as
+//     `push esi` and `mov dword ptr [0x5289d4],esi`, with an `xor esi,esi` at
+//     the loop head and two more where the fits test clobbers esi, where the
+//     original has the immediates `push 0` and `mov dword ptr [0x5289d4],0`.
+//     With the byte counter MSVC hoists a constant into a register once the
+//     source has four or more literal-zero uses, and the one inside the loop is
+//     the one that triggers it: replacing `DAT_005289d4 = 0`, the record ctor's
+//     null, `res = 0` or the second erase's flag with a nonzero value drops one
+//     of the three `xor esi,esi` but not the register, and only removing the
+//     loop's store removes it. No spelling of the other five takes them out of
+//     the constant table: `= wraps`, `(char)wraps`, `(unsigned char)wraps`,
+//     `(short)wraps`, `q.offset - q.offset`, `q.length += 0`, `q.length *= 1`,
+//     `q.length = 0u`, an inline `unsigned int zero(void) { return 0; }`
+//     helper, a helper building the lookup pair, and one `unsigned int z = 0;`
+//     used for all of them.
+//   * THE FRAME SLOTS. The original's low band is want, n2, cur, b, len, res,
+//     lock, need; ours is b, n2, cur, want, res, lock, need(erase3's temp).
+//     n2, cur, p, q, ins and rec are already right, so only the eight 4-byte
+//     slots are permuted, and `want`/`b` are the pair that is swapped. `len`
+//     has no home in ours, so the original's `mov [esp+0x20],ebp` before
+//     FUN_004dbd00 and its reload at 0x4daea3 have no counterpart here (that
+//     spill is what frees ebp for `base + want` at 0x4daed8). MSVC ignores the
+//     declaration order for this band (eleven positions, and moving need/want
+//     to the top of the function, all give the same object), so it is allocator
+//     state again, not statement order.
+//   * After the loop `key` and `base` are in the opposite registers (original:
+//     esi = key, ebx = base; ours: ebx = key, esi = base), the erase3
+//     out-parameter takes a slot of its own instead of aliasing p's, and the
+//     second insert sets `mov ecx,edi` after the pushes where the original sets
+//     it before them. The clamp spellings are already right (`if (key > base)`
+//     beats `if (base < key)`, 1795 against 1800) and the length expression
+//     reassociates on its own.
+//   * The byte count lines up with exactly those: 780 against our 765 = the two
+//     `push 0` and `mov dword ptr [0x5289d4],0` immediates (8 bytes more than
+//     our register forms) + `xor bl,bl` (2) - the missing len spill and reload
+//     (6).
+// Fact worth keeping: with the counter as a byte, MSVC keeps a zero in esi for
+// the whole first block, which is why `q.length = 0` and the first erase's `0`
+// argument match the original even though the source still says a literal 0.
+// Dead ends this pass, all byte-identical to the file below or worse: every
+// spelling of the loop test and of both clamps, `int`/`unsigned int` for need,
+// want, len, key, base, size, res and pad, the pointer-typed second parameter of
+// FUN_004dbe10/FUN_004dbd80, `bool atend` declared before the loop,
+// `cur.ptr == map->head` instead of the value comparison, hoisting the fits
+// test's length into a named local, the whole search block inside
+// `if (map->count > wraps)` with the fits work in the loop body, a `next_block`
+// helper for the wrap block, and FUN_004dbd00 declared as
+// `void (Pair*, Class_004dbe10)` (2021 against 1825) or `void (Class_004dbe10)`
+// (5418).
+// The permuter ran 40 minutes on the 60.1% file and 50 on this one without
+// finding anything (tools/permute.py --stack need,lock,res,want,b), and
+// tools/headers.py found no header set that does better.
+//
+// ---- earlier passes, kept for the frame map and the dead ends ----
+//
 // Space Bunny Free pass, best 60.1% (777 bytes), up from 55.6%. Four changes do
 // it, three of them the guide's "sete dl; test dl, dl means the result of a
 // comparison was stored in a bool local first" pattern: a comparison result put
@@ -194,7 +328,7 @@
 //     with esi live. Assigning to the parameter instead (v0, 48.5%) produced
 //     `mov [esp+0x80],1`, a store into the argument slot, and turned the
 //     `test` into a `cmp` against the register holding the zero.
-//   * Pair_004dacf0 with NO constructors at all: a user-provided default
+//   * Pair_004db000 with NO constructors at all: a user-provided default
 //     constructor zero-initialises the pair at the top of the function, and
 //     the original has no such stores (v0 had three `mov [esp+X],ebp`).
 //   * `if (cur == (Class_004dbe10(map->head)))`: the original's head test is
@@ -307,7 +441,7 @@ class Class_004dbe10 {
     }
 };
 
-struct Pair_004dacf0 {
+struct Pair_004db000 {
     unsigned int offset; // +0x0
     int length;          // +0x4
 };
@@ -326,7 +460,11 @@ class Class_004db610 {
     int total; // +0x10
     char unknown_14[20];
 
-    void FUN_004dbbc0(Ins_004dacf0* out, Pair_004dacf0* v);
+};
+
+class Class_004dce60 {
+  public:
+    void FUN_004dbbc0(Ins_004dacf0* out, Pair_004db000* v);
 };
 
 class Class_004db450 {
@@ -335,8 +473,8 @@ class Class_004db450 {
 };
 class Class_004db000 {
   public:
-    Node_004dacf0* FUN_004db1c0(unsigned int);
-    void FUN_004db000(Pair_004dacf0);
+    unsigned int FUN_004db1c0(unsigned int);
+    void FUN_004db000(Pair_004db000);
 };
 class Class_004dbd00 {
   public:
@@ -348,7 +486,7 @@ class Class_004dbeb0 {
 };
 class Class_004dc620 {
   public:
-    Class_004dbe10* FUN_004dc620(Class_004dbe10*, Pair_004dacf0*);
+    Class_004dbe10* FUN_004dc620(Class_004dbe10*, Pair_004db000*);
 };
 
 class Class_004d8820 {
@@ -382,11 +520,20 @@ char FUN_004db760();
 int FUN_004db7c0();
 void __cdecl FUN_004d82c0(void* at, int value, unsigned int count);
 
+static inline Pair_004db000 mkpair(unsigned int o, int l)
+{
+    Pair_004db000 v;
+    v.offset = o;
+    v.length = l;
+    return v;
+}
+
 // FUNCTION: 0x4dacf0
 unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
     CritSec_004da780* lock = FUN_004da780();
     EnterCriticalSection(&lock->cs);
     unsigned int size = n;
+    unsigned int res = 0;
     if (size == 0)
         size = 1;
     unsigned int need = FUN_004da8c0(size);
@@ -397,17 +544,18 @@ unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
     }
 
     Class_004db610* map = FUN_004db610();
-    int wraps = 0;
+    // A byte counter, and that is load bearing: it is what decides where MSVC
+    // puts the constant 0 (see the notes above). It never gets past 2.
+    char wraps = 0;
     unsigned int base;
     unsigned int len;
     unsigned int key;
-    Pair_004dacf0 p;
-    Pair_004dacf0 q;
+    Pair_004db000 p;
+    Pair_004db000 q;
     Ins_004dacf0 ins;
     Class_004dbe10 n2;
     Class_004dbe10 b;
     Class_004dbe10 cur;
-    unsigned int res = 0;
 
     if (map->count <= wraps)
         goto alloc_new;
@@ -455,28 +603,27 @@ unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
     if (base > key) {
         p.offset = key;
         p.length = base - key;
-        map->FUN_004dbbc0(&ins, &p);
+        ((Class_004dce60*)map)->FUN_004dbbc0(&ins, &p);
     }
     if (base + want < key + len) {
-        p.length = key + len - base - want;
         p.offset = want + base;
-        map->FUN_004dbbc0(&ins, &p);
+        p.length = key + len - base - want;
+        ((Class_004dce60*)map)->FUN_004dbbc0(&ins, &p);
     }
     DAT_005289d4 = base + want;
     goto commit_block;
 
 alloc_new:
     if (((Class_004db450*)map)->FUN_004db450(want))
-        base = (unsigned int)((Class_004db000*)map)->FUN_004db1c0(want);
+        base = ((Class_004db000*)map)->FUN_004db1c0(want);
     else
         base = 0;
 commit_block:
     if (base) {
         res = (unsigned int)VirtualAlloc((void*)base, need, MEM_COMMIT, PAGE_READWRITE);
         if (res == 0) {
-            p.offset = base;
-            p.length = want;
-            ((Class_004db000*)FUN_004db610())->FUN_004db000(p);
+            Class_004db000* mm = (Class_004db000*)FUN_004db610();
+            mm->FUN_004db000(mkpair(base, want));
         }
     }
 
@@ -493,7 +640,8 @@ commit_block:
     }
     {
         Class_004d8820 rec(res, n, DAT_00528a04, arg2, 0);
-        FUN_004da8d0()->FUN_004dc680(&ins, &rec);
+        Class_004dc680* mgr = FUN_004da8d0();
+        mgr->FUN_004dc680(&ins, &rec);
     }
     FUN_004da7d0(n);
     DAT_005289f0 += (n + 0xfff) & 0xfffff000;

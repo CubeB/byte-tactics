@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**87.50% of Cavedog's code matched** (744,480 of 850,853 bytes)
+**88.70% of Cavedog's code matched** (754,734 of 850,853 bytes)
 
 `[###################################-----]`
 
-By count that is 3,181 of the game's 3,267 functions (97.4%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,183 of the game's 3,267 functions (97.4%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,181 | 744,480 |
-| Attempted, not yet matching | 86 | 106,373 |
+| Matched byte-for-byte | 3,183 | 754,734 |
+| Attempted, not yet matching | 84 | 96,119 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 693 of 703 | 98.4% | 2,847 | `##########` |
 | xl (401 to 600 bytes) | 212 of 226 | 93.7% | 6,961 | `#########-` |
 | xxl (601 to 1,000 bytes) | 178 of 195 | 91.0% | 13,236 | `#########-` |
-| huge (over 1,000 bytes) | 118 of 161 | 71.6% | 83,084 | `#######---` |
+| huge (over 1,000 bytes) | 120 of 161 | 75.1% | 72,830 | `########--` |
 
 ### By area
 
@@ -54,7 +54,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x420000` | Frontend shell | 149 of 154 | 81.1% | 12,010 | `########--` |
 | `0x430000` | Maps, missions, briefings | 222 of 228 | 88.5% | 6,961 | `#########-` |
 | `0x440000` | Multiplayer setup | 242 of 246 | 82.1% | 10,988 | `########--` |
-| `0x450000` | Options and audio menus | 164 of 176 | 69.7% | 19,141 | `#######---` |
+| `0x450000` | Options and audio menus | 166 of 176 | 85.9% | 8,887 | `#########-` |
 | `0x460000` | Game and skirmish setup, unit classes | 206 of 212 | 89.7% | 6,317 | `#########-` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 251 of 259 | 88.7% | 7,168 | `#########-` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 259 of 264 | 96.5% | 2,258 | `##########` |

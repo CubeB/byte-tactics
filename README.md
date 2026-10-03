@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**91.18% of Cavedog's code matched** (775,831 of 850,853 bytes)
+**91.40% of Cavedog's code matched** (777,663 of 850,853 bytes)
 
-`[####################################----]`
+`[#####################################---]`
 
-By count that is 3,205 of the game's 3,267 functions (98.1%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,206 of the game's 3,267 functions (98.1%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,205 | 775,831 |
-| Attempted, not yet matching | 62 | 75,022 |
+| Matched byte-for-byte | 3,206 | 777,663 |
+| Attempted, not yet matching | 61 | 73,190 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 696 of 703 | 98.9% | 2,060 | `##########` |
 | xl (401 to 600 bytes) | 217 of 226 | 95.9% | 4,522 | `##########` |
 | xxl (601 to 1,000 bytes) | 181 of 195 | 92.7% | 10,677 | `#########-` |
-| huge (over 1,000 bytes) | 130 of 161 | 80.3% | 57,645 | `########--` |
+| huge (over 1,000 bytes) | 131 of 161 | 80.9% | 55,813 | `########--` |
 
 ### By area
 
@@ -59,7 +59,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x470000` | Campaign and skirmish screens, resource bars | 252 of 259 | 89.5% | 6,663 | `#########-` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 261 of 264 | 98.2% | 1,148 | `##########` |
 | `0x490000` | Config and registry, skirmish summary | 190 of 193 | 96.6% | 2,052 | `##########` |
-| `0x4a0000` | GUI layout and GAF | 199 of 201 | 96.0% | 2,538 | `##########` |
+| `0x4a0000` | GUI layout and GAF | 200 of 201 | 98.9% | 706 | `##########` |
 | `0x4b0000` | UI controls and file packages | 312 of 314 | 98.6% | 891 | `##########` |
 | `0x4c0000` | TDF parser, CD audio, string handles | 294 of 298 | 95.9% | 2,210 | `##########` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 192 of 197 | 87.7% | 4,645 | `#########-` |

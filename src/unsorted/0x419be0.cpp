@@ -1,4 +1,20 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by fledge-alpha-free. Names are provisional.
+// fledge-alpha-free pass (PERMUTER): tools/permute.py from the 84.1% base
+// reached a new best shape: routing the condition value through a local
+// (`static inline int StateOf(Entry* p) { return p->state; }`) plus one
+// `do { SetOrderMode(2); } while (0);` wrapper moved the scored diff from
+// 1327 to 1329 bytes and 84.1% to 92.2%. The residue is still the same one
+// cause (prologue still swaps esi/edi and reads `mov ebp, esi` for the
+// false arm instead of `mov ebp, [esp+0x34]`), plus one instruction in the
+// MOVE block: ours `mov bp, [ebp+0x138]; test bp, bp` where the original
+// is `cmp word ptr [ebp+0x138], 0; jne`. A second permute run from this
+// 92.2% shape reached 92.5% / 1329 bytes but only via unusable output
+// (self-assignments, `orders = inl12(tmp2);` identity helpers), so it was
+// not kept. All manual variants this session (switch/goto/do-while for the
+// selection, cond via named locals, every permutation of the three local
+// declarations, ternary arms inside casts/commas/address-of) were either
+// 84.1% or worse, confirming the slot read is allocator state, not a
+// source shape.
 // deepseek-v4.1-flash retry session 8 (TIMEBOX): 84.1%, 1327 bytes, unchanged.
 // deepseek-v4.1-flash retry session 9 (TIMEBOX): 84.1%, 1327 bytes, unchanged.
 // One new probe: moving `void* orders = g_game->orders;` after the
@@ -351,6 +367,8 @@ static inline void SetOrderMode(unsigned char mode)
     g_game->orderFlags = g_game->orderFlags & 0xf7;
 }
 
+static inline short OrderEntryState(Entry_00419be0* e) { return e->state; }
+
 // FUNCTION: 0x419be0
 int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
 {
@@ -360,10 +378,12 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
 
     FUN_0049fed0(entries, name, button->index);
     if (strstr(name, "MOVE")) {
-        if (e->state == 0) {
+        if (OrderEntryState(e) == 0) {
             SetOrderMode(1);
         } else {
-            SetOrderMode(2);
+            do {
+                SetOrderMode(2);
+            } while (0);
         }
         FUN_0047f1a0("immediateorders", 0);
         return 1;

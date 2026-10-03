@@ -1,4 +1,53 @@
-// Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
+// #5167 Claude Opus 5.5: 75.0% to 76.6%: the nine scaled floats are held
+// in three float[3] arrays (b, a, c) instead of three Vec3f structs (76.0)
+// and <minmax.h> is included (76.6, see below); the
+// rest is unchanged. Control flow, calls and the NewObject inline all line
+// up with the original; what differs is the normal block (frame 0xa8 against
+// 0x90, x87 schedule). What #5167 measured about that block, with small test
+// functions compiled by the project's CL (build/scratch/0x421700/t/):
+//  - Why "struct a/b/c passed by value" serialises the x87 code: when a
+//    frame address escapes in the same basic block (a struct-returning
+//    call's hidden return buffer does), MSVC 5 keeps every store to a user
+//    local's memory in order with later loads through a pointer.
+//    `a.x = v[0].x * k` then becomes fild/fmul/fstp per statement. The same
+//    nine statements interleave in a test function without struct-returning
+//    calls (only by-value calls), and serialise again when one `Get()`
+//    returning a struct, or one `f(&local)`, is added to that block, before
+//    or after them. MakeVec(x,y,z),
+//    SetVec(&a,x,y,z), SetF(&a.x, v) and Vec3f(x,y,z) initialisation all
+//    interleave without the escape and all serialise with it. A 54-variant
+//    grid in this function (struct plain or with constructors; field stores,
+//    MakeVec, SetVec, constructor init; ab assigned, initialised or nested;
+//    b,a,c or a,b,c declaration order) scored 41 to 48.5%, all serialised.
+//  - What does interleave with the escapes present: nine float scalars (or
+//    struct fields read back as floats, as here) that are x87 register
+//    candidates, stored late into constructor temporaries. That is the
+//    original's schedule, but here it costs the two extra 12-byte temps
+//    (0xa8 frame) because the arguments are built through Vec3f(x, y, z)
+//    temps instead of being copied straight from b/a/c. The original copies
+//    b/a/c into the argument slots with integer moves from their own homes
+//    and keeps b.x/b.y in ebx/ebp across the first call, so b/a/c are
+//    12-byte objects (the frame sort puts them after n, among the 12-byte
+//    slots) whose stores do not count as user stores. No spelling found
+//    gives both.
+//  - The original's ab (0x64: x and y through memory, z in eax) is a named
+//    `Vec3f ab; ab = FUN_004b6eb0(b, a);`: declared then assigned keeps its
+//    fields as register candidates; `Vec3f ab = ...` is forwarded straight
+//    into the argument slots.
+//  - The serialisation is per basic block: with the same nine field stores,
+//    a real branch between them and the escaping call (`if (g) g = 0;`) or
+//    stores inside a loop interleave again; a goto/label boundary does not.
+//    The original has no branch there, and its argument copies are scheduled
+//    in among the fstps, so that is not the original's shape either.
+//  - Not it: /Oa or /Ow (27.8%), /Gi (no change to the schedule), a declared
+//    copy constructor (MSVC 5 then calls both constructors out of line),
+//    assigning or initialising a/b/c from Vec3f(x, y, z) temporaries of nine
+//    float scalars (the scalars are forwarded into the stores), an inline
+//    TriNormal(Vec3f a, Vec3f b, Vec3f c) taking the three by value.
+//  - <minmax.h> after <memory.h> (tools/headers.py) puts the d->pos loads in
+//    the original's order: 76.0% to 76.6%. A dummy-declaration sweep (0 to
+//    632 externs, step 8) finds nothing higher.
 // #5134 Claude Opus 5.5 (no gain, 75.0% kept): the original's frame, read
 // from its own [esp+N] uses (N minus the outstanding pushes), is
 //   0x10 scratch ((7-k)*12, later nz)  0x14 i*0x20  0x18 k*12  0x1c i
@@ -93,6 +142,7 @@
 //    by-value call setup collapses. The 9-float form stays.
 #include <windows.h>
 #include <memory.h>
+#include <minmax.h>
 
 struct Vec3_00421700 {
     int x;
@@ -288,20 +338,20 @@ void __stdcall FUN_00421700(Header_00421700* param)
                 o->verts[7 - k] = verts[desc->prims[i].vindex[k]];
             }
             Vec3_00421700* v = o->verts;
-            Vec3f_00421700 b, a, c;
-            a.x = v[0].x * (1.0f / 65535.0f);
-            a.y = v[0].y * (1.0f / 65535.0f);
-            a.z = v[0].z * (1.0f / 65535.0f);
-            b.x = v[1].x * (1.0f / 65535.0f);
-            b.y = v[1].y * (1.0f / 65535.0f);
-            b.z = v[1].z * (1.0f / 65535.0f);
-            c.x = v[2].x * (1.0f / 65535.0f);
-            c.y = v[2].y * (1.0f / 65535.0f);
-            c.z = v[2].z * (1.0f / 65535.0f);
+            float b[3], a[3], c[3];
+            a[0] = v[0].x * (1.0f / 65535.0f);
+            a[1] = v[0].y * (1.0f / 65535.0f);
+            a[2] = v[0].z * (1.0f / 65535.0f);
+            b[0] = v[1].x * (1.0f / 65535.0f);
+            b[1] = v[1].y * (1.0f / 65535.0f);
+            b[2] = v[1].z * (1.0f / 65535.0f);
+            c[0] = v[2].x * (1.0f / 65535.0f);
+            c[1] = v[2].y * (1.0f / 65535.0f);
+            c[2] = v[2].z * (1.0f / 65535.0f);
             Vec3f_00421700 ab;
-            ab = FUN_004b6eb0(Vec3f_00421700(b.x, b.y, b.z), Vec3f_00421700(a.x, a.y, a.z));
+            ab = FUN_004b6eb0(Vec3f_00421700(b[0], b[1], b[2]), Vec3f_00421700(a[0], a[1], a[2]));
             Vec3f_00421700 n;
-            n = FUN_004b6ff0(FUN_004b6f70(FUN_004b6eb0(Vec3f_00421700(b.x, b.y, b.z), Vec3f_00421700(c.x, c.y, c.z)), ab));
+            n = FUN_004b6ff0(FUN_004b6f70(FUN_004b6eb0(Vec3f_00421700(b[0], b[1], b[2]), Vec3f_00421700(c[0], c[1], c[2])), ab));
             d->vel.x += FUN_004b6c30(200) * (short)(n.x * 512.0f);
             d->vel.z -= FUN_004b6c30(200) * (short)(n.z * 512.0f);
             int nx = (int)(n.x * 65535.0f);

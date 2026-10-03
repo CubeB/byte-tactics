@@ -1,5 +1,18 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
+// #5167 Claude Opus 5.5 (no gain; 2 diff hunks from a long path, the four
+// tail bit writes): c2prio --trace shows all eleven flags split when
+// fireOrder takes ebx, and every flag's tail piece is coloured eax (priority
+// 340). In a test file, a bitfield store whose value is a plain memory load
+// (a global array element) compiles to the original's first-four form
+// (`and old,mask; shl val,n; or old,val`, stored from the old word's
+// register), while a value that is a register candidate (a parameter)
+// compiles to ours (`or val,old`). So in the original cloak, onOff,
+// canAttack and canMove most likely have no register piece in the tail,
+// while canDefend onwards do; no spelling found makes that happen.
+// Tried: explicit `& 3` / `& 1` on the four values (folded, no change), an
+// early-return GetUnit (1513 bytes, worse), the 256-set header sweep from
+// a long path (flat at 94.9).
 // #5134 Claude Opus 5.5: 60.8% to 93.2-94.9%, same 1512 bytes as the original.
 // What moved it: /Gi (the default-flags build of this file is 32.7%), plus
 // first/count left uninitialised at declaration and zeroed at the top of the

@@ -1,5 +1,40 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
+// #5167 Claude Opus 5.5 (no gain, 83.6% kept). Findings for the next try:
+//  - Inline budget, logged from C2 (build/scratch/common/mkinline.py writes
+//    c2inline.py, a copy of tools/c2prio.py that breaks at 0x42491e,
+//    0x424eef and 0x424f95; the callee's IL size is the low 16 bits of
+//    [ebx+0x64]). With the real <vector> (no hand-written specialisations)
+//    and plain `remap.resize(count)` / `remap.resize(featureCount)`, the
+//    first resize already comes out exactly like the original (size() inline
+//    twice; insert, size and erase out of line: share (2024-115)/18 = 106,
+//    size() costs 43, erase 70) and FreeFeatureList's _Destroy is out of
+//    line too. Only the second resize differs: the original inlines its
+//    erase (copy and _Destroy out of line), ours keeps erase out of line
+//    because 47 is left of a (1351-115)/7 = 176 share after three size()
+//    calls. That needs one fewer depth-1 site after it (R 6) or a function
+//    IL size of at least 1117 (this spelling: 1038). The register allocation
+//    of that real-STL version (build/scratch/0x424c00/r1.cpp, 51.5%) is far
+//    from this file's, so it was not pursued; the hand-written vector here
+//    gives the same out-of-line calls.
+//  - Tail: all three record loops in the original are plain
+//    `for (k = 0; k < n; k++)` loops turned into countdowns (edi = k*size,
+//    ebx = count down from n, esi = cell), with `file` in ebp, which is only
+//    possible once c, the offset and the countdown hold esi, edi and ebx.
+//    c2prio --trace on the plain-loop spelling (p1.cpp, 64.2%) shows why it
+//    goes wrong: `file` can only have ebx or ebp for its whole range (the
+//    names section's rep movsd takes esi/edi), the Normal and 3D countdowns
+//    take ebx, then the names-loop i takes ebp and `file` is split; its tail
+//    pieces get esi around the cell and the Animating countdown (priority
+//    -59, below i's -41) is left with ebp. A copy of file for the tail, or
+//    any declaration order of k/n/got (16 variants), compiles to the same.
+//  - Permuter: 16 min from this file (13031 candidates) found nothing; 18
+//    min from the plain-loop spelling went 64.2% to 80.4% by putting a
+//    Below-style helper back into the Normal loop. Header sweep: flat.
+//  - FreeFeatureList: the 0x4223e0 spelling (`v = DAT; if (DAT) {
+//    DAT->~vector(); operator delete(v); }`) with either vector gives
+//    `this` its own callee-saved register; the original's two lea address
+//    registers were not reproduced (same problem as 0x4223e0).
 // #5134 Claude Opus 5.5: 77.4% to 83.6% (1526 bytes against 1496). /Gi is
 // here because this TU's vector<unsigned short>::insert (0x425210, placed
 // right after this function) matches only with /Gi. Under /Gi this file goes

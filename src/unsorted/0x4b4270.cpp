@@ -1,99 +1,28 @@
-// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Claude Fable 5.1, retried by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Claude Fable 5.1, retried by Space Bunny Free, finished by Claude Opus 5.5. Names are provisional.
 // Reads one 0x20-byte section header out of a HapiBank archive (called in a loop
 // by 0x4b3770) and, when the caller's name matches the section name, unpacks the
 // section body and files its records away in the current section of the parsed
 // bank: integers, doubles, strings and raw blobs, in that order.
 //
-// Claude Fable 5.1: 79.2% -> 93.0% at the original's 737 bytes. What changed:
-//  * The class is Class_004b3770 (data/symbols.csv), the matched caller's.
-//  * The image base is an integer and the offsets in the header and the records
-//    are pointer-typed (`char* name`), so every `offset + *image` is a pointer
-//    plus an int whose add names the base as its destination
-//    (`mov edx,[edi]; mov ecx,[off]; add edx,ecx`), the shape 0x4b3770.cpp's
-//    notes thought unreachable. With that the name test, the FUN_004b4560
-//    argument and all three record loops match, and `*image` is dereferenced
-//    inside the branch of the name test without the `sect` local.
-//  * The int and double loops copy each record into a struct local
-//    (`IntRec rec = *(IntRec*)p; p += 2;`): the fields load in order before the
-//    pushes, as in the original.
-//  * `#include <memory.h>` instead of `<string.h>` (tools/headers.py) fixed two
-//    operand orders; the N-declarations sweep is not flat (81% to 84% from
-//    N = 160 on the earlier shape), so part of this function is compiler state.
-// Still differing, all in the blob loop: the original loads the four record
-// fields in order (name, id, offset, len) before the branch and keeps the
-// offset in ebx across the index call, src in edi and need in esi; ours loads
-// len, offset, name, keeps offset and src in esi, need in edi, and reloads the
-// length for the memcpy from its slot where the original keeps it in edx. A
-// 16-byte `BlobRec rec = *(BlobRec*)p` local (y5 in build/scratch/0x4b4270)
-// lands exactly on the original's unexplained 16 bytes at B+0x34 (B = esp
-// after the 0x42c sub and the pushes), whose last dword is the length slot,
-// and gives the loop the original's loads and roles, but it swaps the
-// callee-saved registers of the two pointer parameters for the whole function
-// (fh in edi and image in ebx instead of ebx and edi), 83.1%; local copies of
-// either parameter in either order, an extra use of fh, headers and the
-// N-declarations sweep do not flip that pair. The 0x30-byte header with
-// `reclen` at +0x2c below reproduces the frame instead.
+// Claude Fable 5.1 (79.2% -> 93.0%): the image base is an integer and the
+// offsets in the header and the records are pointer-typed (`char* name`), so
+// every `offset + *image` names the base as the add's destination; the int and
+// double loops copy each record into a struct local; `<memory.h>` instead of
+// `<string.h>` fixed two operand orders.
 //
-// Frame of the ORIGINAL off the disassembly (B = esp right after sub esp,0x42c):
-//   B+0x00 buf        B+0x04 len (reused by the blob loop counter i)
-//   B+0x08 base       B+0x0c end
-//   B+0x10 p          B+0x14 header (0x30 bytes modelled, 0x20 read)
-//   B+0x40 reclen     B+0x44 message[1000]
-//
-// DeepSeek V4.1 Flash pass: still 93.0%. Re-tried the whole-function BlobRec
-// copy in every placement (block-local, function scope, two 8-byte halves),
-// header sizes 0x24..0x40, header 0x20 plus a function-scope 16-byte rec (the
-// frame then grows to 0x430), every declaration order of the loop locals,
-// branch polarity and ternary forms, src/need respellings, local copies of
-// either parameter, self-assignments, tools/headers.py (256 sets) and the
-// N-extern-declarations sweep (N = 0..400); the best stayed 93.0. The permuter
-// ran its 3 minutes on this file and on the BlobRec variant with no gain. Every
-// BlobRec struct copy reproduces the original's field loads and roles but moves
-// fh/image to edi/ebx for the whole function, and nothing tried flips that pair.
-//
-// Space Bunny Free pass: still 93.0%, file unchanged. The blob loop's record
-// read is the last difference and it is a single allocator decision. Measured
-// register roles in the blob-loop head (address, name, id, offset):
-//   original  edx, eax, ecx, ebx   with fh=ebx, image=edi
-//   ours now  eax, ecx, edx, esi   with fh=ebx, image=edi
-//   any aggregate copy of the 16-byte record
-//             ecx, eax, edx, <fh's register>   with fh=edi, image=ebx
-// So the original needs BOTH the aggregate copy (which is the only construct
-// that emits the four field loads in memory order with `test` between the
-// first load and the other three) AND the pre-copy allocation, and in our
-// compilation the two never coexist: every 16-byte aggregate copy, in every
-// spelling, moves fh to edi and image to ebx for the whole function, so the
-// four earlier loop counters move too and the score falls to 83.9%. Every
-// field-by-field spelling (four int locals, four field assignments, read from
-// p or from a pointer local) hoists all four loads before the branch but
-// leaves the `test` after them, at 92.6%. One shape has both the interleaved
-// test and fh=ebx: four field-by-field reads plus a second, dead copy of the
-// record after `p += 4` (a_fields2 in the scratch notes, 93.0%, but it needs
-// that statement, which emits no code); its roles are ecx, eax, edx, esi.
-// Tried again this pass, all on scratch copies, nothing over 93.0%:
-//  * the aggregate copy from p, through a block- or function-scope pointer
-//    local, `p += 4` / `p = (int*)(q+1)` / `p = (int*)((char*)p+16)` /
-//    `p += sizeof(T)/4`, p as char* with byte increments, as a union, a
-//    nested struct, an int[4] array with memcpy, a packed struct, a const
-//    local, an inline helper returning the struct by value, a helper copying
-//    through an out-parameter, and a 12-byte copy plus a separate len read
-//  * reclen as a header field at +0x24/+0x28/+0x2c and as a separate local
-//    with header sizes 0x20..0x30; src/need/dst/oldlen/newLen respellings;
-//    the e lookup through a GetEntries helper, SetCurrent, AddImage; the
-//    for/while/do forms; branch polarity and ternary forms
-//  * all 120 orders of the five scalar locals, all 10 positions of the `e`
-//    declaration, and a randomised sweep of 660 body orderings over the lazy,
-//    copy, pointer-copy and four-local shapes
-//  * the parameter types (void*, char**, int* for image, void* for name), the
-//    local types (char* buf, long len/base/end), tools/headers.py over 256
-//    header sets on the copy shape, the N-extern sweep (N = 0..400) on five
-//    shapes, and tools/permute.py for 30 minutes on this file (5021 candidates,
-//    no gain).
-// Lead for the next attempt: the allocator's choice for the record's address
-// and id (edx/ecx against eax/edx) flips with the copy's presence, so a source
-// that makes the copy *and* leaves one fewer temporary alive elsewhere would
-// be worth a try; nothing in this function's earlier half can be thinned
-// without losing a byte.
+// Claude Opus 5.5 (93.0% -> MATCH): the blob loop is four calls to small
+// methods of the same class that /Ob2 inlined, all of them matched on their
+// own: 0x4b4b50 / 0x4b4ba0 open a box by id or by name (their identical
+// "set the current box" stores are tail-merged into the one store after the
+// branch, and their `buffer != 0` results are dropped), 0x4b4cf0 appends
+// bytes to the current box and 0x4b4c10 seeks it (the `xor edx,edx` before
+// the `rep movsb` is its constant 0). The record is a 16-byte struct copy
+// (the original's 16 bytes between the header and the message buffer), and
+// the source pointer is a named local computed before the append: passed
+// straight as the argument, MSVC forwards it into the inlined memcpy and
+// evaluates it late. The helpers are defined after this function, in address
+// order, and still inline; they have no FUNCTION lines because each one has
+// its own file.
 #include <stdio.h>
 #include <memory.h>
 
@@ -120,11 +49,11 @@ void* __cdecl FUN_004d8580(void* ptr, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall FUN_004b6290(char* message);
 
-struct Entry_004b4270 {           // 0x14 bytes, one entry of a section
+struct Entry_004b4270 {           // 0x14 bytes, one box of a section
     int used;                     // +0x00
     int value;                    // +0x04, string offset or integer
     int size;                     // +0x08
-    int len;                      // +0x0c
+    int pos;                      // +0x0c, write/read position
     char* buffer;                 // +0x10
 };
 
@@ -144,26 +73,26 @@ struct Table_004b4270 {
 
 class Class_004b4560 {
 public:
-    Table_004b4270* file;
+    Table_004b4270* table;
     int FUN_004b4560(char* name);
 };
 
 class Class_004b4630 {
 public:
-    Table_004b4270* file;
-    int FUN_004b4630(char* name, int value);
+    Table_004b4270* table;
+    int FUN_004b4630(const char* name, int value);
 };
 
 class Class_004b46c0 {
 public:
-    Table_004b4270* file;
-    int FUN_004b46c0(char* name, double value);
+    Table_004b4270* table;
+    int FUN_004b46c0(const char* name, double value);
 };
 
 class Class_004b4750 {
 public:
-    Table_004b4270* file;
-    int FUN_004b4750(char* name, char* value);
+    Table_004b4270* table;
+    int FUN_004b4750(const char* name, char* value);
 };
 
 class Class_004b49d0 {
@@ -178,7 +107,31 @@ public:
     int FUN_004b4a80(char* name, int flag);
 };
 
-struct Header_004b4270 {          // 0x30 bytes modelled, first 0x20 read from file
+class Class_004b4b50 {            // open a box by id
+public:
+    Table_004b4270* table;
+    int FUN_004b4b50(int id);
+};
+
+class Class_004b4ba0 {            // open a box by name
+public:
+    Table_004b4270* table;
+    int FUN_004b4ba0(char* name);
+};
+
+class Class_004b4c10 {            // seek the current box
+public:
+    Table_004b4270* table;
+    void FUN_004b4c10(int pos);
+};
+
+class Class_004b4cf0 {            // append to the current box
+public:
+    Table_004b4270* table;
+    int FUN_004b4cf0(void* src, int len);
+};
+
+struct Header_004b4270 {          // 0x20 bytes, read from the file
     int size;                     // +0x00, of the whole section
     char* strOffset;              // +0x04, of the section name (an offset stored as a pointer)
     int nInts;                    // +0x08
@@ -186,8 +139,7 @@ struct Header_004b4270 {          // 0x30 bytes modelled, first 0x20 read from f
     int nStrings;                 // +0x10
     int nBlobs;                   // +0x14
     int compressed;               // +0x18
-    int unknown_1c[4];            // +0x1c
-    int reclen;                   // +0x2c
+    int unknown_1c;               // +0x1c
 };
 
 struct IntRec_004b4270 {          // 8 bytes, one int record of the body
@@ -202,9 +154,16 @@ struct DblRec_004b4270 {          // 12 bytes, one double record of the body
 };
 #pragma pack(pop)
 
+struct BlobRec_004b4270 {         // 16 bytes, one blob record of the body
+    char* name;                   // offset of the box name, negative for a numbered box
+    int id;
+    int offset;                   // file offset of the bytes
+    int len;
+};
+
 class Class_004b3770 {
 public:
-    Table_004b4270* file;
+    Table_004b4270* table;
 
     void FUN_004b4270(File_004b4270* fh, int* image, char* name);
 };
@@ -268,43 +227,62 @@ void Class_004b3770::FUN_004b4270(File_004b4270* fh, int* image, char* name)
                 ((Class_004b4750*)this)->FUN_004b4750((char*)a + *image, (char*)b + *image);
             }
         }
-        int i = 0;
-        if (h.nBlobs > 0) {
-            do {
-                int* rec = p;
-                Entry_004b4270* e;
+        {
+            for (int i = 0; i < h.nBlobs; i++) {
+                BlobRec_004b4270 rec = *(BlobRec_004b4270*)p;
                 p += 4;
-                int c = rec[2];
-                char* src;
-                int idx;
-                int need;
-                int newLen;
-                h.reclen = rec[3];
-                if (rec[0] < 0)
-                    idx = ((Class_004b49d0*)this)->FUN_004b49d0(rec[1], 1);
+                if ((int)rec.name < 0)
+                    ((Class_004b4b50*)this)->FUN_004b4b50(rec.id);
                 else
-                    idx = ((Class_004b4a80*)this)->FUN_004b4a80((char*)rec[0] + *image, 1);
-                ((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index].current = idx;
-                src = (char*)(buf + (c - base) - 0x20);
-                e = &((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index]
-                        .entries[((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index].current];
-                need = h.reclen + e->len;
-                if (need > e->size) {
-                    e->buffer = (char*)FUN_004d8580(e->buffer, need);
-                    e->size = need;
-                }
-                memcpy(e->buffer + e->len, src, h.reclen);
-                e->len += h.reclen;
-                newLen = 0;
-                e = &((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index]
-                        .entries[((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index].current];
-                if (e->size < 0)
-                    newLen = e->size;
-                e->len = newLen;
-                i++;
-            } while (i < h.nBlobs);
+                    ((Class_004b4ba0*)this)->FUN_004b4ba0(rec.name + *image);
+                char* src = (char*)(buf + (rec.offset - base) - 0x20);
+                ((Class_004b4cf0*)this)->FUN_004b4cf0(src, rec.len);
+                ((Class_004b4c10*)this)->FUN_004b4c10(0);
+            }
         }
         FUN_004bb710(fh, end);
         FUN_004d85a0((void*)buf);
     }
+}
+
+// The four helpers the blob loop inlines (each matched in its own file).
+
+int Class_004b4b50::FUN_004b4b50(int id)
+{
+    int r = ((Class_004b49d0*)this)->FUN_004b49d0(id, 1);
+    table->slots[table->index].current = r;
+    return table->slots[table->index].entries[r].buffer != 0;
+}
+
+int Class_004b4ba0::FUN_004b4ba0(char* name)
+{
+    int i = ((Class_004b4a80*)this)->FUN_004b4a80(name, 1);
+    table->slots[table->index].current = i;
+    return table->slots[table->index].entries[i].buffer != 0;
+}
+
+void Class_004b4c10::FUN_004b4c10(int pos)
+{
+    Slot_004b4270* s = &table->slots[table->index];
+    Entry_004b4270* c = &s->entries[s->current];
+    if (pos < 0) {
+        pos = 0;
+    }
+    if (pos > c->size) {
+        pos = c->size;
+    }
+    c->pos = pos;
+}
+
+int Class_004b4cf0::FUN_004b4cf0(void* src, int len)
+{
+    Entry_004b4270* c = &table->slots[table->index].entries[table->slots[table->index].current];
+    int need = len + c->pos;
+    if (need > c->size) {
+        c->buffer = (char*)FUN_004d8580(c->buffer, need);
+        c->size = need;
+    }
+    memcpy(c->buffer + c->pos, src, len);
+    c->pos += len;
+    return len;
 }

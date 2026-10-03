@@ -1,62 +1,25 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, retried by Claude Fable 5.1, finished by DeepSeek V4.1 Flash, worked on by Space Bunny Free. Names are provisional.
-// Space Bunny Free: 89.2% (827 bytes) -> 93.6% (815 bytes). Two changes, both
-// found by sweeping the statement order of the block that writes width,
-// height and the flag word, and the one spelling of the bit-5 test:
-//  * `d->width = w; d->height = h;` written directly (the `int* pw/ph` locals
-//    earlier attempts needed are gone: they are what forced MSVC to pick
-//    videoFlags=edx/flags=ecx in the flag block), and the flag-word update
-//    moved AFTER those two stores. That fixes the instruction schedule of the
-//    whole block: all 17 instructions now match the original one for one
-//    (videoFlags=ecx, flags=eax, `or al,1`, `shr al,6`, and the height store
-//    sunk past the test), which removes the `mov al,[esi+0xf0]` reload and the
-//    two-byte-longer `and ecx,imm32` / `or ecx,1` forms. It also lets the
-//    remaining bit tests fall into the original's cl/dl/al/cx/dl cycle.
-//  * `d->wc.style = 8;` moved to just after `d->wc.lpfnWndProc = FUN_004b5cc0;`
-//    instead of just before RegisterClassA. On its own that made MSVC keep
-//    `&d->wc` in edi (a 3-byte lea, a spilled startHeight, a 0x3c frame,
-//    835 bytes); with the schedule above it does not, so the store lands at
-//    the original's place as `mov dword ptr [esi + 0x18], 8`.
-// What still differs (11 of the 14 remaining diff lines are jump targets that
-// only moved, so the shape is 98.7%):
-//  * the bit-5 test is written `d->flags.value & 0x20`, which MSVC folds to
-//    `test byte ptr [esi + 0xf0], 0x20` (7 bytes). The original loads the
-//    byte into a register: `mov cl,[esi+0xf0]; shr cl,5; test cl,1`, which
-//    only a `Flags_4b5980::bits.has_c0` bitfield produces. This spelling is
-//    load-bearing: with the bitfield the test takes the register the allocator
-//    has left (dl instead of cl), which rotates every later test and puts the
-//    `&d->wc` materialisation back (826 bytes, frame 0x3c, 69.2%). The other
-//    four tests still are bitfields and do match. All 64 spellings of the six
-//    tests (bitfield / mask) were compiled: `!= 0` and `& 1` on the bitfield
-//    give the same memory test as the mask, and no combination gets past 93.6%.
-//  * the `mov cx, word ptr [esi + 0x202]` of the first flag block sits after
-//    `mov dword ptr [esi + 0x40], ebx` instead of between the scratch[0] and
-//    scratch[1] stores. Reading `d->videoFlags` into an `unsigned short`
-//    before the scratch stores does move that load to the original's offset
-//    (tried at all 14 statement boundaries), but it also swaps the two
-//    values' registers in that block (videoFlags gets eax, the flag word
-//    ecx), which costs more than it gains (91.1%).
-// Leads from earlier attempts, all still true:
-//  * `Flags_4b5980* fl = &d->flags;` declared just before the no_video clear
-//    is what keeps MSVC from folding the bit-11 clear and the bit-10 update
-//    into one `and eax,0xf3ff`; it pins the in-place
-//    `and word ptr [esi + 0xf0], 0xf7ff` and the reload after it.
-//  * `unsigned int cls = RegisterClassA(...)` (not `ATOM`) is what gives the
-//    `and eax,0xffff` and the home-slot store at `[esp + 0x4c]`, and
-//    `int r = FUN_004b5510(...); if (r != 0)` gives the `cmp eax,ebx; jne`.
-//  * `int w` must be declared before `int h`, or edi and ebp swap.
-//  * About 450 check.py runs in this round and 2 permuter runs on the older
-//    file (15 and 45 minutes, both flat at 89.2%). Inert: the `int* pw/ph`
-//    pointer locals (any one of them flips the allocator the other way),
-//    address-taken locals for every other field, reading the bit tests through
-//    `fl` instead of `d` (that one does give the original's cl/dl/al/cx/dl,
-//    but it puts videoFlags back in edx and the frame back to 0x3c), the
-//    `&d->wc` pointer/reference/cast spellings of the style store, a
-//    field-by-field mode copy, the `int`/`unsigned int`/`unsigned char`
-//    bitfield types, 16 single-bit fields, byte and word shift expressions
-//    instead of bitfields, inline helpers for the flag update and the size
-//    update, every statement position of the flag update, of the width/height
-//    declaration and of the wc style store, and the `MEMORYSTATUS`/`view`/
-//    early-store orderings.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, retried by Claude Fable 5.1, finished by DeepSeek V4.1 Flash, worked on by Space Bunny Free, finished by Claude Opus 5.5. Names are provisional.
+// Space Bunny Free (89.2% -> 93.6%): `d->width = w; d->height = h;` written
+// directly and the flag-word update after them fixed the schedule of that
+// block; `int w` must be declared before `int h`, or edi and ebp swap.
+//
+// Claude Opus 5.5 (93.6% -> MATCH), two changes:
+//  * The first flag update is three plain statements on the bitfields,
+//    `no_video = 0; hwnd = 0; sound_opt = (videoFlags >> 9) & 1;`. Written as
+//    a whole-word expression it needed a `Flags*` alias to keep MSVC from
+//    folding the two masks, and the alias also stopped the scheduler from
+//    hoisting the videoFlags load above the in-memory bit-11 clear.
+//  * Every bit test is a bitfield test, as in the original
+//    (`mov cl,[esi+0xf0]; shr cl,5; test cl,1`). What made the bit-5 test
+//    misbehave before was the scratch-register rotation: MSVC 5 hands out
+//    eax/ecx/edx in turn, and the original has one more temporary in the
+//    second flag update than a single expression gives. Naming the shifted
+//    videoFlags bits as an `int` local (`int t = ...; flags = ... | t | 1;`)
+//    adds it at no code cost, which moves the bit-5 test to cl and every
+//    later test to the original's register. Without it the bitfield test
+//    lands on dl and the allocator CSEs `&d->wc` into edi and spills the
+//    height (826 bytes); the old mask spelling `flags.value & 0x20` only hid
+//    that by folding the test into memory.
 // The struct needs `#pragma pack(2)`: the mode struct at +0x1ea and the two
 // ints after it sit at 0x1ea, 0x1fa and 0x1fe, and videoFlags is a word at
 // +0x202. WNDCLASSA has to be padded to +0x18 by hand for the same reason.
@@ -161,15 +124,15 @@ struct App_4b5980 {
 
 extern App_4b5980* DAT_0051fbd0;
 
-int FUN_004bce10(void);
+void FUN_004bce10(void);
 void __stdcall FUN_004c2360(int* p);
 void __stdcall FUN_004c1a60(int size);
 void __stdcall FUN_004c2bd0(int count, int start);
-void __stdcall FUN_004ba610(App_4b5980* d);
-void __stdcall FUN_004ba5c0(App_4b5980* d);
-void __stdcall FUN_004ba660(App_4b5980* d);
-void __stdcall FUN_004ba6b0(App_4b5980* d);
-void __stdcall FUN_004ba700(App_4b5980* d);
+int __stdcall FUN_004ba610(App_4b5980* d);
+int __stdcall FUN_004ba5c0(App_4b5980* d);
+int __stdcall FUN_004ba660(App_4b5980* d);
+int __stdcall FUN_004ba6b0(App_4b5980* d);
+int __stdcall FUN_004ba700(App_4b5980* d);
 void __stdcall FUN_004b4ff0(App_4b5980* d);
 int __stdcall FUN_004b5510(int param);
 long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam, long lparam);
@@ -196,10 +159,9 @@ int __stdcall FUN_004b5980(App_4b5980* d)
     d->scratch[5] = 0;
     d->unknown_624 = 0;
     d->unknown_dc = 0;
-    Flags_4b5980* fl = &d->flags;
-    fl->bits.no_video = 0;
+    d->flags.bits.no_video = 0;
     d->hwnd = 0;
-    fl->value = (fl->value & 0xfbff) | ((d->videoFlags & 0x200) << 1);
+    d->flags.bits.sound_opt = (d->videoFlags >> 9) & 1;
     FUN_004c1a60(0x1e);
     FUN_004c2bd0(0x14, d->flags.bits.sound_opt);
     View_4b5980 view;
@@ -216,16 +178,15 @@ int __stdcall FUN_004b5980(App_4b5980* d)
     int h = d->startHeight;
     d->width = w;
     d->height = h;
-    d->flags.value = (d->flags.value & 0xfc03) | ((d->videoFlags & 0x1fe) << 1) | 1;
+    // bits 1..8 of the video flags become bits 2..9 of the flag word
+    int subsys = (d->videoFlags & 0x1fe) << 1;
+    d->flags.value = (d->flags.value & 0xfc03) | subsys | 1;
     if (d->flags.bits.has_c4) {
         FUN_004ba610(d);
     } else {
         d->obj_c4 = 0;
     }
-    // Written as the mask rather than `bits.has_c0` on purpose: the mask is
-    // what keeps the bit tests that follow in the original's dl/al/cx/dl
-    // cycle and lets `d->wc.style = 8` stay where it is (see the note above).
-    if (d->flags.value & 0x20) {
+    if (d->flags.bits.has_c0) {
         FUN_004ba5c0(d);
     }
     if (d->flags.bits.has_c8) {

@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Claude Opus 5.5, verified by GPT-6. Names are provisional.
+// Issue #4923 retry: confirmed MATCH on the current main source and /Gi recipe.
 // FLAGS: /Gi
 // std::vector<Point_0044eec0>::insert(iterator, size_type, const _Ty&), stock
 // MSVC 5 <vector> on the 4-byte point (two shorts) that the only caller,

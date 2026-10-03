@@ -431,6 +431,19 @@ effect, the missing piece is usually a helper that was inlined:
   a bit in a dword bitfield is `mov eax, [m]; or al, K; mov [m], eax`.
 - **`abs()`**: the `cdq; xor eax, edx; sub eax, edx` idiom is `abs()` from
   `<stdlib.h>`; a hand-written `if (x < 0) x = -x;` compiles differently.
+- **Rewriting an inline helper changes the caller**: making a helper's body
+  work on a local copy instead of its parameter changes register allocation
+  elsewhere in the calling function, not just inside the inlined code. Try
+  both spellings of a helper even when the difference looks local (#5168,
+  0x462f30).
+- **Where a goto-only block lands**: a block reached only by `goto` (an
+  `error:` tail, say) is placed straight after the loop that jumps to it,
+  unless it is the `else` arm of an `if`. If the original puts it at the end,
+  look for an if/else spelling (#5168, 0x462f30).
+- **`delete` and `new char[]` versus `operator delete` and `operator new`**:
+  the expression forms shift the temporary-register rotation by one compared
+  with calling the operator functions directly, so swap between them when
+  every later temporary is one register off (#5168).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

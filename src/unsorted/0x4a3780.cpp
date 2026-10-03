@@ -1,4 +1,46 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash, notes by claude-opus-5-5. Names are provisional.
+// 2026-10-03 (claude-opus-5-5): no gain (88.1%), but the remaining gap now has
+// one known cause. Scratch files and sweep specs: build/scratch/0x4a3780/.
+//  - The 0x20 block's pointer choice tests flag8 itself: the original's `je`
+//    at 0x4a3c4a reuses ZF from `and eax,1`. Written as `if (flag8) fixed = ...;
+//    else ip = ...;`, MSVC also reproduces the original's "dead"
+//    `mov esi,[esp+0x50]` in the fixed arm: it is the load of the uninitialised
+//    `ip` from its home, which MSVC packs into obj's parameter slot because ip
+//    is never stored. It is not an obj reload and not an original bug.
+//  - But with `if (flag8)` the `flags` local gets a register (ecx) for its whole
+//    range, the frame loses flags's slot (0x3c -> 0x38) and every [esp+N]
+//    shifts: 65.7%. The `flags & 0x80` test below keeps the slot, which is the
+//    only reason this file stays on that form.
+//  - Probe: making flags live across the 0x10 path's FUN_004b6af0/strncmp calls
+//    (`&& flags` added to the entries loop's condition; a semantic change, +4
+//    bytes) spills flags, and then the frame, flag8 (0x1c), fixed (0x14), ip
+//    (esi, home in obj's slot), n2 (edx), the in-place `shr eax,7` and the whole
+//    0x20 loop come out exactly as in the original: 88.5% even with the extra
+//    test, shape 97.4%. Only the y1 lea, the 0x10 clamp and the post-loop obj
+//    register (esi across the join to the field_cca store) still differ there.
+//  - Ablations of the `if (flag8)` form: removing the 0x20 loop, or leaving
+//    flag8 one use instead of three (fixed rows only or item rows only), also
+//    spills flags. So flags wins its register through flag8's loop uses (the
+//    two share a register at the in-place shift); the missing fact is what
+//    stops that in the original.
+//  - Flat with `if (flag8)` (flags stays in a register, frame 0x38): every
+//    combination of flags vs me->flags for its four uses; flags or the field
+//    as unsigned/long/DWORD; union, struct, array and bitfield wrappers,
+//    `*(int*)&flags`, memcpy, reference-taking inline helpers; flag8 as
+//    unsigned/long/bool/char/short, `!= 0`, `?:`, `!!`, `(f & 0x80) >> 7`, a
+//    bitfield cast, an inline IsFixed(); flag8 or n2 declared or initialised
+//    earlier; every declaration position of flags; flag8/k/n2/remain merged
+//    with n/i/size/step/flags; fixed merged into entries; inline helpers for
+//    the 0x10 or 0x20 block; `flags = flags;` anywhere (removed early);
+//    redundant `flags & 0x10` tests (folded); sequential ifs instead of the
+//    else-if; 1024 combinations of ten 0x20-block spellings and 256 of eight
+//    0x10-path spellings; headers.py (256 sets); 0-63 extern-int fillers;
+//    permute.py from the `if (flag8)` form (12 min, best 79.1% via junk temps).
+//  - (a) below, the y1 `lea`: every spelling compiles the same; it follows the
+//    TU's type count. Without <windows.h> (own min macro) the y1 lea is right
+//    but the three `bc + step - 1` leas flip (82.7%). With N dummy struct types
+//    instead: N <= 26 82.7%, 28-32 87.5%, 34-50 87.9%, >= 52 88.1% (the
+//    <windows.h> state); extern-int fillers change nothing.
 // 2026-10-03 (Space Bunny Free): 86.6 -> 88.1%, size still exact (1832).
 // Seven spelling changes: five in the 0x20 walk loop, one 16-bit compare in
 // the 0x10 clamp, one operand order in the rect setup. Found by hill-climbing

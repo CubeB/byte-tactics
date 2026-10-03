@@ -1,344 +1,28 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5, finished by claude-opus-5-5, finished by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
-// 2026-10-03 (Space Bunny Free), 96.6 -> 96.8%, exact size (1631 bytes), one fix:
-//  the h<=w arm's last clamp is `a = min(a, limit - g->width - 2);` with the
-//  <windows.h> macro (<ddraw.h> pulls it in, which is why that include stays).
-//  The macro evaluates `limit - g->width - 2` twice, and then MSVC folds the -2
-//  into the original's `add edi, -2`; every single-evaluation spelling gives
-//  `sub edi, 2`. A probe settles what matters: in `int t = a - b; t -= 2;` MSVC
-//  gives `sub eax, 2`, but in `if (t - 2 > g.a) return t - 2;` and in
-//  `int t = h(1); t -= 2;` it gives `add eax, -2`, so it is the double
-//  evaluation (the value used twice), not the spelling, that produces the add.
-//  `if (a >= b - 2) a = b - 2;` with `b = limit - g->width;` gives the same two
-//  opcodes with b genuinely used, but only 94.2% (its only difference is the
-//  slot swap below, which costs more lines than this form).
-//  With the min macro, the `int b;` at the top is only needed as a declaration:
-//  no assignment at all (a dead `b = limit - g->width - 2;` scores the same),
-//  and dropping it drops the function to 89.0%.
-// Still differs: only the w<h arm's two frame slots, nothing else in the
-// function. Ours keeps lc at [esp+0x10] with limit and lim2 sharing [esp+0x14]
-// (the h<=w surf shares 0x14 as well); the original has limit and lim2 at
-// [esp+0x10] and lc at [esp+0x14]. New results this round, all scored:
-//  - compiler state is not the cause: 0 to 400 unused `extern int dummyN;` in
-//    steps of 8 never beats 96.8, and tools/headers.py --cpp does not either.
-//  - permute.py --stack lc on the 96.8 base, twice (seeds 3 and 11): 6853 and
-//    7362 candidates, none better, no match.
-//  - reusing the first loop's variable for lim2 (`limit = lc + ybase - 1;`, then
-//    every lim2 use renamed to limit) does move lc to [esp+0x14], as the
-//    original has it, but MSVC then homes limit in the dead `index` parameter
-//    slot [esp+0x58] and gives [esp+0x10] to the glyph pointers: 94.6% for every
-//    spelling of the clamp (if / min / ternary / smaller), of lc (ternary /
-//    min / plain if), of the ybase clamp, of `t` and of the declaration order,
-//    and also with limit declared at function scope or shared by both arms.
-//  - that form does reach the original's slot pair, but only while the
-//    intermediate store `limit = lc + ybase - 1` is dead (85.3%): MSVC drops it,
-//    the whole second block changes shape and the function is 18 bytes short.
-//  - reference counts do not move the pair either: `int k = 2; limit = limit - k;`,
-//    reusing `limit` for lim2, min() in either clamp, 2 to 4 extra dummy
-//    references to lim2 or lc, h/y locals instead of e->h/e->y in the two
-//    minimums, and every declaration order of ybase/lc/lim2/t are all flat.
-//  - a small struct holding the two variables as fields keeps them adjacent in
-//    declaration order, but the pair lands at [esp+0x1c]/[esp+0x20] and merges
-//    with buf's slot: the frame shrinks to 0x3c (85.8%).
-// So the swap is the frame allocator's tie-break between two locals whose
-// live-range shapes are identical; the one spelling that reaches the original's
-// order sends the reused variable to the dead parameter home instead.
-// 2026-10-02 (DeepSeek V4.1 Flash): retried the lc slot swap. `permute --stack
-// lc` (3 min, 3159 candidates) and `--stack lc,limit,lim2` (3 min, 2857) both
-// stayed at 96.6, as did a headers.py sweep (256 sets) and ~80 hand variants:
-// declaring lc before limit at branch and function scope (with and without an
-// initialiser), multi-declarations `int lc, limit = ...`, plain-if lc, hoisted
-// function-scope limit/lc/lim2 in all orders, int/unsigned/long types, wrapping
-// the second section in a nested block, reusing limit for lim2, and dead
-// self-stores to extend a live range. Nothing moved lc off -0x40. The w<h code
-// is instruction-identical to the original except the two slot numbers, so this
-// is a global allocator tie-break: the original pairs lim2 with limit at 0x10
-// and lc with the h<=w surf at 0x14, ours pairs lim2 and surf with limit at
-// 0x14 and leaves lc alone at 0x10. Plain-if lc does move lc to 0x14 and lim2
-// to 0x10 but then limit shares 0x14 with lc (96.1); reusing limit for lim2 puts
-// lc at 0x14 but limit in the dead parameter home +0xc (94.4). Still differs:
-// the lc/limit/lim2 slot swap, and `add edi,-2` (every spelling and every type
-// of `limit - g->width - 2` gives `sub edi,2`; MSVC only emits add for a leaf
-// minus a constant, e.g. the load at 0x404ad0).
-// 2026-10-02 (claude-opus-5-5): 90.8 -> 96.6%, exact size (1631 bytes). Two changes:
-//  1. The second thumb loop updates ybase BEFORE lc (`ybase += mid->height;
-//     lc -= mid->height;`): that is the original's latch order (`sub ecx,eax /
-//     add esi,eax / mov [lc],ecx`, then `lim2 - height` for the test, with mid
-//     kept in a register for the next draw). It fixes the "(b)" difference
-//     below and the two extra bytes (90.8 -> 96.2).
-//  2. The two limits are written `y + e->h - 1` and `x + e->w - 1`; the short
-//     w/h locals still supply the registers, but y and x now take the lea base
-//     as in the original (96.2 -> 96.6).
-// Still differs: (a) below, unchanged (limit/lim2 and lc in each other's stack
-// slots, 0x10 and 0x14; declaring lc before limit, at the top of the arm or at
-// function scope, and reusing one variable for limit and lim2 are flat or
-// worse), and (c) `add edi,-2` (`limit - g->width - 2`: `+ 1 ... - 3`,
-// `- 2 - width`, `-2 + ...`, `b -= 2`, `b += -2`, `2u`, `2L` all give sub).
-// 2026-10-02 (claude-sonnet-5-5): 84.2 -> 90.8%, 1633 bytes. The w<h/h<=w surface
-// puzzle below was solved by changes that only work together:
-//  1. each arm has its OWN `void* surf = Surface_004a2580(obj);` (the function-scope
-//     `surface` is left for the gl==0 path and the flags&4 tail, where the
-//     original reads [esp+0x1c]);
-//  2. no Smaller(): in the w<h arm `int ybase = e->off + e->y + 3;` comes first (the
-//     original's movsx [+0x140]/[+0x15] loads show ybase is computed BEFORE the size
-//     compare; permute.py found ybase-first is worth +0.1), then
-//     `int lc = (e->h - 6 < e->size) ? e->h - 6 : e->size;`. The ternary matters:
-//     with `int lc = e->h - 6; if (lc >= e->size) lc = e->size;` (89.6%) MSVC keeps a
-//     register copy of lc across the join (`mov ecx,edx`), with the ternary lc is
-//     strictly in memory and reloaded (`mov eax,[esp+0x10]`) exactly like the original;
-//  3. lim2 stays a plain if-min (a ternary there is byte-identical).
-// With that, surf takes ebp in the w<h arm as in the original (the old gap was
-// limit taking ebp), the frame is 0x40 again, and the structural ratio is 0.989.
-// Still differs: (a) stack slots of the w<h arm: here limit 0x10 / lc 0x10 (shared) /
-// lim2 0x14, the original has limit and lim2 both at 0x10 and lc at 0x14. The
-// plain-if lc (89.6%) gets that slot order but loses the memory-only lc; one `limit`
-// variable reused for lim2 gets lc 0x14 but then limit lands in the index home
-// 0x58 and the glyph pointer in 0x10 (88.1%). Declaration order and scope of
-// limit/lim2/lc/g/mid do not change which slot each gets. (b) the second loop
-// computes `limit - mid->height` and updates lc/ybase in a different order
-// (2 instructions). (c) `b = limit - g->width - 2` is `add edi,-2` in the original,
-// `sub edi,2` here; `+ -2`, `b += -2` and `limit + -2 - w` all fold to sub.
-// 2026-10-02 (Space Bunny Free), 81.7 -> 84.2%, two hunks from the permuter,
-// each verified alone (limit-before-first alone is 83.8%, the `b` hoist alone
-// 82.0%, together 84.2%):
-//  - in the h<=w arm `int limit = x + w - 1;` comes BEFORE
-//    `Glyph_004a2580* first = FUN_004b7f30(...)`, not after it.  Swapping only
-//    these two statements is worth 2.1 points.
-//  - `b` is declared as a function-scope `int b;` (no initialiser) and assigned
-//    in the h<=w arm, rather than being a branch local.  The permuter found the
-//    uninitialised declaration; giving it a name comment is fine because the
-//    branch assigns it before every read.  Hoisting `a` the same way is inert.
-//  Both changes are about where the allocator puts the h<=w temporaries, which
-//  is what finally freed the register that the w<h branch's surface wants.
-// Remaining gap is still one hunk: in the w<h arm the original enregisters the
-// reloaded surface in ebp and homes `limit` at [esp+0x10], ours does the
-// reverse (`limit` in ebp, surface at [esp+0x10], and every FUN_004b7f90 draw
-// reloads it with `mov eax,[esp+0x1c]`).  The original's four scalar slots are
-// limit 0x10, lc 0x14, entries 0x18, surface 0x1c; ours are surface 0x10,
-// lc 0x14, entries 0x18 and one fewer.  Every declaration order of the four w<h
-// locals is byte-identical, a branch-local `void* surf` draws its own frame slot
-// (72.8%), hoisting `int limit` to function scope drops to 65.9%, and wrapping
-// the whole arm in an inlined `static inline void DrawStack(e, surf)` is inert
-// at 84.2%.  `Smaller` must stay reference-returning: a by-value `Min`, or a
-// plain `if` for EITHER minimum, is 68-69%, so the `lea [esp+0x1c]` address
-// temporaries it costs are required by the original's own code shape.
-// 2026-10-01 (Space Bunny Free), 75.2 -> 80.6%, byte count exact at 1631 again:
-//  - `e->w < e->h` is NOT the comparison in the source. The original emits
-//    `mov cx,[ebx+0x17]; mov dx,[ebx+0x19]; cmp cx,dx` and then REUSES the
-//    register copies inside the branches: `movsx edx,dx` for `y + h - 1` and
-//    `movsx ecx,cx` for `x + w - 1`. That only happens when w and h are `short`
-//    locals read again inside the two arms, so the else-if chain becomes an else
-//    holding `short w = e->w; short h = e->h; if (w < h) {...} else {...}` with the
-//    h<=w arm's limit written `x + w - 1`. Using the locals in only one arm, or
-//    making them `int` (32-bit compare), or `unsigned short` (jb) all score lower
-//    (75.2 / 75.5 / 72.1). This was worth 5.4 points on its own.
-//  - the pointer chain `obj->holder->entries->u.head.surface` goes through a
-//    `static inline void* Surface_004a2580(Object*)` getter at all three sites
-//    (the guide's pointer-chain pattern), +0.3 and byte-identical to writing the
-//    chain out. Doing it in one site only is the same, so it is not the lever.
-// Remaining gap: still the frame slot for the function-scope `surface`
-// ([esp+0x10] here, [esp+0x1c] in the original), which in turn makes the w<h
-// branch keep `limit` in ebp where the original keeps the reloaded surface in ebp
-// and homes `limit` at [esp+0x10]. Every declaration order of the four w<h locals
-// tried is byte-identical (b0-b3 style), a branch-local `void* surf` draws its own
-// frame slot and drops to 66%, and hoisting `int limit` first gives 64.9%.
-// 2026-10-01 (Space Bunny Free), 69.8 -> 74.5%, three independent wins in the
-// 2026-10-01 (Space Bunny Free): 69.8 -> 74.5%. Three independent wins, all in the
-// flags&4 tail, all measured:
-//  - the glyph-width measuring loop needs a real `unsigned char c` local, not the
-//    `(unsigned char)*p` cast: the original stores the byte to the dead `obj` argument
-//    home and reloads it (`mov byte [esp+0x54],al; mov ecx,[esp+0x54]; and ecx,0xff`),
-//    which only a named byte local produces (72.4% alone, +11 bytes);
-//  - `int total = 0;` belongs BEFORE the `char* text = buf` null test so that the zero
-//    lands at `xor edi,edi` ahead of it (70.0% alone), and `p` is a second pointer
-//    declared inside the `font != 0` arm so that `lea esi,[esp+0x20]` is only emitted
-//    there (72.7% together). The null-tested pointer is `text`; the walked pointer is `p`.
-//  - the _itoa float value must be a named `int num` computed in its own statement
-//    before `_itoa(num, buf, 10)`: that makes MSVC finish the x87 chain before it starts
-//    the shared argument pushes, which is the original's order (74.5%). Spelling the
-//    same value inline inside the call interleaves `push 0xa; push ecx` between `fild`
-//    and `fimul`. A named denominator (`int span`) instead is inert at 72.7%.
-//  - and 74.5 -> 74.9: the SECOND minimum (`lim2 = Smaller(lim2, t)`) is a plain
-//    `if (lim2 >= t) lim2 = t;`. The first one (`lc = Smaller(lc, e->size)`) has to stay
-//    the reference-returning helper: making that a plain if too is 68.5% (1615 bytes),
-//    and flipping either condition or writing the second as `lim2 < t ? lim2 : t` is
-//    byte-identical to `if (lim2 >= t) lim2 = t`.
-// Remaining gap, all in the w<h branch: the frame slot for the function-scope `surface`
-// is [esp+0x10] here against [esp+0x1c] in the original, and the allocator gives ebp to
-// `limit` here and to the reloaded surface there, so the three draws in that branch
-// reload `surface` from the stack (`mov eax,[esp+0x10]; push eax`, 4 bytes each) where
-// the original pushes ebp. That is the whole +11 byte excess. Still worth trying: a
-// branch-local surface variable in the w<h arm (63.1%, it draws its own frame slot),
-// `short w/h` locals for the two-register branch compare (69.8%, inert), a by-value
-// `Smaller(int,int)` (62.4%, 1604 bytes, drops the reference temps but moves `entries`
-// to 0x14), and `e->x + e->w + 2` vs `e->w + e->x + 2` in the FUN_004c14f0 call (both
-// still load x and w in the opposite order to the original).
-// 2026-10-01 retry 8 (deepseek-v4.1-flash, #3660): best is still 69.8% (the form below).
-// New measurements, all scored:
-//  - The w<h register tie is real and use-count sensitive, but only for a BRANCH-LOCAL
-//    surface. In v1 (branch-local surf) one extra FUN_004b7f90(surf,...) call flips the
-//    allocator exactly as the original wants (surf -> ebp, limit -> a home, probes p3/p4/p6),
-//    while the same extra call on the function-scope surface form (z2) does NOT flip: a
-//    function-scope surface that is live from the top is never a register candidate, so its
-//    use count is irrelevant. The original's w<h surface therefore IS a separate variable.
-//  - q1 (entries/e declared before surface, branch-local surf) reproduces the ORIGINAL
-//    prologue instruction for instruction (surface load 0x4a25b5, store to [esp+0x1c],
-//    entries at [esp+0x18]) but the frame grows to 0x44 because the w<h temps and the h<=w
-//    surf take a fresh [esp+0x20] slot instead of reusing limit's/lc's; the branch-local surf
-//    still loses ebp to limit, 64.7%. Adding the extra use to q1 (q1p) does flip surf to ebp
-//    but the frame/slot order stays wrong (limit at 0x14, lc/temp at 0x10) and the score
-//    falls to 63.9%. So the flip alone is not enough: the original's frame has exactly four
-//    scalar slots (limit 0x10, lc 0x14, entries 0x18, surface 0x1c) and NO slot for the
-//    enregistered surf, which only happens if surf is enregistered without a home.
-//  - Tested and inert: v1/v8/v9/v10/v12/v15/v16, w1 (inline Draw wrapper), w2/w3 (inline
-//    wrapper with its own redundant g!=0 check, the guide's 0x4bcb50 shape), s1/s3
-//    (surf=surf), f3/f4 (folded uses), v14a/b and u1/u2 (uninitialised declarations), v18
-//    (shared function-scope limit), v17 (one surface variable for all three branches), v19
-//    (separate function-scope vsurf for the branch only), v20 (inline Surface(obj) getter),
-//    v21 (branch-local named surface, shadowing), v22 (whole w<h branch in an inline helper
-//    taking the surface as a parameter), declaration order permutations o1-o4, q1-q3, z1,
-//    r1 (lc declared first), x1/x2 (short operands, flipped condition), v11a/v11b (hoisted
-//    limit/lc), w3/m1/m2 (Min by reference, i.e. inline-if min shape), m3.
-//  - p7 (an extra real use of limit in the loop test) does NOT flip it either, so the tie is
-//    not a plain use count of the two variables; the p3/p4/p6 flips changed a whole block's
-//    shape, not just a count.
-// Remaining gap: the w<h branch wants its own surface variable enregistered in ebp with no
-// frame home, so limit/lc/lim2 stay in the 0x10/0x14 slots and the inline-if min shape
-// (not the Smaller reference shape the current 69.8% uses) can match. A natural construct
-// that gives that variable one more counted use without emitting code (the guide's 0x4bcb50
-// pattern) is still missing.
-// 2026-10-01 retry 7 (deepseek-v4.1-flash, #3660): kept 69.8%. New measurements, all scored:
-//  - declaring `entries` first and initialising `surface` from it compiles byte-identically
-//    to the stored form (1631 bytes, same slots: surface 0x10, lc 0x14, entries 0x18, min
-//    temp 0x1c, loop pointer in the freed index home 0x58), so the declaration order of the
-//    two entry pointers is not a lever.
-//  - deferring the surface definition to a plain assignment after `e = &entries[index]`
-//    (tested with the declaration first and after e) reproduces the ORIGINAL prologue
-//    instruction for instruction through 0x4a25a1 (entries), the lea chain, 0x4a25b5 (load)
-//    and 0x4a25c2 (store), but the allocator then homes `surface` in the freed index home
-//    [esp+0x58] and gives the loop pointer [esp+0x14]: the exact swap of the original, 67.6%.
-//    Adding hoisted `int limit; int lc;` (with or without forced initial values, which get
-//    dead-code eliminated) on top is still 67.6% / 69.8% and does not move the surface.
-//  - an explicit `Entry_004a2580* p = &entries[1]` walking pointer drops to 55.1%.
-//  - a by-value `inline int Smaller(int,int)` (instead of the const int& form) drops to
-//    62.4% with 1604 bytes: the reference form is what produces the shared 26-byte _itoa tail.
-// Remaining gap: the allocator's home for the function-scope `surface`, ours [esp+0x10] and
-// the original [esp+0x1c] (which in the original frees 0x10 for the w<h `limit`, keeps the
-// reloaded surface in ebp through that branch and leaves no min temp at 0x1c).
-// 2026-10-01 retry 6 (deepseek-v4.1-flash): six more levers tested, none beat 69.8%.
-// Hoisting limit/lc as function-scope locals before entries/surface (the slot order the
-// original shows is limit 0x00, lc 0x04, entries 0x08, surface 0x0c) gives 67.6%: the surface
-// then lands in the freed index home [esp+0x58] and the scan loop pointer takes its frame slot.
-// Reordering the prologue so entries/e are computed before the surface load gives 67.6% too,
-// and adding a fresh branch-local surface in the w<h branch on top gives 64.7%. A fresh w<h
-// branch-local surface alone gives 63.1% whether it is declared before or after `int y = e->y`
-// (it gets a home, local 0x0c, instead of ebp); naming the branch test operands `short w/h`
-// gives 62.6%; plain ifs instead of Smaller() in the lc/lim2 block give 62.4% (1604 bytes, the
-// shared 26-byte _itoa tail merge is lost); a plain if for lc only gives 62.3% (1616 bytes);
-// moving the h<=w surf declaration after x/y gives 58.4%. Conclusion: in the original the
-// function-scope surface keeps slot 0x0c while the w<h branch draws through a register (ebp)
-// copy, and MSVC only awards that register when the branch variable has no stack home, which
-// our formulations never achieve (they either keep the home or spend a local frame slot).
-// 2026-10-01 retry 5 (deepseek-v4.1-flash): best stays 69.8%, 1631 bytes. A fresh branch-local surface (with and without a const function-scope surface) gives 63.1%; hoisting function-scope `int limit; int lc;` before entries/surface lands the surface in the freed [esp+0x58] home at 67.6%; the w<h test cast to unsigned short is byte-identical. Still differs: surface home [esp+0x10] vs the original [esp+0x1c] and the w<h register split (surface in ebp vs our stack home).
-// Sonnet 5.5 (#3246): re-checked 69.8%. Turning r1/r2/rect from int[4] into a `Rect` struct (and
-// the callee parameters to Rect*) is byte-identical, so the frame/slot differences are not an
-// array-versus-struct question.
-//
-// 2026-10-01 (deepseek-v4.1-flash, 67.5 -> 69.8, both 1631 bytes): the 26-byte
-// gap was the _itoa dispatch. Splitting the value computation into three
-// separate `_itoa(...)` calls (float path, flags&8 path, plain off path)
-// instead of computing a single `int v` first reproduces the original's
-// tail-merged shared `call _itoa` and closes the byte count. Still differs
-// (not byte-identical): the frame slot for the function-scope `surface` is
-// [esp+0x10] in ours versus [esp+0x1c] in the original (original keeps w<h
-// `limit` at [esp+0x10] and the branch surface/lc at [esp+0x14] with
-// `entries` at [esp+0x18]); in the w<h branch the original keeps the reloaded
-// surface in ebp and reloads obj from [esp+0x54] afterwards. Reordering the
-// surface/entries declarations was tried and does not move the slot.
-//
-// 2026-09-30 retry (deepseek-v4.1-flash, 67.5%): tested two more allocator
-// levers, neither beat 67.5%, so kept the current form. Declaring `entries`
-// then `surface` (vB) gives 65.2%, declaring a function-scope `int limit`
-// before `surface` (vC) is identical at 67.5%. The surface load is scheduled
-// at function entry no matter where its declaration sits. Still differs: the
-// original homes `surface` at [esp+0x1c] and keeps it in ebp through the w<h
-// branch, while ours homes it at [esp+0x10] and keeps `limit` in ebp; the
-// branch test operand order (`mov cx,[w]; mov dx,[h]` vs ours
-// `mov cx,[h]; cmp [w],cx`) and the missing 26 bytes in the flags&4 block
-// (the three _itoa setups do not tail-merge) remain.
-//
-// 2026-09-30 (deepseek-v4.1): 65.2 -> 67.5 by declaring the function-scope
-// `void* surface` FIRST among the locals (before `entries`/`e`), so it is
-// loaded at entry into a real frame slot ([esp+0x10] for us; the original
-// keeps it at [esp+0x1c]) instead of the freed index home [esp+0x58]. Slot
-// choice for spilled locals is declaration-order sensitive here: moving an
-// unrelated branch local's declaration earlier (`int limit` before `surf` in
-// the h<=w branch) drops to 54.5%, `int n/i` before surface gives 67.3%, a
-// fresh per-branch surface local gives 62.3%, one hoisted shared `int limit`
-// is neutral at 65.2. Still differs (1605 bytes against 1631):
-//  - w<h branch: ours spills its surface to [esp+0x58] and keeps `limit` in
-//    ebp; the original keeps the surface in ebp, `limit` at [esp+0x10] and
-//    the glyph pointers at [esp+0x58] (the freed index home).
-//  - the w<h test: original `mov cx,[w]; mov dx,[h]; cmp cx,dx; jge`, ours
-//    `mov cx,[h]; cmp [w],cx; jge` (flipping `<` to `>` was tried, no change).
-//  - h<=w branch: our spare slot assignments ([esp+0x14] for both the w<h
-//    limit and the h<=w surf) differ from the original's [esp+0x10] limit /
-//    [esp+0x14] surf pattern.
-//  - 26 bytes short, mostly in the flags&4 block, where the three _itoa
-//    argument setups do not tail-merge the way the original's do.
-// Retry 2026-09-30 (deepseek-v4.1-flash): kept the 65.2% v11 form. Re-tested
-// moving the function-scope `surface` load down to just before FUN_004a23b0
-// (the point of first use), which drops to 63.9%, so reverted. No new lever
-// found; remaining diff is the two-slot swap described below plus the w<h
-// branch keeping obj in ebp instead of the branch surface.
-// Gave up near 62.3% (1605 bytes against 1631). Reload glyph pointers
-// after callbacks. Reference-returning minimum helpers recover remaining-count
-// stores, and shared glyph locals improve allocation. Remaining extra frame
-// slot, glyph spills, and branch/scheduling differences.
-//
-// 2026-09-30 (deepseek-v4.1), 61.3% -> 62.3%: give each branch its own
-// `void* surf` local instead of one function-scope one. That puts the h<=w
-// surface at [esp+0x14] (frame 0x04, shared with lc) and the glyph pointers in
-// the dead index home slot [esp+0x58], exactly as the original. Source kept as
-// build/scratch/0x4a2580/v3.cpp.
-//
-// 2026-09-30 (deepseek-v4.1), 62.3% -> 65.2%: the w<h branch must not declare
-// its own `void* surf`; assign the function-scope `surface` instead
-// (`surface = obj->holder->entries->u.head.surface;`) and draw through it.
-// That removes the extra frame dword (frame is now 0x40, buf at [esp+0x20] as
-// in the original) and kills the whole +4 offset family of diffs. Source kept
-// as build/scratch/0x4a2580/v11.cpp. Doing the same in the h<=w branch drops to
-// 60.1% (v12), and dropping the reload chain in w<h drops to 52.8% (v13), so
-// only the w<h branch wants this form.
-//
-// 2026-09-30 (deepseek-v4.1), retried four allocator levers, all worse than the
-// 65.2% above, so the file keeps the v11 form:
-//  - w<h with its own `void* vsurf` local (the ebp surface the original shows):
-//    62.3%. Same for a distinct local name; a shared local is what the
-//    allocator awards the freed param home slot.
-//  - `surface` declared after the loop counters: 64.8%, slot assignment
-//    unchanged ([esp+0x58] surface, [esp+0x14] walking pointer).
-//  - `(int)e->w < (int)e->h` and `e->h > e->w`: 64.8%, same single hunk.
-//  - explicit `Entry_004a2580* p = entries;` used by the scan loop: identical
-//    codegen, p is optimised into the same induction pointer.
-// The original's `mov cx,[w]; mov dx,[h]; cmp cx,dx` versus ours
-// `mov cx,[h]; cmp [w],cx` is not steerable from the condition text; it is the
-// same global allocation choice that puts surface at [esp+0x1c] there and
-// [esp+0x58] here (the freed `index` home slot), so ebp keeps obj here and
-// holds the branch surface there.
-// Still differs (1605 bytes against 1631):
-//  - slot swap: the original homes the loop's walking entry pointer at the dead
-//    index slot [esp+0x58] and `surface` at [esp+0x1c]; ours homes `surface` at
-//    [esp+0x58] and the pointer at [esp+0x14]. The original keeps the w<h
-//    surface in ebp (and reloads the obj parameter into ebp after the branch at
-//    0x4a29ef) while ours spills it to [esp+0x58] and keeps `limit` in ebp.
-//    Writing `limit`/`t` as plain ifs instead of the Smaller() helper removes
-//    the reference temps but not the extra allocation (56.1%), so this is the
-//    allocator's pick, not a source-order lever.
-//  - the branch test: original is `mov cx,[ebx+0x17]; mov dx,[ebx+0x19];
-//    cmp cx,dx; jge` (both operands in registers), ours loads h into cx and
-//    compares w from memory; flipping `<` to `>` did not change it.
-//  - ours is 26 bytes shorter, most of it in the flags&4 block (the -430/+434
-//    hunk), where the two _itoa call sites are not fully tail-merged.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5, finished by claude-opus-5-5, finished by DeepSeek V4.1 Flash, finished by Space Bunny Free, finished by claude-opus-5-5. Names are provisional.
+// 2026-10-03 (claude-opus-5-5): MATCH. The last residual (the w<h arm's two
+// frame slots swapped: lc nearest esp here, limit/lim2 nearest in the original)
+// was variable identity, not spelling:
+//  - the function has ONE glyph pointer, `g`, reused for every glyph it fetches
+//    (no separate mid/first/last), and the w<h arm has ONE `limit`, reused for
+//    the clamped bound of its second stack (the old `lim2`);
+//  - MSVC 5 packs spilled variables into shared frame slots per variable, so
+//    the merged `limit` is heavy enough to take the nearest slot before `lc`,
+//    and the merged `g` is heavier still and keeps the dead `index` home that
+//    the glyph pointers use. Merging only limit/lim2 sent limit to the `index`
+//    home (94.6%); merging only the glyph pointers changed nothing (96.8%).
+// The three clamps are now all the <windows.h> min() macro (<ddraw.h> pulls it
+// in); the old "add edi,-2 needs double evaluation" note no longer applies, a
+// plain if for `a` matches too.
+// FUN_004a2480, the function just before this one in the exe, is defined above
+// without an annotation (it has its own file). It replaces the old unused
+// `int b;` local and unused Smaller() helper: like them it only moves MSVC's
+// symbol counter, which decides a tie in the lc computation (filler sweeps show
+// a period of 32 global declarations, half of them matching). The old pair
+// still matches in place of the predecessor; with neither, the lc lines come
+// out reordered (91.9%). With FUN_004a23b0 defined above it as well, both predecessors
+// reproduce their own bytes here but this function drops to 91.5%; this file's
+// copy of FUN_004a2480 compiles to 84.1% of its original, which only says the
+// TU state differs.
 #include <ddraw.h>
 #include <string.h>
 #include <stdlib.h>
@@ -427,26 +111,77 @@ void __stdcall FUN_004c14f0(void* surface, char* text, int x, int y, int maxw);
 void __stdcall FUN_004bfe10(void* surface, void* rect);
 void __stdcall FUN_004bf4d0(void* surface, void* rect, int a);
 
-// No longer called (the two minimums are a ternary and a min() now), but it has
-// to stay: deleting this unused helper changes MSVC's frame layout and the
-// function drops to 89.4%.
-static inline const int& Smaller(const int& a, const int& b) { return a < b ? a : b; }
 
 static inline void* Surface_004a2580(Object_004a2580* o)
 {
     return o->holder->entries->u.head.surface;
 }
+
+// FUN_004a2480 (src/unsorted/0x4a2480.cpp), the preceding function in the
+// exe, copied here without its annotation: see the note at the top.
+#pragma pack(push, 1)
+struct Entry_004a2480 {
+    char unknown_0[0x13];
+    short x;                           // +0x13
+    short y;                           // +0x15
+    short w;                           // +0x17
+    short h;                           // +0x19
+    char unknown_1b[0xbc - 0x1b];
+    void* surface;                     // +0xbc
+    char unknown_c0[0x13a - 0xc0];
+    unsigned short* glyphs;            // +0x13a
+    char unknown_13e[0x15b - 0x13e];
+};
+#pragma pack(pop)
+
+struct Holder_004a2480 {
+    char unknown_0[4];
+    Entry_004a2480* entries;           // +0x4
+};
+
+#pragma pack(push, 1)
+struct Class_004a2480 {
+    char unknown_0[0x18];
+    Holder_004a2480* holder;           // +0x18
+};
+#pragma pack(pop)
+
+
+void __stdcall FUN_004a2480(Class_004a2480* param_1, int index)
+{
+    Entry_004a2480* base = param_1->holder->entries;
+    void* surface = base->surface;
+    Entry_004a2480* e = &base[index];
+    unsigned short* glyphs = e->glyphs;
+    Glyph_004a2580* glyph = FUN_004b7f30(glyphs, 0);
+    int x = e->x;
+    int y = e->y + e->h / 2;
+    if (glyph != 0)
+        y -= glyph->height / 2;
+    else
+        y = e->y;
+    int limit = e->x + e->w;
+    if (glyph != 0)
+        FUN_004b7f90(surface, glyph, x, y);
+    x += glyph->width;
+    Glyph_004a2580* mid = FUN_004b7f30(glyphs, 1);
+    if (x + mid->width < limit) {
+        do {
+            FUN_004b7f90(surface, mid, x, y);
+            x += mid->width;
+        } while (x + mid->width < limit);
+    }
+    Glyph_004a2580* last = FUN_004b7f30(glyphs, 2);
+    FUN_004b7f90(surface, last, limit - last->width, y);
+}
+
 // FUNCTION: 0x4a2580
 void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
 {
-    // Unused local kept for the frame layout: with it the frame is the original's
-    // 0x40 with entries at [esp+0x18] and surface at [esp+0x1c]; without it (89.0%).
-    int b;
     Entry_004a2580* entries = obj->holder->entries;
     Entry_004a2580* e = &entries[index];
     void* surface = Surface_004a2580(obj);
     Glyph_004a2580* g;
-    Glyph_004a2580* mid;
 
     int n = 0;
     int i = 1;
@@ -482,59 +217,55 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
             if (g != 0)
                 FUN_004b7f90(surf, g, x, y);
             y += g->height;
-            mid = FUN_004b7f30(e->glyphs, e->field_152 + 1);
-            while (y + mid->height <= limit) {
-                FUN_004b7f90(surf, mid, x, y);
-                y += mid->height;
+            g = FUN_004b7f30(e->glyphs, e->field_152 + 1);
+            while (y + g->height <= limit) {
+                FUN_004b7f90(surf, g, x, y);
+                y += g->height;
             }
-            Glyph_004a2580* last = FUN_004b7f30(e->glyphs, e->field_152 + 2);
-            FUN_004b7f90(surf, last, x, limit - last->height + 1);
-            x += last->width / 2;
+            g = FUN_004b7f30(e->glyphs, e->field_152 + 2);
+            FUN_004b7f90(surf, g, x, limit - g->height + 1);
+            x += g->width / 2;
             g = FUN_004b7f30(e->glyphs, e->field_152 + 3);
             x -= g->width / 2;
             int ybase = e->off + e->y + 3;
-            int lc = (e->h - 6 < e->size) ? e->h - 6 : e->size;
-            int lim2 = lc + ybase - 1;
+            int lc = min(e->h - 6, e->size);
+            limit = lc + ybase - 1;
             int t = e->h + e->y - 4;
-            if (lim2 >= t)
-                lim2 = t;
-            if (ybase > lim2 - lc + 1)
-                ybase = lim2 - lc + 1;
+            limit = min(limit, t);
+            if (ybase > limit - lc + 1)
+                ybase = limit - lc + 1;
             FUN_004b7f90(surf, g, x, ybase);
             lc -= g->height;
             ybase += g->height;
-            mid = FUN_004b7f30(e->glyphs, e->field_152 + 4);
-            while (ybase <= lim2 - mid->height) {
-                FUN_004b7f90(surf, mid, x, ybase);
-                ybase += mid->height;
-                lc -= mid->height;
+            g = FUN_004b7f30(e->glyphs, e->field_152 + 4);
+            while (ybase <= limit - g->height) {
+                FUN_004b7f90(surf, g, x, ybase);
+                ybase += g->height;
+                lc -= g->height;
             }
-            FUN_004b7f90(surf, mid, x, lim2 - mid->height);
+            FUN_004b7f90(surf, g, x, limit - g->height);
             g = FUN_004b7f30(e->glyphs, e->field_152 + 5);
-            FUN_004b7f90(surf, g, x, lim2 - g->height + 1);
+            FUN_004b7f90(surf, g, x, limit - g->height + 1);
         } else {
             void* surf = Surface_004a2580(obj);
             int x = e->x;
             int y = e->y;
             int limit = x + e->w - 1;
-            Glyph_004a2580* first = FUN_004b7f30(e->glyphs, e->field_152);
-            if (first != 0)
-                FUN_004b7f90(surf, first, x, y);
-            x += first->width;
-            mid = FUN_004b7f30(e->glyphs, e->field_152 + 1);
-            while (x + mid->width <= limit) {
-                FUN_004b7f90(surf, mid, x, y);
-                x += mid->width;
+            g = FUN_004b7f30(e->glyphs, e->field_152);
+            if (g != 0)
+                FUN_004b7f90(surf, g, x, y);
+            x += g->width;
+            g = FUN_004b7f30(e->glyphs, e->field_152 + 1);
+            while (x + g->width <= limit) {
+                FUN_004b7f90(surf, g, x, y);
+                x += g->width;
             }
-            Glyph_004a2580* last = FUN_004b7f30(e->glyphs, e->field_152 + 2);
-            FUN_004b7f90(surf, last, limit - last->width + 1, y);
-            y += last->height / 2;
+            g = FUN_004b7f30(e->glyphs, e->field_152 + 2);
+            FUN_004b7f90(surf, g, limit - g->width + 1, y);
+            y += g->height / 2;
             g = FUN_004b7f30(e->glyphs, e->field_152 + 3);
             y -= g->height / 2;
             int a = e->off + e->x + 3;
-            // min() is the <windows.h> macro (<ddraw.h> pulls it in): it evaluates
-            // `limit - g->width - 2` twice, and that is what makes MSVC emit the
-            // original's `sub edi, edx / add edi, -2` instead of `sub edi, 2`.
             a = min(a, limit - g->width - 2);
             FUN_004b7f90(surf, g, a, y);
         }

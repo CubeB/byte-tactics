@@ -1,4 +1,7 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6. Names are provisional.
+// Codex GPT-6 retry for #5213 (2026-10-03): `/Gi` drops this function
+// to 69.5%; the 94.6% default-flags version and prior inlining-budget
+// and sibling-shape findings remain best.
 // Claude Opus 5.5, #5142: 92.2% -> 94.6% (1055 bytes against 1051), with no
 // Dummy() padding. Case 1's body is an inline helper, Patrol(), called as
 // `int result=Patrol(unit,order,flags); return result;`, and the visitor is

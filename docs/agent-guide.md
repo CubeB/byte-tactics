@@ -604,6 +604,17 @@ effect, the missing piece is usually a helper that was inlined:
   registers differ, throwaway probes can show how many extra temporaries the
   original had around a test (0x410850 needs one or two before its health
   test and one after; see its notes and `tools/c2prio.py --rotation`) (#5366).
+- **Two labels on one shared return move C2's region split**: in 0x4a3780 the
+  shared `return 1` got two labels inside the 0x40 `if` (`above: ret1: return
+  1;`), with one exit going to each. The empty `above:` block survives to
+  register allocation, so C2's region split lands at its end, where `obj` is
+  not live, and `obj` keeps esi. Jump-only trampolines (`fail: goto ret1;`) do
+  nothing, because C2 threads them away first (#5363).
+- **Split pieces race separately from first-pass priorities**: in 0x458fa0
+  the view/info race was decided between their split pieces, which
+  `--blocks` does not show. Assigning a pointer in both arms of an if/else
+  (`f = info->faces + 1;` / `f = info->faces;`) tied info's piece with view's
+  and coloured it first (#5398).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

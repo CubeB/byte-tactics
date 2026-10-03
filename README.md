@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**85.22% of Cavedog's code matched** (725,099 of 850,853 bytes)
+**85.28% of Cavedog's code matched** (725,631 of 850,853 bytes)
 
 `[##################################------]`
 
-By count that is 3,161 of the game's 3,267 functions (96.8%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,162 of the game's 3,267 functions (96.8%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,161 | 725,099 |
-| Attempted, not yet matching | 106 | 125,754 |
+| Matched byte-for-byte | 3,162 | 725,631 |
+| Attempted, not yet matching | 105 | 125,222 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -37,7 +37,7 @@ The size bands are the `size:` labels on the issues.
 | small (1 to 64 bytes) | 1,155 of 1,155 | 100.0% | 0 | `##########` |
 | medium (65 to 160 bytes) | 825 of 827 | 99.7% | 245 | `##########` |
 | large (161 to 400 bytes) | 693 of 703 | 98.4% | 2,847 | `##########` |
-| xl (401 to 600 bytes) | 210 of 226 | 92.7% | 8,030 | `#########-` |
+| xl (401 to 600 bytes) | 211 of 226 | 93.2% | 7,498 | `#########-` |
 | xxl (601 to 1,000 bytes) | 165 of 195 | 84.4% | 22,980 | `########--` |
 | huge (over 1,000 bytes) | 113 of 161 | 68.6% | 91,652 | `#######---` |
 
@@ -49,7 +49,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 
 | Addresses | Area | Functions matched | Bytes matched | Bytes left | |
 | --- | --- | ---: | ---: | ---: | --- |
-| `0x400000` | Unit orders and unit AI | 201 of 210 | 84.7% | 9,312 | `########--` |
+| `0x400000` | Unit orders and unit AI | 202 of 210 | 85.6% | 8,780 | `#########-` |
 | `0x410000` | Orders and VTOL states | 213 of 222 | 78.0% | 14,015 | `########--` |
 | `0x420000` | Frontend shell | 148 of 154 | 80.3% | 12,547 | `########--` |
 | `0x430000` | Maps, missions, briefings | 220 of 228 | 85.7% | 8,623 | `#########-` |

@@ -5,6 +5,8 @@
 // GPT-6 retry (#5232): rechecked at 99.2%; the MAP call still pushes ebp.
 // #5316 Codex retry: re-confirmed 99.2%; the MAP body's constant push remains
 // in the ebp live range, as described by the C2 trace below.
+// #5341 retry: reversing the f97 MAP-view branch scored 97.0%, so the original
+// 99.2% source is restored; the immediate-versus-ebp push remains.
 // Battle room button handler: per player slot LOGO, PLAYER, SIDE, ALLY,
 // TEAMICONS, RES and READY, then PREVMENU, MESSAGE, COMMANDER, LOSTYPE,
 // WATCHING, CHEATING, FIXEDLOC, MAPPING, START, GAMEOPEN, RESTRICTIONS and

@@ -154,7 +154,7 @@ register from the rules above and compare.
 | straight-line, calls between uses (2 to 5 locals, 0 to 5 extra uses each, random definition order) | priority = reference count in one block; ties by first appearance; esi, edi, ebx, ebp; fifth local in memory | 820 of 820 |
 | straight-line leaf code (2 to 6 locals loaded from globals, 1 to 5 uses each) | same ranking onto eax, ecx, edx, esi, edi, ebx | 460 of 460 |
 | ties with declaration order reversed, definition order reversed, and use order reversed | first appearance in code wins, declaration order does not matter | 5 of 5 |
-| the same tie after 0 to 69 unused `extern` declarations | ties do not depend on earlier symbols | 70 of 70 stable |
+| the same tie after 0 to 69 unused `extern` declarations | ties do not depend on earlier symbols | 70 of 70 stable, but too short a range: in 0x487080 the pattern changes at fixed symbol-count thresholds (286 and 798 externs there), so scan a wide range of dummy declarations before ruling symbol count out |
 | scratch rotation (four `G[i] = G[j] + k` statements; the same through a pointer held in eax) | eax, ecx, edx, eax; and ecx, edx, ecx, edx when eax is taken | as predicted |
 | loop weighting (one local used k times in a loop, its rival N times before it) | a loop reference is worth several straight-line ones | see below |
 
@@ -221,13 +221,15 @@ validation suite. What the model says about them:
   level and `K(b)` is large there). A version with the same weights and no
   extra test would need another way to add loop-weighted references to bestidx
   and best, or to remove references to `this` inside the loop.
-- **0x487080** (one step of the bit-copy chain on edx instead of ecx): this is
-  the temporary rotation, not the global allocator. Each step's temporary takes
-  the next free scratch register after the previous one, so the original has
-  one extra or one fewer temporary (or a hinted copy) earlier in the
-  function than ours. Count the temporaries the original creates before the
-  chain, including ones that emit no code. (A hypothesis from the rule, not
-  tested on the file.)
+- **0x487080** (one step of the bit-copy chain on edx instead of ecx):
+  MATCHED in #5156, and the hypothesis above it was wrong. Removing any one of
+  the 23 calls and copies before the chain, or adding code-free temporaries,
+  left the chain's registers unchanged, so it is not the temporary rotation.
+  The edx step is the one where the `or` keeps its result in the old flags
+  register, and it is set by the chain's own spelling (the record's 12-bit block
+  layout from the matched save function 0x4876c0 put it on the original's step)
+  and by the number of symbols declared before the function, which changes the
+  pattern at fixed thresholds (an `extern int` counts 1, a one-member struct 7).
 - **0x4a3780** (`flags` in a register against in memory): `flags` wins a
   register because `flag8`'s loop uses share it at the in-place shift. In the
   original it stays in memory, so its priority there must be below the

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by claude-opus-5-5. re-verified by GPT-6. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by claude-opus-5-5, re-verified by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 //
 // Builds the "lens" displacement frame that 0x420620 asks for with
 // (22, 22, 8): a GAF-style frame header with two w*h buffers of 16-bit cells.
@@ -22,7 +22,7 @@
 //    there is no walking pointer and no folding of the 0x18 header into the
 //    index. A base accumulator gave either a walking pointer or a
 //    base-starts-at-12 fold in every spelling.
-//  - The falloff branch computes `int i = y * w + x;` FIRST, before g. That
+//  - The falloff branch computes `int i = y * w + x;` FIRST, before the gain. That
 //    is what keeps the index as one value used by both the store address
 //    and the subtraction (`add esi, edi` straight after the fisubr).
 //  - hw and hh are `short` locals and the falloff uses `w / 2 - dist`: the
@@ -30,28 +30,18 @@
 //    are sign-extended at each use. With an int hw, f and w/2 swap the two
 //    dead parameter slots.
 //
-// GPT-6 recheck: no improvement from an inline Centered(y, hh) helper, an
-// inline HalfValue helper for hw/hh, `hh = hh`, or a `register short hh`
-// hint (all byte-identical at 99.3%). A named row = y * w local changes
-// index lowering and falls to 59.5%, so keep the direct y * w + x form.
-// What still differs: one instruction pair. After the inner loop the
-// original restores the outer-loop registers in the order hw (ebx),
-// hh (edx), y (eax), f (ecx); this file restores hh last
-// (ebx, eax, ecx, edx). Measured, none of which gives the original's order
-// (each keeps 99.3% or loses points): every order of the six set-up
-// statements, int or short hw/hh with and without (short) casts, w / 2 or
-// hw in the falloff and the f->x store, h / 2 or hh in the f->y store,
-// declaring f/p/hw/hh/y up front in all 120 orders, dy as a variable or
-// repeated, and a second pointer variable for the alloc result (that one
-// reverses the restore order to edx, ecx, eax, ebx and loses 50 points).
-// Also flat: loop and compare spellings, the value expression in ten
-// groupings, y * w + x operand orders, /Gi (95.9%), and a 15-minute permuter
-// run from this file (8531 candidates, no gain). The order looks like the
-// outer-region allocation priority: writing the halving as
-// `f->width = (unsigned short)(w * 2) / 2` (one f reference fewer) moves f
-// to the end (ebx, eax, edx, ecx) but breaks the prologue (80.3%). So the
-// original needs f a little lower and hh a little higher than here; the
-// construct that does that is the lead for the next attempt.
+// MATCH (Claude Opus 5.5, #5147). The last difference was the order of the
+// four reloads after the inner loop (hw, hh, y, f in the original). C2 emits
+// those reloads in the order of the split pieces' candidate ids, and the
+// pieces take their ids from a stack of freed ids, so the order is set by
+// which candidates exist and when they are freed, not by priorities. The
+// named `double g` was one candidate too many: writing the gain
+// `(w / 2 - dist) / scale` at both uses (C2 computes it once anyway) drops
+// it, every later candidate id moves down by one, and the pieces come out
+// as hw 3, hh 11, y 22, f 23 (c2prio.py --json), the original's order.
+// Earlier notes: an inline helper for hw/hh, `register` hints,
+// statement and declaration orders, renaming locals and dummy declarations
+// were all byte-identical at 99.3%; /Gi was 95.9%.
 #include <math.h>
 
 struct Bitmap_004b8e00 {
@@ -110,8 +100,8 @@ void* __stdcall FUN_004b91b0(int w, int h, int lens)
                 p[y * w + x] = 0x7d00;
             } else {
                 int i = y * w + x;
-                double g = (w / 2 - dist) / scale;
-                int v = (int)(dx / g) + (w * ((int)(dy / g) + hh) + hw);
+                int v = (int)(dx / ((w / 2 - dist) / scale))
+                        + (w * ((int)(dy / ((w / 2 - dist) / scale)) + hh) + hw);
                 p[i] = v - i;
             }
         }

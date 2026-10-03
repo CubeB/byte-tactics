@@ -79,6 +79,8 @@
 // GPT-6 retry (#5217): rechecked the 94.2% source and retried `index=next`;
 // that still gives the right-walk candidate priority too early and drops to
 // 42.0%, with wide register and stack changes. Restored the 94.2% version.
+// #5376 retry: re-confirmed 94.2%; the right-walk head and frame-layout
+// allocation conflict remains unchanged.
 // #5354 retry: re-confirmed the current best at 94.2%; the right-walk head
 // still cannot match both the register order and the frame layout together.
 

@@ -1,4 +1,13 @@
 // Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
+// #5201 Claude Opus 5.5 (no gain, 76.6% kept). The original's order, traced
+// on its x87 stack: a = v[0] (fstp 0x4c..0x54), b = v[1] (0x40..0x48),
+// c = v[2] (0x58..0x60), all nine fild in address order, and the first
+// call's `sub esp, 0xc` pair comes before the first fild. Tried, all with
+// a, b, c as 12-byte objects and the calls written on them, all serialised
+// at 44.7% to 48.9%: a POD Vec3f with aggregate initialisation
+// (`Vec3f a = { v[0].x * k, ... }`, abc and bac order), `const Vec3f&`
+// bound to constructor temporaries and to an inline Scale() result, and
+// Vec3f values from Scale() (by member stores or by `return Vec3f(...)`).
 // #5167 Claude Opus 5.5: 75.0% to 76.6%: the nine scaled floats are held
 // in three float[3] arrays (b, a, c) instead of three Vec3f structs (76.0)
 // and <minmax.h> is included (76.6, see below); the

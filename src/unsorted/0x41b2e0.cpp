@@ -1,5 +1,29 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
+// #5201 Claude Opus 5.5 (no gain committed; 93.2% from src/unsorted, 94.9%
+// from a scratch path). The source shape is right and this TU is probably
+// not /Gi: with the FLAGS line removed (32.7% as it stands) and N unused
+// `extern int` declarations in front of `g_game`, this exact file MATCHES
+// for N = 31904..31935, 31968..31999, 32032..32063, 32096..32127 and
+// 32160..32179 (a period-64 pattern; checked from two directories), and
+// scores 86% to 98.8% for N from about 4096 to 32880. So it is a symbol
+// numbering state (symbol ids behave mod 65536 here, see 0x424c00), which
+// /Gi only approximates. No real header set reaches it yet: headers.py
+// --cpp (1536 sets) and 600 random sets of 1-3 C++ plus 0-4 C headers on
+// top of <vector> <windows.h> give 88.0% at best. With <stdio.h>
+// <string.h> instead the window is at N = 63744..64000 (so about 1600
+// fewer symbols than those two headers would do); with no headers and
+// sprintf/strncpy declared by hand the file is already about 750 past it
+// (44.3%); <stdio.h> <windows.h> puts the band end near N = 36000. Dummy
+// declarations are not to be committed, so the /Gi version stays.
+// The tail difference under /Gi is the operand order
+// of each bitfield store's OR (Ghidra shows `old & mask | v << n` for
+// cloak, onOff, canAttack and canMove, `v << n | old` for the rest; ours is
+// `v << n | old` for all). Byte-identical: canMove/canAttack set through an
+// inline Set(int*) or Set(int&), an unused `&canMove`, and declaring
+// cloak/onOff/canMove/canAttack (or all of the first block) before
+// `g_game->orders.refresh = 1`. c2prio: every flag splits, the tail pieces
+// are coloured eax.
 // #5167 Claude Opus 5.5 (no gain; 2 diff hunks from a long path, the four
 // tail bit writes): c2prio --trace shows all eleven flags split when
 // fireOrder takes ebx, and every flag's tail piece is coloured eax (priority

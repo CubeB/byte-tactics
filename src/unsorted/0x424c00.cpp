@@ -1,236 +1,54 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
-// FLAGS: /Gi
-// #5167 Claude Opus 5.5 (no gain, 83.6% kept). Findings for the next try:
-//  - Inline budget, logged from C2 (build/scratch/common/mkinline.py writes
-//    c2inline.py, a copy of tools/c2prio.py that breaks at 0x42491e,
-//    0x424eef and 0x424f95; the callee's IL size is the low 16 bits of
-//    [ebx+0x64]). With the real <vector> (no hand-written specialisations)
-//    and plain `remap.resize(count)` / `remap.resize(featureCount)`, the
-//    first resize already comes out exactly like the original (size() inline
-//    twice; insert, size and erase out of line: share (2024-115)/18 = 106,
-//    size() costs 43, erase 70) and FreeFeatureList's _Destroy is out of
-//    line too. Only the second resize differs: the original inlines its
-//    erase (copy and _Destroy out of line), ours keeps erase out of line
-//    because 47 is left of a (1351-115)/7 = 176 share after three size()
-//    calls. That needs one fewer depth-1 site after it (R 6) or a function
-//    IL size of at least 1117 (this spelling: 1038). The register allocation
-//    of that real-STL version (build/scratch/0x424c00/r1.cpp, 51.5%) is far
-//    from this file's, so it was not pursued; the hand-written vector here
-//    gives the same out-of-line calls.
-//  - Tail: all three record loops in the original are plain
-//    `for (k = 0; k < n; k++)` loops turned into countdowns (edi = k*size,
-//    ebx = count down from n, esi = cell), with `file` in ebp, which is only
-//    possible once c, the offset and the countdown hold esi, edi and ebx.
-//    c2prio --trace on the plain-loop spelling (p1.cpp, 64.2%) shows why it
-//    goes wrong: `file` can only have ebx or ebp for its whole range (the
-//    names section's rep movsd takes esi/edi), the Normal and 3D countdowns
-//    take ebx, then the names-loop i takes ebp and `file` is split; its tail
-//    pieces get esi around the cell and the Animating countdown (priority
-//    -59, below i's -41) is left with ebp. A copy of file for the tail, or
-//    any declaration order of k/n/got (16 variants), compiles to the same.
-//  - Permuter: 16 min from this file (13031 candidates) found nothing; 18
-//    min from the plain-loop spelling went 64.2% to 80.4% by putting a
-//    Below-style helper back into the Normal loop. Header sweep: flat.
-//  - FreeFeatureList: the 0x4223e0 spelling (`v = DAT; if (DAT) {
-//    DAT->~vector(); operator delete(v); }`) with either vector gives
-//    `this` its own callee-saved register; the original's two lea address
-//    registers were not reproduced (same problem as 0x4223e0).
-// #5134 Claude Opus 5.5: 77.4% to 83.6% (1526 bytes against 1496). /Gi is
-// here because this TU's vector<unsigned short>::insert (0x425210, placed
-// right after this function) matches only with /Gi. Under /Gi this file goes
-// from 77.4% to 78.4% (the same from three directories), testing the
-// "Feature Type Names" result directly (no `found` local) gives the
-// original's `test eax,eax` instead of `cmp eax,ebp` (78.6%), and holding
-// each record read's result in a local `got` (found by a permuter run, then
-// applied to all three loops) gives the Anim and 3D loops the original's
-// `test esi,esi` header: 80.4%. Declaring the tail counter before the count
-// (`int k = 0, n = ...`) makes k's zero the pushed default of the first
-// FUN_004b4800 and lines up the names section and the Anim/3D loops: 83.6%.
-// Neighbours
-// 0x422ea0 (81.4%), 0x4224b0 (95.4%) and 0x424050 (99.4%) stop matching under
-// /Gi, so they are another TU or need other spellings there.
-// Under /Gi a plain `for (k = 0; k < n; k++)` Normal loop gives the original's
-// countdown shape (Below leaves a setg/test pair), but the file then drops to
-// 64.2%: the register story below still decides the score.
-// What still differs: after the names loop ours reloads `file` into ebx; the
-// FreeFeatureList inline keeps the list in eax where the original uses ecx,
-// and the original's ~vector computes &_First/&_Last into esi/edi; in the
-// tail the original keeps `file` in ebp (after pushing ebp = 0 as the first
-// default), ours in esi.
-// Tried under /Gi, all lower: one inline helper holding the three tail loops
-// (MSVC does not inline it at all, 834 bytes), `bool found`,
-// `(found = ...) != 0`.
-// fledge-alpha-free: permuter best 77.4% / 1530 bytes (was 69.1% / 1514). What moved it: splitting the Normal tail's loop condition into a helper (Below; removing it drops to 70.4%), splitting the names record loop into do/while with hoisted int j, and int n = ..., k = 0. Still differs: the original reuses ebp as the shared zero and then as `file` across all three tail loops, while ours keeps file in ebx/esi; Below, the do/while, and the found split were the minimal spelling that got the permuter past the register-allocation stall.
-// #4008 deepseek-v4.1-flash (10 min): flat at 69.1% / 1514 bytes. Tested: a Class_004b4ba0* f = file alias for the three tail calls, n declared at function scope, and a live int zero = 0 placed right after the Feature Type Names block feeding the three FUN_004b4800 defaults are all byte-flat. Residual: the original re-zeroes ebp after the names loop so ebp is the shared zero and is then reused for file in all three tail loops; ours keeps file in ebx/esi and rematerialises the zero in edi.
-// #3595 deepseek-v4.1-flash (10 min): re-baselined 69.1%, 1514 bytes. Flat at
-// 69.1: a function-scope int zero = 0 feeding the three FUN_004b4800 defaults,
-// declared either right after FUN_00422ea0 or at the function top. Sharing the
-// first loop's k with the tail loops does not compile (VC5 keeps the for-init
-// k). The post-names join (ebp = 0 reused as file, count in ebx) still differs.
-
-// deepseek-v4.1-flash re-run (third pass), still 69.1% / 1514 bytes. New
-// precise localisation: the compiler already has file in ebp for the first
-// (Normal) tail loop, matching the original, but immediately after that loop
-// it emits `mov ebx, [esp+0xd4]` (reload file into ebx) and swaps the Anim
-// loop to count=ebp / file=ebx, then reloads file into esi for the 3D loop.
-// The original keeps file in ebp for all three loops and the count in ebx.
-// So the residual is not the shared zero alone: the Anim loop's extra live
-// range (the switch/case and spots stores) makes MSC abandon ebp for file.
-// Tried this pass, all scored with check.py (none above 69.1%): distinct
-// count variables per loop (same 69.1%), a function-scope n (same), a
-// top-of-function local `Class_004b4ba0* f = file` used everywhere (58.5%,
-// 1499 bytes), vector names(count, T()) and names(count, empty) (same
-// 69.1%), insert-based construction (48.1%), an if/else-if chain instead of
-// the switch (68.6%, 1507 bytes), and spots + c->spot pointer arithmetic
-// (same). Variants in build/scratch/0x424c00/.
-// Partial: 69.1%, 1514 bytes versus 1496. Names allocation keeps its
-// result in EDI and rematerializes zero inside the fill loop; the original
-// uses EAX as the fill cursor and reloads EDI afterward. Feature-list
-// destruction and subsequent record-loop registers also differ. Twelve
-// allocator ABI variants and twelve native vector fill variants did not
-// improve it. The specialized remap members retain the original inline split.
-// Rechecked by deepseek-v4.1-flash: call census is EXACT (22 calls, all 26
-// references agree) and the frame sub esp,0xc0 already matches. Residual is
-// the allocator's choice of the shared zero: the original resets ebp=0 right
-// after the Feature Type Names block (0x424e0f) and reuses ebp as the zero and
-// then as `file` for the rest of the function; ours materialises edi=0 inside
-// the inlined FreeFeatureList (0x424ee2 region) and reloads `file` into ebx
-// twice, leaving a redundant mov edi,eax and a per-iteration xor ebp,ebp in
-// the names vector fill. Hoisting the remap index to function scope, spelling
-// out the delete null-check, and a post-FreeFeatureList local `file` pointer
-// were all flat at 69.1%.
-// deepseek-v4.1 re-run: confirmed the root is EBP's meaning at the join after
-// the names record loop. The original restores ebp=0 on the then path at
-// 0x424e13, so ebp is the shared constant zero for the FreeFeatureList inlines
-// and for the tail; there it is pushed as the 0 default of FUN_004b4800 and
-// then reused to hold `file` (0x424f45), which is why the tail keeps count in
-// ebx with no reloads. Ours lets ebp die as count, so the FreeFeatureList
-// picks edi as its zero and `file` lands in ebx, is copied to esi inside each
-// record loop and reloaded twice (1514 vs 1496 bytes). A tail `const int zero`
-// fed to all three FUN_004b4800 defaults, promoting n to function scope, a
-// names vector with an explicit default argument, one counter per tail loop
-// and literal byte offsets were all scored through check.py at 69.1%.
-
-// #2847 retry by GPT-6.1-sol: seven checks kept the 69.1% best. A tail file
-// alias emitted identical code; a local vector pointer and null-check variants
-// scored lower. The destruction/record loops still differ in register lifetime,
-// reloads, and switch scheduling.
-// deepseek-v4.1-flash retry #4 (10 min): still 69.1% / 1514 bytes. Tried
-// explicit countdown tail loops with a running byte offset
-// (for (k = count; k > 0; k--, pos += size)), scored 68.9%; MSVC already
-// strength-reduces k*sizeof to a running offset, so that is not the lever.
-// Root remains the post-names join: original keeps ebp = 0 there and reuses
-// ebp for file (0x424f45), giving ebx as the loop count; ours materialises the
-// zero in edi and loads file into ebx/esi, costing 18 bytes.
-
+// Loads the map's features: the type-name table into a remap vector, then
+// the "Normal", "Animating" and "3D" feature records. The save counterpart is
+// 0x424890 (matched, same TU, includes <windows.h>).
+//
+// #5201 Claude Opus 5.5: 83.6% to 99.8% (1496 bytes, one SIB byte left).
+//  - DAT_00511fb4 is a file-scope static in this TU (as in 0x4223e0), and the
+//    vectors are the real <vector> with plain resize() calls.
+//  - No /Gi: 0x4224b0, 0x422ea0 and 0x424050 use the same static, so they are
+//    this TU, and they only match without /Gi. <windows.h> as in 0x424890.
+//  - The /Ob2 budget (c2prio --inline) decides the second resize's erase: the
+//    original inlines it (copy and _Destroy out of line), which needs the
+//    function's IL size at 1077 or more with an if/return FeatureIndex (IL 44,
+//    costs budget), or 1055 or more with the ternary one (IL 38, free). This
+//    spelling is 1057: the `got` and `type` locals add the IL, plain loops
+//    without them are 1027 and keep erase out of line (89.6%). Above about
+//    1150 FUN_004223e0's ~vector inlines its _Destroy too (63.7%).
+//  - What still differs: the 3D loop's store is [offset + spots + 0x26] where
+//    the original has [spots + offset + 0x26]. It is a numbering tie, not a
+//    spelling: twelve spellings of that store (locals, casts, char*
+//    arithmetic, a pool struct, an inline getter, another Spot or Cell type)
+//    are byte-identical. Without <windows.h> the 3D store comes out right but
+//    the Animating loop's spot address flips to spots + offset; /Gi behaves
+//    like <windows.h>. Extern-int dummies placed before g_game flip both
+//    loops together (at 78 with <windows.h>, the same 78 from any position
+//    before g_game and in a function cut down to the 3D loop alone), placed
+//    after g_game they do nothing (up to 1200); under /Gi no count moves it
+//    (0 to 1000). No count gives the original's mix (swept 0 to 400 in
+//    steps of 6 past the flip), so the original's two loops differ in
+//    something not yet found. Writing the Anim loop's first store through
+//    the array and the rest through `s` (CSE-shared address) does move the
+//    3D base register, but breaks the Anim block (92.3%).
+//    The rule, measured with dummies in front of g_game: both orders follow
+//    bit 14 of g_game's symbol id taken mod 65536 (offset + spots when it is
+//    set: dummies 0..77 and 16462..32767-ish and 49230..65613 with
+//    <windows.h>; the same at +65536). A base that is a local instead,
+//    `Game_00424c00* game = g_game; game->spots[c->spot].damage = ...` in
+//    the 3D loop, gives the original's spots + offset order there, but the
+//    local is a register candidate and takes ecx where the original loads
+//    g_game into edx (98.3%); an inline method or helper taking the Game
+//    pointer does the same. Two identical stores in the 3D block make the
+//    first one exactly the original's (98.1%, the second store is extra).
+//  - The real FUN_00422e40 (0x422e40.cpp's == spelling) inlined here gives
+//    86%; its if/return spelling matches 0x422e40 too but costs 44 of budget.
+//    Defining FUN_004223e0 by its real name instead of FreeFeatureList gives
+//    the same code.
+// Earlier history: #5167 logged the inline budget and the real <vector>
+// spelling (51.5% then, before the static); #5134 found /Gi (wrong, see
+// above) and the `got` locals; earlier passes moved it from 69.1%.
+#include <windows.h>
 #include <string.h>
-#include <utility>
-
-// <xutility> as the original file compiled it (with /Gz): the same
-// templates, __stdcall. Defining _XUTILITY_ keeps out the header's __cdecl
-// ones, which <vector> and <xstring> would include.
-#define _XUTILITY_
-namespace std {
-template <class _II, class _OI>
-inline _OI __stdcall copy(_II _F, _II _L, _OI _X)
-{
-    for (; _F != _L; ++_X, ++_F)
-        *_X = *_F;
-    return (_X);
-}
-template <class _BI1, class _BI2>
-inline _BI2 __stdcall copy_backward(_BI1 _F, _BI1 _L, _BI2 _X)
-{
-    while (_F != _L)
-        *--_X = *--_L;
-    return (_X);
-}
-template <class _II1, class _II2>
-inline bool __stdcall equal(_II1 _F, _II1 _L, _II2 _X)
-{
-    return (mismatch(_F, _L, _X).first == _L);
-}
-template <class _II1, class _II2, class _Pr>
-inline bool __stdcall equal(_II1 _F, _II1 _L, _II2 _X, _Pr _P)
-{
-    return (mismatch(_F, _L, _X, _P).first == _L);
-}
-template <class _FI, class _Ty>
-inline void __stdcall fill(_FI _F, _FI _L, const _Ty& _X)
-{
-    for (; _F != _L; ++_F)
-        *_F = _X;
-}
-template <class _OI, class _Sz, class _Ty>
-inline void __stdcall fill_n(_OI _F, _Sz _N, const _Ty& _X)
-{
-    for (; 0 < _N; --_N, ++_F)
-        *_F = _X;
-}
-template <class _II1, class _II2>
-inline bool __stdcall lexicographical_compare(_II1 _F1, _II1 _L1, _II2 _F2, _II2 _L2)
-{
-    for (; _F1 != _L1 && _F2 != _L2; ++_F1, ++_F2)
-        if (*_F1 < *_F2)
-            return (true);
-        else if (*_F2 < *_F1)
-            return (false);
-    return (_F1 == _L1 && _F2 != _L2);
-}
-template <class _II1, class _II2, class _Pr>
-inline bool __stdcall lexicographical_compare(_II1 _F1, _II1 _L1, _II2 _F2, _II2 _L2, _Pr _P)
-{
-    for (; _F1 != _L1 && _F2 != _L2; ++_F1, ++_F2)
-        if (_P(*_F1, *_F2))
-            return (true);
-        else if (_P(*_F2, *_F1))
-            return (false);
-    return (_F1 == _L1 && _F2 != _L2);
-}
-#define _MAX _cpp_max
-#define _MIN _cpp_min
-template <class _Ty>
-inline const _Ty& __stdcall _cpp_max(const _Ty& _X, const _Ty& _Y)
-{
-    return (_X < _Y ? _Y : _X);
-}
-template <class _Ty, class _Pr>
-inline const _Ty& __stdcall _cpp_max(const _Ty& _X, const _Ty& _Y, _Pr _P)
-{
-    return (_P(_X, _Y) ? _Y : _X);
-}
-template <class _Ty>
-inline const _Ty& __stdcall _cpp_min(const _Ty& _X, const _Ty& _Y)
-{
-    return (_Y < _X ? _Y : _X);
-}
-template <class _Ty, class _Pr>
-inline const _Ty& __stdcall _cpp_min(const _Ty& _X, const _Ty& _Y, _Pr _P)
-{
-    return (_P(_Y, _X) ? _Y : _X);
-}
-template <class _II1, class _II2>
-inline pair<_II1, _II2> __stdcall mismatch(_II1 _F, _II1 _L, _II2 _X)
-{
-    for (; _F != _L && *_F == *_X; ++_F, ++_X)
-        ;
-    return (pair<_II1, _II2>(_F, _X));
-}
-template <class _II1, class _II2, class _Pr>
-inline pair<_II1, _II2> __stdcall mismatch(_II1 _F, _II1 _L, _II2 _X, _Pr _P)
-{
-    for (; _F != _L && _P(*_F, *_X); ++_F, ++_X)
-        ;
-    return (pair<_II1, _II2>(_F, _X));
-}
-template <class _Ty>
-inline void __stdcall swap(_Ty& _X, _Ty& _Y)
-{
-    _Ty _Tmp = _X;
-    _X = _Y, _Y = _Tmp;
-}
-}
-
 #include <vector>
 
 class Class_004b4560 {
@@ -272,84 +90,6 @@ public:
     Class_004c2ea0();
     ~Class_004c2ea0();
 };
-
-namespace std {
-template <>
-unsigned short* __stdcall copy(unsigned short* first, unsigned short* last, unsigned short* dest);  // 0x4256a0, out of line
-
-template <>
-class vector<unsigned short, allocator<unsigned short> > {
-public:
-    typedef allocator<unsigned short> _A;
-    typedef unsigned int size_type;
-    typedef unsigned short* iterator;
-
-    _A allocator;
-    iterator _First;
-    iterator _Last;
-    iterator _End;
-
-    explicit vector(const _A& al = _A())
-        : allocator(al), _First(0), _Last(0), _End(0) {}
-    ~vector()
-    {
-        operator delete(_First);
-    }
-    size_type _Size() const
-    {
-        return _First == 0 ? 0 : _Last - _First;
-    }
-    size_type size() const;  // 0x4251f0, out of line
-    void insert(iterator p, size_type m, const unsigned short& x);  // 0x425210, out of line
-    iterator erase(iterator f, iterator l);  // 0x425430, out of line
-    void resize1(size_type n, const unsigned short& x)
-    {
-        if (_Size() < n)
-            insert(_Last, n - _Size(), x);
-        else if (n < size())
-            erase(_First + n, _Last);
-    }
-    void resize2(size_type n, const unsigned short& x)
-    {
-        if (_Size() < n)
-            insert(_Last, n - _Size(), x);
-        else if (n < _Size()) {
-            iterator s = copy(_Last, _Last, _First + n);
-            _Destroy(s, _Last);
-            _Last = s;
-        }
-    }
-
-protected:
-    void _Destroy(iterator f, iterator l);  // 0x425470, out of line
-};
-
-template <>
-class vector<Class_004c2ea0*, allocator<Class_004c2ea0*> > {
-public:
-    typedef allocator<Class_004c2ea0*> _A;
-    typedef Class_004c2ea0** iterator;
-
-    _A allocator;
-    iterator _First;
-    iterator _Last;
-    iterator _End;
-
-    ~vector()
-    {
-        iterator* pf = &_First;
-        iterator* pl = &_Last;
-        _Destroy(*pf, *pl);
-        operator delete(*pf);
-        *pf = 0;
-        *pl = 0;
-        _End = 0;
-    }
-
-protected:
-    void _Destroy(iterator f, iterator l);  // 0x4251e0, out of line
-};
-}
 
 struct Vec3_00424c00 {
     int x, y, z;
@@ -427,7 +167,8 @@ struct Model_00424c00 {
 #pragma pack(pop)
 
 extern Game_00424c00* g_game;
-extern std::vector<Class_004c2ea0*>* DAT_00511fb4;
+typedef std::vector<Class_004c2ea0*> FeatureList;
+static FeatureList* DAT_00511fb4;
 
 void __stdcall FUN_004222e0();
 unsigned short __stdcall FUN_004224b0(char* name);
@@ -449,21 +190,17 @@ static inline unsigned short FindName(char* name)
 static inline unsigned short FeatureIndex(char* name)
 {
     unsigned short i = FindName(name);
-    if (i != 0xffff)
-        return i;
-    return FUN_004224b0(name);
+    return i != 0xffff ? i : FUN_004224b0(name);
 }
 
 // FUN_004223e0, inlined
 static inline void FreeFeatureList()
 {
-    for (Class_004c2ea0** p = DAT_00511fb4->_First; p < DAT_00511fb4->_Last; p++)
+    for (Class_004c2ea0** p = DAT_00511fb4->begin(); p < DAT_00511fb4->end(); p++)
         delete *p;
     delete DAT_00511fb4;
     DAT_00511fb4 = 0;
 }
-
-static inline bool Below(int k, int n) { return k < n; }  // loop test as an inline helper: 77.4% with it, 70.4% written inline
 
 // FUNCTION: 0x424c00
 void __stdcall FUN_00424c00(Class_004b4ba0* file)
@@ -474,39 +211,42 @@ void __stdcall FUN_00424c00(Class_004b4ba0* file)
     FUN_004222e0();
     if (file->FUN_004b4ba0("Feature Type Names")) {
         int count = ((Class_004b4bf0*)file)->FUN_004b4bf0() / sizeof(FeatureName_00424c00);
-        remap.resize1(count, 0);
+        remap.resize(count);
         std::vector<FeatureName_00424c00> names(count);
         ((Class_004b4c80*)file)->FUN_004b4c80(names.begin(), count * (int)sizeof(FeatureName_00424c00));
-        int i = 0;
-        if (i < count) do {
-            if (!(i < g_game->featureCount && _strcmpi(names[i].name, g_game->features[i].name) == 0)) {
-                for (j = 0; j < g_game->featureCount; j++) {
-                    if (_strcmpi(names[i].name, g_game->features[j].name) == 0) {
-                        remap._First[i] = j;
-                        goto found;
-                    }
+        for (int i = 0; i < count; i++) {
+            if (i < g_game->featureCount && _strcmpi(names[i].name, g_game->features[i].name) == 0) {
+                remap[i] = i;
+                continue;
+            }
+            for (j = 0; j < g_game->featureCount; j++) {
+                if (_strcmpi(names[i].name, g_game->features[j].name) == 0) {
+                    remap[i] = j;
+                    goto next;
                 }
-                remap._First[i] = FeatureIndex(names[i].name);
-            found:;
-            } else remap._First[i] = i;
-        } while (((i++), (i < count)));
+            }
+            remap[i] = FeatureIndex(names[i].name);
+        next:;
+        }
     } else {
-        remap.resize2(g_game->featureCount, 0);
+        remap.resize(g_game->featureCount);
         int i = 0;
-        for (; i < g_game->featureCount; i++) remap._First[i] = i;
+        for (; i < g_game->featureCount; i++) remap[i] = i;
     }
     FUN_00422ea0();
     FreeFeatureList();
 
-    int k = 0, n = ((Class_004b4800*)file)->FUN_004b4800("Number of Normal Features", 0);
+    int k, n;
+    n = ((Class_004b4800*)file)->FUN_004b4800("Number of Normal Features", 0);
     file->FUN_004b4ba0("Normal Features");
-    for (; Below(k, n); k++) {
+    for (k = 0; k < n; k++) {
         Normal_00424c00 rec;
         ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Normal_00424c00));
         int got = ((Class_004b4c80*)file)->FUN_004b4c80(&rec, sizeof(Normal_00424c00));
         if (got >= sizeof(Normal_00424c00)) {
             Cell_00424c00* c = FUN_00481550(rec.x, rec.y);
-            FUN_00423c50(c, remap._First[rec.feature], 0, 0, 10);
+            unsigned short type = remap[rec.feature];
+            FUN_00423c50(c, type, 0, 0, 10);
             c->spot = rec.spot;
         }
     }
@@ -519,7 +259,8 @@ void __stdcall FUN_00424c00(Class_004b4ba0* file)
         int got = ((Class_004b4c80*)file)->FUN_004b4c80(&rec, sizeof(Anim_00424c00));
         if (got >= sizeof(Anim_00424c00)) {
             Cell_00424c00* c = FUN_00481550(rec.x, rec.y);
-            FUN_00423c50(c, remap._First[rec.feature], 0, 0, 10);
+            unsigned short type = remap[rec.feature];
+            FUN_00423c50(c, type, 0, 0, 10);
             switch (rec.anim) {
             case 0:
                 FUN_004233a0(rec.x, rec.y, 0);
@@ -547,7 +288,8 @@ void __stdcall FUN_00424c00(Class_004b4ba0* file)
         int got = ((Class_004b4c80*)file)->FUN_004b4c80(&rec, sizeof(Model_00424c00));
         if (got >= sizeof(Model_00424c00)) {
             Cell_00424c00* c = FUN_00481550(rec.x, rec.y);
-            FUN_00423c50(c, remap._First[rec.feature], &rec.pos, &rec.rot, 10);
+            unsigned short type = remap[rec.feature];
+            FUN_00423c50(c, type, &rec.pos, &rec.rot, 10);
             g_game->spots[c->spot].damage = rec.damage;
         }
     }

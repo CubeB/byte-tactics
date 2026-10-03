@@ -1,251 +1,18 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
-// GPT-6 retry (#4698): check.py confirms the retained best is 88.8% at 262
-// bytes. The remaining code difference is the bit 19 arithmetic register
-// schedule; no source edit was found on this retry.
-//
-// DeepSeek V4.1 Flash pass (#4698): the permuter ran 3 min on the 88.8% form
-// (2885 candidates) and 4 min on a materialized variant (4322), no gain. Two
-// measured leads, both rejected. (1) Materializing the draft byte through an
-// address-taken local (`unsigned char d; unsigned char* pd = &d;
-// *pd = unit->type->draft;`) DOES reach the original's register assignment for
-// the whole block: product in ecx (`mov ecx,eax; shl ecx,0x10; sub ecx,eax`),
-// g_game in eax via the 5-byte A1 load, and the sea in the pre-zeroed edx. It
-// costs a byte store/reload/and (`mov [esp+0x10],al; mov eax,[esp+0x10]; and
-// eax,0xff`) and the sum still accumulates into edx (`add edx,ecx`) instead of
-// ecx (`add ecx,edx`). Fine score 478 against the base's 166, so the base is
-// much closer. The add destination is the last wall: every non-materializing
-// spelling (with or without the product pointer, either operand order, sea
-// through a local/pointer, int/unsigned char sea) puts the sum in the sea's
-// register. (2) A volatile read of both fields scores 91.4% at 261 bytes but is
-// the folded `(sea - draft) << 16` form (fine score 840) and uses volatile, so
-// it is not usable. Note the coarse check.py percentage favours folded forms
-// (a draft self-conditional scores 89.1% at 258 bytes, fine score 660); the
-// base pointer form below remains the closest.
-//
-// 30-min checkpoint (space-bunny-free, #4496). Best stays 88.8% / 262 bytes, the
-// pointer form at the bottom of this file; nothing below beat it in ~40 check.py
-// runs plus a 336-spelling sweep (build/scratch/0x48a870/: gen.py, metric.py,
-// sweep.py, asm.py). The sweep scores each variant by how many of the original's
-// 15 instructions (the 11 of the bit 19 block plus its 4-instruction epilogue) it
-// reproduces, which is a much sharper signal than the check.py percentage. The
-// distribution over bases x draft x product x sea x operand order:
-// 144 spellings at 8/15 (every direct `g_game->seaLevel`), 24 at 5/15, 24 at 1/15.
-// New facts this pass:
-// 1. The g_game LOAD IS NOT HOISTED WHEN THE ADDRESS IS TAKEN OF A MEMBER, but
-//    the only such spelling that also keeps the earlier `mov ecx,[esi+0x92]`
-//    type load in ecx is `g_game->seaLevel` itself, which hoists. A local
-//    pointer to the game (`Game* g = g_game;`, before OR after the product, at
-//    function scope, via `&g_game->seaLevel`, through `Game**`, through a
-//    `static Game*`, through a reference) does stop the hoist, but every one of
-//    them rotates the earlier allocation: the second type load goes to eax, the
-//    flags to ecx, and the whole function drops to 73-74%. Same for a local
-//    `UnitType* t = unit->type;` anywhere in that scope (73-80%), which is the
-//    callee-saved register rotation wall of docs/field-notes.md item 2.
-// 2. What DOES change the block's shape: a `UnitType* t` local in the outer if
-//    body makes the on_water block put the draft in edx, the product in eax
-//    (copy form), the g_game load LATE (after the product) and the sea in ecx
-//    (out/k2_t_direct.cpp, 82.2% / 270 bytes). So "g load late" and "draft in
-//    eax" are reachable separately; the target needs both at once, and the
-//    pressure that pushes the load late also pushes the draft out of eax.
-// 3. An `Identity(v)` wrapper (the trick from #4241) changes nothing here: all
-//    five placements (on the draft, on the sea, on the product, on the sum, on
-//    both) give byte-identical code to the plain form. Inlined helpers
-//    (GetGame(), SeaOf(), AddSea(v), MakeY(a,b)), `*p -= draft` for the
-//    strength reduction, `0xffff *` and `* 65535`, `65535 * draft`, an unsigned
-//    cast, a 64 bit cast, an extra `+ 0`, `0 + (...)`, `(*p) - (0 - sea)`,
-//    `(*p) - -sea`, two pointers to the same local, and a dead `if (h == h)`
-//    all give the same 8/15.
-// 4. tools/permute.py on the pointer form (start 73.0%) and on the best form
-//    (start 88.8%, 40 mutations) found no better spelling in 721 and ~1500
-//    candidates.
-// 5. The three levers that matched other functions this hour, measured here and
-//    all flat: a dead store in a statically folded branch between the hoisted
-//    load and its use (`if (0) unit->pos.x = 1;`, `if (0) g_game->seaLevel = 0;`,
-//    `int t = 0; if (t) ...`, `while (0) ...`, and `if (0) s_game = g_game;`)
-//    is gone before codegen, so the hoist is not blocked: all 8/15.
-//    `Identity()` with int, Game*, int* and UnitType* overloads, wrapped around
-//    the draft, the sea, the product, the sum, `&h` and the g pointer, is
-//    byte-identical to the plain form (8/15) or rotates like a plain pointer
-//    (73-74%). Two different pointers for the same value (two type pointers,
-//    two game pointers, `&g1[0]`) gives 8/15 or 73%.
-// 6. The only non-pointer way to get the load late is the accumulating form:
-//    the store to `unit->pos.y` may alias g_game, so `mov edx,[g_game]` stays
-//    below it. That reproduces the original's first five instructions and the
-//    late load, but the product is still in eax, g_game in edx (6 bytes) and
-//    the sea in ecx, and the leftover store costs 3 bytes: 265 bytes, 88.3%
-//    (every spelling of it: `+=` then `<<=`, one statement, `*= 0x10000`, the
-//    pointer form, a dead read of pos.x, 265-270 bytes, 88.1-88.4%).
-// So "load late" and "product in ecx with a 5 byte A1 load in eax" have each
-// been reached alone and never together: whichever register the allocator gives
-// the g_game temp, it gives the same one the dead draft had, and the original
-// needs the draft in eax, which the g pointer route loses.
-// The 30-min checkpoint below is the previous pass's record, kept for context.
-// 30-min checkpoint (deepseek-v4.1-flash, #4308). Best stays 88.8% / 262 bytes
-// (the pointer form below). Two NEW measured facts this pass, both from the
-// compiler's own listings (build/scratch/0x48a870/, gen.py + search.py):
-//
-// 1. THE g_game LOAD IS HOISTED IN EVERY UNFOLDED VARIANT EXCEPT TWO. MSVC5
-//    always lifts `mov reg,[g_game]` to the top of the bit-19 block (that is
-//    why it lands in edx, 6 bytes, instead of the original's late eax, 5
-//    bytes). The only constructs found that keep it at its source position
-//    are (a) a store to unit memory before it (`unit->pos.y = d*0xffff;
-//    unit->pos.y += sea; unit->pos.y <<= 16;` gives the original's exact
-//    order, but keeps a 12th `mov [esi+0x6e],eax` store, 265 bytes / 88.3%)
-//    and (b) reading the sea through a LOCAL POINTER to g_game declared
-//    between the product and the use: `Game* g = g_game;` then
-//    `(*p + g->seaLevel)`. Form (b) is 11 instructions, no extra store, and
-//    reproduces the original's late 5-byte load, the copy-form product
-//    (`mov copy,src; shl copy,16; sub copy,src`) and the sea in the
-//    pre-zeroed edx. It costs the global allocation: the second `[esi+0x92]`
-//    type load moves from ecx to eax, so the whole function scores lower.
-//    Next attempt: find the local-pointer spelling that keeps the type in ecx
-//    (the scratch file gp1.cpp / x_* family in search2.py is the starting
-//    point); the block only needs the type's register back to be a full match.
-// 2. The fold is blocked by a second use of an intermediate, and the SECOND
-//    USE'S POSITION decides the strength-reduction form: with the extra use
-//    before the sum the product stays in the source register (in-place), with
-//    it after the sum it would have to survive and take the copy form. In
-//    this function an extra use after the sum is optimised away before the
-//    fold pass (`if (h == h)` after the store still folds), so the pointer
-//    route stays the only working blocker here.
-// Both facts are measured in build/scratch/0x48a870/ (gen.py, search.py,
-// batch16.py, batch23.py); the gp1 listing is build/scratch/0x48a870/gp1.asm.
-// Late update: form (b)'s block is the original's first six instructions with
-// eax and ecx exchanged, plus the sum in edx instead of ecx, so the rotation is
-// exactly one register pair; ~150 spellings around it (batch17..batch30,
-// search2.py) never moved the chain's second `[esi+0x92]` type load back to
-// ecx, which is what the whole match now hangs on. The ecx allocation of that
-// load survives only in the exact source below: any added local (a `t` type
-// local, a `g` pointer, an unused one) or any inlined sea helper flips it to
-// eax and costs about 10 points. Form (b) also needs the local pointer (an
-// inlined `SeaLevel(g_game)` helper with a pointer parameter still hoists the
-// load). No check.py run this pass beat 88.8%.
-// mimo-v2.6-pro retry (#3772): no improvement over the 88.8% / 262 byte pointer
-// form below; every non-volatile spelling of the bit 19 product still lands the
-// `x*0xffff` strength reduction in eax (`shl eax,0x10; sub eax,ecx`), so g_game
-// is hoisted into edx (6 byte `8B 15` load) and the block is one byte over. The
-// decisive experiment: `volatile int h; h = unit->type->draft * 0xffff;
-// unit->pos.y = (h + g_game->seaLevel) << 16;` reproduces the EXACT original
-// schedule for the first seven instructions (product in ecx via
-// `shl ecx,0x10; sub ecx,eax`, g_game in eax via the 5 byte A1 load, seaLevel
-// in edx), proving the target allocation is reachable; it only fails because the
-// volatile forces `mov [h],ecx` plus `mov ecx,[h]` (two extra instructions) and
-// accumulates into edx (`add edx,ecx`) instead of ecx (`add ecx,edx`). The
-// rotation is a true fixed point: product-in-ecx frees eax for the A1 g_game
-// load, and g_game-in-eax in turn forces product-in-ecx (the product must
-// survive the eax clobber); only a forced store breaks the symmetry, and every
-// store costs instructions. Also retested flat this pass: inlined helpers
-// returning the product or doing the whole sum (`Prod(d)`, `AddSea(prod)`,
-// `MakeY(a,b)`, `SetWaterY(unit)`) all fold to 255/86.9%; unsigned casts,
-// `(int)((long)d * 0xffffL)`, `0xffff * d`, operand swap, and store-to-pos.y
-// all put the product in eax (86.5 to 88.3%). Untouched wall as documented
-// below; the notes and best code that follow are the prior attempts' record.
-// GPT-6.1-sol retry in #3190: seven checker invocations, best remains 88.8%; no MATCH. Helper forms scored 86.9%, 71.9%, and 86.5%; the local type alias tied at 88.8%. The bit-19 arithmetic register allocation and one-byte size difference remain.
-// #2988 retry by GPT-6.1-sol: five checks retained 88.8%; a pointer local
-// scored lower. Early-exit targets and bit-19 register allocation still differ.
-// GPT-6.1-sol retry (#2420): two checker runs kept the existing 88.8% best;
-// one Windows invocation failed before the checker. A register-int split
-// variation emitted identical code; the prior bit-19 register mismatch remains.
-// deepseek-v4.1 pass (#2008): 88.8%, 262 bytes, one byte over. New best shape for
-// the bit 19 block: `int h; int* p = &h; *p = unit->type->draft * 0xffff;
-// unit->pos.y = (*p + g_game->seaLevel) << 16;`. Taking h's address is the only
-// construct found that stops MSVC folding `(x * 0xffff + y) << 16` into
-// `(y - x) << 16`, and with the fold blocked the block's last three instructions
-// match the original (`add ecx,eax / shl ecx,0x10 / mov [esi+0x6e],ecx`). What
-// still differs, all inside that block: the multiply lands in eax (original: ecx),
-// so `shl eax,0x10 / sub eax,ecx` replaces `shl ecx,0x10 / sub ecx,eax`; the
-// g_game load is hoisted to the top of the block and goes to edx (the original
-// loads it after the multiply into eax, `mov eax,[0x511de8]` being the 5 byte A1
-// form against our 6 byte `mov edx,...`, which is exactly the one byte of size);
-// and the sea byte loads into ecx (original: edx, whose `xor edx,edx` is hoisted
-// above the draft load). The same 262 byte shape and the same eax/ecx/edx rotation
-// came out of every spelling tried this pass, all screened with `check.py --sym`:
-// `(*p + sea)` and `(sea + *p)`, `*p += sea`, a seeded `*p = 0`, `unsigned char`
-// and `unsigned int` locals for the sea, the explicit `*p = draft << 16;
-// *p -= draft`, and a Pos* pointing at unit->pos (88.3%, 265 bytes). Plain locals,
-// struct and union members and int[1] all fold back to 255 bytes at 86.9%. The
-// immediate predecessor of this form, `*p += g_game->seaLevel;`, is byte identical
-// except it accumulates the sum into eax (86.5%). This is the same allocator wall
-// the sibling 0x4589c0 reports at 0x458abf; no source spelling controls which
-// register receives the multiply result.
-// GPT-6.1-sol retry (#1616): still 86.9%; explicit shift/subtract tied the existing best.
-// Claude Sonnet 5.5 pass (#755): still 86.9% and 255 bytes, code unchanged. Re-checked
-// on top of the list below, none of it moved the bit 19 fold: the declaration-count
-// sweep (0 to 400 in steps of 8, flat at 255 bytes) and all 128 header sets of
-// headers.py (86.9% at best); the outer shift written as a multiply (`* 0x10000`,
-// `* 65536`, `0x10000 *`, an unsigned cast around the sum, a local `h * 0x10000`);
-// `unsigned char` locals for draft and seaLevel in both orders; `(int)(d * 0xffff)`
-// inside the sum; `(d << 16) - d + sea` written out (one expression, a local, or with
-// the parts on separate statements); and accumulating in `unit->pos.y` itself
-// (`pos.y = d * 0xffff; pos.y += sea; pos.y <<= 16;`), which is the only form that
-// keeps the original's eleven instructions without a pointer trick, but adds the
-// intermediate `mov [esi+0x6e], eax` store (265 bytes, 88.3%, the highest score seen but
-// bigger than the original), and a clamp on the product (`if (h < 0) h = 0`, 266
-// bytes, 87.8%). The original has no such store: its product only ever lives in ecx.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash, checked by GPT-6, matched by Claude Opus 5.5. Names are provisional.
 // Places a unit's height (pos.y, 16.16 fixed point) on the ground, at the sea
 // level or on the water surface, depending on the flags in the unit's type
 // (+0x241): bit 12 floats, bit 19 floats on water, bit 20 can leave the water.
 // Only runs for a unit that belongs to somebody and whose type can be off the
 // ground; the flag at +0x110 bit 16 asks for this to be redone.
 //
-// NOT MATCHED: the bit 19 branch (0x48a93f to 0x48a966). The original keeps
-// `draft * 0xffff + seaLevel` as a 32 bit value and shifts that sum afterwards
-// (`shl ecx,0x10; sub ecx,eax; ... add ecx,edx; shl ecx,0x10`), while MSVC 5
-// folds `(x * 0xffff + y) << 16` into `(y - x) << 16`. That fold is exact (both
-// give the same 32 bits), so it always wins the cost comparison, and it fired
-// in every plain form tried: 0xffff / 65535 / 0xffffL, the operands swapped,
-// a local or a long local for the sum, a static inline helper returning it, a
-// static inline helper taking a pointer, unsigned casts, a 64 bit cast of the
-// sum and a 64 bit local (the only thing that stopped the fold was routing the
-// product through a pointer to a local, `int h; int* p = &h; *p =
-// draft * 0xffff; *p += g_game->seaLevel; unit->pos.y = *p << 16;`, which then
-// gives the original's eleven instructions in the original's order, but MSVC
-// hoists the `g_game` load to the top of the block, keeps the product in eax
-// instead of ecx, and loads g_game with `mov edx,[0x511de8]` (6 bytes) rather
-// than `mov eax,[0x511de8]` (5 bytes), so the function comes out one byte long,
-// 262 against 261, and every `je` in it lands one byte past the original's).
-// The orchestrator confirmed that diagnosis independently and could not move the
-// allocation either: routing the draft through an `unsigned int` local first
-// (`unsigned int d = 0; d = type->draft;` before the pointer) also blocks the
-// fold and gives the eleven instructions, but still 262 bytes with the product
-// in eax; putting the constant on the left (`*p = 0xffff * d`) changes nothing;
-// fetching seaLevel into a `unsigned char` local first is also 262; and giving
-// each term its own pointer (`*p = d * 0xffff; *q = g_game->seaLevel; *p += *q;`)
-// is worse at 71.9% and 264 bytes. The one-byte gap is exactly the `A1` short
-// form: the original has eax holding the dead draft value at the moment it
-// loads g_game, so the load reuses eax and encodes in 5 bytes, while every
-// variant that blocks the fold needs eax for the live product. Nothing tried
-// from the source controls which of the two MSVC picks.
-// deepseek-v4.1-flash retried this: a dead second use of the sum
-// (`int h = ...; if (h == h) {}`) does block the fold with no extra code and
-// gives the eleven instructions, but MSVC always lowers it as product in eax,
-// g_game in edx (6-byte load) and seaLevel in ecx, i.e. 262 bytes again; it is
-// 86.5%. Only a memory barrier (a volatile read/write of the sum) reproduces
-// the original's product-in-ecx / g_game-in-eax / seaLevel-in-edx schedule, and
-// it adds a stack store plus reload, so it cannot match. Every spelling of the
-// multiply (0xffff, 65535, (x<<16)-x, x*0x10000-x, a 16.16 bitfield
-// MakeFixed().value, an __int64 sum, long/unsigned/short locals, a static
-// inline helper, three term splits) folds; headers.py (plain and --cpp) and an
-// unused-declaration sweep to 3000 prototypes all leave the fold in place.
-// The three early exits in the original jump to 0x48a96f, the shared epilogue at
-// the very end, and the last branch (the FUN_0048a490 call) to 0x48a969 just
-// before it; those targets follow from the size of this block, so they move
-// with it.
-//
-// deepseek-v4.1-flash pass (#1283): wall confirmed, code unchanged (86.9%, 255
-// bytes). headers.py with no header and with --cpp (all 128 and 768 sets) never
-// beats 86.9%. A byte scan of the exe for the original's non-folded product
-// `8B C8 C1 E1 10 2B C8` (mov ecx,eax; shl ecx,0x10; sub ecx,eax) and for the
-// whole bit 19 block `33 C0 33 D2 8A 81 2C 02 00 00 8B C8 C1 E1 10 2B C8` finds
-// exactly one hit each (0x48a94b), so there is no sibling copy to learn the
-// source from. The second hit of the product form is 0x458abf inside 0x4589c0,
-// whose own notes record the identical unresolved fold. The pointer-to-local
-// variant was rerun here: 262 bytes, 86.5%, product in eax, g_game hoisted to
-// edx, seaLevel in ecx, i.e. the whole 11-instruction block is a rotation of
-// the original's ecx/eax/edx schedule, matching docs/field-notes.md item 2
-// ("callee-saved register rotation wall"). Nothing in the source spelling
-// controls which register the allocator picks for the multiply result, so this
-// is left as a wall.
+// The bit 19 branch builds the height in a 16.16 `Fixed` union local and
+// copies the whole union into pos.y (as 0x4589c0 does with its `Fixed yv`).
+// Every spelling that assigned an int let MSVC 5 fold
+// `(draft * 0xffff + sea) << 16` into `(sea - draft) << 16`, or, with the fold
+// blocked by a pointer or volatile, rotate the registers (88.8% at best); the
+// union copy keeps the original's product, sum and shift in place.
+
+union Fixed { int value; struct { unsigned short fraction; short whole; }; };  // 16.16
 
 #pragma pack(push, 1)
 struct UnitType_0048a870 {
@@ -262,7 +29,7 @@ struct UnitType_0048a870 {
 
 struct Pos_0048a870 {
     int x;                              // +0x0
-    int y;                              // +0x4
+    Fixed y;                            // +0x4
     int z;                              // +0x8
 };
 
@@ -297,15 +64,15 @@ void __stdcall FUN_0048a870(Unit_0048a870* unit)
         if (unit->owner && (unit->flags & 3) == 1) {
             if (unit->type->over_water) {
                 if (unit->type->floats) {
-                    unit->pos.y = max(FUN_00485070(&unit->pos), g_game->seaLevel - unit->type->draft) << 16;
+                    unit->pos.y.value = max(FUN_00485070(&unit->pos), g_game->seaLevel - unit->type->draft) << 16;
                 } else {
-                    unit->pos.y = FUN_00485070(&unit->pos) << 16;
+                    unit->pos.y.value = FUN_00485070(&unit->pos) << 16;
                 }
             } else if (unit->type->on_water) {
-                int h;
-                int* p = &h;
-                *p = unit->type->draft * 0xffff;
-                unit->pos.y = (*p + g_game->seaLevel) << 16;
+                Fixed h;
+                h.value = unit->type->draft * 0xffff + g_game->seaLevel;
+                h.value <<= 16;
+                unit->pos.y = h;
             } else {
                 FUN_0048a490(unit);
             }

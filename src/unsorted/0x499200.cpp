@@ -1,4 +1,7 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, edited by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, edited by DeepSeek V4.1 Flash, verified by GPT-6. Names are provisional.
+// GPT-6 retry: confirmed 99.5%; the only remaining difference is the ECX/EDX
+// choice for the g_game load at 0x499775. Prior notes record broad variant and
+// permutation searches without a better result.
 // claude-opus-5-5 (#4267): 98.4% -> 99.5% at the exact size (1655 bytes).
 // One register is left: the g_game load for the FUN_00435c00 call at 0x499775
 // is `mov ecx` here and `mov edx` in the original.

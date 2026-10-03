@@ -1,4 +1,46 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Space Bunny Free, finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 pass (#5015): 83.0% RETAINED under the checker's flags,
+// body unchanged, BUT THE ORIGINAL SOURCE IS FOUND: IT MATCHES WITH /Gi.
+// The plain real header plus one ordinary use of the vector's operator= is
+// byte-identical, references included, when compiled with /Gi (incremental
+// compilation) added to the flags:
+//     uv run tools/check.py 0x475ef0 <file> --flags "/O2 /Ob2 /MT /Gz /Gi"
+//   prints MATCH (794 of 794 bytes) for
+//     #include <vector>
+//     struct Element_00475ef0 { int data[0x11]; };
+//     typedef std::vector<Element_00475ef0> Vec_00475ef0;
+//     void __stdcall Assign_00475ef0(Vec_00475ef0* to, const Vec_00475ef0* from)
+//     { *to = *from; }
+//     (the InsertFn_00475ef0 typedef and the annotated line at the end
+//     of this file, unchanged)
+// A `resize(n)` use instead of operator= also MATCHes; reserve, copy ctor,
+// erase, destructor or no other use give 83.0% under /Gi. Under the default
+// flags that file is 82.9% (796 bytes), below this clone, so it is not
+// committed; switch to it if the orchestrator adopts /Gi for this TU.
+// The same recipe matches every insert of this TU under /Gi: 0x4758c0
+// (operator= or resize), 0x476490 (operator= or resize), 0x475bd0 and
+// 0x476210 (reserve or copy ctor), and also 0x46e640 (vector<int>, reserve,
+// copy ctor or resize), one of the six that field-notes Part 6 closed as
+// unreachable. So the "lea family" byte and the _P-in-edx family are not a
+// different compiler build: they are /Gi plus which other vector members
+// the TU instantiates. Mechanism, from the /Fa listing: /Gi numbers IL
+// symbols per function (`__N$5966$5`, temps from 0x400000) instead of with
+// the TU-wide counter (`__N$2336`, `$T2576`), which reverses the ties that
+// pick _P's register and the _N/_S frame slots. /Gi is not uniform across the
+// exe: 15 of 48 sampled MATCHED functions (and 11 of the 12 matched inserts,
+// with their current files) stop matching under it.
+// Without /Gi nothing moves this function: with the real <vector> all of
+// these are flat at 82.9% (the 0x43c3a0 control's esi family): 8 filler kinds
+// at 0..300, fillers between the class instantiation and the insert, the 102
+// matched files of 0x471000..0x475ef0 compiled first in one TU, 12
+// instantiations in one file, element declarations (ctor, dtor, memcpy copy
+// ctor and operator=, nested short pairs, char/short/int members, pack
+// 1/2/4/8), earlier uses of every member above, helpers emitted out of line
+// first, an explicit member specialisation, RTM, /YX, /Z7, /Zd, /Zi, /Gm,
+// /G3 to /G5 and source path length. This clone is flat at 83.0 for _N/_S/_Q
+// declaration order, self-assignments at every position, helper
+// pre-instantiation and third-copy spellings.
+//
 // Space Bunny Free pass (issue 4896): 83.0% RETAINED, 795 of 794 bytes, body
 // unchanged. This pass was pointed at the frame-slot reading in stackcmp's
 // table (_N at -0x8 here against -0x4 in the original, _S the other way) and

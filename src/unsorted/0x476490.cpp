@@ -1,4 +1,31 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Space Bunny Free, finished by Claude Opus 5.5. Names are provisional.
+//
+// Claude Opus 5.5 pass (#5015): 78.9% RETAINED under the checker's flags,
+// body unchanged, BUT THE ORIGINAL SOURCE IS FOUND: IT MATCHES WITH /Gi.
+// The plain real header plus one ordinary use of the vector's operator= is
+// byte-identical, references included, when compiled with /Gi (incremental
+// compilation) added to the flags:
+//     uv run tools/check.py 0x476490 <file> --flags "/O2 /Ob2 /MT /Gz /Gi"
+//   prints MATCH (632 of 632 bytes) for
+//     #include <vector>
+//     struct Elem_00476490 { int dwords[8]; };
+//     typedef std::vector<Elem_00476490> Vec_00476490;
+//     void __stdcall Assign_00476490(Vec_00476490* to, const Vec_00476490* from)
+//     { *to = *from; }
+//     (the InsertFn_00476490 typedef and the annotated line at the end of
+//     this file, unchanged)
+// A `resize(n)` use instead of operator= also MATCHes; reserve, copy ctor,
+// erase, destructor or no other use give 0x476210's family (60.8%). Under the
+// default flags that file is 60.7%, below this file, so it is not committed;
+// switch to it if the orchestrator adopts /Gi for this TU. It also settles
+// the long-running puzzle below: this function and 0x476210 are the stock
+// <vector> insert on two identically laid out 32-byte records
+// (Record_004750b0 in 0x4751c0.cpp, Record_00474cd0 in 0x474df0.cpp), and
+// 0x476210 MATCHes under /Gi with a reserve() use (which its caller 0x474df0
+// really makes). So the deallocate-before-_Destroy order and the hand-written
+// destroy loop below are a workaround that lands between the two families,
+// not the original text. See 0x475ef0.cpp for the mechanism and for the
+// other inserts of this TU that the same recipe matches.
 //
 // Space Bunny Free pass (#4896, 2026-10-03): still 78.9 percent, 646 of 632
 // bytes, and this time the sweep was cheap: build/scratch/476490/h.py and

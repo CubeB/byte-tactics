@@ -1,4 +1,30 @@
-// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free. Names are provisional.
+// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
+// FLAGS: /Gi
+// #5134 Claude Opus 5.5: 77.4% to 83.6% (1526 bytes against 1496). /Gi is
+// here because this TU's vector<unsigned short>::insert (0x425210, placed
+// right after this function) matches only with /Gi. Under /Gi this file goes
+// from 77.4% to 78.4% (the same from three directories), testing the
+// "Feature Type Names" result directly (no `found` local) gives the
+// original's `test eax,eax` instead of `cmp eax,ebp` (78.6%), and holding
+// each record read's result in a local `got` (found by a permuter run, then
+// applied to all three loops) gives the Anim and 3D loops the original's
+// `test esi,esi` header: 80.4%. Declaring the tail counter before the count
+// (`int k = 0, n = ...`) makes k's zero the pushed default of the first
+// FUN_004b4800 and lines up the names section and the Anim/3D loops: 83.6%.
+// Neighbours
+// 0x422ea0 (81.4%), 0x4224b0 (95.4%) and 0x424050 (99.4%) stop matching under
+// /Gi, so they are another TU or need other spellings there.
+// Under /Gi a plain `for (k = 0; k < n; k++)` Normal loop gives the original's
+// countdown shape (Below leaves a setg/test pair), but the file then drops to
+// 64.2%: the register story below still decides the score.
+// What still differs: after the names loop ours reloads `file` into ebx; the
+// FreeFeatureList inline keeps the list in eax where the original uses ecx,
+// and the original's ~vector computes &_First/&_Last into esi/edi; in the
+// tail the original keeps `file` in ebp (after pushing ebp = 0 as the first
+// default), ours in esi.
+// Tried under /Gi, all lower: one inline helper holding the three tail loops
+// (MSVC does not inline it at all, 834 bytes), `bool found`,
+// `(found = ...) != 0`.
 // fledge-alpha-free: permuter best 77.4% / 1530 bytes (was 69.1% / 1514). What moved it: splitting the Normal tail's loop condition into a helper (Below; removing it drops to 70.4%), splitting the names record loop into do/while with hoisted int j, and int n = ..., k = 0. Still differs: the original reuses ebp as the shared zero and then as `file` across all three tail loops, while ours keeps file in ebx/esi; Below, the do/while, and the found split were the minimal spelling that got the permuter past the register-allocation stall.
 // #4008 deepseek-v4.1-flash (10 min): flat at 69.1% / 1514 bytes. Tested: a Class_004b4ba0* f = file alias for the three tail calls, n declared at function scope, and a live int zero = 0 placed right after the Feature Type Names block feeding the three FUN_004b4800 defaults are all byte-flat. Residual: the original re-zeroes ebp after the names loop so ebp is the shared zero and is then reused for file in all three tail loops; ours keeps file in ebx/esi and rematerialises the zero in edi.
 // #3595 deepseek-v4.1-flash (10 min): re-baselined 69.1%, 1514 bytes. Flat at
@@ -411,8 +437,7 @@ void __stdcall FUN_00424c00(Class_004b4ba0* file)
     ((Class_004b4560*)file)->FUN_004b4560("Features");
     std::vector<unsigned short> remap;
     FUN_004222e0();
-    int found = file->FUN_004b4ba0("Feature Type Names");
-    if (found) {
+    if (file->FUN_004b4ba0("Feature Type Names")) {
         int count = ((Class_004b4bf0*)file)->FUN_004b4bf0() / sizeof(FeatureName_00424c00);
         remap.resize1(count, 0);
         std::vector<FeatureName_00424c00> names(count);
@@ -438,12 +463,13 @@ void __stdcall FUN_00424c00(Class_004b4ba0* file)
     FUN_00422ea0();
     FreeFeatureList();
 
-    int n = ((Class_004b4800*)file)->FUN_004b4800("Number of Normal Features", 0), k = 0;
+    int k = 0, n = ((Class_004b4800*)file)->FUN_004b4800("Number of Normal Features", 0);
     file->FUN_004b4ba0("Normal Features");
     for (; Below(k, n); k++) {
         Normal_00424c00 rec;
         ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Normal_00424c00));
-        if (((Class_004b4c80*)file)->FUN_004b4c80(&rec, sizeof(Normal_00424c00)) >= sizeof(Normal_00424c00)) {
+        int got = ((Class_004b4c80*)file)->FUN_004b4c80(&rec, sizeof(Normal_00424c00));
+        if (got >= sizeof(Normal_00424c00)) {
             Cell_00424c00* c = FUN_00481550(rec.x, rec.y);
             FUN_00423c50(c, remap._First[rec.feature], 0, 0, 10);
             c->spot = rec.spot;
@@ -455,7 +481,8 @@ void __stdcall FUN_00424c00(Class_004b4ba0* file)
     for (k = 0; k < n; k++) {
         Anim_00424c00 rec;
         ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Anim_00424c00));
-        if (((Class_004b4c80*)file)->FUN_004b4c80(&rec, sizeof(Anim_00424c00)) >= sizeof(Anim_00424c00)) {
+        int got = ((Class_004b4c80*)file)->FUN_004b4c80(&rec, sizeof(Anim_00424c00));
+        if (got >= sizeof(Anim_00424c00)) {
             Cell_00424c00* c = FUN_00481550(rec.x, rec.y);
             FUN_00423c50(c, remap._First[rec.feature], 0, 0, 10);
             switch (rec.anim) {
@@ -482,7 +509,8 @@ void __stdcall FUN_00424c00(Class_004b4ba0* file)
     for (k = 0; k < n; k++) {
         Model_00424c00 rec;
         ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Model_00424c00));
-        if (((Class_004b4c80*)file)->FUN_004b4c80(&rec, sizeof(Model_00424c00)) >= sizeof(Model_00424c00)) {
+        int got = ((Class_004b4c80*)file)->FUN_004b4c80(&rec, sizeof(Model_00424c00));
+        if (got >= sizeof(Model_00424c00)) {
             Cell_00424c00* c = FUN_00481550(rec.x, rec.y);
             FUN_00423c50(c, remap._First[rec.feature], &rec.pos, &rec.rot, 10);
             g_game->spots[c->spot].damage = rec.damage;

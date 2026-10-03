@@ -1,4 +1,27 @@
 // Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free. Names are provisional.
+// #5134 Claude Opus 5.5 (no gain, 75.0% kept): the original's frame, read
+// from its own [esp+N] uses (N minus the outstanding pushes), is
+//   0x10 scratch ((7-k)*12, later nz)  0x14 i*0x20  0x18 k*12  0x1c i
+//   0x20 piece  0x24 count  0x28 verts  0x2c unit  0x30 desc  0x34 n
+//   0x40 b  0x4c a  0x58 c (each 3 floats, stored once by fstp)
+//   0x64 a 12-byte copy of the first call's result (x and y stored, z only
+//   in eax)  0x70/0x7c/0x88/0x94 the four call return buffers.
+// The call order is FUN_004b6ff0(FUN_004b6f70(FUN_004b6eb0(b, c),
+// FUN_004b6eb0(b, a))): the (b, a) call runs first and its result goes
+// through 0x64 into f70's second argument. The arguments are copied from the
+// a/b/c homes with integer moves (b.x stays in ebx and b.y in ebp across the
+// first call), so a/b/c are memory, not x87 register candidates. Ours builds
+// Vec3f temporaries (+0x18 frame) and keeps the floats on the x87 stack (fst
+// then fld back after the call). Measured: passing plain-struct a/b/c by value
+// (nested or with a named ab, with or without the float constructor, a
+// ToFloat inline, a converting constructor from a float-triple struct, an
+// inline MakeVec) gives the right copies and frame 0x8c but serialises the
+// nine fild/fmul/fstp (no interleave) and moves the parameter into ebp for
+// the whole function: 43-49%. Nine float locals: 70.7%. A user copy
+// constructor is called, not inlined. MakeVec over scalar members: 74.0%
+// (253 diff lines against 273, 1783 bytes) but a lower ratio. /Gi: lower
+// (72.0%). The missing piece is how the original kept a/b/c in memory and
+// still let the x87 code interleave.
 // #4008 deepseek-v4.1-flash (10 min): flat at 71.7% / 1759 bytes. Tested and rejected: grouping the ab/n declarations before the two assignments (flat), a single temp for the two o->verts[k] / o->verts[7-k] stores regresses to 64.4 / 1751, and the !param->scale and for-init k spellings are flat. Residual unchanged: the 0xa8 frame against 0x90 and the nine scaled float x87 load schedule.
 // #3595 deepseek-v4.1-flash (10 min): re-baselined 71.7%, 1759 bytes. Flat at
 // 71.7: hoisting the ni declaration next to v, and declaring n before ab. The

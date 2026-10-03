@@ -1,4 +1,36 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// FLAGS: /Gi
+// #5134 Claude Opus 5.5: 60.8% to 93.2-94.9%, same 1512 bytes as the original.
+// What moved it: /Gi (the default-flags build of this file is 32.7%), plus
+// first/count left uninitialised at declaration and zeroed at the top of the
+// else (the original's sink at 0x41b3a6, which every note below measured
+// without /Gi), plus `cloak` declared before `onOff` (prologue store order).
+// Under /Gi 10 of the 11 matched neighbours 0x41a920..0x41bcd0 still match;
+// 0x41ace0 drops to 98.6% on one SIB base swap ([ebp+ecx] vs [ecx+ebp]).
+// What still differs:
+//  - first/count frame slots (0x1c/0x20). Both have the same reference counts,
+//    and the tie is broken by the build location: with this exact file,
+//    check.py gives 94.9% (42 diff lines, only the tail below) when the
+//    object/pdb paths fall one way and 93.2% when they fall the other (it is
+//    93.2% from this worktree's src/unsorted). Same instructions otherwise.
+//    Writing `count = 0; first = 0;` instead flips which locations win
+//    (93.4% here). The original's store order is first then count, so that
+//    is what is kept. No spelling tried makes the tie disappear.
+//  - the tail bit writes for cloak, onOff, canAttack and canMove: the
+//    original ORs into the old word's register (`and edx,mask; shl eax,n;
+//    or edx,eax; mov [..],dx`, so the next value load is hoisted above the
+//    store); ours ORs into the value's (`or eax,edx; mov [..],ax`). From
+//    canDefend on both use `or eax,edx`. Those four are the first flag
+//    variables the loop writes, which looks like a register-candidate cut
+//    (the original reloads them as split register variables in the tail) and
+//    not like a spelling. Flat for this: dummy extern/struct counts 0..1000
+//    (no effect at all under /Gi), source path length, every declaration
+//    order of the flags, unsigned/short/char value and bitfield types, casts,
+//    hand-written mask stores, inline setter helpers, chained zero
+//    initialisation, inlining the real 0x41b2a0 (worse: its index test is not
+//    folded), deleting each loop statement in turn, and a 20 minute permuter
+//    run (no gain).
+// The notes below predate /Gi.
 // #4099 deepseek-v4.1-flash (10 min): flat at 60.8% / 1533 bytes. Swapping the
 // cloak and u declaration order (onOff, cloak, u) is byte-identical, so the
 // first=0x10 / cloak=0x14 / onOff=0x18 slot map is not steered by that pair.
@@ -249,11 +281,11 @@ void FUN_0041b2e0()
     g_game->orders.refresh = 1;
     int fireOrder = 4;
     int moveOrder = 4;
-    int onOff = 3;
-    Unit_0041b2e0* u;
     int cloak = 3;
-    Unit_0041b2e0* first = 0;
-    int count = 0;
+    Unit_0041b2e0* u;
+    int onOff = 3;
+    Unit_0041b2e0* first;
+    int count;
     int canMove = 0;
     int canAttack = 0;
     int canDefend = 0;
@@ -273,6 +305,8 @@ void FUN_0041b2e0()
             return;
         }
     } else {
+        first = 0;
+        count = 0;
         Unit_0041b2e0* last = player->unitsEnd;
         for (u = player->unitsBegin; u <= last; u++) {
             if (u->typeIndex == 0)

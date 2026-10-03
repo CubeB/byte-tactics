@@ -1,75 +1,38 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash, notes by claude-opus-5-5, checked by GPT-6, improved by claude-opus-5-5. Names are provisional.
-// 2026-10-03 (claude-opus-5-5, #5158): 88.1% -> 93.4%, 1830 of 1832 bytes.
-// GPT-6 retry (#5177): rechecked the 93.4% source; the remaining object
-// register split at the 0x40 return join is unchanged.
-// GPT-6 retry (#5219): rechecked at 93.4% (1830 B). The only code difference
-// is still the obj reload at the cca store and the resulting tail registers.
-// #5306 Codex retry: re-confirmed 93.4%; declaring and assigning a local
-// Object* alias for the field_cca store leaves the same reload and tail split.
-// #5268 Codex retry: best unchanged at 93.4%. An explicit Object* alias for
-// the field_cca store compiled identically; initializing it after the goto
-// targets was rejected by VC5, and declaring then assigning had no effect.
-// One difference is left (below); ignoring the jump targets it moves, the
-// function is 98.8%. Scratch files, sweep scripts and a C2 split tracer:
-// build/scratch/0x4a3780/ (c2split.py is tools/c2prio.py plus hooks on
-// FUN_00439385/FUN_00438f79; patch_c2split.py builds it).
-// What changed, each measured:
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash, notes by claude-opus-5-5, checked by GPT-6, improved by claude-opus-5-5, matched by claude-opus-5-5. Names are provisional.
+// MATCH (#5337). The last difference (obj reloaded into ecx at the
+// field_cca store instead of kept in esi across the join, plus two scratch
+// registers in the scroll paths) was the shared `return 1` block. In C2's
+// joint live-range split (FUN_00438f79) every block joins the region of its
+// first predecessor, in block order, that still has a free register, and a
+// split point goes at the end of each predecessor in another region. With
+// one label, the return block's first predecessor was the first arm's
+// `!(flags & 0x200)` test, so a split was put at the end of the 0x40 test
+// and cut obj's live range before the store. The original has two labels
+// at the return: the `field_ba < 0` exit goes to `above:`, which the 0x40
+// test falls into, and the other two first-arm exits go to `ret1:` just
+// after it. `above:` stays an empty block until after allocation; its first
+// predecessor with a region is the 0x40 test (the `field_ba < 0` block has
+// no free register), so the split lands at the end of the empty block,
+// where obj is not live. The labels in the other order, or any other pair
+// of exits on `above:`, stay at 93.4%; an empty statement between the two
+// labels, or both labels at the end of the function, also match.
+// Load-bearing, from earlier passes (#5158 and before):
 //  - The flag8 block declares `k` after the pointer choice and indexes the
-//    rows with me->field_bc directly. With `int k = me->field_bc;` before the
-//    `if (flag8)`, the flags local (whose last use is the in-place `shr`)
-//    has priority 47 in C2 (tools/c2prio.py), takes ecx for its whole range
-//    and the frame loses its slot. With k after the arms its priority is 23:
-//    it loses ecx to the 0x10 block's field_bc temp and ebx to r.y0 and is
-//    split into an eax piece plus its [esp+0x20] home, as in the original.
-//    The pointer choice now tests flag8 itself (the original's `je` reuses
-//    the flags of `and eax,1`), and the loop allocation comes out exactly:
-//    flag8 and fixed in memory, ip in esi (with the load of the
-//    uninitialised ip in the fixed arm), n2 edx, row ecx, remain edi.
-//    88.1 -> 93.1.
-//  - `int remain` before `int n2 = 0;` (the xor after both subs), and the
-//    0x10 clamps written plainly: `>= field_c0 - 1` (the original's dec/jl)
-//    and `if (me->field_ba < 0) me->field_ba = 0;`. The old short* store and
-//    the `> c0 - 2` size filler are gone. 93.2.
-//  - The rectangle is FUN_004a1630 (matched, src/unsorted/0x4a1630.cpp),
-//    defined here without an annotation and inlined, called as
-//    `FUN_004a1630(&entries[index], &r)` the way the matched sibling 0x4a1b40
-//    calls it. With `me` as the argument the y1 lea stays `[ebx+ecx-1]`.
-//    That lea, and the three `field_bc + step - 1` leas, follow how many
-//    symbols the front end has created before `r` and before `step`:
-//    dummy declarations inserted after `Rect r;` fix the y1 lea, before it
-//    they break it, and no file-level count fixes all four. 93.4.
-//  - Neutral, kept because the siblings use them: the LineHeight helper with
-//    a glyph struct (0x4a1b40), `unsigned int flags` (0x4a1b40), and the
-//    callee prototypes from the callees' own matched files.
-// What still differs: obj is not kept in esi across the join after the
-// callbacks. The original has `jmp` + `mov esi,[esp+0x50]` on the
-// orig_sel == field_ba edge and `mov [esi+0xcca],1`; ours reloads obj into
-// ecx at the cca store, which also shifts two scratch registers in the scroll
-// paths (cx/dx, dx/ax) through the temporary rotation. Cause, traced in C2:
-// in the second joint live-range split (FUN_00438f79) the ret1 block (shared
-// by the three first-arm exits and the 0x40 test) joins the region of its
-// first compatible predecessor, the first arm's `!(flags & 0x200)` block.
-// The 0x40-test block is in another region, so a split point is inserted at
-// its end, obj's web is cut there and the cca block's piece stays in memory.
-// Confirmed both ways: with the first arm returning 1 itself (ret1 reached
-// only from the 0x40 test) the join is byte-identical to the original but
-// three extra epilogues cost 37 bytes; an obj use after the 0x40 test also
-// gives esi. Flat: ret1 placed in the first arm, at the end of the function
-// or behind a trampoline label; nested first-arm forms; a short c0 local;
-// `if (!(flags & 0x40)) { cca; goto end; }`; entries[index] spellings in the
-// tail; the callback through a local; /Gi; struct and extern count scans;
-// permute.py (two 20-minute runs).
-// Earlier findings that are still load-bearing:
+//    rows with me->field_bc directly; with `int k = me->field_bc;` before
+//    the `if (flag8)` the flags local takes ecx and loses its frame slot.
+//  - `int remain` before `int n2 = 0;`, and the 0x10 clamps written plainly
+//    (`>= field_c0 - 1`, then `if (me->field_ba < 0) me->field_ba = 0;`).
+//  - The rectangle is the inlined FUN_004a1630 (matched), called as
+//    `FUN_004a1630(&entries[index], &r)` like the sibling 0x4a1b40; with
+//    `me` the y1 lea's operands swap.
 //  - `if (me->field_c0 == 0) goto skip0;` with skip0 at the end of the
-//    in-rect block: the original reloads point.x on that edge only (the
-//    nested `if (c0 != 0) {...}` form puts the reload on the out-of-rect
-//    edges too, 92.9%).
-//  - The scroll-up/scroll-down tails share one FUN_004a1b40/FUN_004a2be0 pair
-//    through `goto finish`; the three first-arm `return 1`s are `goto ret1`
-//    (MSVC 5 does not merge return blocks).
+//    in-rect block: the original reloads point.x on that edge only.
+//  - The scroll-up/scroll-down tails share one FUN_004a1b40/FUN_004a2be0
+//    pair through `goto finish` (MSVC 5 does not merge return blocks, so
+//    the first arm's exits are gotos too).
 //  - The 0x10 line computation stores straight into me->field_ba and tests
-//    the field (16-bit add, `movsx edx,cx`); the FUN_004b6af0 result goes
-//    through `char* s`; the sync loop clamp is min() (entries in esi).
+//    the field; the FUN_004b6af0 result goes through `char* s`; the sync
+//    loop clamp is min().
 //  - The 0x20 test is `flags & 0x20 | 0x80`, an original bug kept as is: it
 //    parses as `(flags & 0x20) | 0x80` and is always true (docs/bugs.md).
 #include <string.h>
@@ -238,7 +201,7 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
                 goto ret1;
             me->field_ba = (point.y - r.y0) / span + me->field_bc;
             if (me->field_ba < 0)
-                goto ret1;
+                goto above;
             if (me->field_ba - me->field_bc > step - 1)
                 me->field_ba = me->field_bc + step - 1;
             if (me->field_ba >= me->field_c0 - 1)
@@ -329,6 +292,7 @@ skip0:;
                 me->field_ce(obj, me);
         }
         if (me->flags & 0x40) {
+above:
 ret1:
             return 1;
         }

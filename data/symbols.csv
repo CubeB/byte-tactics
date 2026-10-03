@@ -2720,7 +2720,7 @@ address,name
 0x4c3e10,Class_004c3e10::FUN_004c3e10
 0x4c3e20,Class_004c3e20::FUN_004c3e20
 0x4c3e30,Class_004c3e30::FUN_004c3e30
-0x4c3e40,Class_004c42a0::FUN_004c3e40
+0x4c3e40,Class_004c3e40::Class_004c3e40
 0x4c42a0,Class_004c42a0::~Class_004c42a0
 0x4c4340,Class_004c4340::FUN_004c4340
 0x4c43f0,Class_004c43f0::FUN_004c43f0
@@ -3993,6 +3993,8 @@ address,name
 0x4fcee8,DAT_004fcee8
 0x4fcf08,DAT_004fcf08
 0x4fd050,DAT_004fd050
+0x4fd2b0,DAT_004fd2b0
+0x4fd2b8,DAT_004fd2b8
 0x4fd2c8,??_7Class_0043a1f0@@6B@
 0x4fd2cc,??_7Class_0043a1e0@@6B@
 0x4fd2f8,DAT_004fd2f8

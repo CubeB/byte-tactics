@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
+// #5330 Codex retry: re-confirmed 76.6%; the x87 schedule and escaped vector
+// temporary mismatch remain after prior source-shape sweeps.
 // #5300 Codex retry: re-confirmed 76.6%; the x87 schedule and escaped vector
 // temporary mismatch remain after the prior source-shape sweeps.
 // #5258 Codex retry: re-confirmed the existing 76.6% best. The x87 schedule

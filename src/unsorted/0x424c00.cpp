@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
+// #5330 Codex retry: re-confirmed 99.8%. An explicit local spots pointer
+// leaves the same final SIB order; the existing best is preserved.
 // #5300 Codex retry: re-confirmed 99.8%. A local spots pointer produced the
 // same final SIB order; the current best is preserved.
 // #5258 Codex retry: re-confirmed 99.8%. An explicit local spots pointer

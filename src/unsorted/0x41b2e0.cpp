@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// #5330 Codex retry: re-confirmed 94.9%; prior symbol-id and bitfield-order
+// sweeps found no new source shape.
 // #5300 Codex retry: re-confirmed 94.9%; prior symbol-id and bitfield-order
 // sweeps found no new source shape.
 // #5258 Codex retry: re-confirmed the existing 94.9% /Gi version. The

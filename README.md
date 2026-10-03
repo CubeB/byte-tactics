@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**84.35% of Cavedog's code matched** (717,695 of 850,853 bytes)
+**84.85% of Cavedog's code matched** (721,942 of 850,853 bytes)
 
 `[##################################------]`
 
-By count that is 3,155 of the game's 3,267 functions (96.6%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,156 of the game's 3,267 functions (96.6%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,155 | 717,695 |
-| Attempted, not yet matching | 112 | 133,158 |
+| Matched byte-for-byte | 3,156 | 721,942 |
+| Attempted, not yet matching | 111 | 128,911 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 693 of 703 | 98.4% | 2,847 | `##########` |
 | xl (401 to 600 bytes) | 209 of 226 | 92.3% | 8,460 | `#########-` |
 | xxl (601 to 1,000 bytes) | 161 of 195 | 82.5% | 25,707 | `########--` |
-| huge (over 1,000 bytes) | 112 of 161 | 67.2% | 95,899 | `#######---` |
+| huge (over 1,000 bytes) | 113 of 161 | 68.6% | 91,652 | `#######---` |
 
 ### By area
 
@@ -55,7 +55,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x430000` | Maps, missions, briefings | 219 of 228 | 84.7% | 9,262 | `########--` |
 | `0x440000` | Multiplayer setup | 242 of 246 | 82.1% | 10,988 | `########--` |
 | `0x450000` | Options and audio menus | 163 of 176 | 68.3% | 20,002 | `#######---` |
-| `0x460000` | Game and skirmish setup, unit classes | 203 of 212 | 80.1% | 12,227 | `########--` |
+| `0x460000` | Game and skirmish setup, unit classes | 204 of 212 | 87.0% | 7,980 | `#########-` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 251 of 259 | 88.7% | 7,168 | `#########-` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 257 of 264 | 92.3% | 4,915 | `#########-` |
 | `0x490000` | Config and registry, skirmish summary | 187 of 193 | 90.6% | 5,597 | `#########-` |

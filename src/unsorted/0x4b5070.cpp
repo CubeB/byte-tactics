@@ -30,23 +30,10 @@
 //    one `size` at registry-block level (used by the NT arm) shares lib's; a
 //    second length local in the Win9x arm shares dwMin's; `type` gets its own.
 //  * `err = RegOpenKeyExA(...); if (err == 0)` gives the `cmp eax,ebp` test.
-// Still differing: status and isNT have their slots swapped (ours isNT at
-// [esp+0x14] and status at [esp+0x18], the original the reverse). Both have six
-// references, so the tie-break is the open question; declaration order, types,
-// names, the position of the top-level `isNT = 0`, a dead initialiser, and a
-// folded extra test of status all leave it unchanged, and a real extra store
-// to status flips it but costs 6 bytes (t5 in the scratch notes). The permuter
-// then found that zeroing isNT before LoadLibraryA and status after it makes
-// the two top stores byte-identical (the aliased status store stays after the
-// call, the isNT store sinks to the same place), 93.9% to 94.9%; the twelve
-// remaining lines are the other references to the two swapped slots. The
-// original most likely has `status = 0` before the call with the slots the
-// other way round, so whoever flips the slots should restore that order.
-//
-// Two things in the original look like Cavedog's own bugs, kept here as they
-// are: the "installed major version differs" arm at 0x4b5233 compares the major
-// half against argument 2 (the minor half) instead of against argument 1, and
-// the NT path reads the InstalledVersion value into the status variable.
+// The permuter then found that zeroing isNT before LoadLibraryA and status after
+// it makes the two top stores byte-identical (the aliased status store stays
+// after the call, the isNT store sinks to the same place), 93.9% to 94.9%; the
+// twelve remaining lines were the other references to the two swapped slots.
 //
 // DeepSeek V4.1 Flash (issue retry): the permuter with --stack status,isNT ran
 // 3 min (2457 candidates) and a second 3 min run seeded from the flipped
@@ -58,8 +45,34 @@
 // store is inert: inlined helpers adding a use of status or isNT, name swaps,
 // declaration reordering, type changes, folded extra tests, and self
 // assignments all compile to the same 619 bytes with the same wrong slots. So
-// the residual is the allocator tie-break between two six-reference locals,
-// not a source shape this file has not tried.
+// the residual looked like the allocator tie-break between two six-reference
+// locals.
+//
+// Space Bunny Free: MATCH, 94.9% -> 100%. The tie-break was never the problem:
+// there are two locals, not one. The original does not read the registry's
+// InstalledVersion DWORD back into the variable that holds DirectXSetupGetVersion's
+// return code; it reads it into a separate block-scoped local, and that local
+// takes the dead `status` slot. Each of the two then has three references, so
+// the pair shares [esp+0x14] (L-0xc8) exactly as the original does, isNT keeps
+// [esp+0x18] (L-0xc4), and every slot in the frame lands where the original has
+// it. Reading the value into `status` instead is what made one six-reference
+// local compete with the six-reference isNT and put them in each other's slots.
+// With the split, the two top zero stores also order the original's way round:
+// `status = 0` before LoadLibraryA (store to [esp+0x14]) and `isNT = 0` after it
+// (store to [esp+0x18]).
+// What did not help, in case it is tried again: swapping those two statements on
+// their own (93.9%, the slots stay wrong), the dummy-extern sweep over 0 to 400,
+// unused locals in the function body, `register`, an extra scope, folded extra
+// mentions of either name, and every declaration order and type permutation.
+// General lesson for a swapped pair of equal-count locals: before hunting the
+// tie-break, check whether the original merged or split the values. A local that
+// is dead where another begins is free to take its slot, and that changes both
+// the counts and the order.
+//
+// One thing in the original still looks like Cavedog's own bug, kept as it is:
+// the "installed major version differs" arm at 0x4b5233, reached when the major
+// half is not the wanted one, compares the major half against argument 2 (the
+// minor half) instead of against argument 1.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -77,14 +90,14 @@ struct DXVersion {
 // FUNCTION: 0x4b5070
 int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4)
 {
-    int isNT = 0;
+    int isNT;
     DXVersion v;
     DWORD status;
     HMODULE lib;
 
-    isNT = 0;
-    lib = LoadLibraryA("dsetup.dll");
     status = 0;
+    lib = LoadLibraryA("dsetup.dll");
+    isNT = 0;
     if (lib) {
         FARPROC proc = GetProcAddress(lib, "DirectXSetupGetVersion");
         if (proc) {
@@ -118,10 +131,11 @@ int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4
         hKey = 0;
         err = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\DirectX", 0, KEY_READ, &hKey);
         if (err == 0) {
-            status = 0;
+            DWORD installed = 0;
+
             if (isNT) {
                 size = 4;
-                err = RegQueryValueExA(hKey, "InstalledVersion", 0, &type, (LPBYTE)&status, &size);
+                err = RegQueryValueExA(hKey, "InstalledVersion", 0, &type, (LPBYTE)&installed, &size);
             } else {
                 DWORD len = sizeof(version);
                 err = RegQueryValueExA(hKey, "Version", 0, &type, (LPBYTE)version, &len);
@@ -131,7 +145,7 @@ int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4
                 goto fail;
             }
             if (isNT) {
-                v.majlo = status & 0xff;
+                v.majlo = installed & 0xff;
             } else {
                 v.majhi = atoi(strtok(version, "."));
                 v.majlo = atoi(strtok(0, "."));

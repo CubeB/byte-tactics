@@ -1,128 +1,67 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, retried by Claude Fable 5.1, finished by DeepSeek V4.1 Flash. Names are provisional.
-// DeepSeek V4.1 Flash retry 3: no gain over 89.2% (827 bytes), file restored
-// below. About 90 check runs. The useful new lead:
-//  * The two `int* pw/ph` locals are what keeps the downstream bit tests in
-//    the original's cl/dl/al/... cycle, but they also make MSVC put startWidth
-//    in ebp, spill startHeight to eax, and give block 2 videoFlags=edx,
-//    flags=ecx.
-//  * Replacing them with `int w,h;` and direct `d->width = w; d->height = h;`
-//    (no pointer locals) restores the original frame (sub esp,0x38, no spill)
-//    and makes block 2 byte-exact (videoFlags=ecx, flags=eax, `or al,1`,
-//    `shr al,6`), 818 bytes, but it also starts the downstream bit-test
-//    register cycle at edx instead of ecx (72.5%). Swapping the w/h
-//    declaration order does the same. The surviving pointer locals also keep
-//    the whole-word expressions canonical: every expression spelling tried
-//    (operand order, `|1` position, unsigned/char casts, union/bitfield
-//    locals, an inline helper, a videoFlags local in either block, style
-//    moved after wc.lpfnWndProc) compiles identically or worse.
-//  * tools/permute.py, 3 min, found nothing.
-// What still differs: block 0's early `mov cx,[esi+0x202]` sits after the
-// no_video RMW instead of between scratch[0] and scratch[1]; block 2 picks
-// edx/ecx; wc.style is `mov [eax],8` just before RegisterClassA instead of
-// `mov [esi+0x18],8` inside the mode copy.
-// Claude Fable 5.1 retry: no gain over 89.2% (827 bytes), file unchanged below.
-// Measured: the N-declarations sweep is flat (0 to 400), so the residual is
-// the source shape. `wc.style = 8` placed anywhere before the RegisterClassA
-// call, through a WNDCLASSA pointer or reference, a one-element array
-// member, an indexed store, inline helpers for the store, the address or the
-// call, and the global pointer DAT_0051fbd0 all make MSVC keep `&d->wc` in
-// edi across the three calls and spill the height (835 to 837 bytes, 73%);
-// the CSE keys on the address tree `d + 0x18`, which only a differently
-// built tree escapes (a diagnostic `(WNDCLASSA*)&d->wc.lpfnWndProc - 1`
-// freed it, but that is not the same address). A local for the second flag
-// word, with or without a videoFlags local in the first block, makes block
-// 2 exact but rotates every later scratch register by one (67 to 73%), and
-// throwaway temporaries before either block do not rotate them back. Bitfield
-// assignments, operand swaps and value-level spellings of block 1 either
-// merge the two RMWs (818 bytes) or change nothing. tools/permute.py, 20
-// minutes, found nothing.
-// deepseek-v4.1-flash retry 2: seven more variants, all below 89.2%.
-// Two findings for the next attempt. (1) Block 0: the original's early
-// `mov cx,[esi+0x202]` position IS reachable, put `unsigned short vf =
-// d->videoFlags;` in the source between the scratch[0] and scratch[1] stores and
-// use `vf` in the block-0 expression; the load then lands exactly where the
-// original has it, but the allocator swaps the block-0 roles (videoFlags to eax,
-// flag word to ecx/eax) so the file stays 827 bytes at 86.7%. (2) Block 2: an
-// `unsigned short`/union local for the new flag word makes that block byte-exact
-// (`mov ax`/`and eax,0xfc03`/`or al,1`/no al reload) and drops to 818 bytes, but
-// every following bit test then rotates one register (ours dl,al,ecx,dx for the
-// original cl,dl,al,cx), 72.9-73.3%. A nested block that ends the local's scope
-// right after the has_c4 test and writing the test as `(fv >> 6) & 1` (which
-// emits `test al,0x40`) behave the same way.
-//
-// RETRY of deepseek-v4.1-flash: 89.2%, 827 of 820 bytes (7 over). The one gain
-// over the 88.8% below is the tail test: writing the FUN_004b5510 result into a
-// local (`int r = FUN_004b5510(...); if (r != 0)`) makes MSVC emit the
-// original's `cmp eax,ebx; jne` instead of `test eax,eax; jne`.
-// What still differs at 89.2%:
-//  * scheduling of the videoFlags load in the first flag block (`mov cx,[+0x202]`
-//    between the scratch[0]/scratch[1] stores in the original, later in ours).
-//  * the second flag block picks dx/cx for videoFlags/flag-word where the
-//    original picks cx/ax, so ours reloads `mov al,[+0xf0]` and uses `or ecx,1`
-//    in place of the original `or al,1` (about 15 bytes over in that block).
-//  * `d->wc.style = 8` is emitted just before RegisterClassA (`mov [eax],8`)
-//    instead of the original's `mov [esi+0x18],8` between the wndProc store and
-//    the mode-copy stores. Moving style earlier in the source (five positions
-//    tried) forces a 4-byte spill and swaps the width/height registers, 72.4%.
-//    Rewriting the flags expression in five forms, a videoFlags local, and
-//    direct startWidth/startHeight all compile identically or worse.
-//
-// Run of deepseek-v4.1-flash: 88.8%, 827 of 820 bytes (7 over). Change from
-// the previous 86.0%: both writes to the flag word at +0xf0 now go through a
-// single `Flags_4b5980* fl = &d->flags;` local (declared just before the
-// no_video clear) instead of `d->flags` directly. That stops MSVC 5 from
-// folding the bit-11 clear and the bit-10 update into one `and eax,0xf3ff`:
-// it now emits the original's in-place `and word [esi+0xf0],0xf7ff`, then
-// reloads `mov ax,[esi+0xf0]` for the second update. Declaring the pointer
-// before the clear (not only before the second store, the 87.9% v20) also
-// pins the RMW late, between the unknown_dc and hwnd stores, as in the
-// original. A `Flags_4b5980*` local used for only the second write scored
-// 88.4% and one used only for the first 87.9%.
-//
-// GPT-6.1-sol refinement: seven check.py invocations, including the final
-// verification; best remains 88.8%. Splitting the final flag expression into
-// locals compiled identically. Routing it through a second flag pointer moved
-// the flag update and item zero stores ahead of the start-width/height loads,
-// scoring 87.9%; using the existing pointer for that update also scored 87.9%.
-// The 88.8% direct-field version is restored below.
-//
-// deepseek-v4.1 run: 88.8% base restored after two experiments. (a) An
-// `unsigned int f = (d->flags.value & 0xfc03) | ((d->videoFlags & 0x1fe) << 1) | 1;`
-// local does put the flag word in eax as the original has it, but MSVC then folds the
-// mask to `and eax,0xfc02` (the `| 1` makes bit 0 of the mask dead) and the extra live
-// eax rotates every later bit test, 79.5%. (b) Swapping the two `|` operands and
-// testing `d->flags.value & 0x40` instead of the bitfield gives 77.1%.
-// What still differs:
-//  * scheduling of the videoFlags load in the first flag block: the original
-//    `mov cx,[esi+0x202]` sits between the scratch[0] and scratch[1] stores,
-//    ours sits just after the bit-11 RMW. Reading videoFlags into a local
-//    before the block only hoists the load higher (86.3%), and after the RMW
-//    compiles identically to the direct read.
-//  * the second flag block (before the has_c4 test) uses dx for videoFlags
-//    and cx for the flag word; the original uses cx for videoFlags and ax for
-//    the flag word. Ours therefore reloads `mov al,[esi+0xf0]` for the test
-//    (+2 bytes) and emits `or ecx,1` where the original has the 2-byte
-//    `or al,1`. A videoFlags local there compiles identically.
-//  * the tail tests `test eax,eax` where the original has `cmp eax,ebx`.
-//
-// GPT-6.1-sol retry: six checker invocations in this session, including two compile failures. Moving the style assignment after hInstance reduced the score to 72.7%; loading videoFlags just after scratch[0] scored 86.3%. The original 88.8% source is restored.
-// Earlier 86.0% runs established:
-//  * `d->wc.style = 8` sits just before RegisterClassA instead of at its
-//    natural place after wc.lpfnWndProc. With the store early, MSVC 5
-//    common-subexpressions `&d->wc` into edi and spills the width; with it
-//    late the address is used once and stays in eax, so edi is free for the
-//    width. That restores the original `mov edi,[esi+0x1fa]` /
-//    `mov ebp,[esi+0x1fe]` and most of the downstream register picks.
-//  * `unsigned int cls = RegisterClassA(...)` rather than `ATOM`, which makes
-//    the original zero-extend and home-slot store: `and eax,0xffff` then
-//    `mov [esp+0x4c],eax` before the test.
-// The width local must be declared before the height (`int w` then `int h`)
-// for edi to get the width and ebp the height.
-//
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, retried by Claude Fable 5.1, finished by DeepSeek V4.1 Flash, worked on by Space Bunny Free. Names are provisional.
+// Space Bunny Free: 89.2% (827 bytes) -> 93.6% (815 bytes). Two changes, both
+// found by sweeping the statement order of the block that writes width,
+// height and the flag word, and the one spelling of the bit-5 test:
+//  * `d->width = w; d->height = h;` written directly (the `int* pw/ph` locals
+//    earlier attempts needed are gone: they are what forced MSVC to pick
+//    videoFlags=edx/flags=ecx in the flag block), and the flag-word update
+//    moved AFTER those two stores. That fixes the instruction schedule of the
+//    whole block: all 17 instructions now match the original one for one
+//    (videoFlags=ecx, flags=eax, `or al,1`, `shr al,6`, and the height store
+//    sunk past the test), which removes the `mov al,[esi+0xf0]` reload and the
+//    two-byte-longer `and ecx,imm32` / `or ecx,1` forms. It also lets the
+//    remaining bit tests fall into the original's cl/dl/al/cx/dl cycle.
+//  * `d->wc.style = 8;` moved to just after `d->wc.lpfnWndProc = FUN_004b5cc0;`
+//    instead of just before RegisterClassA. On its own that made MSVC keep
+//    `&d->wc` in edi (a 3-byte lea, a spilled startHeight, a 0x3c frame,
+//    835 bytes); with the schedule above it does not, so the store lands at
+//    the original's place as `mov dword ptr [esi + 0x18], 8`.
+// What still differs (11 of the 14 remaining diff lines are jump targets that
+// only moved, so the shape is 98.7%):
+//  * the bit-5 test is written `d->flags.value & 0x20`, which MSVC folds to
+//    `test byte ptr [esi + 0xf0], 0x20` (7 bytes). The original loads the
+//    byte into a register: `mov cl,[esi+0xf0]; shr cl,5; test cl,1`, which
+//    only a `Flags_4b5980::bits.has_c0` bitfield produces. This spelling is
+//    load-bearing: with the bitfield the test takes the register the allocator
+//    has left (dl instead of cl), which rotates every later test and puts the
+//    `&d->wc` materialisation back (826 bytes, frame 0x3c, 69.2%). The other
+//    four tests still are bitfields and do match. All 64 spellings of the six
+//    tests (bitfield / mask) were compiled: `!= 0` and `& 1` on the bitfield
+//    give the same memory test as the mask, and no combination gets past 93.6%.
+//  * the `mov cx, word ptr [esi + 0x202]` of the first flag block sits after
+//    `mov dword ptr [esi + 0x40], ebx` instead of between the scratch[0] and
+//    scratch[1] stores. Reading `d->videoFlags` into an `unsigned short`
+//    before the scratch stores does move that load to the original's offset,
+//    but it also swaps the two values' registers in that block (videoFlags
+//    gets eax, the flag word ecx), which costs more than it gains (91.1%).
+// Leads from earlier attempts, all still true:
+//  * `Flags_4b5980* fl = &d->flags;` declared just before the no_video clear
+//    is what keeps MSVC from folding the bit-11 clear and the bit-10 update
+//    into one `and eax,0xf3ff`; it pins the in-place
+//    `and word ptr [esi + 0xf0], 0xf7ff` and the reload after it.
+//  * `unsigned int cls = RegisterClassA(...)` (not `ATOM`) is what gives the
+//    `and eax,0xffff` and the home-slot store at `[esp + 0x4c]`, and
+//    `int r = FUN_004b5510(...); if (r != 0)` gives the `cmp eax,ebx; jne`.
+//  * `int w` must be declared before `int h`, or edi and ebp swap.
+//  * About 450 check.py runs in this round and 2 permuter runs on the older
+//    file (15 and 45 minutes, both flat at 89.2%). Inert: the `int* pw/ph`
+//    pointer locals (any one of them flips the allocator the other way),
+//    address-taken locals for every other field, reading the bit tests through
+//    `fl` instead of `d` (that one does give the original's cl/dl/al/cx/dl,
+//    but it puts videoFlags back in edx and the frame back to 0x3c), the
+//    `&d->wc` pointer/reference/cast spellings of the style store, a
+//    field-by-field mode copy, the `int`/`unsigned int`/`unsigned char`
+//    bitfield types, 16 single-bit fields, byte and word shift expressions
+//    instead of bitfields, inline helpers for the flag update and the size
+//    update, every statement position of the flag update, of the width/height
+//    declaration and of the wc style store, and the `MEMORYSTATUS`/`view`/
+//    early-store orderings.
 // The struct needs `#pragma pack(2)`: the mode struct at +0x1ea and the two
 // ints after it sit at 0x1ea, 0x1fa and 0x1fe, and videoFlags is a word at
 // +0x202. WNDCLASSA has to be padded to +0x18 by hand for the same reason.
-// IDC_ARROW is passed as the raw Win16 value 103 (0x67).
+// IDC_ARROW is passed as the raw Win16 value 103 (0x67). `push 0x7f00` at the
+// top of the GDI block is MSVC hoisting LoadIconA's IDI_APPLICATION (0x7f00
+// in this SDK), not a source statement.
 //
 // Suspected original bug: the work area rectangle fetched with
 // SystemParametersInfoA(SPI_GETWORKAREA) at +0xec overlaps the flag word at
@@ -272,19 +211,17 @@ int __stdcall FUN_004b5980(App_4b5980* d)
 
     d->items = 0;
     d->itemCount = 0;
-    d->flags.value = (d->flags.value & 0xfc03) | ((d->videoFlags & 0x1fe) << 1) | 1;
     int w = d->startWidth;
     int h = d->startHeight;
-    int* pw = &d->width;
-    int* ph = &d->height;
-    *pw = w;
-    *ph = h;
+    d->width = w;
+    d->height = h;
+    d->flags.value = (d->flags.value & 0xfc03) | ((d->videoFlags & 0x1fe) << 1) | 1;
     if (d->flags.bits.has_c4) {
         FUN_004ba610(d);
     } else {
         d->obj_c4 = 0;
     }
-    if (d->flags.bits.has_c0) {
+    if (d->flags.value & 0x20) {
         FUN_004ba5c0(d);
     }
     if (d->flags.bits.has_c8) {
@@ -305,6 +242,7 @@ int __stdcall FUN_004b5980(App_4b5980* d)
         d->unknown_80 = 0;
         d->mode = d->startMode;
         d->wc.lpfnWndProc = FUN_004b5cc0;
+        d->wc.style = 8;
         d->wc.hInstance = d->hInstance;
         d->wc.lpszClassName = d->className;
         d->wc.hIcon = LoadIconA(d->hInstance, IDI_APPLICATION);
@@ -313,7 +251,6 @@ int __stdcall FUN_004b5980(App_4b5980* d)
         d->wc.cbClsExtra = 0;
         d->wc.cbWndExtra = 0;
         d->wc.hbrBackground = GetStockObject(BLACK_BRUSH);
-        d->wc.style = 8;
         unsigned int cls = RegisterClassA(&d->wc);
         if (cls != 0) {
             d->hwnd = CreateWindowExA(WS_EX_APPWINDOW, d->className, d->title,

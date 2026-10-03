@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Claude Fable 5.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Claude Fable 5.1, retried by Space Bunny Free. Names are provisional.
 // Reads one 0x20-byte section header out of a HapiBank archive (called in a loop
 // by 0x4b3770) and, when the caller's name matches the section name, unpacks the
 // section body and files its records away in the current section of the parsed
@@ -50,6 +50,50 @@
 // ran its 3 minutes on this file and on the BlobRec variant with no gain. Every
 // BlobRec struct copy reproduces the original's field loads and roles but moves
 // fh/image to edi/ebx for the whole function, and nothing tried flips that pair.
+//
+// Space Bunny Free pass: still 93.0%, file unchanged. The blob loop's record
+// read is the last difference and it is a single allocator decision. Measured
+// register roles in the blob-loop head (address, name, id, offset):
+//   original  edx, eax, ecx, ebx   with fh=ebx, image=edi
+//   ours now  eax, ecx, edx, esi   with fh=ebx, image=edi
+//   any aggregate copy of the 16-byte record
+//             ecx, eax, edx, <fh's register>   with fh=edi, image=ebx
+// So the original needs BOTH the aggregate copy (which is the only construct
+// that emits the four field loads in memory order with `test` between the
+// first load and the other three) AND the pre-copy allocation, and in our
+// compilation the two never coexist: every 16-byte aggregate copy, in every
+// spelling, moves fh to edi and image to ebx for the whole function, so the
+// four earlier loop counters move too and the score falls to 83.9%. Every
+// field-by-field spelling (four int locals, four field assignments, read from
+// p or from a pointer local) hoists all four loads before the branch but
+// leaves the `test` after them, at 92.6%. One shape has both the interleaved
+// test and fh=ebx: four field-by-field reads plus a second, dead copy of the
+// record after `p += 4` (a_fields2 in the scratch notes, 93.0%, but it needs
+// that statement, which emits no code); its roles are ecx, eax, edx, esi.
+// Tried again this pass, all on scratch copies, nothing over 93.0%:
+//  * the aggregate copy from p, through a block- or function-scope pointer
+//    local, `p += 4` / `p = (int*)(q+1)` / `p = (int*)((char*)p+16)` /
+//    `p += sizeof(T)/4`, p as char* with byte increments, as a union, a
+//    nested struct, an int[4] array with memcpy, a packed struct, a const
+//    local, an inline helper returning the struct by value, a helper copying
+//    through an out-parameter, and a 12-byte copy plus a separate len read
+//  * reclen as a header field at +0x24/+0x28/+0x2c and as a separate local
+//    with header sizes 0x20..0x30; src/need/dst/oldlen/newLen respellings;
+//    the e lookup through a GetEntries helper, SetCurrent, AddImage; the
+//    for/while/do forms; branch polarity and ternary forms
+//  * all 120 orders of the five scalar locals, all 10 positions of the `e`
+//    declaration, and a randomised sweep of 660 body orderings over the lazy,
+//    copy, pointer-copy and four-local shapes
+//  * the parameter types (void*, char**, int* for image, void* for name), the
+//    local types (char* buf, long len/base/end), tools/headers.py over 256
+//    header sets on the copy shape, the N-extern sweep (N = 0..400) on five
+//    shapes, and tools/permute.py for 30 minutes on this file (5021 candidates,
+//    no gain).
+// Lead for the next attempt: the allocator's choice for the record's address
+// and id (edx/ecx against eax/edx) flips with the copy's presence, so a source
+// that makes the copy *and* leaves one fewer temporary alive elsewhere would
+// be worth a try; nothing in this function's earlier half can be thinned
+// without losing a byte.
 #include <stdio.h>
 #include <memory.h>
 

@@ -1,4 +1,7 @@
-// Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#5025): checkall.py confirms the retained 96.5% / 1082-byte
+// version. The sibling shape was measured and its stack-slot tradeoff is
+// documented below.
 //
 // Partial, 96.5% at exactly 1082 bytes (issue #4924).
 //

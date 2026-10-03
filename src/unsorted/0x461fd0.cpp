@@ -1,68 +1,25 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by opus, finished by GPT-6. Names are provisional.
-// Codex GPT-6 retry for #5187 (2026-10-03): current main remains 99.0%.
-// `register`, /Gi, <memory.h>, <stdlib.h>, and branch/increment rewrites
-// all preserve the sole ECX-for-ESI latch mismatch. <windows.h> failed to compile.
-// GPT-6 retry (#5234): rechecked at 99.0%. Carrying c->field_1c from the loop
-// head scored 48.7%; a shared j++ after the field_30 branch scored 69.5%.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by opus, finished by GPT-6, finished by opus. Names are provisional.
 // Grows both pools of a NetBuffer: a new packet-pointer array of `growbufs` more
 // packets and a new entry array of `growpackets` more entries, then moves every
-// entry that still belongs to a packet into the new entry array.
+// entry that still belongs to a packet into the new entry array, re-queueing the
+// pending ones (the inlined 0x4623e0 and 0x461f90) and relinking the in-use list.
 //
-// PARTIAL, 99.0% (919 of 919 bytes, size exact). Pass by opus (issue 5023), up
-// from 86.8%. Every frame slot and register now matches the original (base 0x10,
-// n 0x14, i 0x18, q 0x1c, p 0x20, totalentries 0x24, j in the dead growbufs slot
-// 0x2c, c in the dead growpackets slot 0x30 with an EAX copy, e in EBP). Duplicating
-// `j++` in both arms of the `field_30` test puts it in the original's latch while
-// keeping the register allocation. The remaining diff is the latch temporary:
-// this uses ECX where the original uses ESI.
-//
-// What got it from 86.8 to 98.4, all semantically correct (the old file kept a
-// redundant `if (c == 0) break;` at the loop top):
-//  1. The walk is a plain `while (c != 0) { if (c->field_c != (int)p) break; ...}`
-//     inside `if (c != 0) { walk } else { p->start = -1; p->count = 0; }`. MSVC
-//     drops the first `c != 0` test (known from the `if`), rotates the loop and
-//     builds the original's two-entry head (`jmp` past the c/q reload block).
-//  2. `n++;` BEFORE `Entry* e = q++;` (the original loads n first, 0x4621eb).
-//  3. Duplicating the `j++` in both arms of the `field_30` test moves it to the
-//     latch without changing EBP's assignment to `e`; one increment before the
-//     test gives 98.4%.
-//  4. `int j = 0;` in the walk arm, right after `p->start = n;` (store at 0x4621c9).
-//  5. `p->field_10 = (int)(base + n); Entry* q = (Entry*)p->field_10;`: reading
-//     q back from the field is what gives `shl esi,5 / lea ecx,[esi+ebp]` (n dies
-//     at the shift) instead of `mov ecx,esi / shl ecx,5 / add ecx,ebp`.
-//  6. Tail order `count = totalentries;` before `field_1c = n - 1;`.
-//
-// The allocation (e vs c for EBP) sits on a knife edge. Measured on the
-// j++-in-latch form (69.5%): the inline Push written with a branchless ternary
-// `writeIdx = (writeIdx + 1 >= 0x400) ? 0 : writeIdx + 1;` puts j++ AND the
-// allocation right (92.1%) but emits setge/dec/and where the original has the
-// branch, so the original's Push really has the `if`. Not levers on that form
-// (all 69.5%, byte-identical allocation): helpers for 0x4623e0/0x461f90
-// (RemovePending/AddPending inlined), a list-append helper, `&queue` without
-// the `qp` local, a `for` rotation loop, memcpy for the copy, every order of
-// the three `e->field_*` stores, `field_30 = field_34`, a `last` local, the n++
-// position, the e/c declaration scope, every for-loop spelling of j++, /Gi.
-// Also 69.5 or worse on that form: `do { } while (c != 0)`, `for (;;)` with the
-// null test at the bottom, the advance in the loop condition, the per-entry
-// body or the whole walk as an inline helper, unsigned/long/short j or n, and
-// every branchy spelling of the Push wrap (`if (++writeIdx >= 0x400)`, `> 0x3ff`,
-// an empty then-arm, a goto, a `w` local). Diagnostics (wrong code, only to see
-// what holds the choice): deleting the `x == c` compare in the rotation loop,
-// the `field_20 -= c->field_8` or the `*e = *c` copy each hands EBP back to
-// `e`; deleting an `e` use or adding one late in the body does not. So `c`
-// wins on the weight of its uses inside the queue block, and the original's
-// source must weigh them differently while keeping j++ in the latch.
-// The 0x4623e0 and 0x461f90 helpers are byte-identical inlined, so either
-// spelling is fine. Also tried on the latch form: the queue's Push/Pop
-// defined inline (MSVC then inlines the rotation loop's Pop and Push too, 955
-// bytes, while the original calls 0x4623b0/0x462370 there and inlines only the
-// last Push) and `new Packet_00461fd0(this)` with an inline constructor (same
-// code, 98.1% on the j++-early form).
+// MATCH (#5283). The earlier 99.0% file duplicated `j++` into both arms of the
+// head test, which got the global allocation right but left j's latch
+// temporary in ecx instead of esi. That temporary is picked by C2's
+// Pentium-pairing rename pass (FUN_0042b3e2), which walks each codegen block
+// from the bottom up and hands every flagged tuple the next free register of
+// eax, ecx, edx, esi, edi, ebx, ebp from a pointer reset at each block. With a
+// single `j++` in the latch, the `c != 0` compare below it takes ecx first, so
+// j++ gets esi as in the original. With j++ in the latch, though, c outranked e
+// (516 against 496 in tools/c2prio.py) and took ebp. The tail append written
+// as `if (tail) { tail->next = e; tail = e; } else { tail = e; }` gives e the
+// extra weight (c 500, e 528); MSVC merges the two `tail = e` stores again, so
+// the code is unchanged apart from the allocation.
 //
 // The allocations call `operator new` / `operator delete` (??2 / ??3, the
-// names data/symbols.csv has at 0x4b4f10 / 0x4b4f20); the earlier file's
-// `operator new[]` compiled to the same code but references ??_U / ??_V, which
-// would fail the reference check once the bytes match.
+// names data/symbols.csv has at 0x4b4f10 / 0x4b4f20); `operator new[]`
+// compiles to the same code but references ??_U / ??_V.
 
 #include <string.h>
 
@@ -74,15 +31,17 @@ void __cdecl FUN_00461170(const char* fmt, ...);
 
 class Class_00461fd0;
 
+struct Packet_00461fd0;
+
 struct Entry_00461fd0 {
     int field_0;                    // +0x00
     int field_4;                    // +0x04
     int field_8;                    // +0x08, the size
-    int field_c;                    // +0x0c, the packet that owns it
-    int field_10;                   // +0x10, next in the packet chain
-    int field_14;                   // +0x14
-    int field_18;                   // +0x18, previous in the global list
-    int field_1c;                   // +0x1c, next in the global list
+    Packet_00461fd0* field_c;       // +0x0c, the packet that owns it
+    int field_10;                   // +0x10, >= 0 while in the pending queue
+    int field_14;                   // +0x14, time it left the queue
+    Entry_00461fd0* field_18;       // +0x18, previous in the global list
+    Entry_00461fd0* field_1c;       // +0x1c, next in the global list
 };
 
 struct Packet_00461fd0 {
@@ -90,7 +49,7 @@ struct Packet_00461fd0 {
     int start;                      // +0x04
     int count;                      // +0x08
     int field_c;                    // +0x0c
-    int field_10;                   // +0x10
+    Entry_00461fd0* field_10;       // +0x10
     char unknown_14[0x43e - 0x14];
 };
 
@@ -158,7 +117,30 @@ public:
     Queue_00461fd0 queue;           // +0x38
 
     int FUN_00461fd0(int growbufs, int growpackets);
+    void FUN_004623e0(Entry_00461fd0* item);
+    void FUN_00461f90(Entry_00461fd0* item);
 };
+
+void Class_00461fd0::FUN_004623e0(Entry_00461fd0* item)
+{
+    item->field_10 = -1;
+    item->field_14 = FUN_004b6340();
+    int n = queue.count;
+    while (n-- > 0) {
+        Entry_00461fd0* value = ((Class_004623b0*)&queue)->FUN_004623b0();
+        if (value == item)
+            break;
+        ((Class_00462370*)&queue)->FUN_00462370(value);
+    }
+    field_20 -= item->field_8;
+}
+
+void Class_00461fd0::FUN_00461f90(Entry_00461fd0* item)
+{
+    queue.Push(item);
+    item->field_10 = 0;
+    field_20 += item->field_8;
+}
 
 
 // FUNCTION: 0x461fd0
@@ -245,50 +227,36 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
             for (int i = 0; i < field_c; i++) {
                 Packet_00461fd0* p = packets[i];
                 if (p->count > 0) {
-                    Entry_00461fd0* c = (Entry_00461fd0*)p->field_10;
+                    Entry_00461fd0* c = p->field_10;
                     if (c != 0) {
                         p->start = n;
                         j = 0;
-                        p->field_10 = (int)(base + n);
-                        Entry_00461fd0* q = (Entry_00461fd0*)p->field_10;
+                        p->field_10 = &base[n];
                         while (c != 0) {
-                            if (c->field_c != (int)p) {
+                            if (c->field_c != p) {
                                 break;
                             }
+                            Entry_00461fd0* e = &base[n];
                             n++;
-                            Entry_00461fd0* e = q++;
                             *e = *c;
                             if (c->field_10 >= 0) {
-                                c->field_10 = -1;
-                                c->field_14 = FUN_004b6340();
-                                Queue_00461fd0* qp = &queue;
-                                int nq = qp->count;
-                                while (nq-- > 0) {
-                                    Entry_00461fd0* x = ((Class_004623b0*)qp)->FUN_004623b0();
-                                    if (x == c) {
-                                        break;
-                                    }
-                                    ((Class_00462370*)qp)->FUN_00462370(x);
-                                }
-                                field_20 -= c->field_8;
-                                qp->Push(e);
-                                e->field_10 = 0;
-                                field_20 += e->field_8;
+                                FUN_004623e0(c);
+                                FUN_00461f90(e);
                             }
-                            e->field_18 = (int)field_34;
-                            e->field_c = (int)p;
+                            e->field_18 = field_34;
+                            e->field_c = p;
                             e->field_1c = 0;
                             if (field_34) {
-                                field_34->field_1c = (int)e;
+                                field_34->field_1c = e;
+                                field_34 = e;
+                            } else {
+                                field_34 = e;
                             }
-                            field_34 = e;
                             if (!field_30) {
                                 field_30 = e;
-                                j++;
-                            } else {
-                                ++j;
                             }
-                            c = (Entry_00461fd0*)c->field_1c;
+                            j++;
+                            c = c->field_1c;
                         }
                         p->count = j;
                     } else {

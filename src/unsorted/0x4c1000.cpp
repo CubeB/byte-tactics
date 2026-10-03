@@ -1,4 +1,7 @@
-// Decompiled by space-bunny-alpha, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by space-bunny-alpha, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#4916): naming the second vertex only in the first walk (76.1%)
+// or only in the second (76.6%) worsens the frame and register allocation. The
+// retained direct-index version remains 97.1% at 791 bytes.
 // PARTIAL 97.1%, 791 of 791 bytes (same size, every instruction the compiler
 // chose is the original's, in the original's order).
 // Scanline filler, the sibling of 0x4c0c70 (which also fills a shade channel):

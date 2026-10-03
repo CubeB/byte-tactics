@@ -1,4 +1,7 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash, notes by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash, notes by claude-opus-5-5, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#5050): current check.py confirms 88.1% at 1832 bytes. The
+// file's current notes capture the unresolved y1 lea, flags register, and 0x20
+// loop allocation constraints.
 // 2026-10-03 (claude-opus-5-5): no gain (88.1%), but the remaining gap now has
 // one known cause. Scratch files and sweep specs: build/scratch/0x4a3780/.
 //  - The 0x20 block's pointer choice tests flag8 itself: the original's `je`

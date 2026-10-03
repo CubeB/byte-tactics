@@ -1,4 +1,43 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Claude Opus 5.5. Names are provisional.
+
+// #5018 (Claude Opus 5.5): still 90.2%, gave up after about an hour. The file
+// now uses the real DirectSound interfaces (the toolchain's <dsound.h> for
+// IDirectSound/IDirectSoundBuffer; IDirectSound3DBuffer is declared by hand
+// because that header is DirectX 3, and DAT_004fcf68 is its IID). The calls
+// are GetStatus, GetCurrentPosition, DuplicateSoundBuffer, SetCurrentPosition,
+// QueryInterface, SetPosition, SetMinDistance, SetMaxDistance, SetMode,
+// Release, SetVolume and Play. The bytes are the same as the hand-written
+// vtables (score 366 either way).
+// New measurements, all with the plain for loop (80.2%, 642 bytes) unless
+// stated:
+// * The do-while only works because its test reads bestidx: the same loop
+//   tested on slot, volume or `unit == 0 && unit != 0` (folded) spills `this`
+//   but leaves bestidx in memory and the shared zero in edi (70.7 to 78.6%).
+//   Constant-false wrappers (`int retry = 0; do .. while (retry)`,
+//   `while (1) { .. break; }`) fold before the allocator sees a loop.
+// * bestidx stays in memory even with no `this` competition: removing the
+//   DAT loop, the room loop or the table loop, an extra in-loop read of
+//   bestidx, up to four extra reads after the loop, or slot's in-loop store
+//   all leave it at [esp+0x1c]. A `char` scan index is the only change that
+//   gave the original's prologue (`xor ebp,ebp / mov esi,ecx`, this spilled
+//   at entry), and then best took ebp instead of bestidx (77.9%).
+// * Also flat: every order of the unit/slot/bestidx initialisers (with best
+//   before or after the set test), bestidx/best initialised in the for
+//   header or after the set test, a function-scope index shared by all three
+//   loops, DWORD status/play/write at the top, HRESULT temporaries, an
+//   explicit pointer plus index for the scan, inline member helpers for the
+//   DAT check, the room loop, the table insert, the 3D setup or the whole
+//   tail (the big ones are not inlined), a goto or a break-and-test form of
+//   the table loop, and /Gi.
+// * The permuter from the plain-loop dsound source: 12,489 candidates in 18
+//   minutes, 80.2% throughout (best score 992, cosmetic only).
+// * 50 MATCHED functions spill `this` at entry and reload it after a loop
+//   (0x4629b0, 0x438760 and 0x461b10 are small ones to study); in all of them
+//   the loop has its own high-pressure locals.
+// Lead: C2.EXE decompiles cleanly with Ghidra (the frame layout code was
+// found that way for 0x4cac40, see that file and the #5018 pull request), so
+// the global allocator's priority and live-range splitting can be read
+// directly instead of guessed.
 
 // Space Bunny Free, #4337: 82.2% -> 90.2% (653 bytes against 646). The lever is
 // not the declaration order but MSVC's weighting of register priority by loop
@@ -130,52 +169,35 @@
 // the set-loop calls; a dead this-field store pair at the top; the register
 // keyword; windows.h/dsound.h/string.h; loop-counter type and scope; and every
 // declaration order. All left `xor esi,esi` (zero) / `mov ebp,ecx` (this).
+#include <windows.h>
+#include <dsound.h>
+
 extern int DAT_0051ff48;
 
-struct Info_004fcf68 {
-    int dummy;
-};
-extern const Info_004fcf68 DAT_004fcf68;
+extern const GUID DAT_004fcf68;
 
 struct Pos_004cf570 {
     int x, y, z;
 };
 
-// Sound object interface. The original calls it through its vtable as a
-// __stdcall method with the object as the first stack argument (COM style).
-class Unit_004cf570 {
-public:
-    virtual int __stdcall FUN_004cf5e0(const Info_004fcf68* info, Unit_004cf570** out);
-    virtual int __stdcall FUN_004cf5e4();
-    virtual int __stdcall FUN_004cf5e8();
-    virtual int __stdcall FUN_004cf5ec();
-    virtual int __stdcall FUN_004cf5f0(unsigned int* a, unsigned int* b);
-    virtual int __stdcall FUN_004cf5f4();
-    virtual int __stdcall FUN_004cf5f8();
-    virtual int __stdcall FUN_004cf5fc();
-    virtual int __stdcall FUN_004cf600();
-    virtual int __stdcall FUN_004cf604(Unit_004cf570** out);
-    virtual int __stdcall FUN_004cf608();
-    virtual int __stdcall FUN_004cf60c();
-    virtual int __stdcall FUN_004cf610(int a, int b, int c);
-    virtual int __stdcall FUN_004cf614(int a);
-    virtual int __stdcall FUN_004cf618();
-    virtual int __stdcall FUN_004cf61c(int a);
-    virtual int __stdcall FUN_004cf620(int a, int b);
-    virtual int __stdcall FUN_004cf624(int a, int b);
-    virtual int __stdcall FUN_004cf628(int a, int b);
-    virtual int __stdcall FUN_004cf62c(float x, float y, float z, float w);
-};
-
-// Factory interface, used to clone a set entry (method at vtable +0x14).
-class Factory_004cf570 {
-public:
-    virtual int __stdcall FUN_004cf630();
-    virtual int __stdcall FUN_004cf634();
-    virtual int __stdcall FUN_004cf638();
-    virtual int __stdcall FUN_004cf63c();
-    virtual int __stdcall FUN_004cf640();
-    virtual int __stdcall FUN_004cf644(Unit_004cf570* src, Unit_004cf570** out);
+struct IDirectSound3DBuffer : public IUnknown {
+    virtual HRESULT __stdcall GetAllParameters(void* p) = 0;
+    virtual HRESULT __stdcall GetConeAngles(LPDWORD a, LPDWORD b) = 0;
+    virtual HRESULT __stdcall GetConeOrientation(void* p) = 0;
+    virtual HRESULT __stdcall GetConeOutsideVolume(LPLONG p) = 0;
+    virtual HRESULT __stdcall GetMaxDistance(float* p) = 0;
+    virtual HRESULT __stdcall GetMinDistance(float* p) = 0;
+    virtual HRESULT __stdcall GetMode(LPDWORD p) = 0;
+    virtual HRESULT __stdcall GetPosition(void* p) = 0;
+    virtual HRESULT __stdcall GetVelocity(void* p) = 0;
+    virtual HRESULT __stdcall SetAllParameters(void* p, DWORD apply) = 0;
+    virtual HRESULT __stdcall SetConeAngles(DWORD a, DWORD b, DWORD apply) = 0;
+    virtual HRESULT __stdcall SetConeOrientation(float x, float y, float z, DWORD apply) = 0;
+    virtual HRESULT __stdcall SetConeOutsideVolume(LONG v, DWORD apply) = 0;
+    virtual HRESULT __stdcall SetMaxDistance(float d, DWORD apply) = 0;
+    virtual HRESULT __stdcall SetMinDistance(float d, DWORD apply) = 0;
+    virtual HRESULT __stdcall SetMode(DWORD mode, DWORD apply) = 0;
+    virtual HRESULT __stdcall SetPosition(float x, float y, float z, DWORD apply) = 0;
 };
 
 class Class_004cf180 {
@@ -187,29 +209,29 @@ class Class_004cf570 {
 public:
     int field_0;
     int field_4;
-    int field_8;
-    int field_c;
+    float field_8;
+    float field_c;
     int field_10;
     int field_14;
     int field_18;
     int field_1c;
     int field_20;
-    Factory_004cf570* field_24;
+    IDirectSound* field_24;
     int field_28;
     int field_2c;
     int count;                              // +0x30
     int field_34;
-    Unit_004cf570* buffers[0x20];           // +0x38
+    IDirectSoundBuffer* buffers[0x20];      // +0x38
     int priority[0x20];                     // +0xb8
     int flags[0x20];                        // +0x138
 
-    int FUN_004cf570(Unit_004cf570** set, int arg2, Pos_004cf570* pos);
+    int FUN_004cf570(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* pos);
 };
 
 // FUNCTION: 0x4cf570
-int Class_004cf570::FUN_004cf570(Unit_004cf570** set, int arg2, Pos_004cf570* pos)
+int Class_004cf570::FUN_004cf570(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* pos)
 {
-    Unit_004cf570* unit = 0;
+    IDirectSoundBuffer* unit = 0;
     int slot = 0;
     int bestidx = 0;
     if (DAT_0051ff48 != 0) {
@@ -231,20 +253,20 @@ int Class_004cf570::FUN_004cf570(Unit_004cf570** set, int arg2, Pos_004cf570* po
     // `cmp ebp,4 / jge` after the scan that the original does not have. Without
     // it the whole rotation reverts and the file drops back to 80.2%.
     do {
-        unsigned int best = 0;
+        DWORD best = 0;
         for (int i = 0; i < 4; i++) {
             if (set[i] != 0) {
-                Unit_004cf570* c;
-                if (set[i]->FUN_004cf604(&c) != 0)
+                DWORD status;
+                if (set[i]->GetStatus(&status) != 0)
                     return 0;
-                if (c == 0) {
+                if (status == 0) {
                     unit = set[i];
                     break;
                 }
-                unsigned int a, b;
-                set[i]->FUN_004cf5f0(&a, &b);
-                if (a > best) {
-                    best = a;
+                DWORD play, write;
+                set[i]->GetCurrentPosition(&play, &write);
+                if (play > best) {
+                    best = play;
                     bestidx = i;
                 }
             } else {
@@ -254,31 +276,31 @@ int Class_004cf570::FUN_004cf570(Unit_004cf570** set, int arg2, Pos_004cf570* po
     } while (bestidx >= 4);
     if (unit == 0) {
         if (slot > 0) {
-            if (field_24->FUN_004cf644(set[0], &unit) != 0)
+            if (field_24->DuplicateSoundBuffer(set[0], &unit) != 0)
                 return 0;
             set[slot] = unit;
         } else {
             unit = set[bestidx];
-            unit->FUN_004cf614(0);
+            unit->SetCurrentPosition(0);
         }
     }
-    Unit_004cf570* chan;
-    if (unit->FUN_004cf5e0(&DAT_004fcf68, &chan) == 0) {
+    IDirectSound3DBuffer* chan;
+    if (unit->QueryInterface(DAT_004fcf68, (void**)&chan) == 0) {
         if (field_4 == 0 || pos == 0) {
-            chan->FUN_004cf628(2, 0);
+            chan->SetMode(2, 0);
         } else {
-            chan->FUN_004cf62c((float)pos->x, (float)pos->y, (float)pos->z, 0.0f);
-            chan->FUN_004cf624(field_8, 0);
-            chan->FUN_004cf620(field_c, 0);
-            chan->FUN_004cf628(0, 0);
+            chan->SetPosition((float)pos->x, (float)pos->y, (float)pos->z, 0);
+            chan->SetMinDistance(field_8, 0);
+            chan->SetMaxDistance(field_c, 0);
+            chan->SetMode(0, 0);
         }
-        chan->FUN_004cf5e8();
+        chan->Release();
     }
-    if (unit->FUN_004cf614(0) != 0)
+    if (unit->SetCurrentPosition(0) != 0)
         return 0;
-    if (unit->FUN_004cf61c(arg2) != 0)
+    if (unit->SetVolume(volume) != 0)
         return 0;
-    if (unit->FUN_004cf610(0, 0, DAT_0051ff48 != 0) != 0)
+    if (unit->Play(0, 0, DAT_0051ff48 != 0) != 0)
         return 0;
     for (int j = 0; j < 0x20; j++) {
         if (buffers[j] == 0) {

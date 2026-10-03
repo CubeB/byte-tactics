@@ -520,6 +520,18 @@ effect, the missing piece is usually a helper that was inlined:
   passed by address or returned by value in the block keep the float code
   sequential. 0x421700's original interleaves despite such calls, which no
   spelling has reproduced yet (#5199).
+- **A split piece with no references is skipped**: once C2 splits a
+  candidate, a long piece of it that has no references (spill cost 0) gets no
+  register, and a neighbour's piece takes that register for the stretch. In
+  0x462f30, `entry`'s piece from `entry = 0` to the route is skipped, so `net`
+  takes edi there. Give that piece a reference, or shorten it, before chasing
+  priorities (#5203).
+- **Definition order can change how candidates split together**: not every
+  register difference is a priority tie. In 0x463790, defining x first made
+  C2 split n, remaining, left and `this` together, so remaining's piece won
+  ebp. Defining i, progress, q and then x made them run out of registers one
+  at a time, as in the original. Check c2prio's split column when a reorder
+  moves several registers at once (#5203).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

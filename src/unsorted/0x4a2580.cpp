@@ -1,4 +1,47 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5, finished by claude-opus-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5, finished by claude-opus-5-5, finished by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+// 2026-10-03 (Space Bunny Free), 96.6 -> 96.8%, exact size (1631 bytes), one fix:
+//  the h<=w arm's last clamp is `a = min(a, limit - g->width - 2);` with the
+//  <windows.h> macro (<ddraw.h> pulls it in, which is why that include stays).
+//  The macro evaluates `limit - g->width - 2` twice, and then MSVC folds the -2
+//  into the original's `add edi, -2`; every single-evaluation spelling gives
+//  `sub edi, 2`. A probe settles what matters: in `int t = a - b; t -= 2;` MSVC
+//  gives `sub eax, 2`, but in `if (t - 2 > g.a) return t - 2;` and in
+//  `int t = h(1); t -= 2;` it gives `add eax, -2`, so it is the double
+//  evaluation (the value used twice), not the spelling, that produces the add.
+//  `if (a >= b - 2) a = b - 2;` with `b = limit - g->width;` gives the same two
+//  opcodes with b genuinely used, but only 94.2% (its only difference is the
+//  slot swap below, which costs more lines than this form).
+//  With the min macro, the `int b;` at the top is only needed as a declaration:
+//  no assignment at all (a dead `b = limit - g->width - 2;` scores the same),
+//  and dropping it drops the function to 89.0%.
+// Still differs: only the w<h arm's two frame slots, nothing else in the
+// function. Ours keeps lc at [esp+0x10] with limit and lim2 sharing [esp+0x14]
+// (the h<=w surf shares 0x14 as well); the original has limit and lim2 at
+// [esp+0x10] and lc at [esp+0x14]. New results this round, all scored:
+//  - compiler state is not the cause: 0 to 400 unused `extern int dummyN;` in
+//    steps of 8 never beats 96.8, and tools/headers.py --cpp does not either.
+//  - permute.py --stack lc on the 96.8 base, twice (seeds 3 and 11): 6853 and
+//    7362 candidates, none better, no match.
+//  - reusing the first loop's variable for lim2 (`limit = lc + ybase - 1;`, then
+//    every lim2 use renamed to limit) does move lc to [esp+0x14], as the
+//    original has it, but MSVC then homes limit in the dead `index` parameter
+//    slot [esp+0x58] and gives [esp+0x10] to the glyph pointers: 94.6% for every
+//    spelling of the clamp (if / min / ternary / smaller), of lc (ternary /
+//    min / plain if), of the ybase clamp, of `t` and of the declaration order,
+//    and also with limit declared at function scope or shared by both arms.
+//  - that form does reach the original's slot pair, but only while the
+//    intermediate store `limit = lc + ybase - 1` is dead (85.3%): MSVC drops it,
+//    the whole second block changes shape and the function is 18 bytes short.
+//  - reference counts do not move the pair either: `int k = 2; limit = limit - k;`,
+//    reusing `limit` for lim2, min() in either clamp, 2 to 4 extra dummy
+//    references to lim2 or lc, h/y locals instead of e->h/e->y in the two
+//    minimums, and every declaration order of ybase/lc/lim2/t are all flat.
+//  - a small struct holding the two variables as fields keeps them adjacent in
+//    declaration order, but the pair lands at [esp+0x1c]/[esp+0x20] and merges
+//    with buf's slot: the frame shrinks to 0x3c (85.8%).
+// So the swap is the frame allocator's tie-break between two locals whose
+// live-range shapes are identical; the one spelling that reaches the original's
+// order sends the reused variable to the dead parameter home instead.
 // 2026-10-02 (DeepSeek V4.1 Flash): retried the lc slot swap. `permute --stack
 // lc` (3 min, 3159 candidates) and `--stack lc,limit,lim2` (3 min, 2857) both
 // stayed at 96.6, as did a headers.py sweep (256 sets) and ~80 hand variants:
@@ -384,6 +427,9 @@ void __stdcall FUN_004c14f0(void* surface, char* text, int x, int y, int maxw);
 void __stdcall FUN_004bfe10(void* surface, void* rect);
 void __stdcall FUN_004bf4d0(void* surface, void* rect, int a);
 
+// No longer called (the two minimums are a ternary and a min() now), but it has
+// to stay: deleting this unused helper changes MSVC's frame layout and the
+// function drops to 89.4%.
 static inline const int& Smaller(const int& a, const int& b) { return a < b ? a : b; }
 
 static inline void* Surface_004a2580(Object_004a2580* o)
@@ -393,6 +439,8 @@ static inline void* Surface_004a2580(Object_004a2580* o)
 // FUNCTION: 0x4a2580
 void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
 {
+    // Unused local kept for the frame layout: with it the frame is the original's
+    // 0x40 with entries at [esp+0x18] and surface at [esp+0x1c]; without it (89.0%).
     int b;
     Entry_004a2580* entries = obj->holder->entries;
     Entry_004a2580* e = &entries[index];
@@ -484,9 +532,10 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
             g = FUN_004b7f30(e->glyphs, e->field_152 + 3);
             y -= g->height / 2;
             int a = e->off + e->x + 3;
-            b = limit - g->width - 2;
-            if (a >= b)
-                a = b;
+            // min() is the <windows.h> macro (<ddraw.h> pulls it in): it evaluates
+            // `limit - g->width - 2` twice, and that is what makes MSVC emit the
+            // original's `sub edi, edx / add edi, -2` instead of `sub edi, 2`.
+            a = min(a, limit - g->width - 2);
             FUN_004b7f90(surf, g, a, y);
         }
     }
@@ -495,6 +544,11 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         int cur = FUN_004c13f0();
         FUN_004c13a0(obj->field_8c1, cur);
         char buf[0x10];
+        // Original bug, kept as it is: the copy at 0x4a2a26 (strlen with repne
+        // scasb, then rep movsd/rep movsb) is unbounded and the source field runs
+        // from entry+0xb6 to the end of the 0x15b-byte entry, so a label longer
+        // than 15 characters runs off the 0x10-byte buffer into r1, r2 and the
+        // saved registers.
         if (e->u.text[0] != 0) {
             strcpy(buf, e->u.text);
         } else if (e->field_13c != 0) {

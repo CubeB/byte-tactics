@@ -1,4 +1,57 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
+// 2026-10-03 (Space Bunny Free): 86.6 -> 88.1%, size still exact (1832).
+// Seven spelling changes, all in the 0x20 walk loop plus one 16-bit compare,
+// found by hill-climbing and a random search over axis combinations from the
+// 86.6% file. None of them is an improvement on its own (the loop bound alone
+// drops to 84.7% and the rest are flat); the set is worth 1.5 points:
+//  - the loop bound is `if (k > me->field_c0 - 1) break;` (was `int lim =
+//    me->field_c0; if (lim < k + 1) break;`). That is the original's own
+//    `movsx ecx,[ebp+0xc0] / inc / inc / dec / cmp eax,ecx / jg`; the old form
+//    hoists a `lea ecx,[eax+1]` out of the loop and tests with `jl`.
+//  - `((unsigned)flags >> 7) & 1` for flag8, which gives the original's `shr`
+//    (a signed `>>` gives `sar`; `(flags & 0x80) != 0` is the same);
+//  - the pointer step comes before the counters
+//    (`if (flag8) fixed++; else ip++; n2++; k++;`);
+//  - `int n2 = 0;` is declared above `int remain = ...`;
+//  - `r.y1 = r.y0 + me->field_19 - 1;` (operand order only);
+//  - the 0x10 clamp is `if (me->field_ba > me->field_c0 - 2)`, which keeps the
+//    size at 1832 (`>= c0 - 1` gives the original's `dec ecx`/`jl` but drops
+//    the function to 1830 bytes, so the two extra bytes of `sub ecx,2` are
+//    what the rest of the block is short of);
+//  - with those, the original's arm order (fixed-row arm first, `flags & 0x80`
+//    tested directly) is right again, and the loop compiles to the original's
+//    instruction sequence apart from its registers.
+//  `field_c6` is declared `void*` (the code treats it as a pointer); it makes
+//  no difference to the bytes.
+// What still differs, all measured:
+//  (a) `lea eax,[ecx+ebx-1]` at the y1 computation, the original's base and
+//      index are the other way round. Every spelling of that expression and
+//      every header set leaves it (tools/headers.py swept all 256 sets: no
+//      change, 86.6% from the old file, and the same `lea` is wrong in the
+//      other direction without <windows.h>);
+//  (b) `flags` is loaded into ecx, the original uses eax (three instructions,
+//      the frame and the spill are already right);
+//  (c) the 0x20 loop's registers: the original computes flag8 in place
+//      (`shr eax,7 / and eax,1 / mov [esp+0x1c],eax`), spills it, and keeps ip
+//      in esi (its flag8 arm has a dead `mov esi,[esp+0x50]`, so ip shares esi
+//      with obj, which is also why obj stays in esi through the select check
+//      and the field_cca store). Here flag8 is computed into edx through a
+//      copy (`mov edx,ecx / shr edx,7`, 2 bytes more) and ip is spilled to
+//      [esp+0x1c]. Testing flag8 for the pointer choice (`if (flag8)`) is what
+//      makes the shift in place and flag8 memory-resident, but then `flags`
+//      loses its frame slot (the frame drops to 0x38 and the whole function to
+//      65.7%): MSVC then uses `mov si,[ebp+0xbc]` in the 0x10 block instead of
+//      `mov cx`, so nothing clobbers flags and no spill is needed. Nothing in
+//      the 0x10 or 0x20 block's spelling brings that spill back with
+//      `if (flag8)`: 64 combinations of the clamp/test spellings, every
+//      declaration order, one shared pointer instead of two, a union member,
+//      a helper for the pointer choice, two separate loops, a pointer-to-flag8,
+//      a `goto` loop, and random searches over 24 axes (1789 and 2233 samples
+//      with 1-4 mutations, plus 1937 permute.py candidates from this file)
+//      all stay at 65-70% or keep ip in memory;
+//  (d) `mov esi,[esp+0x50]` and `mov [esi+0xcca],1` (we reload obj into eax),
+//      downstream of (c);
+//  (e) `mov eax` vs `mov edx` for the index reload before FUN_004a1b40.
 // 2026-10-02 (DeepSeek V4.1 Flash): 84.3% -> 86.6%, size now exact (1832).
 // Two layout levers, both measured, moved the 0x20 block's register allocation
 // and a few branch targets:
@@ -70,9 +123,70 @@
 // could change me->flags) also spills flags, without the short* store or the
 // `& 0x80` test, and scores 84.9%. permute.py from this file found only noise
 // (a reordered in-rect `&&` chain, 85.4%).
+// 2026-10-03 (Space Bunny Free): 86.6 -> 88.1%, size still exact (1832).
+// Seven spelling changes, all in the 0x20 walk loop plus one 16-bit compare,
+// found by hill-climbing and a random search over axis combinations from the
+// 86.6% file. None of them is an improvement on its own (the loop bound alone
+// drops to 84.7% and the rest are flat); the set is worth 1.5 points:
+//  - the loop bound is `if (k > me->field_c0 - 1) break;` (was `int lim =
+//    me->field_c0; if (lim < k + 1) break;`). That is the original's own
+//    `movsx ecx,[ebp+0xc0] / inc / inc / dec / cmp eax,ecx / jg`; the old form
+//    hoists a `lea ecx,[eax+1]` out of the loop and tests with `jl`.
+//  - `((unsigned)flags >> 7) & 1` for flag8, which gives the original's `shr`
+//    (a signed `>>` gives `sar`; `(flags & 0x80) != 0` is the same);
+//  - the pointer step comes before the counters
+//    (`if (flag8) fixed++; else ip++; n2++; k++;`);
+//  - `int n2 = 0;` is declared above `int remain = ...`;
+//  - `r.y1 = r.y0 + me->field_19 - 1;` (operand order only);
+//  - the 0x10 clamp is `if (me->field_ba > me->field_c0 - 2)`, which keeps the
+//    size at 1832 (`>= c0 - 1` gives the original's `dec ecx`/`jl` but drops
+//    the function to 1830 bytes, so the two extra bytes of `sub ecx,2` are
+//    what the rest of the block is short of);
+//  - with those, the original's arm order (fixed-row arm first, `flags & 0x80`
+//    tested directly) is right again, and the loop compiles to the original's
+//    instruction sequence apart from its registers.
+//  `field_c6` is declared `void*` (the code treats it as a pointer); it makes
+//  no difference to the bytes.
+// What still differs, all measured:
+//  (a) `lea eax,[ecx+ebx-1]` at the y1 computation, the original's base and
+//      index are the other way round. Every spelling of that expression and
+//      every header set leaves it (tools/headers.py swept all 256 sets: no
+//      change, 86.6% from the old file, and the same `lea` is wrong in the
+//      other direction without <windows.h>);
+//  (b) `flags` is loaded into ecx, the original uses eax (three instructions,
+//      the frame and the spill are already right);
+//  (c) the 0x20 loop's registers: the original computes flag8 in place
+//      (`shr eax,7 / and eax,1 / mov [esp+0x1c],eax`), spills it, and keeps ip
+//      in esi (its flag8 arm has a dead `mov esi,[esp+0x50]`, so ip shares esi
+//      with obj, which is also why obj stays in esi through the select check
+//      and the field_cca store). Here flag8 is computed into edx through a
+//      copy (`mov edx,ecx / shr edx,7`, 2 bytes more) and ip is spilled to
+//      [esp+0x1c]. Testing flag8 for the pointer choice (`if (flag8)`) is what
+//      makes the shift in place and flag8 memory-resident, but then `flags`
+//      loses its frame slot (the frame drops to 0x38 and the whole function to
+//      65.7%): MSVC then uses `mov si,[ebp+0xbc]` in the 0x10 block instead of
+//      `mov cx`, so nothing clobbers flags and no spill is needed. Nothing in
+//      the 0x10 or 0x20 block's spelling brings that spill back with
+//      `if (flag8)`: 64 combinations of the clamp/test spellings, every
+//      declaration order, one shared pointer instead of two, a union member,
+//      a helper for the pointer choice, two separate loops, a pointer-to-flag8,
+//      a `goto` loop, and random searches over 24 axes (1789 and 2233 samples
+//      with 1-4 mutations, plus 1937 permute.py candidates from this file)
+//      all stay at 65-70% or keep ip in memory;
+//  (d) `mov esi,[esp+0x50]` and `mov [esi+0xcca],1` (we reload obj into eax),
+//      downstream of (c);
+//  (e) `mov eax` vs `mov edx` for the index reload before FUN_004a1b40.
+// 2026-10-03 (Space Bunny Free, later): 86.8 -> 88.1%, size still 1832. Same
+// 0x20 block, found by hill-climbing on check.py's ratio from the 86.8% file:
+// with the bound written `if (k > me->field_c0 - 1) break;`, the pointer step
+// goes back before the counters (`if (flag8) fixed++; else ip++; n2++; k++;`)
+// and `int n2 = 0;` back above `int remain`, and with those the ORIGINAL's arm
+// order (the fixed-row arm first) is right again; `((unsigned)flags >> 7) & 1`
+// gives the original's `shr`. Together with the five changes in the note above
+// the loop now compiles to the original's instruction sequence apart from its
+// registers.
 #include <string.h>
 #include <windows.h>
-
 
 #pragma pack(push, 1)
 struct Entry_004a3780 {                // 0x15b bytes
@@ -96,7 +210,7 @@ struct Entry_004a3780 {                // 0x15b bytes
     short field_be;                    // +0xbe
     short field_c0;                    // +0xc0
     void* field_c2;                    // +0xc2
-    int field_c6;                      // +0xc6
+    void* field_c6;                    // +0xc6
     char unknown_ca[0xce - 0xca];
     void (__stdcall* field_ce)(void*, void*);  // +0xce
     char unknown_d2[0xd6 - 0xd2];
@@ -188,7 +302,7 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
     }
     r.x1 = me->field_17 + r.x0 - 1;
     int n = 0;
-    r.y1 = me->field_19 + r.y0 - 1;
+    r.y1 = r.y0 + me->field_19 - 1;
     r.y0 += 2;
     r.y1 -= 3;
     Point_004a3780 point = obj->point;
@@ -257,7 +371,7 @@ skip0:;
             if (me->field_ba >= 0) {
                 if (me->field_ba - me->field_bc > step - 1)
                     me->field_ba = me->field_bc + step - 1;
-                if (me->field_ba >= me->field_c0 - 1)
+                if (me->field_ba > me->field_c0 - 2)
                     me->field_ba = me->field_c0 - 1;
                 short* sel = &me->field_ba;
                 if (*sel < 0)
@@ -275,7 +389,7 @@ skip0:;
                 me->field_ba = orig_sel;
             }
         } else if (flags & 0x20 | 0x80) {
-            int flag8 = (flags >> 7) & 1;
+            int flag8 = ((unsigned)flags >> 7) & 1;
             int k = me->field_bc;
             Row_004a3780* fixed;
             Item_004a3780** ip;
@@ -301,8 +415,7 @@ skip0:;
                     ip++;
                 n2++;
                 k++;
-                int lim = me->field_c0;
-                if (lim < k + 1)
+                if (k > me->field_c0 - 1)
                     break;
             }
         }

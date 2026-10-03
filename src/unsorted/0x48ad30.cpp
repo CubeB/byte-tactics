@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
 // Space Bunny Free (#4163): 84.5% to 97.5%, 849 bytes both ways, and the unit
 // body is now instruction for instruction. Two changes, both in the outer loop.
 //
@@ -77,7 +77,10 @@
 // 97.5%, two of them 850 bytes. The declaration order that puts cnt in 0x18 and
 // off in 0x14 is what the escape buys; it cannot be had without it.
 //
-// Two permuter runs over this version, 2016 and then 3254 candidates with
+// GPT-6 retry: factored FUN_0043b7c0, FUN_0043bad0, and the conditional def
+// calls into an inline UpdateUnit helper. It compiled to the same 849 bytes,
+// 97.5%, and left all three scheduling differences unchanged, so the inline
+// extraction is removed. The two permuter runs over this version, 2016 and then 3254 candidates with
 // different seeds, found nothing above 97.5% and nothing that moved any of the
 // three residuals above, so treat 97.5% as a local optimum for rewrites of
 // this source rather than as a lead worth chasing further.// deepseek-v4.1-flash (#3932) retry: reversing the do-while latch to

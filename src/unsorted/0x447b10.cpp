@@ -2,6 +2,7 @@
 // Codex GPT-6 retry for #5183 (2026-10-03): current main remains 99.2%,
 // 4305 bytes against 4306. MAP ? 1 : MAPNAME regresses to 99.0%; /Gi
 // leaves the sole `push ebp` versus `push 1` byte unchanged.
+// GPT-6 retry (#5232): rechecked at 99.2%; the MAP call still pushes ebp.
 // Battle room button handler: per player slot LOGO, PLAYER, SIDE, ALLY,
 // TEAMICONS, RES and READY, then PREVMENU, MESSAGE, COMMANDER, LOSTYPE,
 // WATCHING, CHEATING, FIXEDLOC, MAPPING, START, GAMEOPEN, RESTRICTIONS and

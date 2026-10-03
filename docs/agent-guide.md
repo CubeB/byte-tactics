@@ -541,6 +541,18 @@ effect, the missing piece is usually a helper that was inlined:
   *gadgets;` rather than the reverse gave 0x4ac8c0's prologue sums the
   original's operand order. The match is sensitive to the declaration count
   (one extra `extern int` before it drops it to 91.5%) (#5207).
+- **Reload order after a split follows candidate ids**: when C2 splits
+  several values around a region, they are reloaded after it in the order of
+  their candidate ids (the `id` column of `tools/c2prio.py`). To change the
+  order, change which value the IL meets first: in 0x4b91b0, dropping a named
+  `double g` and writing its expression at both uses renumbered the pieces
+  into the original's order (#5235). In 0x4c0820, deleting a `count > 0` guard
+  flips the order, which proves the cause, though the guard is in the original
+  (#5225).
+- **A jump to a different address can hide misplaced calls**: in 0x48ad30
+  three calls sat outside an `if` they belong in, and the checker showed only
+  a jump target that differed. When a jump's target is the only difference,
+  compare the blocks on each side of it (#5249).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

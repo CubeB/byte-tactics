@@ -10,6 +10,8 @@
 // #5350 retry: re-confirmed 88.5%; the explored-cell and visibility liveness
 // still force the recorded LOS coloring mismatch.
 // #5372 retry: re-confirmed 88.5%; the forced LOS register allocation remains.
+// #5389 retry: re-confirmed 88.5%; the visibility and explored-cell live
+// ranges still force a different LOS register allocation.
 //
 // claude-opus-5-5 pass (#5165, 88.5%, no score gain; about 150 variants read
 // with tools/c2prio.py). Block names below: B4 `if (los)`, B5 call + first

@@ -209,6 +209,23 @@ their whole budget.
 
 ## When the registers or the order won't budge
 
+**Recheck the control flow before chasing registers.** Several functions that
+had long notes about a register tie were really one misplaced block: 0x4aefa0
+put both bubble passes inside `if (n != -1)` where the original jumps to the
+second pass's setup (73.1% to MATCH once moved). Walk the original's jumps
+against your branches first.
+
+**Shared tails.** MSVC copies a shared tail into each arm that reaches it, and
+the copies are what reload values from their stack slots. So write one shared
+call at the end of an `if / else if` chain rather than a call and `return` in
+each arm (0x47ae60), and when two arms must leave values in particular
+registers, write the tail into both arms and let MSVC merge them (0x448c70).
+
+**Short locals for short fields.** A bounds test that reads `short` fields
+wants `short` locals (`short px = obj->pos.x;`); with `int` locals or the
+plain field spelling MSVC copied a size into a spare register and shifted every
+jump after it (0x47cc30).
+
 **Get the frame layout from the reference counts.** MSVC 5 orders a
 function's stack locals by how often the code refers to each one relative to
 its size (references per byte): the most used sit nearest esp. Scalars,

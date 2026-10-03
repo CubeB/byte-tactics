@@ -1,141 +1,29 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
-// Best semantically equivalent version: 80.5% (536 vs 532 bytes), no MATCH.
-// 2026-10-01 mimo-v2.6-pro retry: kept this 80.5% pre-tested form. New
-// evidence (all scored through check.py with a source argument):
-// - The real header spelling _Ucopy(_P, _Last, _Q + _M) (58.0%, 544 bytes,
-//   this in ebx) gets the original's third-loop bookkeeping exactly: _Last
-//   cached in esi with no reload, _M*2 in edi, and the pre-test cmp/je on
-//   that cache. It still swaps dest/source (dest in ecx, source derived in
-//   eax) and derives the source as lea eax, [ecx+ebx] / sub eax,edx /
-//   sub eax,edi, so the grouping ((dest+_P)-_Q-_M) is the same our manual
-//   loop gets; the original's is ((_P-_Q)+dest)-_M into _P's own register
-//   (sub ecx,edx / add ecx,eax / sub ecx,edi), which is the merge of _P
-//   with the source induction variable that no form here reaches.
-// - Forcing that grouping in the source with char* arithmetic
-//   (const_iterator _s = (const_iterator)((char*)_P - (char*)_Q +
-//   (char*)_d - _M * 2)) is byte-identical to plain _s = _P (80.5%): the
-//   optimizer normalizes the expression back to its own lea-first form.
-// - Translation-unit state does not flip the rotation here either: adding
-//   the exe's real neighbouring instantiations in COMDAT order (vector<
-//   short>::size 0x40d000, this insert, erase 0x40d240, _Destroy 0x40d280,
-//   vector<char>::insert 0x40d290, erase 0x40d470, _Destroy 0x40d4a0) or a
-//   second vector<unsigned short>::insert, before or after this one, gives
-//   537 bytes / 80.4% with _P still in edi.
-// 2026-09-30 GPT-6.1-sol retry: changing the third-copy source from
-// const_iterator to iterator kept the same 80.5%; restored this best version.
-// The third inlined copy loop and several loop registers/branch offsets still
-// differ. Conditional do/while and while forms also score 80.5%; an unguarded
-// do/while scores 81.1% but copies one element when _P == _Last, so it is not
-// kept. std::vector scored 57.9% and mutating the input iterator scored 60.4%.
-// std::vector<short>::insert(iterator, size_type, const T&) from MSVC 5's
-// <vector>, with _Ucopy, _Ufill, fill and copy_backward all inlined.
-// 0x409160 calls it from the inlined resize() of the vector at +0x7d (with
-// size() 0x40d000 and erase() 0x40d240). Taking the member's address makes
-// the compiler emit the template instantiation out of line.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Claude Opus 5.5. Names are provisional.
+// FLAGS: /Gi
+// std::vector<short>::insert(iterator, size_type, const _Ty&), stock MSVC 5
+// <vector>, emitted out of line through a member pointer. 0x409160 calls it
+// from the inlined resize() of the vector at +0x7d (with size() 0x40d000 and
+// erase() 0x40d240).
 //
-// Hand-rolled std::vector (the 0x425480 / 0x425210 lever): with the real
-// <vector> this build puts `this` in ebx and the count in ebp (57.9%), while
-// the original keeps `this` in ebp and _M in ebx. Writing the growth branch's
-// third _Ucopy as a loop in the insert body with the destination declared
-// before the source (dest = _Q + _M, src = _P) flips that allocation, so the
-// prologue now matches exactly (80.5%).
-//
-// Still different: the registers of the first _Ucopy's source end and of the
-// third _Ucopy. The original leaves _P in ecx after the first copy and later
-// reuses ecx as the third loop's source induction variable; ours leaves _P in
-// edi and builds the third source as (dest + _P) - _Q - _M in eax, with dest
-// in ecx where the original has dest in eax (and caches _Last in esi). This is
-// the allocator wall the sibling family records (0x425480, 0x4732e0): the
-// source-first declaration order and an explicit `const_iterator _l = _Last`
-// cache both revert `this` to ebx (57-60%), and the loop-form variants
-// (for / if-do-while / pure do-while) all leave the same swap. A pure
-// do-while scores 81.1% but drops the original's pre-test (cmp/je before the
-// loop), so it is not kept. headers.py does not reach it.
-// 2026-10-01 deepseek-v4.1-flash retry 2: swapping the third loop's increments
-// to `++_s, ++_d` is byte-neutral (80.5%, 536 bytes); the source/dest register
-// swap (eax/ecx) and the uncached _Last reload are untouched by it.
-// 2026-10-01 deepseek-v4.1-flash retry: dropping the dest/src locals and
-// advancing _Q/_P directly (`for (; _P != _Last; ++_Q, ++_P)
-// allocator.construct(_Q + _M, *_P);`) collapses to 60.0% (528 bytes), so the
-// separate _d/_s locals are load-bearing; restored this best version.
-// 2026-10-01 deepseek-v4.1-flash retry 3: writing the growth branch's first
-// _Ucopy as a manual dest-first loop, both with the end taken straight from
-// _P and with a fresh `const_iterator _E = _P;` local, is byte-identical to
-// the inlined call form (80.5%, 536 bytes): the source end still lands in
-// edi where the original reloads it into ecx, and the third loop still
-// reloads _Last from [ebp+8] instead of caching it in esi.
-
-#include <memory>
-#include <xutility>
-
-namespace std {
-template<class _Ty, class _A = allocator<_Ty> >
-class vector {
-public:
-	typedef vector<_Ty, _A> _Myt;
-	typedef _A allocator_type;
-	typedef _A::size_type size_type;
-	typedef _A::difference_type difference_type;
-	typedef _A::pointer _Tptr;
-	typedef _A::const_pointer _Ctptr;
-	typedef _A::reference reference;
-	typedef _A::const_reference const_reference;
-	typedef _A::value_type value_type;
-	typedef _Tptr iterator;
-	typedef _Ctptr const_iterator;
-
-	size_type size() const
-		{return (_First == 0 ? 0 : _Last - _First); }
-	size_type capacity() const
-		{return (_First == 0 ? 0 : _End - _First); }
-	iterator begin()
-		{return (_First); }
-	iterator end()
-		{return (_Last); }
-	void insert(iterator _P, size_type _M, const _Ty& _X)
-		{if (_End - _Last < _M)
-			{size_type _N = size() + (_M < size() ? size() : _M);
-			iterator _S = allocator.allocate(_N, (void *)0);
-			iterator _Q = _Ucopy(_First, _P, _S);
-			_Ufill(_Q, _M, _X);
-// 2026-10-01 deepseek-v4.1-flash retry 4: a `while (_s != _Last) {
-// allocator.construct(_d, *_s); ++_s; ++_d; }` third-copy loop is byte-neutral
-// (80.5%, 536 bytes); the for form is kept.
-			{ iterator _d = _Q + _M; const_iterator _s = _P; for (; _s != _Last; ++_s, ++_d) allocator.construct(_d, *_s); }
-			_Destroy(_First, _Last);
-			allocator.deallocate(_First, _End - _First);
-			_End = _S + _N;
-			_Last = _S + size() + _M;
-			_First = _S; }
-		else if (_Last - _P < _M)
-			{_Ucopy(_P, _Last, _P + _M);
-			_Ufill(_Last, _M - (_Last - _P), _X);
-			fill(_P, _Last, _X);
-			_Last += _M; }
-		else if (0 < _M)
-			{_Ucopy(_Last - _M, _Last, _Last);
-			copy_backward(_P, _Last - _M, _Last);
-			fill(_P, _P + _M, _X);
-			_Last += _M; }}
-protected:
-	void _Destroy(iterator _F, iterator _L)
-		{for (; _F != _L; ++_F)
-			allocator.destroy(_F); }
-	iterator _Ucopy(const_iterator _F, const_iterator _L, iterator _P)
-		{for (; _F != _L; ++_P, ++_F)
-			allocator.construct(_P, *_F);
-		return (_P); }
-	void _Ufill(iterator _F, size_type _N, const _Ty& _X)
-		{for (; 0 < _N; --_N, ++_F)
-			allocator.construct(_F, _X); }
-	_A allocator;
-	iterator _First, _Last, _End;
-};
-}
+// The original's translation unit was built with /Gi (#5035), and the bytes
+// also depend on which other vector members the TU instantiates: with an
+// operator= use (as below) this MATCHes; reserve, resize, the copy
+// constructor or no other use all give 58.0% (docs/field-notes.md Part 7).
+// Without /Gi the best file was a hand-rolled vector at 80.5%, with _P and
+// the third _Ucopy's source in the wrong registers; those passes are in git
+// history.
+#include <vector>
 
 typedef std::vector<short> Vec_0040d020;
 typedef void (Vec_0040d020::*InsertFn_0040d020)(
     Vec_0040d020::iterator, Vec_0040d020::size_type, const short&);
+
+// An assignment on this vector type, standing in for the original TU's own;
+// the insert's bytes need the TU to instantiate operator=.
+void __stdcall Assign_0040d020(Vec_0040d020* dest, const Vec_0040d020* src)
+{
+    *dest = *src;
+}
 
 // FUNCTION: 0x40d020 ?insert@?$vector@FV?$allocator@F@std@@@std@@QAEXPAFIABF@Z
 InsertFn_0040d020 g_insert_0040d020 = &Vec_0040d020::insert;

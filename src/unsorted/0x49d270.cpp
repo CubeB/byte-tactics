@@ -1,113 +1,21 @@
-// Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 //
-// DeepSeek V4.1 Flash (issue 4785): 90.7 -> 91.7 (780 bytes against 774, 98.6%
-// ignoring internal jump targets). The only remaining codegen difference is one
-// instruction group: MSVC emits `mov ecx,dword [projCount]; mov edi,ecx; and
-// edi,0xffff` for the loop bound where the original has `mov edi,dword
-// [projCount]`. The source change that got the whole allocator right is the
-// ownerId/n pair: `unsigned short ownerId` (which spills to [esp+0x18] with the
-// original's dword store and 16-bit `cmp word [edx+0xa8], bx` compare, instead
-// of sitting in EDI as an int) plus the loop bound declared as `unsigned short n`
-// and assigned inside the `if (ev->b0)` arm, which is what keeps it in EDI and
-// leaves unit in EBP and the cursor in [esp+0x14]. An `int count` temp feeding
-// `n = count` makes the load a dword and takes one byte off (781 -> 780). With
-// `int n` in the same shape MSVC rematerializes the load in the loop latch
-// (76.7%), so the 16-bit type is load-bearing; the price is the
-// three-instruction zero-extension above. Tried and no better: `int`/`unsigned
-// int`/`long`/`register`/`const` n (rematerialized), a helper-local `int n =
-// count`, inline loops, direct `g_game->projCount` as the argument (frame shrinks
-// to 0xc, unit EDI, cursor EBP), helper ownerId by reference/pointer, helper
-// parameter reordering, and three 3-minute permuter runs on the 90.7% and 91.7%
-// bodies (only gain was the int-temp split).
-// STILL PARTIAL: 91.7% (780 bytes). Creates or
-// updates a projectile for a remote event. The per-team record at
-// g_game+0x2cf3 (0x115 bytes, 0x100 of them) holds the weapon flags at +0x111;
-// the event gives a team byte, an owning unit id, a per-unit entry index and a
-// position. Flag bit 5 spawns a projectile; bits 1, 4, 0/20, 8 dispatch to
-// 0x49cde0, 0x49cc20, 0x49c9c0, or a spawn aimed from the owning unit.
+// Creates or updates a projectile for a remote fire event (the packet type 0xd
+// that FUN_0049d580 sends). The per-team record at g_game+0x2cf3 (0x115 bytes,
+// 0x100 of them) holds the weapon flags at +0x111; the event gives a team byte,
+// two unit ids (unitId, the firing unit, and ownerId), a weapon slot index and
+// two positions. Flag bit 5 spawns a projectile at the event position; otherwise
+// the weapon slot's angles are updated and bits 1, 4, 0/20 and 8 dispatch to
+// FUN_0049cde0, FUN_0049cc20 (given the matching live projectile, if any),
+// FUN_0049c9c0, or a spawn aimed from the firing unit.
 //
-// What the source does, in the order the disassembly runs:
-//   b5  : take a free projectile slot, FUN_0049c740(proj, def, ev+1, 0,
-//         teamColor, 0), copy ev->pos into proj->pos, done.
-//   else: unit = unitId ? &units[unitId] : 0, bail if null or !(flags & 0x10000000).
-//         entry = &unit->entries[entryIndex]; entry->f_18 = ev->f_1d;
-//         entry->f_16 = ev->f_1b; owner = ownerId ? &units[ownerId] : 0.
-//         if (ev->b0) found = the first projectile whose player is not the
-//         local player, whose aim equals ev->pos and whose owner->f_a8 equals
-//         ownerId; otherwise found stays null.
-//         b1 -> FUN_0049cde0, b4 -> FUN_0049cc20 (passes found), b0 or b20 ->
-//         FUN_0049c9c0, b8 -> a new projectile aimed back from the unit.
-//
-// Facts that are settled (each was worth points):
-//   - the loop's owner test reads unit+0xa8 (f_a8), not the +0x66 the b8 branch reads.
-//   - FUN_004b70ef/FUN_004b7123 take (short angle, int distance), angle first.
-//   - the position compares are x, z, y (aim +0x28, +0x30, +0x2c vs ev +0xd, +0x15, +0x11).
-//   - the scan is a static inline helper that RETURNS &q from inside the loop and
-//     `return 0` at the end (an early-return helper: 82.5% alone, the found
-//     block `mov esi,[esp+0x14]; mov ebx,g_game; jmp` then matches). The
-//     `found` result is the helper's return, ternary `ev->b0 ? Find(...) : 0`.
-//   - `int n = g_game->projCount;` declared at the top of the non-b5 path (before
-//     the unit lookup) and passed to the helper: 82.5 -> 90.7%. As an argument
-//     expression or declared inside the b0 block, MSVC substitutes the load and
-//     re-reads projCount in the loop latch.
-//   - hoisted addresses (`pos`, `arg`) in the b5 branch must be named locals.
-//
-// What still differs (one allocator state, Sonnet 5.5 pass, ~60 scoring runs):
-//   The original has n in EDI loaded INSIDE the b0 block (`test byte [eax+0x1a],1;
-//   je; mov edi,[ebx+0x141f3]; mov ecx,[ebx+0x141f7]; test edi,edi`), the plain
-//   cursor in the [esp+0x14] slot, and the 16-bit ownerId spilled to [esp+0x18]
-//   (`mov cx,[eax+0x1f]; cmp cx,si; mov [esp+0x18],ecx`, later `mov bx,[esp+0x18];
-//   cmp word [edx+0xa8],bx`). Here (int ownerId, n at the top) ownerId takes EDI
-//   and n is spilled to a slot, so the latch re-reads n and the guard differs.
-//   Findings about what moves the allocator:
-//   - Making n a real variable (declared in a different basic block from its
-//     uses) is what hands EDI to n and spills the cursor. Declared before the
-//     `Unit* owner` lookup with `unsigned short ownerId` and an owner ternary
-//     (`ownerId == 0 ? 0 : &units[ownerId]`) it reproduces the original's
-//     registers (unit EBP, n EDI, ownerId slot [esp+0x18], cursor slot [esp+0x14])
-//     and the owner null arm layout exactly, 80.3%, but the load of n is then
-//     before the owner branch and the b8 tail reuses EDI for
-//     `g_game->projCount < 300` instead of reloading it (CSE), which costs more
-//     than it gains. Declared between the unit checks and the entry stores, the
-//     stores kill the CSE and the tail matches, but n takes EBP and unit EDI
-//     (83.4%).
-//   - Declared inside the b0 block (any form: inline loop, index-form helper,
-//     do-while, `register`, `unsigned`, `const`) n is a real variable but loses
-//     the register to the cursor / unit, and the latch re-reads it (75 to 78%).
-//   - `unsigned short ownerId` alone reproduces the 16-bit spill but moves unit
-//     to EDI and the cursor into EBP (frame shrinks to 0xc) unless n is a
-//     variable defined before the owner lookup.
-//   - No ownerId local (helper reads ev->ownerId): the spill is reproduced
-//     (the CSE temp goes to [esp+0x18]) but the cursor takes EBP (75.8%).
-//   - Helper taking the Game pointer, helper returning through a reference
-//     (15 to 17%), cursor as the found variable, address-of tricks: all worse.
-// deepseek-v4.1-flash (issue 3314 retry, 10 min): one more shape tried, no gain.
-// `unsigned short ownerId` local plus `unsigned short ownerId` helper parameter
-// (to reach the original's `mov cx` / `and edx,0xffff` / 16-bit helper slot)
-// collapses to 766 bytes / 81.5%, so the int ownerId in EDI form (90.7%) stays
-// the best. The remaining diff is unchanged: n spilled to [esp+0x18] and
-// re-read in the loop latch instead of staying in EDI, and the owner f_a8
-// compare loading into a register instead of `cmp word [edx+0xa8], bx`.
-// So the missing piece is a source form where n is defined at the top of the b0
-// block yet stays a register variable ahead of the cursor, while ownerId is a
-// ushort that spills.
-// deepseek-v4.1-flash (issue 3685 retry, 10 min): body kept at 90.7% / 774
-// bytes (same size as the original). Two more shapes tried, both worse:
-// `unsigned short ownerId` local with the int helper param (81.5%, 766 bytes,
-// the ushort starves n and moves unit/cursor), and `int n;` declared at the
-// top but assigned inside the b0 block (82.3%, 770 bytes, the block-local
-// definition still loses EDI). The diff is unchanged: n spilled to
-// [esp+0x18] and re-read in the latch instead of staying in EDI, and the
-// owner f_a8 compare loading into a register instead of
-// `cmp word [edx+0xa8], bx`.
-// deepseek-v4.1-flash (issue 4021 retry, 10 min): body kept at 90.7% / 774
-// bytes (the int ownerId in EDI form). Three ushort-ownerId shapes were scored
-// again against this base and all lost: ushort ownerId + `n` assigned inside the
-// b0 guard + ternary owner (76.7%, 770 bytes), ushort ownerId + ternary owner
-// with `int n` at the top (80.2%, 768 bytes), and the int ownerId local with a
-// ushort helper parameter (62.9%, 768 bytes). The diff is unchanged: n spilled
-// to [esp+0x18] and re-read in the latch instead of staying in EDI, and the
-// owner f_a8 compare loading into a register instead of `cmp word [edx+0xa8], bx`.
+// MATCH (Claude Opus 5.5, issue 4785). The projectile scan is FUN_0049d1e0
+// inlined (it has no callers in the exe and sits just before this function).
+// Earlier passes stopped at 91.7% with a hand-written scan helper taking the
+// count as an `unsigned short` parameter: that was the only way they found to
+// keep the count in a register, at the price of an `and edi, 0xffff`. In the
+// original the count is the loop-invariant `g_game->projCount` that MSVC hoists
+// out of FUN_0049d1e0's loop by itself.
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {
@@ -220,15 +128,21 @@ static inline int SamePos_0049d270(Vec3_0049d270& a, Vec3_0049d270& b)
     return a.x == b.x && a.z == b.z && a.y == b.y;
 }
 
-static inline Proj_0049d270* Find_0049d270(Proj_0049d270* p, int n, int lp,
-                                           Vec3_0049d270& pos, unsigned short ownerId)
+// FUN_0049d1e0 (matched in its own file), defined here unannotated so that
+// /Ob2 inlines it as it did in the original. It has no callers in the exe.
+// Written with the positive `if (ev->b0) { ... } return 0;` test, which also
+// matches 0x49d1e0 on its own; the `if (!ev->b0) return 0;` spelling in
+// 0x49d1e0.cpp compiles to the same standalone bytes but, inlined here, gives
+// the cursor a register and spills `unit` (73.4%).
+Proj_0049d270* __stdcall FUN_0049d1e0(Event_0049d270* ev)
 {
-    for (int i = 0; i < n; i++) {
-        Proj_0049d270& q = p[i];
-        if (q.player != lp
-            && SamePos_0049d270(q.aim, pos)
-            && q.owner->f_a8 == ownerId)
-            return &q;
+    if (ev->b0) {
+        char me = g_game->localPlayer;
+        Proj_0049d270* proj = g_game->projs;
+        for (int i = 0; i < g_game->projCount; i++, proj++) {
+            if (proj->player != me && SamePos_0049d270(proj->aim, ev->pos) && proj->owner->f_a8 == ev->ownerId)
+                return proj;
+        }
     }
     return 0;
 }
@@ -270,14 +184,7 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
     entry->f_16 = ev->f_1b;
     unsigned short ownerId = ev->ownerId;
     Unit_0049d270* owner = ownerId == 0 ? 0 : &g_game->units[ownerId];
-    unsigned short n;
-    Proj_0049d270* found = 0;
-    if (ev->b0) {
-        int count = g_game->projCount;
-        n = count;
-        found = Find_0049d270(g_game->projs, n,
-                        g_game->localPlayer, ev->pos, ownerId);
-    }
+    Proj_0049d270* found = FUN_0049d1e0(ev);
     if (def->flags.b1) {
         FUN_0049cde0(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);
         return;

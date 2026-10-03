@@ -405,6 +405,9 @@
 // build/scratch/0x409730/gen.py, gen2.py and gen3.py build the variants above
 // from v0-baseline.cpp, score2.sh scores them with check.py --sym, and the full
 // diffs are in the same directory.
+// GPT-6 retry (#5224): a direct reference to, or pointer to, vec_8d's _First
+// slot at the read path produces the same two swapped SIBs (99.6%). Restored
+// the local reference form, which keeps the read correct and scores 99.8%.
 #include <windows.h>
 #include <math.h>
 #include <vector>

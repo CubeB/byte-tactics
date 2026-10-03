@@ -4,6 +4,9 @@
 // register split at the 0x40 return join is unchanged.
 // GPT-6 retry (#5219): rechecked at 93.4% (1830 B). The only code difference
 // is still the obj reload at the cca store and the resulting tail registers.
+// #5268 Codex retry: best unchanged at 93.4%. An explicit Object* alias for
+// the field_cca store compiled identically; initializing it after the goto
+// targets was rejected by VC5, and declaring then assigning had no effect.
 // One difference is left (below); ignoring the jump targets it moves, the
 // function is 98.8%. Scratch files, sweep scripts and a C2 split tracer:
 // build/scratch/0x4a3780/ (c2split.py is tools/c2prio.py plus hooks on

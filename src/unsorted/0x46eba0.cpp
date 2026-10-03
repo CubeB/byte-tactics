@@ -1,10 +1,65 @@
-// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 81.4%, 928 of 936 bytes (Sonnet 5.5 retry, #3079; was 81.2% / 924 bytes).
+// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// PARTIAL 82.5%, 927 of 936 bytes (Space Bunny Free, #4164; was 81.4% / 928 bytes).
 // std::vector<Packet_0046cef0>::insert(iterator, size_type, const T&) of MSVC 5's
 // <vector> (the same template as 0x476210 and 0x46f7a0), emitted out of line by
 // taking the member's address. Like those files this uses a hand-written clone
 // of the vector class template. 14-byte packed element, so the empty allocator
 // keeps the three pointers at +4, +8 and +0xc.
+//
+// The real header source is known: toolchain/msvc5-sp3/INCLUDE/VECTOR lines
+// 150-171 are exactly the original's body (the three _Ucopy/_Ufill call sites,
+// the deallocate, the _End/_Last/_First reset), and the toolchain's copy of
+// <vector> plus an explicit instantiation still scores only 62.7% / 940 bytes,
+// so the shape below is not what the original's text said; the compiler state
+// of the original translation unit picked something between them.
+//
+// What this run changed (81.4% -> 82.5%): the third (tail) copy is now a
+// hand-written loop with the source local declared BEFORE the destination one,
+// `{const_iterator _f = _P; iterator _d = _Q + _M; for (; _f != _Last; ++_d,
+// ++_f) allocator.construct(_d, *_f);}`. That declaration order is the whole
+// gain: it puts _N in the dead _M argument slot at [esp+0x20] and _S in the
+// frame slot at [esp+0x14], which is what the original does (the previous best
+// had them the other way round), and it keeps `this` in ebp and _M in ebx as
+// the original has them. The _Ucopy helper is now the header's source-first
+// spelling for the prefix copy; the destination-first helper only reaches the
+// same code through the hand-written prefix loop, and the two are byte equal.
+//
+// Still differs, all one register-allocation decision plus the loop optimizer:
+// 1. The tail copy. The original builds the source start as the affine sum
+//    `(esi - edx) + (edx + _M*14) - _M*14` (sub, add, sub, mov eax, esi: the
+//    9 bytes this build lacks), which needs _M*14 in a register
+//    (`mov eax,ebx; shl 3; sub; shl 1`) where this build only needs _M*7 and
+//    folds the last doubling into `lea ecx,[ecx+esi*2]`. This build emits the
+//    plain `mov eax, edx`. That affine appears only in the header's own
+//    source-first `_Ucopy(_P, _Last, _Q + _M)` (which scores 63% and flips
+//    `this` to ebx and every copy loop's temp to edi) or in a forced
+//    `(_P - _Q) + (_Q + _M) - _M`, but that spelling adds 29 bytes because
+//    `_P - _Q` is a pointer difference in elements, not bytes, so the compiler
+//    has to divide by 14 and multiply back. Cast both sides to char* and it
+//    folds the whole expression back to _P (82.5%, no affine).
+// 2. The prefix copy's registers: the original has the _P bound in esi, the
+//    new-buffer walker in edx and the source pointer in ecx; this build has
+//    them in edx, ecx and esi (a 3-cycle of the same three registers), and
+//    the _Ufill counter, which the original keeps in ecx, lands in esi. One
+//    cause: in the original the _P web (esi) spans the prefix loop, the fill
+//    and the tail setup, so the loop temps fall in edi/ecx; here _P sits in
+//    edx and esi is a loop temp.
+// Tried with no effect on either: the element type (seven 14-byte layouts,
+// pack(1) and pack(2), a nested struct, a char array, a user-defined copy
+// constructor or assignment operator, all 82.5% or worse), the emission
+// mechanism (member pointer in a wrapper, a file-scope pointer-to-member
+// initialiser, explicit instantiation of the clone or of the real header, each
+// with and without a rebuilt caller), the include set (ten sets, and
+// tools/headers.py's 128), the msvc5-rtm toolchain (same 82.5%), _Ufill's
+// formal order and loop shape, the reset's store order and spellings, the
+// in-place branches' helper order (4x4, the header's is best), file-scope
+// declaration padding (0 to 640 externs and typedefs, all byte neutral), and
+// ~500 further combinations of the prefix, fill and tail spellings, helper
+// parameter orders, expression orders and locals.
+//
+// Earlier notes (they describe older attempts; the source-first statement about
+// "the order of the third inlined _Ucopy" above is what this run's hand-written
+// tail now reproduces without the register flip):
 // What changed against the previous best: the file used a hand-made class with
 // `::operator delete(first)`; the real allocator.deallocate(_First, _End - _First)
 // is what produces the original's dead `mov [esp+0x28], eax` before the delete
@@ -126,9 +181,11 @@ public:
         {if (_End - _Last < _M)
             {size_type _N = size() + (_M < size() ? size() : _M);
             iterator _S = allocator.allocate(_N, (void *)0);
-            iterator _Q = _Ucopy_dst(_S, _First, _P);
+            iterator _Q = _Ucopy(_First, _P, _S);
             _Ufill(_Q, _M, _X);
-            _Ucopy_dst(_Q + _M, _P, _Last);
+            {const_iterator _f = _P; iterator _d = _Q + _M;
+            for (; _f != _Last; ++_d, ++_f)
+                allocator.construct(_d, *_f);}
             _Destroy(_First, _Last);
             allocator.deallocate(_First, _End - _First);
             _End = _S + _N;

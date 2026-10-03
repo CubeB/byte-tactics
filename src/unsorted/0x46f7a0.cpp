@@ -80,6 +80,66 @@
 // home in the dead _P argument slot [esp+0x20]; this build gives edi to the
 // counter and reloads _P from that slot. One allocator decision, no source
 // form found for it in this pass.
+// Space Bunny Free (issue 4164, 2026-10-03): still 83.8%, 798 bytes, unchanged.
+// Same wall, and this pass added the evidence that it is not this function's
+// source. The register family differs per instantiation of this template in
+// the exe, all of them from the same MSVC 5 <vector>: the matched 0x4c51e0
+// (8-byte element) keeps _P in ecx and reloads it inside the copy loop and
+// gives edi to the _Ufill counter, exactly what this file produces; 0x46f7a0
+// (0x5c-byte element, a constructor call in every loop) keeps _P in edi and
+// spills the counter into the dead _P argument slot; 0x46eba0 in this same
+// issue (14-byte element) keeps _P in esi and spills the counter into a frame
+// slot. Three shapes from one template, so the choice is settled per
+// instantiation and not by the wording of insert.
+// Measured this pass, every one scored with check.py on a scratch copy, none
+// above 83.8% (83.8 / 798 bytes kept):
+//   the guide's declaration sweep (N unused `extern int dummyN;`, N = 0 to
+//   700 step 4) reaches only the two known shapes: 83.8 at N = 0, 80.1 /
+//   799 bytes for every N from 16 up;
+//   all 128 C header sets (windows.h, stdio.h, stdlib.h, string.h, math.h,
+//   memory.h, ddraw.h) on top of the three includes: 83.8 without them, 80.1
+//   with any set that has math.h. tools/headers.py itself cannot run on this
+//   file: it strips the file's own includes and none of its sets supply
+//   std::allocator, so it reports every variant failed to compile;
+//   the C++ include set: <stdexcept> in any position, the real <vector>, and
+//   <climits> + <memory> + <stdexcept> + <xutility> all give 80.1 / 799 bytes,
+//   so the plain three-include clone is the only 798-byte build;
+//   translation-unit perturbation: an unused inline vector member, a dummy
+//   free function and a second std::vector<int>::insert are flat, a second
+//   vector<Class>::insert instantiation gives 80.1;
+//   the element class: a statement-body operator=, `class` instead of `struct`
+//   for the base and private inheritance are flat, dropping the derived
+//   operator= altogether collapses to 40.3 / 790 because copy_backward then
+//   calls something else;
+//   helper shapes: five of the six _Ufill parameter orders, _Ucopy with
+//   non-const bounds, _Ucopy and _Destroy in while form, `if (0 < _M)` around
+//   the fill call are flat, while (0 < _N--) in _Ufill gives 62.9 / 817 and
+//   `if (_M != 0)` 77.7 / 802;
+//   tree-only rewrites that keep the code: a named local for the max() term
+//   of _N, size() hoisted into a local, (size() + _M) + _S, named locals for
+//   the allocate size, the deallocate count, the fill destination, the third
+//   copy's destination and each branch's difference, and all four orders of
+//   the three trailing pointer stores (83.4 / 81.8 / 74.8 / 77.7); the same
+//   spellings with begin() / end() instead of _First / _Last are worse (63.6
+//   to 74.9);
+//   dead stores and self-stores at six points in the grow arm, do {} while (0)
+//   and a discarded _Ucopy return are flat;
+//   hand-written fill / copy_backward loops in place of <algorithm>'s give
+//   777 bytes (75.4), so the real <algorithm> stays;
+//   destination-first copies: a _Ucopy3(dest, src, end) helper at the third
+//   copy (63.6 / 777, void or returning), the guide's inline
+//   destination-first loop (40.4 / 793), at the prefix copy only (41.2 /
+//   794 void, 73.8 / 794 returning, 44.4 / 795 inline), at the two in-place
+//   copies (flat);
+//   the parameter renamed _Pp with a local `iterator _P = _Pp;` used through
+//   the whole grow arm is flat;
+//   permute.py for 25 minutes (insert, size, _Destroy, _Ucopy, _Ufill
+//   mutated): 4254 candidates, 83.8% -> 83.8%.
+// One change kept, because its output is byte-identical (same diff, 83.8%):
+// the out-of-line emission is now a member-pointer initialiser,
+// `InsertFn_0046f7a0 g_insert_0046f7a0 = &Vec_0046f7a0::insert;`, as in the
+// matched 0x4c51e0 and 0x4b7b00, replacing the FUN_0046f7b0 wrapper, whose
+// name pointed at 0x46f7b0, an address inside this very function.
 #include <algorithm>
 #include <memory>
 #include <xutility>
@@ -164,11 +224,5 @@ typedef void (Vec_0046f7a0::*InsertFn_0046f7a0)(
     Vec_0046f7a0::iterator, Vec_0046f7a0::size_type,
     const Class_0046ded0&);
 
-void __cdecl FUN_0046f7b0(Vec_0046f7a0* v, Class_0046ded0* p,
-                  Vec_0046f7a0::size_type n, const Class_0046ded0& x)
-{
-    InsertFn_0046f7a0 f = &Vec_0046f7a0::insert;
-    (v->*f)(p, n, x);
-}
-
 // FUNCTION: 0x46f7a0 ?insert@?$vector@VClass_0046ded0@@V?$allocator@VClass_0046ded0@@@std@@@std@@QAEXPAVClass_0046ded0@@IABV3@@Z
+InsertFn_0046f7a0 g_insert_0046f7a0 = &Vec_0046f7a0::insert;

@@ -249,6 +249,37 @@ middle of the body is still function scope). A file that packs its locals into
 one struct can never reproduce any of this. `uv run tools/stackcmp.py <addr>`
 shows which locals sit in the wrong slots.
 
+**Get the registers from priority, then the order table.** Also read out of
+C2.EXE (`docs/c2-regalloc.md` has the details, the C2 addresses and the
+tests). Both allocators walk one order: eax, ecx, edx, esi, edi, ebx, ebp.
+Locals, parameters, compiler temporaries (loop counters, strength-reduced
+pointers) and constants are register candidates, coloured one at a time in
+priority order (`FUN_00416e6a`, `FUN_0041b785`). Each takes the cheapest
+register it is allowed, ties going to the earlier register in the order. A
+value live across a call is not allowed eax, ecx or edx, so the top-priority
+one gets esi, then edi, ebx, ebp; a value not live across a call starts at
+eax. Cost only breaks the order when a neighbour wants a register (the return
+value wants eax, a copy wants its source's register), and ebp is used only
+when esi, edi and ebx are all taken. Priority (`FUN_0040ee1d`) is a weighted
+reference count: 2 per reference, times `1 << (loop depth + 1)`, times the
+number of candidates touched in that block, minus a little for each block the
+value is live through without a reference. In practice one reference inside a
+loop beats 3 to 4 outside it, and one in a nested loop about 12. **On equal
+priority the value that appears first in the code wins**, whatever the
+declaration order. So to move a variable to an earlier register, add weighted
+references or make it appear first. This predicted 1,280 of 1,280 generated
+straight-line tests. A value whose register is taken by higher-priority
+neighbours in part of its range is split, not spilled: it is stored before
+that region and reloaded after (the "`this` spilled at entry" pattern).
+Expression temporaries are placed afterwards (`FUN_00435c37`): a temporary
+copied to or from a register variable takes that register if it is free,
+otherwise the next free one of eax, ecx, edx after the last temporary's,
+from a pointer that is reset only at the start of the function. That is the
+statement-to-statement rotation: adding, removing or reordering one temporary
+shifts every later one. A constant goes into a register only with enough uses:
+`p->f[i] = 0` needs 3 stores for `xor ecx, ecx` and 5, with calls between
+them, for a callee-saved register.
+
 **Try `/Gi` on a tie that no spelling moves.** Some of the original's
 translation units were built with `/Gi` (#5035). If a function is stuck on a
 register or frame-slot tie (or one SIB byte) that no spelling moves, run

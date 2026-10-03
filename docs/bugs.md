@@ -15,7 +15,7 @@ an index of 10 is the spare last slot. An earlier entry here that called those
 loops (0x4453a0, 0x445450) an overrun was withdrawn in #413. An entry that
 called a stack slot in 0x43cd20 uninitialised (#714) was withdrawn too: it
 misread the push depth, and the writes it named go to two different slots,
-each written before it is read.
+each written before it is read. An entry on 0x4a4170's 16-bit `sub ax` / `add eax` was withdrawn in #5063: the sum is stored with `mov word ptr [ebx+0x140], ax` (0x4a427b), so the high half never matters.
 
 ## Bit writer grows its buffer into a single dword (likely)
 
@@ -782,10 +782,6 @@ Things that look wrong in the original but have no effect, kept for the record.
   then does `idiv ecx` with the register still zero, a divide by zero. The
   `0x80` arm tests both divisors first, so the check looks forgotten. Found by
   CubeB's OpenCode / deepseek-v4.1-flash in #1316.
-- **0x4a4170** (possible): `mov ax, [ebp+0x94]` / `sub ax, [ebp+0x7c]` then
-  `add eax, esi` adds a 16-bit difference without sign extension, so the high
-  half of `eax` is whatever a previous call left there, and the sum is stored
-  in `e->off`. Found by CubeB's OpenCode / deepseek-v4.1-flash in #1316.
 - **0x44c0d0** (harmless): `if (defs[type].name)` tests the address of an
   array member (`lea eax, [esi+0x20]; test eax, eax`), which can never be null,
   so the check is always true and its false arm is dead. Probably meant to

@@ -1,4 +1,34 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Claude Code / opus (#4961, 60 min): best stays 92.0% (732/753). New findings,
+// none of which beats the file below yet:
+//  * This function is FUN_0043bc90(DAT_004fd288, 1) inlined. 0x43bc90's other three
+//    callers are exactly the registration calls made here (0x403180, 0x406bf0,
+//    0x415b20). Compiling 0x43bc90 as `reserve(size() + count); std::copy(from,
+//    from + count, std::back_inserter(v)); std::sort(v.begin(), v.end(),
+//    FUN_0043c020);` with the real <vector>/<algorithm>, and this function as the
+//    call, reproduces every call and inline decision of both functions: here
+//    _Destroy and size() out of line and both _Insertion_sort_1 calls out of line;
+//    in 0x43bc90 only the first is out of line. push_back, index or explicit-iterator
+//    loops change the inline budget and get other patterns. Its registers score
+//    80.7% to 84.3% here.
+//  * A hand-written std::vector in namespace std, as 0x473d50.cpp does (insert
+//    declared only, reserve's size() calling Class_0043c360::FUN_0043c360, _Destroy
+//    with its real empty-loop body), gives this file's exact 92.0% with every
+//    reference named as data/symbols.csv expects; the file below still calls the
+//    real vector::size, which that file names differently.
+//  * Every variant that calls _Destroy (budget, nudge, or that hand-written vector
+//    with _Destroy declared only) lands on 82.8% to 84.3%. The original loads
+//    [_Last]/[_First] for _Destroy into ebp/eax, the copy loop's registers, so its
+//    `je` over the empty loop skips the reloads; ours always reloads into eax/ecx at
+//    the join.
+//  * Permuter lead (hand-written vector with _Destroy declared only, 17 min, 10292
+//    candidates, nothing else found; headers.py flat): routing the do/while test
+//    through `static inline bool NotEnd(Elem* p) { return DAT_004fd2a1 != p; }` fixes the
+//    whole sort block's allocation, 90.6% at 759 bytes (the extra 6 bytes are its
+//    setne/test). A function-local static end pointer gives 87.2% at exactly 753.
+//  * Functions defined after the target in the same file shift its allocation by
+//    about 2 points (functions before it do not), so the rest of the original
+//    translation unit (0x43c350 and the sort templates after it) matters.
 // DeepSeek V4.1 Flash (issue #4789): best stays 92.0% (732/753), confirmed
 // stuck. A 3-minute permuter run (1865 candidates) found nothing. An empty
 // `static inline` nudge placed after reserve (or at any of ten statement

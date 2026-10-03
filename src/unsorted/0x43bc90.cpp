@@ -1,4 +1,28 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Claude Code / opus (#4961, 60 min): best stays 83.6% (909 bytes). New findings:
+//  * Most likely source: `reserve(size() + count); std::copy(from, from + count,
+//    std::back_inserter(v)); std::sort(v.begin(), v.end(), FUN_0043c020);` with the
+//    real STL. It is the only loop form whose inline-budget decisions (out-of-line
+//    _Destroy and size(), small-case _Insertion_sort_1 called, big-case one inlined
+//    with its _Unguarded_insert called) match both this function and its inlined copy
+//    in 0x43c050 (see that file). It scores 63.7% to 65.2% at 914 bytes (83.4% at 892
+//    with `_L - _F > 16`, which folds the repeated `cmp edx, 0x10`). What differs is
+//    the allocation: the original keeps [_Last] in ebp from the prologue to the sort,
+//    so the loop's end() load sits after the insert call. MSVC 5 only moves a load
+//    onto the one incoming edge that lacks it when the other edge already holds the
+//    value in the same register (it does this for the _Destroy arguments in
+//    0x43c050's original); none of our builds of the copy loop did, so the file below
+//    keeps the explicit `ins` iterator, which forces that shape.
+//  * The references below are not all right for a MATCH: Access_0043c390::insert and
+//    the real vector::size (data/symbols.csv names 0x43c360
+//    Class_0043c360::FUN_0043c360). A hand-written std::vector in namespace std, as
+//    in 0x473d50.cpp, with insert and _Destroy declared only and reserve calling
+//    ((Class_0043c360*)this)->FUN_0043c360() gives every call its right name and ties
+//    at 83.6% with this loop in some file layouts (81.5% in others): the functions
+//    defined after the target and the headers included both move its allocation by
+//    about 2 points, functions defined before it do not.
+//  * permute.py (15 min) on that version: 83.9% only with self-assignments and
+//    do/while(0) wrappers, not kept; headers.py (256 sets) flat at 83.6%.
 // DeepSeek V4.1 Flash (#4789, this session): baseline reconfirmed at 83.6% / 909 bytes,
 // exact size. permute.py --minutes 3 (2067 candidates) found only cosmetic ties
 // (83.6% / 909 but two more moved jump targets, not kept) and headers.py --cpp

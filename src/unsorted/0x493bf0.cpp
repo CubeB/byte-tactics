@@ -1,5 +1,8 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
 // (previously: deepseek-v4.1-flash, GPT-6, space-bunny-free.)
+//
+// GPT-6 retry (#4906): extracted both stores into one static inline helper
+// that reads g_game directly. Inlining leaves both SIB operand orders unchanged.
 //
 // Partial: 99.4% (1116 of 1116 bytes, the byte count already matches).
 // Two instructions still differ, both the SIB base/index choice of a byte

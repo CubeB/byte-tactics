@@ -1,5 +1,34 @@
-// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5. Names are provisional.
 // (base version by GPT-6 Astra; deepseek-v4.1 re-verified and extended the notes)
+// Claude Opus 5.5, issue #5033: a different route reaches 98.6% (1051 bytes)
+//     but needs empty Dummy() calls, so it is a lead, not this file. The
+//     original's mix of inlined and out-of-line vector code is MSVC 5's /Ob2
+//     budget running out at the second inline level, not a hand-written
+//     vector: pads.empty() calls size() out of line, both pads ~vector calls,
+//     the units constructor (0x40c510, with its allocator temporary in the
+//     dead order slot) and the units ~vector at `return 3` are calls, while
+//     units.empty(), operator[], the tail's offset/add and the final ~vector
+//     (just `operator delete(first)`) are inlined. Recipe, with the real
+//     <vector>: pads as `Class_00410830 : std::vector<Unit*>` with a declared
+//     constructor; units as a class derived from std::vector<Unit*> with
+//     implicit constructor and destructor (so the vector's own are one level
+//     down); FUN_0040f790 and FUN_004103a0(short, Fixed) declared only, the
+//     water branch calling `FUN_0040f790(unit->pos, Direction(angle,
+//     0x3200000))`; the tail as `order->pos + Offset(...)` with an inline
+//     member Vec3::operator+; `int range` as its own local; and 34 Dummy()
+//     calls after `order->flags |= 0xf8;` (24 when FUN_0040f790/FUN_004103a0
+//     are defined in the file and the water code is an inline helper). That
+//     reproduces the original's call list exactly. Case 0 must then read the
+//     position through a local, `Vec3* pos = &order->pos;` (or a reference):
+//     it alone moves unit to esi and order to edi for the whole function.
+//     What is left is the case-1 health test, colored eax/edx/ecx (def,
+//     health, limit) where the original has edx/ecx/eax. Twelve spellings of
+//     the test (casts, /4*3, 3*, a limit local, an IsDamaged helper, the
+//     landing block as a helper) change nothing; the coloring follows the
+//     water branch instead: it flips to the original's only when that branch
+//     does not pass its `pos` local's address to the Class_0044e2d0
+//     constructor, or when FUN_0040f790 is inlined there, neither of which
+//     the original does. /Gi makes it worse (86.9%).
 // deepseek-v4.1-flash, later session: 91.5% -> 92.2%, byte count now exact
 //     (1051). The tail's sums are now `pos.x+=off.x; pos.z+=off.z;` on the
 //     PosOf() result with NO second Vec3: the compound form lands each sum in

@@ -1,4 +1,34 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5, issue #5033 (still 97.1%, file unchanged below). New lead
+// on the state-4 x87 block, measured with small scratch files compiled by
+// tools/wcl (build/scratch/0x411f50/mic*.cpp in that session):
+//  - The original's order `fmul [30.0f]` then `fimul [f22]` together with the
+//    positive sum needs a float barrier on the product:
+//    `(int)((float)((float)sqrt(size * 2.0 / rate) * 30.0f) * unit->type->field_22)`.
+//    Without one, VC5 flattens the multiply chain and always puts the integer
+//    memory operand first and the constant last (any operand order, inline
+//    helpers, float/double locals, a const or non-const float variable for
+//    30: all give `fimul; fmul`), and folds a negation into the constant.
+//  - With the barrier, VC5 keeps `fild size; fadd st,st; fidiv [rate]` and
+//    `fimul [f22]` only when `size` and `rate` are not BOTH loaded before the
+//    `if (!rate) break;` test. Loading `size` after the test gives the
+//    original's x87 sequence instruction for instruction (96.2% overall,
+//    since the size load then sits after the `je` and the sum becomes
+//    `lea ebx,[eax+ecx+1]` with def in ebx). With both loaded before the test
+//    (as the original does) every barrier form tried (cast, float local,
+//    struct member, reference helper, `+ 1.0f`) switches to
+//    `fild rate; fild size; fadd; fxch; fdivp` and `fild f22; fmulp`.
+//  - The original's `mov ebx,eax; inc ebx; add ebx,ecx` sum (time kept in ebx
+//    from the ftol on, which is also what pushes def into ebp) did not appear
+//    for any spelling: `time++; time += f216`, `+ (1 + f216)`, a short or
+//    unsigned short time, a function-scope time, and reusing the flags
+//    parameter all give `lea`.
+//  - The only shape that produced `mov ebx,eax; mov eax,[edi+0x16]; inc ebx;
+//    push 0x36` with def in ebp (the original's registers) was
+//    `int time = (int)(...) + 1;` with `+ def->field_216` moved into the
+//    FUN_0044e730 argument and the object chosen by a `?:` inside the call
+//    expression; but VC5 then adds field_216 after the branch, not before
+//    it, and the x87 block falls back to fild/fdivp.
 // GPT-6.1-sol continuation: verified 97.1% (1980 bytes) with check.py; no
 // MATCH. Remaining code differences are the state-4 timing arithmetic at
 // 0x4123ad-0x41240a (the multiply ordering at 0x4123ec), plus the unresolved jump

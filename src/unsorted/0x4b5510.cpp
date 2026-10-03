@@ -2,6 +2,11 @@
 // GPT-6 retry (#4917): current check.py confirms 99.7% / 1017 bytes. The
 // documented live pointer-copy probe moves the reload but loses the EBP zero
 // register used by all DirectDraw result checks, dropping to 62.2%.
+// Reconstructed the saved I/T lead: a plain HDC *slot with `(void **)&caps`
+// gives the documented single `lea ecx, [esp + 0x1c]` mismatch, but writes the
+// DIB bits into `caps` rather than the slot used by the original. Adding the
+// documented dead `pad2 = mode` assignment leaves that output unchanged, so
+// the semantically correct 99.7% source below remains the best usable version.
 // DeepSeek V4.1 Flash session (2026-10-02): permuter 3 min on this file's
 // shape and 3 min on the T shape (plain `HDC *slot` at 0x14 with the
 // CreateDIBSection arg `(void **)&caps`), no gain, both 99.672131 exact.

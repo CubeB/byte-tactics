@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**90.76% of Cavedog's code matched** (772,211 of 850,853 bytes)
+**90.89% of Cavedog's code matched** (773,327 of 850,853 bytes)
 
 `[####################################----]`
 
-By count that is 3,202 of the game's 3,267 functions (98.0%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,203 of the game's 3,267 functions (98.0%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,202 | 772,211 |
-| Attempted, not yet matching | 65 | 78,642 |
+| Matched byte-for-byte | 3,203 | 773,327 |
+| Attempted, not yet matching | 64 | 77,526 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 696 of 703 | 98.9% | 2,060 | `##########` |
 | xl (401 to 600 bytes) | 217 of 226 | 95.9% | 4,522 | `##########` |
 | xxl (601 to 1,000 bytes) | 180 of 195 | 92.2% | 11,526 | `#########-` |
-| huge (over 1,000 bytes) | 128 of 161 | 79.3% | 60,416 | `########--` |
+| huge (over 1,000 bytes) | 129 of 161 | 79.7% | 59,300 | `########--` |
 
 ### By area
 
@@ -58,7 +58,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x460000` | Game and skirmish setup, unit classes | 208 of 212 | 93.9% | 3,736 | `#########-` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 252 of 259 | 89.5% | 6,663 | `#########-` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 260 of 264 | 96.9% | 1,997 | `##########` |
-| `0x490000` | Config and registry, skirmish summary | 188 of 193 | 91.9% | 4,823 | `#########-` |
+| `0x490000` | Config and registry, skirmish summary | 189 of 193 | 93.8% | 3,707 | `#########-` |
 | `0x4a0000` | GUI layout and GAF | 199 of 201 | 96.0% | 2,538 | `##########` |
 | `0x4b0000` | UI controls and file packages | 312 of 314 | 98.6% | 891 | `##########` |
 | `0x4c0000` | TDF parser, CD audio, string handles | 294 of 298 | 95.9% | 2,210 | `##########` |

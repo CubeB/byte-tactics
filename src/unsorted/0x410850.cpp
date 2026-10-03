@@ -1,4 +1,4 @@
-// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5. Names are provisional.
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5. re-verified by GPT-6. Names are provisional.
 // (base version by GPT-6 Astra; deepseek-v4.1 re-verified and extended the notes)
 // Claude Opus 5.5, issue #5033: a different route reaches 98.6% (1051 bytes)
 //     but needs empty Dummy() calls, so it is a lead, not this file. The

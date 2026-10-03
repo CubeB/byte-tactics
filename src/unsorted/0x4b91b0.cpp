@@ -30,6 +30,10 @@
 //    are sign-extended at each use. With an int hw, f and w/2 swap the two
 //    dead parameter slots.
 //
+// GPT-6 recheck: no improvement from an inline Centered(y, hh) helper, an
+// inline HalfValue helper for hw/hh, `hh = hh`, or a `register short hh`
+// hint (all byte-identical at 99.3%). A named row = y * w local changes
+// index lowering and falls to 59.5%, so keep the direct y * w + x form.
 // What still differs: one instruction pair. After the inner loop the
 // original restores the outer-loop registers in the order hw (ebx),
 // hh (edx), y (eax), f (ecx); this file restores hh last

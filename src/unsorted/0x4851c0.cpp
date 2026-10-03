@@ -31,6 +31,8 @@
 // the source forms that could reverse the x/y difference register pairing.
 // #5360 retry: re-confirmed 84.7%; the measured register-pair mismatch is
 // unchanged on current main.
+// #5379 retry: re-confirmed 84.7%; the x-difference and abs/divisor registers
+// still receive the opposite allocation from the original.
 // Existing frame/register probes and the prior 19019-candidate permuter found
 // no better source; `/Gi` is already recorded at 46.4%.
 // Claude Opus 5.5 retry (#5072): still 84.7%, about 1900 scratch variants, none

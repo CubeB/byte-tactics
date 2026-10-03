@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, checked by GPT-6., retried by Claude Opus 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, checked by GPT-6., retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
 // Claude Opus 5.5 (#5122): still 99.5%, but the MECHANISM of the walk1 reload
 // order is now known (gdb traces of C2, see tools/c2prio.py):
 //  * The two reloads after walk1's fill loop come from live-range splits
@@ -100,6 +100,7 @@
 // 0x4c1000, so it is not a function-wide counter; find a source shape that changes the block graph
 // AT the latch (the predecessor set of the latch, or whether the fill's exit and the latch are one
 // block) without changing the emitted bytes, which is the only lever every sweep so far has missed.
+// #5370 retry: re-confirmed 99.5%; the walk1 latch still reloads pts before i.
 // DeepSeek V4.1 Flash session (45 min): still 99.5, 613 of 613 bytes, the same single hunk (walk1
 // latch loads pts then i; original loads i then pts). Re-confirmed nothing in the header state:
 // tools/headers.py --cpp (768 sets) is flat at 99.5. Swept and rejected this session, all 99.5 with

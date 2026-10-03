@@ -513,6 +513,13 @@ effect, the missing piece is usually a helper that was inlined:
   treating such a copy as a use of a temporary: in 0x47d2e0 the copy is a
   read through `los`, not a use of the width. A jump target is not tracked,
   so the same read there stays a memory operand (#5188).
+- **x87 interleaving stops when a block passes a frame address to a call**:
+  in small tests, MSVC 5 interleaves independent x87 computations only while
+  the same basic block passes no frame address to a call, and a
+  struct-returning call's hidden return buffer counts as one. So structs
+  passed by address or returned by value in the block keep the float code
+  sequential. 0x421700's original interleaves despite such calls, which no
+  spelling has reproduced yet (#5199).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

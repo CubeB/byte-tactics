@@ -1,58 +1,78 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
-// Status: 85.2 -> 91.3%, 5248 bytes (the original's size exactly; was 5288).
-// DeepSeek V4.1 Flash (#4779): attacked the two stack slots stackcmp flags
-// (`i` should be at -0x3b4, ours -0x3b0; `best/src` should be at -0x3c0, ours
-// -0x3bc). Four permute runs with `--stack i,best,src` (3 min, jobs 3, seeds
-// 1/2/5 and a `--no-focus` run) all ended at the same 91.3% / score 8122. The
-// slot assignment is not driven by declaration order: moving `orientation` into
-// case 4, every permutation of the `pf`/`i`/`force` declarations, splitting
-// `int i, force;`, renaming the locals, `int* pf = 0;` and `unsigned i` all
-// compile to byte-identical code (same size, same 279 diff lines). Only removing
-// `pf` altogether moves `i` to -0x3b4, but it shifts the whole frame by 4
-// (savedType to -0x3a8, the buffers swap) and drops to 79.6%. The single-max
-// case 2 form still matches the original's case 2 exactly but is 5232 bytes and
-// 83.5% because the case 4 slider then reassociates; every other max spelling
-// (if/else, upgrade-if, reversed ternary, no local) lands at 82.0-83.5%. So the
-// double-max hack remains the best form and the slots follow the surrounding
-// code, not any isolated declaration change.
-// Not a MATCH. What moved it (claude-sonnet-5-5, #4532):
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
+// Status: 91.3% -> 94.2%, 5248 bytes (the original's size).
+// claude-opus-5-5 (#4890). What moved it:
+//  (1) Case 4's two "append an entry" blocks are the real FUN_004a8150
+//      (matched) inlined: `&entries[FUN_004a8150(menu, 1)]`. Its local `e`
+//      becomes the spilled pointer the original keeps at [esp+0x14] and the
+//      returned count indexes the caller's `entries`. This one change put
+//      every small frame slot where the original has it (i at [esp+0x1c],
+//      the &x/&y CSE temps at [esp+0x10]/[esp+0x20], orientation/created/
+//      best/k sharing [esp+0x14]); slots are shared by live range, and the
+//      inline's temporaries apparently join a different group than the
+//      named `active`/`created` locals did. 91.3 -> 93.9. The inlined body
+//      stores `type` before
+//      `field_29` (the standalone 0x4a8150 matches with either order, its
+//      load of `type` hides it). 93.9 -> 94.0.
+//  (2) The three `buf1[0] = 0; if (prefix) strncpy(...)` sequences are the
+//      real FUN_004a81b0 (matched) inlined (same bytes).
+//  (3) The buffers are declared at the top of the main loop body, not at
+//      function scope. `entries` is assigned before they come into scope,
+//      so MSVC knows it cannot point into textbuf, and the scheduler may
+//      sink `textbuf[0x10] = 0` below the next `entries[...]` load, after
+//      `add esp, 0xc`, as the original does in cases 0/11, 12 and 1.
+//      Measured in a small lab: a pointer loaded from memory before the
+//      array's scope opens lets the store sink; one loaded inside its scope
+//      (or the array at function scope) pins the store above the load.
+//      94.0 -> 94.2.
+// The best source found is NOT this file. With (1)-(3) in place, three more
+// changes each reproduce the original's bytes for their region:
+//   - case 2 with the max computed once (`short scroll = a > b ? a : b;
+//     entries[i].u.list.scroll = scroll; other->u.list.scroll = scroll;`),
+//   - case 4's slider as `secondEnd->x = entries[i].x - (frame->w -
+//     entries[i].w);` and `secondEnd->y = entries[i].y - (frame->h -
+//     entries[i].h);` (every other spelling reassociates to w - fw + x),
+//   - the stage-button frame search as `int best = 1000;` before the clearing
+//     loop and a plain `for (int j = 0; j < g->count; j += 4)`.
+// Together they leave exactly one difference, case 1's flags pointer below,
+// but that one is 4 bytes short and shifts every later jump, so check.py
+// gives 88.9% (permuter score 6969 against 7707 here). This file keeps the
+// old double-max case 2, the plain slider spelling (right in this context,
+// wrong once case 2 is fixed) and the old frame search, which together keep
+// the size at 5248. Apply all three once the flags pointer is solved; that
+// should be at or near a MATCH.
+// The flags pointer (still differs in both versions): the original computes
+// `lea eax, [ebp+ebx+0x1b]` and spills it to [esp+0x20] (used only for the
+// three 0x4000 accesses), but its 0x1800 and 0x80 tests read
+// [ebp+ebx+0x1b] directly. MSVC here always merges the tests' address with
+// the pointer and keeps it in edi until the 0x80 test. Same bytes for: pf
+// block local, in the loop scope, defined after the test, unsigned/char/
+// union-typed views, every arithmetic spelling of the address, an Entry*
+// `me` (MSVC biases it to +0x1b), inline helpers for the tests, bitfield
+// views, statement orders, declaration orders, every header set
+// (tools/headers.py, flat at 88.9%), extra do/while(0) regions, and two
+// 15-minute permuter runs (5727 candidates from the 88.9% version, 6269
+// from this file, no gain). Dropping pf or
+// propagating it through an inline that returns &e->flags makes every
+// access direct (worse). The do { } while (0) is load bearing (without it
+// the CHECKBOX call is not tail-merged and pf moves to eax); it only has to
+// enclose the `if (g) { two frame loops }` block. Compare
+// FUN_004a5f40's `do { } while (pass--)`, so the original probably has a
+// real single-pass loop there.
+// Remaining in this file: the flags pointer, case 2's double max and the
+// frame-search counter store (j = 0 stored with the first loop's zero); the
+// jump tables read as garbage in the diff (their targets are checked apart).
+//
+// Older notes (DeepSeek V4.1 Flash, claude-sonnet-5-5):
 // (1) The post-loop name scan is the inline helper FindByName (the same shape as
-//     0x4a9fd0's FindEntry: `for (j = 1; j < count + 1; j++) if (!strncmp(entries[j].name,
-//     name, 0x10)) return j; return -1;`). The old hand-rolled walk with
-//     `j = (int)(other - entries)` cost a 0x15b division the original does not have.
+//     0x4a9fd0's FindEntry).
 // (2) The FUN_004c1ab0 wait stores the call result in a variable and compares it:
-//     `do { i = FUN_004c1ab0(); } while (i != 0);`. That gives the original's
-//     `xor esi, esi` hoisted above the loop and `cmp eax, esi` (a call result that is
-//     assigned to a named variable before the test is compared against the zero
-//     register, not with `test`).
+//     `do { i = FUN_004c1ab0(); } while (i != 0);` (gives the hoisted
+//     `xor esi, esi` and `cmp eax, esi`).
 // (3) The `field_70` loop is `for (i = 0; i <= count; i++) if (entries[i].type == 1)
-//     entries[i].field_13a = 0;` with no `walk` pointer: the compiler makes the
-//     pointer itself and puts `mov eax, ebp` after the loop test as the original does.
-// Known artifact, kept because it scores higher: case 2 (list scroll sync) computes
-// the max twice (`short scroll = max; entries[i].scroll = (short)max; other->scroll =
-// scroll;`). The original computes it ONCE (`short m = a > b ? a : b; e = m; o = m;`,
-// `cmp cx,dx; jg; mov ecx,edx; mov [e],cx; mov [o],cx`). The single-max source gives
-// the original's case 2 exactly (j in esi, i in edi) but 83.5%: the case 4 slider then
-// compiles `mov dx,[x]; sub dx,[fw]; add edx,ecx` as `sub cx,[fw]; add cx,[x]` (w first
-// instead of x first) and the file is 16 bytes short, so every later jump target
-// moves. Nothing else was found that restores the slider; spelling the slider
-// expression in nine ways, `short`/`int` temporaries, and dropping/adding `pf` all
-// compile the same or worse. Removing `pf` also makes the slider match but swaps the
-// textbuf and buf1 frame slots (+/-0x100 on every reference to them).
-// What still differs (all register, slot or scheduling noise, plus case 2 above):
-// (a) `pf` (`&entries[i].flags`) is read through the register copy here for the
-//     0x1800 and 0x80 tests (`mov eax,[edi]; test ah,0x18`); the original reads
-//     `[ebp+ebx+0x1b]` directly and only the 0x4000 accesses use the spilled pointer.
-// (b) `textbuf[0x10] = 0` is emitted before `add esp, 0xc` here and after it in the
-//     original (cases 0/11, 12 and 1); same size.
-// (c) The stage-button frame search keeps its counters in different frame slots
-//     ([esp+0x10]/[esp+0x14]); `mov [esp+0x10], edi` here is `mov [esp+0x10], 0` there.
-// (d) Case 2: see above. (e) The two jump tables read as garbage in the diff (the
-//     checker verifies their targets separately).
-// Dead ends: declaration/buffer order, `unsigned force`, hoisting the count or the
-// compare string, while/do-while/`++j` spellings of the scan other than FindByName,
-// `(unsigned char)` casts on the flags test, swapping the slider arms, Glyph::w/h as
-// signed short, a fresh `int busy` for the wait (costs a frame slot; reuse `i`).
+//     entries[i].field_13a = 0;` with no `walk` pointer.
+// Dead ends then: declaration/buffer order, `unsigned force`, hoisting the count
+// or the compare string, `(unsigned char)` casts on the flags test, swapping the
+// slider arms, Glyph::w/h as signed short, a fresh `int busy` for the wait.
 #include <math.h>
 #include <string.h>
 #include <windows.h>
@@ -230,6 +250,26 @@ void __stdcall FUN_004c6ac0(void* obj);
 void __stdcall FUN_004c6b70(void* dst, void* bmp, int x, int y);
 void __cdecl FUN_004d85a0(int* param_1);
 
+// The real FUN_004a8150 (matched in 0x4a8150.cpp), inlined here by /Ob2.
+static inline int FUN_004a8150(Menu_004a81e0* obj, unsigned char type)
+{
+    Entry_004a81e0* entries = obj->layer->entries;
+    entries->u.count++;
+    Entry_004a81e0* e = &entries[entries->u.count];
+    memset(e, 0, sizeof(Entry_004a81e0));
+    e->type = type;
+    e->field_29 = 1;
+    return entries->u.count;
+}
+
+// The real FUN_004a81b0 (matched in 0x4a81b0.cpp), inlined here by /Ob2.
+static inline void FUN_004a81b0(Menu_004a81e0* obj, char* out)
+{
+    *out = 0;
+    if (obj->str_ab6[0] != 0)
+        strncpy(out, obj->str_ab6, 0x100);
+}
+
 static inline int FindByName(Entry_004a81e0* entries, char* name)
 {
     for (int j = 1; j < entries[0].u.count + 1; j++) {
@@ -249,11 +289,6 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
     int* pf;
     int i, force;
     GafEntry_004a81e0* g;
-    char stagebuf[0x20];
-    char textbuf[0x100];
-    char buf1[0x100];
-    char buf2[0x100];
-    char buf3[0x80];
 
     if (!menu->layer)
         return 0;
@@ -297,6 +332,11 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
     entries[0].u.assets.archive = 0;
     i = 0;
     while (i < entries[0].u.count + 1) {
+        char stagebuf[0x20];
+        char textbuf[0x100];
+        char buf1[0x100];
+        char buf2[0x100];
+        char buf3[0x80];
         buf2[0] = 0;
         if (menu->str_9b6[0])
             strcpy(buf2, menu->str_9b6);
@@ -304,9 +344,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
         if (entries[i].resourceFlags & 1) {
             entries[i].archive = 0;
             entries[i].gaf = 0;
-            buf1[0] = 0;
-            if (menu->str_ab6[0])
-                strncpy(buf1, menu->str_ab6, 0x100);
+            FUN_004a81b0(menu, buf1);
             strcat(buf1, entries[i].name);
             strcat(buf1, "_gadget");
             FUN_004baff0(buf1, buf1, "GAF");
@@ -321,9 +359,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
         case 11: {
             if (0 > entries[0].y)
                 entries[0].y += (short)FUN_004b6710();
-            buf1[0] = 0;
-            if (menu->str_ab6[0])
-                strncpy(buf1, menu->str_ab6, 0x100);
+            FUN_004a81b0(menu, buf1);
             strncpy(textbuf, entries[0].name, 0x10);
             textbuf[0x10] = 0;
             strcat(buf1, textbuf);
@@ -378,13 +414,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
             }
             entries[i].sliderGaf = g;
             if (g != 0) {
-                Entry_004a81e0* active = menu->layer->entries;
-                ++active[0].u.count;
-                Entry_004a81e0* created = &active[active[0].u.count];
-                memset(created, 0, sizeof(*created));
-                created->type = 1;
-                created->field_29 = 1;
-                Entry_004a81e0* firstEnd = &entries[active[0].u.count];
+                Entry_004a81e0* firstEnd = &entries[FUN_004a8150(menu, 1)];
                 firstEnd->x = entries[i].x;
                 firstEnd->y = entries[i].y;
                 firstEnd->gaf = g;
@@ -395,13 +425,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                 firstEnd->h = frame->h;
                 firstEnd->flags = 0x3400;
                 firstEnd->field_29 = entries[i].field_29;
-                active = menu->layer->entries;
-                active[0].u.count++;
-                created = &active[active[0].u.count];
-                memset(created, 0, sizeof(*created));
-                created->type = 1;
-                created->field_29 = 1;
-                Entry_004a81e0* secondEnd = &entries[active[0].u.count];
+                Entry_004a81e0* secondEnd = &entries[FUN_004a8150(menu, 1)];
                 secondEnd->field_29 = entries[i].field_29;
                 frame = (Glyph_004a81e0*)FUN_004b7f30(g, entries[i].sliderStyle + 8);
                 secondEnd->y = entries[i].y;

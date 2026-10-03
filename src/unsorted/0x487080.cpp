@@ -3,44 +3,80 @@
 // section of a saved game: finds its 0xb8-byte record by id, creates the unit and copies the
 // record into it.
 //
-// Pass 16 (claude-opus-5-5): 88.8 -> 91.9 percent, 1595 bytes (the original's size). Not a MATCH.
-//  - The piece copy loop is now plain array indexing, `unit->pieces[j].f0 = rec.pieces[j].f0;`
+// Pass 17 (claude-opus-5-5): 91.9 -> 97.1 percent, 1595 bytes. Not a MATCH.
+//  - The header set decides this function: <stdio.h> (for sprintf, instead of a hand
+//    declaration), <string.h> and <stdlib.h>. In that state the 0x10f byte is plain
+//    bitfield copies (`unit->bf.b0 = rec.rf.b0;` and so on; the old getter is gone), the
+//    0x110 chain needs no `hi` hoist, and `u = unit->flags;` after the field_b0 store
+//    reloads the word as the original does (in the old state MSVC forwarded the stored
+//    value instead). Only 33 of the 1536 header sets reach 97.1; most give 77.7 or 80.4.
+// Still differs: the 0x110 chain's first half. Each step loads rec.flags into a fresh
+// register and ors it with u. Per step, the original's source registers run
+// a c a c a d* c a (d* = edx, with the result left in u's register), ours run
+// a c a d* c a c a, so steps 4 to 6 are on the wrong registers. The second half, after
+// the reload, matches.
+// Measured, none above 97.1:
+//  - every per-step spelling (`u &= ~m; u |= x;`, old value first, `unit->flags = u = ...`,
+//    a block-local temporary, rec bitfields shifted into place): MSVC canonicalises them
+//    all to the same code. The chain as bitfield stores, through a pointer to unit->flags,
+//    in scopes or inline helpers, and an int or unsigned long u.
+//  - declaration moves (u, k, j, child, p, normal, special), unused locals, temporaries for
+//    call arguments elsewhere (mode, slot, len, the carried unit, the order head), typed
+//    record members (Vec3 at +0x2b, Pair at +0x37) instead of the casts, the real
+//    preceding function 0x486fd0 defined above, 0 to 600 unused declarations in front
+//    (only 0 and 489 to 512 stay at 97.1), and /Gi (77.7 to 88.9).
+//  - a scan of 3840 combinations (chain shape x five header sets x typed members x the
+//    preceding function) and two permuter runs (22k and 15k candidates) found nothing
+//    better. Across those the edx step only ever landed at step 2 to 5, never 6.
+//
+// Pass 16 (claude-opus-5-5): 88.8 -> 91.9 percent.
+//  - The piece copy loop is plain array indexing, `unit->pieces[j].f0 = rec.pieces[j].f0;`
 //    and so on in the original order (f0, f4, obj, fc, ...), with SaveRec.pieces typed as an
-//    array of SrcPiece. That fixes the whole loop, anchors included (+3.1). The rule behind
-//    it: MSVC anchors the strength-reduced pointer on the second distinct non-zero offset the
-//    loop body uses. With `d = &unit->pieces[j]` pointers, f0 sits at offset 0 and does not
-//    count, so the anchor moves to obj; indexed off `unit`, f0 is +4 and the anchor lands on
+//    array of SrcPiece. MSVC anchors the strength-reduced pointer on the second distinct
+//    non-zero offset the loop body uses; indexed off `unit`, f0 is +4 and the anchor lands on
 //    f4 as in the original.
-//  - The piece flags are now real bitfields (`unit->pieces[j].fl.b0 = rec.pieces[j].fl.b0;`).
-//    They compile to the same xor/and/xor code as the old explicit masks.
-//  Still differs (register allocation only, the code shape is identical):
-//  (1) the 0x10f merge: the getter's two loads leave a hoisted `mov bl,[esi+0x10f]` and a
-//    d-left `xor al,[esp+0xcc]` where the original has `mov cl,[esp+0xcc]; xor cl,al`.
-//    Tried this pass, all lower or identical: bitfield copies (from rec bitfields, from
-//    `rec.flags & 1`, from `rec.flags >> n`) 81.8 to 83.3; a `b` local for the four steps
-//    86.9; a `(unsigned char)(rec.flags & 1)`, int or 32-bit source term, `|`/`& 0xfe` forms
-//    and `^=` (identical or 83.3). In a small test file the bitfield copies give exactly the
-//    original's s-left xor and src-left `or` rotation, so the original was most likely
-//    bitfields, and the residual is the allocator's context.
-//  (2) the 0x110 chain: `xor` for `or` at step 1 (the `hi` hoist), then edx at step 3 and a
-//    dst-left `or` at step 5 where the original has them at step 6, and no reload of
-//    unit->flags after the field_b0 store. Bitfields (75.7), reading unit->flags in every
-//    statement (75.5 to 76.2), a reference or pointer to unit->flags (77.7), re-reading u
-//    after field_b0 (81.3, MSVC forwards it without a load) and other spellings of the first
-//    two steps were all lower.
-//  - The real preceding function, 0x486fd0, defined above this one changes nothing.
-//  - A 15-minute permuter run on this file (15k candidates) only found declaration moves
-//    (rec, i and k) that lower its fine score but leave the percentage at 91.9.
+//  - The piece flags are real bitfields (`unit->pieces[j].fl.b0 = rec.pieces[j].fl.b0;`).
 // Earlier passes (condensed):
-//  - Pass 13: GetB10F_00487080 (a one-line inline getter) keeps statements 2 to 4 of the 0x10f
-//    merge byte for byte; `unsigned int hi = rec.flags >> 4;` used by the first 0x110 step only
-//    lines up steps 1 and 2 (removing it loses 2.4).
 //  - Pass 14: the failure paths fall out of `if (unit != 0) { ... return unit; } return 0;`
 //    so the final `xor eax, eax` is the last block, as in the original.
-//  - A permuter lead from pass 14 (not plausible source): a `do { } while (0)` around the 0xc0
-//    and 0x100 steps of the 0x110 chain was worth 3.3 points on the old file.
-extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
+
+struct RecFlags_00487080 {
+    unsigned int b0 : 1;
+    unsigned int b1 : 1;
+    unsigned int b2 : 1;
+    unsigned int b3 : 1;
+    unsigned int mode : 2;              // 4-5
+    unsigned int r6 : 2;                // 6-7
+    unsigned int r8 : 1;
+    unsigned int r9 : 1;
+    unsigned int r10 : 2;               // 10-11
+    unsigned int r12 : 1;
+    unsigned int r13 : 1;
+    unsigned int r14 : 1;
+    unsigned int r15 : 1;
+    unsigned int r16 : 1;
+    unsigned int r17 : 3;               // 17-19
+    unsigned int r20 : 1;
+    unsigned int r21 : 1;
+    unsigned int r22 : 1;
+    unsigned int r23 : 1;
+    unsigned int r24 : 2;
+    unsigned int r26 : 2;
+    unsigned int r28 : 1;
+    unsigned int r29 : 3;
+};
+
+struct Bits10F_00487080 {
+    unsigned char b0 : 1;
+    unsigned char b1 : 1;
+    unsigned char b2 : 1;
+    unsigned char b3 : 1;
+    unsigned char b4 : 4;
+};
 
 struct Vec3_00487080 {
     int x, y, z;
@@ -102,7 +138,7 @@ struct SaveRec_00487080 {
     unsigned char bb1;                  // +0xb1
     unsigned char bb2;                  // +0xb2
     unsigned char b3;                   // +0xb3 (unused padding)
-    unsigned int flags;                 // +0xb4
+    union { unsigned int flags; RecFlags_00487080 rf; };   // +0xb4
 };
 
 
@@ -125,11 +161,6 @@ struct Piece_00487080 {                 // 0x1c bytes at +0x4 + i*0x1c
 struct Pair_00487080 {
     int a;
     short b;
-    void Set(int x, short y)
-    {
-        a = x;
-        b = y;
-    }
 };
 #pragma pack(pop)
 
@@ -171,7 +202,7 @@ struct Unit_00487080 {
     short field_108;                    // +0x108
     char gap_10a[4];
     unsigned char b_10e;
-    unsigned char b_10f;
+    union { unsigned char b_10f; Bits10F_00487080 bf; };
     unsigned int flags;                 // +0x110
     char gap_114[4];
 };
@@ -220,9 +251,6 @@ class Class_00401110 { public: void FUN_00401110(Unit_00487080*, Class_004b4560*
 class Class_0043d210 { public: void FUN_0043de30(Unit_00487080*, Class_004b4560*); };
 class Class_004b0610 { public: void FUN_004b2040(Class_004b4560*); };
 
-// Reads the unit's saved-byte flag field. Called only so that the inlined load
-// stays where the original has it, just after the three byte stores above it.
-static inline unsigned char GetB10F_00487080(Unit_00487080* u) { return u->b_10f; }
 
 // FUNCTION: 0x487080
 Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
@@ -286,15 +314,12 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     unit->b_fa = rec.bb1;
     unit->b_10e = rec.bb2;
 
-    unit->b_10f = ((unsigned char)rec.flags ^ GetB10F_00487080(unit)) & 1
-        ^ GetB10F_00487080(unit);
-    unit->b_10f = ((rec.flags >> 1 & 1) << 1) | (GetB10F_00487080(unit) & 0xfd);
-    unit->b_10f = ((rec.flags >> 2 & 1) << 2) | (GetB10F_00487080(unit) & 0xfb);
-    unit->b_10f = ((rec.flags >> 3 & 1) << 3) | (GetB10F_00487080(unit) & 0xf7);
-
-    unsigned int hi = rec.flags >> 4;
+    unit->bf.b0 = rec.rf.b0;
+    unit->bf.b1 = rec.rf.b1;
+    unit->bf.b2 = rec.rf.b2;
+    unit->bf.b3 = rec.rf.b3;
     unsigned int u = unit->flags;
-    u = (hi & 0xc) | (u & 0xfffffff3);
+    u = (rec.flags >> 4 & 0xc) | (u & 0xfffffff3);
     unit->flags = u;
     u = (rec.flags >> 4 & 0x10) | (u & 0xffffffef);
     unit->flags = u;
@@ -311,6 +336,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     u = (rec.flags >> 4 & 0x800) | (u & 0xfffff7ff);
     unit->flags = u;
     unit->field_b0 = rec.fa3;
+    u = unit->flags;
     u = (rec.flags >> 3 & 0x2000) | (u & 0xffffdfff);
     unit->flags = u;
     u = (rec.flags >> 6 & 0x4000) | (u & 0xffffbfff);
@@ -329,6 +355,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     unit->flags = u;
     u = (rec.flags >> 6 & 0x3800000) | (u & 0xfc7fffff);
     unit->flags = u;
+
 
     ((Class_00401110*)&unit->info)->FUN_00401110(unit, file);
     if (rec.f27 != 0)

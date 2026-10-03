@@ -2,10 +2,28 @@
 // Handles the "unit died" record that 0x4864b0 builds: credits the kill, updates the
 // kill leaderboard ("%s has taken the lead with %d kills"), then tears the unit down.
 //
-// Pass 15 (claude-opus-5-5): 87.0 -> 92.5 percent (1972 bytes, original 1964). Not a MATCH.
-// Rewritten on real types (Game/Player/Unit/Cmd structs, the record's count and kind as
-// 4-bit bitfields, a virtual destructor for the script object) instead of at<> offsets.
-// What moved it, in order:
+// Pass 16 (claude-opus-5-5): 92.5 -> MATCH. The last differences were all register choices
+// in the kind==5 block, the tail calls and the script's virtual delete, and they moved
+// together; four things were needed at once:
+//  - <stdio.h> for sprintf instead of a hand declaration, with the kind==5 block storing
+//    xd4 in each arm: together they put cmd in edi for the tail and keep the original's
+//    x87 shape (93.0). With only <string.h> the per-arm stores break the x87 shape, and a
+//    single `par->xd4 = f;` after the arms never gets edi.
+//  - `Unit** par = &unit->parent;` read through `(*par)->`, a field pointer (found by
+//    tools/permute.py). A `Unit* par` copy or plain `unit->parent->` both leave info in
+//    the wrong register.
+//  - `float health = 1.0f - x104; float f = health; f *= info->x18a;`: the copy into f
+//    matters. `(1.0f - x104) * info->x18a`, `info->x18a * health` and inline helpers taking
+//    the health all put info in eax (97.7 at best).
+//  - `int flag = cmd->kind != 7;` inside the count block, passed to FUN_00486360: without
+//    it everything else matched but the virtual delete's vtable went to edx (97.7).
+// The register choices of the three spots were coupled: every single change above that
+// fixed one of them broke another, so they were found by scoring all combinations of the
+// candidate spellings in one batch, not one change at a time.
+//
+// Pass 15 (claude-opus-5-5): 87.0 -> 92.5 percent. Rewritten on real types (Game/Player/Unit/
+// Cmd structs, the record's count and kind as 4-bit bitfields, a virtual destructor for the
+// script object) instead of at<> offsets. What moved it, in order:
 //  - the typed rewrite itself put the tail's `cmd->count > 0` test back to `jbe` and the
 //    script/head teardown on the original registers; but the leaderboard loop must stay a
 //    do/while over a Player pointer with `mine` read through a ternary, or MSVC keeps the
@@ -16,24 +34,10 @@
 //    ahead = mine > p->kills;`, with rank and best set before mine. MSVC tail-merges the two
 //    setg arms, which is exactly the original's per-arm movsx, `setg bl` and `mov ecx, ebx`
 //    (+3.5; the whole leaderboard now matches).
-// Still differs (all register allocation, the code shape is identical):
-//  - the tail (cmd->amount / cmd->count calls): the original keeps cmd in edi there; ours
-//    keeps it in edx, copies it to eax around the sete and reloads it after the call (+8
-//    bytes). Writing the kind==5 block's stores inside each branch (`par->xd4 -= f * -0.5`
-//    etc.) does give edi, but breaks that block's x87 shape (91.2). A cmd copy, an inline
-//    tail helper, `? 1 : 0` arguments, int locals for the arguments, nested ifs and a
-//    do/while(0) around the tail all compile identically.
-//  - in the kind==5 block the original loads unit->info into ecx before the fmul and reuses
-//    ecx for par->xec; ours uses edx and hoists the xec load. Splitting the expression,
-//    a UnitInfo or Player local and a switch local all compile identically. A 15-minute
-//    permuter run (17k candidates) found nothing better; its best ratio (93.6) needed an
-//    `int tmp = par->xec->active;` plus a do/while(0) around the block, so it was not taken.
-//  - 0x4864b0 (the real preceding function) defined above this one changes nothing.
-// Passes 1 to 14 (several models) reached 87.0 on an at<>-offset version of this function;
-// their notes described that version's spellings and no longer apply to this one.
+// Passes 1 to 14 (several models) reached 87.0 on an at<>-offset version of this function.
+#include <stdio.h>
 #include <string.h>
 
-int __cdecl sprintf(char* buf, const char* fmt, ...);
 
 extern char DAT_00508be8[];
 extern char DAT_00508bf0[];
@@ -349,28 +353,32 @@ void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
     }
 
     if (cmd->kind == 5 && unit->parent != 0) {
-        Unit_004866d0* par = unit->parent;
-        float f = (1.0f - unit->x104) * unit->info->x18a;
-        if (par->xec->active == 0 || par->xec->state != 2) {
-            f = f + par->xd4;
-        } else {
+        Unit_004866d0** par = &unit->parent;
+        float health = 1.0f - unit->x104;
+        float f = health;
+        f *= unit->info->x18a;
+        if ((*par)->xec->active != 0 && (*par)->xec->state == 2) {
             switch (g_game->x37eee) {
             case 0:
-                f = par->xd4 - f * -0.5;
+                (*par)->xd4 = (*par)->xd4 - f * -0.5;
                 break;
             case 1:
-                f = par->xd4 - f * -0.7;
+                (*par)->xd4 = (*par)->xd4 - f * -0.7;
                 break;
             default:
-                f = f + par->xd4;
+                (*par)->xd4 += f;
             }
+        } else {
+            (*par)->xd4 += f;
         }
-        par->xd4 = f;
     }
     if (cmd->amount > 0 && unit->x104 == 0.0f)
         FUN_0049b000(unit, cmd->kind == 3);
-    if (cmd->count > 0)
-        FUN_00486360(unit, cmd->count, cmd->kind != 7);
+    if (cmd->count > 0) {
+        int flag = cmd->kind != 7;
+        FUN_00486360(unit, cmd->count, flag);
+    }
+
     FUN_00489740(unit);
     if (unit->script != 0) {
         delete unit->script;

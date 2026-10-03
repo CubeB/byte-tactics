@@ -40,6 +40,9 @@
 // GPT-6 retry (#5175): moving the right-walk `nextVertex` assignment before
 // the y0 load scored 66.8%; splitting `next` declaration from its assignment
 // after the y0 load scored 84.3%. The 94.2% source remains best.
+// GPT-6 retry (#5217): rechecked the 94.2% source and retried `index=next`;
+// that still gives the right-walk candidate priority too early and drops to
+// 42.0%, with wide register and stack changes. Restored the 94.2% version.
 
 struct Surface_4c8bb0 { unsigned short width, height; };
 void __stdcall FUN_004c8020(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);

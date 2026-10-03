@@ -1,107 +1,40 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by Fledge Alpha Free, finished by claude-opus-5-5. Names are provisional.
-// PARTIAL (claude-opus-5-5, #4983, 2026-10-03): 87.1% -> 97.5%, 2160 bytes.
+// MATCH (claude-opus-5-5, #4997, 2026-10-03), from 97.5%.
 // Draws one entry of a list gadget: the frame, then either the text rows
-// (flags 0x10) or the cell rows (flags 0x20/0x80). Three fixes, each read off
-// the original and measured with check.py:
-//  - Cell mode zeroes colPtr only in the bp (cell array) arm,
-//    `else { colPtr = 0; cellPtr = ...; }`, which is where the original's
-//    `mov dword ptr [esp+0x10], 0` sits (0x4a20cd). A zero before the test
-//    put the store on both paths (87.1% -> 96.3%).
-//  - The cell loop increments k before the colPtr step (`inc ebx` comes
-//    first at 0x4a2278); that also puts bp and k in the original's slots
-//    (96.3% -> 97.7%).
-//  - The tab scan runs to `entries->count + 1` (`movsx; inc; cmp` at
-//    0x4a1c89 and 0x4a1cdb), both in the loop test and in the not-found test.
-// Then the permuter leftovers were written as plain code (the step and surface
-// tests, the selected-row test, casts, the cell block's layout), which costs
-// 0.2: with the `RowTop`/`RowBottom` helpers taking rowRect by value and the
-// selected-row test spelled `!(((me->flags & 0x100) != 0) == 0 && ...)`, the
-// opening `lea eax, [esi + eax - 1]` (bounds.right, 0x4a1bb9) keeps the
-// original's operand order (97.7%). Nothing else moves that operand order:
-// header sets, the earlier function 0x4a1ab0 defined above, and every
-// spelling of bounds.right are flat.
-// What still differs:
-//  - Frame order of three dwords: the original has me's spill home at
-//    [esp+0x50], step at 0x54 and xx at 0x58; here step is at 0x50, xx at
-//    0x54 and me at 0x58. Their machine reference counts are the same in both
-//    builds (me 5, step 4, xx 5). Probes: one extra reload of me after the
-//    cell loop moves it past bounds and lh to [esp+0x3c], one extra use of
-//    step does the same for step, so all of these sit within one reference
-//    of each other. Declaration order, block scope for xx/xw, unused locals
-//    reading me or step, the step/xx/h-test spellings and `me` replaced by
-//    entries[index] everywhere are flat; permute.py --stack step,xx,me found
-//    nothing in 15 minutes.
-//  - `movsx eax, word ptr [edi+0x17]` (me->w in the text loop, 0x4a1d35) is
-//    scheduled after the rowRect.left store here, before it in the original.
-//    Every spelling that computes rowRect.right from locals or bounds.left
-//    moves the whole allocation (31-43%).
-// Earlier notes, still accurate:
+// (flags 0x10) or the cell rows (flags 0x20/0x80).
+// The last two steps:
+//  - The entry rectangle comes from FUN_004a1630 (src/unsorted/0x4a1630.cpp),
+//    defined below without an annotation and inlined (the matched sibling
+//    0x4a4c90 inlines a rect helper of the same shape). That puts
+//    bounds.right's `lea eax, [esi + eax - 1]`
+//    (0x4a1bb9) in the original's operand order (97.5% -> 97.7%); the same
+//    code written out gives `[eax + esi - 1]`.
+//  - The text branch and the cell branch each declare their own Rect
+//    (rowRect, cellRect); MSVC gives both the one frame slot at [esp+0x18].
+//    With one function-scope rect, the text loop's me->w load
+//    (`movsx eax, word ptr [edi+0x17]`, 0x4a1d35) stays below the
+//    rowRect.left store, and the spill homes of me, step and xx come out
+//    rotated (step, xx, me at 0x50..0x58 instead of me, step, xx).
+//    97.7% -> MATCH.
+// Both were found by deleting or changing one statement at a time and
+// printing only where me, step and xx land and where the movsx sits. With one
+// shared rect, merging the text and cell `y` into one function-scope int also
+// fixes the frame order (99.8%), but not the movsx.
+// Earlier fixes that are still load-bearing:
+//  - Cell mode zeroes colPtr only in the bp (cell array) arm (0x4a20cd), and
+//    the cell loop increments k before the colPtr step (0x4a2278).
+//  - The tab scan runs to `entries->count + 1` in the loop test and in the
+//    not-found test (0x4a1c89, 0x4a1cdb).
 //  - The glyph width is the inlined Measure_004a1b40 helper its matched
 //    siblings use (0x4a4660, 0x4a53c0); the "&G" test is
 //    `field_d6 && field_d6[y] == 1` (0x4a1df9 and 0x4a1e03 both fall into it).
 //  - The text loop's exit tests `h >= lh` first:
-//    `if (h >= lh) { if (line + bc >= c0) return; } else break;`
-//    (`if (h < lh) break;` first costs over a point).
-//  - The cell rect's stores go x pair then y pair (left, right, top, bottom);
-//    rowRect is declared after `step`; `unsigned int rowRight` for
-//    bounds.right and `entries[index].h` (not me->h) for bounds.bottom.
+//    `if (h >= lh) { if (line + bc >= c0) return; } else break;`.
+//  - The cell rect's stores go x pair then y pair (left, right, top, bottom).
 //  - `#include <stdlib.h>` next to `<stdio.h>` (windows.h is worse).
-// Slot map of the original (offsets after the pushes): 0x10 t/line/colPtr,
-// 0x14 flag/yy, 0x18 rowRect, 0x28 y, 0x2c q/ty, 0x30 yoff/bp, 0x34 h/k,
-// 0x38 entries, 0x3c lh/cellPtr, 0x40 bounds, 0x50 me, 0x54 step, 0x58 xx,
-// 0x5c xw, 0x60 font, 0x64 col, 0x68 glyph char, 0x6c dst, 0x8c hl, 0x9c
-// clip, 0xac src.
 // Known original quirks kept as they are (docs/bugs.md): a selected cell row
 // reads cell->width/height even when the cell pointer is null (0x4a2233,
 // 0x4a224c), and both arms of `holder->field_20 == index` draw with 0x1e.
-#include <stdlib.h>` next to `<stdio.h>`: 87.1% (windows.h gave 86.9/86.3).
-// What still differs (unchanged score after permuter round 2 and manual
-// rounds of scope/declaration experiments, all flat): the frame slot
-// rotation (me at [esp+0x58] vs 0x50, step at 0x50 vs 0x54, xx at 0x54
-// vs 0x58, bp at 0x38 vs 0x34 region) plus the two `lea eax, [eax + esi -
-// 1]` vs `[esi + eax - 1]` operand orders, `cmp ecx, esi` vs `cmp esi,
-// ecx`, and the two `inc ecx`/`inc edx` done as lea here. ColPtr, bp,
-// cellPtr, v, xx, xw, line, k, flag and yy all cycle between the 0x10/0x14
-// pair and the 0x30/0x34/0x38 block; no source respelling I tried swaps
-// them back, and `int bp` vs `unsigned int bp` moves only the earlier
-// scoring version.
-//
-// 2026-10-02 (claude-opus-5-5): 73.3% -> 74.9%, exact size (2160 bytes), rewritten
-// as plain code. The previous file scored 73.3% but did not compute what the
-// original computes: its glyph-width loop advanced `q` itself, so the text was
-// drawn from the end of the string, and its field_d6 test skipped the "&G"
-// check whenever field_d6 was set. Here the width is the inlined
-// Measure_004a1b40 helper its matched siblings use (0x4a4660, 0x4a53c0): the
-// original walks a copy of q in edi (`mov edi,ebp`), sums in ebx and hands the
-// result over with `mov edx,ebx`, the inline-return shape. The &G test is
-// `field_d6 && field_d6[y] == 1` (0x4a1df9 and 0x4a1e03 both fall into it).
-// What moved the clean version from 42% (measured one by one, the rest of the
-// permute.py run that found them was neutral and has been reverted):
-//  - `<stdio.h>` next to `<windows.h>` (<math.h> works as well; windows.h
-//    alone is 69.5%).
-//  - the text loop's exit tests `h >= lh` first:
-//    `if (h >= lh) { if (line + bc >= c0) return; } else break;` (71.6% with
-//    `if (h < lh) break;` first, whatever the spelling).
-//  - the cell rect's stores go x pair then y pair (left, right, top, bottom),
-//    +1.2; rowRect declared after `step`, +0.3; colPtr/bp/yoff/v declared at
-//    function scope, +0.1.
-//  - `colPtr = 0;` before the bp test is load-bearing (60.8% without): the
-//    original zeroes colPtr's slot on the bp path.
-// What still differs: one register rotation through the whole function. The
-// original has obj in ebp, the zero/top in ebx and me in edi (me spilled at
-// [esp+0x50], step at [esp+0x54]); this file has obj in ebx, the zero in edi,
-// me in ebp, me at [esp+0x58] and step at [esp+0x50]. The instruction stream
-// is otherwise the original's (shape 79.2%). Declaration order, the step and
-// top spellings, the Measure/LineHeight forms and every header set with
-// windows.h are flat.
-// Slot map of the original, for the next attempt (offsets after the pushes):
-// 0x10 t/line/colPtr, 0x14 flag/yy, 0x18 rowRect, 0x28 y, 0x2c q then the text
-// y copy, 0x30 yoff/bp, 0x34 h/k, 0x38 entries, 0x3c lh/cellPtr, 0x40 bounds,
-// 0x50 me, 0x54 step, 0x58 xx, 0x5c xw, 0x60 font, 0x64 col, 0x68 glyph char,
-// 0x6c dst, 0x8c hl, 0x9c clip, 0xac src.
-// Suspected original bug: in cell mode with a null item cell, a selected row
-// still reads cell->width/height for the highlight (`je 0x4a2216` at 0x4a2126
-// skips the draw only; 0x4a2233 and 0x4a224c read [edi] with edi = 0).
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -250,8 +183,20 @@ static inline int LineHeight_004a1b40()
 {
     if (0 == DAT_0051fba4->language)
         return FUN_004c1450();
-    int ret0 = ((Glyph_004a1b40*)FUN_004b7f30(DAT_0051fba4->language->glyphs, 0x49))->height + 2;
-    return ret0;
+    return ((Glyph_004a1b40*)FUN_004b7f30(DAT_0051fba4->language->glyphs, 0x49))->height + 2;
+}
+
+void __stdcall FUN_004a1630(Entry_004a1b40* entry, Rect_004a1b40* rect)
+{
+    if (entry->type == 0) {
+        rect->left = 0;
+        rect->top = 0;
+    } else {
+        rect->left = entry->x;
+        rect->top = entry->y;
+    }
+    rect->right = entry->w + rect->left - 1;
+    rect->bottom = entry->h + rect->top - 1;
 }
 
 // FUNCTION: 0x4a1b40
@@ -259,7 +204,6 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
 {
     unsigned char font;
     int yoff;
-    int top = 0;
     int xx;
     Rect_004a1b40 bounds;
     int xw;
@@ -267,23 +211,12 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
     if (0 != obj->holder)
         obj->holder->field_14 = 1;
     Holder_004a1b40* holder = obj->holder;
-    Cell_004a1b40* cellPtr;
-    unsigned char v;
     Entry_004a1b40* entries;
     entries = obj->holder->entries;
     Entry_004a1b40* me = &entries[index];
     int h = me->h;
-    if (me->type == 0) {
-        bounds.left = 0;
-    } else {
-        bounds.left = me->x;
-        top = me->y;
-    }
-    bounds.top = top;
     void* surface;
-    unsigned int rowRight = bounds.left + me->w - 1;
-    bounds.right = rowRight;
-    bounds.bottom = entries[index].h + bounds.top - 1;
+    FUN_004a1630(&entries[index], &bounds);
     surface = holder->surface;
     if (surface == 0)
         surface = obj->fallback;
@@ -299,8 +232,8 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
         step = me->field_da;
     unsigned int flags;
     flags = me->flags;
-    Rect_004a1b40 rowRect;
     if ((flags & 0x10) && me->text && 0 != me->field_c0) {
+        Rect_004a1b40 rowRect;
         int i;
         int t = 0;
         for (i = 1; i < entries->count + 1; i++) {
@@ -381,6 +314,8 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
         }
     } else if (flags & 0xa0) {
         Item_004a1b40** colPtr;
+        Cell_004a1b40* cellPtr;
+        Rect_004a1b40 cellRect;
         Rect_004a1b40 clip;
         unsigned int bp = (flags >> 7) & 1;
         void* surf = entries->surface;
@@ -424,18 +359,18 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
                 src.points[2].y = cell->height - 1;
                 src.points[3].y = cell->height - 1;
                 FUN_004c7580(surf, cell, &dst, &src);
-                rowRect.left = dst.points[0].x;
-                rowRect.right = dst.points[1].x;
-                rowRect.top = dst.points[0].y;
-                rowRect.bottom = dst.points[2].y;
-                v = me->field_d6[k];
+                cellRect.left = dst.points[0].x;
+                cellRect.right = dst.points[1].x;
+                cellRect.top = dst.points[0].y;
+                cellRect.bottom = dst.points[2].y;
+                unsigned char v = me->field_d6[k];
                 if (1 & v) {
-                    FUN_004bf4d0(surf, &rowRect, -0x14);
+                    FUN_004bf4d0(surf, &cellRect, -0x14);
                 } else if ((2 & v) != 0) {
-                    FUN_004be950(surf, rowRect.left + 1, rowRect.bottom - 1, rowRect.right - 2, 1 + rowRect.top, obj->colour_8be);
-                    FUN_004be950(surf, 2 + rowRect.left, rowRect.bottom - 1, rowRect.right - 1, rowRect.top + 1, obj->colour_8be);
-                    FUN_004be950(surf, 1 + rowRect.left, rowRect.top + 2, rowRect.right - 1, rowRect.bottom - 2, obj->colour_8be);
-                    FUN_004be950(surf, rowRect.left + 2, rowRect.top + 2, rowRect.right - 2, rowRect.bottom - 2, obj->colour_8be);
+                    FUN_004be950(surf, cellRect.left + 1, cellRect.bottom - 1, cellRect.right - 2, 1 + cellRect.top, obj->colour_8be);
+                    FUN_004be950(surf, 2 + cellRect.left, cellRect.bottom - 1, cellRect.right - 1, cellRect.top + 1, obj->colour_8be);
+                    FUN_004be950(surf, 1 + cellRect.left, cellRect.top + 2, cellRect.right - 1, cellRect.bottom - 2, obj->colour_8be);
+                    FUN_004be950(surf, cellRect.left + 2, cellRect.top + 2, cellRect.right - 2, cellRect.bottom - 2, obj->colour_8be);
                 }
             }
             // A selected row reads cell->width/height even when cell is null

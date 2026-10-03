@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Codex GPT-6 retry for #5181 (2026-10-03): current main recheck remains
+// 98.5%. The three scheduler hunks below have no improved source shape yet.
 // Claude Opus 5.5 (#4919, 2026-10-03): still 98.5%, file unchanged except this
 // note. /Gi trial (judged by differing lines): `// FLAGS: /Gi` removes hunk 3
 // (the first _allmul pair is then pushed d.x first, as in the original) and

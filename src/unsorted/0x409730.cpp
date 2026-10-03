@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Codex GPT-6 retry for #5181 (2026-10-03): current main recheck remains
+// 99.8%. The sole SIB byte mismatch at 0x4099f6 is unchanged.
 // Claude Opus 5.5 (#4919, 2026-10-03): still 99.8%, file unchanged except this
 // note. /Gi is not the lever here. With `// FLAGS: /Gi` the first resize's
 // erase is no longer inlined (an out-of-line call where the original has the

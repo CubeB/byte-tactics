@@ -2,6 +2,11 @@
 // Codex GPT-6 retry for #5213 (2026-10-03): `/Gi` drops this function
 // to 69.5%; the 94.6% default-flags version and prior inlining-budget
 // and sibling-shape findings remain best.
+// #5262 Codex retry: best remains 94.6% (1055 bytes, 97.1% excluding
+// internal jump targets). A no-op visitor constructor was byte-identical;
+// aggregate center initialization scored 86.9%, the reversed health compare
+// 94.3%, and named health/limit locals 67.7% with the unit/order registers
+// swapped. Restored the previous best.
 // Claude Opus 5.5, #5142: 92.2% -> 94.6% (1055 bytes against 1051), with no
 // Dummy() padding. Case 1's body is an inline helper, Patrol(), called as
 // `int result=Patrol(unit,order,flags); return result;`, and the visitor is

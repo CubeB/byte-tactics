@@ -1,17 +1,15 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by opus. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by opus, finished by GPT-6. Names are provisional.
 // Grows both pools of a NetBuffer: a new packet-pointer array of `growbufs` more
 // packets and a new entry array of `growpackets` more entries, then moves every
 // entry that still belongs to a packet into the new entry array.
 //
-// PARTIAL, 98.4% (919 of 919 bytes, size exact). Pass by opus (issue 5023), up
+// PARTIAL, 99.0% (919 of 919 bytes, size exact). Pass by opus (issue 5023), up
 // from 86.8%. Every frame slot and register now matches the original (base 0x10,
 // n 0x14, i 0x18, q 0x1c, p 0x20, totalentries 0x24, j in the dead growbufs slot
-// 0x2c, c in the dead growpackets slot 0x30 with an EAX copy, e in EBP). The only
-// remaining diff is where `j++` sits: here it is in the block before the
-// `if (field_30 == 0)` test, the original has it in the latch block (0x4622ca,
-// interleaved with `c = c->field_1c`). Moving it to the latch (after the
-// field_30 test, or as a for-loop increment) flips MSVC's choice for EBP from
-// `e` to `c` and drops the file to 69.5%.
+// 0x2c, c in the dead growpackets slot 0x30 with an EAX copy, e in EBP). Duplicating
+// `j++` in both arms of the `field_30` test puts it in the original's latch while
+// keeping the register allocation. The remaining diff is the latch temporary:
+// this uses ECX where the original uses ESI.
 //
 // What got it from 86.8 to 98.4, all semantically correct (the old file kept a
 // redundant `if (c == 0) break;` at the loop top):
@@ -20,7 +18,9 @@
 //     drops the first `c != 0` test (known from the `if`), rotates the loop and
 //     builds the original's two-entry head (`jmp` past the c/q reload block).
 //  2. `n++;` BEFORE `Entry* e = q++;` (the original loads n first, 0x4621eb).
-//  3. `j++;` before the `if (field_30 == 0)` test (see above).
+//  3. Duplicating the `j++` in both arms of the `field_30` test moves it to the
+//     latch without changing EBP's assignment to `e`; one increment before the
+//     test gives 98.4%.
 //  4. `int j = 0;` in the walk arm, right after `p->start = n;` (store at 0x4621c9).
 //  5. `p->field_10 = (int)(base + n); Entry* q = (Entry*)p->field_10;`: reading
 //     q back from the field is what gives `shl esi,5 / lea ecx,[esi+ebp]` (n dies
@@ -233,6 +233,7 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
         }
         if (base) {
         int n = 0;
+        int j;
         if (field_0 >= 0) {
             field_34 = 0;
             field_30 = 0;
@@ -242,7 +243,7 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
                     Entry_00461fd0* c = (Entry_00461fd0*)p->field_10;
                     if (c != 0) {
                         p->start = n;
-                        int j = 0;
+                        j = 0;
                         p->field_10 = (int)(base + n);
                         Entry_00461fd0* q = (Entry_00461fd0*)p->field_10;
                         while (c != 0) {
@@ -276,9 +277,11 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
                                 field_34->field_1c = (int)e;
                             }
                             field_34 = e;
-                            j++;
-                            if (field_30 == 0) {
+                            if (!field_30) {
                                 field_30 = e;
+                                j++;
+                            } else {
+                                ++j;
                             }
                             c = (Entry_00461fd0*)c->field_1c;
                         }

@@ -1,4 +1,31 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, checked by GPT-6., retried by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (#5106): 97.5% to 98.7%. FUN_0043b7c0, FUN_0043bad0 and the
+// def block belong INSIDE `if (k3 == 1 || k3 == 2)`: the original's
+// `cmp al,2 / jne 0x48afb9` skips them for other kinds (the checker had only
+// reported a moved jump target there). That also moves the cnt reload
+// `mov ebx,[esp+0x18]` to the original's place, after FUN_0048a870.
+// Still different (2 residuals, all in the prologue and loop head):
+//  * the `off = 0` store is scheduled before `cmp al,0xa`, the original
+//    stores it last, after the byte store of i. Moving `off = 0` after
+//    `*cnt = 0` in the source stops it being kept in memory: off's piece from
+//    its definition to the loop head then gets edi (844 bytes, 75.1%). With
+//    `off = 0` first, the `*cnt = 0` store through an int* (off's address is
+//    exposed by g_leak) is what keeps that piece out of a register.
+//  * the loop head loads off first (ecx) and g_game second; the original
+//    loads g_game first. Every spelling of the address folds to the same
+//    tree; a local `Game* g = g_game` makes g_game the SIB base as in the
+//    original but still loads off first (97.9%).
+// A lead: the plain indexed loop, `p = &g_game->players[i]` with this
+// PlayerMore guard and no off local, has the original's shape (MSVC
+// strength-reduces i * 0x14b and keeps the byte i) except that the induction
+// temporary's latch-to-head piece gets edi (priority 52, allowed only edi,
+// first skipped for a non-positive spill cost, then coloured on a preference
+// from p), where the original keeps it in memory (75.5%, 844 bytes).
+// tools/permute.py on this file: 11908 candidates, nothing above 98.7%.
+// Also flat: off as unsigned/long/short, a packed {i, off} struct (promoted),
+// every order of the cnt/i/off/*cnt statements, the leak placed later or in
+// the loop (all promote off), and /Gi.
+//
 // Space Bunny Free (#4163): 84.5% to 97.5%, 849 bytes both ways, and the unit
 // body is now instruction for instruction. Two changes, both in the outer loop.
 //
@@ -534,8 +561,8 @@ void __stdcall FUN_0041c2e0(int n);
 // both zero initialisers are immediate stores and the loop head reloads it, so
 // MSVC 5 never promoted it to a register. Taking the offset's address is what
 // reproduces that. Like the self-assignment on 0x450530, the store itself emits
-// no code, but it is worth 22.4 points and so stays: with it this function is
-// 97.5% / 849 bytes, without it 75.1% / 840 bytes. Every live spelling of the
+// no code, but it is worth 23.6 points and so stays: with it this function is
+// 98.7% / 849 bytes, without it 75.1% / 840 bytes. Every live spelling of the
 // escape adds a lea plus a mov and lands the function at 858 bytes.
 static int* g_leak;
 
@@ -555,7 +582,7 @@ void __stdcall FUN_0048ad30(void)
 {
     int* cnt = &g_game->f14353;
     int off;
-    // No code, but worth 22.4 points: with this line 97.5% / 849 bytes, without
+    // No code, but worth 23.6 points: with this line 98.7% / 849 bytes, without
     // it 75.1% / 840 bytes. See g_leak above.
     if (0) {
         g_leak = &off;
@@ -624,12 +651,12 @@ void __stdcall FUN_0048ad30(void)
                                     int n = u->type->f200 * 8;
                                     FUN_0041bd10(u, u, (float)(n / 30));
                                 }
-                            }
-                            FUN_0043b7c0(u);
-                            FUN_0043bad0(u);
-                            if (u->def != 0) {
-                                u->def->FUN_0043dd20(u);
-                                FUN_0048a870(u);
+                                FUN_0043b7c0(u);
+                                FUN_0043bad0(u);
+                                if (u->def != 0) {
+                                    u->def->FUN_0043dd20(u);
+                                    FUN_0048a870(u);
+                                }
                             }
                         }
                         if (u->f110.bits.b14) {

@@ -1,4 +1,7 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// GPT-6 retry (#4968): 93.6% (861/863 bytes). Remaining differences are the
+// child Pos setup order, bounds register coloring and bitmap copy/swap order.
+// /Gi stays at 93.6%; a scratch variant using Pos_4589c0(0, 0, 0) scores 83.4%.
 // claude-opus-5-5: 93.4% (from 92.7%). The child loop's clip ints are declared
 // `cminX, cminY, cmaxX, cmaxY` and summed in that order (cx, cy, dx2, dy2). That puts
 // them in the original's slots (cmaxX at cminX+8, cminY at +4, as the call's pointer

@@ -5,6 +5,8 @@
 // Names are provisional.
 // GPT-6 retry (#4977): best remains 89.8%. classify.py routes this as slots
 // with six register differences. /Gi and a grid-y pointer local are byte-flat.
+// GPT-6 retry recheck: preserving the original best still yields 89.8%; prior
+// byte-level notes document the tested register and scheduler alternatives.
 // DeepSeek V4.1 Flash pass (issue 4875): best stays 89.8% (6 differing bytes,
 // 0x4ac910/0x4ac913 in the prologue and 0x4ac926/0x4ac92f/0x4ac936/0x4ac945 in
 // the loop). Measured with a byte scorer over about 60 fresh variants

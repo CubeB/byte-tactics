@@ -221,6 +221,7 @@
 // lever does NOT transfer to this function; the inlined copy here always
 // takes the walker form regardless of the call. Scratch:
 // build/scratch/0x471de0/{run.py,drive.py,n01_nodelete.cpp,...}.
+// GPT-6 retry (#5160): rechecked at 98.6% (195 B); the walker-base SIB remains.
 #include <vector>
 
 class Listener_00471de0 {

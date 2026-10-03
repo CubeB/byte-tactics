@@ -1,10 +1,12 @@
-// Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6. Names are provisional.
 // Plots the two end points of one span row: the pixel at each end gets the
 // colour when it passes the depth test (the depth buffer keeps the integer
 // part of the 16.16 depth), or unconditionally when the surface has no depth
 // buffer.
 //
 // Status: 96.2% (118 of 118 bytes, ours is already the original's size).
+// GPT-6 retry (#4970): /Gi on this source is 92.5%; loading depth above the
+// guard in a scratch variant with /Gi is 78.1%. The best source remains below.
 // What is left is exactly two instructions' worth of order, both in the
 // prologue: the original loads surf->depth (`mov eax,[ecx+0x14]`) BEFORE
 // `push esi` and loads span->x2 (`mov edx,[ebp+4]`) BEFORE surf->bits

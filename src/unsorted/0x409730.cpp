@@ -1,6 +1,8 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
 // #5336 Codex retry: re-confirmed 99.8%; the 0x4099f6 SIB base/index byte
 // remains the only mismatch after the documented source and symbol-id probes.
+// #5352 retry: re-confirmed 99.8%; the 0x4099f6 SIB order remains the only
+// mismatch, with a matching build requiring the documented dummy symbol count.
 // claude-opus-5-5 retry (#5274, 2026-10-03): still 99.8%, file unchanged except
 // this note. The store SIB is decided by the function's own symbol ids, not by
 // any spelling: with 32120-32170, 32240-32290, 32630-32680 or 32750-32810

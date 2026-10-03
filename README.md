@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**89.85% of Cavedog's code matched** (764,501 of 850,853 bytes)
+**90.27% of Cavedog's code matched** (768,033 of 850,853 bytes)
 
 `[####################################----]`
 
-By count that is 3,196 of the game's 3,267 functions (97.8%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,198 of the game's 3,267 functions (97.9%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,196 | 764,501 |
-| Attempted, not yet matching | 71 | 86,352 |
+| Matched byte-for-byte | 3,198 | 768,033 |
+| Attempted, not yet matching | 69 | 82,820 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 696 of 703 | 98.9% | 2,060 | `##########` |
 | xl (401 to 600 bytes) | 216 of 226 | 95.4% | 5,102 | `##########` |
 | xxl (601 to 1,000 bytes) | 179 of 195 | 91.5% | 12,445 | `#########-` |
-| huge (over 1,000 bytes) | 124 of 161 | 77.2% | 66,627 | `########--` |
+| huge (over 1,000 bytes) | 126 of 161 | 78.4% | 63,095 | `########--` |
 
 ### By area
 
@@ -50,7 +50,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | Addresses | Area | Functions matched | Bytes matched | Bytes left | |
 | --- | --- | ---: | ---: | ---: | --- |
 | `0x400000` | Unit orders and unit AI | 204 of 210 | 87.6% | 7,535 | `#########-` |
-| `0x410000` | Orders and VTOL states | 214 of 222 | 81.1% | 12,035 | `########--` |
+| `0x410000` | Orders and VTOL states | 216 of 222 | 86.6% | 8,503 | `#########-` |
 | `0x420000` | Frontend shell | 150 of 154 | 81.3% | 11,883 | `########--` |
 | `0x430000` | Maps, missions, briefings | 223 of 228 | 89.1% | 6,602 | `#########-` |
 | `0x440000` | Multiplayer setup | 242 of 246 | 82.1% | 10,988 | `########--` |

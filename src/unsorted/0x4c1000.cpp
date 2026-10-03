@@ -1,51 +1,29 @@
-// Decompiled by space-bunny-alpha, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
-// GPT-6 retry (#4916): naming the second vertex only in the first walk (76.1%)
-// or only in the second (76.6%) worsens the frame and register allocation. The
-// retained direct-index version remains 97.1% at 791 bytes.
-// PARTIAL 97.1%, 791 of 791 bytes (same size, every instruction the compiler
-// chose is the original's, in the original's order).
+// Decompiled by space-bunny-alpha, finished by DeepSeek V4.1 Flash, checked by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 // Scanline filler, the sibling of 0x4c0c70 (which also fills a shade channel):
 // it finds the extreme y vertices, then walks the vertex ring from the top one
 // backwards to the bottom one filling the left end of each row, walks it
 // forwards for the right end, and hands every row to FUN_004c06e0. The 2048
 // entry span array is what puts the frame at 0x14028.
 //
-// Two shape choices carry most of the score:
+// MATCH. The walks share one function-scope `j` and each has its own
+// block-scoped `int i = minYi;`. Both walks spill the addresses &pts[i] and
+// &pts[j] after the y0 < y1 test. The optimiser keeps one temporary per
+// address expression, so the expression whose index variable is the same in
+// both walks gets a single temporary with a stack home used by both walks
+// (four references), and that home is the one that shares the dead minX slot
+// at frame + 4. With a shared `i` and per-walk `j` that was &pts[i]; the
+// original shares &pts[j]. Read from C2's frame list (FUN_0043f93b and the
+// slot table at 0x4910b8): one temporary with 4 references paired with minX,
+// four with 2 references paired per walk.
+//
+// Two other shape choices carry most of the score:
 // - Testing the height inline in the minY guard and then assigning maxRow from
 //   the same expression, `if (minY > (int)sf->height - 1) return 0;` followed
 //   by `int maxRow = (int)sf->height - 1;`, lets MSVC CSE the two loads. With
 //   maxRow assigned first it moves surf into ecx and every guard register with
 //   it (74.5% to 87.7%).
 // - Indexing pts[i]/pts[j] straight into the reads, with no `Point *p, *q`
-//   locals for the two walks. Naming them at function scope homes `p`, which
-//   costs two frame slots and the two spill slots of both walk heads (97.1% to
-//   92.8%); naming them inside each walk changes the walk head's addressing
-//   into the pointer-walking form 0x4c0c70 uses instead (87.7%).
-//
-// What still differs: 16 instructions, all stack-slot numbers, and only in the
-// two walk heads. Both walks spill the two vertex addresses after the y0 < y1
-// test; the original gives the reused minX slot (frame + 4) to the second
-// address (&pts[j]) and a fresh temporary to the first, ours hands that reused
-// slot to &pts[i] instead and the temporary to &pts[j]. Everything else in the
-// frame agrees: maxY +0, minX +4, minY +8, the dx spill +0xc, sp +0x10, the j
-// temporary +0x14, minYi +0x1c, maxYi +0x20, maxRow +0x24.
-//
-// Tried and all inert at 97.1% (identical bytes): every permutation of the
-// bound declarations and of `int y0, y1, x, dx, dz;` (MSVC assigns these slots
-// by something other than declaration order here), maxRow declared with the
-// bounds or last, sp and j at function scope, the fill temporaries dy/z/count
-// at function scope, y0/y1 or x or dx block-local (each worse), dummy and
-// self-assigning locals, initialisers on i/scanIndex/x/maxRow, comma
-// expressions and fresh temporaries around the y and x reads, `pts + i`
-// instead of `&pts[i]`, a const view of pts, inline accessors returning
-// pts + i, an extra block around the fill, the clamps block-local, and
-// swapping which pointer is read first. The 0x4c0820 lever (a function-scope
-// pointer for the second edge point, which took that file from 94.1 to 98.0)
-// drops this one to 92.8%, and naming the first point instead is inert.
-// tools/permute.py then tried 8360 rewrites (move_decl, decl_scope, split_init,
-// temp_intro, loop_form, flip_compare, include, ...) without finding one, and
-// tools/headers.py's 128 sets are all 97.1%. The residue is an allocator
-// tie-break over which spilled value gets the freed minX slot.
+//   locals for the two walks (named pointers re-pack the frame).
 #include <string.h>
 
 struct Span_004c1000 {
@@ -77,21 +55,6 @@ void __stdcall FUN_004c06e0(int row, Span_004c1000* span, Surface_004c1000* surf
 // FUNCTION: 0x4c1000
 int __stdcall FUN_004c1000(Surface_004c1000* surf, Point_004c1000* pts, int n, int color)
 {
-// DeepSeek V4.1 Flash retry (#4589): still 97.1, the same two walk-head hunks.
-// New result: the 0x4c0820 lever taken straight (a function-scope `Point* b`
-// assigned `&pts[j]`, first point indexed) DOES hand the reused minX slot to
-// &pts[j] as the original wants, but it re-packs the frame, moving maxYi to
-// 0x34 and swapping dx/sp and the walk1 index temp, so it lands at 92.8. A
-// block-local `Point* b = &pts[j]` per walk is optimized straight back into
-// this file's CSE temps (byte-identical 97.1). Also inert at 97.1 (identical
-// bytes): reading pts[j].y/x/z first (via (&pts[j])->y, (pts + j)->y, commuted
-// dx), named p/q or p-alone pointers, references, self-stores, void comma
-// reads of pts[j] before the y reads, one to six unused dummy locals, and
-// c-shape declaration reorders. tools/permute.py seeds 777 and the
-// stackcmp-suggested `--stack maxYi,dx,sp` on the 92.8 c-shape, and the
-// original run on this file, are all flat. The residue is still an allocator
-// tie-break over which spilled address temp gets the freed minX slot, not a
-// source-shape lever.
     int y0, y1, x, dx, dz;
     Span_004c1000 spans[2048];
     int maxX = -999999;
@@ -101,6 +64,7 @@ int __stdcall FUN_004c1000(Surface_004c1000* surf, Point_004c1000* pts, int n, i
     int minYi;
     int maxYi;
     int i;
+    int j;
     Surface_004c1000* sf = surf;
     int scanIndex = 0;
     if (n > 0) {
@@ -137,82 +101,86 @@ int __stdcall FUN_004c1000(Surface_004c1000* surf, Point_004c1000* pts, int n, i
         return 0;
     {
         Span_004c1000* sp = spans;
-        i = minYi;
-        for (;;) {
-            int j = i - 1;
-            if (j < 0)
-                j = n - 1;
-            y0 = pts[i].y;
-            y1 = pts[j].y;
-            if (y0 < y1) {
-                int dy = y1 - y0;
-                x = pts[i].x;
-                dx = ((pts[j].x - x) << 16) / dy;
-                x = (x << 16) + 0xffff;
-                int z = pts[i].z << 16;
-                dz = ((pts[j].z << 16) - z) / dy;
-                if (y0 < 0) {
-                    x -= dx * y0;
-                    z -= dz * y0;
-                    y0 = 0;
-                }
-                if (y1 > maxRow)
-                    y1 = maxRow;
+        {
+            int i = minYi;
+            for (;;) {
+                j = i - 1;
+                if (j < 0)
+                    j = n - 1;
+                y0 = pts[i].y;
+                y1 = pts[j].y;
                 if (y0 < y1) {
-                    int count = y1 - y0;
-                    do {
-                        sp->x1 = x >> 16;
-                        sp->z1 = z;
-                        x += dx;
-                        z += dz;
-                        sp++;
-                    } while (--count);
+                    int dy = y1 - y0;
+                    x = pts[i].x;
+                    dx = ((pts[j].x - x) << 16) / dy;
+                    x = (x << 16) + 0xffff;
+                    int z = pts[i].z << 16;
+                    dz = ((pts[j].z << 16) - z) / dy;
+                    if (y0 < 0) {
+                        x -= dx * y0;
+                        z -= dz * y0;
+                        y0 = 0;
+                    }
+                    if (y1 > maxRow)
+                        y1 = maxRow;
+                    if (y0 < y1) {
+                        int count = y1 - y0;
+                        do {
+                            sp->x1 = x >> 16;
+                            sp->z1 = z;
+                            x += dx;
+                            z += dz;
+                            sp++;
+                        } while (--count);
+                    }
                 }
+                i = i - 1;
+                if (i < 0)
+                    i = n - 1;
+                if (i == maxYi)
+                    break;
             }
-            i = i - 1;
-            if (i < 0)
-                i = n - 1;
-            if (i == maxYi)
-                break;
         }
         sp = spans;
-        i = minYi;
-        for (;;) {
-            int j = i + 1;
-            if (j >= n)
-                j = 0;
-            y0 = pts[i].y;
-            y1 = pts[j].y;
-            if (y0 < y1) {
-                int dy = y1 - y0;
-                x = pts[i].x;
-                dx = ((pts[j].x - x) << 16) / dy;
-                x = (x << 16) + 0xffff;
-                int z = pts[i].z << 16;
-                dz = ((pts[j].z << 16) - z) / dy;
-                if (y0 < 0) {
-                    x -= dx * y0;
-                    z -= dz * y0;
-                    y0 = 0;
-                }
-                if (y1 > maxRow)
-                    y1 = maxRow;
+        {
+            int i = minYi;
+            for (;;) {
+                j = i + 1;
+                if (j >= n)
+                    j = 0;
+                y0 = pts[i].y;
+                y1 = pts[j].y;
                 if (y0 < y1) {
-                    int count = y1 - y0;
-                    do {
-                        sp->x2 = x >> 16;
-                        sp->z2 = z;
-                        x += dx;
-                        z += dz;
-                        sp++;
-                    } while (--count);
+                    int dy = y1 - y0;
+                    x = pts[i].x;
+                    dx = ((pts[j].x - x) << 16) / dy;
+                    x = (x << 16) + 0xffff;
+                    int z = pts[i].z << 16;
+                    dz = ((pts[j].z << 16) - z) / dy;
+                    if (y0 < 0) {
+                        x -= dx * y0;
+                        z -= dz * y0;
+                        y0 = 0;
+                    }
+                    if (y1 > maxRow)
+                        y1 = maxRow;
+                    if (y0 < y1) {
+                        int count = y1 - y0;
+                        do {
+                            sp->x2 = x >> 16;
+                            sp->z2 = z;
+                            x += dx;
+                            z += dz;
+                            sp++;
+                        } while (--count);
+                    }
                 }
+                i = i + 1;
+                if (i >= n)
+                    i = 0;
+                if (i == maxYi)
+                    break;
             }
-            i = i + 1;
-            if (i >= n)
-                i = 0;
-            if (i == maxYi)
-                break;
         }
     }
     {

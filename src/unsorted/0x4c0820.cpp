@@ -1,4 +1,29 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, checked by GPT-6., retried by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (#5122): still 99.5%, but the MECHANISM of the walk1 reload
+// order is now known (gdb traces of C2, see tools/c2prio.py):
+//  * The two reloads after walk1's fill loop come from live-range splits
+//    (FUN_00439385). When walk1's ebp temporary is coloured (step 12 of the
+//    trace), C2 splits pts's piece and the `i - 1` temporary (spilled at
+//    [esp+0x24]) in increasing candidate id order, and the reload of the one
+//    split later is emitted first. Ours: temp #49 then pts piece #57, so pts
+//    is reloaded first. The original needs pts's piece split first.
+//  * pts's piece gets its id at step 11 (walk2's ebp temporary), from a LIFO
+//    of freed ids [4, 58, 57, 26, ...]: the pieces made before it there are
+//    c0 #3's and count's, so pts gets the third id, 57. A fourth would be 26,
+//    below the temp's 49, which flips the order. Verified: deleting the first
+//    scan's `if (count > 0)` guard makes count split into two pieces, pts
+//    gets 26 and walk1's reloads come out in the original's order (the guard
+//    is then missing, so it is a diagnostic, not a fix). 0x4c1000's two walks
+//    obey the same rule.
+//  * So the original most likely had one more piece before pts at step 11
+//    (count or a zero constant split into two regions) or one fewer freed id
+//    on top of that list. Not found: first-scan forms (for, while, goto and
+//    else guards, indexed points, pre-increment latch, initialised i), the
+//    0x4c1000 walk shape (no `b`, function-scope `j`: 99.5% with the same
+//    hunk), function-scope i/j combinations, explicit `a = &pts[i]` pointers,
+//    parameter copies (coalesced back into the parameter) and address
+//    spellings in the walk head.
+//
 // GPT-6 retry (#4916): current checkall.py confirms 99.5% at 613 bytes, with
 // the documented walk1 latch reload order as the only code difference.
 // DeepSeek V4.1 Flash (this session, 99.5, 613 of 613, same single hunk): ran the permuter for

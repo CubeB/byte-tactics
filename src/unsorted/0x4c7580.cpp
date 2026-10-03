@@ -1,4 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Session DeepSeek V4.1 Flash (issue 4750): 99.7 -> MATCH, 1183 of 1183 bytes. The one-byte difference
+// was check 5's branch (`jle` from the `locked > 0` spelling) versus the original's `je`. Every plain
+// spelling that emits `je` (`if (locked)`, `!= 0`, pointer/union aliases, literal types, wrappers)
+// let MSVC's tail merger cross-jump check 5's body into check 2's and drop a call site. The fix:
+// give Surface_004c5e70 an inlined method `void Unlock() { FUN_004c5fa0(this); }` and write check 5
+// as `if (locked) local.Unlock();`. The call still compiles to the original's `lea edx,[esp+0x6c];
+// push edx; call FUN_004c5fa0`, but the method's distinct IL body stops the merge, so check 5 keeps
+// its own tail and the branch is `mov eax,[locked]; test eax,eax; je`. Check 2 stays a direct
+// `FUN_004c5fa0(&local)` call. (A method wrapper was the one construct that survived inlining as a
+// different-enough IL block; free-function wrappers, casts, self-assignments and union aliases all
+// collapsed back to the direct call and merged.)
 // Session claude-sonnet-5-5 (issue 4530): 86.3 -> 99.7 percent, 1183 of 1183 bytes. Four changes:
 // (1) Check 5 spelled `if (locked > 0)`: gives the original's `mov eax,[locked]; test eax,eax` AND keeps
 //     the fourth FUN_004c5fa0 call site (plain `if (locked)`, `!= 0`, `!locked`, `?:`, `&&` forms all let
@@ -135,8 +146,11 @@ struct Frame_004c7580 {
     void* data;          // +0x10
 };
 
+struct Surface_004c5e70;
+int __stdcall FUN_004c5fa0(Surface_004c5e70* s);
 struct Surface_004c5e70 {
     int data[12];
+    void Unlock() { FUN_004c5fa0(this); }
 };
 
 class Class_004c6ae0 {
@@ -148,7 +162,6 @@ public:
 };
 
 int __stdcall FUN_004c5e70(Surface_004c5e70* out);
-int __stdcall FUN_004c5fa0(Surface_004c5e70* s);
 void __stdcall FUN_004c7310(int y, int* rect, void* surf, void* info);
 
 // FUNCTION: 0x4c7580
@@ -238,8 +251,7 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
     if (ymax > clip[3])
         ymax = clip[3];
     if (ymax == ymin) {
-        if (locked > 0)
-            FUN_004c5fa0(&local);
+        if (locked) local.Unlock();
         return;
     }
 

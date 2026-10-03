@@ -129,6 +129,7 @@ Consequences that agents can use directly:
     uv run tools/c2prio.py 0x424c00 --symbols g_game   # symbol ids and the file's symbol count too
     uv run tools/c2prio.py 0x4c8bb0 --frame            # the frame layout: counts, slots, offsets
     uv run tools/c2prio.py 0x4c8bb0 --rotation         # the expression temporaries' rotation
+    uv run tools/c2prio.py 0x4c0820 --ids              # the freed ids that split pieces reuse
 
 It compiles the file with the real C2.EXE under a debugger and prints, for the
 one function, C2's register candidates in the order `FUN_0041bdd7` sorted them,
@@ -262,6 +263,31 @@ pointer, which is why the two walks, with the same head code, start du on
 different phases. Adding both options left the default output, `--trace`,
 `--blocks`, `--inline` and `--symbols` the same, line for line, on 0x4cf570
 and 0x47d2e0.
+
+`--ids` prints C2's freed candidate ids, which decide the ids of split pieces.
+FUN_0040ecd2 frees a candidate by pushing it onto a list (head at 0x493230,
+chained at +0x2c), and FUN_0040ebb6 gives every new candidate the id on top of
+that list, so the id freed last is reused first; a new id is used only when
+the list is empty. The tool breaks at 0x40ed2b (edx is the freed id, and the
+return address at `[esp+8]` names the pass), reads the list at each split, and
+prints each free with its pass: FUN_0041c72e and FUN_0041ca9b drop candidates
+before the sort, FUN_004375fe takes one out of allocation, and FUN_00437e67
+frees a split candidate once its pieces exist. For each batch of splits it
+then prints the candidates split, the freed list, the id each piece took and
+the ids freed afterwards. A step splits in candidate id order, and the reloads
+after a region come out in that order (the one split later is reloaded
+first), so a reload order is a question of which id a piece gets. In the
+99.5% 0x4c0820 the drops before the sort leave `4 58 57 26 ...` on the list.
+The `p++` constant (#4) was taken out of allocation after walk1's two address
+temporaries (58, 57) and its y1 (26) were dropped. The third piece made at
+walk2's split is pts's, so it gets 57. That is above the `i - 1` temporary's
+49, so pts is split after #49 at walk1's split and reloaded first. The
+matched file reads `p->y` and `p->x` into block locals `py` and `px`, which
+are dropped too: the list becomes `4 17 20 60 ...`, pts's piece gets 20, and
+the reloads swap into the original's order. On 0x4cf570 the list runs out
+after three dropped temporaries, so `this`'s two pieces get new ids (36, 37).
+The default output and every other option stayed the same, line for line, on
+0x4cf570 and 0x47d2e0.
 
 ### Symbol ids (`--symbols`)
 

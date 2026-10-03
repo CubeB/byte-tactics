@@ -8,6 +8,7 @@
     uv run tools/c2prio.py 0x424c00 --symbols g_game   # also symbol ids and the file's symbol count
     uv run tools/c2prio.py 0x4c8bb0 --frame            # also the frame layout: counts, slots, offsets
     uv run tools/c2prio.py 0x4c8bb0 --rotation         # also the expression temporaries' rotation
+    uv run tools/c2prio.py 0x4c0820 --ids              # also the freed ids each split piece reuses
 
 This compiles the function's file with the real back end (C2.EXE) running under
 a debugger and reads the global register allocator's own data
@@ -69,6 +70,17 @@ candidate.
 the rotating pointer before it, the register it got and the rule that chose it
 (docs/c2-regalloc.md, "Temporaries").
 
+--ids adds C2's freed candidate ids. FUN_0040ecd2 frees a candidate by pushing
+it onto a list (head at 0x493230), and FUN_0040ebb6 gives a new candidate, such
+as a split piece, the id on top of that list, so the id freed last is reused
+first; a piece gets a new id only when the list is empty. It prints each free
+during allocation, with the pass that made it, and for each batch of splits the
+candidates split, the freed list as it then stands, the id each piece takes
+from it and the split candidates' ids freed afterwards. A step's splits run in
+candidate id order, and after a region the one split later is reloaded first,
+so this shows why two reloads come out in a given order and which drop or
+piece to add or remove to change it.
+
 How: a copy of C2.EXE under build/c2prio/<run>/ has `jmp $` at its entry
 point. CL runs that copy (/B2), winedbg attaches to it with its gdb server, and
 gdb runs this same file as a Python script that puts the entry bytes back and
@@ -108,6 +120,24 @@ CHOSEN = 0x4171D4         # back from FUN_0041b785; register at candidate +0x10
 SPLIT = 0x439385          # FUN_00439385 entry, live-range split; ecx = candidate
 RESORT = 0x416FE2         # priorities recomputed (FUN_0040ee1d again) and the list re-sorted
 END = 0x417317            # every register class done
+
+# Freed candidates, for --ids. FUN_0040ecd2 frees a candidate: at FREECAND it
+# has pushed it onto the freed list (head at FREE_HEAD, chained at +0x2c, the
+# id kept at +0x1c); edx is the id and [esp+8] the return address, which says
+# which pass freed it: FUN_0041c72e and FUN_0041ca9b (called from the
+# allocator's entry) drop candidates before the sort, the first by forwarding
+# them into their uses, FUN_004375fe takes one out of
+# allocation (FUN_0041a6f8 calls it for a spill cost that is not positive),
+# and FUN_00437e67 frees the candidates a split has replaced with pieces.
+# FUN_0040ebb6 pops this list for every new candidate.
+FREECAND = 0x40ED2B
+FREE_HEAD = 0x493230
+FREED_BY = {0x41C9B9: "dropped before the sort, forwarded into its uses (FUN_0041c72e)",
+            0x41CCBC: "dropped before the sort (FUN_0041ca9b)",
+            0x437747: "taken out of allocation (FUN_004375fe)",
+            0x437945: "taken out of allocation (FUN_004375fe)",
+            0x4380C1: "freed after a split (FUN_00437e67)"}
+SPLIT_FREE = 0x4380C1
 
 # FUN_0040ee1d (priorities), for --blocks. At the end of each block's tuple walk
 # (BLOCK_END) the block is at [esp+0x20] (first tuple +0x1c, end +0x20, loop
@@ -334,6 +364,14 @@ def tracer() -> None:
     cur = None
     fn24 = 0
 
+    def free_list(limit=256):
+        """The freed ids, the next one reused first."""
+        ids, p = [], u32(FREE_HEAD)
+        while p and len(ids) < limit:
+            ids.append(u32(p + 0x1C))
+            p = u32(p + 0x2C)
+        return ids
+
     def ev(what, c, **extra):
         raw = rd(c, 0x20)
         cur["events"].append(dict(e=what, id=struct.unpack_from("<I", raw, 0x1C)[0],
@@ -443,8 +481,11 @@ def tracer() -> None:
         DEFER: lambda: ev("defer", reg("ecx")),
         CHOOSE: on_choose,
         CHOSEN: on_chosen,
-        SPLIT: lambda: ev("split", reg("ecx")),
+        SPLIT: lambda: ev("split", reg("ecx"), **({"free": free_list()} if cfg.get("ids") else {})),
     }
+    if cfg.get("ids"):
+        handlers[FREECAND] = lambda: cur["events"].append({"e": "free", "id": reg("edx"),
+                                                           "by": u32(reg("esp") + 8)})
     failed = []
 
     class Hook(gdb.Breakpoint):
@@ -680,6 +721,9 @@ def host_main() -> None:
     ap.add_argument("--rotation", action="store_true",
                     help="also print the expression temporaries in code-generation order, with the rotating "
                          "pointer before each one and the register it gets")
+    ap.add_argument("--ids", action="store_true",
+                    help="also print the freed candidate ids: each free during allocation and, for each "
+                         "batch of splits, the freed list and the id each new piece takes from it")
     ap.add_argument("--json", type=Path, help="write the raw trace to this file")
     ap.add_argument("--keep", action="store_true", help="keep the run directory under build/c2prio/")
     args = ap.parse_args()
@@ -777,7 +821,7 @@ def host_main() -> None:
         cfg.write_text(json.dumps({"relay": relay_cmd, "exe": exe.name, "match": match, "out": str(out_json),
                                    "blocks": args.blocks is not None, "inline": args.inline,
                                    "symbols": args.symbols is not None, "frame": args.frame,
-                                   "rotation": args.rotation}))
+                                   "rotation": args.rotation, "ids": args.ids}))
         g = subprocess.run(["gdb", "-nx", "-q", "-batch", "-x", me],
                            env=dict(env, C2PRIO_CONFIG=str(cfg)), capture_output=True, text=True, timeout=3600)
         (run / "gdb.log").write_text(g.stdout + g.stderr)
@@ -816,6 +860,8 @@ def host_main() -> None:
                 print_frame(fn, brace)
             if args.rotation:
                 print_rotation(fn, brace)
+            if args.ids:
+                print_ids(fn)
     finally:
         for p in procs:
             if p.poll() is None:
@@ -932,6 +978,7 @@ def model(fn: dict):
                 c.late = phase != "build"
                 roots.append(c)
             cur[e["id"]] = c
+            e["cand"] = c
         elif k == "ref":
             if e["id"] in cur:
                 cur[e["id"]].lines.append(e["line"])
@@ -1278,6 +1325,75 @@ def print_rotation(fn: dict, brace) -> None:
         line = "?" if not e["line"] else str(e["line"] if brace is None else brace - 1 + e["line"])
         print(f"  {n:>3}  {line:>5}  {regname(e['ptr']):<7}  {regname(e['reg']) if 'reg' in e else '-':<8}  "
               f"{e.get('route', 'none'):<10}  {regname(e['after']) if 'after' in e else '-'}")
+
+
+def print_ids(fn: dict) -> None:
+    """--ids: the frees and the ids split pieces reuse (FUN_0040ecd2 pushes, FUN_0040ebb6 pops)."""
+    model(fn)
+    events = fn["events"]
+    print("\nfreed candidate ids: FUN_0040ecd2 pushes a freed candidate's id onto a list (0x493230) and "
+          "FUN_0040ebb6\ngives each new candidate, such as a split piece, the id on top, so the id freed "
+          "last is reused\nfirst. A step's splits run in candidate id order; after a region the one split "
+          "later is reloaded first.")
+    step, ctx, batch = 0, "before colouring", None
+
+    def name(e):
+        s = describe(e.get("cand"))
+        return f"#{e['id']} " + (s.replace(", piece of ", " (piece of ") + ")" if ", piece of " in s else s)
+
+    def flush():
+        nonlocal batch
+        if batch is None:
+            return
+        print(f"  {batch['ctx']}: split, in this order: " + "; ".join(batch["split"]))
+        free = batch["free"]
+        print("    freed ids, next reused first: " + (" ".join(map(str, free[:24])) or "none")
+              + (" ..." if len(free) > 24 else ""))
+        if batch["pieces"]:
+            print("    pieces made: " + "; ".join(batch["pieces"]))
+        if batch["back"]:
+            print("    then freed, the split candidates' own ids: " + " ".join(batch["back"]))
+        batch = None
+
+    # The freed list, top first: read from C2 at each split, and kept up to
+    # date in between from the frees (pushes) and new candidates (pops).
+    lifo = []
+    for e in events:
+        k = e["e"]
+        if k == "free":
+            lifo.insert(0, e["id"])
+        elif k == "new":
+            reused = bool(lifo) and lifo[0] == e["id"]
+            if reused:
+                lifo.pop(0)
+        if k == "split":
+            if batch is None or batch["pieces"] or batch["back"]:
+                flush()
+                batch = {"ctx": ctx, "split": [], "pieces": [], "back": []}
+            batch["split"].append(name(e))
+            batch["free"] = e.get("free", [])
+            lifo = list(batch["free"])
+            continue
+        if k == "new" and e.get("parent") is not None and batch is not None and not batch["back"]:
+            batch["pieces"].append(name(e) + ("" if reused else ", a new id"))
+            continue
+        if k == "free" and e["by"] == SPLIT_FREE and batch is not None:
+            batch["back"].append(str(e["id"]))
+            continue
+        flush()
+        if k == "sorted" and e["class"] == 0:
+            ctx = "before colouring"
+        elif k == "chosen":
+            step += 1
+            ctx = f"after step {step} ({name(e)} -> {regname(e['reg'])})"
+        elif k == "lowspill":
+            ctx = f"after step {step}, {name(e)} not coloured (spill cost not positive)"
+        elif k == "free":
+            print(f"  freed {name(e)}: {FREED_BY.get(e['by'], hex(e['by']))}")
+        elif k == "new" and e.get("parent") is not None:
+            print(f"  {ctx}: piece {name(e)} made, "
+                  + ("reusing the id on top of the freed list" if reused else "a new id"))
+    flush()
 
 
 def print_trace(events) -> None:

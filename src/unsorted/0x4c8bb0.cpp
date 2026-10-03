@@ -1,4 +1,4 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by fledge-alpha-free, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by fledge-alpha-free, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
 // Claude Opus 5.5 pass (#5266, 2026-10-03): still 94.2%. This pass measured
 // the residual with C2 hooks: a scratch copy of tools/c2prio.py that also logs
 // each FUN_00435c37 temporary with the rotating pointer at 0x491120, plus C2's
@@ -79,6 +79,8 @@
 // GPT-6 retry (#5217): rechecked the 94.2% source and retried `index=next`;
 // that still gives the right-walk candidate priority too early and drops to
 // 42.0%, with wide register and stack changes. Restored the 94.2% version.
+// #5354 retry: re-confirmed the current best at 94.2%; the right-walk head
+// still cannot match both the register order and the frame layout together.
 
 struct Surface_4c8bb0 { unsigned short width, height; };
 void __stdcall FUN_004c8020(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);

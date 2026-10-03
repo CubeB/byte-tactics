@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
+// #5258 Codex retry: re-confirmed the existing 76.6% best. The x87 schedule
+// and escaped vector temporaries have extensive prior source-shape sweeps;
+// none of those variants improved the kept version.
 // #5201 Claude Opus 5.5 (no gain, 76.6% kept). The original's order, traced
 // on its x87 stack: a = v[0] (fstp 0x4c..0x54), b = v[1] (0x40..0x48),
 // c = v[2] (0x58..0x60), all nine fild in address order, and the first

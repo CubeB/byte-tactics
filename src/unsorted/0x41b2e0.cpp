@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// #5258 Codex retry: re-confirmed the existing 94.9% /Gi version. The
+// remaining bitfield OR operand order and symbol-id window were already
+// tested across source, header and symbol-count variants; no new shape kept.
 // FLAGS: /Gi
 // Symbol ids, read with `c2prio.py --symbols` (docs/c2-regalloc.md, "Symbol
 // ids"; Claude Opus 5.5): without /Gi the match follows this function's own

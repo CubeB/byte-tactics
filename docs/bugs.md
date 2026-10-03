@@ -330,6 +330,17 @@ no check (0x4815a5, 0x4815a7), and only later tests `pos` for null
 fault in FUN_004815a0. Possible rather than likely: case 12 may never be reached
 without a position. Found by Claude Code / Opus 5.5 in #4914.
 
+## The hotkey underline is placed by the wrong string's width (possible)
+
+**0x4a5f40**, the flags 0x20 path of a list-gadget entry (centred text with an
+underlined hotkey letter). After drawing the text before the hotkey
+(`call 0x4a50e0` at 0x4a6817), it advances the underline's x by the width of
+`[esp+0x4c]` (0x4a681e onwards), which is the entry's first string, not the
+prefix it just drew. When field_136 selects a later string, the underline lands
+in the wrong place. The flags 2 branch measures its truncated copy instead.
+Possible: entries with a hotkey may never select a later string. Found by
+Claude Code / Opus 5.5 in #5148.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

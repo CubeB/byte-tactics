@@ -232,7 +232,7 @@ jump after it (0x47cc30).
 read out of C2.EXE with Ghidra (#5113; it predicted 351 of 351 small tests).
 Locals are kept in a list sorted by size (smallest first), then by reference
 count (highest first). A count goes up by one per memory reference in code
-order, and a local only moves ahead of same-size locals whose count is strictly
+order (an `inc`/`dec` on memory counts as two, read and write; 0x4a5f40), and a local only moves ahead of same-size locals whose count is strictly
 smaller, so ties keep the order in which each local reached its count. Slots are
 packed in that list order: a local joins the newest earlier slot it does not
 interfere with (and that is at least half its size), otherwise it gets a new

@@ -75,8 +75,14 @@ simplify-and-select:
 4. **Order.** Candidates are inserted into a list in id order (from a hash on
    `id & 0x3ff`), sorted by priority, largest first, then by a second key at
    +0x40 that we did not identify. A new candidate goes **before** equal ones.
-   In every test this works out as: **on a tie, the variable that appears
-   first in the code goes first**, whatever the declaration order.
+   In the generated tests this worked out as: on a tie, the variable that
+   appears first in the code goes first. **It is not the rule in general:**
+   measuring C2's real list in 0x47d2e0 (#5163, a patched C2.EXE read with
+   winedbg) showed ties going to the larger +0x40 value, with `bit` and the
+   width beating `los` on equal priority although `los` appears first. The
+   sorted priority also did not explain that function's original on its own;
+   FUN_0045aaf9, which can move a candidate down before colouring, is the
+   next thing to trace.
 
 5. **Choice** (`FUN_0041b785`). For the candidate at the head of the list, each
    allowed register gets a cost, starting at 0. A neighbour that wants a

@@ -264,9 +264,10 @@ when esi, edi and ebx are all taken. Priority (`FUN_0040ee1d`) is a weighted
 reference count: 2 per reference, times `1 << (loop depth + 1)`, times the
 number of candidates touched in that block, minus a little for each block the
 value is live through without a reference. In practice one reference inside a
-loop beats 3 to 4 outside it, and one in a nested loop about 12. **On equal
-priority the value that appears first in the code wins**, whatever the
-declaration order. So to move a variable to an earlier register, add weighted
+loop beats 3 to 4 outside it, and one in a nested loop about 12. On equal
+priority the second key is a candidate field at +0x40: in small tests that
+matched first appearance in the code, but in 0x47d2e0 it did not (#5163), so
+treat first appearance as a hint, not a rule. So to move a variable to an earlier register, add weighted
 references or make it appear first. This predicted 1,280 of 1,280 generated
 straight-line tests. A value whose register is taken by higher-priority
 neighbours in part of its range is split, not spilled: it is stored before

@@ -2,6 +2,8 @@
 // #5403 Codex retry: 76.6% remains best. The original's interleaved x87
 // schedule still conflicts with the escaping struct-return buffers needed by
 // the vector code, and prior source-shape sweeps found no combined form.
+// #5421 Codex retry: re-confirmed 76.6%; the x87 schedule and frame mismatch
+// remain unchanged.
 // #5348 Claude Opus 5.5 (no gain, 76.6% kept; probes in
 // build/scratch/0x421700/t/): the original's x87 block is the list-scheduled
 // form of nine statements a.x..c.z in source order. Its stores go to

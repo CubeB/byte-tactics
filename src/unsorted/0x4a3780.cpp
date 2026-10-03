@@ -2,6 +2,8 @@
 // 2026-10-03 (claude-opus-5-5, #5158): 88.1% -> 93.4%, 1830 of 1832 bytes.
 // GPT-6 retry (#5177): rechecked the 93.4% source; the remaining object
 // register split at the 0x40 return join is unchanged.
+// GPT-6 retry (#5219): rechecked at 93.4% (1830 B). The only code difference
+// is still the obj reload at the cca store and the resulting tail registers.
 // One difference is left (below); ignoring the jump targets it moves, the
 // function is 98.8%. Scratch files, sweep scripts and a C2 split tracer:
 // build/scratch/0x4a3780/ (c2split.py is tools/c2prio.py plus hooks on

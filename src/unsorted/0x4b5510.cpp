@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// Codex GPT-6 retry for #5208 (2026-10-03): reusing the later hdc local
+// for the early slot copy adds 4 bytes and scores 85.1%; the existing
+// 99.7% source remains best.
 // GPT-6 retry (#4917): current check.py confirms 99.7% / 1017 bytes. The
 // documented live pointer-copy probe moves the reload but loses the EBP zero
 // register used by all DirectDraw result checks, dropping to 62.2%.

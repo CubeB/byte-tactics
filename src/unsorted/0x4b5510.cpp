@@ -1,4 +1,7 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#4917): current check.py confirms 99.7% / 1017 bytes. The
+// documented live pointer-copy probe moves the reload but loses the EBP zero
+// register used by all DirectDraw result checks, dropping to 62.2%.
 // DeepSeek V4.1 Flash session (2026-10-02): permuter 3 min on this file's
 // shape and 3 min on the T shape (plain `HDC *slot` at 0x14 with the
 // CreateDIBSection arg `(void **)&caps`), no gain, both 99.672131 exact.

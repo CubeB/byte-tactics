@@ -1,52 +1,24 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
 // (line 1 continued), finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
 // deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
-// (notes only, code unchanged at 86.8), finished by claude-opus-5-5, checked by GPT-6. Names are provisional.
+// (notes only, code unchanged at 86.8), finished by claude-opus-5-5, checked by GPT-6,
+// finished by claude-opus-5-5. Names are provisional.
 //
-// GPT-6 retry (#5011): passing the player pointer to a dedicated inline ID
-// helper drops this to 77.2% / 1269 bytes by shifting the frame; keep the
-// 90.9% / 1307-byte index helper and send macro.
+// MATCH (claude-opus-5-5, #5136). What finished it was the PlayerId helper:
+// `if (pi == 10) return -1;` as its own statement, then the player read
+// through a widened copy `int i = pi;`. With the combined test
+// `if (pi != 10 && g_game->players[pi].state != 0)` (the out-of-line form of
+// 0x44ffd0) a plain send copies the base like the original but colours res,
+// the zero and the k4 offset wrongly (84.6); the do/while(0) around the send
+// that the earlier file used fixed the colouring but lost the base copy, the
+// k4 lookup addressing [edx+eax+K] (90.9). A Player* local in the helper adds
+// 0x1b63 to the shared pointer. This helper gives both, and the send is a
+// plain call.
 //
-// Partial, 90.9% (99.0% with jump targets ignored), 1307 of 1310 bytes.
-//
-// claude-opus-5-5 (#4992) rewrote the body without the earlier tricks (the
-// result flag merged into the `out` pointer as `(int*)1`, the hand-expanded
-// `to` lookup). With separate `int* out` (if block) and `int ok` (before the
-// readiness loop) MSVC still shares [esp+0x14] between the FindOccupied
-// counter, out and ok, and the frame is the original 0x34. What placed the
-// registers:
+// Earlier notes, still true:
 //  - the k4 loop skips with `continue` (`if (field_29d0[k4] != 0) continue;`);
-//    nesting the body under `if (field_29d0[k4] == 0)` keeps `ok` in ebp and
-//    loses the zero register (ebx) of the readiness loop (82.0);
-//  - the tail is `if (res == 0) {...} else if (ok) {...} return ok;`; two
-//    separate returns put ok in edi in the tail (83.6);
-//  - the k4 send sits in a do/while(0) (SEND_TO_PLAYER below). Written plainly
-//    MSVC gives res ebp and the zero edi (84.6); the original has res in edi,
-//    the zero in ebx, the k4 player offset in ebp and `to` in edi, which this
-//    reproduces. A block, an inline helper, `for (;;) { ...; break; }` or a
-//    do/while(0) around anything larger do not.
-// Declaring ok volatile (scratch only) also fixes the readiness loop, which
-// is how the lever was found. The k2 loop reads the shuffled candidates by
-// index (`cand[j++]`); a walking `int* cp` swaps the two setup instructions.
-//
-// Still different: the PlayerId lookup inside SEND_TO_PLAYER addresses
-// [edx+eax+K] where the original first copies g_game into the result
-// register (`mov edi, edx; add edi, eax`, as the k6/k5 copies do with edx);
-// this is the 3-byte shortfall. A scratch function shows the do/while(0)
-// region itself causes it (the same send without it copies the base), so the
-// original probably got this colouring some other way and the macro is a
-// stand-in: something that keeps res in edi and the readiness zero in ebx
-// without a loop region around the send is the next thing to find. Rewriting
-// PlayerId (Player* local, else-return, inverted test, nested ifs), moving
-// the lookup or the from scan out of the region, a block, an inline helper,
-// `for (;;) { ...; break; }`, `while (1)`, `switch (0)` and `if (1)` did not
-// get there.
-// The macro is also fragile: with the real preceding function (the empty
-// FUN_004568b0, or FUN_00456850 defined and called instead of the inline
-// FindOccupied, or the real FUN_0044ffd0/FUN_0044fe00 lookups) defined above
-// this one, every variant here drops to 84.6 and only a volatile ok reaches
-// 87.8. The number of declarations before the function (0..31 dummy externs)
-// does not matter.
+//  - the tail is `if (res == 0) {...} else if (ok) {...} return ok;`;
+//  - the k2 loop reads the shuffled candidates by index (`cand[j++]`).
 #include <stdlib.h>
 #include <algorithm>
 
@@ -113,12 +85,6 @@ static inline unsigned char FindOccupied_004568c0() {
     return 10;
 }
 
-static inline int PlayerId_004568c0(unsigned char pi) {
-    if (pi != 10 && g_game->players[pi].state != 0)
-        return g_game->players[pi].id;
-    return -1;
-}
-
 static inline int FirstJoinedId_004568c0() {
     for (int j = 0; j < 10; j++) {
         if (g_game->players[j].state == 1)
@@ -131,13 +97,14 @@ static inline int IsConnected_004568c0(Player_004568c0* p) {
     return p->active != 0 && (p->state == 1 || p->state == 2);
 }
 
-// A statement macro in the usual do/while(0) form. The loop emits no code,
-// but it is load-bearing for register allocation (see the notes above): the
-// same call written out plainly scores 84.6 with res in ebp instead of edi.
-#define SEND_TO_PLAYER(k, packet)                                                   \
-    do {                                                                            \
-        FUN_00451bc0(FirstJoinedId_004568c0(), PlayerId_004568c0(k), (packet), 2); \
-    } while (0)
+static inline int PlayerId_004568c0(unsigned char pi) {
+    if (pi == 10)
+        return -1;
+    int i = pi;
+    if (g_game->players[i].state != 0)
+        return g_game->players[i].id;
+    return -1;
+}
 
 // FUNCTION: 0x4568c0
 int FUN_004568c0() {
@@ -213,7 +180,7 @@ int FUN_004568c0() {
             packet[1] = (unsigned char)g_game->field_29fc[k4];
             if (g_game->players[k4].active != 0) {
                 if (g_game->players[k4].state == 3) {
-                    SEND_TO_PLAYER(k4, packet);
+                    FUN_00451bc0(FirstJoinedId_004568c0(), PlayerId_004568c0(k4), packet, 2);
                 } else if (IsConnected_004568c0(&g_game->players[k4])) {
                     g_game->players[k4].field_147 = packet[1];
                     g_game->field_29d0[k4] = 1;

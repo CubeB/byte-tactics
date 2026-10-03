@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, verified by GPT-6. Names are provisional.
+// Issue #4931 retry: check.py MATCH on the current main translation-unit setup.
 // FLAGS: /Gi
 // std::vector<Class_00473590>::insert(iterator, size_type, const _Ty&), stock
 // MSVC 5 <vector> on a 0x34-byte record, emitted out of line through a member

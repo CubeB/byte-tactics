@@ -50,7 +50,7 @@ dispute where a file carries a `// +0xN` comment, so an empty dispute list means
   `// FLAGS: /Gi` line, for the ties described under "When the registers or
   the order won't budge".
 - Each file must compile on its own: define the structs/classes you need in the
-  file, and declare (don't define) the functions and globals you call or use.
+  file, and declare (don't define) the functions and globals you call or use. Under /Gi a function that still has an unresolved tie can score differently depending on the length of the source file's path (0x408100 gave 98.5% in one directory and 99.0% in another), so check a /Gi partial from a second directory before trusting a gain. Matched /Gi files are stable: all 17 on 2026-10-03 match from four different path lengths.
 
 ## File template
 

@@ -122,7 +122,7 @@ address,size,file,symbol,status,similarity
 0x40a260,834,src/unsorted/0x40a260.cpp,?FUN_0040a260@Class_0040a7b0@@QAE_NPAUUnitType@@PAUVec3@@PAV?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@HPAUPoint16@@@Z,matched,100.0
 0x40a5b0,19,src/unsorted/0x40a5b0.cpp,??0Elem_0040cc40@@QAE@ABU0@@Z,matched,100.0
 0x40a5d0,473,src/unsorted/0x40a5d0.cpp,?FUN_0040a5d0@Class_0040a7b0@@QAE_NPAUUnitType@@PAUVec3@@HPAUPoint16@@@Z,matched,100.0
-0x40a7b0,644,src/unsorted/0x40a7b0.cpp,?FUN_0040a7b0@Class_0040a7b0@@QAEXXZ,partial,88.7
+0x40a7b0,644,src/unsorted/0x40a7b0.cpp,?FUN_0040a7b0@Class_0040a7b0@@QAEXXZ,matched,100.0
 0x40aa40,725,src/unsorted/0x40aa40.cpp,?FUN_0040aa40@Class_0040aa40@@QAEXXZ,matched,100.0
 0x40ad20,73,src/unsorted/0x40ad20.cpp,?FUN_0040ad20@Class_0040ad20@@QAEXXZ,matched,100.0
 0x40ad70,15,src/unsorted/0x40ad70.cpp,?FUN_0040ad70@@YGXHHH@Z,matched,100.0

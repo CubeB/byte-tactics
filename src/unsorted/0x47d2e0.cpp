@@ -1,5 +1,66 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5. Names are provisional.
 //
+// claude-opus-5-5 pass (#5068, 88.457% -> 88.486%; check.py shows both as
+// 88.5%). The body now writes IsExplored through a `ByteMap* m =
+// &los->explored` local with ByteMap-level Contains + Get and no bit
+// parameter, and IsSeen returns through `int r` (if/else) with the bit still a
+// parameter. That restores two sites of the original for free: the `cols` home
+// at [esp+0x18] and the seen arm's `xor eax, eax; jmp` fail path (40 diff
+// lines against 41). The LOS register choice is unchanged. This section
+// replaces guesswork about that choice with C2's own numbers.
+//  A. READING C2's PRIORITIES. Patch a copy of C2.EXE with `jmp $` (EB FE) at
+//     0x4172f4 (just after FUN_0041bdd7 sorts the candidates), compile with
+//     that BIN under Wine, find the spinning C2.EXE with `winedbg` (`info
+//     process`; winedbg uses Wine's debug API, so ptrace_scope=1 is no
+//     obstacle), `attach 0x<pid>` and dump memory with `x /Nx`. List head at
+//     [0x4910d4]; candidate +0x0c priority, +0x14 next, +0x1c id, +0x24 refs,
+//     +0x3c spill cost, +0x40 tie key (larger goes first); *cand = symbol,
+//     *symbol = storage record, record+0x18 = name. A second copy patched at
+//     0x417317 (end of allocation) gives each candidate's register as
+//     (+0x10 - 0x494758) / 0x50 (1..8 = eax ecx edx ebx esp ebp esi edi), and
+//     a code cave at 0x48cf00 entered from 0x41b785 logs the order in which
+//     candidates are coloured (count at 0x49e700, pointers after it). Scripts:
+//     build/scratch/0x47d2e0/c2prio/ in the #5068 worktree.
+//  B. WHAT THEY SAY. The colouring order is the sorted priority order (split
+//     pieces are re-inserted later), and esi in the LOS block goes to the
+//     first of bit, los and W1 to be coloured. los must not get it, or the
+//     prologue rotates (los esi, cols edi, y0 si: the old notes' "rotation").
+//     The original (W1 esi, los edi, bit no register) therefore needs
+//     W1 > los and W1 > bit, with bit also below the g_game pieces (ebx, ebp)
+//     and vis (ecx). Measured, as bit / los / W1:
+//       file before this pass                     76 / 74 / 44 (refs 5 / 10 / 3)
+//       this file                                 70 / 70 / 38 (bit first on +0x40)
+//       explored arm CSE'd to W1, bit parameter   70 / 62 / 50
+//       the same with IsSeen computing the bit    54 / 62 / 50 (los takes esi)
+//       #4959 shape (b), seen Contains on W1 too  54 / 56 / 56 (W1 first on +0x40)
+//       #4959 shape (a), first test on W1 too     46 / 51 / 54
+//     So the rule describes the mechanism correctly, but applied to the
+//     original's visible reference pattern (W1 read in B1 twice, E1, E3 and
+//     S3; the first test and the seen Contains read memory) it puts W1 about
+//     12 below los and 4 to 20 below bit. Moving one width read between W1 and
+//     los in a seen-arm block swings each by 6 (K = 3 there); a reference in
+//     B1 is worth about 16 (K about 8). bit's 5 references (inferred: the def
+//     `mov reg, 1; shl reg, cl` counts 3, plus the B1 test and the S3 use)
+//     fall mostly in B1, the most crowded block, so a named or CSE'd bit
+//     always outranks W1. The only shapes with the original's order give W1 a
+//     reference the original does not show. Either the original's IL reaches
+//     W1 by a path not found yet (a K or reference difference invisible in the
+//     bytes), or something besides the sorted priority decides it:
+//     FUN_0045aaf9 can demote a candidate to just below a set's minimum
+//     priority before it is coloured (not traced here).
+//  C. Flat in this pass: Index() helpers on ByteMap or MapSize for the three
+//     index reads, a PlayerBit() inline, helpers taking (x, y) (folds the seen
+//     arm to `mov eax, 1`), a named `w` local for the width, `&bit` through a
+//     pointer (optimised away), and the explored arm's `m` and direct forms
+//     against the r, r0 and if/else seen arms (r0 costs about 27 points).
+//     Symbol count (the 0x487080 threshold lever): 0 to 1390 unused `extern
+//     int` (step 10) and 0 to 395 one-member structs (step 5) in front of this
+//     file never move the LOS choice (30 to 110 externs only cost 18 points
+//     elsewhere); from 120 externs on they give the original's cell-pointer
+//     fold (`imul eax, [ebp+0x14233]`, 2 bytes shorter, so 71.8% until the
+//     LOS block is fixed), and 335+ structs reach shape 92.2% (18 diff blocks
+//     against 21) at 72.3%.
+//
 // claude-opus-5-5 pass (#4959, from 88.5%, no score gain; about 15000 scratch
 // compiles scored with check.py's own compare plus a flag per residual site).
 // The body is unchanged, but the LOS spill now has a lever. Read this first:
@@ -473,6 +534,7 @@ struct MapSize_0047d2e0 {
 struct ByteMap_0047d2e0 {
     unsigned char* data;
     MapSize_0047d2e0 size;
+    int Contains(int x, int y) { return x < size.width && y < size.height; }
     unsigned char Get(int x, int y) { return data[size.width * y + x]; }
 };
 
@@ -521,11 +583,12 @@ struct Position_0047d2e0 {              // 16.16 fixed point, only high words re
 };
 
 static inline int IsExplored_0047d2e0(Los_0047d2e0* los, Position_0047d2e0* pos,
-    Fix_0047d2e0* hgt, unsigned int bit)
+    Fix_0047d2e0* hgt)
 {
     int tx = pos->x >> 5;
     int ty = (pos->z - (hgt->p.hi >> 1)) >> 5;
-    if (los->explored.size.Contains(tx, ty) && los->explored.Get(tx, ty) != 0)
+    ByteMap_0047d2e0* m = &los->explored;
+    if (m->Contains(tx, ty) && m->Get(tx, ty) != 0)
         return 1;
     return 0;
 }
@@ -535,9 +598,12 @@ static inline int IsSeen_0047d2e0(Los_0047d2e0* los, Position_0047d2e0* pos,
 {
     int tx = pos->x >> 5;
     int ty = (pos->z - (hgt->p.hi >> 1)) >> 5;
+    int r;
     if (!los->explored.size.Contains(tx, ty))
-        return 0;
-    return (g_game->field_14273[los->explored.size.width * ty + tx] & bit) != 0;
+        r = 0;
+    else
+        r = (g_game->field_14273[los->explored.size.width * ty + tx] & bit) != 0;
+    return r;
 }
 
 static int Blocked_0047d2e0(Cell_0047d2e0* c)
@@ -609,7 +675,7 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
         if ((g_game->field_14273[los->explored.size.width * y + x] & bit) == 0)
             return 0;
         if ((g_game->losFlags & 2) == 2)
-            ok = IsExplored_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt, bit);
+            ok = IsExplored_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt);
         else
             ok = IsSeen_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt, bit);
     }

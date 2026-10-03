@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6. Names are provisional.
+// GPT-6 retry: confirmed 98.6%; the single SIB difference remains the base
+// and index order at the inlined erase shift.
 // Retry (deepseek-v4.1-flash, issue 2972): re-confirmed 98.6% (195 bytes both
 // sides). One-byte SIB swap in the inlined erase shift: ours `mov [eax+edx],ebp`
 // vs the original `mov [edx+eax],ebp`; the delta is the literal -4 in edx, and

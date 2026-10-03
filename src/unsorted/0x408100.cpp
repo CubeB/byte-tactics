@@ -17,6 +17,9 @@
 // without it. Not committed for that reason. Neighbours 0x407e90, 0x408090
 // (same vtable block) do not match under /Gi; 0x408f30, the
 // vector<Unit*>::insert after this TU, does.
+// GPT-6 retry: separate target component stores reproduce the known 97.8%
+// two-hunk shape; a short angle local and duplicated Length test do not fix
+// either remaining scheduler hunk. Keep the 98.5% source below.
 // New lead for hunk 1, both flag sets: declaring `Vec3 target;` at loop-body
 // scope (assigned `target = origin;` in the branch, slot still esp+0x30)
 // keeps the `u->def` load after the three target stores, as the original

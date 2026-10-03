@@ -14,6 +14,8 @@
 // it one expansion freed later in the loop (either HasField1ce() call
 // written out, `vec_7d.begin()[i]`, `vec_65.begin() + i`,
 // `vec_8d.begin()[i] = ...` at the store).
+// GPT-6 retry: a protected _First accessor through a vector-derived view leaves
+// the store SIB unchanged, so the direct vector subscript remains best.
 // DeepSeek V4.1 Flash session: still 1678 bytes and 99.8%, the single store SIB
 // byte at 0x4099f6 (want `mov byte ptr [esi + ecx], al`, ours
 // `mov byte ptr [ecx + esi], al`). The diagnosis is now firm: this is the

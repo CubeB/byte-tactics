@@ -1,68 +1,62 @@
-// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6. Names are provisional.
-// Codex GPT-6 retry for #5213 (2026-10-03): `/Gi` drops this function
-// to 69.5%; the 94.6% default-flags version and prior inlining-budget
-// and sibling-shape findings remain best.
-// #5262 Codex retry: best remains 94.6% (1055 bytes, 97.1% excluding
-// internal jump targets). A no-op visitor constructor was byte-identical;
-// aggregate center initialization scored 86.9%, the reversed health compare
-// 94.3%, and named health/limit locals 67.7% with the unit/order registers
-// swapped. Restored the previous best.
-// Claude Opus 5.5, #5142: 92.2% -> 94.6% (1055 bytes against 1051), with no
-// Dummy() padding. Case 1's body is an inline helper, Patrol(), called as
-// `int result=Patrol(unit,order,flags); return result;`, and the visitor is
-// a named local with an implicit constructor and three member stores. That
-// reproduces the original's whole mix of inlined and out-of-line vector
-// calls (the landing pads' constructor, empty()'s size(), both pads
-// destructors, the units' vector constructor and the `return 3` destructor
-// are calls; pads.size(), units.empty()'s size() and the final destructor,
-// down to `operator delete(first)`, are inline).
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5. Names are provisional.
 //
-// Why, from C2.EXE (inliner FUN_004249cb, driver FUN_0042491e, call-site list
-// FUN_004251e8): a function's inline budget is max(1000, 2 * its own IL
-// size). Call sites are taken in source order. A callee is inlined when its
-// IL size is at most the budget left, or under 41 whatever the budget; only
-// callees of 41 or more subtract their size. The calls inside an inlined
-// callee get budget / R, where R is the number of this level's call sites
-// still to come, including this one. So empty Dummy() calls (size under 41)
-// cost nothing themselves but raise R for every earlier site; that is all
-// the old 98.6% padding did. Patrol() makes F small (IL 314, budget 1000)
-// and leaves Patrol's own sites a budget of 1000 - 606 = 394, which puts
-// every vector site on the original's side. The margins are thin: units'
-// size() needs (394 - 92) / 7 >= 42, so any extra site after units.empty()
-// or about 8 more IL in Patrol breaks it (a 3-argument visitor constructor,
-// IL 54, does).
+// Claude Opus 5.5, #5302: 94.6% -> 98.6% (1051 bytes, the right size). Two of
+// the three residuals of the 94.6% file are gone; what fixed them:
+//  * The tail is `order->pos + Offset(...)` again, with no `off` local
+//    (5 IL less), and Offset names its second call's result (`int z`). The
+//    extra candidate in the tail block raises the Offset distance's priority
+//    from 132 to 144 against order's 141 (tools/c2prio.py), so the distance
+//    takes esi and unit/order keep esi/edi. Without `int z`, order wins by one
+//    point and unit and order swap everywhere (82.4%).
+//  * The visitor has the 3-argument constructor, which puts the vtable store
+//    after the member stores as in the original. It costs 54 IL of Patrol's
+//    budget, paid for by: operator+ as a free function (65 IL, the member one
+//    is 78), and three small helpers placed before units.empty() (IsDamaged,
+//    FindPads, SearchRange, each under 41 IL and so free). Each helper is
+//    needed: without any one of them the last ~UnitList's _Destroy goes out
+//    of line (1070 bytes) or units.empty()'s size() does (1037). Margins with
+//    all three: units.empty()'s size() gets 311 / 7 = 44 for its 42, the last
+//    _Destroy 52 for its 49 (`c2prio.py --inline`).
 //
-// Still differing:
-//  1) the case-1 health test: def/health/limit in eax/edx/ecx against the
-//     original's edx/ecx/eax. These are expression temporaries (regasg.c,
-//     FUN_00435c37), and the rotating pointer arrives at Patrol's first
-//     temporary on edx; with it on ecx the original's three registers follow
-//     exactly. So the original has one rotating temporary fewer (or two more)
-//     in the prologue or the water branch, which compiles to the same bytes:
-//     16 temporaries there in every spelling tried (helpers for the water
-//     test, the move creation and the center, int/short locals, Fixed local,
-//     `::new`, operand order, a result local for return 5).
-//  2) the visitor's vtable store comes before the units/self stores; the
-//     constructor form (Y1d34) orders them right but costs 54 IL, over the
-//     budget above.
-//  3) the tail: pos is copied from PosOf(order) and summed in place, which
-//     leaves a dead `mov [esp+0x10],ecx` and puts pos at 0x10, not 0x1c.
-//     `order->pos + off` (Vec3::operator+) gives the original's tail but
-//     then order wins esi over the Offset distance by one point of priority
-//     (133 to 132, tools/c2prio.py) and unit and order swap esi/edi
-//     everywhere (82%). PosOf adds candidates to the tail block and lifts
-//     the distance to 144 against order's 141.
-// The pads class keeps a declared (never inlined) constructor, as in the
-// matched 0x4103e0; units is a separate class with an implicit one.
-// Earlier notes (the hand-written vector specialisation at 92.2%, and the
-// 98.6% Dummy() lead) are in this file's git history.
-// GPT-6 retry (#5173): one-argument visitor constructors that initialized
-// `self` or `owner` did not improve the 94.6% score. A two-argument constructor
-// for `owner` and `self` dropped to 69.5%; the original best remains in place.
+// Still different (6 lines): the health test's scratch registers. The
+// original has def/health/limit in edx/ecx/eax (`lea eax,[eax+eax*2]`), ours
+// eax/edx/ecx. Measured with throwaway `g_a = g_b;` copies (separate scalar
+// globals) in a scratch copy, n before the test and m between the test and
+// the pads constructor: the test comes out as the original's for n = 1 or 2
+// (anywhere after the water branch's `order->flags |= 0xe0`), and the
+// FUN_0040b530 argument block after it stays right only when n + c + m is a
+// multiple of 3, which with the test's own count c gives (n, m) = (1, 1) or
+// (2, 1). So the original has one or two more rotating temporaries before
+// the test and one more after it, all emitting no code. Flat (byte-identical):
+// 14 spellings of the test inside IsDamaged (locals for def, health, limit,
+// quarter, `/4`, casts, if/return), the matched sibling 0x4103e0's
+// `unsigned int state=0; state=order->state;` selector and three other
+// selector spellings, copies of unit/order/flags/move, a local for the
+// return values, a `Clear(order)` helper, and the callees' own prototypes
+// (FUN_004388d0 takes a pointer, FUN_0044e730 a short). Spellings that add
+// IL to Patrol (helpers taking health and def as arguments, a Limit()
+// helper) break the inline budget first. A 15-minute permute.py run from
+// this file (15414 candidates) found nothing better. 0x4103e0 (matched, same
+// family) has eax/edx/ecx here, like ours, after a FUN_00489800 call.
+//
+// Earlier notes (the Patrol() inline budget, read out of C2.EXE):
+// a function's inline budget is max(1000, 2 * its own IL size). Call sites are
+// taken in source order. A callee is inlined when its IL size is at most the
+// budget left, or under 41 whatever the budget; only callees of 41 or more
+// subtract their size. The calls inside an inlined callee get budget / R,
+// where R is the number of this level's call sites still to come, including
+// this one. Case 1's body is the inline helper Patrol(), which makes the
+// function small (budget 1000) and leaves Patrol's own sites 1000 minus its
+// IL, which puts every vector site on the original's side (the landing pads'
+// constructor, empty()'s size(), both pads destructors, the units' vector
+// constructor and the `return 3` destructor are calls; pads.size(),
+// units.empty()'s size() and the final destructor are inline). The pads
+// class keeps a declared (never inlined) constructor, as in the matched
+// 0x4103e0; units is a separate class with an implicit one. Older notes are
+// in this file's git history.
 #include <vector>
 struct Vec3 {
     int x, y, z;
-    Vec3 operator+(const Vec3& v) const { Vec3 r; r.x=x+v.x; r.y=y+v.y; r.z=z+v.z; return r; }
 };
 struct Unit;
 struct Order;
@@ -101,8 +95,17 @@ int __cdecl FUN_004b7123(short, int);
 Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b);
 union Fixed { int value; struct { unsigned short frac; short whole; } parts; };
 Vec3 __stdcall FUN_004103a0(short angle, Fixed scale);
+static inline Vec3 operator+(const Vec3& a, const Vec3& b) { Vec3 r; r.x=a.x+b.x; r.y=a.y+b.y; r.z=a.z+b.z; return r; }
 static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return FUN_004103a0(angle,distance); }
-static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
+static inline Vec3 Offset(short angle, int distance)
+{
+    Vec3 v;
+    v.x=-FUN_004b70ef(angle,distance);
+    v.y=0;
+    int z=FUN_004b7123(angle,distance);
+    v.z=-z;
+    return v;
+}
 
 class Class_00410830 : public std::vector<Unit*> { public: Class_00410830(); };
 void __stdcall FUN_0040b530(int, Vec3*, int, std::vector<Unit*>*);
@@ -111,15 +114,18 @@ class UnitList : public std::vector<Unit*> {};
 class Class_00410c70 {
 public:
     virtual void FUN_00410c70(Unit*);
+    Class_00410c70(Owner* o, std::vector<Unit*>* u, Unit* s) : owner(o), units(u), self(s) {}
     Owner* owner; std::vector<Unit*>* units; Unit* self;
 };
 void __stdcall FUN_0047e890(Vec3*, int, const Class_00410c70&);
-static inline Vec3 PosOf(Order* o) { Vec3 r; r.x=o->pos.x; r.z=o->pos.z; r.y=o->pos.y; return r; }
+static inline int IsDamaged(Unit* u) { return (unsigned int)u->health < (u->def->maxHealth>>2)*3; }
+static inline void FindPads(Unit* u, std::vector<Unit*>* pads) { FUN_0040b530(u->owner->index,&u->pos,0xf00,pads); }
+static inline int SearchRange(Unit* u) { return u->def->searchRange<<16; }
 static inline int Patrol(Unit* unit, Order* order, int flags)
 {
-    if ((unsigned int)unit->health < (unit->def->maxHealth>>2)*3) {
+    if (IsDamaged(unit)) {
         Class_00410830 pads;
-        FUN_0040b530(unit->owner->index,&unit->pos,0xf00,&pads);
+        FindPads(unit,&pads);
         if (!pads.empty()) {
             ((Class_004388d0*)order)->FUN_004388d0(0);
             Unit* pad=pads[FUN_004b6c30(pads.size())];
@@ -129,11 +135,8 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
         }
     }
     UnitList units;
-    int range=unit->def->searchRange<<16;
-    Class_00410c70 visitor;
-    visitor.owner=unit->owner;
-    visitor.units=&units;
-    visitor.self=unit;
+    int range=SearchRange(unit);
+    Class_00410c70 visitor(unit->owner,&units,unit);
     FUN_0047e890(&unit->pos,range,visitor);
     if (!units.empty()) {
         ((Class_004388d0*)order)->FUN_004388d0(0);
@@ -143,10 +146,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
         return 3;
     }
     if (flags&0xe0) order->angle+=-FUN_004b6c30(0x2000)-0x4000;
-    Vec3 off=Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16);
-    Vec3 pos=PosOf(order);
-    pos.x+=off.x;
-    pos.z+=off.z;
+    Vec3 pos=order->pos+Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16);
     Class_0044e2d0* move=new Class_0044e2d0(order,pos);
     ((Class_0044e730*)move)->FUN_0044e730(128);
     ((Class_004388d0*)order)->FUN_004388d0((int)move);

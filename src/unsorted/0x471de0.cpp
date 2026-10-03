@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
 // Symbol ids, read with `c2prio.py --symbols` (docs/c2-regalloc.md, "Symbol
 // ids"; Claude Opus 5.5): the count below is the file total, the front end's
 // symbol count at the end of the file (5055 here), which seeds the ids C2
@@ -38,6 +38,8 @@
 // (win.py sweeps the extern count over 0 to 65535 for a header set).
 // GPT-6 retry: confirmed 98.6%; the single SIB difference remains the base
 // and index order at the inlined erase shift.
+// #5364 retry: re-confirmed 98.6%; the inlined erase still uses the walker-
+// base SIB, while the original's compiler-state encoding uses the delta base.
 // GPT-6 retry recheck: current main still emits the walker-base SIB. Prior
 // scratch sweeps show the opposite base requires a compiler state this inline
 // erase does not reach, while the standalone destructor twin matches.

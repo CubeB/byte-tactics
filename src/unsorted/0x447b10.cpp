@@ -44,7 +44,8 @@
 //   `push ebp`) where the original pushes an immediate 1. A `do { } while (0)`
 //   around the f97 if/else (found by the permuter) drops the `mov ebp,1` but
 //   still pushes ebp (99.2%, 1 byte short); two permuter runs from this file
-//   (about 17,800 candidates) stop there. Not moved by: 0x444be0 (the
+//   (about 17,800 candidates) stop there; a fresh `1u` probe also gives the
+//   same push-ebp byte. Not moved by: 0x444be0 (the
 //   VIEWMAP code, no callers) as an inlined helper, char/bool/short/pointer
 //   parameter types, the f97 test as a byte mask or an inline helper, `!f97`
 //   with the arms swapped, a block-scope info local, MAP and MAPNAME as two

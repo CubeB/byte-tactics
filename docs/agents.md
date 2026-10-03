@@ -2706,7 +2706,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #5189 | gpt-6 | 1 | 0 | 0 | n/a | n/a | n/a |
 | #5191 | gpt-6 | 1 | 0 | 0 | n/a | n/a | n/a |
 | #5193 | gpt-6 | 1 | 0 | 0 | n/a | n/a | n/a |
-| #5160 | opus | 1 | 1 | 0 | n/a | n/a | n/a |
+| #5160 | opus | 1 | 0 | 0 | n/a | n/a | n/a |
 | #5196 | gpt-6 | 1 | 0 | 0 | n/a | n/a | n/a |
 
 ### Escalations

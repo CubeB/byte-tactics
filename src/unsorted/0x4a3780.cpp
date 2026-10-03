@@ -1,175 +1,68 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash, notes by claude-opus-5-5, checked by GPT-6. Names are provisional.
-// GPT-6 retry (#5050): current check.py confirms 88.1% at 1832 bytes. The
-// file's current notes capture the unresolved y1 lea, flags register, and 0x20
-// loop allocation constraints.
-// GPT-6 retry recheck: adding `&& flags` to both flag8-controlled uses is
-// semantically redundant but costs 34 bytes and falls to 80.0%; keep the best.
-// 2026-10-03 (claude-opus-5-5): no gain (88.1%), but the remaining gap now has
-// one known cause. Scratch files and sweep specs: build/scratch/0x4a3780/.
-//  - The 0x20 block's pointer choice tests flag8 itself: the original's `je`
-//    at 0x4a3c4a reuses ZF from `and eax,1`. Written as `if (flag8) fixed = ...;
-//    else ip = ...;`, MSVC also reproduces the original's "dead"
-//    `mov esi,[esp+0x50]` in the fixed arm: it is the load of the uninitialised
-//    `ip` from its home, which MSVC packs into obj's parameter slot because ip
-//    is never stored. It is not an obj reload and not an original bug.
-//  - But with `if (flag8)` the `flags` local gets a register (ecx) for its whole
-//    range, the frame loses flags's slot (0x3c -> 0x38) and every [esp+N]
-//    shifts: 65.7%. The `flags & 0x80` test below keeps the slot, which is the
-//    only reason this file stays on that form.
-//  - Probe: making flags live across the 0x10 path's FUN_004b6af0/strncmp calls
-//    (`&& flags` added to the entries loop's condition; a semantic change, +4
-//    bytes) spills flags, and then the frame, flag8 (0x1c), fixed (0x14), ip
-//    (esi, home in obj's slot), n2 (edx), the in-place `shr eax,7` and the whole
-//    0x20 loop come out exactly as in the original: 88.5% even with the extra
-//    test, shape 97.4%. Only the y1 lea, the 0x10 clamp and the post-loop obj
-//    register (esi across the join to the field_cca store) still differ there.
-//  - Ablations of the `if (flag8)` form: removing the 0x20 loop, or leaving
-//    flag8 one use instead of three (fixed rows only or item rows only), also
-//    spills flags. So flags wins its register through flag8's loop uses (the
-//    two share a register at the in-place shift); the missing fact is what
-//    stops that in the original.
-//  - Flat with `if (flag8)` (flags stays in a register, frame 0x38): every
-//    combination of flags vs me->flags for its four uses; flags or the field
-//    as unsigned/long/DWORD; union, struct, array and bitfield wrappers,
-//    `*(int*)&flags`, memcpy, reference-taking inline helpers; flag8 as
-//    unsigned/long/bool/char/short, `!= 0`, `?:`, `!!`, `(f & 0x80) >> 7`, a
-//    bitfield cast, an inline IsFixed(); flag8 or n2 declared or initialised
-//    earlier; every declaration position of flags; flag8/k/n2/remain merged
-//    with n/i/size/step/flags; fixed merged into entries; inline helpers for
-//    the 0x10 or 0x20 block; `flags = flags;` anywhere (removed early);
-//    redundant `flags & 0x10` tests (folded); sequential ifs instead of the
-//    else-if; 1024 combinations of ten 0x20-block spellings and 256 of eight
-//    0x10-path spellings; headers.py (256 sets); 0-63 extern-int fillers;
-//    permute.py from the `if (flag8)` form (12 min, best 79.1% via junk temps).
-//  - (a) below, the y1 `lea`: every spelling compiles the same; it follows the
-//    TU's type count. Without <windows.h> (own min macro) the y1 lea is right
-//    but the three `bc + step - 1` leas flip (82.7%). With N dummy struct types
-//    instead: N <= 26 82.7%, 28-32 87.5%, 34-50 87.9%, >= 52 88.1% (the
-//    <windows.h> state); extern-int fillers change nothing.
-// 2026-10-03 (Space Bunny Free): 86.6 -> 88.1%, size still exact (1832).
-// Seven spelling changes: five in the 0x20 walk loop, one 16-bit compare in
-// the 0x10 clamp, one operand order in the rect setup. Found by hill-climbing
-// and a random search over axis combinations from the 86.6% file. None of them is an improvement on its own (the loop bound alone
-// drops to 84.7% and the rest are flat); the set is worth 1.5 points:
-//  - the loop bound is `if (k > me->field_c0 - 1) break;` (was `int lim =
-//    me->field_c0; if (lim < k + 1) break;`). That is the original's own
-//    `movsx ecx,[ebp+0xc0] / inc / inc / dec / cmp eax,ecx / jg`; the old form
-//    hoists a `lea ecx,[eax+1]` out of the loop and tests with `jl`.
-//  - `((unsigned)flags >> 7) & 1` for flag8, which gives the original's `shr`
-//    (a signed `>>` gives `sar`; `(flags & 0x80) != 0` is the same);
-//  - the pointer step comes before the counters
-//    (`if (flag8) fixed++; else ip++; n2++; k++;`);
-//  - `int n2 = 0;` is declared above `int remain = ...`;
-//  - `r.y1 = r.y0 + me->field_19 - 1;` (operand order only);
-//  - the 0x10 clamp is `if (me->field_ba > me->field_c0 - 2)`, which keeps the
-//    size at 1832 (`>= c0 - 1` gives the original's `dec ecx`/`jl` but drops
-//    the function to 1830 bytes, so the two extra bytes of `sub ecx,2` are
-//    what the rest of the block is short of);
-//  - with those, the original's arm order (fixed-row arm first, `flags & 0x80`
-//    tested directly) is right again, and the loop compiles to the original's
-//    instruction sequence apart from its registers.
-//  `field_c6` is declared `void*` (the code treats it as a pointer); it makes
-//  no difference to the bytes.
-// What still differs, all measured:
-//  (a) `lea eax,[ecx+ebx-1]` at the y1 computation, the original's base and
-//      index are the other way round. Every spelling of that expression and
-//      every header set leaves it (tools/headers.py swept all 256 sets: no
-//      change, 86.6% from the old file, and the same `lea` is wrong in the
-//      other direction without <windows.h>);
-//  (b) `flags` is loaded into ecx, the original uses eax (three instructions,
-//      the frame and the spill are already right);
-//  (c) the 0x20 loop's registers: the original computes flag8 in place
-//      (`shr eax,7 / and eax,1 / mov [esp+0x1c],eax`), spills it, and keeps ip
-//      in esi (its flag8 arm has a dead `mov esi,[esp+0x50]`, so ip shares esi
-//      with obj, which is also why obj stays in esi through the select check
-//      and the field_cca store). Here flag8 is computed into edx through a
-//      copy (`mov edx,ecx / shr edx,7`, 2 bytes more) and ip is spilled to
-//      [esp+0x1c]. Testing flag8 for the pointer choice (`if (flag8)`) is what
-//      makes the shift in place and flag8 memory-resident, but then `flags`
-//      loses its frame slot (the frame drops to 0x38 and the whole function to
-//      65.7%): MSVC then uses `mov si,[ebp+0xbc]` in the 0x10 block instead of
-//      `mov cx`, so nothing clobbers flags and no spill is needed. Nothing in
-//      the 0x10 or 0x20 block's spelling brings that spill back with
-//      `if (flag8)`: 64 combinations of the clamp/test spellings, every
-//      declaration order, one shared pointer instead of two, a union member,
-//      a helper for the pointer choice, two separate loops, a pointer-to-flag8,
-//      a `goto` loop, and random searches over 24 axes (1789 and 2233 samples
-//      with 1-4 mutations, plus 1937 permute.py candidates from this file)
-//      all stay at 65-70% or keep ip in memory;
-//  (d) `mov esi,[esp+0x50]` and `mov [esi+0xcca],1` (we reload obj into eax),
-//      downstream of (c);
-//  (e) `mov eax` vs `mov edx` for the index reload before FUN_004a1b40.
-// 2026-10-02 (DeepSeek V4.1 Flash): 84.3% -> 86.6%, size now exact (1832).
-// Two layout levers, both measured, moved the 0x20 block's register allocation
-// and a few branch targets:
-//  - The 0x20 loop's bottom test is `int lim = me->field_c0; if (lim < k + 1)
-//    break;`. The `c0` bound in a local with `k + 1` on the other side makes
-//    MSVC put the counter in ecx (`lea ecx,[eax+1]` before the loop, `inc ecx`
-//    at the bottom) and the row pointer in eax; the old `if (k > c0 - 1)` left
-//    them in the other registers. 84.3 -> 86.2.
-//  - The first `FUN_004ab570` arm's `if (me->field_c0 != 0) { ... }` is written
-//    as an early exit, `if (me->field_c0 == 0) goto skip0; ... skip0:;`, which
-//    is how the original lays that guard out (`je` past the body). 86.2 -> 86.6.
-// What still differs, unchanged from the note above: (a) flags loads into ecx
-// not eax; (b) the 0x20 loop keeps flag8 in edx and spills ip to [esp+0x1c]
-// where the original spills flag8 and keeps ip in esi (with n2/row/k in the
-// matching rotation); (c) the y1 `lea` base/index order; (d) the two scroll
-// tails' temp rotation, all downstream of (b). The exact 0x20 register map was
-// not reachable: every spelling of flag8/ip (types, scopes, pointer-to-flag8
-// forcing memory, a `char*` walk, one more use of either) either leaves the
-// map unchanged or changes it globally and drops the score. The loop bound was
-// the one knob that moved it.
-// 2026-10-02 (claude-opus-5-5): 67.6% -> 84.3%, exact size (1830 of 1832 bytes),
-// rewritten from scratch as plain structured code. The old file's goto web, its
-// `if (i < 1) break;` nudge and its `(unsigned short)` addend are all gone:
-// written naturally, MSVC already gives the original's prologue and first-loop
-// allocation (point.x in edi then stored, the counter in esi, point.y in edi).
-// What the rewrite established, each measured:
-//  - Both line computations are `me->field_ba = (point.y - r.y0) / span +
-//    me->field_bc;` followed by tests on me->field_ba itself: that gives the
-//    original's `mov cx,[ebp+0xbc] / add eax,ecx / test ax,ax` (a 16-bit add)
-//    and the later `movsx edx,cx`.
-//  - The 0x20/0x80 block builds only the pointer its mode needs
-//    (`if (...) fixed = ...; else ip = ...;`) and steps only that one, as the
-//    original does; `remain -= span` / `remain -= row->height` are two
-//    statements (the original subtracts in both arms). `flags & 0x20 | 0x80`
-//    is the original's always-true test (`and ecx,0x20 / or cl,0x80`).
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash, notes by claude-opus-5-5, checked by GPT-6, improved by claude-opus-5-5. Names are provisional.
+// 2026-10-03 (claude-opus-5-5, #5158): 88.1% -> 93.4%, 1830 of 1832 bytes.
+// One difference is left (below); ignoring the jump targets it moves, the
+// function is 98.8%. Scratch files, sweep scripts and a C2 split tracer:
+// build/scratch/0x4a3780/ (c2split.py is tools/c2prio.py plus hooks on
+// FUN_00439385/FUN_00438f79; patch_c2split.py builds it).
+// What changed, each measured:
+//  - The flag8 block declares `k` after the pointer choice and indexes the
+//    rows with me->field_bc directly. With `int k = me->field_bc;` before the
+//    `if (flag8)`, the flags local (whose last use is the in-place `shr`)
+//    has priority 47 in C2 (tools/c2prio.py), takes ecx for its whole range
+//    and the frame loses its slot. With k after the arms its priority is 23:
+//    it loses ecx to the 0x10 block's field_bc temp and ebx to r.y0 and is
+//    split into an eax piece plus its [esp+0x20] home, as in the original.
+//    The pointer choice now tests flag8 itself (the original's `je` reuses
+//    the flags of `and eax,1`), and the loop allocation comes out exactly:
+//    flag8 and fixed in memory, ip in esi (with the load of the
+//    uninitialised ip in the fixed arm), n2 edx, row ecx, remain edi.
+//    88.1 -> 93.1.
+//  - `int remain` before `int n2 = 0;` (the xor after both subs), and the
+//    0x10 clamps written plainly: `>= field_c0 - 1` (the original's dec/jl)
+//    and `if (me->field_ba < 0) me->field_ba = 0;`. The old short* store and
+//    the `> c0 - 2` size filler are gone. 93.2.
+//  - The rectangle is FUN_004a1630 (matched, src/unsorted/0x4a1630.cpp),
+//    defined here without an annotation and inlined, called as
+//    `FUN_004a1630(&entries[index], &r)` the way the matched sibling 0x4a1b40
+//    calls it. With `me` as the argument the y1 lea stays `[ebx+ecx-1]`.
+//    That lea, and the three `field_bc + step - 1` leas, follow how many
+//    symbols the front end has created before `r` and before `step`:
+//    dummy declarations inserted after `Rect r;` fix the y1 lea, before it
+//    they break it, and no file-level count fixes all four. 93.4.
+//  - Neutral, kept because the siblings use them: the LineHeight helper with
+//    a glyph struct (0x4a1b40), `unsigned int flags` (0x4a1b40), and the
+//    callee prototypes from the callees' own matched files.
+// What still differs: obj is not kept in esi across the join after the
+// callbacks. The original has `jmp` + `mov esi,[esp+0x50]` on the
+// orig_sel == field_ba edge and `mov [esi+0xcca],1`; ours reloads obj into
+// ecx at the cca store, which also shifts two scratch registers in the scroll
+// paths (cx/dx, dx/ax) through the temporary rotation. Cause, traced in C2:
+// in the second joint live-range split (FUN_00438f79) the ret1 block (shared
+// by the three first-arm exits and the 0x40 test) joins the region of its
+// first compatible predecessor, the first arm's `!(flags & 0x200)` block.
+// The 0x40-test block is in another region, so a split point is inserted at
+// its end, obj's web is cut there and the cca block's piece stays in memory.
+// Confirmed both ways: with the first arm returning 1 itself (ret1 reached
+// only from the 0x40 test) the join is byte-identical to the original but
+// three extra epilogues cost 37 bytes; an obj use after the 0x40 test also
+// gives esi. Flat: ret1 placed in the first arm, at the end of the function
+// or behind a trampoline label; nested first-arm forms; a short c0 local;
+// `if (!(flags & 0x40)) { cca; goto end; }`; entries[index] spellings in the
+// tail; the callback through a local; /Gi; struct and extern count scans;
+// permute.py (two 20-minute runs).
+// Earlier findings that are still load-bearing:
+//  - `if (me->field_c0 == 0) goto skip0;` with skip0 at the end of the
+//    in-rect block: the original reloads point.x on that edge only (the
+//    nested `if (c0 != 0) {...}` form puts the reload on the out-of-rect
+//    edges too, 92.9%).
 //  - The scroll-up/scroll-down tails share one FUN_004a1b40/FUN_004a2be0 pair
-//    through `goto finish`; with separate copies MSVC merges the two
-//    `me->field_ba = orig_sel` restores, which the original keeps apart. The
-//    three early `return 1`s need `goto ret1` (MSVC 5 does not merge identical
-//    return blocks and the original has one).
-//  - The FUN_004b6af0 result goes through a `char* s` local, so `push 2` comes
-//    after the call as in the original.
-//  - The second 0x10 loop's clamp is `min(...)` (windows.h): the
-//    if-form keeps entries in ebx, the ternary/min puts it in esi and the walk
-//    pointer in eax as the original does.
-//  - `flags` lives in its own stack slot in the original ([esp+0x20], stored
-//    after `test al,0x10`, reloaded for `test ah,2`). Two things together make
-//    MSVC do that here: one of the 0x10 block's field_ba stores goes through a
-//    `short*` (the `< 0` clamp below; any of the three clamp stores works, the
-//    first store does not), and the 0x20 block's pointer choice tests
-//    `flags & 0x80` rather than flag8. Either one alone leaves flags in ecx
-//    (65-73%). Testing flag8 is what the original does (its `je` reuses the
-//    flags of `and eax,1`), so this costs one `test cl,0x80`.
-// What still differs:
-//  (a) flags is loaded into ecx, the original uses eax (3 instructions, 1 byte).
-//  (b) the 0x20 loop: the original spills flag8 to [esp+0x1c] and keeps ip in
-//      esi (its flag8 arm has a dead `mov esi,[obj]`, so ip shares esi with
-//      obj, which is also why obj stays in esi through the select check and the
-//      field_cca store). Here flag8 is in edx and ip is spilled to [esp+0x1c].
-//      Every spelling of the block (flag8 as shr/!= 0, ternary or if/else row,
-//      increment order, declaration order, flag8 or ip at function scope, a
-//      struct-member flag8, step reused as flag8) is flat or worse.
-//  (c) `lea eax,[ecx+ebx-1]` at the y1 computation comes out `[ebx+ecx-1]` with
-//      <windows.h> (it is right without it, but min() and the 0x10 loop need it).
-//  (d) scroll-up's orig_sel restore uses dx (cx in the original) and
-//      scroll-down's bc compare uses ax (dx): temp rotation, downstream of (b).
-// LEAD, not taken: testing the saved `flags & 0x40` instead of re-reading
-// `me->flags & 0x40` after the callbacks (a semantic change: the callback
-// could change me->flags) also spills flags, without the short* store or the
-// `& 0x80` test, and scores 84.9%. permute.py from this file found only noise
-// (a reordered in-rect `&&` chain, 85.4%).
+//    through `goto finish`; the three first-arm `return 1`s are `goto ret1`
+//    (MSVC 5 does not merge return blocks).
+//  - The 0x10 line computation stores straight into me->field_ba and tests
+//    the field (16-bit add, `movsx edx,cx`); the FUN_004b6af0 result goes
+//    through `char* s`; the sync loop clamp is min() (entries in esi).
+//  - The 0x20 test is `flags & 0x20 | 0x80`, an original bug kept as is: it
+//    parses as `(flags & 0x20) | 0x80` and is always true (docs/bugs.md).
 #include <string.h>
 #include <windows.h>
 
@@ -194,7 +87,7 @@ struct Entry_004a3780 {                // 0x15b bytes
     short field_bc;                    // +0xbc
     short field_be;                    // +0xbe
     short field_c0;                    // +0xc0
-    void* field_c2;                    // +0xc2
+    char* field_c2;                    // +0xc2
     void* field_c6;                    // +0xc6
     char unknown_ca[0xce - 0xca];
     void (__stdcall* field_ce)(void*, void*);  // +0xce
@@ -244,12 +137,12 @@ extern char DAT_00502a20[];
 
 void __stdcall FUN_004c1420(int id);
 int FUN_004c1450();
-void* __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
-char* __stdcall FUN_004b6af0(void* text, int line);
+int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
+char* __stdcall FUN_004b6af0(char* text, int n);
 int FUN_004b6340();
-int __stdcall FUN_004ab570(Object_004a3780* obj, int mask);
-int __stdcall FUN_004ab510(Object_004a3780* obj, int mask);
-int __stdcall FUN_004ab5b0(Object_004a3780* obj, int mask);
+int __stdcall FUN_004ab570(Object_004a3780* obj, unsigned char buttons);
+int __stdcall FUN_004ab510(Object_004a3780* obj, unsigned char buttons);
+int __stdcall FUN_004ab5b0(Object_004a3780* obj, unsigned int mask);
 void __stdcall FUN_004ab690(Object_004a3780* obj, int param_2);
 void __stdcall FUN_0049fc50(Object_004a3780* obj, int index);
 void __stdcall FUN_004a1b40(Object_004a3780* obj, int index);
@@ -266,6 +159,31 @@ struct Item_004a3780 {
     Row_004a3780* row;                 // +0x28
 };
 
+void __stdcall FUN_004a1630(Entry_004a3780* entry, Rect_004a3780* rect)
+{
+    if (entry->type == 0) {
+        rect->x0 = 0;
+        rect->y0 = 0;
+    } else {
+        rect->x0 = entry->field_13;
+        rect->y0 = entry->field_15;
+    }
+    rect->x1 = entry->field_17 + rect->x0 - 1;
+    rect->y1 = entry->field_19 + rect->y0 - 1;
+}
+
+struct Glyph_004a3780 {
+    unsigned short width;              // +0x00
+    unsigned short height;             // +0x02
+};
+
+static inline int LineHeight_004a3780()
+{
+    if (0 == DAT_0051fba4->list)
+        return FUN_004c1450();
+    return ((Glyph_004a3780*)FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49))->height + 2;
+}
+
 // FUNCTION: 0x4a3780
 int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
 {
@@ -277,17 +195,9 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
     if (me->field_c0 == 0)
         return 0;
     Rect_004a3780 r;
-    int flags;
-    if (me->type == 0) {
-        r.x0 = 0;
-        r.y0 = 0;
-    } else {
-        r.x0 = me->field_13;
-        r.y0 = me->field_15;
-    }
-    r.x1 = me->field_17 + r.x0 - 1;
+    unsigned int flags;
+    FUN_004a1630(&entries[index], &r);
     int n = 0;
-    r.y1 = r.y0 + me->field_19 - 1;
     r.y0 += 2;
     r.y1 -= 3;
     Point_004a3780 point = obj->point;
@@ -306,8 +216,7 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
     if (i == entries[0].count + 1)
         FUN_004c1420(DAT_0051fba4->current);
 
-    int size = (DAT_0051fba4->list == 0) ? FUN_004c1450()
-        : (*(unsigned short*)((char*)FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49) + 2) + 2);
+    int size = LineHeight_004a3780();
     short da = me->field_da;
     int span = (da != 0) ? da : size + 1;
     int step = (me->field_19 - 2) / span;
@@ -356,11 +265,10 @@ skip0:;
             if (me->field_ba >= 0) {
                 if (me->field_ba - me->field_bc > step - 1)
                     me->field_ba = me->field_bc + step - 1;
-                if (me->field_ba > me->field_c0 - 2)
+                if (me->field_ba >= me->field_c0 - 1)
                     me->field_ba = me->field_c0 - 1;
-                short* sel = &me->field_ba;
-                if (*sel < 0)
-                    *sel = 0;
+                if (me->field_ba < 0)
+                    me->field_ba = 0;
                 if (flags & 0x200) {
                     s = FUN_004b6af0(me->field_c2, me->field_ba);
                     if (strncmp(DAT_00502a20, s, 2) == 0)
@@ -374,16 +282,18 @@ skip0:;
                 me->field_ba = orig_sel;
             }
         } else if (flags & 0x20 | 0x80) {
-            int flag8 = ((unsigned)flags >> 7) & 1;
-            int k = me->field_bc;
+            // Original bug, kept: `(flags & 0x20) | 0x80` is always true
+            // (and ecx,0x20 / or cl,0x80 / test cl,cl at 0x4a3c29).
+            int flag8 = (flags >> 7) & 1;
             Row_004a3780* fixed;
             Item_004a3780** ip;
-            if (flags & 0x80)
-                fixed = &((Row_004a3780*)me->field_c6)[k];
+            if (flag8)
+                fixed = &((Row_004a3780*)me->field_c6)[me->field_bc];
             else
-                ip = &((Item_004a3780**)me->field_c6)[k];
-            int n2 = 0;
+                ip = &((Item_004a3780**)me->field_c6)[me->field_bc];
+            int k = me->field_bc;
             int remain = point.y - r.y0 - 2;
+            int n2 = 0;
             for (;;) {
                 Row_004a3780* row = flag8 ? fixed : (*ip)->row;
                 if (me->field_da != 0)

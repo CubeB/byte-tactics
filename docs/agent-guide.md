@@ -571,6 +571,18 @@ effect, the missing piece is usually a helper that was inlined:
 - **Retest a /Gi partial without /Gi after structural fixes**: 0x418310 scored
   higher with /Gi as a partial but matched without it, like its neighbours
   (#5276).
+- **A dead `mov eax, ecx` can be an inline helper's unused return value**:
+  in 0x4bd160 it was the return of the `Grow` helper from the matched
+  0x4bd3b0, called for its side effect (#5312).
+- **A reload at the head of a block can be a split value from a helper taking
+  a reference**: 0x4b5510's GDI cleanup is an inline helper that takes the DC
+  by reference, and the original's reload is the split value coming back
+  (#5315).
+- **Load order in a product can follow the bases' symbol ids**: in 0x466dc0
+  MSVC ordered the two loads of the x multiply by their bases' symbol ids, but
+  only once `u->type` was read through `UnitType*& type = u->type;`. The full
+  `<windows.h>` then gave the right ids; check them with
+  `tools/c2prio.py --symbols` (#5308).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

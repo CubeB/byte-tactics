@@ -1,4 +1,4 @@
-// Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6. Names are provisional.
+// Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, re-verified by GPT-6. Names are provisional.
 // Plots the two end points of one span row: the pixel at each end gets the
 // colour when it passes the depth test (the depth buffer keeps the integer
 // part of the 16.16 depth), or unconditionally when the surface has no depth
@@ -83,6 +83,9 @@
 // candidates) found nothing, and a run from a clean shape-B seed climbed only
 // 56.6 -> 80.0 into implausible source (self-assignments and an empty inline
 // helper), so it is not a lead.
+// GPT-6 retry recheck: aliasing surf through a local pointer leaves the score
+// at 96.2% and schedules the bits load before x2 and depth after the guard;
+// keep the source below, which preserves the original register coloring.
 //
 // New results that map the wall. The prologue needs an entry-block use of
 // surf->depth; a load inside `if (w > 0)` cannot be hoisted across the jle, so

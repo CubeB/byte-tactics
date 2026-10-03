@@ -1,4 +1,109 @@
-// Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, ninth pass by space-bunny-free. Names are provisional.
+// GPT-6.1-sol retry (issue 3137): confirmed 98.3% (865/865). Seven worker checks left the same 6-byte g_game-load hoist; a ternary final-return probe also tied. No MATCH observed.
+//
+// Ninth pass, space-bunny-free (issue 4206): kept 98.3% (865/865), same single
+// 6-byte hoist, no MATCH. Nothing below moved it; the compiler-state arm is now
+// closed, and there is a much sharper account of what the load IS, from the
+// compiler's own /Fa listing, which is the one thing the earlier passes could
+// not see. Read this before spending another pass on the source shape.
+//
+// HOW TO SEE THE TWO CODE PATHS (tools/wcl /Fa, the listing's `; Line N`
+// comments). MSVC emits an expression load with the line number of the
+// statement that needs it, and a temp's definition in a later pass with NO line
+// number. In our listing the four g_game loads read:
+//
+//   line 485 (first test)  mov ebp,[g_game]   ; Line 485    <- in place
+//   line 492 (second test) mov eax,[g_game]   ; Line 492    <- in place
+//   line 496 (third test)  mov eax,[g_game]   ; Line 496    <- in place
+//   $L391 (fourth test)    mov ebp,[g_game]   (no Line)    <- a reload
+//
+// so the last region's load is not an ordinary expression load at all: MSVC
+// decided it is a RELOAD of a value that must live across a call, and it emits
+// such reloads at the top of the block that follows the call (between the
+// `mov di,[esp+0x1a] / mov dx,[esp+0x16]` clobber reloads, which are the other
+// two values live across that call). The original's load sits in the fourth
+// test's own block, after `mov eax,[ebx+0x92]`, in EBX, i.e. where an ordinary
+// in-place expression load goes.
+//
+// THE TRIGGER, MEASURED (build/scratch/0x465ac0/g3, g13, g14). Take the base
+// file and delete exactly one thing, and watch which path the load takes (the
+// listing labels are stable enough to compare):
+//   - delete `p.x -= u->def->f176;` (d_noupdate): the fourth test's first use
+//     is then IN the post-call block, and MSVC emits the load IN PLACE there,
+//     with a line number, in EBX, because `u` is dead and EBX is free. That is
+//     exactly the original's position and register; the rest of the function
+//     then scores 64.9, but the load itself is right.
+//   - delete the IsSeen arm (the earlier passes' v2/e_only): the same, in place
+//     at the top of the fourth block, after `mov eax,[ebx+0x92]`.
+//   - delete the call from the third test's helper (g6/no_call3): the same, in
+//     place in the fourth block.
+//   - delete the third test's g_game read but keep its call (g9/h_noread3): the
+//     load is still a reload in the post-call block, so "the value is live
+//     across the call" is NOT the test; what matters is that the value's live
+//     range starts in a LATER block than the post-call block.
+// So: with a call before the region and a value that is live in more than one
+// block, MSVC defines the value in the post-call block; the original does not.
+// Every source spelling that keeps the other 859 bytes exact falls into the
+// first case. That is the whole remaining gap, and it is not a register choice:
+// the register follows the block, as the d_noupdate measurement shows (same
+// source shape, EBX instead of EBP, purely because `u` is dead there).
+//
+// The compiler-state arm is closed. Unused-declaration sweeps, all scored with
+// check.py --sym and all at the exact 865 bytes unless noted: `extern int
+// dummyN;` for N = 0..3000 step 2 (1501 variants, every one of them re-checked
+// for the EBP hoist in the diff: 0 of 1501 without it), the same range as
+// unused prototypes, and 0..2000 step 2 as unused structs. The score as a
+// function of N is the SAME for all three kinds (98.26, 87.61, 86.67, 85.51,
+// 83.30, 82.87, 81.40, 80.14, 78.87 and nothing above 98.26), so MSVC's state
+// here depends on one counter, the number of declarations, and no value of it
+// reaches 100. headers.py --cpp re-run this pass: 768 sets, none matches,
+// <memory.h> ties, <stdio.h>/<stdlib.h>/<string.h> cost 13 points.
+//
+// Shapes tried this pass, all 98.3% at 865 bytes with the byte-identical hoist
+// (build/scratch/0x465ac0/g1..g14, 55 of them also run as combinations):
+// IsSeen and IsExplored3 inlined into IsVisible3 (94.1: the normalisation
+// goes); IsSeen inlined only; explicit else in IsVisible3; `Game* g = g_game;`
+// as the first statement of IsVisible3 and inside IsSeen; g_game and
+// g_game->flags passed as extra arguments; the position's `&&`-free flags test
+// written `&& pos != 0` (95.2) and `|| 0` (87.4); the flags test as a
+// `return cond ? A : B` (94.1); the arms returning straight out of
+// FUN_00465ac0 with no IsVisible3 at all (93.2, 829 bytes: without the helper
+// boundary MSVC range-tracks the constants and drops all four
+// normalisations, so the helper is load bearing); the parameter order of
+// IsExplored3/IsSeen/IsVisible3 reversed; IsVisible3 as a member of Position;
+// the whole last region in the third test's else arm, with and without the
+// update inside it; a comma-operator update; `do{}while(0)`, `while(1)`, a
+// `for(;;)` with a break, a bare `goto` label, an extra `{ }` scope, a
+// `Position* pp` local, an `int r` result local, `if (!V) return 0; return 1;`,
+// `V == 1`, `V != 0`, braces on the arms, `&& 1` and `:: 0` on the condition;
+// the p.x update moved INSIDE the helper (helper taking `Unit*`, `UnitDef*`
+// or `Pos*`; the notes above call this 58.1, but all four spellings are 98.3%
+// at exactly 865 bytes, so that number is wrong); the update through a local
+// (`int t = ...; p.x = t;`, `int x = p.x - u->def->f176; p.x = x;`); a `def`
+// local for the first three updates; the IsSeen mask and player bit split
+// into two arguments or two named locals; g_game read through a cast
+// (`*(unsigned char*)((char*)g_game + 0x14281)`), through
+// `*(Game**)&g_game`, through a `Game*` local, or through a `UseExplored()`
+// member function; `extern Game_00465ac0* const g_game;`; `#pragma pack` 2, 4,
+// 8 and 16 (90.9, 96.9); the helpers declared after the function instead of
+// before it; the helpers without `static`; and fifteen perturbations of the
+// early half of the function (operand order of the three position sums, the
+// early returns, `== 0` spellings, `(int)` casts, an f176 local, a def local,
+// the limitY test as one `&&`). Nothing moved the load; the ones that do
+// change the size lose points.
+//
+// The one idea this pass did not get to, and the only one the evidence still
+// points at: the value's definition point is where MSVC decides to CREATE the
+// value instance, and it does that at the call's fall-through block because
+// the `g_game` node was already live when it passed the third test's call (the
+// third test's `g_game->flags` read). If the fourth test's three reads were a
+// DIFFERENT expression value, the node would be fresh, its definition point
+// would be its first use, and the load would be emitted in place at the top of
+// the fourth block in EBX. Every spelling tried here (casts, a local, a
+// member function, a parameter) folds back into the same value number, so the
+// next attempt needs a genuinely different value, not another spelling of the
+// same one.
+//
 // GPT-6.1-sol retry (issue 3137): confirmed 98.3% (865/865). Seven worker checks left the same 6-byte g_game-load hoist; a ternary final-return probe also tied. No MATCH observed.
 // PARTIAL: 98.3 percent, size exact (865 bytes against the original's 865).
 // Everything from the prologue through the third visibility test is byte exact,

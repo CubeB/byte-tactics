@@ -1,4 +1,67 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass space-bunny-free (issue 4206): 86.8% (908 of 919), up from 86.6%, and the
+// build is now the SEMANTICALLY CORRECT walk (the infinite-loop `if` with a body
+// every earlier pass kept is gone). Two source changes, both from the walk's own
+// block layout, both worth keeping:
+//
+//  1. The inner loop is `while (1) { if (c == 0) break; if (c->field_c != (int)p)
+//     break; <body> }`, i.e. BOTH loop tests at the top, instead of `while (c != 0)
+//     { if (c->field_c != (int)p) break; ... }`. With only the field_c test at the
+//     top MSVC rotates the `c != 0` test to the bottom and gives `ebp` to `c`,
+//     which pushes `base` and `e` out to dead argument slots (69.5%, the score
+//     every earlier pass reports for the correct break). With the redundant
+//     `if (c == 0) break;` at the top, MSVC keeps the original's split: `base`
+//     and `e` share EBP, `c` lives in the dead growpackets argument slot 0x30
+//     with an EAX register copy, `n` takes the dead growbufs slot, and `j`
+//     becomes a frame local. That is the same allocation the (wrong) kept build
+//     had, so all of it comes back: 83.6% on its own, +2.8 with change 2.
+//  2. The two stores `e->field_18 = field_34; e->field_c = (int)p; e->field_1c = 0;`
+//     in that order, `field_18` FIRST. MSVC then joins the `if (c->field_10 >= 0)`
+//     block at the `mov ecx,[ebx+0x34]` reload (0x4622a3 in the original) instead
+//     of at the `e->field_c` store, which is what the original does: +0.2.
+//
+// Frame slots now line up with the original for the first time in this function:
+// base 0x10 and j 0x2c (the dead growbufs argument slot) are both RIGHT, and
+// c 0x30 is right; i, n, p, q are still permuted (ours base 0x10, i 0x14, p 0x18,
+// n 0x1c, q 0x20 against the original's base 0x10, n 0x14, i 0x18, q 0x1c, p 0x20).
+//
+// What still differs, all of it downstream of one allocator state:
+//  * `n` keeps a register copy in ESI across the inner loop, the original
+//    increments it in memory (`mov edi,[esp+0x14] / inc edi / mov [esp+0x14],edi`
+//    at 0x4621eb) and reloads it only at the loop exit. Because ESI stays live,
+//    our `q = base + n` is `mov ecx,esi / shl ecx,5 / add ecx,ebp` where the
+//    original's dead ESI gives `shl esi,5 / lea ecx,[esi+ebp]`, our latch
+//    reloads n (`mov esi,[esp+0x1c]`) where the original reloads nothing, and
+//    our exit block reloads three slots where the original reloads four (j, base,
+//    n, i). Forcing that one thing would move n's slot to 0x14 as well, since a
+//    memory RMW is its first store.
+//  * the redundant `c == 0` test costs us a `cmp eax,edi / je` at the loop head
+//    that the original does not have (the original tests `c != 0` at the BOTTOM,
+//    at 0x4622d6), so our back edge is an unconditional `jmp` where the
+//    original's is `jne` into the two-entry reload block at 0x4621d8.
+//  * our `c == 0` handler falls through inline, the original's is out of line
+//    (`je 0x4622f9`; inverting the test costs 4 points here, as in every earlier
+//    pass), and the tail loads the delete[] argument into EDX in the original and
+//    ECX here.
+// New this pass, all measured on scratch variants, none better than the kept
+// build: `while (c != 0 && c->field_c == (int)p)` and the `for` spelling of it
+// (69.5%), `do { ... } while (c != 0)` with the field_c test inside (68.4%),
+// the `continue`-at-the-bottom spelling (69.5%), `if (!c) break` (86.8%, equal),
+// `int j;` zeroed after `p->start = n` (76.8%), `&base[n]` and
+// `p->field_10 = (int)(base + n)` (86.8% / 82.6%), `e = q; q = q + 1; n++; *e = *c;`
+// and `n++; e = q++; *e = *c;` (86.8%, equal), all six orders of the three tail
+// statements (86.8% / 86.4%) and of the three `e->field_*` stores (86.8% at
+// `field_18, field_c, field_1c`), and renaming a local (byte-identical, so the
+// slot order is not a name-hash effect).
+// Also measured, for whoever comes next: MSVC 5 hands out frame slots in the
+// order a local FIRST appears in the generated code, ascending (probes with
+// 7 and 8 live values confirm it, and reversing only the order of USES, not of
+// declarations, reverses the slots), with one exception seen here: a local whose
+// first store lands between a `push` and its `call` (`totalentries` here) is
+// allocated LAST and takes the highest slot. Locals that fit a dead argument
+// slot take that instead and consume no frame slot. That rule predicts this
+// build's map exactly and the original's except for i/n and p/q, so the
+// permutation is the only thing left to explain.
 // Pass deepseek-v4.1-flash (issue 3758, 10 min box): kept 86.6%, two check.py
 // runs on the free `--sym` path, no score movement. Re-ran the `e = q++; n++;
 // *e = *c;` variant (84.0%, 903 bytes) that the notes say moves n into the
@@ -624,11 +687,22 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
                         p->start = n;
                         Entry_00461fd0* q = base + n;
                         p->field_10 = (int)q;
-                        while (c != 0) {
-                            if (c->field_c == (int)p) {
+                        while (1) {
+                            // The `c == 0` test is redundant with the latch's
+                            // back edge, and the original does not have it, but
+                            // it is what keeps MSVC giving EBP to base/e instead
+                            // of to c. Without it this whole shape scores 69.5%.
+                            if (c == 0) {
+                                break;
+                            }
+                            if (c->field_c != (int)p) {
+                                break;
+                            }
+                            // The original loads n, increments it in memory and
+                            // only then advances q, before the 32-byte copy.
                             Entry_00461fd0* e = q++;
-                            *e = *c;
                             n++;
+                            *e = *c;
                             if (c->field_10 >= 0) {
                                 c->field_10 = -1;
                                 c->field_14 = FUN_004b6340();
@@ -647,8 +721,8 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
                                 e->field_10 = 0;
                                 field_20 += e->field_8;
                             }
-                            e->field_c = (int)p;
                             e->field_18 = (int)field_34;
+                            e->field_c = (int)p;
                             e->field_1c = 0;
                             if (field_34) {
                                 field_34->field_1c = (int)e;
@@ -659,7 +733,6 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
                             }
                             j++;
                             c = (Entry_00461fd0*)c->field_1c;
-                            }
                         }
                         p->count = j;
                     }

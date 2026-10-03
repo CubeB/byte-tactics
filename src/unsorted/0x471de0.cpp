@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// #5395 retry: 98.6% remains best. Issue #4841 confirms the explicit std::copy
+// specialization reaches the delta-base SIB, but swaps the end/delta registers
+// and scores 91.7%, so the original's combined state remains unreachable.
 // Symbol ids, read with `c2prio.py --symbols` (docs/c2-regalloc.md, "Symbol
 // ids"; Claude Opus 5.5): the count below is the file total, the front end's
 // symbol count at the end of the file (5055 here), which seeds the ids C2

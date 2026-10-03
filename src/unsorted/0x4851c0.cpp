@@ -1,4 +1,29 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 pass with tools/c2prio.py (#5260, 2026-10-03): still 84.7%.
+// The residual is one colouring-order decision, now measured, not guessed:
+// - The x difference (the b.x param web) has priority 74 and is coloured after
+//   n (130) and the |dx| temp (104). Both of those take ecx first, so dx is
+//   left with esi. In the original dx is in ecx and |dx| and n are in esi.
+// - Proof that priority is the whole cause: three extra stores of b.x to
+//   globals right after the subtractions lift dx to 134. The prologue then
+//   becomes the original's exactly (b.x hoisted into ecx, |dx| and n in esi),
+//   apart from the stores themselves.
+// - Under C2's rule (w * K * cost per block) this IL cannot get there. dx has 3
+//   refs in the subtraction block B0 and 1 in the division block. The |dx|
+//   temp has 5 refs in B0. So dx loses to it for every K, which means the
+//   original's IL must give dx references outside B0, or put |dx| in another
+//   block. A second route: an uncoloured dx that prefers ecx (a copy with a
+//   candidate already in ecx) would add an ecx cost to n and |dx|. No natural
+//   source for either was found.
+// - n stays at 130 in about 60 shapes (Steps/Div/Sub helpers by value and by
+//   reference, template Max, loop forms, `fordec`, labs, __max). Computing n
+//   in each arm (`if (abs(d.x) < abs(d.z)) n = abs(d.z) / 0x100000; else
+//   n = abs(d.x) / 0x100000; n++;`) drops n to 96 with byte-identical output.
+//   It still leaves dx at 68, below the |dx| temp at 106.
+// - Also flat or worse: the Fixed union Vec3 from 0x4853b0 (84.7%), scalar
+//   int parameters (322 bytes), the divisions moved into the loop (351
+//   bytes), `d.z` divided first (76.6%), and a permuter run from the per-arm
+//   form (seed 77, 16 minutes, 18499 candidates, 84.7% flat).
 // Codex GPT-6 retry for #5210 (2026-10-03): current main remains 84.7%.
 // Existing frame/register probes and the prior 19019-candidate permuter found
 // no better source; `/Gi` is already recorded at 46.4%.

@@ -3,6 +3,8 @@
 // A no-op goto/label placed immediately before or after the bit definition
 // keeps the same 88.5% residual; prior allocation and header results remain.
 // GPT-6 retry (#5237): rechecked at 88.5%; the documented live-range ordering remains.
+// #5324 Codex retry: re-confirmed 88.5%; the forced LOS register allocation
+// and block-label variants remain covered by the saved C2 analysis.
 // #5285 Codex retry: re-confirmed 88.5%. The forced LOS coloring remains
 // unreachable through the source shapes and block labels already recorded below.
 //

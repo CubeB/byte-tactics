@@ -1,6 +1,7 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
 // Codex GPT-6 retry for #5198 (2026-10-03): `/Gi` preserves the 99.4%
 // score and both SIB base/index mismatches; the default source remains best.
+// GPT-6 retry (#5248): rechecked at 99.4%; both g_game store SIB orders remain swapped.
 // (previously: deepseek-v4.1-flash, GPT-6, space-bunny-free.)
 //
 // GPT-6 retry (#4906): extracted both stores into one static inline helper

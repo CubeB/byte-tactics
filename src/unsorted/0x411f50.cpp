@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by Claude Opus 5.5. re-verified by GPT-6. Names are provisional.
 // Claude Opus 5.5, issue #5033 (still 97.1%, file unchanged below). New lead
 // on the state-4 x87 block, measured with small scratch files compiled by
 // tools/wcl (build/scratch/0x411f50/mic*.cpp in that session):

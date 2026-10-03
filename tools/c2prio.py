@@ -3,6 +3,7 @@
     uv run tools/c2prio.py 0x4cf570
     uv run tools/c2prio.py 0x4cf570 build/scratch/0x4cf570/try.cpp
     uv run tools/c2prio.py 0x4cf570 --trace      # also every colouring step
+    uv run tools/c2prio.py 0x47d2e0 --blocks bit,los   # where each priority comes from
 
 This compiles the function's file with the real back end (C2.EXE) running under
 a debugger and reads the global register allocator's own data
@@ -24,6 +25,13 @@ in the order FUN_0041bdd7 sorted them:
 --trace adds every colouring step: each register choice with the registers
 still allowed and FUN_0041b785's costs, splits, re-sorts and skipped
 candidates.
+
+--blocks [NAMES] adds, for every candidate in the list (or for the ones named,
+comma-separated: a name as the table prints it, or #id), each basic block's
+share of its priority in FUN_0040ee1d's first pass: the block's weight w and
+count K, then w * K * cost for a block that references the candidate, or -w * K
+for one it is live through without a reference. The shares add up to the
+priority in the table.
 
 How: a copy of C2.EXE under build/c2prio/<run>/ has `jmp $` at its entry
 point. CL runs that copy (/B2), winedbg attaches to it with its gdb server, and
@@ -64,6 +72,18 @@ CHOSEN = 0x4171D4         # back from FUN_0041b785; register at candidate +0x10
 SPLIT = 0x439385          # FUN_00439385 entry, live-range split; ecx = candidate
 RESORT = 0x416FE2         # priorities recomputed (FUN_0040ee1d again) and the list re-sorted
 END = 0x417317            # every register class done
+
+# FUN_0040ee1d (priorities), for --blocks. At the end of each block's tuple walk
+# (BLOCK_END) the block is at [esp+0x20] (first tuple +0x1c, end +0x20, loop
+# depth +0x86), ebx lists the candidates the block references that are not in
+# the live list, [esp+0x10] is the live list (flag 0x10 at +6: referenced here)
+# and ebp a set C2 also counts into K; +0x18 of each candidate is its cost in
+# this block. At BLOCK_WK, edi = w and esi = K. C2 then adds w * K * cost to
+# each referenced candidate (0x40f70d for the ebx list, 0x40f742 for the live
+# list) and subtracts w * K from each unreferenced live one (0x40f72c); the
+# tool repeats that arithmetic from what it read at BLOCK_END.
+BLOCK_END = 0x40F5C7
+BLOCK_WK = 0x40F5F5
 
 # Return addresses of the FUN_0040ebb6 calls that make the pieces of a split
 # candidate, and the register holding the candidate being split at each.
@@ -266,6 +286,39 @@ def tracer() -> None:
         c = reg("esi")
         ev("chosen", c, reg=regnum(u32(c + 0x10)), costs=list(struct.unpack("<9i", rd(COSTS, 36))))
 
+    def cand_list(head):
+        """[id, flags at +6, cost at +0x18, register at +0x10] along the +0x14 chain."""
+        res, seen = [], set()
+        while head and head not in seen and len(res) < 100000:
+            seen.add(head)
+            raw = rd(head, 0x20)
+            res.append([struct.unpack_from("<I", raw, 0x1C)[0], raw[6],
+                        struct.unpack_from("<i", raw, 0x18)[0], struct.unpack_from("<I", raw, 0x10)[0]])
+            head = struct.unpack_from("<I", raw, 0x14)[0]
+        return res
+
+    last_block = {}
+
+    def on_block_end():
+        esp = reg("esp")
+        blk = u32(esp + 0x20)
+        lines, t, end, n = [], u32(blk + 0x1C), u32(blk + 0x20), 0
+        while t and t != end and n < 5000:
+            line = struct.unpack("<H", rd(t + 0x10, 2))[0]
+            if line:
+                lines.append(line)
+            t, n = u32(t), n + 1
+        e = {"e": "block", "set": len(bitset(reg("ebp")) or []), "refl": cand_list(reg("ebx")),
+             "live": cand_list(u32(esp + 0x10)), "lines": lines}
+        cur["events"].append(e)
+        last_block["e"] = e
+
+    def on_block_wk():
+        if "e" in last_block:
+            last_block["e"].update(w=reg("edi"), K=reg("esi"))
+
+    block_handlers = {BLOCK_END: on_block_end, BLOCK_WK: on_block_wk} if cfg.get("blocks") else {}
+
     handlers = {
         NEWCAND: on_new,
         DEFREF: lambda: on_ref(reg("edi"), "w"),
@@ -300,10 +353,17 @@ def tracer() -> None:
                 return True
 
     hooks = [Hook(addr, fn) for addr, fn in handlers.items()]
+    block_hooks = [Hook(addr, fn) for addr, fn in block_handlers.items()]
     # Real stops, where the hooks are switched on and off: each function's
-    # candidates are ready at REFS, and its allocation is over at END.
+    # candidates are ready at REFS, and its allocation is over at END. The
+    # block hooks only run in FUN_0040ee1d's first pass, from the allocator's
+    # entry to the sorted list (each re-sort runs it again).
     gdb.Breakpoint(f"*{REFS:#x}", internal=True)
     gdb.Breakpoint(f"*{END:#x}", internal=True)
+    if block_hooks:
+        gdb.Breakpoint(f"*{DRIVER:#x}", internal=True)
+        gdb.Breakpoint(f"*{SORTED:#x}", internal=True)
+    first_pass = False
 
     exited = []
     gdb.events.exited.connect(exited.append)
@@ -320,16 +380,23 @@ def tracer() -> None:
             pc = reg("eip")
             if pc == REFS:
                 on_refs()
+                first_pass = False
             elif pc == END:
                 cur = None
+            elif pc == DRIVER:
+                first_pass = cur is not None and not any(e["e"] == "sorted" for e in cur["events"])
+            elif pc == SORTED:
+                first_pass = False
             for h in hooks:
                 h.enabled = cur is not None
+            for h in block_hooks:
+                h.enabled = cur is not None and first_pass
     except Exception:
         failed.append(traceback.format_exc())
     if failed:
         out["error"] = failed[0]
         try:
-            for h in hooks:
+            for h in hooks + block_hooks:
                 h.enabled = False
             gdb.execute("detach", to_string=True)  # let C2 finish without us
         except Exception:
@@ -365,6 +432,9 @@ def host_main() -> None:
     ap.add_argument("--sym", help="substring of the mangled name, if the annotation can't be used")
     ap.add_argument("--flags", default=DEFAULT_FLAGS)
     ap.add_argument("--trace", action="store_true", help="also print every colouring step")
+    ap.add_argument("--blocks", nargs="?", const="", metavar="NAMES",
+                    help="also print each block's share of each candidate's priority (or only of NAMES: "
+                         "comma-separated names as the table prints them, or #id)")
     ap.add_argument("--json", type=Path, help="write the raw trace to this file")
     ap.add_argument("--keep", action="store_true", help="keep the run directory under build/c2prio/")
     args = ap.parse_args()
@@ -459,7 +529,8 @@ def host_main() -> None:
         cfg = run / "config.json"
         me = str(Path(__file__).resolve())
         relay_cmd = " ".join(shlex.quote(a) for a in (sys.executable, me, "--relay", str(port)))
-        cfg.write_text(json.dumps({"relay": relay_cmd, "exe": exe.name, "match": match, "out": str(out_json)}))
+        cfg.write_text(json.dumps({"relay": relay_cmd, "exe": exe.name, "match": match, "out": str(out_json),
+                                   "blocks": args.blocks is not None}))
         g = subprocess.run(["gdb", "-nx", "-q", "-batch", "-x", me],
                            env=dict(env, C2PRIO_CONFIG=str(cfg)), capture_output=True, text=True, timeout=3600)
         (run / "gdb.log").write_text(g.stdout + g.stderr)
@@ -489,7 +560,7 @@ def host_main() -> None:
         for n, fn in enumerate(fns):
             if len(fns) > 1:
                 print(f"\nC2 allocated this function {len(fns)} times; run {n + 1}:")
-            report(fn, brace, args.trace)
+            report(fn, brace, args.trace, args.blocks)
     finally:
         for p in procs:
             if p.poll() is None:
@@ -684,7 +755,7 @@ def result(c) -> str:
     return "split: " + ", ".join(got) + (f", {left} piece{'s' * (left > 1)} {none}" if left else "")
 
 
-def report(fn: dict, brace, trace: bool) -> None:
+def report(fn: dict, brace, trace: bool, blocks=None) -> None:
     roots = model(fn)
     events = fn["events"]
 
@@ -721,6 +792,70 @@ def report(fn: dict, brace, trace: bool) -> None:
               + ", ".join(f"{describe(c)} ({lines(c)})" for c in x87))
     if trace:
         print_trace(events)
+    if blocks is not None:
+        print_blocks(events, blocks, lambda ls: compress(ls if brace is None else [brace - 1 + d for d in ls]))
+
+
+def print_blocks(events, names: str, show_lines) -> None:
+    """Each block's share of each candidate's priority in FUN_0040ee1d's first
+    pass, from the lists read at BLOCK_END and w and K read at BLOCK_WK."""
+    sort = next((e for e in events if e["e"] == "sorted"), None)
+    if sort is None:
+        return
+    first = events.index(sort)
+    start = max((i for i, e in enumerate(events[:first]) if e["e"] == "driver"), default=0)
+    blocks = [e for e in events[start:first] if e["e"] == "block" and "K" in e]
+    snap = {s["id"]: (s, c) for s, c in zip(sort["list"], sort["cands"])}
+    label = {cid: describe(c) for cid, (s, c) in snap.items()}
+
+    shares = {}   # candidate id -> [(block number, w, K, cost or None, share)]
+    for n, b in enumerate(blocks):
+        wk = b["w"] * b["K"]
+        for cid, flags, cost, regp in b["refl"]:
+            if regp == 0:                      # 0x40f70d: only a candidate with no register yet
+                shares.setdefault(cid, []).append((n, b["w"], b["K"], cost, wk * cost))
+        for cid, flags, cost, regp in b["live"]:
+            if flags & 0x10:                   # 0x40f742: referenced in this block
+                shares.setdefault(cid, []).append((n, b["w"], b["K"], cost, wk * cost))
+            elif wk:                           # 0x40f72c: live through it unreferenced
+                shares.setdefault(cid, []).append((n, b["w"], b["K"], None, -wk))
+
+    want = None
+    if names:
+        want = set()
+        for tok in (t.strip() for t in names.split(",") if t.strip()):
+            for cid, text in label.items():
+                if tok in (f"#{cid}", str(cid), text) or text.startswith(tok + " ("):
+                    want.add(cid)
+        if not want:
+            print(f"\n--blocks: no candidate in the list is called {names!r}")
+            return
+    print("\nwhere each priority comes from (FUN_0040ee1d's first pass, before the sort): a block that "
+          "references\na candidate adds w * K * cost (cost 2 a reference, 0 or 1 for a constant), one "
+          "it is live\nthrough without a reference takes w * K. w: loop weight; K: candidates "
+          "referenced in the block.")
+    used = set()
+    for s in sort["list"]:
+        cid = s["id"]
+        if want is not None and cid not in want:
+            continue
+        rows = shares.get(cid, [])
+        total = sum(r[4] for r in rows)
+        check = "" if total == s["prio"] else f"   (the shares add up to {total})"
+        print(f"\n#{cid} {label.get(cid, '?')}: priority {s['prio']}{check}")
+        print(f"    {'block':<6} {'lines':<16} {'w':>3} {'K':>3} {'cost':>5} {'share':>6}")
+        for n, w, k, cost, share in rows:
+            used.add(n)
+            print(f"    B{n:<5} {show_lines(blocks[n]['lines']):<16} {w:>3} {k:>3} "
+                  f"{'-' if cost is None else cost:>5} {share:>+6}")
+    print("\nblocks above and the candidates each one references (K counts these"
+          + (", plus C2's own set" if any(b["set"] for b in blocks) else "") + "):")
+    for n in sorted(used):
+        b = blocks[n]
+        refs = [r[0] for r in b["refl"]] + [r[0] for r in b["live"] if r[1] & 0x10]
+        extra = f" + {b['set']} in C2's set" if b["set"] else ""
+        print(f"    B{n:<5} {show_lines(b['lines']):<16} w {b['w']} K {b['K']}{extra}: "
+              + ", ".join(f"{label.get(r, '?')} #{r}" for r in refs))
 
 
 def print_trace(events) -> None:

@@ -124,6 +124,7 @@ Consequences that agents can use directly:
     uv run tools/c2prio.py 0x4cf570                    # the file under src/
     uv run tools/c2prio.py 0x4cf570 build/scratch/0x4cf570/try.cpp
     uv run tools/c2prio.py 0x4cf570 --trace            # every colouring step too
+    uv run tools/c2prio.py 0x47d2e0 --blocks bit,los   # each block's share of a priority
 
 It compiles the file with the real C2.EXE under a debugger and prints, for the
 one function, C2's register candidates in the order `FUN_0041bdd7` sorted them,
@@ -172,6 +173,28 @@ register it got and `FUN_0041b785`'s nonzero costs (`ebp +8200` is a neighbour
 that has only ebp left, a negative cost is a preference), then splits,
 candidates skipped because their spill cost is not positive, and the re-sorts
 after `FUN_0040ee1d` recomputes the priorities following a split.
+
+`--blocks` shows where each priority comes from. `--blocks bit,#65` limits it
+to the candidates named, by the name the table prints or by `#id`. For each
+basic block in `FUN_0040ee1d`'s first pass it prints w and K and the
+candidate's share: w * K * cost where the block references the candidate, and
+-w * K where the candidate is live through the block without a reference.
+Below that is a list of the candidates each block counts in K. Constants count
+in K at cost 0 or 1. The shares add up to the table's priority; this held for
+all 95 candidates of 0x47d2e0 and 0x4cf570. Measured w is 1 outside loops
+(not 2 as step 3 above says), 4 in a loop and 8 in a nested one. On 0x47d2e0,
+`bit` is 70, of which 64 comes from the vis-test block (K 8, cost 8: `1 << player`
+is three references and the test one). The width temporary is 38, and `los`
+is 70, gathered over nine blocks. The tool reads two points in
+`FUN_0040ee1d`. At 0x40f5c7 (a block's end) it reads the block at `[esp+0x20]`,
+the referenced list in ebx, the live list at `[esp+0x10]` (flag 0x10 at +6
+marks referenced) and each candidate's cost at +0x18. At 0x40f5f5 it reads
+w in edi and K in esi. From these it repeats C2's own arithmetic at 0x40f70d
+and 0x40f742 (gains) and 0x40f72c (losses). The hooks are only on between the
+allocator's entry and the sort, so the default output and `--trace` are
+unchanged. A label, `do { } while (0)`, `switch (0)` or a constant initialiser
+set earlier (`bit = 1;` and later `bit <<= n;`) is merged or propagated before
+allocation, so none of them adds a block or changes K.
 
 How it works: the tool copies C2.EXE to `build/c2prio/<run>/c2p<run>.exe` with
 `jmp $` at the entry point (toolchain/ is never changed) and compiles with

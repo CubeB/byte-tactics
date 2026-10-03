@@ -30,6 +30,8 @@
 // GPT-6 retry (#4971): baseline remains 84.7% at 354 bytes. classify.py calls
 // this a frame diff (15 register changes, 8 instruction insertions/deletions);
 // stackcmp still places every local. A scratch /Gi build scores 46.4%.
+// Rechecked for issue #5130 on 2026-10-03; the same prologue/register hunk
+// remains at 84.7%.
 // DeepSeek V4.1 Flash pass (issue #4761): still 84.7%, 354 of 354 bytes, size
 // exact. tools/permute.py ran the HARD-CAPPED 3 minutes / 3268 candidates and
 // stayed flat at 84.7% (score 355); stackcmp reports no moved local, so no

@@ -1,4 +1,17 @@
 // Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
+// #5348 Claude Opus 5.5 (no gain, 76.6% kept; probes in
+// build/scratch/0x421700/t/): the original's x87 block is the list-scheduled
+// form of nine statements a.x..c.z in source order. Its stores go to
+// a = 0x64..0x6c, b = 0x58..0x60, c = 0x70..0x78 (esp-relative at the
+// first fild), in that order, and up to six values sit on the x87 stack.
+// In a probe, struct stores interleave like that when the block's calls
+// pass structs by value and return a float or void. They serialise as soon
+// as one call in the block takes an address: a struct return's hidden
+// buffer, or even `Fr(&global, b, a)`. A union of float[3] and the struct,
+// `*(V*)array`, and named structs filled from array elements all serialise
+// too. Also flat here: an inline FaceNormal(v) holding a, b, c and the
+// three calls (42.8 to 75.1%), and named B/A/C objects built once from the
+// float arrays (44.8 to 46%).
 // #5330 Codex retry: re-confirmed 76.6%; the x87 schedule and escaped vector
 // temporary mismatch remain after prior source-shape sweeps.
 // #5300 Codex retry: re-confirmed 76.6%; the x87 schedule and escaped vector

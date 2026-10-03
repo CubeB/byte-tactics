@@ -1,4 +1,13 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// #5348 Claude Opus 5.5 (94.9% from a scratch path, 93.2% from src/; kept):
+// a block-scope `extern g_game` does not move the deciding id. Next to the
+// file-scope declaration it is the same symbol (byte-identical). Without one,
+// each block-scope extern is a separate symbol, so GetUnit's g_game (its own
+// extern, or a file-scope one after the function with GetUnit defined last)
+// no longer shares the function's load: 66.7% with /Gi, 30.7% without,
+// extern first or after the locals alike. Writing GetUnit's body into the
+// function instead is 78.0% with /Gi. The window needs this function's own
+// id near 64543, about 32000 above what one declaration can move.
 // #5330 Codex retry: re-confirmed 94.9%; prior symbol-id and bitfield-order
 // sweeps found no new source shape.
 // #5300 Codex retry: re-confirmed 94.9%; prior symbol-id and bitfield-order

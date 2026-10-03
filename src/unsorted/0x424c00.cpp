@@ -1,4 +1,32 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
+// #5348 Claude Opus 5.5 (99.8% kept; scratch files in build/scratch/0x424c00/):
+//  - The 3D store needs the original's large symbol prefix: 32286 to 32305
+//    dummy externs before g_game give byte-identical code (only the static's
+//    $S suffix differs). That puts the 3D loop's `c` (id 33252 now) past
+//    65536 while the Anim loop's `c` and `s` (33228, 33237) stay below it,
+//    which is the "one large common header" in docs/c2-regalloc.md. A probe
+//    file (build/scratch/0x424c00/t/) shows the rule is not g_game's bit 14
+//    alone. With g_game's id G in [0, 16384) or [32768, 49152), the order is
+//    spots + offset until the index base `c` passes about G + 0x4000
+//    (rounded to a multiple of 0x400), then offset + spots until c wraps
+//    past 65536. With bit 14 of G set, it is offset + spots from c = G up to
+//    the wrap. Our two loops' `c` ids are 25 apart, so only a wrap between
+//    them gives the original's mix of one store each way.
+//  - Block-scope `extern g_game` (the #5325 lever) cannot do it in real
+//    source. Next to the file-scope declaration it is the same symbol (no
+//    change). Without one, every block-scope extern is its own symbol: a
+//    copy in FindName (FUN_00422e40) reloads g_game where the original
+//    shares the j loop's load (89.9%). A function-scope one has bit 14 clear
+//    (id about 32886), so both loops come out spots + offset (97.5%, as with
+//    the file-scope declaration moved after FreeFeatureList, id 32868). The
+//    only split found: the Anim spot through an inline SpotOf(c) holding its
+//    own extern, defined before a late file-scope g_game. That gives both
+//    orders right, but the extra /Ob2 call site leaves the second resize's
+//    erase and FreeFeatureList's ~vector out of line (60.4%). Fixing that
+//    needs the IL size near 1152 (it is 1049 there).
+//  - A local `Game_00424c00* game = g_game;` in the 3D block (seven
+//    placements) gives the right SIB order but becomes a register candidate
+//    in ecx where the original loads g_game into edx (98.3%).
 // #5330 Codex retry: re-confirmed 99.8%. An explicit local spots pointer
 // leaves the same final SIB order; the existing best is preserved.
 // #5300 Codex retry: re-confirmed 99.8%. A local spots pointer produced the

@@ -7191,7 +7191,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x43d6d0,920,mimo-v2.6-pro,#4327,partial,69.5,,"issue #4327, escalated"
 0x4d9ca0,647,sonnet-5.5,#4329,partial,79.2,,"issue #4329, escalated"
 0x4dacf0,780,sonnet-5.5,#4329,partial,55.6,,"issue #4329, escalated"
-0x482270,817,,#4331,assigned,,,"issue #4331, escalated"
+0x482270,817,space-bunny-free,#4331,matched,100.0,,"issue #4331, escalated"
 0x438c00,660,sonnet-5.5,#4333,partial,52.2,,"issue #4333, escalated"
 0x4394e0,601,sonnet-5.5,#4333,partial,66.7,,"issue #4333, escalated"
 0x425210,544,deepseek-v4.1-flash,#4335,partial,99.6,,"issue #4335, escalated"

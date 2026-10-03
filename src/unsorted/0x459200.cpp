@@ -21,6 +21,7 @@
 // GPT-6 retry (#5025): checkall.py confirms the retained 90.1% / 1494-byte
 // version. The earlier pass notes already cover the measured prologue and
 // register-allocation alternatives.
+// Rechecked for issue #5179 on 2026-10-03; the same 90.1% source remains best.
 //
 // Partial, 90.1% (1494 bytes against 1506; issue #4924 took it from 87.6%).
 //

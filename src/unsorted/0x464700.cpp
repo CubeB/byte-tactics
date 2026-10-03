@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6. Names are provisional.
+// Codex GPT-6 retry for #5191 (2026-10-03): current main remains 98.3%.
+// Moving the ff8 tick store below the six clears scores 96.6%; assigning
+// it from ff4 there scores 87.8%. The original schedule remains best.
 // GPT-6 retry: the current source remains 98.3%. Existing notes cover the
 // pointer, local, reference and scheduling variants for the remaining block.
 // A new probe took the address of an early tick local and stored through that

@@ -4,6 +4,8 @@
 // register split at the 0x40 return join is unchanged.
 // GPT-6 retry (#5219): rechecked at 93.4% (1830 B). The only code difference
 // is still the obj reload at the cca store and the resulting tail registers.
+// #5306 Codex retry: re-confirmed 93.4%; declaring and assigning a local
+// Object* alias for the field_cca store leaves the same reload and tail split.
 // #5268 Codex retry: best unchanged at 93.4%. An explicit Object* alias for
 // the field_cca store compiled identically; initializing it after the goto
 // targets was rejected by VC5, and declaring then assigning had no effect.

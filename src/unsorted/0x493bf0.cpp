@@ -3,6 +3,8 @@
 //
 // GPT-6 retry (#4906): extracted both stores into one static inline helper
 // that reads g_game directly. Inlining leaves both SIB operand orders unchanged.
+// Rechecked for issue #5117 on 2026-10-03; the two SIB base/index mismatches
+// remain unchanged at 99.4%.
 //
 // Partial: 99.4% (1116 of 1116 bytes, the byte count already matches).
 // Two instructions still differ, both the SIB base/index choice of a byte

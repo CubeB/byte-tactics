@@ -2540,6 +2540,7 @@ address,name
 0x4b8e00,FUN_004b8e00
 0x4b8e50,FUN_004b8e50
 0x4b8ec0,FUN_004b8ec0
+0x4b90a0,FUN_004b90a0
 0x4b91b0,FUN_004b91b0
 0x4b9360,FUN_004b9360
 0x4b94c0,FUN_004b94c0
@@ -4025,6 +4026,7 @@ address,name
 0x4fd428,??_7Class_0044ef20@@6B@
 0x4fd458,??_7Class_0044f010@@6B@
 0x4fd488,DAT_004fd488
+0x4fd4c0,DAT_004fd4c0
 0x4fd4cc,DAT_004fd4cc
 0x4fd514,??_7Class_00460f60@@6B@
 0x4fd518,??_7Class_00462d30@@6B@

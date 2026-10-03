@@ -7,6 +7,8 @@
 // and block-label variants remain covered by the saved C2 analysis.
 // #5285 Codex retry: re-confirmed 88.5%. The forced LOS coloring remains
 // unreachable through the source shapes and block labels already recorded below.
+// #5350 retry: re-confirmed 88.5%; the explored-cell and visibility liveness
+// still force the recorded LOS coloring mismatch.
 //
 // claude-opus-5-5 pass (#5165, 88.5%, no score gain; about 150 variants read
 // with tools/c2prio.py). Block names below: B4 `if (los)`, B5 call + first

@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#4891): checkall.py confirms this file prints MATCH.
 // DeepSeek V4.1 Flash 2026-10-02: MATCH (1015 bytes). The last Loop C
 // mismatch is fixed by giving the field_ff load its own condition term:
 //   (u->flags & 0x10000000) && (ff = u->field_ff, 1) && ff != pl->field_146

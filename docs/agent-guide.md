@@ -619,6 +619,16 @@ effect, the missing piece is usually a helper that was inlined:
   `--blocks` does not show. Assigning a pointer in both arms of an if/else
   (`f = info->faces + 1;` / `f = info->faces;`) tied info's piece with view's
   and coloured it first (#5398).
+- **Split pieces take ids from C2's freed list**: when C2 splits a value, the
+  new piece's candidate id comes from a list of freed ids, and reloads come
+  out in id order. In 0x4c0820, making `py` and `px` block locals in the scan
+  (used only for the first test of each pair and its store) gave pts's piece a
+  low id and the original's reload order (#5415).
+- **Head temporaries set a loop's rotation phase**: 0x4c8bb0's right walk was
+  one phase off until both walks read `y1` as `vertices[next*4+1]`, which adds
+  two head temporaries; one function-scope `next` shared by both walks kept
+  the frame (as in 0x4c1000). `tools/c2prio.py --rotation --frame` showed
+  both at once (#5418).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

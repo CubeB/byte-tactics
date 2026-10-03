@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, edited by DeepSeek V4.1 Flash, verified by GPT-6. Names are provisional.
+// Codex GPT-6 retry for #5193 (2026-10-03): /Gi leaves the same 99.5%
+// result and ECX load at 0x499775; the current source remains best.
 // GPT-6 retry: confirmed 99.5%; the only remaining difference is the ECX/EDX
 // choice for the g_game load at 0x499775. Prior notes record broad variant and
 // permutation searches without a better result.

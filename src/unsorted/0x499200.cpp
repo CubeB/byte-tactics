@@ -1,188 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, edited by DeepSeek V4.1 Flash, verified by GPT-6. Names are provisional.
-// Codex GPT-6 retry for #5193 (2026-10-03): /Gi leaves the same 99.5%
-// result and ECX load at 0x499775; the current source remains best.
-// GPT-6 retry: confirmed 99.5%; the only remaining difference is the ECX/EDX
-// choice for the g_game load at 0x499775. Prior notes record broad variant and
-// permutation searches without a better result.
-// GPT-6 retry (#5242): rechecked at 99.5%; the FUN_00435c00 load still uses ECX.
-// Rechecked for issue #5095 on 2026-10-03; the existing source still scores
-// 99.5%, with that single register choice unchanged.
-// claude-opus-5-5 (#4267): 98.4% -> 99.5% at the exact size (1655 bytes).
-// One register is left: the g_game load for the FUN_00435c00 call at 0x499775
-// is `mov ecx` here and `mov edx` in the original.
-// What moved it: MSVC 5 hands fresh g_game loads out in an eax -> ecx -> edx
-// rotation that runs on from the then arm into the else arm, and a load into
-// a named local does not advance it (the local takes the first free register,
-// eax unless eax is busy). Measured on the version without the `gp` local
-// (`unsigned int saved = g_game->field_2a3c;`, 94.7%): its else arm and whole
-// tail sat exactly one rotation step past the original, and deleting any one
-// g_game load from the then arm's first block put every register from
-// 0x4997a0 to the end in place. So the FUN_00435110 call now goes through
-// `Game_00499200* g = g_game;`: that load is a local (ecx, since eax still
-// holds the FUN_004352b0 result), the rotation no longer advances there, and
-// the else arm and tail match. The cost is that the next rotating load, the
-// FUN_00435c00 one, now gets ecx instead of edx. In rotation terms the
-// original looks like: 0x499763 rotates (ecx), 0x499775 does NOT rotate but
-// still lands in edx, and 0x4997a0 rotates (edx). A local at 0x499775 takes
-// eax (98.1%), so the missing piece is a non-rotating load that avoids eax and
-// ecx there. Also measured: the `bits.b3 = 1` and `|= 4` read-modify-writes
-// in the inner block and the calls do not advance the rotation, a plain store
-// there (`g_game->field_391f1 = 9;`) does.
-// Also kept, both byte-identical to the previous file: the `int four = 4;`
-// local is the literal 4 again (the two `|= 4` copies are what keep 4 in edi),
-// and the five inlined FUN_00491c80 bodies are a SetCursor(n) helper.
-// Unused declarations from 0 to 594 are flat and no header set helps.
-// Tried for 0x499775 without success: locals, references, const locals and
-// inline-helper parameters for g_game or g_game->net at that call (98.1%), the
-// same local reused for both calls (96.8%), int/bool result locals, a switch,
-// `== 0 {} else`, `goto`, swapped arms (88.4%), inline helpers for the shared
-// call head, each arm, the FUN_00435c00 sequence and the whole field_39249
-// block, the gp local before the branch (99.2%, the load is not sunk), inline
-// getters for g_game->net, unused declarations 0 to 594 and every header set
-// on this file (all flat), and permuter runs of 15 minutes from the 98.4% file
-// and 35 minutes from this one (about 37,000 candidates, no gain).
-// Earlier notes (98.4% file): PARTIAL, 98.4% (1654 of 1655 bytes). Every branch, field offset, call target,
-// stack slot, jump target and register role now agrees with the original except
-// ONE instruction: at 0x4997a0 the original loads g_game with
-// `mov edx, dword ptr [0x511de8]` (6 bytes) and we emit the 5-byte A1 form
-// `mov eax, dword ptr [0x511de8]`; that single byte shifts every later address
-// by one. What moved the number this session, from 91.7%:
-// - the `|= 4` is NOT inside `if (net->FUN_00435c00(a) != 0)`. The original's
-//   `or word ptr [eax + 0x2a44], di` sits at 0x49982a, the tail of the ELSE arm
-//   of `if (net->FUN_00435100() == 1)`, and the inner `if` tail-merges into it
-//   (`jmp 0x49982a`). Writing the statement out in full at the end of BOTH arms
-//   makes MSVC place the constant in edi across the whole tail, which is what
-//   finally produced `mov edi, 4` (a plain `int four = 4;` local is folded to
-//   immediates and yields `push 4` instead). 91.7% to 94.7%.
-// - the saved +0x2a3c value is read through a named pointer local
-//   (`Game_00499200* gp = g_game; unsigned int saved = gp->field_2a3c;`).
-//   That extra graph node is what puts g_game in eax for the FUN_004a9660
-//   argument, in ecx for the FUN_004ab400 table entry, in edx for the
-//   FUN_00435a20 argument and in eax/ecx/edx for the three tail stores, all of
-//   which the plain `g_game->field_2a3c` spelling got wrong. 94.7% to 98.4%.
-// Still differs, and everything tried for the last byte:
-// - the base register of the +0x2a3c load. `gp = g_game` still lands in eax
-//   (MSVC prefers eax for the short A1 encoding of a global). Tried and all
-//   identical at 98.4%: a reference (`Game_00499200& game = *g_game`), a
-//   `char*` plus offset cast, a `const` pointer, a signed `int saved`, an
-//   explicit `(unsigned short)` cast, a `static inline` getter with and without
-//   a pointer parameter, a split `unsigned int saved;` declaration before the
-//   pointer, a `saved = 0` first statement, a second identical pointer local,
-//   and the pointer local in the enclosing block instead (95.6%) or used for the
-//   +0x2a3c store-back as well (95.2%). Declaring `saved` in the enclosing
-//   block with the load there too also fixes every role but moves the load to
-//   0x499709, nine bytes early.
-// - deepseek-v4.1 tried 14 more byte-neutral spellings; every one compiles
-//   byte-identically to the base above, so the pick is not reachable through the
-//   read's shape: an `(unsigned int)` cast, `&*g_game`, an indexed ushort form
-//   (`((unsigned short*)gp)[0x151e]`), an address-arithmetic form
-//   (`gp->unknown_29a4 + 0x98`), a through-`void`/`char` cast pointer, a
-//   `register` pointer, `unsigned int const four`, a named local for the
-//   FUN_00435100 and FUN_00435c00 results, a named `one` for FUN_00491d70, and a
-//   coalesced duplicate pointer temp. Removing the gp local instead gives 1656
-//   bytes at 94.7% (it rotates the second tail block's base registers), so gp is
-//   load-bearing for the tail and only its first use's register differs.
-// deepseek-v4.1 session 2 (issue #2498) added ~40 more shapes, all of which
-// compile byte-identically to the 98.4% base: offsetof-style constant, `& 0xffff`,
-// `+ 0u`, a reference to the field, a pointer to the field, a reinterpret_cast
-// ushort pointer, `&*g_game`, a typedef'd pointer type, a nested scope around
-// the calls, `(void)gp->field_2a3c;` re-read (dead), a second dead pointer local,
-// an explicit `__stdcall`, truthiness instead of `!= 0`, `(void (*)(void))` on the
-// hook store, `&g_game->field_519[0]`, and defining gp as the first statement of
-// the enclosing `if (field_39249 != 0)` block (gp is rematerialised back to the
-// same code). Only shapes that ADD a graph node move anything, and every one of
-// them lands in one of exactly two attractor states, both wrong:
-//   A (this file): 0x4997a0 eax, 0x4997bb eax, tail block 2 (eax, ecx, edx).
-//   B (no gp, or the read through a pointer-to-pointer / chain / int arithmetic):
-//     0x4997a0 eax, 0x4997bb ecx, tail block 2 (edx, eax, ecx), 1656 bytes at 94.7.
-// The original is A's tail with B's first load bumped one register on: (edx, eax).
-// Making gp live across the two calls (so it is used again for the FUN_004a9660
-// argument) is the only thing that gives 0x4997a0 a 6-byte form, but it goes to a
-// callee-saved register and also displaces `mov edi, 4`, giving 1648 bytes at 95.0.
-// So the last byte needs one extra *invisible* temp in the allocator's view of the
-// block that ends at 0x499717, which no source shape tried so far produces.
-// deepseek-v4.1 session 4 (issue #2598): 25 more shapes, all byte-neutral at 1654
-// bytes / 98.4% (so the pick is not reachable from the read, the arm boundary, or
-// the condition): nested FUN_004352b0 argument, pointer-to-field temp, dead field
-// read, char*/void* address forms, a second dead pointer local, function-scope
-// `a`/`b`/`r`/`f`/`gp`/`saved` declarations (declaring a then-arm value in the
-// enclosing block does NOT reserve its register into the else arm), the then-arm
-// bit set through a named pointer or a named constant, named netMode used in the
-// else arm through a folded mask, `switch`/negated-condition rewrites (both change
-// the emitted bytes), casts on the condition, and long/const-pointer variants.
-// Score still 1655 vs 1654 bytes, one instruction: 0x4997a0 edx vs eax.
-// deepseek-v4.1 session 3 (issue #2565): 10 more byte-neutral shapes, all land on the
-// same 98.4% base (1654 bytes) with `mov eax, dword ptr [<addr>]` at 0x4997a0, so the
-// byte is NOT reachable by spelling the read: an `unsigned short tmp` plus a
-// `unsigned int saved = tmp` two-vertex form, the `register` keyword on both locals,
-// `g_game + 0` as the initializer, a self-assignment `gp = gp;`, a C++ `static_cast`
-// around the field, `*(&gp->field_2a3c)`, a comma expression `(gp = g_game, ...)`, a
-// truthiness test on field_39249 plus a `Class_00435100&` alias for the call, and a
-// `gp` assignment inside the arm (instead of an initializer) next to a named local
-// for the FUN_00435100 result. Making `saved` itself an `unsigned short` changes the
-// tail and is worse: 1652 bytes at 98.3%. The else block's first pick is sticky eax,
-// so the original's 6-byte `mov edx` needs an allocator-visible value that this source
-// never creates, not another spelling of the read.
-// deepseek-v4.1 session 5 (issue #2637) tried the two shapes that could keep the
-// hoisted address node AND `mov edi, 4`: (a) `unsigned short* fp = &g_game->field_2a3c;`
-// after the four declaration, used for the load and the store-back, gives
-// `lea edi, [ecx + 0x2a3c]` at 0x499603 (fp steals edi because it is live across
-// the two calls) plus `push 4` twice, 1636 bytes at 95.2; (b) keeping the gp
-// pointer live across the else arm's calls forces ebp into the prologue (push ebp,
-// all stack slots shift) and drops the function to 1629 bytes at 75.0. A pointer
-// live across a call is always callee-saved here, so it can never be the original's
-// edx: the 0x4997a0 pick needs a short-lived value, not a live one.
-// deepseek-v4.1-flash session 6 (issue #3466): `if (1 == ...)` operand-order flip is
-// byte-neutral at 1654/98.4; a named `net`/`mode` pair used in both arms drops to 1608
-// bytes (net kept across calls). Register-pick survey of this function suggests the
-// allocator blocks eax and ecx at 0x4997a0 in the original (pick order eax, edx, ecx),
-// so the 6-byte `mov edx` needs one more value live at the else arm's entry; no shape
-// tried here produces it.
-// deepseek-v4.1-flash session 7 (issue #4001): the address-of-global double-pointer
-// shape `Game_00499200** pp = &g_game; Game_00499200* gp = *pp;` ahead of the
-// field_2a3c read is byte-identical to the 98.4 percent base (1654 bytes, same
-// 0x4997a0 eax), so the address-of node is not the missing live value either.
-// deepseek-v4.1-flash session 8 (issue #4122): no new shape run, analysis only.
-// Constraint on the missing temp: it must occupy eax AT 0x4997a0 yet be gone by
-// 0x4997bb (where the original itself picks A1 eax). The two calls at 0x4997af
-// and 0x4997b6 clobber eax, so the range must end before them, and the only
-// instructions in between are the gp load and the xor/mov-si saved load, which
-// use only edx and esi: a live temp there would have to fuse its last use into
-// those bytes or be dead-but-allocated (phi-like or block-granular range end).
-// The then arm's g_game loads cycle ecx (0x499729), edx (0x499740), eax
-// (0x499753), ecx (0x499763), edx (0x499775), eax (0x49978f); the else arm's
-// first pick in the original is edx, i.e. exactly one step on from the last
-// then-arm pick, which fits a rotating register hint whose state our build
-// resets before 0x4997a0. Still differs only at 0x4997a0: edx vs eax.
-// deepseek-v4.1-flash session 9 (issue #4197): four more shapes, all byte-neutral at
-// 1654 bytes / 98.4 percent with 0x4997a0 still `mov eax`: naming the FUN_00435100
-// result and testing it as `if (mode == 1) ... else if (mode != 1)` (the folded
-// else-if emits no bytes but the value is killed at the branch, so eax is not
-// blocked); the same test nested inside the else block; splitting the two locals
-// into declarations plus assignments; and `unsigned int saved;` declared before the
-// pointer. The liveness route is closed: any value kept live into the else arm is
-// either folded away by the value tracker before allocation or, when it really
-// survives, forces a callee-saved register and shrinks the function. The 6-byte
-// `mov edx` is not reachable from source shape here.
-// DeepSeek V4.1 Flash session 10 (2026-10-02, issue #4929): re-ran the 3 minute
-// permuter (1546 candidates, no gain) and then a register-pick survey on the
-// then-arm tail. Enumerated all 16 placements of a dead g_game local at the four
-// accesses (FUN_00435c50/FUN_004352b0/FUN_00435110/FUN_00435c00): only a local
-// at the FUN_00435110 call (the current file) reaches 99.5, every other
-// placement is 94.7 to 98.1. Also tried, all byte-neutral at 99.5 with
-// 0x499775 still ecx: a `Class_00435c00*`/`void*`/`int` local for the net
-// pointer at the FUN_00435c00 call (folds back to the direct read), the
-// FUN_00435c00 result in a named local, `g2 = g`, `g = g_game` repeated or
-// reassigned, a nested scope or do/while(0) around the FUN_00435110 call, and
-// char*/void*/address/typedef spellings of the g local. The FUN_00435110 local
-// is load-bearing for the tail (it is what gives 0x4997a0 edx) and it is also
-// what forces 0x499775 to ecx; the original wants that load in edx with the
-// same tail. No source shape here produces both, so it is stuck.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, edited by DeepSeek V4.1 Flash, verified by GPT-6, finished by opus. Names are provisional.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.
 // Advances the frame queues and, on the network/skirmish paths, flips the
 // end-of-frame hooks.
+//
+// MATCH (#5290). The g_game loads in the last block take eax, ecx, edx in
+// turn from C2's scratch rotation (FUN_00435c37, pointer at 0x491120, reset
+// once per function), in code-generation order. Earlier files were stuck
+// because the else arm started one step off the original. Each arm of the
+// `FUN_00435100() == 1` test ends with its own copy of the
+// `field_391f1 = 2; field_391f5 = FUN_00496bb0; FUN_004b4fd0(...)` sequence:
+// the then arm's copy takes two rotation steps before the else arm is
+// generated, and MSVC then merges the two copies into one. The FUN_00435c00
+// call's g_game load is an ordinary rotating load again (edx), with no local.
+// The same two stores alone in both arms match too. `|= 4` in both arms is
+// what keeps the 4 in edi.
 #include <stdlib.h>
 
 #pragma pack(push, 1)
@@ -486,12 +319,14 @@ void FUN_00499200(void)
             FUN_004257a0();
             int a = ((Class_00435c50*)g_game->net)->FUN_00435c50();
             char* b = ((Class_004352b0*)g_game->net)->FUN_004352b0();
-            Game_00499200* g = g_game;
-            ((Class_00435110*)g->net)->FUN_00435110(b);
+            ((Class_00435110*)g_game->net)->FUN_00435110(b);
             if (((Class_00435c00*)g_game->net)->FUN_00435c00(a) != 0) {
                 g_game->field_2a44.bits.b3 = 1;
                 g_game->field_2a44.value |= 4;
             }
+            g_game->field_391f1 = 2;
+            g_game->field_391f5 = FUN_00496bb0;
+            FUN_004b4fd0(FUN_004578f0, 0);
         } else {
             unsigned int saved = g_game->field_2a3c;
             FUN_00491b60();
@@ -503,10 +338,10 @@ void FUN_00499200(void)
             ((Class_00435a20*)g_game->net)->FUN_00435a20(g_game->field_29a0 + 0x11c);
             FUN_0047a760();
             g_game->field_2a44.value |= 4;
+            g_game->field_391f1 = 2;
+            g_game->field_391f5 = FUN_00496bb0;
+            FUN_004b4fd0(FUN_004578f0, 0);
         }
-        g_game->field_391f1 = 2;
-        g_game->field_391f5 = FUN_00496bb0;
-        FUN_004b4fd0(FUN_004578f0, 0);
         g_game->field_10->FUN_004ce690(4);
     }
 }

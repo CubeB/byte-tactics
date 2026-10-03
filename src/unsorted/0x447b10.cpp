@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by space-bunny-free, rewritten by claude-opus-5-5, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by space-bunny-free, rewritten by claude-opus-5-5, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
 // Codex GPT-6 retry for #5183 (2026-10-03): current main remains 99.2%,
 // 4305 bytes against 4306. MAP ? 1 : MAPNAME regresses to 99.0%; /Gi
 // leaves the sole `push ebp` versus `push 1` byte unchanged.
@@ -7,6 +7,7 @@
 // in the ebp live range, as described by the C2 trace below.
 // #5341 retry: reversing the f97 MAP-view branch scored 97.0%, so the original
 // 99.2% source is restored; the immediate-versus-ebp push remains.
+// #5367 retry: re-confirmed 99.2%; the MAP call still pushes ebp instead of 1.
 // Battle room button handler: per player slot LOGO, PLAYER, SIDE, ALLY,
 // TEAMICONS, RES and READY, then PREVMENU, MESSAGE, COMMANDER, LOSTYPE,
 // WATCHING, CHEATING, FIXEDLOC, MAPPING, START, GAMEOPEN, RESTRICTIONS and

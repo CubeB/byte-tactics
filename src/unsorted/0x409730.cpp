@@ -1,4 +1,27 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Claude Opus 5.5 (#5374, 2026-10-04): still 99.8%, file unchanged except this
+// note. What decides the store SIB at 0x4099f6, from dummy externs at five
+// positions and a binary search on the window edges (store byte only):
+// - The pointer side of the address add (the _First load through `this`) has
+//   a fixed key, 1012 in 16 bits. The store is pointer-first exactly while i's
+//   id modulo 65536 is 0 to 1011: 31852 to 32863 externs at the start of the
+//   body, with the same edges before the definition and before <windows.h>.
+//   The edges did not move with padding anywhere, with the member's offset,
+//   with a preceding function that uses 245 more C2 ids, or with 1 to 10 extra
+//   calls before or after the store; with signed char elements or an earlier
+//   vector<unsigned char> they moved by exactly i's own shift. Padding after
+//   `for (int i` (moving def, a, b and the rest but not i) leaves it swapped.
+// - The `&vec_65[i]` add follows `this` against i: padding inside the body
+//   only (i wrapped, `this` not) fixes the store but flips that add, so in the
+//   original both `this` and i were past 65536, a wrap before the definition.
+// - With that padding the plain read `x += (char)vec_8d[i] / 2;` matches too,
+//   so the q8/rq8 reference below only stands in for the missing prefix.
+// - Block-scope `extern` for g_game (at the top of the body, or after an
+//   `int i;` declared first) and for FUN_00488f30 is flat at 99.8%: no global
+//   is an operand of this add, so that lever does not reach it.
+// So it needs about 64730 to 65740 header symbols before the file's own
+// declarations (it has 32876); full MATCH at 64996-65046, 65116-65166,
+// 65506-65556 and 65626-65686.
 // #5336 Codex retry: re-confirmed 99.8%; the 0x4099f6 SIB base/index byte
 // remains the only mismatch after the documented source and symbol-id probes.
 // #5352 retry: re-confirmed 99.8%; the 0x4099f6 SIB order remains the only

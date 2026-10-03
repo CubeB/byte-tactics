@@ -1,4 +1,32 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Claude Opus 5.5 (#5374, 2026-10-04): still 98.5%, file unchanged except this
+// note.
+// - Hunk 3 (first _allmul) follows C2's own symbol ids alone: 59700 to 60100
+//   (and 60500 to 60600) unused externs at the END of the file, which move only
+//   the file total and so the ids C2 gives its temporaries, push the first call
+//   d.x-first as the original does and leave calls 2 and 3 alone. With the
+//   externs before the includes the window is 59700 to 60150 (hunks 1 and 2
+//   left), 60200 to 60400 is back to ours and 60450 to 60650 flips all three
+//   calls. c2prio --symbols: s 5136, d is no register candidate, file total
+//   5568, C2 at 5885 by this function's allocation. No global is an operand,
+//   so a block-scope extern cannot move it: it needs about 60000 more symbols
+//   (4759 header symbols now, 64459 to 64909 wanted), the lost-header prefix.
+// - Block-scope `extern Game_00408100* g_game;` after `origin` and `it`, with
+//   MapRange taking the game pointer, is 98.5% with the same three hunks;
+//   declared before `origin` it flips MapRange's loads (98.0%), and it still
+//   needs <memory.h>. Local declaration order in loop 2 (kind, len, s) is flat.
+// - Hunk 2 under c2prio: without the user operator= and with Direction() in
+//   x, y, z order the xor lands before the call, but the inlined angle and
+//   d.x, d.y, d.z tie at priority 312 (angle: block B28 only, w 4, K 13, cost
+//   6; each d field 88 + 104 + 120), angle wins on +0x40 (277 against 260),
+//   takes ebp because ebx would cost 6600, and d.y needs a `mov ebp, ebx`.
+//   With operator= the v.y temporary is propagated, B28's K is 12, angle drops
+//   to 288 and gets ebx, but the xor moves after the call. Flat or worse: 48
+//   combinations of int/short ang locals, Direction(int), helper orders, a len
+//   local and the three-store target; one, two or block-scoped `kind`s (87 to
+//   91%); target copied by memcpy (98.5%), memmove (69%), a pointer or an
+//   assignment. The expanded flag12 arm (int ang and direct d stores, as in
+//   the else arm) with a plain `len > range` is 76.8% with a 0x5c frame.
 // #5336 Codex retry: re-confirmed 98.5%; the three scheduler hunks remain.
 // #5352 retry: re-confirmed 98.5%; the target-store ordering and two register
 // allocation hunks remain as documented in the C2 notes below.

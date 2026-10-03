@@ -25,6 +25,8 @@
 //   bytes), `d.z` divided first (76.6%), and a permuter run from the per-arm
 //   form (seed 77, 16 minutes, 18499 candidates, 84.7% flat).
 // Codex GPT-6 retry for #5210 (2026-10-03): current main remains 84.7%.
+// #5322 Codex retry: re-confirmed 84.7%; the x-difference QFIELD/temp
+// coloring order remains as measured in the C2 notes below.
 // Existing frame/register probes and the prior 19019-candidate permuter found
 // no better source; `/Gi` is already recorded at 46.4%.
 // Claude Opus 5.5 retry (#5072): still 84.7%, about 1900 scratch variants, none

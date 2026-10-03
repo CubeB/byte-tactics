@@ -7820,6 +7820,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x408100,1221,,#5352,assigned,,,"issue #5352, escalated"
 0x409730,1678,,#5352,assigned,,,"issue #5352, escalated"
 0x4c8bb0,1279,,#5354,assigned,,,"issue #5354, escalated"
-0x4851c0,354,,#5356,assigned,,,"issue #5356, escalated"
+0x4851c0,354,gpt-6,#5356,partial,84.7,,"issue #5356, escalated"
 0x462f30,1653,,#5358,assigned,,,"issue #5358, escalated"
 0x463790,1040,,#5358,assigned,,,"issue #5358, escalated"
+0x4851c0,354,,#5360,assigned,,,"issue #5360, escalated"

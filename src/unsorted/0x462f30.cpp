@@ -4,6 +4,8 @@
 // GPT-6 retry (#5254): rechecked at 77.6%; entry lifetime and copy-tail shape remain.
 // #5298 Codex retry: re-confirmed 77.6%; the entry live-range split and
 // cross-jumped copy tail remain the only meaningful source-level gaps.
+// #5327 retry: re-confirmed 77.6%; earlier allocator, branch-layout and
+// receive-loop sweeps cover the remaining source-level choices.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%.
 // The class name is
 // data/symbols.csv's Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is

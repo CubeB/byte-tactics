@@ -4,6 +4,8 @@
 // GPT-6 retry (#5254): rechecked at 86.6%; the a6-loop register split remains.
 // #5298 Codex retry: re-confirmed 86.6%; the documented a6-loop and latch
 // register allocation still differs, with no untested source lever found.
+// #5327 retry: re-confirmed 86.6%; earlier local-order, loop-shape and
+// ring-operation sweeps cover the remaining source-level choices.
 // Rewritten (pass 14, Opus): 75.0% -> 85.2%; pass 15 (Opus): 86.6%. Queues one
 // received packet's commands in the ring at +0x10. If frames are already queued, it
 // only re-stamps each of them with the new tick (pop, push) and returns 0. Otherwise it

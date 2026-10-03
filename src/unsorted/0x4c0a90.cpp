@@ -1,10 +1,43 @@
-// Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, re-verified by GPT-6. Names are provisional.
+// Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, re-verified by GPT-6, re-examined by Claude Opus 5.5. Names are provisional.
 // Plots the two end points of one span row: the pixel at each end gets the
 // colour when it passes the depth test (the depth buffer keeps the integer
 // part of the 16.16 depth), or unconditionally when the surface has no depth
 // buffer.
 //
 // Status: 96.2% (118 of 118 bytes, ours is already the original's size).
+//
+// Claude Opus 5.5 pass (#5151), with tools/c2prio.py. The surf/w "tie" below
+// is not a tie: it is a priority gap, and these are C2's own numbers.
+//   Shape B (`unsigned char* z = surf->depth;` above the guard, named
+//   `int off = row * surf->pitch;`): z 86, w 66, off 60, p 58. w is coloured
+//   before off and takes ecx, off gets edx, surf follows off into edx: the
+//   mirror. w's 66 is B0 +56 (K 7, cost 8) -6 -6 -4 (live through B1..B3)
+//   +20 (B4) +6 (else). off's 60 is B1 +48 (K 6, cost 8) +12 (B2).
+//   Shape A (this file) has K(B0) = 6 (z is not loaded there), so w is 58 and
+//   off (60) wins ecx; that is the only reason the colouring is right here.
+//   About 150 shape-B spellings (helpers, CSE'd or named offsets, x1 local or
+//   field, early returns, named *z and z1 locals, w spellings, int/unsigned
+//   types, else-first, pointer locals for bits/depth) all give w 65-67 and
+//   off 56-60: the optimizer normalises them to the same IL.
+//   What does work is one more candidate counted in K(B1): off then gets
+//   +8 and w -1 (68 against 65). A `short pitch = surf->pitch;` local inside
+//   the guard, with the product written twice (`p += pitch * row +
+//   span->x1;` and `z += pitch * row + span->x1;`, no x1 local), is such a
+//   candidate: C2 counts it in K(B1) and then drops it, forwarding the load
+//   into its one use. With `#include <windows.h>` (or 78+ dummy externs; with
+//   none the product is pitch-first and it is 48.5%) every instruction then
+//   matches the original, registers and order, except one: `movsx ebx, word
+//   ptr [ecx]` where the original has `xor ebx, ebx / mov bx, [ecx]`.
+//   89.5% (116 bytes), so it is a lead, not the file. An unsigned 16-bit local
+//   is not dropped (its zero extension is an in-place `and`, 4 references):
+//   `unsigned short pitch` there is 73.6% (`mov di,[ecx] ... and edi,0xffff`),
+//   and an int or unsigned int local is substituted by the optimizer before
+//   C2 counts anything. So the missing piece is a counted-then-dropped
+//   candidate in B1 (or two in B2) whose forwarded use is a zero-extending
+//   load; nothing tried here (casts, references, pointer locals, a copy of
+//   row, a copy of color, inline helpers with short or int parameters) gives
+//   one. The product's operand order (row first) also depends on the TU's
+//   symbol count: with `int y = row;` it flips every 16 declarations.
 // GPT-6 retry (#4970): /Gi on this source is 92.5%; loading depth above the
 // guard in a scratch variant with /Gi is 78.1%. The best source remains below.
 // What is left is exactly two instructions' worth of order, both in the

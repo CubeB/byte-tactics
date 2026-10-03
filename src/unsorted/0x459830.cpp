@@ -1,70 +1,33 @@
-// Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, checked by GPT-6. Names are provisional.
-// GPT-6 retry (#5025): checkall.py confirms the retained 96.5% / 1082-byte
-// version. The sibling shape was measured and its stack-slot tradeoff is
-// documented below.
+// Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, checked by GPT-6, finished by claude-opus-5-5. Names are provisional.
+// Draws a unit model's pieces into a bitmap. With anti-aliasing on and the
+// unit flagged, it draws into the doubled shadow bitmap instead and then
+// downsamples that back into the caller's bitmap.
 //
-// Partial, 96.5% at exactly 1082 bytes (issue #4924).
-//
-// CORRECTNESS FIX (#4924). The tail used to downsample over the doubled
-// shadow bitmap's height and width, which writes past src. It now does what
-// the original does (0x459c1d/0x459c25/0x459c4c read the saved src, 0x459c40
-// steps d by the target bitmap's width):
-//     for (int y = 0; y < src->height; y++) {
-//         int x = src->width;
-//         while (x--) { unsigned int c = *d; *s++ = c; d += 2; }
-//         d += bitmap->width;
-//     }
-// The tail and the head now match the original instruction for instruction.
-//
-// WHAT MOVED IT (71.2% with the faithful tail, the old file's 78.9% was only
-// reachable with the wrong tail):
-//  1. The shadow head is two nested ifs with their own `mode = 0` else blocks,
-//     and `src = bitmap; bitmap = shadow;` come LAST in the shadow branch, the
-//     size reads going through bitmap. That alone gives the original's whole
-//     allocation: useColor in ebx, list in esi at the piece loop, and src and
-//     the target bitmap in memory (src at [esp+0x20], the bitmap in its
-//     parameter slot). Every earlier pass had src/bitmap in ebx/ebp. (With
-//     the `bool` flag local and an && chain it stays at 71%.)
-//  2. The poly copy indexes the destination, `poly[j] = vertex[*idx]` with
-//     `j++, idx++` in the increment: the original's `lea edi, [poly]` sits
-//     after the loop guard, i.e. it is a strength-reduced `poly[j]`, not a
-//     walking pointer.
-//  3. `x = verts->x;` is read once before the mode test (the original's load
-//     sits before the `je`; MSVC 5 never hoists it out of the arms).
-//  4. `int n = list->pieces[p].info->vertexCount;` (through the piece, not
-//     `info`) puts the post-loop reloads in the original's order.
-//
-// STILL DIFFERING (16 instructions, all local register choice):
-//  * the owner load for the field_104 test is eax, the original's ecx;
-//  * the vertex preheader loads field_4 first (into ebx) and field_6 second;
-//    the original loads field_6 first but still gives field_4 ebx. With
-//    explicit offX/offY locals the first ASSIGNED always gets ebx, whatever
-//    the declaration order, and they must then sit under an explicit
-//    `if (0 < n)` (`n > 0` there costs 18 points);
-//  * the mode test uses edx with the x load before it; the original tests
-//    mode in eax and loads x into eax after the test (0x459c70's original
-//    has the same shape);
-//  * the else arm loads z first where the original loads y first. All 36
-//    statement orders of the two arms were scored: an arm order that fixes
-//    the else arm breaks the mode arm and vice versa.
-// Inert here: header sets (tools/headers.py, 256 sets), compiling 0x4597f0
-// and 0x459170 first, unsigned char bitfields for the piece flags (identical
-// code), a helper for the fixed-point conversion, `* 2` for `<< 1`,
-// struct-copying the vertex, field_104 spellings and helpers. Compiling the
-// real 0x459200 + 0x4597f0 first (the file order) drops this to 64.5% and
-// moves the bitmap into ebp, so the remaining ties are probably decided by
-// compiler state from the ~15 functions before this one. tools/permute.py
-// (two 15-minute runs, ~25000 candidates) tops out at 97.1%: the same
-// residual, scored differently, via a `short` temporary for z in the else
-// arm (`short sz = (short)(-verts->z >> 16); ...; z = sz;`). Not kept.
+// MATCH (#5138). The last two changes, on top of #4924's head and tail:
+//  * The piece flags are an `unsigned short` bitfield tested with positive
+//    nested ifs (`if (list->pieces[p].flags.visible) { if (useColor == -1 ||
+//    useColor == list->pieces[p].flags.colored || ...) { ... } }`), as in
+//    0x459c70. Reading the info and vertices through a `piece` pointer
+//    instead biases the walking pointer to +0x28 (98.2%).
+//    The two bitfields are two loads to the global optimiser, and the code
+//    generator reuses the `al` it already holds for the second, which costs
+//    one more scratch register in the eax/ecx/edx rotation than a `pflags`
+//    local or a mask test. That one step put the owner load at the field_104
+//    test in ecx and the bitmap offsets' loads in the original's order.
+//  * Each arm of the doubled-bitmap test reads `verts->x` itself. MSVC
+//    hoists the identical first load of both arms above the `je` (after the
+//    mode test), which is where the original has it; a separate
+//    `x = verts->x;` before the test put the mode test in edx and loaded z
+//    first in the else arm. (The earlier note that MSVC never hoists it was
+//    measured with the rotation one step off.)
 #include <string.h>
 
 extern char* g_game;
 struct Bitmap_459c70;
 
-struct Flags_459830 {
-    unsigned short b0 : 1;
-    unsigned short b1 : 1;
+struct Flags_37f06 {
+    unsigned short damagebars : 1;
+    unsigned short antiAlias : 1;
     unsigned short rest : 14;
 };
 
@@ -132,13 +95,20 @@ struct PieceInfo_459c70 {
     Face_459c70* faces;              // +0x28
 };
 
+struct PieceFlags_459c70 {
+    unsigned short visible : 1;
+    unsigned short colored : 1;
+    unsigned short lit : 1;
+    unsigned short rest : 13;
+};
+
 struct Piece_459c70 {
     PieceInfo_459c70* info;          // +0x00
     char unknown_4[0x22 - 0x04];
     Vec3* vertices;                  // +0x22
     char unknown_26[0x28 - 0x26];
-    unsigned char flags;             // +0x28
-    char unknown_29[0x36 - 0x29];
+    PieceFlags_459c70 flags;         // +0x28
+    char unknown_2a[0x36 - 0x2a];
 };
 
 struct List_459c70 {
@@ -162,6 +132,7 @@ static __inline int shade_bias(Owner_459c70* owner)
     bool c = ((*(unsigned int*)(owner->field_92 + 0x241) >> 30) & 1) != 0;
     return c ? 125 : 50;
 }
+
 // FUNCTION: 0x459830
 void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
     int kind, int useColor)
@@ -171,7 +142,7 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
 
     int mode;
     Bitmap_459c70* src;
-    if (((Flags_459830*)(g_game + 0x37f06))->b1) {
+    if (((Flags_37f06*)(g_game + 0x37f06))->antiAlias) {
         if ((list->owner->field_110 & 0x20000000) != 0 && useColor != 0) {
             Bitmap_459c70* shadow = this->shadow;
             mode = 1;
@@ -193,79 +164,76 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
     }
 
     for (int p = list->count - 1; p >= 0; p--) {
-        unsigned char pflags = list->pieces[p].flags;
-        if ((pflags & 1) == 0)
-            continue;
-        if (!(useColor == -1 || useColor == ((pflags >> 1) & 1)
-                || list->owner->field_104 != 0.0f))
-            continue;
+        if (list->pieces[p].flags.visible) {
+            if (useColor == -1 || useColor == list->pieces[p].flags.colored
+                    || list->owner->field_104 != 0.0f) {
+                PieceInfo_459c70* info = list->pieces[p].info;
+                int n = list->pieces[p].info->vertexCount;
+                Vec3* verts = list->pieces[p].vertices;
+                for (int k = 0; k < n; k++) {
+                    int x;
+                    int y;
+                    int z;
+                    if (mode) {
+                        x = (short)(verts->x >> 16) << 1;
+                        y = (short)(verts->y >> 16) << 1;
+                        z = (short)(-verts->z >> 16) << 1;
+                    } else {
+                        x = (short)(verts->x >> 16);
+                        y = (short)(verts->y >> 16);
+                        z = (short)(-verts->z >> 16);
+                    }
+                    vertex[k].x = x;
+                    vertex[k].y = z - (y >> 1);
+                    if (mode) vertex[k].z = y/2 + shade_bias(list->owner);
+                    else vertex[k].z = y + shade_bias(list->owner);
+                    vertex[k].x += (short)bitmap->field_4;
+                    vertex[k].y += (short)bitmap->field_6;
+                    verts++;
+                }
 
-        PieceInfo_459c70* info = list->pieces[p].info;
-        int n = list->pieces[p].info->vertexCount;
-        Vec3* verts = list->pieces[p].vertices;
-        for (int k = 0; k < n; k++) {
-            int x;
-            int y;
-            int z;
-            x = verts->x;
-            if (mode) {
-                x = (short)(x >> 16) << 1;
-                y = (short)(verts->y >> 16) << 1;
-                z = (short)(-verts->z >> 16) << 1;
-            } else {
-                x = (short)(x >> 16);
-                y = (short)(verts->y >> 16);
-                z = (short)(-verts->z >> 16);
-            }
-            vertex[k].x = x;
-            vertex[k].y = z - (y >> 1);
-            if (mode) vertex[k].z = y/2 + shade_bias(list->owner);
-            else vertex[k].z = y + shade_bias(list->owner);
-            vertex[k].x += (short)bitmap->field_4;
-            vertex[k].y += (short)bitmap->field_6;
-            verts++;
-        }
-
-        Face_459c70* face;
-        int fi;
-        if (info->firstFace != -1) {
-            face = info->faces + 1;
-            fi = 1;
-        } else {
-            face = info->faces;
-            fi = 0;
-        }
-        for (; fi < info->faceCount; fi++, face++) {
-            unsigned short* idx = face->indices;
-            for (int j = 0; j < face->count; j++, idx++) {
-                poly[j] = vertex[*idx];
-            }
-            FaceFlags_459830 fflags = face->flags;
-            if (!fflags.bits.a) {
-                if (face->count == 4) {
-                    void* pic;
-                    if (fflags.bits.b) {
-                        if (fflags.bits.c) {
-                            int unit = *(int*)(g_game + 0x1b8a + kind * 0x14b);
-                            pic = FUN_004b7f30(face->color,
-                                *(unsigned char*)(unit + 0x96));
-                        } else if (useColor) {
-                            pic = FUN_004b7f30(face->color, 0);
-                        } else {
-                            pic = FUN_004b7ee0(&face->pic);
+                Face_459c70* face;
+                int fi;
+                if (info->firstFace != -1) {
+                    face = info->faces + 1;
+                    fi = 1;
+                } else {
+                    face = info->faces;
+                    fi = 0;
+                }
+                for (; fi < info->faceCount; fi++, face++) {
+                    unsigned short* idx = face->indices;
+                    for (int j = 0; j < face->count; j++, idx++) {
+                        poly[j] = vertex[*idx];
+                    }
+                    FaceFlags_459830 fflags = face->flags;
+                    if (!fflags.bits.a) {
+                        if (face->count == 4) {
+                            void* pic;
+                            if (fflags.bits.b) {
+                                if (fflags.bits.c) {
+                                    int unit = *(int*)(g_game + 0x1b8a + kind * 0x14b);
+                                    pic = FUN_004b7f30(face->color,
+                                        *(unsigned char*)(unit + 0x96));
+                                } else if (useColor) {
+                                    pic = FUN_004b7f30(face->color, 0);
+                                } else {
+                                    pic = FUN_004b7ee0(&face->pic);
+                                }
+                            } else {
+                                pic = face->pic;
+                            }
+                            FUN_004c8760(bitmap, pic, poly, 0);
                         }
                     } else {
-                        pic = face->pic;
+                        FUN_004c1000(bitmap, poly, face->count, face->unknown_0);
                     }
-                    FUN_004c8760(bitmap, pic, poly, 0);
                 }
-            } else {
-                FUN_004c1000(bitmap, poly, face->count, face->unknown_0);
             }
         }
     }
 
-    if (((Flags_459830*)(g_game + 0x37f06))->b1) {
+    if (((Flags_37f06*)(g_game + 0x37f06))->antiAlias) {
         if (mode != 0) {
             FUN_004b95a0(bitmap, src);
             unsigned char* s = (unsigned char*)src->data2;

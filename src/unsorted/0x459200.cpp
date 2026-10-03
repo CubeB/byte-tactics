@@ -1,4 +1,23 @@
 // Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-opus-5-5, checked by GPT-6. Names are provisional.
+// #5138 (no code change; about 300 variants scored, C2 read with
+// tools/c2prio.py). Why the prologue resists, in C2's terms: in the
+// original only the camera's z is a register candidate across the copy
+// (kept in edx, and the x delta's scratch has to fall back to ebx), while x
+// is copied through the eax/ecx/edx rotation and re-read from its slot.
+// Every spelling here gives the opposite. With the union, C2 builds a
+// two-reference candidate for v.v[0] only (copy and delta), never for
+// v.v[2]; with a plain struct (int x, y, z) it builds both at equal
+// priority (56) and colours the one whose copy load comes first, but z still
+// ends in memory when it goes first (copy order z, y, x). Tried and inert or
+// worse: all 6 member-copy orders x 3 delta orders, block copy, memcpy,
+// copy-initialisation, copying through the Fixed view, struct-of-unions,
+// operator=, a delta local (placed in its own slot, 75%), deltas through
+// pointers, references and inline helpers, taking the parameter's address,
+// /Gi. The member-read prologue (cv = v; v.v[0] = model->owner->pos_x -
+// v.v[0]; ...) is still the right shape for everything after it: 97.2%
+// ignoring jump targets, with only the prologue and the b3 arm's `add`
+// differing; the permuter (23 minutes from that form) only re-found the
+// empty do/while for the add.
 // GPT-6 retry (#5025): checkall.py confirms the retained 90.1% / 1494-byte
 // version. The earlier pass notes already cover the measured prologue and
 // register-allocation alternatives.

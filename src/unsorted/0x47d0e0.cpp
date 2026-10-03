@@ -1,4 +1,7 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#4965): current check.py confirms 96.1% / 505 bytes. The
+// remaining difference is the signed-short multiply, which does not fold the
+// width into the memory operand in this source shape.
 // DeepSeek V4.1 Flash second pass (still 96.1%, no code change): two 3-minute
 // permuter runs (2224 candidates on the file below, 3385 seeded from the
 // obj-first width-pointer variant) found nothing. Confirmed by hand that the

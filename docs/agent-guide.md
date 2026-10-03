@@ -228,17 +228,26 @@ wants `short` locals (`short px = obj->pos.x;`); with `int` locals or the
 plain field spelling MSVC copied a size into a spare register and shifted every
 jump after it (0x47cc30).
 
-**Get the frame layout from the reference counts.** MSVC 5 orders a
-function's stack locals by how often the code refers to each one relative to
-its size (references per byte): the most used sit nearest esp. Scalars,
-arrays and compiler temporaries are mixed, ties go to the earlier
-declaration, and dead locals share slots. So count the original's references
-to each `[esp+N]` slot to predict the order, and give every local its real
-size: a 20-byte box where the original has a 16-byte Rect sorts to the wrong
-place (0x495a30 matched once that was fixed). A file that packs its locals
-into one struct to force a layout can never reproduce this, and rewriting
-0x468cf0 with plain locals put every slot right (84.2% to 91.4% at once). Use
-`uv run tools/stackcmp.py <addr>` to see which locals sit in the wrong slots.
+**Get the frame layout from the reference counts.** This is MSVC 5's own rule,
+read out of C2.EXE with Ghidra (#5113; it predicted 351 of 351 small tests).
+Locals are kept in a list sorted by size (smallest first), then by reference
+count (highest first). A count goes up by one per memory reference in code
+order, and a local only moves ahead of same-size locals whose count is strictly
+smaller, so ties keep the order in which each local reached its count. Slots are
+packed in that list order: a local joins the newest earlier slot it does not
+interfere with (and that is at least half its size), otherwise it gets a new
+one. If the packed locals total more than 0x80 bytes, the slots are re-sorted by
+`refs * 1000 / size`, largest first, with an unstable quicksort, which is why
+ties look scrambled in functions with a big local array. Slot 0 is nearest esp.
+So give every local its real size, and count the original's references to each
+`[esp+N]` slot to predict the order. A local MSVC splits between a register and a
+stack home counts one reference more than its visible memory accesses: write one
+variable and let MSVC split it, not a register copy plus a memory copy
+(0x4cac40). Function-scope locals whose address is taken never share a slot;
+block-scoped ones share with locals dead in their block (a declaration in the
+middle of the body is still function scope). A file that packs its locals into
+one struct can never reproduce any of this. `uv run tools/stackcmp.py <addr>`
+shows which locals sit in the wrong slots.
 
 **Try `/Gi` on a tie that no spelling moves.** Some of the original's
 translation units were built with `/Gi` (#5035). If a function is stuck on a

@@ -1,4 +1,32 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 retry (#5072): still 84.7%, about 1900 scratch variants, none
+// emits the original's third instruction (`mov ecx, [esp+0x1c]`). New facts:
+// - The x difference reaches ecx (b.y in eax, b.x in ecx, both hoisted, the
+//   original's pair) only when n's computation is gone: `int n = 7;`, or the n
+//   expression repeated in each use instead of named (424 bytes). So the x
+//   difference loses ecx to n's chain, not to the subtraction's spelling.
+// - n is not the lever in any natural shape: n used a third time, in the loop
+//   body, at the return, as the loop variable, declared first (with d, i, best
+//   in any order), behind a folding `if (n >= 0)` (81.5%), as `register`, via
+//   `int m = n`, or computed by a Steps() inline helper (value, reference,
+//   pointer, Vec3 by value): the x difference stays in esi every time.
+// - MSVC splits live ranges here: with b.x also read in the loop, its prologue
+//   range still gets esi and is spilled to a new slot for the loop.
+// - `for (b.x = 0; b.x <= n; b.x++)` compiles byte-identically to `int i`,
+//   which is why the down-counter lives in b.x's parameter slot.
+// - Renaming a, b, d or n changes nothing (no name-order tie). A field-wise
+//   copy constructor or operator= loses the d.x dead store (350 bytes); `ABS`
+//   macros give jns/neg, not cdq/xor/sub; an int[3] member behaves as fields;
+//   a non-POD step type (ctor, dtor) is still promoted; /Gi is 44 to 48% for
+//   every shape tried.
+// - Also flat: 0x485010, 0x485070 and 0x485140 defined above this function in
+//   one file, the prologue in a nested block or an inline MakeStep() helper,
+//   `d = a` then `d.F = b.F - d.F`, and loop-body rewrites (a `Game* g` local,
+//   a Higher() max helper, a `Unit*` local): the prologue never moves.
+// - Random sweeps (build/scratch/0x4851c0/gen.py, gen2.py: in-place, copy,
+//   helper, scalar and mixed step shapes, decl orders, three max spellings,
+//   division forms; 1600 files) top out at this file's 84.7%, and so does
+//   tools/permute.py (seed 51, 15 minutes, 19019 candidates, score 355 flat).
 // GPT-6 retry (#4971): baseline remains 84.7% at 354 bytes. classify.py calls
 // this a frame diff (15 register changes, 8 instruction insertions/deletions);
 // stackcmp still places every local. A scratch /Gi build scores 46.4%.

@@ -38,6 +38,8 @@
 // (win.py sweeps the extern count over 0 to 65535 for a header set).
 // GPT-6 retry: confirmed 98.6%; the single SIB difference remains the base
 // and index order at the inlined erase shift.
+// #5381 retry: re-confirmed 98.6%; the inlined erase still emits the walker-
+// base SIB instead of the original's delta-base encoding.
 // #5364 retry: re-confirmed 98.6%; the inlined erase still uses the walker-
 // base SIB, while the original's compiler-state encoding uses the delta base.
 // GPT-6 retry recheck: current main still emits the walker-base SIB. Prior

@@ -593,6 +593,17 @@ effect, the missing piece is usually a helper that was inlined:
   e;` compiles to the same code as the shorter forms but tips the register
   priorities differently; with `j++` once in the loop latch it matched
   0x461fd0 (#5318).
+- **Operand order in an add follows symbol ids**: in an add (and in a SIB
+  address's base slot), the operand whose front-end symbol id is larger,
+  compared modulo 65536, goes first. Check the ids with
+  `tools/c2prio.py --symbols`. A block-scope `extern` declaration of the
+  global after the locals gives it a later id: 0x493bf0 and 0x48ad30 matched
+  with `extern` for `g_game` declared inside the function after the index
+  locals, and 0x48ad30 lost an old `if (0)` hack with it (#5325, #5329).
+- **No-code temporaries can be what is missing**: when only scratch
+  registers differ, throwaway probes can show how many extra temporaries the
+  original had around a test (0x410850 needs one or two before its health
+  test and one after; see its notes and `tools/c2prio.py --rotation`) (#5366).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

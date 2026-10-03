@@ -24,6 +24,8 @@
 // Rechecked for issue #5179 on 2026-10-03; the same 90.1% source remains best.
 // GPT-6 retry (#5221): rechecked at 90.1% (1494 B); the prologue order, one
 // g_game load/hoist and the b3 add destination remain the only code differences.
+// #5270 Codex retry: independently re-confirmed 90.1%; no new source shape
+// was tested because the file already records the prologue and allocator sweeps.
 //
 // Partial, 90.1% (1494 bytes against 1506; issue #4924 took it from 87.6%).
 //

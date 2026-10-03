@@ -176,6 +176,9 @@
 // GPT-6 retry (#5215): rechecked the best source at 95.2% (460 B). The only
 // code difference remains neg eax; sar eax, 8 versus the original full-width
 // test eax, eax; jle; prior notes cover the guard and allocator variants.
+// #5264 Codex retry: re-confirmed 95.2%. A bool helper for `f->count <= 0`
+// emits cmp/setle/test al and scores 93.8%, with the same added byte and a
+// moved live-range load. The sign-bit helper remains the best measured shape.
 #include <windows.h>
 
 struct Vertex_0045a610 {

@@ -1,85 +1,46 @@
-// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
-// Pass 13 (Space Bunny Free): 74.4 -> 87.0 percent / 1968 bytes (original 1964). Not a MATCH.
-// What moved it (each change free-scored on top of the previous one):
-//  - `if (((GameBits*)g_game)->b7 != 0)` rather than the bare bitfield: the `!= 0` keeps the
-//    original `mov al,[g+0x37f06]; shr al,7; test al,1` (a bare `if (bit)` folds the whole
-//    test to `test byte ptr [m], 0x80`). Worth 2.7 points on its own.
-//  - re-read the flags field off the unit for the second mask (twice, no `flags` local)
-//    instead of keeping it in a local: +0.7.
-//  - in the leaderboard, compute `mine` BEFORE `rank`/`best`, not after. The single biggest
-//    lever (+4.1): it moves that block's whole prologue, and only this order puts the mode
-//    test and both `mov ax` kill loads where the original has them. Moving them back, or
-//    inserting `i` between, costs 10 points.
-//  - walk the leaderboard with a `char* p` advanced by `p += 0x14b`, reading fields through
-//    `at<char>(p,0x4c)` / `((UnitBits*)(void*)at<int>(p,0))->b6` / `at<short>(p,...)` instead
-//    of an `int* p` with `p[0x13]` and `*p`. With an int* MSVC folds the base into ecx
-//    (`add ecx, 0x1b8a`); with a char* it keeps the base in eax (`add eax, 0x1b8a`) and the
-//    byte temps in cl, exactly as the original. Same score alone, but the loop then matches
-//    register-for-register, which the later hunks depend on.
-//  - bind the unit's +0x9a field to a local `int* a9a` before testing and nulling it. The
-//    virtual call and the `= 0` store then go through that one register, which is what puts
-//    the constant 0 in ebx (as in the original) instead of edi: +1.2. Doing the same to
-//    +0x9e or to the +0 head pointer regresses, so only the first one.
-// Still differs, largest first:
-//  - the leaderboard `theirs`: the original does a `movsx ecx, word ptr [eax+K]` in EACH arm
-//    of the ternary; ours loads 16-bit into cx and sign-extends once after the join. Every
-//    spelling that forces the per-branch movsx (int casts on the arms, if/else, a mode local)
-//    costs 15 points and 28 bytes, so the arms stay short-typed. This is the main blocker.
-//  - the tail after the leaderboard: the original holds `cmd` in edi for the whole tail; ours
-//    reloads it into edx/eax. Copying cmd into a local, hoisting cmd[9]/cmd[10] into locals
-//    (char, int or unsigned char), and reading them in both orders all score lower.
-//  - the x87 block: the original loads esi+0x92 and does the fmul BEFORE the `vt` compare;
-//    ours loads vt first and does the fmul after. Swapping the two source statements, hoisting
-//    the 0x92 pointer or the parent pointer, and adding a (float) cast all compile the same.
-//  - the sprintf call: the original materialises the format in eax and then the buffer in
-//    eax (after the push); ours computes the buffer into ecx before the push.
-//  - `unsigned char depth` still needs a 32-bit `add ecx, 3`; every int-typed spelling of
-//    `? 3 : 0 + 3` collapses the add to 8 bits and loses the [esp+0x14] spill.
-// Tried and rejected, all scoring below the above: a Game/Player/PSub struct for the 0x14b
-// entries, indexing players[i] with a for loop, `extern char* g_game`, a Game*-typed g_game,
-// all 128 header sets (tools/headers.py: none better), `short` for mine/theirs, a shared
-// `zero` local, the do/while rotation of the target loop, and per-field pointer locals for
-// +0x9e / the +0 head. tools/permute.py run from 74.4, 77.1 and 85.7 peaked at 79.8, 82.0
-// and 85.7 percent, none above this file, and its best diffs are full of `tmp0`/`do{}while(0)`
-// artifacts, so nothing from it was taken.
-// Pass 14 (DeepSeek V4.1 Flash): no score change, still 87.0 (1968 bytes) / 89.2 ignoring
-// the 10 moved jump targets. tools/stackcmp.py reports no moved local. Two 3-minute
-// tools/permute.py runs (current file and the 1964-byte bool-comparison variant below) found
-// nothing above 87.0. Everything tried this pass scored lower and was reverted:
-//  - rank-first in the leaderboard: matches the original prologue byte for byte
-//    (`and eax,0xff` / store / `mov edx,eax` / mode test / both `mov ax`), but the loop base
-//    then lands in ecx (`add ecx,0x1b8a`) instead of eax and the loop body loses the
-//    register-for-register match: 76.4. Adding a `base` local did not stop the coalescing:
-//    76.4. rank/mine/best orders B/E/F and a p-first order all scored 74 to 76.
-//  - per-arm sign-extend for `theirs`: `if (mode==2) bt = mine > at<short>(...dd) : ...` and
-//    `bool bt = cond ? cmp : cmp` make the function exactly 1964 bytes and the same 89.2
-//    ignoring jump targets, but shift every internal target (33 moved) so the raw score is
-//    81.9. The separate `int theirs; if/else` form spills `rec` to [esp+0x80]: 77.1.
-//    `(int)` casts on the ternary arms: 72.0.
-//  - the a9a local and `*a9a = 0` are optimal: writing the field back or dropping the local
-//    both give 85.8 (the write must be `mov [edi],ebx`).
-//  - splitting the x87 multiply into two statements, hoisting the 0x92 or parent pointer, and
-//    a `switch` value local all compile to the current code (no change).
-//  - `short theirs`, an inline comparison ternary and type changes to `theirs` compile
-//    identically to the current line (87.0).
-extern void* g_game;
+// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
+// Handles the "unit died" record that 0x4864b0 builds: credits the kill, updates the
+// kill leaderboard ("%s has taken the lead with %d kills"), then tears the unit down.
+//
+// Pass 15 (claude-opus-5-5): 87.0 -> 92.5 percent (1972 bytes, original 1964). Not a MATCH.
+// Rewritten on real types (Game/Player/Unit/Cmd structs, the record's count and kind as
+// 4-bit bitfields, a virtual destructor for the script object) instead of at<> offsets.
+// What moved it, in order:
+//  - the typed rewrite itself put the tail's `cmd->count > 0` test back to `jbe` and the
+//    script/head teardown on the original registers; but the leaderboard loop must stay a
+//    do/while over a Player pointer with `mine` read through a ternary, or MSVC keeps the
+//    loop's g_game->mode in a register across the loop and grows the frame to 0x6c.
+//  - `flags &= ~0x10000000; info = g_game->x1439b; flags &= ~0x30;` in that order: with
+//    the two clears adjacent MSVC folds them into one `and` (+1.2).
+//  - the leaderboard compare as `int ahead; if (mode == 2) ahead = mine > p->kills2; else
+//    ahead = mine > p->kills;`, with rank and best set before mine. MSVC tail-merges the two
+//    setg arms, which is exactly the original's per-arm movsx, `setg bl` and `mov ecx, ebx`
+//    (+3.5; the whole leaderboard now matches).
+// Still differs (all register allocation, the code shape is identical):
+//  - the tail (cmd->amount / cmd->count calls): the original keeps cmd in edi there; ours
+//    keeps it in edx, copies it to eax around the sete and reloads it after the call (+8
+//    bytes). Writing the kind==5 block's stores inside each branch (`par->xd4 -= f * -0.5`
+//    etc.) does give edi, but breaks that block's x87 shape (91.2). A cmd copy, an inline
+//    tail helper, `? 1 : 0` arguments, int locals for the arguments, nested ifs and a
+//    do/while(0) around the tail all compile identically.
+//  - in the kind==5 block the original loads unit->info into ecx before the fmul and reuses
+//    ecx for par->xec; ours uses edx and hoists the xec load. Splitting the expression,
+//    a UnitInfo or Player local and a switch local all compile identically. A 15-minute
+//    permuter run (17k candidates) found nothing better; its best ratio (93.6) needed an
+//    `int tmp = par->xec->active;` plus a do/while(0) around the block, so it was not taken.
+//  - 0x4864b0 (the real preceding function) defined above this one changes nothing.
+// Passes 1 to 14 (several models) reached 87.0 on an at<>-offset version of this function;
+// their notes described that version's spellings and no longer apply to this one.
+#include <string.h>
+
+int __cdecl sprintf(char* buf, const char* fmt, ...);
+
 extern char DAT_00508be8[];
 extern char DAT_00508bf0[];
-
-template <class T>
-inline T& at(void* p, int off)
-{
-    return *(T*)((char*)p + off);
-}
 
 class Class_004904c0 {
 public:
     void FUN_004904c0(void* unit);
-};
-
-class Class_004b0a70 {
-public:
-    int FUN_004b0a70(char*, void*, int, int, int, int, int, int);
 };
 
 class Class_00435100 {
@@ -87,233 +48,353 @@ public:
     int FUN_00435100();
 };
 
+class Class_0043dd10 {
+public:
+    void FUN_0043dd10();
+};
+
+class Class_004b0a70 {
+public:
+    int FUN_004b0a70(char* name, void* a, int b, int c, int d, int e, int f, int g);
+};
+
+// The unit's script object; deleting it calls the virtual destructor in slot 0x50.
+class Script_004866d0 {
+public:
+    virtual void v00();
+    virtual void v04();
+    virtual void v08();
+    virtual void v0c();
+    virtual void v10();
+    virtual void v14();
+    virtual void v18();
+    virtual void v1c();
+    virtual void v20();
+    virtual void v24();
+    virtual void v28();
+    virtual void v2c();
+    virtual void v30();
+    virtual void v34();
+    virtual void v38();
+    virtual void v3c();
+    virtual void v40();
+    virtual void v44();
+    virtual void v48();
+    virtual void v4c();
+    virtual ~Script_004866d0();         // +0x50
+};
+
+#pragma pack(push, 1)
+// The 0xb-byte "unit died" network record built by 0x4864b0.
+struct Cmd_004866d0 {
+    unsigned char type;                 // +0x0
+    unsigned short unitId;              // +0x1
+    int killerId;                       // +0x3
+    unsigned short parentId;            // +0x7
+    signed char amount;                 // +0x9
+    unsigned char count : 4;            // +0xa
+    unsigned char kind : 4;
+};
+
+struct Owner_004866d0 {
+    char unknown_0[0x95];
+    unsigned char nameIndex;            // +0x95
+    char unknown_96[5];
+    unsigned short b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1,
+        b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;   // +0x9b
+};
+
+struct Player_004866d0 {
+    int active;                         // +0x0
+    int dpid;                           // +0x4
+    char unknown_8[0x1f];
+    Owner_004866d0* owner;              // +0x27
+    char name[0x48];                    // +0x2b
+    char state;                         // +0x73
+    char unknown_74[0x88];
+    short kills;                        // +0xfc
+    short losses;                       // +0xfe
+    char unknown_100[4];
+    short kills2;                       // +0x104
+    short losses2;                      // +0x106
+    char unknown_108[0x21];
+    char allied[10];                    // +0x129
+    char unknown_133[0x11];
+    short unitCount;                    // +0x144
+    unsigned char index;                // +0x146
+    char unknown_147;
+    unsigned char rank;                 // +0x148
+    char unknown_149[2];
+};
+
+struct UnitInfo_004866d0 {
+    char unknown_0[0x20];
+    char name[0x150];                   // +0x20
+    short x170;                         // +0x170
+    char unknown_172[0x18];
+    float x18a;                         // +0x18a
+    char unknown_18e[0x74];
+    short x202;                         // +0x202
+};
+
+struct Unit_004866d0 {
+    Class_0043dd10* head;               // +0x0
+    char unknown_4[0x66];
+    char pos[0x1c];                     // +0x6a
+    int x86;                            // +0x86
+    Unit_004866d0* x8a;                 // +0x8a
+    char unknown_8e[4];
+    UnitInfo_004866d0* info;            // +0x92
+    Player_004866d0* player;            // +0x96
+    Script_004866d0* script;            // +0x9a
+    void* x9e;                          // +0x9e
+    char unknown_a2[4];
+    short xa6;                          // +0xa6
+    char unknown_a8[0x10];
+    short kills;                        // +0xb8
+    char unknown_ba[0x1a];
+    float xd4;                          // +0xd4
+    char unknown_d8[0x14];
+    Player_004866d0* xec;               // +0xec
+    Unit_004866d0* parent;              // +0xf0
+    unsigned char killer;               // +0xf4
+    char unknown_f5[0xa];
+    unsigned char owner;                // +0xff
+    char unknown_100[4];
+    float x104;                         // +0x104
+    char unknown_108[8];
+    unsigned int flags;                 // +0x110
+    char unknown_114[4];
+};
+
+struct Name_004866d0 {
+    char name[0x232];
+};
+
+struct Game_004866d0 {
+    char unknown_0[0x1b63];
+    Player_004866d0 players[10];        // +0x1b63
+    char unknown_2851[0x2a42 - 0x2851];
+    unsigned char localPlayer;          // +0x2a42
+    unsigned char x2a43;                // +0x2a43
+    char unknown_2a44[0x14281 - 0x2a44];
+    unsigned char x14281;               // +0x14281
+    char unknown_14282[0x14357 - 0x14282];
+    Unit_004866d0* units;               // +0x14357
+    char unknown_1435b[0x1439b - 0x1435b];
+    UnitInfo_004866d0* x1439b;          // +0x1439b
+    char unknown_1439f[0x37eee - 0x1439f];
+    int x37eee;                         // +0x37eee
+    char unknown_37ef2[4];
+    int mode;                           // +0x37ef6
+    char unknown_37efa[0x37f06 - 0x37efa];
+    unsigned short b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1,
+        b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;   // +0x37f06
+    char unknown_37f08[0x37f5f - 0x37f08];
+    Name_004866d0 names[8];             // +0x37f5f
+    char unknown_390ef[0x391e9 - 0x390ef];
+    Class_00435100* x391e9;             // +0x391e9
+    Class_004904c0* x391ed;             // +0x391ed
+};
+#pragma pack(pop)
+
+extern Game_004866d0* g_game;
+
 void __stdcall FUN_00482910(void* pos, int a, int b, int c);
 unsigned char __stdcall FUN_0044fe40(int id);
 void __stdcall FUN_00439eb0(void* unit, int flag);
 void __stdcall FUN_0047f8c0(void* unit);
 void __stdcall FUN_00480250(void* unit, int flag);
 void __stdcall FUN_0049c880(void* unit);
-void __stdcall FUN_0048aac0(void* unit, int a, char b, int c);
+void __stdcall FUN_0048aac0(void* unit, void* builder, int a, int c);
 void __stdcall FUN_00489bb0(void* a, void* b, int c, int d, int e);
 void __stdcall FUN_0047cbd0(void* unit);
 void __stdcall FUN_00482090(void* unit);
-int __cdecl FUN_004f8a70(unsigned char* a, unsigned char* b);
 void __stdcall FUN_00494ff0(int flag);
 char* __stdcall FUN_004c5740(char* text);
-int __cdecl sprintf(char* buf, const char* fmt, ...);
 void __stdcall FUN_00463ca0(char* text, int a, int b, int c);
 void __stdcall FUN_004948b0(int a, int b);
 void __stdcall FUN_0049b000(void* unit, int flag);
 void __stdcall FUN_00486360(void* unit, int a, int b);
 void __stdcall FUN_00489740(void* unit);
 void __stdcall FUN_0045aaa0(void* state);
-class Class_0043dd10 {
-public:
-    void FUN_0043dd10();
-};
 void __cdecl operator delete(void* p);
 void __stdcall FUN_00450380(int id);
 void __stdcall FUN_0047bd70(void* player);
 
-#pragma pack(push, 1)
-struct UnitBits {
-    char pad[0x9b];
-    unsigned short b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1, b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;
-};
-
-struct GameBits {
-    char pad[0x37f06];
-    unsigned short b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1, b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;
-};
-#pragma pack(pop)
-
 // FUNCTION: 0x4866d0
-void __stdcall FUN_004866d0(unsigned char* cmd, int param)
+void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
 {
-    char* unit;
-    int credited;
-
-    if (at<unsigned short>(cmd, 1) == 0)
+    Unit_004866d0* unit;
+    if (cmd->unitId == 0)
         unit = 0;
     else
-        unit = (char*)(at<int>((void*)g_game, 0x14357) + at<unsigned short>(cmd, 1) * 0x118);
-    if ((at<unsigned int>(unit, 0x110) & 0x10000000) == 0)
+        unit = &g_game->units[cmd->unitId];
+    if ((unit->flags & 0x10000000) == 0)
         return;
 
-    if (at<char>((void*)at<int>(unit, 0x96), 0x146) == at<char>((void*)g_game, 0x2a43)) {
-        FUN_00482910(unit + 0x6a, at<short>((void*)at<int>(unit, 0x92), 0x202),
-                     at<short>((void*)at<int>(unit, 0x92), 0x170), 0x3c);
-    }
-    char* parent;
-    if (at<unsigned short>(cmd, 7) == 0)
+    if (unit->player->index == g_game->x2a43)
+        FUN_00482910(unit->pos, unit->info->x202, unit->info->x170, 60);
+    Unit_004866d0* parent;
+    if (cmd->parentId == 0)
         parent = 0;
     else
-        parent = (char*)(at<int>((void*)g_game, 0x14357) + at<unsigned short>(cmd, 7) * 0x118);
-    at<char*>(unit, 0xf0) = parent;
-    at<unsigned char>(unit, 0xf4) = FUN_0044fe40(at<int>(cmd, 3));
-    ((Class_004904c0*)at<void*>((void*)g_game, 0x391ed))->FUN_004904c0(unit);
+        parent = &g_game->units[cmd->parentId];
+    unit->parent = parent;
+    unit->killer = FUN_0044fe40(cmd->killerId);
+    g_game->x391ed->FUN_004904c0(unit);
     FUN_00439eb0(unit, 1);
     FUN_0047f8c0(unit);
     FUN_00480250(unit, -1);
     FUN_0049c880(unit);
-    if (at<int>(unit, 0x86) != 0)
+    if (unit->x86 != 0)
         FUN_0048aac0(unit, 0, -1, 1);
-    while (at<int>(unit, 0x8a) != 0) {
-        unsigned char depth = (cmd[10] & 0xf0) != 0x30 ? 6 : 3;
-        FUN_00489bb0(at<char*>(unit, 0xf0), (void*)at<int>(unit, 0x8a), 30000, depth, 0);
-        FUN_0048aac0((void*)at<int>(unit, 0x8a), 0, -1, 1);
+    while (unit->x8a != 0) {
+        unsigned char depth = cmd->kind != 3 ? 6 : 3;
+        FUN_00489bb0(unit->parent, unit->x8a, 30000, depth, 0);
+        FUN_0048aac0(unit->x8a, 0, -1, 1);
     }
     FUN_0047cbd0(unit);
-    if ((at<unsigned char>((void*)g_game, 0x14281) & 2) == 2)
+    if ((g_game->x14281 & 2) == 2)
         FUN_00482090(unit);
-    if (param == 0 && at<char>(cmd, 9) > 0) {
-        ((Class_004b0a70*)at<void*>(unit, 0x9a))->FUN_004b0a70(DAT_00508be8, 0, 1, 1, at<char>(cmd, 9), 0, 0, 0);
-    }
-    credited = 0;
-    switch (cmd[10] >> 4) {
+    if (local == 0 && cmd->amount > 0)
+        ((Class_004b0a70*)unit->script)->FUN_004b0a70(DAT_00508be8, 0, 1, 1, cmd->amount, 0, 0, 0);
+
+    int credited = 0;
+    switch (cmd->kind) {
     case 5:
-        if (at<unsigned char>(unit, 0xf4) == 10 || at<char>(unit, 0xf4) == at<char>(unit, 0xff))
+        if (unit->killer == 10 || unit->killer == unit->owner)
             break;
     case 1:
     case 6:
-        if (at<int>(unit, 0x96) != 0) {
-            at<short>((void*)at<int>(unit, 0x96), 0xfe)++;
-            if (at<unsigned char>(unit, 0xf4) != 10 && at<float>(unit, 0x104) == 0.0f
-                && at<unsigned char>(unit, 0xff) != at<unsigned char>(unit, 0xf4)) {
-                at<short>((char*)g_game + at<unsigned char>(unit, 0xf4) * 0x14b, 0x1c5f)++;
+        if (unit->player != 0) {
+            unit->player->losses++;
+            if (unit->killer != 10 && unit->x104 == 0.0f && unit->owner != unit->killer)
+                g_game->players[unit->killer].kills++;
+            int same = _strcmpi(g_game->names[unit->player->owner->nameIndex].name,
+                                unit->info->name) == 0;
+            if (same) {
+                if (unit->killer != 10)
+                    g_game->players[unit->killer].kills2++;
+                unit->player->losses2++;
             }
-            param = FUN_004f8a70((unsigned char*)g_game + 0x37f5f
-                                     + at<unsigned char>((void*)at<int>((void*)at<int>(unit, 0x96), 0x27), 0x95) * 0x232,
-                                 (unsigned char*)at<int>(unit, 0x92) + 0x20) == 0;
-            if (param) {
-                if (at<unsigned char>(unit, 0xf4) != 10)
-                    at<short>((char*)g_game + at<unsigned char>(unit, 0xf4) * 0x14b, 0x1c67)++;
-                at<short>((void*)at<int>(unit, 0x96), 0x106)++;
-            }
-            if (at<char*>(unit, 0xf0) != 0 && at<float>(unit, 0x104) == 0.0f
-                && at<char>(unit, 0xff) != at<char>(unit, 0xf4)) {
-                at<short>(at<char*>(unit, 0xf0), 0xb8)++;
-            }
-            if (at<char>(unit, 0xf4) == at<char>((void*)g_game, 0x2a42))
+            if (unit->parent != 0 && unit->x104 == 0.0f && unit->owner != unit->killer)
+                unit->parent->kills++;
+            if (unit->killer == g_game->localPlayer)
                 FUN_00494ff0(5);
             credited = 1;
         }
         break;
-    case 3: {
-        int owner = at<int>(unit, 0x96);
-        if (owner != 0
-            && at<char>((void*)g_game,
-                        at<unsigned char>((void*)owner, 0x146) + 0x1c8c + at<unsigned char>((void*)g_game, 0x2a42) * 0x14b) == 0) {
-            at<short>((void*)owner, 0xfe)++;
-            param = FUN_004f8a70((unsigned char*)g_game + 0x37f5f
-                                     + at<unsigned char>((void*)at<int>((void*)at<int>(unit, 0x96), 0x27), 0x95) * 0x232,
-                                 (unsigned char*)at<int>(unit, 0x92) + 0x20) == 0;
-            if (param) {
-                at<short>((void*)at<int>(unit, 0x96), 0x106)++;
-            }
+    case 3:
+        if (unit->player != 0 && g_game->players[g_game->localPlayer].allied[unit->player->index] == 0) {
+            unit->player->losses++;
+            int same = _strcmpi(g_game->names[unit->player->owner->nameIndex].name,
+                                unit->info->name) == 0;
+            if (same)
+                unit->player->losses2++;
             credited = 1;
         }
         break;
     }
-    }
-    if (credited && at<unsigned char>(unit, 0xf4) != 10) {
-        char* rec = (char*)g_game + at<unsigned char>(unit, 0xf4) * 0x14b + 0x1b63;
-        if (at<int>(rec, 0) != 0
-            && (at<char>(rec, 0x73) == 1 || at<char>(rec, 0x73) == 2 || at<char>(rec, 0x73) == 3)
-            && at<char>(rec, 0x146) != 10
-            && (((Class_00435100*)at<void*>((void*)g_game, 0x391e9))->FUN_00435100() == 3
-                || ((Class_00435100*)at<void*>((void*)g_game, 0x391e9))->FUN_00435100() == 2)
-            && at<unsigned char>(rec, 0x148) > 0) {
-            int mine = at<int>((void*)g_game, 0x37ef6) == 2 ? at<short>(rec, 0x104) : at<short>(rec, 0xfc);
-            int rank = at<unsigned char>(rec, 0x148);
+
+    if (credited && unit->killer != 10) {
+        Player_004866d0* rec = &g_game->players[unit->killer];
+        if (rec->active != 0 && (rec->state == 1 || rec->state == 2 || rec->state == 3)
+            && rec->index != 10
+            && (g_game->x391e9->FUN_00435100() == 3 || g_game->x391e9->FUN_00435100() == 2)
+            && rec->rank > 0) {
+            int rank = rec->rank;
             int best = rank;
+            int mine = g_game->mode == 2 ? rec->kills2 : rec->kills;
             int i = 10;
-            char* p = (char*)g_game + 0x1b8a;
+            Player_004866d0* p = g_game->players;
             do {
-                if (at<char>(p, 0x4c) != 0) {
-                    bool hid = ((UnitBits*)(void*)at<int>(p, 0))->b6;
+                if (p->state != 0) {
+                    bool hid = p->owner->b6;
                     if (!hid) {
-                        int theirs = at<int>((void*)g_game, 0x37ef6) == 2 ? at<short>((void*)p, 0xdd) : at<short>((void*)p, 0xd5);
-                        bool bt = mine > theirs;
-                        if (bt) {
-                            if (at<unsigned char>((void*)p, 0x121) < best)
-                                best = at<unsigned char>((void*)p, 0x121);
+                        int ahead;
+                        if (g_game->mode == 2)
+                            ahead = mine > p->kills2;
+                        else
+                            ahead = mine > p->kills;
+                        if (ahead) {
+                            if (p->rank < best)
+                                best = p->rank;
                         }
                     }
                 }
-                p += 0x14b;
+                p++;
                 i--;
             } while (i != 0);
             if (best < rank) {
                 i = 10;
-                unsigned char* q = (unsigned char*)g_game + 0x1cab;
+                p = g_game->players;
                 do {
-                    if (*q >= best && *q < at<unsigned char>(rec, 0x148))
-                        *q = *q + 1;
-                    q += 0x14b;
+                    if (p->rank >= best && p->rank < rec->rank)
+                        p->rank = p->rank + 1;
+                    p++;
                     i--;
                 } while (i != 0);
-                at<unsigned char>(rec, 0x148) = best;
+                rec->rank = best;
                 if (best == 0) {
                     char text[100];
-                    sprintf(text, FUN_004c5740(DAT_00508bf0), rec + 0x2b,
-                            at<int>((void*)g_game, 0x37ef6) == 2 ? at<short>(rec, 0x104) : at<short>(rec, 0xfc));
+                    sprintf(text, FUN_004c5740(DAT_00508bf0), rec->name,
+                            g_game->mode == 2 ? rec->kills2 : rec->kills);
                     FUN_00463ca0(text, 2, 0, 10);
                 }
             }
         }
-        if (((GameBits*)g_game)->b7)
-            FUN_004948b0(at<unsigned char>(unit, 0xf4), at<unsigned char>((void*)at<int>(unit, 0x96), 0x146));
+        if (g_game->b7)
+            FUN_004948b0(unit->killer, unit->player->index);
     }
-    if ((cmd[10] & 0xf0) == 0x50 && at<char*>(unit, 0xf0) != 0) {
-        char* par = at<char*>(unit, 0xf0);
-        float f = (1.0f - at<float>(unit, 0x104)) * at<float>((void*)at<int>(unit, 0x92), 0x18a);
-        void* vt = (void*)at<int>(par, 0xec);
-        if (*(int*)vt == 0 || at<char>(vt, 0x73) != 2) {
-            f = f + at<float>(par, 0xd4);
+
+    if (cmd->kind == 5 && unit->parent != 0) {
+        Unit_004866d0* par = unit->parent;
+        float f = (1.0f - unit->x104) * unit->info->x18a;
+        if (par->xec->active == 0 || par->xec->state != 2) {
+            f = f + par->xd4;
         } else {
-            switch (at<int>((void*)g_game, 0x37eee)) {
+            switch (g_game->x37eee) {
             case 0:
-                f = at<float>(par, 0xd4) - f * -0.5;
+                f = par->xd4 - f * -0.5;
                 break;
             case 1:
-                f = at<float>(par, 0xd4) - f * -0.7;
+                f = par->xd4 - f * -0.7;
                 break;
             default:
-                f = f + at<float>(par, 0xd4);
+                f = f + par->xd4;
             }
         }
-        at<float>(par, 0xd4) = f;
+        par->xd4 = f;
     }
-    if (at<char>(cmd, 9) > 0 && at<float>(unit, 0x104) == 0.0f)
-        FUN_0049b000(unit, (cmd[10] & 0xf0) == 0x30);
-    if ((cmd[10] & 0xf) != 0)
-        FUN_00486360(unit, cmd[10] & 0xf, (cmd[10] & 0xf0) != 0x70);
+    if (cmd->amount > 0 && unit->x104 == 0.0f)
+        FUN_0049b000(unit, cmd->kind == 3);
+    if (cmd->count > 0)
+        FUN_00486360(unit, cmd->count, cmd->kind != 7);
     FUN_00489740(unit);
-    int* a9a = (int*)at<int>(unit, 0x9a);
-    if (a9a != 0) {
-        (*(void(__stdcall**)(int))(*(int*)a9a + 0x50))(1);
-        *a9a = 0;
+    if (unit->script != 0) {
+        delete unit->script;
+        unit->script = 0;
     }
-    if (at<int>(unit, 0x9e) != 0) {
-        FUN_0045aaa0((void*)at<int>(unit, 0x9e));
-        at<int>(unit, 0x9e) = 0;
+    if (unit->x9e != 0) {
+        FUN_0045aaa0(unit->x9e);
+        unit->x9e = 0;
     }
-    if (*(int*)unit != 0) {
-        ((Class_0043dd10*)*(int*)unit)->FUN_0043dd10();
-        operator delete((void*)*(int*)unit);
-        *(int*)unit = 0;
+    Class_0043dd10* head = unit->head;
+    if (head != 0) {
+        head->FUN_0043dd10();
+        operator delete(head);
+        unit->head = 0;
     }
-    at<short>(unit, 0xa6) = 0;
-    at<unsigned int>(unit, 0x110) = at<unsigned int>(unit, 0x110) & 0xefffffff;
-    int t = at<int>((void*)g_game, 0x1439b);
-    at<unsigned int>(unit, 0x110) = at<unsigned int>(unit, 0x110) & 0xffffffcf;
-    at<int>(unit, 0x92) = t;
-    at<short>((void*)at<int>(unit, 0x96), 0x144)--;
-    if (at<short>((void*)at<int>(unit, 0x96), 0x144) == 0) {
-        if (((Class_00435100*)at<void*>((void*)g_game, 0x391e9))->FUN_00435100() == 3)
-            FUN_00450380(at<int>((void*)at<int>(unit, 0x96), 4));
-        if (((Class_00435100*)at<void*>((void*)g_game, 0x391e9))->FUN_00435100() == 2)
-            FUN_0047bd70((void*)at<int>(unit, 0x96));
+    unit->xa6 = 0;
+    unit->flags &= ~0x10000000;
+    unit->info = g_game->x1439b;
+    unit->flags &= ~0x30;
+    unit->player->unitCount--;
+    if (unit->player->unitCount == 0) {
+        if (g_game->x391e9->FUN_00435100() == 3)
+            FUN_00450380(unit->player->dpid);
+        if (g_game->x391e9->FUN_00435100() == 2)
+            FUN_0047bd70(unit->player);
     }
 }

@@ -1,86 +1,44 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
-// Pass 13 (Space Bunny Free): 83.7 -> 88.6 percent / 1596 bytes (original 1595). Not a MATCH.
-// What moved it (free-scored variants, all kept under build/scratch/0x487080/):
-//  - GetB10F_00487080(unit), a one-line static inline getter for the byte flag field, read
-//    through in the four statements of the 0x10f merge. The function boundary stops MSVC
-//    hoisting the load of `unit->b_10f` above the three byte stores just before it, and
-//    statements 2, 3 and 4 then match byte for byte: the shift terms land in eax, ecx and
-//    edx in turn and the three masks stay separate 0xfd/0xfb/0xf7 (85.6 percent).
-//  - the piece copy loop's flag merge written on the plain `flags` byte instead of on the
-//    bitfields: `d->flags = ((unsigned char)s->flags ^ d->flags) & 1 ^ d->flags;` then three
-//    `((s->flags >> N & M) << N) | (d->flags & clear)` steps. That is what makes MSVC load
-//    s->flags into bl and copy dl into cl for the first step, as the original does. The third
-//    step has to move the two bits together (>> 2 & 3, clear 0xf3) and the fourth shift by 4
-//    with clear 0xef, not shift by 3 with clear 0xf7 (86.0, then 86.2 percent).
-//  - `unsigned int hi = rec.flags >> 4;` before the 0x110 chain, used by its first step only
-//    (88.6 percent). Both operands of that step are then known disjoint, so MSVC emits
-//    `xor eax, ecx` where the original has `or eax, ecx`; that one instruction is the only
-//    thing this step still costs, and the shift term, the mask and the store all line up.
-//    Letting `hi` feed a second step drops back to 83.7.
-//  Tried and rejected here: writing either merge as one static inline helper taking the byte
-//    by value or a `unsigned char*` (78.9 / 80.8 / 81.0), reading the fields directly with no
-//    getter (70.1), a pointer-returning getter (81.3), a local `u`/`b` for the 0x110 chain read
-//    as `unit->flags` (72.4) or seeded from a getter (85.6, no change), and swapping the
-//    operands of the first `^` or of the 0x110 `|` (no change at all: MSVC normalises both).
-// Pass 14 (claude-sonnet-5-5): 88.6 -> 88.8 percent. BLOCK LAYOUT fixed the epilogue: the
-//  first exit is `return unit` (the already-active unit, or null) and the failure paths fall out
-//  of nested `if (unit != 0) { ... return unit; } return 0;`, so the final `return 0` is the LAST
-//  block of the function (xor eax,eax then the shared pops) and the early `return unit` branches
-//  jump into the pops after it, exactly like the original. The old `return 0` + early `return 0`
-//  form made MSVC fold the xor into the epilogue and schedule it after pop ebp.
-// Still differs:
-//  Pass 14 experiments that did NOT help (kept in build/scratch/0x487080/n1b.cpp, n3.cpp, f2.cpp):
-//   - real bitfield unions (rec.flags as a 32-bit uint bitfield view, unit->flags and b_10f as
-//     bitfield views, one plain `unit->x4 = rec.c8;` per bit): the 0x10f statements 2-4 and the
-//     `or` (not xor) come out right, but MSVC puts the destination part on the LEFT of the final
-//     `or` (result in the dst register, `and al,0xf3` narrowed) where the original puts the source
-//     term on the left (`shr eax,4; and eax,0xc; and ecx,0xfffffff3; or eax,ecx`), so the
-//     alternating eax/ecx rotation of the original is lost: 72 percent. The explicit
-//     `(term) | (u & ~mask)` form in this file is therefore the right shape.
-//   - a 16-bit bitfield container over b_10e/b_10f (to explain why the load of b_10f is not
-//     hoisted above the b_10e store): MSVC then does 16-bit read-modify-write (70 percent).
-//   - `unit->b_10f ^= (src ^ unit->b_10f) & 1;` and a local `d = GetB10F(unit)`: the dst byte is
-//     still hoisted into cl above the `mov [esi+0xfa], dl` store (the original loads it into al
-//     right after the b_10e store, so the allocator there put dst in al and src in cl).
-//  (3) The first statement of the 0x10f chain calls the getter twice, so MSVC keeps a hoisted
-//    copy in bl at 0x487275 (just after FUN_00480250) and emits `xor al, byte ptr [esp+0x4c]`
-//    then `xor bl, al` where the original has `mov cl, [esp+0x4c]` / `xor cl, al` / `xor cl, al`.
-//    One getter call (81.3), a local seeded from the getter (81.3), a helper doing just this
-//    statement (82.7) and a pointer-returning getter (81.3) each lose more than they gain.
-//  (4) The 0x110 chain is still one register off from step 3 on: the original ors into the new
-//    term and ours ors into the carried value, which rotates every later step. The hoisted
-//    `hi` above is what lined up steps 1 and 2; a similar hoist for a later step did not help.
-//  (5) The piece copy loop writes the obj byte first: with the original statement order the
-//    strength-reduced pointers anchor on obj/f8 (esi+0x10 / edi) instead of f4 (esi+0xc).
-//    All five orders of the first three statements were tried and seven ways of spelling the
-//    two pointers; the two orders that keep the right anchors score 83.3 and 86.2, and the
-//    orders that put f0 first match the loop body byte for byte but pick the wrong anchors.
-//  Leads a permuter run found that are not plausible source (its result is kept as
-//    build/scratch/0x487080/weh0.cpp, 88.8 percent before this pass's other changes): it needs
-//    a `do { ... } while (0)` around the 0xc0 and 0x100 steps of the 0x110 chain, plus an
-//    `unsigned int` temporary for each masked value in three more steps, one for the saved
-//    unit's position, and `for (; 3 > j; j++)` with j declared above the chain. Ablation: the
-//    do/while(0) is worth 3.3 percent on its own (88.8 without it 85.3, 86.2 with it but no
-//    temporary), each temporary 0.6, and none of the swapped `&`/`|` operands matter at all. A
-//    plain `{ }` block instead of the do/while(0) scores 85.3, so it is the loop, not the
-//    scope, that matters; no natural construct for it was found.
-// Pass 15 (DeepSeek V4.1 Flash): no change, still 88.8 percent / 1596 bytes.
-//  Ran the permuter three times (default, --seed 42, --seed 123 --no-helpers, 3 min
-//  each, ~6000 candidates): no candidate beat 88.8. The seed 123 run reached permute
-//  score 3045 (from 3194) at the SAME 88.8, but only via implausible edits (`1 & (...)`,
-//  an `((unsigned int)u)` cast, a moved unused `int k`); its machine diff is the same
-//  size, so it was not copied.
-//  Manual experiments kept under build/scratch/0x487080/ (a,b,c,d,f,g,h,j,k,l,m,n1,n2,n3,
-//  p,q1,q2,q3), all at or below baseline. Anything that makes the field load a single
-//  local (b, f, g, n*) scores 81 to 82: one fewer load, but the load is scheduled above
-//  the b_fa/b_10e stores and the whole 0x110 register rotation then shifts, losing more
-//  than the extra byte gains. q1 to q3 (statement 1 on the plain field, statements 2-4 on
-//  the getter) get the size right (1595) but the load still hoists and the 0x110 chain
-//  rotates, 80.3 to 82.4. Removing `hi` (d) drops step 1 to a plain `or` but loses 2.4.
-//  Still differs: the one extra hoisted `mov bl,[esi+0x10f]`, the step-1 `xor` vs `or`,
-//  the 0x110 rotation from step 3 on, and the piece loop's first three statement order.
-extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
-extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
+// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
+// Loads one unit (and, recursively, the units it carries or is built by) from the "Units"
+// section of a saved game: finds its 0xb8-byte record by id, creates the unit and copies the
+// record into it.
+//
+// Pass 16 (claude-opus-5-5): 88.8 -> 91.9 percent, 1595 bytes (the original's size). Not a MATCH.
+//  - The piece copy loop is now plain array indexing, `unit->pieces[j].f0 = rec.pieces[j].f0;`
+//    and so on in the original order (f0, f4, obj, fc, ...), with SaveRec.pieces typed as an
+//    array of SrcPiece. That fixes the whole loop, anchors included (+3.1). The rule behind
+//    it: MSVC anchors the strength-reduced pointer on the second distinct non-zero offset the
+//    loop body uses. With `d = &unit->pieces[j]` pointers, f0 sits at offset 0 and does not
+//    count, so the anchor moves to obj; indexed off `unit`, f0 is +4 and the anchor lands on
+//    f4 as in the original.
+//  - The piece flags are now real bitfields (`unit->pieces[j].fl.b0 = rec.pieces[j].fl.b0;`).
+//    They compile to the same xor/and/xor code as the old explicit masks.
+//  Still differs (register allocation only, the code shape is identical):
+//  (1) the 0x10f merge: the getter's two loads leave a hoisted `mov bl,[esi+0x10f]` and a
+//    d-left `xor al,[esp+0xcc]` where the original has `mov cl,[esp+0xcc]; xor cl,al`.
+//    Tried this pass, all lower or identical: bitfield copies (from rec bitfields, from
+//    `rec.flags & 1`, from `rec.flags >> n`) 81.8 to 83.3; a `b` local for the four steps
+//    86.9; a `(unsigned char)(rec.flags & 1)`, int or 32-bit source term, `|`/`& 0xfe` forms
+//    and `^=` (identical or 83.3). In a small test file the bitfield copies give exactly the
+//    original's s-left xor and src-left `or` rotation, so the original was most likely
+//    bitfields, and the residual is the allocator's context.
+//  (2) the 0x110 chain: `xor` for `or` at step 1 (the `hi` hoist), then edx at step 3 and a
+//    dst-left `or` at step 5 where the original has them at step 6, and no reload of
+//    unit->flags after the field_b0 store. Bitfields (75.7), reading unit->flags in every
+//    statement (75.5 to 76.2), a reference or pointer to unit->flags (77.7), re-reading u
+//    after field_b0 (81.3, MSVC forwards it without a load) and other spellings of the first
+//    two steps were all lower.
+//  - The real preceding function, 0x486fd0, defined above this one changes nothing.
+//  - A 15-minute permuter run on this file (15k candidates) only found declaration moves
+//    (rec, i and k) that lower its fine score but leave the percentage at 91.9.
+// Earlier passes (condensed):
+//  - Pass 13: GetB10F_00487080 (a one-line inline getter) keeps statements 2 to 4 of the 0x10f
+//    merge byte for byte; `unsigned int hi = rec.flags >> 4;` used by the first 0x110 step only
+//    lines up steps 1 and 2 (removing it loses 2.4).
+//  - Pass 14: the failure paths fall out of `if (unit != 0) { ... return unit; } return 0;`
+//    so the final `xor eax, eax` is the last block, as in the original.
+//  - A permuter lead from pass 14 (not plausible source): a `do { } while (0)` around the 0xc0
+//    and 0x100 steps of the 0x110 chain was worth 3.3 points on the old file.
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 
 
@@ -88,6 +46,26 @@ struct Vec3_00487080 {
     int x, y, z;
 };
 
+struct PieceBits_00487080 {
+    unsigned char b0 : 1;
+    unsigned char b1 : 1;
+    unsigned char b23 : 2;
+    unsigned char b4 : 1;
+    unsigned char b5 : 3;
+};
+
+struct SrcPiece_00487080 {              // 0x18 bytes at +0x41 + i*0x18
+    int f0;                             // +0x0
+    int f4;                             // +0x4
+    unsigned char f8;                   // +0x8
+    char gap_9[3];
+    int fc;                             // +0xc
+    short f10;                          // +0x10
+    short f12;                          // +0x12
+    short f14;                          // +0x14
+    unsigned char f16;                  // +0x16
+    PieceBits_00487080 fl;              // +0x17
+};
 #pragma pack(push, 1)
 // 0xb8-byte save record. Name at +0x0, id at +0x21 (proven by the
 // `cmp word ptr [esp+0x39], bx` against the record base at esp+0x18).
@@ -104,7 +82,7 @@ struct SaveRec_00487080 {
     short f3b;                          // +0x3b
     short f3d;                          // +0x3d
     short f3f;                          // +0x3f
-    char pieces[3 * 0x18];              // +0x41
+    SrcPiece_00487080 pieces[3];        // +0x41
     short childA;                       // +0x89
     short childB;                       // +0x8b
     char b8d;                  // +0x8d
@@ -127,18 +105,6 @@ struct SaveRec_00487080 {
     unsigned int flags;                 // +0xb4
 };
 
-struct SrcPiece_00487080 {              // 0x18 bytes at +0x41 + i*0x18
-    int f0;                             // +0x0
-    int f4;                             // +0x4
-    unsigned char f8;                   // +0x8
-    char gap_9[3];
-    int fc;                             // +0xc
-    short f10;                          // +0x10
-    short f12;                          // +0x12
-    short f14;                          // +0x14
-    unsigned char f16;                  // +0x16
-    unsigned char flags;                 // +0x17
-};
 
 struct Piece_00487080 {                 // 0x1c bytes at +0x4 + i*0x1c
     int f0;
@@ -150,7 +116,7 @@ struct Piece_00487080 {                 // 0x1c bytes at +0x4 + i*0x1c
     short f12;
     short f14;
     unsigned char f16;
-    unsigned char flags;                 // +0x1f
+    PieceBits_00487080 fl;              // +0x1f
 };
 
 #pragma pack(pop)
@@ -393,21 +359,20 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     ((Class_004b0610*)unit->field_9a)->FUN_004b2040(file);
 
     for (int j = 0; j < 3; j++) {
-        SrcPiece_00487080* s = (SrcPiece_00487080*)(rec.pieces + j * 0x18);
-        Piece_00487080* d = &unit->pieces[j];
-        d->obj[0x10a] = s->f8;
-        d->f0 = s->f0;
-        d->f4 = s->f4;
-        d->fc = s->fc;
-        d->f10 = s->f10;
-        d->f12 = s->f12;
-        d->f14 = s->f14;
-        d->f16 = s->f16;
-        d->flags = ((unsigned char)s->flags ^ d->flags) & 1 ^ d->flags;
-        d->flags = (unsigned char)(((s->flags >> 1 & 1) << 1) | (d->flags & 0xfd));
-        d->flags = (unsigned char)(((s->flags >> 2 & 3) << 2) | (d->flags & 0xf3));
-        d->flags = (unsigned char)(((s->flags >> 4 & 1) << 4) | (d->flags & 0xef));
+        unit->pieces[j].f0 = rec.pieces[j].f0;
+        unit->pieces[j].f4 = rec.pieces[j].f4;
+        unit->pieces[j].obj[0x10a] = rec.pieces[j].f8;
+        unit->pieces[j].fc = rec.pieces[j].fc;
+        unit->pieces[j].f10 = rec.pieces[j].f10;
+        unit->pieces[j].f12 = rec.pieces[j].f12;
+        unit->pieces[j].f14 = rec.pieces[j].f14;
+        unit->pieces[j].f16 = rec.pieces[j].f16;
+        unit->pieces[j].fl.b0 = rec.pieces[j].fl.b0;
+        unit->pieces[j].fl.b1 = rec.pieces[j].fl.b1;
+        unit->pieces[j].fl.b23 = rec.pieces[j].fl.b23;
+        unit->pieces[j].fl.b4 = rec.pieces[j].fl.b4;
     }
+
 
     if (unit->b_10f & 4)
         FUN_0047db20(unit);

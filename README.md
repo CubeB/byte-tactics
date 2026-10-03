@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**80.31% of Cavedog's code matched** (683,286 of 850,853 bytes)
+**80.76% of Cavedog's code matched** (687,188 of 850,853 bytes)
 
 `[################################--------]`
 
-By count that is 3,125 of the game's 3,267 functions (95.7%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,126 of the game's 3,267 functions (95.7%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,125 | 683,286 |
-| Attempted, not yet matching | 142 | 167,567 |
+| Matched byte-for-byte | 3,126 | 687,188 |
+| Attempted, not yet matching | 141 | 163,665 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 693 of 703 | 98.4% | 2,847 | `##########` |
 | xl (401 to 600 bytes) | 204 of 226 | 89.9% | 11,147 | `#########-` |
 | xxl (601 to 1,000 bytes) | 147 of 195 | 75.3% | 36,263 | `########--` |
-| huge (over 1,000 bytes) | 102 of 161 | 60.0% | 116,964 | `######----` |
+| huge (over 1,000 bytes) | 103 of 161 | 61.3% | 113,062 | `######----` |
 
 ### By area
 
@@ -53,7 +53,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x410000` | Orders and VTOL states | 213 of 222 | 78.0% | 14,015 | `########--` |
 | `0x420000` | Frontend shell | 147 of 154 | 79.4% | 13,091 | `########--` |
 | `0x430000` | Maps, missions, briefings | 214 of 228 | 78.6% | 12,891 | `########--` |
-| `0x440000` | Multiplayer setup | 240 of 246 | 74.9% | 15,436 | `#######---` |
+| `0x440000` | Multiplayer setup | 241 of 246 | 81.2% | 11,534 | `########--` |
 | `0x450000` | Options and audio menus | 163 of 176 | 68.3% | 20,002 | `#######---` |
 | `0x460000` | Game and skirmish setup, unit classes | 201 of 212 | 77.7% | 13,709 | `########--` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 246 of 259 | 83.0% | 10,800 | `########--` |

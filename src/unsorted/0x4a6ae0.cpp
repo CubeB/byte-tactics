@@ -1,281 +1,21 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Fable 5.1. Names are provisional.
-// deepseek-v4.1-flash pass: kept 93.4% / 1703 bytes, no variant scored higher.
-// Rebuilt v1 (correct-semantics else-if region) = 64.1% / 1704 bytes, obj=EBP /
-// entry=EBX as documented; v1 + int bound = 64.1% / 1700 bytes (bound becomes
-// movsx ecx / inc ecx, homes still swapped); v1 + `entry != 0 &&` in the first
-// test = 87.3% / 1714 bytes and v1 + that + int bound = 87.4% / 1710 bytes
-// (object/entry homes correct but the compiler reorders: it emits its own
-// test ebp / cmp [f138] / test ah,0x20 trio before the auto-repeat and then a
-// second mov ax,[f138]; test ax,ax, so the region layout is still wrong).
-// A nested if/else spelling of the same correct semantics (flags test first,
-// rect-set in the f138==0 arm) = 58.5% / 1688 bytes, wrong homes. A batch of
-// 12 self-assignment / dummy-store spellings (`entry->field_138 =
-// entry->field_138` at four sites, `(entry->field_138 += 0)`, an
-// `entry->field_138 == 0 || (entry->flags & 0)` test) all stayed at 64.1%:
-// the allocator CSEs or drops them, so a surviving extra `entry` reference
-// still cannot be added without emitting bytes. Bound spellings on the kept
-// shape (`int`, `int` split over two statements, `short` split, `(short)` cast)
-// are either 61.8% or the same 93.4%; b4 `short bound = entries->count;
-// bound = bound + 1;` and b7 `bound = (short)(bound + 1);` keep 93.4% but do
-// not fix the movsx shape. headers.py (256 sets) and a 3-minute permuter run
-// (2709 candidates) found nothing. Everything below is unchanged.
-// Fable 5.1 (#4452): kept at 93.4%, no new variant scored. What this pass
-// measured on v1 (the correct-semantics if/else-if/else region, obj=EBP /
-// entry=EBX, 64.1%), all with scratch --sym scores:
-//  - Verified the inherited claims: dropping the shared tail call (k1) flips
-//    the homes and matches everything else (88.6%); `entry != 0 &&` (87.4%)
-//    and a dummy entry store (88.7%) flip them at a byte cost. The margin
-//    really is one reference.
-//  - Levers that do NOT add a reference here: a trivial static inline wrapper
-//    around any entry access or around the tail call (the 0x4bcb50 trick), an
-//    EntryRect(entry, &r) helper, a Capture(obj, index, entry, button) helper
-//    for the two mouse-button arms, an InRect(&r, &point) helper, a local copy
-//    of obj, entry as a reference, declaring entry before entries, splitting
-//    declarations from assignments: all exactly 64.1%, same bytes.
-//  - headers.py: all 256 C header sets give 64.1%.
-//  - Any single shared tail written once with a goto (the D block's
-//    `f138 = 0; redraw; return 0` reached from the 0x40 arm or from the default
-//    arm, the arms 8/0x100 tail, or the keyboard half's one FUN_004a5f40 call
-//    reached from both sub-arms) flips the homes but lowers index by one as
-//    well, and point.y then takes edi (`mov ecx, edi; cmp ecx, eax` in the
-//    first in-rect block): 1709 bytes, 78.9% every time. Adding an index use
-//    back with a wrapper, `index + 0` or a swapped compare changes nothing.
-//    So the lever must lower obj (or raise entry) by one without touching
-//    index; no obj-only site was found whose sharing the compiler keeps.
-//  - Not a matching problem but worth a note: the team search's not-found
-//    value is 0 (`xor esi, esi` at 0x4a6fd4) while the caller tests for -1
-//    (`cmp esi, -1` at 0x4a6fd6), so a missing team falls through to entry 0.
-// claude-opus-5-5 (#4258): kept at 93.4%. The original's field_138 block is an
-// if / else-if / else chain, which reproduces the whole layout (structural ratio
-// 0.957 -> 0.996, including the `test ax,ax` re-tests at 0x4a6f43 and 0x4a7060):
-//     if (entry->field_138 != 0 && (entry->flags & 0x2000)) { auto-repeat ... }
-//     else if (entry->field_138 == 0 && <point in r>) { field_138 = 1; DAT_0051fbac = 0xf; }
-//     else { if (entry->field_138 != 0 && <point outside r>) { field_138 = 0;
-//            FUN_004a5f40(obj, index); return 0; } goto fail; }
-//     FUN_004a5f40(obj, index); ...
-// plus `int bound` (not short) for the team search. With that chain the only
-// difference left is a register tie: obj gets ebp and entry ebx (the original has
-// obj in ebx, entry in ebp), which shifts every later byte and scores 64.1%.
-// A 15-minute permuter run only flipped the tie with a dummy `bool tmp0` around
-// the tolower compare; a `short state` local, `entry + index`, split declarations,
-// operand order in the tolower/toupper compares and `!field_138` did not.
-// deepseek-v4.1-flash (#4124, 10-minute box, no new variant scored). Measured the
-// region's `entry`-reference ladder on a rebuilt v1 (the correct-semantics shape,
-// build/scratch/0x4a6ae0/batch.py): v1 = 64.1% with obj=EBP/entry=EBX; v1 plus ONE
-// unfolded extra `entry` reference in the region flips the homes back to
-// obj=EBX/entry=EBP and the 0x4a6ef9..0x4a708b region then matches byte for byte,
-// but every spelling found costs bytes: `entry != 0 &&` in the first test
-// (1709 bytes, 88.1%), `entry->state == 0 ||` or `entry->state != 4 &&` in the else
-// (1715, 88.7%), `entries[index].field_138` for the else read (87.9%) or the
-// else-if read (88.3%). Folded/dead/spelled-around references do NOT count, all
-// leave v1 at exactly 64.1%: `(void)entry->state;`, `entry->field_138` twice,
-// `entry->field_138 + 0`, `*(short*)&entry->field_138`, a self-referencing store,
-// `(char*)entry == (char*)&entries[index]`, `int`/`short`/`unsigned short` `f138`
-// locals used by the three tests (same region bytes, so the source spelling of the
-// region cannot both keep the ax temp and drop entry's weight). On top of the
-// `entry != 0` variant (X10) the region and homes are right and only the bound
-// block is wrong (`mov ax,[edi+0xb6]; inc ax; movsx ebp,ax`); `int bound` there
-// gives `movsx ebp,[edi+0xb6]; inc ebp`, not the original's
-// `movsx eax,[edi+0xb6]; lea ebp,[eax+1]`, and `int bound` on v1 gives
-// `movsx ecx` instead. The one missing piece is still an unfolded `entry`
-// reference that emits no bytes; nothing below changed and 93.4% remains best.
-// deepseek-v4.1-flash (#4054, 10-minute box, no new variant scored): reconfirmed
-// 93.4% / 1703 bytes. Still differs: the rect-set block is emitted before the
-// flags&0x2000 block with a second `cmp word [ebp+0x138],0` re-test where the
-// original reuses the live `mov ax,[ebp+0x138]; test ax,ax` pair and emits the
-// rect-set after, and the bound block (ours `mov ax,[edi+0xb6]; inc ax; movsx
-// ebp,ax` vs `movsx eax,[edi+0xb6]; lea ebp,[eax+1]`); both are the known
-// obj/entry allocation tie, every respelling tried in the notes below costs more
-// than it pays.
-// deepseek-v4.1-flash (issue #3406, 10-minute box): two more shapes tried and
-// reverted, both worse: a `short f138` local read once (61.7%, 1699 bytes) and
-// the original-emission-order rewrite `if (f138 == 0) {rect} else {flags}`
-// (58.5%, 1688 bytes). Still differs: the f138 test region (ours `cmp word
-// [ebp+0x138],0` twice against the original's live `mov ax,[..]; test ax,ax`
-// pair with the rect-set block emitted after the flags&0x2000 block) and the
-// bound block (ours `mov ax,[edi+0xb6]; inc ax; movsx ebp,ax` against the
-//  original's `movsx eax,[edi+0xb6]; lea ebp,[eax+1]`).
-//  deepseek-v4.1-flash pass (issue #3586). Rebuilt v1 from this file exactly as
-//  note 1 quotes it and measured 64.1%, 1704 bytes, homes obj=EBP/entry=EBX, so
-//  the whole mismatch is the pointer tie, nothing else. New evidence on that
-//  tie:
-//   - v1 with ONLY the shared tail `FUN_004a5f40(obj, index);` at 0x4a6f8d
-//     removed compiles to the CORRECT homes and matches the original
-//     instruction for instruction; the sole diffs are the -5 label shift and
-//     the bound block (88.5%, 1698 bytes). So the tie is exactly ONE `obj`
-//     reference (or one `index` reference, both are dropped by that deletion).
-//   - Duplicate references written with a DIFFERENT spelling are not CSE'd and
-//     do flip the homes, but each one costs bytes: `entries[index].field_138`
-//     in place of `entry->field_138` in the redraw test (87.9%, 1710),
-//     in the flags&8 first test (84.2%), a dead duplicate store (83.8%),
-//     `entries[index].state == entry->state` in the state test (80.9%).
-//   - Sharing the arms 8/0x100 tail with `goto fin` on v1 does flip the homes
-//     (78.8%) but promotes point.y into EDI, so the first in-rect block turns
-//     into `mov ecx,edi; cmp ecx,eax`; restoring `index` weight so EDI stays a
-//     region cache is the remaining lead, not solved here.
-//  No byte-level improvement over 93.4% was found; the file below is unchanged.
-//  deepseek-v4.1-flash pass (#3730): reconfirmed v1 = 64.1%, 1704 bytes with the
-//  0x4a6ef9..0x4a708b region byte exact, and measured `int bound` on the kept
-//  93.4% shape: it fixes nothing here and regresses to 61.8%, 1698 bytes, because
-//  it flips the keyboard-half homes (0x4a7163 becomes `mov word ptr [ebx+0x138],si`).
-//  The file stays at 93.4%; the f138-region shape and the obj/entry tie remain
-//  mutually exclusive without a byte-costly extra entry reference.
-
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Fable 5.1, finished by claude-opus-5-5. Names are provisional.
+// Command-button click/key handler for the 0x15b-byte entry table.
 //
-// PARTIAL 93.4% (1703 of 1703 bytes). Command-button click/key handler for
-// the 0x15b-byte entry table.
-//
-// Sonnet 5.5 pass (87.2% -> 93.4%). Two findings:
-//  1. The shared `fail` epilogue (`pop edi; pop esi; pop ebp; xor eax,eax; pop
-//     ebx` at the very end, reached by `je/jne` from everywhere) only stays at
-//     the end of the function when the LAST arm (the focus != index arm) is
-//     written as nested ifs ending in `return 1;` with no `goto fail` of its own.
-//     Written with `if (a != p && b != p) goto fail;` MSVC inverts the final
-//     test and puts an inline copy of the epilogue before the body, which cost
-//     12 bytes and every later jump target. The nested form fixes the size
-//     (1691 -> 1703) and all jump offsets.
-//  space-bunny-free pass: confirmed the open lead below and sharpened it.
-//     With the CORRECT semantics written as the if/else-if/else chain of v1
-//     (build/scratch/0x4a6ae0/v1.cpp) the 0x4a6ef9..0x4a708b region is now
-//     BYTE EXACT, instruction for instruction, every opcode, every operand
-//     width, both rect tests and both `test ax,ax` re-tests included. The
-//     ONLY thing left is that v1 swaps the two pointer homes: obj=EBP,
-//     entry=EBX, while the original has obj=EBX, entry=EBP. Every jump
-//     target in the rest of the function then differs by one byte and the
-//     score is 64.1% (1704 bytes). So the shape problem is SOLVED; what is
-//     left is purely the obj/entry priority tie.
-//     Nothing tried this session moved that tie (all still obj=EBP):
-//       - extra source uses of entry that CSE away (entry->flags twice in the
-//         tail test, entry->field_138 twice in the first test, the flags&0x1000
-//         test read through entry instead of the local): no change at all,
-//         confirming references are counted AFTER CSE;
-//       - the else arm written as `else if (field_138 != 0) {...} else
-//         goto fail;`: same 64.1%, same homes;
-//       - `int bound` (which does fix the bound block, see 3) on top of v1:
-//         1700 bytes but the homes stay swapped;
-//       - caching obj->holder in a local, and a redundant `f138 == 0 ||
-//         f138 == 0` in the else arm: no change.
-//     So the missing weight is NOT reachable by adding CSE-able uses. Either
-//     the original spells the region so that one MORE entry use survives CSE
-//     (an extra store to a field of entry in that chain), or obj's uses are
-//     one lighter for a reason outside this region.
-//     SO the tie DOES move, but only from a use that survives CSE: giving
-//     field_138 a union spelling and writing it as two bytes in the second
-//     arm, `bytes.lo = 1; bytes.hi = 0;` instead of `value = 1;`, flips the
-//     homes back to obj=EBX / entry=EBP (build/scratch/0x4a6ae0/v1_y2.cpp,
-//     88.4%, 1710 bytes) and with `int bound` too (v1_y2_z1.cpp, 88.5%,
-//     1706 bytes). The whole function is then correct except for 3 bytes of
-//     size: that byte pair costs `mov byte [e+0x138],1` + `mov byte
-//     [e+0x139],0` (12) where the original has one `mov word [e+0x138],1`
-//     (7), and the bound block. So the open lead is a surviving extra entry
-//     use that emits NO bytes: a byte-pair READ that CSEs into the original's
-//     `mov ax,[e+0x138]; test ax,ax` is the obvious candidate and did not
-//     compile before the wall clock ran out (try
-//     `(entry->field_138.bytes.lo | entry->field_138.bytes.hi) != 0` in place
-//     of `entry->field_138 != 0` on v1_z1.cpp). Everything else in the file
-//     below is unchanged and the file stays at 93.4% because the byte pair
-//     costs 5 bytes it does not get back.
-//  space-bunny-free pass 2 (2 real check runs, scratch scoring otherwise). All
-//     four variants below were rebuilt from this exact file, so these are
-//     measurements of the current text, not of the older snapshot the notes
-//     above were written against:
-//       - v1 (the correct-semantics region quoted in note 1, nothing else
-//         changed): 64.1%, 1704 bytes. Reproduces the documented swap,
-//         obj=EBP / entry=EBX.
-//       - v1 + `int bound`: 64.1%, 1700 bytes. The bound block comes out with
-//         the original's `movsx eax` / `lea ebp,[eax+1]`, and the homes stay
-//         swapped, so the bound shape and the allocation really are one
-//         problem, not two.
-//       - v1 + `int f138 = entry->field_138;` used by the region's three tests:
-//         63.5%, 1701 bytes. THIS CONTRADICTS the note above that "int f gives
-//         the right homes": the extra local does not demote `entry`, the new
-//         variable just takes the pressure instead. Do not retry that.
-//       - v1 + `int f138` + `int bound`: 63.6%, 1697 bytes.
-//       - v1 with the three region tests written as the byte pair
-//         `(entry->field_138.bytes.lo | entry->field_138.bytes.hi)`, i.e. the
-//         exact experiment the note above left untried: 87.4%, 1707 bytes, and
-//         the homes DO flip to obj=EBX / entry=EBP. The cost is the shape, not
-//         the size alone: the pair compiles to `mov al,[e+0x139]; mov
-//         cl,[e+0x138]; or al,cl; je` (14 bytes) where the original has `mov
-//         ax,[e+0x138]; test ax,ax; je` (10), and the two later re-tests become
-//         `test al,al` instead of `test ax,ax`, which is the 16-point gap.
-//       - v1 + byte pair + `int bound`: 66.0%, 1702 bytes, worse again.
-//       - THIS file with only `short bound` changed to `int bound` (and the
-//         separate `bound = entries->count; bound = bound + 1;` spelling):
-//         61.8%, 1698 bytes both ways. So the bound block's shape and the
-//         obj/entry allocation really are ONE problem: the original's
-//         `movsx eax` / `lea ebp,[eax+1]` only appears when `bound` can take
-//         EBP, which requires EBP to be the `entry` register, and the moment
-//         `int bound` is spelled the allocator hands EBP to `bound` early
-//         and recolours the whole function. Fixing one without the other is
-//         not possible from either side.
-//     So the missing weight and the missing test width are the same missing
-//     thing: no spelling of one extra `entry` reference was found that emits
-//     the original's 16-bit word test. The 93.4% below therefore keeps the
-//     inverted region, which is the only spelling that both keeps the homes
-//     and keeps the total size at 1703.
-//  2. The field_138 region below is still the old, SEMANTICALLY INVERTED shape
-//     (`if (field_138) { rect-test..; = 1; DAT=0xf }`), kept only because it
-//     is the one spelling that gets obj=EBX / entry=EBP. The original does:
-//         f138 == 0, in rect  -> f138 = 1; DAT_0051fbac = 0xf; run the tail
-//         f138 == 0, not in   -> fail
-//         f138 != 0, 0x2000   -> auto-repeat block, then the tail
-//         f138 != 0, no 0x2000-> not in rect: f138 = 0, redraw, return 0;
-//                                in rect: fail
-//     The exact original block layout (mov ax,[f138]/test ax,ax first, flags in
-//     ecx, `test ax,ax` re-tests at 0x4a6f43 and 0x4a7060, tail physically
-//     between the rect-set and the D block) is reproduced by this source,
-//     which is the correct semantics (call it v1):
-//         if (entry->field_138 != 0 && (entry->flags & 0x2000)) {
-//             if (DAT_0051fbb0 == FUN_004b6340()) goto fail;
-//             DAT_0051fbb0 = FUN_004b6340();
-//             if (DAT_0051fbac > 0) { DAT_0051fbac -= 1; return 0; }
-//         } else if (entry->field_138 == 0 && INRECT) {
-//             entry->field_138 = 1; DAT_0051fbac = 0xf;
-//         } else {
-//             if (entry->field_138 == 0) goto fail;
-//             if (INRECT) goto fail;
-//             entry->field_138 = 0; FUN_004a5f40(obj, index); return 0;
-//         }
-//         FUN_004a5f40(obj, index);  /* the shared tail */
-//     but it flips the homes to obj=EBP / entry=EBX (62-64%): the allocator gives
-//     the heavier of obj/entry the later register (EBP), and v1 CSEs two
-//     `cmp [f138],0` into the `ax` temp, so entry becomes lighter than obj. Any
-//     one extra entry reference (a dummy store anywhere) flips it back, which
-//     proves the margin is one reference. Everything below the first test then
-//     also lines up (team in cl, `lea ebp,[eax+1]` bound, flags in edx).
-//     Tried without effect on the homes: type/declaration-order permutations of
-//     all locals (40 random orders), `short f` / `int f` caches of field_138
-//     (int f gives the right homes but a movsx), 72 spellings of the three
-//     field_138 tests and the rect test, entries[index].x instead of entry->x,
-//     do/while(0) wrapper, dead locals, redundant tests (fold before weights).
-//     Spellings that do give the right homes but a different first test:
-//     `(flags & 0x2000) && field_138 != 0` (flags loaded first: 86-87%).
-//     Allocation order seen here: callee-saved registers go ESI, EDI, EBP, EBX
-//     to the variables in DESCENDING weight (point.x, then entry, then obj in the
-//     original; the 4th and later, index and point.y, only get EDI as a region
-//     cache). References are counted after CSE and dead-store/redundant-test
-//     folding, but BEFORE the late tail merge: duplicated source tails that the
-//     compiler later merges still count. The original asm has single shared
-//     tails: 0x4a6e3b (arms 8 and 0x100: calls + `focus = -1; return 1`),
-//     0x4a6cc6 (arm 0x10 in-rect and arm 0x40 release: calls + `return 1`),
-//     0x4a708b/0x4a7094 (`f138 = 0` then `FUN_004a5f40; return 0`, shared by the
-//     0x40 arm, the default arm and the D block). Writing even ONE of them as a
-//     single source copy with a goto (arms 8/0x100 -> `goto fin`, or `goto
-//     done_a`) lowers obj by 1 to 3 references and gives obj=EBX/entry=EBP with
-//     the correct-semantics region v1, but then edi becomes a point.y register
-//     variable (`mov ecx,edi; cmp ecx,eax`) and the first in-rect block changes:
-//     1713 bytes, 78.8% (all five sharing toggles give the same output; sharing
-//     all of them gives 1669 bytes, 65%). So the original shares less, or the
-//     weights of index/point.y are raised some other way. Exploring which subset
-//     of the original's shared tails is real is the open lead.
-//  The remaining mismatches of this file: that region, and the loop bound
-//  (`movsx eax,[edi+0xb6]; lea ebp,[eax+1]`; ours `mov ax; inc ax; movsx
-//  ebp,ax` with `short bound`). Measured this session: `int bound` does give
-//  the original's `movsx eax`/`lea ebp,[eax+1]`, but it recolours the whole
-//  function because `bound` then wants EBP before `entry` has had its last
-//  use (1698 bytes, 61.8% on this file, 1700 bytes on v1 with the homes
-//  still swapped). Getting that block right needs the allocation fixed first.
+// MATCH (claude-opus-5-5, #4904), from 93.4%. Two pieces, both needed:
+//  1. The field_138 block is the correct-semantics if / else-if / else chain
+//     the earlier passes called v1: it reproduces the original's block
+//     layout, including the `mov ax,[f138]; test ax,ax` load and its two
+//     re-tests (0x4a6f43, 0x4a7060).
+//  2. The search for the kind-4 entry is an inline helper, FindKind (the same
+//     helper 0x4a2e40 matched with), fed a byte local for the kind. The
+//     helper's function boundary settles the obj/entry register tie: with the
+//     search written out in place, obj outweighs entry by one reference and
+//     takes ebp instead of ebx, every later byte moves and the score is
+//     64.1%. The helper also gives the bound's `movsx eax` / `lea ebp,[eax+1]`.
+//     Passing `entry->team` to it directly re-reads the field inside the loop
+//     (58.6%), and an `int` kind scores 82.8%.
+// The earlier 93.4% file kept a semantically inverted field_138 block only
+// because that spelling happened to give the right homes.
 #pragma pack(push, 1)
 
 struct Class_004a6ae0;
@@ -357,6 +97,15 @@ int __stdcall FUN_004c1b80(int param);
 void FUN_004c1ab0();
 int __cdecl tolower(int c);
 int __cdecl toupper(int c);
+
+static inline int FindKind_004a6ae0(Entry_004a6ae0* entries, unsigned char kind)
+{
+    for (int i = 1; i < entries->count + 1; i++) {
+        if (entries[i].state == 4 && entries[i].team == kind)
+            return i;
+    }
+    return 0;
+}
 
 // FUNCTION: 0x4a6ae0
 int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
@@ -492,17 +241,7 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
             FUN_004a5f40(obj, index);
             return 0;
         }
-        if (entry->field_138) {
-            if (!(point.x >= r.left && point.x <= r.right
-                  && point.y >= r.top && point.y <= r.bottom))
-                goto fail;
-            entry->field_138 = 1;
-            DAT_0051fbac = 0xf;
-        }
-        if (entry->field_138 == 0) {
-            goto fail;
-        }
-        if (entry->flags & 0x2000) {
+        if (entry->field_138 != 0 && (entry->flags & 0x2000)) {
             if (DAT_0051fbb0 == FUN_004b6340())
                 goto fail;
             DAT_0051fbb0 = FUN_004b6340();
@@ -510,7 +249,14 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
                 DAT_0051fbac -= 1;
                 return 0;
             }
+        } else if (entry->field_138 == 0
+                   && point.x >= r.left && point.x <= r.right
+                   && point.y >= r.top && point.y <= r.bottom) {
+            entry->field_138 = 1;
+            DAT_0051fbac = 0xf;
         } else {
+            if (entry->field_138 == 0)
+                goto fail;
             if (point.x >= r.left && point.x <= r.right
                 && point.y >= r.top && point.y <= r.bottom)
                 goto fail;
@@ -523,17 +269,9 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
         if (!(flags & 0x1800))
             goto fail;
         unsigned char team = entry->team;
-        int found = 1;
-        short bound = entries->count + 1;
-        for (;;) {
-            if (found >= bound) {
-                found = 0;
-                break;
-            }
-            if (entries[found].state == 4 && entries[found].team == team)
-                break;
-            found++;
-        }
+        int found = FindKind_004a6ae0(entries, team);
+        // FindKind returns 0, not -1, when nothing matches, so this test can
+        // never be true and a miss falls through to entry 0 (docs/bugs.md).
         if (found == -1)
             goto fail;
         Entry_004a6ae0* f = &entries[found];

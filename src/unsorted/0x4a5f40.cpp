@@ -1,4 +1,40 @@
-// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Fable 5.1, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Fable 5.1, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 (#4904): 90.1% -> 91.8%, 2706 bytes (original 2700).
+//  - The second hotkey measure (key1) accumulates straight into `measured`
+//    through MeasureInto, a copy of FUN_004a5030 that takes the accumulator by
+//    reference. `measured` is then one variable for the accumulator and for
+//    the flags & 0x20 y, so both share one home ([esp+0x20] in the original),
+//    as the original's eight references to that slot show. With
+//    `x += FUN_004a5030(key1)` the accumulator is a separate inline temp: it
+//    got its own slot (0x48) and the 0x20 y was packed with `width` instead,
+//    which rotated eight slots. Now only two pairs of slots differ.
+//  - A packing model that fits every probe here (not proven): spilled
+//    variables are taken by reference count, largest first, and each shares
+//    the most recently created slot it does not conflict with; slots are then
+//    laid out by count. It explains why the y (5 references) used to land on
+//    width (5) and, with width removed, on x (6), never on the accumulator.
+// Still differs:
+//  - The flags & 0x20 y has 5 references here against the original's 4: the
+//    original computes xb first (`lea ebx`), then LineHeight, then y into esi
+//    with a delayed store, and its no-key call pushes esi. Here y is written
+//    first through `*pm` (stored at once) and the no-key call reloads it. That
+//    extra reference makes `measured` (9) outweigh `me` (8), so those two slots
+//    swap, and x and found (6 each) also come out swapped. Every xb-first
+//    spelling tried (plain, `*pm`, one or two statements, through a local,
+//    helpers for x or y, xb as x/y/saved, measured as array or struct, a dead
+//    initialiser) gives y the ebx register and spills xb instead (86.5% to
+//    88.3%): of xb and y, the one defined later always gets ebx.
+//  - Putting `measured` in a struct with `rect` ({y, rect}) makes y a memory
+//    variable and gives exactly the original's frame and the xb-first order,
+//    but the loop head then stops caching menu in esi (86.1%).
+//  - `key1[1] = 0;` lands after the inlined strcpy; the original has it in the
+//    middle of the strcpy (after `sub edi, ecx`). Every other position is worse.
+// Also flat or worse here: a 15-minute permuter run from this file (10202
+// candidates, `--stack measured,me,x,found,xb`), shuffled declaration orders
+// (the frame order does not move), `measured` declared in the loop or chain
+// scope (87.4%), ternary colour calls, and the real preceding function
+// 0x4a5e50 copied in unannotated (83.6%).
+// The notes below describe the earlier 90.1% file.
 // Fable 5.1 (#4452): 76.7% -> 88.1%, 2705 bytes (original 2700). A permuter
 // run from this file (7864 candidates) found nothing. Compared with
 // the original block by block; the changes that paid, in order:
@@ -206,6 +242,27 @@ static inline bool Style_004a5f40(Entry_004a5f40* e)
     return (e->field_13c & 1) != 0;
 }
 
+// FUN_004a5030 with the accumulator passed in by reference, so the key1
+// measure accumulates into `measured` itself (see the header).
+static inline int MeasureInto_004a5f40(char* text, int& width)
+{
+    width = 0;
+    if (text == 0)
+        return 0;
+    if (DAT_0051fba4->language == 0)
+        return FUN_004c1480(FUN_004c1440(), text);
+    char* p = text;
+    while (*p != 0) {
+        char ch = *p;
+        Glyph_004a5f40* glyph = (Glyph_004a5f40*)FUN_004b7f30(
+            (GafEntry_004a5f40*)DAT_0051fba4->language->glyphs, (unsigned char)ch);
+        if (glyph != 0)
+            width += glyph->width;
+        ++p;
+    }
+    return width;
+}
+
 // FUNCTION: 0x4a5f40
 void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
 {
@@ -370,8 +427,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                     else
                         FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0());
                     FUN_004a50e0(surface, key1, x, y, width, 0);
-                    measured = FUN_004a5030(key1);
-                    x += measured;
+                    x += MeasureInto_004a5f40(key1, measured);
                     if (me->field_138 != 0) {
                         FUN_004be950(surface, saved, LineHeight_004a5f40() + y - 1,
                                      x - 1, LineHeight_004a5f40() + y - 1,

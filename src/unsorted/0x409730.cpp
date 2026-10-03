@@ -1,4 +1,19 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Claude Opus 5.5 (#4919, 2026-10-03): still 99.8%, file unchanged except this
+// note. /Gi is not the lever here. With `// FLAGS: /Gi` the first resize's
+// erase is no longer inlined (an out-of-line call where the original has the
+// byte-copy loop), 1659 bytes, 70.1%. Freeing inline budget in a header clone
+// of <vector> (one to three of resize's size() calls written out, end()/begin()
+// in resize or erase written out) gets the erase back inline but leaves its
+// copy and _Destroy as calls (1679 bytes, 70 to 71%), and in every /Gi build
+// the store at 0x4099f6 is still `[ecx + esi]`, so /Gi does not flip this SIB
+// either. Neighbours in this TU also fall under /Gi (0x409160 69.3%, 0x409520
+// 86.4%, 0x4095d0 92.7%; 0x409470 and the erase 0x40cfb0 still match), even
+// though the insert 0x40cca0 after it needs /Gi. Default flags, flat at
+// 99.8%: `int i` declared at the top of the function, and with it or without
+// it one expansion freed later in the loop (either HasField1ce() call
+// written out, `vec_7d.begin()[i]`, `vec_65.begin() + i`,
+// `vec_8d.begin()[i] = ...` at the store).
 // DeepSeek V4.1 Flash session: still 1678 bytes and 99.8%, the single store SIB
 // byte at 0x4099f6 (want `mov byte ptr [esi + ecx], al`, ours
 // `mov byte ptr [ecx + esi], al`). The diagnosis is now firm: this is the

@@ -1,4 +1,39 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Claude Opus 5.5 (#4919, 2026-10-03): still 98.5%, file unchanged except this
+// note. /Gi trial (judged by differing lines): `// FLAGS: /Gi` removes hunk 3
+// (the first _allmul pair is then pushed d.x first, as in the original) and
+// leaves hunks 1 and 2 exactly as they are, but it turns MapRange's two loads
+// into a tie that the SOURCE FILE'S PATH decides: the same text gives the
+// original's mapWidth-first order at some paths and mapHeight-first at others.
+// It follows the length of the path, not its characters or depth: one text
+// copied to directories named a, aa, ... 24 a's (and b's) is good for 4
+// lengths in every 8 and bad for the next 4. Each MapRange spelling (operand
+// order, <memory.h>, extra parentheses, a cast, a game-pointer parameter, a
+// member function, locals) only shifts that 8-length window, and one (a local
+// `Game* g`) is bad at all 8; renaming identifiers shifts it too, and the
+// object directory does not matter. Every spelling tried is mapHeight-first
+// at this worktree's src/unsorted/ path, so /Gi is 98.5% / 12 lines here and
+// 99.0% / 8 lines at other paths, against a path-independent 98.5% / 16 lines
+// without it. Not committed for that reason. Neighbours 0x407e90, 0x408090
+// (same vtable block) do not match under /Gi; 0x408f30, the
+// vector<Unit*>::insert after this TU, does.
+// New lead for hunk 1, both flag sets: declaring `Vec3 target;` at loop-body
+// scope (assigned `target = origin;` in the branch, slot still esp+0x30)
+// keeps the `u->def` load after the three target stores, as the original
+// does; the branch-scope copy lets the scheduler hoist it. The cost is the
+// len<0x1400000 tail: with loop scope its loads are no longer hoisted above
+// the target stores (1219 bytes, `add ebp, [esi+0x6a]`); `target = u->pos + d`,
+// `d + u->pos`, a `Vec3 p = u->pos` copy or a `t` temporary give the right
+// loads-then-adds-then-stores order but the sums in the pos registers
+// (ecx/edx/edi) where the original adds x into d.x's ebp and y, z into
+// ecx/edx (96.5%); `d += u->pos; target = d;` loads y, z, x (97.0%). Also
+// flat this pass: one Vec3 shared by loop 1's pos and loop 2's target (89%),
+// function-scope target (95%, it leaves pos's slot), the sibling 0x407e90's
+// Vec3 (default constructor, (x, y, z) constructor, operator+=), and the
+// expanded flag12 arm under /Gi (72%, d.y loses its register). Hunk 2 under
+// /Gi: without the user operator= and with Direction() in x, y, z order the
+// xor does move before the second call, but into ebx with `mov ebp, ebx`
+// after it and ang in ebp (1223 bytes); no rename moved that pair.
 // mimo-v2.6-pro retry pass: re-confirmed 1221 bytes / 98.5% and the same three
 // hunks. New negatives, all unchanged or worse: includes <string.h>, <windows.h>
 // and <stdio.h> do not move the _allmul push order; a `UnitDef* def` local before

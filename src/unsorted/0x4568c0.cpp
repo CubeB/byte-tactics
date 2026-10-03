@@ -1,7 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
 // (line 1 continued), finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
 // deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
-// (notes only, code unchanged at 86.8), finished by claude-opus-5-5. Names are provisional.
+// (notes only, code unchanged at 86.8), finished by claude-opus-5-5, checked by GPT-6. Names are provisional.
+//
+// GPT-6 retry (#5011): passing the player pointer to a dedicated inline ID
+// helper drops this to 77.2% / 1269 bytes by shifting the frame; keep the
+// 90.9% / 1307-byte index helper and send macro.
 //
 // Partial, 90.9% (99.0% with jump targets ignored), 1307 of 1310 bytes.
 //

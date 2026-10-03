@@ -1,5 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash, notes by claude-opus-5-5, checked by GPT-6, improved by claude-opus-5-5. Names are provisional.
 // 2026-10-03 (claude-opus-5-5, #5158): 88.1% -> 93.4%, 1830 of 1832 bytes.
+// GPT-6 retry (#5177): rechecked the 93.4% source; the remaining object
+// register split at the 0x40 return join is unchanged.
 // One difference is left (below); ignoring the jump targets it moves, the
 // function is 98.8%. Scratch files, sweep scripts and a C2 split tracer:
 // build/scratch/0x4a3780/ (c2split.py is tools/c2prio.py plus hooks on

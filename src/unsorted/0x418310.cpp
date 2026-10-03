@@ -1,4 +1,7 @@
 // Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Codex GPT-6 retry for #4186 (2026-10-03): `/Gi` is a stable gain here, 65.2%
+// across the main and alternate source paths, up from 55.5% with default flags.
+// FLAGS: /Gi
 // deepseek-v4.1-flash retry session 7 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
 // deepseek-v4.1-flash retry session 8 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
 // deepseek-v4.1-flash retry session 10 (TIMEBOX): 55.5%, 2203 bytes, unchanged.

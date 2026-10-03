@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by fledge-alpha-free. Names are provisional.
+// Codex GPT-6 retry for #4186 (2026-10-03): current main remains 92.2%.
+// `/Gi`, <memory.h>, <stdlib.h> and <windows.h> left its parameter-role
+// swap and MOVE compare hunk unchanged; previous structural leads are in notes.
 // fledge-alpha-free pass (PERMUTER): tools/permute.py from the 84.1% base
 // reached a new best shape: routing the condition value through a local
 // (`static inline int StateOf(Entry* p) { return p->state; }`) plus one

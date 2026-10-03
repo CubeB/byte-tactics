@@ -48,6 +48,9 @@
 // matched 0x4103e0; units is a separate class with an implicit one.
 // Earlier notes (the hand-written vector specialisation at 92.2%, and the
 // 98.6% Dummy() lead) are in this file's git history.
+// GPT-6 retry (#5173): one-argument visitor constructors that initialized
+// `self` or `owner` did not improve the 94.6% score. A two-argument constructor
+// for `owner` and `self` dropped to 69.5%; the original best remains in place.
 #include <vector>
 struct Vec3 {
     int x, y, z;

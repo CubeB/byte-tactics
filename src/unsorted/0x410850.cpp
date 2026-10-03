@@ -1,9 +1,10 @@
-// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5. Names are provisional.
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
 //
 // Claude Opus 5.5, #5302: 94.6% -> 98.6% (1051 bytes, the right size). Two of
 // the three residuals of the 94.6% file are gone; what fixed them:
 // #5368 retry: current main confirms 98.6%; the health-test scratch-register
 // order remains the only mismatch, with no natural source lever in prior sweeps.
+// #5385 retry: re-confirmed 98.6%; health-test scratch-register order remains.
 //  * The tail is `order->pos + Offset(...)` again, with no `off` local
 //    (5 IL less), and Offset names its second call's result (`int z`). The
 //    extra candidate in the tail block raises the Offset distance's priority

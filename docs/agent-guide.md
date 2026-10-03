@@ -463,6 +463,19 @@ effect, the missing piece is usually a helper that was inlined:
 - **Start from the cleaner file**: when an older, plainer version scores a
   little lower than a permuter-tuned one, rebuild from the plainer one.
   0x453d40 matched from a 63.3% file, not the 68.9% one (#5171).
+- **x87: a constant multiply moved outward takes the sign of the sum**: VC5
+  reassociates `x * 30.0f * field` to `(x * field) * c` and then rewrites
+  `(int)(...) + a` as `a - (int)(... * -c)`. A float local for the product
+  with the constant keeps the constant inside. How the integer sum is split
+  into statements decides the division's operand order (`fidiv` against
+  `fild; fild; fxch; fdivp`) and `fimul` against `fild; fmulp`, so try
+  splitting the sum (`t = (int)(...) + 1; t += field;`) before blaming the
+  float part (0x411f50, #5172).
+- **Tracing the temporaries' rotation**: breaking on FUN_00435c37 (tuple in
+  edx, its line delta at `[edx+0x10]`, rotating pointer at 0x491120) and
+  FUN_00435f38 (register in ecx) lists every expression temporary with the
+  pointer before it, so you can see whether a source change moves the
+  rotation at all before scoring it (#5172).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 
@@ -1217,6 +1230,22 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   compiles to an indexed `cmp byte ptr [eax+ecx], 0` loop; a pointer walk
   (`while (*p) p++`) gives `inc eax` on the pointer instead. Pick whichever
   the original shows. See 0x4da3f0.
+- **The /Ob2 inline budget, read out of C2.EXE** (#5172, 0x410850; this
+  replaces the guesses in the entries below): a function's budget is
+  max(1000, 2 x its own IL size), capped at 35000. Call sites are taken in
+  source order. A callee is inlined when its IL size is at most the budget
+  left, or when it is under 41 whatever the budget; only callees of 41 or more
+  subtract their size. The calls inside an inlined callee share
+  (budget left) / R, where R counts this level's call sites still to come,
+  including the current one. So empty `Dummy()` calls cost nothing but raise R
+  for every earlier site, which is all the old padding did. Moving a block into
+  an inline helper shrinks the caller (its budget floors at 1000) and gives the
+  helper's own sites (1000 - helper size) to share: in 0x410850 one helper
+  replaced 34 `Dummy()` calls. To log it under gdb (see `tools/c2prio.py` for
+  attaching): 0x42491e is the function (ecx; IL size at `[[ecx]+0x64]`),
+  0x424eef a call site (callee symbol in ebx, IL size `[ebx+0x64]`, name
+  `[ebx+0x18]`; budget `[esp+0x48]`, depth `[esp+0x30]`, R `[esp+0x2c]`), and
+  0x424f95 means the site was inlined.
 - **Inline budget and nesting depth**: MSVC 5's inline budget depends on the
   whole function and on how deeply calls nest. Wrapping a `std::vector` member
   in one or two plain structs changes which of several identical vector
@@ -1533,7 +1562,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A helper that returns a flag leaves a test behind**: when an inlined
   helper's last `return` falls through to its end, the caller keeps
   `mov eax, K; test eax, eax; je`. If the original has no such test, the code
-  was not a helper returning a flag.
+  was not a helper returning a flag. A helper whose value the caller returns
+  directly () leaves nothing (#5172).
 - **Several `new` branches sharing a tail**: an if/else-if chain that assigns
   one pointer, followed by one shared call, merges the constructor tails the
   way the original does; separate `if (...) { ...; return 3; }` blocks merge

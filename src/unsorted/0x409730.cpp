@@ -1,4 +1,18 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// claude-opus-5-5 retry (#5274, 2026-10-03): still 99.8%, file unchanged except
+// this note. The store SIB is decided by the function's own symbol ids, not by
+// any spelling: with 32120-32170, 32240-32290, 32630-32680 or 32750-32810
+// unused `extern int`s at the top of this file, or right before the function,
+// check.py prints MATCH (c2prio --symbols: the function's id is then 65786 to
+// 65836, 65906 to 65956, 66296 to 66346 or 66416 to 66476, so its ids have
+// wrapped past 65536). The same counts at the end of the file change nothing,
+// and so does instantiating vector<unsigned char> in a preceding function, so
+// it is the ids of this function's own symbols (wrapped to small numbers) that
+// flip the operand order. Below the wrap the outcome cycles with period 512
+// (99.8%, 99.4%, 98.2% or 97.8%) and never matches. No plausible set of real
+// headers comes close to that count (docs/c2-regalloc.md: about 52000 at
+// most), so this is the large lost-header prefix that 0x41b2e0 and 0x471de0
+// also need; dummy declarations are not committed.
 // Codex GPT-6 retry for #5181 (2026-10-03): current main recheck remains
 // 99.8%. The sole SIB byte mismatch at 0x4099f6 is unchanged.
 // Claude Opus 5.5 (#4919, 2026-10-03): still 99.8%, file unchanged except this

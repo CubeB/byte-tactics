@@ -1,4 +1,26 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// claude-opus-5-5 retry (#5274, 2026-10-03): still 98.5%, file unchanged except
+// this note. Hunk 3 (the first _allmul pushed d.x first) is a symbol-count
+// effect: 59700 to 60100 unused `extern int`s at the top of the file fix it
+// (C2's own temporary ids then pass 65536 inside this function) and keep
+// MapRange right, 99.0% with hunks 1 and 2 left; no count from 0 to 66000
+// moves hunks 1 or 2, and no plausible real header set reaches that count.
+// /Gi fixes hunk 3 too, but MapRange's order then follows the path of the
+// .pdb that check.py passes with /Fd, not only the source path: a by-value
+// `operator=(Vec3 o)` with /Gi is 99.0% (hunks 1 and 2 only) in
+// tools/propose.py's object directory at 16 source path lengths, but 98.5%
+// through check.py. Hunk 2 under c2prio: without the user operator= and with
+// Direction() in x, y, z order the schedule is the original's, but `ang`
+// takes ebp because d.z (the one neighbour left with only ebx) interferes with
+// it, so v.y gets ebx and a `mov ebp, ebx` follows; with operator= the field
+// copies kill d.z in place (no interference, ang in ebx) but v.y = 0 is
+// apparently propagated to the copy, so the xor lands after the second call. The
+// expanded arm (direct d.x/d.y/d.z stores) raises d.x and d.z to priority 448
+// above `u` (308), which is what rotates loop 1. Flat or worse this pass: a
+// do/while, `if (0) {}`, a label or a block around `target = origin`, a
+// member SetDir(), Direction() taking int, a `short ang` or `int ang` local
+// feeding Direction(), and splitting the arm into two `target =` branches
+// (68%).
 // Codex GPT-6 retry for #5181 (2026-10-03): current main recheck remains
 // 98.5%. The three scheduler hunks below have no improved source shape yet.
 // GPT-6 retry (#5224): rechecked at 98.5%; the three scheduler hunks remain.

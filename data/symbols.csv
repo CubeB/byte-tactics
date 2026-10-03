@@ -2810,6 +2810,7 @@ address,name
 0x4c7a20,FUN_004c7a20
 0x4c8020,FUN_004c8020
 0x4c8760,FUN_004c8760
+0x4c8bb0,FUN_004c8bb0
 0x4c90b0,Class_004c90b0::FUN_004c90b0
 0x4c9180,Class_004c9180::Class_004c9180
 0x4c91a0,Class_004c91a0::Class_004c91a0
@@ -4018,6 +4019,7 @@ address,name
 0x4fd428,??_7Class_0044ef20@@6B@
 0x4fd458,??_7Class_0044f010@@6B@
 0x4fd488,DAT_004fd488
+0x4fd4cc,DAT_004fd4cc
 0x4fd514,??_7Class_00460f60@@6B@
 0x4fd518,??_7Class_00462d30@@6B@
 0x4fd554,??_7Class_00467980@@6B@

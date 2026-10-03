@@ -1,4 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, deepseek-v4.1-flash retry, second deepseek-v4.1-flash pass, finished by Space Bunny Free, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, deepseek-v4.1-flash retry, second deepseek-v4.1-flash pass, finished by Space Bunny Free, finished by claude-opus-5-5, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#5025): checkall.py confirms the retained 73.5% / 2057-byte
+// version. The notes below record why the 0x459830 allocation does not transfer.
 //
 // Partial, 73.5% (2057 bytes against 2047). Issue #4863 took it from 66.6%.
 //

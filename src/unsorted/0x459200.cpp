@@ -1,4 +1,7 @@
-// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-opus-5-5, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#5025): checkall.py confirms the retained 90.1% / 1494-byte
+// version. The earlier pass notes already cover the measured prologue and
+// register-allocation alternatives.
 //
 // Partial, 90.1% (1494 bytes against 1506; issue #4924 took it from 87.6%).
 //

@@ -3,6 +3,8 @@
 // A no-op goto/label placed immediately before or after the bit definition
 // keeps the same 88.5% residual; prior allocation and header results remain.
 // GPT-6 retry (#5237): rechecked at 88.5%; the documented live-range ordering remains.
+// #5285 Codex retry: re-confirmed 88.5%. The forced LOS coloring remains
+// unreachable through the source shapes and block labels already recorded below.
 //
 // claude-opus-5-5 pass (#5165, 88.5%, no score gain; about 150 variants read
 // with tools/c2prio.py). Block names below: B4 `if (los)`, B5 call + first

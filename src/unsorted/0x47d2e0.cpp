@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5. Names are provisional.
+// Codex GPT-6 retry for #5189 (2026-10-03): baseline remains 88.5%.
+// A no-op goto/label placed immediately before or after the bit definition
+// keeps the same 88.5% residual; prior allocation and header results remain.
 //
 // claude-opus-5-5 pass (#5165, 88.5%, no score gain; about 150 variants read
 // with tools/c2prio.py). Block names below: B4 `if (los)`, B5 call + first

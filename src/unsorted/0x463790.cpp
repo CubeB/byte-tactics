@@ -6,7 +6,8 @@
 // register allocation still differs, with no untested source lever found.
 // #5327 retry: re-confirmed 86.6%; earlier local-order, loop-shape and
 // ring-operation sweeps cover the remaining source-level choices.
-// Rewritten (pass 14, Opus): 75.0% -> 85.2%; pass 15 (Opus): 86.6%. Queues one
+// Rewritten (pass 14, Opus): 75.0% -> 85.2%; pass 15 (Opus): 86.6%; pass 16 (Opus,
+// #5358): 88.8%. Queues one
 // received packet's commands in the ring at +0x10. If frames are already queued, it
 // only re-stamps each of them with the new tick (pop, push) and returns 0. Otherwise it
 // copies the packet into the buffer at +0xc, counts the commands after the 4-byte
@@ -40,8 +41,36 @@
 //    took ebp for the scan. The order of n, remaining and p acts through the candidate
 //    ids instead: with p, remaining, n the a6 == 0 loop comes out right but n loses a
 //    -10 against -10 tie for edi in the scan (85.0%).
+//  * Pass 16: x is defined first again (x, progress, i, q) and the a6 loop's skip
+//    path ends in `goto next1;` with one shared `remaining -= w; q += w;` after the
+//    label (86.6 -> 88.8). The single tail drops remaining's a6-loop piece (123 with two
+//    tails, c2prio) below n's, so n keeps ebp in the scan and at the a6 latch, the scan
+//    gets n in ebp and remaining in edi, and the a6 loop now has the original's
+//    registers: tick in esi before it, x in the tick slot (ebp only in the push block),
+//    progress ebx, i edi, q esi, n ebp. The a6 == 0 loop keeps left in edi and tick in
+//    ebp.
 //
-// Still different (37 lines):
+// Still different after pass 16 (28 lines):
+//  * The original has two copies of the a6 tail: the skip path does its own
+//    `remaining -= w; q += w` and jumps to the latch (`dec ebp`), so n stays in ebp
+//    through the loop head, the reader calls and the skip path, and only the push path
+//    reloads it. Here the skip path jumps into the shared tail, which reloads n on
+//    both paths; that also makes the push path zero-extend w twice (`mov ebp, eax; and
+//    ebp, 0xffff` for the size store) and reload x for x++. Two tails in the source
+//    (either statement order, `goto` or `continue`) give the original's two blocks but
+//    remaining's piece then takes ebp in the a6 loop (84.8-85.1%).
+//  * With the tail shared, n and remaining tie on memory references (4 each), so n
+//    takes the size slot (+0x28) and remaining the src slot (+0x24); in the original
+//    remaining has 6 (the two tails) and the slots are the other way round. The
+//    declaration order of n, remaining and p and the scan tail's statement order do
+//    not move it.
+//  * The a6 == 0 loop: as before, `xor edx, edx` is on the latch path instead of at
+//    the loop head. `if (rem > 0) do { ... } while (rem > 0);` scores 89.7% (the same
+//    byte count as the original) but copies the loop's first test into the latch, so
+//    it is not the original's shape and is not used.
+//  * Push taking `unsigned int` or `unsigned short` size: no gain.
+//
+// Pass 15's list (for the 86.6% file):
 //  * The a6 loop: the original has progress in ebx, x in its slot (+0x2c, loaded into
 //    ebp only for the push block) and n in ebp outside the push block (stored at the
 //    latch, reloaded after the push); here tick's piece and x take ebx, progress ebp,
@@ -198,10 +227,10 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
             int spacing = 0x10;
             if (n > span)
                 spacing = (n << 4) / span;
-            unsigned int i = 0;
-            unsigned int progress = 0;
-            char* q = field_c + 4;
             int x = tick;
+            unsigned int progress = 0;
+            unsigned int i = 0;
+            char* q = field_c + 4;
             do {
                 unsigned char c = *q;
                 unsigned short w;
@@ -214,8 +243,6 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
                     w = (unsigned short)reader.FUN_00415dc0(0x10);
                     if (left > 0) {
                         left--;
-                        remaining -= w;
-                        q += w;
                         goto next1;
                     }
                 } else {
@@ -228,10 +255,9 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
                     progress += spacing;
                     x++;
                 }
-                q += w;
-                remaining -= w;
             next1:
-                ;
+                remaining -= w;
+                q += w;
             } while (--n > 0);
             return 1;
         }

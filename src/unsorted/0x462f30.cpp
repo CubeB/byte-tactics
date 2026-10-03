@@ -6,7 +6,8 @@
 // cross-jumped copy tail remain the only meaningful source-level gaps.
 // #5327 retry: re-confirmed 77.6%; earlier allocator, branch-layout and
 // receive-loop sweeps cover the remaining source-level choices.
-// Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%.
+// Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
+// pass 16 (Opus, #5358): 81.4%.
 // The class name is
 // data/symbols.csv's Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is
 // called through Class_00462d30, its own file's class, and returns Entry_00462d90*.
@@ -44,7 +45,39 @@
 //    moves and the second receive call's `g_game + 0x14` now use the original's eax,
 //    ecx, edx.
 //
+//  * Pass 16: Peek and Take are written out in both arms after the 0x463790 call, and
+//    the receive loop is `if (rc != 0) { while (1) { ...; if (rc == 0) break; } }`
+//    (77.6 -> 81.4). Pop's `buffer` read in each arm references entry, which drops
+//    entry's big piece after C2's first split from 51 to 24 (c2prio, per-block shares),
+//    below region A's edi temporary (28). So that piece is split again and entry gets
+//    edi from `entry = 0` to the route and memory in region A, as in the original;
+//    net and the route's tick go back to memory and tick to [esp+0x14]. The original
+//    has one Take after the join that reuses Peek's buffer in eax: a local
+//    `Class_00463730* tail = &entry->tail;` used for the call, both Peeks and one Take
+//    gives exactly that code (the inlined `this` temporaries then share one value, so
+//    the buffer load is common), but entry's big piece is then 51 again and keeps edi
+//    through region A (67.9%; 78.3% with `entry = 0` as the declaration's initialiser,
+//    the best register-blind shape so far, net then in edi).
+//
 // Still different:
+//  * Pass 16 file: entry is stored at `entry = 0` and reloaded after the receive loop
+//    (`mov edi, [esp + 0x10]` in the got block), and that reload keeps the got block's
+//    `if (rc == 0)` test (C2 removes it only from an empty block). In every variant
+//    tried, C2's first split (FUN_00439385 flood-fills the pieces through the blocks
+//    FUN_00439619 accepts) leaves the loop's blocks out of entry's register piece; the
+//    original keeps entry in edi through the loop. Probes that delete the loop's NOMSG
+//    exit or its out-of-memory return change this, so the loop's exits are involved.
+//    `do { length = capacity; rc = receive(); if (rc == 0) break; ... } while (1);`
+//    gives the original loop exactly (both receive calls, latch `test esi, esi;
+//    jne B1; jmp got`) but the same got-block test (74.0% with this file's tail).
+//  * Region A's `sub eax, esi` is scheduled after `setg dl` (the d/flag statement order
+//    and `if (prev - cur > 0)` do not move it).
+//  * Tried with no gain in pass 16: a separate region-A `e` with `entry = e;` at its end
+//    (66.3%, net's piece then outranks entry for edi); the swap-in block as an inline
+//    member taking the entry (identical code); one inline copy-out helper for both
+//    memcpy returns (identical); `goto nomem` to a label at the end; the none block as
+//    `if (src == 0) { none: ... }` before the final copy (76.7%).
+//  (Earlier notes, from the 77.6% file:)
 //  * entry should live in edi from `entry = 0` after the first loop through the route
 //    (`test edi, edi`, `mov edi, eax` after Find, `lea esi, [edi + 0x18]`). Here the
 //    net parameter takes edi after the loop and tick takes it in the route, so tick is
@@ -297,7 +330,7 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
             length = capacity;
             rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
             if (rc != 0) {
-                do {
+                while (1) {
                     if (rc == (int)0x887700be)      // DPERR_NOMESSAGES
                         goto none;
                     if (rc != (int)0x8877001e)      // DPERR_BUFFERTOOSMALL
@@ -312,7 +345,9 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
                     }
                     length = capacity;
                     rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
-                } while (rc != 0);
+                    if (rc == 0)
+                        break;
+                }
             }
             if (rc == 0) {
                 field_c = *(int*)((char*)net + 0x4b5);
@@ -425,11 +460,12 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
             length = 0;
             len = 0;
             f = entry->tail.Peek();
+            src = entry->tail.Take(f, tick, len);
         } else {
             len = 0;
             f = entry->tail.Peek();
+            src = entry->tail.Take(f, tick, len);
         }
-        src = entry->tail.Take(f, tick, len);
     }
     if (src != 0) {
         *(int*)((char*)net + 0x4b5) = entry->tail.field_14;

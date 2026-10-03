@@ -505,6 +505,13 @@ effect, the missing piece is usually a helper that was inlined:
   (`if (0) {}` works too), most likely a debug macro that compiled to nothing.
   Try one in each loop when a single register or byte is left and the
   structure is right, and keep it with a comment if it matches (#5178).
+- **A `mov reg, reg` copy is not always a CSE use**: C2's code generator
+  remembers which register holds a value loaded from memory along the
+  fall-through path, so a later read of the same field becomes `mov ecx, esi`
+  although the IL reads memory. Check c2prio's reference lines before
+  treating such a copy as a use of a temporary: in 0x47d2e0 the copy is a
+  read through `los`, not a use of the width. A jump target is not tracked,
+  so the same read there stays a memory operand (#5188).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

@@ -1,4 +1,7 @@
-// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6. Names are provisional.
+// #5409 Codex retry: 98.5% remains best. The MapRange load order, angle/d
+// schedule, and first _allmul call still cannot match together with natural
+// source and symbol states.
 // Claude Opus 5.5 (#5374, 2026-10-04): still 98.5%, file unchanged except this
 // note.
 // - Hunk 3 (first _allmul) follows C2's own symbol ids alone: 59700 to 60100

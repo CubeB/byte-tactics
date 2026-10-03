@@ -10,3 +10,4 @@ std::logic_error::logic_error,0x4c35c0,"overload: logic_error(const string&); th
 exception::exception,0x4e81d0,"overload: exception(const char* const&); the default constructor is 0x4e8190 and the copy constructor 0x4e8230"
 Class_004b2fb0::FUN_004b2ac0,0x4b2ac0,"std::map<int,int> tree erase(iterator); 0x4b2340, 0x4b2540 and 0x4b2850 still spell the tree Class_004b2fb0"
 std::HH::HU?$pair::?$_Tree::iterator::_Inc,0x4b3590,"std::map<int,int> tree iterator::_Inc, which the matched callers spell Class_004b3590::FUN_004b3590"
+Class_004c42a0::FUN_004c3e40,0x4c3e40,"the constructor ??0Class_004c3e40, which callers 0x4c2f60 and 0x4c3120 call as a method returning this under an older view name (#5007)"

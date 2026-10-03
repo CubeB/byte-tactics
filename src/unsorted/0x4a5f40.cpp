@@ -1,112 +1,29 @@
-// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Fable 5.1, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
-// GPT-6 retry: retained the 91.8% version. Tried the pointer-alias mutation
-// suggested in issue #4841 on `width`; it changed stack/register allocation
-// broadly and fell to 76.6%, so it remains only in build/scratch.
-// claude-opus-5-5 (#4904): 90.1% -> 91.8%, 2706 bytes (original 2700).
-//  - The second hotkey measure (key1) accumulates straight into `measured`
-//    through MeasureInto, a copy of FUN_004a5030 that takes the accumulator by
-//    reference. `measured` is then one variable for the accumulator and for
-//    the flags & 0x20 y, so both share one home ([esp+0x20] in the original),
-//    as the original's eight references to that slot show. With
-//    `x += FUN_004a5030(key1)` the accumulator is a separate inline temp: it
-//    got its own slot (0x48) and the 0x20 y was packed with `width` instead,
-//    which rotated eight slots. Now only two pairs of slots differ.
-//  - A packing model that fits every probe here (not proven): spilled
-//    variables are taken by reference count, largest first, and each shares
-//    the most recently created slot it does not conflict with; slots are then
-//    laid out by count. It explains why the y (5 references) used to land on
-//    width (5) and, with width removed, on x (6), never on the accumulator.
-// Still differs:
-//  - The flags & 0x20 y has 5 references here against the original's 4: the
-//    original computes xb first (`lea ebx`), then LineHeight, then y into esi
-//    with a delayed store, and its no-key call pushes esi. Here y is written
-//    first through `*pm` (stored at once) and the no-key call reloads it. That
-//    extra reference makes `measured` (9) outweigh `me` (8), so those two slots
-//    swap, and x and found (6 each) also come out swapped. Every xb-first
-//    spelling tried (plain, `*pm`, one or two statements, through a local,
-//    helpers for x or y, xb as x/y/saved, measured as array or struct, a dead
-//    initialiser) gives y the ebx register and spills xb instead (86.5% to
-//    88.3%): of xb and y, the one defined later always gets ebx.
-//  - Putting `measured` in a struct with `rect` ({y, rect}) makes y a memory
-//    variable and gives exactly the original's frame and the xb-first order,
-//    but the loop head then stops caching menu in esi (86.1%).
-//  - `key1[1] = 0;` lands after the inlined strcpy; the original has it in the
-//    middle of the strcpy (after `sub edi, ecx`). Every other position is worse.
-// Also flat or worse here: a 15-minute permuter run from this file (10202
-// candidates, `--stack measured,me,x,found,xb`), shuffled declaration orders
-// (the frame order does not move), `measured` declared in the loop or chain
-// scope (87.4%), ternary colour calls, and the real preceding function
-// 0x4a5e50 copied in unannotated (83.6%).
-// The notes below describe the earlier 90.1% file.
-// Fable 5.1 (#4452): 76.7% -> 88.1%, 2705 bytes (original 2700). A permuter
-// run from this file (7864 candidates) found nothing. Compared with
-// the original block by block; the changes that paid, in order:
-//  - The four inlined text measures are the real FUN_004a5030 (matched in
-//    0x4a5030.cpp), spelled as the matched siblings 0x4a53c0 / 0x4a4660 spell
-//    their inline copy: `int width = 0;` first, then `if (p == 0) return 0;`,
-//    then `return FUN_004c1480(...)` on the no-font path, then the walk. The
-//    early returns are what leave the result in eax at every merge (the first
-//    copy ends `mov eax, edi`, the no-font path jumps straight to `add esi,
-//    eax`); the old `if (text != 0) { ... width = FUN(...) }` form assigned
-//    the call result to the accumulator instead (`mov edi, eax`).
-//  - The hotkey copy accumulates in memory ([esp+0x20], load / add / store
-//    around FUN_004b7f30 in the loop, `xor eax,eax` shared with the font test)
-//    only when `measured` is address-taken: `int* pm = &measured;` with the
-//    flags & 0x20 branch writing its y through *pm does it (82.6% -> 88.1%
-//    on this shape, instance 2 then matches instruction for instruction).
-//    `int& acc` parameters, `int*` parameters, a one-element array and a
-//    {measured, rect} struct do not: the struct makes the accumulator aliased
-//    but the inliner then keeps a temp (memory at 0x4c) and copies it to the
-//    member. No `lea [esp+0x20]` exists in the original, so the real cause is
-//    still unknown; the alias is a stand-in for it and emits no code itself.
-//  - The flags & 0x20 branch: `*found = 0;` goes before the first
-//    FUN_004a50e0 call (the original splices the pushes around the store),
-//    its x is a block-local `xb` (never stored, unlike the flags & 2 x at
-//    [esp+0x34]) and its y is `measured` (the original shares slot 0x20).
-//  - The glyph draw tests `me->colours != 0` first (FUN_004b8310 falls
-//    through, FUN_004b7f90 is the jump), the skip loop is a guarded
-//    `for (unsigned int k = me->field_137; k != 0; k--)` (`xor eax,eax; mov al;
-//    test eax,eax; je` before it), FUN_004be950's colour parameter is `int`
-//    (the original zero-extends the byte), the colour call after the hotkey
-//    draw has its `field_138 != 0` arm first like every other colour call
-//    (worth 3.6 points on its own), and `int t` is declared last (0.9).
-// DeepSeek V4.1 Flash (#4855): 88.1% -> 90.1%, 2706 bytes (original 2700).
-// Two source changes paid:
-//  - In the flags & 0x20 branch, compute `*pm` (ys) BEFORE `xb`. Defining xb
-//    first makes MSVC spill xb and keep ys in ebx; defining ys first lets xb
-//    be born after the inlined LineHeight and land in ebx the way the original
-//    has it. 88.1 -> 90.0.
-//  - In the flags & 2 hotkey path, move `key1[1] = 0;` to AFTER
-//    `strcpy(buf, p);` so the compiler emits the strcpy buffer address before
-//    the terminating store, matching the original. 90.0 -> 90.1.
-// Tried and failed: three 3-minute permuter runs from the 90.1 file (`--stack
-// textw,flagy,border,me,t,measured,width`, then general), a 1008-sample random
-// search over declaration orders, xb spelled as the outer x / a helper for ys,
-// one- and two-statement forms of the ys/xy expressions, `measured` as a
-// block local / array / reference / initialized, and hoisting the `*pm` write.
-// Still differs (all clauses were re-read against the 90.0 build):
-//  - Frame slots stay cyclically shifted. Ours: textw 0x44, flagy 0x40, border
-//    0x3c, me 0x20, t 0x1c, and measured/width share 0x18 (the flags & 2 hotkey
-//    copy of measured instead uses 0x48). Original: textw 0x48, flagy 0x44,
-//    border 0x40, me 0x1c, t 0x18, measured 0x20, width 0x3c. So measured is
-//    split across two slots here while the original keeps one, and that one
-//    extra live slot rotates everything above it. All 56 adjacent swaps and
-//    single moves of the declarations, and every random permutation tried,
-//    score the same. Probes (build/scratch/0x4a5f40/slots/) show MSVC 5 lays
-//    spilled locals out by size class and, within a class, in an order that
-//    follows definition and use rather than declaration.
-//  - The flags & 0x20 branch now has xb in ebx, but emits LineHeight, then ys
-//    (stored to 0x18), then xb; the original emits xb (`lea ebx, [eax+ecx+1]`),
-//    then LineHeight, then ys stored to 0x20 (`lea esi, [edx+eax-4]`). Defining
-//    xb first in source puts it back in the wrong register (88.1), so this
-//    ordering is the price of the ebx match.
-//  - The colour byte for FUN_004c13a0 in the 0x20 branch's third call loads
-//    menu after the font call where the original loads it before, and the
-//    0x20 branch's FUN_004be950 argument block plus the second LineHeight
-//    result register in the flags & 2 arm (edi vs eax on one path) still differ.
-// Not a bug but noted: the `do { ... } while (pass--)` loop runs its body once
-// (pass starts at 0 and nothing else writes it).
-#include <memory.h>
+// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Fable 5.1, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5, finished by GPT-6, finished by claude-opus-5-5. Names are provisional.
+// MATCH (claude-opus-5-5, #5089, 2026-10-03), from 91.8%.
+// Draws one list-gadget entry: its glyph or frame, then the text (left,
+// right, centred, or centred with an underlined hotkey letter, flags 1/4/2/0x20).
+// What the last steps changed, each measured:
+//  - The key1 hotkey width is the plain inlined FUN_004a5030 again, and the
+//    flags 0x20 y (`ys`) is a block local. The previous `int* pm = &measured`
+//    alias and the by-reference MeasureInto copy are gone: MSVC packs the
+//    inline's accumulator and ys into one slot by itself ([esp+0x20]).
+//  - `#include <math.h>` plus LineHeight returning through a named `glyph`
+//    local gives the flags 0x20 branch the original's registers: xb in ebx
+//    computed before the LineHeight call, ys in esi with its home store
+//    (82.5% -> 96.1%; the include alone gives 89.2%). Found by permute.py.
+//  - Frame order, worked out with docs/agent-guide.md's frame-layout rule
+//    (refs counted in code order, `inc [mem]` counting twice, then the
+//    refs*1000/size quicksort, which reproduced both our old and new frames):
+//    the tab scan counts in its own `tab` (it shares t's slot), and each
+//    hotkey branch declares its own `found` (one slot, created at 3 refs
+//    instead of 6). 96.1% -> 99.9%.
+//  - key1 declared in the hotkey block lets the scheduler hoist
+//    `key1[1] = 0` into the inlined strcpy, as the original has it.
+//  - Declaration order is load-bearing: `rect` before `flagy` and `t` (the
+//    operand order of their adds), and `textw` last: several other places
+//    for it make MSVC share `rect.right - rect.left` between x and width
+//    (2696 bytes).
+#include <math.h>
 #include <windows.h>
 #include <stdio.h>
 
@@ -131,14 +48,18 @@ struct Entry_004a5f40 {                // 0x15b bytes
     short w;                           // +0x17
     short h;                           // +0x19
     int flags;                         // +0x1b
-    unsigned char* colours;            // +0x1f
+    int colours;                       // +0x1f
     char unknown_23[0x28 - 0x23];
     signed char tab;                   // +0x28
     char unknown_29[0x2f - 0x29];
     GafEntry_004a5f40* gaf;            // +0x2f
     char unknown_33[0xb6 - 0x33];
     union {
-        short count;                   // +0xb6 (entry 0 only)
+        struct {
+            short count;               // +0xb6
+            char unknown_b8[0xbc - 0xb8];
+            void* surface;             // +0xbc
+        } list;                        // entry 0 only
         char text[0x20];               // +0xb6
     } u;
     int language;                      // +0xd6
@@ -176,16 +97,7 @@ struct Menu_004a5f40 {
     int current;                       // +0x14
     Layer_004a5f40* layer;             // +0x18
     char unknown_1c[0x8b2 - 0x1c];
-    unsigned char colour_8b2;          // +0x8b2
-    char unknown_8b3;
-    unsigned char colour_8b4;          // +0x8b4
-    char unknown_8b5[0x8bc - 0x8b5];
-    unsigned char colour_8bc;          // +0x8bc
-    char unknown_8bd[0x8c3 - 0x8bd];
-    unsigned char colour_8c3;          // +0x8c3
-    char unknown_8c4;
-    unsigned char colour_8c5;          // +0x8c5
-    unsigned char colour_8c6;          // +0x8c6
+    unsigned char colours[0x15];       // +0x8b2
 };
 #pragma pack(pop)
 
@@ -234,61 +146,30 @@ static inline int LineHeight_004a5f40()
 {
     if (DAT_0051fba4->language == 0)
         return FUN_004c1450();
-    return FUN_004b7f30(
-        (GafEntry_004a5f40*)DAT_0051fba4->language->glyphs, 0x49)->height + 2;
-}
-
-// Reading the field_13c bit through a helper is load bearing: spelled inline
-// here, MSVC 5 lays the loop's frame out differently and the score drops.
-static inline bool Style_004a5f40(Entry_004a5f40* e)
-{
-    return (e->field_13c & 1) != 0;
-}
-
-// FUN_004a5030 with the accumulator passed in by reference, so the key1
-// measure accumulates into `measured` itself (see the header).
-static inline int MeasureInto_004a5f40(char* text, int& width)
-{
-    width = 0;
-    if (text == 0)
-        return 0;
-    if (DAT_0051fba4->language == 0)
-        return FUN_004c1480(FUN_004c1440(), text);
-    char* p = text;
-    while (*p != 0) {
-        char ch = *p;
-        Glyph_004a5f40* glyph = (Glyph_004a5f40*)FUN_004b7f30(
-            (GafEntry_004a5f40*)DAT_0051fba4->language->glyphs, (unsigned char)ch);
-        if (glyph != 0)
-            width += glyph->width;
-        ++p;
-    }
-    return width;
+    Glyph_004a5f40* glyph = FUN_004b7f30(
+        (GafEntry_004a5f40*)DAT_0051fba4->language->glyphs, 0x49);
+    return glyph->height + 2;
 }
 
 // FUNCTION: 0x4a5f40
 void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
 {
     char* p;
-    char key1[2];
     char key2[2];
     void* surface;
     Entry_004a5f40* me;
-    int measured;
-    int* pm = &measured;
     Rect_004a5f40 rect;
     int x;
-    char* found;
     int width;
     int border;
     int flagy;
-    int textw;
     char* text;
     int pass;
     int saved;
     char buf[0x80];
     int y, i;
     int t;
+    int textw;
 
     border = 0;
     if (menu->layer != 0)
@@ -307,21 +188,21 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
     if (me->flags & 0x8000)
         menu->current = menu->values[1];
 
-    t = 0;
-    for (i = 1; i < entries->u.count + 1; i++) {
+    int tab = 0;
+    for (i = 1; i < entries->u.list.count + 1; i++) {
         if (entries[i].type == 7) {
-            if (t == me->tab) {
+            if (tab == me->tab) {
                 FUN_004c1420(entries[i].language);
                 break;
             }
-            t++;
+            tab++;
         }
     }
-    if (i == entries->u.count + 1)
+    if (i == entries->u.list.count + 1)
         FUN_004c1420(DAT_0051fba4->current);
 
     textw = FUN_004a5d50(menu, index);
-    surface = *(void**)((char*)entries + 0xbc);
+    surface = entries->u.list.surface;
     if (me->gaf != 0) {
         Glyph_004a5f40* glyph;
         if (me->field_13c & 1) {
@@ -337,7 +218,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                 int val = me->gaf->count - 1;
                 if (me->field_138 + 2 < val)
                     val = me->field_138 + 2;
-                glyph = FUN_004b7f30(me->gaf, ((int)val) + me->field_13b);
+                glyph = FUN_004b7f30(me->gaf, val + me->field_13b);
                 if (!(me->flags & 0x80))
                     border = 1;
             }
@@ -354,17 +235,17 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
         }
         if (glyph != 0) {
             if (me->colours != 0)
-                FUN_004b8310(surface, glyph, glyph->xoff + rect.left, glyph->yoff + rect.top, (int)me->colours);
+                FUN_004b8310(surface, glyph, glyph->xoff + rect.left, glyph->yoff + rect.top, me->colours);
             else
                 FUN_004b7f90(surface, glyph, glyph->xoff + rect.left, glyph->yoff + rect.top);
         }
     } else {
         if (me->field_13c & 1) {
-            FUN_004b04b0(surface, &rect, menu->colour_8b2, menu->colour_8c5, menu->colour_8c5);
+            FUN_004b04b0(surface, &rect, menu->colours[0], menu->colours[0x13], menu->colours[0x13]);
         } else if (me->field_138 != 0) {
-            FUN_004b04b0(surface, &rect, menu->colour_8b2, menu->colour_8c3, menu->colour_8c6);
+            FUN_004b04b0(surface, &rect, menu->colours[0], menu->colours[0x11], menu->colours[0x14]);
         } else {
-            FUN_004b04e0(surface, &rect, menu->colour_8b2, menu->colour_8c3, menu->colour_8c6);
+            FUN_004b04e0(surface, &rect, menu->colours[0], menu->colours[0x11], menu->colours[0x14]);
         }
     }
 
@@ -378,9 +259,9 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
     pass = 0;
     do {
         if (me->field_138 != 0)
-            FUN_004c13a0(menu->colour_8b2, FUN_004c13f0());
+            FUN_004c13a0(menu->colours[0], FUN_004c13f0());
         else
-            FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0());
+            FUN_004c13a0(menu->colours[me->colours], FUN_004c13f0());
 
         p = text;
         if (me->field_136 != 0) {
@@ -391,11 +272,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
             }
         }
 
-        y = LineHeight_004a5f40();
-        y = rect.bottom - y;
-        int top = rect.top;
-        y -= top;
-        y = y / 2 + flagy + rect.top;
+        y = (rect.bottom - LineHeight_004a5f40() - rect.top) / 2 + flagy + rect.top;
         if (me->flags & 0x8000)
             menu->current = menu->values[1];
 
@@ -410,9 +287,11 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
         } else if (me->flags & 2) {
             x = (rect.right - textw - rect.left) / 2 + t;
             x += rect.left + 1;
-            if (me->field_13a == 0 || Style_004a5f40(me)) {
+            if (me->field_13a == 0 || (me->field_13c & 1)) {
                 FUN_004a50e0(surface, p, x, y, 1 + (rect.right - rect.left), 0);
             } else {
+                char key1[2];
+                char* found;
                 key1[0] = me->field_13a;
                 width = rect.right - rect.left + 1;
                 strcpy(buf, p);
@@ -426,24 +305,24 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                     x += FUN_004a5030(buf);
                     saved = x;
                     if (me->field_138 != 0)
-                        FUN_004c13a0(menu->colour_8b2, FUN_004c13f0());
+                        FUN_004c13a0(menu->colours[0], FUN_004c13f0());
                     else
-                        FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0());
+                        FUN_004c13a0(menu->colours[me->colours], FUN_004c13f0());
                     FUN_004a50e0(surface, key1, x, y, width, 0);
-                    x += MeasureInto_004a5f40(key1, measured);
+                    x += FUN_004a5030(key1);
                     if (me->field_138 != 0) {
                         FUN_004be950(surface, saved, LineHeight_004a5f40() + y - 1,
                                      x - 1, LineHeight_004a5f40() + y - 1,
-                                     menu->colour_8b2);
+                                     menu->colours[0]);
                     } else {
                         FUN_004be950(surface, saved, LineHeight_004a5f40() + y - 1,
                                      x - 1, LineHeight_004a5f40() + y - 1,
-                                     menu->colour_8b4);
+                                     menu->colours[2]);
                     }
                     if (me->field_138 != 0)
-                        FUN_004c13a0(menu->colour_8b2, FUN_004c13f0());
+                        FUN_004c13a0(menu->colours[0], FUN_004c13f0());
                     else
-                        FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0());
+                        FUN_004c13a0(menu->colours[me->colours], FUN_004c13f0());
                     FUN_004a50e0(surface, found + 1, x, y, width, 0);
                 } else {
                     FUN_004a50e0(surface, p, x, y, width, 0);
@@ -451,25 +330,30 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
             }
         } else if (me->flags & 0x20) {
             int xb;
-            *pm = flagy - LineHeight_004a5f40();
-            *pm += rect.bottom - 4;
+            char* found;
             xb = (rect.right - textw - rect.left) / 2 + t;
             xb += rect.left + 1;
+            int ys = flagy - LineHeight_004a5f40();
+            ys += rect.bottom - 4;
             if (me->field_13a != 0 && (found = strchr(p, (signed char)me->field_13a)) != 0) {
                 width = rect.right - rect.left + 1;
                 key2[0] = me->field_13a;
                 key2[1] = 0;
                 FUN_004c1440();
                 *found = 0;
-                FUN_004a50e0(surface, p, xb, measured, width, 0);
+                FUN_004a50e0(surface, p, xb, ys, width, 0);
+                // Suspected original bug: this measures `text` (the first
+                // string, [esp+0x4c] at 0x4a681e), not the drawn prefix `p`,
+                // so the underline is misplaced when field_136 selects a later
+                // string. The flags 2 branch measures its truncated copy.
                 xb += FUN_004a5030(text);
-                FUN_004c13a0(menu->colour_8bc, FUN_004c13f0());
-                FUN_004a50e0(surface, key2, xb, measured, width, 0);
+                FUN_004c13a0(menu->colours[10], FUN_004c13f0());
+                FUN_004a50e0(surface, key2, xb, ys, width, 0);
                 xb += FUN_004a5030(key2);
-                FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0());
-                FUN_004a50e0(surface, found + 1, xb, measured, width, 0);
+                FUN_004c13a0(menu->colours[me->colours], FUN_004c13f0());
+                FUN_004a50e0(surface, found + 1, xb, ys, width, 0);
             } else {
-                FUN_004a50e0(surface, p, xb, measured, rect.right - rect.left + 1, 0);
+                FUN_004a50e0(surface, p, xb, ys, rect.right - rect.left + 1, 0);
             }
         }
     } while (pass--);

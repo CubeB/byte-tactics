@@ -1,4 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by GPT-6. Names are provisional.
+// GPT-6 retry: preserved the 90.7% version. Its only structural difference is the
+// four-byte test/jne after the bitmap-path Lock, which is needed for MSVC to keep
+// the Lock result in ebx and merge both Unlock tails. Earlier notes record broad
+// source-shape and permutation searches; this retry found no safe zero-cost trigger.
 // Session claude-sonnet-5-5 (issue 4530, no code change, still 90.7%). NOTE: the `if ((held = Lock()) == 0)
 // held = 0;` below is a steering construct (it makes MSVC allocate the branch-2 Lock as ebp/ebx/ebx and so
 // merge the two Unlock bodies); without it the file is 85.1% (`LONG held = Lock();`, 1090 bytes). Tried

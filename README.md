@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**86.12% of Cavedog's code matched** (732,722 of 850,853 bytes)
+**86.22% of Cavedog's code matched** (733,583 of 850,853 bytes)
 
 `[##################################------]`
 
-By count that is 3,171 of the game's 3,267 functions (97.1%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,172 of the game's 3,267 functions (97.1%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,171 | 732,722 |
-| Attempted, not yet matching | 96 | 118,131 |
+| Matched byte-for-byte | 3,172 | 733,583 |
+| Attempted, not yet matching | 95 | 117,270 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -38,7 +38,7 @@ The size bands are the `size:` labels on the issues.
 | medium (65 to 160 bytes) | 825 of 827 | 99.7% | 245 | `##########` |
 | large (161 to 400 bytes) | 693 of 703 | 98.4% | 2,847 | `##########` |
 | xl (401 to 600 bytes) | 212 of 226 | 93.7% | 6,961 | `#########-` |
-| xxl (601 to 1,000 bytes) | 171 of 195 | 87.4% | 18,539 | `#########-` |
+| xxl (601 to 1,000 bytes) | 172 of 195 | 88.0% | 17,678 | `#########-` |
 | huge (over 1,000 bytes) | 115 of 161 | 69.4% | 89,539 | `#######---` |
 
 ### By area
@@ -54,7 +54,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x420000` | Frontend shell | 149 of 154 | 81.1% | 12,010 | `########--` |
 | `0x430000` | Maps, missions, briefings | 220 of 228 | 85.7% | 8,623 | `#########-` |
 | `0x440000` | Multiplayer setup | 242 of 246 | 82.1% | 10,988 | `########--` |
-| `0x450000` | Options and audio menus | 163 of 176 | 68.3% | 20,002 | `#######---` |
+| `0x450000` | Options and audio menus | 164 of 176 | 69.7% | 19,141 | `#######---` |
 | `0x460000` | Game and skirmish setup, unit classes | 206 of 212 | 89.7% | 6,317 | `#########-` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 251 of 259 | 88.7% | 7,168 | `#########-` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 258 of 264 | 93.9% | 3,853 | `#########-` |

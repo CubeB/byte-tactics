@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5429 Codex retry: re-confirmed 94.9%; matching still depends on an
+// artificial declaration prefix, which is not committed.
 // #5403 Codex retry: 94.9% remains best. The four early flag stores still use
 // the wrong OR operand order, and the required symbol-id range needs an
 // artificial declaration prefix that cannot be committed.

@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5429 Codex retry: re-confirmed 99.8%; both loops still require opposite
+// SIB orders, unavailable with the real symbol and header state.
 // #5403 Codex retry: 99.8% remains best. The two loops still need opposite
 // SIB base orders, while real symbol and header states select the same order.
 // #5421 Codex retry: re-confirmed 99.8%; no natural source or header state

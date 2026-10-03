@@ -1,4 +1,7 @@
-// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Fable 5.1, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Fable 5.1, finished by DeepSeek V4.1 Flash, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// GPT-6 retry: retained the 91.8% version. Tried the pointer-alias mutation
+// suggested in issue #4841 on `width`; it changed stack/register allocation
+// broadly and fell to 76.6%, so it remains only in build/scratch.
 // claude-opus-5-5 (#4904): 90.1% -> 91.8%, 2706 bytes (original 2700).
 //  - The second hotkey measure (key1) accumulates straight into `measured`
 //    through MeasureInto, a copy of FUN_004a5030 that takes the accumulator by

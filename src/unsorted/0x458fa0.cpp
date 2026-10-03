@@ -173,6 +173,9 @@
 //    ebx). Any bool predicate needs the setcc or the extra byte test; the
 //    natural full-width guard is exactly 455 B but colours `view` into ebx.
 //    No source form reached both, so the residual above still stands.
+// GPT-6 retry (#5215): rechecked the best source at 95.2% (460 B). The only
+// code difference remains neg eax; sar eax, 8 versus the original full-width
+// test eax, eax; jle; prior notes cover the guard and allocator variants.
 #include <windows.h>
 
 struct Vertex_0045a610 {

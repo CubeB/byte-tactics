@@ -476,6 +476,35 @@ effect, the missing piece is usually a helper that was inlined:
   FUN_00435f38 (register in ecx) lists every expression temporary with the
   pointer before it, so you can see whether a source change moves the
   rotation at all before scoring it (#5172).
+- **Positive bitfield tests on one flags word**: `if (p->flags.visible) { if
+  (... == p->flags.colored) ...` on an `unsigned short` bitfield loads the byte
+  once and reuses the register for the second test, one more step of the
+  eax/ecx/edx rotation than a `char` local or mask tests. The rotation restarts
+  at a loop head, so a rotation fix has to be inside the loop (0x459830, #5178).
+- **A zeroing store in a loop becomes `rep stosd`**: `weight[k] = 0;` in the
+  body is turned into a `rep stosd` placed after the loop's pointer set-up, so
+  those pointers live across it and lose ecx/edi/eax. A `memset` before the
+  loop does not do that. If the original's loop-pointer `lea`s sit before a
+  `rep stosd` and the pointers land in esi/ebx, look for a zeroing store in the
+  loop (0x459c70, #5178).
+- **A memory counter stepping by a constant** (`shade += 3`, zeroed after the
+  loop guard) can be MSVC's strength reduction of `k * 3` in the body
+  (0x459c70).
+- **A walking pointer copied from another pointer is rebased**: `Vec3* v =
+  verts;` is rebased to the field it reads last (`lea reg, [verts + 8]`);
+  giving it its own read (`Vec3* v = list->pieces[p].vertices;`) keeps it
+  unbiased (0x459c70).
+- **`extern float` declaration order sets x87 operand order**: in a sum of
+  products of globals, the product with the later-declared global is loaded
+  first; the set of headers moves it too (0x459c70).
+- **A load between a test and its jump can come from both arms**: MSVC hoists
+  an identical first load out of both arms of an if/else to just before the
+  `je` (0x459830).
+- **An empty statement that emits no code can still decide a byte**: the last
+  difference in 0x459c70 went with one `do {} while (0);` in a loop body
+  (`if (0) {}` works too), most likely a debug macro that compiled to nothing.
+  Try one in each loop when a single register or byte is left and the
+  structure is right, and keep it with a comment if it matches (#5178).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

@@ -65,8 +65,8 @@ simplify-and-select:
 
 3. **Priority.** `FUN_0040ee1d` walks the basic blocks. For each block `b`:
 
-   - `w(b) = 1 << (loop depth + 1)`, so 2 outside loops, 4 in a loop, 8 in a
-     nested loop (block field +0x86 holds the depth);
+   - `w(b)` is 1 outside loops, 4 in a loop and 8 in a nested loop (measured
+     with `c2prio.py --blocks`; block field +0x86 holds the depth);
    - each reference to a variable costs 2, a constant reference 1 or 0
      (`FUN_0040ed6c`, `FUN_0040fada`);
    - `K(b)` is the number of candidates referenced in the block, so references
@@ -181,8 +181,8 @@ candidate's share: w * K * cost where the block references the candidate, and
 -w * K where the candidate is live through the block without a reference.
 Below that is a list of the candidates each block counts in K. Constants count
 in K at cost 0 or 1. The shares add up to the table's priority; this held for
-all 95 candidates of 0x47d2e0 and 0x4cf570. Measured w is 1 outside loops
-(not 2 as step 3 above says), 4 in a loop and 8 in a nested one. On 0x47d2e0,
+all 95 candidates of 0x47d2e0 and 0x4cf570. Measured w is 1 outside loops,
+4 in a loop and 8 in a nested one (step 3). On 0x47d2e0,
 `bit` is 70, of which 64 comes from the vis-test block (K 8, cost 8: `1 << player`
 is three references and the test one). The width temporary is 38, and `los`
 is 70, gathered over nine blocks. The tool reads two points in

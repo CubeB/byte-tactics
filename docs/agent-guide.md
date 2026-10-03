@@ -261,7 +261,8 @@ one gets esi, then edi, ebx, ebp; a value not live across a call starts at
 eax. Cost only breaks the order when a neighbour wants a register (the return
 value wants eax, a copy wants its source's register), and ebp is used only
 when esi, edi and ebx are all taken. Priority (`FUN_0040ee1d`) is a weighted
-reference count: 2 per reference, times `1 << (loop depth + 1)`, times the
+reference count: 2 per reference, times the loop weight (1 outside loops, 4
+in a loop, 8 in a nested one), times the
 number of candidates touched in that block, minus a little for each block the
 value is live through without a reference. In practice one reference inside a
 loop beats 3 to 4 outside it, and one in a nested loop about 12. On equal

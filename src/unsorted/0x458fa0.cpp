@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, verified by GPT-6. Names are provisional.
+// GPT-6 retry: retained 95.2%; the remaining code difference is the two
+// instructions at the copy-loop entry guard described below.
 //
 // SPACE BUNNY FREE PASS, 84.1% -> 95.2%. Ours 460 bytes against the original's
 // 455, and the checker reports that 4 of the remaining diff lines are only

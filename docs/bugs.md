@@ -341,6 +341,18 @@ in the wrong place. The flags 2 branch measures its truncated copy instead.
 Possible: entries with a hotkey may never select a later string. Found by
 Claude Code / Opus 5.5 in #5148.
 
+## An order button reads an unassigned entry pointer (likely)
+
+**0x419be0**, which draws the order buttons. The entry whose state the buttons
+test is only assigned when `entries[button->index].type == 1`. Otherwise the
+code reads the variable without assigning it: at 0x419c15 to 0x419c1c the
+original does `mov ebp, ecx` / `cmp byte ptr [ecx], 1` / `je` /
+`mov ebp, [esp+0x34]`, and nothing in the function stores to `[esp+0x34]`.
+MSVC put the unassigned variable's home in the dead stack slot of the `button`
+argument (`button` itself lives in edi from 0x419bec), so the read gets the
+button pointer and the later tests read the button's bytes as the entry's
+state. It works by accident. Found by Claude Code / Opus 5.5 in #5276.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

@@ -4,6 +4,7 @@
 // GPT-6 retry: confirmed 99.5%; the only remaining difference is the ECX/EDX
 // choice for the g_game load at 0x499775. Prior notes record broad variant and
 // permutation searches without a better result.
+// GPT-6 retry (#5242): rechecked at 99.5%; the FUN_00435c00 load still uses ECX.
 // Rechecked for issue #5095 on 2026-10-03; the existing source still scores
 // 99.5%, with that single register choice unchanged.
 // claude-opus-5-5 (#4267): 98.4% -> 99.5% at the exact size (1655 bytes).

@@ -1,111 +1,19 @@
-// Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
-// PARTIAL 84.7% (ours 1201 bytes vs the original 1199), mimo-v2.6-pro pass, issue 4132.
-// What still differs is only the two bounds sums at the top (0x47cc57..0x47cca9):
-//   x sum: original `movsx ebx,dx / movsx edx,ax / mov eax,[width] / add edx,ebx /
-//          cmp edx,eax / mov [esp+0x2c],ebx / jge`; ours `movsx ebx,dx / movsx edx,ax /
-//          mov eax,ebx / mov [esp+0x2c],ebx / add eax,edx / mov edx,[width] /
-//          cmp edx,eax / movsx ecx,cx / jle`, so the sum accumulates a copy of size.x
-//          (right operand) instead of px (left), the width load lands after the add
-//          instead of before it, and the spill sits before the add instead of after cmp.
-//   y sum: original `movsx eax,cx / mov ecx,[height] / add eax,edi / cmp eax,ecx`;
-//          ours materializes py into ECX (hoisted above the x jump) and puts height in
-//          EAX. Same accumulate-pos shape, wrong register and hoisting.
-// The owner-index block, the loops, the two calls and the epilogue are byte-identical.
-// Tried this pass and all equal or worse: every source operand order of both sums
-// (MSVC canonicalizes them identically at this shape), inline sums in the condition
-// (1202), one combined || (worse), separate per-clause ifs (1192), accumulate-form
-// temporaries (82.0), a Point pos copy (80.2), int w/h locals for the sizes alone
-// (81.x), y-first tests (83.2/83.5), split ifs (84.3/84.7), width-left conditions with
-// the sizes as int locals (83.5). The extern-count sweep and the inline helper shapes
-// are now done too (see the continuation pass note below), all flat or worse.
-// Older PARTIAL 81.2% note (ours 1202 bytes vs the original 1199). Frame, the three cell loops,
-// the inlined FUN_0047cb60 owner surgery, the (g_game+0x38a47) store, the
-// 0x20000000 mask path, both FUN_00483210/FUN_00440a40 calls and the epilogue
-// all match. What still differs is ONE block, the two bounds tests at the top
-// (0x47cc57..0x47cca9), which is 3 bytes long and therefore shifts every
-// forward jump target in the rest of the function by 3:
-//   1) The original keeps pos.x in AX and pos.y in CX for the two negative
-//      tests, then accumulates each sum in the register that held the
-//      POSITION: mov ebp,g_game / movsx ebx,dx / movsx edx,ax /
-//      mov eax,[width] / add edx,ebx / cmp edx,eax / mov [esp+0x2c],ebx /
-//      jge, then movsx edi,[esp+0x16] / movsx eax,cx / mov ecx,[height] /
-//      add eax,edi / cmp eax,ecx / jge.  We get the same movsx order but
-//      MSVC builds the sum through a copy of size.x (mov eax,edi / add
-//      eax,ebx for y, then mov ecx,ebx / add ecx,edx for x), loads width
-//      into EDX instead of EAX, spills size.x before the cmp instead of
-//      after it, and hoists the y sum above the x test.  Separate `if`s
-//      give the right AX/CX but move the `remove` block next to the top
-//      block, which turns both `jl remove` into 2-byte short jumps and
-//      costs more than it wins.
-//   2) The owner index does lea edx,[esi+0x6a]; mov ecx,[esi+0x6a] and
-//      computes (p.z>>23)*cols with p.z in EDX; the original does
-//      lea ecx,[esi+0x6a]; mov edx,ecx, indexes everything through edx and
-//      keeps p.z in EAX so the multiply is `imul eax,[ebp+0x142a3]`.
-// Second session (space-bunny-free, timeboxed): no new score, still 80.9%. Third session (GPT-6.1-sol, timeboxed): owner-index left-accumulator rewrites in both operand orders and independently split negative/bounds guards produced no gain; split guards scored 72.8% and were reverted. Best remains 80.9%.
-// New analysis: in every commutative op the original accumulates the LEFT
-// operand (add edx,ebx with edx=pos.x, imul eax,[cols] with eax=z>>23) while
-// ours accumulates the RIGHT one (mov ecx,ebx / add ecx,edx, mov eax,[cols] /
-// imul eax,edx), so the fix is likely one source shape that flips that
-// choice, fixing both diff regions at once. Unscored scratch variants v1..v8
-// under build/scratch/0x47cc30/ try separate vs combined ifs, both operand
-// orders and an int sx = pos.x; sx += size.x accumulator form.
-// Tried and all WORSE or equal: `obj->pos.x + size.x` in both operand
-// orders (MSVC 5 canonicalises them identically), `g_game->width <= ...`,
-// named sx/sy locals at function scope and inside a block, `sx = pos.x;
-// sx += size.x`, a pointer to the position struct instead of a copy
-// (drops the dead store of p.y and costs 13 points), the reversed
-// `(p.z>>23)*cols + (p.x>>23)`, and every combination of combined `||`
-// versus separate ifs for the negative and the sum tests.
-// deepseek-v4.1-flash pass (issue 3456), timeboxed, best stays 80.9%. Nine more source shapes,
-// all free-scored with check.py --sym, none beat 80.9: owner index through a pointer local with the
-// struct copy taken through it (identical code), a one line static helper taking the position pointer
-// or reference for the owner index (67.6, the helper call shape changes too much), explicit
-// accumulate-left temporaries (t = p.z >> 23; t = t * cols; t = t + (p.x >> 23)) alone and combined
-// with the same form for the sums (52.8 combined), the multiply written cols * (p.z >> 23) (identical),
-// short locals px/py for the negative tests (identical), one combined || including inline sums (80.5),
-// sums declared and computed y first (identical) and sizes read through obj in the sums (48.0).
-// The commutative left-accumulator flip therefore does not come from operand order, accumulator
-// temporaries or the multiply spelling: it is front end state, same class as 0x47d820.
-// issue-3512 pass (deepseek-v4.1-flash): re-tested the top block shapes; inlining the sums into the
-// combined condition gives 80.5 (1204 bytes), a Point pos copy gives 80.8 (1206), and swapping the
-// sx/sy assignment order is byte-identical to 80.9.
-// issue-3546 pass (deepseek-v4.1-flash): swapping the two negative tests to `pos.y < 0 || pos.x < 0`
-// raises 80.9 -> 81.2 (1202 bytes) even though it changes which test is emitted first; every other
-// order of the six test/sum/bounds combinations scores lower (w1..w7 in build/scratch/0x47cc30).
-// Still 1202 vs 1199: the front end keeps pos.x in CX and pos.y in AX, so the sums accumulate the
-// right operand (mov ecx,ebx / add ecx,edx; mov eax,edi / add eax,ebx), one copy each, and the width
-// lands in EDX instead of EAX. The original has AX=pos.x, CX=pos.y, sx first as `movsx edx,ax /
-// add edx,ebx`, sy as `movsx eax,cx / add eax,edi` with no copies. A source lever for that mapping
-// is still unfound.
-// Retry pass (deepseek-v4.1-flash, 2026-10-01): honored the board-wide WATCHDOG STOP, best variant
-// already flushed and verified at 81.2% (ours 1202 vs the original 1199). No new variants tried.
-// Pass (deepseek-v4.1-flash, issue 4053): the residual is exactly one hunk, ours 58 vs the original
-// 55 bytes in 0x47cc57..0x47cca9: the original hoists `mov eax,[width]` above the `add edx,ebx` so
-// the x sum lands in edx (the movsx target), ours computes the sum first into a fresh register
-// (mov eax,ebx / add eax,edx) and only then loads width into edx. Inlining the sums into the
-// combined condition scores 80.5 (x-first tests) and 80.8 (x-first tests, width on the left of <=),
-// y-first tests with a second inline-sum if scores 79.9; all reverted, 81.2% stays best.
-// mimo-v2.6-pro pass (issue 4132, 2026-10-01): tools/headers.py swept all 128 common header
-// sets; #include <windows.h> alone (also <ddraw.h>, and <windows.h> with <stdio.h>/<stdlib.h>/
-// <string.h>) lifts the score 81.2 -> 82.3. Compiler state again, like 0x47d820. Kept here.
-// mimo-v2.6-pro continuation pass (issue 4132, 2026-10-01): the UNTRIED extern-count lever is
-// now exhausted and flat: unused extern int sweeps 0..400 step 4/8 at three placements (after
-// the include, after the prototypes, before the function), 500..3000 unused function
-// prototypes, and C++ headers on top of <windows.h> (<string>, <vector>+<map>, <iostream> etc)
-// all score 84.7 or worse (two big headers give 83.6; single big headers fail to compile here).
-// Source-shape batch, all free-scored with check.py --sym, none beat 84.7: nested ifs with py
-// declared after the x test (81.6, moves py's movsx below the x jump but reorders the remove
-// block), dimension locals w/h (82.8 combined, 81.x nested), in-place px += size.x / py += size.y
-// (82.0), comma forms (84.3), static helper sums (81.2..84.3), 4-way || folds (81.2..82.4),
-// short/const/register px/py (83.5..84.3), sum-left with px/py locals (84.3: fixes jge vs jle
-// but keeps the copy accumulator and mirrored registers), mixed x/y compare orders (84.7 ties:
-// m2 sum-left x + width-left y, m7 width-left with size.x + px operand order, m11 negated
-// !(width > sum) form), subtraction form (82.7). Root cause unchanged: the original loads
-// width into EAX before add edx,ebx and keeps the sum in px's movsx register (y: movsx eax,cx /
-// mov ecx,[height] / add eax,edi), ours copies size.x into EAX for the x sum and mirrors the
-// y registers, with py's movsx hoisted above the x jump; every source spelling canonicalizes
-// to one of those two shapes and the extern/compiler-state sweep is flat.
-
+// Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by opus. Names are provisional.
+// MATCH (opus pass, from 84.7%). The bounds test reads the position into
+// short locals, px before its own test and py after it:
+//     short px = obj->pos.x; if (px < 0) goto remove;
+//     short py = obj->pos.y; if (py < 0 || px + size.x >= width || ...)
+// With int locals, or obj->pos.x written in the sum, MSVC put the size.x
+// temporary first in the add, so it copied it ("mov eax,ebx; add eax,edx")
+// instead of adding into px's register, and the width load moved below the
+// add. The short locals give "movsx edx,ax; ...; add edx,ebx" as in the
+// original. Declaring py next to px (before px's test) hoists the pos.y load
+// above the first jl and scores 99.7%. In a cut-down copy of the function
+// with one loop instead of three, the plain obj->pos.x spelling already
+// added into px, so the operand order depended on how often size.x was used.
+// The sums must stay on the left of >= (width on the left gives jle).
+// Earlier passes' notes on the rest (owner surgery, loops, mask path, calls)
+// are unchanged by this: that code was already byte-identical.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -235,14 +143,14 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
     Point_0047cc30 size = obj->size;
     if (obj->field_0 != 0)
         *(int*)(obj->field_0 + 0x26) = g_game->field_38a47;
-    if (obj->pos.x < 0 || obj->pos.y < 0)
-        goto remove;
     {
-    int px = obj->pos.x;
-    int py = obj->pos.y;
-    if (g_game->width <= px + size.x || g_game->height <= py + size.y)
-        goto remove;
-
+        short px = obj->pos.x;
+        if (px < 0)
+            goto remove;
+        short py = obj->pos.y;
+        if (py < 0 || px + size.x >= g_game->width || py + size.y >= g_game->height)
+            goto remove;
+    }
     {
         Position_0047cc30 p = obj->position;
         SetOwner_0047cc30(obj,
@@ -261,7 +169,7 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
                         unsigned short id = cell->field_0;
                         if (id != 0) {
                             UnitRec_0047cc30* rec = &g_game->units[id];
-if (rec->owner->active == 0) {
+                            if (rec->owner->active == 0) {
                                 goto a_bad;
                             } else if (rec->owner->type != 3) {
                                 goto a_bad;
@@ -269,12 +177,11 @@ if (rec->owner->active == 0) {
                             rec->flags |= 0x8000000;
                             obj->flags.all |= 0x4000000;
                             goto a_write;
-                            a_bad:
+                        a_bad:
                             rec->flags |= 0x4000000;
                             obj->flags.all |= 0x8000000;
                             goto a_next;
-                            a_write: ;
-
+                        a_write: ;
                         }
                         cell->field_0 = obj->field_a8;
                     }
@@ -301,7 +208,7 @@ if (rec->owner->active == 0) {
                     unsigned short id = cell->field_0;
                     if (id != 0) {
                         UnitRec_0047cc30* rec = &g_game->units[id];
-if (rec->owner->active == 0) {
+                        if (rec->owner->active == 0) {
                             goto b_bad;
                         } else if (rec->owner->type != 3) {
                             goto b_bad;
@@ -309,12 +216,11 @@ if (rec->owner->active == 0) {
                         rec->flags |= 0x8000000;
                         obj->flags.all |= 0x4000000;
                         goto b_write;
-                        b_bad:
+                    b_bad:
                         rec->flags |= 0x4000000;
                         obj->flags.all |= 0x8000000;
                         goto b_next;
-                        b_write: ;
-
+                    b_write: ;
                     }
                     cell->field_0 = obj->field_a8;
                 b_next:
@@ -330,7 +236,7 @@ if (rec->owner->active == 0) {
                     unsigned short id = cell->field_2;
                     if (id != 0) {
                         UnitRec_0047cc30* rec = &g_game->units[id];
-if (rec->owner->active == 0) {
+                        if (rec->owner->active == 0) {
                             goto c_bad;
                         } else if (rec->owner->type != 3) {
                             goto c_bad;
@@ -338,12 +244,11 @@ if (rec->owner->active == 0) {
                         rec->flags |= 0x8000000;
                         obj->flags.all |= 0x4000000;
                         goto c_write;
-                        c_bad:
+                    c_bad:
                         rec->flags |= 0x4000000;
                         obj->flags.all |= 0x8000000;
                         goto c_next;
-                        c_write: ;
-
+                    c_write: ;
                     }
                     cell->field_2 = obj->field_a8;
                 c_next:
@@ -352,7 +257,6 @@ if (rec->owner->active == 0) {
                 cell += g_game->width - size.x;
             }
         }
-    }
     }
     return;
 

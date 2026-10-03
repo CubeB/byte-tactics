@@ -1,88 +1,19 @@
-// Decompiled by deepseek-v4.1, edited by deepseek-v4.1 and GPT-6.1-sol, finished by deepseek-v4.1-flash, mimo-v2.6-pro and Space Bunny Free. Names are provisional.
-// PARTIAL: 88.2% (ours 2876 bytes vs the original 2947).
-// Space Bunny Free pass: the 71 byte gap is now fully accounted for and it
-// splits into exactly two items, both of them c1xx register/immediate choices
-// rather than missing statements. Re-derivation used the disassembly in
-// build/scratch/0x47ae60 (gen*.py, v0.cpp baseline) plus objdump of our own
-// object; the arm bodies themselves are byte identical.
-//  (1) 27 bytes: nine hoisted constants. Both versions hoist the same nine
-//      (ebx=1 eight times, edi=2, esi=6) into the same registers at the same
-//      points, but the original emits the imm8 form ("mov ebx, 1", 2 bytes)
-//      and ours the imm32 form ("mov ebx, 0x1", 5 bytes). 3 bytes x 9 = 27.
-//      Sites: the ebx=1 after "BigButton" (feeds FUN_0041d6a0(1) and the two
-//      trailing 1s of FUN_004abd90), edi=2 at the "Player" arm, esi=6 at the
-//      "Allies" arm, ebx=1 in the Color arm (feeds field_37==1 and
-//      FUN_0047acd0(1)), ebx=1 in the four toggle arms, ebx=1 in the
-//      Difficulty arm. Not steerable: character literals ('\1','\2','\6') and
-//      char-typed parameters (FUN_0041d6a0, FUN_0047acd0, FUN_004abd90's a/b)
-//      were all tried and are flat at 2876 bytes.
-//  (2) 42 bytes: seven parameter reloads. The original has 17 "mov
-//      <reg>,[esp+0x84]" reloads of the stack-home parameter, ours has 10.
-//      The extra seven are Color tail (orig 0x47b305), Energy arm-2 (0x47b48b
-//      "mov edx,[esp+0x90]" plus 0x47b4a7), Metal arm-2 (0x47b63f, 0x47b656
-//      region) and the SelectMap/Difficulty tails (0x47b8c4, 0x47b902,
-//      0x47b95f, 0x47b999, 0x47b9cc). 6 bytes x 7 = 42.
-//      Why: c1xx gives the parameter a live RANGE, not a fixed register. In
-//      the original each strcmp literal lands in esi (mov esi, 0x50837c
-//      "Color"), which kills the range that held menu, and every later use
-//      starts a fresh range in whatever scratch register is free - hence the
-//      mixed ecx/eax/edx/esi/ebp targets and the reuse of esi for the zero in
-//      the Difficulty arm ("xor esi, esi" where ours does "xor ebx, ebx").
-//      Ours instead keeps ONE long range and reuses the register. The
-//      divergence starts at reload 3 of 17: original edx, ours eax.
-//      Not steerable, all flat at 2876 bytes: a Menu* alias local feeding
-//      only the tails and the arm-2 calls; a static void redraw(Menu*) helper
-//      called from the tails; taking the parameter's address (&menu, both as
-//      a dead guard and as *(Menu**)&menu at every call site) - this confirms
-//      the parameter is ALREADY stack-home resident, since the address-taken
-//      form only added 8 bytes of guard code; callee prototype narrowing
-//      (FUN_004ab0a0 as int or char*, FUN_004a0bf0 first arg as void*);
-//      extra braces around the arm bodies; else-if instead of two ifs; a
-//      per-sub-block local for the Energy/Metal arm-2 pointer; a shared goto
-//      tail; and tools/permute.py (best 2188 -> 2178 in 7.65 min, never
-//      improved on the starting score).
-//  (3) 4 bytes, not yet recovered: in the four toggle arms the original has
-//      "lea esi, [ebp+ecx*2]" (3 bytes) and ours "lea esi, [ebp+edx*2+0x0]"
-//      (4 bytes); MSVC folds a zero displacement into the entry address.
-//      "&entries[index]", "entries + index" and swapping the strcpy branches
-//      are all flat. This is downstream of item (2): the toggle arms also
-//      disagree on which scratch register holds g_game (original edx, ours
-//      ecx or eax), so fixing the reload pattern may fix this for free.
-// Retry note (mimo-v2.6-pro, second pass): what fixed 86.7 -> 88.2 was the
-// clamp tail shape. The up clamps are now windef.h's min() and the down
-// clamps max(), applied on the pointee:
-//   *p = min(*p + 0x1f4, 0x2710);        (Energy/Metal up)
-//   *p = max(*p + -0x1f4, 0xc8);         (Energy/Metal down)
-// The min/max macro evaluates its argument twice, which keeps MSVC's
-// load-then-lea allocation (value in ecx, address in eax) AND lands the
-// single conditional store of a register ("cmp; jl L; mov ecx, 0x2710;
-// mov [eax], ecx") exactly as the original. The negative immediate survives
-// as "add ecx, 0xfffffe0c" only when written "*p + -0x1f4" (max's second
-// evaluation of the argument keeps the add-imm form; "*p - 0x1f4" gives
-// "sub reg, 0x1f4" and scores 86.9%). TRIED for the tail shape and rejected:
-// the plain v-form ("int v = *p; v += 0x1f4; if (v >= 0x2710) v = 0x2710;
-// *p = v;") gives the right tail but mirrored registers (value in eax,
-// address in ecx); the ternary "int v = *p + 0x1f4; *p = v >= 0x2710 ? 0x2710
-// : v;" is the same (86.1-86.2%); the typed-field form folds the lea away
-// entirely (81.9-82.4%). Per-arm scores for the min/max arms: 86.8% (min on
-// Energy-1), 87.5% (min on Metal-1 or max on Metal-2), 88.2% (all four).
-// Earlier: 85.5 -> 86.7 came from the compound "*p += ..." form on the four
-// clamps; 84.2 -> 85.5 from the c2/c1 player count block nested as loop1 /
-// test-c2 / loop2 / test-c1 with ONE shared error stub at 0x47b0bf; the
-// LineOfSight "field_114 = 1" stores must precede the strcpy so the seven
-// toggle-arm message tails merge at 0x47b88b. The Difficulty arm calls
-// FUN_0047f1a0("SKirmish", 0): the original pushes 0x502a6c (the typo'd
-// literal), not 0x507ccc "Skirmish". Do not correct it.
-// TRIED and flat: tools/headers.py (128 sets, all 86.7-86.8%); an N-dummy
-// sweep (0 to 400 extern int dummyN; in steps of 4) is flat at 88.2% for
-// every N, so compiler state is not the remaining lever. The Menu* alias
-// local that was listed as "first thing to try next" has since been scored
-// and is also flat; see items (1) and (2) above for the full list.
-// STILL DIFFERS, small scratch-reg ties worth 0 bytes: the Player tail
-// "mov edx,[esp+0x84]" (ours mov eax) and the g_game reload in the toggle
-// arms landing in a different scratch register (original mov edx, ours
-// mov ecx or mov eax). The strcmp-chain tail addresses drift by the size
-// gap above.
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1 and GPT-6.1-sol, deepseek-v4.1-flash, mimo-v2.6-pro and Space Bunny Free, finished by opus. Names are provisional.
+// MATCH (opus pass). The last 12 points came from the shape of the command
+// chain after "PrevMenu": it is one if / else-if chain whose arms fall through
+// to a single FUN_004ab0a0(menu) at the end of the function. MSVC duplicates
+// that small tail block (call plus epilogue) into the arms, and because the
+// block was built at the join point, every copy reloads menu from its stack
+// slot ("mov edx,[esp+0x84]"). With a "FUN_004ab0a0(menu); return;" in every
+// arm instead, the arms reuse whatever register already held menu (the
+// Energy and Metal arms kept it in ebp for the whole arm), which left the
+// file 71 bytes short at 88.2%.
+// Earlier findings that still hold: the Energy/Metal clamps are windef.h's
+// min()/max() on the pointee (the down clamp written "*p + -0x1f4"); the c2/c1
+// player counts are nested loop1 / test-c2 / loop2 / test-c1 with one shared
+// error stub; the LineOfSight "field_114 = 1" stores precede the strcpy; the
+// Difficulty arm calls FUN_0047f1a0("SKirmish", 0) with the original's typo'd
+// literal (0x502a6c), not "Skirmish".
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -301,33 +232,22 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         return;
     }
 
+
     if (strcmp(frame.bf, "Player") == 0) {
         FUN_0047f1a0("Skirmish", 0);
         FUN_004797e0(player);
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (strcmp(frame.bf, "Side") == 0) {
+    } else if (strcmp(frame.bf, "Side") == 0) {
         FUN_0047f1a0("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         int* p = (int*)((char*)t + t->field_224 * 24 + 4);
         *p = (*p + 1) % *(int*)(g_game + 0x37f39);
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (strcmp(frame.bf, "Allies") == 0) {
+    } else if (strcmp(frame.bf, "Allies") == 0) {
         FUN_0047f1a0("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         int* p = (int*)((char*)t + t->field_224 * 24 + 8);
         *p = (*p + 1) % 6;
         FUN_00479660();
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (strcmp(frame.bf, "Color") == 0) {
+    } else if (strcmp(frame.bf, "Color") == 0) {
         FUN_0047f1a0("Skirmish", 0);
         FUN_004c2340(frame.ev);
         if (menu->holder->field_37 == 1) {
@@ -336,11 +256,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         if (menu->holder->field_37 == 2) {
             FUN_0047acd0(1);
         }
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (strcmp(frame.bf, "Energy") == 0) {
+    } else if (strcmp(frame.bf, "Energy") == 0) {
         FUN_004c2340(frame.ev);
         if (menu->holder->field_37 == 1) {
             FUN_0047f1a0("Skirmish", 0);
@@ -364,11 +280,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             _itoa((*(Table_0047ae60**)(g_game + 0x29a0))->players[player].energy, frame.sA, 10);
             FUN_004a0bf0(menu, frame.sB, frame.sA, 10);
         }
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (strcmp(frame.bf, "Metal") == 0) {
+    } else if (strcmp(frame.bf, "Metal") == 0) {
         if (menu->holder->field_37 == 1) {
             FUN_0047f1a0("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
@@ -391,11 +303,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             _itoa((*(Table_0047ae60**)(g_game + 0x29a0))->players[player].metal, frame.sB, 10);
             FUN_004a0bf0(menu, frame.sA, frame.sB, 10);
         }
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (FUN_0049fd60(menu, "CommanderDeath")) {
+    } else if (FUN_0049fd60(menu, "CommanderDeath")) {
         FUN_0047f1a0("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         t->field_108 ^= 1;
@@ -406,11 +314,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         else
             strcpy(e->text, FUN_004c5740("Game continues after Commander is destroyed."));
         FUN_004a0090(g_game + 0x519);
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (FUN_0049fd60(menu, "StartLocation")) {
+    } else if (FUN_0049fd60(menu, "StartLocation")) {
         FUN_0047f1a0("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         t->field_118 ^= 1;
@@ -421,11 +325,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         else
             strcpy(e->text, FUN_004c5740("Commanders are randomly placed on the battle field."));
         FUN_004a0090(g_game + 0x519);
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (FUN_0049fd60(menu, "Mapping")) {
+    } else if (FUN_0049fd60(menu, "Mapping")) {
         FUN_0047f1a0("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         t->field_10c ^= 1;
@@ -436,11 +336,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         else
             strcpy(e->text, FUN_004c5740("Terrain is visible."));
         FUN_004a0090(g_game + 0x519);
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (FUN_0049fd60(menu, "LineOfSight")) {
+    } else if (FUN_0049fd60(menu, "LineOfSight")) {
         FUN_0047f1a0("Skirmish", 0);
         int index = FUN_0049fdf0(entries, "LineOfSight", 1);
         Entry_0047ae60* e = &entries[index];
@@ -458,34 +354,20 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             strcpy(e->text, FUN_004c5740("All mapped terrain is visible."));
         }
         FUN_004a0090(g_game + 0x519);
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (FUN_0049fd60(menu, "SelectMap")) {
+    } else if (FUN_0049fd60(menu, "SelectMap")) {
         FUN_0047f1a0("Skirmish", 0);
         FUN_00491c80(0x14);
         FUN_0047aaf0();
-        FUN_004ab0a0(menu);
-        return;
-    }
-
-    if (FUN_0049fd60(menu, "Difficulty")) {
+    } else if (FUN_0049fd60(menu, "Difficulty")) {
         FUN_0047f1a0("SKirmish", 0);
         int d = *(int*)(g_game + 0x37eee);
         if (d == 0) {
             (*(Table_0047ae60**)(g_game + 0x29a0))->field_228 = 1;
             *(int*)(g_game + 0x37eee) = 1;
-            FUN_004ab0a0(menu);
-            return;
-        }
-        if (d == 1) {
+        } else if (d == 1) {
             (*(Table_0047ae60**)(g_game + 0x29a0))->field_228 = 2;
             *(int*)(g_game + 0x37eee) = 2;
-            FUN_004ab0a0(menu);
-            return;
-        }
-        if (d == 2) {
+        } else if (d == 2) {
             (*(Table_0047ae60**)(g_game + 0x29a0))->field_228 = 0;
             *(int*)(g_game + 0x37eee) = 0;
         }

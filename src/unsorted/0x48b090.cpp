@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, reworked by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, reworked by space-bunny-free, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#4698): checkall.py confirms this file prints MATCH.
 // Orchestrator note (2026-10-02): 94.9% is reachable, but only with unused
 // static inline helpers and unused locals (found by the permuter twice, #4479
 // and #4587); without them the body compiles to the same bytes as this 93.2%

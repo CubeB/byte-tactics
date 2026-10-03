@@ -1,4 +1,7 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#4698): check.py confirms the retained best is 88.8% at 262
+// bytes. The remaining code difference is the bit 19 arithmetic register
+// schedule; no source edit was found on this retry.
 //
 // DeepSeek V4.1 Flash pass (#4698): the permuter ran 3 min on the 88.8% form
 // (2885 candidates) and 4 min on a materialized variant (4322), no gain. Two

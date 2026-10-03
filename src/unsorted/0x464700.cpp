@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6. Names are provisional.
+// GPT-6 retry: the current source remains 98.3%. Existing notes cover the
+// pointer, local, reference and scheduling variants for the remaining block.
 
 // space-bunny-free retry 2 (still 98.3%, 473 of 473 bytes, 4 checker runs,
 // about 450 in-process compiles). The big new result is that the pool flip is

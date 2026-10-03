@@ -125,6 +125,7 @@ Consequences that agents can use directly:
     uv run tools/c2prio.py 0x4cf570 build/scratch/0x4cf570/try.cpp
     uv run tools/c2prio.py 0x4cf570 --trace            # every colouring step too
     uv run tools/c2prio.py 0x47d2e0 --blocks bit,los   # each block's share of a priority
+    uv run tools/c2prio.py 0x424c00 --inline           # the /Ob2 inline decisions too
 
 It compiles the file with the real C2.EXE under a debugger and prints, for the
 one function, C2's register candidates in the order `FUN_0041bdd7` sorted them,
@@ -195,6 +196,29 @@ allocator's entry and the sort, so the default output and `--trace` are
 unchanged. A label, `do { } while (0)`, `switch (0)` or a constant initialiser
 set earlier (`bit = 1;` and later `bit <<= n;`) is merged or propagated before
 allocation, so none of them adds a block or changes K.
+
+`--inline` prints, before the table, the /Ob2 inliner's decision at each call
+site to an inline candidate (the rule is in docs/agent-guide.md, "The /Ob2
+inline budget, read out of C2.EXE"): the function's IL size and budget, then
+per site the depth, R (that level's sites still to come, this one included),
+the budget left at that level, the callee's IL size and whether it was
+inlined, in the order C2 visits them (depth-1 sites in source order, each
+inlined callee's own sites right after it). It breaks at 0x42491e (a
+function's pass starts; `[ecx]` is its symbol), 0x424eef (a site: the callee's
+symbol in ebx, its name at `[ebx+0x18]` and its IL size in the low 16 bits of
+`[ebx+0x64]`, the budget left at `[esp+0x48]`, the depth at `[esp+0x30]`, R at
+`[esp+0x2c]`) and 0x424f95 (that site is inlined). The numbers read this way
+make the rule exact: an inlined callee costs its IL size if 41 or more and
+nothing otherwise, its own sites start from (budget left - cost) / R, and each
+level also loses what is inlined below it. On the real-`<vector>` spelling of
+0x424c00 the first resize gets (2024 - 115) / 18 = 106, enough for two
+size() calls (43 each) but not for insert (470), a third size() or erase (70),
+and the second resize's erase finds 47 of its (1351 - 115) / 7 = 176 left, as
+in the file's notes. On 0x410850 it reproduces the inlined and out-of-line
+vector calls the file's header lists (Patrol's sites start from 1000 - 606 =
+394; units.empty()'s size() gets 302 / 7 = 43 for its 42). Adding the option
+left the default output, `--trace` and `--blocks` the same, line for line, on
+0x4cf570 and 0x47d2e0.
 
 How it works: the tool copies C2.EXE to `build/c2prio/<run>/c2p<run>.exe` with
 `jmp $` at the entry point (toolchain/ is never changed) and compiles with

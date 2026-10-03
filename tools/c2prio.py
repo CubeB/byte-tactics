@@ -4,6 +4,7 @@
     uv run tools/c2prio.py 0x4cf570 build/scratch/0x4cf570/try.cpp
     uv run tools/c2prio.py 0x4cf570 --trace      # also every colouring step
     uv run tools/c2prio.py 0x47d2e0 --blocks bit,los   # where each priority comes from
+    uv run tools/c2prio.py 0x424c00 --inline           # also the /Ob2 inline decisions
 
 This compiles the function's file with the real back end (C2.EXE) running under
 a debugger and reads the global register allocator's own data
@@ -32,6 +33,17 @@ share of its priority in FUN_0040ee1d's first pass: the block's weight w and
 count K, then w * K * cost for a block that references the candidate, or -w * K
 for one it is live through without a reference. The shares add up to the
 priority in the table.
+
+--inline adds, before the table, C2's /Ob2 inline decisions for the function
+(docs/agent-guide.md, "The /Ob2 inline budget, read out of C2.EXE"): its IL
+size and budget, then every call site to an inline candidate in the order C2
+visits them (the depth-1 sites in source order, each inlined callee's own
+sites right after it), with the depth, R (this level's sites still to come,
+this one included), the budget left at this level, the callee's IL size and
+whether it was inlined. A callee is inlined when its IL size is at most the
+budget left, or under 41 whatever the budget. Its cost is its IL size if that
+is 41 or more, else 0; its own sites start from (budget left - cost) / R, and
+every level above loses what is inlined below it as well.
 
 How: a copy of C2.EXE under build/c2prio/<run>/ has `jmp $` at its entry
 point. CL runs that copy (/B2), winedbg attaches to it with its gdb server, and
@@ -85,6 +97,16 @@ END = 0x417317            # every register class done
 BLOCK_END = 0x40F5C7
 BLOCK_WK = 0x40F5F5
 
+# The /Ob2 inliner, for --inline. INL_FUNC: a function's inline pass starts;
+# [ecx] is its symbol (name at +0x18, IL size in the low 16 bits of +0x64).
+# INL_SITE: a call site; ebx is the callee's symbol (same fields), and C2's
+# locals hold the budget left at this level [esp+0x48], the depth [esp+0x30]
+# and R, this level's sites still to come [esp+0x2c]. INL_DONE: the site just
+# seen is being inlined.
+INL_FUNC = 0x42491E
+INL_SITE = 0x424EEF
+INL_DONE = 0x424F95
+
 # Return addresses of the FUN_0040ebb6 calls that make the pieces of a split
 # candidate, and the register holding the candidate being split at each.
 PIECE_SITES = {0x4386B9: "ebx", 0x438C93: "ebp", 0x438E38: "ebp"}
@@ -108,7 +130,7 @@ def tracer() -> None:
 
     t0 = time.time()
     cfg = json.load(open(os.environ["C2PRIO_CONFIG"]))
-    out = {"functions": [], "error": None}
+    out = {"functions": [], "inline": [], "error": None}
 
     def finish():
         out["seconds"] = round(time.time() - t0, 2)
@@ -352,6 +374,47 @@ def tracer() -> None:
                 failed.append(traceback.format_exc())
                 return True
 
+    inl = {"fn": None}
+
+    def on_inl_func():
+        sym = u32(reg("ecx"))
+        name = cstr(u32(sym + 0x18))
+        inl["fn"] = None
+        if wanted(name):
+            inl["fn"] = {"name": name, "size": u32(sym + 0x64) & 0xFFFF, "sites": []}
+            out["inline"].append(inl["fn"])
+
+    def on_inl_site():
+        if inl["fn"] is not None:
+            callee, esp = reg("ebx"), reg("esp")
+            inl["fn"]["sites"].append({"callee": cstr(u32(callee + 0x18)), "size": u32(callee + 0x64) & 0xFFFF,
+                                       "budget": struct.unpack("<i", rd(esp + 0x48, 4))[0],
+                                       "depth": u32(esp + 0x30), "R": u32(esp + 0x2C), "inlined": False})
+
+    def on_inl_done():
+        if inl["fn"] is not None and inl["fn"]["sites"]:
+            inl["fn"]["sites"][-1]["inlined"] = True
+
+    class InlineHook(gdb.Breakpoint):
+        """Like Hook, but for the inliner, which runs before `cur` is set."""
+
+        def __init__(self, addr, fn):
+            super().__init__(f"*{addr:#x}", internal=True)
+            self.fn = fn
+
+        def stop(self):
+            try:
+                self.fn()
+                return False
+            except Exception:
+                failed.append(traceback.format_exc())
+                return True
+
+    inline_hooks = []
+    if cfg.get("inline"):
+        inline_hooks = [InlineHook(addr, fn) for addr, fn in
+                        ((INL_FUNC, on_inl_func), (INL_SITE, on_inl_site), (INL_DONE, on_inl_done))]
+
     hooks = [Hook(addr, fn) for addr, fn in handlers.items()]
     block_hooks = [Hook(addr, fn) for addr, fn in block_handlers.items()]
     # Real stops, where the hooks are switched on and off: each function's
@@ -396,7 +459,7 @@ def tracer() -> None:
     if failed:
         out["error"] = failed[0]
         try:
-            for h in hooks + block_hooks:
+            for h in hooks + block_hooks + inline_hooks:
                 h.enabled = False
             gdb.execute("detach", to_string=True)  # let C2 finish without us
         except Exception:
@@ -435,6 +498,8 @@ def host_main() -> None:
     ap.add_argument("--blocks", nargs="?", const="", metavar="NAMES",
                     help="also print each block's share of each candidate's priority (or only of NAMES: "
                          "comma-separated names as the table prints them, or #id)")
+    ap.add_argument("--inline", action="store_true",
+                    help="also print the /Ob2 inliner's decision at each call site (budget, depth, R, IL sizes)")
     ap.add_argument("--json", type=Path, help="write the raw trace to this file")
     ap.add_argument("--keep", action="store_true", help="keep the run directory under build/c2prio/")
     args = ap.parse_args()
@@ -530,7 +595,7 @@ def host_main() -> None:
         me = str(Path(__file__).resolve())
         relay_cmd = " ".join(shlex.quote(a) for a in (sys.executable, me, "--relay", str(port)))
         cfg.write_text(json.dumps({"relay": relay_cmd, "exe": exe.name, "match": match, "out": str(out_json),
-                                   "blocks": args.blocks is not None}))
+                                   "blocks": args.blocks is not None, "inline": args.inline}))
         g = subprocess.run(["gdb", "-nx", "-q", "-batch", "-x", me],
                            env=dict(env, C2PRIO_CONFIG=str(cfg)), capture_output=True, text=True, timeout=3600)
         (run / "gdb.log").write_text(g.stdout + g.stderr)
@@ -557,6 +622,8 @@ def host_main() -> None:
         except ValueError:
             shown = src
         print(f"{args.address:#x}  {picked[0]}  ({shown}, {elapsed:.1f} s)")
+        if args.inline:
+            print_inline([f for f in trace.get("inline", []) if f["name"] == picked[0]])
         for n, fn in enumerate(fns):
             if len(fns) > 1:
                 print(f"\nC2 allocated this function {len(fns)} times; run {n + 1}:")
@@ -753,6 +820,30 @@ def result(c) -> str:
     if not got:
         return f"split, {none}"
     return "split: " + ", ".join(got) + (f", {left} piece{'s' * (left > 1)} {none}" if left else "")
+
+
+def print_inline(runs) -> None:
+    """--inline: the /Ob2 inliner's decision at each call site, as C2 visited them."""
+    if not runs:
+        print("\nC2's inliner did not run for this function.")
+        return
+    for n, fn in enumerate(runs):
+        if len(runs) > 1:
+            print(f"\nC2 ran the inliner on this function {len(runs)} times; run {n + 1}:")
+        print(f"\n/Ob2 inline decisions: the function's IL size is {fn['size']}, its budget "
+              f"{min(max(1000, 2 * fn['size']), 35000)} (max(1000, 2 x IL size), at most 35000).")
+        if not fn["sites"]:
+            print("No call sites to inline candidates.")
+            continue
+        print("Call sites in the order C2 visits them: depth-1 sites in source order, each inlined callee's own")
+        print("sites right after it. budget = what is left at the site's level; R = this level's sites still to")
+        print("come, this one included. An inlined callee costs its IL size if 41 or more (else 0), and its")
+        print("own sites start from (budget - cost) / R.")
+        print(f"{'depth':>5} {'R':>4} {'budget':>7} {'IL':>5}  {'inlined':<7}  callee")
+        for s in fn["sites"]:
+            indent = "  " * max(0, s["depth"] - 1)
+            print(f"{s['depth']:>5} {s['R']:>4} {s['budget']:>7} {s['size']:>5}  {'yes' if s['inlined'] else 'no':<7}  "
+                  f"{indent}{s['callee']}")
 
 
 def report(fn: dict, brace, trace: bool, blocks=None) -> None:

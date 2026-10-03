@@ -1297,11 +1297,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   for every earlier site, which is all the old padding did. Moving a block into
   an inline helper shrinks the caller (its budget floors at 1000) and gives the
   helper's own sites (1000 - helper size) to share: in 0x410850 one helper
-  replaced 34 `Dummy()` calls. To log it under gdb (see `tools/c2prio.py` for
-  attaching): 0x42491e is the function (ecx; IL size at `[[ecx]+0x64]`),
-  0x424eef a call site (callee symbol in ebx, IL size `[ebx+0x64]`, name
-  `[ebx+0x18]`; budget `[esp+0x48]`, depth `[esp+0x30]`, R `[esp+0x2c]`), and
-  0x424f95 means the site was inlined.
+  replaced 34 `Dummy()` calls. `uv run tools/c2prio.py <addr> --inline` prints
+  every site's depth, R, budget left, callee IL size and decision
+  (docs/c2-regalloc.md). Its numbers make the share exact: an inlined callee
+  costs its IL size if 41 or more, else nothing; its own sites start from
+  (budget left - cost) / R, and each level also loses what is inlined below
+  it. The hooks: 0x42491e is the function (ecx; IL size at `[[ecx]+0x64]`),
+  0x424eef a call site (callee symbol in ebx, IL size in the low 16 bits of
+  `[ebx+0x64]`, name `[ebx+0x18]`; budget `[esp+0x48]`, depth `[esp+0x30]`, R
+  `[esp+0x2c]`), and 0x424f95 means the site was inlined.
 - **Inline budget and nesting depth**: MSVC 5's inline budget depends on the
   whole function and on how deeply calls nest. Wrapping a `std::vector` member
   in one or two plain structs changes which of several identical vector

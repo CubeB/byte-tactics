@@ -240,6 +240,8 @@
 // takes the walker form regardless of the call. Scratch:
 // build/scratch/0x471de0/{run.py,drive.py,n01_nodelete.cpp,...}.
 // GPT-6 retry (#5160): rechecked at 98.6% (195 B); the walker-base SIB remains.
+// #5340 retry: re-confirmed 98.6%; the inlined erase still emits the walker-
+// base SIB, while the original's delta-base encoding remains TU-state-specific.
 #include <vector>
 
 class Listener_00471de0 {

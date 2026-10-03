@@ -450,6 +450,19 @@ effect, the missing piece is usually a helper that was inlined:
   the expression forms shift the temporary-register rotation by one compared
   with calling the operator functions directly, so swap between them when
   every later temporary is one register off (#5168).
+- **An early return in an inline helper counts in the frame sort**:
+  `if (id == -1) return 10;` followed by the loop compiles to the same code as
+  an if/else, but the frame sort counts the inlined result once more. In
+  0x453d40 that put all 83 frame slots in place (#5171).
+- **A real header before dummy declarations**: when register pairs in
+  addresses are swapped throughout a function, or one store changes with the
+  declaration count, try the headers the original TU plausibly included.
+  `<windows.h>` with `WIN32_LEAN_AND_MEAN` fixed every swapped pair in
+  0x453d40, and `<memory.h>` moved the count back to where its last store
+  matched (that store repeats with period 16 in the count) (#5171).
+- **Start from the cleaner file**: when an older, plainer version scores a
+  little lower than a permuter-tuned one, rebuild from the plainer one.
+  0x453d40 matched from a 63.3% file, not the 68.9% one (#5171).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

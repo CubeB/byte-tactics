@@ -1,6 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Codex GPT-6 retry for #5204 (2026-10-03): current main remains 86.6%.
 // Prior notes include its `/Gi` and structural sweeps; the best source is kept.
+// GPT-6 retry (#5254): rechecked at 86.6%; the a6-loop register split remains.
 // Rewritten (pass 14, Opus): 75.0% -> 85.2%; pass 15 (Opus): 86.6%. Queues one
 // received packet's commands in the ring at +0x10. If frames are already queued, it
 // only re-stamps each of them with the new tick (pop, push) and returns 0. Otherwise it

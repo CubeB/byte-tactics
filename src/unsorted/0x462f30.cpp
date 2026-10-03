@@ -1,6 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Codex GPT-6 retry for #5204 (2026-10-03): `/Gi` leaves this function
 // at 77.6% with the same 1707-byte output; the existing source remains best.
+// GPT-6 retry (#5254): rechecked at 77.6%; entry lifetime and copy-tail shape remain.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%.
 // The class name is
 // data/symbols.csv's Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is

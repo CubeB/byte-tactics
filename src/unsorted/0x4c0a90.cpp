@@ -5,6 +5,7 @@
 // buffer.
 //
 // Status: 96.2% (118 of 118 bytes, ours is already the original's size).
+// GPT-6 retry (#5230): rechecked at 96.2%; the depth/bits/x2 load order remains.
 //
 // Claude Opus 5.5 pass (#5151), with tools/c2prio.py. The surf/w "tie" below
 // is not a tie: it is a priority gap, and these are C2's own numbers.

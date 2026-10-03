@@ -1,6 +1,30 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, deepseek-v4.1-flash retry, second deepseek-v4.1-flash pass, finished by Space Bunny Free, finished by claude-opus-5-5. Names are provisional.
 //
 // Partial, 73.5% (2057 bytes against 2047). Issue #4863 took it from 66.6%.
+//
+// ISSUE #4924 (no code change, about 150 variants scored). The sibling
+// 0x459830 went from 71% to 96.5% on its head form (nested ifs, `src =
+// bitmap; bitmap = shadow;` LAST), but that form is the original 0x459830's
+// allocation (src and the bitmap in memory), the opposite of this original
+// (bitmap in esi, src in ebp, list in edi). Here it gives 68.5%; every head
+// order and target spelling (35 combinations: && chain or nested, src/bitmap
+// assigned top, after the field writes or last, reads through src or bitmap,
+// writes through shadow or bitmap, either memset product order) is 67 to 69%,
+// and a `dst` local for the target is 59%. A diagnostic that adds one
+// throwaway piece-loop-level read of bitmap and one of src (`if
+// (bitmap->width == 12345 || src->width == 54321) continue;`) produces exactly
+// the original's allocation (ebp src, esi bitmap, edi list), so the original
+// gives both more weight at that level than this source does; the missing
+// uses were not found. Also tried and worse or equal: `continue`-style piece
+// tests (72.4), the 0x459830 poly-copy spelling `j++, idx++` with `*idx`
+// (64.2), a walking `Vec3* v` for the vertex loop (56 to 60: MSVC rebases it
+// to `verts + 8`), `n` read through the piece (72.2), the divide loop bounded
+// by `piece->info->vertexCount` (54.6), offX/offY declaration orders
+// (identical), 0x459830's current body compiled first (73.2). Hoisting the
+// offsets into the loop (`vertex[k].x += (short)bitmap->field_4;`) scores
+// 73.7 but moves the two loads after the memset, where the original has them
+// before it, so it is not kept.
+//
 // What the earlier passes recorded and is still true: the face/normal loop
 // (0x459f42-0x45a12d) and the draw-call block match instruction for
 // instruction, and the bias helper, the first-face if/else diamonds and the

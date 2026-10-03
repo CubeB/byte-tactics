@@ -5,6 +5,34 @@
 // buffer.
 //
 // Status: 96.2% (118 of 118 bytes, ours is already the original's size).
+//
+// Claude Opus 5.5 pass (#5345), shape B (`unsigned char* z = surf->depth;` above the
+// guard, the product written twice), looking for a candidate C2 counts in K(B1) and
+// then drops, with a zero-extending forwarded load:
+//   * `int pitch = surf->pitch;` (or `unsigned int`, `long`, or `int pi = pitch;` from
+//     an unsigned short local) is such a candidate: it is dropped and forwarded, the
+//     product temporary goes to 84 and w gets edx as in the original. But the
+//     forwarded load becomes the product's first operand (`xor ecx, ecx; mov cx,
+//     [surf]; imul ecx, [row]`, surf then in ebx), 80.0%, whatever the source order
+//     (`row * pitch`, `r * pitch` with a later `int r = row;`) and the declaration
+//     count (0 to 39 and 3776 to 3799 dummy externs swept). /Gi on plain shape B
+//     gives the same 80.0% code. The original needs row first (`mov ecx, [row];
+//     imul ecx, ebx`), which only the field spelling (with <windows.h>) gives.
+//   * Every 16-bit unsigned local, and every zero-extending cast or `& 0xffff` on a
+//     short local, is zero-extended in place (`and reg, 0xffff`, 4 references), so it
+//     is never dropped (73.6-85.7%). Only a sign extension (`short`, 89.5%) is
+//     forwarded as a load, and that is `movsx`.
+//   * No change at all (56.6%, the mirror): inline helpers returning the pitch or the
+//     row offset (int, unsigned short, unsigned int, short, by reference), the
+//     0x4c0b10 sibling's spellings (`p += row * surf->pitch; p += start;`, p or d
+//     declared first, a start local), a named or modified `row` (`row *= pitch`),
+//     `off` locals, constant-bearing no-ops on the pitch, extra 8/16-bit locals for
+//     the first depth test (`unsigned char d1 = *z;`, a short or int step for z1, a
+//     colour copy). A bool for `z != 0` emits setcc.
+//   * `row *= surf->pitch; row += span->x1; p += row; ... z += row + span->x1;` comes
+//     out 88.7% with the original's colouring and every load in place, but it adds x1
+//     to z twice, so it is wrong; it shows that one more reference to the product in
+//     B1 is all the colouring needs.
 // GPT-6 retry (#5230): rechecked at 96.2%; the depth/bits/x2 load order remains.
 // #5321 Codex retry: confirmed the documented shape-B `short pitch` candidate
 // at 89.5% with `<windows.h>`; making the local unsigned or casting it back

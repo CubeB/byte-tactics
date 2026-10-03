@@ -46,7 +46,9 @@ dispute where a file carries a `// +0xN` comment, so an empty dispute list means
 - No inline assembly or byte emission (`__asm`, `_emit`) and no
   `#pragma optimize`/`code_seg`; the checker rejects them. Compiler flags are
   fixed (`/O2 /Ob2 /MT /Gz`: `/Ob2` means the compiler inlines small
-  functions on its own); do not try to change them.
+  functions on its own); do not try to change them. The one exception is a
+  `// FLAGS: /Gi` line, for the ties described under "When the registers or
+  the order won't budge".
 - Each file must compile on its own: define the structs/classes you need in the
   file, and declare (don't define) the functions and globals you call or use.
 
@@ -237,6 +239,16 @@ place (0x495a30 matched once that was fixed). A file that packs its locals
 into one struct to force a layout can never reproduce this, and rewriting
 0x468cf0 with plain locals put every slot right (84.2% to 91.4% at once). Use
 `uv run tools/stackcmp.py <addr>` to see which locals sit in the wrong slots.
+
+**Try `/Gi` on a tie that no spelling moves.** Some of the original's
+translation units were built with `/Gi` (#5035). If a function is stuck on a
+register or frame-slot tie (or one SIB byte) that no spelling moves, run
+`uv run tools/check.py <addr> <scratch copy> --flags "/O2 /Ob2 /MT /Gz /Gi"`.
+If that matches, add `// FLAGS: /Gi` as its own line near the top of the file
+and check again without `--flags`. Only `/Gi` is allowed, and never add it to a
+file that already matches without it. For `std::vector<T>::insert`, the TU's
+other uses of that vector also count: try one `operator=`, `resize`, `reserve`
+or copy-constructor use (`docs/field-notes.md` Part 7).
 
 **Run the permuter when a function is close and stuck.** At about 90% or
 more, `uv run tools/permute.py <addr>` searches meaning-preserving rewrites of

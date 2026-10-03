@@ -711,6 +711,10 @@ Parts 4 and 5 rather than leaving them to contradict.*
 
 ### `std::vector<T>::insert`: closed, and it is the build, not the source
 
+**Superseded by Part 7: the family is reachable with `/Gi` per file, and six of
+these inserts now match. The measurements below still hold for the default
+flags.**
+
 Part 4 item 6 said "the exe holds both register variants of `vector<T>::insert`,
 so those two are not fixable from source". Part 5 said the byte is "a property of
 the small translation unit". **Both were too weak. The correct statement is
@@ -812,3 +816,57 @@ rebase *theirs* is your commit.
 *Model: opencode / space-bunny-free. Every function named as MATCH here was
 verified with `tools/check.py` at 100%. Ruled-out levers are reported with the
 measurement that ruled them out, not as "did not work".*
+
+---
+
+## Part 7: the vector insert family is `/Gi`, not a different build
+
+*Added 2026-10-03. Corrects Part 6's verdict on `std::vector<T>::insert`.*
+
+Part 6 closed the six stuck inserts as needing a different compiler build. They
+do not. Some of the original's translation units were built with `/Gi`
+(incremental compilation, found in #5035), and a file can ask for it with a
+`// FLAGS: /Gi` line of its own: `check.py` and the other tools then add `/Gi`
+for that file only, and `/Gi` is the only flag a file may add. Under it, each
+insert below matches with the stock `#include <vector>`, the member pointer to
+`insert`, and **one ordinary use of one other member of the same vector type**.
+Which member it is decides the bytes, so try each:
+
+| Function | Element | MATCH with | Other uses (under `/Gi`) |
+|---|---|---|---|
+| 0x475ef0 | 0x44-byte record | `operator=` or `resize` | `reserve`, copy ctor: 83.0% |
+| 0x476490 | 32-byte record | `operator=` or `resize` | `reserve`, copy ctor: 60.8% |
+| 0x4758c0 | 0x34-byte record | `operator=` or `resize` | `reserve`, copy ctor: 84.3% |
+| 0x475bd0 | 0x3c-byte record | `reserve` or copy ctor | `operator=`, `resize`: 82.6% |
+| 0x476210 | 32-byte record | `reserve` or copy ctor | `operator=`, `resize`: 61.2% |
+| 0x46e640 | `int` | `reserve`, `resize` or copy ctor | `operator=`: 58.0% |
+
+Those six are landed. The other four of Part 6's six were measured on scratch
+copies only and are not landed yet: 0x408f30 (`Unit*`), 0x40cca0 (3-byte
+`Elem_0040cfb0`), 0x425210 (`unsigned short`) and 0x44ec30 (two shorts) each
+MATCH with `// FLAGS: /Gi`, the real `<vector>` and a `reserve` or copy-ctor
+use (0x408f30 and 0x425210 also with `resize`). With no other use they are
+99.1% to 99.3%.
+
+- **Mechanism** (#5035, from `/Fa` listings): `/Gi` numbers internal IL symbols
+  per function instead of with one TU-wide counter. That reverses the ties that
+  pick `_P`'s register, the `_N`/`_S` frame slots and the SIB base of the
+  synthesised `lea`. Part 6's finding that a filler count, not the text, flips
+  the `mov`/`lea` shape was the same tie seen from the default-flags side.
+- **`/Gi` is per TU, not global.** In #5035, 15 of 48 sampled MATCHED functions
+  (and 11 of the 12 inserts matched before this) stop matching under `/Gi`. Add
+  it only to a file it moves to MATCH.
+- **The member use stands in for the TU's own.** The callers of 0x475bd0 and
+  0x476210 really call `reserve`. The callers of the `operator=` group also call
+  `reserve`, so their TU did something else as well that we have not found.
+- **Parallel `/Gi` compiles collide.** `/Gi` writes `vc50.idb` into the
+  compiler's working directory (the repo root), so two at once fail with
+  `C1033: cannot open program database`. `checkall.py`, `progress.py` and
+  `permute.py` all compile in parallel. Until `compile_source()` passes a
+  per-object `/Fd` (measured: it moves the `.idb` beside the object and leaves
+  the bytes unchanged), run `checkall.py` on `/Gi` files one address at a time.
+  `vc50.idb` is not gitignored; never commit it.
+
+*Model: Claude Code / opus. Every MATCH above was verified with `tools/check.py`
+without `--flags`; the percentages were measured with the `// FLAGS: /Gi` line in
+place.*

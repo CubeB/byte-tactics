@@ -3203,6 +3203,15 @@ def m_extract_helper(ctx: Ctx):
         if x.type == "identifier":
             idents.append(x)
             continue
+        if x.type == "pointer_expression" and ctx.T(x).lstrip().startswith("&"):
+            # Locals become by-value parameters, so `&local` in the helper
+            # would take the address of the copy (#5010).
+            inner = [x]
+            while inner:
+                y = inner.pop()
+                if y.type == "identifier" and f.is_local(ctx.T(y)):
+                    return None
+                inner.extend(y.named_children)
         if x.type == "field_expression":
             stack.append(x.child_by_field_name("argument"))
             continue

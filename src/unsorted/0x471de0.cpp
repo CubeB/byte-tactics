@@ -41,6 +41,8 @@
 // GPT-6 retry recheck: current main still emits the walker-base SIB. Prior
 // scratch sweeps show the opposite base requires a compiler state this inline
 // erase does not reach, while the standalone destructor twin matches.
+// #5311 Codex retry: current main still emits the walker-base SIB at 98.6%;
+// the saved source and compiler-state sweeps remain the best available result.
 // #5272 Codex retry: re-confirmed 98.6%; the single SIB base/index order is
 // unchanged. Prior header, symbol-count, and erase-shape sweeps cover this
 // compiler-state mismatch.

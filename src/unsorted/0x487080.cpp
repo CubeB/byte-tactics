@@ -3,71 +3,43 @@
 // section of a saved game: finds its 0xb8-byte record by id, creates the unit and copies the
 // record into it.
 //
-// Pass 17 (claude-opus-5-5): 91.9 -> 97.1 percent, 1595 bytes. Not a MATCH.
-//  - The header set decides this function: <stdio.h> (for sprintf, instead of a hand
-//    declaration), <string.h> and <stdlib.h>. In that state the 0x10f byte is plain
-//    bitfield copies (`unit->bf.b0 = rec.rf.b0;` and so on; the old getter is gone), the
-//    0x110 chain needs no `hi` hoist, and `u = unit->flags;` after the field_b0 store
-//    reloads the word as the original does (in the old state MSVC forwarded the stored
-//    value instead). Only 33 of the 1536 header sets reach 97.1; most give 77.7 or 80.4.
-// Still differs: the 0x110 chain's first half. Each step loads rec.flags into a fresh
-// register and ors it with u. Per step, the original's source registers run
-// a c a c a d* c a (d* = edx, with the result left in u's register), ours run
-// a c a d* c a c a, so steps 4 to 6 are on the wrong registers. The second half, after
-// the reload, matches.
-// Measured, none above 97.1:
-//  - every per-step spelling (`u &= ~m; u |= x;`, old value first, `unit->flags = u = ...`,
-//    a block-local temporary, rec bitfields shifted into place): MSVC canonicalises them
-//    all to the same code. The chain as bitfield stores, through a pointer to unit->flags,
-//    in scopes or inline helpers, and an int or unsigned long u.
-//  - declaration moves (u, k, j, child, p, normal, special), unused locals, temporaries for
-//    call arguments elsewhere (mode, slot, len, the carried unit, the order head), typed
-//    record members (Vec3 at +0x2b, Pair at +0x37) instead of the casts, the real
-//    preceding function 0x486fd0 defined above, 0 to 600 unused declarations in front
-//    (only 0 and 489 to 512 stay at 97.1), and /Gi (77.7 to 88.9).
-//  - a scan of 3840 combinations (chain shape x five header sets x typed members x the
-//    preceding function) and two permuter runs (22k and 15k candidates) found nothing
-//    better. Across those the edx step only ever landed at step 2 to 5, never 6.
-//
-// Pass 16 (claude-opus-5-5): 88.8 -> 91.9 percent.
-//  - The piece copy loop is plain array indexing, `unit->pieces[j].f0 = rec.pieces[j].f0;`
-//    and so on in the original order (f0, f4, obj, fc, ...), with SaveRec.pieces typed as an
-//    array of SrcPiece. MSVC anchors the strength-reduced pointer on the second distinct
-//    non-zero offset the loop body uses; indexed off `unit`, f0 is +4 and the anchor lands on
-//    f4 as in the original.
-//  - The piece flags are real bitfields (`unit->pieces[j].fl.b0 = rec.pieces[j].fl.b0;`).
+// MATCH (pass 18, claude-opus-5-5, from 97.1%). What closed it:
+//  - The record's flags word is the save function's layout (0x4876c0): a0-a3, a 12-bit
+//    block b, a bit c and a 12-bit block e. Each unit+0x110 flag is merged from those
+//    blocks straight into unit->flags, `unit->flags = (unit->flags & ~m) | (rec.flags.b & m);`,
+//    with no `u` local and no reload after the field_b0 store.
+//  - <math.h> is included. Which step of the 0x110 chain keeps its result in the old
+//    flags register (the original's edx step at 0x4873c7, the one that ors 0x200) depends
+//    on how many symbols the translation unit declares before the function. Without
+//    <math.h>, 286 to 797 unused `extern int` lines in front also match; 285 or fewer, or
+//    798 up to at least 1830, do not. It is not the scratch rotation: removing any one
+//    statement before the chains leaves their registers alone, while the chain's own
+//    spelling (a `u` local, these direct merges, unit-side bitfields) moves the edx step.
+// 0x43a420 runs on the result of operator new and stores vtables, so it is written as a
+// constructor, `new Class_0043a420(unit, file, name)`, as the naming rule asks.
 // Earlier passes (condensed):
+//  - Pass 17: <stdio.h>, <string.h> and <stdlib.h> (for sprintf) and plain bitfield
+//    copies for the 0x10f byte (`unit->bf.b0 = rec.flags.a0;`).
+//  - Pass 16: the piece copy loop is plain array indexing in the original field order
+//    (f0, f4, obj, fc, ...); MSVC anchors the strength-reduced pointer on the second
+//    distinct non-zero offset. The piece flags are real bitfields.
 //  - Pass 14: the failure paths fall out of `if (unit != 0) { ... return unit; } return 0;`
 //    so the final `xor eax, eax` is the last block, as in the original.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 
-struct RecFlags_00487080 {
-    unsigned int b0 : 1;
-    unsigned int b1 : 1;
-    unsigned int b2 : 1;
-    unsigned int b3 : 1;
-    unsigned int mode : 2;              // 4-5
-    unsigned int r6 : 2;                // 6-7
-    unsigned int r8 : 1;
-    unsigned int r9 : 1;
-    unsigned int r10 : 2;               // 10-11
-    unsigned int r12 : 1;
-    unsigned int r13 : 1;
-    unsigned int r14 : 1;
-    unsigned int r15 : 1;
-    unsigned int r16 : 1;
-    unsigned int r17 : 3;               // 17-19
-    unsigned int r20 : 1;
-    unsigned int r21 : 1;
-    unsigned int r22 : 1;
-    unsigned int r23 : 1;
-    unsigned int r24 : 2;
-    unsigned int r26 : 2;
-    unsigned int r28 : 1;
-    unsigned int r29 : 3;
+struct FlagBits_00487080 {
+    unsigned int a0 : 1;                // bits 0-3: unit+0x10f bits 0-3
+    unsigned int a1 : 1;
+    unsigned int a2 : 1;
+    unsigned int a3 : 1;
+    unsigned int b : 12;                // bits 4-15: unit+0x110 bits 0-11
+    unsigned int c : 1;                 // bit 16: unit+0x110 bit 13
+    unsigned int d : 3;                 // bits 17-19 (unused)
+    unsigned int e : 12;                // bits 20-31: unit+0x110 bits 14-25
 };
 
 struct Bits10F_00487080 {
@@ -138,7 +110,7 @@ struct SaveRec_00487080 {
     unsigned char bb1;                  // +0xb1
     unsigned char bb2;                  // +0xb2
     unsigned char b3;                   // +0xb3 (unused padding)
-    union { unsigned int flags; RecFlags_00487080 rf; };   // +0xb4
+    FlagBits_00487080 flags;            // +0xb4
 };
 
 
@@ -243,7 +215,16 @@ Unit_00487080* __stdcall FUN_00485f50(unsigned char player, unsigned short typeI
 void __stdcall FUN_0048aac0(Unit_00487080* unit, Unit_00487080* builder, int piece, int p4);
 void __stdcall FUN_00480250(Unit_00487080* unit, int id);
 #pragma pack(push, 1)
-class Order_00487080 { public: char pad[0x42]; unsigned int flags; char gap[4]; Order_00487080* next; Order_00487080* FUN_0043a420(Unit_00487080*, Class_004b4560*, char*); };
+// An order (0x56 bytes); 0x43a420 is its constructor from a saved record.
+class Class_0043a420 {
+public:
+    char pad[0x42];
+    unsigned int flags;                 // +0x42
+    char gap_46[4];
+    Class_0043a420* next;               // +0x4a
+    char gap_4e[8];
+    Class_0043a420(Unit_00487080* unit, Class_004b4560* file, char* name);
+};
 #pragma pack(pop)
 class Class_004388b0 { public: void FUN_004388b0(); };
 void __stdcall FUN_0047db20(Unit_00487080* unit);
@@ -283,7 +264,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     if (!found)
         return 0;
 
-    unit = FUN_00485f50(rec.player, FUN_00488b10(rec.name), *(Vec3_00487080*)&rec.f2b, 1, (rec.flags >> 4) & 3, rec.id);
+    unit = FUN_00485f50(rec.player, FUN_00488b10(rec.name), *(Vec3_00487080*)&rec.f2b, 1, rec.flags.b & 3, rec.id);
     if (unit != 0) {
 
     unit->field_64 = *(Pair_00487080*)&rec.f37;
@@ -294,7 +275,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     if (rec.childA != 0) {
         Unit_00487080* child = FUN_00487080(rec.childA, file);
         if (child != 0)
-            FUN_0048aac0(unit, child, rec.b8d, (rec.flags >> 4) & 3);
+            FUN_0048aac0(unit, child, rec.b8d, rec.flags.b & 3);
     }
     unit->child = FUN_00487080(rec.childB, file);
     unit->b_f9 = rec.b8d;
@@ -314,61 +295,40 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     unit->b_fa = rec.bb1;
     unit->b_10e = rec.bb2;
 
-    unit->bf.b0 = rec.rf.b0;
-    unit->bf.b1 = rec.rf.b1;
-    unit->bf.b2 = rec.rf.b2;
-    unit->bf.b3 = rec.rf.b3;
-    unsigned int u = unit->flags;
-    u = (rec.flags >> 4 & 0xc) | (u & 0xfffffff3);
-    unit->flags = u;
-    u = (rec.flags >> 4 & 0x10) | (u & 0xffffffef);
-    unit->flags = u;
-    u = (rec.flags >> 4 & 0x20) | (u & 0xffffffdf);
-    unit->flags = u;
-    u = (rec.flags >> 4 & 0xc0) | (u & 0xffffff3f);
-    unit->flags = u;
-    u = (rec.flags >> 4 & 0x100) | (u & 0xfffffeff);
-    unit->flags = u;
-    u = (rec.flags >> 4 & 0x200) | (u & 0xfffffdff);
-    unit->flags = u;
-    u = (rec.flags >> 4 & 0x400) | (u & 0xfffffbff);
-    unit->flags = u;
-    u = (rec.flags >> 4 & 0x800) | (u & 0xfffff7ff);
-    unit->flags = u;
+    unit->bf.b0 = rec.flags.a0;
+    unit->bf.b1 = rec.flags.a1;
+    unit->bf.b2 = rec.flags.a2;
+    unit->bf.b3 = rec.flags.a3;
+    unit->flags = (unit->flags & ~0xc) | (rec.flags.b & 0xc);
+    unit->flags = (unit->flags & ~0x10) | (rec.flags.b & 0x10);
+    unit->flags = (unit->flags & ~0x20) | (rec.flags.b & 0x20);
+    unit->flags = (unit->flags & ~0xc0) | (rec.flags.b & 0xc0);
+    unit->flags = (unit->flags & ~0x100) | (rec.flags.b & 0x100);
+    unit->flags = (unit->flags & ~0x200) | (rec.flags.b & 0x200);
+    unit->flags = (unit->flags & ~0x400) | (rec.flags.b & 0x400);
+    unit->flags = (unit->flags & ~0x800) | (rec.flags.b & 0x800);
     unit->field_b0 = rec.fa3;
-    u = unit->flags;
-    u = (rec.flags >> 3 & 0x2000) | (u & 0xffffdfff);
-    unit->flags = u;
-    u = (rec.flags >> 6 & 0x4000) | (u & 0xffffbfff);
-    unit->flags = u;
-    u = (rec.flags >> 6 & 0x8000) | (u & 0xffff7fff);
-    unit->flags = u;
-    u = (rec.flags >> 6 & 0x10000) | (u & 0xfffeffff);
-    unit->flags = u;
-    u = (rec.flags >> 6 & 0x20000) | (u & 0xfffdffff);
-    unit->flags = u;
-    u = (rec.flags >> 6 & 0xc0000) | (u & 0xfff3ffff);
-    unit->flags = u;
-    u = (rec.flags >> 6 & 0x300000) | (u & 0xffcfffff);
-    unit->flags = u;
-    u = (rec.flags >> 6 & 0x400000) | (u & 0xffbfffff);
-    unit->flags = u;
-    u = (rec.flags >> 6 & 0x3800000) | (u & 0xfc7fffff);
-    unit->flags = u;
-
+    unit->flags = (unit->flags & ~0x2000) | (rec.flags.c << 13);
+    unit->flags = (unit->flags & ~0x4000) | ((rec.flags.e << 14) & 0x4000);
+    unit->flags = (unit->flags & ~0x8000) | ((rec.flags.e << 14) & 0x8000);
+    unit->flags = (unit->flags & ~0x10000) | ((rec.flags.e << 14) & 0x10000);
+    unit->flags = (unit->flags & ~0x20000) | ((rec.flags.e << 14) & 0x20000);
+    unit->flags = (unit->flags & ~0xc0000) | ((rec.flags.e << 14) & 0xc0000);
+    unit->flags = (unit->flags & ~0x300000) | ((rec.flags.e << 14) & 0x300000);
+    unit->flags = (unit->flags & ~0x400000) | ((rec.flags.e << 14) & 0x400000);
+    unit->flags = (unit->flags & ~0x3800000) | ((rec.flags.e << 14) & 0x3800000);
 
     ((Class_00401110*)&unit->info)->FUN_00401110(unit, file);
     if (rec.f27 != 0)
         ((Class_0043d210*)unit->vtable)->FUN_0043de30(unit, file);
 
-    Order_00487080** normal = (Order_00487080**)&unit->listHead;
-    Order_00487080** special = (Order_00487080**)&unit->listTail;
+    Class_0043a420** normal = (Class_0043a420**)&unit->listHead;
+    Class_0043a420** special = (Class_0043a420**)&unit->listTail;
     int k = 0;
     if (rec.f23 > 0) {
         do {
             sprintf(name, "u%04xm%04x", unit->id, k);
-            Order_00487080* p = (Order_00487080*)operator new(0x56);
-            p = p ? p->FUN_0043a420(unit, file, name) : 0;
+            Class_0043a420* p = new Class_0043a420(unit, file, name);
             if (p->flags & 0x40000) {
                 *special = p;
                 special = &p->next;

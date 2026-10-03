@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// #5336 Codex retry: re-confirmed 98.5%; the three scheduler hunks remain.
 // claude-opus-5-5 retry (#5274, 2026-10-03): still 98.5%, file unchanged except
 // this note. Hunk 3 (the first _allmul pushed d.x first) is a symbol-count
 // effect: 59700 to 60100 unused `extern int`s at the top of the file fix it

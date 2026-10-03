@@ -2955,7 +2955,7 @@ address,size,file,symbol,status,similarity
 0x4cf370,348,src/unsorted/0x4cf370.cpp,?FUN_004cf370@Class_004cf370@@QAEPAPAUIDirectSoundBuffer@@PAUFile_004bb5d0@@KHHH@Z,matched,100.0
 0x4cf4d0,103,src/unsorted/0x4cf4d0.cpp,?FUN_004cf4d0@Class_004cf4d0@@QAEXPAPAUIDirectSoundBuffer@@@Z,matched,100.0
 0x4cf540,40,src/unsorted/0x4cf540.cpp,?FUN_004cf540@Class_004cf540@@QAEXHH@Z,matched,100.0
-0x4cf570,646,src/unsorted/0x4cf570.cpp,?FUN_004cf570@Class_004cf570@@QAEHPAPAUIDirectSoundBuffer@@JPAUPos_004cf570@@@Z,partial,90.2
+0x4cf570,646,src/unsorted/0x4cf570.cpp,?FUN_004cf570@Class_004cf570@@QAEHPAPAUIDirectSoundBuffer@@JPAUPos_004cf570@@@Z,matched,100.0
 0x4cf800,153,src/unsorted/0x4cf800.cpp,?FUN_004cf800@Class_004cf800@@QAEHHHHHHHH@Z,matched,100.0
 0x4cf8a0,153,src/unsorted/0x4cf8a0.cpp,?FUN_004cf8a0@Class_004cf8a0@@QAEHHHHHHHH@Z,matched,100.0
 0x4cf940,499,src/unsorted/0x4cf940.cpp,?FUN_004cf940@Class_004cfb40@@QAEXPAUFile_004bb5d0@@HHHJ@Z,matched,100.0

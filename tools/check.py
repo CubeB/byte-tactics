@@ -224,7 +224,10 @@ def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj") 
     out = ROOT / "build" / out_dir / rel.with_suffix(".obj")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.unlink(missing_ok=True)
-    cmd = [str(ROOT / "tools" / "wcl"), "/c", *flags.split(), f"/I{winpath(ROOT / 'include')}",
+    # /Gi keeps its incremental state in vc50.idb beside the .pdb, by default
+    # in the working directory: one per object, or parallel builds collide (C1033).
+    fd = [f"/Fd{winpath(out.with_suffix('.pdb'))}"] if "/Gi" in flags.split() else []
+    cmd = [str(ROOT / "tools" / "wcl"), "/c", *flags.split(), *fd, f"/I{winpath(ROOT / 'include')}",
            f"/Fo{winpath(out)}", winpath(src.resolve())]
     proc = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
     log = (proc.stdout + proc.stderr).replace("\r", "")

@@ -16,3 +16,6 @@ __pycache__/
 
 # Compiler listings (/Fa) from agents; never part of the source.
 src/**/*.asm
+
+# /Gi incremental state, if a build ever writes it in the root
+vc50.idb

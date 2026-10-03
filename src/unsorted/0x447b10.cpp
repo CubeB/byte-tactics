@@ -4,7 +4,10 @@
 // WATCHING, CHEATING, FIXEDLOC, MAPPING, START, GAMEOPEN, RESTRICTIONS and
 // MAP/MAPNAME, and finally FUN_004ab0a0 on the gadget.
 //
-// PARTIAL (99.0%). What paid, in the order it was found:
+// Best so far (99.2%). The MAP branch's do/while wrapper removes the redundant
+// `mov ebp, 1`; the only remaining code difference is `push ebp` instead of the
+// original's `push 1` when calling FUN_0049fb10.
+// What paid, in the order it was found:
 // - <windows.h> and real Player/Game structs: the loop head builds the player
 //   pointer from the spilled i*331 the way the original does.
 // - Functions of this file with no callers, defined above unannotated and
@@ -645,6 +648,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         FUN_004ab0a0(gadget);
     } else if (FUN_0049fd60(gadget, "MAP") || FUN_0049fd60(gadget, "MAPNAME")) {
         FUN_0047f1a0("Multi", 0);
+        do {
         if (me->info->f97_0) {
             FUN_00444ea0();
         } else {
@@ -655,6 +659,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
             FUN_0049fb10(g_game->gui, 1);
             FUN_004a81e0(g_game->gui, 0x40);
         }
+        } while (0);
     }
 done:
     FUN_004ab0a0(gadget);

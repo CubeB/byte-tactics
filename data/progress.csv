@@ -801,7 +801,7 @@ address,size,file,symbol,status,similarity
 0x43dd20,79,src/unsorted/0x43dd20.cpp,?FUN_0043dd20@Class_0043dd20@@QAEXPAUUnit_0043dd20@@@Z,matched,100.0
 0x43dd70,180,src/unsorted/0x43dd70.cpp,?FUN_0043dd70@Class_0043dd70@@QAEXPAUUnitInfo_43dd70@@PAVClass_004b4ba0@@@Z,matched,100.0
 0x43de30,180,src/unsorted/0x43de30.cpp,?FUN_0043de30@Class_0043d210@@QAEXPAUUnit_0043de30@@PAVClass_004b4ba0@@@Z,matched,100.0
-0x43def0,359,src/unsorted/0x43def0.cpp,?FUN_0043def0@@YG?AUVec3@@PAUObject_0043def0@@H@Z,partial,99.2
+0x43def0,359,src/unsorted/0x43def0.cpp,?FUN_0043def0@@YG?AUVec3@@PAUObject_0043def0@@H@Z,matched,100.0
 0x43e060,74,src/unsorted/0x43e060.cpp,?FUN_0043e060@@YG?AUVec3@@PAUObject@@H@Z,matched,100.0
 0x43e0b0,202,src/unsorted/0x43e0b0.cpp,?FUN_0043e0b0@@YGXPAUObj_0043e0b0@@PAUVec3@@H@Z,matched,100.0
 0x43e180,96,src/unsorted/0x43e180.cpp,?FUN_0043e180@@YG?AUOut_0043e180@@PAUObj_0043e180@@H@Z,matched,100.0

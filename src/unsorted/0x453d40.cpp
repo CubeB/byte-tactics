@@ -1,4 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#5011): checkall.py confirms 68.9% at 8944 bytes. The file's
+// existing notes document the unresolved local-slot ordering and earlier passes.
 //
 // Partial (claude-opus-5-5, #4288): rewritten from scratch, 28.0% -> 63.3%,
 // 8932 of 8944 bytes. With [esp+N] masked it scores 92%, with registers masked

@@ -1,4 +1,47 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+//
+// Space Bunny Free pass (#4896, 2026-10-03): still 78.9 percent, 646 of 632
+// bytes, and this time the sweep was cheap: build/scratch/476490/h.py and
+// sweep.py drive check.py's own compile/compare machinery, so a variant costs
+// about half a second and roughly 830 variants were scored. Everything below
+// re-measured flat, so the older notes stand:
+//   the N-unused-declaration test at STEP 1 for N = 0..600 (the older passes
+//     only did step 8): 53 values give 646 bytes, 548 give 648, none better;
+//   tools/headers.py over all 256 header sets, and again with --cpp over
+//     1536 (each C++ header crossed with each set): flat at 78.9;
+//   the real <vector> with <windows.h>, <stdexcept>, <memory>, <xmemory>,
+//     <xstring>, <string>, <iostream>, <algorithm> on top: 60.7 percent,
+//     637 bytes, the this-in-EDI family, every set;
+//   a clone of the header's own class body (lines 16-246 of INCLUDE/VECTOR,
+//     _Xran dropped, this file's reordered insert): 78.8 percent, 648 bytes;
+//   14 element types (char[32], 8 ints, float[8], double[4], short[16],
+//     unsigned short[16], a union, nested structs, a base class): all 78.9,
+//     the ones that are not 32 bytes or not trivially copyable fall away;
+//   10 _Ucopy, 5 _Ufill and 7 _Destroy loop shapes, every combination of the
+//     three hand-written in-place copies, _Ufill with the count first,
+//     _Destroy with (last, first), insert defined out of class with and
+//     without inline, the allocator pointer typedefs, the six tail store
+//     orders, the _N/_End/_Last/deallocate expression spellings, named copies
+//     of _P/_M/_X, _Q + _M vs _M + _Q vs &_Q[_M], a caller that resizes, an
+//     explicit instantiation of this or of vector<int>, a public wrapper with
+//     its address taken, and 1..11 dummy declarations: all flat at 78.9.
+// New measurement worth keeping: the register the third _Ucopy reloads _P
+// into DOES move with the class body (with the header's full body it is
+// `mov esi,[esp+0x20]`, with the minimal clone `mov eax,[esp+0x20]`), so the
+// reload's register is not fixed either, but no class body puts it in EDX or
+// hoists it out of the post-call block.
+// The families in the exe, for whoever reads this next: this function keeps
+// `this` in ECX (never moved to a callee-saved register, and the four pushes
+// are interleaved with the head's arithmetic), which is the family this clone
+// already reaches. Every other insert moves `this` into EDI/ESI/EBX/EBP and
+// reloads _P into that same register right after the allocation call: that is
+// 0x476210 (matched to 99.6 by its own clone, this family is 78.8 with the
+// real header), 0x433b20 and 0x4dd8c0 (both MATCHED, and both reproduce with
+// the real header), 0x4758c0, 0x475bd0, 0x475ef0. So the OTHER family is
+// reachable from source and this one is not, which is the same conclusion the
+// twin test reaches (this shape is 632 bytes and occurs once in the exe).
+// Two permuter runs (25 min seed 4242: 3997 candidates; 20 min seed 99) both
+// left the score at 1125.
 //
 // DeepSeek V4.1 Flash pass (#4851): 78.9 percent RETAINED, 646 of 632 bytes.
 // No variant beat it in ~200 check.py runs, and tools/permute.py ran 2730

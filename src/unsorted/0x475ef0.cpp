@@ -1,5 +1,104 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
-// DeepSeek V4.1 Flash pass (issue 4851): 83.0% RETAINED, 795 of 794 bytes, no
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free pass (issue 4896): 83.0% RETAINED, 795 of 794 bytes, body
+// unchanged. This pass was pointed at the frame-slot reading in stackcmp's
+// table (_N at -0x8 here against -0x4 in the original, _S the other way) and
+// settles three things the notes below did not have.
+//
+// 1. THE SLOT SWAP IS REACHABLE FROM SOURCE, BUT NOT ON ITS OWN. Three
+// spellings do put _N at cv-4 and _S at cv-8, the original's layout: the
+// third copy written as an inline destination-first loop
+//     {iterator _D = _Q + _M; const_iterator _E = _P;
+//      for (; _E != _Last; ++_D, ++_E) allocator.construct(_D, *_E);}
+// (69.3%, 799 bytes), a destination-first `_Ucopy` for the first call only
+// (82.6%, 793 bytes, but then the third call hands the destination to the
+// source parameter, so it no longer computes this function), and the three
+// member stores reordered with `_End = _S + _N` last (80.5%, 801 bytes).
+// Every one of them also moves `this` out of ebp or _P out of edx, so the slot
+// order is not a free parameter of the allocation: it follows the IR, and the
+// only shapes that swap the slots break something the original has.
+//
+// 2. THE ONE SPELLING THAT PUTS _P IN edx AND _S IN esi, EXACTLY AS THE
+// ORIGINAL, IS A FUSED FILL INCREMENT, AND IT COSTS THE FILL LOOP. With
+// `_Ufill`'s body as
+//     {for (; 0 < _N; --_N) allocator.construct(_F++, _X); }
+// or the same loop written inline at the call site, the load after
+// `operator new` becomes `mov edx, [esp+0x24]` and the allocate result goes to
+// esi and is spilled to cv-8, which is the original's whole head. But the fill
+// then walks the destination in eax and the source in esi (two induction
+// variables) instead of reloading &_X inside a one-variable loop, so it is
+// 800 bytes and 72-73%. A grid of 3240 variants (5 _Ucopy loop shapes x 8
+// _Ufill loop shapes x 3 first-copy forms x 4 fill-call forms x 5 third-copy
+// forms) and 216 further _Ucopy/_Ufill/_Destroy parameter-order permutations
+// never produce edx together with the original's one-variable fill loop. That
+// pair is the whole wall: edx is forced there, because inside the two copy
+// loops eax and ebx are the walking pointers, ecx the rep count, esi and edi
+// the rep operands and ebp holds `this` until the reload from cv-0xc, so edx is
+// the only register that can carry _P across both loops. This build spends
+// esi instead and pays for it twice (a reload of _P at the end of the prefix
+// loop and another after the fill), which is the whole 41-line residual.
+//
+// A lead worth one more pass: the third copy inlined as above does reproduce
+// the original's FILL loop, invariant &_X re-loaded inside the loop with no
+// register hoisted for it, which nothing else here does. What it still gets
+// wrong is that _P then takes ebp and `this` stays in edi, so the fill counter
+// lands in edx where the original has ebp. The shape that has both the
+// original's fill loop and _P in edx is the fixed point neither shape reaches.
+//
+// 3. OUR SHAPE IS A COMPILATION OF THIS TEMPLATE THAT THE EXE ITSELF
+// CONTAINS. Re-reading all 29 `insert@?$vector` instantiations off the exe
+// corrects the census in the notes below: three MATCHED ones do hold _P in edx
+// (0x488fb0, 0x4be6c0, 0x4c51e0), but all three are the class-element shape
+// with an out-of-line `_Ucopy`. Among the memcpy-shape ones the matched
+// siblings read _P in ebx (0x433b20, 0x4c4d70), ecx (0x433db0, 0x4340f0,
+// 0x4b7b00) and esi (0x43c3a0), and 0x43c3a0's realloc-arm head is
+//     call 0x4b4f10 / mov esi,[esp+0x24] / mov [esp+0x1c],eax / mov ebx,eax
+// which is this build's head, instruction for instruction, with _S spilled to
+// cv-4 and _N stored at cv-8. So the residual is not a shape no C++ produces:
+// it is the 0x44-byte instantiation of a template the original built one way
+// here and another way at 0x4758c0 and 0x43c3a0.
+//
+// Everything measured this pass, all inert or worse than 83.0%:
+//  - file-scope padding, 6 forms (int globals, functions, typedefs, structs,
+//    enums, classes) x 45 counts from 1 to 704, on this clone and on a
+//    header-shaped clone: two shapes only, 795B/83.0% and 796B/82.9%, never
+//    edx. 0x46f7a0's note records padding flipping that instantiation; it does
+//    not flip this one, so padding is not the lever here either;
+//  - the element declaration, 11 forms (int array, 17 int members, char[68],
+//    long[17], short[34], int plus char, a nested struct, unsigned, a union),
+//    all byte-identical; and 32 element sizes from 4 to 128 bytes, which give
+//    _P in esi or ecx and never edx;
+//  - the toolchain's own header: `#include <vector>` with and without
+//    `template class std::vector<Element>;`, with and without comparison
+//    operators on the element, and with the whole vector class text pasted into
+//    the file (all 796 bytes, 82.9%, _P in esi). Removing any of 18 member
+//    groups from that pasted class (92 compilable combinations) is still
+//    796B/esi, and adding any single group to this 795B clone is still
+//    795B/esi. The single byte between the clone and the header is the third
+//    copy's induction arithmetic, `dest + _P - _Q - _M*size` in the clone,
+//    `(dest - _Q) + _P - _M*size` in the header and
+//    `(_P - _Q) + dest - _M*size` in the original, and neither spelling moves
+//    the register;
+//  - unused declarations: a local, three locals, an unused member function,
+//    reordered helpers, reordered data members, an extra typedef, a static
+//    member, all byte-identical;
+//  - accessor spellings: `_Ucopy(begin(), _P, _S)` 79.4%/796B,
+//    `_Ucopy(_P, end(), _Q + _M)` 72.7%, `_Destroy(begin(), end())`
+//    77.2%/802B; the `end()`-only spellings in arms 2 and 3 are
+//    byte-identical, as is `iterator& _R = _P;` aliasing the parameter in
+//    either arm;
+//  - the `_N` expression: swapped operands, `>=` instead of `<`, `<` reversed,
+//    `+ 0` and an explicit cast are byte-identical or worse;
+//  - translation-unit state: the pasted header class plus one, two or three
+//    extra `std::vector<E>::insert` instantiations at 0x34, 0x3c and 0x5c
+//    before ours, all 796B/esi;
+//  - `_Ucopy` and `_Ufill` as static members taking the allocator, byte-
+//    identical;
+//  - `permute.py 0x475ef0 --stack _N,_S` for 20 minutes, nothing above the
+//    start.
+// The body text is confirmed against the toolchain itself:
+// toolchain/msvc5-sp3/INCLUDE/VECTOR has this `insert` (lines 137-158) and
+// these `_Ucopy`, `_Ufill` and `_Destroy` (lines 219-231) character for
+// character, so what is left is not a source question.// DeepSeek V4.1 Flash pass (issue 4851): 83.0% RETAINED, 795 of 794 bytes, no
 // source shape found that moves _P into edx. Ran `permute --stack _N` and
 // `permute --stack _N,_S` for 3 minutes each (4515 candidates, 0 gain) and ~35
 // hand variants, none above 83.0: split and fused fills; named locals for the

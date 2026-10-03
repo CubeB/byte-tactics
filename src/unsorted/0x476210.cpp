@@ -1,4 +1,76 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// space-bunny-free (#4896, 2026-10-03): still 99.6%, 636 bytes, the one SIB
+// byte. New result worth keeping, because it closes off the last two theories
+// and fixes what the clone in this file really is. There are THREE possible
+// codegen shapes for the third copy's derived source pointer, and this
+// compiler emits only the first two:
+//   (a) lea eax, [dest + src0]; sub eax, _Q; sub eax, n   636 bytes, 99.6%
+//   (b) mov eax, dest; sub eax, _Q; add eax, src0; sub eax, n   637, 89.6%
+//   (c) lea eax, [src0 + dest]; sub eax, _Q; sub eax, n   what the original has
+// (src0 is `_P`, dest is `_Q + _M * 32`, n is `_M * 32`.) Every source spelling
+// in this file reaches (a), the state axis reaches only (a) and (b), and the
+// original is in (c). So the missing byte is the difference between two shapes
+// that are both reachable in the exe's own code, not a misreading of it.
+//
+// (1) It is a per-source-file compiler state, not an element-size property, and
+// the exe's own matched siblings split by translation unit, not by size:
+// 0x433b20 and 0x4c4d70 (4-byte elements), 0x43c3a0 (25-byte) and 0x4dd8c0
+// (48-byte) all MATCH with the real <vector> and all have shape (b), while
+// 0x408f30, 0x425210, 0x44ec30, 0x46e640, 0x475bd0 and this one are all stuck
+// at 99.6% and all have shape (c). Same template, same header, both forms.
+//
+// (2) The hand-written clone below is NOT equivalent to the real <vector>, and
+// that is the reason the clone is in this file. Control experiment: rewriting
+// 0x433b20 (which MATCHes with the real header) as this same clone gives 89.6%
+// and shape (a), `lea eax, [ecx + ebx]`, where the original has shape (b). So a
+// function whose original is in shape (b) must use the real header, and one whose
+// original is in shape (a) or (c) cannot use it at all: for this 32-byte element
+// the real header compiles to shape (b) (637 bytes) and the clone to shape (a)
+// (636 bytes), so neither carrier can reach the original's (c). The file is the
+// best of the two, but the last byte needs the original file's compiler state.
+//
+// (3) The state axis is a count, not a hash: five kinds of unused declaration
+// (`extern int`, `extern void f();`, `typedef int`, `struct`, `extern int v`)
+// flip at the same N (48-50, 306-312, 369, 377, ...) and 0 to 2800 of them give
+// only (a) and (b). Real code before behaves the same way: 1 to 3 small template
+// instantiations keep (a), 4 or more give (b), and any of the exe's neighbouring
+// vector::insert instantiations (0x4758c0, 0x475bd0, 0x475ef0, 0x476490,
+// 0x46eba0, 0x40a7b0, alone or all together) gives (b); 1 to 5 plain functions
+// before or after the annotation change nothing. The real <vector> carrier is
+// pinned at (b) for 0 to 400 declarations.
+//
+// (4) Flags never reach (c): /Ob1, /Ob0, /Ob3, /O1, /G3../G8, /Gr, /Gd, /Gm,
+// /Ot, /Gs all stay at (a) or far worse (/G6 gives 93.5%, 641 bytes).
+//
+// (5) Flat this pass, all at 99.6% with the same SIB byte: 11 spellings of the
+// third copy's destination and source, 9 spellings of _Ucopy's loop, 24
+// _Ufill/_Destroy/_Last spellings, 13 element types (int[8], long[4], double[4],
+// char[32], short[16], float[8], eight named fields, a nested struct, a
+// user-defined operator=, a user-defined copy constructor), 17 include sets
+// (adding <new>, <algorithm>, <utility>, <string>, <exception>, <map>, <list>,
+// <iostream>, dropping <climits>, every order of the three STL headers), member,
+// typedef and function order inside the class, register hints on every pointer,
+// a fresh local for either pointer, `copy` and `uninitialized_copy` instead of
+// _Ucopy, 16 dead statements before and after the copy, 16 hand-written
+// third-copy loops with the two pointers declared in both orders and four
+// increment orders, a 2D sweep of 20 source spellings x 105 declaration counts,
+// and a 18-minute permuter run (2069 candidates, 793 of them commutative operand
+// swaps). headers.py's 256 sets are flat as before.
+//
+// (6) Correction for the note below from 0x40cca0's file: here the wanted
+// operand order is not simply "the older value in the base". All four leas in
+// this function, in the original, do put the older value in the base (ebx, ebp,
+// and `_P` in edi), and shape (a) puts the freshly computed dest (edx) there
+// instead, so shape (a) is the odd one out in both builds. What flips is which
+// leaf of the derived expression comes first, and it is the same tie-break in
+// both this file and 0x408f30, 0x425210, 0x44ec30, 0x46e640 and 0x475bd0.
+//
+// Tooling note for the next pass: for this family, screen the lea encodings
+// instead of the score. `objdump -d -M intel` on the object and grep for `lea`
+// prints every base/index pair in one line, which says in 0.5 s whether a variant
+// reached (b) or (c); check.py's diff only shows the one SIB byte, and the ratio
+// cannot tell (a) from (c). build/scratch/0x476210/screen.py does this.
+//
 // deepseek-v4.1-flash (#4851, 2026-10): two 3-minute permuter runs (6258
 // candidates, seeds default and 12345) and manual third-copy source spellings
 // (a difference-of-pointers source `_Last - (_Last - _P)`, an explicit

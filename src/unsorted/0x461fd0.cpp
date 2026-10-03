@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by opus, finished by GPT-6. Names are provisional.
+// Codex GPT-6 retry for #5187 (2026-10-03): current main remains 99.0%.
+// `register`, /Gi, <memory.h>, <stdlib.h>, and branch/increment rewrites
+// all preserve the sole ECX-for-ESI latch mismatch. <windows.h> failed to compile.
 // Grows both pools of a NetBuffer: a new packet-pointer array of `growbufs` more
 // packets and a new entry array of `growpackets` more entries, then moves every
 // entry that still belongs to a packet into the new entry array.

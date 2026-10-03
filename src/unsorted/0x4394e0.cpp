@@ -1,4 +1,18 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. , edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// CURRENT BEST (DeepSeek V4.1 Flash, 2026-10-02): 84.0%, 598 bytes (3 short of the original's 601).
+// The gain from 83.0 is a permuter result, tidied: `unsigned int idx = (t / frames) % anim->count;`
+// declared after `Trail tr;`, and the tr field stores in the order idx, surface, view, pos, anim.
+// It does NOT touch the prologue; it only moves `dist` out of esi (to [esp+0x64]) and leaves d.z in
+// esi, which is the mirror of the original (original keeps dist in esi and spills d.z to [esp+0x30]).
+// The permuter's other changes (three extra includes, the reassociated Length expression, the
+// `f * (__int64)dx` operand order, the do-while loop/helpers) were all byte-identical and are gone.
+// A second 3-minute permuter run started from this 84.0 file and found nothing. The residual is
+// still only the prologue: the original loads {esi, ebp, ebx, edi} = {out, flag, order, start.x};
+// ours loads {esi, ebx, edi, ebp} = {out, order, flag, start.x}. Probed this pass on the 84.0 base
+// with no flip: flag/out/order as references, pointer flag types, an `int&`/`int*` timestamp, a
+// `char* const` base for out, order and start, 18 extra includes, self-assignments and copy-backs of
+// flag and start.x, uninitialised dummy locals, and moving the Trail declaration through six
+// positions. The extra-flag-use probe still lands flag in ebp but drops start.x to ecx.
 // PARTIAL, 83.0%, 601 bytes, the original's exact size. 66.7 -> 83.0 this pass;
 // see the THREE FINDINGS below (each one is a source shape that moved the
 // register allocator, and each is now in the code below). The single remaining
@@ -404,20 +418,20 @@ void __stdcall FUN_004394e0(void* surface, View_004394e0* view,
     if (dist < 0x10000)
         return;
 
-    int pos = (t % 30) * 0x300000 / 30;
     Anim_004394e0* anim = g_game->anims[21];
+    int pos = (t % 30) * 0x300000 / 30;
     unsigned short len = anim->field_2c;
     int frames = len < 1 ? 1 : (int)len;
-    int idx = (t / frames) % anim->count;
+    unsigned int idx = (t / frames) % anim->count;
 
     Trail_004394e0 tr;
     tr.start = start;
     tr.delta = d;
     tr.dist = dist;
-    tr.pos = pos;
     tr.idx = idx;
     tr.surface = surface;
     tr.view = view;
+    tr.pos = pos;
     tr.anim = anim;
     tr.Run();
 }

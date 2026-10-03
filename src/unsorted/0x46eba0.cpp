@@ -1,238 +1,43 @@
-// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
-// PARTIAL 82.5%, 927 of 936 bytes (Space Bunny Free, #4164; was 81.4% / 928 bytes).
-// std::vector<Packet_0046cef0>::insert(iterator, size_type, const T&) of MSVC 5's
-// <vector> (the same template as 0x476210 and 0x46f7a0), emitted out of line by
-// taking the member's address. Like those files this uses a hand-written clone
-// of the vector class template. 14-byte packed element, so the empty allocator
-// keeps the three pointers at +4, +8 and +0xc.
+// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Claude Opus 5.5. Names are provisional.
+// FLAGS: /Gi
+// std::vector<Packet_0046cef0>::insert(iterator, size_type, const T&) from
+// MSVC 5's <vector>, emitted out of line. Its one caller, 0x46cef0, appends a
+// packet to the queue at +0x1c of Class_0046cef0 with push_back, whose inlined
+// insert(end(), x) calls this with a count of 1. The element is the 14-byte
+// packed packet of 0x46cef0 (copied as three dwords and a word).
 //
-// The real header source is known: toolchain/msvc5-sp3/INCLUDE/VECTOR lines
-// 150-171 are exactly the original's body (the three _Ucopy/_Ufill call sites,
-// the deallocate, the _End/_Last/_First reset), and the toolchain's copy of
-// <vector> plus an explicit instantiation still scores only 62.7% / 940 bytes,
-// so the shape below is not what the original's text said; the compiler state
-// of the original translation unit picked something between them.
-//
-// What this run changed (81.4% -> 82.5%): the third (tail) copy is now a
-// hand-written loop with the source local declared BEFORE the destination one,
-// `{const_iterator _f = _P; iterator _d = _Q + _M; for (; _f != _Last; ++_d,
-// ++_f) allocator.construct(_d, *_f);}`. That declaration order is the whole
-// gain: it puts _N in the dead _M argument slot at [esp+0x20] and _S in the
-// frame slot at [esp+0x14], which is what the original does (the previous best
-// had them the other way round), and it keeps `this` in ebp and _M in ebx as
-// the original has them. The _Ucopy helper is now the header's source-first
-// spelling for the prefix copy; the destination-first helper only reaches the
-// same code through the hand-written prefix loop, and the two are byte equal.
-//
-// Still differs, all one register-allocation decision plus the loop optimizer:
-// 1. The tail copy. The original builds the source start as the affine sum
-//    `(esi - edx) + (edx + _M*14) - _M*14` (sub, add, sub, mov eax, esi: the
-//    9 bytes this build lacks), which needs _M*14 in a register
-//    (`mov eax,ebx; shl 3; sub; shl 1`) where this build only needs _M*7 and
-//    folds the last doubling into `lea ecx,[ecx+esi*2]`. This build emits the
-//    plain `mov eax, edx`. That affine appears only in the header's own
-//    source-first `_Ucopy(_P, _Last, _Q + _M)` (which scores 63% and flips
-//    `this` to ebx and every copy loop's temp to edi) or in a forced
-//    `(_P - _Q) + (_Q + _M) - _M`, but that spelling adds 29 bytes because
-//    `_P - _Q` is a pointer difference in elements, not bytes, so the compiler
-//    has to divide by 14 and multiply back. Cast both sides to char* and it
-//    folds the whole expression back to _P (82.5%, no affine).
-// 2. The prefix copy's registers: the original has the _P bound in esi, the
-//    new-buffer walker in edx and the source pointer in ecx; this build has
-//    them in edx, ecx and esi (a 3-cycle of the same three registers), and
-//    the _Ufill counter, which the original keeps in ecx, lands in esi. One
-//    cause: in the original the _P web (esi) spans the prefix loop, the fill
-//    and the tail setup, so the loop temps fall in edi/ecx; here _P sits in
-//    edx and esi is a loop temp.
-// Tried with no effect on either: the element type (seven 14-byte layouts,
-// pack(1) and pack(2), a nested struct, a char array, a user-defined copy
-// constructor or assignment operator, all 82.5% or worse), the emission
-// mechanism (member pointer in a wrapper, a file-scope pointer-to-member
-// initialiser, explicit instantiation of the clone or of the real header, each
-// with and without a rebuilt caller), the include set (ten sets, and
-// tools/headers.py's 128), the msvc5-rtm toolchain (same 82.5%), _Ufill's
-// formal order and loop shape, the reset's store order and spellings, the
-// in-place branches' helper order (4x4, the header's is best), file-scope
-// declaration padding (0 to 640 externs and typedefs, all byte neutral), and
-// ~500 further combinations of the prefix, fill and tail spellings, helper
-// parameter orders, expression orders and locals.
-//
-// Earlier notes (they describe older attempts; the source-first statement about
-// "the order of the third inlined _Ucopy" above is what this run's hand-written
-// tail now reproduces without the register flip):
-// What changed against the previous best: the file used a hand-made class with
-// `::operator delete(first)`; the real allocator.deallocate(_First, _End - _First)
-// is what produces the original's dead `mov [esp+0x28], eax` before the delete
-// call (the inlined deallocate parameter spilled into the dead _X slot), so the
-// clone with the real header body is the right base. Of the three-argument
-// _Ucopy spellings, the real (_F, _L, _P) order is kept for the two in-place
-// branches. The first copy and the tail copy are written destination-first
-// (_Ucopy_dst(_P, _F, _L)); scored with 216 helper-order combinations, any
-// other order for the tail copy drops to 58 to 79 percent because it flips
-// which of `this` and _M gets ebp/ebx, and the order of the first copy does
-// not change the score.
-// Still differs (all register allocation, same size class as the other
-// instantiations of this template):
-// 1. The tail copy. The original builds the source start as an affine sum,
-//    `(_P - _Q) + (_Q + _M*14) - _M*14` (sub, add, sub, mov eax, esi: 12 bytes
-//    this build lacks) which is what the real source-first _Ucopy(_P, _Last,
-//    _Q + _M) produces in the clone, but spelling the tail that way also puts
-//    `this` in ebx and _M in ebp (939 bytes, 72.9% at best), so dst-first wins.
-// 2. In the first loop the original keeps the new buffer's walker in edx and
-//    _P in esi, with ebp as the data temp (so `this` is reloaded from
-//    [esp+0x10] afterwards); this build puts the walker in ecx.
-// 3. The original keeps _N in the dead _M argument slot and _S in the frame
-//    slot at [esp+0x18]; this build does the reverse.
-// Tried without effect: `if (0 < _N) do {...} while (--_N)` for _Ufill (flips
-// _M into ebx in the source-first spelling too, 71.4%, but loses the rest),
-// `if (_M)` around the fill, the real <vector> header (940 bytes, 62.7%),
-// explicit and member-pointer instantiation, ~1500 random combinations of
-// expression-order, size() spelling and helper-order tweaks.
-//
-// deepseek-v4.1-flash retry (#3329, 2026-10): still 81.4%, 928/936 bytes. The
-// whole grow branch is one allocator decision: `_N` and `_S` must swap their
-// homes (original keeps _N in the dead _M argument slot and _S in the frame
-// local at esp0-4; this build does the reverse), which in turn would put the
-// first copy's destination walker in edx instead of ecx and let the tail copy
-// strength-reduce to the original's affine sum. Nothing reachable from the
-// source moved it. Tried, all 81.4% or worse: first copy source-first
-// (_Ucopy(_First,_P,_S), no change), tail source-first (63.1%), both
-// source-first (63.3%), declaring _S before _N, `_Tptr` and `_Tptr _Q; _Q =`
-// spellings, extra live `_Q2`/`_Sx`/`_T` locals, an explicit `_N` temp at
-// function scope, `int _N`, `iterator _pad`, the global-pointer emit instead
-// of the FUN_0046ebb0 wrapper (no change), defining the real preceding
-// 0x46eb60 (std::list<int>::erase) above it (no change), tools/headers.py
-// (128 sets, none match). A silly forced affine
-// `_Ucopy_dst(_Q+_M, _P, _Q+_M-_M+(_Last-_Last))` gives 71.6%, so the affine is
-// the allocator's own lockstep reduction, not a source expression.
-// deepseek-v4.1-flash retry (2026-10-01, 900 s): still 81.4%, 928/936 bytes.
-// This run shows the wall is the 14-byte element, not the source. Diagnostic:
-// a copy of 0x476210's matched hand-clone, with only its 32-byte
-// Elem_00476210 renamed to this 14-byte Packet_0046cef0 and the same
-// source-first _Ucopy grow branch, scores 63.3% here while it scores 99.6% for
-// 0x476210. So the standard header grow branch provably compiles to the
-// 939-byte source-first shape (this -> ebx, _M -> ebp) for this element, and
-// the original's this -> ebp shape is not reachable from that source. The
-// real <vector> header is 62.7% (940 bytes), as recorded below.
-// Also flat (nothing beats 81.4%): an N-declarations sweep (extern int dummyN)
-// for N = 0..400 step 4; all six argument-evaluation orders of the prefix and
-// tail _Ucopy call sites (36 combinations, best 81.4%); precomputed argument
-// locals in all six orders; {int,int,int,short} and {char,char,uint,int,int}
-// element structs; iterator _S / size_type _N declaration, initialisation and
-// split-assignment variants; and 2400 random combinations of the grow branch's
-// prefix, tail, fill, destroy, deallocate and reset spellings. The retained
-// dst-first tail remains the best.
-// deepseek-v4.1-flash (issue 3811, 2026-10-01): still 81.4%, 928/936 bytes.
-// deepseek-v4.1-flash (#3860): declaration-count padding (320 file-scope dummy
-// typedefs after the includes) is byte-neutral here, 81.4 percent / 928 bytes,
-// so unlike 0x475bd0/0x408f30 this instantiation is not padding sensitive.
-// deepseek-v4.1-flash (#3935): reordering the grow-branch reset stores to
-// `_First = _S; _End = _S + _N; _Last = _S + size() + _M;` (the retained order
-// is _End, _Last, _First) drops to 80.4 percent / 925 bytes, so this store
-// order is load bearing and the retained file is the best of the two.
-// Re-checked the retained dst-first clone: it is still the best of the four
-// helper/call-site shapes for this 14-byte element (source-first everywhere is
-// 63.3% as recorded above). The remaining diff is the _N/_S home swap plus the
-// prefix loop's _P reload (ours: mov ecx,[esp+0x20] on every back edge, compare
-// against ecx; original: _P in edi across the loop, _N in the dead _M slot).
-// deepseek-v4.1-flash (#4002): re-checked, still 81.4% / 928 of 936 bytes.
-// Swapping the two in-place else-if branches (0 < _M first) drops to 56.0% /
-// 918 bytes, so the retained header order is load bearing.
-// deepseek-v4.1-flash (#4088, 2026-10): re-checked, still 81.4% / 928 of 936
-// bytes. Frame reading of the original: _P is never spilled (it stays in edi
-// and its incoming argument slot at [esp+0x20] carries the walker spill, where
-// this build uses [esp+0x14]); the same edi allocation decision as 0x46f7a0,
-// and the 8 missing bytes in the tail copy follow from it. No new source form
-// reached it this pass.
-#include <algorithm>
-#include <memory>
-#include <xutility>
+// Built with /Gi like the original's translation unit (the same recipe as the
+// 0x4758c0 to 0x476490 inserts, #5035): the real header plus one push_back on
+// the same vector type matches. Without /Gi this source is 62.7%. Under /Gi,
+// operator= or resize in place of push_back match too, while no other use,
+// reserve, the copy constructor or erase give 63.3%. Under the default
+// flags the best was a hand-written clone of the template at 86.1% (the third
+// copy walking _P with _Last in a local), because there the grow arm's third
+// copy derives its source start dest first, where the original has the
+// _P-first `sub esi, edx; add esi, ecx; sub esi, eax`; /Gi's per-function
+// symbol numbering is what reverses that order.
+#include <vector>
 
 #pragma pack(push, 1)
-struct Packet_0046cef0 { // 0xe bytes
-    unsigned char type;
-    unsigned char arg;
-    unsigned int id;
-    int field_6;
-    int field_a;
+struct Packet_0046cef0 {               // 0xe bytes
+    unsigned char type;                // +0x0
+    unsigned char arg;                 // +0x1
+    unsigned int id;                   // +0x2
+    int field_6;                       // +0x6
+    int field_a;                       // +0xa
 };
 #pragma pack(pop)
-
-namespace std {
-
-template<class _Ty, class _A = allocator<_Ty> >
-class vector {
-public:
-    typedef vector<_Ty, _A> _Myt;
-    typedef _A allocator_type;
-    typedef _A::size_type size_type;
-    typedef _A::difference_type difference_type;
-    typedef _A::pointer iterator;
-    typedef _A::const_pointer const_iterator;
-    typedef _A::reference reference;
-    typedef _A::const_reference const_reference;
-    typedef _Ty value_type;
-    vector() : allocator(), _First(0), _Last(0), _End(0) {}
-    size_type size() const
-        {return (_First == 0 ? 0 : _Last - _First); }
-    iterator begin() { return (_First); }
-    iterator end() { return (_Last); }
-    void insert(iterator _P, size_type _M, const _Ty& _X)
-        {if (_End - _Last < _M)
-            {size_type _N = size() + (_M < size() ? size() : _M);
-            iterator _S = allocator.allocate(_N, (void *)0);
-            iterator _Q = _Ucopy(_First, _P, _S);
-            _Ufill(_Q, _M, _X);
-            {const_iterator _f = _P; iterator _d = _Q + _M;
-            for (; _f != _Last; ++_d, ++_f)
-                allocator.construct(_d, *_f);}
-            _Destroy(_First, _Last);
-            allocator.deallocate(_First, _End - _First);
-            _End = _S + _N;
-            _Last = _S + size() + _M;
-            _First = _S; }
-        else if (_Last - _P < _M)
-            {_Ucopy(_P, _Last, _P + _M);
-            _Ufill(_Last, _M - (_Last - _P), _X);
-            fill(_P, _Last, _X);
-            _Last += _M; }
-        else if (0 < _M)
-            {_Ucopy(_Last - _M, _Last, _Last);
-            copy_backward(_P, _Last - _M, _Last);
-            fill(_P, _P + _M, _X);
-            _Last += _M; }}
-protected:
-    void _Destroy(iterator _F, iterator _L)
-        {for (; _F != _L; ++_F)
-            allocator.destroy(_F); }
-    iterator _Ucopy(const_iterator _F, const_iterator _L, iterator _P)
-        {for (; _F != _L; ++_P, ++_F)
-            allocator.construct(_P, *_F);
-        return (_P); }
-    iterator _Ucopy_dst(iterator _P, const_iterator _F, const_iterator _L)
-        {for (; _F != _L; ++_P, ++_F)
-            allocator.construct(_P, *_F);
-        return (_P); }
-    void _Ufill(iterator _F, size_type _N, const _Ty& _X)
-        {for (; 0 < _N; --_N, ++_F)
-            allocator.construct(_F, _X); }
-    _A allocator;
-    iterator _First, _Last, _End;
-    };
-
-} // namespace std
-
 
 typedef std::vector<Packet_0046cef0> Vec_0046eba0;
 typedef void (Vec_0046eba0::*InsertFn_0046eba0)(
     Vec_0046eba0::iterator, Vec_0046eba0::size_type,
     const Packet_0046cef0&);
 
-void __cdecl FUN_0046ebb0(Vec_0046eba0* v, Packet_0046cef0* p,
-                  Vec_0046eba0::size_type n, const Packet_0046cef0& x)
+// The push_back of 0x46cef0's queue, the use that instantiates this insert.
+void __stdcall Push_0046eba0(Vec_0046eba0* v, const Packet_0046cef0& x)
 {
-    InsertFn_0046eba0 f = &Vec_0046eba0::insert;
-    (v->*f)(p, n, x);
+    v->push_back(x);
 }
 
 // FUNCTION: 0x46eba0 ?insert@?$vector@UPacket_0046cef0@@V?$allocator@UPacket_0046cef0@@@std@@@std@@QAEXPAUPacket_0046cef0@@IABU3@@Z
+InsertFn_0046eba0 g_insert_0046eba0 = &Vec_0046eba0::insert;

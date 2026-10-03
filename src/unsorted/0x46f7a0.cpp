@@ -1,4 +1,56 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (#5013, 2026-10-03), /Gi addendum: the twin 0x46eba0 in this
+// translation unit matches with `// FLAGS: /Gi`, the real <vector> and one
+// push_back (or operator=, or resize) on the vector type, and /Gi does turn
+// this function's third-copy affine _P first. But here /Gi also stops /Ob2
+// inlining every std::_Construct: the third arm's first copy calls an
+// out-of-line `std::_Construct` (two calls with no other use), so the best /Gi
+// build is 52.0%, 783 bytes, with `this` in ebx and _M in edi from the first
+// instructions (the original has edi and ebp, as the default flags give).
+// Measured flat under /Gi: the element as a derived wrapper, with its own
+// operator=, or with its real members and compiler-generated copy and
+// assignment; no use or every one and every pair of operator=, resize,
+// reserve, copy constructor, erase, push_back, destructor, clear and range
+// insert, before or after the insert; _Destroy, _Ucopy or _Ufill emitted out
+// of line first; this TU's other inserts (0x46eba0's with its push_back, and
+// vector<int>'s) instantiated first; this hand clone (51.6%); a header-free
+// clone padded 0 to 200; `#pragma inline_depth(255)`; an inline _Construct
+// overload; and /Gm, /Zi,
+// /Zd, /G5, /G6, /Gy, /GF, /Ox, /Ob1, /GX, /GR, /YX, /FR added. 0x437580 (also
+// a class element with an out-of-line copy constructor, also _P first) shows
+// the same thing: 78.9% without /Gi, 34.7 to 45.6% with it. So /Gi is likely
+// the original's flag here too, but something else in the original TU kept
+// the sixth _Construct inline; that is the next lead.
+// Claude Opus 5.5 (#5013, 2026-10-03): still 83.8%, 798 bytes. The register
+// decision below (_P in edi, the _Ufill counter spilled) is an effect, and its
+// cause is the third copy's source start. The original builds it in place on
+// _P's register, _P first: `sub edi, ebx; add edi, esi; sub edi, eax` =
+// ((_P - _Q) + dest) - _M*92, so _P's web runs on as the tail loop's source
+// walker and outranks the counter for edi. Without /Gi this compiler always
+// derives it dest first (`lea esi, [edi + ecx]; sub; sub` or `mov esi, edi; sub; add; sub`),
+// _P dies at the loop, and the short web loses edi to the counter. Proof of the
+// direction: walking _P itself in the tail loop (so its web does extend) gives
+// exactly the original's `mov edi, [esp+0x24]` and spilled `dec eax` counter,
+// but moves _M out of ebp and re-reads _Last (58 to 63%). With _Last held in a
+// local as well, `{const_iterator _l = _Last; iterator _d = _Q + _M; for (; _P
+// != _l; ++_d, ++_P) allocator.construct(_d, *_P);}`, the prefix copy matches,
+// the in-place branches differ only in the two scratch registers this file
+// also gets wrong, and _P stays in edi, but the _Ufill counter then
+// takes _M's ebp (`dec ebp`) and _M is reloaded from its slot, 781 bytes,
+// 81.3% (the same tail took 0x46eba0's clone from 82.5 to 86.1% before /Gi
+// matched it). The same _P-first affine is what blocked 0x46eba0 and the six
+// closed 4-byte inserts under the default flags: across the
+// exe's 27 three-argument vector::insert copies it splits them exactly (all 10
+// matched are dest first, the 16 stuck ones, 0x40d290 aside, are _P first), and
+// 0x437580 against its matched twin 0x488fb0 shows the identical flip.
+// Measured this pass, none above 83.8%: a header-free clone padded with 0 to
+// 700 externs (at three positions), 0 to 300 functions or 0 to 120 loop
+// functions gives four memory-state shapes (83.1, 79.4, 80.1, 83.8), all dest
+// first; identifier and path lengths, RTM, Wine heap tail and free checking
+// (GlobalFlag 0x30 in a private prefix) change nothing; of 24 flag sets only
+// /Gi puts _P in edi, and it rewrites the rest of the function; _Destroy or
+// _Ucopy emitted out of line first, and the real <vector> (80.1%), are no
+// better.
 // Sonnet 5.5 retry (#3079): still 83.8%, 798 bytes. Diagnosis: in the original the
 // loaded value of _P is one register web (edi) from the load after operator new
 // through the _Ufill loop to the tail copy, and its home slot [esp+0x20] is

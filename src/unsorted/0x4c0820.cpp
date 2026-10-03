@@ -26,6 +26,7 @@
 //
 // GPT-6 retry (#4916): current checkall.py confirms 99.5% at 613 bytes, with
 // the documented walk1 latch reload order as the only code difference.
+// GPT-6 retry (#5226): rechecked at 99.5%; the latch still reloads pts before i.
 // DeepSeek V4.1 Flash (this session, 99.5, 613 of 613, same single hunk): ran the permuter for
 // 3 minutes (2854 candidates, flat) and then about 50 hand variants scored directly from
 // build/scratch/0x4c0820/variants*.py, all at 99.5 with the byte-identical hunk (walk1 latch

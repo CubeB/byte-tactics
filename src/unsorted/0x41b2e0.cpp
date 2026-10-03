@@ -1,4 +1,7 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5403 Codex retry: 94.9% remains best. The four early flag stores still use
+// the wrong OR operand order, and the required symbol-id range needs an
+// artificial declaration prefix that cannot be committed.
 // #5348 Claude Opus 5.5 (94.9% from a scratch path, 93.2% from src/; kept):
 // a block-scope `extern g_game` does not move the deciding id. Next to the
 // file-scope declaration it is the same symbol (byte-identical). Without one,

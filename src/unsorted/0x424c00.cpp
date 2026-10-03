@@ -1,4 +1,6 @@
-// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5403 Codex retry: 99.8% remains best. The two loops still need opposite
+// SIB base orders, while real symbol and header states select the same order.
 // #5348 Claude Opus 5.5 (99.8% kept; scratch files in build/scratch/0x424c00/):
 //  - The 3D store needs the original's large symbol prefix: 32286 to 32305
 //    dummy externs before g_game give byte-identical code (only the static's

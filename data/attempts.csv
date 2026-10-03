@@ -7782,7 +7782,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x47d2e0,1339,,#5285,assigned,,,"issue #5285, escalated"
 0x464700,473,,#5288,assigned,,,"issue #5288, escalated"
 0x499200,1655,,#5290,assigned,,,"issue #5290, escalated"
-0x466dc0,1662,,#5292,assigned,,,"issue #5292, escalated"
+0x466dc0,1662,opus,#5292,matched,100.0,,"issue #5292, escalated"
 0x493bf0,1116,,#5294,assigned,,,"issue #5294, escalated"
 0x48ad30,849,,#5296,assigned,,,"issue #5296, escalated"
 0x462f30,1653,,#5298,assigned,,,"issue #5298, escalated"

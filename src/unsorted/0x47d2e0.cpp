@@ -1,4 +1,79 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5. Names are provisional.
+//
+// claude-opus-5-5 pass (#4959, from 88.5%, no score gain; about 15000 scratch
+// compiles scored with check.py's own compare plus a flag per residual site).
+// The body is unchanged, but the LOS spill now has a lever. Read this first:
+//  0. THE LEVER: IsSeen COMPUTES THE BIT ITSELF AND RETURNS THROUGH A LOCAL.
+//     The original keeps the width (W1) in esi and spills `bit` right after the
+//     shift; this file keeps bit and spills W1. Out of ~3000 LOS-block shapes
+//     (items 1 and 2) the only ones that spill bit (`shl ebp, cl ...
+//     mov [esp+0x4c], ebp`, then the seen arm's `mov esi, [esp+0x4c]` reload
+//     and `xor eax, eax; jmp` fail path, exactly the original's) have BOTH:
+//     IsSeen takes no bit parameter and tests `& (1 << g_game->player)` itself
+//     (MSVC CSEs it with main's `bit`, as the sibling 0x4658e0's IsSeen reads),
+//     and IsSeen returns through `int r` (`int r = 0; if (Contains) r = ...;
+//     return r;` or the if/else form), never through two `return`s. Those
+//     shapes also put the `cols` home at [esp+0x18], the original's slot, so the
+//     cols item below is downstream of this spill, as the older notes guessed.
+//     The closest full shapes so far (each scores lower only because the LOS
+//     block is 4 to 12 bytes short, which shifts every later jump):
+//      a) 67.8%, 21 blocks, 1327 bytes: main's first test hand-written
+//         (`if (x >= los->explored.size.width || y >= ...height) return 0;`),
+//         IsExplored = `los->explored.Contains(tx, ty) &&
+//         los->explored.data[los->explored.size.width * ty + tx] != 0` with a
+//         ByteMap-level `int Contains(int x, int y) { return x < size.width &&
+//         y < size.height; }`, IsSeen = MapSize `size.Contains` + `int r = 0`
+//         form. This gets the seen arm's memory `cmp edx, [edi+0x80]` AND the
+//         explored arm's `mov ecx, esi; cmp edx, ecx` (W1 CSE'd). Still wrong:
+//         the first test uses W1 in esi instead of the original's separate
+//         `mov ecx, [edi+0x80]` load, the vis test loads the vis pointer before
+//         the shift (the original shifts first, into esi, then reloads W1 into
+//         esi), the explored Get reassociates (direct read; the method Get
+//         loses the bit spill here), and `int r = 0` puts `xor ecx, ecx` at the
+//         top of the seen arm instead of in its fail path.
+//      b) 69.0%, 20 blocks, 1335 bytes: everything through a `ByteMap* m =
+//         &los->explored;` local declared after `Fix hgt;`, helpers taking that
+//         `m`, MapSize Contains for main's first test, ByteMap Contains + Get in
+//         IsExplored (`return m->Contains(tx, ty) && m->Get(tx, ty) != 0;`),
+//         and ByteMap Contains in IsSeen with the if/else `r` form. Its seen
+//         arm compares against W1 in esi where the original reads memory;
+//         switching IsSeen to `m->size.Contains` brings back the W1 spill and
+//         rotates the prologue (63.1%).
+//     The open question is which combination keeps bit spilled while the seen
+//     arm's Contains stays a memory compare and main's first test is not CSE'd.
+//  1. Without the lever the spill is invariant: 1500 random combinations of 12
+//     LOS-block dimensions (helpers taking Los* or ByteMap*, Contains and Get as
+//     MapSize or ByteMap methods, free inlines or direct reads, early or late
+//     seen-arm return, x/y and bit scope and order), the same 1500 again in the
+//     128-extern front-end state, all 5040 declaration orders of
+//     ok/origin/y0/x0/cols/x/y, hgt's union reused as bit, bit through a
+//     pointer, reference or union, `x ? x : x` on W1, bit and y, and
+//     int/char/signed player all keep W1 spilled. Use counts alone do not
+//     decide it: CSE-ing both explored-arm reads into W1 (4 uses) still spills
+//     W1 while bit is a parameter.
+//  2. THE EXPLORED ARM'S TWO `mov ecx, esi` ARE IL CSE USES OF W1, not codegen
+//     register tracking: with W1 kept in a register (harness with a constant
+//     bit) MSVC 5 still reloads [los+0x80] for method-form reads. MapSize-level
+//     `size.Contains` reads are never CSE'd with W1 (memory compare, as in the
+//     original's seen arm); ByteMap-level Contains and direct reads are. Plain
+//     `data[w * ty + tx]` with a CSE'd w reassociates to `(w * ty + data) + tx`;
+//     only Get through a ByteMap method keeps the original's index-then-data
+//     order.
+//  3. FRONT-END STATE: the original's cell-pointer fold (`movsx eax, [esp+0x46];
+//     imul eax, [ebp+0x14233]`) appears with 121+ unused `extern int` after the
+//     includes, 44+ prototypes or 20+ one-member structs. It saves 2 bytes, so it
+//     scores 70-71% until the LOS block (2 bytes longer in the original) is
+//     right. No padding kind or count (0 to 640) moves the LOS block, the cols
+//     slot, the two guard lea SIB bytes or the loop's mask SIB.
+//  4. /Gi fixes the cell fold and the loop's mask SIB but rotates the prologue
+//     (40 diff blocks against 21, 54.5%) at every padding count, and it turns the
+//     matched neighbour 0x47d820 into 67.9% at every padding count, so this TU is
+//     not /Gi. msvc5-rtm is byte-identical. Defining the preceding 0x47d0e0
+//     (unannotated) above this function is 82.2% with the LOS block unchanged.
+//  5. IsSeen written `if (Contains(tx, ty)) return (...) != 0; return 0;` scores
+//     88.7% (20 blocks), but only by moving the shared `ok = 0` block: the
+//     original's seen arm has the `jb compute; xor eax, eax; jmp` order that the
+//     current `if (!Contains) return 0;` form produces, so it is not taken.
 //
 // DeepSeek V4.1 Flash pass (from 88.5%, no improvement). tools/stackcmp.py shows
 // the same single unused slot (max5b/hgt at +0x14) and no relocated local;

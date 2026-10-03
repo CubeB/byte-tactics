@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**91.70% of Cavedog's code matched** (780,237 of 850,853 bytes)
+**91.85% of Cavedog's code matched** (781,516 of 850,853 bytes)
 
 `[#####################################---]`
 
-By count that is 3,209 of the game's 3,267 functions (98.2%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,210 of the game's 3,267 functions (98.3%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,209 | 780,237 |
-| Attempted, not yet matching | 58 | 70,616 |
+| Matched byte-for-byte | 3,210 | 781,516 |
+| Attempted, not yet matching | 57 | 69,337 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 696 of 703 | 98.9% | 2,060 | `##########` |
 | xl (401 to 600 bytes) | 218 of 226 | 96.3% | 4,067 | `##########` |
 | xxl (601 to 1,000 bytes) | 182 of 195 | 93.1% | 10,064 | `#########-` |
-| huge (over 1,000 bytes) | 132 of 161 | 81.4% | 54,307 | `########--` |
+| huge (over 1,000 bytes) | 133 of 161 | 81.9% | 53,028 | `########--` |
 
 ### By area
 
@@ -61,7 +61,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x490000` | Config and registry, skirmish summary | 190 of 193 | 96.6% | 2,052 | `##########` |
 | `0x4a0000` | GUI layout and GAF | 200 of 201 | 98.9% | 706 | `##########` |
 | `0x4b0000` | UI controls and file packages | 312 of 314 | 98.6% | 891 | `##########` |
-| `0x4c0000` | TDF parser, CD audio, string handles | 295 of 298 | 97.1% | 1,597 | `##########` |
+| `0x4c0000` | TDF parser, CD audio, string handles | 296 of 298 | 99.4% | 318 | `##########` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 192 of 197 | 87.7% | 4,645 | `#########-` |
 | `0x4e0000` | Process exit, psapi | 92 of 93 | 93.2% | 801 | `#########-` |
 

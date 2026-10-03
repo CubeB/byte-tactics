@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6. Names are provisional.
+// Codex GPT-6 retry for #5210 (2026-10-03): current main remains 84.7%.
+// Existing frame/register probes and the prior 19019-candidate permuter found
+// no better source; `/Gi` is already recorded at 46.4%.
 // Claude Opus 5.5 retry (#5072): still 84.7%, about 1900 scratch variants, none
 // emits the original's third instruction (`mov ecx, [esp+0x1c]`). New facts:
 // - The x difference reaches ecx (b.y in eax, b.x in ecx, both hoisted, the

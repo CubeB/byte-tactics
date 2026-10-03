@@ -37,6 +37,9 @@
 // to dl right, but its head piece (C2 priority 280-350) is coloured before
 // y0's head piece (200), takes edx, and the prologue falls back to vertices in
 // esi (42%). The missing piece is whatever lowers that head piece's priority.
+// GPT-6 retry (#5175): moving the right-walk `nextVertex` assignment before
+// the y0 load scored 66.8%; splitting `next` declaration from its assignment
+// after the y0 load scored 84.3%. The 94.2% source remains best.
 
 struct Surface_4c8bb0 { unsigned short width, height; };
 void __stdcall FUN_004c8020(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);

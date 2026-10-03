@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free, improved by Claude Opus 5.5, edited by deepseek-v4.1, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by space-bunny-free, improved by Claude Opus 5.5, edited by deepseek-v4.1, finished by DeepSeek V4.1 Flash, checked by GPT-6. Names are provisional.
+// GPT-6 retry (#4951): current check.py confirms 99.2% / 359 bytes. Its only
+// hunk is the order of xor ecx,ecx and xor esi,esi in the range return block.
 // claude-opus-5-5 (#4428): unchanged; a 10-minute permuter run (about 500 candidates) found nothing.
 //
 // Returns the world position of animation piece `index` of `obj` (with z

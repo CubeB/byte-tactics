@@ -29,6 +29,8 @@
 // coloring order remains as measured in the C2 notes below.
 // #5356 retry: re-confirmed 84.7%; the recorded 33-shape sweep still covers
 // the source forms that could reverse the x/y difference register pairing.
+// #5360 retry: re-confirmed 84.7%; the measured register-pair mismatch is
+// unchanged on current main.
 // Existing frame/register probes and the prior 19019-candidate permuter found
 // no better source; `/Gi` is already recorded at 46.4%.
 // Claude Opus 5.5 retry (#5072): still 84.7%, about 1900 scratch variants, none

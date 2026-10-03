@@ -1,20 +1,60 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by Fledge Alpha Free. Names are provisional.
-// 2026-10-02 (Fledge Alpha Free): 86.3% -> 87.1%, 2158 bytes, shape 95.7%.
-// A permute.py run found the deltas; its tmp0/inl0/inl1/tmp* residue was
-// cleaned away again (score is identical):
-//  - `unsigned int top` (was plain int): rotation of top's register/home.
-//  - the step arms swapped, `if (!(me->field_da != 0)) step = lh + 1; else
-//    step = me->field_da;` (polarity flip of the original je).
-//  - the surface test inverted: `if (!(0 == surface && !(holder->field_10 &
-//    0x80))) { if (surface != 0) FUN_004c6d20(...); } else FUN_004b0230(...);`
-//  - the tab-scan loop as `for (i = 1; i <= entries->count; i++)` rewritten by
-//    permute to `int i = 1; int t = 0; if (i <= entries->count) { do { ... }
-//    while (entries->count >= i); }` gives the same shape with jge.
-//  - the text-draw loop is `while (1)` and the cell loop `for (; 1; )`.
-//  - bounds.right via `unsigned int rowRight = bounds.left + me->w - 1;` and
-//    bounds.bottom read as `(&entries[index])->h + bounds.top - 1` (the
-//    non-duplicate read restores a CSE-merge only the original has).
-//  - `#include <stdlib.h>` next to `<stdio.h>`: 87.1% (windows.h gave 86.9/86.3).
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by Fledge Alpha Free, finished by claude-opus-5-5. Names are provisional.
+// PARTIAL (claude-opus-5-5, #4983, 2026-10-03): 87.1% -> 97.5%, 2160 bytes.
+// Draws one entry of a list gadget: the frame, then either the text rows
+// (flags 0x10) or the cell rows (flags 0x20/0x80). Three fixes, each read off
+// the original and measured with check.py:
+//  - Cell mode zeroes colPtr only in the bp (cell array) arm,
+//    `else { colPtr = 0; cellPtr = ...; }`, which is where the original's
+//    `mov dword ptr [esp+0x10], 0` sits (0x4a20cd). A zero before the test
+//    put the store on both paths (87.1% -> 96.3%).
+//  - The cell loop increments k before the colPtr step (`inc ebx` comes
+//    first at 0x4a2278); that also puts bp and k in the original's slots
+//    (96.3% -> 97.7%).
+//  - The tab scan runs to `entries->count + 1` (`movsx; inc; cmp` at
+//    0x4a1c89 and 0x4a1cdb), both in the loop test and in the not-found test.
+// Then the permuter leftovers were written as plain code (the step and surface
+// tests, the selected-row test, casts, the cell block's layout), which costs
+// 0.2: with the `RowTop`/`RowBottom` helpers taking rowRect by value and the
+// selected-row test spelled `!(((me->flags & 0x100) != 0) == 0 && ...)`, the
+// opening `lea eax, [esi + eax - 1]` (bounds.right, 0x4a1bb9) keeps the
+// original's operand order (97.7%). Nothing else moves that operand order:
+// header sets, the earlier function 0x4a1ab0 defined above, and every
+// spelling of bounds.right are flat.
+// What still differs:
+//  - Frame order of three dwords: the original has me's spill home at
+//    [esp+0x50], step at 0x54 and xx at 0x58; here step is at 0x50, xx at
+//    0x54 and me at 0x58. Their machine reference counts are the same in both
+//    builds (me 5, step 4, xx 5). Probes: one extra reload of me after the
+//    cell loop moves it past bounds and lh to [esp+0x3c], one extra use of
+//    step does the same for step, so all of these sit within one reference
+//    of each other. Declaration order, block scope for xx/xw, unused locals
+//    reading me or step, the step/xx/h-test spellings and `me` replaced by
+//    entries[index] everywhere are flat; permute.py --stack step,xx,me found
+//    nothing in 15 minutes.
+//  - `movsx eax, word ptr [edi+0x17]` (me->w in the text loop, 0x4a1d35) is
+//    scheduled after the rowRect.left store here, before it in the original.
+//    Every spelling that computes rowRect.right from locals or bounds.left
+//    moves the whole allocation (31-43%).
+// Earlier notes, still accurate:
+//  - The glyph width is the inlined Measure_004a1b40 helper its matched
+//    siblings use (0x4a4660, 0x4a53c0); the "&G" test is
+//    `field_d6 && field_d6[y] == 1` (0x4a1df9 and 0x4a1e03 both fall into it).
+//  - The text loop's exit tests `h >= lh` first:
+//    `if (h >= lh) { if (line + bc >= c0) return; } else break;`
+//    (`if (h < lh) break;` first costs over a point).
+//  - The cell rect's stores go x pair then y pair (left, right, top, bottom);
+//    rowRect is declared after `step`; `unsigned int rowRight` for
+//    bounds.right and `entries[index].h` (not me->h) for bounds.bottom.
+//  - `#include <stdlib.h>` next to `<stdio.h>` (windows.h is worse).
+// Slot map of the original (offsets after the pushes): 0x10 t/line/colPtr,
+// 0x14 flag/yy, 0x18 rowRect, 0x28 y, 0x2c q/ty, 0x30 yoff/bp, 0x34 h/k,
+// 0x38 entries, 0x3c lh/cellPtr, 0x40 bounds, 0x50 me, 0x54 step, 0x58 xx,
+// 0x5c xw, 0x60 font, 0x64 col, 0x68 glyph char, 0x6c dst, 0x8c hl, 0x9c
+// clip, 0xac src.
+// Known original quirks kept as they are (docs/bugs.md): a selected cell row
+// reads cell->width/height even when the cell pointer is null (0x4a2233,
+// 0x4a224c), and both arms of `holder->field_20 == index` draw with 0x1e.
+#include <stdlib.h>` next to `<stdio.h>`: 87.1% (windows.h gave 86.9/86.3).
 // What still differs (unchanged score after permuter round 2 and manual
 // rounds of scope/declaration experiments, all flat): the frame slot
 // rotation (me at [esp+0x58] vs 0x50, step at 0x50 vs 0x54, xx at 0x54
@@ -214,17 +254,12 @@ static inline int LineHeight_004a1b40()
     return ret0;
 }
 
-static inline int RowTop_004a1b40(Rect_004a1b40 rowRect) { return 2 + rowRect.top; }
-
-static inline int RowBottom_004a1b40(Rect_004a1b40 rowRect) { return rowRect.bottom; }
-
 // FUNCTION: 0x4a1b40
 void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
 {
     unsigned char font;
     int yoff;
-    unsigned int top;
-    top = 0;
+    int top = 0;
     int xx;
     Rect_004a1b40 bounds;
     int xw;
@@ -236,7 +271,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
     unsigned char v;
     Entry_004a1b40* entries;
     entries = obj->holder->entries;
-    Entry_004a1b40* me = &entries[((int)index)];
+    Entry_004a1b40* me = &entries[index];
     int h = me->h;
     if (me->type == 0) {
         bounds.left = 0;
@@ -248,22 +283,27 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
     void* surface;
     unsigned int rowRight = bounds.left + me->w - 1;
     bounds.right = rowRight;
-    bounds.bottom = (&entries[((int)index)])->h + bounds.top - 1;
+    bounds.bottom = entries[index].h + bounds.top - 1;
     surface = holder->surface;
     if (surface == 0)
         surface = obj->fallback;
-    if (!(0 == surface && !(holder->field_10 & 0x80))) { if (surface != 0)
-        FUN_004c6d20(entries->surface, surface, &bounds, &bounds); } else { FUN_004b0230(obj, index, surface); }
+    if (surface == 0 && !(holder->field_10 & 0x80))
+        FUN_004b0230(obj, index, surface);
+    else if (surface != 0)
+        FUN_004c6d20(entries->surface, surface, &bounds, &bounds);
     int lh = LineHeight_004a1b40();
     int step;
-    if (!(me->field_da != 0)) step = (1 + lh); else step = me->field_da;
+    if (me->field_da == 0)
+        step = lh + 1;
+    else
+        step = me->field_da;
     unsigned int flags;
     flags = me->flags;
     Rect_004a1b40 rowRect;
     if ((flags & 0x10) && me->text && 0 != me->field_c0) {
-        int i = 1;
+        int i;
         int t = 0;
-        if (i <= entries->count) { do {
+        for (i = 1; i < entries->count + 1; i++) {
             if (7 == entries[i].type) {
                 if (t == me->tab) {
                     FUN_004c1420((int)entries[i].field_d6);
@@ -271,9 +311,8 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
                 }
                 t++;
             }
-            ++i;
-        } while (entries->count >= i); }
-        if (i > entries->count) { FUN_004c1420(DAT_0051fba4->current); }
+        }
+        if (i == entries->count + 1) { FUN_004c1420(DAT_0051fba4->current); }
         FUN_004c1440();
         font = FUN_004c13f0();
         char* q = FUN_004b6af0(me->text, me->field_bc);
@@ -287,7 +326,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
             rowRect.bottom = rowRect.top + step;
             int w = Measure_004a1b40(q);
             int col = obj->colour[me->colours];
-            if (!(me->field_d6 != 0 && me->field_d6[y] == 1)) {
+            if (me->field_d6 == 0 || me->field_d6[y] != 1) {
                 if (*q == '&') {
                     if (q[1] == 'G')
                         flag = 1;
@@ -305,55 +344,59 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
                 xw = w;
                 xx = rowRect.right - w;
             } else if (2 & f) {
-                xx = (rowRect.left + rowRect.right - ((int)w)) / 2;
-                if (xx < ((int)rowRect.left))
+                xx = (rowRect.left + rowRect.right - w) / 2;
+                if (xx < rowRect.left)
                     xx = rowRect.left;
-                xw = rowRect.right - ((int)xx) + 1;
+                xw = rowRect.right - xx + 1;
             }
             if (me->field_da > 6 + LineHeight_004a1b40())
                 FUN_004a51d0(entries->surface, q, xx, ty, xw, bounds.bottom - bounds.top, 0);
             else
-                FUN_004a50e0(entries->surface, q, xx, (int)ty, xw, 0);
+                FUN_004a50e0(entries->surface, q, xx, ty, xw, 0);
             q = FUN_004b6af0(q, 1);
-            if (((int)flag)) {
+            if (flag) {
                 flag = 0;
                 FUN_004bf4d0(entries->surface, &rowRect, -0x13);
                 FUN_004bf4d0(entries->surface, &rowRect, -0x14);
                 FUN_004bf4d0(entries->surface, &rowRect, -0x15);
                 FUN_004bf4d0(entries->surface, &rowRect, -0x16);
-            } else if (!(((me->flags & 0x100) != 0) == 0 && me->field_ba == line + me->field_bc && me->field_c0)) { FUN_004c13a0(col, font); } else {
-                if (((unsigned int)obj->holder->field_20) == index)
+            } else if (!(me->flags & 0x100) && me->field_ba == line + me->field_bc && me->field_c0) {
+                if (obj->holder->field_20 == index)
                     FUN_004bf4d0(entries->surface, &rowRect, 0x1e);
                 else
                     FUN_004bf4d0(entries->surface, &rowRect, 0x1e);
+            } else {
+                FUN_004c13a0(col, font);
             }
             line += 1;
             yoff += step;
             ++y;
             h -= step;
             if (h >= lh) {
-                if (!(line + me->field_bc >= me->field_c0)) {
-                } else { return; }
-            } else
+                if (line + me->field_bc >= me->field_c0)
+                    return;
+            } else {
                 break;
+            }
         }
-    } else { if (((unsigned int)flags) & 0xa0) {
+    } else if (flags & 0xa0) {
         Item_004a1b40** colPtr;
         Rect_004a1b40 clip;
-        unsigned int bp = (((unsigned int)flags) >> 7) & 1;
+        unsigned int bp = (flags >> 7) & 1;
         void* surf = entries->surface;
         ((Class_004c6ae0*)surf)->FUN_004c6ae0(&clip);
         ((Class_004c6b10*)surf)->FUN_004c6b10(bounds);
-        colPtr = 0;
         int k = me->field_bc;
-        if (!bp)
+        if (!bp) {
             colPtr = &((Item_004a1b40**)me->field_c6)[k];
-        else
+        } else {
+            colPtr = 0;
             cellPtr = &((Cell_004a1b40*)me->field_c6)[k];
+        }
         int yy = bounds.top + 2;
         bounds.left += 2;
         int y = step + yy;
-        for (; 1; ) {
+        for (;;) {
             Cell_004a1b40* cell;
             if (0 != bp) {
                 cell = cellPtr;
@@ -362,52 +405,57 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
                 cell = (*colPtr)->cell;
             }
             if (cell != 0 && cell->field_10 != 0) {
-                            Quad_004a1b40 dst;
-                            Quad_004a1b40 src;
-                            dst.points[3].x = bounds.left;
-                            src.points[0].x = 1;
-                            src.points[0].y = 1;
-                            src.points[3].x = 1;
-                            src.points[1].y = 1;
-                            dst.points[0].x = bounds.left;
-                            dst.points[1].x = bounds.right;
-                            dst.points[2].x = bounds.right;
-                            dst.points[3].y = y - 1;
-                            dst.points[2].y = y - 1;
-                            src.points[1].x = cell->width - 1;
-                            src.points[2].x = cell->width - 1;
-                            dst.points[1].y = yy;
-                            dst.points[0].y = yy;
-                            src.points[2].y = cell->height - 1;
-                            src.points[3].y = cell->height - 1;
-                            FUN_004c7580(surf, cell, &dst, &src);
-                            rowRect.left = dst.points[0].x;
-                            rowRect.right = dst.points[1].x;
-                            rowRect.top = dst.points[0].y;
-                            rowRect.bottom = dst.points[2].y;
-                            v = me->field_d6[k];
-                            if (1 & v) FUN_004bf4d0(surf, &rowRect, -0x14); else if ((2 & v) != 0) {
-                                FUN_004be950(surf, rowRect.left + 1, rowRect.bottom - 1, rowRect.right - 2, 1 + rowRect.top, obj->colour_8be);
-                                FUN_004be950(surf, 2 + rowRect.left, rowRect.bottom - 1, rowRect.right - 1, rowRect.top + 1, obj->colour_8be);
-                                FUN_004be950(surf, 1 + rowRect.left, rowRect.top + 2, rowRect.right - 1, rowRect.bottom - 2, obj->colour_8be);
-                                FUN_004be950(surf, rowRect.left + 2, RowTop_004a1b40(rowRect), rowRect.right - 2, RowBottom_004a1b40(rowRect) - 2, obj->colour_8be);
-                            }
-                        }
+                Quad_004a1b40 dst;
+                Quad_004a1b40 src;
+                dst.points[3].x = bounds.left;
+                src.points[0].x = 1;
+                src.points[0].y = 1;
+                src.points[3].x = 1;
+                src.points[1].y = 1;
+                dst.points[0].x = bounds.left;
+                dst.points[1].x = bounds.right;
+                dst.points[2].x = bounds.right;
+                dst.points[3].y = y - 1;
+                dst.points[2].y = y - 1;
+                src.points[1].x = cell->width - 1;
+                src.points[2].x = cell->width - 1;
+                dst.points[1].y = yy;
+                dst.points[0].y = yy;
+                src.points[2].y = cell->height - 1;
+                src.points[3].y = cell->height - 1;
+                FUN_004c7580(surf, cell, &dst, &src);
+                rowRect.left = dst.points[0].x;
+                rowRect.right = dst.points[1].x;
+                rowRect.top = dst.points[0].y;
+                rowRect.bottom = dst.points[2].y;
+                v = me->field_d6[k];
+                if (1 & v) {
+                    FUN_004bf4d0(surf, &rowRect, -0x14);
+                } else if ((2 & v) != 0) {
+                    FUN_004be950(surf, rowRect.left + 1, rowRect.bottom - 1, rowRect.right - 2, 1 + rowRect.top, obj->colour_8be);
+                    FUN_004be950(surf, 2 + rowRect.left, rowRect.bottom - 1, rowRect.right - 1, rowRect.top + 1, obj->colour_8be);
+                    FUN_004be950(surf, 1 + rowRect.left, rowRect.top + 2, rowRect.right - 1, rowRect.bottom - 2, obj->colour_8be);
+                    FUN_004be950(surf, rowRect.left + 2, rowRect.top + 2, rowRect.right - 2, rowRect.bottom - 2, obj->colour_8be);
+                }
+            }
+            // A selected row reads cell->width/height even when cell is null
+            // (docs/bugs.md).
             if (!(me->flags & 0x100) && me->field_ba == k) {
-                        Rect_004a1b40 hl;
-                        hl.left = bounds.left;
-                        hl.top = yy;
-                        hl.right = bounds.left + cell->width - 1;
-                        hl.bottom = yy + cell->height - 1;
-                        FUN_004bf4d0((void*)surf, &hl, 0x14);
-                    }
-            if (0 == bp) { colPtr++; }
-            yy = yy + step;
-            k += 1;
+                Rect_004a1b40 hl;
+                hl.left = bounds.left;
+                hl.top = yy;
+                hl.right = bounds.left + cell->width - 1;
+                hl.bottom = yy + cell->height - 1;
+                FUN_004bf4d0(surf, &hl, 0x14);
+            }
+            k++;
+            if (!bp)
+                colPtr++;
+            yy += step;
             y += step;
-            if ((yy < bounds.bottom && k < me->field_c0) == 0)
+            if (yy >= bounds.bottom || k >= me->field_c0)
                 break;
         }
         ((Class_004c6b10*)surf)->FUN_004c6b10(clip);
-    } }
+    }
 }

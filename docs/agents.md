@@ -2570,6 +2570,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #4750 | deepseek-v4.1-flash | 2 | 1 | 0 | n/a | n/a | n/a |
 | #4839 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
 | #4957 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
+| #4817 | fledge-alpha-free | 2 | 0 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 
@@ -2587,7 +2588,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 - Gpt-6-luna matched 0 of 2 functions a cheaper model had failed.
 - Mimo-v2.6-pro matched 6 of 62 functions a cheaper model had failed.
 - Fable-5.1 matched 3 of 9 functions a cheaper model had failed.
-- Fledge-alpha-free matched 1 of 4 functions a cheaper model had failed.
+- Fledge-alpha-free matched 1 of 6 functions a cheaper model had failed.
 <!-- calibration:end -->
 
 ## Findings about the target

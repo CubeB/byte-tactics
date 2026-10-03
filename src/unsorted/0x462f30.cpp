@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
+// #5414 Codex retry: re-confirmed 81.4%; the known entry live-range split and
+// region-A scheduling mismatches remain. Kept the best existing source.
 // Codex GPT-6 retry for #5204 (2026-10-03): `/Gi` leaves this function
 // at 77.6% with the same 1707-byte output; the existing source remains best.
 // GPT-6 retry (#5254): rechecked at 77.6%; entry lifetime and copy-tail shape remain.

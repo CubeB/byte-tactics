@@ -59,6 +59,38 @@
 //   stores. With the MAP condition written as `MAP ? 1 : MAPNAME` the push is
 //   the original's `push 1`, but the condition then materialises the 1.
 //
+// claude-opus-5-5 retry (#5281, 2026-10-03): still 99.2%. Read with
+// tools/c2prio.py plus hooks on C2's FUN_00438f79 (it splits the constants
+// into regions and inserts reload markers at region edges): const 1 is one
+// candidate for the whole function (every spelling and the inlined 0x444be0
+// share it), and the web that gets ebp runs from the after-loop dirty store
+// through MAPPING, skips START (no register free there) and reaches GAMEOPEN,
+// RESTRICTIONS and MAP through START's false edge. In the original MAP's body
+// is outside that web, so its push stays an immediate. What decides it is
+// whether the edges into MAP's body get a region marker:
+// - MAP alone as the condition (no MAPNAME test) and no do/while: the marker
+//   at the end of the MAP test (for its edge to `done`) cuts the body off and
+//   the push is the original's `push 1`.
+// - MAP || MAPNAME and no do/while: only the MAPNAME test's end gets a
+//   marker, the body stays reachable from the MAP test, and C2 reloads ebp
+//   at the body (a second `mov ebp,1`, 99.0%).
+// - With the do/while (this file) the branch ends no longer reach `done`
+//   directly in C2's graph, no markers land in MAP, and the body is in the
+//   ebp web (push ebp, 99.2%).
+// A condition that materialises its value (a bool, char or int local or
+// inline helper, `(bool)(MAP || MAPNAME)`, `(MAP ? 1 : MAPNAME) != 0`)
+// also cuts the web and gives `push 1`, but keeps the `mov eax,ebp` and test
+// (best 99.1%); MSVC 5 never threads such a test away later (checked on a
+// small file). So the original must reach MAP's body from both tests with a
+// marker on both edges and no reload; no spelling tried does that (nested
+// ifs with `goto done`, `!A && !B`, two branches, a goto into the body, a
+// do/while placed anywhere in MAP or around the whole chain with `break`).
+// Flat (byte-identical to this file): the 1 as a local, `true`, `1u`,
+// `sizeof(char)` or through an inline wrapper; a do/while in RESTRICTIONS;
+// `!` in GAMEOPEN; the f97 test as `!= 0`, `== 1` or a byte mask; 0 to 10946
+// unused externs at the top, 0 to 512 before the function and 0 to 20000 at
+// the end.
+//
 // Measured with the volatile read diagnostics in build/scratch only: making
 // the final FUN_004ab0a0 read the gadget opaquely gives the original's whole
 // tail allocation except MAP (99.2%), which is what pointed at the gadget's

@@ -3,6 +3,13 @@
 // Retry note: best checked source scores 87.4% after five check.py invocations (four returned results);
 // remains unmatched. Raw flag reuse produced identical code; narrowing a shifted byte regressed to 86.2%.
 // Remaining differences include the bit-4 extraction/test shape, call-tail merging and register scheduling.
+// #4158 retry by Codex / GPT-6 (2026-10-04): after 31 checker runs the
+// best remains 87.4%. The full permuter tested 867 candidates, and an earlier
+// five-minute run tested 251, both with no gain. `stackcmp.py` found the frame
+// and all used locals aligned; `/Gi` also left the score unchanged. Shared-call
+// tails, scalar distance expressions, shifted flag locals, name reload forms,
+// and local declaration orders did not improve the result. `c2prio.py` could
+// not run because gdb and winedbg are absent. Keep this best for the next retry.
 // Best variant keeps DAT_00509688[(e->flags >> 2) & 3] cached in a local and reuses it for
 // FUN_00456200. The faithful version that reloads the global twice in each arm scored lower
 // (81.2% originally, 84.6% with the fixes below) because MSVC duplicated both FUN_00456200

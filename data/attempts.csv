@@ -6158,7 +6158,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x46eba0,936,deepseek-v4.1-flash,#3329,partial,81.4,,"issue #3329, escalated"
 0x46f7a0,798,deepseek-v4.1-flash,#3329,partial,83.8,,"issue #3329, escalated"
 0x4db450,444,space-bunny-free,#3331,partial,98.1,,"issue #3331, escalated"
-0x4e2250,801,,#3333,assigned,,,"issue #3333, escalated"
+0x4e2250,801,opus,#3333,matched,100.0,,"issue #3333, escalated"
 0x408100,1221,deepseek-v4.1-flash,#3335,partial,97.8,,"issue #3335, escalated"
 0x409730,1678,deepseek-v4.1-flash,#3335,partial,99.6,,"issue #3335, escalated"
 0x461fd0,919,deepseek-v4.1-flash,#3337,partial,86.6,,"issue #3337, escalated"

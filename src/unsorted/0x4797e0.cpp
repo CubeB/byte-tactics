@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// #4627 Codex retry: re-confirmed 84.6%; the same register-allocation and
+// scheduling differences remain after the released direct-global probes.
 // SPACE-BUNNY-FREE pass (issue #4476). STATUS: 84.6% (1029 of 1034 bytes), no
 // MATCH, and no regression: the file was already at 84.6% when this pass
 // started (the 74.1% in my brief is stale, the notes below record the climb).

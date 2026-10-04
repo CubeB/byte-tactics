@@ -1,4 +1,42 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6, retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5592 (Claude Opus 5.5, 98.6% kept). Matched code with the same test, read with
+// a c2prio --rotation that prints each temporary's tuple opcode:
+//  * The test bytes (def edx, health ecx, lea eax, `jae`) occur in 0x410e70,
+//    0x411f50 and 0x412710 (matched) and 0x4152f0 (partial, test region right).
+//    0x410e70 and 0x412710 generate it def first from pointer edx; neither reads
+//    `u->def` after the test. 0x4152f0 reads `unit->def->range` after its test
+//    (the same shape as SearchRange here) and generates it health first, one
+//    step later (health ecx from pointer ecx), because its own earlier code
+//    leaves the pointer there; its block after the test then starts at ecx with
+//    an extra lea for std::vector's allocator argument, which Class_00410830's
+//    out-of-line constructor does not have. So the matched siblings give no
+//    spelling to copy: each gets the bytes from its own surroundings.
+//  * Toys (the test, a call, then `F(1, u->def->searchRange << 16, 2)`, read
+//    with the rotation opcodes): any later read of `u->def` (an int field, the
+//    short searchRange, the pointer itself, and 10 address spellings of it:
+//    `((short*)u->def)[0x101]`, `*(short*)((char*)u->def + 0x202)`,
+//    `(*(UnitDef**)((char*)u + 0x92))`, `u[0].def`, `(u + 0)->def`, a
+//    `UnitDef**` local, `u->def[0]`, ...) makes the test health first; later
+//    reads of globals, another pointer's def or `u->health` keep it def first.
+//    Ten spellings of the test itself (casts, `3 *`, `3u`, `/ 4`, `!(>=)`,
+//    unsigned long, a limit or health local) stay health first. What breaks it
+//    is the test not dominating the later read: wrapping the test in a real
+//    `if (g)` does; a `do {} while (0)` or `for (;;) {... break;}` around the test
+//    or the read, a goto/label, a loop between, a redundant `if (k == 1)` after
+//    `if (k != 1) return`, or `int skip = 0; if (skip) goto L;` (both folded
+//    before the pairing) do not.
+//  * `do {} while (0);` after the test block (0x4152f0's Land has one): test
+//    unchanged, inline budget broken (1070 bytes, 92.2%).
+//  * With the throwaway `g_a = g_b;`: every int-sized IsDamaged return type and
+//    `!= 0`, `&& 1`, `|| 0`, `!!`, `!(== 0)`, `== true` add no temporary; short,
+//    char, bool returns, `> 0`, `(bool)`, `& 1`, `== false`, `^ 1`, `!= true`,
+//    `< 1` all materialise (93.2%); `?:` forms grow the code (83.4%).
+//  * An inline Class_00410830 constructor (empty body, base initialiser, or
+//    out-of-class inline) gets inlined: 65.7%, 70.3% with the throwaway.
+//  * <windows.h> 98.6%; <math.h> or WIN32_LEAN_AND_MEAN <windows.h> 86.9%. A
+//    dummy-extern sweep (1 to 300 before the includes, 1 to 3000 after) is
+//    98.6% or 86.9% in 256-wide windows; the 86.9% windows only swap order
+//    between edi and ebp, the test never moves.
 // #5551 Codex recheck: 98.6%; only the health-test scratch-register order remains.
 // #5581 (Claude Opus 5.5, 2026-10-04, 98.6% kept). c2prio --rotation with each
 // temporary's tuple opcode, in codegen order after the selector (ah109): ours

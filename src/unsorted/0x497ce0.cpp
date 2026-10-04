@@ -86,6 +86,13 @@
 // x instead of r.x1) drops to 590 bytes / 80.6%. The 91.0% break-loop form
 // below remains the best; its whole residue is the break + in-memory increment
 // tail versus the original's bound test.
+// Sixth pass (Codex / GPT-6, 2026-10-04): permute.py tested 1,489 candidates
+// with no score gain. More than 30 check.py probes did not improve 91.0%;
+// first-loop pointer and while forms, counter/local declaration moves, second
+// loop pointer/index and bounded-for forms, eligibility rewrites, and moving
+// the percent load before the first draw all scored lower or unchanged. Keep
+// this best break-loop form for the next retry. Its remaining codegen gap is
+// the second-loop exit sequence documented above.
 #include <stdio.h>
 
 #pragma pack(push, 1)

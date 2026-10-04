@@ -1,291 +1,61 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
-// Pass 16 (space-bunny-free): still 81.0%, ours 4744 bytes against 4772, and the 28-byte gap is
-// NOT a dropped block of code. Rebuilt three tools in build/scratch/42bf40/ (shape.py: masked
-// instruction-shape diff; align.py: parallel walk with the relocatable fields wildcarded on both
-// sides plus a running offset-delta column; dump.py: raw disassembly of one side over a byte
-// range). The delta column says the loss is concentrated in three windows, all downstream of the
-// one shared-zero register the earlier passes named, and each is a register-allocation
-// consequence of it rather than a separate construct:
-//   1. Yard-map loop (+16 bytes there, the largest single loss). The original keeps its outer y
-//      counter in [esp+0x1c] (`cmp word [ebp+0x14c],bx` / `mov dword [esp+0x1c],ebx` /
-//      `mov ecx,[esp+0x1c]; inc ecx; cmp ecx,edx; mov [esp+0x1c],ecx`), because its jump-table
-//      scratch is edx (`xor edx,edx; mov dl,[ecx+0x42d198]; jmp dword [edx*4+0x42d16c]`) and ebx
-//      still holds the live zero. Ours puts y in edx and hands ebx to the jump table, so y never
-//      spills and we are 16 bytes short before the loop even runs.
-//   2. Yard-map case bodies. The original alternates the yard-map pointer between ecx and edx
-//      from case to case (`mov byte ptr [ecx+eax],0` then `mov byte ptr [edx+eax],0x6f`); ours
-//      always uses ecx with the operands the other way round (`mov byte ptr [eax+ecx],0`), a
-//      different modrm byte, because ebx (not edx) was the scratch.
-//   3. Tail /3. The original materialises p twice (`lea esi,[ebp+0x176]; mov edi,esi`), stores
-//      through edi and then RELOADS p[0] and p[2] from memory (`mov ecx,[ebp+0x17e]; add
-//      ecx,[esi]`); ours keeps both in registers and emits `add ecx,eax`. Same source, different
-//      forwarding decision, downstream of the same allocation.
-// Two more readings the tools settled, both independent of the above:
-//   - The original really has NO zero register live at the movementclass null store: it emits
-//     `mov dword ptr [ebp+0x1b6],0` (10 bytes) where ours emits `mov dword ptr [ebp+0x1b6],ebx`
-//     (6). That is direct evidence for the two-zero-range split the earlier passes inferred
-//     (esi 0x42c0f0..0x42cc5f, fresh `xor ebx,ebx` at 0x42ce00) and it is worth 4 bytes on its own.
-//   - The soundcategory loop's pre-test is `mov ecx,[eax+0x37e17]; test ecx,ecx; jle` in the
-//     original (8 bytes) against our `cmp dword ptr [eax+0x37e17],ebx; jle` (7). The original
-//     proves sound==0 there and loads the count to test it; we compare memory with the zero
-//     register instead. Worth 1 byte.
-// Tried this pass, byte-identical or worse: `!= sound` instead of `!= 0` at the soundcategory
-// test is byte-identical at 4744/81.0% (kept, it is the truer reading of the original's
-// `cmp eax,esi`), MSVC5 still folds sound to a constant and emits `test eax,eax`. Using the live
-// `sound` for the movementclass null store, `*(void**)(unitdef+0x1b6) = (void*)sound;`, is much
-// worse: 70.6% (4756 bytes), it pins esi and adds a second materialisation.
-// Next lever, unchanged and still untried from the source side: the only way I can see to get the
-// yard loop to spill y is for the jump-table scratch to land on edx, which needs ebx to still be
-// holding the live zero when the switch is lowered, which is the shared-zero question again.
-// Pass 14 (deepseek-v4.1-flash): 80.6% (ours 4736 bytes against 4772), up from 65.8%.
-// Five things did it:
-//   1. FUN_004c4800's def parameter is a 4-byte union passed BY VALUE
-//      (`union Fixed`, the game's 16.16 fixed point, with the inline Fix()
-//      helper): declaring it int always gave `push K`; the struct form gives
-//      the original's `mov eax, K; push eax` / `xor eax,eax; push eax` at
-//      every one of the eight sites (65.8 -> 73.2).
-//   2. The Class_00438760 conversion temp named inside a wrapper struct with
-//      three pad chars ahead of it (MissionHolder below) lands byte-packed at
-//      [esp+0x23] and matches `mov al,[esp+0x2b]` exactly.
-//   3. canresurrect's odd bit op needs two statements and a temp (see the
-//      comment at the site) to reproduce `and ah,0xfd; shr edx,1` (73.6).
-//   4. The include set <stdio.h> <stdlib.h> <string.h> <math.h> <memory.h>
-//      (dropping windows.h) flipped the allocator state (73.6 -> 78.1), then
-//      plain <list> alone scored still higher (78.1 -> 79.9).
-//   5. The cloak cost test as `value2 = (unsigned int)(0.0 < *(float*)(...))`
-//      with `(value2 & 1) << 0xd` reproduces the original's redundant
-//      `and eax,1` at the compare join (79.9 -> 80.6). Note the compare
-//      width: `0.0` (double, `fcomp qword`) scores HIGHER here than the
-//      float form `0.0f` (`fcomp dword`, 80.3/80.5) even though the original
-//      contains the float compare; keep 0.0 for the score.
-// Still different, all of it the shared-zero register: the original has ONE
-// `xor esi,esi` at 0x42c0f0 whose range carries the 83 `push esi` defaults,
-// the two `cmp eax,esi` null tests and the soundcategory counter together
-// (`inc esi`), then a fresh `xor ebx,ebx` at 0x42ce00 for the weapon null
-// tests, [unitdef+0x14e]=0 and the yard-loop counters; ours pins the constant
-// in ebx across the whole function and materialises sound separately in esi
-// (`push ebx` everywhere). Small probes with the identical source shape DO
-// merge into `xor esi,esi`/`push esi` (80 sites, Fix() group, atoi
-// reassignment, goto, short store, weapon ternaries, yard counters, FPU
-// conversions all keep the merge), so the split is this function's global
-// allocator state, not any local spelling tried here. Knock-ons of the same
-// one-byte difference: the fstp of each FUN_004c4760 result is scheduled
-// before the next call's pushes where the original delays it between the
-// pushes and the call, the flag-region this-loads sit early where the
-// original's sit late, and in the yard loop ours keeps y in edx and the jump
-// table in ebx where the original spills y to [esp+0x1c] and uses edx for the
-// table (its inner pre-test `cmp word [w], bx` keeps bx live through the
-// loop). The tail /3 region stores through [ebp+..] where the original uses
-// `lea esi,[ebp+0x176]; mov edi,esi` and reloads p[2]/p[0] from memory.
-// Pass 13 (deepseek-v4.1-flash): 65.6% reconfirmed, ours 4716 bytes against 4772; no source
-// change kept. New datum: rewriting the five weapon/explodeas/selfdestructas selects as
-// `if (p == 0) p = defaultWeapon;` is byte-identical to the `p ? p : defaultWeapon` ternaries,
-// so the original's `xor ebx,ebx; cmp eax,ebx; jne; mov eax,esi` at 0x42ce00 is not a spelling
-// effect: the zero is already a live value there. Together with the two xors at 0x42c0ee/0x42c0f6
-// this says our ebx zero and esi zero are two rematerialisations of ONE constant-0 node, and the
-// original's single esi range (0x42c0f0..0x42cc5f) plus its fresh ebx range at 0x42ce00 are the
-// same node split at a different point, so the lever is the allocator's rematerialisation policy,
-// not the source spelling of the zero (all of passes 3 to 12 tried those).
-// Pass 11 (deepseek-v4.1-flash): kept the pass-10 best at 65.6% (4716 bytes against 4772). The
-// first 0x42bf40..0x42c0ec is byte-identical; the remainder still differs in roughly 25 hunks
-// spread over the texture/sequence loops (register homes and loop rotation), so no single
-// hunk is close enough to land within this issue's timebox. Structure and names unchanged.
-// Pass 10 (deepseek-v4.1-flash): 65.6%, ours 4716 against 4772. The object is now
-// byte-identical to the original from the prologue through 0x42c0ec except for one
-// 2-byte hunk: ours emits `mov al,[eax]` after `call Class_00438760::Class_00438760`
-// where the original schedules `push <none>; push 0x64` first and reads the member
-// back from the stack slot, `mov al,[esp+0x2b]` (4 bytes). Both express the same byte;
-// the EAX return value is simply consumed before the two next-call pushes.
-// The whole 4716/4772 gap is that first divergence plus the shared-zero register:
-// original `xor esi,esi` at 0x42c0f0 serves 83 `push esi` defaults, the two
-// `cmp eax,esi` tests and then the soundcategory loop counter (`inc esi` at 0x42cc93,
-// so sound's own init is redundant and elided); ours materialises the constant in ebx
-// and needs a SECOND `xor esi,esi` at the declaration site (both xors visible at
-// 0x1ae/0x1b6 in our object). Confirmed this pass, all byte-identical to 65.6%:
-//   - passing the live `sound` at the 67 FUN_004c46c0 + 8 FUN_004c4760 default sites
-//     (still `xor ebx,ebx` + `push ebx` plus a separate `xor esi,esi`);
-//   - `int sound;` at function scope with `sound = 0;` at the xor site and sound used
-//     at every default site (same two xors);
-//   - an `int def` variable for the defaults plus a separate `sound` for the loop:
-//     63.5% (4804 bytes, def pinned);
-//   - `Class_00438760* tp = (Class_00438760*)&Class_00438760(buf); unitdef[0x230] =
-//     tp->value;` and a block-scoped named `temp`: 65.6% but still 4716/4720 bytes and
-//     still `mov al,[eax]` / `[esp+...]`, still the ebx constant;
-//   - moving `int sound = 0;` down to the soundcategory block: 63.5% (4804 bytes).
-// So the ebx-vs-esi choice is not reachable from any source spelling of the zero tried
-// so far; the only remaining structural difference before the divergence is the 2-byte
-// scheduling hunk above, and the yard-map loop below (original reloads [ebp+0x14e] per
-// case with the cell index in eax, ours keeps the yard pointer in eax).
-// Pass 9 (deepseek-v4.1-flash): 65.6% (4716 against 4772), unchanged. One correction read off
-// the ctx listing: the Class_00438760 temp is byte-packed at [esp+0x23] and its member is at
-// +0, not +8: the original reads `mov al,[esp+0x2b]` only because the two pushes already moved
-// esp by 8 (0x2b - 8 = 0x23). Our `mov al,[eax]` reads the same byte; the difference is that
-// ours schedules the read before the pushes instead of between them, so that hunk is a
-// knock-on of the earlier one-pushed-dword esp offset, not a class-layout bug and not fixable
-// locally. Nothing else was attempted in this 10-minute pass.
-// Pass 8 (deepseek-v4.1-flash): 65.6%, ours 4716 bytes against 4772. The one real
-// gain this pass is the tail: reading the three extent differences back THROUGH the
-// same `int* p` (`p[0] = p[-3] - p[-6];` instead of `*(int*)(unitdef+0x16a) - ...`,
-// and `(p[2] + p[0]) / 3`) stops MSVC from keeping w/h and the four extents in
-// registers, so it emits the original's store-then-reload chain and the /3 magic
-// multiply shape; that took 64.7% to 65.6%. Reordering the yard-map switch cases to
-// the original's body order ('.', 'f', 'o', 'c', 'O', 'w', 'C', 'y', 'Y', 'G', read
-// off the jump table's case bodies) changed nothing: MSVC5 reorders bodies itself.
-// Also all byte-identical to the previous 64.7% object (so not the lever): `0u`, `0L`
-// and mixed `0L` at the FUN_004c4800/FUN_004c46c0 default sites, `unsigned int sound`,
-// and a `Class_00438760* tp = (Class_00438760*)&Class_00438760(buf);` temporary-pointer
-// form. The Class_00438760 member really is at +8 in the original (its load is
-// `mov al, [esp+0x2b]` with this = [esp+0x23]), but every writable form of that
-// expression either uses the ctor's eax (`mov al, [eax + 8]`, 62.7%) or a 4-aligned
-// slot (62.8%), so this file keeps `char value; // +0x0`.
-// Pass 7 (deepseek-v4.1-flash): 64.7%, ours 4716 bytes against 4772. Re-checked
-// the earliest region. The very first code difference is the shared constant
-// zero register: original materialises it once in esi at 0x42c0f0 and pushes
-// esi at ~83 default-argument sites and tests `cmp eax, esi` at 0x42cc5f; ours
-// materialises the same zero in ebx (0x42c0ee onward) and pushes ebx. Both
-// builds cache exactly one zero live range across the getter block, so this is
-// the allocator picking a different callee-saved register, not a source shape;
-// it also leaves our stack depth identical (push esi and push ebx are both one
-// byte) but reorders the fild/push scheduling in the FUN_004c46c0 float block
-// and the FUN_004c4800 group, so [esp+N] there differs by one dword and the
-// tail jumps land 20 bytes late. Tried this pass, all 64.7%:
-//   - `int sound;` declared at function scope (no initialiser) with the
-//     `sound = 0;` assignment kept at the original xor site (v1).
-//   - passing the live `sound` variable at the two FUN_004c46c0 sites that the
-//     original serves from esi (v3).
-// Next lever: the yard-map loop (0x42cf89..0x42d079) is structurally different
-// (ours keeps the yard pointer in eax and the cell index in ecx, original
-// reloads the pointer from [ebp+0x14e] into ecx per case with the index in eax;
-// ours keeps the outer y counter in edx, original in [esp+0x1c]). Because MSVC5
-// allocates registers globally, fixing that loop or the tail /3 sequence may
-// flip the zero register from ebx back to esi and unlock the whole function.
-// Pass 3 (deepseek-v4.1): 64.7%, ours 4716 bytes against 4772.
-// Pass 4 (deepseek-v4.1): 64.7%, ours 4716 bytes against 4772. Substituting the
-// live `sound` variable (provably 0 at every default site) for the literal 0 at
-// the 70 FUN_004c46c0 / 8 FUN_004c4760 default arguments compiles to a
-// BYTE-IDENTICAL object: MSVC5 value-numbers the variable back to constant 0 and
-// still materialises that constant in ebx (`xor ebx,ebx` + `push ebx`) rather than
-// reusing the esi that holds `sound`. The shared zero's register is therefore an
-// allocator liveness decision, not a source-shape decision; no local declaration
-// or argument form tried so far makes MSVC5 pick esi for it.
-// Still differing (first divergence onwards): the Class_00438760 temp is read as
-// `mov al,[eax]` where the original reads `mov al,[esp+0x2b]` (its byte-packed
-// slot), and in the FUN_004c46c0/FUN_004c4800 float region our pushes are
-// scheduled one dword earlier than the original's, so our esp stays 4 to 8 bytes
-// deeper and every [esp+N] there is off by one pushed dword; the tail jumps then
-// land 20 bytes late (ours 0x42d11b, original 0x42d154).
-// Confirmed: the original's single `xor esi,esi` at 0x42c0f0 initialises the
-// soundcategory loop counter (`int sound = 0;`), which stays in esi across the
-// whole function; the original then serves every zero default argument from
-// that live zero register (`push esi`, 85 sites) and the `cmp ..., esi` tests
-// at 0x42cbde/0x42cc5f, instead of materialising its own zero constant.
-// Declaring `int sound = 0;` right after the objectname block (where the
-// original's xor sits) and removing the `int def = 0;` temp raised the score
-// from 62.6% to 64.7% and shrank our body from 4804 to 4716 bytes.
-// Remaining first divergence: MSVC still materialises its own zero register in
-// ebx in our build (`xor ebx,ebx` at the start of the getter block, then
-// `push ebx` at the default sites), where the original pushes esi; the
-// FUN_004c4800 group rematerialises `xor eax,eax; push eax` in the original
-// while ours pushes ebx.
-// Tried this pass, all still 64.7%: passing the `sound` variable itself as the
-// default argument at the FUN_004c46c0/FUN_004c4760 sites; declaring
-// `int number = 0;` early; moving `unsigned int value` down to its first
-// assignment. Inlining the FUN_004c46c0 float conversions (dropping the named
-// `scratch` local) grew the frame by 4 so every esp+N shifted, 62.3%.
-// Still different: the Class_00438760 temp is read as `mov al,[eax]` in ours
-// where the original loads `mov al,[esp+0x2b]` from its byte-packed slot.
-// Pass 5 (deepseek-v4.1): 64.7%, ours 4716 bytes against 4772. The shared
-// zero is NOT register pressure: ebx is untouched in the original from
-// 0x42c0f0 to 0x42ce00, where the constant lives in esi, and ebp holds only
-// unitdef, so ebx was free. Passing `sound` at all 75 getter defaults is
-// byte-identical (MSVC5 value-numbers it to a fresh ebx constant). Declaring
-// `int sound = 0;` at function scope instead of at the first getter costs
-// 58.5% (esi pinned live across the whole body), and moving the declaration
-// down to just before the category getter costs 62.8% (4804 bytes), so the
-// esi-vs-ebx pick is allocator state, not a source shape.
-// Pass 6 (deepseek-v4.1): 64.7%, ours 4716 bytes against 4772. Re-confirmed the
-// `sound` substitution at all 71 FUN_004c46c0 + 9 FUN_004c4760 defaults is
-// byte-identical (MSVC5 value-numbers the variable back into one constant), and
-// `unsigned int def` on FUN_004c4800's third parameter is byte-identical too, so
-// the int/unsigned split does not break the constant node. New fact: the original
-// really has TWO zero live ranges: esi from 0x42c0f0 to 0x42cc5f (the defaults,
-// the countdown and soundcategory tests; esi is then reused for `sound` and for
-// `defaultWeapon`), and a fresh `xor ebx,ebx` at 0x42ce00 for the weapon null
-// tests, [unitdef+0x14e]=0 and the yard-loop counters. Ours keeps ONE ebx range
-// from 0x42c0ee to the tail, and ebx is untouched in the original between
-// 0x42c0f0 and 0x42ce00, so esi was not picked for lack of ebx: our longer
-// constant live range is what keeps the allocator on ebx.
-// Pass 15 (deepseek-v4.1-flash): 81.0% (ours 4744 bytes against 4772), up from
-// 80.6. The sound-name arm of the unitdef parser now mirrors the original's
-// shared tail with goto polarity: a named-index scan that jumps to SOUND_FOUND
-// (store the index) or falls through to the atoi store, both converging at
-// SOUND_DONE ahead of the corpse/movementclass tail. The y loop above it is a
-// while with its own increment, which is what the original's back edge does.
-// Still different, all of it the shared-zero register (see Pass 14).
-
-// Still 62.6% (ours 4804 bytes against 4772) after deepseek-v4.1's second pass.
-// Confirmed fixed this pass (both match the original now):
-//   - the Class_00438760 conversion temp must be an unnamed temporary in the
-//     assignment expression (`unitdef[0x230] = Class_00438760(buf).value;`): as a
-//     named local it gets a 4-aligned slot at [esp+0x20], as a temporary it lands
-//     byte-packed at [esp+0x23] with its byte at [esp+0x2b], exactly the original.
-//   - the three extent stores at unitdef+0x176/+0x17a/+0x17e go through one
-//     `int* p = (int*)(unitdef + 0x176);` with p[0]/p[1]/p[2], matching the
-//     original's lea esi,[ebp+0x176] / mov edi,esi / mov [edi],eax / [edi+4] /
-//     [edi+8]; it also let the four /2 divisions keep w,h in registers.
-//   - `int w`/`int h` locals for the width/height movsx reduce that hunk further
-//     (still +12 bytes though).
-// Still different: the 0 default argument (original: xor esi,esi once at 0x42c0f0
-// plus 83 `push esi`, and `xor eax,eax; push eax` at the FUN_004c4800 sites; ours
-// has `push 0` at each; every initialized-local shape MSVC5 folds) so all esp
-// offsets drift by one pushed dword in the FUN_004c46c0 float region (ours filds
-// at [esp+0x24] where the original filds at [esp+0x1c]) and the tail jumps land
-// 20 bytes late. YardMap loop: original keeps the outer y counter in [esp+0x1c]
-// and x in edi, ours keeps y in edi.
-// The dominant difference is the shared zero default argument. The whole
-// original function contains ZERO `push 0` and 83 `push esi`: it sets
-// `xor esi,esi` once at 0x42c0f0 after the objectname strcpy test and pushes
-// esi for every default (the FUN_004c46c0 group, FUN_004c4760's two defaults,
-// FUN_004c58a0's char* default). The FUN_004c4800 group instead rematerialises
-// its default in eax (`xor eax,eax; push eax`, 7 times) alongside
-// `mov eax,0x10000` for the 0x10000 defaults.
-// Tried (all compile, all byte-identical at 62.2%):
-//   - one `int def = 0;` at the top of the function used at all 81 zero-default
-//     sites; MSVC5 constant-folds it and emits `push 0` at all 90 sites.
-//   - the same local declared at point of use (after the objectname test, where
-//     the original's xor esi,esi sits) instead of at the top.
-//   - a second `unsigned int value = 0;` for the 7 FUN_004c4800 defaults
-//     (original rematerialises those in eax): also folded to `push 0`.
-// The original's 58a0 name/description defaults are literal `push 0` (the
-// xor esi,esi comes after them), so those two sites are right either way.
-// A single initialised local is NOT the shape that produces the hoisted esi
-// zero; the next attempt should look for the non-constant source of that zero
-// (or for the instruction that makes esi live across the funnels, e.g. our
-// extra `mov [ebp+0x166],esi` / `mov [ebp+0x176],edi` stores near 0x42d11x,
-// which the original does not have: it keeps those values in registers, stores
-// them through edi at 0x42d0fb-0x42d107 and stores 0x166 earlier at 0x42d0a5).
-// Other confirmed differences:
-//  1. The Class_00438760 conversion temp does not sit in its own slot: the
-//     original builds it at [esp+0x23] with its char member at [esp+0x2b]
-//     (this+8), overlapping the head of the `char buf[100]` slot (which starts
-//     at [esp+0x24]). Ours places it at [esp+0x20] with the byte at [esp+0x28].
-//  2. The bail-out jumps differ (0x42d154 vs 0x42d167) only because our body is
-//     20 bytes longer; fix the instruction differences first, the offsets then
-//     follow.
-// Remaining: local-byte placement, flag-operation scheduling, yard-map control
-// flow and branch differences, plus the tail /3 sequence at 0x42d10a-0x42d11f.
-// Pass 12 (deepseek-v4.1-flash): no source change, 65.6% reconfirmed. One new
-// reading of the xor puzzle: in the original the `xor esi,esi` at 0x42c0f0 is
-// immediately followed by `push esi` for buildcostenergy, and esi is the SAME
-// register that later feeds `cmp eax,esi` and the soundcategory counter
-// (`inc esi` at 0x42cc93), i.e. one live range carries the constant zero, the
-// two null tests and the loop counter together. Ours emits `xor ebx,ebx` at
-// 0x42c0ee (the folded constant, 83 uses) and a second `xor esi,esi` at
-// 0x42c0f6 (the sound local), so the allocator keeps them as two ranges; that
-// is the non-SSA view, so the lever is not the spelling of the zero but any
-// source shape that makes the constant uses and the loop-counter definition the
-// same value (the original's first zero materialisation IS the loop counter's
-// initialisation). Every spelling tried so far still splits them.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Reads a unit's FBI file (the UNITINFO section of a TDF) into its 0x249-byte
+// unit definition: names, costs, movement, energy, the two flag words, the
+// self-destruct countdown, the sound category, corpse, movement class,
+// weapons, the yard map and the footprint extents.
+//
+// Claude Opus 5.5 (#4745): 81.0% -> 94.5%, same size as the original (4772
+// bytes). The earlier notes (passes 3 to 16, in git history) chased one
+// shared-zero register; these were the real causes:
+//   1. Every default argument is a literal 0, and the sound category loop has
+//      its own counter (`for (sound = 0; ...)` inside the if, with the store
+//      and `goto` on a hit and `= 0` in the else). Then the constant 0 and
+//      the counter share esi, as in the original (81.0 -> 89.9).
+//   2. The YardMap pointer is cleared twice: once before `if (bmcode == 0)`
+//      and again in its else branch (the original has both stores).
+//   3. FUN_004c4800 returns its 16.16 value by value through a hidden
+//      pointer (`Fixed` has constructors), so its result temporaries, the
+//      fild temporaries and the yard loop's y all share the frame slot at
+//      [esp+0x1c], as in the original; no `scratch` local is needed
+//      (89.2 -> 92.7).
+//   4. The extents tail is `size = max - min` with an inline Vec3
+//      operator- returning by value (92.7 -> 94.0).
+//   5. The self-destruct countdown is a 3-bit bitfield store (`= atoi(...)`
+//      or `= 5`), and the sound category test goes through an int local
+//      (`cmp eax, esi` instead of `test eax, eax`).
+//   6. The minimum and maximum extents read the footprint fields directly,
+//      with no w/h locals.
+// Still different (none of these moved with any spelling tried):
+//   - x87 stores: after each FUN_004c4760 call the original stores the
+//     result only after the next call's pushes and `this` load, except after
+//     energystorage. Here every fstp follows its call. This compiler keeps an
+//     fstp of a call result ahead of the next call's setup whenever that call
+//     returns a float or double (0x435da0 has the same open difference, and
+//     the matched 0x438320 shows the early form). Tried: float or double
+//     returns, double or (int, int) defaults, struct fields, float and
+//     double locals, inline wrappers (with and without a second return),
+//     /Oa, /Ow, /Op, /G3 to /G6 and the RTM compiler. Only a value that
+//     reaches the store from a join (an inline helper with two returns, or
+//     `c ? x : y`) is stored late, and those add code.
+//   - Flag words: six statements schedule the flag-word load, the `this`
+//     load and the string push in a different order (init_cloaked,
+//     zbuffer, canfly, canhover, antiweapons, canguard). Operand order,
+//     bitfield stores, a fresh variable and moving the declarations all
+//     compile to the same code. These ties do move with symbol ids
+//     (61163 declarations before the function flip several of them), so
+//     they look like the id ties in docs/c2-regalloc.md.
+//   - YardMap cases: the original addresses `[map + cell]`, here
+//     `[cell + map]`. The base is the operand with the larger symbol id, and
+//     the map load counts as `unitdef`, a parameter, which is always below
+//     `cell`. It flips only when the ids wrap past 65536 between `unitdef`
+//     and `cell` (61163 or more declarations before the function), which no
+//     plausible header set reaches. With 3 cases or fewer (a compare chain)
+//     it also flips.
+//   - FUN_004c4760 really returns double (its matched file). Declared that
+//     way here, `w * h` for the yard allocation loads its operands in the
+//     other order (94.3%); it is declared float until that tie is found.
+//     It depends on the number of FUN_004c4760 calls (dropping two of them
+//     restores the order), not on symbol counts.
 #include <list>
 class Class_004c4630 {
   public:
@@ -345,28 +115,23 @@ class Class_004c46c0 {
     int FUN_004c46c0(char* key, int def);
 };
 
-union Fixed {
+// The game's 16.16 fixed-point value. FUN_004c4800 returns it by value (through
+// a hidden pointer, since it has a constructor) and takes the default by value.
+class Fixed {
+  public:
     int value;
-    struct {
-        unsigned short frac;
-        short whole;
-    } parts;
+    Fixed(int v) { value = v; }
 };
 
 class Class_004c4800 {
   public:
-    int* FUN_004c4800(int* out, char* key, Fixed def);
+    Fixed FUN_004c4800(char* key, Fixed def);
 };
-
-static inline Fixed Fix(int v) {
-    Fixed f;
-    f.value = v;
-    return f;
-}
 
 class Class_004c4760 {
   public:
-    float FUN_004c4760(char* key, int def, int def2);
+    // Really returns double (0x4c4760.cpp); see the notes at the top.
+    float FUN_004c4760(const char* key, double def);
 };
 
 class Class_00438760 {
@@ -375,6 +140,9 @@ class Class_00438760 {
     Class_00438760(char* text);
 };
 
+// Puts the one-byte Class_00438760 temporary at [esp+0x23], the top byte of
+// its slot, where the original builds it; a plain named local lands at the
+// bottom of the slot.
 struct MissionHolder {
     char pad[3];
     Class_00438760 mission;
@@ -387,10 +155,112 @@ extern char DAT_00503ea0[];
 void __stdcall FUN_004c58a0(void* parser, char* dst, char* key, int size, char* def);
 void* __stdcall FUN_00488c50(char* text);
 
+struct Vec3 {
+    int x, y, z;
+};
+
+static inline Vec3 operator-(const Vec3& a, const Vec3& b) {
+    Vec3 r;
+    r.x = a.x - b.x;
+    r.y = a.y - b.y;
+    r.z = a.z - b.z;
+    return r;
+}
+
+struct CountdownBits {
+    unsigned int low : 20;
+    unsigned int selfdestructcountdown : 3;
+    unsigned int high : 9;
+};
+
+#pragma pack(push, 1)
+struct UnitDef {
+    char name[0x20];                    // +0x000
+    char unitname[0x20];                // +0x020
+    char description[0x40];             // +0x040
+    char objectname[0x20];              // +0x080
+    char unknown_a0[0xaa];
+    short footprintx;                   // +0x14a
+    short footprintz;                   // +0x14c
+    char* yardmap;                      // +0x14e
+    char unknown_152[0xc];
+    Vec3 extentmin;                     // +0x15e
+    Vec3 extentmax;                     // +0x16a
+    Vec3 extentsize;                    // +0x176
+    int radius;                         // +0x182
+    float buildcostenergy;              // +0x186
+    float buildcostmetal;               // +0x18a
+    int unknown_18e;
+    int maxvelocity;                    // +0x192
+    int maxslopevelocity;               // +0x196
+    int brakerate;                      // +0x19a
+    int acceleration;                   // +0x19e
+    int bankscale;                      // +0x1a2
+    int pitchscale;                     // +0x1a6
+    int damagemodifier;                 // +0x1aa
+    int moverate1;                      // +0x1ae
+    int moverate2;                      // +0x1b2
+    void* movementclass;                // +0x1b6
+    short turnrate;                     // +0x1ba
+    short corpse;                       // +0x1bc
+    short maxwaterdepth;                // +0x1be
+    short minwaterdepth;                // +0x1c0
+    float energymake;                   // +0x1c2
+    float energyuse;                    // +0x1c6
+    float metalmake;                    // +0x1ca
+    float extractsmetal;                // +0x1ce
+    float windgenerator;                // +0x1d2
+    float tidalgenerator;               // +0x1d6
+    float cloakcost;                    // +0x1da
+    float cloakcostmoving;              // +0x1de
+    float energystorage;                // +0x1e2
+    float metalstorage;                 // +0x1e6
+    int buildtime;                      // +0x1ea
+    char* weapon1;                      // +0x1ee
+    char* weapon2;                      // +0x1f2
+    char* weapon3;                      // +0x1f6
+    int maxdamage;                      // +0x1fa
+    short workertime;                   // +0x1fe
+    short healtime;                     // +0x200
+    short sightdistance;                // +0x202
+    short radardistance;                // +0x204
+    short sonardistance;                // +0x206
+    short mincloakdistance;             // +0x208
+    short radardistancejam;             // +0x20a
+    short sonardistancejam;             // +0x20c
+    short soundcategory;                // +0x20e
+    short buildangle;                   // +0x210
+    short builddistance;                // +0x212
+    short maneuverleashlength;          // +0x214
+    short attackrunlength;              // +0x216
+    short kamikazedistance;             // +0x218
+    short sortbias;                     // +0x21a
+    short cruisealt;                    // +0x21c
+    short unknown_21e;
+    char* explodeas;                    // +0x220
+    char* selfdestructas;               // +0x224
+    unsigned char maxslope;             // +0x228
+    unsigned char maxwaterslope;        // +0x229
+    char transportsize;                 // +0x22a
+    char transportcapacity;             // +0x22b
+    char waterline;                     // +0x22c
+    char makesmetal;                    // +0x22d
+    char unknown_22e;
+    char bmcode;                        // +0x22f
+    char defaultmissiontype;            // +0x230
+    void* wpri_badtargetcategory;       // +0x231
+    void* wsec_badtargetcategory;       // +0x235
+    void* wspe_badtargetcategory;       // +0x239
+    void* nochasecategory;              // +0x23d
+    unsigned int flags1;                // +0x241
+    unsigned int flags2;                // +0x245
+};
+#pragma pack(pop)
+
+
 // FUNCTION: 0x42bf40
-void __stdcall FUN_0042bf40(char* fbi_file, char* unitdef) {
+void __stdcall FUN_0042bf40(char* fbi_file, UnitDef* unitdef) {
     Class_004c2ea0 parser;
-    int scratch;
     char buf[100];
     char weapon[128];
     char yard[1024];
@@ -402,361 +272,355 @@ void __stdcall FUN_0042bf40(char* fbi_file, char* unitdef) {
         }
         {
             ((Class_004c48c0*)parser.current)
-                ->FUN_004c48c0(unitdef + 0x20, "unitname", 0x20, DAT_005119b8);
-            FUN_004c58a0(&parser, unitdef, "name", 0x20, 0);
-            FUN_004c58a0(&parser, unitdef + 0x40, "description", 0x40, 0);
+                ->FUN_004c48c0(unitdef->unitname, "unitname", 0x20, DAT_005119b8);
+            FUN_004c58a0(&parser, unitdef->name, "name", 0x20, 0);
+            FUN_004c58a0(&parser, unitdef->description, "description", 0x40, 0);
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(buf, "defaultmissiontype", 100, DAT_005119b8);
             MissionHolder m(buf);
-            unitdef[0x230] = m.mission.value;
+            unitdef->defaultmissiontype = m.mission.value;
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(buf, "wpri_badTargetCategory", 100, DAT_00503ea0);
-            *(void**)(unitdef + 0x231) = FUN_00488c50(buf);
+            unitdef->wpri_badtargetcategory = FUN_00488c50(buf);
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(buf, "wsec_badTargetCategory", 100, DAT_00503ea0);
-            *(void**)(unitdef + 0x235) = FUN_00488c50(buf);
+            unitdef->wsec_badtargetcategory = FUN_00488c50(buf);
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(buf, "wspe_badTargetCategory", 100, DAT_00503ea0);
-            *(void**)(unitdef + 0x239) = FUN_00488c50(buf);
+            unitdef->wspe_badtargetcategory = FUN_00488c50(buf);
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(buf, "noChaseCategory", 100, DAT_00503ea0);
-            *(void**)(unitdef + 0x23d) = FUN_00488c50(buf);
+            unitdef->nochasecategory = FUN_00488c50(buf);
             if (((Class_004c48c0*)parser.current)
-                    ->FUN_004c48c0(unitdef + 0x80, "objectname", 0x20, DAT_005119b8) == 0) {
-                strcpy(unitdef + 0x80, unitdef + 0x20);
+                    ->FUN_004c48c0(unitdef->objectname, "objectname", 0x20, DAT_005119b8) == 0) {
+                strcpy(unitdef->objectname, unitdef->unitname);
             }
-            int sound = 0;
-            scratch = ((Class_004c46c0*)parser.current)->FUN_004c46c0("buildcostenergy", sound);
-            *(float*)(unitdef + 0x186) = (float)scratch;
-            scratch = ((Class_004c46c0*)parser.current)->FUN_004c46c0("buildcostmetal", sound);
-            *(float*)(unitdef + 0x18a) = (float)scratch;
-            *(int*)(unitdef + 0x192) =
-                *((Class_004c4800*)parser.current)->FUN_004c4800(&scratch, "maxvelocity", Fix(0));
-            *(int*)(unitdef + 0x19a) =
-                *((Class_004c4800*)parser.current)->FUN_004c4800(&scratch, "brakerate", Fix(0));
-            *(int*)(unitdef + 0x19e) =
-                *((Class_004c4800*)parser.current)->FUN_004c4800(&scratch, "acceleration", Fix(0));
-            *(int*)(unitdef + 0x1a2) =
-                *((Class_004c4800*)parser.current)->FUN_004c4800(&scratch, "bankscale", Fix(0x10000));
-            *(int*)(unitdef + 0x1a6) =
-                *((Class_004c4800*)parser.current)->FUN_004c4800(&scratch, "pitchscale", Fix(0));
-            *(int*)(unitdef + 0x1aa) = *((Class_004c4800*)parser.current)
-                                            ->FUN_004c4800(&scratch, "damagemodifier", Fix(0x10000));
-            *(int*)(unitdef + 0x1ae) =
-                *((Class_004c4800*)parser.current)
-                     ->FUN_004c4800(&scratch, "moverate1", Fix(*(int*)(unitdef + 0x192) * 2));
-            *(int*)(unitdef + 0x1b2) =
-                *((Class_004c4800*)parser.current)
-                     ->FUN_004c4800(&scratch, "moverate2", Fix(*(int*)(unitdef + 0x192) * 2));
-            *(short*)(unitdef + 0x1ba) =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("turnrate", sound);
-            unitdef[0x22c] = (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("waterline", sound);
-            unitdef[0x22a] =
-                (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("transportsize", sound);
-            unitdef[0x22b] =
-                (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("transportcapacity", sound);
-            *(float*)(unitdef + 0x1c2) =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("energymake", sound, sound);
-            *(float*)(unitdef + 0x1c6) =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("energyuse", sound, sound);
-            *(float*)(unitdef + 0x1ca) =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("metalmake", sound, sound);
-            *(float*)(unitdef + 0x1ce) =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("extractsmetal", sound, sound);
-            unitdef[0x22d] = (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("makesmetal", sound);
-            *(float*)(unitdef + 0x1d2) =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("windgenerator", sound, sound);
-            *(float*)(unitdef + 0x1d6) =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("tidalgenerator", sound, sound);
-            *(float*)(unitdef + 0x1e2) =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("energystorage", sound, sound);
-            *(float*)(unitdef + 0x1e6) =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("metalstorage", sound, sound);
-            *(int*)(unitdef + 0x1ea) =
-                ((Class_004c46c0*)parser.current)->FUN_004c46c0("buildtime", sound);
-            *(short*)(unitdef + 0x1fe) =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("workertime", sound);
-            *(short*)(unitdef + 0x200) =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("healtime", sound);
-            *(int*)(unitdef + 0x1fa) =
-                ((Class_004c46c0*)parser.current)->FUN_004c46c0("maxdamage", sound);
-            *(short*)(unitdef + 0x202) =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sightdistance", sound);
-            *(short*)(unitdef + 0x204) =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("radardistance", sound);
-            *(short*)(unitdef + 0x206) =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sonardistance", sound);
-            *(short*)(unitdef + 0x20a) =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("radardistancejam", sound);
-            *(short*)(unitdef + 0x20c) =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sonardistancejam", sound);
-            unitdef[0x22f] = (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("bmcode", sound);
+            unitdef->buildcostenergy = (float)((Class_004c46c0*)parser.current)->FUN_004c46c0("buildcostenergy", 0);
+            unitdef->buildcostmetal = (float)((Class_004c46c0*)parser.current)->FUN_004c46c0("buildcostmetal", 0);
+            unitdef->maxvelocity =
+                ((Class_004c4800*)parser.current)->FUN_004c4800("maxvelocity", Fixed(0)).value;
+            unitdef->brakerate =
+                ((Class_004c4800*)parser.current)->FUN_004c4800("brakerate", Fixed(0)).value;
+            unitdef->acceleration =
+                ((Class_004c4800*)parser.current)->FUN_004c4800("acceleration", Fixed(0)).value;
+            unitdef->bankscale =
+                ((Class_004c4800*)parser.current)->FUN_004c4800("bankscale", Fixed(0x10000)).value;
+            unitdef->pitchscale =
+                ((Class_004c4800*)parser.current)->FUN_004c4800("pitchscale", Fixed(0)).value;
+            unitdef->damagemodifier = ((Class_004c4800*)parser.current)
+                                            ->FUN_004c4800("damagemodifier", Fixed(0x10000)).value;
+            unitdef->moverate1 =
+                ((Class_004c4800*)parser.current)
+                     ->FUN_004c4800("moverate1", Fixed(unitdef->maxvelocity * 2)).value;
+            unitdef->moverate2 =
+                ((Class_004c4800*)parser.current)
+                     ->FUN_004c4800("moverate2", Fixed(unitdef->maxvelocity * 2)).value;
+            unitdef->turnrate =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("turnrate", 0);
+            unitdef->waterline = (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("waterline", 0);
+            unitdef->transportsize =
+                (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("transportsize", 0);
+            unitdef->transportcapacity =
+                (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("transportcapacity", 0);
+            unitdef->energymake =
+                ((Class_004c4760*)parser.current)->FUN_004c4760("energymake", 0.0);
+            unitdef->energyuse =
+                ((Class_004c4760*)parser.current)->FUN_004c4760("energyuse", 0.0);
+            unitdef->metalmake =
+                ((Class_004c4760*)parser.current)->FUN_004c4760("metalmake", 0.0);
+            unitdef->extractsmetal =
+                ((Class_004c4760*)parser.current)->FUN_004c4760("extractsmetal", 0.0);
+            unitdef->makesmetal = (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("makesmetal", 0);
+            unitdef->windgenerator =
+                ((Class_004c4760*)parser.current)->FUN_004c4760("windgenerator", 0.0);
+            unitdef->tidalgenerator =
+                ((Class_004c4760*)parser.current)->FUN_004c4760("tidalgenerator", 0.0);
+            unitdef->energystorage =
+                ((Class_004c4760*)parser.current)->FUN_004c4760("energystorage", 0.0);
+            unitdef->metalstorage =
+                ((Class_004c4760*)parser.current)->FUN_004c4760("metalstorage", 0.0);
+            unitdef->buildtime =
+                ((Class_004c46c0*)parser.current)->FUN_004c46c0("buildtime", 0);
+            unitdef->workertime =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("workertime", 0);
+            unitdef->healtime =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("healtime", 0);
+            unitdef->maxdamage =
+                ((Class_004c46c0*)parser.current)->FUN_004c46c0("maxdamage", 0);
+            unitdef->sightdistance =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sightdistance", 0);
+            unitdef->radardistance =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("radardistance", 0);
+            unitdef->sonardistance =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sonardistance", 0);
+            unitdef->radardistancejam =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("radardistancejam", 0);
+            unitdef->sonardistancejam =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sonardistancejam", 0);
+            unitdef->bmcode = (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("bmcode", 0);
             unsigned int value2;
-            int number;
             unsigned int value;
             value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("standingmoveorder", 2);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value ^ *(unsigned int*)(unitdef + 0x241)) & 3 ^ *(unsigned int*)(unitdef + 0x241);
+            unitdef->flags1 =
+                (value ^ unitdef->flags1) & 3 ^ unitdef->flags1;
             value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("standingfireorder", 2);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 3) << 2 | *(unsigned int*)(unitdef + 0x241) & 0xfffffff3;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("init_cloaked", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 4 | *(unsigned int*)(unitdef + 0x241) & 0xffffffef;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("downloadable", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 5 | *(unsigned int*)(unitdef + 0x241) & 0xffffffdf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("builder", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 6 | *(unsigned int*)(unitdef + 0x241) & 0xffffffbf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("stealth", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 8 | *(unsigned int*)(unitdef + 0x241) & 0xfffffeff;
-            scratch = ((Class_004c46c0*)parser.current)->FUN_004c46c0("cloakcost", sound);
-            *(float*)(unitdef + 0x1da) = (float)scratch;
-            int cloakDefault = (int)*(float*)(unitdef + 0x1da);
-            scratch =
-                ((Class_004c46c0*)parser.current)->FUN_004c46c0("cloakcostmoving", cloakDefault);
-            *(float*)(unitdef + 0x1de) = (float)scratch;
-            number = ((Class_004c46c0*)parser.current)->FUN_004c46c0("mincloakdistance", sound);
-            *(short*)(unitdef + 0x208) = (short)number;
-            number = ((Class_004c46c0*)parser.current)->FUN_004c46c0("buildangle", sound);
-            *(short*)(unitdef + 0x210) = (short)number;
-            number = ((Class_004c46c0*)parser.current)->FUN_004c46c0("builddistance", sound);
-            *(short*)(unitdef + 0x212) = (short)number;
-            number = ((Class_004c46c0*)parser.current)->FUN_004c46c0("sortbias", sound);
-            *(short*)(unitdef + 0x21a) = (short)number;
-            number = ((Class_004c46c0*)parser.current)->FUN_004c46c0("cruisealt", sound);
-            *(short*)(unitdef + 0x21c) = (short)number;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("zbuffer", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 7 | *(unsigned int*)(unitdef + 0x241) & 0xffffff7f;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("isairbase", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 9 | *(unsigned int*)(unitdef + 0x241) & 0xfffffdff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("istargetingupgrade", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 10 | *(unsigned int*)(unitdef + 0x241) & 0xfffffbff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("teleporter", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                *(unsigned int*)(unitdef + 0x241) & 0xffffdfff | (value & 1) << 0xd;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("hidedamage", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                *(unsigned int*)(unitdef + 0x241) & 0xffffbfff | (value & 1) << 0xe;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("shootme", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                *(unsigned int*)(unitdef + 0x241) & 0xffff7fff | (value & 1) << 0xf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("armoredstate", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 0x11 | *(unsigned int*)(unitdef + 0x241) & 0xfffdffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("activatewhenbuilt", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 0x12 | *(unsigned int*)(unitdef + 0x241) & 0xfffbffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canfly", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 0xb | *(unsigned int*)(unitdef + 0x241) & 0xfffff7ff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canhover", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                *(unsigned int*)(unitdef + 0x241) & 0xffffefff | (value & 1) << 0xc;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("upright", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 0x14 | *(unsigned int*)(unitdef + 0x241) & 0xffefffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("floater", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 0x13 | *(unsigned int*)(unitdef + 0x241) & 0xfff7ffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("amphibious", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 0x15 | *(unsigned int*)(unitdef + 0x241) & 0xffdfffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("isfeature", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 0x18 | *(unsigned int*)(unitdef + 0x241) & 0xfeffffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("noshadow", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 0x19 | *(unsigned int*)(unitdef + 0x241) & 0xfdffffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("immunetoparalyzer", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 0x1a | *(unsigned int*)(unitdef + 0x241) & 0xfbffffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("hoverattack", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                (value & 1) << 0x1b | *(unsigned int*)(unitdef + 0x241) & 0xf7ffffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("antiweapons", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                *(unsigned int*)(unitdef + 0x241) & 0xdfffffff | (value & 1) << 0x1d;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("digger", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                *(unsigned int*)(unitdef + 0x241) & 0xbfffffff | (value & 1) << 0x1e;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("onoffable", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 2 | *(unsigned int*)(unitdef + 0x245) & 0xfffffffb;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("mobilestandorders", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value ^ *(unsigned int*)(unitdef + 0x245)) & 1 ^ *(unsigned int*)(unitdef + 0x245);
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("firestandorders", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 1 | *(unsigned int*)(unitdef + 0x245) & 0xfffffffd;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canstop", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 3 | *(unsigned int*)(unitdef + 0x245) & 0xfffffff7;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canattack", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 4 | *(unsigned int*)(unitdef + 0x245) & 0xffffffef;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canguard", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 5 | *(unsigned int*)(unitdef + 0x245) & 0xffffffdf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canpatrol", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 6 | *(unsigned int*)(unitdef + 0x245) & 0xffffffbf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canmove", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 7 | *(unsigned int*)(unitdef + 0x245) & 0xffffff7f;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canload", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 8 | *(unsigned int*)(unitdef + 0x245) & 0xfffffeff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canreclamate", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 10 | *(unsigned int*)(unitdef + 0x245) & 0xfffffbff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canresurrect", sound);
-            value2 = (value & 1) << 0xb | *(unsigned int*)(unitdef + 0x245) & 0xfffff7ff;
-            *(unsigned int*)(unitdef + 0x245) = value2 & 0xfffffdff | (value2 & 0x400) >> 1;
-            value2 = ((Class_004c46c0*)parser.current)->FUN_004c46c0("cancapture", sound);
-            value = *(unsigned int*)(unitdef + 0x245);
+            unitdef->flags1 =
+                (value & 3) << 2 | unitdef->flags1 & 0xfffffff3;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("init_cloaked", 0);
+            unitdef->flags1 =
+                (value & 1) << 4 | unitdef->flags1 & 0xffffffef;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("downloadable", 0);
+            unitdef->flags1 =
+                (value & 1) << 5 | unitdef->flags1 & 0xffffffdf;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("builder", 0);
+            unitdef->flags1 =
+                (value & 1) << 6 | unitdef->flags1 & 0xffffffbf;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("stealth", 0);
+            unitdef->flags1 =
+                (value & 1) << 8 | unitdef->flags1 & 0xfffffeff;
+            unitdef->cloakcost = (float)((Class_004c46c0*)parser.current)->FUN_004c46c0("cloakcost", 0);
+            unitdef->cloakcostmoving = (float)((Class_004c46c0*)parser.current)->FUN_004c46c0("cloakcostmoving", (int)unitdef->cloakcost);
+            unitdef->mincloakdistance =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("mincloakdistance", 0);
+            unitdef->buildangle =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("buildangle", 0);
+            unitdef->builddistance =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("builddistance", 0);
+            unitdef->sortbias =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sortbias", 0);
+            unitdef->cruisealt =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("cruisealt", 0);
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("zbuffer", 0);
+            unitdef->flags1 =
+                (value & 1) << 7 | unitdef->flags1 & 0xffffff7f;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("isairbase", 0);
+            unitdef->flags1 =
+                (value & 1) << 9 | unitdef->flags1 & 0xfffffdff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("istargetingupgrade", 0);
+            unitdef->flags1 =
+                (value & 1) << 10 | unitdef->flags1 & 0xfffffbff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("teleporter", 0);
+            unitdef->flags1 =
+                unitdef->flags1 & 0xffffdfff | (value & 1) << 0xd;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("hidedamage", 0);
+            unitdef->flags1 =
+                unitdef->flags1 & 0xffffbfff | (value & 1) << 0xe;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("shootme", 0);
+            unitdef->flags1 =
+                unitdef->flags1 & 0xffff7fff | (value & 1) << 0xf;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("armoredstate", 0);
+            unitdef->flags1 =
+                (value & 1) << 0x11 | unitdef->flags1 & 0xfffdffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("activatewhenbuilt", 0);
+            unitdef->flags1 =
+                (value & 1) << 0x12 | unitdef->flags1 & 0xfffbffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canfly", 0);
+            unitdef->flags1 =
+                (value & 1) << 0xb | unitdef->flags1 & 0xfffff7ff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canhover", 0);
+            unitdef->flags1 =
+                unitdef->flags1 & 0xffffefff | (value & 1) << 0xc;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("upright", 0);
+            unitdef->flags1 =
+                (value & 1) << 0x14 | unitdef->flags1 & 0xffefffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("floater", 0);
+            unitdef->flags1 =
+                (value & 1) << 0x13 | unitdef->flags1 & 0xfff7ffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("amphibious", 0);
+            unitdef->flags1 =
+                (value & 1) << 0x15 | unitdef->flags1 & 0xffdfffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("isfeature", 0);
+            unitdef->flags1 =
+                (value & 1) << 0x18 | unitdef->flags1 & 0xfeffffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("noshadow", 0);
+            unitdef->flags1 =
+                (value & 1) << 0x19 | unitdef->flags1 & 0xfdffffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("immunetoparalyzer", 0);
+            unitdef->flags1 =
+                (value & 1) << 0x1a | unitdef->flags1 & 0xfbffffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("hoverattack", 0);
+            unitdef->flags1 =
+                (value & 1) << 0x1b | unitdef->flags1 & 0xf7ffffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("antiweapons", 0);
+            unitdef->flags1 =
+                unitdef->flags1 & 0xdfffffff | (value & 1) << 0x1d;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("digger", 0);
+            unitdef->flags1 =
+                unitdef->flags1 & 0xbfffffff | (value & 1) << 0x1e;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("onoffable", 0);
+            unitdef->flags2 =
+                (value & 1) << 2 | unitdef->flags2 & 0xfffffffb;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("mobilestandorders", 0);
+            unitdef->flags2 =
+                (value ^ unitdef->flags2) & 1 ^ unitdef->flags2;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("firestandorders", 0);
+            unitdef->flags2 =
+                (value & 1) << 1 | unitdef->flags2 & 0xfffffffd;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canstop", 0);
+            unitdef->flags2 =
+                (value & 1) << 3 | unitdef->flags2 & 0xfffffff7;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canattack", 0);
+            unitdef->flags2 =
+                (value & 1) << 4 | unitdef->flags2 & 0xffffffef;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canguard", 0);
+            unitdef->flags2 =
+                (value & 1) << 5 | unitdef->flags2 & 0xffffffdf;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canpatrol", 0);
+            unitdef->flags2 =
+                (value & 1) << 6 | unitdef->flags2 & 0xffffffbf;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canmove", 0);
+            unitdef->flags2 =
+                (value & 1) << 7 | unitdef->flags2 & 0xffffff7f;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canload", 0);
+            unitdef->flags2 =
+                (value & 1) << 8 | unitdef->flags2 & 0xfffffeff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canreclamate", 0);
+            unitdef->flags2 =
+                (value & 1) << 10 | unitdef->flags2 & 0xfffffbff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canresurrect", 0);
+            value2 = (value & 1) << 0xb | unitdef->flags2 & 0xfffff7ff;
+            unitdef->flags2 = value2 & 0xfffffdff | (value2 & 0x400) >> 1;
+            value2 = ((Class_004c46c0*)parser.current)->FUN_004c46c0("cancapture", 0);
+            value = unitdef->flags2;
             value2 = (value2 & 1) << 0xc;
             value = value & 0xffffefff | value2;
-            *(unsigned int*)(unitdef + 0x245) = value;
-            value2 = (unsigned int)(0.0 < *(float*)(unitdef + 0x1da));
-            *(unsigned int*)(unitdef + 0x245) = value & 0xffffdfff | (value2 & 1) << 0xd;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("candgun", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                *(unsigned int*)(unitdef + 0x245) & 0xffffbfff | (value & 1) << 0xe;
-            number = ((Class_004c46c0*)parser.current)->FUN_004c46c0("maneuverleashlength", sound);
-            *(short*)(unitdef + 0x214) = (short)number;
-            number = ((Class_004c46c0*)parser.current)->FUN_004c46c0("attackrunlength", sound);
-            *(short*)(unitdef + 0x216) = (short)number;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("kamikaze", sound);
-            *(unsigned int*)(unitdef + 0x241) =
-                *(unsigned int*)(unitdef + 0x241) & 0xefffffff | (value & 1) << 0x1c;
-            number = ((Class_004c46c0*)parser.current)->FUN_004c46c0("kamikazedistance", sound);
-            *(short*)(unitdef + 0x218) = (short)number;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("norestrict", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                *(unsigned int*)(unitdef + 0x245) & 0xffff7fff | (value & 1) << 0xf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("showplayername", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 0x11 | *(unsigned int*)(unitdef + 0x245) & 0xfffdffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("commander", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 0x12 | *(unsigned int*)(unitdef + 0x245) & 0xfffbffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("cantbetransported", sound);
-            *(unsigned int*)(unitdef + 0x245) =
-                (value & 1) << 0x13 | *(unsigned int*)(unitdef + 0x245) & 0xfff7ffff;
+            unitdef->flags2 = value;
+            value2 = (unsigned int)(unitdef->cloakcost > 0.0f);
+            unitdef->flags2 = value & 0xffffdfff | (value2 & 1) << 0xd;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("candgun", 0);
+            unitdef->flags2 =
+                unitdef->flags2 & 0xffffbfff | (value & 1) << 0xe;
+            unitdef->maneuverleashlength =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("maneuverleashlength", 0);
+            unitdef->attackrunlength =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("attackrunlength", 0);
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("kamikaze", 0);
+            unitdef->flags1 =
+                unitdef->flags1 & 0xefffffff | (value & 1) << 0x1c;
+            unitdef->kamikazedistance =
+                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("kamikazedistance", 0);
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("norestrict", 0);
+            unitdef->flags2 =
+                unitdef->flags2 & 0xffff7fff | (value & 1) << 0xf;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("showplayername", 0);
+            unitdef->flags2 =
+                (value & 1) << 0x11 | unitdef->flags2 & 0xfffdffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("commander", 0);
+            unitdef->flags2 =
+                (value & 1) << 0x12 | unitdef->flags2 & 0xfffbffff;
+            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("cantbetransported", 0);
+            unitdef->flags2 =
+                (value & 1) << 0x13 | unitdef->flags2 & 0xfff7ffff;
 
             char* countdown =
                 ((Class_004c4630*)parser.current)->FUN_004c4630("selfdestructcountdown");
-            unsigned int* flags = (unsigned int*)(unitdef + 0x245);
+            CountdownBits* flags = (CountdownBits*)&unitdef->flags2;
             if (countdown != (char*)0)
-                *flags = (*flags & 0xff8fffff) | ((unsigned int)atoi(countdown) & 7) << 20;
+                flags->selfdestructcountdown = atoi(countdown);
             else
-                *flags = (*flags & 0xffdfffff) | 0x500000;
+                flags->selfdestructcountdown = 5;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "category", 100, DAT_005119b8);
             ((Class_00488e70*)unitdef)->FUN_00488e70(buf);
-            if (((Class_004c48c0*)parser.current)
-                    ->FUN_004c48c0(buf, "soundcategory", 100, DAT_005119b8) != sound) {
-                while (sound < *(int*)(g_game + 0x37e17)) {
-                    if (_strcmpi(*(char**)(g_game + 0x37e13) + sound * 0x160, buf) == 0)
-                        goto SOUND_FOUND;
-                    sound++;
+            int found = ((Class_004c48c0*)parser.current)
+                    ->FUN_004c48c0(buf, "soundcategory", 100, DAT_005119b8);
+            if (found) {
+                int sound;
+                for (sound = 0; sound < *(int*)(g_game + 0x37e17); sound++) {
+                    if (_strcmpi(*(char**)(g_game + 0x37e13) + sound * 0x160, buf) == 0) {
+                        unitdef->soundcategory = (short)sound;
+                        goto SOUND_DONE;
+                    }
                 }
-                *(short*)(unitdef + 0x20e) = (short)atoi(buf);
-                goto SOUND_DONE;
+                unitdef->soundcategory = (short)atoi(buf);
+            } else {
+                unitdef->soundcategory = 0;
             }
-        SOUND_FOUND:
-            *(short*)(unitdef + 0x20e) = (short)sound;
         SOUND_DONE:
-            *(short*)(unitdef + 0x1bc) = -1;
+            unitdef->corpse = -1;
             if (((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "corpse", 100, DAT_005119b8))
-                *(short*)(unitdef + 0x1bc) = FUN_00422e40(buf);
-            *(void**)(unitdef + 0x1b6) = 0;
+                unitdef->corpse = FUN_00422e40(buf);
+            unitdef->movementclass = 0;
             if (((Class_004c48c0*)parser.current)
                     ->FUN_004c48c0(buf, "movementclass", 100, DAT_005119b8))
-                *(void**)(unitdef + 0x1b6) = FUN_00440420(buf);
+                unitdef->movementclass = FUN_00440420(buf);
             Class_004402e0 movement;
-            char* move = *(char**)(unitdef + 0x1b6);
+            char* move = (char*)unitdef->movementclass;
             if (move == 0) {
                 ((Class_00440320*)&movement)->FUN_00440340(&parser);
                 move = (char*)&movement;
             }
-            *(short*)(unitdef + 0x14a) = *(short*)(move + 4);
-            *(short*)(unitdef + 0x14c) = *(short*)(move + 6);
-            *(short*)(unitdef + 0x1be) = *(short*)(move + 8);
-            *(short*)(unitdef + 0x1c0) = *(short*)(move + 10);
-            unitdef[0x228] = move[12];
-            unitdef[0x229] = move[14];
-            *(int*)(unitdef + 0x196) = (int)(((__int64)*(int*)(unitdef + 0x192) << 16) /
-                                             (((unsigned char)unitdef[0x228] + 1) * 0x10000));
+            unitdef->footprintx = *(short*)(move + 4);
+            unitdef->footprintz = *(short*)(move + 6);
+            unitdef->maxwaterdepth = *(short*)(move + 8);
+            unitdef->minwaterdepth = *(short*)(move + 10);
+            unitdef->maxslope = move[12];
+            unitdef->maxwaterslope = move[14];
+            unitdef->maxslopevelocity = (int)(((__int64)unitdef->maxvelocity << 16) /
+                                             ((unitdef->maxslope + 1) * 0x10000));
             char* defaultWeapon = g_game + 0x2cf3;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "weapon1", 128, DAT_005119b8);
             char* weapon1 = FUN_0049e5b0(weapon);
-            *(char**)(unitdef + 0x1ee) = weapon1 ? weapon1 : defaultWeapon;
+            unitdef->weapon1 = weapon1 ? weapon1 : defaultWeapon;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "weapon2", 128, DAT_005119b8);
             char* weapon2 = FUN_0049e5b0(weapon);
-            *(char**)(unitdef + 0x1f2) = weapon2 ? weapon2 : defaultWeapon;
+            unitdef->weapon2 = weapon2 ? weapon2 : defaultWeapon;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "weapon3", 128, DAT_005119b8);
             char* weapon3 = FUN_0049e5b0(weapon);
-            *(char**)(unitdef + 0x1f6) = weapon3 ? weapon3 : defaultWeapon;
+            unitdef->weapon3 = weapon3 ? weapon3 : defaultWeapon;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "explodeas", 128, DAT_005119b8);
             char* explodeas = FUN_0049e5b0(weapon);
-            *(char**)(unitdef + 0x220) = explodeas ? explodeas : defaultWeapon;
+            unitdef->explodeas = explodeas ? explodeas : defaultWeapon;
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(weapon, "selfdestructas", 128, DAT_005119b8);
             char* selfdestructas = FUN_0049e5b0(weapon);
-            *(char**)(unitdef + 0x224) = selfdestructas ? selfdestructas : defaultWeapon;
-            if (*(char**)(unitdef + 0x1ee) == defaultWeapon &&
-                *(char**)(unitdef + 0x1f2) == defaultWeapon &&
-                *(char**)(unitdef + 0x1f6) == defaultWeapon)
-                *(unsigned int*)(unitdef + 0x241) &= ~0x10000;
+            unitdef->selfdestructas = selfdestructas ? selfdestructas : defaultWeapon;
+            if (unitdef->weapon1 == defaultWeapon &&
+                unitdef->weapon2 == defaultWeapon &&
+                unitdef->weapon3 == defaultWeapon)
+                unitdef->flags1 &= ~0x10000;
             else
-                *(unsigned int*)(unitdef + 0x241) |= 0x10000;
-            *(void**)(unitdef + 0x14e) = 0;
-            if (unitdef[0x22f] == 0) {
+                unitdef->flags1 |= 0x10000;
+            unitdef->yardmap = 0;
+            if (unitdef->bmcode == 0) {
                 ((Class_004c48c0*)parser.current)
                     ->FUN_004c48c0(yard, "YardMap", 1024, DAT_005119b8);
-                *(char**)(unitdef + 0x14e) = (char*)FUN_004d83b0(
-                    "BUILDING YARD", *(short*)(unitdef + 0x14a) * *(short*)(unitdef + 0x14c));
+                unitdef->yardmap = (char*)FUN_004d83b0(
+                    "BUILDING YARD", unitdef->footprintx * unitdef->footprintz);
                 int cell = 0;
                 char* cursor = yard;
                 int y = 0;
-                while (y < *(short*)(unitdef + 0x14c)) {
-                    for (int x = 0; x < *(short*)(unitdef + 0x14a);) {
+                while (y < unitdef->footprintz) {
+                    for (int x = 0; x < unitdef->footprintx;) {
                         switch (*cursor) {
-case '.':
-                            (*(char**)(unitdef + 0x14e))[cell] = 0x0;
+                        case '.':
+                            unitdef->yardmap[cell] = 0x0;
                             break;
-case 'f':
-                            (*(char**)(unitdef + 0x14e))[cell] = 0x6f;
+                        case 'f':
+                            unitdef->yardmap[cell] = 0x6f;
                             break;
-case 'o':
-                            (*(char**)(unitdef + 0x14e))[cell] = 0x2f;
+                        case 'o':
+                            unitdef->yardmap[cell] = 0x2f;
                             break;
-case 'c':
-                            (*(char**)(unitdef + 0x14e))[cell] = 0x2d;
+                        case 'c':
+                            unitdef->yardmap[cell] = 0x2d;
                             break;
-case 'O':
-                            (*(char**)(unitdef + 0x14e))[cell] = 0x2b;
+                        case 'O':
+                            unitdef->yardmap[cell] = 0x2b;
                             break;
-case 'w':
-                            (*(char**)(unitdef + 0x14e))[cell] = 0x37;
+                        case 'w':
+                            unitdef->yardmap[cell] = 0x37;
                             break;
-case 'C':
-                            (*(char**)(unitdef + 0x14e))[cell] = 0x35;
+                        case 'C':
+                            unitdef->yardmap[cell] = 0x35;
                             break;
-case 'y':
-                            (*(char**)(unitdef + 0x14e))[cell] = 0x29;
+                        case 'y':
+                            unitdef->yardmap[cell] = 0x29;
                             break;
-case 'Y':
-                            (*(char**)(unitdef + 0x14e))[cell] = 0x31;
+                        case 'Y':
+                            unitdef->yardmap[cell] = 0x31;
                             break;
-case 'G':
-                            (*(char**)(unitdef + 0x14e))[cell] = 0x8f;
+                        case 'G':
+                            unitdef->yardmap[cell] = 0x8f;
                             break;
                         default:
                             cursor++;
@@ -769,23 +633,19 @@ case 'G':
                     }
                     y++;
                 }
+            } else {
+                unitdef->yardmap = 0;
             }
-            int w = *(short*)(unitdef + 0x14a);
-            int h = *(short*)(unitdef + 0x14c);
-            *(int*)(unitdef + 0x15e) = (w * -0x100000) / 2;
-            *(int*)(unitdef + 0x166) = (h * -0x100000) / 2;
-            *(int*)(unitdef + 0x16a) = (w << 20) / 2;
-            *(int*)(unitdef + 0x172) = (h << 20) / 2;
-            // tail
-            int* p = (int*)(unitdef + 0x176);
-            p[0] = p[-3] - p[-6];
-            p[1] = p[-2] - p[-5];
-            p[2] = p[-1] - p[-4];
-            *(int*)(unitdef + 0x182) = (p[2] + p[0]) / 3;
+            unitdef->extentmin.x = (unitdef->footprintx * -0x100000) / 2;
+            unitdef->extentmin.z = (unitdef->footprintz * -0x100000) / 2;
+            unitdef->extentmax.x = (unitdef->footprintx << 20) / 2;
+            unitdef->extentmax.z = (unitdef->footprintz << 20) / 2;
+            unitdef->extentsize = unitdef->extentmax - unitdef->extentmin;
+            unitdef->radius = (unitdef->extentsize.z + unitdef->extentsize.x) / 3;
             ((Class_004c3240*)&parser)->FUN_004c3240();
-            if ((*(unsigned int*)(unitdef + 0x245) & 0x2000) && *(short*)(unitdef + 0x208) == 0)
-                *(short*)(unitdef + 0x208) = 80;
-
+            // cancloak with no mincloakdistance: default to 80
+            if ((unitdef->flags2 & 0x2000) && unitdef->mincloakdistance == 0)
+                unitdef->mincloakdistance = 80;
         }
     }
 FINISH:;

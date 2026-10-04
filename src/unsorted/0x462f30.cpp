@@ -1,10 +1,37 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
 // pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%; pass 18 (Opus, #5559):
-// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 to 22 (Opus, #5585, #5587, #5610): no change.
+// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 to 23 (Opus, #5585, #5587, #5610, #5625):
+// no change.
 // The class name is data/symbols.csv's
 // Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
 // Class_00462d30, its own file's class, and returns Entry_00462d90*.
+//
+// Pass 23 (#5625): 98.9%, no change. The second-return Take cannot fix the frame.
+//  * With that Take, tick's 4th count is the visible reload at the loop's back edge (a
+//    count hook on FUN_004367f0 lists it as a load on the def line, counted inside the
+//    loop). It exists only because src takes esi and evicts tick there. Keeping that
+//    Take but forcing src into eax (a scratch hack that replaces the loop's memcpy)
+//    leaves tick as one ebp piece for the def and the loop plus the Take's esi piece,
+//    with 3 counts, and the swap returns (as pass 22's after-wrap Pop showed). So that
+//    Take with src in eax gives this file's frame, not the original's.
+//  * Why src takes esi with that Take: the Take result temp ([-0x60]) and the Pop result
+//    temp ([-0x5c]) tie at 80, and the Take result has the larger +0x40 key (69 against
+//    65), so it is coloured first, with costs esi -1 (the memcpy) and eax 0. Here it is
+//    64, coloured after the Pop result took eax, so eax -1 ties esi -1 and eax wins.
+//  * A 288-way sweep (tick declared first or last or assigned after the declarations;
+//    for or while; e at function scope or taken after the -1 test; GetFrame, Take(Peek())
+//    or a tail pointer; Take or the second-return Take; `goto ok` or `return 0` after the
+//    loop's copy; src block-scoped) gives only three results: 98.9% (tick 3 counts),
+//    97.0% (3 counts, every `return 0` after the loop's copy) and 82.6% (4 counts, every
+//    second-return Take). No change either: a store-back local for src (`void* s = ...;
+//    src = s;`), `(char*)src`, `*size = len` before the memcpy, the net stores after it.
+//  * Not the pre-header's crowding: three extra constants in the loop (scratch only)
+//    raise the pre-header block's K from 5 to 11 and leave tick's pieces as they are.
+//  * One copy-out block shared by both finds (`goto copy` into the tail's memcpy) gives
+//    tick 4 counts, again through a visible in-loop reload (73.0%). tick assigned at the
+//    top of the loop body is not hoisted (82.4%). A permuter run (12 minutes, seed 23,
+//    --stack tick,flag, 9409 candidates) found nothing.
 //
 // Pass 22 (#5610): 98.9%, no change. What the early-return Take does, and more forms
 // that leave the code and the counts as they are.

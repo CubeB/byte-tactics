@@ -49,6 +49,34 @@
 // (all canonicalised), break/else helpers (72%), goto/labels in the then or
 // else arms, block-scoped and value spellings of UseEnergyD, /Gi (69.8%).
 //
+// Opus pass on 2026-10-04 (no gain, about 2,000 variants scored):
+// - Tuple-level view: hook FUN_00432f03 and walk C2's tuple list (+0 next,
+//   +0xc prev, +4 opcode: 0x10 jmp, 0xf jcc, 0x60 fld, 0x63 fstp; +8 kind;
+//   +0x10 line; +0x12 position). FUN_00446590(ecx = a, edx = b) keeps b and
+//   replaces a's matched tail with a jump into b; the 20-byte minimum is
+//   waived when the tuple before a's matched run is an unconditional jump.
+// - The backlog > 0 pop is a block made by C2's edge splitter (0x440885; it
+//   retargets the jcc through FUN_0040d3bc from 0x44096c) just before the
+//   join, after En already ends in its own pop. En's `jmp` is created then,
+//   which is why En heads the join's list.
+// - The pop is shared (En falls into it, as in the original) only when the
+//   demand add is non-consuming too: a `double v` with `*used += v;
+//   if (backlog <= 0) demand += v;` in place (wrong positive path). A double v
+//   with `(float)v` casts gives the original positive path exactly except
+//   `fcom qword`, but the pop is separate again. Separate locals, scopes
+//   (block, loop, function), in-place negation, CSE of def->energyUse and
+//   every spelling of the default add keep it separate: a float value's last
+//   add always consumes it, a double one never does.
+// - Per-branch exits (the lever that matched 0x4dea00 and 0x40e630) change
+//   nothing: `goto done` at arm ends, in each AddIncome case or in the demand
+//   path is threaded away before the merge. In-place AI blocks in the
+//   0x4237d0 style (float or double local) give exactly the helpers' code.
+// - With AddIncomeD for tidal and no label the merges give the original's
+//   tidal (Td, then Tn before Ed); block placement then moves En because it
+//   ends in a jump. If En fell into the shared pop it could not move, so both
+//   differences probably come from how the original reaches the join with
+//   the dead value still on the x87 stack.
+//
 // What got it to 88.1% (earlier passes):
 // - The accumulators are separate float[2] arrays, not one struct: with one
 //   aggregate MSVC strength-reduces the normalisation loop to a pointer and a

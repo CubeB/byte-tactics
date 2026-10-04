@@ -1,5 +1,31 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6, retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
 // #5551 Codex recheck: 98.6%; only the health-test scratch-register order remains.
+// #5555 (Claude Opus 5.5, 2026-10-04, no gain, about 300 variants): the
+// original keeps the health-first order (the def pairing with SearchRange is
+// there too). Its rotation pointer is just one step later (eax, which the
+// switch selector still holds), so health gets ecx, def edx and lea eax.
+// c2prio --rotation on a throwaway `g_a = g_b;` at the end of the water
+// branch (one rotation temporary after the ctor's `lea` for &pos, #15) shows
+// exactly this. Then the FUN_0040b530 block needs one more temporary after
+// the test. A bool, char or short IsDamaged supplies it (with the throwaway,
+// test and block both match), but the result is then materialised
+// (`sbb; neg; test; je` instead of `jae`). Flat or worse (region check), all
+// with and without the throwaway:
+// - water-branch tails: `return Go(order, move)`, a result local, the whole
+//   branch as a helper (costs 142 IL of Patrol's budget);
+// - switch shapes: a default case, case 0 returning 7, case 1 first;
+// - no-op statements at the water end, before the switch or in Patrol (all
+//   gone before temporaries are assigned; in Patrol most cost budget);
+// - FindPads with an owner local, owner or index parameter, or as an Owner
+//   method;
+// - range-read shapes (array, nested struct, union with an int, `* 0x10000`,
+//   short return), member forms of IsDamaged/SearchRange or UnitDef
+//   accessors, dead health/def reads, and the flags parameter as
+//   char/short/unsigned. A SearchRange that reads anything other than
+//   `u->def` gives the right region at once (no pairing, def first), as noted
+//   below.
+// The matched sibling 0x4103e0 (same test and FUN_0040b530 block as ours)
+// has the same pointer as ours at its test.
 // #5512 (Claude Opus 5.5, 98.6% kept): re-read the test with a patched
 // c2prio --rotation that prints each temporary's tuple opcode (01 load,
 // 12 lea, c5 movsx, 109 movzx byte). Ours generates the test as health

@@ -1,4 +1,8 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-Sol, finished by space-bunny-free, edited by deepseek-v4.1-flash, edited by Claude Opus 5.5. Names are provisional.
+// Codex / GPT-6 retry for #5491 (2026-10-04): permute.py found and the
+// checker verified a 90.5% / 1519-byte best from 632 candidates in 17.4
+// minutes (`move_stmt+cast`), up from 90.3% / 1520 bytes. The remaining
+// landed-path flag is still unresolved; details below.
 // VTOL patrol order handler. State 0 starts patrolling ("Patrolling";
 // FUN_0040f200 is defined here because /Ob2 inlined it). State 1 sets the next
 // waypoint, then lands on a free pad when damaged (VTOL_LANDING), helps build
@@ -149,7 +153,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     ((Class_0048b090*)unit)->FUN_0048b090(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->FUN_0043d210(unit, 2);
-        Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
+        Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         order->flags |= flags | 0xe0;
@@ -183,7 +187,7 @@ static inline float Total(float base, float amount)
 // FUNCTION: 0x4152f0
 int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
 {
-    if (flags & 0x48) {
+    if ((flags & 0x48) != 0) {
         ((Class_00439e80*)order)->FUN_00439e80(0x1e);
         return 0;
     }
@@ -192,7 +196,7 @@ int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800) && (unit->def->flags2 & 0x200)) {
-            if (order->target)
+            if (order->target != 0)
                 order->pos = order->target->pos;
             FUN_0043a020(unit, order);
             ((Class_00438880*)order)->FUN_00438880("Patrolling");
@@ -206,9 +210,9 @@ int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        int landed = 0;
         ((Class_00439e80*)order)->FUN_00439e80(0x2d);
         order->flags |= 0xe0;
-        int landed = 0;
         Land(unit, order, landed);
         if (landed)
             return 0;
@@ -219,10 +223,10 @@ int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
             if (!units.empty()) {
                 Unit* target = units[FUN_004b6c30(units.size())];
                 if (((Class_004899b0*)unit)->FUN_004899b0(target) && target->progress == 0.0f) {
-                    if (FUN_0043b400(unit, target, 0))
-                        return 6;
-                    return 3;
-                }
+                        if (FUN_0043b400(unit, target, 0))
+                            return 6;
+                        return 3;
+                    }
                 if (((Class_004899b0*)unit)->FUN_004899b0(target) && target->progress != 0.0f) {
                     ((Class_004388d0*)order)->FUN_004388d0(0);
                     FUN_0043acb0(unit, new Class_0043a1f0("VTOL_HELPBUILD", target, 0, 0, 0, 0));
@@ -241,13 +245,14 @@ int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
             Class_0043a1f0* obj;
             if (unit->owner->GetMetal() < unit->owner->metalCapacity * 0.2 && metal) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                obj = new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0);
+                obj = new Class_0043a1f0("VTOL_RECLAIM", 0, (Vec3*)metal, 0, 0, 0);
             } else if (unit->owner->GetEnergy() < unit->owner->energyCapacity * 0.2 && energy) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 obj = new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0);
             } else if (metal && Total(unit->owner->GetMetal(), metalAmount) <= unit->owner->metalCapacity) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 obj = new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0);
+                obj = (Class_0043a1f0*)obj;
             } else if (energy && Total(unit->owner->GetEnergy(), energyAmount) <= unit->owner->energyCapacity) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 obj = new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0);

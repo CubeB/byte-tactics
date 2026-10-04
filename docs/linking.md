@@ -466,7 +466,9 @@ A region's source is `src/gap/<address>.cpp`, one file per region, and
 - A region MATCHES when every annotated function matches as `check.py` defines
   it, each compared over the original's extent (to the next annotated function
   or the region's end, less padding), and together they cover every byte of
-  the region apart from the padding between them.
+  the region apart from the padding between them. Data of a function's own
+  whose fields point back into it (an SEH scope table's filter and handler)
+  is compared by where those fields point.
 
 Both builds use a region's object once it matches, and only then:
 `tools/place.py` places its functions at their addresses (counted as gap
@@ -487,9 +489,9 @@ compares the gap functions' references too.
 | 0x45b670 | 395 | `try`/`catch` | |
 | 0x466050 | 1,326 | `/Op` frame | |
 | 0x46c2a0 | 882 | `/Op` frame | |
-| 0x497c70 | 101 | `__try`/`__except` | |
+| 0x497c70 | 101 | `__try`/`__except`: the loading thread | matches |
 | 0x49a120 | 1,829 | `/Op` frame | |
-| 0x49e680 | 106 | `__try`/`__except`, inline `div` | |
+| 0x49e680 | 106 | `__try`/`__except`, inline `div`: a deliberate fault to report a message | matches |
 | 0x49eda0 | 1,942 | WinMain (`__try`/`__except`); command line (`try`/`catch`, `_alloca`) | |
 | 0x49f710 | 419 | the linker's import thunks | |
 | 0x4b70a0 | 772 | hand-written: fixed-point trigonometry, 10 entry points | matches |
@@ -499,7 +501,7 @@ compares the gap functions' references too.
 | 0x4cbbe0 | 7,622 | hand-written: surface drawing | |
 | 0x4d8310 | 67 | inline `int 3` | |
 | 0x4d8870 | 318 | inline asm: stack trace | |
-| 0x4d8d70 | 125 | inline asm: stack bounds, thread-local data | |
+| 0x4d8d70 | 125 | inline asm: stack bounds, in three thread-local variables | matches |
 | 0x4d9ab0 | 420 | `__try`/`__except`, inline `int 3` | |
 | 0x4da120 | 379 | inline `int 3` | |
 | 0x4da2c0 | 303 | inline `int 3` | |

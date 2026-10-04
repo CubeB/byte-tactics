@@ -478,10 +478,40 @@ def check_ref(orig, obj, sec, start, address, off, sym_name, target, addend, by_
         theirs = orig.read(target + addend, len(ours)) if sym_name.startswith("$SG") else orig.read(target, len(ours))
         if sym_name.startswith("$SG"):
             ours = target_sec.data[sym.value + addend:][:len(ours)]
+        else:
+            ours, theirs, problem = relocated_fields(obj, sec, start, address, target_sec, sym.value, ours, theirs)
+            if problem:
+                return Ref(off, sym_name, target, "mismatch", problem)
         ok = ours == theirs
         return Ref(off, sym_name, target, "ok" if ok else "mismatch",
                    "" if ok else f"contents differ: ours {ours[:24]!r} original {theirs[:24]!r}")
     return lookup(off, sym_name, target, symbols, by_addr)
+
+
+def relocated_fields(obj, sec, start, address, data_sec, base, ours, theirs) -> tuple[bytes, bytes, str]:
+    """Data of our own whose fields the linker fills in, compared by where they
+    point: a field that points back into this function (an SEH scope table's
+    filter and handler) must hold that address in the original; the others are
+    left out of the byte compare."""
+    ours, theirs = bytearray(ours), bytearray(theirs)
+    defined: dict[str, list] = {}
+    for s in obj.symbols:
+        defined.setdefault(s.name, []).append(s)
+    for r in data_sec.relocs:
+        k = r.offset - base
+        if not 0 <= k <= min(len(ours), len(theirs)) - 4:
+            continue
+        if r.type == REL_I386_DIR32:
+            t = defined.get(r.symbol, [])
+            if len(t) == 1 and t[0].section == sec.index:
+                (field_ours,) = struct.unpack_from("<I", ours, k)
+                (field_theirs,) = struct.unpack_from("<I", theirs, k)
+                want = (address + t[0].value + field_ours - start) & 0xFFFFFFFF
+                if field_theirs != want:
+                    return bytes(ours), bytes(theirs), (f"its field +{k:#x} should point into this function at "
+                                                        f"{want:#x}, the original's holds {field_theirs:#x}")
+        ours[k:k + 4] = theirs[k:k + 4]
+    return bytes(ours), bytes(theirs), ""
 
 
 def same_slot_function(held: str, name: str, fn: int) -> bool:

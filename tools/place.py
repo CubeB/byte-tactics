@@ -67,7 +67,7 @@ ALIASES = ROOT / "data/aliases.csv"
 PATCHES = ROOT / "data/exe_patches.csv"
 DEF_FILES = sorted((ROOT / "link").glob("*.def"))
 
-REL_DIR32, REL_DIR32NB, REL_REL32 = 0x06, 0x07, 0x14
+REL_DIR32, REL_DIR32NB, REL_SECREL, REL_REL32 = 0x06, 0x07, 0x0B, 0x14
 SCN_CODE, SCN_UNINIT = 0x20, 0x80
 SKIP_SECTIONS = (".drectve", ".debug")
 
@@ -605,6 +605,14 @@ class Placer:
                     orig_target = (site + 4 + theirs - ours) & 0xFFFFFFFF
                 elif rtype == REL_DIR32NB:
                     orig_target = (theirs - ours + self.img.base) & 0xFFFFFFFF
+                elif rtype == REL_SECREL:
+                    # A thread-local variable's offset in .tls: the section is
+                    # the original's (copied), so the offset is the original's.
+                    if self.pieces_own(piece, site):
+                        o = site - self.img.base
+                        self.img.out[o:o + 4] = self.img.pristine[o:o + 4]
+                    self.stats["thread-local offsets as in the original's .tls"] += 1
+                    continue
                 else:
                     self.stats[f"relocation type {rtype:#x} skipped"] += 1
                     continue

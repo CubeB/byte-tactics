@@ -126,6 +126,11 @@ def main() -> None:
             if rtype == REL_REL32:
                 want = (site_o + 4 + want) & 0xFFFFFFFF
                 got = (site_l + 4 + got) & 0xFFFFFFFF
+            if rtype == REL_DIR32 and got == want and got < 0x10000:
+                # An absolute symbol, not an address: the offsets into the
+                # thread information block __except_list (0) and __tls_array.
+                stats["absolute values that agree"] += 1
+                continue
             mapped, via = translate(got)
             if mapped is None:
                 stats["references the map cannot place"] += 1

@@ -7053,7 +7053,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x477ab0,1935,opus,#4174,matched,100.0,,"issue #4174, escalated"
 0x43a420,1300,opus,#4175,partial,96.6,,"issue #4175, escalated"
 0x43d290,1074,opus,#4175,matched,100.0,,"issue #4175, escalated"
-0x4732e0,537,,#4176,assigned,,,"issue #4176, escalated"
+0x4732e0,537,gpt-6,#4176,matched,100.0,,"issue #4176, escalated"
 0x4a3ef0,629,space-bunny-free,#4179,partial,93.1,,"issue #4179, escalated"
 0x4a4170,714,space-bunny-free,#4179,partial,86.5,,"issue #4179, escalated"
 0x4a4d70,661,space-bunny-free,#4179,partial,99.1,,"issue #4179, escalated"

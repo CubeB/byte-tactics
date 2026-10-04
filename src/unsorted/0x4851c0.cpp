@@ -1,4 +1,20 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6, retried by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 retry (#5579, 2026-10-04): still 84.7%. Structure re-derived
+// from the disassembly: the loop, the frame and every instruction outside the
+// first 51 already match, and the d.y store at 0x4851de does reach d.y's slot
+// ([esp+0x10] before `push edi` is the second local, read in the loop as
+// [esp+0x14]), so the #4667 note 6 "d.y never written" is a misreading. Under
+// --trace, n (130) and the |dx| temp (104) take ecx at steps 11 and 12 with
+// `.c.sibp` allowed, and b.x/dx (74) is left `...sibp` (esi); the original
+// needs ecx disallowed or costed for both, or dx first. Tried this pass, all
+// 84.7% or lower: n as a down-counting loop variable (`for (; n >= 0; n--)`
+// and `for (int i = n; i >= 0; i--)` are byte-identical; `i = n + 1; i != 0`
+// 72.6%), b.x, b.y, b.z or a.y as the loop variable in up, down and count
+// forms (48 to 84.7%: a new definition starts a new web, so dx gains no loop
+// references), `Vec3 d; d.y = b.y - a.y; d.x = ...` (75.3%, loses the dead
+// d.x store), `Vec3 d = b; d.y -= a.y; ...` (82.3%), and the difference as a
+// `Sub(b, a)` helper, a member `operator-` by const reference or a member
+// `operator-=`, each in all six field orders (80.6 to 81.5%).
 // claude-opus-5-5 retry (#5522, 2026-10-04): still 84.7%. Read with
 // `c2prio.py --trace` (build/scratch/0x4851c0/tr.py prints the prologue's
 // colouring steps with their costs):

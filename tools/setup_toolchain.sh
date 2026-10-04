@@ -24,10 +24,14 @@ if [ ! -d "$TC/msvc5-rtm" ]; then
     tmp="$(mktemp -d -p "$TC")"
     7z x -y -bso0 -bsp0 "$DL/vc5pro.7z" -o"$tmp"
     7z x -y -bso0 -bsp0 "$tmp"/*/VCPP-5.00.iso -o"$tmp/iso" \
-        'DEVSTUDIO/VC/BIN/*' 'DEVSTUDIO/VC/INCLUDE/*' 'DEVSTUDIO/VC/LIB/*' 'DEVSTUDIO/SHAREDIDE/BIN/*' -r
+        'DEVSTUDIO/VC/BIN/*' 'DEVSTUDIO/VC/INCLUDE/*' 'DEVSTUDIO/VC/LIB/*' 'DEVSTUDIO/SHAREDIDE/BIN/*' \
+        'DEVSTUDIO/VC/REDIST/MSVCP50.DLL' -r
     mkdir -p "$TC/msvc5-rtm"
     mv "$tmp/iso/DEVSTUDIO/VC/"{BIN,INCLUDE,LIB} "$TC/msvc5-rtm/"
     mv "$tmp/iso/DEVSTUDIO/SHAREDIDE/BIN/"*.DLL "$TC/msvc5-rtm/BIN/"
+    # LINK.EXE loads MSDIS100.DLL, which needs MSVCP50.DLL; the compiler does not
+    # use it, so it only lives under REDIST on the CD, not in BIN.
+    cp "$tmp/iso/DEVSTUDIO/VC/REDIST/MSVCP50.DLL" "$TC/msvc5-rtm/BIN/"
     rm -rf "$tmp"
 fi
 

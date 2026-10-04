@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6. Names are provisional.
+// Codex / GPT-6 retry for #5465 (2026-10-04): rechecked at 84.7%. An
+// unconditional `b.x = b.x;` after the step divisions compiles byte-identically
+// and does not alter the dx/abs/n register allocation. Earlier notes already
+// record the flat header and permuter sweeps; existing source remains best.
 // #5406 (Claude Opus 5.5): still 84.7%. Why first-pass priority cannot do it
 // with this IL: `--blocks "#28,#9"` gives the |dx| temp 5 references in the
 // subtraction block B0 and 1 in its ternary arm, and dx 3 in B0 and 1 in the

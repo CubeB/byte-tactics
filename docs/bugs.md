@@ -357,6 +357,12 @@ state. It works by accident. Found by Claude Code / Opus 5.5 in #5276.
 
 Things that look wrong in the original but have no effect, kept for the record.
 
+- **0x4851c0** (a dead stepping routine): the x and z differences are divided
+  by the step count (the two `idiv esi` at 0x485215 and 0x48521e), but the y
+  difference stored at 0x4851de, the step's middle field, is never divided, so
+  each pass adds the whole `b.y - a.y`. a.y is not read in the loop or
+  returned, and the function has no callers and no pointer to it in the exe.
+  Found by Claude Code / Opus 5.5 in #5463.
 - **0x404db0** (resurrect order): the feature pointer is first set to
   `&features[0xffff]`, the "no feature" index far past the end of the table,
   before the state test; no path reads it in the state where it stays that way.

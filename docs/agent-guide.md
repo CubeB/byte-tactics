@@ -637,6 +637,14 @@ effect, the missing piece is usually a helper that was inlined:
 - **A helper returning a fixed-point value by value**: 0x42bf40's shared frame
   slot at `[esp+0x1c]` came out right only once FUN_004c4800 returned its
   16.16 value by value through a hidden pointer (#5473).
+- **Case order in a big switch decides ties elsewhere**: in 0x4df590 the
+  order of the cases in the source decided register and stack-slot ties in
+  other cases although the code layout did not change. Scoring all 24 orders
+  of four cases found the match (WM_COMMAND, WM_TIMER, WM_INITDIALOG) (#5480).
+- **A constant held in eax for a whole function**: 0x450240 went from 19.9%
+  to a match once it returned the constant 10 (the return makes the constant
+  prefer eax) and its inlined search returned 10 early on `id == -1` (one more
+  store, so C2 gives the constant a register) (#5471).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

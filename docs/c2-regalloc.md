@@ -624,6 +624,98 @@ Validated on 0x4cf570 (matched) and 0x47d2e0 (88.5%):
   and 55 steps) is identical to an independent trace made the #5115 way (the
   IL captured by a mingw-built `/B2` wrapper and C2 rerun under gdb).
 
+### A game types header (`include/ta_types.h`)
+
+`tools/gametypes.py` writes one definition of each game type the files
+declare, merged from their views (the tool's docstring has the rules). Every
+file is compiled again with /Z7 and its CodeView records give each view as VC5
+laid it out; the decorated names in each object say which views are one type
+(the same global or function declared in two files, a member function's class,
+a struct at the same offset of two views of one type, and, where the fields
+agree, the same name). Fields are merged by byte range: a range keeps the field
+most views declare over exactly those bytes, and stays unknown where as many
+views disagree. Member functions come from the class bodies and from the
+decorated names in data/progress.csv. A type the evidence says is another,
+whose views disagree with that one's, is left out (declared, not defined).
+`--verify` compiles a check of every type's size and every field's offset
+against the views. It is not `tools/types.py`, which would shadow Python's own
+`types` module for every tool in tools/. No file includes the header.
+
+On 2026-10-04 it held 2038 types from 9161 views in the 3237 files, 74 names
+only declared, and 2470 member functions, among them 777 members, 112
+constructors and destructors and 3 operators that data/progress.csv decorates
+(29 more belong to classes left out, 140 to template or nested classes). 28
+types have a byte range the views disagree on, 160 groups of views are left
+out, and all 10523 sizes and offsets check. It includes the system headers its
+types use: `<windows.h>` `<ddraw.h>` `<dsound.h>` `<dplay.h>` `<stdio.h>`
+`<vector>` `<list>` `<map>`.
+
+What a declaration costs, measured with 100 of each in front of 0x471de0's file:
+
+| declaration | ids |
+|---|---|
+| a struct or class, with no data members or with 1, 2 or 5 ints, two bitfields, a pointer, an embedded struct or a base | 7 |
+| a forward declaration; with a definition after it | 1; 7 in all |
+| a member function | 1, plus 1 per parameter |
+| a constructor or `operator=` | 1 per parameter (it takes an implicit member's place) |
+| a destructor | 4 |
+| a class's first virtual member | 1 more |
+| an anonymous union inside a struct | 7 |
+
+So data members take no ids at all: a type costs 7 whatever its size, and what
+a header of types adds is set by how many types, member functions and
+container instantiations it has, not by how many fields it knows. After the
+plausible header set of "Symbols each header adds" (which already includes
+every system header it needs), ta_types.h adds 27968 ids: 14847 for the types
+(7 each, with the anonymous unions in them and the names only declared), 6050
+for the member functions, and 7082 for the 50 container classes its types hold
+(45 vectors, two lists, a map and two pairs, each instantiated where the first
+type holding it is defined).
+
+Each function's file with the headers at its top in one order (the plausible
+set, then ta_types.h, then ta_protos.h), the names the file defines that a
+header defines too renamed in the scratch copy (the file keeps its own views,
+a few hundred ids at most, which a file using the header would drop):
+
+| function, the id that decides | its window | the file now | ta_types.h | + ta_protos.h | + the plausible set |
+|---|---|---|---|---|---|
+| 0x424c00, g_game's | 64976 to 64995 | 32690 | 62486, 2490 short | 69411, 4416 past | 76452 |
+| 0x41b2e0 without /Gi, `first` | 64550 to 64582 and four more to 64826 | 32648 | 62415, 2135 short | 69339, 4513 past | 76380 |
+| 0x471de0, the file total | 65257 to 65554 | 5055 | 62995, 2262 short | 69920, 4366 past | 77499 |
+| 0x408100, C2's counter at the function | about 65585 to 65985 | 5889 | 63830, 1755 short | 70755, 4770 past | 78252 |
+| 0x449bb0, g_game's | 56338 to 56562, 56850 to 58386 | 29394 | 62474, 4088 past | 69400 | 76441 |
+| 0x40d290, the insert's own | 65602 to 65654, even | 33295 | 38371 | 38371 | 45414 |
+| 0x4b90a0, its own | none known (its notes) | 175 | 62348 | 67861 | 74902 |
+
+No function lands in its window with the headers whole. With the types header
+and the system headers it needs, the four functions whose windows lie just
+below or across 65536 are 1755 to 2490 short; with the prototypes header after
+it they are 4366 to 4770 past, and with the plausible set 11000 to 12000 past.
+0x449bb0 is past its window with the types header alone. 0x40d290's insert is
+numbered where the first game type holding a `std::vector<unsigned char>` is
+defined (38371), while the original's comes after about 65600 declarations.
+0x409730, matched with its ids made small, defines a cut-down `std::vector`
+that cannot sit next to `<vector>`, so it cannot take the header.
+
+What the two headers cannot settle, and how far it moves the counts: the 240
+classes known only by one member function (`Class_<address>`, which in the
+original are members of other classes) cost 7 each as classes of their own;
+views of one type that no evidence joins are counted twice; the types no file
+declares are missing; and ta_protos.h names each type by its defining file's
+provisional name, so 731 of its 1030 forward declarations are names ta_types.h
+does not use (1 id each, against 0 for a name already declared).
+
+None of the windows above has a reachable image at small ids, the way
+0x409730's (i at 65536 to 66547, so 0 to 1011 modulo 65536) did. 0x41b2e0's and
+0x449bb0's are ids well below 65536 (64.5k, 56k to 58k). 0x424c00 needs the 3D
+loop's `c` past the wrap and the Anim loop's below it; at small ids both are
+below and the threshold rule gives the opposite mix. 0x471de0 and 0x408100
+need C2's own counter to pass 65536 (0x408100 at 49 to 449 modulo 65536 would
+need a file total under about 130, since C2 makes 322 symbols before this
+function's allocation). 0x40d290's insert would have to sit below operator new
+and delete, and 0x4b90a0's notes scanned small counts (0 to 2047 externs from
+its 197-symbol file) without a match.
+
 ## Temporaries (regasg.c): the scratch rotation
 
 `FUN_00435c37` gives each expression temporary a register during code

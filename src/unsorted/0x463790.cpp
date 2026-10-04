@@ -1,29 +1,49 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
-// Codex / GPT-6 retry for #5451 (2026-10-04): rechecked at 88.8%. The a6
-// loop register split and shared-tail versus duplicated-tail differences
-// remain as documented below. No new source lever emerged from this review;
-// c2prio needs unavailable gdb and winedbg. Existing source remains best.
-// #5414 Codex retry: a duplicated skip-path tail scored 84.9%, below the
-// existing 88.8%. Kept the existing version; the a6-loop register split remains.
-// #5437 Codex retry: re-confirmed 88.8%; the same a6-loop register split remains.
-// Codex GPT-6 retry for #5204 (2026-10-03): current main remains 86.6%.
-// Prior notes include its `/Gi` and structural sweeps; the best source is kept.
-// GPT-6 retry (#5254): rechecked at 86.6%; the a6-loop register split remains.
-// #5298 Codex retry: re-confirmed 86.6%; the documented a6-loop and latch
-// register allocation still differs, with no untested source lever found.
-// #5327 retry: re-confirmed 86.6%; earlier local-order, loop-shape and
-// ring-operation sweeps cover the remaining source-level choices.
 // Rewritten (pass 14, Opus): 75.0% -> 85.2%; pass 15 (Opus): 86.6%; pass 16 (Opus,
-// #5358): 88.8%. Queues one
-// received packet's commands in the ring at +0x10. If frames are already queued, it
-// only re-stamps each of them with the new tick (pop, push) and returns 0. Otherwise it
-// copies the packet into the buffer at +0xc, counts the commands after the 4-byte
-// sequence number (a command is 2..0x2c; 0x2c carries its own 16-bit length, the
-// others' lengths are in the table at 0x512ad8), skips the first n - 0x200 0x2c
-// commands when there are more than 0x200 commands, and pushes the rest: spread over
-// up to 30 ticks when a6 is set, all at `tick` otherwise.
+// #5358): 88.8%; pass 17 (Opus, #5515): 89.3%. Codex / GPT-6 retries for #5204,
+// #5254, #5298, #5327, #5414, #5437 and #5451 re-confirmed earlier scores only.
+// Queues one received packet's commands in the ring at +0x10. If frames are
+// already queued, it only re-stamps each of them with the new tick (pop, push) and
+// returns 0. Otherwise it copies the packet into the buffer at +0xc, counts the
+// commands after the 4-byte sequence number (a command is 2..0x2c; 0x2c carries its
+// own 16-bit length, the others' lengths are in the table at 0x512ad8), skips the
+// first n - 0x200 0x2c commands when there are more than 0x200 commands, and pushes
+// the rest: spread over up to 30 ticks when a6 is set, all at `tick` otherwise.
 //
-// What moved it:
+// Pass 17 (#5515):
+//  * The a6 == 0 loop's exits are `break` (to the one `return 1` after it) instead of
+//    `return 1`: the back edge's `xor edx, edx` block is then placed before the loop
+//    head with the entry jumping over it, as in the original (88.8 -> 89.1). It needs
+//    all three exits as `break`; any one left as `return 1` keeps the old layout.
+//  * The a6 loop's skip path has its own `remaining -= w; q += w;` and `continue`s to
+//    the latch, the push path ends `q += w; remaining -= w;`, and the scan locals are
+//    declared p, remaining, n (89.1 -> 89.3). This gives the original's two tails,
+//    the skip path's `mov edx, ecx; dec edx` and the frame slots (n at +0x24,
+//    remaining at +0x28: remaining now has 6 memory references, as in the original).
+//
+// Still different (25 original lines besides jumps), all n against remaining in the
+// scan and the a6 loop:
+//  * The original keeps n in ebp from the scan through the a6 loop (except the push
+//    block, where ebp holds x and the Push temporaries, and n is reloaded in the push
+//    tail) and remaining in edi in the scan and in memory in the a6 loop. Here
+//    remaining takes ebp in both and n is in memory (eax at the latch).
+//  * Why (tools/c2prio.py): when progress takes ebx (step 45) n and remaining are each
+//    left only ebp and are split; remaining's piece comes out at 123 and n's at -23,
+//    so remaining wins ebp. With the shared tail (pass 16's file, x13 shape) the tail
+//    block holds n's latch (K = 7, w = 4, +112 for n) and n's piece wins (77 against
+//    39), which gives the original's registers but one shared tail and swapped slots.
+//    With two tails the latch is its own block (K = 2, +32) and remaining gains the
+//    skip block (+48). Deleting remaining from the a6 loop altogether still leaves n
+//    in eax, so n's piece needs references the source does not have.
+//  * Tried in pass 17 without gain: all 144 orders of (n, remaining, p) x (x,
+//    progress, i, q) with two tails (best 89.3%); `for (; n > 0; n--)` and
+//    `while (n > 0) { ...; n--; }` (the first is identical, C2 drops the guard);
+//    `continue` or `do {} while (0)` after the shared tail; the scan and the a6 loop
+//    counting down `size` itself with a copy for the a6 == 0 loop (71.9-78.9%); Push
+//    on tick directly (81.6-87.0%); a 15-minute permuter run from this file (only
+//    moved `n++` above `p += w`, no score change).
+//
+// What moved it earlier:
 //  * The ring as a struct with inline Pop and Push (the pop is the same code 0x462f30
 //    inlines, `Frame* f = &frames[head]; if (++head >= 0x200) head = 0;`) fixed the
 //    requeue loop's registers (78%).
@@ -57,7 +77,7 @@
 //    progress ebx, i edi, q esi, n ebp. The a6 == 0 loop keeps left in edi and tick in
 //    ebp.
 //
-// Still different after pass 16 (28 lines):
+// Pass 16's list (for the 88.8% file; pass 17 fixed the a6 == 0 loop and the slots):
 //  * The original has two copies of the a6 tail: the skip path does its own
 //    `remaining -= w; q += w` and jumps to the latch (`dec ebp`), so n stays in ebp
 //    through the loop head, the reader calls and the skip path, and only the push path
@@ -198,9 +218,9 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
     field_18 = a5;
     size -= 4;
 
-    int n = 0;
-    int remaining = size;
     char* p = field_c + 4;
+    int remaining = size;
+    int n = 0;
     while (remaining > 0) {
         unsigned char c = *p;
         if (c <= 1 || c >= 0x2d)
@@ -250,7 +270,9 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
                     w = (unsigned short)reader.FUN_00415dc0(0x10);
                     if (left > 0) {
                         left--;
-                        goto next1;
+                        remaining -= w;
+                        q += w;
+                        continue;
                     }
                 } else {
                     w = DAT_00512ad8[c][0];
@@ -262,9 +284,8 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
                     progress += spacing;
                     x++;
                 }
-            next1:
-                remaining -= w;
                 q += w;
+                remaining -= w;
             } while (--n > 0);
             return 1;
         }
@@ -274,7 +295,7 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
         while (rem > 0) {
             unsigned char c = *q;
             if (c <= 1 || c >= 0x2d)
-                return 1;
+                break;
             unsigned short w;
             if (c == 0x2c) {
                 Class_00415dc0 reader;
@@ -294,9 +315,9 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
             }
             rem -= w;
             if (rem < 0)
-                return 1;
+                break;
             if (!buffer->Push(tick, q, w))
-                return 1;
+                break;
             q += w;
         next2:
             ;

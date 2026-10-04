@@ -1,23 +1,58 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
-// Codex / GPT-6 retry for #5451 (2026-10-04): rechecked at 81.4%. The entry
-// live-range split across the receive loop and region-A scheduling differences
-// remain as documented below. No new source lever emerged from this review;
-// c2prio needs unavailable gdb and winedbg. Existing source remains best.
-// #5414 Codex retry: re-confirmed 81.4%; the known entry live-range split and
-// region-A scheduling mismatches remain. Kept the best existing source.
-// #5437 Codex retry: re-confirmed 81.4%; the same mismatches remain.
-// Codex GPT-6 retry for #5204 (2026-10-03): `/Gi` leaves this function
-// at 77.6% with the same 1707-byte output; the existing source remains best.
-// GPT-6 retry (#5254): rechecked at 77.6%; entry lifetime and copy-tail shape remain.
-// #5298 Codex retry: re-confirmed 77.6%; the entry live-range split and
-// cross-jumped copy tail remain the only meaningful source-level gaps.
-// #5327 retry: re-confirmed 77.6%; earlier allocator, branch-layout and
-// receive-loop sweeps cover the remaining source-level choices.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
-// pass 16 (Opus, #5358): 81.4%.
+// pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%. Codex / GPT-6 retries
+// for #5204, #5254, #5298, #5327, #5414, #5437 and #5451 re-confirmed earlier scores.
 // The class name is
 // data/symbols.csv's Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is
 // called through Class_00462d30, its own file's class, and returns Entry_00462d90*.
+//
+// Pass 17 (#5515):
+//  * Both `return 0` copy-outs (the first loop's found path and the end) end in
+//    `goto ok;` with one `ok: return 0;` after the `none` block (81.4 -> 83.0). MSVC
+//    then cross-jumps the two copies exactly as the original does: the first loop's
+//    path does its net stores, `mov ecx, edx; mov esi, eax` and jumps to the end
+//    path's `mov edi, [esp + 0x28]`, and `none` falls into the epilogue (its stores
+//    interleaved with the pops). With `return 0` in both places nothing is merged,
+//    and a `goto copy` into the end path's memcpy puts the src/len moves after the
+//    label instead.
+//
+// Still different (27 original lines besides jumps):
+//  * After the 0x463790 call: the original has the two Peeks and one Take after the
+//    join (Take's Pop reuses Peek's buffer in eax), tail in esi (`lea esi, [edi +
+//    0x18]`), len in edx and tick reloaded into esi inside Take. This file has a Take
+//    in each arm (pass 16's choice, which gets region A and the first half right).
+//  * The receive loop: entry is reloaded after the loop (`mov edi, [esp + 0x10]` and
+//    the leftover `test esi, esi; jne error`), see pass 16's notes below.
+//  * Region A's `sub eax, esi` after `setg dl`, and the route's Find result tested in
+//    eax and copied to edi after the `je` (the original copies first and tests edi).
+//  * Why the one-Take shape loses (tools/c2prio.py): with `Class_00463730* tail =
+//    &entry->tail;` for the call, both Peeks and Take (the end is then exactly the
+//    original's shape), entry's big piece after the first split comes out at 51,
+//    above tail (42) and region A's entry->field_c temporary (28). It takes edi at
+//    step 21, which splits tick there and leaves tick's end piece only esi, so tail
+//    gets edi, tick's piece spans the call and region A keeps entry in edi (68.2%;
+//    73.2% with the net stores through tail, the best permuter score of all
+//    variants). Probes on that file: without `field_14 = entry;` in the in-order
+//    branch (-10) or without the swap-in block, entry's piece drops below tail and
+//    tail takes esi with tick's piece in Take only, as in the original. Entry
+//    initialised at its declaration (live through the first loop) gives region A its
+//    ecx piece, tail esi and tick esi only in Take, but entry then has no register
+//    before the route, the constant 0 takes edi and the first loop's slots move (74.3%).
+//  * Tried in pass 17 without gain: a plain `while (rc != 0)` receive loop (entry
+//    keeps edi through the loop, but the exit edge is not jump-threaded past the
+//    `if (rc == 0)` test and the constant 0 is coalesced with entry = 0, 81.1%), with
+//    `goto got` (81.3%), `if (1)` (78.6%) or the error block as a goto target at the
+//    end (74.6%); a goto-based retry loop (81.1%); a second label on the none block for
+//    the loop's NOMSG exit or the save path (78.6%, net then takes edi); the route as
+//    `entry == 0 && (entry = Find()) == 0` and other spellings (identical or 64%); a
+//    separate region-A entry with `entry = e;` (66%); defining Find (0x462d90) in this
+//    file (/Ob2 does not inline it, identical); tail as a reference or declared after
+//    the call (identical); all 32 mixes of `tail->` and `entry->tail.` across the
+//    call, the Peeks, Take and the net stores (best 76.8%); the swap-in as an inline
+//    member, `field_14->field_c = 0` after `field_14 = entry`, shared OOM or E_FAIL
+//    return labels (identical or lower); eight d/flag spellings in region A (identical);
+//    an empty `do {} while (0);` after each statement (no change); a 15-minute permuter
+//    run from the tail-pointer file (73.5%, 196 changed lines).
 //
 // What the structure is now, and why:
 //  * The tail of each entry (+0x18) is Class_00463730, the class of 0x463730/0x463790,
@@ -66,7 +101,7 @@
 //    through region A (67.9%; 78.3% with `entry = 0` as the declaration's initialiser,
 //    the best register-blind shape so far, net then in edi).
 //
-// Still different:
+// Pass 16's list (still true except the copy-out, fixed in pass 17):
 //  * Pass 16 file: entry is stored at `entry = 0` and reloaded after the receive loop
 //    (`mov edi, [esp + 0x10]` in the got block), and that reload keeps the got block's
 //    `if (rc == 0)` test (C2 removes it only from an empty block). In every variant
@@ -92,7 +127,8 @@
 //    block-scoped `e` for region A gives the right first-loop registers but loses edi
 //    to net as well; making the route test entry twice (`if (!entry) entry = Find();
 //    if (!entry) goto none;`) gives entry edi but moves tick into edi in the first loop.
-//  * The first loop's found path is a full copy of the memcpy/return; the original
+//  * (Fixed in pass 17 by `goto ok`.) The first loop's found path was a full copy of
+//    the memcpy/return; the original
 //    jumps into the end path's copy at `mov edi, [esp + 0x28]` (cross-jumped), and the
 //    `none` block carries the scheduled epilogue. `goto copy_out` shares the code but
 //    puts the src/len moves after the label (66.7%; 70.2% on pass 15's file, 73.3% with
@@ -294,7 +330,7 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
             *(int*)((char*)net + 0x4b9) = e->tail.field_18;
             memcpy(data, src, len);
             *size = len;
-            return 0;
+            goto ok;
         }
     }
 
@@ -479,10 +515,12 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
         *(int*)((char*)net + 0x4b9) = entry->tail.field_18;
         memcpy(data, src, len);
         *size = len;
-        return 0;
+        goto ok;
     }
 
 none:
     length = 0;
     return (int)0x887700be;
+ok:
+    return 0;
 }

@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**95.10% of Cavedog's code matched** (809,190 of 850,853 bytes)
+**95.19% of Cavedog's code matched** (809,898 of 850,853 bytes)
 
 `[######################################--]`
 
-By count that is 3,232 of the game's 3,267 functions (98.9%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,233 of the game's 3,267 functions (99.0%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,232 | 809,190 |
-| Attempted, not yet matching | 35 | 41,663 |
+| Matched byte-for-byte | 3,233 | 809,898 |
+| Attempted, not yet matching | 34 | 40,955 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -38,7 +38,7 @@ The size bands are the `size:` labels on the issues.
 | medium (65 to 160 bytes) | 826 of 827 | 99.9% | 118 | `##########` |
 | large (161 to 400 bytes) | 699 of 703 | 99.4% | 1,009 | `##########` |
 | xl (401 to 600 bytes) | 219 of 226 | 96.8% | 3,497 | `##########` |
-| xxl (601 to 1,000 bytes) | 189 of 195 | 96.5% | 5,113 | `##########` |
+| xxl (601 to 1,000 bytes) | 190 of 195 | 97.0% | 4,405 | `##########` |
 | huge (over 1,000 bytes) | 144 of 161 | 89.1% | 31,926 | `#########-` |
 
 ### By area
@@ -52,7 +52,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x400000` | Unit orders and unit AI | 205 of 210 | 89.3% | 6,495 | `#########-` |
 | `0x410000` | Orders and VTOL states | 218 of 222 | 92.0% | 5,067 | `#########-` |
 | `0x420000` | Frontend shell | 151 of 154 | 87.5% | 7,960 | `#########-` |
-| `0x430000` | Maps, missions, briefings | 226 of 228 | 96.7% | 2,008 | `##########` |
+| `0x430000` | Maps, missions, briefings | 227 of 228 | 97.8% | 1,300 | `##########` |
 | `0x440000` | Multiplayer setup | 244 of 246 | 88.5% | 7,062 | `#########-` |
 | `0x450000` | Options and audio menus | 175 of 176 | 97.9% | 1,333 | `##########` |
 | `0x460000` | Game and skirmish setup, unit classes | 209 of 212 | 94.9% | 3,166 | `#########-` |

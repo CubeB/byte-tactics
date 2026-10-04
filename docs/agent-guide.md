@@ -684,6 +684,14 @@ effect, the missing piece is usually a helper that was inlined:
 - **A reference to the field moves a SIB base**: reading the yard map through
   `char*& map = unitdef->yardmap;`, declared after the loop locals, gave
   0x42bf40's `[map + cell]` base/index order (#5508).
+- **Write field updates on `this`, not through reference parameters**: in
+  0x473b50, only direct reads and writes of the segment fields on `this` (a
+  macro used twice) let MSVC see that they do not alias, so it ordered the
+  stores after the next component's loads as the original does. Helpers taking
+  `Vec3&` or `int&` parameters reached 93.0% at best (#5516).
+- **Check float constants' exact spelling**: 0x49a890's 1/pi only matches the
+  original's pool bytes as `1/3.14159265358979`; a different PI literal fails
+  the constant check even when the code is right (#5506).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

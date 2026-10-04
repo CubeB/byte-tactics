@@ -1,4 +1,34 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6. Names are provisional.
+// Opus retry (#5560, 2026-10-04), still 98.3%. Two new facts read out of C2,
+// which together say the original's first block has NO register candidate
+// besides p and the constant 0:
+// - The pool: w's priority is fixed at 70 by the original's own code (5
+//   references, K 7 in its block), and the constant 0 gets 22 * K(B0) + 28 - 7.
+//   It stays below w only with K(B0) = 2. A carried tick (any local, inline
+//   parameter, front-end temp or CSE value) makes K(B0) 3 and the zero 89; w
+//   would need about 10 candidates in its block to win back. Candidates FUN_0041a6f8 drops
+//   are not counted in K, but a dropped copy of memory is re-read at its use,
+//   so it cannot carry the tick across the clears either. Sweeps of the w/h
+//   block (size local, Game* local, chained store, w*h, area local, if/else
+//   for the phi) all leave w at 70; /Gi swaps w and h; the RTM compiler is
+//   the same.
+// - The alias table (FUN_00422afb): entries are (base, offset, size), found
+//   in IL tuple order (a tuple's destination before its sources), bit =
+//   min(31, number of entries found after it), and each entry's mask also
+//   holds the bits of every overlapping entry of the same base. The scheduler
+//   (FUN_0043267a, FUN_00432736) puts an edge earlier -> later when the
+//   later entry's bit is in the earlier entry's mask; different bases alias
+//   when their points-to sets intersect (FUN_00407f67), so p, an inlined
+//   `this` and g_game's pointee always do. Node priority is height << 13,
+//   plus 8 for a load; a store chain adds 1 per store; the cmp lands right
+//   after the third tick load only because the ff8 store waits one cycle for
+//   that load. The original's order needs fd4 at height 3 (a successor such
+//   as f8c in one capped chain with the six clears), ff8 at height 2 with no
+//   edge to the clears, and no edge from the clears to the ref load. Within
+//   one base that needs ff8 found after the clears, i.e. its load and store
+//   in different tuples, which is the carried value the first point rules
+//   out. Scheduler and alias dumps: build/scratch/0x464700/c2order.py (the
+//   #5288 tracer, hook 0x4315f1) and ss.py.
 // Opus retry (#5288, 2026-10-03), still 98.3%. Read out of C2 under gdb:
 // - The order inside the first block is set by C2's post-allocation list
 //   scheduler (FUN_0040d9be(fn, 0): DAG in FUN_00431ec0, priorities in

@@ -766,6 +766,13 @@ effect, the missing piece is usually a helper that was inlined:
   ecx first as in the original. `b.x -= a.x` or a plain copy `int dx = b.x;`
   is merged into b.x and adds nothing. Score every statement order of such a
   block in one `tools/propose.py` batch: 4 of 72 orders matched (#5638).
+- **The tied operand of a multiply decides a register race**: in 0x47d2e0
+  the operand a two-operand multiply updates in place (y in ours, the width
+  in the original) decided which candidate won esi. An IsSeen helper with `w`
+  declared after tx/ty and the bit passed in as a parameter, plus the matched
+  sibling 0x4658e0's IsExplored, gave the original's allocation; real headers
+  and computing the cell pointer before the min/max initialisers did the rest
+  (88.5% to a match after about ten passes, #5659).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

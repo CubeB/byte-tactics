@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**95.72% of Cavedog's code matched** (814,477 of 850,853 bytes)
+**96.29% of Cavedog's code matched** (819,249 of 850,853 bytes)
 
-`[######################################--]`
+`[#######################################-]`
 
-By count that is 3,238 of the game's 3,267 functions (99.1%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,239 of the game's 3,267 functions (99.1%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,238 | 814,477 |
-| Attempted, not yet matching | 29 | 36,376 |
+| Matched byte-for-byte | 3,239 | 819,249 |
+| Attempted, not yet matching | 28 | 31,604 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 699 of 703 | 99.4% | 1,009 | `##########` |
 | xl (401 to 600 bytes) | 220 of 226 | 97.3% | 2,960 | `##########` |
 | xxl (601 to 1,000 bytes) | 192 of 195 | 98.1% | 2,730 | `##########` |
-| huge (over 1,000 bytes) | 146 of 161 | 89.9% | 29,559 | `#########-` |
+| huge (over 1,000 bytes) | 147 of 161 | 91.5% | 24,787 | `#########-` |
 
 ### By area
 
@@ -51,7 +51,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | --- | --- | ---: | ---: | ---: | --- |
 | `0x400000` | Unit orders and unit AI | 205 of 210 | 89.3% | 6,495 | `#########-` |
 | `0x410000` | Orders and VTOL states | 218 of 222 | 92.0% | 5,067 | `#########-` |
-| `0x420000` | Frontend shell | 151 of 154 | 87.5% | 7,960 | `#########-` |
+| `0x420000` | Frontend shell | 152 of 154 | 95.0% | 3,188 | `#########-` |
 | `0x430000` | Maps, missions, briefings | 227 of 228 | 97.8% | 1,300 | `##########` |
 | `0x440000` | Multiplayer setup | 244 of 246 | 88.5% | 7,062 | `#########-` |
 | `0x450000` | Options and audio menus | 176 of 176 | 100.0% | 0 | `##########` |

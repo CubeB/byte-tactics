@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5535 Codex recheck: 99.8%; the paired loops still require opposite SIB orders.
 // #5429 Codex retry: re-confirmed 99.8%; both loops still require opposite
 // SIB orders, unavailable with the real symbol and header state.
 // #5441 Codex retry: re-confirmed 99.8%; the same opposite SIB orders remain.

@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5535 Codex recheck: 94.9%; the bitfield operand and symbol-id constraints remain.
 // #5429 Codex retry: re-confirmed 94.9%; matching still depends on an
 // artificial declaration prefix, which is not committed.
 // #5441 Codex retry: re-confirmed 94.9%; the same artificial prefix is still required.

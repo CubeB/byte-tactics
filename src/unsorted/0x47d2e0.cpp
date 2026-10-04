@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// Codex / GPT-6 retry for #5455 (2026-10-04): best remains 88.5%. A no-jump
+// label inserted immediately before the visibility bit definition or between
+// its definition and test both scores 82.8% and changes unrelated register
+// assignments. Restored the original best; earlier 9768-candidate permuter
+// and C2 priority sweeps remain flat.
 // Codex GPT-6 retry for #5189 (2026-10-03): baseline remains 88.5%.
 // A no-op goto/label placed immediately before or after the bit definition
 // keeps the same 88.5% residual; prior allocation and header results remain.

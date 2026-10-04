@@ -1,4 +1,23 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (#5627 follow-up, 2026-10-04): 99.8%, hunk 3 fixed with real
+// headers; only hunk 1 is left.
+// - The file includes include/ta_types.h, the game's merged types: its Vec3,
+//   Class_00438760 and Class_004085d0 (on Base, whose owner is an AI) replace
+//   this file's views. Vec3's default constructor and operator+/- and
+//   Class_00438760's default constructor are declared there and defined here,
+//   inline, with the bodies the views had; the code is unchanged.
+// - With ta_types.h the file total is 63452 and hunk 3 is fixed for totals
+//   65232 to 65732 (unused externs at the end, scratch only). <time.h> and
+//   <shlobj.h>, both in docs/c2-regalloc.md's plausible set, add 2228 (total
+//   65680) and leave MapRange's loads in the original's order. Other real sets
+//   that land: <commctrl.h> with <algorithm> (65314), <vfw.h> (65385),
+//   <commctrl.h> with <iostream.h> (65370), <strstrea.h> (65504) or
+//   <fstream.h> (65579). <shlobj.h> alone (65636) fixes hunk 3 but flips
+//   MapRange. The window is only 500 wide, so a regenerated ta_types.h that
+//   grows by more than about 50 ids puts this set past it; <commctrl.h> with
+//   <algorithm> would then be the set to try (it sits 82 above the bottom).
+// - Hunk 1 is unchanged by the ids: the loop-body-scope target shapes below
+//   give the same 99.8% (the tail's store order) with these headers.
 // Claude Opus 5.5 (#5627, 2026-10-04): 99.3% (was 98.5%); hunk 2 is fixed.
 // - Vec3 is the plain struct the same TU's matched 0x40a5d0 declares (no user
 //   operator=), and the inline Direction() is FUN_004103a0's own body, x, y, z
@@ -288,26 +307,17 @@
 // FixMul statement order d.y,d.x,d.z and `FixMul(s, d.y)` 84.0% / 1223 bytes;
 // operator= y,x,z 98.3% with a new loop-2 hunk; operator= x,z,y 97.0%. Nothing
 // moved the three scheduler hunks.
+#include <ta_types.h>
+#include <time.h>
+#include <shlobj.h>
 #include <memory.h>
-#include <vector>
 #include <math.h>
 
-class Class_00407350;
-
-struct Vec3 {
-    int x, y, z;
-    Vec3 operator+(const Vec3& o) const { Vec3 r; r.x = x + o.x; r.y = y + o.y; r.z = z + o.z; return r; }
-    Vec3 operator-(const Vec3& o) const { Vec3 r; r.x = x - o.x; r.y = y - o.y; r.z = z - o.z; return r; }
-};
+inline Vec3::Vec3() {}
+inline Vec3 Vec3::operator+(Vec3& o) { Vec3 r; r.x = x + o.x; r.y = y + o.y; r.z = z + o.z; return r; }
+inline Vec3 Vec3::operator-(Vec3& o) { Vec3 r; r.x = x - o.x; r.y = y - o.y; r.z = z - o.z; return r; }
 
 #pragma pack(push, 1)
-struct Class_00408cb0 {                // the owner (constructor 0x408cb0)
-    char unknown_0[4];
-    unsigned char field_4;             // +0x4
-    char unknown_5[0xd - 0x5];
-    unsigned int field_d;              // +0xd
-};
-
 struct UnitDef_00408100 {
     char unknown_0[0x152];
     int field_152;                     // +0x152
@@ -351,31 +361,9 @@ struct Group_00408100 {
     std::vector<Unit_00408100*> units; // +0x10
 };
 
-class Class_00438760 {
-public:
-    unsigned char index;
-    Class_00438760() {}
-};
+inline Class_00438760::Class_00438760() {}
 
-// Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.
-class Class_00407350 {
-public:
-    Class_00408cb0* owner;             // +0x4
-    void* field_8;                     // +0x8
-    int field_c;                       // +0xc
-    unsigned int field_10;             // +0x10
 
-    Class_00407350(Class_00408cb0* p, void* q);
-    virtual void FUN_00407380();                    // slot 0
-    virtual ~Class_00407350() {}                    // slot 1
-};
-
-// Vtable 0x4fc9a8, constructor 0x4085d0, ??_G 0x408600.
-class Class_004085d0 : public Class_00407350 {
-public:
-    Class_004085d0(Class_00408cb0* p, void* q);
-    virtual void FUN_00407380();                    // slot 0, 0x408100
-};
 
 extern Game_00408100* g_game;
 
@@ -549,7 +537,7 @@ void Class_004085d0::FUN_00407380()
         Unit_00408100* u = *it;
         if (u->def->field_152
             && (!(unsigned char)u->def->flag12
-                || (FUN_0040c230(field_10) < 5 && g_game->ticks >= owner->field_d))
+                || (FUN_0040c230(field_10) < 5 && g_game->ticks >= (unsigned int)owner->field_d))
             && (!u->order || !(u->order->flags & 8))) {
             unsigned short idx = FUN_0040bdb0(field_10, u);
             if (idx) {

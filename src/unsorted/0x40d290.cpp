@@ -1,4 +1,43 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash and space-bunny-free, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 (#5662, 2026-10-04): still 93.3%, file unchanged except this
+// note. Two ids decide, and the second one explains the 98.1% below:
+// - The insert's own id must be even and in 65540..65654 (low 16 bits 4 to
+//   118, so its three parameters wrap too). That is wider than the 65602 lower
+//   edge below, which was measured with one fixed end count.
+// - The ids the front end gives at the end of the file (the body's locals,
+//   _N/_S/this, and the inlined helpers) must have the right parity: MATCH
+//   when _N is even. The 98.1% with Owner moved last is this alone: one more
+//   declaration after the instantiation turns it into a MATCH (moved header,
+//   <windows.h> <shlobj.h> <imagehlp.h>, 1108 to 1222 externs (even) in front,
+//   1 at the end: all 58 MATCH). C2's register table is identical in the
+//   MATCH, 98.1% and 85.6% builds; only operand order in the adds and SIB
+//   bases moves.
+// - With the real ta_types.h (Owner in place) nothing in reach matches:
+//   0 to 25400 externs in front of it (insert 38371 to 63771, step 16, both
+//   insert parities and both end parities, 6352 builds) give only 93.3, 92.8,
+//   71.5, 71.0, 69.6 and 66.4%. The padded-file model (insert 38000 to 63000,
+//   same parities) gives only 93.3 and 92.8%. The most real headers reach is
+//   insert 62417 (every plausible system, DirectX, CRT, STL and old iostream
+//   header, then ta_protos.h, then ta_types.h) or 63609 with
+//   `#define _WIN32_WINNT 0x0400` on top: 1931 short. link/globals.h does not
+//   compile next to <ddraw.h> (IID_IDirectDraw2).
+// - tools/gametypes.py has one ordering only (address of the first file that
+//   uses a type, dependencies first) and no option for another. What would
+//   work, measured on scratch copies of the header (never committed): the
+//   AI translation unit's own types (the 40 whose views all come from files
+//   0x407350 to 0x40d5b0, Owner and Class_00409730 among them) after all the
+//   other types, then `<windows.h> <shlobj.h> <imagehlp.h> <d3d.h> <memory.h>
+//   <math.h>` (or <malloc.h>/<direct.h> for <memory.h>, or <process.h> <io.h>)
+//   in front and the member pointer's type written in its declaration (no
+//   InsertFn typedef; that sets the end parity): MATCH, insert 65604, _N
+//   66554, and the same from a second directory. That reordered header keeps
+//   0x424c00, 0x41b2e0, 0x471de0 and 0x449bb0 matching and 0x408100 at its
+//   99.8% (a pure reorder keeps the total). But regenerating from today's
+//   src/ already differs from include/ta_types.h by 350 lines (2036 types
+//   against 2038), so the header cannot be rebuilt in another order without
+//   moving those files' windows. Scratch: build/scratch/0x40d290/ in worktree
+//   agent-a7432bffbd715c36e (movetu.py, typefiles.py, spec6.py, spec8.py,
+//   spec9.py, deps.py).
 // Claude Opus 5.5 (#5635, 2026-10-04): still 93.3%, file unchanged except this
 // note. include/ta_types.h does not reach the window either (insert's own id
 // 65602..65654, even):

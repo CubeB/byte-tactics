@@ -1,10 +1,46 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
 // pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%; pass 18 (Opus, #5559):
-// 98.6%; pass 19 (Opus, #5583): 98.9%; pass 20 (Opus, #5585): 98.9%, no change.
+// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 and 21 (Opus, #5585, #5587): no change.
 // The class name is data/symbols.csv's
 // Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
 // Class_00462d30, its own file's class, and returns Entry_00462d90*.
+//
+// Pass 21 (#5587): 98.9%, no change. A scan of matched code for where invisible counts
+// come from, and two corrections to the earlier notes.
+//  * The scan: every matched function's file compiled with /Fa (which names each
+//    [esp+N] local) and run under the counting hook of pass 20, then C2's count per
+//    local compared with the listing's visible accesses: 284 locals in 665 functions
+//    have invisible counts. The common sources are (a) a split piece's reload on each
+//    edge into a join, which codegen tail-merges into one load (0x46d970 `this` 5
+//    counts for 3 loads, 0x4cf570 `this`, 0x420f30 pCount); (b) a reload whose value
+//    is still in a register: on a loop's bypass edge it emits nothing, on the exit edge
+//    a `mov ecx, edx` (0x420b00 effects); (c) a loop guard reading the init value
+//    again (0x47e750 cx1: `mov edi, [cx1]; mov eax, edi`).
+//  * tick's exact shape (stored from a callee-saved register before a loop, read from
+//    that register in the loop, reloaded after it) occurs in 15 matched functions
+//    (0x407560 best, 0x40eb70 total, 0x42be30 b, 0x436c30 list, 0x4373a0 name,
+//    0x44da00 this, 0x453d40 sender, 0x47a0e0 icons, 0x487bf0 selected, 0x4a51d0 len
+//    and others), and in every one C2's count equals the visible accesses: no matched
+//    function has an invisible pre-header reload. The pre-header theory below is
+//    unsupported; tick's 4th count may be somewhere else, or flag may have one fewer.
+//  * Correction to pass 19: the frame pass does not walk the final layout. In a test
+//    with `for (...) if (arr[i] == key) { y = arr[7]; g(&y); arr[2] = y; return; }`
+//    followed by the same three statements on x, the then-arm is emitted after the
+//    function's main return but counted in its place inside the loop, so y (3 counts)
+//    is ahead of x (3 counts) in the frame. So a block that the last layout pass moves
+//    is counted where the earlier block order had it. Other moves happen before the
+//    count: the tail written as the then-arm of an early `if (length != 0) { tail: ...
+//    }` (with `goto tail;` after the length == 0 body) gives the same code (98.9%) and
+//    is still counted after region A, and the swap block written at the end of the
+//    function behind a goto is still counted before the tail (82.2%).
+//  * A dead arm is removed before counting: `len = tick;` in the always-false arm of the
+//    second `if (n == 0)` (before `error:`) adds no count.
+//  * The 0x463790 call written in both arms of `if (entry == 0)` (with or without a
+//    tail pointer, either arm first) gives 92.7%: the two copies differ (entry stays in
+//    eax after the Find, and tick's Take piece moves its reload before the call), so
+//    C2 never tail-merges them. Tail-merging needs byte-identical copies (a 4-line test
+//    with the same `h(x, 1); return;` in two arms kept both, ecx against edx).
 //
 // Pass 20 (#5585): only the frame swap is left, and none of these moved it.
 //  * What a hidden count is. A scratch copy of tools/c2prio.py with a hook on

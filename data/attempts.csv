@@ -7183,7 +7183,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4b1c00,586,sonnet-5.5,#4314,partial,88.4,,"issue #4314, escalated"
 0x4bd160,580,deepseek-v4.1-flash,#4317,partial,98.3,,"issue #4317, escalated"
 0x426e80,6310,deepseek-v4.1-flash,#4318,partial,86.9,,"issue #4318, escalated"
-0x473b50,499,,#4321,assigned,,,"issue #4321, escalated"
+0x473b50,499,opus,#4321,matched,100.0,,"issue #4321, escalated"
 0x464060,560,deepseek-v4.1-flash,#4322,partial,87.8,,"issue #4322, escalated"
 0x464700,473,deepseek-v4.1-flash,#4322,partial,98.3,,"issue #4322, escalated"
 0x452cc0,848,opus,#4325,matched,100.0,,"issue #4325, escalated"

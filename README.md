@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**96.40% of Cavedog's code matched** (820,249 of 850,853 bytes)
+**96.46% of Cavedog's code matched** (820,748 of 850,853 bytes)
 
 `[#######################################-]`
 
-By count that is 3,240 of the game's 3,267 functions (99.2%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,241 of the game's 3,267 functions (99.2%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,240 | 820,249 |
-| Attempted, not yet matching | 27 | 30,604 |
+| Matched byte-for-byte | 3,241 | 820,748 |
+| Attempted, not yet matching | 26 | 30,105 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -37,7 +37,7 @@ The size bands are the `size:` labels on the issues.
 | small (1 to 64 bytes) | 1,155 of 1,155 | 100.0% | 0 | `##########` |
 | medium (65 to 160 bytes) | 826 of 827 | 99.9% | 118 | `##########` |
 | large (161 to 400 bytes) | 699 of 703 | 99.4% | 1,009 | `##########` |
-| xl (401 to 600 bytes) | 220 of 226 | 97.3% | 2,960 | `##########` |
+| xl (401 to 600 bytes) | 221 of 226 | 97.8% | 2,461 | `##########` |
 | xxl (601 to 1,000 bytes) | 193 of 195 | 98.8% | 1,730 | `##########` |
 | huge (over 1,000 bytes) | 147 of 161 | 91.5% | 24,787 | `#########-` |
 
@@ -56,7 +56,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x440000` | Multiplayer setup | 244 of 246 | 88.5% | 7,062 | `#########-` |
 | `0x450000` | Options and audio menus | 176 of 176 | 100.0% | 0 | `##########` |
 | `0x460000` | Game and skirmish setup, unit classes | 209 of 212 | 94.9% | 3,166 | `#########-` |
-| `0x470000` | Campaign and skirmish screens, resource bars | 256 of 259 | 96.8% | 2,033 | `##########` |
+| `0x470000` | Campaign and skirmish screens, resource bars | 257 of 259 | 97.6% | 1,534 | `##########` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 262 of 264 | 98.8% | 782 | `##########` |
 | `0x490000` | Config and registry, skirmish summary | 191 of 193 | 98.2% | 1,083 | `##########` |
 | `0x4a0000` | GUI layout and GAF | 201 of 201 | 100.0% | 0 | `##########` |

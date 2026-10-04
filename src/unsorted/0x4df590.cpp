@@ -1,23 +1,25 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
-// #2371 retry by GPT-6.1-sol: no completed fresh check due to concurrent
-// compiler contention (two attempts stalled); preserve the recorded 78.3% best.
-// Still differs (78.3%, 1940 vs 1904 bytes). Remaining gaps, by first differing address:
-//   0x4df7c2 : `b` for the 0x3ed/0x3ee case: the original tests `(wParam >> 16) != 1` with shr/cmp and
-//              reuses that register (`mov esi,edx`) for b = 1; here the mask trick (and/cmp) plus
-//              `mov esi,1` is emitted. Writing b = wParam >> 16 changes the whole frame (0x2c -> 0x1c).
-//   0x4df877 : inner set-mask loop: hoisting `int nmask = ~mask;` fixed the `not edx` placement, but
-//              nmask lands in [esp+0x28] instead of [esp+0x24] and koff = 0 is stored before the
-//              loop-entry test instead of after it.
-//   0x4dfa5b : 0x3f4 case set walk: original keeps head in esi and the walk counter in eax; here head
-//              is eax and the counter edx (one extra `xor edx,edx`), and the exit test's bool is al.
-//   0x4dfb4b : 0x110 case: GetWindowRect wants hwnd in ecx and &rect in eax (here edx/ecx), and the
-//              i loop with `DAT_00529e00[i]` strength-reduces to a pointer induction variable
-//              (`add eax,0x10; cmp eax,<end>`) where the original keeps `inc ebp; cmp ebp,2`.
-//   0x4dfb85 : the `i == 1 ? 0x3ee : 0x3ed` id must stay a branch (`cmp ebp,1; mov esi,0x3ed; jne`);
-//              an explicit if/else does restore it but drops the score to 77.3 (1916 bytes), so the
-//              ternary folding is traded against the surrounding allocation.
-// Fixed this pass: signed `int id` plus the `if (id < 0x3ed) {...} else {BIG}` shape, which is what
-// the original's `jge 0x4df7c2` (jump to the big block, small block inline) does, 76.2 -> 78.1.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by Claude Opus 5.5. Names are provisional.
+// Dialog procedure of the performance status dialog: WM_COMMAND (two
+// combo boxes picking entries from a list, five check boxes, a list box of
+// names, a help link), WM_TIMER (refills the name list box from the global
+// name table when it changed), WM_INITDIALOG and WM_HOTKEY.
+//
+// What took it from 78.3% to MATCH (Claude Opus 5.5, #3293):
+// - The case order in the source: WM_COMMAND before WM_TIMER before
+//   WM_INITDIALOG (WM_HOTKEY can go anywhere). The machine-code layout is
+//   the same for every order, but the order decides the register
+//   candidates' ids and so which split pieces are reloaded first and which
+//   locals share frame slots (the mask/nmask and info/sel slot pairs). The
+//   other 20 orders score 94.3 to 95.1%.
+// - The WM_TIMER loop written as a guarded do-while. A plain while or for
+//   loop compiles to the same WM_TIMER code but moves the 0x3ed/0x3ee case's
+//   loop registers and its `push 0` tail (87.3%).
+// - HIWORD(wParam) for the notification tests, which keeps the shr and lets
+//   C2 reuse the register known to hold 1 for b; the id branch
+//   `if (i == 1) id = 0x3ee;` in WM_INITDIALOG, which stops the strength
+//   reduction of DAT_00529e00[i]; the inlined _Min taking `node->right` as an
+//   argument, which loads it before the lock.
+// - The help URL literal ends in ".html" (the old file had a truncated one).
 #include <windows.h>
 #include <yvals.h>
 
@@ -112,7 +114,6 @@ extern unsigned char DAT_00529ddc;
 extern unsigned char DAT_00529e64;
 extern unsigned char DAT_00529dc8;
 extern Entry_004df590 DAT_00529e00[];
-extern Entry_004df590 DAT_00529e10[];
 extern char* DAT_0050d660;
 
 void __cdecl FUN_004e1b10(int flag);
@@ -135,85 +136,50 @@ public:
     BOOL FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam);
 };
 
+static inline Node_004df590* Min_004df590(Node_004df590* p)
+{
+    std::_Lockit lock;
+    while (p->left != DAT_005292c4)
+        p = p->left;
+    return p;
+}
+
 static inline bool NamesEqual_004df590(const char* a, const char* b) { return a == b || strcmp(a,b) == 0; }
 
 // FUNCTION: 0x4df590
 BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg) {
-    case 0x312:
-        if (wParam == 10) {
-            ((Class_004df280*)this)->FUN_004df280(IsWindowVisible(hwnd) == 0);
-        }
-        return 0;
-
-    case 0x110: {
-        RECT rect;
-        GetWindowRect(hwnd, &rect);
-        left = rect.left;
-        top = rect.top;
-        for (int i = 0; i < 2; i++) {
-            int mask = 1 << i;
-            int id = (i == 1) ? 0x3ee : 0x3ed;
-            int sel = 0;
-            int n = 0;
-            for (int j = 0; j < count; j++) {
-                Entry_004df590* e = &entries[j];
-                if (entries[j].flags_8 & mask) {
-                    if (e->field_0 == DAT_00529e00[i].field_0)
-                        sel = n;
-                    n++;
-                    SendDlgItemMessageA(hwnd, id, 0x143, 0, e->text);
-                }
-            }
-            SendDlgItemMessageA(hwnd, id, 0x14e, sel, 0);
-        }
-        RegisterHotKey(hwnd, 10, 1, 0x24);
-        CheckDlgButton(hwnd, 0x3ef, DAT_00529dd8);
-        CheckDlgButton(hwnd, 0x3f1, DAT_00529dd4);
-        CheckDlgButton(hwnd, 0x3f6, DAT_00529ddc);
-        CheckDlgButton(hwnd, 0x3f7, DAT_00529e64);
-        CheckDlgButton(hwnd, 0x3f8, DAT_00529dc8);
-        ((Class_004df4e0*)this)->FUN_004df4e0();
-        if (flag_20)
-            ((Class_004df280*)this)->FUN_004df280(1);
-        return 1;
-    }
-
     case 0x111: {
-        int id = (int)(wParam & 0xffff);
-        if (id <= 0x3ee) {
-            if (id < 0x3ed) {
-                if (id > 0 && id <= 2) {
-                    ((Class_004df280*)this)->FUN_004df280(0);
-                    return 0;
-                }
-                return 0;
-            }
-            {
-                if ((wParam >> 16) != 1)
+        int id = LOWORD(wParam);
+        switch (id) {
+        case IDOK:
+        case IDCANCEL:
+            ((Class_004df280*)this)->FUN_004df280(0);
+            return 0;
+
+        case 0x3ed:
+        case 0x3ee: {
+                if (HIWORD(wParam) != CBN_SELCHANGE)
                     return 0;
                 int b = 0;
-                if ((short)wParam == 0x3ee) b = 1;
+                if (LOWORD(wParam) == 0x3ee) b = 1;
                 int sel = (int)SendDlgItemMessageA(hwnd, id, 0x147, 0, 0);
                 int mask = 1 << b;
                 int i = 0;
-                int j = 0;
-                for (int off = 0; j < count; j++, off += 0x10) {
+                for (int j = 0; j < count; j++) {
                     if (entries[j].flags_8 & mask) {
                         if (i == sel) {
                             DAT_00529e00[b] = entries[j];
                             if (DAT_00529dc8 && entries[j].name != 0) {
                                 int n = 0;
-                                int k = 0;
                                 int nmask = ~mask;
-                                for (int koff = 0; k < count; k++, koff += 0x10) {
-                                    Entry_004df590* e2 = (Entry_004df590*)((char*)entries + koff);
-                                    if (e2->flags_8 & nmask) {
-                                        if (e2->field_0 == (int)entries[j].name) {
-                                            DAT_00529e10[-b] = *e2;
+                                for (int k = 0; k < count; k++) {
+                                    if (entries[k].flags_8 & nmask) {
+                                        if (entries[k].field_0 == (int)entries[j].name) {
+                                            DAT_00529e00[1 - b] = entries[k];
                                             SendDlgItemMessageA(hwnd,
-                                                ((short)wParam == 0x3ed) ? 0x3ee : 0x3ed,
+                                                (LOWORD(wParam) == 0x3ed) ? 0x3ee : 0x3ed,
                                                 0x14e, n, 0);
                                         }
                                         n++;
@@ -228,11 +194,10 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
                 FUN_004e1b10(0);
                 return 0;
             }
-        } else {
-            switch (id) {
+
             case 0x3fa:
                 FUN_004da5b0(hwnd,
-                    "http://10.0.150.18/programming/library/extras/performancestatusdialog.",
+                    "http://10.0.150.18/programming/library/extras/performancestatusdialog.html",
                     ".htm");
                 return 0;
 
@@ -263,7 +228,7 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
                 return 0;
 
             case 0x3f4: {
-                if ((wParam >> 16) != 1)
+                if (HIWORD(wParam) != LBN_SELCHANGE)
                     return 0;
                 int sel = (int)SendDlgItemMessageA(hwnd, id, 0x188, 0, 0);
                 int j = 0;
@@ -276,10 +241,7 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
                     {
                         std::_Lockit lock;
                         if (node->right != DAT_005292c4) {
-                            std::_Lockit lock2;
-                            node = node->right;
-                            while (node->left != DAT_005292c4)
-                                node = node->left;
+                            node = Min_004df590(node->right);
                         } else {
                             Node_004df590* p;
                             while (node == (p = node->parent)->right)
@@ -291,7 +253,6 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
                 }
                 ((Class_004df380*)this)->FUN_004df380();
                 return 0;
-            }
             }
         }
         return 0;
@@ -316,13 +277,15 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
             Node_004df590* node = info->names.head->left;
             SendDlgItemMessageA(hwnd, 0x3f4, 0x184, 0, 0);
             ((Class_004e18c0*)&set)->FUN_004e18c0();
-            while (Iterator_004df590(node) != Iterator_004df590(info->names.head)) {
-                ((Class_004e1990*)&set)->FUN_004e1990(&node->value);
-                SendDlgItemMessageA(hwnd, 0x3f4, 0x180, 0, (LPARAM)node->value.name);
-                if (NamesEqual_004df590(node->value.name, selected.name))
-                    sel = n;
-                n++;
-                ((Class_004e0450*)&node)->FUN_004e0450();
+            if (Iterator_004df590(node) != Iterator_004df590(info->names.head)) {
+                do {
+                    ((Class_004e1990*)&set)->FUN_004e1990(&node->value);
+                    SendDlgItemMessageA(hwnd, 0x3f4, 0x180, 0, (LPARAM)node->value.name);
+                    if (NamesEqual_004df590(node->value.name, selected.name))
+                        sel = n;
+                    n++;
+                    ((Class_004e0450*)&node)->FUN_004e0450();
+                } while (Iterator_004df590(node) != Iterator_004df590(info->names.head));
             }
             if (sel >= 0)
                 SendDlgItemMessageA(hwnd, 0x3f4, 0x186, sel, 0);
@@ -332,6 +295,48 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
         LeaveCriticalSection(&cs->cs);
         return 0;
     }
+
+    case 0x110: {
+        RECT rect;
+        GetWindowRect(hwnd, &rect);
+        left = rect.left;
+        top = rect.top;
+        for (int i = 0; i < 2; i++) {
+            int mask = 1 << i;
+            int id = 0x3ed;
+            if (i == 1)
+                id = 0x3ee;
+            int sel = 0;
+            int n = 0;
+            for (int j = 0; j < count; j++) {
+                Entry_004df590* e = &entries[j];
+                if (entries[j].flags_8 & mask) {
+                    if (e->field_0 == DAT_00529e00[i].field_0)
+                        sel = n;
+                    n++;
+                    SendDlgItemMessageA(hwnd, id, 0x143, 0, e->text);
+                }
+            }
+            SendDlgItemMessageA(hwnd, id, 0x14e, sel, 0);
+        }
+        RegisterHotKey(hwnd, 10, 1, 0x24);
+        CheckDlgButton(hwnd, 0x3ef, DAT_00529dd8);
+        CheckDlgButton(hwnd, 0x3f1, DAT_00529dd4);
+        CheckDlgButton(hwnd, 0x3f6, DAT_00529ddc);
+        CheckDlgButton(hwnd, 0x3f7, DAT_00529e64);
+        CheckDlgButton(hwnd, 0x3f8, DAT_00529dc8);
+        ((Class_004df4e0*)this)->FUN_004df4e0();
+        if (flag_20)
+            ((Class_004df280*)this)->FUN_004df280(1);
+        return 1;
+    }
+
+    case 0x312:
+        if (wParam == 10) {
+            ((Class_004df280*)this)->FUN_004df280(IsWindowVisible(hwnd) == 0);
+        }
+        return 0;
+
     }
     return 0;
 }

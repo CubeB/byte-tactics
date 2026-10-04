@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6. Names are provisional.
+// #5433 Codex retry: re-confirmed 98.5%; the three scheduler differences
+// remain, and the recorded source and symbol-state probes still apply.
 // #5409 Codex retry: 98.5% remains best. The MapRange load order, angle/d
 // schedule, and first _allmul call still cannot match together with natural
 // source and symbol states.

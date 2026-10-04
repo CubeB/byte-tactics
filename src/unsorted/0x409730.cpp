@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6. Names are provisional.
+// #5433 Codex retry: re-confirmed 99.8%; the only difference is the store
+// SIB order, whose tested fixes disturb the matching instruction schedule.
 // #5409 Codex retry: 99.8% remains best. The lone store SIB needs the
 // original's lost symbol-prefix state; real headers and prior source probes
 // do not recreate it.

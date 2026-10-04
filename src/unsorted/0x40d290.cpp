@@ -1,4 +1,5 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash and space-bunny-free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash and space-bunny-free, finished by GPT-6. Names are provisional.
+// #5526 Codex recheck: 93.3%; documented vector insert TU-state differences remain.
 // Claude Opus 5.5 (#4601, 2026-10-04): still 93.3%. The Part 7 /Gi recipe
 // (the one that matched 0x40d020 and 0x40cca0 next door) does NOT apply here.
 // Under `// FLAGS: /Gi` this insert compiles to one fixed 68.7% (475 bytes)

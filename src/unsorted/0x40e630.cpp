@@ -1,4 +1,5 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5526 Codex recheck: 99.7%; documented Cost push and Clear scheduling differences remain.
 // Claude Opus 5.5 (#4601, 2026-10-04), 98.3% -> 99.7%: the heap reset now
 // comes first in the tail and the cell index is computed by an inline
 // Grid::Index(x, y). With the index written inline, MSVC proves the four heap

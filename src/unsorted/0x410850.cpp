@@ -1,4 +1,29 @@
-// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6, retried by Claude Opus 5.5. Names are provisional.
+// #5512 (Claude Opus 5.5, 98.6% kept): re-read the test with a patched
+// c2prio --rotation that prints each temporary's tuple opcode (01 load,
+// 12 lea, c5 movsx, 109 movzx byte). Ours generates the test as health
+// (edx), def (eax), lea (ecx) from pointer edx. The matched 0x411f50 has the
+// same test bytes as the original here and is also generated health first,
+// from pointer eax with eax busy (so ecx, edx, eax). So the original can be
+// either def first from pointer edx, or health first one rotation step later;
+// the second also needs the FUN_0040b530 block's temporaries (ours: &pads,
+// &pos, owner, index) to come out in the order owner, &pads, &pos, index,
+// which no spelling gave. Toy functions (build/scratch/0x410850/t/) show
+// the operand order is not a value CSE: a later `u->def` read flips it to
+// health first even after a store to `u->def` or through a second pointer
+// `w`, a later `w->def->maxHealth` or `w->def->rangeInt` (int) read flips it
+// back, a later short read can go either way, and only taking `&u` (u then
+// lives in memory) or a real health read gives def first in the same
+// function. Flat here, all with the test unchanged: the brief's routes for
+// the def read (inline GetDef accessor, `UnitDef*&`, `UnitDef**`, a def local
+// captured at the top of Patrol or passed in from FUN_00410850), IsDamaged
+// returning bool or through a bool/int local, health and def as helper
+// arguments in either order, Patrol/IsDamaged/SearchRange taking `Unit*&` or
+// `Unit**`, case 1 before case 0, the selector as `& 0xff` or a local,
+// `return Patrol(...)`, eight water-branch spellings (centre order, angle
+// int or nested, Direction result named, `flags |= 0xe0` four ways) and five
+// FindPads spellings (vector reference, unsigned char player, a player
+// local). The locals and the bool forms also break Patrol's inline budget.
 // Codex / GPT-6 retry on 2026-10-04: best remains 98.6% (1051 bytes), with
 // the health-test scratch-register order as the only mismatch. A no-op
 // `unit->health = unit->health` after the damaged-unit branch tried to break

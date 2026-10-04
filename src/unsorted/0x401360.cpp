@@ -1,66 +1,56 @@
-// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// GPT-6.1-sol tried expressing the two-element normalization pass as byte-offset pointer arithmetic (i += 4).
-// It produced the opposite index/pointer register roles and scored 77.0%, below the preserved 77.2% version.
-// deepseek-v4.1-flash: 77.2% (was 74.4%). Two source changes, both in the statement split/order of an
-// inlined helper. (1) Writing EndTick's backlog update as TWO statements
-// (`r->backlog -= rBacklog * r->backlog;` then `r->backlog += r->demand - rDemand * r->demand;`)
-// instead of one parenthesised expression fixed the two inlined unit-loop EndTick bodies exactly
-// (74.4 -> 76.8). (2) Ordering EndTick's two save-then-zero pairs FIRST
-// (`lastUsed = used; lastProduced = produced; used = 0; produced = 0;` before the backlog math)
-// fixed the player-econ EndTick body too (76.8 -> 77.2). The single parenthesised expression and the
-// `save/zero/save/zero` interleave both scheduled their fsubr/faddp/stores wrong.
-// Correcting deepseek-v4.1's note: the two EndTick summands must stay backlog-first; reversing them
-// (v_e1) is byte-identical to the single-expression form at 74.4, and splitting the update demand-first
-// changes nothing. Also re-tried and confirmed: pure-indexing normalization is 62.2 (keep `have`);
-// `have[0]` instead of `*have` is 74.4; swapping the two EndTick save statements (`lastProduced` before
-// `lastUsed`) is 73.1; an explicit `int ret; return ret;` UseEnergy body and an `unsigned char` return
-// are both 77.2, no better.
-// Still differs at 77.2% (ours 2154 vs original 2239 bytes): UseEnergy's inlined `used += v` store and
-// its `backlog <= 0` test are still scheduled in the opposite order (ours loads backlog first); the
-// original materialises the inlined helper's result in eax then copies to edx (`mov eax,1; mov edx,eax`),
-// ours keeps it in edx; the normalization loop's register roles are mirrored (original: ecx = i byte
-// offset, edx = &produced[i] with `[esp+ecx+off]` addressing; ours: ecx = &produced[i], edx = countdown,
-// with pointer-relative `[ecx+off]` addressing, so ours is ~7 bytes/iteration short) and its second
-// compare keeps the running produced value on the x87 stack where ours spills it with `fst`.
-// Partial: 74.4% (was 70.6%). deepseek-v4.1: the "array shape" is real but is NOT a declaration or
-// zero-init order lever: sweeping the declaration order of the four float[2] accumulators (and of
-// their inits) leaves the frame slots untouched. Wrapping all five arrays (used, backlog, demand,
-// produced, ratio) in ONE struct laid out in that member order puts them at esp+0x10/0x18/0x20/0x28/
-// 0x30, exactly the original, and the whole prologue plus init then matches (70.6 -> 70.7, and it
-// unmasks the statement order below). Then reordering the econ-merge block to produced, used,
-// demand, backlog (ascending unit field offsets) took it to 74.4. Rewriting the normalization loop
-// without the `float* have` pointer (pure indexing) drops it to 62.4, so keep `have`.
-// Still differs: the loop-tail accumulation behind 0x401877 and the tail EndTick block schedule
-// their x87 loads/fxch/stores differently (ours 2158 vs 2239 bytes), UseEnergy materialises its
-// result in eax then copies to edx in the original, and ours hoists the backlog compare above the
-// `used += v` store.
-// Tried by deepseek-v4.1 (no effect, all still 2172 bytes / 70.6): swapping the declaration order of the
-// accumulator arrays (used/backlog/demand/produced), swapping their zero-init order, making UseEnergy
-// __inline or giving it a single `int r; return r;` body, and reversing the two summands in EndTick's
-// backlog expression. Rewriting AddIncome's tail as `*dst = *dst + v;` or `*dst = v + *dst;` also changes
-// nothing (the compiler always folds to `fadd dword ptr [dst]`), while the original has the 2-instruction
-// `fld dword ptr [dst]; fadd st(1)` form at some of those sites. So the slot layout (orig used@0x10, backlog@0x18, demand@0x20, produced@0x28;
-// ours produced@0x10, used@0x18, backlog@0x20, demand@0x28) is not a declaration/init-order lever.
-// Still differs: the original materialises the helper result in eax (`mov eax,1; mov edx,eax` / `xor eax,eax; ...; mov edx,eax`) as an inlined callee return, ours assigns edx directly; ours also hoists the backlog compare above the `used += v` store. Ours is 67 bytes shorter (2172 vs 2239). In the tail the demand-ratio argument to EndTick is read from [esp+0x10] in the original while ours reads a different array slot (0x18/0x14 order swaps in the accumulation block at ~0x401889).
-// deepseek-v4.1-flash run 3 (10 min box, 1 check run): re-read the full 2239-byte original listing against the
-// diff. The whole surviving difference is upstream of the byte-count gap, in the two inlined UseEnergy copies:
-// the original keeps the energyUse value (fchs'ed to -v in the negative arm) LIVE on the x87 stack for the
-// whole inlined body and pops it once in the shared tail block at 0x4016c3, so its plain AddIncome tail is
-// `fld [dst]; fadd st(1); fstp [dst]` (non-popping fadd) only where that leftover must survive; the first
-// copy, whose value is consumed, has the folded `fadd [dst]` at 0x401472 instead. Ours never keeps v live,
-// which both drops the pop and lets the backlog fcomp sink in front of the `used += v` fstp. No source shape
-// reached that in this box; file left at the run-2 best.
-// deepseek-v4.1-flash run 2 (900s): baseline 77.2 confirmed. Tried and rejected, all 77.2 or worse:
-// normalization loop with indexed compares and `have` only for the subtracts (77.1); a `float& have`
-// reference; `*have = *have - take`; `for (i = 0; i != 2; i++)`; `take` declared before `have`;
-// `have = acc.produced + i`; UseEnergy with direct `return 1`/`return 0` (the single `int ret` body is
-// kept); UseEnergy returning bool (64.7). The N-declarations sweep (0..400 `extern int`s) is flat at
-// 77.2 to N=176 then 76.8, so this is not compiler state.
-// The normalization loop's induction variable is the one clear lever left: every rewrite
-// strength-reduces `have` to the induction pointer (ecx) plus a countdown, where the original keeps
-// a 4-byte stride index in ecx and computes `&produced[i]` once per iteration with `lea edx,[esp+ecx+0x28]`.
+// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Per-tick economy update for one player: every unit's energy/metal use and
+// production is summed, the player's totals and storage are updated, and the
+// share of the demand that could be met is fed back into every account.
+//
+// Partial, 88.1% (2233 of 2239 bytes; was 77.2%). What got it here:
+// - The accumulators are separate float[2] arrays, not one struct: with one
+//   aggregate MSVC strength-reduces the normalisation loop to a pointer and a
+//   countdown, the original keeps `i * 4` in ecx ([esp+ecx+N]). The frame
+//   order then comes out right only with two arrays split off into their own
+//   variables: `avail` (production plus stock, shares produced's slot) and
+//   `demandRatio` (shares used's slot). c2prio --frame: used 14, backlog 13,
+//   demand 13, produced 12 (+avail 9), ratio 6.
+// - `avail[i] -= take; float left = avail[i];` keeps the remaining amount on
+//   the x87 stack for the second half of the loop, as the original does.
+// - The unit's resource account is a class at +0xbc whose owner pointer is at
+//   +0x30 (unit+0xec); 0x401180..0x4012a0 are its methods and 0x401320 is the
+//   end-of-tick update, all defined above without FUNCTION lines (each
+//   matches its own original in this file except 0x401320, 66.7%: the two
+//   products swap, which <stdlib.h> fixes in 0x401320.cpp but breaks here).
+//   The cost block is FUN_00401220 inlined.
+// - UseEnergy's positive arm is a helper taking the unit (a pointer argument
+//   gives a strength-reduced unit+0xc0 pointer) whose `used` store goes
+//   through a float* (otherwise the backlog compare is scheduled above it);
+//   the helper's return then comes out as `mov eax, 1; mov edx, eax`.
+// - Default and non-AI income adds: a float amount adds straight to the field
+//   (`fadd [m]`), a double one keeps the amount and pops it
+//   (`fld [m]; fadd st(1); fstp [m]; fstp st(0)`, as in 0x4237d0). The
+//   original has the second form for tidal, energyMake and the else-branch
+//   UseEnergy, the first everywhere else, hence AddIncomeD/UseEnergyD.
+// - With tidal and the else branch both on the double helper MSVC moves the
+//   whole else branch after the epilogue (81.6%) unless something ends the
+//   if/else chain with its own join: the `done:` label (or a
+//   `do { } while (0)` around the chain; `for`/`while` wrappers do not work).
+//
+// Still differs (all tail merging in the wind/tidal/else-branch block):
+// - wind's case blocks keep their own `fmul; jmp` where the original jumps
+//   straight into the else branch's;
+// - tidal's switch dispatch is merged into the else branch's, where the
+//   original keeps `je c0; dec; je c1; jmp K` (its own default block);
+// - the else branch's default add keeps its own `fstp st(0); jmp` where the
+//   original falls into the pop shared with the backlog > 0 path.
+// Tried without effect: header and declaration-count sweeps (windows-class
+// headers are best, flat otherwise), the helpers' parameter order, every
+// spelling of the gate, return and negation in UseEnergyD, case order and
+// break/else forms of AddIncomeD (the 0x4237d0 spelling drops to 71.6% by
+// flipping unrelated fadd operand orders), extra labels elsewhere, loop
+// wrappers around the function or the unit loop, and a 15-minute permuter run.
+// Without the label and with tidal/else on the float helper the same file is
+// 87.7% and still has the else branch in place.
 #include <ddraw.h>
 struct Unit_00401360;
+struct Player_00401360;
 
 class Class_0048b090 {
 public:
@@ -68,14 +58,6 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Acc_00401360 {
-    float used[2];
-    float backlog[2];
-    float demand[2];
-    float produced[2];
-    float ratio[2];
-};
-
 struct Res_00401360 {
     float produced;                    // +0x0
     float used;                        // +0x4
@@ -85,8 +67,16 @@ struct Res_00401360 {
     float lastUsed;                    // +0x14
 };
 
-struct Econ_00401360 {
-    Res_00401360 res[2];               // energy, metal
+// The unit's (and the player's) resource accounts: energy, then metal.
+class Econ_00401360 {
+public:
+    Res_00401360 res[2];               // +0x0
+    Player_00401360* owner;            // +0x30
+    int FUN_00401180(Econ_00401360* e, float amount);
+    int FUN_004011c0(float energy, float metal);
+    int FUN_00401220(float amount);
+    int FUN_00401260(float amount);
+    int FUN_004012a0(float energy, float metal);
 };
 
 struct UnitDef_00401360 {
@@ -139,8 +129,7 @@ struct Unit_00401360 {
     char unknown_96[0xb0 - 0x96];
     unsigned int nextTick;             // +0xb0
     char unknown_b4[0xbc - 0xb4];
-    Econ_00401360 econ;                // +0xbc
-    Player_00401360* owner;            // +0xec
+    Econ_00401360 econ;                // +0xbc (owner at +0xec)
     char unknown_f0[0x104 - 0xf0];
     float buildLeft;                   // +0x104
     char unknown_108[0x10e - 0x108];
@@ -171,41 +160,64 @@ struct Game_00401360 {
 
 extern Game_00401360* g_game;
 
-static inline void AddIncome(Unit_00401360* u, float* dst, float v)
+// The functions before 0x401360 in the original file (each matched in its own
+// file under another class name), defined here without FUNCTION lines.
+int Econ_00401360::FUN_00401180(Econ_00401360* e, float amount)
 {
-    Player_00401360* o = u->owner;
-    if (o->active && o->type == 2) {
-        switch (g_game->difficulty) {
-        case 0:
-            *dst += v * 0.5;
-            return;
-        case 1:
-            *dst += v * 0.7;
-            return;
-        }
-    }
-    *dst += v;
+    e->res[0].used += amount;
+    if (e->res[0].backlog > 0.0f)
+        return 0;
+    e->res[0].demand += amount;
+    return 1;
 }
 
-static int UseEnergy(Unit_00401360* u, float v)
+int Econ_00401360::FUN_004011c0(float energy, float metal)
 {
-    int ret;
-    if (v >= 0) {
-        u->econ.res[0].used += v;
-        if (u->econ.res[0].backlog <= 0) {
-            u->econ.res[0].demand += v;
-            ret = 1;
-        } else {
-            ret = 0;
-        }
-    } else {
-        AddIncome(u, &u->econ.res[0].produced, -v);
-        ret = 0;
+    res[0].used += energy;
+    res[1].used += metal;
+    if (res[0].backlog <= 0.0f && res[1].backlog <= 0.0f) {
+        res[0].demand += energy;
+        res[1].demand += metal;
+        return 1;
     }
-    return ret;
+    return 0;
 }
 
-static inline void EndTick(Res_00401360* r, float ratioDemand, float ratioBacklog)
+int Econ_00401360::FUN_00401220(float amount)
+{
+    if (owner->res[0].stored >= amount) {
+        owner->res[0].stored -= amount;
+        res[0].used += amount;
+        return 1;
+    }
+    return 0;
+}
+
+int Econ_00401360::FUN_00401260(float amount)
+{
+    if (owner->res[1].stored >= amount) {
+        owner->res[1].stored -= amount;
+        res[1].used += amount;
+        return 1;
+    }
+    return 0;
+}
+
+int Econ_00401360::FUN_004012a0(float energy, float metal)
+{
+    if (owner->res[0].stored >= energy && owner->res[1].stored >= metal) {
+        owner->res[0].stored -= energy;
+        res[0].used += energy;
+        if (owner->res[1].stored >= metal) {
+            owner->res[1].stored -= metal;
+            res[1].used += metal;
+        }
+        return 1;
+    }
+    return 0;
+}
+
+void __stdcall FUN_00401320(Res_00401360* r, float ratioBacklog, float ratioDemand)
 {
     r->lastUsed = r->used;
     r->lastProduced = r->produced;
@@ -216,23 +228,93 @@ static inline void EndTick(Res_00401360* r, float ratioDemand, float ratioBacklo
     r->demand = 0;
 }
 
+static inline void AddIncome(Unit_00401360* u, float* dst, float v)
+{
+    Player_00401360* o = u->econ.owner;
+    if (o->active && o->type == 2) {
+        switch (g_game->difficulty) {
+        case 0:
+            *dst += v * 0.5;
+            return;
+        case 1:
+            *dst += v * 0.7;
+            return;
+        default:
+            *dst += v;
+            return;
+        }
+    }
+    *dst += v;
+}
+
+static inline void AddIncomeD(Unit_00401360* u, float* dst, double v)
+{
+    Player_00401360* o = u->econ.owner;
+    if (o->active && o->type == 2) {
+        switch (g_game->difficulty) {
+        case 0:
+            *dst += v * 0.5;
+            return;
+        case 1:
+            *dst += v * 0.7;
+            return;
+        default:
+            *dst += v;
+            return;
+        }
+    }
+    *dst += v;
+}
+
+static int Use_00401180(Unit_00401360* u, float amount)
+{
+    float* used = &u->econ.res[0].used;
+    *used += amount;
+    if (u->econ.res[0].backlog > 0.0f)
+        return 0;
+    u->econ.res[0].demand += amount;
+    return 1;
+}
+
+static int UseEnergy(Unit_00401360* u, float v)
+{
+    if (v >= 0)
+        return Use_00401180(u, v);
+    AddIncome(u, &u->econ.res[0].produced, -v);
+    return 0;
+}
+
+static int UseEnergyD(Unit_00401360* u, float v)
+{
+    if (v >= 0)
+        return Use_00401180(u, v);
+    AddIncomeD(u, &u->econ.res[0].produced, -v);
+    return 0;
+}
+
 // FUNCTION: 0x401360
 void __stdcall FUN_00401360(Player_00401360* p)
 {
-    Acc_00401360 acc;
+    float usedA[2];
+    float backlogA[2];
+    float demandA[2];
+    float producedA[2];
+    float ratioA[2];
+    float avail[2];
+    float demandRatio[2];
     Unit_00401360* u;
     int i;
 
     p->storage[1] = 0;
     p->storage[0] = 0;
-    acc.produced[0] = 0;
-    acc.produced[1] = 0;
-    acc.used[0] = 0;
-    acc.used[1] = 0;
-    acc.demand[0] = 0;
-    acc.demand[1] = 0;
-    acc.backlog[0] = 0;
-    acc.backlog[1] = 0;
+    producedA[0] = 0;
+    producedA[1] = 0;
+    usedA[0] = 0;
+    usedA[1] = 0;
+    demandA[0] = 0;
+    demandA[1] = 0;
+    backlogA[0] = 0;
+    backlogA[1] = 0;
     for (u = p->units; u <= p->units_end; u++) {
         if (!(u->flags & 0x10000000))
             continue;
@@ -240,22 +322,26 @@ void __stdcall FUN_00401360(Player_00401360* p)
             if (u->flags10e & 1) {
                 int ok = UseEnergy(u, u->def->energyUse);
                 if (u->def->extractsMetal > 0) {
-                    if (ok)
-                        AddIncome(u, &u->econ.res[1].produced, u->extraction);
+                    if (!ok)
+                        goto done;
+                    AddIncome(u, &u->econ.res[1].produced, u->extraction);
                 } else if (u->def->makesMetal) {
-                    if (ok)
-                        AddIncome(u, &u->econ.res[1].produced, u->def->makesMetal);
+                    if (!ok)
+                        goto done;
+                    AddIncome(u, &u->econ.res[1].produced, u->def->makesMetal);
                 } else if (u->def->windGenerator > 0) {
                     AddIncome(u, &u->econ.res[0].produced, g_game->wind * u->def->windGenerator);
                 } else if (u->def->tidalGenerator > 0) {
-                    AddIncome(u, &u->econ.res[0].produced, g_game->tidal * u->def->tidalGenerator);
+                    AddIncomeD(u, &u->econ.res[0].produced, g_game->tidal * u->def->tidalGenerator);
                 }
             }
         } else if ((u->flags10e & 1) || (u->flags & 0xc) > 0) {
-            UseEnergy(u, u->def->energyUse);
+            UseEnergyD(u, u->def->energyUse);
         }
+        // This label's join keeps the else branch in place (see the top).
+    done:
         if (u->buildLeft == 0) {
-            AddIncome(u, &u->econ.res[0].produced, u->def->energyMake);
+            AddIncomeD(u, &u->econ.res[0].produced, u->def->energyMake);
             AddIncome(u, &u->econ.res[1].produced, u->def->metalMake);
             p->storage[1] += u->def->metalStorage;
             p->storage[0] += u->def->energyStorage;
@@ -264,88 +350,80 @@ void __stdcall FUN_00401360(Player_00401360* p)
             if (u->bit11) {
                 if (!(u->flags & 0x1000) && u->nextTick <= g_game->ticks) {
                     int cost = (int)((u->flags & 0xc) > 0 ? u->def->costActive : u->def->cost);
-                    Player_00401360* o = u->owner;
-                    int ok;
-                    if (cost <= o->res[0].stored) {
-                        o->res[0].stored -= cost;
-                        u->econ.res[0].used += cost;
-                        ok = 1;
-                    } else
-                        ok = 0;
-                    ((Class_0048b090*)u)->FUN_0048b090(4, ok);
+                    ((Class_0048b090*)u)->FUN_0048b090(4, u->econ.FUN_00401220(cost));
                 } else
                     ((Class_0048b090*)u)->FUN_0048b090(4, 0);
             } else
                 ((Class_0048b090*)u)->FUN_0048b090(4, 0);
         }
-        acc.produced[0] += u->econ.res[0].produced;
-        acc.used[0] += u->econ.res[0].used;
-        acc.demand[0] += u->econ.res[0].demand;
-        acc.backlog[0] += u->econ.res[0].backlog;
-        acc.produced[1] += u->econ.res[1].produced;
-        acc.used[1] += u->econ.res[1].used;
-        acc.demand[1] += u->econ.res[1].demand;
-        acc.backlog[1] += u->econ.res[1].backlog;
+        producedA[0] += u->econ.res[0].produced;
+        usedA[0] += u->econ.res[0].used;
+        demandA[0] += u->econ.res[0].demand;
+        backlogA[0] += u->econ.res[0].backlog;
+        producedA[1] += u->econ.res[1].produced;
+        usedA[1] += u->econ.res[1].used;
+        demandA[1] += u->econ.res[1].demand;
+        backlogA[1] += u->econ.res[1].backlog;
     }
     Econ_00401360* e = p->econ;
-    acc.produced[0] += e->res[0].produced;
-    acc.used[0] += e->res[0].used;
-    acc.demand[0] += e->res[0].demand;
-    acc.backlog[0] += e->res[0].backlog;
-    acc.produced[1] += e->res[1].produced;
-    acc.used[1] += e->res[1].used;
-    acc.demand[1] += e->res[1].demand;
-    acc.backlog[1] += e->res[1].backlog;
+    producedA[0] += e->res[0].produced;
+    usedA[0] += e->res[0].used;
+    demandA[0] += e->res[0].demand;
+    backlogA[0] += e->res[0].backlog;
+    producedA[1] += e->res[1].produced;
+    usedA[1] += e->res[1].used;
+    demandA[1] += e->res[1].demand;
+    backlogA[1] += e->res[1].backlog;
     if (p->flags149 & 1) {
         p->storage[0] += p->storageBonus[0];
         p->storage[1] += p->storageBonus[1];
     }
-    p->res[0].produced = acc.produced[0];
-    p->res[0].used = acc.used[0];
-    p->totalProduced[0] += acc.produced[0];
-    p->totalUsed[0] += acc.used[0];
-    p->res[1].produced = acc.produced[1];
-    p->res[1].used = acc.used[1];
-    p->totalProduced[1] += acc.produced[1];
-    p->totalUsed[1] += acc.used[1];
-    acc.produced[0] += p->res[0].stored;
-    acc.produced[1] += p->res[1].stored;
+    p->res[0].produced = producedA[0];
+    p->res[0].used = usedA[0];
+    p->totalProduced[0] += producedA[0];
+    p->totalUsed[0] += usedA[0];
+    p->res[1].produced = producedA[1];
+    p->res[1].used = usedA[1];
+    p->totalProduced[1] += producedA[1];
+    p->totalUsed[1] += usedA[1];
+    avail[0] = producedA[0] + p->res[0].stored;
+    avail[1] = producedA[1] + p->res[1].stored;
     for (i = 0; i < 2; i++) {
-        float* have = &acc.produced[i];
         float take;
-        if (acc.backlog[i] <= *have) {
-            take = acc.backlog[i];
-            acc.ratio[i] = 1.0f;
+        if (backlogA[i] <= avail[i]) {
+            take = backlogA[i];
+            ratioA[i] = 1.0f;
         } else {
-            take = *have;
-            acc.ratio[i] = *have / acc.backlog[i];
+            take = avail[i];
+            ratioA[i] = avail[i] / backlogA[i];
         }
-        *have -= take;
-        if (acc.demand[i] <= *have) {
-            take = acc.demand[i];
-            acc.used[i] = 1.0f;
+        avail[i] -= take;
+        float left = avail[i];
+        if (demandA[i] <= left) {
+            take = demandA[i];
+            demandRatio[i] = 1.0f;
         } else {
-            take = *have;
-            acc.used[i] = *have / acc.demand[i];
+            take = left;
+            demandRatio[i] = left / demandA[i];
         }
-        *have -= take;
+        avail[i] = left - take;
     }
-    p->res[0].stored = acc.produced[0];
-    if (acc.produced[0] > p->storage[0]) {
+    p->res[0].stored = avail[0];
+    if (avail[0] > p->storage[0]) {
         p->res[0].stored = p->storage[0];
-        p->totalExcess[0] += acc.produced[0] - p->storage[0];
+        p->totalExcess[0] += avail[0] - p->storage[0];
     }
-    p->res[1].stored = acc.produced[1];
-    if (acc.produced[1] > p->storage[1]) {
+    p->res[1].stored = avail[1];
+    if (avail[1] > p->storage[1]) {
         p->res[1].stored = p->storage[1];
-        p->totalExcess[1] += acc.produced[1] - p->storage[1];
+        p->totalExcess[1] += avail[1] - p->storage[1];
     }
     for (u = p->units; u <= p->units_end; u++) {
         if (u->flags & 0x10000000) {
-            EndTick(&u->econ.res[0], acc.used[0], acc.ratio[0]);
-            EndTick(&u->econ.res[1], acc.used[1], acc.ratio[1]);
+            FUN_00401320(&u->econ.res[0], ratioA[0], demandRatio[0]);
+            FUN_00401320(&u->econ.res[1], ratioA[1], demandRatio[1]);
         }
     }
-    EndTick(&p->econ->res[0], acc.used[0], acc.ratio[0]);
-    EndTick(&p->econ->res[1], acc.used[1], acc.ratio[1]);
+    FUN_00401320(&p->econ->res[0], ratioA[0], demandRatio[0]);
+    FUN_00401320(&p->econ->res[1], ratioA[1], demandRatio[1]);
 }

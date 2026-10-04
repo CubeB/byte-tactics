@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**95.19% of Cavedog's code matched** (809,898 of 850,853 bytes)
+**95.27% of Cavedog's code matched** (810,604 of 850,853 bytes)
 
 `[######################################--]`
 
-By count that is 3,233 of the game's 3,267 functions (99.0%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,234 of the game's 3,267 functions (99.0%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,233 | 809,898 |
-| Attempted, not yet matching | 34 | 40,955 |
+| Matched byte-for-byte | 3,234 | 810,604 |
+| Attempted, not yet matching | 33 | 40,249 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -38,7 +38,7 @@ The size bands are the `size:` labels on the issues.
 | medium (65 to 160 bytes) | 826 of 827 | 99.9% | 118 | `##########` |
 | large (161 to 400 bytes) | 699 of 703 | 99.4% | 1,009 | `##########` |
 | xl (401 to 600 bytes) | 219 of 226 | 96.8% | 3,497 | `##########` |
-| xxl (601 to 1,000 bytes) | 190 of 195 | 97.0% | 4,405 | `##########` |
+| xxl (601 to 1,000 bytes) | 191 of 195 | 97.5% | 3,699 | `##########` |
 | huge (over 1,000 bytes) | 144 of 161 | 89.1% | 31,926 | `#########-` |
 
 ### By area
@@ -59,7 +59,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x470000` | Campaign and skirmish screens, resource bars | 254 of 259 | 94.3% | 3,604 | `#########-` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 262 of 264 | 98.8% | 782 | `##########` |
 | `0x490000` | Config and registry, skirmish summary | 190 of 193 | 96.6% | 2,052 | `##########` |
-| `0x4a0000` | GUI layout and GAF | 200 of 201 | 98.9% | 706 | `##########` |
+| `0x4a0000` | GUI layout and GAF | 201 of 201 | 100.0% | 0 | `##########` |
 | `0x4b0000` | UI controls and file packages | 313 of 314 | 99.6% | 260 | `##########` |
 | `0x4c0000` | TDF parser, CD audio, string handles | 296 of 298 | 99.4% | 318 | `##########` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 196 of 197 | 97.7% | 850 | `##########` |

@@ -1,11 +1,63 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
 // pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%; pass 18 (Opus, #5559):
-// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 to 23 (Opus, #5585, #5587, #5610, #5625):
-// no change.
+// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 to 24 (Opus, #5585, #5587, #5610, #5625,
+// #5650): no change.
 // The class name is data/symbols.csv's
 // Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
 // Class_00462d30, its own file's class, and returns Entry_00462d90*.
+//
+// Pass 24 (#5650): 98.9%, no change, but a new lead: the 0x463790 call written in both
+// arms of `if (entry == 0)` fixes the frame, and C2 merges the two copies.
+//  * Pass 23's lead is closed. No Take/Pop spelling lets the Pop result win the tie
+//    (35 shapes: f == 0 or not-due returns first, Pop with an early return or a result
+//    local, a named Pop result): the Take result's last write is always in the join after
+//    Pop's returns (+0x40 68 or 69 against 65 or 67). Lowering the Take result to 76 in a
+//    scratch copy (no net stores on the loop's found path) gives src eax and tick 3 counts
+//    again, so the second-return Take's 4th count is only the back-edge reload.
+//  * C2's joint split (FUN_00438f79, called from FUN_0041ba2b when one colouring leaves 3
+//    or more neighbours without a register) walks the blocks in order. A block's free set
+//    is every register minus those of coloured candidates live in it (+0x4c); it joins the
+//    region of its first predecessor (else first already-placed successor) whose own free
+//    set (every register minus the union of its blocks' +0x4c) still meets it, or opens a
+//    new region; a block with nothing free gets none. Split points (0x1a tuples) go at
+//    both ends of region-less blocks, at the end of predecessors in another region (at the
+//    block's start when no predecessor shares its region), and the same for successors.
+//    So tick's def and first loop can only be split if the def block already uses ebp:
+//    the pre-header reload theory (an elided `mov ebp, [tick]`) cannot happen. tick dies
+//    in the Take's first block, so no elided reload is possible there either.
+//  * Cross-jumping runs after the frame count, so a duplicated tail that C2 merges counts
+//    once per copy (the Take and copy-out written in both Peek arms: entry 14 counts,
+//    tick 4). C2 merges only straight-line tails that end in a jump or return into the
+//    block the other copy falls into: the copy-out and NOMSG exits merge, the Take copies
+//    (which end in conditional jumps) never do (91.9%).
+//  * The call in both arms fits the original's layout exactly (the Find arm falls into
+//    0x463470, the other arm's jne lands on it) and gives tick its 4th count (two pushes):
+//        int queued;
+//        if (entry == 0) {
+//            entry = Find...; if (entry == 0) { length = 0; return NOMSG; }
+//            queued = entry->tail.FUN_00463790(buffer, length, tick, ...);
+//        } else {
+//            queued = entry->tail.FUN_00463790(buffer, length, tick, ...);
+//        }
+//    then `if (queued)` with the two Peeks and the Take. With the Peeks and the Take
+//    spelled `entry->tail.Peek()` / `entry->tail.Take(...)`, entry stays in edi across the
+//    call in both arms, the copies are identical and C2 merges them: everything up to the
+//    call and the whole frame then match (92.9%, 1656 bytes). Only the Peek/Take part
+//    differs: the Pop re-reads entry->tail.buffer through edi instead of reusing the
+//    Peek's load, so the Peek's buffer takes esi and f eax, and tick's Take piece is ecx.
+//    With the base's `tail` pointer for the Peeks and the Take (any placement: after the
+//    join, in each arm, before or after the call, a reference), entry is no longer used in
+//    a register after the call, the Find arm's entry piece takes eax (the return value)
+//    instead of edi, tick's Take piece takes edi across the first copy's call, and the
+//    copies differ (92.7%). Arms in either order, `long queued`, a `found` local for the
+//    Find result and an inline Queue() helper change nothing. What is left: keep entry in
+//    edi across the call in the Find arm while the Peeks and the Take go through `tail`.
+//    The merge needs entry used in a register after the call, which the original's code
+//    never does (its found path reloads entry from [esp+0x10]), so the Find arm's edi must
+//    come from something else, or the duplicated call is the wrong lead. Permuter runs
+//    (12 minutes from this file with --stack tick,flag; 18 from the merged form) found
+//    nothing.
 //
 // Pass 23 (#5625): 98.9%, no change. The second-return Take cannot fix the frame.
 //  * With that Take, tick's 4th count is the visible reload at the loop's back edge (a

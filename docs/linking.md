@@ -224,8 +224,8 @@ same objects as `tools/link.py`, but puts every piece at the address the
 original has it, the layout LEGO Island's decomp checks its rebuilt binaries
 against (reccmp's placement report, ReproBit's byte-for-byte verify). The
 original exe has no relocation table, so code and data that are not rebuilt
-yet (the gap regions, the runtime library, data no object defines) only work
-at their own addresses; with everything else at its own address too, they
+yet (the gap regions, data no object defines) only work at their own
+addresses; with everything else at its own address too, they
 need no relocation at all. And every call reaches the one function at its
 address, whatever its caller calls it, so the spellings `tools/link.py`
 bridges with aliases do not matter here.
@@ -252,24 +252,40 @@ How it places things:
   and listed.
 - **`link/data.cpp`** and the globals `tools/globals.py` leaves out are placed
   at their addresses, one global at a time.
+- **The runtime library** comes from the members of the libraries the
+  original links statically: the VC5 SP3 `LIBCMT.LIB` and `LIBCPMT.LIB`, and
+  zlib 1.0.4 as `tools/setup_toolchain.sh` builds it with Cavedog's options. A
+  member goes where `data/functions.csv` has its function, provided the
+  original holds its bytes there and refers to the same things: its calls
+  reach functions of the same names, its imports the same slots, and its own
+  data (strings, tables, exception and type information, initial values) the
+  same contents. Bytes alone cannot tell many of them apart: the locking
+  wrappers `_read`, `_write` and `_lseek`, `_Xlen` and `_Xran`, or zlib's
+  `get_crc_table` and `zlibVersion` differ only in what they refer to. The
+  report lists the five functions whose `data/functions.csv` name was one of
+  such a pair. Static functions and the members' data follow where the
+  placed code refers to them, and communal (`.bss`) data where the original
+  has it.
 - **What has no source** is copied from the original and counted as copied:
-  the 29 gap regions, the runtime library code, data no object defines, the
-  linker's import tables, the headers, `.tls` and the resources.
+  the 29 gap regions, 11 runtime library functions no member matches (four
+  `basic_string` members Cavedog's objects instantiated, the `exception`
+  constructors, three without a name), data no object defines, the linker's
+  import tables, the headers, `.tls` and the resources.
 
 Every relocation is checked against the address the original's bytes give at
 that spot, and the finished image is compared with the original byte for
 byte, which is the placement and data compare #4869 asks for. The report
-counts where each section's bytes came from. On 2026-10-04 at fa49dca6:
+counts where each section's bytes came from. On 2026-10-04 at d2bee5d5:
 
-| Section | Bytes | From source | Copied |
+| Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
-| `.text` | 1,026,560 | 851,013 game code, 25,371 padding | 124,720 runtime library, 25,456 gap regions |
-| `.rdata` | 18,432 | 2,588 compiled data, 2,948 `link/` globals, 372 padding | 6,529 import tables, 5,995 other data |
-| `.data` | 173,660 | 34,263 compiled data, 78,479 `link/` globals | 60,918 |
+| `.text` | 1,026,560 | 850,853 game code, 115,718 runtime library, 25,371 padding | 25,456 gap regions, 9,162 runtime library |
+| `.rdata` | 18,432 | 2,444 compiled data, 3,771 library data, 2,948 `link/` globals, 372 padding | 6,529 import tables, 2,368 other data |
+| `.data` | 173,660 | 34,172 compiled data, 24,821 library data, 78,479 `link/` globals | 36,188 |
 
-Of the 33,252 relocations in placed pieces, every one in code agrees with the
-original (135 of them reach the second copy of a function `data/aliases.csv`
-lists, such as the two `std::_Lockit`). 92 vtable entries in compiled data
+Of the 37,389 relocations in placed pieces, every one in code agrees with the
+original (136 of them reach the second copy of a function `data/aliases.csv`
+lists, such as the two `std::_Lockit`). 94 vtable entries in compiled data
 disagree and keep the original's value. The image differs from the original
 in 16 bytes, the `TODO` initial values of `link/data.cpp` (`DAT_0050a788`'s
 four GUID pointers and the fourth element of `DAT_00509688`), and under the
@@ -299,7 +315,8 @@ stop that from reaching the whole image:
   objects hold one function's worth each, so LINK would interleave them in a
   different order, and the code and data that are copied from the original
   would point at the wrong things.
-- The gap regions and the runtime library code have no objects to order.
+- The gap regions have no objects to order, and the runtime library's
+  members would land wherever LINK pulls them in.
 
 Each of these could be worked around (dropping unwanted COMDAT copies from
 the objects before linking, blob objects for the gaps, a single data object

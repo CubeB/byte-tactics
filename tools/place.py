@@ -6,8 +6,7 @@
 
 tools/link.py links the tree the ordinary way, so every function lands
 wherever LINK puts it. That image cannot run as the game yet: the 29 gap
-regions (code with no source), the runtime library code and much of the data
-hold absolute addresses, the original exe has no relocation table to move
+regions (code with no source) and much of the data hold absolute addresses, the original exe has no relocation table to move
 them with, and callers that spell a callee differently need alias bridges.
 place.py instead lays every piece out exactly where the original has it, the
 layout LEGO Island's decomp checks its rebuilt binaries against (reccmp,
@@ -28,8 +27,11 @@ they expect it, and every call reaches the one function at its address:
     and are compared with the original's;
   * link/data.cpp and the globals tools/globals.py leaves out are placed at
     their addresses, one global at a time;
+  * the runtime library comes from the members of LIBCMT.LIB, LIBCPMT.LIB and
+    zlib that the original links, each where the original holds its bytes and
+    refers to the same functions, imports and data contents;
   * what has no source yet is copied from the original and counted as copied:
-    the gap regions, the statically linked runtime library code, data no
+    the gap regions, the few library functions no member matches, data no
     object defines, the import tables, the headers and the resources.
 
 Every relocation is checked against the address the original uses at that
@@ -69,8 +71,15 @@ SKIP_SECTIONS = (".drectve", ".debug")
 
 # Where each byte of the image came from.
 SOURCES = ["unset", "game code", "game data", "global data", "library (copied)", "gap (copied)",
-           "data (copied)", "padding", "headers, imports, resources (copied)"]
-UNSET, CODE, OBJDATA, GLOBALDATA, LIBRARY, GAP, COPIED, PADDING, FIXED = range(len(SOURCES))
+           "data (copied)", "padding", "headers, imports, resources (copied)", "library code",
+           "library data"]
+(UNSET, CODE, OBJDATA, GLOBALDATA, LIBRARY, GAP, COPIED, PADDING, FIXED, LIBCODE,
+ LIBDATA) = range(len(SOURCES))
+
+# The libraries the original links statically: the VC5 SP3 C and C++ runtimes,
+# and zlib 1.0.4 as tools/setup_toolchain.sh builds it with Cavedog's options.
+LIBRARIES = [ROOT / "toolchain/msvc5-sp3/LIB/LIBCMT.LIB", ROOT / "toolchain/msvc5-sp3/LIB/LIBCPMT.LIB"]
+THIRD_PARTY = ROOT / "toolchain/thirdparty/zlib-1.0.4"
 
 
 # --- COFF objects -------------------------------------------------------------------
@@ -111,11 +120,15 @@ class Obj:
     path: Path
     secs: list[Sec]
     syms: dict[int, Sym]
+    raw: bytes
+    library: bool = False      # a member of a runtime or third-party library
     externals: dict[str, Sym] = field(default_factory=dict)
+    absolutes: dict[str, int] = field(default_factory=dict)    # IMAGE_SYM_ABSOLUTE externals
+    commons: dict[str, int] = field(default_factory=dict)      # communal (.bss) externals -> size
 
 
-def parse(path: Path) -> Obj:
-    data = path.read_bytes()
+def parse(path: Path, data: bytes | None = None, library: bool = False) -> Obj:
+    data = path.read_bytes() if data is None else data
     _, nsects, _, symptr, nsyms, opthdr, _ = struct.unpack_from("<HHIIIHH", data, 0)
     strtab = data[symptr + nsyms * 18:]
 
@@ -142,15 +155,37 @@ def parse(path: Path) -> Obj:
         value, secnum, typ, sclass, naux = struct.unpack_from("<IhHBB", raw, 8)
         syms[i] = Sym(i, name_of(raw), value, secnum, sclass, (typ & 0x30) == 0x20)
         i += 1 + naux
-    obj = Obj(path, secs, syms)
+    obj = Obj(path, secs, syms, data, library)
     for s in syms.values():
         if s.section > 0 and s.sclass in (2, 3) and not s.name.startswith("."):
             obj.secs[s.section - 1].starts.append(s.value)
             if s.sclass == 2:
                 obj.externals[s.name] = s
+        elif s.sclass == 2 and s.section == -1:
+            obj.absolutes[s.name] = s.value
+        elif s.sclass == 2 and s.section == 0 and s.value:
+            obj.commons[s.name] = s.value
     for sec in secs:
         sec.starts = sorted(set(sec.starts))
     return obj
+
+
+def read_library(path: Path) -> list[Obj]:
+    """The object members of a COFF archive (.lib)."""
+    data = path.read_bytes()
+    longnames, members, pos = b"", [], 8
+    while pos + 60 <= len(data):
+        name = data[pos:pos + 16].decode("latin-1").rstrip()
+        size = int(data[pos + 48:pos + 58])
+        body = data[pos + 60:pos + 60 + size]
+        pos += 60 + size + (size & 1)
+        if name == "//":
+            longnames = body
+        elif name != "/" and body[:2] == b"\x4c\x01":
+            if name.startswith("/"):
+                name = longnames[int(name[1:]):].split(b"\0", 1)[0].decode("latin-1")
+            members.append(parse(Path(f"{path.name}({name.rstrip('/')})"), body, library=True))
+    return members
 
 
 # --- the original -------------------------------------------------------------------
@@ -173,6 +208,7 @@ class Image:
                 at, original = int(row["address"], 16), bytes.fromhex(row["original"])
                 self.pristine[at - self.base: at - self.base + len(original)] = original
                 self.patches.append((at, len(original), row["note"]))
+        self.copied_library: list[tuple[int, str]] = []   # library functions no member was placed for
         self.out = bytearray(self.size)
         self.src = bytearray(self.size)            # SOURCES index per byte
         self.owner = array("i", bytes(4 * self.size))   # 1 + the index of the piece that wrote it
@@ -270,6 +306,7 @@ class Piece:
     source: int
     label: str
     id: int
+    why: str = ""     # for a piece placed where the original refers to it: the referring site
 
 
 class Placer:
@@ -281,6 +318,8 @@ class Placer:
         self.placed: dict[tuple[int, int], list[Piece]] = defaultdict(list)   # (id(obj), sec) -> pieces
         self.globals: dict[str, int] = {}          # external code name -> address
         self.definers: dict[str, list[tuple[Obj, Sym]]] = defaultdict(list)
+        self.absolutes: dict[str, int] = {}
+        self.commons: dict[str, int] = {}
         for obj in objects:
             self.add_definer(obj)
         self.aliases: dict[str, set[int]] = defaultdict(set)
@@ -303,11 +342,20 @@ class Placer:
         self.kept: list[str] = []
         self.unresolved: Counter = Counter()
         self.clashes: list[str] = []
+        self.renamed: list[str] = []
         self.todo: list[Piece] = []
+        # Library function names by address, for refs_agree: data/functions.csv's,
+        # corrected as members are placed.
+        self.named_at: dict[int, str] = {}
+        for row in load_rows(FUNCTIONS):
+            if row["kind"] == "library" and row["name"]:
+                self.named_at[int(row["address"], 16)] = row["name"].split(": ", 1)[-1]
 
     def add_definer(self, obj: Obj) -> None:
         for name, sym in obj.externals.items():
             self.definers[name].append((obj, sym))
+        self.absolutes.update(obj.absolutes)
+        self.commons.update(obj.commons)
 
     # -- pieces --
 
@@ -331,7 +379,7 @@ class Placer:
                 return p.va + offset - p.lo
         return None
 
-    def place_at(self, obj: Obj, sym: Sym, offset: int, va: int) -> bool:
+    def place_at(self, obj: Obj, sym: Sym, offset: int, va: int, why: str = "") -> bool:
         """Place the part of sym's section that holds `offset` so that offset
         lands at va: a whole section for code, one symbol's slice for data.
         Nothing is placed over another piece; returns whether it was placed."""
@@ -342,11 +390,106 @@ class Placer:
         start = va - (offset - lo)
         if self.address_in(obj, sec.index, offset) is not None or not self.img.free(start):
             return False
-        source = CODE if sec.is_code else OBJDATA
-        self.place(obj, sec, lo, hi, start, source, f"{sec.name} of {obj.path.stem} ({sym.name})")
+        if sec.is_code:
+            # Code goes only where the original holds the same code: a library
+            # member's neighbours can differ from the original's.
+            hi = body_size(sec)
+            if not masked_match(self.img, sec, start, hi):
+                return False
+            if obj.library and not self.refs_agree(obj, sec, start):
+                return False
+        if obj.library:
+            source = LIBCODE if sec.is_code else LIBDATA
+        else:
+            source = CODE if sec.is_code else OBJDATA
+        piece = self.place(obj, sec, lo, hi, start, source, f"{sec.name} of {obj.path.stem} ({sym.name})")
+        piece.why = why
         self.stats["code pieces placed where the original refers to them" if sec.is_code
                    else "data pieces placed where the original refers to them"] += 1
         return True
+
+    def refs_agree(self, obj: Obj, sec: Sec, start: int) -> bool:
+        """Whether a library member's code placed at start refers to what the
+        original's code there refers to: its calls reach functions of the same
+        names, its imports the same slots, and its own data (literals, tables,
+        initial values) the same contents. Many runtime functions differ only
+        there: _read, _write and _lseek's locking wrappers, _Xlen and _Xran,
+        zlib's get_crc_table and zlibVersion."""
+        img = self.img
+        for off, symidx, rtype in sec.relocs:
+            if off + 4 > len(sec.data):
+                continue
+            site, sym = start + off, obj.syms[symidx]
+            ours = struct.unpack_from("<I", sec.data, off)[0]
+            if rtype == REL_REL32:
+                target = (site + 4 + img.u32(site) - ours) & 0xFFFFFFFF
+                if target in self.named_at:
+                    if self.named_at[target] != sym.name:
+                        return False
+                    continue
+                # An unnamed callee: some library member defining the name
+                # must hold the code there (_lockexit calls _lock, _unlockexit
+                # _unlock, and the two are otherwise identical).
+                callees = [(o, t) for o, t in self.definers.get(sym.name, ())
+                           if o.library and t.section > 0 and o.secs[t.section - 1].is_code]
+                if callees and not any(masked_match(img, o.secs[t.section - 1], target - t.value,
+                                                    body_size(o.secs[t.section - 1]))
+                                       for o, t in callees):
+                    return False
+            elif rtype == REL_DIR32 and sym.name.startswith("__imp_"):
+                slots = [a for (_, n), a in self.import_slots.items()
+                         if n == undecorate(sym.name[len("__imp_"):])]
+                # An import the original does not have cannot be what it calls.
+                if len(slots) != 1 or (img.u32(site) - ours) & 0xFFFFFFFF != slots[0]:
+                    return False
+            elif rtype == REL_DIR32:
+                item = (img.u32(site) - ours) & 0xFFFFFFFF
+                offset = sym.value + (ours if sym.name.startswith(".") else 0)
+                if sym.section > 0 and not obj.secs[sym.section - 1].is_code:
+                    if not self.content_matches(obj, sym, offset, item + (offset - sym.value)):
+                        return False
+                elif sym.section == 0 and not sym.name.startswith("__imp_"):
+                    # Data another member defines: one of its definers must hold
+                    # the original's contents there.
+                    held = [(o, t) for o, t in self.definers.get(sym.name, ())
+                            if o.library and t.section > 0 and not o.secs[t.section - 1].is_code]
+                    if held and not any(self.content_matches(o, t, t.value, item) for o, t in held):
+                        return False
+        return True
+
+    def content_matches(self, obj: Obj, sym: Sym, offset: int, va: int, depth: int = 3) -> bool:
+        """Whether the original holds, at va, the bytes of sym's section from
+        offset to the end of its slice (at most 32 bytes): zeros for
+        uninitialised data, a string up to its terminator, and for the fields
+        the linker fills in, the same contents again where they point at data
+        of the same object (an exception's throw info, down to the type name)."""
+        sec = obj.secs[sym.section - 1]
+        if not self.img.inside(va):
+            return True
+        lo, hi = sec.slice_at(offset)
+        hi = min(hi, offset + 32)
+        o = va - self.img.base
+        if sec.chars & SCN_UNINIT:
+            return not any(self.img.pristine[o:o + hi - offset])
+        text = sec.data[offset:hi]
+        if sym.name.startswith(("??_C@_0", "$SG")) and b"\0" in text:
+            hi = offset + text.index(b"\0") + 1      # a string: up to its terminator
+        fixed = bytearray(b"\1" * (hi - offset))
+        for roff, symidx, rtype in sec.relocs:
+            if not offset <= roff < hi:
+                continue
+            for i in range(roff, min(roff + 4, hi)):
+                fixed[i - offset] = 0
+            target = obj.syms[symidx]
+            if (depth and rtype == REL_DIR32 and roff + 4 <= hi and target.section > 0
+                    and not obj.secs[target.section - 1].is_code):
+                (ours,) = struct.unpack_from("<I", sec.data, roff)
+                at = target.value + ours          # the field holds the target's address plus ours
+                theirs = struct.unpack_from("<I", self.img.pristine, o + roff - offset)[0]
+                if not self.content_matches(obj, target, at, theirs, depth - 1):
+                    return False
+        theirs = self.img.pristine[o:o + hi - offset]
+        return all(not f or a == b for a, b, f in zip(sec.data[offset:hi], theirs, fixed))
 
     # -- symbols --
 
@@ -376,6 +519,8 @@ class Placer:
         name = sym.name
         if name in self.globals:
             return self.globals[name]
+        if name in self.absolutes:
+            return self.absolutes[name]
         if name.startswith("__imp_"):
             imp = undecorate(name[len("__imp_"):])
             hits = [a for (dll, n), a in self.import_slots.items() if n == imp]
@@ -383,9 +528,27 @@ class Placer:
                 # An import the source has no name for yet, named by its slot.
                 hits = [a for a in self.import_slots.values() if a == int(imp[4:], 16)]
             return hits[0] if len(hits) == 1 else None
-        if sym.is_func and undecorate(name) in self.thunks and name not in self.definers:
+        if undecorate(name) in self.thunks and name not in self.definers:
             return self.thunks[undecorate(name)]
         return self.named_address(name)
+
+    def place_copy(self, name: str, va: int) -> bool:
+        """Place a second copy of a library function at va when the original
+        holds one there (LIBCMT's lseek is linked twice)."""
+        for obj, sym in self.definers.get(name, ()):
+            sec = obj.secs[sym.section - 1]
+            if not obj.library or not sec.is_code:
+                continue
+            start = va - sym.value
+            body = body_size(sec)
+            if not self.img.free(start) or not masked_match(self.img, sec, start, body):
+                continue
+            copy = parse(obj.path, obj.raw, library=True)
+            self.objects.append(copy)
+            self.place(copy, copy.secs[sec.index - 1], 0, body, start, LIBCODE, f"{name} (second copy)")
+            self.stats["library sections placed as a second copy"] += 1
+            return True
+        return False
 
     def copies(self, name: str) -> set[int]:
         """Every address one name may stand for: the copies data/aliases.csv
@@ -448,16 +611,27 @@ class Placer:
                     if sym.section > 0:
                         definer = (obj, sym)
                     elif sym.name in self.definers:
-                        definer = next(((o, s) for o, s in self.definers[sym.name] if s.section > 0), None)
+                        # Several members can define one name (crt0 and wincrt0
+                        # both define __app_type): take the one whose contents
+                        # the original holds.
+                        found = [(o, s) for o, s in self.definers[sym.name] if s.section > 0]
+                        definer = next(((o, s) for o, s in found
+                                        if self.content_matches(o, s, s.value, orig_target)), None)
+                        definer = definer or (found[0] if found else None)
                     if definer and self.img.inside(orig_target):
                         d_obj, d_sym = definer
                         at = offset if d_obj is obj else d_sym.value
-                        self.place_at(d_obj, d_sym, at, orig_target + (at - d_sym.value))
+                        self.place_at(d_obj, d_sym, at, orig_target + (at - d_sym.value),
+                                      f"{site:#x} in {piece.label}")
                         how = "where the original refers to it"
+                    elif sym.name in self.commons:
+                        # Communal data the linker allocates in .bss.
+                        how = "to common data where the original has it"
                     else:
                         how = "from the original's bytes"
                         self.unresolved[sym.name] += 1
-                elif target != orig_target and orig_target in self.copies(sym.name):
+                elif target != orig_target and (orig_target in self.copies(sym.name)
+                                                or self.place_copy(sym.name, orig_target)):
                     target = orig_target       # another copy of the same function
                     how = "by name, to another copy"
                 self.stats[f"relocations resolved {how}"] += 1
@@ -546,6 +720,87 @@ def place_globals(placer: Placer, data_objs: list[Path], data_addr: dict[int, st
                 placer.stats["globals placed from link/"] += 1
 
 
+def masked_match(img: Image, sec: Sec, start: int, size: int) -> bool:
+    """Whether the original holds sec's first `size` bytes at start, ignoring
+    the fields the linker fills in."""
+    fixed = bytearray(b"\1" * size)
+    for off, _, rtype in sec.relocs:
+        for i in range(off, min(off + 4, size)):
+            fixed[i] = 0
+    o = start - img.base
+    if not img.inside(start) or o + size > img.size:
+        return False
+    return all(not f or a == b for a, b, f in zip(sec.data[:size], img.pristine[o:o + size], fixed))
+
+
+def body_size(sec: Sec) -> int:
+    """A code section without its trailing alignment padding."""
+    return len(sec.data.rstrip(b"\x90\xcc")) or len(sec.data)
+
+
+def place_library(placer: Placer) -> None:
+    """The runtime library and zlib code, from the members of the libraries
+    the original links, at the addresses data/functions.csv gives.
+
+    A member goes where the original holds its bytes (ignoring the fields the
+    linker fills in) and its calls reach functions of the right names: the
+    locking wrappers _read, _write and _lseek are byte-identical apart from
+    the function they call, so the bytes alone cannot tell them apart."""
+    members = [m for lib in LIBRARIES if lib.exists() for m in read_library(lib)]
+    members += [parse(p, library=True) for p in sorted(THIRD_PARTY.glob("*.obj"))]
+    by_name: dict[str, list[tuple[Obj, Sym]]] = defaultdict(list)
+    by_size: dict[int, list[tuple[Obj, Sym]]] = defaultdict(list)
+    for m in members:
+        placer.objects.append(m)
+        placer.add_definer(m)
+        for name, sym in m.externals.items():
+            sec = m.secs[sym.section - 1]
+            if sec.is_code:
+                by_name[name].append((m, sym))
+                if sym.value == 0:
+                    by_size[body_size(sec)].append((m, sym))
+    img = placer.img
+    rows = [r for r in load_rows(FUNCTIONS) if r["kind"] == "library"]
+    named_at = placer.named_at
+
+    pending = rows
+    while pending:
+        left = []
+        for row in pending:
+            addr, size = int(row["address"], 16), int(row["size"])
+            if not img.free(addr):
+                continue          # placed with an earlier function of the same section
+            name = row["name"].split(": ", 1)[-1]
+            for obj, sym in by_name.get(name, []) + by_size.get(size, []):
+                sec = obj.secs[sym.section - 1]
+                start, body = addr - sym.value, body_size(sec)
+                if not masked_match(img, sec, start, max(body, sym.value + size)):
+                    continue
+                if not placer.refs_agree(obj, sec, start):
+                    continue
+                if (id(obj), sec.index) in placer.placed:
+                    # Linked twice (std::_Lockit): a second copy of the member.
+                    obj = parse(obj.path, obj.raw, library=True)
+                    placer.objects.append(obj)
+                    sec = obj.secs[sym.section - 1]
+                placer.place(obj, sec, 0, body, start, LIBCODE, sym.name)
+                placer.stats["library sections placed"] += 1
+                if name and sym.name != name:
+                    placer.renamed.append(f"{addr:#x}: data/functions.csv says {name}, the member placed "
+                                          f"there defines {sym.name} ({obj.path.name})")
+                # What is placed now names its address for the calls_agree of the rest.
+                for other in obj.externals.values():
+                    if other.section == sec.index:
+                        named_at[start + other.value] = other.name
+                break
+            else:
+                left.append(row)
+        if len(left) == len(pending):
+            break
+        pending = left
+    placer.stats["library functions with no matching member by name"] += len(pending)
+
+
 def library_names(placer: Placer) -> None:
     for row in load_rows(FUNCTIONS):
         if row["kind"] == "library" and row["name"]:
@@ -560,6 +815,8 @@ def copy_unbuilt(img: Image) -> None:
         if row["kind"] == "gap":
             img.copy(addr, size, GAP)
         elif row["kind"] == "library":
+            if img.free(addr):
+                img.copied_library.append((addr, row["name"]))
             img.copy(addr, size, LIBRARY)
     for va, size in img.fixed_ranges():
         img.copy(va, size, FIXED)
@@ -599,14 +856,12 @@ def write_map(placer: Placer, out: Path) -> None:
 
 def compare(img: Image, placer: Placer, verbose: bool) -> tuple[int, list[str]]:
     """Bytes of the built image that differ from the original, by source."""
-    owner: dict[int, str] = {}
-    for p in placer.pieces:
-        owner.setdefault(p.va, p.label)
-    starts = sorted(owner)
-
     def label(va: int) -> str:
-        i = bisect.bisect_right(starts, va) - 1
-        return f"{owner[starts[i]]}+{va - starts[i]:#x}" if i >= 0 else "?"
+        pid = img.owner[va - img.base]
+        if not pid:
+            return ""
+        p = placer.pieces[pid - 1]
+        return f"{p.label}+{va - p.va:#x}" + (f" (placed for {p.why})" if p.why else "")
 
     patched = set()
     for at, size, _ in img.patches:
@@ -650,11 +905,16 @@ def report(img: Image, placer: Placer, verbose: bool) -> int:
     for title, items in (("code relocations that disagree with the original", placer.mismatches),
                          ("table entries in compiled data that disagree with the original (the original's kept)",
                           placer.kept),
-                         ("pieces that differ from a piece already placed there", placer.clashes)):
+                         ("pieces that differ from a piece already placed there", placer.clashes),
+                         ("library functions data/functions.csv names differently", placer.renamed)):
         if items:
             print(f"{title}: {len(items):,}")
             for m in items[:limit]:
                 print("  " + m)
+    if img.copied_library:
+        print(f"library functions copied, with no member placed: {len(img.copied_library):,}")
+        for addr, name in img.copied_library[:limit]:
+            print(f"  {addr:#x} {name}")
     if placer.unresolved:
         print(f"names whose address only the original's bytes give: {len(placer.unresolved):,}")
         for name, n in placer.unresolved.most_common(limit):
@@ -686,6 +946,7 @@ def main() -> None:
     placer = Placer(img, objects, symbols)
     library_names(placer)
     place_functions(placer, by_src)
+    place_library(placer)
     data_objs, data_addr = build_data(symbols)
     place_globals(placer, data_objs, data_addr)
     placer.relocate()

@@ -760,6 +760,12 @@ effect, the missing piece is usually a helper that was inlined:
   `je; dec; je; jmp` dispatch matched once tidal used the layout of sibling
   0x4237d0 (a `switch` with `break`s and a `default`, `else *dst += v`, double
   amounts), plus `<float.h>` for a symbol-count threshold (#5617).
+- **A difference stored back stays its own candidate**: in 0x4851c0,
+  `int dx = b.x - a.x; b.x = dx;` keeps dx a separate register candidate and
+  the store back counts as a reference, raising it from 68 to 108 so it took
+  ecx first as in the original. `b.x -= a.x` or a plain copy `int dx = b.x;`
+  is merged into b.x and adds nothing. Score every statement order of such a
+  block in one `tools/propose.py` batch: 4 of 72 orders matched (#5638).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

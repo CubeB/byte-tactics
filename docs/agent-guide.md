@@ -711,6 +711,17 @@ effect, the missing piece is usually a helper that was inlined:
   noted above. Assigning a call chain through a local
   (`n = f(b, c); n = g(h(n, ab));`) instead of nesting stopped b's field
   loads from living across the first call (76.6% to a match, #5534).
+- **C2 aliases the last 32 memory locations through one pointer together**:
+  C2 numbers the locations it reaches through a pointer in tuple order, and
+  every location from the 32nd-last on gets alias bit 31, so all of them alias
+  each other and stores to them cannot move past each other. In 0x464700 an
+  early stamp store got bit 31 and was held above six clears. Moving the store
+  after the clears (reached by `goto`, so it still runs first) and writing one
+  field through an `int&` reference (one location fewer) gave the original's
+  order (#5567).
+- **A condition built in steps**: 0x447b10's last `push ebp` for `push 1` went
+  away with `int hit = MAP; if (!hit) hit = MAPNAME; if (hit) {...}` instead
+  of one combined test (99.2% to a match, #5566).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

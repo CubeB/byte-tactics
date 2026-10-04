@@ -1,4 +1,10 @@
 // Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// #5622 Claude Opus 5.5 (98.6% kept): include/ta_protos.h, the game's real
+// prototypes (tools/protos.py: 2140 free functions and the 1030 types they
+// name; docs/c2-regalloc.md, "A prototypes header"), compiles here
+// unchanged and adds 7229 to the file total: 12284 (98.6%), 52973 short of
+// 65257..65554. With the plausible header set too the total is 49858
+// (98.6%), 15399 short.
 // #5525 Claude Opus 5.5 (98.6% kept): template instantiations do not supply
 // the missing ids either (docs/c2-regalloc.md, "Symbols each template
 // instantiation adds"). A container class adds 137 (vector) to 400 (map)

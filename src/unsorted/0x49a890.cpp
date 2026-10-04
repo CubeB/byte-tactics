@@ -1,4 +1,41 @@
 // Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro, re-verified by space-bunny-free, edited by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (#5507): 83.6% -> 95.1% (488/488 bytes). The notes further
+// down that call the post-_hypot load order unfixable from the source are
+// superseded: parentheses move it. MSVC 5 keeps a node for a parenthesised
+// subexpression, and that node changes C2's x87 schedule (not the operand
+// order inside a commutative op, which C2 canonicalises: swapping operands
+// never changes a byte here). What this file needs:
+//  - `(_hypot(...))` in parentheses: g is converted before height after the
+//    call, as in the original (without them every spelling loads height first).
+//  - d*d written as `(d * d)` in both terms: C2 then computes it once, as the
+//    original's d4. With the old `... * d * d - d * d * gg * sum` it
+//    reassociates the products into a different tree.
+//  - `((h2 + d))`: the doubled parentheses move sum next to h2*gg.
+// What still differs: the original converts gg after A = s2 - gh*-2.0 and
+// multiplies A*s2 right after that; ours converts gg before A and does A*s2
+// after sum (two extra fxch, all else in the block is the same).
+// Lead, 97.9% and not committed because it needs `(double)` casts of doubles
+// that emit no code (AGENTS.md's plausible-source rule): with d4, h2 and
+// t = A*s2 as named locals,
+//     double distance = (((double)(_hypot((double)x, (double)z))));
+//     double d = distance * distance;
+//     double d4 = ((d * d));
+//     double gh = (double)g * (double)height;
+//     double h2 = (((double)((double)height * (double)height)));
+//     double s2 = (double)speed * (double)speed;
+//     double sum = h2 + d;
+//     double t = (((double)((s2 - gh*-2.0) * s2)));
+//     double disc = (t + (h2 * (double)gg)) * d4 - ((d4 * (double)gg) * sum);
+// gives every x87 operation of the block in the original's order (g, height,
+// gh, speed, d, s2, h2, gh*-2, d4, A, gg, A*s2, h2*gg, sum, d4*gg, B, X, B*d4,
+// disc). Only the reload of height (`fld [esp]`) then comes after the s2
+// multiply instead of before it. The effect of extra parentheses or no-op
+// casts is not monotonic (one more pair can undo a gain), so they were found
+// by search, not by rule: a symbolic x87 trace of both binaries named every
+// operation (dist, d, s2, ...), and a beam search over parentheses, casts,
+// named locals and statement order was scored by that operation order first
+// and by check.py's ratio second. Headers (tools/headers.py), /Gi and 0 to
+// 1024 extra declarations leave both versions unchanged.
 // Claude Opus 5.5 (issue #4678): still 83.6%, but two facts for whoever is next.
 //   1. CONSTANTS. The original's 0x4fda90 is 0x3fd45f306dc9c889 = 1/3.14159265358979,
 //      not 1/pi (0x...c883, the old `0.3183098861837907` literal), so the old file
@@ -211,13 +248,13 @@ short __stdcall FUN_0049a890(int x, int height, int z, int speed, float angle)
 {
     int g = g_game->gravity;
     int gg = g * g;
-    double distance = _hypot((double)x, (double)z);
+    double distance = (_hypot((double)x, (double)z));
     double d = distance * distance;
-    double gh = (double)g;
-    gh = gh * (double)height;
+    double gh = (double)g * (double)height;
+    double h2 = (double)height * (double)height;
     double s2 = (double)speed * (double)speed;
-    double sum = (double)height * (double)height+d;
-    double disc = (((double)height * (double)height) * (double)gg  +  (s2 - gh*-2.0) * s2) * d * d - d * d * (double)gg * sum;
+    double sum = ((h2 + d));
+    double disc = ((s2 - (gh*-2.0)) * s2 + (h2 * (double)gg)) * (d * d) - (((d * d) * (double)gg) * sum);
     if (disc < 0.0)
         return 0x8000;
     disc = sqrt(disc);

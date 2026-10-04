@@ -7983,4 +7983,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x40d290,477,opus,#5668,matched,100.0,,"issue #5668, escalated"
 0x4b90a0,260,opus,#5671,partial,87.1,,"issue #5671, escalated"
 0x4b90a0,260,opus,#5673,matched,100.0,,"issue #5673, escalated"
-0x462f30,1653,,#5675,assigned,,,"issue #5675, escalated"
+0x462f30,1653,opus,#5675,partial,98.9,,"issue #5675, escalated"
+0x462f30,1653,,#5678,assigned,,,"issue #5678, escalated"

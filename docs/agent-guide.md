@@ -629,6 +629,14 @@ effect, the missing piece is usually a helper that was inlined:
   two head temporaries; one function-scope `next` shared by both walks kept
   the frame (as in 0x4c1000). `tools/c2prio.py --rotation --frame` showed
   both at once (#5418).
+- **Zero-caller helpers with loops need `inline`**: MSVC 5 inlines a small
+  helper defined in the file without a FUNCTION line on its own, but one that
+  contains a loop is inlined only when declared `inline`. 0x44a680 matched by
+  inlining five zero-caller neighbours (0x440cd0, 0x445450, 0x4453a0,
+  0x445d60, 0x445e20), and the two with loops needed the keyword (#5472).
+- **A helper returning a fixed-point value by value**: 0x42bf40's shared frame
+  slot at `[esp+0x1c]` came out right only once FUN_004c4800 returned its
+  16.16 value by value through a hidden pointer (#5473).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

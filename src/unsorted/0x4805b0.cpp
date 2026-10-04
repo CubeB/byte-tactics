@@ -1,5 +1,11 @@
 // Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // PARTIAL: 66.2%, 358 of 366 bytes (was 64.5% and 354 bytes).
+// #3297 retry by Codex / GPT-6 (2026-10-04): current best remains 66.2%.
+// Direct scalar Dist expressions for d1/d3, a DistXY(int,int,int,int) helper,
+// and `/Gi` did not change the output. The existing notes document the broad
+// source-shape sweeps; the remaining gap is the member-wise b/c register
+// allocation in the distance blocks. `c2prio.py` could not run because gdb and
+// winedbg are absent.
 // Sonnet 5.5 pass (#3074): no gain. Swept 24 combinations of the Dist argument
 // orders (a/b/c, *p unnamed, swapped) and three min spellings: best is this file.
 // Also flat or worse: a user copy ctor or operator= on Point (13 to 46%), std::_cpp_max/_cpp_min

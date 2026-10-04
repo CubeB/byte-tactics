@@ -1,9 +1,49 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
 // pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%; pass 18 (Opus, #5559):
-// 98.6%. The class name is data/symbols.csv's Class_00462f30 (the caller 0x4534e0 uses
-// it); Find (0x462d90) is called through Class_00462d30, its own file's class, and
-// returns Entry_00462d90*.
+// 98.6%; pass 19 (Opus, #5583): 98.9%. The class name is data/symbols.csv's
+// Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
+// Class_00462d30, its own file's class, and returns Entry_00462d90*.
+//
+// Pass 19 (#5583): the receive loop's latch now matches; only the frame swap is left.
+//  * The loop is a plain `while (rc != 0)` and the code after it is not guarded by any
+//    test of rc. The got code is `if (n == 0) { ... } else { error: ... }`, repeating
+//    the enclosing `if (n == 0)`: MSVC drops a test its own dominating test already
+//    decided (also `if (!entry)`, entry still 0 there, or a constant), so nothing is
+//    emitted, and the error block, being an else arm, stays after B as in the original.
+//    Why the old forms failed: C2 threads only conditional jumps into a test of the same
+//    value. `if (rc == 0) break;` and do/while latches get threaded, which turns the
+//    latch into `je got; jmp head` (do/while and goto loops then also copy the NOMSG
+//    compare into the latch); the while loop's exit is a fall-through, so a real
+//    `if (rc == 0)` after it is never threaded. Any goto-only error block, wherever its
+//    label is (end of function, or between B and the route behind a `goto`), is placed
+//    straight after the loop.
+//  * The frame (tick and flag swapped) is untouched. C2 counts the frame references in
+//    FUN_0042ba3f (called from the frame pass at 0x42b7b6), walking the tuples in final
+//    layout order; FUN_004367f0 adds each one and moves the local ahead of same-size
+//    locals whose count is strictly smaller, and a new local joins the end of its size
+//    group. A write watchpoint on the counts (a scratch copy of tools/c2prio.py) gives
+//    tick 1 (def), flag 1, 2, 3 (setg store, `flag = 0`, swap test), tick 2, 3 (push,
+//    Take): flag reaches 3 first, so tick needs a fourth counted reference. The
+//    original's visible accesses are the same 3 and 3, so its tick has one invisible
+//    one: a split piece's reload that codegen turns into a register move or drops (here
+//    entry has 13 counts for 11 visible accesses, and 0x4cac40's cur is the same thing).
+//    The likely spot is the first loop's pre-header, if tick's def and loop were
+//    separate pieces both in ebp (`mov ebp, ebp` dropped): a GetFrame with an early
+//    `if (f == 0) return 0;` does split them (tick 4 counts) but changes the loop.
+//    Tried with the same code and no change to the counts: tick read in the for init,
+//    as a statement before the loop, through an inline getter, or copied to a local for
+//    the tail; Take/GetFrame taking tick by const reference or copying it; the first
+//    loop as P2/while/for-init/assignment-in-test forms; the first loop as an inline
+//    method SendQueued(tick, net, data, size) returning 1 (same code, same counts);
+//    block-scoped src/len; flag declared ahead or at the top of region A; 20
+//    declaration orders; unused labels before the loop; `tick = tick;`; 256 header sets
+//    (tools/headers.py); /Gi. Two full Take copies, the 0x463790 call written in both
+//    arms of `if (entry == 0)`, or GetFrame in both arms give tick 4 counts and the
+//    right frame, but MSVC keeps both copies (92-93%). A Take written with early
+//    returns also splits tick's def from the loop (4 counts) but moves src into esi
+//    (81.9%). A 20-minute permuter run from this file (25442 candidates, --stack
+//    tick,flag) found nothing.
 //
 // Pass 18 (#5559), what moved it:
 //  * Every DPERR_NOMESSAGES exit is its own `length = 0; return DPERR_NOMESSAGES;`
@@ -27,25 +67,12 @@
 //    as the original does (98.4 -> 98.6); written once after the join it is scheduled
 //    after the setg.
 //
-// Still different (two spots):
+// Still different (pass 18's notes, the latch part now fixed):
 //  * The frame: tick is in the slot at +0x18 and flag at +0x14; the original has tick
 //    at +0x14. Both have 3 memory references (tools/c2prio.py --frame); flag reaches
-//    3 first in code order, so it sorts first. The original's code has the same three
-//    accesses to each, so the original's count or counting order differs somewhere
-//    invisible. A fourth tick reference puts tick first (probes only); two full
-//    Peek+Take copies give the right frame but MSVC does not merge the copies (91.9%).
-//    Declaring flag at function scope, the Take condition spelled in steps or with
-//    `!(...)`, and a NoMessages() inline helper for the exits change nothing.
-//  * The receive loop's latch: here `test esi, esi; je got; jmp head`, the original
-//    `jne head; jmp got`. `while (rc != 0)` (also as a `for` or with a Receive()
-//    inline), `do { ... } while (1)` with the receive first, and a `break` to the
-//    error check all give the original's latch and loop, but then the got block keeps
-//    a `test esi, esi; jne error` (89.0%). `if (rc != 0) do { ... } while (rc != 0)`
-//    drops that test but moves the NOMSG compare into the latch (88.4%). A goto-only
-//    error block (inline in the loop, or a label at the end) is placed straight after
-//    the loop (86.3%); `goto nomem`, `if (rc >= 0)` and a goto to the none block for
-//    the NOMSG exit change nothing. A 15-minute permuter run from this file found
-//    nothing (19664 candidates).
+//    3 first in code order, so it sorts first. Declaring flag at function scope, the
+//    Take condition spelled in steps or with `!(...)`, and a NoMessages() inline helper
+//    for the exits change nothing.
 //
 // Earlier passes, still true:
 //  * The tail of each entry (+0x18) is Class_00463730, the class of 0x463730/0x463790,
@@ -56,8 +83,8 @@
 //  * Both `return 0` copy-outs end in `goto ok;` with one `ok: return 0;` at the end,
 //    which MSVC cross-jumps exactly as the original does (pass 17).
 //  * After the 4b5 test the original keeps both arms (A, then its shared E_FAIL return,
-//    then B), and the HAPINET error block comes after B. Only the else-branch of
-//    `if (rc == 0)` keeps it there.
+//    then B), and the HAPINET error block comes after B. Only an else arm keeps it
+//    there (see pass 19).
 //  * The clamp helpers are `int r = n -+ 1; if (r >= -1) r = -2; return r;`, and the
 //    first clamp loads cur in both arms, as the original does.
 //  * `delete buffer; ... buffer = new char[capacity];` in the receive loop and
@@ -278,29 +305,27 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
         if (n == 0) {
             length = capacity;
             rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
-            if (rc != 0) {
-                while (1) {
-                    if (rc == (int)0x887700be) {    // DPERR_NOMESSAGES
-                        length = 0;
-                        return (int)0x887700be;
-                    }
-                    if (rc != (int)0x8877001e)      // DPERR_BUFFERTOOSMALL
-                        goto error;
-                    delete buffer;
-                    capacity = length;
+            while (rc != 0) {
+                if (rc == (int)0x887700be) {    // DPERR_NOMESSAGES
                     length = 0;
-                    buffer = new char[capacity];
-                    if (buffer == 0) {
-                        capacity = 0;
-                        return (int)0x8007000e;
-                    }
-                    length = capacity;
-                    rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
-                    if (rc == 0)
-                        break;
+                    return (int)0x887700be;
                 }
+                if (rc != (int)0x8877001e)      // DPERR_BUFFERTOOSMALL
+                    goto error;
+                delete buffer;
+                capacity = length;
+                length = 0;
+                buffer = new char[capacity];
+                if (buffer == 0) {
+                    capacity = 0;
+                    return (int)0x8007000e;
+                }
+                length = capacity;
+                rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
             }
-            if (rc == 0) {
+            // Always true here (the enclosing test), so MSVC emits no test; the error
+            // block stays after B only as this if's else arm.
+            if (n == 0) {
                 field_c = *(int*)((char*)net + 0x4b5);
                 field_10 = *(int*)((char*)net + 0x4b9);
                 if (*(int*)((char*)net + 0x4b5) != 0) {

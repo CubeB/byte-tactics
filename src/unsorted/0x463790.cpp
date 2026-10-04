@@ -1,6 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // #5414 Codex retry: a duplicated skip-path tail scored 84.9%, below the
 // existing 88.8%. Kept the existing version; the a6-loop register split remains.
+// #5437 Codex retry: re-confirmed 88.8%; the same a6-loop register split remains.
 // Codex GPT-6 retry for #5204 (2026-10-03): current main remains 86.6%.
 // Prior notes include its `/Gi` and structural sweeps; the best source is kept.
 // GPT-6 retry (#5254): rechecked at 86.6%; the a6-loop register split remains.

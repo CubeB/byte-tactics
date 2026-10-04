@@ -1,4 +1,49 @@
-// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (#5627, 2026-10-04): 99.3% (was 98.5%); hunk 2 is fixed.
+// - Vec3 is the plain struct the same TU's matched 0x40a5d0 declares (no user
+//   operator=), and the inline Direction() is FUN_004103a0's own body, x, y, z
+//   order. That gives the original's schedule (xor ebp,ebp before the second
+//   trig call) but, as the notes below say, a priority tie at 312 between the
+//   inlined angle and d.x, d.y, d.z that angle won (key 277 against 260), so
+//   it took ebp and v.y needed `mov ebp, ebx`.
+// - What breaks the tie: Length() names its sum and its result (`float sq`,
+//   `int len`). The flag12 arm's `len` is then a register candidate in its
+//   Length block (c2prio: K 11 to 12), d.x, d.y and d.z rise to 320, are
+//   coloured before angle, and angle takes ebx. Either name alone does
+//   nothing. Found by tools/permute.py from the plain-Vec3 file in 40 s.
+// - Left: hunk 1 (0x408334, the u->def load scheduled above the three
+//   `target = origin` stores) and hunk 3 (the first _allmul pushed d.x first,
+//   a symbol-id window, see below).
+// - Hunk 1 follows target's scope, not its spelling: declared in the loop
+//   body (before the condition, or after `continue` tests) instead of inside
+//   the if-block, the def load stays below the stores as in the original, but
+//   then the len<0x1400000 tail's u->pos loads are no longer hoisted above
+//   the target stores either (97.2%, 1219 bytes, `add ebp, [esi+0x6a]`). The
+//   original has the first behaviour at the copy and the second in the tail.
+//   With the loop-body target, writing the tail so its loads come first gives
+//   the right order but the sums in the wrong registers: `target = u->pos +
+//   d` (any operator+ form, member or free, either operand order) puts all
+//   three sums in the pos registers (97.3%); `d.x += u->pos.x` and so on
+//   then `target = d` gets x right and adds y and z into d's registers
+//   (98.0%). The closest: `int x = d.x + u->pos.x; int y = u->pos.y + d.y;
+//   int z = u->pos.z + d.z;` then the stores in z, x, y source order. Hunk 1
+//   and the whole tail are then right except that the stores come out x, z, y
+//   (99.3% too, the other hunk instead of hunk 1); z, y, x gives y, z, x, and
+//   any store order starting with x or y reorders the loads (98.3% or less).
+//   All 36 compute/store orders, mixes of named and inline sums, a Set()
+//   helper (either body order) and a Vec3(x, y, z) constructor were scored.
+//   A `for (;;) { ... break; }` or a label around the if/else, nested
+//   conditions and by-value Length/operator+ change nothing.
+// - Hunk 3 has no low-id side: it moves only with unused externs at the END
+//   of the file (59800 to 60200 here), so both deciding ids are numbered
+//   after the function's body (C2's temporaries, or end-of-file template
+//   members), and their order flips only when C2's counter passes 65536
+//   between them. No count at the 16384, 32768 or 49152 boundaries moves it,
+//   so a smaller header set cannot reach it the way 0x409730's did. With
+//   59800 to 60000 such externs this file is 99.8% (hunk 1 only); no count
+//   from 59650 to 60190 (step 10) moves hunk 1.
+// - The notes below describe the 98.5% file: its user operator=, x, z, y
+//   Direction() and float-only Length() are replaced here.
 // Claude Opus 5.5 (#5541, 2026-10-04): still 98.5% here, file unchanged except
 // this note. Real TU code does reach hunk 3's window, but only as a whole TU:
 // - Hunk 3 needs C2's own counter at this function's allocation at about
@@ -250,7 +295,6 @@
 class Class_00407350;
 
 struct Vec3 {
-    Vec3& operator=(const Vec3& o) { x = o.x; y = o.y; z = o.z; return *this; }
     int x, y, z;
     Vec3 operator+(const Vec3& o) const { Vec3 r; r.x = x + o.x; r.y = y + o.y; r.z = z + o.z; return r; }
     Vec3 operator-(const Vec3& o) const { Vec3 r; r.x = x - o.x; r.y = y - o.y; r.z = z - o.z; return r; }
@@ -352,7 +396,9 @@ static inline int Length(const Vec3& v)
     float x = (float)v.x;
     float y = (float)v.y;
     float z = (float)v.z;
-    return (int)sqrt(x * x + y * y + z * z);
+    float sq = x * x + y * y + z * z;
+    int len = (int)sqrt(sq);
+    return len;
 }
 
 // Inlined copy of FUN_004103a0.
@@ -360,8 +406,8 @@ static inline Vec3 Direction(short angle, int scale)
 {
     Vec3 v;
     v.x = -FUN_004b70ef(angle, scale);
-    v.z = -FUN_004b7123(angle, scale);
     v.y = 0;
+    v.z = -FUN_004b7123(angle, scale);
     return v;
 }
 

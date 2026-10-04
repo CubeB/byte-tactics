@@ -1,4 +1,51 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5, finished by GPT-6, retried by claude-opus-5-5, retried by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5, finished by GPT-6, retried by claude-opus-5-5, retried by claude-opus-5-5, retried by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 retry (#5629, 2026-10-04): 88.5% -> 89.5% (1339 bytes;
+// 92.1% ignoring jump targets). Scripts and variants are in
+// build/scratch/0x47d2e0/ of the #5629 worktree (x/tools/c2x.py is a copy of
+// c2prio with the extra hooks used below).
+//  * THE PROLOGUE WAS NOT DOWNSTREAM OF THE LOS BLOCK. The bounds guard now
+//    reads `cell.x`/`cell.y` directly instead of `short x0/y0` locals. That
+//    puts origin.y in ecx and y0 in eax and both guard `lea`s in the
+//    original's operand order: every line before the LOS block now matches.
+//    (With x0/y0, y0's temp and origin.y's split piece tied at 25 and the
+//    piece won on +0x40.) Keeping x0/y0 for the `< 1` tests only also scores
+//    89.5; `cell.x <= 0` is 71.7.
+//  * FUN_0045aaf9 CANNOT FIRE FOR bit (the last lead in the notes below). The
+//    driver (0x41721e) calls it only when bit 4 of candidate +5 is clear, and
+//    FUN_0040ee1d sets that bit unless the candidate is written by exactly one
+//    op-0x12 tuple (an add or address computation, `lea`) whose base and
+//    index are candidates (FUN_0041bd4a), and every read of it is an address
+//    operand (operand flag 0x20, 0x40f48d). It then defers the candidate below
+//    its sources so that it can share a register with one of them. All 63
+//    candidates here have the bit set at their pop; bit is written by a copy
+//    of const 1 and a shift, so it never qualifies. Checked on a probe:
+//    `int k = i + j; S* p = &base[k];` reaches FUN_0045aa71 with k.
+//  * THE TIED OPERAND OF THE S3 MULTIPLY DECIDES W1 AGAINST y. C2's IL has
+//    the 2-address forms before allocation, and the in-place defs count in
+//    the priorities. Here S3 is `y *= W1; y += x` (y the tied operand, cost 8
+//    there), and the original is `W1 *= y; W1 += x` (`imul esi, eax`); B7 and
+//    E3 also have the width first in the original and y first here, and the
+//    cell statement the other way round. Writing IsSeen with
+//    `unsigned int w = los->explored.size.width;` declared AFTER tx/ty and
+//    `vis[w * ty + tx]` makes w the tied operand: W1 74 > los 70 = bit 70
+//    (v13/e0_sw_after.cpp; declared before tx/ty or inside the else it stays
+//    y). Adding IsSeen computing its own `1 << g_game->player` (bit a CSE temp
+//    at 54) gives the original's allocation in outline: W1 esi, los edi, bit
+//    split with a stack home at [esp+0x4c] and reloads, E1 `mov ecx, esi;
+//    cmp edx, ecx` and S3 exactly the original's (v13/x_a.cpp, 70.8%, 1335
+//    bytes). What is left there: in B7 the W1 and vis loads come before the
+//    shift (the CSE temp's def sits at the test), so vis loses ecx to the
+//    shift count (ebx), bit's def piece gets ebp, and the B7 and E3 multiplies
+//    are still y first; S1 compares against a register. B7 spelled six more
+//    ways on top of it, a VisAt() inline with its own w, and Get with a w
+//    local: no change.
+//  * The operand order of `cell.y * g_game->width` follows symbol ids: 114+
+//    declarations before the function (cell's id >= 1024) give the original's
+//    `imul eax, [ebp+0x14233]` fold, but the code is then 2 to 4 bytes short
+//    (70 to 72%) until the LOS block is fixed. Padding after the function (the
+//    file total) never moves the LOS block (0 to 1023 scanned in steps of 1);
+//    it only folds E3's `add eax, [edi+0x7c]`. tools/headers.py: five sets at
+//    89.5, none higher. Permuter, 15 min, 13453 candidates: no gain.
 // claude-opus-5-5 retry (#5607, 2026-10-04): still 88.5%. This pass reshaped
 // the vis-test block as the brief asked and read every variant with c2prio
 // (scripts and variants in build/scratch/0x47d2e0/ of the #5607 worktree).
@@ -847,10 +894,8 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
     DAT_0051e684 = 0;
     DAT_0051e688 = 0;
     Point origin = unit->origin;
-    short y0 = cell.y;
-    short x0 = cell.x;
-    if (x0 < 1 || y0 < 1 || x0 + origin.x >= g_game->width ||
-        y0 + origin.y >= g_game->height)
+    if (cell.x < 1 || cell.y < 1 || cell.x + origin.x >= g_game->width ||
+        cell.y + origin.y >= g_game->height)
         return 0;
     int cols = origin.x;
     int x;

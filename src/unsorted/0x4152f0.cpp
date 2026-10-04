@@ -1,74 +1,55 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-Sol, finished by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash (issue #4089) retry: 87.2% (1604/1504) reconfirmed. The
-// +100 bytes are the extra inlined ~vector call on the units.empty() path
-// (test al,al; lea ecx,[esp+0x34]; call) plus the duplicated back-edge tail, so
-// the units scope/destructor placement is still the whole gap. No new variant
-// landed in this timebox.
-
-// deepseek-v4.1-flash (issue #4007) retry: 87.2%, 1604/1504 bytes
-// reconfirmed; no further variants within this issue timebox.
-// deepseek-v4.1-flash (issue #3633) retry: 87.2% (1604/1504 bytes) reconfirmed,
-// 23 hunks; the +100 byte overflow is still the whole story (item 3 below).
-// Not attempted further under this issue's 10 minute timebox; best kept.
-
-// #2635 retry by OpenCode / GPT-6.1-sol: best remains 87.2% (1604/1504 bytes), no MATCH.
-// A reordered `energyCapacity * 0.2 <= energy` compare scores 86.8%. A by-value
-// Reclaim helper with Vec3* first merges the four tails but scores 65.1%; keep the
-// four inline bodies. Current file restored to the previous 87.2% best.
-// #1704 retry by Codex / GPT-6.1-Sol: checkall reconfirmed 87.2% (1610/1504 bytes), no MATCH.
-// #1897 by deepseek-v4.1-flash: 1604/1504 bytes, still 87.2%, 23 hunks.
-// #1897 by space-bunny-free: 87.2% again, 1604/1504. No improvement, but the size
-// overshoot was finally pinned to ONE construct (item 3). Everything below is the
-// current state; the first two items are the older attempts, kept because they are
-// still the two open problems.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-Sol, finished by space-bunny-free, edited by deepseek-v4.1-flash, edited by Claude Opus 5.5. Names are provisional.
+// VTOL patrol order handler. State 0 starts patrolling ("Patrolling";
+// FUN_0040f200 is defined here because /Ob2 inlined it). State 1 sets the next
+// waypoint, then lands on a free pad when damaged (VTOL_LANDING), helps build
+// or guards a unit it can see (VTOL_HELPBUILD), or reclaims metal or energy
+// (VTOL_RECLAIM).
 //
-// PARTIAL. The 100 byte overshoot is the whole story; most hunks are only jmp targets
-// shifted by it, so fix the size and the rest follows.
+// PARTIAL, 90.3% (Claude Opus 5.5, #4169; was 87.2%). The size is 1520
+// against 1504 and every block but one lines up with the original.
 //
-// What still differs:
-// 1. Land()'s inline expansion keeps a dead "mov eax,1; test eax,eax; je" of the helper's
-//    constant success result, and the pads vector destructor is emitted right after the
-//    empty() test instead of on the shared path at 0x415474 (12 bytes). See item 6.
-// 2. The four VTOL_RECLAIM branches. The original cross-jumps ALL FOUR onto one shared
-//    ctor tail at 0x415773/0x415774. Here only branches 3 and 4 share a tail; branches 1
-//    and 2 each carry a private full copy of it, which is the entire 100 byte overshoot.
-//    (An earlier note in this file had 1 and 2 the other way round; it is the reverse.)
-//    Branch 2's float compare is separately unmatched: `energy < energyCapacity * 0.2`
-//    keeps the original's `test ah,0x41 / jne` but loads energy first, while the reversed
-//    `energyCapacity * 0.2 > energy` reproduces the original's load schedule (fld cap,
-//    fmul, fld energy) but emits `test ah,1 / je` and no `fxch st(1)`. Both score 87.2%.
+// What fixed the rest:
+// - The four VTOL_RECLAIM branches are one if/else-if chain that assigns
+//   `obj = new Class_0043a1f0(...)` in each arm, followed by one shared
+//   `FUN_0043acb0(unit, obj); order->flags = 0; return 3;`. MSVC then
+//   cross-jumps all four constructor tails into the last arm exactly as the
+//   original does (1604 -> 1518 bytes). Four separate `if (...) {...; return
+//   3;}` blocks only merge their last two arms, whatever the conditions.
+// - The second arm's `fld cap; fmul; fld energy; fxch st(1)` and the fourth
+//   arm's load order come from reading the amounts through inline accessors
+//   (Owner::GetEnergy, GetMetal). Reading the field directly loads energy
+//   first. The units test above must keep the plain field read.
+// - Land keeps the pads vector one inline level down: with Land's share of
+//   the /Ob2 budget (tools/c2prio.py --inline) the Class_00410830
+//   constructor, empty() and the destructor inline but their nested vector
+//   constructor, size() and ~vector() stay out of line (0x40c510, 0x40c560,
+//   0x40c530), as in the original, while the units vector below is all
+//   inline.
 //
-// space-bunny-free findings (build/scratch/0x4152f0/v0..v5.cpp, all scored free with --sym):
-// 3. THE 100 BYTE OVERSHOOT IS ONE CONSTRUCT. Factor the four VTOL_RECLAIM bodies into a
-//    by-VALUE inline helper, `static inline int Reclaim(Unit*, Order*, Vec3* pos)`, and the
-//    size collapses from 1604 to 1514 bytes (original 1504): MSVC then emits ONE shared
-//    tail for all four branches, exactly as the original does. But the score FALLS to
-//    65.1%, and the reason is a single allocation casualty, not the merge. With the
-//    pointer arriving as a helper parameter its live range starts before the two calls,
-//    so it takes EBP, and EBP is the original's ZERO CONSTANT. Everything downstream then
-//    differs: no `xor ebp,ebp`, `push 0` instead of `push ebp`, `test edx,edx` instead of
-//    `cmp edx,ebp`, `sub eax,0` instead of `sub eax,ebp`, and `mov ebp,[esi+6]` for
-//    `order->flags = 0`. So the trade is: helper = right size, wrong EBP; four textual
-//    bodies = right EBP, ~100 bytes duplicated. Winning needs the pointer back in a
-//    scratch register WHILE the helper keeps the merge. That is the whole remaining task.
-// 4. Taking the pointer BY REFERENCE instead (`Vec3** pp`, called as
-//    `Reclaim(unit,order,&metal)`) does put the pointer back in EAX/ECX and restores EBP
-//    as the zero constant, so the emission is then byte-identical to the four-textual-bodies
-//    version, but MSVC stops merging again: 1593 bytes, 85.5%. Adding `int zero = 0;`
-//    inside the helper and using it for every 0 changes nothing at all (65.1%, 1514 bytes):
-//    MSVC 5 folds that local away completely, so it cannot be used to win the EBP contest.
-// 5. `Vec3* target = 0;` with one shared body after the four-condition if/else-if chain
-//    does NOT get duplicated: 1405 bytes, 58.3%. The four arms are single assignments,
-//    too cheap for MSVC 5's tail duplication, so the original really does have four
-//    textual bodies and the merge has to come from somewhere else.
-// 6. Not the cause of item 1: the dead `mov eax,1; test eax,eax; je` is a pure consequence
-//    of the `if (Land(...)) return 0;` at the call site. Inlining the landing block as
-//    `if (!pads.empty()) { ...; order->flags = 0; return 0; }` (the shape 0x4103e0.cpp
-//    uses, with `if ((unsigned int)unit->health < (maxHealth>>2)*3)` as the outer test)
-//    does place the pads destructor correctly, but frees one stack dword (`sub esp,0x40`
-//    instead of 0x44) and swaps the ESI/EDI roles, giving 56.8%. Two effects, one cause.
-// 7. headers.py: 128 header sets, every one 87.2%, so the header choice is not a lever
-//    here.
+// What still differs: the landed flag. The original has no flag at all: the
+// landed path calls ~vector and returns 0, the empty path calls ~vector and
+// falls into the energy test. Here Land reports through `int& landed`, which
+// leaves `xor ebx, ebx`, `mov ebx, 1` and a `cmp ebx, ebp; je` behind.
+// Measured on the way:
+// - Land returning a flag (`if (Land(unit, order)) return 0;`) leaves
+//   `mov eax, K; test eax, eax` (or `xor eax, eax; cmp eax, ebp`) on the path
+//   whose return is textually last, in every shape tried (early returns,
+//   nested ifs, if/else, a for(;;), bool or char results, the health test
+//   outside Land, Land as an Order member). The test only folds with an empty
+//   `do {} while (0);` after the health test in Land AND FUN_0040f200 written
+//   `inline` (so it is not compiled on its own first); with either missing it
+//   stays. A toy file folds with the do-while alone. That folded file has the
+//   original's blocks and branches (1498 bytes with the accessors), but
+//   unit/order come out in esi/edi instead of edi/esi and the zero constant
+//   in ebx instead of ebp, which moves the units block's loads: c2prio gives
+//   order 48 against the case 0 unit web's 76, while the `landed` flag lifts
+//   order to 81 (it adds candidates to the waypoint block, K 4 -> 7). Nothing
+//   else found lifts order past 76 without the flag: a case 0 helper,
+//   member-function Land, Land's parameter order, case order, an IsDamaged
+//   helper and the permuter (15 minutes from the folded file, stuck at 76.2%
+//   with the right size) all leave it at 48.
+// - Writing the landing block straight into case 1 cannot work: at depth 1
+//   the share is about 140, so the pads' vector calls all inline.
 #include <vector>
 
 struct Vec3 { int x, y, z; };
@@ -106,7 +87,9 @@ struct UnitDef {
 };
 struct Owner {
     char pad0[0x8c]; float energy;
+    float GetEnergy() { return energy; }
     char pad90[8]; float metal;
+    float GetMetal() { return metal; }
     char pad9c[8]; float energyCapacity, metalCapacity;
     char padac[0x146 - 0xac]; unsigned char index;
 };
@@ -173,19 +156,20 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     }
 }
 
-static inline int Land(Unit* unit, Order* order)
+static inline void Land(Unit* unit, Order* order, int& landed)
 {
-    if ((unsigned int)unit->health >= (unit->def->maxHealth >> 2) * 3)
-        return 0;
-    Class_00410830 pads;
-    FUN_0040b530(unit->owner->index, &unit->pos, 0xf00, &pads);
-    if (pads.empty())
-        return 0;
-    ((Class_004388d0*)order)->FUN_004388d0(0);
-    Unit* pad = pads[FUN_004b6c30(pads.size())];
-    FUN_0043acb0(unit, new Class_0043a1f0("VTOL_LANDING", pad, 0, 0, 0, 0));
-    order->flags = 0;
-    return 1;
+    if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {
+        Class_00410830 pads;
+        FUN_0040b530(unit->owner->index, &unit->pos, 0xf00, &pads);
+        if (!pads.empty()) {
+            ((Class_004388d0*)order)->FUN_004388d0(0);
+            Unit* pad = pads[FUN_004b6c30(pads.size())];
+            FUN_0043acb0(unit, new Class_0043a1f0("VTOL_LANDING", pad, 0, 0, 0, 0));
+            order->flags = 0;
+            landed = 1;
+            return;
+        }
+    }
 }
 
 static inline float Total(float base, float amount)
@@ -224,7 +208,9 @@ int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         ((Class_00439e80*)order)->FUN_00439e80(0x2d);
         order->flags |= 0xe0;
-        if (Land(unit, order))
+        int landed = 0;
+        Land(unit, order, landed);
+        if (landed)
             return 0;
         if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
             std::vector<Unit*> units;
@@ -252,31 +238,24 @@ int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
         Fixed range;
         range.v = 0xf00000;
         if (FUN_0047ea40(&unit->pos, range, &energy, &energyAmount, &metal, &metalAmount)) {
-            if (unit->owner->metal < unit->owner->metalCapacity * 0.2 && metal) {
+            Class_0043a1f0* obj;
+            if (unit->owner->GetMetal() < unit->owner->metalCapacity * 0.2 && metal) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0));
-                order->flags = 0;
-                return 3;
-            }
-            if (unit->owner->energy < unit->owner->energyCapacity * 0.2 && energy) {
+                obj = new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0);
+            } else if (unit->owner->GetEnergy() < unit->owner->energyCapacity * 0.2 && energy) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0));
-                order->flags = 0;
-                return 3;
-            }
-            if (metal && Total(unit->owner->metal, metalAmount) <= unit->owner->metalCapacity) {
+                obj = new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0);
+            } else if (metal && Total(unit->owner->GetMetal(), metalAmount) <= unit->owner->metalCapacity) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0));
-                order->flags = 0;
-                return 3;
-            }
-            if (energy && Total(unit->owner->energy, energyAmount) <= unit->owner->energyCapacity) {
+                obj = new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0);
+            } else if (energy && Total(unit->owner->GetEnergy(), energyAmount) <= unit->owner->energyCapacity) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0));
-                order->flags = 0;
-                return 3;
-            }
-            return 2;
+                obj = new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0);
+            } else
+                return 2;
+            FUN_0043acb0(unit, obj);
+            order->flags = 0;
+            return 3;
         }
         return 2;
     }

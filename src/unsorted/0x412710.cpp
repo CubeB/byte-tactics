@@ -1,216 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
-// deepseek-v4.1-flash (issue #4089) retry: 96.1% (1572/1572) reconfirmed; the
-// two real hunks are unchanged (the +0x477 [esp+0x3c] load hoist is a
-// live-range artifact, and the landing-site out-of-line _Destroy budget).
-// `v.~vector();` remains the best spelling.
-
-// deepseek-v4.1-flash (issue #4007) retry: 96.1% reconfirmed; no new
-// variant landed within this issue timebox. Still the +0x477 load hoist
-// and the known landing-site /Ob2 _Destroy budget.
-// deepseek-v4.1-flash (issue #3633) retry: 96.1% reconfirmed, same three real
-// hunks (the jmp-table line is masked placeholder rendering and does not
-// count). Hunk at +0x477 is one instruction placement: the original hoists
-// `mov edx, [esp + 0x3c]` above `add esp, 8` and `mov ebx, eax`, ours loads the
-// same slot as `mov eax, [esp + 0x34]` after both (post-add [esp+0x34] is
-// pre-add [esp+0x3c]), so it is a live-range artifact, not a source shape. The
-// other hunk is the known landing-site /Ob2 _Destroy budget recorded below.
-// Best kept at 96.1%.
-
-// deepseek-v4.1 (short retry, kept 96.1%): VECTOR lines 52-55 confirm
-// ~vector() is {_Destroy(_First,_Last); deallocate(_First,_End-_First);
-// zeros;}. The original keeps NO zero stores in either path (dead after the
-// scope, eliminated) and its empty path is just `push ebp / call operator
-// delete / add esp,4` at 0x412c4c, so only the landed site needs the
-// out-of-line _Destroy (this=&v at [esp+0x1c], args _First@0x20/_Last@0x24).
-// Budget markers flip the later (empty) site first, never the earlier landed
-// one, which is why the explicit-destructor form below stays the best shape.
-// deepseek-v4.1-flash retry (1 real check.py run, kept 96.1%): the landing
-// block's out-of-line _Destroy call is NOT reachable with the /Ob2 budget
-// levers that fixed the matched 0x48d220. Measured with the free scratch
-// scorer (build/scratch/0x412710/gen_*.py), natural source (no explicit
-// destructor, 93.9% / 1548 bytes) plus Dummy() markers placed at eight
-// positions (top, case 0, before the vector decl, after it, before the
-// landed return, at the landed return, after the block, before return 7)
-// with 1..64 markers each: no count makes only the landed destructor emit
-// the call. The decision is effectively function-wide: at ~41 markers BOTH
-// destructors go out of line at once (1596 bytes, and the frame grows to
-// 0x28, blowing up the whole function to 81.8%); below that both stay
-// inlined (1548). At 40 markers at the very end the EMPTY path alone calls
-// _Destroy (1568 bytes, 92.7%), the opposite of the original. So the
-// original's one-site state (landed calls, empty omits) is not a budget
-// count we can hit here. Also tried and rejected: TryLand helper (88-90%),
-// hand-rolled byte-buffer + placement new (81-90%), a user-defined empty
-// destructor wrapper (91%), v.clear() on the empty path (92-94%), size()/
-// begin()!=end() empty tests (91-93%), 22 extra headers (93.0-93.9%, some
-// move register allocation but never the destructor), case permutation.
-// The state-4 reload (see below) is very likely downstream of the same
-// allocator state: at 41 case-4 markers the frame grows and the reload
-// becomes an early `mov ecx,[esp+0x48]`, i.e. the original's EDX-before-
-// add-esp shape, which is why no local/expression rewrite reached it.
-// deepseek-v4.1 retry (2 check.py runs, kept 96.1%): confirmed the landing
-// block's `lea ecx, [esp + 0x1c]` is NOT an off-by-4: VC5's <vector> declares
-// `_A allocator;` BEFORE `iterator _First, _Last, _End;` (VECTOR line 245), so
-// the vector object is 16 bytes at frame+0xc with _First at frame+0x10. Both
-// sites are the plain implicit scope-exit destructor, so the only remaining
-// difference is still the /Ob2 decision on the 3-byte (`ret 8`) out-of-line
-// _Destroy at 0x406c00: taken at the landed site, folded away at the empty
-// site (there the earlier `sete` proves _First == _Last).
-// (Agreed: the frame slot arithmetic is the same conclusion this session
-// reached; the vector object is 16 bytes with the allocator first, so
-// `lea ecx,[esp+0x1c]` and _First at [esp+0x20] are consistent.)
-// deepseek-v4.1 second retry (baseline plus one final check.py run; every
-// sweep below ran through build/scratch/0x412710/sweep*.py + dump.py, which
-// compile and compare without check.py):
-// TARGET SHAPE (a). With _Destroy out of line the landed path is exactly the
-// original's 39 bytes, then `xor eax,eax`:
-//   lea ecx,[esp+0x1c] / mov [edi+6],0 / mov edx,[esp+0x24] /
-//   mov eax,[esp+0x20] / push edx / push eax / call _Destroy /
-//   mov ecx,[esp+0x20] / push ecx / call operator delete / add esp,4
-// The file's 96.1% comes from the explicit `v.~vector();`: MSVC then emits the
-// destructor, but its _Destroy stays inlined and the implicit scope-exit
-// destructor adds zero stores plus a second delete(0), so ours is also 39 bytes
-// with different content. The element type is now spelled `Unit*` (and
-// FUN_0040b530 takes `std::vector<Unit*>*`, reading the element without a
-// member): byte-and-score identical here (96.1%, 1572 bytes) and it is the type
-// the _Destroy reloc names, so a future out-of-line call cannot resolve to a
-// wrong mangled name.
-// NEW MEASUREMENTS for (a), all scored with the scratch scorer:
-//  - Empty inline calls are real inline-budget markers here, exactly as in the
-//    matched 0x48d220.cpp: `static inline void Dummy(void) {}` called 16 times
-//    before `return 7;` flips the EXPLICIT `v.~vector();` site to an out-of-line
-//    _Destroy call (destroy_calls=1, 1592 bytes) while the implicit destructor
-//    keeps its inlined copy, so the extra 20 bytes stay. At 24 markers it flips
-//    back (1564 bytes): non-monotonic, so a marker count must be scored, not
-//    argued. Markers anywhere else (top of the function, case 5, the circling
-//    code, inside the landed block, 1..49 calls) never flip anything.
-//  - The NATURAL source (no explicit destructor, the 93.9% / 1548-byte shape)
-//    could not be flipped at all: 1..49 markers in four placements, TryLand one
-//    level down (94.7%, 1572 bytes), identity and arithmetic consumers, and
-//    1..16 dummy functions or unused inline definitions before the function.
-//    So the implicit destructor at the `return` is expanded in a phase where
-//    those markers do not count; TRY 3's conclusion that the budget is not what
-//    decides that site holds for it, and the explicit site above shows the
-//    budget is real elsewhere in this TU. That plain shape is the honest source
-//    (it reproduces both destructor copies and the original's size once
-//    _Destroy is called); the explicit call is kept only for the score.
-// TARGET SHAPE (b), still differing: the original reloads state 4's spilled
-// orbit distance into edx before `add esp,8`; ours reloads it into eax after
-// `mov ebx,eax`. Tried this session, no change: `speed * 0x10000` for
-// `speed << 16` (96.1%, same diff) and `int d = distance;` inside Offset
-// (94.3%).
-// Prior work: Claude Opus 5.5, deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
-// space-bunny-free retry (1 real check.py run, kept 96.1%, nothing improved):
-// The one difference left is the landing block's vector destructor. The real
-// MSVC 5 <VECTOR> (toolchain/msvc5-sp3/INCLUDE/VECTOR line 52) is
-//     ~vector() {_Destroy(_First, _Last);
-//                 allocator.deallocate(_First, _End - _First);
-//                 _First = 0, _Last = 0, _End = 0; }
-// with, at line 232, a protected
-//     void _Destroy(iterator _F, iterator _L)
-//         {for (; _F != _L; ++_F) allocator.destroy(_F);}
-// whose body is empty for a trivial element type. So the original calls that
-// PROTECTED template member out of line (0x406c00) on the landed path and
-// inlines it to nothing on the empty path (0x412c4c), which is what the /Ob2
-// budget produces. That inliner decision is still the blocker.
-// TRY 1 (works, not enough): hand-roll `namespace std { template<class _Ty,
-// class _A = allocator<_Ty> > class vector }` with the header's exact member
-// list and DECLARE `_Destroy` WITHOUT DEFINING IT. The compiler then has no
-// body and must call it out of line, and the mangled name it emits is
-// ?_Destroy@?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@IAEXPAPAUUnit@@0@Z,
-// which check.py resolves to 0x406c00 with no mismatch (it also forces the
-// element type back to Unit*, which is the real one and the parameter type of
-// the already matched 0x40b530.cpp). The landed path becomes byte exact.
-// Score 91.0%, 1588 bytes. It fails because MSVC can no longer see that the
-// loop is empty, so the EMPTY path now also gets the call, which the original
-// does not have.
-// TRY 2: guard the call `if (_First != 0) _Destroy(...)`. Not folded: the
-// compiler does not carry the `test ebp,ebp` from `size()`'s null test into
-// the destructor, so the guard is materialised on both paths, it also picks
-// the wrong `this` slot (lea ecx,[esp+0x24] instead of [esp+0x1c]), and the
-// score drops to 92.0%. Guards `if (size() != 0)` (90.7%) and
-// `if (_First != _Last)` (91.6%) are worse still.
-// TRY 3 (nothing): consume the /Ob2 inline budget with zero-byte expansions,
-// per item 14 of the brief. `static inline void Nop() {}` and
-// `static inline int Nop(int a) { return a; }` called 1, 2, 3 and 4 times at
-// the top of the function, and wrapping the real expressions (GetSpeed,
-// speed << 16, dist / 2, FUN_0044e730(speed)) in an identity `Id` helper: all
-// five score exactly 96.1% with an unchanged diff, so either the front end
-// deletes them before the inliner sees them or the budget is not what decides
-// this site.
-// TRY 4 (nothing): a named local for state 4's orbit distance
-// (`int d = speed << 16; Offset(angle, d)`) to change the spill, per item 3:
-// 96.1%, unchanged diff.
-// So the destructor is still reached through an explicit `v.~vector();`,
-// the construct the previous workers rejected as a scoring artefact. It is
-// kept for the score (96.1% at the original's 1572 bytes, against 93.9% /
-// 1548 without it), but the honest state is "the landing block's destructor is
-// one construct away": an ordinary `~vector()` with `_Destroy` out of line.
-// deepseek-v4.1 (session 2580, 2 real check.py runs plus 8 free --sym scratch
-// scores): four more destructor shapes measured, all worse than the explicit
-// `v.~vector();`. (1) the vector as a member of a local struct
-// (`struct LandVec { std::vector<Unit*> v; };`, destruction then a member
-// call): 93.0% / 1548 bytes, _Destroy still inlined. (2) the whole landing
-// block one inline level down in a TryLand helper (the 0x410e70 shape):
-// 94.7% / 1572, _Destroy still inlined and the inlined `return 1` costs the
-// `xor ebp,ebp; mov eax,1; cmp eax,ebp` bytes. (3) `v.~vector();` one level
-// down in a helper `static inline int Landed(std::vector<Unit*>& v) { v.~vector();
-// return 0; }`, called as `return Landed(v);` (and the `&v` pointer form):
-// 95.2% / 1572, the destructor is not affected at all and the health test's
-// registers move (edx/ecx instead of ecx/eax). (4) a pre-destructor call on the
-// empty path (`v.~vector();` before FUN_0040b530, so the implicit one is the
-// second): 90.8% / 1564. (5) the hint's single-destructor-site shape (landed
-// flag, vector in an inner scope whose only exit both paths flow through):
-// 81.6% / 1576, the extra state variable and join cost far more than the one
-// _Destroy call could win back. Distance reload: a named `int dist = speed << 16;`
-// before the FUN_004b6c30(2) angle call is 95.4% (register damage), after the
-// angle expression 96.1% (unchanged diff), so the reload order is downstream of
-// the same frame/budget state that keeps _Destroy inlined, not fixable alone.
-// Best: 96.1% (1572 vs 1572 bytes), by adding an explicit `v.~vector();`
-// right before `return 0;` in state 4's landed path. That makes MSVC emit the
-// whole destructor instead of folding it away, so the size finally matches the
-// original's 1572 bytes. Without it the same code scores 93.9% at 1548 bytes.
-// What still differs (the only body difference left, plus the jump-table
-// relocation placeholder):
-//   original:  lea ecx,[esp+0x1c] / mov [edi+6],0 / mov edx,[esp+0x24] /
-//              mov eax,[esp+0x20] / push edx / push eax / call PAUUnit::?$vector::_Destroy
-//              (0x406c00) / mov ecx,[esp+0x20] / push ecx / call operator delete
-//   ours:      xor esi,esi / mov edx,[esp+0x20] / mov [edi+6],esi / push edx /
-//              call operator delete / add esp,4 / zero the vector's three
-//              pointers / push esi / call operator delete / add esp,4
-// i.e. the original has ONE destructor, with the empty _Destroy (a bare
-// `ret 8`) NOT inlined; ours has the explicit destructor (its _Destroy still
-// inlined away) plus the implicit scope-exit one, which the optimizer turns
-// into zeroing stores and a second delete(0). The natural source (no explicit
-// destructor) inlines _Destroy at that site and is 24 bytes short. So the
-// missing piece is an /Ob2 inliner decision, not a source shape we have found:
-// tried and measured, element type Unit* instead of Elem_00406c10 (identical
-// 93.9%), one extra trivial inline helper (GetSpeed, no change), v.begin()/
-// v.end() spelling (91.9%, loses the null check), TryLand helper (recorded by
-// earlier workers at 92.0%, _Destroy still inlined). 0x40a260 shows the /Ob2
-// budget is what decides this, and here every byte before the destructor is
-// already identical, so the budget difference is invisible in the diff.
-// GPT-6 retry: vector element types, destructor declarations, derived/embedded
-// vector wrappers, constructor bodies and orbit-offset variants did not improve
-// 93.9%. The landing _Destroy call and orbit distance reload still differ.
-// GPT-6.1 probe: moving the landing block into an inlined TryLand helper kept
-// the function at 1572 bytes but scored 93.8%, so the direct block is retained.
-// deepseek-v4.1 (session 2541, 1 real check.py run, kept 96.1%): the /Ob2
-// decision order is now pinned down with free scratch scores
-// (build/scratch/0x412710/sweep*.py). Empty-inline markers (Dummy()) placed at
-// the top, at `case 4:`, before `if (!v.empty())`, inside the landed block,
-// after the block and before `return 7`, 8..48 each, never flip the NATURAL
-// landed implicit destructor (always 93.9% / 1548); 40 markers at the very end
-// flip the EMPTY path's destructor instead (1568 bytes, 92.7%) and 41 blow the
-// frame up (1616 bytes, 81.8%), so the landed site is simply not reachable by
-// budget. Two more spellings of the statement-level explicit destructor measure
-// byte-identical to `v.~vector();` at 96.1% / 1572: `return (v.~vector(), 0);`
-// and `std::vector<Unit*>* pv = &v; pv->~vector();`, so the site is not a
-// construct difference either. One level down, TryLand(unit, order) with
-// `if (!TryLand(...)) return 0;` is 94.7% / 1572 with the inlined `return 1`
-// cost visible (`xor ebp,ebp; mov eax,1; cmp eax,ebp`); `bool ok = !v.empty();`
-// before the test is 87.3% / 1556. So the landed destructor still differs as
-// described below: the original calls `PAUUnit::?$vector::_Destroy` (0x406c00)
-// out of line there while ours inlines its empty loop.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, matched by Claude Opus 5.5. Names are provisional.
 // VTOL attack order handler ("Attacking"). With flags 0x1000a, or with no
 // target and order flag 0x200, it queues VTOL_SEEKATTACK instead; when out of
 // the order's range it gives up. State 0 prepares the order (FUN_0040f200 is
@@ -218,46 +6,34 @@
 // halfway to the target, state 2 attacks, state 3 pulls away from the target,
 // state 4 lands on a free pad when damaged (VTOL_LANDING) or circles.
 //
-// Partial: 93.9%. The one structural difference left is the landing block's
-// destructor: the original calls vector<Unit*>::_Destroy (0x406c00) out of
-// line before `operator delete`, while ours inlines it (its body is empty,
-// `ret 8`). The scope-end destructor on the empty path (0x412c4c) is not
-// called there because the optimizer knows `_First == _Last`; that site
-// already matches. The element type is `Unit*` (see 0x406c00.cpp and
-// docs/consolidation.md), but spelling it that way moves registers in state
-// 4's health test (93.9% to 93.0%), so `Elem_00406c10` is kept here.
-// 0x410e70 (same landing code) got the call by putting the vector one inline
-// level down in a TryLand helper AND having case 0 after case 2 in the
-// source; 0x412710's switch bodies are emitted in source order 0..5
-// (verified: moving case 4 first drops the score to 63.7%), so that trick
-// does not transfer. TryLand here (one level down, any element type) scores
-// 92.0% and still inlines _Destroy.
-//
-// A previous worker rejected an explicit `v.~vector();` before `return 0;` as
-// a scoring artefact: it does add zeroing stores and a second no-op delete
-// that the original does not have. It is kept anyway because it is the only
-// construct found that makes MSVC emit the destructor at all, and it takes
-// the file from 93.9% to 96.1% with the original's 1572 bytes.
-//
-// Second difference: state 4's Offset call reloads the spilled distance into
-// edx right after the first call (`mov edx, [esp+0x3c]` before `add esp, 8`);
-// ours reloads it into eax after `mov ebx, eax`.
-// What fixed most of it: `Vec3 p = base + off` with a member operator+ built
-// on operator+= (states 1 and 3), a separate sum then copy in state 4, the
-// literal 0 as the second VTOL_SEEKATTACK target, and <memory.h> (found with
-// tools/headers.py; it fixes the first hypot's load order).
+// MATCH (Claude Opus 5.5, #4169). The blocker for many passes was the landing
+// block's destructor: the original calls vector<Unit*>::_Destroy (0x406c00)
+// out of line where it returns 0, but inlines it (to nothing) on the empty
+// path. tools/c2prio.py --inline shows why no plain std::vector can do that:
+// the landed ~vector is visited first and the empty one right after, and a
+// ~vector's nested sites get (budget - 94) / R, which only shrinks from one
+// site to the next. With the sibling files' Class_00410830 (a class derived
+// from the vector, so the implicit, free destructor wraps ~vector) _Destroy
+// gets budget / R - 94 instead, and an R of 14 at the landed site puts the
+// landed share at 45 (out of line) and the empty one at exactly 49 (inlined).
+// The eleven empty Dummy() calls supply that R, the way 16 of them do in the
+// matched 0x410e70; the original probably had tiny inline accessors there.
+// Without them the file is 93.9%, the same as the natural std::vector form.
+// The explicit-destructor hack is gone, and the state 4 distance reload now
+// matches too. The health test's scratch registers (edx/ecx/eax in the
+// original) follow the file's symbol count: dummy externs showed 5 to 19
+// extra symbols match, and so do these real ones, the IsDamaged helper (as in
+// 0x410850) with <math.h> and <vector> only (<memory.h> is no longer needed),
+// or <windows.h> or <list> + <windows.h> in front of the old includes.
+
+
 #include <math.h>
-#include <memory.h>
 #include <vector>
 
 struct Vec3 {
     int x, y, z;
     void operator+=(const Vec3& v) { x += v.x; y += v.y; z += v.z; }
     Vec3 operator+(const Vec3& v) const { Vec3 r = *this; r += v; return r; }
-};
-
-struct Elem_00406c10 {
-    int unknown_0;
 };
 
 class Class_00438760 {
@@ -351,6 +127,10 @@ void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
 void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
 void __stdcall FUN_0040b530(int player, Vec3* pos, int range, std::vector<Unit*>* out);
 
+// The landing pad list. 0x410830 is its constructor; its implicit destructor
+// is an inline candidate under 41 IL, so ~vector sits one level down.
+class Class_00410830 : public std::vector<Unit*> {};
+
 static inline Vec3 Offset(short angle, int distance)
 {
     Vec3 v;
@@ -360,12 +140,14 @@ static inline Vec3 Offset(short angle, int distance)
     return v;
 }
 
+// Empty inline call sites: see the header.
+static inline void Dummy(void) {}
+static inline int IsDamaged(Unit* u) { return (unsigned int)u->field_108 < (u->def->field_1fa >> 2) * 3; }
 static inline int GetSpeed(Unit* unit)
 {
     return unit->mover->speed;
 }
 
-// 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
     ((Class_004898b0*)unit)->FUN_004898b0(3);
@@ -381,7 +163,6 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     }
 }
 
-// GPT-6.1-sol retry (five check.py runs including the starting best): both case-4 vector-sum variants were worse, `Vec3 p = unit->pos + off` scored 93.4% (1576 bytes) and `Vec3 p = off + unit->pos` scored 91.9% (1584 bytes); kept the established 96.1% source.
 // FUNCTION: 0x412710
 int __stdcall FUN_00412710(Unit* unit, Order* order, int flags)
 {
@@ -449,15 +230,14 @@ int __stdcall FUN_00412710(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 4: {
-        if ((unsigned int)unit->field_108 < (unit->def->field_1fa >> 2) * 3) {
-            std::vector<Unit*> v;
+        if (IsDamaged(unit)) {
+            Class_00410830 v;
             FUN_0040b530(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 Unit* target = v[FUN_004b6c30(v.size())];
                 FUN_0043acb0(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
                 order->flags = 0;
-                v.~vector();
                 return 0;
             }
         }
@@ -472,6 +252,17 @@ int __stdcall FUN_00412710(Unit* unit, Order* order, int flags)
         ((Class_0044e730*)obj)->FUN_0044e730(0x80);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         order->flags = 0x100ea;
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
         return 1;
     }
     case 5:

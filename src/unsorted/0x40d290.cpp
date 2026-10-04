@@ -1,4 +1,28 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash and space-bunny-free, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 (#5565, 2026-10-04): still 93.3%, file unchanged except this
+// note. Neither real TU code nor small ids reach the window:
+// - Real neighbours: a concatenation of this TU's 105 matched files (0x407350
+//   to 0x40d5b0, each in its own namespace) puts this insert's id at 38356
+//   (+5061 over this file's 33295, from everything before 0x409160's class, the
+//   first vector<unsigned char>); with the generous header set of
+//   docs/c2-regalloc.md as well, 56259, 9343 short of 65602.
+// - Small ids instead (what matched 0x409730 next door): MSVC 5's vector cut
+//   down to what insert uses (build/scratch/0x40d290c/clone.h) is 87.0% at
+//   its own count (insert's id 270). Unused externs ahead of it, 0 to 1100 one
+//   at a time, give only the four states the real header gives (87.0, 91.0,
+//   92.8 and 93.3%), and so do three reorderings, each scanned over 0 to 520:
+//   copy, copy_backward and fill defined after the instantiation; insert
+//   declared before size(); allocator<unsigned char> instantiated last (by the
+//   `_A allocator` member, no `_A::` typedefs).
+// - Why, from c2prio --symbols on the padded real file (32307 externs between
+//   <ddraw.h> and <vector>, a MATCH): insert is 65602 and its parameters
+//   65599 to 65601, low 16 bits 63 to 66, below operator new (??2, id 151) and
+//   operator delete (??3, 153), which the compiler predeclares ahead of every
+//   declaration; the body's locals (_N 65748, _S 65749) are above them. In a
+//   file without the wrap every declaration gets an id above 153, so no
+//   ordering of a small file reproduces that, and the window still needs the
+//   lost ~65000-symbol prefix. The window's edges: odd N from 32307 to 32359
+//   (32305 and 32363 fail).
 // Claude Opus 5.5 (#5544, 2026-10-04): still 93.3%, but the cause is now pinned
 // down, and it is symbol ids, not the source. The earlier extern scans all used
 // even counts or even steps, so they never tried an odd count. With N unused

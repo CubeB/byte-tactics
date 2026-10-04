@@ -1,4 +1,25 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash and space-bunny-free, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 (#5544, 2026-10-04): still 93.3%, but the cause is now pinned
+// down, and it is symbol ids, not the source. The earlier extern scans all used
+// even counts or even steps, so they never tried an odd count. With N unused
+// `extern int` declarations between <ddraw.h> and <vector>, this exact file
+// MATCHes for N = 32307, 32309, ..., 32359 (odd N only; each even N between
+// them gives the old tail). In `c2prio.py --symbols` terms that is this insert's
+// own id at 65602..65654 (low 16 bits 0x42..0x76) and even: the vector<unsigned
+// char> instantiation has to straddle 65536, with allocator<unsigned
+// char>::allocate just below it and size() just above. The same window comes
+// out with the declarations placed after <vector> (before the typedef).
+// Declarations at the end of the file, which move only C2's own ids, never
+// reach it, and nothing moves at the 32768 boundary. Hunk by hunk: odd N from
+// about 32094 on gives the `_End` add, odd N 32245..32359 the `_Ufill` count,
+// and odd N 32307..32453 the `_Last` sum. So the original TU had about 65,600
+// declarations ahead of this insert's, like the prefix 0x41b2e0 and 0x471de0
+// need (docs/c2-regalloc.md, "lost common header"). No plausible real header
+// set gets there (52k at most), and the padding cannot be committed, so the file
+// stays as it is. Also flat without /Gi: element types char, signed char and
+// bool, and one use each of operator=, resize, reserve, the copy constructor,
+// push_back and erase. Scratch: build/scratch/0x40d290/ (scan.py, tail.py and
+// summ.py print the three tail shapes for a batch of files in seconds).
 // #5526 Codex recheck: 93.3%; documented vector insert TU-state differences remain.
 // Claude Opus 5.5 (#4601, 2026-10-04): still 93.3%. The Part 7 /Gi recipe
 // (the one that matched 0x40d020 and 0x40cca0 next door) does NOT apply here.

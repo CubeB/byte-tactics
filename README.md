@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**93.97% of Cavedog's code matched** (799,525 of 850,853 bytes)
+**94.01% of Cavedog's code matched** (799,891 of 850,853 bytes)
 
 `[######################################--]`
 
-By count that is 3,224 of the game's 3,267 functions (98.7%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,225 of the game's 3,267 functions (98.7%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,224 | 799,525 |
-| Attempted, not yet matching | 43 | 51,328 |
+| Matched byte-for-byte | 3,225 | 799,891 |
+| Attempted, not yet matching | 42 | 50,962 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -36,7 +36,7 @@ The size bands are the `size:` labels on the issues.
 | --- | ---: | ---: | ---: | --- |
 | small (1 to 64 bytes) | 1,155 of 1,155 | 100.0% | 0 | `##########` |
 | medium (65 to 160 bytes) | 826 of 827 | 99.9% | 118 | `##########` |
-| large (161 to 400 bytes) | 698 of 703 | 99.2% | 1,375 | `##########` |
+| large (161 to 400 bytes) | 699 of 703 | 99.4% | 1,009 | `##########` |
 | xl (401 to 600 bytes) | 218 of 226 | 96.3% | 4,067 | `##########` |
 | xxl (601 to 1,000 bytes) | 187 of 195 | 95.5% | 6,592 | `##########` |
 | huge (over 1,000 bytes) | 140 of 161 | 86.6% | 39,176 | `#########-` |
@@ -57,7 +57,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x450000` | Options and audio menus | 174 of 176 | 96.5% | 2,181 | `##########` |
 | `0x460000` | Game and skirmish setup, unit classes | 208 of 212 | 93.9% | 3,736 | `#########-` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 254 of 259 | 94.3% | 3,604 | `#########-` |
-| `0x480000` | Unit definitions, COB scripting, TNT map | 261 of 264 | 98.2% | 1,148 | `##########` |
+| `0x480000` | Unit definitions, COB scripting, TNT map | 262 of 264 | 98.8% | 782 | `##########` |
 | `0x490000` | Config and registry, skirmish summary | 190 of 193 | 96.6% | 2,052 | `##########` |
 | `0x4a0000` | GUI layout and GAF | 200 of 201 | 98.9% | 706 | `##########` |
 | `0x4b0000` | UI controls and file packages | 312 of 314 | 98.6% | 891 | `##########` |

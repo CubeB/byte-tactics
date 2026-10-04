@@ -478,3 +478,10 @@ can disagree on types (a real link would fail). Known cases:
   (needed for the match), while the matched sibling 0x43a0c0 drops to 98.9%
   with that base. Reconcile when the class is consolidated. 0x43a420 also
   needed an alias row for `Class_0044e740`'s second constructor at 0x44e7d0.
+- **0x410850 includes `ta_types.h` inside `namespace ta { }` without
+  using its types** (#5664): its own views clash with the header by name, and
+  the header flattens Class_00410830's `std::vector<Unit*>` base into plain
+  fields. The include only sets symbol ids (unit at 65854, window 65808 to
+  65919). Clean-up: have `tools/gametypes.py` keep base classes, include the
+  header normally, and retune the files that depend on its size (see
+  docs/c2-regalloc.md, "Files that depend on its exact size").

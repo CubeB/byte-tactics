@@ -357,6 +357,12 @@ state. It works by accident. Found by Claude Code / Opus 5.5 in #5276.
 
 Things that look wrong in the original but have no effect, kept for the record.
 
+- **0x435320** (briefing text loader): it frees the buffer at `+0xc14`
+  (0x435330) and stores the new one only when the file size is non-zero; a
+  zero size takes `je 0x435395` at 0x435368 and returns with the freed pointer
+  still in the field. An empty name stores 0 correctly (0x435354). Harmless as
+  called: its only caller, 0x435da0, clears that buffer first, so nothing is
+  freed. Found by Claude Code / Opus 5.5 in #5494.
 - **0x453360** (a send-to-players routine): its `int result` is only assigned
   from each send's return value and never initialised, so when the loop sends
   nothing the function returns whatever its home holds. MSVC put that home in

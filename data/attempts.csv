@@ -7902,7 +7902,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x49e1a0,969,opus,#5490,matched,100.0,,"issue #5490, escalated"
 0x4152f0,1504,,#5491,assigned,,,"issue #5491, escalated"
 0x43a420,1300,,#5496,assigned,,,"issue #5496, escalated"
-0x414380,1000,,#5501,assigned,,,"issue #5501, escalated"
+0x414380,1000,opus,#5501,matched,100.0,,"issue #5501, escalated"
 0x49a890,488,,#5507,assigned,,,"issue #5507, escalated"
 0x4dea00,850,,#5510,assigned,,,"issue #5510, escalated"
 0x410850,1051,,#5512,assigned,,,"issue #5512, escalated"

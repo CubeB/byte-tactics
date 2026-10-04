@@ -1,4 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// #5614 Claude Opus 5.5 (95.3% kept): template instantiations do not supply
+// the missing ids either (docs/c2-regalloc.md, "Symbols each template
+// instantiation adds"). A container class adds its ids where it is first
+// needed (vector 137, list 285, map 395); its member functions count only
+// at the end of the file. With the unsigned fields, the plausible header
+// set (<windows.h> <ddraw.h> <dsound.h> <dplay.h> <shlobj.h> <imagehlp.h>,
+// six CRT headers, <vector> <list> <map> <algorithm> <string>) puts g_game
+// at 41548 (93.0%), plus every container class the exe has (40 vectors, 4
+// maps, a list) at 48991 (93.8%). 80 vectors, 8 maps and 2 lists of
+// invented element types put it at 56402 and MATCH, so the window is real
+// but needs twice the exe's containers, which is padding. Scratch:
+// build/scratch/0x449bb0/gen.py, build/scratch/runids.py.
 // #5530 Codex recheck: 95.3% (99.6% ignoring internal jump targets); three mask instructions remain.
 // A retry with unsigned bitfields and precomputed int values fell to 80.8% (87.3% with jump targets masked) due to frame growth.
 // Claude Opus 5.5 pass (#5600, about 25 minutes, still 95.3% committable):

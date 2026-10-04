@@ -3,7 +3,40 @@
 // production is summed, the player's totals and storage are updated, and the
 // share of the demand that could be met is fed back into every account.
 //
-// Partial, 89.0% (2249 of 2239 bytes; was 88.1%, before that 77.2%).
+// Partial, 89.2% (2245 of 2239 bytes; 99.7% ignoring moved jump targets; was
+// 89.0%, 88.1%, before that 77.2%).
+//
+// Opus pass on 2026-10-04, third (89.0% to 89.2%): the else branch's region
+// is now byte-identical. UseEnergyD's positive arm converts the amount to a
+// double before the `used` add (`double a = v;`), adds `v` to `used` (the
+// `fld st(0); fadd [m]` copy form) and `(float)a` to `demand` (consuming).
+// Then C2 gives the backlog > 0 edge and the default/non-AI block one pop
+// block (En falls into `fstp st(0)`, as in the original). Measured rule: the
+// pop is shared unless the positive path both copies a float with
+// `fld st(0)` and consumes it in the demand add; a double-form `used` add
+// (`fld [m]; fadd st(1)`) or a non-consuming demand add also shares it, but
+// those change the positive path's bytes. Declaring `a` after the used add
+// scores the same; at the top of UseEnergyD it drops to 88.5%.
+// What is left (one difference, 6 bytes): tidal's dispatch is
+// `je E0; dec; jne En; fmul; jmp X` where the original has
+// `je E0; dec; je E1; jmp En`. The cause is the order of the join label's
+// jump list at cross-jump time (build/scratch c2t.py from the previous pass,
+// jorder.py): it is always T0, T1, then the then-branch's jumps, then the
+// else branch's E1, E0. T0 is the pivot, so T1's tail merges into T0's
+// first, then T0's into E1's, and T1 is left as its own `fmul; jmp` after a
+// conditional jump, where no whole-block merge is allowed. T0 and T1 head the
+// list because the first jump-threading pass (FUN_00436a06) collects the
+// then-branch's direct jumps to its end walking backwards, and the second
+// moves that list onto the join, reversing it; the else branch's case jumps
+// reach the join earlier through a label merge (from 0x43a587). To match,
+// the else's E0 (or E1) has to reach the join list after T0/T1, or T0 must
+// meet E0 before T1. Tried, all 89.2% or lower: tidal/wind/else helpers
+// in every D/D3/W/W3/D1 combination with and without the label, no label
+// (`if (ok)` nesting), do/while(0), for(;;) and switch(0) wrappers, nested
+// else, early `goto done` exits, the else branch first (80.2%), and a
+// function- or loop-scope `ok` assigned in both arms (89.1%: E0 then comes
+// before E1, T0 merges whole into E0, but tidal's whole dispatch then merges
+// into the else's).
 //
 // Opus pass on 2026-10-04 (88.1% to 89.0%). First (88.9%): the wind site now calls
 // AddIncomeW, which takes a double like AddIncomeD but adds the default and
@@ -394,10 +427,19 @@ static int UseEnergy(Unit_00401360* u, float v)
     return 0;
 }
 
+// The demand add goes through a double copy of the amount: it makes the
+// backlog > 0 pop shared with the default add's (see the top).
 static int UseEnergyD(Unit_00401360* u, float v)
 {
-    if (v >= 0)
-        return Use_00401180(u, v);
+    if (v >= 0) {
+        double a = v;
+        float* used = &u->econ.res[0].used;
+        *used += v;
+        if (u->econ.res[0].backlog > 0.0f)
+            return 0;
+        u->econ.res[0].demand += (float)a;
+        return 1;
+    }
     AddIncomeD(u, &u->econ.res[0].produced, -v);
     return 0;
 }

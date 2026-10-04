@@ -1,11 +1,31 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
 // pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%; pass 18 (Opus, #5559):
-// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 to 25 (Opus, #5585, #5587, #5610, #5625,
-// #5650, #5666): no change.
+// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 to 26 (Opus, #5585, #5587, #5610, #5625,
+// #5650, #5666, #5675): no change.
 // The class name is data/symbols.csv's
 // Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
 // Class_00462d30, its own file's class, and returns Entry_00462d90*.
+//
+// Pass 26 (#5675): 98.9%, no change. The tie order cannot be moved, so tick needs a 4th count.
+//  * Pass 25's count hook on this file: tick 1 (def), then flag 1, 2, 3 (setg store,
+//    `flag = 0`, swap test), then tick 2, 3 (the 0x463790 push, the Take).
+//  * C2's block list at the count is a topological order of the flow graph: a block is
+//    counted after every forward predecessor, wherever its source sits, and a loop's exit
+//    arms come straight after its latch. Tests: a then-arm also reached by a later `goto`
+//    is counted after that goto, inside a loop or not; the whole tail written in the first
+//    loop's copy-out arm behind `goto queue;` and the `flag = 0` block at the end of the
+//    function behind `goto clear;` / `goto swap;` both give the same code (98.9%) and the
+//    same walk. The only move after the count is a loop exit arm going to the end of the
+//    function (the first loop's copy-out; the receive loop's out-of-memory arm stays after
+//    its latch), and the tail cannot be one: it is entered from four places after the loops.
+//  * All three flag references lie on every path into the tail (the `if (entry == 0)`
+//    join), so with the emitted code fixed flag always reaches 3 before tick's push and
+//    Take are counted. The original's tick must have a 4th counted reference, and since
+//    hidden reloads are ruled out (passes 24 and 25) it must be a copy that C2 merges after
+//    the count. The only merge point holding a tick reference is pass 24's 0x463790 call in
+//    both arms of `if (entry == 0)`. Its best form (the Take through entry->tail) is still
+//    92.9%, with or without /Gi.
 //
 // Pass 25 (#5666): 98.9%, no change. Symbol ids do not decide the tick/flag swap.
 //  * Unused `extern int`s swept at five places: after <string.h> (every count from 0 to

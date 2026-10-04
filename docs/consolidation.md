@@ -473,3 +473,8 @@ can disagree on types (a real link would fail). Known cases:
   `Section_004c3240`**: its destructor is 0x4c42a0 and its scalar deleting
   destructor 0x4c32f0. 0x4c51b0.cpp, 0x4c3120.cpp and 0x4c3240.cpp were
   renamed to `Class_004c42a0` when #381 landed.
+- **`Class_0043a1f0` has two shapes**: 0x43a420 (#5538) gives it a second
+  base class whose inline constructor clears the kind byte at `this + 4`
+  (needed for the match), while the matched sibling 0x43a0c0 drops to 98.9%
+  with that base. Reconcile when the class is consolidated. 0x43a420 also
+  needed an alias row for `Class_0044e740`'s second constructor at 0x44e7d0.

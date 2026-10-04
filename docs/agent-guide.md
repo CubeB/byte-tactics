@@ -788,6 +788,14 @@ effect, the missing piece is usually a helper that was inlined:
   exe for the odd instruction pattern (here a register stored after a loop's
   entry jump that the loop test does not read) showed it was unique, which
   pointed at a compiler-made variable.
+- **A dead arm can supply a reference that leaves no code**: 0x462f30's last
+  difference was a frame-slot tie that needed one more counted reference to
+  `tick`. A dead `if (entry == 0) tick = 0;` after the Find block did it: no
+  single earlier test proves entry non-zero, so the optimizer keeps the arm
+  and C2 counts its store, then jump threading removes the arm after the
+  count, so no bytes change (98.9% to a match after 27 passes, #5679). Any
+  dead arm with a side effect that uses the local works; keep it with a
+  comment.
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

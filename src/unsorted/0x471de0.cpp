@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// #5448 Codex retry: re-confirmed 98.6%; the sole SIB byte still needs an
+// artificial compiler symbol-count state.
 // #5435 Codex retry: re-confirmed 98.6%; the sole SIB byte still needs an
 // artificial compiler symbol-count state.
 // #5410 Codex retry: re-confirmed 98.6%; the one-byte SIB order and the

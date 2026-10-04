@@ -716,6 +716,13 @@ function's allocation). 0x40d290's insert would have to sit below operator new
 and delete, and 0x4b90a0's notes scanned small counts (0 to 2047 externs from
 its 197-symbol file) without a match.
 
+**Files that depend on its exact size.** 0x408100 includes `ta_types.h` with
+`<time.h>` and `<shlobj.h>`, which puts its file total at 65680 in a window
+ending at 65732. Regenerating `ta_types.h` with about 50 more ids breaks that
+hunk again; rerun `check.py 0x408100` after any regeneration and switch it to
+`<commctrl.h>` + `<algorithm>` (total 65314) or another real set that lands
+(#5654).
+
 ## Temporaries (regasg.c): the scratch rotation
 
 `FUN_00435c37` gives each expression temporary a register during code

@@ -28,3 +28,4 @@ std::_Construct,0x432cf0,"std::_Construct<Entry_00432cf0>, the placement copy th
 ??4Entry_00432cf0@@QAEAAU0@ABU0@@Z,0x432d20,"Entry_00432cf0::operator=, called by the std::fill inlined into 0x42e440; matched as Class_004c93b0::FUN_00432d20"
 std::copy_backward,0x432cb0,"std::copy_backward<Entry_00432cf0*> from the vector insert in 0x42e440; matched as FUN_00432cb0"
 std::fill,0x432c80,"std::fill<Entry_00432cf0*, Entry_00432cf0> from the vector insert in 0x42e440; matched as FUN_00432c80"
+Class_004e2a10::Class_004e2a10,0x4e2a10,"std::pair<iterator, bool>'s constructor, which the tree insert 0x4e2250 calls out of line; matched as Class_004e2a10::FUN_004e2a10, same code"

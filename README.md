@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**93.52% of Cavedog's code matched** (795,686 of 850,853 bytes)
+**93.88% of Cavedog's code matched** (798,745 of 850,853 bytes)
 
-`[#####################################---]`
+`[######################################--]`
 
-By count that is 3,221 of the game's 3,267 functions (98.6%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,223 of the game's 3,267 functions (98.7%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,221 | 795,686 |
-| Attempted, not yet matching | 46 | 55,167 |
+| Matched byte-for-byte | 3,223 | 798,745 |
+| Attempted, not yet matching | 44 | 52,108 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 698 of 703 | 99.2% | 1,375 | `##########` |
 | xl (401 to 600 bytes) | 218 of 226 | 96.3% | 4,067 | `##########` |
 | xxl (601 to 1,000 bytes) | 186 of 195 | 95.0% | 7,372 | `#########-` |
-| huge (over 1,000 bytes) | 138 of 161 | 85.5% | 42,235 | `#########-` |
+| huge (over 1,000 bytes) | 140 of 161 | 86.6% | 39,176 | `#########-` |
 
 ### By area
 
@@ -56,7 +56,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x440000` | Multiplayer setup | 244 of 246 | 88.5% | 7,062 | `#########-` |
 | `0x450000` | Options and audio menus | 174 of 176 | 96.5% | 2,181 | `##########` |
 | `0x460000` | Game and skirmish setup, unit classes | 208 of 212 | 93.9% | 3,736 | `#########-` |
-| `0x470000` | Campaign and skirmish screens, resource bars | 252 of 259 | 89.5% | 6,663 | `#########-` |
+| `0x470000` | Campaign and skirmish screens, resource bars | 254 of 259 | 94.3% | 3,604 | `#########-` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 261 of 264 | 98.2% | 1,148 | `##########` |
 | `0x490000` | Config and registry, skirmish summary | 190 of 193 | 96.6% | 2,052 | `##########` |
 | `0x4a0000` | GUI layout and GAF | 200 of 201 | 98.9% | 706 | `##########` |

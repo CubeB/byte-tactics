@@ -168,13 +168,13 @@ What stands out:
 `tools/globals.py` builds three files from the same objects.
 
 **`data/globals.csv`**: one row per global the source refers to by address
-(788 rows: 541 in `.bss`, 204 in `.data`, 43 in `.rdata`).
+(783 rows: 536 in `.bss`, 206 in `.data`, 41 in `.rdata`).
 
 | Column | Meaning |
 | --- | --- |
 | `address`, `name` | `name` is `data/symbols.csv`'s when it has a real one, else `DAT_<address>` |
 | `section` | `.rdata`, `.data`, or `.bss` (the zero-filled tail of `.data`, estimated as above) |
-| `size`, `size_from` | `type`: the size of the declared type; `gap`: the distance to the next address the original's code or data, `data/symbols.csv` or the source refers to (past the largest offset the source uses); `type>gap`: a declared type that runs over the next known address (11 rows; for example `DAT_00511a58`, an `int[45][2]`, overlaps `DAT_00511a60`, a `Pair_00419560[44]` that other files declare 8 bytes further on) |
+| `size`, `size_from` | `type`: the size of the declared type; `gap`: the distance to the next address the original's code or data, `data/symbols.csv` or the source refers to (past the largest offset the source uses); `type>gap`: a declared type that runs over the next known address (10 rows; for example `DAT_00511a58`, an `int[45][2]`, overlaps `DAT_00511a60`, a `Pair_00419560[44]` that other files declare 8 bytes further on) |
 | `kind` | `data`, `string` (its bytes are a C string), `vtable` (a run of function pointers in `.rdata`), `float`, `template` (a static member of an STL tree), `library` (CRT data) |
 | `type`, `type_files`, `other_files`, `types` | the most common declared type, how many files declare exactly it, how many declare something else, and how many distinct types there are; `T[]` counts as agreeing with `T[N]` |
 | `verdict` | tools/linkcheck.py's verdict on the declarations |
@@ -184,29 +184,30 @@ What stands out:
 | `pointers` | aligned dwords in its initial bytes that point into the exe: initial values that need symbols, not numbers, before relinking |
 | `init` | its first 64 bytes in the exe, in hex (empty for `.bss`) |
 
-**`link/globals.h`** declares 706 of the 788 globals once, with the type most
+**`link/globals.h`** declares 700 of the 783 globals once, with the type most
 files give them, when that type is settled: every view agrees up to struct
 names or signedness, three quarters of the files agree on it, or three
 quarters agree on its shape and it is the commonest type of that shape (so
 `g_game` is declared `Game*`). A pointer to a struct needs only a forward
 declaration; a struct held by value is declared as a byte array of its size
 with the struct's name in a comment; a global only ever declared
-`extern "C"` is declared `extern "C"`. The 82 globals left out are listed at
+`extern "C"` is declared `extern "C"`. The 83 globals left out are listed at
 the end with their competing types: vtables, STL tree statics, and globals
 whose files disagree (`DAT_0051fba4`, `DAT_00513000`, `DAT_005119c0`, ...).
 
 **`link/data.cpp`** defines every global `globals.h` declares, with the
 original's initial values: numbers, floats (exact), strings as literals,
 pointers to strings as string literals, pointers to other globals in the file
-as their address, and zero-initialised `.bss`. `--check` compiles it with the
-game's flags and compares each definition with the exe: it compiles with no
-warnings, and 704 of the 706 definitions hold the original's bytes (pointer
-fields are compared as "some address"). The two that differ hold the 5
-initial values left as `TODO`: `DAT_0050a788`'s four pointers to GUIDs no row
-names, and the fourth element of `DAT_00509688`, which the source declares
-`char*[4]` where the original has three pointers and then string bytes.
+as their address, and zero-initialised `.bss`. Data a pointer points at that
+no row names is defined there too, as a byte array running to the next known
+address: `DAT_0050a788` holds four pointers to GUIDs in `.rdata` (the
+DirectPlay service providers 0x4ca100 skips), so `data.cpp` defines
+`DAT_004fcfc8` to `DAT_004fcff8` and points at them. `--check` compiles it
+with the game's flags and compares each definition with the exe: it compiles
+with no warnings, and all 704 definitions hold the original's bytes (pointer
+fields are compared as "some address"). No initial value is left as `TODO`.
 
-Of the 2,459 references in the tree to the globals `data.cpp` defines, 1,288
+Of the 2,456 references in the tree to the globals `data.cpp` defines, 1,292
 spell them exactly as it does and would resolve against it today; the rest
 declare another type and so have another mangled name.
 
@@ -279,23 +280,22 @@ How it places things:
 Every relocation is checked against the address the original's bytes give at
 that spot, and the finished image is compared with the original byte for
 byte, which is the placement and data compare #4869 asks for. The report
-counts where each section's bytes came from. On 2026-10-05 at cb45af91:
+counts where each section's bytes came from. On 2026-10-05:
 
 | Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
 | `.text` | 1,026,560 | 850,853 game code, 116,543 runtime library, 25,371 padding | 25,456 gap regions, 8,337 runtime library |
-| `.rdata` | 18,432 | 2,444 compiled data, 3,771 library data, 2,948 `link/` globals, 372 padding | 6,529 import tables, 2,368 other data |
-| `.data` | 173,660 | 34,172 compiled data, 24,845 library data, 78,479 `link/` globals | 36,164 |
+| `.rdata` | 18,432 | 2,436 compiled data, 3,771 library data, 3,028 `link/` globals, 372 padding | 6,529 import tables, 2,296 other data |
+| `.data` | 173,660 | 34,187 compiled data, 24,845 library data, 78,609 `link/` globals | 36,019 |
 
-Of the 37,394 relocations in placed pieces, every one in code agrees with the
+Of the 37,396 relocations in placed pieces, every one in code agrees with the
 original (136 of them reach the second copy of a function `data/aliases.csv`
 lists, such as the two `std::_Lockit`). 94 vtable entries in compiled data
-disagree and keep the original's value. The image differs from the original
-in 16 bytes, the `TODO` initial values of `link/data.cpp` (`DAT_0050a788`'s
-four GUID pointers and the fourth element of `DAT_00509688`), and under the
-two rows of `data/exe_patches.csv`, where it has the compiler's bytes rather
-than GOG's no-CD music patch. `build/place/TotalA.map` lists every placed
-piece and the object it came from.
+disagree and keep the original's value. The image is the original byte for
+byte, apart from the two rows of `data/exe_patches.csv`, where it has the
+compiler's bytes rather than GOG's no-CD music patch.
+`build/place/TotalA.map` lists every placed piece and the object it came
+from.
 
 To run it, copy it into a copy of the game's directory (the Steam or GOG
 install, with `smackw32.dll` and `win32.dll`) and start it under Wine, for
@@ -485,9 +485,9 @@ link succeed, not the types agree, so it is a bridge for phase 4 while phases
   files with LIB.EXE.
 - Give the 75 FPO-less entry points source: decompile the 29 gap regions or
   stub them for a first link.
-- Replace `data.cpp`'s 5 `TODO` initial values and the 59 rows whose initial
-  bytes hold addresses (`pointers` in `data/globals.csv`) with symbolic
-  initialisers; as plain bytes they would point into the old layout.
+- Replace the initial values of `data.cpp` that hold addresses as plain
+  bytes (`pointers` in `data/globals.csv`) with symbolic initialisers; as
+  plain bytes they would point into the old layout.
 - Link with the weak-external aliases described under phase 3 until the
   spellings agree, and settle the 32 real duplicates (keep the annotated
   definition, make the copies `static` or `inline`) and the 3 names that

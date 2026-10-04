@@ -2,11 +2,18 @@
 //
 // Definitions of the most-referenced globals in link/globals.h, with the
 // initial values the original exe holds. Pointers to strings become string
-// literals and pointers to other globals in this file become their address;
-// any other pointer is marked TODO. Not part of any build yet; see
-// docs/linking.md.
+// literals, pointers to other globals in this file become their address,
+// and pointers to data no row names (DAT_0050a788's GUIDs) point at a byte
+// array of that data defined here; any other pointer is marked TODO. Not
+// part of any build yet; see docs/linking.md.
 
 #include "globals.h"
+
+// Data the initial values below point at, which no row names.
+extern const unsigned char DAT_004fcfc8[16];
+extern const unsigned char DAT_004fcfd8[16];
+extern const unsigned char DAT_004fcfe8[16];
+extern const unsigned char DAT_004fcff8[16];
 
 // 0x4fc490 .rdata (holds 17 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char DAT_004fc490[576] = {
@@ -174,21 +181,22 @@ unsigned char DAT_004fcf68[80] = {
     131, 7, 33, 176, 205, 137, 208, 17, 175, 8, 0, 160, 201, 37, 205, 22,
     48, 172, 239, 49, 92, 81, 208, 17, 169, 170, 0, 170, 0, 97, 190, 147
 };
+extern const unsigned char DAT_004fcfc8[16] = {68, 151, 210, 216, 138, 32, 208, 17, 188, 157, 0, 160, 36, 41, 103, 182};  // 0x4fcfc8 .rdata, a Guid_4ca100 DAT_0050a788 points at
+extern const unsigned char DAT_004fcfd8[16] = {64, 79, 113, 209, 137, 89, 208, 17, 154, 132, 68, 69, 83, 84};  // 0x4fcfd8 .rdata, a Guid_4ca100 DAT_0050a788 points at
+extern const unsigned char DAT_004fcfe8[16] = {160, 43, 70, 37, 141, 206, 207, 17, 131, 155, 0, 170, 0, 185, 48, 72};  // 0x4fcfe8 .rdata, a Guid_4ca100 DAT_0050a788 points at
+extern const unsigned char DAT_004fcff8[16] = {128, 253, 149, 69, 77, 29, 209, 17, 153, 252, 0, 96, 151, 106, 191, 90};  // 0x4fcff8 .rdata, a Guid_4ca100 DAT_0050a788 points at
 char DAT_004fd050[200] = "Warning! The currently installed version of Microsoft%sDirectX may not function properly with Total Annihilation.%sPlease install the version of DirectX included on the%sTotal Annihilation setup CD.";  // 0x4fd050 .rdata
 // 0x4fd288 .rdata (holds 2 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
-unsigned char DAT_004fd288[25] = {
+unsigned char DAT_004fd288[28] = {
     232, 16, 80, 0, 160, 158, 67, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     15, 0, 0, 0, 0, 184, 25, 81
 };
-unsigned char DAT_004fd2a1[3] = {0};  // 0x4fd2a1 .rdata
 double DAT_004fd2b0 = 6.28318530717958;  // 0x4fd2b0 .rdata
 double DAT_004fd2b8 = 0.125;  // 0x4fd2b8 .rdata
 const float DAT_004fd4c0 = 0.0f;  // 0x4fd4c0 .rdata
 const float DAT_004fd4cc = 5.0f;  // 0x4fd4cc .rdata
 float DAT_004fd750 = 0.003921568859368563f;  // 0x4fd750 .rdata
-int DAT_004fdaf4 = 0;  // 0x4fdaf4 .rdata
-int DAT_004fdaf8 = 0;  // 0x4fdaf8 .rdata
-int DAT_004fdafc = 0;  // 0x4fdafc .rdata
+unsigned char DAT_004fdaf0[16] = {0};  // 0x4fdaf0 .rdata
 double DAT_004fdbe8 = -0.06875;  // 0x4fdbe8 .rdata
 char DAT_004fdbf0[40] = "Copyright 0000 Cavedog Entertainment";  // 0x4fdbf0 .rdata
 int DAT_00501774 = 1;  // 0x501774 .data
@@ -343,13 +351,13 @@ signed char DAT_00505205[7] = {100, 75, 50, 25, 20, 15};  // 0x505205 .data
 int DAT_00505490[6] = {115200, 57600, 38400, 19200, 14400, 9600};  // 0x505490 .data
 unsigned int DAT_005054a8 = 16;  // 0x5054a8 .data
 // 0x5054b0 .data
-const char* DAT_005054b0[23] = {
-    (const char*)"PLAYERx", (const char*)"READYx", (const char*)"LOGOx", (const char*)"SIDEx", (const char*)"PINGx", (const char*)"MEMx", (const char*)"RESx", (const char*)"ALLYx",
-    (const char*)"CDx", (const char*)"TEAMICONSx", 0, 0, (const char*)"COMMNDER", (const char*)"WATCHING", (const char*)"FIXEDLOC", (const char*)"MAPPING",
-    (const char*)"TECHLEVL", (const char*)"SHARING", (const char*)"CHEATING", (const char*)"UNITS", (const char*)"METAL", (const char*)"ENERGY"
+char* DAT_005054b0[23] = {
+    (char*)"PLAYERx", (char*)"READYx", (char*)"LOGOx", (char*)"SIDEx", (char*)"PINGx", (char*)"MEMx", (char*)"RESx", (char*)"ALLYx",
+    (char*)"CDx", (char*)"TEAMICONSx", 0, 0, (char*)"COMMNDER", (char*)"WATCHING", (char*)"FIXEDLOC", (char*)"MAPPING",
+    (char*)"TECHLEVL", (char*)"SHARING", (char*)"CHEATING", (char*)"UNITS", (char*)"METAL", (char*)"ENERGY"
 };
 unsigned int DAT_0050550c = 4294967295u;  // 0x50550c .data
-const char* DAT_00505518[8] = {(const char*)"COMMANDER", (const char*)"MAPPING", (const char*)"LOSTYPE", (const char*)"WATCHING", (const char*)"CHEATING", (const char*)"FIXEDLOC", (const char*)"GAMEOPEN"};  // 0x505518 .data
+char* DAT_00505518[8] = {(char*)"COMMANDER", (char*)"MAPPING", (char*)"LOSTYPE", (char*)"WATCHING", (char*)"CHEATING", (char*)"FIXEDLOC", (char*)"GAMEOPEN"};  // 0x505518 .data
 char DAT_00505974[8] = "Multi";  // 0x505974 .data
 char DAT_00505dc4[8] = "Ally";  // 0x505dc4 .data
 char DAT_00505f18[8] = "GAMES";  // 0x505f18 .data
@@ -358,8 +366,11 @@ char DAT_00505f30[16] = "SAVEGAME NAMES";  // 0x505f30 .data
 char DAT_00505f40[4] = "LST";  // 0x505f40 .data
 char* DAT_005061b8[8] = {(char*)"has left the scene", (char*)"has been shown the door", (char*)"has gone to a better place", (char*)"has bowed out", (char*)"has terminated", (char*)"has been eradicated", (char*)"has been liquidated", (char*)"has been obliterated"};  // 0x5061b8 .data
 int DAT_005061d8 = -1;  // 0x5061d8 .data
+char DAT_00506290[8] = "%s %s";  // 0x506290 .data
 char s_PACKET_DATA_00506524[12] = "PACKET DATA";  // 0x506524 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 char DAT_00506578[8] = "TALK";  // 0x506578 .data
+char DAT_0050658c[56] = "has modified his executable.  Game integrity breached.";  // 0x50658c .data
+char DAT_005065c4[28] = "Player %s has disconnected";  // 0x5065c4 .data
 float DAT_005065f8 = -0.800000011920929f;  // 0x5065f8 .data
 float DAT_005065fc = 1.0f;  // 0x5065fc .data
 float DAT_00506600 = 0.25f;  // 0x506600 .data
@@ -520,7 +531,7 @@ char DAT_00509400[12] = "SENDTYPE";  // 0x509400 .data
 char DAT_0050940c[12] = "LIVEPLYR";  // 0x50940c .data
 char DAT_0050966c[12] = "SHOT";  // 0x50966c .data
 char* DAT_00509678[4] = {(char*)"FirePrimary", (char*)"FireSecondary", (char*)"FireTertiary"};  // 0x509678 .data
-char* DAT_00509688[4] = {(char*)"AimPrimary", (char*)"AimSecondary", (char*)"AimTertiary", 0 /* TODO: 0x546d6941 */};  // 0x509688 .data (the type runs past the next known address, 0x509688+0xc)
+char* DAT_00509688[3] = {(char*)"AimPrimary", (char*)"AimSecondary", (char*)"AimTertiary"};  // 0x509688 .data
 char* DAT_00509718 = (char*)"Total Annihilation Class";  // 0x509718 .data
 char* DAT_0050971c = (char*)"Total Annihilation";  // 0x50971c .data
 int DAT_00509720 = 1;  // 0x509720 .data
@@ -529,7 +540,6 @@ const char DAT_005097b0[32] = "SOFTWARE\\Classes\\AudioCD\\shell";  // 0x5097b0 
 const char DAT_005097d0[24] = "gamedata\\translate.tdf";  // 0x5097d0 .data
 const char DAT_005097e8[12] = "language";  // 0x5097e8 .data
 const char DAT_005097f4[8] = "Wargame";  // 0x5097f4 .data
-char DAT_005098c4[12] = "HELPTEXT";  // 0x5098c4 .data
 const char DAT_00509edc[20] = "Error";  // 0x509edc .data
 char DAT_0050a430[12] = "ALPHA TABLE";  // 0x50a430 .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
 const char DAT_0050a43c[12] = "SHADE TABLE";  // 0x50a43c .data (holds 1 value(s) that look like addresses in the exe: they need symbols before this can be relinked)
@@ -540,7 +550,7 @@ char DAT_0050a5c0[16] = "HAPIFILE array";  // 0x50a5c0 .data
 int DAT_0050a778 = 1;  // 0x50a778 .data
 void* DAT_0050a77c = 0;  // 0x50a77c .data
 int DAT_0050a780 = 1;  // 0x50a780 .data
-Guid_4ca100* DAT_0050a788[4] = {0 /* TODO: 0x4fcfc8 */, 0 /* TODO: 0x4fcfd8 */, 0 /* TODO: 0x4fcfe8 */, 0 /* TODO: 0x4fcff8 */};  // 0x50a788 .data
+Guid_4ca100* DAT_0050a788[4] = {(Guid_4ca100*)DAT_004fcfc8, (Guid_4ca100*)DAT_004fcfd8, (Guid_4ca100*)DAT_004fcfe8, (Guid_4ca100*)DAT_004fcff8};  // 0x50a788 .data
 int DAT_0050b540 = -1;  // 0x50b540 .data
 int DAT_0050b544 = -1;  // 0x50b544 .data
 void* DAT_0050b9e0[7] = {(void*)"SQUASHERR_OK", (void*)"SQUASHERR_BADHEADER", (void*)"SQUASHERR_BADCHECKSUM", (void*)"SQUASHERR_BADUNPACKSIZE", (void*)"SQUASHERR_BADUNPACKTYPE", (void*)"SQUASHERR_BADPACKTYPESQUASHERR_BADPARAMS"};  // 0x50b9e0 .data
@@ -782,7 +792,7 @@ int DAT_00512b7c;  // 0x512b7c .bss
 int DAT_00512b80;  // 0x512b80 .bss
 int DAT_00512b88;  // 0x512b88 .bss
 int DAT_00512b90[11];  // 0x512b90 .bss
-unsigned char DAT_00512bc0[8];  // 0x512bc0 .bss
+int DAT_00512bc0[2];  // 0x512bc0 .bss
 int DAT_00512bc8;  // 0x512bc8 .bss
 int DAT_00512bcc;  // 0x512bcc .bss
 int DAT_00512bd4;  // 0x512bd4 .bss
@@ -831,7 +841,7 @@ int DAT_00512c8c;  // 0x512c8c .bss
 int DAT_00512c94;  // 0x512c94 .bss
 char DAT_00512c98[16];  // 0x512c98 .bss
 char DAT_00512ca8[64];  // 0x512ca8 .bss
-char DAT_00512ce8;  // 0x512ce8 .bss
+char DAT_00512ce8[64];  // 0x512ce8 .bss
 char DAT_00512d28;  // 0x512d28 .bss
 int DAT_00512d68;  // 0x512d68 .bss
 int DAT_00512d6c;  // 0x512d6c .bss
@@ -873,7 +883,7 @@ int DAT_00512ff8;  // 0x512ff8 .bss
 unsigned char DAT_00513000[46416];  // 0x513000 .bss
 unsigned char DAT_00513008[4];  // 0x513008 .bss
 int* DAT_0051e2f4;  // 0x51e2f4 .bss
-int DAT_0051e2f8;  // 0x51e2f8 .bss
+unsigned int DAT_0051e2f8;  // 0x51e2f8 .bss
 unsigned char DAT_0051e300[4];  // 0x51e300 .bss
 Buffer_461020* DAT_0051e314;  // 0x51e314 .bss
 void* DAT_0051e318;  // 0x51e318 .bss
@@ -923,9 +933,7 @@ int DAT_0051e6d0[10];  // 0x51e6d0 .bss
 char DAT_0051e6f8[24];  // 0x51e6f8 .bss
 int DAT_0051e710[30];  // 0x51e710 .bss
 char DAT_0051e788[136];  // 0x51e788 .bss
-unsigned char DAT_0051e810[10];  // 0x51e810 .bss (the type runs past the next known address, 0x51e810+0x4)
-int DAT_0051e814;  // 0x51e814 .bss
-short DAT_0051e818;  // 0x51e818 .bss
+unsigned char DAT_0051e810[10];  // 0x51e810 .bss (the type runs past the next known address, 0x51e810+0x8)
 unsigned char DAT_0051e820;  // 0x51e820 .bss
 unsigned char DAT_0051e821;  // 0x51e821 .bss
 unsigned char DAT_0051e822;  // 0x51e822 .bss
@@ -937,9 +945,7 @@ int DAT_0051e84c;  // 0x51e84c .bss
 int DAT_0051e850;  // 0x51e850 .bss
 int DAT_0051e854;  // 0x51e854 .bss
 int DAT_0051e858;  // 0x51e858 .bss
-unsigned char DAT_0051f2c8[10];  // 0x51f2c8 .bss (the type runs past the next known address, 0x51f2c8+0x4)
-int DAT_0051f2cc;  // 0x51f2cc .bss
-short DAT_0051f2d0;  // 0x51f2d0 .bss
+unsigned char DAT_0051f2c8[10];  // 0x51f2c8 .bss (the type runs past the next known address, 0x51f2c8+0x8)
 unsigned int DAT_0051f2d8;  // 0x51f2d8 .bss
 int DAT_0051f2dc;  // 0x51f2dc .bss
 char* DAT_0051f2e0;  // 0x51f2e0 .bss
@@ -973,7 +979,6 @@ unsigned int DAT_0051fc84;  // 0x51fc84 .bss
 unsigned int DAT_0051fc88;  // 0x51fc88 .bss
 int DAT_0051fc90;  // 0x51fc90 .bss
 int DAT_0051fc94;  // 0x51fc94 .bss
-unsigned char DAT_0051fcaf[1];  // 0x51fcaf .bss
 unsigned char DAT_0051fcb0[256];  // 0x51fcb0 .bss
 int DAT_0051fdb0;  // 0x51fdb0 .bss
 Class_004c5840* DAT_0051fdb8;  // 0x51fdb8 .bss

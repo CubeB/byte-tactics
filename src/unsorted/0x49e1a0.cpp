@@ -117,7 +117,10 @@ struct Unit_0049e1a0 {
 };
 #pragma pack(pop)
 
-extern char* DAT_00509688[4];
+// The three aim script names. The original's array has three elements, with
+// the string "AimTertiary" right after it, so a weapon index of 3 would read
+// string bytes as a pointer.
+extern char* DAT_00509688[3];
 
 int __stdcall FUN_0048a1e0(Unit_0049e1a0* unit, Vec3_0049e1a0* pos, int index);
 Unit_0049e1a0* __stdcall FUN_0048a190(Unit_0049e1a0* obj, int index);

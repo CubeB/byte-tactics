@@ -1,11 +1,50 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
 // pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%; pass 18 (Opus, #5559):
-// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 to 24 (Opus, #5585, #5587, #5610, #5625,
-// #5650): no change.
+// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 to 25 (Opus, #5585, #5587, #5610, #5625,
+// #5650, #5666): no change.
 // The class name is data/symbols.csv's
 // Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
 // Class_00462d30, its own file's class, and returns Entry_00462d90*.
+//
+// Pass 25 (#5666): 98.9%, no change. Symbol ids do not decide the tick/flag swap.
+//  * Unused `extern int`s swept at five places: after <string.h> (every count from 0 to
+//    12184, then every 5th to 69995), before the FUNCTION line (every count to 4095, then
+//    every 5th to 69996), at the top of the body before the locals (every 5th to 48845 and
+//    every 64th to 59520, where C1 hits its heap limit), after g_game and at the end of the
+//    file (every 64th to 66560). The function's bytes are the same at every point, and so
+//    is the frame. ta_types.h (in a namespace, after its system headers) changes nothing
+//    either. A 15-minute permuter run (seed 66, --stack tick,flag, 10185 candidates) found
+//    nothing.
+//  * Why, read out of C2.EXE: FUN_0042ba3f walks the blocks in list order and, in each
+//    tuple whose byte +9 has bit 0 set, counts the sources and then the destinations that
+//    name a symbol of kind 3, 4 or 5. FUN_004367f0 keeps the list sorted by size, then
+//    count: a counted local moves ahead of same-size locals with a strictly smaller count,
+//    and a new one goes to the end of its size group. FUN_0043f93b then tries each local in
+//    list order on the dead parameter slots, and FUN_00440cbd on the others. None of these
+//    reads a symbol id, so ids could only act through the code, and the code never moves.
+//  * A hook on FUN_0042ba3f's entry dumps the count walk: the blocks are in the IL's
+//    order (only `ok:` is chained after the copy-out), the first loop's copy-out is counted
+//    inside the loop, and every memory operand of tick (417 def store, 609 push, 617 Take)
+//    and of flag (518, 546, 556) is a visible instruction. So the original's tick must
+//    have a 4th count. Neither of its tick loads can hide one: a merged reload (0x420f30's
+//    pCount has 3 reload tuples at the ends of 3 predecessors and one load at the join
+//    0x4210ac) needs the load at the start of a join, and 0x463484 sits in a join of only
+//    two predecessors (one split point at the block start, by pass 24's reading), while
+//    0x4634e1 is in a block with one predecessor.
+//  * Pass 24's duplicated call, 63 more forms (the tail pointer per arm, at the join, as a
+//    reference or at function scope; the call through entry or the pointer; either arm
+//    first; `if ((entry = Find()) == 0)`; with or without a `queued` local; the Peeks and
+//    the Take through entry or the pointer in all 8 mixes): only a Take through
+//    `entry->tail` merges the copies (92.9%); any pointer for the Take gives 1695 or 1698
+//    bytes. In the merged forms the Take's `buffer` folds to [edi+0x28] while the Peeks use
+//    the call's `this` in esi, so Pop cannot reuse the Peek's load; reading `buffer` into a
+//    local at the Take's top folds the same way (90.8%), and a Peek that hands out the ring
+//    is worse (62 to 68%). The merge needs entry live in a register after the call, which
+//    the original never uses (it reloads entry from [esp+0x10] for the copy-out), so the
+//    duplicated call is unlikely to be the original's shape.
+//  * The second-return Take, an early-return Take and a result-local Take in the tail
+//    only: the same code and frame (98.9%), 96.0% and 95.9%.
 //
 // Pass 24 (#5650): 98.9%, no change, but a new lead: the 0x463790 call written in both
 // arms of `if (entry == 0)` fixes the frame, and C2 merges the two copies.

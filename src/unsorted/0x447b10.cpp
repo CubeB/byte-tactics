@@ -1,62 +1,10 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by space-bunny-free, rewritten by claude-opus-5-5, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
-// Codex / GPT-6 retry for #5453 (2026-10-04): rechecked at 99.2%. The sole
-// mismatch remains `push ebp` versus `push 1` for FUN_0049fb10 in MAP. Existing
-// notes include C2 region analysis and extensive control-flow probes. The
-// latest #4841 results found no improvement from batch proposals on the 90%+
-// near-miss band, so the previous best is retained.
-// #5440 Codex retry: re-confirmed 99.2%; the MAP call still pushes ebp
-// instead of immediate 1 after the documented control-flow variants.
-// Codex GPT-6 retry for #5183 (2026-10-03): current main remains 99.2%,
-// 4305 bytes against 4306. MAP ? 1 : MAPNAME regresses to 99.0%; /Gi
-// leaves the sole `push ebp` versus `push 1` byte unchanged.
-// GPT-6 retry (#5232): rechecked at 99.2%; the MAP call still pushes ebp.
-// #5316 Codex retry: re-confirmed 99.2%; the MAP body's constant push remains
-// in the ebp live range, as described by the C2 trace below.
-// #5341 retry: reversing the f97 MAP-view branch scored 97.0%, so the original
-// 99.2% source is restored; the immediate-versus-ebp push remains.
-// #5367 retry: re-confirmed 99.2%; the MAP call still pushes ebp instead of 1.
-// #5383 retry: re-confirmed 99.2%; the single MAP argument push remains.
-// #5397 retry: still 99.2%; the shared constant-1 live range still changes
-// only the MAP call from `push 1` to `push ebp`. Issue #4841 adds no new lead
-// for this branch, and its proposal-loop results do not suggest a useful
-// near-miss experiment beyond the source and C2 probes already recorded.
-// claude-opus-5-5 retry (#5412, 2026-10-04): still 99.2%. Traced the regions
-// of every joint split (FUN_00438f79) that holds const 1: 10 candidates when
-// the loop temp takes ebx, 12 when START's g_game takes ebp, 24 when i takes
-// ebp. A block joins the region of its first predecessor that still shares
-// a free register with it. In each split the region holding the after-loop
-// code and the button chain has exactly one free register left (ebp, ebp,
-// then esi), and the MAP tests and body block only eax, ecx and edx, so the
-// MAP test, the MAPNAME test and the body always join that region. Split
-// points then land only at blocks with a successor in another region: in
-// the 12-candidate split `done` is in START's region (its first predecessor
-// is START's `goto done`), so every branch end that jumps to `done` gets a
-// split point at its end. MAP's body is cut off (push 1, no reload) only
-// when every edge into it leaves such a block: MAP alone (the MAP test jumps
-// to done) or a materialised condition (one test block feeds both the body
-// and done). With MAP || MAPNAME only the MAPNAME test reaches done, so the
-// MAP test's edge stays uncut and the body needs a reload (99.0%); the
-// do/while here, or two labels at done (START's goto to the second, the
-// chain falling into the first, 99.2% without the do/while), funnels the
-// branch ends through one empty block and drops even that split point. No
-// label placement can cut the MAP test's edge: both its successors join its
-// region. So the original's allocation must reach this split in a different
-// state; the source differences that would do that are still unknown.
-// Also flat: 0x444be0 inlined with every label combination, a do/while
-// inserted at each of 323 statement positions (with and without the MAP
-// one), the MAP test as `goto` into the body, the body placed before the
-// tests or after the return (C2 reorders the blocks back), /Gi on those.
-// START's and MAP's FUN_00444ea0 tails jumping to one label are merged by
-// C2 only after allocation (97.0%), so sharing them changes nothing here.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by space-bunny-free, rewritten by claude-opus-5-5, finished by claude-opus-5-5, finished by GPT-6, finished by claude-opus-5-5. Names are provisional.
 // Battle room button handler: per player slot LOGO, PLAYER, SIDE, ALLY,
 // TEAMICONS, RES and READY, then PREVMENU, MESSAGE, COMMANDER, LOSTYPE,
 // WATCHING, CHEATING, FIXEDLOC, MAPPING, START, GAMEOPEN, RESTRICTIONS and
 // MAP/MAPNAME, and finally FUN_004ab0a0 on the gadget.
 //
-// Best so far (99.2%). The MAP branch's do/while wrapper removes the redundant
-// `mov ebp, 1`; the only remaining code difference is `push ebp` instead of the
-// original's `push 1` when calling FUN_0049fb10.
-// What paid, in the order it was found:
+// What the match needed, in the order it was found:
 // - <windows.h> and real Player/Game structs: the loop head builds the player
 //   pointer from the spilled i*331 the way the original does.
 // - Functions of this file with no callers, defined above unannotated and
@@ -65,81 +13,30 @@
 //   and 0x446f50 (colour cycle, in TEAMICONS; `player` declared before
 //   `colour`, which still matches 0x446f50 out of line). START's team test is
 //   the CountAlliance helper of 0x446a50 with the flag byte read once, as in
-//   0x4478b0 (reading g_game->bits.bit2 in the loop, as 0x446a50 does, gives
-//   the same bytes).
+//   0x4478b0.
 // - The text buffer is 249 or 250 bytes (rounded to 252 in the frame): with
 //   the inlined 0x440c10's used[10] that puts used[] above the text, as in the
-//   original frame (frame order is references per byte; 251 or 252 bytes puts
-//   used[] below). This replaces an older struct that forced the order.
+//   original frame (frame order is references per byte).
 // - g_game+0x2bee is one 1-bit unsigned short bitfield (`dirty`). In the tail
 //   MSVC hoists the constant 1 into ebp, which gives the original's
 //   `or word ptr [..],bp` next to the plain `or byte ptr [..],1` ones.
 // - The slot loop as `while (1) { ...; i++; if (i >= 10) break; }`: the plain
 //   for loop gives the tail's registers to the wrong values.
 // - The map check's version test is `if (major >= 2) check = 1; else if
-//   (major == 1 && minor >= 2) check = 1;`, as 0x448c70 needs too; the one-`if`
-//   form swaps g_game and `check` (edx/edi) there.
+//   (major == 1 && minor >= 2) check = 1;`, as 0x448c70 needs too.
 // - `goto done;` on START's "no map selected" path (93.8% to 99.0%). It emits
 //   nothing, but with it the gadget is kept in esi only for the chain of
-//   button tests and the final FUN_004ab0a0 reloads it from the stack, as in
-//   the original; without it the gadget stays in a register through every
-//   branch and MSVC copies the final call into each one (88.7%, 4423 bytes).
-//   The old `goto done;` at the end of MESSAGE is not needed with it. Only
-//   START's placement works: a goto in GAMEOPEN or RESTRICTIONS undoes it, the
-//   other branches change nothing.
-//
-// STILL DIFFERS:
-// - MAP: FUN_0049fb10(gui, 1) pushes the hoisted 1 (`mov ebp,1` on entry,
-//   `push ebp`) where the original pushes an immediate 1. A `do { } while (0)`
-//   around the f97 if/else (found by the permuter) drops the `mov ebp,1` but
-//   still pushes ebp (99.2%, 1 byte short); two permuter runs from this file
-//   (about 17,800 candidates) stop there; a fresh `1u` probe also gives the
-//   same push-ebp byte. Not moved by: 0x444be0 (the
-//   VIEWMAP code, no callers) as an inlined helper, char/bool/short/pointer
-//   parameter types, the f97 test as a byte mask or an inline helper, `!f97`
-//   with the arms swapped, a block-scope info local, MAP and MAPNAME as two
-//   branches, the MAP condition spelled with `!= 0` or `|| 0`, every subset
-//   of `goto done;` at the ends of the other branches, inline helpers for the
-//   button test and the dirty flag, and `!x` / `^= 1` for the bitfield
-//   stores. With the MAP condition written as `MAP ? 1 : MAPNAME` the push is
-//   the original's `push 1`, but the condition then materialises the 1.
-//
-// claude-opus-5-5 retry (#5281, 2026-10-03): still 99.2%. Read with
-// tools/c2prio.py plus hooks on C2's FUN_00438f79 (it splits the constants
-// into regions and inserts reload markers at region edges): const 1 is one
-// candidate for the whole function (every spelling and the inlined 0x444be0
-// share it), and the web that gets ebp runs from the after-loop dirty store
-// through MAPPING, skips START (no register free there) and reaches GAMEOPEN,
-// RESTRICTIONS and MAP through START's false edge. In the original MAP's body
-// is outside that web, so its push stays an immediate. What decides it is
-// whether the edges into MAP's body get a region marker:
-// - MAP alone as the condition (no MAPNAME test) and no do/while: the marker
-//   at the end of the MAP test (for its edge to `done`) cuts the body off and
-//   the push is the original's `push 1`.
-// - MAP || MAPNAME and no do/while: only the MAPNAME test's end gets a
-//   marker, the body stays reachable from the MAP test, and C2 reloads ebp
-//   at the body (a second `mov ebp,1`, 99.0%).
-// - With the do/while (this file) the branch ends no longer reach `done`
-//   directly in C2's graph, no markers land in MAP, and the body is in the
-//   ebp web (push ebp, 99.2%).
-// A condition that materialises its value (a bool, char or int local or
-// inline helper, `(bool)(MAP || MAPNAME)`, `(MAP ? 1 : MAPNAME) != 0`)
-// also cuts the web and gives `push 1`, but keeps the `mov eax,ebp` and test
-// (best 99.1%); MSVC 5 never threads such a test away later (checked on a
-// small file). So the original must reach MAP's body from both tests with a
-// marker on both edges and no reload; no spelling tried does that (nested
-// ifs with `goto done`, `!A && !B`, two branches, a goto into the body, a
-// do/while placed anywhere in MAP or around the whole chain with `break`).
-// Flat (byte-identical to this file): the 1 as a local, `true`, `1u`,
-// `sizeof(char)` or through an inline wrapper; a do/while in RESTRICTIONS;
-// `!` in GAMEOPEN; the f97 test as `!= 0`, `== 1` or a byte mask; 0 to 10946
-// unused externs at the top, 0 to 512 before the function and 0 to 20000 at
-// the end.
-//
-// Measured with the volatile read diagnostics in build/scratch only: making
-// the final FUN_004ab0a0 read the gadget opaquely gives the original's whole
-// tail allocation except MAP (99.2%), which is what pointed at the gadget's
-// live range through the branch bodies.
+//   button tests and the final FUN_004ab0a0 reloads it from the stack.
+// - The MAP/MAPNAME test written into a local (`hit = MAP; if (!hit) hit =
+//   MAPNAME; if (hit)`), which took it from 99.2% to MATCH (#5533). Every
+//   spelling of the test as one condition (`||`, `!A && !B` with a goto,
+//   `?:`, a do/while around the body) left the body in the constant 1's ebp
+//   region (`push ebp`, or a second `mov ebp,1` at 99.0%), and a local
+//   assigned once from the `||` keeps a test of the materialised value
+//   (99.0%). The earlier passes' C2 traces of that region (FUN_00438f79) are
+//   in the git history of this file.
+// - FUN_00463c60 is Class_00463c60's method in data/symbols.csv, so it is
+//   called through a cast of the player pointer, as 0x445450 does.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -196,8 +93,6 @@ struct Player_00447b10 {                // 0x14b bytes
     short field_144;                    // +0x144
     unsigned char field_146;            // +0x146
     char unknown_147[0x14b - 0x147];
-
-    void FUN_00463c60(int state);
 };
 
 struct Entry_00447b10 {
@@ -228,6 +123,10 @@ struct Options_00447b10 {
 };
 #pragma pack(pop)
 
+class Class_00463c60 {
+public:
+    void FUN_00463c60(int state);
+};
 class Class_004358f0 {
 public:
     int FUN_004358f0();
@@ -477,25 +376,25 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
             FUN_0047f1a0("Multi", 0);
             char type = p->type;
             if (type == 0 && canAdd) {
-                p->FUN_00463c60(4);
+                ((Class_00463c60*)p)->FUN_00463c60(4);
                 p->id = -1;
                 g_game->field_499--;
             } else if (type != 4 && type != 0) {
                 if (p->active != 0 && type == 2 && FUN_004b6340() - p->time > 30) {
                     FUN_00453010(p->id, 1);
-                    p->FUN_00463c60(0);
+                    ((Class_00463c60*)p)->FUN_00463c60(0);
                 } else if (canAdd && p->active != 0 && p->type == 3) {
                     FUN_00446080(i);
                 }
             } else {
                 if (type == 4) {
-                    p->FUN_00463c60(0);
+                    ((Class_00463c60*)p)->FUN_00463c60(0);
                     g_game->field_499++;
                     FUN_00451180();
                 }
                 if (g_game->players[FUN_00456850()].info->b.closed) {
                     FUN_004abd90(g_game->gui, FUN_004c5740("Can't add another player when game is closed."), 500, 1, 1);
-                    p->FUN_00463c60(0);
+                    ((Class_00463c60*)p)->FUN_00463c60(0);
                     g_game->dirty = 1;
                     break;
                 }
@@ -547,6 +446,9 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                 me->colour = 5;
                 FUN_00452bd0(me);
             }
+            // Original bug (docs/bugs.md): `<<` binds tighter than `==` and
+            // `==` tighter than `|`, so this is ((ally2 << 1) == 3) | ally,
+            // and the left side is never true.
             if (me->ally2[i] << 1 == 3 | me->ally[i])
                 FUN_0047f1a0("Ally", 0);
             else
@@ -728,20 +630,26 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         FUN_0047f1a0("Options", 0);
         FUN_0044c7e0();
         FUN_004ab0a0(gadget);
-    } else if (FUN_0049fd60(gadget, "MAP") || FUN_0049fd60(gadget, "MAPNAME")) {
-        FUN_0047f1a0("Multi", 0);
-        do {
-        if (me->info->f97_0) {
-            FUN_00444ea0();
-        } else {
-            Gadget_00447b10* view = FUN_004aa8f0(g_game->gui, "VIEWMAP.GUI", 0x900);
-            view->handler = FUN_00444ba0;
-            FUN_004288d0("DVIEWMAP", 0, 0, 0);
-            FUN_00444a20();
-            FUN_0049fb10(g_game->gui, 1);
-            FUN_004a81e0(g_game->gui, 0x40);
+    } else {
+        // MAP and MAPNAME through a local, not `MAP || MAPNAME` in the
+        // else-if: with the `||` the MAP body joins the region where C2 keeps
+        // the constant 1 in ebp, and FUN_0049fb10 gets `push ebp` (99.2%).
+        int hit = FUN_0049fd60(gadget, "MAP");
+        if (!hit)
+            hit = FUN_0049fd60(gadget, "MAPNAME");
+        if (hit) {
+            FUN_0047f1a0("Multi", 0);
+            if (me->info->f97_0) {
+                FUN_00444ea0();
+            } else {
+                Gadget_00447b10* view = FUN_004aa8f0(g_game->gui, "VIEWMAP.GUI", 0x900);
+                view->handler = FUN_00444ba0;
+                FUN_004288d0("DVIEWMAP", 0, 0, 0);
+                FUN_00444a20();
+                FUN_0049fb10(g_game->gui, 1);
+                FUN_004a81e0(g_game->gui, 0x40);
+            }
         }
-        } while (0);
     }
 done:
     FUN_004ab0a0(gadget);

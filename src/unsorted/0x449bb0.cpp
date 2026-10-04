@@ -40,6 +40,38 @@
 // int-typed fields (new storage unit at +0x9d) are worse. /Gi and dropping
 // <windows.h> are worse too. A 15-minute permuter run from the unsigned
 // version found nothing better.
+// Claude Opus 5.5 pass (#5475, about 20 minutes, still 95.3%):
+// - Reproduced in isolation: this file's head cut down to `info = ...;
+//   if (DAT_00512d80) info->b.cheating = DAT_00512d80 == 2;` still shows
+//   it. The type of the 16-bit STORE decides both things at once. Storing to
+//   a signed short (a signed field, or `info->sw = ...` through a union)
+//   gives the original's value-first order, and C2 then treats 0xdfff as
+//   the 16-bit constant -8193 and emits `and ah, 0xdf`. Storing to an
+//   unsigned short gives the word first and `and edx, 0xdfff`. The mask's
+//   spelling inside the expression (0xdfff, ~0x2000, 0xffffdfff, 0xdfffu,
+//   (short) or (unsigned short) casts, an (int) cast, the word read as
+//   signed or unsigned) and the operand order of the `|` change nothing; only
+//   the store's type does. So no spelling of a 16-bit write reaches the
+//   original's pair (value first with `and edx, 0xdfff`). A 32-bit unsigned
+//   storage unit also puts the value first, but loads a dword. Only a value
+//   whose subtree needs more registers (`(DAT_00512d80 + DAT_00512d84) == 2`)
+//   puts the value first on an unsigned 16-bit store. The RTM compiler gives
+//   the same code as SP3 here. Dummy declaration counts from 10 to 6000 do
+//   not move it either.
+// - Also no change from 93.0% with unsigned fields: block-scope `extern`
+//   declarations of DAT_00512d80/84 after the locals, a reference to the
+//   bitfield struct (`Flags& b = info->b;`, in the block or at function
+//   scope after `info` is set; 88.1% at function scope), an `unsigned
+//   short&` to the flag word (87.8%), each of the nine locals moved first
+//   or last, reversed declarations, bool/char/short/unsigned short locals
+//   for the value (short: 94.8%), all 256 sets of headers.py, and the
+//   neighbouring per-field mixes (only cheating signed: 93.1%; only
+//   fixedloc signed: 94.7%; closed signed too: 95.3%).
+// - Lead for the next attempt: the store type alone flips C2's order, so
+//   look for a construct that stores 16 bits as signed without the byte
+//   peephole, or for a reason (register state, an inlined helper doing the
+//   store) that the original evaluated the value first with an unsigned
+//   store.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>

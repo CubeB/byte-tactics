@@ -74,6 +74,40 @@
 //   peephole, or for a reason (register state, an inlined helper doing the
 //   store) that the original evaluated the value first with an unsigned
 //   store.
+// Claude Opus 5.5 pass (#5553, about 40 minutes, still 95.3%), all in a cut
+// of this file down to `if (FUN_0045b660()) { the two writes }`, which
+// reproduces both orders (signed: value first; unsigned: word first):
+// - The order is not the scratch rotation: one, two or three extra
+//   temporaries before the writes leave it alone. It is not symbol ids
+//   either: block-scope externs, the externs declared before the structs and
+//   `info` declared first change nothing, also for an explicit `+` spelling.
+// - With an unsigned 16-bit store the value goes first only when its subtree
+//   is heavier than the word's: `DAT_00512d80 == DAT_00512d84`,
+//   `(a & b) == 2`, `(a + 1) * (b + 1)` do it; `DAT == 2`, a fresh load
+//   (`DAT_00512d84 == 2`, a volatile DAT), a byte load and a field load do
+//   not. Every spelling that folds back to `cmp eax, 2; sete` (`!(d - 2)`,
+//   `(d ^ 2) == 0`, `d + 0`, `d * 1`, `(d == 2) | 2`, `+ 2`, `- 2`,
+//   `| (d << 4)`, `(__int64)`, `(unsigned)`, casts to bool/char/uchar/
+//   schar/short) is folded before the order is chosen. `(__int64)d == 2`,
+//   `d == 2 && d` and inline functions returning the comparison give a
+//   candidate temporary (priority 60 against DAT_00512d80's 14, c2prio
+//   --blocks) that takes eax: 94.8%, value in eax and DAT in ecx.
+// - With a signed 16-bit store the value goes first whatever it is (even a
+//   plain byte load), and the 32-bit 0xffffdfff mask becomes `and dh`.
+//   Only a signed store to memory does this: `short t = expr; word = t;`,
+//   `word = (short)(...)` and `(unsigned short)(short)(...)` stay word first
+//   with the 0xdfff mask. The other bitfield types (int, unsigned int, char,
+//   bool, long) change the load width; wchar_t is unsigned short.
+// - Also word first: the word read through a 16-bit bitfield
+//   (`unsigned short all : 16` or `short all : 16` in a union) with a plain
+//   store, an unsigned short/int/short local for the word, the result
+//   through a short/int/unsigned/long local, `^=` and `+` spellings, the
+//   assignment's value used (`&&`, `?:`, `if (x = ...)`, chained).
+// - 0x445ed0 (same TU) reads both bits with `shr; and 1`; a signed 1-bit
+//   field read is `shl cx, 2; sar cx, 15` for an int, bool, char, uchar,
+//   ushort or short parameter, so the fields are unsigned there.
+// - The exe has no other 16-bit store with a `sete` value and this order
+//   except 0x45da90's (a value needing three registers).
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,4 +1,34 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6, retried by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 retry (#5598, 2026-10-04): still 84.7%. This pass searched
+// the whole exe for the step-count idiom instead of new spellings:
+//  * `inc reg` followed by `idiv reg` (a count plus one used as a divisor)
+//    occurs in seven other functions (0x478e80, 0x4a2be0, 0x4a2e40, 0x4a3780,
+//    0x4a3ef0, 0x4a9830, 0x4a99c0, all matched), but none of them divides an
+//    abs maximum by 0x100000; this function is the only `sar 0x14; inc; idiv`
+//    in the exe, so there is no near-copy of the count itself.
+//  * The max of two `cdq; xor; sub` abs values occurs in 0x44d350, 0x44d840,
+//    0x480570, 0x4805b0 (three times, the 0x480570 helper inlined),
+//    0x49be60 and 0x4b6e40 (all matched). Their spellings are the ones the
+//    notes below already rule out: `abs(px - x)` inline in the comparison,
+//    and 0x480570's `Diff d = Sub(a, b); int dx = abs(d.dx); int dy =
+//    abs(d.dy); if (dx > dy) dy = dx;` (the Sub, named-abs and MaxAbs shapes
+//    below, 80.6 to 84.7%).
+//  * What C2 needs, restated from the trace: n (130) and the |dx| temp (104)
+//    are coloured at steps 11 and 12 with ecx free and only an eax
+//    preference, dx (b.x's web, 74: 3 references in the subtraction block,
+//    K 10) at step 16. The per-arm n (96, byte-identical) leaves |dx| (106)
+//    as the only rival. Checked with c2prio: the per-arm n plus two throwaway
+//    global stores of b.x before the copy puts dx at 108 and gives exactly
+//    the original's colouring (dx ecx, |dx| esi, |dz| eax, n esi); one store
+//    (dx 88) is not enough. So two code-free references to b.x in the first
+//    block are what is missing. Every copy spelling tried with the per-arm n
+//    leaves dx at 66 to 68: `Vec3 d = Id(b)` through a by-value inline, a
+//    second copy `Vec3 t = b` (before or after d, the max read from t),
+//    `d = b` as an assignment, the max read from b in either or both halves,
+//    `b.x = Sub(b.x, a.x)`, `b.x = b.x - a.x`, and n computed before the copy.
+//    No-op conversions do not add references either: `unsigned int` or
+//    `long` Vec3 fields (with `(int)` casts where the code needs signed
+//    division), `labs`, and a `long n` all leave dx at 68.
 // claude-opus-5-5 retry (#5579, 2026-10-04): still 84.7%. Structure re-derived
 // from the disassembly: the loop, the frame and every instruction outside the
 // first 51 already match, and the d.y store at 0x4851de does reach d.y's slot

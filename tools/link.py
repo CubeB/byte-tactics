@@ -359,6 +359,128 @@ def build_stub_dll(directory: Path) -> Path:
     return dll
 
 
+# --- the C++ static initialisers ---------------------------------------------------
+
+IMAGE_SCN_LNK_REMOVE = 0x800
+EXE = ROOT / "orig/TotalA.exe"
+PROGRESS = ROOT / "data/progress.csv"
+FUNCTIONS = ROOT / "data/functions.csv"
+
+
+def original_initialisers() -> list[int]:
+    """The functions the original's C runtime calls before WinMain to construct
+    its global objects: the entries of its __xc_a..__xc_z table, which the
+    runtime's _cinit passes to _initterm (the second pair of pushes)."""
+    import pefile
+    pe = pefile.PE(str(EXE))
+    base = pe.OPTIONAL_HEADER.ImageBase
+    with FUNCTIONS.open() as fh:
+        cinit = next(int(r["address"], 16) for r in csv.DictReader(fh) if r["name"] == "__cinit")
+    code = pe.get_data(cinit - base, 64)
+    pushes = [struct.unpack_from("<I", code, i + 1)[0] for i in range(len(code) - 5) if code[i] == 0x68]
+    xc_a, xc_z = pushes[3], pushes[2]
+    out = []
+    for at in range(xc_a, xc_z, 4):
+        (fn,) = struct.unpack("<I", pe.get_data(at - base, 4))
+        if fn:
+            out.append(fn)
+    return out
+
+
+def fix_initialisers(objects: list[Path]) -> list[Path]:
+    """Make the image construct exactly the global objects the original does.
+
+    A file that defines a global object only so that a function matches (the
+    global's constructor is called from a static initialiser the compiler
+    emits, `_$E<n>`) adds that initialiser to every link, although the
+    original never calls it: its constructor may be another function, or
+    take arguments the placeholder declaration leaves out (0x462cc0.cpp's
+    `_$E4` calls Class_00462d30's constructor with none, and the one at its
+    address pops one). So every object's .CRT$XCU sections are dropped except
+    the initialisers the original's table holds, and the original's
+    initialisers that the tree spells as ordinary functions (FUN_004205f0) get
+    a table entry of their own, in the original's order."""
+    with PROGRESS.open() as fh:
+        rows = {int(r["address"], 16): (r["file"], r["symbol"]) for r in csv.DictReader(fh)}
+    wanted: dict[str, list[str]] = defaultdict(list)     # source file -> initialiser symbols
+    for fn in original_initialisers():
+        if fn in rows:
+            wanted[rows[fn][0]].append(rows[fn][1])
+    out_dir = BUILD / "objs"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    result: list[Path] = []
+    kept = removed = added = 0
+    for obj in objects:
+        src = str(Path("src") / obj.relative_to(ROOT / "build/progress").with_suffix(".cpp"))
+        data = bytearray(obj.read_bytes())
+        _, nsects, _, symptr, nsyms, opthdr, _ = struct.unpack_from("<HHIIIHH", data, 0)
+        strtab = bytes(data[symptr + nsyms * 18:])
+        names = {}
+        i = 0
+        while i < nsyms:
+            raw = data[symptr + i * 18: symptr + i * 18 + 18]
+            if raw[:4] == b"\0\0\0\0":
+                off = struct.unpack_from("<I", raw, 4)[0]
+                names[i] = strtab[off:strtab.index(b"\0", off)].decode("latin-1")
+            else:
+                names[i] = bytes(raw[:8]).split(b"\0", 1)[0].decode("latin-1")
+            i += 1 + raw[17]
+        changed = False
+        for sidx in range(nsects):
+            hdr = 20 + opthdr + sidx * 40
+            if bytes(data[hdr:hdr + 8]).rstrip(b"\0") != b".CRT$XCU":
+                continue
+            relptr, nrel = struct.unpack_from("<I", data, hdr + 24)[0], struct.unpack_from("<H", data, hdr + 32)[0]
+            targets = [names.get(struct.unpack_from("<I", data, relptr + r * 10 + 4)[0]) for r in range(nrel)]
+            if any(t in wanted.get(src, ()) for t in targets):
+                kept += 1
+                continue
+            chars = struct.unpack_from("<I", data, hdr + 36)[0]
+            struct.pack_into("<I", data, hdr + 36, chars | IMAGE_SCN_LNK_REMOVE)
+            removed += 1
+            changed = True
+        if changed:
+            patched = out_dir / obj.name
+            patched.write_bytes(bytes(data))
+            result.append(patched)
+        else:
+            result.append(obj)
+        # The original's initialisers the tree spells as ordinary functions.
+        for sym in wanted.get(src, ()):
+            if not sym.startswith("_$E"):
+                entry = out_dir / f"{obj.stem}_init.obj"
+                write_init_object(sym, entry)
+                result.append(entry)
+                added += 1
+    print(f"static initialisers: {kept + added} as in the original ({kept} from the objects, {added} added), "
+          f"{removed} dropped", file=sys.stderr)
+    return result
+
+
+def write_init_object(symbol: str, out: Path) -> None:
+    """A COFF object whose .CRT$XCU section holds one pointer to symbol."""
+    strings = bytearray()
+
+    def name_field(name: str) -> bytes:
+        raw = name.encode("latin-1")
+        if len(raw) <= 8:
+            return raw + b"\0" * (8 - len(raw))
+        off = 4 + len(strings)
+        strings.extend(raw + b"\0")
+        return b"\0\0\0\0" + struct.pack("<I", off)
+
+    raw_off = 20 + 40
+    reloc_off = raw_off + 4
+    sym_off = reloc_off + 10
+    header = struct.pack("<HHIIIHH", 0x14C, 1, 0, sym_off, 2, 0, 0)
+    section = b".CRT$XCU" + struct.pack("<IIIIIIHHI", 0, 0, 4, raw_off, reloc_off, 0, 1, 0, 0xC0300040)
+    reloc = struct.pack("<IIH", 0, 1, 0x06)       # DIR32 against symbol 1
+    syms = name_field(".CRT$XCU") + struct.pack("<IhHBB", 0, 1, 0, 3, 0)
+    syms += name_field(symbol) + struct.pack("<IhHBB", 0, 0, 0x20, IMAGE_SYM_CLASS_EXTERNAL, 0)
+    strtab = struct.pack("<I", 4 + len(strings)) + bytes(strings)
+    out.write_bytes(header + section + b"\0\0\0\0" + reloc + syms + strtab)
+
+
 # --- the stubs ------------------------------------------------------------------
 
 def stub_cleanup_bytes(name: str) -> int | None:
@@ -410,8 +532,10 @@ def stub_cleanup_bytes(name: str) -> int | None:
             return None
         # Every stack argument occupies at least a dword on x86.
         total = sum((s + 3) & ~3 for s in sizes)
-        if kind == "member":
-            total += 4  # the this pointer
+        if kind == "member" and cc == "G":
+            # A __stdcall member takes `this` on the stack; __thiscall passes it
+            # in ecx, so a stub that popped it too would unbalance the caller.
+            total += 4
         if cc in ("G", "E"):
             return total
         return 0
@@ -578,7 +702,7 @@ def main() -> None:
                             data_fallback=stub_mode)
     print(f"{len(objects):,} objects, {len(aliases):,} aliases, {len(data_addr):,} globals at known addresses")
 
-    link_objects = list(objects) + list(data_objs)
+    link_objects = (fix_initialisers(objects) if stub_mode else list(objects)) + list(data_objs)
     if stub_mode:
         missing = unresolved_names(link_objects, set(aliases), libs)
         funcs = [n for n, is_func in missing.items() if is_func]

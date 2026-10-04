@@ -1,2 +1,3 @@
 function,value,note
 0x43cd20,0x500000,"16.16 fixed-point 80.0 compared against a distance (gap1 > 0x500000), not an address (#5020)"
+0x42bf40,0x500000,"selfdestructcountdown, a 3-bit bitfield at bits 20-22 of +0x245, set to 5 (or edx, 0x500000 at 0x42cc13), not an address (#5476)"

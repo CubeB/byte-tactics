@@ -697,6 +697,9 @@ effect, the missing piece is usually a helper that was inlined:
   "\n"); else strcat(dest, " ");`) rather than once with a chosen separator.
   The compiler merges the copies into the same bytes, but each copy shifts the
   eax/ecx/edx rotation for later temporaries (#5527).
+  0x40e630 matched the same way: each early exit written as its own
+  `Finish(); return;` instead of `goto finish`, which shifted the rotation two
+  steps before a later call (#5563).
 - **Find the pass behind a difference by disabling it**: CL accepts a patched
   copy of C2.EXE through `/B2`, so a pass can be switched off (as
   `tools/c2prio.py` patches its copy) to see in seconds whether, say, tail

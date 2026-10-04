@@ -1,4 +1,22 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6, retried by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 retry (#5522, 2026-10-04): still 84.7%. Read with
+// `c2prio.py --trace` (build/scratch/0x4851c0/tr.py prints the prologue's
+// colouring steps with their costs):
+//  * |dx| as a named local or built in steps (`adx = abs(d.x); adz = ...;`
+//    with `?:`, `if (adx < adz) adx = adz;`, an if/else into n, n reusing the
+//    abs variable) keeps |dx| at 104 to 122 and n at 130 (or 96 per arm),
+//    both in ecx ahead of dx (74 to 76). The original needs dx coloured first
+//    or an ecx cost on both: |dx| has the same five references in the
+//    original's code (`mov esi, eax; xor esi, edx; sub esi, edx`), so it
+//    cannot rank below dx there either, and the order must come from a cost.
+//  * No candidate in the prologue wants ecx: every cost on n and |dx| is an
+//    eax preference. The only ecx wants are the max temporary's (a copy into n
+//    once n has ecx) and loop values. `int n = max >> 20; n++;` drops n to 68
+//    (below dx), but |dx| still takes ecx, and the shift is not the division.
+//  * A sign-mask abs (`sx = d.x >> 31; adx = (d.x ^ sx) - sx;`) lifts dx to
+//    102 but adx to 114 (356 bytes, 69.4%).
+//  * Also flat: the divisions on b before the copy (55.9%), `d.x = b.x / n`
+//    (69.1%), n via `/ 0x100000` then `n++` (84.7%, n stays 130).
 // Codex / GPT-6 retry for #5465 (2026-10-04): rechecked at 84.7%. An
 // unconditional `b.x = b.x;` after the step divisions compiles byte-identically
 // and does not alter the dx/abs/n register allocation. Earlier notes already

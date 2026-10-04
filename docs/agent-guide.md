@@ -743,6 +743,12 @@ effect, the missing piece is usually a helper that was inlined:
   the fix was a local the sibling 0x4c06e0 also has (`int z = span->z1;` read
   inside the `w > 0` block), which C2 counts and which raised the product's
   priority above w with no extra code (#5606).
+- **The frame-count walk is a topological order of the flow graph**: C2
+  counts a block after every forward predecessor, wherever it sits in the
+  source, and a loop's exit arms right after the loop's latch. So moving code
+  behind labels and gotos does not change which local reaches a count first
+  when the emitted code stays the same; only a loop exit arm that jumps to the
+  function's end is counted out of place (0x462f30, #5677).
 - **The frame-count walk is not quite the final layout**: a then-arm inside
   a loop that ends in a `return` is counted where it sits in the loop, but
   emitted after the main return (0x462f30, #5608). Across 665 matched

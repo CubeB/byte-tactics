@@ -1,4 +1,38 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5, finished by GPT-6, retried by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 retry (#5594, 2026-10-04): still 88.5%. This pass looked
+// for the idiom in matched code instead of new spellings, and found none:
+//  * `mov reg, 1; shl reg, cl` stored straight to a stack slot occurs in only
+//    four matched places (0x466c20's `mask`, 0x4843c0's `bit`, two `mask`s in
+//    0x4df590). All four are function-scope masks used inside loops, where
+//    loop pressure keeps them in memory; none is a one-block test like ours.
+//    A bit reloaded from the stack straight into `test`/`and` after a 16-bit
+//    load, and a `shl reg, cl` piece stored and its register reused at once,
+//    occur nowhere else in the exe (whole-exe scans, scripts in
+//    build/scratch/0x47d2e0/ of the #5594 worktree). So there is no matched
+//    near-copy whose spelling can be copied.
+//  * The 16 other functions that shift by g_game+0x2a43 and read the
+//    visibility mask (0x408090, 0x43e490, 0x43f0e0, 0x4658e0, 0x465ac0,
+//    0x466c20, 0x466dc0, 0x467440, 0x473590, 0x473a00, 0x474170, 0x4745e0,
+//    0x474b80, 0x475470, 0x47f300, 0x481930; all matched) each spell it in
+//    their own way; only this one tests the bit before the flag dispatch and
+//    shares it with the seen arm.
+//  * Measured with c2prio (bit / los / W1, all 70 / 70 / 38 unless noted):
+//    a goto/label between the bit's definition and the test (label merged
+//    before allocation, priorities identical, 88.5% and 82.8% with a vis
+//    pointer local); the bit assigned inside the test (`& (bit = 1 << p)`,
+//    either operand order, and folded into the Contains `||`: 88.5%, 87.2%);
+//    `SetBit(&bit)`, `unsigned int bit[1]`, a `Test(&word, &bit)` inline and
+//    a `unsigned int* pb = &bit` passed to IsSeen (all promoted at 70, 82.5%
+//    and 88.2%). With the sibling 0x4658e0's IsExplored (`m->size.Contains`)
+//    los rises to 74 and takes esi (66.1%); adding a CSE'd bit (IsSeen
+//    computing `1 << player`) gives bit 54 (cost 6 in the vis block) and
+//    79.9%. `volatile` bit: W1 32, los 68 (esi), 57.5%.
+//  * Arithmetic from those numbers: the original needs bit below the g_game
+//    piece that takes ebp (it is split, not given ebp) and below W1; with the
+//    definition and the test in one block of K 8, a named bit costs 8 per K
+//    and a CSE'd one 6, so bit stays at 54 or more against W1's 38 unless the
+//    vis-test block holds far fewer candidates. The lever, if any, is in the
+//    block structure of the vis test, not in the bit's spelling.
 // claude-opus-5-5 retry (#5577, 2026-10-04): still 88.5%. The #5537 lead
 // (bit and W1 both CSE'd so that W1 >= los > bit) cannot give the original's
 // arms, whatever spelling: the original's E1 and E3 (`mov ecx, esi`) are

@@ -320,6 +320,11 @@ class Placer:
         self.definers: dict[str, list[tuple[Obj, Sym]]] = defaultdict(list)
         self.absolutes: dict[str, int] = {}
         self.commons: dict[str, int] = {}
+        self.common_at: dict[str, int] = {}        # communal symbol -> where the original has it
+        self.learned: dict[str, int] = {}          # name no object defines -> where the original points
+        # Every external name the placed game code refers to -> the addresses the
+        # original's code holds there: what each spelling really means.
+        self.ref_targets: dict[str, Counter] = defaultdict(Counter)
         for obj in objects:
             self.add_definer(obj)
         self.aliases: dict[str, set[int]] = defaultdict(set)
@@ -601,6 +606,8 @@ class Placer:
                     continue
                 # A section symbol plus an offset names whatever lies there.
                 offset = sym.value + (ours if rtype == REL_DIR32 and sym.name.startswith(".") else 0)
+                if piece.source == CODE and (sym.sclass == 2 or sym.section == 0):
+                    self.ref_targets[sym.name][orig_target] += 1
                 target = self.resolve(obj, sym, offset)
                 how = "by name"
                 if target is None:
@@ -627,9 +634,11 @@ class Placer:
                     elif sym.name in self.commons:
                         # Communal data the linker allocates in .bss.
                         how = "to common data where the original has it"
+                        self.common_at.setdefault(sym.name, orig_target)
                     else:
                         how = "from the original's bytes"
                         self.unresolved[sym.name] += 1
+                        self.learned.setdefault(sym.name, orig_target)
                 elif target != orig_target and (orig_target in self.copies(sym.name)
                                                 or self.place_copy(sym.name, orig_target)):
                     target = orig_target       # another copy of the same function
@@ -800,6 +809,31 @@ def place_library(placer: Placer) -> None:
         pending = left
     placer.stats["library functions with no matching member by name"] += len(pending)
 
+    # Functions with no FPO record of their own hide inside other functions'
+    # rows (__allshr and __allshl follow __ftol): try every member at each free
+    # 16-byte boundary of the library rows, by its first fixed bytes.
+    by_prefix: dict[bytes, list[tuple[Obj, Sym]]] = defaultdict(list)
+    for m in members:
+        for sym in m.externals.values():
+            sec = m.secs[sym.section - 1]
+            if sec.is_code and sym.value == 0 and body_size(sec) >= 8:
+                fixed = sec.data[:8]
+                if not any(off < 8 for off, _, _ in sec.relocs):
+                    by_prefix[fixed].append((m, sym))
+    for row in rows:
+        addr, size = int(row["address"], 16), int(row["size"])
+        for at in range((addr + 15) & ~15, addr + size, 16):
+            if not img.free(at):
+                continue
+            for obj, sym in by_prefix.get(bytes(img.pristine[at - img.base: at - img.base + 8]), ()):
+                sec = obj.secs[sym.section - 1]
+                if (id(obj), sec.index) in placer.placed:
+                    continue
+                if masked_match(img, sec, at, body_size(sec)) and placer.refs_agree(obj, sec, at):
+                    placer.place(obj, sec, 0, body_size(sec), at, LIBCODE, sym.name)
+                    placer.stats["library sections placed inside other rows"] += 1
+                    break
+
 
 def library_names(placer: Placer) -> None:
     for row in load_rows(FUNCTIONS):
@@ -924,16 +958,10 @@ def report(img: Image, placer: Placer, verbose: bool) -> int:
     return total
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--output", type=Path, default=OUT_DIR / "TotalA.exe")
-    ap.add_argument("--jobs", type=int, default=None, help="parallel compiles (default: all cores)")
-    ap.add_argument("--strict", action="store_true", help="exit non-zero if any built byte differs")
-    ap.add_argument("--verbose", "-v", action="store_true")
-    args = ap.parse_args()
-    output = args.output if args.output.is_absolute() else ROOT / args.output
-
-    paths, failed = compile_all(args.jobs)
+def layout(jobs: int | None = None) -> tuple[Image, Placer]:
+    """Lay the tree out at the original's addresses: the image and every
+    placed piece. Other tools use it as a map of what each address holds."""
+    paths, failed = compile_all(jobs)
     if failed:
         raise SystemExit(f"{len(failed)} file(s) did not compile; tools/link.py lists them")
     symbols = load_symbols()
@@ -951,6 +979,19 @@ def main() -> None:
     place_globals(placer, data_objs, data_addr)
     placer.relocate()
     copy_unbuilt(img)
+    return img, placer
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--output", type=Path, default=OUT_DIR / "TotalA.exe")
+    ap.add_argument("--jobs", type=int, default=None, help="parallel compiles (default: all cores)")
+    ap.add_argument("--strict", action="store_true", help="exit non-zero if any built byte differs")
+    ap.add_argument("--verbose", "-v", action="store_true")
+    args = ap.parse_args()
+    output = args.output if args.output.is_absolute() else ROOT / args.output
+
+    img, placer = layout(args.jobs)
     write_exe(img, output)
     write_map(placer, output.with_suffix(".map"))
     total = report(img, placer, args.verbose)

@@ -15,6 +15,7 @@ uv run tools/globals.py                # rebuild data/globals.csv, link/globals.
 uv run tools/globals.py --check        # also compile link/data.cpp and compare it with the exe
 uv run tools/stateprobe.py HEADER --rename   # how many matches a shared header would break
 uv run tools/place.py                  # link at the original's addresses: build/place/TotalA.exe
+uv run tools/link.py --carve           # an ordinary LINK.EXE link that runs: build/link/TotalA.exe
 ```
 
 `linkcheck.py` and `globals.py` compile through `tools/progress.py`'s cache in
@@ -263,9 +264,11 @@ How it places things:
   wrappers `_read`, `_write` and `_lseek`, `_Xlen` and `_Xran`, or zlib's
   `get_crc_table` and `zlibVersion` differ only in what they refer to. The
   report lists the five functions whose `data/functions.csv` name was one of
-  such a pair. Static functions and the members' data follow where the
-  placed code refers to them, and communal (`.bss`) data where the original
-  has it.
+  such a pair. Functions with no FPO record of their own that sit inside
+  another's row (`__allshr` and `__allshl` after `__ftol`) are found by their
+  first bytes at each free 16-byte boundary. Static functions and the
+  members' data follow where the placed code refers to them, and communal
+  (`.bss`) data where the original has it.
 - **What has no source** is copied from the original and counted as copied:
   the 29 gap regions, 11 runtime library functions no member matches (four
   `basic_string` members Cavedog's objects instantiated, the `exception`
@@ -275,15 +278,15 @@ How it places things:
 Every relocation is checked against the address the original's bytes give at
 that spot, and the finished image is compared with the original byte for
 byte, which is the placement and data compare #4869 asks for. The report
-counts where each section's bytes came from. On 2026-10-04 at d2bee5d5:
+counts where each section's bytes came from. On 2026-10-05 at cb45af91:
 
 | Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
-| `.text` | 1,026,560 | 850,853 game code, 115,718 runtime library, 25,371 padding | 25,456 gap regions, 9,162 runtime library |
+| `.text` | 1,026,560 | 850,853 game code, 116,543 runtime library, 25,371 padding | 25,456 gap regions, 8,337 runtime library |
 | `.rdata` | 18,432 | 2,444 compiled data, 3,771 library data, 2,948 `link/` globals, 372 padding | 6,529 import tables, 2,368 other data |
-| `.data` | 173,660 | 34,172 compiled data, 24,821 library data, 78,479 `link/` globals | 36,188 |
+| `.data` | 173,660 | 34,172 compiled data, 24,845 library data, 78,479 `link/` globals | 36,164 |
 
-Of the 37,389 relocations in placed pieces, every one in code agrees with the
+Of the 37,394 relocations in placed pieces, every one in code agrees with the
 original (136 of them reach the second copy of a function `data/aliases.csv`
 lists, such as the two `std::_Lockit`). 94 vtable entries in compiled data
 disagree and keep the original's value. The image differs from the original
@@ -296,7 +299,8 @@ piece and the object it came from.
 To run it, copy it into a copy of the game's directory (the Steam or GOG
 install, with `smackw32.dll` and `win32.dll`) and start it under Wine, for
 example `wine explorer /desktop=TA,800x600 TotalA.exe`. Like the original, it
-shows a DirectX version warning over the main menu in a fresh Wine prefix.
+shows a DirectX version warning over the main menu in a fresh Wine prefix,
+and it starts and plays a skirmish game.
 
 ### Why not LINK's own layout
 
@@ -322,9 +326,69 @@ Each of these could be worked around (dropping unwanted COMDAT copies from
 the objects before linking, blob objects for the gaps, a single data object
 with every global at its offset), but each workaround is a placement decision
 made outside LINK, so `place.py` makes all of them itself and checks each one.
-The ordinary link remains the way to a relocatable build: `place.py`'s map of
-which symbol each address holds is what `tools/link.py` needs to give the
-copied data's pointers symbolic initialisers.
+The ordinary link below is the way to a relocatable build, and `place.py`'s
+map of what each address holds is what makes it run.
+
+## The ordinary link: tools/link.py --carve
+
+`uv run tools/link.py --carve` links the tree with LINK.EXE the ordinary way,
+every function where LINK puts it, and the image runs: under Wine it plays
+the intro, reaches the main menu, opens the single-player and skirmish
+screens, and starts and plays a skirmish game. Since a function may now grow
+or move, this is the build to change the game in.
+
+What has no source comes from `tools/carve.py`, which takes it out of the
+original as relocatable objects, the way LEGO Island's decomp carves its
+Smacker library out of the retail DLL (its `tools/gen_smacker_lib.py`). That
+DLL has base relocations to say where the addresses are; `TotalA.exe` has
+none, so `carve.py` finds them itself:
+
+- **`gaps.obj`** holds the 29 gap regions and the exception handler code of
+  their functions, one section each. Its relocations come from disassembly:
+  every `rel32` branch that leaves its region, and every 32-bit immediate or
+  displacement that holds an address in the image. Each entry point the tree
+  calls gets its `FUN_<address>` name, and WinMain (0x49eda0, a gap region)
+  its `_WinMain@16`.
+- **`origdata.obj`** holds the original's `.rdata` and `.data` byte for byte,
+  apart from the tables LINK builds itself (imports, the TLS and debug
+  directories, the `.CRT$X*` tables). Its relocations come from `place.py`'s
+  layout: every pointer field of a placed piece of data; and where no object
+  defines the data, every dword that holds the exact address of a function, a
+  global, a placed piece or a string (unaligned ones too: the 25-byte packed
+  order records 0x43bc90 registers hold their callbacks at +4), every element
+  of a global `data/globals.csv` types as a pointer, and every address in the
+  compiler's exception tables.
+
+The same layout says what every reference in the tree's own objects means,
+and `link.py` applies that to patched copies of the objects under
+`build/link/objs/`:
+
+- A name no object defines is aliased to the symbol at the address the
+  original's code holds wherever the name is used, in a placed function or in
+  a byte-identical copy of one (4,952 names), rather than guessed from its
+  spelling.
+- `origdata.obj` defines, at each global's address and each placed vtable's,
+  every name a compiled object defines there, and is linked first, so LINK
+  keeps one copy of each: the original's, at its full size and with every
+  slot (the tree's vtables are partial views of their classes).
+- A placed function's references to file statics, and to other functions of
+  its own file, point where the original's code points (1,159 references).
+  Many files keep a global as a file-scope `static` because that makes their
+  function match (0x4223e0.cpp's `static FeatureList* DAT_00511fb4`), and
+  copies of callees kept so that they inline (`docs/consolidation.md`) would
+  otherwise be called instead of the real function.
+- Every other file's definition of an annotated game function is made
+  static, so the name binds to the annotated one (586 copies).
+- Only the original's 17 C++ static initialisers run, in its order (see
+  `fix_initialisers` in `link.py`): files that define global objects only so
+  that a function matches would otherwise construct them with the wrong
+  constructors at start-up.
+- zlib comes from the objects `tools/setup_toolchain.sh` builds, and the
+  runtime library from `LIBCMT.LIB` and `LIBCPMT.LIB`, as LINK picks them.
+
+Eleven names are still stubbed (constructors, destructors and operators that
+only unplaced copies or the dropped initialisers call), and 37 addresses in
+dead data no symbol names.
 
 ## Next steps
 

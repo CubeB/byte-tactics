@@ -3,6 +3,8 @@
     uv run tools/link.py                 # build build/link/TotalA.exe
     uv run tools/link.py --strict        # no /FORCE:UNRESOLVED; generate stubs so it succeeds
     uv run tools/link.py --stub          # the same, naming the generated stubs explicitly
+    uv run tools/link.py --carve         # link the gap regions and the original's data carved
+                                         # out of the exe (tools/carve.py): an image that runs
     uv run tools/link.py --verbose       # also list the symbols left unresolved
 
 The tree is one function per file, so every caller declares its callees and the
@@ -671,6 +673,9 @@ def main() -> None:
                     help="no /FORCE:UNRESOLVED; generate the missing stubs and import libraries")
     ap.add_argument("--stub", action="store_true",
                     help="the same as --strict, naming the generated stubs explicitly")
+    ap.add_argument("--carve", action="store_true",
+                    help="link the gap regions and the original's data carved from the exe "
+                         "(tools/carve.py) instead of stubs and link/data.cpp; implies --stub")
     ap.add_argument("--output", type=Path, default=BUILD / "TotalA.exe")
     ap.add_argument("--map", action="store_true", help="also write build/link/TotalA.map")
     ap.add_argument("--jobs", type=int, default=None, help="parallel compiles (default: all cores)")
@@ -678,7 +683,7 @@ def main() -> None:
     args = ap.parse_args()
 
     output = args.output if args.output.is_absolute() else ROOT / args.output
-    stub_mode = args.strict or args.stub
+    stub_mode = args.strict or args.stub or args.carve
 
     objects, failed = compile_all(args.jobs)
     if failed:
@@ -686,7 +691,16 @@ def main() -> None:
             print(f"{src}: {log}", file=sys.stderr)
         raise SystemExit(f"{len(failed)} file(s) did not compile")
     symbols, _, _ = load_known()
-    data_objs, data_addr = build_data(symbols)
+    carved: list[Path] = []
+    extra: dict[str, str] = {}
+    if args.carve:
+        from carve import THIRD_PARTY_OBJS, carve, library_aliases
+        result = carve(objects)
+        carved, data_addr = result.objects, result.data_names
+        data_objs = list(THIRD_PARTY_OBJS)       # zlib, which the original links too
+        extra = library_aliases(objects, symbols, result)
+    else:
+        data_objs, data_addr = build_data(symbols)
 
     libs = library_symbols(set(CRT_LIBS) | set(IMPORT_LIBS))
     import_libs: list[Path] = []
@@ -697,12 +711,19 @@ def main() -> None:
                 libs.setdefault(name, lib.name)
 
     aliases_path = BUILD / "aliases.obj"
-    aliases = build_aliases(objects, symbols, data_addr, libs, aliases_path,
-                            winmain_addr=WINMAIN_ADDR if stub_mode else None,
+    aliases = build_aliases(objects + carved + data_objs, symbols, data_addr, libs, aliases_path,
+                            extra=extra,
+                            winmain_addr=WINMAIN_ADDR if stub_mode and not args.carve else None,
                             data_fallback=stub_mode)
     print(f"{len(objects):,} objects, {len(aliases):,} aliases, {len(data_addr):,} globals at known addresses")
 
-    link_objects = (fix_initialisers(objects) if stub_mode else list(objects)) + list(data_objs)
+    # The carved data goes first: where a compiled object defines a global too,
+    # LINK keeps the first definition, the original's, at its full size.
+    game = fix_initialisers(objects) if stub_mode else list(objects)
+    if args.carve:
+        from carve import patch_objects
+        game = patch_objects(game, result)
+    link_objects = carved[:1] + game + carved[1:] + list(data_objs)
     if stub_mode:
         missing = unresolved_names(link_objects, set(aliases), libs)
         funcs = [n for n, is_func in missing.items() if is_func]

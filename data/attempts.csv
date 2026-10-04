@@ -6124,7 +6124,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4a6ae0,1703,sonnet-5.5,#3290,partial,93.4,,"issue #3290, escalated"
 0x4a7960,1404,sonnet-5.5,#3290,partial,72.2,,"issue #3290, escalated"
 0x4b0230,631,gpt-6,#3291,partial,82.9,,"issue #3291, escalated"
-0x4df590,1904,,#3293,assigned,,,"issue #3293, escalated"
+0x4df590,1904,opus,#3293,matched,100.0,,"issue #3293, escalated"
 0x4be400,699,,#3295,assigned,,,"issue #3295, escalated"
 0x4805b0,366,,#3297,assigned,,,"issue #3297, escalated"
 0x45d280,1333,deepseek-v4.1-flash,#3298,partial,91.5,,"issue #3298, escalated"

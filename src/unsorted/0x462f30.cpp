@@ -1,10 +1,36 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
 // pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%; pass 18 (Opus, #5559):
-// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 and 21 (Opus, #5585, #5587): no change.
+// 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 to 22 (Opus, #5585, #5587, #5610): no change.
 // The class name is data/symbols.csv's
 // Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
 // Class_00462d30, its own file's class, and returns Entry_00462d90*.
+//
+// Pass 22 (#5610): 98.9%, no change. What the early-return Take does, and more forms
+// that leave the code and the counts as they are.
+//  * The counting walk (FUN_0042ba3f) only visits tuples whose byte +9 has bit 0 set,
+//    and per tuple counts the source operands (+0x18) and then the destinations
+//    (+0x1c) whose symbol is of kind 3, 4 or 5.
+//  * A Take with a second `return 0` for the not-due case (`if (tick != 0 && d > 0 &&
+//    d <= 0x1e) return 0;`, or `return 0;` after the due block inside `if (f != 0)`),
+//    used only by the first loop's GetFrame, gives the original frame (tick 4 counts:
+//    its def and loop are separate pieces, both esi), but at 82.6%. The cause is the
+//    loop's src: the extra return-0 block raises the Take result temp from 64 to 80,
+//    level with the Pop result temp, and with the larger +0x40 key (69 against 65) it
+//    is coloured first, before the Pop result has eax, so the memcpy's esi preference
+//    wins. src in esi evicts tick inside the loop, which is what splits it (reload at
+//    the back edge, none on the entry edge). Any change that puts src back in eax
+//    (a Pop that indexes the frame after the wrap, 85.7%) also merges tick's pieces
+//    and brings the frame swap back. The same Take only in the tail: 96.0%; in both:
+//    81.9%; with a single `void* r` result: 95.9% (tail) or 92.2% (loop).
+//  * Same code and counts (98.9%): Take as if/else with returns in both arms, with an
+//    empty then-arm, or with `goto due`; g_game as `char*`; the whole body after the
+//    declarations, the part after the first loop, or the first loop alone inside
+//    `for (;;)`; the tail pointer at function scope; the 0x463790 result in a local;
+//    the Peek arms (or the arms and the Take) as an inline member taking tick.
+//  * Worse: the first loop as an inline helper returning the entry, its tail or src
+//    (81 to 82%), or doing the copy-out and returning 1 (97.0%); Pop with an early
+//    return (96.8%); GetFrame with `size = 0` after the Peek (80.9%).
 //
 // Pass 21 (#5587): 98.9%, no change. A scan of matched code for where invisible counts
 // come from, and two corrections to the earlier notes.

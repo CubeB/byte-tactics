@@ -1,4 +1,15 @@
 // Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// #5623 Claude Opus 5.5 (95.3% kept): include/ta_protos.h, the game's real
+// prototypes (tools/protos.py: 2140 free functions and the 1030 types they
+// name; docs/c2-regalloc.md, "A prototypes header"), adds 7227 ids before
+// g_game: 36621 (95.3% as it is, 93.0% with the unsigned fields), 19717
+// short of 56338..56562. With the plausible header set too it is 48772
+// (93.8%), 7566 short; the exe's 45 containers on top (as members of one
+// invented struct, so not committable) give 56215, 123 short. It clashes
+// with this file: FUN_004455b0 is declared here with the default
+// convention where 0x4455b0.cpp has __cdecl (the same call without
+// parameters), and `layer->handler = FUN_00447b10` cannot choose between
+// this file's declaration and the header's.
 // #5614 Claude Opus 5.5 (95.3% kept): template instantiations do not supply
 // the missing ids either (docs/c2-regalloc.md, "Symbols each template
 // instantiation adds"). A container class adds its ids where it is first

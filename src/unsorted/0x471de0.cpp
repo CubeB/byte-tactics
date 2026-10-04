@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// Codex / GPT-6 retry for #5464 (2026-10-04): rechecked at 98.6%. The
+// inlined erase still encodes the walker as the SIB base instead of the
+// original delta base. Prior symbol-count, header, and source-shape sweeps
+// already bound the compiler-state window; no source-safe lever remains.
 // #5448 Codex retry: re-confirmed 98.6%; the sole SIB byte still needs an
 // artificial compiler symbol-count state.
 // #5435 Codex retry: re-confirmed 98.6%; the sole SIB byte still needs an

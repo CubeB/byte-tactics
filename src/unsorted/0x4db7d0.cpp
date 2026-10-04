@@ -1,75 +1,56 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
-// The game's free() for its own heap: under the allocator lock it looks the
-// block up in the live-block map, records the freed header in the debug arena,
-// drops it from the live map, releases the pages it had reserved for the block
-// and finally merges the released range into the free-block map with its two
-// neighbours. Same std::map idiom as 0x4db450 and 0x4db000.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// check.py: MATCH, 624 of 624 bytes.
 //
-// NOT MATCHING: 83.0 percent, 625 of 624 bytes (Sonnet 5.5, #3275 retry; was
-// 81.3 percent). What changed, and what still differs:
-//  * The erase's out-parameter is NOT the iterator that gets compared. The
-//    original stores the lower_bound result into it (`node = n`, the store at
-//    0x4db95e) and then tests it against begin(); the erase result is only a
-//    scratch out-parameter. Both live at [esp+0x60], the home of the dead
-//    parameter `p`.
-//  * That slot reuse is reproduced by wrapping everything from `node` to the
-//    last use of `pair` in a nested block (declaring `node` in the plain
-//    `if (p)` block puts it at [esp+0x10]). Declaring the block earlier loses
-//    it again (78 percent).
-//  * `p = (void*)((unsigned)p & 0xfffff000)` (in place, before the `blk == 0`
-//    test) gives the original's `and edi,0xfffff000` placement; the length
-//    result held in a local until after FUN_004db610 gives the late pair stores;
-//    FUN_004da8c0's result in a local gives the original push order for
-//    VirtualFree.
-//  * The pair-merge erase (FUN_004dbd00) returning the iterator by value, with
-//    the result discarded, shares one temp slot with the operator-- result.
-// Remaining: (1) frame order: the original has cs at 0x20 and the shared temp
-// slot at 0x1c, we have them the other way round (everything else, it1 0x10,
-// n 0x14, it3 0x18, pair 0x24, is right). Declaration order, block position
-// and extra temporaries did not move it. (2) The erase call: the original
-// loads it1.ptr into esi, calls FUN_004da8d0, then lea/push/push; we push
-// first and call FUN_004da8d0 last (named node at a frame slot gave the
-// original order, node at [esp+0x60] does not). (3) the `node = n` store is
-// scheduled after the push of &it3 in the original, before it here.
-// Tried this pass and worse: the whole pair<iterator,bool> result as an 8
-// byte `it3` (frame grows by 4), all iterators as by-value temps, a mutated
-// `p` aliased as `node` (37 to 54 percent).
-// deepseek-v4.1-flash (#3363 retry, still 83.0, 625/624): the remaining two
-// diffs are one slot-allocation question. The original's five low slots are
-// it1 0x10, n 0x14, the shared discarded-result temp 0x18 (the same slot the
-// end() iterator occupies; every one of the four calls whose result is
-// discarded, FUN_004dbe10(0), both FUN_004dbd00 erases and the FUN_004dbbc0
-// insert, writes 0x18), a genuine hole at 0x1c, and cs at 0x20. Ours is it1
-// 0x10, n 0x14, it3 0x18, cs 0x1c, temp 0x20: the temp cannot alias 0x18 only
-// because our named `it3` is still live (it is passed to FUN_004dbbc0), and
-// nothing occupies the hole.
-// Tried and worse: assigning the three discarded iterator results to `it3`
-// (MSVC materialises a temp and copies, moving n to 0x10 and it1 to 0x14);
-// dropping the named it3 from the FUN_004dbbc0 call (its hidden-return temp
-// still lands at 0x20, and it3 stays at 0x18); declaring the funnel block in
-// several other positions. Not yet tried: making FUN_004dbeb0/FUN_004dbbc0
-// return their iterator by value so every use site is an anonymous temp, and
-// giving the 0x1c hole a real home (a slot MSVC promotes to a register).
+// The game's free() for its own heap, the partner of malloc() at 0x4dacf0:
+// under the allocator lock it finds the block's record in the live-block map,
+// fills the slack after (or before) the block with the debug pattern, keeps a
+// copy of the record in the debug ring (the last 0x2000 freed blocks), drops
+// it from the live map, decommits the pages and gives the reserved range back
+// to the free-block set.
+//
+// What matched it (it sat at 83.0 percent with a hand-built nested block):
+//  * The give-back is FUN_004db000 (0x4db000, add a free block merged with its
+//    neighbours) inlined, written as in its own file, but with this file's
+//    copies of the set's members out of line: upper_bound 0x4dbd20, begin
+//    0x4dbeb0, operator--(int) 0x4dbe10, erase 0x4dbd00 and insert 0x4dbbc0
+//    (the same copies 0x4dacf0 calls). Its `it` lands in the dead slot of
+//    `p` by itself.
+//  * The live map's erase is an inline wrapper around the out-of-line
+//    _Tree::erase (0x4dc910), as std::map::erase is. The wrapper's parameter
+//    is why `it` is loaded into esi before FUN_004da8d0 is called.
+//  * The ring is a real std::vector of the 0x30-byte record (0x4dd8c0 is its
+//    out-of-line insert): `push_back` when it is not full, `ring[count &
+//    0x1fff] = *old` when it is. The record pointer is taken before
+//    FUN_004da9f0, the live map before the record is built, and the commit and
+//    reserve sizes and the free-block set are fetched into locals first.
+//  * The record and the ring's element are one 0x30-byte record type in the
+//    original; they have two names here because 0x4d8820's and 0x4dd8c0's
+//    files named them, and the cast between them is ours.
 #include <windows.h>
-#include <memory>
+#include <vector>
 
-extern unsigned int DAT_005289f0;
+extern unsigned int DAT_005289f0; // bytes committed
+extern void (*DAT_005289bc)();
 
-// ---- the live-block map (FUN_004da8d0) -------------------------------------
+// ---- the live-block map ----------------------------------------------------
 
-// The map's value_type as the debug arena stores it: the tree node's _Color
-// followed by the key and the rest of the value, 0x30 bytes in all.
-struct LiveEntry {
-    unsigned int color;                // +0x0
-    unsigned int key;                  // +0x4
-    char unknown_8[0x28];              // +0x8
+// The per-block record; its first dword is the map's key.
+class Class_004d8820 {
+public:
+    unsigned int base;    // +0x0
+    unsigned int size;    // +0x4
+    unsigned int count;   // +0x8
+    char unknown_c[0x20]; // +0xc
+    unsigned int tag;     // +0x2c
+
+    Class_004d8820(unsigned int a, unsigned int b, unsigned int c, unsigned int d, const char* e);
 };
 
 struct LiveNode {
-    LiveNode* left;                    // +0x0
-    LiveNode* parent;                  // +0x4
-    LiveNode* right;                   // +0x8
-    LiveEntry entry;                   // +0xc
+    LiveNode* left;        // +0x0
+    LiveNode* parent;      // +0x4
+    LiveNode* right;       // +0x8
+    Class_004d8820 value;  // +0xc
 };
 
 class Iter_004dce00 {
@@ -79,193 +60,203 @@ public:
     Iter_004dce00() {}
     Iter_004dce00(LiveNode* q) : ptr(q) {}
     bool operator==(const Iter_004dce00& o) const { return ptr == o.ptr; }
+    Class_004d8820& operator*() const { return ptr->value; }
+    Class_004d8820* operator->() const { return &ptr->value; }
+};
+
+class Class_004dc910 {
+public:
+    Iter_004dce00 erase(Iter_004dce00 it);
 };
 
 class Class_004dce00 {
 public:
     char unknown_0[4];
-    LiveNode* head;                    // +0x4
+    LiveNode* head;        // +0x4
 
-    Iter_004dce00 End() { return Iter_004dce00(head); }
-    Iter_004dce00 FUN_004dce00(const unsigned int& key);
+    Iter_004dce00 end() { return Iter_004dce00(head); }
+    Iter_004dce00 FUN_004dce00(const unsigned int& key); // find
+    Iter_004dce00 erase(Iter_004dce00 it) { return ((Class_004dc910*)this)->erase(it); }
 };
 
-// The per-block header the allocator builds; its first dword is the map's key.
-class Class_004d8820 {
+// ---- the debug arena: a ring of the last 0x2000 freed records ---------------
+
+struct Elem_004dd8c0 {
+    unsigned int w[0xc];               // +0x0, 0x30 bytes
+};
+
+class Alloc_004dd8c0 {
 public:
-    unsigned int key;                  // +0x0
-    unsigned int field_4;              // +0x4
-    unsigned int field_8;              // +0x8
-    char unknown_c[0x20];              // +0xc
-    unsigned int field_2c;             // +0x2c
+    typedef unsigned int size_type;
+    typedef int difference_type;
+    typedef Elem_004dd8c0* pointer;
+    typedef const Elem_004dd8c0* const_pointer;
+    typedef Elem_004dd8c0& reference;
+    typedef const Elem_004dd8c0& const_reference;
+    typedef Elem_004dd8c0 value_type;
 
-    Class_004d8820(void* a, unsigned int b, unsigned int c, unsigned int d,
-                   unsigned int e);
+    pointer allocate(size_type _N, const void* = 0)
+    {
+        pointer _P;
+        do {
+            _P = (pointer)GlobalAlloc(0, _N * sizeof(value_type));
+            if (_P == 0 && DAT_005289bc != 0)
+                DAT_005289bc();
+        } while (_P == 0 && DAT_005289bc != 0);
+        return _P;
+    }
+    void deallocate(pointer _P, size_type)
+    {
+        if (_P != 0)
+            GlobalFree(_P);
+    }
+    void construct(pointer _P, const value_type& _V)
+    {
+        std::_Construct(_P, _V);
+    }
+    void destroy(pointer) {}
+    size_type max_size() const { return (size_type)(-1) / sizeof(value_type); }
 };
 
-// ---- the debug arena that records every freed header (FUN_004da9f0) --------
-
-template <class T, class A = std::allocator<T> >
-class Container_004da9f0 {
-public:
-    A allocator;                       // +0x0
-    LiveEntry* field_4;                // +0x4
-    unsigned int field_8;              // +0x8
-    char unknown_c[4];
-    unsigned int field_10;             // +0x10
+struct Arena_004da9f0 {
+    std::vector<Elem_004dd8c0, Alloc_004dd8c0> ring; // +0x0
+    unsigned int count;                              // +0x10
 };
 
-Container_004da9f0<int>* FUN_004da9f0();
+// ---- the allocator's free-block set -----------------------------------------
 
-class Class_004dd8c0 {
-public:
-    void FUN_004dd8c0(unsigned int a, int b, LiveEntry* c);
+struct Pair_004db000 {
+    unsigned int offset; // +0x0
+    unsigned int length; // +0x4
+    Pair_004db000() {}
+    Pair_004db000(unsigned int o, unsigned int l) : offset(o), length(l) {}
 };
 
-// ---- the allocator's free-block map (FUN_004db610) --------------------------
-
-struct Node_004db450 {
-    Node_004db450* left;               // +0x0
-    Node_004db450* parent;             // +0x4
-    Node_004db450* right;              // +0x8
-    unsigned int key;                  // +0xc
-    int length;                        // +0x10
-    int color;                         // +0x14
+struct Node_004dacf0 {
+    Node_004dacf0* left;   // +0x0
+    Node_004dacf0* parent; // +0x4
+    Node_004dacf0* right;  // +0x8
+    Pair_004db000 value;   // +0xc
+    int color;             // +0x14
 };
 
-// The map's value_type: the block's base address and its length.
-struct Pair_004db450 {
-    unsigned int offset;               // +0x0
-    int length;                        // +0x4
-};
-
-// The map's iterator; FUN_004dbe10 is its operator--(int).
 class Class_004dbe10 {
 public:
-    Node_004db450* ptr;
+    Node_004dacf0* ptr;
 
     Class_004dbe10() {}
-    Class_004dbe10(Node_004db450* q) : ptr(q) {}
+    Class_004dbe10(Node_004dacf0* q) : ptr(q) {}
     bool operator==(const Class_004dbe10& o) const { return ptr == o.ptr; }
-
-    Class_004dbe10 FUN_004dbe10(int);
+    bool operator!=(const Class_004dbe10& o) const { return !(*this == o); }
+    Pair_004db000& operator*() const { return ptr->value; }
+    Pair_004db000* operator->() const { return &ptr->value; }
+    Class_004dbe10 FUN_004dbe10(int); // operator--(int)
 };
 
-class Class_004db450 {
+class Class_004ddbe0 {
 public:
-    char unknown_0[4];
-    Node_004db450* head;               // +0x4
-    char unknown_8[8];
-    int total;                         // +0x10
-
-    // The original tests the iterators as a value (sete; neg; sbb; inc; test),
-    // which MSVC 5 only does for a `!` applied to a bool-returning member.
-    bool Neq(Class_004dbe10 a, Class_004dbe10 b) { return !(a == b); }
+    Class_004dbe10 first;
+    unsigned char second;
+    Class_004ddbe0() {}
 };
 
-class Class_004dbd20 {
+class Class_004dbd20 { public: Class_004dbe10 FUN_004dbd20(const unsigned int& k); };
+class Class_004dbeb0 { public: Class_004dbe10 FUN_004dbeb0(); };
+class Class_004dbd00 { public: Class_004dbe10 FUN_004dbd00(Class_004dbe10 it); };
+class Class_004dce60 { public: Class_004ddbe0 FUN_004dbbc0(const Pair_004db000& v); };
+
+class Class_004db000 {
 public:
-    void FUN_004dbd20(Class_004dbe10* out, const unsigned int& kv);
+    char unknown_0[4];     // +0x0
+    Node_004dacf0* head;   // +0x4
+    unsigned char rebuild; // +0x8
+    unsigned int count;    // +0xc
+    unsigned int total;    // +0x10
+
+    Class_004dbe10 begin() { return ((Class_004dbeb0*)this)->FUN_004dbeb0(); }
+    Class_004dbe10 end() { return Class_004dbe10(head); }
+    Class_004dbe10 upper_bound(const unsigned int& k)
+    {
+        return ((Class_004dbd20*)this)->FUN_004dbd20(k);
+    }
+    Class_004dbe10 erase(Class_004dbe10 it) { return ((Class_004dbd00*)this)->FUN_004dbd00(it); }
+    Class_004ddbe0 insert(const Pair_004db000& v) { return ((Class_004dce60*)this)->FUN_004dbbc0(v); }
+
+    // 0x4db000: add a free block, merged with the free blocks on either side.
+    void FUN_004db000(Pair_004db000 p)
+    {
+        Class_004dbe10 it;
+        Class_004dbe10 n = upper_bound(p.offset);
+        it = n;
+        if (it == begin())
+            it = end();
+        else
+            it.FUN_004dbe10(0);
+        if (n != end()) {
+            if (n->offset == p.offset + p.length) {
+                p.length = p.length + n->length;
+                erase(n);
+            }
+        }
+        if (it != end()) {
+            if (it->length + it->offset == p.offset) {
+                p.length = p.length + it->length;
+                p.offset = it->offset;
+                erase(it);
+            }
+        }
+        insert(p);
+    }
 };
 
-class Class_004dbeb0 {
-public:
-    void FUN_004dbeb0(Class_004dbe10* out);
-};
-
-class Class_004dbd00 {
-public:
-    Class_004dbe10 FUN_004dbd00(void* node);
-};
-
-class Class_004dbbc0 {
-public:
-    void FUN_004dbbc0(Class_004dbe10* out, Pair_004db450* p);
-};
-
-class Class_004dc910 {
-public:
-    void FUN_004dc910(Class_004dbe10* out, void* node);
-};
-
-LPCRITICAL_SECTION FUN_004da780();
+CRITICAL_SECTION* FUN_004da780();
 Class_004dce00* FUN_004da8d0();
-Class_004db450* FUN_004db610();
+Arena_004da9f0* FUN_004da9f0();
+Class_004db000* FUN_004db610();
 char FUN_004db760();
 int FUN_004db7c0();
-void __cdecl FUN_004d8310(void* p, int pattern, unsigned int size);
-void __cdecl FUN_004da840(int param_1);
-unsigned int __cdecl FUN_004da8c0(int param_1);
-int __cdecl FUN_004da8a0(int param_1);
+void __cdecl FUN_004d8310(void* at, int value, unsigned int count);
+void __cdecl FUN_004da840(unsigned int size);
+unsigned int __cdecl FUN_004da8c0(unsigned int size);
+unsigned int __cdecl FUN_004da8a0(unsigned int size);
 
 // FUNCTION: 0x4db7d0
 void __cdecl FUN_004db7d0(void* p, int flags)
 {
-    if (p) {
-        LPCRITICAL_SECTION cs = FUN_004da780();
-        EnterCriticalSection(cs);
-        Class_004dce00* live = (Class_004dce00*)FUN_004da8d0();
-        Class_004d8820 hdr(p, 0, 0, 0, 0);
-        Iter_004dce00 it1 = live->FUN_004dce00(hdr.key);
-        if (it1 == ((Class_004dce00*)FUN_004da8d0())->End()) {
-            LeaveCriticalSection(cs);
-            return;
-        }
-        unsigned int blk = it1.ptr->entry.key;
-        unsigned int off = (0 - (blk & 0xfff)) & 0xfff;
-        if (FUN_004db760())
-            FUN_004d8310((char*)p - off, FUN_004db7c0(), off);
-        else
-            FUN_004d8310((char*)p + blk, FUN_004db7c0(), off);
-        LiveEntry* ve = &it1.ptr->entry;
-        Container_004da9f0<int>* arena = FUN_004da9f0();
-        if (arena->field_10 < 0x2000) {
-            ((Class_004dd8c0*)arena)->FUN_004dd8c0(arena->field_8, 1, ve);
-        } else {
-            arena->field_4[arena->field_10 & 0x1fff] = *ve;
-        }
-        arena->field_10++;
-        // Nested block: puts `node` in the dead parameter p's home, see above.
-        {
-            Class_004dbe10 node;
-            ((Class_004dc910*)FUN_004da8d0())->FUN_004dc910(&node, it1.ptr);
-            FUN_004da840(blk);
-            DAT_005289f0 -= (blk + 0xfff) & 0xfffff000;
-            p = (void*)((unsigned int)p & 0xfffff000);
-            if (blk == 0)
-                blk = 1;
-            unsigned int base = (unsigned int)p;
-            unsigned int sz = FUN_004da8c0(blk);
-            VirtualFree((void*)base, sz, MEM_DECOMMIT);
-            int len = FUN_004da8a0(blk);
-            Class_004db450* alloc = (Class_004db450*)FUN_004db610();
-            Pair_004db450 pair;
-            pair.offset = base;
-            pair.length = len;
-            Class_004dbe10 n;
-            ((Class_004dbd20*)alloc)->FUN_004dbd20(&n, pair.offset);
-            node = n;
-            Class_004dbe10 it3;
-            ((Class_004dbeb0*)alloc)->FUN_004dbeb0(&it3);
-            if (node == it3)
-                node.ptr = alloc->head;
-            else
-                node.FUN_004dbe10(0);
-            if (alloc->Neq(n, Class_004dbe10(alloc->head))) {
-                if (n.ptr->key == pair.offset + pair.length) {
-                    pair.length = pair.length + n.ptr->length;
-                    ((Class_004dbd00*)alloc)->FUN_004dbd00(n.ptr);
-                }
-        }
-        if (alloc->Neq(node, Class_004dbe10(alloc->head))) {
-            if (node.ptr->key + node.ptr->length == pair.offset) {
-                pair.length = pair.length + node.ptr->length;
-                pair.offset = node.ptr->key;
-                ((Class_004dbd00*)alloc)->FUN_004dbd00(node.ptr);
-            }
-        }
-        ((Class_004dbbc0*)alloc)->FUN_004dbbc0(&it3, &pair);
-        }
-        LeaveCriticalSection(cs);
+    if (p == 0)
+        return;
+    CRITICAL_SECTION* lock = FUN_004da780();
+    EnterCriticalSection(lock);
+    Class_004dce00* live = FUN_004da8d0();
+    Class_004d8820 rec((unsigned int)p, 0, 0, 0, 0);
+    Iter_004dce00 it = live->FUN_004dce00(rec.base);
+    if (it == FUN_004da8d0()->end()) {
+        LeaveCriticalSection(lock);
+        return;
     }
+    unsigned int size = it->size;
+    unsigned int pad = (0 - (size & 0xfff)) & 0xfff;
+    if (FUN_004db760())
+        FUN_004d8310((char*)p - pad, FUN_004db7c0(), pad);
+    else
+        FUN_004d8310((char*)p + size, FUN_004db7c0(), pad);
+    Elem_004dd8c0* old = (Elem_004dd8c0*)&*it;
+    Arena_004da9f0* arena = FUN_004da9f0();
+    if (arena->count < 0x2000)
+        arena->ring.push_back(*old);
+    else
+        arena->ring[arena->count & 0x1fff] = *old;
+    arena->count++;
+    FUN_004da8d0()->erase(it);
+    FUN_004da840(size);
+    DAT_005289f0 -= (size + 0xfff) & 0xfffff000;
+    p = (void*)((unsigned int)p & 0xfffff000);
+    if (size == 0)
+        size = 1;
+    unsigned int commit = FUN_004da8c0(size);
+    VirtualFree(p, commit, MEM_DECOMMIT);
+    unsigned int reserve = FUN_004da8a0(size);
+    Class_004db000* blocks = FUN_004db610();
+    blocks->FUN_004db000(Pair_004db000((unsigned int)p, reserve));
+    LeaveCriticalSection(lock);
 }

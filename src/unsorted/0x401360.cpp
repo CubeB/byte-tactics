@@ -6,6 +6,54 @@
 // Partial, 89.2% (2245 of 2239 bytes; 99.7% ignoring moved jump targets; was
 // 89.0%, 88.1%, before that 77.2%).
 //
+// Opus pass on 2026-10-04, fifth (no gain; the last difference is now fully
+// traced, and one scratch source matches with one C2 pass switched off).
+// How C2 handles jumps after code generation: FUN_0042d635 runs the walker
+// FUN_0042d2aa up to 16 times. It goes through the tuples in order. At a
+// label it cross-jumps (FUN_00432f03) unless a plain jmp comes just before
+// the label. For a plain jmp it calls FUN_0040d834 (drops dead code after the
+// jmp), FUN_0040db59 (deletes a jump to the next tuple), FUN_004363c0 and
+// FUN_004364af. FUN_004363c0 merges the code before the jmp with the code that
+// falls into its target, with no size limit, and retargets the jmp to the
+// first label after the point where the two stop matching (FUN_00443b52
+// reuses that label). For a jcc, FUN_0040db95 folds `jcc L; jmp X; L:` into
+// `jncc X`. The fold fails if a label sits between the jcc and the jmp.
+// FUN_00432f03 takes the first live jump in the label's list as the pivot and
+// tries each later jump against it with FUN_00446590. The jump at the lower
+// position is the one replaced. FUN_00446590 walks backwards through labels
+// (it moves the replaced side's labels after the kept side's tuple) and
+// through plain jumps. It merges when a plain jmp comes before the replaced
+// run, or when that run (its jump included) is over 20 bytes.
+// What happens to tidal now: at the join in sweep 1, T0 (case 0) is the
+// pivot. T1 merges its tail into T0, T0 into E1 and E1 into E0. With
+// AddIncomeD, sweep 2 merges tidal's default block into En (FUN_004363c0,
+// once En falls into the shared pop). FUN_0040db95 then folds the dispatch
+// to `jne En`, and T0's FUN_004363c0 swallows T1 into `jmp E1`. FUN_0042f060
+// then copies E1 (11 bytes) over that jmp. With AddIncomeD3 the block-level
+// fold FUN_0040872b turns `je T1; jmp Tn; T1:` into `jne Tn` before any of
+// this. Either way tidal ends as `jne En; fmul; jmp`.
+// Confirmed lead: T1 merges whole into E1 only if E1 meets T1 before T0
+// does. The else branch's case jumps reach the join around event 350 (label
+// merge); the then-branch's arrive later through the then-end label, with T0
+// ahead of T1. A scratch copy with tidal written inline and `goto done;` as
+// case 0's exit (build/scratch v3/gd0.cpp: AI test, switch with case 1 and
+// default `break`, else `*dst += v`) puts T0 at the tail of the list. T1
+// then merges whole into E1 in sweep 1 (89.2%, 99.8% shape). The merge runs
+// on through tidal's default block and dispatch, though, because those equal
+// the else's. With the else branch on AddIncomeD3 as well (gd0e3) tidal comes
+// out exactly as `je E0; dec; je E1; jmp En`. That file is byte-identical
+// (MATCH) when compiled with a copy of C2.EXE patched at 0x42f36c (jne to
+// jmp), passed to CL through /B2 next to a link to MSPDB50.DLL. Unpatched, the
+// second loop of FUN_0042f060 (0x42f339..0x42f3b6, FUN_00455729) moves the
+// else head after the epilogue (83.7%). It does that for a plain jmp
+// followed by a label when the tuple before the jmp's target is also a plain
+// jmp. Tidal's `jmp En` targets the first label after E0's `jmp join`,
+// because FUN_004363c0 made it. In the original, tidal's default jump must
+// therefore target a second label at En, one that came there on a block that
+// merged into En (like tidal's non-AI label). Every way tried to get that
+// (default `goto` into the non-AI code, the non-AI path first, a shared
+// default) brings back the dispatch fold (65.9% to 89.2%).
+//
 // Opus pass on 2026-10-04, third (89.0% to 89.2%): the else branch's region
 // is now byte-identical. UseEnergyD's positive arm converts the amount to a
 // double before the `used` add (`double a = v;`), adds `v` to `used` (the

@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**97.16% of Cavedog's code matched** (826,693 of 850,853 bytes)
+**97.67% of Cavedog's code matched** (830,999 of 850,853 bytes)
 
 `[#######################################-]`
 
-By count that is 3,248 of the game's 3,267 functions (99.4%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,249 of the game's 3,267 functions (99.4%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,248 | 826,693 |
-| Attempted, not yet matching | 19 | 24,160 |
+| Matched byte-for-byte | 3,249 | 830,999 |
+| Attempted, not yet matching | 18 | 19,854 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 700 of 703 | 99.5% | 809 | `##########` |
 | xl (401 to 600 bytes) | 223 of 226 | 98.7% | 1,438 | `##########` |
 | xxl (601 to 1,000 bytes) | 195 of 195 | 100.0% | 0 | `##########` |
-| huge (over 1,000 bytes) | 149 of 161 | 92.5% | 21,795 | `#########-` |
+| huge (over 1,000 bytes) | 150 of 161 | 94.0% | 17,489 | `#########-` |
 
 ### By area
 
@@ -53,7 +53,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x410000` | Orders and VTOL states | 219 of 222 | 93.6% | 4,067 | `#########-` |
 | `0x420000` | Frontend shell | 153 of 154 | 97.6% | 1,496 | `##########` |
 | `0x430000` | Maps, missions, briefings | 228 of 228 | 100.0% | 0 | `##########` |
-| `0x440000` | Multiplayer setup | 244 of 246 | 88.5% | 7,062 | `#########-` |
+| `0x440000` | Multiplayer setup | 245 of 246 | 95.5% | 2,756 | `##########` |
 | `0x450000` | Options and audio menus | 176 of 176 | 100.0% | 0 | `##########` |
 | `0x460000` | Game and skirmish setup, unit classes | 209 of 212 | 94.9% | 3,166 | `#########-` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 257 of 259 | 97.6% | 1,534 | `##########` |

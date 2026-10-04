@@ -1,4 +1,24 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 (#5541, 2026-10-04): still 98.5% here, file unchanged except
+// this note. Real TU code does reach hunk 3's window, but only as a whole TU:
+// - Hunk 3 needs C2's own counter at this function's allocation at about
+//   65585 to 65985 (5885 now plus the 59700 to 60100 of the notes below).
+// - The whole TU (all 105 files from 0x407350 to 0x40d5b0, each in its own
+//   namespace so their struct views do not clash, with the headers they
+//   include: <windows.h>, <ddraw.h>, <stdio.h>, <stdlib.h>, <string.h>,
+//   <minmax.h>) gives a file total of 51300 and C2 at 53008 (98.0%: MapRange's
+//   loads flip). The TU's code adds about 17300 of that, its headers 29800.
+// - Adding real headers: <commctrl.h> <dsound.h> <dplay.h> <d3drm.h> <vfw.h>
+//   <shlobj.h> <imagehlp.h> <string> <list> <io.h> <process.h> puts C2 at
+//   65684 and gives 99.0%: hunk 3 matches, MapRange is right, hunks 1 and 2
+//   are unchanged (four other sets in 65684 to 65764 do the same). With the
+//   generous header set of docs/c2-regalloc.md it overshoots (C2 at 72045).
+// - Not committed: it needs the 4800-line concatenation of the whole TU in
+//   namespaces, which is not the original's source, and hunks 1 and 2 stay.
+//   The functions after this one in the exe (0x408620, 0x408670, 0x408920,
+//   0x408bf0 have no callers) are not inlined here, so no real neighbour
+//   helps hunks 1 and 2. Generator: build/scratch/0x409730n/concat.py and
+//   hdrscan.py (`hdrscan.py 0x408100 range:0x407350:0x40d5b0 TAG SET...`).
 // #5461 Codex recheck: 98.5%; the three documented scheduler differences remain.
 // #5433 Codex retry: re-confirmed 98.5%; the three scheduler differences
 // remain, and the recorded source and symbol-state probes still apply.

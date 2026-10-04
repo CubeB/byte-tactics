@@ -484,6 +484,37 @@ containers, 7400 (0x449bb0) to 16000 (0x424c00) ids are still missing: the
 size of the game's own lost declarations (struct definitions, prototypes),
 not of its templates.
 
+What the real code of the original translation unit adds (#5541, measured
+with `--symbols` on a concatenation of the matched files of the TU around
+0x408100 to 0x40d290, 105 files from 0x407350 to 0x40d5b0, each in its own
+namespace so their private struct views do not clash; that duplicates some
+types and vector instantiations, so it overstates what the original had):
+
+| function | the id that decides, and its window | as it is | + the real TU code before it | + the generous header set too |
+|---|---|---|---|---|
+| 0x409730 | i's front-end id, 65536 to 66547 (the full match needs about 65800 to 66500) | 33684 | 38711 (40 files, +5027) | 57276, 8260 short |
+| 0x40d290 | the insert's own id, 65602 to 65654 | 33295 | 38356 (+5061, everything before 0x409160's class, the first `vector<unsigned char>`) | 56259, 9343 short |
+| 0x408100 (hunk 3) | C2's counter at the function, about 65585 to 65985 | 5885 | 53008 (the whole TU and its headers, `<windows.h>` and `<ddraw.h>` among them; the TU's code adds about 17300) | 72045, past it |
+
+As the table above has it, a vector instantiation costs its ids where it is first needed (155 here with its element struct and holder); the
+member functions a file uses are instantiated at the end of the file (resize
+and insert: 114 front-end ids there), so they move only the file total. For
+0x408100 a real header set between the two does land in the window:
+`<commctrl.h>` `<dsound.h>` `<dplay.h>` `<d3drm.h>` `<vfw.h>` `<shlobj.h>`
+`<imagehlp.h>` `<string>` `<list>` `<io.h>` `<process.h>` on top of the TU puts
+C2 at 65684 and fixes hunk 3 (99.0%; hunks 1 and 2 do not follow ids), but
+only with the whole TU concatenated, so it is not committed.
+
+0x409730 matched the other way round: its ids are made small instead of
+wrapped. It inlines the real zero-caller neighbours 0x409520 and 0x4095d0, and
+MSVC 5's `<vector>` is cut down to the members it uses (as in 0x437580), so
+with `<stdio.h>` and `<minmax.h>` i's id is 946, inside the window the
+original's wrapped id sits in modulo 65536 (about 898 to 958). The effects
+there follow the ids modulo 65536 relative to each other, so a small file can
+stand in for the lost prefix when every symbol that decides is in the file
+itself. A cut-down `<vector>` costs a few hundred ids where the real one
+costs 4233 (3579 after `<windows.h>`).
+
 How it works: the tool copies C2.EXE to `build/c2prio/<run>/c2p<run>.exe` with
 `jmp $` at the entry point (toolchain/ is never changed) and compiles with
 `/B2` pointing at the copy, so CL runs it with the usual `MSC_CMD_FLAGS`. It

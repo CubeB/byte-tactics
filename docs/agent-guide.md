@@ -674,6 +674,16 @@ effect, the missing piece is usually a helper that was inlined:
 - **Check `[esp+N]` against pending pushes before calling a store dead**:
   0x476ef0's "dead store" was a local passed to a call, misread because the
   offsets ignored argument pushes still pending (#5485).
+- **A parenthesised float cast moves the x87 store late**: `((float)call)`
+  (written as a macro in 0x42bf40) stores a double-returning call's result
+  just before the next call, as the original does, where `(float)call` stores
+  it before the next call's pushes. In 0x42bf40 it also fixed six flag-word
+  statements and a `w*h` load order, and let the callee return `double` again
+  (94.5% to byte-identical). In 0x435da0 `return ((float)call);` matches too;
+  the double-local-then-float-local inline is equivalent (#5508).
+- **A reference to the field moves a SIB base**: reading the yard map through
+  `char*& map = unitdef->yardmap;`, declared after the loop locals, gave
+  0x42bf40's `[map + cell]` base/index order (#5508).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

@@ -1,4 +1,39 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5, finished by GPT-6, retried by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5, finished by GPT-6, retried by claude-opus-5-5, retried by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 retry (#5607, 2026-10-04): still 88.5%. This pass reshaped
+// the vis-test block as the brief asked and read every variant with c2prio
+// (scripts and variants in build/scratch/0x47d2e0/ of the #5607 worktree).
+// bit / los / W1 stay 70 / 70 / 38 for all of these (score in brackets): the
+// LOS checks in a `for (;;) { ... break; }` (82.8), only the bit and vis test
+// in one (82.8), the vis test as a one-case `switch` (88.5), the flag
+// dispatch as a `switch` (69.3), the arms as one `?:` (60.2), the vis test in
+// an inline helper taking the bit (82.5), Contains + vis test in one helper
+// taking the bit (81.5), the bit through `PlayerBit()`/`Bit_(n)` inlines with
+// and without a local or assigned inside the test (83.3 to 88.5). A helper
+// that computes its own bit (CSE'd with IsSeen's) gives bit 54 but los 70
+// then takes esi (61.3, 62.2). Moving the definition earlier only adds
+// live-through losses where the original cannot have them: before the
+// Contains test 78, before the call 78, after the bounds guard 53 (los 72
+// takes esi, 55.0).
+//  * Arithmetic that closes this family: bit and W1 share every block except
+//    B7, where the definition `1 << player` (three references, C2 rewrites it
+//    to `t = 1; t <<= cl`) plus the test cost 8 against W1's 4, so bit - W1 =
+//    4 * K(B7) - (W1's references outside B7 and S3). K(B7) is 7 or 8 in
+//    every shape (vis pointer, W1, g_game, bit, x, y, los, const 1), and even
+//    with E1, E3 and S1 all counted as W1 uses W1 gains only 20. So no shape
+//    with the definition and the test in one IL block puts W1 above bit, and
+//    no block boundary without a jump survives to allocation (loops without
+//    a back edge, labels and one-case switches are all merged).
+//  * Memory forms: a two-element array, a two-member struct, a Fix union and
+//    hgt reused for the bit are all scalarised (a "local temp" at 70; the hgt
+//    reuse makes hgt itself a candidate, 45.2).
+//  * Reusing one `int bit` variable for the bit and a loop variable (index,
+//    found80, foundFE20, row, col) gives two webs and changes nothing (88.5
+//    each). FUN_0045aaf9, which C2 calls before colouring each candidate,
+//    defers a candidate below the minimum priority of the uncoloured
+//    candidates that share its symbol (FUN_0045aa71 collects them; the
+//    decision is FUN_0045d006's), which would put bit after W1. It never fired
+//    here, nor in 60 random matched functions (c2prio --trace "put back"), so
+//    what makes FUN_0045d006 accept is still unknown and is the one lead left.
 // claude-opus-5-5 retry (#5594, 2026-10-04): still 88.5%. This pass looked
 // for the idiom in matched code instead of new spellings, and found none:
 //  * `mov reg, 1; shl reg, cl` stored straight to a stack slot occurs in only

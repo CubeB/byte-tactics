@@ -716,7 +716,7 @@ function's allocation). 0x40d290's insert would have to sit below operator new
 and delete, and 0x4b90a0's notes scanned small counts (0 to 2047 externs from
 its 197-symbol file) without a match.
 
-**Files that depend on its exact size.** 0x408100 includes `ta_types.h` with
+**Files that depend on its exact size.** These files match only with `ta_types.h` at its current size, so rerun `uv run tools/checkall.py 0x408100 0x424c00 0x41b2e0 0x471de0 0x449bb0` after any regeneration: 0x424c00 and 0x471de0 (`ta_types.h` + `<shlobj.h>` + `<imagehlp.h>`), 0x41b2e0 (`ta_types.h` + `<shlobj.h>` + `<memory.h>`; `<time.h>`, `<malloc.h>` or `<direct.h>` also land), 0x449bb0 (`ta_types.h`, its own types and externs, then `ta_protos.h`) (#5657, #5658, #5660). 0x408100 includes `ta_types.h` with
 `<time.h>` and `<shlobj.h>`, which puts its file total at 65680 in a window
 ending at 65732. Regenerating `ta_types.h` with about 50 more ids breaks that
 hunk again; rerun `check.py 0x408100` after any regeneration and switch it to

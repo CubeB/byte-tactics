@@ -93,7 +93,8 @@ SMACKW32_EXPORTS = [
     ("SmackOpen", 12, 14), ("SmackSoundOnOff", 8, 17), ("DAT_004fc40c", 4, 32),
     ("DAT_004fc410", 24, 2), ("DAT_004fc414", 12, 5), ("DAT_004fc418", 16, 25),
 ]
-DPLAYX_EXPORTS = [("DirectPlayEnumerateA", 8, 2), ("DirectPlayLobbyCreateA", 20, 4)]
+DPLAYX_EXPORTS = [("DirectPlayCreate", 12, 1), ("DirectPlayEnumerateA", 8, 2),
+                  ("DirectPlayLobbyCreateA", 20, 4)]
 
 # The original's WinMainCRTStartup (0x4e6fa0) calls the game's WinMain at
 # 0x49eda0, a 1942-byte gap region that immediately forwards its four

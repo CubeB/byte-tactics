@@ -3065,7 +3065,7 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4d37a0,1076,library,zlib 1.0.4: _inflate@8,2,0,0,1,2,0,1
 0x4d3be0,128,library,zlib 1.0.4: _inflateSetDictionary@12,3,0,0,1,2,0,0
 0x4d3c60,256,library,zlib 1.0.4: _inflateSync@4,1,0,0,1,1,0,0
-0x4d3d60,6,library,zlib 1.0.4: _get_crc_table@0,0,0,0,0,0,0,0
+0x4d3d60,6,library,zlib 1.0.4: _zlibVersion@0,0,0,0,0,0,0,0
 0x4d3d70,21,library,zlib 1.0.4: _zcalloc@12,3,0,0,0,1,0,0
 0x4d3d90,16,library,zlib 1.0.4: _zcfree@8,2,0,0,0,1,0,0
 0x4d3da0,763,library,zlib 1.0.4: __tr_init@4,1,17,0,1,0,0,2
@@ -3352,10 +3352,10 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4e3c00,515,library,?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z,3,0,0,1,8,2,2
 0x4e3e10,6,game,,0,0,0,0,0,0,1
 0x4e3e20,75,library,??1runtime_error@std@@UAE@XZ,0,0,0,0,2,1,1
-0x4e3e70,32,library,?_Doraise@runtime_error@std@@MBEXXZ,0,7,0,0,2,0,0
+0x4e3e70,32,library,?_Doraise@failure@ios_base@std@@MBEXXZ,0,7,0,0,2,0,0
 0x4e3e90,30,library,??_Gruntime_error@std@@UAEPAXI@Z,1,0,0,0,2,1,0
 0x4e3eb0,337,library,??0failure@ios_base@std@@QAE@ABV012@@Z,1,4,0,1,6,0,1
-0x4e4010,290,library,?_Xlen@std@@YAXXZ,0,16,0,1,6,1,9
+0x4e4010,290,library,?_Xran@std@@YAXXZ,0,16,0,1,6,1,9
 0x4e4140,152,library,_$E50,0,0,0,0,7,7,0
 0x4e41e0,14,game,,0,0,0,0,1,0,1
 0x4e41f0,14,game,,0,0,0,0,1,0,1
@@ -3385,7 +3385,7 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4e4650,15,library,__c_exit,0,0,0,0,1,0,0
 0x4e4660,178,library,_doexit,3,0,0,1,3,0,4
 0x4e4720,11,library,__lockexit,0,0,0,0,0,0,2
-0x4e4730,11,library,,0,0,0,0,0,0,2
+0x4e4730,11,library,__unlockexit,0,0,0,0,0,0,2
 0x4e4740,32,library,__initterm,2,0,0,0,0,0,2
 0x4e4760,254,library,_strncpy,3,0,0,0,0,0,84
 0x4e4860,13,library,_srand,1,0,0,0,1,0,2
@@ -3416,7 +3416,7 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4e4e30,67,library,___iscsymf,1,0,0,0,1,0,0
 0x4e4e80,67,library,___iscsym,1,0,0,0,1,0,0
 0x4e4ed0,153,library,_atol,1,0,0,1,1,0,3
-0x4e4f70,14,library,,1,0,0,0,1,0,22
+0x4e4f70,14,library,_atoi,1,0,0,0,1,0,22
 0x4e4f80,206,library,__atoi64,1,1,0,1,1,0,0
 0x4e5050,249,library,_floor,2,2,0,0,3,0,2
 0x4e5150,291,library,_strncat,3,0,0,0,0,0,11
@@ -3470,8 +3470,8 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4e7850,167,library,__threadstart@4,,,,,4,0,0
 0x4e7900,67,library,__endthread,0,0,0,0,3,0,1
 0x4e7950,50,library,_rename,2,0,0,0,1,0,1
-0x4e7990,45,library,__rmdir,1,0,0,0,1,0,2
-0x4e79c0,14,library,,1,0,0,0,1,0,0
+0x4e7990,45,library,_remove,1,0,0,0,1,0,2
+0x4e79c0,14,library,__unlink,1,0,0,0,1,0,0
 0x4e79d0,164,library,__filelength,1,0,0,0,5,0,7
 0x4e7a80,67,library,__getdrive,0,65,0,0,1,0,4
 0x4e7ad0,128,library,__chdrive,1,0,0,0,3,0,1
@@ -3562,8 +3562,8 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4eb0d0,19,library,__initptd,1,0,0,0,0,0,4
 0x4eb0f0,122,library,__getptd,0,0,0,0,3,0,20
 0x4eb170,176,library,__freeptd,1,0,0,0,1,0,2
-0x4eb220,6,library,,0,0,0,0,0,0,0
-0x4eb230,6,library,,0,0,0,0,0,0,0
+0x4eb220,6,library,___threadid,0,0,0,0,0,0,0
+0x4eb230,6,library,___threadhandle,0,0,0,0,0,0,0
 0x4eb240,104,library,__close,1,0,0,0,5,0,2
 0x4eb2b0,144,library,__close_lk,1,0,0,0,3,0,1
 0x4eb340,51,library,__freebuf,1,0,0,0,1,0,1
@@ -3620,9 +3620,9 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4ee520,549,library,___crtLCMapStringA,8,0,0,1,3,0,8
 0x4ee750,47,library,_strncnt,2,0,0,0,0,0,1
 0x4ee780,239,library,__filbuf,1,0,0,0,2,0,2
-0x4ee870,114,library,__lseek,3,0,0,0,5,0,2
+0x4ee870,114,library,__read,3,0,0,0,5,0,2
 0x4ee8f0,549,library,__read_lk,3,3,0,1,4,0,2
-0x4eeb20,114,library,,3,0,0,0,5,0,3
+0x4eeb20,114,library,__write,3,0,0,0,5,0,3
 0x4eeba0,521,library,__write_lk,3,263,0,1,4,0,2
 0x4eedb0,115,library,__dosmaperr,1,0,0,0,2,0,15
 0x4eee30,9,library,__errno,0,0,0,0,1,0,35
@@ -3649,7 +3649,7 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4f0c30,18,library,__getmbcp,0,0,0,0,0,0,0
 0x4f0c50,11,library,___initmbctable,0,0,0,0,1,0,1
 0x4f0c60,167,library,__mbsnbcpy,3,0,0,1,1,0,1
-0x4f0d10,18,library,__tell,1,0,0,0,1,0,0
+0x4f0d10,18,library,__ismbbkalnum,1,0,0,0,1,0,0
 0x4f0d30,18,library,__ismbbkprint,1,0,0,0,1,0,0
 0x4f0d50,18,library,__ismbbkpunct,1,0,0,0,1,0,0
 0x4f0d70,21,library,__ismbbalnum,1,0,0,0,1,0,0
@@ -3673,7 +3673,7 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4f18b0,61,library,__FF_MSGBANNER,0,0,0,0,1,0,2
 0x4f18f0,470,library,__NMSG_WRITE,1,106,0,1,2,0,4
 0x4f1ad0,46,library,__GET_RTERRMSG,1,0,0,0,0,0,0
-0x4f1b00,114,library,,3,0,0,0,5,0,4
+0x4f1b00,114,library,__lseek,3,0,0,0,5,0,4
 0x4f1b80,128,library,__lseek_lk,3,0,0,0,3,0,6
 0x4f1c00,360,library,__alloc_osfhnd,0,2,0,1,2,0,2
 0x4f1d70,161,library,__set_osfhnd,2,0,0,0,2,0,2
@@ -3682,13 +3682,13 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4f1f10,170,library,__open_osfhandle,2,0,0,0,6,0,0
 0x4f1fc0,101,library,__lock_fhandle,1,0,0,0,0,0,9
 0x4f2030,34,library,__unlock_fhandle,1,0,0,0,0,0,10
-0x4f2060,98,library,,2,0,0,0,4,0,0
+0x4f2060,98,library,__setmode,2,0,0,0,4,0,0
 0x4f20d0,100,library,__setmode_lk,2,0,0,0,1,0,2
 0x4f2140,158,library,__mbctoupper,1,2,0,0,1,0,1
 0x4f21e0,83,library,?__CxxUnhandledExceptionFilter@@YGJPAU_EXCEPTION_POINTERS@@@Z,1,0,0,0,1,0,0
 0x4f2240,17,library,?__CxxSetUnhandledExceptionFilter@@YAXXZ,0,0,0,0,0,0,0
 0x4f2260,13,library,?__CxxRestoreUnhandledExceptionFilter@@YAXXZ,0,0,0,0,0,0,0
-0x4f2270,6,library,,0,0,0,0,0,0,0
+0x4f2270,6,library,__get_sbh_threshold,0,0,0,0,0,0,0
 0x4f2280,30,library,__set_sbh_threshold,1,0,0,0,0,0,0
 0x4f22a0,354,library,___sbh_new_region,0,0,0,1,0,0,2
 0x4f2410,91,library,___sbh_release_region,1,0,0,0,0,0,1
@@ -3725,7 +3725,7 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4f3700,177,library,__ShrMan,2,2,0,1,0,0,1
 0x4f37c0,463,library,__ld12cvt,3,6,0,1,5,0,2
 0x4f3990,24,library,__ld12tod,2,0,0,0,1,0,2
-0x4f39b0,24,library,,2,0,0,0,1,0,1
+0x4f39b0,24,library,__ld12tof,2,0,0,0,1,0,1
 0x4f39d0,128,library,__ld12told,2,3,0,0,1,0,2
 0x4f3a50,56,library,__atodbl,2,3,0,0,2,0,1
 0x4f3a90,56,library,__atoldbl,2,3,0,0,2,0,0
@@ -3753,7 +3753,7 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4f5fa0,48,library,__isnan,2,0,0,0,0,0,0
 0x4f5fd0,155,library,__fpclass,2,0,0,0,1,0,1
 0x4f6070,32,library,?_ValidateRead@@YAHPBXI@Z,2,0,0,0,0,0,2
-0x4f6090,32,library,,2,0,0,0,0,0,1
+0x4f6090,32,library,?_ValidateWrite@@YAHPAXI@Z,2,0,0,0,0,0,1
 0x4f60b0,27,library,?_ValidateExecute@@YAHP6GHXZ@Z,1,0,0,0,0,0,2
 0x4f60d0,31,library,_abort,0,0,0,0,3,0,1
 0x4f60f0,174,library,___init_time,0,0,0,0,4,0,0
@@ -3785,10 +3785,10 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4f7a40,297,library,_crtGetLocaleInfoA@16,4,0,0,1,1,0,0
 0x4f7b70,62,library,_LcidFromHexString,1,0,0,0,0,0,4
 0x4f7bb0,33,library,_GetPrimaryLen,1,0,0,0,0,0,3
-0x4f7be0,113,library,_mbstowcs,3,0,0,0,1,0,1
+0x4f7be0,113,library,_wcstombs,3,0,0,0,1,0,1
 0x4f7c60,490,library,__wcstombs_lk,3,1,0,1,3,0,1
 0x4f7e50,50,library,_wcsncnt,2,0,0,0,0,0,1
-0x4f7e90,113,library,,3,0,0,0,1,0,1
+0x4f7e90,113,library,_mbtowc,3,0,0,0,1,0,1
 0x4f7f10,254,library,__mbtowc_lk,3,0,0,0,1,0,1
 0x4f8010,45,library,_ungetc,2,0,0,0,1,0,0
 0x4f8040,131,library,__ungetc_lk,2,0,0,0,1,0,2

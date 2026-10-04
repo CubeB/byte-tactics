@@ -264,9 +264,11 @@ How it places things:
   data (strings, tables, exception and type information, initial values) the
   same contents. Bytes alone cannot tell many of them apart: the locking
   wrappers `_read`, `_write` and `_lseek`, `_Xlen` and `_Xran`, or zlib's
-  `get_crc_table` and `zlibVersion` differ only in what they refer to. The
-  report lists the five functions whose `data/functions.csv` name was one of
-  such a pair. Functions with no FPO record of their own that sit inside
+  `get_crc_table` and `zlibVersion` differ only in what they refer to.
+  `tools/functions.py` makes the same check when it names the library
+  functions, so `data/functions.csv` gives each the half of such a pair that
+  is really there, and the report lists any member placed under another
+  name. Functions with no FPO record of their own that sit inside
   another's row (`__allshr` and `__allshl` after `__ftol`) are found by their
   first bytes at each free 16-byte boundary. Static functions and the
   members' data follow where the placed code refers to them, and communal

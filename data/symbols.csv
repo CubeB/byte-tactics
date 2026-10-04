@@ -3317,6 +3317,7 @@ address,name
 0x4e4650,_c_exit
 0x4e4660,doexit
 0x4e4720,_lockexit
+0x4e4730,_unlockexit
 0x4e4740,_initterm
 0x4e4760,strncpy
 0x4e4860,srand
@@ -3402,7 +3403,8 @@ address,name
 0x4e7850,_threadstart
 0x4e7900,_endthread
 0x4e7950,rename
-0x4e7990,_rmdir
+0x4e7990,remove
+0x4e79c0,_unlink
 0x4e79d0,_filelength
 0x4e7a80,_getdrive
 0x4e7ad0,_chdrive
@@ -3490,6 +3492,8 @@ address,name
 0x4eb0d0,_initptd
 0x4eb0f0,_getptd
 0x4eb170,_freeptd
+0x4eb220,__threadid
+0x4eb230,__threadhandle
 0x4eb240,_close
 0x4eb2b0,_close_lk
 0x4eb340,_freebuf
@@ -3545,8 +3549,9 @@ address,name
 0x4ee520,__crtLCMapStringA
 0x4ee750,strncnt
 0x4ee780,_filbuf
-0x4ee870,_lseek
+0x4ee870,_read
 0x4ee8f0,_read_lk
+0x4eeb20,_write
 0x4eeba0,_write_lk
 0x4eedb0,_dosmaperr
 0x4eee30,_errno
@@ -3573,7 +3578,7 @@ address,name
 0x4f0c30,_getmbcp
 0x4f0c50,__initmbctable
 0x4f0c60,_mbsnbcpy
-0x4f0d10,_tell
+0x4f0d10,_ismbbkalnum
 0x4f0d30,_ismbbkprint
 0x4f0d50,_ismbbkpunct
 0x4f0d70,_ismbbalnum
@@ -3597,6 +3602,7 @@ address,name
 0x4f18b0,_FF_MSGBANNER
 0x4f18f0,_NMSG_WRITE
 0x4f1ad0,_GET_RTERRMSG
+0x4f1b00,_lseek
 0x4f1b80,_lseek_lk
 0x4f1c00,_alloc_osfhnd
 0x4f1d70,_set_osfhnd
@@ -3605,11 +3611,13 @@ address,name
 0x4f1f10,_open_osfhandle
 0x4f1fc0,_lock_fhandle
 0x4f2030,_unlock_fhandle
+0x4f2060,_setmode
 0x4f20d0,_setmode_lk
 0x4f2140,_mbctoupper
 0x4f21e0,__CxxUnhandledExceptionFilter
 0x4f2240,__CxxSetUnhandledExceptionFilter
 0x4f2260,__CxxRestoreUnhandledExceptionFilter
+0x4f2270,_get_sbh_threshold
 0x4f2280,_set_sbh_threshold
 0x4f22a0,__sbh_new_region
 0x4f2410,__sbh_release_region
@@ -3645,6 +3653,7 @@ address,name
 0x4f3700,_ShrMan
 0x4f37c0,_ld12cvt
 0x4f3990,_ld12tod
+0x4f39b0,_ld12tof
 0x4f39d0,_ld12told
 0x4f3a50,_atodbl
 0x4f3a90,_atoldbl
@@ -3670,6 +3679,7 @@ address,name
 0x4f5fa0,_isnan
 0x4f5fd0,_fpclass
 0x4f6070,_ValidateRead
+0x4f6090,_ValidateWrite
 0x4f60b0,_ValidateExecute
 0x4f60d0,abort
 0x4f60f0,__init_time
@@ -3699,8 +3709,9 @@ address,name
 0x4f7a40,crtGetLocaleInfoA
 0x4f7b70,LcidFromHexString
 0x4f7bb0,GetPrimaryLen
-0x4f7be0,mbstowcs
+0x4f7be0,wcstombs
 0x4f7c60,_wcstombs_lk
+0x4f7e90,mbtowc
 0x4f7f10,_mbtowc_lk
 0x4f8010,ungetc
 0x4f8040,_ungetc_lk

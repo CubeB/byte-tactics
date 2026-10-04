@@ -2,7 +2,9 @@
 
 Sources:
   - FPO debug records: start, size, argument/local counts, frame info
-  - the VC5 SP3 runtime library (LIBCMT): which functions are library code
+  - the VC5 SP3 runtime library (LIBCMT): which functions are library code;
+    where several members have the same bytes, the one whose calls, imports
+    and data agree with the exe's names the function (see References)
   - direct calls found by disassembly: the call graph
 
 kind is one of:
@@ -20,7 +22,7 @@ from pathlib import Path
 import capstone
 import pefile
 
-from coff import parse_object, read_archive
+from coff import REL_I386_DIR32, REL_I386_REL32, parse_object, read_archive
 from crtmatch import MIN_SIZE, find_all_masked, find_masked
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -51,28 +53,158 @@ def fpo_records(pe: pefile.PE) -> list[dict]:
 PREFERRED = {"_memcpy": "_memmove"}
 
 
-def library_names(pe: pefile.PE) -> dict[int, str]:
+class References:
+    """Tell apart library functions whose bytes are the same and whose
+    references differ: the locking wrappers _read, _write and _lseek call
+    _read_lk, _write_lk and _lseek_lk; _tell and _ismbbkalnum call _lseek and
+    x_ismbbtype; _Xlen and _Xran throw different exceptions; zlibVersion
+    returns a string where get_crc_table returns a table; remove and _rmdir
+    import different functions. A member's code is scored by whether what it
+    refers to is what the exe's code at that address refers to."""
+
+    def __init__(self, pe: pefile.PE):
+        self.base = pe.OPTIONAL_HEADER.ImageBase
+        self.image = pe.get_memory_mapped_image()
+        self.imports = {imp.address: imp.name.decode() for entry in pe.DIRECTORY_ENTRY_IMPORT
+                        for imp in entry.imports if imp.name}
+        # (object for a static, else "", symbol) -> addresses some member's code matched at
+        self.at: dict[tuple[str, str], set[int]] = defaultdict(set)
+
+    @staticmethod
+    def key(obj, name: str) -> tuple[str, str]:
+        static = any(s.name == name and s.section > 0 and s.storage_class == 3 for s in obj.symbols)
+        return (obj.name if static else "", name)
+
+    def add(self, obj, sec, va: int) -> None:
+        for s in obj.symbols_in(sec):
+            self.at[self.key(obj, s.name)].add(va + s.value)
+
+    def u32(self, va: int) -> int | None:
+        o = va - self.base
+        return struct.unpack_from("<I", self.image, o)[0] if 0 <= o <= len(self.image) - 4 else None
+
+    def same_data(self, obj, sym, offset: int, va: int) -> bool | None:
+        """Whether the exe holds sym's section's bytes from offset (up to 16, a
+        string up to its terminator) at va, ignoring the fields the linker
+        fills; None when there is nothing fixed to compare (uninitialised
+        data, or a pointer)."""
+        sec = obj.sections[sym.section - 1]
+        o = va - self.base
+        if sec.characteristics & 0x80:
+            return None
+        ours = sec.data[offset:offset + 16]
+        if b"\0" in ours and sym.name.startswith(("??_C@", "$SG")):
+            ours = ours[:ours.index(b"\0") + 1]
+        mask = sec.mask()[offset:offset + len(ours)]
+        if not any(mask):
+            return None
+        theirs = self.image[o:o + len(ours)] if 0 <= o else b""
+        return len(theirs) == len(ours) and all(not m or a == b for a, b, m in zip(ours, theirs, mask))
+
+    def score(self, obj, sec, va: int) -> tuple[int, int]:
+        """(references that disagree with the exe's, references that agree)
+        for sec's code placed at va."""
+        bad = good = 0
+        syms = {}
+        for sym in obj.symbols:
+            if sym.section > 0:
+                syms.setdefault(sym.name, sym)
+        for r in sec.relocs:
+            if r.type not in (REL_I386_DIR32, REL_I386_REL32) or r.offset + 4 > len(sec.data):
+                continue
+            site = va + r.offset
+            theirs = self.u32(site)
+            if theirs is None:
+                continue
+            (ours,) = struct.unpack_from("<I", sec.data, r.offset)
+            target = (theirs - ours + (site + 4 if r.type == REL_I386_REL32 else 0)) & 0xFFFFFFFF
+            if r.symbol.startswith("__imp_"):
+                name = self.imports.get(target)
+                if name is not None:
+                    want = r.symbol[len("__imp_"):].lstrip("_").split("@")[0]
+                    bad, good = (bad, good + 1) if name == want else (bad + 1, good)
+                continue
+            sym = syms.get(r.symbol)
+            if sym is not None and not obj.sections[sym.section - 1].is_code:
+                # Its own data: a literal, a table, an initial value.
+                addend = ours if r.symbol.startswith(".") else 0
+                same = self.same_data(obj, sym, sym.value + addend, theirs - addend)
+                if same is not None:
+                    bad, good = (bad, good + 1) if same else (bad + 1, good)
+                continue
+            known = self.at.get(self.key(obj, r.symbol))
+            if known:
+                bad, good = (bad, good + 1) if target in known else (bad + 1, good)
+        return bad, good
+
+    def best(self, members: list) -> list:
+        """members (obj, sec, address of sec, ...) that match at one address,
+        the one whose references agree best first; equals keep their order."""
+        if len(members) < 2:
+            return members
+        scores = [self.score(m[0], m[1], m[2]) for m in members]
+        return [m for _, m in sorted(zip(scores, members), key=lambda x: (x[0][0], -x[0][1]))]
+
+    def winners(self, found: list) -> set[int]:
+        """The ids of the entries of found (obj, sec, address of sec, address,
+        ...) that are the best at their address."""
+        groups: dict[int, list] = defaultdict(list)
+        for f in found:
+            groups[f[3]].append(f)
+        return {id(self.best(g)[0]) for g in groups.values()}
+
+    def elsewhere(self, obj, sec, hay: bytes, text_va: int, taken) -> list[int]:
+        """Where else sec's code matches with every reference agreeing (and at
+        least one checked): the other half of a byte-identical pair that lost
+        its first match to the half that is really there."""
+        out = []
+        for off in find_all_masked(hay, sec.data, sec.mask()):
+            va = text_va + off
+            if va not in taken:
+                bad, good = self.score(obj, sec, va)
+                if not bad and good:
+                    out.append(va)
+        return out
+
+
+def library_names(pe: pefile.PE, refs: References) -> dict[int, str]:
     """Map exe address -> runtime library symbol for every matched library function."""
     text = next(s for s in pe.sections if s.Name.startswith(b".text"))
     hay = text.get_data()
     text_va = pe.OPTIONAL_HEADER.ImageBase + text.VirtualAddress
-    names = {}
+    matches: dict[int, list] = defaultdict(list)    # section address -> [(order, obj, sec)]
+    order = 0
     for obj in read_archive(RUNTIME_LIB):
         for sec in obj.sections:
             if not sec.is_code or len(sec.data) < MIN_SIZE:
                 continue
+            order += 1
             off = find_masked(hay, sec.data, sec.mask())
             if off < 0:
                 continue
-            syms = obj.symbols_in(sec)
-            for s in syms:
-                names.setdefault(text_va + off + s.value, PREFERRED.get(s.name, s.name))
-            if not syms:
-                names.setdefault(text_va + off, f"{obj.name.split(chr(92))[-1]}:{sec.name}")
+            matches[text_va + off].append((obj, sec, text_va + off, order))
+            refs.add(obj, sec, text_va + off)
+    # Where several members match, the one whose references agree is there,
+    # and one that loses may be at another address of its own.
+    chosen = {va: refs.best(members)[0] for va, members in matches.items()}
+    moved: dict[int, list] = defaultdict(list)
+    for members in matches.values():
+        for obj, sec, _, order in refs.best(members)[1:]:
+            for other in refs.elsewhere(obj, sec, hay, text_va, chosen):
+                moved[other].append((obj, sec, other, order))
+    for va, members in moved.items():
+        chosen[va] = refs.best(members)[0]
+    names = {}
+    for va, (obj, sec, _, _) in sorted(chosen.items(), key=lambda c: (c[1][3], c[0])):
+        syms = obj.symbols_in(sec)
+        for s in syms:
+            names.setdefault(va + s.value, PREFERRED.get(s.name, s.name))
+        if not syms:
+            names.setdefault(va, f"{obj.name.split(chr(92))[-1]}:{sec.name}")
     return names
 
 
-def cpp_library_names(pe: pefile.PE) -> dict[int, str]:
+def cpp_library_names(pe: pefile.PE, refs: References) -> dict[int, str]:
     """Code from the C++ runtime (LIBCPMT): std::string internals, _Lockit, std
     exceptions. Much of it is template code instantiated inside Cavedog's own
     objects, so it sits in the middle of game code rather than in the runtime
@@ -91,11 +223,14 @@ def cpp_library_names(pe: pefile.PE) -> dict[int, str]:
                 continue
             # Some library objects were linked twice (two std::_Lockit copies).
             for off in find_all_masked(hay, sec.data, sec.mask()):
-                found.append((text_va + off + syms[0].value, len(sec.data), syms[0].name))
-    strong = [f for f in found if f[1] >= SUBSTANTIAL]
+                found.append((obj, sec, text_va + off, text_va + off + syms[0].value, len(sec.data), syms[0].name))
+                refs.add(obj, sec, text_va + off)
+    strong = [f for f in found if f[4] >= SUBSTANTIAL]
+    best = refs.winners(found)
     names = {}
-    for addr, size, name in found:
-        if size >= SUBSTANTIAL or any(abs(addr - s[0]) <= 0x200 for s in strong):
+    for f in found:
+        _, _, _, addr, size, name = f
+        if id(f) in best and (size >= SUBSTANTIAL or any(abs(addr - s[3]) <= 0x200 for s in strong)):
             names.setdefault(addr, name)
     return names
 
@@ -104,7 +239,7 @@ THIRD_PARTY = [("zlib 1.0.4", ROOT / "toolchain/thirdparty/zlib-1.0.4")]
 STRONG = 40  # bytes; third-party functions this long are never coincidences
 
 
-def third_party_names(pe: pefile.PE) -> dict[int, str]:
+def third_party_names(pe: pefile.PE, refs: References) -> dict[int, str]:
     """Third-party libraries built into the game from their own source (built by
     tools/setup_toolchain.sh with Cavedog's options). Short functions such as
     `return 1` match stubs all over the exe, so they only count inside the
@@ -122,13 +257,17 @@ def third_party_names(pe: pefile.PE) -> dict[int, str]:
                 if not sec.is_code or len(sec.data) < 8 or not syms:
                     continue
                 for off in find_all_masked(hay, sec.data, sec.mask()):
-                    found.append((text_va + off + syms[0].value, len(sec.data), syms[0].name))
-        strong = [f for f in found if f[1] >= STRONG]
+                    found.append((obj, sec, text_va + off, text_va + off + syms[0].value, len(sec.data),
+                                  syms[0].name))
+                    refs.add(obj, sec, text_va + off)
+        strong = [f for f in found if f[4] >= STRONG]
         if not strong:
             continue
-        lo, hi = min(f[0] for f in strong), max(f[0] + f[1] for f in strong)
-        for addr, size, name in found:
-            if size >= STRONG or lo <= addr < hi:
+        lo, hi = min(f[3] for f in strong), max(f[3] + f[4] for f in strong)
+        best = refs.winners(found)
+        for f in found:
+            _, _, _, addr, size, name = f
+            if id(f) in best and (size >= STRONG or lo <= addr < hi):
                 names.setdefault(addr, f"{label}: {name}")
     return names
 
@@ -142,7 +281,8 @@ def main() -> None:
     text_end = text_start + text.Misc_VirtualSize
 
     funcs = fpo_records(pe)
-    lib = library_names(pe)
+    refs = References(pe)
+    lib = library_names(pe, refs)
     for f in funcs:
         f["name"] = lib.get(f["address"], "")
         f["kind"] = "library" if f["name"] else "game"
@@ -158,12 +298,12 @@ def main() -> None:
         elif f["kind"] == "library":
             f["kind"], f["name"] = "game", ""
     # C++ runtime code found inside the game region (see cpp_library_names).
-    cpp = cpp_library_names(pe)
+    cpp = cpp_library_names(pe, refs)
     for f in funcs:
         if f["kind"] == "game" and f["address"] in cpp:
             f["kind"], f["name"] = "library", cpp[f["address"]]
     # Third-party libraries compiled into the game (zlib).
-    third = third_party_names(pe)
+    third = third_party_names(pe, refs)
     for f in funcs:
         if f["kind"] == "game" and f["address"] in third:
             f["kind"], f["name"] = "library", third[f["address"]]

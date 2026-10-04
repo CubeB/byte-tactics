@@ -1,4 +1,24 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash and space-bunny-free, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 (#5635, 2026-10-04): still 93.3%, file unchanged except this
+// note. include/ta_types.h does not reach the window either (insert's own id
+// 65602..65654, even):
+// - With the header the insert is numbered where Owner (0x10d bytes, 21
+//   views, the AI TU's class with vec_8d and vec_9d) is defined: 38371
+//   (92.8%). Headers in front only add to that: the largest plausible set is
+//   about 18000 and ta_protos.h in front of ta_types.h about 6900, so 27231
+//   more is out of reach (about 61300 with both). Headers after ta_types.h
+//   and the file total do not move it.
+// - Owner's real position, if it lived in the AI TU's own header after the
+//   common types: in a scratch copy of ta_types.h with Owner and
+//   Class_00409730 moved last (never committed) the insert is at 61837, and
+//   <shlobj.h> <imagehlp.h> <d3d.h> in front put it at 65591; one to 119
+//   unused externs on top (65592..65710, across the whole window) give only
+//   98.1% (odd), 85.6% (even), then 91.9/91.4% from 65655. So the padded
+//   file's window does not come back behind the header, even with the
+//   insert's id inside it; the other hunks (the `_End` add, the `_Ufill`
+//   count, the `_Last` sum) also follow the ids of the instantiation's other
+//   members, which sit differently there. Scratch:
+//   build/scratch/0x40d290/move.py, m0.cpp, m1.cpp.
 // Claude Opus 5.5 (#5565, 2026-10-04): still 93.3%, file unchanged except this
 // note. Neither real TU code nor small ids reach the window:
 // - Real neighbours: a concatenation of this TU's 105 matched files (0x407350

@@ -203,8 +203,11 @@ def winpath(p: Path) -> str:
 FILE_FLAGS_LINE = re.compile(r"^//\s*FLAGS:\s*(.*?)\s*$", re.M)
 FILE_FLAGS = {"/Gi"}
 # The gap regions also hold functions compiled with /Op (their frames align the
-# stack to 8 bytes: `and esp, -8`) and with C++ exception handling (/GX).
-GAP_FILE_FLAGS = FILE_FLAGS | {"/Op", "/GX"}
+# stack to 8 bytes: `and esp, -8`), with C++ exception handling (/GX), and
+# without optimisation (/Od: Cavedog's debug helpers, every value stored to its
+# local and loaded again; with /Gy again, which /Od turns off, since each of
+# them is a COMDAT of its own).
+GAP_FILE_FLAGS = FILE_FLAGS | {"/Op", "/GX", "/Od", "/Gy"}
 
 
 def is_gap_source(src: Path) -> bool:
@@ -423,10 +426,12 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
 
     # An address into the original image written as a plain number matches the
     # bytes but not the meaning: the linker could never move it. Require a symbol.
+    # Relative branches (jumps, calls, and the `loop` family of hand-written
+    # assembly) hold displacements, not addresses.
     if bytes_match:
         constants = load_constants()
         for i in ours_ins:
-            if i.address in reloc_ins or i.mnemonic.startswith("j") or i.mnemonic == "call":
+            if i.address in reloc_ins or i.mnemonic.startswith(("j", "loop")) or i.mnemonic == "call":
                 continue
             for m in HEX.finditer(i.op_str):
                 v = int(m.group(), 16)

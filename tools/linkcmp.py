@@ -104,8 +104,13 @@ def main() -> None:
         names = [s.name for s in p.obj.syms.values()
                  if s.section == p.sec.index and s.sclass == 2 and s.value == p.lo]
         at = next((link_at[n] for n in names if n in link_at), None)
+        if at is None and p.sec.name.startswith(".text$x"):
+            stats["exception handler stubs (static, not compared)"] += 1
+            continue
         if at is None:
             stats["functions with no public name in the link"] += 1
+            if args.verbose:
+                lines.append(f"  {p.label}: no public name in the link")
             continue
         stats["functions compared"] += 1
         for off, symidx, rtype in p.sec.relocs:

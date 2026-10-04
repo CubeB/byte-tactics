@@ -435,19 +435,30 @@ function with a frame it cannot describe. Every region but the import thunks
 opens with `push ebp / mov ebp, esp`, and they fall into a few kinds:
 
 - **Inline assembly** in otherwise compiled code: `cpuid` (0x4e16b0,
-  0x4e35b0), `rdpmc` (0x4e1e50), `int 3` as an assertion (0x4d8310, 0x4d9ab0,
-  0x4da120, 0x4da2c0), reading `ebp`, `esp` and `eip` for a stack trace
-  (0x4d8870), reading `esp` for the stack's bounds (0x4d8d70), a `div` by
-  zero inside `__try` (0x49e680).
+  0x4e35b0), `rdpmc` (0x4e1e50), `int 3` as an assertion (0x4d8310,
+  0x4d9ab0), reading `ebp`, `esp` and `eip` for a stack trace (0x4d8870),
+  reading `esp` for the stack's bounds (0x4d8d70), a `div` by zero inside
+  `__try` (0x49e680).
+- **No optimisation** (`/Od`): Cavedog's debug helpers at 0x4da120 and
+  0x4da2c0 (DebugHelper.dll, the debug thread and its message pump), every
+  value stored to its local and loaded again, and int3 padding (from the
+  linker) after each function. Without optimisation the compiler lays the
+  locals out in its symbol table's order, which follows their names, not
+  their declarations: the names in those files are ones that give the
+  original's frame.
 - **Structured exception handling**, `__try`/`__except` with
   `__except_handler3` (0x497c70, 0x49e680, WinMain at 0x49eda0, 0x4d9ab0).
 - **C++ exception handling**, `try`/`catch` frames (0x4441a0, 0x444580, the
   three at 0x45b250, 0x49ee30, and 0x4c4fa0, which is `basic_string::_Copy`
-  from the compiler's own `<xstring>`).
-- **`/Op` frames**, `and esp, -8` before the locals (0x41dc20, 0x420d20,
-  0x42a8d0, 0x466050, 0x46c2a0, 0x49a120): MSVC 5 builds this frame for a
-  function with `double` locals under `/Op`, not under the game's usual
-  flags (0x420d20's prologue, compiled both ways).
+  from the compiler's own `<xstring>`). MSVC 5 builds these frames without
+  `/GX` too (with a warning), and 0x4c4fa0 matches only without it.
+- **Aligned frames**, `and esp, -8` before the locals (0x41dc20, 0x420d20,
+  0x42a8d0, 0x466050, 0x46c2a0, 0x49a120): MSVC 5 builds this frame under the
+  game's usual flags once a function keeps enough 8-byte values on the stack
+  (`double` locals, an unsigned-to-float conversion through a qword
+  temporary, doubles passed or returned). `/Op` builds it too, but stores
+  every intermediate `double` and calls `_CIsqrt` for `sqrt`, so none of
+  these was compiled with it.
 - **`_alloca`** (0x4bb4e0, 0x4bc800, and the command-line parser at 0x49ee30).
 - **Hand-written assembly**: the fixed-point trigonometry at 0x4b70a0 and the
   surface drawing at 0x4cbbe0 (MASM frames, `leave`, routines that run into
@@ -465,8 +476,9 @@ A region's source is `src/gap/<address>.cpp`, one file per region, and
   `src/gap/` out: these are not `game` rows.
 - Inline assembly is allowed in these files only (`__asm`, and `_emit` for
   instructions MSVC 5's inline assembler does not know: `cpuid` is
-  `_emit 0x0f` `_emit 0xa2`). `// FLAGS:` may add `/Op` and `/GX` here,
-  besides `/Gi`.
+  `_emit 0x0f` `_emit 0xa2`). `// FLAGS:` may add `/Op`, `/GX`, `/Od` and
+  `/Gy` here, besides `/Gi` (`/Od` turns off the `/Gy` that `/O2` implies, and
+  the debug helpers need it back: each function is a COMDAT of its own).
 - Hand-written assembly is a `__declspec(naked)` function holding the whole
   run of routines. MSVC 5 starts every function on a 16-byte boundary, each in
   a COMDAT of its own under `/Gy` and padded with nops in one `.text` section
@@ -477,6 +489,10 @@ A region's source is `src/gap/<address>.cpp`, one file per region, and
   adds a public symbol (`_FUN_<address>` unless one is named) at the label's
   offset, once the function holding it matches and the offset falls on one of
   its instructions; the object with those symbols is `build/gap/<address>.obj`.
+  The inline assembler takes MASM's `ALIGN 4` and pads with MASM's bytes;
+  `mov [ebp - 0xc], offset label` stores a label's address with a relocation;
+  and the few encodings it cannot produce (`cmp` of two byte registers in the
+  38 /r form, one backward jump it sizes short) are `_emit`ted with a comment.
 - A region MATCHES when every annotated function matches as `check.py` defines
   it, each compared over the original's extent (to the next annotated function
   or the region's end, less padding), and together they cover every byte of
@@ -493,32 +509,32 @@ compares the gap functions' references too.
 
 | Region | Bytes | What it holds | Source |
 | --- | ---: | --- | --- |
-| 0x41dc20 | 697 | `/Op` frame | |
-| 0x420d20 | 291 | `/Op` frame | |
-| 0x42a8d0 | 2,719 | `/Op` frame | |
+| 0x41dc20 | 697 | aligned frame: the end-of-game statistics table | matches |
+| 0x420d20 | 291 | aligned frame: an explosion frame bitmap | matches |
+| 0x42a8d0 | 2,719 | aligned frame | |
 | 0x4441a0 | 801 | `try`/`catch` | |
 | 0x444580 | 898 | `try`/`catch` | |
 | 0x45b250 | 560 | `try`/`catch` | |
 | 0x45b490 | 417 | `try`/`catch` | |
 | 0x45b670 | 395 | `try`/`catch` | |
-| 0x466050 | 1,326 | `/Op` frame | |
-| 0x46c2a0 | 882 | `/Op` frame | |
+| 0x466050 | 1,326 | aligned frames: a saved game's player section, loaded and saved | matches |
+| 0x46c2a0 | 882 | aligned frame: the score tables for the statistics DLL | matches |
 | 0x497c70 | 101 | `__try`/`__except`: the loading thread | matches |
-| 0x49a120 | 1,829 | `/Op` frame | |
+| 0x49a120 | 1,829 | aligned frame | |
 | 0x49e680 | 106 | `__try`/`__except`, inline `div`: a deliberate fault to report a message | matches |
 | 0x49eda0 | 1,942 | WinMain (`__try`/`__except`); command line (`try`/`catch`, `_alloca`) | |
 | 0x49f710 | 419 | the linker's import thunks | |
 | 0x4b70a0 | 772 | hand-written: fixed-point trigonometry, 10 entry points | matches |
 | 0x4bb4e0 | 198 | `_alloca` | |
-| 0x4bc800 | 197 | `_alloca` | |
-| 0x4c4fa0 | 255 | `basic_string::_Copy`, `try`/`catch` | |
-| 0x4cbbe0 | 7,622 | hand-written: surface drawing | |
+| 0x4bc800 | 197 | `_alloca`: the archive directory a path ends in | matches |
+| 0x4c4fa0 | 255 | `basic_string::_Copy`, `try`/`catch` | matches |
+| 0x4cbbe0 | 7,622 | hand-written: surface drawing, five modules with 23 more entry points | matches |
 | 0x4d8310 | 67 | inline `int 3` | |
 | 0x4d8870 | 318 | inline asm: stack trace | |
 | 0x4d8d70 | 125 | inline asm: stack bounds, in three thread-local variables | matches |
 | 0x4d9ab0 | 420 | `__try`/`__except`, inline `int 3` | |
-| 0x4da120 | 379 | inline `int 3` | |
-| 0x4da2c0 | 303 | inline `int 3` | |
+| 0x4da120 | 379 | `/Od`: DebugHelper.dll and the debug set-up | matches |
+| 0x4da2c0 | 303 | `/Od`: the debug thread and its message pump | matches |
 | 0x4e16b0 | 74 | inline `cpuid` | matches |
 | 0x4e1e50 | 761 | inline `rdpmc` | |
 | 0x4e35b0 | 349 | inline `cpuid` | |

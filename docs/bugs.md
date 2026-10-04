@@ -357,6 +357,19 @@ state. It works by accident. Found by Claude Code / Opus 5.5 in #5276.
 
 Things that look wrong in the original but have no effect, kept for the record.
 
+- **0x4b71a7, 0x4ccd1c, 0x4ccd85** (hand-written assembly in the gap regions
+  0x4b70a0 and 0x4cbbe0): after calling a routine they drop its arguments with
+  a 16-bit `add sp, N` (0x4b71cb, 0x4ccd39 and others), a habit from 16-bit
+  code. It changes only the low half of esp, so it would leave esp 64 KB off
+  if the pushed arguments straddled a 64 KB boundary. These routines run at a
+  steady stack depth, where that evidently never happens. Found by Claude
+  Code / Opus 5.5 in #2662.
+- **0x4cca33** (a 16-bit line drawer in the gap region 0x4cbbe0): it calls the
+  clipping routine 0x4cc650 with four arguments and no surface, so 0x4cc650
+  takes x0 as the surface, and it reads `word ptr [edi]` from an edi nothing
+  sets. Its only caller is 0x4ccd85, which nothing calls: it looks like an
+  unfinished routine. Found by Claude Code / Opus 5.5 in #2662.
+
 - **0x435320** (briefing text loader): it frees the buffer at `+0xc14`
   (0x435330) and stores the new one only when the file size is non-zero; a
   zero size takes `je 0x435395` at 0x435368 and returns with the freed pointer

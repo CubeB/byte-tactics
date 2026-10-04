@@ -1,4 +1,24 @@
-// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro, re-verified by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro, re-verified by space-bunny-free, edited by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (issue #4678): still 83.6%, but two facts for whoever is next.
+//   1. CONSTANTS. The original's 0x4fda90 is 0x3fd45f306dc9c889 = 1/3.14159265358979,
+//      not 1/pi (0x...c883, the old `0.3183098861837907` literal), so the old file
+//      would have failed the constant check even with the code right. With
+//      `#define PI 3.14159265358979`, PI / 2 and PI / 4 give 0x4fda78 and 0x4fda80
+//      exactly, and `use / PI` (kept a separate statement from `use * 32768.0`)
+//      gives the fmul by 1/PI. Our .rdata is now byte-identical to 0x4fda60..0x4fda97
+//      (-2.0, 0.0, 2.0, pi/2, pi/4, 32768.0, 1/PI).
+//   2. LOAD ORDER. Across about 500 variants (build/scratch/0x49a890/: statement
+//      orders, every commutative operand order, sum/d4/gh as variables or inline,
+//      sum defined after or inside disc, `2.0 * g * h` spellings, `double gd = g`
+//      before the call, 0 to 4181 extra declarations, /Gi) ours always loads
+//      height, g, speed after _hypot; the original loads g, height, then stores H
+//      and multiplies before loading speed. C2 canonicalises statement and operand
+//      order here, so none of those levers reach it. Micro tests show what does put
+//      g first: a second `(double)g` occurrence discovered before height's second
+//      one (CSE defs are emitted in discovery order), or g read through a pointer
+//      after the call. Neither fits the original's code, so the lever is still
+//      unknown; the right tree (d4 = d*d shared, see below) with the permuter
+//      reaches 83.2% at 488 bytes and has the same load order.
 // space-bunny-free (issue #4502): still 83.6% (488/488), no MATCH, but the middle is now
 // explained, and the explanation rules OUT every spelling tried so far. Re-derived the x87
 // schedule by simulating the raw bytes of both the original and our own object
@@ -168,6 +188,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#define PI 3.14159265358979
+
 extern "C" double __cdecl _hypot(double x, double y);
 
 #pragma pack(push, 1)
@@ -207,18 +229,18 @@ short __stdcall FUN_0049a890(int x, int height, int z, int speed, float angle)
     if (high > 0.0)
         highAngle = acos(sqrt(high) / (double)speed);
     else
-        highAngle = 1.570796326794895;
+        highAngle = PI / 2;
     if (low > 0.0)
         lowAngle = acos(sqrt(low) / (double)speed);
     else
-        lowAngle = 1.570796326794895;
+        lowAngle = PI / 2;
     double use;
-    if (angle < highAngle && highAngle <= 0.7853981633974475)
+    if (angle < highAngle && highAngle <= PI / 4)
         use = highAngle;
-    else if (lowAngle > angle && lowAngle <= 0.7853981633974475)
+    else if (lowAngle > angle && lowAngle <= PI / 4)
         use = lowAngle;
     else
         return 0x8000;
     use = use * 32768.0;
-    return (short)(use * 0.3183098861837907);
+    return (short)(use / PI);
 }

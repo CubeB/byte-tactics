@@ -1,6 +1,7 @@
 // Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
 // #5429 Codex retry: re-confirmed 76.6%; the original x87 schedule still
 // conflicts with the escaping struct-return buffers.
+// #5441 Codex retry: re-confirmed 76.6%; the same x87 schedule conflict remains.
 // #5403 Codex retry: 76.6% remains best. The original's interleaved x87
 // schedule still conflicts with the escaping struct-return buffers needed by
 // the vector code, and prior source-shape sweeps found no combined form.

@@ -743,6 +743,12 @@ effect, the missing piece is usually a helper that was inlined:
   the fix was a local the sibling 0x4c06e0 also has (`int z = span->z1;` read
   inside the `w > 0` block), which C2 counts and which raised the product's
   priority above w with no extra code (#5606).
+- **The frame-count walk is not quite the final layout**: a then-arm inside
+  a loop that ends in a `return` is counted where it sits in the loop, but
+  emitted after the main return (0x462f30, #5608). Across 665 matched
+  functions, 284 locals have counts with no visible access; most come from
+  reloads merged at joins or found already in a register, or from a loop
+  guard.
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

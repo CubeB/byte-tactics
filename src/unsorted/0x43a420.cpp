@@ -3,41 +3,35 @@
 // text file (the other one is 0x43a0c0; 0x43a970 is the matching writer).
 // data/symbols.csv still names this address Class_0043a420::Class_0043a420
 // (the name its caller 0x487080 uses), but the vtables it stores are
-// Class_0043a1f0's, so it is that class's second constructor; matching it
-// will need a data/aliases.csv row for the caller's name.
+// Class_0043a1f0's, so it is that class's second constructor.
 //
-// Partial, 96.6% (Claude Opus 5.5; it was 94.0%). The kind is resolved by
-// two inlined helpers, one per branch, each returning an unsigned char: by
-// name through the sorted kind table (lower_bound), or, for files without a
-// "<name>_name" key, by counting the entries without flag bit 0. Written
-// inline (as earlier attempts did) the fallback scan put the compared
-// counter in ECX and lost the `mov dl, cl` that copies the helper's result
-// into place; as a helper with `int idx` declared before `int k` the scan is
-// byte-identical. The real resolver FUN_0043a360 is defined above and
-// inlined, as in the original file.
+// The kind is resolved by two inlined helpers, one per branch, each
+// returning an unsigned char: by name through the sorted kind table
+// (lower_bound), or, for files without a "<name>_name" key, by counting the
+// entries without flag bit 0. Written inline (as earlier attempts did) the
+// fallback scan put the compared counter in ECX and lost the `mov dl, cl`
+// that copies the helper's result into place; as a helper with `int idx`
+// declared before `int k` the scan is byte-identical. The real resolver
+// FUN_0043a360 is defined above and inlined, as in the original file.
 //
-// What still differs is one instruction's position in the prologue: the
-// original stores the base vtable 0x4fd2cc between the two `push edi`
-// arguments of the link member's constructor; ours sinks it below both
-// pushes and `mov ecx, esi`, next to the kind store. Same instructions and
-// registers; the store stays sunk in every spelling tried:
-//  - kind in the base class, set by an inline base constructor (from an
-//    argument, in its init list or in its body), or `kind = 0` in the body;
-//  - an explicit base constructor in the class, out of class, `inline` or
-//    not, or calling an empty inline method; a user-written vptr field set
-//    in the base constructor's body or init list;
-//  - `link((void*)0, 0)`, `link(0, kind)`, `link((void*)kind, 0)`, default
-//    arguments, the link as a derived wrapper type with its own inline
-//    constructor (no arguments, one, or two), extra init-list members;
-//  - a vptr or virtual destructor on the link class, the init-list order,
-//    `link.value = this` without the inline setter;
-//  - the real preceding functions (0x43a2d0, 0x43a360) defined above, /Gi,
-//    1536 header sets (tools/headers.py --cpp), dummy declaration counts
-//    0 to 2050 (flat), and a 15-minute permuter run (15819 candidates).
-// Nothing in matched code puts a store between two register pushes of one
-// call except where the stored value is computed just before (0x4077e0), so
-// the original's vtable store was probably not sunk at all: it may come
-// from a construct MSVC does not treat as a top-level store.
+// The prologue (Claude Opus 5.5, #5496; 96.6% to MATCH): the original stores
+// the base vtable 0x4fd2cc between the two `push edi` arguments of the link
+// constructor. That happens when the kind is cleared by the inline
+// constructor of a second base class (Head_0043a420, the fields from +0x4 to
+// +0x11). Its `this` is the object plus 4, so MSVC 5 cannot tell that the kind
+// store and the vtable store do not overlap, keeps them in order, and
+// schedules the vtable store first. With `kind(0)` as a member initialiser
+// (every earlier attempt) the stores are independent and both sink below the
+// pushes. A base holding only the kind byte gives the same bytes; a member of
+// class type with its own constructor does not (96.4%), and moving the link
+// into the base breaks the rest (66.9%).
+// Caveat for whoever unifies the class: the matched sibling constructor
+// 0x43a0c0 needs `kind(k)` as a plain member initialiser. Written with this
+// second base (`Head(k)`), its vtable store moves between its pushes too
+// (98.9%), so the two files still describe the class differently.
+// The case-3 attachment constructor is Class_0044e740's second constructor,
+// 0x44e7d0, which shares its name with 0x44e740; data/aliases.csv has a row
+// for it.
 #include <stdio.h>
 #include <string.h>
 
@@ -183,15 +177,22 @@ public:
 };
 
 #pragma pack(push, 1)
-class Class_0043a1f0 : public Class_0043a1e0 {
-public:
-    virtual void FUN_0043a1e0(unsigned int);
-
+// The fields between the vtable pointer and the link, as a second base whose
+// inline constructor clears the kind (see the notes at the top).
+struct Head_0043a420 {
     unsigned char kind;                // +0x4
     unsigned char flag5;               // +0x5
     unsigned int flags6;               // +0x6
     int last_id;                       // +0xa
     Unit_0043a420* unit;               // +0xe
+
+    Head_0043a420() : kind(0) {}
+};
+
+class Class_0043a1f0 : public Class_0043a1e0, public Head_0043a420 {
+public:
+    virtual void FUN_0043a1e0(unsigned int);
+
     Class_004895c0 link;               // +0x12
     Vec3_0043a420 pos;                 // +0x22
     int field_2e;                      // +0x2e
@@ -254,7 +255,7 @@ static unsigned char KindByIndex_0043a420(unsigned char want)
 
 // FUNCTION: 0x43a420
 Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char* name)
-    : kind(0), link(0, 0)
+    : link(0, 0)
 {
     link.SetValue(this);
     link.FUN_00489690(0);

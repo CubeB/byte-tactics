@@ -7891,7 +7891,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x408100,1221,,#5461,assigned,,,"issue #5461, escalated"
 0x409730,1678,,#5461,assigned,,,"issue #5461, escalated"
 0x471de0,195,,#5464,assigned,,,"issue #5464, escalated"
-0x4851c0,354,,#5465,assigned,,,"issue #5465, escalated"
+0x4851c0,354,gpt-6,#5465,partial,84.7,,"issue #5465, escalated"
 0x4797e0,1034,opus,#5467,matched,100.0,,"issue #5467, escalated"
 0x497ce0,595,opus,#5470,matched,100.0,,"issue #5470, escalated"
 0x449bb0,2756,,#5475,assigned,,,"issue #5475, escalated"
@@ -7909,3 +7909,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x462f30,1653,,#5515,assigned,,,"issue #5515, escalated"
 0x463790,1040,,#5515,assigned,,,"issue #5515, escalated"
 0x4152f0,1504,,#5520,assigned,,,"issue #5520, escalated"
+0x4851c0,354,,#5522,assigned,,,"issue #5522, escalated"

@@ -735,6 +735,14 @@ effect, the missing piece is usually a helper that was inlined:
   `- gh*-2.0` came from writing `(s2 + 2*gh) * s2`, not from casts; redundant
   parentheses around `_hypot` and the sums then fixed the x87 order, and their
   counts matter. It matched from 95.1% without any no-op casts (#5588).
+- **Search matched functions for the missing idiom**: when several passes
+  stall, scan the original disassembly of matched functions for the exact
+  instruction pattern you lack and copy their spelling. In 0x4c0a90 all ~40
+  matched sites with `xor r,r; mov r16,[mem]` feeding `imul` read the
+  `unsigned short` field directly, which showed the pitch was not the problem;
+  the fix was a local the sibling 0x4c06e0 also has (`int z = span->z1;` read
+  inside the `w > 0` block), which C2 counts and which raised the product's
+  priority above w with no extra code (#5606).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

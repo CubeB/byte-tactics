@@ -1,4 +1,42 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-Sol, finished by space-bunny-free, edited by deepseek-v4.1-flash, edited by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (#5520): still 90.5%, code unchanged; what was measured, so
+// the next attempt can skip it (all numbers from tools/c2prio.py):
+//  - The do-while fold (Land returning 1/0, `do {} while (0);` after the
+//    health test, FUN_0040f200 `inline`) only works when no function is
+//    compiled before FUN_004152f0 in the file. A trivial function in front,
+//    FUN_0040f200 compiled out of line, or the real preceding 0x415250 all
+//    bring the test back (1514 bytes), and so do 0 to 1200 extra
+//    declarations. So if the original folded this way, 0x4152f0 opened its
+//    translation unit and FUN_0040f200 came from a header as an inline
+//    function. Every Land shape tried (bool, `!Land`, a -1 sentinel, a result
+//    local, `int r = Land(); if (r) return 0;`) folds either with that
+//    setup or not at all.
+//  - In the folded file order is 48 and case 0's unit web 76, so unit takes
+//    esi. A Land with a result local (`int landed = 0; ... landed = 1; ...
+//    return landed;`) gives order 81 and the original's registers, but keeps
+//    the test (1509 bytes, 90.0%). The flag's extra weight is in the set-up
+//    block (K 4 -> 7: the flag, the zero and the 0x56 `new` size, which is a
+//    register candidate only when such a variable exists) and in each
+//    reclaim arm.
+//  - In the folded file, these raise order: the reclaim arms each written
+//    with their own `FUN_0043acb0(unit, obj); order->flags = 0; return 3;`
+//    (72, but the arms no longer cross-jump: 1590 bytes); a per-arm helper
+//    `return Reclaim(unit, order, pos);` doing FUN_004388d0(0), the `new`,
+//    FUN_0043acb0 and `flags = 0` (84 to 98: order esi and unit edi as in
+//    the original). With that helper and the Owner accessors replaced by
+//    plain field reads (fewer depth-1 sites after Land, so Land's /Ob2 share
+//    stays at 92 or more and pads.size() stays inline), everything up to the
+//    reclaim chain matches (81.0%, 1501 bytes). The chain is then wrong: arms
+//    3 and 4 merge in the IL, the position takes ebp from the zero, and the
+//    four arms no longer share one constructor tail. Helpers that end each arm
+//    at `obj = ...` (which the cross-jump needs) reach only 74, and adding a
+//    set-up helper (new Class_0044e2d0, FUN_0044e6c0, FUN_004388d0) on top
+//    gets 80 but changes the /Ob2 budget and the set-up code (40%).
+//  - No effect on the 48/76 gap: a bool or int local for the health test, an
+//    IsDamaged helper, case 0 rewritten (early break, a target local, nested
+//    ifs, case 1 first), a void Assign(unit, order, obj) helper (IL under 41,
+//    its parameters are propagated away), SetNext/Wait/Done wrappers, an
+//    `unsigned int&` to order->flags, headers.
 // Codex / GPT-6 retry for #5491 (2026-10-04): permute.py found and the
 // checker verified a 90.5% / 1519-byte best from 632 candidates in 17.4
 // minutes (`move_stmt+cast`), up from 90.3% / 1520 bytes. The remaining

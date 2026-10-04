@@ -14,6 +14,7 @@ uv run tools/linkcheck.py --json build/linkcheck.json   # the counts as JSON
 uv run tools/globals.py                # rebuild data/globals.csv, link/globals.h, link/data.cpp
 uv run tools/globals.py --check        # also compile link/data.cpp and compare it with the exe
 uv run tools/stateprobe.py HEADER --rename   # how many matches a shared header would break
+uv run tools/place.py                  # link at the original's addresses: build/place/TotalA.exe
 ```
 
 `linkcheck.py` and `globals.py` compile through `tools/progress.py`'s cache in
@@ -214,6 +215,99 @@ material and the starting point for phase 4.
 `data/globals.csv` gives each global a function refers to, so a decompiling
 agent sees the type most of the tree already uses. Without `globals.csv` it
 prints what it did before.
+
+## The placement link
+
+`tools/place.py` builds a `TotalA.exe` that runs: under Wine it plays the
+intro and reaches the main menu, exactly as the original does. It links the
+same objects as `tools/link.py`, but puts every piece at the address the
+original has it, the layout LEGO Island's decomp checks its rebuilt binaries
+against (reccmp's placement report, ReproBit's byte-for-byte verify). The
+original exe has no relocation table, so code and data that are not rebuilt
+yet (the gap regions, the runtime library, data no object defines) only work
+at their own addresses; with everything else at its own address too, they
+need no relocation at all. And every call reaches the one function at its
+address, whatever its caller calls it, so the spellings `tools/link.py`
+bridges with aliases do not matter here.
+
+How it places things:
+
+- **Game functions** are placed at their `data/progress.csv` addresses, from
+  the objects in `build/progress` that `tools/check.py` compares. Each
+  object's COMDAT padding fills the space up to the next function, as LINK's
+  would.
+- **Relocations** are resolved by name: a placed function, a placeholder
+  (`FUN_`/`DAT_<address>`), a `data/symbols.csv` name or one of its
+  `data/aliases.csv` copies, a runtime library function `data/functions.csv`
+  names, or an import: its slot in the original's import address table, or
+  the linker's `jmp [slot]` stub for a direct call. The DLLs imported by
+  ordinal are named through `link/smackw32.def` and `link/dplayx.def`, read
+  from the DLLs' own export tables.
+- **Data the compiler emits with the code** (string literals, floating-point
+  constants, jump tables, exception tables, vtables, file and function
+  statics) is placed one symbol at a time where the original's code refers to
+  it, the way a map file would say. Its contents come from the object, and
+  where a vtable or table the source declares disagrees with the original's
+  entry (the source's partial view of a class), the original's entry is kept
+  and listed.
+- **`link/data.cpp`** and the globals `tools/globals.py` leaves out are placed
+  at their addresses, one global at a time.
+- **What has no source** is copied from the original and counted as copied:
+  the 29 gap regions, the runtime library code, data no object defines, the
+  linker's import tables, the headers, `.tls` and the resources.
+
+Every relocation is checked against the address the original's bytes give at
+that spot, and the finished image is compared with the original byte for
+byte, which is the placement and data compare #4869 asks for. The report
+counts where each section's bytes came from. On 2026-10-04 at fa49dca6:
+
+| Section | Bytes | From source | Copied |
+| --- | ---: | --- | --- |
+| `.text` | 1,026,560 | 851,013 game code, 25,371 padding | 124,720 runtime library, 25,456 gap regions |
+| `.rdata` | 18,432 | 2,588 compiled data, 2,948 `link/` globals, 372 padding | 6,529 import tables, 5,995 other data |
+| `.data` | 173,660 | 34,263 compiled data, 78,479 `link/` globals | 60,918 |
+
+Of the 33,252 relocations in placed pieces, every one in code agrees with the
+original (135 of them reach the second copy of a function `data/aliases.csv`
+lists, such as the two `std::_Lockit`). 92 vtable entries in compiled data
+disagree and keep the original's value. The image differs from the original
+in 16 bytes, the `TODO` initial values of `link/data.cpp` (`DAT_0050a788`'s
+four GUID pointers and the fourth element of `DAT_00509688`), and under the
+two rows of `data/exe_patches.csv`, where it has the compiler's bytes rather
+than GOG's no-CD music patch. `build/place/TotalA.map` lists every placed
+piece and the object it came from.
+
+To run it, copy it into a copy of the game's directory (the Steam or GOG
+install, with `smackw32.dll` and `win32.dll`) and start it under Wine, for
+example `wine explorer /desktop=TA,800x600 TotalA.exe`. Like the original, it
+shows a DirectX version warning over the main menu in a fresh Wine prefix.
+
+### Why not LINK's own layout
+
+LINK 5.10 can put functions in a given order: with `/ORDER` listing every
+game function in address order, the first 164 land at their original
+addresses, with the same 16-byte alignment and `nop` padding. Three things
+stop that from reaching the whole image:
+
+- LINK keeps the first copy of a COMDAT it sees. The tree keeps copies of
+  callees in callers' files so they inline (`docs/consolidation.md`), and
+  their bodies can differ: at 0x40d020 LINK kept `vector<short>::insert` from
+  `0x409160.obj`, 16 bytes longer than the annotated one, and everything after
+  moved.
+- Data cannot be ordered the same way. The original's `.data` holds each of
+  Cavedog's objects' literals, constants and globals together; the tree's
+  objects hold one function's worth each, so LINK would interleave them in a
+  different order, and the code and data that are copied from the original
+  would point at the wrong things.
+- The gap regions and the runtime library code have no objects to order.
+
+Each of these could be worked around (dropping unwanted COMDAT copies from
+the objects before linking, blob objects for the gaps, a single data object
+with every global at its offset), but each workaround is a placement decision
+made outside LINK, so `place.py` makes all of them itself and checks each one.
+The ordinary link remains the way to a relocatable build: `place.py`'s map of
+which symbol each address holds is what `tools/link.py` needs to give the
+copied data's pointers symbolic initialisers.
 
 ## Next steps
 

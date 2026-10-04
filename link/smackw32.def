@@ -1,0 +1,46 @@
+; The exports of RAD's smackw32.dll (Smacker 3.x, the copy the game ships),
+; read from the DLL's export table. The game imports 15 of them by ordinal, so
+; the ordinals here are what the import table holds. tools/place.py reads this
+; to name the original's import slots; `LIB /DEF:link/smackw32.def` turns it
+; into an import library for an ordinary link.
+LIBRARY smackw32
+EXPORTS
+    SmackBufferString@8              @1 NONAME
+    SmackBufferOpen@24               @2 NONAME
+    SmackBufferBlit@32               @3 NONAME
+    SmackBufferFocused@4             @4 NONAME
+    SmackBufferNewPalette@12         @5 NONAME
+    SmackBufferClose@4               @6 NONAME
+    SmackBufferSetPalette@4          @7 NONAME
+    SmackBufferClear@8               @8 NONAME
+    SmackSetSystemRes@4              @9 NONAME
+    SmackBufferToBuffer@32           @10 NONAME
+    SmackBufferToBufferTrans@36      @11 NONAME
+    SmackBufferFromScreen@16         @12 NONAME
+    SmackBufferCopyPalette@12        @13 NONAME
+    SmackOpen@12                     @14 NONAME
+    SmackSimulate@4                  @15 NONAME
+    SmackFrameRate@4                 @16 NONAME
+    SmackSoundOnOff@8                @17 NONAME
+    SmackClose@4                     @18 NONAME
+    SmackDoFrame@4                   @19 NONAME
+    SmackSummary@8                   @20 NONAME
+    SmackNextFrame@4                 @21 NONAME
+    SmackToScreen@28                 @22 NONAME
+    SmackToBuffer@28                 @23 NONAME
+    SmackColorTrans@8                @24 NONAME
+    SmackColorRemap@16               @25 NONAME
+    SmackGetTrackData@12             @26 NONAME
+    SmackGoto@8                      @27 NONAME
+    SmackToBufferRect@8              @28 NONAME
+    SmackSoundInTrack@8              @29 NONAME
+    SmackVolumePan@16                @30 NONAME
+    SmackSoundCheck@0                @31 NONAME
+    SmackWait@4                      @32 NONAME
+    SmackSoundUseMSS@4               @33 NONAME
+    SmackSoundUseDW@12               @34 NONAME
+    donemarker@20                    @35 NONAME
+    TimerFunc@20                     @36 NONAME
+    SetDirectSoundHWND@4             @37 NONAME
+    SmackSoundUseDirectSound@4       @38 NONAME
+    SmackSoundUseWin@0               @39 NONAME

@@ -1,0 +1,12 @@
+; The DirectPlay 3 entry points of DPLAYX.DLL that the game imports by ordinal
+; (ordinals as Microsoft's DPLAYX.DLL and Wine's dplayx.dll number them).
+; tools/place.py reads this to name the original's import slots;
+; `LIB /DEF:link/dplayx.def` turns it into an import library for an ordinary
+; link (the toolchain's DPLAY.LIB has none of these).
+LIBRARY DPLAYX
+EXPORTS
+    DirectPlayCreate@12              @1 NONAME
+    DirectPlayEnumerateA@8           @2 NONAME
+    DirectPlayEnumerateW@8           @3 NONAME
+    DirectPlayLobbyCreateA@20        @4 NONAME
+    DirectPlayLobbyCreateW@20        @5 NONAME

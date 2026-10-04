@@ -1,4 +1,20 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5, finished by GPT-6, retried by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 retry (#5577, 2026-10-04): still 88.5%. The #5537 lead
+// (bit and W1 both CSE'd so that W1 >= los > bit) cannot give the original's
+// arms, whatever spelling: the original's E1 and E3 (`mov ecx, esi`) are
+// loads of [edi+0x80] that the code generator replaced with the register
+// holding the same value (fall-through only), and S1 is a plain memory
+// compare, so in the original's IL all three are loads through los, not uses
+// of W1. A CSE use of W1 always compiles to a direct register operand
+// (`cmp edx, esi`, `imul eax, esi`). So W1's references in the original are
+// only B7 and S3, as the #5165 notes say, and the gap has to close through
+// los or bit, not W1. Measured here (all lower): main's first test and vis
+// test written as a call to the sibling 0x4658e0's IsSeen (52.7 to 54.5%: the
+// result is materialised with neg/sbb before the test, where the original
+// branches directly), helpers taking the ByteMap (64.2%), the sibling's
+// IsExplored (`size.Contains && Get`, 63.1%), a block-local `Los* l = los`
+// for the arms (82.8%), and the volatile-bit forced build (57.5%; los then
+// takes esi, so it also needs W1 above los).
 // claude-opus-5-5 retry (#5537, 2026-10-04): still 88.5%, about 150 scratch
 // variants read with tools/c2prio.py (scripts in build/scratch/0x47d2e0/).
 //  * The vis test in steps or as a bool (`bool seen = ...`, `int seen = word &

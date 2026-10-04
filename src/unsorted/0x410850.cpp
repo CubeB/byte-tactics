@@ -1,5 +1,28 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
 //
+// #5417 (Claude Opus 5.5): still 98.6%, but the cause is now pinned down, and it
+// is not missing temporaries. C2 generates the test's operands in the order
+// health (movsx), def load, lea; the original's registers (def edx, health ecx,
+// lea eax, with the FUN_0040b530 block unchanged) are exactly what the order
+// def load, lea, health gives from the same rotation pointer (edx), with no
+// extra temporaries. C2 puts health first because the test's `u->def` read is
+// a common subexpression of SearchRange's later `u->def` read (the test
+// dominates it; calls and other stores in between do not break it). Each of
+// these throwaway changes gives the original's test and block: SearchRange
+// returning a constant, or any later read or store of `unit->health`. In toy
+// files: a later read of the def field makes the compare health-first; a later
+// (or earlier, dominating) read of health as well, a store to health, passing
+// `&u->health` to a call, or reassigning the unit pointer between the two reads
+// gives def-first again. Spellings of the second read that do NOT break the
+// pairing: a local pointer or reference to the field, casts, const, another
+// struct with the field at the same offset, reading via `visitor.self`,
+// SearchRange(unit->def), computing the range inline or before the test, and
+// moving the test out of Patrol. Front-end id shifts of 0 to 60000 do not move
+// it either. So the original's range read must not be dominated by the test's
+// def read (or health is read again somewhere), and no natural spelling found
+// does that. `tools/c2prio.py --rotation` with each temporary's tuple opcode
+// (+4 of the tuple: 01 load, 12 lea, c5 movsx, 109 movzx byte) shows the order.
+//
 // Claude Opus 5.5, #5302: 94.6% -> 98.6% (1051 bytes, the right size). Two of
 // the three residuals of the 94.6% file are gone; what fixed them:
 // #5368 retry: current main confirms 98.6%; the health-test scratch-register

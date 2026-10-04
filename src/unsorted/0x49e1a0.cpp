@@ -1,34 +1,16 @@
 // Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by GPT-6,
-// finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional. PARTIAL 87.4%, 969 of 969 bytes.
-// Retry note: best checked source scores 87.4% after five check.py invocations (four returned results);
-// remains unmatched. Raw flag reuse produced identical code; narrowing a shifted byte regressed to 86.2%.
-// Remaining differences include the bit-4 extraction/test shape, call-tail merging and register scheduling.
-// #4158 retry by Codex / GPT-6 (2026-10-04): after 31 checker runs the
-// best remains 87.4%. The full permuter tested 867 candidates, and an earlier
-// five-minute run tested 251, both with no gain. `stackcmp.py` found the frame
-// and all used locals aligned; `/Gi` also left the score unchanged. Shared-call
-// tails, scalar distance expressions, shifted flag locals, name reload forms,
-// and local declaration orders did not improve the result. `c2prio.py` could
-// not run because gdb and winedbg are absent. Keep this best for the next retry.
-// Best variant keeps DAT_00509688[(e->flags >> 2) & 3] cached in a local and reuses it for
-// FUN_00456200. The faithful version that reloads the global twice in each arm scored lower
-// (81.2% originally, 84.6% with the fixes below) because MSVC duplicated both FUN_00456200
-// calls instead of merging their common suffix at 0x49e393.
-// What fixed 86.9% -> 87.4%: write the bit-26 update as
-// `int m = (attached->f_111.b26) ? 0x800 : 0x400; unit->f_ba.w |= m;`. That materializes the
-// ternary in eax, giving the original's
-// `mov eax,[ebx+0x111]; shr eax,0x1a; and al,1; neg al; sbb eax,eax; and eax,0x400;
-//  add eax,0x400; or [edi+0xba],ax`, and as a side effect the FUN_004012a0 argument loads
-// become `mov ecx,[ebx+0xc4]; mov edx,[ebx+0xc0]` as in the original.
-// Still different: (1) the else-arm bit-4 test uses `test al,0x10` instead of the original
-// `mov edx,eax; shr edx,4; test dl,1`. Forcing the shr shape needs a byte local
-// (`unsigned char b4 = attached->f_111.b4;`), which gives the right instructions but in ecx
-// and drops the score to 83.9% because the length change shifts every branch. (2) The
-// FUN_00456200 tail merges only at `push edi`; the original merges from `push 2` through the
-// name load at 0x49e393. (3) In the b19 arm the cached name is kept in ebp; the original
-// reloads DAT_00509688 into eax for FUN_004b0a70 and into ecx for FUN_00456200. Using inline
-// expressions for both fixes (3) but the tail then does not merge and the score is 84.6%.
-// headers.py tried 128 header sets, all 86.9%.
+// finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Claude Opus 5.5.
+// Names are provisional.
+//
+// What made this match (87.4% before):
+// - Both aim arms read DAT_00509688[(e->flags >> 2) & 3] afresh for each call,
+//   as the original does; no cached name local. With the temporaries in the
+//   original's rotation, MSVC merges the two FUN_00456200 tails at 0x49e393.
+// - The bit-4 test in the non-b19 arm goes through a `bool` local. Testing the
+//   bitfield in place compiles to `test al, 0x10`, which skips one step of the
+//   eax/ecx/edx rotation, so the later temporaries land one register off and
+//   the tails stop merging. The `bool` (or an `unsigned char`) gives the
+//   original's `mov edx, eax; shr edx, 4; test dl, 1`.
 #include <string.h>
 
 struct Vec3_0049e1a0 {
@@ -92,7 +74,6 @@ struct Target_0049e1a0 {
     unsigned short f_e4;
     char unknown_e6[0x111 - 0xe6];
     Flags_0049e1a0 f_111;
-    unsigned int& f_111_raw() { return *(unsigned int*)&f_111; }
 };
 
 struct Entry_0049e1a0 {        // 0x1c bytes
@@ -198,14 +179,15 @@ void __stdcall FUN_0049e1a0(Unit_0049e1a0* unit) {
                     e->f_18 = angle;
                     e->f_16 = heading;
                     e->f_8 = 0;
-                    char* nm = DAT_00509688[(e->flags >> 2) & 3];
-                    unit->script->FUN_004b0a70(nm, &e->name, 0, 2, heading, angle, 0, 0);
-                    FUN_00456200(unit, nm, 2, heading, angle, 0, 0);
+                    unit->script->FUN_004b0a70(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2,
+                                               heading, angle, 0, 0);
+                    FUN_00456200(unit, DAT_00509688[(e->flags >> 2) & 3], 2, heading, angle, 0, 0);
                     e->flags |= 1;
                 }
             }
         } else {
-            if (attached->f_111.b4 && (!attached->f_111.b28 || e->f_1a) && !(e->flags & 1)) {
+            bool armed = attached->f_111.b4;
+            if (armed && (!attached->f_111.b28 || e->f_1a) && !(e->flags & 1)) {
                 e->f_8 = 0;
                 unit->script->FUN_004b0a70(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2, 0, 0,
                                            0, 0);

@@ -1,312 +1,59 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
-// Claude Opus 5.5 (#5627 follow-up, 2026-10-04): 99.8%, hunk 3 fixed with real
-// headers; only hunk 1 is left.
-// - The file includes include/ta_types.h, the game's merged types: its Vec3,
-//   Class_00438760 and Class_004085d0 (on Base, whose owner is an AI) replace
-//   this file's views. Vec3's default constructor and operator+/- and
-//   Class_00438760's default constructor are declared there and defined here,
-//   inline, with the bodies the views had; the code is unchanged.
-// - With ta_types.h the file total is 63452 and hunk 3 is fixed for totals
-//   65232 to 65732 (unused externs at the end, scratch only). <time.h> and
-//   <shlobj.h>, both in docs/c2-regalloc.md's plausible set, add 2228 (total
-//   65680) and leave MapRange's loads in the original's order. Other real sets
-//   that land: <commctrl.h> with <algorithm> (65314), <vfw.h> (65385),
-//   <commctrl.h> with <iostream.h> (65370), <strstrea.h> (65504) or
-//   <fstream.h> (65579). <shlobj.h> alone (65636) fixes hunk 3 but flips
-//   MapRange. The window is only 500 wide, so a regenerated ta_types.h that
-//   grows by more than about 50 ids puts this set past it; <commctrl.h> with
-//   <algorithm> would then be the set to try (it sits 82 above the bottom).
-// - Hunk 1 is unchanged by the ids: the loop-body-scope target shapes below
-//   give the same 99.8% (the tail's store order) with these headers.
-// Claude Opus 5.5 (#5627, 2026-10-04): 99.3% (was 98.5%); hunk 2 is fixed.
-// - Vec3 is the plain struct the same TU's matched 0x40a5d0 declares (no user
-//   operator=), and the inline Direction() is FUN_004103a0's own body, x, y, z
-//   order. That gives the original's schedule (xor ebp,ebp before the second
-//   trig call) but, as the notes below say, a priority tie at 312 between the
-//   inlined angle and d.x, d.y, d.z that angle won (key 277 against 260), so
-//   it took ebp and v.y needed `mov ebp, ebx`.
-// - What breaks the tie: Length() names its sum and its result (`float sq`,
-//   `int len`). The flag12 arm's `len` is then a register candidate in its
-//   Length block (c2prio: K 11 to 12), d.x, d.y and d.z rise to 320, are
-//   coloured before angle, and angle takes ebx. Either name alone does
-//   nothing. Found by tools/permute.py from the plain-Vec3 file in 40 s.
-// - Left: hunk 1 (0x408334, the u->def load scheduled above the three
-//   `target = origin` stores) and hunk 3 (the first _allmul pushed d.x first,
-//   a symbol-id window, see below).
-// - Hunk 1 follows target's scope, not its spelling: declared in the loop
-//   body (before the condition, or after `continue` tests) instead of inside
-//   the if-block, the def load stays below the stores as in the original, but
-//   then the len<0x1400000 tail's u->pos loads are no longer hoisted above
-//   the target stores either (97.2%, 1219 bytes, `add ebp, [esi+0x6a]`). The
-//   original has the first behaviour at the copy and the second in the tail.
-//   With the loop-body target, writing the tail so its loads come first gives
-//   the right order but the sums in the wrong registers: `target = u->pos +
-//   d` (any operator+ form, member or free, either operand order) puts all
-//   three sums in the pos registers (97.3%); `d.x += u->pos.x` and so on
-//   then `target = d` gets x right and adds y and z into d's registers
-//   (98.0%). The closest: `int x = d.x + u->pos.x; int y = u->pos.y + d.y;
-//   int z = u->pos.z + d.z;` then the stores in z, x, y source order. Hunk 1
-//   and the whole tail are then right except that the stores come out x, z, y
-//   (99.3% too, the other hunk instead of hunk 1); z, y, x gives y, z, x, and
-//   any store order starting with x or y reorders the loads (98.3% or less).
-//   All 36 compute/store orders, mixes of named and inline sums, a Set()
-//   helper (either body order) and a Vec3(x, y, z) constructor were scored.
-//   A `for (;;) { ... break; }` or a label around the if/else, nested
-//   conditions and by-value Length/operator+ change nothing.
-// - Hunk 3 has no low-id side: it moves only with unused externs at the END
-//   of the file (59800 to 60200 here), so both deciding ids are numbered
-//   after the function's body (C2's temporaries, or end-of-file template
-//   members), and their order flips only when C2's counter passes 65536
-//   between them. No count at the 16384, 32768 or 49152 boundaries moves it,
-//   so a smaller header set cannot reach it the way 0x409730's did. With
-//   59800 to 60000 such externs this file is 99.8% (hunk 1 only); no count
-//   from 59650 to 60190 (step 10) moves hunk 1.
-// - The notes below describe the 98.5% file: its user operator=, x, z, y
-//   Direction() and float-only Length() are replaced here.
-// Claude Opus 5.5 (#5541, 2026-10-04): still 98.5% here, file unchanged except
-// this note. Real TU code does reach hunk 3's window, but only as a whole TU:
-// - Hunk 3 needs C2's own counter at this function's allocation at about
-//   65585 to 65985 (5885 now plus the 59700 to 60100 of the notes below).
-// - The whole TU (all 105 files from 0x407350 to 0x40d5b0, each in its own
-//   namespace so their struct views do not clash, with the headers they
-//   include: <windows.h>, <ddraw.h>, <stdio.h>, <stdlib.h>, <string.h>,
-//   <minmax.h>) gives a file total of 51300 and C2 at 53008 (98.0%: MapRange's
-//   loads flip). The TU's code adds about 17300 of that, its headers 29800.
-// - Adding real headers: <commctrl.h> <dsound.h> <dplay.h> <d3drm.h> <vfw.h>
-//   <shlobj.h> <imagehlp.h> <string> <list> <io.h> <process.h> puts C2 at
-//   65684 and gives 99.0%: hunk 3 matches, MapRange is right, hunks 1 and 2
-//   are unchanged (four other sets in 65684 to 65764 do the same). With the
-//   generous header set of docs/c2-regalloc.md it overshoots (C2 at 72045).
-// - Not committed: it needs the 4800-line concatenation of the whole TU in
-//   namespaces, which is not the original's source, and hunks 1 and 2 stay.
-//   The functions after this one in the exe (0x408620, 0x408670, 0x408920,
-//   0x408bf0 have no callers) are not inlined here, so no real neighbour
-//   helps hunks 1 and 2. Generator: build/scratch/0x409730n/concat.py and
-//   hdrscan.py (`hdrscan.py 0x408100 range:0x407350:0x40d5b0 TAG SET...`).
-// #5461 Codex recheck: 98.5%; the three documented scheduler differences remain.
-// #5433 Codex retry: re-confirmed 98.5%; the three scheduler differences
-// remain, and the recorded source and symbol-state probes still apply.
-// #5445 Codex retry: re-confirmed 98.5%; the same three differences remain.
-// #5409 Codex retry: 98.5% remains best. The MapRange load order, angle/d
-// schedule, and first _allmul call still cannot match together with natural
-// source and symbol states.
-// #5424 Codex retry: re-confirmed 98.5%; all three scheduling differences remain.
-// Claude Opus 5.5 (#5374, 2026-10-04): still 98.5%, file unchanged except this
-// note.
-// - Hunk 3 (first _allmul) follows C2's own symbol ids alone: 59700 to 60100
-//   (and 60500 to 60600) unused externs at the END of the file, which move only
-//   the file total and so the ids C2 gives its temporaries, push the first call
-//   d.x-first as the original does and leave calls 2 and 3 alone. With the
-//   externs before the includes the window is 59700 to 60150 (hunks 1 and 2
-//   left), 60200 to 60400 is back to ours and 60450 to 60650 flips all three
-//   calls. c2prio --symbols: s 5136, d is no register candidate, file total
-//   5568, C2 at 5885 by this function's allocation. No global is an operand,
-//   so a block-scope extern cannot move it: it needs about 60000 more symbols
-//   (4759 header symbols now, 64459 to 64909 wanted), the lost-header prefix.
-// - Block-scope `extern Game_00408100* g_game;` after `origin` and `it`, with
-//   MapRange taking the game pointer, is 98.5% with the same three hunks;
-//   declared before `origin` it flips MapRange's loads (98.0%), and it still
-//   needs <memory.h>. Local declaration order in loop 2 (kind, len, s) is flat.
-// - Hunk 2 under c2prio: without the user operator= and with Direction() in
-//   x, y, z order the xor lands before the call, but the inlined angle and
-//   d.x, d.y, d.z tie at priority 312 (angle: block B28 only, w 4, K 13, cost
-//   6; each d field 88 + 104 + 120), angle wins on +0x40 (277 against 260),
-//   takes ebp because ebx would cost 6600, and d.y needs a `mov ebp, ebx`.
-//   With operator= the v.y temporary is propagated, B28's K is 12, angle drops
-//   to 288 and gets ebx, but the xor moves after the call. Flat or worse: 48
-//   combinations of int/short ang locals, Direction(int), helper orders, a len
-//   local and the three-store target; one, two or block-scoped `kind`s (87 to
-//   91%); target copied by memcpy (98.5%), memmove (69%), a pointer or an
-//   assignment. The expanded flag12 arm (int ang and direct d stores, as in
-//   the else arm) with a plain `len > range` is 76.8% with a 0x5c frame.
-// #5336 Codex retry: re-confirmed 98.5%; the three scheduler hunks remain.
-// #5352 retry: re-confirmed 98.5%; the target-store ordering and two register
-// allocation hunks remain as documented in the C2 notes below.
-// claude-opus-5-5 retry (#5274, 2026-10-03): still 98.5%, file unchanged except
-// this note. Hunk 3 (the first _allmul pushed d.x first) is a symbol-count
-// effect: 59700 to 60100 unused `extern int`s at the top of the file fix it
-// (C2's own temporary ids then pass 65536 inside this function) and keep
-// MapRange right, 99.0% with hunks 1 and 2 left; no count from 0 to 66000
-// moves hunks 1 or 2, and no plausible real header set reaches that count.
-// /Gi fixes hunk 3 too, but MapRange's order then follows the path of the
-// .pdb that check.py passes with /Fd, not only the source path: a by-value
-// `operator=(Vec3 o)` with /Gi is 99.0% (hunks 1 and 2 only) in
-// tools/propose.py's object directory at 16 source path lengths, but 98.5%
-// through check.py. Hunk 2 under c2prio: without the user operator= and with
-// Direction() in x, y, z order the schedule is the original's, but `ang`
-// takes ebp because d.z (the one neighbour left with only ebx) interferes with
-// it, so v.y gets ebx and a `mov ebp, ebx` follows; with operator= the field
-// copies kill d.z in place (no interference, ang in ebx) but v.y = 0 is
-// apparently propagated to the copy, so the xor lands after the second call. The
-// expanded arm (direct d.x/d.y/d.z stores) raises d.x and d.z to priority 448
-// above `u` (308), which is what rotates loop 1. Flat or worse this pass: a
-// do/while, `if (0) {}`, a label or a block around `target = origin`, a
-// member SetDir(), Direction() taking int, a `short ang` or `int ang` local
-// feeding Direction(), and splitting the arm into two `target =` branches
-// (68%).
-// Codex GPT-6 retry for #5181 (2026-10-03): current main recheck remains
-// 98.5%. The three scheduler hunks below have no improved source shape yet.
-// GPT-6 retry (#5224): rechecked at 98.5%; the three scheduler hunks remain.
-// Claude Opus 5.5 (#4919, 2026-10-03): still 98.5%, file unchanged except this
-// note. /Gi trial (judged by differing lines): `// FLAGS: /Gi` removes hunk 3
-// (the first _allmul pair is then pushed d.x first, as in the original) and
-// leaves hunks 1 and 2 exactly as they are, but it turns MapRange's two loads
-// into a tie that the SOURCE FILE'S PATH decides: the same text gives the
-// original's mapWidth-first order at some paths and mapHeight-first at others.
-// It follows the length of the path, not its characters or depth: one text
-// copied to directories named a, aa, ... 24 a's (and b's) is good for 4
-// lengths in every 8 and bad for the next 4. Each MapRange spelling (operand
-// order, <memory.h>, extra parentheses, a cast, a game-pointer parameter, a
-// member function, locals) only shifts that 8-length window, and one (a local
-// `Game* g`) is bad at all 8; renaming identifiers shifts it too, and the
-// object directory does not matter. Every spelling tried is mapHeight-first
-// at this worktree's src/unsorted/ path, so /Gi is 98.5% / 12 lines here and
-// 99.0% / 8 lines at other paths, against a path-independent 98.5% / 16 lines
-// without it. Not committed for that reason. Neighbours 0x407e90, 0x408090
-// (same vtable block) do not match under /Gi; 0x408f30, the
-// vector<Unit*>::insert after this TU, does.
-// GPT-6 retry: separate target component stores reproduce the known 97.8%
-// two-hunk shape; a short angle local and duplicated Length test do not fix
-// either remaining scheduler hunk. Keep the 98.5% source below.
-// New lead for hunk 1, both flag sets: declaring `Vec3 target;` at loop-body
-// scope (assigned `target = origin;` in the branch, slot still esp+0x30)
-// keeps the `u->def` load after the three target stores, as the original
-// does; the branch-scope copy lets the scheduler hoist it. The cost is the
-// len<0x1400000 tail: with loop scope its loads are no longer hoisted above
-// the target stores (1219 bytes, `add ebp, [esi+0x6a]`); `target = u->pos + d`,
-// `d + u->pos`, a `Vec3 p = u->pos` copy or a `t` temporary give the right
-// loads-then-adds-then-stores order but the sums in the pos registers
-// (ecx/edx/edi) where the original adds x into d.x's ebp and y, z into
-// ecx/edx (96.5%); `d += u->pos; target = d;` loads y, z, x (97.0%). Also
-// flat this pass: one Vec3 shared by loop 1's pos and loop 2's target (89%),
-// function-scope target (95%, it leaves pos's slot), the sibling 0x407e90's
-// Vec3 (default constructor, (x, y, z) constructor, operator+=), and the
-// expanded flag12 arm under /Gi (72%, d.y loses its register). Hunk 2 under
-// /Gi: without the user operator= and with Direction() in x, y, z order the
-// xor does move before the second call, but into ebx with `mov ebp, ebx`
-// after it and ang in ebp (1223 bytes); no rename moved that pair.
-// mimo-v2.6-pro retry pass: re-confirmed 1221 bytes / 98.5% and the same three
-// hunks. New negatives, all unchanged or worse: includes <string.h>, <windows.h>
-// and <stdio.h> do not move the _allmul push order; a `UnitDef* def` local before
-// the copy, an `int flag` local, stores through `int&` aliases and an inline
-// Unit::FillAndFlag(Vec3&, const Vec3&) method (0x463610 pattern) all leave the
-// 0x408334 def load hoisted above the target = origin stores (MSVC resolves the
-// reference stores back to esp-relative, so no alias barrier survives); the
-// nested order-test form (e1) still re-copies origin after the call (91.9%).
-// The flag12 Direction() arm expanded to the 0x4084c5 shape (top-level d.y = 0,
-// the only shape that puts the xor in the gap) reproduces the known 71.6%
-// loop-1 rotation (this=edi, unit=ebx, ok=ebp): neither the len>range trick at
-// 1..4 uses, foldable double tests of ok/idx/u, declaration-order swaps of ok,
-// idx and range/len, nor scalar DirX/DirZ or a member Vec3::Dir() helper
-// (71.1%) restores the original's this=ebx, unit=ebp, ok=ebx web ranking, so
-// the rotation is tied to the helper's temporary webs, not to those weights.
-// A helper without y=0 plus a caller `d.y = 0` (r1) swaps d.y/d.z registers and
-// puts the xor after neg eax (97.0%). All three hunks remain scheduler artifacts
-// of shapes already tried by earlier passes.
-// deepseek-v4.1-flash 10-minute retry (this session): re-confirmed 1221 bytes
-// and 98.5%, same three hunks (0x408334 u->def load hoisted above the
-// target = origin stores; 0x4083a4 xor ebp,ebp placed after the trig call
-// instead of before it; 0x4084f7 _allmul first pair pushed commuted). Two new
-// negatives, both 1221 bytes and the same three hunks: the inline Direction()
-// helper in x,y,z order (y = 0 statement between the two trig calls) and
-// hoisting `Vec3 target = origin;` above the loop-2 condition. The hoist
-// regresses to 89.2% / 1234 bytes (the copy then runs for every unit, and the
-// condition's def test moves) so the original copy really is inside the taken
-// branch. All three hunks are scheduler artifacts of shapes already tried;
-// nothing new moved.
-// deepseek-v4.1-flash 10-minute retry (this session, second pass): re-confirmed
-// 1221 bytes and 98.5% with the same three hunks. Two probes, both byte-neutral
-// (1221 bytes, identical hunks): `d.x = FixMul(d.x, s);` for the first FixMul
-// (so the commuted _allmul push really is front-end canonicalisation, not source
-// order) and expanding the loop-2 flag12 Direction() call into a block with an
-// `int ang = FUN_004b6c30(0x10000);` local, the shape that matches in the loop-2
-// else branch. The remaining three hunks (0x408334 def-load hoist, 0x4083a4 xor
-// placement, 0x4084f7 first _allmul push order) are all scheduler artifacts.
-// Sonnet 5.5: 97.8% (was 87.4%). Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived
-// from Class_00407350 (family listed in 0x407350.cpp). Runs every 90 ticks over the
-// units of this object's group: first gives each unit that FUN_0040bdb0 picks an item
-// for an order (mode 0xe) at the place FUN_0040bfe0 finds, within a third of the map
-// size of the player's base (FUN_0040ba80) for flag12 units; then sends the idle units
-// towards the base: flag12 units to the point mirrored through it (a random point 0x280
-// from it when farther), the others to the base itself, or when within 0x140 of it,
-// 0x140 onwards in its direction.
+// MATCH (Claude Opus 5.5, #5644). Slot 0 of Class_004085d0 (vtable 0x4fc9a8),
+// derived from Class_00407350 (family listed in 0x407350.cpp). Runs every 90
+// ticks over the units of this object's group: first gives each unit that
+// FUN_0040bdb0 picks an item for an order (mode 0xe) at the place FUN_0040bfe0
+// finds, within a third of the map size of the player's base (FUN_0040ba80)
+// for flag12 units; then sends the idle units towards the base: flag12 units to
+// the point mirrored through it (a random point 0x280 from it when farther),
+// the others to the base itself, or when within 0x140 of it, 0x140 onwards in
+// its direction.
 //
-// What fixed the loop-1 register rotation (the wall of four earlier passes): the
-// allocator ranks loop 1's short webs (unit, idx, ok, range) by weighted use count,
-// and the original's `range` outranks the unit. A second, foldable use of `range`
-// (`len > range || len > range`, one Length() stored in an int first) swaps unit and
-// range into the original's ebp/edi and puts `this` in ebx. The duplicate condition
-// compiles to one cmp. Spellings that vanish before the allocator counts them do
-// nothing: a copy `int r2 = range`, an inline identity wrapper around range, idx or
-// the player argument, `Same(range) < Length(..)`. `len > range && len > range` and
-// the `else if (len > range)` form give the same bytes; a real different second use
-// (`range > K`) shifts everything, so the weight is wanted, not a second compare.
+// What the last hunk needed (the u->def load at 0x408334 kept below the three
+// `target = origin` stores), read with a tracer of C2's scheduler (hook
+// 0x4315f1, which dumps each block's dependence graph):
+// - C2 lets a load through a pointer alias an address-taken local only when
+//   the local is in scope where the pointer's value was loaded. With `target`
+//   declared in the if-block, `u = *it` is loaded outside its scope, so no
+//   load through u depends on a store to target and the def load is hoisted
+//   above the copy. Declared in the loop body, target is in scope at
+//   `u = *it` (scope is per block, not per declaration point), so the def load
+//   stays below the copy as in the original. A function-scope `Unit*` assigned
+//   in the loop behaves the same, and copies of u (a second `Unit*`, an inline
+//   helper's parameter) are folded back into u.
+// - The same alias then holds the tail's u->pos loads below the target
+//   stores, so the tail must build all three sums before storing:
+//   `target = u->pos + d` (operator+ builds its result in a local that is
+//   copied into target). That adds three sum candidates to the tail block;
+//   with the else arm's direction written out by hand (int ang, direct d.x,
+//   d.y, d.z stores), d.x rose to priority 440, above the FixMul temporaries'
+//   416, and took edi (82.5%). Written as `d = Direction(...)`, the inline the
+//   flag12 arm uses, the direction block only copies the returned temporary
+//   into d (d.x 80 there instead of 168, 352 in all) and everything lands.
+// - Named sums (`int x = d.x + u->pos.x;` ...) instead leave the sum used by
+//   the first store sunk into it; the best of those orders is 99.8% with the
+//   stores x, z, y.
 //
-// deepseek-v4.1-flash: 98.5% (was 97.8%). One addition did it: a user-defined
-// `Vec3::operator=` (three member stores, returning *this). It flips the loop-2
-// flag12 Direction() from ang=ebp (and the xor after `neg eax`) to the original's
-// ang=ebx, xor in the gap before the second call, d.z in ebx. With it, the
-// helper's own statement order (x,z,y, x,y,z or y,x,z) no longer changes
-// anything. The earlier 95.9%-class shapes (helper reordered, aggregate
-// initialiser, separate temp `Vec3 e`) keep the extra `mov ebp, ebx`, and a
-// hand-written copy constructor is far worse (53.6%).
-//
-// Still different (3 hunks, 1221 bytes exact):
-// - 0x408334: the `u->def` load sits before the three `target = origin` stores
-//   instead of after them. Memberwise `target.x = origin.x; ..`, a split
-//   declaration, `Vec3 target(origin);` and a `const Vec3&` alias for origin are
-//   all byte-identical, and removing the second load (member-scope `def`
-//   pointer, flag12 local) does not move it either.
-// - 0x4083a4-0x4083d6 (flag12 Direction()): only the schedule of `neg eax` /
-//   `add esp,8` / `xor ebp,ebp` differs now (the original fills the gap before
-//   the second call with `xor ebp,ebp`, ours runs `neg eax; add esp,8` first).
-//   Expanding the call into direct d.x/d.y/d.z stores with an int ang local
-//   (the shape that matches at 0x4084c5) is still 71.6% even with operator=:
-//   that named web moves loop 1 (this=edi, unit=ebx, ok=ebp).
-// - 0x4084f7: _allmul's first pair is pushed d.x-first (original calls
-//   _allmul(s, d.x), the second and third are (d.y, s) and (d.z, s) as ours).
-//   All FixMul operand orders, a FixMul(__int64, __int64), (__int64)s * d.x,
-//   s * (__int64)d.x, a copy `int x = d.x;` and a __int64 temp all give the
-//   identical commuted push.
-// Earlier findings that still hold:
-// - Length() takes a const reference to a temporary (pos - origin): only then are the
-//   three fild operands the temporary's own memory, with a stored 0 for y.
-// - The range is an inline MapRange() assigned to a local before `origin.y = pos.y`;
-//   written in the comparison it is computed after _ftol.
-// - <memory.h> gives the mapWidth-first load order in MapRange().
-// - The inline Direction() assigns x, z, y (x,y,z puts the loop-2 flag12 branch's xor
-//   after the second call). Loop 2's else branch is expanded into direct d.x/d.y/d.z
-//   stores with an int ang local.
-// - The len<0x1400000 tail is three separate `target.x = u->pos.x + d.x;` stores, not
-//   `target = u->pos + d` and not `d.x += u->pos.x`.
-// - Tried without effect on the loop-1 rotation (before the range trick): reference or
-//   function-scope unit, while loop, goto loop, do/while loop, declaration orders, a
-//   `self = this` copy, accessor helpers, iterator forms, continue chains, FixMul
-//   operand orders, TooFar() helpers.
-// deepseek-v4.1-flash, nine more probes this pass (all 1221 bytes; the three hunks
-// above never moved): the first FixMul spelled `(__int64)d.x * s`, `(__int64)d.x *
-// (__int64)s`, `(__int64)s * (__int64)d.x`, an __int64 local, an `(int)` temp and two
-// alternative FixMul helpers (a __int64 first parameter, an __int64 product local)
-// all emit the identical commuted push, so the original's d.x-first first pair is not
-// front-end operand order; a `(unsigned)d.x` shifts the tail (96.5%) and a
-// FixDiv-inlined first operand breaks the web (81.8%). For hunk 1, a `def` local
-// declared right after the copy is byte-identical and a comma-expression second test
-// regresses to 77.6%. An out-param DirectionTo() helper (70.3%) or an expanded flag12
-// arm sharing one function-scope `ang` (71.6%) both destroy the loop-1 web, so the
-// flag12 arm must stay a returned temporary.
-// DeepSeek V4.1 Flash retry pass (this session): permuter 3 min over 2821
-// candidates (172 uncompilable, 19 duplicates), 98.5% -> 98.5%. Manual probes,
-// all 1221 bytes and the same three hunks unless noted: an inline
-// Unit::CopyAndFlag(target, origin) method returning def->flag12 (the 0x463610
-// member-method pattern), the target stores through a `Vec3&` and through a
-// `const Vec3* p`, a CopyVec(origin) return-by-value helper, `Vec3
-// target(origin)`, nested ifs for the loop-2 condition, 0x408090 added before
-// this function (with and without a swapped MapRange operand order; unlike the
-// earlier note it changed nothing here), and fresh value numbers for the FixMul
-// operands (`int sy = s` before and after d.x, `int dy = d.y`, `+s`). Worse:
-// FixMul statement order d.y,d.x,d.z and `FixMul(s, d.y)` 84.0% / 1223 bytes;
-// operator= y,x,z 98.3% with a new loop-2 hunk; operator= x,z,y 97.0%. Nothing
-// moved the three scheduler hunks.
+// Spellings the earlier passes found, all still needed:
+// - include/ta_types.h supplies Vec3, Class_00438760 and Class_004085d0 (on
+//   Base, whose owner is an AI); Vec3's default constructor and operator+/-
+//   and Class_00438760's default constructor are defined here, inline, with no
+//   user operator=. <time.h> and <shlobj.h> bring the file total to the window
+//   (65232 to 65732 with ta_types.h's current size) where C2 pushes the first
+//   _allmul's operands d.x first, as the original does; <shlobj.h> alone flips
+//   MapRange. If a regenerated ta_types.h grows by more than about 50 ids,
+//   <commctrl.h> with <algorithm> is the set to try. <memory.h> gives
+//   MapRange's mapWidth-first load order.
+// - Length() takes a const reference to a temporary (pos - origin), so the
+//   three fild operands are the temporary's own memory, and names its sum and
+//   result (`float sq`, `int len`): that breaks the priority tie between the
+//   flag12 arm's inlined angle and d.x, d.y, d.z (ebx for the angle).
+// - Direction() is FUN_004103a0's own body, x, y, z order.
+// - The range is an inline MapRange() assigned to a local before
+//   `origin.y = pos.y`; written in the comparison it is computed after _ftol.
+// - Loop 1's register rotation needs a second, foldable use of `range`
+//   (`len > range || len > range`, one compare): it ranks range above the unit
+//   web and puts `this` in ebx, unit in ebp, as the original does.
 #include <ta_types.h>
 #include <time.h>
 #include <shlobj.h>
@@ -414,118 +161,6 @@ static inline int MapRange()
     return (g_game->mapWidth + g_game->mapHeight) / 3 << 16;
 }
 
-// deepseek-v4.1-flash timebox pass (97.8%, 1221 bytes): three new neutral shapes,
-// so the three hunks stay as listed above. `Vec3 target; target = origin;` (split
-// declaration) is byte-identical, `Vec3 target(origin);` is byte-identical, and an
-// explicit `(unsigned char)` cast on the inner loop-2 `u->def->flag12` test is
-// byte-identical: the def-load hoist over the three target stores is not affected by
-// the condition's cast spelling or by how the copy is declared.
-// deepseek-v4.1-flash retry: an explicit `d.y = 0;` before the Direction() call in
-// the flag12 arm is byte-neutral too (same 3 hunks, 1221 bytes), so the xor
-// ebp,ebp placement in hunk 2 is not reachable by pre-zeroing the destination.
-// deepseek-v4.1-flash 10-minute pass: two negatives, both 1221 bytes and the same
-// three hunks. Hoisting the loop-2 copy by folding it into the order test is worse
-// than neutral: writing `if (!u->order || (u->order->flags & 0x4000)) { Vec3 target
-// = origin; if (!(unsigned char)u->def->flag12 || FUN_0040c230(field_10) >= 5) {`
-// (the nested form, the only source shape that puts the `def` load after the copy,
-// as the original 0x408334 does) re-materialises the origin copy for the flag12 arm
-// and duplicates the flag12 test: 91.9%, 1235 bytes, so hunk 1 is not the nesting.
-// Assigning `v.y = 0;` first in the inline Direction() helper is byte-neutral
-// (same hunks), so the flag12 arm's `xor ebp,ebp` before the first trig call is
-// not source order either.
-//
-// Space Bunny Free: 98.5% confirmed and left as the best version (1221 bytes, same
-// three hunks). The permuter ran 15.1 min over 825 candidates (47 uncompilable,
-// 8 duplicates) and moved nothing, so I stopped rather than spend on the last 1.5%.
-// I then built a fast probe instead of check runs: every variant below is compiled
-// straight with tools/wcl (/c /O2 /Ob2 /MT /Fa) and only the three hunk windows are
-// read, so a probe costs about 5 s. Thirty-four probes were byte-identical to the
-// baseline in all three windows (files and specs in build/scratch/0x408100/):
-// - hunk 3, first _allmul: eight spellings of the multiply (`FixMul(s, d.x)`,
-//   `FixMul(d.x, s)`, `(__int64)s * d.x`, `(__int64)d.x * s`, a `__int64` product
-//   local, a separate `int nx` result, `(int)d.x`, and the FixMul body with its two
-//   parameters transposed) ALL emit `push ebx; push edi; push edx; push eax`, so
-//   the argument order is fixed by C1's commutative canonicalisation and no source
-//   spelling reaches the original's `push edx; push eax; push ebx; push edi`.
-//   Eleven header sets (<stdlib.h>, <string>, <list>, <map>, <string.h>,
-//   <windows.h>, <stdio.h>+<stdlib.h>+<ctype.h>, the game header block, the limits
-//   and float headers, <time.h>+<assert.h>+<setjmp.h>, <new>) also leave all three
-//   hunks untouched, so the header-state lever from the guide is dead here too.
-// - hunk 2, the flag12 Direction() arm: the out-of-line `static inline void
-//   SetDirection(Vec3&, short, int)` writing d.x/d.y/d.z in x,y,z and in x,z,y
-//   order, a separate `Vec3 e` filled field by field from the returned temporary,
-//   an explicit `short a` with direct d.x/d.y/d.z stores, and hoisting the test into
-//   an `if/else` that copies d are all identical. The helper's statement order
-//   (x,z,y current; x,y,z; y,x,z; z,y,x) makes no difference either, so the
-//   `xor ebp,ebp` after `add esp, 8` is not the helper's y=0 ordering.
-// - hunk 1, the `u->def` load: an `IsAir(Unit*)` inline getter for the third
-//   flag12 test, a second `Unit* v = u` local, `Vec3 target;` declared outside the
-//   if with the copy and a `def` local after it, and the three stores written out
-//   by hand are all identical, so the hoist over the copy is C1's load preloading,
-//   not the order of the statements.
-// The one documented lever I did not spend on: the guide's "define the preceding
-// function in the same file" (0x408090, 111 bytes, the map bit test, is the real
-// neighbour). Compiler state from an earlier function can decide these, but it
-// needs that function matched first, which is a job of its own.
-//
-// Space Bunny Free: HUNK 1 IS REACHABLE, and the lever is the flag12 arm's
-// `target = origin + d`. Written as three separate stores
-// (`target.x = origin.x + d.x; target.y = origin.y + d.y; target.z = origin.z + d.z;`,
-// the same spelling the len<0x1400000 tail already uses and which this file
-// matches at 0x40856e) the 0x408334 `u->def` load lands AFTER the three
-// `target = origin` stores and hunk 1 disappears: 97.8%, 1221 bytes, two hunks
-// (hunk 2 and hunk 3 only). So the copy hoist is not source order and not an
-// alias barrier, it is the scheduler's view of the whole taken branch.
-// The cost is one register: with the three stores the flag12 arm's `ang` moves
-// from ebx to ebp, so the second trig call is `push ebp` where the original has
-// `push ebx`. Nothing tried here restores it (45 variants from that shape): the
-// expanded `int ang` arm (68.8%), an out-param SetDirection (69.5%), a `Vec3
-// dir` temp, the Direction() helper's x,y,z and y,x,z orders, a second copy of
-// the helper (Direction2), `Direction(int, int)`, a helper without y=0 plus a
-// caller `d.y = 0` (82.8%, the xor still lands after `neg eax`), `d = origin -
-// u->pos` split, a `const` copy, an int temp for d.y, a `Vec3&` alias for d,
-// `Length(origin - u->pos)` (89.6%), an int len local, reversed store orders
-// (96.3%, 96.5%), `target.x += d.x` (68.4%), a store-order tie with a duplicate
-// (96.5%), dropping the user-defined operator= (97.8%), `Vec3 t = origin + d;`
-// then three stores from t (98.5% again, the temp is folded away), a foldable
-// `if (d.y != d.y)`, `d.y = d.y;`, `target.x = target.x;`, both FixMul operand
-// orders, and hoisting the flag12 test or the `kind` local. The 97.8% shape
-// itself is the closest in bytes (about 20 wrong bytes against 37), so it is
-// the one to build on if hunk 2's register ranking is ever solved; everything
-// else in hunk 2 is unchanged by the three stores: our `xor ebp,ebp` still sits
-// after the second call and `neg eax` still precedes `add esp,8`, so those two
-// are one scheduling decision.
-// HUNK 3 re-measured, all 1221 bytes and all 98.5% with the identical hunk:
-// 16 spellings of the first FixMul (`FixMul(s,d.x)`, `FixMul(d.x,s)`,
-// `(__int64)s * d.x`, `(__int64)d.x * s`, both casts to __int64, a __int64
-// product local, an int temp, `(int)d.x`, `(int)s`, an `int&` parameter, a
-// __int64 first parameter and a __int64 local for s). C1 canonicalises the
-// multiply, so the only way left is to stop it being one _allmul call.
-// HUNK 1 re-measured from the 98.5% file, all unchanged or worse: a `def`
-// local before or after the copy, a dead store in a statically folded branch
-// between the load and the copy (`int t = 0; if (t) def->field_152 = 0;`,
-// 83.3%), `def = def ? def : def` (83.3%), `target = target ? target : target`
-// (does not compile), a dead store before or after the copy, a `const Vec3`
-// source copy, `if (def->flag12 != 0)` (77.6%), a foldable `def->field_152`
-// test on the copy (77.7%, 86.1%), and hoisting `u->def` to the top of the
-// loop body (93.8%). Dead statements MSVC deletes are also neutral here
-// (`int t; t = 0;` before or after the copy, `if (t) origin.x = 0;`,
-// `origin.y = origin.y;`, `target.z = target.z;`), so only the three-store
-// spelling moves the load.
-// Also neutral at 98.5% (they change the compiler state but not this
-// function): one to three uncalled `static inline` helpers at file scope,
-// `FUN_0040b6c30`'s return type as `short` (95.8%), a plain `struct Vec3Dir
-// { int x, y, z; }` return type with no operator= behind Direction (the shape
-// the matched 0x4103a0 uses, filled in field by field), a second copy of
-// Direction with the x,y,z statement order, and a three-argument Vec3
-// constructor added alongside the user-defined operator=. Returning
-// `Vec3(-f1(a, s), 0, -f2(a, s))` from that constructor is 70.2% / 1231 bytes.
-// NOT neutral, worth knowing: adding the *matched* 0x408090 (the preceding
-// function, src/unsorted/0x408090.cpp, which only needs playerIndex at
-// g_game+0x2a43 and visibilityMask at g_game+0x14273 added to Game_00408100)
-// to this file flips MapRange's two loads, 98.0% with mapHeight first, so the
-// file's function count really is load-bearing and the mapWidth-first order is
-// a knife edge too.
 // FUNCTION: 0x408100
 void Class_004085d0::FUN_00407380()
 {
@@ -559,9 +194,10 @@ void Class_004085d0::FUN_00407380()
     }
     for (it = ((Group_00408100*)field_8)->units.begin(); it != ((Group_00408100*)field_8)->units.end(); ++it) {
         Unit_00408100* u = *it;
+        Vec3 target;
         if ((!u->order || (u->order->flags & 0x4000))
             && (!(unsigned char)u->def->flag12 || FUN_0040c230(field_10) >= 5)) {
-            Vec3 target = origin;
+            target = origin;
             if (u->def->flag12) {
                 origin.y = u->pos.y;
                 Vec3 d = origin - u->pos;
@@ -578,24 +214,14 @@ void Class_004085d0::FUN_00407380()
                 int len = Length(d);
                 if (len < 0x1400000) {
                     if (len < 0x100000) {
-                        {
-                            // Expanded copy of the inlined Direction() call: writing
-                            // the three components of d directly avoids the extra
-                            // copy and the swapped y/z allocation.
-                            int ang = FUN_004b6c30(0x10000);
-                            d.x = -FUN_004b70ef(ang, 0x1400000);
-                            d.y = 0;
-                            d.z = -FUN_004b7123(ang, 0x1400000);
-                        }
+                        d = Direction(FUN_004b6c30(0x10000), 0x1400000);
                     } else {
                         int s = FixDiv(0x1400000, len);
                         d.x = FixMul(s, d.x);
                         d.y = FixMul(d.y, s);
                         d.z = FixMul(d.z, s);
                     }
-                    target.x = u->pos.x + d.x;
-                    target.y = u->pos.y + d.y;
-                    target.z = u->pos.z + d.z;
+                    target = u->pos + d;
                 }
                 Class_00438760 kind = FUN_0043f0e0(9, u, 0, &target);
                 FUN_0043adc0(kind, 0, u, 0, &target, 0, 0);

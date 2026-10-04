@@ -108,6 +108,48 @@
 //   ushort or short parameter, so the fields are unsigned there.
 // - The exe has no other 16-bit store with a `sete` value and this order
 //   except 0x45da90's (a value needing three registers).
+// Claude Opus 5.5 pass (#5562, about 35 minutes, still 95.3%), again in a
+// cut of the lobby writes (build/scratch/0x449bb0/ has the scripts):
+// - The original puts the value first at all three bit 13/14 sites, also in
+//   the else branch, where `g_game->options->fixedloc` is already a heavy
+//   value: `or eax, ecx` with the value register as the destination, while
+//   the unsigned build (93.0%) puts the word first there too. So the cause
+//   is the field (or its store), not the weight of the lobby value.
+// - Of the exe's 79 bitfield stores that `or` into a register and store 16
+//   bits, 16 put the value first with a 32-bit mask (0x41b2e0 eight times,
+//   0x441220, 0x449bb0, 0x45da90, 0x45e100 and 0x495230's
+//   `faster = speed < maxSpeed`) and 62 the word first. None of the exe's 45
+//   `and Xh, imm` sits on a 16-bit store (all are dword bitfields), so the
+//   original never stored to a signed short bitfield this way.
+// - Word first in the cut, with unsigned fields, for every one of: the
+//   options read through an `int*`, a struct pointer, an array index or an
+//   inline accessor (by value or reference); `static const`, enum and
+//   `extern const int` comparands; an inline returning 2; `int two = 2`;
+//   `switch` with `default:`; `? true : false`; a flags struct copied,
+//   changed and written back; an inline `WithCheat(UFlags, int)`; the word
+//   in an unsigned short local; every explicit mask expression with any mix
+//   of short/unsigned short reads, casts and constants (only a store to a
+//   signed short flips it, always with `and dh`); `__int16`, WORD, USHORT,
+//   wchar_t (signed ones give `and dh`, unsigned ones word first, enum
+//   fields a dword unit at +0x9d); block-scope externs, `info` as a
+//   parameter or global; 0 to 70000 dummy declarations above or below the
+//   headers; /G3, /G4, /GB (same), /G6 (80.3%).
+// - A fresh load of another global as the value (`DAT_00512d84 == 2`)
+//   stays word first; two non-constant operands (`DAT_00512d84 ==
+//   DAT_00512d80`) give exactly the original's shape (value in ecx, word in
+//   edx, `and edx, 0xdfff` after `and ecx, 1`). An inline `SetCheat(UFlags&,
+//   int)` or an int local gives value first with the value in eax.
+// - A micro test (`p->f.c = <value>` on an unsigned short bitfield) puts the
+//   value first exactly when its comparison has two non-constant operands
+//   (`g1 == g2`, `a == b` on parameters, `p->x == p->y`); a constant on the
+//   right keeps the word first however the left side is formed (`g1 + 1 ==
+//   2`, `g1 * 3 == 2`, `*q == 2`, `gp->x == 2`, a call result). That fits
+//   Sethi-Ullman labels (an immediate needs no register), and the
+//   original's `cmp eax, 2` has an immediate, so with unsigned fields the
+//   lobby value can only go first as a separate statement, which makes it a
+//   register candidate that outranks DAT_00512d80 (60 against 14) and takes
+//   eax. If DAT's web could outrank it, the value would get ecx and the
+//   word edx, as in the original.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>

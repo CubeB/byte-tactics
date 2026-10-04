@@ -3033,102 +3033,8 @@ public:
     Unit* FUN_004071f0(int, int, int);
 };
 
-class Base {  // 0x14 bytes, 26 views
-public:
-    AI* owner;  // +0x4
-    void* field_8;  // +0x8
-    int field_c;  // +0xc
-    unsigned int field_10;  // +0x10
-    virtual ~Base(void);
-    Base(Base&);
-    Base(AI*, void*);
-    virtual void Fire(void);
-    virtual void unused0(int);
-    virtual void Func(int);
-    virtual void FUN_00407380(void);
-    int FUN_004074a0(Vec*, int);
-    int FUN_004073b0(Vec3*);
-    int FUN_00407410(Vec3*);
-};
-
-struct Group {  // 0x20 bytes, 7 views
-    void* player;  // +0x0
-    int id;  // +0x4
-    char unknown_8[8];
-    std::vector<Unit*> units;  // +0x10
-    void Send(unsigned char, int, Unit*, Vec3*, int, int);
-};
-
-class Class_00407560 {  // 0xc bytes, 2 views
-public:
-    void* vtable;  // +0x0
-    Owner_00407560* owner;  // +0x4
-    Group* group;  // +0x8
-    void FUN_00407560(int, int);
-};
-
-struct Owner_00407560 {  // 0x31 bytes, 1 view
-    char unknown_0[17];
-    Class_00407560* members[8];  // +0x11
-};
-
-class Class_00407930 : public Base {  // 0x28 bytes, 4 views
-public:
-    int field_14;  // +0x14
-    int field_18;  // +0x18
-    int field_1c;  // +0x1c
-    int field_20;  // +0x20
-    int field_24;  // +0x24
-    Class_00407930(Class_00407930&);
-    Class_00407930(AI*, void*, int, int);
-    virtual void FUN_00407380(void);
-};
-
-struct Owner_2 {  // 0x29 bytes, 1 view
-    char unknown_0[21];
-    Base* a;  // +0x15
-    char unknown_19[8];
-    Base* b;  // +0x21
-    Base* c;  // +0x25
-};
-
-class Class_004079d0 : public Base {  // 0x18 bytes, 4 views
-public:
-    int field_14;  // +0x14
-    Class_004079d0(Class_004079d0&);
-    Class_004079d0(AI*, void*, int);
-    virtual void FUN_00407380(void);
-};
-
-class Class_00407a90 : public Base {  // 0x14 bytes, 4 views
-public:
-    Class_00407a90(Class_00407a90&);
-    Class_00407a90(AI*, void*);
-    virtual void FUN_00407380(void);
-};
-
 union Coord_00407ae0 {  // 0x4 bytes, 4 views
     union { int value; struct { unsigned short frac; short whole; } s; };  // +0x0
-};
-
-struct FixedParts_00407ae0 {  // 0x4 bytes, 1 view
-    unsigned int frac : 16;  // +0x0
-    unsigned int whole : 16;
-};
-
-union Fixed_00407ae0 {  // 0x4 bytes, 1 view
-    union { int value; FixedParts_00407ae0 parts; };  // +0x0
-};
-
-class Class_00407d40 : public Base {  // 0x3c bytes, 4 views
-public:
-    Vec3 a;  // +0x14
-    Vec3 b;  // +0x20
-    Vec3 c;  // +0x2c
-    int field_38;  // +0x38
-    Class_00407d40(Class_00407d40&);
-    Class_00407d40(AI*, void*);
-    virtual void FUN_00407380(void);
 };
 
 struct MapSize_00408090 {  // 0x8 bytes, 19 views
@@ -3232,46 +3138,6 @@ struct Player {  // 0x14b bytes, 312 views
     float GetMetal(void);
 };
 
-class Class_004085d0 : public Base {  // 0x14 bytes, 4 views
-public:
-    Class_004085d0(Class_004085d0&);
-    Class_004085d0(AI*, void*);
-    virtual void FUN_00407380(void);
-};
-
-class Class_00408620 {  // 0x14 bytes, 1 view
-public:
-    char unknown_0[16];
-    int field_10;  // +0x10
-    void FUN_00408620(Unit*);
-};
-
-struct Info_00408670 {  // 0x9c bytes, 1 view
-    char unknown_0[140];
-    float field_8c;  // +0x8c
-    float field_90;  // +0x90
-    float field_94;  // +0x94
-    float field_98;  // +0x98
-};
-
-struct Unit_00408670 {  // 0x9a bytes, 1 view
-    char unknown_0[150];
-    Info_00408670* info;  // +0x96
-};
-
-class Class_00408810 : public Base {  // 0x14 bytes, 4 views
-public:
-    Class_00408810(Class_00408810&);
-    Class_00408810(AI*, void*);
-    virtual void FUN_00407380(void);
-};
-
-class Class_00408830 {  // 0x4 bytes, 3 views
-public:
-    Player* player;  // +0x0
-    void FUN_00408830(void);
-};
-
 struct Class_0043dc00 {  // 0x115 bytes, 58 views
     Handler_004388d0* handler;  // +0x0
     void* owner;  // +0x4
@@ -3331,24 +3197,6 @@ struct Class_0043dc00 {  // 0x115 bytes, 58 views
     void FUN_0043dd20(Unit*);
 };
 
-class Class_004089a0 {  // 0x3d bytes, 2 views
-public:
-    Player* player;  // +0x0
-    char unknown_4[53];
-    Unit* cursor;  // +0x39
-    void FUN_004089a0(int);
-};
-
-class Class_00408bf0 {  // 0x39 bytes, 1 view
-public:
-    void* target;  // +0x0
-    char unknown_4;  // +0x4
-    int countdown;  // +0x5
-    char unknown_9[8];
-    Slot_4b62d0* timers[10];  // +0x11
-    void FUN_00408bf0(void);
-};
-
 struct Slot_4b62d0 {  // 0x10 bytes, 5 views
     int counter;  // +0x4
     int unknown_8;  // +0x8
@@ -3378,120 +3226,9 @@ struct Elem_0040cc40 {  // 0x8 bytes, 19 views
     unsigned char operator<(Elem_0040cc40&);
 };
 
-struct Elem_0040cfb0 {  // 0x3 bytes, 8 views
-    char a;  // +0x0
-    char b;  // +0x1
-    char c;  // +0x2
-};
-
-struct Elem_0040d4f0 {  // 0x1 bytes, 6 views
-    char value;  // +0x0
-};
-
-struct Elem_0040d550 {  // 0x4 bytes, 7 views
-    int unknown_0;  // +0x0
-};
-
-struct Pos_00409160 {  // 0x8 bytes, 2 views
-    short x;  // +0x0
-    short y;  // +0x2
-    int unknown_4;  // +0x4
-    Pos_00409160(short, short);
-};
-
-struct UnitList_00409160 {  // 0x10 bytes, 2 views
-    std::vector<Unit*> units;  // +0x0
-};
-
-struct Group_00409160 {  // 0x10 bytes, 2 views
-    UnitList_00409160 list;  // +0x0
-};
-
-class Owner {  // 0x10d bytes, 21 views
-public:
-    char* player;  // +0x0
-    unsigned char index;  // +0x4
-    std::vector<Unit*> units;  // +0x5
-    UnitList_00409160 list_15;  // +0x15
-    Group_00409160 group_25;  // +0x25
-    Vec3 pos_35;  // +0x35
-    Vec3 pos_41;  // +0x41
-    std::vector<Elem_0040cc40> vec_4d;  // +0x4d
-    Pos_00409160 center;  // +0x5d
-    std::vector<Elem_0040cfb0> vec_65;  // +0x65
-    int field_75;  // +0x75
-    int field_79;  // +0x79
-    std::vector<short> vec_7d;  // +0x7d
-    std::vector<unsigned char> vec_8d;  // +0x8d
-    std::vector<unsigned char> vec_9d;  // +0x9d
-    std::vector<Elem_0040d4f0> vec_ad;  // +0xad
-    char unknown_bd[4];
-    int* d;  // +0xc1
-    char unknown_c5[8];
-    std::vector<Elem_0040d550> values;  // +0xcd
-    char unknown_dd[4];
-    int* locked;  // +0xe1
-    char unknown_e5[8];
-    unsigned int lastTick;  // +0xed
-    Point16 spacing0;  // +0xf1
-    Point16 offset0;  // +0xf5
-    int margin0;  // +0xf9
-    Point16 spacing1;  // +0xfd
-    Point16 offset1;  // +0x101
-    int margin1;  // +0x105
-    int field_109;  // +0x109
-    Owner(unsigned char);
-    bool FUN_0040a260(UnitDef*, Vec3*, std::vector<Elem_0040cc40>*, int, Point16*);
-    bool FUN_0040a5d0(UnitDef*, Vec3*, int, Point16*);
-    void FUN_00409470(void);
-};
-
-struct Player_00409730 {  // 0x146 bytes, 1 view
-    char unknown_0[324];
-    unsigned short field_144;  // +0x144
-};
-
 struct Point16_00437de0 {  // 0x4 bytes, 5 views
     short x;  // +0x0
     short y;  // +0x2
-};
-
-struct Elem_0040cc40_2 {  // 0x8 bytes, 1 view
-    Point16_00437de0 pos;  // +0x0
-    float key;  // +0x4
-    Elem_0040cc40_2(Elem_0040cc40_2&);
-    Elem_0040cc40_2(void);
-    unsigned char operator<(Elem_0040cc40_2&);
-};
-
-struct UnitList_00409730 {  // 0x10 bytes, 1 view
-    std::vector<Unit_3*> units;  // +0x0
-};
-
-class Class_00409730 {  // 0xad bytes, 4 views
-public:
-    Player_00409730* player;  // +0x0
-    unsigned char index;  // +0x4
-    UnitList_00409730 list_5;  // +0x5
-    UnitList_00409730 list_15;  // +0x15
-    UnitList_00409730 list_25;  // +0x25
-    int pos_35[3];  // +0x35
-    int pos_41[3];  // +0x41
-    std::vector<Elem_0040cc40_2> vec_4d;  // +0x4d
-    short centerX;  // +0x5d
-    short centerY;  // +0x5f
-    int field_61;  // +0x61
-    std::vector<Elem_0040cfb0> vec_65;  // +0x65
-    int field_75;  // +0x75
-    int field_79;  // +0x79
-    std::vector<short> vec_7d;  // +0x7d
-    std::vector<unsigned char> vec_8d;  // +0x8d
-    std::vector<unsigned char> vec_9d;  // +0x9d
-    void FUN_00409730(void);
-};
-
-struct Unit_3 {  // 0x4 bytes, 1 view
-    int unknown_0;  // +0x0
 };
 
 class Class_004b73b0 {  // 0xd4 bytes, 6 views
@@ -3501,75 +3238,10 @@ public:
     Class_004b73b0* FUN_004b73b0(void);
 };
 
-struct Sub {  // 0xc bytes, 1 view
-    short v0;  // +0x0
-    short v1;  // +0x2
-    short v2;  // +0x4
-    short v3;  // +0x6
-    int v4;  // +0x8
-};
-
-struct Class_0040a150 {  // 0x109 bytes, 2 views
-    char unknown_0[241];
-    Sub s0;  // +0xf1
-    Sub s1;  // +0xfd
-    void FUN_0040a150(void);
-};
-
-struct Class_0040a7b0 {  // 0x5d bytes, 2 views
-    char unknown_0[77];
-    std::vector<Elem_0040cc40> cells;  // +0x4d
-    void FUN_0040a7b0(void);
-};
-
-class Class_0040aa40 {  // 0xad bytes, 3 views
-public:
-    Player* owner;  // +0x0
-    char pad4;  // +0x4
-    char unknown_5[112];
-    int builders;  // +0x75
-    int hasSpecial;  // +0x79
-    std::vector<short> counts;  // +0x7d
-    char unknown_8d[16];
-    std::vector<char> weights;  // +0x9d
-    void FUN_0040aa40(void);
-};
-
-struct FloatVec {  // 0xc bytes, 1 view
-    float x;  // +0x0
-    float y;  // +0x4
-    float z;  // +0x8
-    FloatVec(void);
-};
-
-class Class_0040ad20 {  // 0xf1 bytes, 1 view
-public:
-    char unknown_0[237];
-    unsigned int lastTick;  // +0xed
-    void FUN_0040ad20(void);
-};
-
 class Class_004800c0 {  // 0x10 bytes, 2 views
 public:
     std::vector<Unit*> units;  // +0x0
     Unit** FUN_004800c0(Unit**);
-};
-
-struct Weapon_3 {  // 0x112 bytes, 1 view
-    char unknown_0[273];
-    unsigned char flags;  // +0x111
-};
-
-struct Struct_0040bab0 {  // 0xc bytes, 1 view
-    int a;  // +0x0
-    int b;  // +0x4
-    int c;  // +0x8
-};
-
-struct Rating {  // 0x3 bytes, 1 view
-    char normal;  // +0x0
-    char metal;  // +0x1
-    char energy;  // +0x2
 };
 
 struct Player_00446080 {  // 0x14b bytes, 2 views
@@ -20441,6 +20113,334 @@ public:
     char reading;  // +0x4
     char unknown_5[3];
     void FUN_004e3030(char*, unsigned char*, unsigned char, unsigned char, unsigned char);
+};
+
+class Base {  // 0x14 bytes, 26 views
+public:
+    AI* owner;  // +0x4
+    void* field_8;  // +0x8
+    int field_c;  // +0xc
+    unsigned int field_10;  // +0x10
+    virtual ~Base(void);
+    Base(Base&);
+    Base(AI*, void*);
+    virtual void Fire(void);
+    virtual void unused0(int);
+    virtual void Func(int);
+    virtual void FUN_00407380(void);
+    int FUN_004074a0(Vec*, int);
+    int FUN_004073b0(Vec3*);
+    int FUN_00407410(Vec3*);
+};
+
+struct Group {  // 0x20 bytes, 7 views
+    void* player;  // +0x0
+    int id;  // +0x4
+    char unknown_8[8];
+    std::vector<Unit*> units;  // +0x10
+    void Send(unsigned char, int, Unit*, Vec3*, int, int);
+};
+
+class Class_00407560 {  // 0xc bytes, 2 views
+public:
+    void* vtable;  // +0x0
+    Owner_00407560* owner;  // +0x4
+    Group* group;  // +0x8
+    void FUN_00407560(int, int);
+};
+
+struct Owner_00407560 {  // 0x31 bytes, 1 view
+    char unknown_0[17];
+    Class_00407560* members[8];  // +0x11
+};
+
+class Class_00407930 : public Base {  // 0x28 bytes, 4 views
+public:
+    int field_14;  // +0x14
+    int field_18;  // +0x18
+    int field_1c;  // +0x1c
+    int field_20;  // +0x20
+    int field_24;  // +0x24
+    Class_00407930(Class_00407930&);
+    Class_00407930(AI*, void*, int, int);
+    virtual void FUN_00407380(void);
+};
+
+struct Owner_2 {  // 0x29 bytes, 1 view
+    char unknown_0[21];
+    Base* a;  // +0x15
+    char unknown_19[8];
+    Base* b;  // +0x21
+    Base* c;  // +0x25
+};
+
+class Class_004079d0 : public Base {  // 0x18 bytes, 4 views
+public:
+    int field_14;  // +0x14
+    Class_004079d0(Class_004079d0&);
+    Class_004079d0(AI*, void*, int);
+    virtual void FUN_00407380(void);
+};
+
+class Class_00407a90 : public Base {  // 0x14 bytes, 4 views
+public:
+    Class_00407a90(Class_00407a90&);
+    Class_00407a90(AI*, void*);
+    virtual void FUN_00407380(void);
+};
+
+struct FixedParts_00407ae0 {  // 0x4 bytes, 1 view
+    unsigned int frac : 16;  // +0x0
+    unsigned int whole : 16;
+};
+
+union Fixed_00407ae0 {  // 0x4 bytes, 1 view
+    union { int value; FixedParts_00407ae0 parts; };  // +0x0
+};
+
+class Class_00407d40 : public Base {  // 0x3c bytes, 4 views
+public:
+    Vec3 a;  // +0x14
+    Vec3 b;  // +0x20
+    Vec3 c;  // +0x2c
+    int field_38;  // +0x38
+    Class_00407d40(Class_00407d40&);
+    Class_00407d40(AI*, void*);
+    virtual void FUN_00407380(void);
+};
+
+class Class_004085d0 : public Base {  // 0x14 bytes, 4 views
+public:
+    Class_004085d0(Class_004085d0&);
+    Class_004085d0(AI*, void*);
+    virtual void FUN_00407380(void);
+};
+
+class Class_00408620 {  // 0x14 bytes, 1 view
+public:
+    char unknown_0[16];
+    int field_10;  // +0x10
+    void FUN_00408620(Unit*);
+};
+
+struct Info_00408670 {  // 0x9c bytes, 1 view
+    char unknown_0[140];
+    float field_8c;  // +0x8c
+    float field_90;  // +0x90
+    float field_94;  // +0x94
+    float field_98;  // +0x98
+};
+
+struct Unit_00408670 {  // 0x9a bytes, 1 view
+    char unknown_0[150];
+    Info_00408670* info;  // +0x96
+};
+
+class Class_00408810 : public Base {  // 0x14 bytes, 4 views
+public:
+    Class_00408810(Class_00408810&);
+    Class_00408810(AI*, void*);
+    virtual void FUN_00407380(void);
+};
+
+class Class_00408830 {  // 0x4 bytes, 3 views
+public:
+    Player* player;  // +0x0
+    void FUN_00408830(void);
+};
+
+class Class_004089a0 {  // 0x3d bytes, 2 views
+public:
+    Player* player;  // +0x0
+    char unknown_4[53];
+    Unit* cursor;  // +0x39
+    void FUN_004089a0(int);
+};
+
+class Class_00408bf0 {  // 0x39 bytes, 1 view
+public:
+    void* target;  // +0x0
+    char unknown_4;  // +0x4
+    int countdown;  // +0x5
+    char unknown_9[8];
+    Slot_4b62d0* timers[10];  // +0x11
+    void FUN_00408bf0(void);
+};
+
+struct Elem_0040cfb0 {  // 0x3 bytes, 8 views
+    char a;  // +0x0
+    char b;  // +0x1
+    char c;  // +0x2
+};
+
+struct Elem_0040d4f0 {  // 0x1 bytes, 6 views
+    char value;  // +0x0
+};
+
+struct Elem_0040d550 {  // 0x4 bytes, 7 views
+    int unknown_0;  // +0x0
+};
+
+struct Pos_00409160 {  // 0x8 bytes, 2 views
+    short x;  // +0x0
+    short y;  // +0x2
+    int unknown_4;  // +0x4
+    Pos_00409160(short, short);
+};
+
+struct UnitList_00409160 {  // 0x10 bytes, 2 views
+    std::vector<Unit*> units;  // +0x0
+};
+
+struct Group_00409160 {  // 0x10 bytes, 2 views
+    UnitList_00409160 list;  // +0x0
+};
+
+class Owner {  // 0x10d bytes, 21 views
+public:
+    char* player;  // +0x0
+    unsigned char index;  // +0x4
+    std::vector<Unit*> units;  // +0x5
+    UnitList_00409160 list_15;  // +0x15
+    Group_00409160 group_25;  // +0x25
+    Vec3 pos_35;  // +0x35
+    Vec3 pos_41;  // +0x41
+    std::vector<Elem_0040cc40> vec_4d;  // +0x4d
+    Pos_00409160 center;  // +0x5d
+    std::vector<Elem_0040cfb0> vec_65;  // +0x65
+    int field_75;  // +0x75
+    int field_79;  // +0x79
+    std::vector<short> vec_7d;  // +0x7d
+    std::vector<unsigned char> vec_8d;  // +0x8d
+    std::vector<unsigned char> vec_9d;  // +0x9d
+    std::vector<Elem_0040d4f0> vec_ad;  // +0xad
+    char unknown_bd[4];
+    int* d;  // +0xc1
+    char unknown_c5[8];
+    std::vector<Elem_0040d550> values;  // +0xcd
+    char unknown_dd[4];
+    int* locked;  // +0xe1
+    char unknown_e5[8];
+    unsigned int lastTick;  // +0xed
+    Point16 spacing0;  // +0xf1
+    Point16 offset0;  // +0xf5
+    int margin0;  // +0xf9
+    Point16 spacing1;  // +0xfd
+    Point16 offset1;  // +0x101
+    int margin1;  // +0x105
+    int field_109;  // +0x109
+    Owner(unsigned char);
+    bool FUN_0040a260(UnitDef*, Vec3*, std::vector<Elem_0040cc40>*, int, Point16*);
+    bool FUN_0040a5d0(UnitDef*, Vec3*, int, Point16*);
+    void FUN_00409470(void);
+};
+
+struct Player_00409730 {  // 0x146 bytes, 1 view
+    char unknown_0[324];
+    unsigned short field_144;  // +0x144
+};
+
+struct Elem_0040cc40_2 {  // 0x8 bytes, 1 view
+    Point16_00437de0 pos;  // +0x0
+    float key;  // +0x4
+    Elem_0040cc40_2(Elem_0040cc40_2&);
+    Elem_0040cc40_2(void);
+    unsigned char operator<(Elem_0040cc40_2&);
+};
+
+struct UnitList_00409730 {  // 0x10 bytes, 1 view
+    std::vector<Unit_3*> units;  // +0x0
+};
+
+class Class_00409730 {  // 0xad bytes, 4 views
+public:
+    Player_00409730* player;  // +0x0
+    unsigned char index;  // +0x4
+    UnitList_00409730 list_5;  // +0x5
+    UnitList_00409730 list_15;  // +0x15
+    UnitList_00409730 list_25;  // +0x25
+    int pos_35[3];  // +0x35
+    int pos_41[3];  // +0x41
+    std::vector<Elem_0040cc40_2> vec_4d;  // +0x4d
+    short centerX;  // +0x5d
+    short centerY;  // +0x5f
+    int field_61;  // +0x61
+    std::vector<Elem_0040cfb0> vec_65;  // +0x65
+    int field_75;  // +0x75
+    int field_79;  // +0x79
+    std::vector<short> vec_7d;  // +0x7d
+    std::vector<unsigned char> vec_8d;  // +0x8d
+    std::vector<unsigned char> vec_9d;  // +0x9d
+    void FUN_00409730(void);
+};
+
+struct Unit_3 {  // 0x4 bytes, 1 view
+    int unknown_0;  // +0x0
+};
+
+struct Sub {  // 0xc bytes, 1 view
+    short v0;  // +0x0
+    short v1;  // +0x2
+    short v2;  // +0x4
+    short v3;  // +0x6
+    int v4;  // +0x8
+};
+
+struct Class_0040a150 {  // 0x109 bytes, 2 views
+    char unknown_0[241];
+    Sub s0;  // +0xf1
+    Sub s1;  // +0xfd
+    void FUN_0040a150(void);
+};
+
+struct Class_0040a7b0 {  // 0x5d bytes, 2 views
+    char unknown_0[77];
+    std::vector<Elem_0040cc40> cells;  // +0x4d
+    void FUN_0040a7b0(void);
+};
+
+class Class_0040aa40 {  // 0xad bytes, 3 views
+public:
+    Player* owner;  // +0x0
+    char pad4;  // +0x4
+    char unknown_5[112];
+    int builders;  // +0x75
+    int hasSpecial;  // +0x79
+    std::vector<short> counts;  // +0x7d
+    char unknown_8d[16];
+    std::vector<char> weights;  // +0x9d
+    void FUN_0040aa40(void);
+};
+
+struct FloatVec {  // 0xc bytes, 1 view
+    float x;  // +0x0
+    float y;  // +0x4
+    float z;  // +0x8
+    FloatVec(void);
+};
+
+class Class_0040ad20 {  // 0xf1 bytes, 1 view
+public:
+    char unknown_0[237];
+    unsigned int lastTick;  // +0xed
+    void FUN_0040ad20(void);
+};
+
+struct Weapon_3 {  // 0x112 bytes, 1 view
+    char unknown_0[273];
+    unsigned char flags;  // +0x111
+};
+
+struct Struct_0040bab0 {  // 0xc bytes, 1 view
+    int a;  // +0x0
+    int b;  // +0x4
+    int c;  // +0x8
+};
+
+struct Rating {  // 0x3 bytes, 1 view
+    char normal;  // +0x0
+    char metal;  // +0x1
+    char energy;  // +0x2
 };
 
 #pragma pack(pop)

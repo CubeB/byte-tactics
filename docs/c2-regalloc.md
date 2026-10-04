@@ -639,7 +639,28 @@ decorated names in data/progress.csv. A type the evidence says is another,
 whose views disagree with that one's, is left out (declared, not defined).
 `--verify` compiles a check of every type's size and every field's offset
 against the views. It is not `tools/types.py`, which would shadow Python's own
-`types` module for every tool in tools/. No file includes the header.
+`types` module for every tool in tools/. The files that include it are listed
+under "Files that depend on its exact size" below.
+
+**One unit's own types last (`--last`, `--reorder`).** Types come in address
+order of the first file that uses them, but a translation unit's own types
+(the ones only its files use) came from its own header in the original,
+included after the common ones, so for that unit's files they belong last.
+`--last LO-HI` (repeatable) puts the types every view of which is in a file
+from LO to HI after all the others; a type that stays and holds one by value
+or as a base keeps it in place. "Every view" and not "the first view": the 12
+types first used in the AI unit but used elsewhere too (ByteMap_00408090 is
+held by value by later types) cannot move without breaking the header.
+`--reorder HEADER --last LO-HI` applies it to an existing header without
+regenerating it: the views only pick the types (one whose size in the header
+differs from the views' stays), every type's text is kept byte for byte, the
+result is written over HEADER (or `--out`) and compiled once as a check, and
+running it again changes nothing. A pure reorder keeps the header's id total;
+only where each type and container instantiation is numbered moves.
+include/ta_types.h is the 2026-10-04 header with
+`--reorder include/ta_types.h --last 0x407350-0x40d5b0`: the AI unit's 40 own
+types last (Owner, which holds the first `std::vector<unsigned char>`, among
+them), which put 0x40d290's insert at 65604, in its window (#5668).
 
 On 2026-10-04 it held 2038 types from 9161 views in the 3237 files, 74 names
 only declared, and 2470 member functions, among them 777 members, 112
@@ -694,6 +715,9 @@ it they are 4366 to 4770 past, and with the plausible set 11000 to 12000 past.
 0x449bb0 is past its window with the types header alone. 0x40d290's insert is
 numbered where the first game type holding a `std::vector<unsigned char>` is
 defined (38371), while the original's comes after about 65600 declarations.
+That type is Owner, one of the AI unit's own types; with them last (the
+reordered header, above) and its file's headers in front, the insert is at
+65604 and 0x40d290 matches.
 0x409730, matched with its ids made small, defines a cut-down `std::vector`
 that cannot sit next to `<vector>`, so it cannot take the header.
 
@@ -716,7 +740,7 @@ function's allocation). 0x40d290's insert would have to sit below operator new
 and delete, and 0x4b90a0's notes scanned small counts (0 to 2047 externs from
 its 197-symbol file) without a match.
 
-**Files that depend on its exact size.** These files match only with `ta_types.h` at its current size, so rerun `uv run tools/checkall.py 0x408100 0x424c00 0x41b2e0 0x471de0 0x449bb0` after any regeneration: 0x424c00 and 0x471de0 (`ta_types.h` + `<shlobj.h>` + `<imagehlp.h>`), 0x41b2e0 (`ta_types.h` + `<shlobj.h>` + `<memory.h>`; `<time.h>`, `<malloc.h>` or `<direct.h>` also land), 0x449bb0 (`ta_types.h`, its own types and externs, then `ta_protos.h`) (#5657, #5658, #5660). 0x408100 includes `ta_types.h` with
+**Files that depend on its exact size.** These files match only with `ta_types.h` at its current size, so rerun `uv run tools/checkall.py 0x408100 0x424c00 0x41b2e0 0x471de0 0x449bb0 0x410850 0x40d290` after any regeneration or reorder: 0x40d290 (`<windows.h>` `<shlobj.h>` `<imagehlp.h>` `<d3d.h>` `<memory.h>` `<math.h>` + `ta_types.h`; it also needs the AI unit's own types last, so a regeneration needs `--last 0x407350-0x40d5b0`) (#5668), 0x410850 (the header's system headers and `<shlobj.h>` `<imagehlp.h>` `<math.h>` `<tchar.h>` `<time.h>` `<float.h>`, then `ta_types.h` inside `namespace ta { }`) (#5656), 0x424c00 and 0x471de0 (`ta_types.h` + `<shlobj.h>` + `<imagehlp.h>`), 0x41b2e0 (`ta_types.h` + `<shlobj.h>` + `<memory.h>`; `<time.h>`, `<malloc.h>` or `<direct.h>` also land), 0x449bb0 (`ta_types.h`, its own types and externs, then `ta_protos.h`) (#5657, #5658, #5660). 0x408100 includes `ta_types.h` with
 `<time.h>` and `<shlobj.h>`, which puts its file total at 65680 in a window
 ending at 65732. Regenerating `ta_types.h` with about 50 more ids breaks that
 hunk again; rerun `check.py 0x408100` after any regeneration and switch it to

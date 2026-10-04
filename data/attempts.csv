@@ -7943,4 +7943,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x4851c0,354,,#5579,assigned,,,"issue #5579, escalated"
 0x410850,1051,,#5581,assigned,,,"issue #5581, escalated"
 0x462f30,1653,opus,#5583,partial,98.9,,"issue #5583, escalated"
-0x462f30,1653,,#5585,assigned,,,"issue #5585, escalated"
+0x462f30,1653,opus,#5585,partial,98.9,,"issue #5585, escalated"
+0x462f30,1653,,#5587,assigned,,,"issue #5587, escalated"

@@ -1,225 +1,13 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
-//
-// Retry (mimo-v2.6-pro): best stays 88.0% (497 vs 499), this body unchanged.
-// New finding: the original's memory operation order is the source order of an
-// interleaved statement list (each component's end store comes after the next
-// component's loads and diff), and the per-component register reuse (sx/sy/sz
-// all in esi, dx/dy/dz all in ecx) falls out when the helper REUSES one
-// variable per slot instead of giving each component its own locals. Shape
-// (build/scratch/0x473b50/varG1.cpp), six int& params (which reproduce the
-// original's base registers exactly, including [ebp] for seg_1c.start.x and
-// [ebx+0x20]/[ebx+0x24] for y/z) and one reused v/d/q/ax/bx set:
-//     int v = sx; int d = ex - v; int q = d * 4 / 11; int ax = v + q;
-//     sx = ax; q = d * 7 / 11; int bx = v + q;
-//     v = sy; d = ey - v; ex = bx;   (same pattern per component)
-// compiles its x and y sections BYTE IDENTICAL to the original, including the
-// e.x store sunk past the y loads and the s.z/e.x store order, and scores
-// 83.2% (497 bytes). Its remaining diffs are all in the z section: the
-// original's `mov edx, esi; sub ecx, edx` for the z diff (ours: sub ecx,esi),
-// `lea edi, [edx + esi]` for the 4/11 z point (ours: add/mov), the ddy
-// subtract landing in edx with sy in eax (ours mirrored), the ddy store kept
-// before the z 7/11 division (ours sinks it past shl), the ez tail computed
-// `add edx,esi; sub edx,edi` (ours reassociates to sub/add), the z 7/11
-// sign fix in ecx (ours in eax), and block two computing ddx into ebp (ours
-// into eax). Measured and no better: re-reading the sz ref in the z diff
-// (varE1), `d = ez; d = d - sz` (varE2), separate z locals (varE3, spills,
-// 67.9%), direct `ey = ey - sy` (varE4): all 83.2% byte-identical to varG1.
-// Earlier shapes scored: two Vec3& refs with the interleaved order spill
-// (47.1%), Seg& hoists every load and spills (23.6%), splitting each lerp
-// into a quotient statement plus an add statement changes nothing (46.5%).
-// The G1 shape (varG1.cpp) is the best foundation for the next retry; the
-// z-section quirk list above is what is left to reproduce.
-// GPT-6.1-sol retry in #3198: five checker invocations, best remains 88.0%; no MATCH. Vec3 pointer and indexed int-pointer helpers tied the existing output; mixing a Vec3 reference with six integer references scored 44.7%. The prior source remains best.
-// Retry (deepseek-v4.1-flash, issue 2990): existing best remains 88.0% (497 vs
-// 499 bytes). Explored genuinely different shapes (template helper, Vec3 member
-// method, combined Seg& helper, Class::SplitSeg, six int& refs, prepending the
-// matched preceding 0x473b30, lerp addend swaps, ddx placement): all either
-// byte-identical at 88.0% or worse (39.9 to 62.4%). Residual: two Vec3& refs
-// keep e.x/e.y 7/11 stores before the next component's loads (aliasing), and
-// block2 rematerializes s.y/s.z via [ebx+0x20]/[ebx+0x24] instead of
-// [ebp+4]/[ebp+8]. Scheduling/rematerialization, not source-reachable.
-
-// Retry (deepseek-v4.1-flash, #2615): no gain, 88.0% stays. A Vec3 method
-// Split()/Sub() pair (two inlined methods, the same shape the matched
-// siblings 0x4736e0/0x4742c0 use) compiles to 511 bytes, 78.5%, and the
-// free helper with the e.x/e.y stores moved after the next component's
-// loads compiles to 533 bytes, 54.3%. The store-sinking hunks come from
-// eax/ebp being clobbered after the rep-movsd copies: block one's pointer
-// register (eax) is reused by the division magic constant, block two's
-// (ebp) is not, so only block two keeps the start pointer for y and z.
-// Refinement (GPT-6.1-sol): best remains 88.0% (497/499 bytes), no MATCH.
-// Reversing the inline helper's Vec3 reference parameter order and reversing
-// each call's arguments emits byte-identical code. Remaining differences are
-// the field-store scheduling and address/register choices documented below.
-// Sibling of 0x4736e0 and 0x4742c0: the same base call with the third
-// argument, the same two 24-byte copies and the same trailing virtual call.
-// This one keeps each 24-byte block as a {point, far point} pair, moves the
-// point 4/11 of the way along it, and re-aims the far point 3/11 further on,
-// so the block ends up holding {point at 4/11, that point's own delta}.
-//
-// Both divisions are the signed /11 magic 0x2e8ba2e9, the 7/11 one written as
-// (d << 3) - d, so they have to be `d * 4 / 11` and `d * 7 / 11` on the same
-// difference d. The old start point is kept in a local: the compiler holds it
-// in a register (esi) across both stores, as the original does, but the two
-// results have to be temporaries assigned to the fields, not written straight
-// into them, or the 4/11 point is kept in a register for the subtraction
-// below instead of being stored and re-read.
-//
-// The z component is the odd one out in the original too: its delta is the
-// difference of the two lerps computed in registers, with the 4/11 point
-// living in edi from before the x and y deltas are re-read from memory until
-// the subtraction. `e.z = bz - az` with az and bz locals is what produces that;
-// writing the subtraction against the field, or leaving one of the two out of
-// a temporary, does not.
-//
-// Still differs (88.0%, 497 of 499 bytes), all of it scheduling inside the two
-// copies of the helper:
-//   - the 7/11 point is stored just before the next component's loads, where
-//     the original sinks the store past them (x and y, in both blocks);
-//   - the z 4/11 point is formed as `add edx, esi; mov edi, edx` instead of
-//     `lea edi, [edx + esi]`, and its store lands before the x delta instead of
-//     between the x delta's subtract and its store;
-//   - the z delta is emitted as `sub edx, edi; add edx, esi` where the
-//     original adds sz first and subtracts afterwards: MSVC reassociates
-//     `bz - az` no matter how the two lerps are spelled;
-//   - in the second block the base register ebp (= this + 0x1c) is also used
-//     for start.y and start.z, where the original drops back to [ebx+0x20]
-//     and [ebx+0x24], and the x delta is subtracted into eax where the
-//     original reuses ebp (freeing the base register).
-// I could not move any of those from the source: every spelling of the two
-// divisions, of the two temporaries and of the three deltas lands on the same
-// code, and no header set changes it either.
-//
-// Retry (deepseek-v4.1-flash): the store sinking is a real aliasing effect.
-// The two Vec3 refs may overlap, so MSVC must keep `e.x = bx` before `s.y` is
-// loaded. One plausible source shape is a single Segment pointer (start/end
-// fields of one object, so MSVC knows they do not overlap and does sink the
-// store). It does sink it, but every single-pointer spelling (Seg&, Seg*,
-// int*, two pointers into one object, direct this->seg_34 fields, with or
-// without per-component inline helpers) makes MSVC 5 hoist start.y above the
-// start.x store and spill it, 497 bytes turns into 513 to 564. A middle shape
-// (Segment* for end, Vec3* for start) also spills. The two-ref helper is the
-// only shape that stays in registers, so 87.5% was the ceiling from source
-// alone as far as that retry could tell.
-//
-// Retry (LongCat 2.5 Preview Free): 88.0%, 497 of 499 bytes. One real gain:
-// the 4/11 x delta has to be a *temporary assigned in its own statement*
-// (`int ddx = e.x - s.x; e.x = ddx;`) placed between the 7/11 z lerp and the
-// `s.z = az` store, not `e.x = e.x - s.x;` after it. That alone is worth half
-// a percent, and it is the only source change in the file. What is left:
-//   - `e.x = bx` and `e.y = by` are still stored before the next component's
-//     loads where the original sinks them past (the aliasing effect above);
-//   - the original's `mov edx, esi; sub ecx, edx` for the z difference, i.e.
-//     the start point copied into a second register rather than subtracted in
-//     place, and `lea edi, [edx + esi]` for the 4/11 z point rather than
-//     `add edx, esi; mov edi, edx`;
-//   - the z delta is `add edx, esi` (7/11 point) then `sub edx, edi` (the
-//     4/11 point), where ours reassociates to `sub edx, edi; add edx, esi`;
-//   - in the second block the original keeps ebp (= this + 0x1c) live only for
-//     start.x and drops back to [ebx+0x20] and [ebx+0x24] for y and z, and
-//     reuses ebp for the x delta; ours holds ebp for all three components.
-// Every one of these is register pressure that follows from the store order,
-// so none of them moves on its own. Measured and rejected (all 497 bytes and
-// 88.0% unless noted, i.e. identical code): the z difference and the deltas
-// through a `static inline int Sub(a, b)`; the same through a `Z(v)` getter
-// and a `Delta(b, a)`; the two lerps through `Lerp4(s,d)`/`Lerp7(s,d)`;
-// `int q4 = dz*4/11` as its own local with the sum written both ways; the 7/11
-// point accumulated with `+=`; `e.z = -az + bz`; a no-op `(int)` cast on
-// either operand; computing bz first, or az last, or ddy next to ddx (that
-// last one is 493 bytes and 74.7%); `e.z` assigned before `s.z` (78.8%).
-// Shapes that keep the values in registers but not in the original's registers,
-// all worse: one Vec3& with the end taken as `(&s)[1]` (503 bytes, 39.9%),
-// one int* with the end at `p+3` (503, 39.9%), Seg* or Seg& (564, 23.6%),
-// a member function on Seg (76 bytes, the body went out of line), Vec3* and
-// Vec3& parameter pairs (497 bytes but the argument order changes the code,
-// 66.3%), swapping the two calls (496 bytes, 49.6%) or the two struct copies
-// (496, 48.0%), and staging the two segments through local Seg temporaries
-// (635, 33.7%). `tools/headers.py` over all 128 header sets also stops at
-// 88.0%, so this is a codegen difference, not a header one. 88.0% looks like
-// this function's ceiling from source alone.
-
-//
-// Retry (Sonnet 5.5, #1135), no gain, 0 official runs: the base registers of the
-// original say how the helper was fed. In block two the original uses [ebp]
-// only for start.x and [ebx+0x20], [ebx+0x24] for start.y and start.z, where
-// the Vec3& helper below gives [ebp+4], [ebp+8]. Passing the six components as
-// separate `int&` parameters (Split(seg.start.x, seg.start.y, ..., seg.end.z)),
-// which makes each address its own this+K node, reproduces every base register
-// of the original (497 bytes, 85.9%: lower than this file only because the
-// y and z loads are then ordered after the e.x store, and the original hoists
-// e.y and s.y above it). Direct `this->seg_34.start.x` member expressions (a
-// macro) hoist the loads too but also forward the stored values and spill
-// (567 bytes, 29%; a statement hill climb of that shape reached 49%).
-// Hill climbs over all single statement moves of both helper shapes are flat
-// (88.0 and 85.9), and 125 spellings of the three per-axis delta/load forms
-// give 85.9 each. So the missing piece is a source shape with the addressing
-// of separate component references and the scheduling freedom of one base
-// pointer. Also tried: a method on a Seg subclass that takes six int* locals
-// from its own fields (503 bytes, 39.9%).
-// Retry (deepseek-v4.1-flash, #1163): no gain, 88.0% stays the ceiling from
-// source. All of this was measured with free `check.py --sym` scratch scores:
-//   - one straight-line body with direct member expressions (no helper) is
-//     31.8%: it keeps all six lerp results live and spills them;
-//   - the six-`int&` helper (Split(seg.start.x, ..., seg.end.z)) reproduces
-//     the original's base registers but reorders the loads (85.9%);
-//   - a single `Seg&` / `Seg*` parameter, and a `Seg::Split()` method, all
-//     change the prologue (`this` moves to ebp, an extra stack slot) and fall
-//     to 39.9%;
-//   - `<windows.h>`, `<string>`, `<iostream>`, `<vector>`, `<map>`, `<list>`,
-//     `<stdio.h>`, `<stdlib.h>`, `<math.h>` all give 87.5 to 88.0%, so no
-//     header is the lever;
-//   - a sweep of 0 to 516 unused `extern int dummyN;` declarations in front
-//     never exceeds 88.0%, so it is not compiler state either;
-//   - `(&s.x)[1]` / `(&s.x)[2]` compile identically to `s.y` / `s.z`, and
-//     dropping the `ddx` local also compiles identically (all 88.0%).
-// The remaining diff is instruction scheduling inside the inlined helper:
-// MSVC sinks the original's `e.x`/`e.y` stores one slot later (past the next
-// component's loads) and keeps az in edi; ours stores earlier, fuses the z
-// subtraction, and in the second block keeps ebp for `s.y`/`s.z` where the
-// original goes back to `[ebx+0x20]`/`[ebx+0x24]`. No statement order that
-// preserves the 88.0% load order moves any of them.
-// Retry (deepseek-v4.1-flash, #1380): re-confirmed 88.0%. Moving the y loads
-// before the `e.x = bx` store (the first diff hunk) makes MSVC 5 spill s.y to
-// [esp+0x1c] (513 bytes, 66.1%): every source order that delays the store has
-// to keep bx live across both loads, and the allocator spills instead of
-// sinking the store the original's compiler sank. Adding an explicit
-// `int ez = e.z;` local before the z delta compiles byte-identically to this
-// file, so the z copy is not reachable that way either. 88.0% stands.
-// Retry (deepseek-v4.1, #1903), 9 runs, no gain, 88.0% (499 vs 497) stands.
-// Confirmed the two remaining hunks are scheduling, not source shape:
-//   - moving the y loads above the `e.x = bx` store (the shape the original's
-//     instruction order hints at) spills exactly one slot: 513 bytes, 66.1%,
-//     because sx still occupies esi when the s.y load wants a register;
-//   - computing the z 7/11 lerp before its 4/11 one, moving it down after the
-//     `e.x`/`e.y` delta stores (the original's order, at 0x473c41), swapping
-//     the `s.x`/`e.x` stores and giving the y delta its own `ddy` temporary all
-//     compile to this identical 497-byte 88.0% body, so the compiler
-//     reassociates and schedules them the same whatever the statement order.
-// Retry (deepseek-v4.1, #1903, 10 min, 30+ check runs), 88.0% (499 vs 497)
-// stands, no gain. The remaining four hunks are unreachable from any
-// two-reference spelling tried, all of which compile to this same 497-byte
-// body byte for byte (confirmed by diff line count, not just the score):
-//   - load hoisting inside the component blocks (y loads between the x 7/11
-//     lerp and the e.x store; z loads likewise), which the earlier notes
-//     already found spills (85.3% with them, 87.0% with the z pair only);
-//   - explicit `int ez = e.z;`/`int ey = e.y;` temporaries, `-sz + e.z`,
-//     a separate `int dz; dz = e.z - sz;`, and field-vs-local spellings of
-//     the z delta all compile to the identical body;
-//   - a `ddz`/`ddy` temporary, or moving the `s.z = az;` store before the x
-//     delta block, change nothing (87.5% for the latter).
-// Flag probe: /O2 /Ob2 /MT /G5, /GB and /G4 are byte-identical to the
-// default build (88.0%), /G6 (P6 scheduling) drops it to 77.5%, so the
-// original is not a different /G setting. `static void` (no inline) is not
-// inlined at all (21.8%), so the helper really must be `inline`.
-// Retry (deepseek-v4.1-flash, 2808): no gain, 88.0% (497 vs 499) stays. New
-// measurement: the six-`int&` helper Split(sx,sy,sz,ex,ey,ez) does reproduce
-// the original's per-component base registers (block two uses [ebx+0x20..]
-// instead of [ebp+4..]) but only reaches 85.9%, and any order that moves the
-// `e0 = bx` / `e1 = by` stores after the next component's loads spills to 521
-// bytes (62.0%). Statement-order sweeps of the two-ref helper are flat at
-// 88.0% (swapping the s.z/e.x stores drops to 79.9%). The scheduling diffs
-// listed above are a codegen artefact this toolchain will not reproduce from
-// source.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Claude Opus 5.5. Names are provisional.
+// MATCH (Claude Opus 5.5, #4321). What every earlier pass was missing: the
+// original reads and writes the segment fields as direct members of `this`
+// (macro-expanded code, see SPLIT_SEG), not through Vec3& or int& parameters.
+// With direct members MSVC knows the fields do not alias, so it schedules each
+// e.x/e.y store after the next component's loads and runs the first segment's
+// last store into the second segment's loads, which no reference spelling
+// does. Each component has to read its start into v first and then subtract
+// the field again (`d = e - s`, a CSE use of v: `mov edx, esi; sub ecx, edx`
+// in the z part); `d = e - v` drops 4 bytes and the CSE copy.
 class Class_00471d70 {
 public:
     void FUN_00471d70(int param_1);
@@ -236,32 +24,29 @@ struct Seg_00473b50 {
     Vec3_00473b50 end;
 };
 
-static inline void Split_00473b50(Vec3_00473b50& s, Vec3_00473b50& e)
-{
-    int sx = s.x;
-    int dx = e.x - sx;
-    int ax = sx + dx * 4 / 11;
-    int bx = sx + dx * 7 / 11;
-    s.x = ax;
-    e.x = bx;
-    int sy = s.y;
-    int dy = e.y - sy;
-    int ay = sy + dy * 4 / 11;
-    int by = sy + dy * 7 / 11;
-    s.y = ay;
-    e.y = by;
-    int sz = s.z;
-    int dz = e.z - sz;
-    int az = sz + dz * 4 / 11;
-    int bz = sz + dz * 7 / 11;
-    // The x delta needs its own temporary, computed here, between the z lerps
-    // and the s.z store: that is what puts the store where the original has it.
-    int ddx = e.x - s.x;
-    e.x = ddx;
-    s.z = az;
-    e.y = e.y - s.y;
-    e.z = bz - az;
-}
+// Moves a segment's start 4/11 of the way along it and turns its end into the
+// step from there to the 7/11 point. A macro, not an inline function: the
+// original addresses every field as this + offset (start.y of seg_1c is
+// [ebx+0x20], not [ebp+4]), and only direct member expressions give that.
+#define SPLIT_SEG(g)                         \
+    {                                        \
+        int v, d;                            \
+        v = (g).start.x;                     \
+        d = (g).end.x - (g).start.x;         \
+        (g).start.x = v + d * 4 / 11;        \
+        (g).end.x = v + d * 7 / 11;          \
+        v = (g).start.y;                     \
+        d = (g).end.y - (g).start.y;         \
+        (g).start.y = v + d * 4 / 11;        \
+        (g).end.y = v + d * 7 / 11;          \
+        v = (g).start.z;                     \
+        d = (g).end.z - (g).start.z;         \
+        (g).start.z = v + d * 4 / 11;        \
+        (g).end.z = v + d * 7 / 11;          \
+        (g).end.x -= (g).start.x;            \
+        (g).end.y -= (g).start.y;            \
+        (g).end.z -= (g).start.z;            \
+    }
 
 class Class_00473b50 {
 public:
@@ -282,7 +67,7 @@ void Class_00473b50::FUN_00473b50(Seg_00473b50* a, Seg_00473b50* b, int c)
     ((Class_00471d70*)this)->FUN_00471d70(c);
     seg_1c = *a;
     seg_34 = *b;
-    Split_00473b50(seg_34.start, seg_34.end);
-    Split_00473b50(seg_1c.start, seg_1c.end);
+    SPLIT_SEG(seg_34);
+    SPLIT_SEG(seg_1c);
     v4();
 }

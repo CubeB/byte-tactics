@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**99.81% of Cavedog's code matched** (849,200 of 850,853 bytes)
+**100.00% of Cavedog's code matched** (850,853 of 850,853 bytes)
 
 `[########################################]`
 
-By count that is 3,266 of the game's 3,267 functions (100.0%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,267 of the game's 3,267 functions (100.0%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,266 | 849,200 |
-| Attempted, not yet matching | 1 | 1,653 |
+| Matched byte-for-byte | 3,267 | 850,853 |
+| Attempted, not yet matching | 0 | 0 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 703 of 703 | 100.0% | 0 | `##########` |
 | xl (401 to 600 bytes) | 226 of 226 | 100.0% | 0 | `##########` |
 | xxl (601 to 1,000 bytes) | 195 of 195 | 100.0% | 0 | `##########` |
-| huge (over 1,000 bytes) | 160 of 161 | 99.4% | 1,653 | `##########` |
+| huge (over 1,000 bytes) | 161 of 161 | 100.0% | 0 | `##########` |
 
 ### By area
 
@@ -55,7 +55,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x430000` | Maps, missions, briefings | 228 of 228 | 100.0% | 0 | `##########` |
 | `0x440000` | Multiplayer setup | 246 of 246 | 100.0% | 0 | `##########` |
 | `0x450000` | Options and audio menus | 176 of 176 | 100.0% | 0 | `##########` |
-| `0x460000` | Game and skirmish setup, unit classes | 211 of 212 | 97.3% | 1,653 | `##########` |
+| `0x460000` | Game and skirmish setup, unit classes | 212 of 212 | 100.0% | 0 | `##########` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 259 of 259 | 100.0% | 0 | `##########` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 264 of 264 | 100.0% | 0 | `##########` |
 | `0x490000` | Config and registry, skirmish summary | 193 of 193 | 100.0% | 0 | `##########` |

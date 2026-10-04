@@ -13,6 +13,27 @@
 // #5389 retry: re-confirmed 88.5%; the visibility and explored-cell live
 // ranges still force a different LOS register allocation.
 //
+// claude-opus-5-5 retry (#5404, 2026-10-04): still 88.5%. The original's
+// `mov esi, 1; shl esi, cl; ...; mov [esp+0x4c], esi` before
+// `mov esi, [edi+0x80]` reads as bit's split register piece: bit was
+// coloured after W1 (esi), los (edi) and g_game's two pieces here (ebx in the
+// vis-test block, ebp from the flag test on), found no register over its
+// whole range and was split, so the def piece kept esi until W1's def and the
+// rest went to memory (reloaded into ebx for the test, esi in the seen arm).
+// So the original needs W1, los and both g_game pieces ahead of bit. Here
+// bit (70, +0x40 71) takes esi at step 26 and los edi at step 27; only then
+// are g_game, W1 and the cols temp split (pieces built by FUN_00437e67 from
+// the split marks FUN_0041a985 places while colouring, not by FUN_00439385),
+// and W1's piece (32) gets ebp. bit stays at 70 for every spelling of its
+// definition tried (`1u <<`, `bit = 1; bit <<= p`, a byte or int player
+// local, Bit_ inlines with and without a local); `&bit` taken and unused is
+// ignored (bit stays a candidate); a block-local Game* for the vis test drops
+// bit to 62 but los (68) then takes esi (62.8%). Unchanged LOS block: a
+// shared fail label (in the bounds guard) for the two LOS `return 0`s, two
+// labels there in either order, bit in an inner block, a vis-word or
+// vis-pointer local (88.5%, or 82.8% where the shared exit block moves).
+// FUN_0045aaf9 (the demotion) never runs in this function.
+//
 // claude-opus-5-5 pass (#5165, 88.5%, no score gain; about 150 variants read
 // with tools/c2prio.py). Block names below: B4 `if (los)`, B5 call + first
 // Contains x test, B6 its y test, B7 the vis test, F the flag test, E1/E2/E3

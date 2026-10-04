@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by space-bunny-free, rewritten by claude-opus-5-5, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// Codex / GPT-6 retry for #5453 (2026-10-04): rechecked at 99.2%. The sole
+// mismatch remains `push ebp` versus `push 1` for FUN_0049fb10 in MAP. Existing
+// notes include C2 region analysis and extensive control-flow probes. The
+// latest #4841 results found no improvement from batch proposals on the 90%+
+// near-miss band, so the previous best is retained.
 // #5440 Codex retry: re-confirmed 99.2%; the MAP call still pushes ebp
 // instead of immediate 1 after the documented control-flow variants.
 // Codex GPT-6 retry for #5183 (2026-10-03): current main remains 99.2%,

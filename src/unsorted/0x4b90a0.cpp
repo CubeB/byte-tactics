@@ -1,4 +1,29 @@
 // Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by space-bunny-free, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 (#5640, 2026-10-04): still 87.1%, file unchanged except this
+// note. Rebuilt from the disassembly: the inner loop, the prologue and every
+// field type (short offsets, unsigned short sizes, byte key and planes, int
+// level) already match byte for byte, and it is a free __stdcall function
+// (ecx is never read; the one caller, 0x459200, pushes five arguments). The
+// whole residual is the row head's operand order (the original copies xoff
+// and adds each plane, loaded into a freed register; here the plane is loaded
+// into the destination and xoff added) plus the yoff store. New this pass,
+// all lower or equal:
+// - `dst->width * (yoff + row)` instead of a second induction variable: MSVC
+//   does not strength-reduce it (an add per row, 52.4%).
+// - Outer loop as do/while under an `if`, while, goto, and `yoff++` in the
+//   body or before `row++` in the increment: 87.1% or 80.6%.
+// - Plane fields as void*, int or char* cast at the use, and 0x4b88d0's
+//   `plane + y * width + x` order: 82.8% and 44.1%.
+// - The planes through a reference or pointer local declared before xoff
+//   (`unsigned char*& p0 = dst->plane0`, `pp[0]`), and dp0/dp1 declared at the
+//   top: the row head keeps the plane first (82.8%, the count moves the inner
+//   loop's registers).
+// - Idiom search over the exe: `mov r,[b+0x10]; add r2,r` with [b+0x14] read
+//   just after occurs only here, in 0x45b0a0 and in 0x4213b0, both matched,
+//   both sums of two memory operands (`piece->rot_x + object->box_x`): the
+//   second load is never folded there either, so the unfolded plane load
+//   follows from xoff being the add's first operand.
+// - tools/permute.py, 15 min, 18533 candidates: 87.1% unchanged.
 // Claude Opus 5.5 (#5550, 2026-10-04): still 87.1%, file unchanged except this
 // note. Real TU code does not supply the count this file needs:
 // - The TU (0x4b86e0 to 0x4b9a50: the 21 other matched files concatenated,

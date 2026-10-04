@@ -1,4 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// #5530 Codex recheck: 95.3% (99.6% ignoring internal jump targets); three mask instructions remain.
+// A retry with unsigned bitfields and precomputed int values fell to 80.8% (87.3% with jump targets masked) due to frame growth.
 // Opens the multiplayer battle room (LOUNGE2.GUI): resets the room state,
 // copies the lobby's command-line options (DAT_00512d68..DAT_00512d8c) or the
 // host's game options into the local player's flags, sets up the chat list,

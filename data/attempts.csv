@@ -7952,7 +7952,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4851c0,354,opus,#5598,partial,84.7,,"issue #5598, escalated"
 0x449bb0,2756,opus,#5600,partial,95.3,,"issue #5600, escalated"
 0x4152f0,1504,opus,#5602,matched,100.0,,"issue #5602, escalated"
-0x401360,2239,,#5604,assigned,,,"issue #5604, escalated"
+0x401360,2239,opus,#5604,matched,100.0,,"issue #5604, escalated"
 0x47d2e0,1339,,#5607,assigned,,,"issue #5607, escalated"
 0x462f30,1653,,#5610,assigned,,,"issue #5610, escalated"
 0x4851c0,354,,#5611,assigned,,,"issue #5611, escalated"

@@ -1,4 +1,25 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by GPT-6. Names are provisional.
+// #5406 (Claude Opus 5.5): still 84.7%. Why first-pass priority cannot do it
+// with this IL: `--blocks "#28,#9"` gives the |dx| temp 5 references in the
+// subtraction block B0 and 1 in its ternary arm, and dx 3 in B0 and 1 in the
+// division block B3 (K 9). So |dx| = 10*K0 + 4 and dx = 6*K0 + 14, and dx is
+// below |dx| for every K0 above 2; n (7 references in B3) is above both. The
+// original's order (dx first, then n and |dx| into esi) therefore needs IL in
+// which dx has references this code does not show, or |dx| is not a global
+// candidate, or a neighbour cost keeps n and |dx| out of ecx (nothing in the
+// code pins ecx: no shift by cl, no rep, no thiscall). Flat at 84.7% this pass,
+// with the three priorities unchanged unless noted: named abs locals
+// (adx 106), per-arm n with and without them (n 96), reusing one variable for
+// |dx| and n (two webs), `m = abs(d.z); if (abs(d.x) >= m) m = abs(d.x);`,
+// abs of b.x instead of d.x in either half of the ternary, `d.x = d.x / n`,
+// `>` and `>=` forms, copies of dx into a local (forwarded), `d = b` as an
+// assignment, `d(b)`, d and n declared at the top, goto-to-next-label block
+// splits and empty `do {} while (0)` / `if (0) {}` statements (both removed
+// before allocation), do/while(0) wrappers around the subtractions, four loop
+// forms. std::_cpp_max (the exact `x < y ? y : x` shape) makes the abs values
+// memory temporaries (370 bytes, 57.9%). The exe holds no call to and no
+// pointer to 0x4851c0, so the convention is unknown; an unused-`this` method
+// (__thiscall, same ret 0x18) compiles identically.
 // #5393 retry: still 84.7%; the source-shape and symbol-order sweeps remain flat.
 // c2prio could not run here because gdb and winedbg are unavailable.
 // Claude Opus 5.5 pass with tools/c2prio.py (#5260, 2026-10-03): still 84.7%.

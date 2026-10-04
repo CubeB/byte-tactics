@@ -1,4 +1,43 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6, retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5648 (Claude Opus 5.5, 98.6% kept; about 150 variants read with a c2prio
+// --rotation patched to print each temporary's tuple opcode, plus a "flat"
+// copy with Patrol's body pasted into case 1 so c2prio shows per-line CSE
+// temps; scripts in build/scratch/0x410850/v.py, fl.py, e*.py, f*.py, g2*.py):
+//  * The allocator lead does not carry over. 0x4152f0 inlines Class_00410830's
+//    implicit ctor, so its call site builds the default allocator (the lea)
+//    and calls vector::vector (0x40c510). Here the call goes to 0x410830, which
+//    takes no argument and builds the allocator itself (its `push ecx`), and
+//    Class_0044e2d0's ctor takes exactly two. Default-argument temporaries in
+//    IsDamaged or FindPads (an empty struct or a Vec3 by const reference) are
+//    dead and add no rotation step; by value they break the budget.
+//  * Between the test's lea and the pads block's &pads lea the original
+//    computes nothing (`lea ecx,[pads]; call 0x410830`, and that `this` lea is
+//    not a rotation temporary), so a health-first test there leaves no room for
+//    the extra temporary the block needs. With the pairing gone (SearchRange
+//    reading the owner or a constant) the test and the block both come out as
+//    the original's from today's rotation pointer: def edx, limit eax, health
+//    ecx. So the original most likely has no def CSE at the test (or a health
+//    CSE as well: a later real health read also gives def first).
+//  * The def CSE (c2prio's dropped `temp <test>,<range>`) survives, on the flat
+//    copy: int, unsigned, void* or short loads of the field, a pointer to
+//    member, a base-class upcast, sub-object methods (this = unit+0x8a or
+//    &unit->pos), `Unit* self = unit; unit = self;`, references to health, def
+//    or *unit, dead or overwritten health reads, `unit->health = unit->health`,
+//    tautologies (`h - h`, `h * 0`, `h == h`), and 2 to 40 extra CSE pairs.
+//  * In the matched 0x4103e0 the test is health first without any def CSE, so
+//    the operand order depends on more than the pairing. Here too: with the
+//    pairing gone, deleting Patrol's whole tail (angle to `return 2`) makes the
+//    test health first again, though no single part of the tail does; with the
+//    pairing, eight tail spellings leave it health first.
+//  * Near misses: `int damaged = IsDamaged(unit); if (damaged &&
+//    IsDamaged(unit))` gives the original's test bytes (health becomes a
+//    candidate) but the block one step off and 1070 bytes; with the throwaway
+//    before the test, `0 != IsDamaged(unit)`, `> 0`, `>= 1` or `& 1` give the
+//    test and the block but materialise the compare (93.2%).
+//  * Flat: real callee prototypes (FUN_0048a980 returning int, FUN_0044e730
+//    taking short, FUN_0040b530 taking const Vec3*), named locals of every int
+//    type in the water tail, the switch and the Patrol call, FindPads argument
+//    orders, a visitor temporary (86.9%), a Land helper (71.7%).
 // #5642 (Claude Opus 5.5, 98.6% kept; about 470 real-file variants, scripts in
 // build/scratch/0x410850/g*.py, sweep.py and real.py):
 //  * The toy below is not reliable. Its test order follows the absolute

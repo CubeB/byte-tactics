@@ -1,4 +1,14 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5546 Claude Opus 5.5 (99.8% kept): template instantiations do not supply
+// the missing ids either (docs/c2-regalloc.md, "Symbols each template
+// instantiation adds"). A container class adds its ids where it is first
+// needed (vector 137, list 285, map 395); the member functions it uses are
+// numbered at the end of the file. The plausible header set plus every
+// container class the exe has (40 vectors, 4 maps, a list) puts g_game at
+// 49003 (97.5%). 150 vectors, 4 maps and a list of invented element types
+// plus 20 one-member structs put it at 64983 and the bytes match (only the
+// static's $S suffix, which is its symbol id, differs), so the window is
+// real but needs padding. Scratch: build/scratch/0x424c00/probe.py, cases*.py.
 // #5535 Codex recheck: 99.8%; the paired loops still require opposite SIB orders.
 // #5429 Codex retry: re-confirmed 99.8%; both loops still require opposite
 // SIB orders, unavailable with the real symbol and header state.

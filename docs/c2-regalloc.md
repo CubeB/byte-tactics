@@ -424,6 +424,66 @@ both), and the same prefix would give 0x47d0e0's g_game bit 14 and 0x424c00's
 `offset + spots` in the Animating loop, so one large common header in
 front of every file is consistent with all four.
 
+### Symbols each template instantiation adds
+
+Measured with `--symbols g_game` in 0x424c00's file (`<list>`, `<map>`,
+`<set>`, `<deque>`, `<string>` and `<algorithm>` included), each line placed
+just before g_game. The front end instantiates a class template where its
+complete type is first needed (a member, a global object, `sizeof`, a
+`template class` line) and numbers its members there, so those ids come
+before every later declaration. Every member function and function template
+it instantiates is numbered at the end of the file instead, after the last
+declaration, also when an inline or a plain function before g_game calls it
+and also for `template class`: those move only the file total.
+
+| instantiation | ids where it is first needed | ids at the end, all members (`template class`) |
+|---|---|---|
+| `std::allocator<T>` | 26 | 48 |
+| `std::vector<T>` (its allocator included) | 137 | 472 |
+| `std::deque<T>` | 234 | 959 |
+| `std::list<T>` | 285 | 577 |
+| `std::set<T>` | 350 | 750 |
+| `std::map<int, T>`, `std::multimap<int, T>` | 394 to 400 (`std::map<std::string, T>` 402) | 823 |
+| `std::pair<int, T>` | 12 | 4 |
+| `std::string` | 0: `<string>` instantiates it | 489 |
+
+- The element type does not matter (`int`, a pointer and a 0x100-byte struct
+  all give 137 for a vector). A second container of the same element type
+  shares the allocator (a `vector` and a `list` of one T: 395).
+- A typedef of a container, a pointer to one, or a prototype taking one by
+  reference does not instantiate it (3 or 4 ids).
+  `std::vector<std::vector<T> >` instantiates only the outer vector (139).
+- The struct holding a container gets implicit members with parameters: 12
+  ids for a one-member struct, against 7 for `struct { int a; }`.
+- Members used by code are counted at the end: `push_back` 94, `std::sort`
+  141, `std::find` 9, `map::operator[]` 178, each with what it calls.
+
+data/symbols.csv names 45 container classes in the whole exe: 40 `vector`
+element types, 4 `map` trees and one `list` (`std::string` comes with
+`<string>`). All 45, as members of one struct before g_game and on top of the
+plausible header set above (`<windows.h>` `<ddraw.h>` `<dsound.h>`
+`<dplay.h>` `<shlobj.h>` `<imagehlp.h>`, `<stdio.h>` `<stdlib.h>`
+`<string.h>` `<math.h>` `<time.h>` `<io.h>`, `<vector>` `<list>` `<map>`
+`<algorithm>` `<string>`), add 7443. The last column is what the invented
+containers that reach each window took on top of the headers (one-member
+structs as element types, a few more one-member structs to land inside a
+narrow window):
+
+| function, the id that decides | plausible headers | + the exe's 45 containers | reached the window with |
+|---|---|---|---|
+| 0x41b2e0 without /Gi, the function's | 41511 (88.0%) | 48954 (88.8%) | 147 vectors, 4 maps, 1 list, 28 structs: 64558, MATCH |
+| 0x424c00, g_game's (the loops' locals follow it) | 41560 (97.5%) | 49003 (97.5%) | 150 vectors, 4 maps, 1 list, 20 structs: 64983, bytes match (only the static's name differs: its `$S` suffix is its symbol id, 64988, where data/symbols.csv has `$S4411`) |
+| 0x449bb0 with `unsigned short` fields, g_game's | 41548 (93.0%) | 48991 (93.8%) | 80 vectors, 8 maps, 2 lists: 56402, MATCH |
+| 0x471de0, the file total | 42635 (98.6%) | 50078 (98.6%) | 145 vectors, 4 maps, 1 list: 65198, MATCH |
+
+So every window is a symbol-id window that instantiations reach like any
+other declaration, but only with two to three and a half times every
+container class the game is known to have, all declared in front of each
+file. That is padding, so none of it is committed. After the exe's own
+containers, 7400 (0x449bb0) to 16000 (0x424c00) ids are still missing: the
+size of the game's own lost declarations (struct definitions, prototypes),
+not of its templates.
+
 How it works: the tool copies C2.EXE to `build/c2prio/<run>/c2p<run>.exe` with
 `jmp $` at the entry point (toolchain/ is never changed) and compiles with
 `/B2` pointing at the copy, so CL runs it with the usual `MSC_CMD_FLAGS`. It

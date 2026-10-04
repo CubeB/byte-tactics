@@ -1,4 +1,12 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5546 Claude Opus 5.5 (94.9% kept): template instantiations do not supply
+// the missing ids either (docs/c2-regalloc.md, "Symbols each template
+// instantiation adds"). Without /Gi, the plausible header set gives this
+// function id 41511 (88.0%), plus every container class the exe has (40
+// vectors, 4 maps, a list) 48954 (88.8%). 147 vectors, 4 maps and a list of
+// invented element types plus 28 one-member structs give 64558 and MATCH,
+// so the window is real but needs padding (about 3.5 times the exe's
+// containers). Scratch: build/scratch/gen2.py, runids.py.
 // #5535 Codex recheck: 94.9%; the bitfield operand and symbol-id constraints remain.
 // #5429 Codex retry: re-confirmed 94.9%; matching still depends on an
 // artificial declaration prefix, which is not committed.

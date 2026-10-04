@@ -1,5 +1,27 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6, retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
 // #5551 Codex recheck: 98.6%; only the health-test scratch-register order remains.
+// #5581 (Claude Opus 5.5, 2026-10-04, 98.6% kept). c2prio --rotation with each
+// temporary's tuple opcode, in codegen order after the selector (ah109): ours
+// health dc5, def a1, limit c12, then &pads d12, &pos a12, owner c1, index
+// d109 (the pads constructor's `this` lea is not a rotation temporary). With
+// the throwaway `g_a = g_b;` after the water branch's FUN_004388d0, a bool
+// `!IsHealthy(unit)` adds exactly one temporary (c108) between the limit and
+// &pads: the test and the whole block then match and only the materialised
+// `sbb ecx,ecx; inc ecx; test cl,cl; jne` differs from `jae` (93.2% with the
+// throwaway's 12 bytes). So the after-test temporary sits right after the
+// limit's lea. Flat in the rotation window, with the throwaway in place:
+// IsDamaged through `int damaged`, `!= 0`, `== 1`, a limit local, a damaged
+// local inside, a NeedsRepair wrapper; FindPads taking the position, owner,
+// player or range as parameters, the vector by reference or as
+// Class_00410830*; pads as a derived class (implicit or empty inline
+// constructor) or a struct member. bool/char IsDamaged forms (if/return,
+// ?:) either materialise or change nothing. Without the throwaway, no change:
+// Patrol's flags parameter as any char/short/unsigned type or the argument
+// cast; Class_0044e2d0 derived from Class_0044e730 with implicit upcasts
+// (FUN_004388d0 taking the base pointer breaks the inline budget, 1070
+// bytes); FUN_0044e730 taking short; a class operator new; a NewMove(order,
+// pos) inline by reference or pointer (70-72% once it also makes the
+// FUN_0044e730 call or is used in Patrol's tail).
 // #5555 (Claude Opus 5.5, 2026-10-04, no gain, about 300 variants): the
 // original keeps the health-first order (the def pairing with SearchRange is
 // there too). Its rotation pointer is just one step later (eax, which the

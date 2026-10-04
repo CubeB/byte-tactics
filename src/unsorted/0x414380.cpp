@@ -1,4 +1,11 @@
 // Decompiled by GPT-6 Astra, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Codex / GPT-6 retry on 2026-10-04: no improvement over 91.3%. A 15-minute
+// permuter run scored 860 candidates with no gain. /Gi scored 86.6%; range as
+// unsigned and reusing the first Vec3 local for the later start both stayed at
+// 91.3%. In-place bounds[0] += min grew the function to 1024 bytes and scored
+// 83.4%. stackcmp confirms the frame and accessed locals already align.
+// c2prio could not run because gdb and winedbg are unavailable. Keep the
+// existing 91.3% source as the best; state-3 register ties remain unresolved.
 // GPT-6.1-sol issue 3136 retry pass: baseline and best remain 91.3% after six scratch checks; one source check remains after this note. Variants included reverse component subtraction (73.8%), reverse addition operands (91.3%), min+pos (90.1%), reverse assignment order (91.3%), and a target alias (53.7%). One malformed scratch variant failed compilation. No variant improved the source.
 // deepseek-v4.1-flash pass (4 real check runs / many --sym): no improvement
 // over 91.3%. New insight into why the explicit operator- flips esi/edi: the

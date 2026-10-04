@@ -1,4 +1,38 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6, retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5616 (Opus, 98.6% kept). A toy with the same switch, test, pads block and
+// visitor (build/scratch/0x410850/t/, gen2.py to gen7.py, compiled with /Fa)
+// reproduces ours, which makes each idea a one-second test:
+//  * The test's operand order depends on the rotation phase as well as on the
+//    pairing. With no later `u->def` read, our phase gives the original's test
+//    and block (as SearchRange returning a constant does here), and the next
+//    phase gives ours. With the pairing, only the phase one step later gives the
+//    original's test, and the block is then one step off. The matched 0x4103e0 is
+//    health first with no CSE temp over its test (c2prio lists none), so there it
+//    is the phase alone.
+//  * The pairing is C2's global CSE temp for `u->def` over the test and the range
+//    read (c2prio's "not in the list" shows `temp <test line>,<range line>`). It
+//    forms across the calls between them; a store on one path (to a global,
+//    through order, to another unit field) does not stop it; any health read
+//    before (dominating, even a `cmp word ptr [esi+0x108], 0x7fff`) or after does.
+//    Dead or folded health reads (unused local, `(void)`, comma, sizeof or
+//    `int dbg = 0` guards, self-assignment, `&u->health`) are gone first.
+//  * No temporary after the test, toy and real: `&& 1`, `== 1`, `!!`, `!= 0`,
+//    `?:` on an int, `do {} while (0)`, `for (;;) {... break;}`, `while (...) {...
+//    break;}`, `switch (IsDamaged(u))` with a default, a goto around the block,
+//    extra braces, FindPads taking `X&`, `X*`, `Owner*` or the index, `X* pp =
+//    &pads`, an index local, `X& p = pads`, `X& pads = X()`, IsDamaged on `const
+//    U*`, `const U&`, a health local, Limit or Health helpers, and a pads class
+//    whose inline constructor is too big for /Ob2 (an out-of-line call, as here).
+//    `switch` with only `case 1:` materialises.
+//  * Real file, test unchanged: `flags` as char, unsigned char, short or unsigned
+//    short (97.8%), long or unsigned long; `unsigned int flags` (as in 0x4152f0) in
+//    either or both functions; `for (;;)` around the switch or the whole body;
+//    the water tail with `move` declared apart, a typed FUN_0044e730 pointer,
+//    `flags = flags | 0xe0`, a named or-result, a named `(int)move`, an order
+//    pointer local, the flags update before FUN_0044e730 (97.8%) or after
+//    FUN_004388d0 (91.6%); selector locals and casts; a braced case 1. A
+//    0x4152f0-style Land helper returning 1 or 0 (with or without its
+//    `do {} while (0)`) breaks the inline budget (64 to 73%).
 // #5592 (Claude Opus 5.5, 98.6% kept). Matched code with the same test, read with
 // a c2prio --rotation that prints each temporary's tuple opcode:
 //  * The test bytes (def edx, health ecx, lea eax, `jae`) occur in 0x410e70,

@@ -1,227 +1,27 @@
-// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro, re-verified by space-bunny-free, edited by Claude Opus 5.5. Names are provisional.
-// Claude Opus 5.5 (#5507): 83.6% -> 95.1% (488/488 bytes). The notes further
-// down that call the post-_hypot load order unfixable from the source are
-// superseded: parentheses move it. MSVC 5 keeps a node for a parenthesised
-// subexpression, and that node changes C2's x87 schedule (not the operand
-// order inside a commutative op, which C2 canonicalises: swapping operands
-// never changes a byte here). What this file needs:
-//  - `(_hypot(...))` in parentheses: g is converted before height after the
-//    call, as in the original (without them every spelling loads height first).
-//  - d*d written as `(d * d)` in both terms: C2 then computes it once, as the
-//    original's d4. With the old `... * d * d - d * d * gg * sum` it
-//    reassociates the products into a different tree.
-//  - `((h2 + d))`: the doubled parentheses move sum next to h2*gg.
-// What still differs: the original converts gg after A = s2 - gh*-2.0 and
-// multiplies A*s2 right after that; ours converts gg before A and does A*s2
-// after sum (two extra fxch, all else in the block is the same).
-// Lead, 97.9% and not committed because it needs `(double)` casts of doubles
-// that emit no code (AGENTS.md's plausible-source rule): with d4, h2 and
-// t = A*s2 as named locals,
-//     double distance = (((double)(_hypot((double)x, (double)z))));
-//     double d = distance * distance;
-//     double d4 = ((d * d));
-//     double gh = (double)g * (double)height;
-//     double h2 = (((double)((double)height * (double)height)));
-//     double s2 = (double)speed * (double)speed;
-//     double sum = h2 + d;
-//     double t = (((double)((s2 - gh*-2.0) * s2)));
-//     double disc = (t + (h2 * (double)gg)) * d4 - ((d4 * (double)gg) * sum);
-// gives every x87 operation of the block in the original's order (g, height,
-// gh, speed, d, s2, h2, gh*-2, d4, A, gg, A*s2, h2*gg, sum, d4*gg, B, X, B*d4,
-// disc). Only the reload of height (`fld [esp]`) then comes after the s2
-// multiply instead of before it. The effect of extra parentheses or no-op
-// casts is not monotonic (one more pair can undo a gain), so they were found
-// by search, not by rule: a symbolic x87 trace of both binaries named every
-// operation (dist, d, s2, ...), and a beam search over parentheses, casts,
-// named locals and statement order was scored by that operation order first
-// and by check.py's ratio second. Headers (tools/headers.py), /Gi and 0 to
-// 1024 extra declarations leave both versions unchanged.
-// Claude Opus 5.5 (issue #4678): still 83.6%, but two facts for whoever is next.
-//   1. CONSTANTS. The original's 0x4fda90 is 0x3fd45f306dc9c889 = 1/3.14159265358979,
-//      not 1/pi (0x...c883, the old `0.3183098861837907` literal), so the old file
-//      would have failed the constant check even with the code right. With
-//      `#define PI 3.14159265358979`, PI / 2 and PI / 4 give 0x4fda78 and 0x4fda80
-//      exactly, and `use / PI` (kept a separate statement from `use * 32768.0`)
-//      gives the fmul by 1/PI. Our .rdata is now byte-identical to 0x4fda60..0x4fda97
-//      (-2.0, 0.0, 2.0, pi/2, pi/4, 32768.0, 1/PI).
-//   2. LOAD ORDER. Across about 500 variants (build/scratch/0x49a890/: statement
-//      orders, every commutative operand order, sum/d4/gh as variables or inline,
-//      sum defined after or inside disc, `2.0 * g * h` spellings, `double gd = g`
-//      before the call, 0 to 4181 extra declarations, /Gi) ours always loads
-//      height, g, speed after _hypot; the original loads g, height, then stores H
-//      and multiplies before loading speed. C2 canonicalises statement and operand
-//      order here, so none of those levers reach it. Micro tests show what does put
-//      g first: a second `(double)g` occurrence discovered before height's second
-//      one (CSE defs are emitted in discovery order), or g read through a pointer
-//      after the call. Neither fits the original's code, so the lever is still
-//      unknown; the right tree (d4 = d*d shared, see below) with the permuter
-//      reaches 83.2% at 488 bytes and has the same load order.
-// space-bunny-free (issue #4502): still 83.6% (488/488), no MATCH, but the middle is now
-// explained, and the explanation rules OUT every spelling tried so far. Re-derived the x87
-// schedule by simulating the raw bytes of both the original and our own object
-// (build/scratch/49a890/sim.py, symbolic x87 interpreter; build/scratch/49a890/r5.py,
-// r6.py score the variants in ~0.2 s each).
-//
-//   1. THE ORIGINAL'S disc, confirmed (every value below read off the simulated stack):
-//        d4 = d*d            (materialised as its own value, 0x49a912, before A)
-//        A  = s2 - gh*-2.0   (0x49a91c fsubr)
-//        T  = A*s2           (0x49a930)
-//        h2gg = h2*gg        (0x49a93a)
-//        sum = h2 + d        (0x49a940)
-//        d4gg = d4*gg        (0x49a94a)
-//        T' = T + h2gg       (0x49a950 faddp st(3))
-//        disc = T'*d4 - d4gg*sum      (0x49a95e, 0x49a964 fsubp st(1))
-//      So d4 is a first-class value reused by two products, and the faddp is st(3) because
-//      d4gg already sits on the stack when T + h2gg is formed. Value at g=98, h=50, R=1000,
-//      v=500: 8.27265625e22, which is the intended quadratic discriminant.
-//
-//   2. WHY NO SPELLING OF THE DISC EVER GETS THERE: MSVC 5 rewrites the value. Our own
-//      object, simulated, computes T'*d*gg - sum*d*d*d, not the T'*d*d - d*d*gg*sum that
-//      the source below spells: it moves one factor of d from the first term to the
-//      second (-2.4455e24 instead of 8.2727e22 at the sample values). That is a
-//      value-changing reassociation of the x87 multiply tree, so the shape this source
-//      produces can never be the original's, no matter how the load order is fixed. The
-//      original's own code preserves the value, so Cavedog's source must have hidden the
-//      shared d*d behind something the optimiser would not look through (a named local).
-//      Every named-local spelling tried does reach the original's tail shape
-//      (faddp st(3), fstp, fmul, fxch, fmul, fsubp) but only at 75-78% and it costs the
-//      post-hypot load order as well, so the two levers have to be found together.
-//
-//   3. SCORES THIS ROUND (base = 83.6%, 488 bytes): explicit (d*d) parens 56.4% / 490;
-//      (d*d)*(gg*sum) 71.5% / 494; sum*((d*d)*gg) 75.7% / 492; the addends of X in the
-//      other order 44-47%; named d4 with (d4*gg)*sum 75.7% / 492, with d4*gg*sum 60.4%;
-//      named d4 before `sum` and (d4*gg)*sum 78.0% / 488 (exact size, closest overall);
-//      named t/hh intermediates 53.9-67.1% / 500-504. The base spelling, with four
-//      separate `* d` multiplies and no d*d grouping, is still the best of them.
-// space-bunny-free (issue #4352): best stays 83.6% (488/488 bytes), no MATCH. Re-derived the
-// original's x87 schedule with a numeric x87 interpreter run over the raw bytes
-// (build/scratch/0x49a890/x87run.py) rather than by eye. Two things settled; the first is a
-// trap nobody should walk into twice.
-//
-//   * THE `disc` SPELLED BELOW IS CORRECT. A hand symbolic trace produces a different but
-//     plausible discriminant, (q + h2*gg)*A - A*gg*sum with q = d*d*s2, because it reads
-//     `fxch st(3)` as a reversal of the stack. `fxch st(N)` swaps only st(0) and st(N): on
-//     [gg, A, d4, h2] at 0x49a924 it gives [h2, A, d4, gg], so the multiply after it is
-//     A*s2, not d4*s2. Simulating the bytes at g=98, h=50, R=1000, v=500 gives 5.5346e22,
-//     which is exactly what this file's expression evaluates to; the wrong tree gives
-//     6.4950e22. Spelling the wrong one costs about 18 points (best 65.5%), and every form
-//     of it with A named or inlined grows the frame to `sub esp,0x38`.
-//
-//   * VERIFIED TREE (dist = _hypot(x,z), d = dist*dist, s2 = speed*speed, h2 = height*height,
-//     gh = g*height, A = s2 - gh*-2.0, gg = g*g, sum = h2 + d):
-//         disc = (A*s2 + h2*gg)*d*d - (d*d)*gg*sum
-//         num = (s2+gh)*d ; high = (sqrt(disc)+num)/(2*sum) ; low = (num-sqrt(disc))/(2*sum)
-//     The original evaluates in this order: gh, d, s2, h2, gh*-2, d*d, A, (fild gg), A*s2,
-//     h2*gg, sum, (d*d)*gg, (A*s2)+(h2*gg), (d*d)*gg*sum, then the product, then the fsubp.
-//     Constants read out of the image: 0x4fda60 = -2.0, 0x4fda68 = 0.0, 0x4fda78 = pi/2,
-//     0x4fda80 = pi/4, 0x4fda88 = 32768.0, 0x4fda90 = 1/(2*pi).
-//
-// The one remaining difference is still only the commutative fild order right after the
-// _hypot call (the original converts g, then height, then does the gh multiply, then speed;
-// ours converts height, g and speed, then does the multiply), and the `add esp,0x10` rides
-// along with it because that add is the caller-side pop of the two doubles pushed for _hypot,
-// not a frame teardown. It did not move for anything tried: 9 gh spellings x 6 statement
-// orders; a 1440-candidate cross-product of gh spelling x statement order x distance/d naming
-// x sum spelling x discriminant spelling x the `disc < 0.0` test, 54 of which tie at 83.6%;
-// 6 tail shapes; 0 to 5400 unused file-scope prototypes above the function (the 0x4b6c30
-// trick); and the real neighbours 0x49a0c0, 0x49a850 and 0x49adf0 defined above it in both
-// orders. That makes it the guide's "operand order that nothing changes" case: the cause is
-// compiler state from the original file's other contents, not from this source. Everything
-// from the `fcom` at 0x49a966 to the end is byte-identical.
-// mimo-v2.6-pro (issue #4035): best stays 83.6% (488/488 bytes). The one diff hunk is the
-// post-_hypot x87 schedule, rooted in the commutative fild order of the gh multiply: the
-// original filds g then height, ours filds height then g and batches speed's fild before the
-// gh multiply (also delaying `add esp,0x10`). Confirmed NOT fixable from the source:
-//   (1) gh as one expr `(double)g*(double)height` (74.6), `height*g` (74.6), two-stmt
-//       `gh=(double)g; gh=gh*height` (83.6, best), `gh*=height` (83.6), `gh=(double)height*gh`
-//       (83.6), named `gd=(double)g` (83.6), named `hd=(double)height` (74.6): all fild height
-//       first. Never g first.
-//   (2) headers: stdio+math, math only, +string, +windows, +stdlib, no stdio: all 83.6 and
-//       still fild height first (headers.py's escape hatch does not move it).
-//   (3) preceding real function FUN_0049a850 compiled first in the file: still 83.6, height
-//       first (the "function before compiled first" trick does not flip the load order).
-//   (4) disc shapes (group `(d*d)`, right-group, mirror, sum-inlined) all <=83.6; the current
-//       `(...)*d*d - d*d*gg*sum` left-assoc disc is optimal. Naming h2 or d2 breaks the middle
-//       (74.6 / 487 bytes / 60.x).
-// Catch-22: matching the middle requires `(double)height*(double)height` left inline in sum and
-// disc so height is reused, but that reuse is exactly what makes MSVC fild height before g and
-// hoist speed's conversion ahead of the gh multiply. Making height single-use (h2 named) drops
-// to 74.6. So the g/height commutative load order cannot be flipped while keeping the disc that
-// matches the middle. Gave up; this is the guide's x87-commutative load-order case (headers do
-// not fix it). Everything from the first `fst [esp+0x20]` onward matches in the current file.
-// space-bunny-free (issue #3386): 83.6% retained, no MATCH. Ran an x87 stack SIMULATOR over
-// the original (build/scratch/0x49a890/sim.py) to recover the exact expression tree, and it
-// CORRECTS the note above: the original's disc is NOT `(h2*gg + (s2-gh*-2.0)*s2)*d*d -
-// d*d*gg*sum`, it is the mirror image with a different value:
-//     d4  = d*d
-//     A   = s2 - gh*-2.0            (0x49a91c fsubr)
-//     T   = A*s2                    (0x49a930 fmul)
-//     h2gg= h2*gg                   (0x49a93a fmul)
-//     B   = T + h2gg                (0x49a950 faddp st(3), addends T then h2gg)
-//     disc= (d4*gg)*sum - B*d4      (0x49a958, 0x49a95e, 0x49a964 fsubp st(1))
-// MSVC x87 temp slots (esp=E-0x30 after the `add esp,0x10`), each REUSED later, so the frame
-// only needs six doubles: [E-0x30] height then d2 | [E-0x28] speed | [E-0x20] dist then s2
-// then d4 | [E-0x18] h2 then gg then sum | [E-0x10] d4 then h2 | [E-0x08] gh then sqrt(disc).
-// Evaluated in this order: gh, d, s2, h2, gh*-2.0, A, d4, T, h2gg, sum, d4*gg, B, *sum, *d4.
-// Scoring (all free --sym runs, base 83.6%): the mirrored `d*d*gg*sum - (...)*d*d` with gh
-// before d scored 67.8%; the same disc on the base statement order scored 72.7% both ways;
-// hoisting `h2*gg` into a named local but keeping the base order scored 79.4% (488 bytes).
-// So the disc shape alone is NOT the cause, and matching it does not move the schedule.
-// NOT FIXED, and nobody should retry these: (1) moving `gh` ahead of `d`, (2) reversing the
-// disc's two terms, (3) either order of the addends inside the disc parentheses.
-// Issue #3175 retry by GPT-6.1-sol: root checker confirmed 83.6% (408/488 bytes), no MATCH. Eight source-order/local-expression variants scored 74.6%, 74.6%, 74.6%, 82.2%, 83.6%, 83.6%, 83.6%, and 83.6%; best retained. Remaining mismatch is the post-_hypot x87 schedule, where original loads g then height and spills height before multiplying, while this source schedules height/g and different x87 temporaries.
-// #2981 retry by GPT-6.1-sol: six checks retained 83.6%; the lower-scoring
-// inline-expression variant did not change the post-_hypot x87 schedule.
-// deepseek-v4.1 (issue #2573): 83.6%, exact 488/488 bytes, only ONE diff region left, the
-// post-_hypot x87 load/spill schedule (see bottom note). What fixed the old 78.2%: the angle
-// scaling must write the first factor back into the SAME `use` local,
-// `use = use * 32768.0; return (short)(use * 0.3183098861837907);`, otherwise MSVC5 folds
-// 32768.0*0.3183098861837907 into one constant, which costs an fmul per path (+6 bytes), turns
-// the shared return tail into two tails (+9 bytes total: 497 vs 488) and forces a different
-// local-home layout. Do not merge those two statements back into one expression.
-// PARTIAL, best 83.6% (488 of 488 bytes). Ballistic launch-angle solver: two roots of the
-// trajectory equation, each tested against zero and turned into a launch angle with
-// acos(sqrt(root) / speed) (0x4e67f0 is the CRT's _CIacos: argument in st(0), then
-// fpatan(sqrt(1 - x*x), x)), pi/2 substituted when the root is not positive.
-//
-// Facts settled by the disassembly: __stdcall, five int-sized args (six fild loads, no
-// movzx), returns short (mov ax,0x8000 or the _ftol result). g*g is an int product
-// (imul) computed BEFORE the _hypot call and converted later, so `gg` is hoisted.
-// The `- gh * -2.0` literal survives only when written as a subtraction. The pi/4 tests
-// are `<=`; the second root is tested as `low > angle` (fcompp order).
-// Reusing `d` for dist, dist^2 and the numerator matters (worth ~5 points), as does
-// the `#include <stdio.h>` (headers change the x87 spill choices; math.h alone: 65%).
-//
-// What still differs (deepseek-v4.1, issue #2573): the only diff hunk left is the
-// post-_hypot x87 schedule, 53 lines. Ours filds height, g, speed; the original
-// filds g, height, then stores height to slot0 and does `fmul [esp]`, i.e. it
-// spills the second conversion and keeps g as the multiplicand. Everything from
-// the first `fstp [esp+0x20]` (2*sum) to the end of the function is byte-identical.
-// Tried (~1000 scratch variants): statement orders, operand orders, named/inline
-// temporaries, variable reuse, all header sets (headers.py, with and without --cpp).
-//
-// deepseek-v4.1-flash re-attempted (issue #1104): ~60 more scratch variants, all 67.6%
-// or worse. Confirmed headers.py finds no fixing set. Factoring d4 out (v_fact) gives
-// 487 bytes (one short) but 66.4%. The first divergence is fixed before any arithmetic:
-// the original filds g then height, ours filds height then g, and defers `add esp,0x10`
-// to reuse the hypot argument slots for scratch. Swapping the gh operands, splitting gh
-// into a helper, changing the d=d*d / d2 model, naming d4/A/h2, reordering the disc
-// terms, and 2.0*gh all leave the schedule byte-identical at 67.6%. The middle looks
-// like one allocator state seeded by that first g/height load order, not by the disc
-// expression. No check.py MATCH.
-//
-// GPT-6.1-sol (issue #1431): five checker runs. Storing `(double)g` into `gh` before
-// multiplying by height raises the best score from 67.6% to 68.3%; separate converted
-// operands tie, while spelling out the discriminant temporaries or nesting the angle
-// tests scores lower. The remaining first divergence is in the post-_hypot x87 load /
-// spill schedule; later branch offsets and return-path layout also differ. Best source
-// kept here at 78.2%; no MATCH.
-// Lead #1431 tried retaining the squared _hypot result in a separate local; it scored 70.3%. GPT-6.1-sol then associated discriminant factors as left-associative `* d * d - d * d * gg * sum`, scoring 78.2%.
-// deepseek-v4.1-flash (issue 3404): five checker runs, no gain, best still 83.6% (488 bytes).
-// Swapping the two gh statements to height-first (74.6%), folding them into one expression
-// `double gh = (double)height * (double)g;` (74.6%) or `gh = (double)height * gh;` (83.6,
-// byte-identical) all leave the residual hunk untouched, so the gh spelling is not the lever
-// for the first diverging fild order.
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro, re-verified by space-bunny-free, edited and finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (#5569): MATCH. Ballistic launch-angle solver: the two roots
+// of the trajectory quadratic, each turned into a launch angle with
+// acos(sqrt(root) / speed), pi/2 when a root is not positive.
+// Two things made it match after many passes at 83.6% to 97.9%:
+//  - The square of (v^2 + g*h) is expanded as `(s2 + 2*gh) * s2 + h2 * gg`.
+//    MSVC 5 turns the `+ 2*gh` into the original's `- gh * -2.0` (a constant
+//    moved outward takes the sign of the sum) and then schedules that
+//    subtraction before the fild of gg, as the original does; spelling
+//    `- gh*-2.0` itself never did.
+//  - The redundant parentheses are load-bearing. The front end keeps a node
+//    for each pair around a floating-point expression (one pair at the top
+//    of an initializer is dropped, and pairs around integer expressions or
+//    call arguments change nothing), and those nodes steer C2's x87
+//    schedule: the pairs on `_hypot` load g before height after the call,
+//    the four pairs on h2 put the reload of height before the s2 multiply,
+//    and the pairs on (s2 + 2*gh) * s2, on its sum with h2 * gg and on
+//    d * d * gg give the original's order (A, gg, A*s2, h2*gg, sum,
+//    d*d*gg). The counts are exact: one pair more or fewer on h2 gives 94.4%
+//    or 97.9%, and one or two pairs on _hypot give 68%. This is the smallest
+//    set a search over paren counts found; no no-op casts are needed (the
+//    old 97.9% lead needed `(double)` casts of doubles).
+// Constants: 1/PI only matches the pool as 1/3.14159265358979, so PI is that
+// literal and `use / PI` stays a separate statement from `use * 32768.0`.
 #include <stdio.h>
 #include <math.h>
 
@@ -238,29 +38,24 @@ struct Game_0049a890 {
 
 extern Game_0049a890* g_game;
 
-// deepseek-v4.1-flash (issue 3914): two checker runs on the two untried statement orders,
-// both byte-identical to this file at 83.6% (488/488): hoisting `double gh = (double)g;`
-// plus its multiply above `double d = distance * distance;`, and naming the single
-// `double h = (double)height;` conversion used by gh. The post-_hypot x87 schedule (ours
-// filds height then g, original filds g then height) is unchanged by both.
 // FUNCTION: 0x49a890
 short __stdcall FUN_0049a890(int x, int height, int z, int speed, float angle)
 {
     int g = g_game->gravity;
     int gg = g * g;
-    double distance = (_hypot((double)x, (double)z));
+    double distance = (((_hypot(x, z))));
     double d = distance * distance;
     double gh = (double)g * (double)height;
-    double h2 = (double)height * (double)height;
+    double h2 = (((((double)height * (double)height))));
     double s2 = (double)speed * (double)speed;
-    double sum = ((h2 + d));
-    double disc = ((s2 - (gh*-2.0)) * s2 + (h2 * (double)gg)) * (d * d) - (((d * d) * (double)gg) * sum);
+    double sum = h2 + d;
+    double disc = (((((s2 + 2*gh) * s2)) + h2 * gg)) * (d * d) - (((d * d * gg)) * sum);
     if (disc < 0.0)
         return 0x8000;
     disc = sqrt(disc);
-    d = (s2+gh)*d;
-    double high = (disc+d)/(sum+sum);
-    double low = (d - disc)/(sum+sum);
+    d = (s2 + gh) * d;
+    double high = (disc + d) / (2*sum);
+    double low = (d - disc) / (2*sum);
     double highAngle;
     double lowAngle;
     if (high > 0.0)

@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**99.78% of Cavedog's code matched** (848,940 of 850,853 bytes)
+**99.81% of Cavedog's code matched** (849,200 of 850,853 bytes)
 
 `[########################################]`
 
-By count that is 3,265 of the game's 3,267 functions (99.9%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,266 of the game's 3,267 functions (100.0%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,265 | 848,940 |
-| Attempted, not yet matching | 2 | 1,913 |
+| Matched byte-for-byte | 3,266 | 849,200 |
+| Attempted, not yet matching | 1 | 1,653 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -36,7 +36,7 @@ The size bands are the `size:` labels on the issues.
 | --- | ---: | ---: | ---: | --- |
 | small (1 to 64 bytes) | 1,155 of 1,155 | 100.0% | 0 | `##########` |
 | medium (65 to 160 bytes) | 827 of 827 | 100.0% | 0 | `##########` |
-| large (161 to 400 bytes) | 702 of 703 | 99.9% | 260 | `##########` |
+| large (161 to 400 bytes) | 703 of 703 | 100.0% | 0 | `##########` |
 | xl (401 to 600 bytes) | 226 of 226 | 100.0% | 0 | `##########` |
 | xxl (601 to 1,000 bytes) | 195 of 195 | 100.0% | 0 | `##########` |
 | huge (over 1,000 bytes) | 160 of 161 | 99.4% | 1,653 | `##########` |
@@ -60,7 +60,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x480000` | Unit definitions, COB scripting, TNT map | 264 of 264 | 100.0% | 0 | `##########` |
 | `0x490000` | Config and registry, skirmish summary | 193 of 193 | 100.0% | 0 | `##########` |
 | `0x4a0000` | GUI layout and GAF | 201 of 201 | 100.0% | 0 | `##########` |
-| `0x4b0000` | UI controls and file packages | 313 of 314 | 99.6% | 260 | `##########` |
+| `0x4b0000` | UI controls and file packages | 314 of 314 | 100.0% | 0 | `##########` |
 | `0x4c0000` | TDF parser, CD audio, string handles | 298 of 298 | 100.0% | 0 | `##########` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 197 of 197 | 100.0% | 0 | `##########` |
 | `0x4e0000` | Process exit, psapi | 93 of 93 | 100.0% | 0 | `##########` |

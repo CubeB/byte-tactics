@@ -17,6 +17,7 @@ uv run tools/stateprobe.py HEADER --rename   # how many matches a shared header 
 uv run tools/place.py                  # link at the original's addresses: build/place/TotalA.exe
 uv run tools/link.py --carve           # an ordinary LINK.EXE link that runs: build/link/TotalA.exe
 uv run tools/linkcmp.py                # does every reference in it reach what the original's does?
+uv run tools/gapcheck.py [0x...]       # the gap regions' source (src/gap/) against the original
 ```
 
 `linkcheck.py` and `globals.py` compile through `tools/progress.py`'s cache in
@@ -239,6 +240,10 @@ How it places things:
   the objects in `build/progress` that `tools/check.py` compares. Each
   object's COMDAT padding fills the space up to the next function, as LINK's
   would.
+- **Gap regions with matching source** (`src/gap/`, see below) are placed
+  function by function from the objects `tools/gapcheck.py` checks, and
+  counted as gap code. The padding between their functions is the
+  original's.
 - **Relocations** are resolved by name: a placed function, a placeholder
   (`FUN_`/`DAT_<address>`), a `data/symbols.csv` name or one of its
   `data/aliases.csv` copies, a runtime library function `data/functions.csv`
@@ -274,10 +279,10 @@ How it places things:
   members' data follow where the placed code refers to them, and communal
   (`.bss`) data where the original has it.
 - **What has no source** is copied from the original and counted as copied:
-  the 29 gap regions, 11 runtime library functions no member matches (four
-  `basic_string` members Cavedog's objects instantiated, the `exception`
-  constructors, three without a name), data no object defines, the linker's
-  import tables, the headers, `.tls` and the resources.
+  the gap regions without matching source, 11 runtime library functions no
+  member matches (four `basic_string` members Cavedog's objects instantiated,
+  the `exception` constructors, three without a name), data no object
+  defines, the linker's import tables, the headers, `.tls` and the resources.
 
 Every relocation is checked against the address the original's bytes give at
 that spot, and the finished image is compared with the original byte for
@@ -346,8 +351,10 @@ Smacker library out of the retail DLL (its `tools/gen_smacker_lib.py`). That
 DLL has base relocations to say where the addresses are; `TotalA.exe` has
 none, so `carve.py` finds them itself:
 
-- **`gaps.obj`** holds the 29 gap regions and the exception handler code of
-  their functions, one section each. Its relocations come from disassembly:
+- **`gaps.obj`** holds the gap regions that have no matching source yet and
+  the exception handler code of their functions, one section each (a region
+  with matching source is linked from its own object instead, named by its
+  symbols). Its relocations come from disassembly:
   every `rel32` branch that leaves its region, and every 32-bit immediate or
   displacement that holds an address in the image. Each entry point the tree
   calls gets its `FUN_<address>` name, and WinMain (0x49eda0, a gap region)
@@ -403,6 +410,102 @@ code holds in that field. On 2026-10-05 all 25,713 references it can place
 agree, apart from 128 calls that reach the other copy of `std::_Lockit`. It
 exits non-zero on any difference, so a change that rebinds a name shows up
 before the game is run.
+
+## The gap regions as source
+
+The 29 `gap` rows of `data/functions.csv` (25,223 bytes, 25,456 with their
+alignment padding) are the code no FPO record covers. They are not
+assembly-language modules for the most part: they are compiled functions the
+function finder could not see, because the compiler emits no FPO record for a
+function with a frame it cannot describe. Every region but the import thunks
+opens with `push ebp / mov ebp, esp`, and they fall into a few kinds:
+
+- **Inline assembly** in otherwise compiled code: `cpuid` (0x4e16b0,
+  0x4e35b0), `rdpmc` (0x4e1e50), `int 3` as an assertion (0x4d8310, 0x4d9ab0,
+  0x4da120, 0x4da2c0), reading `ebp`, `esp` and `eip` for a stack trace
+  (0x4d8870), reading `esp` for the stack's bounds (0x4d8d70), a `div` by
+  zero inside `__try` (0x49e680).
+- **Structured exception handling**, `__try`/`__except` with
+  `__except_handler3` (0x497c70, 0x49e680, WinMain at 0x49eda0, 0x4d9ab0).
+- **C++ exception handling**, `try`/`catch` frames (0x4441a0, 0x444580, the
+  three at 0x45b250, 0x49ee30, and 0x4c4fa0, which is `basic_string::_Copy`
+  from the compiler's own `<xstring>`).
+- **`/Op` frames**, `and esp, -8` before the locals (0x41dc20, 0x420d20,
+  0x42a8d0, 0x466050, 0x46c2a0, 0x49a120): MSVC 5 builds this frame for a
+  function with `double` locals under `/Op`, not under the game's usual
+  flags (0x420d20's prologue, compiled both ways).
+- **`_alloca`** (0x4bb4e0, 0x4bc800, and the command-line parser at 0x49ee30).
+- **Hand-written assembly**: the fixed-point trigonometry at 0x4b70a0 and the
+  surface drawing at 0x4cbbe0 (MASM frames, `leave`, routines that run into
+  one another with no alignment, int3 padding from the linker after them).
+- **The linker's import thunks** at 0x49f710: 70 `jmp [__imp_X]` stubs, the
+  `.text` of the import libraries' members for the APIs the game calls
+  directly. These are library code rather than source: the import libraries
+  in the toolchain hold the same 6-byte thunks.
+
+A region's source is `src/gap/<address>.cpp`, one file per region, and
+`uv run tools/gapcheck.py <address>` checks it:
+
+- Each function is annotated `// FUNCTION: 0x...` as everywhere else, and
+  `tools/check.py` checks one function on its own. `tools/progress.py` leaves
+  `src/gap/` out: these are not `game` rows.
+- Inline assembly is allowed in these files only (`__asm`, and `_emit` for
+  instructions MSVC 5's inline assembler does not know: `cpuid` is
+  `_emit 0x0f` `_emit 0xa2`). `// FLAGS:` may add `/Op` and `/GX` here,
+  besides `/Gi`.
+- Hand-written assembly is a `__declspec(naked)` function holding the whole
+  run of routines. MSVC 5 starts every function on a 16-byte boundary, each in
+  a COMDAT of its own under `/Gy` and padded with nops in one `.text` section
+  without it, so routines that follow one another unaligned cannot be
+  separate functions. A routine that
+  starts inside it is an `__asm` label with `// ENTRY: 0x... [symbol]` on the
+  line before. Inline assembly keeps its labels private, so `gapcheck.py`
+  adds a public symbol (`_FUN_<address>` unless one is named) at the label's
+  offset, once the function holding it matches and the offset falls on one of
+  its instructions; the object with those symbols is `build/gap/<address>.obj`.
+- A region MATCHES when every annotated function matches as `check.py` defines
+  it, each compared over the original's extent (to the next annotated function
+  or the region's end, less padding), and together they cover every byte of
+  the region apart from the padding between them.
+
+Both builds use a region's object once it matches, and only then:
+`tools/place.py` places its functions at their addresses (counted as gap
+code), `tools/link.py` links it like any other object (in every mode), and
+`tools/carve.py` carves only the regions still without matching source,
+naming addresses in the others by their objects' symbols. `tools/linkcmp.py`
+compares the gap functions' references too.
+
+| Region | Bytes | What it holds | Source |
+| --- | ---: | --- | --- |
+| 0x41dc20 | 697 | `/Op` frame | |
+| 0x420d20 | 291 | `/Op` frame | |
+| 0x42a8d0 | 2,719 | `/Op` frame | |
+| 0x4441a0 | 801 | `try`/`catch` | |
+| 0x444580 | 898 | `try`/`catch` | |
+| 0x45b250 | 560 | `try`/`catch` | |
+| 0x45b490 | 417 | `try`/`catch` | |
+| 0x45b670 | 395 | `try`/`catch` | |
+| 0x466050 | 1,326 | `/Op` frame | |
+| 0x46c2a0 | 882 | `/Op` frame | |
+| 0x497c70 | 101 | `__try`/`__except` | |
+| 0x49a120 | 1,829 | `/Op` frame | |
+| 0x49e680 | 106 | `__try`/`__except`, inline `div` | |
+| 0x49eda0 | 1,942 | WinMain (`__try`/`__except`); command line (`try`/`catch`, `_alloca`) | |
+| 0x49f710 | 419 | the linker's import thunks | |
+| 0x4b70a0 | 772 | hand-written: fixed-point trigonometry, 10 entry points | matches |
+| 0x4bb4e0 | 198 | `_alloca` | |
+| 0x4bc800 | 197 | `_alloca` | |
+| 0x4c4fa0 | 255 | `basic_string::_Copy`, `try`/`catch` | |
+| 0x4cbbe0 | 7,622 | hand-written: surface drawing | |
+| 0x4d8310 | 67 | inline `int 3` | |
+| 0x4d8870 | 318 | inline asm: stack trace | |
+| 0x4d8d70 | 125 | inline asm: stack bounds, thread-local data | |
+| 0x4d9ab0 | 420 | `__try`/`__except`, inline `int 3` | |
+| 0x4da120 | 379 | inline `int 3` | |
+| 0x4da2c0 | 303 | inline `int 3` | |
+| 0x4e16b0 | 74 | inline `cpuid` | matches |
+| 0x4e1e50 | 761 | inline `rdpmc` | |
+| 0x4e35b0 | 349 | inline `cpuid` | |
 
 ## Next steps
 
@@ -485,8 +588,8 @@ link succeed, not the types agree, so it is a bridge for phase 4 while phases
   above, and parse LINK's errors back into the categories here.
 - Build import libraries for `smackw32.dll` and DPLAYX's ordinals from `.def`
   files with LIB.EXE.
-- Give the 75 FPO-less entry points source: decompile the 29 gap regions or
-  stub them for a first link.
+- Give the 75 FPO-less entry points source: decompile the 29 gap regions
+  (under way, see "The gap regions as source").
 - Replace the initial values of `data.cpp` that hold addresses as plain
   bytes (`pointers` in `data/globals.csv`) with symbolic initialisers; as
   plain bytes they would point into the old layout.

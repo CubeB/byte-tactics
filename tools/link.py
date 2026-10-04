@@ -23,8 +23,10 @@ missing code. link.py bridges the spellings without changing any function:
     a C runtime function (tolower, sprintf, ...) to the library's symbol.
 
 What is still unresolved after that is exactly what has no source yet or lives
-outside the tree: the 29 gap regions, the game entry point, and the DLLs with
-no import library in the toolchain (smackw32, DPLAYX). The default run passes
+outside the tree: the gap regions with no matching source in src/gap/ (those
+with it are linked from their objects, tools/gapcheck.py), the game entry
+point, and the DLLs with no import library in the toolchain (smackw32,
+DPLAYX). The default run passes
 /FORCE:UNRESOLVED /FORCE:MULTIPLE so an image is still produced and reports
 them.
 
@@ -60,7 +62,7 @@ from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from check import DEFAULT_FLAGS, ROOT, winpath
+from check import DEFAULT_FLAGS, GAP_DIR, ROOT, winpath
 from linkcheck import (CRT_LIBS, IMPORT_LIBS, Demangle, MEMBER_STATIC, address_of,
                        archive_symbols, base_name, data_symbol, include_hash, library_symbols,
                        load_known, read_object, type_size)
@@ -103,10 +105,12 @@ WINMAIN_ADDR = 0x49E830
 # --- compiling -----------------------------------------------------------------
 
 def compile_all(jobs: int) -> tuple[list[Path], list[tuple[Path, str]]]:
-    """Every source file's object, through tools/progress.py's cache."""
+    """Every source file's object, through tools/progress.py's cache. The gap
+    regions' sources (src/gap/) are left out: tools/gapcheck.py's gap_objects
+    gives the builds those whose source matches."""
     from progress import compile_cached
 
-    sources = sorted(SRC.rglob("*.cpp"))
+    sources = sorted(s for s in SRC.rglob("*.cpp") if not s.is_relative_to(GAP_DIR))
     ihash = include_hash()
 
     def cached(src: Path) -> bool:
@@ -243,7 +247,7 @@ def build_aliases(objects: list[Path], symbols: dict[str, int], data_addr: dict[
             lib_by_base.setdefault(base_name(n), n)
 
     aliases: dict[str, str] = dict(extra or {})
-    if winmain_addr is not None and funcs_at.get(winmain_addr):
+    if winmain_addr is not None and funcs_at.get(winmain_addr) and "_WinMain@16" not in defined:
         aliases.setdefault("_WinMain@16", prefer(funcs_at[winmain_addr]))
     for info in infos:
         for name, is_func in info.refs.items():
@@ -697,10 +701,15 @@ def main() -> None:
         from carve import THIRD_PARTY_OBJS, carve, library_aliases
         result = carve(objects)
         carved, data_addr = result.objects, result.data_names
+        gaps = result.gap_sources
         data_objs = list(THIRD_PARTY_OBJS)       # zlib, which the original links too
-        extra = library_aliases(objects, symbols, result)
+        extra = library_aliases(objects + gaps, symbols, result)
     else:
+        from gapcheck import gap_objects
+        gaps = [g.path for _, g in sorted(gap_objects().items())]
         data_objs, data_addr = build_data(symbols)
+    if gaps:
+        print(f"{len(gaps)} gap region(s) built from source (src/gap/)")
 
     libs = library_symbols(set(CRT_LIBS) | set(IMPORT_LIBS))
     import_libs: list[Path] = []
@@ -711,7 +720,7 @@ def main() -> None:
                 libs.setdefault(name, lib.name)
 
     aliases_path = BUILD / "aliases.obj"
-    aliases = build_aliases(objects + carved + data_objs, symbols, data_addr, libs, aliases_path,
+    aliases = build_aliases(objects + gaps + carved + data_objs, symbols, data_addr, libs, aliases_path,
                             extra=extra,
                             winmain_addr=WINMAIN_ADDR if stub_mode and not args.carve else None,
                             data_fallback=stub_mode)
@@ -719,7 +728,7 @@ def main() -> None:
 
     # The carved data goes first: where a compiled object defines a global too,
     # LINK keeps the first definition, the original's, at its full size.
-    game = fix_initialisers(objects) if stub_mode else list(objects)
+    game = (fix_initialisers(objects) if stub_mode else list(objects)) + gaps
     if args.carve:
         from carve import patch_objects
         game = patch_objects(game, result)

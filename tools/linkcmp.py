@@ -34,7 +34,7 @@ import pefile
 from carve import Namer
 from check import ROOT, load_symbols
 from linkcheck import address_of
-from place import CODE, FUNCTIONS, REL_DIR32, REL_REL32, layout, load_rows
+from place import CODE, FUNCTIONS, GAPCODE, REL_DIR32, REL_REL32, layout, load_rows
 
 LINKED = ROOT / "build/link/TotalA.exe"
 SCN_MEM_WRITE = 0x80000000
@@ -99,7 +99,7 @@ def main() -> None:
     stats = Counter()
     lines = []
     for p in placer.pieces:
-        if p.source != CODE or p.obj.library:
+        if p.source not in (CODE, GAPCODE) or p.obj.library:
             continue
         names = [s.name for s in p.obj.syms.values()
                  if s.section == p.sec.index and s.sclass == 2 and s.value == p.lo]

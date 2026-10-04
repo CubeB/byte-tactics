@@ -14,7 +14,8 @@ ReproBit), so code and data that are not rebuilt still find everything where
 they expect it, and every call reaches the one function at its address:
 
   * every game function (data/progress.csv) is placed at its address from its
-    object in build/progress, the objects tools/check.py compares;
+    object in build/progress, the objects tools/check.py compares, and the
+    functions of every gap region whose source matches (tools/gapcheck.py);
   * every relocation in a placed piece is resolved by name: a placed function
     or global, a placeholder name (FUN_/DAT_<address>), a data/symbols.csv
     name (or one of its data/aliases.csv copies), an import (its slot in the
@@ -31,7 +32,7 @@ they expect it, and every call reaches the one function at its address:
     zlib that the original links, each where the original holds its bytes and
     refers to the same functions, imports and data contents;
   * what has no source yet is copied from the original and counted as copied:
-    the gap regions, the few library functions no member matches, data no
+    the other gap regions, the few library functions no member matches, data no
     object defines, the import tables, the headers and the resources.
 
 Every relocation is checked against the address the original uses at that
@@ -54,6 +55,7 @@ from pathlib import Path
 import pefile
 
 from check import ROOT, base_name, load_symbols
+from gapcheck import gap_objects
 from link import build_data, compile_all
 from linkcheck import address_of
 
@@ -72,9 +74,9 @@ SKIP_SECTIONS = (".drectve", ".debug")
 # Where each byte of the image came from.
 SOURCES = ["unset", "game code", "game data", "global data", "library (copied)", "gap (copied)",
            "data (copied)", "padding", "headers, imports, resources (copied)", "library code",
-           "library data"]
+           "library data", "gap code"]
 (UNSET, CODE, OBJDATA, GLOBALDATA, LIBRARY, GAP, COPIED, PADDING, FIXED, LIBCODE,
- LIBDATA) = range(len(SOURCES))
+ LIBDATA, GAPCODE) = range(len(SOURCES))
 
 # The libraries the original links statically: the VC5 SP3 C and C++ runtimes,
 # and zlib 1.0.4 as tools/setup_toolchain.sh builds it with Cavedog's options.
@@ -122,6 +124,7 @@ class Obj:
     syms: dict[int, Sym]
     raw: bytes
     library: bool = False      # a member of a runtime or third-party library
+    gap: bool = False          # a gap region's source (tools/gapcheck.py)
     externals: dict[str, Sym] = field(default_factory=dict)
     absolutes: dict[str, int] = field(default_factory=dict)    # IMAGE_SYM_ABSOLUTE externals
     commons: dict[str, int] = field(default_factory=dict)      # communal (.bss) externals -> size
@@ -322,6 +325,7 @@ class Placer:
         self.commons: dict[str, int] = {}
         self.common_at: dict[str, int] = {}        # communal symbol -> where the original has it
         self.learned: dict[str, int] = {}          # name no object defines -> where the original points
+        self.gap_regions: dict[int, object] = {}   # gap region built from source -> its gapcheck.GapObject
         # Every external name the placed game code refers to -> the addresses the
         # original's code holds there: what each spelling really means.
         self.ref_targets: dict[str, Counter] = defaultdict(Counter)
@@ -406,7 +410,7 @@ class Placer:
         if obj.library:
             source = LIBCODE if sec.is_code else LIBDATA
         else:
-            source = CODE if sec.is_code else OBJDATA
+            source = (GAPCODE if obj.gap else CODE) if sec.is_code else OBJDATA
         piece = self.place(obj, sec, lo, hi, start, source, f"{sec.name} of {obj.path.stem} ({sym.name})")
         piece.why = why
         self.stats["code pieces placed where the original refers to them" if sec.is_code
@@ -606,7 +610,7 @@ class Placer:
                     continue
                 # A section symbol plus an offset names whatever lies there.
                 offset = sym.value + (ours if rtype == REL_DIR32 and sym.name.startswith(".") else 0)
-                if piece.source == CODE and (sym.sclass == 2 or sym.section == 0):
+                if piece.source in (CODE, GAPCODE) and (sym.sclass == 2 or sym.section == 0):
                     self.ref_targets[sym.name][orig_target] += 1
                 target = self.resolve(obj, sym, offset)
                 how = "by name"
@@ -705,6 +709,35 @@ def place_functions(placer: Placer, objects_by_src: dict[str, Obj]) -> None:
             for i, b in enumerate(p.sec.data[p.hi:]):
                 if placer.img.src[off + i] == UNSET:
                     placer.img.out[off + i], placer.img.src[off + i] = b, PADDING
+
+
+def place_gaps(placer: Placer, gaps: dict) -> None:
+    """The gap regions whose source matches (tools/gapcheck.py): each function
+    at its address, and the alignment padding between them."""
+    img = placer.img
+    for region, gap in sorted(gaps.items()):
+        obj = parse(gap.path)
+        obj.gap = True
+        placer.objects.append(obj)
+        placer.add_definer(obj)
+        for addr, symbol, size in gap.functions:
+            sym = obj.externals.get(symbol) or next(
+                (s for s in obj.syms.values() if s.name == symbol and s.section > 0), None)
+            if sym is None:
+                raise SystemExit(f"gap {region:#x}: {symbol} is not defined in {gap.path.name}")
+            sec = obj.secs[sym.section - 1]
+            placer.place(obj, sec, sym.value, sym.value + size, addr, GAPCODE, symbol)
+            placer.stats["gap functions placed from source"] += 1
+        # What is left of the region is the padding between its functions
+        # (tools/gapcheck.py checks that nothing else is). It is the original's:
+        # the compiler pads its sections with nops, but where the original's
+        # code came from an assembler, the linker padded it with int3s.
+        end = (region + gap.size + 15) & ~15
+        for o in range(region - img.base, end - img.base):
+            if img.src[o] == UNSET and img.pristine[o] in (0x90, 0xCC):
+                img.out[o], img.src[o] = img.pristine[o], PADDING
+        placer.gap_regions[region] = gap
+        placer.stats["gap regions built from source"] += 1
 
 
 def place_globals(placer: Placer, data_objs: list[Path], data_addr: dict[int, str]) -> None:
@@ -974,6 +1007,7 @@ def layout(jobs: int | None = None) -> tuple[Image, Placer]:
     placer = Placer(img, objects, symbols)
     library_names(placer)
     place_functions(placer, by_src)
+    place_gaps(placer, gap_objects())
     place_library(placer)
     data_objs, data_addr = build_data(symbols)
     place_globals(placer, data_objs, data_addr)

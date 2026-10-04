@@ -9,9 +9,11 @@ carved out of the retail DLL: the original bytes, with the relocations rebuilt
 from the DLL's base relocations (its tools/gen_smacker_lib.py). TotalA.exe has
 no base relocations, so here the relocation sites come from elsewhere:
 
-  * gaps.obj holds the 29 gap regions of data/functions.csv (hand-written
-    assembly, code with no FPO record, the linker's import stubs) and the
-    exception handler stubs of their functions, one section each. Its
+  * gaps.obj holds the gap regions of data/functions.csv (hand-written
+    assembly, code with no FPO record, the linker's import stubs) that have
+    no matching source in src/gap/ yet (tools/gapcheck.py; a region whose
+    source matches is linked from its own object), and the exception handler
+    stubs of their functions, one section each. Its
     relocations come from disassembly: every rel32 branch that leaves its
     region, and every 32-bit immediate or displacement that holds an address
     in the image.
@@ -59,8 +61,8 @@ import capstone
 
 from check import ROOT
 from linkcheck import IMPORT_LIBS, LIBDIR, address_of, archive_symbols, read_object
-from place import (CODE, FUNCTIONS, GLOBALDATA, GLOBALS, LIBCODE, LIBDATA, OBJDATA, PROGRESS, REL_DIR32,
-                   REL_REL32, Image, Obj, Placer, Sec, layout, load_rows, undecorate)
+from place import (CODE, FUNCTIONS, GAPCODE, GLOBALDATA, GLOBALS, LIBCODE, LIBDATA, OBJDATA, PROGRESS,
+                   REL_DIR32, REL_REL32, Image, Obj, Placer, Sec, layout, load_rows, undecorate)
 
 OUT = ROOT / "build/link"
 THIRD_PARTY_OBJS = sorted((ROOT / "toolchain/thirdparty/zlib-1.0.4").glob("*.obj"))
@@ -193,19 +195,31 @@ class Namer:
         self.sections = {name: (start, max(vsize, rsize)) for name, start, vsize, rsize, _ in img.sections}
         self.spans: list[tuple[int, int, str]] = []          # code: (start, end, symbol)
         self.data_spans: list[tuple[int, int, str]] = []     # live data defined outside origdata
-        self.gaps: list[tuple[int, int]] = []
+        self.gaps: list[tuple[int, int]] = []                # the regions to carve
+        self.regions: list[tuple[int, int]] = []             # every gap region, with source or not
         self.library_starts: set[int] = set()
         sizes = {}
         for row in load_rows(FUNCTIONS):
             addr, size = int(row["address"], 16), int(row["size"])
             sizes[addr] = size
             if row["kind"] == "gap":
-                self.gaps.append((addr, size))
-                self.spans.append((addr, addr + size, gap_symbol(addr)))
+                self.regions.append((addr, size))
+                if addr not in placer.gap_regions:      # built from its source: named by its object
+                    self.gaps.append((addr, size))
+                    self.spans.append((addr, addr + size, gap_symbol(addr)))
         for p in placer.pieces:
             if p.source == LIBCODE:
                 self.library_starts.update(p.va + s.value for s in p.obj.syms.values()
                                            if s.section == p.sec.index and s.sclass == IMAGE_SYM_CLASS_EXTERNAL)
+            if p.source == GAPCODE:
+                # A gap function, and the asm labels gapcheck made public in it.
+                syms = sorted((s.value, s.name) for s in p.obj.syms.values()
+                              if s.section == p.sec.index and s.sclass == IMAGE_SYM_CLASS_EXTERNAL
+                              and p.lo <= s.value < p.hi)
+                for i, (value, name) in enumerate(syms):
+                    end = syms[i + 1][0] if i + 1 < len(syms) else p.hi
+                    self.spans.append((p.va + value - p.lo, p.va + end - p.lo, name))
+                continue
             if p.source in (CODE, LIBCODE) and p.lo == 0:
                 # A whole code section: every external symbol in it is where
                 # the object puts it (an assembler member holds several).
@@ -267,7 +281,7 @@ class Namer:
         return i >= 0 and self.spans[i][0] <= v < self.spans[i][1]
 
     def in_gap(self, v: int) -> bool:
-        return any(a <= v < a + n for a, n in self.gaps)
+        return any(a <= v < a + n for a, n in self.gaps + self.regions)
 
     def name(self, v: int, origin: str = "") -> tuple[str, int] | None:
         i = bisect.bisect_right(self.starts, v) - 1
@@ -552,7 +566,8 @@ def retargets(img: Image, placer: Placer, namer: Namer,
     out: dict[str, list] = defaultdict(list)
     data_lo = namer.sections[".rdata"][0]
     data_hi = namer.sections[".data"][0] + namer.sections[".data"][1]
-    work = [(p.obj, p.sec, p.lo, p.hi, p.va) for p in placer.pieces if p.source == CODE and not p.obj.library]
+    work = [(p.obj, p.sec, p.lo, p.hi, p.va) for p in placer.pieces
+            if p.source in (CODE, GAPCODE) and not p.obj.library]
     work += [(c.obj, c.sec, 0, c.size, piece.va - piece.lo) for c, piece in copies]
     for obj, sec, lo, hi, va in work:
         for off, symidx, rtype in sec.relocs:
@@ -597,6 +612,7 @@ def private_copies(placer: Placer) -> dict[str, set[int]]:
 @dataclass
 class Carved:
     objects: list[Path]                          # origdata.obj, gaps.obj
+    gap_sources: list[Path]                      # the objects of the gap regions built from source
     gap_names: dict[int, str]                    # gap entry point -> the name gaps.obj defines
     data_names: dict[int, str]                   # global's address -> the name origdata.obj defines
     library_at: dict[int, str]                   # runtime library function's address -> its name
@@ -610,7 +626,8 @@ def carve(objects: list[Path], verbose: bool = False) -> Carved:
     references mean (see the module docstring)."""
     img, placer = layout()
     namer = Namer(img, placer)
-    infos = [read_object(str(o), o.read_bytes()) for o in objects]
+    gap_sources = [g.path for _, g in sorted(placer.gap_regions.items())]
+    infos = [read_object(str(o), o.read_bytes()) for o in objects + gap_sources]
     entries = {a for a, _ in namer.gaps}
     compiled_data: dict[int, list[str]] = defaultdict(list)
     for info in infos:
@@ -658,10 +675,11 @@ def carve(objects: list[Path], verbose: bool = False) -> Carved:
                             {t for t in truth.values() if isinstance(t, int)}, OUT / "origdata.obj")
     aliases = {n: (t[0] if isinstance(t, tuple) else data_names[t]) for n, t in truth.items()
                if isinstance(t, tuple) or t in data_names}
-    carved = Carved([OUT / "origdata.obj", OUT / "gaps.obj"], gap_names, data_names,
+    carved = Carved([OUT / "origdata.obj", OUT / "gaps.obj"], gap_sources, gap_names, data_names,
                     {start: name for start, _, name in namer.spans if start in namer.library_starts},
                     aliases, retargets(img, placer, namer, copies), private_copies(placer))
-    print(f"carve: {len(copies):,} identical copies of placed functions, {len(aliases):,} names "
+    print(f"carve: {len(namer.gaps):,} regions carved, {len(gap_sources):,} gap regions built from source; "
+          f"{len(copies):,} identical copies of placed functions, {len(aliases):,} names "
           f"resolved by the layout", file=sys.stderr)
     if namer.missing:
         print(f"carve: {sum(namer.missing.values()):,} references to {len(namer.missing):,} addresses no "

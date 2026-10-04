@@ -38,6 +38,12 @@ PADDING = (0x90, 0xCC)
 SYMBOLS = ROOT / "data/symbols.csv"
 ANNOTATION = re.compile(r"^\s*//\s*FUNCTION:\s*(0x[0-9a-fA-F]+)(?:\s+(\S+))?")
 FORBIDDEN = re.compile(r"\b(__asm|_asm|_emit|__emit)\b|#\s*pragma\s+(optimize|code_seg)")
+# The code between FPO records (data/functions.csv's `gap` rows) is written in
+# src/gap/ and checked by tools/gapcheck.py. The original used inline assembly
+# there (cpuid, int 3, hand-written routines), so it is allowed in those files
+# only, and so are the flags their functions were evidently compiled with.
+GAP_DIR = ROOT / "src/gap"
+GAP_FORBIDDEN = re.compile(r"#\s*pragma\s+(optimize|code_seg)")
 
 
 # --- the original exe -------------------------------------------------------
@@ -167,6 +173,7 @@ def annotations(src: Path) -> list[tuple[int, str]]:
         # Only the definition header counts (up to the opening brace), so an
         # `operator new(` call in the body is not mistaken for the definition.
         text = " ".join(following[:3]).split("{", 1)[0]
+        text = re.sub(r"__declspec\s*\(\s*\w+\s*\)", " ", text)
         op = re.search(r"([\w:]*?)operator\s*(new|delete|==|!=|<=|>=|\[\]|\(\)|=|<|>|\+|-|\*|/)\s*\(", text)
         sig = text.split("(", 1)[0]
         names = [op.group(1) + "operator" + op.group(2)] if op else re.findall(r"[A-Za-z_~][\w:~]*", sig)
@@ -195,6 +202,13 @@ def winpath(p: Path) -> str:
 # FILE_FLAGS may be added.
 FILE_FLAGS_LINE = re.compile(r"^//\s*FLAGS:\s*(.*?)\s*$", re.M)
 FILE_FLAGS = {"/Gi"}
+# The gap regions also hold functions compiled with /Op (their frames align the
+# stack to 8 bytes: `and esp, -8`) and with C++ exception handling (/GX).
+GAP_FILE_FLAGS = FILE_FLAGS | {"/Op", "/GX"}
+
+
+def is_gap_source(src: Path) -> bool:
+    return src.resolve().is_relative_to(GAP_DIR)
 
 
 def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj") -> tuple[Path | None, str]:
@@ -204,15 +218,17 @@ def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj") 
     while progress.py re-verifies everything, from clobbering each other's objects.
     """
     text = src.read_text(errors="replace")
-    bad = FORBIDDEN.search(text)
+    gap = is_gap_source(src)
+    bad = (GAP_FORBIDDEN if gap else FORBIDDEN).search(text)
     if bad:
         return None, f"{src}: '{bad.group(0)}' is not allowed; write the function in plain C++"
     m = FILE_FLAGS_LINE.search(text)
     if m:
         extra = m.group(1).split()
-        wrong = [f for f in extra if f not in FILE_FLAGS]
+        allowed = GAP_FILE_FLAGS if gap else FILE_FLAGS
+        wrong = [f for f in extra if f not in allowed]
         if wrong:
-            return None, f"{src}: '// FLAGS:' may only add {sorted(FILE_FLAGS)}, not {wrong}"
+            return None, f"{src}: '// FLAGS:' may only add {sorted(allowed)}, not {wrong}"
         flags = " ".join(flags.split() + [f for f in extra if f not in flags.split()])
     if src.resolve().is_relative_to(ROOT / "src"):
         rel = src.resolve().relative_to(ROOT / "src")
@@ -583,7 +599,8 @@ def main() -> None:
 
     src = args.source or find_source(args.address)
     if src is None:
-        sys.exit(f"no file under src/ has '// FUNCTION: {args.address:#x}'")
+        sys.exit(f"no file under src/ has '// FUNCTION: {args.address:#x}' (code in a gap region is "
+                 f"checked with tools/gapcheck.py)")
     qualname = next((q for a, q in annotations(src) if a == args.address), None)
     obj_path, log = compile_source(src, args.flags)
     if obj_path is None:

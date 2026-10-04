@@ -959,7 +959,8 @@ def compare(img: Image, placer: Placer, verbose: bool) -> tuple[int, list[str]]:
     out += [f"  {k}: {v:,}" for k, v in by_source.most_common()]
     patch_diff = sum(1 for i in patched if img.out[i] != img.orig[i])
     if img.patches:
-        out.append(f"bytes under data/exe_patches.csv (the compiler's bytes, not the patch): {patch_diff:,}")
+        out.append(f"bytes under data/exe_patches.csv that differ from the original: {patch_diff:,} "
+                   "(GOG's patch is applied after the link; --no-exe-patches leaves the compiler's bytes)")
     shown = lines if verbose else lines[:20] + (["  ..."] if len(lines) > 20 else [])
     return total, out + shown
 
@@ -1029,11 +1030,16 @@ def main() -> None:
     ap.add_argument("--output", type=Path, default=OUT_DIR / "TotalA.exe")
     ap.add_argument("--jobs", type=int, default=None, help="parallel compiles (default: all cores)")
     ap.add_argument("--strict", action="store_true", help="exit non-zero if any built byte differs")
+    ap.add_argument("--no-exe-patches", action="store_true",
+                    help="leave out data/exe_patches.csv (GOG's no-CD music patch): the compiler's bytes")
     ap.add_argument("--verbose", "-v", action="store_true")
     args = ap.parse_args()
     output = args.output if args.output.is_absolute() else ROOT / args.output
 
     img, placer = layout(args.jobs)
+    if not args.no_exe_patches:
+        from exepatch import apply_placed
+        apply_placed(img.out, img.base)
     write_exe(img, output)
     write_map(placer, output.with_suffix(".map"))
     total = report(img, placer, args.verbose)

@@ -309,9 +309,22 @@ def write_object(aliases: dict[str, str], out: Path) -> None:
 
 # --- the missing import libraries -----------------------------------------------
 
+def build_win32_lib() -> Path:
+    """WIN32.LIB: WINMM.LIB with its DLL renamed. GOG's no-CD music fix
+    renamed the exe's WINMM.dll import to WIN32.dll, its own winmm that plays
+    the CD tracks from music/*.mp3 (with the code patch in
+    data/exe_patches.csv); linked against WINMM.LIB, the game opens Wine's
+    cdaudio device instead, finds no CD and disables the music options. The
+    names are the same length, so the archive's offsets still hold."""
+    from linkcheck import LIBDIR
+    lib = BUILD / "WIN32.LIB"
+    lib.write_bytes((LIBDIR / "WINMM.LIB").read_bytes().replace(b"WINMM.dll", b"WIN32.dll"))
+    return lib
+
+
 def build_import_libs() -> list[Path]:
-    """Build SMACKW32.LIB and DPLAYX.LIB from .def files with LIB.EXE."""
-    out = []
+    """Build SMACKW32.LIB and DPLAYX.LIB from .def files with LIB.EXE, and WIN32.LIB."""
+    out = [build_win32_lib()]
     for name, exports in (("SMACKW32", SMACKW32_EXPORTS), ("DPLAYX", DPLAYX_EXPORTS)):
         def_ = BUILD / f"{name}.def"
         lib = BUILD / f"{name}.LIB"
@@ -634,12 +647,12 @@ def unresolved_names(objects: list[Path], alias_keys: set[str], libs: dict[str, 
 # --- linking --------------------------------------------------------------------
 
 def link(objects: list[Path], output: Path, verbose: bool, force_unresolved: bool,
-         map_path: Path | None = None) -> int:
+         map_path: Path | None = None, libs: tuple[str, ...] = LIBS) -> int:
     BUILD.mkdir(parents=True, exist_ok=True)
     rsp = BUILD / "objects.rsp"
     rsp.write_text("\n".join(winpath(o) for o in objects) + "\n")
     cmd = [str(ROOT / "tools/wlink"), "/nologo", "/OPT:NOREF", "/INCREMENTAL:NO",
-           "/SUBSYSTEM:WINDOWS", f"/OUT:{winpath(output)}", f"@{winpath(rsp)}", *LIBS]
+           "/SUBSYSTEM:WINDOWS", f"/OUT:{winpath(output)}", f"@{winpath(rsp)}", *libs]
     if map_path is not None:
         cmd.insert(2, f"/MAP:{winpath(map_path)}")
     if force_unresolved:
@@ -682,6 +695,8 @@ def main() -> None:
                          "(tools/carve.py) instead of stubs and link/data.cpp; implies --stub")
     ap.add_argument("--output", type=Path, default=BUILD / "TotalA.exe")
     ap.add_argument("--map", action="store_true", help="also write build/link/TotalA.map")
+    ap.add_argument("--no-exe-patches", action="store_true",
+                    help="with --carve, leave out data/exe_patches.csv (GOG's no-CD music patch)")
     ap.add_argument("--jobs", type=int, default=None, help="parallel compiles (default: all cores)")
     ap.add_argument("--verbose", "-v", action="store_true")
     args = ap.parse_args()
@@ -746,9 +761,18 @@ def main() -> None:
     else:
         link_objects += [aliases_path]
 
-    rc = link(link_objects, output, args.verbose, force_unresolved=not stub_mode,
-              map_path=(BUILD / "TotalA.map") if args.map else None)
+    # The carved link always writes its map: the hand patches move with it.
+    map_path = BUILD / "TotalA.map" if args.map or args.carve else None
+    # The generated WIN32.LIB stands in for WINMM.LIB (see build_win32_lib).
+    libs = tuple(l for l in LIBS if not (stub_mode and l == "WINMM.LIB"))
+    rc = link(link_objects, output, args.verbose, force_unresolved=not stub_mode, map_path=map_path,
+              libs=libs)
     if rc == 0 and output.exists():
+        if args.carve and not args.no_exe_patches:
+            from exepatch import apply_linked
+            lines = apply_linked(output, map_path)
+            print(f"data/exe_patches.csv: {len(lines)} hand patches applied after the link")
+            print("\n".join(lines))
         print(f"{output.relative_to(ROOT)}: {output.stat().st_size:,} bytes")
         if stub_mode:
             dll = build_stub_dll(output.parent)

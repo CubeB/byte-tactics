@@ -298,9 +298,12 @@ counts where each section's bytes came from. On 2026-10-05:
 Of the 37,396 relocations in placed pieces, every one in code agrees with the
 original (136 of them reach the second copy of a function `data/aliases.csv`
 lists, such as the two `std::_Lockit`). 94 vtable entries in compiled data
-disagree and keep the original's value. The image is the original byte for
-byte, apart from the two rows of `data/exe_patches.csv`, where it has the
-compiler's bytes rather than GOG's no-CD music patch.
+disagree and keep the original's value. The compiled image differs from the
+original only under the two rows of `data/exe_patches.csv`, where it has the
+compiler's bytes rather than GOG's no-CD music patch, and after the link
+`tools/exepatch.py` writes the patch over them, so `build/place/TotalA.exe` is
+`orig/TotalA.exe` byte for byte (`--no-exe-patches` leaves the compiler's
+bytes).
 `build/place/TotalA.map` lists every placed piece and the object it came
 from.
 
@@ -395,6 +398,17 @@ and `link.py` applies that to patched copies of the objects under
   constructors at start-up.
 - zlib comes from the objects `tools/setup_toolchain.sh` builds, and the
   runtime library from `LIBCMT.LIB` and `LIBCPMT.LIB`, as LINK picks them.
+- GOG's no-CD music fix has two parts, and the link makes both. The exe
+  imports WINMM's functions from `WIN32.dll`, GOG's winmm that plays the CD
+  tracks from `music/*.mp3`, so the link takes them from `WIN32.LIB`, a copy
+  of `WINMM.LIB` with the DLL renamed: against `WINMM.LIB` the game opens
+  Wine's own cdaudio device, finds no CD and disables the music options. And
+  the code patch (`data/exe_patches.csv`) is applied after the link, as in
+  the placement build, but moved: the `jmp` goes where 0x4cda00 now is, the
+  code it jumps to goes past the end of the linked `.text` (whose virtual
+  size grows to cover it), and their branches are retargeted
+  (`tools/exepatch.py`; `--no-exe-patches` leaves it out). The map is always
+  written in this mode, since the patch needs it.
 
 Eleven names are still stubbed (constructors, destructors and operators that
 only unplaced copies or the dropped initialisers call), and 37 addresses in

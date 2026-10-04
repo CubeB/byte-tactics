@@ -1,184 +1,33 @@
-// Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
-// #5429 Codex retry: re-confirmed 76.6%; the original x87 schedule still
-// conflicts with the escaping struct-return buffers.
-// #5441 Codex retry: re-confirmed 76.6%; the same x87 schedule conflict remains.
-// #5403 Codex retry: 76.6% remains best. The original's interleaved x87
-// schedule still conflicts with the escaping struct-return buffers needed by
-// the vector code, and prior source-shape sweeps found no combined form.
-// #5421 Codex retry: re-confirmed 76.6%; the x87 schedule and frame mismatch
-// remain unchanged.
-// #5348 Claude Opus 5.5 (no gain, 76.6% kept; probes in
-// build/scratch/0x421700/t/): the original's x87 block is the list-scheduled
-// form of nine statements a.x..c.z in source order. Its stores go to
-// a = 0x64..0x6c, b = 0x58..0x60, c = 0x70..0x78 (esp-relative at the
-// first fild), in that order, and up to six values sit on the x87 stack.
-// In a probe, struct stores interleave like that when the block's calls
-// pass structs by value and return a float or void. They serialise as soon
-// as one call in the block takes an address: a struct return's hidden
-// buffer, or even `Fr(&global, b, a)`. A union of float[3] and the struct,
-// `*(V*)array`, and named structs filled from array elements all serialise
-// too. Also flat here: an inline FaceNormal(v) holding a, b, c and the
-// three calls (42.8 to 75.1%), and named B/A/C objects built once from the
-// float arrays (44.8 to 46%).
-// #5330 Codex retry: re-confirmed 76.6%; the x87 schedule and escaped vector
-// temporary mismatch remain after prior source-shape sweeps.
-// #5300 Codex retry: re-confirmed 76.6%; the x87 schedule and escaped vector
-// temporary mismatch remain after the prior source-shape sweeps.
-// #5258 Codex retry: re-confirmed the existing 76.6% best. The x87 schedule
-// and escaped vector temporaries have extensive prior source-shape sweeps;
-// none of those variants improved the kept version.
-// #5201 Claude Opus 5.5 (no gain, 76.6% kept). The original's order, traced
-// on its x87 stack: a = v[0] (fstp 0x4c..0x54), b = v[1] (0x40..0x48),
-// c = v[2] (0x58..0x60), all nine fild in address order, and the first
-// call's `sub esp, 0xc` pair comes before the first fild. Tried, all with
-// a, b, c as 12-byte objects and the calls written on them, all serialised
-// at 44.7% to 48.9%: a POD Vec3f with aggregate initialisation
-// (`Vec3f a = { v[0].x * k, ... }`, abc and bac order), `const Vec3f&`
-// bound to constructor temporaries and to an inline Scale() result, and
-// Vec3f values from Scale() (by member stores or by `return Vec3f(...)`).
-// #5167 Claude Opus 5.5: 75.0% to 76.6%: the nine scaled floats are held
-// in three float[3] arrays (b, a, c) instead of three Vec3f structs (76.0)
-// and <minmax.h> is included (76.6, see below); the
-// rest is unchanged. Control flow, calls and the NewObject inline all line
-// up with the original; what differs is the normal block (frame 0xa8 against
-// 0x90, x87 schedule). What #5167 measured about that block, with small test
-// functions compiled by the project's CL (build/scratch/0x421700/t/):
-//  - Why "struct a/b/c passed by value" serialises the x87 code: when a
-//    frame address escapes in the same basic block (a struct-returning
-//    call's hidden return buffer does), MSVC 5 keeps every store to a user
-//    local's memory in order with later loads through a pointer.
-//    `a.x = v[0].x * k` then becomes fild/fmul/fstp per statement. The same
-//    nine statements interleave in a test function without struct-returning
-//    calls (only by-value calls), and serialise again when one `Get()`
-//    returning a struct, or one `f(&local)`, is added to that block, before
-//    or after them. MakeVec(x,y,z),
-//    SetVec(&a,x,y,z), SetF(&a.x, v) and Vec3f(x,y,z) initialisation all
-//    interleave without the escape and all serialise with it. A 54-variant
-//    grid in this function (struct plain or with constructors; field stores,
-//    MakeVec, SetVec, constructor init; ab assigned, initialised or nested;
-//    b,a,c or a,b,c declaration order) scored 41 to 48.5%, all serialised.
-//  - What does interleave with the escapes present: nine float scalars (or
-//    struct fields read back as floats, as here) that are x87 register
-//    candidates, stored late into constructor temporaries. That is the
-//    original's schedule, but here it costs the two extra 12-byte temps
-//    (0xa8 frame) because the arguments are built through Vec3f(x, y, z)
-//    temps instead of being copied straight from b/a/c. The original copies
-//    b/a/c into the argument slots with integer moves from their own homes
-//    and keeps b.x/b.y in ebx/ebp across the first call, so b/a/c are
-//    12-byte objects (the frame sort puts them after n, among the 12-byte
-//    slots) whose stores do not count as user stores. No spelling found
-//    gives both.
-//  - The original's ab (0x64: x and y through memory, z in eax) is a named
-//    `Vec3f ab; ab = FUN_004b6eb0(b, a);`: declared then assigned keeps its
-//    fields as register candidates; `Vec3f ab = ...` is forwarded straight
-//    into the argument slots.
-//  - The serialisation is per basic block: with the same nine field stores,
-//    a real branch between them and the escaping call (`if (g) g = 0;`) or
-//    stores inside a loop interleave again; a goto/label boundary does not.
-//    The original has no branch there, and its argument copies are scheduled
-//    in among the fstps, so that is not the original's shape either.
-//  - Not it: /Oa or /Ow (27.8%), /Gi (no change to the schedule), a declared
-//    copy constructor (MSVC 5 then calls both constructors out of line),
-//    assigning or initialising a/b/c from Vec3f(x, y, z) temporaries of nine
-//    float scalars (the scalars are forwarded into the stores), an inline
-//    TriNormal(Vec3f a, Vec3f b, Vec3f c) taking the three by value.
-//  - <minmax.h> after <memory.h> (tools/headers.py) puts the d->pos loads in
-//    the original's order: 76.0% to 76.6%. A dummy-declaration sweep (0 to
-//    632 externs, step 8) finds nothing higher.
-// #5134 Claude Opus 5.5 (no gain, 75.0% kept): the original's frame, read
-// from its own [esp+N] uses (N minus the outstanding pushes), is
-//   0x10 scratch ((7-k)*12, later nz)  0x14 i*0x20  0x18 k*12  0x1c i
-//   0x20 piece  0x24 count  0x28 verts  0x2c unit  0x30 desc  0x34 n
-//   0x40 b  0x4c a  0x58 c (each 3 floats, stored once by fstp)
-//   0x64 a 12-byte copy of the first call's result (x and y stored, z only
-//   in eax)  0x70/0x7c/0x88/0x94 the four call return buffers.
-// The call order is FUN_004b6ff0(FUN_004b6f70(FUN_004b6eb0(b, c),
-// FUN_004b6eb0(b, a))): the (b, a) call runs first and its result goes
-// through 0x64 into f70's second argument. The arguments are copied from the
-// a/b/c homes with integer moves (b.x stays in ebx and b.y in ebp across the
-// first call), so a/b/c are memory, not x87 register candidates. Ours builds
-// Vec3f temporaries (+0x18 frame) and keeps the floats on the x87 stack (fst
-// then fld back after the call). Measured: passing plain-struct a/b/c by value
-// (nested or with a named ab, with or without the float constructor, a
-// ToFloat inline, a converting constructor from a float-triple struct, an
-// inline MakeVec) gives the right copies and frame 0x8c but serialises the
-// nine fild/fmul/fstp (no interleave) and moves the parameter into ebp for
-// the whole function: 43-49%. Nine float locals: 70.7%. A user copy
-// constructor is called, not inlined. MakeVec over scalar members: 74.0%
-// (253 diff lines against 273, 1783 bytes) but a lower ratio. /Gi: lower
-// (72.0%). The missing piece is how the original kept a/b/c in memory and
-// still let the x87 code interleave.
-// #4008 deepseek-v4.1-flash (10 min): flat at 71.7% / 1759 bytes. Tested and rejected: grouping the ab/n declarations before the two assignments (flat), a single temp for the two o->verts[k] / o->verts[7-k] stores regresses to 64.4 / 1751, and the !param->scale and for-init k spellings are flat. Residual unchanged: the 0xa8 frame against 0x90 and the nine scaled float x87 load schedule.
-// #3595 deepseek-v4.1-flash (10 min): re-baselined 71.7%, 1759 bytes. Flat at
-// 71.7: hoisting the ni declaration next to v, and declaring n before ab. The
-// 0xa8 frame (ab/n Vec3f slots plus arg-buffer reuse) and the x87 load order
-// for the nine scaled floats still differ, as recorded above.
-
-// #2847 retry by GPT-6.1-sol: five attempts kept the 71.7% best. Reordering
-// locals dropped to 71.2%; the frame, x87 schedule, local slots, and loop
-// register/control flow still differ. One compiler launch failed; one run was silent.
-// Partial: 71.7%, 1759 bytes versus the original 1692 (best of a Claude Opus
-// 5.5 start plus deepseek-v4.1 work). The structure is right: every call, the
-// vel/spin sequence, the two-pointer vertex copy and the trailing prim loop
-// line up. What still differs:
-//  - the frame is 0xa8 against the original's 0x90. Writing the three
-//    (int)(n.f*65535.0f) results as plain ints shrinks it to 0x9c (12 of the
-//    excess is the Vec3f ni local) but scores 70.5, so the struct stays here;
-//    the other 12 bytes are float scratch, the original unpacks the
-//    FUN_004b6eb0/FUN_004b6f70 results back into shared float slots
-//    ([esp+0x58..0x7c]) while ours keeps extra $T staging.
-//  - the 9 scaled vertex floats load in address order in the original
-//    (v[0].x, v[0].y, ... v[2].z) but ours hoists the x pair (v[0].x, v[1].x)
-//    first, which changes the fxch/fmul schedule.
-//  - the pointer locals land in different slots: the original packs
-//    piece/count/verts/unit/desc at [esp+0x20..0x30] plus i at [esp+0x1c];
-//    ours has piece/verts/desc at [esp+0x30..0x34] and i at [esp+0x20].
-//  - deepseek-v4.1-flash retry: nesting the two FUN_004b6eb0 calls directly
-//    as FUN_004b6f70(FUN_004b6eb0(b,c), FUN_004b6eb0(b,a)) instead of the
-//    named ab local does shrink the frame from 0xa8 to 0xa0, but the call
-//    argument/return temporary schedule changes and the score drops to 47.7,
-//    so the named ab local is required. Nothing else tried beat 71.7.
-// deepseek-v4.1-flash #3514 (10 min): the d->pos hunk is a y-load scheduling
-// difference (original loads piece.offset.y into esi first and makes unit.pos.y
-// the add destination; ours loads unit.pos.y first), and the component-wise
-// spelling is blocked: Vec3_00421700 has no 3-argument constructor (C2661).
-// deepseek-v4.1-flash #3549: component-wise d->pos.x/y/z member assignment
-// does compile but scores 58.4 (1750 bytes), so the operator+ form is required.
-// deepseek-v4.1-flash 01:12Z retry, all scored with scratch copies, none beat
-// 71.7 so the base stays:
-//  - ni as three plain int locals (nx,ny,nz): 70.7, frame still 0xa8, so the
-//    0x18 excess is not ni; it is exactly the ab and n Vec3f locals plus the
-//    arg-buffer reuse.
-//  - piece declared first (piece,count,verts,unit,desc) using param->obj
-//    inline: 71.7 tie; unit-first with unit->pieces: 70.9.
-//  - ab/n hoisted to the top of the function: 71.7 tie.
-//  - nine floats as Vec3f a,b,c (constructor or member assignment) with ab/n:
-//    46-47.6%, frame 0x8c, and the by-value arg copies collapse (the compiler
-//    aliases the arg buffers with a,b,c), so the original almost certainly has
-//    a,b,c stored as separate floats and copied into the call buffers.
-//  - the by-value Vec3f argument schedule is the real blocker: the original
-//    (0x4219ac-0x421ad7) stores a/b/c to [esp+0x58..0x78], copies a,b into the
-//    first f_eb0 buffers, then REUSES parts of c's slots for ab before the
-//    second call. Reproducing that aliasing at source level is unresolved.
-// What helped: declaring count, verts and desc in that order (desc assigned
-// last, after the g_game->debrisCount alias) lifted 70.9 to 71.7 with the same
-// 0xa8 frame. Earlier notes: ab/n declared uninitialised and assigned on the
-// next line (68.8 -> 70.9); a byte-offset two-pointer vertex copy scored 64.1;
-// unpacking the inner FUN_004b6eb0 into separate floats scored 67.1 and
-// holding the 9 floats as Vec3f locals scored 47.6 (frame 0x8c, code shape
-// wrong).
-// deepseek-v4.1 22:36Z, four more variants, all kept worse than 71.7:
-//  - d->pos = unit->pos + piece->offset (operand flip): 68.6, load order becomes
-//    pos.x, pos.y, off.y, off.z, pos.z; the original's is pos.x, off.y, off.z,
-//    pos.y, pos.z, so the current piece->offset + unit->pos order is right.
-//  - swapping the two o->verts[k]/o->verts[7-k] copy statements: 71.5.
-//  - reusing k (not a fresh m) for the prim loop index: 68.6, the original
-//    reuses dead slot 0x10 for it but a source-level reuse breaks the shape.
-//  - nine floats as three Vec3f locals a,b,c: 47.6 again (1625 bytes, 0x8c
-//    frame); it does fix the fild order to address order 0,4,8,...0x20, but the
-//    by-value call setup collapses. The 9-float form stays.
+// Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
+// Breaks a unit piece into debris: for each quad face of the piece, takes a
+// free debris slot and a free 3D object (FUN_00420920, inlined), gives it a
+// random velocity and spin, copies the face's four vertices into the object
+// (twice, as a box), pushes the back four out along the face normal by
+// param->scale, centres the box on its own origin and copies the face's
+// texture and colour into the object's faces.
+//
+// MATCH (#5457, Claude Opus 5.5; 76.6% before). Three things were missing:
+//  * The nine scaled vertex components go through a FIX2F macro,
+//    `(((float)(x)) / 65535.0f)`, with the cast and the whole expression each
+//    in their own parentheses. Then the stores into a, b and c are
+//    list-scheduled (interleaved fild/fmul/fstp) as in the original, even
+//    though the block has struct-returning calls. Dropping either pair of
+//    parentheses, or any plain `x * k`, serialises them (the wall every
+//    earlier pass hit). `* (1.0f / 65535.0f)` compiles the same. Only the
+//    a, b, c / x, y, z statement order gives the original's schedule.
+//  * The second difference goes into n itself: `ab = FUN_004b6eb0(b, a);
+//    n = FUN_004b6eb0(b, c); n = FUN_004b6ff0(FUN_004b6f70(n, ab));`. Nested
+//    as FUN_004b6f70(FUN_004b6eb0(b, c), ab), b's three loads were CSEd
+//    across the first call, which made C2 split d and the loop invariants as
+//    soon as o took esi (the whole head allocation changed: 51.6%). This
+//    form also gives ab its own frame slot, as in the original.
+//  * piece is computed from unit (`unit->pieces`) and desc is read before
+//    verts. That order of first uses sets the candidate ids, and with them
+//    the order of the reloads at the bottom of the loop and the frame slots
+//    of piece, count, unit and desc (96.2% -> MATCH).
+// <windows.h> and <minmax.h> are needed for the symbol count (without
+// <minmax.h> one load pair in d->pos swaps).
 #include <windows.h>
-#include <memory.h>
 #include <minmax.h>
 
 struct Vec3_00421700 {
@@ -201,8 +50,6 @@ struct Vec3f_00421700 {
     float y;
     float z;
 
-    Vec3f_00421700() {}
-    Vec3f_00421700(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
 };
 
 struct Texture_00421700 {
@@ -319,6 +166,7 @@ Vec3f_00421700 __stdcall FUN_004b6f70(Vec3f_00421700 a, Vec3f_00421700 b);
 Vec3f_00421700 __stdcall FUN_004b6ff0(Vec3f_00421700 v);
 int __stdcall FUN_004b7f30(unsigned short* list, int index);
 
+#define FIX2F(x) (((float)(x)) / 65535.0f)
 // FUN_00420920, inlined
 static inline Object3D_00421700* NewObject()
 {
@@ -336,10 +184,10 @@ void __stdcall FUN_00421700(Header_00421700* param)
 {
     Unit_00421700* unit = param->obj;
     Piece_00421700* piece =
-        (Piece_00421700*)(param->obj->pieces + 0x22 + param->index * 0x36);
+        (Piece_00421700*)(unit->pieces + 0x22 + param->index * 0x36);
     int* count = &g_game->debrisCount;
-    Vec3_00421700* verts = piece->verts;
     Object3D_00421700* desc = piece->desc;
+    Vec3_00421700* verts = piece->verts;
     if (param->scale == 0)
         param->scale = 1;
     for (int i = 0; i < desc->nprims; i++) {
@@ -375,20 +223,20 @@ void __stdcall FUN_00421700(Header_00421700* param)
                 o->verts[7 - k] = verts[desc->prims[i].vindex[k]];
             }
             Vec3_00421700* v = o->verts;
-            float b[3], a[3], c[3];
-            a[0] = v[0].x * (1.0f / 65535.0f);
-            a[1] = v[0].y * (1.0f / 65535.0f);
-            a[2] = v[0].z * (1.0f / 65535.0f);
-            b[0] = v[1].x * (1.0f / 65535.0f);
-            b[1] = v[1].y * (1.0f / 65535.0f);
-            b[2] = v[1].z * (1.0f / 65535.0f);
-            c[0] = v[2].x * (1.0f / 65535.0f);
-            c[1] = v[2].y * (1.0f / 65535.0f);
-            c[2] = v[2].z * (1.0f / 65535.0f);
-            Vec3f_00421700 ab;
-            ab = FUN_004b6eb0(Vec3f_00421700(b[0], b[1], b[2]), Vec3f_00421700(a[0], a[1], a[2]));
-            Vec3f_00421700 n;
-            n = FUN_004b6ff0(FUN_004b6f70(FUN_004b6eb0(Vec3f_00421700(b[0], b[1], b[2]), Vec3f_00421700(c[0], c[1], c[2])), ab));
+            Vec3f_00421700 a, b, c;
+            a.x = FIX2F(v[0].x);
+            a.y = FIX2F(v[0].y);
+            a.z = FIX2F(v[0].z);
+            b.x = FIX2F(v[1].x);
+            b.y = FIX2F(v[1].y);
+            b.z = FIX2F(v[1].z);
+            c.x = FIX2F(v[2].x);
+            c.y = FIX2F(v[2].y);
+            c.z = FIX2F(v[2].z);
+            Vec3f_00421700 ab, n;
+            ab = FUN_004b6eb0(b, a);
+            n = FUN_004b6eb0(b, c);
+            n = FUN_004b6ff0(FUN_004b6f70(n, ab));
             d->vel.x += FUN_004b6c30(200) * (short)(n.x * 512.0f);
             d->vel.z -= FUN_004b6c30(200) * (short)(n.z * 512.0f);
             int nx = (int)(n.x * 65535.0f);

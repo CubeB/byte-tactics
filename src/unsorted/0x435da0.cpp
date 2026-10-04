@@ -1,216 +1,30 @@
-// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash retry 7 (issue #3445, 15-minute box): no new genuine
-// lever found. Re-verified the complete source at 89.5% (2740 bytes, the
-// original size) with one real run. The whole diff is still the two pinned
-// constants: the original holds ebx=0 / esi=-1 for the whole body, this source
-// puts 0 in esi and rematerialises -1 in eax, which also shifts the name
-// pointers in the inlined strcpy/GetName and the two x87 fstp stores. A
-// scratch control (one extra `= 0` and one extra `= -1` field store) does
-// reproduce the original assignment exactly, but is 2756 bytes / 91.9%, so it
-// is the same weight threshold as before, not a fix. Tried again without
-// effect (all 2740 bytes, 89.5%): pair-chained `surfaceMetal =
-// minWindSpeed = -1;` plus `maxWindSpeed = gravity = -1;`, a reset through
-// `int* lim = &surfaceMetal; lim[0..3] = -1;`, mixed `~0` and `0 - 0`
-// spellings of the constants, and an old-pointer local plus a named
-// new-object local. The sibling 0x438320 does use a `float intervalTime`
-// local, but this function's condition reads the field itself, so that shape
-// does not apply here.
-// GPT-6.1-sol retry (issue #2894): verified the complete inherited source at
-// 89.5% (2740 bytes) with one fresh check.py run. The older 92.7% variant
-// omitted four required -1 field stores; kept the complete version. Prior
-// notes record the constant-register, delayed x87 stores, and header-set
-// probes, so no distinct safe source lever emerged during this retry.
-// deepseek-v4.1-flash retry 6 (issue #2682, 10-minute box): no new genuine
-// lever found. Baseline kept: 2740 bytes, 89.5%. The constant-register tie is
-// insensitive to: a local for the `new` object, chained/pointer/offset/read-
-// back/`~0`-style forms of the four -1 stores, a named zero local, a named -1
-// local, interleaved 0/-1 store order, `if (field != 0) delete field;`, an old-
-// pointer local, `found != 0`/`found > 0`/inline found, 40 random declaration
-// orders of the 7 function locals, and all 128 header sets (headers.py, flat at
-// 89.5%). Ours keeps 0 in esi and rematerialises -1 in eax; the original keeps
-// ebx=0 / esi=-1. No source spelling moves the color, and every route that
-// flips it (v_d1/v_d2/v_d3) adds real stores the original does not have.
-// deepseek-v4.1-flash retry 5 (issue #2525, 10-minute box): re-confirmed the
-// earlier retry-4 measurements. This is the HONEST complete source: 2740 bytes,
-// the original size, 89.5%, no MATCH. (A 95.0% variant existed only by adding
-// two stores the original does not have, an allocator lever; those were removed.)
-// This retry found
-// no new real lever: the whole honest diff is the constant-register choice
-// (we get esi=0 / eax=-1; original ebx=0 / esi=-1) plus the two delayed x87
-// fstp stores after killmul and MeteorDensity. No source spelling tried here
-// moved either: chained stores, `-1L`/`~0`/(unsigned)-1, planet[0]=desc[0]=0,
-// lavaWorld=noSeaLevelTrigger=0, and int local for -1 all stay at 89.5%.
-// deepseek-v4.1-flash retry 4 (issue #2362): the four `= -1` stores are back in
-// the body, so this source is complete (the earlier 92.7% file was 28 bytes
-// short and scored higher only because four mismatching lines left the
-// denominator). Measured this run:
-// - With the four stores and no lever, ours is exactly 2740 bytes but keeps
-//   0 in esi and rematerialises -1 in eax (89.5%). The whole remaining diff is
-//   the constant-register choice: original `xor ebx,ebx` / `or esi,-1` versus
-//   ours `xor esi,esi` / `or eax,-1`, plus the register renames that follow
-//   (`lea edi,[ebp+0xa08]`, `mov ecx,esi` at the inlined strcpy counts).
-// - The two statements `field_c1c = -1;` and `field_c20 = 0;` just before the
-//   `missiondescription` read are an ALLOCATOR LEVER, not original code. They
-//   tip the constant table so 0 lands in ebx and -1 in esi exactly as the
-//   original, which lifts the score to 95.0%. The same two stores after the
-//   buffer resets score 92.5%, inside case 1 score 92.5%, and before the
-//   GlobalHeader tail 94.4%. They are two real stores the original does not
-//   have, so this file is NOT a match; remove them for the honest 89.5%
-//   complete source. The earlier vE2/vK probes found the same threshold.
-// - The lever lengthens -1's live range, so the inlined GetName at 0x436225
-//   puts the name pointer in edi instead of the original's esi (the original
-//   overwrites esi with `sbb esi,esi` right after the strlen count at
-//   0x43622b). Moving the lever earlier does not fix this.
-// - Tried with no flip this run (all 2740 bytes, 89.5%): chained
-//   `a = b = c = d = -1`, storing through `int* lim = &surfaceMetal`,
-//   `*(int*)((char*)this+off) = -1`, reading a stored field back
-//   (`minWindSpeed = surfaceMetal`), a named `int n = -1` reused by the four
-//   stores, extra `case -1:` labels, and moving the `int found` local.
-// - A `for` loop over the four fields DOES put 0 in ebx by adding an induction
-//   node, but it keeps a base pointer (`lea eax,[ebp+0xd30]`) or emits a
-//   `dec/jne` loop, so the code no longer matches. A loop over the three
-//   buffers behaves the same way.
-// deepseek-v4.1 retry (issue #1964), variant scoring 92.7% (best measured;
-// the complete-code variant with all four -1 stores in place scores 89.5%
-// and is kept in build/scratch/0x435da0/v0_89.5_complete.cpp, with this
-// session's `int found` fix it is build/scratch/0x435da0/x/v_m1.cpp):
-// This file is byte-identical to the 89.5% version EXCEPT that the four
-// surfaceMetal / minWindSpeed / maxWindSpeed / gravity = -1 stores after
-// the delete are missing here (28 bytes shorter than the original). Those
-// stores DO exist in the original (0x435e09..0x435e21, `or esi,0xffffffff`
-// then four `mov dword ptr [ebp+0xd3c..0], esi`), so they must come back.
-// Removing them is not a fix: the difflib ratio only likes it because four
-// mismatching lines disappear from the denominator.
+// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by opus. Names are provisional.
+// MATCH. Loads the current mission: resets the mission state, finds the
+// mission's OTA file (from the campaign list entry MISSION<n> for type 1, or
+// from the map name for types 2 and 3), reads its GlobalHeader block into the
+// fields and the name slots (0x435430.cpp), and passes the schema to
+// 0x436c30. Returns 1 on success, 0 after reporting an error. 0x435320
+// (LoadBriefing) and 0x4356c0 (GetName) are inlined.
 //
-// Measured this session with a whole-function multiset compare of every
-// instruction naming the zero register (orig ebx vs our esi/ebx):
-// - This file's zero-register instruction stream now matches the original
-//   exactly: 11 dword stores, 1 `mov [ecx+..], zero`, 1 `mov zero,[esp+..]`,
-//   1 `lea zero,[ebp+..]`, 7 `cmp eax,zero` and 10 `test eax,eax` (the
-//   0x435f6f missionfile test needs the value in a local first, see below;
-//   written inline MSVC emits an 11th `test eax,eax` and only 6 cmp).
-// - With the four -1 stores present our compile keeps 0 in esi and
-//   rematerialises -1 as `or eax,-1`/`or ecx,-1`; without them 0 lands in
-//   ebx exactly as the original. So the four -1 stores are what displaces
-//   the 0 constant, and -1 then gets no register at all.
-// - The wanted assignment is reachable (hence not a dead end): adding one
-//   more 0 store AND one more -1 store to the 89.5% file gives the
-//   original's ebx=0 / esi=-1 exactly (scratch v_d3, 2756 bytes, 91.8%,
-//   diff is then only the two extra stores plus jump offsets). One extra
-//   0 store alone gives ebx=0 with -1 rematerialised (v_d1); one extra -1
-//   store alone gives -1 in ebx with 0 still in esi (v_d2). No spelling
-//   found so far adds one constant use without adding an instruction.
-// - Still open: the x87 fstp delays (the fstp after the killmul/timemul/
-//   MeteorDensity/MeteorDuration calls sits after the next call's
-//   `mov ecx; push 0` in the original, right after the call here) and the
-//   `lea edi,[ebp+0xa08]` (edi there, esi here once -1 takes esi).
-// deepseek-v4.1 retry 2 (issue #1964, 12-minute box): the -1 register weight
-// is fed only by SOURCE-level int uses (the four `= -1` stores); the inlined
-// strlen `-1` (or ecx,-1) does not count towards it. A named `int negOne = -1;`
-// reused by the four stores still materialises the value into eax and leaves
-// every strlen counter as `or ecx,-1` (scratch 0x435da0/t1.cpp), so the
-// ebx=0 / esi=-1 assignment stays out of reach this way; the one-extra-store
-// probes from the earlier pass (4 stores is one short of the threshold)
-// remain the only measured route, and that route adds instructions.
-// Tried and rejected this session (all 2740 bytes unless noted):
-// `int found = ...; if (found)` for the missionfile test (fixed the count,
-// 89.5% unchanged, kept here at 2712 bytes where it lifts 92.6 to 92.7),
-// chained/`~0`/`(int)-1`/`(unsigned)-1`/`-1L` stores, a named -1 local for
-// the four stores, `tidalStrength = (float)gravity` and `(float)-1`
-// spellings, `memset(&surfaceMetal, -1, 16)` (lea + pointer stores), a
-// nested block around the group, an inlined SetLimits/SetZeros helper
-// (value and zero as parameters), `!= 0` / `!= NULL` / `> 0` / `0 != x`
-// forms of the buffer, briefing and missionfile tests, `'\0'` for the two
-// byte stores, buffer resets in the other order, and the previous session's
-// named-local / `if (old != 0) delete old;` / buffer-frees-first variants.
-// Retry #1764: GPT-6.1-sol confirmed 89.5% after three worker checks; no MATCH. Constant-register selection, delayed x87 stores and later register ordering remain different.
-// Finished by GPT-6.1-sol.
-// GPT-6 retry: chained/reset-helper field initialization and copying unset
-// values through the reset fields did not improve 89.5%. Preserve this version;
-// the zero/minus-one register choices and delayed x87 stores still differ.
-// Loads the current mission: resets the mission state, finds the mission's
-// OTA file (from the campaign list entry MISSION<n> for type 1, or from the
-// map name for types 2 and 3), reads its GlobalHeader block into the fields
-// and the name slots (0x435430.cpp), and passes the schema to 0x436c30.
-// Returns 1 on success, 0 after reporting an error. 0x435320 and 0x4356c0
-// are inlined.
-//
-// Partial (89.5%). Still differs:
-// - Constant registers: the original keeps 0 in ebx and -1 in esi (which
-//   first holds the old g_game+0x391ed object); here 0 lands in esi and -1
-//   is not kept in a register. A scratch copy with one extra `= 0` and one
-//   extra `= -1` field store gets exactly the original's assignment, so the
-//   original has a little more weight on both constants than this source;
-//   the N-declarations sweep and every header set leave it unchanged.
-// - With that, `name`/`size` in the inlined 0x435320 come out in edi/ebx
-//   instead of esi/edi.
-// - x87 scheduling: after the killmul, timemul, MeteorDensity and
-//   MeteorDuration calls the original delays the fstp until after the next
-//   call's `mov ecx; push 0`; here it follows the call directly. This
-//   compiler does that whenever the next call also returns a double
-//   (a double call after tidalstrength moves its fstp up too), and the
-//   matched 0x438320 shows the same early fstp for the same calls.
-// Tried without effect: casts replaced by typed members and base classes,
-// inline setters for the reset, int or float spellings of the -1 and 0.0
-// constants, a pointer local for the list, inline wrappers for the getters.
-//
-// Checked by deepseek-v4.1-flash (baseline 89.5%): the whole diff is the
-// constant-register choice. The original keeps ebx = 0 and esi = -1 pinned for
-// the entire body (`xor ebx, ebx` at the top, `or esi, 0xffffffff` after the
-// delete), so `cmp eax, ebx`, `push ebx` and `mov [this+0xa04], ebx` appear
-// where this source emits `test eax, eax`, `push esi` and a later store via
-// esi. Every remaining hunk is that register rename plus the shortened
-// near-jump offsets it causes. Changing case 0/default from `return 0` to
-// `break` (to force a 4-entry table) scored 84.7% and grew the body to 2808
-// bytes, so keep `return 0`.
-//
-// deepseek-v4.1-flash retry 3: baseline kept at 92.7%, since it is still the
-// best-scoring and smallest-diff version and the full code is worse by both
-// measures (89.5%, 543 diff lines, see below). No MATCH. New measured facts
-// about the 0 / -1 register threshold, which is the whole remaining diff:
-// - The complete source (four `= -1` stores present) is exactly 2740 bytes,
-//   the original's size, but 0 then lands in esi and -1 stays rematerialised
-//   in eax; difflib 89.5%.
-// - Adding exactly one extra 0-use WITHOUT adding a store is impossible to
-//   spell here; the smallest measured probe is a store of 0 to a dead field
-//   (scratch vK, `field_c20 = 0`): 0 snaps back to ebx, the old pointer to
-//   esi, -1 still in eax, 2748 bytes, 90.7%, 418 diff lines.
-// - Adding one extra 0-use AND one extra -1-use (scratch vE2, `field_c1c = -1`
-//   plus `field_c20 = 0`) reproduces the original's `xor ebx, ebx` /
-//   `or esi, 0xffffffff` assignment exactly, including the placement of
-//   `or esi,-1` between `mov ecx,[g_game]` and the new-object store; 2756
-//   bytes, 91.9%, 386 diff lines. So the original source has one more folded
-//   use of each constant than this source, and no spelling provides it for
-//   free. vE2 is 2 stores too long, so it is not a fix, but it proves the
-//   assignment is a pure weight threshold and not a dead end.
-// - The four `= -1` stores cannot be forced to immediate `mov [mem],0xffffffff`
-//   by spelling (`-1`, `~0`, `0 - 1`, `(int)0xFFFFFFFF` all CSE to one
-//   `or reg,-1` plus four register stores), so the original materialised -1 too.
-// - Tried with no effect on the threshold: `tidalStrength = -1;`,
-//   `=(float)-1`, `!= 0` forms of the buffer/briefing tests, a top-of-function
-//   named `int v = -1`, `headers.py` over all 128 header sets (best 92.7%).
-// deepseek-v4.1 retry 3 (issue #2362): with the four `= -1` stores restored the
-// body is exactly 2740 bytes and the whole diff is the constant-register pick:
-// we get `xor esi, esi` (0 in esi) and `or eax, -1` for the four stores, the
-// original has `xor ebx, ebx` (0 in ebx) and `or esi, -1`. The deleted object
-// pointer follows the constant: original esi, ours edi.
-// New measured fact: the original's -1 register is not only used by those four
-// stores. It is still live at 0x4360ce and 0x43622b, where the inlined strcpy
-// count is `mov ecx, esi` instead of `or ecx, -1`, i.e. two of the six
-// `or ecx, -1` in our build are register copies in the original (and the
-// original reloads -1 as `or esi, -1` at 0x43612f/0x436195 after the strcpy
-// clobbers esi with its copy pointer). So the -1 register must be live across
-// the whole switch, which is the same weight threshold as before, not a
-// missed statement: a multiset compare of every instruction naming the zero
-// register over the diff stream shows cmp 10, mov_store 12, push 6, xor 2 on
-// both sides (the only difference is which register).
-// Also re-measured without a flip: four stores placed before the
-// `new Class_0048df90` assignment (80.4%, order is wrong there),
-// `tidalStrength = -1;` as an int, `gravity = 0 - 1;`, `lavaWorld = 0 - 0;`,
-// `noSeaLevelTrigger = 0 - 0;`, `lavaWorld = noSeaLevelTrigger = 0;`,
-// `planet[0] = description[0] = 0;`, `if (found != 0)`, `if (found > 0)`
-// (the last three only lose 0.1%): none of them moves a constant into a
-// different register, all stay at 0 in esi / -1 rematerialised in eax.
+// What made it match (it sat at 89.5% for many passes):
+//  * The constant registers (0 in ebx, -1 in esi; with them name/size in
+//    esi/edi and the old object in esi) came from case 2/3: the found-at-once
+//    arm calls FUN_00435430 and breaks, and only the fallback reassigns
+//    `map`. That splits map into two webs, so its priority drops from 76 to
+//    46/44, below LoadBriefing's `name` (56). name is then coloured before
+//    map takes ebx and gets esi while no constant piece is pinned there, and
+//    the 0 and -1 pieces end up in ebx and esi as in the original. Found with
+//    tools/c2prio.py --trace (which prints the -1 constant as "const 0").
+//    The old 95% lever (extra field_c1c = -1 / field_c20 = 0 stores) only
+//    tipped the same race from the other side.
+//  * The late x87 stores after the float getters: every float field is read
+//    through an inline GetFloat that converts the double result into a float
+//    local and returns it. A plain `(float)` call, a double local alone or a
+//    float local alone all keep the fstp right after the call whenever the
+//    next call also returns a double.
+//  * The 0x48e010 callee is Class_0048ff40::FUN_0048e010 (data/symbols.csv).
+// 0x437280 (the buffer reset, no callers) is written out: C1 does not
+// auto-inline it out of class (IL 180), while 0x435320 (IL 157) is.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -286,7 +100,7 @@ struct Class_0048df90 {
     ~Class_0048df90() { ((Class_0048dfb0*)this)->FUN_0048dfb0(); }
 };
 
-class Class_0048e010 {
+class Class_0048ff40 {
 public:
     void FUN_0048e010(Class_004c2ea0* parser);
 };
@@ -396,6 +210,13 @@ public:
     int FUN_00435da0(char* map);
 };
 
+static inline float GetFloat(Class_004c46c0* section, const char* key)
+{
+    double value = ((Class_004c4760*)section)->FUN_004c4760(key, 0.0);
+    float result = (float)value;
+    return result;
+}
+
 // FUNCTION: 0x435da0
 int Class_00435c00::FUN_00435da0(char* map)
 {
@@ -479,15 +300,17 @@ int Class_00435c00::FUN_00435da0(char* map)
         exists = 0;
         strcpy(missionName, map);
         FUN_004290f0(path, "Maps", map, "OTA");
-        if (!((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
-            map = FUN_004c5840(map);
-            if (map == 0)
-                return 0;
-            strcpy(missionName, map);
-            FUN_004290f0(path, "Maps", map, "OTA");
-            if (!((Class_004c2f60*)&parser)->FUN_004c2f60(path))
-                return 0;
+        if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
+            FUN_00435430(1, "Maps", map, "TNT");
+            break;
         }
+        map = FUN_004c5840(map);
+        if (map == 0)
+            return 0;
+        strcpy(missionName, map);
+        FUN_004290f0(path, "Maps", map, "OTA");
+        if (!((Class_004c2f60*)&parser)->FUN_004c2f60(path))
+            return 0;
         FUN_00435430(1, "Maps", map, "TNT");
         break;
     case 0:
@@ -531,14 +354,14 @@ int Class_00435c00::FUN_00435da0(char* map)
     minWindSpeed = parser.current->FUN_004c46c0("minwindspeed", 0);
     maxWindSpeed = parser.current->FUN_004c46c0("maxwindspeed", 0);
     gravity = parser.current->FUN_004c46c0("gravity", 0);
-    tidalStrength = (float)((Class_004c4760*)parser.current)->FUN_004c4760("tidalstrength", 0.0);
+    tidalStrength = GetFloat(parser.current, "tidalstrength");
     lavaWorld = parser.current->FUN_004c46c0("lavaworld", 0);
     noSeaLevelTrigger = parser.current->FUN_004c46c0("nosealeveltrigger", 0);
     waterDoesDamage = parser.current->FUN_004c46c0("waterdoesdamage", 0);
     waterDamage = parser.current->FUN_004c46c0("waterdamage", 0);
-    ((Class_0048e010*)g_game->field_391ed)->FUN_0048e010(&parser);
-    killMul = (float)((Class_004c4760*)parser.current)->FUN_004c4760("killmul", 0.0);
-    timeMul = (float)((Class_004c4760*)parser.current)->FUN_004c4760("timemul", 0.0);
+    ((Class_0048ff40*)g_game->field_391ed)->FUN_0048e010(&parser);
+    killMul = GetFloat(parser.current, "killmul");
+    timeMul = GetFloat(parser.current, "timemul");
     if (!FUN_00436860(type, &parser, schema)) {
         FUN_004b6b80("No suitable schema type in mission file!", "Map error");
         return 0;
@@ -555,9 +378,9 @@ int Class_00435c00::FUN_00435da0(char* map)
     ((Class_004c48c0*)parser.current)->FUN_004c48c0(meteor.name, "MeteorWeapon", 0x20, DAT_005119b8);
     if (strlen(meteor.name) != 0) {
         meteor.radius = parser.current->FUN_004c46c0("MeteorRadius", 0);
-        meteor.density = (float)((Class_004c4760*)parser.current)->FUN_004c4760("MeteorDensity", 0.0);
-        meteor.duration = (float)((Class_004c4760*)parser.current)->FUN_004c4760("MeteorDuration", 0.0);
-        meteor.interval = (float)((Class_004c4760*)parser.current)->FUN_004c4760("MeteorInterval", 0.0);
+        meteor.density = GetFloat(parser.current, "MeteorDensity");
+        meteor.duration = GetFloat(parser.current, "MeteorDuration");
+        meteor.interval = GetFloat(parser.current, "MeteorInterval");
         if (meteor.radius == 0 || meteor.density == 0.0f || meteor.duration == 0.0f || meteor.interval == 0.0f)
             meteor.FUN_00438320();
         FUN_00437d40();

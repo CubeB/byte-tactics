@@ -1780,7 +1780,7 @@ address,size,file,symbol,status,similarity
 0x485010,88,src/unsorted/0x485010.cpp,?FUN_00485010@@YGHPAUPoint16_00485010@@@Z,matched,100.0
 0x485070,208,src/unsorted/0x485070.cpp,?FUN_00485070@@YGHPAUPos_00485070@@@Z,matched,100.0
 0x485140,117,src/unsorted/0x485140.cpp,?FUN_00485140@@YGHPAUPos_00485140@@@Z,matched,100.0
-0x4851c0,354,src/unsorted/0x4851c0.cpp,?FUN_004851c0@@YGHUVec3_004851c0@@0@Z,partial,84.7
+0x4851c0,354,src/unsorted/0x4851c0.cpp,?FUN_004851c0@@YGHUVec3_004851c0@@0@Z,matched,100.0
 0x485330,117,src/unsorted/0x485330.cpp,?FUN_00485330@@YGXHHPAUPos_00485330@@@Z,matched,100.0
 0x4853b0,106,src/unsorted/0x4853b0.cpp,?FUN_004853b0@@YGXPAUVec3_004853b0@@@Z,matched,100.0
 0x485420,115,src/unsorted/0x485420.cpp,?FUN_00485420@@YGXEE@Z,matched,100.0

@@ -1,6 +1,33 @@
 // Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
 // #5530 Codex recheck: 95.3% (99.6% ignoring internal jump targets); three mask instructions remain.
 // A retry with unsigned bitfields and precomputed int values fell to 80.8% (87.3% with jump targets masked) due to frame growth.
+// Claude Opus 5.5 pass (#5600, about 25 minutes, still 95.3% committable):
+// the three bit 13/14 writes are decided by symbol ids, not by spelling.
+// With `unsigned short cheating : 1; unsigned short fixedloc : 1;` (as in
+// 0x447b10 and 0x445ed0) and nothing else changed, this file MATCHES when
+// an enum of N unused enumerators sits before `extern ... g_game;` (or
+// before the structs) for N = 26944..27168 or 27456..28992, which puts
+// g_game at 56338..56562 or 56850..58386 (29394 now). Per write: g_game's
+// id alone flips the else-branch fixedloc write (98.3% from N = 8192),
+// the lobby DATs' ids flip the two lobby writes (fixedloc from about
+// N = 20480, cheating from 26944), and above N = 29024 the commander
+// write through the block-local Player pointer flips the wrong way (99.7%).
+// Padding after the function (the file total) or just before it (the
+// function's and its locals' ids) changes nothing; block-scope externs
+// for the DATs change nothing. So the original TU had about 27000 more
+// symbols in front of g_game than <windows.h> <stdio.h> <stdlib.h>
+// <string.h> give. Real header sets measured with the unsigned fields:
+// + <ddraw.h> <dsound.h> <dplay.h> <vector> <list> <map> <algorithm>
+// <string>: g_game 38407, 98.3%; + <shlobj.h> <imagehlp.h> <math.h>
+// <time.h> <io.h>: 41548, 93.0%; the generous set (adding <windowsx.h>
+// <commctrl.h> <d3d.h> <d3drm.h> <vfw.h> <direct.h> <process.h> <set>
+// <deque> <queue> <stack> <iostream> <fstream>): 47443, 93.0%. None reaches
+// the window, and padding may not be committed, so the signed-field version
+// (95.3%) stays. Scan: in the original exe only 0x449bb0 (twice) and the
+// matched 0x45da90 (`bit6 = entries[...].value != 0`, a heavy value) store a
+// setcc value into a 16-bit bitfield with the value's register as the `or`
+// destination; matched value-first writes elsewhere (0x495230, 0x41b2e0's
+// symbol-id window) fit the same id rule.
 // Opens the multiplayer battle room (LOUNGE2.GUI): resets the room state,
 // copies the lobby's command-line options (DAT_00512d68..DAT_00512d8c) or the
 // host's game options into the local player's flags, sets up the chat list,

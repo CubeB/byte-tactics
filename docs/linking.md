@@ -16,6 +16,7 @@ uv run tools/globals.py --check        # also compile link/data.cpp and compare 
 uv run tools/stateprobe.py HEADER --rename   # how many matches a shared header would break
 uv run tools/place.py                  # link at the original's addresses: build/place/TotalA.exe
 uv run tools/link.py --carve           # an ordinary LINK.EXE link that runs: build/link/TotalA.exe
+uv run tools/linkcmp.py                # does every reference in it reach what the original's does?
 ```
 
 `linkcheck.py` and `globals.py` compile through `tools/progress.py`'s cache in
@@ -389,6 +390,17 @@ and `link.py` applies that to patched copies of the objects under
 Eleven names are still stubbed (constructors, destructors and operators that
 only unplaced copies or the dropped initialisers call), and 37 addresses in
 dead data no symbol names.
+
+`uv run tools/linkcmp.py` checks the result, the placement compare #4869 asks
+for in the form an ordinary link needs: comparing addresses says little once
+every function has moved, so it compares where each reference leads. For
+every placed game function it reads each relocated field of
+`build/link/TotalA.exe`, maps the address back to the original through the
+map file (`link.py --carve --map`), and compares it with what the original's
+code holds in that field. On 2026-10-05 all 25,713 references it can place
+agree, apart from 128 calls that reach the other copy of `std::_Lockit`. It
+exits non-zero on any difference, so a change that rebinds a name shows up
+before the game is run.
 
 ## Next steps
 

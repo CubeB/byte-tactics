@@ -731,6 +731,10 @@ effect, the missing piece is usually a helper that was inlined:
 - **A fold that needs the function to open its TU**: 0x4152f0's do-while
   removes a dead test only when no other function is compiled before it in the
   file; any function in front brings the test back (#5574).
+- **The natural form can give the original's negated constant**: 0x49a890's
+  `- gh*-2.0` came from writing `(s2 + 2*gh) * s2`, not from casts; redundant
+  parentheses around `_hypot` and the sums then fixed the x87 order, and their
+  counts matter. It matched from 95.1% without any no-op casts (#5588).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

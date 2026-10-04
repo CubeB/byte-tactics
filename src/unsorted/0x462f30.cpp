@@ -1,163 +1,69 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
-// pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%. Codex / GPT-6 retries
-// for #5204, #5254, #5298, #5327, #5414, #5437 and #5451 re-confirmed earlier scores.
-// The class name is
-// data/symbols.csv's Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is
-// called through Class_00462d30, its own file's class, and returns Entry_00462d90*.
+// pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%; pass 18 (Opus, #5559):
+// 98.6%. The class name is data/symbols.csv's Class_00462f30 (the caller 0x4534e0 uses
+// it); Find (0x462d90) is called through Class_00462d30, its own file's class, and
+// returns Entry_00462d90*.
 //
-// Pass 17 (#5515):
-//  * Both `return 0` copy-outs (the first loop's found path and the end) end in
-//    `goto ok;` with one `ok: return 0;` after the `none` block (81.4 -> 83.0). MSVC
-//    then cross-jumps the two copies exactly as the original does: the first loop's
-//    path does its net stores, `mov ecx, edx; mov esi, eax` and jumps to the end
-//    path's `mov edi, [esp + 0x28]`, and `none` falls into the epilogue (its stores
-//    interleaved with the pops). With `return 0` in both places nothing is merged,
-//    and a `goto copy` into the end path's memcpy puts the src/len moves after the
-//    label instead.
+// Pass 18 (#5559), what moved it:
+//  * Every DPERR_NOMESSAGES exit is its own `length = 0; return DPERR_NOMESSAGES;`
+//    (the receive loop's, the route's and the out-of-order save's), instead of
+//    `goto none` to one shared block. MSVC cross-jumps the copies back into the one
+//    block the original has, but the shared `none:` label made C2's first split of
+//    `entry` leave the receive loop out of its register piece (hence the old reload
+//    of entry after the loop) and keep region A in it. With the loop's exit on its own
+//    block the first split gives region A its own piece and one long piece from
+//    `entry = 0` through the loop to the route (83.0 -> 84.2), but C2 skipped that
+//    piece ("spill cost not positive") and net took edi. With the route's or the save
+//    path's exit on its own block too, the long piece gets edi, as in the original
+//    (84.2 -> 98.4). (tools/c2prio.py --blocks only shows the first pass; a scratch
+//    copy that keeps the block hooks on for every re-sort showed the pieces.)
+//  * After the 0x463790 call: `Class_00463730* tail = &entry->tail;` for the call,
+//    both Peeks and one Take after the join, which is the original's code exactly
+//    (the Take's Pop reuses the Peek's buffer register). One GetFrame after the join
+//    instead loses the duplicated Peek (94.2%).
+//  * Region A's `d = prev - cur` is written in both arms of the first clamp. MSVC
+//    merges the two copies after the join and puts the `sub` before the flag's setg,
+//    as the original does (98.4 -> 98.6); written once after the join it is scheduled
+//    after the setg.
 //
-// Still different (27 original lines besides jumps):
-//  * After the 0x463790 call: the original has the two Peeks and one Take after the
-//    join (Take's Pop reuses Peek's buffer in eax), tail in esi (`lea esi, [edi +
-//    0x18]`), len in edx and tick reloaded into esi inside Take. This file has a Take
-//    in each arm (pass 16's choice, which gets region A and the first half right).
-//  * The receive loop: entry is reloaded after the loop (`mov edi, [esp + 0x10]` and
-//    the leftover `test esi, esi; jne error`), see pass 16's notes below.
-//  * Region A's `sub eax, esi` after `setg dl`, and the route's Find result tested in
-//    eax and copied to edi after the `je` (the original copies first and tests edi).
-//  * Why the one-Take shape loses (tools/c2prio.py): with `Class_00463730* tail =
-//    &entry->tail;` for the call, both Peeks and Take (the end is then exactly the
-//    original's shape), entry's big piece after the first split comes out at 51,
-//    above tail (42) and region A's entry->field_c temporary (28). It takes edi at
-//    step 21, which splits tick there and leaves tick's end piece only esi, so tail
-//    gets edi, tick's piece spans the call and region A keeps entry in edi (68.2%;
-//    73.2% with the net stores through tail, the best permuter score of all
-//    variants). Probes on that file: without `field_14 = entry;` in the in-order
-//    branch (-10) or without the swap-in block, entry's piece drops below tail and
-//    tail takes esi with tick's piece in Take only, as in the original. Entry
-//    initialised at its declaration (live through the first loop) gives region A its
-//    ecx piece, tail esi and tick esi only in Take, but entry then has no register
-//    before the route, the constant 0 takes edi and the first loop's slots move (74.3%).
-//  * Tried in pass 17 without gain: a plain `while (rc != 0)` receive loop (entry
-//    keeps edi through the loop, but the exit edge is not jump-threaded past the
-//    `if (rc == 0)` test and the constant 0 is coalesced with entry = 0, 81.1%), with
-//    `goto got` (81.3%), `if (1)` (78.6%) or the error block as a goto target at the
-//    end (74.6%); a goto-based retry loop (81.1%); a second label on the none block for
-//    the loop's NOMSG exit or the save path (78.6%, net then takes edi); the route as
-//    `entry == 0 && (entry = Find()) == 0` and other spellings (identical or 64%); a
-//    separate region-A entry with `entry = e;` (66%); defining Find (0x462d90) in this
-//    file (/Ob2 does not inline it, identical); tail as a reference or declared after
-//    the call (identical); all 32 mixes of `tail->` and `entry->tail.` across the
-//    call, the Peeks, Take and the net stores (best 76.8%); the swap-in as an inline
-//    member, `field_14->field_c = 0` after `field_14 = entry`, shared OOM or E_FAIL
-//    return labels (identical or lower); eight d/flag spellings in region A (identical);
-//    an empty `do {} while (0);` after each statement (no change); a 15-minute permuter
-//    run from the tail-pointer file (73.5%, 196 changed lines).
+// Still different (two spots):
+//  * The frame: tick is in the slot at +0x18 and flag at +0x14; the original has tick
+//    at +0x14. Both have 3 memory references (tools/c2prio.py --frame); flag reaches
+//    3 first in code order, so it sorts first. The original's code has the same three
+//    accesses to each, so the original's count or counting order differs somewhere
+//    invisible. A fourth tick reference puts tick first (probes only); two full
+//    Peek+Take copies give the right frame but MSVC does not merge the copies (91.9%).
+//    Declaring flag at function scope, the Take condition spelled in steps or with
+//    `!(...)`, and a NoMessages() inline helper for the exits change nothing.
+//  * The receive loop's latch: here `test esi, esi; je got; jmp head`, the original
+//    `jne head; jmp got`. `while (rc != 0)` (also as a `for` or with a Receive()
+//    inline), `do { ... } while (1)` with the receive first, and a `break` to the
+//    error check all give the original's latch and loop, but then the got block keeps
+//    a `test esi, esi; jne error` (89.0%). `if (rc != 0) do { ... } while (rc != 0)`
+//    drops that test but moves the NOMSG compare into the latch (88.4%). A goto-only
+//    error block (inline in the loop, or a label at the end) is placed straight after
+//    the loop (86.3%); `goto nomem`, `if (rc >= 0)` and a goto to the none block for
+//    the NOMSG exit change nothing. A 15-minute permuter run from this file found
+//    nothing (19664 candidates).
 //
-// What the structure is now, and why:
+// Earlier passes, still true:
 //  * The tail of each entry (+0x18) is Class_00463730, the class of 0x463730/0x463790,
 //    and its 0x180c-byte ring is read through small inline methods (Peek, Pop, Take,
 //    GetFrame). Pop is the same code 0x463790 inlines.
 //  * The first loop walks `Entry* e = &entries[i]`: with plain `entries[i].` indexing
 //    the found path recomputed the address from i instead of using the loop pointer.
+//  * Both `return 0` copy-outs end in `goto ok;` with one `ok: return 0;` at the end,
+//    which MSVC cross-jumps exactly as the original does (pass 17).
 //  * After the 4b5 test the original keeps both arms (A, then its shared E_FAIL return,
-//    then B), and the HAPINET error block comes after B. Only an else-branch keeps it
-//    there: a `goto error` to a label anywhere else (end of the block, end of the
-//    function, after B's returns) is moved up to just after the receive loop. With
-//    `if (1) { ... } else { error: ... }` the layout is exact (77.3% with the rest of
-//    this file); `if (rc == 0) ... else { error: }` is the plausible spelling, and the
-//    rc test is jump-threaded away only when the receive loop is written
-//    `if (rc != 0) do { ... } while (rc != 0);` (a plain `while` leaves the zero
-//    constant in edi through the second half, 69.4%). The do-while duplicates the
-//    NOMSG test into the latch (`je got; cmp esi, NOMSG; jne; jmp none`), where the
-//    original's latch is `test esi, esi; jne B1; jmp got`.
-//  * The out-of-order sequence code computes cur = *(int*)buffer in both arms of the
-//    first clamp (the original loads it once per arm, ecx then edx), and the clamp
-//    helpers are `int r = n -+ 1; if (r >= -1) r = -2; return r;`. With `n--` on the
-//    parameter (the old spelling) region A kept the entry in edi; with the local r it
-//    is spilled exactly as in the original (+8 points). A ternary helper gets the
-//    allocation too but changes the second clamp's shape.
-//  * After a failed 0x463790 call the original peeks the ring in both arms
-//    (`if (call) { length = 0; peek } else peek`); written once, MSVC merges them.
-//
-//  * Pass 15: `delete buffer; ... buffer = new char[capacity];` in the receive loop and
+//    then B), and the HAPINET error block comes after B. Only the else-branch of
+//    `if (rc == 0)` keeps it there.
+//  * The clamp helpers are `int r = n -+ 1; if (r >= -1) r = -2; return r;`, and the
+//    first clamp loads cur in both arms, as the original does.
+//  * `delete buffer; ... buffer = new char[capacity];` in the receive loop and
 //    `delete entry->field_14; entry->field_14 = new char[length];` in the out-of-order
-//    save, instead of operator delete/new (75.7 -> 76.6 -> 77.6). As in 0x463790 the
-//    operators shift the temporary rotation by one: the grow block's length/capacity
-//    moves and the second receive call's `g_game + 0x14` now use the original's eax,
-//    ecx, edx.
-//
-//  * Pass 16: Peek and Take are written out in both arms after the 0x463790 call, and
-//    the receive loop is `if (rc != 0) { while (1) { ...; if (rc == 0) break; } }`
-//    (77.6 -> 81.4). Pop's `buffer` read in each arm references entry, which drops
-//    entry's big piece after C2's first split from 51 to 24 (c2prio, per-block shares),
-//    below region A's edi temporary (28). So that piece is split again and entry gets
-//    edi from `entry = 0` to the route and memory in region A, as in the original;
-//    net and the route's tick go back to memory and tick to [esp+0x14]. The original
-//    has one Take after the join that reuses Peek's buffer in eax: a local
-//    `Class_00463730* tail = &entry->tail;` used for the call, both Peeks and one Take
-//    gives exactly that code (the inlined `this` temporaries then share one value, so
-//    the buffer load is common), but entry's big piece is then 51 again and keeps edi
-//    through region A (67.9%; 78.3% with `entry = 0` as the declaration's initialiser,
-//    the best register-blind shape so far, net then in edi).
-//
-// Pass 16's list (still true except the copy-out, fixed in pass 17):
-//  * Pass 16 file: entry is stored at `entry = 0` and reloaded after the receive loop
-//    (`mov edi, [esp + 0x10]` in the got block), and that reload keeps the got block's
-//    `if (rc == 0)` test (C2 removes it only from an empty block). In every variant
-//    tried, C2's first split (FUN_00439385 flood-fills the pieces through the blocks
-//    FUN_00439619 accepts) leaves the loop's blocks out of entry's register piece; the
-//    original keeps entry in edi through the loop. Probes that delete the loop's NOMSG
-//    exit or its out-of-memory return change this, so the loop's exits are involved.
-//    `do { length = capacity; rc = receive(); if (rc == 0) break; ... } while (1);`
-//    gives the original loop exactly (both receive calls, latch `test esi, esi;
-//    jne B1; jmp got`) but the same got-block test (74.0% with this file's tail).
-//  * Region A's `sub eax, esi` is scheduled after `setg dl` (the d/flag statement order
-//    and `if (prev - cur > 0)` do not move it).
-//  * Tried with no gain in pass 16: a separate region-A `e` with `entry = e;` at its end
-//    (66.3%, net's piece then outranks entry for edi); the swap-in block as an inline
-//    member taking the entry (identical code); one inline copy-out helper for both
-//    memcpy returns (identical); `goto nomem` to a label at the end; the none block as
-//    `if (src == 0) { none: ... }` before the final copy (76.7%).
-//  (Earlier notes, from the 77.6% file:)
-//  * entry should live in edi from `entry = 0` after the first loop through the route
-//    (`test edi, edi`, `mov edi, eax` after Find, `lea esi, [edi + 0x18]`). Here the
-//    net parameter takes edi after the loop and tick takes it in the route, so tick is
-//    loaded once instead of twice and lands in slot 0x1c instead of 0x14. A separate
-//    block-scoped `e` for region A gives the right first-loop registers but loses edi
-//    to net as well; making the route test entry twice (`if (!entry) entry = Find();
-//    if (!entry) goto none;`) gives entry edi but moves tick into edi in the first loop.
-//  * (Fixed in pass 17 by `goto ok`.) The first loop's found path was a full copy of
-//    the memcpy/return; the original
-//    jumps into the end path's copy at `mov edi, [esp + 0x28]` (cross-jumped), and the
-//    `none` block carries the scheduled epilogue. `goto copy_out` shares the code but
-//    puts the src/len moves after the label (66.7%; 70.2% on pass 15's file, 73.3% with
-//    a shared `found:` block taking a tail pointer).
-//
-// Pass 15 notes (tools/c2prio.py, scratch dumps of C2's colouring steps):
-//  * entry is one web from `entry = 0` to the route and is live across region A's
-//    memcpy, so it is only allowed ebx/ebp and gets split. Its big piece (#5, priority
-//    26) loses edi in region A to the e->field_c temporary (priority 28, the
-//    original's `mov edi, [ecx + 0xc]`, so that part is right). The pieces it is then
-//    split into leave the long stretch from `entry = 0` to the route with no
-//    references (spill cost 0), so C2 skips it and net's piece takes edi. The original
-//    must have split it into a piece with references at both ends.
-//  * `if (call) length = 0; src = entry->tail.GetFrame(tick, len);` (the peek written
-//    once) raises that piece to 51, above the temporary, and entry gets edi
-//    everywhere including region A (68.2%). The original's two identical peek copies
-//    jumping to one join look like C2 duplicating a small join block, so the source
-//    may be the single GetFrame; region A would then need something else.
-//  * Loop form: `if (rc != 0) { while (1) { ...; rc = receive(); if (rc == 0) break; } }`
-//    gives the original's latch (`test esi, esi; jne B1; jmp B`) and keeps the error
-//    block after B, but the constant 0 then takes edi through the first half (73.0%).
-//    Replacing either of the loop's two zero compares by a global brings it back
-//    (77.4%), and so does reading the new buffer back through a pointer
-//    (`char** pp = &buffer; if (*pp == 0)`, 79.3%, not plausible, so not used). A
-//    20-minute permuter run reached 79.0% the same way. `while (1)` with the break at
-//    the top cross-jumps the second receive call into the first (77.4%). Measured
-//    before the delete/new change: `for (;;)` with the break at the top is turned into
-//    a rotated while (70.3%), and a switch on rc sorts the cases by value (TOOSMALL
-//    first, 75.5%).
+//    save, instead of operator delete/new: the operators shift the temporary rotation
+//    by one.
 //
 // Receives the next frame for the local player: first any frame queued in a
 // player's ring whose tick is due, otherwise a saved out-of-order frame or a new
@@ -374,8 +280,10 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
             rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
             if (rc != 0) {
                 while (1) {
-                    if (rc == (int)0x887700be)      // DPERR_NOMESSAGES
-                        goto none;
+                    if (rc == (int)0x887700be) {    // DPERR_NOMESSAGES
+                        length = 0;
+                        return (int)0x887700be;
+                    }
                     if (rc != (int)0x8877001e)      // DPERR_BUFFERTOOSMALL
                         goto error;
                     delete buffer;
@@ -405,13 +313,15 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
                                 if (entry->field_8 != -1) {
                                     int prev = entry->field_8 - 1;
                                     int cur;
+                                    int d;
                                     if (prev >= -1) {
                                         prev = -2;
                                         cur = *(int*)buffer;
+                                        d = prev - cur;
                                     } else {
                                         cur = *(int*)buffer;
+                                        d = prev - cur;
                                     }
-                                    int d = prev - cur;
                                     int flag = entry->field_c > 0;
                                     if (d > 0) {
                                         if (entry->field_c <= 0) {
@@ -430,7 +340,8 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
                                             entry->field_4 = field_10;
                                             entry->field_0 = field_c;
                                             entry->field_c = length;
-                                            goto none;
+                                            length = 0;
+                                            return (int)0x887700be;
                                         }
                                         prev = Prev_00462f30(entry->field_8);
                                         if (*(int*)entry->field_14 <= cur) {
@@ -494,21 +405,23 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
 
     if (entry == 0) {
         entry = ((Class_00462d30*)this)->FUN_00462d90(field_c);
-        if (entry == 0)
-            goto none;
+        if (entry == 0) {
+            length = 0;
+            return (int)0x887700be;
+        }
     }
     {
+        Class_00463730* tail = &entry->tail;
         Frame_00462f30* f;
-        if (entry->tail.FUN_00463790(buffer, length, tick, field_c, field_10, field_14 == 0)) {
+        if (tail->FUN_00463790(buffer, length, tick, field_c, field_10, field_14 == 0)) {
             length = 0;
             len = 0;
-            f = entry->tail.Peek();
-            src = entry->tail.Take(f, tick, len);
+            f = tail->Peek();
         } else {
             len = 0;
-            f = entry->tail.Peek();
-            src = entry->tail.Take(f, tick, len);
+            f = tail->Peek();
         }
+        src = tail->Take(f, tick, len);
     }
     if (src != 0) {
         *(int*)((char*)net + 0x4b5) = entry->tail.field_14;
@@ -518,7 +431,6 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
         goto ok;
     }
 
-none:
     length = 0;
     return (int)0x887700be;
 ok:

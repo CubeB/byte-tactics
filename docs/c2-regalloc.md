@@ -515,6 +515,20 @@ stand in for the lost prefix when every symbol that decides is in the file
 itself. A cut-down `<vector>` costs a few hundred ids where the real one
 costs 4233 (3579 after `<windows.h>`).
 
+Small ids cannot stand in when the window puts one of the function's own
+symbols below the compiler's predeclared ones. In a padded 0x40d290 file that
+matches, the insert and its parameters have low 16 bits 63 to 66, below
+operator new (`??2`, id 151) and operator delete (`??3`, 153), while the
+body's locals are above them; without the wrap no declaration gets an id
+under 154, and a cut-down `<vector>` (also reordered three ways) gives only
+the real header's four states (#5565). 0x4b90a0 (#5550) does not follow the
+count the other way either: in its real TU (0x4b86e0 to 0x4b9a50, with the
+`<windows.h>` its neighbours need) its ids are about 29850 and it is 53.8%;
+with the TU's ids wrapped past 65536 it cycles through the same states as its
+small standalone file (best 87.1%), and with only C2's counter wrapped (its
+locals just below 65536) it is 27 to 54%. Its plateau is the shape, and it
+calls nothing, so no neighbour is inlined into it.
+
 ### A prototypes header (`include/ta_protos.h`)
 
 `tools/protos.py` writes the prototypes we know of the game's own free

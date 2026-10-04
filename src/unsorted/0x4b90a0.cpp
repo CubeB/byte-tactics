@@ -1,4 +1,22 @@
 // Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by space-bunny-free, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 (#5550, 2026-10-04): still 87.1%, file unchanged except this
+// note. Real TU code does not supply the count this file needs:
+// - The TU (0x4b86e0 to 0x4b9a50: the 21 other matched files concatenated,
+//   each in its own namespace, with the <windows.h>, <string.h>, <math.h> and
+//   <stdlib.h> they include) puts this function at id 29853 (src 29848, xoff 29857,
+//   file total 30319): 53.8%, the large-count regime below.
+// - The same TU with its ids wrapped past 65536 (35560 to 36200 unused externs
+//   ahead of this function, scratch only) gives exactly the states of this
+//   small file (best 87.1%, then 86.0, 82.8, 81.7, 68.8%, period 32),
+//   so a lost ~65000-symbol prefix would land where this file already is.
+// - Locals below 65536 with C2's counter past it (64200 to 65450 externs at
+//   the top plus 1000 at the end of this file) is 27 to 54% (period 512).
+// - It calls nothing, and the only zero-caller functions nearby (0x4b94c0,
+//   0x4b9a50) come after it, so no real neighbour is inlined into it. The
+//   87.1% plateau is the shape: the row head (`mov esi, ebx` then the plane,
+//   plane1 into ebx) and the yoff spill in the preheader. Generators:
+//   build/scratch/0x409730n/concat.py, build/scratch/0x409730c/scan.py and
+//   tail_pad.py.
 // #5542 Codex recheck: 87.1%; 16 batch proposals did not improve the saved best.
 //
 // Claude Opus 5.5 pass (#4704, 2026-10-04): still 87.1%, code unchanged, but

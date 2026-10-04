@@ -1,4 +1,34 @@
 // Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by space-bunny-free, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 (#5671, 2026-10-04): still 87.1%, code unchanged. The two
+// symbol-count ranges this function needs are disjoint, so no header set can
+// supply both (scratch scans with N `extern int`s at the top, N from 0 to 2047
+// step 1 and five phases of every 1024 up to 65000):
+// - `stride` local: 0-71 plane-first with xoff ebx and yoff eax (this file);
+//   72-275 plane-first with dst in ebx; from 277 on (xoff + stride) + plane
+//   (`lea`). Declaring `stride` before or after `xoff` only swaps (plane +
+//   xoff) + stride and (plane + stride) + xoff; no other declaration order
+//   changes anything.
+// - `dst->width * yoff` inline: plane-first below 277, xoff-first from 278
+//   at every count tried, but then xoff is always in eax (yoff in ecx, esi or
+//   ebx) or dst moves to ebx (256-wide alternation, 32-wide phases).
+// Why, from C2's own numbers (a scratch copy of tools/c2prio.py with the block
+// hooks left on through every re-sort, build/scratch/0x4b90a0/c2p2.py and
+// passes.py): in every xoff-first shape xoff's final piece has priority 159
+// (prologue +50, its two copies in the row head +128, latch -12) and yoff's
+// 127 (prologue +40, second guard test +4, the one imul +64, `yoff++` +24), so
+// xoff is coloured first and takes dp1's eax by its copy preference (costs eax
+// -1, esi -1; esi is excluded by dp0); with the rows swapped it takes dp0's esi.
+// The original's ebx needs either yoff's piece coloured first (33 points) or
+// xoff interfering with both row pointers, which only the plane-first order
+// gives (this file: xoff's piece is allowed ebx alone). The pieces have the
+// same 159 and 127 here, so the gap belongs to the shape, not to the count.
+// Flat over 64 xoff-first counts each (scan2.py): `y` as the row counter, `x`
+// or a for loop as the inner counter, `yoff++` in the increment, at the end
+// or at the row head, rows in either order, four guard spellings, initialised
+// declarations, both declaration orders, source planes before the guard, a
+// block-scope stride, and a loop copy `int xo = xoff` (copy-propagated away).
+// None of the about 15000 compiles in these scans stores yoff after the
+// `jbe`, as the original does, so its yoff split differs from all of them too.
 // Claude Opus 5.5 (#5653, 2026-10-04): still 87.1%, file unchanged except this
 // note. Where the row head's operand order is decided, and what does not move it:
 // - It is fixed before global allocation: a dump of C2's tuples at the

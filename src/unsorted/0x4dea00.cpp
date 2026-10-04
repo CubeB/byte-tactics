@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Codex / GPT-6 retry on 2026-10-04: best remains 97.3% (850 bytes). The
+// close-match permuter tested 501 candidates in 15.2 minutes with no gain.
+// A branch-local finalIndex temporary regressed to 93.3%; using it only in
+// the non-lines branch was byte-identical; computing lineLast before the loop
+// shifted stack allocation and fell to 71.1%. c2prio needs unavailable gdb
+// and winedbg. Keep the original best; the two opposite branch register-order
+// differences described below remain unresolved.
 // GPT-6.1-sol retry in #3226: eight checker invocations, best remains 97.3%; no MATCH. A single-use helper and De Morgan predicate tied; split last condition, shared boolean, and local last variants regressed. Existing source still has the two branch-local register/order differences.
 // #3031 retry by GPT-6.1-sol: five checks retained 97.3%; a ternary source
 // form did not alter the two branch-local register/order differences.

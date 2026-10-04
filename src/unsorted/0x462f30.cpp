@@ -1,9 +1,36 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
 // Rebuilt from the disassembly (pass 13, Opus): 43.3% -> 75.7%; pass 15 (Opus): 77.6%;
 // pass 16 (Opus, #5358): 81.4%; pass 17 (Opus, #5515): 83.0%; pass 18 (Opus, #5559):
-// 98.6%; pass 19 (Opus, #5583): 98.9%. The class name is data/symbols.csv's
+// 98.6%; pass 19 (Opus, #5583): 98.9%; pass 20 (Opus, #5585): 98.9%, no change.
+// The class name is data/symbols.csv's
 // Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
 // Class_00462d30, its own file's class, and returns Entry_00462d90*.
+//
+// Pass 20 (#5585): only the frame swap is left, and none of these moved it.
+//  * What a hidden count is. A scratch copy of tools/c2prio.py with a hook on
+//    FUN_004367f0 (ecx the symbol, ebx the tuple, its line at +0x10) lists every count.
+//    entry's 13 include two with no memory access in the code: line `delete
+//    entry->field_14` is the `mov esi, ecx` at 0x46322c and `} else {` after
+//    `entry->field_8 = ...` is the `mov edi, eax` at 0x4633cb. Both are reloads of a
+//    split piece whose value codegen finds in a register, so it emits a register move.
+//    tick's fourth count must be such a reload with the value already in the target
+//    register: the only place that leaves no code is the first loop's pre-header (def
+//    and loop as two pieces both in ebp, or the def in memory with its load temp
+//    hinted to ebp). The early-return GetFrame does add a count on the def line, but
+//    its reload is a real `mov esi, [esp+0x14]` inside the loop.
+//  * tick's pieces (c2prio --ids): #7 is split at step 37 by FUN_00437e67's piece
+//    makers (not FUN_00439385, so --trace shows no split line for it) into #77, which
+//    step 64 splits into #2 (def and loop, ebp) and #52 (the Take, esi).
+//  * Tried, with the same code and the same counts (3 and 3): tick as unsigned, long
+//    or unsigned long (local, field, Take's, GetFrame's or 0x463790's parameter);
+//    `register` or `const` tick; `do {} while (0);` after the def, at the top of the
+//    loop body, after the GetFrame call or before `entry = 0`; GetFrame through a
+//    Peek local; GetFrame on a `Class_00463730*` local; the loop as `len = 0;
+//    Take(Peek(), ...)`; tick through `static int Due(const int&)`; Take and GetFrame
+//    taking `const int*` or `const int&`; e declared outside the loop; tick declared
+//    late and assigned just before the loop; a const reference or a named copy for
+//    the end (the optimizer propagates both into tick). An `e++` pointer loop gives
+//    82.4% (i loses its slot).
 //
 // Pass 19 (#5583): the receive loop's latch now matches; only the frame swap is left.
 //  * The loop is a plain `while (rc != 0)` and the code after it is not guarded by any

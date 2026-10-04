@@ -3,7 +3,53 @@
 // production is summed, the player's totals and storage are updated, and the
 // share of the demand that could be met is fed back into every account.
 //
-// Partial, 88.1% (2233 of 2239 bytes; was 77.2%). What got it here:
+// Partial, 89.0% (2249 of 2239 bytes; was 88.1%, before that 77.2%).
+//
+// Opus pass on 2026-10-04 (88.1% to 89.0%). First (88.9%): the wind site now calls
+// AddIncomeW, which takes a double like AddIncomeD but adds the default and
+// non-AI amounts as `(float)v`. That keeps wind's own `fadd [m]; fstp [m]`
+// default blocks and lets wind's case blocks merge whole into the else
+// branch's, as in the original. C2's cross-jumper (FUN_00432f03, once per
+// label; FUN_00446590 merges a pair) compares tuples, not bytes, so the case
+// blocks of a float-parameter helper never merge with a double-parameter
+// helper's even though the code is identical. AddIncomeW can replace
+// AddIncome at every other site with the same bytes. What is left, found by
+// adding gdb hooks to a copy of tools/c2prio.py: 0x432f03 (ecx = label),
+// 0x446590 (ecx, edx = the two jumps; it reaches 0x446683 when it merges),
+// 0x40d397 (attaches a jump to a label) and 0x42f3aa (the block move in
+// FUN_0042f060). In a tuple, +8 is the kind (0x10 jmp, 0x19 label), +0x10
+// the line counted from the function's first line, and +0x12 its position.
+// - FUN_00432f03 pairs the first jump in the join label's predecessor list
+//   with each later one. A partial merge needs more than 20 bytes, the jump
+//   included. A merge that covers a whole block (an unconditional jump
+//   before it) needs no minimum. The list is LIFO (FUN_0040d397 prepends) and
+//   is built before register allocation.
+// - Here the order is En(else non-AI), T0, T1, Td, ..., Ed, E1, E0, Tn, Ep.
+//   Td and then Ed merge into En. Then Tn matches 22 instructions backwards:
+//   tidal's whole default/case/dispatch region against the else's. That is
+//   the merged tidal dispatch. Without the `done:` label the order has Tn
+//   before Ed: the match stops after 16 instructions and gives the original's
+//   tidal (cases and default merged, dispatch kept). But then FUN_0042f060
+//   (block placement) moves En up behind tidal's `jmp En`, because the block
+//   before En ends in a jump, and the else branch ends up after the epilogue
+//   (81.9%). An unreferenced label at the join keeps the else in place too
+//   (88.9%, same bytes), but an empty statement, block or do/while does not.
+// - Then (89.0%): tidal calls AddIncomeD3, with no `default:` case (the
+//   switch falls out to the shared `*dst += v`). Tidal's dispatch is no
+//   longer merged into the else's. But tidal's c1 is now a `fmul; jmp X`
+//   block after its dispatch (`jne En`), where the original has
+//   `je E1; jmp En`. That costs 10 bytes. The same change for the else
+//   branch moves it after the epilogue (81.9%), and for energyMake it changes
+//   nothing.
+// - The else branch's default still keeps its own `fstp st(0); jmp` instead
+//   of falling into the pop it shares with the backlog > 0 path. That pop
+//   block comes after En, and only a whole-block merge into En's tail
+//   (POP before En at cross-jump time) would give the original's shape.
+// Tried without effect here: case order, nonAI-first and nested AI tests
+// (all canonicalised), break/else helpers (72%), goto/labels in the then or
+// else arms, block-scoped and value spellings of UseEnergyD, /Gi (69.8%).
+//
+// What got it to 88.1% (earlier passes):
 // - The accumulators are separate float[2] arrays, not one struct: with one
 //   aggregate MSVC strength-reduces the normalisation loop to a pointer and a
 //   countdown, the original keeps `i * 4` in ecx ([esp+ecx+N]). The frame
@@ -33,7 +79,8 @@
 //   if/else chain with its own join: the `done:` label (or a
 //   `do { } while (0)` around the chain; `for`/`while` wrappers do not work).
 //
-// Still differs (all tail merging in the wind/tidal/else-branch block):
+// Differences at 88.1% (all tail merging in the wind/tidal/else-branch block;
+// the first is fixed above):
 // - wind's case blocks keep their own `fmul; jmp` where the original jumps
 //   straight into the else branch's;
 // - tidal's switch dispatch is merged into the else branch's, where the
@@ -266,6 +313,41 @@ static inline void AddIncomeD(Unit_00401360* u, float* dst, double v)
     *dst += v;
 }
 
+static inline void AddIncomeD3(Unit_00401360* u, float* dst, double v)
+{
+    Player_00401360* o = u->econ.owner;
+    if (o->active && o->type == 2) {
+        switch (g_game->difficulty) {
+        case 0:
+            *dst += v * 0.5;
+            return;
+        case 1:
+            *dst += v * 0.7;
+            return;
+        }
+    }
+    *dst += v;
+}
+
+static inline void AddIncomeW(Unit_00401360* u, float* dst, double v)
+{
+    Player_00401360* o = u->econ.owner;
+    if (o->active && o->type == 2) {
+        switch (g_game->difficulty) {
+        case 0:
+            *dst += v * 0.5;
+            return;
+        case 1:
+            *dst += v * 0.7;
+            return;
+        default:
+            *dst += (float)v;
+            return;
+        }
+    }
+    *dst += (float)v;
+}
+
 static int Use_00401180(Unit_00401360* u, float amount)
 {
     float* used = &u->econ.res[0].used;
@@ -330,9 +412,9 @@ void __stdcall FUN_00401360(Player_00401360* p)
                         goto done;
                     AddIncome(u, &u->econ.res[1].produced, u->def->makesMetal);
                 } else if (u->def->windGenerator > 0) {
-                    AddIncome(u, &u->econ.res[0].produced, g_game->wind * u->def->windGenerator);
+                    AddIncomeW(u, &u->econ.res[0].produced, g_game->wind * u->def->windGenerator);
                 } else if (u->def->tidalGenerator > 0) {
-                    AddIncomeD(u, &u->econ.res[0].produced, g_game->tidal * u->def->tidalGenerator);
+                    AddIncomeD3(u, &u->econ.res[0].produced, g_game->tidal * u->def->tidalGenerator);
                 }
             }
         } else if ((u->flags10e & 1) || (u->flags & 0xc) > 0) {

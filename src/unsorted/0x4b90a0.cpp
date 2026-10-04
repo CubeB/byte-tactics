@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by space-bunny-free, finished by GPT-6. Names are provisional.
+// #5542 Codex recheck: 87.1%; 16 batch proposals did not improve the saved best.
 //
 // Claude Opus 5.5 pass (#4704, 2026-10-04): still 87.1%, code unchanged, but
 // the notes below that call the row-head fold a BUILD difference are wrong. It

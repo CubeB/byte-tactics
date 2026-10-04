@@ -1,4 +1,30 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash and space-bunny-free. Names are provisional.
+// Claude Opus 5.5 (#4601, 2026-10-04): still 93.3%. The Part 7 /Gi recipe
+// (the one that matched 0x40d020 and 0x40cca0 next door) does NOT apply here.
+// Under `// FLAGS: /Gi` this insert compiles to one fixed 68.7% (475 bytes)
+// whatever else the file holds: no other use, operator=, reserve, resize, the
+// copy ctor, the fill ctor, assign(n, x), range insert, insert(P, x), erase,
+// the dtor, push_back, std::fill, std::copy_backward, swap, operator==, every
+// pair of the first six, uses placed before or after the member pointer, the
+// whole 0x409160 TU, <windows.h>/<ddraw.h>, the Elem and short inserts
+// (0x40cca0, 0x40d020) instantiated first, 0..65536 externs ahead of
+// <vector>, 0..4096 externs between <vector> and the instantiation, and up to
+// 575 filler functions: 160+ files, all byte-identical. c2prio shows why: under
+// /Gi the insert's own locals and params are numbered per function
+// (0x3ffff9..0x3ffffe) and only the function symbol's TU-wide id moves, and
+// here no tie depends on it. The /Gi build gets the first branch's _P web a
+// priority of 51 (B26's `_F = _P` copy is charged to _P, not the _Ucopy
+// temp), which puts _P in esi and the first _Ucopy's dest in ecx; the
+// original has the default build's split (_P edi, dest edx, the _P web at
+// priority 11). For vector<short> the operator= use moves the same web from
+// 19 to 59, the direction that original needs; this one needs the low
+// priority, which /Gi never gives. Without /Gi: a wide extern scan (0..65536, step 512,
+// before <vector>; 0..65536, step 512, at the end of the file so only C2's own
+// ids move; a 16x16 grid of both at step 4096; 31400..33000 step 8; and
+// 32088..32100 step 1 around the _N/_S wrap) gives only 93.3, 92.3, 91.9,
+// 90.5, 84.7, 83.8, 82.1, 71.5, 71.0, 69.6 and 66.4, never a MATCH. So this
+// insert is from a default-flags TU, and the three tail hunks need TU state
+// that no file reaches. Scratch generators: build/scratch/0x40d290/.
 // deepseek-v4.1-flash (#3265 round): still 93.3 via the member-pointer instantiation of the stock header; diff hunks unchanged (add eax,ebx vs lea ecx,[ebx+eax] plus the [esp+0x20] register order in the two at-end tails).
 // space-bunny-free (2026-10-01): still 93.3% (477 bytes), confirmed baseline.
 // space-bunny-free (2026-10-02, issue 4430): still 93.3%, no improvement. ~110 new

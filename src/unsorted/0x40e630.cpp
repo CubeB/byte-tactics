@@ -1,4 +1,40 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (#4601, 2026-10-04), 98.3% -> 99.7%: the heap reset now
+// comes first in the tail and the cell index is computed by an inline
+// Grid::Index(x, y). With the index written inline, MSVC proves the four heap
+// stores do not alias the width load and sinks them into the dirty-word OR
+// (97.6% with Clear() first, 98.3% with it after the flags store); computed
+// inside an inlined Grid method the width load is no longer provably separate,
+// so the stores stay as one group right after the start.x/start.y loads, as in
+// the original. (Clear() first plus Grid::Index, or a Grid::Open that also
+// does the dirty and flags updates, both give 99.7%; Index after the node
+// constructor and Clear() between them gives 99.3%.) Heap-as-base-class,
+// Heap*/Heap& aliases, `int&` reset helpers and a field-by-field node do not
+// move the group; only the index helper does.
+// What is left is the one `push ebp`: the `__fastcall` 3-argument Cost below
+// is a stand-in, not the original. 0x40da40 (0 callers in the exe) is the
+// out-of-line copy of this class's inline Cost, and it is a plain thiscall
+// `target->Cost(x, y)` with the arguments in edx and the vtable in eax, as
+// inlined here. Written that way (int or __int64 return, every operand order,
+// a Scale/Estimate pair copied from the matched sibling 0x40da70, FixMul,
+// locals for x/y/target/result, short/ref/Point parameters, inline wrappers
+// for IsGoal/Cost/InBounds) it is 94.2% everywhere: the code is right but the
+// eax/ecx/edx rotation is one step off from the Cost call on (Cost args
+// eax/vtable edx, InBounds start.x ecx/width eax, Release objects eax and edx
+// instead of edx and ecx). c2prio --rotation: the IsGoal call starts with the
+// pointer at edx and ends at ecx, and the original needs it at eax when Cost's
+// vtable is taken, so the original has one more temporary (taken while ecx is
+// busy) between the two calls, or evaluates Cost's y before the vtable. No
+// statement there moves it: dead stores, a do-while(0), status/target/goal
+// locals, `!= 0`, the finish block at the end or with two Finish() copies (no
+// tail merge: 895 to 915 bytes), and ResetTable/MarkGoal/Cost/Release/Finish
+// defined out of class in the exe's order (they still inline) are all
+// identical. Deleting the whole `if (d < bestDist)` block gives the original's
+// Cost and Release registers, but only because IsGoal then starts at eax.
+// Two 15 minute permuter runs on the thiscall form (13263 candidates from the
+// 92.8% file, 17334 at seed 12 from the 94.2% one) found nothing.
+// Scratch: build/scratch/0x40e630/ (this2.cpp is the 94.2% thiscall
+// version; costregs.py prints the Cost/Release registers of any variant).
 // 30-min checkpoint (space-bunny-free, best 98.3%, unchanged from main), plus
 // the last 15 minutes: the two levers from the guide also come out flat here.
 // A dead store in a statically folded branch does rotate the `Cost` handout
@@ -195,10 +231,6 @@ struct Node_0040e630 {
 class Class_0040f000 {
 public:
     void FUN_0040f000(int i);
-};
-
-class Class_0040f060 {
-public:
     void FUN_0040f060(int i);
 };
 
@@ -228,7 +260,7 @@ struct Heap_0040e630 {
         if (topPopped) {
             Node_0040e630* n = items[0];
             n->data = d;
-            ((Class_0040f060*)this)->FUN_0040f060(0);
+            ((Class_0040f000*)this)->FUN_0040f060(0);
             topPopped = 0;
             return n - pool;
         }
@@ -338,6 +370,10 @@ struct Grid_0040e630 {
         cells[i].flags = kind;
         dirty[i >> 8] |= 1 << ((i >> 3) & 0x1f);
     }
+    unsigned int Index(unsigned int x, unsigned int y)
+    {
+        return width * y + x;
+    }
 };
 
 class Class_0040e630 {
@@ -436,11 +472,11 @@ void Class_0040e630::FUN_0040e630(Target_0040e630* t)
             if (probe >= cost)
                 goto finish;
         }
+        heap.Clear();
         NodeData_0040e630 d(start.x, start.y, 0, cost, 100);
-        unsigned int i = grid.width * start.y + start.x;
+        unsigned int i = grid.Index(start.x, start.y);
         grid.dirty[i >> 8] |= 1 << ((i >> 3) & 0x1f);
         grid.cells[i].flags |= 1;
-        heap.Clear();
         grid.cells[i].dir = ((object->heading + 0x1000) >> 13) & 7;
         grid.cells[i].node = heap.Push(d);
         field_44 = 4;

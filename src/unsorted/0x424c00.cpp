@@ -1,4 +1,14 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5620 Claude Opus 5.5 (99.8% kept): a header of the game's real
+// prototypes does not supply the missing ids either (docs/c2-regalloc.md,
+// "A prototypes header"). include/ta_protos.h (tools/protos.py: 2140 free
+// functions demangled from their decorated names, and the 1030 types they
+// name as forward declarations) adds 7224 ids before g_game: 39914 (97.5%,
+// bit 14 clears), 25062 short of 64976..64995. With the plausible header
+// set too it is 48781 (97.5%), 16195 short. It also clashes with this
+// file: FUN_004224b0 is declared here returning unsigned short where
+// 0x4224b0.cpp has int (the int version scores 91.8% here), and
+// FUN_00481550 returning Cell_00424c00* where 0x481550.cpp has its own type.
 // #5546 Claude Opus 5.5 (99.8% kept): template instantiations do not supply
 // the missing ids either (docs/c2-regalloc.md, "Symbols each template
 // instantiation adds"). A container class adds its ids where it is first

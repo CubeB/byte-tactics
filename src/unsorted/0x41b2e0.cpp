@@ -1,4 +1,15 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5620 Claude Opus 5.5 (94.9% kept): include/ta_protos.h, the game's real
+// prototypes (tools/protos.py: 2140 free functions and the 1030 types they
+// name; docs/c2-regalloc.md, "A prototypes header"), adds 7225 ids before
+// this function's locals without /Gi: `first` 39873 (88.0%), 24677 short of
+// its window (64550..64582 and four more 64 apart). With the plausible
+// header set too it is 48740 (87.0%), 15810 short. The locals' ids are the
+// ones that decide: with the header declaring this function (its own id is
+// then 1910) the bytes match once `first` is at 64560. Under /Gi the
+// header moves g_game by only 112 ids (94.9% unchanged). It also makes
+// `FUN_0041b0f0(0)` ambiguous (this file's Unit_0041b2e0* declaration
+// against the header's Unit_0041b0f0* one).
 // #5546 Claude Opus 5.5 (94.9% kept): template instantiations do not supply
 // the missing ids either (docs/c2-regalloc.md, "Symbols each template
 // instantiation adds"). Without /Gi, the plausible header set gives this

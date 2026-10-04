@@ -339,7 +339,7 @@ between g_game and the function, or at the end of the file:
 |---|---|---|
 | 0x424c00 | g_game's | both spot stores are `offset + spots` while bit 14 of g_game's id is set: g_game 32767 gives 99.8%, 32768 97.5%, 49151 97.5%, 49152 99.8%. Moving the file total by up to 31000 changes nothing. |
 | 0x47d0e0 | g_game's | the `imul` folds while bit 14 of g_game's id is set: 32767 MATCH, 32768 79.0%. The full `<windows.h>` puts g_game at 29019, the lean one at 12192 (79.0%). The function's own id and the file total crossing 32768 change nothing. The "type count" in its notes is this id. |
-| 0x41b2e0 (without /Gi) | the function's own (or its locals', numbered right after it) | MATCH for function ids 64543 to 64575, 64607 to 64639, 64671 to 64703, 64735 to 64767 and 64799 to 64819; g_game's id and declarations after the function change nothing. |
+| 0x41b2e0 (without /Gi) | its locals', numbered at the function's definition (7 after the function's own id when the definition is its first declaration) | MATCH for function ids 64543 to 64575, 64607 to 64639, 64671 to 64703, 64735 to 64767 and 64799 to 64819; g_game's id and declarations after the function change nothing. With the function's prototype earlier in the file (ta_protos.h, below) its own id is 1910 and the bytes still match with `first` at 64560, so the locals decide. |
 | 0x471de0 | the file total | MATCH for totals 65257 to 65554 (and 65556) with the declarations at the end of the file, where they move nothing else; the file's notes found the same window with them before g_game. C2's own counter, 427 above the total by this function's allocation, passes 65536 in that window. |
 
 The option reads C2's symbol table once, at the allocator's first stop for
@@ -514,6 +514,65 @@ there follow the ids modulo 65536 relative to each other, so a small file can
 stand in for the lost prefix when every symbol that decides is in the file
 itself. A cut-down `<vector>` costs a few hundred ids where the real one
 costs 4233 (3579 after `<windows.h>`).
+
+### A prototypes header (`include/ta_protos.h`)
+
+`tools/protos.py` writes the prototypes we know of the game's own free
+functions: every decorated `?name@@Y...` name in data/symbols.csv and
+data/progress.csv (the names the files under src/ compile to), demangled, in
+address order, after a forward declaration of each struct, class and union
+they name (`struct Unit;`, with the key the decoration uses; MSVC decorates
+with the key of a type's first declaration). `--verify` compiles each
+prototype as a definition and checks that it decorates back to its name. On
+2026-10-04 it held 2140 prototypes and 1030 forward declarations. Left out:
+802 member functions and 246 constructors, destructors and operators (they
+need the class bodies, which each file defines itself), 118 members of
+template classes, 6 free functions that take a `std::vector` and one that
+takes a pointer to member. No file includes it.
+
+The whole header adds 7229 ids (measured in 0x471de0's file, which declares
+none of its functions itself): about 1 per forward declaration and about 2.9
+per prototype (one, plus one per parameter, plus a little for function
+pointer parameters). Where a file already declares one of its functions with
+the same signature, that is the same symbol, so in other files it adds a few
+less. After a file's headers or in front of them, g_game and everything after
+it get the same ids; only the functions the header declares move (a function
+keeps the id of its first declaration). Under /Gi it is different: the header
+moved 0x41b2e0's g_game by only 112 (25714 to 25826, with the file total read
+as 4194304), which fits the earlier finding that dummy declarations change
+nothing under /Gi.
+
+Each function's file with `#include "ta_protos.h"` after its own headers (the
+few names that clash renamed in the scratch copy, see below), and the same
+with the plausible header set of the previous section added:
+
+| function, the id that decides | the file now | + ta_protos.h | its window | still missing | + the plausible set too |
+|---|---|---|---|---|---|
+| 0x424c00, g_game's | 32690 (99.8%) | 39914 (97.5%: bit 14 clears) | 64976 to 64995 | 25062 | 48781 (97.5%), 16195 missing |
+| 0x41b2e0 without /Gi, its locals' (`first`) | 32648 (32.7%) | 39873 (88.0%) | 64550 to 64582 (and four more) | 24677 | 48740 (87.0%), 15810 missing |
+| 0x449bb0 with `unsigned short` fields, g_game's | 29394 (93.0%) | 36621 (93.0%) | 56338 to 56562, 56850 to 58386 | 19717 | 48772 (93.8%), 7566 missing |
+| 0x471de0, the file total | 5055 (98.6%) | 12284 (98.6%) | 65257 to 65554 | 52973 | 49858 (98.6%), 15399 missing |
+
+So the prototypes we have supply about 7200 of the missing ids, the same order
+as the exe's 45 containers (7443), and no function reaches its window with
+them. The plausible headers, the 45 containers (as members of one struct,
+which is invented) and the header together put 0x449bb0's g_game at 56215,
+123 short of its first window; by the two counts added up, the other three
+stay about 8000 to 8800 short. What
+Cavedog's headers also had and we cannot write yet: the member functions
+(their class bodies), prototypes of the about 575 functions without a file,
+the globals' declarations and the real struct definitions.
+
+The header also clashes with three of the four files as they stand. 0x424c00
+declares `unsigned short FUN_004224b0(char*)` where 0x4224b0.cpp has `int`
+(the `int` version scores 91.8% here) and `Cell_00424c00* FUN_00481550(int,
+int)` where 0x481550.cpp returns `Cell_00481550*` (overloads that differ only
+in their return type, error C2556). 0x41b2e0's `FUN_0041b0f0(0)` becomes an
+ambiguous call between its own `Unit_0041b2e0*` declaration and the header's
+`Unit_0041b0f0*` one. 0x449bb0 declares `FUN_004455b0` with the default
+convention where 0x4455b0.cpp has `__cdecl` (C2373; the call is the same for a
+function without parameters), and `layer->handler = FUN_00447b10` cannot pick
+between two overloads. 0x471de0 compiles with it unchanged.
 
 How it works: the tool copies C2.EXE to `build/c2prio/<run>/c2p<run>.exe` with
 `jmp $` at the entry point (toolchain/ is never changed) and compiles with

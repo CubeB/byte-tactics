@@ -122,6 +122,15 @@
 // index=0, W) and 79.9 (W then H); hoisting x0/y0 before the branch and testing
 // `index == 0` scores 77.8 to 79.9. None reach the original's index-in-edx,
 // h-in-ecx, height-in-eax allocation. Best stays this 82.9% body.
+// #3291 retry by Codex / GPT-6 (2026-10-04): 30 check.py runs across this and
+// earlier passes did not improve 82.9%. stackcmp confirms the frame size and
+// most slots match, but ypos is at -0x18 here vs -0x1c in the original, and
+// height is at -0x1c here vs the original's reused +0x8 slot. The targeted
+// `permute.py --stack ypos,height` search tested 150 candidates and stayed at
+// 82.9%; `/Gi` scored 81.6%. Type, alias, scope, expression, branch, loop and
+// inline-helper probes also did not improve the score. `c2prio.py` could not
+// run because gdb and winedbg are absent. Keep the established best for the
+// next retry.
 //
 struct Rect_004b0230 {
     int x0;                          // +0x0

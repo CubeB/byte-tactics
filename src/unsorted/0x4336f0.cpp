@@ -1,183 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by mimo-v2.6-pro. Names are provisional.
-// mimo-v2.6-pro continuation (second session): still 87.1%, nothing beat it.
-// New facts, from a byte-exact diff (build/scratch/0x4336f0/bytediff.py):
-// - The 4 byte excess is exactly: case 1's extra `test ebp,ebp / jle` costs
-//   +8 bytes (the jle is a NEAR jump here), cases 2 and 3 each save 1 byte
-//   (`test ebp,ebp` is 2 bytes where the original `test di,di` is 3), and the
-//   alignment pad shrinks 2 bytes (1-byte nop vs the original 3-byte
-//   `lea ecx,[ecx]`). So fixing case 1's top test and restoring `test di,di`
-//   guards in cases 2 and 3 would land the size on 708 exactly.
-// - Countdown spellings that add `count` uses with identical codegen do NOT
-//   flip the register rank: `do {} while (--count != 0)`, `do { count--; }
-//   while (count != 0)`, `do {} while ((count = count - 1) != 0)` and
-//   resize(count, x) instead of resize(n, x) all keep the wrong rank (i in
-//   ebx, count in edi, _First in ebp), and the first three also inline
-//   vector::_Destroy away (69.7%). The rank really is decided by loop
-//   structure, not by count's weighted use.
-// - Dead `int k = count;` copies in 1-3 arms never flip the rank (only a LIVE
-//   k as the loop counter in 3 arms does, kdo3), so the flip is not "a new
-//   local" or "one more use of count" but the loop counter being a fresh
-//   arm-local (kdo3) or a loop-top test existing (top-tested arms).
-// - `if (count > 0) { do {...} while (--count); }` (count guard instead of
-//   n guard) does not flip the rank either; it just loses the 1 byte per arm.
-// - The _Destroy call survives only in: exact arms with `--count`, the
-//   cguard shapes, and 3-4 top-tested arms (with or without splits). It
-//   inlines away with 2+ kdo arms, 3+ dead-k arms, 8 statement splits, or
-//   the alternate countdown spellings above. The trigger is still unclear
-//   (it is not raw statement count: the 3 top-tested arms carry 3 extra
-//   count--; statements and 3 splits yet keep the call).
-// All of this session's variants are in build/scratch/0x4336f0/e_*.cpp; the
-// best (e_base, 87.1%) is the config already in this file.
-//
-// mimo-v2.6-pro retry: best 87.1% (712 bytes vs 708). Beats the old 86.1% by
-// fixing the arm 3 missing neg (original arm 3 is b = -y, a = -x; the previous
-// file had a = x) and by splitting the strtok call into its own statement in
-// three stores (case 0's two stores and case 1's second store):
-//   char* t = strtok(0, ", "); (*this)[i].a = atoi(t);
-// which moves the reloaded _First (mov ebx,[esi+4]) from before the pushes to
-// just after the strtok call, exactly where the original has it. The single-
-// expression form (a = atoi(strtok(...))) makes MSVC evaluate the LHS address
-// first and hoist the load above the push/call sequence; the statement split is
-// what the original source almost certainly did.
-//
-// What still differs:
-// 1. Case 1 carries both the n guard (test di,di) and the while (count > 0)
-//    top test (test ebp,ebp), cases 2 and 3 have test ebp,ebp where the
-//    original has test di,di. All four original arms are the exact shape
-//    `if (n > 0) { i = 0; do {...} while (--count); }`. Writing all four arms
-//    that way gives byte-exact arms but the wrong register rank (count in edi,
-//    i in ebx, _First in ebp instead of i in edi, _First in ebx, count in ebp).
-//    The rank only flips back with three top-tested while arms (this file) or
-//    with an `int k = count; do {} while (--k)` copy in three arms.
-// 2. Five of the eight _First reloads (cases 1 second store, cases 2 and 3)
-//    are still hoisted before the pushes. Splitting them the same way would
-//    need four or more statement splits, and at four splits the /Ob2 inliner
-//    flips the failed-lookup tail: vector::_Destroy inlines to nothing and the
-//    tail loses the call, the mov ecx,esi and the mov [esi+8],edi (the
-//    function drops to 708 bytes and 84.3%).
-// 3. Ours is 712 bytes vs 708, so every jump target in the diff is shifted.
-//
-// mimo-v2.6-pro experiments (all scored in build/scratch/0x4336f0/):
-// - Statement-split temps fix the load placement but flip the _Destroy tail
-//   inline at 4 splits (3300/3333/a1: 84.3% or less). 3 splits are safe; the
-//   best distribution is 3200 or 2300 (87.1%).
-// - Exact-shape arms + k-copy (int k = count; do {} while (--k)) in 3-4 arms
-//   (kdo3/kdo4): rank and arm shape byte-exact, but 2 k-copies already break
-//   the tail (kdo2/kdo3/kdo4 all lose the _Destroy call) and the placement is
-//   still wrong; 700 bytes, 84.9%.
-// - Member helper setters (sa(i, strtok(...)) with inline bodies) fix the
-//   placement with no new locals but break both the rank and the tail (69.7%).
-// - Failed-path spellings (resize(0,x), resize(0), if(size()>0) erase(...),
-//   clear(), erase(...)) do not change the rank; only resize(0,x)/resize(0)
-//   keep the _Destroy call at all, the others inline it (58-70%).
-// - register/const int count, dead k copies, and while(--k) spellings are all
-//   worse or unchanged. Dead k copy in 2 arms also breaks the tail, so the
-//   trigger is the copy statement itself, not its liveness.
-//
-// GPT-6.1-sol (#3157 retry): baseline rechecked at 86.1% (712/708), one scored run. Two helper variants failed to compile or resolve; best unchanged, no MATCH.
-// space-bunny-free pass: kept the 86.1% file unchanged (it is the best known)
-// and mapped what is left with a byte-exact diff (relocation fields masked),
-// because check.py's difflib score hides one whole class of difference.
-//
-// Remaining difference 1: the three extra `test ebp,ebp / jle` pairs. Confirmed
-// still present with every loop spelling I tried in the 3-top-tested arms
-// (`while (count > 0)`, `for (; count > 0; count--)`, `for (; count; --count)`),
-// so it is not the spelling of the top test, only its existence. Also confirmed
-// the allocation flip is NOT sensitive to any declaration shape: 7 decl sets
-// (count before n, `int count = (short)atoi(tok)`, resize(count) vs resize(n)
-// vs resize((int)n), unsigned count, long count, i declared before count) all
-// give byte-identical code, 85.9% on the difflib scale, same 712 bytes.
-// So the edi/ebp/ebx rotation really is bought only by the extra top tests.
-//
-// Remaining difference 2, which NO score has shown before: in all four arms the
-// original emits `call strtok; mov ebx,[esi+4]; add esp,8` (the reload of
-// _First lands immediately AFTER the call) where every variant here, including
-// the 4-do-while one, emits `mov ebx, dword ptr [esi+4]` BEFORE the two pushes,
-// i.e. it is hoisted above the strtok call. Both slots are legal (a load cannot
-// cross a call, and in the original neither load is hoisted past its own
-// strtok), so this is a scheduler tie-break, not a missing instruction:
-// difflib matches the two `mov ebx, dword ptr [esi+4]` texts to each other and
-// scores them equal, but the bytes are 6 out of place in each of the 8 loads.
-// That is why the text score never reached 100% even where the instruction
-// multiset matches. Writing the store through a local pointer
-// (`Elem* p = &(*this)[i]; p->a = ...`) puts the load even earlier, drops the
-// function to 696 bytes and makes the allocation flip back (68.1% / 79.1%),
-// so the pointer form is not it either.
-//
-// deepseek-v4.1-flash pass 2: swept all subsets of arms switched to
-// top-tested loops and all combinations of which arms test n vs count in a
-// do-while. BEST 86.1% (708 bytes, s01): case 0 keeps the exact-shape
-// `if (n > 0) do {} while (--count)`, case 1 is `if (n > 0) while
-// (count > 0) {}` (adds one redundant `test ebp,ebp / jle` pair), cases 2 and
-// 3 drop the n-guard and use `while (count > 0)` (their one `test ebp,ebp`
-// replaces the original `test di,di`). That is three top-tested arms, the
-// minimum that flips MSVC 5 to the original edi/ebp/ebx allocation. Using
-// count-guards with do-while arms instead of while arms does NOT flip it
-// (best 81.4%), so the top-tested-loop tree, not the mere count test, is the
-// trigger. Remaining diffs are those three arm tests plus the move of
-// `mov ebx,[esi+4]` before the first strtok call and the resulting address
-// shifts.
-// BEST 80.1% (724 bytes). Builds on the 79.3% pass (all four loop arms as
-// `while (count > 0) { body; i++; count--; }`, 732 bytes) and the exact-shape
-// 75.2% attempt (all four arms as `do { body; i++; } while (--count)`, 708
-// bytes, register rotation only).
-//
-// What this pass fixed: the register allocation flips to the original's
-// (short n and the byte index in edi, the int count in ebp, the reloaded
-// _First in ebx) only when at least three of the four switch arms are written
-// as top-tested `while (count > 0)` loops. Writing just one or two arms that
-// way leaves the rotation wrong (74-75%); writing three arms gets the correct
-// allocation with only three redundant `test ebp,ebp / jle` pairs (724 bytes)
-// instead of four (732 bytes). The best three-arm choice is to keep case 0 as
-// the exact-shape `do {} while (--count)` arm (mask 0b1110: cases 1, 2 and 3
-// top-tested), because leaving the first arm in the original shape delays the
-// first address shift furthest down the function, so the most bytes line up.
-//
-// What still differs: the three redundant arm tests (`test ebp,ebp / jle`
-// before `xor edi,edi`, one in each of cases 1, 2, 3) and the resulting later
-// address shifts. The instruction shapes and every operand are otherwise the
-// original's. Removing those three tests while keeping this allocation is the
-// whole job that is left.
-//
-// Earlier notes follow.
-// BEST 75.2% (708 bytes, source size matches the original).
-// GPT-6.1-sol refinement: tried all 24 switch case orderings and several
-// count/default variants; none beat this source. Remaining mismatch is the
-// earlier-noted register rotation: original uses edi for index and ebp for
-// count; MSVC assigns ebx for index and edi for count.
-//
-// What this pass fixed: declaring the loop index ONCE before the switch
-// (`int i = 0;` beside `short n` and `int count`) instead of once inside each
-// of the four case bodies. MSVC 5 then copies the `i = 0` into each case arm
-// anyway (it can: only one arm runs) and, more importantly, spends one inline
-// expansion less, so `vector<Elem_00434020>::_Destroy` in the failed-lookup
-// tail stays an out-of-line CALL (as the original has) instead of being
-// inlined to nothing. That restored the 5 missing bytes:
-// 0x433985 mov eax,[esi+8] / mov ecx,esi / push eax / push edi /
-// call 0x433d90 (_Destroy) / mov [esi+8],edi, and with it the whole tail
-// register choice (edi holds _First there, exactly as the original) instead of
-// ecx plus a dead spill to [esp+0x10].
-//
-// What still differs (register rotation only, every instruction is the right
-// one with the right operands):
-//   original: loop index and the short n in edi, the int count in ebp, the
-//             reloaded _First in ebx;
-//   ours:     index and short n in ebx, count in edi, _First in ebp.
-// MSVC 5 hands the same three callee-saved registers out one step round, so the
-// only way on is a source change that shifts its scratch-register weights
-// (the order in which the four case bodies are written, how `n - size()` is
-// spelled, and so on). Declaration order of n/count/i does NOT change it
-// (tried i before n, and count+i before n: all three give the same 75.2%).
-// Tried and no better: a single-use static helper around the failed-path
-// resize (unchanged, 69.3%), the failed path written first with an early
-// return (668 bytes, 42.9%), unsigned int for count (unchanged), and all 128
-// header sets. Refinement pass: moving count/i declarations and initializers
-// across resize, then swapping their initialization order, all stayed 75.2%.
-// deepseek-v4.1-flash pass: swept all 15 non-empty subsets of the four arms
-// converted to top-tested loops; 1- and 2-arm subsets stay at the wrong
-// allocation (74-75%), 3- and 4-arm subsets flip it (79.7-80.1%). Also
-// re-ran headers.py --cpp over the exact-shape base: all 768 header sets stay
-// at 75.2%, confirming the compiler-state tie.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by mimo-v2.6-pro, finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 rebuilt the loops from the disassembly and matched it:
+// - Each arm is a plain `for (i = 0; i < n; i++)` with a `short i`. MSVC turns
+//   it into the original's countdown (ebp = (int)n, shared with resize's
+//   conversion) plus a byte offset in edi, guarded by `test di, di`. An `int i`
+//   keeps i as a scaled index instead, and the old hand-written
+//   `do {} while (--count)` arms got the registers one step round.
+// - `atoi(tok = strtok(0, ", "))` evaluates strtok before the element address,
+//   so _First is reloaded after the strtok call as in the original. A separate
+//   `tok = strtok(...);` statement gives the same order but adds 5 IL per
+//   site; with all eight the function's IL passes 556, its /Ob2 budget grows
+//   and the failed path's resize(0) inlines vector::_Destroy, which the
+//   original calls.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -220,52 +53,36 @@ void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
         if (tok == 0)
             return;
         short n = atoi(tok);
-        int count = n;
-        int i = 0;
         Elem_00434020 x;
         resize(n, x);
+        short i;
         switch (mode) {
-            case 0:
-    if (n > 0) {
-        do {
-                            char* t1 = strtok(0, ", ");
-                            (*this)[i].a = atoi(t1);
-                            char* t2 = strtok(0, ", ");
-                            (*this)[i].b = -atoi(t2);
-            i++;
-        } while (--count);
-    }
-                return;
-            case 1:
-    if (n > 0) {
-        while (count > 0) {
-                            (*this)[i].b = atoi(strtok(0, ", "));
-                            char* t2 = strtok(0, ", ");
-                            (*this)[i].a = atoi(t2);
-            i++;
-            count--;
+        case 0:
+            for (i = 0; i < n; i++) {
+                (*this)[i].a = atoi(tok = strtok(0, ", "));
+                (*this)[i].b = -atoi(tok = strtok(0, ", "));
+            }
+            break;
+        case 1:
+            for (i = 0; i < n; i++) {
+                (*this)[i].b = atoi(tok = strtok(0, ", "));
+                (*this)[i].a = atoi(tok = strtok(0, ", "));
+            }
+            break;
+        case 2:
+            for (i = 0; i < n; i++) {
+                (*this)[i].a = -atoi(tok = strtok(0, ", "));
+                (*this)[i].b = atoi(tok = strtok(0, ", "));
+            }
+            break;
+        case 3:
+            for (i = 0; i < n; i++) {
+                (*this)[i].b = -atoi(tok = strtok(0, ", "));
+                (*this)[i].a = -atoi(tok = strtok(0, ", "));
+            }
+            break;
         }
-    }
-                return;
-            case 2:
-    while (count > 0) {
-                            (*this)[i].a = -atoi(strtok(0, ", "));
-                            (*this)[i].b = atoi(strtok(0, ", "));
-        i++;
-        count--;
-    }
-                return;
-            case 3:
-    while (count > 0) {
-                            (*this)[i].b = -atoi(strtok(0, ", "));
-                            (*this)[i].a = -atoi(strtok(0, ", "));
-        i++;
-        count--;
-    }
-                return;
-        }
-    }
-    else {
+    } else {
         Elem_00434020 x;
         resize(0, x);
     }

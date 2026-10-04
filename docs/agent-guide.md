@@ -773,6 +773,15 @@ effect, the missing piece is usually a helper that was inlined:
   sibling 0x4658e0's IsExplored, gave the original's allocation; real headers
   and computing the cell pointer before the min/max initialisers did the rest
   (88.5% to a match after about ten passes, #5659).
+- **A store no spelling produces may be a compiler-made loop variable**:
+  0x4b90a0's original stores yoff right after the loop's entry `jbe`, which no
+  spelling of yoff gave. Writing both row pointers with the offset inline
+  (`xoff + dst->plane0 + dst->width * (yoff + row)`, no `stride` local, no
+  `yoff++`) let MSVC strength-reduce `yoff + row` into its own loop variable,
+  set from yoff after the entry test (87.1% to a match, #5676). Scanning the
+  exe for the odd instruction pattern (here a register stored after a loop's
+  entry jump that the loop test does not read) showed it was unique, which
+  pointed at a compiler-made variable.
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

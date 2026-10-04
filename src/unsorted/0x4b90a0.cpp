@@ -1,4 +1,50 @@
 // Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by space-bunny-free, finished by GPT-6. Names are provisional.
+// Claude Opus 5.5 (#5653, 2026-10-04): still 87.1%, file unchanged except this
+// note. Where the row head's operand order is decided, and what does not move it:
+// - It is fixed before global allocation: a dump of C2's tuples at the
+//   allocator's entry (FUN_00416a8d) already reads `mov t, [dst+0x10]; add t,
+//   xoff`. In small test files every `local + p->field` sum compiles
+//   memory-first (a local, a parameter or a loaded local; int or pointer;
+//   either source order; 0 to 65400 symbols of padding at the top), so
+//   plane-first is C2's default for a register plus a memory operand.
+// - The register-first sums of the matched 0x4213b0 (`vy + inner->f1a`) and
+//   0x45b0a0 are not a spelling. Cutting any one of several unrelated parts of
+//   0x4213b0 (its first block, one `pos.y = inner->f1a`, its nx/nz lines, the
+//   six `+=` lines or its last statement) makes that sum memory-first with vy
+//   still in ebx, while replacing the last statement with any other statement
+//   keeps it register-first. So it is a whole-function tie-break inside C2's
+//   code selection, not a property of the sum.
+// - Here nothing moved it: 84 variants adding 1 to 12 stores before the guard,
+//   before or after the row pointers, after the inner loop or after the outer
+//   loop (including stores of xoff and of dst->plane0); padding between the
+//   struct and the function (0 to 65378) or at the end of the file (to
+//   65500); member declarations before plane0; the planes in a nested struct;
+//   dead earlier reads of dst->plane0; xoff and yoff as the x and y parameters
+//   or as fields of a local Point; xoff cast to the pointer operand; and all
+//   256 combinations of eight spellings (row order, the guard as a wrapping if,
+//   initialised declarations, source planes before the guard, the inner loop as
+//   a for, a nested colour test, increment order, yoff++ in the body). The
+//   plane load is always the add's destination. Padding of 72 or more only
+//   changes the pairing, to (xoff + stride) + plane or (plane + stride) + xoff.
+//   /Gi gives 27.7%.
+// - The one lead: the term order is a symbol-count regime. With 275 unused
+//   symbols between the struct and the function (scratch only) dp0 alone is
+//   built xoff-first; from about 280 up, and under every real header set
+//   that reaches the TU's size (<windows.h>, <math.h>, the TU's <windows.h>
+//   <string.h> <math.h> <stdlib.h>), the stride-local shape gives
+//   (xoff + stride) + plane. In that regime the stride written inline,
+//   `xoff + dst->plane0 + dst->width * yoff`, gives the original's
+//   (xoff + plane) + stride for both rows, but the allocation is then off:
+//   xoff's piece takes eax (dp1's register, a copy preference) before yoff's
+//   piece is coloured, so yoff lands in ecx and ebx is pushed late. Best
+//   57.8% (TU headers, source planes read before the guard) over 768
+//   combinations of the eight spellings above with three header sets;
+//   `yoff++` moved to the row head (or `* yoff++` in dp1) reaches 62.7% with
+//   xoff and yoff in eax and ebx (the original has ebx and eax), and
+//   tools/headers.py --cpp (1536 sets) tops out at 61.0% on the latch form. A
+//   match probably needs that regime and a way to colour yoff's piece first.
+// - The tuple dump is 0x464700's c2order.py tracer (c2prio.py with codegen
+//   hooks) with one `dump("refs")` added where the allocator starts.
 // Claude Opus 5.5 (#5640, 2026-10-04): still 87.1%, file unchanged except this
 // note. Rebuilt from the disassembly: the inner loop, the prologue and every
 // field type (short offsets, unsigned short sizes, byte key and planes, int

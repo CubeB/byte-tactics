@@ -1,64 +1,36 @@
-// Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
-// #5623 Claude Opus 5.5 (95.3% kept): include/ta_protos.h, the game's real
-// prototypes (tools/protos.py: 2140 free functions and the 1030 types they
-// name; docs/c2-regalloc.md, "A prototypes header"), adds 7227 ids before
-// g_game: 36621 (95.3% as it is, 93.0% with the unsigned fields), 19717
-// short of 56338..56562. With the plausible header set too it is 48772
-// (93.8%), 7566 short; the exe's 45 containers on top (as members of one
-// invented struct, so not committable) give 56215, 123 short. It clashes
-// with this file: FUN_004455b0 is declared here with the default
-// convention where 0x4455b0.cpp has __cdecl (the same call without
-// parameters), and `layer->handler = FUN_00447b10` cannot choose between
-// this file's declaration and the header's.
-// #5614 Claude Opus 5.5 (95.3% kept): template instantiations do not supply
-// the missing ids either (docs/c2-regalloc.md, "Symbols each template
-// instantiation adds"). A container class adds its ids where it is first
-// needed (vector 137, list 285, map 395); its member functions count only
-// at the end of the file. With the unsigned fields, the plausible header
-// set (<windows.h> <ddraw.h> <dsound.h> <dplay.h> <shlobj.h> <imagehlp.h>,
-// six CRT headers, <vector> <list> <map> <algorithm> <string>) puts g_game
-// at 41548 (93.0%), plus every container class the exe has (40 vectors, 4
-// maps, a list) at 48991 (93.8%). 80 vectors, 8 maps and 2 lists of
-// invented element types put it at 56402 and MATCH, so the window is real
-// but needs twice the exe's containers, which is padding. Scratch:
-// build/scratch/0x449bb0/gen.py, build/scratch/runids.py.
-// #5530 Codex recheck: 95.3% (99.6% ignoring internal jump targets); three mask instructions remain.
-// A retry with unsigned bitfields and precomputed int values fell to 80.8% (87.3% with jump targets masked) due to frame growth.
-// Claude Opus 5.5 pass (#5600, about 25 minutes, still 95.3% committable):
-// the three bit 13/14 writes are decided by symbol ids, not by spelling.
-// With `unsigned short cheating : 1; unsigned short fixedloc : 1;` (as in
-// 0x447b10 and 0x445ed0) and nothing else changed, this file MATCHES when
-// an enum of N unused enumerators sits before `extern ... g_game;` (or
-// before the structs) for N = 26944..27168 or 27456..28992, which puts
-// g_game at 56338..56562 or 56850..58386 (29394 now). Per write: g_game's
-// id alone flips the else-branch fixedloc write (98.3% from N = 8192),
-// the lobby DATs' ids flip the two lobby writes (fixedloc from about
-// N = 20480, cheating from 26944), and above N = 29024 the commander
-// write through the block-local Player pointer flips the wrong way (99.7%).
-// Padding after the function (the file total) or just before it (the
-// function's and its locals' ids) changes nothing; block-scope externs
-// for the DATs change nothing. So the original TU had about 27000 more
-// symbols in front of g_game than <windows.h> <stdio.h> <stdlib.h>
-// <string.h> give. Real header sets measured with the unsigned fields:
-// + <ddraw.h> <dsound.h> <dplay.h> <vector> <list> <map> <algorithm>
-// <string>: g_game 38407, 98.3%; + <shlobj.h> <imagehlp.h> <math.h>
-// <time.h> <io.h>: 41548, 93.0%; the generous set (adding <windowsx.h>
-// <commctrl.h> <d3d.h> <d3drm.h> <vfw.h> <direct.h> <process.h> <set>
-// <deque> <queue> <stack> <iostream> <fstream>): 47443, 93.0%. None reaches
-// the window, and padding may not be committed, so the signed-field version
-// (95.3%) stays. Scan: in the original exe only 0x449bb0 (twice) and the
-// matched 0x45da90 (`bit6 = entries[...].value != 0`, a heavy value) store a
-// setcc value into a 16-bit bitfield with the value's register as the `or`
-// destination; matched value-first writes elsewhere (0x495230, 0x41b2e0's
-// symbol-id window) fit the same id rule.
+// Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 // Opens the multiplayer battle room (LOUNGE2.GUI): resets the room state,
 // copies the lobby's command-line options (DAT_00512d68..DAT_00512d8c) or the
 // host's game options into the local player's flags, sets up the chat list,
 // MEM, START, the METAL/MAXUNITS/ENERGY sliders and the map, then refreshes
 // the whole room.
 //
-// 95.3% (2747 bytes against 2756). Rebuilt from 74.6% on the structure of
-// its matched siblings 0x44a680 and 0x44c7e0:
+// #5637 Claude Opus 5.5: MATCH with the project's two generated headers in
+// the order types, the globals this file uses, prototypes:
+// include/ta_types.h, then this file's views and its extern declarations,
+// then include/ta_protos.h.
+// - The flag word's cheating and fixedloc bits are `unsigned short`, as
+//   0x447b10 and 0x445ed0 have them (the signed version, 95.3% before, only
+//   imitated the order). Their three writes compute the value before masking
+//   the word, as the original does, when g_game's and the lobby DATs' symbol
+//   ids are high (docs/c2-regalloc.md, "Symbol ids"; from 56338, measured up
+//   to 64483). ta_types.h puts g_game at 62433, which gives those three: 99.7%.
+// - The last byte was the commander write through the block-local Player
+//   pointer (`or edx, eax`, the word as the destination): it needs this
+//   function's locals numbered past 65536 while g_game and the DATs stay
+//   below. Scratch counts showed any 2950 to at least 11750 ids between the
+//   DAT declarations and the function do it; ta_protos.h there adds about
+//   7200 (`commander` is 69503, 3967 after the wrap), and the file total does
+//   not matter. ta_protos.h before the externs instead wraps g_game too.
+// - Clashes with the headers, resolved by using the headers' declarations:
+//   Class_00435920, Class_00435c40, Class_00435d30, Class_004373a0 and
+//   Class_0046e000 are the header's classes; FUN_004455b0 is the header's
+//   `__cdecl` one (the same call, it has no parameters) and FUN_00447b10 the
+//   header's, so `layer->handler = FUN_00447b10` has one candidate. The
+//   other prototypes stay, since they take this file's views (the header's
+//   Game, PlayerInfo and gadget types have plain words where this function
+//   uses bitfields).
+// Earlier findings that still hold:
 // - The three slider blocks are the slider set-up 0x445e50 (no callers),
 //   defined above unannotated and inlined. ENERGY's handler 0x445d60 (no
 //   callers) is inlined through it; METAL's 0x445c70 and MAXUNITS' 0x445b70
@@ -72,138 +44,11 @@
 //   player pointer without its 0x1b63 bias, as the original does.
 // - The commander write goes through a block-local Player pointer (the
 //   original forms the 0x1b63 address and then reads +0x27).
-// What still differs: the three bit writes to `cheating` and `fixedloc`
-// (bits 13 and 14). In the original their value is computed before the old
-// word is masked (value in ecx, word in edx), unlike the other bit writes.
-// Declaring those two fields `short` (signed) reproduces that order and the
-// registers of the whole region, which is this file, but then MSVC masks
-// with `and dh, 0xdf` where the original has `and edx, 0xdfff`. With
-// `unsigned short` (93.0%) the masks are right but the word is masked first
-// and the registers rotate one step. 0x445ed0 reads both fields unsigned
-// (`shr eax, 0xe; and eax, 1`), so the signed type is probably not the real
-// one. Tried with no change from 93.0%: casts of the value to short, ushort,
-// uint, __int64; `? 1 : 0`, `!!`, `2 == x`, `+ 0`, `| 0`, `* 1`, a comma;
-// explicit mask expressions in either operand order on an unsigned or
-// signed flags word; a Lobby struct for the DAT_00512d6x globals; the DATs
-// as unsigned or long; block-scope externs for them; a pointer to the flag
-// struct; the switch cases in other orders. An int local, an inline getter or
-// `&& 1` for the value gives the original's order with the value in eax
-// instead of ecx (94.8%); an inline setter, a copy of the flag struct and
-// int-typed fields (new storage unit at +0x9d) are worse. /Gi and dropping
-// <windows.h> are worse too. A 15-minute permuter run from the unsigned
-// version found nothing better.
-// Claude Opus 5.5 pass (#5475, about 20 minutes, still 95.3%):
-// - Reproduced in isolation: this file's head cut down to `info = ...;
-//   if (DAT_00512d80) info->b.cheating = DAT_00512d80 == 2;` still shows
-//   it. The type of the 16-bit STORE decides both things at once. Storing to
-//   a signed short (a signed field, or `info->sw = ...` through a union)
-//   gives the original's value-first order, and C2 then treats 0xdfff as
-//   the 16-bit constant -8193 and emits `and ah, 0xdf`. Storing to an
-//   unsigned short gives the word first and `and edx, 0xdfff`. The mask's
-//   spelling inside the expression (0xdfff, ~0x2000, 0xffffdfff, 0xdfffu,
-//   (short) or (unsigned short) casts, an (int) cast, the word read as
-//   signed or unsigned) and the operand order of the `|` change nothing; only
-//   the store's type does. So no spelling of a 16-bit write reaches the
-//   original's pair (value first with `and edx, 0xdfff`). A 32-bit unsigned
-//   storage unit also puts the value first, but loads a dword. Only a value
-//   whose subtree needs more registers (`(DAT_00512d80 + DAT_00512d84) == 2`)
-//   puts the value first on an unsigned 16-bit store. The RTM compiler gives
-//   the same code as SP3 here. Dummy declaration counts from 10 to 6000 do
-//   not move it either.
-// - Also no change from 93.0% with unsigned fields: block-scope `extern`
-//   declarations of DAT_00512d80/84 after the locals, a reference to the
-//   bitfield struct (`Flags& b = info->b;`, in the block or at function
-//   scope after `info` is set; 88.1% at function scope), an `unsigned
-//   short&` to the flag word (87.8%), each of the nine locals moved first
-//   or last, reversed declarations, bool/char/short/unsigned short locals
-//   for the value (short: 94.8%), all 256 sets of headers.py, and the
-//   neighbouring per-field mixes (only cheating signed: 93.1%; only
-//   fixedloc signed: 94.7%; closed signed too: 95.3%).
-// - Lead for the next attempt: the store type alone flips C2's order, so
-//   look for a construct that stores 16 bits as signed without the byte
-//   peephole, or for a reason (register state, an inlined helper doing the
-//   store) that the original evaluated the value first with an unsigned
-//   store.
-// Claude Opus 5.5 pass (#5553, about 40 minutes, still 95.3%), all in a cut
-// of this file down to `if (FUN_0045b660()) { the two writes }`, which
-// reproduces both orders (signed: value first; unsigned: word first):
-// - The order is not the scratch rotation: one, two or three extra
-//   temporaries before the writes leave it alone. It is not symbol ids
-//   either: block-scope externs, the externs declared before the structs and
-//   `info` declared first change nothing, also for an explicit `+` spelling.
-// - With an unsigned 16-bit store the value goes first only when its subtree
-//   is heavier than the word's: `DAT_00512d80 == DAT_00512d84`,
-//   `(a & b) == 2`, `(a + 1) * (b + 1)` do it; `DAT == 2`, a fresh load
-//   (`DAT_00512d84 == 2`, a volatile DAT), a byte load and a field load do
-//   not. Every spelling that folds back to `cmp eax, 2; sete` (`!(d - 2)`,
-//   `(d ^ 2) == 0`, `d + 0`, `d * 1`, `(d == 2) | 2`, `+ 2`, `- 2`,
-//   `| (d << 4)`, `(__int64)`, `(unsigned)`, casts to bool/char/uchar/
-//   schar/short) is folded before the order is chosen. `(__int64)d == 2`,
-//   `d == 2 && d` and inline functions returning the comparison give a
-//   candidate temporary (priority 60 against DAT_00512d80's 14, c2prio
-//   --blocks) that takes eax: 94.8%, value in eax and DAT in ecx.
-// - With a signed 16-bit store the value goes first whatever it is (even a
-//   plain byte load), and the 32-bit 0xffffdfff mask becomes `and dh`.
-//   Only a signed store to memory does this: `short t = expr; word = t;`,
-//   `word = (short)(...)` and `(unsigned short)(short)(...)` stay word first
-//   with the 0xdfff mask. The other bitfield types (int, unsigned int, char,
-//   bool, long) change the load width; wchar_t is unsigned short.
-// - Also word first: the word read through a 16-bit bitfield
-//   (`unsigned short all : 16` or `short all : 16` in a union) with a plain
-//   store, an unsigned short/int/short local for the word, the result
-//   through a short/int/unsigned/long local, `^=` and `+` spellings, the
-//   assignment's value used (`&&`, `?:`, `if (x = ...)`, chained).
-// - 0x445ed0 (same TU) reads both bits with `shr; and 1`; a signed 1-bit
-//   field read is `shl cx, 2; sar cx, 15` for an int, bool, char, uchar,
-//   ushort or short parameter, so the fields are unsigned there.
-// - The exe has no other 16-bit store with a `sete` value and this order
-//   except 0x45da90's (a value needing three registers).
-// Claude Opus 5.5 pass (#5562, about 35 minutes, still 95.3%), again in a
-// cut of the lobby writes (build/scratch/0x449bb0/ has the scripts):
-// - The original puts the value first at all three bit 13/14 sites, also in
-//   the else branch, where `g_game->options->fixedloc` is already a heavy
-//   value: `or eax, ecx` with the value register as the destination, while
-//   the unsigned build (93.0%) puts the word first there too. So the cause
-//   is the field (or its store), not the weight of the lobby value.
-// - Of the exe's 79 bitfield stores that `or` into a register and store 16
-//   bits, 16 put the value first with a 32-bit mask (0x41b2e0 eight times,
-//   0x441220, 0x449bb0, 0x45da90, 0x45e100 and 0x495230's
-//   `faster = speed < maxSpeed`) and 62 the word first. None of the exe's 45
-//   `and Xh, imm` sits on a 16-bit store (all are dword bitfields), so the
-//   original never stored to a signed short bitfield this way.
-// - Word first in the cut, with unsigned fields, for every one of: the
-//   options read through an `int*`, a struct pointer, an array index or an
-//   inline accessor (by value or reference); `static const`, enum and
-//   `extern const int` comparands; an inline returning 2; `int two = 2`;
-//   `switch` with `default:`; `? true : false`; a flags struct copied,
-//   changed and written back; an inline `WithCheat(UFlags, int)`; the word
-//   in an unsigned short local; every explicit mask expression with any mix
-//   of short/unsigned short reads, casts and constants (only a store to a
-//   signed short flips it, always with `and dh`); `__int16`, WORD, USHORT,
-//   wchar_t (signed ones give `and dh`, unsigned ones word first, enum
-//   fields a dword unit at +0x9d); block-scope externs, `info` as a
-//   parameter or global; 0 to 70000 dummy declarations above or below the
-//   headers; /G3, /G4, /GB (same), /G6 (80.3%).
-// - A fresh load of another global as the value (`DAT_00512d84 == 2`)
-//   stays word first; two non-constant operands (`DAT_00512d84 ==
-//   DAT_00512d80`) give exactly the original's shape (value in ecx, word in
-//   edx, `and edx, 0xdfff` after `and ecx, 1`). An inline `SetCheat(UFlags&,
-//   int)` or an int local gives value first with the value in eax.
-// - A micro test (`p->f.c = <value>` on an unsigned short bitfield) puts the
-//   value first exactly when its comparison has two non-constant operands
-//   (`g1 == g2`, `a == b` on parameters, `p->x == p->y`); a constant on the
-//   right keeps the word first however the left side is formed (`g1 + 1 ==
-//   2`, `g1 * 3 == 2`, `*q == 2`, `gp->x == 2`, a call result). That fits
-//   Sethi-Ullman labels (an immediate needs no register), and the
-//   original's `cmp eax, 2` has an immediate, so with unsigned fields the
-//   lobby value can only go first as a separate statement, which makes it a
-//   register candidate that outranks DAT_00512d80 (60 against 14) and takes
-//   eax. If DAT's web could outrank it, the value would get ecx and the
-//   word edx, as in the original.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ta_types.h"
 
 #pragma pack(push, 1)
 struct PlayerInfo_00449bb0 {
@@ -224,8 +69,8 @@ struct PlayerInfo_00449bb0 {
         unsigned short los : 1;
         unsigned short losType : 1;
         unsigned short commander : 2;
-        short cheating : 1;             // signed: see the notes at the top
-        short fixedloc : 1;
+        unsigned short cheating : 1;
+        unsigned short fixedloc : 1;
         unsigned short closed : 1;
     } b;
     unsigned short f9d_0 : 2;           // +0x9d
@@ -344,13 +189,8 @@ struct Game_00449bb0 {
 };
 #pragma pack(pop)
 
-class Class_00435920 { public: int FUN_00435920(); };
 class Class_00435a20 { public: int FUN_00435a20(char* map); };
 class Class_00435c30 { public: char* FUN_00435c30(); };
-class Class_00435c40 { public: bool FUN_00435c40(); };
-class Class_00435d30 { public: void FUN_00435d30(int param_1); };
-class Class_004373a0 { public: int FUN_004373a0(); };
-class Class_0046e000 { public: int FUN_0046e000(); };
 
 extern Game_00449bb0* g_game;
 extern int DAT_00512994;
@@ -369,16 +209,15 @@ extern int DAT_00512d8c;
 extern char DAT_00512ce8[];
 extern char* DAT_00505518[];
 extern char* DAT_005054b0[];
+#include "ta_protos.h"
 
 char __stdcall FUN_0041d6a0(int side);
 int __stdcall FUN_004288d0(const char* name, int param_2, int param_3, int param_4);
 void FUN_00428b60();
-void FUN_004455b0();
 void __stdcall FUN_00445b70(Gui_00449bb0* gui, int index);
 void __stdcall FUN_00445c70(Gui_00449bb0* gui, int index);
 void FUN_00445ed0();
 void FUN_00446a50();
-void __stdcall FUN_00447b10(Gadget_00449bb0* gadget);
 void FUN_00448c70();
 void FUN_00450f90();
 void FUN_00451180();

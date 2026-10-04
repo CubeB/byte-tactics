@@ -1,4 +1,31 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, retried by claude-opus-5-5, finished by GPT-6, retried by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 retry (#5537, 2026-10-04): still 88.5%, about 150 scratch
+// variants read with tools/c2prio.py (scripts in build/scratch/0x47d2e0/).
+//  * The vis test in steps or as a bool (`bool seen = ...`, `int seen = word &
+//    bit`, `seen = 0; if (...) seen = 1;`, `unsigned seen = word; seen &= bit`)
+//    leaves bit 70 / los 70 / W1 38 (82.8% or 63.3%). The 0x447b10 shape
+//    (`hit = Contains; if (hit) { bit = ...; hit = (word & bit) != 0; } if
+//    (!hit) return 0;`) drops bit to 60 but lifts los to 77 (esi, 65.9%).
+//  * Arithmetic that rules out a named or CSE'd bit: bit and W1 have the same
+//    range (B7 to S3) and so the same live-through losses, and in B7 bit costs
+//    8 (named) or 6 (CSE temp) against W1's 4, so bit - W1 >= 2 * K(B7) = 16
+//    unless W1 has references outside B7 and S3. The original colours bit
+//    after both g_game pieces (ebx in B7, ebp from B8), i.e. below 32, which
+//    no candidate with a `1 << player` definition in B7 can be. So the
+//    original's bit is most likely not a register candidate at all. C2
+//    promoted every memory form tried: a one-member union, struct and array,
+//    `&bit` through a pointer, a reference, a SetBit(&bit) inline, bit passed
+//    to IsSeen by pointer (plain and as a Fix union), a union read through
+//    `.p.lo` and `.p.hi` (even a dead `.p.hi` read), and hgt itself reused.
+//  * The order W1 >= los > bit IS reachable: bit as a CSE temp (the vis test
+//    `& (1 << g_game->player)` and IsSeen computing its own) plus W1 CSE'd
+//    into both arms (IsExplored `tx < size.width && ty < size.height &&
+//    data[size.width * ty + tx]`, IsSeen's guard hand-written the same way)
+//    gives W1 56 (esi) = los 56 (edi, W1 first on +0x40) > bit 54 (split,
+//    memory piece). It scores 67 to 68% because the arms then compare against
+//    esi and the vis pointer lands in ebx. Every arm spelling that keeps the
+//    seen guard a memory compare (as the original's is) puts W1 6 to 12 below
+//    los again.
 // Codex / GPT-6 retry for #5455 (2026-10-04): best remains 88.5%. A no-jump
 // label inserted immediately before the visibility bit definition or between
 // its definition and test both scores 82.8% and changes unrelated register

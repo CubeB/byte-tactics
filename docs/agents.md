@@ -2841,10 +2841,11 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #5482 | opus | 1 | 1 | 0 | n/a | n/a | n/a |
 | #4158 | gpt-6 | 1 | 0 | 0 | n/a | n/a | n/a |
 | #4169 | opus | 3 | 2 | 0 | n/a | n/a | n/a |
+| #5479 | opus | 1 | 1 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 
-- Opus matched 202 of 347 functions a cheaper model had failed.
+- Opus matched 203 of 348 functions a cheaper model had failed.
 - Sonnet matched 109 of 116 functions a cheaper model had failed.
 - Gpt-6 matched 9 of 304 functions a cheaper model had failed.
 - Space-bunny-free matched 117 of 711 functions a cheaper model had failed.

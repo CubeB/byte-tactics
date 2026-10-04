@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**94.41% of Cavedog's code matched** (803,327 of 850,853 bytes)
+**94.49% of Cavedog's code matched** (803,958 of 850,853 bytes)
 
 `[######################################--]`
 
-By count that is 3,227 of the game's 3,267 functions (98.8%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,228 of the game's 3,267 functions (98.8%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,227 | 803,327 |
-| Attempted, not yet matching | 40 | 47,526 |
+| Matched byte-for-byte | 3,228 | 803,958 |
+| Attempted, not yet matching | 39 | 46,895 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -38,7 +38,7 @@ The size bands are the `size:` labels on the issues.
 | medium (65 to 160 bytes) | 826 of 827 | 99.9% | 118 | `##########` |
 | large (161 to 400 bytes) | 699 of 703 | 99.4% | 1,009 | `##########` |
 | xl (401 to 600 bytes) | 218 of 226 | 96.3% | 4,067 | `##########` |
-| xxl (601 to 1,000 bytes) | 187 of 195 | 95.5% | 6,592 | `##########` |
+| xxl (601 to 1,000 bytes) | 188 of 195 | 95.9% | 5,961 | `##########` |
 | huge (over 1,000 bytes) | 142 of 161 | 87.8% | 35,740 | `#########-` |
 
 ### By area
@@ -60,7 +60,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x480000` | Unit definitions, COB scripting, TNT map | 262 of 264 | 98.8% | 782 | `##########` |
 | `0x490000` | Config and registry, skirmish summary | 190 of 193 | 96.6% | 2,052 | `##########` |
 | `0x4a0000` | GUI layout and GAF | 200 of 201 | 98.9% | 706 | `##########` |
-| `0x4b0000` | UI controls and file packages | 312 of 314 | 98.6% | 891 | `##########` |
+| `0x4b0000` | UI controls and file packages | 313 of 314 | 99.6% | 260 | `##########` |
 | `0x4c0000` | TDF parser, CD audio, string handles | 296 of 298 | 99.4% | 318 | `##########` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 196 of 197 | 97.7% | 850 | `##########` |
 | `0x4e0000` | Process exit, psapi | 93 of 93 | 100.0% | 0 | `##########` |

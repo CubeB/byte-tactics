@@ -653,6 +653,15 @@ effect, the missing piece is usually a helper that was inlined:
   once its real neighbouring functions were defined in the file and called,
   leaving the inlining to /Ob2 (`tools/c2prio.py --inline` shows the budget),
   plus `<windows.h>` for the last eax/ecx swap (#5486).
+- **A frame slot can be a hoisted loop invariant**: 0x4b0230's extra frame
+  slot was `y0 + y`, hoisted out of the loop by the compiler; writing the sum
+  in the call, not as a local, matched. A fresh local instead of a reused
+  parameter gave the row counter a later id, so the latch reloaded it first
+  (`c2prio --ids`) (#5492).
+- **Rebuild instead of keeping old workarounds**: 0x4624a0 (81.7%) matched in
+  minutes once rebuilt from the disassembly without the old file's `&loc`
+  escape and `do/while(0)`; tied locals take edi in the order they are
+  assigned (#5493).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

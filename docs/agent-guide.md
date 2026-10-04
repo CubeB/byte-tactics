@@ -645,6 +645,14 @@ effect, the missing piece is usually a helper that was inlined:
   to a match once it returned the constant 10 (the return makes the constant
   prefer eax) and its inlined search returned 10 early on `id == -1` (one more
   store, so C2 gives the constant a register) (#5471).
+- **Check whether a stuck function is library code**: 0x4e2250 (74.5%) was
+  MSVC 5's own `std::_Tree::insert`; compiling the real `<map>` instantiation
+  gave all 801 bytes, and the file copies the template member by member so the
+  callees keep their names (#5484).
+- **Define the real neighbours and let /Ob2 decide**: 0x43b7c0 (76.0%) matched
+  once its real neighbouring functions were defined in the file and called,
+  leaving the inlining to /Ob2 (`tools/c2prio.py --inline` shows the budget),
+  plus `<windows.h>` for the last eax/ecx swap (#5486).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

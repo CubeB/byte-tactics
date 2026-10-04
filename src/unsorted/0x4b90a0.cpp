@@ -1,5 +1,34 @@
 // Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by space-bunny-free. Names are provisional.
 //
+// Claude Opus 5.5 pass (#4704, 2026-10-04): still 87.1%, code unchanged, but
+// the notes below that call the row-head fold a BUILD difference are wrong. It
+// is a symbol-count state, and this file's shape is tuned to a state the
+// original TU cannot have had:
+//  * N unused `extern int`s at the top (N = 0..2047, step 1) give 17
+//    different results from 21.4% to 87.1%, with period 32 and period 512
+//    structure (C2 orders equal-priority candidates by their ids). 87.1% only
+//    occurs for N = 0, 21-24, 32, 53-56 and 64; from N = 72 on the best is
+//    53.8% (a full 512-state scan at N = 4096..4607 tops out there too).
+//    Externs added after the function (C2's own ids only) are flat at 87.1%.
+//  * The TU's neighbours need a windows.h-sized count: without their
+//    `#include <windows.h>`, 0x4b9740 drops to 92.1%, 0x4b94c0 to 61.2%,
+//    0x4b8ec0 to 98.0% and 0x4b88d0 to 84.5% (0x4b9a50 still matches). With
+//    <windows.h> this file is 27.8%.
+//  * At large counts the original's row head IS emitted: 108 shapes (guard
+//    as return or wrapper, while/for/up-counting inner loop, c local or
+//    direct or nested test, two increment orders, stride local or inline or
+//    `&plane[...]`) scored at 15 states each reach 58.8% with
+//    `mov esi,eax; add esi,ebx; mov ebx,[edx+0x14]` (copy of xoff, then the
+//    plane, plane1 into the freed register), i.e. no fold. What is wrong
+//    there is the rest of the allocation: xoff in eax and yoff in esi (the
+//    original has ebx and eax), so ebx is pushed after the guard instead of
+//    first. Under <windows.h> itself the same 108 shapes give 29.8% at best.
+//  So a match needs the original TU's exact declaration count (it decides
+//  ties at the 32-symbol scale) together with a shape that is right for that
+//  count; tuning the shape at N = 0, as every pass below did, cannot get
+//  there. The same 108 shapes at N = 0..71 top out at 86.0%. Generators:
+//  build/scratch/0x4b90a0/genscan.py, genscan2.py, genvar.py and genvar2.py.
+//
 // space-bunny-free pass (#4686), 87.1% again, 4 check.py runs plus ~85 free
 // whole function compiles scored with the probe below (nine whole-function
 // batches, a 26-function micro-benchmark and a header sweep). FOUR things

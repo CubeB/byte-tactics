@@ -796,6 +796,16 @@ effect, the missing piece is usually a helper that was inlined:
   count, so no bytes change (98.9% to a match after 27 passes, #5679). Any
   dead arm with a side effect that uses the local works; keep it with a
   comment.
+- **Frame layout in a function with a C++ try block follows local names**:
+  MSVC 5 gives every local of such a function a frame slot, even ones that
+  live in registers, and lays the slots out top down, scope by scope (the
+  outer scope first, then nested scopes in source order). Within a scope the
+  order follows the front end's 16-bucket hash of each local's name, buckets
+  ascending and the newest declaration first within a bucket; a single letter
+  lands in bucket (char code mod 16), so p=0, a=1, b=2. Declaration and use
+  order do not matter. When an EH function's stack offsets are wrong, count
+  the original's hidden 4-byte slots to get the number of named locals, then
+  pick names whose buckets give the original's order (0x49eda0, WinMain).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

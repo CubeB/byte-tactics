@@ -15,6 +15,28 @@
 //
 // Status: 96.2% (118 of 118 bytes, ours is already the original's size).
 //
+// Claude Opus 5.5 pass (#5571, about 25 minutes, still 96.2%), shape B:
+// - FUN_0041a6f8, read from C2.EXE: it takes a candidate with exactly two
+//   references whose def reads a memory operand (node kind 2 or 6), finds the
+//   one use, and forwards the memory operand into it; when the types differ
+//   (low 12 bits) and the def is narrower it builds a converting operand,
+//   which is the `short pitch` -> `movsx` case. Copies the optimizer can
+//   propagate never reach C2 at all: `unsigned int`, `long`, `unsigned long`
+//   or `int` copies of row (used, or dead) and of span->z1/z2 in B2 are not
+//   candidates (c2prio --ids lists none), so they change nothing.
+// - The 0x4c06e0 sibling's `unsigned short Pitch() { return pitch; }`
+//   accessor, in either or both products, with or without the x1 local:
+//   56.6% with <windows.h> or no header; with <string.h> and no x1 local it
+//   gives the same 80.0% as the int pitch local (pitch-first product merged
+//   with the pitch load, priority 84, surf in ebx). Plain shape B with
+//   <string.h> stays 56.6%, so the accessor only moves the operand order.
+// - Mirror (56.6%) or worse: `int hit` / `bool hit` / `int noDepth` /
+//   `int hasDepth` steps for either test (`unsigned char hasDepth` is setcc,
+//   42.2%), `unsigned char d = *z` with an int hit, a colour copy in B2, z1
+//   as `& 0xff`, casts, `>> 8 >> 8`, short or char intermediates (all
+//   normalised); `/ 0x10000` 33.0%; word or byte reads of z1's high half
+//   51.4%.
+//
 // Claude Opus 5.5 pass (#5531, about 35 minutes, still 96.2%), shape B:
 // - With c2prio's K counts (B0 7, B1 6, B2 6, B3 4, B4 5, B6 3) the
 //   product's priority minus w's is 9*K1 + 3*K2 + K3 - 8*K0 - 4*K4 - 2*K6

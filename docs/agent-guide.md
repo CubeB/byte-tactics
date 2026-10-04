@@ -701,6 +701,13 @@ effect, the missing piece is usually a helper that was inlined:
   copy of C2.EXE through `/B2`, so a pass can be switched off (as
   `tools/c2prio.py` patches its copy) to see in seconds whether, say, tail
   merging or block placement causes a difference (0x401360, #5556).
+- **Parenthesised casts also restore x87 interleaving**: 0x421700's nine
+  scaled vertex components interleave as in the original only when written
+  `(((float)(x)) / 65535.0f)`, with the cast and the whole expression each in
+  their own parentheses; that solved the "x87 stays in source order" problem
+  noted above. Assigning a call chain through a local
+  (`n = f(b, c); n = g(h(n, ab));`) instead of nesting stopped b's field
+  loads from living across the first call (76.6% to a match, #5534).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

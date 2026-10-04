@@ -662,6 +662,18 @@ effect, the missing piece is usually a helper that was inlined:
   minutes once rebuilt from the disassembly without the old file's `&loc`
   escape and `do/while(0)`; tied locals take edi in the order they are
   assigned (#5493).
+- **Late x87 stores come from a double-then-float inline**: when the original
+  stores a call's x87 result just before the next call instead of before its
+  pushes, the value went through an inline `GetFloat` that puts the result in
+  a `double` local, then a `float` local, and returns that; neither local alone
+  works (0x435da0, #5494).
+- **One value or two**: in 0x435da0, making the first-load branch call and
+  break, with only the fallback reassigning `map`, made MSVC treat `map` as two
+  values with lower priority, which flipped every constant register to the
+  original's. `c2prio --trace` showed it (#5494).
+- **Check `[esp+N]` against pending pushes before calling a store dead**:
+  0x476ef0's "dead store" was a local passed to a call, misread because the
+  offsets ignored argument pushes still pending (#5485).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

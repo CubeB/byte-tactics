@@ -25,37 +25,24 @@
 //      (`cmp eax, esi` instead of `test eax, eax`).
 //   6. The minimum and maximum extents read the footprint fields directly,
 //      with no w/h locals.
-// Still different (none of these moved with any spelling tried):
-//   - x87 stores: after each FUN_004c4760 call the original stores the
-//     result only after the next call's pushes and `this` load, except after
-//     energystorage. Here every fstp follows its call. This compiler keeps an
-//     fstp of a call result ahead of the next call's setup whenever that call
-//     returns a float or double (0x435da0 has the same open difference, and
-//     the matched 0x438320 shows the early form). Tried: float or double
-//     returns, double or (int, int) defaults, struct fields, float and
-//     double locals, inline wrappers (with and without a second return),
-//     /Oa, /Ow, /Op, /G3 to /G6 and the RTM compiler. Only a value that
-//     reaches the store from a join (an inline helper with two returns, or
-//     `c ? x : y`) is stored late, and those add code.
-//   - Flag words: six statements schedule the flag-word load, the `this`
-//     load and the string push in a different order (init_cloaked,
-//     zbuffer, canfly, canhover, antiweapons, canguard). Operand order,
-//     bitfield stores, a fresh variable and moving the declarations all
-//     compile to the same code. These ties do move with symbol ids
-//     (61163 declarations before the function flip several of them), so
-//     they look like the id ties in docs/c2-regalloc.md.
-//   - YardMap cases: the original addresses `[map + cell]`, here
-//     `[cell + map]`. The base is the operand with the larger symbol id, and
-//     the map load counts as `unitdef`, a parameter, which is always below
-//     `cell`. It flips only when the ids wrap past 65536 between `unitdef`
-//     and `cell` (61163 or more declarations before the function), which no
-//     plausible header set reaches. With 3 cases or fewer (a compare chain)
-//     it also flips.
-//   - FUN_004c4760 really returns double (its matched file). Declared that
-//     way here, `w * h` for the yard allocation loads its operands in the
-//     other order (94.3%); it is declared float until that tie is found.
-//     It depends on the number of FUN_004c4760 calls (dropping two of them
-//     restores the order), not on symbol counts.
+// Claude Opus 5.5 (#5476): 94.5% -> MATCH (the bytes and every name match;
+// the checker still needs a data/constants.csv row for the immediate
+// 0x500000, the countdown's `5 << 20`, which lies in the image's range).
+//   7. The x87 stores: each float field is read through GETFLOAT, whose body
+//      is a parenthesised cast, `((float)call)`. With the parentheses the
+//      fstp lands after the next call's pushes and `this` load, as in the
+//      original; `(float)call` alone stores right after the call. The same
+//      parentheses inside an inline helper (`return ((float)value);`) work
+//      too, and FUN_004c4760 is declared with its real double return. This
+//      also fixed the six flag-word statements, which no longer differ.
+//   8. The YardMap stores read the map through `char*& map =
+//      unitdef->yardmap;` declared after the loop locals, so map has the
+//      larger symbol id and is the base of `[map + cell]`.
+//   9. `w * h` for the yard allocation loads footprintz first only with the
+//      parentheses of 7; without them every spelling of the multiply, its
+//      locals and the loops kept footprintx first (it moved only when
+//      distinct pointer-based memory expressions were added or removed
+//      before the footprint stores).
 #include <list>
 class Class_004c4630 {
   public:
@@ -130,9 +117,11 @@ class Class_004c4800 {
 
 class Class_004c4760 {
   public:
-    // Really returns double (0x4c4760.cpp); see the notes at the top.
-    float FUN_004c4760(const char* key, double def);
+    double FUN_004c4760(const char* key, double def);
 };
+
+// The float fields' getter. The outer parentheses matter (note 7).
+#define GETFLOAT(section, key) ((float)((Class_004c4760*)(section))->FUN_004c4760(key, 0.0))
 
 class Class_00438760 {
   public:
@@ -166,12 +155,6 @@ static inline Vec3 operator-(const Vec3& a, const Vec3& b) {
     r.z = a.z - b.z;
     return r;
 }
-
-struct CountdownBits {
-    unsigned int low : 20;
-    unsigned int selfdestructcountdown : 3;
-    unsigned int high : 9;
-};
 
 #pragma pack(push, 1)
 struct UnitDef {
@@ -253,7 +236,14 @@ struct UnitDef {
     void* wspe_badtargetcategory;       // +0x239
     void* nochasecategory;              // +0x23d
     unsigned int flags1;                // +0x241
-    unsigned int flags2;                // +0x245
+    union {
+        unsigned int flags2;            // +0x245
+        struct {
+            unsigned int low : 20;
+            unsigned int selfdestructcountdown : 3;
+            unsigned int high : 9;
+        };
+    };
 };
 #pragma pack(pop)
 
@@ -322,23 +312,15 @@ void __stdcall FUN_0042bf40(char* fbi_file, UnitDef* unitdef) {
                 (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("transportsize", 0);
             unitdef->transportcapacity =
                 (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("transportcapacity", 0);
-            unitdef->energymake =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("energymake", 0.0);
-            unitdef->energyuse =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("energyuse", 0.0);
-            unitdef->metalmake =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("metalmake", 0.0);
-            unitdef->extractsmetal =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("extractsmetal", 0.0);
+            unitdef->energymake = GETFLOAT(parser.current, "energymake");
+            unitdef->energyuse = GETFLOAT(parser.current, "energyuse");
+            unitdef->metalmake = GETFLOAT(parser.current, "metalmake");
+            unitdef->extractsmetal = GETFLOAT(parser.current, "extractsmetal");
             unitdef->makesmetal = (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("makesmetal", 0);
-            unitdef->windgenerator =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("windgenerator", 0.0);
-            unitdef->tidalgenerator =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("tidalgenerator", 0.0);
-            unitdef->energystorage =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("energystorage", 0.0);
-            unitdef->metalstorage =
-                ((Class_004c4760*)parser.current)->FUN_004c4760("metalstorage", 0.0);
+            unitdef->windgenerator = GETFLOAT(parser.current, "windgenerator");
+            unitdef->tidalgenerator = GETFLOAT(parser.current, "tidalgenerator");
+            unitdef->energystorage = GETFLOAT(parser.current, "energystorage");
+            unitdef->metalstorage = GETFLOAT(parser.current, "metalstorage");
             unitdef->buildtime =
                 ((Class_004c46c0*)parser.current)->FUN_004c46c0("buildtime", 0);
             unitdef->workertime =
@@ -514,11 +496,10 @@ void __stdcall FUN_0042bf40(char* fbi_file, UnitDef* unitdef) {
 
             char* countdown =
                 ((Class_004c4630*)parser.current)->FUN_004c4630("selfdestructcountdown");
-            CountdownBits* flags = (CountdownBits*)&unitdef->flags2;
             if (countdown != (char*)0)
-                flags->selfdestructcountdown = atoi(countdown);
+                unitdef->selfdestructcountdown = atoi(countdown);
             else
-                flags->selfdestructcountdown = 5;
+                unitdef->selfdestructcountdown = 5;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "category", 100, DAT_005119b8);
             ((Class_00488e70*)unitdef)->FUN_00488e70(buf);
             int found = ((Class_004c48c0*)parser.current)
@@ -589,38 +570,39 @@ void __stdcall FUN_0042bf40(char* fbi_file, UnitDef* unitdef) {
                 int cell = 0;
                 char* cursor = yard;
                 int y = 0;
+                char*& map = unitdef->yardmap;
                 while (y < unitdef->footprintz) {
                     for (int x = 0; x < unitdef->footprintx;) {
                         switch (*cursor) {
                         case '.':
-                            unitdef->yardmap[cell] = 0x0;
+                            map[cell] = 0x0;
                             break;
                         case 'f':
-                            unitdef->yardmap[cell] = 0x6f;
+                            map[cell] = 0x6f;
                             break;
                         case 'o':
-                            unitdef->yardmap[cell] = 0x2f;
+                            map[cell] = 0x2f;
                             break;
                         case 'c':
-                            unitdef->yardmap[cell] = 0x2d;
+                            map[cell] = 0x2d;
                             break;
                         case 'O':
-                            unitdef->yardmap[cell] = 0x2b;
+                            map[cell] = 0x2b;
                             break;
                         case 'w':
-                            unitdef->yardmap[cell] = 0x37;
+                            map[cell] = 0x37;
                             break;
                         case 'C':
-                            unitdef->yardmap[cell] = 0x35;
+                            map[cell] = 0x35;
                             break;
                         case 'y':
-                            unitdef->yardmap[cell] = 0x29;
+                            map[cell] = 0x29;
                             break;
                         case 'Y':
-                            unitdef->yardmap[cell] = 0x31;
+                            map[cell] = 0x31;
                             break;
                         case 'G':
-                            unitdef->yardmap[cell] = 0x8f;
+                            map[cell] = 0x8f;
                             break;
                         default:
                             cursor++;

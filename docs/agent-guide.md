@@ -692,6 +692,15 @@ effect, the missing piece is usually a helper that was inlined:
 - **Check float constants' exact spelling**: 0x49a890's 1/pi only matches the
   original's pool bytes as `1/3.14159265358979`; a different PI literal fails
   the constant check even when the code is right (#5506).
+- **A call written in each branch, not shared**: 0x4dea00 calls `strcat` in
+  each branch (`if (found) strcat(dest, "\n"); else if (...) strcat(dest,
+  "\n"); else strcat(dest, " ");`) rather than once with a chosen separator.
+  The compiler merges the copies into the same bytes, but each copy shifts the
+  eax/ecx/edx rotation for later temporaries (#5527).
+- **Find the pass behind a difference by disabling it**: CL accepts a patched
+  copy of C2.EXE through `/B2`, so a pass can be switched off (as
+  `tools/c2prio.py` patches its copy) to see in seconds whether, say, tail
+  merging or block placement causes a difference (0x401360, #5556).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

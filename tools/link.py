@@ -1,7 +1,8 @@
 """Link every object compiled from src/ into one executable.
 
     uv run tools/link.py                 # build build/link/TotalA.exe
-    uv run tools/link.py --strict        # no /FORCE: report every error and stop
+    uv run tools/link.py --strict        # no /FORCE:UNRESOLVED; generate stubs so it succeeds
+    uv run tools/link.py --stub          # the same, naming the generated stubs explicitly
     uv run tools/link.py --verbose       # also list the symbols left unresolved
 
 The tree is one function per file, so every caller declares its callees and the
@@ -23,9 +24,27 @@ What is still unresolved after that is exactly what has no source yet or lives
 outside the tree: the 29 gap regions, the game entry point, and the DLLs with
 no import library in the toolchain (smackw32, DPLAYX). The default run passes
 /FORCE:UNRESOLVED /FORCE:MULTIPLE so an image is still produced and reports
-them; --strict does not, and fails the way a release build would.
+them.
 
-This needs a LINK.EXE that can start; see tools/setup_toolchain.sh.
+--stub (and --strict, which implies it for the current tree) is the deliberate
+mode that turns those into a strictly linked image, with every generated file
+under build/link/:
+
+  * build/link/{SMACKW32,DPLAYX}.LIB, generated from the original's import
+    table with LIB.EXE, resolve the DLLs the toolchain has no import library
+    for;
+  * the game's entry point: the original's WinMainCRTStartup calls the game's
+    WinMain at 0x49eda0, a gap region; the matched function it tail-calls,
+    FUN_0049e830, has WinMain's exact signature, so _WinMain@16 is aliased to
+    it;
+  * build/link/stubs.obj defines every remaining unresolved name: a ret stub
+    (stack-cleaning for __stdcall/__thiscall where the argument bytes are
+    known) for a function, a zero array for data. Stubbed output is labelled
+    "stub" everywhere it appears.
+  * /FORCE:MULTIPLE stays: 95 duplicate definitions are known copies kept in
+    callers' files so they inline (docs/consolidation.md), not missing code.
+
+This needs a LINK.EXE and LIB.EXE that can start; see tools/setup_toolchain.sh.
 """
 
 import argparse
@@ -40,8 +59,9 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from check import DEFAULT_FLAGS, ROOT, winpath
-from linkcheck import (CRT_LIBS, IMPORT_LIBS, address_of, base_name, include_hash, library_symbols,
-                       load_known, read_object)
+from linkcheck import (CRT_LIBS, IMPORT_LIBS, Demangle, MEMBER_STATIC, address_of,
+                       archive_symbols, base_name, data_symbol, include_hash, library_symbols,
+                       load_known, read_object, type_size)
 
 SRC = ROOT / "src"
 BUILD = ROOT / "build/link"
@@ -57,6 +77,25 @@ IMAGE_WEAK_EXTERN_SEARCH_ALIAS = 3
 
 LIBS = ("LIBCMT.LIB", "LIBCPMT.LIB", "OLDNAMES.LIB", "KERNEL32.LIB", "USER32.LIB", "GDI32.LIB",
         "ADVAPI32.LIB", "DDRAW.LIB", "DSOUND.LIB", "DPLAY.LIB", "SHELL32.LIB", "WINMM.LIB")
+
+# The exports the game uses from the two DLLs the toolchain has no import
+# library for. Each is (C name, argument bytes, ordinal); the ordinals are the
+# original import table's, and the names come from the matched callers that
+# use them. smackw32 is imported by ordinal only.
+SMACKW32_EXPORTS = [
+    ("SmackNextFrame", 4, 21), ("SmackDoFrame", 4, 19), ("SmackToBuffer", 28, 23),
+    ("SmackSummary", 8, 20), ("SmackGoto", 8, 27), ("SmackToBufferRect", 8, 28),
+    ("SmackClose", 4, 18), ("SmackSoundEnable", 4, 15), ("SmackSoundUseDirectSound", 4, 38),
+    ("SmackOpen", 12, 14), ("SmackSoundOnOff", 8, 17), ("DAT_004fc40c", 4, 32),
+    ("DAT_004fc410", 24, 2), ("DAT_004fc414", 12, 5), ("DAT_004fc418", 16, 25),
+]
+DPLAYX_EXPORTS = [("DirectPlayEnumerateA", 8, 2), ("DirectPlayLobbyCreateA", 20, 4)]
+
+# The original's WinMainCRTStartup (0x4e6fa0) calls the game's WinMain at
+# 0x49eda0, a 1942-byte gap region that immediately forwards its four
+# arguments to FUN_0049e830 and returns. FUN_0049e830 is a matched function
+# with WinMain's signature, so the bridge goes there.
+WINMAIN_ADDR = 0x49E830
 
 
 # --- compiling -----------------------------------------------------------------
@@ -171,8 +210,19 @@ def defined_addresses(obj: Path, symbols: dict[str, int]) -> dict[int, str]:
 
 # --- the weak-external aliases --------------------------------------------------
 
-def build_aliases(objects: list[Path], symbols: dict[str, int],
-                  data_addr: dict[int, str], libs: dict[str, str], out: Path) -> int:
+def leaf_address(name: str, symbols: dict[str, int]) -> int | None:
+    """The address of a namespaced global whose leaf name is in symbols.csv:
+    `?g_game@Build@@3PAUGame@1@A` -> symbols['g_game']. The type differs, so
+    the mangled spelling is not in symbols.csv, but the address is the same
+    global and the weak external only cares about the name."""
+    if not name.startswith("?"):
+        return None
+    return symbols.get(name[1:].split("@", 1)[0])
+
+
+def build_aliases(objects: list[Path], symbols: dict[str, int], data_addr: dict[int, str],
+                  libs: dict[str, str], out: Path, extra: dict[str, str] | None = None,
+                  winmain_addr: int | None = None, data_fallback: bool = False) -> dict[str, str]:
     """Write the COFF object that maps caller spellings to definitions."""
     infos = [read_object(str(o), o.read_bytes()) for o in objects]
     defined = {n for info in infos for n in info.defs}
@@ -190,10 +240,12 @@ def build_aliases(objects: list[Path], symbols: dict[str, int],
         if not n.startswith("?"):
             lib_by_base.setdefault(base_name(n), n)
 
-    aliases: dict[str, str] = {}
+    aliases: dict[str, str] = dict(extra or {})
+    if winmain_addr is not None and funcs_at.get(winmain_addr):
+        aliases.setdefault("_WinMain@16", prefer(funcs_at[winmain_addr]))
     for info in infos:
         for name, is_func in info.refs.items():
-            if name in defined or name in aliases:
+            if name in defined or name in aliases or name in libs:
                 continue
             addr = address_of(name, symbols)
             if is_func:
@@ -203,10 +255,13 @@ def build_aliases(objects: list[Path], symbols: dict[str, int],
                 elif base_name(name) in lib_by_base and lib_by_base[base_name(name)] != name:
                     # A caller that spelled a C runtime function as C++ (?tolower@@ -> _tolower).
                     aliases[name] = lib_by_base[base_name(name)]
-            elif addr is not None and addr in data_addr and data_addr[addr] != name:
-                aliases[name] = data_addr[addr]
+            else:
+                if addr is None and data_fallback:
+                    addr = leaf_address(name, symbols)
+                if addr is not None and addr in data_addr and data_addr[addr] != name:
+                    aliases[name] = data_addr[addr]
     write_object(aliases, out)
-    return len(aliases)
+    return aliases
 
 
 def prefer(names: list[str]) -> str:
@@ -246,16 +301,224 @@ def write_object(aliases: dict[str, str], out: Path) -> None:
     out.write_bytes(header + section + bytes(syms) + strtab)
 
 
+# --- the missing import libraries -----------------------------------------------
+
+def build_import_libs() -> list[Path]:
+    """Build SMACKW32.LIB and DPLAYX.LIB from .def files with LIB.EXE."""
+    out = []
+    for name, exports in (("SMACKW32", SMACKW32_EXPORTS), ("DPLAYX", DPLAYX_EXPORTS)):
+        def_ = BUILD / f"{name}.def"
+        lib = BUILD / f"{name}.LIB"
+        lines = [f"LIBRARY {name}", "EXPORTS"]
+        for cname, argbytes, ordinal in exports:
+            lines.append(f"    {cname}@{argbytes} @{ordinal}")
+        def_.write_text("\n".join(lines) + "\n")
+        proc = subprocess.run([str(ROOT / "tools/wlib"), f"/def:{winpath(def_)}", f"/out:{winpath(lib)}"],
+                              capture_output=True, text=True, cwd=ROOT)
+        if proc.returncode != 0 or not lib.exists():
+            raise SystemExit(f"could not build {lib.name}:\n{proc.stdout}{proc.stderr}")
+        out.append(lib)
+    return out
+
+
+STUB_ARG_SIZES = sorted({ab for _, ab, _ in SMACKW32_EXPORTS + DPLAYX_EXPORTS})
+
+
+def build_stub_dll(directory: Path) -> Path:
+    """Build a no-op SMACKW32.dll next to the exe. The real Smacker decoder
+    ships with the game; without it the loader stops before any game code
+    runs, so the stub lets the image reach an honest failure instead."""
+    c = BUILD / "smackw32_stub.c"
+    lines = ["// Generated by tools/link.py --stub. A no-op stand-in for the",
+             "// Smacker decoder the game ships; it exists so the linked image loads.",
+             ""]
+    for ab in STUB_ARG_SIZES:
+        params = ", ".join(f"int a{i}" for i in range(ab // 4)) or "void"
+        lines.append(f"void __stdcall stub{ab}({params}) {{}}")
+    c.write_text("\n".join(lines) + "\n")
+
+    obj = BUILD / "smackw32_stub.obj"
+    proc = subprocess.run([str(ROOT / "tools/wcl"), "/c", "/O2", "/MT",
+                           f"/Fo{winpath(obj)}", winpath(c)],
+                          capture_output=True, text=True, cwd=ROOT)
+    if proc.returncode != 0 or not obj.exists():
+        raise SystemExit(f"the smackw32 stub did not compile:\n{proc.stdout}{proc.stderr}")
+
+    def_ = BUILD / "smackw32_stub.def"
+    lines = ["LIBRARY SMACKW32", "EXPORTS"]
+    for cname, argbytes, ordinal in SMACKW32_EXPORTS:
+        lines.append(f"    {cname}@{argbytes}=_stub{argbytes}@{argbytes} @{ordinal}")
+    def_.write_text("\n".join(lines) + "\n")
+
+    dll = directory / "SMACKW32.DLL"
+    proc = subprocess.run([str(ROOT / "tools/wlink"), "/DLL", "/nologo", f"/OUT:{winpath(dll)}",
+                           winpath(obj), f"/def:{winpath(def_)}"],
+                          capture_output=True, text=True, cwd=ROOT)
+    if proc.returncode != 0 or not dll.exists():
+        raise SystemExit(f"the smackw32 stub did not link:\n{proc.stdout}{proc.stderr}")
+    return dll
+
+
+# --- the stubs ------------------------------------------------------------------
+
+def stub_cleanup_bytes(name: str) -> int | None:
+    """The bytes a __stdcall/__thiscall stub must pop, 0 for __cdecl and
+    __fastcall, or None when the argument size cannot be read from the name."""
+    m = re.search(r"@(\d+)$", name)
+    if m:
+        return int(m.group(1))
+    if not name.startswith("?"):
+        return 0
+    try:
+        d = Demangle(name[1:])
+        if d.s.startswith("?"):
+            d.i = 1
+            code = d.take()
+            if code == "_":
+                code += d.take()
+            if code == "$":
+                return None
+            if d.s[d.i] != "@":
+                d.qualified()
+            if d.s[d.i] == "@":
+                d.i += 1
+        else:
+            d.qualified()
+        access = d.take()
+        if access in "YZ":
+            kind = "global"
+        elif access in MEMBER_STATIC:
+            kind = "static"
+        else:
+            kind = "member"
+            d.take()  # the this-pointer's cv
+        cc = d.take()
+        if d.s[d.i] == "@":
+            d.i += 1
+        else:
+            if d.s.startswith("?A", d.i):
+                d.i += 2
+            d.type()
+        args = []
+        while d.i < len(d.s) and d.s[d.i] not in "@Z":
+            if d.s[d.i] == "X" and not args:
+                d.i += 1
+                break
+            args.append(d.arg())
+        sizes = [type_size(a) for a in args]
+        if any(s is None for s in sizes):
+            return None
+        # Every stack argument occupies at least a dword on x86.
+        total = sum((s + 3) & ~3 for s in sizes)
+        if kind == "member":
+            total += 4  # the this pointer
+        if cc in ("G", "E"):
+            return total
+        return 0
+    except (ValueError, IndexError, KeyError):
+        return None
+
+
+def stub_bytes(name: str) -> bytes:
+    """`xor eax, eax` then a return, cleaning the stack for callee-cleans."""
+    cleanup = stub_cleanup_bytes(name)
+    if cleanup:
+        return b"\x31\xc0\xc2" + struct.pack("<H", cleanup)
+    return b"\x31\xc0\xc3"
+
+
+def stub_data_size(name: str) -> int:
+    _, t = data_symbol(name)
+    size = type_size(t)
+    return size if size and size > 0 else 4
+
+
+def write_stub_object(funcs: list[str], data: list[str], out: Path) -> None:
+    """A COFF object defining each name: a ret stub in .text, a zero array in
+    .data. Written by hand so any mangled spelling can be defined."""
+    strings = bytearray()
+    str_index: dict[str, int] = {}
+
+    def name_field(name: str) -> bytes:
+        raw = name.encode("latin-1")
+        if len(raw) <= 8:
+            return raw + b"\0" * (8 - len(raw))
+        if name not in str_index:
+            str_index[name] = 4 + len(strings)
+            strings.extend(raw + b"\0")
+        return b"\0\0\0\0" + struct.pack("<I", str_index[name])
+
+    text = bytearray()
+    text_defs: list[tuple[str, int]] = []
+    for name in sorted(funcs):
+        text_defs.append((name, len(text)))
+        text.extend(stub_bytes(name))
+    dat = bytearray()
+    data_defs: list[tuple[str, int]] = []
+    for name in sorted(data):
+        data_defs.append((name, len(dat)))
+        dat.extend(b"\0" * stub_data_size(name))
+
+    sections = []
+    if text_defs:
+        sections.append((b".text\0\0\0", bytes(text), 0x60500020, text_defs, 0x20))
+    if data_defs:
+        sections.append((b".data\0\0\0", bytes(dat), 0xC0000040, data_defs, 0x00))
+
+    hdr_size = 20 + 40 * len(sections)
+    raw_off = hdr_size
+    section_headers = bytearray()
+    raws = bytearray()
+    for sname, raw, chars, _, _ in sections:
+        section_headers += sname + struct.pack("<IIIIIIHHI", 0, 0, len(raw), raw_off, 0, 0, 0, 0, chars)
+        raws += raw
+        raw_off += len(raw)
+    nsyms = sum(len(defs) for *_, defs, _ in sections)
+    symptr = raw_off
+
+    symtab = bytearray()
+    for sec_index, (_, _, _, defs, symtype) in enumerate(sections, start=1):
+        for name, value in defs:
+            symtab += name_field(name) + struct.pack("<IhHBB", value, sec_index, symtype,
+                                                     IMAGE_SYM_CLASS_EXTERNAL, 0)
+    strtab = struct.pack("<I", 4 + len(strings)) + bytes(strings)
+    header = struct.pack("<HHIIIHH", 0x14C, len(sections), 0, symptr, nsyms, 0, 0)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_bytes(header + bytes(section_headers) + bytes(raws) + bytes(symtab) + strtab)
+
+
+def unresolved_names(objects: list[Path], alias_keys: set[str], libs: dict[str, str]) -> dict[str, bool]:
+    """The names LINK would still report LNK2001 for: referenced by some
+    object, defined by none, not aliased and not in a library."""
+    defined: set[str] = set()
+    refs: dict[str, bool] = {}
+    for obj in objects:
+        info = read_object(str(obj), obj.read_bytes())
+        defined |= set(info.defs)
+        for name, is_func in info.refs.items():
+            refs[name] = refs.get(name, False) or is_func
+    return {n: f for n, f in refs.items()
+            if n not in defined and n not in alias_keys and n not in libs}
+
+
 # --- linking --------------------------------------------------------------------
 
-def link(objects: list[Path], strict: bool, output: Path, verbose: bool) -> int:
+def link(objects: list[Path], output: Path, verbose: bool, force_unresolved: bool,
+         map_path: Path | None = None) -> int:
     BUILD.mkdir(parents=True, exist_ok=True)
     rsp = BUILD / "objects.rsp"
     rsp.write_text("\n".join(winpath(o) for o in objects) + "\n")
     cmd = [str(ROOT / "tools/wlink"), "/nologo", "/OPT:NOREF", "/INCREMENTAL:NO",
            "/SUBSYSTEM:WINDOWS", f"/OUT:{winpath(output)}", f"@{winpath(rsp)}", *LIBS]
-    if not strict:
+    if map_path is not None:
+        cmd.insert(2, f"/MAP:{winpath(map_path)}")
+    if force_unresolved:
         cmd[2:2] = ["/FORCE:UNRESOLVED", "/FORCE:MULTIPLE"]
+    else:
+        # The tree has 95 known duplicate copies kept in callers' files so they
+        # inline (docs/consolidation.md); they are not missing code, so they are
+        # folded. Every external must resolve, which is what this mode checks.
+        cmd[2:2] = ["/FORCE:MULTIPLE"]
     print(f"linking {len(objects):,} objects -> {output.relative_to(ROOT)}", file=sys.stderr)
     proc = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
     log = (proc.stdout + proc.stderr).replace("\r", "")
@@ -280,11 +543,18 @@ def report(log: str, verbose: bool) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--strict", action="store_true", help="no /FORCE: do not emit an image with errors")
+    ap.add_argument("--strict", action="store_true",
+                    help="no /FORCE:UNRESOLVED; generate the missing stubs and import libraries")
+    ap.add_argument("--stub", action="store_true",
+                    help="the same as --strict, naming the generated stubs explicitly")
     ap.add_argument("--output", type=Path, default=BUILD / "TotalA.exe")
+    ap.add_argument("--map", action="store_true", help="also write build/link/TotalA.map")
     ap.add_argument("--jobs", type=int, default=None, help="parallel compiles (default: all cores)")
     ap.add_argument("--verbose", "-v", action="store_true")
     args = ap.parse_args()
+
+    output = args.output if args.output.is_absolute() else ROOT / args.output
+    stub_mode = args.strict or args.stub
 
     objects, failed = compile_all(args.jobs)
     if failed:
@@ -293,13 +563,42 @@ def main() -> None:
         raise SystemExit(f"{len(failed)} file(s) did not compile")
     symbols, _, _ = load_known()
     data_objs, data_addr = build_data(symbols)
+
     libs = library_symbols(set(CRT_LIBS) | set(IMPORT_LIBS))
-    aliases = BUILD / "aliases.obj"
-    n = build_aliases(objects, symbols, data_addr, libs, aliases)
-    print(f"{len(objects):,} objects, {n:,} aliases, {len(data_addr):,} globals at known addresses")
-    rc = link(objects + data_objs + [aliases], args.strict, args.output, args.verbose)
-    if rc == 0 and args.output.exists():
-        print(f"{args.output.relative_to(ROOT)}: {args.output.stat().st_size:,} bytes")
+    import_libs: list[Path] = []
+    if stub_mode:
+        import_libs = build_import_libs()
+        for lib in import_libs:
+            for name in archive_symbols(lib):
+                libs.setdefault(name, lib.name)
+
+    aliases_path = BUILD / "aliases.obj"
+    aliases = build_aliases(objects, symbols, data_addr, libs, aliases_path,
+                            winmain_addr=WINMAIN_ADDR if stub_mode else None,
+                            data_fallback=stub_mode)
+    print(f"{len(objects):,} objects, {len(aliases):,} aliases, {len(data_addr):,} globals at known addresses")
+
+    link_objects = list(objects) + list(data_objs)
+    if stub_mode:
+        missing = unresolved_names(link_objects, set(aliases), libs)
+        funcs = [n for n, is_func in missing.items() if is_func]
+        data = [n for n, is_func in missing.items() if not is_func]
+        stubs = BUILD / "stubs.obj"
+        write_stub_object(funcs, data, stubs)
+        print(f"stub mode: {len(funcs):,} function stubs and {len(data):,} data stubs "
+              f"in {stubs.relative_to(ROOT)}")
+        link_objects += [stubs, aliases_path]
+        link_objects += import_libs
+    else:
+        link_objects += [aliases_path]
+
+    rc = link(link_objects, output, args.verbose, force_unresolved=not stub_mode,
+              map_path=(BUILD / "TotalA.map") if args.map else None)
+    if rc == 0 and output.exists():
+        print(f"{output.relative_to(ROOT)}: {output.stat().st_size:,} bytes")
+        if stub_mode:
+            dll = build_stub_dll(output.parent)
+            print(f"stub mode: {dll.relative_to(ROOT)} (no-op Smacker decoder) beside the exe")
     raise SystemExit(rc)
 
 

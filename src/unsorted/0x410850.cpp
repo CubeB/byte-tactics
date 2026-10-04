@@ -1,4 +1,11 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// Codex / GPT-6 retry on 2026-10-04: best remains 98.6% (1051 bytes), with
+// the health-test scratch-register order as the only mismatch. A no-op
+// `unit->health = unit->health` after the damaged-unit branch tried to break
+// the def CSE, but raised the function to 1070 bytes and dropped to 92.2% by
+// changing inlining and register allocation elsewhere. Restored the original
+// best. c2prio could not run because gdb and winedbg are unavailable; prior
+// notes record a 15414-candidate permuter run without improvement.
 //
 // #5417 (Claude Opus 5.5): still 98.6%, but the cause is now pinned down, and it
 // is not missing temporaries. C2 generates the test's operands in the order

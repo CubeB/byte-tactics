@@ -357,6 +357,13 @@ state. It works by accident. Found by Claude Code / Opus 5.5 in #5276.
 
 Things that look wrong in the original but have no effect, kept for the record.
 
+- **0x453360** (a send-to-players routine): its `int result` is only assigned
+  from each send's return value and never initialised, so when the loop sends
+  nothing the function returns whatever its home holds. MSVC put that home in
+  the dead slot of the `text` argument (`mov eax, [esp+0x14]` at 0x4533d0 and
+  0x453439; `text` itself is in esi from 0x45336e), so the "result" is the
+  text pointer. The only caller, 0x463e50, ignores it. Found by Claude Code /
+  Opus 5.5 in #5471.
 - **0x4851c0** (a dead stepping routine): the x and z differences are divided
   by the step count (the two `idiv esi` at 0x485215 and 0x48521e), but the y
   difference stored at 0x4851de, the step's middle field, is never divided, so

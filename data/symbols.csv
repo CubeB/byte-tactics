@@ -3373,6 +3373,7 @@ address,name
 0x4e65c0,strchr
 0x4e6680,sscanf
 0x4e66d0,strcspn
+0x4e67f0,_CIacos
 0x4e68c0,signal
 0x4e6af0,ctrlevent_capture
 0x4e6b80,raise

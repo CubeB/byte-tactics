@@ -749,6 +749,17 @@ effect, the missing piece is usually a helper that was inlined:
   functions, 284 locals have counts with no visible access; most come from
   reloads merged at joins or found already in a register, or from a loop
   guard.
+- **Arms inside a loop fold into one tail**: MSVC folds three or more
+  switch arms into one shared constructor tail only when the switch sits in a
+  loop; 0x4152f0 matched once its switch was wrapped in `for (;;)` like the
+  matched RECLAIM handler 0x405980 (0x408830 and 0x4ae630 do the same). A
+  parameter typed like its sibling's (`unsigned int flags`) then made two equal
+  constants one constant candidate, which settled the last register race
+  (#5612).
+- **Copy a sibling's switch layout for a dispatch shape**: 0x401360's
+  `je; dec; je; jmp` dispatch matched once tidal used the layout of sibling
+  0x4237d0 (a `switch` with `break`s and a `default`, `else *dst += v`, double
+  amounts), plus `<float.h>` for a symbol-count threshold (#5617).
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
 

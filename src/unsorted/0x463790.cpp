@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
+// Codex / GPT-6 retry for #5451 (2026-10-04): rechecked at 88.8%. The a6
+// loop register split and shared-tail versus duplicated-tail differences
+// remain as documented below. No new source lever emerged from this review;
+// c2prio needs unavailable gdb and winedbg. Existing source remains best.
 // #5414 Codex retry: a duplicated skip-path tail scored 84.9%, below the
 // existing 88.8%. Kept the existing version; the a6-loop register split remains.
 // #5437 Codex retry: re-confirmed 88.8%; the same a6-loop register split remains.

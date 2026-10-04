@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by fledge-alpha-free, finished by Opus. Names are provisional.
+// Codex / GPT-6 retry for #5451 (2026-10-04): rechecked at 81.4%. The entry
+// live-range split across the receive loop and region-A scheduling differences
+// remain as documented below. No new source lever emerged from this review;
+// c2prio needs unavailable gdb and winedbg. Existing source remains best.
 // #5414 Codex retry: re-confirmed 81.4%; the known entry live-range split and
 // region-A scheduling mismatches remain. Kept the best existing source.
 // #5437 Codex retry: re-confirmed 81.4%; the same mismatches remain.

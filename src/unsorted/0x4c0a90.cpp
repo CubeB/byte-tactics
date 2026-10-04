@@ -15,6 +15,45 @@
 //
 // Status: 96.2% (118 of 118 bytes, ours is already the original's size).
 //
+// Claude Opus 5.5 pass (#5531, about 35 minutes, still 96.2%), shape B:
+// - With c2prio's K counts (B0 7, B1 6, B2 6, B3 4, B4 5, B6 3) the
+//   product's priority minus w's is 9*K1 + 3*K2 + K3 - 8*K0 - 4*K4 - 2*K6
+//   = -6, and a tie goes to the product (+0x40 18 against 4). So it takes
+//   one more candidate in B1, two in B2, or one fewer in both B4 and B6.
+// - Only a candidate that FUN_0041a6f8 drops is counted: `int pitch` is
+//   forwarded earlier by FUN_0041c72e (c2prio --ids), before the priority
+//   pass, and its load then becomes the product's first operand.
+//   FUN_0041a6f8 forwards a local whose one use is a conversion it does not
+//   do in place. That is a sign extension (`short pitch`: `movsx`, 89.5% in
+//   the form with no x1 local). A zero extension of a 16-bit candidate is an
+//   in-place `and reg, 0xffff`, so the local is kept (73.6%). The RTM
+//   compiler gives the same three scores.
+// - `unsigned int pitch : 16; unsigned int pitchHi : 16;` in the surface
+//   gives the original's colouring (surf ecx, w edx, product ecx, 83.8%)
+//   because the product absorbs the in-place `and ecx, 0xffff` (cost 12 in
+//   B1). But the pitch is then a dword load into the product register.
+//   A `(unsigned short)` cast on that field goes back to the mirror.
+// - Mirror (56.6%) or worse, all normalised to the same IL:
+//   `unsigned short pitch : 16` read directly or into short, int or
+//   unsigned short locals; int, unsigned or long pitch locals with
+//   `(unsigned short)` or `& 0xffff` at the use (43.0%, 79.2%); static
+//   inline Mul(int, int) or Mul(int, unsigned short) on the field or a local;
+//   a bool for `z != 0` in B1 (42.2%, setcc); a colour copy in B1; int,
+//   short and unsigned char locals for span->z1 and *z in B2 (none becomes a
+//   candidate); `off += x1; z += off`, `z += off += x1`, `row *= pitch`;
+//   `+ (row - row)`, `(row | row)`, `+ (x1 - x1)` and similar (folded);
+//   register, const, unsigned and long on w, x1, p and z; p or z rebuilt
+//   through int, unsigned long or char* casts; `w >= 1`, `0 < w`, `if (z)`;
+//   z1 or z2 written inline (38.9-53.7%); the colour as int or char; a
+//   separate depth local with z rebuilt from it in B2 (42.6%).
+// - Symbol ids: enum padding that puts row's id below 65536 and the int
+//   pitch local's above it, and 0 to 30 dummy externs with `int y = row`,
+//   leave the int-pitch product order alone (78.1%), so it is not the
+//   operand-order-by-id rule.
+// - A 10-minute permuter run from the 89.5% short-local form (10795
+//   candidates) reached only 91.6% (121 bytes), by dereferencing the pitch
+//   value as a pointer, which is not a lead.
+//
 // Claude Opus 5.5 pass (#5345), shape B (`unsigned char* z = surf->depth;` above the
 // guard, the product written twice), looking for a candidate C2 counts in K(B1) and
 // then drops, with a zero-extending forwarded load:

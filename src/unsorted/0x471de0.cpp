@@ -1,4 +1,15 @@
 // Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5, finished by GPT-6. Names are provisional.
+// #5525 Claude Opus 5.5 (98.6% kept): template instantiations do not supply
+// the missing ids either (docs/c2-regalloc.md, "Symbols each template
+// instantiation adds"). A container class adds 137 (vector) to 400 (map)
+// ids where it is first needed; the members code uses (push_back 94,
+// map::operator[] 178, all of a vector 472) count at the end of the file,
+// which moves this function's deciding number, the file total, as well.
+// The plausible header set gives a total of 42635, plus every container
+// class the exe has (40 vectors, 4 maps, a list) 50078, both 98.6%. 145
+// vectors, 4 maps and a list of invented element types give 65198 and
+// MATCH, so the window is real but needs padding (over three times the
+// exe's containers). Scratch: build/scratch/gen2.py, runids.py.
 // Codex / GPT-6 retry for #5464 (2026-10-04): rechecked at 98.6%. The
 // inlined erase still encodes the walker as the SIB base instead of the
 // original delta base. Prior symbol-count, header, and source-shape sweeps

@@ -1,4 +1,42 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by Claude Opus 5.5, finished by Claude Opus 5.5. re-verified by GPT-6, retried by Claude Opus 5.5, finished by GPT-6, retried by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// #5642 (Claude Opus 5.5, 98.6% kept; about 470 real-file variants, scripts in
+// build/scratch/0x410850/g*.py, sweep.py and real.py):
+//  * The toy below is not reliable. Its test order follows the absolute
+//    front-end id of the function's `u`: with u's id in [256, 512) the paired
+//    toy gives the original's test, below 256 ours, and from 512 on (any toy
+//    with 600 `extern int`s at the top, so with realistic ids) even the toy
+//    with no later def read gives ours, unlike the real file. Test spellings
+//    on the real file instead (1 to 2 s a compile, 8 at a time).
+//  * The pairing is C2's CSE of the address `unit + 0x92`: in the toy a later
+//    `u->def = 0`, `&u->def` or `(char*)u + 0x92` forms it like a read does,
+//    `&u->owner` does not. Real file: SearchRange returning a constant gives
+//    the original's test and block (89.2%, other code moves), reading the
+//    owner instead gives the test only, reading health instead also gives
+//    def first.
+//  * Flat on the real file (test unchanged): the brief's second-read paths
+//    (`UnitDef*& def = unit->def;` or `UnitDef**` at Patrol's top 92.2% at
+//    1070 bytes, store-back 67.3%, free and member accessors by value and by
+//    reference in either read, `Unit& self`, `visitor.self` 95.5%, a
+//    `const Unit&` SearchRange); splitting the pads around def, health or
+//    maxHealth into 2 to 8 members; `extern int`s before the helpers or
+//    Patrol (0 to 39), before the function (0 to 1100) or after it (0 to
+//    1100), which only give the 98.6%/86.9% windows; 14 water-branch and 5
+//    new-expression spellings; every combination of `unsigned int flags`,
+//    `for (;;)` round the switch and a braced case 1; an inline pads
+//    constructor rejected by the budget (no other inline decision moves);
+//    case 0 as an inline helper (69.5%, budget).
+//  * A throwaway `g_a = g_b;` moves the test only from just before the water
+//    branch's `new Class_0044e2d0` onwards; placed earlier it is absorbed by
+//    line 347's temporaries. Between that `new` and the test ours has one
+//    rotation temporary (the &pos lea) and the selector by hint. With it
+//    there, only a second throwaway before the pads constructor fixes the
+//    block; owner, player, position or range locals or parameters for
+//    FindPads, `Class_00410830* p = &pads` and copy-initialised pads do not.
+//  * The matched 0x4152f0 pairs too (it reads `unit->def->range` after the
+//    same test) and gets its test from a later pointer, with its block's
+//    extra step from its pads vector constructor's allocator `lea`. So the
+//    original here most likely pairs as well and has one code-free
+//    temporary between the `new` and the test and one before the pads block.
 // #5616 (Opus, 98.6% kept). A toy with the same switch, test, pads block and
 // visitor (build/scratch/0x410850/t/, gen2.py to gen7.py, compiled with /Fa)
 // reproduces ours, which makes each idea a one-second test:

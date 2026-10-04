@@ -1,79 +1,203 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Earlier attempt by deepseek-v4.1-flash, finished by GPT-6; continued here.
-// Best 74.4% (2763 bytes; frame is 0x2c where the original allocates 0x28). A 16-byte _itoa buffer improves the earlier 74.1%; 12 bytes drops back to 74.1%.
-// Gains this round: the three gadget blocks now store `(short)val` and pass the
-// field itself to FUN_0045b9b0 (72.1 -> 73.5), the five field_97-else bit writes
-// read plain `char` from g_game (removes the zero-extend pairs, 73.5 -> 73.7),
-// and the DAT_00512d78 guard is a nested if with `int v = DAT_00512d78 - 1;`
-// inside `if (DAT_00512d78 != 0)` (dec eax / test eax,eax / jl, 73.7 -> 74.1).
-// Remaining diff: the flag97 setup still runs in CL (`mov cl,[ebp+0x97];
-// and cl,1; mov bl,cl`) instead of `mov bl,[ebp+0x97]; and ebx,1`, and it
-// writes a home slot the original never writes; four of the five
-// field_97-else writes sign-extend a byte instead of `and ecx,1`; the
-// 0x1b8a player lookup folds instead of `lea ecx,[edx+ecx*2+0x1b63]` plus
-// `mov ecx,[ecx+0x27]`; the 0x512d80/0x512d84 bit writes keep the mask in
-// cx and the bit in dx (original: opposite); and the METAL/MAXUNITS/ENERGY
-// gadget blocks pick different scratch registers even though the instruction
-// shapes now agree. The extra 4 bytes of frame show up as [esp+0x2c]/[esp+0x30]
-// where the original has [esp+0x28]/[esp+0x2c] (the _itoa text buffer sits one
-// slot too high); declaring text first, inlining `(int*)(*(int*)(g_game+0x531)+4)`
-// at the MEMx/tail uses, and an int flagStart used by the later guards all
-// scored lower and were reverted.
-// Retry: changing player-base arithmetic (73.2%), char flag97 (73.3%), declaration order, and removing the unused holder initializer (74.4% tie) did not improve it. A 15-byte text buffer ties the best; parent 17-byte buffer scores 74.1%.
-// Also tried and rejected: bitfield-typed field_97 (no code change), short
-// Gadget::field_140 (72.3), flag97 declared at first use (no change).
-// Eighth pass (deepseek-v4.1-flash, issue 3390): baseline 74.4% (2763 bytes) kept.
-// flag97 as `(unsigned short)(*(unsigned char*)((char*)info + 0x97) & 1)` is
-// byte-identical to the 1-bit bitfield read (still mov cl / and cl,1 / mov bl,cl
-// plus the xor bx,bx and the [esp+0x20] spill), and inert-extern padding k=16..96
-// inserted before the g_game declaration is byte-identical (74.4%).
-// Ninth session (deepseek-v4.1-flash, issue 3766): baseline 74.4% (2763 bytes)
-// kept. Changing flag97 from short to int in three spellings (bitfield read,
-// raw byte read & 1, bool compare) is byte-identical to each other and
-// regresses to 68.0% (2748 bytes), so the 16-bit flag97 form is load-bearing.
-
-// Tenth session (deepseek-v4.1-flash, issue 3809): 74.4% -> 74.6% (2763 bytes).
-// The gain: the two late `flagStart` guards now read `(short)flagStart`, which
-// killed the early `mov [esp+0x20], ebx` spill of flag97 (ebx now carries the
-// early flag to its last use at 0x44a162 and never needs a home there).
-// Everything else tried regressed. Accounting for pushes in flight, the
-// original frame (0x28) is metalVal+0, energyVal+4, holder+8, local_1c+0xc,
-// the flag word+0x10 and text at +0x14, so the original's text buffer runs to
-// +0x27 (20 bytes) while ours sits at +0x18 with the same 0x28 frame. The early
-// flag read at 0x449c21 lives only in ebx (never spilled) and the +0x10 store
-// happens at the 0x44a131 read, which is why our `mov [esp+0x20], ebx` spill and
-// `and cl,1 / mov bl,cl` are extra: rewriting that read as a reassignment of
-// flag97 scored 69.9%, a separate `int flagStart` used by the two late guards
-// scored 74.3% (2761 bytes), `short flagStart` 69.9%, the same with plain
-// `flagStart` guards 74.3% (2761 bytes). Passing
-// `(short)g->field_140` to FUN_0045b9b0 (for the original's movsx) scored 72.8%,
-// and the DAT_00512d78 player lookup via g_game+idx*0x14b+0x1b8a ties at 74.4%.
-
-// Eleventh session (deepseek-v4.1-flash, issue 4256): baseline 74.6% (2763 bytes)
-// kept. New measurements: the frame layout is exactly 4 ints at +0/+4/+8/+0xc
-// (metalVal, energyVal, holder, local_1c), so the original probably has ONE
-// 16-bit flag local whose home is +0x10 and a 20-byte _itoa/ENERGYTEXT buffer
-// at +0x14 (0x28 frame, no slack). Ours always places the buffer at +0x18 with
-// two spare slots at +0x10/+0x14: flagStart (int, spilled at 0x44a131) plus a
-// reserved 2-byte slot for the flag97 short, which is otherwise fully
-// register-resident in ebx. Collapsing the two flags into one reassigned
-// `short flag97` with a 20-byte buffer scored 69.6% (2770 bytes, frame 0x2c,
-// the 0x44a131 home store disappears entirely); a 20-byte buffer with the two
-// variables left as they are scored 74.3%; `#include <windows.h>` first is
-// byte-identical (74.6%); passing `(short)metalVal`/`(short)local_1c`/
-// `(short)energyVal` to FUN_0045b9b0 instead of the field scored 72.9%.
-
+// Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// Opens the multiplayer battle room (LOUNGE2.GUI): resets the room state,
+// copies the lobby's command-line options (DAT_00512d68..DAT_00512d8c) or the
+// host's game options into the local player's flags, sets up the chat list,
+// MEM, START, the METAL/MAXUNITS/ENERGY sliders and the map, then refreshes
+// the whole room.
+//
+// 95.3% (2747 bytes against 2756). Rebuilt from 74.6% on the structure of
+// its matched siblings 0x44a680 and 0x44c7e0:
+// - The three slider blocks are the slider set-up 0x445e50 (no callers),
+//   defined above unannotated and inlined. ENERGY's handler 0x445d60 (no
+//   callers) is inlined through it; METAL's 0x445c70 and MAXUNITS' 0x445b70
+//   stay calls, as in the original. MAXUNITS passes `g_game->maxUnits - 20`
+//   twice (one CSE, homed in the slot `player` used), not a named local.
+// - The flag word at +0x9b is the bitfield layout of 0x447b10; the game's
+//   mapping/los/losType/commander and the options' fixedloc are ints read
+//   for their low bit. f97 (host) and the word at +0x9d are unsigned short
+//   bitfields, as in 0x44a680.
+// - `info` is read before `player` is formed: that is what stores the
+//   player pointer without its 0x1b63 bias, as the original does.
+// - The commander write goes through a block-local Player pointer (the
+//   original forms the 0x1b63 address and then reads +0x27).
+// What still differs: the three bit writes to `cheating` and `fixedloc`
+// (bits 13 and 14). In the original their value is computed before the old
+// word is masked (value in ecx, word in edx), unlike the other bit writes.
+// Declaring those two fields `short` (signed) reproduces that order and the
+// registers of the whole region, which is this file, but then MSVC masks
+// with `and dh, 0xdf` where the original has `and edx, 0xdfff`. With
+// `unsigned short` (93.0%) the masks are right but the word is masked first
+// and the registers rotate one step. 0x445ed0 reads both fields unsigned
+// (`shr eax, 0xe; and eax, 1`), so the signed type is probably not the real
+// one. Tried with no change from 93.0%: casts of the value to short, ushort,
+// uint, __int64; `? 1 : 0`, `!!`, `2 == x`, `+ 0`, `| 0`, `* 1`, a comma;
+// explicit mask expressions in either operand order on an unsigned or
+// signed flags word; a Lobby struct for the DAT_00512d6x globals; the DATs
+// as unsigned or long; block-scope externs for them; a pointer to the flag
+// struct; the switch cases in other orders. An int local, an inline getter or
+// `&& 1` for the value gives the original's order with the value in eax
+// instead of ecx (94.8%); an inline setter, a copy of the flag struct and
+// int-typed fields (new storage unit at +0x9d) are worse. /Gi and dropping
+// <windows.h> are worse too. A 15-minute permuter run from the unsigned
+// version found nothing better.
+#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-extern char* g_game;                 // 0x511de8
+#pragma pack(push, 1)
+struct PlayerInfo_00449bb0 {
+    char map[0x8b];                     // +0x00
+    unsigned short width;               // +0x8b
+    unsigned short height;              // +0x8d
+    char unknown_8f[0x97 - 0x8f];
+    unsigned short f97_0 : 1;           // +0x97, host
+    unsigned short f97_rest : 15;
+    unsigned short memory;              // +0x99
+    struct {
+        unsigned short low : 4;         // +0x9b
+        unsigned short started : 1;
+        unsigned short ready : 1;
+        unsigned short bit6 : 1;
+        unsigned short watching : 1;
+        unsigned short mapping : 1;
+        unsigned short los : 1;
+        unsigned short losType : 1;
+        unsigned short commander : 2;
+        short cheating : 1;             // signed: see the notes at the top
+        short fixedloc : 1;
+        unsigned short closed : 1;
+    } b;
+    unsigned short f9d_0 : 2;           // +0x9d
+    unsigned short f9d_2 : 1;
+    unsigned short f9d_rest : 13;
+    char unknown_9f[0xa1 - 0x9f];
+    unsigned short energy;              // +0xa1
+    unsigned short metal;               // +0xa3
+    unsigned short maxUnits;            // +0xa5
+    unsigned char versionMajor;         // +0xa7
+    unsigned char versionMinor;         // +0xa8
+    int mapCrc;                         // +0xa9
+};
 
+struct Player_00449bb0 {                // 0x14b bytes
+    int active;                         // +0x00
+    char unknown_4[0x27 - 0x4];
+    PlayerInfo_00449bb0* info;          // +0x27
+    char unknown_2b[0x14b - 0x2b];
+};
+
+struct Gadget_00449bb0;
+struct Gui_00449bb0;
+typedef void (__stdcall* Callback_00449bb0)(Gui_00449bb0* gui, int index);
+
+struct Gadget_00449bb0 {                // 0x15b bytes
+    char unknown_0[0x1b];
+    int field_1b;                       // +0x1b
+    char unknown_1f[0x23 - 0x1f];
+    int colour;                         // +0x23
+    char unknown_27[0x29 - 0x27];
+    unsigned char visible;              // +0x29
+    char unknown_2a[0xb6 - 0x2a];
+    union {
+        char text[0x10];                // +0xb6
+        struct {                        // the layer's first entry
+            short count;                // +0xb6
+            char unknown_b8[8];
+            void* gaf;                  // +0xc0
+        } head;
+        struct {
+            char unknown_b6[8];
+            void* frames;               // +0xbe
+        } anim;
+    };
+    short frame;                        // +0xc6
+    unsigned int c8_0 : 1;              // +0xc8
+    unsigned int c8_rest : 31;
+    char unknown_cc[0x138 - 0xcc];
+    unsigned short field_138;           // +0x138
+    char unknown_13a[0x13c - 0x13a];
+    int max;                            // +0x13c
+    short value;                        // +0x140
+    short unknown_142;
+    Callback_00449bb0 callback;         // +0x144
+    char unknown_148[2];
+    void* game;                         // +0x14a
+    char unknown_14e[0x15b - 0x14e];
+};
+
+struct Layer_00449bb0 {
+    int unknown_0;
+    Gadget_00449bb0* entries;           // +0x4
+    void* handler;                      // +0x8
+    void* game;                         // +0xc
+};
+
+struct Gui_00449bb0 {
+    char unknown_0[0x18];
+    Layer_00449bb0* table;              // +0x18
+};
+
+struct Options_00449bb0 {
+    char unknown_0[0x118];
+    int fixedloc;                       // +0x118
+};
+
+struct Game_00449bb0 {
+    char unknown_0[0x519];
+    Gui_00449bb0 gui;                   // +0x519
+    char unknown_535[0x1b63 - 0x535];
+    Player_00449bb0 players[10];        // +0x1b63
+    char unknown_2851[0x29a0 - 0x2851];
+    Options_00449bb0* options;          // +0x29a0
+    char unknown_29a4[0x2a30 - 0x29a4];
+    void* net;                          // +0x2a30
+    char unknown_2a34[0x2a42 - 0x2a34];
+    unsigned char localPlayer;          // +0x2a42
+    char unknown_2a43[0x2a9b - 0x2a43];
+    char* chatter;                      // +0x2a9b
+    char unknown_2a9f[0x2bee - 0x2a9f];
+    unsigned short dirty : 1;           // +0x2bee
+    unsigned short dirty_rest : 15;
+    char unknown_2bf0[0x2c28 - 0x2bf0];
+    int field_2c28[11];                 // +0x2c28
+    char unknown_2c54[0x2c74 - 0x2c54];
+    unsigned short locked : 1;          // +0x2c74
+    unsigned short locked_rest : 15;
+    char unknown_2c76[0x37ee8 - 0x2c76];
+    unsigned short field_37ee8;         // +0x37ee8
+    unsigned short maxUnits;            // +0x37eea
+    unsigned short field_37eec;         // +0x37eec
+    char unknown_37eee[0x37ef6 - 0x37eee];
+    int field_37ef6;                    // +0x37ef6
+    char unknown_37efa[0x37f1b - 0x37efa];
+    unsigned short width;               // +0x37f1b
+    char unknown_37f1d[2];
+    unsigned short height;              // +0x37f1f
+    char unknown_37f21[0x391e9 - 0x37f21];
+    void* map;                          // +0x391e9
+    char unknown_391ed[0x39229 - 0x391ed];
+    int commander;                      // +0x39229
+    int mapping;                        // +0x3922d
+    int los;                            // +0x39231
+    int losType;                        // +0x39235
+};
+#pragma pack(pop)
+
+class Class_00435920 { public: int FUN_00435920(); };
+class Class_00435a20 { public: int FUN_00435a20(char* map); };
+class Class_00435c30 { public: char* FUN_00435c30(); };
+class Class_00435c40 { public: bool FUN_00435c40(); };
+class Class_00435d30 { public: void FUN_00435d30(int param_1); };
+class Class_004373a0 { public: int FUN_004373a0(); };
+class Class_0046e000 { public: int FUN_0046e000(); };
+
+extern Game_00449bb0* g_game;
 extern int DAT_00512994;
-extern int DAT_0050550c;
+extern unsigned int DAT_0050550c;
 extern int DAT_00512764;
-extern int DAT_00512d6c;
 extern int DAT_00512d68;
+extern int DAT_00512d6c;
 extern int DAT_00512d70;
 extern int DAT_00512d74;
 extern int DAT_00512d78;
@@ -82,419 +206,234 @@ extern int DAT_00512d80;
 extern int DAT_00512d84;
 extern int DAT_00512d88;
 extern int DAT_00512d8c;
-extern char DAT_00512ce8;
-extern const char* DAT_00505518[];
-extern const char* DAT_005054b0[];
+extern char DAT_00512ce8[];
+extern char* DAT_00505518[];
+extern char* DAT_005054b0[];
 
-extern "C" {
-unsigned char __stdcall FUN_0041d6a0(int);
-void __stdcall FUN_004288d0(const char*, int, int, int);
-void __stdcall FUN_00428b60(void);
-void FUN_00447b10(void);
-void __stdcall FUN_00445b70(void*, int);
-void __stdcall FUN_00445c70(void*, int);
-void __stdcall FUN_00445d60(void);
-void __stdcall FUN_004455b0(void);
-void __stdcall FUN_00445ed0(void);
-void __stdcall FUN_00446a50(void);
-void __stdcall FUN_00448c70(void);
-void __stdcall FUN_00450f90(void);
-void __stdcall FUN_00451180(void);
-int __stdcall FUN_00456760(void);
-int __stdcall FUN_00457a50(void);
-int __stdcall FUN_0045b660(void);
-void __stdcall FUN_0045b9b0(void*, int);
-int __stdcall FUN_0045ba20(void*);
-void __stdcall FUN_0046c8e0(int);
-void __stdcall FUN_0049fa90(void*);
-void __stdcall FUN_0049fb10(void*, int);
-int __stdcall FUN_0049fdf0(void*, const char*, int);
-void* __stdcall FUN_0049ff90(void*, const char*);
-int __stdcall FUN_004a0180(void*, const char*);
-void* __stdcall FUN_004a0200(void*, const char*);
-int __stdcall FUN_004a0280(void*, const char*);
-void __stdcall FUN_004a0570(void*, const char*, int);
-void __stdcall FUN_004a0bf0(void*, const char*, const char*, int);
-void __stdcall FUN_004a1250(void*, const char*, int);
-void __stdcall FUN_004a1450(void*, const char*, int);
-void __stdcall FUN_004a32a0(void*, const char*, void*, int, int);
-void __stdcall FUN_004a7190(void*, int);
-void __stdcall FUN_004a81e0(void*, int);
-void* __stdcall FUN_004aa8f0(void*, const char*, int);
-int __stdcall FUN_004ab060(void*, const char*);
-void __stdcall FUN_004b6290(const char*);
-int __stdcall FUN_004b8d40(void*, const char*);
-void* __stdcall FUN_004d83b0(const char*, int);
+char __stdcall FUN_0041d6a0(int side);
+int __stdcall FUN_004288d0(const char* name, int param_2, int param_3, int param_4);
+void FUN_00428b60();
+void FUN_004455b0();
+void __stdcall FUN_00445b70(Gui_00449bb0* gui, int index);
+void __stdcall FUN_00445c70(Gui_00449bb0* gui, int index);
+void FUN_00445ed0();
+void FUN_00446a50();
+void __stdcall FUN_00447b10(Gadget_00449bb0* gadget);
+void FUN_00448c70();
+void FUN_00450f90();
+void FUN_00451180();
+int FUN_00456760();
+int FUN_00457a50();
+int FUN_0045b660();
+void __stdcall FUN_0045b9b0(Gadget_00449bb0* gadget, int value);
+int __stdcall FUN_0045ba20(Gadget_00449bb0* gadget);
+void __stdcall FUN_0046c8e0(int param_1);
+void __stdcall FUN_0049fa90(Gui_00449bb0* gui);
+void __stdcall FUN_0049fb10(Gui_00449bb0* gui, int value);
+int __stdcall FUN_0049fdf0(Gadget_00449bb0* entries, char* name, int type);
+Gadget_00449bb0* __stdcall FUN_0049ff90(Gadget_00449bb0* entries, char* name);
+Gadget_00449bb0* __stdcall FUN_004a0180(Gadget_00449bb0* entries, char* name);
+Gadget_00449bb0* __stdcall FUN_004a0200(Gadget_00449bb0* entries, char* name);
+Gadget_00449bb0* __stdcall FUN_004a0280(Gadget_00449bb0* entries, char* name);
+void __stdcall FUN_004a0570(Gui_00449bb0* gui, char* name, int value);
+void __stdcall FUN_004a0bf0(Gui_00449bb0* gui, char* name, char* text, int size);
+void __stdcall FUN_004a1250(Gui_00449bb0* gui, char* name, int value);
+void __stdcall FUN_004a1450(Gui_00449bb0* gui, char* name, int value);
+void __stdcall FUN_004a32a0(Gui_00449bb0* gui, char* name, char* text, int count, int flag);
+void __stdcall FUN_004a7190(Gui_00449bb0* gui, int index);
+void __stdcall FUN_004a81e0(Gui_00449bb0* gui, int value);
+Layer_00449bb0* __stdcall FUN_004aa8f0(Gui_00449bb0* gui, const char* name, int size);
+int __stdcall FUN_004ab060(Gui_00449bb0* gui, char* name);
+void __stdcall FUN_004b6290(char* message);
+void* __stdcall FUN_004b8d40(void* gaf, const char* name);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+
+// The ENERGY slider handler at 0x445d60, which has no callers: /Ob2 inlined it.
+void __stdcall FUN_00445d60(Gui_00449bb0* gui, int unused)
+{
+    char text[20];
+    Gadget_00449bb0* value = FUN_004a0200(gui->table->entries, "ENERGY");
+
+    if (value != 0) {
+        int shown = FUN_0045ba20(value) / 100 * 100;
+        PlayerInfo_00449bb0* info;
+
+        _itoa(shown, text, 10);
+        FUN_004a0bf0(gui, "ENERGYTEXT", text, 0);
+        info = g_game->players[g_game->localPlayer].info;
+        info->energy = (unsigned short)(shown / 100);
+        if (info->f97_0 & 1) {
+            FUN_00450f90();
+            FUN_00451180();
+        }
+    }
 }
 
-class Class_00435920 { public: int FUN_00435920(); };
-class Class_00435a20 { public: void FUN_00435a20(void*); };
-class Class_00435c30 { public: char* FUN_00435c30(); };
-class Class_00435c40 { public: bool FUN_00435c40(); };
-class Class_00435d30 { public: void FUN_00435d30(int); };
-class Class_004373a0 { public: int FUN_004373a0(); };
-class Class_0046e000 { public: int FUN_0046e000(); };
-
-#pragma pack(push, 1)
-
-// Layout object returned by FUN_004aa8f0: the "entries" list starts at +4,
-// +8 is a callback and +0xc is the game pointer.
-struct Holder_00449bb0 {
-    int unknown_0;                  // +0x00
-    void* entries;                  // +0x04
-    void* callback;                 // +0x08
-    void* game;                     // +0x0c
-};
-
-// Player slot in the array at g_game+0x1b63, stride 0x14b; +0x27 is the
-// pointer to its PlayerInfo (so g_game+0x1b8a is players[i].data).
-struct Player_00449bb0 {
-    char unknown_0[0x27];
-    struct PlayerInfo_00449bb0* data;   // +0x27
-    char unknown_2b[0x14b - 0x2b];
-};
-
-// Local player info, stride 0x14b (see 0x444930 for the same array).
-struct PlayerInfo_00449bb0 {
-    char unknown_0[0x8b];
-    short field_8b;                 // +0x8b
-    short field_8d;                 // +0x8d
-    char unknown_8f[0x97 - 0x8f];
-    unsigned char field_97 : 1;     // +0x97, bit 0
-    char unknown_98[0x99 - 0x98];
-    unsigned short field_99;        // +0x99
-    unsigned short field_9b;        // +0x9b (bits 8-10 are the second byte)
-    unsigned short field_9d;        // +0x9d
-    char unknown_9f[0xa1 - 0x9f];
-    short field_a1;                 // +0xa1
-    char unknown_a3[0xa5 - 0xa3];
-    short field_a5;                 // +0xa5
-    char unknown_a7[0xa9 - 0xa7];
-    int field_a9;                   // +0xa9
-};
-
-// Entry in the GUI list, stride 0x15b. +0xb6 doubles as a text buffer for the
-// MEMx control.
-struct GuiEntry_00449bb0 {
-    char unknown_0[0x1b];
-    int field_1b;                   // +0x1b
-    char unknown_1f[0x23 - 0x1f];
-    int field_23;                   // +0x23
-    char unknown_27[0xb6 - 0x27];
-    char text[0x138 - 0xb6];        // +0xb6
-    unsigned short field_138;       // +0x138
-    char unknown_13a[0x15b - 0x13a];
-};
-
-// Gadget created by FUN_004a0200.
-struct Gadget_00449bb0 {
-    char unknown_0[0x13c];
-    int field_13c;                  // +0x13c
-    unsigned short field_140;       // +0x140
-    char unknown_142[0x144 - 0x142];
-    void* field_144;                // +0x144
-    char unknown_148[0x14a - 0x148];
-    void* field_14a;                // +0x14a
-};
-
-struct Battlestart_00449bb0 {
-    char unknown_0[0xbe];
-    int field_be;                   // +0xbe
-    char unknown_c2[0xc6 - 0xc2];
-    unsigned short field_c6;        // +0xc6
-    int field_c8;                   // +0xc8
-};
-
-// +0x2c74, bit 0.
-struct Flag2c74_00449bb0 {
-    unsigned short bit0 : 1;
-    unsigned short rest : 15;
-};
-
-#pragma pack(pop)
+// The slider set-up at 0x445e50, which has no callers: /Ob2 inlined it.
+void __stdcall FUN_00445e50(char* name, int max, int value, Callback_00449bb0 callback)
+{
+    Gui_00449bb0* gui = &g_game->gui;
+    Gadget_00449bb0* gadgets = gui->table->entries;
+    int index = FUN_0049fdf0(gadgets, name, 0xe);
+    if (index != -1) {
+        Gadget_00449bb0* gadget = FUN_004a0200(gadgets, name);
+        gadget->max = max;
+        gadget->callback = callback;
+        gadget->value = value;
+        FUN_0045b9b0(gadget, gadget->value);
+        gadget->game = g_game;
+    }
+    callback(gui, index);
+    FUN_0049fa90(gui);
+}
 
 // FUNCTION: 0x449bb0
-void FUN_00449bb0(void)
+void FUN_00449bb0()
 {
-    int energyVal = 1000;
-    int metalVal = 1000;
-    void* holder = 0;
-    int local_1c = 0;
-    char text[16];
+    int energy = 1000;
+    int metal = 1000;
+    Layer_00449bb0* layer;
+    Player_00449bb0* player;
+    PlayerInfo_00449bb0* info;
+    Gadget_00449bb0* entries;
+    short host;
+    short isHost;
+    int i;
 
     DAT_00512994 = 0;
     DAT_0050550c = -1;
-    ((Flag2c74_00449bb0*)(g_game + 0x2bee))->bit0 = 1;
-    memset(g_game + 0x2c28, 0, 0x2c);
+    g_game->dirty = 1;
+    memset(g_game->field_2c28, 0, sizeof(g_game->field_2c28));
+    info = g_game->players[g_game->localPlayer].info;
+    player = &g_game->players[g_game->localPlayer];
+    host = info->f97_0;
+    g_game->field_37ee8 = 0;
+    if (host)
+        g_game->maxUnits = g_game->field_37eec;
+    info->width = g_game->width;
+    info->height = g_game->height;
+    info->f9d_2 = FUN_0041d6a0(1) != 0;
 
-    int index = *(unsigned char*)(g_game + 0x2a42);
-    local_1c = (int)(g_game + index * 0x14b);
-    PlayerInfo_00449bb0* info =
-        *(PlayerInfo_00449bb0**)(local_1c + 0x1b8a);
-
-    short flag97 = info->field_97;
-    *(unsigned short*)(g_game + 0x37ee8) = 0;
-    if (flag97 != 0) {
-        *(unsigned short*)(g_game + 0x37eea) = *(unsigned short*)(g_game + 0x37eec);
-    }
-
-    info->field_8b = *(unsigned short*)(g_game + 0x37f1b);
-    info->field_8d = *(unsigned short*)(g_game + 0x37f1f);
-
-    unsigned char c = FUN_0041d6a0(1);
-    info->field_9d = (info->field_9d & 0xfffb) | (((unsigned int)(c != 0) & 1) << 2);
-
-    holder = FUN_004aa8f0(g_game + 0x519, "LOUNGE2.GUI", 0);
-    ((Holder_00449bb0*)holder)->callback = (void*)&FUN_00447b10;
-    ((Holder_00449bb0*)holder)->game = g_game;
-
+    layer = FUN_004aa8f0(&g_game->gui, "LOUNGE2.GUI", 0);
+    layer->handler = FUN_00447b10;
+    layer->game = g_game;
     FUN_004288d0("battleroom", 0, 1, 0);
+    entries = g_game->gui.table->entries;
+    DAT_00512764 = layer->entries->head.count;
 
-    GuiEntry_00449bb0* list =
-        (GuiEntry_00449bb0*)*(int*)(*(int*)(g_game + 0x531) + 4);
-
-    DAT_00512764 = (int)*(short*)((char*)((Holder_00449bb0*)holder)->entries + 0xb6);
-
-    int i = FUN_0049fdf0(list, "MESSAGE", 3);
-    if (i != -1) {
-        list[i].field_138 = 0x7f;
-    }
-
-    if (FUN_00457a50() == 0) {
-        int j = FUN_0049fdf0(list, "MAP", 1);
-        if (j != -1) {
-            list[j].field_1b = 2;
-            FUN_004a0bf0(g_game + 0x519, "MAP", "View Map", 0);
+    i = FUN_0049fdf0(entries, "MESSAGE", 3);
+    if (i != -1)
+        entries[i].field_138 = 0x7f;
+    if (!FUN_00457a50()) {
+        i = FUN_0049fdf0(entries, "MAP", 1);
+        if (i != -1) {
+            entries[i].field_1b = 2;
+            FUN_004a0bf0(&g_game->gui, "MAP", "View Map", 0);
         }
     }
 
-    if (FUN_0045b660() != 0) {
-        if (DAT_00512d6c != 0) {
-            info->field_a5 = (short)DAT_00512d6c;
-            *(unsigned short*)(g_game + 0x37eea) = (unsigned short)DAT_00512d6c;
+    if (FUN_0045b660()) {
+        if (DAT_00512d6c) {
+            info->maxUnits = DAT_00512d6c;
+            g_game->maxUnits = DAT_00512d6c;
         }
-
-        ((Flag2c74_00449bb0*)(g_game + 0x2c74))->bit0 = (DAT_00512d68 != 0);
-
-        if (DAT_00512d78 != 0) {
-            int v = DAT_00512d78 - 1;
-            if (v >= 0 && v <= 2) {
-                *(int*)(g_game + 0x39229) = v;
-                *(int*)(g_game + 0x37ef6) = v;
-                PlayerInfo_00449bb0* pi =
-                    ((Player_00449bb0*)(g_game + 0x1b63))[*(unsigned char*)(g_game + 0x2a42)].data;
-                pi->field_9b = (pi->field_9b & 0xe7ff) | ((v & 3) << 0xb);
+        g_game->locked = DAT_00512d68 != 0;
+        if (DAT_00512d78) {
+            int commander = DAT_00512d78 - 1;
+            if (commander >= 0 && commander <= 2) {
+                g_game->commander = commander;
+                g_game->field_37ef6 = commander;
+                Player_00449bb0* p = &g_game->players[g_game->localPlayer];
+                p->info->b.commander = commander;
             }
         }
-
-        if (DAT_00512d70 != 0) {
-            energyVal = DAT_00512d70;
-        }
-        if (DAT_00512d74 != 0) {
-            metalVal = DAT_00512d74;
-        }
-
-        if (DAT_00512d7c != 0) {
+        if (DAT_00512d70)
+            energy = DAT_00512d70;
+        if (DAT_00512d74)
+            metal = DAT_00512d74;
+        if (DAT_00512d7c) {
             switch (DAT_00512d7c) {
             case 1:
-                info->field_9b |= 0x600;
+                info->b.los = 1;
+                info->b.losType = 1;
                 break;
             case 2:
-                info->field_9b = (info->field_9b & 0xfbff) | 0x200;
+                info->b.los = 1;
+                info->b.losType = 0;
                 break;
             case 3:
-                info->field_9b &= 0xfdff;
+                info->b.los = 0;
                 break;
             }
         }
-        if (DAT_00512d80 != 0) {
-            info->field_9b = (((DAT_00512d80 == 2) & 1) << 0xd) | (info->field_9b & 0xdfff);
-        }
-        if (DAT_00512d84 != 0) {
-            info->field_9b = (((DAT_00512d84 == 1) & 1) << 0xe) | (info->field_9b & 0xbfff);
-        }
-        if (DAT_00512d88 != 0) {
-            info->field_9b = (info->field_9b & 0xfeff) | (((DAT_00512d88 == 1) & 1) << 8);
-        }
-        if (DAT_00512d8c != 0) {
-            info->field_9b = (info->field_9b & 0xff7f) | (((DAT_00512d8c == 2) & 1) << 7);
-        }
-    } else if (flag97 != 0) {
-        info->field_9b =
-            (info->field_9b & 0xfeff) |
-            ((*(unsigned char*)(g_game + 0x3922d) & 1) << 8);
-        info->field_9b =
-            (info->field_9b & 0xfdff) |
-            ((g_game[0x39231] & 1) << 9);
-        info->field_9b =
-            (info->field_9b & 0xfbff) |
-            ((g_game[0x39235] & 1) << 0xa);
-        info->field_9b =
-            (info->field_9b & 0xbfff) |
-            (((*(char**)(g_game + 0x29a0))[0x118] & 1) << 0xe);
-        info->field_9b =
-            (info->field_9b & 0xe7ff) |
-            ((g_game[0x39229] & 3) << 0xb);
+        if (DAT_00512d80)
+            info->b.cheating = DAT_00512d80 == 2;
+        if (DAT_00512d84)
+            info->b.fixedloc = DAT_00512d84 == 1;
+        if (DAT_00512d88)
+            info->b.mapping = DAT_00512d88 == 1;
+        if (DAT_00512d8c)
+            info->b.watching = DAT_00512d8c == 2;
+    } else if (host) {
+        info->b.mapping = g_game->mapping;
+        info->b.los = g_game->los;
+        info->b.losType = g_game->losType;
+        info->b.fixedloc = g_game->options->fixedloc;
+        info->b.commander = g_game->commander;
     }
 
-    if (flag97 != 0) {
-        if ((*(unsigned char*)(g_game + 0x2c74) & 1) == 0) {
-            goto L_a042;
-        }
+    if (!host || g_game->locked) {
+        for (char** p = DAT_00505518; *p; p++)
+            FUN_004a1250(&g_game->gui, *p, 1);
     }
 
-    {
-        const char** p = DAT_00505518;
-        while (*p != 0) {
-            FUN_004a1250(g_game + 0x519, *p, 1);
-            p++;
-        }
-    }
-
-L_a042:
     FUN_00445ed0();
-
-    *(void**)(g_game + 0x2a9b) = FUN_004d83b0("LOUNGE CHATTER", 0xa00);
-    **(unsigned char**)(g_game + 0x2a9b) = 0;
-
-    GuiEntry_00449bb0* mem =
-        (GuiEntry_00449bb0*)FUN_004a0180(list, "MEMx");
-
-    int r = ((Class_00435920*)*(int*)(g_game + 0x391e9))->FUN_00435920();
+    g_game->chatter = (char*)FUN_004d83b0("LOUNGE CHATTER", 0xa00);
+    *g_game->chatter = 0;
     {
-        PlayerInfo_00449bb0* pi =
-            *(PlayerInfo_00449bb0**)(local_1c + 0x1b8a);
-        unsigned short cnt = pi->field_99;
-        int a = ((int)cnt >= r) ? 1 : 0;
-        a = (a - 1) & 0xc;
-        mem->field_23 = a;
+        Gadget_00449bb0* mem = FUN_004a0180(g_game->gui.table->entries, "MEMx");
+        mem->colour = player->info->memory < ((Class_00435920*)g_game->map)->FUN_00435920() ? 0xc : 0;
+        sprintf(mem->text, "%d", g_game->players[g_game->localPlayer].info->memory);
     }
-    sprintf(mem->text, "%d",
-            *(unsigned short*)(*(int*)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x99));
-
-    int flagStart = (*(PlayerInfo_00449bb0**)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a))->field_97;
-    FUN_0046c8e0((short)flagStart);
-
-    int startArg = ((Class_0046e000*)*(int*)(g_game + 0x2a30))->FUN_0046e000();
-    FUN_004a0570(g_game + 0x519, "START", startArg);
-
-    int enable;
-    if (flag97 != 0 && FUN_00456760() != 0 &&
-        ((Class_0046e000*)*(int*)(g_game + 0x2a30))->FUN_0046e000() != 0) {
-        enable = 0;
-    } else {
-        enable = 1;
-    }
-    FUN_004a1250(g_game + 0x519, "START", enable);
-    FUN_004a1250(g_game + 0x519, "RESTRICTIONS", 0);
-    FUN_004a32a0(g_game + 0x519, "OUTPUT", *(void**)(g_game + 0x2a9b), 0, 0);
-
+    isHost = g_game->players[g_game->localPlayer].info->f97_0;
+    FUN_0046c8e0(isHost);
+    FUN_004a0570(&g_game->gui, "START", ((Class_0046e000*)g_game->net)->FUN_0046e000());
+    FUN_004a1250(&g_game->gui, "START",
+                 host && FUN_00456760() && ((Class_0046e000*)g_game->net)->FUN_0046e000() ? 0 : 1);
+    FUN_004a1250(&g_game->gui, "RESTRICTIONS", 0);
+    FUN_004a32a0(&g_game->gui, "OUTPUT", g_game->chatter, 0, 0);
     {
-        GuiEntry_00449bb0* e = (GuiEntry_00449bb0*)FUN_0049ff90(list, "OUTPUT");
-        e->field_1b |= 0x100;
+        Gadget_00449bb0* output = FUN_0049ff90(entries, "OUTPUT");
+        output->field_1b |= 0x100;
     }
-    FUN_004a0bf0(g_game + 0x519, "METALTEXT", "0", 0);
-    FUN_004a0bf0(g_game + 0x519, "ENERGYTEXT", "0", 0);
+    FUN_004a0bf0(&g_game->gui, "METALTEXT", "0", 0);
+    FUN_004a0bf0(&g_game->gui, "ENERGYTEXT", "0", 0);
 
+    FUN_00445e50("METAL", 0x2711, metal, FUN_00445c70);
     {
-        char* metalPanel = g_game + 0x519;
-        GuiEntry_00449bb0* gadgets =
-            (GuiEntry_00449bb0*)*(int*)(*(int*)(g_game + 0x531) + 4);
-        int mi = FUN_0049fdf0(gadgets, "METAL", 0xe);
-        if (mi != -1) {
-            Gadget_00449bb0* g = (Gadget_00449bb0*)FUN_004a0200(gadgets, "METAL");
-            g->field_13c = 0x2711;
-            g->field_144 = (void*)&FUN_00445c70;
-            g->field_140 = (short)metalVal;
-            FUN_0045b9b0(g, g->field_140);
-            g->field_14a = g_game;
-        }
-        FUN_00445c70(metalPanel, mi);
-        FUN_0049fa90(metalPanel);
+        FUN_00445e50("MAXUNITS", g_game->maxUnits - 20, g_game->maxUnits - 20, FUN_00445b70);
     }
-
-    {
-        GuiEntry_00449bb0* gadgets =
-            (GuiEntry_00449bb0*)*(int*)(*(int*)(g_game + 0x531) + 4);
-        char* maxPanel = g_game + 0x519;
-        int mu = (int)(*(unsigned short*)(g_game + 0x37eea)) - 0x14;
-        local_1c = mu;
-        int ui = FUN_0049fdf0(gadgets, "MAXUNITS", 0xe);
-        if (ui != -1) {
-            Gadget_00449bb0* g = (Gadget_00449bb0*)FUN_004a0200(gadgets, "MAXUNITS");
-            g->field_13c = local_1c;
-            g->field_144 = (void*)&FUN_00445b70;
-            g->field_140 = (short)local_1c;
-            FUN_0045b9b0(g, g->field_140);
-            g->field_14a = g_game;
-        }
-        FUN_00445b70(maxPanel, ui);
-        FUN_0049fa90(maxPanel);
+    if (!isHost || g_game->locked) {
+        FUN_004a1450(&g_game->gui, "MAXUNITS", 1);
+        FUN_004a1450(&g_game->gui, "ENERGY", 1);
+        FUN_004a1450(&g_game->gui, "METAL", 1);
     }
+    FUN_00445e50("ENERGY", 0x2711, energy, FUN_00445d60);
 
-    if ((short)flagStart == 0 || (*(unsigned char*)(g_game + 0x2c74) & 1) != 0) {
-        FUN_004a1450(g_game + 0x519, "MAXUNITS", 1);
-        FUN_004a1450(g_game + 0x519, "ENERGY", 1);
-        FUN_004a1450(g_game + 0x519, "METAL", 1);
-    }
-
-    {
-        char* energyPanel = g_game + 0x519;
-        int list2 = *(int*)(*(int*)(g_game + 0x531) + 4);
-        int ei = FUN_0049fdf0((void*)list2, "ENERGY", 0xe);
-        if (ei != -1) {
-            Gadget_00449bb0* g =
-                (Gadget_00449bb0*)FUN_004a0200((void*)list2, "ENERGY");
-            g->field_13c = 0x2711;
-            g->field_144 = (void*)&FUN_00445d60;
-            g->field_140 = (short)energyVal;
-            FUN_0045b9b0(g, g->field_140);
-            g->field_14a = g_game;
-        }
-
-        Gadget_00449bb0* ge =
-            (Gadget_00449bb0*)FUN_004a0200(*(void**)(*(char**)(energyPanel + 0x18) + 4), "ENERGY");
-        if (ge != 0) {
-            int amount = (FUN_0045ba20(ge) / 100) * 100;
-            _itoa(amount, text, 10);
-            FUN_004a0bf0(energyPanel, "ENERGYTEXT", text, 0);
-            PlayerInfo_00449bb0* pi = *(PlayerInfo_00449bb0**)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a);
-            pi->field_a1 = (short)(amount / 100);
-            if (pi->field_97 != 0) {
-                FUN_00450f90();
-                FUN_00451180();
-            }
-        }
-        FUN_0049fa90(g_game + 0x519);
-    }
-
-    ((Class_00435d30*)*(int*)(g_game + 0x391e9))->FUN_00435d30(1);
-
-    if ((short)flagStart != 0 && FUN_0045b660() != 0 && DAT_00512ce8 != 0) {
-        ((Class_00435a20*)*(int*)(g_game + 0x391e9))->FUN_00435a20(&DAT_00512ce8);
-    }
-
-    if (!((Class_00435c40*)*(int*)(g_game + 0x391e9))->FUN_00435c40()) {
+    ((Class_00435d30*)g_game->map)->FUN_00435d30(1);
+    if (isHost && FUN_0045b660() && DAT_00512ce8[0])
+        ((Class_00435a20*)g_game->map)->FUN_00435a20(DAT_00512ce8);
+    if (!((Class_00435c40*)g_game->map)->FUN_00435c40())
         FUN_004b6290("Could not find the multiplayer map!!");
-    }
-
-    strcpy((char*)info,
-           ((Class_00435c30*)*(int*)(g_game + 0x391e9))->FUN_00435c30());
-    info->field_a9 = ((Class_004373a0*)*(int*)(g_game + 0x391e9))->FUN_004373a0();
-
+    strcpy(info->map, ((Class_00435c30*)g_game->map)->FUN_00435c30());
+    info->mapCrc = ((Class_004373a0*)g_game->map)->FUN_004373a0();
     FUN_00450f90();
+    FUN_004a7190(&g_game->gui, FUN_0049fdf0(g_game->gui.table->entries, "MESSAGE", 0xe));
 
-    FUN_004a7190(g_game + 0x519, FUN_0049fdf0(list, "MESSAGE", 0xe));
-
-    {
-        const char** p = DAT_005054b0;
-        while (*p != 0) {
-            int k = FUN_0049fdf0(((Holder_00449bb0*)holder)->entries, *p, 0xe);
-            if (k != -1) {
-                ((char*)((Holder_00449bb0*)holder)->entries)[k * 0x15b + 0x29] = 0;
-            }
-            p++;
-        }
+    for (char** p = DAT_005054b0; *p; p++) {
+        int k = FUN_0049fdf0(layer->entries, *p, 0xe);
+        if (k != -1)
+            layer->entries[k].visible = 0;
     }
 
     FUN_004455b0();
@@ -502,17 +441,14 @@ L_a042:
     FUN_00448c70();
     FUN_00428b60();
 
-    if (FUN_004ab060(g_game + 0x519, "LOUNGE2.GUI") != 0) {
-        Battlestart_00449bb0* b = (Battlestart_00449bb0*)FUN_004a0280(
-            ((Holder_00449bb0*)holder)->entries, "battlestart");
-        b->field_be = FUN_004b8d40(
-            *(void**)((char*)((Holder_00449bb0*)holder)->entries + 0xc0),
-            "battlestart");
-        b->field_c6 = 0;
-        b->field_c8 |= 1;
-        FUN_004a0570(g_game + 0x519, "battlestart", 1);
+    if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI")) {
+        Gadget_00449bb0* start = FUN_004a0280(layer->entries, "battlestart");
+        start->anim.frames = FUN_004b8d40(layer->entries->head.gaf, "battlestart");
+        start->frame = 0;
+        start->c8_0 = 1;
+        FUN_004a0570(&g_game->gui, "battlestart", 1);
     }
 
-    FUN_0049fb10(g_game + 0x519, 1);
-    FUN_004a81e0(g_game + 0x519, 0x40);
+    FUN_0049fb10(&g_game->gui, 1);
+    FUN_004a81e0(&g_game->gui, 0x40);
 }

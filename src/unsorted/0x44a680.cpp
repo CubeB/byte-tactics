@@ -1,353 +1,278 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Tenth pass (deepseek-v4.1-flash, issue 4144): measured the byte budget of the
-// reindex loop with objdump on build/obj. The loop is the ONLY place the body
-// grows: the original encodes the `= i` store as one disp32 reference
-// (`mov byte ptr [ecx+eax+0x1ca9], bl`, 7 bytes) while ours emits
-// `lea edx,[eax+ecx+0x1ca9]` (7) + `mov [edx],bl` (2), exactly +2 bytes, and
-// those 2 bytes ARE the offset of every drift hunk (jae 0x44a92b -> 0x44a92d,
-// jmp 0x44a933 -> 0x44a935, je 0x44a956 -> 0x44a958). The first-if load/jne
-// swap is byte-neutral (mov 5 + jne 2 either way), so it is not the cause.
-// They cancel after the MAXUNITS block, which is why the tail still lines up.
-// Tried this pass to kill the lea (all 92.9, no change): the store through
-// `(char*)g_game->players + (0x146 + off)`, the compare in the players-relative
-// form, both mixed, and `off + 0x1ca9` in the store; MSVC folds all spellings to
-// the same address node and still hoists it into edx. A named byte local
-// (previous pass, 2338/89.7) does drop the lea, so the remaining work is to
-// find the 2 bytes the original spends elsewhere instead of the lea.
-// Issue 2601 retry (GPT-6.1-sol): baseline rechecked at 92.9% (2340 bytes).
-// Rejected variants: owner local in the reindex loop 87.1% (2342 bytes),
-// explicit firstResult/firstGame locals 82.1% (2360 bytes), and r & 1 for
-// the final bitfield store 91.9% (2336 bytes). Keep the baseline below.
-// Issue 3725 pass (deepseek-v4.1-flash): the inverted first if
-// (FUN_00453d40() == 0 && ... != 0, bit0 store in the else) is 92.7% /
-// 2340 bytes, below the 92.9% baseline; the hoisted g_game load does not
-// follow the inverted shape here.
-// Sixth pass (deepseek-v4.1, issue 2560): 92.7 -> 92.9. FUN_004b6340 returns
-// int, not unsigned int: with `int` the DAT_005129a4 guard emits the
-// original's `jge 0x44acf2` at 0x44ac95, while DAT_005129a8 stays unsigned so
-// its guard keeps `jae` at 0x44af54. Measured and rejected this pass: the
-// three MAXUNITS/METAL/ENERGY values in named locals declared before their
-// calls (2325 bytes, 87.4); that is the pass-2388 "named locals" 88.1
-// re-measured against the current base.
-// Still differing (5 hunks, plus 2 bytes of address drift they cause):
-// - MAXUNITS/METAL/ENERGY, the largest cluster: the original keeps each value
-//   in a callee-saved register (edi, edi, esi) and pushes it after
-//   FUN_004a0200 returns; ours finishes the value in eax/ecx and pushes it
-//   before the call. edi is provably free in our version there (nothing uses
-//   it between the swap loop and the LOGO block, see build/scratch obj dump),
-//   so it is the allocator's push-early choice, not register pressure. Our
-//   per-statement order is already the original's: value-then-entries for
-//   METAL/ENERGY, entries-then-value for MAXUNITS. Knock-on: FUN_00445b70
-//   loads g_game into edx in the original, into eax in ours.
-// - the first if at 0x44a6a1: the original hoists `mov eax,[g_game]` between
-//   `test eax,eax` and the `jne`, so the jne arm reaches the `or` with eax
-//   already loaded; ours emits the jne first and the arm reloads. Those 2
-//   bytes are why our join and loop-exit jump targets read 0x44a935/0x44a92d
-//   instead of 0x44a933/0x44a92b.
-// - the reindex loop keeps `lea edx,[eax+ecx+0x1ca9]` for the `= i` store and
-//   swaps SIB base/index (`[eax+ecx+0x1b63]` against the original
-//   `[ecx+eax+0x1b63]`); earlier passes measured both as unreachable from the
-//   expression form.
-// Third pass (deepseek-v4.1, issue 1962): 79.3 kept as best. Flipped the reindex loop address spelling three ways (g_game + 0x1b63 + off, off + g_game + 0x1b63, g_game + (0x1b63 + off)); all emit the same `[eax + ecx + 0x1b63]` SIB with base=off/eax while the original encodes base=g_game/ecx, although g_game is in ecx in ours too, so the base/index pick is not reachable from the expression form. Everything below still stands.
-
-// Fifth pass (deepseek-v4.1, issue 2388): 79.7 -> 92.7, size now exactly 2340
-// bytes. Two source changes did it, both fixing real differences from the
-// original listing rather than register luck:
-// 1. the battlestart lookup must spell the first argument out as
-//    g_game->gui.table->entries instead of the cached `entries` local
-//    (79.7 -> 84.9); the original reloads the whole gui/table chain there
-//    (ctx: mov ecx,[g_game] / mov edx,[ecx+0x531] / mov eax,[edx+4]).
-// 2. the DAT_00512994 guard must be written as
-//    `if (DAT_00512994 == 0) { FUN_004455b0(); } else { <compaction loop> }`,
-//    the inverted form, so the call is emitted right after the test with a
-//    `jmp` over the loop (84.9 -> 92.7). The natural `!= 0` order puts the
-//    call at the join and shifts the whole loop back.
-// Still differing (8 hunks, all other hunks are this file's remaining work):
-// - the first `if`: the original hoists `mov eax,[g_game]` between `test eax,eax`
-//   and the `jne` so both arms share it; ours emits the jne first and reloads
-//   g_game in each arm.
-// - the reindex loop keeps `lea edx,[eax+ecx+0x1ca9]` for the `= i` store
-//   (original issues three separate base+index+disp references) and swaps
-//   base/index (`[eax+ecx+0x1b63]` vs original `[ecx+eax+0x1b63]`).
-// - the MAXUNITS/METAL/ENERGY block: the original keeps the value temporaries
-//   in edi/edi/esi and pushes the value after the inner call; ours uses
-//   ecx/eax/eax and pushes it before (named locals, u2, hex and pointer forms
-//   all measured worse: 88.1 / 87.8 / 62.0).
-// - after the join ours runs 2 bytes ahead until the MAXUNITS block absorbs
-//   it, so the join/loop-exit jump targets are off by 2.
-// Fourth pass (space-bunny-free, issue 1962): confirmed 79.3% with a real
-// check.py run and could not move it. Root cause of the largest remaining
-// cluster (four diffs in three blocks) identified below: `pl` is only ever
-// USED through its own address at one point, 0x44a759 `mov al,[ebp+0x22]`
-// right after 0x44a749 `lea ebp,[esi+eax*2+0x1b63]`. MSVC 5 folds that
-// single read back into the g_game-relative form
-// (`mov cl,byte ptr [esi+eax*2+0x1b85]`), so the register live range of `pl`
-// has a hole from 0x44a750 to 0x44a933 and the allocator never gives it ebp.
-// The original's ebp range is continuous, which is why it reloads
-// `mov ebp,[esp+0x14]` at 0x44a92f and uses `[ebp+0x27]` at 0x44a956 and
-// 0x44ac23. Since the fold is what breaks the range, every change to pl's
-// type or spelling is a dead end; it needs a source form in which the first
-// read cannot be re-derived from g_game, which MSVC 5's CSE does not permit
-// (brief item 18: an inlined function boundary is not a CSE boundary).
-// Tried this pass, all scored with check.py --sym, none above 79.3:
-// - pl: reading the field through a named byte local (79.3, no change),
-//   `&pl->field_22` (79.3), assigning `pl` at the top of the function so the
-//   range starts earlier (74.8, the whole block moves), and a second identical
-//   pointer value to defeat the CSE (15.9, the compiler duplicates the body).
-// - MAXUNITS/METAL/ENERGY: one named local per value (78.1), only the maxunits
-//   value (79.3, no change), and reading all three through the existing `u2`
-//   instead of repeating `g_game->players[b2].data` (77.7). The original uses
-//   edi,edi,esi for those three temporaries and we use edx,edx,eax: the value
-//   temporaries want callee-saved registers and eax is free in our version.
-// - the reindex loop: reversing every addend order so the compiler picks
-//   base=g_game/index=off (79.3, it ignores the addend order), and spelling
-//   the byte store as `((unsigned char*)(g_game+0x1b63+off))[0x146]` so the
-//   address tree differs from the compare (79.3). The extra
-//   `lea edx,[eax+ecx+0x1ca9]` is a speculative hoist MSVC emits for the
-//   `= i` store only; the `= 10` store never uses it, in ours or the original.
-// - the `w[0x63] < *(*(unsigned short**)(w+0xbe))-1` compare: naming both
-//   operands as locals gives the exact original size, 2340 bytes, but scores
-//   72.7 because the surrounding block then reorders.
-// Second worker pass (deepseek-v4.1, issue 1962): 79.0 -> 79.3, still 2333 bytes
-// against the original 2340. Fixed here: the LOGO text rect pair must be
-// (rect.left + rect.right) for x but (rect.bottom + rect.top) for y, which
-// pins both [esp+0x38]/[esp+0x40] load orders (the mixed form is the only one
-// that leaves no diff in that hunk), and the reindex loop wants the dword at
-// +0x1b63 tested before the byte at +0x1bd6 is read, which a nested
-// `if (v != 0) { ... }` with the byte local inside it buys (equal score, but
-// the load order then matches the original).
-// Still differing, in size order:
-// - `pl` never gets ebp (original: lea ebp / mov [esp+0x14],ebp / mov al,[ebp+0x22],
-//   then reloads ebp from [esp+0x14] at 0x44a92f and uses [ebp+0x27] at 0x44a956
-//   and 0x44ae00). Ours folds the field_22 load into [esi+eax*2+0x1b85] and keeps
-//   pl in its slot, so every pl use costs an extra reload. Tried this pass:
-//   `g_game->players + g_game->localPlayer` (byte-identical output, no move).
-// - the DAT_00512994 branch: original falls through into `call FUN_004455b0`
-//   and jumps over the compaction loop (`jne 0x44a7ec / call / jmp 0x44a933`);
-//   ours puts the call at the join point (0x44a92f), so the loop-exit reload
-//   `mov ebp,[esp+0x14]` has no counterpart. Inverting the test (the obvious
-//   way to force that layout) was already measured at 68.7, so it stays.
-// - the compaction reindex loop: ours still materialises
-//   `lea edx,[eax+ecx+0x1ca9]` for the byte store (the original issues three
-//   separate base+index+disp references) and emits base=off/index=g_game
-//   instead of the original's base=g_game/index=off.
-// - the first `if`: original hoists `mov eax,[g_game]` between the test and the
-//   jne; ours sinks it into the fall-through. Same for a couple of scheduler
-//   swaps (LOGO `mov edx,[esp+0x18]` before/after the `lea ecx,[esp+0x34]`,
-//   the tail's `xor ebx,ebx` before/after the pl reload) and the mirrored
-//   edx/ecx pick in the `w[0x63] < ... - 1` compare.
-// Fifth session (deepseek-v4.1-flash, issue 3513): baseline re-checked at 92.9%
-// (2340 bytes). Splitting the reindex loop condition `(f73 == 1 || f73 == 2 ||
-// f73 == 3) && byte != 10` into a nested f73-if (the layout the original's
-// cmp dl,1/2/3 then cmp byte sequence suggests) regresses to 87.9% (2347
-// bytes), so the &&-combined form is load-bearing. Baseline kept.
-// Seventh session (deepseek-v4.1-flash): naming the FUN_004a0200 lookup result
-// at the MAXUNITS/METAL/ENERGY call sites (separate statement per pair, which
-// does force the original's left-to-right push order) regresses the whole
-// function to 87.2% / 2360 bytes, so the nested right-to-left form stays.
-// Base by deepseek-v4.1-flash, space-bunny-free and GPT-6; continued by deepseek-v4.1.
-// Gave up at 79.0% (2333 bytes against 2340). The 1-bit bitfield at
-// Unit+0x9d bit 2 fixed the tail; what is left is the initial local-slot
-// order, the player-compaction register allocation (original keeps the
-// player pointer in ebp and `entries` in ebx; ours folds the address) and
-// branch placement. Also left: the `xor ebx,ebx` for the bitfield boolean is
-// scheduled after the [esp+0x14] reload instead of before it.
-// Tried and did NOT work (do not repeat): computing the boolean into a local
-// first (77.6), swapping the LOGO rect pair to (right+left - w) (78.7),
-// inverting the DAT_00512994 test so FUN_004455b0 is the fall-through (68.7).
-// Second pass (space-bunny-free), all scored with check.py --sym on scratch
-// copies, all 78.2 to 79.0 or worse, none above the 79.0 baseline:
-// - reindex loop: hoisting a Player* induction variable instead of a raw
-//   offset (68.5), `g_game->players[i]` with `i <= 10` (78.2), fully inlined
-//   field expressions with no temporaries (78.2), field_73 read inline but
-//   field_0 in a local (78.2), the whole condition nested inside
-//   `if (v != 0)` (79.0, no change), routing the compare and both stores
-//   through one `unsigned char* f146` (78.3), and a `char* q` pointer walk
-//   with `q += 0x14b` (65.9). The raw-offset form with the off <= 0xcee
-//   bound is the best of these; the pointer forms lose the index+displacement
-//   addressing the original uses.
-// - `pl` in a callee-saved register: routing its field reads through a
-//   boxed `__inline` accessor struct (78.7), spelling it `(Player*)pl` or
-//   `*(char*)((char*)pl+0x22)` (79.0, no change), assigning it through a
-//   second named pointer (79.0, no change), swapping the declarations of
-//   `pl` and `entries` (79.0, no change), and hoisting the `entries` load
-//   above the `pl` definition (77.8). None of these move MSVC off the stack
-//   slot, so the [esp+0x14] reload pattern persists.
-// - the MAXUNITS/METAL/ENERGY block: hoisting all three values into named
-//   locals (77.6) and hoisting only the maxunits one (79.0, no change).
-// - splitting the first `if` into `if (...) {} else if (...)` so the g_game
-// Ninth pass (deepseek-v4.1-flash, issue 3390): baseline 92.9% (2340 bytes) kept.
-// Tried: the three MAXUNITS/METAL/ENERGY blocks with named value and entry locals
-// in separate statements (81.0%, 2326 bytes); inert-extern padding before the
-// g_game declaration k=4..96 (92.6-92.7; k=64/96 shrink the body to 2337 bytes and
-// drop to 89.8/89.6) with the reindex-loop SIB never flipping to [ecx+eax+0x1b63].
-// The hoist of `mov eax,[g_game]` above the first jne at 0x44a6a3 is what the
-// 2-byte address drift in this file hangs on.
-
-//   reload lands before the test (79.0, no change).
-// Eighth session (deepseek-v4.1-flash, issue 3766): baseline 92.9% (2340
-// bytes) kept. Rejected in scratch runs: named `int s` for FUN_00453d40
-// (92.7, 2340 bytes), named `int e` for the reindex addend (90.1), named
-// e146 for the +0x1ca9 pair (89.7, 2338), unsigned short mu at MAXUNITS
-// (92.7), byte OR store at 0x2bee (no change). Ties at 92.9, all 2340 bytes:
-// pointer local p for the item record, mixed addend order (0x1ca9 + off in
-// the compare against off + 0x1ca9 in the = i store). So the reindex SIB
-// base/index pick and the MAXUNITS edi/ecx pick stay unreachable from the
-// expression form, as previous sessions found.
-#include <string>
+// Decompiled by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// Per-frame update of the multiplayer battle room (LOUNGE2.GUI): checks the
+// map, compacts the player slots when the room is dirty, copies the host's
+// MAXUNITS/METAL/ENERGY sliders (or map) to a client, runs the host's start
+// countdown, draws each player's version under their logo, and refreshes the
+// local player's bit at +0x9d once a minute.
+//
+// MATCH. What it took (from 92.9%):
+// - Five functions of this file with no callers are inlined here and defined
+//   above, unannotated: the map check 0x440cd0 (as in 0x448c70), the slot
+//   compaction 0x445450 and the slot swap 0x4453a0 it calls (both declared
+//   inline: MSVC does not inline their loops on its own), the ENERGY slider
+//   handler 0x445d60 and the slider setter 0x445e20 (its gadget local keeps
+//   the value in edi across FUN_004a0200, which the one-expression form does
+//   not).
+// - The map check is the second test of an else-if chain, so both arms start
+//   with the g_game load that MSVC hoists above the jne.
+// - With the swap inlined, the reindex loop has the original's addressing,
+//   and the loop's exit reloads (entries into ebx, pl into ebp) keep the
+//   compaction loop in line after the FUN_004455b0 call. Without those
+//   reloads MSVC moves the whole else arm after the final ret.
+// - The LOGO loop counter is an unsigned char (a short works too): with an
+//   int, MSVC tests the strength-reduced offset instead of counting ebx down
+//   from 10, entries stays in ebx and `pl` loses ebp.
+// - The rect sums follow the symbol count: with windows.h's RECT the natural
+//   (left + right) and (top + bottom) orders match; with a one-line local
+//   Rect struct the y sum had to be written (bottom + top).
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Unit_44a680 {
-    char name[0x97];
-    unsigned char flags;          // +0x97
+struct PlayerInfo_0044a680 {
+    char map[0x97];                     // +0x00
+    unsigned char flags;                // +0x97, bit 0: host
     char unknown_98[0x9d - 0x98];
-    unsigned short low2_9d : 2;   // +0x9d bits 0-1
-    unsigned short bit2_9d : 1;   // +0x9d bit 2
-    unsigned short high13_9d : 13;
+    unsigned short f9d_0 : 2;           // +0x9d
+    unsigned short f9d_2 : 1;
+    unsigned short f9d_rest : 13;
     char unknown_9f[0xa1 - 0x9f];
-    unsigned short energy;        // +0xa1
-    unsigned short metal;         // +0xa3
-    unsigned short maxunits;      // +0xa5
-    unsigned char field_a7;       // +0xa7
-    unsigned char field_a8;       // +0xa8
-    int field_a9;                 // +0xa9
+    unsigned short energy;              // +0xa1
+    unsigned short metal;               // +0xa3
+    unsigned short maxUnits;            // +0xa5
+    unsigned char versionMajor;         // +0xa7
+    unsigned char versionMinor;         // +0xa8
+    int mapCrc;                         // +0xa9
 };
 
-struct Player_44a680 {
-    int field_0;                  // +0x00
-    char unknown_4[0x22 - 4];
-    unsigned char field_22;       // +0x22
+struct Player_0044a680 {                // 0x14b bytes
+    int active;                         // +0x00
+    char unknown_4[0x22 - 0x4];
+    unsigned char field_22;             // +0x22
     char unknown_23[0x27 - 0x23];
-    Unit_44a680* data;            // +0x27
+    PlayerInfo_0044a680* info;          // +0x27
     char unknown_2b[0x73 - 0x2b];
-    unsigned char field_73;       // +0x73
+    unsigned char type;                 // +0x73
     char unknown_74[0x146 - 0x74];
-    unsigned char field_146;      // +0x146
+    unsigned char field_146;            // +0x146
     char unknown_147[0x14b - 0x147];
 };
 
-struct Table_44a680 {
+struct Gadget_0044a680 {                // 0x15b bytes
+    char unknown_0[0x1f];
+    unsigned int colour;                // +0x1f
+    char unknown_23[0xbe - 0x23];
+    unsigned short* frames;             // +0xbe, the frame count first
+    char unknown_c2[0xc6 - 0xc2];
+    short frame;                        // +0xc6
+    unsigned int c8_0 : 1;              // +0xc8
+    unsigned int c8_rest : 31;
+    char unknown_cc[0x15b - 0xcc];
+};
+
+struct Layer_0044a680 {
     int unknown_0;
-    void* entries;                // +0x4
+    Gadget_0044a680* entries;           // +0x4
 };
 
-struct Gui_44a680 {
+struct Gui_0044a680 {
     char unknown_0[0x18];
-    Table_44a680* table;          // +0x18
+    Layer_0044a680* table;              // +0x18
 };
 
-struct Game_44a680 {
+struct Game_0044a680 {
     char unknown_0[0x519];
-    Gui_44a680 gui;               // +0x519
+    Gui_0044a680 gui;                   // +0x519
     char unknown_535[0x1b63 - 0x535];
-    Player_44a680 players[10];    // +0x1b63
+    Player_0044a680 players[10];        // +0x1b63
     char unknown_2851[0x2a30 - 0x2851];
-    void* field_2a30;             // +0x2a30
+    void* net;                          // +0x2a30
     char unknown_2a34[0x2a3c - 0x2a34];
-    unsigned short field_2a3c;    // +0x2a3c
+    unsigned short field_2a3c;          // +0x2a3c
     char unknown_2a3e[0x2a42 - 0x2a3e];
-    unsigned char localPlayer;    // +0x2a42
+    unsigned char localPlayer;          // +0x2a42
     char unknown_2a43[0x2bc0 - 0x2a43];
-    unsigned char field_2bc0;     // +0x2bc0
+    unsigned char field_2bc0;           // +0x2bc0
     char unknown_2bc1[0x2bee - 0x2bc1];
-    unsigned short field_2bee;    // +0x2bee
+    unsigned short dirty : 1;           // +0x2bee
+    unsigned short dirty_rest : 15;
     char unknown_2bf0[0x38a47 - 0x2bf0];
-    int field_38a47;              // +0x38a47
+    int frame;                          // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    void* field_391e9;            // +0x391e9
+    void* map;                          // +0x391e9
 };
 #pragma pack(pop)
 
 struct Class_004358f0 { int FUN_004358f0(); };
 struct Class_004373a0 { int FUN_004373a0(); };
-struct Class_00435a20 { void FUN_00435a20(Unit_44a680* unit); };
+struct Class_00435a20 { void FUN_00435a20(PlayerInfo_0044a680* info); };
 struct Class_00435c30 { char* FUN_00435c30(); };
 struct Class_0046e000 { int FUN_0046e000(); };
 struct Class_00463c60 { void FUN_00463c60(int param); };
+class Class_0046d860 { public: void FUN_0046dad0(); };
 
-struct Rect_44a680 { int left, top, right, bottom; };
 
-struct Flag2bee_44a680 {
-    unsigned short bit0 : 1;
-    unsigned short rest : 15;
-};
-
-extern Game_44a680* g_game;
+extern Game_0044a680* g_game;
 extern int DAT_00512994;
 extern int DAT_005129a4;
 extern unsigned int DAT_005129a8;
 extern unsigned int DAT_0050550c;
 
-extern "C" {
 int __stdcall FUN_00453d40();
 unsigned char __stdcall FUN_00456850();
 void __stdcall FUN_004455b0();
 void __stdcall FUN_00448c70();
 void FUN_00444a20();
-void __stdcall FUN_00445b70(Gui_44a680* gui, int index);
-void __stdcall FUN_00445c70(Gui_44a680* gui, int index);
+void __stdcall FUN_00445b70(Gui_0044a680* gui, int index);
+void __stdcall FUN_00445c70(Gui_0044a680* gui, int index);
 void __stdcall FUN_0047f1a0(char* name, int param);
-void __stdcall FUN_0049fa90(Gui_44a680* gui);
-void __stdcall FUN_0049fad0(Gui_44a680* gui);
-int __stdcall FUN_0049fdf0(void* entries, char* name, int type);
-void __stdcall FUN_004a0570(Gui_44a680* gui, char* name, int param);
-void __stdcall FUN_004a0bf0(Gui_44a680* gui, char* name, char* text, int param);
-void __stdcall FUN_004a1250(Gui_44a680* gui, char* name, int param);
-void* __stdcall FUN_004a0200(void* entries, char* name);
-void* __stdcall FUN_004a0280(void* entries, char* name);
-void __stdcall FUN_004a15c0(void* entries, int widget, Rect_44a680* rect);
+void __stdcall FUN_0049fa90(Gui_0044a680* gui);
+void __stdcall FUN_0049fad0(Gui_0044a680* gui);
+int __stdcall FUN_0049fdf0(Gadget_0044a680* entries, char* name, int type);
+void __stdcall FUN_004a0570(Gui_0044a680* gui, char* name, int param);
+void __stdcall FUN_004a0bf0(Gui_0044a680* gui, char* name, char* text, int param);
+void __stdcall FUN_004a1250(Gui_0044a680* gui, char* name, int param);
+Gadget_0044a680* __stdcall FUN_004a0200(Gadget_0044a680* entries, char* name);
+Gadget_0044a680* __stdcall FUN_004a0280(Gadget_0044a680* entries, char* name);
+void __stdcall FUN_004a15c0(Gadget_0044a680* entries, int widget, RECT* rect);
 int __stdcall FUN_004a5030(char* text);
 int __stdcall FUN_004a50b0();
 void __stdcall FUN_004a50e0(int a, char* text, int x, int y, int w, int h);
-void __stdcall FUN_004a5d30(Gui_44a680* gui, int flag);
+void __stdcall FUN_004a5d30(Gui_0044a680* gui, int flag);
 void __stdcall FUN_004a9660(void* gui);
-int __stdcall FUN_004ab060(Gui_44a680* gui, char* name);
-void __stdcall FUN_0045b9b0(void* entry, int value);
-int __stdcall FUN_0045ba20(void* entry);
+int __stdcall FUN_004ab060(Gui_0044a680* gui, char* name);
+void __stdcall FUN_0045b9b0(Gadget_0044a680* gadget, int value);
+int __stdcall FUN_0045ba20(Gadget_0044a680* gadget);
 int __stdcall FUN_004b6340();
 unsigned char __stdcall FUN_0041d6a0(int param);
 void __stdcall FUN_00456310();
 void __stdcall FUN_00450f90();
 void __stdcall FUN_00451180();
 int __stdcall FUN_00456760();
-}
-class Class_0046dad0 { public: void FUN_0046dad0(); };
 
+// The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
+int FUN_00440cd0()
+{
+    if (!((Class_004358f0*)g_game->map)->FUN_004358f0()) {
+        return 0;
+    }
+    unsigned char me = FUN_00456850();
+    PlayerInfo_0044a680* data = 0;
+    int check = 0;
+    if (me != 10) {
+        data = g_game->players[me].info;
+        if (data->versionMajor >= 2)
+            check = 1;
+        else if (data->versionMajor == 1 && data->versionMinor >= 2)
+            check = 1;
+    }
+    if (!check) {
+        return 1;
+    }
+    if (((Class_004373a0*)g_game->map)->FUN_004373a0() != data->mapCrc)
+        return 0;
+    return 1;
+}
+
+// The slot swap at 0x4453a0, which has no callers. MSVC inlines it only when
+// it is declared inline (it has a loop).
+inline void __stdcall FUN_004453a0(Player_0044a680* param_1, Player_0044a680* param_2)
+{
+    Player_0044a680 tmp = *param_2;
+    *param_2 = *param_1;
+    *param_1 = tmp;
+    ((Class_00463c60*)param_1)->FUN_00463c60(0);
+    param_1->active = 0;
+    for (int i = 0; i <= 10; i++) {
+        Player_0044a680* p = &g_game->players[i];
+        if (p->active != 0
+            && (p->type == 1 || p->type == 2 || p->type == 3)
+            && p->field_146 != 10) {
+            p->field_146 = i;
+        } else {
+            g_game->players[i].field_146 = 10;
+        }
+    }
+}
+
+// The slot compaction at 0x445450, which has no callers. Declared inline for
+// its loops, like 0x4453a0.
+inline void FUN_00445450()
+{
+    Player_0044a680* p = g_game->players;
+    Player_0044a680* q = g_game->players + 1;
+    Player_0044a680* end = g_game->players + 10;
+    while (1) {
+        if (q >= end && p >= end)
+            break;
+        while ((p->active != 0
+                    && (p->type == 1 || p->type == 2 || p->type == 3)
+                    && p->field_146 != 10)
+               || p->type == 4) {
+            if (p >= end)
+                break;
+            p++;
+        }
+        q = p + 1;
+        for (; q->active == 0
+               || (q->type != 1 && q->type != 2 && q->type != 3)
+               || q->field_146 == 10;
+             q++) {
+            if (q >= end)
+                break;
+        }
+        if (q >= end)
+            break;
+        if (p >= end)
+            break;
+        FUN_004453a0(q, p);
+    }
+}
+
+// The ENERGY slider handler at 0x445d60, which has no callers: /Ob2 inlined it.
+void __stdcall FUN_00445d60(Gui_0044a680* gui, int unused)
+{
+    char text[20];
+    Gadget_0044a680* value = FUN_004a0200(gui->table->entries, "ENERGY");
+
+    if (value != 0) {
+        int shown = FUN_0045ba20(value) / 100 * 100;
+        PlayerInfo_0044a680* info;
+
+        _itoa(shown, text, 10);
+        FUN_004a0bf0(gui, "ENERGYTEXT", text, 0);
+        info = g_game->players[g_game->localPlayer].info;
+        info->energy = (unsigned short)(shown / 100);
+        if (info->flags & 1) {
+            FUN_00450f90();
+            FUN_00451180();
+        }
+    }
+}
+
+// The slider setter at 0x445e20, which has no callers: /Ob2 inlined it.
+void __stdcall FUN_00445e20(Gui_0044a680* gui, char* name, int value)
+{
+    Gadget_0044a680* gadget = FUN_004a0200(gui->table->entries, name);
+    FUN_0045b9b0(gadget, value);
+}
 
 // FUNCTION: 0x44a680
 void FUN_0044a680()
 {
-    unsigned char b;
-    unsigned int edi;
-    Unit_44a680* unit;
-    Player_44a680* pl;
-    void* entries;
+    Player_0044a680* pl;
+    Gadget_0044a680* entries;
 
-    g_game->field_38a47++;
+    g_game->frame++;
 
-    if (FUN_00453d40() != 0 ||
-        ((Class_004358f0*)g_game->field_391e9)->FUN_004358f0() == 0) {
-        ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
-    } else {
-        b = FUN_00456850();
-        unit = 0;
-        edi = 0;
-        if (b != 10) {
-            unit = g_game->players[b].data;
-            if (unit->field_a7 >= 2)
-                edi = 1;
-            else if (unit->field_a7 == 1 && unit->field_a8 >= 2)
-                edi = 1;
-        }
-        if (edi != 0 && ((Class_004373a0*)g_game->field_391e9)->FUN_004373a0() != unit->field_a9)
-            ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
-    }
+    if (FUN_00453d40())
+        g_game->dirty = 1;
+    else if (!FUN_00440cd0())
+        g_game->dirty = 1;
 
-    { unsigned char lp = g_game->localPlayer; pl = g_game->players + lp; }
+    pl = &g_game->players[g_game->localPlayer];
     if (pl->field_22 != 0) {
         g_game->field_2bc0 = 3;
         FUN_004a9660(&g_game->gui);
@@ -357,60 +282,14 @@ void FUN_0044a680()
     entries = g_game->gui.table->entries;
     if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
         int idx = FUN_0049fdf0(entries, "PLAYER0", 0xe);
-        *(int*)((char*)entries + idx * 0x15b + 0x1f) = 0x18;
+        entries[idx].colour = 0x18;
     }
 
-    if (((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 != 0) {
+    if (g_game->dirty) {
         if (DAT_00512994 == 0) {
             FUN_004455b0();
         } else {
-            Player_44a680* A = &g_game->players[0];
-            Player_44a680* B = &g_game->players[1];
-            Player_44a680* end = (Player_44a680*)((char*)g_game + 0x2851);
-            Player_44a680* savedA;
-
-            for (;;) {
-                if (B >= end && A >= end)
-                    break;
-                while (((A->field_0 != 0 &&
-                         (A->field_73 == 1 || A->field_73 == 2 || A->field_73 == 3) &&
-                         A->field_146 != 10) ||
-                        A->field_73 == 4) &&
-                       A < end)
-                    A++;
-                savedA = A;
-                B = A + 1;
-                while (!(B->field_0 != 0 &&
-                         (B->field_73 == 1 || B->field_73 == 2 || B->field_73 == 3) &&
-                         B->field_146 != 10) &&
-                       B < end)
-                    B++;
-                if (B >= end || A >= end)
-                    break;
-                {
-                    Player_44a680 tmp = *A;
-                    *A = *B;
-                    *B = tmp;
-                }
-                ((Class_00463c60*)B)->FUN_00463c60(0);
-                B->field_0 = 0;
-
-                int i = 0;
-                for (int off = 0; off <= 0xcee; off += 0x14b, i++) {
-                    int v = *(int*)((char*)g_game + (0x1b63 + off));
-                    if (v != 0) {
-                        unsigned char f73 = *(unsigned char*)((char*)g_game + (0x1bd6 + off));
-                        if ((f73 == 1 || f73 == 2 || f73 == 3) &&
-                            *(unsigned char*)((char*)g_game + (0x1ca9 + off)) != 10)
-                            *(unsigned char*)((char*)g_game + (0x1ca9 + off)) = (unsigned char)i;
-                        else
-                            *(unsigned char*)((char*)g_game + (0x1ca9 + off)) = 10;
-                    } else {
-                        *(unsigned char*)((char*)g_game + (0x1ca9 + off)) = 10;
-                    }
-                }
-                A = savedA;
-            }
+            FUN_00445450();
         }
 
         if ((unsigned int)g_game->field_2a3c != DAT_0050550c) {
@@ -418,180 +297,112 @@ void FUN_0044a680()
             FUN_00451180();
         }
 
-        if ((pl->data->flags & 1) == 0) {
-            unsigned char b2 = FUN_00456850();
-            if (b2 != 10) {
+        if ((pl->info->flags & 1) == 0) {
+            unsigned char host = FUN_00456850();
+            if (host != 10) {
                 if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
-                    Unit_44a680* u2 = g_game->players[b2].data;
-                    ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(u2);
-                    FUN_0045b9b0(FUN_004a0200(g_game->gui.table->entries, "MAXUNITS"), g_game->players[b2].data->maxunits - 0x14);
-                    FUN_0045b9b0(FUN_004a0200(g_game->gui.table->entries, "METAL"), g_game->players[b2].data->metal * 100);
-                    FUN_0045b9b0(FUN_004a0200(g_game->gui.table->entries, "ENERGY"), g_game->players[b2].data->energy * 100);
+                    PlayerInfo_0044a680* info = g_game->players[host].info;
+                    ((Class_00435a20*)g_game->map)->FUN_00435a20(info);
+                    FUN_00445e20(&g_game->gui, "MAXUNITS", g_game->players[host].info->maxUnits - 0x14);
+                    FUN_00445e20(&g_game->gui, "METAL", g_game->players[host].info->metal * 100);
+                    FUN_00445e20(&g_game->gui, "ENERGY", g_game->players[host].info->energy * 100);
                     FUN_00445b70(&g_game->gui, 0);
-                    {
-                        Gui_44a680* energyPanel = &g_game->gui;
-                        void* e = FUN_004a0200(g_game->gui.table->entries, "ENERGY");
-                        if (e != 0) {
-                            int v = FUN_0045ba20(e);
-                            char buf[20];
-                            int shown = v / 100 * 100;
-                            Unit_44a680* lu;
-                            _itoa(shown, buf, 10);
-                            FUN_004a0bf0(energyPanel, "ENERGYTEXT", buf, 0);
-                            lu = g_game->players[g_game->localPlayer].data;
-                            lu->energy = (unsigned short)(shown / 100);
-                            if (lu->flags & 1) {
-                                FUN_00450f90();
-                                FUN_00451180();
-                            }
-                        }
-                    }
+                    FUN_00445d60(&g_game->gui, 0);
                     FUN_00445c70(&g_game->gui, 0);
                 } else if (FUN_004ab060(&g_game->gui, "viewmap.gui") != 0) {
-                    Unit_44a680* u2 = g_game->players[b2].data;
-                    if (strcmp(((Class_00435c30*)g_game->field_391e9)->FUN_00435c30(), u2->name) != 0) {
-                        ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(g_game->players[b2].data);
+                    PlayerInfo_0044a680* info = g_game->players[host].info;
+                    if (strcmp(((Class_00435c30*)g_game->map)->FUN_00435c30(), info->map) != 0) {
+                        ((Class_00435a20*)g_game->map)->FUN_00435a20(g_game->players[host].info);
                         FUN_00444a20();
                         FUN_0049fad0(&g_game->gui);
                     }
                 }
             }
         }
-        g_game->field_2bee &= 0xfffe;
+        g_game->dirty = 0;
         if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
-        if (pl->data->flags & 1) {
-            int edi2 = ((Class_0046e000*)g_game->field_2a30)->FUN_0046e000();
-            int b5 = FUN_00456760();
-            unsigned short* w;
+            if (pl->info->flags & 1) {
+                int synched = ((Class_0046e000*)g_game->net)->FUN_0046e000();
+                int ready = FUN_00456760();
+                Gadget_0044a680* start;
 
-            FUN_004a1250(&g_game->gui, "SYNCHING", 1);
-            w = (unsigned short*)FUN_004a0280(g_game->gui.table->entries, "battlestart");
-            if ((short)w[0x63] > 0 && DAT_005129a4 < FUN_004b6340()) {
-                if ((short)w[0x63] < 8) {
-                    w[0x63] = w[0x63] + 1;
-                    FUN_0049fa90(&g_game->gui);
-                    ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
-                }
-                DAT_005129a4 += 4;
-                if ((short)w[0x63] == 4)
-                    FUN_0047f1a0("Panel", 0);
-            }
-            if ((short)w[0x63] != 0 &&
-                (int)(short)w[0x63] < (int)(**(unsigned short**)((char*)w + 0xbe) - 1)) {
-                ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
-            }
-            if (b5 != 0) {
-                ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
-                if ((short)w[0x63] == 0) {
-                    w[0x63] = 1;
-                    DAT_005129a4 = FUN_004b6340();
-                    FUN_0047f1a0("Options", 0);
-                }
-                *(unsigned int*)((char*)w + 0xc8) &= 0xfffffffe;
-                {
-                    int idx = FUN_0049fdf0(entries, "START", 1);
-                    unsigned int r = FUN_004b6340() & 0x1f;
-                    if (r != *(unsigned int*)((char*)entries + idx * 0x15b + 0x1f)) {
-                        *(unsigned int*)((char*)entries + idx * 0x15b + 0x1f) = r;
+                FUN_004a1250(&g_game->gui, "SYNCHING", 1);
+                start = FUN_004a0280(g_game->gui.table->entries, "battlestart");
+                if (start->frame > 0 && DAT_005129a4 < FUN_004b6340()) {
+                    if (start->frame < 8) {
+                        start->frame++;
                         FUN_0049fa90(&g_game->gui);
+                        g_game->dirty = 1;
+                    }
+                    DAT_005129a4 += 4;
+                    if (start->frame == 4)
+                        FUN_0047f1a0("Panel", 0);
+                }
+                if (start->frame != 0 && start->frame < *start->frames - 1)
+                    g_game->dirty = 1;
+                if (ready != 0) {
+                    g_game->dirty = 1;
+                    if (start->frame == 0) {
+                        start->frame = 1;
+                        DAT_005129a4 = FUN_004b6340();
+                        FUN_0047f1a0("Options", 0);
+                    }
+                    start->c8_0 = 0;
+                    {
+                        int idx = FUN_0049fdf0(entries, "START", 1);
+                        unsigned int colour = FUN_004b6340() & 0x1f;
+                        if (colour != entries[idx].colour) {
+                            entries[idx].colour = colour;
+                            FUN_0049fa90(&g_game->gui);
+                        }
                     }
                 }
+                FUN_004a1250(&g_game->gui, "START", ready == 0);
+                FUN_004a0570(&g_game->gui, "START", synched);
+                FUN_004a0570(&g_game->gui, "SYNCHING", synched == 0);
             }
-            FUN_004a1250(&g_game->gui, "START", b5 == 0);
-            FUN_004a0570(&g_game->gui, "START", edi2);
-            FUN_004a0570(&g_game->gui, "SYNCHING", edi2 == 0);
-        }
-        FUN_00448c70();
-        FUN_0049fa90(&g_game->gui);
+            FUN_00448c70();
+            FUN_0049fa90(&g_game->gui);
         }
     }
 
     if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
         FUN_004a5d30(&g_game->gui, 1);
         {
-            int i = 0;
-            int n = 10;
-            do {
-                Player_44a680* p = &g_game->players[i];
-                if (p->field_73 != 0 && p->field_73 != 4) {
-                    Rect_44a680 rect;
+            for (unsigned char i = 0; i < 10; i++) {
+                Player_0044a680* p = &g_game->players[i];
+                if (p->type != 0 && p->type != 4) {
+                    RECT rect;
                     char buf[20];
                     int widget;
-                    Unit_44a680* u;
+                    PlayerInfo_0044a680* info;
                     int w;
                     int h;
                     sprintf(buf, "LOGO%i", i);
                     widget = FUN_0049fdf0(entries, buf, 0xe);
                     FUN_004a15c0(entries, widget, &rect);
-                    u = p->data;
-                    sprintf(buf, "%i.%i", u->field_a7, u->field_a8);
+                    info = p->info;
+                    sprintf(buf, "%i.%i", info->versionMajor, info->versionMinor);
                     w = FUN_004a5030(buf);
                     h = FUN_004a50b0();
                     FUN_004a50e0(0, buf,
                                  (rect.left + rect.right - w) / 2,
-                                 (rect.bottom + rect.top - h) / 2,
+                                 (rect.top + rect.bottom - h) / 2,
                                  w, 0);
                 }
-                i++;
-                n--;
-            } while (n != 0);
+            }
         }
         FUN_004a5d30(&g_game->gui, 0);
     }
 
-    ((Class_0046dad0*)g_game->field_2a30)->FUN_0046dad0();
+    ((Class_0046d860*)g_game->net)->FUN_0046dad0();
     if (DAT_005129a8 < (unsigned int)FUN_004b6340()) {
         unsigned char r;
+        PlayerInfo_0044a680* info;
         DAT_005129a8 = FUN_004b6340() + 0x3c;
         r = FUN_0041d6a0(1);
-        unit = pl->data;
-        unit->bit2_9d = (r != 0);
+        info = pl->info;
+        info->f9d_2 = (r != 0);
         FUN_00456310();
     }
 }
-
-// Remaining differences (best 79.3%, ours 2333 bytes vs original 2340):
-// - Register allocation is one step off through the whole function. The
-//   original holds `entries` in ebx and `pl` in ebp (it spills ebp at
-//   0x44a750 and reloads it with `mov ebp,[esp+0x14]` at 0x44a92f); we hold
-//   `entries` in ebx and spill `pl` to [esp+0x14], so the swap loop's A/end run
-//   in ecx/edx like the original but `pl` costs a reload at 0x44a92f, 0x44a956
-//   and 0x44ac23. See the top of the file: the fold of the one early
-//   `pl->field_22` read is what keeps pl out of a register.
-// - The first condition reloads g_game after the test in ours and before it
-//   in the original (`mov eax,[g_game] / test eax,eax / jne`).
-// - The reindex loop after each swap: the original tests the dword at
-//   g_game+0x1b63+off before loading the byte at +0x1bd6+off and never
-//   materialises the +0x1ca9 address; ours loads both up front and emits one
-//   extra `lea edx,[eax+ecx+0x1ca9]`. Rewriting it as
-//   `g_game->players[i]` with a do-while scored 73.4, so the raw offsets stay.
-// - the `DAT_00512994` branch: re-measured this pass. Inverting the test to
-//   `if (DAT_00512994 == 0) { FUN_004455b0(); } else { <loop> }` does give the
-//   original's `test / jne LOOP / call / jmp JOIN` shape, but MSVC then sinks
-//   the whole loop out of line (to 0x44ae58) instead of placing it just after
-//   the call, and drops the `mov ebx,[esp+0x18] / mov ebp,[esp+0x14]` pair at
-//   the loop exit, for 69.0%. Keeping `!= 0` costs only the two-instruction
-//   hunk, so it stays.
-// - `(r != 0) ? 4 : 0` at 0x44af80 compiles to neg/sbb/and; the original has
-//   `test al,al / setne bl / and ebx,1 / shl ebx,2 / or edx,ebx`. A
-//   `unsigned int bits; if (r) bits=1; else bits=0; bits<<=2;` self-correction
-//   gives neg/sbb/neg/shl (2220 bytes, 74.4), `bits = (r != 0) & 1;
-//   bits <<= 2;` gives neg/sbb/neg/and/shl (no setne), and a
-//   `bool flag = (r != 0); ... ((unsigned)flag << 2)` gives neg/sbb/neg/movzx
-//   (2224, 74.3). None reach setne. `r` must stay unsigned char (FUN_0041d6a0
-//   returns it in al); if it is widened to int the `test al,al` is lost.
-// - In the LOGO block the original computes the pair (left,right) as
-//   `[esp+0x38]` into eax and `[esp+0x40]` into edx; ours has them swapped.
-// - Tried and did NOT work (do not repeat): spelling
-//   `g_game->gui.table->entries` inline at the MAXUNITS/METAL/ENERGY call
-//   sites (73.6), dropping the `u2` local for inline
-//   `g_game->players[b2].data` (72.0), both together (67.3). The original
-//   really does reload those after every call, but forcing the reload by
-//   spelling the expression out adds instructions and demotes `entries` out
-//   of ebx.
-// Suspected original bug: the reindex loop after each swap runs
-// `off <= 0xcee` (11 iterations at stride 0x14b), so it reads and writes
-// g_game+0x1ca9 one element past the 10-entry player array (players[] runs
-// g_game+0x1b63 to g_game+0x2851, so +0x1ca9 with off=0xcee is
-// g_game+0x2918). The reader of that byte, 0x44a7f2's loop bound
-// `lea ebp,[edx+0x1cae]`, stops one element short, so the 11th write is dead.

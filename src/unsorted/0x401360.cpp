@@ -1,210 +1,46 @@
-// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, matched by Claude Opus 5.5. Names are provisional.
 // Per-tick economy update for one player: every unit's energy/metal use and
 // production is summed, the player's totals and storage are updated, and the
 // share of the demand that could be met is fed back into every account.
 //
-// Partial, 89.2% (2245 of 2239 bytes; 99.7% ignoring moved jump targets; was
-// 89.0%, 88.1%, before that 77.2%).
-//
-// Opus pass on 2026-10-04, fifth (no gain; the last difference is now fully
-// traced, and one scratch source matches with one C2 pass switched off).
-// How C2 handles jumps after code generation: FUN_0042d635 runs the walker
-// FUN_0042d2aa up to 16 times. It goes through the tuples in order. At a
-// label it cross-jumps (FUN_00432f03) unless a plain jmp comes just before
-// the label. For a plain jmp it calls FUN_0040d834 (drops dead code after the
-// jmp), FUN_0040db59 (deletes a jump to the next tuple), FUN_004363c0 and
-// FUN_004364af. FUN_004363c0 merges the code before the jmp with the code that
-// falls into its target, with no size limit, and retargets the jmp to the
-// first label after the point where the two stop matching (FUN_00443b52
-// reuses that label). For a jcc, FUN_0040db95 folds `jcc L; jmp X; L:` into
-// `jncc X`. The fold fails if a label sits between the jcc and the jmp.
-// FUN_00432f03 takes the first live jump in the label's list as the pivot and
-// tries each later jump against it with FUN_00446590. The jump at the lower
-// position is the one replaced. FUN_00446590 walks backwards through labels
-// (it moves the replaced side's labels after the kept side's tuple) and
-// through plain jumps. It merges when a plain jmp comes before the replaced
-// run, or when that run (its jump included) is over 20 bytes.
-// What happens to tidal now: at the join in sweep 1, T0 (case 0) is the
-// pivot. T1 merges its tail into T0, T0 into E1 and E1 into E0. With
-// AddIncomeD, sweep 2 merges tidal's default block into En (FUN_004363c0,
-// once En falls into the shared pop). FUN_0040db95 then folds the dispatch
-// to `jne En`, and T0's FUN_004363c0 swallows T1 into `jmp E1`. FUN_0042f060
-// then copies E1 (11 bytes) over that jmp. With AddIncomeD3 the block-level
-// fold FUN_0040872b turns `je T1; jmp Tn; T1:` into `jne Tn` before any of
-// this. Either way tidal ends as `jne En; fmul; jmp`.
-// Confirmed lead: T1 merges whole into E1 only if E1 meets T1 before T0
-// does. The else branch's case jumps reach the join around event 350 (label
-// merge); the then-branch's arrive later through the then-end label, with T0
-// ahead of T1. A scratch copy with tidal written inline and `goto done;` as
-// case 0's exit (build/scratch v3/gd0.cpp: AI test, switch with case 1 and
-// default `break`, else `*dst += v`) puts T0 at the tail of the list. T1
-// then merges whole into E1 in sweep 1 (89.2%, 99.8% shape). The merge runs
-// on through tidal's default block and dispatch, though, because those equal
-// the else's. With the else branch on AddIncomeD3 as well (gd0e3) tidal comes
-// out exactly as `je E0; dec; je E1; jmp En`. That file is byte-identical
-// (MATCH) when compiled with a copy of C2.EXE patched at 0x42f36c (jne to
-// jmp), passed to CL through /B2 next to a link to MSPDB50.DLL. Unpatched, the
-// second loop of FUN_0042f060 (0x42f339..0x42f3b6, FUN_00455729) moves the
-// else head after the epilogue (83.7%). It does that for a plain jmp
-// followed by a label when the tuple before the jmp's target is also a plain
-// jmp. Tidal's `jmp En` targets the first label after E0's `jmp join`,
-// because FUN_004363c0 made it. In the original, tidal's default jump must
-// therefore target a second label at En, one that came there on a block that
-// merged into En (like tidal's non-AI label). Every way tried to get that
-// (default `goto` into the non-AI code, the non-AI path first, a shared
-// default) brings back the dispatch fold (65.9% to 89.2%).
-//
-// Opus pass on 2026-10-04, third (89.0% to 89.2%): the else branch's region
-// is now byte-identical. UseEnergyD's positive arm converts the amount to a
-// double before the `used` add (`double a = v;`), adds `v` to `used` (the
-// `fld st(0); fadd [m]` copy form) and `(float)a` to `demand` (consuming).
-// Then C2 gives the backlog > 0 edge and the default/non-AI block one pop
-// block (En falls into `fstp st(0)`, as in the original). Measured rule: the
-// pop is shared unless the positive path both copies a float with
-// `fld st(0)` and consumes it in the demand add; a double-form `used` add
-// (`fld [m]; fadd st(1)`) or a non-consuming demand add also shares it, but
-// those change the positive path's bytes. Declaring `a` after the used add
-// scores the same; at the top of UseEnergyD it drops to 88.5%.
-// What is left (one difference, 6 bytes): tidal's dispatch is
-// `je E0; dec; jne En; fmul; jmp X` where the original has
-// `je E0; dec; je E1; jmp En`. The cause is the order of the join label's
-// jump list at cross-jump time (build/scratch c2t.py from the previous pass,
-// jorder.py): it is always T0, T1, then the then-branch's jumps, then the
-// else branch's E1, E0. T0 is the pivot, so T1's tail merges into T0's
-// first, then T0's into E1's, and T1 is left as its own `fmul; jmp` after a
-// conditional jump, where no whole-block merge is allowed. T0 and T1 head the
-// list because the first jump-threading pass (FUN_00436a06) collects the
-// then-branch's direct jumps to its end walking backwards, and the second
-// moves that list onto the join, reversing it; the else branch's case jumps
-// reach the join earlier through a label merge (from 0x43a587). To match,
-// the else's E0 (or E1) has to reach the join list after T0/T1, or T0 must
-// meet E0 before T1. Tried, all 89.2% or lower: tidal/wind/else helpers
-// in every D/D3/W/W3/D1 combination with and without the label, no label
-// (`if (ok)` nesting), do/while(0), for(;;) and switch(0) wrappers, nested
-// else, early `goto done` exits, the else branch first (80.2%), and a
-// function- or loop-scope `ok` assigned in both arms (89.1%: E0 then comes
-// before E1, T0 merges whole into E0, but tidal's whole dispatch then merges
-// into the else's).
-//
-// Opus pass on 2026-10-04 (88.1% to 89.0%). First (88.9%): the wind site now calls
-// AddIncomeW, which takes a double like AddIncomeD but adds the default and
-// non-AI amounts as `(float)v`. That keeps wind's own `fadd [m]; fstp [m]`
-// default blocks and lets wind's case blocks merge whole into the else
-// branch's, as in the original. C2's cross-jumper (FUN_00432f03, once per
-// label; FUN_00446590 merges a pair) compares tuples, not bytes, so the case
-// blocks of a float-parameter helper never merge with a double-parameter
-// helper's even though the code is identical. AddIncomeW can replace
-// AddIncome at every other site with the same bytes. What is left, found by
-// adding gdb hooks to a copy of tools/c2prio.py: 0x432f03 (ecx = label),
-// 0x446590 (ecx, edx = the two jumps; it reaches 0x446683 when it merges),
-// 0x40d397 (attaches a jump to a label) and 0x42f3aa (the block move in
-// FUN_0042f060). In a tuple, +8 is the kind (0x10 jmp, 0x19 label), +0x10
-// the line counted from the function's first line, and +0x12 its position.
-// - FUN_00432f03 pairs the first jump in the join label's predecessor list
-//   with each later one. A partial merge needs more than 20 bytes, the jump
-//   included. A merge that covers a whole block (an unconditional jump
-//   before it) needs no minimum. The list is LIFO (FUN_0040d397 prepends) and
-//   is built before register allocation.
-// - Here the order is En(else non-AI), T0, T1, Td, ..., Ed, E1, E0, Tn, Ep.
-//   Td and then Ed merge into En. Then Tn matches 22 instructions backwards:
-//   tidal's whole default/case/dispatch region against the else's. That is
-//   the merged tidal dispatch. Without the `done:` label the order has Tn
-//   before Ed: the match stops after 16 instructions and gives the original's
-//   tidal (cases and default merged, dispatch kept). But then FUN_0042f060
-//   (block placement) moves En up behind tidal's `jmp En`, because the block
-//   before En ends in a jump, and the else branch ends up after the epilogue
-//   (81.9%). An unreferenced label at the join keeps the else in place too
-//   (88.9%, same bytes), but an empty statement, block or do/while does not.
-// - Then (89.0%): tidal calls AddIncomeD3, with no `default:` case (the
-//   switch falls out to the shared `*dst += v`). Tidal's dispatch is no
-//   longer merged into the else's. But tidal's c1 is now a `fmul; jmp X`
-//   block after its dispatch (`jne En`), where the original has
-//   `je E1; jmp En`. That costs 10 bytes. The same change for the else
-//   branch moves it after the epilogue (81.9%), and for energyMake it changes
-//   nothing.
-// - The else branch's default still keeps its own `fstp st(0); jmp` instead
-//   of falling into the pop it shares with the backlog > 0 path. That pop
-//   block comes after En, and only a whole-block merge into En's tail
-//   (POP before En at cross-jump time) would give the original's shape.
-// Tried without effect here: case order, nonAI-first and nested AI tests
-// (all canonicalised), break/else helpers (72%), goto/labels in the then or
-// else arms, block-scoped and value spellings of UseEnergyD, /Gi (69.8%).
-//
-// Opus pass on 2026-10-04 (no gain, about 2,000 variants scored):
-// - Tuple-level view: hook FUN_00432f03 and walk C2's tuple list (+0 next,
-//   +0xc prev, +4 opcode: 0x10 jmp, 0xf jcc, 0x60 fld, 0x63 fstp; +8 kind;
-//   +0x10 line; +0x12 position). FUN_00446590(ecx = a, edx = b) keeps b and
-//   replaces a's matched tail with a jump into b; the 20-byte minimum is
-//   waived when the tuple before a's matched run is an unconditional jump.
-// - The backlog > 0 pop is a block made by C2's edge splitter (0x440885; it
-//   retargets the jcc through FUN_0040d3bc from 0x44096c) just before the
-//   join, after En already ends in its own pop. En's `jmp` is created then,
-//   which is why En heads the join's list.
-// - The pop is shared (En falls into it, as in the original) only when the
-//   demand add is non-consuming too: a `double v` with `*used += v;
-//   if (backlog <= 0) demand += v;` in place (wrong positive path). A double v
-//   with `(float)v` casts gives the original positive path exactly except
-//   `fcom qword`, but the pop is separate again. Separate locals, scopes
-//   (block, loop, function), in-place negation, CSE of def->energyUse and
-//   every spelling of the default add keep it separate: a float value's last
-//   add always consumes it, a double one never does.
-// - Per-branch exits (the lever that matched 0x4dea00 and 0x40e630) change
-//   nothing: `goto done` at arm ends, in each AddIncome case or in the demand
-//   path is threaded away before the merge. In-place AI blocks in the
-//   0x4237d0 style (float or double local) give exactly the helpers' code.
-// - With AddIncomeD for tidal and no label the merges give the original's
-//   tidal (Td, then Tn before Ed); block placement then moves En because it
-//   ends in a jump. If En fell into the shared pop it could not move, so both
-//   differences probably come from how the original reaches the join with
-//   the dead value still on the x87 stack.
-//
-// What got it to 88.1% (earlier passes):
+// MATCH (Claude Opus 5.5, #5604). The last difference was tidal's AI
+// dispatch (`je E0; dec; je E1; jmp En` in the original, where the case 1
+// block is merged whole into the else branch's E1). What gave it:
+//  - Tidal and the else branch's income add (UseEnergyD's negative arm) go
+//    through AddIncomeDB, the AI scaling written as in the matched 0x4237d0:
+//    `if (AI) switch { case ...: ...; break; default: ...; break; } else
+//    *dst += v;` with a double amount. With the return form (AddIncomeD) or
+//    the form without a default case for either one, tidal's case 1 block
+//    keeps its own `fmul; jmp` and the dispatch folds to `jne En`.
+//  - <float.h> after <ddraw.h>. Without it the then-branch UseEnergy's x87
+//    code switches to the keep-and-pop form (98.0%) or the whole layout
+//    changes (84.4%); <time.h> or <malloc.h> there match as well, <math.h>,
+//    <stdlib.h> or <windows.h> do not. So the file's symbol count decides it.
+//  - The `goto done` exits and the label the 89.2% version needed are gone:
+//    `if (ok) AddIncome(...)` gives the same bytes now.
+// Earlier findings that still hold:
 // - The accumulators are separate float[2] arrays, not one struct: with one
 //   aggregate MSVC strength-reduces the normalisation loop to a pointer and a
 //   countdown, the original keeps `i * 4` in ecx ([esp+ecx+N]). The frame
-//   order then comes out right only with two arrays split off into their own
-//   variables: `avail` (production plus stock, shares produced's slot) and
-//   `demandRatio` (shares used's slot). c2prio --frame: used 14, backlog 13,
-//   demand 13, produced 12 (+avail 9), ratio 6.
+//   order comes out right only with `avail` (production plus stock) and
+//   `demandRatio` split off into their own arrays.
 // - `avail[i] -= take; float left = avail[i];` keeps the remaining amount on
 //   the x87 stack for the second half of the loop, as the original does.
 // - The unit's resource account is a class at +0xbc whose owner pointer is at
 //   +0x30 (unit+0xec); 0x401180..0x4012a0 are its methods and 0x401320 is the
-//   end-of-tick update, all defined above without FUNCTION lines (each
-//   matches its own original in this file except 0x401320, 66.7%: the two
-//   products swap, which <stdlib.h> fixes in 0x401320.cpp but breaks here).
-//   The cost block is FUN_00401220 inlined.
-// - UseEnergy's positive arm is a helper taking the unit (a pointer argument
-//   gives a strength-reduced unit+0xc0 pointer) whose `used` store goes
-//   through a float* (otherwise the backlog compare is scheduled above it);
-//   the helper's return then comes out as `mov eax, 1; mov edx, eax`.
-// - Default and non-AI income adds: a float amount adds straight to the field
-//   (`fadd [m]`), a double one keeps the amount and pops it
-//   (`fld [m]; fadd st(1); fstp [m]; fstp st(0)`, as in 0x4237d0). The
-//   original has the second form for tidal, energyMake and the else-branch
-//   UseEnergy, the first everywhere else, hence AddIncomeD/UseEnergyD.
-// - With tidal and the else branch both on the double helper MSVC moves the
-//   whole else branch after the epilogue (81.6%) unless something ends the
-//   if/else chain with its own join: the `done:` label (or a
-//   `do { } while (0)` around the chain; `for`/`while` wrappers do not work).
-//
-// Differences at 88.1% (all tail merging in the wind/tidal/else-branch block;
-// the first is fixed above):
-// - wind's case blocks keep their own `fmul; jmp` where the original jumps
-//   straight into the else branch's;
-// - tidal's switch dispatch is merged into the else branch's, where the
-//   original keeps `je c0; dec; je c1; jmp K` (its own default block);
-// - the else branch's default add keeps its own `fstp st(0); jmp` where the
-//   original falls into the pop shared with the backlog > 0 path.
-// Tried without effect: header and declaration-count sweeps (windows-class
-// headers are best, flat otherwise), the helpers' parameter order, every
-// spelling of the gate, return and negation in UseEnergyD, case order and
-// break/else forms of AddIncomeD (the 0x4237d0 spelling drops to 71.6% by
-// flipping unrelated fadd operand orders), extra labels elsewhere, loop
-// wrappers around the function or the unit loop, and a 15-minute permuter run.
-// Without the label and with tidal/else on the float helper the same file is
-// 87.7% and still has the else branch in place.
+//   end-of-tick update, all defined above without FUNCTION lines. The cost
+//   block is FUN_00401220 inlined.
+// - UseEnergy's positive arm is a helper taking the unit whose `used` store
+//   goes through a float* (otherwise the backlog compare is scheduled above
+//   it). UseEnergyD's positive arm converts the amount to a double for the
+//   demand add, which shares the backlog > 0 pop with the default add.
+// - Income adds: a float amount adds straight to the field (`fadd [m]`), a
+//   double one keeps the amount and pops it (`fld [m]; fadd st(1); fstp [m];
+//   fstp st(0)`). Wind's AddIncomeW takes a double but adds `(float)v` in its
+//   default and non-AI paths, so its case blocks merge into the else
+//   branch's (C2's cross-jumper compares tuples, not bytes).
 #include <ddraw.h>
+#include <float.h>
 struct Unit_00401360;
 struct Player_00401360;
 
@@ -422,20 +258,25 @@ static inline void AddIncomeD(Unit_00401360* u, float* dst, double v)
     *dst += v;
 }
 
-static inline void AddIncomeD3(Unit_00401360* u, float* dst, double v)
+// The 0x4237d0 layout (break and else) with a double amount: tidal and the
+// else branch (see the top).
+static inline void AddIncomeDB(Unit_00401360* u, float* dst, double v)
 {
     Player_00401360* o = u->econ.owner;
     if (o->active && o->type == 2) {
         switch (g_game->difficulty) {
         case 0:
             *dst += v * 0.5;
-            return;
+            break;
         case 1:
             *dst += v * 0.7;
-            return;
+            break;
+        default:
+            *dst += v;
+            break;
         }
-    }
-    *dst += v;
+    } else
+        *dst += v;
 }
 
 static inline void AddIncomeW(Unit_00401360* u, float* dst, double v)
@@ -476,7 +317,7 @@ static int UseEnergy(Unit_00401360* u, float v)
 }
 
 // The demand add goes through a double copy of the amount: it makes the
-// backlog > 0 pop shared with the default add's (see the top).
+// backlog > 0 pop shared with the default add's.
 static int UseEnergyD(Unit_00401360* u, float v)
 {
     if (v >= 0) {
@@ -488,7 +329,7 @@ static int UseEnergyD(Unit_00401360* u, float v)
         u->econ.res[0].demand += (float)a;
         return 1;
     }
-    AddIncomeD(u, &u->econ.res[0].produced, -v);
+    AddIncomeDB(u, &u->econ.res[0].produced, -v);
     return 0;
 }
 
@@ -522,24 +363,20 @@ void __stdcall FUN_00401360(Player_00401360* p)
             if (u->flags10e & 1) {
                 int ok = UseEnergy(u, u->def->energyUse);
                 if (u->def->extractsMetal > 0) {
-                    if (!ok)
-                        goto done;
-                    AddIncome(u, &u->econ.res[1].produced, u->extraction);
+                    if (ok)
+                        AddIncome(u, &u->econ.res[1].produced, u->extraction);
                 } else if (u->def->makesMetal) {
-                    if (!ok)
-                        goto done;
-                    AddIncome(u, &u->econ.res[1].produced, u->def->makesMetal);
+                    if (ok)
+                        AddIncome(u, &u->econ.res[1].produced, u->def->makesMetal);
                 } else if (u->def->windGenerator > 0) {
                     AddIncomeW(u, &u->econ.res[0].produced, g_game->wind * u->def->windGenerator);
                 } else if (u->def->tidalGenerator > 0) {
-                    AddIncomeD3(u, &u->econ.res[0].produced, g_game->tidal * u->def->tidalGenerator);
+                    AddIncomeDB(u, &u->econ.res[0].produced, g_game->tidal * u->def->tidalGenerator);
                 }
             }
         } else if ((u->flags10e & 1) || (u->flags & 0xc) > 0) {
             UseEnergyD(u, u->def->energyUse);
         }
-        // This label's join keeps the else branch in place (see the top).
-    done:
         if (u->buildLeft == 0) {
             AddIncomeD(u, &u->econ.res[0].produced, u->def->energyMake);
             AddIncome(u, &u->econ.res[1].produced, u->def->metalMake);

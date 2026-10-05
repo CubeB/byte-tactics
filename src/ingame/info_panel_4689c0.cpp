@@ -68,7 +68,7 @@ struct Game {
 extern Game* g_game;
 extern int DAT_0051e544;
 
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsKeyDown(int key);
 int GetMilliseconds();
 void __stdcall DrawFrame(void* dst, void* bmp, int x, int y);
@@ -86,25 +86,25 @@ void __stdcall FUN_004689c0(Surface* win)
         if (!IsKeyDown(0x20) || (g_game->team_index != -1 && ((unsigned char*)g_game->teams->data)[g_game->team_index * 347] == 3)) {
             if (v < 0) {
                 if (v == -31)
-                    FUN_0047f1a0("Panel", 0);
+                    PlaySoundByName("Panel", 0);
                 int q = (0 - v) / 3;
                 if (q <= 1)
                     q = 1;
                 v += q;
                 if (v == 0)
-                    FUN_0047f1a0("Options", 0);
+                    PlaySoundByName("Options", 0);
                 g_game->panel = v;
             }
         } else {
             if (v > -31) {
                 if (v == 0)
-                    FUN_0047f1a0("Panel", 0);
+                    PlaySoundByName("Panel", 0);
                 int q = (v + 31) / 3;
                 if (q <= 1)
                     q = 1;
                 v -= q;
                 if (v == -31)
-                    FUN_0047f1a0("Options", 0);
+                    PlaySoundByName("Options", 0);
             }
             g_game->panel = v;
         }

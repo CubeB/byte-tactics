@@ -17,12 +17,12 @@ public:
     char unknown_0[0x24];
     IDirectSound* field_24;                 // +0x24
 
-    IDirectSoundBuffer** FUN_004cf230(void* src, DWORD bytes,
+    IDirectSoundBuffer** CreateSampleFromMemory(void* src, DWORD bytes,
                                       int sampleRate, int bits, int channels);
 };
 
 // FUNCTION: 0x4cf230
-IDirectSoundBuffer** Class_004cf230::FUN_004cf230(void* src, DWORD bytes,
+IDirectSoundBuffer** Class_004cf230::CreateSampleFromMemory(void* src, DWORD bytes,
                                                   int sampleRate, int bits, int channels)
 {
     WAVEFORMATEX wfx;

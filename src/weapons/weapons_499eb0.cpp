@@ -81,7 +81,7 @@ void* __stdcall FUN_004815a0(Vec3_00499eb0* position);
 void __stdcall FUN_0041c640(int a, int b, int c);
 void __stdcall AddExplosionEffect(Vec3_00499eb0* position, void* value, int a, int b);
 void __stdcall EmitWhiteSmoke(Vec3_00499eb0* position, int value);
-void __stdcall FUN_0047f300(unsigned int sound, Vec3_00499eb0* position, int value);
+void __stdcall PlaySoundAt(unsigned int sound, Vec3_00499eb0* position, int value);
 int __stdcall ApplyWeaponDamage(Projectile_00499eb0* projectile, Unit* unit, float scale);
 void __stdcall ApplyAreaDamage(Projectile_00499eb0* projectile, Vec3_00499eb0* position);
 
@@ -113,10 +113,10 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
     }
     FUN_0041c640(type->field_cc, type->field_cc, type->field_d0);
     if (hostile && !unit) {
-        FUN_0047f300(type->sound2, position, 0);
+        PlaySoundAt(type->sound2, position, 0);
         AddExplosionEffect(position, type->field_7c, 0, hostile);
     } else {
-        FUN_0047f300(type->sound1, position, 0);
+        PlaySoundAt(type->sound1, position, 0);
         if (type->flags.bit10)
             EmitWhiteSmoke(position, 9);
         else

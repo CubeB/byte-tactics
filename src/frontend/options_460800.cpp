@@ -7,7 +7,7 @@ struct Gadget_00460800 {
 
 extern int DAT_00512ff8;
 
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall IsCurrentGadgetNamed(Gadget_00460800* gadget, char* name);
 void __stdcall CloseTopScreen(Gadget_00460800* gadget);
 void FUN_00460680();
@@ -18,7 +18,7 @@ void __stdcall FUN_004ab0a0(Gadget_00460800* gadget);
 void __stdcall FUN_00460800(Gadget_00460800* gadget)
 {
     if (gadget->field_60 != -1) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         if (IsCurrentGadgetNamed(gadget, "MAINMENU")) {
             DAT_00512ff8 = 0;
             CloseTopScreen(gadget);

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 // FUNCTION: 0x4ce530
-int __stdcall FUN_004ce530(int track)
+int __stdcall GetTrackLength(int track)
 {
     char buf[32];
     char cmd[64];

@@ -3,7 +3,7 @@
 #include <string.h>
 class Class_00435100 { public: int FUN_00435100(); };
 class Class_00435980 { public: int MissionExists(int); };
-class Class_004cfb40 { public: void FUN_004cfb40(); };
+class Class_004cfb40 { public: void StopStream(); };
 #pragma pack(push,1)
 struct Amount { int current,required; };
 struct Entry {
@@ -78,7 +78,7 @@ void __stdcall DrawOutlinedString(void*,const char*,int,int,int);
 void __stdcall FUN_0049fa50(Menu*);
 void __stdcall FUN_00491c80(int);
 void __stdcall FUN_004a0570(Menu*,const char*,int);
-void __stdcall FUN_0047f1a0(const char*,int);
+void __stdcall PlaySoundByName(const char*,int);
 void __stdcall SendPlayerEconomy(Player*,int,int);
 void FUN_004c2470();
 #define ENABLE_BARS(name) \
@@ -204,7 +204,7 @@ void __stdcall FUN_0041f7f0()
             if(g_game->deadline<GetTicks()) {
                 FUN_004c2340(event);
                 if(PopKey() || g_game->advance) {
-                    g_game->input->FUN_004cfb40();
+                    g_game->input->StopStream();
                     FUN_0041f0a0(); FUN_0041f400(); FUN_0041e420();
                     FUN_0049fad0(&g_game->menu); FUN_0049fa90(&g_game->menu);
                     g_game->state=7;
@@ -234,16 +234,16 @@ void __stdcall FUN_0041f7f0()
                 { ENABLE_BARS("EWasted") }
                 { ENABLE_BARS("MWasted") }
                 { ENABLE_BARS("Score") }
-                FUN_0047f1a0("ActivateAllStatBars",0);
+                PlaySoundByName("ActivateAllStatBars",0);
             }
             switch(g_game->bar) {
-            case 0: { ENABLE_BARS("Kills") } FUN_0047f1a0("EndGameStatBar",0); break;
-            case 1: { ENABLE_BARS("Losses") } FUN_0047f1a0("EndGameStatBar",0); break;
-            case 2: { ENABLE_BARS("EProduced") } FUN_0047f1a0("EndGameStatBar",0); break;
-            case 3: { ENABLE_BARS("MProduced") } FUN_0047f1a0("EndGameStatBar",0); break;
-            case 4: { ENABLE_BARS("EWasted") } FUN_0047f1a0("EndGameStatBar",0); break;
-            case 5: { ENABLE_BARS("MWasted") } FUN_0047f1a0("EndGameStatBar",0); break;
-            case 6: { ENABLE_BARS("Score") } FUN_0047f1a0("EndGameScore",0); break;
+            case 0: { ENABLE_BARS("Kills") } PlaySoundByName("EndGameStatBar",0); break;
+            case 1: { ENABLE_BARS("Losses") } PlaySoundByName("EndGameStatBar",0); break;
+            case 2: { ENABLE_BARS("EProduced") } PlaySoundByName("EndGameStatBar",0); break;
+            case 3: { ENABLE_BARS("MProduced") } PlaySoundByName("EndGameStatBar",0); break;
+            case 4: { ENABLE_BARS("EWasted") } PlaySoundByName("EndGameStatBar",0); break;
+            case 5: { ENABLE_BARS("MWasted") } PlaySoundByName("EndGameStatBar",0); break;
+            case 6: { ENABLE_BARS("Score") } PlaySoundByName("EndGameScore",0); break;
             }
             if(g_game->campaign->FUN_00435100()==3) {
                 Player* player=&g_game->players[g_game->localPlayer];

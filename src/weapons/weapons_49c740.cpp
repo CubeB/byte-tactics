@@ -93,7 +93,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall QueryWeaponPiece(Unit* unit, unsigned char weapon);
-void __stdcall FUN_0047f300(int sound, Vec3_0049c740* pos, int param_3);
+void __stdcall PlaySoundAt(int sound, Vec3_0049c740* pos, int param_3);
 
 // FUNCTION: 0x49c740
 void __stdcall InitProjectile(Proj_0049c740* proj, Shot_0049c740* shot, Vec3_0049c740* pos,
@@ -126,5 +126,5 @@ void __stdcall InitProjectile(Proj_0049c740* proj, Shot_0049c740* shot, Vec3_004
         proj->player = 0xa;
         proj->owner = 0;
     }
-    FUN_0047f300(shot->sound, pos, 0);
+    PlaySoundAt(shot->sound, pos, 0);
 }

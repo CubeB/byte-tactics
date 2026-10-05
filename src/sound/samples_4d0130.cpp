@@ -14,7 +14,7 @@ public:
     char unknown_24[0x284 - 0x24];
     int field_284;                     // +0x284
 
-    void FUN_004d0130();
+    void RestoreMixerVolumes();
 };
 
 static inline int ClampVolume(int v)
@@ -29,7 +29,7 @@ static inline int ClampVolume(int v)
 }
 
 // FUNCTION: 0x4d0130
-void Class_004d0130::FUN_004d0130()
+void Class_004d0130::RestoreMixerVolumes()
 {
     if (wave_volume >= 0) {
         int v = ClampVolume(wave_volume);

@@ -12,11 +12,11 @@
 
 class Class_004ce460 {
 public:
-    int FUN_004ce460();
+    int IsFirstTrackData();
 };
 
 // FUNCTION: 0x4ce460
-int Class_004ce460::FUN_004ce460()
+int Class_004ce460::IsFirstTrackData()
 {
     int type;
     char buf[32];

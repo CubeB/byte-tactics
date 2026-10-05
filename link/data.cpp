@@ -308,8 +308,8 @@ char DAT_0050a5c0[16] = "HAPIFILE array";  // 0x50a5c0 .data
 int g_emptyStringRefs = 1;  // 0x50a778 .data
 void* g_emptyString = 0;  // 0x50a77c .data
 int g_guaranteePackets = 1;  // 0x50a780 .data
-int DAT_0050b540 = -1;  // 0x50b540 .data
-int DAT_0050b544 = -1;  // 0x50b544 .data
+int g_cdNextTrackTimer = -1;  // 0x50b540 .data
+int g_cdFadeTimer = -1;  // 0x50b544 .data
 void* DAT_0050b9e0[7] = {(void*)"SQUASHERR_OK", (void*)"SQUASHERR_BADHEADER", (void*)"SQUASHERR_BADCHECKSUM", (void*)"SQUASHERR_BADUNPACKSIZE", (void*)"SQUASHERR_BADUNPACKTYPE", (void*)"SQUASHERR_BADPACKTYPESQUASHERR_BADPARAMS"};  // 0x50b9e0 .data
 char DAT_0050c8ac[8] = "Cavedog";  // 0x50c8ac .data
 // 0x50c908 .data
@@ -626,10 +626,10 @@ unsigned int DAT_0051e680;  // 0x51e680 .bss
 int DAT_0051e684;  // 0x51e684 .bss
 int DAT_0051e688;  // 0x51e688 .bss
 List_0047f8c0* DAT_0051e68c;  // 0x51e68c .bss
-int DAT_0051e690;  // 0x51e690 .bss
-int DAT_0051e694;  // 0x51e694 .bss
+int g_noDirectSound;  // 0x51e690 .bss
+int g_useWindowsSound;  // 0x51e694 .bss
 int DAT_0051e698;  // 0x51e698 .bss
-int DAT_0051e69c;  // 0x51e69c .bss
+int g_playLooping;  // 0x51e69c .bss
 unsigned char DAT_0051e6b0[12];  // 0x51e6b0 .bss
 unsigned char DAT_0051e6bc[4];  // 0x51e6bc .bss
 int DAT_0051e6c0;  // 0x51e6c0 .bss
@@ -663,7 +663,7 @@ unsigned char DAT_0051fb4c[4];  // 0x51fb4c .bss
 int DAT_0051fb90;  // 0x51fb90 .bss
 unsigned long DAT_0051fb94;  // 0x51fb94 .bss
 unsigned char DAT_0051fb98[4];  // 0x51fb98 .bss
-int* DAT_0051fba0;  // 0x51fba0 .bss
+int* g_diskWav;  // 0x51fba0 .bss
 Class_0051fba4* g_guiContext;  // 0x51fba4 .bss
 int DAT_0051fba8;  // 0x51fba8 .bss
 int DAT_0051fbac;  // 0x51fbac .bss
@@ -691,11 +691,11 @@ int DAT_0051ff00;  // 0x51ff00 .bss
 int DAT_0051ff04;  // 0x51ff04 .bss
 int DAT_0051ff08;  // 0x51ff08 .bss
 int g_enumSessionsResult;  // 0x51ff0c .bss
-int DAT_0051ff10;  // 0x51ff10 .bss
-void* DAT_0051ff18;  // 0x51ff18 .bss
+int g_cdFadeVolume;  // 0x51ff10 .bss
+void* g_cdPlayerWindow;  // 0x51ff18 .bss
 unsigned char DAT_0051ff1c[4];  // 0x51ff1c .bss
 int DAT_0051ff20[10];  // 0x51ff20 .bss
-int DAT_0051ff48;  // 0x51ff48 .bss
+int g_playBufferLooping;  // 0x51ff48 .bss
 unsigned char DAT_0051ff4c[12];  // 0x51ff4c .bss
 int DAT_0051ff58;  // 0x51ff58 .bss
 unsigned char DAT_0051ff5c[4];  // 0x51ff5c .bss

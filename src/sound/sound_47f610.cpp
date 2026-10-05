@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // Plays a sound by name: looks the name up (case-insensitively) in the
 // game's 32-byte sound name table and passes its index (0xffff when not
-// found) to FUN_0047f300.
+// found) to PlaySoundAt.
 
 extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 
@@ -16,7 +16,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f300(int index, int param_2, int param_3);
+void __stdcall PlaySoundAt(int index, int param_2, int param_3);
 
 static inline int FindSound(char* name)
 {
@@ -28,7 +28,7 @@ static inline int FindSound(char* name)
 }
 
 // FUNCTION: 0x47f610
-void __stdcall FUN_0047f610(char* name, int param_2, int param_3)
+void __stdcall PlaySoundAtByName(char* name, int param_2, int param_3)
 {
-    FUN_0047f300(FindSound(name), param_2, param_3);
+    PlaySoundAt(FindSound(name), param_2, param_3);
 }

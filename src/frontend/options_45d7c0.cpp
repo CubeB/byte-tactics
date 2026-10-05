@@ -10,7 +10,7 @@ public:
 
 class Class_004ce7c0 {
 public:
-    void FUN_004ce7c0(int index, unsigned char value);
+    void SetCategoryOfTrack(int index, unsigned char value);
 };
 
 #pragma pack(push, 1)
@@ -120,7 +120,7 @@ void FUN_0045d7c0()
     Gadget_0045d7c0* gadgets = g_game->holder->gadgets;
     if (g_game->state == 4) {
         int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);
-        g_game->sound->FUN_004ce7c0(DAT_00512fe0, gadgets[index].value);
+        g_game->sound->SetCategoryOfTrack(DAT_00512fe0, gadgets[index].value);
     }
     FUN_0049fa90(g_game->menu);
     FUN_0049fb10(g_game->menu, 1);

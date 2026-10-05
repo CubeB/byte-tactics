@@ -23,12 +23,12 @@ public:
     char unknown_1fc[0x288 - 0x1fc];
     int handle;                             // +0x288
 
-    void FUN_004cfbc0();
-    void FUN_004cfca0();
+    void UpdateStream();
+    void FillStreamHalf();
 };
 
 // FUNCTION: 0x4cfbc0
-void Class_004cfb40::FUN_004cfbc0()
+void Class_004cfb40::UpdateStream()
 {
     unsigned long play;
     unsigned long write;
@@ -65,11 +65,11 @@ void Class_004cfb40::FUN_004cfbc0()
         if (play >= size) {
             return;
         }
-        FUN_004cfca0();
+        FillStreamHalf();
     } else {
         if (play < size) {
             return;
         }
-        FUN_004cfca0();
+        FillStreamHalf();
     }
 }

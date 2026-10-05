@@ -54,7 +54,7 @@ public:
 #pragma pack(pop)
 
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 
 static inline Point WorldToCell(Vec3 v, Point origin)
@@ -95,7 +95,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
             order->flags = 0xe8;
             return 1;
         }
-        FUN_0047f780(unit, 7, "Unable to unload unit");
+        QueueUnitSpeech(unit, 7, "Unable to unload unit");
         return 9;
     }
     case 2: {
@@ -103,7 +103,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
             return 9;
         Unit* cargo = order->target.owner;
         if (!FUN_0047db70(cargo->def, 0, WorldToCell(order->pos, cargo->footprint), 1)) {
-            FUN_0047f780(unit, 7, "Unable to unload unit");
+            QueueUnitSpeech(unit, 7, "Unable to unload unit");
             return 9;
         }
         unit->script->StartScript("EndTransport", 0, 0);
@@ -115,7 +115,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 3:
-        FUN_0047f780(unit, 0xd, 0);
+        QueueUnitSpeech(unit, 0xd, 0);
         return 5;
     }
     return 7;

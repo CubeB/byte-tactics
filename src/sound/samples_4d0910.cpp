@@ -23,11 +23,11 @@ int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
 
 class Class_004d0910 {
 public:
-    int FUN_004d0910(void* file);
+    int FindDataChunkSize(void* file);
 };
 
 // FUNCTION: 0x4d0910
-int Class_004d0910::FUN_004d0910(void* file)
+int Class_004d0910::FindDataChunkSize(void* file)
 {
     char tag[4];
     unsigned int size;

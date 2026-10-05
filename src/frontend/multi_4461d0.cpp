@@ -68,7 +68,7 @@ extern Game* g_game;
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall IsCurrentGadgetNamed(Gui_004461d0* gui, char* name);
 Gadget_004461d0* __stdcall FindGadgetChecked(Gadget_004461d0* gadgets, char* name);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_004ab0a0(Gui_004461d0* gui);
 void SaveSettings(void);
 void BroadcastPlayerInfo(void);
@@ -98,12 +98,12 @@ void __stdcall FUN_004461d0(Gui_004461d0* gui)
         return;
     }
     if (IsCurrentGadgetNamed(gui, "CANCEL")) {
-        FUN_0047f1a0("Exit", 0);
+        PlaySoundByName("Exit", 0);
         SaveSettings();
         return;
     }
     if (IsCurrentGadgetNamed(gui, "OK")) {
-        FUN_0047f1a0("SMLBUTTON", 0);
+        PlaySoundByName("SMLBUTTON", 0);
         SaveSettings();
         return;
     }

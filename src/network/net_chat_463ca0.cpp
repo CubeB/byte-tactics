@@ -31,7 +31,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsScreenNamed(void* obj, const char* name);
 void __stdcall FUN_0049fa90(void* obj);
 void __stdcall FUN_0049fad0(void* obj);
@@ -59,7 +59,7 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
     if (g_game->tail == 30)
         g_game->tail = 0;
     if (last != '\n')
-        FUN_0047f1a0("MessageArrived", 0);
+        PlaySoundByName("MessageArrived", 0);
     if (IsScreenNamed((char*)g_game + 0x519, "TIMEOUT.GUI")) {
         FUN_0049fa90((char*)g_game + 0x519);
         FUN_0049fad0((char*)g_game + 0x519);

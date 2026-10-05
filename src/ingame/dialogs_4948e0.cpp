@@ -100,7 +100,7 @@ extern int DAT_0051f2f4;
 
 unsigned int GetTicks();
 int GetScreenWidth();
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsKeyDown(int key);
 void __stdcall FadeRectangle(void* surface, Rect_004948e0* rect, int level);
 void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
@@ -130,25 +130,25 @@ void __stdcall FUN_004948e0(void* surface)
         if (DAT_0051f2d8 <= 0)
             return;
         if (DAT_0051f2d8 == 0x7d)
-            FUN_0047f1a0("Panel", 0);
+            PlaySoundByName("Panel", 0);
         int q = DAT_0051f2d8 / 4;
         if (q <= 1)
             q = 1;
         DAT_0051f2d8 -= q;
         if (DAT_0051f2d8 <= 0) {
             DAT_0051f2d8 = 0;
-            FUN_0047f1a0("Options", 0);
+            PlaySoundByName("Options", 0);
         }
     } else if (DAT_0051f2d8 < 0x7d) {
         if (DAT_0051f2d8 == 0)
-            FUN_0047f1a0("Panel", DAT_0051f2d8);
+            PlaySoundByName("Panel", DAT_0051f2d8);
         int q = (0x7d - DAT_0051f2d8) / 4;
         if (q <= 1)
             q = 1;
         DAT_0051f2d8 += q;
         if (DAT_0051f2d8 >= 0x7d) {
             DAT_0051f2d8 = 0x7d;
-            FUN_0047f1a0("Options", 0);
+            PlaySoundByName("Options", 0);
         }
     }
 

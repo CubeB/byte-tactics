@@ -2,12 +2,12 @@
 
 class Class_004ce680 {
 public:
-    int FUN_004ce680();
+    int GetTrackCategory();
 };
 
 class Class_004ce690 {
 public:
-    void FUN_004ce690(int param_1);
+    void SetTrackCategory(int param_1);
 };
 
 #pragma pack(push, 1)
@@ -79,7 +79,7 @@ void FUN_00494e70()
     if ((g_game->flags_2a44 & 4)
         && (!(g_game->netFlags & 1) || (g_game->netFlags & 2))
         && GetTicks() > DAT_0051f2f8 + 0x1e) {
-        int state = g_game->field_10->FUN_004ce680();
+        int state = g_game->field_10->GetTrackCategory();
         if (++DAT_0051f2fc > 10) {
             int recent = 0;
             int n = 5;
@@ -109,7 +109,7 @@ void FUN_00494e70()
             else if (state == 1 && total < 10 && recent == 0 && DAT_0051f2fc > 0x3c)
                 newstate = 0;
             if (newstate != DAT_005091d0) {
-                ((Class_004ce690*)g_game->field_10)->FUN_004ce690(newstate);
+                ((Class_004ce690*)g_game->field_10)->SetTrackCategory(newstate);
                 DAT_0051f2fc = 0;
                 DAT_005091d0 = newstate;
             }

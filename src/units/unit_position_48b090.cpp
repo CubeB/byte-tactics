@@ -415,7 +415,7 @@ public:
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0047f780(Class_0048b090* unit, int kind, char* text);
+void __stdcall QueueUnitSpeech(Class_0048b090* unit, int kind, char* text);
 void __stdcall FUN_0041c110(Class_0048b090* unit);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 
@@ -452,25 +452,25 @@ void Class_0048b090::SetStateBits(int mask, int set)
             lost = (unsigned char)newLost;
             if (gained & 1) {
                 vars->StartScript("Activate", 0, 0);
-                FUN_0047f780(this, 3, 0);
+                QueueUnitSpeech(this, 3, 0);
             }
             if (lost & 1) {
                 vars->StartScript("Deactivate", 0, 0);
-                FUN_0047f780(this, 4, 0);
+                QueueUnitSpeech(this, 4, 0);
             }
             if (gained & 8)
                 vars->StartScript("StartBuilding", 0, 0);
             if (lost & 8)
                 vars->StartScript("StopBuilding", 0, 0);
             if (gained & 4) {
-                FUN_0047f780(this, 0xe, 0);
+                QueueUnitSpeech(this, 0xe, 0);
                 for (link = head; link; link = link->next) {
                     if (link->value)
                         link->value->FUN_0043a1e0(0x10000);
                 }
             }
             if (lost & 4)
-                FUN_0047f780(this, 0xf, 0);
+                QueueUnitSpeech(this, 0xf, 0);
             FUN_0041c110(this);
             if (player->active != 0) {
                 if (player->kind == 1 || player->kind == 2) {

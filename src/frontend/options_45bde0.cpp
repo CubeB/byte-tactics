@@ -4,12 +4,12 @@
 
 class Class_004d0070 {
 public:
-    void FUN_004d0070(int level);
+    void SetWaveVolume(int level);
 };
 
 class Class_004d00d0 {
 public:
-    void FUN_004d00d0(int level, int flag);
+    void SetAuxVolume(int level, int flag);
 };
 
 #pragma pack(push, 1)
@@ -56,8 +56,8 @@ static inline int SliderValue(Entry_4a0200* e)
 static inline void ApplySound()
 {
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-    ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
-    ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
+    ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
+    ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
 }
 
 // FUNCTION: 0x45bde0

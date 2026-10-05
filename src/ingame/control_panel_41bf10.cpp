@@ -28,7 +28,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 
 // The 3-bit page field (bits 23-25) is set from stats->field_22e, or stepped
 // down with wraparound when it is already past the first page.
@@ -79,5 +79,5 @@ void __stdcall FUN_0041bf10(int param_1)
     g_game->field_37ebe |= 0x10;
 
 nextbuild:
-    FUN_0047f1a0("nextbuildmenu", 0);
+    PlaySoundByName("nextbuildmenu", 0);
 }

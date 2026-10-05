@@ -99,7 +99,7 @@ extern int DAT_0051e710[30];
 
 void FUN_00463c80();
 void FUN_004679a0();
-void FUN_0047ee30();
+void ResetSpeech();
 void LoadTextureGafs();
 void FUN_004222e0();
 void InitUnitCategories();
@@ -142,7 +142,7 @@ void FUN_004917d0()
     g_game->bit7_37f2f = 0;
     g_game->bit8_37f2f = 0;
     FUN_004679a0();
-    FUN_0047ee30();
+    ResetSpeech();
     LoadTextureGafs();
     FUN_004222e0();
     InitUnitCategories();

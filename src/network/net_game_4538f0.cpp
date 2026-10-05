@@ -46,7 +46,7 @@ extern void* g_loungeChatter;
 extern int g_timeoutPlayerDpid;
 extern char DAT_005119b8[];
 
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall IsCurrentGadgetNamed(Gadget_004538f0* gadget, char* name);
 Entry_004538f0* __stdcall FUN_004a0010(Entry_004538f0* entries, char* name);
@@ -63,7 +63,7 @@ void __stdcall HandleTimeoutDialog(Gadget_004538f0* gadget)
     Entry_004538f0* entries = gadget->layer->entries;
 
     if (gadget->field_60 == -1) {
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         if (g_loungeChatter)
             FUN_004d85a0(g_loungeChatter);
         g_loungeChatter = 0;

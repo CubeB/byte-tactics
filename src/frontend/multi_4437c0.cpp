@@ -102,7 +102,7 @@ extern int DAT_00512c84;
 int __stdcall FindGadgetIndex(Entry_004437c0* entries, const char* name, int type);
 Entry_004437c0* __stdcall FindGadgetChecked(Entry_004437c0* entries, const char* name);
 char* __stdcall FUN_004a0010(Entry_004437c0* entries, const char* name);
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall FUN_00441460(void* holder);
 void __stdcall FUN_0049fa90(Sub_004437c0* sub);
 void __stdcall FUN_004ab0a0(Sub_004437c0* sub);
@@ -150,7 +150,7 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
             cur = g_game->cur_conn;
             strcpy((char*)g_game->players[cur].data + 0x80, pass + 0xb6);
         }
-        FUN_0047f1a0("Multi", 0);
+        PlaySoundByName("Multi", 0);
         FUN_00441460(param_1->holder);
         FUN_0049fa90(param_1);
         FUN_004ab0a0(param_1);
@@ -159,7 +159,7 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
 
     if (FindGadgetIndex(entries, "PREVMENU", 0xe) == param_1->field_60) {
         g_game->field_2bc0 = 3;
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         return;
     }
 
@@ -180,7 +180,7 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
 
         if (ver <= (int)g_game->version && ver >= (int)g_game->version) {
             if ((flags & 0x8000) != 0 || (flags & 0x10) != 0) {
-                FUN_0047f1a0("Previous", 0);
+                PlaySoundByName("Previous", 0);
                 FUN_004ab0a0(param_1);
                 return;
             }
@@ -202,13 +202,13 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
             if (IsCurrentGadgetNamed(param_1, "WATCH")) {
                 cur = g_game->cur_conn;
                 *(unsigned short*)((char*)g_game->players[cur].data + 0x9b) |= 0x40;
-                FUN_0047f1a0("Multi", 0);
+                PlaySoundByName("Multi", 0);
                 g_game->field_2bc0 = 0x13;
                 return;
             }
             cur = g_game->cur_conn;
             *(unsigned short*)((char*)g_game->players[cur].data + 0x9b) &= 0xffbf;
-            FUN_0047f1a0("BigButton", 0);
+            PlaySoundByName("BigButton", 0);
             g_game->field_2bc0 = 0x12;
             return;
         }
@@ -217,7 +217,7 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
 startnew:
         cur = g_game->cur_conn;
         *(unsigned short*)((char*)g_game->players[cur].data + 0x9b) &= 0xffbf;
-        FUN_0047f1a0("BigButton", 0);
+        PlaySoundByName("BigButton", 0);
         GetGadgetText(param_1, "NICKNAME", g_game->nickname);
         FUN_004257a0();
         CloseTopScreen(param_1);

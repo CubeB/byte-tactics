@@ -44,42 +44,42 @@ public:
 
 class Class_004ce680 {
 public:
-    int FUN_004ce680();
+    int GetTrackCategory();
 };
 
 class Class_004ce410 {
 public:
-    void FUN_004ce410();
+    void CloseCdAudio();
 };
 
 class Class_004ce260 {
 public:
-    void FUN_004ce260();
+    void OpenCdAudio();
 };
 
 class Class_004cd9d0 {
 public:
-    void FUN_004cd9d0(void (*param_1)());
+    void SetCdCallback(void (*param_1)());
 };
 
 class Class_004cedc0 {
 public:
-    void FUN_004cedc0(int param_1);
+    void EnableCdAudio(int param_1);
 };
 
 class Class_004ce7a0 {
 public:
-    void FUN_004ce7a0(int param_1);
+    void SetPlaybackOrder(int param_1);
 };
 
 class Class_004ce690 {
 public:
-    void FUN_004ce690(int param_1);
+    void SetTrackCategory(int param_1);
 };
 
 class Class_004cf0b0 {
 public:
-    void FUN_004cf0b0();
+    void ReapFinishedBuffers();
 };
 
 #pragma pack(push, 1)
@@ -288,16 +288,16 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         for (;;) {
             if (DAT_0051f320.field_e0 == lzero && *(int*)g_game->field_10 != 0) {
                 SaveCdLists();
-                DAT_0051fb90 = ((Class_004ce680*)g_game->field_10)->FUN_004ce680();
-                ((Class_004ce410*)g_game->field_10)->FUN_004ce410();
+                DAT_0051fb90 = ((Class_004ce680*)g_game->field_10)->GetTrackCategory();
+                ((Class_004ce410*)g_game->field_10)->CloseCdAudio();
                 DAT_00509720 = 1;
             } else if (DAT_0051f320.field_e0 != lzero && *(int*)g_game->field_10 == 0
                        && DAT_00509720 != 0) {
-                ((Class_004ce260*)g_game->field_10)->FUN_004ce260();
-                ((Class_004cd9d0*)g_game->field_10)->FUN_004cd9d0(FUN_00490fe0);
-                ((Class_004cedc0*)g_game->field_10)->FUN_004cedc0(g_game->field_37f14 & 1);
-                ((Class_004ce7a0*)g_game->field_10)->FUN_004ce7a0(g_game->field_37f16);
-                ((Class_004ce690*)g_game->field_10)->FUN_004ce690(DAT_0051fb90);
+                ((Class_004ce260*)g_game->field_10)->OpenCdAudio();
+                ((Class_004cd9d0*)g_game->field_10)->SetCdCallback(FUN_00490fe0);
+                ((Class_004cedc0*)g_game->field_10)->EnableCdAudio(g_game->field_37f14 & 1);
+                ((Class_004ce7a0*)g_game->field_10)->SetPlaybackOrder(g_game->field_37f16);
+                ((Class_004ce690*)g_game->field_10)->SetTrackCategory(DAT_0051fb90);
                 FUN_00490fe0();
                 DAT_00509720 = 0;
             }
@@ -309,7 +309,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             {
                 DWORD tick = GetTickCount();
                 if ((int)(tick - DAT_0051fb94) >= 100) {
-                    ((Class_004cf0b0*)g_game->field_10)->FUN_004cf0b0();
+                    ((Class_004cf0b0*)g_game->field_10)->ReapFinishedBuffers();
                     DAT_0051fb94 = tick;
                 }
             }

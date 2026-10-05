@@ -1,10 +1,10 @@
 // Decompiled by Opus. Names are provisional.
 // When the game is in state 4, looks up the "TRACKTYPE" gadget in the menu
-// and passes its value byte on to FUN_004ce7c0.
+// and passes its value byte on to SetCategoryOfTrack.
 
 class Class_004ce7c0 {
 public:
-    void FUN_004ce7c0(int index, unsigned char value);
+    void SetCategoryOfTrack(int index, unsigned char value);
 };
 
 #pragma pack(push, 1)
@@ -40,6 +40,6 @@ void FUN_0045c510()
     Gadget_0045c510* gadgets = g_game->holder->gadgets;
     if (g_game->state == 4) {
         int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);
-        g_game->field_10->FUN_004ce7c0(DAT_00512fe0, gadgets[index].value);
+        g_game->field_10->SetCategoryOfTrack(DAT_00512fe0, gadgets[index].value);
     }
 }

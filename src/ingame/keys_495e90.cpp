@@ -166,7 +166,7 @@ int __stdcall FindGadgetIndexBySubstring(int handle, const char* text);
 void __stdcall FUN_004a6a40(Sub_495e90* gui, int handle);
 int __stdcall IsScreenNamed(Sub_495e90* gui, char* name);
 void SaveSettings(void);
-void __stdcall FUN_0047f1a0(const char* name, int param);
+void __stdcall PlaySoundByName(const char* name, int param);
 void FUN_00494050(void);
 void __stdcall FUN_0041bf10(int param);
 void __stdcall FUN_0041bde0(int param);
@@ -248,7 +248,7 @@ void FUN_00495e90(void)
     case 0xcc:
     case 0xcd:
         FUN_0048d920(event - 0xc4);
-        FUN_0047f1a0("CreateSquad", 0);
+        PlaySoundByName("CreateSquad", 0);
         break;
 
     case 0x31:
@@ -265,12 +265,12 @@ void FUN_00495e90(void)
                 FUN_0041c060(event - 0x31);
             } else {
                 FUN_0048d9a0(event - 0x30, key);
-                FUN_0047f1a0("SelectSquad", 0);
+                PlaySoundByName("SelectSquad", 0);
             }
         } else {
             if (IsKeyDown(0xfb) != 0) {
                 FUN_0048d9a0(event - 0x30, key);
-                FUN_0047f1a0("SelectSquad", 0);
+                PlaySoundByName("SelectSquad", 0);
             } else
                 FUN_0041c060(event - 0x31);
         }
@@ -280,7 +280,7 @@ void FUN_00495e90(void)
     case 0xd3:
     case 0xd4:
     case 0xd5:
-        FUN_0047f1a0("SelectSquad", 0);
+        PlaySoundByName("SelectSquad", 0);
         FUN_0041d3b0(event - 0xd2);
         break;
 
@@ -288,7 +288,7 @@ void FUN_00495e90(void)
     case 0xe7:
     case 0xe8:
     case 0xe9:
-        FUN_0047f1a0("SelectSquad", 0);
+        PlaySoundByName("SelectSquad", 0);
         FUN_0041d3f0(event - 0xe6);
         break;
 
@@ -494,7 +494,7 @@ void FUN_00495e90(void)
         break;
 
     case 0xd:
-        FUN_0047f1a0("SmallButton", 0);
+        PlaySoundByName("SmallButton", 0);
         FUN_00494050();
         break;
 

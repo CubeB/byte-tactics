@@ -14,7 +14,7 @@ struct Gadget_004605c0 {
 
 class Class_004ce690 {
 public:
-    void FUN_004ce690(int);
+    void SetTrackCategory(int);
 };
 
 #pragma pack(push, 1)
@@ -30,7 +30,7 @@ struct Game {
 extern Game* g_game;
 extern int DAT_00512ff8;
 
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall IsGadgetNamed(int param1, int param2, char* name);
 void __stdcall FUN_004ab0a0(Gadget_004605c0* gadget);
 void FUN_00491b60();
@@ -46,9 +46,9 @@ void __stdcall FUN_004605c0(Gadget_004605c0* gadget)
     int owner = gadget->owner->field_4;
     if (gadget->field_60 == -1)
         return;
-    FUN_0047f1a0("Exit", 0);
+    PlaySoundByName("Exit", 0);
     if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
-        g_game->field_10->FUN_004ce690(4);
+        g_game->field_10->SetTrackCategory(4);
         switch (DAT_00512ff8) {
         case 0:
         case 1:

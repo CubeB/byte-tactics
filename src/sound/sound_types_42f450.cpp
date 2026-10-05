@@ -18,7 +18,7 @@ extern char DAT_00504314[];
 int __cdecl FUN_004d84a0(int param_1, char* param_2, int param_3);
 
 // FUNCTION: 0x42f450
-int __stdcall FUN_0042f450(Source_0042f450* param_1, char* param_2, int* param_3)
+int __stdcall ReadSoundEntry(Source_0042f450* param_1, char* param_2, int* param_3)
 {
     char local_180[0x40];
     char local_140[0x40];

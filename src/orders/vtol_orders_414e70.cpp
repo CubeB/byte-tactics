@@ -99,7 +99,7 @@ public:
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, const char* text);
 int __stdcall FUN_0041bd10(Unit* builder, Unit* unit, float amount);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
@@ -132,13 +132,13 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
 {
     if (!order->target) {
-        FUN_0047f780(unit, 7, "Repairs unsuccessful.");
+        QueueUnitSpeech(unit, 7, "Repairs unsuccessful.");
         return 8;
     }
     if (order->range && (int)_hypot(unit->fixedPos.x - order->start.x, unit->fixedPos.z - order->start.z) >= order->range)
         return 5;
     if (order->target->bits.mode != 1) {
-        FUN_0047f780(unit, 7, "Repairs unsuccessful.");
+        QueueUnitSpeech(unit, 7, "Repairs unsuccessful.");
         return 5;
     }
     Vec3* dst = &order->pos;
@@ -147,7 +147,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->active && (unit->type->flags & 0x800)) {
             if (!((Class_004899b0*)unit)->CanRepair(order->target)) {
-                FUN_0047f780(unit, 7, "Repair mission failed");
+                QueueUnitSpeech(unit, 7, "Repair mission failed");
                 return 8;
             }
             ((Class_00438880*)order)->FUN_00438880("Repairing");
@@ -191,7 +191,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
         order->flags |= 8;
         return 2;
     case 3:
-        FUN_0047f780(unit, 10, "Unit repaired");
+        QueueUnitSpeech(unit, 10, "Unit repaired");
         return 5;
     }
     return 7;

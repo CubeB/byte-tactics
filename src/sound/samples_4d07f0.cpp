@@ -27,11 +27,11 @@ int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
 
 class Class_004d07f0 {
 public:
-    int FUN_004d07f0(void* file, int* sampleRate, int* bitsPerSample, int* channels);
+    int ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSample, int* channels);
 };
 
 // FUNCTION: 0x4d07f0
-int Class_004d07f0::FUN_004d07f0(void* file, int* sampleRate, int* bitsPerSample, int* channels)
+int Class_004d07f0::ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSample, int* channels)
 {
     unsigned int total;
     char tag[4];

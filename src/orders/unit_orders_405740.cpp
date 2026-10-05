@@ -27,7 +27,7 @@ struct Order {
 struct Game { char pad0[0x38a47]; int tick; };
 #pragma pack(pop)
 extern Game* g_game;
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 int __stdcall FUN_0041bd10(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
@@ -36,7 +36,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
 {
     Unit* target = order->target.Get();
     if (!target) {
-        FUN_0047f780(unit, 7, "Repairs unsuccessful.");
+        QueueUnitSpeech(unit, 7, "Repairs unsuccessful.");
         return 5;
     }
     unsigned int state = 0;
@@ -73,7 +73,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
         return 2;
     }
     case 2:
-        FUN_0047f780(unit, 10, "Unit repaired");
+        QueueUnitSpeech(unit, 10, "Unit repaired");
         return 5;
     }
     return 7;

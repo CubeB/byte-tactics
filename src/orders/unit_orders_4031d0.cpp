@@ -32,7 +32,7 @@ public:
     void FUN_00438930(int* pos, int param);
 };
 
-void __stdcall FUN_0047f780(UnitBody_004031d0* unit, int kind, char* text);
+void __stdcall QueueUnitSpeech(UnitBody_004031d0* unit, int kind, char* text);
 
 // FUNCTION: 0x4031d0
 int __stdcall MoveGroundOrder(UnitBody_004031d0* unit, Order* order, int flags)
@@ -47,7 +47,7 @@ int __stdcall MoveGroundOrder(UnitBody_004031d0* unit, Order* order, int flags)
         return 1;
     case 1:
         if (flags & 0x20) {
-            FUN_0047f780(unit, 6, 0);
+            QueueUnitSpeech(unit, 6, 0);
             return 5;
         }
         return 9;

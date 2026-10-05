@@ -18,12 +18,12 @@ public:
     char unknown_0[0x24];
     IDirectSound* field_24;                 // +0x24
 
-    IDirectSoundBuffer** FUN_004cf370(File_004bb5d0* file, DWORD bytes,
+    IDirectSoundBuffer** CreateSampleFromFile(File_004bb5d0* file, DWORD bytes,
                                       int sampleRate, int bits, int channels);
 };
 
 // FUNCTION: 0x4cf370
-IDirectSoundBuffer** Class_004cf370::FUN_004cf370(File_004bb5d0* file, DWORD bytes,
+IDirectSoundBuffer** Class_004cf370::CreateSampleFromFile(File_004bb5d0* file, DWORD bytes,
                                                   int sampleRate, int bits, int channels)
 {
     WAVEFORMATEX wfx;

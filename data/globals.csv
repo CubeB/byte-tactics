@@ -294,8 +294,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50a77c,g_emptyString,.data,4,type,data,void*,5,0,1,one type,5,,PTR_0050a77c,,,00000000
 0x50a780,g_guaranteePackets,.data,4,type,data,int,4,0,1,one type,4,,INT_0050a780,,,01000000
 0x50a788,DAT_0050a788,.data,16,type,data,const _GUID**,1,1,2,conflicting: array or pointer,2,0x10,PTR_DAT_0050a788,4,src/data/guids.cpp,c8cf4f00d8cf4f00e8cf4f00f8cf4f00
-0x50b540,DAT_0050b540,.data,4,type,data,int,8,0,1,one type,8,,INT_0050b540,,,ffffffff
-0x50b544,DAT_0050b544,.data,4,type,data,int,7,0,1,one type,7,,INT_0050b544,,,ffffffff
+0x50b540,g_cdNextTrackTimer,.data,4,type,data,int,8,0,1,one type,8,,INT_0050b540,,,ffffffff
+0x50b544,g_cdFadeTimer,.data,4,type,data,int,7,0,1,one type,7,,INT_0050b544,,,ffffffff
 0x50b6e0,DAT_0050b6e0,.data,4,type,data,WaveFormatName*,1,0,1,one type,1,,,,src/data/unused.cpp,01000000
 0x50b9e0,DAT_0050b9e0,.data,28,gap,data,void*[],1,0,1,one type,1,,PTR_s_SQUASHERR_OK_0050b9e0,6,,84ba500070ba500058ba500040ba500028ba5000fcb9500000000000
 0x50c8ac,DAT_0050c8ac,.data,8,gap,string,char[],1,0,1,one type,1,,s_Cavedog_0050c8ac,,,43617665646f6700
@@ -698,10 +698,10 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e684,DAT_0051e684,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051e684,,,
 0x51e688,DAT_0051e688,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051e688,,,
 0x51e68c,DAT_0051e68c,.bss,4,type,data,List_0047f8c0*,3,5,4,conflicting: struct names only,8,,DAT_0051e68c,,,
-0x51e690,DAT_0051e690,.bss,4,type,data,int,8,2,2,conflicting: shape,10,,DAT_0051e690,,,
-0x51e694,DAT_0051e694,.bss,4,type,data,int,9,1,2,conflicting: shape,10,,DAT_0051e694,,,
+0x51e690,g_noDirectSound,.bss,4,type,data,int,8,2,2,conflicting: shape,10,,DAT_0051e690,,,
+0x51e694,g_useWindowsSound,.bss,4,type,data,int,9,1,2,conflicting: shape,10,,DAT_0051e694,,,
 0x51e698,DAT_0051e698,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051e698,,,
-0x51e69c,DAT_0051e69c,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051e69c,,,
+0x51e69c,g_playLooping,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051e69c,,,
 0x51e6a0,DAT_0051e6a0,.bss,16,definition,data,char[],3,3,3,conflicting: shape,6,0xc,DAT_0051e6a0,,src/map/line_of_sight_4814c0.cpp,
 0x51e6b0,DAT_0051e6b0$S4554,.bss,12,gap,data,"std::vector<UnitCategory, std::allocator<UnitCategory> >",1,0,1,one type,1,0x8,DAT_0051e6b0,,,
 0x51e6bc,DAT_0051e6bc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,_DAT_0051e6bc,,,
@@ -751,8 +751,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51fb90,DAT_0051fb90,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051fb90,,,
 0x51fb94,DAT_0051fb94,.bss,4,type,data,unsigned long,1,0,1,one type,1,,ULONG_0051fb94,,,
 0x51fb98,DAT_0051fb98,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x51fb9c,DAT_0051fb9c,.bss,4,type,data,int,1,2,3,conflicting: shape,3,,DAT_0051fb9c,,,
-0x51fba0,DAT_0051fba0,.bss,4,type,data,int*,2,0,1,one type,2,,PTR_0051fba0,,,
+0x51fb9c,g_loopingWav,.bss,4,type,data,int,1,2,3,conflicting: shape,3,,DAT_0051fb9c,,,
+0x51fba0,g_diskWav,.bss,4,type,data,int*,2,0,1,one type,2,,PTR_0051fba0,,,
 0x51fba4,g_guiContext,.bss,4,type,data,Class_0051fba4*,15,16,17,conflicting: shape,31,,DAT_0051fba4,,,
 0x51fba8,DAT_0051fba8,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051fba8,,,
 0x51fbac,DAT_0051fbac,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051fbac,,,
@@ -793,12 +793,12 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51ff04,DAT_0051ff04,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051ff04,,,
 0x51ff08,DAT_0051ff08,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051ff08,,,
 0x51ff0c,g_enumSessionsResult,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051ff0c,,,
-0x51ff10,DAT_0051ff10,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051ff10,,,
-0x51ff14,DAT_0051ff14,.bss,4,type,data,void*,2,3,4,conflicting: shape,5,,DAT_0051ff14,,,
-0x51ff18,DAT_0051ff18,.bss,4,type,data,void*,3,1,2,conflicting: shape,4,,DAT_0051ff18,,,
+0x51ff10,g_cdFadeVolume,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051ff10,,,
+0x51ff14,g_cdPlayer,.bss,4,type,data,void*,2,3,4,conflicting: shape,5,,DAT_0051ff14,,,
+0x51ff18,g_cdPlayerWindow,.bss,4,type,data,void*,3,1,2,conflicting: shape,4,,DAT_0051ff18,,,
 0x51ff1c,DAT_0051ff1c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51ff20,DAT_0051ff20,.bss,40,gap,data,int[],1,0,1,one type,1,,INT_ARRAY_0051ff20,,,
-0x51ff48,DAT_0051ff48,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051ff48,,,
+0x51ff48,g_playBufferLooping,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051ff48,,,
 0x51ff4c,DAT_0051ff4c,.bss,12,gap,unreferenced,unsigned char[12],0,0,0,,0,,,,,
 0x51ff58,DAT_0051ff58,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051ff58,,,
 0x51ff5c,DAT_0051ff5c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,

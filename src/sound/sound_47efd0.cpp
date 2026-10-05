@@ -1,10 +1,10 @@
 // Decompiled by Haiku. Names are provisional.
-extern int DAT_0051e694;
-extern int DAT_0051e690;
+extern int g_useWindowsSound;
+extern int g_noDirectSound;
 
 // FUNCTION: 0x47efd0
-void FUN_0047efd0()
+void SetUseWindowsSound()
 {
-    DAT_0051e694 = 1;
-    DAT_0051e690 = 1;
+    g_useWindowsSound = 1;
+    g_noDirectSound = 1;
 }

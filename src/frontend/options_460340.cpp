@@ -28,7 +28,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall IsCurrentGadgetNamed(Gadget_00460340* gadget, char* name);
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall GetButtonStageByName(Gadget_00460340* gadget, char* name);
 char __stdcall FindGameCdDrive(int disc);
 void __stdcall RegisterDataArchives();
@@ -41,7 +41,7 @@ void __stdcall FUN_00460340(Gadget_00460340* gadget)
 {
     if (gadget->field_60 == -1)
         return;
-    FUN_0047f1a0("Options", 0);
+    PlaySoundByName("Options", 0);
     if (IsCurrentGadgetNamed(gadget, "RESTART")) {
         int ok = 0;
         int mode = g_game->mode->FUN_00435100();
@@ -73,7 +73,7 @@ void __stdcall FUN_00460340(Gadget_00460340* gadget)
         g_game->difficulty = GetButtonStageByName(gadget, "Difficulty");
         g_game->field_39249 = 1;
     } else if (IsCurrentGadgetNamed(gadget, "Difficulty")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_004ab0a0(gadget);
     } else if (!IsCurrentGadgetNamed(gadget, "CANCEL") && gadget->field_60 != -1) {
         FUN_004ab0a0(gadget);

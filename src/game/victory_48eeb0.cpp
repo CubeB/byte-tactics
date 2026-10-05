@@ -15,7 +15,7 @@ struct Unit {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 
 // The "capture unit type" victory condition (vtable 0x4fd8e8, state saved by
 // 0x48ef00); this is its slot 2. Same family as the victory conditions in
@@ -34,7 +34,7 @@ void VictoryCaptureUnitType::OnUnitCaptured(Unit* unit)
     if (unit->kind == 1 && _strcmpi(name, unit->info->name) == 0) {
         done = 1;
         if (announced == 0) {
-            FUN_0047f1a0("Victory Condition", 0);
+            PlaySoundByName("Victory Condition", 0);
             announced = 1;
         }
     }

@@ -57,7 +57,7 @@ extern char* DAT_0051298c;
 int __stdcall FUN_00441c30(int* a, int* b);
 void FUN_004426e0(void);
 void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
-void __stdcall FUN_0047f1a0(const char* name, int param_2);
+void __stdcall PlaySoundByName(const char* name, int param_2);
 void FUN_004257a0(void);
 void __stdcall FUN_00425860(int state, int line, const char* file);
 Layout_00442a30* __stdcall FindGadgetChecked(void* entries, const char* name);
@@ -157,7 +157,7 @@ void __stdcall FUN_00442a30(Gadget_00442a30* gadget)
         g_game->bit0 = 1;
         g_game->bit1 = 1;
         TryConnect_00442a30();
-        FUN_0047f1a0("SMLBUTTON", 0);
+        PlaySoundByName("SMLBUTTON", 0);
         FUN_004257a0();
         return;
     }
@@ -165,7 +165,7 @@ void __stdcall FUN_00442a30(Gadget_00442a30* gadget)
         if (IsCurrentGadgetNamed(gadget, "ACCOUNTS") == 0) {
             if (IsCurrentGadgetNamed(gadget, "PREV")) {
                 FUN_00425860(0xf, 0x47f, "c:\\cavedog\\wargame\\multi.cpp");
-                FUN_0047f1a0("Previous", 0);
+                PlaySoundByName("Previous", 0);
                 return;
             }
             FUN_004ab0a0(gadget);
@@ -177,7 +177,7 @@ void __stdcall FUN_00442a30(Gadget_00442a30* gadget)
     g_game->bit1 = 1;
     g_game->bit0 = 0;
     TryConnect_00442a30();
-    FUN_0047f1a0("SMLBUTTON", 0);
+    PlaySoundByName("SMLBUTTON", 0);
     OpenMessageBox(gadget, FUN_004c5740("Connecting... press ESC to abort"),
                  0xfa, 1, 1);
 }

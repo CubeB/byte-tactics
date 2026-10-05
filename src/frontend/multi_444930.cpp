@@ -61,7 +61,7 @@ extern Game* g_game;
 
 extern "C" int __stdcall IsCurrentGadgetNamed(Gadget_00444930* gadget, char* name);
 extern "C" Entry_00444930* __stdcall FindGadgetChecked(Entry_00444930* entries, char* name);
-extern "C" void __stdcall FUN_0047f1a0(char* str, int flag);
+extern "C" void __stdcall PlaySoundByName(char* str, int flag);
 extern "C" void __stdcall FUN_004ab0a0(Gadget_00444930* gadget);
 extern "C" void __stdcall RequestPlayerColor(int value);
 void __cdecl FUN_004d85a0(void* p);
@@ -76,7 +76,7 @@ void __stdcall FUN_00444930(Gadget_00444930* param_1)
         FUN_004d85a0(layout->field_1c);
         FUN_004d85a0(layout->field_18);
         FUN_004d85a0(layout);
-        FUN_0047f1a0("Multi", 0);
+        PlaySoundByName("Multi", 0);
         return;
     }
     if (IsCurrentGadgetNamed(param_1, "LOGOS") || IsCurrentGadgetNamed(param_1, "SELECT")) {

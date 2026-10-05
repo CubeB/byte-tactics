@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Looks up a named entry (0x20-byte names in the game object) and passes its
-// index, or 0xffff when not found, to FUN_0047f0c0 with DAT_0051e69c set for
+// index, or 0xffff when not found, to PlaySoundByIndex with g_playLooping set for
 // the duration of the call. 0x47f1a0 is the same without the flag.
 #include <string.h>
 
@@ -18,9 +18,9 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern int DAT_0051e69c;
+extern int g_playLooping;
 
-void __stdcall FUN_0047f0c0(int index, int param_2);
+void __stdcall PlaySoundByIndex(int index, int param_2);
 
 static inline int FindSound(char* name)
 {
@@ -32,9 +32,9 @@ static inline int FindSound(char* name)
 }
 
 // FUNCTION: 0x47f210
-void __stdcall FUN_0047f210(char* name, int param_2)
+void __stdcall PlayLoopingSoundByName(char* name, int param_2)
 {
-    DAT_0051e69c = 1;
-    FUN_0047f0c0(FindSound(name), param_2);
-    DAT_0051e69c = 0;
+    g_playLooping = 1;
+    PlaySoundByIndex(FindSound(name), param_2);
+    g_playLooping = 0;
 }

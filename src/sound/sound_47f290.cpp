@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Plays a sound by name: through FUN_0049f6c0 when DAT_0051e694 is set,
+// Plays a sound by name: through PlayWavFromDisk when g_useWindowsSound is set,
 // otherwise through the game's sound object when sound is enabled.
 #include <windows.h>
 #include <string.h>
@@ -17,21 +17,21 @@ struct Game {
 
 class Class_004d0640 {
 public:
-    int FUN_004d0640(const char* param1, int param2, int param3);
+    int PlaySample(const char* param1, int param2, int param3);
 };
 
 extern Game* g_game;
-extern int DAT_0051e694;
-extern int DAT_0051e690;
+extern int g_useWindowsSound;
+extern int g_noDirectSound;
 
-BOOL __stdcall FUN_0049f6c0(char* path);
+BOOL __stdcall PlayWavFromDisk(char* path);
 
 // FUNCTION: 0x47f290
-int __stdcall FUN_0047f290(char* name)
+int __stdcall PlaySoundFile(char* name)
 {
-    if (DAT_0051e694)
-        return FUN_0049f6c0(name);
-    if (name && strlen(name) && g_game->volume1 && (g_game->soundFlags & 7) && !DAT_0051e690)
-        return ((Class_004d0640*)g_game->sound)->FUN_004d0640(name, -0x249, 0);
+    if (g_useWindowsSound)
+        return PlayWavFromDisk(name);
+    if (name && strlen(name) && g_game->volume1 && (g_game->soundFlags & 7) && !g_noDirectSound)
+        return ((Class_004d0640*)g_game->sound)->PlaySample(name, -0x249, 0);
     return 0;
 }

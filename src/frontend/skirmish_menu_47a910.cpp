@@ -61,7 +61,7 @@ struct Game {
 extern Game* g_game;
 
 void __cdecl FUN_004d85a0(void* ptr);
-int __stdcall FUN_0047f1a0(char* name, int param_2);
+int __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsCurrentGadgetNamed(Menu_0047a910* menu, char* name);
 Entry_0047a910* __stdcall FindGadgetChecked(Entry_0047a910* entries, char* name);
 Entry_0047a910* __stdcall FUN_004a0280(Entry_0047a910* entries, char* name);
@@ -89,14 +89,14 @@ void __stdcall FUN_0047a910(Menu_0047a910* menu)
     }
     if (!IsCurrentGadgetNamed(menu, "MAPNAMES") && !IsCurrentGadgetNamed(menu, "LOAD")) {
         if (IsCurrentGadgetNamed(menu, "PREVMENU")) {
-            FUN_0047f1a0("Previous", 0);
+            PlaySoundByName("Previous", 0);
         } else {
             FUN_004ab0a0(menu);
         }
         return;
     }
     if (IsCurrentGadgetNamed(menu, "LOAD")) {
-        FUN_0047f1a0("SmallButton", 0);
+        PlaySoundByName("SmallButton", 0);
     }
     Entry_0047a910* g = FindGadgetChecked(entries, "MAPNAMES");
     strncpy(g_game->player->name, FUN_004b6af0(g->text, g->selected), 0x100);

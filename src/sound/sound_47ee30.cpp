@@ -115,7 +115,7 @@ extern List_0047f8c0* DAT_0051e68c;
 extern Table_0047ee30 DAT_005086e0[24];
 
 // FUNCTION: 0x47ee30
-void FUN_0047ee30()
+void ResetSpeech()
 {
     List_0047f8c0* list = DAT_0051e68c;
     if (list->count > 0) {

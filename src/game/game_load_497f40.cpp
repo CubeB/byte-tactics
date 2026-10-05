@@ -146,13 +146,13 @@ void __cdecl HandleNetPackets();
 void __cdecl SendLoadProgress();
 void __cdecl OnlineUnload();
 void __cdecl FUN_00467d70();
-void __cdecl FUN_0047f750();
+void __cdecl StopAllSounds();
 void __cdecl FUN_00496790();
 void __cdecl FUN_004c2870();
 void __stdcall UnlockScreen(void*);
 void __cdecl RestoreScreen();
 void __cdecl FlipScreen();
-int __cdecl FUN_004ce800();
+int __cdecl IsCdPlaying();
 void __cdecl FUN_004d85a0(void*);
 void __stdcall FUN_004288d0(char*, int, int, int);
 void __stdcall BuildDataPath(void*, char*, char*, char*);
@@ -184,9 +184,9 @@ void __stdcall SetOffscreenSurface(void*);
 void* __stdcall AllocSurface(char*, int, int);
 void __stdcall DrawSurface(void*, void*, int, int);
 void __stdcall HAPINET_guaranteepackets(int);
-class Class_004cdb40 { public: void FUN_004cdb40(); };
-class Class_004ce690 { public: void FUN_004ce690(int); };
-class Class_004ce800 { public: int FUN_004ce800(); };
+class Class_004cdb40 { public: void PlayNextTrack(); };
+class Class_004ce690 { public: void SetTrackCategory(int); };
+class Class_004ce800 { public: int IsCdPlaying(); };
 
 int __cdecl GetScreenWidth();
 int __cdecl GetScreenHeight();
@@ -298,7 +298,7 @@ void LoadingScreenFrame(void)
         OnlineUnload();
     }
     if (g_game->flags38d75.bits.loaded) {
-        FUN_0047f750();
+        StopAllSounds();
         FUN_004257a0();
         FUN_00428730();
         if (GetScreenWidth() != g_game->field_37f1b || GetScreenHeight() != g_game->field_37f1f) {
@@ -320,9 +320,9 @@ void LoadingScreenFrame(void)
         SetCloseHandler(FUN_004609a0, 0);
         g_game->field_589 = 0;
         memset((void*)g_game->progress, 0, 8);
-        ((Class_004ce690*)g_game->field_10)->FUN_004ce690(0);
-        if (!((Class_004ce800*)g_game->field_10)->FUN_004ce800()) {
-            ((Class_004cdb40*)g_game->field_10)->FUN_004cdb40();
+        ((Class_004ce690*)g_game->field_10)->SetTrackCategory(0);
+        if (!((Class_004ce800*)g_game->field_10)->IsCdPlaying()) {
+            ((Class_004cdb40*)g_game->field_10)->PlayNextTrack();
         }
         for (i = 0; i < 10; i++) {
             if (g_game->players[i].active != 0)

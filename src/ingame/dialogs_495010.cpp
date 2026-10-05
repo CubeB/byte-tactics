@@ -77,7 +77,7 @@ struct Gadget_00495010 {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsScreenNamed(Sub_00495010* sub, const char* name);
 void __stdcall CloseTopScreen(Sub_00495010* sub);
 void FUN_004c2470();
@@ -92,7 +92,7 @@ void FUN_004c2870();
 // FUNCTION: 0x495010
 void FUN_00495010()
 {
-    FUN_0047f1a0("SmallButton", 0);
+    PlaySoundByName("SmallButton", 0);
     unsigned short f = g_game->flags;
     if (f & 0xe0) {
         g_game->flags = f & 0xff1f;

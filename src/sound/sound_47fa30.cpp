@@ -27,12 +27,12 @@ public:
         count--;
     }
 
-    void FUN_0047fa30(void);
+    void ClearSpeechEntries(void);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x47fa30
-void Class_0047fa30::FUN_0047fa30(void)
+void Class_0047fa30::ClearSpeechEntries(void)
 {
     while (count > 0)
         Remove(count - 1);

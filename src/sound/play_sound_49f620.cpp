@@ -1,12 +1,12 @@
 // Decompiled by Haiku. Names are provisional.
 #include <windows.h>
 
-extern LPCSTR DAT_0051fb9c;
+extern LPCSTR g_loopingWav;
 
 // FUNCTION: 0x49f620
-void FUN_0049f620(void)
+void ResumeLoopingWav(void)
 {
-    if (DAT_0051fb9c != 0) {
-        PlaySoundA(DAT_0051fb9c, 0, 0x15);
+    if (g_loopingWav != 0) {
+        PlaySoundA(g_loopingWav, 0, 0x15);
     }
 }

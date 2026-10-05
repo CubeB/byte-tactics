@@ -83,7 +83,7 @@ public:
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, const char* text);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitReverseNanoParticles(Vec3* box, Vec3* from, int count);
 int __stdcall FUN_00438650(Unit* unit, Unit* target, int n);
@@ -129,11 +129,11 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
             if (!(unit->def->flags2 & 0x400)) {
-                FUN_0047f780(unit, 7, "Reclamation failed");
+                QueueUnitSpeech(unit, 7, "Reclamation failed");
                 return 7;
             }
             if (!((Class_00489960*)unit)->CanReclaim(target)) {
-                FUN_0047f780(unit, 7, "That unit cannot be reclaimed");
+                QueueUnitSpeech(unit, 7, "That unit cannot be reclaimed");
                 return 8;
             }
             ((Class_00438880*)order)->FUN_00438880("Reclaiming");
@@ -150,7 +150,7 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target.Get()->pos);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         order->flags |= 0x100e8;
-        FUN_0047f780(unit, 11, 0);
+        QueueUnitSpeech(unit, 11, 0);
         return 1;
     }
     case 2: {

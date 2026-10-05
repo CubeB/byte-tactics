@@ -127,7 +127,7 @@ void __stdcall FUN_00448c70();
 void FUN_00444a20();
 void __stdcall FUN_00445b70(Gui_0044a680* gui, int index);
 void __stdcall FUN_00445c70(Gui_0044a680* gui, int index);
-void __stdcall FUN_0047f1a0(char* name, int param);
+void __stdcall PlaySoundByName(char* name, int param);
 void __stdcall FUN_0049fa90(Gui_0044a680* gui);
 void __stdcall FUN_0049fad0(Gui_0044a680* gui);
 int __stdcall FindGadgetIndex(Gadget_0044a680* entries, char* name, int type);
@@ -336,7 +336,7 @@ void FUN_0044a680()
                     }
                     DAT_005129a4 += 4;
                     if (start->frame == 4)
-                        FUN_0047f1a0("Panel", 0);
+                        PlaySoundByName("Panel", 0);
                 }
                 if (start->frame != 0 && start->frame < *start->frames - 1)
                     g_game->dirty = 1;
@@ -345,7 +345,7 @@ void FUN_0044a680()
                     if (start->frame == 0) {
                         start->frame = 1;
                         DAT_005129a4 = GetTicks();
-                        FUN_0047f1a0("Options", 0);
+                        PlaySoundByName("Options", 0);
                     }
                     start->c8_0 = 0;
                     {

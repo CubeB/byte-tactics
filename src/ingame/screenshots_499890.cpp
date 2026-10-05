@@ -59,7 +59,7 @@ int __stdcall GetTicks();
 void __stdcall PeekMouseEvent(Input_00499890*);
 void __stdcall UpdateMenu(void*);
 void FUN_00494e70();
-void FUN_0047f680();
+void PlayNextSpeech();
 void __stdcall PopMouseEvent(int*);
 void UpdateTimers();
 void __stdcall SaveScreenshot(char*, char*);
@@ -97,7 +97,7 @@ void FUN_00499890()
     UpdateMenu(g_game->menu);
     PeekMouseEvent(&second);
     FUN_00494e70();
-    FUN_0047f680();
+    PlayNextSpeech();
     if (first.fields[4] == second.fields[4])
         PopMouseEvent(g_game->selected.fields);
     else if (first.fields[4] == 0x205 || first.fields[4] == 0x202)

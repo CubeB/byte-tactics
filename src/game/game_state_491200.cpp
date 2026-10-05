@@ -45,22 +45,22 @@ public:
 
 class Class_004cedc0 {
 public:
-    void FUN_004cedc0(int param_1);
+    void EnableCdAudio(int param_1);
 };
 
 class Class_004ce7a0 {
 public:
-    void FUN_004ce7a0(int param_1);
+    void SetPlaybackOrder(int param_1);
 };
 
 class Class_004cd9d0 {
 public:
-    void FUN_004cd9d0(void (*param_1)());
+    void SetCdCallback(void (*param_1)());
 };
 
 class Class_004ce690 {
 public:
-    void FUN_004ce690(int param_1);
+    void SetTrackCategory(int param_1);
 };
 
 #pragma pack(push, 1)
@@ -152,13 +152,13 @@ void __stdcall SetRestoreSurface(int param_1);
 void __stdcall SetPageFlipping(int param_1);
 void __stdcall FUN_00434ab0(int param_1);
 void LoadGameResources();
-void FUN_0047ed40();
+void InitSound();
 void FUN_004259b0();
 void __stdcall InitPacketTables(void* param_1);
 void RegisterAllOrderTypes();
 void LoadGameFonts();
 void FUN_0042a400();
-void FUN_0042f7e0();
+void LoadAllSound();
 void __stdcall LoadAlphaTable(void* param_1);
 void __stdcall LoadShadeTable(void* param_1);
 void __stdcall LoadLightTable(void* param_1);
@@ -221,13 +221,13 @@ void InitGame()
     g_game->field_37f2f &= 0xfeff;
     SetPageFlipping(0);
     LoadGameResources();
-    FUN_0047ed40();
+    InitSound();
     FUN_004259b0();
     InitPacketTables(g_game->field_12ef);
     RegisterAllOrderTypes();
     LoadGameFonts();
     FUN_0042a400();
-    FUN_0042f7e0();
+    LoadAllSound();
     LoadAlphaTable(g_game->field_143a7);
     LoadShadeTable(g_game->field_143a7);
     LoadLightTable(g_game->field_143a7);
@@ -239,11 +239,11 @@ void InitGame()
     int ok = ReadGameRegistryValue(DAT_00509200, DAT_0051e828, &size);
     if (ok == 0)
         memset(DAT_0051e828, 0, 0xaa0);
-    ((Class_004cedc0*)g_game->field_10)->FUN_004cedc0(g_game->field_37f14 & 1);
-    ((Class_004ce7a0*)g_game->field_10)->FUN_004ce7a0(g_game->field_37f16);
-    ((Class_004cd9d0*)g_game->field_10)->FUN_004cd9d0(FUN_00490fe0);
+    ((Class_004cedc0*)g_game->field_10)->EnableCdAudio(g_game->field_37f14 & 1);
+    ((Class_004ce7a0*)g_game->field_10)->SetPlaybackOrder(g_game->field_37f16);
+    ((Class_004cd9d0*)g_game->field_10)->SetCdCallback(FUN_00490fe0);
     FUN_00490fe0();
-    ((Class_004ce690*)g_game->field_10)->FUN_004ce690(0);
+    ((Class_004ce690*)g_game->field_10)->SetTrackCategory(0);
     FUN_0045bcc0();
     LoadSideData();
     LoadLogos();

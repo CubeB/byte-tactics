@@ -9,7 +9,7 @@ struct Class_0049fa90;
 
 class Class_004ce7f0 {
 public:
-    int FUN_004ce7f0();
+    int GetCurrentTrack();
 };
 
 struct Game {
@@ -32,8 +32,8 @@ void FUN_0045d0c0()
     char value[20];
     GetGadgetText(g_game->settings, "TRACKNUM", value);
     int track = atoi(value);
-    if (track != g_game->x10->FUN_004ce7f0()) {
-        DAT_00512fe0 = g_game->x10->FUN_004ce7f0();
+    if (track != g_game->x10->GetCurrentTrack()) {
+        DAT_00512fe0 = g_game->x10->GetCurrentTrack();
         FUN_0045c3f0();
         FUN_0049fa90((Class_0049fa90*)g_game->settings);
     }

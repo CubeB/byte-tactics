@@ -14,11 +14,11 @@ public:
     int priority[0x20];                     // +0xb8
     int flags[0x20];                        // +0x138
 
-    void FUN_004cf180();
+    void StopOldestBuffer();
 };
 
 // FUNCTION: 0x4cf180
-void Class_004cf180::FUN_004cf180()
+void Class_004cf180::StopOldestBuffer()
 {
     int i;
     for (i = 0; i < 0x20; i++) {

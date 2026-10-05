@@ -4021,7 +4021,7 @@ public:
     int field_284;  // +0x284
     char unknown_288[4];
     int field_28c;  // +0x28c
-    int FUN_004ceb60(int, int);
+    int PlayCdTrack(int, int);
 };
 
 class Class_004ced40 {  // 0x288 bytes, 5 views
@@ -4033,27 +4033,27 @@ public:
     int unknown_20c;  // +0x20c
     char unknown_210[116];
     int unknown_284;  // +0x284
-    int FUN_004ced40(void);
+    int StopCdAudio(void);
 };
 
 class Class_004cfe80 {  // 0x8 bytes, 5 views
 public:
     char unknown_0[4];
     int field_4;  // +0x4
-    void FUN_004cfe80(void);
+    void Enable3D(void);
 };
 
 class Class_004cfe90 {  // 0x8 bytes, 6 views
 public:
     char unknown_0[4];
     int field_4;  // +0x4
-    void FUN_004cfe90(void);
+    void Disable3D(void);
 };
 
 class Class_004cfea0 {  // 0x1 bytes, 4 views
 public:
     char unknown_0[1];
-    int FUN_004cfea0(void);
+    int Is3DEnabled(void);
 };
 
 struct Flags_00416e00 {  // 0x2 bytes, 1 view
@@ -4146,23 +4146,23 @@ public:
     int handle;  // +0x288
     int field_28c;  // +0x28c
     int field_290;  // +0x290
-    int FUN_004ce450(void);
-    int FUN_004ce680(void);
-    int FUN_004ce7f0(void);
-    int FUN_004cef90(int, int, int, void*);
-    int FUN_004cf570(IDirectSoundBuffer**, long, Pos_004cf570*);
-    int FUN_004cfba0(void);
-    unsigned char FUN_004ce7e0(int);
-    void FUN_004cdb40(void);
-    void FUN_004ce190(void);
+    int GetTrackCount(void);
+    int GetTrackCategory(void);
+    int GetCurrentTrack(void);
+    int InitDirectSound(int, int, int, void*);
+    int PlaySampleSet(IDirectSoundBuffer**, long, Pos_004cf570*);
+    int IsStreamActive(void);
+    unsigned char GetCategoryOfTrack(int);
+    void PlayNextTrack(void);
+    void CloseCdPlayerWindow(void);
     void FUN_004ce580(int);
-    void FUN_004ce690(int);
-    void FUN_004ce7c0(int, unsigned char);
-    void FUN_004cf4d0(IDirectSoundBuffer**);
-    void FUN_004cfb40(void);
-    void FUN_004d0130(void);
-    void FUN_004d0620(char*);
-    void FUN_004d0640(char*, int, int);
+    void SetTrackCategory(int);
+    void SetCategoryOfTrack(int, unsigned char);
+    void ReleaseSampleSet(IDirectSoundBuffer**);
+    void StopStream(void);
+    void RestoreMixerVolumes(void);
+    void LoadSample(char*);
+    void PlaySample(char*, int, int);
 };
 
 struct Flags_004177a0 {  // 0x2 bytes, 1 view
@@ -5277,13 +5277,13 @@ struct Gadget_00426190 {  // 0x64 bytes, 8 views
 class Class_004ce1d0 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    bool FUN_004ce1d0(void);
+    bool HasCdPlayerWindow(void);
 };
 
 class Class_004cff20 {  // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
-    int FUN_004cff20(void);
+    int HasNoDriver(void);
 };
 
 struct Entry_004263b0 {  // 0x28 bytes, 1 view
@@ -5628,14 +5628,14 @@ class Class_004cf210 {  // 0x30 bytes, 2 views
 public:
     char unknown_0[44];
     int field_2c;  // +0x2c
-    void FUN_004cf210(int);
+    void SetMaxBuffers(int);
 };
 
 class Class_004d0070 {  // 0x14 bytes, 17 views
 public:
     char unknown_0[16];
     int wave_devices;  // +0x10
-    int FUN_004d0070(int);
+    int SetWaveVolume(int);
 };
 
 class Class_004d00d0 {  // 0x288 bytes, 21 views
@@ -5646,7 +5646,7 @@ public:
     int aux_volume_set;  // +0x20
     char unknown_24[608];
     int field_284;  // +0x284
-    int FUN_004d00d0(int, int);
+    int SetAuxVolume(int, int);
 };
 
 struct Flags_00495e90_37f06 {  // 0x2 bytes, 5 views
@@ -5670,21 +5670,21 @@ struct SkirmishPlayer {  // 0x18 bytes, 2 views
 class Class_004cf220 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    int FUN_004cf220(void);
+    int GetMaxBuffers(void);
 };
 
 class Class_004cfff0 {  // 0x14 bytes, 2 views
 public:
     char unknown_0[16];
     int wave_devices;  // +0x10
-    int FUN_004cfff0(void);
+    int QueryWaveVolume(void);
 };
 
 class Class_004d0040 {  // 0x18 bytes, 3 views
 public:
     char unknown_0[20];
     int aux_device;  // +0x14
-    int FUN_004d0040(void);
+    int QueryAuxVolume(void);
 };
 
 class Class_004c3e20 {  // 0x1 bytes, 4 views
@@ -8559,7 +8559,7 @@ class Class_004ce7a0 {  // 0x200 bytes, 8 views
 public:
     char unknown_0[508];
     int field_1fc;  // +0x1fc
-    int FUN_004ce7a0(int);
+    int SetPlaybackOrder(int);
 };
 
 class Class_004ce5a0 {  // 0x1 bytes, 5 views
@@ -8588,7 +8588,7 @@ public:
     char unknown_204[4];
     int current;  // +0x208
     int mode;  // +0x20c
-    int FUN_004ce8c0(int);
+    int SelectTrack(int);
 };
 
 class Class_004cedc0 {  // 0x288 bytes, 5 views
@@ -8602,7 +8602,7 @@ public:
     int enabled;  // +0x27c
     char unknown_280[4];
     int unknown_284;  // +0x284
-    void FUN_004cedc0(int);
+    void EnableCdAudio(int);
 };
 
 union Flags_0045d280 {  // 0x2 bytes, 1 view
@@ -11894,7 +11894,7 @@ public:
     int field_284;  // +0x284
     char unknown_288[4];
     int field_28c;  // +0x28c
-    int FUN_004ce260(void);
+    int OpenCdAudio(void);
 };
 
 struct Entry_0047f8c0 {  // 0x11 bytes, 6 views
@@ -11914,8 +11914,8 @@ public:
     int field_a5;  // +0xa5
     Class_0047f960(int, int);
     Class_0047f960(void);
-    void FUN_0047fad0(Unit_0047fad0*, int, char*);
-    void FUN_0047fd70(int, int, int);
+    void EnqueueSpeech(Unit_0047fad0*, int, char*);
+    void PlaySpeech(int, int, int);
 };
 
 struct Table_004b3630 {  // 0x18 bytes, 27 views
@@ -11938,20 +11938,20 @@ public:
     Class_004bbbe0* file;  // +0x1e8
     char unknown_1ec[156];
     int handle;  // +0x288
-    void FUN_004ceee0(void);
+    void ReleaseDirectSound(void);
 };
 
 class Class_004d06c0 {  // 0x28c bytes, 2 views
 public:
     char unknown_0[648];
     int timer;  // +0x288
-    int FUN_004d06c0(char*, int, int);
+    int StreamSampleDelayed(char*, int, int);
 };
 
 class Class_004cf540 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_004cf540(int, int);
+    void PlayLooping(int, int);
 };
 
 struct Packet_0047f0c0 {  // 0x12 bytes, 1 view
@@ -11970,7 +11970,7 @@ public:
     char unknown_0[8];
     int field_8;  // +0x8
     int field_c;  // +0xc
-    void FUN_004cfeb0(int, int);
+    void Set3DDistances(int, int);
 };
 
 struct Packet_0047f300 {  // 0x12 bytes, 1 view
@@ -11985,7 +11985,7 @@ struct Class_004cf150 {  // 0xb8 bytes, 2 views
     int count;  // +0x30
     char unknown_34[4];
     void* items[32];  // +0x38
-    void FUN_004cf150(void);
+    void StopAllBuffers(void);
 };
 
 struct Message_0047f780 {  // 0x18 bytes, 3 views
@@ -12007,7 +12007,7 @@ public:
     int count;  // +0x99
     int field_9d;  // +0x9d
     void Remove(int);
-    void FUN_0047f990(void);
+    void ClearSpeechList(void);
 };
 
 struct Entry_0047fa30 {  // 0x11 bytes, 1 view
@@ -12024,7 +12024,7 @@ public:
     int count;  // +0x99
     int field_9d;  // +0x9d
     void Remove(int);
-    void FUN_0047fa30(void);
+    void ClearSpeechEntries(void);
 };
 
 struct Message_0047fad0 {  // 0x18 bytes, 1 view
@@ -12049,7 +12049,7 @@ public:
     int count;  // +0x99
     unsigned int field_9d;  // +0x9d
     unsigned int field_a1;  // +0xa1
-    void FUN_0047fca0(void);
+    void PlayNextSpeechEntry(void);
 };
 
 struct Emitter_0047fd70 {  // 0x114 bytes, 1 view
@@ -12073,7 +12073,7 @@ class Class_0047ffa0 {  // 0x9d bytes, 1 view
 public:
     Entry_0047ffa0 entries[9];  // +0x0
     int count;  // +0x99
-    void FUN_0047ffa0(int);
+    void RemoveSpeechAt(int);
 };
 
 struct Entry_00480020 {  // 0x11 bytes, 1 view
@@ -12088,7 +12088,7 @@ class Class_00480020 {  // 0x9d bytes, 1 view
 public:
     Entry_00480020 entries[9];  // +0x0
     int count;  // +0x99
-    void FUN_00480020(int);
+    void RemoveSpeechOfId(int);
 };
 
 class Class_00480100 {  // 0x10 bytes, 2 views
@@ -13938,14 +13938,14 @@ public:
 class Class_004ce460 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    int FUN_004ce460(void);
+    int IsFirstTrackData(void);
 };
 
 class Class_004cd9d0 {  // 0x290 bytes, 3 views
 public:
     char unknown_0[652];
     void (__stdcall *callback)(void);  // +0x28c
-    int FUN_004cd9d0(void (__stdcall *)(void));
+    int SetCdCallback(void (__stdcall *)(void));
 };
 
 struct Zero11_004917d0 {  // 0xb bytes, 1 view
@@ -14076,7 +14076,7 @@ struct ViewFlags_497180 {  // 0x2 bytes, 1 view
 class Class_004ce800 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    int FUN_004ce800(void);
+    int IsCdPlaying(void);
 };
 
 union LoadFlags_00497f40 {  // 0x2 bytes, 1 view
@@ -14454,7 +14454,7 @@ struct Flags_0049e1a0 {  // 0x4 bytes, 1 view
 class Class_004ce410 {  // 0x4 bytes, 3 views
 public:
     int open;  // +0x0
-    void FUN_004ce410(void);
+    void CloseCdAudio(void);
 };
 
 class Class_004cee50 {  // 0x294 bytes, 2 views
@@ -14496,7 +14496,7 @@ public:
     char unknown_b8[268];
     IDirectSoundBuffer** sets[8];  // +0x1c4
     int field_1e4;  // +0x1e4
-    void FUN_004cf0b0(void);
+    void ReapFinishedBuffers(void);
 };
 
 union Dword_0051f410 {  // 0x4 bytes, 1 view
@@ -18545,13 +18545,13 @@ public:
     int field_210;  // +0x210
     char unknown_214[108];
     int field_280;  // +0x280
-    int FUN_004cda00(void);
+    int QueryDisc(void);
 };
 
 class Class_004ce020 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    int FUN_004ce020(void);
+    int GetPlayState(void);
 };
 
 class Class_004d02a0 {  // 0x290 bytes, 7 views
@@ -18567,7 +18567,7 @@ public:
     int step;  // +0x284
     int field288;  // +0x288
     void (__stdcall *callback)(void);  // +0x28c
-    int FUN_004d02a0(char*, int, int, int);
+    int OpenSample(char*, int, int, int);
 };
 
 class Class_004cff30 {  // 0x20 bytes, 2 views
@@ -18578,7 +18578,7 @@ public:
     int wave_volume;  // +0x18
     int aux_volume;  // +0x1c
     int GetWaveVolume(void);
-    void FUN_004cff30(void);
+    void InitMixerVolumes(void);
     int GetAuxVolume(void);
 };
 
@@ -18595,9 +18595,9 @@ public:
     int off;  // +0x1f8
     char unknown_1fc[140];
     int handle;  // +0x288
-    void FUN_004cf940(Class_004bbbe0*, int, int, int, long);
-    void FUN_004cfbc0(void);
-    void FUN_004cfca0(void);
+    void StartStream(Class_004bbbe0*, int, int, int, long);
+    void UpdateStream(void);
+    void FillStreamHalf(void);
 };
 
 class Class_004cf180 {  // 0x1b8 bytes, 2 views
@@ -18608,21 +18608,21 @@ public:
     IDirectSoundBuffer* buffers[32];  // +0x38
     int priority[32];  // +0xb8
     int flags[32];  // +0x138
-    void FUN_004cf180(void);
+    void StopOldestBuffer(void);
 };
 
 class Class_004cf230 {  // 0x28 bytes, 2 views
 public:
     char unknown_0[36];
     IDirectSound* field_24;  // +0x24
-    IDirectSoundBuffer** FUN_004cf230(void*, unsigned long, int, int, int);
+    IDirectSoundBuffer** CreateSampleFromMemory(void*, unsigned long, int, int, int);
 };
 
 class Class_004cf370 {  // 0x28 bytes, 3 views
 public:
     char unknown_0[36];
     IDirectSound* field_24;  // +0x24
-    IDirectSoundBuffer** FUN_004cf370(Class_004bbbe0*, unsigned long, int, int, int);
+    IDirectSoundBuffer** CreateSampleFromFile(Class_004bbbe0*, unsigned long, int, int, int);
 };
 
 struct IDirectSound3DBuffer {  // 0x4 bytes, 1 view
@@ -18656,26 +18656,26 @@ class Class_004cf800 {  // 0x1e4 bytes, 1 view
 public:
     char unknown_0[452];
     IDirectSoundBuffer** sets[8];  // +0x1c4
-    int FUN_004cf800(int, int, int, int, int, int, int);
+    int PlayMemorySample(int, int, int, int, int, int, int);
 };
 
 class Class_004cf8a0 {  // 0x1e4 bytes, 2 views
 public:
     char unknown_0[452];
     IDirectSoundBuffer** sets[8];  // +0x1c4
-    int FUN_004cf8a0(int, int, int, int, int, int, int);
+    int PlayFileSample(int, int, int, int, int, int, int);
 };
 
 class Class_004cfe40 {  // 0x1f0 bytes, 1 view
 public:
     char unknown_0[492];
     int format;  // +0x1ec
-    void FUN_004cfe40(void*, unsigned int);
+    void FillSilence(void*, unsigned int);
 };
 
 struct Class_004d01b0 {  // 0x1 bytes, 2 views
     char unknown_0[1];
-    int FUN_004d01b0(void*);
+    int DetectSampleFormat(void*);
 };
 
 struct WaveFormat {  // 0x10 bytes, 1 view
@@ -18690,25 +18690,25 @@ struct WaveFormat {  // 0x10 bytes, 1 view
 class Class_004d0660 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    void FUN_004d0660(char*, int);
+    void StreamSample(char*, int);
 };
 
 class Class_004d0720 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    int FUN_004d0720(void*, char*);
+    int FindChunkSize(void*, char*);
 };
 
 class Class_004d07f0 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    int FUN_004d07f0(void*, int*, int*, int*);
+    int ReadWaveFormat(void*, int*, int*, int*);
 };
 
 class Class_004d0910 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    int FUN_004d0910(void*);
+    int FindDataChunkSize(void*);
 };
 
 struct Entry_004d0a10 {  // 0x6 bytes, 3 views

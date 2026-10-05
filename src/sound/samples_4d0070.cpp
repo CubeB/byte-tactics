@@ -7,7 +7,7 @@ public:
     char unknown_0[0x10];
     int wave_devices;                  // +0x10
 
-    int FUN_004d0070(int volume);
+    int SetWaveVolume(int volume);
 };
 
 static inline int ClampVolume(int v)
@@ -24,7 +24,7 @@ static inline int ClampVolume(int v)
 // Sets the volume of every wave-out device, clamped to 0..0xffff. Returns
 // nonzero if any device failed.
 // FUNCTION: 0x4d0070
-int Class_004d0070::FUN_004d0070(int volume)
+int Class_004d0070::SetWaveVolume(int volume)
 {
     int v = ClampVolume(volume);
     int failed = 0;

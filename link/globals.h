@@ -216,8 +216,8 @@ extern char DAT_0050a5c0[16];                                                   
 extern int g_emptyStringRefs;                                                                 // 0x50a778, 4 bytes; 5 of 5 files
 extern void* g_emptyString;                                                                   // 0x50a77c, 4 bytes; 5 of 5 files
 extern int g_guaranteePackets;                                                                // 0x50a780, 4 bytes; 4 of 4 files
-extern int DAT_0050b540;                                                                      // 0x50b540, 4 bytes; 8 of 8 files
-extern int DAT_0050b544;                                                                      // 0x50b544, 4 bytes; 7 of 7 files
+extern int g_cdNextTrackTimer;                                                                // 0x50b540, 4 bytes; 8 of 8 files
+extern int g_cdFadeTimer;                                                                     // 0x50b544, 4 bytes; 7 of 7 files
 extern void* DAT_0050b9e0[7];                                                                 // 0x50b9e0, 28 bytes; 1 of 1 files
 extern char DAT_0050c8ac[8];                                                                  // 0x50c8ac, 8 bytes; 1 of 1 files
 extern char* DAT_0050c908[19];                                                                // 0x50c908, 76 bytes; 1 of 1 files
@@ -529,10 +529,10 @@ extern unsigned int DAT_0051e680;                                               
 extern int DAT_0051e684;                                                                      // 0x51e684, 4 bytes; 2 of 2 files
 extern int DAT_0051e688;                                                                      // 0x51e688, 4 bytes; 2 of 2 files
 extern List_0047f8c0* DAT_0051e68c;                                                           // 0x51e68c, 4 bytes; 3 of 8 files (conflicting: struct names only)
-extern int DAT_0051e690;                                                                      // 0x51e690, 4 bytes; 8 of 10 files (conflicting: shape)
-extern int DAT_0051e694;                                                                      // 0x51e694, 4 bytes; 9 of 10 files (conflicting: shape)
+extern int g_noDirectSound;                                                                   // 0x51e690, 4 bytes; 8 of 10 files (conflicting: shape)
+extern int g_useWindowsSound;                                                                 // 0x51e694, 4 bytes; 9 of 10 files (conflicting: shape)
 extern int DAT_0051e698;                                                                      // 0x51e698, 4 bytes; 2 of 2 files
-extern int DAT_0051e69c;                                                                      // 0x51e69c, 4 bytes; 2 of 2 files
+extern int g_playLooping;                                                                     // 0x51e69c, 4 bytes; 2 of 2 files
 extern unsigned char DAT_0051e6b0[12];                                                        // 0x51e6b0, 12 bytes, DAT_0051e6b0$S4554; std::vector<UnitCategory, std::allocator<UnitCategory> > by value in 1 of 1 files
 extern unsigned char DAT_0051e6bc[4];                                                         // 0x51e6bc, 4 bytes; nothing refers to it
 extern int DAT_0051e6c0;                                                                      // 0x51e6c0, 4 bytes; 2 of 2 files
@@ -566,7 +566,7 @@ extern unsigned char DAT_0051fb4c[4];                                           
 extern int DAT_0051fb90;                                                                      // 0x51fb90, 4 bytes; 1 of 1 files
 extern unsigned long DAT_0051fb94;                                                            // 0x51fb94, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051fb98[4];                                                         // 0x51fb98, 4 bytes; nothing refers to it
-extern int* DAT_0051fba0;                                                                     // 0x51fba0, 4 bytes; 2 of 2 files
+extern int* g_diskWav;                                                                        // 0x51fba0, 4 bytes; 2 of 2 files
 extern Class_0051fba4* g_guiContext;                                                          // 0x51fba4, 4 bytes; 15 of 31 files (conflicting: shape)
 extern int DAT_0051fba8;                                                                      // 0x51fba8, 4 bytes; 1 of 1 files
 extern int DAT_0051fbac;                                                                      // 0x51fbac, 4 bytes; 1 of 1 files
@@ -594,11 +594,11 @@ extern int DAT_0051ff00;                                                        
 extern int DAT_0051ff04;                                                                      // 0x51ff04, 4 bytes; 1 of 1 files
 extern int DAT_0051ff08;                                                                      // 0x51ff08, 4 bytes; 1 of 1 files
 extern int g_enumSessionsResult;                                                              // 0x51ff0c, 4 bytes; 2 of 2 files
-extern int DAT_0051ff10;                                                                      // 0x51ff10, 4 bytes; 2 of 2 files
-extern void* DAT_0051ff18;                                                                    // 0x51ff18, 4 bytes; 3 of 4 files (conflicting: shape)
+extern int g_cdFadeVolume;                                                                    // 0x51ff10, 4 bytes; 2 of 2 files
+extern void* g_cdPlayerWindow;                                                                // 0x51ff18, 4 bytes; 3 of 4 files (conflicting: shape)
 extern unsigned char DAT_0051ff1c[4];                                                         // 0x51ff1c, 4 bytes; nothing refers to it
 extern int DAT_0051ff20[10];                                                                  // 0x51ff20, 40 bytes; 1 of 1 files
-extern int DAT_0051ff48;                                                                      // 0x51ff48, 4 bytes; 2 of 2 files
+extern int g_playBufferLooping;                                                               // 0x51ff48, 4 bytes; 2 of 2 files
 extern unsigned char DAT_0051ff4c[12];                                                        // 0x51ff4c, 12 bytes; nothing refers to it
 extern int DAT_0051ff58;                                                                      // 0x51ff58, 4 bytes; 2 of 2 files
 extern unsigned char DAT_0051ff5c[4];                                                         // 0x51ff5c, 4 bytes; nothing refers to it
@@ -733,7 +733,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e828 DAT_0051e828: unsigned int[680] (1), CdLists_490f80 (1), int[680] (1), int[] (1), and 1 more
 //   0x51fbe0 DAT_0051fbe0: part of another global: DAT_0051fbd8+0x8
 //   0x51fc80 g_timerCount: part of another global: DAT_0051fbd8+0xa8
-//   0x51ff14 DAT_0051ff14: void* (2), CdAudio_004ce030* (1), Sound_004ce5e0* (1), Class_004d02a0* (1)
+//   0x51ff14 g_cdPlayer: void* (2), CdAudio_004ce030* (1), Sound_004ce5e0* (1), Class_004d02a0* (1)
 //   0x529e9c DAT_00529e9c: char (3), bool (2)
 //   0x4fd3f8 DAT_004fd3f8: defined in src/data/vtables.cpp
 //   0x4fd670 DAT_004fd670: signed char[] (2), const char[] (2)
@@ -777,7 +777,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e550 DAT_0051e550: char** (1), void** (1), int (1)
 //   0x51e660 DAT_0051e660: int* (2), char* (1)
 //   0x51fb50 DAT_0051fb50: char[] (2), const char[] (1)
-//   0x51fb9c DAT_0051fb9c: const char* (1), int (1), char* (1)
+//   0x51fb9c g_loopingWav: const char* (1), int (1), char* (1)
 //   0x51fe08 g_screenLocks: part of another global: DAT_0051fdc0+0x48
 //   0x528a10 DAT_00528a10: void* (2), Node_004ddc00* (1)
 //   0x528ac0 DAT_00528ac0: void* (1), void (__stdcall*)(void) (1), int (__stdcall*)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*) (1)

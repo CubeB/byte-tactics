@@ -2,11 +2,11 @@
 
 class Class_004cfea0 {
 public:
-    int FUN_004cfea0();
+    int Is3DEnabled();
 };
 
 // FUNCTION: 0x4cfea0
-int Class_004cfea0::FUN_004cfea0()
+int Class_004cfea0::Is3DEnabled()
 {
     return *(int*)((char*)this + 4);
 }

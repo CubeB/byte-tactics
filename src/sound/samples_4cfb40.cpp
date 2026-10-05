@@ -17,11 +17,11 @@ public:
     char unknown_1ec[0x288 - 0x1ec];
     int handle;                        // +0x288
 
-    void FUN_004cfb40();
+    void StopStream();
 };
 
 // FUNCTION: 0x4cfb40
-void Class_004cfb40::FUN_004cfb40()
+void Class_004cfb40::StopStream()
 {
     if (handle != -1) {
         RemoveTimer(handle);

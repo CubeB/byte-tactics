@@ -10,7 +10,7 @@ struct Unit {
     char unknown_108[0x118 - 0x108];
 };
 
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 
 class Condition_0048ed50 {
 public:
@@ -43,7 +43,7 @@ int VictoryBuildUnitType::VisitUnit(Unit* unit)
     if (unit->field_a6 == id && unit->field_104 == 0.0f) {
         done = 1;
         if (announced == 0) {
-            FUN_0047f1a0("Victory Condition", 0);
+            PlaySoundByName("Victory Condition", 0);
             announced = 1;
         }
     }

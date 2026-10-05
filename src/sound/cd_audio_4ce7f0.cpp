@@ -2,11 +2,11 @@
 
 class Class_004ce7f0 {
 public:
-    int FUN_004ce7f0();
+    int GetCurrentTrack();
 };
 
 // FUNCTION: 0x4ce7f0
-int Class_004ce7f0::FUN_004ce7f0()
+int Class_004ce7f0::GetCurrentTrack()
 {
     return *(int*)((char*)this + 0x208);
 }

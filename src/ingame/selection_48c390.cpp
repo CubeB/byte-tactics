@@ -112,8 +112,8 @@ extern Game* g_game;
 extern char s_SelectMultipleUnits_00508d8c[];
 
 int __stdcall FUN_00491d70(int a);
-int __stdcall FUN_0047f780(Unit* unit, int a, int b);
-int __stdcall FUN_0047f1a0(char* msg, int a);
+int __stdcall QueueUnitSpeech(Unit* unit, int a, int b);
+int __stdcall PlaySoundByName(char* msg, int a);
 
 // FUNCTION: 0x48c390
 int __stdcall FUN_0048c390(void* param_1)
@@ -164,9 +164,9 @@ int __stdcall FUN_0048c390(void* param_1)
     if (!count)
         return 0;
     if (count == 1) {
-        FUN_0047f780(last, 1, 0);
+        QueueUnitSpeech(last, 1, 0);
         return 1;
     }
-    FUN_0047f1a0(s_SelectMultipleUnits_00508d8c, 0);
+    PlaySoundByName(s_SelectMultipleUnits_00508d8c, 0);
     return 1;
 }

@@ -53,7 +53,7 @@ struct Game {
 extern Game* g_game;
 static inline UnitDef* Definitions() { return g_game->defs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall FUN_0041c110(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
@@ -74,7 +74,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
     if (flags & 2) { FUN_0041c110(unit); return 5; }
     Unit* target = order->target;
     if (!target) {
-        FUN_0047f780(unit, 7, "Construction terminated");
+        QueueUnitSpeech(unit, 7, "Construction terminated");
         return 8;
     }
     unsigned int state = 0;
@@ -93,7 +93,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
     }
     case 1:
         if (flags & 0x40) {
-            FUN_0047f780(unit, 7, "I can't get there");
+            QueueUnitSpeech(unit, 7, "I can't get there");
             return 8;
         }
         if (target->progress == 0.0f) return 5;
@@ -123,7 +123,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 4:
-        FUN_0047f780(unit, 8, "Building complete");
+        QueueUnitSpeech(unit, 8, "Building complete");
         order->flags |= 2;
         return 5;
     }

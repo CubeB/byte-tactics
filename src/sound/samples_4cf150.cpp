@@ -8,11 +8,11 @@ struct Class_004cf150 {
     char unknown_1[4];   // +0x34
     void* items[0x20];   // +0x38
 
-    void FUN_004cf150();
+    void StopAllBuffers();
 };
 
 // FUNCTION: 0x4cf150
-void Class_004cf150::FUN_004cf150()
+void Class_004cf150::StopAllBuffers()
 {
     void** slot = items;
     for (int i = 0x20; i != 0; i--) {

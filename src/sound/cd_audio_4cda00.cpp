@@ -94,11 +94,11 @@ public:
     char unknown_214[0x280 - 0x214];
     int field_280;                     // +0x280  track 1 is not audio
 
-    int FUN_004cda00();
+    int QueryDisc();
 };
 
 // FUNCTION: 0x4cda00
-int Class_004cda00::FUN_004cda00()
+int Class_004cda00::QueryDisc()
 {
     int other;
     int i;

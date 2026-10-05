@@ -95,8 +95,8 @@
 // zero in ebp). Everything that had been tried by the end of this attempt:
 // local list + &list->count (fold), references, char*/int casts, uninitialised
 // locals, do/while, and deriving the list from a global-derived count pointer
-// (75.5%). Also note: FUN_004ceee0 is declared here as a method of
-// Class_004d0130, but ctx.py names it Class_004ceee0::FUN_004ceee0; if the
+// (75.5%). Also note: ReleaseDirectSound is declared here as a method of
+// Class_004d0130, but ctx.py names it Class_004ceee0::ReleaseDirectSound; if the
 // loop is ever fixed the symbol check will want a separate Class_004ceee0 and
 // a cast on `sound`.
 // deepseek-v4.1-flash retry (#1451): confirmed 86.2% (219 bytes) is the ceiling
@@ -133,14 +133,14 @@ struct List_0047f8c0 {
 
 class Class_004d0130 {
 public:
-    void FUN_004d0130();
+    void RestoreMixerVolumes();
 };
 
 // The callee of 0x4ceee0 is a different class in data/symbols.csv, so the
 // object g_game->sound is cast to call it.
 class Class_004ceee0 {
 public:
-    void FUN_004ceee0();
+    void ReleaseDirectSound();
 };
 
 struct Game {
@@ -155,7 +155,7 @@ void __cdecl operator delete(void* p);
 void __cdecl FUN_004d85a0(int* data);
 
 // FUNCTION: 0x47eee0
-void FUN_0047eee0()
+void ShutdownSound()
 {
     List_0047f8c0* list = DAT_0051e68c;
     if (list) {
@@ -183,10 +183,10 @@ void FUN_0047eee0()
         operator delete(list);
         DAT_0051e68c = 0;
     }
-    g_game->sound->FUN_004d0130();
+    g_game->sound->RestoreMixerVolumes();
     Class_004d0130* sound = g_game->sound;
     if (sound) {
-        ((Class_004ceee0*)sound)->FUN_004ceee0();
+        ((Class_004ceee0*)sound)->ReleaseDirectSound();
         operator delete(sound);
     }
     g_game->sound = 0;

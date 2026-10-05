@@ -76,22 +76,22 @@ struct Game {
 
 class Class_004cfe80 {
 public:
-    void FUN_004cfe80();
+    void Enable3D();
 };
 
 class Class_004cfe90 {
 public:
-    void FUN_004cfe90();
+    void Disable3D();
 };
 
 class Class_004d0070 {
 public:
-    void FUN_004d0070(int level);
+    void SetWaveVolume(int level);
 };
 
 class Class_004d00d0 {
 public:
-    void FUN_004d00d0(int level, int flag);
+    void SetAuxVolume(int level, int flag);
 };
 
 extern Game* g_game;
@@ -108,10 +108,10 @@ extern char DAT_00506884[];           // "FXVOL"
 
 void __stdcall FUN_0049fa90(void* obj);
 int __stdcall IsCurrentGadgetNamed(void* obj, char* name);
-void __stdcall FUN_0047f1a0(char* name, int value);
-void __stdcall FUN_0047f210(char* name, int value);
-void __stdcall FUN_0047f290(char* name);
-void __stdcall FUN_0047f750();
+void __stdcall PlaySoundByName(char* name, int value);
+void __stdcall PlayLoopingSoundByName(char* name, int value);
+void __stdcall PlaySoundFile(char* name);
+void __stdcall StopAllSounds();
 void __stdcall FUN_004ab0a0(void* obj);
 int __stdcall GetButtonStageByName(void* obj, char* name);
 int __stdcall SetButtonStageByName(void* obj, char* name, int value);
@@ -133,7 +133,7 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
     FUN_0049fa90(obj);
     int mode = obj->field_60;
     if (IsCurrentGadgetNamed(obj, DAT_005069b8)) {
-        FUN_0047f1a0(DAT_00502b38, 0);
+        PlaySoundByName(DAT_00502b38, 0);
         g_game->soundFlags.bits.bit6 = entries[obj->field_60].value != 0;
         g_game->field_37f17 = entries[obj->field_60].value * 5;
         FUN_004ab0a0(obj);
@@ -142,27 +142,27 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
         unsigned short f = g_game->soundFlags.word;
         g_game->soundFlags.word = f ^ ((f ^ v) & 7);
         if ((g_game->soundFlags.word & 7) == 0)
-            FUN_0047f750();
+            StopAllSounds();
         if ((g_game->soundFlags.word & 7) == 2)
-            ((Class_004cfe80*)g_game->sound)->FUN_004cfe80();
+            ((Class_004cfe80*)g_game->sound)->Enable3D();
         else
-            ((Class_004cfe90*)g_game->sound)->FUN_004cfe90();
+            ((Class_004cfe90*)g_game->sound)->Disable3D();
         if ((g_game->soundFlags.word & 7) == 1 && !g_game->prefs)
-            FUN_0047f210(DAT_005031d4, 0);
+            PlayLoopingSoundByName(DAT_005031d4, 0);
         SetButtonStageByName(&g_game->gui, DAT_005069d0, g_game->soundFlags.word & 7);
         FUN_004a0570(&g_game->gui, DAT_005069c8, (g_game->soundFlags.word & 7) != 0);
         FUN_004a1450(&g_game->gui, DAT_00506884, (g_game->soundFlags.word & 7) == 0);
         FUN_004a1450(&g_game->gui, DAT_005069c0, (g_game->soundFlags.word & 7) == 0);
         FUN_004a1450(&g_game->gui, DAT_005069b8, (g_game->soundFlags.word & 7) == 0);
         FUN_004ab0a0(obj);
-        FUN_0047f1a0(DAT_00502b38, 0);
+        PlaySoundByName(DAT_00502b38, 0);
         return;
     }
     if (IsCurrentGadgetNamed(obj, DAT_00506998)) {
         FUN_0045c820();
         CloseTopScreen(obj);
         FUN_0045de30();
-        FUN_0047f1a0(DAT_00502b38, 0);
+        PlaySoundByName(DAT_00502b38, 0);
         return;
     }
     if (IsCurrentGadgetNamed(obj, DAT_00506990)) {
@@ -170,19 +170,19 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
         g_game->soundFlags.bits.bit4 = 1;
         g_game->soundFlags.bits.bit5 = 1;
         g_game->soundFlags.bits.bit6 = 1;
-        ((Class_004cfe90*)g_game->sound)->FUN_004cfe90();
+        ((Class_004cfe90*)g_game->sound)->Disable3D();
         g_game->soundFlags.word = (g_game->soundFlags.word & 0xfff9) | 1;
         g_game->field_37f17 = 10;
         SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-        ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
-        ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
+        ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
+        ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
         CloseTopScreen(obj);
         FUN_0045de30();
-        FUN_0047f1a0(DAT_00502b38, 0);
+        PlaySoundByName(DAT_00502b38, 0);
         return;
     }
     if (IsCurrentGadgetNamed(obj, DAT_005069c0)) {
-        FUN_0047f290(DAT_005069d8);
+        PlaySoundFile(DAT_005069d8);
         FUN_004ab0a0(obj);
         return;
     }

@@ -55,13 +55,13 @@ public:
         return -1;
     }
 
-    void FUN_004cff30();
+    void InitMixerVolumes();
 };
 
 // Picks the first CD-audio auxiliary device, then caches the wave-out and
 // auxiliary volumes (-1 when unavailable).
 // FUNCTION: 0x4cff30
-void Class_004cff30::FUN_004cff30()
+void Class_004cff30::InitMixerVolumes()
 {
     AUXCAPSA caps;
 

@@ -16,7 +16,7 @@ public:
 
 class Class_004ce7e0 {
 public:
-    unsigned char FUN_004ce7e0(int index);
+    unsigned char GetCategoryOfTrack(int index);
 };
 
 // The surface laid out by AllocSurface: the pixels follow a 0x30-byte header.
@@ -107,7 +107,7 @@ void FUN_004257a0();
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 Layer_00460160* FUN_0045cfc0();
 int __stdcall FUN_0045fc60(void* gadget);
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 void __stdcall FUN_0049fb10(Menu_00460160* menu, int value);
 void __stdcall RenderLayer(Menu_00460160* menu, int value);
 void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Class_004c6a60* src);
@@ -144,11 +144,11 @@ void FUN_00460160()
     DAT_00512f71 = g_game->field_1434d;
     DAT_00512fd9 = ((Class_004ce5a0*)g_game->field_10)->FUN_004ce5a0();
     for (int i = 0; i < 100; i++) {
-        DAT_00512f75[i] = ((Class_004ce7e0*)g_game->field_10)->FUN_004ce7e0(i);
+        DAT_00512f75[i] = ((Class_004ce7e0*)g_game->field_10)->GetCategoryOfTrack(i);
     }
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0xc0);
     if (g_game->flags.bit2) {
-        FUN_0047f1a0("Panel", 0);
+        PlaySoundByName("Panel", 0);
     }
 }

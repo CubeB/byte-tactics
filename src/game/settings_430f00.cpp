@@ -109,17 +109,17 @@ struct Game {
 
 class Class_004cf220 {
 public:
-    int FUN_004cf220();
+    int GetMaxBuffers();
 };
 
 class Class_004cfff0 {
 public:
-    int FUN_004cfff0();
+    int QueryWaveVolume();
 };
 
 class Class_004d0040 {
 public:
-    int FUN_004d0040();
+    int QueryAuxVolume();
 };
 
 extern Game* g_game;
@@ -148,12 +148,12 @@ void SaveSettings()
     FUN_004b6a50("Total Annihilation", "Sound Mode", g_game->soundFlags.soundMode);
     FUN_004b6a50("Total Annihilation", "RestoreVolume", g_game->soundFlags.restoreVolume);
     FUN_004b6a50("Total Annihilation", "MixingBuffers",
-                 ((Class_004cf220*)g_game->sound)->FUN_004cf220());
+                 ((Class_004cf220*)g_game->sound)->GetMaxBuffers());
     if (g_game->soundFlags.restoreVolume) {
         FUN_004b6a50("Total Annihilation", "WaveOutVolume",
-                     ((Class_004cfff0*)g_game->sound)->FUN_004cfff0());
+                     ((Class_004cfff0*)g_game->sound)->QueryWaveVolume());
         FUN_004b6a50("Total Annihilation", "CDAudioVolume",
-                     ((Class_004d0040*)g_game->sound)->FUN_004d0040());
+                     ((Class_004d0040*)g_game->sound)->QueryAuxVolume());
     }
     FUN_004b6a50("Total Annihilation", "Anti-Alias", g_game->flags_37f06.antiAlias);
     FUN_004b6a50("Total Annihilation", "Shadows", g_game->flags_37f06.shadows);

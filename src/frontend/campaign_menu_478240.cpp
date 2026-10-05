@@ -97,7 +97,7 @@ void __stdcall FUN_004a0570(void* menu, const char* name, int value);
 Entry_00478240* __stdcall FindGadgetChecked(Entry_00478240* entries,
                                        const char* name);
 void __cdecl FUN_004d85a0(int* p);
-void __stdcall FUN_0047f1a0(const char* name, int value);
+void __stdcall PlaySoundByName(const char* name, int value);
 int __stdcall FUN_00476a60(int** p, int value);
 void __stdcall FUN_004a32a0(void* menu, const char* name, int* data, int count,
                             int flag);
@@ -221,7 +221,7 @@ void __stdcall FUN_00478240(int param_1)
             FUN_004d85a0(DAT_0051e65c);
             DAT_0051e65c = 0;
         }
-        FUN_0047f1a0("smlbutton", 0);
+        PlaySoundByName("smlbutton", 0);
         int count = FUN_00476a60(&DAT_0051e65c, side);
         FUN_004a32a0(&g_game->menu, "Campaign", DAT_0051e65c, count, 0);
         int ci = FindGadgetIndex(cur->entries, "Campaign", 2);

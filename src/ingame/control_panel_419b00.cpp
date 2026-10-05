@@ -26,7 +26,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_0043b0b0(Class_00438760 kind, Unit* unit, int id, int count);
 short __stdcall FindUnitTypeId(char* name);
 
@@ -35,9 +35,9 @@ void __stdcall FUN_00419b00(char* name, Unit* unit, int count)
 {
     if (unit->field_ff == g_game->field_2a43) {
         if (count > 0)
-            FUN_0047f1a0("addbuild", 0);
+            PlaySoundByName("addbuild", 0);
         else
-            FUN_0047f1a0("subbuild", 0);
+            PlaySoundByName("subbuild", 0);
     }
     if (strstr(name, "MAKENUKE") != 0 || strstr(name, "MAKEANTI") != 0) {
         FUN_0043b0b0(Class_00438760("BUILDWEAPON"), unit, 0, count);

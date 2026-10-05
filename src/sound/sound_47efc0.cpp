@@ -1,9 +1,9 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern int DAT_0051e690;
+extern int g_noDirectSound;
 
 // FUNCTION: 0x47efc0
-void FUN_0047efc0()
+void SetNoDirectSound()
 {
-    DAT_0051e690 = 1;
+    g_noDirectSound = 1;
 }

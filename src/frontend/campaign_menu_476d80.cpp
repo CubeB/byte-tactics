@@ -59,7 +59,7 @@ void __stdcall SelectFontForEntry(Gadget_00476d80* gadgets, int index);
 char* __stdcall WordWrapText(Menu_00476d80* menu, char* text, int value, int index);
 char* __stdcall FUN_00476cd0(char* text);
 void FUN_00476ef0();
-void __stdcall FUN_0047f090(char* text, int a, int b);
+void __stdcall StreamSoundDelayed(char* text, int a, int b);
 
 // FUNCTION: 0x476d80
 void FUN_00476d80()
@@ -82,7 +82,7 @@ void FUN_00476d80()
     if (g_game->field_391f1 != 6) {
         char* name = ((Class_004356c0*)g_game->net)->FUN_004356c0(3);
         if (name) {
-            FUN_0047f090(name, 0, 0x3c);
+            StreamSoundDelayed(name, 0, 0x3c);
         }
     }
 }

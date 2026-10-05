@@ -117,7 +117,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 int __stdcall FUN_004b6c30(int range);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
@@ -133,13 +133,13 @@ void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
 {
     if (!order->target) {
-        FUN_0047f780(unit, 7, "Repairs unsuccessful.");
+        QueueUnitSpeech(unit, 7, "Repairs unsuccessful.");
         return 5;
     }
     if (order->range && (int)_hypot(unit->fixedPos.x - order->start.x, unit->fixedPos.z - order->start.z) >= order->range)
         return 5;
     if (order->target->bits.mode != 1) {
-        FUN_0047f780(unit, 7, "Repairs unsuccessful.");
+        QueueUnitSpeech(unit, 7, "Repairs unsuccessful.");
         return 5;
     }
     switch (order->state) {
@@ -196,7 +196,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
         order->flags |= 8;
         return 2;
     case 4:
-        FUN_0047f780(unit, 10, "Unit repaired");
+        QueueUnitSpeech(unit, 10, "Unit repaired");
         return 5;
     }
     return 7;

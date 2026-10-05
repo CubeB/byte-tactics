@@ -7,22 +7,22 @@
 
 class Class_004cf0b0 {
 public:
-    void FUN_004cf0b0();
+    void ReapFinishedBuffers();
 };
 
 class Class_004cf230 {
 public:
-    IDirectSoundBuffer** FUN_004cf230(int a, int b, int c, int d, int e);
+    IDirectSoundBuffer** CreateSampleFromMemory(int a, int b, int c, int d, int e);
 };
 
 class Class_004cf4d0 {
 public:
-    void FUN_004cf4d0(IDirectSoundBuffer** set);
+    void ReleaseSampleSet(IDirectSoundBuffer** set);
 };
 
 class Class_004cf570 {
 public:
-    int FUN_004cf570(IDirectSoundBuffer** set, int a, int b);
+    int PlaySampleSet(IDirectSoundBuffer** set, int a, int b);
 };
 
 class Class_004cf800 {
@@ -30,20 +30,20 @@ public:
     char unknown_0[0x1c4];
     IDirectSoundBuffer** sets[8];           // +0x1c4
 
-    int FUN_004cf800(int a, int b, int c, int d, int e, int f, int g);
+    int PlayMemorySample(int a, int b, int c, int d, int e, int f, int g);
 };
 
 // FUNCTION: 0x4cf800
-int Class_004cf800::FUN_004cf800(int a, int b, int c, int d, int e, int f, int g)
+int Class_004cf800::PlayMemorySample(int a, int b, int c, int d, int e, int f, int g)
 {
-    ((Class_004cf0b0*)this)->FUN_004cf0b0();
+    ((Class_004cf0b0*)this)->ReapFinishedBuffers();
     for (int i = 0; i < 8; i++) {
         if (sets[i] == 0) {
-            sets[i] = ((Class_004cf230*)this)->FUN_004cf230(a, b, c, d, e);
+            sets[i] = ((Class_004cf230*)this)->CreateSampleFromMemory(a, b, c, d, e);
             if (sets[i] == 0)
                 return 0;
-            if (((Class_004cf570*)this)->FUN_004cf570(sets[i], f, g) == 0) {
-                ((Class_004cf4d0*)this)->FUN_004cf4d0(sets[i]);
+            if (((Class_004cf570*)this)->PlaySampleSet(sets[i], f, g) == 0) {
+                ((Class_004cf4d0*)this)->ReleaseSampleSet(sets[i]);
                 sets[i] = 0;
                 return 0;
             }

@@ -4,7 +4,7 @@
 
 class Class_004ce7e0 {
 public:
-    unsigned char FUN_004ce7e0(int param_1);
+    unsigned char GetCategoryOfTrack(int param_1);
 };
 
 class Class_004ce580 {
@@ -54,7 +54,7 @@ void FUN_0045c3f0()
         int disc = DAT_00512fe0;
         FUN_004a1250(menu, "TRACKTYPE",
                      ((g_game->f_37f14 & 1) && g_game->state == 4) ? 0 : 1);
-        SetButtonStageByName(menu, "TRACKTYPE", g_game->field_10->FUN_004ce7e0(disc));
+        SetButtonStageByName(menu, "TRACKTYPE", g_game->field_10->GetCategoryOfTrack(disc));
         if (disc == 0)
             strcpy(buf, "NO DISC");
         else

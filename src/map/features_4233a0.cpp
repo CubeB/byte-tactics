@@ -84,7 +84,7 @@ Cell_004233a0* __stdcall FUN_00481550(int x, int y);
 void __stdcall FUN_004232f0(int index, int* head);
 void __stdcall InitGafSequence(AnimRef_004233a0* ref, AnimSrc_004233a0* src, int index);
 int __stdcall FUN_004b6c30(int range);
-void __stdcall FUN_0047f610(char* name, Vec3_004233a0* pos, int param_3);
+void __stdcall PlaySoundAtByName(char* name, Vec3_004233a0* pos, int param_3);
 int GetLocalDpid();
 int __stdcall BroadcastPacket(int player, void* data, int size);
 
@@ -135,7 +135,7 @@ void __stdcall FUN_004233a0(int x, int z, int flag)
     Vec3_004233a0 pos;
     pos.x = x << 20;
     pos.z = z << 20;
-    FUN_0047f610("treeburn", &pos, 0);
+    PlaySoundAtByName("treeburn", &pos, 0);
     if (flag == 0) {
         Packet_004233a0 packet;
         packet.type = 0xf;

@@ -23,7 +23,7 @@ extern List_0047f8c0* DAT_0051e68c;
 // The count is used through its own pointer: accessed as list->count, MSVC
 // keeps the list pointer live instead of reusing its register for the entries.
 // FUNCTION: 0x47f8c0
-void __stdcall FUN_0047f8c0(int id)
+void __stdcall RemoveSpeechOfUnit(int id)
 {
     int* count = &DAT_0051e68c->count;
     Entry_0047f8c0* entries = DAT_0051e68c->entries;

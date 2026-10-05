@@ -155,7 +155,7 @@ struct Packet {
 extern Game* g_game;
 
 unsigned short __stdcall FindFeatureAtPos(Vec3* pos, Point16* cell, Point16* size);
-void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 int __stdcall FUN_004b6c30(int range);
 int __stdcall GetGroundHeight(Vec3* pos);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
@@ -189,7 +189,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
     if (order->state <= 5) {
         unsigned short index = FindFeatureAtPos(&order->pos, &cell, &size);
         if (index == 0xffff) {
-            FUN_0047f780(unit, 7, "Resurrection failed");
+            QueueUnitSpeech(unit, 7, "Resurrection failed");
             return 8;
         }
         f = &g_game->features[index];
@@ -227,11 +227,11 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         }
         order->unitType = FindUnitTypeId(name);
         if (!order->unitType) {
-            FUN_0047f780(unit, 7, "Ressurection failed");
+            QueueUnitSpeech(unit, 7, "Ressurection failed");
             return 8;
         }
         order->time = (int)(g_game->unitTypes[order->unitType].buildTime * 0.3 / (unit->type->workerTime / 30));
-        FUN_0047f780(unit, 11, 0);
+        QueueUnitSpeech(unit, 11, 0);
         return 1;
     }
     case 4:
@@ -255,7 +255,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
     case 5: {
         order->target.SetUnit(CreateUnit(unit->playerIndex, order->unitType, order->pos, 0, 1, 0));
         if (!order->target.owner) {
-            FUN_0047f780(unit, 7, "Unable to create any more units");
+            QueueUnitSpeech(unit, 7, "Unable to create any more units");
             ((Class_00439e80*)order)->FUN_00439e80(300);
             return 2;
         }
@@ -285,7 +285,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         break;
     }
     case 6: {
-        FUN_0047f780(unit, 8, "Resurrection complete");
+        QueueUnitSpeech(unit, 8, "Resurrection complete");
         Class_00438760 kind = FUN_0043f0e0(8, unit, order->target.owner, 0);
         if (kind.index)
             AppendOrder(unit, new Class_0043a1f0(kind, order->target.owner, 0, 0, 0, 0));

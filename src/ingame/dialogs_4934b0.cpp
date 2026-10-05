@@ -57,7 +57,7 @@ Entry_4934b0* __stdcall FindGadgetChecked(Entry_4934b0* entries, char* name);
 int __stdcall IsCurrentGadgetNamed(Gadget_4934b0* obj, char* name);
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall FUN_0049fa90(Gadget_4934b0* obj);
-void __stdcall FUN_0047f1a0(char* name, int flag);
+void __stdcall PlaySoundByName(char* name, int flag);
 void __stdcall FUN_004ab0a0(Gadget_4934b0* obj);
 Entry_4934b0* __stdcall FUN_004a0200(Entry_4934b0* entries, char* name);
 int __stdcall FUN_0045ba20(Entry_4934b0* entry);
@@ -94,18 +94,18 @@ void __stdcall FUN_004934b0(Gadget_4934b0* obj)
     }
     if (IsCurrentGadgetNamed(obj, "MAPINFO")) {
         FUN_0049fa90(obj);
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_004ab0a0(obj);
         return;
     }
     if (IsCurrentGadgetNamed(obj, "SHARUNIT")) {
         FUN_0049fa90(obj);
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_004ab0a0(obj);
         return;
     }
     if (IsCurrentGadgetNamed(obj, "OK")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         Entry_4934b0* plyr = FindGadgetChecked(data, "PLYRLIST");
         short idx = plyr->selected;
         if (idx < 0)
@@ -127,7 +127,7 @@ void __stdcall FUN_004934b0(Gadget_4934b0* obj)
         return;
     }
     if (IsCurrentGadgetNamed(obj, "CANCEL")) {
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         return;
     }
     if (obj->current != -1)

@@ -50,7 +50,7 @@ extern char* DAT_005129ac;
 extern char* DAT_005129b0;
 
 int __stdcall IsCurrentGadgetNamed(Menu_0044b690* menu, char* name);
-void __stdcall FUN_0047f1a0(char* name, int flag);
+void __stdcall PlaySoundByName(char* name, int flag);
 Gadget_0044b690* __stdcall FindGadgetChecked(Entry_0044b690* entries, char* name);
 int __stdcall FindGadgetIndex(Entry_0044b690* entries, const char* name, int flag);
 char* __stdcall FUN_004b6af0(char* text, int n);
@@ -80,11 +80,11 @@ void __stdcall FUN_0044b690(Menu_0044b690* menu)
         return;
     }
     if (IsCurrentGadgetNamed(menu, "CANCEL")) {
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "DELETE")) {
-        FUN_0047f1a0("SMLBUTTON", 0);
+        PlaySoundByName("SMLBUTTON", 0);
         Gadget_0044b690* games = FindGadgetChecked(entries, "GAMES");
         char buf[0x100];
         sprintf(buf, "%s\\%s", DAT_005091c8,
@@ -118,7 +118,7 @@ void __stdcall FUN_0044b690(Menu_0044b690* menu)
     }
     if (IsCurrentGadgetNamed(menu, "GAMES") || IsCurrentGadgetNamed(menu, "LOAD") ||
         IsCurrentGadgetNamed(menu, "GAMENAME")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         int idx = FindGadgetIndex(entries, "GAMENAME", 3);
         char* name = entries[idx].text;
         if (strlen(name) != 0) {

@@ -106,7 +106,7 @@ int __stdcall FUN_004b6c30(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall FUN_0047e570(Unit* unit, int id);
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, int p3, int p4);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 
@@ -161,7 +161,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     int radius = unit->field_10->field_dc;
     Unit* host = order->target.owner;
     if (!host) {
-        FUN_0047f780(unit, 7, "Landing aborted");
+        QueueUnitSpeech(unit, 7, "Landing aborted");
         return 8;
     }
     unsigned int state = 0;
@@ -200,7 +200,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         int pad = FindLandingPad(host, -1);
         order->angle = pad;
         if (pad == -1) {
-            FUN_0047f780(unit, 7, "Landing failed");
+            QueueUnitSpeech(unit, 7, "Landing failed");
             return 0;
         }
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, order->angle);
@@ -217,7 +217,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         int pad = FindLandingPad(host, order->angle);
         order->angle = pad;
         if (pad == -1) {
-            FUN_0047f780(unit, 7, "Landing aborted: all pads are occupied");
+            QueueUnitSpeech(unit, 7, "Landing aborted: all pads are occupied");
             return 0;
         }
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, order->angle);
@@ -237,7 +237,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         if (flags & 0x40)
             return 8;
         if (!FUN_0047e570(host, order->angle)) {
-            FUN_0047f780(unit, 7, "Landing aborted: no pads available");
+            QueueUnitSpeech(unit, 7, "Landing aborted: no pads available");
             return 0;
         }
         if (unit->cargo) {

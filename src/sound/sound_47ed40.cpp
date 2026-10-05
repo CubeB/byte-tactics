@@ -6,17 +6,17 @@
 
 class Class_004cef90 {
 public:
-    int FUN_004cef90(int rate, int bits, int channels, int handle);
+    int InitDirectSound(int rate, int bits, int channels, int handle);
 };
 
 class Class_004ce260 {
 public:
-    void FUN_004ce260();
+    void OpenCdAudio();
 };
 
 class Class_004cff20 {
 public:
-    int FUN_004cff20();
+    int HasNoDriver();
 };
 
 class SoundParams_0047ed40 {
@@ -51,8 +51,8 @@ public:
 #pragma pack(pop)
 
 extern Game* g_game;
-extern int DAT_0051e690;             // NoDirectSound
-extern int DAT_0051e694;             // UseWindowsSound
+extern int g_noDirectSound;          // NoDirectSound
+extern int g_useWindowsSound;        // UseWindowsSound
 extern Sound_0047ed40* DAT_0051e68c;
 
 extern char DAT_00508ab4[]; // "NoDirectSound"
@@ -60,7 +60,7 @@ extern char DAT_00508aa4[]; // "UseWindowsSound"
 extern char DAT_00508a78[]; // "Error:  Sound system initialization failed."
 
 unsigned int __stdcall GetPreferenceInt(char* key, int defaultValue);
-int FUN_0049f610(void);
+int IsWindowsSoundAvailable(void);
 void __stdcall FatalError(char* text);
 void* __cdecl operator new(size_t size);
 
@@ -68,26 +68,26 @@ void* __cdecl operator new(size_t size);
 // directly with 0 gives `test eax, eax`, the original compares with the
 // zero register instead.
 // FUNCTION: 0x47ed40
-void FUN_0047ed40(void)
+void InitSound(void)
 {
     if (GetPreferenceInt(DAT_00508ab4, 0))
-        DAT_0051e690 = 1;
+        g_noDirectSound = 1;
     if (GetPreferenceInt(DAT_00508aa4, 0))
-        DAT_0051e694 = 1;
-    if (DAT_0051e694) {
-        if (!FUN_0049f610())
-            DAT_0051e694 = 0;
-        DAT_0051e690 = 1;
+        g_useWindowsSound = 1;
+    if (g_useWindowsSound) {
+        if (!IsWindowsSoundAvailable())
+            g_useWindowsSound = 0;
+        g_noDirectSound = 1;
     }
-    if (!DAT_0051e690) {
-        int hr = g_game->field_10->FUN_004cef90(0x2b11, 0x10, 2, g_game->field_0c->field_40);
+    if (!g_noDirectSound) {
+        int hr = g_game->field_10->InitDirectSound(0x2b11, 0x10, 2, g_game->field_0c->field_40);
         if (hr == 0) {
-            if (((Class_004cff20*)g_game->field_10)->FUN_004cff20())
-                DAT_0051e690 = 1;
+            if (((Class_004cff20*)g_game->field_10)->HasNoDriver())
+                g_noDirectSound = 1;
             else
                 FatalError(DAT_00508a78);
         }
     }
-    ((Class_004ce260*)g_game->field_10)->FUN_004ce260();
+    ((Class_004ce260*)g_game->field_10)->OpenCdAudio();
     DAT_0051e68c = new Sound_0047ed40();
 }

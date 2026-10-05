@@ -26,7 +26,7 @@
 #include <windows.h>
 #include <dsound.h>
 
-extern int DAT_0051ff48;
+extern int g_playBufferLooping;
 
 extern const GUID DAT_004fcf68;
 
@@ -56,7 +56,7 @@ struct IDirectSound3DBuffer : public IUnknown {
 
 class Class_004cf180 {
 public:
-    void FUN_004cf180();
+    void StopOldestBuffer();
 };
 
 class Class_004cf570 {
@@ -79,22 +79,22 @@ public:
     int priority[0x20];                     // +0xb8
     int flags[0x20];                        // +0x138
 
-    int FUN_004cf570(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* pos);
+    int PlaySampleSet(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* pos);
 };
 
 // FUNCTION: 0x4cf570
-int Class_004cf570::FUN_004cf570(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* pos)
+int Class_004cf570::PlaySampleSet(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* pos)
 {
     IDirectSoundBuffer* unit = 0;
     int slot = 0;
-    if (DAT_0051ff48 != 0) {
+    if (g_playBufferLooping != 0) {
         for (int i = 0; i < 0x20; i++) {
             if (buffers[i] != 0 && flags[i] == 1)
                 return 0;
         }
     }
     while (count >= field_2c)
-        ((Class_004cf180*)this)->FUN_004cf180();
+        ((Class_004cf180*)this)->StopOldestBuffer();
     DWORD best = 0;
     if (set == 0)
         return 0;
@@ -144,13 +144,13 @@ int Class_004cf570::FUN_004cf570(IDirectSoundBuffer** set, LONG volume, Pos_004c
         return 0;
     if (unit->SetVolume(volume) != 0)
         return 0;
-    if (unit->Play(0, 0, DAT_0051ff48 != 0) != 0)
+    if (unit->Play(0, 0, g_playBufferLooping != 0) != 0)
         return 0;
     for (int j = 0; j < 0x20; j++) {
         if (buffers[j] == 0) {
             buffers[j] = unit;
             priority[j] = ++field_34;
-            flags[j] = DAT_0051ff48 != 0;
+            flags[j] = g_playBufferLooping != 0;
             count++;
             break;
         }

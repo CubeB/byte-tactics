@@ -21,7 +21,7 @@ struct Message_0047f780 {              // 0x18 bytes
 
 class Class_0047fad0 {
 public:
-    void FUN_0047fad0(Unit* unit, int kind, char* text);
+    void EnqueueSpeech(Unit* unit, int kind, char* text);
 };
 
 extern Game* g_game;
@@ -31,12 +31,12 @@ extern Message_0047f780 DAT_005086e8[];
 char* __stdcall FUN_004c5740(char* text);
 
 // FUNCTION: 0x47f780
-void __stdcall FUN_0047f780(Unit* unit, int kind, char* text)
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text)
 {
     if (unit->owner == g_game->field_2a43 && (unit->flags & 0x10000000) && !(unit->flags & 0x4000)) {
         if (text == 0) {
             text = DAT_005086e8[kind].text;
         }
-        DAT_0051e68c->FUN_0047fad0(unit, kind, FUN_004c5740(text));
+        DAT_0051e68c->EnqueueSpeech(unit, kind, FUN_004c5740(text));
     }
 }

@@ -11,7 +11,7 @@ public:
     char unknown_24[0x284 - 0x24];
     int field_284;                     // +0x284
 
-    int FUN_004d00d0(int volume, int temporary);
+    int SetAuxVolume(int volume, int temporary);
 };
 
 static inline int ClampVolume(int v)
@@ -28,7 +28,7 @@ static inline int ClampVolume(int v)
 // Sets the aux (CD) volume, clamped to 0..0xffff; unless `temporary`, it is
 // also remembered. Returns nonzero on success.
 // FUNCTION: 0x4d00d0
-int Class_004d00d0::FUN_004d00d0(int volume, int temporary)
+int Class_004d00d0::SetAuxVolume(int volume, int temporary)
 {
     if (field_284 != 0 && temporary == 0) {
         return 1;

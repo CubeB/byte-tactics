@@ -79,7 +79,7 @@ int __stdcall IsCurrentGadgetNamed(Gadget_00444cb0* gadget, char* name);
 Entry_00444cb0* __stdcall FindGadgetChecked(void* entries, char* name);
 Entry_00444cb0* __stdcall FUN_004a0280(void* entries, char* name);
 char* __stdcall FUN_004b6af0(char* text, int n);
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 void __stdcall FUN_004ab0a0(Gadget_00444cb0* gadget);
 void __stdcall ReportGameEvent(int msg);
 void __cdecl FUN_004d85a0(void* p);
@@ -106,7 +106,7 @@ void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
     }
 
     if (IsCurrentGadgetNamed(param_1, "MAPNAMES") || IsCurrentGadgetNamed(param_1, "LOAD")) {
-        FUN_0047f1a0("Multi", 0);
+        PlaySoundByName("Multi", 0);
         Entry_00444cb0* g = FindGadgetChecked(entries, "MAPNAMES");
         ((Class_00435a20*)g_game->field_391e9)->LoadMissionByName(
             FUN_004b6af0(g->text, g->selected));
@@ -131,7 +131,7 @@ void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
     }
 
     if (IsCurrentGadgetNamed(param_1, "PREVMENU")) {
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         ((Class_00435a20*)g_game->field_391e9)->LoadMissionByName(DAT_00512990);
         BroadcastPlayerInfo();
         return;

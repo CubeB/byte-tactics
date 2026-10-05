@@ -22,7 +22,7 @@ extern Game* g_game;
 int __stdcall IsCurrentGadgetNamed(Gadget_004775a0* gadget, char* name);
 char __stdcall FindGameCdDrive(int side);
 void RegisterDataArchives();
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_00491c80(int n);
 void ShowLoadGameScreen();
 void FUN_00460160();
@@ -38,7 +38,7 @@ void __stdcall FUN_004775a0(Gadget_004775a0* gadget)
     if (IsCurrentGadgetNamed(gadget, "NewCamp")) {
         if (FindGameCdDrive(0)) {
             RegisterDataArchives();
-            FUN_0047f1a0("BigButton", 0);
+            PlaySoundByName("BigButton", 0);
             g_game->field_2bc0 = 10;
             FUN_00491c80(0x14);
         } else {
@@ -50,7 +50,7 @@ void __stdcall FUN_004775a0(Gadget_004775a0* gadget)
     if (IsCurrentGadgetNamed(gadget, "Skirmish")) {
         if (FindGameCdDrive(1)) {
             RegisterDataArchives();
-            FUN_0047f1a0("skirmish", 0);
+            PlaySoundByName("skirmish", 0);
             g_game->field_2bc0 = 11;
             FUN_00491c80(0x14);
         } else {
@@ -60,21 +60,21 @@ void __stdcall FUN_004775a0(Gadget_004775a0* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "LoadGame")) {
-        FUN_0047f1a0("BigButton", 0);
+        PlaySoundByName("BigButton", 0);
         FUN_00491c80(0x14);
         ShowLoadGameScreen();
         FUN_004ab0a0(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "Options")) {
-        FUN_0047f1a0("options", 0);
+        PlaySoundByName("options", 0);
         FUN_004ab0a0(gadget);
         FUN_00491c80(0x14);
         FUN_00460160();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "PrevMenu")) {
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         FUN_00491c80(0x14);
         g_game->field_2bc0 = 3;
         return;
@@ -82,7 +82,7 @@ void __stdcall FUN_004775a0(Gadget_004775a0* gadget)
     if (IsCurrentGadgetNamed(gadget, "AnyMsn")) {
         if (FindGameCdDrive(0)) {
             RegisterDataArchives();
-            FUN_0047f1a0("bigButton", 0);
+            PlaySoundByName("bigButton", 0);
             g_game->field_2bc0 = 14;
             FUN_00491c80(0x14);
         } else {

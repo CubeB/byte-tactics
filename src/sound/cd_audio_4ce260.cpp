@@ -2,19 +2,19 @@
 #include <windows.h>
 #include <mmsystem.h>
 
-extern HWND DAT_0051ff18;
-extern void* DAT_0051ff14;
-extern int DAT_0050b540;
-extern int DAT_0050b544;
+extern HWND g_cdPlayerWindow;
+extern void* g_cdPlayer;
+extern int g_cdNextTrackTimer;
+extern int g_cdFadeTimer;
 
 extern void __stdcall RemoveTimer(int);
 extern void __stdcall FUN_004b6b60(void (__stdcall*)(int, int, int));
-extern void __stdcall FUN_004ce030(int, int, int);
-extern BOOL __stdcall FUN_004ce1e0(HWND, LPARAM);
+extern void __stdcall HandleCdMessage(int, int, int);
+extern BOOL __stdcall FindCdPlayerWindow(HWND, LPARAM);
 
 class Class_004cda00 {
 public:
-    int FUN_004cda00();
+    int QueryDisc();
 };
 
 class Class_004ce260 {
@@ -35,7 +35,7 @@ public:
     char unknown_288[4];
     int field_28c;                     // +0x28c
 
-    int FUN_004ce260();
+    int OpenCdAudio();
 };
 
 // Initialises the CD player object and opens the MCI cdaudio device. The
@@ -44,13 +44,13 @@ public:
 // The store to arr_214[0] before the loop is overwritten by the loop's first
 // iteration (0 % 4 + 1 == 1), so it is redundant in the original.
 // FUNCTION: 0x4ce260
-int Class_004ce260::FUN_004ce260()
+int Class_004ce260::OpenCdAudio()
 {
     MCIERROR hr;
     if (open != 0)
         return 1;
-    DAT_0051ff18 = 0;
-    DAT_0051ff14 = this;
+    g_cdPlayerWindow = 0;
+    g_cdPlayer = this;
     arr_214[0] = 1;
     for (int i = 0; i < 100; i++)
         arr_214[i] = (i % 4) + 1;
@@ -65,7 +65,7 @@ int Class_004ce260::FUN_004ce260()
     field_280 = 0;
     hr = mciSendStringA("open cdaudio", 0, 0, 0);
     if (hr != 0) {
-        EnumWindows((WNDENUMPROC)FUN_004ce1e0, 0);
+        EnumWindows((WNDENUMPROC)FindCdPlayerWindow, 0);
         hr = mciSendStringA("open cdaudio", 0, 0, 0);
         if (hr != 0)
             return 0;
@@ -74,10 +74,10 @@ int Class_004ce260::FUN_004ce260()
     field_20c = 0;
     field_208 = (field_200 != 0);
     field_284 = 0;
-    RemoveTimer(DAT_0050b540);
-    RemoveTimer(DAT_0050b544);
-    DAT_0050b544 = -1;
-    DAT_0050b540 = -1;
+    RemoveTimer(g_cdNextTrackTimer);
+    RemoveTimer(g_cdFadeTimer);
+    g_cdFadeTimer = -1;
+    g_cdNextTrackTimer = -1;
     hr = mciSendStringA("set cdaudio time format milliseconds", 0, 0, 0);
     if (hr != 0) {
         if (open != 0) {
@@ -88,8 +88,8 @@ int Class_004ce260::FUN_004ce260()
         return 0;
     }
     field_210 = 0;
-    field_200 = ((Class_004cda00*)this)->FUN_004cda00();
-    FUN_004b6b60(FUN_004ce030);
+    field_200 = ((Class_004cda00*)this)->QueryDisc();
+    FUN_004b6b60(HandleCdMessage);
     open = 1;
     field_204 = 1;
     field_208 = 0;

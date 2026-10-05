@@ -141,7 +141,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 void __stdcall FUN_0041c150(Unit* unit);
 void __stdcall FUN_0041b8d0(Unit* unit, Unit* target);
 void __stdcall DamageUnit(Unit* unit, Unit* target, int n, int kind, int flag);
@@ -163,7 +163,7 @@ void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 int __stdcall SelfRepairOrder(Unit* unit, Order* order, int unused)
 {
     if (order->target.owner == 0) {
-        FUN_0047f780(unit, 7, "Repair aborted.");
+        QueueUnitSpeech(unit, 7, "Repair aborted.");
         return 8;
     }
     switch (order->state) {
@@ -196,7 +196,7 @@ int __stdcall SelfRepairOrder(Unit* unit, Order* order, int unused)
         order->flags |= 8;
         return 2;
     case 2:
-        FUN_0047f780(unit, 10, "Unit repaired");
+        QueueUnitSpeech(unit, 10, "Unit repaired");
         return 5;
     default:
         return 7;
@@ -249,7 +249,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         return 5;
     }
     if (flags & 8) {
-        FUN_0047f780(unit, 7, "Construction stopped");
+        QueueUnitSpeech(unit, 7, "Construction stopped");
         order->count--;
         FUN_0041c150(unit);
         return 0;
@@ -281,12 +281,12 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         }
         order->target.SetUnit(CreateUnit(unit->playerIndex, order->unitType, order->pos, 0, 1, 0));
         if (order->target.owner == 0) {
-            FUN_0047f780(unit, 7, "Unable to create any more units");
+            QueueUnitSpeech(unit, 7, "Unable to create any more units");
             ((Class_00439e80*)order)->FUN_00439e80(300);
             order->flags |= 2;
             return 2;
         }
-        FUN_0047f780(unit, 9, "Starting construction");
+        QueueUnitSpeech(unit, 9, "Starting construction");
         AttachUnitToPiece(order->target.owner, unit, piece, 1);
         order->target.owner->bits.bits18 = unit->bits.bits18;
         order->target.owner->bits.bits20 = unit->bits.bits20;
@@ -319,7 +319,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         }
         break;
     case 4:
-        FUN_0047f780(unit, 8, 0);
+        QueueUnitSpeech(unit, 8, 0);
         ((Class_0048b090*)unit)->SetStateBits(8, 0);
         FUN_0041b8d0(unit, order->target.owner);
         order->target.SetUnit(0);

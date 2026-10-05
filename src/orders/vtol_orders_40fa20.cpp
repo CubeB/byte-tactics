@@ -47,7 +47,7 @@ public:
 #pragma pack(pop)
 
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
-void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, const char* text);
 
 static inline Point WorldToCell(Vec3 v, Point origin)
 {
@@ -104,7 +104,7 @@ int __stdcall VtolMoveOrder(Unit* unit, Order* order, int flags)
         return 1;
     case 2:
         if (!order->field_4a)
-            FUN_0047f780(unit, 6, 0);
+            QueueUnitSpeech(unit, 6, 0);
         return 5;
     }
     return 7;

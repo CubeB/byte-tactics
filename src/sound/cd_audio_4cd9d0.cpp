@@ -4,7 +4,7 @@
 
 class Class_004cda00 {
 public:
-    void FUN_004cda00();
+    void QueryDisc();
 };
 
 class Class_004cd9d0 {
@@ -12,14 +12,14 @@ public:
     char unknown_0[0x28c];
     void (*callback)();                // +0x28c
 
-    int FUN_004cd9d0(void (*cb)());
+    int SetCdCallback(void (*cb)());
 };
 
 // FUNCTION: 0x4cd9d0
-int Class_004cd9d0::FUN_004cd9d0(void (*cb)())
+int Class_004cd9d0::SetCdCallback(void (*cb)())
 {
     callback = cb;
-    ((Class_004cda00*)this)->FUN_004cda00();
+    ((Class_004cda00*)this)->QueryDisc();
     if (callback != 0)
         callback();
     return 1;

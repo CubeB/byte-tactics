@@ -7,11 +7,11 @@ public:
     char unknown_0[0x1ec];
     int format; // +0x1ec
 
-    void FUN_004cfe40(void* dest, unsigned int size);
+    void FillSilence(void* dest, unsigned int size);
 };
 
 // FUNCTION: 0x4cfe40
-void Class_004cfe40::FUN_004cfe40(void* dest, unsigned int size)
+void Class_004cfe40::FillSilence(void* dest, unsigned int size)
 {
     if (format != 8) {
         if (format != 0x10) {

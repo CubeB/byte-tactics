@@ -34,13 +34,13 @@ public:
     void FUN_00439e80(int ticks);
 };
 
-void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, const char* text);
 
 // FUNCTION: 0x415250
 int __stdcall VtolGetRepairedOrder(Unit* unit, Order* order, int unused)
 {
     if (order->target == 0) {
-        FUN_0047f780(unit, 7, "Repair aborted.");
+        QueueUnitSpeech(unit, 7, "Repair aborted.");
         return 8;
     }
     switch (order->state) {
@@ -51,7 +51,7 @@ int __stdcall VtolGetRepairedOrder(Unit* unit, Order* order, int unused)
         order->started = 1;
         return 2;
     case 1:
-        FUN_0047f780(unit, 10, "Unit repaired");
+        QueueUnitSpeech(unit, 10, "Unit repaired");
         return 5;
     default:
         return 7;

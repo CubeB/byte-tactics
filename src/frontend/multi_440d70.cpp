@@ -45,7 +45,7 @@ void __stdcall FUN_004a7190(Gadget_00440d70* gadget, int index);
 void __stdcall FUN_0049fc50(Gadget_00440d70* gadget, int index);
 void __stdcall FUN_0049fa90(Gadget_00440d70* gadget);
 void __stdcall FUN_004ab0a0(Gadget_00440d70* gadget);
-void __stdcall FUN_0047f1a0(const char* name, int flag);
+void __stdcall PlaySoundByName(const char* name, int flag);
 Entry_00440d70* __stdcall FUN_004a0010(Entry_00440d70* entries, const char* name);
 void __stdcall CloseTopScreen(Gadget_00440d70* gadget);
 void FUN_00443cb0();
@@ -89,7 +89,7 @@ void __stdcall FUN_00440d70(Gadget_00440d70* gadget)
         char* dst;
         int gi;                        // GAMENAME gadget index
         int ni;                        // NICKNAME gadget index
-        FUN_0047f1a0("BigButton", 0);
+        PlaySoundByName("BigButton", 0);
         char* pw = (char*)FUN_004a0010(entries, "PASSWORD");
         lstrcpynA(g_game->passWord, pw + 0xb6, 0xb);
         gi = FindGadgetIndex(entries, "GAMENAME", 3);
@@ -119,7 +119,7 @@ void __stdcall FUN_00440d70(Gadget_00440d70* gadget)
         return;
     }
     if (FindGadgetIndex(entries, "CANCEL", 0xe) == gadget->field_60) {
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         CloseTopScreen(gadget);
         FUN_00443cb0();
         return;

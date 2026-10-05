@@ -84,7 +84,7 @@ class Class_0044e2d0 { public: char data[0x36]; Class_0044e2d0(Order*,const Vec3
 extern Game* g_game;
 static inline UnitDef* Definitions() { return g_game->defs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall FUN_0041c110(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
@@ -185,7 +185,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
     }
         return 7;
     }
-    FUN_0047f780(unit,7,"Construction terminated by hostile action");
+    QueueUnitSpeech(unit,7,"Construction terminated by hostile action");
     FUN_0041c110(unit);
     return 8;
 }

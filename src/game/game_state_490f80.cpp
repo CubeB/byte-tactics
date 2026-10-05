@@ -4,12 +4,12 @@
 
 class Class_004ce450 {
 public:
-    int FUN_004ce450();
+    int GetTrackCount();
 };
 
 class Class_004ce7e0 {
 public:
-    unsigned char FUN_004ce7e0(int param_1);
+    unsigned char GetCategoryOfTrack(int param_1);
 };
 
 struct Game {
@@ -32,8 +32,8 @@ void __stdcall WriteGameRegistryValue(const char* key, void* data, int size);
 // FUNCTION: 0x490f80
 void SaveCdLists()
 {
-    for (int i = 0; i < g_game->cd->FUN_004ce450(); i++) {
-        DAT_0051e828.tracks[i] = ((Class_004ce7e0*)g_game->cd)->FUN_004ce7e0(i + 1);
+    for (int i = 0; i < g_game->cd->GetTrackCount(); i++) {
+        DAT_0051e828.tracks[i] = ((Class_004ce7e0*)g_game->cd)->GetCategoryOfTrack(i + 1);
     }
     WriteGameRegistryValue("CDLISTS", &DAT_0051e828, sizeof(DAT_0051e828));
 }

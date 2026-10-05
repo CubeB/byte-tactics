@@ -78,7 +78,7 @@ public:
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 // p3 is int here (its own file says char): the original pushes order->piece
 // as a dword, which a char parameter would load as a byte.
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, int p3, char p4);
@@ -116,7 +116,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
     Unit* target = order->target;
     if (target && !(flags & 0x10048)) {
         if (BelowSeaLevel(order)) {
-            FUN_0047f780(unit, 7, "Transport mission failed");
+            QueueUnitSpeech(unit, 7, "Transport mission failed");
             return 8;
         }
         if (unit->field_8a)
@@ -125,7 +125,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
         case 0:
             if (unit->type && (unit->def->flags & 0x800)) {
                 if (target->size > (short)unit->def->capacity) {
-                    FUN_0047f780(unit, 7, "Unit is too heavy to transport");
+                    QueueUnitSpeech(unit, 7, "Unit is too heavy to transport");
                     return 8;
                 }
                 ((Class_00438880*)order)->FUN_00438880("Loading");
@@ -166,7 +166,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
                 return 8;
             }
             AttachUnitToPiece(target, unit, order->piece, 0);
-            FUN_0047f780(unit, 12, 0);
+            QueueUnitSpeech(unit, 12, 0);
             Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
             order->flags |= 0xe0;
@@ -177,6 +177,6 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
         }
         return 7;
     }
-    FUN_0047f780(unit, 7, "Transport mission failed");
+    QueueUnitSpeech(unit, 7, "Transport mission failed");
     return 8;
 }

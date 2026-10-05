@@ -4,7 +4,7 @@
 
 class Class_004ceee0 {
 public:
-    void FUN_004ceee0();
+    void ReleaseDirectSound();
 };
 
 class Class_004cef90 {
@@ -19,11 +19,11 @@ public:
     char unknown_1c4[0x290 - 0x1c4];
     int field_290;                      // +0x290
 
-    int FUN_004cef90(int rate, int bits, int channels, HWND handle);
+    int InitDirectSound(int rate, int bits, int channels, HWND handle);
 };
 
 // FUNCTION: 0x4cef90
-int Class_004cef90::FUN_004cef90(int rate, int bits, int channels, HWND handle)
+int Class_004cef90::InitDirectSound(int rate, int bits, int channels, HWND handle)
 {
     WAVEFORMATEX wfx;
     DSBUFFERDESC desc;
@@ -62,6 +62,6 @@ int Class_004cef90::FUN_004cef90(int rate, int bits, int channels, HWND handle)
 error:
     if (hr == (HRESULT)0x88780078)
         field_290 = 1;
-    ((Class_004ceee0*)this)->FUN_004ceee0();
+    ((Class_004ceee0*)this)->ReleaseDirectSound();
     return 0;
 }

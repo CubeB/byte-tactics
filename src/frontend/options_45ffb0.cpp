@@ -56,7 +56,7 @@ extern int DAT_00512f14;
 extern int DAT_00512fec;
 extern int DAT_00512ff0;
 
-void __stdcall FUN_0047f1a0(char* name, int flag);
+void __stdcall PlaySoundByName(char* name, int flag);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 void* __stdcall GetGafFrame(void* a, int b);
 void __stdcall DrawFrame(int a, void* b, int c, int d);
@@ -71,7 +71,7 @@ void __stdcall FUN_0045ffb0(void* surf)
             int old = DAT_00512fec;
             DAT_00512fec += 0x15;
             if (DAT_00512fec >= 0x115) {
-                FUN_0047f1a0("Options", 0);
+                PlaySoundByName("Options", 0);
                 DAT_00512fec = 0x115;
             }
             if (DAT_00512fec > DAT_00512f14 && old < DAT_00512f14) {

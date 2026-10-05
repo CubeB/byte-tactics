@@ -14,7 +14,7 @@ public:
     char unknown_0[4];
     int field_4;
 
-    void FUN_004cfe80();
+    void Enable3D();
 };
 
 class Class_004cfe90 {
@@ -22,17 +22,17 @@ public:
     char unknown_0[4];
     int field_4;
 
-    void FUN_004cfe90();
+    void Disable3D();
 };
 
 class Class_004d0070 {
 public:
-    void FUN_004d0070(int level);
+    void SetWaveVolume(int level);
 };
 
 class Class_004d00d0 {
 public:
-    void FUN_004d00d0(int level, int flag);
+    void SetAuxVolume(int level, int flag);
 };
 
 #pragma pack(push, 1)
@@ -65,12 +65,12 @@ void FUN_0045c820()
     g_game->field_37f19 = (g_game->field_37f19 & ~0x20) | (DAT_00512f4b & 0x20);
     g_game->field_37f19 = (g_game->field_37f19 & ~0x40) | ((DAT_00512f4b & 0x20) << 1);
     if ((((unsigned char)DAT_00512f4b) & 7) == 2)
-        ((Class_004cfe80*)g_game->sound)->FUN_004cfe80();
+        ((Class_004cfe80*)g_game->sound)->Enable3D();
     else
-        ((Class_004cfe90*)g_game->sound)->FUN_004cfe90();
+        ((Class_004cfe90*)g_game->sound)->Disable3D();
     g_game->field_37f19 = (g_game->field_37f19 & ~7) | (DAT_00512f4b & 7);
     g_game->field_37f17 = DAT_00512f49;
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-    ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
-    ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
+    ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
+    ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
 }

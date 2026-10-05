@@ -42,7 +42,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall GetGadgetName(Entry_00419be0* entries, char* name, int index);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
 
 static inline void SetOrderMode(unsigned char mode)
@@ -66,14 +66,14 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         } else {
             SetOrderMode(2);
         }
-        FUN_0047f1a0("immediateorders", 0);
+        PlaySoundByName("immediateorders", 0);
         return 1;
     }
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "STOP")) {
         SetOrderMode(1);
         FUN_0048cf30(orders, 0, "STOP", 0, 0, 0);
-        FUN_0047f1a0("immediateorders", 0);
+        PlaySoundByName("immediateorders", 0);
         return 1;
     }
     GetGadgetName(entries, name, button->index);
@@ -83,7 +83,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         } else {
             SetOrderMode(3);
         }
-        FUN_0047f1a0("immediateorders", 0);
+        PlaySoundByName("immediateorders", 0);
         return 1;
     }
     GetGadgetName(entries, name, button->index);
@@ -93,7 +93,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         } else {
             SetOrderMode(4);
         }
-        FUN_0047f1a0("immediateorders", 0);
+        PlaySoundByName("immediateorders", 0);
         return 1;
     }
     GetGadgetName(entries, name, button->index);
@@ -103,7 +103,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         } else {
             SetOrderMode(7);
         }
-        FUN_0047f1a0("immediateorders", 0);
+        PlaySoundByName("immediateorders", 0);
         return 1;
     }
     GetGadgetName(entries, name, button->index);
@@ -113,7 +113,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         } else {
             SetOrderMode(8);
         }
-        FUN_0047f1a0("specialorders", 0);
+        PlaySoundByName("specialorders", 0);
         return 1;
     }
     GetGadgetName(entries, name, button->index);
@@ -123,7 +123,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         } else {
             SetOrderMode(9);
         }
-        FUN_0047f1a0("immediateorders", 0);
+        PlaySoundByName("immediateorders", 0);
         return 1;
     }
     GetGadgetName(entries, name, button->index);
@@ -133,7 +133,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         } else {
             SetOrderMode(0xc);
         }
-        FUN_0047f1a0("specialorders", 0);
+        PlaySoundByName("specialorders", 0);
         return 1;
     }
     GetGadgetName(entries, name, button->index);
@@ -143,7 +143,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         } else {
             SetOrderMode(0xd);
         }
-        FUN_0047f1a0("specialorders", 0);
+        PlaySoundByName("specialorders", 0);
         return 1;
     }
     GetGadgetName(entries, name, button->index);
@@ -153,7 +153,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         } else {
             SetOrderMode(5);
         }
-        FUN_0047f1a0("specialorders", 0);
+        PlaySoundByName("specialorders", 0);
         return 1;
     }
     GetGadgetName(entries, name, button->index);
@@ -163,7 +163,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         } else {
             SetOrderMode(6);
         }
-        FUN_0047f1a0("immediateorders", 0);
+        PlaySoundByName("immediateorders", 0);
         return 1;
     }
     return 0;

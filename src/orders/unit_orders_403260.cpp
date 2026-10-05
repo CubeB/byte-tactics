@@ -13,7 +13,7 @@ struct Order { char pad[5]; unsigned char state; unsigned flags; char pada[0x16-
 class Class_00438880 { public: void FUN_00438880(int); };
 class Class_00438930 { public: void FUN_00438930(Vec*,int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-void __stdcall FUN_0047f780(Unit*,int,void*);
+void __stdcall QueueUnitSpeech(Unit*,int,void*);
 void __stdcall AppendOrder(Unit*,Class_0043a1f0*);
 // FUNCTION: 0x403260
 int __stdcall AttackKamikazeOrder(Unit* unit,Order* order,unsigned flags)
@@ -30,7 +30,7 @@ int __stdcall AttackKamikazeOrder(Unit* unit,Order* order,unsigned flags)
         order->flags|=0xe0; return 1;
     case 1:
         if(flags&0x20) {
-            FUN_0047f780(unit,6,0);
+            QueueUnitSpeech(unit,6,0);
             AppendOrder(unit,new Class_0043a1f0("SELFDESTRUCT",0,0,1,0,0));
             return 5;
         }

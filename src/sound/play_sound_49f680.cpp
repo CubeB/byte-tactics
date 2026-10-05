@@ -4,7 +4,7 @@
 #include <mmsystem.h>
 
 // FUNCTION: 0x49f680
-void __stdcall FUN_0049f680(const char* sound)
+void __stdcall PlayWavMemory(const char* sound)
 {
     PlaySoundA(sound, 0, SND_ASYNC | SND_MEMORY);
 }

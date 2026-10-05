@@ -24,7 +24,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x42f740
-void FUN_0042f740()
+void FreeSoundCategories()
 {
     if (g_game->entry_count > 0) {
         for (int i = 0; i < g_game->entry_count; i++) {

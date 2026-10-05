@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
-void FUN_0047f750();
+void StopAllSounds();
 void __stdcall FUN_0041d7b0(char* dest, const char* a, const char* b, const char* c);
 int __stdcall FUN_004bbc40(char* path);
 void __stdcall SetOffscreenSurface(int param);
@@ -45,7 +45,7 @@ void __stdcall FUN_00426780(char* param_1)
 {
     char path[256];
 
-    FUN_0047f750();
+    StopAllSounds();
     FUN_0041d7b0(path, "Data", param_1, "zrb");
     if (FUN_004bbc40(path) != 0) {
         SetOffscreenSurface(g_game->field_37e1b);

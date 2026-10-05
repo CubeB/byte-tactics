@@ -31,7 +31,7 @@ struct Gadget_00464de0 {
 
 void BroadcastPlayerInfo();
 void __stdcall ReportGameEvent(int param_1);
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall IsGadgetNamed(int param1, int param2, char* name);
 void __stdcall FUN_004ab0a0(void* param_1);
 
@@ -41,7 +41,7 @@ void __stdcall FUN_00464de0(Gadget_00464de0* gadget)
     int screen = gadget->screen->field_4;
     if (gadget->selected == -1)
         return;
-    FUN_0047f1a0("BigButton", 0);
+    PlaySoundByName("BigButton", 0);
     if (IsGadgetNamed(screen, gadget->selected, "CHOICE1")) {
         BroadcastPlayerInfo();
         g_game->flags.flag4 = 0;

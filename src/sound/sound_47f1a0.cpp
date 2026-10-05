@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // Looks up a sound by name in the game's 32-byte sound name table and passes
-// its index (0xffff when not found) to FUN_0047f0c0.
+// its index (0xffff when not found) to PlaySoundByIndex.
 
 extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 
@@ -15,7 +15,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f0c0(int index, int param_2);
+void __stdcall PlaySoundByIndex(int index, int param_2);
 
 static inline int FindSound(char* name)
 {
@@ -27,7 +27,7 @@ static inline int FindSound(char* name)
 }
 
 // FUNCTION: 0x47f1a0
-void __stdcall FUN_0047f1a0(char* name, int param_2)
+void __stdcall PlaySoundByName(char* name, int param_2)
 {
-    FUN_0047f0c0(FindSound(name), param_2);
+    PlaySoundByIndex(FindSound(name), param_2);
 }

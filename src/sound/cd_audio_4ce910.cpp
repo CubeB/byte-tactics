@@ -28,11 +28,11 @@ public:
     int unknown_210[(0x27c - 0x210) / 4];
     int field_27c;                     // +0x27c
 
-    int FUN_004ce910(int pause);
+    int PauseCdAudio(int pause);
 };
 
 // FUNCTION: 0x4ce910
-int Class_004ce910::FUN_004ce910(int pause)
+int Class_004ce910::PauseCdAudio(int pause)
 {
     char cmd[100];
     char buf[200];

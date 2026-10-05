@@ -12,7 +12,7 @@
 // min()/max() on the pointee (the down clamp written "*p + -0x1f4"); the c2/c1
 // player counts are nested loop1 / test-c2 / loop2 / test-c1 with one shared
 // error stub; the LineOfSight "field_114 = 1" stores precede the strcpy; the
-// Difficulty arm calls FUN_0047f1a0("SKirmish", 0) with the original's typo'd
+// Difficulty arm calls PlaySoundByName("SKirmish", 0) with the original's typo'd
 // literal (0x502a6c), not "Skirmish".
 #include <windows.h>
 #include <string.h>
@@ -85,7 +85,7 @@ extern char* g_game;                   // 0x511de8
 void __stdcall GetGadgetName(Entry_0047ae60* entries, char* text, int id);
 int __stdcall FindGadgetIndex(Entry_0047ae60* entries, char* name, int flag);
 int __stdcall IsCurrentGadgetNamed(Menu_0047ae60* menu, char* name);
-void __stdcall FUN_0047f1a0(char* name, int value);
+void __stdcall PlaySoundByName(char* name, int value);
 char __stdcall FindGameCdDrive(int param_1);
 void RegisterDataArchives();
 void FUN_0041da30();
@@ -122,7 +122,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
     frame.bf[strlen(frame.bf) - 1] = 0;
 
     if (IsCurrentGadgetNamed(menu, "Start")) {
-        FUN_0047f1a0("BigButton", 0);
+        PlaySoundByName("BigButton", 0);
         if (!FindGameCdDrive(1)) {
             OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("Please insert the Multiplayer CD (Disc 1) and try again"),
@@ -226,7 +226,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
     }
 
     if (IsCurrentGadgetNamed(menu, "PrevMenu")) {
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         FUN_00491c80(0x14);
         *(char*)(g_game + 0x2bc0) = 3;
         return;
@@ -234,21 +234,21 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
 
 
     if (strcmp(frame.bf, "Player") == 0) {
-        FUN_0047f1a0("Skirmish", 0);
+        PlaySoundByName("Skirmish", 0);
         FUN_004797e0(player);
     } else if (strcmp(frame.bf, "Side") == 0) {
-        FUN_0047f1a0("Skirmish", 0);
+        PlaySoundByName("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         int* p = (int*)((char*)t + t->field_224 * 24 + 4);
         *p = (*p + 1) % *(int*)(g_game + 0x37f39);
     } else if (strcmp(frame.bf, "Allies") == 0) {
-        FUN_0047f1a0("Skirmish", 0);
+        PlaySoundByName("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         int* p = (int*)((char*)t + t->field_224 * 24 + 8);
         *p = (*p + 1) % 6;
         FUN_00479660();
     } else if (strcmp(frame.bf, "Color") == 0) {
-        FUN_0047f1a0("Skirmish", 0);
+        PlaySoundByName("Skirmish", 0);
         FUN_004c2340(frame.ev);
         if (menu->holder->field_37 == 1) {
             FUN_0047acd0(0);
@@ -259,7 +259,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
     } else if (strcmp(frame.bf, "Energy") == 0) {
         FUN_004c2340(frame.ev);
         if (menu->holder->field_37 == 1) {
-            FUN_0047f1a0("Skirmish", 0);
+            PlaySoundByName("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0x10);
             *p = min(*p + 0x1f4, 0x2710);
@@ -272,7 +272,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_004a0bf0(menu, frame.sB, frame.sA, 10);
         }
         if (menu->holder->field_37 == 2) {
-            FUN_0047f1a0("Skirmish", 0);
+            PlaySoundByName("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0x10);
             *p = max(*p + -0x1f4, 0xc8);
@@ -282,7 +282,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         }
     } else if (strcmp(frame.bf, "Metal") == 0) {
         if (menu->holder->field_37 == 1) {
-            FUN_0047f1a0("Skirmish", 0);
+            PlaySoundByName("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0xc);
             *p = min(*p + 0x1f4, 0x2710);
@@ -295,7 +295,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_004a0bf0(menu, frame.sA, frame.sB, 10);
         }
         if (menu->holder->field_37 == 2) {
-            FUN_0047f1a0("Skirmish", 0);
+            PlaySoundByName("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0xc);
             *p = max(*p + -0x1f4, 0xc8);
@@ -304,7 +304,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_004a0bf0(menu, frame.sA, frame.sB, 10);
         }
     } else if (IsCurrentGadgetNamed(menu, "CommanderDeath")) {
-        FUN_0047f1a0("Skirmish", 0);
+        PlaySoundByName("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         t->field_108 ^= 1;
         int index = FindGadgetIndex(entries, "CommanderDeath", 1);
@@ -315,7 +315,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             strcpy(e->text, FUN_004c5740("Game continues after Commander is destroyed."));
         UpdateHelpText(g_game + 0x519);
     } else if (IsCurrentGadgetNamed(menu, "StartLocation")) {
-        FUN_0047f1a0("Skirmish", 0);
+        PlaySoundByName("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         t->field_118 ^= 1;
         int index = FindGadgetIndex(entries, "StartLocation", 1);
@@ -326,7 +326,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             strcpy(e->text, FUN_004c5740("Commanders are randomly placed on the battle field."));
         UpdateHelpText(g_game + 0x519);
     } else if (IsCurrentGadgetNamed(menu, "Mapping")) {
-        FUN_0047f1a0("Skirmish", 0);
+        PlaySoundByName("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         t->field_10c ^= 1;
         int index = FindGadgetIndex(entries, "Mapping", 1);
@@ -337,7 +337,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             strcpy(e->text, FUN_004c5740("Terrain is visible."));
         UpdateHelpText(g_game + 0x519);
     } else if (IsCurrentGadgetNamed(menu, "LineOfSight")) {
-        FUN_0047f1a0("Skirmish", 0);
+        PlaySoundByName("Skirmish", 0);
         int index = FindGadgetIndex(entries, "LineOfSight", 1);
         Entry_0047ae60* e = &entries[index];
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
@@ -355,11 +355,11 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         }
         UpdateHelpText(g_game + 0x519);
     } else if (IsCurrentGadgetNamed(menu, "SelectMap")) {
-        FUN_0047f1a0("Skirmish", 0);
+        PlaySoundByName("Skirmish", 0);
         FUN_00491c80(0x14);
         FUN_0047aaf0();
     } else if (IsCurrentGadgetNamed(menu, "Difficulty")) {
-        FUN_0047f1a0("SKirmish", 0);
+        PlaySoundByName("SKirmish", 0);
         int d = *(int*)(g_game + 0x37eee);
         if (d == 0) {
             (*(Table_0047ae60**)(g_game + 0x29a0))->field_228 = 1;

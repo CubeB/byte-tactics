@@ -93,7 +93,7 @@ struct Game {
 extern Game* g_game;
 
 unsigned short __stdcall FindFeatureAtPos(Vec3* pos, Point16* cell, Point16* size);
-void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 int __stdcall GetGroundHeight(Vec3* pos);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitReverseNanoParticles(Box* from, Vec3* to, int count);
@@ -125,7 +125,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
     Point16 size;
     unsigned short index = FindFeatureAtPos(&order->pos, &cell, &size);
     if (index == 0xffff) {
-        FUN_0047f780(unit, 7, "Reclamation failed");
+        QueueUnitSpeech(unit, 7, "Reclamation failed");
         return 8;
     }
     Feature* f = &g_game->features[index];
@@ -149,7 +149,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
         if (flags & 0x40)
             return 8;
         order->time = (int)(30.0f - (f->energy + f->metal) * -0.5f);
-        FUN_0047f780(unit, 11, 0);
+        QueueUnitSpeech(unit, 11, 0);
         return 1;
     case 3:
         ((Class_00439e80*)order)->FUN_00439e80(2);

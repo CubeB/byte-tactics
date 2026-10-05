@@ -59,7 +59,7 @@ class Class_0044e2d0 { public: char data[0x36]; Class_0044e2d0(Order*,const Vec3
 extern Game* g_game;
 static inline UnitDef* Definitions() { return g_game->defs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall FUN_0041c110(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
@@ -95,7 +95,7 @@ static inline short Angle(Vec3* a,Vec3* b) { return FUN_004b715a(a->x-b->x,a->z-
 int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
 {
     if (flags&2) { FUN_0041c110(unit); return 5; }
-    if (flags&8) { FUN_0047f780(unit,7,"Construction terminated"); FUN_0041c110(unit); return 8; }
+    if (flags&8) { QueueUnitSpeech(unit,7,"Construction terminated"); FUN_0041c110(unit); return 8; }
     unsigned int state=0; state=order->state;
     switch(state) {
     case 0:
@@ -130,16 +130,16 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
         if (flags&0x40) return 8;
         UnitDef* def=&g_game->defs[order->type];
         if (!FUN_0047db70(def,0,WorldToCell(order->pos,g_game->defs[order->type].origin),1)) {
-            if (!order->retries) FUN_0047f780(unit,7,"Waiting for target area to clear");
-            else if (order->retries>10) { FUN_0047f780(unit,7,"Target area was blocked"); return 8; }
+            if (!order->retries) QueueUnitSpeech(unit,7,"Waiting for target area to clear");
+            else if (order->retries>10) { QueueUnitSpeech(unit,7,"Target area was blocked"); return 8; }
             ++order->retries;
             ((Class_00439e80*)order)->FUN_00439e80(30);
             return 2;
         }
         FUN_0047ddc0(def,&order->pos);
         ((Class_004895c0*)((char*)order+0x12))->SetUnit(CreateUnit(unit->player,(short)order->type,order->pos,0,1,0));
-        if (!order->target) { FUN_0047f780(unit,7,"Unable to create any more units"); return 8; }
-        FUN_0047f780(unit,9,"Starting construction");
+        if (!order->target) { QueueUnitSpeech(unit,7,"Unable to create any more units"); return 8; }
+        QueueUnitSpeech(unit,9,"Starting construction");
         AddOrder("GETBUILT",1,order->target,unit,0,0,0);
         StartBuildingScript(unit,order,FUN_004b715a(unit->pos.x-order->target->pos.x,unit->pos.z-order->target->pos.z)-unit->angle);
         FUN_0041c110(unit);
@@ -174,7 +174,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
         return 1;
     }
     case 5:
-        FUN_0047f780(unit,8,"Building complete");
+        QueueUnitSpeech(unit,8,"Building complete");
         return 5;
     }
     return 7;

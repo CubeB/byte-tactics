@@ -90,7 +90,7 @@ public:
 
 class Class_004ce690 {
 public:
-    void FUN_004ce690(int a);
+    void SetTrackCategory(int a);
 };
 
 struct Game {
@@ -303,7 +303,7 @@ void FUN_00499200(void)
             }
             FUN_00491b60();
             ClearKeyQueue();
-            g_game->field_10->FUN_004ce690(4);
+            g_game->field_10->SetTrackCategory(4);
             g_game->field_391f1 = 7;
             g_game->field_391f5 = FUN_00499880;
             SetCloseHandler(LeaveNetGameCallback, 0);
@@ -342,6 +342,6 @@ void FUN_00499200(void)
             g_game->field_391f5 = FUN_00496bb0;
             SetCloseHandler(LeaveNetGameCallback, 0);
         }
-        g_game->field_10->FUN_004ce690(4);
+        g_game->field_10->SetTrackCategory(4);
     }
 }

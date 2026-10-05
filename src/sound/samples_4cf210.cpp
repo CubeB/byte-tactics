@@ -5,11 +5,11 @@ public:
     char unknown_0[0x2c];
     int field_2c;
 
-    void FUN_004cf210(int val);
+    void SetMaxBuffers(int val);
 };
 
 // FUNCTION: 0x4cf210
-void Class_004cf210::FUN_004cf210(int val)
+void Class_004cf210::SetMaxBuffers(int val)
 {
     field_2c = val;
 }

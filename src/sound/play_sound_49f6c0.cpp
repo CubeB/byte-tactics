@@ -6,17 +6,17 @@
 void* __stdcall FUN_004bbe50(char* path, int flags);
 void __cdecl FUN_004d85a0(int* param_1);
 
-extern int* DAT_0051fba0;
+extern int* g_diskWav;
 
 // FUNCTION: 0x49f6c0
-BOOL __stdcall FUN_0049f6c0(char* path)
+BOOL __stdcall PlayWavFromDisk(char* path)
 {
     int* sound = (int*)FUN_004bbe50(path, 0);
     if (sound == 0)
         return 0;
     BOOL result = PlaySoundA((LPCSTR)sound, 0, SND_ASYNC | SND_MEMORY);
-    if (DAT_0051fba0 != 0)
-        FUN_004d85a0(DAT_0051fba0);
-    DAT_0051fba0 = sound;
+    if (g_diskWav != 0)
+        FUN_004d85a0(g_diskWav);
+    g_diskWav = sound;
     return result;
 }

@@ -47,7 +47,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 
 class Condition_0048ec20 {
 public:
@@ -72,7 +72,7 @@ void VictoryKillAllMobileUnits::OnUnitDied(Unit* unit)
         if (count <= 1) {
             done = 1;
             if (announced == 0) {
-                FUN_0047f1a0("Victory Condition", 0);
+                PlaySoundByName("Victory Condition", 0);
                 announced = 1;
             }
         }

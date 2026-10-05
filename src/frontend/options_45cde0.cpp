@@ -15,7 +15,7 @@ public:
 
 class Class_004ce7e0 {
 public:
-    unsigned char FUN_004ce7e0(int index);
+    unsigned char GetCategoryOfTrack(int index);
 };
 
 #pragma pack(push, 1)
@@ -62,6 +62,6 @@ void FUN_0045cde0()
     DAT_00512f71 = g_game->field_1434d;
     DAT_00512fd9 = ((Class_004ce5a0*)g_game->field_10)->FUN_004ce5a0();
     for (int i = 0; i < 100; i++) {
-        DAT_00512f75[i] = ((Class_004ce7e0*)g_game->field_10)->FUN_004ce7e0(i);
+        DAT_00512f75[i] = ((Class_004ce7e0*)g_game->field_10)->GetCategoryOfTrack(i);
     }
 }

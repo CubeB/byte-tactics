@@ -80,7 +80,7 @@ struct Game {
 extern Game* g_game;
 
 unsigned short __stdcall FindFeatureAtPos(Vec3* pos, Point16* cell, Point16* size);
-void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 int __stdcall FUN_004b6c30(int range);
 int __stdcall GetGroundHeight(Vec3* pos);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
@@ -99,7 +99,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
     Point16 size;
     unsigned short index = FindFeatureAtPos(&order->pos, &cell, &size);
     if (index == 0xffff) {
-        FUN_0047f780(unit, 7, "Reclamation failed");
+        QueueUnitSpeech(unit, 7, "Reclamation failed");
         return 8;
     }
     Feature* f = &g_game->features[index];
@@ -127,7 +127,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
     case 2:
         return FUN_00438700(unit, order, 0);
     case 3:
-        FUN_0047f780(unit, 11, 0);
+        QueueUnitSpeech(unit, 11, 0);
     case 4:
         ((Class_00439e80*)order)->FUN_00439e80(2);
         order->time -= 2;

@@ -43,7 +43,7 @@ int PopKey(void);
 void FlipScreen();
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __cdecl FUN_004d85a0(void* p);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_00491c80(int param_1);
 int __stdcall IsCurrentGadgetNamed(Gadget_00425d80* gadget, char* name);
 void __stdcall FUN_004ab0a0(void* param_1);
@@ -63,13 +63,13 @@ void __stdcall FUN_00425d80(Gadget_00425d80* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "SINGLE")) {
-        FUN_0047f1a0("BigButton", 0);
+        PlaySoundByName("BigButton", 0);
         FUN_00491c80(0x14);
         g_game[0x2bc0] = 5;
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "MULTI")) {
-        FUN_0047f1a0("BigButton", 0);
+        PlaySoundByName("BigButton", 0);
         FUN_00491c80(0x14);
         RegisterDataArchives();
         BuildDataPath(buf, "maps", "multiplay", "tdf");
@@ -88,7 +88,7 @@ void __stdcall FUN_00425d80(Gadget_00425d80* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "INTRO")) {
-        FUN_0047f1a0("smlButton", 0);
+        PlaySoundByName("smlButton", 0);
         Display_00425d80* display = GetDisplay();
         if (!display->fullscreen) {
             OpenMessageBox(g_game + 0x519,
@@ -128,13 +128,13 @@ void __stdcall FUN_00425d80(Gadget_00425d80* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "EXIT")) {
-        FUN_0047f1a0("exit", 0);
+        PlaySoundByName("exit", 0);
         FUN_00491c80(0x14);
         g_game[0x2bc0] = 8;
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "Credits")) {
-        FUN_0047f1a0("smlButton", 0);
+        PlaySoundByName("smlButton", 0);
         Display_00425d80* display = GetDisplay();
         if (!display->fullscreen) {
             OpenMessageBox(g_game + 0x519,

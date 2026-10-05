@@ -50,13 +50,13 @@ public:
     char unknown_1fc[0x288 - 0x1fc];
     int handle;                             // +0x288
 
-    void FUN_004cfca0();
-    void FUN_004cf940(File_004bb5d0* file, int sampleRate, int bits,
+    void FillStreamHalf();
+    void StartStream(File_004bb5d0* file, int sampleRate, int bits,
                       int channels, LONG volume);
 };
 
 // FUNCTION: 0x4cf940
-void Class_004cfb40::FUN_004cf940(File_004bb5d0* file, int sampleRate, int bits,
+void Class_004cfb40::StartStream(File_004bb5d0* file, int sampleRate, int bits,
                                   int channels, LONG volume)
 {
     WAVEFORMATEX wfx;
@@ -102,7 +102,7 @@ void Class_004cfb40::FUN_004cf940(File_004bb5d0* file, int sampleRate, int bits,
     pos = 0;
     off = -1;
     this->file = file;
-    FUN_004cfca0();
+    FillStreamHalf();
     if (stream->SetVolume(volume) != 0) {
         if (handle != -1) {
             RemoveTimer(handle);

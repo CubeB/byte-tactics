@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Loads gamedata\allsound.TDF and registers every "sound" entry found in it
-// through FUN_00429470, then runs the general sound loader FUN_0042f580.
+// through FUN_00429470, then runs the general sound loader LoadSoundCategories.
 
 class Class_004c2ea0 {
 public:
@@ -52,10 +52,10 @@ extern char DAT_005119b8[];
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_00429470(char* name, char* value);
-void FUN_0042f580();
+void LoadSoundCategories();
 
 // FUNCTION: 0x42f7e0
-void FUN_0042f7e0()
+void LoadAllSound()
 {
     Class_004c2ea0 obj;
     char name[32];
@@ -77,5 +77,5 @@ void FUN_0042f7e0()
         }
         ((Class_004c3240*)&obj)->FUN_004c3240();
     }
-    FUN_0042f580();
+    LoadSoundCategories();
 }

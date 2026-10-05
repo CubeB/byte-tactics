@@ -13,12 +13,12 @@ public:
 
 class Class_004d0070 {
 public:
-    void FUN_004d0070(int level);
+    void SetWaveVolume(int level);
 };
 
 class Class_004d00d0 {
 public:
-    void FUN_004d00d0(int level, int flag);
+    void SetAuxVolume(int level, int flag);
 };
 
 struct Gui_0045e100;
@@ -103,7 +103,7 @@ void __cdecl FUN_004d85a0(void* p);
 void FUN_0045cae0();
 void __stdcall FUN_0045e5e0(int param_1);
 int __stdcall IsCurrentGadgetNamed(Gui_0045e100* gui, char* name);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall GetButtonStageByName(Gui_0045e100* gui, char* name);
 void __stdcall FUN_0049fa90(Gui_0045e100* gui);
 void __stdcall FUN_004ab0a0(Gui_0045e100* gui);
@@ -133,7 +133,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
     }
 
     if (IsCurrentGadgetNamed(gui, "ANTI")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         g_game->flags_37f06.b1 = GetButtonStageByName(gui, "ANTI") & 1;
         if (g_game->flags_37ebe.b0)
             g_game->ptr_1437b->FlushCache();
@@ -143,7 +143,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
     }
 
     if (IsCurrentGadgetNamed(gui, "BSHADOWS")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         g_game->flags_37f06.b4 = GetButtonStageByName(gui, "BSHADOWS") & 1;
         g_game->flags_37f06.b3 = g_game->flags_37f06.b4;
         g_game->flags_37f06.b2 = g_game->flags_37f06.b3;
@@ -155,7 +155,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
     }
 
     if (IsCurrentGadgetNamed(gui, "SHADING")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         g_game->flags_37f06.b5 = GetButtonStageByName(gui, "SHADING") & 1;
         if (g_game->flags_37ebe.b0)
             g_game->ptr_1437b->FlushCache();
@@ -165,7 +165,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
     }
 
     if (IsCurrentGadgetNamed(gui, "UNDO")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_0045cae0();
         CloseTopScreen(gui);
         FUN_0045e5e0(0);
@@ -173,7 +173,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
     }
 
     if (IsCurrentGadgetNamed(gui, "RESTORE")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         g_game->flags_37f06.b1 = 1;
         g_game->flags_37f06.b2 = 1;
         g_game->flags_37f06.b3 = 1;
@@ -186,15 +186,15 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
             g_game->flags_37f06.b6 = 0;
         }
         SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-        ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
-        ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
+        ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
+        ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
         CloseTopScreen(gui);
         FUN_0045e5e0(0);
         return;
     }
 
     if (IsCurrentGadgetNamed(gui, "OK") && IsScreenNamed(gui, "selvmode.gui")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         return;
     }
 

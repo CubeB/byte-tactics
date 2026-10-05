@@ -80,7 +80,7 @@ void __stdcall FUN_004ab190(Gadget_00492df0* menu, int flag);
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall IsCurrentGadgetNamed(Gadget_00492df0* gadget, char* name);
 void __stdcall FUN_0049fa70(void* menu);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 Entry_00492df0* __stdcall FindGadgetChecked(Entry_00492df0* entries, char* name);
 int __stdcall FindGadgetIndex(Entry_00492df0* entries, char* name, int type);
 char* __stdcall FUN_004b6af0(char* text, int n);
@@ -115,11 +115,11 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
         if (g_game->bit2_2a44)
             FUN_0049fa70(g_game->message);
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "DELETE")) {
-        FUN_0047f1a0("SmallButton", 0);
+        PlaySoundByName("SmallButton", 0);
         Entry_00492df0* e = FindGadgetChecked(entries, "GAMES");
         sprintf(save.path, "%s\\%s", DAT_005091c8, FUN_004b6af0(DAT_0051f2e0, e->field_ba));
         FUN_004bbc30(save.path);
@@ -136,7 +136,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     }
     if (g_game->bit2_2a44)
         FUN_0049fa70(g_game->message);
-    FUN_0047f1a0("smlbutton", 0);
+    PlaySoundByName("smlbutton", 0);
     int index = FindGadgetIndex(entries, "GAMENAME", 3);
     char* text = entries[index].text;
     if (strlen(text) != 0) {

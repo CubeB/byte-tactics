@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, continued by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // MATCH. The two CD globals are released in the original's order: the source
-// was `DAT_0050b540 = DAT_0050b544 = -1;` (it stores 0x50b544 first, then
+// was `g_cdNextTrackTimer = g_cdFadeTimer = -1;` (it stores 0x50b544 first, then
 // 0x50b540), not the reverse. The mciSendStringA("status cdaudio mode",...)
 // results are held in a local before the `res == zero ? ...` ternary, which
 // stops MSVC folding func()==0 into `test eax,eax`.
@@ -9,19 +9,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern int DAT_0050b540;
-extern int DAT_0050b544;
+extern int g_cdNextTrackTimer;
+extern int g_cdFadeTimer;
 
 extern int __stdcall RemoveTimer(int);
 
 class Class_004ceb60 {
 public:
-    int FUN_004ceb60(int index, int flag);
+    int PlayCdTrack(int index, int flag);
 };
 
 class Class_004d00d0 {
 public:
-    int FUN_004d00d0(int volume, int temporary);
+    int SetAuxVolume(int volume, int temporary);
 };
 
 class Class_004cdb40 {
@@ -43,11 +43,11 @@ public:
     char unknown_288[4];
     int field_28c;                     // +0x28c
 
-    void FUN_004cdb40();
+    void PlayNextTrack();
 };
 
 // FUNCTION: 0x4cdb40
-void Class_004cdb40::FUN_004cdb40()
+void Class_004cdb40::PlayNextTrack()
 {
     char buf[64];
     int playing;
@@ -68,9 +68,9 @@ void Class_004cdb40::FUN_004cdb40()
             field_208 = zero;
         field_20c = zero;
         field_284 = zero;
-        RemoveTimer(DAT_0050b540);
-        RemoveTimer(DAT_0050b544);
-        DAT_0050b540 = DAT_0050b544 = -1;
+        RemoveTimer(g_cdNextTrackTimer);
+        RemoveTimer(g_cdFadeTimer);
+        g_cdNextTrackTimer = g_cdFadeTimer = -1;
         return;
     }
     if (field_20c == 2)
@@ -95,9 +95,9 @@ void Class_004cdb40::FUN_004cdb40()
                     field_208 = none;
                 field_20c = none;
                 field_284 = none;
-                RemoveTimer(DAT_0050b540);
-                RemoveTimer(DAT_0050b544);
-                DAT_0050b540 = DAT_0050b544 = -1;
+                RemoveTimer(g_cdNextTrackTimer);
+                RemoveTimer(g_cdFadeTimer);
+                g_cdNextTrackTimer = g_cdFadeTimer = -1;
                 return;
             }
         case 1:
@@ -110,7 +110,7 @@ void Class_004cdb40::FUN_004cdb40()
                 field_208 = one;
             else
                 field_208++;
-            ((Class_004ceb60*)this)->FUN_004ceb60(field_208, field_200 - field_208 + 1);
+            ((Class_004ceb60*)this)->PlayCdTrack(field_208, field_200 - field_208 + 1);
             if (field_208 > field_200)
                 field_208 = one;
             goto done;
@@ -121,7 +121,7 @@ void Class_004cdb40::FUN_004cdb40()
             playing = res == zero ? strcmp(buf, "playing") == zero : zero;
             if (playing != zero)
                 goto done;
-            ((Class_004ceb60*)this)->FUN_004ceb60(rand() % field_200 + 1, one);
+            ((Class_004ceb60*)this)->PlayCdTrack(rand() % field_200 + 1, one);
             goto done;
             }
         case 3:
@@ -130,7 +130,7 @@ void Class_004cdb40::FUN_004cdb40()
             playing = res == zero ? strcmp(buf, "playing") == zero : zero;            if (playing == zero || field_208 != field_204) {
                 if (field_204 == zero)
                     field_204 = one;
-                ((Class_004ceb60*)this)->FUN_004ceb60(field_204, one);
+                ((Class_004ceb60*)this)->PlayCdTrack(field_204, one);
             }
             goto done;
             }
@@ -156,7 +156,7 @@ void Class_004cdb40::FUN_004cdb40()
                     j = i;
                     while (j <= field_200 && arr_214[j] == field_278)
                         j++;
-                    ((Class_004ceb60*)this)->FUN_004ceb60(i, j - i);
+                    ((Class_004ceb60*)this)->PlayCdTrack(i, j - i);
                     break;
                 }
             }
@@ -169,11 +169,11 @@ stop:
     field_20c = 0;
     field_208 = (field_200 != 0);
     field_284 = 0;
-    RemoveTimer(DAT_0050b540);
-    RemoveTimer(DAT_0050b544);
-    DAT_0050b540 = DAT_0050b544 = -1;
+    RemoveTimer(g_cdNextTrackTimer);
+    RemoveTimer(g_cdFadeTimer);
+    g_cdNextTrackTimer = g_cdFadeTimer = -1;
 done:
-    ((Class_004d00d0*)this)->FUN_004d00d0(field_20, 1);
+    ((Class_004d00d0*)this)->SetAuxVolume(field_20, 1);
     field_20c = 1;
     return;
 }

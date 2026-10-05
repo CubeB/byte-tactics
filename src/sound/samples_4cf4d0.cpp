@@ -13,11 +13,11 @@ public:
     char unknown_b8[0x80];
     int extra[0x20];                        // +0x138
 
-    void FUN_004cf4d0(IDirectSoundBuffer** set);
+    void ReleaseSampleSet(IDirectSoundBuffer** set);
 };
 
 // FUNCTION: 0x4cf4d0
-void Class_004cf4d0::FUN_004cf4d0(IDirectSoundBuffer** set)
+void Class_004cf4d0::ReleaseSampleSet(IDirectSoundBuffer** set)
 {
     if (set == 0)
         return;

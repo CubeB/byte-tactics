@@ -15,12 +15,12 @@ class Class_0047ffa0 {
 public:
     Entry_0047ffa0 entries[9];         // +0x00
     int count;                         // +0x99
-    void FUN_0047ffa0(int index);
+    void RemoveSpeechAt(int index);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x47ffa0
-void Class_0047ffa0::FUN_0047ffa0(int index)
+void Class_0047ffa0::RemoveSpeechAt(int index)
 {
     Entry_0047ffa0* e = &entries[index];
     if (e->data != 0) {

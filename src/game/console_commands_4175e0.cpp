@@ -7,7 +7,7 @@ public:
 
 class Class_004ce690 {
 public:
-    void FUN_004ce690(int);
+    void SetTrackCategory(int);
 };
 
 extern void* g_game;
@@ -18,5 +18,5 @@ void __stdcall CmdMusicMode(void* param_1)
     Class_004b73e0* obj = (Class_004b73e0*)param_1;
     int result = obj->FUN_004b73e0(1, 0);
     void* p = *(void**)((char*)g_game + 0x10);
-    ((Class_004ce690*)p)->FUN_004ce690(result);
+    ((Class_004ce690*)p)->SetTrackCategory(result);
 }

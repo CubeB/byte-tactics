@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 #include <windows.h>
 
-extern HWND DAT_0051ff18;
+extern HWND g_cdPlayerWindow;
 
 void __stdcall FUN_004b6b50(unsigned int param_1);
 
@@ -9,16 +9,16 @@ void __stdcall FUN_004b6b50(unsigned int param_1);
 // from there) that never uses `this`.
 class Class_004ce190 {
 public:
-    void FUN_004ce190();
+    void CloseCdPlayerWindow();
 };
 
 // FUNCTION: 0x4ce190
-void Class_004ce190::FUN_004ce190()
+void Class_004ce190::CloseCdPlayerWindow()
 {
-    if (DAT_0051ff18) {
-        SendMessageA(DAT_0051ff18, WM_CLOSE, 0, 0);
-        SendMessageA(DAT_0051ff18, WM_QUIT, 0, 0);
+    if (g_cdPlayerWindow) {
+        SendMessageA(g_cdPlayerWindow, WM_CLOSE, 0, 0);
+        SendMessageA(g_cdPlayerWindow, WM_QUIT, 0, 0);
         FUN_004b6b50(500);
-        DAT_0051ff18 = 0;
+        g_cdPlayerWindow = 0;
     }
 }

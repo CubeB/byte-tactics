@@ -158,32 +158,32 @@ int __cdecl IsOnlineConfigLoaded();
 
 class Class_004cf210 {
 public:
-    void FUN_004cf210(int value);
+    void SetMaxBuffers(int value);
 };
 
 class Class_004cfe80 {
 public:
-    void FUN_004cfe80();
+    void Enable3D();
 };
 
 class Class_004cfe90 {
 public:
-    void FUN_004cfe90();
+    void Disable3D();
 };
 
 class Class_004cfea0 {
 public:
-    int FUN_004cfea0();
+    int Is3DEnabled();
 };
 
 class Class_004d0070 {
 public:
-    int FUN_004d0070(int value);
+    int SetWaveVolume(int value);
 };
 
 class Class_004d00d0 {
 public:
-    int FUN_004d00d0(int value, int flag);
+    int SetAuxVolume(int value, int flag);
 };
 
 class Class_00435c30 {
@@ -292,21 +292,21 @@ void LoadSettings()
     int ok13 = FUN_004b69d0("Total Annihilation", "Sound Mode", &value);
     if (ok13 != 0) {
         if (value == 2) {
-            ((Class_004cfe80*)g_game->sound)->FUN_004cfe80();
+            ((Class_004cfe80*)g_game->sound)->Enable3D();
         } else {
-            ((Class_004cfe90*)g_game->sound)->FUN_004cfe90();
+            ((Class_004cfe90*)g_game->sound)->Disable3D();
         }
         g_game->soundFlags.soundMode = value;
     } else {
         FUN_004b6a50("Total Annihilation", "Sound Mode",
-                     (((Class_004cfea0*)g_game->sound)->FUN_004cfea0() != 0) + 1);
+                     (((Class_004cfea0*)g_game->sound)->Is3DEnabled() != 0) + 1);
         g_game->soundFlags.soundMode = 1;
     }
     int ok14 = FUN_004b69d0("Total Annihilation", "MixingBuffers", &value);
     if (ok14 != 0) {
-        ((Class_004cf210*)g_game->sound)->FUN_004cf210(value);
+        ((Class_004cf210*)g_game->sound)->SetMaxBuffers(value);
     } else {
-        ((Class_004cf210*)g_game->sound)->FUN_004cf210(8);
+        ((Class_004cf210*)g_game->sound)->SetMaxBuffers(8);
     }
     int ok15 = FUN_004b69d0("Total Annihilation", "RestoreVolume", &value);
     if (ok15 != 0) {
@@ -317,11 +317,11 @@ void LoadSettings()
     if (g_game->soundFlags.restoreVolume) {
         int ok16 = FUN_004b69d0("Total Annihilation", "WaveOutVolume", &value);
         if (ok16 != 0) {
-            ((Class_004d0070*)g_game->sound)->FUN_004d0070(value);
+            ((Class_004d0070*)g_game->sound)->SetWaveVolume(value);
         }
         int ok17 = FUN_004b69d0("Total Annihilation", "CDAudioVolume", &value);
         if (ok17 != 0) {
-            ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(value, 0);
+            ((Class_004d00d0*)g_game->sound)->SetAuxVolume(value, 0);
         }
     }
     int ok18 = FUN_004b69d0("Total Annihilation", "Anti-Alias", &value);

@@ -40,7 +40,7 @@ int __stdcall FUN_00441c30(int* a, int* b);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 int __stdcall IsCurrentGadgetNamed(Gadget_004423c0* gadget, const char* name);
 Entry_004423c0* __stdcall FindGadgetChecked(void* entries, char* name);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void FUN_004257a0();
 void __stdcall FUN_004ab0a0(Gadget_004423c0* gadget);
 void __stdcall FUN_00425860(int state, int line, char* file);
@@ -64,7 +64,7 @@ void __stdcall FUN_004423c0(Gadget_004423c0* gadget)
             g_game->field_39211 = a;
             g_game->field_39215 = b;
         }
-        FUN_0047f1a0("SMLBUTTON", 0);
+        PlaySoundByName("SMLBUTTON", 0);
         FUN_004257a0();
     } else if (FindGadgetIndex(entries, "JOIN", 0xe) == gadget->field_60) {
         g_game->bit1 = 1;
@@ -75,10 +75,10 @@ void __stdcall FUN_004423c0(Gadget_004423c0* gadget)
             g_game->field_39211 = a;
             g_game->field_39215 = b;
         }
-        FUN_0047f1a0("SMLBUTTON", 0);
+        PlaySoundByName("SMLBUTTON", 0);
     } else if (IsCurrentGadgetNamed(gadget, "PREV")) {
         FUN_00425860(0xf, 0x395, "c:\\cavedog\\wargame\\multi.cpp");
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         return;
     } else {
         FUN_004ab0a0(gadget);

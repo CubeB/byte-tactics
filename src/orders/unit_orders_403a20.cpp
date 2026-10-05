@@ -51,7 +51,7 @@ struct Game {
 extern Game* g_game;
 static inline UnitDef* Definitions() { return g_game->defs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall FUN_0041c110(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
@@ -79,7 +79,7 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
 int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 8) {
-        FUN_0047f780(unit, 7, "Construction terminated");
+        QueueUnitSpeech(unit, 7, "Construction terminated");
         FUN_0041c110(unit);
         return 8;
     }
@@ -109,15 +109,15 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             unsigned int range = 0;
             range = unit->def->buildRange;
             if (gap > (int)range) {
-                FUN_0047f780(unit, 7, "I can't reach the construction site");
+                QueueUnitSpeech(unit, 7, "I can't reach the construction site");
                 return 8;
             }
         }
         if (!FUN_0047db70(def, 0, WorldToCell(order->pos, Definitions()[order->type].origin), 1)) {
             if (!order->retries)
-                FUN_0047f780(unit, 7, "Waiting for target area to clear");
+                QueueUnitSpeech(unit, 7, "Waiting for target area to clear");
             else if (order->retries > 10) {
-                FUN_0047f780(unit, 7, "Target area was blocked");
+                QueueUnitSpeech(unit, 7, "Target area was blocked");
                 return 8;
             }
             order->retries++;
@@ -129,11 +129,11 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         ((Class_004895c0*)((char*)order + 0x12))->SetUnit(
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
         if (!order->target) {
-            FUN_0047f780(unit, 7, "Unable to create any more units");
+            QueueUnitSpeech(unit, 7, "Unable to create any more units");
             ((Class_00439e80*)order)->FUN_00439e80(300);
             return 2;
         }
-        FUN_0047f780(unit, 9, "Starting construction");
+        QueueUnitSpeech(unit, 9, "Starting construction");
         FUN_0041c110(unit);
         AddOrder("getbuilt", 1, order->target, unit, 0, 0, 0);
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
@@ -161,7 +161,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 4:
-        FUN_0047f780(unit, 8, "Building complete");
+        QueueUnitSpeech(unit, 8, "Building complete");
         return 5;
     }
     return 7;

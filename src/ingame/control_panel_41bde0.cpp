@@ -36,7 +36,7 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-void __stdcall FUN_0047f1a0(char* name, int param);
+void __stdcall PlaySoundByName(char* name, int param);
 
 // FUNCTION: 0x41bde0
 void __stdcall FUN_0041bde0(int param_1)
@@ -66,5 +66,5 @@ void __stdcall FUN_0041bde0(int param_1)
             g_game->flags |= 0x10;
         }
     }
-    FUN_0047f1a0("nextbuildmenu", 0);
+    PlaySoundByName("nextbuildmenu", 0);
 }

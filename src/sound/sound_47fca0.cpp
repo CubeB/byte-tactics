@@ -20,7 +20,7 @@ public:
     int field_9d;                      // +0x9d
     int field_a1;                      // +0xa1
 
-    void FUN_0047fd70(int index, int param_2, int param_3);
+    void PlaySpeech(int index, int param_2, int param_3);
 };
 
 class Class_0047fca0 {
@@ -30,7 +30,7 @@ public:
     unsigned int field_9d;             // +0x9d
     unsigned int field_a1;             // +0xa1
 
-    void FUN_0047fca0();
+    void PlayNextSpeechEntry();
 };
 
 struct Game {
@@ -42,16 +42,16 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x47fca0
-void Class_0047fca0::FUN_0047fca0()
+void Class_0047fca0::PlayNextSpeechEntry()
 {
     if (count == 0) {
         return;
     }
     if (g_game->field_38a47 >= field_a1 + field_9d) {
-        ((Class_0047f960*)this)->FUN_0047fd70(0, 1, 1);
+        ((Class_0047f960*)this)->PlaySpeech(0, 1, 1);
         field_9d = g_game->field_38a47;
     } else {
-        ((Class_0047f960*)this)->FUN_0047fd70(0, 0, 1);
+        ((Class_0047f960*)this)->PlaySpeech(0, 0, 1);
     }
     if (entries[0].data) {
         FUN_004d85a0(entries[0].data);

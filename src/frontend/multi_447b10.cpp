@@ -220,7 +220,7 @@ unsigned int GetTicks();
 void __stdcall AddMessage(char* text, int a, int b, int c);
 void __stdcall SendChatMessage(Player_00447b10* p, char* text, int a, int b);
 void __stdcall ReportGameEvent(int sound);
-void __stdcall FUN_0047f1a0(char* sound, int b);
+void __stdcall PlaySoundByName(char* sound, int b);
 int __stdcall FUN_004288d0(char* name, int a, int b, int c);
 void __stdcall FUN_0049fb10(char* gui, int value);
 int __stdcall IsCurrentGadgetNamed(Gadget_00447b10* gadget, char* name);
@@ -365,7 +365,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
 
         sprintf(text, "LOGO%d", i);
         if (IsCurrentGadgetNamed(gadget, text) && IsLocal_00447b10(p)) {
-            FUN_0047f1a0("Multi", 0);
+            PlaySoundByName("Multi", 0);
             RequestPlayerColor(p->info->slot + 1);
             g_game->dirty = 1;
             BroadcastPlayerInfo();
@@ -373,7 +373,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
 
         sprintf(text, "PLAYER%d", i);
         if (IsCurrentGadgetNamed(gadget, text) && i != lp) {
-            FUN_0047f1a0("Multi", 0);
+            PlaySoundByName("Multi", 0);
             char type = p->type;
             if (type == 0 && canAdd) {
                 ((Class_00463c60*)p)->SetType(4);
@@ -410,7 +410,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
 
         sprintf(text, "SIDE%d", i);
         if (IsCurrentGadgetNamed(gadget, text)) {
-            FUN_0047f1a0("Multi", 0);
+            PlaySoundByName("Multi", 0);
             if (p->active != 0 && p->info->b.bit6) {
                 p->info->b.bit6 = 0;
                 p->info->side = 0;
@@ -450,9 +450,9 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
             // `==` tighter than `|`, so this is ((ally2 << 1) == 3) | ally,
             // and the left side is never true.
             if (me->ally2[i] << 1 == 3 | me->ally[i])
-                FUN_0047f1a0("Ally", 0);
+                PlaySoundByName("Ally", 0);
             else
-                FUN_0047f1a0("Multi", 0);
+                PlaySoundByName("Multi", 0);
             sprintf(text, " %s %s",
                     FUN_004c5740(me->ally[i] ? "allied with" : "broke alliance with"),
                     g_game->players[i].name);
@@ -463,14 +463,14 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
 
         sprintf(text, "TEAMICONS%d", i);
         if (IsCurrentGadgetNamed(gadget, text)) {
-            FUN_0047f1a0("Ally", 0);
+            PlaySoundByName("Ally", 0);
             FUN_00446f50(i);
             FUN_00452bd0(p);
         }
 
         sprintf(text, "RES%d", i);
         if (IsCurrentGadgetNamed(gadget, text) && IsLocalHuman_00447b10(p)) {
-            FUN_0047f1a0("Multi", 0);
+            PlaySoundByName("Multi", 0);
             FUN_00446310();
             FUN_004ab0a0(gadget);
             g_game->dirty = 1;
@@ -479,7 +479,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
 
         sprintf(text, "READY%d", i);
         if (IsCurrentGadgetNamed(gadget, text) && IsLocalHuman_00447b10(p)) {
-            FUN_0047f1a0("Multi", 0);
+            PlaySoundByName("Multi", 0);
             if (CheckMapCrc()) {
                 p->info->b.ready = GetGadgetStatus(g_game->gui, FindGadgetIndex(entries, text, 1));
                 if (p->info->f97_0) {
@@ -505,7 +505,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         g_game->dirty = 1;
 
     if (IsCurrentGadgetNamed(gadget, "PREVMENU")) {
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         for (int j = 0; j < 10; j++) {
             Player_00447b10* q = &g_game->players[j];
             if (IsLocal_00447b10(q))
@@ -532,7 +532,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         }
         FUN_004a7190(g_game->gui, FindGadgetIndex(g_game->table->entries, "MESSAGE", 3));
     } else if (IsCurrentGadgetNamed(gadget, "COMMANDER")) {
-        FUN_0047f1a0("Multi", 0);
+        PlaySoundByName("Multi", 0);
         me->info->b.commander++;
         if (me->info->b.commander > 2)
             me->info->b.commander = 0;
@@ -540,7 +540,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         UpdateNetGameInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "LOSTYPE")) {
-        FUN_0047f1a0("Multi", 0);
+        PlaySoundByName("Multi", 0);
         if (!me->info->b.los) {
             me->info->b.los = 1;
             me->info->b.losType = 1;
@@ -553,7 +553,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         UpdateNetGameInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "WATCHING")) {
-        FUN_0047f1a0("Multi", 0);
+        PlaySoundByName("Multi", 0);
         me->info->b.watching = !me->info->b.watching;
         if (!me->info->b.watching && me->active != 0 && me->info->b.bit6)
             me->info->b.bit6 = 0;
@@ -561,24 +561,24 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         UpdateNetGameInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "CHEATING")) {
-        FUN_0047f1a0("Multi", 0);
+        PlaySoundByName("Multi", 0);
         me->info->b.cheating = !me->info->b.cheating;
         BroadcastPlayerInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "FIXEDLOC")) {
-        FUN_0047f1a0("Multi", 0);
+        PlaySoundByName("Multi", 0);
         me->info->b.fixedloc = !me->info->b.fixedloc;
         BroadcastPlayerInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "MAPPING")) {
-        FUN_0047f1a0("Multi", 0);
+        PlaySoundByName("Multi", 0);
         me->info->b.mapping = GetButtonStageByName(gadget, "MAPPING") == 0;
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "START")) {
         int count = 0;
-        FUN_0047f1a0("BigButton", 0);
+        PlaySoundByName("BigButton", 0);
         for (int j = 0; j < 10; j++) {
             Player_00447b10* q = &g_game->players[j];
             if ((IsLocalHuman_00447b10(q) || IsRemoteHuman_00447b10(q)) && q->info->f9d_2)
@@ -598,7 +598,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
             }
         }
         if (!((Class_00435c40*)g_game->map)->FUN_00435c40()) {
-            FUN_0047f1a0("Multi", 0);
+            PlaySoundByName("Multi", 0);
             FUN_00444ea0();
             goto done;
         }
@@ -621,13 +621,13 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         g_game->field_37eee = 2;
         return;
     } else if (IsCurrentGadgetNamed(gadget, "GAMEOPEN")) {
-        FUN_0047f1a0("Multi", 0);
+        PlaySoundByName("Multi", 0);
         me->info->b.closed = GetButtonStageByName(gadget, "GAMEOPEN") == 0;
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "RESTRICTIONS")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_0044c7e0();
         FUN_004ab0a0(gadget);
     } else {
@@ -638,7 +638,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         if (!hit)
             hit = IsCurrentGadgetNamed(gadget, "MAPNAME");
         if (hit) {
-            FUN_0047f1a0("Multi", 0);
+            PlaySoundByName("Multi", 0);
             if (me->info->f97_0) {
                 FUN_00444ea0();
             } else {

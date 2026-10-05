@@ -17,11 +17,11 @@ struct Gadget_00426190 {
 
 // 0x4ce190 is called as a method: this, its only caller, loads ecx from
 // g_game+0x10 just before the call. data/symbols.csv names it as the free
-// function FUN_004ce190 (its body never reads ecx), so the checker reports
+// function CloseCdPlayerWindow (its body never reads ecx), so the checker reports
 // this reference as wrong although the bytes match.
 class Class_004ce190 {
 public:
-    void FUN_004ce190();
+    void CloseCdPlayerWindow();
 };
 
 struct Game {
@@ -31,7 +31,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall IsGadgetNamed(int param1, int param2, char* name);
 void __stdcall FUN_004ab0a0(Gadget_00426190* gadget);
 
@@ -41,9 +41,9 @@ void __stdcall FUN_00426190(Gadget_00426190* gadget)
     int owner = gadget->owner->field_4;
     if (gadget->field_60 == -1)
         return;
-    FUN_0047f1a0("SmallButton", 0);
+    PlaySoundByName("SmallButton", 0);
     if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
-        g_game->field_10->FUN_004ce190();
+        g_game->field_10->CloseCdPlayerWindow();
     } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {
         FUN_004ab0a0(gadget);
     }

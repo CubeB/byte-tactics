@@ -47,8 +47,8 @@ void __stdcall FUN_0045b800(char* param_1);
 void __stdcall FUN_0045b860(int param_1);
 void __stdcall SetPacketRate(int param_1);
 char* __stdcall FUN_004c5740(char* text);
-void FUN_0047efc0();
-void FUN_0047efd0();
+void SetNoDirectSound();
+void SetUseWindowsSound();
 
 // The game's entry point: an exception in the main thread is reported,
 // with the thread's name, before the process dies.
@@ -255,7 +255,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
             }
             case 'S':
             case 's':
-                FUN_0047efc0();
+                SetNoDirectSound();
                 break;
             case 'T':
             case 't':
@@ -273,7 +273,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                 break;
             case 'W':
             case 'w':
-                FUN_0047efd0();
+                SetUseWindowsSound();
                 break;
             }
         }

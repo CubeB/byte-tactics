@@ -18,7 +18,7 @@
 
 class Class_004d0640 {
 public:
-    void FUN_004d0640(const char* param1, int param2, int param3);
+    void PlaySample(const char* param1, int param2, int param3);
 };
 
 #pragma pack(push, 1)
@@ -84,22 +84,22 @@ public:
     int field_a1;                          // +0xa1
     int field_a5;                          // +0xa5
 
-    void FUN_0047fd70(int index, int param_2, int param_3);
+    void PlaySpeech(int index, int param_2, int param_3);
 };
 #pragma pack(pop)
 
 extern Game* g_game;
 extern Table_0047fd70 DAT_005086e0[24];
-extern int DAT_0051e690;
-extern int DAT_0051e694;
+extern int g_noDirectSound;
+extern int g_useWindowsSound;
 extern int DAT_0051e698;
 
 char* __stdcall BuildDataPath(char* buf, char* dir, char* name, char* ext);
 void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, char last);
-int __stdcall FUN_0049f6c0(char* path);
+int __stdcall PlayWavFromDisk(char* path);
 
 // FUNCTION: 0x47fd70
-void Class_0047f960::FUN_0047fd70(int index, int param_2, int param_3)
+void Class_0047f960::PlaySpeech(int index, int param_2, int param_3)
 {
     Entry_0047fd70* e = &entries[index];
     int slot = entries[index].field_0;
@@ -119,11 +119,11 @@ void Class_0047f960::FUN_0047fd70(int index, int param_2, int param_3)
 
         char path[256];
         BuildDataPath(path, "sounds", name, "WAV");
-        if (DAT_0051e694) {
-            FUN_0049f6c0(path);
+        if (g_useWindowsSound) {
+            PlayWavFromDisk(path);
         } else if (path && strlen(path) && g_game->field_37f0c
-                   && (g_game->field_37f19 & 7) && DAT_0051e690 == 0) {
-            g_game->sound->FUN_004d0640(path, -0x249, 0);
+                   && (g_game->field_37f19 & 7) && g_noDirectSound == 0) {
+            g_game->sound->PlaySample(path, -0x249, 0);
         }
         DAT_005086e0[slot].field_c =
             g_game->frame + DAT_005086e0[slot].field_0 * 0x1e;

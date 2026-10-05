@@ -68,7 +68,7 @@ struct Game {
 extern Game* g_game;
 static inline UnitDef* Definitions() { return g_game->defs; }
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 void __stdcall FUN_0041c110(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
@@ -97,7 +97,7 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
 int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 8) {
-        FUN_0047f780(unit, 7, "Construction terminated");
+        QueueUnitSpeech(unit, 7, "Construction terminated");
         FUN_0041c110(unit);
         return 8;
     }
@@ -127,15 +127,15 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             unsigned int range = 0;
             range = unit->def->buildRange;
             if (gap > (int)range) {
-                FUN_0047f780(unit, 7, "I can't reach the construction site");
+                QueueUnitSpeech(unit, 7, "I can't reach the construction site");
                 return 8;
             }
         }
         if (!FUN_0047db70(def, 0, WorldToCell(order->pos, Definitions()[order->type].origin), 1)) {
             if (!order->retries)
-                FUN_0047f780(unit, 7, "Waiting for target area to clear");
+                QueueUnitSpeech(unit, 7, "Waiting for target area to clear");
             else if (order->retries > 10) {
-                FUN_0047f780(unit, 7, "Target area was blocked");
+                QueueUnitSpeech(unit, 7, "Target area was blocked");
                 return 8;
             }
             order->retries++;
@@ -147,11 +147,11 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         ((Class_004895c0*)((char*)order + 0x12))->SetUnit(
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
         if (!order->target) {
-            FUN_0047f780(unit, 7, "Unable to create any more units");
+            QueueUnitSpeech(unit, 7, "Unable to create any more units");
             ((Class_00439e80*)order)->FUN_00439e80(300);
             return 2;
         }
-        FUN_0047f780(unit, 9, "Starting construction");
+        QueueUnitSpeech(unit, 9, "Starting construction");
         FUN_0041c110(unit);
         AddOrder("getbuilt", 1, order->target, unit, 0, 0, 0);
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
@@ -179,7 +179,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 4:
-        FUN_0047f780(unit, 8, "Building complete");
+        QueueUnitSpeech(unit, 8, "Building complete");
         return 5;
     }
     return 7;
@@ -191,7 +191,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
     if (flags & 2) { FUN_0041c110(unit); return 5; }
     Unit* target = order->target;
     if (!target) {
-        FUN_0047f780(unit, 7, "Construction terminated");
+        QueueUnitSpeech(unit, 7, "Construction terminated");
         return 8;
     }
     unsigned int state = 0;
@@ -210,7 +210,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
     }
     case 1:
         if (flags & 0x40) {
-            FUN_0047f780(unit, 7, "I can't get there");
+            QueueUnitSpeech(unit, 7, "I can't get there");
             return 8;
         }
         if (target->progress == 0.0f) return 5;
@@ -240,7 +240,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 4:
-        FUN_0047f780(unit, 8, "Building complete");
+        QueueUnitSpeech(unit, 8, "Building complete");
         order->flags |= 2;
         return 5;
     }
@@ -288,7 +288,7 @@ struct Order {
 struct Game { char pad0[0x38a47]; int tick; };
 #pragma pack(pop)
 extern Game* g_game;
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
 void __stdcall StopBuildingScript(Unit*, Order*);
@@ -301,7 +301,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
 {
     Unit* target = order->target.Get();
     if (!target || (flags & 0x10008)) {
-        FUN_0047f780(unit, 7, "Capture failed");
+        QueueUnitSpeech(unit, 7, "Capture failed");
         return 8;
     }
     unsigned int state = 0;
@@ -311,11 +311,11 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         if (!unit->active) return 7;
         if (!(unit->def->flags & 0x1000)) return 7;
         if (target->def->capture) {
-            FUN_0047f780(unit, 7, "That unit cannot be captured");
+            QueueUnitSpeech(unit, 7, "That unit cannot be captured");
             return 8;
         }
         if (target->progress != 0.0f) {
-            FUN_0047f780(unit, 7, "That unit is a cloud of vapor and cannot be captured");
+            QueueUnitSpeech(unit, 7, "That unit is a cloud of vapor and cannot be captured");
             return 8;
         }
         ((Class_00438880*)order)->FUN_00438880("Capturing");
@@ -346,7 +346,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
     case 2:
         return FUN_00438700(unit, order, 0x10008);
     case 3:
-        FUN_0047f780(unit, 11, 0);
+        QueueUnitSpeech(unit, 11, 0);
         return 1;
     case 4: {
         if (target->active && (target->flags & 0xc)) {
@@ -373,7 +373,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
     }
     case 5:
         GiveUnitToPlayer(target, unit->owner, 0);
-        FUN_0047f780(unit, 16, 0);
+        QueueUnitSpeech(unit, 16, 0);
         return 5;
     }
     return 7;

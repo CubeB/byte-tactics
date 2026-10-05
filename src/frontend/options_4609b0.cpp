@@ -13,7 +13,7 @@ public:
 
 class Class_004ce910 {
 public:
-    void FUN_004ce910(int value);
+    void PauseCdAudio(int value);
 };
 
 class Class_004c6a60 {
@@ -70,7 +70,7 @@ extern int DAT_00512fe4;
 extern int DAT_00512ef0;
 
 int __stdcall IsCurrentGadgetNamed(Gadget_004609b0* gadget, char* name);
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 void __stdcall FUN_0049fa70(Sub_004609b0* sub);
 void __stdcall FreeSurface(Class_004c6a60* surface);
 Info_004609b0* __stdcall LoadGuiLayer(Sub_004609b0* sub, const char* name, int flags);
@@ -109,26 +109,26 @@ void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
                 g_game->flags_38a51 &= 0xfffe;
         }
         g_game->orders &= 0xfffe;
-        g_game->field_10->FUN_004ce910(0);
+        g_game->field_10->PauseCdAudio(0);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "LOADGAME")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         ShowLoadGameScreen();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "SAVEGAME")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         ShowSaveGameScreen();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "PREFS")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_00460160();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "HELP")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         Info_004609b0* g = LoadGuiLayer(&g_game->sub, "HELP.GUI", 0x1881);
         g->handler = FUN_0045fac0;
         FUN_004288d0("dhelp", 0, 0, 0);
@@ -139,7 +139,7 @@ void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "MISSION")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         if (g_game->mode->FUN_00435100() == 1) {
             Info_004609b0* g = LoadGuiLayer(&g_game->sub, "BRIEFING.GUI", 0);
             Entry_004609b0* gadgets = g->info;
@@ -161,12 +161,12 @@ void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "EXIT")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_004608b0();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "OK")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         return;
     }
     if (gadget->field_60 != -1)

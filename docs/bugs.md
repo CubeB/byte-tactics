@@ -519,7 +519,7 @@ Things that look wrong in the original but have no effect, kept for the record.
 
 - **0x47ae60**: the Difficulty arm (0x47b92f) plays the sound "SKirmish"
   (0x502a6c) where the other thirteen arms use "Skirmish" (0x507ccc); 0x41ee8b
-  uses the same misspelt string, and FUN_0047f1a0 looks it up with
+  uses the same misspelt string, and PlaySoundByName looks it up with
   `_strcmpi`, so both find the same sound. Found by ozgb's deepseek-v4.1-flash
   in #2576.
 

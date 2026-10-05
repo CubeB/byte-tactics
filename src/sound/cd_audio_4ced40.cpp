@@ -2,8 +2,8 @@
 #include <windows.h>
 #include <mmsystem.h>
 
-extern int DAT_0050b540;
-extern int DAT_0050b544;
+extern int g_cdNextTrackTimer;
+extern int g_cdFadeTimer;
 
 extern void __stdcall RemoveTimer(int);
 
@@ -17,12 +17,12 @@ public:
     char unknown_210[0x284 - 0x210];
     int unknown_284;                   // +0x284
 
-    int FUN_004ced40();
+    int StopCdAudio();
 };
 
 // Stops CD audio playback; returns 1 when the MCI command succeeded.
 // FUNCTION: 0x4ced40
-int Class_004ced40::FUN_004ced40()
+int Class_004ced40::StopCdAudio()
 {
     MCIERROR err = mciSendStringA("stop cdaudio", 0, 0, 0);
     if (unknown_200)
@@ -31,8 +31,8 @@ int Class_004ced40::FUN_004ced40()
         unknown_208 = 0;
     unknown_20c = 0;
     unknown_284 = 0;
-    RemoveTimer(DAT_0050b540);
-    RemoveTimer(DAT_0050b544);
-    DAT_0050b540 = DAT_0050b544 = -1;
+    RemoveTimer(g_cdNextTrackTimer);
+    RemoveTimer(g_cdFadeTimer);
+    g_cdNextTrackTimer = g_cdFadeTimer = -1;
     return err == 0 ? 1 : 0;
 }

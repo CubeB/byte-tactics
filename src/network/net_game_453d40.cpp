@@ -245,7 +245,7 @@ int __stdcall IsColorFree(int, int);
 void __stdcall AssignPlayerColor(int, int, int);
 void __stdcall SetAlliance(int, int, unsigned char, int);
 char* __stdcall FUN_004c5740(char*);
-void __stdcall FUN_0047f1a0(char*, int);
+void __stdcall PlaySoundByName(char*, int);
 void __stdcall CreateUnitFromPacket(unsigned char, void*);
 void __stdcall ReceiveUnitStates(Player*, void*);
 void __stdcall ApplyAttachUnit(void*);
@@ -258,8 +258,8 @@ void __stdcall FUN_004233a0(int, int, int);
 int __stdcall FUN_00481550(int, int);
 void __stdcall FUN_004244b0(int, int, int, Feature*);
 void __stdcall FUN_0041b8d0(Class_0048b090*, Class_0048b090*);
-void __stdcall FUN_0047f0c0(int, int);
-void __stdcall FUN_0047f300(int, void*, int);
+void __stdcall PlaySoundByIndex(int, int);
+void __stdcall PlaySoundAt(int, void*, int);
 void __stdcall GiveUnitToPlayer(Class_0048b090*, Player*, void*);
 void __stdcall TransferMetal(unsigned char, unsigned char, int, int);
 void __stdcall TransferEnergy(unsigned char, unsigned char, int, int);
@@ -629,7 +629,7 @@ int HandleNetPackets()
             if (!a || !b)
                 break;
             if (packet[9])
-                FUN_0047f1a0(DAT_00505dc4, 0);
+                PlaySoundByName(DAT_00505dc4, 0);
             if (IsConnected(b)) {
                 SetAlliance(*(int*)(packet + 1), *(int*)(packet + 5), packet[9],
                              *(int*)(packet + 10));
@@ -772,9 +772,9 @@ int HandleNetPackets()
         }
         case 19:
             if (packet[1])
-                FUN_0047f0c0(*(int*)(packet + 2), 0);
+                PlaySoundByIndex(*(int*)(packet + 2), 0);
             else
-                FUN_0047f300(*(int*)(packet + 2), packet + 6, 0);
+                PlaySoundAt(*(int*)(packet + 2), packet + 6, 0);
             break;
         case 20: {
             Class_0048b090* unit = UnitAt(*(unsigned short*)(packet + 1));

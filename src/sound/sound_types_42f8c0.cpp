@@ -13,14 +13,14 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_0042f740();
-void __stdcall FUN_0047f060(IDirectSoundBuffer** set);
+void FreeSoundCategories();
+void __stdcall FreeSoundSet(IDirectSoundBuffer** set);
 
 // FUNCTION: 0x42f8c0
-void FUN_0042f8c0()
+void FreeSounds()
 {
-    FUN_0042f740();
+    FreeSoundCategories();
     for (int i = 0; i < g_game->soundCount; i++)
-        FUN_0047f060(g_game->sounds[i]);
+        FreeSoundSet(g_game->sounds[i]);
     g_game->soundCount = 0;
 }

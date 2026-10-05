@@ -36,7 +36,7 @@ void SaveSettings();
 void SaveNumSkirmishPlayers();
 void LoadSettings();
 void FUN_0047a0e0();
-void __stdcall FUN_0047f1a0(const char*, int);
+void __stdcall PlaySoundByName(const char*, int);
 void __stdcall FUN_004a7960(Cheat_0047b9f0*, int);
 void __stdcall FUN_0049fa90(void*);
 
@@ -74,7 +74,7 @@ void __stdcall FUN_0047b9f0(Cheat_0047b9f0* cheat)
         *(short*)((char*)cheat->text->target + 0xb6) =
             *(short*)((char*)g_game->field_29a0 + 0x220);
         FUN_0047a0e0();
-        FUN_0047f1a0(DAT_00508460, 0);
+        PlaySoundByName(DAT_00508460, 0);
         FUN_004a7960(cheat, 1);
         FUN_0049fa90((char*)g_game + 0x519);
     }

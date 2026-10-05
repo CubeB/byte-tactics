@@ -7,12 +7,12 @@ public:
 
 class Class_004ce690 {
 public:
-    void FUN_004ce690(int param_1);
+    void SetTrackCategory(int param_1);
 };
 
 class Class_004ced40 {
 public:
-    void FUN_004ced40();
+    void StopCdAudio();
 };
 
 #pragma pack(push, 1)
@@ -55,8 +55,8 @@ void CloseNetSession();
 void FUN_00491b60()
 {
     g_game->flags_2a44 &= 0xfffb;
-    ((Class_004ced40*)g_game->field_10)->FUN_004ced40();
-    g_game->field_10->FUN_004ce690(4);
+    ((Class_004ced40*)g_game->field_10)->StopCdAudio();
+    g_game->field_10->SetTrackCategory(4);
     FUN_0041dc20();
     FUN_00437d30();
     FreeUnitMemory();

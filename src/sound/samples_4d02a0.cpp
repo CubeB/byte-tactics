@@ -11,7 +11,7 @@
 // the callee name (see NAMING NOTE below).
 // NAMING NOTE: the original calls 0x4d01b0 as a __thiscall method
 // (`push esi; mov ecx,edi; call 0x4d01b0`, and 0x4d01b0 never reads ecx), but
-// data/symbols.csv names 0x4d01b0 as the bare `FUN_004d01b0`, so check.py
+// data/symbols.csv names 0x4d01b0 as the bare `DetectSampleFormat`, so check.py
 // reports our member reference as a name mismatch. The orchestrator should add
 // the class-qualified name for 0x4d01b0 to data/symbols.csv.
 #include <string.h>
@@ -20,23 +20,23 @@ struct File_004bb5d0;
 
 class Class_004cf370 {
   public:
-    void* FUN_004cf370(File_004bb5d0* file, int bytes, int sampleRate, int bits, int channels);
+    void* CreateSampleFromFile(File_004bb5d0* file, int bytes, int sampleRate, int bits, int channels);
 };
 class Class_004cf8a0 {
   public:
-    int FUN_004cf8a0(File_004bb5d0* file, int bytes, int sampleRate, int bits, int channels, int f,
+    int PlayFileSample(File_004bb5d0* file, int bytes, int sampleRate, int bits, int channels, int f,
                      int g);
 };
 class Class_004cfb40 {
   public:
-    void FUN_004cf940(File_004bb5d0* file, int sampleRate, int bits, int channels, int volume);
+    void StartStream(File_004bb5d0* file, int sampleRate, int bits, int channels, int volume);
 };
 class Class_004d02a0 {
   public:
-    int FUN_004d02a0(char* path, int mode, int p3, int p4);
+    int OpenSample(char* path, int mode, int p3, int p4);
 };
 
-struct Class_004d01b0 { int FUN_004d01b0(File_004bb5d0* file); };
+struct Class_004d01b0 { int DetectSampleFormat(File_004bb5d0* file); };
 File_004bb5d0* __stdcall FUN_004bb5b0(char* path);
 int __stdcall FUN_004bb5d0(File_004bb5d0* file);
 int __stdcall FUN_004bb710(File_004bb5d0* file, int pos);
@@ -74,25 +74,25 @@ static inline unsigned int FindChunk(File_004bb5d0* file, const char* tag) {
     }
 }
 // FUNCTION: 0x4d02a0
-int Class_004d02a0::FUN_004d02a0(char* path, int mode, int p3, int p4) {
+int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
     int result = 0;
     File_004bb5d0* file = FUN_004bb5b0(path);
     if (file == 0)
         return result;
-    int kind = ((Class_004d01b0*)this)->FUN_004d01b0(file);
+    int kind = ((Class_004d01b0*)this)->DetectSampleFormat(file);
     int size = FUN_004bbd00(file);
     switch (kind) {
     case 0:
         FUN_004bb710(file, 0);
         switch (mode) {
         case 0:
-            result = (int)((Class_004cf370*)this)->FUN_004cf370(file, size, 0x2b11, 8, 1);
+            result = (int)((Class_004cf370*)this)->CreateSampleFromFile(file, size, 0x2b11, 8, 1);
             break;
         case 1:
-            result = ((Class_004cf8a0*)this)->FUN_004cf8a0(file, size, 0x2b11, 8, 1, p3, p4);
+            result = ((Class_004cf8a0*)this)->PlayFileSample(file, size, 0x2b11, 8, 1, p3, p4);
             break;
         case 2:
-            ((Class_004cfb40*)this)->FUN_004cf940(file, 0x2b11, 8, 1, p3);
+            ((Class_004cfb40*)this)->StartStream(file, 0x2b11, 8, 1, p3);
             return 1;
         }
         break;
@@ -105,13 +105,13 @@ int Class_004d02a0::FUN_004d02a0(char* path, int mode, int p3, int p4) {
         FUN_004bb710(file, 0x28);
         switch (mode) {
         case 0:
-            result = (int)((Class_004cf370*)this)->FUN_004cf370(file, size - 0x28, x, 8, 1);
+            result = (int)((Class_004cf370*)this)->CreateSampleFromFile(file, size - 0x28, x, 8, 1);
             break;
         case 1:
-            result = ((Class_004cf8a0*)this)->FUN_004cf8a0(file, size - 0x28, x, 8, 1, p3, p4);
+            result = ((Class_004cf8a0*)this)->PlayFileSample(file, size - 0x28, x, 8, 1, p3, p4);
             break;
         case 2:
-            ((Class_004cfb40*)this)->FUN_004cf940(file, x, 8, 1, p3);
+            ((Class_004cfb40*)this)->StartStream(file, x, 8, 1, p3);
             return 1;
         }
         break;
@@ -130,14 +130,14 @@ int Class_004d02a0::FUN_004d02a0(char* path, int mode, int p3, int p4) {
         switch (mode) {
         case 0:
             result = (int)((Class_004cf370*)this)
-                         ->FUN_004cf370(file, len, wfx.nSamplesPerSec, bits, chans);
+                         ->CreateSampleFromFile(file, len, wfx.nSamplesPerSec, bits, chans);
             break;
         case 1:
             result = ((Class_004cf8a0*)this)
-                         ->FUN_004cf8a0(file, len, wfx.nSamplesPerSec, bits, chans, p3, p4);
+                         ->PlayFileSample(file, len, wfx.nSamplesPerSec, bits, chans, p3, p4);
             break;
         case 2:
-            ((Class_004cfb40*)this)->FUN_004cf940(file, wfx.nSamplesPerSec, bits, chans, p3);
+            ((Class_004cfb40*)this)->StartStream(file, wfx.nSamplesPerSec, bits, chans, p3);
             return 1;
         }
         break;

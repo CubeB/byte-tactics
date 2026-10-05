@@ -1,23 +1,23 @@
 // Decompiled by Opus. Names are provisional.
-// Calls FUN_004cf570 on the same object with the global flag at 0x51ff48 set
+// Calls PlaySampleSet on the same object with the global flag at 0x51ff48 set
 // for the duration of the call.
 
 class Class_004cf570 {
 public:
-    void FUN_004cf570(int a, int b, int c);
+    void PlaySampleSet(int a, int b, int c);
 };
 
 class Class_004cf540 {
 public:
-    void FUN_004cf540(int a, int b);
+    void PlayLooping(int a, int b);
 };
 
-extern int DAT_0051ff48;
+extern int g_playBufferLooping;
 
 // FUNCTION: 0x4cf540
-void Class_004cf540::FUN_004cf540(int a, int b)
+void Class_004cf540::PlayLooping(int a, int b)
 {
-    DAT_0051ff48 = 1;
-    ((Class_004cf570*)this)->FUN_004cf570(a, b, 0);
-    DAT_0051ff48 = 0;
+    g_playBufferLooping = 1;
+    ((Class_004cf570*)this)->PlaySampleSet(a, b, 0);
+    g_playBufferLooping = 0;
 }

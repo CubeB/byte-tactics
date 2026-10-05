@@ -31,11 +31,11 @@ public:
     char unknown_1fc[0x288 - 0x1fc];
     int handle;                             // +0x288
 
-    void FUN_004cfca0();
+    void FillStreamHalf();
 };
 
 // FUNCTION: 0x4cfca0
-void Class_004cfb40::FUN_004cfca0()
+void Class_004cfb40::FillStreamHalf()
 {
     unsigned long flags;
     char* buffer;

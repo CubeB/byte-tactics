@@ -53,7 +53,7 @@ extern Game* g_game;
 
 void __stdcall GetGadgetName(Entry_0041a490* entries, char* name, int index);
 void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall SetGadgetStatus(Sub_0041a490* menu, int index, int value);
 void __stdcall FUN_0041a120(Unit* unit);
 void __stdcall RenderLayer(Sub_0041a490* menu, int value);
@@ -89,7 +89,7 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
             g_game->moveOrder = 0;
             break;
         }
-        FUN_0047f1a0("setmoveorders", 0);
+        PlaySoundByName("setmoveorders", 0);
         SetGadgetStatus(&g_game->menu, index, g_game->moveOrder);
     } else if (Contains(entries, "FIREORD", index)) {
         switch (g_game->fireOrder) {
@@ -107,7 +107,7 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
             g_game->fireOrder = 0;
             break;
         }
-        FUN_0047f1a0("setfireorders", 0);
+        PlaySoundByName("setfireorders", 0);
         SetGadgetStatus(&g_game->menu, index, g_game->fireOrder);
     } else if (Contains(entries, "STATUS", index) || Contains(entries, "ONOFF", index)) {
         switch (g_game->activation) {
@@ -124,7 +124,7 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
             g_game->activation = 1;
             break;
         }
-        FUN_0047f1a0("specialorders", 0);
+        PlaySoundByName("specialorders", 0);
         SetGadgetStatus(&g_game->menu, index, g_game->activation);
     } else if (Contains(entries, "CLOAK", index)) {
         if (g_game->cloak) {
@@ -134,7 +134,7 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
             FUN_0048cf30(orders, 0, "CLOAK_ON", 0, 0, 0);
             g_game->cloak = 1;
         }
-        FUN_0047f1a0("specialorders", 0);
+        PlaySoundByName("specialorders", 0);
         SetGadgetStatus(&g_game->menu, index, g_game->cloak);
     } else {
         return 0;

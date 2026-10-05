@@ -33,7 +33,7 @@ public:
     int count;                         // +0x99
     int field_9d;                      // +0x9d
 
-    int FUN_0047fd70(int index, int param_2, int param_3);
+    int PlaySpeech(int index, int param_2, int param_3);
 };
 
 class Class_0047fad0 {
@@ -41,7 +41,7 @@ public:
     Entry_0047fad0 entries[9];         // +0x0
     int count;                         // +0x99
 
-    void FUN_0047fad0(Unit_0047fad0* unit, int kind, char* text);
+    void EnqueueSpeech(Unit_0047fad0* unit, int kind, char* text);
 };
 
 struct Game {
@@ -54,7 +54,7 @@ extern Game* g_game;
 extern Message_0047fad0 DAT_005086dc[];
 
 // FUNCTION: 0x47fad0
-void Class_0047fad0::FUN_0047fad0(Unit_0047fad0* unit, int kind, char* text)
+void Class_0047fad0::EnqueueSpeech(Unit_0047fad0* unit, int kind, char* text)
 {
     if (g_game->frame < DAT_005086dc[kind].minFrame)
         return;
@@ -64,7 +64,7 @@ void Class_0047fad0::FUN_0047fad0(Unit_0047fad0* unit, int kind, char* text)
             return;
 
     if (count == 8) {
-        ((Class_0047f960*)this)->FUN_0047fd70(7, 0, 1);
+        ((Class_0047f960*)this)->PlaySpeech(7, 0, 1);
         if (entries[7].data) {
             FUN_004d85a0(entries[7].data);
             entries[7].data = 0;

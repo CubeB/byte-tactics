@@ -11,7 +11,7 @@ public:
 
 class Class_004ce910 {
 public:
-    void FUN_004ce910(int value);
+    void PauseCdAudio(int value);
 };
 
 struct Entry_00460cc0 {
@@ -80,5 +80,5 @@ void FUN_00460cc0()
     if (g_game->mode->FUN_00435100() != 3) {
         g_game->flags_38a51 |= 1;
     }
-    g_game->field_10->FUN_004ce910(1);
+    g_game->field_10->PauseCdAudio(1);
 }

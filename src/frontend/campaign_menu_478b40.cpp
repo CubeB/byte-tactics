@@ -74,7 +74,7 @@ struct Rect_00478b40 {
 
 class Class_004cfba0 {
 public:
-    int FUN_004cfba0();
+    int IsStreamActive();
 };
 
 struct Game {
@@ -103,7 +103,7 @@ void __stdcall FUN_00478b40(Window_00478b40* arg1, Item_00478b40* arg2)
     void* surface = arg1->table->entries->surface;
     if (DAT_0051e680 <= GetTickCount()) {
         DAT_0051e680 = GetTickCount() + 0x19;
-        if (g_game->f_0x10->FUN_004cfba0() == 0) {
+        if (g_game->f_0x10->IsStreamActive() == 0) {
             if (GetButtonStageByName(arg1, "SHUTUP")) {
                 SetButtonStageByName(arg1, "SHUTUP", 0);
                 FUN_0049fa90(arg1);

@@ -84,7 +84,7 @@ extern Game* g_game;
 void __stdcall GetGadgetName(Entry_0041aa00* entries, char* name, int index);
 unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall FUN_004ab0a0(Menu_0041aa00* menu);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall FUN_0041a490(Menu_0041aa00* menu, Entry_0041aa00* entries);
 int __stdcall FUN_00419be0(Menu_0041aa00* menu, Entry_0041aa00* entries);
 int __stdcall IsKeyDown(int key);
@@ -111,14 +111,14 @@ void __stdcall FUN_0041aa00(Menu_0041aa00* menu)
             g_game->next = 1;
         } else if (strstr(name, "ORDERS")) {
             g_game->orders = 1;
-            FUN_0047f1a0("ordersbutton", 0);
+            PlaySoundByName("ordersbutton", 0);
         } else if (strstr(name, "BUILD")) {
             g_game->build = 1;
-            FUN_0047f1a0("buildbutton", 0);
+            PlaySoundByName("buildbutton", 0);
         } else if (id != 0 && g_game->buildTypes[id].field_22f == 0) {
             g_game->field_2cc3 = 0xe;
             g_game->field_2cc4 = id;
-            FUN_0047f1a0("addbuild", 0);
+            PlaySoundByName("addbuild", 0);
         } else if (!FUN_0041a490(menu, entries) && !FUN_00419be0(menu, entries)) {
             if (unit->canBuild) {
                 char text[256];

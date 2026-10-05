@@ -53,7 +53,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall IsCurrentGadgetNamed(void* gadget, char* name);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall SetAlliance(int, int, unsigned char, int);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall SendChatMessage(void* from, char* text, int param_3, void* to);
@@ -84,7 +84,7 @@ void __stdcall FUN_00447150(Gadget_00447150* gadget)
         if (IsCurrentGadgetNamed(gadget, buf) && p->active
             && (p->type == 1 || p->type == 2 || p->type == 3)
             && p->field_146 != 10) {
-            FUN_0047f1a0("Options", 0);
+            PlaySoundByName("Options", 0);
             SetAlliance(local->field_4, p->field_4, local->allies[i] ^= 1, 0);
             char* verb = local->allies[i] ? "allied with" : "broke alliance with";
             sprintf(buf, " %s %s", FUN_004c5740(verb),
@@ -96,12 +96,12 @@ void __stdcall FUN_00447150(Gadget_00447150* gadget)
     }
 
     if (IsCurrentGadgetNamed(gadget, "VICTORY")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_004ab0a0(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "OK")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         int old = (local->info->flags_9d >> 1) & 1;
         int index = FindGadgetIndex(entries, "VICTORY", 1);
         unsigned int value = GetButtonStage(gadget, index);

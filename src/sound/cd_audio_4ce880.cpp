@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 // FUNCTION: 0x4ce880
-int FUN_004ce880()
+int GetCdPosition()
 {
     char buf[32];
     if (mciSendStringA("status cdaudio position", buf, 32, 0) == 0)

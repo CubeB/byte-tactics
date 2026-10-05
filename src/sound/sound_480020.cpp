@@ -15,12 +15,12 @@ public:
     Entry_00480020 entries[9];         // +0x0
     int count;                         // +0x99
 
-    void FUN_00480020(int id);
+    void RemoveSpeechOfId(int id);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x480020
-void Class_00480020::FUN_00480020(int id)
+void Class_00480020::RemoveSpeechOfId(int id)
 {
     int i = 0;
     while (i < count) {

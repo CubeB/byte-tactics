@@ -8,11 +8,11 @@
 
 class Class_004ce800 {
 public:
-    int FUN_004ce800();
+    int IsCdPlaying();
 };
 
 // FUNCTION: 0x4ce800
-int Class_004ce800::FUN_004ce800()
+int Class_004ce800::IsCdPlaying()
 {
     char buf[64];
     if (mciSendStringA("status cdaudio mode", buf, 64, 0) == 0)

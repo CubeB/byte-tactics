@@ -127,7 +127,7 @@ void* __stdcall FUN_00432520(char* path);
 void __stdcall FUN_00432590(void* handle);
 void* __stdcall FUN_004325b0(char* path);
 void __stdcall FUN_00434ab0(int value);
-void __stdcall FUN_0047f1a0(char* name, int param);
+void __stdcall PlaySoundByName(char* name, int param);
 void __stdcall FUN_00491b60();
 void __stdcall FUN_00491d70(int flag);
 void FUN_00496bb0();
@@ -175,7 +175,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         if (DAT_0051f2ec)
             FUN_004d85a0(DAT_0051f2ec);
         DAT_0051f2ec = 0;
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         return;
     }
     if (!IsCurrentGadgetNamed(gadget, "LOAD") && !IsCurrentGadgetNamed(gadget, "GAMES")) {
@@ -219,7 +219,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         }
         if (g_game->flags_2a44.b2)
             FUN_0049fa70(g_game->message);
-        FUN_0047f1a0("SMLBUTTON", 0);
+        PlaySoundByName("SMLBUTTON", 0);
         e = FindGadgetChecked(entries, "GAMES");
         sprintf(g_game->saveName, "%s\\%s", DAT_005091c8,
                 FUN_004b6af0(DAT_0051f2e0, e->field_ba));

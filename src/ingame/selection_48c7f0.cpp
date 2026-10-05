@@ -60,7 +60,7 @@ struct Param_0048c7f0 {
 
 extern Game* g_game;
 
-void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 void __stdcall FUN_00491d70(int force);
 
 // FUNCTION: 0x48c7f0
@@ -83,7 +83,7 @@ void __stdcall FUN_0048c7f0(Param_0048c7f0* param)
     if (param->flags & 4) {
         unit->flags.bits.b = !unit->flags.bits.b;
         if (unit->flags.bits.b)
-            FUN_0047f780(unit, 1, 0);
+            QueueUnitSpeech(unit, 1, 0);
         g_game->field_37e9c = 0;
         g_game->flags_37ebe |= 0x10;
         return;
@@ -99,6 +99,6 @@ void __stdcall FUN_0048c7f0(Param_0048c7f0* param)
             u->flags.raw = u->flags.raw & 0xffffff7f | 0x40;
     }
     unit->flags.raw |= 0x10;
-    FUN_0047f780(unit, 1, 0);
+    QueueUnitSpeech(unit, 1, 0);
     g_game->flags_37ebe |= 0x10;
 }

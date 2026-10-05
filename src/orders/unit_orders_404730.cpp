@@ -50,7 +50,7 @@ struct Order {
 struct Game { char pad0[0x38a47]; int tick; };
 #pragma pack(pop)
 extern Game* g_game;
-void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall QueueUnitSpeech(Unit*, int, const char*);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
 void __stdcall StopBuildingScript(Unit*, Order*);
@@ -78,15 +78,15 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
     case 0:
         if (unit->active && (unit->def->flags & 0x400)) {
             if (!((Class_00489960*)unit)->CanReclaim(target)) {
-                FUN_0047f780(unit, 7, "That unit cannot be reclaimed");
-                FUN_0047f780(unit, 7, "Reclamation failed");
+                QueueUnitSpeech(unit, 7, "That unit cannot be reclaimed");
+                QueueUnitSpeech(unit, 7, "Reclamation failed");
                 return 8;
             }
             ((Class_00438880*)order)->FUN_00438880("Reclaiming");
             ((Class_004898b0*)unit)->ClaimWeapons(3);
             return 1;
         }
-        FUN_0047f780(unit, 7, "Reclamation failed");
+        QueueUnitSpeech(unit, 7, "Reclamation failed");
         return 7;
     case 1:
         if (flags & 0x20) return 1;
@@ -103,7 +103,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
     case 3:
         return FUN_00438700(unit, order, 0x10008);
     case 4:
-        FUN_0047f780(unit, 11, 0);
+        QueueUnitSpeech(unit, 11, 0);
         return 1;
     case 5: {
         Vec3 delta = unit->pos - target->pos;

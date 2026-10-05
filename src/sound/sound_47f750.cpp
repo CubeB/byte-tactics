@@ -1,24 +1,24 @@
 // Decompiled by Sonnet. Names are provisional.
 
-extern void* DAT_0051e690;
-extern void* DAT_0051e694;
+extern void* g_noDirectSound;
+extern void* g_useWindowsSound;
 extern char* g_game;
 
 class Class_004cf150 {
 public:
-    void FUN_004cf150();
+    void StopAllBuffers();
 };
 
-extern void FUN_0049f640();
+extern void StopWindowsSound();
 
 // FUNCTION: 0x47f750
-void FUN_0047f750()
+void StopAllSounds()
 {
-    if (DAT_0051e690 == 0) {
+    if (g_noDirectSound == 0) {
         Class_004cf150* obj = *(Class_004cf150**)((char*)g_game + 0x10);
-        obj->FUN_004cf150();
+        obj->StopAllBuffers();
     }
-    if (DAT_0051e694 != 0) {
-        FUN_0049f640();
+    if (g_useWindowsSound != 0) {
+        StopWindowsSound();
     }
 }

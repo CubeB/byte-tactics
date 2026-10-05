@@ -6,7 +6,7 @@
 // 0x3f bytes and, at +0x4c, 23 groups of three dwords are filled from the
 // entries named after the rows of the global table DAT_005086fc ("select",
 // "select1", "select2", ...); the second and third dwords of each group are
-// allocated by FUN_0042f450 as the values are added.
+// allocated by ReadSoundEntry as the values are added.
 //
 // The table walk compares as signed ints, not pointers: the original keeps
 // `jl` instead of the `jb` a pointer compare would give.
@@ -63,10 +63,10 @@ extern SoundInfo_005086fc DAT_005086fc[];
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-int __stdcall FUN_0042f450(void* source, char* key, int* out);
+int __stdcall ReadSoundEntry(void* source, char* key, int* out);
 
 // FUNCTION: 0x42f580
-void FUN_0042f580()
+void LoadSoundCategories()
 {
     *(int*)(g_game + 0x37e17) = 0;
     *(int*)(g_game + 0x37e13) = 0;
@@ -89,10 +89,10 @@ void FUN_0042f580()
                 p = DAT_005086fc;
                 int* vals = (int*)(rec + 0x4c);
                 while ((int)p < (int)(DAT_005086fc + 23)) {
-                    FUN_0042f450(&obj, p->name, vals);
+                    ReadSoundEntry(&obj, p->name, vals);
                     for (int n = 1; ; n++) {
                         sprintf(name, "%s%i", p->name, n);
-                        if (!FUN_0042f450(&obj, name, vals))
+                        if (!ReadSoundEntry(&obj, name, vals))
                             break;
                     }
                     p++;

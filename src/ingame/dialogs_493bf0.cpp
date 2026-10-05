@@ -124,7 +124,7 @@ extern char DAT_005093f4[];            // ",:;"
 extern char DAT_005093ec[];            // "Enemies"
 extern char DAT_00508384[];            // "Allies"
 
-void __stdcall FUN_0047f1a0(char* name, int flag);
+void __stdcall PlaySoundByName(char* name, int flag);
 void __stdcall SetButtonStageByName(Gadget_00493bf0* obj, char* name, int value);
 int __stdcall GetButtonStage(Gadget_00493bf0* obj, int index);
 int __stdcall GetButtonStageByName(Gadget_00493bf0* obj, char* name);
@@ -158,7 +158,7 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
         return;
     }
     if (_strnicmp(entries[gadget->field_60].name, DAT_0050940c, 8) == 0) {
-        FUN_0047f1a0(DAT_00503130, 0);
+        PlaySoundByName(DAT_00503130, 0);
         g_game->mode_2bf0 = 3;
         SetButtonStageByName(gadget, DAT_00509400, g_game->mode_2bf0);
         n = atoi(&entries[gadget->field_60].name[8]);
@@ -174,7 +174,7 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
         goto tail;
     }
     if (IsCurrentGadgetNamed(gadget, DAT_005093f8)) {
-        FUN_0047f1a0(DAT_00503130, 0);
+        PlaySoundByName(DAT_00503130, 0);
         unsigned char v = (unsigned char)GetButtonStage(gadget, gadget->field_60);
         g_game->field_2bee.bit8 = v & 1;
         GetGadgetText(gadget, DAT_00506578, DAT_0051e788);
@@ -184,7 +184,7 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, DAT_00509400)) {
-        FUN_0047f1a0(DAT_00503130, 0);
+        PlaySoundByName(DAT_00503130, 0);
         g_game->mode_2bf0 = (unsigned char)GetButtonStageByName(gadget, DAT_00509400);
         if (g_game->mode_2bf0 >= 4)
             g_game->mode_2bf0 = 0;

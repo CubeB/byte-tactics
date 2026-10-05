@@ -57,7 +57,7 @@ extern int DAT_00512288;
 
 int FUN_00428bc0(void);
 void __stdcall FUN_00434ab0(int param);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 int GetTicks(void);
 void __stdcall FUN_004bcec0(char* dest);
@@ -113,7 +113,7 @@ void FUN_004269d0(void)
         if (event == 0 && g_game->field_2c7e == 0
             && DAT_00512288 >= (int)GetTicks())
             return;
-        FUN_0047f1a0("MAINMENU", 0);
+        PlaySoundByName("MAINMENU", 0);
         if (FUN_00428bc0()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     938, "c:\\cavedog\\wargame\\frontend.cpp");

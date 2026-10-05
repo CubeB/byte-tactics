@@ -3,7 +3,7 @@
 // sound class: "status cdaudio mode" first, and if the drive is already
 // playing the same track (which is remembered in the field at +0x208) the
 // command is skipped and 1 is returned. A seek of 0 stops the CD through
-// FUN_004cdb40 and returns 1. Otherwise the position is offset by the field
+// PlayNextTrack and returns 1. Otherwise the position is offset by the field
 // at +0x280, the CD volume is set for the duration, the time format is
 // switched to tmsf, "play cdaudio from %i" is built (with " to %i" when the
 // position is inside the last track) plus " notify" for the main window, and
@@ -33,12 +33,12 @@ extern App_004b6220* GetDisplay();
 
 class Class_004cdb40 {
 public:
-    void FUN_004cdb40();
+    void PlayNextTrack();
 };
 
 class Class_004d00d0 {
 public:
-    int FUN_004d00d0(int volume, int temporary);
+    int SetAuxVolume(int volume, int temporary);
 };
 
 class Class_004ceb60 {
@@ -60,11 +60,11 @@ public:
     char unknown_288[4];
     int field_28c;                     // +0x28c
 
-    int FUN_004ceb60(int index, int flag);
+    int PlayCdTrack(int index, int flag);
 };
 
 // FUNCTION: 0x4ceb60
-int Class_004ceb60::FUN_004ceb60(int index, int flag)
+int Class_004ceb60::PlayCdTrack(int index, int flag)
 {
     char to[20];
     char status[64];
@@ -77,7 +77,7 @@ int Class_004ceb60::FUN_004ceb60(int index, int flag)
         return 1;
     field_20c = 1;
     if (index == 0) {
-        ((Class_004cdb40*)this)->FUN_004cdb40();
+        ((Class_004cdb40*)this)->PlayNextTrack();
         return 1;
     }
     same = mciSendStringA("status cdaudio mode", status, 0x40, 0) == 0
@@ -88,7 +88,7 @@ int Class_004ceb60::FUN_004ceb60(int index, int flag)
     field_208 = index;
     index += field_280;
     hwnd = GetDisplay()->hwnd;
-    ((Class_004d00d0*)this)->FUN_004d00d0(field_20, 1);
+    ((Class_004d00d0*)this)->SetAuxVolume(field_20, 1);
     if (mciSendStringA("set cdaudio time format tmsf", 0, 0, 0) != 0)
         return 0;
     sprintf(cmd, "play cdaudio from %i", index);

@@ -53,7 +53,7 @@ int __stdcall IsCurrentGadgetNamed(void* menu, char* name);
 Entry_004441a0* __stdcall FindGadgetChecked(void* entries, char* name);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 int __stdcall FUN_00443ff0(int index);
-void __stdcall FUN_0047f1a0(char* name, int flag);
+void __stdcall PlaySoundByName(char* name, int flag);
 void __stdcall FUN_00491c80(int value);
 int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int size);
 void OnlineUnload();
@@ -95,11 +95,11 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
     if (IsCurrentGadgetNamed(menu, "DPLAY") || IsCurrentGadgetNamed(menu, "SELECT")) {
         FUN_00443ff0(FindGadgetChecked(entries, "DPLAY")->field_ba);
         g_game->field_2bc0 = 2;
-        FUN_0047f1a0("BigButton", 0);
+        PlaySoundByName("BigButton", 0);
         return;
     }
     if (_strnicmp(entries[menu->selected].name, "SERVICE", 7) == 0) {
-        FUN_0047f1a0("BigButton", 0);
+        PlaySoundByName("BigButton", 0);
         int link = atoi(entries[menu->selected].name + 7);
         char message[0x140];
         message[0] = 0;
@@ -126,11 +126,11 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
     }
     if (FindGadgetIndex(entries, "PREVMENU", 0xe) == menu->selected) {
         g_game->field_2bc0 = 3;
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "SETTINGS")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_004ab0a0(menu);
         FUN_00460160();
         return;

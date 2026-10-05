@@ -167,7 +167,7 @@ Vec3_0049b720* __stdcall GetProjectileAimPoint(Proj_0049b720* p);
 int __stdcall TurnUnitTowardsPoint(Proj_0049b720* p, Vec3_0049b720* target);
 void __stdcall DetonateProjectile(Proj_0049b720* p, void* unit);
 void __stdcall GetWeaponPiecePosition(Unit* unit, Vec3_0049b720* out, unsigned char weapon, int piece);
-int __stdcall FUN_0047f300(int sound, Vec3_0049b720* pos, int flag);
+int __stdcall PlaySoundAt(int sound, Vec3_0049b720* pos, int flag);
 void __stdcall EmitWhiteSmoke(Vec3_0049b720* pos, short kind);
 Cell_0049b720* __stdcall FUN_004815a0(Vec3_0049b720* pos);
 void __stdcall AddExplosionEffect(Vec3_0049b720* pos, void* src, int index, int flag);
@@ -229,7 +229,7 @@ void UpdateProjectiles()
                     *q = *p;
                     q->f42 = g_game->time;
                     if (type->flags.b.b11)
-                        FUN_0047f300(type->sound, &p->pos, 0);
+                        PlaySoundAt(type->sound, &p->pos, 0);
                     if (type->lifetime != 0)
                         q->f46 = g_game->time + type->lifetime;
                     else

@@ -5,7 +5,7 @@
 // of the nine-entry list and frees its data.
 
 void __cdecl FUN_004d85a0(void* param_1);
-void FUN_0049f620();
+void ResumeLoopingWav();
 
 #pragma pack(push, 1)
 struct Game {
@@ -29,28 +29,28 @@ public:
     int field_a1;                     // +0xa1
     int field_a5;                     // +0xa5
 
-    int FUN_0047fd70(int param_1, int param_2, int index);
+    int PlaySpeech(int param_1, int param_2, int index);
 };
 #pragma pack(pop)
 
 extern Game* g_game;
 extern Class_0047f960* DAT_0051e68c;
-extern int DAT_0051e694;
+extern int g_useWindowsSound;
 
 // The count is reached through a reference and the entries through the local
 // pointer, the fields through the global: that mix is what keeps the driver's
 // value in ecx for the two calls and copies it to ebx for the rest.
 // FUNCTION: 0x47f680
-void FUN_0047f680()
+void PlayNextSpeech()
 {
     Class_0047f960* driver = DAT_0051e68c;
     int& count = DAT_0051e68c->count;
     if (count) {
         if (g_game->frame >= DAT_0051e68c->field_9d + DAT_0051e68c->field_a1) {
-            DAT_0051e68c->FUN_0047fd70(0, 1, 1);
+            DAT_0051e68c->PlaySpeech(0, 1, 1);
             driver->field_9d = g_game->frame;
         } else {
-            DAT_0051e68c->FUN_0047fd70(0, 0, 1);
+            DAT_0051e68c->PlaySpeech(0, 0, 1);
         }
         if (driver->entries[0].data) {
             FUN_004d85a0(driver->entries[0].data);
@@ -60,6 +60,6 @@ void FUN_0047f680()
             driver->entries[i] = driver->entries[i + 1];
         count--;
     }
-    if (DAT_0051e694)
-        FUN_0049f620();
+    if (g_useWindowsSound)
+        ResumeLoopingWav();
 }

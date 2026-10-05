@@ -4,17 +4,17 @@
 
 class Class_004ce1d0 {
 public:
-    int FUN_004ce1d0();
+    int HasCdPlayerWindow();
 };
 
 class Class_004ce690 {
 public:
-    void FUN_004ce690(int value);
+    void SetTrackCategory(int value);
 };
 
 class Class_004cff20 {
 public:
-    int FUN_004cff20();
+    int HasNoDriver();
 };
 
 #pragma pack(push, 1)
@@ -80,7 +80,7 @@ void FlipScreen();
 void FUN_00491a70();
 Dialog_004263b0* __stdcall LoadGuiLayer(Sub_004263b0* sub, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-void __stdcall FUN_0047f210(const char* name, int a);
+void __stdcall PlayLoopingSoundByName(const char* name, int a);
 void __stdcall FUN_0049fa50(Sub_004263b0* sub);
 void __stdcall FUN_00425d80(void* gadget);
 void __stdcall FUN_00425b80();
@@ -126,8 +126,8 @@ void __stdcall FUN_004263b0()
     dialog->field_1c = FUN_00425b80;
 
     FUN_004288d0("FrontendX", 1, 1, 0);
-    FUN_0047f210("BGM", 0);
-    ((Class_004ce690*)g_game->field_10)->FUN_004ce690(4);
+    PlayLoopingSoundByName("BGM", 0);
+    ((Class_004ce690*)g_game->field_10)->SetTrackCategory(4);
     FUN_0049fa50(&g_game->sub);
 
     char* name = "FrontendX";
@@ -163,7 +163,7 @@ void __stdcall FUN_004263b0()
     memset(DAT_00512298, 0, 0x145 * 4);
 
     if (DAT_0051229c == 0) {
-        if (((Class_004ce1d0*)g_game->field_10)->FUN_004ce1d0()) {
+        if (((Class_004ce1d0*)g_game->field_10)->HasCdPlayerWindow()) {
             FUN_00426200();
             DAT_0051229c = 1;
         }
@@ -180,7 +180,7 @@ void __stdcall FUN_004263b0()
     }
 
     if (DAT_00512294 == 0) {
-        if (((Class_004cff20*)g_game->field_10)->FUN_004cff20()) {
+        if (((Class_004cff20*)g_game->field_10)->HasNoDriver()) {
             OpenMessageBox(&g_game->sub, FUN_004c5740("No sound driver is available for use.\n"), 500, 1, 1);
             DAT_00512294 = 1;
         }

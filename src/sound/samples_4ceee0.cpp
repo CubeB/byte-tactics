@@ -12,12 +12,12 @@ class Class_004ce410 {
 public:
     int open;                          // +0x0
 
-    void FUN_004ce410();
+    void CloseCdAudio();
 };
 
 class Class_004cf4d0 {
 public:
-    void FUN_004cf4d0(IDirectSoundBuffer** set);
+    void ReleaseSampleSet(IDirectSoundBuffer** set);
 };
 
 int __stdcall RemoveTimer(int i);
@@ -35,16 +35,16 @@ public:
     char unknown_1ec[0x288 - 0x1ec];
     int handle;                        // +0x288
 
-    void FUN_004ceee0();
+    void ReleaseDirectSound();
 };
 
 // FUNCTION: 0x4ceee0
-void Class_004ceee0::FUN_004ceee0()
+void Class_004ceee0::ReleaseDirectSound()
 {
     int i;
     for (i = 0; i < 8; i++) {
         if (sets[i] != 0) {
-            ((Class_004cf4d0*)this)->FUN_004cf4d0(sets[i]);
+            ((Class_004cf4d0*)this)->ReleaseSampleSet(sets[i]);
             sets[i] = 0;
         }
     }
@@ -58,7 +58,7 @@ void Class_004ceee0::FUN_004ceee0()
         stream = 0;
         FUN_004bb5d0(file);
     }
-    ((Class_004ce410*)this)->FUN_004ce410();
+    ((Class_004ce410*)this)->CloseCdAudio();
     if (field_28 != 0)
         field_28->Release();
     if (field_24 != 0)

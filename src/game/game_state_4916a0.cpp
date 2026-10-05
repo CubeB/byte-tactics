@@ -7,12 +7,12 @@ extern char* g_game;
 
 class Class_004ce450 {
 public:
-    int FUN_004ce450();
+    int GetTrackCount();
 };
 
 class Class_004ce7e0 {
 public:
-    unsigned char FUN_004ce7e0(int param_1);
+    unsigned char GetCategoryOfTrack(int param_1);
 };
 
 // The CD-list settings block: 0x24 bytes of header, then 0xaa0-0x24 bytes
@@ -34,9 +34,9 @@ void __stdcall FUN_004aeda0(Obj_004aeda0* obj, int i);
 void __stdcall FUN_004aef80(Obj_004aef80* obj);
 void FUN_00431920();
 void FUN_00431a20();
-void FUN_0042f8c0();
+void FreeSounds();
 void FUN_0042a3b0();
-void FUN_0047eee0();
+void ShutdownSound();
 void FreeAnimFiles();
 void __cdecl FUN_004d85a0(int* param_1);
 void __stdcall SetRestoreSurface(int param_1);
@@ -49,8 +49,8 @@ void FUN_00434b90();
 // FUNCTION: 0x4916a0
 void ShutdownGame(void)
 {
-    for (int i = 0; i < ((Class_004ce450*)*(void**)(g_game + 0x10))->FUN_004ce450(); i++) {
-        DAT_0051e828.tracks[i] = ((Class_004ce7e0*)*(void**)(g_game + 0x10))->FUN_004ce7e0(i + 1);
+    for (int i = 0; i < ((Class_004ce450*)*(void**)(g_game + 0x10))->GetTrackCount(); i++) {
+        DAT_0051e828.tracks[i] = ((Class_004ce7e0*)*(void**)(g_game + 0x10))->GetCategoryOfTrack(i + 1);
     }
     WriteGameRegistryValue("CDLISTS", &DAT_0051e828, 0xaa0);
     FUN_00428730();
@@ -59,9 +59,9 @@ void ShutdownGame(void)
     FUN_004aef80((Obj_004aef80*)(g_game + 0x519));
     FUN_00431920();
     FUN_00431a20();
-    FUN_0042f8c0();
+    FreeSounds();
     FUN_0042a3b0();
-    FUN_0047eee0();
+    ShutdownSound();
     FreeAnimFiles();
     FUN_004d85a0(*(int**)(g_game + 0x37e1b));
     *(int*)(g_game + 0x37e1b) = 0;

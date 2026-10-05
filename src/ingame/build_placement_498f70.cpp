@@ -42,7 +42,7 @@ public:
 extern Game* g_game;
 
 void __stdcall FUN_00419670(Arg_00498f70* arg);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void FUN_0048bd00(void);
 void __stdcall FUN_0048c7f0(Arg_00498f70* arg);
 void __stdcall FUN_0048cf30(void* a, unsigned char b, Class_00438760 kind,
@@ -59,7 +59,7 @@ void __stdcall FUN_00498f70(Arg_00498f70* param_1)
     if (g_game->orderMode == 0xe) {
         if (g_game->flags_2cc6 & 0x40) {
             FUN_00419670(param_1);
-            FUN_0047f1a0("oktobuild", 0);
+            PlaySoundByName("oktobuild", 0);
             if (param_1->field_8 & 4) {
                 g_game->flags_2cc6 |= 0x20;
                 return;
@@ -71,7 +71,7 @@ void __stdcall FUN_00498f70(Arg_00498f70* param_1)
                 FUN_004a6a40(g_game->unknown_519, index);
             }
         } else {
-            FUN_0047f1a0("notoktobuild", 0);
+            PlaySoundByName("notoktobuild", 0);
         }
         return;
     }

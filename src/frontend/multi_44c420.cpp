@@ -94,7 +94,7 @@ int __stdcall IsCurrentGadgetNamed(Menu_0044c420* gui, char* name);
 void __stdcall FUN_004ab0a0(Menu_0044c420* obj);
 void __stdcall FUN_004ab190(int param_1, int param_2);
 void __stdcall FUN_0049fa90(Menu_0044c420* obj);
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_0044bfd0(Menu_0044c420* menu, int value);
 void FUN_0044bc10();
 void FUN_0044b990();
@@ -156,19 +156,19 @@ void __stdcall FUN_0044c420(Menu_0044c420* menu)
     }
 
     if (IsCurrentGadgetNamed(menu, "Load") != 0) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_0044bc10();
         FUN_004ab0a0(menu);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "Save") != 0) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_0044b990();
         FUN_004ab0a0(menu);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "Reset") != 0) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         for (i = 0; i < g_game->count; i++) {
             type = DAT_005129b4[i].field_52;
             if (type != 0) {
@@ -189,11 +189,11 @@ void __stdcall FUN_0044c420(Menu_0044c420* menu)
         return;
     }
     if (IsCurrentGadgetNamed(menu, "OK") != 0) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "Cancel") != 0) {
-        FUN_0047f1a0("Previous", 0);
+        PlaySoundByName("Previous", 0);
         n = 0;
         for (i = 1; i < g_game->count; i++) {
             // The original also tests the address of items[i].name (an array at

@@ -16,7 +16,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall IsCurrentGadgetNamed(Gadget_41f680* gadget, char* name);
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 char __stdcall FindGameCdDrive(int param_1);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
@@ -27,7 +27,7 @@ void __stdcall FUN_0041f680(Gadget_41f680* gadget)
 {
     if (gadget->field_60 != -1) {
         if (IsCurrentGadgetNamed(gadget, "OK")) {
-            FUN_0047f1a0("Options", 0);
+            PlaySoundByName("Options", 0);
             if (FindGameCdDrive(0)) {
                 g_game->field_39057 = 5;
                 return;

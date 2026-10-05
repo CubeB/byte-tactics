@@ -4,12 +4,12 @@
 
 class Class_004cf4d0 {
 public:
-    void FUN_004cf4d0(IDirectSoundBuffer** set);
+    void ReleaseSampleSet(IDirectSoundBuffer** set);
 };
 
 class Class_004cfb40 {
 public:
-    void FUN_004cfbc0();
+    void UpdateStream();
 };
 
 class Class_004cf0b0 {
@@ -22,19 +22,19 @@ public:
     IDirectSoundBuffer** sets[8];           // +0x1c4
     int field_1e4;                          // +0x1e4
 
-    void FUN_004cf0b0();
+    void ReapFinishedBuffers();
 };
 
 // Releases every sound buffer (and buffer set) that has stopped playing.
 // FUNCTION: 0x4cf0b0
-void Class_004cf0b0::FUN_004cf0b0()
+void Class_004cf0b0::ReapFinishedBuffers()
 {
     DWORD status;
     int i;
     for (i = 0; i < 8; i++) {
         if (sets[i] != 0) {
             if (sets[i][0]->GetStatus(&status) != 0 || status == 0) {
-                ((Class_004cf4d0*)this)->FUN_004cf4d0(sets[i]);
+                ((Class_004cf4d0*)this)->ReleaseSampleSet(sets[i]);
                 sets[i] = 0;
             }
         }
@@ -48,5 +48,5 @@ void Class_004cf0b0::FUN_004cf0b0()
         }
     }
     if (field_1e4 != 0)
-        ((Class_004cfb40*)this)->FUN_004cfbc0();
+        ((Class_004cfb40*)this)->UpdateStream();
 }

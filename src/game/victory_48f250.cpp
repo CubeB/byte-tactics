@@ -24,7 +24,7 @@ struct Unit {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 
 class Condition_0048f250 {
 public:
@@ -60,7 +60,7 @@ void VictoryMoveUnitToRadius::VisitUnit(Unit* unit)
             && (unit->owner == 0 || (unit->owner->flags & 0x40000000))) {
             done = 1;
             if (announced == 0) {
-                FUN_0047f1a0("Victory Condition", 0);
+                PlaySoundByName("Victory Condition", 0);
                 announced = 1;
             }
         }

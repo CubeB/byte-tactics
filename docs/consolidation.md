@@ -257,7 +257,7 @@ The checker compares names, not parameter types, so callers and definitions
 can disagree on types (a real link would fail). Known cases:
 
 - `SetBrightness`: its file takes `int`; callers such as 0x417290 pass `float`.
-- `FUN_004d0620`: its file returns `void`; 0x47efe0 uses a `void*` result.
+- `LoadSample`: its file returns `void`; 0x47efe0 uses a `void*` result.
 - `Class_00438b90::FUN_00438b90` takes the 1-byte class `Class_00438760` by value
   (see 0x403190); its own file declares `int k`. FUN_0043f0e0 returns the same
   class through a hidden buffer.

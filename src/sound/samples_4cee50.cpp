@@ -4,12 +4,12 @@
 
 class Class_004cff30 {
 public:
-    void FUN_004cff30();
+    void InitMixerVolumes();
 };
 
 class Class_004d0040 {
 public:
-    int FUN_004d0040();
+    int QueryAuxVolume();
 };
 
 class Class_004cee50 {
@@ -56,7 +56,7 @@ Class_004cee50::Class_004cee50()
     for (int j = 0; j < 8; j++) {
         array_1c4[j] = 0;
     }
-    ((Class_004cff30*)this)->FUN_004cff30();
+    ((Class_004cff30*)this)->InitMixerVolumes();
     field_2c = 8;
     field_30 = 0;
     field_34 = 1;
@@ -66,6 +66,6 @@ Class_004cee50::Class_004cee50()
         array_138[i] = 0;
     }
     field_1e4 = 0;
-    aux_volume_set = ((Class_004d0040*)this)->FUN_004d0040();
+    aux_volume_set = ((Class_004d0040*)this)->QueryAuxVolume();
     field_288 = -1;
 }

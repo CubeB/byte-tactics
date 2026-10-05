@@ -62,7 +62,7 @@ char __stdcall FindGameCdDrive(int param_1);
 void RegisterDataArchives();
 void FUN_0041da30();
 void SaveSettings();
-void __stdcall FUN_0047f1a0(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_00491c80(int value);
 Entry_00477ab0* __stdcall FindGadgetChecked(Entry_00477ab0* entries, char* name);
 int __stdcall FindGadgetIndex(Entry_00477ab0* entries, char* name, int type);
@@ -85,7 +85,7 @@ void __stdcall FUN_00477940(int side)
         FUN_004d85a0(DAT_0051e65c);
         DAT_0051e65c = 0;
     }
-    FUN_0047f1a0("smlbutton", 0);
+    PlaySoundByName("smlbutton", 0);
     int count = FUN_00476a60(&DAT_0051e65c, side);
     FUN_004a32a0(g_game + 0x519, "Campaign", DAT_0051e65c, count, 0);
     int index = FindGadgetIndex(gadget->entries, "Campaign", 2);
@@ -129,7 +129,7 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
     if ((DAT_0051e668 != 0 && (IsCurrentGadgetNamed(menu, "Missions") || IsCurrentGadgetNamed(menu, "Start"))) ||
         (DAT_0051e668 == 0 && (IsCurrentGadgetNamed(menu, "Campaign") || IsCurrentGadgetNamed(menu, "Start")))) {
         index = 0;
-        FUN_0047f1a0("bigButton", 0);
+        PlaySoundByName("bigButton", 0);
         if (!FindGameCdDrive(0)) {
             OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
@@ -170,13 +170,13 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
         goto End;
     } else {
         if (IsCurrentGadgetNamed(menu, "PrevMenu")) {
-            FUN_0047f1a0("Previous", 0);
+            PlaySoundByName("Previous", 0);
             *(unsigned char*)(g_game + 0x2bc0) = 3;
             FUN_00491c80(0x14);
             return;
         }
         if (IsCurrentGadgetNamed(menu, "Difficulty")) {
-            FUN_0047f1a0("SmlButton", 0);
+            PlaySoundByName("SmlButton", 0);
             int diff = *(int*)(g_game + 0x37eee);
             if (diff == 0) {
                 *(int*)(g_game + 0x37eee) = 1;
@@ -197,7 +197,7 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
 
         SetGadgetStatusByName(g_game + 0x519, "Core", 1);
         SetGadgetStatusByName(g_game + 0x519, "Side1", 1);
-        FUN_0047f1a0("SideSelect2", 0);
+        PlaySoundByName("SideSelect2", 0);
         index = FindGadgetIndex(entries, "Side1", 1);
         *(int*)((char*)entries + index * 0x15b + 0x1f) = 0x1f;
         *(int*)(g_game + 0x37ef2) = 1;
@@ -215,7 +215,7 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
 ArmSide:
         SetGadgetStatusByName(g_game + 0x519, "Arm", 1);
         SetGadgetStatusByName(g_game + 0x519, "Side0", 1);
-        FUN_0047f1a0("SideSelect", 0);
+        PlaySoundByName("SideSelect", 0);
         index = FindGadgetIndex(entries, "Side0", 1);
         *(int*)((char*)entries + index * 0x15b + 0x1f) = 0x1f;
         *(int*)(g_game + 0x37ef2) = 0;

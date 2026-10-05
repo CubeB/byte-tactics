@@ -24,17 +24,17 @@
 
 class Class_004cf570 {
 public:
-    int FUN_004cf570(int a, int b, void* c);
+    int PlaySampleSet(int a, int b, void* c);
 };
 
 class Class_004cfea0 {
 public:
-    int FUN_004cfea0();
+    int Is3DEnabled();
 };
 
 class Class_004cfeb0 {
 public:
-    void FUN_004cfeb0(float a, float b);
+    void Set3DDistances(float a, float b);
 };
 
 struct Vector3_0047f300 {
@@ -105,12 +105,12 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern int DAT_0051e690;
-extern int DAT_0051e694;
+extern int g_noDirectSound;
+extern int g_useWindowsSound;
 
 int __cdecl GetLocalDpid();
 int __stdcall BroadcastPacket(int player, void* data, int size);
-int __stdcall FUN_0047f0c0(int index, int param_2);
+int __stdcall PlaySoundByIndex(int index, int param_2);
 struct Cell_0047f300;
 Cell_0047f300* __stdcall FUN_00481550(int x, int y);
 
@@ -330,17 +330,17 @@ static inline int MapContains(unsigned int w, unsigned int h, int tx, int ty)
     return tx < w && ty < h;
 }
 // FUNCTION: 0x47f300
-int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
+int __stdcall PlaySoundAt(int index, Pos_0047f300* pos, int param_3)
 {
-    if (DAT_0051e694)
-        return FUN_0047f0c0(index, param_3);
+    if (g_useWindowsSound)
+        return PlaySoundByIndex(index, param_3);
     if (index == 0xffff)
         return 0;
     if (g_game->field_37f0c == 0)
         return 0;
     if ((g_game->flags_37f19 & 7) == 0)
         return 0;
-    if (DAT_0051e690 != 0)
+    if (g_noDirectSound != 0)
         return 0;
 
     int sound = g_game->soundIds[index];
@@ -379,22 +379,22 @@ int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
                 & (1 << pi)) ? 1 : 0;
     }
     if (vis != 0) {
-        if (((Class_004cfea0*)g_game->sound)->FUN_004cfea0()) {
+        if (((Class_004cfea0*)g_game->sound)->Is3DEnabled()) {
             Vector3_0047f300 p;
             p.x = pos->x - g_game->scrollX - (g_game->screenTilesX / 2) * 16;
             p.z = g_game->scrollY + (g_game->screenTilesY / 2) * 16
                 + (pos->y >> 1) - pos->z;
             p.y = 0;
-            ((Class_004cfeb0*)g_game->sound)->FUN_004cfeb0(
+            ((Class_004cfeb0*)g_game->sound)->Set3DDistances(
                 (float)(((g_game->screenTilesX + g_game->screenTilesY) / 2) * 16),
                 (float)((g_game->width + g_game->height) * 16));
-            return g_game->sound->FUN_004cf570(sound, -585, &p);
+            return g_game->sound->PlaySampleSet(sound, -585, &p);
         } else {
             if (g_game->scrollX > pos->x || g_game->scrollY > pos->z
                 || g_game->scrollX + g_game->screenTilesX * 16 < pos->x
                 || g_game->scrollY + g_game->screenTilesY * 16 < pos->z)
-                return g_game->sound->FUN_004cf570(sound, -1585, 0);
-            return g_game->sound->FUN_004cf570(sound, -585, 0);
+                return g_game->sound->PlaySampleSet(sound, -1585, 0);
+            return g_game->sound->PlaySampleSet(sound, -585, 0);
         }
     }
     return 0;

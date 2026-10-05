@@ -13,7 +13,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall IsCurrentGadgetNamed(Gadget_0045f770* gadget, char* name);
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 void __stdcall FUN_0049fa90(Gadget_0045f770* gadget);
 void __stdcall FUN_004ab0a0(Gadget_0045f770* gadget);
 void __stdcall FUN_004afcf0(int param_1);
@@ -27,11 +27,11 @@ void __stdcall FUN_0045f770(Gadget_0045f770* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "OK")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "TextRegion") || IsCurrentGadgetNamed(gadget, "MOREBAR")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_00476ef0();
         FUN_0049fa90(gadget);
         FUN_004ab0a0(gadget);

@@ -58,7 +58,7 @@ extern unsigned short DAT_00512f6d;
 extern unsigned char DAT_00512f71;
 
 int __stdcall IsCurrentGadgetNamed(Gadget_0045ead0* gadget, char* name);
-void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall GetButtonStageByName(Gadget_0045ead0* gadget, char* name);
 void __stdcall CloseTopScreen(Gadget_0045ead0* gadget);
 void __stdcall FUN_004ab0a0(Gadget_0045ead0* gadget);
@@ -73,19 +73,19 @@ void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
         return;
     }
     if (IsCurrentGadgetNamed((Gadget_0045ead0*)&g_game->window, "LEFTCLICK")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         g_game->field_37efa = GetButtonStageByName((Gadget_0045ead0*)&g_game->window, "LEFTCLICK");
         FUN_004ab0a0(gadget);
         return;
     }
     if (IsCurrentGadgetNamed((Gadget_0045ead0*)&g_game->window, "UNITCHAT")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         FUN_004ab0a0(gadget);
         g_game->field_37f18 = (unsigned char)(GetButtonStageByName((Gadget_0045ead0*)&g_game->window, "UNITCHAT") * 5);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "UNDO")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         g_game->field_37f23 = DAT_00512f55;
         g_game->field_38a4b = DAT_00512f6d;
         g_game->field_38a4d = DAT_00512f6d;
@@ -99,7 +99,7 @@ void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "RESTORE")) {
-        FUN_0047f1a0("Options", 0);
+        PlaySoundByName("Options", 0);
         g_game->field_37f23 = 10;
         g_game->field_37f27 = 10;
         g_game->field_38a4b = 10;

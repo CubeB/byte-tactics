@@ -65,7 +65,7 @@ class MovementClass {
 extern char* g_game;
 short __stdcall FUN_00422e40(char* name);
 void* __stdcall FindMovementClass(char* name);
-char* __stdcall FUN_0049e5b0(char* name);
+char* __stdcall FindWeaponByName(char* name);
 void* __cdecl FUN_004d83b0(char* name, int size);
 
 class Class_004c2ea0 {
@@ -540,20 +540,20 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
                                              ((unitdef->maxslope + 1) * 0x10000));
             char* defaultWeapon = g_game + 0x2cf3;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "weapon1", 128, DAT_005119b8);
-            char* weapon1 = FUN_0049e5b0(weapon);
+            char* weapon1 = FindWeaponByName(weapon);
             unitdef->weapon1 = weapon1 ? weapon1 : defaultWeapon;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "weapon2", 128, DAT_005119b8);
-            char* weapon2 = FUN_0049e5b0(weapon);
+            char* weapon2 = FindWeaponByName(weapon);
             unitdef->weapon2 = weapon2 ? weapon2 : defaultWeapon;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "weapon3", 128, DAT_005119b8);
-            char* weapon3 = FUN_0049e5b0(weapon);
+            char* weapon3 = FindWeaponByName(weapon);
             unitdef->weapon3 = weapon3 ? weapon3 : defaultWeapon;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "explodeas", 128, DAT_005119b8);
-            char* explodeas = FUN_0049e5b0(weapon);
+            char* explodeas = FindWeaponByName(weapon);
             unitdef->explodeas = explodeas ? explodeas : defaultWeapon;
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(weapon, "selfdestructas", 128, DAT_005119b8);
-            char* selfdestructas = FUN_0049e5b0(weapon);
+            char* selfdestructas = FindWeaponByName(weapon);
             unitdef->selfdestructas = selfdestructas ? selfdestructas : defaultWeapon;
             if (unitdef->weapon1 == defaultWeapon &&
                 unitdef->weapon2 == defaultWeapon &&

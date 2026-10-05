@@ -79,7 +79,7 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_0049ae20();
+void CompactProjectiles();
 
 // Same body as the matched 0x499e50.cpp, which the original inlined here.
 static inline void Untrack_0049c880(Projectile_0049c880* proj)
@@ -93,13 +93,13 @@ static inline void Untrack_0049c880(Projectile_0049c880* proj)
 }
 
 // FUNCTION: 0x49c880
-void __stdcall FUN_0049c880(Unit_0049c880* owner)
+void __stdcall RemoveUnitProjectiles(Unit_0049c880* owner)
 {
     Projectile_0049c880* proj = g_game->projectiles;
     for (int i = 0; i < g_game->projectileCount; i++, proj++) {
         if (proj->active != 0 && proj->owner == owner) {
             Untrack_0049c880(proj);
-            FUN_0049ae20();
+            CompactProjectiles();
         }
     }
 }

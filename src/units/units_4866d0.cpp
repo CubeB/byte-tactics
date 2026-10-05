@@ -209,7 +209,7 @@ unsigned char __stdcall FindSlotByDpid(int id);
 void __stdcall DeleteOrders(void* unit, int flag);
 void __stdcall FUN_0047f8c0(void* unit);
 void __stdcall SetUnitSquad(void* unit, int flag);
-void __stdcall FUN_0049c880(void* unit);
+void __stdcall RemoveUnitProjectiles(void* unit);
 void __stdcall AttachUnitToPiece(void* unit, void* builder, int a, int c);
 void __stdcall DamageUnit(void* a, void* b, int c, int d, int e);
 void __stdcall FUN_0047cbd0(void* unit);
@@ -218,7 +218,7 @@ void __stdcall FUN_00494ff0(int flag);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall AddMessage(char* text, int a, int b, int c);
 void __stdcall FUN_004948b0(int a, int b);
-void __stdcall FUN_0049b000(void* unit, int flag);
+void __stdcall DetonateUnitWeapon(void* unit, int flag);
 void __stdcall CreateUnitCorpse(void* unit, int a, int b);
 void __stdcall ClearUnitRefs(void* unit);
 void __stdcall FreeObjectState(void* state);
@@ -250,7 +250,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
     DeleteOrders(unit, 1);
     FUN_0047f8c0(unit);
     SetUnitSquad(unit, -1);
-    FUN_0049c880(unit);
+    RemoveUnitProjectiles(unit);
     if (unit->x86 != 0)
         AttachUnitToPiece(unit, 0, -1, 1);
     while (unit->x8a != 0) {
@@ -373,7 +373,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
         }
     }
     if (cmd->amount > 0 && unit->x104 == 0.0f)
-        FUN_0049b000(unit, cmd->kind == 3);
+        DetonateUnitWeapon(unit, cmd->kind == 3);
     if (cmd->count > 0) {
         int flag = cmd->kind != 7;
         CreateUnitCorpse(unit, cmd->count, flag);

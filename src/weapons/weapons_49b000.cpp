@@ -37,10 +37,10 @@ struct Projectile_0049b000 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_00499eb0(Projectile_0049b000* proj, int flag);
+void __stdcall DetonateProjectile(Projectile_0049b000* proj, int flag);
 
 // FUNCTION: 0x49b000
-void __stdcall FUN_0049b000(Unit* unit, int second)
+void __stdcall DetonateUnitWeapon(Unit* unit, int second)
 {
     Weapon_0049b000* weapon = second ? unit->type->weapon2 : unit->type->weapon1;
     if (weapon) {
@@ -51,6 +51,6 @@ void __stdcall FUN_0049b000(Unit* unit, int second)
         proj.field_4e = 0;
         proj.field_52 = 0;
         proj.owner = unit->owner;
-        FUN_00499eb0(&proj, 0);
+        DetonateProjectile(&proj, 0);
     }
 }

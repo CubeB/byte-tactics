@@ -68,8 +68,8 @@
 //
 // ---- space-bunny-free pass, 23 scratch variants, no improvement, best still 93.7% ----
 // Verified first, both cheap: the call count is 9 in the original and 9 here (4x
-// _allmul, 4x _allshr, 1x FUN_0049a890), so no call is missing. `ret 0xc` against
-// the 3-arg declaration and FUN_0049a890's `ret 0x14` against 5 int args are both
+// _allmul, 4x _allshr, 1x SolveLaunchAngle), so no call is missing. `ret 0xc` against
+// the 3-arg declaration and SolveLaunchAngle's `ret 0x14` against 5 int args are both
 // right, so the calling convention is NOT the cause.
 // One divergence region, at 0x49ad2c (`je`), class (d)/(c): the whole line-of-fire
 // block is rescheduled and ours carries 3 extra instructions. First divergence is
@@ -160,7 +160,7 @@
 // was an inlined operator, which its catalogue cannot invent.
 // Verified byte-identical by tools/check.py 0x49abb0: MATCH, 568 of 568 bytes,
 // all eleven linker-filled references resolving (g_game, _allmul, _allshr,
-// FUN_0049a890).
+// SolveLaunchAngle).
 #include <stdlib.h>
 #include <math.h>
 #pragma pack(push, 1)
@@ -252,7 +252,7 @@ struct Game {
 
 extern Game* g_game;
 
-short __stdcall FUN_0049a890(int dx, int dy, int dz, int a, int b);
+short __stdcall SolveLaunchAngle(int dx, int dy, int dz, int a, int b);
 
 // Can the shooter hit the target? Both positions are taken by value, which is
 // what puts the 12-byte copies in the frame while the units themselves are read
@@ -261,7 +261,7 @@ short __stdcall FUN_0049a890(int dx, int dy, int dz, int a, int b);
 static inline short LineOfFire_0049abb0(Vec3_0049abb0 to, Vec3_0049abb0 from, int s, int f)
 {
     Vec3_0049abb0 d = from - to;
-    return FUN_0049a890(d.x, d.y.value, d.z, s, f);
+    return SolveLaunchAngle(d.x, d.y.value, d.z, s, f);
 }
 
 static inline int Dist2_0049abb0(Vec3_0049abb0* b, Vec3_0049abb0* a)
@@ -302,7 +302,7 @@ static inline int Dist2_0049abb0(Vec3_0049abb0* b, Vec3_0049abb0* a)
 // the front and perturbs the block. The single residual hunk is unchanged: ours does
 // `add ebx,0x6a` and reloads unit2 from [esp+0x24] after the call, the original
 // `lea edx,[ebx+0x6a]` keeps unit2 in ebx live for the second distance tail.
-int __stdcall FUN_0049abb0(Unit* unit1, Unit* unit2, unsigned char weapon)
+int __stdcall WeaponCanReachUnit(Unit* unit1, Unit* unit2, unsigned char weapon)
 {
     WeaponDef_0049abb0* w = unit1->weapons[weapon].def;
 

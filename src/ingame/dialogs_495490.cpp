@@ -52,8 +52,8 @@ extern PacketManager g_packetManager;
 
 void HandleNetPackets(void);
 void UpdateAllUnits(void);
-void FUN_0049b720(void);
-void FUN_00420f30(void);
+void UpdateProjectiles(void);
+void UpdateExplosions(void);
 void FUN_00464f80(void);
 void FUN_00424050(void);
 void FUN_00415b30(void);
@@ -83,9 +83,9 @@ void __stdcall FUN_00495490(int showStats)
         }
         UpdateAllUnits();
         g_game->prof.FUN_0046a400(1);
-        FUN_0049b720();
+        UpdateProjectiles();
         g_game->prof.FUN_0046a400(7);
-        FUN_00420f30();
+        UpdateExplosions();
         g_game->prof.FUN_0046a400(8);
         FUN_00464f80();
         g_game->prof.FUN_0046a400(2);

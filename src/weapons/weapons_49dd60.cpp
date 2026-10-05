@@ -85,13 +85,13 @@ struct Packet_0049dd60 {
 extern Game* g_game;
 
 void __stdcall GetWeaponPiecePosition(Unit*, Vec3_0049dd60*, unsigned char, int);
-void __stdcall FUN_0049c740(Projectile_0049dd60*, Type_0049dd60*, Vec3_0049dd60*, int, int, Unit*);
+void __stdcall InitProjectile(Projectile_0049dd60*, Type_0049dd60*, Vec3_0049dd60*, int, int, Unit*);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall BroadcastPacket(int, void*, int);
 
 // FUNCTION: 0x49dd60
-int __stdcall FUN_0049dd60(Unit* unit, Aim_0049dd60* aim,
+int __stdcall FireDroppedWeapon(Unit* unit, Aim_0049dd60* aim,
                            Unit* target, Vec3_0049dd60* point)
 {
     Vec3_0049dd60 p;
@@ -103,7 +103,7 @@ int __stdcall FUN_0049dd60(Unit* unit, Aim_0049dd60* aim,
         projectile->field_4e = 0;
     }
     if (projectile != 0) {
-        FUN_0049c740(projectile, aim->type, &p, 0, g_game->field_38a47, unit);
+        InitProjectile(projectile, aim->type, &p, 0, g_game->field_38a47, unit);
         projectile->field_36 = unit->heading;
         projectile->field_3a = 0;
         projectile->field_20 = 0;

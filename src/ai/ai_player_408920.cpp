@@ -21,7 +21,7 @@ struct Unit {
     unsigned int flags;                // +0x110
 };
 
-int* __stdcall FUN_0049d120(Unit* unit, unsigned int weapon);
+int* __stdcall FindTargetableProjectile(Unit* unit, unsigned int weapon);
 int __stdcall FUN_0040b7b0(Unit* unit, unsigned int weapon, int param_3);
 void __stdcall SetWeaponTargetUnit(Unit* unit, int param_2, unsigned int weapon);
 void __stdcall SetWeaponTargetPos(Unit* unit, int* param_2, unsigned int weapon);
@@ -31,7 +31,7 @@ void __stdcall ClearWeaponTarget(Unit* unit, unsigned int weapon);
 void __stdcall FUN_00408920(Unit* unit, unsigned int weapon)
 {
     if (unit->weapons[weapon].def->flag30) {
-        int* p = FUN_0049d120(unit, weapon);
+        int* p = FindTargetableProjectile(unit, weapon);
         if (p)
             SetWeaponTargetPos(unit, p + 1, weapon);
         else

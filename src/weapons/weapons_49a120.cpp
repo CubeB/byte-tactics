@@ -225,9 +225,9 @@ struct Hits_0049a120 {
 };
 
 Cell_0049a120* __stdcall FUN_00481550(int x, int y);
-int __stdcall FUN_00499cd0(Weapon_0049a120* weapon, Unit_0049a120* target, float scale);
-void __stdcall FUN_00499eb0(Weapon_0049a120* weapon, Unit_0049a120* unit);
-int __stdcall FUN_0049a850(Vec3_0049a120* v);
+int __stdcall ApplyWeaponDamage(Weapon_0049a120* weapon, Unit_0049a120* target, float scale);
+void __stdcall DetonateProjectile(Weapon_0049a120* weapon, Unit_0049a120* unit);
+int __stdcall VectorLength(Vec3_0049a120* v);
 Vec3_0049a120 __stdcall FUN_00421eb0(CellPos_0049a120* cell, FeatureDef_0049a120* def);
 void __stdcall FUN_004244b0(Cell_0049a120* cell, int x, int z, WeaponDef_0049a120* def);
 int __stdcall BroadcastPacket(int id, void* data, int size);
@@ -260,7 +260,7 @@ static inline Vec3_0049a120 Sub(const Vec3_0049a120& a, const Vec3_0049a120& b)
 // takes damage that falls off from the centre, and weapons in flight close
 // enough are detonated too.
 // FUNCTION: 0x49a120
-void __stdcall FUN_0049a120(Weapon_0049a120* weapon, Vec3_0049a120* pos)
+void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
 {
     Hits_0049a120 hits;
     memset(&hits, 0, 8);
@@ -346,7 +346,7 @@ void __stdcall FUN_0049a120(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                     } else {
                         scale = 1.0f;
                     }
-                    int damage = FUN_00499cd0(weapon, unit, scale);
+                    int damage = ApplyWeaponDamage(weapon, unit, scale);
                     if (weapon->owner == unit->owner)
                         friendlyDamage += damage;
                     else
@@ -376,7 +376,7 @@ void __stdcall FUN_0049a120(Weapon_0049a120* weapon, Vec3_0049a120* pos)
             if ((cell->flags & 1) && spot) {
                 Vec3_0049a120 v = Sub(*pos, spot->pos);
                 Fixed_0049a120 dist;
-                dist.raw = FUN_0049a850(&v);
+                dist.raw = VectorLength(&v);
                 distance = dist.part.whole;
             } else {
                 Vec3_0049a120 p = FUN_00421eb0(&at, &g_game->features[feature]);
@@ -405,7 +405,7 @@ void __stdcall FUN_0049a120(Weapon_0049a120* weapon, Vec3_0049a120* pos)
             int reach = weapon->def->radius;
             if ((int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dy * dy) >> 32) + (int)(((__int64)dz * dz) >> 32)
                 < reach * reach) {
-                FUN_00499eb0(other, 0);
+                DetonateProjectile(other, 0);
                 Packet_0049a120 packet;
                 packet.type = 0xe;
                 packet.pos = other->field_28;

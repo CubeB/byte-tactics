@@ -19,7 +19,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x49e5b0
-char* __stdcall FUN_0049e5b0(char* name)
+char* __stdcall FindWeaponByName(char* name)
 {
     if (name == 0 || strlen(name) == 0)
         return 0;

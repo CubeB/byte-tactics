@@ -39,7 +39,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x49a890
-short __stdcall FUN_0049a890(int x, int height, int z, int speed, float angle)
+short __stdcall SolveLaunchAngle(int x, int height, int z, int speed, float angle)
 {
     int g = g_game->gravity;
     int gg = g * g;

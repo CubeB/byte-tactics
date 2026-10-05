@@ -37,7 +37,7 @@ extern Game* g_game;
 Cell_00421da0* __stdcall FUN_00481550(int x, int y);
 
 // FUNCTION: 0x421da0
-unsigned short __stdcall FUN_00421da0(Vec3_00421da0* pos, Point16_00421da0* cell, Point16_00421da0* size)
+unsigned short __stdcall FindFeatureAtPos(Vec3_00421da0* pos, Point16_00421da0* cell, Point16_00421da0* size)
 {
     Point16_00421da0 c;
     c.x = (short)(pos->x >> 20);

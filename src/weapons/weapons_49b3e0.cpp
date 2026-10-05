@@ -64,7 +64,7 @@ extern Game* g_game;
 int __stdcall GetGroundHeight(Vec3_0049b3e0* pos);
 
 // FUNCTION: 0x49b3e0
-Vec3_0049b3e0* __stdcall FUN_0049b3e0(Proj_0049b3e0* p)
+Vec3_0049b3e0* __stdcall GetProjectileAimPoint(Proj_0049b3e0* p)
 {
     unsigned char flag = (unsigned char)((p->weapon->flags >> 0x19) & 1);
     if (flag) {

@@ -24,25 +24,25 @@ struct Info_0049e010 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_0049d580(Info_0049e010* info, int a, int b, int c);
-int __stdcall FUN_0049db70(Info_0049e010* info, int a, int b, int c);
-int __stdcall FUN_0049dd60(Info_0049e010* info, int a, int b, int c);
-int __stdcall FUN_0049d9c0(Info_0049e010* info, int a, int b, int c);
+int __stdcall FireTurretWeapon(Info_0049e010* info, int a, int b, int c);
+int __stdcall FireVLaunchWeapon(Info_0049e010* info, int a, int b, int c);
+int __stdcall FireDroppedWeapon(Info_0049e010* info, int a, int b, int c);
+int __stdcall FireLineOfSightWeapon(Info_0049e010* info, int a, int b, int c);
 
 // Picks the routine for the object's flags.
 // FUNCTION: 0x49e010
-void __stdcall FUN_0049e010(Info_0049e010* info)
+void __stdcall SetWeaponFireHandler(Info_0049e010* info)
 {
     if (info->flags.bit19) {
-        info->draw = FUN_0049d580;
+        info->draw = FireTurretWeapon;
         return;
     }
     if (info->flags.bit4) {
-        info->draw = FUN_0049db70;
+        info->draw = FireVLaunchWeapon;
         return;
     }
     if (info->flags.bit0 || info->flags.bit20)
-        info->draw = FUN_0049d9c0;
+        info->draw = FireLineOfSightWeapon;
     else if (info->flags.bit8)
-        info->draw = FUN_0049dd60;
+        info->draw = FireDroppedWeapon;
 }

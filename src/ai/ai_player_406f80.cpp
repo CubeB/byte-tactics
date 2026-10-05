@@ -25,7 +25,7 @@ extern Game* g_game;
 void __stdcall NotifyUnitRefs(Unit*, int);
 int __stdcall FUN_004b6c30(int);
 void __stdcall DeleteOrders(Unit*, int);
-int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
+int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
@@ -46,15 +46,15 @@ void __stdcall FUN_00406f80(Unit* attacker, Unit* unit, int unused)
         int ordered=0;
         if ((!unit->order || (unit->order->capabilities&0x20000)) &&
             !Contains(unit->def->categories,attacker->category) &&
-            !Contains(unit->def->weaponCategories[0],attacker->category) && FUN_0049abb0(unit,attacker,0))
+            !Contains(unit->def->weaponCategories[0],attacker->category) && WeaponCanReachUnit(unit,attacker,0))
             ordered=FUN_0043b1f0(unit,attacker,0);
         if (!ordered && (unit->flags&0x300000)) {
             for (unsigned char i=0;i<3;++i) {
                 Weapon* weapon=&unit->weapons[i];
-                if ((weapon->flags&2) && (weapon->flags&0x10) && FUN_0049abb0(unit,attacker,i) &&
+                if ((weapon->flags&2) && (weapon->flags&0x10) && WeaponCanReachUnit(unit,attacker,i) &&
                     !((unsigned char)(weapon->def->flags>>26)&1)) {
                     Unit* target=GetWeaponTargetUnit(unit,i);
-                    if (!target || !FUN_0049abb0(unit,target,i) || Contains(unit->def->weaponCategories[i],target->category))
+                    if (!target || !WeaponCanReachUnit(unit,target,i) || Contains(unit->def->weaponCategories[i],target->category))
                         SetWeaponTargetUnit(unit,attacker,i);
                 }
             }

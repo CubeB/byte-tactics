@@ -62,7 +62,7 @@ public:
 
 void __stdcall InitUnitFromType(Unit* unit, Pos_00485e90 pos, int param_5);
 void __stdcall InitUnitScript(Unit* unit);
-void __stdcall FUN_0049e070(Unit* unit);
+void __stdcall InitUnitWeaponSlots(Unit* unit);
 void __stdcall UpdateMetalExtraction(Unit* unit);
 void* __cdecl operator new(unsigned int size);
 
@@ -80,7 +80,7 @@ void __stdcall InitUnit(int unitType, Pos_00485e90 pos, int param_5, Unit* unit)
     unit->field_a6 = (short)unitType;
     InitUnitFromType(unit, pos, param_5);
     InitUnitScript(unit);
-    FUN_0049e070(unit);
+    InitUnitWeaponSlots(unit);
     UpdateMetalExtraction(unit);
     if (type->field_22f == 1) {
         unit->obj = new UnitMotion(unit);

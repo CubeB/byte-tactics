@@ -8,12 +8,12 @@
 //
 // Two independent blocks selected by bits of the second argument `b`:
 //  - !(b & 0x20): builds a 0x30-byte header on the stack (the same record
-//    FUN_00421620 consumes) from the data->unit pointer at +0x0c, the first
+//    StartExplodePiece consumes) from the data->unit pointer at +0x0c, the first
 //    argument and six FUN_004b6c30 random draws, then hands it to
-//    FUN_00421620.
+//    StartExplodePiece.
 //  - (b & 0x3f00): computes the unit's position with GetPiecePosition and appends
 //    it to up to six tables in g_game (+0x147f7, a six-pointer array) with
-//    FUN_00420a30(&v, table, 2, 0).
+//    AddExplosionEffect(&v, table, 2, 0).
 //
 // `b` must be unsigned (so CobScript declares the slot with an unsigned
 // int too): the merge block's `(b >> 2)` / `(b >> 4)` are `shr`, not `sar`.
@@ -35,7 +35,7 @@
 // Suspected original bug: h.bits is read before it is ever written (the
 // first `h.bits & ~0x30` in each arm, and the three merge assignments, all
 // load the uninitialised local). Only bits 6 and up survive the masks, so
-// whatever the stack held leaks into the record FUN_00421620 copies.
+// whatever the stack held leaks into the record StartExplodePiece copies.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -79,9 +79,9 @@ struct Vec3_00481140 { int x, y, z; };
 extern Game* g_game;
 
 int __stdcall FUN_004b6c30(int range);
-void __stdcall FUN_00421620(Header_00481140* h);
+void __stdcall StartExplodePiece(Header_00481140* h);
 Vec3_00481140 __stdcall GetPiecePosition(Unit* obj, int param);
-void __stdcall FUN_00420a30(void* pos, void* src, int index, int flag);
+void __stdcall AddExplosionEffect(void* pos, void* src, int index, int flag);
 
 struct Elem_4b0610 {
     int value;         // +0x0
@@ -134,22 +134,22 @@ void UnitScript::ExplodePiece(int a, unsigned int b)
         h.bits = (h.bits & ~2) | ((b >> 2) & 2);
         h.bits = (h.bits & ~1) | ((b >> 4) & 1);
         h.bits = (h.bits & ~8) | ((b & 4) << 1);
-        FUN_00421620(&h);
+        StartExplodePiece(&h);
     }
     if (b & 0x3f00) {
         Vec3_00481140 v;
         v = GetPiecePosition(data->unit, a);
         if (b & 0x100)
-            FUN_00420a30(&v, g_game->sources[0], 2, 0);
+            AddExplosionEffect(&v, g_game->sources[0], 2, 0);
         if (b & 0x200)
-            FUN_00420a30(&v, g_game->sources[1], 2, 0);
+            AddExplosionEffect(&v, g_game->sources[1], 2, 0);
         if (b & 0x400)
-            FUN_00420a30(&v, g_game->sources[2], 2, 0);
+            AddExplosionEffect(&v, g_game->sources[2], 2, 0);
         if (b & 0x800)
-            FUN_00420a30(&v, g_game->sources[3], 2, 0);
+            AddExplosionEffect(&v, g_game->sources[3], 2, 0);
         if (b & 0x1000)
-            FUN_00420a30(&v, g_game->sources[4], 2, 0);
+            AddExplosionEffect(&v, g_game->sources[4], 2, 0);
         if (b & 0x2000)
-            FUN_00420a30(&v, g_game->sources[5], 2, 0);
+            AddExplosionEffect(&v, g_game->sources[5], 2, 0);
     }
 }

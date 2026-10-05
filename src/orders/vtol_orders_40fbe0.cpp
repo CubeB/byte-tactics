@@ -62,7 +62,7 @@ void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
 
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
-int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
+int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
@@ -130,7 +130,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
                                 if (!((weapon->flags&2) && weapon->flags&0x10 && ((unsigned char)(weapon->def->flags >> 26)&1) == 0)) {
                                 } else {
                                     Unit* target=GetWeaponTargetUnit(unit,i);
-                                    if (!target || !FUN_0049abb0(unit,target,i) || Contains(unit->def->weaponCategories[i],target->category))
+                                    if (!target || !WeaponCanReachUnit(unit,target,i) || Contains(unit->def->weaponCategories[i],target->category))
                                         SetWeaponTargetUnit(unit,attacker,i);
                                 }
                                 ++i;

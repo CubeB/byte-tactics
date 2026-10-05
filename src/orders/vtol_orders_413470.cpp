@@ -119,7 +119,7 @@ int __cdecl FUN_004b7123(short, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
-int __stdcall FUN_0049abb0(Unit*, Unit*, int);
+int __stdcall WeaponCanReachUnit(Unit*, Unit*, int);
 void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 void __stdcall FUN_0040b530(int player, Vec3* pos, int range, std::vector<Unit*>* out);
@@ -228,7 +228,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 3: {
-        if (!FUN_0049abb0(unit, order->target, 0))
+        if (!WeaponCanReachUnit(unit, order->target, 0))
             order->misses++;
         if (order->misses >= 2) {
             order->misses = 0;

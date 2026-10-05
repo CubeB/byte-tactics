@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Builds a zeroed 0x6b-byte parameter block (owner, position, kind 10) and
-// hands it to FUN_0049a120 (an ebp-framed __stdcall routine in a gap).
+// hands it to ApplyAreaDamage (an ebp-framed __stdcall routine in a gap).
 #include <string.h>
 
 struct Vec3_0049a0c0 {
@@ -21,10 +21,10 @@ struct Params_0049a0c0 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0049a120(Params_0049a0c0* params, Vec3_0049a0c0* pos);
+void __stdcall ApplyAreaDamage(Params_0049a0c0* params, Vec3_0049a0c0* pos);
 
 // FUNCTION: 0x49a0c0
-void __stdcall FUN_0049a0c0(void* owner, Vec3_0049a0c0* pos)
+void __stdcall ApplyAreaDamageAt(void* owner, Vec3_0049a0c0* pos)
 {
     Params_0049a0c0 p;
     memset(&p, 0, sizeof(p));
@@ -32,5 +32,5 @@ void __stdcall FUN_0049a0c0(void* owner, Vec3_0049a0c0* pos)
     p.owner = owner;
     p.kind = 10;
     p.pos = *pos;
-    FUN_0049a120(&p, pos);
+    ApplyAreaDamage(&p, pos);
 }

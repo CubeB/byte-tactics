@@ -79,14 +79,14 @@ extern char* g_game;
 
 void* __stdcall FUN_004815a0(Vec3_00499eb0* position);
 void __stdcall FUN_0041c640(int a, int b, int c);
-void __stdcall FUN_00420a30(Vec3_00499eb0* position, void* value, int a, int b);
+void __stdcall AddExplosionEffect(Vec3_00499eb0* position, void* value, int a, int b);
 void __stdcall EmitWhiteSmoke(Vec3_00499eb0* position, int value);
 void __stdcall FUN_0047f300(unsigned int sound, Vec3_00499eb0* position, int value);
-int __stdcall FUN_00499cd0(Projectile_00499eb0* projectile, Unit* unit, float scale);
-void __stdcall FUN_0049a120(Projectile_00499eb0* projectile, Vec3_00499eb0* position);
+int __stdcall ApplyWeaponDamage(Projectile_00499eb0* projectile, Unit* unit, float scale);
+void __stdcall ApplyAreaDamage(Projectile_00499eb0* projectile, Vec3_00499eb0* position);
 
 // FUNCTION: 0x499eb0
-void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit* unit)
+void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
 {
     int hostile = 0;
     ProjectileType_00499eb0* type = projectile->type;
@@ -114,19 +114,19 @@ void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit* unit)
     FUN_0041c640(type->field_cc, type->field_cc, type->field_d0);
     if (hostile && !unit) {
         FUN_0047f300(type->sound2, position, 0);
-        FUN_00420a30(position, type->field_7c, 0, hostile);
+        AddExplosionEffect(position, type->field_7c, 0, hostile);
     } else {
         FUN_0047f300(type->sound1, position, 0);
         if (type->flags.bit10)
             EmitWhiteSmoke(position, 9);
         else
-            FUN_00420a30(position, type->field_78, 0, hostile);
+            AddExplosionEffect(position, type->field_78, 0, hostile);
     }
     unsigned int player = projectile->owner;
     Player_00499eb0* record = (Player_00499eb0*)(g_game + player * 0x14b + 0x1b63);
     if (!record->field_0 || record->state != 3) {
         if (type->field_d6 <= 0x10 && unit) {
-            int damage = FUN_00499cd0(projectile, unit, 1.0f);
+            int damage = ApplyWeaponDamage(projectile, unit, 1.0f);
             Unit* source = projectile->unit;
             if (source) {
                 int a = 0;
@@ -139,7 +139,7 @@ void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit* unit)
                 return;
             }
         } else {
-            FUN_0049a120(projectile, position);
+            ApplyAreaDamage(projectile, position);
         }
     }
 }

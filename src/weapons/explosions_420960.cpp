@@ -38,7 +38,7 @@ extern CMemoryCache DAT_00511f80;
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x420960
-void FUN_00420960(void)
+void FreeExplosions(void)
 {
     if (g_game->field_1ab9b != 0) {
         DAT_00511f80.FreeCache();

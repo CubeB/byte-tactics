@@ -479,7 +479,7 @@ unsigned char __stdcall FindHostSlot();
 unsigned short __stdcall FindUnitTypeId(const char* name);
 int __stdcall FUN_004b6c30(int range);
 int __stdcall FUN_0047db70(UnitDef_00464f80* type, int a, Point16 cell, int c);
-short __stdcall FUN_00421da0(Pos_00464f80* pos, int a, int b);
+short __stdcall FindFeatureAtPos(Pos_00464f80* pos, int a, int b);
 int __stdcall GetCellMeanHeight(Pos_00464f80* pos);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
                                      Pos_00464f80 pos, int a, int b, int c);
@@ -658,7 +658,7 @@ void __stdcall FUN_00464f80()
                                     } while (--inner != 0);
                                     zacc += hh;
                                 } while (--outer != 0);
-                                if (hits >= 9 && FUN_00421da0(&pos, 0, 0) == -1) {
+                                if (hits >= 9 && FindFeatureAtPos(&pos, 0, 0) == -1) {
                                     if (g_game->mode->field_d44 == 0)
                                         break;
                                     if (GetCellMeanHeight(&pos) >

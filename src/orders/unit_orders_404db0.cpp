@@ -154,7 +154,7 @@ struct Packet {
 
 extern Game* g_game;
 
-unsigned short __stdcall FUN_00421da0(Vec3* pos, Point16* cell, Point16* size);
+unsigned short __stdcall FindFeatureAtPos(Vec3* pos, Point16* cell, Point16* size);
 void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
 int __stdcall FUN_004b6c30(int range);
 int __stdcall GetGroundHeight(Vec3* pos);
@@ -187,7 +187,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
     Point16 size;
     Feature* f = &g_game->features[0xffff];
     if (order->state <= 5) {
-        unsigned short index = FUN_00421da0(&order->pos, &cell, &size);
+        unsigned short index = FindFeatureAtPos(&order->pos, &cell, &size);
         if (index == 0xffff) {
             FUN_0047f780(unit, 7, "Resurrection failed");
             return 8;

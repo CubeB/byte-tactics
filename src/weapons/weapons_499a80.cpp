@@ -12,7 +12,7 @@ extern Game* g_game;
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x499a80
-void FUN_00499a80(void)
+void FreeWeaponArray(void)
 {
     FUN_004d85a0(g_game->field_141f7);
     g_game->field_141f7 = 0;

@@ -53,7 +53,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0049c740(Proj_0049d000*, void*, void*, int, int, Unit*);
+void __stdcall InitProjectile(Proj_0049d000*, void*, void*, int, int, Unit*);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 
@@ -67,7 +67,7 @@ int __stdcall FUN_0049d000(Shot_0049d000* shot, Unit* unit, Vec3_0049d000* pos)
         proj->field_4e = 0;
     }
     if (proj) {
-        FUN_0049c740(proj, shot->weapon, pos, 0, g_game->field_38a47, unit);
+        InitProjectile(proj, shot->weapon, pos, 0, g_game->field_38a47, unit);
         proj->Setup(unit);
         proj->dirX = -FUN_004b70ef(proj->angle, unit->type->range);
         proj->dirZ = -FUN_004b7123(proj->angle, unit->type->range);

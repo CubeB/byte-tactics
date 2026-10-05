@@ -1,7 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 
 int __stdcall FUN_004b6c30(int range);
-void __stdcall FUN_00421620(void* spawn);
+void __stdcall StartExplodePiece(void* spawn);
 
 struct Spawn_00420e50 {
     void* unit;            // +0x00
@@ -32,7 +32,7 @@ struct Unit_00420e50 {
 #pragma pack(pop)
 
 // FUNCTION: 0x420e50
-void __stdcall FUN_00420e50(Unit_00420e50* unit)
+void __stdcall ExplodeUnitPieces(Unit_00420e50* unit)
 {
     Spawn_00420e50 s;
     s.b4 = 0;
@@ -51,6 +51,6 @@ void __stdcall FUN_00420e50(Unit_00420e50* unit)
         s.x18 = FUN_004b6c30(10) << 16;
         s.x1c = (20 - FUN_004b6c30(40)) << 14;
         s.index = i;
-        FUN_00421620(&s);
+        StartExplodePiece(&s);
     }
 }

@@ -29,7 +29,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x49ae20
-void FUN_0049ae20()
+void CompactProjectiles()
 {
     Projectile_0049ae20* projectiles = g_game->projectiles;
     int count = g_game->projectileCount;

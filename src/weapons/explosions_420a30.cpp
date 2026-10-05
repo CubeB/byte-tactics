@@ -49,7 +49,7 @@ void __stdcall InitGafSequence(Ref_00420a30* ref, Src_00420a30* src, int index);
 void __stdcall EmitSmoke(int* pos, int a, int b, int c);
 
 // FUNCTION: 0x420a30
-void __stdcall FUN_00420a30(Pos_00420a30* pos, Src_00420a30* src, int index, int flag)
+void __stdcall AddExplosionEffect(Pos_00420a30* pos, Src_00420a30* src, int index, int flag)
 {
     int* pCount = &g_game->count;
     if (*pCount < 300) {

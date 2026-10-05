@@ -71,10 +71,10 @@ struct Pos_004213b0 {
 extern Game* g_game;
 
 int __stdcall GetCellMeanHeight(Pos_004213b0* pos);
-void __stdcall FUN_00420a30(Pos_004213b0* pos, void* src, int index, int flag);
+void __stdcall AddExplosionEffect(Pos_004213b0* pos, void* src, int index, int flag);
 
 // FUNCTION: 0x4213b0
-int __stdcall FUN_004213b0(Obj_004213b0* obj)
+int __stdcall UpdateExplodedPiece(Obj_004213b0* obj)
 {
     int n = obj->f20;
     Inner_004213b0* inner = obj->inner;
@@ -93,7 +93,7 @@ int __stdcall FUN_004213b0(Obj_004213b0* obj)
             pos.x = inner->f16;
             pos.y = inner->f1a;
             pos.z = inner->f1e;
-            FUN_00420a30(&pos, src, -1, 1);
+            AddExplosionEffect(&pos, src, -1, 1);
             return 0;
         }
         return 0;
@@ -116,7 +116,7 @@ int __stdcall FUN_004213b0(Obj_004213b0* obj)
                 pos.x = inner->f16;
                 pos.y = inner->f1a;
                 pos.z = inner->f1e;
-                FUN_00420a30(&pos, g_game->src3, 0, 0);
+                AddExplosionEffect(&pos, g_game->src3, 0, 0);
             }
             return 0;
         }

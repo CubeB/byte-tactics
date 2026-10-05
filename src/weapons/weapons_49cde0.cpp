@@ -1,6 +1,6 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 // Fires a shell from a firing unit: takes a free slot in the 300 entry
-// projectile array, hands it to FUN_0049c740, gives it a direction built from
+// projectile array, hands it to InitProjectile, gives it a direction built from
 // the shot's heading and pitch, works out when it will hit (from the distance
 // to the aim point when the unit type's flag bit 23 is set, from a stored
 // flight time otherwise), plays the firing and the "RockUnit" anim and drops a
@@ -116,14 +116,14 @@ struct Game {
 extern Game* g_game;
 extern char* DAT_00509678[4];
 
-void __stdcall FUN_0049c740(Proj_0049cde0* proj, UnitType_0049cde0* shot, Vec3_0049cde0* pos,
+void __stdcall InitProjectile(Proj_0049cde0* proj, UnitType_0049cde0* shot, Vec3_0049cde0* pos,
                             Vec3_0049cde0* aim, int field_5, Unit* unit);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 void __stdcall FUN_004729d0(Vec3_0049cde0* p, short index);
 
 // FUNCTION: 0x49cde0
-int __stdcall FUN_0049cde0(Shot_0049cde0* shot, Unit* unit, Vec3_0049cde0* pos,
+int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3_0049cde0* pos,
                            Vec3_0049cde0* aim, int param_5)
 {
     Proj_0049cde0* proj = 0;
@@ -133,7 +133,7 @@ int __stdcall FUN_0049cde0(Shot_0049cde0* shot, Unit* unit, Vec3_0049cde0* pos,
         proj->field_4e = 0;
     }
     if (proj) {
-        FUN_0049c740(proj, shot->def, pos, 0, g_game->field_38a47, unit);
+        InitProjectile(proj, shot->def, pos, 0, g_game->field_38a47, unit);
         proj->angle = shot->heading;
         proj->pitch0 = shot->pitch;
         int q = (shot->field_10 / shot->def->f_68) * g_game->field_14263;

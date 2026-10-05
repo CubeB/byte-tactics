@@ -16,7 +16,7 @@
 //     turn spills cz to [esp+0x30], produces the single `mov edi,[g_game]` in
 //     the cellX/cellZ store branch, and lets both feature-map arms merge into
 //     the shared `g->mapping + f*256` tail at 0x49b31b. A local holding g_game
-//     is live across the two FUN_00499eb0 calls in the unit blocks, so MSVC 5
+//     is live across the two DetonateProjectile calls in the unit blocks, so MSVC 5
 //     gives it a stack home, and one compile state change then moves every other
 //     allocation with it. Worth 7.3 points.
 //  3. The 0xfffe arm's index is spelled `cell->offX + g_game->width * cell->offY`
@@ -358,14 +358,14 @@ struct Net_0049b090 {
 extern Game* g_game;
 
 Cell_0049b090* __stdcall FUN_004815a0(Pos_0049b090* pos);
-void __stdcall FUN_00499eb0(Proj_0049b090* proj, Unit* unit);
+void __stdcall DetonateProjectile(Proj_0049b090* proj, Unit* unit);
 
 // The second argument (the type) is the first stack dword: the prologue's
 // spill to [esp+0x30] overwrites arg1, and both later reloads of the type
 // read [esp+0x2c]. `pos` stays in edi across the cell lookup, which is what
 // makes the original load the three differences through it.
 // FUNCTION: 0x49b090
-void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
+void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* proj)
 {
     Pos_0049b090* pos = (Pos_0049b090*)&proj->px;
     Cell_0049b090* cell = FUN_004815a0(pos);
@@ -387,13 +387,13 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
         int d = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dy * dy) >> 32)
             + (int)(((__int64)dz * dz) >> 32);
         if (d < r * r)
-            FUN_00499eb0(proj, 0);
+            DetonateProjectile(proj, 0);
     }
     proj->radius = (cell->radius + cell->ground) / 2;
     if (cell->unit0) {
         Unit* u = &g_game->units[cell->unit0];
         if (u->owner != proj->owner && proj->py.i < u->type->high + u->elev) {
-            FUN_00499eb0(proj, u);
+            DetonateProjectile(proj, u);
             return;
         }
     }
@@ -402,7 +402,7 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
         if (u->owner != proj->owner) {
             if (proj->py.i >= u->type->low + u->elev
                 && proj->py.i <= u->type->high + u->elev) {
-                FUN_00499eb0(proj, u);
+                DetonateProjectile(proj, u);
                 return;
             }
         }
@@ -446,7 +446,7 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             }
         }
         if (mf) {
-            FUN_00499eb0(proj, 0);
+            DetonateProjectile(proj, 0);
             return;
         }
     }
@@ -462,5 +462,5 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
     } else if (((Net_0049b090*)g_game->net)->field_d48) {
         return;
     }
-    FUN_00499eb0(proj, 0);
+    DetonateProjectile(proj, 0);
 }

@@ -1,6 +1,6 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 // Fires one projectile from a firing unit: takes a slot from the 300 entry
-// projectile pool, initialises it through FUN_0049c740, then plays the aim and
+// projectile pool, initialises it through InitProjectile, then plays the aim and
 // fire animations of the shooting unit.
 // Two shapes here are not the obvious ones:
 //  - the per-direction aim data at +0x1a has four byte elements, so the
@@ -110,14 +110,14 @@ struct Game {
 extern Game* g_game;
 extern char* DAT_00509678[4];
 
-void __stdcall FUN_0049c740(Proj_0049cc20* proj, UnitType_0049cc20* shot, Vec3_0049cc20* pos,
+void __stdcall InitProjectile(Proj_0049cc20* proj, UnitType_0049cc20* shot, Vec3_0049cc20* pos,
                             Vec3_0049cc20* aim, int field_5, Unit* unit);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 void __stdcall FUN_004729d0(Vec3_0049cc20* p, short index);
 
 // FUNCTION: 0x49cc20
-int __stdcall FUN_0049cc20(Shot_0049cc20* shot, Unit* unit, Vec3_0049cc20* pos,
+int __stdcall FireVLaunchProjectile(Shot_0049cc20* shot, Unit* unit, Vec3_0049cc20* pos,
                            Vec3_0049cc20* aim, int param_5, int param_6)
 {
     Proj_0049cc20* proj = 0;
@@ -129,7 +129,7 @@ int __stdcall FUN_0049cc20(Shot_0049cc20* shot, Unit* unit, Vec3_0049cc20* pos,
     if (!proj)
         return 0;
 
-    FUN_0049c740(proj, shot->def, pos, aim, g_game->field_38a47, unit);
+    InitProjectile(proj, shot->def, pos, aim, g_game->field_38a47, unit);
     proj->angle = 0;
     proj->pitch0 = 0x4000;
     shot->field_8 = 0;

@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Loads every "Weapons\\*.tdf" file, parses each with the TDF parser, and
-// calls FUN_0042e440 once per top level section found in it.
+// calls LoadWeaponType once per top level section found in it.
 
 #include <vector>
 
@@ -61,11 +61,11 @@ extern Game* g_game;
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_004bca30(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
-void __stdcall FUN_0042e440(int section);
+void __stdcall LoadWeaponType(int section);
 int FUN_0041d8a0(void);
 
 // FUNCTION: 0x42e310
-void FUN_0042e310()
+void LoadWeaponTypes()
 {
     int n = 0;
     for (int i = 0; i < 0x100; i++) {
@@ -88,7 +88,7 @@ void FUN_0042e310()
                 ((Class_004c3e10*)&parser)->FUN_004c3e10();
                 if (!((Class_004c3490*)&parser)->FUN_004c3490(i))
                     break;
-                FUN_0042e440(parser.current);
+                LoadWeaponType(parser.current);
                 i++;
             }
         }

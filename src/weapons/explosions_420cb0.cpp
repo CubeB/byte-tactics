@@ -4,7 +4,7 @@
 // sizes stepping evenly from `from` towards `to`.
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void* __stdcall FUN_00420d20(int size);
+void* __stdcall BuildExplosionFrame(int size);
 
 struct ExplosionEntry {
     void* frame;                       // +0x0
@@ -20,14 +20,14 @@ struct CalcedExplosion {
 };
 
 // FUNCTION: 0x420cb0
-CalcedExplosion* __stdcall FUN_00420cb0(int n, int from, int to)
+CalcedExplosion* __stdcall BuildCalcedExplosion(int n, int from, int to)
 {
     CalcedExplosion* e = (CalcedExplosion*)FUN_004d83b0("CalcedExplosion", n * 8 + 0x28);
     int step = (to - from) / n;
     e->count = n;
     e->flag = 0;
     for (int i = 0; i < n; i++) {
-        e->entries[i].frame = FUN_00420d20(from);
+        e->entries[i].frame = BuildExplosionFrame(from);
         e->entries[i].kind = 2;
         from += step;
     }

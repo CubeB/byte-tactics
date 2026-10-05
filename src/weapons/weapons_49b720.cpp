@@ -4,7 +4,7 @@
 // Rebuilt from the disassembly as one if/else-if chain over the type's flag
 // bits (b20 guided, b0 straight, b1 timed drift, b8 drift, b5 tumbling), with
 // a burst-fire branch for projectiles whose counter is not 0. What decided it:
-//  - FUN_0049b6e0 (the projectile allocator just before this function) is
+//  - AllocProjectile (the projectile allocator just before this function) is
 //    defined here and inlined, as in the original source file.
 //  - Gravity on the guided arms goes through `Fall(&p->vel)`, a pointer to the
 //    velocity. That store may alias p->type, so MSVC reloads p->type in the
@@ -161,23 +161,23 @@ struct Cell_0049b720 {
 
 extern Game* g_game;
 
-void __stdcall FUN_0049ae20();
-void __stdcall FUN_0049b090(ProjType_0049b720* type, Proj_0049b720* p);
-Vec3_0049b720* __stdcall FUN_0049b3e0(Proj_0049b720* p);
-int __stdcall FUN_0049b520(Proj_0049b720* p, Vec3_0049b720* target);
-void __stdcall FUN_00499eb0(Proj_0049b720* p, void* unit);
+void __stdcall CompactProjectiles();
+void __stdcall CheckProjectileCollision(ProjType_0049b720* type, Proj_0049b720* p);
+Vec3_0049b720* __stdcall GetProjectileAimPoint(Proj_0049b720* p);
+int __stdcall TurnUnitTowardsPoint(Proj_0049b720* p, Vec3_0049b720* target);
+void __stdcall DetonateProjectile(Proj_0049b720* p, void* unit);
 void __stdcall GetWeaponPiecePosition(Unit* unit, Vec3_0049b720* out, unsigned char weapon, int piece);
 int __stdcall FUN_0047f300(int sound, Vec3_0049b720* pos, int flag);
 void __stdcall EmitWhiteSmoke(Vec3_0049b720* pos, short kind);
 Cell_0049b720* __stdcall FUN_004815a0(Vec3_0049b720* pos);
-void __stdcall FUN_00420a30(Vec3_0049b720* pos, void* src, int index, int flag);
+void __stdcall AddExplosionEffect(Vec3_0049b720* pos, void* src, int index, int flag);
 int __stdcall FUN_004b6c30(int range);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 
-// A copy of FUN_0049b6e0 (matched in its own file), the function just before
+// A copy of AllocProjectile (matched in its own file), the function just before
 // this one in the original source; defined here so that /Ob2 inlines it.
-Proj_0049b720* FUN_0049b6e0()
+Proj_0049b720* AllocProjectile()
 {
     Proj_0049b720* p = 0;
     if (g_game->projCount < 300) {
@@ -204,7 +204,7 @@ static inline void Remove(Proj_0049b720* p)
 }
 
 // FUNCTION: 0x49b720
-void FUN_0049b720()
+void UpdateProjectiles()
 {
     int n = g_game->projCount;
     for (int i = 0; i < n; i++) {
@@ -224,7 +224,7 @@ void FUN_0049b720()
                 }
                 p->counter--;
                 p->f42 += type->burstRate;
-                Proj_0049b720* q = FUN_0049b6e0();
+                Proj_0049b720* q = AllocProjectile();
                 if (q) {
                     *q = *p;
                     q->f42 = g_game->time;
@@ -272,9 +272,9 @@ void FUN_0049b720()
                         seek = 1;
                     }
                     if (seek) {
-                        Vec3_0049b720* target = FUN_0049b3e0(p);
-                        if (FUN_0049b520(p, target) == 0)
-                            FUN_00499eb0(p, 0);
+                        Vec3_0049b720* target = GetProjectileAimPoint(p);
+                        if (TurnUnitTowardsPoint(p, target) == 0)
+                            DetonateProjectile(p, 0);
                     }
                     p->vel.y = FUN_004b70ef(p->pitch, p->speed);
                     int t = FUN_004b7123(p->pitch, p->speed);
@@ -282,7 +282,7 @@ void FUN_0049b720()
                     p->vel.z = -FUN_004b7123(p->heading, t);
                 }
             } else if (type->flags.b.b23) {
-                FUN_00499eb0(p, 0);
+                DetonateProjectile(p, 0);
             } else {
                 Fall(&p->vel);
                 if (type->flags.b.b24) {
@@ -297,7 +297,7 @@ void FUN_0049b720()
                 }
             }
             p->pos += p->vel;
-            FUN_0049b090(type, p);
+            CheckProjectileCollision(type, p);
         } else if (type->flags.b.b0) {
             if (p->f46 > g_game->time) {
                 p->pos += p->vel;
@@ -307,7 +307,7 @@ void FUN_0049b720()
                     else if (g_game->time > p->f42 + type->f0)
                         p->flags.b0 = 1;
                 }
-                FUN_0049b090(type, p);
+                CheckProjectileCollision(type, p);
             } else {
                 Remove(p);
             }
@@ -317,9 +317,9 @@ void FUN_0049b720()
                     p->pos += p->vel;
                     p->pos += g_game->wind;
                     p->vel.y -= g_game->gravity;
-                    FUN_0049b090(type, p);
+                    CheckProjectileCollision(type, p);
                 } else if (type->flags.b.b23) {
-                    FUN_00499eb0(p, 0);
+                    DetonateProjectile(p, 0);
                 } else {
                     EmitWhiteSmoke(&p->pos, 9);
                     Remove(p);
@@ -328,18 +328,18 @@ void FUN_0049b720()
                 p->pos += p->vel;
                 p->pos += g_game->wind;
                 p->vel.y -= g_game->gravity;
-                FUN_0049b090(type, p);
+                CheckProjectileCollision(type, p);
             }
         } else if (type->flags.b.b8) {
             p->pos += p->vel;
             p->pos += g_game->wind;
             p->vel.y -= g_game->gravity;
-            FUN_0049b090(type, p);
+            CheckProjectileCollision(type, p);
         } else if (type->flags.b.b5) {
             p->pos += p->vel;
             p->roll += ((short*)&p->vel.x)[1] << 8;
             p->pitch += ((short*)&p->vel.z)[1] << 8;
-            FUN_0049b090(type, p);
+            CheckProjectileCollision(type, p);
         }
 
         if (!p->flags.dead) {
@@ -350,9 +350,9 @@ void FUN_0049b720()
             if (oldY > g_game->seaLevel && p->pos.yw.hi <= g_game->seaLevel) {
                 Cell_0049b720* cell = FUN_004815a0(&p->pos);
                 if (cell && cell->height < g_game->seaLevel && g_game->net->field_d48 == 0)
-                    FUN_00420a30(&p->pos, type->splash, 0, 1);
+                    AddExplosionEffect(&p->pos, type->splash, 0, 1);
             }
         }
     }
-    FUN_0049ae20();
+    CompactProjectiles();
 }

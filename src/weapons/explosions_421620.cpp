@@ -55,7 +55,7 @@ public:
 extern CMemoryCache DAT_00511f80;
 extern int* DAT_00511df0[];
 
-void __stdcall FUN_00421700(Header_00421620* param_1);
+void __stdcall BreakPieceIntoDebris(Header_00421620* param_1);
 
 static int FindFreeSlot_00421620()
 {
@@ -68,13 +68,13 @@ static int FindFreeSlot_00421620()
 }
 
 // FUNCTION: 0x421620
-void __stdcall FUN_00421620(Header_00421620* param_1)
+void __stdcall StartExplodePiece(Header_00421620* param_1)
 {
     Unit* obj = param_1->obj;
     Rec_00421620* rec = (Rec_00421620*)((char*)obj->field_9e + 0x22 + param_1->index * 0x36);
     rec->field_28 &= 0xfffe;
     if (param_1->flag_28) {
-        FUN_00421700(param_1);
+        BreakPieceIntoDebris(param_1);
         return;
     }
     int index = FindFreeSlot_00421620();

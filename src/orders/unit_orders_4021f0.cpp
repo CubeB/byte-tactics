@@ -62,7 +62,7 @@ struct Order {
 int __stdcall FUN_004b6c30(int range);
 Unit* __stdcall GetWeaponTargetUnit(Unit* unit, int index);
 void __stdcall SetWeaponTargetUnit(Unit* unit, Unit* target, int weapon);
-int __stdcall FUN_0049abb0(Unit* unit, Unit* target, int param_3);
+int __stdcall WeaponCanReachUnit(Unit* unit, Unit* target, int param_3);
 void __stdcall FUN_0040ad80(int player, Vec_004021f0* pos, int radius, int flags,
                             std::vector<Unit*>* out);
 
@@ -97,7 +97,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
             order->wait = 0;
         else
             order->wait++;
-        if (order->wait <= order->waitLimit && FUN_0049abb0(unit, order->target.owner, 0)) {
+        if (order->wait <= order->waitLimit && WeaponCanReachUnit(unit, order->target.owner, 0)) {
             order->flags |= 0x7008;
             return 2;
         }

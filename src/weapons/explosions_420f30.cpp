@@ -62,16 +62,16 @@ struct Game {
 extern Game* g_game;
 extern Obj_00420f30* DAT_00511df0[100];
 
-int __stdcall FUN_004213b0(Obj_00420f30* obj);
+int __stdcall UpdateExplodedPiece(Obj_00420f30* obj);
 int __stdcall GetCellMeanHeight(Vec3_00420f30* pos);
 int __stdcall StepGafSequence(Ref_00420f30* ref);
-void __stdcall FUN_00420a30(Vec3_00420f30* pos, void* src, int index, int flag);
+void __stdcall AddExplosionEffect(Vec3_00420f30* pos, void* src, int index, int flag);
 
 // FUNCTION: 0x420f30
-void FUN_00420f30()
+void UpdateExplosions()
 {
     for (int i = 0; i < 100; i++) {
-        if (DAT_00511df0[i] != 0 && FUN_004213b0(DAT_00511df0[i]) == 0)
+        if (DAT_00511df0[i] != 0 && UpdateExplodedPiece(DAT_00511df0[i]) == 0)
             DAT_00511df0[i] = 0;
     }
 
@@ -97,7 +97,7 @@ void FUN_00420f30()
                     d->vel.y = -(d->vel.y / 2);
                     if (*(short*)((char*)&d->vel.y + 2) <= 0) {
                         if (d->flag)
-                            FUN_00420a30(&d->pos, g_game->src3, 0, 0);
+                            AddExplosionEffect(&d->pos, g_game->src3, 0, 0);
                         d->obj->state = 0xff;
                         d->obj = 0;
                     }
@@ -107,7 +107,7 @@ void FUN_00420f30()
                     Net_00420f30* net = g_game->net;
                     if (net->f_d48 == 0) {
                         void* src = net->f_d44 != 0 ? g_game->src2 : g_game->src1;
-                        FUN_00420a30(&d->pos, src, -1, 1);
+                        AddExplosionEffect(&d->pos, src, -1, 1);
                     }
                 }
                 d->obj->state = 0xff;

@@ -127,18 +127,18 @@ Unit* __stdcall GetWeaponTargetUnit(Unit* obj, int index);
 void __stdcall GetAimFromPosition(Unit* unit, Vec3_0049e1a0* out, unsigned char weapon);
 void __stdcall FUN_0049e570(Vec3_0049e1a0* a, Vec3_0049e1a0* b, int* dx, int* dy, int* dz);
 short __cdecl FUN_004b715a(int x, int z);
-unsigned short __stdcall FUN_0049a890(int a, int b, int c, int d, float e);
-int __stdcall FUN_0049d910(Unit* unit, Target_0049e1a0* target,
+unsigned short __stdcall SolveLaunchAngle(int a, int b, int c, int d, float e);
+int __stdcall CalcAimAngles(Unit* unit, Target_0049e1a0* target,
                            unsigned short* out_heading, unsigned short* out_pitch,
                            unsigned char weapon, Vec3_0049e1a0* point);
-int __stdcall FUN_0049aa80(Unit* unit, Vec3_0049e1a0* a2, Vec3_0049e1a0* a3,
+int __stdcall WeaponCanReachPos(Unit* unit, Vec3_0049e1a0* a2, Vec3_0049e1a0* a3,
                            unsigned char a4);
 int __stdcall SendScriptCallByName(Unit* obj, char* name, char field_5, int field_6, int field_a,
                            unsigned short field_e, unsigned short field_12);
 void __stdcall FUN_0041c150(Unit* unit);
 
 // FUNCTION: 0x49e1a0
-void __stdcall FUN_0049e1a0(Unit* unit) {
+void __stdcall UpdateUnitWeapons(Unit* unit) {
     unsigned short heading;
     unsigned char i;
     int dz;
@@ -170,10 +170,10 @@ void __stdcall FUN_0049e1a0(Unit* unit) {
                     GetAimFromPosition(unit, &aim, (unsigned char)((e->flags >> 2) & 3));
                     FUN_0049e570(&aim, &pos, &dx, &dy, &dz);
                     heading = (unsigned short)(FUN_004b715a(dx, dz) - unit->heading);
-                    angle = FUN_0049a890(dx, dy, dz, t->f_68, t->f_c8);
+                    angle = SolveLaunchAngle(dx, dy, dz, t->f_68, t->f_c8);
                     ok = (angle != 0x8000);
                 } else if (t->f_111.b0) {
-                    ok = FUN_0049d910(unit, t, &heading, &angle, (unsigned char)(e->flags >> 2 & 3),
+                    ok = CalcAimAngles(unit, t, &heading, &angle, (unsigned char)(e->flags >> 2 & 3),
                                       &pos);
                 } else {
                     ok = 0;
@@ -200,7 +200,7 @@ void __stdcall FUN_0049e1a0(Unit* unit) {
         }
         if (e->f_14 != 0)
             continue;
-        if (FUN_0049aa80(unit, &unit->pos, &pos, i)) {
+        if (WeaponCanReachPos(unit, &unit->pos, &pos, i)) {
             int can = 0;
             if (attached->f_111.b28) {
                 if (e->f_1a)

@@ -5,7 +5,7 @@
 extern int DAT_00511df0[];
 
 // FUNCTION: 0x421150
-int FUN_00421150()
+int FindFreeExplodedPieceSlot()
 {
     for (int i = 0; i < 100; i++) {
         if (DAT_00511df0[i] == 0) {

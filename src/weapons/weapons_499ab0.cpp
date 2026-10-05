@@ -67,7 +67,7 @@ extern Game* g_game;
 int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x499ab0
-void __stdcall FUN_00499ab0(Unit* unit, Obj_00499ab0* source,
+void __stdcall SendWeaponFirePacket(Unit* unit, Obj_00499ab0* source,
                             Obj_00499ab0* target, Vec3_00499ab0* a,
                             Vec3_00499ab0* b)
 {

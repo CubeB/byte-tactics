@@ -1,21 +1,21 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 //
 // Creates or updates a projectile for a remote fire event (the packet type 0xd
-// that FUN_0049d580 sends). The per-team record at g_game+0x2cf3 (0x115 bytes,
+// that FireTurretWeapon sends). The per-team record at g_game+0x2cf3 (0x115 bytes,
 // 0x100 of them) holds the weapon flags at +0x111; the event gives a team byte,
 // two unit ids (unitId, the firing unit, and ownerId), a weapon slot index and
 // two positions. Flag bit 5 spawns a projectile at the event position; otherwise
 // the weapon slot's angles are updated and bits 1, 4, 0/20 and 8 dispatch to
-// FUN_0049cde0, FUN_0049cc20 (given the matching live projectile, if any),
-// FUN_0049c9c0, or a spawn aimed from the firing unit.
+// FireBallisticProjectile, FireVLaunchProjectile (given the matching live projectile, if any),
+// FireLineOfSightProjectile, or a spawn aimed from the firing unit.
 //
-// MATCH (Claude Opus 5.5, issue 4785). The projectile scan is FUN_0049d1e0
+// MATCH (Claude Opus 5.5, issue 4785). The projectile scan is FindRemoteProjectile
 // inlined (it has no callers in the exe and sits just before this function).
 // Earlier passes stopped at 91.7% with a hand-written scan helper taking the
 // count as an `unsigned short` parameter: that was the only way they found to
 // keep the count in a register, at the price of an `and edi, 0xffff`. In the
 // original the count is the loop-invariant `g_game->projCount` that MSVC hoists
-// out of FUN_0049d1e0's loop by itself.
+// out of FindRemoteProjectile's loop by itself.
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {
@@ -128,13 +128,13 @@ static inline int SamePos_0049d270(Vec3_0049d270& a, Vec3_0049d270& b)
     return a.x == b.x && a.z == b.z && a.y == b.y;
 }
 
-// FUN_0049d1e0 (matched in its own file), defined here unannotated so that
+// FindRemoteProjectile (matched in its own file), defined here unannotated so that
 // /Ob2 inlines it as it did in the original. It has no callers in the exe.
 // Written with the positive `if (ev->b0) { ... } return 0;` test, which also
 // matches 0x49d1e0 on its own; the `if (!ev->b0) return 0;` spelling in
 // 0x49d1e0.cpp compiles to the same standalone bytes but, inlined here, gives
 // the cursor a register and spills `unit` (73.4%).
-Proj_0049d270* __stdcall FUN_0049d1e0(Event_0049d270* ev)
+Proj_0049d270* __stdcall FindRemoteProjectile(Event_0049d270* ev)
 {
     if (ev->b0) {
         char me = g_game->localPlayer;
@@ -147,15 +147,15 @@ Proj_0049d270* __stdcall FUN_0049d1e0(Event_0049d270* ev)
     return 0;
 }
 
-void __stdcall FUN_0049c740(void*, void*, void*, int, int, void*);
-void __stdcall FUN_0049c9c0(void*, void*, void*, void*, void*);
-void __stdcall FUN_0049cc20(void*, void*, void*, void*, void*, void*);
-void __stdcall FUN_0049cde0(void*, void*, void*, void*, void*);
+void __stdcall InitProjectile(void*, void*, void*, int, int, void*);
+void __stdcall FireLineOfSightProjectile(void*, void*, void*, void*, void*);
+void __stdcall FireVLaunchProjectile(void*, void*, void*, void*, void*, void*);
+void __stdcall FireBallisticProjectile(void*, void*, void*, void*, void*);
 int __cdecl FUN_004b70ef(short angle, int distance);
 int __cdecl FUN_004b7123(short angle, int distance);
 
 // FUNCTION: 0x49d270
-void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
+void __stdcall ApplyWeaponFirePacket(int arg1, Event_0049d270* ev)
 {
     unsigned char team = ev->team;
     Def_0049d270* def = &g_game->defs[team];
@@ -170,7 +170,7 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
         }
         if (!proj)
             return;
-        FUN_0049c740(proj, def, arg, 0, g_game->teamColor, 0);
+        InitProjectile(proj, def, arg, 0, g_game->teamColor, 0);
         proj->pos = *pos;
         return;
     }
@@ -184,17 +184,17 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
     entry->f_16 = ev->f_1b;
     unsigned short ownerId = ev->ownerId;
     Unit* owner = ownerId == 0 ? 0 : &g_game->units[ownerId];
-    Proj_0049d270* found = FUN_0049d1e0(ev);
+    Proj_0049d270* found = FindRemoteProjectile(ev);
     if (def->flags.b1) {
-        FUN_0049cde0(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);
+        FireBallisticProjectile(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);
         return;
     }
     if (def->flags.b4) {
-        FUN_0049cc20(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner, found);
+        FireVLaunchProjectile(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner, found);
         return;
     }
     if (def->flags.b0 || def->flags.b20) {
-        FUN_0049c9c0(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);
+        FireLineOfSightProjectile(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);
         return;
     }
     if (def->flags.b8) {
@@ -206,7 +206,7 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
         }
         if (!proj)
             return;
-        FUN_0049c740(proj, entry->type, (void*)((char*)ev + 1), 0, g_game->teamColor, unit);
+        InitProjectile(proj, entry->type, (void*)((char*)ev + 1), 0, g_game->teamColor, unit);
         proj->f_36 = unit->f_66;
         proj->f_3a = 0;
         proj->pos.y = 0;

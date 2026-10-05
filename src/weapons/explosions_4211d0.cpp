@@ -177,7 +177,7 @@ void __stdcall FillPolygon(void* surface, Point_004211d0* points, int count, int
 void __stdcall DrawFrameQuad(void* surface, void* pic, Point_004211d0* points, void* src);
 
 // FUNCTION: 0x4211d0
-void __stdcall FUN_004211d0(void* surface, Obj_00421170* obj, Inner_00421550* inner)
+void __stdcall DrawExplodedPieceFaces(void* surface, Obj_00421170* obj, Inner_00421550* inner)
 {
     Point_004211d0 projected[2000];
     Point_004211d0 poly[25];

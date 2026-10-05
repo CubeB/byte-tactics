@@ -37,10 +37,10 @@ struct Obj_00421170 {
 void __stdcall EmitWhiteSmoke(void* buf, int arg);
 void __stdcall FUN_00472ab0(void* buf, int arg);
 void __stdcall FUN_004b6cc0(Vec3_004b6cc0* in, Vec3_004b6cc0* out, short* angles);
-void __stdcall FUN_004211d0(int param_1, Obj_00421170* obj, Inner_00421550* inner);
+void __stdcall DrawExplodedPieceFaces(int param_1, Obj_00421170* obj, Inner_00421550* inner);
 
 // FUNCTION: 0x421550
-int __stdcall FUN_00421550(int param_1, Obj_00421170* obj)
+int __stdcall DrawExplodedPiece(int param_1, Obj_00421170* obj)
 {
     Inner_00421550* inner = obj->inner;
     short angles[3];
@@ -68,6 +68,6 @@ int __stdcall FUN_00421550(int param_1, Obj_00421170* obj)
         FUN_004b6cc0(&inner->f0->items[i], &inner->f22[i], angles);
     }
 
-    FUN_004211d0(param_1, obj, inner);
+    DrawExplodedPieceFaces(param_1, obj, inner);
     return 1;
 }

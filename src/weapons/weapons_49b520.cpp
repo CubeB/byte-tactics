@@ -47,7 +47,7 @@ union Fixed_0049b520 {
 short __cdecl FUN_004b715a(int x, int z);
 
 // FUNCTION: 0x49b520
-int __stdcall FUN_0049b520(Unit_0049b520* unit, Vec3_0049b520* target)
+int __stdcall TurnUnitTowardsPoint(Unit_0049b520* unit, Vec3_0049b520* target)
 {
     UnitType_0049b520* type = unit->type;
     int dx = unit->x - target->x;

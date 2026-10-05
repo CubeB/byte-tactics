@@ -251,8 +251,8 @@ void __stdcall ReceiveUnitStates(Player*, void*);
 void __stdcall ApplyAttachUnit(void*);
 void __stdcall ApplyUnitDamage(void*);
 void __stdcall ApplyUnitDeath(void*, int);
-void __stdcall FUN_0049d270(Player*, void*);
-void __stdcall FUN_0049af90(Player*, void*);
+void __stdcall ApplyWeaponFirePacket(Player*, void*);
+void __stdcall ApplyProjectileHitPacket(Player*, void*);
 void __stdcall FUN_00423550(int, int, int);
 void __stdcall FUN_004233a0(int, int, int);
 int __stdcall FUN_00481550(int, int);
@@ -726,10 +726,10 @@ int HandleNetPackets()
             ApplyUnitDeath(packet, 0);
             break;
         case 13:
-            FUN_0049d270(player, packet);
+            ApplyWeaponFirePacket(player, packet);
             break;
         case 14:
-            FUN_0049af90(player, packet);
+            ApplyProjectileHitPacket(player, packet);
             break;
         case 15:
             switch (packet[1]) {

@@ -1,7 +1,7 @@
 // Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5. Names are provisional.
 //
 // Firing a projectile: take the next free slot of the 300-entry projectile
-// array, initialise it through FUN_0049c740, aim it (the two 16.16 fixed point
+// array, initialise it through InitProjectile, aim it (the two 16.16 fixed point
 // angles and the horizontal distance), take the shot's launch angle, derive
 // two offsets with the fixed point sine/cosine helpers, schedule the impact
 // time with the 0x49c920 helper, then play the firing and "RockUnit" sounds
@@ -131,13 +131,13 @@ int __cdecl FUN_004b715a(int x, int z);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(unsigned short angle, int scale);
 
-void __stdcall FUN_0049c740(Proj_0049c9c0* proj, Shot_0049c9c0* shot,
+void __stdcall InitProjectile(Proj_0049c9c0* proj, Shot_0049c9c0* shot,
                            Vec3_0049c9c0* pos, Vec3_0049c9c0* aim, int frame,
                            Unit* unit);
 void __stdcall FUN_004729d0(Vec3_0049c9c0* p, short index);
 
 // FUNCTION: 0x49c9c0
-int __stdcall FUN_0049c9c0(Fire_0049c9c0* fire, Unit* unit,
+int __stdcall FireLineOfSightProjectile(Fire_0049c9c0* fire, Unit* unit,
                            Vec3_0049c9c0* p3, Vec3_0049c9c0* p4, int param_5)
 {
     Proj_0049c9c0* proj = 0;
@@ -151,7 +151,7 @@ int __stdcall FUN_0049c9c0(Fire_0049c9c0* fire, Unit* unit,
     if (!proj)
         return 0;
 
-    FUN_0049c740(proj, fire->shot, p3, p4, g_game->frame, unit);
+    InitProjectile(proj, fire->shot, p3, p4, g_game->frame, unit);
 
     int dx = p3->x - p4->x;
     union { int value; short halves[2]; } dy;

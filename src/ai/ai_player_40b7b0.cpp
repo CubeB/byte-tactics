@@ -13,7 +13,7 @@ struct Game { char pad[0x37f30]; unsigned char flags; };
 extern Game* g_game;
 class Class_004800c0 { public: void FUN_004800c0(Unit**); };
 int __stdcall FUN_0049adf0(Unit*,unsigned char);
-int __stdcall FUN_0049abb0(Unit*,Unit*,unsigned char);
+int __stdcall WeaponCanReachUnit(Unit*,Unit*,unsigned char);
 int __stdcall FUN_004b6c30(int);
 void __stdcall FUN_0040ad80(int,Vec*,int,int,std::vector<Unit*>*);
 // FUNCTION: 0x40b7b0
@@ -34,7 +34,7 @@ Unit* __stdcall FUN_0040b7b0(Unit* unit,unsigned char weapon,int useRange)
         ((Class_004800c0*)&candidates)->FUN_004800c0(it);
         if((target->flags&0x10000000) && !(target->flags&0x4000) &&
            ((target->def->flags&0x8000) || ai || (g_game->flags&4)) &&
-           ((unit->def->flags&0x10000000) || FUN_0049abb0(unit,target,weapon)) &&
+           ((unit->def->flags&0x10000000) || WeaponCanReachUnit(unit,target,weapon)) &&
            (useRange || !unit->def->exclude.Test(target->id)) &&
            (!(unit->weapons[weapon].weapon->flags&0x80) || !(target->status&0x10))) {
             int dz=unit->pos.z-target->pos.z;

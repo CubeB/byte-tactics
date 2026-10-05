@@ -114,7 +114,7 @@ extern void* DAT_004fd6f0[];
 
 void __stdcall InitUnitFromType(Unit* unit, Pos_00485f50 pos, int param_5);
 void __stdcall InitUnitScript(Unit* unit);
-void __stdcall FUN_0049e070(Unit* unit);
+void __stdcall InitUnitWeaponSlots(Unit* unit);
 void __stdcall UpdateMetalExtraction(Unit* unit);
 void __stdcall UpdateUnitHeight(Unit* unit);
 void __stdcall FUN_0047cc30(Unit* unit);
@@ -137,7 +137,7 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
     unit->field_a6 = unitType;
     InitUnitFromType(unit, pos, param_5);
     InitUnitScript(unit);
-    FUN_0049e070(unit);
+    InitUnitWeaponSlots(unit);
     UpdateMetalExtraction(unit);
     if (type->field_22f == 1) {
         unit->obj = new UnitMotion(unit);

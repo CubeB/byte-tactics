@@ -88,7 +88,7 @@ void __stdcall GetWeaponPiecePosition(Unit*, Vec3_0049e070*, unsigned char, int)
 void __stdcall GetAimFromPosition(Unit*, Vec3_0049e070*, unsigned char);
 
 // FUNCTION: 0x49e070
-void __stdcall FUN_0049e070(Unit* unit)
+void __stdcall InitUnitWeaponSlots(Unit* unit)
 {
     Frame_0049e070 frame = {0, 0};
     for (frame.i = 0; frame.i < 3; frame.i++) {

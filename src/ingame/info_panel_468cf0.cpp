@@ -50,7 +50,7 @@ unsigned long GetMilliseconds();
 int __stdcall FormatNetStats(int);
 int __stdcall FUN_00417f30(int,int);
 int __stdcall FUN_00418310(int);
-int __stdcall FUN_00420b00(int);
+int __stdcall DrawExplosions(int);
 struct Class_00435100 { int FUN_00435100(); };
 int __stdcall DrawUnit(int,int);
 int __stdcall FUN_0045ffb0(int);
@@ -76,7 +76,7 @@ int __stdcall FUN_004848e0(int);
 int __stdcall FUN_0048c190(int,int);
 int __stdcall FUN_0048cc30(int,int);
 int __stdcall FUN_004948e0(int);
-int __stdcall FUN_0049be60(int);
+int __stdcall DrawProjectiles(int);
 int __stdcall FUN_004ab170(int,int,int);
 int GetFrameRate();
 int GetScreenHeight();
@@ -427,8 +427,8 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   DrawParticleList((int)&ctx, 5);
   if (param_1 != 0) {
     DrawParticleList((int)&ctx, 6);
-    FUN_0049be60((int)&ctx);
-    FUN_00420b00((int)&ctx);
+    DrawProjectiles((int)&ctx);
+    DrawExplosions((int)&ctx);
     DrawParticleList((int)&ctx, 7);
     for (i = 0; i < mv->rows; i++) {
       int *pUnit = mv->buf + mv->stride * i;

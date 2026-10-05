@@ -49,7 +49,7 @@ Cell_004239c0* __stdcall FUN_00481550(int x, int y);
 int __stdcall FUN_004b6c30(int range);
 void __stdcall FUN_004233a0(int x, int z, int flag);
 int __stdcall GetGroundHeight(Vec3_004239c0* pos);
-void __stdcall FUN_0049a0c0(void* owner, Vec3_004239c0* pos);
+void __stdcall ApplyAreaDamageAt(void* owner, Vec3_004239c0* pos);
 
 // Inlined copy of FUN_00421eb0: the 16.16 world position of the centre of a
 // feature footprint whose corner is at map cell `cell`.
@@ -77,7 +77,7 @@ union Coord_004239c0 {
 // A burning feature at `cell` sets fire (FUN_004233a0) to flammable features
 // within 3 cells, then to up to five cells downwind (the wind vector at
 // +0x37ecc/+0x37ed4 times 2.0 in 16.16), and leaves its burnt remains
-// (FUN_0049a0c0) at its centre.
+// (ApplyAreaDamageAt) at its centre.
 // The flag bits at +0xfe are an unsigned short bitfield: an unsigned char one
 // gives `test byte ptr` instead of the original's `mov cl; shr cl, 4`, and the
 // flag test must be its own `if` rather than part of the `&&` chain. pz must
@@ -125,6 +125,6 @@ void __stdcall FUN_004239c0(Feature_004239c0* f, Point16_004239c0* cell)
     }
     if (f->burnt) {
         Vec3_004239c0 pos = FootprintCentre_00421eb0(cell, f);
-        FUN_0049a0c0(f->burnt, &pos);
+        ApplyAreaDamageAt(f->burnt, &pos);
     }
 }

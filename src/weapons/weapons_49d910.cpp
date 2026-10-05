@@ -33,7 +33,7 @@ void __stdcall GetAimFromPosition(Unit* obj, Vec3* out, unsigned char weapon);
 int __cdecl FUN_004b715a(int x, int z);
 
 // FUNCTION: 0x49d910
-int __stdcall FUN_0049d910(Unit* unit, Unit* target, short* out_heading, short* out_pitch, int weapon, Vec3* point)
+int __stdcall CalcAimAngles(Unit* unit, Unit* target, short* out_heading, short* out_pitch, int weapon, Vec3* point)
 {
     Vec3 p;
     GetAimFromPosition(unit, &p, weapon);

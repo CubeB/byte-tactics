@@ -51,7 +51,7 @@ struct Order {
     }
 };
 #pragma pack(pop)
-int __stdcall FUN_0049abb0(Unit*, Unit*, int);
+int __stdcall WeaponCanReachUnit(Unit*, Unit*, int);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 int __stdcall FUN_0049adf0(Unit*, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
@@ -79,7 +79,7 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
     case 1:
         ((Class_004388d0*)order)->FUN_004388d0(0);
         if (flags & 0x3000) return 1;
-        if (!FUN_0049abb0(unit, order->target, weapon)) return 1;
+        if (!WeaponCanReachUnit(unit, order->target, weapon)) return 1;
         ((Class_004898b0*)unit)->ClaimWeapons(0);
         ((Class_004898b0*)unit)->ClaimWeapons(2);
         SetWeaponTargetUnit(unit, order->target, weapon);
@@ -124,7 +124,7 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
         return 1;
     case 3:
         if (flags & 0x40e0) { order->state = 1; return 4; }
-        if (FUN_0049abb0(unit, order->target, weapon)) {
+        if (WeaponCanReachUnit(unit, order->target, weapon)) {
             ((Class_004898b0*)unit)->ClaimWeapons(0);
             ((Class_004898b0*)unit)->ClaimWeapons(2);
             SetWeaponTargetUnit(unit, order->target, weapon);

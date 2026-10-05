@@ -101,7 +101,7 @@ static inline int* Find_00499cd0(Table_00499cd0* table, char* name)
 }
 
 // FUNCTION: 0x499cd0
-int __stdcall FUN_00499cd0(Weapon_00499cd0* weapon, Unit* target,
+int __stdcall ApplyWeaponDamage(Weapon_00499cd0* weapon, Unit* target,
                            float scale)
 {
     Def_00499cd0* def = weapon->def;

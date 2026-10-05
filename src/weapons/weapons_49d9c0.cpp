@@ -90,13 +90,13 @@ extern Game* g_game;
 
 void __stdcall GetWeaponPiecePosition(Unit* obj, Vec3* out, unsigned char weapon, int piece);
 int __cdecl FUN_004b715a(int x, int z);
-int __stdcall FUN_0049d880(Unit* unit, Aim_0049d9c0* aim, short angle1, short angle2);
-int __stdcall FUN_0049c9c0(Aim_0049d9c0* aim, Unit* unit, Vec3* aimPos,
+int __stdcall AimWithinTolerance(Unit* unit, Aim_0049d9c0* aim, short angle1, short angle2);
+int __stdcall FireLineOfSightProjectile(Aim_0049d9c0* aim, Unit* unit, Vec3* aimPos,
                            Vec3* point, Unit* target);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x49d9c0
-int __stdcall FUN_0049d9c0(Unit* unit, Aim_0049d9c0* aim,
+int __stdcall FireLineOfSightWeapon(Unit* unit, Aim_0049d9c0* aim,
                            Unit* target, Vec3* point)
 {
     Vec3 p;
@@ -108,8 +108,8 @@ int __stdcall FUN_0049d9c0(Unit* unit, Aim_0049d9c0* aim,
     aim->field_16 = (short)FUN_004b715a(dx, dz);
     aim->field_18 = (short)FUN_004b715a(-dy.whole,
                                        (short)((int)_hypot((double)dx, (double)dz) >> 16));
-    if (FUN_0049d880(unit, aim, unit->heading, unit->pitch)) {
-        if (FUN_0049c9c0(aim, unit, &p, point, target)) {
+    if (AimWithinTolerance(unit, aim, unit->heading, unit->pitch)) {
+        if (FireLineOfSightProjectile(aim, unit, &p, point, target)) {
             if (g_game->flags & 1) {
                 Packet_0049d9c0 msg;
                 msg.type = 0xd;

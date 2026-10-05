@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1, finished by xiaomi/mimo-v2.6-pro, finished by fledge-alpha-free, finished by Claude Opus 5.5, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 // Breaks a unit piece into debris: for each quad face of the piece, takes a
-// free debris slot and a free 3D object (FUN_00420920, inlined), gives it a
+// free debris slot and a free 3D object (AllocExplodePieceObject, inlined), gives it a
 // random velocity and spin, copies the face's four vertices into the object
 // (twice, as a box), pushes the back four out along the face normal by
 // param->scale, centres the box on its own origin and copies the face's
@@ -167,7 +167,7 @@ Vec3f_00421700 __stdcall FUN_004b6ff0(Vec3f_00421700 v);
 int __stdcall GetGafFrame(unsigned short* list, int index);
 
 #define FIX2F(x) (((float)(x)) / 65535.0f)
-// FUN_00420920, inlined
+// AllocExplodePieceObject, inlined
 static inline Object3D_00421700* NewObject()
 {
     for (int i = 0; i < 300; i++) {
@@ -180,7 +180,7 @@ static inline Object3D_00421700* NewObject()
 }
 
 // FUNCTION: 0x421700
-void __stdcall FUN_00421700(Header_00421700* param)
+void __stdcall BreakPieceIntoDebris(Header_00421700* param)
 {
     Unit* unit = param->obj;
     Piece_00421700* piece =

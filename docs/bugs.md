@@ -608,7 +608,7 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x420e50** (possible): builds a spawn structure on the stack whose flags
   dword at +0x28 is only partly set. It clears bits 4 and 5 and sets bits 1 to
   3, so bit 0 and bits 6 to 31 keep stack garbage, and the whole structure is
-  then copied into the spawned object (FUN_00421620's inlined `rep movsd`).
+  then copied into the spawned object (StartExplodePiece's inlined `rep movsd`).
   Harmless if nothing reads those bits. Found by DeepSeek V4.1 Flash in #22.
 - **0x43de30** (possible): its chunked read `FUN_004b4c80(buf, 0x23)` is not
   checked, so a short read copies a partly uninitialised record into the unit
@@ -1015,7 +1015,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   Found while checking the other 0x46d6c0 claim in #2132 (Space Bunny Free,
   CubeB), which did not hold.
 - **0x481140** (`UnitScript::ExplodePiece`, possible): builds the debris
-  record for FUN_00421620 on the stack and updates its flags dword at +0x28
+  record for StartExplodePiece on the stack and updates its flags dword at +0x28
   with read-modify-writes (`h.bits & ~0x30` and the four merges after it)
   that are never preceded by a plain store, so bits 6 to 31 keep whatever the
   stack held and are copied into the debris object, as in 0x420e50 above. The

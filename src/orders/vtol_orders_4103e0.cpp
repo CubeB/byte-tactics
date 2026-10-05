@@ -60,7 +60,7 @@ void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
 
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
-int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
+int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);

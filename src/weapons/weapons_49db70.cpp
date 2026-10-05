@@ -1,7 +1,7 @@
 // Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash. Names are provisional.
 // Fires a shot from `source` at `aim`: aim the shot (heading and pitch, both
 // 16.16 fixed point), optionally ask the per-player table for a target through
-// FUN_0049d120, then hand everything to FUN_0049cc20. When the game flag
+// FindTargetableProjectile, then hand everything to FireVLaunchProjectile. When the game flag
 // g_game+0x2a44 is set the shot is also packed into a 0x24 byte network
 // packet and sent through BroadcastPacket.
 //
@@ -12,7 +12,7 @@
 //     match).
 //   - `p` is declared uninitialised and set to 0 only in the `else` arm, so the
 //     `xor eax,eax` lands after the flags test instead of before it.
-//   - FUN_0049d120 takes an `unsigned char` index, which is what makes MSVC
+//   - FindTargetableProjectile takes an `unsigned char` index, which is what makes MSVC
 //     compute `(shot->weapon >> 2) & 3` with byte registers (`shr cl, 2`).
 //   - the team fields are written from a reversed ternary, `source == 0 ? 0 :
 //     source->team`; that puts the zero store on the fall-through and branches
@@ -83,15 +83,15 @@ extern Game* g_game;
 
 void __stdcall GetWeaponPiecePosition(Object_0049db70* obj, Vec3_0049db70* out, unsigned char weapon, int piece);
 short __cdecl FUN_004b715a(int a, int b);
-int* __stdcall FUN_0049d120(Object_0049db70* obj, unsigned char weapon);
-int __stdcall FUN_0049cc20(Shot_0049db70* shot, Object_0049db70* source, Vec3_0049db70* pos,
+int* __stdcall FindTargetableProjectile(Object_0049db70* obj, unsigned char weapon);
+int __stdcall FireVLaunchProjectile(Shot_0049db70* shot, Object_0049db70* source, Vec3_0049db70* pos,
                            Vec3_0049db70* aim, Object_0049db70* target, int* param_6);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 double __cdecl _hypot(double x, double y);
 long __cdecl _ftol();
 
 // FUNCTION: 0x49db70
-int __stdcall FUN_0049db70(Object_0049db70* source, Shot_0049db70* shot,
+int __stdcall FireVLaunchWeapon(Object_0049db70* source, Shot_0049db70* shot,
                            Object_0049db70* target, Vec3_0049db70* aim)
 {
     Vec3_0049db70 pos;
@@ -106,13 +106,13 @@ int __stdcall FUN_0049db70(Object_0049db70* source, Shot_0049db70* shot,
         shot->pitch = FUN_004b715a(-(int)dy.halves[1], (short)(dist >> 16));
         int* p;
         if (shot->def->flags.special) {
-            p = FUN_0049d120(source, (shot->weapon >> 2) & 3);
+            p = FindTargetableProjectile(source, (shot->weapon >> 2) & 3);
             if (!p)
                 return 0;
         } else {
             p = 0;
         }
-        if (FUN_0049cc20(shot, source, &pos, aim, target, p)) {
+        if (FireVLaunchProjectile(shot, source, &pos, aim, target, p)) {
             if (g_game->flags & 1) {
                 Packet_0049db70 packet;
                 packet.type = 0xd;

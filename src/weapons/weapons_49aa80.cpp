@@ -138,7 +138,7 @@ struct Game {
 
 extern Game* g_game;
 
-short __stdcall FUN_0049a890(int dx, int dy, int dz, int a, int b);
+short __stdcall SolveLaunchAngle(int dx, int dy, int dz, int a, int b);
 
 // The subtraction of two points is a real by-value operator taking both
 // operands by value and returning the point by value, and the line-of-fire test
@@ -159,11 +159,11 @@ inline Vec3_0049aa80 operator-(Vec3_0049aa80 a, Vec3_0049aa80 b)
 static inline short LineOfFire_0049aa80(Vec3_0049aa80 to, Vec3_0049aa80 from, int s, int f)
 {
     Vec3_0049aa80 d = from - to;
-    return FUN_0049a890(d.x, d.y.value, d.z, s, f);
+    return SolveLaunchAngle(d.x, d.y.value, d.z, s, f);
 }
 
 // FUNCTION: 0x49aa80
-int __stdcall FUN_0049aa80(Unit* a1, Vec3_0049aa80* a2, Vec3_0049aa80* a3, int a4)
+int __stdcall WeaponCanReachPos(Unit* a1, Vec3_0049aa80* a2, Vec3_0049aa80* a3, int a4)
 {
     WeaponDef_0049aa80* wdef = a1->weapons[a4 & 0xff].def;
 

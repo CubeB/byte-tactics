@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // Aim a unit's gun at a point and fire it: work out the two aim angles (a
-// ballistic solve when weapon flag bit 1 is set, FUN_0049d910 when bit 0 is),
+// ballistic solve when weapon flag bit 1 is set, CalcAimAngles when bit 0 is),
 // check them, add a random spread, then fire and tell the network.
 //
 // The last diff was the failure path's `or byte ptr [edi + 0xbb], 0x10`.
@@ -15,9 +15,9 @@
 //  - the spread divisor is f_b8 / 12, not / 3: 0x2aaaaaab with `sar edx, 1` is
 //    the signed magic for 12 (this was the "signed magic for 3" mystery).
 //  - `def` is only used for the two flag tests, speed, pitch and the pointer
-//    passed to FUN_0049d910; the spread reads unit->f_c->f_104 afresh. That
+//    passed to CalcAimAngles; the spread reads unit->f_c->f_104 afresh. That
 //    made def spill to [esp+0x10] as in the original (77.6 to 87.1).
-//  - FUN_0049d910's weapon parameter is an unsigned char (the argument is built
+//  - CalcAimAngles's weapon parameter is an unsigned char (the argument is built
 //    with `shr al, 2; and al, 3` and pushed whole).
 //  - the spread block uses `range >> 1` inline, not a `half` local (89.7 to 93.2).
 //  - the two fire calls take the f_1b group first; heading and pitch are
@@ -120,19 +120,19 @@ extern Game* g_game;
 void __stdcall GetAimFromPosition(Unit* obj, Vec3_0049d580* out, unsigned char weapon);
 void __stdcall GetWeaponPiecePosition(Unit* obj, Vec3_0049d580* out, unsigned char weapon, int piece);
 int __cdecl FUN_004b715a(int x, int z);
-int __stdcall FUN_0049a890(int dx, int dy, int dz, int speed, float pitch);
-int __stdcall FUN_0049d910(Unit* unit, Weapon_0049d580* target, short* out_heading,
+int __stdcall SolveLaunchAngle(int dx, int dy, int dz, int speed, float pitch);
+int __stdcall CalcAimAngles(Unit* unit, Weapon_0049d580* target, short* out_heading,
                            short* out_pitch, unsigned char weapon, Vec3_0049d580* point);
-int __stdcall FUN_0049d880(Unit* unit, Unit* aim, short angle1, short angle2);
-int __stdcall FUN_0049c9c0(Unit* fire, Unit* unit, Vec3_0049d580* p3,
+int __stdcall AimWithinTolerance(Unit* unit, Unit* aim, short angle1, short angle2);
+int __stdcall FireLineOfSightProjectile(Unit* fire, Unit* unit, Vec3_0049d580* p3,
                            Vec3_0049d580* point, Unit* target);
-int __stdcall FUN_0049cde0(Unit* shot, Unit* unit, Vec3_0049d580* pos,
+int __stdcall FireBallisticProjectile(Unit* shot, Unit* unit, Vec3_0049d580* pos,
                            Vec3_0049d580* aim, Unit* target);
 int __stdcall FUN_004b6c30(int range);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x49d580
-int __stdcall FUN_0049d580(Unit* fire, Unit* unit,
+int __stdcall FireTurretWeapon(Unit* fire, Unit* unit,
                            Unit* target, Vec3_0049d580* point)
 {
     if ((unit->f_1b & 1) && unit->f_8) {
@@ -147,10 +147,10 @@ int __stdcall FUN_0049d580(Unit* fire, Unit* unit,
             int dy = p.y - point->y;
             int dz = p.z - point->z;
             heading = FUN_004b715a(dx, dz) - fire->f_66;
-            pitch = FUN_0049a890(dx, dy, dz, def->speed, def->pitch);
+            pitch = SolveLaunchAngle(dx, dy, dz, def->speed, def->pitch);
             ok = (unsigned short)pitch != 0x8000;
         } else if (def->flags.b.f0) {
-            ok = FUN_0049d910(fire, def, (short*)&heading, (short*)&pitch,
+            ok = CalcAimAngles(fire, def, (short*)&heading, (short*)&pitch,
                               unit->f_1b >> 2 & 3, point);
         } else {
             ok = 0;
@@ -160,7 +160,7 @@ int __stdcall FUN_0049d580(Unit* fire, Unit* unit,
             fire->f_bb.f.b12 = 1;
             return 0;
         }
-        if (!FUN_0049d880(fire, unit, heading, pitch)) {
+        if (!AimWithinTolerance(fire, unit, heading, pitch)) {
             unit->f_1b &= 0xfe;
             return 0;
         }
@@ -178,9 +178,9 @@ int __stdcall FUN_0049d580(Unit* fire, Unit* unit,
         }
         int fired = 0;
         if ((unit->f_c->flags.value & 1) || (unit->f_c->flags.value & 0x100000))
-            fired = FUN_0049c9c0(unit, fire, &gunpos, point, target);
+            fired = FireLineOfSightProjectile(unit, fire, &gunpos, point, target);
         else if (unit->f_c->flags.b.f1)
-            fired = FUN_0049cde0(unit, fire, &gunpos, point, target);
+            fired = FireBallisticProjectile(unit, fire, &gunpos, point, target);
         if (!fired)
             return 0;
         unit->f_8 = 0;
@@ -209,12 +209,12 @@ int __stdcall FUN_0049d580(Unit* fire, Unit* unit,
 
 // SUSPECTED ORIGINAL BUG (kept from an earlier pass, still worth reporting):
 // the ballistic path (weapon flag bit 1) stores its heading into argument one's
-// home slot, the shooter's pointer, and that slot is what the call to FUN_0049d880
+// home slot, the shooter's pointer, and that slot is what the call to AimWithinTolerance
 // at 0x49d681 then reads as its angle1 (`mov edx, dword ptr [esp + 0x58]`). The edi
 // register still holds the real shooter pointer, so the first angle checked is the
 // low 16 bits of a pointer. Worse, the third argument, the target unit, is read back
 // at 0x49d745 from that same clobbered slot, so on this path the `target->f_a8` at
-// 0x49d812 and the target handed to FUN_0049c9c0 at 0x49d77d can both be a pointer's
+// 0x49d812 and the target handed to FireLineOfSightProjectile at 0x49d77d can both be a pointer's
 // low half. `test al, 1` at 0x49d58e means the path is only taken when f_1b bit 0 is
 // set, so this is the laser (flags bit 1) aiming path.
 

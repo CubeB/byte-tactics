@@ -28,12 +28,12 @@ struct Weapon_499c70 {
 };
 #pragma pack(pop)
 
-unsigned short __stdcall FUN_00499cd0(Weapon_499c70* weapon, Unit* target, float scale);
+unsigned short __stdcall ApplyWeaponDamage(Weapon_499c70* weapon, Unit* target, float scale);
 
 // FUNCTION: 0x499c70
-void __stdcall FUN_00499c70(Weapon_499c70* weapon, Unit* target)
+void __stdcall ApplyWeaponHit(Weapon_499c70* weapon, Unit* target)
 {
-    unsigned short damage = FUN_00499cd0(weapon, target, 1.0f);
+    unsigned short damage = ApplyWeaponDamage(weapon, target, 1.0f);
     Unit* attacker = weapon->attacker;
     if (attacker) {
         unsigned short a = 0;

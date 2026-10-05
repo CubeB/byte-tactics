@@ -20,7 +20,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x49b6e0
-Projectile_0049b6e0* FUN_0049b6e0()
+Projectile_0049b6e0* AllocProjectile()
 {
     Projectile_0049b6e0* p = 0;
     if (g_game->projectileCount < 300) {

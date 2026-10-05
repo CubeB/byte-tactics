@@ -52,7 +52,7 @@ static inline int SamePos(Vec3_0049d1e0& a, Vec3_0049d1e0& b)
 }
 
 // FUNCTION: 0x49d1e0
-Projectile_0049d1e0* __stdcall FUN_0049d1e0(Event_0049d1e0* ev)
+Projectile_0049d1e0* __stdcall FindRemoteProjectile(Event_0049d1e0* ev)
 {
     if (!ev->flag)
         return 0;

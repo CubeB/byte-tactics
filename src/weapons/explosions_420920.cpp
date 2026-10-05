@@ -17,7 +17,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x420920
-Slot_00420920* FUN_00420920()
+Slot_00420920* AllocExplodePieceObject()
 {
     for (int i = 0; i < 300; i++) {
         if (g_game->slots[i].state == 0xff) {

@@ -22,7 +22,7 @@ class CMemoryCache { public: void InitCache(int); };
 extern CMemoryCache DAT_00511f80;
 extern void* __stdcall BuildLensFrame(int, int, int);
 extern void* __cdecl FUN_004d83b0(const char*, unsigned);
-extern void* __stdcall FUN_00420d20(int);
+extern void* __stdcall BuildExplosionFrame(int);
 inline Explosion* MakeExplosion(int count, int start, int end) {
  Explosion* result = (Explosion*)FUN_004d83b0("CalcedExplosion", 0x28 + count * 8);
  int radius = start;
@@ -30,14 +30,14 @@ inline Explosion* MakeExplosion(int count, int start, int end) {
  result->count = count;
  result->flags = 0;
  for (int i=0; i<count; ++i) {
-  result->frames[i].image = FUN_00420d20(radius);
+  result->frames[i].image = BuildExplosionFrame(radius);
   result->frames[i].duration = 2;
   radius += step;
  }
  return result;
 }
 // FUNCTION: 0x420620
-void FUN_00420620() {
+void InitExplosions() {
  g_game->active = 0;
  g_game->image = BuildLensFrame(22,22,8);
  DAT_00511f90=24; DAT_00511f94=64; DAT_00511f98=8;

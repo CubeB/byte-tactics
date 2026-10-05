@@ -44,7 +44,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x42f3a0
-void FUN_0042f3a0()
+void FreeWeaponTypes()
 {
     int i = 0;
     while (i < 256) {

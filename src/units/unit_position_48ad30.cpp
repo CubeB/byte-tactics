@@ -149,7 +149,7 @@ struct Game {
 
 
 void __stdcall UpdateWindGenerator(Unit* u);
-void __stdcall FUN_0049e1a0(Unit* u);
+void __stdcall UpdateUnitWeapons(Unit* u);
 void __stdcall RunOrders(Unit* u);
 void __stdcall FUN_0043bad0(Unit* u);
 void __stdcall UpdateUnitHeight(Unit* u);
@@ -196,7 +196,7 @@ void __stdcall UpdateAllUnits(void)
                         if (p->f0 != 0) {
                             unsigned char k2 = p->f73;
                             if (k2 == 1 || k2 == 2) {
-                                FUN_0049e1a0(u);
+                                UpdateUnitWeapons(u);
                             }
                         }
                         if (u->f9a != 0) {

@@ -13,17 +13,17 @@ struct Game {
 #pragma pack(pop)
 extern Game* g_game;
 extern void* DAT_00511df0[100];
-extern int __stdcall FUN_00421550(void*, void*);
+extern int __stdcall DrawExplodedPiece(void*, void*);
 extern int __stdcall PointInRect(void*, int, int);
 extern void* __stdcall GetGafSequenceFrame(Handle*);
 extern void __stdcall DrawFrameShadow(void*, void*, int, int);
 extern void __stdcall DrawFrame(void*, void*, int, int);
 extern void __stdcall FUN_0046bae0(void*, Position*, void*, short*);
 // FUNCTION: 0x420b00
-void __stdcall FUN_00420b00(void* surface) {
+void __stdcall DrawExplosions(void* surface) {
  int i;
  for(i=0; i<100; ++i)
-  if(DAT_00511df0[i] && !FUN_00421550(surface,DAT_00511df0[i])) DAT_00511df0[i]=0;
+  if(DAT_00511df0[i] && !DrawExplodedPiece(surface,DAT_00511df0[i])) DAT_00511df0[i]=0;
  Effects* effects=&g_game->effects;
  Effect* d=effects->entries;
  Position pos;

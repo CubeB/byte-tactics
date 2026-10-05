@@ -7,7 +7,7 @@
 // set it reads the player's explored-cell grid (PlayerInfo+0x7c data, +0x80
 // width, +0x84 height), otherwise it calls FUN_00408090.
 // What decided the last 10 points, each measured with check.py:
-//  - FUN_0049b6e0 is defined above this function. With no earlier function in
+//  - AllocProjectile is defined above this function. With no earlier function in
 //    the file, MSVC never cross-jumps kind 0's two line arms (the y-major arm
 //    gets its own copy after the loop, 2308 bytes); with any function before
 //    it, the arms share their tail exactly as in the original (87.5% to
@@ -179,9 +179,9 @@ int __stdcall GetGafFrameCount(void* gaf);
 int __stdcall FUN_00408090(PlayerInfo_0049be60* pi, Vec3_0049be60* pos);
 
 
-// FUN_0049b6e0 (matched in its own file), which comes before this function in
+// AllocProjectile (matched in its own file), which comes before this function in
 // the original file; see the note at the top.
-Proj_0049be60* FUN_0049b6e0()
+Proj_0049be60* AllocProjectile()
 {
     Proj_0049be60* p = 0;
     if (g_game->projectileCount < 300) {
@@ -193,7 +193,7 @@ Proj_0049be60* FUN_0049b6e0()
 }
 
 // FUNCTION: 0x49be60
-void __stdcall FUN_0049be60(void* surface)
+void __stdcall DrawProjectiles(void* surface)
 {
     Type_0049be60* type;
     int fr;

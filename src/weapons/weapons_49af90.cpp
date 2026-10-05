@@ -35,7 +35,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00499eb0(Projectile_0049af90* proj, int flag);
+void __stdcall DetonateProjectile(Projectile_0049af90* proj, int flag);
 
 static inline int SamePos(const Vec3_0049af90& a, const Vec3_0049af90& b)
 {
@@ -43,12 +43,12 @@ static inline int SamePos(const Vec3_0049af90& a, const Vec3_0049af90& b)
 }
 
 // FUNCTION: 0x49af90
-void __stdcall FUN_0049af90(int unused, Packet_0049af90* p)
+void __stdcall ApplyProjectileHitPacket(int unused, Packet_0049af90* p)
 {
     Projectile_0049af90* proj = g_game->projectiles;
     for (int i = 0; i < g_game->projectileCount; i++, proj++) {
         if (SamePos(proj->pos, p->pos) && proj->type->id == p->typeId) {
-            FUN_00499eb0(proj, 0);
+            DetonateProjectile(proj, 0);
             return;
         }
     }

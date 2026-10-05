@@ -92,7 +92,7 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned short __stdcall FUN_00421da0(Vec3* pos, Point16* cell, Point16* size);
+unsigned short __stdcall FindFeatureAtPos(Vec3* pos, Point16* cell, Point16* size);
 void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
 int __stdcall GetGroundHeight(Vec3* pos);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
@@ -123,7 +123,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
 {
     Point16 cell;
     Point16 size;
-    unsigned short index = FUN_00421da0(&order->pos, &cell, &size);
+    unsigned short index = FindFeatureAtPos(&order->pos, &cell, &size);
     if (index == 0xffff) {
         FUN_0047f780(unit, 7, "Reclamation failed");
         return 8;

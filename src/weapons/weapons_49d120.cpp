@@ -75,7 +75,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x49d120
-Proj_0049d120* __stdcall FUN_0049d120(Table_0049d120* table, int index)
+Proj_0049d120* __stdcall FindTargetableProjectile(Table_0049d120* table, int index)
 {
     Entry_0049d120* entry = &table->entries[index & 0xff];
     if (!entry->active)

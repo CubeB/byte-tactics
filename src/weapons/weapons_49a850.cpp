@@ -9,7 +9,7 @@ struct Vec3i_0049a850 {
 };
 
 // FUNCTION: 0x49a850
-int __stdcall FUN_0049a850(Vec3i_0049a850* v)
+int __stdcall VectorLength(Vec3i_0049a850* v)
 {
     double x = v->x;
     double y = v->y;

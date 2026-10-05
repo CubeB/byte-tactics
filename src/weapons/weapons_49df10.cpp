@@ -43,7 +43,7 @@ extern Game* g_game;
 
 int __cdecl GetLocalDpid();
 int __stdcall BroadcastPacket(int player, void* data, int size);
-void __stdcall FUN_0049c740(Proj_0049df10*, void*, void*, int, int, void*);
+void __stdcall InitProjectile(Proj_0049df10*, void*, void*, int, int, void*);
 
 // FUNCTION: 0x49df10
 int __stdcall FUN_0049df10(Unit_0049df10* unit, Vec3_0049df10* a, Vec3_0049df10* b, int flag)
@@ -56,7 +56,7 @@ int __stdcall FUN_0049df10(Unit_0049df10* unit, Vec3_0049df10* a, Vec3_0049df10*
     }
     if (!proj)
         return 0;
-    FUN_0049c740(proj, unit, a, 0, g_game->field_38a47, 0);
+    InitProjectile(proj, unit, a, 0, g_game->field_38a47, 0);
     proj->dir = *b;
     if (flag) {
         // Read into a local first: only then does MSVC hoist the byte load

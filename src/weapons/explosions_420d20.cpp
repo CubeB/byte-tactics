@@ -23,7 +23,7 @@ Class_004b8da0* __stdcall AllocFrame(const char* name, int width, int height);
 // A size x size explosion frame: a noisy, slightly squashed radial gradient
 // from the centre outwards, transparent (0xff) outside the circle.
 // FUNCTION: 0x420d20
-Class_004b8da0* FUN_00420d20(int size)
+Class_004b8da0* BuildExplosionFrame(int size)
 {
     double half = size / 2;
     Class_004b8da0* img = AllocFrame("ExplosionFrame", size, size);

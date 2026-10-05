@@ -15,7 +15,7 @@ extern Game* g_game;
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // FUNCTION: 0x499a30
-void FUN_00499a30(void)
+void AllocWeaponArray(void)
 {
     g_game->field_141f7 = FUN_004d83b0("WEAPON ARRAY", 0x7d64);
     memset(g_game->field_141f7, 0, 0x7d64);

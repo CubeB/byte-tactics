@@ -332,8 +332,8 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
 // GetOrderCursor as in 0x43e490.cpp (the annotated copy). It precedes FUN_0043f0e0 in the
 // original file and is compiled first here for the compiler state it leaves; see the top.
 Cell_0043e490* __stdcall FUN_004815a0(Pos_0043e490* pos);
-int __stdcall FUN_0049aa80(Unit_0043e490* unit, void* slot, Pos_0043e490* pos, int which);
-int __stdcall FUN_0049abb0(Unit_0043e490* unit, Unit_0043e490* target, int which);
+int __stdcall WeaponCanReachPos(Unit_0043e490* unit, void* slot, Pos_0043e490* pos, int which);
+int __stdcall WeaponCanReachUnit(Unit_0043e490* unit, Unit_0043e490* target, int which);
 class Class_00489960 {
   public:
     int CanReclaim(Unit_0043e490* other);
@@ -419,8 +419,8 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             if (unit->moving)
                 return 1;
             if (target)
-                return FUN_0049abb0(unit, target, 0) ? 1 : 3;
-            if (!FUN_0049aa80(unit, unit->f6a, pos, 0) || (node->f111 & 0x20000))
+                return WeaponCanReachUnit(unit, target, 0) ? 1 : 3;
+            if (!WeaponCanReachPos(unit, unit->f6a, pos, 0) || (node->f111 & 0x20000))
                 return 3;
             return 1;
         }

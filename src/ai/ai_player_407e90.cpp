@@ -7,7 +7,7 @@
 // random direction of length 0x140 map units), and when the owner can see or
 // has explored b, keeps b as the new target a if a random roll favours its
 // FUN_0040b1c0 score. Then orders every unit whose def has flag4 set, and
-// that is active or can reach a (FUN_0049aa80), to move to a with the order
+// that is active or can reach a (WeaponCanReachPos), to move to a with the order
 // FUN_0043f0e0 picks.
 //
 // The explored-map test is the inlined player method 0x475470 describes: a
@@ -169,7 +169,7 @@ static inline Vec3_00407d40 Offset(int angle, int distance)
 }
 
 int __stdcall FUN_0040b1c0(int index, Vec3_00407d40* pos, int range);
-int __stdcall FUN_0049aa80(Unit* unit, Vec3_00407d40* from, Vec3_00407d40* to, int flags);
+int __stdcall WeaponCanReachPos(Unit* unit, Vec3_00407d40* from, Vec3_00407d40* to, int flags);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
                                       Unit* target, Vec3_00407d40* pos);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* unit,
@@ -200,7 +200,7 @@ void Class_00407d40::FUN_00407380()
          it != ((Group_00407e90*)field_8)->units.end(); ++it) {
         Unit* u = *it;
         if (u->def->flag4) {
-            if (u->field_0 || FUN_0049aa80(u, &u->pos, &a, 0)) {
+            if (u->field_0 || WeaponCanReachPos(u, &u->pos, &a, 0)) {
                 Class_00438760 kind = FUN_0043f0e0(3, u, 0, &a);
                 if (kind.index)
                     AddOrder(kind, 0, u, 0, &a, 0, 0);

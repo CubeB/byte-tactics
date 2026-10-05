@@ -326,6 +326,7 @@ class Placer:
         self.common_at: dict[str, int] = {}        # communal symbol -> where the original has it
         self.learned: dict[str, int] = {}          # name no object defines -> where the original points
         self.gap_regions: dict[int, object] = {}   # gap region built from source -> its gapcheck.GapObject
+        self.built_regions: set[int] = set()       # gap regions with nothing left to copy
         # Every external name the placed game code refers to -> the addresses the
         # original's code holds there: what each spelling really means.
         self.ref_targets: dict[str, Counter] = defaultdict(Counter)
@@ -745,6 +746,7 @@ def place_gaps(placer: Placer, gaps: dict) -> None:
             if img.src[o] == UNSET and img.pristine[o] in (0x90, 0xCC):
                 img.out[o], img.src[o] = img.pristine[o], PADDING
         placer.gap_regions[region] = gap
+        placer.built_regions.add(region)
         placer.stats["gap regions built from source"] += 1
 
 
@@ -874,6 +876,62 @@ def place_library(placer: Placer) -> None:
                     placer.place(obj, sec, 0, body_size(sec), at, LIBCODE, sym.name)
                     placer.stats["library sections placed inside other rows"] += 1
                     break
+
+
+def import_libraries() -> list[Path]:
+    """The import libraries the original was linked with: the toolchain's,
+    and for the DLLs it imports by ordinal, LIB.EXE's from link/*.def (built
+    once into build/place/)."""
+    from check import winpath
+    from linkcheck import IMPORT_LIBS, LIBDIR
+    import subprocess
+    out = [LIBDIR / f"{name}.LIB" for name in IMPORT_LIBS if (LIBDIR / f"{name}.LIB").exists()]
+    for path in DEF_FILES:
+        lib = OUT_DIR / f"{path.stem.upper()}.LIB"
+        if not lib.exists() or lib.stat().st_mtime < path.stat().st_mtime:
+            lib.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run([str(ROOT / "tools/wlib"), f"/def:{winpath(path)}", f"/out:{winpath(lib)}"],
+                           capture_output=True, text=True, cwd=ROOT)
+        if lib.exists():
+            out.append(lib)
+    return out
+
+
+def place_import_thunks(placer: Placer) -> None:
+    """The linker's `jmp [slot]` stubs for calls to imports declared without
+    __declspec(dllimport). They are the .text of the import libraries'
+    members, and the original keeps a run of them in the gap row 0x49f710:
+    each member goes where the original has its stub."""
+    by_name: dict[str, tuple[Obj, Sec]] = {}
+    for lib in import_libraries():
+        for member in read_library(lib):
+            for sec in member.secs:
+                if not (sec.is_code and sec.data[:2] == b"\xff\x25" and len(sec.relocs) == 1):
+                    continue
+                target = member.syms[sec.relocs[0][1]].name
+                if target.startswith("__imp_"):
+                    by_name.setdefault(undecorate(target[len("__imp_"):]), (member, sec))
+    gaps = [(int(r["address"], 16), int(r["size"])) for r in load_rows(FUNCTIONS) if r["kind"] == "gap"]
+    for name, addr in sorted(placer.thunks.items(), key=lambda kv: kv[1]):
+        if not any(a <= addr < a + n for a, n in gaps) or not placer.img.free(addr) or name not in by_name:
+            continue
+        member, sec = by_name[name]
+        member = parse(member.path, member.raw, library=True)     # each placed once
+        # The slot is the original's import address table entry, which stays
+        # the linker's: the member's own .idata sections are not placed.
+        imp = member.syms[sec.relocs[0][1]]
+        imp.section, imp.value = 0, 0
+        placer.objects.append(member)
+        placer.place(member, member.secs[sec.index - 1], 0, len(sec.data), addr, LIBCODE,
+                     f"{name} (import thunk)")
+        placer.stats["import thunks placed from the import libraries"] += 1
+    for addr, size in gaps:
+        if all(not placer.img.free(a) for a in range(addr, addr + size)):
+            placer.built_regions.add(addr)
+            img = placer.img
+            for o in range(addr + size - img.base, ((addr + size + 15) & ~15) - img.base):
+                if img.src[o] == UNSET and img.pristine[o] in (0x90, 0xCC):
+                    img.out[o], img.src[o] = img.pristine[o], PADDING
 
 
 def library_names(placer: Placer) -> None:
@@ -1018,6 +1076,7 @@ def layout(jobs: int | None = None) -> tuple[Image, Placer]:
     place_functions(placer, by_src)
     place_gaps(placer, gap_objects())
     place_library(placer)
+    place_import_thunks(placer)
     data_objs, data_addr = build_data(symbols)
     place_globals(placer, data_objs, data_addr)
     placer.relocate()

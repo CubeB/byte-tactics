@@ -240,6 +240,9 @@ How it places things:
   the objects in `build/progress` that `tools/check.py` compares. Each
   object's COMDAT padding fills the space up to the next function, as LINK's
   would.
+- **The linker's import thunks** (`jmp [slot]`, for calls to imports declared
+  without `__declspec(dllimport)`) are the `.text` of the import libraries'
+  members, each placed where the original has its stub.
 - **Gap regions with matching source** (`src/gap/`, see below) are placed
   function by function from the objects `tools/gapcheck.py` checks, and
   counted as gap code. The padding between their functions is the
@@ -470,8 +473,10 @@ opens with `push ebp / mov ebp, esp`, and they fall into a few kinds:
   one another with no alignment, int3 padding from the linker after them).
 - **The linker's import thunks** at 0x49f710: 70 `jmp [__imp_X]` stubs, the
   `.text` of the import libraries' members for the APIs the game calls
-  directly. These are library code rather than source: the import libraries
-  in the toolchain hold the same 6-byte thunks.
+  directly. These are library code rather than source, so `tools/place.py`
+  places each one from its import library member (the toolchain's, and
+  LIB.EXE's from `link/*.def` for the DLLs imported by ordinal), and
+  `tools/carve.py` no longer carves the row.
 
 A region's source is `src/gap/<address>.cpp`, one file per region, and
 `uv run tools/gapcheck.py <address>` checks it:
@@ -528,7 +533,7 @@ compares the gap functions' references too.
 | 0x49a120 | 1,829 | aligned frame | |
 | 0x49e680 | 106 | `__try`/`__except`, inline `div`: a deliberate fault to report a message | matches |
 | 0x49eda0 | 1,942 | WinMain (`__try`/`__except`); command line (`try`/`catch`, `_alloca`) | |
-| 0x49f710 | 419 | the linker's import thunks | |
+| 0x49f710 | 419 | the linker's import thunks | placed from the import libraries |
 | 0x4b70a0 | 772 | hand-written: fixed-point trigonometry, 10 entry points | matches |
 | 0x4bb4e0 | 198 | `_alloca` | |
 | 0x4bc800 | 197 | `_alloca`: the archive directory a path ends in | matches |

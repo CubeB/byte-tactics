@@ -204,7 +204,9 @@ class Namer:
             sizes[addr] = size
             if row["kind"] == "gap":
                 self.regions.append((addr, size))
-                if addr not in placer.gap_regions:      # built from its source: named by its object
+                # Built from its source or from library members (the import
+                # thunks): named by the objects placed there.
+                if addr not in placer.built_regions:
                     self.gaps.append((addr, size))
                     self.spans.append((addr, addr + size, gap_symbol(addr)))
         for p in placer.pieces:

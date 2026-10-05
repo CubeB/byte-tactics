@@ -13,9 +13,9 @@ struct Rect_004ab5d0;
 extern void __stdcall AdvanceGafSequence(Ref_004ab5d0* ref, int step);
 extern int __stdcall GetGafSequenceFrame(Ref_004ab5d0* ref);
 extern void __stdcall FUN_004c2b20(int handle);
-extern int __stdcall FUN_004c2de0(Event_004ab5d0* out);
+extern int __stdcall PeekMouseEvent(Event_004ab5d0* out);
 extern void __stdcall FUN_004c2340(Event_004ab5d0* out);
-extern void __stdcall FUN_004c2d60(Event_004ab5d0* out);
+extern void __stdcall PopMouseEvent(Event_004ab5d0* out);
 extern void __stdcall FUN_004a1680(char* table, int index, Rect_004ab5d0* out);
 extern int __stdcall FUN_004a1920(Rect_004ab5d0* r, int px, int py);
 
@@ -74,12 +74,12 @@ void __stdcall FUN_004ab5d0(Class_004ab5d0* p)
     }
 
     Event_004ab5d0 e;
-    if (FUN_004c2de0(&e) != 0) {
+    if (PeekMouseEvent(&e) != 0) {
         if (p->sub != 0) {
             Rect_004ab5d0 r;
             FUN_004a1680(p->sub->table, 0, &r);
             if (FUN_004a1920(&r, e.data[0], e.data[1]) != 0 || e.data[2] == 0) {
-                FUN_004c2d60(&e);
+                PopMouseEvent(&e);
                 p->field_54 = e.data[2];
                 p->event = e;
             }

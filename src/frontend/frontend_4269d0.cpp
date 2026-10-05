@@ -58,10 +58,10 @@ extern int DAT_00512288;
 int FUN_00428bc0(void);
 void __stdcall FUN_00434ab0(int param);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 int GetTicks(void);
 void __stdcall FUN_004bcec0(char* dest);
-int FUN_004c1ab0(void);
+int PopKey(void);
 
 // FUNCTION: 0x4269d0
 void FUN_004269d0(void)
@@ -70,7 +70,7 @@ void FUN_004269d0(void)
     char buf[256];
     char path[256];
 
-    int event = FUN_004c1ab0();
+    int event = PopKey();
     switch (event) {
     case 'A':
     case 'a':
@@ -117,13 +117,13 @@ void FUN_004269d0(void)
         if (FUN_00428bc0()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     938, "c:\\cavedog\\wargame\\frontend.cpp");
-            FUN_004abd90((char*)g_game + 0x519, buf, 500, 1, 1);
+            OpenMessageBox((char*)g_game + 0x519, buf, 500, 1, 1);
         }
         g_game->field_2bbe = 2;
         if (FUN_00428bc0()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     155, "c:\\cavedog\\wargame\\frontend.cpp");
-            FUN_004abd90((char*)g_game + 0x519, buf, 500, 1, 1);
+            OpenMessageBox((char*)g_game + 0x519, buf, 500, 1, 1);
         }
         g_game->field_2bbf = 0;
         g_game->field_2bc0 = 0;

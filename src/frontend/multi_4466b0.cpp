@@ -6,10 +6,10 @@
 struct Class_004a1080;
 struct Class_0049fa90;
 
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_0049fa90(Class_0049fa90* obj);
 void __stdcall FUN_0049fb10(Class_0049fa90* obj, int value);
-void __stdcall FUN_004a81e0(Class_0049fa90* obj, int value);
+void __stdcall RenderLayer(Class_0049fa90* obj, int value);
 void __stdcall FUN_00447380(int value);
 void __stdcall FUN_004464d0(void* gadget);
 
@@ -47,7 +47,7 @@ struct Gadget_004466b0 {
 
 extern Game* g_game;
 
-Gadget_004466b0* __stdcall FUN_004aa8f0(char* sub, const char* name, int flags);
+Gadget_004466b0* __stdcall LoadGuiLayer(char* sub, const char* name, int flags);
 
 // FUNCTION: 0x4466b0
 void FUN_004466b0()
@@ -56,14 +56,14 @@ void FUN_004466b0()
     if (info->bit6) {
         return;
     }
-    Gadget_004466b0* gadget = FUN_004aa8f0(g_game->gui, "CONTROL.GUI", 0x800);
+    Gadget_004466b0* gadget = LoadGuiLayer(g_game->gui, "CONTROL.GUI", 0x800);
     gadget->handler = FUN_004464d0;
     gadget->field_c = (int)g_game;
     FUN_00447380(1);
     info = g_game->players[g_game->localPlayer].info;
-    FUN_004a1080((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
-    FUN_004a1080((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
     FUN_0049fa90((Class_0049fa90*)g_game->gui);
     FUN_0049fb10((Class_0049fa90*)g_game->gui, 1);
-    FUN_004a81e0((Class_0049fa90*)g_game->gui, 0x40);
+    RenderLayer((Class_0049fa90*)g_game->gui, 0x40);
 }

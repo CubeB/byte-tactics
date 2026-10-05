@@ -3,7 +3,7 @@
 // The GUI layer's command handler, called by 0x4a9fd0 with a decoded key/command
 // in `cmd`. It looks up the layer's currently selected gadget (layer->current,
 // layer->entries) and switches on the command:
-//   9     toggle a checkbox-ish gadget (FUN_004c1b80(0xf9))
+//   9     toggle a checkbox-ish gadget (IsKeyDown(0xf9))
 //   0x1b  make the gadget whose stored name matches entries[0].choice2 current
 //   0xd   same for entries[0].choice, then fall through into 0x20
 //   0x20  activate the selected gadget (types 1, 2, 6); type 1 also cycles its
@@ -83,14 +83,14 @@ struct Entry_004a9b90 {                // 0x15b bytes
 #pragma pack(pop)
 
 void __stdcall FUN_004a0340(Object_004a9b90* obj, int index);
-void __stdcall FUN_004a5f40(Object_004a9b90* obj, int index);
+void __stdcall DrawButton(Object_004a9b90* obj, int index);
 void __stdcall FUN_004a7960(Object_004a9b90* obj, int value);
-void __stdcall FUN_004a96d0(Object_004a9b90* obj, int index);
-void __stdcall FUN_004a9780(Object_004a9b90* obj, int index);
+void __stdcall DecrementKnobPos(Object_004a9b90* obj, int index);
+void __stdcall IncrementKnobPos(Object_004a9b90* obj, int index);
 void __stdcall FUN_004a9830(Object_004a9b90* obj, int index);
 void __stdcall FUN_004a99c0(Object_004a9b90* obj, int index);
-void FUN_004c1ab0();
-int __stdcall FUN_004c1b80(int id);
+void PopKey();
+int __stdcall IsKeyDown(int id);
 
 static inline int FindEntry_004a9b90(Entry_004a9b90* entries, char* name)
 {
@@ -103,7 +103,7 @@ static inline int FindEntry_004a9b90(Entry_004a9b90* entries, char* name)
 }
 
 // FUNCTION: 0x4a9b90
-int __stdcall FUN_004a9b90(Object_004a9b90* obj, int cmd)
+int __stdcall HandleGuiCommand(Object_004a9b90* obj, int cmd)
 {
     int newsel = -1;
     int index = obj->data->field_20;
@@ -113,7 +113,7 @@ int __stdcall FUN_004a9b90(Object_004a9b90* obj, int cmd)
 
     switch (cmd) {
     case 9:
-        if (FUN_004c1b80(0xf9))
+        if (IsKeyDown(0xf9))
             FUN_004a7960(obj, 0);
         else
             FUN_004a7960(obj, 1);
@@ -156,7 +156,7 @@ int __stdcall FUN_004a9b90(Object_004a9b90* obj, int cmd)
             if (e->flags & 0x10) {
                 e->field_138 = 1;
                 FUN_004a0340(obj, index);
-                FUN_004a5f40(obj, index);
+                DrawButton(obj, index);
             }
         }
         if (type == 1 && e->field_136 != 0) {
@@ -181,7 +181,7 @@ int __stdcall FUN_004a9b90(Object_004a9b90* obj, int cmd)
         if (type == 3)
             break;
         if (type == 4 && e->field_17 > e->field_19)
-            FUN_004a96d0(obj, index);
+            DecrementKnobPos(obj, index);
         else
             FUN_004a7960(obj, 0);
         obj->changed = 1;
@@ -202,7 +202,7 @@ int __stdcall FUN_004a9b90(Object_004a9b90* obj, int cmd)
         if (type == 3)
             break;
         if (type == 4 && e->field_17 > e->field_19)
-            FUN_004a9780(obj, index);
+            IncrementKnobPos(obj, index);
         else
             FUN_004a7960(obj, 1);
         obj->changed = 1;
@@ -210,7 +210,7 @@ int __stdcall FUN_004a9b90(Object_004a9b90* obj, int cmd)
         break;
     }
     if (cmd == 0 && obj->data->field_18 == 0)
-        FUN_004c1ab0();
+        PopKey();
     if (newsel != -1) {
         obj->field_60 = newsel;
         obj->changed = 1;

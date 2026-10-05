@@ -45,8 +45,8 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_004a0570(Menu_0041f400* menu, char* name, int value);
-int __stdcall FUN_0049fdf0(Entry_0041f400* entries, char* name, int type);
-void __stdcall FUN_004a76b0(Menu_0041f400* menu, char* name);
+int __stdcall FindGadgetIndex(Entry_0041f400* entries, char* name, int type);
+void __stdcall SelectGadgetByName(Menu_0041f400* menu, char* name);
 void __stdcall FUN_0049fad0(Menu_0041f400* menu);
 void __stdcall FUN_0049fa90(Menu_0041f400* menu);
 
@@ -75,12 +75,12 @@ void FUN_0041f400()
         FUN_004a0570(&g_game->menu, "Difficulty", 1);
         FUN_004a0570(&g_game->menu, "AdjustDiff", 1);
         FUN_004a0570(&g_game->menu, "MainMenu", 1);
-        FUN_004a76b0(&g_game->menu, "Missions");
+        SelectGadgetByName(&g_game->menu, "Missions");
     } else {
         FUN_004a0570(&g_game->menu, "MainMenu", 1);
         Entry_0041f400* entries = g_game->menu.layer->entries;
-        entries[FUN_0049fdf0(entries, "MainMenu", 1)].field_15 = 0x1a0;
-        FUN_004a76b0(&g_game->menu, "MainMenu");
+        entries[FindGadgetIndex(entries, "MainMenu", 1)].field_15 = 0x1a0;
+        SelectGadgetByName(&g_game->menu, "MainMenu");
     }
     FUN_0049fad0(&g_game->menu);
     FUN_0049fa90(&g_game->menu);

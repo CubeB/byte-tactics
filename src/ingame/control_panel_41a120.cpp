@@ -59,10 +59,10 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fe60(int value, char* name);
+int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 // 0x4a11c0.cpp declares the value `short`; here it must be `int`, or the
 // bitfield reads are narrowed (`shr cl, 3`) and every register changes.
-void __stdcall FUN_004a11c0(Menu_0041a120* menu, int index, int value);
+void __stdcall SetGadgetStatus(Menu_0041a120* menu, int index, int value);
 void __stdcall FUN_004a1200(Menu_0041a120* menu, int index, int value);
 void __stdcall FUN_004a03f0(Menu_0041a120* menu, int index, char value);
 
@@ -73,119 +73,119 @@ void __stdcall FUN_0041a120(Unit* unit)
     int layer = g_game->menu.layer->value;
     int index;
 
-    index = FUN_0049fe60(layer, "BUILD");
+    index = FindGadgetIndexBySubstring(layer, "BUILD");
     if (index != -1) {
         if (unit && unit->type->field_22e) {
-            FUN_004a11c0(menu, index, unit->buildPage);
+            SetGadgetStatus(menu, index, unit->buildPage);
         } else {
             FUN_004a1200(menu, index, 1);
         }
     }
-    index = FUN_0049fe60(layer, "ORDERS");
+    index = FindGadgetIndexBySubstring(layer, "ORDERS");
     if (index != -1) {
         if (unit && unit->type->field_22e) {
-            FUN_004a11c0(menu, index, !unit->buildPage);
+            SetGadgetStatus(menu, index, !unit->buildPage);
         } else {
             FUN_004a1200(menu, index, 1);
         }
     }
-    index = FUN_0049fe60(layer, "CLOAK");
+    index = FindGadgetIndexBySubstring(layer, "CLOAK");
     if (index != -1) {
         if (g_game->orders.cloak == 3) {
             FUN_004a1200(menu, index, 1);
         } else {
-            FUN_004a11c0(menu, index, g_game->orders.cloak);
+            SetGadgetStatus(menu, index, g_game->orders.cloak);
         }
     }
-    index = FUN_0049fe60(layer, "ONOFF");
+    index = FindGadgetIndexBySubstring(layer, "ONOFF");
     if (index != -1) {
         if (g_game->orders.onOff == 3) {
             FUN_004a1200(menu, index, 1);
         } else {
-            FUN_004a11c0(menu, index, g_game->orders.onOff);
+            SetGadgetStatus(menu, index, g_game->orders.onOff);
         }
     }
-    index = FUN_0049fe60(layer, "MOVEORD");
+    index = FindGadgetIndexBySubstring(layer, "MOVEORD");
     if (index != -1) {
         if (g_game->orders.moveOrder == 4) {
             FUN_004a1200(menu, index, 1);
         } else {
-            FUN_004a11c0(menu, index, g_game->orders.moveOrder);
+            SetGadgetStatus(menu, index, g_game->orders.moveOrder);
         }
     }
-    index = FUN_0049fe60(layer, "FIREORD");
+    index = FindGadgetIndexBySubstring(layer, "FIREORD");
     if (index != -1) {
         if (g_game->orders.fireOrder == 4) {
             FUN_004a1200(menu, index, 1);
         } else {
-            FUN_004a11c0(menu, index, g_game->orders.fireOrder);
+            SetGadgetStatus(menu, index, g_game->orders.fireOrder);
         }
     }
     if (!g_game->orders.canMove) {
-        index = FUN_0049fe60(layer, "MOVE");
+        index = FindGadgetIndexBySubstring(layer, "MOVE");
         if (index != -1) {
             FUN_004a1200(menu, index, 1);
         }
     }
     if (!g_game->orders.canStop) {
-        index = FUN_0049fe60(layer, "STOP");
+        index = FindGadgetIndexBySubstring(layer, "STOP");
         if (index != -1) {
             FUN_004a1200(menu, index, 1);
         }
     }
     if (!g_game->orders.canAttack) {
-        index = FUN_0049fe60(layer, "ATTACK");
+        index = FindGadgetIndexBySubstring(layer, "ATTACK");
         if (index != -1) {
             FUN_004a1200(menu, index, 1);
         }
     }
     if (!g_game->orders.canDefend) {
-        index = FUN_0049fe60(layer, "DEFEND");
+        index = FindGadgetIndexBySubstring(layer, "DEFEND");
         if (index != -1) {
             FUN_004a1200(menu, index, 1);
         }
     }
     if (!g_game->orders.canPatrol) {
-        index = FUN_0049fe60(layer, "PATROL");
+        index = FindGadgetIndexBySubstring(layer, "PATROL");
         if (index != -1) {
             FUN_004a1200(menu, index, 1);
         }
     }
     if (!g_game->orders.canReclaim) {
-        index = FUN_0049fe60(layer, "RECLAIM");
+        index = FindGadgetIndexBySubstring(layer, "RECLAIM");
         if (index != -1) {
             FUN_004a1200(menu, index, 1);
         }
     }
     if (!g_game->orders.canRepair) {
-        index = FUN_0049fe60(layer, "REPAIR");
+        index = FindGadgetIndexBySubstring(layer, "REPAIR");
         if (index != -1) {
             FUN_004a1200(menu, index, 1);
         }
     }
     if (!g_game->orders.canCapture) {
-        index = FUN_0049fe60(layer, "CAPTURE");
+        index = FindGadgetIndexBySubstring(layer, "CAPTURE");
         if (index != -1) {
             FUN_004a1200(menu, index, 1);
         }
     }
     if (!g_game->orders.canLoad) {
-        index = FUN_0049fe60(layer, "LOAD");
+        index = FindGadgetIndexBySubstring(layer, "LOAD");
         if (index != -1) {
             FUN_004a03f0(menu, index, 0);
         }
-        index = FUN_0049fe60(layer, "UNLOAD");
+        index = FindGadgetIndexBySubstring(layer, "UNLOAD");
         if (index != -1) {
             FUN_004a1200(menu, index, 1);
         }
         if (!g_game->orders.canBlast) {
-            index = FUN_0049fe60(layer, "BLAST");
+            index = FindGadgetIndexBySubstring(layer, "BLAST");
             if (index != -1) {
                 FUN_004a1200(menu, index, 1);
             }
         }
     } else {
-        index = FUN_0049fe60(layer, "BLAST");
+        index = FindGadgetIndexBySubstring(layer, "BLAST");
         if (index != -1) {
             FUN_004a03f0(menu, index, 0);
         }

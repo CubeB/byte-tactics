@@ -96,7 +96,7 @@ extern int DAT_00512978;
 extern int DAT_005129b8;
 extern Entry_0044c0d0* DAT_005129b4;
 
-Pic_0044c0d0* __stdcall FUN_0049ff90(void* gadgets, char* name);
+Pic_0044c0d0* __stdcall FindGadgetChecked(void* gadgets, char* name);
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall LoadPcx(char* path, int param_2);
 void __stdcall FrameFromSurface(void* dst, void* src);
@@ -107,7 +107,7 @@ void FUN_0044c0d0()
 {
     Record_0044c0d0 rec;
     char path[256];
-    Pic_0044c0d0* pic = FUN_0049ff90(g_game->menu.inner->gadgets, "PICLIST");
+    Pic_0044c0d0* pic = FindGadgetChecked(g_game->menu.inner->gadgets, "PICLIST");
     if (DAT_00512768 == 0) {
         DAT_0051297c = pic->field_c6;
         DAT_00512978 = DAT_005129b8;

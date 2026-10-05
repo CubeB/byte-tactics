@@ -23,13 +23,13 @@ struct Object_004acbe0 {
     Holder_004acbe0* holder;           // +0x18
 };
 
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 
 // FUNCTION: 0x4acbe0
-int __stdcall FUN_004acbe0(Object_004acbe0* obj, int x, int y)
+int __stdcall GetColorCellAt(Object_004acbe0* obj, int x, int y)
 {
     Gadget_004acbe0* gadgets = obj->holder->gadgets;
-    int index = FUN_0049fdf0(gadgets, "COLS", 6);
+    int index = FindGadgetIndex(gadgets, "COLS", 6);
     Gadget_004acbe0* grid = &gadgets[index];
     int col = (x - gadgets->x - grid->x) / 8;
     int row = (y - gadgets->y - grid->y) / 8;

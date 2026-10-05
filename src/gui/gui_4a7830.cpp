@@ -52,18 +52,18 @@ struct Class_0051fba4 {
     int group;                         // +0x0
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 int GetTextKeyColor();
 void __stdcall SetTextColors(int param_1, int param_2);
 void __stdcall SetFont(int param_1);
-void FUN_004c1a40();
+void ClearKeyQueue();
 int __stdcall FUN_0049fc50(Menu_004a7830* obj, int index);
 void __stdcall FUN_004ab6c0(Menu_004a7830* control, int param_2, char* text,
                             int maxLength, int clear);
 
 // FUNCTION: 0x4a7830
-void __stdcall FUN_004a7830(Menu_004a7830* menu, int index)
+void __stdcall SelectGadgetByIndex(Menu_004a7830* menu, int index)
 {
     Entry_004a7830* first = menu->holder->entries;
     menu->focus = -1;
@@ -87,12 +87,12 @@ void __stdcall FUN_004a7830(Menu_004a7830* menu, int index)
             }
         }
         if (j == entries->data.count + 1) {
-            SetFont(DAT_0051fba4->group);
+            SetFont(g_guiContext->group);
         }
 
         FUN_0049fc50(menu, i);
         menu->holder->field_20 = i;
         FUN_004ab6c0(menu, i, entry->data.text, entry->maxLength, 0);
-        FUN_004c1a40();
+        ClearKeyQueue();
     }
 }

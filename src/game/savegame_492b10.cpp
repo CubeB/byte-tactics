@@ -39,7 +39,7 @@ extern char* DAT_0051f2e4;
 char* __stdcall FUN_004290f0(char* buf, char* dir, char* name, char* ext);
 Class_004b3620* __stdcall FUN_00432520(char* name);
 void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int value, int flag);
-void __stdcall FUN_004af320(char* path, char* list, char* sizes, int mode, int flag, int what);
+void __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int flag, int what);
 char* __stdcall FUN_004b6af0(char* text, int n);
 int __stdcall FUN_004bc930(const char* path, int flag);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
@@ -66,7 +66,7 @@ char* __stdcall FUN_00492b10(int* count)
     DAT_0051f2e4 = (char*)FUN_004d83b0("SAVEGAME DESCS", *count << 6);
     memset(DAT_0051f2e4, 0, *count << 6);
     memset(DAT_0051f2e0, 0, *count << 8);
-    FUN_004af320(buf, DAT_0051f2e0, 0, 0, 0, 1);
+    ScanDirectory(buf, DAT_0051f2e0, 0, 0, 0, 1);
     dp = DAT_0051f2e4;
     found = 0;
     copy = (char*)FUN_004d83b0("SAVEGAME2", *count << 8);

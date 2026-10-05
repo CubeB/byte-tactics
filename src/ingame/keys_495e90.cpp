@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Fable 5.1. Names are provisional.
-// In-game keyboard command dispatcher: FUN_004c1ab0 returns the event (0 means
-// return), FUN_004c1b80(0xf9) the "key down" flag. The switch is value sorted
+// In-game keyboard command dispatcher: PopKey returns the event (0 means
+// return), IsKeyDown(0xf9) the "key down" flag. The switch is value sorted
 // into a 0xf0-byte index table and a 40-entry jump table; the case bodies are
 // written in the original's physical order so the jump table lines up.
 //
@@ -157,14 +157,14 @@ public:
 
 extern Game* g_game;
 
-int FUN_004c1ab0(void);
-int __stdcall FUN_004c1b80(int key);
+int PopKey(void);
+int __stdcall IsKeyDown(int key);
 void FUN_0048bd00(void);
 void __stdcall FUN_00491d70(int param);
-void __stdcall FUN_004a9660(Sub_495e90* gui);
-int __stdcall FUN_0049fe60(int handle, const char* text);
+void __stdcall CloseTopScreen(Sub_495e90* gui);
+int __stdcall FindGadgetIndexBySubstring(int handle, const char* text);
 void __stdcall FUN_004a6a40(Sub_495e90* gui, int handle);
-int __stdcall FUN_004ab060(Sub_495e90* gui, char* name);
+int __stdcall IsScreenNamed(Sub_495e90* gui, char* name);
 void FUN_00430f00(void);
 void __stdcall FUN_0047f1a0(const char* name, int param);
 void FUN_00494050(void);
@@ -209,26 +209,26 @@ void __cdecl operator delete(void* p);
 // FUNCTION: 0x495e90
 void FUN_00495e90(void)
 {
-    int event = FUN_004c1ab0();
+    int event = PopKey();
     if (event == 0)
         return;
 
-    int key = FUN_004c1b80(0xf9);
+    int key = IsKeyDown(0xf9);
 
     switch (event) {
     case 0x1b:
         if (g_game->flags_37ebe.b0) {
             g_game->flags_37ebe.b0 = 0;
-            int r = FUN_004ab060(&g_game->gui, g_game->field_37ea0);
+            int r = IsScreenNamed(&g_game->gui, g_game->field_37ea0);
             if (r == 0) {
                 g_game->field_37e9c = 0;
-                FUN_004a9660(&g_game->gui);
+                CloseTopScreen(&g_game->gui);
             }
         } else {
             if (g_game->field_2cc3 != 1) {
                 g_game->field_2cc3 = 1;
                 g_game->field_2cc6 = g_game->field_2cc6 & 0xdf;
-                int handle = FUN_0049fe60(*(int*)(g_game->field_531 + 4), "STOP");
+                int handle = FindGadgetIndexBySubstring(*(int*)(g_game->field_531 + 4), "STOP");
                 if (handle != -1)
                     FUN_004a6a40(&g_game->gui, handle);
             } else {
@@ -261,14 +261,14 @@ void FUN_00495e90(void)
     case 0x38:
     case 0x39:
         if (g_game->flags_37f06.b8) {
-            if (FUN_004c1b80(0xfb) != 0) {
+            if (IsKeyDown(0xfb) != 0) {
                 FUN_0041c060(event - 0x31);
             } else {
                 FUN_0048d9a0(event - 0x30, key);
                 FUN_0047f1a0("SelectSquad", 0);
             }
         } else {
-            if (FUN_004c1b80(0xfb) != 0) {
+            if (IsKeyDown(0xfb) != 0) {
                 FUN_0048d9a0(event - 0x30, key);
                 FUN_0047f1a0("SelectSquad", 0);
             } else

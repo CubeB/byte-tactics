@@ -3,7 +3,7 @@
 extern int GetDisplay();
 
 // FUNCTION: 0x4c1b00
-int __cdecl FUN_004c1b00()
+int __cdecl PeekKey()
 {
     int obj = GetDisplay();
     int field_16e = *(int*)(obj + 0x16e);

@@ -17,7 +17,7 @@ static inline void WriteTabs(Class_004bbbe0* file, int depth)
 }
 
 // FUNCTION: 0x4acd00
-void __stdcall FUN_004acd00(Class_004bbbe0* file, char* name, int depth)
+void __stdcall WriteSectionHeader(Class_004bbbe0* file, char* name, int depth)
 {
     char line[100];
     sprintf(line, "[%s]", name);

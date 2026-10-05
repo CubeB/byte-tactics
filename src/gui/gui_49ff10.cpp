@@ -22,7 +22,7 @@ static inline int FindEntry(Entry_49ff10* entries, char* name)
 }
 
 // FUNCTION: 0x49ff10
-Entry_49ff10* __stdcall FUN_0049ff10(Entry_49ff10* entries, char* name)
+Entry_49ff10* __stdcall FindGadgetOrNull(Entry_49ff10* entries, char* name)
 {
     int i = FindEntry(entries, name);
     if (i != -1) {

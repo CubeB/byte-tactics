@@ -37,7 +37,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 Gadget_00445e50* __stdcall FUN_004a0200(void* data, char* key);
 void __stdcall FUN_0045b9b0(Gadget_00445e50* gadget, int value);
 void __stdcall FUN_0049fa90(Menu_00445e50* menu);
@@ -47,7 +47,7 @@ void __stdcall FUN_00445e50(char* name, int param_2, int param_3, Callback_00445
 {
     Menu_00445e50* menu = &g_game->menu;
     void* gadgets = menu->holder->gadgets;
-    int index = FUN_0049fdf0(gadgets, name, 0xe);
+    int index = FindGadgetIndex(gadgets, name, 0xe);
     if (index != -1) {
         Gadget_00445e50* gadget = FUN_004a0200(gadgets, name);
         gadget->field_13c = param_2;

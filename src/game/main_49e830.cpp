@@ -191,7 +191,7 @@ void __stdcall ShutdownEnvironment(void* param_1);
 void FUN_00490f80();
 void FUN_00490fe0();
 void FUN_00499890();
-void FUN_004c2cc0();
+void ShutdownMouse();
 void FUN_004916a0();
 int __stdcall FUN_0049ee30(char* param_1, char* param_2);
 void __stdcall FUN_0042f980(const char* param_1, void* param_2, int* param_3);
@@ -321,7 +321,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     }
 
     if (DAT_0051f320.flags.bits.b11) {
-        FUN_004c2cc0();
+        ShutdownMouse();
         FUN_004916a0();
     }
     if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, DAT_005097b0, 0, 0xf003f, &hKey) == 0) {

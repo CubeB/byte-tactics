@@ -63,13 +63,13 @@ extern Game* g_game;
 extern int DAT_00512fe0;
 
 Object_0045d7c0* FUN_0045cfc0();
-void __stdcall FUN_004a81e0(void* obj, int n);
+void __stdcall RenderLayer(void* obj, int n);
 void __cdecl FUN_0045ce80();
-int __stdcall FUN_004aa8f0(void* obj, char* name, int size);
+int __stdcall LoadGuiLayer(void* obj, char* name, int size);
 void __stdcall FUN_004288d0(char* name, int a, int b, int c);
 void __stdcall FUN_0049fa50(void* obj);
-void __stdcall FUN_004a1110(void* obj, char* name, int flag);
-int __stdcall FUN_0049fdf0(void* list, char* name, int flag);
+void __stdcall SetGadgetStatusByName(void* obj, char* name, int flag);
+int __stdcall FindGadgetIndex(void* list, char* name, int flag);
 Entry_0045d7c0* __stdcall FUN_004a0200(Entry_0045d7c0* list, char* name);
 void __cdecl FUN_0045d130();
 void __cdecl FUN_0045c3f0();
@@ -85,19 +85,19 @@ void __stdcall FUN_0045bea0(void* obj, int value);
 void FUN_0045d7c0()
 {
     Object_0045d7c0* obj = FUN_0045cfc0();
-    FUN_004a81e0(g_game->menu, 2);
+    RenderLayer(g_game->menu, 2);
     FUN_0045ce80();
     if (g_game->flag_37ebe & 1) {
-        FUN_004aa8f0(g_game->menu, "MUSICRT.GUI", 0x280);
+        LoadGuiLayer(g_game->menu, "MUSICRT.GUI", 0x280);
     } else {
-        FUN_004aa8f0(g_game->menu, "MUSIC", 0x200);
+        LoadGuiLayer(g_game->menu, "MUSIC", 0x200);
         FUN_004288d0("optmusic4x", 0, 0, 0);
     }
     obj->callback8 = FUN_0045d280;
     FUN_0049fa50(g_game->menu);
     obj->callback1c = FUN_0045d0c0;
-    FUN_004a1110(g_game->menu, "MUSIC", 1);
-    if (FUN_0049fdf0(obj->gadgets, "MUSICVOL", 0xe) != -1) {
+    SetGadgetStatusByName(g_game->menu, "MUSIC", 1);
+    if (FindGadgetIndex(obj->gadgets, "MUSICVOL", 0xe) != -1) {
         Entry_0045d7c0* e = FUN_004a0200(obj->gadgets, "MUSICVOL");
         e->max = 0x40;
         e->callback = FUN_0045bea0;
@@ -119,11 +119,11 @@ void FUN_0045d7c0()
     FUN_0045c3f0();
     Gadget_0045d7c0* gadgets = g_game->holder->gadgets;
     if (g_game->state == 4) {
-        int index = FUN_0049fdf0(gadgets, "TRACKTYPE", 1);
+        int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);
         g_game->sound->FUN_004ce7c0(DAT_00512fe0, gadgets[index].value);
     }
     FUN_0049fa90(g_game->menu);
     FUN_0049fb10(g_game->menu, 1);
     FUN_00428b60();
-    FUN_004a81e0(g_game->menu, 0x40);
+    RenderLayer(g_game->menu, 0x40);
 }

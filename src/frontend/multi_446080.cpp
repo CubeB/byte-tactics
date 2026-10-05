@@ -31,11 +31,11 @@ struct Gadget_00446080 {
 extern Game* g_game;
 extern int DAT_00505510;
 
-Gadget_00446080* __stdcall FUN_004aa8f0(Sub_00446080* sub, const char* name, int flags);
+Gadget_00446080* __stdcall LoadGuiLayer(Sub_00446080* sub, const char* name, int flags);
 void __stdcall FUN_0049fb10(Sub_00446080* sub, int value);
-void __stdcall FUN_0049fdf0(void* entries, const char* name, int type);
+void __stdcall FindGadgetIndex(void* entries, const char* name, int type);
 void __stdcall FUN_004a0bf0(Sub_00446080* sub, const char* name, const char* text, int param_4);
-void __stdcall FUN_004a81e0(Sub_00446080* sub, int value);
+void __stdcall RenderLayer(Sub_00446080* sub, int value);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_00446020(void* gadget);
 
@@ -44,13 +44,13 @@ void __stdcall FUN_00446080(int player)
 {
     char buf[100];
     DAT_00505510 = player;
-    Gadget_00446080* gadget = FUN_004aa8f0(&g_game->sub, "YESORNO.GUI", 0x100);
+    Gadget_00446080* gadget = LoadGuiLayer(&g_game->sub, "YESORNO.GUI", 0x100);
     if (gadget != 0) {
         FUN_0049fb10(&g_game->sub, 1);
         void* entries = gadget->entries;
-        FUN_0049fdf0(entries, "CHOICE1", 1);
-        FUN_0049fdf0(entries, "CHOICE2", 1);
-        FUN_0049fdf0(entries, "TITLE", 5);
+        FindGadgetIndex(entries, "CHOICE1", 1);
+        FindGadgetIndex(entries, "CHOICE2", 1);
+        FindGadgetIndex(entries, "TITLE", 5);
         FUN_004a0bf0(&g_game->sub, "CHOICE1", "Yes", 0);
         FUN_004a0bf0(&g_game->sub, "CHOICE2", "No", 0);
         sprintf(buf, "%s %s?", FUN_004c5740("Reject"),
@@ -59,6 +59,6 @@ void __stdcall FUN_00446080(int player)
         gadget->handler = FUN_00446020;
         gadget->owner = g_game;
         FUN_0049fb10(&g_game->sub, 1);
-        FUN_004a81e0(&g_game->sub, 0x40);
+        RenderLayer(&g_game->sub, 0x40);
     }
 }

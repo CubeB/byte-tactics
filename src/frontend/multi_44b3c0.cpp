@@ -23,9 +23,9 @@ extern char* DAT_005129ac;
 extern char* DAT_005129b0;
 extern char* DAT_005091c8;             // savegame directory
 
-int __stdcall FUN_0049fd60(void* menu, char* name);
+int __stdcall IsCurrentGadgetNamed(void* menu, char* name);
 void __stdcall FUN_0047f1a0(char* name, int flag);
-Gadget_44b3c0* __stdcall FUN_0049ff90(void* gadgets, char* name);
+Gadget_44b3c0* __stdcall FindGadgetChecked(void* gadgets, char* name);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_0044b140(char* path);
 void __stdcall FUN_0044bfd0(void* menu, int flag);
@@ -38,13 +38,13 @@ void __stdcall FUN_0044b3c0(Menu_44b3c0* menu)
     void* gadgets = menu->inner->gadgets;
     if (menu->current == -1)
         return;
-    if (FUN_0049fd60(menu, "CANCEL")) {
+    if (IsCurrentGadgetNamed(menu, "CANCEL")) {
         FUN_0047f1a0("Previous", 0);
         return;
     }
-    if (FUN_0049fd60(menu, "LOAD") || FUN_0049fd60(menu, "GAMES")) {
+    if (IsCurrentGadgetNamed(menu, "LOAD") || IsCurrentGadgetNamed(menu, "GAMES")) {
         FUN_0047f1a0("Options", 0);
-        Gadget_44b3c0* games = FUN_0049ff90(gadgets, "GAMES");
+        Gadget_44b3c0* games = FindGadgetChecked(gadgets, "GAMES");
         sprintf(g_game + 0x38c6b, "%s\\%s", DAT_005091c8,
                 FUN_004b6af0(DAT_005129ac, games->selected));
         FUN_0044b140(g_game + 0x38c6b);

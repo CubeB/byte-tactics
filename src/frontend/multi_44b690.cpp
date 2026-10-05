@@ -49,12 +49,12 @@ extern char DAT_005119b8[];
 extern char* DAT_005129ac;
 extern char* DAT_005129b0;
 
-int __stdcall FUN_0049fd60(Menu_0044b690* menu, char* name);
+int __stdcall IsCurrentGadgetNamed(Menu_0044b690* menu, char* name);
 void __stdcall FUN_0047f1a0(char* name, int flag);
-Gadget_0044b690* __stdcall FUN_0049ff90(Entry_0044b690* entries, char* name);
-int __stdcall FUN_0049fdf0(Entry_0044b690* entries, const char* name, int flag);
+Gadget_0044b690* __stdcall FindGadgetChecked(Entry_0044b690* entries, char* name);
+int __stdcall FindGadgetIndex(Entry_0044b690* entries, const char* name, int flag);
 char* __stdcall FUN_004b6af0(char* text, int n);
-void __stdcall FUN_004a0880(Menu_0044b690* menu, int index, char* text);
+void __stdcall SetGadgetText(Menu_0044b690* menu, int index, char* text);
 void __stdcall FUN_0049fa90(Menu_0044b690* menu);
 void __stdcall FUN_004ab0a0(Menu_0044b690* menu);
 void __stdcall FUN_004ab190(Menu_0044b690* menu, int flag);
@@ -79,13 +79,13 @@ void __stdcall FUN_0044b690(Menu_0044b690* menu)
         g_game->flag_38a51 = 0;
         return;
     }
-    if (FUN_0049fd60(menu, "CANCEL")) {
+    if (IsCurrentGadgetNamed(menu, "CANCEL")) {
         FUN_0047f1a0("Previous", 0);
         return;
     }
-    if (FUN_0049fd60(menu, "DELETE")) {
+    if (IsCurrentGadgetNamed(menu, "DELETE")) {
         FUN_0047f1a0("SMLBUTTON", 0);
-        Gadget_0044b690* games = FUN_0049ff90(entries, "GAMES");
+        Gadget_0044b690* games = FindGadgetChecked(entries, "GAMES");
         char buf[0x100];
         sprintf(buf, "%s\\%s", DAT_005091c8,
                 FUN_004b6af0(DAT_005129ac, games->selected));
@@ -104,22 +104,22 @@ void __stdcall FUN_0044b690(Menu_0044b690* menu)
         FUN_004ab0a0(menu);
         Menu_0044b690* menu2 = &g_game->menu;
         Entry_0044b690* gadgets = g_game->menu.layer->entries;
-        Gadget_0044b690* games2 = FUN_0049ff90(gadgets, "GAMES");
-        int index = FUN_0049fdf0(gadgets, "GAMENAME", 3);
+        Gadget_0044b690* games2 = FindGadgetChecked(gadgets, "GAMES");
+        int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
         char* name;
         if (games2->selected > -1 &&
             (name = FUN_004b6af0(DAT_005129b0, games2->selected)) != 0 &&
             strlen(name) != 0)
-            FUN_004a0880(menu2, index, name);
+            SetGadgetText(menu2, index, name);
         else
-            FUN_004a0880(menu2, index, DAT_005119b8);
+            SetGadgetText(menu2, index, DAT_005119b8);
         FUN_0049fa90(&g_game->menu);
         return;
     }
-    if (FUN_0049fd60(menu, "GAMES") || FUN_0049fd60(menu, "LOAD") ||
-        FUN_0049fd60(menu, "GAMENAME")) {
+    if (IsCurrentGadgetNamed(menu, "GAMES") || IsCurrentGadgetNamed(menu, "LOAD") ||
+        IsCurrentGadgetNamed(menu, "GAMENAME")) {
         FUN_0047f1a0("Options", 0);
-        int idx = FUN_0049fdf0(entries, "GAMENAME", 3);
+        int idx = FindGadgetIndex(entries, "GAMENAME", 3);
         char* name = entries[idx].text;
         if (strlen(name) != 0) {
             FUN_004290f0(g_game->save_38c6b, DAT_005091c8, name, "LST");

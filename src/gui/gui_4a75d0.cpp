@@ -25,7 +25,7 @@ int __stdcall FUN_004bbc40(char* path);
 void* __stdcall LoadGaf(char* path);
 
 // FUNCTION: 0x4a75d0
-int __stdcall FUN_004a75d0(Obj_004a75d0* obj, char* name)
+int __stdcall LoadScreenGaf(Obj_004a75d0* obj, char* name)
 {
     char path[256];
     path[0] = 0;

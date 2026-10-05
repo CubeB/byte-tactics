@@ -22,7 +22,7 @@ extern char DAT_005119b8[];
 extern char* g_game;
 
 int __stdcall FUN_004bbc40(char* path);
-void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 
 class Class_004c2ea0 {
 public:
@@ -96,7 +96,7 @@ void Class_00435110::FUN_00435110(char* file)
         if (strlen(file) != 0) {
             if (!((Class_004c2f60*)&list)->FUN_004c2f60(GetName(0))) {
                 wsprintfA(msg, "The requested campaign file, %s, does not exist.", GetName(0));
-                FUN_004abd90(g_game + 0x519, msg, 0x1e0, 1, 1);
+                OpenMessageBox(g_game + 0x519, msg, 0x1e0, 1, 1);
                 FUN_00435110(DAT_005119b8);
                 return;
             }

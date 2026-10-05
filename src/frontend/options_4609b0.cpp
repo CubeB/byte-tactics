@@ -69,17 +69,17 @@ extern Class_004c6a60* DAT_00512ff4;
 extern int DAT_00512fe4;
 extern int DAT_00512ef0;
 
-int __stdcall FUN_0049fd60(Gadget_004609b0* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_004609b0* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 void __stdcall FUN_0049fa70(Sub_004609b0* sub);
 void __stdcall FreeSurface(Class_004c6a60* surface);
-Info_004609b0* __stdcall FUN_004aa8f0(Sub_004609b0* sub, const char* name, int flags);
+Info_004609b0* __stdcall LoadGuiLayer(Sub_004609b0* sub, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 int __stdcall FUN_0045f8c0(Sub_004609b0* sub, int a, int b);
-int __stdcall FUN_0049fdf0(Entry_004609b0* info, const char* name, int type);
-void __stdcall FUN_004afc60(Sub_004609b0* sub, int value);
+int __stdcall FindGadgetIndex(Entry_004609b0* info, const char* name, int type);
+void __stdcall AllocBlinkWords(Sub_004609b0* sub, int value);
 void __stdcall FUN_0049fb10(Sub_004609b0* sub, int value);
-void __stdcall FUN_004a81e0(Sub_004609b0* sub, int value);
+void __stdcall RenderLayer(Sub_004609b0* sub, int value);
 void __stdcall FUN_004ab0a0(Gadget_004609b0* gadget);
 void FUN_004931d0();
 void FUN_00493060();
@@ -112,60 +112,60 @@ void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
         g_game->field_10->FUN_004ce910(0);
         return;
     }
-    if (FUN_0049fd60(gadget, "LOADGAME")) {
+    if (IsCurrentGadgetNamed(gadget, "LOADGAME")) {
         FUN_0047f1a0("Options", 0);
         FUN_004931d0();
         return;
     }
-    if (FUN_0049fd60(gadget, "SAVEGAME")) {
+    if (IsCurrentGadgetNamed(gadget, "SAVEGAME")) {
         FUN_0047f1a0("Options", 0);
         FUN_00493060();
         return;
     }
-    if (FUN_0049fd60(gadget, "PREFS")) {
+    if (IsCurrentGadgetNamed(gadget, "PREFS")) {
         FUN_0047f1a0("Options", 0);
         FUN_00460160();
         return;
     }
-    if (FUN_0049fd60(gadget, "HELP")) {
+    if (IsCurrentGadgetNamed(gadget, "HELP")) {
         FUN_0047f1a0("Options", 0);
-        Info_004609b0* g = FUN_004aa8f0(&g_game->sub, "HELP.GUI", 0x1881);
+        Info_004609b0* g = LoadGuiLayer(&g_game->sub, "HELP.GUI", 0x1881);
         g->handler = FUN_0045fac0;
         FUN_004288d0("dhelp", 0, 0, 0);
         DAT_00512ef0 = g->info->count;
         FUN_0045f8c0(&g_game->sub, 0, 0x11);
         FUN_0049fb10(&g_game->sub, 1);
-        FUN_004a81e0(&g_game->sub, 0x40);
+        RenderLayer(&g_game->sub, 0x40);
         return;
     }
-    if (FUN_0049fd60(gadget, "MISSION")) {
+    if (IsCurrentGadgetNamed(gadget, "MISSION")) {
         FUN_0047f1a0("Options", 0);
         if (g_game->mode->FUN_00435100() == 1) {
-            Info_004609b0* g = FUN_004aa8f0(&g_game->sub, "BRIEFING.GUI", 0);
+            Info_004609b0* g = LoadGuiLayer(&g_game->sub, "BRIEFING.GUI", 0);
             Entry_004609b0* gadgets = g->info;
             g->handler = FUN_0045f770;
-            int i = FUN_0049fdf0(gadgets, "MOREBAR", 0xe);
+            int i = FindGadgetIndex(gadgets, "MOREBAR", 0xe);
             // The entry is reached as gadgets + i + i * 0x15a, not gadgets +
             // i * 0x15a, so this clears the flag of a gadget one stride past
             // the one just looked up.
             ((Entry_004609b0*)((char*)gadgets + i))[i].flags &= ~0x10;
-            i = FUN_0049fdf0(gadgets, "TextRegion", 0xe);
+            i = FindGadgetIndex(gadgets, "TextRegion", 0xe);
             ((Entry_004609b0*)((char*)gadgets + i))[i].flags &= ~0x10;
             FUN_004288d0("igmbrief", 0, 0, 0);
-            FUN_004afc60(&g_game->sub, 0xf);
+            AllocBlinkWords(&g_game->sub, 0xf);
             FUN_00476d80();
-            FUN_004a81e0(&g_game->sub, 0x40);
+            RenderLayer(&g_game->sub, 0x40);
             return;
         }
         FUN_0045f1d0();
         return;
     }
-    if (FUN_0049fd60(gadget, "EXIT")) {
+    if (IsCurrentGadgetNamed(gadget, "EXIT")) {
         FUN_0047f1a0("Options", 0);
         FUN_004608b0();
         return;
     }
-    if (FUN_0049fd60(gadget, "OK")) {
+    if (IsCurrentGadgetNamed(gadget, "OK")) {
         FUN_0047f1a0("Options", 0);
         return;
     }

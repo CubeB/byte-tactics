@@ -42,7 +42,7 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-void __stdcall FUN_004c22f0(int x, int y);
+void __stdcall SetCursorPosition(int x, int y);
 void FUN_004c2870();
 void FUN_0041c3c0();
 
@@ -76,11 +76,11 @@ void FUN_0041cd50()
     ScrollTo(x, y);
     c->savedScroll.x = g_game->x / 16;
     c->savedScroll.y = g_game->y / 16;
-    FUN_004c22f0(c->center.x, c->center.y);
+    SetCursorPosition(c->center.x, c->center.y);
     if (!(r.flags & 2)) {
         CursorState_0041cd50* cursor = &g_game->cursor;
         cursor->flag = 0;
-        FUN_004c22f0(cursor->rect.x, cursor->rect.y);
+        SetCursorPosition(cursor->rect.x, cursor->rect.y);
         FUN_004c2870();
     }
 }

@@ -25,7 +25,7 @@ struct Class_004a8150 {
 };
 
 // FUNCTION: 0x4a8150
-int __stdcall FUN_004a8150(Class_004a8150* obj, unsigned char type)
+int __stdcall AddGadgetEntry(Class_004a8150* obj, unsigned char type)
 {
     Entry_004a8150* entries = obj->holder->entries;
     entries->count++;

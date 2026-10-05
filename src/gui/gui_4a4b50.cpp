@@ -47,7 +47,7 @@ struct Class_004a4b50 {
 };
 #pragma pack(pop)
 
-extern int __stdcall FUN_004ab510(Class_004a4b50* obj, unsigned char buttons);
+extern int __stdcall IsMouseButtonMessage(Class_004a4b50* obj, unsigned char buttons);
 extern int __stdcall FUN_004ab5b0(Class_004a4b50* obj, unsigned int mask);
 extern void __stdcall FUN_004ab690(Class_004a4b50* obj, int value);
 extern int __stdcall FUN_0049fc50(Class_004a4b50* obj, int index);
@@ -69,13 +69,13 @@ int __stdcall FUN_004a4b50(Class_004a4b50* obj, int index)
     if (entries[index].callback)
         entries[index].callback(obj, &entries[index]);
     if (entries[index].flags & 1) {
-        if (FUN_004ab510(obj, 1)) {
+        if (IsMouseButtonMessage(obj, 1)) {
             Point_004a4b50 p = obj->pos;
             if (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) {
                 FUN_0049fc50(obj, index);
                 FUN_004ab690(obj, 1);
             }
-        } else if (FUN_004ab510(obj, 2)) {
+        } else if (IsMouseButtonMessage(obj, 2)) {
             Point_004a4b50 p = obj->pos;
             if (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom) {
                 FUN_0049fc50(obj, index);

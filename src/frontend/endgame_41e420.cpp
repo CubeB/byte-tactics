@@ -109,9 +109,9 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fdf0(Entry_0041e420* entries, char* name, int type);
-int FUN_004a50b0();
-int __stdcall FUN_004ab1b0(Holder_0041e420* holder, char* type, char* text, int x, int y,
+int __stdcall FindGadgetIndex(Entry_0041e420* entries, char* name, int type);
+int GetFontLineHeight();
+int __stdcall AddTextGadget(Holder_0041e420* holder, char* type, char* text, int x, int y,
                            int width, int attr);
 int __stdcall FUN_004ab310(Menu_0041e420* menu, Button_0041e420* record);
 int __stdcall FUN_004ab3a0(Menu_0041e420* menu, Bar_0041e420* record);
@@ -157,7 +157,7 @@ void FUN_0041e420(void)
             button.h.width = 0x5b;
             button.h.height = 0x15;
             FUN_004ab310(&g_game->menu, &button);
-            int idx = FUN_0049fdf0(entries, name, 6);
+            int idx = FindGadgetIndex(entries, name, 6);
             if (idx != -1) {
                 Entry_0041e420* e = &entries[idx];
                 if (e) {
@@ -166,8 +166,8 @@ void FUN_0041e420(void)
                 }
             }
             menu->font = menu->font_c;
-            int h = FUN_004a50b0();
-            FUN_004ab1b0(g_game->menu.holder, "TEXT", g_game->slots[i].name, 0x10,
+            int h = GetFontLineHeight();
+            AddTextGadget(g_game->menu.holder, "TEXT", g_game->slots[i].name, 0x10,
                          (0x14 - h) / 2 + bar.h.y, -1, 2);
             entries[entries->count].attr = 2;
             entries[entries->count].width = 0x5a;

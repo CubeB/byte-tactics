@@ -24,7 +24,7 @@ struct Gui_0049fd60 {
 };
 
 // FUNCTION: 0x49fd60
-int __stdcall FUN_0049fd60(Gui_0049fd60* gui, char* name)
+int __stdcall IsCurrentGadgetNamed(Gui_0049fd60* gui, char* name)
 {
     if (!gui->holder)
         return 0;

@@ -12,7 +12,7 @@ struct Entry_0049fed0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x49fed0
-void __stdcall FUN_0049fed0(Entry_0049fed0* entries, char* name, int index)
+void __stdcall GetGadgetName(Entry_0049fed0* entries, char* name, int index)
 {
     strncpy(name, entries[index].name, 0x10);
     name[0x10] = 0;

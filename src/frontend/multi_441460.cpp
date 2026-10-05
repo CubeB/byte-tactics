@@ -121,15 +121,15 @@ extern Guid_00441460 DAT_004fcd98;
 extern Guid_00441460 DAT_004fcdb8;
 
 char* __stdcall FUN_004c5740(const char* text);
-void __stdcall FUN_004abd90(Sub_00441460* sub, char* text, int a, int b, int c);
+void __stdcall OpenMessageBox(Sub_00441460* sub, char* text, int a, int b, int c);
 void __stdcall FUN_004ab170(Sub_00441460* sub, int a, int b);
 void __stdcall SetOffscreenSurface(int a);
 void FlipScreen();
 int __stdcall HAPINET_getgames(char* net, void* desc, int a);
-void __stdcall FUN_004a9660(Sub_00441460* sub);
+void __stdcall CloseTopScreen(Sub_00441460* sub);
 void __stdcall FUN_004a32a0(Sub_00441460* sub, const char* name, char* text, int count, int flag);
 char* FUN_0049f580();
-int __stdcall FUN_0049fdf0(void* entries, const char* name, int type);
+int __stdcall FindGadgetIndex(void* entries, const char* name, int type);
 void __stdcall FUN_00441220(Sub_00441460* sub, char* entry);
 
 // FUNCTION: 0x441460
@@ -171,14 +171,14 @@ upd:
 conn:
     msg = "Connecting  (ESC to abort)";
 shown:
-    FUN_004abd90(&g_game->sub, FUN_004c5740(msg), 0x96, 0, 1);
+    OpenMessageBox(&g_game->sub, FUN_004c5740(msg), 0x96, 0, 1);
     FUN_004ab170(&g_game->sub, g_game->field_37e1b, 0);
     SetOffscreenSurface(g_game->field_37e1b);
     FlipScreen();
     FlipScreen();
 
     count = HAPINET_getgames((char*)&g_game->unknown_14, g_game->desc, 0);
-    FUN_004a9660(&g_game->sub);
+    CloseTopScreen(&g_game->sub);
     if (count < 0)
         return 0;
 
@@ -276,7 +276,7 @@ shown:
     FUN_004a32a0(&g_game->sub, "PING", (char*)g_game->data[8], g_game->field_4fd, 0);
     FUN_004a32a0(&g_game->sub, "FULLMAP", (char*)g_game->data[10], g_game->field_4fd, 0);
 
-    i = FUN_0049fdf0(gadget->entries, "GAMENAME", 2);
+    i = FindGadgetIndex(gadget->entries, "GAMENAME", 2);
     if (i != -1)
         FUN_00441220(&g_game->sub, gadget->entries + i * 0x15b);
     return 1;

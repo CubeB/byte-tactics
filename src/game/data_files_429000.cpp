@@ -30,7 +30,7 @@ extern char* g_game;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 
 // FUNCTION: 0x429000
 void FUN_00429000()
@@ -46,14 +46,14 @@ void FUN_00429000()
             if (((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "GPFVersion", 0x40, DAT_005119b8)) {
                 found = 1;
                 if (_strcmpi("v3.0", buf) != 0) {
-                    FUN_004abd90(g_game + 0x519,
+                    OpenMessageBox(g_game + 0x519,
                                  FUN_004c5740("Warning!  Your copy of Revision.GPF is the wrong version for this executable.  You may experience some problems if you continue playing.  Please download the latest version of the TA patch from www.cavedog.com and reinstall the patch."),
                                  0x1e0, 1, 1);
                 }
             }
         }
         if (found == 0) {
-            FUN_004abd90(g_game + 0x519,
+            OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("Warning!  Your copy of Revision.GPF is the wrong version for this executable.  You may experience some problems if you continue playing.  Please download the latest version of the TA patch from www.cavedog.com and reinstall the patch."),
                          0x1e0, 1, 1);
         }

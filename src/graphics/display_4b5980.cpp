@@ -126,8 +126,8 @@ extern App_4b5980* g_display;
 
 void FUN_004bce10(void);
 void __stdcall FUN_004c2360(int* p);
-void __stdcall FUN_004c1a60(int size);
-void __stdcall FUN_004c2bd0(int count, int start);
+void __stdcall InitKeyQueue(int size);
+void __stdcall InitMouse(int count, int start);
 int __stdcall AllocShadeTable(App_4b5980* d);
 int __stdcall AllocAlphaTable(App_4b5980* d);
 int __stdcall AllocLightTable(App_4b5980* d);
@@ -162,8 +162,8 @@ int __stdcall InitEnvironment(App_4b5980* d)
     d->flags.bits.no_video = 0;
     d->hwnd = 0;
     d->flags.bits.sound_opt = (d->videoFlags >> 9) & 1;
-    FUN_004c1a60(0x1e);
-    FUN_004c2bd0(0x14, d->flags.bits.sound_opt);
+    InitKeyQueue(0x1e);
+    InitMouse(0x14, d->flags.bits.sound_opt);
     View_4b5980 view;
     view.x = 0;
     view.y = 0;

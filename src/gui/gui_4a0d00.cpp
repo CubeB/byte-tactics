@@ -47,7 +47,7 @@ static inline int FindEntry(Entry_004a0d00* entries, char* name)
 }
 
 // FUNCTION: 0x4a0d00
-char* __stdcall FUN_004a0d00(Object_004a0d00* obj, char* name, char* buf)
+char* __stdcall GetGadgetText(Object_004a0d00* obj, char* name, char* buf)
 {
     char* desc = 0;
     if (obj->data == 0) {

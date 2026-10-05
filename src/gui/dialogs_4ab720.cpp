@@ -4,8 +4,8 @@
 // STATUS MATCH (1015/1015 bytes).
 //
 // The only block that ever differed was the char-insert default case
-// (0x4ab972): the original evaluates FUN_004a5030(text) first, ours evaluated
-// FUN_004a5030(c) first. The cause is argument-temporary allocation, not the
+// (0x4ab972): the original evaluates GetTextPixelWidth(text) first, ours evaluated
+// GetTextPixelWidth(c) first. The cause is argument-temporary allocation, not the
 // expression's operand order: with `text` already live in ebp, the call whose
 // argument needs a `lea` is the "harder" operand and MSVC evaluates it first,
 // whichever way the sum is written. Spelling the first operand as
@@ -33,9 +33,9 @@
 //
 // Text-edit key handler for one GUI entry (stride 0x15b, text at +0xb6).
 // __stdcall(control, entryIndex, key): when the holder has no pending
-// event source it pulls keys from FUN_004c1ab0. Handles backspace, escape,
+// event source it pulls keys from PopKey. Handles backspace, escape,
 // delete, home, end, left, right, clipboard paste and plain character
-// insertion, then saves the text back through FUN_004a4d70.
+// insertion, then saves the text back through DrawTextInput.
 #include <string.h>
 #include <windows.h>
 
@@ -69,14 +69,14 @@ struct Control_004ab720 {
     int cursor;                         // +0x74
 };
 
-void __stdcall FUN_004a4d70(Control_004ab720* control, int index);
-int __stdcall FUN_004a5030(char* text);
-int FUN_004c1ab0();
+void __stdcall DrawTextInput(Control_004ab720* control, int index);
+int __stdcall GetTextPixelWidth(char* text);
+int PopKey();
 void* GetDisplay();
 
 
 // FUNCTION: 0x4ab720
-int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
+int __stdcall HandleTextEditKey(Control_004ab720* control, int index, int key)
 {
     Holder_004ab720* holder = control->holder;
     Entry_004ab720* entry = &holder->entries[index];
@@ -86,7 +86,7 @@ int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
     int last = 0;
 
     if (holder->field_18 == 0)
-        key = FUN_004c1ab0();
+        key = PopKey();
     if (key != 0) {
         changed = 1;
         while (key != 0) {
@@ -135,12 +135,12 @@ int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
                             char* src = (char*)GlobalLock(hMem);
                             memset(text, 0, 0x80);
                             memcpy(text, src, (int)size < entry->capacity - 1 ? (int)size : entry->capacity - 1);
-                            int width = FUN_004a5030(text);
+                            int width = GetTextPixelWidth(text);
                             while (width > entry->w) {
                                 if (strlen(text) == 0)
                                     break;
                                 text[strlen(text) - 1] = 0;
-                                width = FUN_004a5030(text);
+                                width = GetTextPixelWidth(text);
                             }
                             GlobalUnlock(hMem);
                         }
@@ -163,7 +163,7 @@ int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
                 char c[2];
                 c[0] = (char)key;
                 c[1] = 0;
-                int width = FUN_004a5030(entry->text) + FUN_004a5030(c);
+                int width = GetTextPixelWidth(entry->text) + GetTextPixelWidth(c);
                 if (width > entry->w - 4)
                     break;
                 int n = entry->capacity - 1;
@@ -174,11 +174,11 @@ int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
                 break;
             }
             }
-            key = FUN_004c1ab0();
+            key = PopKey();
         }
     }
 done:
     if (changed)
-        FUN_004a4d70(control, index);
+        DrawTextInput(control, index);
     return last;
 }

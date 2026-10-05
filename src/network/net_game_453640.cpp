@@ -18,7 +18,7 @@ struct Ring_00453640 {                 // 0x48 bytes, 30 of them at g_game+0x12e
     unsigned char field_47;            // +0x47
 };
 
-struct Entry_00453640 {                // gadget returned by FUN_0049ff90
+struct Entry_00453640 {                // gadget returned by FindGadgetChecked
     char unknown_0[0xc0];
     short count;                       // +0xc0
 };
@@ -61,11 +61,11 @@ extern int g_loungeRefreshTime;
 extern int g_timeoutPlayerDpid;
 
 int GetTicks();
-Entry_00453640* __stdcall FUN_0049ff90(void* entries, char* name);
+Entry_00453640* __stdcall FindGadgetChecked(void* entries, char* name);
 void __stdcall FUN_0049fa90(void* obj);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004a0bf0(void* obj, char* name, char* text, int param_4);
-void __stdcall FUN_004a9660(void* obj);
+void __stdcall CloseTopScreen(void* obj);
 void __stdcall RejectPlayer(int param_1, int param_2);
 
 static inline int GetPlayerId_00453640(unsigned char i)
@@ -89,7 +89,7 @@ static inline unsigned char FindPlayerIndex_00453640(int id)
 // FUNCTION: 0x453640
 void UpdateTimeoutDialog()
 {
-    Entry_00453640* entry = FUN_0049ff90(g_game->holder->entries, "OUTPUT");
+    Entry_00453640* entry = FindGadgetChecked(g_game->holder->entries, "OUTPUT");
 
     if (g_loungeRefreshTime < GetTicks()) {
         g_loungeRefreshTime = GetTicks() + 2;
@@ -139,6 +139,6 @@ void UpdateTimeoutDialog()
         if (elapsed < g_game->field_37f31 + 0x78)
             return;
         RejectPlayer(g_timeoutPlayerDpid, 6);
-        FUN_004a9660(g_game->message);
+        CloseTopScreen(g_game->message);
     }
 }

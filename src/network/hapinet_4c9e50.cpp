@@ -61,8 +61,8 @@ extern int g_enumSessionsResult;
 
 void __cdecl HapinetTrace(const char* text);
 int __stdcall HAPINET_getgamescallback();
-int __cdecl FUN_004c1b00();
-int __cdecl FUN_004c1ab0();
+int __cdecl PeekKey();
+int __cdecl PopKey();
 
 // FUNCTION: 0x4c9e50
 int __stdcall HAPINET_getgames(Net_004c9e50* net, void* sessions, int unused)
@@ -87,8 +87,8 @@ int __stdcall HAPINET_getgames(Net_004c9e50* net, void* sessions, int unused)
             TranslateMessage(&msg);
             DispatchMessageA(&msg);
         }
-        if (FUN_004c1b00()) {
-            if (FUN_004c1ab0() == 0x1b)
+        if (PeekKey()) {
+            if (PopKey() == 0x1b)
                 break;
         }
     } while (result == 0x8877015e);

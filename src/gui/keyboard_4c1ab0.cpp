@@ -22,7 +22,7 @@ struct Queue_004c1ab0 {
 Queue_004c1ab0* GetDisplay(void);
 
 // FUNCTION: 0x4c1ab0
-int FUN_004c1ab0(void)
+int PopKey(void)
 {
     Queue_004c1ab0* q = GetDisplay();
     int v;

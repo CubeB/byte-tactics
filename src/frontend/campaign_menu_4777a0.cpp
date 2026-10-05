@@ -51,7 +51,7 @@ struct Game {
 
 extern Game* g_game;
 
-Layer_004777a0* __stdcall FUN_004aa8f0(Menu_004777a0* menu, const char* name, int flags);
+Layer_004777a0* __stdcall LoadGuiLayer(Menu_004777a0* menu, const char* name, int flags);
 void __stdcall FUN_004775a0(void* layer);
 void FUN_004257a0();
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
@@ -62,12 +62,12 @@ int FUN_0049f580();
 void __stdcall FUN_004a1530(Menu_004777a0* menu, const char* name, char value);
 void __stdcall FUN_0049fb10(Menu_004777a0* menu, int value);
 void __stdcall FUN_00491c80(int value);
-void __stdcall FUN_004a81e0(Menu_004777a0* menu, int value);
+void __stdcall RenderLayer(Menu_004777a0* menu, int value);
 
 // FUNCTION: 0x4777a0
 void FUN_004777a0()
 {
-    Layer_004777a0* gui = FUN_004aa8f0(&g_game->menu, "SINGLE.GUI", 0);
+    Layer_004777a0* gui = LoadGuiLayer(&g_game->menu, "SINGLE.GUI", 0);
     gui->handler = FUN_004775a0;
     gui->field_c = g_game;
     FUN_004257a0();
@@ -93,5 +93,5 @@ void FUN_004777a0()
     }
     FUN_0049fb10(&g_game->menu, 1);
     FUN_00491c80(0x13);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

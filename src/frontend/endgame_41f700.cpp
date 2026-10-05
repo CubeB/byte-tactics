@@ -19,17 +19,17 @@ struct Gadget_0041f700 {
 
 extern Game* g_game;
 
-Gadget_0041f700* __stdcall FUN_004aa8f0(Sub_0041f700* sub, const char* name, int flags);
+Gadget_0041f700* __stdcall LoadGuiLayer(Sub_0041f700* sub, const char* name, int flags);
 void __stdcall FUN_004c22d0(int param);
 void __stdcall FUN_0049fb10(Sub_0041f700* sub, int value);
-void __stdcall FUN_004a81e0(Sub_0041f700* sub, int value);
+void __stdcall RenderLayer(Sub_0041f700* sub, int value);
 int __stdcall FUN_0041f680(void* gadget);
 
 // FUNCTION: 0x41f700
 void FUN_0041f700()
 {
-    FUN_004aa8f0(&g_game->sub, "CDCHECK.GUI", 0x101)->handler = FUN_0041f680;
+    LoadGuiLayer(&g_game->sub, "CDCHECK.GUI", 0x101)->handler = FUN_0041f680;
     FUN_004c22d0(1);
     FUN_0049fb10(&g_game->sub, 1);
-    FUN_004a81e0(&g_game->sub, 0x40);
+    RenderLayer(&g_game->sub, 0x40);
 }

@@ -12,7 +12,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
-int __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
+int __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 int GetScreenWidth();
 
 // FUNCTION: 0x46bc70
@@ -26,7 +26,7 @@ int __stdcall FUN_0046bc70(char* text, int mode)
     }
     if (mode == 1) {
         int t = GetScreenWidth();
-        result = FUN_004abd90(g_game->message, text, (int)(t * 0.5), 1, 1);
+        result = OpenMessageBox(g_game->message, text, (int)(t * 0.5), 1, 1);
     }
     return result;
 }

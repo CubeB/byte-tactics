@@ -20,7 +20,7 @@ struct Queue_4c2de0 {
 int GetDisplay(void);
 
 // FUNCTION: 0x4c2de0
-int __stdcall FUN_004c2de0(Event_4c2de0* out)
+int __stdcall PeekMouseEvent(Event_4c2de0* out)
 {
     Queue_4c2de0* q = (Queue_4c2de0*)GetDisplay();
     if (q->head == q->tail) {

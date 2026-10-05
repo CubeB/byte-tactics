@@ -14,7 +14,7 @@ struct Queue_004c1ab0 {
 Queue_004c1ab0* GetDisplay(void);
 
 // FUNCTION: 0x4c1a40
-void FUN_004c1a40(void)
+void ClearKeyQueue(void)
 {
     Queue_004c1ab0* q = GetDisplay();
     q->head = 0;

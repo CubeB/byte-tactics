@@ -17,9 +17,9 @@ struct Queue_004c1ab0 {
 #pragma pack(pop)
 
 Queue_004c1ab0* GetDisplay(void);
-void __stdcall FUN_004c1b20(int v);
+void __stdcall PushKeyCode(int v);
 
-// FUN_004c1b20, inlined at the constant-key cases.
+// PushKeyCode, inlined at the constant-key cases.
 static inline void PushKey(int v)
 {
     Queue_004c1ab0* q = GetDisplay();
@@ -38,7 +38,7 @@ static short key_state(int vk)
 }
 
 // FUNCTION: 0x4c1d50
-void __stdcall FUN_004c1d50(int key, int flag)
+void __stdcall HandleVirtualKey(int key, int flag)
 {
     int ctrl = key_state(VK_CONTROL) != 0;
 
@@ -53,19 +53,19 @@ void __stdcall FUN_004c1d50(int key, int flag)
     case VK_END:    PushKey(0xf1); return;
     case VK_PRIOR:  PushKey(0xf2); return;
     case VK_NEXT:   PushKey(0xf3); return;
-    case VK_PAUSE:  FUN_004c1b20(0xf8); return;
-    case VK_F1:     FUN_004c1b20(ctrl ? 0xce : 0xe2); return;
-    case VK_F2:     FUN_004c1b20(ctrl ? 0xcf : 0xe3); return;
-    case VK_F3:     FUN_004c1b20(ctrl ? 0xd0 : 0xe4); return;
-    case VK_F4:     FUN_004c1b20(ctrl ? 0xd1 : 0xe5); return;
-    case VK_F5:     FUN_004c1b20(ctrl ? 0xd2 : 0xe6); return;
-    case VK_F6:     FUN_004c1b20(ctrl ? 0xd3 : 0xe7); return;
-    case VK_F7:     FUN_004c1b20(ctrl ? 0xd4 : 0xe8); return;
-    case VK_F8:     FUN_004c1b20(ctrl ? 0xd5 : 0xe9); return;
-    case VK_F9:     FUN_004c1b20(ctrl ? 0xd6 : 0xea); return;
-    case VK_F10:    FUN_004c1b20(ctrl ? 0xd7 : 0xeb); return;
-    case VK_F11:    FUN_004c1b20(ctrl ? 0xd8 : 0xec); return;
-    case VK_F12:    FUN_004c1b20(ctrl ? 0xd9 : 0xed); return;
+    case VK_PAUSE:  PushKeyCode(0xf8); return;
+    case VK_F1:     PushKeyCode(ctrl ? 0xce : 0xe2); return;
+    case VK_F2:     PushKeyCode(ctrl ? 0xcf : 0xe3); return;
+    case VK_F3:     PushKeyCode(ctrl ? 0xd0 : 0xe4); return;
+    case VK_F4:     PushKeyCode(ctrl ? 0xd1 : 0xe5); return;
+    case VK_F5:     PushKeyCode(ctrl ? 0xd2 : 0xe6); return;
+    case VK_F6:     PushKeyCode(ctrl ? 0xd3 : 0xe7); return;
+    case VK_F7:     PushKeyCode(ctrl ? 0xd4 : 0xe8); return;
+    case VK_F8:     PushKeyCode(ctrl ? 0xd5 : 0xe9); return;
+    case VK_F9:     PushKeyCode(ctrl ? 0xd6 : 0xea); return;
+    case VK_F10:    PushKeyCode(ctrl ? 0xd7 : 0xeb); return;
+    case VK_F11:    PushKeyCode(ctrl ? 0xd8 : 0xec); return;
+    case VK_F12:    PushKeyCode(ctrl ? 0xd9 : 0xed); return;
     }
 
     if (flag == 0 && ctrl == 0)
@@ -73,26 +73,26 @@ void __stdcall FUN_004c1d50(int key, int flag)
 
     if (key >= '0' && key <= '9') {
         if (ctrl)
-            FUN_004c1b20(key + 0x94);
+            PushKeyCode(key + 0x94);
         else
-            FUN_004c1b20(key);
+            PushKeyCode(key);
         return;
     }
     if (key >= 'A' && key <= 'Z') {
         if (ctrl)
-            FUN_004c1b20(key + 0x69);
+            PushKeyCode(key + 0x69);
         else
-            FUN_004c1b20(key + 0x20);
+            PushKeyCode(key + 0x20);
         return;
     }
     if (key >= 0xba && key <= 0xc0) {
         char tbl[7] = {0x3b, 0x3d, 0x2c, 0x2d, 0x2e, 0x2f, 0x60};
-        FUN_004c1b20(tbl[key - 0xba]);
+        PushKeyCode(tbl[key - 0xba]);
         return;
     }
     if (key >= 0xdb && key <= 0xde) {
         char tbl[4] = {0x5b, 0x5c, 0x5d, 0x27};
-        FUN_004c1b20(tbl[key - 0xdb]);
+        PushKeyCode(tbl[key - 0xdb]);
         return;
     }
 }

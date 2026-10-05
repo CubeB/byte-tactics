@@ -4,7 +4,7 @@
 // found, the rectangle is grown by 3 on every side. The destination is the
 // surface at entries+0xbc. When FUN_004a18c0 finds a background cell for the
 // entry, the area is tiled with it through DrawSurface and only the bevel
-// (FUN_004b0160) is drawn; with no cell and no bitmap the rectangle is filled
+// (DrawBevelBorderDarkFirst) is drawn; with no cell and no bitmap the rectangle is filled
 // (FillRectangle) and bevelled; with a bitmap set of more than one child the
 // set is laid out as a 3x3 border around the rectangle, rows 0/3/6 and columns
 // 0/1/2 of the set, stepping by the first child's width and height, the last
@@ -80,11 +80,11 @@ Bits_004b0230* __stdcall FindGafEntry(Gaf_004b0230* gaf, const char* name);
 void __stdcall DrawSurface(Surface_004b0230* dst, Cell_004b0230* cell, int x, int y);
 Pic_004b0230* __stdcall GetGafFrame(Bits_004b0230* bits, int index);
 void __stdcall DrawFrame(Surface_004b0230* dst, Pic_004b0230* pic, int x, int y);
-void __stdcall FUN_004b0160(Surface_004b0230* surface, Rect_004b0230* rect, int dark, int light, int fill);
+void __stdcall DrawBevelBorderDarkFirst(Surface_004b0230* surface, Rect_004b0230* rect, int dark, int light, int fill);
 int __stdcall FillRectangle(Surface_004b0230* surface, Rect_004b0230* rect, int colour);
 
 // FUNCTION: 0x4b0230
-void __stdcall FUN_004b0230(Object_004b0230* obj, int index, Bits_004b0230* bmp)
+void __stdcall DrawListboxFrame(Object_004b0230* obj, int index, Bits_004b0230* bmp)
 {
     char* entries;
     int col;
@@ -128,7 +128,7 @@ void __stdcall FUN_004b0230(Object_004b0230* obj, int index, Bits_004b0230* bmp)
                 DrawSurface(surface, cell, x, y);
             }
         }
-        FUN_004b0160(surface, &rect, obj->dark, obj->light, obj->fill);
+        DrawBevelBorderDarkFirst(surface, &rect, obj->dark, obj->light, obj->fill);
     } else if (bmp != 0) {
         if (bmp->count > 1) {
             sub = GetGafFrame(bmp, 0);
@@ -169,6 +169,6 @@ void __stdcall FUN_004b0230(Object_004b0230* obj, int index, Bits_004b0230* bmp)
         }
     } else {
         FillRectangle(surface, &rect, obj->fill);
-        FUN_004b0160(surface, &rect, obj->dark, obj->light, obj->fill);
+        DrawBevelBorderDarkFirst(surface, &rect, obj->dark, obj->light, obj->fill);
     }
 }

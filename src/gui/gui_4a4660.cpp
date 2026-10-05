@@ -66,9 +66,9 @@ struct Glyph_004a4660 { unsigned short width, height; };
 struct Language_004a4660 { char unknown_0[0xc]; unsigned short *glyphs; };
 struct LanguageRoot_004a4660 { char unknown_0[0x14]; Language_004a4660 *language; };
 
-extern LanguageRoot_004a4660 *DAT_0051fba4;
+extern LanguageRoot_004a4660 *g_guiContext;
 void __stdcall LockScreen(void *);
-void __stdcall FUN_004b04b0(void *, Rect_004a4660 *, unsigned int, unsigned int, unsigned int);
+void __stdcall FillBevelBox(void *, Rect_004a4660 *, unsigned int, unsigned int, unsigned int);
 void __stdcall FillRectangle(void *, Rect_004a4660 *, int);
 int __stdcall FUN_004a50e0(void *, char *, int, int, int, int);
 int __stdcall GetGafFrame(unsigned short *, int);
@@ -84,13 +84,13 @@ static inline int Measure_004a4660(char *text)
     char *p = text;
     if (p == 0)
         return 0;
-    if (DAT_0051fba4->language == 0)
+    if (g_guiContext->language == 0)
         return GetTextWidth(GetFont(), text);
     char *q = text;
     while (*q != 0) {
         char ch = *q;
         Glyph_004a4660 *glyph = (Glyph_004a4660 *)GetGafFrame(
-            DAT_0051fba4->language->glyphs, (unsigned char)ch);
+            g_guiContext->language->glyphs, (unsigned char)ch);
         if (glyph != 0)
             width += glyph->width;
         ++q;
@@ -115,7 +115,7 @@ void __stdcall FUN_004a4660(Class_004a4660 *obj, int index)
     rect.top = entry->y;
     rect.right = entry->w + entry->x;
     rect.bottom = entry->h + entry->y;
-    FUN_004b04b0(surface, &rect, obj->color1, obj->color2, obj->color3);
+    FillBevelBox(surface, &rect, obj->color1, obj->color2, obj->color3);
 
     rect.left += 2;
     rect.top += 2;
@@ -132,11 +132,11 @@ void __stdcall FUN_004a4660(Class_004a4660 *obj, int index)
         _itoa(entry->number, text, 10);
         int width = Measure_004a4660(text);
         int height;
-        if (DAT_0051fba4->language == 0) {
+        if (g_guiContext->language == 0) {
             height = GetFontHeight();
         } else {
             Glyph_004a4660 *glyph = (Glyph_004a4660 *)GetGafFrame(
-                DAT_0051fba4->language->glyphs, 0x49);
+                g_guiContext->language->glyphs, 0x49);
             height = glyph->height + 2;
         }
         FUN_004a50e0(surface, text,

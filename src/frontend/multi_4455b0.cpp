@@ -82,15 +82,15 @@ extern short DAT_00512764;
 extern int DAT_0051276c;
 extern int DAT_00512994;
 
-int __stdcall FUN_0049fdf0(void* gadgets, char* name, int type);
+int __stdcall FindGadgetIndex(void* gadgets, char* name, int type);
 int __stdcall FUN_004a5d50(Menu_004455b0* menu, int index);
 void __stdcall FUN_004a1450(Menu_004455b0* menu, char* name, int value);
-int __stdcall FUN_004a1080(Menu_004455b0* menu, char* name, int value);
+int __stdcall SetButtonStageByName(Menu_004455b0* menu, char* name, int value);
 
 static void CloneFix_004455b0(Entry_004455b0* rec)
 {
     Head_004455b0 tmp = *(Head_004455b0*)rec;
-    int index = FUN_0049fdf0(g_game->menu.holder->gadgets, rec->name, 0xe);
+    int index = FindGadgetIndex(g_game->menu.holder->gadgets, rec->name, 0xe);
     FUN_004a5d50(&g_game->menu, index);
     rec->field_15 += 2;
     rec->state = 5;
@@ -109,7 +109,7 @@ void __cdecl FUN_004455b0(void)
     *(short*)(base + 0xb6) = DAT_00512764;
     do {
         for (t = 0, slot = DAT_005054b0; *slot != 0; slot++, t++) {
-            int index = FUN_0049fdf0(base, *slot, 0xe);
+            int index = FindGadgetIndex(base, *slot, 0xe);
             Entry_004455b0* rec = (Entry_004455b0*)(base + 0x15b * index);
             Entry_004455b0* dst;
             short count;
@@ -169,7 +169,7 @@ void __cdecl FUN_004455b0(void)
                     break;
                 case 9:
                     dst->field_29 = 0;
-                    FUN_004a1080(&g_game->menu, dst->name, 10);
+                    SetButtonStageByName(&g_game->menu, dst->name, 10);
                     break;
                 default:
                     if (dst->state == 1)
@@ -185,14 +185,14 @@ void __cdecl FUN_004455b0(void)
         char name[52];
         int index;
         sprintf(name, "PLAYER%d", g_game->myPlayer);
-        index = FUN_0049fdf0(base, name, 0xe);
+        index = FindGadgetIndex(base, name, 0xe);
         if (index != -1) {
             Entry_004455b0* rec = (Entry_004455b0*)(base + 0x15b * index);
             if (rec->state == 1)
                 CloneFix_004455b0(rec);
         }
         sprintf(name, "READY%d", g_game->myPlayer);
-        index = FUN_0049fdf0(base, name, 1);
+        index = FindGadgetIndex(base, name, 1);
         if (index != -1) {
             Entry_004455b0* rec = (Entry_004455b0*)(base + 0x15b * index);
             rec->field_13a = (unsigned char)tolower(name[0]);

@@ -17,16 +17,16 @@ struct Class_0051fba4 {
     Font_004a50b0* font;               // +0x14
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 void* __stdcall GetGafFrame(void* a, int b);
 int GetFontHeight();
 
 // FUNCTION: 0x4a50b0
-int FUN_004a50b0()
+int GetFontLineHeight()
 {
-    if (DAT_0051fba4->font == 0) {
+    if (g_guiContext->font == 0) {
         return GetFontHeight();
     }
-    return ((Glyph_004a50b0*)GetGafFrame(DAT_0051fba4->font->glyphs, 'I'))->height + 2;
+    return ((Glyph_004a50b0*)GetGafFrame(g_guiContext->font->glyphs, 'I'))->height + 2;
 }

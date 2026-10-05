@@ -17,7 +17,7 @@ struct StructB_004ada10 {
 };
 
 // FUNCTION: 0x4ada10
-void __stdcall FUN_004ada10(StructA_004ada10* a, StructB_004ada10* b)
+void __stdcall ReadStatusField(StructA_004ada10* a, StructB_004ada10* b)
 {
     a->field_b6 = (short)b->field_4->FUN_004c46c0("status", 0);
 }

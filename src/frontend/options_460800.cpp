@@ -8,8 +8,8 @@ struct Gadget_00460800 {
 extern int DAT_00512ff8;
 
 void __stdcall FUN_0047f1a0(char* str, int flag);
-int __stdcall FUN_0049fd60(Gadget_00460800* gadget, char* name);
-void __stdcall FUN_004a9660(Gadget_00460800* gadget);
+int __stdcall IsCurrentGadgetNamed(Gadget_00460800* gadget, char* name);
+void __stdcall CloseTopScreen(Gadget_00460800* gadget);
 void FUN_00460680();
 void FUN_004604a0();
 void __stdcall FUN_004ab0a0(Gadget_00460800* gadget);
@@ -19,21 +19,21 @@ void __stdcall FUN_00460800(Gadget_00460800* gadget)
 {
     if (gadget->field_60 != -1) {
         FUN_0047f1a0("Options", 0);
-        if (FUN_0049fd60(gadget, "MAINMENU")) {
+        if (IsCurrentGadgetNamed(gadget, "MAINMENU")) {
             DAT_00512ff8 = 0;
-            FUN_004a9660(gadget);
+            CloseTopScreen(gadget);
             FUN_00460680();
             return;
         }
-        if (FUN_0049fd60(gadget, "EXITGAME")) {
+        if (IsCurrentGadgetNamed(gadget, "EXITGAME")) {
             DAT_00512ff8 = 2;
-            FUN_004a9660(gadget);
+            CloseTopScreen(gadget);
             FUN_00460680();
             return;
         }
-        if (!FUN_0049fd60(gadget, "CANCEL")) {
-            if (FUN_0049fd60(gadget, "RESTART")) {
-                FUN_004a9660(gadget);
+        if (!IsCurrentGadgetNamed(gadget, "CANCEL")) {
+            if (IsCurrentGadgetNamed(gadget, "RESTART")) {
+                CloseTopScreen(gadget);
                 FUN_004604a0();
                 return;
             }

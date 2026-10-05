@@ -24,13 +24,13 @@ struct Gadget_00495200 {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-Gadget_00495200* __stdcall FUN_004aa8f0(Sub_00495200* sub, const char* name, int flags);
+Gadget_00495200* __stdcall LoadGuiLayer(Sub_00495200* sub, const char* name, int flags);
 void __stdcall FUN_00494890(Gadget_00495200* gadget);
 
 // FUNCTION: 0x495200
 void FUN_00495200()
 {
-    Gadget_00495200* gadget = FUN_004aa8f0(&g_game->sub, g_game->guiName, 0x20);
+    Gadget_00495200* gadget = LoadGuiLayer(&g_game->sub, g_game->guiName, 0x20);
     gadget->handler = FUN_00494890;
     gadget->owner = g_game;
 }

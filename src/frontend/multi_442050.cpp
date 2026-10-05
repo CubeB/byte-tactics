@@ -39,14 +39,14 @@ extern int DAT_00512c84;
 extern char DAT_00512d90[];
 
 int __stdcall FUN_00441c30(int* a, int* b);
-int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
-int __stdcall FUN_0049fd60(Gadget_00442050* gadget, const char* name);
+int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
+int __stdcall IsCurrentGadgetNamed(Gadget_00442050* gadget, const char* name);
 void __stdcall FUN_0047f1a0(const char* name, int param_2);
 void FUN_004257a0();
 void __stdcall FUN_004ab0a0(Gadget_00442050* gadget);
 void __stdcall FUN_00425860(int state, int line, const char* file);
 void __stdcall FUN_0042f960(void* key, void* buf, int value);
-char* __stdcall FUN_004a0d00(Gadget_00442050* gadget, const char* key, void* out);
+char* __stdcall GetGadgetText(Gadget_00442050* gadget, const char* key, void* out);
 
 // The original build called this helper from both connection paths and /Ob2
 // inlined it at each one; 0x442000 is the out-of-line copy of the same body.
@@ -77,20 +77,20 @@ void __stdcall FUN_00442050(Gadget_00442050* gadget)
     else if (gadget->field_60 == -1) {
         return;
     }
-    else if (FUN_0049fdf0(entries, "OK", 0xe) == gadget->field_60) {
+    else if (FindGadgetIndex(entries, "OK", 0xe) == gadget->field_60) {
         goto connect;
     }
-    else if (FUN_0049fdf0(entries, "JOIN", 0xe) == gadget->field_60) {
+    else if (FindGadgetIndex(entries, "JOIN", 0xe) == gadget->field_60) {
         g_game->bit1 = 1;
         g_game->bit0 = 0;
         TryConnect_00442050();
         FUN_0047f1a0("Smlbutton", 0);
         goto tcpaddr;
     }
-    else if (FUN_0049fd60(gadget, "ADDRESS") != 0) {
+    else if (IsCurrentGadgetNamed(gadget, "ADDRESS") != 0) {
     }
     else {
-        if (FUN_0049fd60(gadget, "PREV") != 0) {
+        if (IsCurrentGadgetNamed(gadget, "PREV") != 0) {
             FUN_00425860(0xf, 0x305, "c:\\cavedog\\wargame\\multi.cpp");
             FUN_0047f1a0("Previous", 0);
             return;
@@ -105,5 +105,5 @@ connect:
     FUN_0047f1a0("Smlbutton", 0);
     FUN_004257a0();
 tcpaddr:
-    FUN_0042f960("TCPADDR", FUN_004a0d00(gadget, "ADDRESS", 0), 0x80);
+    FUN_0042f960("TCPADDR", GetGadgetText(gadget, "ADDRESS", 0), 0x80);
 }

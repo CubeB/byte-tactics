@@ -26,7 +26,7 @@ void* __stdcall LoadGaf(char* path);
 void* __stdcall GetGafFrame(void* table, int index);
 
 // FUNCTION: 0x4aedd0
-void __stdcall FUN_004aedd0(Object_004aedd0* obj, char* name, int index)
+void __stdcall LoadGafIntoSlot(Object_004aedd0* obj, char* name, int index)
 {
     // Suspected original bug: this local is never assigned, and the original
     // reads it at 0x4aee78 (mov ebx,[esp+0x10]) when the table has no entry

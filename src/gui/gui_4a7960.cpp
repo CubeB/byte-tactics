@@ -27,7 +27,7 @@
 //       why their setup sits AFTER the loop guard (`jle` then
 //       `lea eax,[esp+0x2c]`), where a source pointer initialised before the
 //       loop never goes.
-//   The annotated FUN_004a7830 above the function is the real preceding
+//   The annotated SelectGadgetByIndex above the function is the real preceding
 //   function (it also MATCHes here); without it the switch tails are not
 //   shared (1440 bytes).
 // IV bias rule measured on the way (build/scratch/0x4a7960/iv/): with
@@ -85,12 +85,12 @@ struct Menu_004a7960 {
 struct Class_0051fba4 {
     int group;                         // +0x00
 };
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 int GetTextKeyColor();
 void __stdcall SetTextColors(int colour, int font);
 void __stdcall SetFont(int id);
-void FUN_004c1a40();
+void ClearKeyQueue();
 int __stdcall FUN_0049fc50(Menu_004a7960* menu, int index);
 void __stdcall FUN_004ab6c0(Menu_004a7960* menu, int index, char* text,
                             int maxLength, int clear);
@@ -115,19 +115,19 @@ static inline void FUN_004a7190(Menu_004a7960* obj, int index)
         }
     }
     if (i == entries->data.count + 1) {
-        SetFont(DAT_0051fba4->group);
+        SetFont(g_guiContext->group);
     }
 
     FUN_0049fc50(obj, index);
     obj->layer->field_20 = index;
     FUN_004ab6c0(obj, index, target->data.text, target->maxLength, 0);
-    FUN_004c1a40();
+    ClearKeyQueue();
 }
 
 // The function before this one in the original file (matched on its own in
 // 0x4a7830.cpp): the compiler state it leaves behind is what lets the switch
 // below share its case tails. Without it the tails are duplicated (1440 bytes).
-void __stdcall FUN_004a7830(Menu_004a7960* menu, int index)
+void __stdcall SelectGadgetByIndex(Menu_004a7960* menu, int index)
 {
     Entry_004a7960* first = menu->layer->entries;
     menu->focus = -1;

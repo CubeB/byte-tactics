@@ -54,7 +54,7 @@ struct Class_004a2e40 {
 };
 #pragma pack(pop)
 
-extern Holder_004a2e40* DAT_0051fba4;
+extern Holder_004a2e40* g_guiContext;
 
 void __stdcall SetFont(int id);
 int __stdcall GetGafFrame(unsigned short* glyphs, int c);
@@ -100,13 +100,13 @@ void __stdcall FUN_004a2e40(Class_004a2e40* param_1, char* param_2, int param_3)
         }
     }
     if (i == entries->count + 1)
-        SetFont(DAT_0051fba4->current);
+        SetFont(g_guiContext->current);
 
     int size;
-    if (DAT_0051fba4->list == 0)
+    if (g_guiContext->list == 0)
         size = GetFontHeight();
     else
-        size = *(unsigned short*)(GetGafFrame(DAT_0051fba4->list->glyphs, 0x49) + 2) + 2;
+        size = *(unsigned short*)(GetGafFrame(g_guiContext->list->glyphs, 0x49) + 2) + 2;
     int step = (me->field_19 - 2) / (size + 1);
     short last = me->field_bc;
     short sel = me->field_ba;

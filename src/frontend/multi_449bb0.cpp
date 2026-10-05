@@ -229,8 +229,8 @@ int __stdcall FUN_0045ba20(Gadget_00449bb0* gadget);
 void __stdcall CreateUnitSync(int param_1);
 void __stdcall FUN_0049fa90(Gui_00449bb0* gui);
 void __stdcall FUN_0049fb10(Gui_00449bb0* gui, int value);
-int __stdcall FUN_0049fdf0(Gadget_00449bb0* entries, char* name, int type);
-Gadget_00449bb0* __stdcall FUN_0049ff90(Gadget_00449bb0* entries, char* name);
+int __stdcall FindGadgetIndex(Gadget_00449bb0* entries, char* name, int type);
+Gadget_00449bb0* __stdcall FindGadgetChecked(Gadget_00449bb0* entries, char* name);
 Gadget_00449bb0* __stdcall FUN_004a0180(Gadget_00449bb0* entries, char* name);
 Gadget_00449bb0* __stdcall FUN_004a0200(Gadget_00449bb0* entries, char* name);
 Gadget_00449bb0* __stdcall FUN_004a0280(Gadget_00449bb0* entries, char* name);
@@ -240,9 +240,9 @@ void __stdcall FUN_004a1250(Gui_00449bb0* gui, char* name, int value);
 void __stdcall FUN_004a1450(Gui_00449bb0* gui, char* name, int value);
 void __stdcall FUN_004a32a0(Gui_00449bb0* gui, char* name, char* text, int count, int flag);
 void __stdcall FUN_004a7190(Gui_00449bb0* gui, int index);
-void __stdcall FUN_004a81e0(Gui_00449bb0* gui, int value);
-Layer_00449bb0* __stdcall FUN_004aa8f0(Gui_00449bb0* gui, const char* name, int size);
-int __stdcall FUN_004ab060(Gui_00449bb0* gui, char* name);
+void __stdcall RenderLayer(Gui_00449bb0* gui, int value);
+Layer_00449bb0* __stdcall LoadGuiLayer(Gui_00449bb0* gui, const char* name, int size);
+int __stdcall IsScreenNamed(Gui_00449bb0* gui, char* name);
 void __stdcall FatalError(char* message);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
@@ -273,7 +273,7 @@ void __stdcall FUN_00445e50(char* name, int max, int value, Callback_00449bb0 ca
 {
     Gui_00449bb0* gui = &g_game->gui;
     Gadget_00449bb0* gadgets = gui->table->entries;
-    int index = FUN_0049fdf0(gadgets, name, 0xe);
+    int index = FindGadgetIndex(gadgets, name, 0xe);
     if (index != -1) {
         Gadget_00449bb0* gadget = FUN_004a0200(gadgets, name);
         gadget->max = max;
@@ -313,18 +313,18 @@ void FUN_00449bb0()
     info->height = g_game->height;
     info->f9d_2 = FUN_0041d6a0(1) != 0;
 
-    layer = FUN_004aa8f0(&g_game->gui, "LOUNGE2.GUI", 0);
+    layer = LoadGuiLayer(&g_game->gui, "LOUNGE2.GUI", 0);
     layer->handler = FUN_00447b10;
     layer->game = g_game;
     FUN_004288d0("battleroom", 0, 1, 0);
     entries = g_game->gui.table->entries;
     DAT_00512764 = layer->entries->head.count;
 
-    i = FUN_0049fdf0(entries, "MESSAGE", 3);
+    i = FindGadgetIndex(entries, "MESSAGE", 3);
     if (i != -1)
         entries[i].field_138 = 0x7f;
     if (!IsHostLocal()) {
-        i = FUN_0049fdf0(entries, "MAP", 1);
+        i = FindGadgetIndex(entries, "MAP", 1);
         if (i != -1) {
             entries[i].field_1b = 2;
             FUN_004a0bf0(&g_game->gui, "MAP", "View Map", 0);
@@ -402,7 +402,7 @@ void FUN_00449bb0()
     FUN_004a1250(&g_game->gui, "RESTRICTIONS", 0);
     FUN_004a32a0(&g_game->gui, "OUTPUT", g_game->chatter, 0, 0);
     {
-        Gadget_00449bb0* output = FUN_0049ff90(entries, "OUTPUT");
+        Gadget_00449bb0* output = FindGadgetChecked(entries, "OUTPUT");
         output->field_1b |= 0x100;
     }
     FUN_004a0bf0(&g_game->gui, "METALTEXT", "0", 0);
@@ -427,10 +427,10 @@ void FUN_00449bb0()
     strcpy(info->map, ((Class_00435c30*)g_game->map)->FUN_00435c30());
     info->mapCrc = ((Class_004373a0*)g_game->map)->FUN_004373a0();
     BroadcastPlayerInfo();
-    FUN_004a7190(&g_game->gui, FUN_0049fdf0(g_game->gui.table->entries, "MESSAGE", 0xe));
+    FUN_004a7190(&g_game->gui, FindGadgetIndex(g_game->gui.table->entries, "MESSAGE", 0xe));
 
     for (char** p = DAT_005054b0; *p; p++) {
-        int k = FUN_0049fdf0(layer->entries, *p, 0xe);
+        int k = FindGadgetIndex(layer->entries, *p, 0xe);
         if (k != -1)
             layer->entries[k].visible = 0;
     }
@@ -440,7 +440,7 @@ void FUN_00449bb0()
     FUN_00448c70();
     FUN_00428b60();
 
-    if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI")) {
+    if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI")) {
         Gadget_00449bb0* start = FUN_004a0280(layer->entries, "battlestart");
         start->anim.frames = FindGafEntry(layer->entries->head.gaf, "battlestart");
         start->frame = 0;
@@ -449,5 +449,5 @@ void FUN_00449bb0()
     }
 
     FUN_0049fb10(&g_game->gui, 1);
-    FUN_004a81e0(&g_game->gui, 0x40);
+    RenderLayer(&g_game->gui, 0x40);
 }

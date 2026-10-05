@@ -69,7 +69,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004ab060(void* obj, const char* name);
+int __stdcall IsScreenNamed(void* obj, const char* name);
 void __stdcall FUN_0049fa90(void* obj);
 void __stdcall FUN_004199b0(void* a, void* b);
 void __stdcall AttachUnitToPiece(Unit_0041b8d0* unit, Unit_0041b8d0* target, char p3, char p4);
@@ -91,7 +91,7 @@ void __stdcall FUN_0041b8d0(Unit_0041b8d0* unit, Unit_0041b8d0* target)
         if (target->player->active != 0
             && (target->player->type == 1 || target->player->type == 2)) {
             if (target->flags & 0x20000000) {
-                if (FUN_004ab060(&g_game->menu, "BUILDER.GUI"))
+                if (IsScreenNamed(&g_game->menu, "BUILDER.GUI"))
                     FUN_0049fa90(&g_game->menu);
             } else {
                 if (target->field_86 != 0)

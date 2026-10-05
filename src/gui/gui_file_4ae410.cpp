@@ -19,7 +19,7 @@ struct Obj_004ae410 {
 };
 
 // FUNCTION: 0x4ae410
-void __stdcall FUN_004ae410(Obj_004ae410* obj, Source_004ae410* src)
+void __stdcall ReadHotOrNotField(Obj_004ae410* obj, Source_004ae410* src)
 {
     int value = src->tdf->FUN_004c46c0("hotornot", 0);
     obj->hotornot = value;

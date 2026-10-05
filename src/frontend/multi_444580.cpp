@@ -73,22 +73,22 @@ extern Game_00444580* g_game;
 extern LinkInfo DAT_005127c8[];
 extern char DAT_004fcfb8[];
 
-void __stdcall FUN_004a9660(void* menu);
+void __stdcall CloseTopScreen(void* menu);
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 void __stdcall FUN_004ac7d0(void* menu, void* palette, void* param_3);
-Gadget_00444580* __stdcall FUN_004aa8f0(void* menu, char* name, int size);
+Gadget_00444580* __stdcall LoadGuiLayer(void* menu, char* name, int size);
 void __stdcall FUN_004441a0(void* menu);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall HAPINET_uninitmultiplay(void* param_1);
 void __stdcall HAPINET_getconnections(void* param_1, void* guids, void* conns, void* descriptions, void* param_5);
-int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
+int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 unsigned int __stdcall OnlineGetLinkInfo(LinkInfo* links);
 void __stdcall FUN_004a09c0(void* menu, int index, int param_3, int param_4);
 void __stdcall FUN_004a32a0(void* menu, char* name, void* items, int count, int flag);
 void FUN_00428b60();
 void __stdcall FUN_0049fb10(void* menu, int value);
-void __stdcall FUN_004a81e0(void* menu, int value);
+void __stdcall RenderLayer(void* menu, int value);
 
 // Appends a copy of entry `from` under a new name. This is 0x4444d0, which the
 // original defines between the two functions of this file and inlines here;
@@ -118,10 +118,10 @@ static int __stdcall FUN_004444d0(Entry_00444580* entries, int from, short y, in
 void FUN_00444580()
 {
     if (g_game->menu.holder != 0 && strcmp(g_game->menu.holder->entries->name, "SELPROV.GUI") == 0)
-        FUN_004a9660(&g_game->menu);
+        CloseTopScreen(&g_game->menu);
     SetPaletteColors(g_game->palette, 0, 0x100);
     FUN_004ac7d0(&g_game->menu, g_game->palette, g_game->field_5cb);
-    Gadget_00444580* menu = FUN_004aa8f0(&g_game->menu, "SELPROV.GUI", 0x80);
+    Gadget_00444580* menu = LoadGuiLayer(&g_game->menu, "SELPROV.GUI", 0x80);
     menu->handler = FUN_004441a0;
     menu->field_c = (int)g_game;
     FUN_004288d0("selconnect2", 1, 0, 0);
@@ -134,7 +134,7 @@ void FUN_00444580()
     HAPINET_uninitmultiplay(g_game->field_14);
     HAPINET_getconnections(g_game->field_14, g_game->guids, g_game->conns, g_game->descriptions, DAT_004fcfb8);
     Entry_00444580* entries = menu->entries;
-    int tmpl = FUN_0049fdf0(entries, "SERVICEX", 1);
+    int tmpl = FindGadgetIndex(entries, "SERVICEX", 1);
     int y;
     int k;
     int n = 0;
@@ -160,5 +160,5 @@ void FUN_00444580()
     FUN_004a32a0(&g_game->menu, "DPLAY", g_game->descriptions, g_game->field_4f9, 0);
     FUN_00428b60();
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

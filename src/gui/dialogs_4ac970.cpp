@@ -62,7 +62,7 @@ struct Rect_004ac970 {
     int bottom;
 };
 
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 void __stdcall DrawRectangle(void* param_1, void* param_2, int param_3);
 
 // The x of one cell of the grid: the grid gadget's x plus the cell gadget's.
@@ -75,7 +75,7 @@ static inline int CellX(Gadget_004ac970* gadgets, int index)
 void __stdcall FUN_004ac970(Object_004ac970* obj, int cell, int color)
 {
     Gadget_004ac970* gadgets = obj->holder->gadgets;
-    int index, found = FUN_0049fdf0(gadgets, "COLS", 6);
+    int index, found = FindGadgetIndex(gadgets, "COLS", 6);
     void* surface = gadgets->surface;
     index = found;
     short cellY = gadgets[index].y;

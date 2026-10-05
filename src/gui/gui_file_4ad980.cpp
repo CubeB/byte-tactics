@@ -18,7 +18,7 @@ struct Struct_004ad980 {
 unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* param_1, void* param_2, unsigned int param_3);
 
 // FUNCTION: 0x4ad980
-void __stdcall FUN_004ad980(Struct_004ad980* obj, Class_004bbbe0* out, int indent)
+void __stdcall WriteStatusField(Struct_004ad980* obj, Class_004bbbe0* out, int indent)
 {
     char tab;
     char line[100];

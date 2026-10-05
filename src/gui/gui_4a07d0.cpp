@@ -37,7 +37,7 @@ static inline int FindEntry(Entry_004a07d0* entries, char* name)
 }
 
 // FUNCTION: 0x4a07d0
-void __stdcall FUN_004a07d0(Object_004a07d0* obj, char* name, char* text)
+void __stdcall SetGadgetTextByName(Object_004a07d0* obj, char* name, char* text)
 {
     if (obj->data) {
         Entry_004a07d0* entries = obj->data->entries;

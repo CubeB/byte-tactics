@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Opens the "file does not exist" dialog (NOTEXIST.GUI), puts the name in
-// its NAME gadget and installs FUN_004ac080 as its handler; compare 0x4abb20.
+// its NAME gadget and installs NotExistDialogHandler as its handler; compare 0x4abb20.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -27,20 +27,20 @@ struct Dialog_004ac0a0 {
     void (__stdcall* handler)(Sub_004ac0a0*); // +0x8
 };
 
-Dialog_004ac0a0* __stdcall FUN_004aa8f0(Sub_004ac0a0* sub, const char* name, int flags);
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
-void __stdcall FUN_004ac080(Sub_004ac0a0* sub);
+Dialog_004ac0a0* __stdcall LoadGuiLayer(Sub_004ac0a0* sub, const char* name, int flags);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
+void __stdcall NotExistDialogHandler(Sub_004ac0a0* sub);
 
 // FUNCTION: 0x4ac0a0
-int __stdcall FUN_004ac0a0(Sub_004ac0a0* sub, char* name)
+int __stdcall OpenNotExistDialog(Sub_004ac0a0* sub, char* name)
 {
-    Dialog_004ac0a0* dialog = FUN_004aa8f0(sub, "NOTEXIST.GUI", 0);
+    Dialog_004ac0a0* dialog = LoadGuiLayer(sub, "NOTEXIST.GUI", 0);
     if (dialog) {
         Gadget_004ac0a0* gadgets = sub->current->gadgets;
-        int i = FUN_0049fdf0(gadgets, "NAME", 5);
+        int i = FindGadgetIndex(gadgets, "NAME", 5);
         strcpy(gadgets[i].text, name);
         gadgets[i].field_13 = -1;
-        dialog->handler = FUN_004ac080;
+        dialog->handler = NotExistDialogHandler;
         return 1;
     }
     return 0;

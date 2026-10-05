@@ -24,7 +24,7 @@ struct Obj_004ae170 {
 unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* param_1, void* param_2, unsigned int param_3);
 
 // FUNCTION: 0x4adf90
-void __stdcall FUN_004adf90(Obj_004ae170* obj, Class_004bbbe0* out, int indent)
+void __stdcall WriteSliderFields(Obj_004ae170* obj, Class_004bbbe0* out, int indent)
 {
     char tab;
     char line[100];

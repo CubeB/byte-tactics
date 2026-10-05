@@ -61,7 +61,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_00479660(void);
-int __stdcall FUN_0049fdf0(Entry_004797e0* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Entry_004797e0* entries, char* name, int type);
 void __stdcall FUN_004a0570(Menu_004797e0* menu, char* name, int value);
 void __stdcall FUN_004a0bf0(Menu_004797e0* menu, char* key, char* text, int flag);
 char* __stdcall FUN_004c5740(char* key);
@@ -112,7 +112,7 @@ static void NewColour(int playerIndex)
     Entry_004797e0* entries = g_game->holder->entries;
     g_game->players[playerIndex].color = FUN_004795e0();
     wsprintfA(name, "Color%d", playerIndex);
-    int index = FUN_0049fdf0(entries, name, 6);
+    int index = FindGadgetIndex(entries, name, 6);
     if (index != -1) {
         Entry_004797e0* e = &entries[index];
         if (e != 0) {

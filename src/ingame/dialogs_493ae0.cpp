@@ -33,7 +33,7 @@ struct Class_004a1080;
 extern Game* g_game;
 
 void __stdcall FUN_004a0570(Object_004a0570* obj, char* name, int value);
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, char value);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, char value);
 
 // FUNCTION: 0x493ae0
 void FUN_00493ae0(void)
@@ -62,7 +62,7 @@ void FUN_00493ae0(void)
                 value = flags[i];
                 break;
             }
-            FUN_004a1080((Class_004a1080*)((char*)g_game + 0x519), buf,
+            SetButtonStageByName((Class_004a1080*)((char*)g_game + 0x519), buf,
                          (char)value);
         }
     }

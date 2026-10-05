@@ -158,7 +158,7 @@ void __stdcall DamageUnit(int a, Unit* u, int damage, int kind, int flag);
 int __stdcall FUN_0041bd10(Unit* u, Unit* u2, float f);
 void __stdcall SendUnitStates(Player_0048ad30* p);
 void __stdcall FUN_0048d790(void);
-int __stdcall FUN_004c1b80(int n);
+int __stdcall IsKeyDown(int n);
 void __stdcall FUN_0041c2e0(int n);
 
 static inline int PlayerMore(unsigned char i)
@@ -265,7 +265,7 @@ void __stdcall UpdateAllUnits(void)
             }
         }
     if (g_game->f14373.bits.b1) {
-        if (!FUN_004c1b80(0xf9)) {
+        if (!IsKeyDown(0xf9)) {
             g_game->f14371--;
             if (g_game->f14371 <= 0) {
                 g_game->f14371 = 0x5a;

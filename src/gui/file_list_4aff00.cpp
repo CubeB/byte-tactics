@@ -35,13 +35,13 @@ struct Class_004aff00 {
 unsigned int GetTicks();
 int GetTickRate();
 int GetTextKeyColor();
-void __stdcall FUN_004a1810(Entry_004a1810* entries, int index);
+void __stdcall SelectFontForEntry(Entry_004a1810* entries, int index);
 void __stdcall SetTextColors(int param_1, int param_2);
 void __stdcall DrawString(void* surface, const char* text, int x, int y,
                             int maxWidth);
 
 // FUNCTION: 0x4aff00
-void __stdcall FUN_004aff00(Class_004aff00* obj)
+void __stdcall DrawBlinkWords(Class_004aff00* obj)
 {
     if (obj->active == 0)
         return;
@@ -49,7 +49,7 @@ void __stdcall FUN_004aff00(Class_004aff00* obj)
     int time = GetTicks();
 
     if (obj->words->value != -1)
-        FUN_004a1810((Entry_004a1810*)obj->field_18->field_4,
+        SelectFontForEntry((Entry_004a1810*)obj->field_18->field_4,
                      obj->words->value);
 
     for (int i = 0; i < obj->count; i++) {

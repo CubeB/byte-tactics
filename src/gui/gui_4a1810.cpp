@@ -21,12 +21,12 @@ struct Class_0051fba4 {
     char unknown_04[0x14 - 0x04];
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 void __stdcall SetFont(int id);
 
 // FUNCTION: 0x4a1810
-int __stdcall FUN_004a1810(Entry_004a1810* entries, int index)
+int __stdcall SelectFontForEntry(Entry_004a1810* entries, int index)
 {
     int n = 0;
     int i = 1;
@@ -40,7 +40,7 @@ int __stdcall FUN_004a1810(Entry_004a1810* entries, int index)
         }
     }
     if (i == entries->count + 1) {
-        SetFont(DAT_0051fba4->group);
+        SetFont(g_guiContext->group);
         i = -1;
     }
     return i;

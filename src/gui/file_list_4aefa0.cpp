@@ -21,7 +21,7 @@ char* __stdcall FUN_004b6af0(char* list, int index);
 int __cdecl _strcmpi(const char* a, const char* b);
 
 // FUNCTION: 0x4aefa0
-void __stdcall FUN_004aefa0(char* list1, char* list2, int* keys, int count)
+void __stdcall SortFileList(char* list1, char* list2, int* keys, int count)
 {
     char** ptr2;
     char** ptr1;

@@ -48,7 +48,7 @@ extern char DAT_005119b8[];
 char* __stdcall FUN_004c5740(char* text);
 
 // FUNCTION: 0x4ad350
-void __stdcall FUN_004ad350(Common_004ad350* obj, Tree_004ad350* tree)
+void __stdcall ReadCommonSection(Common_004ad350* obj, Tree_004ad350* tree)
 {
     if (((Class_004c3410*)tree)->FUN_004c3410("COMMON") == 1) {
         obj->id = (unsigned char)tree->current->FUN_004c46c0("id", 0);

@@ -14,7 +14,7 @@ struct Object_004abd20 {
 };
 
 // FUNCTION: 0x4abd20
-int __stdcall FUN_004abd20(Object_004abd20* obj)
+int __stdcall IsMessageBoxScreen(Object_004abd20* obj)
 {
     if (!obj->entry)
         return 0;

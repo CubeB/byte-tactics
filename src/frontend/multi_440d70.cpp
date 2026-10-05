@@ -38,20 +38,20 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fdf0(Entry_00440d70* entries, const char* name, int flag);
-int __stdcall FUN_0049fd60(Gadget_00440d70* gadget, const char* name);
-void __stdcall FUN_004a7830(Gadget_00440d70* gadget, int index);
+int __stdcall FindGadgetIndex(Entry_00440d70* entries, const char* name, int flag);
+int __stdcall IsCurrentGadgetNamed(Gadget_00440d70* gadget, const char* name);
+void __stdcall SelectGadgetByIndex(Gadget_00440d70* gadget, int index);
 void __stdcall FUN_004a7190(Gadget_00440d70* gadget, int index);
 void __stdcall FUN_0049fc50(Gadget_00440d70* gadget, int index);
 void __stdcall FUN_0049fa90(Gadget_00440d70* gadget);
 void __stdcall FUN_004ab0a0(Gadget_00440d70* gadget);
 void __stdcall FUN_0047f1a0(const char* name, int flag);
 Entry_00440d70* __stdcall FUN_004a0010(Entry_00440d70* entries, const char* name);
-void __stdcall FUN_004a9660(Gadget_00440d70* gadget);
+void __stdcall CloseTopScreen(Gadget_00440d70* gadget);
 void FUN_00443cb0();
 int FUN_004436e0();
 char* __stdcall FUN_004c5740(const char* text);
-void __stdcall FUN_004abd90(char* dest, const char* text, int a, int b, int c);
+void __stdcall OpenMessageBox(char* dest, const char* text, int a, int b, int c);
 
 // FUNCTION: 0x440d70
 void __stdcall FUN_00440d70(Gadget_00440d70* gadget)
@@ -61,27 +61,27 @@ void __stdcall FUN_00440d70(Gadget_00440d70* gadget)
         return;
     // The three text fields share one tail: the first two hand the next field
     // the focus, the third one the OK button.
-    if (FUN_0049fd60(gadget, "GAMENAME")) {
-        FUN_004a7830(gadget, FUN_0049fdf0(entries, "NICKNAME", 3));
-        FUN_0049fc50(gadget, FUN_0049fdf0(entries, "NICKNAME", 3));
+    if (IsCurrentGadgetNamed(gadget, "GAMENAME")) {
+        SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "NICKNAME", 3));
+        FUN_0049fc50(gadget, FindGadgetIndex(entries, "NICKNAME", 3));
         FUN_0049fa90(gadget);
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fd60(gadget, "NICKNAME")) {
-        FUN_004a7830(gadget, FUN_0049fdf0(entries, "PASSWORD", 3));
-        FUN_0049fc50(gadget, FUN_0049fdf0(entries, "PASSWORD", 3));
+    if (IsCurrentGadgetNamed(gadget, "NICKNAME")) {
+        SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "PASSWORD", 3));
+        FUN_0049fc50(gadget, FindGadgetIndex(entries, "PASSWORD", 3));
         FUN_0049fa90(gadget);
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fd60(gadget, "PASSWORD")) {
-        FUN_004a7830(gadget, FUN_0049fdf0(entries, "OK", 1));
+    if (IsCurrentGadgetNamed(gadget, "PASSWORD")) {
+        SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "OK", 1));
         FUN_0049fa90(gadget);
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fdf0(entries, "OK", 0xe) == gadget->field_60) {
+    if (FindGadgetIndex(entries, "OK", 0xe) == gadget->field_60) {
         // 100 bytes each, and the pointer local in front of them, is what
         // puts them at +0x14 and +0x78 of the 0xcc-byte frame.
         char nickbuf[100];
@@ -92,21 +92,21 @@ void __stdcall FUN_00440d70(Gadget_00440d70* gadget)
         FUN_0047f1a0("BigButton", 0);
         char* pw = (char*)FUN_004a0010(entries, "PASSWORD");
         lstrcpynA(g_game->passWord, pw + 0xb6, 0xb);
-        gi = FUN_0049fdf0(entries, "GAMENAME", 3);
+        gi = FindGadgetIndex(entries, "GAMENAME", 3);
         dst = namebuf;                 // copied through a pointer, as in the original
         strcpy(dst, entries[gi].text);
         if (strlen(namebuf) == 0) {
             FUN_004a7190(gadget, gi);
             FUN_004ab0a0(gadget);
-            FUN_004abd90((char*)gadget, FUN_004c5740("You must enter a game name"), 0x140, 1, 1);
+            OpenMessageBox((char*)gadget, FUN_004c5740("You must enter a game name"), 0x140, 1, 1);
             return;
         }
-        ni = FUN_0049fdf0(entries, "NICKNAME", 3);
+        ni = FindGadgetIndex(entries, "NICKNAME", 3);
         strcpy(nickbuf, entries[ni].text);
         if (strlen(nickbuf) == 0) {
             FUN_004a7190(gadget, ni);
             FUN_004ab0a0(gadget);
-            FUN_004abd90((char*)gadget, FUN_004c5740("You must enter your name"), 0x140, 1, 1);
+            OpenMessageBox((char*)gadget, FUN_004c5740("You must enter your name"), 0x140, 1, 1);
             return;
         }
         strcpy(g_game->gameName, namebuf);
@@ -118,9 +118,9 @@ void __stdcall FUN_00440d70(Gadget_00440d70* gadget)
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fdf0(entries, "CANCEL", 0xe) == gadget->field_60) {
+    if (FindGadgetIndex(entries, "CANCEL", 0xe) == gadget->field_60) {
         FUN_0047f1a0("Previous", 0);
-        FUN_004a9660(gadget);
+        CloseTopScreen(gadget);
         FUN_00443cb0();
         return;
     }

@@ -39,7 +39,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004aa8f0(void* obj, char* buf, int size);
+int __stdcall LoadGuiLayer(void* obj, char* buf, int size);
 void __stdcall FUN_004a1250(void* obj, char* name, int value);
 void __stdcall FUN_0049fa50(void* obj);
 
@@ -53,7 +53,7 @@ int __cdecl FUN_0045cfc0()
     } else {
         strcpy(buf, "STARTOPT.GUI");
     }
-    int result = FUN_004aa8f0(&g_game->menu, buf, 0x80);
+    int result = LoadGuiLayer(&g_game->menu, buf, 0x80);
     FUN_004a1250(&g_game->menu, "MUSIC", *(int*)g_game->field_10 == 0);
     FUN_0049fa50(&g_game->menu);
     if (g_game->prefs && g_game->mode->FUN_00435100() != 3) {

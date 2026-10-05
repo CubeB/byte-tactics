@@ -21,7 +21,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_0049fa70(Menu_00494840* menu);
-int __stdcall FUN_0049fd60(Gadget_00494840* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_00494840* gadget, char* name);
 void __stdcall FUN_004ab0a0(Gadget_00494840* gadget);
 
 // FUNCTION: 0x494840
@@ -32,6 +32,6 @@ void __stdcall FUN_00494840(Gadget_00494840* gadget)
         FUN_0049fa70(&g_game->menu);
         return;
     }
-    if (!FUN_0049fd60(gadget, "CANCEL"))
+    if (!IsCurrentGadgetNamed(gadget, "CANCEL"))
         FUN_004ab0a0(gadget);
 }

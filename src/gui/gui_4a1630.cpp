@@ -21,7 +21,7 @@ struct Rect_004a1630 {
 };
 
 // FUNCTION: 0x4a1630
-void __stdcall FUN_004a1630(Entry_004a1630* entry, Rect_004a1630* rect)
+void __stdcall GetGadgetRect(Entry_004a1630* entry, Rect_004a1630* rect)
 {
     if (entry->active == 0) {
         rect->x1 = 0;

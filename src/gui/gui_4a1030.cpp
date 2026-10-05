@@ -20,7 +20,7 @@ struct Class_004a1030 {
 };
 
 // FUNCTION: 0x4a1030
-int __stdcall FUN_004a1030(Class_004a1030* obj, int index, char value)
+int __stdcall SetButtonStage(Class_004a1030* obj, int index, char value)
 {
     Entry_4a1030* entries = obj->holder->entries;
     if (entries[index].type == 1) {

@@ -55,7 +55,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fdf0(Entry_0047acd0* entries, const char* name, int flag);
+int __stdcall FindGadgetIndex(Entry_0047acd0* entries, const char* name, int flag);
 void __stdcall FUN_0049fa90(Menu_0047acd0* menu);
 
 // The loop's test: an inlined helper keeps its two results in eax, which is
@@ -86,7 +86,7 @@ void __stdcall FUN_0047acd0(int param_1)
     } while (color_taken(current));
 
     wsprintfA(buf, "Color%d", current);
-    int index = FUN_0049fdf0(entries, buf, 6);
+    int index = FindGadgetIndex(entries, buf, 6);
     if (index != -1) {
         Entry_0047acd0* gadget = &entries[index];
         if (gadget != 0) {

@@ -1,10 +1,10 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 // Pushes the local player's status flags (commander, mapping, los type,
 // watching, cheating, fixed position, game open) into the GUI by name.
-// FUN_004a1080's value parameter is widened to an int here, as in 0x446450.
+// SetButtonStageByName's value parameter is widened to an int here, as in 0x446450.
 struct Class_004a1080;
 
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 unsigned char FindHostSlot();
 
 #pragma pack(push, 1)
@@ -48,17 +48,17 @@ void FUN_00445ed0()
     }
     PlayerInfo_00445ed0* info = g_game->players[i].info;
 
-    FUN_004a1080((Class_004a1080*)g_game->gui, "COMMANDER", info->commander);
-    FUN_004a1080((Class_004a1080*)g_game->gui, "MAPPING", !info->mapping);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "COMMANDER", info->commander);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "MAPPING", !info->mapping);
     int los;
     if (!info->bit9) {
         los = 2;
     } else {
         los = !info->bit10;
     }
-    FUN_004a1080((Class_004a1080*)g_game->gui, "LOSTYPE", los);
-    FUN_004a1080((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
-    FUN_004a1080((Class_004a1080*)g_game->gui, "CHEATING", info->cheating);
-    FUN_004a1080((Class_004a1080*)g_game->gui, "FIXEDLOC", info->fixedloc);
-    FUN_004a1080((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "LOSTYPE", los);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "CHEATING", info->cheating);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "FIXEDLOC", info->fixedloc);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
 }

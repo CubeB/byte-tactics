@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-void __stdcall FUN_004a0300(int param_1, int param_2, const char* param_3);
+void __stdcall IsGadgetNamed(int param_1, int param_2, const char* param_3);
 
 struct Sub18_4ac300 {
     int unknown_0;
@@ -15,11 +15,11 @@ struct Obj_4ac300 {
 };
 
 // FUNCTION: 0x4ac300
-void __stdcall FUN_004ac300(Obj_4ac300* param_1)
+void __stdcall InputDialogHandler(Obj_4ac300* param_1)
 {
     int esi = param_1->field18->field4;
     int edi = param_1->field60;
-    FUN_004a0300(esi, edi, "CHC1");
-    FUN_004a0300(esi, edi, "CHC2");
-    FUN_004a0300(esi, edi, "INPT");
+    IsGadgetNamed(esi, edi, "CHC1");
+    IsGadgetNamed(esi, edi, "CHC2");
+    IsGadgetNamed(esi, edi, "INPT");
 }

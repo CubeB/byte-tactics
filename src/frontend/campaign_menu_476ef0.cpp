@@ -70,15 +70,15 @@ extern int DAT_0051e66c;
 extern unsigned char DAT_00507b70[];
 extern char DAT_005119b8;
 
-int __stdcall FUN_0049fdf0(Entry_476ef0* gadgets, const char* name, int type);
+int __stdcall FindGadgetIndex(Entry_476ef0* gadgets, const char* name, int type);
 void __stdcall FUN_004afec0(Menu_476ef0* menu);
 void __stdcall FUN_004afd20(Menu_476ef0* menu, int value);
-void __stdcall FUN_004a1810(Entry_476ef0* gadgets, int index);
+void __stdcall SelectFontForEntry(Entry_476ef0* gadgets, int index);
 void* __cdecl GetFont();
 int __stdcall FontHeight(void* font);
 int __stdcall GetTextWidth(void* font, const char* text);
 char* __stdcall FUN_004c5740(const char* key);
-void __stdcall FUN_004ab1b0(Holder_476ef0* dialog, const char* name, char* text,
+void __stdcall AddTextGadget(Holder_476ef0* dialog, const char* name, char* text,
                             int x, int y, int w, int flags);
 void __stdcall FUN_004a0bf0(Menu_476ef0* menu, const char* name, char* text,
                             int value);
@@ -127,11 +127,11 @@ void FUN_00476ef0()
 
     FUN_004afec0(&g_game->menu);
     FUN_004afd20(&g_game->menu,
-                 FUN_0049fdf0(gadgets, "TextRegion", 5));
-    int idx = FUN_0049fdf0(gadgets, "TextRegion", 0xe);
+                 FindGadgetIndex(gadgets, "TextRegion", 5));
+    int idx = FindGadgetIndex(gadgets, "TextRegion", 0xe);
     Entry_476ef0* gp = &gadgets[idx];
     gp->field_28 = g_game->field_37ef2 + 1;
-    FUN_004a1810(gadgets, idx);
+    SelectFontForEntry(gadgets, idx);
 
     int divisor = FontHeight(GetFont()) + 2;
     int linesPerPage = gp->h / divisor;
@@ -163,7 +163,7 @@ void FUN_00476ef0()
 
     for (int i = linesPerPage * DAT_0051e64c;
          i < (DAT_0051e64c + 1) * linesPerPage; i++) {
-        FUN_004ab1b0(dialog, "TextRegion", &DAT_005119b8, textX, y, -1, 2);
+        AddTextGadget(dialog, "TextRegion", &DAT_005119b8, textX, y, -1, 2);
         count++;
         char* dst = gadgets[count].u.text;
         gadgets[count].flags = 0x411;

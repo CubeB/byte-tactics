@@ -80,20 +80,20 @@ struct Game {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-Gui_00445110* __stdcall FUN_004aa8f0(Sub_00445110* sub, const char* name, int flags);
+Gui_00445110* __stdcall LoadGuiLayer(Sub_00445110* sub, const char* name, int flags);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
-Entry_00445110* __stdcall FUN_0049ff90(void* entries, const char* name);
-int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
-void __stdcall FUN_004a36a0(Gui_00445110* gui, const char* name, void** items, int count);
+Entry_00445110* __stdcall FindGadgetChecked(void* entries, const char* name);
+int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
+void __stdcall SetGadgetItems(Gui_00445110* gui, const char* name, void** items, int count);
 void __stdcall FUN_0049fb10(Sub_00445110* sub, int value);
-void __stdcall FUN_004a81e0(Sub_00445110* sub, int value);
+void __stdcall RenderLayer(Sub_00445110* sub, int value);
 void __stdcall FUN_00444930(Gui_00445110* gui);
 void __stdcall FUN_00444910(void* gadget);
 
 // FUNCTION: 0x445110
 void FUN_00445110()
 {
-    Gui_00445110* gui = FUN_004aa8f0(&g_game->sub, "LOGOSEL.GUI", 0x800);
+    Gui_00445110* gui = LoadGuiLayer(&g_game->sub, "LOGOSEL.GUI", 0x800);
     gui->handler = FUN_00444930;
     Layout_00445110* layout = (Layout_00445110*)FUN_004d83b0("SELECT TEAM LOGO", 0x20);
     gui->layout = layout;
@@ -118,15 +118,15 @@ void FUN_00445110()
             cursor++;
         }
     }
-    Entry_00445110* logo = FUN_0049ff90(gui->entries, "LOGOS");
+    Entry_00445110* logo = FindGadgetChecked(gui->entries, "LOGOS");
     if (logo != 0) {
         logo->field_ce = FUN_00444910;
     }
-    int index = FUN_0049fdf0(gui->entries, "LOGOS", 2);
+    int index = FindGadgetIndex(gui->entries, "LOGOS", 2);
     if (index != -1) {
         ((Entry_00445110*)((char*)gui->entries + index * 0x15b))->flags_1b |= 0x40;
     }
-    FUN_004a36a0(gui, "LOGOS", layout->ptrList, n);
+    SetGadgetItems(gui, "LOGOS", layout->ptrList, n);
     FUN_0049fb10(&g_game->sub, 1);
-    FUN_004a81e0(&g_game->sub, 0x40);
+    RenderLayer(&g_game->sub, 0x40);
 }

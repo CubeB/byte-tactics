@@ -14,7 +14,7 @@ struct Entry_00442a30 {
     char number[0x81];                 // +0x81
 };
 
-// GUI layout entry, as returned by FUN_0049ff90.
+// GUI layout entry, as returned by FindGadgetChecked.
 struct Layout_00442a30 {
     char unknown_0[0xba];
     short selected;                    // +0xba
@@ -60,16 +60,16 @@ void __stdcall FUN_0042f960(void* key, void* buf, int value);
 void __stdcall FUN_0047f1a0(const char* name, int param_2);
 void FUN_004257a0(void);
 void __stdcall FUN_00425860(int state, int line, const char* file);
-Layout_00442a30* __stdcall FUN_0049ff90(void* entries, const char* name);
-int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
-int __stdcall FUN_0049fd60(Gadget_00442a30* gadget, const char* name);
+Layout_00442a30* __stdcall FindGadgetChecked(void* entries, const char* name);
+int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
+int __stdcall IsCurrentGadgetNamed(Gadget_00442a30* gadget, const char* name);
 void __stdcall FUN_0049fc50(Gadget_00442a30* gadget, int value);
 void __stdcall FUN_0049fa90(Gadget_00442a30* gadget);
-void __stdcall FUN_004a0d00(void* menu, const char* key, void* out);
-void __stdcall FUN_004a7830(Gadget_00442a30* gadget, int value);
+void __stdcall GetGadgetText(void* menu, const char* key, void* out);
+void __stdcall SelectGadgetByIndex(Gadget_00442a30* gadget, int value);
 void __stdcall FUN_004ab0a0(Gadget_00442a30* gadget);
 char* __stdcall FUN_004c5740(const char* text);
-void __stdcall FUN_004abd90(Gadget_00442a30* gadget, char* text, int a,
+void __stdcall OpenMessageBox(Gadget_00442a30* gadget, char* text, int a,
                             int b, int c);
 void __cdecl FUN_004d85a0(void* data);
 
@@ -77,11 +77,11 @@ void __cdecl FUN_004d85a0(void* data);
 // account list is refreshed.
 static inline void LoadAccount_00442a30()
 {
-    Layout_00442a30* entry = FUN_0049ff90(g_game->table->entries, "ACCOUNTS");
+    Layout_00442a30* entry = FindGadgetChecked(g_game->table->entries, "ACCOUNTS");
     if (entry != 0 && DAT_00512988 != 0) {
-        FUN_004a0d00((char*)g_game + 0x519, "NAME",
+        GetGadgetText((char*)g_game + 0x519, "NAME",
                      DAT_00512988[entry->selected].name);
-        FUN_004a0d00((char*)g_game + 0x519, "NUMBER",
+        GetGadgetText((char*)g_game + 0x519, "NUMBER",
                      DAT_00512988[entry->selected].number);
         FUN_004426e0();
     }
@@ -92,7 +92,7 @@ static inline void LoadAccount_00442a30()
 static inline void SaveModemNumbers_00442a30()
 {
     if (DAT_00512988 != 0) {
-        short count = FUN_0049ff90(g_game->table->entries, "ACCOUNTS")->selected;
+        short count = FindGadgetChecked(g_game->table->entries, "ACCOUNTS")->selected;
         if (count > 0) {
             Entry_00442a30 temp;
             memcpy(&temp, &DAT_00512988[count], 0x102);
@@ -135,23 +135,23 @@ void __stdcall FUN_00442a30(Gadget_00442a30* gadget)
         }
         return;
     }
-    if (FUN_0049fd60(gadget, "NAME")) {
+    if (IsCurrentGadgetNamed(gadget, "NAME")) {
         LoadAccount_00442a30();
-        FUN_0049fc50(gadget, FUN_0049fdf0(entries, "NUMBER", 3));
+        FUN_0049fc50(gadget, FindGadgetIndex(entries, "NUMBER", 3));
         FUN_0049fa90(gadget);
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fd60(gadget, "NUMBER")) {
+    if (IsCurrentGadgetNamed(gadget, "NUMBER")) {
         LoadAccount_00442a30();
-        FUN_004a7830(gadget, FUN_0049fdf0(entries, "JOIN", 1));
-        FUN_0049fc50(gadget, FUN_0049fdf0(entries, "JOIN", 1));
+        SelectGadgetByIndex(gadget, FindGadgetIndex(entries, "JOIN", 1));
+        FUN_0049fc50(gadget, FindGadgetIndex(entries, "JOIN", 1));
         strcpy((char*)entries + 0xcc, "JOIN");
         FUN_0049fa90(gadget);
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fdf0(entries, "HOST", 0xe) == gadget->field_60) {
+    if (FindGadgetIndex(entries, "HOST", 0xe) == gadget->field_60) {
         LoadAccount_00442a30();
         SaveModemNumbers_00442a30();
         g_game->bit0 = 1;
@@ -161,9 +161,9 @@ void __stdcall FUN_00442a30(Gadget_00442a30* gadget)
         FUN_004257a0();
         return;
     }
-    if (FUN_0049fdf0(entries, "JOIN", 0xe) != gadget->field_60) {
-        if (FUN_0049fd60(gadget, "ACCOUNTS") == 0) {
-            if (FUN_0049fd60(gadget, "PREV")) {
+    if (FindGadgetIndex(entries, "JOIN", 0xe) != gadget->field_60) {
+        if (IsCurrentGadgetNamed(gadget, "ACCOUNTS") == 0) {
+            if (IsCurrentGadgetNamed(gadget, "PREV")) {
                 FUN_00425860(0xf, 0x47f, "c:\\cavedog\\wargame\\multi.cpp");
                 FUN_0047f1a0("Previous", 0);
                 return;
@@ -178,6 +178,6 @@ void __stdcall FUN_00442a30(Gadget_00442a30* gadget)
     g_game->bit0 = 0;
     TryConnect_00442a30();
     FUN_0047f1a0("SMLBUTTON", 0);
-    FUN_004abd90(gadget, FUN_004c5740("Connecting... press ESC to abort"),
+    OpenMessageBox(gadget, FUN_004c5740("Connecting... press ESC to abort"),
                  0xfa, 1, 1);
 }

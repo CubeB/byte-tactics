@@ -11,7 +11,7 @@ struct Entry_4a0300 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4a0300
-int __stdcall FUN_004a0300(Entry_4a0300* entries, int i, char* name)
+int __stdcall IsGadgetNamed(Entry_4a0300* entries, int i, char* name)
 {
     if (i == -1) {
         return 0;

@@ -13,7 +13,7 @@ void __stdcall DrawLine(void* surface, int x0, int y0, int x1, int y1, int color
 // use `light`, the right and bottom edges use `dark`. The fifth argument is
 // not read by the original.
 // FUNCTION: 0x4b0160
-void __stdcall FUN_004b0160(void* surface, Rect_004b0160* rect, int dark, int light, int unused)
+void __stdcall DrawBevelBorderDarkFirst(void* surface, Rect_004b0160* rect, int dark, int light, int unused)
 {
     DrawLine(surface, rect->x1, rect->y1, rect->x2, rect->y1, light);
     DrawLine(surface, rect->x1, rect->y1 + 1, rect->x2 - 1, rect->y1 + 1, light);

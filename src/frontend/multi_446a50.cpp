@@ -2,13 +2,13 @@
 // Refreshes the "TEAMICONS%d" gadget for every active player: the name uses
 // either the player index or a running icon counter, and the value comes from
 // the player's alliance and how many players are still counted on that side.
-// The three FUN_004a1080 calls in the switch are written out separately so
+// The three SetButtonStageByName calls in the switch are written out separately so
 // MSVC tail-merges them and keeps the original register allocation.
 #include <windows.h>
 
 struct Class_004a1080;
 
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 
 #pragma pack(push, 1)
 struct PlayerInfo_00446a50 {
@@ -109,13 +109,13 @@ void FUN_00446a50()
 
             switch (count) {
             case 0:
-                FUN_004a1080((Class_004a1080*)g_game->gui, buffer, 10);
+                SetButtonStageByName((Class_004a1080*)g_game->gui, buffer, 10);
                 break;
             case 1:
-                FUN_004a1080((Class_004a1080*)g_game->gui, buffer, alliance * 2 + 1);
+                SetButtonStageByName((Class_004a1080*)g_game->gui, buffer, alliance * 2 + 1);
                 break;
             default:
-                FUN_004a1080((Class_004a1080*)g_game->gui, buffer, alliance * 2);
+                SetButtonStageByName((Class_004a1080*)g_game->gui, buffer, alliance * 2);
                 break;
             }
         }

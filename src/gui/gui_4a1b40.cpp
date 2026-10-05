@@ -3,7 +3,7 @@
 // Draws one entry of a list gadget: the frame, then either the text rows
 // (flags 0x10) or the cell rows (flags 0x20/0x80).
 // The last two steps:
-//  - The entry rectangle comes from FUN_004a1630 (src/gui/gui_4a1630.cpp),
+//  - The entry rectangle comes from GetGadgetRect (src/gui/gui_4a1630.cpp),
 //    defined below without an annotation and inlined (the matched sibling
 //    0x4a4c90 inlines a rect helper of the same shape). That puts
 //    bounds.right's `lea eax, [esi + eax - 1]`
@@ -138,9 +138,9 @@ struct Class_004c6b10 {
 
 #pragma pack(pop)
 
-extern LanguageRoot_004a1b40* DAT_0051fba4;
+extern LanguageRoot_004a1b40* g_guiContext;
 
-void __stdcall FUN_004b0230(Class_004a1b40* obj, int index, void* bmp);
+void __stdcall DrawListboxFrame(Class_004a1b40* obj, int index, void* bmp);
 void __stdcall CopySurfaceRect(void* dst, void* src, Rect_004a1b40* rect, Rect_004a1b40* pos);
 void __stdcall SetFont(int id);
 int GetFont();
@@ -165,13 +165,13 @@ static inline int Measure_004a1b40(char* text)
     int width = 0;
     if (0 == text)
         return 0;
-    if (!DAT_0051fba4->language)
+    if (!g_guiContext->language)
         return GetTextWidth(GetFont(), text);
     char* q = text;
     while (*q) {
         char ch = *q;
         Glyph_004a1b40* glyph = (Glyph_004a1b40*)GetGafFrame(
-            DAT_0051fba4->language->glyphs, (unsigned char)ch);
+            g_guiContext->language->glyphs, (unsigned char)ch);
         if (0 != glyph)
             width += glyph->width;
         q++;
@@ -181,12 +181,12 @@ static inline int Measure_004a1b40(char* text)
 
 static inline int LineHeight_004a1b40()
 {
-    if (0 == DAT_0051fba4->language)
+    if (0 == g_guiContext->language)
         return GetFontHeight();
-    return ((Glyph_004a1b40*)GetGafFrame(DAT_0051fba4->language->glyphs, 0x49))->height + 2;
+    return ((Glyph_004a1b40*)GetGafFrame(g_guiContext->language->glyphs, 0x49))->height + 2;
 }
 
-void __stdcall FUN_004a1630(Entry_004a1b40* entry, Rect_004a1b40* rect)
+void __stdcall GetGadgetRect(Entry_004a1b40* entry, Rect_004a1b40* rect)
 {
     if (entry->type == 0) {
         rect->left = 0;
@@ -200,7 +200,7 @@ void __stdcall FUN_004a1630(Entry_004a1b40* entry, Rect_004a1b40* rect)
 }
 
 // FUNCTION: 0x4a1b40
-void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
+void __stdcall DrawListBox(Class_004a1b40* obj, int index)
 {
     unsigned char font;
     int yoff;
@@ -216,12 +216,12 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
     Entry_004a1b40* me = &entries[index];
     int h = me->h;
     void* surface;
-    FUN_004a1630(&entries[index], &bounds);
+    GetGadgetRect(&entries[index], &bounds);
     surface = holder->surface;
     if (surface == 0)
         surface = obj->fallback;
     if (surface == 0 && !(holder->field_10 & 0x80))
-        FUN_004b0230(obj, index, surface);
+        DrawListboxFrame(obj, index, surface);
     else if (surface != 0)
         CopySurfaceRect(entries->surface, surface, &bounds, &bounds);
     int lh = LineHeight_004a1b40();
@@ -245,7 +245,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* obj, int index)
                 t++;
             }
         }
-        if (i == entries->count + 1) { SetFont(DAT_0051fba4->current); }
+        if (i == entries->count + 1) { SetFont(g_guiContext->current); }
         GetFont();
         font = GetTextKeyColor();
         char* q = FUN_004b6af0(me->text, me->field_bc);

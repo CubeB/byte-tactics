@@ -36,7 +36,7 @@ void __stdcall FUN_004a2580(Object_004a96d0* obj, int index);
 void __stdcall FUN_004a2be0(Object_004a96d0* obj, int index);
 
 // FUNCTION: 0x4a96d0
-void __stdcall FUN_004a96d0(Object_004a96d0* obj, int index)
+void __stdcall DecrementKnobPos(Object_004a96d0* obj, int index)
 {
     Entry_004a96d0* e = &obj->data->entries[index];
     short raw = e->field_140;

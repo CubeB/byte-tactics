@@ -113,7 +113,7 @@ struct Pd_00426e80 {
 #pragma pack(pop)
 
 int FUN_00428bc0(void);
-void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004c22d0(int param);
 void __stdcall FUN_00434ab0(int param);
 void __stdcall FUN_00426780(char* param);
@@ -123,18 +123,18 @@ void __stdcall FUN_0041d9f0(int param);
 int __stdcall FUN_00443ff0(int param);
 int __stdcall CreateLocalPlayer(unsigned char playerIndex, int param2);
 int __stdcall JoinNetGame(V4i v, int idx);
-int __stdcall FUN_004a5030(char* param);
+int __stdcall GetTextPixelWidth(char* param);
 void __stdcall AddNetPlayer(int param);
 void __stdcall SetOffscreenSurface(int param);
 void __stdcall FillSurface(int param1, int param2);
 void __stdcall FlipScreen(void);
 void __stdcall QuitApp(int param);
 void __stdcall HAPINET_guaranteepackets(int param);
-void __stdcall FUN_004a9660(int param);
+void __stdcall CloseTopScreen(int param);
 void __stdcall FUN_004ab0a0(int param);
 void __stdcall HAPINET_quitgame(int param);
 void __stdcall InitPacketManager(int param1, int param2);
-void __stdcall FUN_004c1ab0(void);
+void __stdcall PopKey(void);
 Obj_00426e80* __stdcall GetDisplay(void);
 void __stdcall FUN_004263b0(void);
 void __stdcall FUN_00430f00(void);
@@ -181,7 +181,7 @@ static void LogStateChange(int line, char* file)
     char buf[256];
     if (FUN_00428bc0()) {
         sprintf(buf, DAT_00502f9c, line, file);
-        FUN_004abd90(g_game + 0x519, buf, 500, 1, 1);
+        OpenMessageBox(g_game + 0x519, buf, 500, 1, 1);
     }
 }
 
@@ -241,7 +241,7 @@ void __stdcall FUN_00425730(char* text)
 void FUN_00425750()
 {
     if (strlen(DAT_00511fb8) != 0) {
-        FUN_004abd90(g_game + 0x519, DAT_00511fb8, FUN_004a5030(DAT_00511fb8) + 0x14, 1, 1);
+        OpenMessageBox(g_game + 0x519, DAT_00511fb8, GetTextPixelWidth(DAT_00511fb8) + 0x14, 1, 1);
         DAT_00511fb8[0] = 0;
     }
 }
@@ -314,7 +314,7 @@ void FUN_00426e80(void)
     }
 
     case 2:
-        FUN_004c1ab0();
+        PopKey();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
             if (InitLobbiedConnection()) {
@@ -402,7 +402,7 @@ void FUN_00426e80(void)
         break;
 
     case 7:
-        FUN_004c1ab0();
+        PopKey();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
             FUN_004777a0();
@@ -450,7 +450,7 @@ void FUN_00426e80(void)
         break;
 
     case 8:
-        FUN_004c1ab0();
+        PopKey();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 1:
             FUN_00425b60();
@@ -470,7 +470,7 @@ void FUN_00426e80(void)
         break;
 
     case 9:
-        FUN_004c1ab0();
+        PopKey();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
             FUN_0047bbb0();
@@ -492,7 +492,7 @@ void FUN_00426e80(void)
     case 12:
     case 13:
     case 14:
-        FUN_004c1ab0();
+        PopKey();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
             FUN_00478e80();
@@ -533,7 +533,7 @@ void FUN_00426e80(void)
         break;
 
     case 15:
-        FUN_004c1ab0();
+        PopKey();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
             ((Bits_00426e80*)(g_game + 0x2aaf))->b1 = 0;
@@ -608,7 +608,7 @@ void FUN_00426e80(void)
         break;
 
     case 16:
-        FUN_004c1ab0();
+        PopKey();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
             HAPINET_guaranteepackets(1);
@@ -708,7 +708,7 @@ void FUN_00426e80(void)
             FUN_00425b60();
             if (((Bits_00426e80*)(g_game + 0x2a44))->b2) {
                 FinishUnitSync();
-                FUN_004a9660((int)(g_game + 0x519));
+                CloseTopScreen((int)(g_game + 0x519));
                 SetSubStateLogged(0x11, 0x613, DAT_00503004);
             }
             return;

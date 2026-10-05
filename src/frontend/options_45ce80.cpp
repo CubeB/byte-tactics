@@ -43,13 +43,13 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fdf0(Entry_0045ce80* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Entry_0045ce80* entries, char* name, int type);
 
 // FUNCTION: 0x45ce80
 void FUN_0045ce80()
 {
     Entry_0045ce80* entries = g_game->holder->entries;
-    int index = FUN_0049fdf0(entries, "PANEL", 0xe);
+    int index = FindGadgetIndex(entries, "PANEL", 0xe);
     if (g_game->flags & 1) {
         entries->width += 0x96;
         if (index == -1) {

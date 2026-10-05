@@ -45,9 +45,9 @@ struct Class_004a2be0 {
     Holder_004a2be0* holder;           // +0x18
 };
 
-void __stdcall FUN_004a1b40(Class_004a2be0* param_1, int param_2);
+void __stdcall DrawListBox(Class_004a2be0* param_1, int param_2);
 void __stdcall FUN_004a2580(Class_004a2be0* param_1, int param_2);
-void __stdcall FUN_004a4d70(Class_004a2be0* param_1, int param_2);
+void __stdcall DrawTextInput(Class_004a2be0* param_1, int param_2);
 char* __stdcall FUN_004b6af0(char* text, int line);
 
 // FUNCTION: 0x4a2be0
@@ -67,7 +67,7 @@ void __stdcall FUN_004a2be0(Class_004a2be0* param_1, int param_2)
                     if (type == 2) {
                         *(short*)(entry - 0x84) = *(short*)(me + 0xbc);
                         *(short*)(entry - 0x86) = *(short*)(me + 0xba);
-                        FUN_004a1b40(param_1, i);
+                        DrawListBox(param_1, i);
                     } else if (type == 4) {
                         int esi_val;
                         if (*(unsigned char*)(entry - 0x125) & 0x20) {
@@ -84,14 +84,14 @@ void __stdcall FUN_004a2be0(Class_004a2be0* param_1, int param_2)
                                 (*(short*)(me + 0x136) - 1));
                             *(short*)(entry - 0x84) = result;
                         }
-                        FUN_004a1b40(param_1, i);
+                        DrawListBox(param_1, i);
                     }
                     break;
                 case 3:
                     if (type == 2 && field_1b & 8) {
                         char* line = FUN_004b6af0(*(char**)(me + 0xc2), *(short*)(me + 0xba));
                         strcpy(entry - 0x8a, line);
-                        FUN_004a4d70(param_1, i);
+                        DrawTextInput(param_1, i);
                     }
                     break;
                 case 4:

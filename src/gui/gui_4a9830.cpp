@@ -69,14 +69,14 @@ struct Class_004a9830 {
     Holder_004a9830* holder;           // +0x18
 };
 
-extern Holder_004a9830* DAT_0051fba4;
+extern Holder_004a9830* g_guiContext;
 extern char DAT_00502a20[];
 
 void __stdcall SetFont(int id);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 int GetFontHeight();
 char* __stdcall FUN_004b6af0(char* text, int line);
-void __stdcall FUN_004a1b40(Class_004a9830* param_1, int param_2);
+void __stdcall DrawListBox(Class_004a9830* param_1, int param_2);
 void __stdcall FUN_004a2be0(Class_004a9830* param_1, int param_2);
 void __stdcall FUN_004a2e40(Class_004a9830* param_1, char* name, int line);
 
@@ -97,13 +97,13 @@ void __stdcall FUN_004a9830(Class_004a9830* param_1, int index)
         }
     }
     if (i == entries->count + 1) {
-        SetFont(DAT_0051fba4->current);
+        SetFont(g_guiContext->current);
     }
     int size;
-    if (DAT_0051fba4->list == 0) {
+    if (g_guiContext->list == 0) {
         size = GetFontHeight();
     } else {
-        unsigned short* pg = (unsigned short*)GetGafFrame(DAT_0051fba4->list->field_0c, 0x49);
+        unsigned short* pg = (unsigned short*)GetGafFrame(g_guiContext->list->field_0c, 0x49);
         size = pg[1] + 2;
     }
     size++;
@@ -130,7 +130,7 @@ void __stdcall FUN_004a9830(Class_004a9830* param_1, int index)
                 me->field_ba = isel;
             }
         }
-        FUN_004a1b40(param_1, index);
+        DrawListBox(param_1, index);
         FUN_004a2be0(param_1, index);
         return;
     }

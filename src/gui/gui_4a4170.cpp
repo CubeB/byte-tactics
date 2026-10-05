@@ -72,7 +72,7 @@ void __stdcall FUN_0049fc50(Object_004a4170* obj, int index);
 void __stdcall FUN_004a23b0(Entry_004a4170* base, int index, int* r1, int* r2);
 void __stdcall FUN_004a2580(Object_004a4170* obj, int index);
 void __stdcall FUN_004a2be0(Object_004a4170* obj, int index);
-int __stdcall FUN_004ab510(Object_004a4170* obj, unsigned char buttons);
+int __stdcall IsMouseButtonMessage(Object_004a4170* obj, unsigned char buttons);
 int __stdcall FUN_004ab5b0(Object_004a4170* obj, unsigned int mask);
 void __stdcall FUN_004ab690(Object_004a4170* obj, int param_2);
 
@@ -93,7 +93,7 @@ static inline void OffsetChanged_004a4170(Object_004a4170* obj, int index, Entry
 }
 
 // FUNCTION: 0x4a4170
-void __stdcall FUN_004a4170(Object_004a4170* obj, int index)
+void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
 {
     Entry_004a4170* entries = obj->holder->entries;
     Entry_004a4170* e = &entries[index];
@@ -141,7 +141,7 @@ void __stdcall FUN_004a4170(Object_004a4170* obj, int index)
 
     if (obj->field_78)
         return;
-    if (FUN_004ab510(obj, 1)) {
+    if (IsMouseButtonMessage(obj, 1)) {
         obj->field_78 = 0;
         if (p.x < r1[0] || p.x > r1[2] || p.y < r1[1] || p.y > r1[3])
             return;
@@ -154,7 +154,7 @@ void __stdcall FUN_004a4170(Object_004a4170* obj, int index)
         obj->field_94 = e->off;
         return;
     }
-    if (FUN_004ab510(obj, 2)) {
+    if (IsMouseButtonMessage(obj, 2)) {
         obj->field_78 = 0;
         if (p.x < r1[0] || p.x > r1[2] || p.y < r1[1] || p.y > r1[3])
             return;

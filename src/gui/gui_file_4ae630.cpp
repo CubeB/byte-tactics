@@ -20,13 +20,13 @@ void __stdcall FUN_004bbc10(char*, char*);
 Class_004bbbe0* __stdcall FUN_004bb6a0(char*);
 void __stdcall FUN_004bb5d0(Class_004bbbe0*);
 unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0*, void*, unsigned int);
-void __stdcall FUN_004accd0(Class_004bbbe0*, int);
-void __stdcall FUN_004acde0(Class_004bbbe0*, char*, char*, int);
-void __stdcall FUN_004ace50(void*, Class_004bbbe0*, int);
-void __stdcall FUN_004ad4f0(void*, Class_004bbbe0*, int);
+void __stdcall WriteTabs(Class_004bbbe0*, int);
+void __stdcall WriteKeyValue(Class_004bbbe0*, char*, char*, int);
+void __stdcall WriteCommonFields(void*, Class_004bbbe0*, int);
+void __stdcall WritePanelFields(void*, Class_004bbbe0*, int);
 
 // FUNCTION: 0x4ae630
-void __stdcall FUN_004ae630(char* obj, char* name)
+void __stdcall WriteGuiFile(char* obj, char* name)
 {
     int index;
     char button[100];
@@ -53,7 +53,7 @@ void __stdcall FUN_004ae630(char* obj, char* name)
         sprintf(header, "[%s]", gadget);
         FUN_004bbbe0(out, header, strlen(header));
         FUN_004bbbe0(out, "\n", 1);
-        FUN_004accd0(out, 1);
+        WriteTabs(out, 1);
         FUN_004bbbe0(out, "{\n", 2);
         sprintf(common, "[%s]", "COMMON");
         {
@@ -62,9 +62,9 @@ void __stdcall FUN_004ae630(char* obj, char* name)
         }
         FUN_004bbbe0(out, common, strlen(common));
         FUN_004bbbe0(out, "\n", 1);
-        FUN_004accd0(out, 2);
+        WriteTabs(out, 2);
         FUN_004bbbe0(out, "{\n", 2);
-        FUN_004ace50(p, out, 2);
+        WriteCommonFields(p, out, 2);
         {
             int j = 2;
             char t2 = '\t';
@@ -73,43 +73,43 @@ void __stdcall FUN_004ae630(char* obj, char* name)
         FUN_004bbbe0(out, "}\n", 2);
         switch (*(unsigned char*)p) {
         case 0:
-            FUN_004ad4f0(p, out, 1);
+            WritePanelFields(p, out, 1);
             break;
         case 1:
-            FUN_004acde0(out, "status", _itoa(*(short*)(p + 0x138), button, 10), 1);
-            FUN_004acde0(out, "text", p + 0xb6, 1);
-            FUN_004acde0(out, "quickkey", _itoa(*(signed char*)(p + 0x13a), button, 10), 1);
-            FUN_004acde0(out, "grayedout", _itoa(*(unsigned char*)(p + 0x13c) & 1, button, 10), 1);
-            FUN_004acde0(out, "stages", _itoa(*(unsigned char*)(p + 0x136), button, 10), 1);
+            WriteKeyValue(out, "status", _itoa(*(short*)(p + 0x138), button, 10), 1);
+            WriteKeyValue(out, "text", p + 0xb6, 1);
+            WriteKeyValue(out, "quickkey", _itoa(*(signed char*)(p + 0x13a), button, 10), 1);
+            WriteKeyValue(out, "grayedout", _itoa(*(unsigned char*)(p + 0x13c) & 1, button, 10), 1);
+            WriteKeyValue(out, "stages", _itoa(*(unsigned char*)(p + 0x136), button, 10), 1);
             break;
         case 2:
-            FUN_004acde0(out, "itemheight", _itoa(*(short*)(p + 0xda), list, 10), 1);
+            WriteKeyValue(out, "itemheight", _itoa(*(short*)(p + 0xda), list, 10), 1);
             break;
         case 3:
-            FUN_004acde0(out, "maxchars", _itoa(*(short*)(p + 0x138), edit, 10), 1);
-            FUN_004acde0(out, "text", p + 0xb6, 1);
+            WriteKeyValue(out, "maxchars", _itoa(*(short*)(p + 0x138), edit, 10), 1);
+            WriteKeyValue(out, "text", p + 0xb6, 1);
             break;
         case 4:
-            FUN_004acde0(out, "range", _itoa(*(short*)(p + 0x136), slider, 10), 1);
-            FUN_004acde0(out, "thick", _itoa(*(int*)(p + 0x13c), slider, 10), 1);
-            FUN_004acde0(out, "knobpos", _itoa(*(short*)(p + 0x140), slider, 10), 1);
-            FUN_004acde0(out, "knobsize", _itoa(*(short*)(p + 0x142), slider, 10), 1);
+            WriteKeyValue(out, "range", _itoa(*(short*)(p + 0x136), slider, 10), 1);
+            WriteKeyValue(out, "thick", _itoa(*(int*)(p + 0x13c), slider, 10), 1);
+            WriteKeyValue(out, "knobpos", _itoa(*(short*)(p + 0x140), slider, 10), 1);
+            WriteKeyValue(out, "knobsize", _itoa(*(short*)(p + 0x142), slider, 10), 1);
             break;
         case 5:
-            FUN_004acde0(out, "text", p + 0xb6, 1);
-            FUN_004acde0(out, "link", p + 0x136, 1);
+            WriteKeyValue(out, "text", p + 0xb6, 1);
+            WriteKeyValue(out, "link", p + 0x136, 1);
             break;
         case 6:
-            FUN_004acde0(out, "hotornot", _itoa(*(unsigned int*)(p + 0xc8) & 1, hot, 10), 1);
+            WriteKeyValue(out, "hotornot", _itoa(*(unsigned int*)(p + 0xc8) & 1, hot, 10), 1);
             break;
         case 7:
-            FUN_004acde0(out, "filename", p + 0xb6, 1);
+            WriteKeyValue(out, "filename", p + 0xb6, 1);
             break;
         case 8:
-            FUN_004acde0(out, "filename", p + 0xb6, 1);
+            WriteKeyValue(out, "filename", p + 0xb6, 1);
             break;
         case 10:
-            FUN_004acde0(out, "nuttin", _itoa(*(int*)(p + 0xb6), empty, 10), 1);
+            WriteKeyValue(out, "nuttin", _itoa(*(int*)(p + 0xb6), empty, 10), 1);
             break;
         }
         {

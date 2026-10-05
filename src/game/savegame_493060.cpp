@@ -35,15 +35,15 @@ extern Game* g_game;
 extern char* DAT_005091c8;
 extern char* DAT_0051f2e8;
 
-Layer_00493060* __stdcall FUN_004aa8f0(Menu_00493060* menu, const char* name, int flags);
+Layer_00493060* __stdcall LoadGuiLayer(Menu_00493060* menu, const char* name, int flags);
 void __stdcall FUN_00492df0(int a, int b);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void __stdcall FUN_004bcf00(char* path);
 void __stdcall FUN_00492b10(int* out);
 void __stdcall FUN_004a0bf0(Menu_00493060* menu, char* name, char* text, int param_4);
 void __stdcall FUN_004a0570(Menu_00493060* menu, char* name, int param_3);
-Entry_00493060* __stdcall FUN_0049ff90(Entry_00493060* entries, char* name);
-int __stdcall FUN_0049fdf0(Entry_00493060* entries, char* name, int type);
+Entry_00493060* __stdcall FindGadgetChecked(Entry_00493060* entries, char* name);
+int __stdcall FindGadgetIndex(Entry_00493060* entries, char* name, int type);
 void __stdcall FUN_00492de0(int a, int b);
 char* FUN_00476830();
 void FUN_00491ec0();
@@ -51,7 +51,7 @@ void __stdcall FUN_004a7190(Menu_00493060* menu, int index);
 void __stdcall FUN_0049fb10(Menu_00493060* menu, int value);
 void FUN_00428b60();
 void __stdcall FUN_0049fa50(Menu_00493060* menu);
-void __stdcall FUN_004a81e0(Menu_00493060* menu, int value);
+void __stdcall RenderLayer(Menu_00493060* menu, int value);
 
 // FUNCTION: 0x493060
 void FUN_00493060()
@@ -59,7 +59,7 @@ void FUN_00493060()
     int local;
 
     g_game->flag_38a51 |= 1;
-    Layer_00493060* layer = FUN_004aa8f0(&g_game->menu, "LOADGAME.GUI", 0x880);
+    Layer_00493060* layer = LoadGuiLayer(&g_game->menu, "LOADGAME.GUI", 0x880);
     layer->handler = FUN_00492df0;
     layer->data = g_game;
     FUN_004288d0("DSAVEGAME2", 0, 0, 0);
@@ -69,11 +69,11 @@ void FUN_00493060()
     if (local == 0) {
         FUN_004a0570(&g_game->menu, "DELETE", 0);
     }
-    Entry_00493060* games = FUN_0049ff90(layer->entries, "GAMES");
+    Entry_00493060* games = FindGadgetChecked(layer->entries, "GAMES");
     if (games != 0) {
         games->handler = FUN_00492de0;
     }
-    int index = FUN_0049fdf0(layer->entries, "GAMENAME", 3);
+    int index = FindGadgetIndex(layer->entries, "GAMENAME", 3);
     layer->entries[index].flags |= 2;
     DAT_0051f2e8 = FUN_00476830();
     FUN_00491ec0();
@@ -82,5 +82,5 @@ void FUN_00493060()
     FUN_00428b60();
     FUN_004a0570(&g_game->menu, "LoadGame", 0);
     FUN_0049fa50(&g_game->menu);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

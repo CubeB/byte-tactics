@@ -15,7 +15,7 @@ struct Class_0051fba4 {
     Font_004a50e0* font;               // +0x14
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 void* __stdcall GetGafFrame(void* glyphs, int c);
 void __stdcall DrawFrame(void* surface, void* glyph, int x, int y);
@@ -25,7 +25,7 @@ void __stdcall DrawString(void* surface, char* text, int x, int y, int maxWidth)
 // FUNCTION: 0x4a50e0
 void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style)
 {
-    if (DAT_0051fba4->font == 0) {
+    if (g_guiContext->font == 0) {
         DrawString(surface, text, x, y, -1);
         return;
     }
@@ -33,7 +33,7 @@ void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, i
     while (*s) {
         if (*s >= ' ') {
             unsigned char c = *s;
-            Glyph_004a50e0* g = (Glyph_004a50e0*)GetGafFrame(DAT_0051fba4->font->glyphs, c);
+            Glyph_004a50e0* g = (Glyph_004a50e0*)GetGafFrame(g_guiContext->font->glyphs, c);
             if (g) {
                 if (maxw != -1 && (int)g->width > maxw)
                     return;

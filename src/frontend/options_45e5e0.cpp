@@ -46,7 +46,7 @@ struct List_0045e5e0 {                   // the "SELECT VIDEO MODE" object
     char* buffer;                        // +0x14
 };
 
-struct Layer_0045e5e0 {                  // object returned by FUN_004aa8f0
+struct Layer_0045e5e0 {                  // object returned by LoadGuiLayer
     char unknown_0[4];
     Entry_0045e5e0* entries;             // +0x4
     void (__stdcall* handler)(void*);    // +0x8
@@ -85,10 +85,10 @@ Layer_0045e5e0* __cdecl FUN_0045cfc0();
 void FUN_0045ce80();
 void FUN_00428b60();
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-Layer_0045e5e0* __stdcall FUN_004aa8f0(Menu_0045e5e0* menu, char* name, int flags);
+Layer_0045e5e0* __stdcall LoadGuiLayer(Menu_0045e5e0* menu, char* name, int flags);
 void __stdcall FUN_004288d0(char* name, int a, int b, int c);
 void __stdcall FUN_0049fa50(Menu_0045e5e0* menu);
-int __stdcall FUN_0049fdf0(Entry_0045e5e0* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Entry_0045e5e0* entries, char* name, int type);
 Entry_0045e5e0* __stdcall FUN_004a0200(Entry_0045e5e0* entries, char* name);
 char* __stdcall FUN_004a0180(Entry_0045e5e0* entries, char* name);
 void __stdcall FUN_0045e4c0(List_0045e5e0* list);
@@ -96,11 +96,11 @@ int __stdcall GetDisplayModes(List_0045e5e0* list);
 void __stdcall FUN_0045e100(void* layer);
 void __stdcall FUN_0045bbf0(void* obj, int value);
 void __stdcall FUN_0045bd20(void* obj, int value);
-void __stdcall FUN_004a1110(Menu_0045e5e0* menu, char* name, int value);
-void __stdcall FUN_004a1030(Menu_0045e5e0* menu, int index, int value);
+void __stdcall SetGadgetStatusByName(Menu_0045e5e0* menu, char* name, int value);
+void __stdcall SetButtonStage(Menu_0045e5e0* menu, int index, int value);
 void __stdcall FUN_004a0570(Menu_0045e5e0* menu, char* name, int value);
 void __stdcall FUN_0049fb10(Menu_0045e5e0* menu, int value);
-void __stdcall FUN_004a81e0(Menu_0045e5e0* menu, int value);
+void __stdcall RenderLayer(Menu_0045e5e0* menu, int value);
 
 // FUNCTION: 0x45e5e0
 void __stdcall FUN_0045e5e0(int param_1)
@@ -110,15 +110,15 @@ void __stdcall FUN_0045e5e0(int param_1)
     Menu_0045e5e0* menu;
 
     if (param_1 != i) {
-        layer = FUN_004aa8f0(&g_game->menu, "SELVMODE.GUI", 0x800);
+        layer = LoadGuiLayer(&g_game->menu, "SELVMODE.GUI", 0x800);
     } else {
         layer = FUN_0045cfc0();
-        FUN_004a81e0(&g_game->menu, 2);
+        RenderLayer(&g_game->menu, 2);
         FUN_0045ce80();
         if (g_game->flags_37ebe & 1) {
-            FUN_004aa8f0(&g_game->menu, "VISUALRT.GUI", 0x200);
+            LoadGuiLayer(&g_game->menu, "VISUALRT.GUI", 0x200);
         } else {
-            FUN_004aa8f0(&g_game->menu, "VISUALS.GUI", 0x200);
+            LoadGuiLayer(&g_game->menu, "VISUALS.GUI", 0x200);
             FUN_004288d0("optvisual4x", i, i, i);
         }
     }
@@ -133,7 +133,7 @@ void __stdcall FUN_0045e5e0(int param_1)
             FUN_0045e4c0(list);
             list->buffer = (char*)FUN_004d83b0("AVAILABLE MODES", list->count << 8);
             list->buffer[0] = 0;
-            if (FUN_0049fdf0(layer->entries, "VIDSLDR", 0xe) != -1) {
+            if (FindGadgetIndex(layer->entries, "VIDSLDR", 0xe) != -1) {
                 Entry_0045e5e0* e = FUN_004a0200(layer->entries, "VIDSLDR");
                 e->max = list->count - 1;
                 e->fn = FUN_0045bbf0;
@@ -177,20 +177,20 @@ void __stdcall FUN_0045e5e0(int param_1)
     }
 
     if (param_1 == 0) {
-        FUN_004a1110(&g_game->menu, "VISUALS", 1);
-        int found = FUN_0049fdf0(layer->entries, "ANTI", 1);
+        SetGadgetStatusByName(&g_game->menu, "VISUALS", 1);
+        int found = FindGadgetIndex(layer->entries, "ANTI", 1);
         if (found != -1) {
-            FUN_004a1030(&g_game->menu, found, (g_game->flags_37f06 >> 1) & 1);
+            SetButtonStage(&g_game->menu, found, (g_game->flags_37f06 >> 1) & 1);
         }
-        found = FUN_0049fdf0(layer->entries, "BSHADOWS", 1);
+        found = FindGadgetIndex(layer->entries, "BSHADOWS", 1);
         if (found != -1) {
-            FUN_004a1030(&g_game->menu, found, (g_game->flags_37f06 >> 4) & 1);
+            SetButtonStage(&g_game->menu, found, (g_game->flags_37f06 >> 4) & 1);
         }
-        found = FUN_0049fdf0(layer->entries, "SHADING", 1);
+        found = FindGadgetIndex(layer->entries, "SHADING", 1);
         if (found != -1) {
-            FUN_004a1030(&g_game->menu, found, (g_game->flags_37f06 >> 5) & 1);
+            SetButtonStage(&g_game->menu, found, (g_game->flags_37f06 >> 5) & 1);
         }
-        found = FUN_0049fdf0(layer->entries, "GAMMA", 0xe);
+        found = FindGadgetIndex(layer->entries, "GAMMA", 0xe);
         if (found != -1) {
             Entry_0045e5e0* e = FUN_004a0200(layer->entries, "GAMMA");
             e->max = 0x14;
@@ -207,5 +207,5 @@ void __stdcall FUN_0045e5e0(int param_1)
 
     FUN_0049fb10(&g_game->menu, 1);
     FUN_00428b60();
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

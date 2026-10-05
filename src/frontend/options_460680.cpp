@@ -31,25 +31,25 @@ struct Gadget_00460680 {
 extern Game* g_game;
 extern int DAT_00512ff8;
 
-Gadget_00460680* __stdcall FUN_004aa8f0(Sub_00460680* sub, const char* name, int flags);
+Gadget_00460680* __stdcall LoadGuiLayer(Sub_00460680* sub, const char* name, int flags);
 void __stdcall FUN_0049fb10(Sub_00460680* sub, int value);
-int __stdcall FUN_0049fdf0(void* entries, const char* name, int type);
+int __stdcall FindGadgetIndex(void* entries, const char* name, int type);
 void __stdcall FUN_004a0bf0(Sub_00460680* sub, const char* name, const char* text, int param_4);
-void __stdcall FUN_004a76b0(Sub_00460680* sub, const char* name);
-void __stdcall FUN_004a81e0(Sub_00460680* sub, int value);
+void __stdcall SelectGadgetByName(Sub_00460680* sub, const char* name);
+void __stdcall RenderLayer(Sub_00460680* sub, int value);
 void __stdcall FUN_004605c0(void* gadget);
 
 // FUNCTION: 0x460680
 void FUN_00460680()
 {
-    Gadget_00460680* gadget = FUN_004aa8f0(&g_game->sub, "YESORNO.GUI", 0x1000);
+    Gadget_00460680* gadget = LoadGuiLayer(&g_game->sub, "YESORNO.GUI", 0x1000);
     if (gadget == 0) {
         return;
     }
     FUN_0049fb10(&g_game->sub, 1);
     char* entries = gadget->entries;
-    FUN_0049fdf0(entries, "CHOICE1", 1);
-    FUN_0049fdf0(entries, "CHOICE2", 1);
+    FindGadgetIndex(entries, "CHOICE1", 1);
+    FindGadgetIndex(entries, "CHOICE2", 1);
     // Suspected original bug: the sibling dialog setup at 0x464e70 copies
     // "CHOICE1" to entries+0xcc and "CHOICE2" to entries+0xdc, but this
     // function copies "CHOICE2" (0x503120) into both fields.
@@ -64,7 +64,7 @@ void FUN_00460680()
                                                 : "Surrender this battle and exit to Windows?";
         FUN_004a0bf0(&g_game->sub, "TITLE", title, 0);
     }
-    FUN_004a76b0(&g_game->sub, "CHOICE2");
+    SelectGadgetByName(&g_game->sub, "CHOICE2");
     gadget->handler = FUN_004605c0;
-    FUN_004a81e0(&g_game->sub, 0x40);
+    RenderLayer(&g_game->sub, 0x40);
 }

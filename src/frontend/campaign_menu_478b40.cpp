@@ -94,8 +94,8 @@ void __stdcall DrawFrame(void* surface, void* frame, int x, int y);
 void __stdcall FillRectangle(void* surface, Rect_00478b40* rect, int colour);
 void __stdcall FUN_0049fa90(Window_00478b40* window);
 void __stdcall FUN_0049fad0(Window_00478b40* window);
-int __stdcall FUN_004a0f60(Window_00478b40* window, char* name);
-int __stdcall FUN_004a1080(Window_00478b40* window, char* name, char value);
+int __stdcall GetButtonStageByName(Window_00478b40* window, char* name);
+int __stdcall SetButtonStageByName(Window_00478b40* window, char* name, char value);
 
 // FUNCTION: 0x478b40
 void __stdcall FUN_00478b40(Window_00478b40* arg1, Item_00478b40* arg2)
@@ -104,8 +104,8 @@ void __stdcall FUN_00478b40(Window_00478b40* arg1, Item_00478b40* arg2)
     if (DAT_0051e680 <= GetTickCount()) {
         DAT_0051e680 = GetTickCount() + 0x19;
         if (g_game->f_0x10->FUN_004cfba0() == 0) {
-            if (FUN_004a0f60(arg1, "SHUTUP")) {
-                FUN_004a1080(arg1, "SHUTUP", 0);
+            if (GetButtonStageByName(arg1, "SHUTUP")) {
+                SetButtonStageByName(arg1, "SHUTUP", 0);
                 FUN_0049fa90(arg1);
             }
         }

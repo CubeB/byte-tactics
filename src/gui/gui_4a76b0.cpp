@@ -3,7 +3,7 @@
 // 0x15b-byte entry, so entry i's name is at entries + i*0x15b + 2). When the
 // selected entry is type 3 it makes its group's type-7 entry current and
 // refreshes its edit field. FindEntry is inlined from the same helper as
-// 0x4a1810/0x4a30c0; the group loop is FUN_004a1810's body inlined.
+// 0x4a1810/0x4a30c0; the group loop is SelectFontForEntry's body inlined.
 //
 // The type==3 body is the inlined helper DoSelect. The call passes a fresh
 // `menu->layer->entries` and a fresh read of `menu->layer->field_20` (the
@@ -53,14 +53,14 @@ struct Class_0051fba4 {
     int group;                         // +0x00
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 int GetTextKeyColor();
 void __stdcall SetTextColors(int colour, int font);
 void __stdcall SetFont(int id);
 int __stdcall FUN_0049fc50(Menu_004a76b0* menu, int index);
 void __stdcall FUN_004ab6c0(Menu_004a76b0* menu, int index, char* text, int maxLength, int clear);
-void FUN_004c1a40();
+void ClearKeyQueue();
 
 static inline int FindEntry(Entry_004a76b0* entries, char* name)
 {
@@ -87,15 +87,15 @@ static inline void DoSelect(Menu_004a76b0* menu, Entry_004a76b0* entries, int se
         }
     }
     if (i == entries->u.count + 1)
-        SetFont(DAT_0051fba4->group);
+        SetFont(g_guiContext->group);
     FUN_0049fc50(menu, sel);
     menu->layer->field_20 = sel;
     FUN_004ab6c0(menu, sel, entry->u.text, entry->field_138, 0);
-    FUN_004c1a40();
+    ClearKeyQueue();
 }
 
 // FUNCTION: 0x4a76b0
-void __stdcall FUN_004a76b0(Menu_004a76b0* menu, char* name)
+void __stdcall SelectGadgetByName(Menu_004a76b0* menu, char* name)
 {
     Entry_004a76b0* entries = menu->layer->entries;
     int index = FindEntry(entries, name);

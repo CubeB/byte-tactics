@@ -180,7 +180,7 @@ struct Game {
 
 extern Game* g_game;
 
-int FUN_004a50b0();
+int GetFontLineHeight();
 char* __stdcall FUN_004b6af0(int list, int index);
 void FUN_00445ed0();
 void FUN_00444a20();
@@ -195,17 +195,17 @@ int __stdcall GetSlotDpid(unsigned char player);
 void __stdcall RejectPlayer(int id, unsigned char msg);
 void __stdcall SendChatMessage(Player_00448c70* p, char* text, int a, int b);
 char* __stdcall FUN_004c5740(char* text);
-Gadget_00448c70* __stdcall FUN_0049ff90(char* entries, char* name);
-Gadget_00448c70* __stdcall FUN_0049ff10(char* entries, char* name);
+Gadget_00448c70* __stdcall FindGadgetChecked(char* entries, char* name);
+Gadget_00448c70* __stdcall FindGadgetOrNull(char* entries, char* name);
 Gadget_00448c70* __stdcall FUN_004a0180(char* entries, char* name);
 Gadget_00448c70* __stdcall FUN_004a0280(char* entries, char* name);
-int __stdcall FUN_0049fdf0(char* entries, char* name, int type);
-int __stdcall FUN_004ab060(char* gui, char* name);
+int __stdcall FindGadgetIndex(char* entries, char* name, int type);
+int __stdcall IsScreenNamed(char* gui, char* name);
 void __stdcall FUN_0049fa90(char* gui);
 void __stdcall FUN_004a0570(char* gui, char* name, int value);
 void __stdcall FUN_004a0bf0(char* gui, char* name, char* text, int size);
-int __stdcall FUN_004a1080(Class_004a1080* gui, char* name, int value);
-void __stdcall FUN_004a1110(char* gui, char* name, int value);
+int __stdcall SetButtonStageByName(Class_004a1080* gui, char* name, int value);
+void __stdcall SetGadgetStatusByName(char* gui, char* name, int value);
 void __stdcall FUN_004a1450(char* gui, char* name, int value);
 void __stdcall FUN_004a5d50(char* gui, int index);
 
@@ -277,7 +277,7 @@ void __stdcall FUN_00448bf0(int side)
     Player_00448c70* p = &g_game->players[side];
 
     sprintf(name, "SIDE%d", side);
-    FUN_004a1080((Class_004a1080*)g_game->gui, name,
+    SetButtonStageByName((Class_004a1080*)g_game->gui, name,
                  (p->active != 0 && (p->info->flags_9b & 0x40)) ? 2 : p->info->side);
 }
 
@@ -290,13 +290,13 @@ void FUN_00448c70()
     int count = 0;
     Player_00448c70* me = &g_game->players[g_game->localPlayer];
     int ready = me->info->b.ready;
-    Gadget_00448c70* output = FUN_0049ff90(g_game->table->entries, "OUTPUT");
+    Gadget_00448c70* output = FindGadgetChecked(g_game->table->entries, "OUTPUT");
 
     int end = g_game->scrollEnd;
     int start = g_game->scrollStart;
     if (end < start)
         end += 30;
-    if (end - start > output->height / (FUN_004a50b0() + 2)) {
+    if (end - start > output->height / (GetFontLineHeight() + 2)) {
         g_game->scrollStart++;
         if (g_game->scrollStart >= 30)
             g_game->scrollStart = 0;
@@ -324,7 +324,7 @@ void FUN_00448c70()
         str = mapname->text;
         int differs = strcmp(str, cur);
         if (differs) {
-            if (FUN_004ab060(g_game->gui, "viewmap.gui"))
+            if (IsScreenNamed(g_game->gui, "viewmap.gui"))
                 FUN_00444a20();
             else
                 ((Class_00435a20*)g_game->map)->FUN_00435a20(map);
@@ -335,7 +335,7 @@ void FUN_00448c70()
                 SendChatMessage(me, FUN_004c5740("does not have this map"), 4, 0);
                 me->info->b.ready = 0;
                 sprintf(name, "READY%d", g_game->localPlayer);
-                FUN_004a1110(g_game->gui, name, 0);
+                SetGadgetStatusByName(g_game->gui, name, 0);
                 BroadcastPlayerInfo();
             }
             if (!g_game->players[g_game->localPlayer].info->f97_0)
@@ -394,24 +394,24 @@ void FUN_00448c70()
             }
             strncpy(text, s, 0x1e);
             FUN_004a0bf0(g_game->gui, name, text, 0);
-            FUN_004a5d50(g_game->gui, FUN_0049fdf0(entries, name, 0xe));
+            FUN_004a5d50(g_game->gui, FindGadgetIndex(entries, name, 0xe));
             FUN_004a1450(g_game->gui, name, ready);
             sprintf(name, "LOGO%d", n);
             e = FUN_004a0280(entries, name);
             if (e)
                 e->visible = 0;
             sprintf(name, "SIDE%d", n);
-            e = FUN_0049ff10(entries, name);
+            e = FindGadgetOrNull(entries, name);
             if (e)
                 e->visible = 0;
             if (n != g_game->localPlayer) {
                 sprintf(name, "ALLY%d", n);
-                e = FUN_0049ff10(entries, name);
+                e = FindGadgetOrNull(entries, name);
                 if (e)
                     e->visible = 0;
             }
             sprintf(name, "TEAMICONS%d", n);
-            e = FUN_0049ff10(entries, name);
+            e = FindGadgetOrNull(entries, name);
             if (e)
                 e->visible = 0;
             sprintf(name, "RES%d", n);
@@ -427,7 +427,7 @@ void FUN_00448c70()
             if (e)
                 e->visible = 0;
             sprintf(name, "READY%d", n);
-            e = FUN_0049ff10(entries, name);
+            e = FindGadgetOrNull(entries, name);
             if (e) {
                 e->b13c_0 = 1;
                 e->field_138 = 0;
@@ -450,19 +450,19 @@ void FUN_00448c70()
             sprintf(name, "PLAYER%d", n);
             strncpy(text, p->name, 0x1e);
             FUN_004a0bf0(g_game->gui, name, text, 0);
-            FUN_004a5d50(g_game->gui, FUN_0049fdf0(entries, name, 0xe));
+            FUN_004a5d50(g_game->gui, FindGadgetIndex(entries, name, 0xe));
             FUN_004a1450(g_game->gui, name, ready);
             sprintf(name, "SIDE%d", n);
-            e = FUN_0049ff10(entries, name);
+            e = FindGadgetOrNull(entries, name);
             if (e) {
                 FUN_00448bf0(n);
                 e->visible = 1;
                 FUN_004a1450(g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
             }
             sprintf(name, "ALLY%d", n);
-            e = FUN_0049ff10(entries, name);
+            e = FindGadgetOrNull(entries, name);
             if (e) {
-                FUN_004a1080((Class_004a1080*)g_game->gui, name,
+                SetButtonStageByName((Class_004a1080*)g_game->gui, name,
                              me->field_113[n] << 1 | me->field_108[n]);
                 e->visible = (IsLocalHuman_00448c70(p) || IsWatching_00448c70(p)
                               || IsLocalAI_00448c70(p) || IsRemoteAI_00448c70(p)
@@ -470,7 +470,7 @@ void FUN_00448c70()
                 FUN_004a1450(g_game->gui, name, ready);
             }
             sprintf(name, "TEAMICONS%d", n);
-            e = FUN_0049ff10(entries, name);
+            e = FindGadgetOrNull(entries, name);
             if (e) {
                 e->visible = (IsWatching_00448c70(p) || 0) ? 0 : 1;  // see the top
                 FUN_004a1450(g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
@@ -517,7 +517,7 @@ void FUN_00448c70()
                 e->visible = 1;
             }
             sprintf(name, "READY%d", n);
-            e = FUN_0049ff10(entries, name);
+            e = FindGadgetOrNull(entries, name);
             if (e) {
                 e->field_138 = g_game->players[n].info->b.ready;
                 e->visible = 1;

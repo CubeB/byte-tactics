@@ -74,10 +74,10 @@ struct Gaf_0047a0e0;
 
 Gaf_0047a0e0* __stdcall FindGafEntry(Gaf_0047a0e0* gaf, const char* name);
 int __stdcall GetGafFrame(unsigned short* entry, int frame);
-int __stdcall FUN_0049fdf0(Entry_0047a0e0* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Entry_0047a0e0* entries, char* name, int type);
 void __stdcall FUN_004a0bf0(Menu_0047a0e0* menu, char* key, char* value, int flag);
 void __stdcall FUN_004a0570(Menu_0047a0e0* menu, char* name, int value);
-int __stdcall FUN_004a1080(Menu_0047a0e0* menu, char* name, int value);
+int __stdcall SetButtonStageByName(Menu_0047a0e0* menu, char* name, int value);
 void __stdcall FUN_0049fa90(Menu_0047a0e0* menu);
 char* __stdcall FUN_004c5740(char* text);
 void FUN_00479c50();
@@ -154,7 +154,7 @@ void FUN_0047a0e0()
             }
 
             wsprintfA(buf, "Side%d", i);
-            FUN_004a1080(&g_game->menu, buf, g_game->table->players[i].shade);
+            SetButtonStageByName(&g_game->menu, buf, g_game->table->players[i].shade);
 
             wsprintfA(buf, "Metal%d", i);
             _itoa(g_game->table->players[i].metal, num, 10);
@@ -165,7 +165,7 @@ void FUN_0047a0e0()
             FUN_004a0bf0(&g_game->menu, buf, num, 0);
 
             wsprintfA(buf, "Color%d", i);
-            index = FUN_0049fdf0(entries, buf, 6);
+            index = FindGadgetIndex(entries, buf, 6);
             if (index != -1) {
                 Entry_0047a0e0* gadget = &entries[index];
                 if (gadget != 0) {
@@ -175,7 +175,7 @@ void FUN_0047a0e0()
             }
 
             wsprintfA(buf, "Allies%d", i);
-            index = FUN_0049fdf0(entries, buf, 6);
+            index = FindGadgetIndex(entries, buf, 6);
             if (index != -1) {
                 Entry_0047a0e0* gadget = &entries[index];
                 if (gadget != 0) {
@@ -188,7 +188,7 @@ void FUN_0047a0e0()
 
     FUN_00479660();
 
-    index = FUN_0049fdf0(entries, "StartLocation", 1);
+    index = FindGadgetIndex(entries, "StartLocation", 1);
     {
         Entry_0047a0e0* g = &entries[index];
         if (g_game->table->field_118 != 0) {
@@ -200,7 +200,7 @@ void FUN_0047a0e0()
         }
     }
 
-    index = FUN_0049fdf0(entries, "CommanderDeath", 1);
+    index = FindGadgetIndex(entries, "CommanderDeath", 1);
     {
         Entry_0047a0e0* g = &entries[index];
         if (g_game->table->field_108 != 0) {
@@ -212,7 +212,7 @@ void FUN_0047a0e0()
         }
     }
 
-    index = FUN_0049fdf0(entries, "Mapping", 1);
+    index = FindGadgetIndex(entries, "Mapping", 1);
     {
         Entry_0047a0e0* g = &entries[index];
         if (g_game->table->field_10c != 0) {
@@ -224,7 +224,7 @@ void FUN_0047a0e0()
         }
     }
 
-    index = FUN_0049fdf0(entries, "LineOfSight", 1);
+    index = FindGadgetIndex(entries, "LineOfSight", 1);
     {
         Entry_0047a0e0* g = &entries[index];
         if (g_game->table->field_110 == 0) {

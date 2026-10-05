@@ -14,7 +14,7 @@ struct Entry_004a7560 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4a7560
-int __stdcall FUN_004a7560(Entry_004a7560* list, int index)
+int __stdcall FindNextTextInput(Entry_004a7560* list, int index)
 {
     int old = index;
     for (index++; index < list[0].count + 1; index++) {

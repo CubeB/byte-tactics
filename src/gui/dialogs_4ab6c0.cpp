@@ -9,7 +9,7 @@ struct Control_004ab6c0 {
     int textLength;                    // +0x74
 };
 
-void __stdcall FUN_004a4d70(Control_004ab6c0* control, void* param_2);
+void __stdcall DrawTextInput(Control_004ab6c0* control, void* param_2);
 
 // FUNCTION: 0x4ab6c0
 void __stdcall FUN_004ab6c0(Control_004ab6c0* control, void* param_2, char* text, int maxLength, int clear)
@@ -21,5 +21,5 @@ void __stdcall FUN_004ab6c0(Control_004ab6c0* control, void* param_2, char* text
         *text = 0;
         control->textLength = 0;
     }
-    FUN_004a4d70(control, param_2);
+    DrawTextInput(control, param_2);
 }

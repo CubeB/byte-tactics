@@ -67,7 +67,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 void __stdcall FUN_004a0570(void* menu, const char* name, int value);
 void __stdcall FUN_0049fa90(void* menu);
 
@@ -95,7 +95,7 @@ void __stdcall FUN_00441220(Menu_00441220* menu, Entry_00441220* entry)
     unsigned short flags = *(unsigned short*)((char*)&msg.group + 2);
     int value = *(int*)((char*)&msg.group + 0xe);
 
-    int index = FUN_0049fdf0(gadgets, "WATCH", 1);
+    int index = FindGadgetIndex(gadgets, "WATCH", 1);
     if (index != -1) {
         gd = (Entry_00441220*)((char*)gadgets + index * 0x15b);
         gv = ((value & 0xff) >= (int)(signed char)((char*)g_game)[1]) ? 1 : 0;
@@ -106,7 +106,7 @@ void __stdcall FUN_00441220(Menu_00441220* menu, Entry_00441220* entry)
         r >>= 4;
         Apply_00441220(p, r, ge, entry);
     }
-    index = FUN_0049fdf0(gadgets, "JOINGAME", 1);
+    index = FindGadgetIndex(gadgets, "JOINGAME", 1);
     if (index != -1) {
         gd = (Entry_00441220*)((char*)gadgets + index * 0x15b);
         gv = ((value & 0xff) >= (int)(signed char)((char*)g_game)[1]) ? 1 : 0;

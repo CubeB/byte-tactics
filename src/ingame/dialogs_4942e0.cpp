@@ -62,13 +62,13 @@ extern Game* g_game;
 void __stdcall FUN_00494220(void* gadget);
 void __stdcall FUN_00494290(void* gadget, void* entry);
 
-Holder_004942e0* __stdcall FUN_004aa8f0(Menu_004942e0* menu, const char* name, int flags);
+Holder_004942e0* __stdcall LoadGuiLayer(Menu_004942e0* menu, const char* name, int flags);
 Entry_004942e0* __stdcall FUN_004a0280(Entry_004942e0* entries, char* name);
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall LoadPcx(char* path, int param);
 char* __stdcall MakePropList(void* obj);
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_004ab1b0(Holder_004942e0* obj, char* name, char* text, int x,
+void __stdcall AddTextGadget(Holder_004942e0* obj, char* name, char* text, int x,
                             short y, int w, int flags);
 void __cdecl FUN_004d85a0(void* data);
 void __stdcall FUN_004a0bf0(Menu_004942e0* menu, char* name, char* text, int param);
@@ -107,7 +107,7 @@ void __stdcall FUN_004942e0(void)
     if (type == 0)
         return;
 
-    Holder_004942e0* layer = FUN_004aa8f0(&g_game->menu, "UNITINFOx.GUI", 0x1000);
+    Holder_004942e0* layer = LoadGuiLayer(&g_game->menu, "UNITINFOx.GUI", 0x1000);
     Entry_004942e0* entries = layer->entries;
     layer->handler = (void*)FUN_00494220;
     layer->data = g_game;
@@ -119,28 +119,28 @@ void __stdcall FUN_004942e0(void)
     stats = MakePropList(def);
     int n = entries->u.count;
 
-    FUN_004ab1b0(g_game->menu.holder, "TEXT", FUN_004c5740("Cost"), 0x82, 0x20, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Cost"), 0x82, 0x20, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    FUN_004ab1b0(g_game->menu.holder, "TEXT", FUN_004c5740("Energy"), 0x8c, 0x2f, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Energy"), 0x8c, 0x2f, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    FUN_004ab1b0(g_game->menu.holder, "TEXT", FUN_004c5740("Metal"), 0x8c, 0x3e, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Metal"), 0x8c, 0x3e, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    FUN_004ab1b0(g_game->menu.holder, "TEXT", FUN_004c5740("Build Time"), 0x8c, 0x4d, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Build Time"), 0x8c, 0x4d, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    FUN_004ab1b0(g_game->menu.holder, "TEXT", FUN_004c5740("Statistics"), 0x82, 0x5c, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Statistics"), 0x82, 0x5c, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    FUN_004ab1b0(g_game->menu.holder, "TEXT", FUN_004c5740("Max Velocity"), 0x8c, 0x6b, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Max Velocity"), 0x8c, 0x6b, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    FUN_004ab1b0(g_game->menu.holder, "TEXT", FUN_004c5740("Acceleration"), 0x8c, 0x7a, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Acceleration"), 0x8c, 0x7a, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    FUN_004ab1b0(g_game->menu.holder, "TEXT", FUN_004c5740("Turn Rate"), 0x8c, 0x89, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Turn Rate"), 0x8c, 0x89, -1, 2);
     n++;
     entries[n].attr = 0x411;
 
@@ -148,7 +148,7 @@ void __stdcall FUN_004942e0(void)
     if (*s != 0) {
         y = 0x20;
         do {
-            FUN_004ab1b0(g_game->menu.holder, "TEXT", s, 0xf0, y, -1, 2);
+            AddTextGadget(g_game->menu.holder, "TEXT", s, 0xf0, y, -1, 2);
             n++;
             entries[n].attr = 0x411;
             s += strlen(s) + 1;

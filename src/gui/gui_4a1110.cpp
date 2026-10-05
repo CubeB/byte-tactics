@@ -43,7 +43,7 @@ static inline int FindEntry(Entry_004a1110* entries, char* name)
 void __stdcall FUN_004a0340(Class_004a1110* obj, int index);
 
 // FUNCTION: 0x4a1110
-int __stdcall FUN_004a1110(Class_004a1110* obj, char* name, int value)
+int __stdcall SetGadgetStatusByName(Class_004a1110* obj, char* name, int value)
 {
     Entry_004a1110* entries = obj->holder->entries;
     int i = FindEntry(entries, name);

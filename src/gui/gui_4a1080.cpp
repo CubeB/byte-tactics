@@ -34,7 +34,7 @@ static inline int FindEntry(Entry_4a1080* entries, char* name)
 }
 
 // FUNCTION: 0x4a1080
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, char value)
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, char value)
 {
     Entry_4a1080* entries = obj->holder->entries;
     int i = FindEntry(entries, name);

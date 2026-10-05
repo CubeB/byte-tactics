@@ -9,7 +9,7 @@ struct Object_004ab570 {
 };
 
 // FUNCTION: 0x4ab570
-int __stdcall FUN_004ab570(Object_004ab570* obj, unsigned char buttons)
+int __stdcall IsDoubleClickMessage(Object_004ab570* obj, unsigned char buttons)
 {
     int& msg = obj->message;
     if (buttons & 1) {

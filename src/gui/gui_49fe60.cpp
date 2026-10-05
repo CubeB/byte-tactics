@@ -14,7 +14,7 @@ struct Entry_0049fe60 {
 // Like the lookup in 0x49ff10, but matches entries whose name contains the
 // given text; returns the entry index or -1.
 // FUNCTION: 0x49fe60
-int __stdcall FUN_0049fe60(Entry_0049fe60* entries, char* name)
+int __stdcall FindGadgetIndexBySubstring(Entry_0049fe60* entries, char* name)
 {
     for (int i = 1; i < entries->count + 1; i++) {
         if (strstr(entries[i].name, name)) {

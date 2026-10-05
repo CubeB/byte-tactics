@@ -89,8 +89,8 @@ extern int* DAT_005129b8;
 extern Record_005129b4* DAT_005129b4;
 extern int* DAT_005129c4;
 
-Entry_0044c420* __stdcall FUN_0049ff90(void* gadgets, char* name);
-int __stdcall FUN_0049fd60(Menu_0044c420* gui, char* name);
+Entry_0044c420* __stdcall FindGadgetChecked(void* gadgets, char* name);
+int __stdcall IsCurrentGadgetNamed(Menu_0044c420* gui, char* name);
 void __stdcall FUN_004ab0a0(Menu_0044c420* obj);
 void __stdcall FUN_004ab190(int param_1, int param_2);
 void __stdcall FUN_0049fa90(Menu_0044c420* obj);
@@ -113,7 +113,7 @@ void __stdcall FUN_0044c420(Menu_0044c420* menu)
     Entry_0044c420* desc;
     Entry_0044c420* pic;
 
-    desc = FUN_0049ff90(menu->inner->gadgets, "DESCLIST");
+    desc = FindGadgetChecked(menu->inner->gadgets, "DESCLIST");
     if (menu->field_60 == -1) {
         i = 0;
         p = DAT_005129b8;
@@ -148,26 +148,26 @@ void __stdcall FUN_0044c420(Menu_0044c420* menu)
         FUN_004d85a0(DAT_005129b4);
         FUN_004d85a0(DAT_005129c4);
         FUN_004d85a0(desc->field_d6);
-        pic = FUN_0049ff90(menu->inner->gadgets, "PICLIST");
+        pic = FindGadgetChecked(menu->inner->gadgets, "PICLIST");
         if (pic != 0 && pic->field_c6 != 0)
             FUN_004d85a0(pic->field_c6);
         DAT_005129b4 = 0;
         return;
     }
 
-    if (FUN_0049fd60(menu, "Load") != 0) {
+    if (IsCurrentGadgetNamed(menu, "Load") != 0) {
         FUN_0047f1a0("Options", 0);
         FUN_0044bc10();
         FUN_004ab0a0(menu);
         return;
     }
-    if (FUN_0049fd60(menu, "Save") != 0) {
+    if (IsCurrentGadgetNamed(menu, "Save") != 0) {
         FUN_0047f1a0("Options", 0);
         FUN_0044b990();
         FUN_004ab0a0(menu);
         return;
     }
-    if (FUN_0049fd60(menu, "Reset") != 0) {
+    if (IsCurrentGadgetNamed(menu, "Reset") != 0) {
         FUN_0047f1a0("Options", 0);
         for (i = 0; i < g_game->count; i++) {
             type = DAT_005129b4[i].field_52;
@@ -188,11 +188,11 @@ void __stdcall FUN_0044c420(Menu_0044c420* menu)
         FUN_004ab0a0(menu);
         return;
     }
-    if (FUN_0049fd60(menu, "OK") != 0) {
+    if (IsCurrentGadgetNamed(menu, "OK") != 0) {
         FUN_0047f1a0("Options", 0);
         return;
     }
-    if (FUN_0049fd60(menu, "Cancel") != 0) {
+    if (IsCurrentGadgetNamed(menu, "Cancel") != 0) {
         FUN_0047f1a0("Previous", 0);
         n = 0;
         for (i = 1; i < g_game->count; i++) {

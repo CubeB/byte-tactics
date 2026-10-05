@@ -137,7 +137,7 @@ struct Game_0041b2e0 {
 extern Game_0041b2e0* g_game;
 
 int __stdcall FUN_00491d70(int force);
-int __stdcall FUN_004ab060(Menu_0041b2e0* menu, const char* name);
+int __stdcall IsScreenNamed(Menu_0041b2e0* menu, const char* name);
 void __stdcall FUN_0041ace0(Unit_0041b2e0* unit, char* guiName, int page);
 void __stdcall FUN_0041b0f0(Unit_0041b2e0* unit);
 
@@ -263,7 +263,7 @@ void FUN_0041b2e0()
             strncpy(name, g_game->buildTypes[first->typeIndex].name, 0x20);
             name[0x1f] = 0;
             sprintf(gui, "%s%d.GUI", name, page);
-            if ((FUN_004ab060(&g_game->menu, gui) == 0 || g_game->unitIndex != first->id)
+            if ((IsScreenNamed(&g_game->menu, gui) == 0 || g_game->unitIndex != first->id)
                 && FUN_00491d70(0))
                 FUN_0041ace0(first, gui, page);
             g_game->orders.refresh = 0;

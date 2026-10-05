@@ -7,7 +7,7 @@
 // Handler for the SELGAME (multiplayer game list) screen. Processes the
 // UPDATE / PREVMENU / WATCH / JOINGAME / STARTNEW buttons and the per-entry
 // "compatible version" check. param_1 is &g_game->sub (g_game+0x519); its
-// +0x18 field is the widget created by FUN_004aa8f0, whose +4 is the GUI entry
+// +0x18 field is the widget created by LoadGuiLayer, whose +4 is the GUI entry
 // table and whose +0x60 is the id of the pressed entry.
 #include <windows.h>
 #include <string.h>
@@ -99,24 +99,24 @@ extern Game* g_game;
 extern unsigned char DAT_00512d90;
 extern int DAT_00512c84;
 
-int __stdcall FUN_0049fdf0(Entry_004437c0* entries, const char* name, int type);
-Entry_004437c0* __stdcall FUN_0049ff90(Entry_004437c0* entries, const char* name);
+int __stdcall FindGadgetIndex(Entry_004437c0* entries, const char* name, int type);
+Entry_004437c0* __stdcall FindGadgetChecked(Entry_004437c0* entries, const char* name);
 char* __stdcall FUN_004a0010(Entry_004437c0* entries, const char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 int __stdcall FUN_00441460(void* holder);
 void __stdcall FUN_0049fa90(Sub_004437c0* sub);
 void __stdcall FUN_004ab0a0(Sub_004437c0* sub);
 void __cdecl FUN_004d85a0(void* p);
-void __stdcall FUN_004a0d00(Sub_004437c0* sub, const char* name, char* text);
+void __stdcall GetGadgetText(Sub_004437c0* sub, const char* name, char* text);
 void __stdcall FUN_00425730(char* msg);
 void FUN_004257a0();
 void FUN_00441080();
-void __stdcall FUN_004a9660(Sub_004437c0* sub);
+void __stdcall CloseTopScreen(Sub_004437c0* sub);
 void __stdcall FUN_004a7190(Sub_004437c0* sub, char* text);
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_004abd90(Sub_004437c0* sub, char* text, int a, int b, int c);
+void __stdcall OpenMessageBox(Sub_004437c0* sub, char* text, int a, int b, int c);
 unsigned char FindHostSlot();
-int __stdcall FUN_0049fd60(Sub_004437c0* sub, const char* name);
+int __stdcall IsCurrentGadgetNamed(Sub_004437c0* sub, const char* name);
 
 // FUNCTION: 0x4437c0
 void __stdcall FUN_004437c0(Sub_004437c0* param_1)
@@ -144,7 +144,7 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
         return;
     }
 
-    if (FUN_0049fdf0(entries, "UPDATE", 0xe) == param_1->field_60) {
+    if (FindGadgetIndex(entries, "UPDATE", 0xe) == param_1->field_60) {
         char* pass = FUN_004a0010(entries, "PASSWORD");
         if (pass != 0) {
             cur = g_game->cur_conn;
@@ -157,16 +157,16 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
         return;
     }
 
-    if (FUN_0049fdf0(entries, "PREVMENU", 0xe) == param_1->field_60) {
+    if (FindGadgetIndex(entries, "PREVMENU", 0xe) == param_1->field_60) {
         g_game->field_2bc0 = 3;
         FUN_0047f1a0("Previous", 0);
         return;
     }
 
-    if (FUN_0049fdf0(entries, "WATCH", 0xe) == param_1->field_60 ||
-        FUN_0049fdf0(entries, "JOINGAME", 0xe) == param_1->field_60 ||
+    if (FindGadgetIndex(entries, "WATCH", 0xe) == param_1->field_60 ||
+        FindGadgetIndex(entries, "JOINGAME", 0xe) == param_1->field_60 ||
         entries[param_1->field_60].type == 2) {
-        Entry_004437c0* e = FUN_0049ff90(entries, "GAMENAME");
+        Entry_004437c0* e = FindGadgetChecked(entries, "GAMENAME");
         Msg_004437c0 msg;
         unsigned int flags;
         int ver;
@@ -184,11 +184,11 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
                 FUN_004ab0a0(param_1);
                 return;
             }
-            FUN_004a0d00(param_1, "NICKNAME", g_game->nickname);
+            GetGadgetText(param_1, "NICKNAME", g_game->nickname);
             if (strlen(g_game->nickname) == 0) {
-                FUN_004a7190(param_1, (char*)FUN_0049fdf0(entries, "NICKNAME", 3));
+                FUN_004a7190(param_1, (char*)FindGadgetIndex(entries, "NICKNAME", 3));
                 FUN_004ab0a0(param_1);
-                FUN_004abd90(param_1, FUN_004c5740("You must enter your name"), 0xc8, 1, 1);
+                OpenMessageBox(param_1, FUN_004c5740("You must enter your name"), 0xc8, 1, 1);
                 return;
             }
             pass = FUN_004a0010(entries, "PASSWORD");
@@ -199,7 +199,7 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
             if (b != 0xa &&
                 (*(unsigned short*)((char*)g_game->players[b].data + 0x9b) & 0x10) == 0x10)
                 g_game->field_2a44 |= 4;
-            if (FUN_0049fd60(param_1, "WATCH")) {
+            if (IsCurrentGadgetNamed(param_1, "WATCH")) {
                 cur = g_game->cur_conn;
                 *(unsigned short*)((char*)g_game->players[cur].data + 0x9b) |= 0x40;
                 FUN_0047f1a0("Multi", 0);
@@ -213,14 +213,14 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
             return;
         }
         FUN_00425730("You do not have a compatible version for this game.");
-    } else if (FUN_0049fdf0(entries, "STARTNEW", 0xe) == param_1->field_60) {
+    } else if (FindGadgetIndex(entries, "STARTNEW", 0xe) == param_1->field_60) {
 startnew:
         cur = g_game->cur_conn;
         *(unsigned short*)((char*)g_game->players[cur].data + 0x9b) &= 0xffbf;
         FUN_0047f1a0("BigButton", 0);
-        FUN_004a0d00(param_1, "NICKNAME", g_game->nickname);
+        GetGadgetText(param_1, "NICKNAME", g_game->nickname);
         FUN_004257a0();
-        FUN_004a9660(param_1);
+        CloseTopScreen(param_1);
         FUN_00441080();
         FUN_004ab0a0(param_1);
         return;

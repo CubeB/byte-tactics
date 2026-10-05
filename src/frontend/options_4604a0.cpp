@@ -49,16 +49,16 @@ struct Game {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-Dialog_004604a0* __stdcall FUN_004aa8f0(Menu_004604a0* menu, const char* name, int flags);
+Dialog_004604a0* __stdcall LoadGuiLayer(Menu_004604a0* menu, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-int __stdcall FUN_0049fdf0(Gadget_004604a0* gadgets, const char* name, int flag);
+int __stdcall FindGadgetIndex(Gadget_004604a0* gadgets, const char* name, int flag);
 // Called with three arguments here, but the function itself pops four, so the
 // declaration the original was compiled against must have been a three
 // parameter one: the extra dword is left on the stack. Kept as it is.
-char* __stdcall FUN_004ac4c0(Menu_004604a0* menu, char* text, int player);
+char* __stdcall WordWrapText(Menu_004604a0* menu, char* text, int player);
 void __stdcall FUN_004a0bf0(Menu_004604a0* menu, const char* name, int value, int count);
 void __stdcall FUN_0049fb10(Menu_004604a0* menu, int value);
-void __stdcall FUN_004a81e0(Menu_004604a0* menu, int value);
+void __stdcall RenderLayer(Menu_004604a0* menu, int value);
 int __stdcall FUN_00491c80(int value);
 void FUN_00477410();
 void __stdcall FUN_00460340(void* dialog);
@@ -67,13 +67,13 @@ void __stdcall FUN_00460340(void* dialog);
 void FUN_004604a0()
 {
     Menu_004604a0* menu = &g_game->menu;
-    Dialog_004604a0* dialog = FUN_004aa8f0(menu, "RESTART.GUI", 0x1000);
+    Dialog_004604a0* dialog = LoadGuiLayer(menu, "RESTART.GUI", 0x1000);
     Gadget_004604a0* gadgets = dialog->gadgets;
     dialog->handler = FUN_00460340;
     FUN_004288d0("drestart", 0, 0, 0);
-    int index = FUN_0049fdf0(gadgets, "MISSIONNAME", 5);
+    int index = FindGadgetIndex(gadgets, "MISSIONNAME", 5);
     menu->field_14 = menu->field_c;
-    char* text = FUN_004ac4c0(&g_game->menu,
+    char* text = WordWrapText(&g_game->menu,
                               g_game->texts->FUN_00435c30(gadgets[index].field_17),
                               -1);
     menu->field_14 = menu->field_8;
@@ -85,6 +85,6 @@ void FUN_004604a0()
     }
     FUN_00477410();
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
     FUN_00491c80(0x13);
 }

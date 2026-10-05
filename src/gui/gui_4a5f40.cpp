@@ -3,7 +3,7 @@
 // Draws one list-gadget entry: its glyph or frame, then the text (left,
 // right, centred, or centred with an underlined hotkey letter, flags 1/4/2/0x20).
 // What the last steps changed, each measured:
-//  - The key1 hotkey width is the plain inlined FUN_004a5030 again, and the
+//  - The key1 hotkey width is the plain inlined GetTextPixelWidth again, and the
 //    flags 0x20 y (`ys`) is a block local. The previous `int* pm = &measured`
 //    alias and the by-reference MeasureInto copy are gone: MSVC packs the
 //    inline's accumulator and ys into one slot by itself ([esp+0x20]).
@@ -103,7 +103,7 @@ struct Menu_004a5f40 {
 
 struct Rect_004a5f40 { int left, top, right, bottom; };
 
-extern FontRoot_004a5f40* DAT_0051fba4;
+extern FontRoot_004a5f40* g_guiContext;
 
 void __stdcall SetFont(int id);
 int GetFont();
@@ -119,22 +119,22 @@ void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, i
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int colour);
 void __stdcall GrayRectangle(void* surface, Rect_004a5f40* rect);
 void __stdcall FadeRectangle(void* surface, Rect_004a5f40* rect, int param);
-void __stdcall FUN_004b04b0(void* surface, Rect_004a5f40* rect, unsigned int a, unsigned int b, unsigned int c);
-void __stdcall FUN_004b04e0(void* surface, Rect_004a5f40* rect, unsigned int a, unsigned int b, unsigned int c);
+void __stdcall FillBevelBox(void* surface, Rect_004a5f40* rect, unsigned int a, unsigned int b, unsigned int c);
+void __stdcall FillBevelBoxDarkFirst(void* surface, Rect_004a5f40* rect, unsigned int a, unsigned int b, unsigned int c);
 
-// The real FUN_004a5030 (matched in 0x4a5030.cpp), which /Ob2 inlines four times here.
-static inline int FUN_004a5030(char* text)
+// The real GetTextPixelWidth (matched in 0x4a5030.cpp), which /Ob2 inlines four times here.
+static inline int GetTextPixelWidth(char* text)
 {
     int width = 0;
     if (text == 0)
         return 0;
-    if (DAT_0051fba4->language == 0)
+    if (g_guiContext->language == 0)
         return GetTextWidth(GetFont(), text);
     char* p = text;
     while (*p != 0) {
         char ch = *p;
         Glyph_004a5f40* glyph = (Glyph_004a5f40*)GetGafFrame(
-            (GafEntry_004a5f40*)DAT_0051fba4->language->glyphs, (unsigned char)ch);
+            (GafEntry_004a5f40*)g_guiContext->language->glyphs, (unsigned char)ch);
         if (glyph != 0)
             width += glyph->width;
         ++p;
@@ -144,15 +144,15 @@ static inline int FUN_004a5030(char* text)
 
 static inline int LineHeight_004a5f40()
 {
-    if (DAT_0051fba4->language == 0)
+    if (g_guiContext->language == 0)
         return GetFontHeight();
     Glyph_004a5f40* glyph = GetGafFrame(
-        (GafEntry_004a5f40*)DAT_0051fba4->language->glyphs, 0x49);
+        (GafEntry_004a5f40*)g_guiContext->language->glyphs, 0x49);
     return glyph->height + 2;
 }
 
 // FUNCTION: 0x4a5f40
-void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
+void __stdcall DrawButton(Menu_004a5f40* menu, int index)
 {
     char* p;
     char key2[2];
@@ -199,7 +199,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
         }
     }
     if (i == entries->u.list.count + 1)
-        SetFont(DAT_0051fba4->current);
+        SetFont(g_guiContext->current);
 
     textw = FUN_004a5d50(menu, index);
     surface = entries->u.list.surface;
@@ -241,11 +241,11 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
         }
     } else {
         if (me->field_13c & 1) {
-            FUN_004b04b0(surface, &rect, menu->colours[0], menu->colours[0x13], menu->colours[0x13]);
+            FillBevelBox(surface, &rect, menu->colours[0], menu->colours[0x13], menu->colours[0x13]);
         } else if (me->field_138 != 0) {
-            FUN_004b04b0(surface, &rect, menu->colours[0], menu->colours[0x11], menu->colours[0x14]);
+            FillBevelBox(surface, &rect, menu->colours[0], menu->colours[0x11], menu->colours[0x14]);
         } else {
-            FUN_004b04e0(surface, &rect, menu->colours[0], menu->colours[0x11], menu->colours[0x14]);
+            FillBevelBoxDarkFirst(surface, &rect, menu->colours[0], menu->colours[0x11], menu->colours[0x14]);
         }
     }
 
@@ -302,14 +302,14 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                     strcpy(buf, p);
                     *found = 0;
                     FUN_004a50e0(surface, buf, x, y, width, 0);
-                    x += FUN_004a5030(buf);
+                    x += GetTextPixelWidth(buf);
                     saved = x;
                     if (me->field_138 != 0)
                         SetTextColors(menu->colours[0], GetTextKeyColor());
                     else
                         SetTextColors(menu->colours[me->colours], GetTextKeyColor());
                     FUN_004a50e0(surface, key1, x, y, width, 0);
-                    x += FUN_004a5030(key1);
+                    x += GetTextPixelWidth(key1);
                     if (me->field_138 != 0) {
                         DrawLine(surface, saved, LineHeight_004a5f40() + y - 1,
                                      x - 1, LineHeight_004a5f40() + y - 1,
@@ -346,10 +346,10 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                 // string, [esp+0x4c] at 0x4a681e), not the drawn prefix `p`,
                 // so the underline is misplaced when field_136 selects a later
                 // string. The flags 2 branch measures its truncated copy.
-                xb += FUN_004a5030(text);
+                xb += GetTextPixelWidth(text);
                 SetTextColors(menu->colours[10], GetTextKeyColor());
                 FUN_004a50e0(surface, key2, xb, ys, width, 0);
-                xb += FUN_004a5030(key2);
+                xb += GetTextPixelWidth(key2);
                 SetTextColors(menu->colours[me->colours], GetTextKeyColor());
                 FUN_004a50e0(surface, found + 1, xb, ys, width, 0);
             } else {

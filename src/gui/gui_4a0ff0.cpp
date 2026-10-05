@@ -23,7 +23,7 @@ struct Obj_004a0ff0 {
 };
 
 // FUNCTION: 0x4a0ff0
-int __stdcall FUN_004a0ff0(Obj_004a0ff0* obj, int index)
+int __stdcall GetButtonStage(Obj_004a0ff0* obj, int index)
 {
     Entry_004a0ff0* entries = obj->table->entries;
     if (entries[index].state == 1) {

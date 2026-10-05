@@ -98,7 +98,7 @@ void __stdcall FreeSurface(void* image);
 void __cdecl FUN_004d85a0(void* p);
 void LeaveNetGame();
 Display_0041ec50* GetDisplay();
-int __stdcall FUN_0049fd60(Gadget_0041ec50* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_0041ec50* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void FUN_004931d0();
 void FUN_00493060();
@@ -109,9 +109,9 @@ void __stdcall FUN_004c22d0(int param);
 void __stdcall FUN_00491c80(int n);
 char __stdcall FUN_0041d6a0(int param_1);
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void FUN_0041d4c0();
-Entry_0041ec50* __stdcall FUN_0049ff90(Entry_0041ec50* entries, char* name);
+Entry_0041ec50* __stdcall FindGadgetChecked(Entry_0041ec50* entries, char* name);
 void FUN_00425a90();
 void __stdcall FUN_00434ab0(int param);
 
@@ -151,23 +151,23 @@ void __stdcall FUN_0041ec50(Gadget_0041ec50* gadget)
     }
     // LoadGame and SaveGame reset the gadget (FUN_004ab0a0) twice in a row;
     // the second call is redundant.
-    if (FUN_0049fd60(gadget, "LoadGame")) {
+    if (IsCurrentGadgetNamed(gadget, "LoadGame")) {
         FUN_0047f1a0("BigButton", 0);
         FUN_004931d0();
         FUN_004ab0a0(gadget);
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fd60(gadget, "SaveGame")) {
+    if (IsCurrentGadgetNamed(gadget, "SaveGame")) {
         FUN_0047f1a0("BigButton", 0);
         FUN_00493060();
         FUN_004ab0a0(gadget);
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fd60(gadget, "Start") || FUN_0049fd60(gadget, "Missions")) {
+    if (IsCurrentGadgetNamed(gadget, "Start") || IsCurrentGadgetNamed(gadget, "Missions")) {
         if (!FUN_0041d6a0(0)) {
-            FUN_004abd90(g_game->message,
+            OpenMessageBox(g_game->message,
                          FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
                          200, 1, 1);
             FUN_004ab0a0(g_game->message);
@@ -177,7 +177,7 @@ void __stdcall FUN_0041ec50(Gadget_0041ec50* gadget)
         g_game->field_2bc0 = 10;
         FUN_004c22d0(1);
         FUN_00491c80(0x14);
-        if (g_game->campaign->FUN_00435c00(FUN_0049ff90(entries, "Missions")->field_ba)) {
+        if (g_game->campaign->FUN_00435c00(FindGadgetChecked(entries, "Missions")->field_ba)) {
             FUN_00425a90();
             g_game->bit2_2a44 = 0;
             g_game->bit3_2a44 = 1;
@@ -189,14 +189,14 @@ void __stdcall FUN_0041ec50(Gadget_0041ec50* gadget)
             FUN_00490b30(2);
             return;
         }
-    } else if (FUN_0049fd60(gadget, "MainMenu")) {
+    } else if (IsCurrentGadgetNamed(gadget, "MainMenu")) {
         FUN_0047f1a0("BigButton", 0);
         FUN_00425860(2, 770, "c:\\cavedog\\wargame\\endgame.cpp");
         FUN_00490b30(1);
         FUN_004c22d0(1);
         FUN_00491c80(0x14);
         return;
-    } else if (FUN_0049fd60(gadget, "Difficulty")) {
+    } else if (IsCurrentGadgetNamed(gadget, "Difficulty")) {
         FUN_0047f1a0("SKirmish", 0);
         if (g_game->difficulty == 0) {
             g_game->options->difficulty = 1;

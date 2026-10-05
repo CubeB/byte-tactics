@@ -19,7 +19,7 @@ struct Obj_004ae380 {
 unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* param_1, void* param_2, unsigned int param_3);
 
 // FUNCTION: 0x4ae380
-void __stdcall FUN_004ae380(Obj_004ae380* obj, Class_004bbbe0* out, int indent)
+void __stdcall WriteHotOrNotField(Obj_004ae380* obj, Class_004bbbe0* out, int indent)
 {
     char tab;
     char line[100];

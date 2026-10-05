@@ -35,7 +35,7 @@ struct Object_004aafe0 {
 int __stdcall PointInRect(Rect_004b6720* r, int x, int y);
 
 // FUNCTION: 0x4aafe0
-int __stdcall FUN_004aafe0(Object_004aafe0* obj)
+int __stdcall IsPointInEntryRect(Object_004aafe0* obj)
 {
     if (!obj->entry)
         return 0;

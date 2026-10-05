@@ -30,7 +30,7 @@ extern Game* g_game;
 
 void FUN_00425a90();
 void __stdcall FUN_00434ab0(int param);
-void FUN_004c1a40();
+void ClearKeyQueue();
 void __stdcall FUN_0049fa50(Sub_00496b10* p);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __cdecl LeaveNetGameCallback(int param);
@@ -46,7 +46,7 @@ void FUN_00496b10()
     FUN_00434ab0(0);
     g_game->flag4_3923b = 0;
     g_game->flag2_3923b = 0;
-    FUN_004c1a40();
+    ClearKeyQueue();
     FUN_0049fa50(&g_game->sub);
     g_game->mode = 2;
     g_game->handler = FUN_00496bb0;

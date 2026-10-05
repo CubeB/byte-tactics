@@ -31,7 +31,7 @@ void __stdcall FreeSurface(void* param_1);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4c2cc0
-void FUN_004c2cc0(void)
+void ShutdownMouse(void)
 {
     Input_004c2cc0* o = GetDisplay();
     if (o->entries) {

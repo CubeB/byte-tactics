@@ -22,12 +22,12 @@
 //    the `if (flag8)` the flags local takes ecx and loses its frame slot.
 //  - `int remain` before `int n2 = 0;`, and the 0x10 clamps written plainly
 //    (`>= field_c0 - 1`, then `if (me->field_ba < 0) me->field_ba = 0;`).
-//  - The rectangle is the inlined FUN_004a1630 (matched), called as
-//    `FUN_004a1630(&entries[index], &r)` like the sibling 0x4a1b40; with
+//  - The rectangle is the inlined GetGadgetRect (matched), called as
+//    `GetGadgetRect(&entries[index], &r)` like the sibling 0x4a1b40; with
 //    `me` the y1 lea's operands swap.
 //  - `if (me->field_c0 == 0) goto skip0;` with skip0 at the end of the
 //    in-rect block: the original reloads point.x on that edge only.
-//  - The scroll-up/scroll-down tails share one FUN_004a1b40/FUN_004a2be0
+//  - The scroll-up/scroll-down tails share one DrawListBox/FUN_004a2be0
 //    pair through `goto finish` (MSVC 5 does not merge return blocks, so
 //    the first arm's exits are gotos too).
 //  - The 0x10 line computation stores straight into me->field_ba and tests
@@ -104,7 +104,7 @@ struct Object_004a3780 {
 };
 #pragma pack(pop)
 
-extern Holder_004a3780* DAT_0051fba4;
+extern Holder_004a3780* g_guiContext;
 extern char DAT_00502a20[];
 
 void __stdcall SetFont(int id);
@@ -112,12 +112,12 @@ int GetFontHeight();
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 char* __stdcall FUN_004b6af0(char* text, int n);
 int GetTicks();
-int __stdcall FUN_004ab570(Object_004a3780* obj, unsigned char buttons);
-int __stdcall FUN_004ab510(Object_004a3780* obj, unsigned char buttons);
+int __stdcall IsDoubleClickMessage(Object_004a3780* obj, unsigned char buttons);
+int __stdcall IsMouseButtonMessage(Object_004a3780* obj, unsigned char buttons);
 int __stdcall FUN_004ab5b0(Object_004a3780* obj, unsigned int mask);
 void __stdcall FUN_004ab690(Object_004a3780* obj, int param_2);
 void __stdcall FUN_0049fc50(Object_004a3780* obj, int index);
-void __stdcall FUN_004a1b40(Object_004a3780* obj, int index);
+void __stdcall DrawListBox(Object_004a3780* obj, int index);
 void __stdcall FUN_004a2be0(Object_004a3780* obj, int index);
 
 struct Row_004a3780 {
@@ -131,7 +131,7 @@ struct Item_004a3780 {
     Row_004a3780* row;                 // +0x28
 };
 
-void __stdcall FUN_004a1630(Entry_004a3780* entry, Rect_004a3780* rect)
+void __stdcall GetGadgetRect(Entry_004a3780* entry, Rect_004a3780* rect)
 {
     if (entry->type == 0) {
         rect->x0 = 0;
@@ -151,13 +151,13 @@ struct Glyph_004a3780 {
 
 static inline int LineHeight_004a3780()
 {
-    if (0 == DAT_0051fba4->list)
+    if (0 == g_guiContext->list)
         return GetFontHeight();
-    return ((Glyph_004a3780*)GetGafFrame(DAT_0051fba4->list->field_0c, 0x49))->height + 2;
+    return ((Glyph_004a3780*)GetGafFrame(g_guiContext->list->field_0c, 0x49))->height + 2;
 }
 
 // FUNCTION: 0x4a3780
-int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
+int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
 {
     if (obj->field_60 != -1)
         return 0;
@@ -168,7 +168,7 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
         return 0;
     Rect_004a3780 r;
     unsigned int flags;
-    FUN_004a1630(&entries[index], &r);
+    GetGadgetRect(&entries[index], &r);
     int n = 0;
     r.y0 += 2;
     r.y1 -= 3;
@@ -186,7 +186,7 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
         }
     }
     if (i == entries[0].count + 1)
-        SetFont(DAT_0051fba4->current);
+        SetFont(g_guiContext->current);
 
     int size = LineHeight_004a3780();
     short da = me->field_da;
@@ -194,7 +194,7 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
     int step = (me->field_19 - 2) / span;
     char* s;
 
-    if (FUN_004ab570(obj, 1)) {
+    if (IsDoubleClickMessage(obj, 1)) {
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
             if (me->field_c0 == 0) goto skip0;
             if (!(me->flags & 0x200))
@@ -213,12 +213,12 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
             return 0;
 skip0:;
         }
-    } else if (FUN_004ab510(obj, 1)) {
+    } else if (IsMouseButtonMessage(obj, 1)) {
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
             FUN_0049fc50(obj, index);
             FUN_004ab690(obj, 1);
         }
-    } else if (FUN_004ab510(obj, 2)) {
+    } else if (IsMouseButtonMessage(obj, 2)) {
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
             FUN_0049fc50(obj, index);
             FUN_004ab690(obj, 2);
@@ -287,7 +287,7 @@ skip0:;
             }
         }
         if (orig_sel != me->field_ba) {
-            FUN_004a1b40(obj, index);
+            DrawListBox(obj, index);
             if (me->field_ce)
                 me->field_ce(obj, me);
         }
@@ -327,7 +327,7 @@ ret1:
                     me->field_ba = orig_sel;
             }
 finish:
-            FUN_004a1b40(obj, index);
+            DrawListBox(obj, index);
             FUN_004a2be0(obj, index);
         }
     }

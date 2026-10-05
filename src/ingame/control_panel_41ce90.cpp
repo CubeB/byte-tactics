@@ -56,8 +56,8 @@ extern Game* g_game;
 
 void __stdcall FUN_004c2340(Mouse_0041ce90* mouse);
 Display_0041ce90* GetDisplay();
-int __stdcall FUN_004ab060(void* obj, const char* name);
-int __stdcall FUN_004c1b80(int key);
+int __stdcall IsScreenNamed(void* obj, const char* name);
+int __stdcall IsKeyDown(int key);
 void FUN_0041c3c0();
 
 // FUNCTION: 0x41ce90
@@ -93,16 +93,16 @@ void FUN_0041ce90()
         if (mouse.y >= h)
             mouse.y = h - 1;
     }
-    int talk = FUN_004ab060(g_game->menu, "TALK.GUI");
+    int talk = IsScreenNamed(g_game->menu, "TALK.GUI");
     int x = g_game->x;
     int y = g_game->y;
-    if ((FUN_004c1b80(0xf4) && !talk) || (mouse.x == 0 && mouse.y < g_game->height))
+    if ((IsKeyDown(0xf4) && !talk) || (mouse.x == 0 && mouse.y < g_game->height))
         x -= speed;
-    else if ((FUN_004c1b80(0xf6) && !talk) || mouse.x == g_game->width - 1)
+    else if ((IsKeyDown(0xf6) && !talk) || mouse.x == g_game->width - 1)
         x += speed;
-    if ((FUN_004c1b80(0xf5) && !talk) || (mouse.y == 0 && mouse.x < g_game->width))
+    if ((IsKeyDown(0xf5) && !talk) || (mouse.y == 0 && mouse.x < g_game->width))
         y -= speed;
-    else if ((FUN_004c1b80(0xf7) && !talk) || mouse.y == g_game->height - 1)
+    else if ((IsKeyDown(0xf7) && !talk) || mouse.y == g_game->height - 1)
         y += speed;
     if (g_game->x != x || g_game->y != y) {
         g_game->x = x;

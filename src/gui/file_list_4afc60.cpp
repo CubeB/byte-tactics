@@ -17,7 +17,7 @@ void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4afc60
-void __stdcall FUN_004afc60(Class_004afc60* obj, int count)
+void __stdcall AllocBlinkWords(Class_004afc60* obj, int count)
 {
     if (obj->words) {
         FUN_004d85a0(obj->words);

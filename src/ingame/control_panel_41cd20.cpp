@@ -3,7 +3,7 @@
 // mouse back to the saved position. The state is reached through a pointer
 // local, which keeps the `add eax, 0x2cc7` the original has.
 
-void __stdcall FUN_004c22f0(int x, int y);
+void __stdcall SetCursorPosition(int x, int y);
 void FUN_004c2870();
 
 #pragma pack(push, 1)
@@ -27,6 +27,6 @@ void FUN_0041cd20()
 {
     CursorState_0041cd20* cursor = &g_game->cursor;
     cursor->flag = 0;
-    FUN_004c22f0(cursor->x, cursor->y);
+    SetCursorPosition(cursor->x, cursor->y);
     FUN_004c2870();
 }

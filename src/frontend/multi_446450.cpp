@@ -1,11 +1,11 @@
 // Decompiled by Opus. Names are provisional.
 // Sets the GUI's "WATCHING" and "GAMEOPEN" controls from the local player's
-// flags and marks the GUI for redraw. FUN_004a1080's value is widened as an
+// flags and marks the GUI for redraw. SetButtonStageByName's value is widened as an
 // int here (its own file says char; the checker compares names only).
 struct Class_004a1080;
 struct Class_0049fa90;
 
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_0049fa90(Class_0049fa90* obj);
 
 #pragma pack(push, 1)
@@ -40,7 +40,7 @@ extern Game* g_game;
 void FUN_00446450()
 {
     PlayerInfo_00446450* info = g_game->players[g_game->localPlayer].info;
-    FUN_004a1080((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
-    FUN_004a1080((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
     FUN_0049fa90((Class_0049fa90*)g_game->gui);
 }

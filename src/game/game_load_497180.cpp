@@ -167,7 +167,7 @@ unsigned short __stdcall FindUnitTypeId(const char* name);
 void __stdcall FUN_00496ee0(int team, int startpos);
 void __stdcall CreateUnit(unsigned char team, unsigned short id, FixedPos_497180 pos, int a,
     int b, int c);
-Gadget_497180* __stdcall FUN_004aa8f0(Sub_497180* sub, const char* name, int flags);
+Gadget_497180* __stdcall LoadGuiLayer(Sub_497180* sub, const char* name, int flags);
 void __stdcall FUN_00494890(Gadget_497180* gadget);
 void __cdecl operator delete(void* p);
 
@@ -411,7 +411,7 @@ tail:
         sprintf(g_game + 0x37ea0, "%sMAIN2.GUI", g_game + 0x37f5b + 0x232 * side);
     }
     Gadget_497180* gadget =
-        FUN_004aa8f0((Sub_497180*)(g_game + 0x519), g_game + 0x37ea0, 0x20);
+        LoadGuiLayer((Sub_497180*)(g_game + 0x519), g_game + 0x37ea0, 0x20);
     gadget->handler = FUN_00494890;
     gadget->owner = g_game;
 

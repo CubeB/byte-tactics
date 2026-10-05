@@ -80,7 +80,7 @@ struct Class_004a3ef0 {
     Holder_004a3ef0* holder;           // +0x18
 };
 
-extern Holder_004a3ef0* DAT_0051fba4;
+extern Holder_004a3ef0* g_guiContext;
 
 void __stdcall SetFont(int id);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
@@ -89,7 +89,7 @@ void __stdcall FUN_004a2580(Class_004a3ef0* param_1, int param_2);
 
 static inline Glyph_004a3ef0* GetGlyph_004a3ef0(unsigned char c)
 {
-    return (Glyph_004a3ef0*)GetGafFrame(DAT_0051fba4->list->field_0c, c);
+    return (Glyph_004a3ef0*)GetGafFrame(g_guiContext->list->field_0c, c);
 }
 
 static inline int Find_004a3ef0(Entry_004a3ef0* entries, unsigned char kind)
@@ -112,7 +112,7 @@ static inline int LineSize_004a3ef0(Entry_004a3ef0* e)
 }
 
 // FUNCTION: 0x4a3ef0
-void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
+void __stdcall DrawSlider(Class_004a3ef0* param_1, int param_2)
 {
     Entry_004a3ef0* entries = param_1->holder->entries;
     Entry_004a3ef0* me = &entries[param_2];
@@ -137,9 +137,9 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
                     }
                 }
                 if (i == entries->count + 1) {
-                    SetFont(DAT_0051fba4->current);
+                    SetFont(g_guiContext->current);
                 }
-                int size = (DAT_0051fba4->list == 0) ? GetFontHeight()
+                int size = (g_guiContext->list == 0) ? GetFontHeight()
                     : GetGlyph_004a3ef0(0x49)->height + 2;
                 int numerator = e->field_19 - 2;
                 int denominator = (e->field_da > size + 1) ? e->field_da : size + 1;

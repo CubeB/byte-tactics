@@ -12,7 +12,7 @@ void __stdcall FUN_0047f1a0(char* name, int param_2);
 int __stdcall FUN_00476a60(int** param_1, char* param_2);
 void __stdcall FUN_004a32a0(Menu_00477940* menu, char* name, int* data,
                             int count, int flag);
-int __stdcall FUN_0049fdf0(Entry_00477940* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Entry_00477940* entries, char* name, int type);
 void __stdcall FUN_004a2be0(Menu_00477940* menu, int index);
 void __stdcall FUN_0049fa90(Menu_00477940* menu);
 
@@ -28,7 +28,7 @@ void __stdcall FUN_00477940(char* param_1)
     int count = FUN_00476a60(&DAT_0051e65c, param_1);
     FUN_004a32a0((Menu_00477940*)(g_game + 0x519), "Campaign",
                  DAT_0051e65c, count, 0);
-    int index = FUN_0049fdf0((Entry_00477940*)(*(int*)((char*)gadget + 4)),
+    int index = FindGadgetIndex((Entry_00477940*)(*(int*)((char*)gadget + 4)),
                              "Campaign", 2);
     FUN_004a2be0((Menu_00477940*)(g_game + 0x519), index);
     FUN_0049fa90((Menu_00477940*)(g_game + 0x519));

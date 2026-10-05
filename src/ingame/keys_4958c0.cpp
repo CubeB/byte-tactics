@@ -19,7 +19,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fe60(int value, char* name);
+int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);
 
 // The else branch is the body of FUN_00495860.
@@ -34,7 +34,7 @@ void __stdcall FUN_004958c0(int set)
     }
     g_game->unknown_2cc3 = 1;
     g_game->flags_2cc6 &= 0xdf;
-    index = FUN_0049fe60(g_game->unknown_531->value, "STOP");
+    index = FindGadgetIndexBySubstring(g_game->unknown_531->value, "STOP");
     if (index != -1) {
         FUN_004a6a40(g_game->unknown_519, index);
     }

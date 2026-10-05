@@ -19,14 +19,14 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004ab060(Queue_00491e10* queue, char* name);
-void __stdcall FUN_004a9660(Queue_00491e10* queue);
+int __stdcall IsScreenNamed(Queue_00491e10* queue, char* name);
+void __stdcall CloseTopScreen(Queue_00491e10* queue);
 
 // FUNCTION: 0x491e10
 void FUN_00491e10()
 {
-    if (!FUN_004ab060(&g_game->queue, g_game->name)) {
+    if (!IsScreenNamed(&g_game->queue, g_game->name)) {
         g_game->field_37e9c = 0;
-        FUN_004a9660(&g_game->queue);
+        CloseTopScreen(&g_game->queue);
     }
 }

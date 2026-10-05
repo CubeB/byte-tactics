@@ -49,16 +49,16 @@ extern Game_004441a0* g_game;
 extern LinkInfo DAT_005127c8[];
 
 void __cdecl FUN_004d85a0(void* p);
-int __stdcall FUN_0049fd60(void* menu, char* name);
-Entry_004441a0* __stdcall FUN_0049ff90(void* entries, char* name);
-int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
+int __stdcall IsCurrentGadgetNamed(void* menu, char* name);
+Entry_004441a0* __stdcall FindGadgetChecked(void* entries, char* name);
+int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 int __stdcall FUN_00443ff0(int index);
 void __stdcall FUN_0047f1a0(char* name, int flag);
 void __stdcall FUN_00491c80(int value);
 int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int size);
 void OnlineUnload();
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_004abd90(void* menu, char* text, int size, int param_4, int param_5);
+void __stdcall OpenMessageBox(void* menu, char* text, int size, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);
 void FUN_00460160();
 
@@ -92,8 +92,8 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
         }
         return;
     }
-    if (FUN_0049fd60(menu, "DPLAY") || FUN_0049fd60(menu, "SELECT")) {
-        FUN_00443ff0(FUN_0049ff90(entries, "DPLAY")->field_ba);
+    if (IsCurrentGadgetNamed(menu, "DPLAY") || IsCurrentGadgetNamed(menu, "SELECT")) {
+        FUN_00443ff0(FindGadgetChecked(entries, "DPLAY")->field_ba);
         g_game->field_2bc0 = 2;
         FUN_0047f1a0("BigButton", 0);
         return;
@@ -120,16 +120,16 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
             sprintf(message, "The %s service failed or took%stoo long. Please see the readme%sfile for more information.",
                     DAT_005127c8[link].name, "\n\n", "\n\n");
         char* msg = FUN_004c5740(message);
-        FUN_004abd90(menu, msg, sizeof(message), 1, 1);
+        OpenMessageBox(menu, msg, sizeof(message), 1, 1);
         FUN_004ab0a0(menu);
         return;
     }
-    if (FUN_0049fdf0(entries, "PREVMENU", 0xe) == menu->selected) {
+    if (FindGadgetIndex(entries, "PREVMENU", 0xe) == menu->selected) {
         g_game->field_2bc0 = 3;
         FUN_0047f1a0("Previous", 0);
         return;
     }
-    if (FUN_0049fd60(menu, "SETTINGS")) {
+    if (IsCurrentGadgetNamed(menu, "SETTINGS")) {
         FUN_0047f1a0("Options", 0);
         FUN_004ab0a0(menu);
         FUN_00460160();

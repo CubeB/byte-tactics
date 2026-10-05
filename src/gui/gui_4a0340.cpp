@@ -29,7 +29,7 @@ struct Class_004a6a40 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004a5f40(Class_004a6a40* param_1, int param_2);
+void __stdcall DrawButton(Class_004a6a40* param_1, int param_2);
 
 // FUNCTION: 0x4a0340
 void __stdcall FUN_004a0340(Class_004a6a40* param_1, int index)
@@ -42,7 +42,7 @@ void __stdcall FUN_004a0340(Class_004a6a40* param_1, int index)
             if (e->state == 1 && i != index && e->team == me->team
                 && e->field_138 != 0) {
                 e->field_138 = 0;
-                FUN_004a5f40(param_1, i);
+                DrawButton(param_1, i);
                 if (param_1->holder != 0) {
                     param_1->holder->field_14 = 1;
                 }

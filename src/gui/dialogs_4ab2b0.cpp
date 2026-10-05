@@ -27,7 +27,7 @@ struct Class_004ab2b0 {
 };
 
 // FUNCTION: 0x4ab2b0
-int __stdcall FUN_004ab2b0(Class_004ab2b0* obj, Record_004ab2b0* record)
+int __stdcall AddButtonGadget(Class_004ab2b0* obj, Record_004ab2b0* record)
 {
     Entry_004ab2b0* entries = obj->holder->entries;
     if (entries->record.count == 200) {

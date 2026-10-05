@@ -541,7 +541,7 @@ Things that look wrong in the original but have no effect, kept for the record.
 
 - **0x4a7960**: the tail that refreshes a type-3 (text) selection is emitted
   twice in a row (0x4a7c76 to 0x4a7d81, then 0x4a7d86 to 0x4a7e98), so its
-  colour and language setup, the FUN_004ab6c0 redraw and FUN_004c1a40 run
+  colour and language setup, the FUN_004ab6c0 redraw and ClearKeyQueue run
   twice. Found by ozgb's deepseek-v4.1-flash in #2606.
 
 - **0x4a9fd0** (hit testing): entry 0 is tested by adding the window origin to

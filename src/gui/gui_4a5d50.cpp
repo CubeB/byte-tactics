@@ -36,9 +36,9 @@ struct Class_0051fba4 {
 };
 #pragma pack(pop)
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
-char* __stdcall FUN_004a0d00(Menu_004a5d50* menu, char* name, char* buf);
+char* __stdcall GetGadgetText(Menu_004a5d50* menu, char* name, char* buf);
 void* __stdcall GetGafFrame(void* glyphs, int c);
 int GetFont();
 int __stdcall GetTextWidth(int param_1, unsigned char* text);
@@ -46,11 +46,11 @@ int __stdcall GetTextWidth(int param_1, unsigned char* text);
 static inline int Width_004a5d50(char* text)
 {
     int w = 0;
-    if (DAT_0051fba4->font == 0)
+    if (g_guiContext->font == 0)
         return GetTextWidth(GetFont(), (unsigned char*)text);
     for (char* p = text; *p; p++) {
         unsigned char c = *p;
-        unsigned short* g = (unsigned short*)GetGafFrame(DAT_0051fba4->font->glyphs, c);
+        unsigned short* g = (unsigned short*)GetGafFrame(g_guiContext->font->glyphs, c);
         if (g)
             w += *g;
     }
@@ -61,7 +61,7 @@ static inline int Width_004a5d50(char* text)
 int __stdcall FUN_004a5d50(Menu_004a5d50* menu, int index)
 {
     Entry_004a5d50* entries = menu->data->entries;
-    char* text = FUN_004a0d00(menu, entries[index].name, 0);
+    char* text = GetGadgetText(menu, entries[index].name, 0);
     if (text == 0)
         return 0;
     if (entries[index].type == 5 ||

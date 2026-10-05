@@ -50,7 +50,7 @@ struct Rect_004ac8c0 {
     int bottom;                        // +0xc
 };
 
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 void __stdcall FillRectangle(void* surface, Rect_004ac8c0* rect, int color);
 
 // FUNCTION: 0x4ac8c0
@@ -58,7 +58,7 @@ void __stdcall FUN_004ac8c0(Object_004ac8c0* obj)
 {
     Gadget_004ac8c0 *grid, *gadgets;
     gadgets = obj->holder->gadgets;
-    int index = FUN_0049fdf0(gadgets, "COLS", 6);
+    int index = FindGadgetIndex(gadgets, "COLS", 6);
     grid = &gadgets[index];
     void* surface = gadgets->surface;
     int x0 = grid->x + gadgets->x;

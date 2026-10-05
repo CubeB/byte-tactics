@@ -38,7 +38,7 @@ struct Obj_004ad890 {
 extern char DAT_005119b8[];
 
 // FUNCTION: 0x4ad890
-void __stdcall FUN_004ad890(Obj_004ad890* obj, Source_004ad890* src)
+void __stdcall ReadPanelFields(Obj_004ad890* obj, Source_004ad890* src)
 {
     obj->field_b6 = (short)((Class_004c46c0*)src->tdf)->FUN_004c46c0("totalgadgets", 0);
     src->tdf->FUN_004c48c0(obj->panel, "panel", 0x10, DAT_005119b8);

@@ -31,12 +31,12 @@ struct Class_004a7190 {
 };
 #pragma pack(pop)
 
-extern Holder_004a7190* DAT_0051fba4;
+extern Holder_004a7190* g_guiContext;
 
 int GetTextKeyColor();
 void __stdcall SetTextColors(int colour, int font);
 void __stdcall SetFont(int id);
-void FUN_004c1a40();
+void ClearKeyQueue();
 int __stdcall FUN_0049fc50(Class_004a7190* obj, int index);
 void __stdcall FUN_004ab6c0(Class_004a7190* obj, void* param_2, char* text,
                             int maxLength, int clear);
@@ -61,12 +61,12 @@ void __stdcall FUN_004a7190(Class_004a7190* obj, int index)
         }
     }
     if (i == entries->count + 1) {
-        SetFont(DAT_0051fba4->current);
+        SetFont(g_guiContext->current);
     }
 
     FUN_0049fc50(obj, index);
     obj->holder->field_20 = index;
     FUN_004ab6c0(obj, (void*)index, (char*)((char*)target + 0xb6),
                  target->maxLength, 0);
-    FUN_004c1a40();
+    ClearKeyQueue();
 }

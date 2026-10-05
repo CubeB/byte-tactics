@@ -125,19 +125,19 @@ extern char DAT_005093ec[];            // "Enemies"
 extern char DAT_00508384[];            // "Allies"
 
 void __stdcall FUN_0047f1a0(char* name, int flag);
-void __stdcall FUN_004a1080(Gadget_00493bf0* obj, char* name, int value);
-int __stdcall FUN_004a0ff0(Gadget_00493bf0* obj, int index);
-int __stdcall FUN_004a0f60(Gadget_00493bf0* obj, char* name);
+void __stdcall SetButtonStageByName(Gadget_00493bf0* obj, char* name, int value);
+int __stdcall GetButtonStage(Gadget_00493bf0* obj, int index);
+int __stdcall GetButtonStageByName(Gadget_00493bf0* obj, char* name);
 Entry_00493bf0* __stdcall FUN_004a0010(Entry_00493bf0* entries, char* name);
-void __stdcall FUN_004a0d00(Gadget_00493bf0* obj, char* name, char* text);
-void __stdcall FUN_004a9660(Gadget_00493bf0* obj);
+void __stdcall GetGadgetText(Gadget_00493bf0* obj, char* name, char* text);
+void __stdcall CloseTopScreen(Gadget_00493bf0* obj);
 void __stdcall FUN_0049fa90(void* obj);
 void __stdcall FUN_004ab0a0(Gadget_00493bf0* obj);
 void FUN_00493ae0();
 void FUN_00494050();
 int __stdcall FUN_00417b50(char* cmd, int flags);
-int __stdcall FUN_0049fd60(Gadget_00493bf0* gadget, char* name);
-int __stdcall FUN_0049fdf0(Entry_00493bf0* entries, char* name, int type);
+int __stdcall IsCurrentGadgetNamed(Gadget_00493bf0* gadget, char* name);
+int __stdcall FindGadgetIndex(Entry_00493bf0* entries, char* name, int type);
 void __stdcall FUN_0049fc50(Gadget_00493bf0* obj, int index);
 void __stdcall SendChatMessage(Player_00493bf0* from, char* text, int param_3, char* to);
 
@@ -160,39 +160,39 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
     if (_strnicmp(entries[gadget->field_60].name, DAT_0050940c, 8) == 0) {
         FUN_0047f1a0(DAT_00503130, 0);
         g_game->mode_2bf0 = 3;
-        FUN_004a1080(gadget, DAT_00509400, g_game->mode_2bf0);
+        SetButtonStageByName(gadget, DAT_00509400, g_game->mode_2bf0);
         n = atoi(&entries[gadget->field_60].name[8]);
         // Kept as the original has it: n is never range checked before it
         // indexes the 11-byte selection mask, so a "LIVEPLYR42" style name
         // writes outside field_2bf1. The neighbouring mode_2bf0 is clamped
         // (`if (g_game->mode_2bf0 >= 4) g_game->mode_2bf0 = 0;`), so the
         // omission looks like an oversight rather than a deliberate choice.
-        unsigned char v = (unsigned char)FUN_004a0ff0(gadget, gadget->field_60);
+        unsigned char v = (unsigned char)GetButtonStage(gadget, gadget->field_60);
         g_game->field_2bf1[n] = v;
         FUN_0049fa90(gadget);
         FUN_004ab0a0(gadget);
         goto tail;
     }
-    if (FUN_0049fd60(gadget, DAT_005093f8)) {
+    if (IsCurrentGadgetNamed(gadget, DAT_005093f8)) {
         FUN_0047f1a0(DAT_00503130, 0);
-        unsigned char v = (unsigned char)FUN_004a0ff0(gadget, gadget->field_60);
+        unsigned char v = (unsigned char)GetButtonStage(gadget, gadget->field_60);
         g_game->field_2bee.bit8 = v & 1;
-        FUN_004a0d00(gadget, DAT_00506578, DAT_0051e788);
-        FUN_004a9660(gadget);
+        GetGadgetText(gadget, DAT_00506578, DAT_0051e788);
+        CloseTopScreen(gadget);
         FUN_00494050();
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fd60(gadget, DAT_00509400)) {
+    if (IsCurrentGadgetNamed(gadget, DAT_00509400)) {
         FUN_0047f1a0(DAT_00503130, 0);
-        g_game->mode_2bf0 = (unsigned char)FUN_004a0f60(gadget, DAT_00509400);
+        g_game->mode_2bf0 = (unsigned char)GetButtonStageByName(gadget, DAT_00509400);
         if (g_game->mode_2bf0 >= 4)
             g_game->mode_2bf0 = 0;
         FUN_00493ae0();
         FUN_004ab0a0(gadget);
         goto tail;
     }
-    if (FUN_0049fd60(gadget, DAT_00506578)) {
+    if (IsCurrentGadgetNamed(gadget, DAT_00506578)) {
         Entry_00493bf0* talk = FUN_004a0010(entries, DAT_00506578);
         mode = g_game->mode_2bf0;
         lstrcpynA(buf, (char*)talk + 0xb6, 0x100);
@@ -257,7 +257,7 @@ clear:
         g_game->field_2bee.bit8 = 0;
     }
 tail:
-    int index = FUN_0049fdf0(entries, DAT_00506578, 3);
+    int index = FindGadgetIndex(entries, DAT_00506578, 3);
     FUN_0049fc50(&g_game->gadget, index);
-    g_game->gadget.layer->field_20 = FUN_0049fdf0(entries, DAT_00506578, 3);
+    g_game->gadget.layer->field_20 = FindGadgetIndex(entries, DAT_00506578, 3);
 }

@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Makes `ctx` the current context (DAT_0051fba4) and resets its state.
+// Makes `ctx` the current context (g_guiContext) and resets its state.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -30,14 +30,14 @@ public:
 };
 #pragma pack(pop)
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 unsigned int __cdecl GetTicks();
 
 // FUNCTION: 0x4aa850
-void __stdcall FUN_004aa850(Class_0051fba4* ctx)
+void __stdcall SetCurrentGuiContext(Class_0051fba4* ctx)
 {
-    DAT_0051fba4 = ctx;
+    g_guiContext = ctx;
     ctx->field_18 = 0;
     ctx->text_9b6[0] = 0;
     ctx->text_ab6[0] = 0;

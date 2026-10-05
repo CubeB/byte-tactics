@@ -33,23 +33,23 @@ struct Entry_00442560 {
 
 extern Game* g_game;
 
-Gadget_00442560* __stdcall FUN_004aa8f0(Menu_00442560* menu, const char* name, int flags);
+Gadget_00442560* __stdcall LoadGuiLayer(Menu_00442560* menu, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 int __stdcall HAPINET_initlobbiedconnection(char* p);
 void __stdcall FUN_004a32a0(Menu_00442560* menu, char* name, char* text, int value, int flag);
 int __stdcall FUN_0042f980(const char* key, void* buf, unsigned int* size);
 void __stdcall FUN_004a2e40(Menu_00442560* menu, char* name, int index);
-Entry_00442560* __stdcall FUN_0049ff90(void* gadgets, char* name);
+Entry_00442560* __stdcall FindGadgetChecked(void* gadgets, char* name);
 void __stdcall FUN_004423a0(Menu_00442560* menu, Entry_00442560* entry);
 void __stdcall FUN_00442380(Menu_00442560* menu, Entry_00442560* entry);
 void __stdcall FUN_004423c0(void* gadget);
 void __stdcall FUN_0049fb10(Menu_00442560* menu, int value);
-void __stdcall FUN_004a81e0(Menu_00442560* menu, int value);
+void __stdcall RenderLayer(Menu_00442560* menu, int value);
 
 // FUNCTION: 0x442560
 void FUN_00442560()
 {
-    Gadget_00442560* gadget = FUN_004aa8f0(&g_game->menu, "SERIAL.GUI", 0x800);
+    Gadget_00442560* gadget = LoadGuiLayer(&g_game->menu, "SERIAL.GUI", 0x800);
     gadget->handler = FUN_004423c0;
     gadget->game = g_game;
     gadget->field_1c = 0;
@@ -67,12 +67,12 @@ void FUN_00442560()
     if (FUN_0042f980("SERPORT", &value, &size)) {
         FUN_004a2e40(&g_game->menu, "PORTS", value);
     }
-    Entry_00442560* entry = FUN_0049ff90(gadget->gadgets, "PORTS");
+    Entry_00442560* entry = FindGadgetChecked(gadget->gadgets, "PORTS");
     entry->onSelect = FUN_004423a0;
     FUN_004423a0(&g_game->menu, entry);
-    Entry_00442560* speeds = FUN_0049ff90(gadget->gadgets, "SPEEDS");
+    Entry_00442560* speeds = FindGadgetChecked(gadget->gadgets, "SPEEDS");
     speeds->onSelect = FUN_00442380;
     FUN_00442380(&g_game->menu, speeds);
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

@@ -109,7 +109,7 @@ Layer_00460160* FUN_0045cfc0();
 int __stdcall FUN_0045fc60(void* gadget);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 void __stdcall FUN_0049fb10(Menu_00460160* menu, int value);
-void __stdcall FUN_004a81e0(Menu_00460160* menu, int value);
+void __stdcall RenderLayer(Menu_00460160* menu, int value);
 void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Class_004c6a60* src);
 Class_004c6a60* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall DrawSurface(Class_004c6a60* surface, int a, int b, int c);
@@ -147,7 +147,7 @@ void FUN_00460160()
         DAT_00512f75[i] = ((Class_004ce7e0*)g_game->field_10)->FUN_004ce7e0(i);
     }
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_004a81e0(&g_game->menu, 0xc0);
+    RenderLayer(&g_game->menu, 0xc0);
     if (g_game->flags.bit2) {
         FUN_0047f1a0("Panel", 0);
     }

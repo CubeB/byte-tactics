@@ -491,12 +491,12 @@ void __stdcall SendPlayerEconomy(PlayerInfo_00464f80* player, int a, int b);
 int __stdcall FUN_00457cb0();
 int __stdcall FUN_00457bc0();
 void __stdcall BroadcastPlayerInfo();
-void* __stdcall FUN_004aa8f0(char* gui, const char* file, int flags);
+void* __stdcall LoadGuiLayer(char* gui, const char* file, int flags);
 void __stdcall FUN_0049fb10(char* gui, int a);
 void __stdcall FUN_004a0bf0(char* gui, const char* gadget, const char* text, int a);
-void __stdcall FUN_004a81e0(char* gui, int a);
+void __stdcall RenderLayer(char* gui, int a);
 const char* __stdcall FUN_004c5740(const char* text);
-void __stdcall FUN_004abd90(char* gui, const char* text, int a, int b, int c);
+void __stdcall OpenMessageBox(char* gui, const char* text, int a, int b, int c);
 void __stdcall FUN_00464de0(void* gadget);
 
 static int loopCond_00464f80(unsigned char i)
@@ -762,7 +762,7 @@ void __stdcall FUN_00464f80()
                     BroadcastPlayerInfo();
                     if (FUN_00457bc0() == 0) {
                         Dialog_00464f80* dlg = (Dialog_00464f80*)
-                            FUN_004aa8f0(g_game->gui, "YESORNO.GUI", 0x900);
+                            LoadGuiLayer(g_game->gui, "YESORNO.GUI", 0x900);
                         if (dlg != 0) {
                             FUN_0049fb10(g_game->gui, 1);
                             Widget_00464f80* w = dlg->field_4;
@@ -773,13 +773,13 @@ void __stdcall FUN_00464f80()
                             strcpy(w->field_cc, "CHOICE1");
                             strcpy(w->field_dc, "CHOICE2");
                             dlg->field_8 = (void*)FUN_00464de0;
-                            FUN_004a81e0(g_game->gui, 0x40);
+                            RenderLayer(g_game->gui, 0x40);
                         }
                         goto skip508;
                     }
                     if (FUN_00457cb0() <= 0)
                         goto skip508;
-                    FUN_004abd90(g_game->gui,
+                    OpenMessageBox(g_game->gui,
                                  FUN_004c5740("You are placed in watch mode because you are hosting AI players which are still alive.  If you exit, they will be terminated."),
                                  500, 1, 1);
                     g_game->flags_3923b.w &= 0xffef;

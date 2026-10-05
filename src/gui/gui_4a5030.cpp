@@ -15,23 +15,23 @@ struct Class_0051fba4 {
     Font_004a5030* font;               // +0x14
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 void* __stdcall GetGafFrame(void* a, int b);
 int GetFont();
 int __stdcall GetTextWidth(int param_1, unsigned char* text);
 
 // FUNCTION: 0x4a5030
-int __stdcall FUN_004a5030(unsigned char* text)
+int __stdcall GetTextPixelWidth(unsigned char* text)
 {
     int width = 0;
     if (text == 0)
         return 0;
-    if (DAT_0051fba4->font == 0)
+    if (g_guiContext->font == 0)
         return GetTextWidth(GetFont(), text);
     for (int i = 0; text[i]; i++) {
         unsigned char c = text[i];
-        unsigned short* glyph = (unsigned short*)GetGafFrame(DAT_0051fba4->font->glyphs, c);
+        unsigned short* glyph = (unsigned short*)GetGafFrame(g_guiContext->font->glyphs, c);
         if (glyph)
             width += *glyph;
     }

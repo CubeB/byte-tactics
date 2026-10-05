@@ -23,12 +23,12 @@ struct Gui_004a9660 {
 };
 
 void FUN_004c2470();
-void __stdcall FUN_004a81e0(Gui_004a9660* gui, int value);
+void __stdcall RenderLayer(Gui_004a9660* gui, int value);
 void FUN_004c2870();
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4a9660
-void __stdcall FUN_004a9660(Gui_004a9660* gui)
+void __stdcall CloseTopScreen(Gui_004a9660* gui)
 {
     if (gui->top) {
         unsigned int flags = gui->top->flags;
@@ -36,7 +36,7 @@ void __stdcall FUN_004a9660(Gui_004a9660* gui)
         if (gui->top->handler)
             gui->top->handler(gui);
         FUN_004c2470();
-        FUN_004a81e0(gui, 2);
+        RenderLayer(gui, 2);
         FUN_004c2870();
         Screen_004a9660* old = gui->top;
         gui->top = old->next;
@@ -44,6 +44,6 @@ void __stdcall FUN_004a9660(Gui_004a9660* gui)
             gui->top->active = 1;
         FUN_004d85a0(old);
         if (flags & 0x800)
-            FUN_004a81e0(gui, 0x40);
+            RenderLayer(gui, 0x40);
     }
 }

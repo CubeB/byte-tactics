@@ -27,7 +27,7 @@ struct Class_004acc70 {
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 
 // FUNCTION: 0x4acc70
-void __stdcall FUN_004acc70(Class_004acc70* obj, Color_004acc70* palette)
+void __stdcall ApplySlidersToPaletteEntry(Class_004acc70* obj, Color_004acc70* palette)
 {
     Color_004acc70 c;
     c.r = obj->red->value;

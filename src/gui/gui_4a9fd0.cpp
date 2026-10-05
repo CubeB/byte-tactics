@@ -14,13 +14,13 @@
 //    value/max, the loop-end reload of `entries` and the whole help-text
 //    block each come out one register along an edx->eax->ecx rotation.
 //    95.0 -> MATCH.
-//  - The tail is the real FUN_004a7830 (matched) inlined with the real
-//    FUN_004a7190 inside it, then the real FUN_004a9660 (the layer pop); the
-//    help-text block is the real FUN_004a0090. These give the same bytes as
-//    the hand-written forms they replace. The FUN_004a1810 group scan stays a
+//  - The tail is the real SelectGadgetByIndex (matched) inlined with the real
+//    FUN_004a7190 inside it, then the real CloseTopScreen (the layer pop); the
+//    help-text block is the real UpdateHelpText. These give the same bytes as
+//    the hand-written forms they replace. The SelectFontForEntry group scan stays a
 //    call on the case 5 path only, so that path keeps its own helper
 //    (SelectCurrentByName) with the explicit call; writing it as
-//    FUN_004a7830 -> FUN_004a7190 -> FUN_004a1810 inlines the scan there
+//    SelectGadgetByIndex -> FUN_004a7190 -> SelectFontForEntry inlines the scan there
 //    too (2292 bytes), even one inline level deeper.
 //  - Case 1/12's shared `menu->layer->dirty = 1` tail is MSVC's own tail
 //    merge: writing it in both cases gives the same bytes as a goto.
@@ -158,34 +158,34 @@ struct Class_0051fba4 {
 };
 #pragma pack(pop)
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 extern int DAT_0051fbb4;
 extern char DAT_005119b8[];
 
 int GetTicks();
 void __stdcall FUN_004ab5d0(Menu_004a9fd0*);
-int FUN_004c1b00();
-int FUN_004c1ab0();
-int __stdcall FUN_004a9b90(Menu_004a9fd0*, int);
+int PeekKey();
+int PopKey();
+int __stdcall HandleGuiCommand(Menu_004a9fd0*, int);
 int __cdecl toupper(int);
-void __stdcall FUN_004a81e0(Menu_004a9fd0*, unsigned int);
+void __stdcall RenderLayer(Menu_004a9fd0*, unsigned int);
 void __stdcall FUN_004ab440(Menu_004a9fd0*, int);
-int __stdcall FUN_004c1b80(int);
-int __stdcall FUN_004a6ae0(Menu_004a9fd0*, int, int);
-int __stdcall FUN_004a3780(Menu_004a9fd0*, int, int);
-int __stdcall FUN_004a7290(Menu_004a9fd0*, int, int);
-void __stdcall FUN_004a4170(Menu_004a9fd0*, int);
+int __stdcall IsKeyDown(int);
+int __stdcall HandleButtonInput(Menu_004a9fd0*, int, int);
+int __stdcall HandleListBoxInput(Menu_004a9fd0*, int, int);
+int __stdcall HandleTextInput(Menu_004a9fd0*, int, int);
+void __stdcall HandleSliderInput(Menu_004a9fd0*, int);
 int __stdcall FUN_004a4440(Menu_004a9fd0*, int, int);
 int __stdcall FUN_004a4b50(Menu_004a9fd0*, int);
-void __stdcall FUN_004a5f40(Menu_004a9fd0*, int);
+void __stdcall DrawButton(Menu_004a9fd0*, int);
 void __stdcall FUN_004a5e50(Menu_004a9fd0*, int);
 void __stdcall FUN_004a4660(Menu_004a9fd0*, int);
 int GetTextKeyColor();
 void __stdcall SetTextColors(int, int);
-int __stdcall FUN_004a1810(Entry_004a9fd0*, int);
+int __stdcall SelectFontForEntry(Entry_004a9fd0*, int);
 int __stdcall FUN_0049fc50(Menu_004a9fd0*, int);
 void __stdcall FUN_004ab6c0(Menu_004a9fd0*, int, char*, int, int);
-void FUN_004c1a40();
+void ClearKeyQueue();
 void __stdcall SetFont(int);
 char* __stdcall FUN_004c5740(void*);
 void FUN_004c2470();
@@ -201,21 +201,21 @@ static inline int FindEntry(Entry_004a9fd0* entries, char* name)
     return -1;
 }
 
-// FUN_004a7190's body with its group scan left as a call to FUN_004a1810, as
-// on the case 5 path here (and twice in FUN_004a7290).
+// FUN_004a7190's body with its group scan left as a call to SelectFontForEntry, as
+// on the case 5 path here (and twice in HandleTextInput).
 static inline void SelectCurrentByName(Menu_004a9fd0* menu, Entry_004a9fd0* entries, int sel)
 {
     Entry_004a9fd0* entry = &entries[sel];
     SetTextColors(menu->palette[entry->u1f.colourIndex], GetTextKeyColor());
-    FUN_004a1810(entries, sel);
+    SelectFontForEntry(entries, sel);
     FUN_0049fc50(menu, sel);
     menu->layer->current = sel;
     FUN_004ab6c0(menu, sel, entry->u_b6.text, entry->u136.c.field_138, 0);
-    FUN_004c1a40();
+    ClearKeyQueue();
 }
 
-// The real FUN_004a0090 (matched in 0x4a0090.cpp), inlined here by /Ob2.
-static inline void FUN_004a0090(Menu_004a9fd0* obj)
+// The real UpdateHelpText (matched in 0x4a0090.cpp), inlined here by /Ob2.
+static inline void UpdateHelpText(Menu_004a9fd0* obj)
 {
     char* text = DAT_005119b8;
     if (obj->field_68 != -1) {
@@ -267,16 +267,16 @@ static inline void FUN_004a7190(Menu_004a9fd0* obj, int index)
         }
     }
     if (i == entries->u_b6.anim.count + 1)
-        SetFont(DAT_0051fba4->group);
+        SetFont(g_guiContext->group);
 
     FUN_0049fc50(obj, index);
     obj->layer->current = index;
     FUN_004ab6c0(obj, index, target->u_b6.text, target->u136.c.field_138, 0);
-    FUN_004c1a40();
+    ClearKeyQueue();
 }
 
-// The real FUN_004a7830 (matched in 0x4a7830.cpp), inlined here by /Ob2.
-static inline void FUN_004a7830(Menu_004a9fd0* menu, int index)
+// The real SelectGadgetByIndex (matched in 0x4a7830.cpp), inlined here by /Ob2.
+static inline void SelectGadgetByIndex(Menu_004a9fd0* menu, int index)
 {
     Entry_004a9fd0* first = menu->layer->entries;
     menu->focus = -1;
@@ -285,8 +285,8 @@ static inline void FUN_004a7830(Menu_004a9fd0* menu, int index)
         FUN_004a7190(menu, menu->layer->current);
 }
 
-// The real FUN_004a9660 (matched in 0x4a9660.cpp), inlined here by /Ob2.
-static inline void FUN_004a9660(Menu_004a9fd0* gui)
+// The real CloseTopScreen (matched in 0x4a9660.cpp), inlined here by /Ob2.
+static inline void CloseTopScreen(Menu_004a9fd0* gui)
 {
     if (gui->layer) {
         unsigned int flags = gui->layer->flags;
@@ -294,7 +294,7 @@ static inline void FUN_004a9660(Menu_004a9fd0* gui)
         if (gui->layer->cb8)
             gui->layer->cb8(gui);
         FUN_004c2470();
-        FUN_004a81e0(gui, 2);
+        RenderLayer(gui, 2);
         FUN_004c2870();
         Layer_004a9fd0* old = gui->layer;
         gui->layer = old->prev;
@@ -302,12 +302,12 @@ static inline void FUN_004a9660(Menu_004a9fd0* gui)
             gui->layer->dirty = 1;
         FUN_004d85a0(old);
         if (flags & 0x800)
-            FUN_004a81e0(gui, 0x40);
+            RenderLayer(gui, 0x40);
     }
 }
 
 // FUNCTION: 0x4a9fd0
-int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
+int __stdcall UpdateMenu(Menu_004a9fd0* menu)
 {
     int k;
     Entry_004a9fd0* e;
@@ -324,15 +324,15 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
 
     int key;
     if (menu->layer->field_18 == 0) {
-        key = FUN_004c1b00();
+        key = PeekKey();
         if (key >= 0xe2 && key <= 0xeb)
             key = 0;
     } else {
-        key = FUN_004c1ab0();
+        key = PopKey();
     }
 
     if (menu->layer->field_18 != 0 && key != 0 && menu->field_a2 != 0) {
-        key = FUN_004a9b90(menu, key);
+        key = HandleGuiCommand(menu, key);
         if (key != 0) {
             for (int n = 0; n < 0xe; n++)
                 menu->layer->text[n] = menu->layer->text[n + 1];
@@ -348,7 +348,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
         return 1;
     if (menu->field_cca == 1) {
         menu->field_cca = 0;
-        FUN_004a81e0(menu, menu->layer->flags | 0x40);
+        RenderLayer(menu, menu->layer->flags | 0x40);
     }
 
     entries = menu->layer->entries;
@@ -404,10 +404,10 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
             if (point.x >= x && point.x <= right && point.y >= y && point.y <= bottom)
                 menu->field_68 = i;
 
-            k = FUN_004c1b80(0xfb) == 0 ? key : 0;
+            k = IsKeyDown(0xfb) == 0 ? key : 0;
             switch (e->type) {
             case 1:
-                if (FUN_004a6ae0(menu, i, key) == 1)
+                if (HandleButtonInput(menu, i, key) == 1)
                     sel = i;
                 if (e->u1f.timer != 0 && elapsed) {
                     e->u1f.timer -= 2;
@@ -418,15 +418,15 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                 }
                 break;
             case 2:
-                if (FUN_004a3780(menu, i, 0) == 1)
+                if (HandleListBoxInput(menu, i, 0) == 1)
                     sel = i;
                 break;
             case 3:
-                if (FUN_004a7290(menu, i, k) == 1)
+                if (HandleTextInput(menu, i, k) == 1)
                     sel = i;
                 break;
             case 4:
-                FUN_004a4170(menu, i);
+                HandleSliderInput(menu, i);
                 break;
             case 5:
                 if (FUN_004a4440(menu, i, key) != 0) {
@@ -443,7 +443,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                                 me->u136.c.field_137++;
                                 if (me->u136.c.field_137 >= me->u136.c.field_136)
                                     me->u136.c.field_137 = 0;
-                                FUN_004a5f40(menu, found);
+                                DrawButton(menu, found);
                             }
                         } else {
                             if (me->field_29 != 0) {
@@ -487,18 +487,18 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
     }
 
     if (menu->field_68 != saved)
-        FUN_004a0090(menu);
+        UpdateHelpText(menu);
 
     if (menu->layer->cb1c != 0)
         menu->layer->cb1c();
 
     if (sel != -1) {
         menu->field_60 = sel;
-        FUN_004a7830(menu, sel);
+        SelectGadgetByIndex(menu, sel);
         if (menu->layer->cb8 != 0)
             menu->layer->cb8(menu);
         if (menu->field_60 != -1)
-            FUN_004a9660(menu);
+            CloseTopScreen(menu);
     }
     return 1;
 }

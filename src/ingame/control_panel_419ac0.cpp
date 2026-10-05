@@ -26,14 +26,14 @@ struct Unit_00419ac0 {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fe60(int value, char* name);
-void __stdcall FUN_004a11c0(Menu_00419ac0* menu, int index, short value);
+int __stdcall FindGadgetIndexBySubstring(int value, char* name);
+void __stdcall SetGadgetStatus(Menu_00419ac0* menu, int index, short value);
 
 // FUNCTION: 0x419ac0
 void __stdcall FUN_00419ac0(Unit_00419ac0* unit)
 {
-    int index = FUN_0049fe60(g_game->menu.layer->value, "ONOFF");
+    int index = FindGadgetIndexBySubstring(g_game->menu.layer->value, "ONOFF");
     if (index != -1) {
-        FUN_004a11c0(&g_game->menu, index, unit->on);
+        SetGadgetStatus(&g_game->menu, index, unit->on);
     }
 }

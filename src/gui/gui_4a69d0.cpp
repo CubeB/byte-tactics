@@ -25,7 +25,7 @@ struct Class_004a69d0 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004a5f40(Class_004a69d0* param_1, int param_2);
+void __stdcall DrawButton(Class_004a69d0* param_1, int param_2);
 
 // FUNCTION: 0x4a69d0
 void __stdcall FUN_004a69d0(Class_004a69d0* param_1)
@@ -35,7 +35,7 @@ void __stdcall FUN_004a69d0(Class_004a69d0* param_1)
     for (int i = 1; i < entries->count + 1; i++, e++) {
         if (e->state == 1 && e->field_138 != 0) {
             e->field_138 = 0;
-            FUN_004a5f40(param_1, i);
+            DrawButton(param_1, i);
             param_1->field_cca = 1;
         }
     }

@@ -52,9 +52,9 @@ struct Gadget_004af670 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004a0300(Entry_004af670* entries, int i, char* name);
-int __stdcall FUN_0049fdf0(Entry_004af670* entries, char* name, int type);
-Entry_004af670* __stdcall FUN_0049ff90(Entry_004af670* entries, char* name);
+int __stdcall IsGadgetNamed(Entry_004af670* entries, int i, char* name);
+int __stdcall FindGadgetIndex(Entry_004af670* entries, char* name, int type);
+Entry_004af670* __stdcall FindGadgetChecked(Entry_004af670* entries, char* name);
 void __stdcall FUN_0049fa90(Gadget_004af670* gadget);
 void __stdcall FUN_004ab0a0(Gadget_004af670* gadget);
 void __stdcall FUN_004af5b0(Req_004af670* req);
@@ -64,7 +64,7 @@ void __stdcall FUN_004bc360(const char* path);
 void __cdecl FUN_004d85a0(void* data);
 
 // FUNCTION: 0x4af670
-void __stdcall FUN_004af670(Gadget_004af670* gadget)
+void __stdcall FileRequesterHandler(Gadget_004af670* gadget)
 {
     Entry_004af670* entries;
     char drive[2];
@@ -84,10 +84,10 @@ void __stdcall FUN_004af670(Gadget_004af670* gadget)
     drive[1] = 0;
     result = 0;
 
-    if (FUN_004a0300(entries, gadget->field_60, "LOAD")
-        || FUN_004a0300(entries, gadget->field_60, "SWIN")) {
+    if (IsGadgetNamed(entries, gadget->field_60, "LOAD")
+        || IsGadgetNamed(entries, gadget->field_60, "SWIN")) {
         char* name = FUN_004b6af0(req->names,
-                                  FUN_0049ff90(entries, "SWIN")->field_ba);
+                                  FindGadgetChecked(entries, "SWIN")->field_ba);
         if (name[0] == '\\') {
             strcpy(req->selected, name);
             for (i = 0; i < 10; i++) {
@@ -109,9 +109,9 @@ void __stdcall FUN_004af670(Gadget_004af670* gadget)
             strcat(req->selected, "\\");
             strcat(req->selected, name);
         }
-    } else if (FUN_004a0300(entries, gadget->field_60, "CANC")) {
+    } else if (IsGadgetNamed(entries, gadget->field_60, "CANC")) {
         result = 1;
-    } else if (FUN_004a0300(entries, gadget->field_60, "PATH")) {
+    } else if (IsGadgetNamed(entries, gadget->field_60, "PATH")) {
         n = (int)strlen(req->cwd);
         if (n > 0) {
             while (n > 0) {
@@ -128,24 +128,24 @@ void __stdcall FUN_004af670(Gadget_004af670* gadget)
                 n--;
             }
         }
-    } else if (FUN_004a0300(entries, gadget->field_60, "NAME")) {
-        gadget->field_60 = FUN_0049fdf0(entries, "LOAD", 14);
-        n = FUN_0049fdf0(entries, "NAME", 3);
+    } else if (IsGadgetNamed(entries, gadget->field_60, "NAME")) {
+        gadget->field_60 = FindGadgetIndex(entries, "LOAD", 14);
+        n = FindGadgetIndex(entries, "NAME", 3);
         result = 1;
         strcpy(req->selected, entries[n].value);
-    } else if (FUN_004a0300(entries, gadget->field_60, "ADRV")) {
+    } else if (IsGadgetNamed(entries, gadget->field_60, "ADRV")) {
         drive[0] = 'A';
         FUN_004bc300(drive);
-    } else if (FUN_004a0300(entries, gadget->field_60, "BDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->field_60, "BDRV")) {
         drive[0] = 'B';
         FUN_004bc300(drive);
-    } else if (FUN_004a0300(entries, gadget->field_60, "CDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->field_60, "CDRV")) {
         drive[0] = 'C';
         FUN_004bc300(drive);
-    } else if (FUN_004a0300(entries, gadget->field_60, "DDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->field_60, "DDRV")) {
         drive[0] = 'D';
         FUN_004bc300(drive);
-    } else if (FUN_004a0300(entries, gadget->field_60, "VDRV")) {
+    } else if (IsGadgetNamed(entries, gadget->field_60, "VDRV")) {
         drive[0] = 'R';
         FUN_004bc300(drive);
     }

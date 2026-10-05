@@ -41,7 +41,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0049fed0(Entry_00419be0* entries, char* name, int index);
+void __stdcall GetGadgetName(Entry_00419be0* entries, char* name, int index);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
 
@@ -59,7 +59,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
     Entry_00419be0* e;
     if (entries[button->index].type == 1) e = &entries[button->index];
 
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "MOVE")) {
         if (e->state == 0) {
             SetOrderMode(1);
@@ -69,14 +69,14 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         FUN_0047f1a0("immediateorders", 0);
         return 1;
     }
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "STOP")) {
         SetOrderMode(1);
         FUN_0048cf30(orders, 0, "STOP", 0, 0, 0);
         FUN_0047f1a0("immediateorders", 0);
         return 1;
     }
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "ATTACK")) {
         if (e->state == 0) {
             SetOrderMode(1);
@@ -86,7 +86,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         FUN_0047f1a0("immediateorders", 0);
         return 1;
     }
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "BLAST")) {
         if (e->state == 0) {
             SetOrderMode(1);
@@ -96,7 +96,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         FUN_0047f1a0("immediateorders", 0);
         return 1;
     }
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "DEFEND")) {
         if (e->state == 0) {
             SetOrderMode(1);
@@ -106,7 +106,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         FUN_0047f1a0("immediateorders", 0);
         return 1;
     }
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "REPAIR")) {
         if (e->state == 0) {
             SetOrderMode(1);
@@ -116,7 +116,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         FUN_0047f1a0("specialorders", 0);
         return 1;
     }
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "PATROL")) {
         if (e->state == 0) {
             SetOrderMode(1);
@@ -126,7 +126,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         FUN_0047f1a0("immediateorders", 0);
         return 1;
     }
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "RECLAIM")) {
         if (e->state == 0) {
             SetOrderMode(1);
@@ -136,7 +136,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         FUN_0047f1a0("specialorders", 0);
         return 1;
     }
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "CAPTURE")) {
         if (e->state == 0) {
             SetOrderMode(1);
@@ -146,7 +146,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         FUN_0047f1a0("specialorders", 0);
         return 1;
     }
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "UNLOAD")) {
         if (e->state == 0) {
             SetOrderMode(1);
@@ -156,7 +156,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
         FUN_0047f1a0("specialorders", 0);
         return 1;
     }
-    FUN_0049fed0(entries, name, button->index);
+    GetGadgetName(entries, name, button->index);
     if (strstr(name, "LOAD")) {
         if (e->state == 0) {
             SetOrderMode(1);

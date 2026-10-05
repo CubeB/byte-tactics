@@ -32,10 +32,10 @@ extern Game* g_game;
 extern char* DAT_005129b0;
 extern char DAT_005119b8[];
 
-Gadget_0044b330* __stdcall FUN_0049ff90(void* gadgets, char* name);
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
+Gadget_0044b330* __stdcall FindGadgetChecked(void* gadgets, char* name);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 char* __stdcall FUN_004b6af0(char* text, int n);
-void __stdcall FUN_004a0880(Menu_0044b330* menu, int index, char* text);
+void __stdcall SetGadgetText(Menu_0044b330* menu, int index, char* text);
 void __stdcall FUN_0049fa90(Menu_0044b330* menu);
 
 // FUNCTION: 0x44b330
@@ -43,12 +43,12 @@ void FUN_0044b330()
 {
     Menu_0044b330* menu = &g_game->menu;
     void* gadgets = g_game->menu.inner->gadgets;
-    Gadget_0044b330* games = FUN_0049ff90(gadgets, "GAMES");
-    int index = FUN_0049fdf0(gadgets, "GAMENAME", 3);
+    Gadget_0044b330* games = FindGadgetChecked(gadgets, "GAMES");
+    int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
     char* name;
     if (games->selected > -1 && (name = FUN_004b6af0(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
-        FUN_004a0880(menu, index, name);
+        SetGadgetText(menu, index, name);
     else
-        FUN_004a0880(menu, index, DAT_005119b8);
+        SetGadgetText(menu, index, DAT_005119b8);
     FUN_0049fa90(&g_game->menu);
 }

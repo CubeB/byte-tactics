@@ -25,7 +25,7 @@ static inline int FindEntry(Entry_49ff90* entries, char* name)
 
 // Like 0x49ff10, but reports a missing entry.
 // FUNCTION: 0x49ff90
-Entry_49ff90* __stdcall FUN_0049ff90(Entry_49ff90* entries, char* name)
+Entry_49ff90* __stdcall FindGadgetChecked(Entry_49ff90* entries, char* name)
 {
     int i = FindEntry(entries, name);
     if (i != -1) {

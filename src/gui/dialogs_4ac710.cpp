@@ -13,7 +13,7 @@ struct PalEntry_004ac710 {
 };
 
 // FUNCTION: 0x4ac710
-void __stdcall FUN_004ac710(PalEntry_004ac710* src, PalEntry_004ac710* dest, unsigned char* table)
+void __stdcall BuildColorRemapTable(PalEntry_004ac710* src, PalEntry_004ac710* dest, unsigned char* table)
 {
     for (int n = 256; n != 0; n--) {
         int i = 0;

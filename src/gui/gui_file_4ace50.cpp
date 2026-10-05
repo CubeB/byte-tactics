@@ -36,11 +36,11 @@ struct Common_004ad350 {
 extern int DAT_0051fba8;
 
 unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* out, void* buf, unsigned int len);
-void __stdcall FUN_004accd0(Class_004bbbe0* out, int indent);
-void __stdcall FUN_004acde0(Class_004bbbe0* out, char* name, char* value, int indent);
+void __stdcall WriteTabs(Class_004bbbe0* out, int indent);
+void __stdcall WriteKeyValue(Class_004bbbe0* out, char* name, char* value, int indent);
 
 // FUNCTION: 0x4ace50
-void __stdcall FUN_004ace50(Common_004ad350* obj, Class_004bbbe0* out, int indent)
+void __stdcall WriteCommonFields(Common_004ad350* obj, Class_004bbbe0* out, int indent)
 {
     char tab;
     char* value;
@@ -71,7 +71,7 @@ void __stdcall FUN_004ace50(Common_004ad350* obj, Class_004bbbe0* out, int inden
     FUN_004bbbe0(out, line, strlen(line));
 
     value = _itoa(obj->xpos, num, 10);
-    FUN_004accd0(out, indent);
+    WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "xpos", value);
     FUN_004bbbe0(out, line, strlen(line));
 
@@ -79,51 +79,51 @@ void __stdcall FUN_004ace50(Common_004ad350* obj, Class_004bbbe0* out, int inden
         obj->ypos -= 0x1e0;
 
     value = _itoa(obj->ypos, num, 10);
-    FUN_004accd0(out, indent);
+    WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "ypos", value);
     FUN_004bbbe0(out, line, strlen(line));
 
     value = _itoa(obj->width, num, 10);
-    FUN_004accd0(out, indent);
+    WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "width", value);
     FUN_004bbbe0(out, line, strlen(line));
 
     value = _itoa(obj->height, num, 10);
-    FUN_004accd0(out, indent);
+    WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "height", value);
     FUN_004bbbe0(out, line, strlen(line));
 
     value = _itoa(obj->attribs, num, 10);
-    FUN_004accd0(out, indent);
+    WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "attribs", value);
     FUN_004bbbe0(out, line, strlen(line));
 
     value = _itoa(obj->colorf, num, 10);
-    FUN_004accd0(out, indent);
+    WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "colorf", value);
     FUN_004bbbe0(out, line, strlen(line));
 
     value = _itoa(obj->colorb, num, 10);
-    FUN_004accd0(out, indent);
+    WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "colorb", value);
     FUN_004bbbe0(out, line, strlen(line));
 
     value = _itoa((signed char)obj->texturenumber, num, 10);
-    FUN_004accd0(out, indent);
+    WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "texturenumber", value);
     FUN_004bbbe0(out, line, strlen(line));
 
     value = _itoa((signed char)obj->fontnumber, num, 10);
-    FUN_004accd0(out, indent);
+    WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "fontnumber", value);
     FUN_004bbbe0(out, line, strlen(line));
 
     value = _itoa((signed char)obj->active, num, 10);
-    FUN_004accd0(out, indent);
+    WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "active", value);
     FUN_004bbbe0(out, line, strlen(line));
 
-    FUN_004acde0(out, "commonattribs", _itoa((signed char)obj->commonattribs, num, 10), indent);
-    FUN_004acde0(out, "help", obj->help, indent);
-    FUN_004acde0(out, "gaffile", _itoa(obj->gaffile & 1, num, 10), indent);
+    WriteKeyValue(out, "commonattribs", _itoa((signed char)obj->commonattribs, num, 10), indent);
+    WriteKeyValue(out, "help", obj->help, indent);
+    WriteKeyValue(out, "gaffile", _itoa(obj->gaffile & 1, num, 10), indent);
 }

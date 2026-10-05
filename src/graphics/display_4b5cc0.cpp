@@ -16,7 +16,7 @@
 #include <windows.h>
 #include <ddraw.h>
 
-// 24 byte event packet shared with FUN_004c2360 and FUN_004c2e30.
+// 24 byte event packet shared with FUN_004c2360 and PushMouseEvent.
 struct Event_4b5cc0 {
     int x;          // +0x00
     int y;          // +0x04
@@ -64,10 +64,10 @@ extern void (__cdecl *g_closeHandler)(int);
 extern int g_closeHandlerArg;
 
 void __stdcall SetFullScreen(int param);
-void __stdcall FUN_004c1b20(int v);
-void __stdcall FUN_004c1d50(int v, int flag);
+void __stdcall PushKeyCode(int v);
+void __stdcall HandleVirtualKey(int v, int flag);
 void __stdcall FUN_004c2360(int* p);
-void __stdcall FUN_004c2e30(Event_4b5cc0* ev);
+void __stdcall PushMouseEvent(Event_4b5cc0* ev);
 
 // FUNCTION: 0x4b5cc0
 long __stdcall WindowProc(HWND hwnd, unsigned int msg, unsigned int wparam,
@@ -96,13 +96,13 @@ long __stdcall WindowProc(HWND hwnd, unsigned int msg, unsigned int wparam,
         DestroyWindow(hwnd);
         return 0;
     case WM_KEYDOWN:
-        FUN_004c1d50(wparam, 0);
+        HandleVirtualKey(wparam, 0);
         return 0;
     case WM_CHAR:
-        FUN_004c1b20(wparam);
+        PushKeyCode(wparam);
         return 0;
     case WM_SYSKEYDOWN:
-        FUN_004c1d50(wparam, 1);
+        HandleVirtualKey(wparam, 1);
         return DefWindowProcA(hwnd, msg, wparam, lparam);
     case WM_SYSCOMMAND:
         if (wparam == 0xf100)
@@ -177,6 +177,6 @@ long __stdcall WindowProc(HWND hwnd, unsigned int msg, unsigned int wparam,
         return DefWindowProcA(hwnd, msg, wparam, lparam);
     }
     e.message = msg;
-    FUN_004c2e30(&e);
+    PushMouseEvent(&e);
     return 0;
 }

@@ -8,7 +8,7 @@ struct Class_004bbbe0;
 extern unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* file, void* data, unsigned int size);
 
 // FUNCTION: 0x4acde0
-void __stdcall FUN_004acde0(Class_004bbbe0* file, char* key, char* value, int depth)
+void __stdcall WriteKeyValue(Class_004bbbe0* file, char* key, char* value, int depth)
 {
     char tab = '\t';
     char line[100];

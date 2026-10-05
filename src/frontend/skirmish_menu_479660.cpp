@@ -37,7 +37,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fdf0(Layout_00479660* entries, const char* name, int flag);
+int __stdcall FindGadgetIndex(Layout_00479660* entries, const char* name, int flag);
 void __stdcall FUN_0049fa90(Menu_00479660* menu);
 
 // FUNCTION: 0x479660
@@ -48,7 +48,7 @@ void FUN_00479660(void)
     for (; i < g_game->playerCount; i++) {
         char name[64];
         wsprintfA(name, "Allies%d", i);
-        int index = FUN_0049fdf0(entries, name, 6);
+        int index = FindGadgetIndex(entries, name, 6);
         if (index != -1) {
             Layout_00479660* gadget = &entries[index];
             if (gadget != 0) {

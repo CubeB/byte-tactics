@@ -70,17 +70,17 @@ struct Game {
 #pragma pack(pop)
 
 void __stdcall FUN_004288d0(char* name, int param_2, int param_3, int param_4);
-Dialog* __stdcall FUN_004aa8f0(char* menu, char* name, int param_3);
+Dialog* __stdcall LoadGuiLayer(char* menu, char* name, int param_3);
 void __stdcall FUN_004ac7d0(char* menu, void* param_2, void* param_3);
-int __stdcall FUN_0049fdf0(Gadget* gadgets, char* name, int param_3);
+int __stdcall FindGadgetIndex(Gadget* gadgets, char* name, int param_3);
 void __stdcall FUN_004a0570(char* menu, char* name, int param_3);
-void __stdcall FUN_004a1080(char* menu, char* name, int param_3);
-int __stdcall FUN_004a75d0(char* menu, char* name);
+void __stdcall SetButtonStageByName(char* menu, char* name, int param_3);
+int __stdcall LoadScreenGaf(char* menu, char* name);
 void* __stdcall FindGafEntry(void* surface, char* name);
 void __stdcall InitGafSequence(void* state, void* gaf, int param_3);
-void __stdcall FUN_004afc60(char* menu, int param_2);
+void __stdcall AllocBlinkWords(char* menu, int param_2);
 void __stdcall FUN_0049fb10(char* menu, int param_2);
-void __stdcall FUN_004a81e0(char* menu, int param_2);
+void __stdcall RenderLayer(char* menu, int param_2);
 void __stdcall FUN_00491c80(int param_1);
 void FUN_00476d80();
 void FUN_00478cb0();
@@ -105,7 +105,7 @@ void FUN_00478e80(void)
     side = ((PlayerEntry*)(g_game + 0x1b8a))[((Game*)g_game)->localPlayer].data->side;
     sprintf(buf, "mbrief%s", g_game + 0x37f5b + side * 0x232);
 
-    dialog = FUN_004aa8f0(g_game + 0x519, "MSNBRIEF.GUI", 0x80);
+    dialog = LoadGuiLayer(g_game + 0x519, "MSNBRIEF.GUI", 0x80);
     dialog->handler = (void*)FUN_00478cb0;
     dialog->context = g_game;
 
@@ -116,13 +116,13 @@ void FUN_00478e80(void)
     strcpy((char*)gadgets + 0xcc, "Start");
     strcpy((char*)gadgets + 0xdc, "PrevMenu");
 
-    i = FUN_0049fdf0(gadgets, "MOREBAR", 0xe);
+    i = FindGadgetIndex(gadgets, "MOREBAR", 0xe);
     gadgets[i].field_1b &= ~0x10;
-    i = FUN_0049fdf0(gadgets, "TextRegion", 0xe);
+    i = FindGadgetIndex(gadgets, "TextRegion", 0xe);
     gadgets[i].field_1b &= ~0x10;
 
     FUN_004a0570(g_game + 0x519, "SOLARSYSTEM", 0);
-    FUN_004a1080(g_game + 0x519, "SHUTUP", 1);
+    SetButtonStageByName(g_game + 0x519, "SHUTUP", 1);
 
     DAT_0051e654 = ((Game*)g_game)->net->field_d34 +
                    rand() % (((Game*)g_game)->net->field_d38 - ((Game*)g_game)->net->field_d34 + 1);
@@ -206,8 +206,8 @@ void FUN_00478e80(void)
     if (briefs[i] == 0)
         i = 0;
 
-    if (FUN_004a75d0(g_game + 0x519, briefs[i])) {
-        int idx = FUN_0049fdf0(gadgets, "PANORAMA", 6);
+    if (LoadScreenGaf(g_game + 0x519, briefs[i])) {
+        int idx = FindGadgetIndex(gadgets, "PANORAMA", 6);
         if (idx != -1) {
             Gadget* g = &gadgets[idx];
             g->field_c6 = 0;
@@ -217,7 +217,7 @@ void FUN_00478e80(void)
                 g->field_b6 = (void*)FUN_00478790;
             }
         }
-        idx = FUN_0049fdf0(gadgets, "PLANET", 6);
+        idx = FindGadgetIndex(gadgets, "PLANET", 6);
         if (idx != -1) {
             void* gaf = FindGafEntry(((GadgetRoot*)gadgets)->surface, rotates[i]);
             if (gaf != 0) {
@@ -231,9 +231,9 @@ void FUN_00478e80(void)
     }
 
     FUN_004a0570(g_game + 0x519, "SOLARSYSTEM", 0);
-    FUN_004afc60(g_game + 0x519, 0xf);
+    AllocBlinkWords(g_game + 0x519, 0xf);
     FUN_00476d80();
     FUN_0049fb10(g_game + 0x519, 1);
-    FUN_004a81e0(g_game + 0x519, 0xc0);
+    RenderLayer(g_game + 0x519, 0xc0);
     FUN_00491c80(0x13);
 }

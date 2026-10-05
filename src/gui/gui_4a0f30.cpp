@@ -24,7 +24,7 @@ static inline Entry_4a0f30* GetEntries(Class_004a0f30* obj)
 }
 
 // FUNCTION: 0x4a0f30
-int __stdcall FUN_004a0f30(Class_004a0f30* obj, int index)
+int __stdcall GetGadgetStatus(Class_004a0f30* obj, int index)
 {
     return GetEntries(obj)[index].f_138;
 }

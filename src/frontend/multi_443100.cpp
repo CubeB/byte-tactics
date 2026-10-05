@@ -27,7 +27,7 @@ struct Entry_00443100 {
     char number[0x81];                 // +0x81
 };
 
-// GUI layout entry, as returned by FUN_0049ff90.
+// GUI layout entry, as returned by FindGadgetChecked.
 struct Layout_00443100 {
     char unknown_0[0xba];
     short player;                      // +0xba
@@ -41,7 +41,7 @@ struct Table_00443100 {
     Layout_00443100* entries;           // +0x4
 };
 
-// The MODEM.GUI gadget created by FUN_004aa8f0.
+// The MODEM.GUI gadget created by LoadGuiLayer.
 struct Gadget_00443100 {
     int unknown_0;
     Layout_00443100* entries;           // +0x4
@@ -70,7 +70,7 @@ extern int DAT_00512984;
 extern Entry_00443100* DAT_00512988;
 extern char* DAT_0051298c;
 
-Gadget_00443100* __stdcall FUN_004aa8f0(void* gui, const char* name, int flags);
+Gadget_00443100* __stdcall LoadGuiLayer(void* gui, const char* name, int flags);
 void __stdcall FUN_00442a30(void*);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 int __stdcall HAPINET_initlobbiedconnection(Net_00443100* net);
@@ -81,13 +81,13 @@ int __stdcall HAPINET_releasedplayinterface(Net_00443100* net);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_0042f980(const char* key, void* buf, unsigned int* size);
-Layout_00443100* __stdcall FUN_0049ff90(Layout_00443100* entries, char* name);
+Layout_00443100* __stdcall FindGadgetChecked(Layout_00443100* entries, char* name);
 void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int count, int flag);
 void __stdcall FUN_004a2e40(void* menu, char* name, int index);
 void __stdcall FUN_004428f0(void* menu, Layout_00443100* entry);
-void __stdcall FUN_004a9660(void* gui);
+void __stdcall CloseTopScreen(void* gui);
 void __stdcall FUN_0049fb10(void* gui, int value);
-void __stdcall FUN_004a81e0(void* gui, int value);
+void __stdcall RenderLayer(void* gui, int value);
 void __stdcall FUN_00425730(char* text);
 void __stdcall FUN_00425860(int state, int line, const char* file);
 void __stdcall FUN_004257e0(char state, int line, char* file);
@@ -100,7 +100,7 @@ struct Len { unsigned int v; };
 // the final difference was the calling convention, see the note at the end.
 //
 // The single remaining difference is one instruction order in the second
-// FUN_0049ff90 call. The original is
+// FindGadgetChecked call. The original is
 //
 //   push "ACCOUNTS"; mov ecx,[esp+0x20]; mov edx,[ecx+4]; push edx; call
 //
@@ -258,7 +258,7 @@ void __stdcall FUN_00443100()
     struct { void* dp; void* dp3; } net;
     Guid_00443100 iid = DAT_004fcdc8;
 
-    gadget = FUN_004aa8f0(&g_game->menu, "MODEM.GUI", 0x800);
+    gadget = LoadGuiLayer(&g_game->menu, "MODEM.GUI", 0x800);
     gadget->handler = FUN_00442a30;
     gadget->owner = g_game;
     FUN_004288d0(0, 0, 0, 0);
@@ -276,7 +276,7 @@ void __stdcall FUN_00443100()
                     DAT_00512984 = 0;
                     r = HAPINET_enumaddress(&g_game->net, (void*)FUN_00443070, addr, size, 0);
                     if (DAT_00512984 == 0) {
-                        FUN_004a9660(&g_game->menu);
+                        CloseTopScreen(&g_game->menu);
                         FUN_00425730("Unable to find any modems");
                         FUN_00425860(0xf, 0x4e4, "c:\\cavedog\\wargame\\multi.cpp");
                         FUN_004257e0(0, 0x4e5, "c:\\cavedog\\wargame\\multi.cpp");
@@ -305,11 +305,11 @@ void __stdcall FUN_00443100()
                             strcpy(p, DAT_00512988[i].name);
                             p += strlen(DAT_00512988[i].name) + 1;
                         }
-                        Layout_00443100* entry = FUN_0049ff90(g_game->table->entries, "ACCOUNTS");
+                        Layout_00443100* entry = FindGadgetChecked(g_game->table->entries, "ACCOUNTS");
                         int player = entry->player;
                         FUN_004a32a0(&g_game->menu, "ACCOUNTS", DAT_0051298c, 20, 0);
                         FUN_004a2e40(&g_game->menu, "ACCOUNTS", player);
-                        entry = FUN_0049ff90(gadget->entries, "ACCOUNTS");
+                        entry = FindGadgetChecked(gadget->entries, "ACCOUNTS");
                         entry->callback = FUN_004428f0;
                         FUN_004428f0(&g_game->menu, entry);
                     }
@@ -318,7 +318,7 @@ void __stdcall FUN_00443100()
         }
     }
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
     HAPINET_releasedplayinterface((Net_00443100*)&net);
     FUN_004d85a0(addr);
 }

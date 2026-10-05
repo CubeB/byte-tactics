@@ -14,7 +14,7 @@ struct Object_004ab060 {
 };
 
 // FUNCTION: 0x4ab060
-int __stdcall FUN_004ab060(Object_004ab060* obj, const char* name)
+int __stdcall IsScreenNamed(Object_004ab060* obj, const char* name)
 {
     if (obj->entry && _strnicmp(obj->entry->name + 2, name, 0x10) == 0)
         return 1;

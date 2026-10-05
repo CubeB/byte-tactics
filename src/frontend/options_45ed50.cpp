@@ -48,14 +48,14 @@ extern Game* g_game;
 
 Object_0045ed50* __cdecl FUN_0045cfc0();
 void FUN_0045ce80();
-void __stdcall FUN_004a81e0(void* obj, int value);
-int __stdcall FUN_004aa8f0(void* obj, char* name, int size);
+void __stdcall RenderLayer(void* obj, int value);
+int __stdcall LoadGuiLayer(void* obj, char* name, int size);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void __stdcall FUN_0049fa50(void* obj);
-int __stdcall FUN_0049fdf0(Entry_0045ed50* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Entry_0045ed50* entries, char* name, int type);
 Entry_0045ed50* __stdcall FUN_004a0200(Entry_0045ed50* entries, char* name);
-void __stdcall FUN_004a1110(void* obj, char* name, int value);
-void __stdcall FUN_004a1080(void* obj, char* name, int value);
+void __stdcall SetGadgetStatusByName(void* obj, char* name, int value);
+void __stdcall SetButtonStageByName(void* obj, char* name, int value);
 void __stdcall FUN_004a0bf0(void* obj, char* name, char* text, int value);
 void __stdcall FUN_0049fb10(void* obj, int value);
 void FUN_00428b60();
@@ -70,18 +70,18 @@ void __stdcall FUN_0045c330(void* obj, int arg);
 void FUN_0045ed50()
 {
     Object_0045ed50* obj = FUN_0045cfc0();
-    FUN_004a81e0(&g_game->menu, 2);
+    RenderLayer(&g_game->menu, 2);
     FUN_0045ce80();
     if (g_game->flag_37ebe & 1) {
-        FUN_004aa8f0(&g_game->menu, "SPEEDSRT.GUI", 0x200);
+        LoadGuiLayer(&g_game->menu, "SPEEDSRT.GUI", 0x200);
     } else {
-        FUN_004aa8f0(&g_game->menu, "SPEEDS.GUI", 0x200);
+        LoadGuiLayer(&g_game->menu, "SPEEDS.GUI", 0x200);
         FUN_004288d0("optinterface4x", 0, 0, 0);
     }
     obj->fn = FUN_0045ead0;
     FUN_0049fa50(&g_game->menu);
-    int found = FUN_0049fdf0(obj->entries, "GAME", 0xe);
-    FUN_004a1110(&g_game->menu, "SPEEDS", 1);
+    int found = FindGadgetIndex(obj->entries, "GAME", 0xe);
+    SetGadgetStatusByName(&g_game->menu, "SPEEDS", 1);
     if (found != -1) {
         Entry_0045ed50* e = FUN_004a0200(obj->entries, "GAME");
         e->max = 0x15;
@@ -96,7 +96,7 @@ void FUN_0045ed50()
         }
         e->pos = (short)f;
     }
-    if (FUN_0049fdf0(obj->entries, "SCREEN", 0xe) != -1) {
+    if (FindGadgetIndex(obj->entries, "SCREEN", 0xe) != -1) {
         Entry_0045ed50* e = FUN_004a0200(obj->entries, "SCREEN");
         e->max = 0x41;
         int value = g_game->field_1434d;
@@ -110,12 +110,12 @@ void FUN_0045ed50()
         e->pos = (short)f;
         e->fn = FUN_0045c170;
     }
-    FUN_004a1080(&g_game->menu, "UNITCHAT", g_game->field_37f18 / 5);
-    FUN_004a1080(&g_game->menu, "LEFTCLICK", g_game->field_37efa);
+    SetButtonStageByName(&g_game->menu, "UNITCHAT", g_game->field_37f18 / 5);
+    SetButtonStageByName(&g_game->menu, "LEFTCLICK", g_game->field_37efa);
     char text[20];
     sprintf(text, g_game->field_37f27 ? "%d" : "None", g_game->field_37f27);
     FUN_004a0bf0(&g_game->menu, "MAXLINESTEXT", text, 0);
-    if (FUN_0049fdf0(obj->entries, "MAXLINES", 4) != -1) {
+    if (FindGadgetIndex(obj->entries, "MAXLINES", 4) != -1) {
         Entry_0045ed50* e = FUN_004a0200(obj->entries, "MAXLINES");
         e->max = 0x1e;
         int value = g_game->field_37f27;
@@ -129,7 +129,7 @@ void FUN_0045ed50()
         e->pos = (short)f;
         e->fn = FUN_0045c220;
     }
-    if (FUN_0049fdf0(obj->entries, "TXTSCROL", 0xe) != -1) {
+    if (FindGadgetIndex(obj->entries, "TXTSCROL", 0xe) != -1) {
         Entry_0045ed50* e = FUN_004a0200(obj->entries, "TXTSCROL");
         e->max = 0x14;
         int value = g_game->field_37f23;
@@ -149,5 +149,5 @@ void FUN_0045ed50()
     }
     FUN_0049fb10(&g_game->menu, 1);
     FUN_00428b60();
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

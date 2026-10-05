@@ -63,7 +63,7 @@ void __stdcall DrawFrame(Desc_004c25e0* d, Sprite_004c25e0* s, int x, int y);
 int __stdcall UnlockPrimary(void* out, Rect_004c25e0* a, Rect_004c25e0* b);
 
 // FUNCTION: 0x4c25e0
-void __stdcall FUN_004c25e0(App_004c25e0* app)
+void __stdcall RedrawMouseCursor(App_004c25e0* app)
 {
     Info_004c25e0 info;
     Rect_004c25e0 r1;

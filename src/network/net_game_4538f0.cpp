@@ -48,10 +48,10 @@ extern char DAT_005119b8[];
 
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __cdecl FUN_004d85a0(void* p);
-int __stdcall FUN_0049fd60(Gadget_004538f0* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_004538f0* gadget, char* name);
 Entry_004538f0* __stdcall FUN_004a0010(Entry_004538f0* entries, char* name);
 void __stdcall SendChatMessage(Player_004538f0* from, char* text, int param_3, char* to);
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 void __stdcall FUN_004a7190(void* menu, int index);
 void __stdcall FUN_004ab0a0(void* param_1);
 void __stdcall FUN_0049fa90(void* menu);
@@ -69,19 +69,19 @@ void __stdcall HandleTimeoutDialog(Gadget_004538f0* gadget)
         g_loungeChatter = 0;
         return;
     }
-    if (FUN_0049fd60(gadget, "TALK")) {
+    if (IsCurrentGadgetNamed(gadget, "TALK")) {
         Entry_004538f0* entry = FUN_004a0010(entries, "TALK");
         if (strlen(entry->text)) {
             SendChatMessage(&g_game->players[g_game->localPlayer], entry->text, 4, 0);
             g_game->flag0 = 1;
             strcpy(entry->text, DAT_005119b8);
         }
-        FUN_004a7190(g_game->message, FUN_0049fdf0(g_game->layer_531->entries, "TALK", 3));
+        FUN_004a7190(g_game->message, FindGadgetIndex(g_game->layer_531->entries, "TALK", 3));
         FUN_004ab0a0(g_game->message);
         FUN_0049fa90(g_game->message);
         return;
     }
-    if (FUN_0049fd60(gadget, "REJECT")) {
+    if (IsCurrentGadgetNamed(gadget, "REJECT")) {
         RejectPlayer(g_timeoutPlayerDpid, 6);
         return;
     }

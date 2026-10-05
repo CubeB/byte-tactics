@@ -47,30 +47,30 @@ extern int DAT_00512c84;
 // GLOBAL: 0x512d90
 extern char DAT_00512d90[];
 
-Dialog_004421f0* __stdcall FUN_004aa8f0(Menu_004421f0* menu, const char* name, int flags);
+Dialog_004421f0* __stdcall LoadGuiLayer(Menu_004421f0* menu, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void __stdcall HAPINET_initlobbiedconnection(Info_004421f0* info);
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
-char* __stdcall FUN_004a0d00(Menu_004421f0* menu, const char* key, char* out);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
+char* __stdcall GetGadgetText(Menu_004421f0* menu, const char* key, char* out);
 int __stdcall FUN_0042f980(const char* key, char* out, int* len);
 void __stdcall FUN_004a0bf0(Menu_004421f0* menu, const char* key, int value, int param_4);
 void __stdcall FUN_00442050(Menu_004421f0* menu);
-void __stdcall FUN_004a7830(Menu_004421f0* menu, int index);
+void __stdcall SelectGadgetByIndex(Menu_004421f0* menu, int index);
 void __stdcall FUN_0049fc50(Menu_004421f0* menu, int index);
 void __stdcall FUN_0049fb10(Menu_004421f0* menu, int value);
-void __stdcall FUN_004a81e0(Menu_004421f0* menu, int value);
+void __stdcall RenderLayer(Menu_004421f0* menu, int value);
 
 // FUNCTION: 0x4421f0
 void FUN_004421f0()
 {
-    Dialog_004421f0* dialog = FUN_004aa8f0(&g_game->menu, "TCP.GUI", 0x800);
+    Dialog_004421f0* dialog = LoadGuiLayer(&g_game->menu, "TCP.GUI", 0x800);
     dialog->handler = FUN_00442050;
     dialog->owner = g_game;
     dialog->field_1c = 0;
     FUN_004288d0(0, 0, 0, 0);
     HAPINET_initlobbiedconnection(&g_game->info);
-    FUN_0049fdf0(dialog->gadgets, "ADDRESS", 3);
-    char* address = FUN_004a0d00(&g_game->menu, "ADDRESS", 0);
+    FindGadgetIndex(dialog->gadgets, "ADDRESS", 3);
+    char* address = GetGadgetText(&g_game->menu, "ADDRESS", 0);
     int direct = DAT_00512d90[0];
     int len = 0x80;
     if (direct) {
@@ -86,9 +86,9 @@ void FUN_004421f0()
         FUN_00442050(&g_game->menu);
         g_game->field_2aaf = g_game->field_2aaf ^ ((DAT_00512c84 != 0) ^ g_game->field_2aaf) & 1;
     } else {
-        FUN_004a7830(&g_game->menu, FUN_0049fdf0(dialog->gadgets, "ADDRESS", 3));
-        FUN_0049fc50(&g_game->menu, FUN_0049fdf0(dialog->gadgets, "ADDRESS", 3));
+        SelectGadgetByIndex(&g_game->menu, FindGadgetIndex(dialog->gadgets, "ADDRESS", 3));
+        FUN_0049fc50(&g_game->menu, FindGadgetIndex(dialog->gadgets, "ADDRESS", 3));
         FUN_0049fb10(&g_game->menu, 1);
-        FUN_004a81e0(&g_game->menu, 0x40);
+        RenderLayer(&g_game->menu, 0x40);
     }
 }

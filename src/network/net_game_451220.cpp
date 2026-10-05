@@ -79,7 +79,7 @@ extern Game* g_game;
 
 int __stdcall HAPINET_addplayer(void* net, unsigned long* id, char* shortName,
                            char* longName, char* name, short field_11, short field_13);
-void __stdcall FUN_004abd90(void* menu, const char* text, int a, int b, int c);
+void __stdcall OpenMessageBox(void* menu, const char* text, int a, int b, int c);
 char* __stdcall FUN_004c5740(const char* text);
 int __cdecl GetTicks();
 
@@ -130,12 +130,12 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
         unsigned char i = FindPlayerInUse();
         Class_00463c60* slot = &g_game->players[i];
         if (slot->field_0 != 0 && (slot->field_73 == 1 || slot->field_73 == 2)) {
-            FUN_004abd90(g_game->menu,
+            OpenMessageBox(g_game->menu,
                 FUN_004c5740("Direct Play failed to add new player.\n\nRecommended you go to previous screen and re-create the game session.\n"),
                 500, 1, 1);
         }
         else {
-            FUN_004abd90(g_game->menu,
+            OpenMessageBox(g_game->menu,
                 FUN_004c5740("Direct Play failed to add new player.\n\nRecommended you go to previous screen and re-join the game session.\n"),
                 500, 1, 1);
         }

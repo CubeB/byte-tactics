@@ -130,19 +130,19 @@ void __stdcall FUN_00445c70(Gui_0044a680* gui, int index);
 void __stdcall FUN_0047f1a0(char* name, int param);
 void __stdcall FUN_0049fa90(Gui_0044a680* gui);
 void __stdcall FUN_0049fad0(Gui_0044a680* gui);
-int __stdcall FUN_0049fdf0(Gadget_0044a680* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Gadget_0044a680* entries, char* name, int type);
 void __stdcall FUN_004a0570(Gui_0044a680* gui, char* name, int param);
 void __stdcall FUN_004a0bf0(Gui_0044a680* gui, char* name, char* text, int param);
 void __stdcall FUN_004a1250(Gui_0044a680* gui, char* name, int param);
 Gadget_0044a680* __stdcall FUN_004a0200(Gadget_0044a680* entries, char* name);
 Gadget_0044a680* __stdcall FUN_004a0280(Gadget_0044a680* entries, char* name);
 void __stdcall FUN_004a15c0(Gadget_0044a680* entries, int widget, RECT* rect);
-int __stdcall FUN_004a5030(char* text);
-int __stdcall FUN_004a50b0();
+int __stdcall GetTextPixelWidth(char* text);
+int __stdcall GetFontLineHeight();
 void __stdcall FUN_004a50e0(int a, char* text, int x, int y, int w, int h);
 void __stdcall FUN_004a5d30(Gui_0044a680* gui, int flag);
-void __stdcall FUN_004a9660(void* gui);
-int __stdcall FUN_004ab060(Gui_0044a680* gui, char* name);
+void __stdcall CloseTopScreen(void* gui);
+int __stdcall IsScreenNamed(Gui_0044a680* gui, char* name);
 void __stdcall FUN_0045b9b0(Gadget_0044a680* gadget, int value);
 int __stdcall FUN_0045ba20(Gadget_0044a680* gadget);
 int __stdcall GetTicks();
@@ -275,13 +275,13 @@ void FUN_0044a680()
     pl = &g_game->players[g_game->localPlayer];
     if (pl->field_22 != 0) {
         g_game->field_2bc0 = 3;
-        FUN_004a9660(&g_game->gui);
+        CloseTopScreen(&g_game->gui);
         return;
     }
 
     entries = g_game->gui.table->entries;
-    if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
-        int idx = FUN_0049fdf0(entries, "PLAYER0", 0xe);
+    if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
+        int idx = FindGadgetIndex(entries, "PLAYER0", 0xe);
         entries[idx].colour = 0x18;
     }
 
@@ -300,7 +300,7 @@ void FUN_0044a680()
         if ((pl->info->flags & 1) == 0) {
             unsigned char host = FindHostSlot();
             if (host != 10) {
-                if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
+                if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
                     PlayerInfo_0044a680* info = g_game->players[host].info;
                     ((Class_00435a20*)g_game->map)->FUN_00435a20(info);
                     FUN_00445e20(&g_game->gui, "MAXUNITS", g_game->players[host].info->maxUnits - 0x14);
@@ -309,7 +309,7 @@ void FUN_0044a680()
                     FUN_00445b70(&g_game->gui, 0);
                     FUN_00445d60(&g_game->gui, 0);
                     FUN_00445c70(&g_game->gui, 0);
-                } else if (FUN_004ab060(&g_game->gui, "viewmap.gui") != 0) {
+                } else if (IsScreenNamed(&g_game->gui, "viewmap.gui") != 0) {
                     PlayerInfo_0044a680* info = g_game->players[host].info;
                     if (strcmp(((Class_00435c30*)g_game->map)->FUN_00435c30(), info->map) != 0) {
                         ((Class_00435a20*)g_game->map)->FUN_00435a20(g_game->players[host].info);
@@ -320,7 +320,7 @@ void FUN_0044a680()
             }
         }
         g_game->dirty = 0;
-        if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
+        if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
             if (pl->info->flags & 1) {
                 int synched = ((Class_0046e000*)g_game->net)->AllPlayersSynced();
                 int ready = FUN_00456760();
@@ -349,7 +349,7 @@ void FUN_0044a680()
                     }
                     start->c8_0 = 0;
                     {
-                        int idx = FUN_0049fdf0(entries, "START", 1);
+                        int idx = FindGadgetIndex(entries, "START", 1);
                         unsigned int colour = GetTicks() & 0x1f;
                         if (colour != entries[idx].colour) {
                             entries[idx].colour = colour;
@@ -366,7 +366,7 @@ void FUN_0044a680()
         }
     }
 
-    if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
+    if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
         FUN_004a5d30(&g_game->gui, 1);
         {
             for (unsigned char i = 0; i < 10; i++) {
@@ -379,12 +379,12 @@ void FUN_0044a680()
                     int w;
                     int h;
                     sprintf(buf, "LOGO%i", i);
-                    widget = FUN_0049fdf0(entries, buf, 0xe);
+                    widget = FindGadgetIndex(entries, buf, 0xe);
                     FUN_004a15c0(entries, widget, &rect);
                     info = p->info;
                     sprintf(buf, "%i.%i", info->versionMajor, info->versionMinor);
-                    w = FUN_004a5030(buf);
-                    h = FUN_004a50b0();
+                    w = GetTextPixelWidth(buf);
+                    h = GetFontLineHeight();
                     FUN_004a50e0(0, buf,
                                  (rect.left + rect.right - w) / 2,
                                  (rect.top + rect.bottom - h) / 2,

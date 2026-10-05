@@ -18,7 +18,7 @@ struct StructB_004ae610 {
 };
 
 // FUNCTION: 0x4ae610
-void __stdcall FUN_004ae610(StructA_004ae610* a, StructB_004ae610* b)
+void __stdcall ReadNuttinField(StructA_004ae610* a, StructB_004ae610* b)
 {
     a->field_b6 = b->field_4->FUN_004c46c0("nuttin", 0);
 }

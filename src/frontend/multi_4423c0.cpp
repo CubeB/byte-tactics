@@ -37,9 +37,9 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall FUN_00441c30(int* a, int* b);
-int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
-int __stdcall FUN_0049fd60(Gadget_004423c0* gadget, const char* name);
-Entry_004423c0* __stdcall FUN_0049ff90(void* entries, char* name);
+int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
+int __stdcall IsCurrentGadgetNamed(Gadget_004423c0* gadget, const char* name);
+Entry_004423c0* __stdcall FindGadgetChecked(void* entries, char* name);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void FUN_004257a0();
 void __stdcall FUN_004ab0a0(Gadget_004423c0* gadget);
@@ -54,7 +54,7 @@ void __stdcall FUN_004423c0(Gadget_004423c0* gadget)
     int r;
     if (gadget->field_60 == -1)
         return;
-    if (FUN_0049fdf0(entries, "HOST", 0xe) == gadget->field_60) {
+    if (FindGadgetIndex(entries, "HOST", 0xe) == gadget->field_60) {
         g_game->bit0 = 1;
         g_game->bit1 = 1;
         a = 0;
@@ -66,7 +66,7 @@ void __stdcall FUN_004423c0(Gadget_004423c0* gadget)
         }
         FUN_0047f1a0("SMLBUTTON", 0);
         FUN_004257a0();
-    } else if (FUN_0049fdf0(entries, "JOIN", 0xe) == gadget->field_60) {
+    } else if (FindGadgetIndex(entries, "JOIN", 0xe) == gadget->field_60) {
         g_game->bit1 = 1;
         g_game->bit0 = 0;
         int a = 0, b = 0;
@@ -76,7 +76,7 @@ void __stdcall FUN_004423c0(Gadget_004423c0* gadget)
             g_game->field_39215 = b;
         }
         FUN_0047f1a0("SMLBUTTON", 0);
-    } else if (FUN_0049fd60(gadget, "PREV")) {
+    } else if (IsCurrentGadgetNamed(gadget, "PREV")) {
         FUN_00425860(0xf, 0x395, "c:\\cavedog\\wargame\\multi.cpp");
         FUN_0047f1a0("Previous", 0);
         return;
@@ -84,8 +84,8 @@ void __stdcall FUN_004423c0(Gadget_004423c0* gadget)
         FUN_004ab0a0(gadget);
         return;
     }
-    a = FUN_0049ff90(entries, "SPEEDS")->field_ba;
+    a = FindGadgetChecked(entries, "SPEEDS")->field_ba;
     FUN_0042f960("SERBAUD", &a, 4);
-    a = FUN_0049ff90(entries, "PORTS")->field_ba;
+    a = FindGadgetChecked(entries, "PORTS")->field_ba;
     FUN_0042f960("SERPORT", &a, 4);
 }

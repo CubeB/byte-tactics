@@ -21,10 +21,10 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fd60(Gadget_00443480* obj, char* str);
-int __stdcall FUN_0049fdf0(int a, char* name, int flag);
+int __stdcall IsCurrentGadgetNamed(Gadget_00443480* obj, char* str);
+int __stdcall FindGadgetIndex(int a, char* name, int flag);
 char __stdcall FUN_004a04f0(Gadget_00443480* obj, char* name);
-int __stdcall FUN_004a0f30(Gadget_00443480* obj, int handle);
+int __stdcall GetGadgetStatus(Gadget_00443480* obj, int handle);
 void __stdcall FUN_00491c80(int value);
 void __stdcall FUN_0046bf00(int value);
 void __stdcall FUN_004ab0a0(Gadget_00443480* obj);
@@ -42,14 +42,14 @@ void __stdcall FUN_00443480(Gadget_00443480* obj)
     iVar1 = obj->field_18[1];
     if (obj->field_60 == -1)
         return;
-    if (FUN_0049fd60(obj, "OK")) {
+    if (IsCurrentGadgetNamed(obj, "OK")) {
         acc = 0;
         for (i = 0; i < 16u; i++) {
             wsprintfA(buf, "CHK%d", i);
-            handle = FUN_0049fdf0(iVar1, buf, 1);
+            handle = FindGadgetIndex(iVar1, buf, 1);
             if (!FUN_004a04f0(obj, buf))
                 break;
-            value = FUN_004a0f30(obj, handle);
+            value = GetGadgetStatus(obj, handle);
             acc = (int)(pow(2.0, i) * value + acc);
         }
 

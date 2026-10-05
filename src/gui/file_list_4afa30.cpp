@@ -2,8 +2,8 @@
 // MATCH. Notes on the shape, since they are not obvious from the disassembly:
 //  * The object is passed as the FIRST STACK argument; ecx (`this`) is dead on entry,
 //    which is why the prologue saves a register it never reads. The result of
-//    FUN_004aa8f0 is the object that gets the vtable slot at +8, not the argument.
-//  * `push ecx` is the 4-byte frame local, not a save: it holds the FUN_004aa8f0
+//    LoadGuiLayer is the object that gets the vtable slot at +8, not the argument.
+//  * `push ecx` is the 4-byte frame local, not a save: it holds the LoadGuiLayer
 //    result, and later the "TITL" entry, whose live ranges do not overlap.
 //  * The empty-path test is `strlen(cwd) == 0`. MSVC 5's inlined strlen leaves
 //    length+1 in ecx after `not ecx`, so the compare against 0 becomes `dec ecx / jne`.
@@ -38,7 +38,7 @@ struct Class_004afa30 {
     int field_cca;                   // +0xcca
 
     // self is really the first stack argument, not `this`.
-    Class_004af5b0* FUN_004afa30(Class_004afa30* self, char* arg2, char* arg3, char* arg4);
+    Class_004af5b0* OpenFileRequester(Class_004afa30* self, char* arg2, char* arg3, char* arg4);
 };
 
 struct Entry_004a0010 {
@@ -58,16 +58,16 @@ char* __stdcall FUN_004bc320(char* drive, char* buf, int size);
 Entry_004a0010* __stdcall FUN_004a0010(Entry_004a0010* entries, char* name);
 Entry_004a0010* __stdcall FUN_004a0180(Entry_004a0010* entries, char* name);
 Entry_004a0010* __stdcall FUN_004a0200(Entry_004a0010* entries, char* name);
-Entry_004a0010* __stdcall FUN_0049ff10(Entry_004a0010* entries, char* name);
+Entry_004a0010* __stdcall FindGadgetOrNull(Entry_004a0010* entries, char* name);
 void __stdcall FUN_0049fa90(Class_004afa30* obj);
 void __stdcall FUN_004af5b0(Class_004af5b0* obj);
-void* __stdcall FUN_004aa8f0(void* param_1, char* param_2, int param_3);
-void FUN_004af670();
+void* __stdcall LoadGuiLayer(void* param_1, char* param_2, int param_3);
+void FileRequesterHandler();
 
 // FUNCTION: 0x4afa30
-Class_004af5b0* Class_004afa30::FUN_004afa30(Class_004afa30* self, char* arg2, char* arg3, char* arg4)
+Class_004af5b0* Class_004afa30::OpenFileRequester(Class_004afa30* self, char* arg2, char* arg3, char* arg4)
 {
-    void* gui = FUN_004aa8f0(self, "FILEREQ.GUI", 0);
+    void* gui = LoadGuiLayer(self, "FILEREQ.GUI", 0);
     if (gui == NULL) {
         return NULL;
     }
@@ -81,14 +81,14 @@ Class_004af5b0* Class_004afa30::FUN_004afa30(Class_004afa30* self, char* arg2, c
         strcpy(obj->cwd, "NO PATH");
     }
 
-    ((void**)gui)[2] = (void*)FUN_004af670;
+    ((void**)gui)[2] = (void*)FileRequesterHandler;
     ((void**)gui)[3] = obj;
     obj->field_244 = 0;
 
     Entry_004a0010* entries = (Entry_004a0010*)((char**)self->field_18)[1];
     obj->field_8 = (char*)FUN_004a0010(entries, "NAME");
     obj->field_c = (char*)FUN_004a0010(entries, "MASK");
-    obj->field_10 = (char*)FUN_0049ff10(entries, "PATH");
+    obj->field_10 = (char*)FindGadgetOrNull(entries, "PATH");
     Entry_004a0010* titl = FUN_004a0180(entries, "TITL");
     obj->field_4 = (void*)FUN_004a0200(entries, "SLID");
 

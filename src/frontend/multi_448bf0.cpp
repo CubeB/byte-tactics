@@ -27,7 +27,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, char value);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, char value);
 
 // FUNCTION: 0x448bf0
 void __stdcall FUN_00448bf0(int side)
@@ -36,6 +36,6 @@ void __stdcall FUN_00448bf0(int side)
     Player_448bf0* p = &g_game->players[side];
 
     sprintf(name, "SIDE%d", side);
-    FUN_004a1080((Class_004a1080*)g_game->unknown_519, name,
+    SetButtonStageByName((Class_004a1080*)g_game->unknown_519, name,
                  (p->active != 0 && (p->info->flags_9b & 0x40)) ? 2 : p->info->f_95);
 }

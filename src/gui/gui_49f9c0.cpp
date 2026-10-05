@@ -14,13 +14,13 @@ struct Menu_0049f9c0 {
     Screen_0049f9c0* screen;           // +0x18
 };
 
-void __stdcall FUN_004a9fd0(Menu_0049f9c0* menu);
+void __stdcall UpdateMenu(Menu_0049f9c0* menu);
 void __stdcall FUN_004ab0b0(void* param_1, unsigned int* param_2, int* param_3);
 void FUN_004c2870();
 void FlipScreen();
 
 // FUNCTION: 0x49f9c0
-void __stdcall FUN_0049f9c0(Menu_0049f9c0* menu, char* name)
+void __stdcall RunWhileScreenNamed(Menu_0049f9c0* menu, char* name)
 {
     MSG msg;
     while (1) {
@@ -30,7 +30,7 @@ void __stdcall FUN_0049f9c0(Menu_0049f9c0* menu, char* name)
             TranslateMessage(&msg);
             DispatchMessageA(&msg);
         }
-        FUN_004a9fd0(menu);
+        UpdateMenu(menu);
         FUN_004ab0b0(menu->screen, 0, 0);
         FUN_004c2870();
         FlipScreen();

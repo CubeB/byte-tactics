@@ -65,7 +65,7 @@ struct Game {
 #pragma pack(pop)
 
 
-void __stdcall FUN_004a81e0(Menu_00497ce0* menu, int value);
+void __stdcall RenderLayer(Menu_00497ce0* menu, int value);
 void __stdcall FUN_0049fad0(Menu_00497ce0* menu);
 void __stdcall FUN_004ab170(Menu_00497ce0* menu, int a, int b);
 void __stdcall FillRectangle(void* surface, Rect_00497ce0* rect, int color);
@@ -78,7 +78,7 @@ void __stdcall FUN_00497ce0(void* surface)
     int off;
     extern Game* g_game;
 
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
     FUN_0049fad0(&g_game->menu);
     FUN_004ab170(&g_game->menu, 0, 0);
 

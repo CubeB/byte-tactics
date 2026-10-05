@@ -20,7 +20,7 @@ struct Queue_004c1ab0 {
 Queue_004c1ab0* GetDisplay(void);
 
 // FUNCTION: 0x4c1b20
-void __stdcall FUN_004c1b20(int v)
+void __stdcall PushKeyCode(int v)
 {
     Queue_004c1ab0* q = GetDisplay();
     int next = q->head + 1;

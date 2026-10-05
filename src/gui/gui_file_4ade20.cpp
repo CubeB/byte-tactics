@@ -21,7 +21,7 @@ struct Obj_004ade20 {
 unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* param_1, void* param_2, unsigned int param_3);
 
 // FUNCTION: 0x4ade20
-void __stdcall FUN_004ade20(Obj_004ade20* obj, Class_004bbbe0* out, int indent)
+void __stdcall WriteTextInputFields(Obj_004ade20* obj, Class_004bbbe0* out, int indent)
 {
     char tab;
     char line[100];

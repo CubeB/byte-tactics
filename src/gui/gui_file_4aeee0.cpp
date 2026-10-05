@@ -13,7 +13,7 @@ int __stdcall FUN_004bbc40(char* path);
 void* __stdcall LoadGaf(char* path);
 
 // FUNCTION: 0x4aeee0
-void __stdcall FUN_004aeee0(Object_004aeee0* obj, char* name)
+void __stdcall LoadGafFile(Object_004aeee0* obj, char* name)
 {
     char path[256];
     strncpy(path, obj->dir, 0x100);

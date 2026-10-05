@@ -26,7 +26,7 @@ static inline void WriteTabs(Class_004bbbe0* out, int indent)
 }
 
 // FUNCTION: 0x4ae230
-void __stdcall FUN_004ae230(Obj_004ae230* obj, Class_004bbbe0* out, int indent)
+void __stdcall WriteTextLinkFields(Obj_004ae230* obj, Class_004bbbe0* out, int indent)
 {
     char line[100];
     WriteTabs(out, indent);

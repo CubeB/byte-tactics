@@ -22,7 +22,7 @@ struct Game {
 extern Game* g_game;
 extern int DAT_00512fe0;
 
-int __stdcall FUN_004a0d00(void* settings, const char* key, char* out);
+int __stdcall GetGadgetText(void* settings, const char* key, char* out);
 void __cdecl FUN_0045c3f0();
 void __stdcall FUN_0049fa90(Class_0049fa90* obj);
 
@@ -30,7 +30,7 @@ void __stdcall FUN_0049fa90(Class_0049fa90* obj);
 void FUN_0045d0c0()
 {
     char value[20];
-    FUN_004a0d00(g_game->settings, "TRACKNUM", value);
+    GetGadgetText(g_game->settings, "TRACKNUM", value);
     int track = atoi(value);
     if (track != g_game->x10->FUN_004ce7f0()) {
         DAT_00512fe0 = g_game->x10->FUN_004ce7f0();

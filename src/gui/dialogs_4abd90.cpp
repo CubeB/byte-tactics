@@ -2,7 +2,7 @@
 // Builds the MSGBOX.GUI dialog: word-wraps the (translated) message text, adds
 // one TEXT entry per line, sizes the dialog from the longest line, centres it
 // on the screen, stretches every text entry to the dialog width, positions the
-// OK button and installs FUN_004abd00 as the handler.
+// OK button and installs MessageBoxHandler as the handler.
 //
 // Suspected original bug: the max-line-width loop measures the entries at
 // entries[count+1] .. entries[count+lines] (0x4abeb8 walks forward from
@@ -11,7 +11,7 @@
 // last line it added.
 // Note: the two "OK" strings go to the table base's fields at +0xcc and +0xdc
 // (0x4abfba, 0x4abfd8 address them from the table pointer, not from the entry
-// that FUN_0049fdf0 returned, unlike the x/y fields just above them). If those
+// that FindGadgetIndex returned, unlike the x/y fields just above them). If those
 // are entry 0's own button-name fields that is deliberate, otherwise the OK
 // entry is left unnamed.
 #include <string.h>
@@ -55,34 +55,34 @@ struct Menu_004abd90 {
     Holder_004abd90* holder;             // +0x18
 };
 
-Layer_004abd90* __stdcall FUN_004aa8f0(Menu_004abd90* menu, const char* name, int flags);
+Layer_004abd90* __stdcall LoadGuiLayer(Menu_004abd90* menu, const char* name, int flags);
 char* __stdcall FUN_004c5740(char* text);
-char* __stdcall FUN_004ac4c0(Menu_004abd90* menu, char* text, int width, int index);
-void __stdcall FUN_004a81e0(Menu_004abd90* menu, int flag);
-void __stdcall FUN_004ab1b0(Layer_004abd90* layer, char* type, char* text, int x, short y,
+char* __stdcall WordWrapText(Menu_004abd90* menu, char* text, int width, int index);
+void __stdcall RenderLayer(Menu_004abd90* menu, int flag);
+void __stdcall AddTextGadget(Layer_004abd90* layer, char* type, char* text, int x, short y,
                             int width, int attr);
 int __stdcall GetFontHeight();
-int __stdcall FUN_004a5030(char* text);
+int __stdcall GetTextPixelWidth(char* text);
 int GetScreenWidth();
 int GetScreenHeight();
-int __stdcall FUN_0049fdf0(Entry_004abd90* entries, const char* name, int type);
+int __stdcall FindGadgetIndex(Entry_004abd90* entries, const char* name, int type);
 void __stdcall FUN_004a0570(Menu_004abd90* menu, const char* name, int flag);
 void __stdcall FUN_0049fb10(Menu_004abd90* menu, int flag);
 void __stdcall FUN_0049fa90(Menu_004abd90* menu);
-void __stdcall FUN_004a9fd0(Menu_004abd90* menu);
+void __stdcall UpdateMenu(Menu_004abd90* menu);
 void __cdecl FUN_004d85a0(char* text);
-void __stdcall FUN_004abd00(void* gadget);
+void __stdcall MessageBoxHandler(void* gadget);
 
 // FUNCTION: 0x4abd90
-int __stdcall FUN_004abd90(Menu_004abd90* gui, char* text, int wrapWidth, int centre, int autoHeight)
+int __stdcall OpenMessageBox(Menu_004abd90* gui, char* text, int wrapWidth, int centre, int autoHeight)
 {
-    Layer_004abd90* layer = FUN_004aa8f0(gui, "MSGBOX.GUI", 0x800);
+    Layer_004abd90* layer = LoadGuiLayer(gui, "MSGBOX.GUI", 0x800);
     if (layer) {
         char name[0x100];
         char buf[0x100];
         strcpy(name, FUN_004c5740(text));
-        char* wrapped = FUN_004ac4c0(gui, name, wrapWidth, -1);
-        FUN_004a81e0(gui, 2);
+        char* wrapped = WordWrapText(gui, name, wrapWidth, -1);
+        RenderLayer(gui, 2);
         strncpy(buf, wrapped, 0xfe);
         Entry_004abd90* entries = gui->holder->entries;
         char* line = strtok(buf, "\n");
@@ -91,7 +91,7 @@ int __stdcall FUN_004abd90(Menu_004abd90* gui, char* text, int wrapWidth, int ce
         int next = layer->entries->u.count + 1;
         if (line) {
             do {
-                FUN_004ab1b0(layer, "TEXT", line, 0, y, -1, 2);
+                AddTextGadget(layer, "TEXT", line, 0, y, -1, 2);
                 y += GetFontHeight() + 5;
                 line = strtok(0, "\n");
                 lines++;
@@ -104,8 +104,8 @@ int __stdcall FUN_004abd90(Menu_004abd90* gui, char* text, int wrapWidth, int ce
                 char* p = entries[next].u.text;
                 int i = lines;
                 do {
-                    if (width <= FUN_004a5030(p))
-                        width = FUN_004a5030(p);
+                    if (width <= GetTextPixelWidth(p))
+                        width = GetTextPixelWidth(p);
                     p += 0x15b;
                 } while (--i);
             }
@@ -125,7 +125,7 @@ int __stdcall FUN_004abd90(Menu_004abd90* gui, char* text, int wrapWidth, int ce
             }
         }
         if (centre) {
-            int k = FUN_0049fdf0(entries, "OK", 0xe);
+            int k = FindGadgetIndex(entries, "OK", 0xe);
             if (k != -1) {
                 entries[k].y = entries->h - entries[k].h - 0xf;
                 entries[k].x = entries->w - entries[k].w - 0xf;
@@ -136,10 +136,10 @@ int __stdcall FUN_004abd90(Menu_004abd90* gui, char* text, int wrapWidth, int ce
             FUN_004a0570(gui, "OK", 0);
         }
         FUN_0049fb10(gui, 1);
-        FUN_004a81e0(gui, 1);
-        layer->handler = FUN_004abd00;
+        RenderLayer(gui, 1);
+        layer->handler = MessageBoxHandler;
         FUN_0049fa90(gui);
-        FUN_004a9fd0(gui);
+        UpdateMenu(gui);
         FUN_004d85a0(wrapped);
         return 1;
     }

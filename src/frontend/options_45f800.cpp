@@ -29,29 +29,29 @@ struct Info_0045f800 {
 
 extern Game* g_game;
 
-Info_0045f800* __stdcall FUN_004aa8f0(Sub_0045f800* sub, const char* name, int flags);
-int __stdcall FUN_0049fdf0(Entry_0045f800* info, const char* name, int type);
+Info_0045f800* __stdcall LoadGuiLayer(Sub_0045f800* sub, const char* name, int flags);
+int __stdcall FindGadgetIndex(Entry_0045f800* info, const char* name, int type);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-void __stdcall FUN_004afc60(Sub_0045f800* sub, int value);
+void __stdcall AllocBlinkWords(Sub_0045f800* sub, int value);
 void __stdcall FUN_00476d80();
-void __stdcall FUN_004a81e0(Sub_0045f800* sub, int value);
+void __stdcall RenderLayer(Sub_0045f800* sub, int value);
 int __stdcall FUN_0045f770(void* gadget);
 
 // FUNCTION: 0x45f800
 void FUN_0045f800()
 {
-    Info_0045f800* g = FUN_004aa8f0(&g_game->sub, "BRIEFING.GUI", 0);
+    Info_0045f800* g = LoadGuiLayer(&g_game->sub, "BRIEFING.GUI", 0);
     Entry_0045f800* gadgets = g->info;
     g->handler = FUN_0045f770;
-    int i = FUN_0049fdf0(gadgets, "MOREBAR", 0xe);
+    int i = FindGadgetIndex(gadgets, "MOREBAR", 0xe);
     // Suspected original bug: the entry is reached as gadgets + i + i * 0x15a
     // instead of gadgets + i * 0x15a, so this clears the flag of a different
     // gadget (or walks off the array) than the one just looked up.
     ((Entry_0045f800*)((char*)gadgets + i))[i].flags &= ~0x10;
-    i = FUN_0049fdf0(gadgets, "TextRegion", 0xe);
+    i = FindGadgetIndex(gadgets, "TextRegion", 0xe);
     ((Entry_0045f800*)((char*)gadgets + i))[i].flags &= ~0x10;
     FUN_004288d0("igmbrief", 0, 0, 0);
-    FUN_004afc60(&g_game->sub, 0xf);
+    AllocBlinkWords(&g_game->sub, 0xf);
     FUN_00476d80();
-    FUN_004a81e0(&g_game->sub, 0x40);
+    RenderLayer(&g_game->sub, 0x40);
 }

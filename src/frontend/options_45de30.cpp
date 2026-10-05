@@ -6,7 +6,7 @@
 //
 // MATCH, 710 of 710 bytes.
 //
-// The last piece was the FUN_0049fdf0 result. The two FXVOL calls take
+// The last piece was the FindGadgetIndex result. The two FXVOL calls take
 // DIFFERENT expressions for the same array base: fdf0 re-reads [obj+4] into
 // eax and a0200 gets the `entries` local that was loaded into esi three calls
 // earlier, so the source has both an `obj->entries` and an `entries`. Naming
@@ -83,14 +83,14 @@ extern Game* g_game;
 
 Object_0045de30* __cdecl FUN_0045cfc0();
 void FUN_0045ce80();
-void __stdcall FUN_004a81e0(Menu_0045de30* obj, int value);
-int __stdcall FUN_004aa8f0(Menu_0045de30* obj, char* name, int size);
+void __stdcall RenderLayer(Menu_0045de30* obj, int value);
+int __stdcall LoadGuiLayer(Menu_0045de30* obj, char* name, int size);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void __stdcall FUN_0049fa50(Menu_0045de30* obj);
-void __stdcall FUN_004a1110(Menu_0045de30* obj, char* name, int value);
-int __stdcall FUN_0049fdf0(Entry_0045de30* entries, char* name, int type);
+void __stdcall SetGadgetStatusByName(Menu_0045de30* obj, char* name, int value);
+int __stdcall FindGadgetIndex(Entry_0045de30* entries, char* name, int type);
 Entry_0045de30* __stdcall FUN_004a0200(Entry_0045de30* entries, char* name);
-void __stdcall FUN_004a1080(Menu_0045de30* obj, char* name, int value);
+void __stdcall SetButtonStageByName(Menu_0045de30* obj, char* name, int value);
 void __stdcall FUN_004a0570(Menu_0045de30* obj, char* name, int value);
 void __stdcall FUN_004a1450(Menu_0045de30* obj, char* name, int value);
 void __stdcall FUN_0049fa90(Menu_0045de30* obj);
@@ -104,19 +104,19 @@ void __stdcall FUN_0045bde0(void* obj, int arg);
 void FUN_0045de30()
 {
     Object_0045de30* obj = FUN_0045cfc0();
-    FUN_004a81e0(&g_game->menu, 2);
+    RenderLayer(&g_game->menu, 2);
     FUN_0045ce80();
     if (g_game->flags_37ebe & 1) {
-        FUN_004aa8f0(&g_game->menu, "SOUNDSRT.GUI", 0x200);
+        LoadGuiLayer(&g_game->menu, "SOUNDSRT.GUI", 0x200);
     } else {
-        FUN_004aa8f0(&g_game->menu, "SOUNDS", 0x200);
+        LoadGuiLayer(&g_game->menu, "SOUNDS", 0x200);
         FUN_004288d0("optsound4x", 0, 0, 0);
     }
     Entry_0045de30* entries = obj->entries;
     obj->fn = FUN_0045da90;
     FUN_0049fa50(&g_game->menu);
-    FUN_004a1110(&g_game->menu, "SOUND", 1);
-    int found = FUN_0049fdf0(obj->entries, "FXVOL", 0xe);
+    SetGadgetStatusByName(&g_game->menu, "SOUND", 1);
+    int found = FindGadgetIndex(obj->entries, "FXVOL", 0xe);
     if (found != -1) {
         Entry_0045de30* e = FUN_004a0200(entries, "FXVOL");
         e->max = 0x40;
@@ -136,8 +136,8 @@ void FUN_0045de30()
         if (obj->entries[i].type == 4)
             obj->entries[i].fn(&g_game->menu, 0);
     }
-    FUN_004a1080(&g_game->menu, "SPEECH", g_game->flags.bits.speech ? g_game->field_37f17 / 5 : 0);
-    FUN_004a1080(&g_game->menu, "MODE", g_game->flags.word & 7);
+    SetButtonStageByName(&g_game->menu, "SPEECH", g_game->flags.bits.speech ? g_game->field_37f17 / 5 : 0);
+    SetButtonStageByName(&g_game->menu, "MODE", g_game->flags.word & 7);
     FUN_004a0570(&g_game->menu, "VOLTEXT", (g_game->flags.word & 7) != 0);
     FUN_004a1450(&g_game->menu, "FXVOL", (g_game->flags.word & 7) == 0);
     FUN_004a1450(&g_game->menu, "TEST", (g_game->flags.word & 7) == 0);
@@ -145,5 +145,5 @@ void FUN_0045de30()
     FUN_0049fa90(&g_game->menu);
     FUN_0049fb10(&g_game->menu, 1);
     FUN_00428b60();
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

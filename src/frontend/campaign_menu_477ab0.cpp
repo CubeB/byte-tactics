@@ -9,7 +9,7 @@
 //    bytes on its own. Inlined, FUN_004779e0 re-reads the campaign holder
 //    from g_game after FUN_004d85a0 and takes the menu at g_game + 0x519 as
 //    its parameter, which gave the original's esi/edi choice. Its second
-//    parameter is unused; the caller passes FUN_0049ff90(entries,
+//    parameter is unused; the caller passes FindGadgetChecked(entries,
 //    "Campaign"), which is why that call's result is dropped.
 //  * The Difficulty arm is an if/else-if chain that sets the new value and
 //    falls into one shared `FUN_004ab0a0(menu); return;` (a switch, or a
@@ -57,25 +57,25 @@ extern int* DAT_0051e660;              // 0x51e660
 extern int DAT_0051e668;               // 0x51e668
 extern int DAT_00507b6c;               // 0x507b6c
 
-int __stdcall FUN_0049fd60(Menu_00477ab0* menu, char* name);
+int __stdcall IsCurrentGadgetNamed(Menu_00477ab0* menu, char* name);
 char __stdcall FUN_0041d6a0(int param_1);
 void FUN_0041d4c0();
 void FUN_0041da30();
 void FUN_00430f00();
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_00491c80(int value);
-Entry_00477ab0* __stdcall FUN_0049ff90(Entry_00477ab0* entries, char* name);
-int __stdcall FUN_0049fdf0(Entry_00477ab0* entries, char* name, int type);
+Entry_00477ab0* __stdcall FindGadgetChecked(Entry_00477ab0* entries, char* name);
+int __stdcall FindGadgetIndex(Entry_00477ab0* entries, char* name, int type);
 char* __stdcall FUN_004b6af0(char* text, int line);
 void __stdcall FUN_004a2be0(void* menu, int index);
 void __stdcall FUN_0049fa90(void* menu);
-void __stdcall FUN_004a1110(void* menu, char* name, int flag);
+void __stdcall SetGadgetStatusByName(void* menu, char* name, int flag);
 int __stdcall FUN_00476a60(int** out, int side);
 void __stdcall FUN_004a32a0(void* menu, char* name, int* data, int count, int flag);
 void __stdcall FUN_004a0570(void* menu, char* name, int flag);
 void __cdecl FUN_004d85a0(void* ptr);
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);
 
 void __stdcall FUN_00477940(int side)
@@ -88,7 +88,7 @@ void __stdcall FUN_00477940(int side)
     FUN_0047f1a0("smlbutton", 0);
     int count = FUN_00476a60(&DAT_0051e65c, side);
     FUN_004a32a0(g_game + 0x519, "Campaign", DAT_0051e65c, count, 0);
-    int index = FUN_0049fdf0(gadget->entries, "Campaign", 2);
+    int index = FindGadgetIndex(gadget->entries, "Campaign", 2);
     FUN_004a2be0(g_game + 0x519, index);
     FUN_0049fa90(g_game + 0x519);
 }
@@ -101,13 +101,13 @@ void __stdcall FUN_004779e0(Menu_00477ab0* menu, Entry_00477ab0* unused)
         DAT_0051e660 = 0;
     }
     Entry_00477ab0* layout =
-        FUN_0049ff90((*(Holder_00477ab0**)(g_game + 0x531))->entries, "Campaign");
+        FindGadgetChecked((*(Holder_00477ab0**)(g_game + 0x531))->entries, "Campaign");
     ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(
         FUN_004b6af0(layout->text, layout->selected));
     int count = ((Class_00435760*)*(void**)(g_game + 0x391e9))->FUN_00435760(&DAT_0051e660);
     FUN_004a32a0(menu, "Missions", DAT_0051e660, count, 0);
     FUN_004a2be0(g_game + 0x519,
-                 FUN_0049fdf0(gadgets->entries, "Missions", 2));
+                 FindGadgetIndex(gadgets->entries, "Missions", 2));
     FUN_0049fa90(g_game + 0x519);
 }
 
@@ -126,12 +126,12 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
         return;
     }
 
-    if ((DAT_0051e668 != 0 && (FUN_0049fd60(menu, "Missions") || FUN_0049fd60(menu, "Start"))) ||
-        (DAT_0051e668 == 0 && (FUN_0049fd60(menu, "Campaign") || FUN_0049fd60(menu, "Start")))) {
+    if ((DAT_0051e668 != 0 && (IsCurrentGadgetNamed(menu, "Missions") || IsCurrentGadgetNamed(menu, "Start"))) ||
+        (DAT_0051e668 == 0 && (IsCurrentGadgetNamed(menu, "Campaign") || IsCurrentGadgetNamed(menu, "Start")))) {
         index = 0;
         FUN_0047f1a0("bigButton", 0);
         if (!FUN_0041d6a0(0)) {
-            FUN_004abd90(g_game + 0x519,
+            OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
                          200, 1, 1);
             FUN_004ab0a0(g_game + 0x519);
@@ -142,7 +142,7 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
         {
             char* name;
             if (DAT_00507b6c == 0) {
-                Entry_00477ab0* e = FUN_0049ff90(entries, "Campaign");
+                Entry_00477ab0* e = FindGadgetChecked(entries, "Campaign");
                 name = FUN_004b6af0(e->text, e->selected);
                 ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(name);
             } else if (*(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) == 0) {
@@ -152,7 +152,7 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
             }
         }
         if (DAT_0051e668 != 0) {
-            Entry_00477ab0* e = FUN_0049ff90(entries, "Missions");
+            Entry_00477ab0* e = FindGadgetChecked(entries, "Missions");
             index = e->selected;
         }
         if (((Class_00435c00*)*(void**)(g_game + 0x391e9))->FUN_00435c00(index) != 0) {
@@ -169,13 +169,13 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
         }
         goto End;
     } else {
-        if (FUN_0049fd60(menu, "PrevMenu")) {
+        if (IsCurrentGadgetNamed(menu, "PrevMenu")) {
             FUN_0047f1a0("Previous", 0);
             *(unsigned char*)(g_game + 0x2bc0) = 3;
             FUN_00491c80(0x14);
             return;
         }
-        if (FUN_0049fd60(menu, "Difficulty")) {
+        if (IsCurrentGadgetNamed(menu, "Difficulty")) {
             FUN_0047f1a0("SmlButton", 0);
             int diff = *(int*)(g_game + 0x37eee);
             if (diff == 0) {
@@ -190,15 +190,15 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
             FUN_004ab0a0(menu);
             return;
         }
-        if (FUN_0049fd60(menu, "Side0") || FUN_0049fd60(menu, "Arm"))
+        if (IsCurrentGadgetNamed(menu, "Side0") || IsCurrentGadgetNamed(menu, "Arm"))
             goto ArmSide;
-        if (!FUN_0049fd60(menu, "Side1") && !FUN_0049fd60(menu, "Core"))
+        if (!IsCurrentGadgetNamed(menu, "Side1") && !IsCurrentGadgetNamed(menu, "Core"))
             goto End;
 
-        FUN_004a1110(g_game + 0x519, "Core", 1);
-        FUN_004a1110(g_game + 0x519, "Side1", 1);
+        SetGadgetStatusByName(g_game + 0x519, "Core", 1);
+        SetGadgetStatusByName(g_game + 0x519, "Side1", 1);
         FUN_0047f1a0("SideSelect2", 0);
-        index = FUN_0049fdf0(entries, "Side1", 1);
+        index = FindGadgetIndex(entries, "Side1", 1);
         *(int*)((char*)entries + index * 0x15b + 0x1f) = 0x1f;
         *(int*)(g_game + 0x37ef2) = 1;
         *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 1;
@@ -206,17 +206,17 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
         if (DAT_00507b6c == 0)
             FUN_00477940(*(unsigned char*)(*(int*)(g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42) + 0x1b8a) + 0x95));
         if (DAT_0051e668 != 0) {
-            FUN_004779e0((Menu_00477ab0*)(g_game + 0x519), FUN_0049ff90(entries, "Campaign"));
+            FUN_004779e0((Menu_00477ab0*)(g_game + 0x519), FindGadgetChecked(entries, "Campaign"));
             FUN_004ab0a0(menu);
             return;
         }
         goto End;
 
 ArmSide:
-        FUN_004a1110(g_game + 0x519, "Arm", 1);
-        FUN_004a1110(g_game + 0x519, "Side0", 1);
+        SetGadgetStatusByName(g_game + 0x519, "Arm", 1);
+        SetGadgetStatusByName(g_game + 0x519, "Side0", 1);
         FUN_0047f1a0("SideSelect", 0);
-        index = FUN_0049fdf0(entries, "Side0", 1);
+        index = FindGadgetIndex(entries, "Side0", 1);
         *(int*)((char*)entries + index * 0x15b + 0x1f) = 0x1f;
         *(int*)(g_game + 0x37ef2) = 0;
         *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 0;
@@ -224,7 +224,7 @@ ArmSide:
         FUN_00477940(*(unsigned char*)(*(int*)(g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42) + 0x1b8a) + 0x95));
         FUN_004a0570(menu, "Campaign", DAT_00507b6c == 0);
         if (DAT_0051e668 != 0)
-            FUN_004779e0((Menu_00477ab0*)(g_game + 0x519), FUN_0049ff90(entries, "Campaign"));
+            FUN_004779e0((Menu_00477ab0*)(g_game + 0x519), FindGadgetChecked(entries, "Campaign"));
 
     }
 End:

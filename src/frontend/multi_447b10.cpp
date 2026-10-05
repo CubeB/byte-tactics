@@ -223,19 +223,19 @@ void __stdcall ReportGameEvent(int sound);
 void __stdcall FUN_0047f1a0(char* sound, int b);
 int __stdcall FUN_004288d0(char* name, int a, int b, int c);
 void __stdcall FUN_0049fb10(char* gui, int value);
-int __stdcall FUN_0049fd60(Gadget_00447b10* gadget, char* name);
-int __stdcall FUN_0049fdf0(Entry_00447b10* entries, char* name, int type);
+int __stdcall IsCurrentGadgetNamed(Gadget_00447b10* gadget, char* name);
+int __stdcall FindGadgetIndex(Entry_00447b10* entries, char* name, int type);
 Entry_00447b10* __stdcall FUN_004a0010(Entry_00447b10* entries, char* name);
-int __stdcall FUN_004a0f30(char* gui, int index);
-int __stdcall FUN_004a0f60(Gadget_00447b10* gadget, char* name);
-int __stdcall FUN_004a1080(Gadget_00447b10* gadget, char* name, int value);
-void __stdcall FUN_004a1110(char* gui, char* name, int value);
-void __stdcall FUN_004a5f40(Gadget_00447b10* gadget, int value);
+int __stdcall GetGadgetStatus(char* gui, int index);
+int __stdcall GetButtonStageByName(Gadget_00447b10* gadget, char* name);
+int __stdcall SetButtonStageByName(Gadget_00447b10* gadget, char* name, int value);
+void __stdcall SetGadgetStatusByName(char* gui, char* name, int value);
+void __stdcall DrawButton(Gadget_00447b10* gadget, int value);
 void __stdcall FUN_004a7190(char* gui, int index);
-void __stdcall FUN_004a81e0(char* gui, int value);
-Gadget_00447b10* __stdcall FUN_004aa8f0(char* gui, char* name, int flags);
+void __stdcall RenderLayer(char* gui, int value);
+Gadget_00447b10* __stdcall LoadGuiLayer(char* gui, char* name, int flags);
 void __stdcall FUN_004ab0a0(void* gadget);
-void __stdcall FUN_004abd90(void* gadget, char* text, int a, int b, int c);
+void __stdcall OpenMessageBox(void* gadget, char* text, int a, int b, int c);
 char* __stdcall FUN_004c5740(char* text);
 
 static inline int IsPlaying_00447b10(Player_00447b10* p)
@@ -364,7 +364,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         Player_00447b10* p = &g_game->players[i];
 
         sprintf(text, "LOGO%d", i);
-        if (FUN_0049fd60(gadget, text) && IsLocal_00447b10(p)) {
+        if (IsCurrentGadgetNamed(gadget, text) && IsLocal_00447b10(p)) {
             FUN_0047f1a0("Multi", 0);
             RequestPlayerColor(p->info->slot + 1);
             g_game->dirty = 1;
@@ -372,7 +372,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         }
 
         sprintf(text, "PLAYER%d", i);
-        if (FUN_0049fd60(gadget, text) && i != lp) {
+        if (IsCurrentGadgetNamed(gadget, text) && i != lp) {
             FUN_0047f1a0("Multi", 0);
             char type = p->type;
             if (type == 0 && canAdd) {
@@ -393,7 +393,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                     UpdateNetGameInfo();
                 }
                 if (g_game->players[FindHostSlot()].info->b.closed) {
-                    FUN_004abd90(g_game->gui, FUN_004c5740("Can't add another player when game is closed."), 500, 1, 1);
+                    OpenMessageBox(g_game->gui, FUN_004c5740("Can't add another player when game is closed."), 500, 1, 1);
                     ((Class_00463c60*)p)->SetType(0);
                     g_game->dirty = 1;
                     break;
@@ -409,7 +409,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         }
 
         sprintf(text, "SIDE%d", i);
-        if (FUN_0049fd60(gadget, text)) {
+        if (IsCurrentGadgetNamed(gadget, text)) {
             FUN_0047f1a0("Multi", 0);
             if (p->active != 0 && p->info->b.bit6) {
                 p->info->b.bit6 = 0;
@@ -422,8 +422,8 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                         && p->active != 0 && p->type == 1) {
                         p->info->b.bit6 = 1;
                     } else {
-                        FUN_004a1080(gadget, text, 0);
-                        FUN_004a5f40(gadget, gadget->field_60);
+                        SetButtonStageByName(gadget, text, 0);
+                        DrawButton(gadget, gadget->field_60);
                     }
                 }
             }
@@ -433,7 +433,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         }
 
         sprintf(text, "ALLY%d", i);
-        if (FUN_0049fd60(gadget, text)) {
+        if (IsCurrentGadgetNamed(gadget, text)) {
             me->ally[i] ^= 1;
             SetAlliance(me->id, p->id, me->ally[i], 0);
             char same;
@@ -462,14 +462,14 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         }
 
         sprintf(text, "TEAMICONS%d", i);
-        if (FUN_0049fd60(gadget, text)) {
+        if (IsCurrentGadgetNamed(gadget, text)) {
             FUN_0047f1a0("Ally", 0);
             FUN_00446f50(i);
             FUN_00452bd0(p);
         }
 
         sprintf(text, "RES%d", i);
-        if (FUN_0049fd60(gadget, text) && IsLocalHuman_00447b10(p)) {
+        if (IsCurrentGadgetNamed(gadget, text) && IsLocalHuman_00447b10(p)) {
             FUN_0047f1a0("Multi", 0);
             FUN_00446310();
             FUN_004ab0a0(gadget);
@@ -478,13 +478,13 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         }
 
         sprintf(text, "READY%d", i);
-        if (FUN_0049fd60(gadget, text) && IsLocalHuman_00447b10(p)) {
+        if (IsCurrentGadgetNamed(gadget, text) && IsLocalHuman_00447b10(p)) {
             FUN_0047f1a0("Multi", 0);
             if (CheckMapCrc()) {
-                p->info->b.ready = FUN_004a0f30(g_game->gui, FUN_0049fdf0(entries, text, 1));
+                p->info->b.ready = GetGadgetStatus(g_game->gui, FindGadgetIndex(entries, text, 1));
                 if (p->info->f97_0) {
                     strcpy(entries->label, "START");
-                    g_game->table->field_20 = FUN_0049fdf0(entries, "START", 1);
+                    g_game->table->field_20 = FindGadgetIndex(entries, "START", 1);
                 }
                 for (int j = 0; j < 10; j++) {
                     Player_00447b10* q = &g_game->players[j];
@@ -494,7 +494,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                 g_game->dirty = 1;
                 BroadcastPlayerInfo();
             } else {
-                FUN_004a1110(g_game->gui, text, 0);
+                SetGadgetStatusByName(g_game->gui, text, 0);
             }
         }
         i++;
@@ -504,7 +504,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
     if (i != g_game->field_2a3c)
         g_game->dirty = 1;
 
-    if (FUN_0049fd60(gadget, "PREVMENU")) {
+    if (IsCurrentGadgetNamed(gadget, "PREVMENU")) {
         FUN_0047f1a0("Previous", 0);
         for (int j = 0; j < 10; j++) {
             Player_00447b10* q = &g_game->players[j];
@@ -514,7 +514,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         g_game->state = 3;
         return;
     }
-    if (FUN_0049fd60(gadget, "MESSAGE")) {
+    if (IsCurrentGadgetNamed(gadget, "MESSAGE")) {
         Entry_00447b10* box = FUN_004a0010(entries, "MESSAGE");
         char* msg = box->text;
         if (strlen(msg) != 0) {
@@ -530,8 +530,8 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
             g_game->dirty = 1;
             strcpy(msg, "");
         }
-        FUN_004a7190(g_game->gui, FUN_0049fdf0(g_game->table->entries, "MESSAGE", 3));
-    } else if (FUN_0049fd60(gadget, "COMMANDER")) {
+        FUN_004a7190(g_game->gui, FindGadgetIndex(g_game->table->entries, "MESSAGE", 3));
+    } else if (IsCurrentGadgetNamed(gadget, "COMMANDER")) {
         FUN_0047f1a0("Multi", 0);
         me->info->b.commander++;
         if (me->info->b.commander > 2)
@@ -539,7 +539,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
-    } else if (FUN_0049fd60(gadget, "LOSTYPE")) {
+    } else if (IsCurrentGadgetNamed(gadget, "LOSTYPE")) {
         FUN_0047f1a0("Multi", 0);
         if (!me->info->b.los) {
             me->info->b.los = 1;
@@ -552,7 +552,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
-    } else if (FUN_0049fd60(gadget, "WATCHING")) {
+    } else if (IsCurrentGadgetNamed(gadget, "WATCHING")) {
         FUN_0047f1a0("Multi", 0);
         me->info->b.watching = !me->info->b.watching;
         if (!me->info->b.watching && me->active != 0 && me->info->b.bit6)
@@ -560,23 +560,23 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
-    } else if (FUN_0049fd60(gadget, "CHEATING")) {
+    } else if (IsCurrentGadgetNamed(gadget, "CHEATING")) {
         FUN_0047f1a0("Multi", 0);
         me->info->b.cheating = !me->info->b.cheating;
         BroadcastPlayerInfo();
         g_game->dirty = 1;
-    } else if (FUN_0049fd60(gadget, "FIXEDLOC")) {
+    } else if (IsCurrentGadgetNamed(gadget, "FIXEDLOC")) {
         FUN_0047f1a0("Multi", 0);
         me->info->b.fixedloc = !me->info->b.fixedloc;
         BroadcastPlayerInfo();
         g_game->dirty = 1;
-    } else if (FUN_0049fd60(gadget, "MAPPING")) {
+    } else if (IsCurrentGadgetNamed(gadget, "MAPPING")) {
         FUN_0047f1a0("Multi", 0);
-        me->info->b.mapping = FUN_004a0f60(gadget, "MAPPING") == 0;
+        me->info->b.mapping = GetButtonStageByName(gadget, "MAPPING") == 0;
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
-    } else if (FUN_0049fd60(gadget, "START")) {
+    } else if (IsCurrentGadgetNamed(gadget, "START")) {
         int count = 0;
         FUN_0047f1a0("BigButton", 0);
         for (int j = 0; j < 10; j++) {
@@ -586,14 +586,14 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         }
         if (count < 1 || (count < 2 && CountHumanPlayers() > 3) || (count < 3 && CountHumanPlayers() > 6)) {
             FUN_004ab0a0(g_game->gui);
-            FUN_004abd90(gadget, FUN_004c5740("There are not enough game CDs present to play"), 200, 1, 1);
+            OpenMessageBox(gadget, FUN_004c5740("There are not enough game CDs present to play"), 200, 1, 1);
             return;
         }
         int total = CountComputerPlayers() + CountHumanPlayers();
         for (int t = 0; t < 5; t++) {
             if (CountAlliance_00447b10(t) == total) {
                 FUN_004ab0a0(g_game->gui);
-                FUN_004abd90(gadget, FUN_004c5740("Can not start game with all players on the same team."), 200, 1, 1);
+                OpenMessageBox(gadget, FUN_004c5740("Can not start game with all players on the same team."), 200, 1, 1);
                 return;
             }
         }
@@ -620,13 +620,13 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         FUN_00430f00();
         g_game->field_37eee = 2;
         return;
-    } else if (FUN_0049fd60(gadget, "GAMEOPEN")) {
+    } else if (IsCurrentGadgetNamed(gadget, "GAMEOPEN")) {
         FUN_0047f1a0("Multi", 0);
-        me->info->b.closed = FUN_004a0f60(gadget, "GAMEOPEN") == 0;
+        me->info->b.closed = GetButtonStageByName(gadget, "GAMEOPEN") == 0;
         BroadcastPlayerInfo();
         UpdateNetGameInfo();
         g_game->dirty = 1;
-    } else if (FUN_0049fd60(gadget, "RESTRICTIONS")) {
+    } else if (IsCurrentGadgetNamed(gadget, "RESTRICTIONS")) {
         FUN_0047f1a0("Options", 0);
         FUN_0044c7e0();
         FUN_004ab0a0(gadget);
@@ -634,20 +634,20 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         // MAP and MAPNAME through a local, not `MAP || MAPNAME` in the
         // else-if: with the `||` the MAP body joins the region where C2 keeps
         // the constant 1 in ebp, and FUN_0049fb10 gets `push ebp` (99.2%).
-        int hit = FUN_0049fd60(gadget, "MAP");
+        int hit = IsCurrentGadgetNamed(gadget, "MAP");
         if (!hit)
-            hit = FUN_0049fd60(gadget, "MAPNAME");
+            hit = IsCurrentGadgetNamed(gadget, "MAPNAME");
         if (hit) {
             FUN_0047f1a0("Multi", 0);
             if (me->info->f97_0) {
                 FUN_00444ea0();
             } else {
-                Gadget_00447b10* view = FUN_004aa8f0(g_game->gui, "VIEWMAP.GUI", 0x900);
+                Gadget_00447b10* view = LoadGuiLayer(g_game->gui, "VIEWMAP.GUI", 0x900);
                 view->handler = FUN_00444ba0;
                 FUN_004288d0("DVIEWMAP", 0, 0, 0);
                 FUN_00444a20();
                 FUN_0049fb10(g_game->gui, 1);
-                FUN_004a81e0(g_game->gui, 0x40);
+                RenderLayer(g_game->gui, 0x40);
             }
         }
     }

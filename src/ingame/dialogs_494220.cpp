@@ -36,7 +36,7 @@ extern Game* g_game;
 
 Entry_00494220* __stdcall FUN_004a0280(Entry_00494220* entries, char* name);
 void __stdcall FreeSurface(void* param_1);
-int __stdcall FUN_0049fd60(Gadget_00494220* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_00494220* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 void __stdcall FUN_004ab0a0(Menu_00494220* menu);
 
@@ -49,7 +49,7 @@ void __stdcall FUN_00494220(Gadget_00494220* gadget)
         g_game->flags &= ~0x800;
         return;
     }
-    if (FUN_0049fd60(gadget, "DONE")) {
+    if (IsCurrentGadgetNamed(gadget, "DONE")) {
         FUN_0047f1a0("smlbutton", 0);
         return;
     }

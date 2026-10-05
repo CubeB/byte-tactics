@@ -19,7 +19,7 @@ struct Gaf_004b8d40;
 GafEntry_004b8d40* __stdcall FindGafEntry(Gaf_004b8d40* gaf, const char* name);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 char* __stdcall FUN_004c5740(char* key);
-int __stdcall FUN_004ab2b0(void* obj, void* record);
+int __stdcall AddButtonGadget(void* obj, void* record);
 int __stdcall FUN_004ab310(void* obj, void* record);
 
 #pragma pack(push, 1)
@@ -126,7 +126,7 @@ void FUN_00479c50(void)
         rec1.h.attr = 2;
         rec1.text[0] = 0;
         SetEntry_00479c50(&rec1, "skirmname");
-        FUN_004ab2b0(&g_game->menu, &rec1);
+        AddButtonGadget(&g_game->menu, &rec1);
 
         wsprintfA(rec1.h.name, "Side%d", i);
         rec1.h.x = 0xa3;
@@ -134,7 +134,7 @@ void FUN_00479c50(void)
         SetEntry_00479c50(&rec1, "SIDEx");
         rec1.frame = 0;
         rec1.f136 = 2;
-        FUN_004ab2b0(&g_game->menu, &rec1);
+        AddButtonGadget(&g_game->menu, &rec1);
 
         wsprintfA(rec2.h.name, "Color%d", i);
         rec2.h.x = 0xd6;
@@ -160,14 +160,14 @@ void FUN_00479c50(void)
         rec1.entry = 0;
         SetEntry_00479c50(&rec1, "skirmmet");
         strcpy(rec1.text, FUN_004c5740("Left click to increase metal. Right click to decrease metal."));
-        FUN_004ab2b0(&g_game->menu, &rec1);
+        AddButtonGadget(&g_game->menu, &rec1);
 
         wsprintfA(rec1.h.name, "Energy%d", i);
         rec1.h.x = 0x151;
         rec1.h.w = 0x2d;
         SetEntry_00479c50(&rec1, "skirmmet");
         strcpy(rec1.text, FUN_004c5740("Left click to increase energy. Right click to decrease energy."));
-        FUN_004ab2b0(&g_game->menu, &rec1);
+        AddButtonGadget(&g_game->menu, &rec1);
         y += step;
         ++i;
     }

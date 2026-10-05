@@ -45,9 +45,9 @@ struct Gadget_0041b0f0 {
 
 extern Game* g_game;
 
-Gadget_0041b0f0* __stdcall FUN_004aa8f0(Sub_0041b0f0* sub, const char* name, int flags);
+Gadget_0041b0f0* __stdcall LoadGuiLayer(Sub_0041b0f0* sub, const char* name, int flags);
 void __stdcall FUN_0041a120(Unit* unit);
-void __stdcall FUN_004a81e0(Sub_0041b0f0* sub, int value);
+void __stdcall RenderLayer(Sub_0041b0f0* sub, int value);
 void __stdcall FUN_0041aa00(void* unit);
 
 // FUNCTION: 0x41b0f0
@@ -56,12 +56,12 @@ void __stdcall FUN_0041b0f0(Unit* unit)
     char name[256];
     sprintf(name, "%sGEN.GUI",
             g_game->sideNames[g_game->players[g_game->localPlayer].unit->side]);
-    Gadget_0041b0f0* gadget = FUN_004aa8f0(&g_game->sub, name, 0);
+    Gadget_0041b0f0* gadget = LoadGuiLayer(&g_game->sub, name, 0);
     if (gadget != 0) {
         gadget->handler = FUN_0041aa00;
         gadget->field_c = 0;
         FUN_0041a120(unit);
-        FUN_004a81e0(&g_game->sub, 0x40);
+        RenderLayer(&g_game->sub, 0x40);
         if (unit != 0) {
             g_game->field_37e9c = unit->field_a8;
             g_game->field_37e9e = unit->field_a6;

@@ -75,8 +75,8 @@ public:
 extern Game* g_game;
 extern char* DAT_00512990;
 
-int __stdcall FUN_0049fd60(Gadget_00444cb0* gadget, char* name);
-Entry_00444cb0* __stdcall FUN_0049ff90(void* entries, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_00444cb0* gadget, char* name);
+Entry_00444cb0* __stdcall FindGadgetChecked(void* entries, char* name);
 Entry_00444cb0* __stdcall FUN_004a0280(void* entries, char* name);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_0047f1a0(char* str, int flag);
@@ -105,9 +105,9 @@ void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
         return;
     }
 
-    if (FUN_0049fd60(param_1, "MAPNAMES") || FUN_0049fd60(param_1, "LOAD")) {
+    if (IsCurrentGadgetNamed(param_1, "MAPNAMES") || IsCurrentGadgetNamed(param_1, "LOAD")) {
         FUN_0047f1a0("Multi", 0);
-        Entry_00444cb0* g = FUN_0049ff90(entries, "MAPNAMES");
+        Entry_00444cb0* g = FindGadgetChecked(entries, "MAPNAMES");
         ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(
             FUN_004b6af0(g->text, g->selected));
 
@@ -130,7 +130,7 @@ void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
         return;
     }
 
-    if (FUN_0049fd60(param_1, "PREVMENU")) {
+    if (IsCurrentGadgetNamed(param_1, "PREVMENU")) {
         FUN_0047f1a0("Previous", 0);
         ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(DAT_00512990);
         BroadcastPlayerInfo();

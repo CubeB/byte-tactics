@@ -55,7 +55,7 @@ extern Game* g_game;
 void FUN_0041cc60();
 void FUN_0048bd00(void);
 int __stdcall FUN_00491d70(int force);
-int __stdcall FUN_0049fe60(int value, char* name);
+int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);
 void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src);
 void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, Vec3_00499100* d, int e, int f);
@@ -66,7 +66,7 @@ void __stdcall FUN_00499100(Arg_00499100* param_1)
     if (g_game->field_2cc3 != 1) {
         g_game->field_2cc3 = 1;
         g_game->field_2cc6 &= 0xdf;
-        int index = FUN_0049fe60(g_game->unknown_531->value, "STOP");
+        int index = FindGadgetIndexBySubstring(g_game->unknown_531->value, "STOP");
         if (index != -1) {
             FUN_004a6a40(g_game->field_519, index);
         }

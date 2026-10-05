@@ -69,7 +69,7 @@ extern Game* g_game;
 extern int DAT_0051e544;
 
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-int __stdcall FUN_004c1b80(int key);
+int __stdcall IsKeyDown(int key);
 int GetMilliseconds();
 void __stdcall DrawFrame(void* dst, void* bmp, int x, int y);
 char* __stdcall FUN_004c5740(char* text);
@@ -83,7 +83,7 @@ void __stdcall FUN_004689c0(Surface* win)
     int v = g_game->panel;
     if (DAT_0051e544 < GetMilliseconds()) {
         DAT_0051e544 = GetMilliseconds() + 15;
-        if (!FUN_004c1b80(0x20) || (g_game->team_index != -1 && ((unsigned char*)g_game->teams->data)[g_game->team_index * 347] == 3)) {
+        if (!IsKeyDown(0x20) || (g_game->team_index != -1 && ((unsigned char*)g_game->teams->data)[g_game->team_index * 347] == 3)) {
             if (v < 0) {
                 if (v == -31)
                     FUN_0047f1a0("Panel", 0);

@@ -17,7 +17,7 @@ struct Class_0051fba4 {
     Font_004a50b0* font;               // +0x14
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 void* __stdcall GetGafFrame(void* glyphs, int c);
 int GetFont();
@@ -28,20 +28,20 @@ void __stdcall FUN_004a50e0(char* dest, char* text, int p3, int x, int maxw, int
 
 static inline int LineHeight_004a50b0()
 {
-    if (DAT_0051fba4->font == 0)
+    if (g_guiContext->font == 0)
         return GetFontHeight();
-    return (int)((Glyph_004a50b0*)GetGafFrame(DAT_0051fba4->font->glyphs, 'I'))->height + 2;
+    return (int)((Glyph_004a50b0*)GetGafFrame(g_guiContext->font->glyphs, 'I'))->height + 2;
 }
 
 static inline int Measure(char* word, int t)
 {
     if (word == 0)
         return t;
-    if (DAT_0051fba4->font == 0)
+    if (g_guiContext->font == 0)
         return GetTextWidth(GetFont(), word);
     for (char* n = word; *n; n++) {
         unsigned char ch = *n;
-        unsigned short* g = (unsigned short*)GetGafFrame(DAT_0051fba4->font->glyphs, ch);
+        unsigned short* g = (unsigned short*)GetGafFrame(g_guiContext->font->glyphs, ch);
         if (g)
             t += *g;
     }

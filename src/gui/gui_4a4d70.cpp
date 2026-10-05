@@ -86,7 +86,7 @@ struct LanguageRoot_004a4d70 {
 };
 #pragma pack(pop)
 
-extern LanguageRoot_004a4d70* DAT_0051fba4;
+extern LanguageRoot_004a4d70* g_guiContext;
 
 void __stdcall SetFont(int id);
 int GetFont();
@@ -95,7 +95,7 @@ int GetFontHeight();
 int __stdcall GetGafFrame(unsigned short* glyphs, int c);
 void __stdcall SetTextColors(int colour, int font);
 int GetTextKeyColor();
-int __stdcall FUN_004b0230(Class_004a4d70* obj, int index, void* bmp);
+int __stdcall DrawListboxFrame(Class_004a4d70* obj, int index, void* bmp);
 void __stdcall CopySurfaceRect(void* dst, void* src, Rect_004a4d70* rect, int* pos);
 int __stdcall FillRectangle(void* surface, Rect_004a4d70* rect, int colour);
 int __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
@@ -104,7 +104,7 @@ void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
 
 static inline Glyph_004a4d70* GetGlyph_004a4d70(unsigned char c)
 {
-    return (Glyph_004a4d70*)GetGafFrame(DAT_0051fba4->language->glyphs, c);
+    return (Glyph_004a4d70*)GetGafFrame(g_guiContext->language->glyphs, c);
 }
 
 static inline int Measure_004a4d70(char* text)
@@ -113,7 +113,7 @@ static inline int Measure_004a4d70(char* text)
     char* p = text;
     if (p == 0)
         return 0;
-    if (DAT_0051fba4->language == 0)
+    if (g_guiContext->language == 0)
         return GetTextWidth(GetFont(), text);
     char* q = text;
     while (*q != 0) {
@@ -127,7 +127,7 @@ static inline int Measure_004a4d70(char* text)
 }
 
 // FUNCTION: 0x4a4d70
-void __stdcall FUN_004a4d70(Class_004a4d70* obj, int index)
+void __stdcall DrawTextInput(Class_004a4d70* obj, int index)
 {
     Entry_004a4d70* entries = obj->holder->entries;
     int i = 1;
@@ -142,7 +142,7 @@ void __stdcall FUN_004a4d70(Class_004a4d70* obj, int index)
         }
     }
     if (i == entries->b6.count + 1)
-        SetFont(DAT_0051fba4->current);
+        SetFont(g_guiContext->current);
 
     Entry_004a4d70* me = &entries[index];
 
@@ -164,7 +164,7 @@ void __stdcall FUN_004a4d70(Class_004a4d70* obj, int index)
         if (surface == 0)
             surface = obj->fallback;
         if (surface == 0) {
-            FUN_004b0230(obj, index, 0);
+            DrawListboxFrame(obj, index, 0);
         } else {
             CopySurfaceRect(entries->surface, surface, &rect, (int*)&rect);
         }
@@ -185,7 +185,7 @@ void __stdcall FUN_004a4d70(Class_004a4d70* obj, int index)
         int w = Measure_004a4d70(me->b6.text);
         *at = save;
         int height;
-        if (DAT_0051fba4->language == 0)
+        if (g_guiContext->language == 0)
             height = GetFontHeight();
         else
             height = GetGlyph_004a4d70(0x49)->height + 2;

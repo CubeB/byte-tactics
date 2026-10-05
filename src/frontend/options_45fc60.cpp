@@ -96,13 +96,13 @@ extern void* DAT_00512fe8;
 extern void* DAT_00512ff4;
 extern int DAT_00506788;
 
-void __stdcall FUN_004a11c0(Gadget_0045fc60* gadget, int id, int flag);
-void __stdcall FUN_004a81e0(char* menu, int value);
+void __stdcall SetGadgetStatus(Gadget_0045fc60* gadget, int id, int flag);
+void __stdcall RenderLayer(char* menu, int value);
 void __stdcall FUN_0049fa90(char* menu);
 void __stdcall FUN_004ab170(char* menu, int a, int b);
 void __stdcall SetOffscreenSurface(int value);
 void FlipScreen();
-int __stdcall FUN_0049fd60(Gadget_0045fc60* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_0045fc60* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 void FUN_0045ed50();
 void __stdcall FUN_0045e5e0(int flag);
@@ -122,30 +122,30 @@ void __stdcall FUN_0045fc60(Gadget_0045fc60* gadget)
     if (gadget->field_60 == -1)
         goto cleanup;
     {
-        FUN_004a11c0(gadget, gadget->field_60, 1);
+        SetGadgetStatus(gadget, gadget->field_60, 1);
         if (g_game->bit2) {
         } else {
-            FUN_004a81e0(g_game->menu_519, 0x40);
+            RenderLayer(g_game->menu_519, 0x40);
             FUN_0049fa90(g_game->menu_519);
             FUN_004ab170(g_game->menu_519, 0, 0);
             SetOffscreenSurface(*(int*)((char*)g_game + 0x37e1b));
             FlipScreen();
         }
-        if (FUN_0049fd60(gadget, "SPEEDS")) {
+        if (IsCurrentGadgetNamed(gadget, "SPEEDS")) {
             FUN_0047f1a0("Options", 0);
             FUN_0045ed50();
-        } else if (FUN_0049fd60(gadget, "VISUALS")) {
+        } else if (IsCurrentGadgetNamed(gadget, "VISUALS")) {
             FUN_0047f1a0("Options", 0);
             FUN_0045e5e0(0);
-        } else if (FUN_0049fd60(gadget, "MUSIC")) {
+        } else if (IsCurrentGadgetNamed(gadget, "MUSIC")) {
             FUN_0047f1a0("Options", 0);
             FUN_0045d7c0();
-        } else if (FUN_0049fd60(gadget, "PREV")) {
+        } else if (IsCurrentGadgetNamed(gadget, "PREV")) {
             FUN_0047f1a0("Options", 0);
             FUN_00430f00();
             DAT_00506788 = 1;
             return;
-        } else if (FUN_0049fd60(gadget, "CANCEL")) {
+        } else if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
             FUN_0047f1a0("Previous", 0);
             FUN_0045c820();
             g_game->volume2 = DAT_00512f42;
@@ -172,7 +172,7 @@ void __stdcall FUN_0045fc60(Gadget_0045fc60* gadget)
             FUN_0045cae0();
             DAT_00506788 = 1;
             return;
-        } else if (FUN_0049fd60(gadget, "SOUND")) {
+        } else if (IsCurrentGadgetNamed(gadget, "SOUND")) {
             FUN_0047f1a0("Options", 0);
             FUN_0045de30();
         } else {

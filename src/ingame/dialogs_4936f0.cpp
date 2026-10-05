@@ -103,33 +103,33 @@ struct Game {
 extern Game* g_game;
 extern int DAT_0051e6d0[10];
 
-Layer_004936f0* __stdcall FUN_004aa8f0(Menu_004936f0* menu, const char* name, int flags);
+Layer_004936f0* __stdcall LoadGuiLayer(Menu_004936f0* menu, const char* name, int flags);
 void __stdcall FUN_004934b0(void* gadget);
-int __stdcall FUN_0049fdf0(char* entries, char* name, int type);
+int __stdcall FindGadgetIndex(char* entries, char* name, int type);
 Entry_004936f0* __stdcall FUN_004a0200(char* entries, char* name);
 void __stdcall FUN_00493340(void* entry, int param_2);
 void __stdcall FUN_00493390(void* entry, int param_2);
 void __stdcall FUN_0045b9b0(void* entry, int param_2);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __stdcall FUN_004a9660(Menu_004936f0* menu);
+void __stdcall CloseTopScreen(Menu_004936f0* menu);
 void __stdcall FUN_004a32a0(Menu_004936f0* menu, char* name, char* text, int count, int flag);
 int __stdcall FUN_0045ba20(Entry_004936f0* entry);
 void __stdcall FUN_004a0bf0(Menu_004936f0* menu, char* name, char* text, int param_4);
 void __stdcall FUN_0049fa90(Menu_004936f0* menu);
 void __stdcall FUN_0049fb10(Menu_004936f0* menu, int value);
-void __stdcall FUN_004a81e0(Menu_004936f0* menu, int value);
+void __stdcall RenderLayer(Menu_004936f0* menu, int value);
 
 // FUNCTION: 0x4936f0
 void FUN_004936f0()
 {
     if (g_game->players[g_game->localPlayer].owner->bit6)
         return;
-    Layer_004936f0* layer = FUN_004aa8f0(&g_game->menu, "SHARE.GUI", 0x800);
+    Layer_004936f0* layer = LoadGuiLayer(&g_game->menu, "SHARE.GUI", 0x800);
     g_game->bit6_37ebe = 1;
     char* entries = layer->entries;
     layer->handler = FUN_004934b0;
     layer->data = g_game;
-    int idx = FUN_0049fdf0(entries, "METAL", 0xe);
+    int idx = FindGadgetIndex(entries, "METAL", 0xe);
     if (idx != -1) {
         Entry_004936f0* e = (Entry_004936f0*)(entries + idx * 0x15b);
         e->field_142 = ((Entry_004936f0*)(layer->entries + idx * 0x15b))->field_19;
@@ -140,7 +140,7 @@ void FUN_004936f0()
         FUN_0045b9b0(e, 0);
         e->field_14a = g_game;
     }
-    idx = FUN_0049fdf0(layer->entries, "ENERGY", 0xe);
+    idx = FindGadgetIndex(layer->entries, "ENERGY", 0xe);
     if (idx != -1) {
         Entry_004936f0* e = FUN_004a0200(layer->entries, "ENERGY");
         e->field_142 = ((Entry_004936f0*)(layer->entries + idx * 0x15b))->field_19;
@@ -170,7 +170,7 @@ void FUN_004936f0()
         }
     }
     if (count == 0) {
-        FUN_004a9660(&g_game->menu);
+        CloseTopScreen(&g_game->menu);
         return;
     }
     FUN_004a32a0(&g_game->menu, "PLYRLIST", names, count, 0);
@@ -193,5 +193,5 @@ void FUN_004936f0()
     }
     FUN_0049fa90(&g_game->menu);
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

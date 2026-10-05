@@ -72,13 +72,13 @@ extern int DAT_0051228c;
 extern int DAT_0051229c;
 extern char* DAT_00512298;
 
-void __stdcall FUN_004a9660(Sub_004263b0* sub);
+void __stdcall CloseTopScreen(Sub_004263b0* sub);
 void FUN_004c2470();
 void __stdcall SetOffscreenSurface(int param);
 void __stdcall FillSurface(int a, int b);
 void FlipScreen();
 void FUN_00491a70();
-Dialog_004263b0* __stdcall FUN_004aa8f0(Sub_004263b0* sub, const char* name, int flags);
+Dialog_004263b0* __stdcall LoadGuiLayer(Sub_004263b0* sub, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void __stdcall FUN_0047f210(const char* name, int a);
 void __stdcall FUN_0049fa50(Sub_004263b0* sub);
@@ -89,13 +89,13 @@ void __stdcall FUN_004290f0(char* dest, const char* a, const char* b, const char
 void* __stdcall FUN_004bbe50(char* name, int flag);
 void __stdcall FUN_004ac7d0(Sub_004263b0* sub, int value, void* palette);
 void __cdecl FUN_004d85a0(void* palette);
-void __stdcall FUN_004a81e0(Sub_004263b0* sub, int value);
+void __stdcall RenderLayer(Sub_004263b0* sub, int value);
 void __stdcall FUN_0049fb10(Sub_004263b0* sub, int value);
 void __stdcall SetFont(void* param);
 void __stdcall FUN_004a0570(Sub_004263b0* sub, const char* name, int value);
-void __stdcall FUN_004a07d0(Sub_004263b0* sub, const char* name, const char* text);
-int __stdcall FUN_004a5030(const char* text);
-int __stdcall FUN_0049fdf0(char* gadgets, const char* name, int type);
+void __stdcall SetGadgetTextByName(Sub_004263b0* sub, const char* name, const char* text);
+int __stdcall GetTextPixelWidth(const char* text);
+int __stdcall FindGadgetIndex(char* gadgets, const char* name, int type);
 int GetTextKeyColor();
 void __stdcall SetTextColors(unsigned int a, int b);
 void FUN_004c2870();
@@ -104,14 +104,14 @@ void* __cdecl FUN_004d83b0(const char* name, int size);
 void __stdcall FUN_00426200();
 int __stdcall CheckDirectXVersion(int a, int b, int c, int d, int e);
 char* __stdcall FUN_004c5740(const char* text);
-void __stdcall FUN_004abd90(Sub_004263b0* sub, char* text, int a, int b, int c);
+void __stdcall OpenMessageBox(Sub_004263b0* sub, char* text, int a, int b, int c);
 void __stdcall FUN_00429000();
 
 // FUNCTION: 0x4263b0
 void __stdcall FUN_004263b0()
 {
     while (g_game->sub.current != 0) {
-        FUN_004a9660(&g_game->sub);
+        CloseTopScreen(&g_game->sub);
     }
 
     FUN_004c2470();
@@ -120,7 +120,7 @@ void __stdcall FUN_004263b0()
     FlipScreen();
     FUN_00491a70();
 
-    Dialog_004263b0* dialog = FUN_004aa8f0(&g_game->sub, "MAINMENU.GUI", 0x80);
+    Dialog_004263b0* dialog = LoadGuiLayer(&g_game->sub, "MAINMENU.GUI", 0x80);
     dialog->handler = FUN_00425d80;
     dialog->field_c = 0;
     dialog->field_1c = FUN_00425b80;
@@ -141,18 +141,18 @@ void __stdcall FUN_004263b0()
     void* palette = FUN_004bbe50(palpath, 0);
     FUN_004ac7d0(&g_game->sub, (int)found, palette);
     FUN_004d85a0(palette);
-    FUN_004a81e0(&g_game->sub, 0xc0);
+    RenderLayer(&g_game->sub, 0xc0);
     FUN_0049fb10(&g_game->sub, 1);
     SetFont(g_game->field_391f9);
 
     strcpy(version, "v3.1");
     strcpy(palpath, version);
     FUN_004a0570(&g_game->sub, "DebugString", 1);
-    FUN_004a07d0(&g_game->sub, "DebugString", palpath);
+    SetGadgetTextByName(&g_game->sub, "DebugString", palpath);
 
     char* gadgets = g_game->sub.current->gadgets;
-    int width = FUN_004a5030(palpath);
-    short* px = (short*)(gadgets + 0x15b * FUN_0049fdf0(gadgets, "DebugString", 5) + 0x13);
+    int width = GetTextPixelWidth(palpath);
+    short* px = (short*)(gadgets + 0x15b * FindGadgetIndex(gadgets, "DebugString", 5) + 0x13);
     *px += -(width / 2);
 
     SetTextColors(g_game->field_dda, GetTextKeyColor());
@@ -175,13 +175,13 @@ void __stdcall FUN_004263b0()
             if (_snprintf(text, 300, FUN_004c5740(DAT_004fd050), "\n", "\n", "\n", "\n") < 0) {
                 text[299] = 0;
             }
-            FUN_004abd90(&g_game->sub, text, 200, 1, 1);
+            OpenMessageBox(&g_game->sub, text, 200, 1, 1);
         }
     }
 
     if (DAT_00512294 == 0) {
         if (((Class_004cff20*)g_game->field_10)->FUN_004cff20()) {
-            FUN_004abd90(&g_game->sub, FUN_004c5740("No sound driver is available for use.\n"), 500, 1, 1);
+            OpenMessageBox(&g_game->sub, FUN_004c5740("No sound driver is available for use.\n"), 500, 1, 1);
             DAT_00512294 = 1;
         }
     }

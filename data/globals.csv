@@ -753,7 +753,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51fb98,DAT_0051fb98,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51fb9c,DAT_0051fb9c,.bss,4,type,data,int,1,2,3,conflicting: shape,3,,DAT_0051fb9c,,,
 0x51fba0,DAT_0051fba0,.bss,4,type,data,int*,2,0,1,one type,2,,PTR_0051fba0,,,
-0x51fba4,DAT_0051fba4,.bss,4,type,data,Class_0051fba4*,15,16,17,conflicting: shape,31,,DAT_0051fba4,,,
+0x51fba4,g_guiContext,.bss,4,type,data,Class_0051fba4*,15,16,17,conflicting: shape,31,,DAT_0051fba4,,,
 0x51fba8,DAT_0051fba8,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051fba8,,,
 0x51fbac,DAT_0051fbac,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051fbac,,,
 0x51fbb0,DAT_0051fbb0,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051fbb0,,,

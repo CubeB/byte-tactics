@@ -60,7 +60,7 @@ extern Record_005129b4* DAT_005129b4;
 // GLOBAL: 0x5129c8
 extern int DAT_005129c8;
 
-Entry_44c220* __stdcall FUN_0049ff90(void* entries, const char* name);
+Entry_44c220* __stdcall FindGadgetChecked(void* entries, const char* name);
 int GetTicks();
 void FUN_0044c0d0();
 void __stdcall FUN_0044bfd0(void* menu, int value);
@@ -71,7 +71,7 @@ void FUN_0044c220()
 {
     Event_44c220 event;
     int n = 0;
-    Entry_44c220* entry = (Entry_44c220*)FUN_0049ff90(g_game->holder->entries, "PICLIST");
+    Entry_44c220* entry = (Entry_44c220*)FindGadgetChecked(g_game->holder->entries, "PICLIST");
 
     if (DAT_005129c8 < GetTicks()) {
         DAT_005129c8 = GetTicks() + 2;

@@ -20,7 +20,7 @@ struct Queue_4c2e30 {
 int GetDisplay(void);
 
 // FUNCTION: 0x4c2e30
-void __stdcall FUN_004c2e30(Event_4c2e30* ev)
+void __stdcall PushMouseEvent(Event_4c2e30* ev)
 {
     Queue_4c2e30* q = (Queue_4c2e30*)GetDisplay();
     if ((q->head + 1) % q->capacity != q->tail) {

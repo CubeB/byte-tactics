@@ -11,12 +11,12 @@ struct Class_0051fba4 {
     Font_004a5010* font;               // +0x14
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 void* __stdcall GetGafFrame(void* a, int b);
 
 // FUNCTION: 0x4a5010
-void* __stdcall FUN_004a5010(unsigned char c)
+void* __stdcall GetCharGlyph(unsigned char c)
 {
-    return GetGafFrame(DAT_0051fba4->font->glyphs, c);
+    return GetGafFrame(g_guiContext->font->glyphs, c);
 }

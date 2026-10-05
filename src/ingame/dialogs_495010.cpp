@@ -7,8 +7,8 @@
 // What the code does: it opens (or closes) the TABMENU.GUI tab menu page. If any
 // of bits 5 to 7 of the flags word at +0x2bee is set the page is being closed:
 // the bits are cleared and the gui is either hidden, or torn down when
-// FUN_004ab060 does not find the file. Otherwise the bit 5 "open" flag is set,
-// the gui is fetched through FUN_004aa8f0 and given a click handler and an owner,
+// IsScreenNamed does not find the file. Otherwise the bit 5 "open" flag is set,
+// the gui is fetched through LoadGuiLayer and given a click handler and an owner,
 // and the three ALLIES / SHARE / CONTROL checkboxes are set. The two first ones
 // are enabled when the player count of free, non allied slots is positive and
 // the net mode is 3, CONTROL also needs bit 0 of +0x2c74 clear and IsHostLocal
@@ -78,15 +78,15 @@ struct Gadget_00495010 {
 extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-int __stdcall FUN_004ab060(Sub_00495010* sub, const char* name);
-void __stdcall FUN_004a9660(Sub_00495010* sub);
+int __stdcall IsScreenNamed(Sub_00495010* sub, const char* name);
+void __stdcall CloseTopScreen(Sub_00495010* sub);
 void FUN_004c2470();
-Gadget_00495010* __stdcall FUN_004aa8f0(Sub_00495010* sub, const char* name, int flags);
+Gadget_00495010* __stdcall LoadGuiLayer(Sub_00495010* sub, const char* name, int flags);
 void __stdcall FUN_00494740(Gadget_00495010* gadget);
 int IsHostLocal();
 void __stdcall FUN_004a0570(Sub_00495010* sub, char* name, int value);
 void __stdcall FUN_0049fa50(Sub_00495010* sub);
-void __stdcall FUN_004a81e0(Sub_00495010* sub, int value);
+void __stdcall RenderLayer(Sub_00495010* sub, int value);
 void FUN_004c2870();
 
 // FUNCTION: 0x495010
@@ -96,13 +96,13 @@ void FUN_00495010()
     unsigned short f = g_game->flags;
     if (f & 0xe0) {
         g_game->flags = f & 0xff1f;
-        if (FUN_004ab060(&g_game->sub, "TABMENU.GUI"))
-            FUN_004a9660(&g_game->sub);
+        if (IsScreenNamed(&g_game->sub, "TABMENU.GUI"))
+            CloseTopScreen(&g_game->sub);
         return;
     }
     g_game->flags = (f & 0xff3f) | 0x20;
     FUN_004c2470();
-    Gadget_00495010* d = FUN_004aa8f0(&g_game->sub, "TABMENU.GUI", 0x800);
+    Gadget_00495010* d = LoadGuiLayer(&g_game->sub, "TABMENU.GUI", 0x800);
     d->owner = g_game;
     d->handler = FUN_00494740;
 
@@ -128,6 +128,6 @@ void FUN_00495010()
         FUN_004a0570(&g_game->sub, "CONTROL", 0);
     }
     FUN_0049fa50(&g_game->sub);
-    FUN_004a81e0(&g_game->sub, 0x40);
+    RenderLayer(&g_game->sub, 0x40);
     FUN_004c2870();
 }

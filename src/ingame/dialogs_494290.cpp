@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Draws a gadget's image at the gadget's position (FUN_004a1630 fills its
+// Draws a gadget's image at the gadget's position (GetGadgetRect fills its
 // bounding rectangle).
 
 #pragma pack(push, 1)
@@ -33,7 +33,7 @@ struct Rect_00494290 {
     int y2;
 };
 
-void __stdcall FUN_004a1630(Entry_00494290* entry, Rect_00494290* rect);
+void __stdcall GetGadgetRect(Entry_00494290* entry, Rect_00494290* rect);
 void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 
 // FUNCTION: 0x494290
@@ -41,7 +41,7 @@ void __stdcall FUN_00494290(Gadget_00494290* gadget, Entry_00494290* entry)
 {
     if (entry->image) {
         Rect_00494290 r;
-        FUN_004a1630(entry, &r);
+        GetGadgetRect(entry, &r);
         DrawSurface(gadget->inner->entries->surface, entry->image, r.x1, r.y1);
     }
 }

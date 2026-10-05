@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Fills a rectangle, then draws its bevelled border through FUN_004b0090
+// Fills a rectangle, then draws its bevelled border through DrawBevelBorder
 // (compare 0x4b0510 and 0x4b0590).
 
 struct Rect_004b0510 {
@@ -10,11 +10,11 @@ struct Rect_004b0510 {
 };
 
 void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
-void __stdcall FUN_004b0090(void* surface, Rect_004b0510* rect, int light, int dark, int fill);
+void __stdcall DrawBevelBorder(void* surface, Rect_004b0510* rect, int light, int dark, int fill);
 
 // FUNCTION: 0x4b04b0
-void __stdcall FUN_004b04b0(void* surface, Rect_004b0510* rect, int light, int dark, int fill)
+void __stdcall FillBevelBox(void* surface, Rect_004b0510* rect, int light, int dark, int fill)
 {
     FillRectangle(surface, rect, fill);
-    FUN_004b0090(surface, rect, light, dark, fill);
+    DrawBevelBorder(surface, rect, light, dark, fill);
 }

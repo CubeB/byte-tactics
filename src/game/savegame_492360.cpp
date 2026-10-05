@@ -132,11 +132,11 @@ void __stdcall FUN_00491b60();
 void __stdcall FUN_00491d70(int flag);
 void FUN_00496bb0();
 void __stdcall FUN_0049fa70(void* menu);
-int __stdcall FUN_0049fd60(Gadget_00492360* gadget, char* name);
-Entry_00492360* __stdcall FUN_0049ff90(Entry_00492360* entries, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_00492360* gadget, char* name);
+Entry_00492360* __stdcall FindGadgetChecked(Entry_00492360* entries, char* name);
 void __stdcall FUN_004ab0a0(Gadget_00492360* menu);
 void __stdcall FUN_004ab400(void* menu, void* data);
-void __stdcall FUN_004abd90(void* menu, char* message, int a, int b, int c);
+void __stdcall OpenMessageBox(void* menu, char* message, int a, int b, int c);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __cdecl LeaveNetGameCallback(int param);
@@ -160,7 +160,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
     if (gadget->field_60 == -1)
         return;
 
-    if (FUN_0049fd60(gadget, "CANCEL")) {
+    if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
         if (g_game->flags_2a44.b2)
             FUN_0049fa70(g_game->message);
         if (DAT_0051f2e0)
@@ -178,12 +178,12 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
         FUN_0047f1a0("Previous", 0);
         return;
     }
-    if (!FUN_0049fd60(gadget, "LOAD") && !FUN_0049fd60(gadget, "GAMES")) {
+    if (!IsCurrentGadgetNamed(gadget, "LOAD") && !IsCurrentGadgetNamed(gadget, "GAMES")) {
         if (gadget->field_60 != -1)
             FUN_004ab0a0(gadget);
         return;
     }
-    Entry_00492360* e = FUN_0049ff90(entries, "GAMES");
+    Entry_00492360* e = FindGadgetChecked(entries, "GAMES");
     sprintf(buf, "%s\\%s", DAT_005091c8, FUN_004b6af0(DAT_0051f2e0, e->field_ba));
     void* save = FUN_00432520(buf);
     if (save != 0) {
@@ -192,7 +192,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
         switch (type) {
         case 1:
             if (!FUN_0041d6a0(0)) {
-                FUN_004abd90(g_game->message,
+                OpenMessageBox(g_game->message,
                     FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
                     200, 1, 1);
                 FUN_004ab0a0((Gadget_00492360*)g_game->message);
@@ -201,7 +201,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
             break;
         case 2:
             if (!FUN_0041d6a0(1)) {
-                FUN_004abd90(g_game->message,
+                OpenMessageBox(g_game->message,
                     FUN_004c5740("Please insert the Multiplayer CD (Disc 1) and try again"),
                     200, 1, 1);
                 FUN_004ab0a0((Gadget_00492360*)g_game->message);
@@ -220,7 +220,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
         if (g_game->flags_2a44.b2)
             FUN_0049fa70(g_game->message);
         FUN_0047f1a0("SMLBUTTON", 0);
-        e = FUN_0049ff90(entries, "GAMES");
+        e = FindGadgetChecked(entries, "GAMES");
         sprintf(g_game->saveName, "%s\\%s", DAT_005091c8,
                 FUN_004b6af0(DAT_0051f2e0, e->field_ba));
         if (g_game->flags_2a44.b2)
@@ -311,6 +311,6 @@ invalid:
         DeleteSave_00492360((Class_004b3630*)g_game->p38d6b);
     }
     g_game->p38d6b = 0;
-    FUN_004abd90(gadget, FUN_004c5740("Invalid savegame file"), 0x140, 1, 1);
+    OpenMessageBox(gadget, FUN_004c5740("Invalid savegame file"), 0x140, 1, 1);
     FUN_004ab0a0(gadget);
 }

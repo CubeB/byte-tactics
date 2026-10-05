@@ -107,11 +107,11 @@ extern Game* g_game;
 void FUN_004257a0();
 void __stdcall FillSurface(int param_1, int param_2);
 void FlipScreen();
-Layer_0041f0a0* __stdcall FUN_004aa8f0(Menu_0041f0a0* menu, const char* name, int flags);
+Layer_0041f0a0* __stdcall LoadGuiLayer(Menu_0041f0a0* menu, const char* name, int flags);
 void __stdcall FUN_0041ec50(void* gadget);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-void __stdcall FUN_004a76b0(Menu_0041f0a0* menu, const char* name);
+void __stdcall SelectGadgetByName(Menu_0041f0a0* menu, const char* name);
 int __stdcall FUN_0041eaa0(int names, char* flags, int count);
 void __stdcall FUN_004a32a0(Menu_0041f0a0* menu, char* name, int items, int count, int flag);
 Entry_0041f0a0* __stdcall FUN_004a0200(char* entries, char* name);
@@ -121,7 +121,7 @@ int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 void __stdcall DrawFrame(void* param_1, int param_2, int x, int y);
 void __stdcall FUN_004a0bf0(Menu_0041f0a0* menu, char* name, char* text, int param_4);
 void __stdcall FUN_0049fb10(Menu_0041f0a0* menu, int value);
-void __stdcall FUN_004a81e0(Menu_0041f0a0* menu, int value);
+void __stdcall RenderLayer(Menu_0041f0a0* menu, int value);
 void __stdcall FUN_00491c80(int param_1);
 
 
@@ -143,7 +143,7 @@ void __stdcall FUN_0041f0a0()
     FUN_004257a0();
     FillSurface(g_game->surface, 0);
     FlipScreen();
-    Layer_0041f0a0* layer = FUN_004aa8f0(&g_game->menu, "ENDMSN.GUI", 0x80);
+    Layer_0041f0a0* layer = LoadGuiLayer(&g_game->menu, "ENDMSN.GUI", 0x80);
     layer->handler = FUN_0041ec50;
     Data_0041f0a0* data = (Data_0041f0a0*)FUN_004d83b0("EndMsnGUI", 0x20);
     data->items = 0;
@@ -156,7 +156,7 @@ void __stdcall FUN_0041f0a0()
         strcpy(layer->entries + 0xcc, "Start");
     } else {
         FUN_004288d0("outcome0", 1, 1, 0);
-        FUN_004a76b0(&g_game->menu, "MainMenu");
+        SelectGadgetByName(&g_game->menu, "MainMenu");
     }
     next = HasNextMission();
     if (next) {
@@ -187,6 +187,6 @@ void __stdcall FUN_0041f0a0()
     if (g_game->flag4)
         FUN_004a0bf0(&g_game->menu, "MainMenu", "OK", 0);
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
     FUN_00491c80(0x13);
 }

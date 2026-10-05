@@ -69,7 +69,7 @@ GafEntry_004b8d40* __stdcall FindGafEntry(Gaf_004b8d40* gaf, const char* name);
 Frame_004a7f70* __stdcall GetGafFrame(GafEntry_004b8d40* table, int index);
 
 // FUNCTION: 0x4a7f70
-void __stdcall FUN_004a7f70(Button_004a7f70* button, Obj_004a7f70* obj)
+void __stdcall FindButtonGaf(Button_004a7f70* button, Obj_004a7f70* obj)
 {
     char name[0x10];
     char str[0x20];

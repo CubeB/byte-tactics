@@ -11,7 +11,7 @@
 //   callers, defined above unannotated and inlined (0x449bb0 calls it too).
 //   It keeps the menu in esi and the index in edi for the FUN_0044bfd0 and
 //   FUN_0049fa90 calls, which the older file could not reproduce.
-// - FUN_004a35a0 takes the menu's table (g_game+0x531), not its entries.
+// - SetGadgetRows takes the menu's table (g_game+0x531), not its entries.
 // - The scan loop skips with `continue` on the unit type's bit 15 (an int
 //   bitfield, tested positively: shr/test) and on its name.
 // - The limit is one ternary (`count = info.field_c == -1 ? 0x65 :
@@ -125,17 +125,17 @@ extern int* DAT_005129c4;
 extern int DAT_00512768;
 extern int DAT_005129c0;
 
-Layer_0044c7e0* __stdcall FUN_004aa8f0(Gui_0044c7e0* gui, const char* name, int size);
+Layer_0044c7e0* __stdcall LoadGuiLayer(Gui_0044c7e0* gui, const char* name, int size);
 int __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-Gadget_0044c7e0* __stdcall FUN_0049ff90(Gadget_0044c7e0* entries, char* name);
-int __stdcall FUN_0049fdf0(Gadget_0044c7e0* entries, char* name, int type);
+Gadget_0044c7e0* __stdcall FindGadgetChecked(Gadget_0044c7e0* entries, char* name);
+int __stdcall FindGadgetIndex(Gadget_0044c7e0* entries, char* name, int type);
 Gadget_0044c7e0* __stdcall FUN_004a0200(Gadget_0044c7e0* entries, char* name);
 void __stdcall FUN_004a0bf0(Gui_0044c7e0* gui, char* name, char* text, int flag);
 void __stdcall FUN_004a1250(Gui_0044c7e0* gui, char* name, int enabled);
 void __stdcall FUN_004a32a0(Gui_0044c7e0* gui, char* name, char* text, int count, int flag);
-void __stdcall FUN_004a35a0(Layer_0044c7e0* table, char* name, int* pics, int count);
-void __stdcall FUN_004a81e0(Gui_0044c7e0* gui, int value);
+void __stdcall SetGadgetRows(Layer_0044c7e0* table, char* name, int* pics, int count);
+void __stdcall RenderLayer(Gui_0044c7e0* gui, int value);
 void __stdcall FUN_0049fa90(Gui_0044c7e0* gui);
 void __stdcall FUN_0049fb10(Gui_0044c7e0* gui, int value);
 void __stdcall FUN_0045b9b0(Gadget_0044c7e0* gadget, int value);
@@ -152,7 +152,7 @@ void __stdcall FUN_00445e50(char* name, int max, int value, Callback_0044c7e0 ca
 {
     Gui_0044c7e0* gui = &g_game->gui;
     Gadget_0044c7e0* gadgets = gui->table->entries;
-    int index = FUN_0049fdf0(gadgets, name, 0xe);
+    int index = FindGadgetIndex(gadgets, name, 0xe);
     if (index != -1) {
         Gadget_0044c7e0* gadget = FUN_004a0200(gadgets, name);
         gadget->max = max;
@@ -180,7 +180,7 @@ void FUN_0044c7e0()
     int n;
     int i;
 
-    layer = FUN_004aa8f0(&g_game->gui, "RESTRICT2.GUI", 0x880);
+    layer = LoadGuiLayer(&g_game->gui, "RESTRICT2.GUI", 0x880);
     layer->handler = FUN_0044c420;
     layer->field_c = 0;
     layer->field_1c = FUN_0044c220;
@@ -189,13 +189,13 @@ void FUN_0044c7e0()
 
     entries = layer->entries;
     flags = (char*)FUN_004d83b0("FLAGS", g_game->numUnitTypes);
-    desc = FUN_0049ff90(entries, "DESCLIST");
+    desc = FindGadgetChecked(entries, "DESCLIST");
     desc->field_ce = FUN_0044c370;
     desc->flags = flags;
     desc->field_da = 0x20;
     desc->field_1b |= 0x100;
 
-    pic = FUN_0049ff90(layer->entries, "PICLIST");
+    pic = FindGadgetChecked(layer->entries, "PICLIST");
     pic->flags = flags;
     pic->field_1b |= 0x180;
     pic->field_da = desc->field_da;
@@ -259,7 +259,7 @@ void FUN_0044c7e0()
     FUN_00445e50("SCROLLSLIDER", 0xd2, 0, FUN_0044bfd0);
 
     FUN_004a32a0(&g_game->gui, "DESCLIST", text, n, 0);
-    FUN_004a35a0(g_game->gui.table, "PICLIST", pics, n);
+    SetGadgetRows(g_game->gui.table, "PICLIST", pics, n);
     FUN_0044bfd0(&g_game->gui, 0);
 
     {
@@ -278,7 +278,7 @@ void FUN_0044c7e0()
         FUN_004a1250(&g_game->gui, "Save", enabled);
         FUN_004a1250(&g_game->gui, "Reset", enabled);
     }
-    FUN_004a81e0(&g_game->gui, 0x40);
+    RenderLayer(&g_game->gui, 0x40);
     FUN_0049fb10(&g_game->gui, 1);
     DAT_005129c0 = 0;
 }

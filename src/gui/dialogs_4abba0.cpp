@@ -4,7 +4,7 @@
 
 struct Entry_004abba0;
 
-int __stdcall FUN_004a0300(Entry_004abba0* entries, int i, char* name);
+int __stdcall IsGadgetNamed(Entry_004abba0* entries, int i, char* name);
 
 struct Layer_004abba0 {
     int unknown_0;
@@ -19,10 +19,10 @@ struct Gadget_004abba0 {
 };
 
 // FUNCTION: 0x4abba0
-void __stdcall FUN_004abba0(Gadget_004abba0* gadget)
+void __stdcall YesNoDialogHandler(Gadget_004abba0* gadget)
 {
     Entry_004abba0* entries = gadget->layer->entries;
     int index = gadget->index;
-    FUN_004a0300(entries, index, "CHC1");
-    FUN_004a0300(entries, index, "CHC2");
+    IsGadgetNamed(entries, index, "CHC1");
+    IsGadgetNamed(entries, index, "CHC2");
 }

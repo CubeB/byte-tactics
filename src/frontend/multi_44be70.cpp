@@ -62,7 +62,7 @@ public:
 extern Game* g_game;
 extern Item_005129b4* DAT_005129b4;
 
-Entry_0044be70* __stdcall FUN_0049ff90(void* gadgets, char* name);
+Entry_0044be70* __stdcall FindGadgetChecked(void* gadgets, char* name);
 int __stdcall FUN_0045ba20(char* text);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004a0bf0(void* obj, char* name, int param_3, int param_4);
@@ -71,7 +71,7 @@ void __stdcall FUN_004a0bf0(void* obj, char* name, int param_3, int param_4);
 void __stdcall FUN_0044be70(void* obj, char* gadget)
 {
     int n = atoi(gadget + 8);
-    Entry_0044be70* desc = FUN_0049ff90(g_game->menu.inner->gadgets, "DESCLIST");
+    Entry_0044be70* desc = FindGadgetChecked(g_game->menu.inner->gadgets, "DESCLIST");
     char count[20];
     sprintf(count, "COUNT%d", n);
     int value = FUN_0045ba20(gadget);

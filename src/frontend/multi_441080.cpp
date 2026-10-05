@@ -49,20 +49,20 @@ extern Game* g_game;
 extern char DAT_00512d48;
 
 void __stdcall FUN_00440d70(void* gadget);
-Layer_441080* __stdcall FUN_004aa8f0(Menu_441080* menu, const char* name, int flags);
+Layer_441080* __stdcall LoadGuiLayer(Menu_441080* menu, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 int IsOnlineConfigLoaded(void);
 Entry_441080* __stdcall FUN_004a0010(Entry_441080* entries, char* name);
 void __stdcall FUN_004a0bf0(Menu_441080* menu, char* name, char* text, int param_4);
 void FUN_00428b60(void);
 void __stdcall FUN_0049fb10(Menu_441080* menu, int value);
-void __stdcall FUN_004a81e0(Menu_441080* menu, int value);
+void __stdcall RenderLayer(Menu_441080* menu, int value);
 
 // FUNCTION: 0x441080
 void FUN_00441080()
 {
     DWORD size;
-    Layer_441080* layer = FUN_004aa8f0(&g_game->menu, "NEWMULTI.GUI", 0x80);
+    Layer_441080* layer = LoadGuiLayer(&g_game->menu, "NEWMULTI.GUI", 0x80);
     layer->handler = FUN_00440d70;
     layer->data = g_game;
     FUN_004288d0("createnew", 0, 0, 0);
@@ -87,5 +87,5 @@ void FUN_00441080()
     FUN_004a0bf0(&g_game->menu, "PASSWORD", pw, 0xa);
     FUN_00428b60();
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

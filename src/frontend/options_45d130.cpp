@@ -20,15 +20,15 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_004a1250(Class_004a1250* obj, char* name, int value);
 void __stdcall FUN_004a1450(Object_004a1450* obj, char* name, int value);
 
 // FUNCTION: 0x45d130
 void FUN_0045d130()
 {
-    FUN_004a1080((Class_004a1080*)g_game->gui, "NOTRAK", g_game->notrak & 1);
-    FUN_004a1080((Class_004a1080*)g_game->gui, "TRACKMODE", g_game->state - 1);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "NOTRAK", g_game->notrak & 1);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "TRACKMODE", g_game->state - 1);
     FUN_004a1450((Object_004a1450*)g_game->gui, "MUSICVOL", (char)(~g_game->notrak & 1));
     FUN_004a1250((Class_004a1250*)g_game->gui, "CDPREV", (char)(~g_game->notrak & 1));
     FUN_004a1250((Class_004a1250*)g_game->gui, "CDSTOP", (char)(~g_game->notrak & 1));

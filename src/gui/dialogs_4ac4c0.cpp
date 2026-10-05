@@ -38,8 +38,8 @@
 // the pool: the number of characters per line is width / (width of one
 // digit), and a line is broken at a space, newline or '-' when the measured
 // line would exceed `width` pixels. `index` selects the current font entry
-// (FUN_004a1810) when it is not -1; measurements go through the same
-// FUN_004a5030 / GetFont+GetTextWidth pair the sibling text fitter
+// (SelectFontForEntry) when it is not -1; measurements go through the same
+// GetTextPixelWidth / GetFont+GetTextWidth pair the sibling text fitter
 // 0x4ac610 uses (likely via the same kind of inlined Measure helper).
 // The preheader size estimate `len + 3 * (len / (width / w)) + 2` allocates
 // room for the CRLF pairs; the wrap-back loop overwrites the break character
@@ -57,22 +57,22 @@ struct Menu_004ac4c0 {
 };
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-int __stdcall FUN_004a1810(Gadget_004ac4c0* gadgets, int index);
-int __stdcall FUN_004a5030(unsigned char* text);
+int __stdcall SelectFontForEntry(Gadget_004ac4c0* gadgets, int index);
+int __stdcall GetTextPixelWidth(unsigned char* text);
 int GetFont();
 int __stdcall GetTextWidth(int font, unsigned char* text);
 
 // FUNCTION: 0x4ac4c0
-char* __stdcall FUN_004ac4c0(Menu_004ac4c0* menu, char* text, int width, int index)
+char* __stdcall WordWrapText(Menu_004ac4c0* menu, char* text, int width, int index)
 {
     Gadget_004ac4c0* gadgets = menu->dialog->gadgets;
     text += 1; text -= 1;
     int len = strlen(text);
     if (index != -1)
-        FUN_004a1810(gadgets, index);
+        SelectFontForEntry(gadgets, index);
     int w;
     if (index == -1)
-        w = FUN_004a5030((unsigned char*)"d");
+        w = GetTextPixelWidth((unsigned char*)"d");
     else
         w = GetTextWidth(GetFont(), (unsigned char*)"d");
     int size = len + 3 * (len / (width / w)) + 2;
@@ -93,7 +93,7 @@ char* __stdcall FUN_004ac4c0(Menu_004ac4c0* menu, char* text, int width, int ind
             int wrapped = 0;
             int m;
             if (index == -1)
-                m = FUN_004a5030((unsigned char*)p);
+                m = GetTextPixelWidth((unsigned char*)p);
             else
                 m = GetTextWidth(GetFont(), (unsigned char*)p);
             if (width <= m) {

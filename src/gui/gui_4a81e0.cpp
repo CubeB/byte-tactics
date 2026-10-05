@@ -12,7 +12,7 @@
 //      reusing `cur` also matches.
 //  (2) No do { } while (0) around the button lookup. It only existed to
 //      give the old CSE temp edi; without the temp it costs the tail merge.
-//  (3) In the inlined FUN_004a8150, `memset(&entries[entries->u.count], 0,
+//  (3) In the inlined AddGadgetEntry, `memset(&entries[entries->u.count], 0,
 //      sizeof(Entry))` rather than `memset(e, ...)`. With (1) in place,
 //      `memset(e, ...)` makes case 4's slider keep &x in edx and reassociate
 //      `x - fw + w` to `w - fw + x` (8 bytes short, 86.7%) whatever the
@@ -23,15 +23,15 @@
 //      `x - fw + w` gives 86.7% here), and `int best = 1000;` before the
 //      clearing loop with a plain `for (j = 0; j < g->count; j += 4)`.
 // Earlier work (#4890, claude-opus-5-5): case 4's append blocks are the real
-// FUN_004a8150 inlined (`&entries[FUN_004a8150(menu, 1)]`), the three
+// AddGadgetEntry inlined (`&entries[AddGadgetEntry(menu, 1)]`), the three
 // `buf1[0] = 0; if (prefix) strncpy(...)` sequences are FUN_004a81b0 inlined,
 // and the buffers are declared at the top of the main loop body, so the
 // scheduler can sink `textbuf[0x10] = 0` past the next `entries[...]` load.
 // Older notes (DeepSeek V4.1 Flash, claude-sonnet-5-5):
 // (1) The post-loop name scan is the inline helper FindByName (the same shape as
 //     0x4a9fd0's FindEntry).
-// (2) The FUN_004c1ab0 wait stores the call result in a variable and compares it:
-//     `do { i = FUN_004c1ab0(); } while (i != 0);` (gives the hoisted
+// (2) The PopKey wait stores the call result in a variable and compares it:
+//     `do { i = PopKey(); } while (i != 0);` (gives the hoisted
 //     `xor esi, esi` and `cmp eax, esi`).
 // (3) The `field_70` loop is `for (i = 0; i <= count; i++) if (entries[i].type == 1)
 //     entries[i].field_13a = 0;` with no `walk` pointer.
@@ -179,26 +179,26 @@ struct FontRoot_004a81e0 {
 
 #pragma pack(pop)
 
-extern FontRoot_004a81e0* DAT_0051fba4;
+extern FontRoot_004a81e0* g_guiContext;
 
 int GetScreenWidth(void);
 int GetScreenHeight(void);
-int FUN_004c1ab0(void);
+int PopKey(void);
 unsigned int GetTicks(void);
 int GetFontHeight(void);
 
 void __stdcall FUN_004a05e0(void* obj, int index);
 void __stdcall FUN_004a16f0(void* obj, int index, int param3);
-void __stdcall FUN_004a1b40(void* obj, int index);
-void __stdcall FUN_004a3ef0(void* obj, int index);
+void __stdcall DrawListBox(void* obj, int index);
+void __stdcall DrawSlider(void* obj, int index);
 void __stdcall FUN_004a4660(void* obj, int index);
 void __stdcall FUN_004a4980(void* obj, int index);
 void __stdcall FUN_004a4c90(void* obj, int index, unsigned int param3);
-void __stdcall FUN_004a4d70(void* obj, int index);
+void __stdcall DrawTextInput(void* obj, int index);
 void __stdcall FUN_004a56b0(void* obj, int index);
 void __stdcall FUN_004a5e50(void* obj, int index);
-void __stdcall FUN_004a5f40(void* obj, int index);
-void __stdcall FUN_004b0230(void* obj, int index, void* bmp);
+void __stdcall DrawButton(void* obj, int index);
+void __stdcall DrawListboxFrame(void* obj, int index, void* bmp);
 void* __stdcall GetGafFrame(void* gaf, int index);
 void* __stdcall LoadGaf(char* name);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
@@ -212,10 +212,10 @@ void __stdcall FreeSurface(void* obj);
 void __stdcall DrawSurface(void* dst, void* bmp, int x, int y);
 void __cdecl FUN_004d85a0(int* param_1);
 
-// The real FUN_004a8150 (matched in 0x4a8150.cpp), inlined here by /Ob2.
+// The real AddGadgetEntry (matched in 0x4a8150.cpp), inlined here by /Ob2.
 // The memset spelling and the type-before-field_29 order are what this
 // caller needs; the standalone function matches with either.
-static inline int FUN_004a8150(Menu_004a81e0* obj, unsigned char type)
+static inline int AddGadgetEntry(Menu_004a81e0* obj, unsigned char type)
 {
     Entry_004a81e0* entries = obj->layer->entries;
     entries->u.count++;
@@ -244,7 +244,7 @@ static inline int FindByName(Entry_004a81e0* entries, char* name)
 }
 
 // FUNCTION: 0x4a81e0
-int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
+int __stdcall RenderLayer(Menu_004a81e0* menu, unsigned int flags)
 {
     int savedType;
     int orientation;
@@ -282,7 +282,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
     if (force) {
 
     do {
-        i = FUN_004c1ab0();
+        i = PopKey();
     } while (i != 0);
     if (menu->field_70 != 0) {
         for (i = 0; i <= entries[0].u.count; i++) {
@@ -378,7 +378,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
             }
             entries[i].sliderGaf = g;
             if (g != 0) {
-                Entry_004a81e0* firstEnd = &entries[FUN_004a8150(menu, 1)];
+                Entry_004a81e0* firstEnd = &entries[AddGadgetEntry(menu, 1)];
                 firstEnd->x = entries[i].x;
                 firstEnd->y = entries[i].y;
                 firstEnd->gaf = g;
@@ -389,7 +389,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                 firstEnd->h = frame->h;
                 firstEnd->flags = 0x3400;
                 firstEnd->field_29 = entries[i].field_29;
-                Entry_004a81e0* secondEnd = &entries[FUN_004a8150(menu, 1)];
+                Entry_004a81e0* secondEnd = &entries[AddGadgetEntry(menu, 1)];
                 secondEnd->field_29 = entries[i].field_29;
                 frame = (Glyph_004a81e0*)GetGafFrame(g, entries[i].sliderStyle + 8);
                 secondEnd->y = entries[i].y;
@@ -606,7 +606,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
             if (menu->layer->field_24)
                 DrawSurface(entries[0].u.assets.surface, menu->layer->field_24, 0, 0);
             else if ((flags & 0x80) == 0)
-                FUN_004b0230(menu, 0, entries[0].u.assets.background);
+                DrawListboxFrame(menu, 0, entries[0].u.assets.background);
         }
 
         for (i = 1; i < 1 + entries[0].u.count; i++) {
@@ -614,14 +614,14 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                 continue;
             switch (entries[i].type) {
             case 11:
-                FUN_004b0230(menu, i, entries[i].u.assets.background);
+                DrawListboxFrame(menu, i, entries[i].u.assets.background);
                 break;
             case 12:
                 FUN_004a5e50(menu, i);
                 break;
             case 1:
                 if (force != 0 || (flags & 0x48) != 0)
-                    FUN_004a5f40(menu, i);
+                    DrawButton(menu, i);
                 break;
             case 2: {
                 if (force) {
@@ -641,22 +641,22 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                         }
                     }
                     if (j == base[0].u.count + 1)
-                        SetFont(DAT_0051fba4->current);
-                    if (DAT_0051fba4->language == 0)
+                        SetFont(g_guiContext->current);
+                    if (g_guiContext->language == 0)
                         fh = GetFontHeight();
                     else
-                        fh = ((Glyph_004a81e0*)GetGafFrame(DAT_0051fba4->language->glyphs, 0x49))->h + 2;
+                        fh = ((Glyph_004a81e0*)GetGafFrame(g_guiContext->language->glyphs, 0x49))->h + 2;
                     int hh = base[i].h;
                     base[i].h = (short)(hh - ((int)base[i].h) % (fh + 2));
                     base[i].u.list.field_0 = GetTicks();
                 }
                 if (force || (flags & 0x40))
-                    FUN_004a1b40(menu, i);
+                    DrawListBox(menu, i);
                 break;
             }
             case 3:
                 if (force || (flags & 0x40))
-                    FUN_004a4d70(menu, i);
+                    DrawTextInput(menu, i);
                 break;
             case 4:
                 if (force) {
@@ -666,7 +666,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                     base[i].f14a = 0;
                 }
                 if (force || (0x40 & flags))
-                    FUN_004a3ef0(menu, i);
+                    DrawSlider(menu, i);
                 break;
             case 5:
                 if (force || (flags & 0x40))

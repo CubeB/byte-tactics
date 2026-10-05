@@ -65,13 +65,13 @@ struct Game {
 
 extern Game* g_game;
 
-Gadget_004478b0* __stdcall FUN_004aa8f0(char* sub, const char* name, int flags);
+Gadget_004478b0* __stdcall LoadGuiLayer(char* sub, const char* name, int flags);
 void __stdcall FUN_00447150(void* gadget);
-int __stdcall FUN_0049fdf0(char* entries, const char* name, int flag);
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
+int __stdcall FindGadgetIndex(char* entries, const char* name, int flag);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_004a1450(Class_004a1450* obj, char* name, int value);
 void __stdcall FUN_0049fb10(Class_0049fb10* obj, int value);
-void __stdcall FUN_004a81e0(Class_004a81e0* obj, int value);
+void __stdcall RenderLayer(Class_004a81e0* obj, int value);
 void __stdcall FUN_00447380(int value);
 void FUN_00446fb0();
 void FUN_00446a50();
@@ -110,15 +110,15 @@ static inline int CountAlliance_004478b0(int alliance)
 // FUNCTION: 0x4478b0
 void FUN_004478b0()
 {
-    Gadget_004478b0* gadget = FUN_004aa8f0(g_game->gui, "ALLIES.GUI", 0x800);
+    Gadget_004478b0* gadget = LoadGuiLayer(g_game->gui, "ALLIES.GUI", 0x800);
     gadget->handler = FUN_00447150;
     gadget->field_c = (int)g_game;
     g_game->flags_37ebe |= 0x20;
     char* entries = g_game->table->entries;
     int i, j;
-    for (i = 0; (j = FUN_0049fdf0(entries, "ALLYx", 0xe)) != -1; i++)
+    for (i = 0; (j = FindGadgetIndex(entries, "ALLYx", 0xe)) != -1; i++)
         sprintf(entries + j * 0x15b + 2, "ALLY%d", i);
-    for (i = 0; (j = FUN_0049fdf0(entries, "TEAMICONSx", 0xe)) != -1; i++)
+    for (i = 0; (j = FindGadgetIndex(entries, "TEAMICONSx", 0xe)) != -1; i++)
         sprintf(entries + j * 0x15b + 2, "TEAMICONS%d", i);
     FUN_00447380(0);
     FUN_00446fb0();
@@ -126,7 +126,7 @@ void FUN_004478b0()
     Player_004478b0* local = &g_game->players[g_game->localPlayer];
     int old = (local->info->flags_9d >> 1) & 1;
     unsigned char win = (local->info->flags_9b >> 6) & 1;
-    FUN_004a1080((Class_004a1080*)g_game->gui, "VICTORY", old);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, "VICTORY", old);
     int alliance = local->alliance;
     int count;
     if (alliance == 5)
@@ -136,5 +136,5 @@ void FUN_004478b0()
     FUN_004a1450((Class_004a1450*)g_game->gui, "VICTORY",
                  (count > 1 || win) ? 1 : 0);
     FUN_0049fb10((Class_0049fb10*)g_game->gui, 1);
-    FUN_004a81e0((Class_004a81e0*)g_game->gui, 0x40);
+    RenderLayer((Class_004a81e0*)g_game->gui, 0x40);
 }

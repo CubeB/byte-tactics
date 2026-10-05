@@ -120,9 +120,9 @@ extern short DAT_0051e674;
 extern int DAT_0051e678;
 extern ColourEntry_00478790 DAT_00507b70[];
 
-int __stdcall FUN_0049fdf0(Entry_00478790* entries, const char* name, int type);
+int __stdcall FindGadgetIndex(Entry_00478790* entries, const char* name, int type);
 Entry_00478790* __stdcall FUN_004a0280(Entry_00478790* entries, const char* name);
-int __stdcall FUN_004a1810(Entry_00478790* entries, int index);
+int __stdcall SelectFontForEntry(Entry_00478790* entries, int index);
 void __stdcall FUN_0049fa90(Window_00478790* window);
 void __stdcall FUN_0049fad0(Window_00478790* window);
 unsigned int __cdecl GetTicks();
@@ -135,7 +135,7 @@ void __stdcall FillRectangle(void* surface, Rect_00478790* rect, int colour);
 void __stdcall DrawString(void* surface, const char* text, int x, int y,
                             int maxWidth);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
-void __stdcall FUN_004aff00(void* menu);
+void __stdcall DrawBlinkWords(void* menu);
 
 // FUNCTION: 0x478790
 void __stdcall FUN_00478790(Window_00478790* arg1, Item_00478790* arg2)
@@ -153,7 +153,7 @@ void __stdcall FUN_00478790(Window_00478790* arg1, Item_00478790* arg2)
         DAT_0051e670 = rand() % 0x3f;
     }
 
-    int i = FUN_0049fdf0(arg1->table->entries, "SOLARSYSTEM", 0xe);
+    int i = FindGadgetIndex(arg1->table->entries, "SOLARSYSTEM", 0xe);
     Entry_00478790* g = FUN_004a0280(arg1->table->entries, "SOLARSYSTEM");
 
     Rect_00478790 rect;
@@ -163,7 +163,7 @@ void __stdcall FUN_00478790(Window_00478790* arg1, Item_00478790* arg2)
     rect.y2 = rect.y1 + g->h - 1;
 
     FillRectangle(surface, &rect, arg1->colour);
-    FUN_004a1810(arg1->table->entries, i);
+    SelectFontForEntry(arg1->table->entries, i);
 
     char text[0x34];
     sprintf(text, "%s : %d", FUN_004c5740("Wind Speed"), DAT_0051e654);
@@ -176,7 +176,7 @@ void __stdcall FUN_00478790(Window_00478790* arg1, Item_00478790* arg2)
     DrawString(surface, text, rect.x1 + 0x50, rect.y1 + 0x28,
                  rect.x2 - rect.x1 - 0x50);
 
-    FUN_004aff00(&g_game->menu);
+    DrawBlinkWords(&g_game->menu);
 
     if (arg2->gaf != 0) {
         int total = 0;

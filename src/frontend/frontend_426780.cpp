@@ -7,7 +7,7 @@ void __stdcall SetOffscreenSurface(int param);
 void __stdcall FillSurface(int a, int b);
 void FlipScreen();
 void __stdcall FUN_004c22d0(int param);
-int FUN_004c1ab0(void);
+int PopKey(void);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 
@@ -62,7 +62,7 @@ void __stdcall FUN_00426780(char* param_1)
             }
         } while (g_game->field_39241 != 0);
         g_game->field_38d7b = 0;
-        while (FUN_004c1ab0() != 0) {
+        while (PopKey() != 0) {
         }
         SetOffscreenSurface(g_game->field_37e1b);
         FillSurface(0, 0);

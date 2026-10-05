@@ -44,7 +44,7 @@ struct Class_0051fba4 {
     Font_004a30c0* font;               // +0x14
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 void __stdcall SetFont(int id);
 int GetFontHeight();
@@ -70,13 +70,13 @@ void __stdcall FUN_004a30c0(Class_004a30c0* obj, int index)
         }
     }
     if (i == entries->count + 1) {
-        SetFont(DAT_0051fba4->group);
+        SetFont(g_guiContext->group);
     }
     int step;
-    if (DAT_0051fba4->font == 0) {
+    if (g_guiContext->font == 0) {
         step = GetFontHeight();
     } else {
-        step = *(unsigned short*)((char*)GetGafFrame(DAT_0051fba4->font->glyphs, 0x49) + 2) + 2;
+        step = *(unsigned short*)((char*)GetGafFrame(g_guiContext->font->glyphs, 0x49) + 2) + 2;
     }
     int h = e->height;
     e->height = h - h % (step + 2);

@@ -101,9 +101,9 @@ extern char* __stdcall StripPath(char* path);
 extern char* __stdcall ChangeExtension(char* out, char* in, char* ext);
 extern int __stdcall FUN_004bbc40(char* path);
 extern void* __cdecl FUN_004d83b0(const char* path, unsigned int size);
-extern int __stdcall FUN_004aeac0(void* entry, char* path);
+extern int __stdcall ReadGuiFile(void* entry, char* path);
 extern void __cdecl FUN_004d85a0(void* p);
-extern int __stdcall FUN_004a81e0(Menu_004aa8f0* menu, unsigned int flags);
+extern int __stdcall RenderLayer(Menu_004aa8f0* menu, unsigned int flags);
 extern void __cdecl FUN_004c2470(void);
 extern void __cdecl FUN_004c2870(void);
 extern void __stdcall FUN_004a7960(Menu_004aa8f0* menu, int value);
@@ -111,10 +111,10 @@ extern void __stdcall FUN_0049fc50(Menu_004aa8f0* menu, int value);
 extern int __cdecl GetTextKeyColor(void);
 extern void __stdcall SetTextColors(int a, int b);
 extern void __stdcall SetFont(int a);
-extern void __cdecl FUN_004c1a40(void);
+extern void __cdecl ClearKeyQueue(void);
 extern void __stdcall FUN_004ab6c0(Menu_004aa8f0* menu, int a, char* text,
                                    int maxLength, int clear);
-extern int* DAT_0051fba4;
+extern int* g_guiContext;
 
 static inline int FindPanel_004aa8f0(Layer_004aa8f0* layer)
 {
@@ -128,7 +128,7 @@ static inline int FindPanel_004aa8f0(Layer_004aa8f0* layer)
 }
 
 // FUNCTION: 0x4aa8f0
-Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name,
+Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
                                        unsigned int flags)
 {
     Layer_004aa8f0* layer;
@@ -174,7 +174,7 @@ Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name,
             memset(layer, 0, 0x10f57);
             entry = (Entry_004aa8f0*)((char*)layer + 0x3f);
         }
-        if (FUN_004aeac0(entry, layerName) != 0) {
+        if (ReadGuiFile(entry, layerName) != 0) {
           if (mask != 0) {
             int idx = FindPanel_004aa8f0(layer);
             if (idx != -1) {
@@ -232,7 +232,7 @@ Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name,
     menu->field_64 = -1;
     if ((flags & 0x400) == 0) {
         FUN_004c2470();
-        ret = FUN_004a81e0(menu, flags | 1);
+        ret = RenderLayer(menu, flags | 1);
         FUN_004c2870();
     }
     {
@@ -301,12 +301,12 @@ Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name,
             i++;
         }
         if (j == base->count + 1)
-            SetFont(*DAT_0051fba4);
+            SetFont(*g_guiContext);
         FUN_0049fc50(menu, 1);
         menu->layer->field_20 = 1;
         FUN_004ab6c0(menu, 1, (char*)sub + 0xb6,
                      *(short*)((char*)sub + 0x138), 0);
-        FUN_004c1a40();
+        ClearKeyQueue();
         }
         return layer;
     }

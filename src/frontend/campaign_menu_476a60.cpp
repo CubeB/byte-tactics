@@ -2,7 +2,7 @@
 // Builds the packed list of campaign names whose [HEADER] "campaignside"
 // matches the side name at g_game+0x37f3d + side*0x232, or the literal "ALL",
 // and returns how many matched. Two buffers come out of FUN_004d83b0: the
-// packed name list from the camps\*.TDF directory (FUN_004af320) and the
+// packed name list from the camps\*.TDF directory (ScanDirectory) and the
 // result list handed back through *out. The side name is the second parameter,
 // not a loop counter, so the loop over the file list has no induction variable
 // of its own and MSVC rotates it into a countdown.
@@ -49,7 +49,7 @@ void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const 
 int __stdcall FUN_004bc930(const char* path, int flag);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* data);
-int __stdcall FUN_004af320(char* path, char* buffer, char* p3, int p4, int p5, int p6);
+int __stdcall ScanDirectory(char* path, char* buffer, char* p3, int p4, int p5, int p6);
 
 // Copies one name onto the end of the result list and steps the cursor past it.
 static inline char* AppendName_00476a60(char* p, char* s)
@@ -70,7 +70,7 @@ int __stdcall FUN_00476a60(char** out, int side)
     int n = FUN_004bc930(path, 0);
     char* names = (char*)FUN_004d83b0("CAMPAIGN NAMES1", n << 8);
     *out = (char*)FUN_004d83b0("CAMPAIGN NAMES2", n << 8);
-    FUN_004af320(path, names, 0, 0, 1, 2);
+    ScanDirectory(path, names, 0, 0, 1, 2);
     char* q = names;
     char* p = *out;
     for (int i = 0; i < n; i++) {

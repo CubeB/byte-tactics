@@ -25,12 +25,12 @@ struct Gadget_004435a0 {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-Gadget_004435a0* __stdcall FUN_004aa8f0(Sub_004435a0* sub, const char* name, int flags);
+Gadget_004435a0* __stdcall LoadGuiLayer(Sub_004435a0* sub, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void __stdcall FUN_004a0570(Sub_004435a0* sub, char* name, int value);
 void __stdcall FUN_004a0bf0(Sub_004435a0* sub, char* name, char* text, int size);
 void __stdcall FUN_0049fb10(Sub_004435a0* sub, int value);
-void __stdcall FUN_004a81e0(Sub_004435a0* sub, int value);
+void __stdcall RenderLayer(Sub_004435a0* sub, int value);
 void __stdcall FUN_00491c80(int n);
 void __stdcall FUN_0049fa90(Sub_004435a0* sub);
 void __stdcall FUN_0049fad0(Sub_004435a0* sub);
@@ -41,7 +41,7 @@ void __stdcall FUN_00443590();
 void __stdcall FUN_004435a0(unsigned int* count, char** names)
 {
     char name[16];
-    Gadget_004435a0* gadget = FUN_004aa8f0(&g_game->sub, "REPORT.GUI", 0x800);
+    Gadget_004435a0* gadget = LoadGuiLayer(&g_game->sub, "REPORT.GUI", 0x800);
     gadget->handler = FUN_00443480;
     gadget->field_c = g_game;
     gadget->field_1c = FUN_00443590;
@@ -54,7 +54,7 @@ void __stdcall FUN_004435a0(unsigned int* count, char** names)
         FUN_004a0bf0(&g_game->sub, name, names[i], 0x80);
     }
     FUN_0049fb10(&g_game->sub, 1);
-    FUN_004a81e0(&g_game->sub, 0x141);
+    RenderLayer(&g_game->sub, 0x141);
     FUN_00491c80(0x13);
     FUN_0049fa90(&g_game->sub);
     FUN_0049fad0(&g_game->sub);

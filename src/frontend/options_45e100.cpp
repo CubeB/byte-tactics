@@ -102,13 +102,13 @@ extern Game* g_game;
 void __cdecl FUN_004d85a0(void* p);
 void FUN_0045cae0();
 void __stdcall FUN_0045e5e0(int param_1);
-int __stdcall FUN_0049fd60(Gui_0045e100* gui, char* name);
+int __stdcall IsCurrentGadgetNamed(Gui_0045e100* gui, char* name);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-int __stdcall FUN_004a0f60(Gui_0045e100* gui, char* name);
+int __stdcall GetButtonStageByName(Gui_0045e100* gui, char* name);
 void __stdcall FUN_0049fa90(Gui_0045e100* gui);
 void __stdcall FUN_004ab0a0(Gui_0045e100* gui);
-int __stdcall FUN_004ab060(Gui_0045e100* gui, const char* name);
-void __stdcall FUN_004a9660(Gui_0045e100* gui);
+int __stdcall IsScreenNamed(Gui_0045e100* gui, const char* name);
+void __stdcall CloseTopScreen(Gui_0045e100* gui);
 void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45e100
@@ -132,9 +132,9 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
         return;
     }
 
-    if (FUN_0049fd60(gui, "ANTI")) {
+    if (IsCurrentGadgetNamed(gui, "ANTI")) {
         FUN_0047f1a0("Options", 0);
-        g_game->flags_37f06.b1 = FUN_004a0f60(gui, "ANTI") & 1;
+        g_game->flags_37f06.b1 = GetButtonStageByName(gui, "ANTI") & 1;
         if (g_game->flags_37ebe.b0)
             g_game->ptr_1437b->FlushCache();
         FUN_0049fa90(gui);
@@ -142,9 +142,9 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
         return;
     }
 
-    if (FUN_0049fd60(gui, "BSHADOWS")) {
+    if (IsCurrentGadgetNamed(gui, "BSHADOWS")) {
         FUN_0047f1a0("Options", 0);
-        g_game->flags_37f06.b4 = FUN_004a0f60(gui, "BSHADOWS") & 1;
+        g_game->flags_37f06.b4 = GetButtonStageByName(gui, "BSHADOWS") & 1;
         g_game->flags_37f06.b3 = g_game->flags_37f06.b4;
         g_game->flags_37f06.b2 = g_game->flags_37f06.b3;
         if (g_game->flags_37ebe.b0)
@@ -154,9 +154,9 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
         return;
     }
 
-    if (FUN_0049fd60(gui, "SHADING")) {
+    if (IsCurrentGadgetNamed(gui, "SHADING")) {
         FUN_0047f1a0("Options", 0);
-        g_game->flags_37f06.b5 = FUN_004a0f60(gui, "SHADING") & 1;
+        g_game->flags_37f06.b5 = GetButtonStageByName(gui, "SHADING") & 1;
         if (g_game->flags_37ebe.b0)
             g_game->ptr_1437b->FlushCache();
         FUN_0049fa90(gui);
@@ -164,15 +164,15 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
         return;
     }
 
-    if (FUN_0049fd60(gui, "UNDO")) {
+    if (IsCurrentGadgetNamed(gui, "UNDO")) {
         FUN_0047f1a0("Options", 0);
         FUN_0045cae0();
-        FUN_004a9660(gui);
+        CloseTopScreen(gui);
         FUN_0045e5e0(0);
         return;
     }
 
-    if (FUN_0049fd60(gui, "RESTORE")) {
+    if (IsCurrentGadgetNamed(gui, "RESTORE")) {
         FUN_0047f1a0("Options", 0);
         g_game->flags_37f06.b1 = 1;
         g_game->flags_37f06.b2 = 1;
@@ -188,12 +188,12 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
         SetBrightness(0.5 - g_game->brightness * -0.041666668f);
         ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
         ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
-        FUN_004a9660(gui);
+        CloseTopScreen(gui);
         FUN_0045e5e0(0);
         return;
     }
 
-    if (FUN_0049fd60(gui, "OK") && FUN_004ab060(gui, "selvmode.gui")) {
+    if (IsCurrentGadgetNamed(gui, "OK") && IsScreenNamed(gui, "selvmode.gui")) {
         FUN_0047f1a0("Options", 0);
         return;
     }
@@ -204,7 +204,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
             return;
         }
         Screen_0045e100* next = gui->top->next;
-        FUN_004a9660(gui);
+        CloseTopScreen(gui);
         gui->field_60 = save;
         next->handler(gui);
     }

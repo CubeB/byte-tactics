@@ -46,7 +46,7 @@ public:
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fdf0(Entry_00444a20* entries, char* name, int type);
+int __stdcall FindGadgetIndex(Entry_00444a20* entries, char* name, int type);
 void __stdcall FUN_004a0bf0(Sub_00444a20* obj, char* name, int param_3, int param_4);
 Entry_00444a20* __stdcall FUN_004a0280(Entry_00444a20* entries, char* name);
 void __cdecl FUN_004d85a0(void* param_1);
@@ -62,7 +62,7 @@ void FUN_00444a20()
     int outY;
     char buffer[100];
 
-    if (FUN_0049fdf0(g_game->sub.holder->entries, "MAPNAME", 5) != -1) {
+    if (FindGadgetIndex(g_game->sub.holder->entries, "MAPNAME", 5) != -1) {
         FUN_004a0bf0(&g_game->sub, "MAPNAME",
                      ((Class_00435c20*)g_game->field_391e9)->FUN_00435c20(), 0);
     }

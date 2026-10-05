@@ -50,10 +50,10 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fd60(Gui_004464d0* gui, char* name);
+int __stdcall IsCurrentGadgetNamed(Gui_004464d0* gui, char* name);
 void __stdcall FUN_00446080(int player);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_0049fa90(Class_004a1080* obj);
 void BroadcastPlayerInfo(void);
 void UpdateNetGameInfo(void);
@@ -68,20 +68,20 @@ void __stdcall FUN_004464d0(Gui_004464d0* gui)
         char buf[100];
         for (int i = 0; i < 10; i++) {
             sprintf(buf, "LIVEPLYR%d", i);
-            if (FUN_0049fd60(gui, buf)) {
+            if (IsCurrentGadgetNamed(gui, buf)) {
                 FUN_00446080(i);
                 return;
             }
         }
-        if (FUN_0049fd60(gui, "WATCHING")) {
+        if (IsCurrentGadgetNamed(gui, "WATCHING")) {
             info->watching = !info->watching;
             FUN_0047f1a0("Options", 0);
             info = g_game->players[g_game->localPlayer].info;
-            FUN_004a1080((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
-            FUN_004a1080((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
+            SetButtonStageByName((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
+            SetButtonStageByName((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
             FUN_0049fa90((Class_004a1080*)g_game->gui);
             BroadcastPlayerInfo();
-        } else if (FUN_0049fd60(gui, "OK")) {
+        } else if (IsCurrentGadgetNamed(gui, "OK")) {
             UpdateNetGameInfo();
             FUN_0047f1a0("Options", 0);
             if (!info->watching) {

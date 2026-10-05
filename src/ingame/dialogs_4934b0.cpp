@@ -53,8 +53,8 @@ struct Game {
 extern Game* g_game;
 extern int DAT_0051e6d0[];
 
-Entry_4934b0* __stdcall FUN_0049ff90(Entry_4934b0* entries, char* name);
-int __stdcall FUN_0049fd60(Gadget_4934b0* obj, char* name);
+Entry_4934b0* __stdcall FindGadgetChecked(Entry_4934b0* entries, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_4934b0* obj, char* name);
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall FUN_0049fa90(Gadget_4934b0* obj);
 void __stdcall FUN_0047f1a0(char* name, int flag);
@@ -63,7 +63,7 @@ Entry_4934b0* __stdcall FUN_004a0200(Entry_4934b0* entries, char* name);
 int __stdcall FUN_0045ba20(Entry_4934b0* entry);
 void __stdcall FUN_00464c60(unsigned char from, unsigned char to, float amount, int flag);
 void __stdcall FUN_00464b30(unsigned char from, unsigned char to, float amount, int flag);
-int __stdcall FUN_004a0f60(Gadget_4934b0* obj, char* name);
+int __stdcall GetButtonStageByName(Gadget_4934b0* obj, char* name);
 void __stdcall FUN_004933e0(unsigned char player);
 unsigned char __stdcall FindSlotByDpid(int id);
 void __stdcall ShareMapInfo(unsigned char from, unsigned char to);
@@ -87,26 +87,26 @@ void __stdcall FUN_004934b0(Gadget_4934b0* obj)
     Entry_4934b0* data = obj->layer->entries;
 
     if (obj->current == -1) {
-        Entry_4934b0* e = FUN_0049ff90(data, "PLYRLIST");
+        Entry_4934b0* e = FindGadgetChecked(data, "PLYRLIST");
         FUN_004d85a0(e->field_d2);
         g_game->flags &= ~0x40;
         return;
     }
-    if (FUN_0049fd60(obj, "MAPINFO")) {
+    if (IsCurrentGadgetNamed(obj, "MAPINFO")) {
         FUN_0049fa90(obj);
         FUN_0047f1a0("Options", 0);
         FUN_004ab0a0(obj);
         return;
     }
-    if (FUN_0049fd60(obj, "SHARUNIT")) {
+    if (IsCurrentGadgetNamed(obj, "SHARUNIT")) {
         FUN_0049fa90(obj);
         FUN_0047f1a0("Options", 0);
         FUN_004ab0a0(obj);
         return;
     }
-    if (FUN_0049fd60(obj, "OK")) {
+    if (IsCurrentGadgetNamed(obj, "OK")) {
         FUN_0047f1a0("Options", 0);
-        Entry_4934b0* plyr = FUN_0049ff90(data, "PLYRLIST");
+        Entry_4934b0* plyr = FindGadgetChecked(data, "PLYRLIST");
         short idx = plyr->selected;
         if (idx < 0)
             return;
@@ -117,16 +117,16 @@ void __stdcall FUN_004934b0(Gadget_4934b0* obj)
                          (float)FUN_0045ba20(FUN_004a0200(data, "METAL")), 1);
             FUN_00464b30(g_game->localPlayer, pi,
                          (float)FUN_0045ba20(FUN_004a0200(data, "ENERGY")), 1);
-            if (FUN_004a0f60(obj, "SHARUNIT"))
+            if (GetButtonStageByName(obj, "SHARUNIT"))
                 FUN_004933e0(pi);
-            if (FUN_004a0f60(obj, "MAPINFO")) {
+            if (GetButtonStageByName(obj, "MAPINFO")) {
                 ShareMapInfo(g_game->localPlayer, pi);
                 SendShareMapInfo(g_game->localPlayer, pi);
             }
         }
         return;
     }
-    if (FUN_0049fd60(obj, "CANCEL")) {
+    if (IsCurrentGadgetNamed(obj, "CANCEL")) {
         FUN_0047f1a0("Previous", 0);
         return;
     }

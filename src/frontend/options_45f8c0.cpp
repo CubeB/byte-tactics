@@ -88,7 +88,7 @@ extern char DAT_005119b8[];
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_0049fa90(Sub_0045f8c0* sub);
-int __stdcall FUN_004ab1b0(Layer_0045f8c0* layer, char* type, char* text, int x, int y,
+int __stdcall AddTextGadget(Layer_0045f8c0* layer, char* type, char* text, int x, int y,
                            int width, int attr);
 char* __stdcall FUN_004b6af0(char* text, int n);
 char* __stdcall FUN_004c5740(char* text);
@@ -105,9 +105,9 @@ static inline void AddLine(Page_0045f8c0* page, Layer_0045f8c0* layer, char* val
         } while (*p++ != '|');
         p[-1] = 0;
     }
-    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(FUN_004b6af0(value, 0)), 0x28, y, 0x4e, 2);
+    AddTextGadget(layer, "TEXT", FUN_004c5740(FUN_004b6af0(value, 0)), 0x28, y, 0x4e, 2);
     ((Entry_0045f8c0*)layer->entries)[((Table_0045f8c0*)layer->entries)->count].field_1b = 1;
-    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(FUN_004b6af0(value, 1)), 0x7d, y, 0x12c, 2);
+    AddTextGadget(layer, "TEXT", FUN_004c5740(FUN_004b6af0(value, 1)), 0x7d, y, 0x12c, 2);
     ((Entry_0045f8c0*)layer->entries)[((Table_0045f8c0*)layer->entries)->count].field_1b = 1;
 }
 

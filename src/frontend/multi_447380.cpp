@@ -70,13 +70,13 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fdf0(Entry_00447380* entries, char* name, int type);
-Entry_00447380* __stdcall FUN_0049ff10(Entry_00447380* entries, char* name);
+int __stdcall FindGadgetIndex(Entry_00447380* entries, char* name, int type);
+Entry_00447380* __stdcall FindGadgetOrNull(Entry_00447380* entries, char* name);
 Entry_00447380* __stdcall FUN_004a0280(Entry_00447380* entries, char* name);
 void __stdcall FUN_004a0570(void* obj, char* name, int value);
 void __stdcall FUN_004a0bf0(void* obj, char* name, char* text, int size);
 void __stdcall FUN_004a1450(void* obj, char* name, int value);
-void __stdcall FUN_0049f930(void* obj, char* name, char* text);
+void __stdcall SetGadgetName(void* obj, char* name, char* text);
 
 static inline int IsType_00447380(Player_00447380* p)
 {
@@ -139,9 +139,9 @@ void __stdcall FUN_00447380(int param_1)
             sprintf(teamicons, "TEAMICONS%d", n);
             lstrcpynA(name, p->name, 0x80);
 
-            int idx = FUN_0049fdf0(entries, player, 0xe);
+            int idx = FindGadgetIndex(entries, player, 0xe);
             if (entries[idx].field_0 == 1) {
-                Entry_00447380* e = FUN_0049ff10(entries, player);
+                Entry_00447380* e = FindGadgetOrNull(entries, player);
                 if (e != 0 && (e->field_1b & 0x4000)) {
                     strcat(name, "|");
                     strcat(name, p->name);
@@ -151,7 +151,7 @@ void __stdcall FUN_00447380(int param_1)
             FUN_004a0bf0((char*)g_game + 0x519, player, name, 0x80);
             FUN_004a0570((char*)g_game + 0x519, player, 1);
             sprintf(live, "LIVEPLYR%d", i);
-            FUN_0049f930((char*)g_game + 0x519, player, live);
+            SetGadgetName((char*)g_game + 0x519, player, live);
 
             if (p->active != 0
                 && IsType_00447380(p)
@@ -170,7 +170,7 @@ void __stdcall FUN_00447380(int param_1)
             }
 
             sprintf(live, "LIVEALLY%d", i);
-            FUN_0049f930((char*)g_game + 0x519, ally, live);
+            SetGadgetName((char*)g_game + 0x519, ally, live);
 
             if (p->alliance == local->alliance && p->alliance != 5) {
                 FUN_004a1450((char*)g_game + 0x519, live, 1);

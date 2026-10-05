@@ -46,7 +46,7 @@ static inline Entry_004a9780* entry_at(Object_004a9780* obj, int index)
 }
 
 // FUNCTION: 0x4a9780
-void __stdcall FUN_004a9780(Object_004a9780* obj, int index)
+void __stdcall IncrementKnobPos(Object_004a9780* obj, int index)
 {
     Entry_004a9780* e = entry_at(obj, index);
     short raw = e->field_140;

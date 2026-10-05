@@ -20,14 +20,14 @@ extern char DAT_00506884[];           // "FXVOL"
 extern char DAT_005069c0[];           // "TEST"
 extern char DAT_005069b8[];           // "SPEECH"
 
-int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
+int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_004a0570(Object_004a0570* obj, char* name, int value);
 void __stdcall FUN_004a1450(Object_004a1450* obj, char* name, int value);
 
 // FUNCTION: 0x45d9d0
 void FUN_0045d9d0()
 {
-    FUN_004a1080((Class_004a1080*)g_game->gui, DAT_005069d0, g_game->soundFlags & 7);
+    SetButtonStageByName((Class_004a1080*)g_game->gui, DAT_005069d0, g_game->soundFlags & 7);
     FUN_004a0570((Object_004a0570*)g_game->gui, DAT_005069c8, (g_game->soundFlags & 7) != 0);
     FUN_004a1450((Object_004a1450*)g_game->gui, DAT_00506884, (g_game->soundFlags & 7) == 0);
     FUN_004a1450((Object_004a1450*)g_game->gui, DAT_005069c0, (g_game->soundFlags & 7) == 0);

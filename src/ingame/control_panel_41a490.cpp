@@ -2,7 +2,7 @@
 // Click handler for the unit orders panel: cycles the move order, fire order,
 // activation or cloak setting named by the clicked entry, sends the matching
 // order and updates the button. Returns 0 when the entry is none of these.
-// FUN_004a11c0's value is declared int here (its own file has short): with
+// SetGadgetStatus's value is declared int here (its own file has short): with
 // short, MSVC shifts the 2-bit fields in a byte register (shr dl, 3).
 
 #include <string.h>
@@ -51,18 +51,18 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0049fed0(Entry_0041a490* entries, char* name, int index);
+void __stdcall GetGadgetName(Entry_0041a490* entries, char* name, int index);
 void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-void __stdcall FUN_004a11c0(Sub_0041a490* menu, int index, int value);
+void __stdcall SetGadgetStatus(Sub_0041a490* menu, int index, int value);
 void __stdcall FUN_0041a120(Unit* unit);
-void __stdcall FUN_004a81e0(Sub_0041a490* menu, int value);
+void __stdcall RenderLayer(Sub_0041a490* menu, int value);
 
 // Inlined copy of FUN_00419630.
 static inline int Contains(Entry_0041a490* entries, char* text, int index)
 {
     char name[32];
-    FUN_0049fed0(entries, name, index);
+    GetGadgetName(entries, name, index);
     return strstr(name, text) != 0;
 }
 
@@ -90,7 +90,7 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
             break;
         }
         FUN_0047f1a0("setmoveorders", 0);
-        FUN_004a11c0(&g_game->menu, index, g_game->moveOrder);
+        SetGadgetStatus(&g_game->menu, index, g_game->moveOrder);
     } else if (Contains(entries, "FIREORD", index)) {
         switch (g_game->fireOrder) {
         case 0:
@@ -108,7 +108,7 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
             break;
         }
         FUN_0047f1a0("setfireorders", 0);
-        FUN_004a11c0(&g_game->menu, index, g_game->fireOrder);
+        SetGadgetStatus(&g_game->menu, index, g_game->fireOrder);
     } else if (Contains(entries, "STATUS", index) || Contains(entries, "ONOFF", index)) {
         switch (g_game->activation) {
         case 0:
@@ -125,7 +125,7 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
             break;
         }
         FUN_0047f1a0("specialorders", 0);
-        FUN_004a11c0(&g_game->menu, index, g_game->activation);
+        SetGadgetStatus(&g_game->menu, index, g_game->activation);
     } else if (Contains(entries, "CLOAK", index)) {
         if (g_game->cloak) {
             FUN_0048cf30(orders, 0, "CLOAK_OFF", 0, 0, 0);
@@ -135,11 +135,11 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
             g_game->cloak = 1;
         }
         FUN_0047f1a0("specialorders", 0);
-        FUN_004a11c0(&g_game->menu, index, g_game->cloak);
+        SetGadgetStatus(&g_game->menu, index, g_game->cloak);
     } else {
         return 0;
     }
     FUN_0041a120(g_game->unitIndex ? unit : 0);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
     return 1;
 }

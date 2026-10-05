@@ -46,7 +46,7 @@ extern char DAT_005119b8[];
 extern char* DAT_00512980;
 extern Serial_00441c30 DAT_00512770;
 
-char* __stdcall FUN_004a0d00(void* obj, char* name, char* buf);
+char* __stdcall GetGadgetText(void* obj, char* name, char* buf);
 int __stdcall HAPINET_createcompoundaddress(void* net, void* elements, unsigned long count, void* address,
                            unsigned long* size);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
@@ -100,7 +100,7 @@ int __stdcall FUN_00441c30(HGLOBAL* addressOut, unsigned long* sizeOut)
         elements[1].guid = DAT_004fcec8;
         elements[1].size = lstrlenA(buf1) + 1;
         elements[1].data = buf1;
-        lstrcpyA(buf2, FUN_004a0d00(g_game + 0x519, "NUMBER", 0));
+        lstrcpyA(buf2, GetGadgetText(g_game + 0x519, "NUMBER", 0));
         elements[2].guid = DAT_004fcea8;
         elements[2].size = lstrlenA(buf2) + 1;
         elements[2].data = buf2;
@@ -109,7 +109,7 @@ int __stdcall FUN_00441c30(HGLOBAL* addressOut, unsigned long* sizeOut)
         elements[0].guid = DAT_004fce88;
         elements[0].size = 0x10;
         elements[0].data = &DAT_004fcda8;
-        char* t = FUN_004a0d00(g_game + 0x519, "ADDRESS", 0);
+        char* t = GetGadgetText(g_game + 0x519, "ADDRESS", 0);
         if (t == 0) {
             t = DAT_005119b8;
         }

@@ -21,7 +21,7 @@ struct Obj_004ae580 {
 unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* param_1, void* param_2, unsigned int param_3);
 
 // FUNCTION: 0x4ae580
-void __stdcall FUN_004ae580(Obj_004ae580* obj, Class_004bbbe0* out, int indent)
+void __stdcall WriteNuttinField(Obj_004ae580* obj, Class_004bbbe0* out, int indent)
 {
     char tab;
     char line[100];

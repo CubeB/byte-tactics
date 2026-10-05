@@ -21,7 +21,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004a81e0(Sub_0045cf60* sub, int value);
+void __stdcall RenderLayer(Sub_0045cf60* sub, int value);
 void __stdcall FUN_0049fa90(Sub_0045cf60* sub);
 void __stdcall FUN_004ab170(Sub_0045cf60* sub, unsigned int* a, int* b);
 void __stdcall SetOffscreenSurface(void* p);
@@ -35,7 +35,7 @@ void FUN_0045cf60()
     if (g_game->bit2) {
         return;
     }
-    FUN_004a81e0(&g_game->sub, 0x40);
+    RenderLayer(&g_game->sub, 0x40);
     FUN_0049fa90(&g_game->sub);
     FUN_004ab170(&g_game->sub, 0, 0);
     SetOffscreenSurface(g_game->field_37e1b);

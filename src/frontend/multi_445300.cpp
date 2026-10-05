@@ -31,7 +31,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fdf0(void* gadgets, char* name, int type);
+int __stdcall FindGadgetIndex(void* gadgets, char* name, int type);
 void __stdcall FUN_004a5d50(Menu_00445300* menu, int index);
 
 // FUNCTION: 0x445300
@@ -39,7 +39,7 @@ void __stdcall FUN_00445300(Entry_00445300* param_1)
 {
     if (param_1->state == 1) {
         Entry_00445300 tmp = *param_1;
-        int index = FUN_0049fdf0(g_game->menu.holder->gadgets, param_1->name, 0xe);
+        int index = FindGadgetIndex(g_game->menu.holder->gadgets, param_1->name, 0xe);
         FUN_004a5d50(&g_game->menu, index);
         param_1->field_15 += 2;
         param_1->state = 5;

@@ -21,8 +21,8 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004ab060(Queue_491d70* queue, char* name);
-void __stdcall FUN_004a9660(Queue_491d70* queue);
+int __stdcall IsScreenNamed(Queue_491d70* queue, char* name);
+void __stdcall CloseTopScreen(Queue_491d70* queue);
 
 // FUNCTION: 0x491d70
 int __stdcall FUN_00491d70(int force)
@@ -34,9 +34,9 @@ int __stdcall FUN_00491d70(int force)
     }
     g_game->field_37e9c = 0;
     while (g_game->queue.current) {
-        if (FUN_004ab060(&g_game->queue, g_game->name))
+        if (IsScreenNamed(&g_game->queue, g_game->name))
             return 1;
-        FUN_004a9660(&g_game->queue);
+        CloseTopScreen(&g_game->queue);
     }
     return 0;
 }

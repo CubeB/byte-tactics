@@ -171,14 +171,14 @@ void FUN_00496790();
 void __stdcall FUN_00498da0(View_00499200* p);
 void __stdcall FUN_00498f70(View_00499200* p);
 void __stdcall FUN_00499100(View_00499200* p);
-int __stdcall FUN_0049fe60(int value, char* name);
+int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);
-void __stdcall FUN_004a9660(void* a);
+void __stdcall CloseTopScreen(void* a);
 void __stdcall FUN_004ab400(void* a, void* b);
 void __stdcall SetCloseHandler(void* a, int b);
 int GetTicks();
-void FUN_004c1a40();
-int __stdcall FUN_004c1b80(int a);
+void ClearKeyQueue();
+int __stdcall IsKeyDown(int a);
 void FUN_00499880();
 void FUN_00496bb0();
 void __cdecl LeaveNetGameCallback();
@@ -209,10 +209,10 @@ void FUN_00499200(void)
 
     FUN_0041c180();
     if ((g_game->flags_2cc6 & 0x20) != 0) {
-        if (FUN_004c1b80(0xf9) == 0) {
+        if (IsKeyDown(0xf9) == 0) {
             g_game->orderMode = 1;
             g_game->flags_2cc6 &= 0xdf;
-            int index = FUN_0049fe60(g_game->field_531->value, "STOP");
+            int index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
             if (index != -1) {
                 FUN_004a6a40(g_game->field_519, index);
             }
@@ -296,13 +296,13 @@ void FUN_00499200(void)
              FUN_004572a0() != 0)) {
             SetCursor(0x13);
             FUN_00491d70(1);
-            FUN_004a9660(g_game->field_519);
+            CloseTopScreen(g_game->field_519);
             if (g_game->net->FUN_00435100() == 3) {
                 FUN_00463c80();
                 FUN_00496790();
             }
             FUN_00491b60();
-            FUN_004c1a40();
+            ClearKeyQueue();
             g_game->field_10->FUN_004ce690(4);
             g_game->field_391f1 = 7;
             g_game->field_391f5 = FUN_00499880;
@@ -315,7 +315,7 @@ void FUN_00499200(void)
         if (g_game->net->FUN_00435100() == 1) {
             FUN_00491b60();
             FUN_00491d70(1);
-            FUN_004a9660(g_game->field_519);
+            CloseTopScreen(g_game->field_519);
             FUN_004257a0();
             int a = ((Class_00435c50*)g_game->net)->FUN_00435c50();
             char* b = ((Class_004352b0*)g_game->net)->FUN_004352b0();
@@ -331,7 +331,7 @@ void FUN_00499200(void)
             unsigned int saved = g_game->field_2a3c;
             FUN_00491b60();
             FUN_00491d70(1);
-            FUN_004a9660(g_game->field_519);
+            CloseTopScreen(g_game->field_519);
             FUN_004257a0();
             SetCursor(0x14);
             g_game->field_2a3c = saved;

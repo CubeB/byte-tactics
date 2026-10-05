@@ -7,7 +7,7 @@
 extern char* g_game;
 
 int FUN_00428bc0(void);
-void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 
 // FUNCTION: 0x425930
 void FUN_00425930()
@@ -18,7 +18,7 @@ void FUN_00425930()
         if (FUN_00428bc0()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     163, "c:\\cavedog\\wargame\\frontend.cpp");
-            FUN_004abd90(g_game + 0x519, buf, 500, 1, 1);
+            OpenMessageBox(g_game + 0x519, buf, 500, 1, 1);
         }
         g_game[0x2bbf] = next;
         g_game[0x2bc0] = next;

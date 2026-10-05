@@ -23,7 +23,7 @@ struct Class_0049f8c0 {
 };
 
 // FUNCTION: 0x49f8c0
-int __stdcall FUN_0049f8c0(Class_0049f8c0* obj, char* name, int unused)
+int __stdcall HasGadgetNamed(Class_0049f8c0* obj, char* name, int unused)
 {
     Entry_0049f8c0* entries = obj->holder->entries;
     for (int i = 1; i < entries->count + 1; i++) {

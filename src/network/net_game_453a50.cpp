@@ -22,13 +22,13 @@ struct Game {
     Entry_00453a50 entries[10];            // +0x1b67
 };
 
-// The 0x15b-byte entry table returned by FUN_0049ff90.
+// The 0x15b-byte entry table returned by FindGadgetChecked.
 struct OutEntry_00453a50 {
     char unknown_0[0x19];
     short field_19;                        // +0x19
 };
 
-// The dialog object returned by FUN_004aa8f0.
+// The dialog object returned by LoadGuiLayer.
 struct Gui_00453a50 {
     char unknown_0[4];
     void* entries;                         // +0x04
@@ -43,18 +43,18 @@ extern Game* g_game;
 extern int g_timeoutPlayerDpid;
 extern void* g_loungeChatter;
 
-int __stdcall FUN_004ab060(void* obj, const char* name);
-void* __stdcall FUN_004aa8f0(void* obj, const char* name, int size);
-void __stdcall FUN_004a9660(void* obj);
-OutEntry_00453a50* __stdcall FUN_0049ff90(void* entries, char* name);
-int FUN_004a50b0();
+int __stdcall IsScreenNamed(void* obj, const char* name);
+void* __stdcall LoadGuiLayer(void* obj, const char* name, int size);
+void __stdcall CloseTopScreen(void* obj);
+OutEntry_00453a50* __stdcall FindGadgetChecked(void* entries, char* name);
+int GetFontLineHeight();
 void* __cdecl FUN_004d83b0(char* name, int size);
 void __stdcall FUN_004a32a0(void* obj, char* name, void* p, int count, int flags);
-int __stdcall FUN_0049fdf0(void* entries, char* name, int type);
+int __stdcall FindGadgetIndex(void* entries, char* name, int type);
 void __stdcall FUN_004a7190(void* obj, int index);
 void __stdcall FUN_004a0bf0(void* obj, char* name, void* out, int flag);
 void __stdcall FUN_0049fb10(void* obj, int value);
-void __stdcall FUN_004a81e0(void* obj, int value);
+void __stdcall RenderLayer(void* obj, int value);
 void __stdcall HandleTimeoutDialog(void* gadget);
 void __stdcall UpdateTimeoutDialog(void* gadget);
 
@@ -78,9 +78,9 @@ static __inline unsigned char FindSlot_00453a50(int id)
 // FUNCTION: 0x453a50
 void __stdcall OpenTimeoutDialog(int id)
 {
-    if (FUN_004ab060((char*)g_game + 0x519, "TIMEOUT.GUI")) {
+    if (IsScreenNamed((char*)g_game + 0x519, "TIMEOUT.GUI")) {
         if (id == -1) {
-            FUN_004a9660((char*)g_game + 0x519);
+            CloseTopScreen((char*)g_game + 0x519);
         }
         return;
     }
@@ -93,7 +93,7 @@ void __stdcall OpenTimeoutDialog(int id)
         return;
     }
 
-    Gui_00453a50* gui = (Gui_00453a50*)FUN_004aa8f0((char*)g_game + 0x519,
+    Gui_00453a50* gui = (Gui_00453a50*)LoadGuiLayer((char*)g_game + 0x519,
                                                     "TIMEOUT.GUI", 0x800);
     void* entries = gui->entries;
     gui->callback = &HandleTimeoutDialog;
@@ -103,15 +103,15 @@ void __stdcall OpenTimeoutDialog(int id)
     g_loungeChatter = p;
     memset(p, 0, 0x780);
 
-    OutEntry_00453a50* out = FUN_0049ff90(entries, "OUTPUT");
+    OutEntry_00453a50* out = FindGadgetChecked(entries, "OUTPUT");
     FUN_004a32a0((char*)g_game + 0x519, "OUTPUT", g_loungeChatter,
-                 (int)out->field_19 / (FUN_004a50b0() + 2), 0);
+                 (int)out->field_19 / (GetFontLineHeight() + 2), 0);
 
     gui->field_1c = &UpdateTimeoutDialog;
-    FUN_004a7190((char*)g_game + 0x519, FUN_0049fdf0(entries, "TALK", 3));
+    FUN_004a7190((char*)g_game + 0x519, FindGadgetIndex(entries, "TALK", 3));
 
     FUN_004a0bf0((char*)g_game + 0x519, "NAME",
                  g_game->entries[i].name, 0);
     FUN_0049fb10((char*)g_game + 0x519, 1);
-    FUN_004a81e0((char*)g_game + 0x519, 0x40);
+    RenderLayer((char*)g_game + 0x519, 0x40);
 }

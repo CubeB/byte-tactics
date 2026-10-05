@@ -121,7 +121,7 @@ public:
 };
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004b6b80(const char* text, const char* caption);
 int __stdcall FUN_004bbc40(char* path);
 void __stdcall FUN_004bbd30(char* filename, void* buffer, int offset, int size);
@@ -264,7 +264,7 @@ int Class_00435c00::FUN_00435da0(char* map)
         if (!((Class_004c3410*)&list)->FUN_004c3410(key)) {
             char msg[0x100];
             wsprintfA(msg, "The requested mission file, %s, does not exist.", key);
-            FUN_004abd90(g_game->messages, msg, 0x1e0, 1, 1);
+            OpenMessageBox(g_game->messages, msg, 0x1e0, 1, 1);
             return 0;
         }
         FUN_004c58a0(&list, missionName, "missionname", 0x100, 0);
@@ -275,7 +275,7 @@ int Class_00435c00::FUN_00435da0(char* map)
             if (!((Class_004c2f60*)&parser)->FUN_004c2f60(file)) {
                 char msg[0x100];
                 sprintf(msg, "Hey, joker!  There is no mission defintion for this mission: %s", path);
-                FUN_004abd90(g_game->messages, msg, 0x1e0, 1, 1);
+                OpenMessageBox(g_game->messages, msg, 0x1e0, 1, 1);
                 return 0;
             }
             ((Class_004c3e10*)&parser)->FUN_004c3e10();
@@ -286,11 +286,11 @@ int Class_00435c00::FUN_00435da0(char* map)
             } else {
                 char msg[0x100];
                 sprintf(msg, "Hey, joker!  Mission file %s is corrupt (no header found).", path);
-                FUN_004abd90(g_game->messages, msg, 0x1e0, 1, 1);
+                OpenMessageBox(g_game->messages, msg, 0x1e0, 1, 1);
                 return 0;
             }
         } else {
-            FUN_004abd90(g_game->messages, "Old TED format no longer supported!", 0x1e0, 1, 1);
+            OpenMessageBox(g_game->messages, "Old TED format no longer supported!", 0x1e0, 1, 1);
             return 0;
         }
         break;
@@ -320,7 +320,7 @@ int Class_00435c00::FUN_00435da0(char* map)
     }
 
     if (!((Class_004c3410*)&parser)->FUN_004c3410("GlobalHeader")) {
-        FUN_004abd90(g_game->messages, "No GlobalHeader block in mission file!", 0x1e0, 1, 1);
+        OpenMessageBox(g_game->messages, "No GlobalHeader block in mission file!", 0x1e0, 1, 1);
         return 0;
     }
     field_c20 = *(int*)((char*)parser.current + 0x25);

@@ -27,13 +27,13 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fd60(Gadget_00460340* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_00460340* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
-int __stdcall FUN_004a0f60(Gadget_00460340* gadget, char* name);
+int __stdcall GetButtonStageByName(Gadget_00460340* gadget, char* name);
 char __stdcall FUN_0041d6a0(int disc);
 void __stdcall FUN_0041d4c0();
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* gadget);
 
 // FUNCTION: 0x460340
@@ -42,13 +42,13 @@ void __stdcall FUN_00460340(Gadget_00460340* gadget)
     if (gadget->field_60 == -1)
         return;
     FUN_0047f1a0("Options", 0);
-    if (FUN_0049fd60(gadget, "RESTART")) {
+    if (IsCurrentGadgetNamed(gadget, "RESTART")) {
         int ok = 0;
         int mode = g_game->mode->FUN_00435100();
         switch (mode) {
         case 1:
             if (!FUN_0041d6a0(0)) {
-                FUN_004abd90(g_game->message,
+                OpenMessageBox(g_game->message,
                              FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
                              200, 1, 1);
                 FUN_004ab0a0(g_game->message);
@@ -58,7 +58,7 @@ void __stdcall FUN_00460340(Gadget_00460340* gadget)
             break;
         case 2:
             if (!FUN_0041d6a0(1)) {
-                FUN_004abd90(g_game->message,
+                OpenMessageBox(g_game->message,
                              FUN_004c5740("Please insert the Multiplayer CD (Disc 1) and try again"),
                              200, 1, 1);
                 FUN_004ab0a0(g_game->message);
@@ -70,12 +70,12 @@ void __stdcall FUN_00460340(Gadget_00460340* gadget)
         if (!ok)
             return;
         FUN_0041d4c0();
-        g_game->difficulty = FUN_004a0f60(gadget, "Difficulty");
+        g_game->difficulty = GetButtonStageByName(gadget, "Difficulty");
         g_game->field_39249 = 1;
-    } else if (FUN_0049fd60(gadget, "Difficulty")) {
+    } else if (IsCurrentGadgetNamed(gadget, "Difficulty")) {
         FUN_0047f1a0("Options", 0);
         FUN_004ab0a0(gadget);
-    } else if (!FUN_0049fd60(gadget, "CANCEL") && gadget->field_60 != -1) {
+    } else if (!IsCurrentGadgetNamed(gadget, "CANCEL") && gadget->field_60 != -1) {
         FUN_004ab0a0(gadget);
     }
 }

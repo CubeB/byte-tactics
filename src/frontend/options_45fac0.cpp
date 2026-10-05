@@ -7,9 +7,9 @@ struct Gadget_0045fac0 {
     int field_60;                      // +0x60
 };
 
-int __stdcall FUN_0049fd60(Gadget_0045fac0* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_0045fac0* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
-int __stdcall FUN_004a0f60(Gadget_0045fac0* gadget, char* name);
+int __stdcall GetButtonStageByName(Gadget_0045fac0* gadget, char* name);
 void __stdcall FUN_0045f8c0(Gadget_0045fac0* gadget, int a, int b);
 void __stdcall FUN_004ab0a0(Gadget_0045fac0* gadget);
 
@@ -17,13 +17,13 @@ void __stdcall FUN_004ab0a0(Gadget_0045fac0* gadget);
 void __stdcall FUN_0045fac0(Gadget_0045fac0* gadget)
 {
     if (gadget->field_60 != -1) {
-        if (FUN_0049fd60(gadget, "OK")) {
+        if (IsCurrentGadgetNamed(gadget, "OK")) {
             FUN_0047f1a0("Options", 0);
             return;
         }
-        if (FUN_0049fd60(gadget, "Page")) {
+        if (IsCurrentGadgetNamed(gadget, "Page")) {
             FUN_0047f1a0("Options", 0);
-            FUN_0045f8c0(gadget, FUN_004a0f60(gadget, "Page"), 0x11);
+            FUN_0045f8c0(gadget, GetButtonStageByName(gadget, "Page"), 0x11);
         }
         FUN_004ab0a0(gadget);
     }

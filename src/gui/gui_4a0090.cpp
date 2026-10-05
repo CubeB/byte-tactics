@@ -46,7 +46,7 @@ static inline int FindEntry(Entry_004a0090* entries, char* name)
 }
 
 // FUNCTION: 0x4a0090
-void __stdcall FUN_004a0090(Object_004a0090* obj)
+void __stdcall UpdateHelpText(Object_004a0090* obj)
 {
     char* text = DAT_005119b8;
     if (obj->index != -1) {

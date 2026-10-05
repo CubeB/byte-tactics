@@ -11,7 +11,7 @@ struct Object_004ab510 {
 };
 
 // FUNCTION: 0x4ab510
-int __stdcall FUN_004ab510(Object_004ab510* obj, unsigned char buttons)
+int __stdcall IsMouseButtonMessage(Object_004ab510* obj, unsigned char buttons)
 {
     int& msg = obj->message;
     if (buttons & 1) {

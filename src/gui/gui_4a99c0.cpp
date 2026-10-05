@@ -51,14 +51,14 @@ struct Class_004a99c0 {
     Holder_004a99c0* holder;           // +0x18
 };
 
-extern Holder_004a99c0* DAT_0051fba4;
+extern Holder_004a99c0* g_guiContext;
 extern char DAT_00502a20[];
 
 void __stdcall SetFont(int id);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 int GetFontHeight();
 char* __stdcall FUN_004b6af0(char* text, int line);
-void __stdcall FUN_004a1b40(Class_004a99c0* param_1, int param_2);
+void __stdcall DrawListBox(Class_004a99c0* param_1, int param_2);
 void __stdcall FUN_004a2be0(Class_004a99c0* param_1, int param_2);
 void __stdcall FUN_004a2e40(Class_004a99c0* param_1, char* name, int line);
 
@@ -79,10 +79,10 @@ void __stdcall FUN_004a99c0(Class_004a99c0* param_1, int index)
         }
     }
     if (i == entries->count + 1) {
-        SetFont(DAT_0051fba4->current);
+        SetFont(g_guiContext->current);
     }
-    int size = (DAT_0051fba4->list == 0) ? GetFontHeight()
-        : (*(unsigned short*)(GetGafFrame(DAT_0051fba4->list->field_0c, 0x49) + 2) + 2);
+    int size = (g_guiContext->list == 0) ? GetFontHeight()
+        : (*(unsigned short*)(GetGafFrame(g_guiContext->list->field_0c, 0x49) + 2) + 2);
     size++;
     int step = (me->field_19 - 2) / size;
     short last = me->field_bc;           // last line of the window
@@ -107,7 +107,7 @@ void __stdcall FUN_004a99c0(Class_004a99c0* param_1, int index)
                     me->field_ba = isel;
                 }
             }
-            FUN_004a1b40(param_1, index);
+            DrawListBox(param_1, index);
             FUN_004a2be0(param_1, index);
             return;
         }

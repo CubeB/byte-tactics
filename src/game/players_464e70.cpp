@@ -36,16 +36,16 @@ extern char DAT_00503164[];
 extern char DAT_00503168[];
 extern char DAT_00507318[];
 
-Screen_00464e70* __stdcall FUN_004aa8f0(Menu_00464e70* menu, char* name, int value);
+Screen_00464e70* __stdcall LoadGuiLayer(Menu_00464e70* menu, char* name, int value);
 void __stdcall FUN_0049fb10(Menu_00464e70* menu, int flag);
 void __stdcall FUN_004a0bf0(Menu_00464e70* menu, char* name, char* text, int value);
-void __stdcall FUN_004a81e0(Menu_00464e70* menu, int value);
+void __stdcall RenderLayer(Menu_00464e70* menu, int value);
 void __stdcall FUN_00464de0(Gadget_00464de0* gadget);
 
 // FUNCTION: 0x464e70
 void FUN_00464e70()
 {
-    Screen_00464e70* screen = FUN_004aa8f0(&g_game->menu, DAT_00503168, 0x900);
+    Screen_00464e70* screen = LoadGuiLayer(&g_game->menu, DAT_00503168, 0x900);
     if (screen) {
         Form_00464e70* form;
         FUN_0049fb10(&g_game->menu, 1);
@@ -56,6 +56,6 @@ void FUN_00464e70()
         strcpy(form->choice1, DAT_00503128);
         strcpy(form->choice2, DAT_00503120);
         screen->callback = FUN_00464de0;
-        FUN_004a81e0(&g_game->menu, 0x40);
+        RenderLayer(&g_game->menu, 0x40);
     }
 }

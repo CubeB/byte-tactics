@@ -94,12 +94,12 @@ struct Class_0051fba4 {
     Font_004a2580* font;               // +0x14
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 void __stdcall SetFont(int id);
 void __stdcall FUN_004a23b0(Entry_004a2580* base, int index, int* r1, int* r2);
-void __stdcall FUN_004b0510(void* surface, int* r, int a, int b, int c);
-void __stdcall FUN_004b0590(void* surface, int* r, int a, int b, int c);
+void __stdcall DrawRaisedBox(void* surface, int* r, int a, int b, int c);
+void __stdcall DrawSunkenBox(void* surface, int* r, int a, int b, int c);
 Glyph_004a2580* __stdcall GetGafFrame(unsigned short* glyphs, int c);
 void __stdcall DrawFrame(void* surface, void* glyph, int x, int y);
 int GetTextKeyColor();
@@ -195,7 +195,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         }
     }
     if (i == entries->u.head.count + 1)
-        SetFont(DAT_0051fba4->group);
+        SetFont(g_guiContext->group);
 
     int r1[4];
     int r2[4];
@@ -203,8 +203,8 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
 
     unsigned short* gl = e->glyphs;
     if (gl == 0) {
-        FUN_004b0510(surface, r1, obj->field_8b2, obj->field_8c3, obj->field_8c6);
-        FUN_004b0590(surface, r2, obj->field_8b2, obj->field_8c3, obj->field_8c6);
+        DrawRaisedBox(surface, r1, obj->field_8b2, obj->field_8c3, obj->field_8c6);
+        DrawSunkenBox(surface, r2, obj->field_8b2, obj->field_8c3, obj->field_8c6);
     } else {
         short w = e->w;
         short h = e->h;
@@ -293,22 +293,22 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         char* text = buf;
         int total = 0;
         if (text != 0) {
-            if (DAT_0051fba4->font == 0) {
+            if (g_guiContext->font == 0) {
                 GetTextWidth((Font_004a2580*)GetFont(), text);
             } else {
                 char* p = text;
                 for (; *p != 0; p++) {
                     unsigned char c = *p;
-                    g = GetGafFrame((unsigned short*)DAT_0051fba4->font->glyphs, c);
+                    g = GetGafFrame((unsigned short*)g_guiContext->font->glyphs, c);
                     if (g != 0)
                         total += g->width;
                 }
             }
         }
-        if (DAT_0051fba4->font == 0)
+        if (g_guiContext->font == 0)
             GetFontHeight();
         else
-            GetGafFrame((unsigned short*)DAT_0051fba4->font->glyphs, 0x49);
+            GetGafFrame((unsigned short*)g_guiContext->font->glyphs, 0x49);
         DrawString(surface, buf, e->x + e->w + 2, e->y + 4, -1);
     }
 

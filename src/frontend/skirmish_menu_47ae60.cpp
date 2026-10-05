@@ -82,9 +82,9 @@ struct Frame_0047ae60 {
 
 extern char* g_game;                   // 0x511de8
 
-void __stdcall FUN_0049fed0(Entry_0047ae60* entries, char* text, int id);
-int __stdcall FUN_0049fdf0(Entry_0047ae60* entries, char* name, int flag);
-int __stdcall FUN_0049fd60(Menu_0047ae60* menu, char* name);
+void __stdcall GetGadgetName(Entry_0047ae60* entries, char* text, int id);
+int __stdcall FindGadgetIndex(Entry_0047ae60* entries, char* name, int flag);
+int __stdcall IsCurrentGadgetNamed(Menu_0047ae60* menu, char* name);
 void __stdcall FUN_0047f1a0(char* name, int value);
 char __stdcall FUN_0041d6a0(int param_1);
 void FUN_0041d4c0();
@@ -97,10 +97,10 @@ void FUN_0047a760();
 void FUN_0047aaf0();
 void __stdcall FUN_0047acd0(int param_1);
 void __stdcall FUN_00491c80(int param_1);
-void __stdcall FUN_004a0090(void* param_1);
+void __stdcall UpdateHelpText(void* param_1);
 void __stdcall FUN_004a0bf0(Menu_0047ae60* menu, char* key, char* value, int flag);
 void __stdcall FUN_004ab0a0(void* param_1);
-void __stdcall FUN_004abd90(void* menu, char* text, int width, int a, int b);
+void __stdcall OpenMessageBox(void* menu, char* text, int width, int a, int b);
 void __stdcall FUN_004c2340(int* out);
 char* __stdcall FUN_004c5740(char* text);
 
@@ -114,17 +114,17 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
     if (cmd == -1) {
         return;
     }
-    FUN_0049fed0(entries, frame.bf, cmd);
+    GetGadgetName(entries, frame.bf, cmd);
 
     int player = atoi(&frame.bf[strlen(frame.bf) - 1]);
     Table_0047ae60* table = *(Table_0047ae60**)(g_game + 0x29a0);
     table->field_224 = player;
     frame.bf[strlen(frame.bf) - 1] = 0;
 
-    if (FUN_0049fd60(menu, "Start")) {
+    if (IsCurrentGadgetNamed(menu, "Start")) {
         FUN_0047f1a0("BigButton", 0);
         if (!FUN_0041d6a0(1)) {
-            FUN_004abd90(g_game + 0x519,
+            OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("Please insert the Multiplayer CD (Disc 1) and try again"),
                          0xc8, 1, 1);
             FUN_004ab0a0(g_game + 0x519);
@@ -144,7 +144,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         *(short*)(g_game + 0x2a3c) = n + 1;
 
         if ((*(Class_00435a20**)(g_game + 0x391e9))->FUN_00435a20((*(Table_0047ae60**)(g_game + 0x29a0))->mapName) == 0) {
-            FUN_004abd90(g_game + 0x519,
+            OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("The terrain for the selected map does not exist."),
                          0x1e0, 1, 1);
             FUN_004ab0a0(menu);
@@ -174,7 +174,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             if (c1 >= 1) {
                 int maxPlayers = (*(Class_00437300**)(g_game + 0x391e9))->FUN_00437300();
                 if ((int)(unsigned short)*(short*)(g_game + 0x2a3c) > maxPlayers) {
-                    FUN_004abd90(g_game + 0x519,
+                    OpenMessageBox(g_game + 0x519,
                                  FUN_004c5740("There are too many players enabled for this map"),
                                  0x1e0, 1, 1);
                     FUN_004ab0a0(menu);
@@ -182,7 +182,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
                 }
 
                 if (FUN_00479760() != 0) {
-                    FUN_004abd90(g_game + 0x519,
+                    OpenMessageBox(g_game + 0x519,
                                  FUN_004c5740("All players may not be in the same allied group."),
                                  0x1e0, 1, 1);
                     FUN_004ab0a0(menu);
@@ -218,14 +218,14 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
                 return;
             }
         }
-        FUN_004abd90(g_game + 0x519,
+        OpenMessageBox(g_game + 0x519,
                      FUN_004c5740("There must be at least one player and one computer opponent"),
                      0x1e0, 1, 1);
         FUN_004ab0a0(menu);
         return;
     }
 
-    if (FUN_0049fd60(menu, "PrevMenu")) {
+    if (IsCurrentGadgetNamed(menu, "PrevMenu")) {
         FUN_0047f1a0("Previous", 0);
         FUN_00491c80(0x14);
         *(char*)(g_game + 0x2bc0) = 3;
@@ -303,42 +303,42 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             _itoa((*(Table_0047ae60**)(g_game + 0x29a0))->players[player].metal, frame.sB, 10);
             FUN_004a0bf0(menu, frame.sA, frame.sB, 10);
         }
-    } else if (FUN_0049fd60(menu, "CommanderDeath")) {
+    } else if (IsCurrentGadgetNamed(menu, "CommanderDeath")) {
         FUN_0047f1a0("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         t->field_108 ^= 1;
-        int index = FUN_0049fdf0(entries, "CommanderDeath", 1);
+        int index = FindGadgetIndex(entries, "CommanderDeath", 1);
         Entry_0047ae60* e = &entries[index];
         if ((*(Table_0047ae60**)(g_game + 0x29a0))->field_108 != 0)
             strcpy(e->text, FUN_004c5740("Game ends when commander is destroyed."));
         else
             strcpy(e->text, FUN_004c5740("Game continues after Commander is destroyed."));
-        FUN_004a0090(g_game + 0x519);
-    } else if (FUN_0049fd60(menu, "StartLocation")) {
+        UpdateHelpText(g_game + 0x519);
+    } else if (IsCurrentGadgetNamed(menu, "StartLocation")) {
         FUN_0047f1a0("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         t->field_118 ^= 1;
-        int index = FUN_0049fdf0(entries, "StartLocation", 1);
+        int index = FindGadgetIndex(entries, "StartLocation", 1);
         Entry_0047ae60* e = &entries[index];
         if ((*(Table_0047ae60**)(g_game + 0x29a0))->field_118 != 0)
             strcpy(e->text, FUN_004c5740("Commanders are placed at pre-determined locations."));
         else
             strcpy(e->text, FUN_004c5740("Commanders are randomly placed on the battle field."));
-        FUN_004a0090(g_game + 0x519);
-    } else if (FUN_0049fd60(menu, "Mapping")) {
+        UpdateHelpText(g_game + 0x519);
+    } else if (IsCurrentGadgetNamed(menu, "Mapping")) {
         FUN_0047f1a0("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         t->field_10c ^= 1;
-        int index = FUN_0049fdf0(entries, "Mapping", 1);
+        int index = FindGadgetIndex(entries, "Mapping", 1);
         Entry_0047ae60* e = &entries[index];
         if ((*(Table_0047ae60**)(g_game + 0x29a0))->field_10c != 0)
             strcpy(e->text, FUN_004c5740("Terrain is blacked out until explored."));
         else
             strcpy(e->text, FUN_004c5740("Terrain is visible."));
-        FUN_004a0090(g_game + 0x519);
-    } else if (FUN_0049fd60(menu, "LineOfSight")) {
+        UpdateHelpText(g_game + 0x519);
+    } else if (IsCurrentGadgetNamed(menu, "LineOfSight")) {
         FUN_0047f1a0("Skirmish", 0);
-        int index = FUN_0049fdf0(entries, "LineOfSight", 1);
+        int index = FindGadgetIndex(entries, "LineOfSight", 1);
         Entry_0047ae60* e = &entries[index];
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         if (t->field_110 == 0) {
@@ -353,12 +353,12 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             (*(Table_0047ae60**)(g_game + 0x29a0))->field_114 = 1;
             strcpy(e->text, FUN_004c5740("All mapped terrain is visible."));
         }
-        FUN_004a0090(g_game + 0x519);
-    } else if (FUN_0049fd60(menu, "SelectMap")) {
+        UpdateHelpText(g_game + 0x519);
+    } else if (IsCurrentGadgetNamed(menu, "SelectMap")) {
         FUN_0047f1a0("Skirmish", 0);
         FUN_00491c80(0x14);
         FUN_0047aaf0();
-    } else if (FUN_0049fd60(menu, "Difficulty")) {
+    } else if (IsCurrentGadgetNamed(menu, "Difficulty")) {
         FUN_0047f1a0("SKirmish", 0);
         int d = *(int*)(g_game + 0x37eee);
         if (d == 0) {

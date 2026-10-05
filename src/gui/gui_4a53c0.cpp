@@ -70,7 +70,7 @@ struct LanguageRoot_004a53c0 {
     Language_004a53c0* language;        // +0x14
 };
 
-extern LanguageRoot_004a53c0* DAT_0051fba4;
+extern LanguageRoot_004a53c0* g_guiContext;
 
 void __stdcall SetFont(int param);
 int GetFont();
@@ -84,11 +84,11 @@ static inline int Measure_004a53c0(char* text)
     char* p = text;
     if (p == 0)
         return 0;
-    if (DAT_0051fba4->language == 0)
+    if (g_guiContext->language == 0)
         return GetTextWidth(GetFont(), text);
     while (*p != 0) {
         char ch = *p;
-        Glyph_004a53c0* glyph = (Glyph_004a53c0*)GetGafFrame(DAT_0051fba4->language->glyphs, (unsigned char)ch);
+        Glyph_004a53c0* glyph = (Glyph_004a53c0*)GetGafFrame(g_guiContext->language->glyphs, (unsigned char)ch);
         if (glyph != 0)
             width += glyph->width;
         ++p;
@@ -113,14 +113,14 @@ void __stdcall FUN_004a53c0(Class_004a53c0* obj, int index)
         }
     }
     if (i == entries[0].b6.count + 1)
-        SetFont(DAT_0051fba4->language0);
+        SetFont(g_guiContext->language0);
     int x = !entry->type ? 0 : entry->x;
     int nx = x;
     int lh;
-    if (DAT_0051fba4->language == 0)
+    if (g_guiContext->language == 0)
         lh = GetFontHeight();
     else
-        lh = ((Glyph_004a53c0*)GetGafFrame(DAT_0051fba4->language->glyphs, 0x49))->height + 2;
+        lh = ((Glyph_004a53c0*)GetGafFrame(g_guiContext->language->glyphs, 0x49))->height + 2;
     if (entry->align & 4) {
         nx = entry->w + x;
         nx -= Measure_004a53c0(entry->b6.text);

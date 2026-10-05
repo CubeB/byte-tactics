@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are
-// provisional. MATCH, 765 bytes. Capture DAT_0051fba4 in a root local before searching its entry
+// provisional. MATCH, 765 bytes. Capture g_guiContext in a root local before searching its entry
 // names, and pass that captured root to FUN_004a03f0. The final scroll call uses a fresh global
 // lookup, as in the original. This fixes the earlier register family and permits a normal integer
 // remain local instead of overwriting param_1 with the remaining height. Initialize remain before
@@ -48,7 +48,7 @@ struct Holder_004a32a0 {
     Entry_004a32a0* entries; // +0x04
 };
 
-struct Root_004a32a0 { // DAT_0051fba4
+struct Root_004a32a0 { // g_guiContext
     int current;       // +0x00
     char unknown_04[0x14 - 0x04];
     List_004a32a0* language; // +0x14
@@ -60,21 +60,21 @@ struct Class_004a32a0 {
     Holder_004a32a0* holder; // +0x18
 };
 
-extern Root_004a32a0* DAT_0051fba4;
+extern Root_004a32a0* g_guiContext;
 
 void __stdcall FatalError(char* msg);
 int GetFontHeight();
 int __stdcall GetGafFrame(unsigned short* glyphs, int c);
 void __stdcall FUN_004a03f0(Root_004a32a0* menu, int index, int value);
-void __stdcall FUN_004a3ef0(Root_004a32a0* param_1, int param_2);
+void __stdcall DrawSlider(Root_004a32a0* param_1, int param_2);
 
 // The line height of one row: the default font height, or the height of the
 // glyph for 'I' plus two. Written out three times in the caller because the
 // original evaluates it again in the second arm of the +0xda minimum.
 static inline int FontHeight_004a32a0() {
-    if (DAT_0051fba4->language == 0)
+    if (g_guiContext->language == 0)
         return GetFontHeight();
-    return (int)((Glyph_004a32a0*)GetGafFrame(DAT_0051fba4->language->glyphs, 0x49))->height + 2;
+    return (int)((Glyph_004a32a0*)GetGafFrame(g_guiContext->language->glyphs, 0x49))->height + 2;
 }
 
 // The entry search of 0x4a0180, 0x4a0200, 0x4a0280 and 0x4a35a0.
@@ -141,7 +141,7 @@ void __stdcall FUN_004a32a0(Class_004a32a0* param_1, char* name, int bitmap, int
     if (found == -1)
         return;
     char* text = (char*)&holder->entries[found].name;
-    Root_004a32a0* root = DAT_0051fba4;
+    Root_004a32a0* root = g_guiContext;
     if (root->holder != 0) {
         int j2 = FindName_004a32a0(root->holder->entries, text);
         if (j2 != -1) {
@@ -149,6 +149,6 @@ void __stdcall FUN_004a32a0(Class_004a32a0* param_1, char* name, int bitmap, int
         }
     }
     if (remain < 0) {
-        FUN_004a3ef0(DAT_0051fba4, found);
+        DrawSlider(g_guiContext, found);
     }
 }

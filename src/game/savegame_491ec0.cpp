@@ -85,9 +85,9 @@ extern char DAT_005119b8[];
 extern char DAT_0051e6f8[];
 
 void __stdcall FUN_0049fa90(Menu_00491ec0* menu);
-Entry_00491ec0* __stdcall FUN_0049ff90(Entry_00491ec0* entries, char* name);
-int __stdcall FUN_0049fdf0(Entry_00491ec0* entries, char* name, int type);
-void __stdcall FUN_004a0880(Menu_00491ec0* menu, int index, char* text);
+Entry_00491ec0* __stdcall FindGadgetChecked(Entry_00491ec0* entries, char* name);
+int __stdcall FindGadgetIndex(Entry_00491ec0* entries, char* name, int type);
+void __stdcall SetGadgetText(Menu_00491ec0* menu, int index, char* text);
 Entry_00491ec0* __stdcall FUN_004a0280(Entry_00491ec0* entries, char* name);
 void __stdcall FUN_004a0570(Menu_00491ec0* menu, char* name, int value);
 void __stdcall FUN_004a0bf0(Menu_00491ec0* menu, char* name, char* text, int param_4);
@@ -104,11 +104,11 @@ void __stdcall FUN_00491ec0()
     Menu_00491ec0* menu = &g_game->menu;
     Layer_00491ec0* layer = g_game->menu.layer;
     Entry_00491ec0* entries = layer->entries;
-    Entry_00491ec0* games = FUN_0049ff90(entries, "GAMES");
+    Entry_00491ec0* games = FindGadgetChecked(entries, "GAMES");
     if (games == 0)
         return;
 
-    int index = FUN_0049fdf0(entries, "GAMENAME", 3);
+    int index = FindGadgetIndex(entries, "GAMENAME", 3);
     char path[0x100];
     struct Buf { int gametype; char name[0x34]; char* diffs[3]; } b;
 #define gametype b.gametype
@@ -119,7 +119,7 @@ void __stdcall FUN_00491ec0()
     if (games->field_ba > -1
         && (desc = FUN_004b6af0(DAT_0051f2e4, games->field_ba)) != 0
         && strlen(desc) != 0) {
-        FUN_004a0880(menu, index, desc);
+        SetGadgetText(menu, index, desc);
         char* fname = FUN_004b6af0(DAT_0051f2e0, games->field_ba);
         sprintf(path, "%s\\%s", DAT_005091c8, fname);
         Class_004b48a0* file = FUN_00432520(path);
@@ -194,7 +194,7 @@ void __stdcall FUN_00491ec0()
         }
     }
     {
-        FUN_004a0880(menu, index, DAT_005119b8);
+        SetGadgetText(menu, index, DAT_005119b8);
         FUN_004a0bf0(menu, "SIDE", DAT_005119b8, 0);
         FUN_004a0bf0(menu, "DIFF", DAT_005119b8, 0);
         FUN_004a0bf0(menu, "MISSION", DAT_005119b8, 0);

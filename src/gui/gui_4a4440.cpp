@@ -43,11 +43,11 @@ struct Object_0049fc50 {
 #pragma pack(pop)
 
 int __stdcall FUN_0049fc50(Object_0049fc50* obj, int index);
-int __stdcall FUN_004ab510(Object_0049fc50* obj, unsigned char buttons);
+int __stdcall IsMouseButtonMessage(Object_0049fc50* obj, unsigned char buttons);
 int __stdcall FUN_004ab5b0(Object_0049fc50* obj, unsigned int mask);
 void __stdcall FUN_004ab690(Object_0049fc50* obj, int param_2);
-int FUN_004c1ab0(void);
-int __stdcall FUN_004c1b80(int key);
+int PopKey(void);
+int __stdcall IsKeyDown(int key);
 
 // FUNCTION: 0x4a4440
 int __stdcall FUN_004a4440(Object_0049fc50* obj, int index, char key)
@@ -76,12 +76,12 @@ int __stdcall FUN_004a4440(Object_0049fc50* obj, int index, char key)
     rel_x = point.x - entries->x1;
     rel_y = point.y - entries->y1;
 
-    if (FUN_004ab510(obj, 1)) {
+    if (IsMouseButtonMessage(obj, 1)) {
         if (rel_x < rect.x1 || rel_x > rect.x2 || rel_y < rect.y1 || rel_y > rect.y2)
             goto fail;
         FUN_0049fc50(obj, index);
         FUN_004ab690(obj, 1);
-    } else if (FUN_004ab510(obj, 2)) {
+    } else if (IsMouseButtonMessage(obj, 2)) {
         if (rel_x < rect.x1 || rel_x > rect.x2 || rel_y < rect.y1 || rel_y > rect.y2)
             goto fail;
         FUN_0049fc50(obj, index);
@@ -101,7 +101,7 @@ fail:
 check_queue:
     if (obj->focus != -1) {
         Entry_0049fc50* e = &entries[obj->focus];
-        if (e->type == 3 && !FUN_004c1b80(0xfb))
+        if (e->type == 3 && !IsKeyDown(0xfb))
             return 0;
     }
 
@@ -111,6 +111,6 @@ final_check:
     if ((char)tolower(entry->text[0x147 - 0xb6]) != key &&
         (char)toupper(entry->text[0x147 - 0xb6]) != key)
         return 0;
-    FUN_004c1ab0();
+    PopKey();
     return 1;
 }

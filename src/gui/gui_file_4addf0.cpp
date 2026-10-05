@@ -21,7 +21,7 @@ struct Struct_004addf0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4addf0
-void __stdcall FUN_004addf0(Struct_004addf0* param1, Param2_004addf0* param2)
+void __stdcall ReadListBoxFields(Struct_004addf0* param1, Param2_004addf0* param2)
 {
     param1->field_ce = 0;
     param1->field_d6 = 0;

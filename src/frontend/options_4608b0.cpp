@@ -41,21 +41,21 @@ struct Dialog_004608b0 {
 
 extern Game* g_game;
 
-Dialog_004608b0* __stdcall FUN_004aa8f0(Sub_004608b0* sub, const char* name, int flags);
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int type);
+Dialog_004608b0* __stdcall LoadGuiLayer(Sub_004608b0* sub, const char* name, int flags);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int type);
 void __stdcall FUN_004a0570(Sub_004608b0* sub, const char* name, int value);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004a0bf0(Sub_004608b0* sub, const char* name, int value, int param_4);
 void __stdcall FUN_0049fb10(Sub_004608b0* sub, int value);
-void __stdcall FUN_004a81e0(Sub_004608b0* sub, int value);
+void __stdcall RenderLayer(Sub_004608b0* sub, int value);
 void __stdcall FUN_00460800(void* gadget);
 
 // FUNCTION: 0x4608b0
 void FUN_004608b0()
 {
-    Dialog_004608b0* dialog = FUN_004aa8f0(&g_game->sub, "EXITMENU.GUI", 0x1800);
+    Dialog_004608b0* dialog = LoadGuiLayer(&g_game->sub, "EXITMENU.GUI", 0x1800);
     dialog->handler = FUN_00460800;
-    FUN_0049fdf0(dialog->gadgets, "RESTART", 1);
+    FindGadgetIndex(dialog->gadgets, "RESTART", 1);
     if (g_game->field_391e9->FUN_00435100() == 1) {
         FUN_004a0570(&g_game->sub, "RESTART", 1);
         FUN_004a0bf0(&g_game->sub, "RESTART", (int)FUN_004c5740("Restart"), 0x80);
@@ -71,5 +71,5 @@ void FUN_004608b0()
     }
 tail:
     FUN_0049fb10(&g_game->sub, 1);
-    FUN_004a81e0(&g_game->sub, 0x40);
+    RenderLayer(&g_game->sub, 0x40);
 }

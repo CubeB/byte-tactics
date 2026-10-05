@@ -25,7 +25,7 @@ extern char DAT_005119b8[];
 char* __stdcall FUN_004c5740(char* text);
 
 // FUNCTION: 0x4ae300
-void __stdcall FUN_004ae300(Obj_004ae300* obj, Source_004ae300* src)
+void __stdcall ReadTextLinkFields(Obj_004ae300* obj, Source_004ae300* src)
 {
     obj->field_147 = 0;
     obj->link[0] = 0;

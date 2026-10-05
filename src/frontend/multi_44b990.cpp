@@ -47,7 +47,7 @@ extern char* DAT_005129ac;             // savegame names
 extern char* DAT_005129b0;             // savegame descriptions
 extern char DAT_005119b8[];
 
-Layer_0044b990* __stdcall FUN_004aa8f0(Menu_0044b990* menu, const char* name, int flags);
+Layer_0044b990* __stdcall LoadGuiLayer(Menu_0044b990* menu, const char* name, int flags);
 void __stdcall FUN_0044b690(int a, int b);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void __stdcall FUN_004bcf00(char* path);
@@ -56,16 +56,16 @@ void __stdcall FUN_004a0bf0(Menu_0044b990* menu, char* name, char* text, int par
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_004a32a0(Menu_0044b990* menu, char* name, void* text, int value, int flag);
 void __stdcall FUN_004a0570(Menu_0044b990* menu, char* name, int param_3);
-Entry_0044b990* __stdcall FUN_0049ff90(Entry_0044b990* entries, char* name);
-int __stdcall FUN_0049fdf0(Entry_0044b990* entries, const char* name, int flag);
+Entry_0044b990* __stdcall FindGadgetChecked(Entry_0044b990* entries, char* name);
+int __stdcall FindGadgetIndex(Entry_0044b990* entries, const char* name, int flag);
 void __stdcall FUN_0044b600(int unused1, int unused2);
-void __stdcall FUN_004a0880(Menu_0044b990* menu, int index, char* text);
+void __stdcall SetGadgetText(Menu_0044b990* menu, int index, char* text);
 void __stdcall FUN_0049fa90(Menu_0044b990* menu);
 void __stdcall FUN_004a7190(Menu_0044b990* menu, int index);
 void __stdcall FUN_0049fb10(Menu_0044b990* menu, int value);
 void __stdcall FUN_00428b60();
 void __stdcall FUN_0049fa50(Menu_0044b990* menu);
-void __stdcall FUN_004a81e0(Menu_0044b990* menu, int value);
+void __stdcall RenderLayer(Menu_0044b990* menu, int value);
 
 static char* GetSaveDescriptions()
 {
@@ -76,7 +76,7 @@ static char* GetSaveDescriptions()
 void __stdcall FUN_0044b990()
 {
     int count;
-    Layer_0044b990* layer = FUN_004aa8f0(&g_game->menu, "SAVELIST.GUI", 0x880);
+    Layer_0044b990* layer = LoadGuiLayer(&g_game->menu, "SAVELIST.GUI", 0x880);
     layer->handler = FUN_0044b690;
     layer->data = g_game;
     FUN_004288d0("DSaveList", 0, 0, 0);
@@ -96,21 +96,21 @@ void __stdcall FUN_0044b990()
     FUN_004a32a0(&g_game->menu, "GAMES", DAT_005129b0, count, 0);
     if (count == 0)
         FUN_004a0570(&g_game->menu, "DELETE", 0);
-    Entry_0044b990* games = FUN_0049ff90(layer->entries, "GAMES");
+    Entry_0044b990* games = FindGadgetChecked(layer->entries, "GAMES");
     if (games != 0)
         games->handler = FUN_0044b600;
-    int index = FUN_0049fdf0(layer->entries, "GAMENAME", 3);
+    int index = FindGadgetIndex(layer->entries, "GAMENAME", 3);
     layer->entries[index].flags |= 2;
 
     Menu_0044b990* menu = &g_game->menu;
     Entry_0044b990* entries = g_game->menu.layer->entries;
-    Entry_0044b990* games2 = FUN_0049ff90(entries, "GAMES");
-    int index2 = FUN_0049fdf0(entries, "GAMENAME", 3);
+    Entry_0044b990* games2 = FindGadgetChecked(entries, "GAMES");
+    int index2 = FindGadgetIndex(entries, "GAMENAME", 3);
     char* name;
     if (games2->selected > -1 && (name = FUN_004b6af0(DAT_005129b0, games2->selected)) != 0 && strlen(name) != 0)
-        FUN_004a0880(menu, index2, name);
+        SetGadgetText(menu, index2, name);
     else
-        FUN_004a0880(menu, index2, DAT_005119b8);
+        SetGadgetText(menu, index2, DAT_005119b8);
     FUN_0049fa90(&g_game->menu);
 
     FUN_004a7190(&g_game->menu, index);
@@ -118,5 +118,5 @@ void __stdcall FUN_0044b990()
     FUN_00428b60();
     FUN_004a0570(&g_game->menu, "LoadGame", 0);
     FUN_0049fa50(&g_game->menu);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

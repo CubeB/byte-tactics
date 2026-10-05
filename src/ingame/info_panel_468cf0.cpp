@@ -92,7 +92,7 @@ int __stdcall SetFont(int);
 int GetFontHeight();
 int __stdcall GetTextWidth(int,int);
 int __stdcall DrawString(int,int,int,int,int);
-int __stdcall FUN_004c1b80(int);
+int __stdcall IsKeyDown(int);
 int FUN_004c2470();
 int FUN_004c2870();
 int __stdcall FUN_004c5740(int);
@@ -447,7 +447,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     }
   }
   DrawParticleList((int)&ctx, 8);
-  if (FUN_004c1b80(0xf9))
+  if (IsKeyDown(0xf9))
     FUN_0048cc30((int)&ctx, (int)(g_game + 0x142f3));
 
   // unit group numbers. Suspected original bug: the outer test lets a unit

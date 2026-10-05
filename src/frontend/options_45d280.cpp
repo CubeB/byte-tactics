@@ -171,13 +171,13 @@ extern char DAT_00506990[];              // "RESTORE"
 extern char DAT_00502b38[];              // "Options"
 
 void __stdcall FUN_0049fa90(void* obj);
-int __stdcall FUN_0049fd60(void* obj, char* name);
-int __stdcall FUN_0049fdf0(Entry_0045d280* entries, char* name, int type);
-int __stdcall FUN_004a0f60(void* obj, char* name);
-void __stdcall FUN_004a1080(void* obj, char* name, int value);
+int __stdcall IsCurrentGadgetNamed(void* obj, char* name);
+int __stdcall FindGadgetIndex(Entry_0045d280* entries, char* name, int type);
+int __stdcall GetButtonStageByName(void* obj, char* name);
+void __stdcall SetButtonStageByName(void* obj, char* name, int value);
 void __stdcall FUN_0047f1a0(char* name, int value);
 void __stdcall FUN_004ab0a0(void* obj);
-void __stdcall FUN_004a9660(void* obj);
+void __stdcall CloseTopScreen(void* obj);
 void __stdcall SetBrightness(float value);
 void FUN_0045c3f0();
 void FUN_0045d130();
@@ -196,7 +196,7 @@ void FUN_0045c510()
 {
     Entry_0045d280* gadgets = ((Holder_0045d280*)g_game->table_531)->entries;
     if (g_game->field_37f16 == 4) {
-        int index = FUN_0049fdf0(gadgets, DAT_0050692c, 1);
+        int index = FindGadgetIndex(gadgets, DAT_0050692c, 1);
         ((Class_004ce7c0*)g_game->sound)->FUN_004ce7c0(DAT_00512fe0, gadgets[index].value);
     }
 }
@@ -245,18 +245,18 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         return;
     }
     FUN_0049fa90(obj);
-    int notrak = FUN_0049fd60(obj, DAT_005067bc);
+    int notrak = IsCurrentGadgetNamed(obj, DAT_005067bc);
     if (notrak != 0) {              // "NOTRAK"
         FUN_0047f1a0(DAT_00502b38, 0);
-        int v = FUN_004a0f60(obj, DAT_005067bc);
+        int v = GetButtonStageByName(obj, DAT_005067bc);
         unsigned short f = g_game->flags.word;
         g_game->flags.word = f ^ ((f ^ v) & 1);
         ((Class_004cedc0*)g_game->sound)->FUN_004cedc0(g_game->flags.word & 1);
         FUN_004ab0a0(obj);
         FUN_0045d130();
-    } else if (FUN_0049fd60(obj, DAT_00506984)) {       // "TRACKMODE"
+    } else if (IsCurrentGadgetNamed(obj, DAT_00506984)) {  // "TRACKMODE"
         FUN_0047f1a0(DAT_00502b38, 0);
-        g_game->field_37f16 = FUN_004a0f60(obj, DAT_00506984) + 1;
+        g_game->field_37f16 = GetButtonStageByName(obj, DAT_00506984) + 1;
         ((Class_004ce7a0*)g_game->sound)->FUN_004ce7a0(g_game->field_37f16);
         if (g_game->field_37f16 == 3) {
             DAT_00512fe0 = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
@@ -265,13 +265,13 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
             return;
         }
         if (g_game->field_37f16 == 4) {
-            FUN_004a1080(obj, DAT_0050692c, (unsigned char)((Class_004ce7e0*)g_game->sound)->FUN_004ce7e0(DAT_00512fe0));
+            SetButtonStageByName(obj, DAT_0050692c, (unsigned char)((Class_004ce7e0*)g_game->sound)->FUN_004ce7e0(DAT_00512fe0));
             FUN_0045c510();
         }
         FUN_004ab0a0(obj);
         FUN_0045c3f0();
         return;
-    } else if (FUN_0049fd60(obj, DAT_0050692c)) {       // "TRACKTYPE"
+    } else if (IsCurrentGadgetNamed(obj, DAT_0050692c)) {  // "TRACKTYPE"
         FUN_0047f1a0(DAT_00502b38, 0);
         int i = obj->field_60;
         ((Class_004ce7c0*)g_game->sound)->FUN_004ce7c0(DAT_00512fe0, entries[i].value);
@@ -279,12 +279,12 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         FUN_004ab0a0(obj);
         return;
     }
-    if (FUN_0049fd60(obj, DAT_0050696c)) {              // "CDPLAY"
+    if (IsCurrentGadgetNamed(obj, DAT_0050696c)) {      // "CDPLAY"
         FUN_0047f1a0(DAT_00502b38, 0);
         ((Class_004ceb60*)g_game->sound)->FUN_004ceb60(DAT_00512fe0, 1);
         FUN_004ab0a0(obj);
         return;
-    } else if (FUN_0049fd60(obj, DAT_00506964)) {       // "CDNEXT"
+    } else if (IsCurrentGadgetNamed(obj, DAT_00506964)) {  // "CDNEXT"
         FUN_0047f1a0(DAT_00502b38, 0);
         DAT_00512fe0 = DAT_00512fe0 + 1;
         int n = ((Class_004ce450*)g_game->sound)->FUN_004ce450();
@@ -294,7 +294,7 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         FUN_0045c3f0();
         FUN_004ab0a0(obj);
         return;
-    } else if (FUN_0049fd60(obj, DAT_0050697c)) {       // "CDPREV"
+    } else if (IsCurrentGadgetNamed(obj, DAT_0050697c)) {  // "CDPREV"
         FUN_0047f1a0(DAT_00502b38, 0);
         DAT_00512fe0 = DAT_00512fe0 - 1;
         if (DAT_00512fe0 < 1)
@@ -303,7 +303,7 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         FUN_0045c3f0();
         FUN_004ab0a0(obj);
         return;
-    } else if (FUN_0049fd60(obj, DAT_00506974)) {       // "CDSTOP"
+    } else if (IsCurrentGadgetNamed(obj, DAT_00506974)) {  // "CDSTOP"
         FUN_0047f1a0(DAT_00502b38, 0);
         ((Class_004ced40*)g_game->sound)->FUN_004ced40();
         DAT_00512fe0 = ((Class_004ce8c0*)g_game->sound)->FUN_004ce8c0(1);
@@ -311,17 +311,17 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         FUN_004ab0a0(obj);
         return;
     }
-    if (FUN_0049fd60(obj, DAT_00506998)) {              // "UNDO"
+    if (IsCurrentGadgetNamed(obj, DAT_00506998)) {      // "UNDO"
         FUN_0047f1a0(DAT_00502b38, 0);
         FUN_0045c950();
-        FUN_004a9660(obj);
+        CloseTopScreen(obj);
         FUN_0045d7c0();
         return;
     }
-    if (FUN_0049fd60(obj, DAT_00506990)) {              // "RESTORE"
+    if (IsCurrentGadgetNamed(obj, DAT_00506990)) {      // "RESTORE"
         FUN_0047f1a0(DAT_00502b38, 0);
         FUN_0045c630();
-        FUN_004a9660(obj);
+        CloseTopScreen(obj);
         FUN_0045d7c0();
         return;
     }
@@ -332,7 +332,7 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
             return;
         }
         Vtable_0045d280* p = obj->holder->field_0;
-        FUN_004a9660(obj);
+        CloseTopScreen(obj);
         obj->field_60 = save;
         p->FUN_8(obj);
     }

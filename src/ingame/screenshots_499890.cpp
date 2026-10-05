@@ -50,17 +50,17 @@ extern Game* g_game;
 extern char DAT_005024fc[];
 extern char DAT_0050966c[];
 
-int FUN_004c1b00();
-void FUN_004c1ab0();
+int PeekKey();
+void PopKey();
 void ToggleFullScreen();
 void __stdcall FUN_00491d70(int);
 void __stdcall FUN_004bcf00(char*);
 int __stdcall GetTicks();
-void __stdcall FUN_004c2de0(Input_00499890*);
-void __stdcall FUN_004a9fd0(void*);
+void __stdcall PeekMouseEvent(Input_00499890*);
+void __stdcall UpdateMenu(void*);
 void FUN_00494e70();
 void FUN_0047f680();
-void __stdcall FUN_004c2d60(int*);
+void __stdcall PopMouseEvent(int*);
 void UpdateTimers();
 void __stdcall SaveScreenshot(char*, char*);
 
@@ -70,36 +70,36 @@ void FUN_00499890()
     Input_00499890 first;
     Input_00499890 second;
     char path[0x100];
-    int key = FUN_004c1b00();
+    int key = PeekKey();
 
     if (key == 0x7e) {
         if (g_game->screenBitB) {
-            FUN_004c1ab0();
+            PopKey();
             ToggleFullScreen();
         }
     }
     if ((g_game->orderFlags & 1) && key == 0xe3) {
-        FUN_004c1ab0();
+        PopKey();
         FUN_00491d70(0);
         g_game->orderFlags &= 0xfffe;
         if (g_game->manager->FUN_00435100() != 3)
             g_game->otherFlags &= 0xfffe;
     }
     if (key == 0xd6) {
-        FUN_004c1ab0();
+        PopKey();
         FUN_004bcf00(g_game->path);
         sprintf(path, DAT_005024fc, g_game->path);
         FUN_004bcf00(path);
         SaveScreenshot(path, DAT_0050966c);
         g_game->screenshot = GetTicks();
     }
-    FUN_004c2de0(&first);
-    FUN_004a9fd0(g_game->menu);
-    FUN_004c2de0(&second);
+    PeekMouseEvent(&first);
+    UpdateMenu(g_game->menu);
+    PeekMouseEvent(&second);
     FUN_00494e70();
     FUN_0047f680();
     if (first.fields[4] == second.fields[4])
-        FUN_004c2d60(g_game->selected.fields);
+        PopMouseEvent(g_game->selected.fields);
     else if (first.fields[4] == 0x205 || first.fields[4] == 0x202)
         g_game->selected = first;
     else

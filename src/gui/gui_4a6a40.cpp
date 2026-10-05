@@ -26,7 +26,7 @@ struct Class_004a6a40 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004a5f40(Class_004a6a40* param_1, int param_2);
+void __stdcall DrawButton(Class_004a6a40* param_1, int param_2);
 
 // Sibling of 0x4a69d0, limited to the entries on the same team as `index`.
 // FUNCTION: 0x4a6a40
@@ -38,7 +38,7 @@ void __stdcall FUN_004a6a40(Class_004a6a40* param_1, int index)
     for (int i = 1; i < entries->count + 1; i++, e++) {
         if (e->state == 1 && e->team == team && e->field_138 != 0) {
             e->field_138 = 0;
-            FUN_004a5f40(param_1, i);
+            DrawButton(param_1, i);
             param_1->field_cca = 1;
         }
     }

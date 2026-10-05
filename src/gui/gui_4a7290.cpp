@@ -10,13 +10,13 @@
 // unit, defined here without FUNCTION lines and left to /Ob2:
 // - The rect at the top is FUN_004a15c0 inlined: its stores and the x0/y0
 //   reloads go through the out pointer, and the zero it keeps in eax across
-//   both arms is the inlined FUN_004a1810's `n = 0`, which is the shape every
-//   hand-written rect missed. The group scan after it is FUN_004a1810.
+//   both arms is the inlined SelectFontForEntry's `n = 0`, which is the shape every
+//   hand-written rect missed. The group scan after it is SelectFontForEntry.
 // - The hit test is FUN_004a1920, and the focus test and the two focus
 //   resets are FUN_0049fcf0 and FUN_0049fc40 (both have no callers in the
 //   exe because /Ob2 inlined every call).
 // - Each button's action is one inline helper (Activate) with its own rect.
-//   Its FUN_004a15c0 and FUN_004a1810 stay calls because their share of the
+//   Its FUN_004a15c0 and SelectFontForEntry stay calls because their share of the
 //   inline budget is (budget left - Activate's size) / R, and the three
 //   focus helper sites after it raise R to 5 (tools/c2prio.py --inline).
 //   Passing the outer rect instead keeps it address-taken, and MSVC then
@@ -91,18 +91,18 @@ struct Class_0051fba4 {
     int current;                       // +0x00
 };
 
-extern Class_0051fba4* DAT_0051fba4;
+extern Class_0051fba4* g_guiContext;
 
 int GetTextKeyColor();
 void __stdcall SetTextColors(int colour, int font);
 void __stdcall SetFont(int id);
-int __stdcall FUN_004ab510(Object_004a7290* obj, unsigned char buttons);
+int __stdcall IsMouseButtonMessage(Object_004a7290* obj, unsigned char buttons);
 void __stdcall FUN_004ab690(Object_004a7290* obj, int param_2);
 void __stdcall FUN_004ab6c0(Object_004a7290* obj, int index, char* text,
                             int maxLength, int clear);
-int __stdcall FUN_004ab720(Object_004a7290* obj, int index, char* text);
+int __stdcall HandleTextEditKey(Object_004a7290* obj, int index, char* text);
 int __stdcall FUN_0049fc50(Object_004a7290* obj, int index);
-void FUN_004c1a40();
+void ClearKeyQueue();
 
 // 0x4a15c0 (matched in its own file).
 void __stdcall FUN_004a15c0(char* param_1, int param_2, Out_4a15c0* param_3)
@@ -120,7 +120,7 @@ void __stdcall FUN_004a15c0(char* param_1, int param_2, Out_4a15c0* param_3)
 }
 
 // 0x4a1810 (matched in its own file).
-int __stdcall FUN_004a1810(Entry_004a7290* entries, int index)
+int __stdcall SelectFontForEntry(Entry_004a7290* entries, int index)
 {
     int n = 0;
     int i = 1;
@@ -134,7 +134,7 @@ int __stdcall FUN_004a1810(Entry_004a7290* entries, int index)
         }
     }
     if (i == entries->data.count + 1) {
-        SetFont(DAT_0051fba4->current);
+        SetFont(g_guiContext->current);
         i = -1;
     }
     return i;
@@ -172,20 +172,20 @@ static inline void Activate(Object_004a7290* obj, int index)
     Entry_004a7290* ep = obj->holder->entries;
     FUN_004a15c0((char*)ep, index, &rect);
     SetTextColors(obj->colors[ep[index].colourIndex], GetTextKeyColor());
-    FUN_004a1810(ep, index);
+    SelectFontForEntry(ep, index);
     FUN_0049fc50(obj, index);
     obj->holder->field_20 = index;
     FUN_004ab6c0(obj, index, ep[index].data.text, ep[index].maxLength, 0);
-    FUN_004c1a40();
+    ClearKeyQueue();
 }
 
 // FUNCTION: 0x4a7290
-int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
+int __stdcall HandleTextInput(Object_004a7290* obj, int index, char* text)
 {
     Entry_004a7290* entries = obj->holder->entries;
     Out_4a15c0 rect;
     FUN_004a15c0((char*)entries, index, &rect);
-    FUN_004a1810(entries, index);
+    SelectFontForEntry(entries, index);
 
     Point_004a7290 point = obj->point;
     int rel_x = point.x - entries->x0;
@@ -193,10 +193,10 @@ int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
 
     if (FUN_004a1920(&rect, rel_x, rel_y)) {
         obj->field_68 = index;
-        if (FUN_004ab510(obj, 1)) {
+        if (IsMouseButtonMessage(obj, 1)) {
             Activate(obj, index);
             FUN_004ab690(obj, 1);
-        } else if (FUN_004ab510(obj, 2)) {
+        } else if (IsMouseButtonMessage(obj, 2)) {
             Activate(obj, index);
             FUN_004ab690(obj, 2);
         }
@@ -205,7 +205,7 @@ int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
     if (FUN_0049fcf0(obj, index)) {
         SetTextColors(obj->colors[entries[index].colourIndex],
                      obj->colors[entries[index].field_23]);
-        int r = FUN_004ab720(obj, index, text);
+        int r = HandleTextEditKey(obj, index, text);
         if (r == 13) {
             FUN_0049fc40(obj);
             return 1;

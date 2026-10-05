@@ -32,7 +32,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* str, int flag);
-int __stdcall FUN_004a0300(int param1, int param2, char* name);
+int __stdcall IsGadgetNamed(int param1, int param2, char* name);
 void __stdcall FUN_004ab0a0(Gadget_00426190* gadget);
 
 // FUNCTION: 0x426190
@@ -42,9 +42,9 @@ void __stdcall FUN_00426190(Gadget_00426190* gadget)
     if (gadget->field_60 == -1)
         return;
     FUN_0047f1a0("SmallButton", 0);
-    if (FUN_004a0300(owner, gadget->field_60, "CHOICE1")) {
+    if (IsGadgetNamed(owner, gadget->field_60, "CHOICE1")) {
         g_game->field_10->FUN_004ce190();
-    } else if (!FUN_004a0300(owner, gadget->field_60, "CHOICE2")) {
+    } else if (!IsGadgetNamed(owner, gadget->field_60, "CHOICE2")) {
         FUN_004ab0a0(gadget);
     }
 }

@@ -42,7 +42,7 @@ struct Holder_004ab1b0 {
 };
 
 // FUNCTION: 0x4ab1b0
-void __stdcall FUN_004ab1b0(Holder_004ab1b0* obj, char* name, char* text,
+void __stdcall AddTextGadget(Holder_004ab1b0* obj, char* name, char* text,
                             int x, short y, int w, int flags)
 {
     Entry_004ab1b0* entries = obj->entries;

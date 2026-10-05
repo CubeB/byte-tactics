@@ -12,7 +12,7 @@ struct Struct_004c2ac0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4c2ac0
-int __stdcall FUN_004c2ac0(Struct_004c2ac0* s)
+int __stdcall StopMouseThread(Struct_004c2ac0* s)
 {
     if (s->active == 0)
         return 1;

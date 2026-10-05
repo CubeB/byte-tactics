@@ -26,7 +26,7 @@ struct Game {
 extern Game* g_game;
 extern Entry_00442970* DAT_00512988;
 
-Gadget_00442970* __stdcall FUN_0049ff90(void* gadgets, char* name);
+Gadget_00442970* __stdcall FindGadgetChecked(void* gadgets, char* name);
 void __stdcall FUN_0042f960(void* key, void* buf, int value);
 
 // The last used entry is moved to the front of the modem number list, which is
@@ -35,7 +35,7 @@ void __stdcall FUN_0042f960(void* key, void* buf, int value);
 void FUN_00442970(void)
 {
     if (DAT_00512988 != 0) {
-        short count = FUN_0049ff90(g_game->holder->gadgets, "ACCOUNTS")->count;
+        short count = FindGadgetChecked(g_game->holder->gadgets, "ACCOUNTS")->count;
         if (count > 0) {
             Entry_00442970 temp;
             memcpy(&temp, &DAT_00512988[count], 0x102);

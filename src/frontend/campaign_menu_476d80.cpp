@@ -54,9 +54,9 @@ extern Game* g_game;
 extern int DAT_0051e650;
 extern char* DAT_0051e63c;
 
-int __stdcall FUN_0049fdf0(Gadget_00476d80* gadgets, const char* name, int type);
-void __stdcall FUN_004a1810(Gadget_00476d80* gadgets, int index);
-char* __stdcall FUN_004ac4c0(Menu_00476d80* menu, char* text, int value, int index);
+int __stdcall FindGadgetIndex(Gadget_00476d80* gadgets, const char* name, int type);
+void __stdcall SelectFontForEntry(Gadget_00476d80* gadgets, int index);
+char* __stdcall WordWrapText(Menu_00476d80* menu, char* text, int value, int index);
 char* __stdcall FUN_00476cd0(char* text);
 void FUN_00476ef0();
 void __stdcall FUN_0047f090(char* text, int a, int b);
@@ -67,15 +67,15 @@ void FUN_00476d80()
     char* text = g_game->net->FUN_004353a0();
     if (text) {
         Gadget_00476d80* gadgets = g_game->dialog->gadgets;
-        int i = FUN_0049fdf0(gadgets, "SOLARSYSTEM", 0xe);
+        int i = FindGadgetIndex(gadgets, "SOLARSYSTEM", 0xe);
         if (i != -1) {
             gadgets[i].field_28 = g_game->field_37ef2 + 1;
         }
-        int j = FUN_0049fdf0(gadgets, "TextRegion", 0xe);
+        int j = FindGadgetIndex(gadgets, "TextRegion", 0xe);
         gadgets[j].field_28 = g_game->field_37ef2 + 1;
-        FUN_004a1810(gadgets, j);
+        SelectFontForEntry(gadgets, j);
         DAT_0051e650 = 1;
-        DAT_0051e63c = FUN_004ac4c0(&g_game->menu, text, gadgets[j].field_17, j);
+        DAT_0051e63c = WordWrapText(&g_game->menu, text, gadgets[j].field_17, j);
         DAT_0051e63c = FUN_00476cd0(DAT_0051e63c);
         FUN_00476ef0();
     }

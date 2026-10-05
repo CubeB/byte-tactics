@@ -76,19 +76,19 @@ extern char* DAT_00512990;
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 int __stdcall FUN_00434bf0(char** out, int param_2, int param_3);
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_004abd90(Menu_00444ea0* menu, char* text, int width, int a, int b);
-Layer_00444ea0* __stdcall FUN_004aa8f0(Menu_00444ea0* menu, const char* name, int flags);
+void __stdcall OpenMessageBox(Menu_00444ea0* menu, char* text, int width, int a, int b);
+Layer_00444ea0* __stdcall LoadGuiLayer(Menu_00444ea0* menu, const char* name, int flags);
 void __stdcall FUN_00444cb0(void* gadget);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-void __stdcall FUN_004aefa0(char* items, int b, int c, int count);
+void __stdcall SortFileList(char* items, int b, int c, int count);
 void __stdcall FUN_004a32a0(Menu_00444ea0* menu, char* name, char* items, int count, int flag);
-Entry_00444ea0* __stdcall FUN_0049ff90(Entry_00444ea0* entries, char* name);
+Entry_00444ea0* __stdcall FindGadgetChecked(Entry_00444ea0* entries, char* name);
 void __stdcall FUN_00444c40(void* menu, int unused);
 char* __stdcall FUN_004b6af0(char* text, int line);
 void __stdcall FUN_004a2e40(Menu_00444ea0* menu, char* name, int index);
 void FUN_00444a20();
 void __stdcall FUN_0049fb10(Menu_00444ea0* menu, int value);
-void __stdcall FUN_004a81e0(Menu_00444ea0* menu, int value);
+void __stdcall RenderLayer(Menu_00444ea0* menu, int value);
 void __stdcall FUN_004a0570(Menu_00444ea0* menu, char* name, int value);
 
 // The call to Class_00435d30::FUN_00435d30(0) is compiled without its
@@ -105,7 +105,7 @@ void FUN_00444ea0()
     DAT_00512990 = (char*)FUN_004d83b0("OLDMAPNAME", 0xc8);
 
     if (!((Class_00435c40*)g_game->field_391e9)->FUN_00435c40()) {
-        FUN_004abd90(&g_game->menu,
+        OpenMessageBox(&g_game->menu,
                      FUN_004c5740("There are no multiplayer maps to choose from"),
                      0x140, 1, 1);
         return;
@@ -117,21 +117,21 @@ void FUN_00444ea0()
 
     int n = FUN_00434bf0(0, 0, 0);
     if (n == 0) {
-        FUN_004abd90(&g_game->menu,
+        OpenMessageBox(&g_game->menu,
                      FUN_004c5740("There are no multiplayer maps to choose from"),
                      0x140, 1, 1);
         return;
     }
 
-    Layer_00444ea0* layer = FUN_004aa8f0(&g_game->menu, "SELMAP.GUI", 0x980);
+    Layer_00444ea0* layer = LoadGuiLayer(&g_game->menu, "SELMAP.GUI", 0x980);
     layer->handler = FUN_00444cb0;
     Data_00444ea0* data = (Data_00444ea0*)FUN_004d83b0("SELECT MAP DATA", 0x20);
     layer->data = data;
     FUN_004288d0("DSELECTMAP2", 0, 0, 0);
     FUN_00434bf0(&data->items, 0, 0);
-    FUN_004aefa0(data->items, 0, 0, n);
+    SortFileList(data->items, 0, 0, n);
     FUN_004a32a0(&g_game->menu, "MAPNAMES", data->items, n, 0);
-    FUN_0049ff90(layer->entries, "MAPNAMES")->onSelect = FUN_00444c40;
+    FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = FUN_00444c40;
 
     for (int i = 0; i < n; i++) {
         if (strcmp(DAT_00512990, FUN_004b6af0(data->items, i)) == 0) {
@@ -141,7 +141,7 @@ void FUN_00444ea0()
     }
 
     Menu_00444ea0* menu = &g_game->menu;
-    Entry_00444ea0* g = FUN_0049ff90(menu->holder->entries, "MAPNAMES");
+    Entry_00444ea0* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
     if (((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(
             FUN_004b6af0(g->text, g->selected)) == 0) {
         FUN_004a0570(menu, "MAPPIC", 0);
@@ -150,5 +150,5 @@ void FUN_00444ea0()
         FUN_00444a20();
     }
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
 }

@@ -94,14 +94,14 @@ char* __stdcall GetRejectReasonText(int value);
 void __stdcall FUN_0049fa90(Sub_00443cb0* sub);
 void __stdcall FUN_0049fad0(Sub_00443cb0* sub);
 void __stdcall FUN_0049fb10(Sub_00443cb0* sub, int value);
-char* __stdcall FUN_0049fdf0(Entry_00443cb0* entries, const char* name, int type);
+char* __stdcall FindGadgetIndex(Entry_00443cb0* entries, const char* name, int type);
 void __stdcall FUN_004a0bf0(Sub_00443cb0* sub, const char* name, const char* text, int len);
 void __stdcall FUN_004a1250(Sub_00443cb0* sub, const char* name, int value);
-void __stdcall FUN_004a7830(Sub_00443cb0* sub, const char* text);
-void __stdcall FUN_004a81e0(Sub_00443cb0* sub, int value);
-void __stdcall FUN_004a9660(Sub_00443cb0* sub);
-Gadget_00443cb0* __stdcall FUN_004aa8f0(Sub_00443cb0* sub, const char* name, int flags);
-void __stdcall FUN_004abd90(Sub_00443cb0* sub, const char* text, int a, int b, int c);
+void __stdcall SelectGadgetByIndex(Sub_00443cb0* sub, const char* text);
+void __stdcall RenderLayer(Sub_00443cb0* sub, int value);
+void __stdcall CloseTopScreen(Sub_00443cb0* sub);
+Gadget_00443cb0* __stdcall LoadGuiLayer(Sub_00443cb0* sub, const char* name, int flags);
+void __stdcall OpenMessageBox(Sub_00443cb0* sub, const char* text, int a, int b, int c);
 char* __stdcall FUN_004c5740(const char* text);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __stdcall FUN_00441220(void* gadget);
@@ -114,7 +114,7 @@ void FUN_00443cb0()
     int j;
 
     FUN_004257a0();
-    Gadget_00443cb0* gadget = FUN_004aa8f0(&g_game->sub, "SELGAME.GUI", 0x80);
+    Gadget_00443cb0* gadget = LoadGuiLayer(&g_game->sub, "SELGAME.GUI", 0x80);
     gadget->handler = FUN_004437c0;
     gadget->field_c = (int)g_game;
     FUN_004288d0("selectgame2x", 0, 0, 0);
@@ -139,22 +139,22 @@ void FUN_00443cb0()
             e.data = (int)g_game->desc;
         }
     }
-    FUN_004a81e0(&g_game->sub, 0x40);
+    RenderLayer(&g_game->sub, 0x40);
     if (!FUN_00441460(gadget)) {
-        FUN_004a9660(&g_game->sub);
-        FUN_004abd90(&g_game->sub, FUN_004c5740("Invalid TCP/IP Address"), 0xc8, 1, 1);
+        CloseTopScreen(&g_game->sub);
+        OpenMessageBox(&g_game->sub, FUN_004c5740("Invalid TCP/IP Address"), 0xc8, 1, 1);
         g_game->field_2bc0 = 3;
         return;
     }
-    FUN_004a7830(&g_game->sub, FUN_0049fdf0(gadget->entries, "GAMENAME", 2));
+    SelectGadgetByIndex(&g_game->sub, FindGadgetIndex(gadget->entries, "GAMENAME", 2));
     FUN_00428b60();
     FUN_0049fb10(&g_game->sub, 1);
-    FUN_004a81e0(&g_game->sub, 0x40);
+    RenderLayer(&g_game->sub, 0x40);
     Conn_00443cb0* conn = &g_game->conns[g_game->cur_conn];
     if (conn->status != 0 && conn->status != 2) {
-        FUN_004a81e0(&g_game->sub, 0x40);
+        RenderLayer(&g_game->sub, 0x40);
         char* msg = GetRejectReasonText(conn->status);
-        FUN_004abd90(&g_game->sub, FUN_004c5740(msg), 0x140, 1, 1);
+        OpenMessageBox(&g_game->sub, FUN_004c5740(msg), 0x140, 1, 1);
         FUN_0049fa90(&g_game->sub);
         FUN_0049fad0(&g_game->sub);
         conn->status = 0;

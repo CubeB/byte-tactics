@@ -34,7 +34,7 @@ static inline int FindEntry(Entry_0049f930* entries, char* name)
 }
 
 // FUNCTION: 0x49f930
-void __stdcall FUN_0049f930(Object_0049f930* obj, char* name, char* text)
+void __stdcall SetGadgetName(Object_0049f930* obj, char* name, char* text)
 {
     if (obj->data) {
         Entry_0049f930* entries = obj->data->entries;

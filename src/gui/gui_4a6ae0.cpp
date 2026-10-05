@@ -84,17 +84,17 @@ struct Class_004a6ae0 {
 extern int DAT_0051fbb0;
 extern int DAT_0051fbac;
 
-int __stdcall FUN_004ab510(Class_004a6ae0* obj, unsigned char buttons);
+int __stdcall IsMouseButtonMessage(Class_004a6ae0* obj, unsigned char buttons);
 int __stdcall FUN_004ab5b0(Class_004a6ae0* obj, unsigned int mask);
 void __stdcall FUN_004ab690(Class_004a6ae0* obj, int value);
 int __stdcall FUN_0049fc50(Class_004a6ae0* obj, int index);
-void __stdcall FUN_004a5f40(Class_004a6ae0* obj, int index);
+void __stdcall DrawButton(Class_004a6ae0* obj, int index);
 void __stdcall FUN_004a0340(Class_004a6ae0* obj, int index);
 void __stdcall FUN_004a2580(Class_004a6ae0* obj, int index);
 void __stdcall FUN_004a2be0(Class_004a6ae0* obj, int index);
 int GetTicks();
-int __stdcall FUN_004c1b80(int param);
-void FUN_004c1ab0();
+int __stdcall IsKeyDown(int param);
+void PopKey();
 int __cdecl tolower(int c);
 int __cdecl toupper(int c);
 
@@ -108,7 +108,7 @@ static inline int FindKind_004a6ae0(Entry_004a6ae0* entries, unsigned char kind)
 }
 
 // FUNCTION: 0x4a6ae0
-int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
+int __stdcall HandleButtonInput(Class_004a6ae0* obj, int index, int param_3)
 {
     Entry_004a6ae0* entries = obj->holder->entries;
     Entry_004a6ae0* entry = &entries[index];
@@ -133,12 +133,12 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
     if (point.x >= r.left && point.x <= r.right
         && point.y >= r.top && point.y <= r.bottom) {
         obj->field_68 = index;
-        if (FUN_004ab510(obj, 1)) {
+        if (IsMouseButtonMessage(obj, 1)) {
             obj->focus = -1;
             FUN_0049fc50(obj, index);
             FUN_004ab690(obj, 1);
             obj->field_cce = entry->field_138;
-        } else if (FUN_004ab510(obj, 2)) {
+        } else if (IsMouseButtonMessage(obj, 2)) {
             obj->focus = -1;
             FUN_0049fc50(obj, index);
             FUN_004ab690(obj, 2);
@@ -154,12 +154,12 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
             if (point.x < r.left || point.x > r.right
                 || point.y < r.top || point.y > r.bottom) {
                 entry->field_138 = obj->field_cce;
-                FUN_004a5f40(obj, index);
+                DrawButton(obj, index);
                 return 0;
             }
             entry->field_138 = 1;
             FUN_004a0340(obj, index);
-            FUN_004a5f40(obj, index);
+            DrawButton(obj, index);
             return 1;
         }
         if (entry->flags & 0x40) {
@@ -168,12 +168,12 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
                 if (point.x < r.left || point.x > r.right
                     || point.y < r.top || point.y > r.bottom) {
                     entry->field_138 = obj->field_cce;
-                    FUN_004a5f40(obj, index);
+                    DrawButton(obj, index);
                     return 0;
                 }
                 entry->field_138 = (obj->field_cce == 0);
                 FUN_004a0340(obj, index);
-                FUN_004a5f40(obj, index);
+                DrawButton(obj, index);
                 return 1;
             }
             if (point.x < r.left || point.x > r.right
@@ -181,13 +181,13 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
                 if (entry->field_138 == 0)
                     goto fail;
                 entry->field_138 = 0;
-                FUN_004a5f40(obj, index);
+                DrawButton(obj, index);
                 return 0;
             }
             if (entry->field_138 != 0)
                 goto fail;
             entry->field_138 = 1;
-            FUN_004a5f40(obj, index);
+            DrawButton(obj, index);
             return 0;
         }
         if (entry->flags & 8) {
@@ -201,12 +201,12 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
             else if (entry->field_138 == 0)
                 entry->field_138 = 1;
             FUN_004a0340(obj, index);
-            FUN_004a5f40(obj, index);
+            DrawButton(obj, index);
             obj->focus = -1;
             return 1;
         }
         if (entry->flags & 0x100) {
-            if (!FUN_004ab510(obj, 1))
+            if (!IsMouseButtonMessage(obj, 1))
                 goto fail;
             if (point.x < r.left || point.x > r.right
                 || point.y < r.top || point.y > r.bottom)
@@ -219,7 +219,7 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
                     entry->field_138 = 0;
             }
             FUN_004a0340(obj, index);
-            FUN_004a5f40(obj, index);
+            DrawButton(obj, index);
             obj->focus = -1;
             return 1;
         }
@@ -235,10 +235,10 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
                     if (entry->field_136.bytes.hi >= entry->field_136.bytes.lo)
                         entry->field_136.bytes.hi = 0;
                 }
-                FUN_004a5f40(obj, index);
+                DrawButton(obj, index);
                 return 1;
             }
-            FUN_004a5f40(obj, index);
+            DrawButton(obj, index);
             return 0;
         }
         if (entry->field_138 != 0 && (entry->flags & 0x2000)) {
@@ -261,10 +261,10 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
                 && point.y >= r.top && point.y <= r.bottom)
                 goto fail;
             entry->field_138 = 0;
-            FUN_004a5f40(obj, index);
+            DrawButton(obj, index);
             return 0;
         }
-        FUN_004a5f40(obj, index);
+        DrawButton(obj, index);
         int flags = entry->flags;
         if (!(flags & 0x1800))
             goto fail;
@@ -291,22 +291,22 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
             f->callback(obj, f->callbackArg);
         return 0;
     } else {
-        if (!(obj->focus != -1 && entries[obj->focus].state == 3) || FUN_004c1b80(0xfb)) {
+        if (!(obj->focus != -1 && entries[obj->focus].state == 3) || IsKeyDown(0xfb)) {
             if (obj->field_cc6 == 1) {
                 if (param_3 != 0) {
                     if ((char)tolower(entry->field_13a) == (char)param_3
                         || (char)toupper(entry->field_13a) == (char)param_3) {
                         if (entry->flags & 0x40) {
                             entry->field_138 = (entry->field_138 == 0);
-                            FUN_004a5f40(obj, index);
+                            DrawButton(obj, index);
                         } else if (entry->flags & 0x10) {
                             if (entry->field_138 == 0) {
                                 entry->field_138 = 1;
-                                FUN_004a5f40(obj, index);
+                                DrawButton(obj, index);
                             }
                         }
                         FUN_004a0340(obj, index);
-                        FUN_004c1ab0();
+                        PopKey();
                         return 1;
                     }
                 }

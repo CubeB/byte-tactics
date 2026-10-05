@@ -66,8 +66,8 @@ struct Gui_004461d0 {
 extern Game* g_game;
 
 void __cdecl FUN_004d85a0(void* p);
-int __stdcall FUN_0049fd60(Gui_004461d0* gui, char* name);
-Gadget_004461d0* __stdcall FUN_0049ff90(Gadget_004461d0* gadgets, char* name);
+int __stdcall IsCurrentGadgetNamed(Gui_004461d0* gui, char* name);
+Gadget_004461d0* __stdcall FindGadgetChecked(Gadget_004461d0* gadgets, char* name);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_004ab0a0(Gui_004461d0* gui);
 void FUN_00430f00(void);
@@ -85,9 +85,9 @@ void __stdcall FUN_004461d0(Gui_004461d0* gui)
         FUN_004d85a0(obj);
         return;
     }
-    if (FUN_0049fd60(gui, "MODES") || FUN_0049fd60(gui, "SELECT")) {
+    if (IsCurrentGadgetNamed(gui, "MODES") || IsCurrentGadgetNamed(gui, "SELECT")) {
         Player_004461d0* player = &g_game->players[g_game->localPlayer];
-        Gadget_004461d0* entry = FUN_0049ff90(gadgets, "MODES");
+        Gadget_004461d0* entry = FindGadgetChecked(gadgets, "MODES");
         Mode_00446310* mode = &obj->modes[entry->selected];
         g_game->field_37f1b = mode->width;
         g_game->field_37f1f = mode->height;
@@ -97,12 +97,12 @@ void __stdcall FUN_004461d0(Gui_004461d0* gui)
         FUN_00430f00();
         return;
     }
-    if (FUN_0049fd60(gui, "CANCEL")) {
+    if (IsCurrentGadgetNamed(gui, "CANCEL")) {
         FUN_0047f1a0("Exit", 0);
         FUN_00430f00();
         return;
     }
-    if (FUN_0049fd60(gui, "OK")) {
+    if (IsCurrentGadgetNamed(gui, "OK")) {
         FUN_0047f1a0("SMLBUTTON", 0);
         FUN_00430f00();
         return;

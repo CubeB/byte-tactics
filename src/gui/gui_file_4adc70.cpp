@@ -37,7 +37,7 @@ extern char DAT_005119b8[];
 char* __stdcall FUN_004c5740(char* text);
 
 // FUNCTION: 0x4adc70
-void __stdcall FUN_004adc70(Obj_004adc70* obj, Source_004adc70* src)
+void __stdcall ReadButtonFields(Obj_004adc70* obj, Source_004adc70* src)
 {
     obj->status = (short)((Class_004c46c0*)src->tdf)->FUN_004c46c0("status", 0);
     memset(obj->text, 0, 0x80);

@@ -18,16 +18,16 @@ struct Layer_004abb20 {
 
 struct Sub_004abb20;
 
-Layer_004abb20* __stdcall FUN_004aa8f0(Sub_004abb20* sub, const char* name, int flags);
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
+Layer_004abb20* __stdcall LoadGuiLayer(Sub_004abb20* sub, const char* name, int flags);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 
 // FUNCTION: 0x4abb20
-int __stdcall FUN_004abb20(Sub_004abb20* sub, char* title)
+int __stdcall OpenConfirmDialog(Sub_004abb20* sub, char* title)
 {
-    Layer_004abb20* layer = FUN_004aa8f0(sub, "CONFIRM.GUI", 0);
+    Layer_004abb20* layer = LoadGuiLayer(sub, "CONFIRM.GUI", 0);
     if (layer) {
         Gadget_004abb20* gadgets = layer->gadgets;
-        int i = FUN_0049fdf0(gadgets, "TITL", 5);
+        int i = FindGadgetIndex(gadgets, "TITL", 5);
         strcpy(gadgets[i].text, title);
         gadgets[i].field_13 = -1;
         return 1;

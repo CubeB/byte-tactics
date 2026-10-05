@@ -60,7 +60,7 @@ static inline int FindEntry(Entry_004a36a0* entries, char* name)
 }
 
 // FUNCTION: 0x4a36a0
-void __stdcall FUN_004a36a0(Table_004a36a0* table, char* name, int* items, int count)
+void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int count)
 {
     Entry_004a36a0* entries = table->entries;
     int i = FindEntry(entries, name);

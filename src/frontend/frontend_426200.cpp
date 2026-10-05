@@ -10,7 +10,7 @@
 // Opens the YESORNO.GUI dialog asking "Close Windows CD Player?", relabels
 // the CHOICE1 / CHOICE2 gadgets, puts the localised "Yes" and "No" on the two
 // gadgets the lookups found, and installs FUN_00426190 as the gadget handler.
-// FUN_004a76b0 is then told about "CHOICE1".
+// SelectGadgetByName is then told about "CHOICE1".
 //
 // Not a MATCH yet: 97.9% (411 of 420 bytes), same length as the original and
 // every reference resolves. What still differs is only the list scheduler's
@@ -62,31 +62,31 @@ struct Gadget_00426200 {
     void (__stdcall* handler)(void*);  // +0x8
 };
 
-Gadget_00426200* __stdcall FUN_004aa8f0(char* sub, const char* name, int flags);
+Gadget_00426200* __stdcall LoadGuiLayer(char* sub, const char* name, int flags);
 void __stdcall FUN_0049fb10(char* sub, int value);
-int __stdcall FUN_0049fdf0(char* entries, const char* name, int type);
+int __stdcall FindGadgetIndex(char* entries, const char* name, int type);
 void __stdcall FUN_004a0bf0(char* sub, const char* name, const char* text, int param_4);
-void __stdcall FUN_004a76b0(char* sub, const char* name);
-void __stdcall FUN_004a81e0(char* sub, int value);
+void __stdcall SelectGadgetByName(char* sub, const char* name);
+void __stdcall RenderLayer(char* sub, int value);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_00426190(void* gadget);
 
 // FUNCTION: 0x426200
 void __stdcall FUN_00426200()
 {
-    Gadget_00426200* gadget = FUN_004aa8f0(g_game + 0x519, "YESORNO.GUI", 0x100);
+    Gadget_00426200* gadget = LoadGuiLayer(g_game + 0x519, "YESORNO.GUI", 0x100);
     if (gadget != 0) {
         FUN_0049fb10(g_game + 0x519, 1);
         char* entries = gadget->entries;
-        char* choice1 = entries + 0x15b * FUN_0049fdf0(entries, "CHOICE1", 1);
-        char* choice2 = entries + 0x15b * FUN_0049fdf0(entries, "CHOICE2", 1);
+        char* choice1 = entries + 0x15b * FindGadgetIndex(entries, "CHOICE1", 1);
+        char* choice2 = entries + 0x15b * FindGadgetIndex(entries, "CHOICE2", 1);
         strcpy(entries + 0xcc, "CHOICE1");
         strcpy(entries + 0xdc, "CHOICE2");
         strcpy(choice1 + 0xb6, FUN_004c5740("Yes"));
         strcpy(choice2 + 0xb6, FUN_004c5740("No"));
         FUN_004a0bf0(g_game + 0x519, "TITLE", FUN_004c5740("Close Windows CD Player?"), 0);
-        FUN_004a76b0(g_game + 0x519, "CHOICE1");
+        SelectGadgetByName(g_game + 0x519, "CHOICE1");
         gadget->handler = FUN_00426190;
-        FUN_004a81e0(g_game + 0x519, 0x40);
+        RenderLayer(g_game + 0x519, 0x40);
     }
 }

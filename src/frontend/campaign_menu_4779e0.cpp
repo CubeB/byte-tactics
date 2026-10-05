@@ -1,7 +1,7 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 
 #pragma pack(push, 1)
-// GUI layout entry, as returned by FUN_0049ff90.
+// GUI layout entry, as returned by FindGadgetChecked.
 struct Layout_004779e0 {
     char unknown_0[0xba];
     short selected;                    // +0xba
@@ -52,10 +52,10 @@ extern Game* g_game;
 extern char* DAT_0051e660;
 
 void __cdecl FUN_004d85a0(int* param_1);
-Layout_004779e0* __stdcall FUN_0049ff90(Layout_004779e0* entries, char* name);
+Layout_004779e0* __stdcall FindGadgetChecked(Layout_004779e0* entries, char* name);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int count, int flag);
-int __stdcall FUN_0049fdf0(void* gadgets, char* name, int type);
+int __stdcall FindGadgetIndex(void* gadgets, char* name, int type);
 void __stdcall FUN_004a2be0(void* menu, int index);
 void __stdcall FUN_0049fa90(void* menu);
 
@@ -68,11 +68,11 @@ void __stdcall FUN_004779e0(Menu_004779e0* menu, int unused)
         DAT_0051e660 = 0;
     }
     Layout_004779e0* layout =
-        FUN_0049ff90(g_game->table->entries, "Campaign");
+        FindGadgetChecked(g_game->table->entries, "Campaign");
     g_game->net->FUN_00435110(FUN_004b6af0(layout->text, layout->selected));
     int count = ((Class_00435760*)g_game->net)->FUN_00435760((int*)&DAT_0051e660);
     FUN_004a32a0(menu, "Missions", DAT_0051e660, count, 0);
     FUN_004a2be0((char*)g_game + 0x519,
-                 FUN_0049fdf0(gadgets->gadgets, "Missions", 2));
+                 FindGadgetIndex(gadgets->gadgets, "Missions", 2));
     FUN_0049fa90((char*)g_game + 0x519);
 }

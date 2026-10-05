@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// FUN_004c1b80: maps a key code to a Windows virtual key code and reports
+// IsKeyDown: maps a key code to a Windows virtual key code and reports
 // whether it is held down. GetAsyncKeyState is a short, so the helper keeps a
 // short result: that is what makes the compiler test the low word with
 // `neg ax` and only mask the low byte. The cases are listed in the order the
@@ -12,7 +12,7 @@ static short key_state(int vk)
 }
 
 // FUNCTION: 0x4c1b80
-int __stdcall FUN_004c1b80(int key)
+int __stdcall IsKeyDown(int key)
 {
     switch (key)
     {

@@ -107,17 +107,17 @@ extern char DAT_005069c8[];           // "VOLTEXT"
 extern char DAT_00506884[];           // "FXVOL"
 
 void __stdcall FUN_0049fa90(void* obj);
-int __stdcall FUN_0049fd60(void* obj, char* name);
+int __stdcall IsCurrentGadgetNamed(void* obj, char* name);
 void __stdcall FUN_0047f1a0(char* name, int value);
 void __stdcall FUN_0047f210(char* name, int value);
 void __stdcall FUN_0047f290(char* name);
 void __stdcall FUN_0047f750();
 void __stdcall FUN_004ab0a0(void* obj);
-int __stdcall FUN_004a0f60(void* obj, char* name);
-int __stdcall FUN_004a1080(void* obj, char* name, int value);
+int __stdcall GetButtonStageByName(void* obj, char* name);
+int __stdcall SetButtonStageByName(void* obj, char* name, int value);
 void __stdcall FUN_004a0570(void* obj, char* name, int value);
 void __stdcall FUN_004a1450(void* obj, char* name, int value);
-void __stdcall FUN_004a9660(void* obj);
+void __stdcall CloseTopScreen(void* obj);
 void FUN_0045de30();
 void FUN_0045c820();
 void __stdcall SetBrightness(float value);
@@ -132,13 +132,13 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
     }
     FUN_0049fa90(obj);
     int mode = obj->field_60;
-    if (FUN_0049fd60(obj, DAT_005069b8)) {
+    if (IsCurrentGadgetNamed(obj, DAT_005069b8)) {
         FUN_0047f1a0(DAT_00502b38, 0);
         g_game->soundFlags.bits.bit6 = entries[obj->field_60].value != 0;
         g_game->field_37f17 = entries[obj->field_60].value * 5;
         FUN_004ab0a0(obj);
-    } else if (FUN_0049fd60(obj, DAT_005069d0)) {
-        int v = FUN_004a0f60(obj, DAT_005069d0);
+    } else if (IsCurrentGadgetNamed(obj, DAT_005069d0)) {
+        int v = GetButtonStageByName(obj, DAT_005069d0);
         unsigned short f = g_game->soundFlags.word;
         g_game->soundFlags.word = f ^ ((f ^ v) & 7);
         if ((g_game->soundFlags.word & 7) == 0)
@@ -149,7 +149,7 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
             ((Class_004cfe90*)g_game->sound)->FUN_004cfe90();
         if ((g_game->soundFlags.word & 7) == 1 && !g_game->prefs)
             FUN_0047f210(DAT_005031d4, 0);
-        FUN_004a1080(&g_game->gui, DAT_005069d0, g_game->soundFlags.word & 7);
+        SetButtonStageByName(&g_game->gui, DAT_005069d0, g_game->soundFlags.word & 7);
         FUN_004a0570(&g_game->gui, DAT_005069c8, (g_game->soundFlags.word & 7) != 0);
         FUN_004a1450(&g_game->gui, DAT_00506884, (g_game->soundFlags.word & 7) == 0);
         FUN_004a1450(&g_game->gui, DAT_005069c0, (g_game->soundFlags.word & 7) == 0);
@@ -158,14 +158,14 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
         FUN_0047f1a0(DAT_00502b38, 0);
         return;
     }
-    if (FUN_0049fd60(obj, DAT_00506998)) {
+    if (IsCurrentGadgetNamed(obj, DAT_00506998)) {
         FUN_0045c820();
-        FUN_004a9660(obj);
+        CloseTopScreen(obj);
         FUN_0045de30();
         FUN_0047f1a0(DAT_00502b38, 0);
         return;
     }
-    if (FUN_0049fd60(obj, DAT_00506990)) {
+    if (IsCurrentGadgetNamed(obj, DAT_00506990)) {
         g_game->volume1 = 0x1b;
         g_game->soundFlags.bits.bit4 = 1;
         g_game->soundFlags.bits.bit5 = 1;
@@ -176,12 +176,12 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
         SetBrightness(0.5 - g_game->brightness * -0.041666668f);
         ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
         ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
-        FUN_004a9660(obj);
+        CloseTopScreen(obj);
         FUN_0045de30();
         FUN_0047f1a0(DAT_00502b38, 0);
         return;
     }
-    if (FUN_0049fd60(obj, DAT_005069c0)) {
+    if (IsCurrentGadgetNamed(obj, DAT_005069c0)) {
         FUN_0047f290(DAT_005069d8);
         FUN_004ab0a0(obj);
         return;
@@ -192,7 +192,7 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
             return;
         }
         Vtable_0045da90* p = obj->holder->field_0;
-        FUN_004a9660(obj);
+        CloseTopScreen(obj);
         obj->field_60 = mode;
         p->FUN_8(obj);
     }

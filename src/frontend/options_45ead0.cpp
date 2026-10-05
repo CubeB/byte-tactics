@@ -57,10 +57,10 @@ extern int DAT_00512f59;
 extern unsigned short DAT_00512f6d;
 extern unsigned char DAT_00512f71;
 
-int __stdcall FUN_0049fd60(Gadget_0045ead0* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_0045ead0* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
-int __stdcall FUN_004a0f60(Gadget_0045ead0* gadget, char* name);
-void __stdcall FUN_004a9660(Gadget_0045ead0* gadget);
+int __stdcall GetButtonStageByName(Gadget_0045ead0* gadget, char* name);
+void __stdcall CloseTopScreen(Gadget_0045ead0* gadget);
 void __stdcall FUN_004ab0a0(Gadget_0045ead0* gadget);
 void FUN_0045ed50();
 
@@ -72,19 +72,19 @@ void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
         g_game->flags &= 0xfffe;
         return;
     }
-    if (FUN_0049fd60((Gadget_0045ead0*)&g_game->window, "LEFTCLICK")) {
+    if (IsCurrentGadgetNamed((Gadget_0045ead0*)&g_game->window, "LEFTCLICK")) {
         FUN_0047f1a0("Options", 0);
-        g_game->field_37efa = FUN_004a0f60((Gadget_0045ead0*)&g_game->window, "LEFTCLICK");
+        g_game->field_37efa = GetButtonStageByName((Gadget_0045ead0*)&g_game->window, "LEFTCLICK");
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fd60((Gadget_0045ead0*)&g_game->window, "UNITCHAT")) {
+    if (IsCurrentGadgetNamed((Gadget_0045ead0*)&g_game->window, "UNITCHAT")) {
         FUN_0047f1a0("Options", 0);
         FUN_004ab0a0(gadget);
-        g_game->field_37f18 = (unsigned char)(FUN_004a0f60((Gadget_0045ead0*)&g_game->window, "UNITCHAT") * 5);
+        g_game->field_37f18 = (unsigned char)(GetButtonStageByName((Gadget_0045ead0*)&g_game->window, "UNITCHAT") * 5);
         return;
     }
-    if (FUN_0049fd60(gadget, "UNDO")) {
+    if (IsCurrentGadgetNamed(gadget, "UNDO")) {
         FUN_0047f1a0("Options", 0);
         g_game->field_37f23 = DAT_00512f55;
         g_game->field_38a4b = DAT_00512f6d;
@@ -94,11 +94,11 @@ void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
         g_game->field_37f17 = DAT_00512f49;
         g_game->field_37f18 = DAT_00512f4a;
         g_game->field_37f27 = DAT_00512f59;
-        FUN_004a9660(gadget);
+        CloseTopScreen(gadget);
         FUN_0045ed50();
         return;
     }
-    if (FUN_0049fd60(gadget, "RESTORE")) {
+    if (IsCurrentGadgetNamed(gadget, "RESTORE")) {
         FUN_0047f1a0("Options", 0);
         g_game->field_37f23 = 10;
         g_game->field_37f27 = 10;
@@ -108,7 +108,7 @@ void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
         g_game->field_37efa = 0;
         g_game->field_37f17 = 10;
         g_game->field_37f18 = 5;
-        FUN_004a9660(gadget);
+        CloseTopScreen(gadget);
         FUN_0045ed50();
         return;
     }
@@ -120,7 +120,7 @@ void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
     if (i != -1) {
         Link_0045ead0* link = gadget->link;
         void* obj = link->obj;
-        FUN_004a9660(gadget);
+        CloseTopScreen(gadget);
         gadget->field_60 = i;
         ((Link_0045ead0*)obj)->reselect(gadget);
     }

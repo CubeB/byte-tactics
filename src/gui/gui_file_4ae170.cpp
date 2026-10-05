@@ -34,7 +34,7 @@ extern char DAT_005119b8[];
 char* __stdcall FUN_004c5740(char* text);
 
 // FUNCTION: 0x4ae170
-void __stdcall FUN_004ae170(Obj_004ae170* obj, Source_004ae170* src)
+void __stdcall ReadSliderFields(Obj_004ae170* obj, Source_004ae170* src)
 {
     obj->range = ((Class_004c46c0*)src->tdf)->FUN_004c46c0("range", 0);
     obj->thick = (short)((Class_004c46c0*)src->tdf)->FUN_004c46c0("thick", 0);

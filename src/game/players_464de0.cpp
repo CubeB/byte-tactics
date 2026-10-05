@@ -32,7 +32,7 @@ struct Gadget_00464de0 {
 void BroadcastPlayerInfo();
 void __stdcall ReportGameEvent(int param_1);
 void __stdcall FUN_0047f1a0(char* str, int flag);
-int __stdcall FUN_004a0300(int param1, int param2, char* name);
+int __stdcall IsGadgetNamed(int param1, int param2, char* name);
 void __stdcall FUN_004ab0a0(void* param_1);
 
 // FUNCTION: 0x464de0
@@ -42,13 +42,13 @@ void __stdcall FUN_00464de0(Gadget_00464de0* gadget)
     if (gadget->selected == -1)
         return;
     FUN_0047f1a0("BigButton", 0);
-    if (FUN_004a0300(screen, gadget->selected, "CHOICE1")) {
+    if (IsGadgetNamed(screen, gadget->selected, "CHOICE1")) {
         BroadcastPlayerInfo();
         g_game->flags.flag4 = 0;
         ReportGameEvent(4);
         return;
     }
-    if (!FUN_004a0300(screen, gadget->selected, "CHOICE2")) {
+    if (!IsGadgetNamed(screen, gadget->selected, "CHOICE2")) {
         FUN_004ab0a0(gadget);
         return;
     }

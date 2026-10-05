@@ -15,7 +15,7 @@ struct Queue_004c1ab0 {
 Queue_004c1ab0* GetDisplay(void);
 
 // FUNCTION: 0x4c1a60
-void __stdcall FUN_004c1a60(int size)
+void __stdcall InitKeyQueue(int size)
 {
     Queue_004c1ab0* q = GetDisplay();
     if (size <= 0x1e)

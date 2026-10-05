@@ -77,24 +77,24 @@ extern int* DAT_0051e660;
 extern int DAT_00507b6c;
 
 void FUN_004257a0();
-Layer_00478240* __stdcall FUN_004aa8f0(void* menu, const char* name, int flags);
+Layer_00478240* __stdcall LoadGuiLayer(void* menu, const char* name, int flags);
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name,
                             const char* ext);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 int __stdcall FUN_004bc930(char* name, int flag);
-int __stdcall FUN_0049fdf0(Entry_00478240* entries, const char* name, int type);
+int __stdcall FindGadgetIndex(Entry_00478240* entries, const char* name, int type);
 void FUN_004c2470();
-void __stdcall FUN_004a81e0(void* menu, int value);
+void __stdcall RenderLayer(void* menu, int value);
 void FUN_004c2870();
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 int __stdcall GetGafFrame(unsigned short* p, int index);
 void FUN_00477360();
-Entry_00478240* __stdcall FUN_0049ff10(Entry_00478240* entries,
+Entry_00478240* __stdcall FindGadgetOrNull(Entry_00478240* entries,
                                        const char* name);
-void __stdcall FUN_004a1110(void* menu, const char* name, int value);
+void __stdcall SetGadgetStatusByName(void* menu, const char* name, int value);
 void __stdcall FUN_0049fa90(void* menu);
 void __stdcall FUN_004a0570(void* menu, const char* name, int value);
-Entry_00478240* __stdcall FUN_0049ff90(Entry_00478240* entries,
+Entry_00478240* __stdcall FindGadgetChecked(Entry_00478240* entries,
                                        const char* name);
 void __cdecl FUN_004d85a0(int* p);
 void __stdcall FUN_0047f1a0(const char* name, int value);
@@ -116,7 +116,7 @@ public:
 
 void __stdcall FUN_004779e0();
 void __stdcall FUN_00477ab0();
-void __stdcall FUN_004a76b0(void* menu, const char* name);
+void __stdcall SelectGadgetByName(void* menu, const char* name);
 void __stdcall FUN_0049fb10(void* menu, int value);
 void __stdcall FUN_00491c80(int value);
 
@@ -128,7 +128,7 @@ void __stdcall FUN_00478240(int param_1)
     FUN_004257a0();
     DAT_0051e668 = param_1;
     Layer_00478240* layer =
-        FUN_004aa8f0(&g_game->menu, "NEWGAME.GUI", 0x400);
+        LoadGuiLayer(&g_game->menu, "NEWGAME.GUI", 0x400);
     Entry_00478240* entries = layer->entries;
     layer->handler = FUN_00477ab0;
     layer->data = g_game;
@@ -148,25 +148,25 @@ void __stdcall FUN_00478240(int param_1)
     }
 
     if (param_1 != 0) {
-        int i = FUN_0049fdf0(entries, "Campaign", 2);
+        int i = FindGadgetIndex(entries, "Campaign", 2);
         if (i != -1) {
             Entry_00478240* e = (Entry_00478240*)((char*)entries + i * 0x15b);
             e->y = 0x134;
             e->height = 0x30;
         }
-        i = FUN_0049fdf0(entries, "CampaignKnob", 4);
+        i = FindGadgetIndex(entries, "CampaignKnob", 4);
         if (i != -1) {
             Entry_00478240* e = (Entry_00478240*)((char*)entries + i * 0x15b);
             e->y = 0x134;
             e->height = 0x30;
         }
-        i = FUN_0049fdf0(entries, "Missions", 2);
+        i = FindGadgetIndex(entries, "Missions", 2);
         if (i != -1)
             ((Entry_00478240*)((char*)entries + i * 0x15b))->height = 0x3e;
     }
 
     FUN_004c2470();
-    FUN_004a81e0(&g_game->menu, 1);
+    RenderLayer(&g_game->menu, 1);
     FUN_004c2870();
 
     unsigned short* p =
@@ -190,18 +190,18 @@ void __stdcall FUN_00478240(int param_1)
     FUN_00477360();
 
     Entry_00478240* diff =
-        FUN_0049ff10(g_game->menu.layer->entries, "Difficulty");
+        FindGadgetOrNull(g_game->menu.layer->entries, "Difficulty");
     if (g_game->field_37eee == 0) {
         diff->difficulty = 0;
-        FUN_004a1110(&g_game->menu, "Easy", 1);
+        SetGadgetStatusByName(&g_game->menu, "Easy", 1);
     }
     if (g_game->field_37eee == 1) {
         diff->difficulty = 1;
-        FUN_004a1110(&g_game->menu, "Medium", 1);
+        SetGadgetStatusByName(&g_game->menu, "Medium", 1);
     }
     if (g_game->field_37eee == 2) {
         diff->difficulty = 2;
-        FUN_004a1110(&g_game->menu, "Hard", 1);
+        SetGadgetStatusByName(&g_game->menu, "Hard", 1);
     }
 
     FUN_0049fa90(&g_game->menu);
@@ -209,7 +209,7 @@ void __stdcall FUN_00478240(int param_1)
     if (DAT_00507b6c == 0 || param_1 != 0) {
         FUN_004a0570(&g_game->menu, "Campaign", 1);
         FUN_004a0570(&g_game->menu, "CampaignKnob", 1);
-        Entry_00478240* c = FUN_0049ff90(entries, "Campaign");
+        Entry_00478240* c = FindGadgetChecked(entries, "Campaign");
         if (c != 0 && DAT_0051e668 != 0)
             c->callback = FUN_004779e0;
         else
@@ -224,14 +224,14 @@ void __stdcall FUN_00478240(int param_1)
         FUN_0047f1a0("smlbutton", 0);
         int count = FUN_00476a60(&DAT_0051e65c, side);
         FUN_004a32a0(&g_game->menu, "Campaign", DAT_0051e65c, count, 0);
-        int ci = FUN_0049fdf0(cur->entries, "Campaign", 2);
+        int ci = FindGadgetIndex(cur->entries, "Campaign", 2);
         FUN_004a2be0(&g_game->menu, ci);
         FUN_0049fa90(&g_game->menu);
 
         if (param_1 != 0) {
             FUN_004a0570(&g_game->menu, "Missions", 1);
             FUN_004a0570(&g_game->menu, "MissionsKnob", 1);
-            FUN_0049ff90(entries, "Missions");
+            FindGadgetChecked(entries, "Missions");
 
             Menu_00478240* menu = &g_game->menu;
             Layer_00478240* mlayer = menu->layer;
@@ -239,27 +239,27 @@ void __stdcall FUN_00478240(int param_1)
                 FUN_004d85a0(DAT_0051e660);
                 DAT_0051e660 = 0;
             }
-            Entry_00478240* m = FUN_0049ff90(g_game->menu.layer->entries,
+            Entry_00478240* m = FindGadgetChecked(g_game->menu.layer->entries,
                                              "Campaign");
             char* text = FUN_004b6af0(m->text, m->line);
             ((Class_00435110*)g_game->net)->FUN_00435110(text);
             int mc = ((Class_00435760*)g_game->net)->FUN_00435760(
                 (int*)&DAT_0051e660);
             FUN_004a32a0(menu, "Missions", DAT_0051e660, mc, 0);
-            int mi = FUN_0049fdf0(mlayer->entries, "Missions", 2);
+            int mi = FindGadgetIndex(mlayer->entries, "Missions", 2);
             FUN_004a2be0(&g_game->menu, mi);
             FUN_0049fa90(&g_game->menu);
         }
     }
 
     if (param_1 != 0)
-        FUN_004a76b0(&g_game->menu, "Missions");
+        SelectGadgetByName(&g_game->menu, "Missions");
     else if (DAT_00507b6c != 0)
-        FUN_004a76b0(&g_game->menu, "Difficulty");
+        SelectGadgetByName(&g_game->menu, "Difficulty");
     else
-        FUN_004a76b0(&g_game->menu, "Campaign");
+        SelectGadgetByName(&g_game->menu, "Campaign");
 
     FUN_0049fb10(&g_game->menu, 1);
-    FUN_004a81e0(&g_game->menu, 0x40);
+    RenderLayer(&g_game->menu, 0x40);
     FUN_00491c80(0x13);
 }

@@ -24,8 +24,8 @@ struct Entry_004428f0 {
 extern Entry_004428f0* DAT_00512988;
 
 void __stdcall FUN_004a0bf0(Menu_004428f0* obj, char* name, int param_3, int param_4);
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
-void __stdcall FUN_004a7830(Menu_004428f0* menu, int index);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
+void __stdcall SelectGadgetByIndex(Menu_004428f0* menu, int index);
 int __stdcall FUN_0049fc50(Menu_004428f0* obj, int index);
 void __stdcall FUN_0049fa90(Menu_004428f0* menu);
 
@@ -36,8 +36,8 @@ void __stdcall FUN_004428f0(Menu_004428f0* menu, Player_004428f0* player)
     if (entry >= 0) {
         FUN_004a0bf0(menu, "NAME", (int)DAT_00512988[entry].name, 0);
         FUN_004a0bf0(menu, "NUMBER", (int)DAT_00512988[entry].number, 0);
-        int index = FUN_0049fdf0(menu->holder->gadgets, "NAME", 3);
-        FUN_004a7830(menu, index);
+        int index = FindGadgetIndex(menu->holder->gadgets, "NAME", 3);
+        SelectGadgetByIndex(menu, index);
         FUN_0049fc50(menu, index);
         FUN_0049fa90(menu);
     }

@@ -44,13 +44,13 @@ void __stdcall DrawSurface(void*,void*,int,int);
 void __stdcall ReportGameEvent(int);
 const char* __stdcall GetRejectReasonText(unsigned);
 const char* __stdcall FUN_004c5740(const char*);
-void __stdcall FUN_004abd90(Menu*,const char*,int,int,int);
+void __stdcall OpenMessageBox(Menu*,const char*,int,int,int);
 void __stdcall FUN_0049fa90(Menu*);
 void __stdcall FUN_0049fad0(Menu*);
 void FlipScreen();
-int __stdcall FUN_004ab060(Menu*,const char*);
+int __stdcall IsScreenNamed(Menu*,const char*);
 void __stdcall DrawMessages(void*);
-void __stdcall FUN_004a9fd0(Menu*);
+void __stdcall UpdateMenu(Menu*);
 void __stdcall FUN_004ab170(Menu*,void*,void*);
 void FUN_004c2870();
 unsigned GetTicks();
@@ -59,10 +59,10 @@ void __stdcall FUN_004c22d0(int);
 void FUN_00491a70();
 void __stdcall FadeRectangle(void*,int*,int);
 char __stdcall FUN_0041d6a0(int);
-Layer* __stdcall FUN_004aa8f0(Menu*,const char*,int);
+Layer* __stdcall LoadGuiLayer(Menu*,const char*,int);
 void __stdcall FUN_0041f680(void*);
 void __stdcall FUN_0049fb10(Menu*,int);
-void __stdcall FUN_004a81e0(Menu*,int);
+void __stdcall RenderLayer(Menu*,int);
 void FUN_0041da60();
 void __stdcall FUN_00425860(int,int,const char*);
 void __stdcall FUN_00490b30(int);
@@ -73,7 +73,7 @@ void FUN_0041f400();
 void FUN_0041e270();
 void FUN_00476ca0();
 void __stdcall FUN_004c2340(int*);
-int FUN_004c1ab0();
+int PopKey();
 void __stdcall DrawOutlinedString(void*,const char*,int,int,int);
 void __stdcall FUN_0049fa50(Menu*);
 void __stdcall FUN_00491c80(int);
@@ -118,7 +118,7 @@ void __stdcall FUN_0041f7f0()
             Player* player=&g_game->players[g_game->localPlayer];
             if(player->message && player->message!=2) {
                 const char* name=GetRejectReasonText(player->message);
-                FUN_004abd90(&g_game->menu,FUN_004c5740(name),320,1,1);
+                OpenMessageBox(&g_game->menu,FUN_004c5740(name),320,1,1);
                 FUN_0049fa90(&g_game->menu);
                 FUN_0049fad0(&g_game->menu);
                 player->message=0;
@@ -126,12 +126,12 @@ void __stdcall FUN_0041f7f0()
         } else { g_game->lastFrame=0; g_game->state=2; }
         break;
     case 1:
-        if(FUN_004ab060(&g_game->menu,"MSGBOX.GUI")) {
+        if(IsScreenNamed(&g_game->menu,"MSGBOX.GUI")) {
             if(g_game->state==1) {
                 Engine* e=GetDisplay();
                 DrawSurface(g_game->surface,g_game->lastFrame,e->width,e->height);
                 DrawMessages(g_game->surface);
-                FUN_004a9fd0(&g_game->menu);
+                UpdateMenu(&g_game->menu);
                 FUN_004ab170(&g_game->menu,0,0);
                 FUN_004c2870();
                 FlipScreen();
@@ -162,11 +162,11 @@ void __stdcall FUN_0041f7f0()
         break;
     case 4:
         if(g_game->campaign->FUN_00435100()==1 && !FUN_0041d6a0(0)) {
-            Layer* l=FUN_004aa8f0(&g_game->menu,"CDCHECK.GUI",0x101);
+            Layer* l=LoadGuiLayer(&g_game->menu,"CDCHECK.GUI",0x101);
             l->handler=FUN_0041f680;
             FUN_004c22d0(1);
             FUN_0049fb10(&g_game->menu,1);
-            FUN_004a81e0(&g_game->menu,0x40);
+            RenderLayer(&g_game->menu,0x40);
             g_game->state=8;
         } else g_game->state=5;
         break;
@@ -203,7 +203,7 @@ void __stdcall FUN_0041f7f0()
             if(!DAT_00511dec) { FUN_00476ca0(); DAT_00511dec=1; }
             if(g_game->deadline<GetTicks()) {
                 FUN_004c2340(event);
-                if(FUN_004c1ab0() || g_game->advance) {
+                if(PopKey() || g_game->advance) {
                     g_game->input->FUN_004cfb40();
                     FUN_0041f0a0(); FUN_0041f400(); FUN_0041e420();
                     FUN_0049fad0(&g_game->menu); FUN_0049fa90(&g_game->menu);
@@ -221,9 +221,9 @@ void __stdcall FUN_0041f7f0()
             g_game->state=8; FUN_00491c80(19); FUN_004c22d0(1);
             break;
         }
-        FUN_004a9fd0(&g_game->menu); FUN_004ab170(&g_game->menu,0,0);
+        UpdateMenu(&g_game->menu); FUN_004ab170(&g_game->menu,0,0);
         int skip=0;
-        int clicked=FUN_004c1ab0();
+        int clicked=PopKey();
         if(clicked && g_game->campaign->FUN_00435100()!=3) skip=1;
         if(g_game->deadline<GetTicks() || skip) {
             if(clicked) {
@@ -255,7 +255,7 @@ void __stdcall FUN_0041f7f0()
         break;
     }
     case 8:
-        FUN_004c2470(); FUN_004a9fd0(&g_game->menu); FUN_004c2870(); FlipScreen();
+        FUN_004c2470(); UpdateMenu(&g_game->menu); FUN_004c2870(); FlipScreen();
         FUN_004c2470(); FUN_004ab170(&g_game->menu,0,0); FUN_004c2870();
         break;
     }

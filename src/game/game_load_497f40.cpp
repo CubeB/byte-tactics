@@ -159,9 +159,9 @@ void __stdcall FUN_004290f0(void*, char*, char*, char*);
 void __stdcall FUN_00453320(unsigned int, int);
 void __stdcall FUN_00497ce0(void*);
 void __stdcall FUN_0049fa70(void*);
-int __stdcall FUN_004a5030(char*);
+int __stdcall GetTextPixelWidth(char*);
 void __stdcall FUN_004a50e0(void*, char*, int, int, int, int);
-void __stdcall FUN_004a9660(void*);
+void __stdcall CloseTopScreen(void*);
 void __stdcall FUN_004ab400(void*, void*);
 void __stdcall FUN_004ac7d0(void*, void*, void*);
 void __stdcall SetCloseHandler(void (__cdecl *)(int), int);
@@ -230,7 +230,7 @@ void FUN_00497f40(void)
 
     if (!g_game->flags38d75.bits.started) {
         while (g_game->field_531 != 0) {
-            FUN_004a9660(&g_game->field_519);
+            CloseTopScreen(&g_game->field_519);
         }
         FUN_0049fa70(&g_game->field_519);
         if (g_game->field_2cbe != 0x14) {
@@ -243,7 +243,7 @@ void FUN_00497f40(void)
             FUN_00430f00();
         }
         while (g_game->field_531 != 0) {
-            FUN_004a9660(&g_game->field_519);
+            CloseTopScreen(&g_game->field_519);
         }
         FUN_004257a0();
         g_game->field_37e1f = 0x280;
@@ -373,7 +373,7 @@ void FUN_00497f40(void)
                 _strlwr(namebuf);
             }
             wsprintfA(buf, "%s: %s", (char*)FUN_004c5740("Map"), (char*)FUN_004c5740(namebuf));
-            textWidth = FUN_004a5030(buf);
+            textWidth = GetTextPixelWidth(buf);
             {
                 int x = gadget.width / 2 - textWidth / 2;
                 FUN_004a50e0(&gadget, buf, x,

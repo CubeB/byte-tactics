@@ -56,14 +56,14 @@ extern Game* g_game;
 extern int DAT_0051f2f0;
 extern char DAT_0051e788[];
 
-Gadget_00494050* __stdcall FUN_004aa8f0(Sub_00494050* sub, const char* name, int flags);
+Gadget_00494050* __stdcall LoadGuiLayer(Sub_00494050* sub, const char* name, int flags);
 void __stdcall FUN_00493bf0(void* gadget);
 void __stdcall FUN_004a0bf0(Sub_00494050* sub, char* name, char* param_3, int param_4);
-void __stdcall FUN_004a1080(Sub_00494050* sub, char* name, int value);
+void __stdcall SetButtonStageByName(Sub_00494050* sub, char* name, int value);
 void __stdcall FUN_004a0570(Sub_00494050* sub, char* name, int value);
-int __stdcall FUN_0049fdf0(void* entries, char* name, int type);
+int __stdcall FindGadgetIndex(void* entries, char* name, int type);
 void __stdcall FUN_0049fc50(Sub_00494050* sub, int index);
-void __stdcall FUN_004a81e0(Sub_00494050* sub, int value);
+void __stdcall RenderLayer(Sub_00494050* sub, int value);
 void __stdcall FUN_00447380(int value);
 void FUN_00493ae0();
 
@@ -81,23 +81,23 @@ void FUN_00494050()
         return;
     int multi = (g_game->flags_2bee & 0x100)
                 && g_game->net->FUN_00435100() == 3;
-    Gadget_00494050* d = FUN_004aa8f0(&g_game->sub,
+    Gadget_00494050* d = LoadGuiLayer(&g_game->sub,
                                        multi ? "TALK2.GUI" : "TALK.GUI",
                                        multi ? 0x800 : 0x880);
     void* entries = d->entries;
     d->handler = FUN_00493bf0;
     g_game->flags_37ebe |= 4;
     FUN_004a0bf0(&g_game->sub, "TALK", DAT_0051e788, 0);
-    FUN_004a1080(&g_game->sub, "SENDTO", multi);
+    SetButtonStageByName(&g_game->sub, "SENDTO", multi);
     if (g_game->net->FUN_00435100() != 3) {
         FUN_004a0570(&g_game->sub, "SENDTO", 0);
     } else if (multi) {
-        FUN_004a1080(&g_game->sub, "SENDTYPE", g_game->mode_2bf0);
+        SetButtonStageByName(&g_game->sub, "SENDTYPE", g_game->mode_2bf0);
         FUN_00447380(1);
         FUN_00493ae0();
     }
-    FUN_0049fc50(&g_game->sub, FUN_0049fdf0(entries, "TALK", 3));
-    d->field_20 = FUN_0049fdf0(entries, "TALK", 3);
+    FUN_0049fc50(&g_game->sub, FindGadgetIndex(entries, "TALK", 3));
+    d->field_20 = FindGadgetIndex(entries, "TALK", 3);
     d->owner = g_game;
-    FUN_004a81e0(&g_game->sub, 0x40 | (multi ? 0 : 0x80));
+    RenderLayer(&g_game->sub, 0x40 | (multi ? 0 : 0x80));
 }

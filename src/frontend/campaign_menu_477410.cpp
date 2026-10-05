@@ -33,25 +33,25 @@ struct Game {
 
 extern Game* g_game;
 
-Gadget_00477410* __stdcall FUN_0049ff10(Gadget_00477410* gadgets, const char* name);
-void __stdcall FUN_004a1110(Menu_00477410* menu, const char* name, int value);
+Gadget_00477410* __stdcall FindGadgetOrNull(Gadget_00477410* gadgets, const char* name);
+void __stdcall SetGadgetStatusByName(Menu_00477410* menu, const char* name, int value);
 void __stdcall FUN_0049fa90(Menu_00477410* menu);
 
 // FUNCTION: 0x477410
 void FUN_00477410()
 {
-    Gadget_00477410* gadget = FUN_0049ff10(g_game->dialog->gadgets, "Difficulty");
+    Gadget_00477410* gadget = FindGadgetOrNull(g_game->dialog->gadgets, "Difficulty");
     if (g_game->difficulty == 0) {
         gadget->value = 0;
-        FUN_004a1110(&g_game->menu, "Easy", 1);
+        SetGadgetStatusByName(&g_game->menu, "Easy", 1);
     }
     if (g_game->difficulty == 1) {
         gadget->value = 1;
-        FUN_004a1110(&g_game->menu, "Medium", 1);
+        SetGadgetStatusByName(&g_game->menu, "Medium", 1);
     }
     if (g_game->difficulty == 2) {
         gadget->value = 2;
-        FUN_004a1110(&g_game->menu, "Hard", 1);
+        SetGadgetStatusByName(&g_game->menu, "Hard", 1);
     }
     FUN_0049fa90(&g_game->menu);
 }

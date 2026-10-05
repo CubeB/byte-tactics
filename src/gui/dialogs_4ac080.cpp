@@ -2,7 +2,7 @@
 
 extern char DAT_00502ae8[];
 
-bool __stdcall FUN_004a0300(int param1, int param2, char* param3);
+bool __stdcall IsGadgetNamed(int param1, int param2, char* param3);
 
 struct Class_004ac080
 {
@@ -14,7 +14,7 @@ public:
 };
 
 // FUNCTION: 0x4ac080
-void __stdcall FUN_004ac080(Class_004ac080* obj)
+void __stdcall NotExistDialogHandler(Class_004ac080* obj)
 {
-    FUN_004a0300(obj->ptr_18[1], obj->ptr_60, DAT_00502ae8);
+    IsGadgetNamed(obj->ptr_18[1], obj->ptr_60, DAT_00502ae8);
 }

@@ -6,7 +6,7 @@ struct Class_004bbbe0;
 extern unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* file, void* data, unsigned int size);
 
 // FUNCTION: 0x4acda0
-void __stdcall FUN_004acda0(Class_004bbbe0* file, int depth)
+void __stdcall WriteSectionEnd(Class_004bbbe0* file, int depth)
 {
     char tab = '\t';
     for (int i = 0; i < depth; i++)

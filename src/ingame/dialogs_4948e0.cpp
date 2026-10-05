@@ -101,10 +101,10 @@ extern int DAT_0051f2f4;
 unsigned int GetTicks();
 int GetScreenWidth();
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-int __stdcall FUN_004c1b80(int key);
+int __stdcall IsKeyDown(int key);
 void __stdcall FadeRectangle(void* surface, Rect_004948e0* rect, int level);
 void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
-int __stdcall FUN_004a5030(char* text);
+int __stdcall GetTextPixelWidth(char* text);
 char* __stdcall FUN_004c5740(char* name);
 void* __stdcall GetGafFrame(void* glyphs, int c);
 void __stdcall DrawFrameQuad(void* surface, void* pic, Quad_004948e0* dst, Quad_004948e0* src);
@@ -124,7 +124,7 @@ void __stdcall FUN_004948e0(void* surface)
     }
 
     if (!(g_game->field_37f06 & 0x80)
-        && (FUN_004c1b80(0x20) == 0
+        && (IsKeyDown(0x20) == 0
             || (g_game->team_index != -1
                 && ((unsigned char*)g_game->teams->data)[g_game->team_index * 0x15b] == 3))) {
         if (DAT_0051f2d8 <= 0)
@@ -168,7 +168,7 @@ void __stdcall FUN_004948e0(void* surface)
     strcpy(buf, FUN_004c5740("Kills"));
     FUN_004a50e0(surface, buf, panel.left + 2, y, maxw, 0);
     strcpy(buf, FUN_004c5740("Losses"));
-    FUN_004a50e0(surface, buf, panel.right - FUN_004a5030(buf) - 2, y, maxw, 0);
+    FUN_004a50e0(surface, buf, panel.right - GetTextPixelWidth(buf) - 2, y, maxw, 0);
     y += 0xf;
 
     for (int i = 0; i < (int)g_game->numPlayers; i++) {
@@ -219,7 +219,7 @@ void __stdcall FUN_004948e0(void* surface)
                          DAT_0051f2c8[n]);
             int losses = g_game->field_37ef6 == 2 ? p->field_106 : p->field_fe;
             sprintf(buf, "%d", losses);
-            FUN_004a50e0(surface, buf, dst.p[1].x - FUN_004a5030(buf) - 2,
+            FUN_004a50e0(surface, buf, dst.p[1].x - GetTextPixelWidth(buf) - 2,
                          dst.p[0].y + 0x14, maxw, DAT_0051e810[n]);
             y += 0x28;
             break;

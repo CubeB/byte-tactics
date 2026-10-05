@@ -89,8 +89,8 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004ab060(Sub_00446fb0* obj, const char* name);
-int __stdcall FUN_004a1080(Sub_00446fb0* obj, char* name, int value);
+int __stdcall IsScreenNamed(Sub_00446fb0* obj, const char* name);
+int __stdcall SetButtonStageByName(Sub_00446fb0* obj, char* name, int value);
 void __stdcall FUN_0049fa90(Sub_00446fb0* obj);
 
 __inline int IsLiveType_00446fb0(Player_00446fb0* p)
@@ -142,13 +142,13 @@ void FUN_00446fb0()
     unsigned char* a = &g_game->players[g_game->localPlayer].field_108[0];
     unsigned char* b = &g_game->players[g_game->localPlayer].field_113[0];
 
-    if (FUN_004ab060(&g_game->sub, "ALLIES.GUI") != 0) {
+    if (IsScreenNamed(&g_game->sub, "ALLIES.GUI") != 0) {
         int i;
         for (i = 0; i < 10; ++i, ++a, ++b) {
             if (IsAlly_00446fb0(&g_game->players[i]) && i != g_game->localPlayer
                 && IsLive_00446fb0(&g_game->players[i])) {
                 sprintf(text, "LIVEALLY%d", i);
-                FUN_004a1080(&g_game->sub, text, (*b << 1) | *a);
+                SetButtonStageByName(&g_game->sub, text, (*b << 1) | *a);
             }
         }
         FUN_0049fa90(&g_game->sub);

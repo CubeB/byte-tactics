@@ -52,15 +52,15 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0049fd60(void* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(void* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall SetAlliance(int, int, unsigned char, int);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall SendChatMessage(void* from, char* text, int param_3, void* to);
 void FUN_00446fb0();
-void __stdcall FUN_004a5f40(void* sub, int param_2);
-int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
-int __stdcall FUN_004a0ff0(void* gadget, int index);
+void __stdcall DrawButton(void* sub, int param_2);
+int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
+int __stdcall GetButtonStage(void* gadget, int index);
 void __stdcall FUN_004ab0a0(void* gadget);
 void BroadcastPlayerInfo();
 
@@ -81,7 +81,7 @@ void __stdcall FUN_00447150(Gadget_00447150* gadget)
     for (; i < 10; i++) {
         sprintf(buf, "LIVEALLY%d", i);
         Player_00447150* p = &g_game->players[i];
-        if (FUN_0049fd60(gadget, buf) && p->active
+        if (IsCurrentGadgetNamed(gadget, buf) && p->active
             && (p->type == 1 || p->type == 2 || p->type == 3)
             && p->field_146 != 10) {
             FUN_0047f1a0("Options", 0);
@@ -91,20 +91,20 @@ void __stdcall FUN_00447150(Gadget_00447150* gadget)
                     (char*)g_game + 0x1b8e + i * 0x14b);
             SendChatMessage(local, buf, 4, 0);
             FUN_00446fb0();
-            FUN_004a5f40(&g_game->message, gadget->field_60);
+            DrawButton(&g_game->message, gadget->field_60);
         }
     }
 
-    if (FUN_0049fd60(gadget, "VICTORY")) {
+    if (IsCurrentGadgetNamed(gadget, "VICTORY")) {
         FUN_0047f1a0("Options", 0);
         FUN_004ab0a0(gadget);
         return;
     }
-    if (FUN_0049fd60(gadget, "OK")) {
+    if (IsCurrentGadgetNamed(gadget, "OK")) {
         FUN_0047f1a0("Options", 0);
         int old = (local->info->flags_9d >> 1) & 1;
-        int index = FUN_0049fdf0(entries, "VICTORY", 1);
-        unsigned int value = FUN_004a0ff0(gadget, index);
+        int index = FindGadgetIndex(entries, "VICTORY", 1);
+        unsigned int value = GetButtonStage(gadget, index);
         local->info->flags_9d = (local->info->flags_9d & 0xfffd) | ((value & 1) << 1);
         if (old != ((local->info->flags_9d >> 1) & 1))
             BroadcastPlayerInfo();

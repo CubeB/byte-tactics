@@ -23,7 +23,7 @@ struct Object_004a0880 {
 };
 
 // FUNCTION: 0x4a0880
-void __stdcall FUN_004a0880(Object_004a0880* obj, int index, char* text)
+void __stdcall SetGadgetText(Object_004a0880* obj, int index, char* text)
 {
     strcpy(obj->data->entries[index].text, text);
     if (obj->current == index) {

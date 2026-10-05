@@ -8,7 +8,7 @@
 // MATCHED (618 of 618 bytes, 187 of 187 instructions).
 //
 // The last fault, and the one that had been open at 98.4%, was the dead store
-// `mov [frame+0], eax` of FUN_0049ff90(entries, "GAMES")'s result in the last
+// `mov [frame+0], eax` of FindGadgetChecked(entries, "GAMES")'s result in the last
 // block. It is dead in the source (nothing reads the slot again) and MSVC
 // deletes such a store, so it has to be kept by making the variable's ADDRESS
 // escape. The only addresses of locals that escape in this function are the
@@ -78,11 +78,11 @@ extern char* DAT_0051f2ec;
 
 void __stdcall FUN_004ab190(Gadget_00492df0* menu, int flag);
 void __cdecl FUN_004d85a0(void* p);
-int __stdcall FUN_0049fd60(Gadget_00492df0* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gadget_00492df0* gadget, char* name);
 void __stdcall FUN_0049fa70(void* menu);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-Entry_00492df0* __stdcall FUN_0049ff90(Entry_00492df0* entries, char* name);
-int __stdcall FUN_0049fdf0(Entry_00492df0* entries, char* name, int type);
+Entry_00492df0* __stdcall FindGadgetChecked(Entry_00492df0* entries, char* name);
+int __stdcall FindGadgetIndex(Entry_00492df0* entries, char* name, int type);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_004bbc30(char* path);
 char* __stdcall FUN_00492b10(int* count);
@@ -112,15 +112,15 @@ void __stdcall FUN_00492df0(Gadget_00492df0* gadget)
         DAT_0051f2ec = 0;
         return;
     }
-    if (FUN_0049fd60(gadget, "CANCEL")) {
+    if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
         if (g_game->bit2_2a44)
             FUN_0049fa70(g_game->message);
         FUN_0047f1a0("Previous", 0);
         return;
     }
-    if (FUN_0049fd60(gadget, "DELETE")) {
+    if (IsCurrentGadgetNamed(gadget, "DELETE")) {
         FUN_0047f1a0("SmallButton", 0);
-        Entry_00492df0* e = FUN_0049ff90(entries, "GAMES");
+        Entry_00492df0* e = FindGadgetChecked(entries, "GAMES");
         sprintf(save.path, "%s\\%s", DAT_005091c8, FUN_004b6af0(DAT_0051f2e0, e->field_ba));
         FUN_004bbc30(save.path);
         FUN_00492b10(&save.count);
@@ -128,8 +128,8 @@ void __stdcall FUN_00492df0(Gadget_00492df0* gadget)
         FUN_00491ec0();
         return;
     }
-    if (!FUN_0049fd60(gadget, "GAMES") && !FUN_0049fd60(gadget, "LOAD") &&
-        !FUN_0049fd60(gadget, "GAMENAME")) {
+    if (!IsCurrentGadgetNamed(gadget, "GAMES") && !IsCurrentGadgetNamed(gadget, "LOAD") &&
+        !IsCurrentGadgetNamed(gadget, "GAMENAME")) {
         if (gadget->field_60 != -1)
             FUN_004ab0a0(gadget);
         return;
@@ -137,10 +137,10 @@ void __stdcall FUN_00492df0(Gadget_00492df0* gadget)
     if (g_game->bit2_2a44)
         FUN_0049fa70(g_game->message);
     FUN_0047f1a0("smlbutton", 0);
-    int index = FUN_0049fdf0(entries, "GAMENAME", 3);
+    int index = FindGadgetIndex(entries, "GAMENAME", 3);
     char* text = entries[index].text;
     if (strlen(text) != 0) {
-        save.games = (int)FUN_0049ff90(entries, "GAMES");
+        save.games = (int)FindGadgetChecked(entries, "GAMES");
         FUN_004290f0(g_game->saveName, DAT_005091c8, text, "SAV");
         FUN_004326b0(g_game->saveName, text, time(0));
     }

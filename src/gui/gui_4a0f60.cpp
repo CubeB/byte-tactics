@@ -38,7 +38,7 @@ static inline int FindEntry(Entry_004a0f60* entries, char* name)
 }
 
 // FUNCTION: 0x4a0f60
-int __stdcall FUN_004a0f60(Obj_004a0f60* obj, char* name)
+int __stdcall GetButtonStageByName(Obj_004a0f60* obj, char* name)
 {
     Entry_004a0f60* entries = obj->table->entries;
     int i = FindEntry(entries, name);

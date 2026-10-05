@@ -14,7 +14,7 @@ struct Entry_0049fdf0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x49fdf0
-int __stdcall FUN_0049fdf0(Entry_0049fdf0* entries, char* name, int type)
+int __stdcall FindGadgetIndex(Entry_0049fdf0* entries, char* name, int type)
 {
     for (int i = 1; i < entries->count + 1; i++) {
         if (strncmp(entries[i].name, name, 0x10) == 0) {

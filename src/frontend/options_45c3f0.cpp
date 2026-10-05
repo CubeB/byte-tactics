@@ -38,9 +38,9 @@ struct Game {
 extern Game* g_game;
 extern int DAT_00512fe0;
 
-int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
+int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 void __stdcall FUN_004a1250(void* obj, char* name, int value);
-int __stdcall FUN_004a1080(void* obj, char* name, int value);
+int __stdcall SetButtonStageByName(void* obj, char* name, int value);
 void __stdcall FUN_004a0bf0(void* obj, char* name, int param_3, int param_4);
 void __stdcall FUN_004a1450(void* obj, char* name, int param_3);
 
@@ -50,11 +50,11 @@ void FUN_0045c3f0()
     char buf[12];
     Menu_45c3f0* menu = &g_game->menu;
 
-    if (FUN_0049fdf0(menu->holder->entries, "TRACKTYPE", 1) != -1) {
+    if (FindGadgetIndex(menu->holder->entries, "TRACKTYPE", 1) != -1) {
         int disc = DAT_00512fe0;
         FUN_004a1250(menu, "TRACKTYPE",
                      ((g_game->f_37f14 & 1) && g_game->state == 4) ? 0 : 1);
-        FUN_004a1080(menu, "TRACKTYPE", g_game->field_10->FUN_004ce7e0(disc));
+        SetButtonStageByName(menu, "TRACKTYPE", g_game->field_10->FUN_004ce7e0(disc));
         if (disc == 0)
             strcpy(buf, "NO DISC");
         else

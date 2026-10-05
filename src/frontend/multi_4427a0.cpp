@@ -7,7 +7,7 @@ struct Entry_004427a0 {
     char number[0x81];                 // +0x81
 };
 
-// GUI layout entry, as returned by FUN_0049ff90.
+// GUI layout entry, as returned by FindGadgetChecked.
 struct Layout_004427a0 {
     char unknown_0[0xba];
     short player;                      // +0xba
@@ -32,8 +32,8 @@ extern Entry_004427a0* DAT_00512988;
 extern char* DAT_0051298c;
 extern Game* g_game;
 
-Layout_004427a0* __stdcall FUN_0049ff90(Layout_004427a0* entries, char* name);
-char* __stdcall FUN_004a0d00(void* menu, const char* key, char* out);
+Layout_004427a0* __stdcall FindGadgetChecked(Layout_004427a0* entries, char* name);
+char* __stdcall GetGadgetText(void* menu, const char* key, char* out);
 void __stdcall FUN_004a32a0(void* menu, char* name, char* text,
                             int count, int flag);
 void __stdcall FUN_004a2e40(void* menu, char* name, int player);
@@ -41,11 +41,11 @@ void __stdcall FUN_004a2e40(void* menu, char* name, int player);
 // FUNCTION: 0x4427a0
 void FUN_004427a0(void)
 {
-    Layout_004427a0* entry = FUN_0049ff90(g_game->table->entries, "ACCOUNTS");
+    Layout_004427a0* entry = FindGadgetChecked(g_game->table->entries, "ACCOUNTS");
     if (entry != 0 && DAT_00512988 != 0) {
-        FUN_004a0d00((char*)g_game + 0x519, "NAME",
+        GetGadgetText((char*)g_game + 0x519, "NAME",
                      DAT_00512988[entry->player].name);
-        FUN_004a0d00((char*)g_game + 0x519, "NUMBER",
+        GetGadgetText((char*)g_game + 0x519, "NUMBER",
                      DAT_00512988[entry->player].number);
         char* buffer = DAT_0051298c;
         *buffer = 0;
@@ -53,7 +53,7 @@ void FUN_004427a0(void)
             strcpy(buffer, DAT_00512988[i].name);
             buffer += strlen(DAT_00512988[i].name) + 1;
         }
-        int player = FUN_0049ff90(g_game->table->entries, "ACCOUNTS")->player;
+        int player = FindGadgetChecked(g_game->table->entries, "ACCOUNTS")->player;
         FUN_004a32a0((char*)g_game + 0x519, "ACCOUNTS", DAT_0051298c, 20, 0);
         FUN_004a2e40((char*)g_game + 0x519, "ACCOUNTS", player);
     }

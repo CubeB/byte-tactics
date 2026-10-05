@@ -56,8 +56,9 @@ that pass and lists the others.
 The checks, unless --no-check: tools/progress.py (every function that
 matched before still matches), tools/globals.py (link/ follows the new
 names), tools/place.py --write-layout (the shipped MD5, and data/layout.csv
-unchanged: it holds no names, so a change means a rename moved a piece within
-its object, as renaming file statics can reorder an object's .bss) and
+unchanged but for the renamed names of static initializers: any other change
+means a rename moved a piece within its object, as renaming file statics can
+reorder an object's .bss) and
 tools/place.py --no-orig (the same MD5 from data/layout.csv alone); with
 --full also tools/link.py --carve and tools/linkcmp.py. On a
 failure the files stay renamed for a look; `git checkout -- .` undoes it.
@@ -427,7 +428,8 @@ def main() -> None:
         if not pairs:
             sys.exit(2)
     before = matched()
-    layout = LAYOUT.read_text()
+    # The layout names only the static initializers (`init/?FUN_...`): expect those renamed.
+    layout = Renamer(pairs).symbols(LAYOUT.read_text())
     # A join gives many views one name: the docs keep the names they tell apart.
     changed = apply(pairs, texts, args.dry_run, docs=not args.join)
     files = [f for f in changed if f.startswith("src/")]

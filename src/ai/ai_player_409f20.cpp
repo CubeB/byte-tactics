@@ -19,7 +19,7 @@ struct Game {
 extern PlayerAI* g_playerAI[];
 extern Game* g_game;
 // FUNCTION: 0x409f20
-int __stdcall FUN_00409f20(int player, unsigned short index, int value)
+int __stdcall IsUnderLimit(int player, unsigned short index, int value)
 {
     if (index >= 1 && index < g_game->count) {
         int* values = g_playerAI[player]->values;

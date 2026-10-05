@@ -9,7 +9,7 @@
 // that keeps the loop tested at the top and the failure block after it.
 // Two oddities are kept as the original has them: the `r < 3` case and the
 // final `else` both reset the scale to baseScale, and the second
-// FUN_0040ef20 path can never run because the pop above already cleared
+// RemoveNode path can never run because the pop above already cleared
 // topPopped.
 
 struct Point_0040eb70 {
@@ -36,36 +36,36 @@ struct Node_0040eb70 {
     NodeData_0040eb70 data;            // +0x4
 };
 
-class Class_0040f000 {
+class OpenHeap {
 public:
-    void FUN_0040f060(int i);
+    void SiftDown(int i);
 };
 
 class Class_0040f1e0 {
 public:
-    void FUN_0040f1e0(int index);
+    void FreeNode(int index);
 };
 
 class Class_0040ef20 {
 public:
-    void FUN_0040ef20(int k);
+    void RemoveNode(int k);
 };
 
 class Class_0040da70 {
 public:
-    void FUN_0040da70(NodeData_0040eb70* from, Cell_0040eb70* cell, int turn);
+    void ExpandNeighbour(NodeData_0040eb70* from, Cell_0040eb70* cell, int turn);
 };
 
 class Class_0040e050 {
 public:
-    void FUN_0040e050();
+    void TracePath();
 };
 
 class Target_0040eb70;
 
 class Class_0040e630 {
 public:
-    void FUN_0040e630(Target_0040eb70* t);
+    void StartSearch(Target_0040eb70* t);
 };
 
 class Class_0044f010 {
@@ -173,7 +173,7 @@ public:
         owner = 0;
     }
 
-    void FUN_0040eb70();
+    void RunSearches();
 };
 #pragma pack(pop)
 
@@ -189,7 +189,7 @@ static int IsPlaying(unsigned char i)
 }
 
 // FUNCTION: 0x40eb70
-void Class_0040eb70::FUN_0040eb70()
+void Class_0040eb70::RunSearches()
 {
     unsigned short players = g_game->field_2a3c;
     if (players == 0)
@@ -239,7 +239,7 @@ void Class_0040eb70::FUN_0040eb70()
                     object = u;
                     steps += 100;
                     costScale = DAT_005119e8[player];
-                    ((Class_0040e630*)this)->FUN_0040e630(path->target);
+                    ((Class_0040e630*)this)->StartSearch(path->target);
                 }
             }
         } else if (Size() != 0) {
@@ -251,29 +251,29 @@ void Class_0040eb70::FUN_0040eb70()
                     topPopped = 0;
                     int k = items[0] - pool;
                     int idx = pool[k].index;
-                    ((Class_0040f1e0*)this)->FUN_0040f1e0(k);
+                    ((Class_0040f1e0*)this)->FreeNode(k);
                     count--;
                     if (idx < count) {
                         items[idx] = items[count];
                         items[idx]->index = idx;
-                        ((Class_0040f000*)this)->FUN_0040f060(idx);
+                        ((OpenHeap*)this)->SiftDown(idx);
                     }
                 }
                 NodeData_0040eb70 d = items[0]->data;
                 if (!topPopped)
                     topPopped = 1;
                 else
-                    ((Class_0040ef20*)this)->FUN_0040ef20(items[0] - pool);
+                    ((Class_0040ef20*)this)->RemoveNode(items[0] - pool);
                 Cell_0040eb70* cell = &cells[width * d.pos.y + d.pos.x];
                 if (cell->flags & 4) {
                     found = d.pos;
-                    ((Class_0040e050*)this)->FUN_0040e050();
+                    ((Class_0040e050*)this)->TracePath();
                     Release();
                     break;
                 }
                 cell->flags = 2;
                 for (int k = -range; k <= range; k++)
-                    ((Class_0040da70*)this)->FUN_0040da70(&d, cell, k & 7);
+                    ((Class_0040da70*)this)->ExpandNeighbour(&d, cell, k & 7);
                 range = 2;
                 if (steps >= 100)
                     break;

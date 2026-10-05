@@ -20,7 +20,7 @@ float DAT_004fd750 = 0.003921568859368563f;  // 0x4fd750 .rdata
 unsigned char DAT_004fdaf0[16] = {0};  // 0x4fdaf0 .rdata
 double DAT_004fdbe8 = -0.06875;  // 0x4fdbe8 .rdata
 char DAT_004fdbf0[40] = "Copyright 0000 Cavedog Entertainment";  // 0x4fdbf0 .rdata
-int DAT_00501774 = 1;  // 0x501774 .data
+int g_aiCommandsEnabled = 1;  // 0x501774 .data
 // 0x501d18 .data
 unsigned char DAT_00501d18[32] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 111, 110, 109, 108, 107, 106,

@@ -33,7 +33,7 @@ public:
 
 class Class_0040d7b0 {
 public:
-    unsigned int FUN_0040d7b0(int x, int y);
+    unsigned int GetCellState(int x, int y);
 };
 
 extern const char DAT_004fd670[];      // dx per direction
@@ -75,7 +75,7 @@ public:
     }
     unsigned int Passable(int x, int y)
     {
-        return ((Class_0040d7b0*)this)->FUN_0040d7b0(x, y);
+        return ((Class_0040d7b0*)this)->GetCellState(x, y);
     }
     unsigned char Visit(unsigned int x, unsigned int y, char dir)
     {
@@ -115,11 +115,11 @@ public:
             return 6;
         return goalY - y > 0 ? 4 : 0;
     }
-    int FUN_0040e160();
+    int ProbeStraightPath();
 };
 
 // FUNCTION: 0x40e160
-int Class_0040e160::FUN_0040e160()
+int Class_0040e160::ProbeStraightPath()
 {
     int x = startX;
     int y = startY;

@@ -33,11 +33,11 @@ public:
     char unknown_0[0x1c];
     Grid_0040d8b0 grid;                // +0x1c
 
-    void FUN_0040d8b0(unsigned int x, unsigned int y);
+    void MarkGoalCell(unsigned int x, unsigned int y);
 };
 
 // FUNCTION: 0x40d8b0
-void Class_0040d8b0::FUN_0040d8b0(unsigned int x, unsigned int y)
+void Class_0040d8b0::MarkGoalCell(unsigned int x, unsigned int y)
 {
     if (grid.InBounds(x, y))
         grid.Set(x, y, 4);

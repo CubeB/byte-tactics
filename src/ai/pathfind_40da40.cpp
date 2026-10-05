@@ -19,11 +19,11 @@ public:
     char unknown_54[0x60 - 0x50 - 4];
     Target_0040da40* field_60;          // +0x60
 
-    __int64 FUN_0040da40(int param1, int param2);
+    __int64 Estimate(int param1, int param2);
 };
 
 // FUNCTION: 0x40da40
-__int64 Class_0040da40::FUN_0040da40(int param1, int param2)
+__int64 Class_0040da40::Estimate(int param1, int param2)
 {
     int a = field_50;
     return ((__int64)field_60->Func(param1, param2) * (__int64)a) >> 0x10;

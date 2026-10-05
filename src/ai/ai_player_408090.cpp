@@ -36,7 +36,7 @@ struct Position_00408090 {              // 16.16 fixed point; only high words re
 extern Game* g_game;
 
 // FUNCTION: 0x408090
-int __stdcall FUN_00408090(Map_00408090* map, Position_00408090* pos)
+int __stdcall IsPointVisible(Map_00408090* map, Position_00408090* pos)
 {
     int tx = pos->x >> 5;
     int ty = (pos->z - (pos->y >> 1)) >> 5;

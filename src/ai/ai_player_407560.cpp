@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-// Method of the Class_00407350 family (see 0x407350.cpp), called by
-// Class_00407930::FUN_00407380 (0x4077e0) with its kind and limit fields.
+// Method of the SquadTimer family (see 0x407350.cpp), called by
+// Class_00407930::OnTimer (0x4077e0) with its kind and limit fields.
 // Balances this object's group against the owner's member of the given kind:
 // takes one unit from it when this group is empty, sends the unit farthest
 // from the group's centre to that kind while its squared distance is at least

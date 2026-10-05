@@ -7,14 +7,14 @@
 // position plus the def's offsets, bails out when the position is below the
 // game-wide limit, and then asks "is this point visible" four times: at p, at
 // p + (def->f176,0,0), at p + (f176,-f17a,f17e), and finally at p again. The
-// first three go through FUN_00408090 unless the player's flags say to use the
+// first three go through IsPointVisible unless the player's flags say to use the
 // explored byte map instead; the fourth inlines the shared visibility bit mask.
 //
 // The fix for the last 6 bytes (the fourth test's g_game load, which every
 // earlier pass had one block too high, in EBP at the join after the third
 // test's call, instead of in the fourth block, in EBX, right after the
 // `u->def` load): the two call-site helpers IsVisible and IsVisible2 are single
-// `return cond ? explored : FUN_00408090(...)` ternaries, not an `if` with two
+// `return cond ? explored : IsPointVisible(...)` ternaries, not an `if` with two
 // returns. With the `if` form the inlined helper's two returns make the join a
 // merge of two return paths and MSVC hoists the next test's g_game CSE up to
 // it; with the ternary it stays where the original has it. The fourth test's
@@ -34,7 +34,7 @@
 //    return 0;` shape so MSVC cannot range-track the value and keeps the
 //    normalisation.
 //
-// Background for the inliner, measured this pass: with FUN_00408090 defined
+// Background for the inliner, measured this pass: with IsPointVisible defined
 // inline and one uniform IsVisible for all four tests, MSVC 5 inlines it at
 // some call sites and calls it at others (patterns such as CCII, CICI, ICIC
 // over the four tests, depending only on the helper spellings), so the
@@ -107,7 +107,7 @@ struct Pos_00465ac0 {                   // 16.16 fixed point
 
 extern Game* g_game;
 
-int __stdcall FUN_00408090(Map_00465ac0* map, Position_00465ac0* pos);
+int __stdcall IsPointVisible(Map_00465ac0* map, Position_00465ac0* pos);
 
 // the player's explored byte map, inlined where the game flags ask for it
 static inline int IsExplored(Map_00465ac0* map, Position_00465ac0* pos)
@@ -142,11 +142,11 @@ static inline int IsExplored2(Map_00465ac0* map, Position_00465ac0* pos)
 }
 static inline int IsVisible(Map_00465ac0* map, Position_00465ac0* pos)
 {
-    return (g_game->flags & 2) == 2 ? IsExplored(map, pos) : FUN_00408090(map, pos);
+    return (g_game->flags & 2) == 2 ? IsExplored(map, pos) : IsPointVisible(map, pos);
 }
 static inline int IsVisible2(Map_00465ac0* map, Position_00465ac0* pos)
 {
-    return (g_game->flags & 2) == 2 ? IsExplored2(map, pos) : FUN_00408090(map, pos);
+    return (g_game->flags & 2) == 2 ? IsExplored2(map, pos) : IsPointVisible(map, pos);
 }
 static inline int IsExplored3(Map_00465ac0* map, Position_00465ac0* pos)
 {

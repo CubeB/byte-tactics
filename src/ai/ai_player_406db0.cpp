@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Chat command handler (compare 0x406e40): parses a set from argument 1 and
-// a float from argument 2, then calls FUN_00409dc0 for every player whose
+// a float from argument 2, then calls ScaleUnitWeights for every player whose
 // field_74 is set.
 #include <string.h>
 
@@ -19,7 +19,7 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern int DAT_00501774;
+extern int g_aiCommandsEnabled;
 extern char DAT_005119b8[];
 
 class Class_004b73c0 {
@@ -39,12 +39,12 @@ public:
     void AddTypeOrCategory(char* text, int* out);
 };
 
-void __stdcall FUN_00409dc0(int player, UnitTypeSet* set, float value, int count);
+void __stdcall ScaleUnitWeights(int player, UnitTypeSet* set, float value, int count);
 
 // FUNCTION: 0x406db0
-void __stdcall FUN_00406db0(Class_004b7410* args)
+void __stdcall CmdWeight(Class_004b7410* args)
 {
-    if (DAT_00501774 != 0) {
+    if (g_aiCommandsEnabled != 0) {
         int count;
         UnitTypeSet set;
         memset(&set, 0, sizeof(set));
@@ -54,7 +54,7 @@ void __stdcall FUN_00406db0(Class_004b7410* args)
         // separate register.
         for (char i = 0; i < 10; i++) {
             if (g_game->players[i].field_74 != 0) {
-                FUN_00409dc0(i, &set, value, count);
+                ScaleUnitWeights(i, &set, value, count);
             }
         }
     }

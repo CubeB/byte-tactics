@@ -2,7 +2,7 @@
 // Per player slot init: stamps the current tick into three fields, clears 22
 // dwords and six shorts, allocates the 0x34-byte PlayerRef and the squads table,
 // sizes and clears the map-cell buffer at (width/2) * (height/2) rounded up to
-// eight, and gives an inactive or non-network (type 3) player a Class_00408cb0.
+// eight, and gives an inactive or non-network (type 3) player a SquadManager.
 //
 // How the first block matched (#5560), read out of C2 with the #5288
 // scheduler tracer (build/scratch/0x464700/c2order.py, hook 0x4315f1):
@@ -54,7 +54,7 @@ public:
 };
 
 #pragma pack(push, 1)
-class Class_00408cb0 {                 // 0x3d bytes
+class SquadManager {                   // 0x3d bytes
 public:
     void* player;                      // +0x0
     unsigned char field_4;             // +0x4
@@ -63,7 +63,7 @@ public:
     int field_d;                       // +0xd
     void* timers[10];                  // +0x11
     void* cursor;                      // +0x39
-    Class_00408cb0(void* p);
+    SquadManager(void* p);
 };
 #pragma pack(pop)
 
@@ -72,7 +72,7 @@ struct Player_00464700 {
     int active;                        // +0x00
     char unknown_4[0x73 - 0x4];
     unsigned char type;                // +0x73
-    Class_00408cb0* unit;              // +0x74
+    SquadManager* unit;                // +0x74
     char unknown_78[0x7c - 0x78];
     void* buffer;                      // +0x7c
     int f80;                           // +0x80
@@ -130,7 +130,7 @@ extern Game* g_game;
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 void __stdcall CreateSquads(Player_00464700* p);
-void __stdcall FUN_0040b320(int player);
+void __stdcall CreatePlayerAI(int player);
 
 // FUNCTION: 0x464700
 void __stdcall InitPlayerSlot(Player_00464700* p)
@@ -199,7 +199,7 @@ guard:
     memset(bref, 0, sz);
     CreateSquads(p);
     if (!p->active || p->type != 3) {
-        p->unit = new Class_00408cb0(p);
-        FUN_0040b320(p->team);
+        p->unit = new SquadManager(p);
+        CreatePlayerAI(p->team);
     }
 }

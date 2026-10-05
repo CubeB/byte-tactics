@@ -23,7 +23,7 @@ struct Player_40b0d0 {
 extern Player_40b0d0* g_playerAI[];
 
 // FUNCTION: 0x40b0d0
-bool __stdcall FUN_0040b0d0(int player, Vec3_40b0d0* p, int range)
+bool __stdcall HasReadyUnitInRange(int player, Vec3_40b0d0* p, int range)
 {
     int r2 = range * range;
     Player_40b0d0* t = g_playerAI[player];

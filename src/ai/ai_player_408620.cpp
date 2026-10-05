@@ -20,7 +20,7 @@ struct Obj_00408620 {
 
 extern Game* g_game;
 
-unsigned short __stdcall FUN_0040bdb0(int param_1, Obj_00408620* param_2);
+unsigned short __stdcall ChooseBuildOption(int param_1, Obj_00408620* param_2);
 void __stdcall QueueBuildOrder(char* name, Obj_00408620* param_2, int param_3);
 
 class Class_00408620 {
@@ -36,7 +36,7 @@ void Class_00408620::FUN_00408620(Obj_00408620* param_1)
 {
     if (param_1->field_5c != 0)
         return;
-    unsigned short idx = FUN_0040bdb0(field_10, param_1);
+    unsigned short idx = ChooseBuildOption(field_10, param_1);
     if (idx != 0)
         QueueBuildOrder(g_game->items[idx].name, param_1, 1);
 }

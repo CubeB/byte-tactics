@@ -18,14 +18,14 @@ struct Class_0040a150 {
     char unknown_0[0xf1];
     Sub  s0;                           // +0xf1
     Sub  s1;                           // +0xfd
-    void FUN_0040a150();
+    void InitPlacementGrid();
 };
 #pragma pack(pop)
 
 int __stdcall FUN_004b6c30(int range);
 
 // FUNCTION: 0x40a150
-void Class_0040a150::FUN_0040a150()
+void Class_0040a150::InitPlacementGrid()
 {
     s0.v4 = 3;
     s0.v0 = FUN_004b6c30(10) + s0.v4 + 8;

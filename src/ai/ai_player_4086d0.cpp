@@ -8,14 +8,14 @@ struct Game { char pad[0x1439b]; Def* defs; char pad1439f[0x38a47-0x1439f]; int 
 #pragma pack(pop)
 extern Game* g_game;
 struct Group { char pad[0x10]; std::vector<Unit*> units; };
-class Class_00408810 { public: char pad[8]; Group* group; int next; unsigned player; void FUN_00407380(); };
+class Class_00408810 { public: char pad[8]; Group* group; int next; unsigned player; void OnTimer(); };
 class Class_0048b090 { public: void SetStateBits(int,int); };
 float __stdcall FUN_00464ad0(Economy*);
 int __stdcall FUN_004b6c30(int);
-unsigned short __stdcall FUN_0040bdb0(unsigned,Unit*);
+unsigned short __stdcall ChooseBuildOption(unsigned,Unit*);
 void __stdcall QueueBuildOrder(char*,Unit*,int);
 // FUNCTION: 0x4086d0
-void Class_00408810::FUN_00407380()
+void Class_00408810::OnTimer()
 {
     next=g_game->time+30;
     for(std::vector<Unit*>::iterator it=group->units.begin();it!=group->units.end();++it) {
@@ -27,7 +27,7 @@ void Class_00408810::FUN_00407380()
                         ((Class_0048b090*)u)->SetStateBits(1,1);
                 } else ((Class_0048b090*)u)->SetStateBits(1,0);
             } else if(u->def->building && !u->orders) {
-                unsigned short id=FUN_0040bdb0(player,u);
+                unsigned short id=ChooseBuildOption(player,u);
                 if(id) QueueBuildOrder((char*)&g_game->defs[id]+0x20,u,1);
             }
         }

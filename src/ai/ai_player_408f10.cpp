@@ -12,12 +12,12 @@ public:
     char unknown_0[0x11];
     Base* ptrs[10];
 
-    void FUN_00408f10();
+    void DeleteTimers();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x408f10
-void Class_00408f10::FUN_00408f10()
+void Class_00408f10::DeleteTimers()
 {
     for (int i = 0; i < 10; i++) {
         if (ptrs[i] != 0) {

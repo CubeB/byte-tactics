@@ -32,7 +32,7 @@ struct Class_004095d0 {
 extern float __stdcall GetEnergyUse(Class_004095d0* p);
 
 // FUNCTION: 0x4095d0
-int __stdcall FUN_004095d0(Class_004095d0* p)
+int __stdcall RateUnitType(Class_004095d0* p)
 {
     int result = 1;
     if (p->field_1ce != 0.0f)

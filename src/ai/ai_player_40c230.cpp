@@ -3,7 +3,7 @@
 extern void* g_playerAI;
 
 // FUNCTION: 0x40c230
-int __stdcall FUN_0040c230(int param_1)
+int __stdcall GetBuilderCount(int param_1)
 {
     char* base = (char*)&g_playerAI;
     void* ptr = *(void**)(base + param_1 * 4);

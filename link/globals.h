@@ -31,7 +31,7 @@ extern float DAT_004fd750;                                                      
 extern unsigned char DAT_004fdaf0[16];                                                        // 0x4fdaf0, 16 bytes; V4i by value in 1 of 2 files (conflicting: struct names only)
 extern double DAT_004fdbe8;                                                                   // 0x4fdbe8, 8 bytes; 1 of 1 files
 extern char DAT_004fdbf0[40];                                                                 // 0x4fdbf0, 40 bytes; 1 of 1 files
-extern int DAT_00501774;                                                                      // 0x501774, 4 bytes; 4 of 4 files
+extern int g_aiCommandsEnabled;                                                               // 0x501774, 4 bytes; 4 of 4 files
 extern unsigned char DAT_00501d18[32];                                                        // 0x501d18, 32 bytes; 1 of 1 files
 extern char DAT_00502288[8];                                                                  // 0x502288, 8 bytes; 1 of 1 files
 extern char DAT_005024fc[16];                                                                 // 0x5024fc, 16 bytes; 1 of 1 files

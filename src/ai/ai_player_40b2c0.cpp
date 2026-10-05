@@ -22,23 +22,23 @@ int __stdcall FUN_004b6c30(int range);
 
 class Class_0040aa40 {
 public:
-    void FUN_0040aa40();
+    void RefreshUnitLists();
 };
 
 class Class_00409730 {
 public:
-    void FUN_00409730();
+    void ComputeBaseWeights();
 };
 
 // FUNCTION: 0x40b2c0
-void __stdcall FUN_0040b2c0(int player)
+void __stdcall UpdatePlayerAI(int player)
 {
     PlayerAI* p = g_playerAI[player];
     if (p && g_game->ticks >= p->lastTick + 0x1e) {
-        ((Class_0040aa40*)p)->FUN_0040aa40();
+        ((Class_0040aa40*)p)->RefreshUnitLists();
         p->lastTick = g_game->ticks;
         if (FUN_004b6c30(0x1e) == 0) {
-            ((Class_00409730*)p)->FUN_00409730();
+            ((Class_00409730*)p)->ComputeBaseWeights();
         }
     }
 }

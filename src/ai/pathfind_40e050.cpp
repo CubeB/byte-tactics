@@ -69,11 +69,11 @@ public:
     char unknown_60[4];
     Map_0040e050* map;          // +0x64 (owner in 0x40eb70, map in 0x40d7b0)
 
-    void FUN_0040e050();
+    void TracePath();
 };
 
 // FUNCTION: 0x40e050
-void Class_0040e050::FUN_0040e050()
+void Class_0040e050::TracePath()
 {
     Point_0040e050 cur = found;
     int dir = grid.At(found.x, found.y)->dir;

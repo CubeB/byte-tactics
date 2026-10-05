@@ -41,14 +41,14 @@ public:
 extern Game* g_game;
 extern PlayerAI* g_playerAI[];
 
-void FUN_00406da0();
+void EnableAICommands();
 int __stdcall FUN_004b7a30(char* text, int len, Class_004b74f0* vars, int param_4);
 
 // FUNCTION: 0x40a040
 void __stdcall FUN_0040a040(int player)
 {
     PlayerAI* p = g_playerAI[player];
-    FUN_00406da0();
+    EnableAICommands();
     for (unsigned short i = 1; i < g_game->count; i++) {
         Def_0040a040* def = &g_game->defs[i];
         if (def->field_5) {

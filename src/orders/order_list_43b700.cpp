@@ -9,12 +9,12 @@ struct Unit {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_0040b7b0(Unit* unit, int a, int b);
+int __stdcall FindWeaponTarget(Unit* unit, int a, int b);
 
 // FUNCTION: 0x43b700
 int __stdcall FUN_0043b700(Unit* unit)
 {
     if (unit->mode == 2)
-        return FUN_0040b7b0(unit, 0, 0);
+        return FindWeaponTarget(unit, 0, 0);
     return 0;
 }

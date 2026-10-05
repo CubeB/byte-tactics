@@ -13,7 +13,7 @@ struct Owner { char pad[0x25]; std::vector<Unit*> factories; };
 #pragma pack(pop)
 extern Owner* g_playerAI[];
 // FUNCTION: 0x40b530
-void __stdcall FUN_0040b530(int player,const Vec* pos,int radius,std::vector<Unit*>* out)
+void __stdcall GetFactoriesInRadius(int player,const Vec* pos,int radius,std::vector<Unit*>* out)
 {
     std::vector<Unit*>& list=g_playerAI[player]->factories;
     radius*=radius;

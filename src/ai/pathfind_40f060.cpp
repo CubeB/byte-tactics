@@ -7,18 +7,18 @@ struct HeapNode_0040f000 {
     int key;                             // +0xc
 };
 
-class Class_0040f000 {
+class OpenHeap {
 public:
     char unknown_0[4];
     HeapNode_0040f000** items;           // +0x4
     char unknown_8[0xc];
     int count;                           // +0x14
 
-    void FUN_0040f060(int i);
+    void SiftDown(int i);
 };
 
 // FUNCTION: 0x40f060
-void Class_0040f000::FUN_0040f060(int i)
+void OpenHeap::SiftDown(int i)
 {
     HeapNode_0040f000* node = items[i];
     while (true) {

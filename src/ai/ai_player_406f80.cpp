@@ -33,7 +33,7 @@ unsigned int __stdcall FUN_00438be0(Unit*);
 void __stdcall FUN_0047f850(Unit*, int, int);
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
 // FUNCTION: 0x406f80
-void __stdcall FUN_00406f80(Unit* attacker, Unit* unit, int unused)
+void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
 {
     NotifyUnitRefs(unit,16);
     if (attacker && !attacker->category) attacker=0;

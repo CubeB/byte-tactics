@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// For each active player of type 2, calls FUN_00409470 on its entry in
+// For each active player of type 2, calls InitUnitTables on its entry in
 // g_playerAI, then calls FUN_004648e0.
 
 #pragma pack(push, 1)
@@ -20,7 +20,7 @@ extern Game* g_game;
 
 class Class_00409470 {
 public:
-    void FUN_00409470();
+    void InitUnitTables();
 };
 
 extern Class_00409470* g_playerAI[];
@@ -28,11 +28,11 @@ extern Class_00409470* g_playerAI[];
 void FUN_004648e0();
 
 // FUNCTION: 0x40a100
-void FUN_0040a100()
+void ResetAIPlayers()
 {
     for (int i = 0; i < 10; i++) {
         if (g_game->players[i].active != 0 && g_game->players[i].type == 2) {
-            g_playerAI[i]->FUN_00409470();
+            g_playerAI[i]->InitUnitTables();
         }
     }
     FUN_004648e0();

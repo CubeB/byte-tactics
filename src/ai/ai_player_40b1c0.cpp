@@ -31,7 +31,7 @@ public:
 extern Class_0040b1c0* g_playerAI[];
 
 // FUNCTION: 0x40b1c0
-int __stdcall FUN_0040b1c0(int player, Vec_0040b1c0* pos, int range)
+int __stdcall SumUnitRatingsInRange(int player, Vec_0040b1c0* pos, int range)
 {
     int total = 0;
     Class_0040b1c0* p = g_playerAI[player];

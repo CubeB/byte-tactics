@@ -6,14 +6,14 @@ struct Unit { char pad[0x6a]; Vec pos; char pad76[0xff-0x76]; unsigned char play
 struct Order { char pad[5]; unsigned char state; char pad6[0x36-6]; int wait; int radius; };
 #pragma pack(pop)
 class Class_00439e80 { public: void FUN_00439e80(int); };
-void __stdcall FUN_0040ad80(int,Vec*,int,int,std::vector<Unit*>*);
+void __stdcall GetVisibleEnemiesInRadius(int,Vec*,int,int,std::vector<Unit*>*);
 int __stdcall FUN_004b6c30(int);
 // FUNCTION: 0x401ce0
 int __stdcall WaitOrder(Unit* unit,Order* order,int flags)
 {
     if(order->radius) {
         std::vector<Unit*> units;
-        FUN_0040ad80(unit->player,&unit->pos,order->radius,0,&units);
+        GetVisibleEnemiesInRadius(unit->player,&unit->pos,order->radius,0,&units);
         if(!units.empty()) return 5;
         if(order->wait<=0) return 5;
         int delay=FUN_004b6c30(30)+150;

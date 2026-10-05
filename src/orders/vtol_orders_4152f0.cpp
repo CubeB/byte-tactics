@@ -119,7 +119,7 @@ int __stdcall FUN_004b6c30(int);
 void __stdcall FUN_0043a020(Unit*, Order*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
-void __stdcall FUN_0040b530(int player, Vec3* pos, int range, std::vector<Unit*>* out);
+void __stdcall GetFactoriesInRadius(int player, Vec3* pos, int range, std::vector<Unit*>* out);
 void __stdcall FUN_0047e890(Vec3*, int, const Class_004158d0&);
 int __stdcall FUN_0043b400(Unit*, Unit*, int);
 union Fixed { int v; struct { unsigned short frac; short whole; } p; };
@@ -144,7 +144,7 @@ static inline int Land(Unit* unit, Order* order)
 {
     if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {
         Class_00410830 pads;
-        FUN_0040b530(unit->owner->index, &unit->pos, 0xf00, &pads);
+        GetFactoriesInRadius(unit->owner->index, &unit->pos, 0xf00, &pads);
         if (!pads.empty()) {
             ((Class_004388d0*)order)->FUN_004388d0(0);
             Unit* pad = pads[FUN_004b6c30(pads.size())];

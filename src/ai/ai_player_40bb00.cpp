@@ -39,7 +39,7 @@ float __stdcall FUN_00464af0(Player*);
 int __stdcall FUN_00406ee0(int,unsigned short,int);
 static inline float Max(float a,float b) { return a>b?a:b; }
 // FUNCTION: 0x40bb00
-int __stdcall FUN_0040bb00(int player,unsigned short type)
+int __stdcall GetBuildRating(int player,unsigned short type)
 {
     Owner* owner=g_playerAI[player];
     Player* p=&g_game->players[player];

@@ -6,7 +6,7 @@
 //   body (which inlines 0x409520's weapon loop): the same three-weapon pointer
 //   walk with a count of 3 and the same double MIN clamp. They are defined
 //   below with their matched bodies and no FUNCTION lines, and the loop calls
-//   `FUN_004095d0(def)`. For /Ob2 to inline 0x409520 inside it, the e->b bonus
+//   `RateUnitType(def)`. For /Ob2 to inline 0x409520 inside it, the e->b bonus
 //   is a plain conditional; the old Bonus1ce() method was four inline sites
 //   (the min/max macros copy it) and left the nested site 109 of the 148 it
 //   needs. HasField1ce() in the second half stays: without it the first
@@ -284,7 +284,7 @@ public:
     std::vector<unsigned char> vec_8d; // +0x8d
     std::vector<unsigned char> vec_9d; // +0x9d
 
-    void FUN_00409730();
+    void ComputeBaseWeights();
 };
 #pragma pack(pop)
 
@@ -296,7 +296,7 @@ float __stdcall GetEnergyUse(Def_00409730* def);
 // exe, both inlined into the loop below.
 #define MIN(a, b) (((a) > (b)) ? (b) : (a))
 
-int __stdcall FUN_00409520(Def_00409730* p)
+int __stdcall RateWeapons(Def_00409730* p)
 {
     int result = 1;
     if (p->flag_245_4)
@@ -313,7 +313,7 @@ int __stdcall FUN_00409520(Def_00409730* p)
     return MIN(result, 100);
 }
 
-int __stdcall FUN_004095d0(Def_00409730* p)
+int __stdcall RateUnitType(Def_00409730* p)
 {
     int result = 1;
     if (p->field_1ce != 0.0f)
@@ -323,14 +323,14 @@ int __stdcall FUN_004095d0(Def_00409730* p)
     if (GetEnergyUse(p) < 0.0f)
         result += 10;
     result = (int)((int)(result - p->field_18a * -0.01f) - p->field_186 * -0.002f);
-    result += (signed char)FUN_00409520(p);
+    result += (signed char)RateWeapons(p);
     if (MIN(result, 100) < -100)
         return -100;
     return MIN(result, 100);
 }
 
 // FUNCTION: 0x409730
-void Class_00409730::FUN_00409730()
+void Class_00409730::ComputeBaseWeights()
 {
     vec_8d.resize(g_game->count, 0);
     {
@@ -342,7 +342,7 @@ void Class_00409730::FUN_00409730()
     }
     for (int i = 1; i < g_game->count; i++) {
         Def_00409730* def = &g_game->defs[(unsigned short)i];
-        vec_8d[i] = FUN_004095d0(def);
+        vec_8d[i] = RateUnitType(def);
 
         int a = 1;
         Elem_0040cfb0* e = &vec_65[i];

@@ -24,7 +24,7 @@ float __stdcall FUN_00464ad0(void* param_1);
 int __stdcall FUN_004b6c30(int range);
 
 // FUNCTION: 0x408670
-void __stdcall FUN_00408670(Unit_00408670* unit)
+void __stdcall UpdateConverter(Unit_00408670* unit)
 {
     Info_00408670* info = unit->info;
     if (info->field_98 + info->field_98 < info->field_8c) {

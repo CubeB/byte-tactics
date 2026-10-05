@@ -16,11 +16,11 @@ public:
     int field_8c;                       // +0x8c
     int field_90;                       // +0x90
     int field_94;                       // +0x94
-    int FUN_00428d10();
+    int ScanToken();
 };
 
 // FUNCTION: 0x428d10
-int Class_00428d10::FUN_00428d10()
+int Class_00428d10::ScanToken()
 {
     if (field_8c != 0)
         return 0x102;

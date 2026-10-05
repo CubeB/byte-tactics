@@ -47,15 +47,15 @@ struct Node_0040e630 {
     NodeData_0040e630 data;            // +0x4
 };
 
-class Class_0040f000 {
+class OpenHeap {
 public:
-    void FUN_0040f000(int i);
-    void FUN_0040f060(int i);
+    void SiftUp(int i);
+    void SiftDown(int i);
 };
 
 class Class_0040f110 {
 public:
-    void FUN_0040f110(int n);
+    void GrowNodes(int n);
 };
 
 struct Heap_0040e630 {
@@ -79,12 +79,12 @@ struct Heap_0040e630 {
         if (topPopped) {
             Node_0040e630* n = items[0];
             n->data = d;
-            ((Class_0040f000*)this)->FUN_0040f060(0);
+            ((OpenHeap*)this)->SiftDown(0);
             topPopped = 0;
             return n - pool;
         }
         if (count == capacity)
-            ((Class_0040f110*)this)->FUN_0040f110(-1);
+            ((Class_0040f110*)this)->GrowNodes(-1);
         int i = count++;
         int k = freeHead;
         if (k == -1)
@@ -94,7 +94,7 @@ struct Heap_0040e630 {
         pool[k].data = d;
         pool[k].index = i;
         items[i] = &pool[k];
-        ((Class_0040f000*)this)->FUN_0040f000(i);
+        ((OpenHeap*)this)->SiftUp(i);
         return k;
     }
 };
@@ -148,12 +148,12 @@ public:
 
 class Pathfinder {
 public:
-    void FUN_0040d900();
+    void ClearDirtyCells();
 };
 
 class Class_0040e160 {
 public:
-    int FUN_0040e160();
+    int ProbeStraightPath();
 };
 
 struct Table_0040e630 {
@@ -239,18 +239,18 @@ public:
         Release();
     }
 
-    void FUN_0040e630(Target_0040e630* t);
+    void StartSearch(Target_0040e630* t);
 };
 
 // FUNCTION: 0x40e630
-void Class_0040e630::FUN_0040e630(Target_0040e630* t)
+void Class_0040e630::StartSearch(Target_0040e630* t)
 {
     owner = (MovementClass*)object->unit->field_4;
     target = t;
     start = object->pos;
     ((Class_00440af0*)owner)->RefreshMovedUnits(object);
     ResetTable();
-    ((Pathfinder*)this)->FUN_0040d900();
+    ((Pathfinder*)this)->ClearDirtyCells();
 
     std::vector<Point_0040e630> goals;
     target->GetGoals(goals);
@@ -278,7 +278,7 @@ void Class_0040e630::FUN_0040e630(Target_0040e630* t)
         Finish();
         return;
     }
-    probe = ((Class_0040e160*)this)->FUN_0040e160();
+    probe = ((Class_0040e160*)this)->ProbeStraightPath();
     if (probe == 0) {
         ((Class_0044ced0*)target)->FUN_0044ced0(0x100);
     } else {

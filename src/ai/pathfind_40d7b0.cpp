@@ -45,11 +45,11 @@ struct Class_0040d7b0 {
     char unknown_68[0x78 - 0x68];
     unsigned char player;              // +0x78
 
-    int FUN_0040d7b0(int x, int y);
+    int GetCellState(int x, int y);
 };
 
 // FUNCTION: 0x40d7b0
-int Class_0040d7b0::FUN_0040d7b0(int x, int y)
+int Class_0040d7b0::GetCellState(int x, int y)
 {
     if (!map->InBounds(x, y))
         return 0;

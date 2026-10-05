@@ -38,13 +38,13 @@ public:
     int capacity;                       // +0x10
     int count;                          // +0x14
 
-    // Inline copy of FUN_0040f1e0.
+    // Inline copy of FreeNode.
     void Free(int k)
     {
         pool[k].index = freeHead;
         freeHead = k;
     }
-    // Inline copy of FUN_0040f060.
+    // Inline copy of SiftDown.
     void SiftDown(int i)
     {
         Node_0040ef20* node = items[i];
@@ -82,11 +82,11 @@ public:
         node->index = i;
     }
 
-    void FUN_0040ef20(int k);
+    void RemoveNode(int k);
 };
 
 // FUNCTION: 0x40ef20
-void Class_0040ef20::FUN_0040ef20(int k)
+void Class_0040ef20::RemoveNode(int k)
 {
     int idx = pool[k].index;
     Free(k);

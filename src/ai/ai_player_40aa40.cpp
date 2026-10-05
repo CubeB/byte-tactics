@@ -22,13 +22,13 @@ public:
     std::vector<short> counts;
     char pad8d[16];
     std::vector<char> weights;
-    void FUN_0040aa40();
+    void RefreshUnitLists();
 };
 #pragma pack(pop)
 extern Game* g_game;
 int __stdcall FUN_00465ac0(Player*,Unit*);
 // FUNCTION: 0x40aa40
-void Class_0040aa40::FUN_0040aa40()
+void Class_0040aa40::RefreshUnitLists()
 {
     visible.Clear();
     factories.Clear();

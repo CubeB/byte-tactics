@@ -21,11 +21,11 @@ public:
     int capacity;                      // +0x10
     int ptr_count;                     // +0x14
 
-    void FUN_0040f110(int param_1);
+    void GrowNodes(int param_1);
 };
 
 // FUNCTION: 0x40f110
-void Class_0040f110::FUN_0040f110(int param_1)
+void Class_0040f110::GrowNodes(int param_1)
 {
     int cap = capacity;
     if (param_1 < cap)

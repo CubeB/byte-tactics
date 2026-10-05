@@ -1,7 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // Order handler: follows the order's target unit, waits a random number of
 // ticks near it and, when interrupted, picks a random unit around the
-// remembered position (FUN_0040ad80 fills a vector) as the new target.
+// remembered position (GetVisibleEnemiesInRadius fills a vector) as the new target.
 
 #include <vector>
 
@@ -63,7 +63,7 @@ int __stdcall FUN_004b6c30(int range);
 Unit* __stdcall GetWeaponTargetUnit(Unit* unit, int index);
 void __stdcall SetWeaponTargetUnit(Unit* unit, Unit* target, int weapon);
 int __stdcall WeaponCanReachUnit(Unit* unit, Unit* target, int param_3);
-void __stdcall FUN_0040ad80(int player, Vec_004021f0* pos, int radius, int flags,
+void __stdcall GetVisibleEnemiesInRadius(int player, Vec_004021f0* pos, int radius, int flags,
                             std::vector<Unit*>* out);
 
 // FUNCTION: 0x4021f0
@@ -108,7 +108,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
         break;
     case 3: {
         std::vector<Unit*> units;
-        FUN_0040ad80(unit->player, &order->pos, 0x280, 0, &units);
+        GetVisibleEnemiesInRadius(unit->player, &order->pos, 0x280, 0, &units);
         if (!units.empty()) {
             order->target.SetUnit(units[FUN_004b6c30(units.size())]);
             SetWeaponTargetUnit(unit, order->target.owner, 0);

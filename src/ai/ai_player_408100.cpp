@@ -1,9 +1,9 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 // MATCH (Claude Opus 5.5, #5644). Slot 0 of Class_004085d0 (vtable 0x4fc9a8),
-// derived from Class_00407350 (family listed in 0x407350.cpp). Runs every 90
+// derived from SquadTimer (family listed in 0x407350.cpp). Runs every 90
 // ticks over the units of this object's group: first gives each unit that
-// FUN_0040bdb0 picks an item for an order (mode 0xe) at the place FUN_0040bfe0
-// finds, within a third of the map size of the player's base (FUN_0040ba80)
+// ChooseBuildOption picks an item for an order (mode 0xe) at the place FindBuildPosition
+// finds, within a third of the map size of the player's base (GetBasePosition)
 // for flag12 units; then sends the idle units towards the base: flag12 units to
 // the point mirrored through it (a random point 0x280 from it when farther),
 // the others to the base itself, or when within 0x140 of it, 0x140 onwards in
@@ -114,10 +114,10 @@ inline Class_00438760::Class_00438760() {}
 
 extern Game_00408100* g_game;
 
-void __stdcall FUN_0040ba80(int index, Vec3* out);
-unsigned short __stdcall FUN_0040bdb0(unsigned int player, Unit_00408100* unit);
-int __stdcall FUN_0040bfe0(unsigned int player, Vec3* from, Item_00408100* item, Vec3* out);
-int __stdcall FUN_0040c230(unsigned int player);
+void __stdcall GetBasePosition(int index, Vec3* out);
+unsigned short __stdcall ChooseBuildOption(unsigned int player, Unit_00408100* unit);
+int __stdcall FindBuildPosition(unsigned int player, Vec3* from, Item_00408100* item, Vec3* out);
+int __stdcall GetBuilderCount(unsigned int player);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_00408100* unit, Unit_00408100* target, Vec3* pos);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit_00408100* unit, Unit_00408100* target, Vec3* pos, int param_6, int param_7);
 int __stdcall FUN_004b6c30(int range);
@@ -162,22 +162,22 @@ static inline int MapRange()
 }
 
 // FUNCTION: 0x408100
-void Class_004085d0::FUN_00407380()
+void Class_004085d0::OnTimer()
 {
     field_c = g_game->ticks + 90;
     Vec3 origin;
-    FUN_0040ba80(field_10, &origin);
+    GetBasePosition(field_10, &origin);
     std::vector<Unit_00408100*>::iterator it;
     for (it = ((Group_00408100*)field_8)->units.begin(); it != ((Group_00408100*)field_8)->units.end(); ++it) {
         Unit_00408100* u = *it;
         if (u->def->field_152
             && (!(unsigned char)u->def->flag12
-                || (FUN_0040c230(field_10) < 5 && g_game->ticks >= (unsigned int)owner->field_d))
+                || (GetBuilderCount(field_10) < 5 && g_game->ticks >= (unsigned int)owner->field_d))
             && (!u->order || !(u->order->flags & 8))) {
-            unsigned short idx = FUN_0040bdb0(field_10, u);
+            unsigned short idx = ChooseBuildOption(field_10, u);
             if (idx) {
                 Vec3 pos;
-                int ok = FUN_0040bfe0(field_10, &u->pos, &g_game->items[idx], &pos);
+                int ok = FindBuildPosition(field_10, &u->pos, &g_game->items[idx], &pos);
                 if (u->def->flag12) {
                     int range = MapRange();
                     origin.y = pos.y;
@@ -196,7 +196,7 @@ void Class_004085d0::FUN_00407380()
         Unit_00408100* u = *it;
         Vec3 target;
         if ((!u->order || (u->order->flags & 0x4000))
-            && (!(unsigned char)u->def->flag12 || FUN_0040c230(field_10) >= 5)) {
+            && (!(unsigned char)u->def->flag12 || GetBuilderCount(field_10) >= 5)) {
             target = origin;
             if (u->def->flag12) {
                 origin.y = u->pos.y;

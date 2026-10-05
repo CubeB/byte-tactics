@@ -23,7 +23,7 @@ extern PlayerAI* g_playerAI[];
 extern Game* g_game;
 
 // FUNCTION: 0x409e90
-void __stdcall FUN_00409e90(int player, unsigned int* mask, int value, int lock)
+void __stdcall SetUnitLimits(int player, unsigned int* mask, int value, int lock)
 {
     PlayerAI* p = g_playerAI[player];
     for (unsigned short i = 1; i < g_game->count; i++) {

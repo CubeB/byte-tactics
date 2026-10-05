@@ -47,7 +47,7 @@ public:
     int field_a1[10];
 
     Pathfinder();
-    void FUN_0040d900();
+    void ClearDirtyCells();
 };
 #pragma pack(pop)
 
@@ -84,7 +84,7 @@ Pathfinder::Pathfinder()
     for (unsigned int i = field_28 - 0x100; i < (unsigned int)field_28; i++)
         field_2c[i >> 8] |= 1 << ((i >> 3) & 0x1f);
 
-    FUN_0040d900();
+    ClearDirtyCells();
 
     field_58 = 0;
     field_48 = 0x535;

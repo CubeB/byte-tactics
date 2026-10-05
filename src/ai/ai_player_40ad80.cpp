@@ -11,7 +11,7 @@ struct Owner { char pad[5]; std::vector<Unit*> visible,known; char pad25[0x79-0x
 #pragma pack(pop)
 extern Owner* g_playerAI[];
 // FUNCTION: 0x40ad80
-void __stdcall FUN_0040ad80(int player,const Vec* pos,int radius,int flags,std::vector<Unit*>* out)
+void __stdcall GetVisibleEnemiesInRadius(int player,const Vec* pos,int radius,int flags,std::vector<Unit*>* out)
 {
     int radius2=radius*radius;
     std::vector<Unit*>& visible=g_playerAI[player]->visible;

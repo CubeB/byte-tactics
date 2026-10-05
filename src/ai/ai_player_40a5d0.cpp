@@ -51,7 +51,7 @@ public:
     Point16 spacing1;                  // +0xfd
     Point16 offset1;                   // +0x101
     int margin1;                       // +0x105
-    bool FUN_0040a5d0(UnitType* type, Vec3* pos, int range, Point16* out);
+    bool FindRandomPlacementCell(UnitType* type, Vec3* pos, int range, Point16* out);
 };
 #pragma pack(pop)
 
@@ -82,7 +82,7 @@ static inline Vec3 Direction(short angle, int scale)
 }
 
 // FUNCTION: 0x40a5d0
-bool Class_0040a7b0::FUN_0040a5d0(UnitType* type, Vec3* pos, int range, Point16* out)
+bool Class_0040a7b0::FindRandomPlacementCell(UnitType* type, Vec3* pos, int range, Point16* out)
 {
     int threshold = g_game->net->field_d30 * type->origin.y * type->origin.x * 2;
     Point16 spacing = type->field_1c0 < 0 ? spacing0 : spacing1;

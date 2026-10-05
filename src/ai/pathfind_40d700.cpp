@@ -7,12 +7,12 @@ struct Entry_40d670 {
     float key;                       // +0x4
 };
 
-void __stdcall FUN_0040d670(Entry_40d670* first, int hole, int len, Entry_40d670 val);
+void __stdcall AdjustHeap(Entry_40d670* first, int hole, int len, Entry_40d670 val);
 
 // FUNCTION: 0x40d700
-void __stdcall FUN_0040d700(Entry_40d670* first, Entry_40d670* last, Entry_40d670* dest,
+void __stdcall PopHeapFirst(Entry_40d670* first, Entry_40d670* last, Entry_40d670* dest,
                              Entry_40d670 val, void* unused)
 {
     *dest = *first;
-    FUN_0040d670(first, 0, last - first, val);
+    AdjustHeap(first, 0, last - first, val);
 }

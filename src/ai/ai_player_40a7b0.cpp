@@ -61,7 +61,7 @@ class Class_0040a7b0 {
 public:
     char unknown_0[0x4d];
     ElemVec cells;                     // +0x4d
-    void FUN_0040a7b0();
+    void BuildFeatureCells();
 };
 #pragma pack(pop)
 
@@ -70,7 +70,7 @@ extern Game* g_game;
 Cell* __stdcall FUN_00481550(int x, int y);
 
 // FUNCTION: 0x40a7b0
-void Class_0040a7b0::FUN_0040a7b0()
+void Class_0040a7b0::BuildFeatureCells()
 {
     cells.clear();
     int w = g_game->width;

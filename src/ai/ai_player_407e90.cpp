@@ -1,12 +1,12 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are
 // provisional.
-// Slot 0 of Class_00407d40 (vtable 0x4fc9a0), derived from Class_00407350
+// Slot 0 of Class_00407d40 (vtable 0x4fc9a0), derived from SquadTimer
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Sets field_c to 30..179 ticks from now. When the group has units, moves the
 // probe point b by the step c (one time in ten it restarts from a with a new
 // random direction of length 0x140 map units), and when the owner can see or
 // has explored b, keeps b as the new target a if a random roll favours its
-// FUN_0040b1c0 score. Then orders every unit whose def has flag4 set, and
+// SumUnitRatingsInRange score. Then orders every unit whose def has flag4 set, and
 // that is active or can reach a (WeaponCanReachPos), to move to a with the order
 // FUN_0043f0e0 picks.
 //
@@ -77,7 +77,7 @@ struct Player_00408090 {
     ByteMap_00408090 explored;          // +0x7c
 };
 
-int __stdcall FUN_00408090(Player_00408090* player, Position_00408090* pos);
+int __stdcall IsPointVisible(Player_00408090* player, Position_00408090* pos);
 
 static inline int IsExplored(Player_00408090* player, Position_00408090* pos)
 {
@@ -92,7 +92,7 @@ static inline int IsVisible(Player_00408090* player, Position_00408090* pos)
 {
     if ((g_game->flags & 2) == 2)
         return IsExplored(player, pos);
-    return FUN_00408090(player, pos);
+    return IsPointVisible(player, pos);
 }
 
 #pragma pack(push, 1)
@@ -125,34 +125,34 @@ public:
     Class_00438760() : index(0) {}
 };
 
-struct Class_00408cb0 {                 // the owner (constructor 0x408cb0)
+struct SquadManager {                   // the owner (constructor 0x408cb0)
     char unknown_0[4];
     unsigned char field_4;              // +0x4
 };
 
 // Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.
-class Class_00407350 {
+class SquadTimer {
 public:
-    Class_00408cb0* owner;              // +0x4
+    SquadManager* owner;                // +0x4
     void* field_8;                      // +0x8
     int field_c;                        // +0xc
     unsigned int field_10;              // +0x10
 
-    Class_00407350(Class_00408cb0* p, void* q);
-    virtual void FUN_00407380();                    // slot 0
-    virtual ~Class_00407350() {}                    // slot 1
+    SquadTimer(SquadManager* p, void* q);
+    virtual void OnTimer();                         // slot 0
+    virtual ~SquadTimer() {}                        // slot 1
 };
 
 // Vtable 0x4fc9a0, constructor 0x407d40, ??_G 0x407e70.
-class Class_00407d40 : public Class_00407350 {
+class Class_00407d40 : public SquadTimer {
 public:
     Vec3_00407d40 a;                    // +0x14
     Vec3_00407d40 b;                    // +0x20
     Vec3_00407d40 c;                    // +0x2c
     int field_38;                       // +0x38
 
-    Class_00407d40(Class_00408cb0* p, void* q);
-    virtual void FUN_00407380();                    // slot 0, 0x407e90
+    Class_00407d40(SquadManager* p, void* q);
+    virtual void OnTimer();                         // slot 0, 0x407e90
 };
 
 int __stdcall FUN_004b6c30(int range);
@@ -168,7 +168,7 @@ static inline Vec3_00407d40 Offset(int angle, int distance)
     return v;
 }
 
-int __stdcall FUN_0040b1c0(int index, Vec3_00407d40* pos, int range);
+int __stdcall SumUnitRatingsInRange(int index, Vec3_00407d40* pos, int range);
 int __stdcall WeaponCanReachPos(Unit* unit, Vec3_00407d40* from, Vec3_00407d40* to, int flags);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
                                       Unit* target, Vec3_00407d40* pos);
@@ -176,7 +176,7 @@ void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* unit,
                             Unit* target, Vec3_00407d40* pos, int a, int b);
 
 // FUNCTION: 0x407e90
-void Class_00407d40::FUN_00407380()
+void Class_00407d40::OnTimer()
 {
     int delay = FUN_004b6c30(150) + 30;
     field_c = g_game->ticks + delay;
@@ -190,7 +190,7 @@ void Class_00407d40::FUN_00407380()
     }
     b += c;
     if (IsVisible(((Group_00407e90*)field_8)->player, (Position_00408090*)&b)) {
-        int r = FUN_0040b1c0(field_10, &b, 0xa0);
+        int r = SumUnitRatingsInRange(field_10, &b, 0xa0);
         if (FUN_004b6c30(r) > FUN_004b6c30(field_38)) {
             field_38 = r;
             a = b;

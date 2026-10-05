@@ -72,22 +72,22 @@ struct Vec3_00407d40 {
     Vec3_00407d40(int ax, int ay, int az) : x(ax), y(ay), z(az) {}
 };
 
-struct Class_00408cb0 {                // the owner (constructor 0x408cb0)
+struct SquadManager {                  // the owner (constructor 0x408cb0)
     char unknown_0[4];
     unsigned char field_4;             // +0x4
 };
 
 // Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.
-class Class_00407350 {
+class SquadTimer {
 public:
-    Class_00408cb0* owner;             // +0x4
+    SquadManager* owner;               // +0x4
     void* field_8;                     // +0x8
     int field_c;                       // +0xc
     unsigned int field_10;             // +0x10
 
-    Class_00407350(Class_00408cb0* p, void* q);
-    virtual void FUN_00407380();                    // slot 0
-    virtual ~Class_00407350() {}                    // slot 1
+    SquadTimer(SquadManager* p, void* q);
+    virtual void OnTimer();                         // slot 0
+    virtual ~SquadTimer() {}                        // slot 1
 };
 
 extern void* DAT_004fc980[];
@@ -96,7 +96,7 @@ extern void* DAT_004fc9a0[];
 class Class_00407d40 {
 public:
     void* vptr_slot;                   // +0x0
-    Class_00408cb0* owner;             // +0x4
+    SquadManager* owner;               // +0x4
     void* field_8;                     // +0x8
     int field_c;                       // +0xc
     unsigned int field_10;             // +0x10
@@ -105,10 +105,10 @@ public:
     Vec3_00407d40 c;                   // +0x2c
     int field_38;                      // +0x38
 
-    Class_00407d40(Class_00408cb0* p, void* q);
+    Class_00407d40(SquadManager* p, void* q);
 };
 
-Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
+SquadTimer::SquadTimer(SquadManager* p, void* q)
     : owner(p), field_8(q), field_c(0), field_10(p->field_4) {}
 
 // Partial (77.5%): everything up to the last _ftol matches. The original then
@@ -323,7 +323,7 @@ Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
 //   with the same flags check.py uses, and still scores 98.9% in check.py, so
 //   every candidate was confirmed with check.py and not with the listing.
 // FUNCTION: 0x407d40
-Class_00407d40::Class_00407d40(Class_00408cb0* p, void* q)
+Class_00407d40::Class_00407d40(SquadManager* p, void* q)
 {
     owner = p;
     field_8 = q;

@@ -1,15 +1,15 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // A method of the timer owner (constructor 0x408cb0, which names the class
-// Class_00408cb0; this one keeps the name already established for it). Walks
+// SquadManager; this one keeps the name already established for it). Walks
 // the player's units round-robin through the cursor at +0x39, a slice of them
 // per call, and for each finished unit that has a weapon without a valid
-// target, retargets that weapon with FUN_00408920 (inlined).
+// target, retargets that weapon with RetargetWeapon (inlined).
 //
 // Notes: the weapon loop counter is a byte (MSVC then counts down from 3);
 // the bit-8 test needed the (unsigned char) cast to extract with shr; the
 // target filter is one `target = 0` whose block MSVC splits per spill state;
 // any header (here <windows.h>) fixes the base/index order in the inlined
-// FUN_00408920.
+// RetargetWeapon.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -78,7 +78,7 @@ public:
     char unknown_4[0x39 - 0x4];
     Unit* cursor;                      // +0x39
 
-    void FUN_004089a0(int force);
+    void RetargetWeapons(int force);
 };
 #pragma pack(pop)
 
@@ -86,7 +86,7 @@ extern Game* g_game;
 
 Unit* __stdcall GetWeaponTargetUnit(Unit* unit, int weapon);
 int* __stdcall FindTargetableProjectile(Unit* unit, unsigned int weapon);
-int __stdcall FUN_0040b7b0(Unit* unit, unsigned int weapon, int param_3);
+int __stdcall FindWeaponTarget(Unit* unit, unsigned int weapon, int param_3);
 void __stdcall SetWeaponTargetUnit(Unit* unit, int param_2, unsigned int weapon);
 void __stdcall SetWeaponTargetPos(Unit* unit, int* param_2, unsigned int weapon);
 void __stdcall ClearWeaponTarget(Unit* unit, unsigned int weapon);
@@ -97,7 +97,7 @@ static inline int Contains(unsigned int* bits, unsigned short index)
 }
 
 // Matched in 0x408920.cpp; defined in the same file, and inlined below.
-void __stdcall FUN_00408920(Unit* unit, unsigned int weapon)
+void __stdcall RetargetWeapon(Unit* unit, unsigned int weapon)
 {
     if (unit->weapons[weapon].def->flag30) {
         int* p = FindTargetableProjectile(unit, weapon);
@@ -106,7 +106,7 @@ void __stdcall FUN_00408920(Unit* unit, unsigned int weapon)
         else
             ClearWeaponTarget(unit, weapon);
     } else if ((unit->flags & 0x300000) == 0x200000) {
-        int r = FUN_0040b7b0(unit, weapon, 1);
+        int r = FindWeaponTarget(unit, weapon, 1);
         if (r)
             SetWeaponTargetUnit(unit, r, weapon);
         else
@@ -115,7 +115,7 @@ void __stdcall FUN_00408920(Unit* unit, unsigned int weapon)
 }
 
 // FUNCTION: 0x4089a0
-void Class_004089a0::FUN_004089a0(int force)
+void Class_004089a0::RetargetWeapons(int force)
 {
     for (int i = 0; i <= g_game->field_37ee6 / 30; i++) {
         if (cursor && cursor != player->lastUnit)
@@ -134,7 +134,7 @@ void Class_004089a0::FUN_004089a0(int force)
                         || (cursor->weapons[w].def->flag7 && (target->field_10e & 0x10))))
                         target = 0;
                     if (!target)
-                        FUN_00408920(cursor, w);
+                        RetargetWeapon(cursor, w);
                 }
             }
         }

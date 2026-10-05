@@ -23,11 +23,11 @@ public:
     char unknown_0[0x8c];
     int errorReported;                 // +0x8c
 
-    void FUN_00428f60(char* text);
+    void ReportParseError(char* text);
 };
 
 // FUNCTION: 0x428f60
-void Class_00428f60::FUN_00428f60(char* text)
+void Class_00428f60::ReportParseError(char* text)
 {
     char buffer[256];
     if (!errorReported) {

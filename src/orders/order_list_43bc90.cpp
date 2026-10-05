@@ -258,7 +258,7 @@ int __stdcall CompareOrderTypeNames(const Elem_0043c390& a, const Elem_0043c390&
 extern Elem_0043c390 DAT_004fd288[];
 void RegisterGroundOrders();
 void FUN_00415b20();
-void FUN_00406f00();
+void RegisterAICommands();
 void RegisterUnitOrders();
 
 void RegisterAllOrderTypes()
@@ -266,7 +266,7 @@ void RegisterAllOrderTypes()
     RegisterOrderTypes(DAT_004fd288, 1);
     RegisterGroundOrders();
     FUN_00415b20();
-    FUN_00406f00();
+    RegisterAICommands();
     RegisterUnitOrders();
 }
 

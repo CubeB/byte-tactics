@@ -238,7 +238,7 @@ public:
 extern Game* g_game;
 
 void __stdcall FUN_0047e890(Vec3_00467440* pos, int range, void* visitor);
-bool __stdcall FUN_0040b0d0(int player, Vec3_00467440* p, int range);
+bool __stdcall HasReadyUnitInRange(int player, Vec3_00467440* p, int range);
 
 static inline int IsExplored_00467440(PlayerInfo_00467440* p, UnitPos_00467440* pos)
 {
@@ -331,7 +331,7 @@ void FUN_00467440(void)
             char c = u->field_96->field_73;
             if (c == 1 || c == 2) {
                 if (u->def->field_245 & 0x2000) {
-                    if (FUN_0040b0d0(u->field_ff, &u->pos.vec, u->def->field_208)) {
+                    if (HasReadyUnitInRange(u->field_ff, &u->pos.vec, u->def->field_208)) {
                         int& b0 = u->field_b0;
                         b0 = g_game->field_38a47 + 0x5a;
                         u->flags |= 0x1000;

@@ -81,7 +81,7 @@ GPT-6 Astra in #38.
 ## Group attack target used without a null check (likely)
 
 **0x407ae0**, slot 0 of `Class_00407a90` (an AI unit group). It pushes
-`&target->pos` straight after `Class_004071f0::FUN_004071f0`, which returns 0
+`&target->pos` straight after `Class_004071f0::FindNearestEnemyUnit`, which returns 0
 when it finds no enemy unit (see 0x4071f0.cpp), so with no enemy the group is
 sent towards address 0x6a. Found by Claude Opus 5.5 in #54.
 
@@ -426,7 +426,7 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x40e630** (starts a path search): the start node's short at +0xc of its
   data is never set. The node is built on the stack with only its position and
   the word at +0xe (100) written, then copied into the pool, so +0xc is stack
-  garbage, and FUN_0040da70 adds a node's +0xc into its cost (0x40db0c).
+  garbage, and ExpandNeighbour adds a node's +0xc into its cost (0x40db0c).
   Probably harmless, since the start node is popped and closed on the first
   expansion before anything reads it. Found by Claude Opus 5.5 in #81.
 - **0x40eb70** (the per-tick path scheduler): the `r < 3` case and the final

@@ -1,12 +1,12 @@
 // Decompiled by Opus, Sonnet and Space Bunny Free. Names are provisional.
 // The AI profile parser: reads values and keys out of an AI profile buffer.
-// Class_00428c90 and Class_00428d10 are two views of one object (the token
+// AIProfileParser and Class_00428d10 are two views of one object (the token
 // scanner at 0x428d10 is called through `this` at offset 0), so the four
 // members are one class.
 
 class Class_00428d10 {
 public:
-    int FUN_00428d10();
+    int ScanToken();
 };
 
 #include <stdio.h>
@@ -25,7 +25,7 @@ struct Game {
 #pragma pack(pop)
 extern Game* g_game;
 
-class Class_00428c90 {
+class AIProfileParser {
 public:
     char flag;                          // +0
     char unknown_1[0x7f];
@@ -36,14 +36,14 @@ public:
     int field_90;                       // +0x90
     int field_94;                       // +0x94
 
-    Class_00428c90();
-    void FUN_00428c90(char* param_1, int param_2);
-    int FUN_00428cd0();
-    int FUN_00428e90();
+    AIProfileParser();
+    void SetBuffer(char* param_1, int param_2);
+    int NextToken();
+    int ReadInt();
 };
 
 // FUNCTION: 0x428c60
-Class_00428c90::Class_00428c90()
+AIProfileParser::AIProfileParser()
 {
     field_80 = 0;
     field_84 = 0;
@@ -55,7 +55,7 @@ Class_00428c90::Class_00428c90()
 }
 
 // FUNCTION: 0x428c90
-void Class_00428c90::FUN_00428c90(char* param_1, int param_2)
+void AIProfileParser::SetBuffer(char* param_1, int param_2)
 {
     field_80 = param_1;
     field_84 = param_1 + param_2;
@@ -67,7 +67,7 @@ void Class_00428c90::FUN_00428c90(char* param_1, int param_2)
 }
 
 // FUNCTION: 0x428cd0
-int Class_00428c90::FUN_00428cd0()
+int AIProfileParser::NextToken()
 {
     if (field_8c != 0)
         return 0x102;
@@ -75,12 +75,12 @@ int Class_00428c90::FUN_00428cd0()
         field_90 = 0;
         return field_94;
     }
-    field_94 = ((Class_00428d10*)this)->FUN_00428d10();
+    field_94 = ((Class_00428d10*)this)->ScanToken();
     return field_94;
 }
 
 // FUNCTION: 0x428e90
-int Class_00428c90::FUN_00428e90()
+int AIProfileParser::ReadInt()
 {
     char buffer[256];
     int token;
@@ -90,7 +90,7 @@ int Class_00428c90::FUN_00428e90()
         token = field_94;
         field_90 = 0;
     } else {
-        token = ((Class_00428d10*)this)->FUN_00428d10();
+        token = ((Class_00428d10*)this)->ScanToken();
         field_94 = token;
     }
     if (token != 0x101) {

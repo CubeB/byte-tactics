@@ -300,8 +300,8 @@
 struct Unit;
 struct Player_00464f80;
 
-struct Class_0040eb70 { void FUN_0040eb70(); };
-struct Class_00408c40 { void FUN_00408c40(); };
+struct Class_0040eb70 { void RunSearches(); };
+struct Class_00408c40 { void TickIfActive(); };
 struct Class_00435100 {
     char unknown_0[0xd44];
     int field_d44;                     // +0xd44
@@ -470,7 +470,7 @@ struct Game {
 extern Game* g_game;
 extern int DAT_0051e53c;
 
-void __stdcall FUN_0040b2c0(int player);
+void __stdcall UpdatePlayerAI(int player);
 void __stdcall FUN_004827b0(Unit* unit);
 void FUN_00466dc0();
 void FUN_00467440();
@@ -529,7 +529,7 @@ static const float kHundred = 100.0f;
 // FUNCTION: 0x464f80
 void __stdcall FUN_00464f80()
 {
-    g_game->field_14207->FUN_0040eb70();
+    g_game->field_14207->RunSearches();
     unsigned char bl = 0;
     for (;;) {
         if (!loopCond_00464f80(bl))
@@ -558,9 +558,9 @@ void __stdcall FUN_00464f80()
         }
 
         if (pi->field_74 != 0)
-            pi->field_74->FUN_00408c40();
+            pi->field_74->TickIfActive();
 
-        FUN_0040b2c0(bl);
+        UpdatePlayerAI(bl);
 
         {
             Unit* u = pi->units;

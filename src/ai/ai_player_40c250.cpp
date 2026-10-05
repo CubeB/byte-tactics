@@ -22,7 +22,7 @@ struct Game {
 extern Game* g_game;
 extern AI* g_playerAI[];
 // FUNCTION: 0x40c250
-void __stdcall FUN_0040c250(int player, FILE* file)
+void __stdcall DumpPlayerAI(int player, FILE* file)
 {
     AI* ai=g_playerAI[player];
     char buffer[256];

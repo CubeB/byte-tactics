@@ -80,7 +80,7 @@ void __stdcall SetTextColors(int param_1, int param_2);
 void __stdcall SetFont(int param_1);
 int GetFontHeight();
 int FUN_004c6b60();
-int __stdcall FUN_0040bb00(int player, unsigned short type);
+int __stdcall GetBuildRating(int player, unsigned short type);
 void __stdcall FadeRectangle(void* surface, void* rect, int level);
 void __stdcall DrawRectangle(void* surface, void* rect, int color);
 void __stdcall FillRectangle(void* surface, void* rect, int color);
@@ -159,7 +159,7 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
         if (unit->type->count > 0) {
             do {
                 unsigned short id = unit->type->types[i];
-                int prob = FUN_0040bb00(unit->f_ff, id);
+                int prob = GetBuildRating(unit->f_ff, id);
                 Def_004685a0* def = &g_game->defs[id];
                 Rect_004685a0 bar;
                 bar.left = 0x88;

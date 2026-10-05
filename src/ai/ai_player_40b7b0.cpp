@@ -15,9 +15,9 @@ class Class_004800c0 { public: void FUN_004800c0(Unit**); };
 int __stdcall FUN_0049adf0(Unit*,unsigned char);
 int __stdcall WeaponCanReachUnit(Unit*,Unit*,unsigned char);
 int __stdcall FUN_004b6c30(int);
-void __stdcall FUN_0040ad80(int,Vec*,int,int,std::vector<Unit*>*);
+void __stdcall GetVisibleEnemiesInRadius(int,Vec*,int,int,std::vector<Unit*>*);
 // FUNCTION: 0x40b7b0
-Unit* __stdcall FUN_0040b7b0(Unit* unit,unsigned char weapon,int useRange)
+Unit* __stdcall FindWeaponTarget(Unit* unit,unsigned char weapon,int useRange)
 {
     int ai=unit->owner->active && unit->owner->type==2;
     Unit* fallback=0;
@@ -25,8 +25,8 @@ Unit* __stdcall FUN_0040b7b0(Unit* unit,unsigned char weapon,int useRange)
     int bestDistance=0x7fffffff;
     Unit* best=0;
     std::vector<Unit*> candidates;
-    if(useRange) FUN_0040ad80(unit->player,&unit->pos,FUN_0049adf0(unit,weapon),0,&candidates);
-    else FUN_0040ad80(unit->player,&unit->pos,unit->def->range,0,&candidates);
+    if(useRange) GetVisibleEnemiesInRadius(unit->player,&unit->pos,FUN_0049adf0(unit,weapon),0,&candidates);
+    else GetVisibleEnemiesInRadius(unit->player,&unit->pos,unit->def->range,0,&candidates);
     for(int count=0;count<50;++count) {
         if(candidates.empty()) break;
         std::vector<Unit*>::iterator it=candidates.begin()+FUN_004b6c30(candidates.size());

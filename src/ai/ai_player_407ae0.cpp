@@ -1,12 +1,12 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 //
-// Slot 0 of Class_00407a90 (vtable 0x4fc998), derived from Class_00407350
+// Slot 0 of Class_00407a90 (vtable 0x4fc998), derived from SquadTimer
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Sets field_c to 30..929 ticks from now. A group of fewer than 5 units
 // either moves (mode 9) to the unit nearest its average position, or, when
-// FUN_0040ba80 gives a rally point for field_10, is sent to 2..3 random points
+// GetBasePosition gives a rally point for field_10, is sent to 2..3 random points
 // around it (mode 2 first, then mode 9). A bigger group is sent to a random
-// point on the map edge. The unit FUN_004071f0 returns is used without a null
+// point on the map edge. The unit FindNearestEnemyUnit returns is used without a null
 // check.
 //
 // Matched (Claude Opus 5.5, 2026-10-03; nine passes had stopped at 91.1-92.1%).
@@ -15,7 +15,7 @@
 // and spills `this`, and no spelling of the loop gave both. The loop was never
 // the cause. Deleting statements one at a time and recording only where the
 // loop's values landed showed that the loop allocation flips to the original's
-// as soon as `pos` stops being the local whose address goes to FUN_0040ba80.
+// as soon as `pos` stops being the local whose address goes to GetBasePosition.
 // Reading the rally point through a small inline that returns it by value
 // (GetRallyPoint) does that, and then the plain `for` loop with `w / 2` in the
 // body (hoisted by the compiler after the entry test) gives the original's
@@ -108,52 +108,52 @@ struct Group_00407ae0 {
     }
 };
 
-struct Class_00408cb0 {                // the owner (constructor 0x408cb0)
+struct SquadManager {                  // the owner (constructor 0x408cb0)
     char unknown_0[4];
     unsigned char field_4;             // +0x4
 };
 
 class Class_004071f0 {
 public:
-    Unit* FUN_004071f0(Vec3_00407410 pos);
+    Unit* FindNearestEnemyUnit(Vec3_00407410 pos);
 };
 
 // Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.
-class Class_00407350 {
+class SquadTimer {
 public:
-    Class_00408cb0* owner;             // +0x4
+    SquadManager* owner;               // +0x4
     Group_00407ae0* group;             // +0x8
     int field_c;                       // +0xc
     unsigned int field_10;             // +0x10
 
-    Class_00407350(Class_00408cb0* p, void* q);
-    virtual void FUN_00407380();                    // slot 0
-    virtual ~Class_00407350() {}                    // slot 1
+    SquadTimer(SquadManager* p, void* q);
+    virtual void OnTimer();                         // slot 0
+    virtual ~SquadTimer() {}                        // slot 1
 
-    int FUN_00407410(Vec3_00407410* out);
+    int GetAveragePosition(Vec3_00407410* out);
 };
 
 // Vtable 0x4fc998, constructor 0x407a90, ??_G 0x407ac0.
-class Class_00407a90 : public Class_00407350 {
+class Class_00407a90 : public SquadTimer {
 public:
-    Class_00407a90(Class_00408cb0* p, void* q);
-    virtual void FUN_00407380();                    // slot 0, 0x407ae0
+    Class_00407a90(SquadManager* p, void* q);
+    virtual void OnTimer();                         // slot 0, 0x407ae0
 };
 
 int __stdcall FUN_004b6c30(int range);
 
 // Copies the 12-byte position at +0x35 of g_playerAI[index] into *out.
-void __stdcall FUN_0040ba80(int index, Pos_00407ae0* out);
+void __stdcall GetBasePosition(int index, Pos_00407ae0* out);
 
 static inline Pos_00407ae0 GetRallyPoint(int index)
 {
     Pos_00407ae0 p;
-    FUN_0040ba80(index, &p);
+    GetBasePosition(index, &p);
     return p;
 }
 
 // FUNCTION: 0x407ae0
-void Class_00407a90::FUN_00407380()
+void Class_00407a90::OnTimer()
 {
     Vec3_00407410 dest;
     int delay = FUN_004b6c30(900) + 30;
@@ -161,8 +161,8 @@ void Class_00407a90::FUN_00407380()
     if ((int)group->units.size() < 5) {
         Pos_00407ae0 pos = GetRallyPoint(field_10);
         if ((pos.x.s.whole | pos.z.s.whole) == 0) {
-            FUN_00407410(&dest);
-            Unit* target = ((Class_004071f0*)owner)->FUN_004071f0(dest);
+            GetAveragePosition(&dest);
+            Unit* target = ((Class_004071f0*)owner)->FindNearestEnemyUnit(dest);
             group->Send(9, 1, 0, &target->pos, 0, 0);
         } else {
             int n = FUN_004b6c30(2) + 2;

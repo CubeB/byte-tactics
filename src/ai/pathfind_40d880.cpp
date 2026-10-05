@@ -19,11 +19,11 @@ public:
     Table_0040d880 table;              // +0x68
     Pair_0040d880 pairs[4];            // +0x70
 
-    void FUN_0040d880();
+    void InitCostTables();
 };
 
 // FUNCTION: 0x40d880
-void Class_0040d880::FUN_0040d880()
+void Class_0040d880::InitCostTables()
 {
     table = DAT_004fca10;
     pairs[0].a = pairs[1].a = pairs[2].a = pairs[3].a = 0x10;

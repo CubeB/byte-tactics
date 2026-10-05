@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Per player slot: frees the two heap buffers, zeroes four dwords, calls
-// FreeSquads on the entry, then retires the unit at +0x74 (FUN_0040b390 on
+// FreeSquads on the entry, then retires the unit at +0x74 (DestroyPlayerAI on
 // the team byte, then the unit's own method and operator delete).
 //
 // The body walks the slot through a second pointer q anchored at +0x84, with
@@ -11,7 +11,7 @@
 // 0x14b. With the fields written as p->field_84 and so on, MSVC anchors on
 // the loop pointer alone and folds esi away.
 //
-// FUN_0040b390 takes the team byte as an int parameter: the promotion is what
+// DestroyPlayerAI takes the team byte as an int parameter: the promotion is what
 // gives `xor ecx, ecx; mov cl, [esi + 0xc2]` instead of the bare byte load.
 //
 // The loop bound is `p <= g_game->players + 10`, one past the last slot, so
@@ -25,7 +25,7 @@ public:
     char unknown_0[0x11];
     void* ptrs[10];
 
-    void FUN_00408f10();
+    void DeleteTimers();
 };
 
 struct Player_00464a00 {
@@ -52,7 +52,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FreeSquads(Player_00464a00* param_1);
-void __stdcall FUN_0040b390(int param_1);
+void __stdcall DestroyPlayerAI(int param_1);
 
 // FUNCTION: 0x464a00
 void FreePlayers()
@@ -66,9 +66,9 @@ void FreePlayers()
         ((void**)q)[-2] = 0;
         FreeSquads(p);
         if (((Class_00408f10**)q)[-4]) {
-            FUN_0040b390(((unsigned char*)q)[0xc2]);
+            DestroyPlayerAI(((unsigned char*)q)[0xc2]);
             if (Class_00408f10* u = ((Class_00408f10**)q)[-4]) {
-                u->FUN_00408f10();
+                u->DeleteTimers();
                 delete u;
             }
             ((Class_00408f10**)q)[-4] = 0;

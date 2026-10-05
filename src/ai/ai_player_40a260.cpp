@@ -51,13 +51,13 @@ struct UnitType {
 
 int __stdcall FUN_0047d2e0(UnitType* type, Point16 cell, int a, int b);
 int FUN_0047c770(void);
-void __stdcall FUN_0040d620(Elem_0040cc40* first, Elem_0040cc40* last, int*, Elem_0040cc40*);
-void __stdcall FUN_0040d700(Elem_0040cc40* first, Elem_0040cc40* last, Elem_0040cc40* dest,
+void __stdcall MakeHeap(Elem_0040cc40* first, Elem_0040cc40* last, int*, Elem_0040cc40*);
+void __stdcall PopHeapFirst(Elem_0040cc40* first, Elem_0040cc40* last, Elem_0040cc40* dest,
                             Elem_0040cc40 val, int*);
 
 class Class_0040a7b0 {
 public:
-    bool FUN_0040a260(UnitType* type, Vec3* pos, ElemVec* list, int range, Point16* out);
+    bool FindCellNearFeatures(UnitType* type, Vec3* pos, ElemVec* list, int range, Point16* out);
 };
 
 static inline Point16 WorldToCell(Vec3 v, Point16 origin)
@@ -78,13 +78,13 @@ static inline int DistSq(const Point16& a, const Point16& b)
 // std::pop_heap(f, l) as the inline template expands it.
 static inline void PopHeap(Elem_0040cc40* f, Elem_0040cc40* l)
 {
-    FUN_0040d700(f, l - 1, l - 1, Elem_0040cc40(*(l - 1)), (int*)0);
+    PopHeapFirst(f, l - 1, l - 1, Elem_0040cc40(*(l - 1)), (int*)0);
 }
 
 // The object is the same class as 0x40a7b0's (its caller 0x40bfe0 passes
 // this + 0x4d, the vector 0x40a7b0 fills, as `list`); `this` is unused.
 // FUNCTION: 0x40a260
-bool Class_0040a7b0::FUN_0040a260(UnitType* type, Vec3* pos, ElemVec* list, int range, Point16* out)
+bool Class_0040a7b0::FindCellNearFeatures(UnitType* type, Vec3* pos, ElemVec* list, int range, Point16* out)
 {
     if (list->empty())
         return false;
@@ -100,7 +100,7 @@ bool Class_0040a7b0::FUN_0040a260(UnitType* type, Vec3* pos, ElemVec* list, int 
         }
     }
     if (2 <= heap.end() - heap.begin())
-        FUN_0040d620(heap.begin(), heap.end(), (int*)0, (Elem_0040cc40*)0);
+        MakeHeap(heap.begin(), heap.end(), (int*)0, (Elem_0040cc40*)0);
     int limit = -1;
     int best = 0;
     Point16 result;

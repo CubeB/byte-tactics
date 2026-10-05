@@ -8,15 +8,15 @@ public:
 
 class Class_00409730 {
 public:
-    void FUN_00409730();
+    void ComputeBaseWeights();
 };
 
 extern PlayerAI* g_playerAI[];
 
 // FUNCTION: 0x40b320
-void __stdcall FUN_0040b320(int player)
+void __stdcall CreatePlayerAI(int player)
 {
     PlayerAI*& slot = g_playerAI[player];
     slot = new PlayerAI(player);
-    ((Class_00409730*)slot)->FUN_00409730();
+    ((Class_00409730*)slot)->ComputeBaseWeights();
 }

@@ -5,7 +5,7 @@
 // +0x60 is 0) that the local player can see, by the shot kind at type+0x10c
 // (0..7). The visibility test mirrors 0x481930/0x482c20: with viewFlags bit 2
 // set it reads the player's explored-cell grid (PlayerInfo+0x7c data, +0x80
-// width, +0x84 height), otherwise it calls FUN_00408090.
+// width, +0x84 height), otherwise it calls IsPointVisible.
 // What decided the last 10 points, each measured with check.py:
 //  - AllocProjectile is defined above this function. With no earlier function in
 //    the file, MSVC never cross-jumps kind 0's two line arms (the y-major arm
@@ -176,7 +176,7 @@ int __stdcall PointInRect(void* region, int x, int y);
 void __stdcall DrawLens(void* dest, void* src, int x, int y);
 void __stdcall DrawLine(void* dest, int x1, int y1, int x2, int y2, unsigned int color);
 int __stdcall GetGafFrameCount(void* gaf);
-int __stdcall FUN_00408090(PlayerInfo_0049be60* pi, Vec3_0049be60* pos);
+int __stdcall IsPointVisible(PlayerInfo_0049be60* pi, Vec3_0049be60* pos);
 
 
 // AllocProjectile (matched in its own file), which comes before this function in
@@ -225,7 +225,7 @@ void __stdcall DrawProjectiles(void* surface)
                 else
                     visible = 0;
             } else {
-                visible = FUN_00408090((PlayerInfo_0049be60*)pb, pos);
+                visible = IsPointVisible((PlayerInfo_0049be60*)pb, pos);
             }
             if (visible) {
                 type = p->type;

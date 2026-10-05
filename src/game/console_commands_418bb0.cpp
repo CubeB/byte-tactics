@@ -1,7 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // Console command: writes a player's save file. Only runs with three
 // arguments, needs a valid active player slot, and dumps it through
-// FUN_0040c250 into the file named by argument 2.
+// DumpPlayerAI into the file named by argument 2.
 #include <stdio.h>
 
 #pragma pack(push, 1)
@@ -36,7 +36,7 @@ public:
     char* FUN_004b73c0(int index, char* fallback);
 };
 
-void __stdcall FUN_0040c250(int player, FILE* file);
+void __stdcall DumpPlayerAI(int player, FILE* file);
 
 // FUNCTION: 0x418bb0
 void __stdcall CmdPrintWeights(Class_004b73e0* args)
@@ -49,7 +49,7 @@ void __stdcall CmdPrintWeights(Class_004b73e0* args)
                 && p->field_146 != 10) {
                 FILE* f = fopen(((Class_004b73c0*)args)->FUN_004b73c0(2, DAT_005119b8), "w+b");
                 if (f != 0) {
-                    FUN_0040c250(args->FUN_004b73e0(1, 0), f);
+                    DumpPlayerAI(args->FUN_004b73e0(1, 0), f);
                     fclose(f);
                 }
             }

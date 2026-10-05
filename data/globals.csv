@@ -87,7 +87,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fdbe0,DAT_004fdbe0,.rdata,4,type,data,const unsigned char*,1,0,1,one type,1,,,,src/data/unused.cpp,00000000
 0x4fdbe8,DAT_004fdbe8,.rdata,8,type,float,double,1,0,1,one type,1,,,,,9a9999999999b1bf
 0x4fdbf0,DAT_004fdbf0,.rdata,40,gap,string,char[],1,0,1,one type,1,,,,,436f7079726967687420303030302043617665646f6720456e7465727461696e6d656e7400000000
-0x501774,DAT_00501774,.data,4,type,data,int,4,0,1,one type,4,,INT_00501774,,,01000000
+0x501774,g_aiCommandsEnabled,.data,4,type,data,int,4,0,1,one type,4,,INT_00501774,,,01000000
 0x501d18,DAT_00501d18,.data,32,gap,data,unsigned char[],1,0,1,one type,1,,s__00501d18,,,000000000000000000006f6e6d6c6b6a585756555453525150ffffffffffffff
 0x501d38,g_consoleCommands,.data,528,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_s_NoShake_00501d38,86,src/game/console_commands.cpp,44245000606e4100010000003c245000b06d41000100000030245000f06c41000100000028245000206d41000100000020245000d06b41000100000018245000
 0x501f48,g_cheatCommands,.data,132,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_s_Radar_00501f48,20,src/game/console_commands.cpp,a022500090704100020000009c225000c07041000200000094225000506b41000200000090225000506d41000200000088225000806d4100020000007c225000

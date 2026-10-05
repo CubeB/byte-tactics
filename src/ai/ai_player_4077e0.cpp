@@ -10,26 +10,26 @@ struct Group {
         OrderSquad(player,id,mode,remove,target,pos,flags,extra);
     }
 };
-class Class_00407350 { public: int FUN_00407410(Vec*); };
+class SquadTimer { public: int GetAveragePosition(Vec*); };
 class Class_00407560 { public: void FUN_00407560(int,int); };
-class Class_004071f0 { public: Unit* FUN_004071f0(Vec); };
+class Class_004071f0 { public: Unit* FindNearestEnemyUnit(Vec); };
 #pragma pack(push,1)
-struct Owner { char pad[0x15]; Class_00407350* a; char pad19[8]; Class_00407350* b; Class_00407350* c; };
+struct Owner { char pad[0x15]; SquadTimer* a; char pad19[8]; SquadTimer* b; SquadTimer* c; };
 struct Game { char pad[0x38a47]; int time; };
 #pragma pack(pop)
 static inline int Rally(Owner*& owner, Vec* pos) {
-    if(owner->c->FUN_00407410(pos)) return 1;
-    if(owner->a->FUN_00407410(pos)) return 1;
-    if(owner->b->FUN_00407410(pos)) return 1;
+    if(owner->c->GetAveragePosition(pos)) return 1;
+    if(owner->a->GetAveragePosition(pos)) return 1;
+    if(owner->b->GetAveragePosition(pos)) return 1;
     return 0;
 }
 extern Game* g_game;
 class Class_00407930 { public:
     void* vtable; Owner* owner; Group* group; int next,player,minimum,maximum,limit,kind,attacking;
-    void FUN_00407380();
+    void OnTimer();
 };
 // FUNCTION: 0x4077e0
-void Class_00407930::FUN_00407380()
+void Class_00407930::OnTimer()
 {
     Vec pos;
     Vec retreat;
@@ -44,8 +44,8 @@ void Class_00407930::FUN_00407380()
             }
         }
         attacking=1;
-        ((Class_00407350*)this)->FUN_00407410(&pos);
-        Unit* target=((Class_004071f0*)owner)->FUN_004071f0(pos);
+        ((SquadTimer*)this)->GetAveragePosition(&pos);
+        Unit* target=((Class_004071f0*)owner)->FindNearestEnemyUnit(pos);
         if(target) group->Send(3,0,target,0,0,0);
     }
 }

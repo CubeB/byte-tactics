@@ -5,9 +5,9 @@ struct Unit { char pad[0x6a]; Vec pos; char pad76[0xac-0x76]; int group; char pa
 struct Player { char pad[0x67]; Unit* first; Unit* last; };
 #pragma pack(pop)
 struct Group { Player* player; int id; };
-class Class_00407350 { public: char pad[8]; Group* group; int FUN_004074a0(Vec*,int); };
+class SquadTimer { public: char pad[8]; Group* group; int CountGroupUnitsInRadius(Vec*,int); };
 // FUNCTION: 0x4074a0
-int Class_00407350::FUN_004074a0(Vec* pos,int radius)
+int SquadTimer::CountGroupUnitsInRadius(Vec* pos,int radius)
 {
     int count=0;
     int squared=radius*radius;

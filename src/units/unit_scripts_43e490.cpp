@@ -178,7 +178,7 @@ class Unit {
 int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e490* target,
                            Pos_0043e490* pos);
 
-// The same test as FUN_00408090: is the map square under pos in sight of the
+// The same test as IsPointVisible: is the map square under pos in sight of the
 // local player? The width is read again through unit->player for the index;
 // MSVC folds it back into the CSE'd load, which it then reloads into edx for
 // the imul as the original does.

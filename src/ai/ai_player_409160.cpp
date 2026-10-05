@@ -110,12 +110,12 @@ extern Game* g_game;
 
 class Class_0040a150 {
 public:
-    void FUN_0040a150();
+    void InitPlacementGrid();
 };
 
 class Class_00409470 {
 public:
-    void FUN_00409470();
+    void InitUnitTables();
 };
 
 // FUNCTION: 0x409160
@@ -125,7 +125,7 @@ PlayerAI::PlayerAI(unsigned char p)
 {
     lastTick = 0;
     field_109 = 0;
-    ((Class_0040a150*)this)->FUN_0040a150();
+    ((Class_0040a150*)this)->InitPlacementGrid();
     int n = g_game->count;
     vec_9d.resize(n, 0);
     vec_7d.resize(n, 0);
@@ -150,5 +150,5 @@ PlayerAI::PlayerAI(unsigned char p)
         g.unknown_0 = 0;
         locked.resize(n, g);
     }
-    ((Class_00409470*)this)->FUN_00409470();
+    ((Class_00409470*)this)->InitUnitTables();
 }

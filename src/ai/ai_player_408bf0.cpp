@@ -18,7 +18,7 @@ extern Game* g_game;
 
 class Class_00408830 {
 public:
-    void FUN_00408830();
+    void AssignSquads();
 };
 
 #pragma pack(push, 1)
@@ -30,16 +30,16 @@ public:
     char unknown_9[0x11 - 0x9];
     Timer_00408bf0* timers[10];        // +0x11
 
-    void FUN_00408bf0();
+    void TickTimers();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x408bf0
-void Class_00408bf0::FUN_00408bf0()
+void Class_00408bf0::TickTimers()
 {
     if (--countdown <= 0) {
         countdown = 30;
-        ((Class_00408830*)this)->FUN_00408830();
+        ((Class_00408830*)this)->AssignSquads();
     }
     for (int i = 0; i < 10; i++) {
         if (timers[i] != 0 && timers[i]->time <= g_game->now) {

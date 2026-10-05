@@ -27,7 +27,7 @@ extern Class_00409470* g_playerAI[];
 extern Game* g_game;
 
 // FUNCTION: 0x409dc0
-void __stdcall FUN_00409dc0(int player, unsigned int* mask, float scale, int lock)
+void __stdcall ScaleUnitWeights(int player, unsigned int* mask, float scale, int lock)
 {
     Class_00409470* p = g_playerAI[player];
     for (unsigned short i = 1; i < g_game->count; i++) {

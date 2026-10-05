@@ -10,7 +10,7 @@ class Class_0040ad20 {
 public:
     char unknown_0[0xed];
     unsigned int lastTick;             // +0xed
-    void FUN_0040ad20();
+    void UpdateEveryThirtyTicks();
 };
 #pragma pack(pop)
 
@@ -20,22 +20,22 @@ int __stdcall FUN_004b6c30(int range);
 
 class Class_0040aa40 {
 public:
-    void FUN_0040aa40();
+    void RefreshUnitLists();
 };
 
 class Class_00409730 {
 public:
-    void FUN_00409730();
+    void ComputeBaseWeights();
 };
 
 // FUNCTION: 0x40ad20
-void Class_0040ad20::FUN_0040ad20()
+void Class_0040ad20::UpdateEveryThirtyTicks()
 {
     if (g_game->ticks >= lastTick + 0x1e) {
-        ((Class_0040aa40*)this)->FUN_0040aa40();
+        ((Class_0040aa40*)this)->RefreshUnitLists();
         lastTick = g_game->ticks;
         if (FUN_004b6c30(0x1e) == 0) {
-            ((Class_00409730*)this)->FUN_00409730();
+            ((Class_00409730*)this)->ComputeBaseWeights();
         }
     }
 }

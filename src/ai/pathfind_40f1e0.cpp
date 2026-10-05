@@ -12,11 +12,11 @@ public:
     int field_4;                       // +0x4
     int free_head;                     // +0x8
 
-    void FUN_0040f1e0(int index);
+    void FreeNode(int index);
 };
 
 // FUNCTION: 0x40f1e0
-void Class_0040f1e0::FUN_0040f1e0(int index)
+void Class_0040f1e0::FreeNode(int index)
 {
     entries[index].next = free_head;
     free_head = index;

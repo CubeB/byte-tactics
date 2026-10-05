@@ -38,7 +38,7 @@ static inline Vec3_0040beb0 operator-(const Vec3_0040beb0& p, const Vec3_0040beb
 }
 
 // FUNCTION: 0x40beb0
-Vec3_0040beb0 __stdcall FUN_0040beb0(const Vec3_0040beb0* from, const Vec3_0040beb0* to,
+Vec3_0040beb0 __stdcall MoveToward(const Vec3_0040beb0* from, const Vec3_0040beb0* to,
                                      int maxLen)
 {
     Vec3_0040beb0 d = *to - *from;

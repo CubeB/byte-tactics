@@ -246,11 +246,11 @@ public:
     char unknown_0[0x1c];
     Grid_0040d900 grid;                // +0x1c
 
-    void FUN_0040d900();
+    void ClearDirtyCells();
 };
 
 // FUNCTION: 0x40d900
-void Pathfinder::FUN_0040d900()
+void Pathfinder::ClearDirtyCells()
 {
     int n = ((grid.count + 0xff) >> 8) - 1;
     int i;

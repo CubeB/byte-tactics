@@ -94,7 +94,7 @@ public:
 
 extern PlayerAI* g_playerAI[];
 // FUNCTION: 0x40b390
-void __stdcall FUN_0040b390(int player)
+void __stdcall DestroyPlayerAI(int player)
 {
     delete g_playerAI[player];
     g_playerAI[player]=0;

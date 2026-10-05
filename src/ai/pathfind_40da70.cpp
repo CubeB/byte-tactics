@@ -48,7 +48,7 @@ struct Grid_0040da70 {
     }
 };
 
-class Class_0040f000 {
+class OpenHeap {
 public:
     Node_0040da70* nodes;                 // +0x00
     Node_0040da70** items;                // +0x04
@@ -58,7 +58,7 @@ public:
     int count;                            // +0x14
     int pending;                          // +0x18
 
-    void FUN_0040f000(int i)
+    void SiftUp(int i)
     {
         if (i != 0) {
             int parent = (i - 1) >> 1;
@@ -81,8 +81,8 @@ public:
             }
         }
     }
-    // Inline copy of FUN_0040f060 (not inlined here).
-    void FUN_0040f060(int i)
+    // Inline copy of SiftDown (not inlined here).
+    void SiftDown(int i)
     {
         Node_0040da70* node = items[i];
         while (true) {
@@ -118,7 +118,7 @@ public:
         items[i] = node;
         node->index = i;
     }
-    // Inline copy of FUN_0040f110.
+    // Inline copy of GrowNodes.
     void Grow(int n)
     {
         int cap = capacity;
@@ -142,7 +142,7 @@ public:
         if (pending) {
             Node_0040da70* top = items[0];
             top->data = d;
-            FUN_0040f060(0);
+            SiftDown(0);
             pending = 0;
             return top - nodes;
         }
@@ -157,29 +157,29 @@ public:
         nodes[idx].data = d;
         nodes[idx].index = k;
         items[k] = &nodes[idx];
-        FUN_0040f000(k);
+        SiftUp(k);
         return idx;
     }
     void Update(int k)
     {
         if (pending) {
             Node_0040da70* top = items[0];
-            FUN_0040f000(nodes[k].index);
+            SiftUp(nodes[k].index);
             if (top->index != 0) {
                 pending = 0;
                 Remove(top - nodes);
             }
         } else {
-            FUN_0040f000(nodes[k].index);
+            SiftUp(nodes[k].index);
         }
     }
-    // Inline copy of FUN_0040f1e0.
+    // Inline copy of FreeNode.
     void Free(int k)
     {
         nodes[k].index = freeHead;
         freeHead = k;
     }
-    // Inline copy of FUN_0040ef20.
+    // Inline copy of RemoveNode.
     void Remove(int k)
     {
         int idx = nodes[k].index;
@@ -188,20 +188,20 @@ public:
         if (idx < count) {
             items[idx] = items[count];
             items[idx]->index = idx;
-            FUN_0040f060(idx);
+            SiftDown(idx);
         }
     }
 };
 
 class Class_0040d7b0 {
 public:
-    unsigned int FUN_0040d7b0(int x, int y);
+    unsigned int GetCellState(int x, int y);
 };
 
 extern signed char DAT_004fd670[];
 extern signed char DAT_004fd678[];
 
-class Class_0040da70 : public Class_0040f000 {
+class Class_0040da70 : public OpenHeap {
 public:
     Grid_0040da70 grid;                   // +0x1c
     char unknown_30[0x40 - 0x30];
@@ -230,11 +230,11 @@ public:
         return turn ? 1 : from->steps + 1;
     }
 
-    void FUN_0040da70(NodeData_0040da70* from, Cell_0040da70* fromCell, int turn);
+    void ExpandNeighbour(NodeData_0040da70* from, Cell_0040da70* fromCell, int turn);
 };
 
 // FUNCTION: 0x40da70
-void Class_0040da70::FUN_0040da70(NodeData_0040da70* from, Cell_0040da70* fromCell, int turn)
+void Class_0040da70::ExpandNeighbour(NodeData_0040da70* from, Cell_0040da70* fromCell, int turn)
 {
     int dir = (fromCell->dir + turn) & 7;
     unsigned int x = from->x + DAT_004fd670[dir];
@@ -246,7 +246,7 @@ void Class_0040da70::FUN_0040da70(NodeData_0040da70* from, Cell_0040da70* fromCe
     switch (cell->flags & 3) {
     case 0: {
         grid.dirty[i >> 8] |= 1 << ((i >> 3) & 0x1f);
-        unsigned int r = ((Class_0040d7b0*)this)->FUN_0040d7b0(x, y);
+        unsigned int r = ((Class_0040d7b0*)this)->GetCellState(x, y);
         if (r < 1 && !(cell->flags & 8)) {
             cell->flags |= 3;
             return;

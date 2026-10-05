@@ -12,10 +12,10 @@ static inline bool operator<(const Entry_40d670& a, const Entry_40d670& b)
     return a.key < b.key;
 }
 
-void __stdcall FUN_0040d740(Entry_40d670* first, int hole, int top, Entry_40d670 val);
+void __stdcall PushHeapSiftUp(Entry_40d670* first, int hole, int top, Entry_40d670 val);
 
 // FUNCTION: 0x40d670
-void __stdcall FUN_0040d670(Entry_40d670* first, int hole, int len, Entry_40d670 val)
+void __stdcall AdjustHeap(Entry_40d670* first, int hole, int len, Entry_40d670 val)
 {
     int top = hole;
     int k = 2 * hole + 2;
@@ -31,5 +31,5 @@ void __stdcall FUN_0040d670(Entry_40d670* first, int hole, int len, Entry_40d670
         first[hole] = first[k - 1];
         hole = k - 1;
     }
-    FUN_0040d740(first, hole, top, val);
+    PushHeapSiftUp(first, hole, top, val);
 }

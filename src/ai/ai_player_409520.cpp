@@ -28,7 +28,7 @@ struct Class_00409520 {
 // clamped to [-100, 100]; the upper clamp is a MIN() macro used twice, which
 // is why the compare-and-select appears twice.
 // FUNCTION: 0x409520
-int __stdcall FUN_00409520(Class_00409520* p)
+int __stdcall RateWeapons(Class_00409520* p)
 {
     int result = 1;
     if (p->flag)

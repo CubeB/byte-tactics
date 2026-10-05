@@ -7,15 +7,15 @@ struct HeapNode_0040f000 {
     int key;                             // +0xc
 };
 
-class Class_0040f000 {
+class OpenHeap {
 public:
     int count;                           // +0x0
     HeapNode_0040f000** items;           // +0x4
-    void FUN_0040f000(int i);
+    void SiftUp(int i);
 };
 
 // FUNCTION: 0x40f000
-void Class_0040f000::FUN_0040f000(int i)
+void OpenHeap::SiftUp(int i)
 {
     if (i != 0) {
         int parent = (i - 1) >> 1;

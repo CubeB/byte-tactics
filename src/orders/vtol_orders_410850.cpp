@@ -130,7 +130,7 @@ static inline Vec3 Offset(short angle, int distance)
 }
 
 class Class_00410830 : public std::vector<Unit*> { public: Class_00410830(); };
-void __stdcall FUN_0040b530(int, Vec3*, int, std::vector<Unit*>*);
+void __stdcall GetFactoriesInRadius(int, Vec3*, int, std::vector<Unit*>*);
 class UnitList : public std::vector<Unit*> {};
 
 class Class_00410c70 {
@@ -141,7 +141,7 @@ public:
 };
 void __stdcall FUN_0047e890(Vec3*, int, const Class_00410c70&);
 static inline int IsDamaged(Unit* u) { return (unsigned int)u->health < (u->def->maxHealth>>2)*3; }
-static inline void FindPads(Unit* u, std::vector<Unit*>* pads) { FUN_0040b530(u->owner->index,&u->pos,0xf00,pads); }
+static inline void FindPads(Unit* u, std::vector<Unit*>* pads) { GetFactoriesInRadius(u->owner->index,&u->pos,0xf00,pads); }
 static inline int SearchRange(Unit* u) { return u->def->searchRange<<16; }
 static inline int Patrol(Unit* unit, Order* order, int flags)
 {

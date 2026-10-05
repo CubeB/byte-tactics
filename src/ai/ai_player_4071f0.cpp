@@ -12,9 +12,9 @@ struct Player {
 struct Game { char pad[0x1b63]; Player players[10]; };
 #pragma pack(pop)
 extern Game* g_game;
-class Class_004071f0 { public: Unit* owner; Unit* FUN_004071f0(int,int,int); };
+class Class_004071f0 { public: Unit* owner; Unit* FindNearestEnemyUnit(int,int,int); };
 // FUNCTION: 0x4071f0
-Unit* Class_004071f0::FUN_004071f0(int x,int y,int z)
+Unit* Class_004071f0::FindNearestEnemyUnit(int x,int y,int z)
 {
     int best=0x7fffffff;
     Unit* result=0;

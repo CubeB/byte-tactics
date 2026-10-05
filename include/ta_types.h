@@ -156,7 +156,7 @@ class Class_0040e160;
 class Class_0040e630;
 class Class_0040e9a0;
 class Class_0040ef20;
-class Class_0040f000;
+class OpenHeap;
 class Class_0040f110;
 class Class_0040f1e0;
 class Class_00410830;
@@ -166,7 +166,7 @@ class BitWriter;
 struct Class_00415da0;
 class BitReader;
 class Class_00417e00;
-class Class_00428c90;
+class AIProfileParser;
 class Class_00428d10;
 struct Class_00428f40;
 class Class_00428f60;
@@ -3022,15 +3022,15 @@ struct AI {  // 0x3d bytes, 28 views
     Base* timers[10];  // +0x11
     void* cursor;  // +0x39
     AI(Player*);
-    void FUN_00408c40(void);
-    void FUN_00408f10(void);
+    void TickIfActive(void);
+    void DeleteTimers(void);
 };
 
 class Class_004071f0 {  // 0x4 bytes, 3 views
 public:
     Unit* owner;  // +0x0
-    Unit* FUN_004071f0(Vec3);
-    Unit* FUN_004071f0(int, int, int);
+    Unit* FindNearestEnemyUnit(Vec3);
+    Unit* FindNearestEnemyUnit(int, int, int);
 };
 
 union Coord_00407ae0 {  // 0x4 bytes, 4 views
@@ -3256,7 +3256,7 @@ public:
     Map_0040d7b0* map;  // +0x64
     char unknown_68[16];
     unsigned char player;  // +0x78
-    int FUN_0040d7b0(int, int);
+    int GetCellState(int, int);
 };
 
 struct Map_0040d7b0 {  // 0x1c bytes, 2 views
@@ -3285,7 +3285,7 @@ public:
     char unknown_0[104];
     Table_0040d880 table;  // +0x68
     Pair_0040d880 pairs[4];  // +0x70
-    void FUN_0040d880(void);
+    void InitCostTables(void);
 };
 
 struct Cell_0040d8b0 {  // 0x4 bytes, 1 view
@@ -3307,7 +3307,7 @@ class Class_0040d8b0 {  // 0x30 bytes, 1 view
 public:
     char unknown_0[28];
     Grid_0040d8b0 grid;  // +0x1c
-    void FUN_0040d8b0(unsigned int, unsigned int);
+    void MarkGoalCell(unsigned int, unsigned int);
 };
 
 struct Cell_0040d900 {  // 0x4 bytes, 1 view
@@ -3358,9 +3358,9 @@ public:
     PathMap(void);
     ~PathMap(void);
     int Size(void);
-    void FUN_0040d900(void);
+    void ClearDirtyCells(void);
     void FUN_0040e9c0(int);
-    void FUN_0040eb70(void);
+    void RunSearches(void);
     void Release(void);
 };
 
@@ -3391,7 +3391,7 @@ struct Cell_0040da70 {  // 0x4 bytes, 3 views
     short node;  // +0x2
 };
 
-class Class_0040f000 {  // 0x1c bytes, 6 views
+class OpenHeap {        // 0x1c bytes, 6 views
 public:
     int count;  // +0x0
     HeapNode_0040f000** items;  // +0x4
@@ -3400,7 +3400,7 @@ public:
     int capacity;  // +0x10
     int count_14;  // +0x14
     int pending;  // +0x18
-    void FUN_0040f000(int);
+    void SiftUp(int);
     void FUN_0040f060(int);
     void Grow(int);
     int Push(NodeData_0040da70&);
@@ -3418,7 +3418,7 @@ struct Grid_0040da70 {  // 0x14 bytes, 1 view
     int InBounds(unsigned int, unsigned int);
 };
 
-class Class_0040da70 : public Class_0040f000 {  // 0x78 bytes, 3 views
+class Class_0040da70 : public OpenHeap {        // 0x78 bytes, 3 views
 public:
     Grid_0040da70 grid;  // +0x1c
     char unknown_30[16];
@@ -3431,7 +3431,7 @@ public:
     unsigned char turnCost[8];  // +0x68
     unsigned char stepCost[8];  // +0x70
     static int Scale(int, int);
-    void FUN_0040da70(NodeData_0040da70*, Cell_0040da70*, int);
+    void ExpandNeighbour(NodeData_0040da70*, Cell_0040da70*, int);
     int Estimate(int, int);
     short Steps(NodeData_0040da70*, int);
 };
@@ -3478,7 +3478,7 @@ public:
     char unknown_38[12];
     int field_44;  // +0x44
     void Pop(void);
-    int FUN_0040df00(void);
+    int ExpandBestNode(void);
 };
 
 struct Node_0040df00 {  // 0x14 bytes, 1 view
@@ -3511,7 +3511,7 @@ public:
     Class_0044f010* path;  // +0x5c
     char unknown_60[4];
     Map_0040d7b0* map;  // +0x64
-    void FUN_0040e050(void);
+    void TracePath(void);
 };
 
 struct Cell_0040e160 {  // 0x4 bytes, 1 view
@@ -3539,7 +3539,7 @@ public:
     char unknown_54[12];
     Target_0040e160* target;  // +0x60
     int Cost(int, int);
-    int FUN_0040e160(void);
+    int ProbeStraightPath(void);
     int CostW(int, int);
     unsigned int Passable(int, int);
     unsigned char Visit(unsigned int, unsigned int, char);
@@ -3604,7 +3604,7 @@ public:
     int count;  // +0xc
     int capacity;  // +0x10
     int ptr_count;  // +0x14
-    void FUN_0040f110(int);
+    void GrowNodes(int);
 };
 
 class Class_00440af0 {  // 0x20 bytes, 2 views
@@ -3677,7 +3677,7 @@ public:
     Table_0040d880 table;  // +0x68
     Pair_0040e630 pairs[4];  // +0x70
     int Cost(int, int);
-    void FUN_0040e630(Target_0040e630*);
+    void StartSearch(Target_0040e630*);
     void ResetTable(void);
     void MarkGoal(unsigned int, unsigned int);
     void Release(void);
@@ -3713,7 +3713,7 @@ public:
     int used;  // +0xc
     int capacity;  // +0x10
     int count;  // +0x14
-    void FUN_0040ef20(int);
+    void RemoveNode(int);
     void Free(int);
     void SiftDown(int);
 };
@@ -3723,7 +3723,7 @@ public:
     Entry_0040f1e0* entries;  // +0x0
     int field_4;  // +0x4
     int free_head;  // +0x8
-    void FUN_0040f1e0(int);
+    void FreeNode(int);
 };
 
 class Handler_004388d0 {  // 0x24 bytes, 10 views
@@ -5341,7 +5341,7 @@ struct V4i {  // 0x10 bytes, 16 views
     unsigned long data4;  // +0xc
 };
 
-class Class_00428c90 {  // 0x98 bytes, 1 view
+class AIProfileParser {  // 0x98 bytes, 1 view
 public:
     char flag;  // +0x0
     char unknown_1[127];
@@ -5351,10 +5351,10 @@ public:
     int field_8c;  // +0x8c
     int field_90;  // +0x90
     int field_94;  // +0x94
-    Class_00428c90(void);
-    void FUN_00428c90(char*, int);
-    int FUN_00428cd0(void);
-    int FUN_00428e90(void);
+    AIProfileParser(void);
+    void SetBuffer(char*, int);
+    int NextToken(void);
+    int ReadInt(void);
 };
 
 class Class_00428d10 {  // 0x98 bytes, 2 views
@@ -5366,19 +5366,19 @@ public:
     int field_8c;  // +0x8c
     int field_90;  // +0x90
     int field_94;  // +0x94
-    int FUN_00428d10(void);
+    int ScanToken(void);
 };
 
 struct Class_00428f40 {  // 0x1 bytes, 1 view
     char unknown_0[1];
-    bool FUN_00428f40(char*);
+    bool TokenEquals(char*);
 };
 
 class Class_00428f60 {  // 0x90 bytes, 1 view
 public:
     char unknown_0[140];
     int errorReported;  // +0x8c
-    void FUN_00428f60(char*);
+    void ReportParseError(char*);
 };
 
 struct Bitmap_00437b50 {  // 0x19 bytes, 48 views
@@ -20127,10 +20127,10 @@ public:
     virtual void Fire(void);
     virtual void unused0(int);
     virtual void Func(int);
-    virtual void FUN_00407380(void);
-    int FUN_004074a0(Vec*, int);
+    virtual void OnTimer(void);
+    int CountGroupUnitsInRadius(Vec*, int);
     int FUN_004073b0(Vec3*);
-    int FUN_00407410(Vec3*);
+    int GetAveragePosition(Vec3*);
 };
 
 struct Group {  // 0x20 bytes, 7 views
@@ -20163,7 +20163,7 @@ public:
     int field_24;  // +0x24
     Class_00407930(Class_00407930&);
     Class_00407930(AI*, void*, int, int);
-    virtual void FUN_00407380(void);
+    virtual void OnTimer(void);
 };
 
 struct Owner_2 {  // 0x29 bytes, 1 view
@@ -20179,14 +20179,14 @@ public:
     int field_14;  // +0x14
     Class_004079d0(Class_004079d0&);
     Class_004079d0(AI*, void*, int);
-    virtual void FUN_00407380(void);
+    virtual void OnTimer(void);
 };
 
 class Class_00407a90 : public Base {  // 0x14 bytes, 4 views
 public:
     Class_00407a90(Class_00407a90&);
     Class_00407a90(AI*, void*);
-    virtual void FUN_00407380(void);
+    virtual void OnTimer(void);
 };
 
 struct FixedParts_00407ae0 {  // 0x4 bytes, 1 view
@@ -20206,14 +20206,14 @@ public:
     int field_38;  // +0x38
     Class_00407d40(Class_00407d40&);
     Class_00407d40(AI*, void*);
-    virtual void FUN_00407380(void);
+    virtual void OnTimer(void);
 };
 
 class Class_004085d0 : public Base {  // 0x14 bytes, 4 views
 public:
     Class_004085d0(Class_004085d0&);
     Class_004085d0(AI*, void*);
-    virtual void FUN_00407380(void);
+    virtual void OnTimer(void);
 };
 
 class Class_00408620 {  // 0x14 bytes, 1 view
@@ -20240,13 +20240,13 @@ class Class_00408810 : public Base {  // 0x14 bytes, 4 views
 public:
     Class_00408810(Class_00408810&);
     Class_00408810(AI*, void*);
-    virtual void FUN_00407380(void);
+    virtual void OnTimer(void);
 };
 
 class Class_00408830 {  // 0x4 bytes, 3 views
 public:
     Player* player;  // +0x0
-    void FUN_00408830(void);
+    void AssignSquads(void);
 };
 
 class Class_004089a0 {  // 0x3d bytes, 2 views
@@ -20254,7 +20254,7 @@ public:
     Player* player;  // +0x0
     char unknown_4[53];
     Unit* cursor;  // +0x39
-    void FUN_004089a0(int);
+    void RetargetWeapons(int);
 };
 
 class Class_00408bf0 {  // 0x39 bytes, 1 view
@@ -20264,7 +20264,7 @@ public:
     int countdown;  // +0x5
     char unknown_9[8];
     Slot_4b62d0* timers[10];  // +0x11
-    void FUN_00408bf0(void);
+    void TickTimers(void);
 };
 
 struct Elem_0040cfb0 {  // 0x3 bytes, 8 views
@@ -20330,9 +20330,9 @@ public:
     int margin1;  // +0x105
     int field_109;  // +0x109
     Owner(unsigned char);
-    bool FUN_0040a260(UnitDef*, Vec3*, std::vector<Elem_0040cc40>*, int, Point16*);
-    bool FUN_0040a5d0(UnitDef*, Vec3*, int, Point16*);
-    void FUN_00409470(void);
+    bool FindCellNearFeatures(UnitDef*, Vec3*, std::vector<Elem_0040cc40>*, int, Point16*);
+    bool FindRandomPlacementCell(UnitDef*, Vec3*, int, Point16*);
+    void InitUnitTables(void);
 };
 
 struct Player_00409730 {  // 0x146 bytes, 1 view
@@ -20371,7 +20371,7 @@ public:
     std::vector<short> vec_7d;  // +0x7d
     std::vector<unsigned char> vec_8d;  // +0x8d
     std::vector<unsigned char> vec_9d;  // +0x9d
-    void FUN_00409730(void);
+    void ComputeBaseWeights(void);
 };
 
 struct Unit_3 {  // 0x4 bytes, 1 view
@@ -20390,13 +20390,13 @@ struct Class_0040a150 {  // 0x109 bytes, 2 views
     char unknown_0[241];
     Sub s0;  // +0xf1
     Sub s1;  // +0xfd
-    void FUN_0040a150(void);
+    void InitPlacementGrid(void);
 };
 
 struct Class_0040a7b0 {  // 0x5d bytes, 2 views
     char unknown_0[77];
     std::vector<Elem_0040cc40> cells;  // +0x4d
-    void FUN_0040a7b0(void);
+    void BuildFeatureCells(void);
 };
 
 class Class_0040aa40 {  // 0xad bytes, 3 views
@@ -20409,7 +20409,7 @@ public:
     std::vector<short> counts;  // +0x7d
     char unknown_8d[16];
     std::vector<char> weights;  // +0x9d
-    void FUN_0040aa40(void);
+    void RefreshUnitLists(void);
 };
 
 struct FloatVec {  // 0xc bytes, 1 view
@@ -20423,7 +20423,7 @@ class Class_0040ad20 {  // 0xf1 bytes, 1 view
 public:
     char unknown_0[237];
     unsigned int lastTick;  // +0xed
-    void FUN_0040ad20(void);
+    void UpdateEveryThirtyTicks(void);
 };
 
 struct Weapon_3 {  // 0x112 bytes, 1 view

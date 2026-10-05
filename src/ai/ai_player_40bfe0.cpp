@@ -53,8 +53,8 @@ struct Game { char pad0[0x14223]; int width, height; char pad1422b[0x391e9-0x142
 class Class_0040a7b0 {
 public:
     char pad0[0x35]; Vec3 pos; char pad41[12]; char cells[16]; char pad5d[0x109-0x5d]; int range;
-    bool FUN_0040a260(UnitType*, Vec3*, void*, int, Point*);
-    bool FUN_0040a5d0(UnitType*, Vec3*, int, Point*);
+    bool FindCellNearFeatures(UnitType*, Vec3*, void*, int, Point*);
+    bool FindRandomPlacementCell(UnitType*, Vec3*, int, Point*);
 };
 #pragma pack(pop)
 extern Game* g_game;
@@ -65,7 +65,7 @@ static inline void CellToWorld(Vec3* out, Point p, Point origin) {
     out->z=(origin.y+p.y*2)<<19;
 }
 // FUNCTION: 0x40bfe0
-int __stdcall FUN_0040bfe0(int player, const Vec3* from, UnitType* type, Vec3* out)
+int __stdcall FindBuildPosition(int player, const Vec3* from, UnitType* type, Vec3* out)
 {
     Class_0040a7b0* ai=g_playerAI[player];
     int maximum=g_game->width > g_game->height ? g_game->width : g_game->height;
@@ -74,8 +74,8 @@ int __stdcall FUN_0040bfe0(int player, const Vec3* from, UnitType* type, Vec3* o
     Point cell;
     int result;
     if (type->value!=0.0f && g_game->net->threshold<FUN_004b6c30(255))
-        result=ai->FUN_0040a260(type,&pos,ai->cells,ai->range*4,&cell);
-    else result=ai->FUN_0040a5d0(type,&pos,ai->range,&cell);
+        result=ai->FindCellNearFeatures(type,&pos,ai->cells,ai->range*4,&cell);
+    else result=ai->FindRandomPlacementCell(type,&pos,ai->range,&cell);
     if (result) {
         CellToWorld(out,cell,type->origin);
         ai->range=0;

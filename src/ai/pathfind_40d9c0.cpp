@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // Maps a (dx, dy) step to one of eight directions, or -1.
 // FUNCTION: 0x40d9c0
-int __stdcall FUN_0040d9c0(int dx, int dy)
+int __stdcall DirectionFromStep(int dx, int dy)
 {
     if (dx > 0) {
         if (dy == dx)

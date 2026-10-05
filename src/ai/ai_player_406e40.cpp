@@ -16,7 +16,7 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern int DAT_00501774;
+extern int g_aiCommandsEnabled;
 extern char DAT_005119b8[];
 
 class Class_004b73c0 {
@@ -36,12 +36,12 @@ public:
     void AddTypeOrCategory(char* text, int* out);
 };
 
-void __stdcall FUN_00409e90(int player, UnitTypeSet* set, int value, int param_4);
+void __stdcall SetUnitLimits(int player, UnitTypeSet* set, int value, int param_4);
 
 // FUNCTION: 0x406e40
-void __stdcall FUN_00406e40(Class_004b73e0* args)
+void __stdcall CmdLimit(Class_004b73e0* args)
 {
-    if (DAT_00501774 != 0) {
+    if (g_aiCommandsEnabled != 0) {
         int count;
         UnitTypeSet set;
         memset(&set, 0, sizeof(set));
@@ -51,7 +51,7 @@ void __stdcall FUN_00406e40(Class_004b73e0* args)
         // register instead of testing the player offset.
         for (char i = 0; i < 10; i++) {
             if (g_game->players[i].active != 0 && g_game->players[i].type == 2) {
-                FUN_00409e90(i, &set, value, count);
+                SetUnitLimits(i, &set, value, count);
             }
         }
     }

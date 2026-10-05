@@ -71,7 +71,7 @@ static inline int Contains(unsigned int* bits, unsigned short index) { return bi
 static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
 
 class Class_00410830 : public std::vector<Unit*> { public: Class_00410830(); };
-void __stdcall FUN_0040b530(int, Vec3*, int, std::vector<Unit*>*);
+void __stdcall GetFactoriesInRadius(int, Vec3*, int, std::vector<Unit*>*);
 Unit* __stdcall FUN_0043b700(Unit*);
 // FUNCTION: 0x4103e0
 int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
@@ -117,7 +117,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
         ((Class_00489800*)unit)->ReleaseWeapons(3);
         if ((unsigned int)unit->health < (unit->def->maxHealth>>2)*3) {
             Class_00410830 pads;
-            FUN_0040b530(unit->owner->index,&unit->pos,0xf00,&pads);
+            GetFactoriesInRadius(unit->owner->index,&unit->pos,0xf00,&pads);
             if (!pads.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 Unit* pad=pads[FUN_004b6c30(pads.count())];

@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Calls FUN_0040b370 for each player whose field at +0x74 is set. A char
+// Calls RebuildFeatureCells for each player whose field at +0x74 is set. A char
 // loop counter gives the separate countdown register (ebx = 10), as in
 // 0x464990.
 
@@ -18,14 +18,14 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0040b370(int param_1);
+void __stdcall RebuildFeatureCells(int param_1);
 
 // FUNCTION: 0x4649d0
 void FUN_004649d0()
 {
     for (char i = 0; i < 10; i++) {
         if (g_game->players[i].field_74) {
-            FUN_0040b370(i);
+            RebuildFeatureCells(i);
         }
     }
 }

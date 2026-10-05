@@ -785,7 +785,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x528ac8 DAT_00528ac8: void* (2), void (__stdcall*)(void) (1)
 //   0x528ad4 DAT_00528ad4: void* (1), void (__stdcall*)(void) (1), unsigned long (__stdcall*)(char*, char*, unsigned long, unsigned long) (1)
 //   0x529e10 DAT_00529e10: part of another global: DAT_00529e00+0x10
-//   0x529f48 _tls_index: defined in src/unsorted/0x4d8df0.cpp
+//   0x529f48 _tls_index: library
 //   0x4fc490 g_unitOrders: defined in src/data/unit_orders.cpp
 //   0x4fc6e8 g_groundOrders: defined in src/data/unit_orders.cpp
 //   0x4fc9a0 DAT_004fc9a0: defined in src/data/vtables.cpp

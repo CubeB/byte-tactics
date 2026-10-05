@@ -2,9 +2,11 @@
 #include <windows.h>
 
 // This thread's stack, as the last check saw it (the image's .tls section
-// holds them at +4, +8 and +0xc; 0x4d8df0.cpp and 0x4d8e20.cpp read the first
-// two through a struct view). They are separate variables: as fields of one
-// struct, the compiler would not read the flag before storing stackLow.
+// holds them at +4, +8 and +0xc, after the runtime's __tls_start; 0x4d8df0.cpp
+// and 0x4d8e20.cpp read the first two). This object defines them, the only
+// thread-local data the original has. They are separate variables: as fields
+// of one struct, the compiler would not read the flag before storing
+// stackLow.
 __declspec(thread) char* g_stackLow;       // the stack pointer at the last check
 __declspec(thread) char* g_stackHigh;      // the end of the stack's memory region
 __declspec(thread) char g_stackKnown;      // g_stackHigh has been looked up

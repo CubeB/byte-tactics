@@ -909,7 +909,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x529e9c,DAT_00529e9c,.bss,1,type,data,char,3,2,2,conflicting: shape,5,,DAT_00529e9c,,,
 0x529ea0,DAT_00529ea0,.bss,4,type,data,int,3,0,1,one type,3,,INT_00529ea0,,,
 0x529ea4,DAT_00529ea4,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x529f48,_tls_index,.bss,8,definition,library,"extern ""C"" (no type)",3,1,2,"one type, plus extern ""C"" references",3,,,,src/unsorted/0x4d8df0.cpp,
+0x529f48,_tls_index,.bss,8,gap,library,"extern ""C"" (no type)",3,0,1,one type,3,,,,,
 0x52a4e4,DAT_0052a4e4,.bss,1,type,data,char,1,0,1,one type,1,,DAT_0052a4e4,,,
 0x52a4e8,DAT_0052a4e8,.bss,4,type,data,long,6,1,2,conflicting: signedness or const,7,,DAT_0052a4e8,,,
 0x52a4ec,DAT_0052a4ec,.bss,4,type,data,long,6,0,1,one type,6,,LONG_0052a4ec,,,

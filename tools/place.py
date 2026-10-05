@@ -24,6 +24,8 @@ they expect it, and every call reaches the one function at its address:
   * the import tables and the linker's `jmp [slot]` stubs are the import
     libraries' members (the toolchain's, and LIB.EXE's from link/*.def), each
     where the original has its part;
+  * .tls is the runtime's tlssup.obj and the game's thread-local variables,
+    and the TLS directory is tlssup.obj's __tls_used;
   * data the compiler emits with the code (string literals, floating-point
     constants, jump tables, exception tables, vtables, file and function
     statics) is placed one symbol at a time where the original's code refers
@@ -36,7 +38,7 @@ they expect it, and every call reaches the one function at its address:
     refers to the same functions, imports and data contents, and from
     src/lib/ (the basic_string members compiled with the game's options);
   * what has no source yet is copied from the original and counted as copied:
-    the other gap regions, data no object defines, the headers, .tls and the
+    the other gap regions, data no object defines, the headers and the
     resources.
 
 Every relocation is checked against the address the original uses at that
@@ -80,9 +82,10 @@ SKIP_SECTIONS = (".drectve", ".debug")
 # Where each byte of the image came from.
 SOURCES = ["unset", "game code", "game data", "global data", "library (copied)", "gap (copied)",
            "data (copied)", "padding", "headers, imports, resources (copied)", "library code",
-           "library data", "gap code", "data source", "resources", "import tables"]
+           "library data", "gap code", "data source", "resources", "import tables", "thread-local data",
+           "uninitialised"]
 (UNSET, CODE, OBJDATA, GLOBALDATA, LIBRARY, GAP, COPIED, PADDING, FIXED, LIBCODE,
- LIBDATA, GAPCODE, DATASRC, RESOURCES, IMPORTS) = range(len(SOURCES))
+ LIBDATA, GAPCODE, DATASRC, RESOURCES, IMPORTS, TLSDATA, UNINIT) = range(len(SOURCES))
 
 # The libraries the original links statically: the VC5 SP3 C and C++ runtimes,
 # and zlib 1.0.4 as tools/setup_toolchain.sh builds it with Cavedog's options.
@@ -350,6 +353,7 @@ class Placer:
                 self.aliases[row["name"]].add(int(row["address"], 16))
         self.import_slots = img.imports()
         self.import_members: dict[int, Obj] = {}   # import address table slot -> the member placed there
+        self.tls_start: int | None = None          # where .tls begins (place_tls)
         # The linker's `jmp [slot]` stubs, for callers that call an import directly.
         # A stub in one of the runs of them (place_import_thunks) comes first:
         # ___threadid is `jmp [GetCurrentThreadId]` too, and the same bytes
@@ -645,12 +649,22 @@ class Placer:
                 elif rtype == REL_DIR32NB:
                     orig_target = (theirs - ours + self.img.base) & 0xFFFFFFFF
                 elif rtype == REL_SECREL:
-                    # A thread-local variable's offset in .tls: the section is
-                    # the original's (copied), so the offset is the original's.
+                    # A thread-local variable's offset in .tls (place_tls).
+                    orig_target = (self.tls_start + theirs - ours) & 0xFFFFFFFF
+                    target = self.resolve(obj, sym, sym.value)
+                    if target is None:
+                        target = self.placed_definition(sym.name)
+                    how = "thread-local offsets resolved by name"
+                    if target is None:
+                        target, how = orig_target, "thread-local offsets from the original's bytes"
+                        self.unresolved[sym.name] += 1
+                    self.stats[how] += 1
+                    if target != orig_target:
+                        self.mismatches.append(f"{site:#x} in {piece.label}: {sym.name} is at {target:#x} in .tls, "
+                                               f"the original uses {orig_target:#x}")
                     if self.pieces_own(piece, site):
                         o = site - self.img.base
-                        self.img.out[o:o + 4] = self.img.pristine[o:o + 4]
-                    self.stats["thread-local offsets as in the original's .tls"] += 1
+                        self.img.out[o:o + 4] = struct.pack("<I", (target + ours - self.tls_start) & 0xFFFFFFFF)
                     continue
                 else:
                     self.stats[f"relocation type {rtype:#x} skipped"] += 1
@@ -713,6 +727,16 @@ class Placer:
                 o = site - self.img.base
                 if self.pieces_own(piece, site):
                     self.img.out[o:o + 4] = struct.pack("<I", value)
+
+    def placed_definition(self, name: str) -> int | None:
+        """Where a placed piece defines the external name, if one does (a
+        thread-local variable another object defines)."""
+        for obj, sym in self.definers.get(name, ()):
+            if sym.section > 0:
+                at = self.address_in(obj, sym.section, sym.value)
+                if at is not None:
+                    return at
+        return None
 
     def pieces_own(self, piece: Piece, site: int) -> bool:
         """Whether this piece wrote the field at site (a piece placed partly
@@ -783,6 +807,42 @@ def place_gaps(placer: Placer, gaps: dict) -> None:
         placer.gap_regions[region] = gap
         placer.built_regions.add(region)
         placer.stats["gap regions built from source"] += 1
+
+
+def place_tls(placer: Placer) -> None:
+    """The thread-local data. LINK builds .tls from the linked objects' .tls
+    sections in the order of their names, each at its alignment: the
+    runtime's __tls_start (tlssup.obj's .tls), the game's thread-local
+    variables (.tls$: only src/gap/0x4d8d70.cpp's, Cavedog's one object with
+    any, which the tree's other users declare), and __tls_end (tlssup.obj's
+    .tls$ZZZ). tlssup.obj's .rdata, __tls_used, is the TLS directory, which
+    goes where the original's data directory says; the callback table it
+    points at (.CRT$XLA, empty up to .CRT$XLZ) goes with the other
+    initialiser tables (place_crt_tables)."""
+    img = placer.img
+    tlssup = next((o for o in placer.objects if o.library and "__tls_used" in o.externals), None)
+    if tlssup is None:
+        placer.mismatches.append("no runtime library member defines __tls_used")
+        return
+    placed = {id(p.obj) for p in placer.pieces if p.sec.is_code}
+    parts = sorted(((s.name, i, o, s) for i, o in enumerate(placer.objects)
+                    if o is tlssup or (not o.library and id(o) in placed)
+                    for s in o.secs if s.name == ".tls" or s.name.startswith(".tls$")),
+                   key=lambda t: (t[0], t[1]))
+    start = next(va for name, va, *_ in img.sections if name == ".tls")
+    placer.tls_start = va = start
+    for _, _, obj, sec in parts:
+        n = (sec.chars >> 20) & 0xF
+        align = 1 << (n - 1) if n else 16
+        at = (va + align - 1) & ~(align - 1)
+        img.write(va, bytes(at - va), PADDING)
+        placer.place(obj, sec, 0, len(sec.data), at, LIBDATA if obj.library else TLSDATA,
+                     f"{sec.name} of {obj.path.name}")
+        placer.stats["thread-local sections placed"] += 1
+        va = at + len(sec.data)
+    rdata = next(s for s in tlssup.secs if s.name == ".rdata")
+    directory = img.pe.OPTIONAL_HEADER.DATA_DIRECTORY[9].VirtualAddress
+    placer.place(tlssup, rdata, 0, len(rdata.data), img.base + directory, LIBDATA, "__tls_used (the TLS directory)")
 
 
 def place_tree_globals(placer: Placer, objects_by_src: dict[str, Obj]) -> None:
@@ -1326,6 +1386,13 @@ def copy_unbuilt(img: Image) -> None:
         for i in range(start + vsize - img.base, start + max(vsize, rsize) - img.base):
             if img.src[i] == UNSET:
                 img.out[i], img.src[i] = 0, PADDING
+        # Past its raw data (.data's .bss): bytes the file does not hold, which
+        # the loader zeroes. Those no object defines are alignment, or
+        # variables of Cavedog's objects that the tree's objects leave out
+        # (0x51fc98, before 0x4b7ad0's vector).
+        for i in range(start + rsize - img.base, start + vsize - img.base):
+            if img.src[i] == UNSET:
+                img.out[i], img.src[i] = 0, UNINIT
     # Everything still unset is data or padding no object defines yet.
     for name, start, vsize, rsize, _ in img.sections:
         img.copy(start, max(vsize, rsize), COPIED)
@@ -1376,16 +1443,21 @@ def place_crt_tables(placer: Placer) -> None:
         placer.place(obj, obj.secs[0], 0, 4, va, OBJDATA, f".CRT$XCU for {names[v]}")
         placer.stats["initialiser table entries placed from .CRT$X* sections"] += 1
     placer.relocate()
-    # What is left of the tables (their null entries) is the linker's.
-    ends = []
-    for row in load_rows(FUNCTIONS):
-        if row["name"] in ("__cinit", "_doexit"):
-            at, size = int(row["address"], 16), int(row["size"])
-            code = img.pristine[at - img.base: at - img.base + size]
-            ends += [struct.unpack_from("<I", code, i + 1)[0] for i in range(len(code) - 5)
-                     if code[i] == 0x68 and lo <= struct.unpack_from("<I", code, i + 1)[0] < hi]
-    if ends:
-        img.copy(lo, max(ends) + 4 - lo, FIXED)
+    # A table's end that nothing refers to (.CRT$XLZ, after the empty table of
+    # TLS callbacks that __tls_used points at) goes right after the last
+    # entry placed in its table: LINK puts .CRT$XLA to .CRT$XLZ together.
+    placed = {(id(p.obj), p.sec.index): p for p in placer.pieces}
+    for obj in list(placer.objects):
+        for sec in obj.secs:
+            if not (sec.name.startswith(".CRT$X") and sec.name.endswith("Z")) or (id(obj), sec.index) in placed:
+                continue
+            group = [p for p in placed.values() if p.sec.name.startswith(sec.name[:-1]) and p.sec.name < sec.name]
+            if not group or not any(p.obj is obj for p in group):
+                continue
+            last = max(group, key=lambda p: p.va)
+            placer.place(obj, sec, 0, len(sec.data), last.va + last.hi - last.lo,
+                         LIBDATA if obj.library else OBJDATA, f"{sec.name} of {obj.path.stem}")
+            placer.stats["initialiser table ends placed after their tables"] += 1
 
 
 def place_commons(placer: Placer) -> None:
@@ -1450,6 +1522,21 @@ def pad_data(placer: Placer) -> None:
         while run > o - align + 1 and img.src[run - 1] == UNSET and not img.pristine[run - 1]:
             run -= 1
         if run < o and img.src[run - 1] != UNSET:
+            for i in range(run, o):
+                img.out[i], img.src[i] = 0, PADDING
+    # Zeros between two pieces of the runtime library's data, up to a 16-byte
+    # boundary where the second begins: assembler members (strchr.obj,
+    # memmove.obj and the like) have empty .data sections aligned to 16
+    # bytes, and LINK aligned for each one it laid out there.
+    for p in sorted(placer.pieces, key=lambda p: p.va):
+        if p.sec.is_code or not p.obj.library or p.va % 16:
+            continue
+        o = p.va - img.base
+        run = o
+        while run > o - 15 and img.src[run - 1] == UNSET and not img.pristine[run - 1]:
+            run -= 1
+        prev = img.owner[run - 1]
+        if run < o and prev and placer.pieces[prev - 1].obj.library:
             for i in range(run, o):
                 img.out[i], img.src[i] = 0, PADDING
 
@@ -1569,6 +1656,7 @@ def layout(jobs: int | None = None) -> tuple[Image, Placer]:
     place_library(placer, lib_paths)
     place_imports(placer)
     place_import_thunks(placer)
+    place_tls(placer)
     place_tree_globals(placer, by_src)
     place_data_sources(placer, by_src)
     data_objs, data_addr = build_data(symbols)

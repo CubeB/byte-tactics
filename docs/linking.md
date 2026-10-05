@@ -359,9 +359,32 @@ How it places things:
   an 8-byte (or 16-byte) boundary, where one of the original's objects began
   (they held many functions each, and most of the DirectX setup code's
   strings start on 8-byte boundaries, which the tree's one-function objects
-  cannot show); the zeros before a communal variable up to its alignment
+  cannot show); fewer than 16 zeros between two pieces of the runtime
+  library's data where the second begins on a 16-byte boundary (assembler
+  members such as `strchr.obj` and `memmove.obj` have empty `.data` sections
+  aligned to 16 bytes, and LINK aligned for each one it laid out: 48 bytes in
+  five places); the zeros before a communal variable up to its alignment
   (its size, at most 32 bytes: `___pioinfo` follows `__crtheap` after 24
   zeros); and the even padding of the import name table and the DLL names.
+  Past `.data`'s raw data, in its `.bss`, the bytes no object defines are not
+  in the file at all: the loader zeroes them. They are counted as
+  uninitialised: 3 bytes of alignment after 0x4df160's static, and 5 that
+  no alignment explains, so evidently variables of Cavedog's objects that the
+  tree's objects leave out (0x51fc98, the start of 0x4b7ad0's 8-byte aligned
+  `.bss` before its vector at 0x51fc99, and 0x5292c0 to 0x5292c3).
+- **Thread-local data**: LINK builds `.tls` from the linked objects' `.tls`
+  sections in the order of their names: the runtime's `__tls_start`
+  (`tlssup.obj`'s `.tls`), the game's thread-local variables (`.tls$`), and
+  `__tls_end` (`.tls$ZZZ`), each at its alignment. The only `.tls$` the
+  original has is Cavedog's object at 0x4d8d70 (`src/gap/0x4d8d70.cpp`),
+  whose three variables 0x4d8df0 and 0x4d8e20 read too; they declare them
+  rather than defining struct views of their own, so the ordinary link has
+  one copy as well. A thread-local variable's offset (a `SECREL` relocation)
+  is resolved by name like any other reference and checked against the
+  original's. `tlssup.obj`'s `.rdata`, `__tls_used`, is the TLS directory,
+  and the empty table of TLS callbacks it points at (`.CRT$XLA`, then
+  `.CRT$XLZ`, which nothing refers to and so goes right after the last entry
+  placed in its table) sits among the initialiser tables.
 - **The runtime library** comes from the members of the libraries the
   original links statically: the VC5 SP3 `LIBCMT.LIB` and `LIBCPMT.LIB`, and
   zlib 1.0.4 as `tools/setup_toolchain.sh` builds it with Cavedog's options. A
@@ -411,8 +434,8 @@ How it places things:
   not `game` rows).
 - **What has no source** is copied from the original and counted as copied:
   the gap regions without matching source, data no object defines, the
-  headers (with the debug directory), `.tls` and the TLS directory, and the
-  resources. No runtime library code is copied any more.
+  headers (with the debug directory) and the resources. No runtime library
+  code and no data are copied any more.
 
 Every relocation is checked against the address the original's bytes give at
 that spot, and the finished image is compared with the original byte for
@@ -422,17 +445,19 @@ counts where each section's bytes came from. On 2026-10-05:
 | Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
 | `.text` | 1,026,560 | 850,853 game code, 24,762 gap code, 120,848 runtime library and import thunks, 30,097 padding | none |
-| `.rdata` | 18,432 | 6,564 import tables, 3,234 compiled data, 4,148 library data, 2,965 `src/data`, 324 `link/` globals, 1,089 padding | 84 debug directory, 24 TLS directory |
-| `.data` | 173,660 | 83,523 compiled data (with the tree's own globals), 29,537 library data, 7,694 `src/data`, 48,458 `link/` globals, 4,384 padding | 8 linker tables, 56 other data |
+| `.rdata` | 18,432 | 6,564 import tables, 3,234 compiled data, 4,172 library data (with the TLS directory), 2,965 `src/data`, 324 `link/` globals, 1,089 padding | 84 debug directory |
+| `.data` | 173,660 | 83,515 compiled data (with the tree's own globals), 29,549 library data, 7,694 `src/data`, 48,458 `link/` globals, 4,436 padding, 8 uninitialised | none |
+| `.tls` | 512 | 8 `__tls_start` and `__tls_end`, 9 thread-local variables, 495 padding | none |
 
 Before the data was defined in `src/data` (#2662), 34,662 bytes of `.data`
 and 1,546 of `.rdata` were copied: tables whose pointers `link/data.cpp` held
 as numbers left their strings undefined, `.bss` buffers were cut short at
-false boundaries, and the padding between pieces counted as data. The 56
-bytes still copied are zeros nothing refers to: 48 among the runtime
-library's data (members' zero-initialised data, whose place no bytes can
-tell), and 8 between the game's statics (after 0x4df160's guard, and before
-0x4b7ad0's vector).
+false boundaries, and the padding between pieces counted as data. The last 56
+bytes copied were zeros nothing refers to: 48 among the runtime library's
+data, which are LINK's alignment for the assembler members' empty `.data`
+sections, and 8 between the game's statics in `.bss`, which the file does not
+hold. The 8 bytes of the initialiser tables that were copied too are the
+empty table of TLS callbacks (`.CRT$XLA` and `.CRT$XLZ`), built with `.tls`.
 
 Before the runtime library's last functions were built (#2662), 8,267 bytes
 of `.text` were copied as library code: 11 functions (3,163 bytes, among
@@ -519,8 +544,8 @@ none, so `carve.py` finds them itself:
   that no object defines, the bytes `place.py` copies, but for runs of zeros
   nothing refers to, and whatever those runs point at that no symbol names
   (a closure). It is empty now, down from the whole 192 KB of both sections:
-  the 56 bytes `place.py` copies are such zeros, and LINK lays the library
-  members' data out itself. Each run is a section of its own named for its
+  `place.py` copies no data, and LINK lays the library members' data out
+  itself. Each run is a section of its own named for its
   address (see the data's order, below). Its relocations come from
   `place.py`'s layout: every pointer field of a placed piece of data; and
   where no object defines the data, every dword that holds the exact address

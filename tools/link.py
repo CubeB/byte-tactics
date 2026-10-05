@@ -139,13 +139,13 @@ def compile_all(jobs: int) -> tuple[list[Path], list[tuple[Path, str]]]:
 def global_rows() -> dict[int, tuple[str, int, str, str]]:
     """address -> (name, size, section, init-hex) for every globals.csv row
     that link/ has to define: not one src/data or a tree file defines, nor
-    one inside another global."""
+    one inside another global, nor the runtime library's (_tls_index)."""
     out = {}
     if not GLOBALS.exists():
         return out
     with GLOBALS.open() as fh:
         for r in csv.DictReader(fh):
-            if r.get("defined"):
+            if r.get("defined") or r.get("kind") == "library":
                 continue
             out[int(r["address"], 16)] = (f"DAT_{int(r['address'], 16):08x}", int(r["size"]),
                                           r["section"], r["init"])

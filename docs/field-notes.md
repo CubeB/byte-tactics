@@ -357,7 +357,7 @@ guide's "known wall" note on `vector::insert`.*
    `data/symbols.csv` folds two COMDAT `std::vector<T>::size` instantiations
    after their own placeholder file addresses. `0x472d30` and `0x470770` are
    really `std::vector<T>::size`, and `std::copy` needs an aliases row. Verified
-   fix: re-match `src/unsorted/0x472d30.cpp` as
+   fix: re-match `src/graphics/particles_472d30.cpp` as
    `&std::vector<Elem_00473500>::size` and update the rows, which releases all
    four at once.
 2. **The callee-saved register rotation wall, now 8 functions**: `0x4861d0`,
@@ -726,7 +726,7 @@ we can compile reaches it.**
 `0x408f30` (`vector<Unit*>::insert`, wants `lea eax,[ebx+ecx] / sub / sub`,
 546 bytes) and `0x4c4d70` (`vector<Class_004c3e40*>::insert`, has
 `mov eax,ecx / sub / add / sub`, 547 bytes, **already MATCHED** by
-`src/unsorted/0x4c4d70.cpp`) are **the same template on the same 4-byte
+`src/util/tdf_4c4d70.cpp`) are **the same template on the same 4-byte
 dword-copied element**. Diff their instruction lists with jump targets masked and
 you get 225 against 226 instructions and **exactly one replace plus one insert**,
 both inside that group — and the same register assignment too (`_P` in ebx, `_Q`

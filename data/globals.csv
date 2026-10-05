@@ -89,10 +89,10 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fdbf0,DAT_004fdbf0,.rdata,40,gap,string,char[],1,0,1,one type,1,,,,,436f7079726967687420303030302043617665646f6720456e7465727461696e6d656e7400000000
 0x501774,DAT_00501774,.data,4,type,data,int,4,0,1,one type,4,,INT_00501774,,,01000000
 0x501d18,DAT_00501d18,.data,32,gap,data,unsigned char[],1,0,1,one type,1,,s__00501d18,,,000000000000000000006f6e6d6c6b6a585756555453525150ffffffffffffff
-0x501d38,g_consoleCommands,.data,528,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_s_NoShake_00501d38,86,src/data/console_commands.cpp,44245000606e4100010000003c245000b06d41000100000030245000f06c41000100000028245000206d41000100000020245000d06b41000100000018245000
-0x501f48,g_cheatCommands,.data,132,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_s_Radar_00501f48,20,src/data/console_commands.cpp,a022500090704100020000009c225000c07041000200000094225000506b41000200000090225000506d41000200000088225000806d4100020000007c225000
-0x501fcc,DAT_00501fcc,.data,4,type,data,int,1,0,1,one type,1,,,,src/data/console_commands.cpp,00000000
-0x501fd0,g_debugCommands,.data,432,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_DAT_00501fd0,60,src/data/console_commands.cpp,e018500080624100040000004c225000b06a41000400000044225000b0644100040000003c225000d06941000400000034225000306a4100040000002c225000
+0x501d38,g_consoleCommands,.data,528,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_s_NoShake_00501d38,86,src/game/console_commands.cpp,44245000606e4100010000003c245000b06d41000100000030245000f06c41000100000028245000206d41000100000020245000d06b41000100000018245000
+0x501f48,g_cheatCommands,.data,132,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_s_Radar_00501f48,20,src/game/console_commands.cpp,a022500090704100020000009c225000c07041000200000094225000506b41000200000090225000506d41000200000088225000806d4100020000007c225000
+0x501fcc,DAT_00501fcc,.data,4,type,data,int,1,0,1,one type,1,,,,src/game/console_commands.cpp,00000000
+0x501fd0,g_debugCommands,.data,432,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_DAT_00501fd0,60,src/game/console_commands.cpp,e018500080624100040000004c225000b06a41000400000044225000b0644100040000003c225000d06941000400000034225000306a4100040000002c225000
 0x502288,DAT_00502288,.data,8,gap,string,char[],1,0,1,one type,1,,s_Mapping_00502288,,,4d617070696e6700
 0x5024fc,DAT_005024fc,.data,16,gap,string,char[],1,0,1,one type,1,,s__s_screenshots_005024fc,,,25735c73637265656e73686f74730000
 0x502820,DAT_00502820,.data,8,gap,string,const char[],1,0,1,one type,1,,s_guis_00502820,,,6775697300000000
@@ -300,17 +300,17 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50b9e0,DAT_0050b9e0,.data,28,gap,data,void*[],1,0,1,one type,1,,PTR_s_SQUASHERR_OK_0050b9e0,6,,84ba500070ba500058ba500040ba500028ba5000fcb9500000000000
 0x50c8ac,DAT_0050c8ac,.data,8,gap,string,char[],1,0,1,one type,1,,s_Cavedog_0050c8ac,,,43617665646f6700
 0x50c908,DAT_0050c908,.data,76,type,data,char*[19],1,0,1,one type,1,0x4c,PTR_s__memfussy_0050c908,19,,68c2500074c2500080c2500098c25000acc25000b4c2500060d2500054d2500048d250003cd2500030d2500020d250000cd25000f8d15000e8d15000d0d15000
-0x50c958,g_assertDialog,.data,1,type,data,char,1,1,2,conflicting: shape,2,,CHAR_C0h_0050c958,,src/data/debug_dialogs.cpp,c0
-0x50cd38,g_memoryDialog,.data,1,type,data,char,1,1,2,conflicting: shape,2,,CHAR_C0h_0050cd38,,src/data/debug_dialogs.cpp,c0
-0x50ced8,g_profilerDialog,.data,1,type,data,char,1,1,2,conflicting: shape,2,,CHAR_C0h_0050ced8,,src/data/debug_dialogs.cpp,c0
+0x50c958,g_assertDialog,.data,1,type,data,char,1,1,2,conflicting: shape,2,,CHAR_C0h_0050c958,,src/debug/debug_dialogs.cpp,c0
+0x50cd38,g_memoryDialog,.data,1,type,data,char,1,1,2,conflicting: shape,2,,CHAR_C0h_0050cd38,,src/debug/debug_dialogs.cpp,c0
+0x50ced8,g_profilerDialog,.data,1,type,data,char,1,1,2,conflicting: shape,2,,CHAR_C0h_0050ced8,,src/debug/debug_dialogs.cpp,c0
 0x50d220,DAT_0050d220,.data,16,gap,string,char[],1,0,1,one type,1,,s__memorystatus_0050d220,,,2d6d656d6f7279737461747573000000
 0x50d2d0,DAT_0050d2d0,.data,28,gap,string,const char[],1,0,1,one type,1,,s_Global_Exception_Handler_0050d2d0,,,476c6f62616c20457863657074696f6e2048616e646c657200000000
 0x50d4d0,DAT_0050d4d0,.data,4,type,data,char*,1,0,1,one type,1,,PTR_s_Library_date_stamp__Jun_30_1998_1_0050d4d0,1,,d4d45000
 0x50d660,DAT_0050d660,.data,4,type,data,char*,2,0,1,one type,2,,PTR_s_Performance_status_0050d660,1,,64d65000
 0x50d6b4,DAT_0050d6b4,.data,36,gap,string,char[],1,0,1,one type,1,,s_Performance_dialog_failed_to_ope_0050d6b4,,,506572666f726d616e6365206469616c6f67206661696c656420746f206f70656e000000
 0x50d72c,DAT_0050d72c,.data,4,type,data,char*,3,0,1,one type,3,,PTR_s_Memory_Status_0050d72c,1,,30d75000
-0x50d980,g_pentiumEvents,.data,128,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050d980,8,src/data/perf_counters.cpp,000300500cdd5000030000000000000000030150f8dc5000030000000000000000030b50d4dc5000030000000003285000032250b8dc50000300000000000000
-0x50da00,g_pentiumProEvents,.data,272,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050da00,17,src/data/perf_counters.cpp,00030560d4dc500003000000000343600001106048dc500001000000000000000002116030dc500002000000000000000002126024dc50000200000000000000
+0x50d980,g_pentiumEvents,.data,128,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050d980,8,src/debug/perf_counters.cpp,000300500cdd5000030000000000000000030150f8dc5000030000000000000000030b50d4dc5000030000000003285000032250b8dc50000300000000000000
+0x50da00,g_pentiumProEvents,.data,272,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050da00,17,src/debug/perf_counters.cpp,00030560d4dc500003000000000343600001106048dc500001000000000000000002116030dc500002000000000000000002126024dc50000200000000000000
 0x5119b8,DAT_005119b8,.bss,8,gap,data,char[],77,5,3,conflicting: shape,82,,DAT_005119b8,,,
 0x5119c0,DAT_005119c0,.bss,40,gap,data,Class_00409160*[],7,15,9,conflicting: shape,22,0x28,DAT_005119c0,,,
 0x5119e8,DAT_005119e8,.bss,40,type,data,int[10],2,0,1,one type,2,0x28,INT_ARRAY_005119e8,,,
@@ -406,7 +406,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x512336,DAT_00512336,.bss,2,type,data,short,1,0,1,one type,1,,SHORT_00512336,,in DAT_00512334+0x2,
 0x512338,DAT_00512338,.bss,4,type,data,int,3,0,1,one type,3,,INT_00512338,,,
 0x51233c,DAT_0051233c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x512340,DAT_00512340$S5516,.bss,16,definition,data,"Vector_00438480<int, std::allocator<int> >",2,0,1,one type,2,0xc,DAT_00512340,,src/unsorted/0x438450.cpp,
+0x512340,DAT_00512340$S5516,.bss,16,definition,data,"Vector_00438480<int, std::allocator<int> >",2,0,1,one type,2,0xc,DAT_00512340,,src/map/meteors_438450.cpp,
 0x512344,DAT_00512344,.bss,4,type,data,int,3,13,14,conflicting: shape,16,,DAT_00512344,,in DAT_00512340$S5516+0x4,
 0x512348,DAT_00512348,.bss,4,type,data,int,1,2,3,conflicting: shape,3,,DAT_00512348,,in DAT_00512340$S5516+0x8,
 0x512350,DAT_00512350,.bss,8,gap,unreferenced,unsigned char[8],0,0,0,,0,,,,,
@@ -443,9 +443,9 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5129c4,DAT_005129c4,.bss,4,type,data,int*,2,0,1,one type,2,,PTR_005129c4,,,
 0x5129c8,DAT_005129c8,.bss,4,type,data,int,1,0,1,one type,1,,INT_005129c8,,,
 0x5129cc,DAT_005129cc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x5129d0,DAT_005129d0,.bss,37,definition,data,Class_0044f940,2,2,3,conflicting: struct names only,4,0x21,DAT_005129d0,,src/unsorted/0x44f7e0.cpp,
+0x5129d0,DAT_005129d0,.bss,37,definition,data,Class_0044f940,2,2,3,conflicting: struct names only,4,0x21,DAT_005129d0,,src/network/net_condenser_44f7e0.cpp,
 0x5129f1,DAT_005129f1,.bss,4,type,data,int,2,0,1,one type,2,,INT_005129f1,,in DAT_005129d0+0x21,
-0x5129f8,DAT_005129f8,.bss,37,definition,data,Class_005129f8,1,1,2,conflicting: struct names only,2,0x21,DAT_005129f8,,src/unsorted/0x44f720.cpp,
+0x5129f8,DAT_005129f8,.bss,37,definition,data,Class_005129f8,1,1,2,conflicting: struct names only,2,0x21,DAT_005129f8,,src/network/net_condenser_44f720.cpp,
 0x512a20,DAT_00512a20,.bss,8,gap,data,void (__stdcall*[])(void*),1,0,1,one type,1,,DAT_00512a20,,,
 0x512a28,DAT_00512a28,.bss,4,type,data,int (__stdcall*)(int),1,0,1,one type,1,,_DAT_00512a28,,,
 0x512a2c,DAT_00512a2c,.bss,4,type,data,int (__stdcall*)(int),1,0,1,one type,1,,_DAT_00512a2c,,,
@@ -641,7 +641,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x512ff4,DAT_00512ff4,.bss,4,type,data,Class_004c6a60*,2,1,2,conflicting: shape,3,,DAT_00512ff4,,,
 0x512ff8,DAT_00512ff8,.bss,4,type,data,int,4,0,1,one type,4,,INT_00512ff8,,,
 0x512ffc,DAT_00512ffc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x513000,DAT_00513000,.bss,46396,definition,data,Class_004618a0,19,9,8,conflicting: struct names only,28,0xb54c,DAT_00513000,,src/unsorted/0x460e20.cpp,
+0x513000,DAT_00513000,.bss,46396,definition,data,Class_004618a0,19,9,8,conflicting: struct names only,28,0xb54c,DAT_00513000,,src/network/packets_460e20.cpp,
 0x513008,DAT_00513008,.bss,4,gap,data,Class_00462710,1,0,1,one type,1,,DAT_00513008,,in DAT_00513000+0x8,
 0x51e2f4,DAT_0051e2f4,.bss,4,type,data,int*,1,0,1,one type,1,,PTR_0051e2f4,,in DAT_00513000+0xb2f4,
 0x51e2f8,DAT_0051e2f8,.bss,4,type,data,unsigned int,1,0,1,one type,1,,INT_0051e2f8,,in DAT_00513000+0xb2f8,
@@ -670,8 +670,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e58c,DAT_0051e58c,.bss,4,type,data,int,4,2,2,conflicting: shape,6,,DAT_0051e58c,,,
 0x51e590,DAT_0051e590,.bss,4,type,data,int,4,0,1,one type,4,,INT_0051e590,,,
 0x51e594,DAT_0051e594,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051e594,,,
-0x51e598,IURect_0046e160::IU?$pair::?$_Tree::_Nil,.bss,4,definition,template,"std::_Tree<unsigned int, std::pair<unsigned int, Rect_0046e160>, std::map<unsigned int, Rect_0046e160, std::less<unsigned int>, std::allocator<Rect_0046e160> >::_Kfn, std::less<unsigned int>, std::allocator<Rect_0046e160> >::_Node*",15,3,4,conflicting: struct names only,18,,DAT_0051e598,,src/unsorted/0x46c920.cpp,
-0x51e59c,IURect_0046e160::IU?$pair::?$_Tree::_Nilrefs,.bss,4,definition,template,unsigned int,6,1,2,conflicting: signedness or const,7,,DAT_0051e59c,,src/unsorted/0x46c920.cpp,
+0x51e598,IURect_0046e160::IU?$pair::?$_Tree::_Nil,.bss,4,definition,template,"std::_Tree<unsigned int, std::pair<unsigned int, Rect_0046e160>, std::map<unsigned int, Rect_0046e160, std::less<unsigned int>, std::allocator<Rect_0046e160> >::_Kfn, std::less<unsigned int>, std::allocator<Rect_0046e160> >::_Node*",15,3,4,conflicting: struct names only,18,,DAT_0051e598,,src/network/unit_sync_46c920.cpp,
+0x51e59c,IURect_0046e160::IU?$pair::?$_Tree::_Nilrefs,.bss,4,definition,template,unsigned int,6,1,2,conflicting: signedness or const,7,,DAT_0051e59c,,src/network/unit_sync_46c920.cpp,
 0x51e5a0,DAT_0051e5a0,.bss,104,gap,data,char[],1,0,1,one type,1,,s__0051e5a0,,,
 0x51e608,DAT_0051e608,.bss,1,type,data,char,21,0,1,one type,21,,CHAR_00h_0051e608,,,
 0x51e609,DAT_0051e609,.bss,7,gap,unreferenced,unsigned char[7],0,0,0,,0,,,,,
@@ -702,7 +702,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e694,DAT_0051e694,.bss,4,type,data,int,9,1,2,conflicting: shape,10,,DAT_0051e694,,,
 0x51e698,DAT_0051e698,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051e698,,,
 0x51e69c,DAT_0051e69c,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051e69c,,,
-0x51e6a0,DAT_0051e6a0,.bss,16,definition,data,char[],3,3,3,conflicting: shape,6,0xc,DAT_0051e6a0,,src/unsorted/0x4814c0.cpp,
+0x51e6a0,DAT_0051e6a0,.bss,16,definition,data,char[],3,3,3,conflicting: shape,6,0xc,DAT_0051e6a0,,src/map/line_of_sight_4814c0.cpp,
 0x51e6b0,DAT_0051e6b0$S4554,.bss,12,gap,data,"std::vector<Class_00489260, std::allocator<Class_00489260> >",1,0,1,one type,1,0x8,DAT_0051e6b0,,,
 0x51e6bc,DAT_0051e6bc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,_DAT_0051e6bc,,,
 0x51e6c0,DAT_0051e6c0,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051e6c0,,,
@@ -759,8 +759,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51fbb0,DAT_0051fbb0,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051fbb0,,,
 0x51fbb4,DAT_0051fbb4,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051fbb4,,,
 0x51fbb8,DAT_0051fbb8,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051fbb8,,,
-0x51fbbc,std::HH::HU?$pair::?$_Tree::_Nil,.bss,4,definition,template,"std::_Tree<int, std::pair<int, int>, std::map<int, int, std::less<int>, std::allocator<int> >::_Kfn, std::less<int>, std::allocator<int> >::_Node*",8,8,9,conflicting: struct names only,16,,DAT_0051fbbc,,src/unsorted/0x4b26f0.cpp,
-0x51fbc0,DAT_0051fbc0$S425,.bss,16,definition,data,"std::map<int, int, std::less<int>, std::allocator<int> >",2,2,3,conflicting: shape,4,0xc,DAT_0051fbc0,,src/unsorted/0x4b2290.cpp,
+0x51fbbc,std::HH::HU?$pair::?$_Tree::_Nil,.bss,4,definition,template,"std::_Tree<int, std::pair<int, int>, std::map<int, int, std::less<int>, std::allocator<int> >::_Kfn, std::less<int>, std::allocator<int> >::_Node*",8,8,9,conflicting: struct names only,16,,DAT_0051fbbc,,src/util/int_map_4b26f0.cpp,
+0x51fbc0,DAT_0051fbc0$S425,.bss,16,definition,data,"std::map<int, int, std::less<int>, std::allocator<int> >",2,2,3,conflicting: shape,4,0xc,DAT_0051fbc0,,src/util/int_map_4b2290.cpp,
 0x51fbd0,DAT_0051fbd0,.bss,4,type,data,void*,4,18,18,conflicting: shape,22,,DAT_0051fbd0,,,
 0x51fbd4,DAT_0051fbd4,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51fbd8,DAT_0051fbd8,.bss,172,parts,data,Timer_4b63f0[],1,0,1,one type,1,0xc,Timer_4b63f0_ARRAY_0051fbd8,,,
@@ -840,8 +840,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x528a48,DAT_00528a48,.bss,4,type,data,"Container_004da9f0<int, std::allocator<int> >*",1,0,1,one type,1,,DAT_00528a48,,,
 0x528a4c,DAT_00528a4c,.bss,4,type,data,int,1,0,1,one type,1,,INT_00528a4c,,,
 0x528a50,DAT_00528a50,.bss,4,type,data,Node_004dde70*,1,10,11,conflicting: struct names only,11,,DAT_00528a50,,,
-0x528a54,std::IH::IU?$pair::?$_Tree::_Nil,.bss,4,definition,template,Node_004dbe10*,2,15,15,conflicting: struct names only,17,,DAT_00528a54,,src/unsorted/0x4db610.cpp,
-0x528a58,std::IH::IU?$pair::?$_Tree::_Nilrefs,.bss,4,definition,template,unsigned int,1,0,1,one type,1,,UINT_00528a58,,src/unsorted/0x4db610.cpp,
+0x528a54,std::IH::IU?$pair::?$_Tree::_Nil,.bss,4,definition,template,Node_004dbe10*,2,15,15,conflicting: struct names only,17,,DAT_00528a54,,src/debug/debug_lib_4db610.cpp,
+0x528a58,std::IH::IU?$pair::?$_Tree::_Nilrefs,.bss,4,definition,template,unsigned int,1,0,1,one type,1,,UINT_00528a58,,src/debug/debug_lib_4db610.cpp,
 0x528a5c,DAT_00528a5c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x528a78,DAT_00528a78,.bss,44,gap,data,Class_004e1650,1,0,1,one type,1,,DAT_00528a78,,,
 0x528aa4,DAT_00528aa4,.bss,4,type,data,void*,1,0,1,one type,1,,PTR_00528aa4,,,
@@ -864,9 +864,9 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x528ae8,DAT_00528ae8,.bss,1000,gap>type,data,char[488],1,0,1,one type,1,,s__00528ae8,,,
 0x528ed0,DAT_00528ed0,.bss,1000,gap>type,data,char[488],1,0,1,one type,1,,s__00528ed0,,,
 0x5292b8,DAT_005292b8,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,DAT_005292b8,,,
-0x5292c4,QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil,.bss,4,definition,template,"std::_Tree<const char*, std::pair<const char* const, Value_004e17c0>, std::map<const char*, Value_004e17c0, Less_004e17c0, Class_004e2b60>::_Kfn, Less_004e17c0, Class_004e2b60>::_Node*",1,14,15,conflicting: struct names only,15,,DAT_005292c4,,src/unsorted/0x4e17c0.cpp,
+0x5292c4,QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil,.bss,4,definition,template,"std::_Tree<const char*, std::pair<const char* const, Value_004e17c0>, std::map<const char*, Value_004e17c0, Less_004e17c0, Class_004e2b60>::_Kfn, Less_004e17c0, Class_004e2b60>::_Node*",1,14,15,conflicting: struct names only,15,,DAT_005292c4,,src/debug/debug_lib_4e17c0.cpp,
 0x5292c8,DAT_005292c8,.bss,8,gap,unreferenced,unsigned char[8],0,0,0,,0,,DAT_005292c8,,,
-0x529500,QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nilrefs,.bss,4,definition,template,unsigned int,2,0,1,one type,2,,UINT_00529500,,src/unsorted/0x4e17c0.cpp,
+0x529500,QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nilrefs,.bss,4,definition,template,unsigned int,2,0,1,one type,2,,UINT_00529500,,src/debug/debug_lib_4e17c0.cpp,
 0x529504,DAT_00529504,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x529508,DAT_00529508,.bss,4,type,data,int,3,0,1,one type,3,,INT_00529508,,,
 0x52950c,DAT_0052950c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,

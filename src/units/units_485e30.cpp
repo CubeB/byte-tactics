@@ -14,7 +14,7 @@
 // FUN_00485d40 builds the object (`new` of 0x544 bytes, the base constructor
 // inlined call, then this class's vtable). It is not decompiled yet, so the
 // global below exists only to make the compiler emit the vtable and with it
-// this COMDAT here, as in src/unsorted/0x42a870.cpp.
+// this COMDAT here, as in src/game/data_files_42a870.cpp.
 
 struct Elem_4b0610 {
     int value;         // +0x0

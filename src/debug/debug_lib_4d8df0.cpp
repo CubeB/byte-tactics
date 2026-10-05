@@ -3,7 +3,7 @@
 void __cdecl FUN_004d8d70(int, int);
 
 // This thread's stack pointer at the last check, which FUN_004d8d70 (whose
-// object, src/gap/0x4d8d70.cpp, defines the thread's variables) has just
+// object, src/debug/debug_lib_4d8d70.cpp, defines the thread's variables) has just
 // stored.
 extern __declspec(thread) char* g_stackLow;
 

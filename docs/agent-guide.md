@@ -200,7 +200,7 @@ their whole budget.
 - **A global `std::vector`**: a function that copies one byte from an
   uninitialised stack slot (`push ecx; mov al, [esp+3]`), zeroes the next three
   dwords of a global, then calls `atexit` is the compiler-generated
-  initialiser for `std::vector<T> global;`. See `src/unsorted/0x438450.cpp`.
+  initialiser for `std::vector<T> global;`. See `src/map/meteors_438450.cpp`.
   Compiler-generated functions have no definition to annotate, so put the
   symbol after the address: `// FUNCTION: 0x438450 _$E5`.
 - **Division by a constant** compiles to a multiply by a "magic" number plus
@@ -353,7 +353,7 @@ effect, the missing piece is usually a helper that was inlined:
   place (`mov edx, ebp`) just before the paths merge on the other, is the
   return value of an inlined function with one `return` per path. A local
   assigned on both paths gets a callee-saved register for the whole function
-  instead. See `src/unsorted/0x4c9290.cpp`.
+  instead. See `src/graphics/surface_4c9290.cpp`.
 - A loop that walks a pointer, where the offset is added after the loop
   guard (`add eax, K` after `test/jle`), is plain array indexing
   (`arr[i].field`) in the source; adding the offset yourself moves the `add`
@@ -398,7 +398,7 @@ effect, the missing piece is usually a helper that was inlined:
   constant address with no load, and can never match.
 - **`mov ecx, <global>; jmp <method>`**: a tail call of a method on a global
   object. Declare the object (`extern Class_x DAT_00528a78;`) and write
-  `DAT_00528a78.FUN_004e1650();`. See `src/unsorted/0x4de0f0.cpp`.
+  `DAT_00528a78.FUN_004e1650();`. See `src/debug/debug_lib_4de0f0.cpp`.
 - **Locals in parameter slots**: MSVC 5 reuses the stack slot of a parameter
   that is no longer needed for a local. When the code writes into a
   parameter's slot (a buffer, an output value), declare an ordinary local and
@@ -854,7 +854,7 @@ Look for it instead of blaming the compiler:
   A plain `while` gets rotated and its identical branches merged.
 - **A global "vector" whose atexit destructor has no destroy loop** (no
   `push ecx`/dead store): a vector-shaped custom container, not `std::vector`.
-  See `src/unsorted/0x438450.cpp` and `0x438480.cpp`.
+  See `src/map/meteors_438450.cpp` and `0x438480.cpp`.
 
 ## Saving check.py runs
 
@@ -968,7 +968,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   node pointer and wrap it in a small iterator class (returning the iterator by
   value adds a hidden return pointer). `cmp; sbb; neg; test al, al` needs a
   `less`-style functor with `bool operator()`; `(p == End() || cmp(...)) ? End() : p`
-  gives the `lea eax, [temp]` selection. See `src/unsorted/0x46e330.cpp`.
+  gives the `lea eax, [temp]` selection. See `src/network/unit_sync_46e330.cpp`.
 - **Assigning to a 1-bit bitfield**: an `int` value gives `xor/and 1/xor`; a
   `char` value gives `and/or`.
 - **An argument `push` in the middle of a run of field stores**: MSVC hoists the
@@ -1067,7 +1067,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   returning `this`**: a copy constructor of a class whose first member has that
   constructor. Write it with a member-initialiser list,
   `X::X(const X& o) : handle(o.handle), a(o.a) {}`; a constructor cannot be
-  called through a pointer. See `src/unsorted/0x437820.cpp` and `0x4b7e30.cpp`.
+  called through a pointer. See `src/map/map_load_437820.cpp` and `0x4b7e30.cpp`.
 - **Ordinal imports called directly** (`call [iat]` into smackw32 or DPLAYX):
   declare the real API as `extern "C" __declspec(dllimport) ... __stdcall`;
   `Original().pe.DIRECTORY_ENTRY_IMPORT` shows which DLL and ordinal a slot holds.
@@ -2167,7 +2167,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   an embedded struct (`d->screen.UnlockSurface()`). The screen lock/unlock pair
   is FUN_004c5e70/FUN_004c5fa0 (`IDirectDrawSurface::Lock` +0x64 and `Unlock`
   +0x80 on the surface at display+0x8c), used by many functions around
-  0x4c6b70-0x4c6dc0; see `src/unsorted/0x4c6d20.cpp`.
+  0x4c6b70-0x4c6dc0; see `src/graphics/surface_4c6d20.cpp`.
 - **STL templates ending in `ret N`**: that original file was compiled with
   `__stdcall` as the default. Write the template body as an explicit
   `__stdcall` free function (the real `std::` template gives a plain `ret`).

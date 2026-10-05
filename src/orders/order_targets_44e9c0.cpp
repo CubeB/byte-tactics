@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 
-// Bit reader, see src/unsorted/0x415dc0.cpp.
+// Bit reader, see src/network/net_stats_415dc0.cpp.
 class Class_00415dc0 {
 public:
     int FUN_00415dc0(int bits);

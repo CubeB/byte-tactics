@@ -136,7 +136,7 @@
 // file-scope declarations in front of the structs flip it. Measured this
 // pass with check.py --sym: 16 to 80 declarations give MATCH (24 kept
 // here), 2 to 15 and 0 give 99.1 percent, 96 gives a different state at
-// 67.9 percent. Same lever and same form as src/unsorted/0x41ace0.cpp.
+// 67.9 percent. Same lever and same form as src/ingame/control_panel_41ace0.cpp.
 extern int pad47d820_0;
 extern int pad47d820_1;
 extern int pad47d820_2;

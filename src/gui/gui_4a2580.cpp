@@ -117,7 +117,7 @@ static inline void* Surface_004a2580(Object_004a2580* o)
     return o->holder->entries->u.head.surface;
 }
 
-// FUN_004a2480 (src/unsorted/0x4a2480.cpp), the preceding function in the
+// FUN_004a2480 (src/gui/gui_4a2480.cpp), the preceding function in the
 // exe, copied here without its annotation: see the note at the top.
 #pragma pack(push, 1)
 struct Entry_004a2480 {

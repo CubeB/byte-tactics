@@ -15,7 +15,7 @@
 // two struct copies (pos, tail) one after the other instead of interleaved.
 
 // Bit reader, the counterpart of the writer used by 0x48b710 (see
-// src/unsorted/0x415dc0.cpp). Fields are data, index (the dword), bit.
+// src/network/net_stats_415dc0.cpp). Fields are data, index (the dword), bit.
 class Class_00415dc0 {
 public:
     unsigned int* data;                // +0x00

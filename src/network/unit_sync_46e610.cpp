@@ -3,7 +3,7 @@
 // element-destroy loop over the (trivial, no-op) elements, which the
 // optimiser empties out but still leaves one dead store (and the `push ecx`
 // that makes room for it), then frees the storage and zeroes the
-// {_First,_Last,_End} triple. See src/unsorted/0x438480.cpp for the same note.
+// {_First,_Last,_End} triple. See src/map/meteors_438480.cpp for the same note.
 #include <vector>
 
 class Class_0046e610 {

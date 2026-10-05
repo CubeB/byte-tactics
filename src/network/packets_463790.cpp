@@ -39,7 +39,7 @@
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 
-// Bit reader, see src/unsorted/0x415dc0.cpp.
+// Bit reader, see src/network/net_stats_415dc0.cpp.
 class Class_00415dc0 {
 public:
     unsigned int* data;                // +0x00

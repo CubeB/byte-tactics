@@ -87,7 +87,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                             int key, int flags);
 
 // The handle's file size, from the same translation unit (its own file is
-// src/unsorted/0x4bbd00.cpp), so it is inlined below.
+// src/util/hpi_4bbd00.cpp), so it is inlined below.
 long __stdcall FUN_004bbd00(File_004bd830* file)
 {
     if (file->shared != 0)

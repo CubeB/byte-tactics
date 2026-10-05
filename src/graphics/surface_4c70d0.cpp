@@ -8,7 +8,7 @@
 //         out->low = 0;
 //         out->high = FUN_004b7381(at_high, *spanp, DAT_0051fef0);
 //     This is the same argument shape and the same MATCH spelling that
-//     src/unsorted/0x4c71f0.cpp uses for its case 1 (see the top of that file's
+//     src/graphics/surface_4c71f0.cpp uses for its case 1 (see the top of that file's
 //     notes), and it is worth +7.1 points here, 78.9% to 86.0%, on its own.
 //     Assigning `size - offset` to a local is NOT enough: cl 5 copies it straight
 //     back into the register `sub ecx, eax` frees, which is exactly the tie the

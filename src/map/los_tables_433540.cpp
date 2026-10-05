@@ -14,7 +14,7 @@
 //
 // That is the calling convention of std::allocator<T>::destroy(pointer) for a
 // trivially destructible T (out of line it is empty). It cannot be the free
-// void __stdcall FUN_004343f0(int) that src/unsorted/0x4343f0.cpp declares:
+// void __stdcall FUN_004343f0(int) that src/map/los_tables_4343f0.cpp declares:
 // a free function never gets ecx set, and the only caller here sets it. The
 // sibling 0x434400 (std::allocator<vector<Elem_00434020> >::destroy) is named
 // by exactly this pattern in data/symbols.csv, and 0x434430 (empty, called

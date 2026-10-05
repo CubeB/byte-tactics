@@ -83,7 +83,7 @@ struct Unit_0045ab10 {
 // Restores the vertices of every modified piece in the tree (or of every
 // piece, when `force` is set) from the object and clears its offset. Defined
 // here so that /Ob2 inlines its first level into FUN_0045ab10, as the
-// original does; src/unsorted/0x45b030.cpp spells the same function as the
+// original does; src/graphics/model_render_45b030.cpp spells the same function as the
 // loop MSVC makes of it.
 int __fastcall FUN_0045b030(Entry_0045ab10* piece, int force)
 {

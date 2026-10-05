@@ -3,7 +3,7 @@
 // Draws one entry of a list gadget: the frame, then either the text rows
 // (flags 0x10) or the cell rows (flags 0x20/0x80).
 // The last two steps:
-//  - The entry rectangle comes from FUN_004a1630 (src/unsorted/0x4a1630.cpp),
+//  - The entry rectangle comes from FUN_004a1630 (src/gui/gui_4a1630.cpp),
 //    defined below without an annotation and inlined (the matched sibling
 //    0x4a4c90 inlines a rect helper of the same shape). That puts
 //    bounds.right's `lea eax, [esi + eax - 1]`

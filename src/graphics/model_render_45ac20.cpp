@@ -4,7 +4,7 @@
 // `if (unit->field_86 == 0)`, which is why the early exit jumps straight to
 // the three-push epilogue.
 //
-// What made it match (all of it inherited from src/unsorted/0x45ab10.cpp):
+// What made it match (all of it inherited from src/graphics/model_render_45ab10.cpp):
 //  - The distance test has to be an inline helper taking the state and a
 //    POINTER to the unit's position. Written out inline, or with a helper
 //    taking (state, unit), MSVC 5 gives the unit ebp, keeps no zero register
@@ -85,7 +85,7 @@ struct Unit_0045ac20 {
 #pragma pack(pop)
 
 // Defined here so that /Ob2 inlines its first level into both copies of the
-// body below, as the original does; src/unsorted/0x45b030.cpp spells the same
+// body below, as the original does; src/graphics/model_render_45b030.cpp spells the same
 // function as the loop MSVC makes of it.
 int __fastcall FUN_0045b030(Entry_0045ac20* piece, int force)
 {

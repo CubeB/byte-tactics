@@ -21,6 +21,9 @@ they expect it, and every call reaches the one function at its address:
     name (or one of its data/aliases.csv copies), an import (its slot in the
     original's import address table, or the linker's `jmp [slot]` stub), or a
     runtime library function data/functions.csv names;
+  * the import tables and the linker's `jmp [slot]` stubs are the import
+    libraries' members (the toolchain's, and LIB.EXE's from link/*.def), each
+    where the original has its part;
   * data the compiler emits with the code (string literals, floating-point
     constants, jump tables, exception tables, vtables, file and function
     statics) is placed one symbol at a time where the original's code refers
@@ -33,8 +36,8 @@ they expect it, and every call reaches the one function at its address:
     refers to the same functions, imports and data contents, and from
     src/lib/ (the basic_string members compiled with the game's options);
   * what has no source yet is copied from the original and counted as copied:
-    the other gap regions, data no object defines, the import tables, the
-    headers and the resources.
+    the other gap regions, data no object defines, the headers, .tls and the
+    resources.
 
 Every relocation is checked against the address the original uses at that
 spot, and the image is compared with the original byte for byte (the
@@ -71,14 +74,15 @@ DEF_FILES = sorted((ROOT / "link").glob("*.def"))
 
 REL_DIR32, REL_DIR32NB, REL_SECREL, REL_REL32 = 0x06, 0x07, 0x0B, 0x14
 SCN_CODE, SCN_UNINIT = 0x20, 0x80
+SYM_CLASS_SECTION = 104
 SKIP_SECTIONS = (".drectve", ".debug")
 
 # Where each byte of the image came from.
 SOURCES = ["unset", "game code", "game data", "global data", "library (copied)", "gap (copied)",
            "data (copied)", "padding", "headers, imports, resources (copied)", "library code",
-           "library data", "gap code", "data source"]
+           "library data", "gap code", "data source", "resources", "import tables"]
 (UNSET, CODE, OBJDATA, GLOBALDATA, LIBRARY, GAP, COPIED, PADDING, FIXED, LIBCODE,
- LIBDATA, GAPCODE, DATASRC) = range(len(SOURCES))
+ LIBDATA, GAPCODE, DATASRC, RESOURCES, IMPORTS) = range(len(SOURCES))
 
 # The libraries the original links statically: the VC5 SP3 C and C++ runtimes,
 # and zlib 1.0.4 as tools/setup_toolchain.sh builds it with Cavedog's options.
@@ -131,6 +135,9 @@ class Obj:
     externals: dict[str, Sym] = field(default_factory=dict)
     absolutes: dict[str, int] = field(default_factory=dict)    # IMAGE_SYM_ABSOLUTE externals
     commons: dict[str, int] = field(default_factory=dict)      # communal (.bss) externals -> size
+    # An import descriptor's section symbols (.idata$4, .idata$5, of storage
+    # class SECTION): where LINK put the first of its DLL's contributions.
+    section_starts: dict[str, int] = field(default_factory=dict)
 
 
 def parse(path: Path, data: bytes | None = None, library: bool = False) -> Obj:
@@ -342,6 +349,7 @@ class Placer:
             for row in csv.DictReader(ALIASES.open()):
                 self.aliases[row["name"]].add(int(row["address"], 16))
         self.import_slots = img.imports()
+        self.import_members: dict[int, Obj] = {}   # import address table slot -> the member placed there
         # The linker's `jmp [slot]` stubs, for callers that call an import directly.
         # A stub in one of the runs of them (place_import_thunks) comes first:
         # ___threadid is `jmp [GetCurrentThreadId]` too, and the same bytes
@@ -555,6 +563,8 @@ class Placer:
                     return addr
             return None
         name = sym.name
+        if sym.sclass == SYM_CLASS_SECTION and name in obj.section_starts:
+            return obj.section_starts[name]
         if name in self.globals:
             return self.globals[name]
         if name in self.absolutes:
@@ -1089,23 +1099,153 @@ def place_member_data(placer: Placer) -> None:
                 placer.stats["library data placed by its bytes, with nothing referring to it"] += 1
 
 
-def import_libraries() -> list[Path]:
-    """The import libraries the original was linked with: the toolchain's,
-    and for the DLLs it imports by ordinal, LIB.EXE's from link/*.def (built
-    once into build/place/)."""
-    from check import winpath
+def import_libraries() -> dict[str, Path]:
+    """The import libraries the original was linked with, by the name of
+    their DLL (lower-cased): the toolchain's; WIN32.LIB for GOG's winmm
+    (tools/link.py's copy of WINMM.LIB with the DLL renamed); and LIB.EXE's
+    from link/*.def (built once into build/place/) for the DLLs the toolchain
+    has no library for (smackw32, DPLAYX) or numbers the hints of differently
+    (DirectX 5's DDRAW and DSOUND), which take the place of the toolchain's."""
+    from link import build_win32_lib
     from linkcheck import IMPORT_LIBS, LIBDIR
-    import subprocess
-    out = [LIBDIR / f"{name}.LIB" for name in IMPORT_LIBS if (LIBDIR / f"{name}.LIB").exists()]
-    for path in DEF_FILES:
-        lib = OUT_DIR / f"{path.stem.upper()}.LIB"
-        if not lib.exists() or lib.stat().st_mtime < path.stat().st_mtime:
-            lib.parent.mkdir(parents=True, exist_ok=True)
-            subprocess.run([str(ROOT / "tools/wlib"), f"/def:{winpath(path)}", f"/out:{winpath(lib)}"],
-                           capture_output=True, text=True, cwd=ROOT)
-        if lib.exists():
-            out.append(lib)
+    paths = [LIBDIR / f"{name}.LIB" for name in IMPORT_LIBS if (LIBDIR / f"{name}.LIB").exists()]
+    paths.append(build_win32_lib())
+    paths += [def_library(path) for path in DEF_FILES]
+    out = {}
+    for path in paths:
+        for member in read_library(path):
+            if any(s.name.startswith("__IMPORT_DESCRIPTOR_") and s.section > 0 for s in member.syms.values()):
+                name = next(s for s in member.secs if s.name == ".idata$6").data.split(b"\0", 1)[0]
+                out[name.decode().lower()] = path
+                break
     return out
+
+
+def def_library(path: Path) -> Path:
+    """LIB.EXE's import library for a link/*.def file, built into build/place/
+    (once). The file spells each export as its __stdcall symbol does
+    (DirectDrawCreate@12), and LIB is given the names without the decoration
+    and an object that defines the decorated symbols, the way an SDK's import
+    library is made beside its DLL: the import is by the plain name (the hint
+    is its place among the sorted names), and the library defines
+    __imp__DirectDrawCreate@12 for the callers."""
+    from check import winpath
+    from link import write_stub_object
+    import subprocess
+    lib = OUT_DIR / f"{path.stem.upper()}.LIB"
+    if lib.exists() and lib.stat().st_mtime >= path.stat().st_mtime:
+        return lib
+    lines, symbols = [], []
+    for line in path.read_text().splitlines():
+        line = line.split(";", 1)[0].strip()
+        m = re.match(r"([A-Za-z_]\w*)(@\d+)?(\s+@\d+(?:\s+NONAME)?)?$", line)
+        if m and line.split()[0] not in ("LIBRARY", "EXPORTS"):
+            symbols.append("_" + m.group(1) + (m.group(2) or ""))
+            line = m.group(1) + (m.group(3) or "")
+        lines.append(line)
+    lib.parent.mkdir(parents=True, exist_ok=True)
+    plain, stub = lib.with_suffix(".def"), lib.with_suffix(".obj")
+    plain.write_text("\n".join(lines) + "\n")
+    write_stub_object(symbols, [], stub)
+    lib.unlink(missing_ok=True)
+    proc = subprocess.run([str(ROOT / "tools/wlib"), f"/def:{winpath(plain)}", winpath(stub), f"/out:{winpath(lib)}"],
+                          capture_output=True, text=True, cwd=ROOT)
+    if proc.returncode or not lib.exists():
+        raise SystemExit(f"LIB could not build {lib.name} from {path.name}:\n{proc.stdout}{proc.stderr}")
+    return lib
+
+
+@dataclass
+class ImportLibrary:
+    """An import library's members (VC5's long format: each an object with
+    .idata$ sections), by their part in the import tables."""
+    descriptor: Obj = None          # .idata$2, the import descriptor, and .idata$6, the DLL's name
+    null_descriptor: Obj = None     # .idata$3, the descriptor that ends the directory
+    null_thunk: Obj = None          # .idata$4 and .idata$5, the entries that end the DLL's tables
+    functions: dict = field(default_factory=dict)   # name or ordinal -> its member: .idata$4, $5, $6, the thunk
+
+    @classmethod
+    def read(cls, path: Path) -> "ImportLibrary":
+        lib = cls()
+        for m in read_library(path):
+            defined = [s.name for s in m.syms.values() if s.section > 0 and s.sclass == 2]
+            if any(n.startswith("__IMPORT_DESCRIPTOR_") for n in defined):
+                lib.descriptor = m
+            elif "__NULL_IMPORT_DESCRIPTOR" in defined:
+                lib.null_descriptor = m
+            elif any(n.endswith("_NULL_THUNK_DATA") for n in defined):
+                lib.null_thunk = m
+            elif any(n.startswith("__imp_") for n in defined):
+                thunk = next(s for s in m.secs if s.name == ".idata$5")
+                (value,) = struct.unpack_from("<I", thunk.data, 0)
+                if value & 0x80000000:
+                    lib.functions[value & 0xFFFF] = m
+                else:
+                    name = next(s for s in m.secs if s.name == ".idata$6").data[2:].split(b"\0", 1)[0]
+                    lib.functions[name.decode()] = m
+        return lib
+
+
+def place_imports(placer: Placer) -> None:
+    """The import tables, from the import libraries' members, as LINK puts
+    them together: the descriptors (.idata$2) in the order LINK pulled their
+    DLLs in, and the null one (.idata$3) after them; each DLL's lookup and
+    address tables (.idata$4 and .idata$5), its members' entries and then its
+    null thunk's, the DLLs in the order of their names; and the hints and
+    names (.idata$6) and the DLLs' names in the order LINK pulled the members
+    in. The address table goes at the start of .rdata, the rest at its end.
+    The orders follow Cavedog's objects, which the tree does not have (and
+    within a DLL's tables, LINK's own bookkeeping), so each member goes where
+    the original's import directory has it, as every other piece goes where
+    the original has it; the bytes and relocations are the members'. The
+    descriptors' section symbols (.idata$4, .idata$5) mean where the DLL's
+    tables start."""
+    img = placer.img
+    libs = import_libraries()
+    directory = img.base + img.pe.OPTIONAL_HEADER.DATA_DIRECTORY[1].VirtualAddress
+    entries = img.pe.DIRECTORY_ENTRY_IMPORT
+
+    def put(obj: Obj, name: str, va: int, label: str) -> None:
+        sec = next(s for s in obj.secs if s.name == name)
+        placer.place(obj, sec, 0, len(sec.data), va, IMPORTS, f"{name} of {label}")
+        placer.stats["import table pieces placed from the import libraries"] += 1
+
+    def own(member: Obj) -> Obj:
+        obj = parse(member.path, member.raw, library=True)    # each placed once
+        placer.objects.append(obj)
+        return obj
+
+    null_descriptor = None
+    for i, entry in enumerate(entries):
+        dll = entry.dll.decode()
+        if dll.lower() not in libs:
+            placer.mismatches.append(f"{dll}: no import library names this DLL")
+            continue
+        lib = ImportLibrary.read(libs[dll.lower()])
+        desc = own(lib.descriptor)
+        put(desc, ".idata$2", directory + 20 * i, dll)
+        put(desc, ".idata$6", img.base + entry.struct.Name, dll)
+        desc.section_starts = {".idata$4": img.base + entry.struct.OriginalFirstThunk,
+                               ".idata$5": img.base + entry.struct.FirstThunk}
+        for k, imp in enumerate(entry.imports):
+            key = imp.name.decode() if imp.name else imp.ordinal
+            if key not in lib.functions:
+                placer.mismatches.append(f"{dll}: {key} is not in {libs[dll.lower()].name}")
+                continue
+            member = own(lib.functions[key])
+            label = f"{dll}!{key}"
+            put(member, ".idata$5", imp.address, label)
+            put(member, ".idata$4", img.base + entry.struct.OriginalFirstThunk + 4 * k, label)
+            if imp.name:
+                put(member, ".idata$6", img.base + imp.hint_name_table_rva, label)
+            placer.import_members[imp.address] = member
+        n = len(entry.imports)
+        null_thunk = own(lib.null_thunk)
+        put(null_thunk, ".idata$5", img.base + entry.struct.FirstThunk + 4 * n, f"{dll} (the end)")
+        put(null_thunk, ".idata$4", img.base + entry.struct.OriginalFirstThunk + 4 * n, f"{dll} (the end)")
+        null_descriptor = null_descriptor or lib.null_descriptor
+    if null_descriptor:
+        put(own(null_descriptor), ".idata$3", directory + 20 * len(entries), "the import directory (the end)")
 
 
 def thunk_runs() -> list[tuple[int, int]]:
@@ -1121,30 +1261,19 @@ def place_import_thunks(placer: Placer) -> None:
     members, and the original keeps two runs of them: in the gap row 0x49f710,
     and after the runtime library in the unnamed library row 0x4faff0 (the
     import libraries LINK searched last). Each member goes where the original
-    has its stub."""
-    by_name: dict[str, tuple[Obj, Sec]] = {}
-    for lib in import_libraries():
-        for member in read_library(lib):
-            for sec in member.secs:
-                if not (sec.is_code and sec.data[:2] == b"\xff\x25" and len(sec.relocs) == 1):
-                    continue
-                target = member.syms[sec.relocs[0][1]].name
-                if target.startswith("__imp_"):
-                    by_name.setdefault(undecorate(target[len("__imp_"):]), (member, sec))
+    has its stub. The member is the one place_imports placed the tables
+    from, so the stub's slot is its own .idata$5."""
+    slots = {name: a for (_, name), a in placer.import_slots.items()}
     gaps = [(int(r["address"], 16), int(r["size"])) for r in load_rows(FUNCTIONS) if r["kind"] == "gap"]
     runs = thunk_runs()
     for name, addr in sorted(placer.thunks.items(), key=lambda kv: kv[1]):
-        if not any(a <= addr < a + n for a, n in runs) or not placer.img.free(addr) or name not in by_name:
+        member = placer.import_members.get(slots.get(name))
+        if not any(a <= addr < a + n for a, n in runs) or not placer.img.free(addr) or member is None:
             continue
-        member, sec = by_name[name]
-        member = parse(member.path, member.raw, library=True)     # each placed once
-        # The slot is the original's import address table entry, which stays
-        # the linker's: the member's own .idata sections are not placed.
-        imp = member.syms[sec.relocs[0][1]]
-        imp.section, imp.value = 0, 0
-        placer.objects.append(member)
-        placer.place(member, member.secs[sec.index - 1], 0, len(sec.data), addr, LIBCODE,
-                     f"{name} (import thunk)")
+        sec = next((s for s in member.secs if s.is_code and s.data[:2] == b"\xff\x25"), None)
+        if sec is None:
+            continue
+        placer.place(member, sec, 0, len(sec.data), addr, LIBCODE, f"{name} (import thunk)")
         placer.stats["import thunks placed from the import libraries"] += 1
     for addr, size in runs:
         if all(not placer.img.free(a) for a in range(addr, addr + size)):
@@ -1438,6 +1567,7 @@ def layout(jobs: int | None = None) -> tuple[Image, Placer]:
     place_functions(placer, by_src)
     place_gaps(placer, gap_objects())
     place_library(placer, lib_paths)
+    place_imports(placer)
     place_import_thunks(placer)
     place_tree_globals(placer, by_src)
     place_data_sources(placer, by_src)

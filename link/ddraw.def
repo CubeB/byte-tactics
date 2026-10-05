@@ -1,0 +1,23 @@
+; DDRAW.dll as the DirectX 5 SDK's ddraw.lib knew it, which the game was
+; linked with (src/data/guids.cpp has that SDK's ids). The toolchain's
+; DDRAW.LIB is DirectX 3's, and its hint for DirectDrawCreate (the index of
+; the name in the DLL's sorted export table) is 6; the original's import
+; table has 5. LIB numbers the hints in the order of the sorted names, so
+; five names come before DirectDrawCreate here: the toolchain library's
+; first six but DSoundHelp. Which one DirectX 5's lacked does not show in the
+; exe, only how many there were. Each name is spelled as its __stdcall symbol
+; is; tools/place.py builds the import library from this file and the import
+; tables from that.
+LIBRARY DDRAW
+EXPORTS
+    AcquireDDThreadLock@0
+    DDHAL32_VidMemAlloc@16
+    DDHAL32_VidMemFree@12
+    DDInternalLock@8
+    DDInternalUnlock@4
+    DirectDrawCreate@12
+    DirectDrawCreateClipper@12
+    DirectDrawEnumerateA@8
+    DirectDrawEnumerateW@8
+    DllCanUnloadNow@0
+    DllGetClassObject@12

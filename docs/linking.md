@@ -293,11 +293,40 @@ How it places things:
   the objects in `build/progress` that `tools/check.py` compares. Each
   object's COMDAT padding fills the space up to the next function, as LINK's
   would.
+- **The import tables** are the `.idata$2` to `.idata$6` sections of the
+  import libraries' members (VC5's import libraries are the long format:
+  every member an ordinary object). A function's member holds its address
+  table entry (`.idata$5`), its lookup table entry (`.idata$4`) and its hint
+  and name (`.idata$6`); a DLL's descriptor member holds the import
+  descriptor (`.idata$2`, whose section symbols `.idata$4` and `.idata$5` mean
+  where the DLL's tables start) and the DLL's name; its null thunk member ends
+  the DLL's two tables, and `__NULL_IMPORT_DESCRIPTOR` (`.idata$3`) ends the
+  directory. LINK put the address table at the start of `.rdata` and the rest
+  at its end, after the exception tables; the descriptors in the order it
+  pulled the DLLs in (DDRAW first: the order of the libraries on Cavedog's
+  command line, SHELL32 pulled in a later pass), each DLL's two tables in the
+  order of the DLLs' names, and the hints and names in the order it pulled the
+  members in. Within a DLL's tables the order is LINK's own (neither the pull
+  order nor the names'; a test link with LINK 5.10 and the same pulls orders
+  them differently again), and the pull order follows Cavedog's objects, so
+  each piece goes where the original's import directory has it, as every
+  other piece goes where the original has it. The libraries are the
+  toolchain's, `WIN32.LIB` for GOG's winmm (see the ordinary link below), and
+  LIB.EXE's from `link/*.def`: `smackw32.def` and `dplayx.def`, and
+  `ddraw.def` and `dsound.def`, which stand for the DirectX 5 SDK's
+  `ddraw.lib` and `dsound.lib`. Those give `DirectDrawCreate` and
+  `DirectSoundCreate` the hints 5 and 3 the original has, where the
+  toolchain's DirectX 3 libraries have 6 and 0 (a hint is the import's place
+  among the DLL's sorted export names, and LIB numbers them so). A `.def`
+  spells each export as its `__stdcall` symbol does (`DirectDrawCreate@12`);
+  `place.py` gives LIB the plain names and an object defining the decorated
+  symbols, so the library imports `DirectDrawCreate` by name and defines
+  `__imp__DirectDrawCreate@12` for the callers.
 - **The linker's import thunks** (`jmp [slot]`, for calls to imports declared
-  without `__declspec(dllimport)`) are the `.text` of the import libraries'
-  members, each placed where the original has its stub: 70 in the gap row
-  0x49f710 and 184 in the unnamed library row 0x4faff0, after the runtime
-  library.
+  without `__declspec(dllimport)`) are the `.text` of the same members, each
+  placed where the original has its stub: 70 in the gap row 0x49f710 and 184
+  in the unnamed library row 0x4faff0, after the runtime library. Each jumps
+  through its own member's `.idata$5`.
 - **Gap regions with matching source** (`src/gap/`, see below) are placed
   function by function from the objects `tools/gapcheck.py` checks, and
   counted as gap code. The padding between their functions is the
@@ -382,8 +411,8 @@ How it places things:
   not `game` rows).
 - **What has no source** is copied from the original and counted as copied:
   the gap regions without matching source, data no object defines, the
-  linker's import tables, the headers, `.tls` and the resources. No runtime
-  library code is copied any more.
+  headers (with the debug directory), `.tls` and the TLS directory, and the
+  resources. No runtime library code is copied any more.
 
 Every relocation is checked against the address the original's bytes give at
 that spot, and the finished image is compared with the original byte for
@@ -393,7 +422,7 @@ counts where each section's bytes came from. On 2026-10-05:
 | Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
 | `.text` | 1,026,560 | 850,853 game code, 24,762 gap code, 120,848 runtime library and import thunks, 30,097 padding | none |
-| `.rdata` | 18,432 | 3,234 compiled data, 4,148 library data, 2,965 `src/data`, 324 `link/` globals, 1,089 padding | 6,672 import tables, no other data |
+| `.rdata` | 18,432 | 6,564 import tables, 3,234 compiled data, 4,148 library data, 2,965 `src/data`, 324 `link/` globals, 1,089 padding | 84 debug directory, 24 TLS directory |
 | `.data` | 173,660 | 83,523 compiled data (with the tree's own globals), 29,537 library data, 7,694 `src/data`, 48,458 `link/` globals, 4,384 padding | 8 linker tables, 56 other data |
 
 Before the data was defined in `src/data` (#2662), 34,662 bytes of `.data`

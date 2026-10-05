@@ -2,8 +2,10 @@
 ; read from the DLL's export table. The game imports 15 of them by ordinal, so
 ; the ordinals here are what the import table holds. tools/place.py reads this
 ; to name the original's import slots; `LIB /DEF:link/smackw32.def` turns it
-; into an import library for an ordinary link.
-LIBRARY smackw32
+; into an import library, which it builds the import tables from. The DLL's
+; name is spelled as RAD's smackw32.lib spelled it, which is what the
+; original's import table holds.
+LIBRARY smackw32.DLL
 EXPORTS
     SmackBufferString@8              @1 NONAME
     SmackBufferOpen@24               @2 NONAME

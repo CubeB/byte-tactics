@@ -1,0 +1,18 @@
+; DSOUND.dll as the DirectX 5 SDK's dsound.lib knew it, which the game was
+; linked with. DirectX 5 added DirectSoundCapture, whose three exports sort
+; before DirectSoundCreate, so its hint (the index of the name in the DLL's
+; sorted export table) is 3, as the original's import table has it; the
+; toolchain's DSOUND.LIB is DirectX 3's, with 0. LIB numbers the hints in the
+; order of the sorted names. Each name is spelled as its __stdcall symbol is;
+; tools/place.py builds the import library from this file and the import
+; tables from that.
+LIBRARY DSOUND
+EXPORTS
+    DirectSoundCaptureCreate@12
+    DirectSoundCaptureEnumerateA@8
+    DirectSoundCaptureEnumerateW@8
+    DirectSoundCreate@12
+    DirectSoundEnumerateA@8
+    DirectSoundEnumerateW@8
+    DllCanUnloadNow@0
+    DllGetClassObject@12

@@ -1,14 +1,4 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-//
-// Best so far 85.2%: the code is the original's but for one register swap.
-// The original keeps `path` (and later the scaled index i * 9) in ebx and
-// `name` in edi; this compiles to the other way round. Tried: every order of
-// the five locals' declarations (120 variants), the walk as tail recursion,
-// as an endless loop and with gotos, the search loop rotated or not, a local
-// copy of `path`, `last` inverted, the else branch first, `name` defaulting
-// to `path`, an Entry pointer for the found entry, /Gi, and every set of the
-// common headers (tools/headers.py). The sibling 0x4bc800, written the same
-// way, matches with the registers this one has.
 #include <malloc.h>
 #include <string.h>
 
@@ -29,6 +19,12 @@ struct List_004bb2e0 {
 };
 
 // The entry a backslash-separated path names, walking down from `list`, or 0.
+//
+// The copy of a path component goes into its own `buf` and only then into
+// `name`. Written straight into `name` (as the sibling 0x4bc800 does), `path`
+// outranks `name` in C2's priorities and the two swap ebx and edi; the extra
+// local makes `name` a copy with few references of its own, so `buf` and `i`
+// are coloured before `path`.
 // FUNCTION: 0x4bb4e0
 Entry_004bb2e0* __stdcall FUN_004bb4e0(List_004bb2e0* list, char* path)
 {
@@ -40,9 +36,10 @@ Entry_004bb2e0* __stdcall FUN_004bb4e0(List_004bb2e0* list, char* path)
         sep = strchr(path, '\\');
         if (sep) {
             len = sep - path;
-            name = (char*)_alloca(len + 1);
-            strncpy(name, path, len);
-            name[len] = 0;
+            char* buf = (char*)_alloca(len + 1);
+            strncpy(buf, path, len);
+            buf[len] = 0;
+            name = buf;
             last = 0;
         } else {
             name = path;

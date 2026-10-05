@@ -1,27 +1,51 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 //
-// 97.0% (gapcheck), same length as the original (1829 bytes). No /Op: the
-// aligned frame comes from the double locals of the inlined Length. What
-// still differs:
+// 97.7% (gapcheck), same length as the original (1829 bytes). No /Op: the
+// aligned frame comes from the double locals of the inlined Length.
+//
+// Fixed in the second attempt:
+//  - The falloff square: the original consumes t at t * t (`fld st(1);
+//    fmulp st(2); fmulp st(1)`) and keeps edge in memory. MSVC 5 pops an x87
+//    value at its last use only when that use redefines it, so t is squared
+//    in place and the whole falloff assigned back to t before `scale = t`.
+//    Square(), `t * t` in the scale expression, or `scale = (1 - edge) * t +
+//    edge` after `t *= t` keep t on the stack until the block ends; finishing
+//    with `t = t * (1 - edge); scale = t + edge;` puts edge on the x87 stack
+//    and drops its frame slot (about 75%).
+//  - The weapon loop reads every field through `other` (no `weapons[j]`), so
+//    the derived pointer (other + 0xc) is stepped after `other`, as in the
+//    original.
+//
+// What still differs:
 //  - The upper-bound branch of each axis in the unit distance: the original
 //    loads boxMax into a register and adds it into the register holding
 //    unit->pos (`mov edx, [max]; add edi, edx; cmp ecx, edi; sub ecx, edi`);
-//    here the sum goes into boxMax's register (`add edx, edi`). Tried: an
-//    inline helper with every parameter kind and order, a named or modified
-//    origin (`o += max`, which turns into `add reg, [mem]`), b = origin; b +=
-//    max, an Add() helper, unnamed sums (MSVC then reassociates p - (o + max)
-//    into two subtractions), comparison spellings. Named per-axis locals
-//    other than `p` reshuffle the whole register allocation (about 62%).
-//  - The falloff square: the original consumes t (`fld st(1); fmulp st(2);
-//    fmulp st(1)`). Square() gives `fmul st(1)` twice and a trailing pop;
-//    a named `float t` (or a CSE'd expression) gives the original's tree
-//    shape but keeps t until the block ends (`fmul st(0), st(2)`, `fxch`, and
-//    a pop: 2 bytes longer, 91.8%).
+//    here the sum goes into boxMax's register (`add edx, edi`). In C2 (see
+//    tools/c2prio.py --trace) `b` interferes with the unit->pos common
+//    subexpression: the add is lowered as b = max; b += upos, so b can never
+//    share upos's edi, and b (priority 576) is coloured before the upos
+//    temporary (512) anyway. The original must have lowered it the other way
+//    (b = upos; b += max, with max in a scratch register). Every spelling of
+//    `int b = ...` (operands swapped, `b = upos; b += max`, an Add() helper,
+//    a ?:, `b < p`, def declared earlier) gives the same IL. Tried before
+//    that: an inline helper with every parameter kind and order (also with
+//    pointer and reference parameters, about 51%), a named or modified
+//    origin (`u += max` turns into `add reg, [mem]`; with a named `lo` as
+//    well, 85.2%), unnamed sums (MSVC reassociates p - (o + max) into two
+//    subtractions), comparison spellings, eager lo/hi (helper or Vec3
+//    operator+, 62% to 92%). Named per-axis locals other than `p` reshuffle
+//    the whole register allocation (about 62%).
 //  - The spot address: the original computes idx * 48 in eax with the spots
-//    base in edi and loads cell->flags in between; here idx * 48 lands in
-//    edx (an expression temporary rotation difference).
-//  - The weapon loop increments `other` before the derived pointer, here
-//    after.
+//    base in edi (add order idx * 48 + spots); here spots + idx * 48. No
+//    spelling moves it (casts to char* or int with either operand first, an
+//    index local, a spots local, Cell defined after Game); it follows symbol
+//    ids. With <windows.h> (any header set that gives g_game's id bit 14) the
+//    spot add matches but the feature block breaks (feature in ecx, `test
+//    byte ptr [edx + 0xc], 1`, features + idx * 256 the other way round:
+//    89.5%). Diagnostic dummy declarations (never committed) between the
+//    prototypes and this function show both right only in narrow windows
+//    about 15585 to 15630 and about 64500 ids further on, with g_game's id
+//    below 16384; no plausible real header arrangement was found for that.
 // build/scratch/gap/combo.py (alternative snippets, every combination
 // compiled and scored, optionally on an address range) found most of this.
 #include <math.h>
@@ -233,11 +257,6 @@ static inline Vec3_0049a120 Sub(const Vec3_0049a120& a, const Vec3_0049a120& b)
     return r;
 }
 
-static inline float Square(float v)
-{
-    return v * v;
-}
-
 // Splash damage: every unit and feature within the weapon's radius of `pos`
 // takes damage that falls off from the centre, and weapons in flight close
 // enough are detonated too.
@@ -321,7 +340,10 @@ void __stdcall FUN_0049a120(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                     float edge = weapon->def->edgeDamage;
                     float scale;
                     if (distance) {
-                        scale = (1.0f - edge) * Square((float)distance / radius - 1.0f) + edge;
+                        float t = (float)distance / radius - 1.0f;
+                        t *= t;
+                        t = (1.0f - edge) * t + edge;
+                        scale = t;
                     } else {
                         scale = 1.0f;
                     }
@@ -373,12 +395,11 @@ void __stdcall FUN_0049a120(Weapon_0049a120* weapon, Vec3_0049a120* pos)
     }
 
     if (weapon->def->flags.bits.detonatesWeapons) {
-        Weapon_0049a120* weapons = g_game->weapons;
-        Weapon_0049a120* other = weapons;
+        Weapon_0049a120* other = g_game->weapons;
         for (int j = 0; j < g_game->numWeapons; j++, other++) {
-            if ((weapons[j].flags & 2) || other == weapon)
+            if ((other->flags & 2) || other == weapon)
                 continue;
-            Vec3_0049a120* p = &weapons[j].pos;
+            Vec3_0049a120* p = &other->pos;
             int dx = weapon->pos.x - p->x;
             int dy = weapon->pos.y - p->y;
             int dz = weapon->pos.z - p->z;
@@ -388,7 +409,7 @@ void __stdcall FUN_0049a120(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                 FUN_00499eb0(other, 0);
                 Packet_0049a120 packet;
                 packet.type = 0xe;
-                packet.pos = weapons[j].field_28;
+                packet.pos = other->field_28;
                 packet.kind = other->def->kind;
                 FUN_00451df0(weapon->attacker->holder->playerId, &packet, sizeof(packet));
                 packet.type = 0xe;

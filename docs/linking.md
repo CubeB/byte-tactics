@@ -294,11 +294,11 @@ counts where each section's bytes came from. On 2026-10-05:
 
 | Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
-| `.text` | 1,026,560 | 850,853 game code, 116,543 runtime library, 25,371 padding | 25,456 gap regions, 8,337 runtime library |
-| `.rdata` | 18,432 | 2,436 compiled data, 3,771 library data, 3,028 `link/` globals, 372 padding | 6,529 import tables, 2,296 other data |
-| `.data` | 173,660 | 34,187 compiled data, 24,845 library data, 78,609 `link/` globals | 36,019 |
+| `.text` | 1,026,560 | 850,853 game code, 22,933 gap code, 116,963 runtime library and import thunks, 25,704 padding | 1,840 gap region (0x49a120), 8,267 runtime library |
+| `.rdata` | 18,432 | 3,182 compiled data, 3,771 library data, 3,028 `link/` globals, 372 padding | 6,529 import tables, 1,550 other data |
+| `.data` | 173,660 | 35,498 compiled data, 24,845 library data, 78,609 `link/` globals | 34,708 |
 
-Of the 37,396 relocations in placed pieces, every one in code agrees with the
+Of the 38,407 relocations in placed pieces, every one in code agrees with the
 original (136 of them reach the second copy of a function `data/aliases.csv`
 lists, such as the two `std::_Lockit`). 94 vtable entries in compiled data
 disagree and keep the original's value. The compiled image differs from the
@@ -431,9 +431,9 @@ every function has moved, so it compares where each reference leads. For
 every placed game function it reads each relocated field of
 `build/link/TotalA.exe`, maps the address back to the original through the
 map file (`link.py --carve --map`), and compares it with what the original's
-code holds in that field. On 2026-10-05 all 26,513 references it can place,
-in all 3,305 placed functions, agree, apart from 134 calls that reach the
-other copy of `std::_Lockit`. It
+code holds in that field. On 2026-10-05 all 26,517 references it can place,
+in all 3,307 placed functions (the gap regions' among them), agree, apart
+from 134 calls that reach the other copy of `std::_Lockit`. It
 exits non-zero on any difference, so a change that rebinds a name shows up
 before the game is run.
 
@@ -526,6 +526,11 @@ code), `tools/link.py` links it like any other object (in every mode), and
 naming addresses in the others by their objects' symbols. `tools/linkcmp.py`
 compares the gap functions' references too.
 
+On 2026-10-05, 27 of the 29 regions match their source (22,975 of 25,223
+bytes), the import thunks are built from their library members, and
+0x49a120 (1,829 bytes, at 97.7%) is the one region both builds still take
+from the original.
+
 | Region | Bytes | What it holds | Source |
 | --- | ---: | --- | --- |
 | 0x41dc20 | 697 | aligned frame: the end-of-game statistics table | matches |
@@ -539,16 +544,16 @@ compares the gap functions' references too.
 | 0x466050 | 1,326 | aligned frames: a saved game's player section, loaded and saved | matches |
 | 0x46c2a0 | 882 | aligned frame: the score tables for the statistics DLL | matches |
 | 0x497c70 | 101 | `__try`/`__except`: the loading thread | matches |
-| 0x49a120 | 1,829 | aligned frame: a weapon's area damage | 97.0% |
+| 0x49a120 | 1,829 | aligned frame: a weapon's area damage | 97.7% (registers in one sum, an add order) |
 | 0x49e680 | 106 | `__try`/`__except`, inline `div`: a deliberate fault to report a message | matches |
 | 0x49eda0 | 1,942 | WinMain (`__try`/`__except`); command line (`try`/`catch`, `_alloca`) | matches |
 | 0x49f710 | 419 | the linker's import thunks | placed from the import libraries |
 | 0x4b70a0 | 772 | hand-written: fixed-point trigonometry, 10 entry points | matches |
-| 0x4bb4e0 | 198 | `_alloca`: the archive entry a path names | 85.2% (one register swap) |
+| 0x4bb4e0 | 198 | `_alloca`: the archive entry a path names | matches |
 | 0x4bc800 | 197 | `_alloca`: the archive directory a path ends in | matches |
 | 0x4c4fa0 | 255 | `basic_string::_Copy`, `try`/`catch` | matches |
 | 0x4cbbe0 | 7,622 | hand-written: surface drawing, five modules with 23 more entry points | matches |
-| 0x4d8310 | 67 | inline `int 3`: a fill-pattern check | 80.6% |
+| 0x4d8310 | 67 | inline `int 3`: a fill-pattern check | matches |
 | 0x4d8870 | 318 | inline asm: two constructors that record a stack trace | matches |
 | 0x4d8d70 | 125 | inline asm: stack bounds, in three thread-local variables | matches |
 | 0x4d9ab0 | 420 | `__try`/`__except`, inline `int 3`: the fatal error handler | matches |

@@ -1,7 +1,7 @@
 // Decompiled by Sonnet. Names are provisional.
 // Slot 19 of Class_00485e30 (vtable 0x4fd698), overriding
 // Class_004b0610::FUN_004b06a0; the class views are those of
-// src/unsorted/0x485e30.cpp.
+// src/units/units_485e30.cpp.
 
 struct Elem_4b0610 {
     int value;         // +0x0

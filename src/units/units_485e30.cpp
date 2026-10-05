@@ -1,8 +1,20 @@
-// Decompiled by Haiku. Names are provisional.
-// Slot 8 of Class_00485e30 (vtable 0x4fd698), overriding
-// Class_004b0610::FUN_004b1e60; the class views are those of
-// src/unsorted/0x485e30.cpp.
-// Returns bit 1 of the flag byte that 0x480e30 reads bit 0 of.
+// Decompiled by Haiku and Opus. Names are provisional.
+// The compiler-generated scalar deleting destructor of Class_00485e30, the
+// only class derived from Class_004b0610 (src/units/cob_4b0610.cpp). Its
+// vtable at 0x4fd698 has the base's 21 slots, all overridden; slot 20 holds
+// this function. The derived class has no destructor of its own, so the
+// implicit one only calls the base destructor.
+//
+// The overrides live at 0x480770-0x481470. An override has to keep the base
+// slot's name, so slots 7-19 here carry the base names while their addresses
+// (from 0x4fd698) are noted beside them. Slots 1, 7-11, 13-15, 18 and 19 are
+// defined as these members of Class_00485e30; the rest are still matched
+// under their own placeholder classes (Class_00480c50::FUN_00480c50, ...).
+//
+// FUN_00485d40 builds the object (`new` of 0x544 bytes, the base constructor
+// inlined call, then this class's vtable). It is not decompiled yet, so the
+// global below exists only to make the compiler emit the vtable and with it
+// this COMDAT here, as in src/unsorted/0x42a870.cpp.
 
 struct Elem_4b0610 {
     int value;         // +0x0
@@ -71,12 +83,8 @@ public:
     virtual int FUN_004b06a0();                       // slot 19, 0x481470
 };
 
-// FUNCTION: 0x480e50
-int Class_00485e30::FUN_004b1e60(int param1)
-{
-    void* ptr = *(void**)((char*)this + 0x540);
-    int index = param1 + param1 * 2;
-    index = index + index * 8;
-    unsigned char val = *(unsigned char*)((char*)ptr + index * 2 + 0x4a);
-    return (val >> 1) & 1;
-}
+// FUNCTION: 0x485e30 ??_GClass_00485e30@@UAEPAXI@Z
+static Class_00485e30* s_object;
+// A namespace-scope `new` would construct the object during CRT init, and the
+// base constructor reads a global that is not set until later.
+Class_00485e30* emit_00485e30() { return new Class_00485e30; }

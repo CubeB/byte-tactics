@@ -1,8 +1,26 @@
-// Decompiled by Haiku. Names are provisional.
-// Slot 9 of Class_00485e30 (vtable 0x4fd698), overriding
-// Class_004b0610::FUN_004b1e70; the class views are those of
-// src/unsorted/0x485e30.cpp.
-// Returns bit 2 of the flag byte that 0x480e30 reads bit 0 of.
+// Decompiled by Opus. Names are provisional.
+// Slot 1 of Class_00485e30 (vtable 0x4fd698), the class derived from
+// Class_004b0610 (see src/units/units_485e30.cpp and 0x4b0610.cpp). Entry
+// layout as in the slot-0 sibling 0x480c50.
+
+#pragma pack(push, 1)
+struct Entry_00480ce0 {
+    char unknown_0[0x10];
+    int values[3];                     // +0x10
+    unsigned short shorts[11];         // +0x1c
+    short value;                       // +0x32
+    unsigned short flag0 : 1;          // +0x34 bit 0
+    unsigned short flag1 : 1;          // +0x34 bit 1
+};
+
+struct Data_00480ce0 {
+    int unknown_0;                     // +0x0
+    int unknown_4;                     // +0x4
+    int dirty;                         // +0x8
+    char unknown_c[0x16 - 0xc];
+    Entry_00480ce0 entries[1];         // +0x16
+};
+#pragma pack(pop)
 
 struct Elem_4b0610 {
     int value;         // +0x0
@@ -47,7 +65,7 @@ public:
 
 class Class_00485e30 : public Class_004b0610 {
 public:
-    int* field_540;                // +0x540
+    Data_00480ce0* data;           // +0x540
 
     virtual void FUN_00480c50(int, int, int);         // slot 0
     virtual void FUN_00480ce0(int, int, int);         // slot 1
@@ -69,12 +87,19 @@ public:
     virtual int FUN_004b0680(int, int, int, int, int); // slot 17, 0x480770
     virtual int FUN_004b0690(int);                    // slot 18, 0x481430
     virtual int FUN_004b06a0();                       // slot 19, 0x481470
+
 };
 
-// FUNCTION: 0x480e70
-int Class_00485e30::FUN_004b1e70(int param_1)
+// FUNCTION: 0x480ce0
+void Class_00485e30::FUN_00480ce0(int index, int slot, int v)
 {
-    int* ptr = field_540;
-    unsigned char value = *(unsigned char*)((char*)ptr + param_1 * 54 + 0x4a);
-    return (value >> 2) & 1;
+    if (data->entries[index].shorts[slot] != (unsigned short)v) {
+        data->entries[index].shorts[slot] = v;
+        data->entries[index].value = 0;
+        data->dirty = 1;
+        if (data->entries[index].flag1) {
+            data->unknown_4 = 0;
+        }
+    }
 }
+

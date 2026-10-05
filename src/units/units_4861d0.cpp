@@ -7,7 +7,7 @@
 // with FUN_0048a870, FUN_0047cc30, FUN_00482ac0 and the list manager and bumps
 // the player's counters at +0x144 and +0x140.
 //
-// The middle of the function is FUN_00485e90 (src/unsorted/0x485e90.cpp)
+// The middle of the function is FUN_00485e90 (src/units/units_485e90.cpp)
 // inlined by /Ob2: the 12-byte local frame is its by-value position argument,
 // and its type argument stays in dx because it is an unsigned short. Written
 // out in the body, or with an int type parameter as 0x485e90.cpp has it, the

@@ -348,7 +348,7 @@ effect, the missing piece is usually a helper that was inlined:
 - If swapping the operands of `this->a + this->b` changes nothing, move the
   expression into a small `static inline` helper that takes the object
   pointer (`MidX(this)` doing `w->x1 + w->x2`); MSVC then keeps the source
-  order. See `src/unsorted/0x44dc60.cpp`.
+  order. See `src/orders/order_targets_44dc60.cpp`.
 - A value that sits in a scratch register on one path, and is copied into
   place (`mov edx, ebp`) just before the paths merge on the other, is the
   return value of an inlined function with one `return` per path. A local
@@ -379,7 +379,7 @@ effect, the missing piece is usually a helper that was inlined:
   (members `_First` +4, `_Last` +8, `_End` +0xc). To make the compiler emit the
   template out of line, take its address in a global
   (`EraseFn g = &std::vector<T>::erase;`) and put the mangled symbol after the
-  address in the `// FUNCTION:` line. See `src/unsorted/0x40cfb0.cpp`.
+  address in the `// FUNCTION:` line. See `src/ai/ai_player_40cfb0.cpp`.
 - **A `std::vector` member starts 4 bytes before its `_First`**: the empty
   allocator byte sits at +0, padded to 4, even inside a `pack(1)` class (the
   header's own packing applies). When the original re-reads `_First` after an
@@ -826,7 +826,7 @@ single call:
   `_First` is null, else `(_Last - _First) / sizeof(T)`.
 - **`vector::erase(first, last)` out of line**: `eax` = the first argument, and a
   dead `mov [esp+8], <old _Last>` just before `ret 8` (left by the inlined
-  `_Destroy`). See `src/unsorted/0x40cfb0.cpp` and `0x40c9f0.cpp`. For vectors of
+  `_Destroy`). See `src/ai/ai_player_40cfb0.cpp` and `0x40c9f0.cpp`. For vectors of
   pointers, define the pointed-to struct (MSVC 5's `<xmemory>` needs it).
 - **`while (n--)`**: `mov esi, ecx; dec ecx; test esi, esi; je`, then
   `lea esi, [ecx+1]` inside the guarded block.
@@ -926,7 +926,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (e.g. +4) before the vtable store is the base's inline constructor (its own
   vtable store is dead and disappears), followed by the derived class storing
   its vtable. Declare the base constructor inline in the class
-  (see `src/unsorted/0x44d010.cpp`).
+  (see `src/orders/order_targets_44d010.cpp`).
 - **Freeing and zeroing several {_First,_Last,_End} triples, last member first**:
   the empty destructor of a class with `std::vector` members.
 - **A per-element call inside an inlined vector destroy loop**: the element type
@@ -1056,7 +1056,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   earlier function): define the real preceding function (`ctx.py` on the
   address just before yours) in the same file, above yours. That is how the
   original file was laid out, so it is not a trick; never define made-up
-  functions for this. See `src/unsorted/0x4b0830.cpp`. If that function
+  functions for this. See `src/units/cob_4b0830.cpp`. If that function
   already has its own file under `src/`, define it **without** a
   `// FUNCTION:` line: an address annotated in two files stops the progress
   check ("duplicate of"). 0x43f0e0 (copying 0x43e490), 0x49b720 (0x49b6e0)

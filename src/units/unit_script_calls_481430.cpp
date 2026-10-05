@@ -1,20 +1,28 @@
-// Decompiled by Haiku and Opus. Names are provisional.
-// The compiler-generated scalar deleting destructor of Class_00485e30, the
-// only class derived from Class_004b0610 (src/unsorted/0x4b0610.cpp). Its
-// vtable at 0x4fd698 has the base's 21 slots, all overridden; slot 20 holds
-// this function. The derived class has no destructor of its own, so the
-// implicit one only calls the base destructor.
-//
-// The overrides live at 0x480770-0x481470. An override has to keep the base
-// slot's name, so slots 7-19 here carry the base names while their addresses
-// (from 0x4fd698) are noted beside them. Slots 1, 7-11, 13-15, 18 and 19 are
-// defined as these members of Class_00485e30; the rest are still matched
-// under their own placeholder classes (Class_00480c50::FUN_00480c50, ...).
-//
-// FUN_00485d40 builds the object (`new` of 0x544 bytes, the base constructor
-// inlined call, then this class's vtable). It is not decompiled yet, so the
-// global below exists only to make the compiler emit the vtable and with it
-// this COMDAT here, as in src/unsorted/0x42a870.cpp.
+// Decompiled by Opus. Names are provisional.
+// Slot 18 of Class_00485e30 (vtable 0x4fd698), overriding
+// Class_004b0610::FUN_004b0690; the class views are those of
+// src/units/units_485e30.cpp.
+// Returns whether the list at +0x8a of the object two links down holds an
+// item with the given id.
+
+#pragma pack(push, 1)
+struct Item_00481430 {
+    char unknown_0[0x8e];
+    Item_00481430* next;               // +0x8e
+    char unknown_92[0xa8 - 0x92];
+    unsigned short id;                 // +0xa8
+};
+
+struct Owner_00481430 {
+    char unknown_0[0x8a];
+    Item_00481430* items;              // +0x8a
+};
+#pragma pack(pop)
+
+struct Link_00481430 {
+    char unknown_0[0xc];
+    Owner_00481430* owner;             // +0xc
+};
 
 struct Elem_4b0610 {
     int value;         // +0x0
@@ -59,7 +67,7 @@ public:
 
 class Class_00485e30 : public Class_004b0610 {
 public:
-    void* field_540;               // +0x540
+    Link_00481430* link;           // +0x540
 
     virtual void FUN_00480c50(int, int, int);         // slot 0
     virtual void FUN_00480ce0(int, int, int);         // slot 1
@@ -83,8 +91,14 @@ public:
     virtual int FUN_004b06a0();                       // slot 19, 0x481470
 };
 
-// FUNCTION: 0x485e30 ??_GClass_00485e30@@UAEPAXI@Z
-static Class_00485e30* s_object;
-// A namespace-scope `new` would construct the object during CRT init, and the
-// base constructor reads a global that is not set until later.
-Class_00485e30* emit_00485e30() { return new Class_00485e30; }
+// FUNCTION: 0x481430
+int Class_00485e30::FUN_004b0690(int id)
+{
+    Item_00481430* p = link->owner->items;
+    while (p) {
+        if (p->id == id)
+            return 1;
+        p = p->next;
+    }
+    return 0;
+}

@@ -2,8 +2,8 @@
 // Class_004b0610: an abstract base class, 0x540 bytes, vtable 0x4fdb00 with
 // 21 slots. Slots 0-6 are pure; each is named after the one override that
 // fills it, in the vtable of the only derived class (0x4fd698, see
-// src/unsorted/0x485e30.cpp). Slots 7-13 are defined in
-// src/unsorted/0x4b1e50.cpp, slots 14-19 below, and slot 20 is the virtual
+// src/units/units_485e30.cpp). Slots 7-13 are defined in
+// src/units/cob_4b1e50.cpp, slots 14-19 below, and slot 20 is the virtual
 // destructor (the vtable holds its scalar deleting destructor).
 
 struct Elem_4b0610 {

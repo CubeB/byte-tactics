@@ -54,7 +54,7 @@ struct Unit_0048b920;
 
 class Class_0043dd20 {
 public:
-    Iface_0048b920* iface;             // +0x0, see src/unsorted/0x43dd20.cpp
+    Iface_0048b920* iface;             // +0x0, see src/units/unit_scripts_43dd20.cpp
     void FUN_0043dd20(Unit_0048b920* u);
 };
 

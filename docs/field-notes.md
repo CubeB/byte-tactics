@@ -738,7 +738,7 @@ emitted both shapes from one STL source.
   all want the lea form.**
 - **The element type is not the variable.** Taking the MATCHED `0x4c4d70.cpp`
   verbatim and changing *only* the element type to `Unit*` — declared exactly as
-  `src/unsorted/0x408f30.cpp` declares it — still gives the mov form at 547
+  `src/ai/ai_player_408f30.cpp` declares it — still gives the mov form at 547
   bytes. One file style, both pointer-element instantiations, one shape; the exe
   has two.
 - **~9,700 in-process compiles produced only those two shapes**: about 70 source

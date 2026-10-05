@@ -43,7 +43,7 @@
 // The harness for the last part is in build/scratch/0x49b090/: hs.py applies a
 // list of text rewrites to base.cpp, writes each variant into v/ and scores it
 // with `check.py <addr> <file> --sym <mangled>`, which never touches
-// src/unsorted/0x49b090.cpp and takes about 0.6 s a variant. Roughly 130 source
+// src/weapons/weapons_49b090.cpp and takes about 0.6 s a variant. Roughly 130 source
 // shapes are recorded below as flat 90.6%.
 //
 // Everything after this point is the record of the earlier partial attempts and

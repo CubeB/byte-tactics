@@ -15,7 +15,7 @@
 // a register). The unit's position is a triple of shorts here, so only its
 // middle element is read as data.
 // The list insertion is the body of 0x43acb0, inlined three times, with the
-// last two sharing the flag-merge tail; see src/unsorted/0x43acb0.cpp.
+// last two sharing the flag-merge tail; see src/orders/order_list_43acb0.cpp.
 
 #pragma pack(push, 1)
 

@@ -713,7 +713,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fd3b8 DAT_004fd3b8: defined in src/data/vtables.cpp
 //   0x511df0 DAT_00511df0: Obj_00421170*[] (2), int[100] (1), void*[100] (1), Obj_00420f30*[100] (1), and 2 more
-//   0x512358 Class_00440290::DAT_00512358: defined in src/unsorted/0x440230.cpp
+//   0x512358 Class_00440290::DAT_00512358: defined in src/units/movement_class_440230.cpp
 //   0x51e59c IURect_0046e160::IU?$pair::?$_Tree::_Nilrefs: defined in src/unsorted/0x46c920.cpp
 //   0x51f2e8 DAT_0051f2e8: char* (4), int (1), int* (1), void* (1)
 //   0x4fcd98 DPSPGUID_IPX: defined in src/data/guids.cpp
@@ -761,12 +761,12 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fcd78 IID_IDirectPlay3A: defined in src/data/guids.cpp
 //   0x4fcec8 DPAID_Modem: defined in src/data/guids.cpp
 //   0x4fcfb8 DAT_004fcfb8: defined in src/data/guids.cpp
-//   0x4fd288 g_readyOrder: defined in src/data/unit_orders.cpp
+//   0x4fd288 g_readyOrder: defined in src/orders/unit_orders.cpp
 //   0x4fd328 DAT_004fd328: defined in src/data/vtables.cpp
 //   0x4fd358 DAT_004fd358: defined in src/data/vtables.cpp
 //   0x4fd388 DAT_004fd388: defined in src/data/vtables.cpp
 //   0x502ae8 DAT_00502ae8: char[] (2), char (1)
-//   0x5086e8 DAT_005086e8: defined in src/data/unit_messages.cpp
+//   0x5086e8 DAT_005086e8: defined in src/units/unit_messages.cpp
 //   0x512298 DAT_00512298: Smoke_00425b80* (1), void* (1), char* (1)
 //   0x512348 DAT_00512348: part of another global: DAT_00512340$S5516+0x8
 //   0x5129b8 DAT_005129b8: int* (2), int (1)
@@ -786,10 +786,10 @@ extern long DAT_0052a4fc;                                                       
 //   0x528ad4 DAT_00528ad4: void* (1), void (__stdcall*)(void) (1), unsigned long (__stdcall*)(char*, char*, unsigned long, unsigned long) (1)
 //   0x529e10 DAT_00529e10: part of another global: DAT_00529e00+0x10
 //   0x529f48 _tls_index: library
-//   0x4fc490 g_unitOrders: defined in src/data/unit_orders.cpp
-//   0x4fc6e8 g_groundOrders: defined in src/data/unit_orders.cpp
+//   0x4fc490 g_unitOrders: defined in src/orders/unit_orders.cpp
+//   0x4fc6e8 g_groundOrders: defined in src/orders/unit_orders.cpp
 //   0x4fc9a0 DAT_004fc9a0: defined in src/data/vtables.cpp
-//   0x4fca18 g_vtolOrders: defined in src/data/unit_orders.cpp
+//   0x4fca18 g_vtolOrders: defined in src/orders/unit_orders.cpp
 //   0x4fccd8 IID_IDirectDraw2: defined in src/data/guids.cpp
 //   0x4fce18 IID_IDirectPlayLobby2A: defined in src/data/guids.cpp
 //   0x4fce88 DPAID_ServiceProvider: defined in src/data/guids.cpp
@@ -801,10 +801,10 @@ extern long DAT_0052a4fc;                                                       
 //   0x501d38 g_consoleCommands: defined in src/data/console_commands.cpp
 //   0x501f48 g_cheatCommands: defined in src/data/console_commands.cpp
 //   0x501fd0 g_debugCommands: defined in src/data/console_commands.cpp
-//   0x505205 DAT_00505205: defined in src/data/ballistics.cpp
+//   0x505205 DAT_00505205: defined in src/weapons/ballistics.cpp
 //   0x505510 DAT_00505510: unsigned char (1), int (1)
 //   0x507b70 DAT_00507b70: unsigned char[] (1), ColourEntry_00478790[] (1)
-//   0x5086e0 DAT_005086e0: defined in src/data/unit_messages.cpp
+//   0x5086e0 DAT_005086e0: defined in src/units/unit_messages.cpp
 //   0x50a788 DAT_0050a788: defined in src/data/guids.cpp
 //   0x50c958 g_assertDialog: defined in src/data/debug_dialogs.cpp
 //   0x50cd38 g_memoryDialog: defined in src/data/debug_dialogs.cpp
@@ -883,16 +883,16 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fdbe0 DAT_004fdbe0: defined in src/data/unused.cpp
 //   0x501fcc DAT_00501fcc: defined in src/data/console_commands.cpp
 //   0x502f98 DAT_00502f98: defined in src/data/unused.cpp
-//   0x505200 g_rangeByPitch: defined in src/data/ballistics.cpp
+//   0x505200 g_rangeByPitch: defined in src/weapons/ballistics.cpp
 //   0x5066f8 DAT_005066f8: defined in src/data/unused.cpp
 //   0x506718 DAT_00506718: defined in src/data/unused.cpp
 //   0x506738 DAT_00506738: defined in src/data/unused.cpp
 //   0x506770 DAT_00506770: defined in src/data/unused.cpp
 //   0x507b64 DAT_00507b64: defined in src/data/unused.cpp
 //   0x507b68 DAT_00507b68: defined in src/data/unused.cpp
-//   0x5086d8 g_unitMessages: defined in src/data/unit_messages.cpp
-//   0x5086dc DAT_005086dc: defined in src/data/unit_messages.cpp
-//   0x5086fc DAT_005086fc: defined in src/data/unit_messages.cpp
+//   0x5086d8 g_unitMessages: defined in src/units/unit_messages.cpp
+//   0x5086dc DAT_005086dc: defined in src/units/unit_messages.cpp
+//   0x5086fc DAT_005086fc: defined in src/units/unit_messages.cpp
 //   0x50b6e0 DAT_0050b6e0: defined in src/data/unused.cpp
 //   0x5120bc DAT_005120bc: part of another global: DAT_005120b8+0x4
 //   0x512322 DAT_00512322: part of another global: DAT_00512320+0x2
@@ -936,7 +936,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e850 DAT_0051e850: part of another global: DAT_0051e828+0x28
 //   0x51e854 DAT_0051e854: part of another global: DAT_0051e828+0x2c
 //   0x51e858 DAT_0051e858: part of another global: DAT_0051e828+0x30
-//   0x51f310 DAT_0051f310: defined in src/unsorted/0x49e610.cpp
+//   0x51f310 DAT_0051f310: defined in src/weapons/weapons_49e610.cpp
 //   0x51fe40 DAT_0051fe40: part of another global: DAT_0051fdc0+0x80
 //   0x51fe98 DAT_0051fe98: part of another global: DAT_0051fdc0+0xd8
 //   0x528a58 std::IH::IU?$pair::?$_Tree::_Nilrefs: defined in src/unsorted/0x4db610.cpp

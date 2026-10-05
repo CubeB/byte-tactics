@@ -1,6 +1,7 @@
-// Decompiled by Haiku and Opus. Names are provisional.
-// Vtable slots 7-13 of Class_004b0610; the class, its constructor, slots
-// 14-19 and its destructor are in src/unsorted/0x4b0610.cpp.
+// Decompiled by Haiku. Names are provisional.
+// Slot 11 of Class_00485e30 (vtable 0x4fd698), overriding
+// Class_004b0610::FUN_004b1e90; the class views are those of
+// src/units/units_485e30.cpp.
 
 struct Elem_4b0610 {
     int value;         // +0x0
@@ -43,40 +44,33 @@ public:
     virtual ~Class_004b0610();                        // slot 20
 };
 
-// FUNCTION: 0x4b1e50
-int Class_004b0610::FUN_004b1e50(int)
-{
-    return 0;
-}
+class Class_00485e30 : public Class_004b0610 {
+public:
+    void* field_540;               // +0x540
 
-// FUNCTION: 0x4b1e60
-int Class_004b0610::FUN_004b1e60(int)
-{
-    return 0;
-}
+    virtual void FUN_00480c50(int, int, int);         // slot 0
+    virtual void FUN_00480ce0(int, int, int);         // slot 1
+    virtual void FUN_00480d50(int, int);              // slot 2
+    virtual void FUN_00480db0(int, int);              // slot 3
+    virtual void FUN_00480df0(int, int);              // slot 4
+    virtual int FUN_00480c30(int, int);               // slot 5
+    virtual int FUN_00480cb0(int, int);               // slot 6
+    virtual int FUN_004b1e50(int);                    // slot 7, 0x480e30
+    virtual int FUN_004b1e60(int);                    // slot 8, 0x480e50
+    virtual int FUN_004b1e70(int);                    // slot 9, 0x480e70
+    virtual void FUN_004b1e80(int, int, int);         // slot 10, 0x480e90
+    virtual void FUN_004b1e90(int);                   // slot 11, 0x480ea0
+    virtual void FUN_004b1ea0(int, int);              // slot 12, 0x480eb0
+    virtual void FUN_004b1eb0(int, unsigned int);     // slot 13, 0x481140
+    virtual void FUN_004b0650(unsigned short, int, int); // slot 14, 0x481340
+    virtual void FUN_004b0660(unsigned short);        // slot 15, 0x4813b0
+    virtual void FUN_004b0670(int, int);              // slot 16, 0x480b20
+    virtual int FUN_004b0680(int, int, int, int, int); // slot 17, 0x480770
+    virtual int FUN_004b0690(int);                    // slot 18, 0x481430
+    virtual int FUN_004b06a0();                       // slot 19, 0x481470
+};
 
-// FUNCTION: 0x4b1e70
-int Class_004b0610::FUN_004b1e70(int)
-{
-    return 0;
-}
-
-// FUNCTION: 0x4b1e80
-void Class_004b0610::FUN_004b1e80(int, int, int)
-{
-}
-
-// FUNCTION: 0x4b1e90
-void Class_004b0610::FUN_004b1e90(int)
-{
-}
-
-// FUNCTION: 0x4b1ea0
-void Class_004b0610::FUN_004b1ea0(int, int)
-{
-}
-
-// FUNCTION: 0x4b1eb0
-void Class_004b0610::FUN_004b1eb0(int, unsigned int)
+// FUNCTION: 0x480ea0
+void Class_00485e30::FUN_004b1e90(int)
 {
 }

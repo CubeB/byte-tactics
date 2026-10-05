@@ -119,7 +119,7 @@ Target: 20 minutes of wall clock for one function.
 | What held it back | wrong frame and calling conventions in the skeleton | stack slot order (8 diff hunks) |
 
 Both drafts are in the repository, with the remaining work listed at the top of
-each file: `src/unsorted/0x43f0e0.cpp` (39.6%) and `src/unsorted/0x4d8e60.cpp`
+each file: `src/orders/order_dispatch_43f0e0.cpp` (39.6%) and `src/unsorted/0x4d8e60.cpp`
 (48.8%).
 
 ## Open questions

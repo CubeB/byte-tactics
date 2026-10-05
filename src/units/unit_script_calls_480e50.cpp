@@ -1,7 +1,8 @@
 // Decompiled by Haiku. Names are provisional.
-// Slot 11 of Class_00485e30 (vtable 0x4fd698), overriding
-// Class_004b0610::FUN_004b1e90; the class views are those of
-// src/unsorted/0x485e30.cpp.
+// Slot 8 of Class_00485e30 (vtable 0x4fd698), overriding
+// Class_004b0610::FUN_004b1e60; the class views are those of
+// src/units/units_485e30.cpp.
+// Returns bit 1 of the flag byte that 0x480e30 reads bit 0 of.
 
 struct Elem_4b0610 {
     int value;         // +0x0
@@ -70,7 +71,12 @@ public:
     virtual int FUN_004b06a0();                       // slot 19, 0x481470
 };
 
-// FUNCTION: 0x480ea0
-void Class_00485e30::FUN_004b1e90(int)
+// FUNCTION: 0x480e50
+int Class_00485e30::FUN_004b1e60(int param1)
 {
+    void* ptr = *(void**)((char*)this + 0x540);
+    int index = param1 + param1 * 2;
+    index = index + index * 8;
+    unsigned char val = *(unsigned char*)((char*)ptr + index * 2 + 0x4a);
+    return (val >> 1) & 1;
 }

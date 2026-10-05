@@ -609,7 +609,7 @@ original's bytes, as rows of these kinds:
 | `reloc` | the target of a reference that no name leads to: the 136 calls to the other copy of `std::_Lockit`, the 30 names whose address only the original's bytes give (the vector deleting destructors, `SmackSoundEnable`), and three more | 169 |
 
 An object is named by its source file (`src/unsorted/0x4223e0.cpp`,
-`src/gap/0x49a120.cpp`), by a library and the member's place in it
+`src/weapons/weapons_49a120.cpp`), by a library and the member's place in it
 (`LIBCMT.LIB#123`, `KERNEL32.LIB#40`, the import libraries too), as
 `zlib/deflate.obj`, `link/data.obj`, `init/<symbol>` (the initialiser table
 entries `place.py` writes) and `res`, with `@<n>` for a second copy of a

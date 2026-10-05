@@ -1,26 +1,45 @@
 // Decompiled by Opus. Names are provisional.
-// Slot 1 of Class_00485e30 (vtable 0x4fd698), the class derived from
-// Class_004b0610 (see src/unsorted/0x485e30.cpp and 0x4b0610.cpp). Entry
-// layout as in the slot-0 sibling 0x480c50.
+// Slot 15 of Class_00485e30 (vtable 0x4fd698), overriding
+// Class_004b0610::FUN_004b0660; the class views are those of
+// src/units/units_485e30.cpp.
 
 #pragma pack(push, 1)
-struct Entry_00480ce0 {
-    char unknown_0[0x10];
-    int values[3];                     // +0x10
-    unsigned short shorts[11];         // +0x1c
-    short value;                       // +0x32
-    unsigned short flag0 : 1;          // +0x34 bit 0
-    unsigned short flag1 : 1;          // +0x34 bit 1
+struct Unit_004813b0 {
+    char unknown_0[0x76];
+    int position;                      // +0x76
+    char unknown_7a[0x86 - 0x7a];
+    int owner;                         // +0x86
+    char unknown_8a[0x92 - 0x8a];
+    void* type;                        // +0x92
+    char unknown_96[0xa8 - 0x96];
+    short field_a8;                    // +0xa8
+    char unknown_aa[0x110 - 0xaa];
+    unsigned int flags;                // +0x110
+    char unknown_114[0x118 - 0x114];
 };
 
-struct Data_00480ce0 {
-    int unknown_0;                     // +0x0
-    int unknown_4;                     // +0x4
-    int dirty;                         // +0x8
-    char unknown_c[0x16 - 0xc];
-    Entry_00480ce0 entries[1];         // +0x16
+struct Game_004813b0 {
+    char unknown_0[0x14357];
+    Unit_004813b0* units;              // +0x14357
 };
 #pragma pack(pop)
+
+extern Game_004813b0* g_game;
+
+struct Player_004813b0 {
+    char unknown_0[0xc];
+    int id;                            // +0x0c
+};
+
+int __stdcall FUN_0047db70(void* type, short a, int position, int b);
+void __stdcall FUN_0048aac0(Unit_004813b0* unit, int player, int a, int b);
+
+static inline Unit_004813b0* GetUnit(unsigned short id)
+{
+    if (id == 0)
+        return 0;
+    return &g_game->units[id];
+}
 
 struct Elem_4b0610 {
     int value;         // +0x0
@@ -65,7 +84,7 @@ public:
 
 class Class_00485e30 : public Class_004b0610 {
 public:
-    Data_00480ce0* data;           // +0x540
+    Player_004813b0* player;       // +0x540
 
     virtual void FUN_00480c50(int, int, int);         // slot 0
     virtual void FUN_00480ce0(int, int, int);         // slot 1
@@ -87,19 +106,15 @@ public:
     virtual int FUN_004b0680(int, int, int, int, int); // slot 17, 0x480770
     virtual int FUN_004b0690(int);                    // slot 18, 0x481430
     virtual int FUN_004b06a0();                       // slot 19, 0x481470
-
 };
 
-// FUNCTION: 0x480ce0
-void Class_00485e30::FUN_00480ce0(int index, int slot, int v)
+// FUNCTION: 0x4813b0
+void Class_00485e30::FUN_004b0660(unsigned short id)
 {
-    if (data->entries[index].shorts[slot] != (unsigned short)v) {
-        data->entries[index].shorts[slot] = v;
-        data->entries[index].value = 0;
-        data->dirty = 1;
-        if (data->entries[index].flag1) {
-            data->unknown_4 = 0;
+    Unit_004813b0* u = GetUnit(id);
+    if (u != 0 && (u->flags & 0x10000000) && u->owner == player->id) {
+        if (FUN_0047db70(u->type, u->field_a8, u->position, 1)) {
+            FUN_0048aac0(u, 0, -1, 1);
         }
     }
 }
-

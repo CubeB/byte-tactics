@@ -1,28 +1,38 @@
 // Decompiled by Opus. Names are provisional.
-// Slot 18 of Class_00485e30 (vtable 0x4fd698), overriding
-// Class_004b0610::FUN_004b0690; the class views are those of
-// src/unsorted/0x485e30.cpp.
-// Returns whether the list at +0x8a of the object two links down holds an
-// item with the given id.
+// Slot 14 of Class_00485e30 (vtable 0x4fd698), overriding
+// Class_004b0610::FUN_004b0650; the class views are those of
+// src/units/units_485e30.cpp.
 
 #pragma pack(push, 1)
-struct Item_00481430 {
-    char unknown_0[0x8e];
-    Item_00481430* next;               // +0x8e
-    char unknown_92[0xa8 - 0x92];
-    unsigned short id;                 // +0xa8
+struct Unit_00481340 {
+    char unknown_0[0x86];
+    int owner;                         // +0x86
+    char unknown_8a[0x110 - 0x8a];
+    unsigned int flags;                // +0x110
+    char unknown_114[0x118 - 0x114];
 };
 
-struct Owner_00481430 {
-    char unknown_0[0x8a];
-    Item_00481430* items;              // +0x8a
+struct Game_00481340 {
+    char unknown_0[0x14357];
+    Unit_00481340* units;              // +0x14357
 };
 #pragma pack(pop)
 
-struct Link_00481430 {
+extern Game_00481340* g_game;
+
+struct Player_00481340 {
     char unknown_0[0xc];
-    Owner_00481430* owner;             // +0xc
+    int id;                            // +0x0c
 };
+
+void __stdcall FUN_0048aac0(Unit_00481340* unit, int player, int a, int b);
+
+static inline Unit_00481340* GetUnit(unsigned short id)
+{
+    if (id == 0)
+        return 0;
+    return &g_game->units[id];
+}
 
 struct Elem_4b0610 {
     int value;         // +0x0
@@ -67,7 +77,7 @@ public:
 
 class Class_00485e30 : public Class_004b0610 {
 public:
-    Link_00481430* link;           // +0x540
+    Player_00481340* player;       // +0x540
 
     virtual void FUN_00480c50(int, int, int);         // slot 0
     virtual void FUN_00480ce0(int, int, int);         // slot 1
@@ -91,14 +101,12 @@ public:
     virtual int FUN_004b06a0();                       // slot 19, 0x481470
 };
 
-// FUNCTION: 0x481430
-int Class_00485e30::FUN_004b0690(int id)
+// FUNCTION: 0x481340
+void Class_00485e30::FUN_004b0650(unsigned short id, int a, int b)
 {
-    Item_00481430* p = link->owner->items;
-    while (p) {
-        if (p->id == id)
-            return 1;
-        p = p->next;
+    Unit_00481340* u = GetUnit(id);
+    if (u != 0 && (u->flags & 0x10000000)
+        && (u->owner == 0 || u->owner == player->id)) {
+        FUN_0048aac0(u, player->id, a, b);
     }
-    return 0;
 }

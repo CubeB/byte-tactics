@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Slot 17 of Class_00485e30 (vtable 0x4fd698), the derived class in
-// src/unsorted/0x485e30.cpp; the data at +0x540 holds the unit pointer at
+// src/units/units_485e30.cpp; the data at +0x540 holds the unit pointer at
 // +0xc. The switch over the property id 1 to 20 matches the COB script "get"
 // list (ACTIVATION, STANDINGMOVEORDERS, ..., ARMORED), with the property
 // argument in the first stack parameter. The base class slot (0x4b0680)

@@ -25,7 +25,7 @@
 // Modelling points the bytes force, kept from the earlier passes:
 //  - The 12-byte local is three ints (16.16), but every test reads only the
 //    HIGH word of each, through a cast to a struct of six shorts (the shape
-//    already matched in src/unsorted/0x408090.cpp).
+//    already matched in src/ai/ai_player_408090.cpp).
 //  - The explored byte map is spelled differently per call site: test 1
 //    through the Get method (IsExplored), tests 2 and 3 as a plain index
 //    (IsExplored2; using one helper for tests 1 to 3 scores 89.0 / 89.6), and

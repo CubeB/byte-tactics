@@ -1,8 +1,8 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 #include <string.h>
 
-// Class_004b0610 (see src/unsorted/0x4b0610.cpp) and its derived class
-// Class_00485e30 (src/unsorted/0x485e30.cpp). FUN_004b0720 attaches the
+// Class_004b0610 (see src/units/cob_4b0610.cpp) and its derived class
+// Class_00485e30 (src/units/units_485e30.cpp). FUN_004b0720 attaches the
 // object's state data: it stores the data block, looks up its runtime state,
 // reallocates the "Object States" and "Static Varibles" tables and clears the
 // state table. Called from 0x485d40 with unit->type->field_18e.

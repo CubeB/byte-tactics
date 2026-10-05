@@ -1,5 +1,5 @@
 // Decompiled by Space Bunny Free. Names are provisional.
-// Slot 16 of Class_00485e30 (vtable 0x4fd698); see src/unsorted/0x485e30.cpp
+// Slot 16 of Class_00485e30 (vtable 0x4fd698); see src/units/units_485e30.cpp
 // and the sibling slots 0x480ce0, 0x480d50, 0x480db0, 0x480df0.
 //
 // The flag at +0xba is a 1-bit `unsigned short` bitfield at bit 2, not a whole

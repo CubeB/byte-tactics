@@ -4,7 +4,7 @@
 // the unit to the position/flags setter, the object builder and two more
 // methods. When the unit type's +0x22f is 1 the unit also gets a new
 // Class_0043dc00 and the type's +0x210 copied to +0x66, the tail of the
-// matched FUN_00485e50 (src/unsorted/0x485e50.cpp) inlined.
+// matched FUN_00485e50 (src/units/units_485e50.cpp) inlined.
 // The three vtable stores are guarded by `if (unit)` but the +0xa6 store right
 // after them, and the new expression at the end, are not: a null unit pointer
 // writes to 0xa6, then to 0, and reads 0x92. Kept as the original has it.

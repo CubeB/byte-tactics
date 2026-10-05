@@ -1,12 +1,12 @@
 address,name,section,size,size_from,kind,type,type_files,other_files,types,verdict,files,max_offset,ghidra,pointers,defined,init
 0x4fc474,DAT_004fc474,.rdata,4,type,data,const unsigned char*,1,0,1,one type,1,,,,src/data/unused.cpp,0002fc07
-0x4fc490,g_unitOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Stopping_004fc490,1,src/data/unit_orders.cpp,b0125000
-0x4fc6e8,g_groundOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Standby_004fc6e8,1,src/data/unit_orders.cpp,18155000
+0x4fc490,g_unitOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Stopping_004fc490,1,src/orders/unit_orders.cpp,b0125000
+0x4fc6e8,g_groundOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Standby_004fc6e8,1,src/orders/unit_orders.cpp,18155000
 0x4fc978,DAT_004fc978,.rdata,4,type,float,const float,1,0,1,one type,1,,,,src/data/unused.cpp,00000040
 0x4fc980,DAT_004fc980,.rdata,8,gap,vtable,void*[],1,0,1,one type,1,,PTR_FUN_004fc980,2,,8073400090734000
 0x4fc9a0,DAT_004fc9a0,.rdata,4,type,data,void (__stdcall* const const*)(void),1,1,2,conflicting: shape,2,,PTR_FUN_004fc9a0,1,src/data/vtables.cpp,907e4000
 0x4fca10,DAT_004fca10,.rdata,8,gap,data,const Table_0040e630,1,1,2,conflicting: struct names only,2,0x4,,,,00283c5064503c28
-0x4fca18,g_vtolOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Standby_004fca18,1,src/data/unit_orders.cpp,18155000
+0x4fca18,g_vtolOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Standby_004fca18,1,src/orders/unit_orders.cpp,18155000
 0x4fcc48,DAT_004fcc48,.rdata,8,type,float,const double,1,0,1,one type,1,,,,src/data/unused.cpp,0000000000000040
 0x4fcc68,DAT_004fcc68,.rdata,8,gap,data,unsigned char[],1,0,1,one type,1,,,,,040e0a0000000000
 0x4fcca8,CLSID_DirectDraw,.rdata,16,type,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,src/data/guids.cpp,e00eb7d74043cf11b0630020afc2cd35
@@ -64,7 +64,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fcfe8,DAT_004fcfe8,.rdata,16,gap,data,const _GUID,1,0,1,one type,1,,,,src/data/guids.cpp,a02b46258dcecf11839b00aa00b93048
 0x4fcff8,DAT_004fcff8,.rdata,16,gap,data,const _GUID,1,0,1,one type,1,,,,src/data/guids.cpp,80fd95454d1dd11199fc0060976abf5a
 0x4fd050,DAT_004fd050,.rdata,200,gap,data,char[],1,0,1,one type,1,,,,,5761726e696e6721205468652063757272656e746c7920696e7374616c6c65642076657273696f6e206f66204d6963726f736f6674257344697265637458206d
-0x4fd288,g_readyOrder,.rdata,28,gap,data,Elem_0043c390[],2,1,2,conflicting: array or pointer,3,0x19,PTR_s_Ready_004fd288,2,src/data/unit_orders.cpp,e8105000a09e430000000000000000000f00000000b8195100000000
+0x4fd288,g_readyOrder,.rdata,28,gap,data,Elem_0043c390[],2,1,2,conflicting: array or pointer,3,0x19,PTR_s_Ready_004fd288,2,src/orders/unit_orders.cpp,e8105000a09e430000000000000000000f00000000b8195100000000
 0x4fd2b0,DAT_004fd2b0,.rdata,8,type,float,double,1,0,1,one type,1,,,,,112d4454fb211940
 0x4fd2b8,DAT_004fd2b8,.rdata,8,type,float,double,1,0,1,one type,1,,,,,000000000000c03f
 0x4fd2e4,DAT_004fd2e4,.rdata,4,type,float,const float,1,0,1,one type,1,,,,src/data/unused.cpp,00000040
@@ -158,8 +158,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x504e98,DAT_00504e98,.data,8,gap,string,char[],1,0,1,one type,1,,s_Hard_00504e98,,,4861726400000000
 0x504ea0,DAT_00504ea0,.data,8,gap,string,char[],1,0,1,one type,1,,s_Medium_00504ea0,,,4d656469756d0000
 0x504ea8,DAT_00504ea8,.data,8,gap,string,char[],1,0,1,one type,1,,s_Easy_00504ea8,,,4561737900000000
-0x505200,g_rangeByPitch,.data,4,type,data,signed char*,1,0,1,one type,1,,,,src/data/ballistics.cpp,19374655
-0x505205,DAT_00505205,.data,7,gap,data,signed char[],2,0,1,one type,2,,s_dK2_00505205,,src/data/ballistics.cpp,644b3219140f00
+0x505200,g_rangeByPitch,.data,4,type,data,signed char*,1,0,1,one type,1,,,,src/weapons/ballistics.cpp,19374655
+0x505205,DAT_00505205,.data,7,gap,data,signed char[],2,0,1,one type,2,,s_dK2_00505205,,src/weapons/ballistics.cpp,644b3219140f00
 0x505490,DAT_00505490,.data,24,gap,data,int[],1,0,1,one type,1,,INT_ARRAY_00505490,,,00c2010000e1000000960000004b00004038000080250000
 0x5054a8,DAT_005054a8,.data,4,type,data,unsigned int,1,0,1,one type,1,,UINT_005054a8,,,10000000
 0x5054b0,DAT_005054b0,.data,92,gap,data,char*[],2,0,1,one type,2,,PTR_s_PLAYERx_005054b0,20,,04565000fc555000f4555000ec555000e4555000dc555000d4555000cc555000c8555000bc5550000000000000000000b0555000a45550009855500090555000
@@ -227,11 +227,11 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x508498,DAT_00508498,.data,4,gap,string,const char[],1,0,1,one type,1,,s__IV_00508498,,,2a495600
 0x50849c,DAT_0050849c,.data,16,gap,string,char[],1,0,1,one type,1,,s_Skirmsetup4x_0050849c,,,536b69726d7365747570347800000000
 0x5084ac,DAT_005084ac,.data,16,gap,string,char[],1,0,1,one type,1,,s_SKIRMISH_GUI_005084ac,,,534b49524d4953482e47554900000000
-0x5086d8,g_unitMessages,.data,4,type,data,UnitMessage*,1,0,1,one type,1,,,,src/data/unit_messages.cpp,00000000
-0x5086dc,DAT_005086dc,.data,32,gap,data,Message_0047fad0[],1,0,1,one type,1,0x10,DAT_005086dc,,src/data/unit_messages.cpp,0000000000000000000000000000000000000000010000000a00000000000000
-0x5086e0,DAT_005086e0,.data,596,gap,data,Table_0047fd70[24],1,1,2,conflicting: struct names only,2,0x24c,DAT_005086e0,36,src/data/unit_messages.cpp,00000000000000000000000000000000010000000a00000000000000708a50000000000000000000020000000900000014000000648a5000548a500000000000
-0x5086e8,DAT_005086e8,.data,4,gap,data,Message_0047f850[],1,2,3,conflicting: struct names only,3,,DAT_005086e8,,src/data/unit_messages.cpp,00000000
-0x5086fc,DAT_005086fc,.data,560,gap,data,SoundInfo_005086fc[],1,0,1,one type,1,0x228,PTR_s_select_005086fc,36,src/data/unit_messages.cpp,708a50000000000000000000020000000900000014000000648a5000548a500000000000030000000400000002000000488a5000000000000000000004000000
+0x5086d8,g_unitMessages,.data,4,type,data,UnitMessage*,1,0,1,one type,1,,,,src/units/unit_messages.cpp,00000000
+0x5086dc,DAT_005086dc,.data,32,gap,data,Message_0047fad0[],1,0,1,one type,1,0x10,DAT_005086dc,,src/units/unit_messages.cpp,0000000000000000000000000000000000000000010000000a00000000000000
+0x5086e0,DAT_005086e0,.data,596,gap,data,Table_0047fd70[24],1,1,2,conflicting: struct names only,2,0x24c,DAT_005086e0,36,src/units/unit_messages.cpp,00000000000000000000000000000000010000000a00000000000000708a50000000000000000000020000000900000014000000648a5000548a500000000000
+0x5086e8,DAT_005086e8,.data,4,gap,data,Message_0047f850[],1,2,3,conflicting: struct names only,3,,DAT_005086e8,,src/units/unit_messages.cpp,00000000
+0x5086fc,DAT_005086fc,.data,560,gap,data,SoundInfo_005086fc[],1,0,1,one type,1,0x228,PTR_s_select_005086fc,36,src/units/unit_messages.cpp,708a50000000000000000000020000000900000014000000648a5000548a500000000000030000000400000002000000488a5000000000000000000004000000
 0x508a78,DAT_00508a78,.data,44,gap,string,char[],1,0,1,one type,1,,s_Error__Sound_system_initializati_00508a78,,,4572726f723a2020536f756e642073797374656d20696e697469616c697a6174696f6e206661696c65642e00
 0x508aa4,DAT_00508aa4,.data,16,gap,string,char[],1,0,1,one type,1,,s_UseWindowsSound_00508aa4,,,55736557696e646f7773536f756e6400
 0x508ab4,DAT_00508ab4,.data,16,gap,string,char[],1,0,1,one type,1,,s_NoDirectSound_00508ab4,,,4e6f446972656374536f756e64000000
@@ -410,7 +410,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x512344,DAT_00512344,.bss,4,type,data,int,3,13,14,conflicting: shape,16,,DAT_00512344,,in DAT_00512340$S5516+0x4,
 0x512348,DAT_00512348,.bss,4,type,data,int,1,2,3,conflicting: shape,3,,DAT_00512348,,in DAT_00512340$S5516+0x8,
 0x512350,DAT_00512350,.bss,8,gap,unreferenced,unsigned char[8],0,0,0,,0,,,,,
-0x512358,Class_00440290::DAT_00512358,.bss,1024,definition,data,Class_00440290,7,0,1,one type,7,0x400,DAT_00512358,,src/unsorted/0x440230.cpp,
+0x512358,Class_00440290::DAT_00512358,.bss,1024,definition,data,Class_00440290,7,0,1,one type,7,0x400,DAT_00512358,,src/units/movement_class_440230.cpp,
 0x512370,DAT_00512370,.bss,1000,gap,data,char[],2,0,1,one type,2,,s__00512370,,in Class_00440290::DAT_00512358+0x18,
 0x512758,DAT_00512758,.bss,8,gap,unreferenced,unsigned char[8],0,0,0,,0,,DAT_00512758,,,
 0x512760,DAT_00512760,.bss,4,type,data,int,1,0,1,one type,1,,INT_00512760,,,
@@ -742,7 +742,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51f300,DAT_0051f300,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051f300,,,
 0x51f304,DAT_0051f304,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051f304,,,
 0x51f308,DAT_0051f308,.bss,8,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,DAT_0051f308,,,
-0x51f310,DAT_0051f310,.bss,12,definition,data,Class_004c2ea0,1,0,1,one type,1,,Class_004c2ea0_0051f310,,src/unsorted/0x49e610.cpp,
+0x51f310,DAT_0051f310,.bss,12,definition,data,Class_004c2ea0,1,0,1,one type,1,,Class_004c2ea0_0051f310,,src/weapons/weapons_49e610.cpp,
 0x51f31c,DAT_0051f31c,.bss,1,type,data,unsigned char,1,0,1,one type,1,,UCHAR_00h_0051f31c,,,
 0x51f320,DAT_0051f320,.bss,2088,gap,data,App_0049e830,1,0,1,one type,1,0x202,DAT_0051f320,,,
 0x51fb48,DAT_0051fb48,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051fb48,,,

@@ -84,4 +84,7 @@ public:
 };
 
 // FUNCTION: 0x485e30 ??_GClass_00485e30@@UAEPAXI@Z
-static Class_00485e30* s_object = new Class_00485e30;
+static Class_00485e30* s_object;
+// A namespace-scope `new` would construct the object during CRT init, and the
+// base constructor reads a global that is not set until later.
+Class_00485e30* emit_00485e30() { return new Class_00485e30; }

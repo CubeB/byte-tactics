@@ -38,7 +38,10 @@ struct Entry_00462d30 {
 
 class Class_00462d30 {
 public:
-    Class_00462d30();
+    // The real constructor 0x462c00 takes a void*. Declaring a default
+    // constructor here would emit a call aliased onto it, and the callee's
+    // `ret 4` would then unbalance the initialiser's stack.
+    Class_00462d30(void* o);
     virtual ~Class_00462d30()
     {
         if (field_1c)
@@ -57,4 +60,4 @@ public:
 };
 
 // FUNCTION: 0x462cc0 ??_GClass_00462d30@@UAEPAXI@Z
-static Class_00462d30 s_obj;
+static Class_00462d30 s_obj(0);

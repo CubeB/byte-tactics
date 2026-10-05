@@ -810,6 +810,9 @@ def main() -> None:
         game = order_data(patch_objects(game, result), result)
         data_objs = order_data(data_objs, result)
     link_objects = carved[:1] + game + carved[1:] + list(data_objs)
+    # The icon, cursor and version resource, compiled from src/res/.
+    from resources import build as build_resources
+    link_objects.append(build_resources())
     if stub_mode:
         missing = unresolved_names(link_objects, set(aliases), libs)
         funcs = [n for n, is_func in missing.items() if is_func]

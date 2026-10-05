@@ -15,6 +15,7 @@ uv run tools/globals.py                # rebuild data/globals.csv, link/globals.
 uv run tools/globals.py --check        # also compile link/data.cpp and compare it with the exe
 uv run tools/stateprobe.py HEADER --rename   # how many matches a shared header would break
 uv run tools/place.py                  # link at the original's addresses: build/place/TotalA.exe
+uv run tools/resources.py              # compile src/res/ and compare it with the original's .rsrc
 uv run tools/link.py --carve           # an ordinary LINK.EXE link that runs: build/link/TotalA.exe
 uv run tools/linkcmp.py                # does every reference in it reach what the original's does?
 uv run tools/gapcheck.py [0x...]       # the gap regions' source (src/gap/) against the original
@@ -432,10 +433,32 @@ How it places things:
   library code, before the library members, and `tools/link.py` links the
   object like any other (`tools/progress.py` leaves `src/lib/` out: these are
   not `game` rows).
-- **What has no source** is copied from the original and counted as copied:
-  the gap regions without matching source, data no object defines, the
-  headers (with the debug directory) and the resources. No runtime library
-  code and no data are copied any more.
+- **The resources** are `src/res/TotalA.rc` (the icon, the cursor and the
+  version resource), which `tools/resources.py --extract` wrote out of the
+  original once, and the icon and cursor it names. Those two are Cavedog's
+  art, which the repository does not hold: `tools/resources.py` takes them
+  from a directory given with `--art` or `BT_ART_DIR` (CI supplies them so),
+  or else extracts them from the player's own `orig/TotalA.exe` into
+  `build/res/art/`, and stops with a message saying so when it has neither.
+  It compiles the script with the toolchain's `RC.EXE` (5.00.1472, which
+  `tools/setup_toolchain.sh` takes from the CD's `SHAREDIDE/BIN`), finding
+  the art through RC's include path, and converts the `.res` with SP3's
+  `CVTRES.EXE` (5.00.1668, the build the exe's Rich header names), with
+  `/MACHINE:IX86 /READONLY` as LINK runs it on a `.res` file. CVTRES lays out
+  the whole resource directory itself (`.rsrc$01`), with the data after it in
+  the script's order (`.rsrc$02`), so `place.py` puts the two sections at the
+  start of `.rsrc` and resolves their relocations like any other object's.
+  The script is plain ASCII: the copyright sign is an octal escape (`\251`)
+  read through `#pragma code_page(1252)`. Each version string ends in an
+  explicit `\0`, as Developer Studio wrote them, which is what makes the
+  lengths the original's. `tools/link.py` links the same object.
+- **The headers and the debug data** are generated, as LINK wrote them,
+  from the placed sections and the link's settings (`tools/pe.py`, below).
+- **What has no source** would be copied from the original and counted as
+  copied: the gap regions without matching source and data no object
+  defines. Nothing is copied any more: every byte of the file is compiled,
+  built by the toolchain's tools from source in the repository, or generated
+  from the settings in `link/link.toml`.
 
 Every relocation is checked against the address the original's bytes give at
 that spot, and the finished image is compared with the original byte for
@@ -445,9 +468,11 @@ counts where each section's bytes came from. On 2026-10-05:
 | Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
 | `.text` | 1,026,560 | 850,853 game code, 24,762 gap code, 120,848 runtime library and import thunks, 30,097 padding | none |
-| `.rdata` | 18,432 | 6,564 import tables, 3,234 compiled data, 4,172 library data (with the TLS directory), 2,965 `src/data`, 324 `link/` globals, 1,089 padding | 84 debug directory |
+| `.rdata` | 18,432 | 6,564 import tables, 3,234 compiled data, 4,172 library data (with the TLS directory), 2,965 `src/data`, 324 `link/` globals, 1,089 padding, 84 debug directory | none |
 | `.data` | 173,660 | 83,515 compiled data (with the tree's own globals), 29,549 library data, 7,694 `src/data`, 48,458 `link/` globals, 4,436 padding, 8 uninitialised | none |
 | `.tls` | 512 | 8 `__tls_start` and `__tls_end`, 9 thread-local variables, 495 padding | none |
+| `.rsrc` | 3,072 | 2,640 resources, 432 padding | none |
+| headers and debug data | 61,862 | 1,024 headers, 84 debug directory (in `.rdata`), 60,838 debug records after the sections | none |
 
 Before the data was defined in `src/data` (#2662), 34,662 bytes of `.data`
 and 1,546 of `.rdata` were copied: tables whose pointers `link/data.cpp` held
@@ -483,6 +508,63 @@ compiler's bytes rather than GOG's no-CD music patch, and after the link
 bytes).
 `build/place/TotalA.map` lists every placed piece and the object it came
 from.
+
+### The headers
+
+`tools/pe.py` writes what LINK adds around the sections, from the placed
+image and the settings in `link/link.toml`: the options Cavedog's build gave
+LINK 5.10 and what LINK recorded of its run.
+
+| Setting | Value | Where it shows |
+| --- | --- | --- |
+| `timestamp` | 1998-07-30 19:22:29 BST (0x35c0b9e5) | the file header, the debug directory, the CodeView record's signature |
+| `subsystem`, `entry` | `windows`, `_WinMainCRTStartup` | the optional header (the entry point is where the runtime's function is placed) |
+| `out` | `.\Release\TotalA.exe` | the MISC debug record |
+| `pdb`, `pdb_age` | `C:\cavedog\wargame\Release\TotalA.pdb`, 0 | the CodeView (NB10) debug record |
+| `unmarked_objects` | 622 | the Rich header: the objects without a `@comp.id` (Cavedog's, the runtime library's, zlib's and every import library member) |
+| LINK 5.10's defaults | base 0x400000, sections at 0x1000, file at 0x200, OS and subsystem 4.0, stack and heap 1 MB reserved, 4 KB committed | the optional header |
+
+Everything else follows from the image:
+
+- **The MS-DOS stub** is LINK's default, which `LINK.EXE` holds as a
+  template (an `MZ` header with `e_lfanew` 0); `pe.py` takes it from the
+  toolchain's `LINK.EXE`.
+- **The Rich header** has one entry per `@comp.id` among the linked objects
+  with how many carry it: the unmarked objects (the setting), then the
+  resources' object (CVTRES 5.00.1668, whose `@comp.id` `pe.py` reads from
+  it), in the order LINK met them. The key LINK 5.10 XORs it with is 0x80
+  (the stub's size) plus each entry's `@comp.id` rotated left by its count;
+  unlike later linkers' it leaves out the stub's own bytes. `e_lfanew`
+  follows the key at the next 16-byte boundary after 8 more bytes. Test
+  links with the toolchain's LINK 5.10 confirm the key, the order (the
+  entries come as LINK met their first objects) and, for objects marked like
+  the original's, `e_lfanew`; links with import libraries that LIB 5.10
+  built leave more room. LIB 5.10 marks the import libraries it builds from
+  `link/*.def`, which the SDKs' own libraries were not, so `pe.py` takes the
+  count from the setting rather than from the objects.
+- **The sections** are where the placed pieces are: each runs from a
+  section boundary (0x1000) to its last byte before a gap that reaches the
+  next boundary, is named for its first piece (`.idata$5` opens `.rdata`,
+  `.CRT$XIA` opens `.data`), and has the characteristics of its input
+  sections of its own name. Its raw data runs to its last piece of
+  initialised data (`.data`'s `.bss` is not in the file), at the file
+  alignment. The headers' sizes and the image's follow from them.
+- **The data directories** are where the pieces are: the import descriptors
+  (with the null one), the resources, the debug directory, `__tls_used` and
+  the import address table.
+- **The debug directory** goes into `.rdata` right after the import address
+  table, as LINK put it, and lists three records that follow the last
+  section in the file: MISC (the exe's name as `/OUT` gave it, in a
+  `MAX_PATH` buffer), FPO and CodeView (NB10).
+- **The FPO records** (3,782 of them, 60,512 bytes) are the placed
+  functions' own: each object's `.debug$F` holds one per function the
+  compiler made, relocated to the function's address, and LINK sorts them by
+  address. A scalar deleting destructor's record names the function by an
+  undefined symbol of its own name, which means the definition in the same
+  object. Four of the tree's functions declared no parameter where the
+  original's record counts one dword; they now take the argument their
+  callers pass (#5712). The gap regions are the code between FPO records,
+  and their objects add none.
 
 To run it, copy it into a copy of the game's directory (the Steam or GOG
 install, with `smackw32.dll` and `win32.dll`) and start it under Wine, for
@@ -615,6 +697,8 @@ and `link.py` applies that to patched copies of the objects under
   initialiser for a `locale::id` guard).
 - zlib comes from the objects `tools/setup_toolchain.sh` builds, and the
   runtime library from `LIBCMT.LIB` and `LIBCPMT.LIB`, as LINK picks them.
+- The resources (the icon, the cursor and the version) come from `src/res/`,
+  compiled as for the placement link.
 - GOG's no-CD music fix has two parts, and the link makes both. The exe
   imports WINMM's functions from `WIN32.dll`, GOG's winmm that plays the CD
   tracks from `music/*.mp3`, so the link takes them from `WIN32.LIB`, a copy

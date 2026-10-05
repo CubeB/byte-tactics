@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Run the VC++ 5.0 compiler (SP3 by default) under Wine.
+# Run the VC++ 5.0 compiler (SP3 by default) under Wine, or as tools/wlink,
+# tools/wrc and tools/wcvtres its linker and resource tools.
 # Usage: tools/wcl [cl.exe args...]    e.g. tools/wcl /c /O2 src/foo.cpp
 # Set BT_TOOLCHAIN=msvc5-rtm to use the unpatched compiler instead.
 set -euo pipefail
@@ -22,8 +23,12 @@ export WINEARCH="${WINEARCH:-win64}"
 export INCLUDE="$(winpath "$TC/INCLUDE")" LIB="$(winpath "$TC/LIB")"
 
 tool="$(basename "$0")"
+nologo=/nologo
 case "$tool" in
     wlink) exe=LINK.EXE ;;
+    wcvtres) exe=CVTRES.EXE ;;
+    # The resource compiler prints its banner whatever it is given: it has no /nologo.
+    wrc) exe=RC.EXE nologo= ;;
     *) exe=CL.EXE ;;
 esac
 # Wine's server and helper processes inherit the compiler's stdout and stderr
@@ -33,6 +38,6 @@ esac
 out="$(mktemp)"
 trap 'rm -f "$out"' EXIT
 rc=0
-wine "$TC/BIN/$exe" /nologo "$@" >"$out" 2>&1 </dev/null || rc=$?
+wine "$TC/BIN/$exe" $nologo "$@" >"$out" 2>&1 </dev/null || rc=$?
 cat "$out"
 exit "$rc"

@@ -28,12 +28,39 @@ if [ ! -d "$TC/msvc5-rtm" ]; then
         'DEVSTUDIO/VC/REDIST/MSVCP50.DLL' -r
     mkdir -p "$TC/msvc5-rtm"
     mv "$tmp/iso/DEVSTUDIO/VC/"{BIN,INCLUDE,LIB} "$TC/msvc5-rtm/"
-    mv "$tmp/iso/DEVSTUDIO/SHAREDIDE/BIN/"*.DLL "$TC/msvc5-rtm/BIN/"
+    mv "$tmp/iso/DEVSTUDIO/SHAREDIDE/BIN/"{*.DLL,RC.EXE} "$TC/msvc5-rtm/BIN/"
     # LINK.EXE loads MSDIS100.DLL, which needs MSVCP50.DLL; the compiler does not
     # use it, so it only lives under REDIST on the CD, not in BIN.
     cp "$tmp/iso/DEVSTUDIO/VC/REDIST/MSVCP50.DLL" "$TC/msvc5-rtm/BIN/"
     rm -rf "$tmp"
 fi
+
+# The resource compiler (tools/resources.py): RC.EXE is a front end to the
+# RCDLL.DLL above, and sits beside it in SHAREDIDE/BIN on the CD, not in
+# VC/BIN. The service pack updates neither. Toolchains set up before the
+# resources were built lack it, so it is fetched on its own.
+for v in msvc5-rtm msvc5-sp3; do
+    if [ -d "$TC/$v" ] && [ ! -f "$TC/$v/BIN/RC.EXE" ]; then
+        if [ ! -f "$TC/.rc/RC.EXE" ]; then
+            # Older setups kept the downloads in toolchain/downloads.
+            cd_image="$TC/downloads/vc5pro.7z"
+            if [ ! -f "$cd_image" ]; then
+                cd_image="$DL/vc5pro.7z"
+                fetch "https://winworldpc.com/download/3a575cc3-84e2-809c-c383-11c3a6e28094/from/c39ac2af-c381-c2bf-1b25-11c3a4e284a2" \
+                    "$cd_image" 106c769210e8b5c4e5be97e86bf4abae
+            fi
+            tmp="$(mktemp -d -p "$TC")"
+            7z x -y -bso0 -bsp0 "$cd_image" -o"$tmp"
+            7z x -y -bso0 -bsp0 "$tmp"/*/VCPP-5.00.iso -o"$tmp/iso" 'DEVSTUDIO/SHAREDIDE/BIN/RC.EXE' -r
+            mkdir -p "$TC/.rc"
+            mv "$tmp/iso/DEVSTUDIO/SHAREDIDE/BIN/RC.EXE" "$TC/.rc/"
+            rm -rf "$tmp"
+        fi
+        echo "fc8b4f7aba5a067fa8868aee5d82b953  $TC/.rc/RC.EXE" | md5sum -c --quiet
+        cp "$TC/.rc/RC.EXE" "$TC/$v/BIN/"
+    fi
+done
+rm -rf "$TC/.rc"
 
 # SP3: RTM with the service pack's files laid over it (upper-cased to avoid
 # case-only duplicates, which confuse Wine).

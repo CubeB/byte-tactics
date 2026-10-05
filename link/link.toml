@@ -1,0 +1,39 @@
+# The settings of the link that made TotalA.exe: the options Cavedog's build
+# gave LINK.EXE 5.10 and what LINK recorded of its run. tools/pe.py generates
+# the PE headers and the debug data from these and the placed sections; every
+# other field follows from the image. See docs/linking.md, "The headers".
+
+# When LINK ran: Thu 30 Jul 1998 19:22:29 BST (18:22:29 UTC, 0x35c0b9e5). The
+# file header, each debug directory entry and the CodeView record hold it.
+timestamp = 1998-07-30T19:22:29+01:00
+
+# /SUBSYSTEM:WINDOWS. The entry point is the C runtime's for that subsystem.
+subsystem = "windows"
+entry = "_WinMainCRTStartup"
+
+# /DEBUG with the debug information in a program database (/PDB): LINK writes
+# a debug directory with three records after the sections, the exe's name as
+# /OUT gave it (MISC), the objects' frame pointer omission records (FPO), and
+# the program database's name, signature and age (CodeView NB10). The
+# signature is the link's timestamp: LINK made the program database afresh.
+out = '.\Release\TotalA.exe'
+pdb = 'C:\cavedog\wargame\Release\TotalA.pdb'
+pdb_age = 0
+
+# The objects the link took in that carry no @comp.id, which the Rich header
+# counts: Cavedog's objects, the runtime library's and zlib's, and every
+# member of the import libraries. The tree has one object per function, so
+# the number is the original link's. The .res object (CVTRES 5.00.1668) is the
+# only one with a @comp.id; it was linked after the first of the others.
+unmarked_objects = 622
+
+# LINK 5.10's defaults, which Cavedog's options left alone.
+image_base = 0x400000
+section_alignment = 0x1000
+file_alignment = 0x200
+os_version = "4.0"
+subsystem_version = "4.0"
+stack_reserve = 0x100000
+stack_commit = 0x1000
+heap_reserve = 0x100000
+heap_commit = 0x1000

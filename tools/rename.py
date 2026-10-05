@@ -56,9 +56,10 @@ that pass and lists the others.
 The checks, unless --no-check: tools/progress.py (every function that
 matched before still matches), tools/globals.py (link/ follows the new
 names), tools/place.py --write-layout (the shipped MD5, and data/layout.csv
-unchanged but for the renamed names of static initializers: any other change
-means a rename moved a piece within its object, as renaming file statics can
-reorder an object's .bss) and
+unchanged but for the renamed names of static initializers and the objects
+tools/globals.py generates under link/, whose .bss the compiler orders by
+name: any other change means a rename moved a piece within a game object, as
+renaming file statics can reorder its .bss) and
 tools/place.py --no-orig (the same MD5 from data/layout.csv alone); with
 --full also tools/link.py --carve and tools/linkcmp.py. On a
 failure the files stay renamed for a look; `git checkout -- .` undoes it.
@@ -353,6 +354,12 @@ def matched() -> dict[str, str]:
         return {r["address"]: r["status"] for r in csv.DictReader(fh)}
 
 
+def game_layout(text: str) -> list[str]:
+    """The layout rows of the game's own objects: link/ holds generated objects
+    (link/data.cpp and the like), laid out by the names globals.py gives them."""
+    return [line for line in text.splitlines() if not "".join(line.split(",")[3:4]).startswith("link/")]
+
+
 def checks(full: bool, before: dict[str, str], layout: str) -> list[str]:
     failures = []
     print("tools/progress.py ...", flush=True)
@@ -375,7 +382,7 @@ def checks(full: bool, before: dict[str, str], layout: str) -> list[str]:
         print("  " + line[:100])
         if "the shipped exe" not in line or "NOT the shipped exe" in line:
             failures.append(f"{label}: not the shipped exe")
-        if label.endswith("--write-layout") and LAYOUT.read_text() != layout:
+        if label.endswith("--write-layout") and game_layout(LAYOUT.read_text()) != game_layout(layout):
             failures.append("data/layout.csv changed: a piece moved within its object "
                             "(renamed file statics can reorder .bss); `git diff data/layout.csv`")
     if full:

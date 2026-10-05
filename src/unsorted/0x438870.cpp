@@ -1,15 +1,19 @@
 // Decompiled by Haiku. Names are provisional.
+// Class_0043a1f0's override of its base's only virtual (vtable 0x4fd2c8, slot
+// 0; see 0x43a420.cpp): it sets flag bits in the dword at +0x4e.
 
-struct Class_00438870 {
-    char unknown_0[0x4c];
-    unsigned short unknown_0x4c;
-    int field_0x4e;
+class Class_0043a1e0 {
+public:
+    virtual void FUN_0043a1e0(unsigned int);
+};
 
-    void FUN_00438870(unsigned int param_1);
+class Class_0043a1f0 : public Class_0043a1e0 {
+public:
+    virtual void FUN_0043a1e0(unsigned int param_1);
 };
 
 // FUNCTION: 0x438870
-void Class_00438870::FUN_00438870(unsigned int param_1)
+void Class_0043a1f0::FUN_0043a1e0(unsigned int param_1)
 {
     int* ptr = (int*)((char*)this + 0x4e);
     *ptr |= param_1;

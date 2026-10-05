@@ -78,8 +78,8 @@ public:
 #pragma pack(push, 1)
 class Class_0043a1f0 : public Class_0043a1e0 {
 public:
-    // Slot 0 of vtable 0x4fd2c8, overriding the base's: 0x438870 (matched
-    // as Class_00438870::FUN_00438870).
+    // Slot 0 of vtable 0x4fd2c8, overriding the base's: 0x438870 (defined
+    // in 0x438870.cpp).
     virtual void FUN_0043a1e0(unsigned int);
 
     unsigned char kind;              // +0x4

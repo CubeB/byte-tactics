@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Class_004716a0's slot 1 override (vtable 0x4fd5d8, see 0x4716a0.cpp and
-// 0x471cc0.cpp for the family). It walks the std::vector of 0x3c-byte
+// Class_004716a0's slot 1 override, FUN_00472d50 (vtable 0x4fd5d8, see
+// 0x4716a0.cpp and 0x471cc0.cpp for the family). It walks the std::vector of 0x3c-byte
 // elements at +0xc, advances each one with FUN_00474130, and erases every
 // element FUN_004742a0 reports as expired, then, when virtual slot 5
 // (0x4730c0) is true, calls virtual slot 4 (0x4743a0).
@@ -53,7 +53,7 @@ public:
     int field_8;                                        // +0x8
     std::vector<Class_00474130> items;                  // +0xc (_First +0x10)
 
-    void FUN_00473010();
+    virtual void FUN_00472d50();                        // slot 1, 0x473010
     virtual void FUN_00472e30(int);                     // slot 2, 0x4730f0
     virtual int FUN_00472e70();                         // slot 3, 0x473130
     virtual void FUN_004743a0();                        // slot 4, 0x4743a0
@@ -61,7 +61,7 @@ public:
 };
 
 // FUNCTION: 0x473010
-void Class_004716a0::FUN_00473010()
+void Class_004716a0::FUN_00472d50()
 {
     for (std::vector<Class_00474130>::iterator it = items.begin(); it != items.end(); ) {
         it->FUN_00474130();

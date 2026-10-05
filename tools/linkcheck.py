@@ -637,6 +637,11 @@ def address_of(sym: str, symbols: dict[str, int]) -> int | None:
     if sym.startswith("__imp_"):
         return None
     name = base_name(sym)
+    if "::" in name and name in symbols:
+        # A method named after the base class's virtual it overrides
+        # (Class_0044f010::FUN_0044ef40 is at 0x44f150): its definition's
+        # address, which data/symbols.csv learns from the match.
+        return symbols[name]
     m = PLACEHOLDER.search(name.split("::")[-1])
     if m:
         return int(m.group(1), 16)

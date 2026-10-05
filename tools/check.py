@@ -43,6 +43,11 @@ FORBIDDEN = re.compile(r"\b(__asm|_asm|_emit|__emit)\b|#\s*pragma\s+(optimize|co
 # there (cpuid, int 3, hand-written routines), so it is allowed in those files
 # only, and so are the flags their functions were evidently compiled with.
 GAP_DIR = ROOT / "src/gap"
+# The game's data as source: definitions of globals, tables and strings, each
+# annotated `// GLOBAL: 0x...` on the line before (docs/linking.md, "The data
+# as source"). tools/place.py places each one at its address and compares it.
+DATA_DIR = ROOT / "src/data"
+GLOBAL_ANNOTATION = re.compile(r"^\s*//\s*GLOBAL:\s*(0x[0-9a-fA-F]+)")
 GAP_FORBIDDEN = re.compile(r"#\s*pragma\s+(optimize|code_seg)")
 # Runtime library code (data/functions.csv's `library` rows) that no library
 # member holds, compiled from the toolchain's own headers with the game's
@@ -157,10 +162,52 @@ def load_aliases() -> dict[str, set[int]]:
 
 
 def load_symbols() -> dict[str, int]:
-    if not SYMBOLS.exists():
-        return {}
-    with SYMBOLS.open() as fh:
-        return {row["name"]: int(row["address"], 16) for row in csv.DictReader(fh)}
+    out = {}
+    if SYMBOLS.exists():
+        with SYMBOLS.open() as fh:
+            out = {row["name"]: int(row["address"], 16) for row in csv.DictReader(fh)}
+    # The names src/data gives the data it defines.
+    for address, name in data_annotations():
+        out.setdefault(name, address)
+    return out
+
+
+def global_annotations(src: Path) -> list[tuple[int, str]]:
+    """(address, name) for every // GLOBAL: annotation in a file: the name of
+    the variable the definition after it defines."""
+    lines = src.read_text(errors="replace").splitlines()
+    out = []
+    for i, line in enumerate(lines):
+        m = GLOBAL_ANNOTATION.match(line)
+        if not m:
+            continue
+        following = [l for l in lines[i + 1:i + 12] if l.strip() and not l.strip().startswith("//")]
+        text = " ".join(following[:3])
+        # The declarator ends at its initialiser or at the end of the declaration;
+        # array extents and a function pointer's parameter list are not names.
+        head = re.split(r"[=;{]", text, maxsplit=1)[0]
+        head = re.sub(r"\[[^\]]*\]", " ", head)
+        head = re.sub(r"\)\s*\([^()]*\)\s*$", ")", head)
+        names = [n for n in re.findall(r"[A-Za-z_]\w*", head)
+                 if n not in ("const", "static", "extern", "volatile", "unsigned", "signed", "struct",
+                              "class", "union", "enum", "__cdecl", "__stdcall", "__fastcall")]
+        out.append((int(m.group(1), 16), names[-1] if names else ""))
+    return out
+
+
+_data_annotations: list[tuple[int, str]] | None = None
+
+
+def data_annotations() -> list[tuple[int, str]]:
+    """(address, name) for every global src/data defines."""
+    global _data_annotations
+    if _data_annotations is None:
+        _data_annotations = [a for src in sorted(DATA_DIR.glob("*.cpp")) for a in global_annotations(src)]
+    return _data_annotations
+
+
+def is_data_source(src: Path) -> bool:
+    return src.resolve().is_relative_to(DATA_DIR)
 
 
 # --- source files -------------------------------------------------------------

@@ -53,9 +53,9 @@ public:
     virtual void FUN_004b1e80(int, int, int);         // slot 10
     virtual void FUN_004b1e90(int);                   // slot 11
     virtual void FUN_004b1ea0(int, int);              // slot 12
-    virtual void FUN_004b1eb0(int, int);              // slot 13
-    virtual void FUN_004b0650(int, int, int);         // slot 14
-    virtual void FUN_004b0660(int);                   // slot 15
+    virtual void FUN_004b1eb0(int, unsigned int);     // slot 13
+    virtual void FUN_004b0650(unsigned short, int, int); // slot 14
+    virtual void FUN_004b0660(unsigned short);        // slot 15
     virtual void FUN_004b0670(int, int);              // slot 16
     virtual int FUN_004b0680(int, int, int, int, int); // slot 17
     virtual int FUN_004b0690(int);                    // slot 18
@@ -80,9 +80,9 @@ public:
     virtual void FUN_004b1e80(int, int, int);         // slot 10, 0x480e90
     virtual void FUN_004b1e90(int);                   // slot 11, 0x480ea0
     virtual void FUN_004b1ea0(int, int);              // slot 12, 0x480eb0
-    virtual void FUN_004b1eb0(int, int);              // slot 13, 0x481140
-    virtual void FUN_004b0650(int, int, int);         // slot 14, 0x481340
-    virtual void FUN_004b0660(int);                   // slot 15, 0x4813b0
+    virtual void FUN_004b1eb0(int, unsigned int);     // slot 13, 0x481140
+    virtual void FUN_004b0650(unsigned short, int, int); // slot 14, 0x481340
+    virtual void FUN_004b0660(unsigned short);        // slot 15, 0x4813b0
     virtual void FUN_004b0670(int, int);              // slot 16, 0x480b20
     virtual int FUN_004b0680(int, int, int, int, int); // slot 17, 0x480770
     virtual int FUN_004b0690(int);                    // slot 18, 0x481430

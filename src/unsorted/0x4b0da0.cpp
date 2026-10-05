@@ -151,9 +151,9 @@ class Class_004b0da0
     virtual void FUN_004b1e80(int, int, int);
     virtual void FUN_004b1e90(int);
     virtual void FUN_004b1ea0(int, int);
-    virtual void FUN_004b1eb0(int, int);
-    virtual void FUN_004b0650(int, int, int);
-    virtual void FUN_004b0660(int);
+    virtual void FUN_004b1eb0(int, unsigned int);
+    virtual void FUN_004b0650(unsigned short, int, int);
+    virtual void FUN_004b0660(unsigned short);
     virtual void FUN_004b0670(int, int);
     virtual int FUN_004b0680(int, int, int, int, int);
     virtual int FUN_004b0690(int);

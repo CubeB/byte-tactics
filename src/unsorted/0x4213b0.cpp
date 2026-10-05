@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // One tick of a projectile (slot of DAT_00511df0, see 0x421170/0x420f30).
-// obj is the 0x30-byte header FUN_00481140 builds; inner (+0x2c) holds the
+// obj is the 0x30-byte header 0x481140 builds; inner (+0x2c) holds the
 // position at +0x16 and the three rotation shorts at +0x10. The timer at
 // +0x20 counts down. Above sea level the projectile moves and FUN_00485140
 // (map height under the point) decides whether it hit the ground: on a hit it

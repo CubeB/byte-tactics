@@ -55,8 +55,8 @@ void FUN_00442560()
     gadget->field_1c = 0;
     FUN_004288d0(0, 0, 0, 0);
     FUN_004ca490((char*)g_game + 0x14);
-    FUN_004a32a0(&g_game->menu, "PORTS", "COM1", 4, 0);
-    FUN_004a32a0(&g_game->menu, "SPEEDS", "115200", 6, 0);
+    FUN_004a32a0(&g_game->menu, "PORTS", "COM1\0COM2\0COM3\0COM4", 4, 0);
+    FUN_004a32a0(&g_game->menu, "SPEEDS", "115200\0" "57600\0" "38400\0" "19200\0" "14400\0" "9600", 6, 0);
 
     int value;
     unsigned int size = 4;

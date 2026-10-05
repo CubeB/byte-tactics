@@ -5,10 +5,11 @@
 // this function. The derived class has no destructor of its own, so the
 // implicit one only calls the base destructor.
 //
-// The overrides live at 0x480770-0x481470 and are currently matched under
-// their own placeholder classes (Class_00480c50::FUN_00480c50, ...); an
-// override has to keep the base slot's name, so slots 7-19 here carry the
-// base names while their addresses (from 0x4fd698) are noted beside them.
+// The overrides live at 0x480770-0x481470. An override has to keep the base
+// slot's name, so slots 7-19 here carry the base names while their addresses
+// (from 0x4fd698) are noted beside them. Slots 1, 7-11, 13-15, 18 and 19 are
+// defined as these members of Class_00485e30; the rest are still matched
+// under their own placeholder classes (Class_00480c50::FUN_00480c50, ...).
 //
 // FUN_00485d40 builds the object (`new` of 0x544 bytes, the base constructor
 // inlined call, then this class's vtable). It is not decompiled yet, so the
@@ -46,9 +47,9 @@ public:
     virtual void FUN_004b1e80(int, int, int);         // slot 10
     virtual void FUN_004b1e90(int);                   // slot 11
     virtual void FUN_004b1ea0(int, int);              // slot 12
-    virtual void FUN_004b1eb0(int, int);              // slot 13
-    virtual void FUN_004b0650(int, int, int);         // slot 14
-    virtual void FUN_004b0660(int);                   // slot 15
+    virtual void FUN_004b1eb0(int, unsigned int);     // slot 13
+    virtual void FUN_004b0650(unsigned short, int, int); // slot 14
+    virtual void FUN_004b0660(unsigned short);        // slot 15
     virtual void FUN_004b0670(int, int);              // slot 16
     virtual int FUN_004b0680(int, int, int, int, int); // slot 17
     virtual int FUN_004b0690(int);                    // slot 18
@@ -73,9 +74,9 @@ public:
     virtual void FUN_004b1e80(int, int, int);         // slot 10, 0x480e90
     virtual void FUN_004b1e90(int);                   // slot 11, 0x480ea0
     virtual void FUN_004b1ea0(int, int);              // slot 12, 0x480eb0
-    virtual void FUN_004b1eb0(int, int);              // slot 13, 0x481140
-    virtual void FUN_004b0650(int, int, int);         // slot 14, 0x481340
-    virtual void FUN_004b0660(int);                   // slot 15, 0x4813b0
+    virtual void FUN_004b1eb0(int, unsigned int);     // slot 13, 0x481140
+    virtual void FUN_004b0650(unsigned short, int, int); // slot 14, 0x481340
+    virtual void FUN_004b0660(unsigned short);        // slot 15, 0x4813b0
     virtual void FUN_004b0670(int, int);              // slot 16, 0x480b20
     virtual int FUN_004b0680(int, int, int, int, int); // slot 17, 0x480770
     virtual int FUN_004b0690(int);                    // slot 18, 0x481430

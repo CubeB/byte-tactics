@@ -76,9 +76,9 @@ SKIP_SECTIONS = (".drectve", ".debug")
 # Where each byte of the image came from.
 SOURCES = ["unset", "game code", "game data", "global data", "library (copied)", "gap (copied)",
            "data (copied)", "padding", "headers, imports, resources (copied)", "library code",
-           "library data", "gap code"]
+           "library data", "gap code", "data source"]
 (UNSET, CODE, OBJDATA, GLOBALDATA, LIBRARY, GAP, COPIED, PADDING, FIXED, LIBCODE,
- LIBDATA, GAPCODE) = range(len(SOURCES))
+ LIBDATA, GAPCODE, DATASRC) = range(len(SOURCES))
 
 # The libraries the original links statically: the VC5 SP3 C and C++ runtimes,
 # and zlib 1.0.4 as tools/setup_toolchain.sh builds it with Cavedog's options.
@@ -127,6 +127,7 @@ class Obj:
     raw: bytes
     library: bool = False      # a member of a runtime or third-party library
     gap: bool = False          # a gap region's source (tools/gapcheck.py)
+    data: bool = False         # the data as source (src/data)
     externals: dict[str, Sym] = field(default_factory=dict)
     absolutes: dict[str, int] = field(default_factory=dict)    # IMAGE_SYM_ABSOLUTE externals
     commons: dict[str, int] = field(default_factory=dict)      # communal (.bss) externals -> size
@@ -290,7 +291,8 @@ class Image:
             out.append((self.base + entry.struct.Name, len(entry.dll) + 1))
             for imp in entry.imports:
                 if imp.name:
-                    out.append((self.base + imp.hint_name_table_rva, len(imp.name) + 3))
+                    # A hint, the name and its NUL, padded to an even length.
+                    out.append((self.base + imp.hint_name_table_rva, (len(imp.name) + 4) & ~1))
         return out
 
 
@@ -424,7 +426,7 @@ class Placer:
         if obj.library:
             source = LIBCODE if sec.is_code else LIBDATA
         else:
-            source = (GAPCODE if obj.gap else CODE) if sec.is_code else OBJDATA
+            source = (GAPCODE if obj.gap else CODE) if sec.is_code else (DATASRC if obj.data else OBJDATA)
         piece = self.place(obj, sec, lo, hi, start, source, f"{sec.name} of {obj.path.stem} ({sym.name})")
         piece.why = why
         self.stats["code pieces placed where the original refers to them" if sec.is_code
@@ -678,9 +680,10 @@ class Placer:
                 if target != orig_target:
                     note = (f"{site:#x} in {piece.label}: {sym.name} resolves to {target:#x}, "
                             f"the original uses {orig_target:#x}")
-                    if not sec.is_code:
+                    if not sec.is_code and piece.source != DATASRC:
                         # A vtable or table of the source's own (partial) view of
-                        # a class: keep the original's entry.
+                        # a class: keep the original's entry. (src/data is the
+                        # data itself, so a wrong pointer there is an error.)
                         self.kept.append(note)
                         o = site - self.img.base
                         if self.pieces_own(piece, site):
@@ -766,6 +769,54 @@ def place_gaps(placer: Placer, gaps: dict) -> None:
         placer.gap_regions[region] = gap
         placer.built_regions.add(region)
         placer.stats["gap regions built from source"] += 1
+
+
+def place_tree_globals(placer: Placer, objects_by_src: dict[str, Obj]) -> None:
+    """The globals the tree's own files define (class objects with static
+    initialisers, template statics), each from its largest definition: two
+    files can hold different views of one class (0x460e20's Class_00460f60
+    is 0xb53c bytes, 0x460f60's 0xb528)."""
+    for row in load_rows(GLOBALS):
+        if row.get("size_from") != "definition":
+            continue
+        addr = int(row["address"], 16)
+        best = None
+        for src, obj in objects_by_src.items():
+            if not src.startswith("src/unsorted/"):
+                continue
+            for name, sym in obj.externals.items():
+                sec = obj.secs[sym.section - 1]
+                if sec.is_code or address_of(name, placer.symbols) != addr:
+                    continue
+                lo, hi = sec.slice_at(sym.value)
+                if best is None or hi - lo > best[3] - best[2]:
+                    best = (obj, sec, lo, hi, name)
+        if best is not None and placer.img.free(addr):
+            obj, sec, lo, hi, name = best
+            placer.place(obj, sec, lo, hi, addr, OBJDATA, name)
+            placer.stats["globals placed from the tree's own definitions"] += 1
+
+
+def place_data_sources(placer: Placer, objects_by_src: dict[str, Obj]) -> None:
+    """src/data, the game's data as source: every global at the address its
+    `// GLOBAL:` annotation (or its DAT_<address> name) gives, from its
+    symbol to the next one. String literals and other data its initial
+    values point at follow where the original's pointers point."""
+    for src, obj in sorted(objects_by_src.items()):
+        if not src.startswith("src/data/"):
+            continue
+        obj.data = True
+        for name, sym in sorted(obj.externals.items(), key=lambda kv: (kv[1].section, kv[1].value)):
+            sec = obj.secs[sym.section - 1]
+            if sec.is_code or sec.name.startswith(SKIP_SECTIONS) or name.startswith(("??_C@", "__real@")):
+                continue          # literals and constants go where the original's pointers point
+            addr = address_of(name, placer.symbols)
+            if addr is None:
+                placer.mismatches.append(f"{src}: {name} has no address (annotate it // GLOBAL: 0x...)")
+                continue
+            lo, hi = sec.slice_at(sym.value)
+            placer.place(obj, sec, lo, hi, addr, DATASRC, name)
+            placer.stats["globals placed from src/data"] += 1
 
 
 def place_globals(placer: Placer, data_objs: list[Path], data_addr: dict[int, str]) -> None:
@@ -1060,6 +1111,86 @@ def copy_unbuilt(img: Image) -> None:
         img.copy(start, max(vsize, rsize), COPIED)
 
 
+def place_crt_tables(placer: Placer) -> None:
+    """The C runtime's tables of initialisers and terminators (__xc_a to
+    __xc_z and the rest at the start of .data), which LINK builds from every
+    object's .CRT$X* sections: each section holds a pointer to one function,
+    and goes where the original's table holds that function's address."""
+    img = placer.img
+    data = next(s for s in img.sections if s[0] == ".data")
+    lo, hi = data[1], data[1] + 0x100
+    slots: dict[int, list[int]] = defaultdict(list)
+    for va in range(lo, hi, 4):
+        v = img.u32(va)
+        if v:
+            slots[v].append(va)
+    for obj in list(placer.objects):
+        for sec in obj.secs:
+            if not sec.name.startswith(".CRT$X") or len(sec.data) != 4 or len(sec.relocs) != 1:
+                continue
+            off, symidx, rtype = sec.relocs[0]
+            sym = obj.syms[symidx]
+            if sym.section > 0:
+                target = placer.address_in(obj, sym.section, sym.value)
+            else:
+                target = placer.globals.get(sym.name) or placer.named_address(sym.name)
+            for va in slots.get(target, ()):
+                if img.free(va):
+                    placer.place(obj, sec, 0, 4, va, LIBDATA if obj.library else OBJDATA,
+                                 f"{sec.name} of {obj.path.stem}")
+                    placer.stats["initialiser table entries placed from .CRT$X* sections"] += 1
+                    break
+    # The original's initialisers the tree spells as ordinary functions
+    # (FUN_004205f0): tools/link.py gives each a .CRT$XCU entry of its own.
+    from link import write_init_object
+    names = {a: n for n, a in placer.globals.items()}
+    for v, vas in sorted(slots.items()):
+        va = next((a for a in vas if img.free(a)), None)
+        if va is None or v not in names or not img.inside(v) or img.src[v - img.base] not in (CODE, GAPCODE):
+            continue
+        path = OUT_DIR / "init" / f"{v:08x}.obj"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        write_init_object(names[v], path)
+        obj = parse(path)
+        placer.objects.append(obj)
+        placer.place(obj, obj.secs[0], 0, 4, va, OBJDATA, f".CRT$XCU for {names[v]}")
+        placer.stats["initialiser table entries placed from .CRT$X* sections"] += 1
+    placer.relocate()
+    # What is left of the tables (their null entries) is the linker's.
+    ends = []
+    for row in load_rows(FUNCTIONS):
+        if row["name"] in ("__cinit", "_doexit"):
+            at, size = int(row["address"], 16), int(row["size"])
+            code = img.pristine[at - img.base: at - img.base + size]
+            ends += [struct.unpack_from("<I", code, i + 1)[0] for i in range(len(code) - 5)
+                     if code[i] == 0x68 and lo <= struct.unpack_from("<I", code, i + 1)[0] < hi]
+    if ends:
+        img.copy(lo, max(ends) + 4 - lo, FIXED)
+
+
+def pad_data(placer: Placer) -> None:
+    """The linker's alignment padding between pieces of data: zeros after
+    one placed piece, up to the next placed piece at its section's alignment
+    (a string literal of six bytes, then two zeros before the next one)."""
+    img = placer.img
+    for p in sorted(placer.pieces, key=lambda p: p.va):
+        if p.sec.is_code:
+            continue
+        n = (p.sec.chars >> 20) & 0xF
+        # One global of a section that holds several: a dword's alignment, or
+        # a double's for an eight-byte global on an eight-byte boundary.
+        align = (1 << (n - 1) if n else 16) if not p.lo else (8 if p.hi - p.lo == 8 and not p.va % 8 else 4)
+        o = p.va - img.base
+        if align < 2 or p.va % align:
+            continue
+        run = o
+        while run > o - align + 1 and img.src[run - 1] == UNSET and not img.pristine[run - 1]:
+            run -= 1
+        if run < o and img.src[run - 1] != UNSET:
+            for i in range(run, o):
+                img.out[i], img.src[i] = 0, PADDING
+
+
 def write_exe(img: Image, out: Path) -> None:
     raw = bytearray(img.pe.__data__[:img.pe.OPTIONAL_HEADER.SizeOfHeaders])
     for name, start, vsize, rsize, s in img.sections:
@@ -1131,7 +1262,7 @@ def report(img: Image, placer: Placer, verbose: bool) -> int:
         parts = [f"{SOURCES[s]} {counts[(name, s)]:,}" for s in range(len(SOURCES)) if counts[(name, s)]]
         print(f"  {name:6} {max(vsize, rsize):>9,}: " + ", ".join(parts))
     limit = None if verbose else 15
-    for title, items in (("code relocations that disagree with the original", placer.mismatches),
+    for title, items in (("relocations in code and src/data that disagree with the original", placer.mismatches),
                          ("table entries in compiled data that disagree with the original (the original's kept)",
                           placer.kept),
                          ("pieces that differ from a piece already placed there", placer.clashes),
@@ -1176,11 +1307,15 @@ def layout(jobs: int | None = None) -> tuple[Image, Placer]:
     place_gaps(placer, gap_objects())
     place_library(placer, lib_paths)
     place_import_thunks(placer)
+    place_tree_globals(placer, by_src)
+    place_data_sources(placer, by_src)
     data_objs, data_addr = build_data(symbols)
     place_globals(placer, data_objs, data_addr)
     placer.relocate()
     place_unreferenced_library(placer)
     placer.relocate()
+    place_crt_tables(placer)
+    pad_data(placer)
     copy_unbuilt(img)
     return img, placer
 

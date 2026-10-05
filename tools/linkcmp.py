@@ -31,10 +31,10 @@ from pathlib import Path
 
 import pefile
 
-from carve import Namer, static_alias
+from carve import Namer, linker_tables, static_alias
 from check import ROOT, load_symbols
 from linkcheck import address_of
-from place import CODE, FUNCTIONS, GAPCODE, REL_DIR32, REL_REL32, layout, load_rows
+from place import CODE, FUNCTIONS, GAPCODE, LIBDATA, REL_DIR32, REL_REL32, layout, load_rows, parse
 
 LINKED = ROOT / "build/link/TotalA.exe"
 SCN_MEM_WRITE = 0x80000000
@@ -70,14 +70,27 @@ def main() -> None:
     # Where each public of the link sits in the original, and how far it runs.
     sizes = {int(r["address"], 16): int(r["size"]) for r in load_rows(FUNCTIONS)}
     orig_of: dict[str, tuple[int, int]] = {}
-    for start, end, name in namer.spans:
+    for start, end, name in namer.spans + namer.data_spans:
         orig_of.setdefault(name, (start, end - start))
+    # origdata.obj's runs of the original's data, one section each.
+    runs = {}
+    carved = ROOT / "build/link/origdata.obj"
+    if carved.exists():
+        obj = parse(carved)
+        for name, sym in obj.externals.items():
+            if name.startswith("__orig_"):
+                runs[name] = (int(name[len("__orig_"):], 16), len(obj.secs[sym.section - 1].data))
     for name in link_at:
         if name in orig_of:
             continue
-        if name.startswith("__orig_"):
-            start, size = namer.sections["." + name[len("__orig_"):]]
-            orig_of[name] = (start, size)
+        if name in runs:
+            orig_of[name] = runs[name]
+        elif name.startswith("__static_"):
+            # A static given a public name: the placed piece at its address.
+            a = int(name[len("__static_"):], 16)
+            pid = img.owner[a - img.base]
+            p = placer.pieces[pid - 1] if pid else None
+            orig_of[name] = (a, p.hi - p.lo if p else 4)
         else:
             a = address_of(name, symbols)
             if a is not None:
@@ -139,6 +152,21 @@ def main() -> None:
                 stats["absolute values that agree"] += 1
                 continue
             mapped, via = translate(got)
+            if mapped is None and sym.section > 0 and sym.sclass == 3 and rtype == REL_DIR32:
+                # Its own static, which the layout placed where the original's is.
+                (ours,) = struct.unpack_from("<i", p.sec.data, off)
+                at_ = sym.value + (ours if sym.name.startswith(".") else 0)
+                own = placer.address_in(p.obj, sym.section, at_)
+                if own is not None and own + (0 if sym.name.startswith(".") else ours) == want:
+                    stats["references to the function's own statics"] += 1
+                    continue
+            if mapped != want and rtype == REL_DIR32:
+                # An address just past (or before) the global it is computed
+                # from, an array's end: what matters is that the global agrees.
+                (ours,) = struct.unpack_from("<i", p.sec.data, off)
+                if ours and translate((got - ours) & 0xFFFFFFFF)[0] == (want - ours) & 0xFFFFFFFF:
+                    stats["references past the end of a global that agrees"] += 1
+                    continue
             if mapped is None:
                 stats["references the map cannot place"] += 1
                 if args.verbose:
@@ -157,7 +185,101 @@ def main() -> None:
     differ = [l for l in lines if "where the original's holds" in l]
     if lines:
         print("\n".join(lines if args.verbose else differ[:30]))
-    raise SystemExit(1 if differ else 0)
+
+    # The data: every named piece of data in the link (a global from source,
+    # a literal, a vtable, library data, a run of origdata.obj) against the
+    # original's bytes at its address, pointer fields by where they lead.
+    data_lo = namer.sections[".rdata"][0]
+    data_hi = namer.sections[".data"][0] + namer.sections[".data"][1]
+    tables = bytearray(img.size)            # what LINK builds itself: not compared
+    for va, n in linker_tables(img):
+        tables[va - img.base:va - img.base + n] = b"\1" * n
+
+    def text(va: int) -> bytes | None:
+        """The C string the original holds at va, if it is one."""
+        if not data_lo <= va < data_hi:
+            return None
+        raw = bytes(img.pristine[va - img.base: va - img.base + 512])
+        return raw.split(b"\0", 1)[0] if b"\0" in raw else None
+
+    def linked_text(va: int) -> bytes | None:
+        """The C string the link holds at va."""
+        if not base <= va < base + len(image):
+            return None
+        raw = bytes(image[va - base: va - base + 512])
+        return raw.split(b"\0", 1)[0] if b"\0" in raw else None
+
+    def library(va: int) -> bool:
+        """Whether the original's data at va is the runtime library's (whose
+        vtables and throw information lead to its own functions where the
+        original's lead to the copies Cavedog's objects instantiated)."""
+        return img.src[va - img.base] == LIBDATA
+
+    dstats = Counter()
+    bad, notes = [], []
+    for name, (start, size) in sorted(orig_of.items(), key=lambda kv: kv[1]):
+        if name not in link_at or not data_lo <= start < data_hi or tables[start - img.base]:
+            continue
+        la = link_at[name]
+        if not linked.get_section_by_rva(la - base):
+            continue
+        ours = image[la - base: la - base + size]
+        theirs = bytes(img.pristine[start - img.base: start - img.base + size])
+        if len(ours) < size:
+            ours = ours.ljust(size, b"\0")
+        dstats["pieces of data compared"] += 1
+        i, wrong = 0, []
+        while i < size:
+            if tables[start - img.base + i]:
+                i += 1
+                continue
+            if ours[i] == theirs[i]:
+                if i % 4 == 0 and i + 4 <= size and ours[i:i + 4] == theirs[i:i + 4]:
+                    # The same bytes, but an address of the original's code is
+                    # not one in this image: a pointer left as a number.
+                    v = struct.unpack_from("<I", ours, i)[0]
+                    if (name.startswith("__orig_") and v in sizes and v not in img.patches
+                            and translate(v)[0] != v):
+                        dstats["raw addresses of functions in data"] += 1
+                        bad.append(f"  {name} ({start:#x}) +{i:#x}: holds {v:#x}, the original's address of a "
+                                   f"function, as a number")
+                i += 1
+                continue
+            for j in range(max(0, i - 3), i + 1):
+                if j + 4 > size:
+                    continue
+                mine, want = struct.unpack_from("<I", ours, j)[0], struct.unpack_from("<I", theirs, j)[0]
+                mapped = translate(mine)[0]
+                if mapped == want:
+                    dstats["pointer fields that agree"] += 1
+                    i = j + 4
+                    break
+                if text(want) is not None and linked_text(mine) == text(want):
+                    # The same string at another address: the link folded the
+                    # literal into another object's identical one, or keeps
+                    # one of its own where the original shares a global's.
+                    dstats["pointer fields that reach an identical string"] += 1
+                    i = j + 4
+                    break
+            else:
+                wrong.append(i)
+                i += 1
+        if wrong:
+            line = (f"  {name} ({start:#x}, {size} bytes): {len(wrong)} byte(s) differ, first at +{wrong[0]:#x} "
+                    f"(ours {ours[wrong[0]:wrong[0] + 4].hex()}, the original's {theirs[wrong[0]:wrong[0] + 4].hex()})")
+            if library(start) or name.startswith(("__CT", "__TI")):
+                dstats["pieces of the library's data and exception tables that differ"] += 1
+                notes.append(line)
+            else:
+                dstats["pieces of data that differ"] += 1
+                bad.append(line)
+    for k, v in sorted(dstats.items()):
+        print(f"{k}: {v:,}")
+    print("\n".join(bad if args.verbose else bad[:30]))
+    if args.verbose and notes:
+        print("the library's data and exception tables (not counted as differences):")
+        print("\n".join(notes))
+    raise SystemExit(1 if differ or bad else 0)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,10 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Slot 13 of Class_00485e30 (vtable 0x4fd698); see 0x485e30.cpp and the
-// sibling slots 0x480ce0 / 0x480b20 for the class and its +0x540 data.
+// Slot 13 of Class_00485e30 (vtable 0x4fd698), overriding
+// Class_004b0610::FUN_004b1eb0; see 0x485e30.cpp and the sibling slots
+// 0x480ce0 / 0x480b20 for the class and its +0x540 data. The class views
+// below declare only this slot's virtual: with all 21 of the base's virtuals
+// declared (as in 0x485e30.cpp) the merge block's registers come out
+// differently.
 //
 // Two independent blocks selected by bits of the second argument `b`:
 //  - !(b & 0x20): builds a 0x30-byte header on the stack (the same record
@@ -11,10 +15,11 @@
 //    it to up to six tables in g_game (+0x147f7, a six-pointer array) with
 //    FUN_00420a30(&v, table, 2, 0).
 //
-// `b` must be unsigned: the merge block's `(b >> 2)` / `(b >> 4)` are `shr`,
-// not `sar`. The header's flag dword at +0x28 is a plain unsigned int, not a
-// bitfield: assigning `(b & 2) << 4` to a 1-bit field would truncate it to
-// zero, while the original ORs the shifted value straight in.
+// `b` must be unsigned (so Class_004b0610 declares the slot with an unsigned
+// int too): the merge block's `(b >> 2)` / `(b >> 4)` are `shr`, not `sar`.
+// The header's flag dword at +0x28 is a plain unsigned int, not a bitfield:
+// assigning `(b & 2) << 4` to a 1-bit field would truncate it to zero, while
+// the original ORs the shifted value straight in.
 //
 // <string.h> is load-bearing for the register allocation: without any header
 // the merge block keeps the accumulator in eax (`or eax, edx`) and reads
@@ -78,15 +83,34 @@ void __stdcall FUN_00421620(Header_00481140* h);
 Vec3_00481140 __stdcall FUN_0043e060(Unit_00481140* obj, int param);
 void __stdcall FUN_00420a30(void* pos, void* src, int index, int flag);
 
-class Class_00485e30 {
+struct Elem_4b0610 {
+    int value;         // +0x0
+    char pad[0xa0];    // pad to stride 0xa4
+};
+
+class Class_004b0610 {
 public:
-    char unknown_0[0x540];
-    Data_00481140* data;               // +0x540
-    void FUN_00481140(int a, unsigned int b);
+    int field_4;                   // +0x4
+    int field_8;                   // +0x8
+    char unknown_c[0x10 - 0xc];
+    void* ptr10;                   // +0x10
+    void* ptr14;                   // +0x14
+    char unknown_18[0x1c - 0x18];
+    Elem_4b0610 arr[8];            // +0x1c
+    int field_53c;                 // +0x53c
+
+    virtual void FUN_004b1eb0(int, unsigned int);     // slot 13
+};
+
+class Class_00485e30 : public Class_004b0610 {
+public:
+    Data_00481140* data;           // +0x540
+
+    virtual void FUN_004b1eb0(int, unsigned int);     // slot 13, 0x481140
 };
 
 // FUNCTION: 0x481140
-void Class_00485e30::FUN_00481140(int a, unsigned int b)
+void Class_00485e30::FUN_004b1eb0(int a, unsigned int b)
 {
     if (!(b & 0x20)) {
         Header_00481140 h;

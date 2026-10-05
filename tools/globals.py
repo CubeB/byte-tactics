@@ -43,10 +43,12 @@ import struct
 import sys
 from collections import Counter
 from dataclasses import dataclass
+from pathlib import Path
 
 import capstone
 
 from check import ROOT, Original, compile_source, load_symbols
+from link import data_source_extents, inside
 from coff import parse_object
 from linkcheck import (CRT_LIBS, address_of, data_symbol, declare, global_table, library_symbols,
                        load_objects, records, shape, type_size)
@@ -59,7 +61,7 @@ GHIDRA = ROOT / "build/ghidra/decomp"
 INIT_CAP = 64
 DATA_LO, DATA_HI = 0x4FC000, 0x52D000
 COLUMNS = ["address", "name", "section", "size", "size_from", "kind", "type", "type_files", "other_files",
-           "types", "verdict", "files", "max_offset", "ghidra", "pointers", "init"]
+           "types", "verdict", "files", "max_offset", "ghidra", "pointers", "defined", "init"]
 
 
 # --- the exe --------------------------------------------------------------------
@@ -105,29 +107,42 @@ class Image:
         return self.orig.read(va, size)
 
 
+LIBRARY_REFS: set[int] = set()     # data addresses the runtime library's code refers to
+
+
 def referenced_addresses(img: Image) -> set[int]:
     """Every data address the original refers to directly: operands of every
     function's instructions, and pointers stored in .rdata and .data."""
     with (ROOT / "data/functions.csv").open() as fh:
-        funcs = [(int(r["address"], 16), int(r["size"] or 0)) for r in csv.DictReader(fh)]
+        funcs = [(int(r["address"], 16), int(r["size"] or 0), r["kind"]) for r in csv.DictReader(fh)]
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     out = set()
     number = re.compile(r"0x([0-9a-f]{6,8})\b")
-    for va, size in funcs:
+    for va, size, kind in funcs:
         for _, _, _, op in md.disasm_lite(img.orig.read(va, size), va):
             for m in number.finditer(op):
                 v = int(m.group(1), 16)
                 if DATA_LO <= v < DATA_HI:
                     out.add(v)
+                    if kind == "library":
+                        LIBRARY_REFS.add(v)
     for lo, hi, raw_end, name in img.sections:
         if name not in (".rdata", ".data"):
             continue
         raw = img.orig.read(lo, raw_end - lo)
         for i in range(0, len(raw) - 3, 4):
             (v,) = struct.unpack_from("<I", raw, i)
-            if DATA_LO <= v < DATA_HI:
+            if DATA_LO <= v < DATA_HI and not text_fragment(raw[i:i + 3]):
                 out.add(v)
     return out
+
+
+def text_fragment(low: bytes) -> bool:
+    """Whether the low three bytes of a dword that looks like an address are
+    text: four bytes of a string ("BAR" and its terminator are 0x524142), not
+    a pointer. An address's low bytes are printable only by chance, and a
+    false boundary cuts a .bss buffer short."""
+    return all(0x20 <= c < 0x7F for c in low)
 
 
 def ghidra_labels() -> dict[int, str]:
@@ -237,8 +252,22 @@ def portable(t: tuple | None) -> bool:
 
 # --- the manifest ---------------------------------------------------------------------
 
+def row_element(t: tuple | None) -> int | None:
+    """The size of one element of an array's outermost dimension
+    (int[45][2] -> 8), or None for anything else."""
+    if t is None or t[0] != "arr" or not t[1] or not all(t[1]):
+        return None
+    size = type_size(t[2])
+    if not size:
+        return None
+    for d in t[1][1:]:
+        size *= d
+    return size
+
+
 def build(objects, img: Image) -> list[dict]:
     symbols = load_symbols()
+    extents = data_source_extents(symbols)
     table = global_table(objects, symbols)
     boundaries = set(table) | {a for a in symbols.values() if DATA_LO <= a < DATA_HI} | referenced_addresses(img)
     img.set_bss_start(sorted(boundaries))
@@ -263,7 +292,11 @@ def build(objects, img: Image) -> list[dict]:
         # pointer (`&a[10]`), and a known address exactly there starts the
         # next object.
         reach = addr + max(hi, 0)
-        elem = type_size(t[2]) if t is not None and t[0] == "arr" else None
+        # Every file's view counts: an array of 4-byte entries in one file and
+        # of bytes in another is reached at +1 for a field, not for an end.
+        views = [v for v in g["typed"].values() if v is not None]
+        elems = [type_size(v[2]) for v in views if v[0] == "arr"]
+        elem = max((e or 0 for e in elems), default=0) if elems and all(elems) else None
         if elem and hi > 0 and hi % elem == 0:
             i = bisect.bisect_left(ordered, reach)
         else:
@@ -272,13 +305,27 @@ def build(objects, img: Image) -> list[dict]:
         end = min(nxt, img.section_end(addr))
         gap = max(end - addr, 1)
         tsize = type_size(t)
+        # The largest view: a char in one file and an int in another is an int.
+        sizes = [type_size(v) for v in views]
+        if tsize and all(sizes) and max(sizes) > tsize:
+            tsize = max(sizes)
         if re.match(r"(IID|CLSID|GUID)_", g["name"]):
             tsize = 16  # a COM interface or class id, declared through a macro
+        section = img.section(addr)
         if tsize:
             size, size_from = tsize, ("type>gap" if tsize > gap and tsize > hi + 1 else "type")
+            elem = row_element(t)
+            if section == ".bss" and elem and gap > tsize and gap % elem == 0:
+                # An uninitialised buffer owns the space up to the next thing the
+                # image refers to: the source may declare it too small
+                # (DAT_00528ae8 is declared char[0x1e8] in a 0x3e8-byte slot).
+                size, size_from = gap, "gap>type"
+            elif hi >= tsize and gap > tsize:
+                # The source reaches past the type it declares (DAT_00529e00 is
+                # an unsigned int in one file and a 16-byte entry in others).
+                size, size_from = gap, "gap>type"
         else:
             size, size_from = gap, "gap"
-        section = img.section(addr)
         raw = img.read(addr, min(size, INIT_CAP))
         kind = "data"
         name = g["name"]
@@ -298,8 +345,14 @@ def build(objects, img: Image) -> list[dict]:
         whole = img.read(addr, size)
         pointers = sum(1 for i in range(0, len(whole) - 3, 4)
                        if 0x401000 <= struct.unpack_from("<I", whole, i)[0] < DATA_HI)
+        # Where it is defined: src/data (the global itself, or one that holds
+        # it: a field or an entry the code reaches by its address), or the tree
+        # files that define it.
+        container = inside(extents, addr)
+        defined = ([container[3]] if container else []) or sorted(set(g["defined_in"]))
         rows.append({
             "address": f"{addr:#x}", "name": name, "section": section, "size": size,
+            "defined": defined[0] if defined else "",
             "size_from": size_from, "kind": kind, "type": key, "type_files": agree, "other_files": other,
             "types": len(g["types"]), "verdict": g["verdict"], "files": len(g["files"]),
             "max_offset": f"{hi:#x}" if g["addends"] and hi > 0 else "",
@@ -307,7 +360,85 @@ def build(objects, img: Image) -> list[dict]:
             "init": raw.hex() if section != ".bss" else "",
             "_t": t, "_g": g, "_gap": gap,
         })
-    return rows
+    # A global a tree file defines (a class object, a template's static
+    # member) is as big as its largest definition: the offsets the source
+    # uses can run past it (an end pointer) to globals of their own.
+    for row in rows:
+        sizes = [definition_size(f, row["_g"]) for f in row["_g"]["defined_in"]
+                 if not f.startswith("src/data/")]
+        sizes = [n for n in sizes if n]
+        if sizes and not row["defined"].startswith("src/data/"):
+            row["size"], row["size_from"] = max(sizes), "definition"
+    # A global that starts inside another (a field of a struct, an entry of an
+    # array the code reaches by its address) is part of it, not a definition
+    # of its own: linked separately, the two would be two variables.
+    end, outer = 0, None
+    for row in rows:
+        addr = int(row["address"], 16)
+        if outer is not None and addr < end and not row["defined"]:
+            base = int(outer["address"], 16)
+            row["defined"] = f"in {outer['name']}+{addr - base:#x}"
+            if addr + int(row["size"]) > end and outer["size_from"] != "definition":
+                # The part runs past the global that holds it: so does the global.
+                end = addr + int(row["size"])
+                outer["size"], outer["size_from"] = end - base, "parts"
+            continue
+        if addr + int(row["size"]) > end:
+            end, outer = addr + int(row["size"]), row
+    return sorted(rows + bss_tails(rows, img, ordered, labels), key=lambda r: int(r["address"], 16))
+
+
+def bss_tails(rows: list[dict], img: Image, ordered: list[int], labels: dict[int, str]) -> list[dict]:
+    """The uninitialised space after a global, up to the next address the
+    image or the source refers to: storage nothing names (padding, or a
+    variable nothing uses), defined as a byte array DAT_<address> so that the
+    data around it keeps its place and nothing of .bss is copied."""
+    out = []
+    covered = sorted((int(r["address"], 16), int(r["address"], 16) + int(r["size"])) for r in rows)
+    for row in rows:
+        addr = int(row["address"], 16)
+        if row["section"] != ".bss" or row["defined"].startswith("in ") or row["kind"] == "library":
+            continue
+        end = addr + int(row["size"])
+        i = bisect.bisect_right(ordered, end)
+        nxt = ordered[i] if i < len(ordered) else img.section_end(addr)
+        nxt = min(nxt, img.section_end(addr))
+        # Not into another global (a row that starts before the boundary).
+        j = bisect.bisect_left(covered, (end, end))
+        if j < len(covered) and covered[j][0] < nxt:
+            nxt = covered[j][0]
+        # Not a stretch shorter than a dword (padding), nor one the runtime
+        # library's code reaches (its own data, which its member defines).
+        if nxt - end < 4 or any(a <= end < b for a, b in covered[max(0, j - 2):j + 1]) \
+                or any(end <= a < nxt for a in LIBRARY_REFS):
+            continue
+        out.append({
+            "address": f"{end:#x}", "name": f"DAT_{end:08x}", "section": ".bss", "size": nxt - end,
+            "size_from": "gap", "kind": "unreferenced", "type": f"unsigned char[{nxt - end}]",
+            "type_files": 0, "other_files": 0, "types": 0, "verdict": "", "files": 0, "max_offset": "",
+            "ghidra": labels.get(end, ""), "pointers": "", "defined": "", "init": "",
+            "_t": ("arr", [nxt - end], ("prim", "unsigned char")),
+            "_g": {"verdict": "one type", "types": Counter(), "typed": {}, "files": set(), "defined_in": [],
+                   "spellings": Counter()},
+            "_gap": nxt - end,
+        })
+    return out
+
+
+def definition_size(src: str, g: dict) -> int | None:
+    """The size of the global a tree file defines: its symbol's slice of its
+    section in the file's object."""
+    from place import parse
+    obj_path = ROOT / "build/progress" / Path(src).relative_to("src").with_suffix(".obj")
+    if not obj_path.exists():
+        return None
+    obj = parse(obj_path)
+    for name in g["spellings"]:
+        sym = obj.externals.get(name)
+        if sym is not None and sym.section > 0 and not obj.secs[sym.section - 1].is_code:
+            lo, hi = obj.secs[sym.section - 1].slice_at(sym.value)
+            return hi - lo
+    return None
 
 
 def write_csv(rows: list[dict]) -> None:
@@ -346,8 +477,10 @@ class Entry:
 def header_entry(row: dict) -> Entry | None:
     """The declaration of one global for globals.h, or None when its type is not settled."""
     g, t = row["_g"], row["_t"]
-    if row["kind"] in ("template", "library", "vtable"):
+    if row["kind"] in ("template", "library", "vtable") or row["defined"]:
         return None
+    if row["kind"] == "unreferenced":
+        return Entry(row, identifier(row), t, "", f"{row['address']}, {row['size']} bytes; nothing refers to it")
     if not settled(g, row["type"], row["type_files"], row["other_files"]):
         return None
     name = identifier(row)
@@ -373,6 +506,17 @@ def header_entry(row: dict) -> Entry | None:
         elem = type_size(t[2])
         if elem and size % elem == 0 and portable(t[2]):
             t = ("arr", [size // elem] + list(t[1][1:]), t[2])
+    elif row["size_from"] in ("gap>type", "parts") and t is not None and t[0] == "arr" and portable(t[2]) \
+            and size % row_element(t) == 0:
+        # An uninitialised buffer that runs on to the next known address, or
+        # an array with globals of its own inside it that run past its end.
+        t = ("arr", [size // row_element(t)] + list(t[1][1:]), t[2])
+        note += f" (declared {row['type']})"
+    elif row["size_from"] == "parts" and type_size(t) != size:
+        return Entry(row, name, byte_array, linkage, f"{note}; {row['type']} with the globals inside it")
+    if type_size(t) is not None and type_size(t) < size:
+        # Smaller than what the source reaches inside it.
+        return Entry(row, name, byte_array, linkage, f"{note}; {row['type']} in {agree}, but used past its end")
     if portable(t):
         return Entry(row, name, t, linkage, f"{note}; {agree}")
     return Entry(row, name, byte_array, linkage, f"{note}; {row['type']} by value in {agree}")
@@ -411,9 +555,14 @@ def write_header(rows: list[dict]) -> list[Entry]:
     width = max(len(e.declaration) for e in entries)
     for e in entries:
         lines.append(f"{e.declaration:{width}s}  // {e.note}")
-    lines += ["", f"// Not declared: {len(skipped)} globals whose type is not settled (see data/globals.csv)."]
+    lines += ["", f"// Not declared: {len(skipped)} globals defined in src/data or whose type is not settled "
+              "(see data/globals.csv)."]
     for row in sorted(skipped, key=lambda r: -r["files"]):
-        if row["kind"] in ("template", "library", "vtable"):
+        if row["defined"].startswith("in "):
+            why = f"part of another global: {row['defined'][3:]}"
+        elif row["defined"]:
+            why = f"defined in {row['defined']}"
+        elif row["kind"] in ("template", "library", "vtable"):
             why = f"{row['kind']}"
         else:
             views = ", ".join(f"{k} ({n})" for k, n in row["_g"]["types"].most_common(4))

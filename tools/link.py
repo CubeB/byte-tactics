@@ -3,7 +3,7 @@
     uv run tools/link.py                 # build build/link/TotalA.exe
     uv run tools/link.py --strict        # no /FORCE:UNRESOLVED; generate stubs so it succeeds
     uv run tools/link.py --stub          # the same, naming the generated stubs explicitly
-    uv run tools/link.py --carve         # link the gap regions and the original's data carved
+    uv run tools/link.py --carve         # link the data from source, and what has none carved
                                          # out of the exe (tools/carve.py): an image that runs
     uv run tools/link.py --verbose       # also list the symbols left unresolved
 
@@ -62,7 +62,7 @@ from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from check import DEFAULT_FLAGS, GAP_DIR, ROOT, winpath
+from check import DATA_DIR, DEFAULT_FLAGS, GAP_DIR, ROOT, winpath
 from linkcheck import (CRT_LIBS, IMPORT_LIBS, Demangle, MEMBER_STATIC, address_of,
                        archive_symbols, base_name, data_symbol, include_hash, library_symbols,
                        load_known, read_object, type_size)
@@ -137,20 +137,25 @@ def compile_all(jobs: int) -> tuple[list[Path], list[tuple[Path, str]]]:
 # --- the generated global data --------------------------------------------------
 
 def global_rows() -> dict[int, tuple[str, int, str, str]]:
-    """address -> (name, size, section, init-hex) for every globals.csv row."""
+    """address -> (name, size, section, init-hex) for every globals.csv row
+    that link/ has to define: not one src/data or a tree file defines, nor
+    one inside another global."""
     out = {}
     if not GLOBALS.exists():
         return out
     with GLOBALS.open() as fh:
         for r in csv.DictReader(fh):
+            if r.get("defined"):
+                continue
             out[int(r["address"], 16)] = (f"DAT_{int(r['address'], 16):08x}", int(r["size"]),
                                           r["section"], r["init"])
     return out
 
 
 def build_data(symbols: dict[str, int]) -> tuple[list[Path], dict[int, str]]:
-    """Compile link/data.cpp, emit the globals it omits, and return the two
-    objects with address -> the symbol each defines."""
+    """Compile link/data.cpp, emit the globals it and src/data omit, and
+    return the two objects with address -> the symbol each defines (and each
+    src/data definition)."""
     BUILD.mkdir(parents=True, exist_ok=True)
     compile_data = ROOT / "tools/wcl"
     objects = []
@@ -173,17 +178,33 @@ def build_data(symbols: dict[str, int]) -> tuple[list[Path], dict[int, str]]:
     else:
         out = None
 
-    # Extra globals: those globals.csv lists but data.cpp leaves out.
+    # The data src/data defines (compiled with the rest of src/ by compile_all).
+    extents = data_source_extents(symbols)
+    sources: dict[int, str] = {a: name for a, _, name, _ in extents}
+
+    # A class's vtable the compiler emits (??_7...) is the one definition of
+    # its address: the files that store it by hand (DAT_004fc980) mean it too.
+    for name, addr in symbols.items():
+        if name.startswith("??_7") and addr not in sources:
+            sources[addr] = name
+
+    # Extra globals: those globals.csv lists but neither data.cpp nor src/data defines.
     rows = global_rows()
     rows = {a: r for a, r in rows.items() if GLOBAL_LO <= a < GLOBAL_HI}
-    have = defined_addresses(out, symbols) if out else set()
+    have = (set(defined_addresses(out, symbols)) if out else set()) | set(sources)
+    # What the code reaches inside a src/data global (a field, an entry: the
+    # tree's DAT_005086e0 is a field of g_unitMessages[0]) is that global.
+    have |= {a for a in rows if inside(extents, a)}
     extra = {a: r for a, r in rows.items() if a not in have}
     if extra:
+        from check import Original
+        exe = Original()
         lines = ['extern "C" {']
         for addr in sorted(extra):
             _, size, section, init = extra[addr]
             name = f"DAT_{addr:08x}"
-            bytes_ = bytes.fromhex(init) if init else b""
+            # The whole initial value (globals.csv shows only its start).
+            bytes_ = exe.read(addr, size).rstrip(b"\0") if section != ".bss" else b""
             if section == ".bss" or not bytes_:
                 lines.append(f"unsigned char {name}[{max(size, 1)}];")
             else:
@@ -199,7 +220,38 @@ def build_data(symbols: dict[str, int]) -> tuple[list[Path], dict[int, str]]:
     for out in objects:
         for addr, sym in defined_addresses(out, symbols).items():
             by_addr[addr] = sym
+    by_addr.update(sources)
     return objects, by_addr
+
+
+def data_source_extents(symbols: dict[str, int]) -> list[tuple[int, int, str, str]]:
+    """(address, size, symbol, source file) of every global src/data defines,
+    from its compiled object (tools/progress.py's cache, which compile_all
+    fills): a global runs from its symbol to the next one in its section."""
+    from place import parse
+    out = []
+    for obj_path in sorted((ROOT / "build/progress/data").glob("*.obj")):
+        src = DATA_DIR / obj_path.with_suffix(".cpp").name
+        if not src.exists():
+            continue
+        obj = parse(obj_path)
+        for name, sym in obj.externals.items():
+            sec = obj.secs[sym.section - 1]
+            if sec.is_code or name.startswith(("??_C@", "__real@")):
+                continue
+            addr = address_of(name, symbols)
+            if addr is not None:
+                lo, hi = sec.slice_at(sym.value)
+                out.append((addr, hi - lo, name, str(src.relative_to(ROOT))))
+    return sorted(out)
+
+
+def inside(extents: list[tuple[int, int, str, str]], addr: int) -> tuple[int, int, str, str] | None:
+    """The extent holding addr, if any."""
+    for e in extents:
+        if e[0] <= addr < e[0] + max(e[1], 1):
+            return e
+    return None
 
 
 def defined_addresses(obj: Path, symbols: dict[str, int]) -> dict[int, str]:
@@ -695,8 +747,8 @@ def main() -> None:
     ap.add_argument("--stub", action="store_true",
                     help="the same as --strict, naming the generated stubs explicitly")
     ap.add_argument("--carve", action="store_true",
-                    help="link the gap regions and the original's data carved from the exe "
-                         "(tools/carve.py) instead of stubs and link/data.cpp; implies --stub")
+                    help="link with what has no source carved from the exe (tools/carve.py), the "
+                         "game's data laid out in the original's order; implies --stub")
     ap.add_argument("--output", type=Path, default=BUILD / "TotalA.exe")
     ap.add_argument("--map", action="store_true", help="also write build/link/TotalA.map")
     ap.add_argument("--no-exe-patches", action="store_true",
@@ -719,9 +771,14 @@ def main() -> None:
     if args.carve:
         from carve import THIRD_PARTY_OBJS, carve, library_aliases
         result = carve(objects)
-        carved, data_addr = result.objects, result.data_names
+        carved = result.objects
         gaps = result.gap_sources
-        data_objs = list(THIRD_PARTY_OBJS)       # zlib, which the original links too
+        # The game's data from source (link/data.cpp and the globals it leaves
+        # out; src/data is among the objects), what origdata.obj still holds,
+        # and zlib, which the original links too.
+        data_objs, data_addr = build_data(symbols)
+        data_addr.update(result.data_names)
+        data_objs += list(THIRD_PARTY_OBJS)
         extra = library_aliases(objects + gaps, symbols, result)
     else:
         from gapcheck import gap_objects
@@ -749,8 +806,9 @@ def main() -> None:
     # LINK keeps the first definition, the original's, at its full size.
     game = fix_initialisers(objects + gaps) if stub_mode else list(objects) + gaps
     if args.carve:
-        from carve import patch_objects
-        game = patch_objects(game, result)
+        from carve import order_data, patch_objects
+        game = order_data(patch_objects(game, result), result)
+        data_objs = order_data(data_objs, result)
     link_objects = carved[:1] + game + carved[1:] + list(data_objs)
     if stub_mode:
         missing = unresolved_names(link_objects, set(aliases), libs)

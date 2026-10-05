@@ -11,33 +11,18 @@ class Class_00437820;
 class Class_004c5840;
 class Class_004db000;
 class Class_004e17c0;
-struct Buffer_461020;
 struct Chunk;
 struct Class_0051fba4;
 struct Entry_00443100;
 struct Game;
-struct Guid_4ca100;
 struct List_0047f8c0;
 struct Node_004dde70;
 struct Record_005129b4;
 struct Struct_00526ff0;
 
-extern char DAT_004fc490[576];                                                                // 0x4fc490, 576 bytes; 1 of 1 files
-extern char DAT_004fc6e8[552];                                                                // 0x4fc6e8, 552 bytes; 1 of 1 files
 extern unsigned char DAT_004fca10[8];                                                         // 0x4fca10, 8 bytes; const Table_0040e630 by value in 1 of 2 files (conflicting: struct names only)
-extern char DAT_004fca18[552];                                                                // 0x4fca18, 552 bytes; 1 of 1 files
 extern unsigned char DAT_004fcc68[8];                                                         // 0x4fcc68, 8 bytes; 1 of 1 files
-extern "C" unsigned char IID_IDirectDraw2[16];                                                // 0x4fccd8, 16 bytes; declared extern "C", type unknown
-extern unsigned char DAT_004fcd78[32];                                                        // 0x4fcd78, 32 bytes; _GUID by value in 2 of 2 files
-extern unsigned char DAT_004fcd98[16];                                                        // 0x4fcd98, 16 bytes; Guid_443ff0 by value in 1 of 5 files (conflicting: struct names only)
-extern unsigned char DAT_004fce18[112];                                                       // 0x4fce18, 112 bytes; _GUID by value in 1 of 1 files
-extern unsigned char DAT_004fce88[32];                                                        // 0x4fce88, 32 bytes; Guid_00441c30 by value in 1 of 1 files
-extern unsigned char DAT_004fcea8[32];                                                        // 0x4fcea8, 32 bytes; Guid_00441c30 by value in 1 of 1 files
-extern unsigned char DAT_004fcee8[32];                                                        // 0x4fcee8, 32 bytes; Guid_00441c30 by value in 1 of 1 files
-extern unsigned char DAT_004fcf08[96];                                                        // 0x4fcf08, 96 bytes; Guid_00441c30 by value in 1 of 1 files
-extern unsigned char DAT_004fcf68[80];                                                        // 0x4fcf68, 80 bytes; const _GUID by value in 1 of 1 files
 extern char DAT_004fd050[200];                                                                // 0x4fd050, 200 bytes; 1 of 1 files
-extern unsigned char DAT_004fd288[28];                                                        // 0x4fd288, 28 bytes; Elem_0043c390[] by value in 2 of 2 files
 extern double DAT_004fd2b0;                                                                   // 0x4fd2b0, 8 bytes; 1 of 1 files
 extern double DAT_004fd2b8;                                                                   // 0x4fd2b8, 8 bytes; 1 of 1 files
 extern const float DAT_004fd4c0;                                                              // 0x4fd4c0, 4 bytes; 1 of 1 files
@@ -48,9 +33,6 @@ extern double DAT_004fdbe8;                                                     
 extern char DAT_004fdbf0[40];                                                                 // 0x4fdbf0, 40 bytes; 1 of 1 files
 extern int DAT_00501774;                                                                      // 0x501774, 4 bytes; 4 of 4 files
 extern unsigned char DAT_00501d18[32];                                                        // 0x501d18, 32 bytes; 1 of 1 files
-extern unsigned char DAT_00501d38[528];                                                       // 0x501d38, 528 bytes; Option_00419560 by value in 1 of 1 files
-extern unsigned char DAT_00501f48[136];                                                       // 0x501f48, 136 bytes; Option_00419560 by value in 1 of 1 files
-extern unsigned char DAT_00501fd0[372];                                                       // 0x501fd0, 372 bytes; Option_00419560 by value in 1 of 1 files
 extern char DAT_00502288[8];                                                                  // 0x502288, 8 bytes; 1 of 1 files
 extern char DAT_005024fc[16];                                                                 // 0x5024fc, 16 bytes; 1 of 1 files
 extern const char DAT_00502820[8];                                                            // 0x502820, 8 bytes; 1 of 1 files
@@ -114,7 +96,6 @@ extern const char DAT_00504ab8[8];                                              
 extern char DAT_00504e98[8];                                                                  // 0x504e98, 8 bytes; 1 of 1 files
 extern char DAT_00504ea0[8];                                                                  // 0x504ea0, 8 bytes; 1 of 1 files
 extern char DAT_00504ea8[8];                                                                  // 0x504ea8, 8 bytes; 1 of 1 files
-extern signed char DAT_00505205[7];                                                           // 0x505205, 7 bytes; 2 of 2 files
 extern int DAT_00505490[6];                                                                   // 0x505490, 24 bytes; 1 of 1 files
 extern unsigned int DAT_005054a8;                                                             // 0x5054a8, 4 bytes; 1 of 1 files
 extern char* DAT_005054b0[23];                                                                // 0x5054b0, 92 bytes; 2 of 2 files
@@ -137,7 +118,7 @@ extern float DAT_005065f8;                                                      
 extern float DAT_005065fc;                                                                    // 0x5065fc, 4 bytes; 2 of 2 files
 extern float DAT_00506600;                                                                    // 0x506600, 4 bytes; 2 of 2 files
 extern int DAT_00506788;                                                                      // 0x506788, 4 bytes; 1 of 1 files
-extern char DAT_005067bc[8];                                                                  // 0x5067bc, 8 bytes; 1 of 1 files
+extern char DAT_005067bc[8];                                                                  // 0x5067bc, 8 bytes; 2 of 2 files
 extern char DAT_00506884[8];                                                                  // 0x506884, 8 bytes; 2 of 2 files
 extern char DAT_0050692c[12];                                                                 // 0x50692c, 12 bytes; 1 of 1 files
 extern char DAT_00506964[8];                                                                  // 0x506964, 8 bytes; 1 of 1 files
@@ -158,6 +139,8 @@ extern char DAT_005074e8[16];                                                   
 extern char DAT_005074f8[16];                                                                 // 0x5074f8, 16 bytes; 1 of 1 files
 extern char DAT_00507508[16];                                                                 // 0x507508, 16 bytes; 1 of 1 files
 extern char DAT_00507518[12];                                                                 // 0x507518, 12 bytes; 1 of 1 files
+extern char* DAT_00507948[2];                                                                 // 0x507948, 8 bytes; 1 of 1 files
+extern char* DAT_00507950[9];                                                                 // 0x507950, 36 bytes; 1 of 1 files
 extern int DAT_00507b6c;                                                                      // 0x507b6c, 4 bytes; 2 of 2 files
 extern char* DAT_00507b88[3];                                                                 // 0x507b88, 12 bytes; 1 of 1 files
 extern char DAT_00508384[8];                                                                  // 0x508384, 8 bytes; 1 of 1 files
@@ -172,10 +155,6 @@ extern const char DAT_00508494[4];                                              
 extern const char DAT_00508498[4];                                                            // 0x508498, 4 bytes; 1 of 1 files
 extern char DAT_0050849c[16];                                                                 // 0x50849c, 16 bytes; 1 of 1 files
 extern char DAT_005084ac[16];                                                                 // 0x5084ac, 16 bytes; 1 of 1 files
-extern unsigned char DAT_005086dc[32];                                                        // 0x5086dc, 32 bytes; Message_0047fad0[] by value in 1 of 1 files
-extern unsigned char DAT_005086e0[596];                                                       // 0x5086e0, 596 bytes; Table_0047fd70[24] by value in 1 of 2 files (conflicting: struct names only)
-extern unsigned char DAT_005086e8[4];                                                         // 0x5086e8, 4 bytes; Message_0047f850[] by value in 1 of 3 files (conflicting: struct names only)
-extern unsigned char DAT_005086fc[560];                                                       // 0x5086fc, 560 bytes; SoundInfo_005086fc[] by value in 1 of 1 files
 extern char DAT_00508a78[44];                                                                 // 0x508a78, 44 bytes; 1 of 1 files
 extern char DAT_00508aa4[16];                                                                 // 0x508aa4, 16 bytes; 1 of 1 files
 extern char DAT_00508ab4[16];                                                                 // 0x508ab4, 16 bytes; 1 of 1 files
@@ -223,6 +202,11 @@ extern const char DAT_005097d0[24];                                             
 extern const char DAT_005097e8[12];                                                           // 0x5097e8, 12 bytes; 1 of 1 files
 extern const char DAT_005097f4[8];                                                            // 0x5097f4, 8 bytes; 1 of 1 files
 extern const char DAT_00509edc[20];                                                           // 0x509edc, 20 bytes; 1 of 1 files
+extern "C" double DAT_00509ef0;                                                               // 0x509ef0, 8 bytes; declared extern "C" in 1 of 1 files
+extern "C" double DAT_00509ef8;                                                               // 0x509ef8, 8 bytes; declared extern "C" in 1 of 1 files
+extern "C" short DAT_00509f00[128];                                                           // 0x509f00, 256 bytes; declared extern "C" in 1 of 1 files
+extern "C" short DAT_0050a000[512];                                                           // 0x50a000, 1024 bytes; declared extern "C" in 1 of 1 files
+extern "C" int DAT_0050a400[9];                                                               // 0x50a400, 36 bytes; declared extern "C" in 1 of 1 files
 extern char DAT_0050a430[12];                                                                 // 0x50a430, 12 bytes; 1 of 1 files
 extern const char DAT_0050a43c[12];                                                           // 0x50a43c, 12 bytes; 1 of 1 files
 extern char DAT_0050a548[4];                                                                  // 0x50a548, 4 bytes; 1 of 1 files
@@ -232,34 +216,29 @@ extern char DAT_0050a5c0[16];                                                   
 extern int DAT_0050a778;                                                                      // 0x50a778, 4 bytes; 5 of 5 files
 extern void* DAT_0050a77c;                                                                    // 0x50a77c, 4 bytes; 5 of 5 files
 extern int DAT_0050a780;                                                                      // 0x50a780, 4 bytes; 4 of 4 files
-extern Guid_4ca100* DAT_0050a788[4];                                                          // 0x50a788, 16 bytes; 1 of 1 files
 extern int DAT_0050b540;                                                                      // 0x50b540, 4 bytes; 8 of 8 files
 extern int DAT_0050b544;                                                                      // 0x50b544, 4 bytes; 7 of 7 files
 extern void* DAT_0050b9e0[7];                                                                 // 0x50b9e0, 28 bytes; 1 of 1 files
 extern char DAT_0050c8ac[8];                                                                  // 0x50c8ac, 8 bytes; 1 of 1 files
 extern char* DAT_0050c908[19];                                                                // 0x50c908, 76 bytes; 1 of 1 files
-extern char DAT_0050c958;                                                                     // 0x50c958, 1 bytes; 1 of 1 files
-extern char DAT_0050cd38;                                                                     // 0x50cd38, 1 bytes; 1 of 1 files
-extern char DAT_0050ced8;                                                                     // 0x50ced8, 1 bytes; 1 of 1 files
 extern char DAT_0050d220[16];                                                                 // 0x50d220, 16 bytes; 1 of 1 files
 extern const char DAT_0050d2d0[28];                                                           // 0x50d2d0, 28 bytes; 1 of 1 files
 extern char* DAT_0050d4d0;                                                                    // 0x50d4d0, 4 bytes; 1 of 1 files
 extern char* DAT_0050d660;                                                                    // 0x50d660, 4 bytes; 2 of 2 files
 extern char DAT_0050d6b4[36];                                                                 // 0x50d6b4, 36 bytes; 1 of 1 files
 extern char* DAT_0050d72c;                                                                    // 0x50d72c, 4 bytes; 3 of 3 files
-extern unsigned char DAT_0050d980[128];                                                       // 0x50d980, 128 bytes; EventEntry[] by value in 1 of 1 files
-extern unsigned char DAT_0050da00[272];                                                       // 0x50da00, 272 bytes; EventEntry[] by value in 1 of 1 files
-extern char DAT_005119b8[8];                                                                  // 0x5119b8, 8 bytes; 75 of 80 files (conflicting: shape)
+extern char DAT_005119b8[8];                                                                  // 0x5119b8, 8 bytes; 77 of 82 files (conflicting: shape)
 extern int DAT_005119e8[10];                                                                  // 0x5119e8, 40 bytes; 2 of 2 files
 extern int DAT_00511a10[10];                                                                  // 0x511a10, 40 bytes; 1 of 1 files
 extern int DAT_00511a38;                                                                      // 0x511a38, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00511a3c[4];                                                         // 0x511a3c, 4 bytes; nothing refers to it
 extern int DAT_00511a40;                                                                      // 0x511a40, 4 bytes; 1 of 1 files
 extern int DAT_00511a44;                                                                      // 0x511a44, 4 bytes; 1 of 1 files
 extern unsigned int DAT_00511a48;                                                             // 0x511a48, 4 bytes; 1 of 1 files
 extern int DAT_00511a4c;                                                                      // 0x511a4c, 4 bytes; 1 of 1 files
 extern unsigned int DAT_00511a50;                                                             // 0x511a50, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00511a54[4];                                                         // 0x511a54, 4 bytes; nothing refers to it
 extern int DAT_00511a58[45][2];                                                               // 0x511a58, 360 bytes; 1 of 1 files
-extern unsigned char DAT_00511a60[352];                                                       // 0x511a60, 352 bytes; Pair_00419560[44] by value in 4 of 4 files
 extern int DAT_00511bc0;                                                                      // 0x511bc0, 4 bytes; 4 of 5 files (conflicting: shape)
 extern int DAT_00511bc4;                                                                      // 0x511bc4, 4 bytes; 4 of 4 files
 extern int DAT_00511bc8;                                                                      // 0x511bc8, 4 bytes; 6 of 6 files
@@ -278,8 +257,8 @@ extern int DAT_00511c44;                                                        
 extern int DAT_00511c48;                                                                      // 0x511c48, 4 bytes; 5 of 5 files
 extern unsigned int DAT_00511c4c;                                                             // 0x511c4c, 4 bytes; 1 of 1 files
 extern int DAT_00511c50;                                                                      // 0x511c50, 4 bytes; 6 of 6 files
+extern unsigned char DAT_00511c54[4];                                                         // 0x511c54, 4 bytes; nothing refers to it
 extern int DAT_00511c58[45][2];                                                               // 0x511c58, 360 bytes; 1 of 1 files
-extern unsigned char DAT_00511c60[352];                                                       // 0x511c60, 352 bytes; Pair_00419560[44] by value in 4 of 4 files
 extern unsigned int DAT_00511dc0;                                                             // 0x511dc0, 4 bytes; 1 of 1 files
 extern unsigned int DAT_00511dc4;                                                             // 0x511dc4, 4 bytes; 1 of 1 files
 extern int DAT_00511dc8;                                                                      // 0x511dc8, 4 bytes; 2 of 2 files
@@ -290,7 +269,7 @@ extern unsigned int DAT_00511dd8;                                               
 extern unsigned int DAT_00511ddc;                                                             // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                      // 0x511de0, 4 bytes; 2 of 2 files
 extern int DAT_00511de4;                                                                      // 0x511de4, 4 bytes; 2 of 2 files
-extern Game* g_game;                                                                          // 0x511de8, 4 bytes; 100 of 1034 files (conflicting: shape)
+extern Game* g_game;                                                                          // 0x511de8, 4 bytes; 101 of 1042 files (conflicting: shape)
 extern int DAT_00511dec;                                                                      // 0x511dec, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                        // 0x511f80, 16 bytes; Class_00437a30 by value in 1 of 5 files (conflicting: struct names only)
 extern int DAT_00511f90;                                                                      // 0x511f90, 4 bytes; 1 of 1 files
@@ -304,38 +283,41 @@ extern int DAT_00511fac;                                                        
 extern int DAT_00511fb0;                                                                      // 0x511fb0, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00511fb4[4];                                                         // 0x511fb4, 4 bytes, DAT_00511fb4$S4411; std::vector<Class_004c2ea0*, std::allocator<Class_004c2ea0*> >* by value in 1 of 4 files (conflicting: struct names only)
 extern char DAT_00511fb8[256];                                                                // 0x511fb8, 256 bytes; 5 of 5 files
-extern unsigned char DAT_005120bc[460];                                                       // 0x5120bc, 460 bytes; Entry_004263b0[10] by value in 1 of 1 files
 extern int DAT_00512288;                                                                      // 0x512288, 4 bytes; 1 of 1 files
 extern int DAT_0051228c;                                                                      // 0x51228c, 4 bytes; 1 of 1 files
 extern int DAT_00512290;                                                                      // 0x512290, 4 bytes; 1 of 1 files
 extern int DAT_00512294;                                                                      // 0x512294, 4 bytes; 1 of 1 files
 extern int DAT_0051229c;                                                                      // 0x51229c, 4 bytes; 1 of 1 files
+extern unsigned char DAT_005122a0[4];                                                         // 0x5122a0, 4 bytes; nothing refers to it
 extern unsigned char DAT_005122c0[4];                                                         // 0x5122c0, 4 bytes, DAT_005122c0$S4554; Class_00437580 by value in 1 of 1 files
 extern Class_00437820* DAT_005122c4;                                                          // 0x5122c4, 4 bytes; 1 of 1 files
 extern Class_00437820* DAT_005122c8;                                                          // 0x5122c8, 4 bytes; 1 of 1 files
+extern unsigned char DAT_005122cc[4];                                                         // 0x5122cc, 4 bytes; nothing refers to it
 extern int DAT_005122d8;                                                                      // 0x5122d8, 4 bytes; 2 of 2 files
 extern int DAT_005122dc;                                                                      // 0x5122dc, 4 bytes; 2 of 2 files
 extern int DAT_005122e0;                                                                      // 0x5122e0, 4 bytes; 2 of 2 files
+extern unsigned char DAT_005122e4[4];                                                         // 0x5122e4, 4 bytes; nothing refers to it
 extern int DAT_005122e8;                                                                      // 0x5122e8, 4 bytes; 4 of 5 files (conflicting: signedness or const)
+extern unsigned char DAT_005122ec[4];                                                         // 0x5122ec, 4 bytes; nothing refers to it
 extern char DAT_005122f0[32];                                                                 // 0x5122f0, 32 bytes; 2 of 2 files
 extern int DAT_00512310;                                                                      // 0x512310, 4 bytes; 2 of 2 files
 extern int DAT_00512314;                                                                      // 0x512314, 4 bytes; 3 of 3 files
 extern int DAT_00512318;                                                                      // 0x512318, 4 bytes; 5 of 5 files
 extern int DAT_0051231c;                                                                      // 0x51231c, 4 bytes; 3 of 4 files (conflicting: signedness or const)
-extern short DAT_00512322;                                                                    // 0x512322, 2 bytes; 1 of 1 files
 extern int DAT_00512324;                                                                      // 0x512324, 4 bytes; 3 of 3 files
 extern int DAT_0051232c;                                                                      // 0x51232c, 4 bytes; 5 of 5 files
 extern int DAT_00512330;                                                                      // 0x512330, 4 bytes; 3 of 4 files (conflicting: signedness or const)
-extern short DAT_00512336;                                                                    // 0x512336, 2 bytes; 1 of 1 files
 extern int DAT_00512338;                                                                      // 0x512338, 4 bytes; 3 of 3 files
-extern unsigned char DAT_00512340[24];                                                        // 0x512340, 24 bytes, DAT_00512340$S5516; Vector_00438480<int, std::allocator<int> > by value in 2 of 2 files
-extern unsigned char DAT_00512358[1032];                                                      // 0x512358, 1032 bytes, Class_00440290::DAT_00512358; Class_00440290 by value in 7 of 7 files
-extern char DAT_00512370[1000];                                                               // 0x512370, 1000 bytes; 2 of 2 files
+extern unsigned char DAT_0051233c[4];                                                         // 0x51233c, 4 bytes; nothing refers to it
+extern unsigned char DAT_00512350[8];                                                         // 0x512350, 8 bytes; nothing refers to it
+extern unsigned char DAT_00512758[8];                                                         // 0x512758, 8 bytes; nothing refers to it
 extern int DAT_00512760;                                                                      // 0x512760, 4 bytes; 1 of 1 files
 extern int DAT_00512768;                                                                      // 0x512768, 4 bytes; 2 of 2 files
 extern int DAT_0051276c;                                                                      // 0x51276c, 4 bytes; 1 of 1 files
-extern int DAT_00512774;                                                                      // 0x512774, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512780[8];                                                         // 0x512780, 8 bytes; nothing refers to it
 extern unsigned int DAT_00512788;                                                             // 0x512788, 4 bytes; 1 of 1 files
+extern unsigned char DAT_0051278c[60];                                                        // 0x51278c, 60 bytes; nothing refers to it
+extern unsigned char DAT_005127c8[432];                                                       // 0x5127c8, 432 bytes; LinkInfo[] by value in 2 of 2 files
 extern int DAT_00512978;                                                                      // 0x512978, 4 bytes; 1 of 1 files
 extern int DAT_0051297c;                                                                      // 0x51297c, 4 bytes; 1 of 1 files
 extern char* DAT_00512980;                                                                    // 0x512980, 4 bytes; 4 of 4 files
@@ -344,19 +326,20 @@ extern Entry_00443100* DAT_00512988;                                            
 extern char* DAT_0051298c;                                                                    // 0x51298c, 4 bytes; 4 of 4 files
 extern char* DAT_00512990;                                                                    // 0x512990, 4 bytes; 2 of 2 files
 extern int DAT_00512994;                                                                      // 0x512994, 4 bytes; 4 of 4 files
+extern unsigned char DAT_00512998[12];                                                        // 0x512998, 12 bytes; nothing refers to it
 extern int DAT_005129a4;                                                                      // 0x5129a4, 4 bytes; 1 of 1 files
 extern unsigned int DAT_005129a8;                                                             // 0x5129a8, 4 bytes; 1 of 1 files
 extern char* DAT_005129b0;                                                                    // 0x5129b0, 4 bytes; 6 of 8 files (conflicting: shape)
 extern Record_005129b4* DAT_005129b4;                                                         // 0x5129b4, 4 bytes; 2 of 8 files (conflicting: shape)
+extern unsigned char DAT_005129bc[4];                                                         // 0x5129bc, 4 bytes; nothing refers to it
 extern int DAT_005129c0;                                                                      // 0x5129c0, 4 bytes; 1 of 1 files
 extern int* DAT_005129c4;                                                                     // 0x5129c4, 4 bytes; 2 of 2 files
 extern int DAT_005129c8;                                                                      // 0x5129c8, 4 bytes; 1 of 1 files
-extern unsigned char DAT_005129d0[40];                                                        // 0x5129d0, 40 bytes; Class_0044f940 by value in 2 of 4 files (conflicting: struct names only)
-extern int DAT_005129f1;                                                                      // 0x5129f1, 4 bytes; 2 of 2 files
-extern unsigned char DAT_005129f8[40];                                                        // 0x5129f8, 40 bytes; Class_005129f8 by value in 1 of 2 files (conflicting: struct names only)
+extern unsigned char DAT_005129cc[4];                                                         // 0x5129cc, 4 bytes; nothing refers to it
 extern void (__stdcall* DAT_00512a20[2])(void*);                                              // 0x512a20, 8 bytes; 1 of 1 files
 extern int (__stdcall* DAT_00512a28)(int);                                                    // 0x512a28, 4 bytes; 1 of 1 files
 extern int (__stdcall* DAT_00512a2c)(int);                                                    // 0x512a2c, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512a30[4];                                                         // 0x512a30, 4 bytes; nothing refers to it
 extern int (__stdcall* DAT_00512a34)(int);                                                    // 0x512a34, 4 bytes; 1 of 1 files
 extern int (__stdcall* DAT_00512a38)(int);                                                    // 0x512a38, 4 bytes; 1 of 1 files
 extern int (__stdcall* DAT_00512a3c)(int);                                                    // 0x512a3c, 4 bytes; 1 of 1 files
@@ -395,11 +378,14 @@ extern int (__stdcall* DAT_00512abc)(int);                                      
 extern int (__stdcall* DAT_00512ac0)(int);                                                    // 0x512ac0, 4 bytes; 1 of 1 files
 extern int (__stdcall* DAT_00512ac4)(int);                                                    // 0x512ac4, 4 bytes; 1 of 1 files
 extern int (__stdcall* DAT_00512ac8)(int);                                                    // 0x512ac8, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512acc[4];                                                         // 0x512acc, 4 bytes; nothing refers to it
 extern int (__stdcall* DAT_00512ad0)(int);                                                    // 0x512ad0, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512ad4[4];                                                         // 0x512ad4, 4 bytes; nothing refers to it
 extern unsigned short DAT_00512ad8[2][2];                                                     // 0x512ad8, 4 bytes; 1 of 1 files
 extern int DAT_00512adc;                                                                      // 0x512adc, 4 bytes; 1 of 1 files
 extern int DAT_00512ae0;                                                                      // 0x512ae0, 4 bytes; 1 of 1 files
 extern int DAT_00512ae4;                                                                      // 0x512ae4, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512ae8[4];                                                         // 0x512ae8, 4 bytes; nothing refers to it
 extern int DAT_00512aec;                                                                      // 0x512aec, 4 bytes; 1 of 1 files
 extern int DAT_00512af0;                                                                      // 0x512af0, 4 bytes; 1 of 1 files
 extern int DAT_00512af4;                                                                      // 0x512af4, 4 bytes; 1 of 1 files
@@ -438,11 +424,14 @@ extern int DAT_00512b74;                                                        
 extern int DAT_00512b78;                                                                      // 0x512b78, 4 bytes; 1 of 1 files
 extern int DAT_00512b7c;                                                                      // 0x512b7c, 4 bytes; 1 of 1 files
 extern int DAT_00512b80;                                                                      // 0x512b80, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512b84[4];                                                         // 0x512b84, 4 bytes; nothing refers to it
 extern int DAT_00512b88;                                                                      // 0x512b88, 4 bytes; 1 of 1 files
-extern int DAT_00512b90[11];                                                                  // 0x512b90, 44 bytes; 1 of 1 files
+extern unsigned char DAT_00512b8c[4];                                                         // 0x512b8c, 4 bytes; nothing refers to it
+extern int DAT_00512b90[12];                                                                  // 0x512b90, 48 bytes (declared int[11]); 1 of 1 files
 extern int DAT_00512bc0[2];                                                                   // 0x512bc0, 8 bytes; 1 of 1 files
 extern int DAT_00512bc8;                                                                      // 0x512bc8, 4 bytes; 1 of 1 files
 extern int DAT_00512bcc;                                                                      // 0x512bcc, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512bd0[4];                                                         // 0x512bd0, 4 bytes; nothing refers to it
 extern int DAT_00512bd4;                                                                      // 0x512bd4, 4 bytes; 1 of 1 files
 extern int DAT_00512bd8;                                                                      // 0x512bd8, 4 bytes; 1 of 1 files
 extern int DAT_00512bdc;                                                                      // 0x512bdc, 4 bytes; 1 of 1 files
@@ -467,6 +456,7 @@ extern int DAT_00512c24;                                                        
 extern int DAT_00512c28;                                                                      // 0x512c28, 4 bytes; 1 of 1 files
 extern int DAT_00512c2c;                                                                      // 0x512c2c, 4 bytes; 1 of 1 files
 extern int DAT_00512c30;                                                                      // 0x512c30, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512c34[4];                                                         // 0x512c34, 4 bytes; nothing refers to it
 extern int DAT_00512c38;                                                                      // 0x512c38, 4 bytes; 1 of 1 files
 extern int DAT_00512c3c;                                                                      // 0x512c3c, 4 bytes; 1 of 1 files
 extern int DAT_00512c40;                                                                      // 0x512c40, 4 bytes; 1 of 1 files
@@ -480,47 +470,21 @@ extern int DAT_00512c5c;                                                        
 extern int DAT_00512c60;                                                                      // 0x512c60, 4 bytes; 1 of 1 files
 extern int DAT_00512c64;                                                                      // 0x512c64, 4 bytes; 1 of 1 files
 extern int DAT_00512c68;                                                                      // 0x512c68, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512c6c[4];                                                         // 0x512c6c, 4 bytes; nothing refers to it
 extern int DAT_00512c70;                                                                      // 0x512c70, 4 bytes; 1 of 1 files
 extern int DAT_00512c78;                                                                      // 0x512c78, 4 bytes; 1 of 1 files
 extern unsigned int DAT_00512c7c;                                                             // 0x512c7c, 4 bytes; 1 of 1 files
-extern int DAT_00512c80;                                                                      // 0x512c80, 4 bytes; 3 of 3 files
-extern int DAT_00512c84;                                                                      // 0x512c84, 4 bytes; 5 of 5 files
-extern int DAT_00512c8c;                                                                      // 0x512c8c, 4 bytes; 1 of 1 files
-extern int DAT_00512c94;                                                                      // 0x512c94, 4 bytes; 1 of 1 files
-extern char DAT_00512c98[16];                                                                 // 0x512c98, 16 bytes; 2 of 2 files
-extern char DAT_00512ca8[64];                                                                 // 0x512ca8, 64 bytes; 3 of 3 files
-extern char DAT_00512ce8[64];                                                                 // 0x512ce8, 64 bytes; 1 of 1 files
-extern char DAT_00512d28;                                                                     // 0x512d28, 1 bytes; 2 of 2 files
-extern int DAT_00512d68;                                                                      // 0x512d68, 4 bytes; 1 of 1 files
-extern int DAT_00512d6c;                                                                      // 0x512d6c, 4 bytes; 1 of 1 files
-extern int DAT_00512d70;                                                                      // 0x512d70, 4 bytes; 1 of 1 files
-extern int DAT_00512d74;                                                                      // 0x512d74, 4 bytes; 1 of 1 files
-extern int DAT_00512d78;                                                                      // 0x512d78, 4 bytes; 1 of 1 files
-extern int DAT_00512d7c;                                                                      // 0x512d7c, 4 bytes; 1 of 1 files
-extern int DAT_00512d80;                                                                      // 0x512d80, 4 bytes; 1 of 1 files
-extern int DAT_00512d84;                                                                      // 0x512d84, 4 bytes; 1 of 1 files
-extern int DAT_00512d88;                                                                      // 0x512d88, 4 bytes; 1 of 1 files
-extern int DAT_00512d8c;                                                                      // 0x512d8c, 4 bytes; 1 of 1 files
-extern int DAT_00512ee8;                                                                      // 0x512ee8, 4 bytes; 1 of 1 files
-extern void* DAT_00512eec;                                                                    // 0x512eec, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512c80[336];                                                       // 0x512c80, 336 bytes; int in 3 of 4 files (conflicting: shape), but used past its end
+extern char DAT_00512dd0[260];                                                                // 0x512dd0, 260 bytes; 3 of 3 files
+extern unsigned char DAT_00512ed4[20];                                                        // 0x512ed4, 20 bytes; nothing refers to it
+extern int DAT_00512ee8;                                                                      // 0x512ee8, 4 bytes; 2 of 2 files
+extern void* DAT_00512eec;                                                                    // 0x512eec, 4 bytes; 4 of 4 files
 extern int DAT_00512ef0;                                                                      // 0x512ef0, 4 bytes; 3 of 3 files
+extern unsigned char DAT_00512ef4[4];                                                         // 0x512ef4, 4 bytes; nothing refers to it
 extern unsigned char DAT_00512ef8[24];                                                        // 0x512ef8, 24 bytes; Entry_45ffb0 by value in 1 of 2 files (conflicting: struct names only)
 extern int DAT_00512f10;                                                                      // 0x512f10, 4 bytes; 2 of 2 files
 extern int DAT_00512f14;                                                                      // 0x512f14, 4 bytes; 2 of 2 files
 extern unsigned char DAT_00512f18[85];                                                        // 0x512f18, 85 bytes; Settings_45cde0 by value in 1 of 2 files (conflicting: struct names only)
-extern int DAT_00512f2c;                                                                      // 0x512f2c, 4 bytes; 4 of 4 files
-extern int DAT_00512f38;                                                                      // 0x512f38, 4 bytes; 1 of 1 files
-extern int DAT_00512f3a;                                                                      // 0x512f3a, 4 bytes; 1 of 1 files
-extern int DAT_00512f3e;                                                                      // 0x512f3e, 4 bytes; 1 of 1 files
-extern int DAT_00512f42;                                                                      // 0x512f42, 4 bytes; 4 of 4 files
-extern char DAT_00512f48;                                                                     // 0x512f48, 1 bytes; 3 of 4 files (conflicting: signedness or const)
-extern char DAT_00512f49;                                                                     // 0x512f49, 1 bytes; 3 of 5 files (conflicting: signedness or const)
-extern char DAT_00512f4a;                                                                     // 0x512f4a, 1 bytes; 3 of 4 files (conflicting: signedness or const)
-extern unsigned int DAT_00512f4b;                                                             // 0x512f4b, 4 bytes; 1 of 1 files
-extern int DAT_00512f4d;                                                                      // 0x512f4d, 4 bytes; 1 of 1 files
-extern int DAT_00512f51;                                                                      // 0x512f51, 4 bytes; 1 of 1 files
-extern int DAT_00512f55;                                                                      // 0x512f55, 4 bytes; 4 of 4 files
-extern int DAT_00512f59;                                                                      // 0x512f59, 4 bytes; 4 of 4 files
 extern int DAT_00512f6d;                                                                      // 0x512f6d, 4 bytes; 5 of 6 files (conflicting: shape)
 extern int DAT_00512fd9;                                                                      // 0x512fd9, 4 bytes; 6 of 6 files
 extern int DAT_00512fe0;                                                                      // 0x512fe0, 4 bytes; 5 of 5 files
@@ -528,22 +492,14 @@ extern int DAT_00512fe4;                                                        
 extern int DAT_00512fec;                                                                      // 0x512fec, 4 bytes; 2 of 2 files
 extern int DAT_00512ff0;                                                                      // 0x512ff0, 4 bytes; 2 of 2 files
 extern int DAT_00512ff8;                                                                      // 0x512ff8, 4 bytes; 4 of 4 files
-extern unsigned char DAT_00513000[46416];                                                     // 0x513000, 46416 bytes; Class_004618a0 by value in 19 of 28 files (conflicting: struct names only)
-extern unsigned char DAT_00513008[4];                                                         // 0x513008, 4 bytes; Class_00462710 by value in 1 of 1 files
-extern int* DAT_0051e2f4;                                                                     // 0x51e2f4, 4 bytes; 1 of 1 files
-extern unsigned int DAT_0051e2f8;                                                             // 0x51e2f8, 4 bytes; 1 of 1 files
-extern unsigned char DAT_0051e300[4];                                                         // 0x51e300, 4 bytes; Class_00462f30 by value in 1 of 1 files
-extern Buffer_461020* DAT_0051e314;                                                           // 0x51e314, 4 bytes; 1 of 1 files
-extern void* DAT_0051e318;                                                                    // 0x51e318, 4 bytes; 1 of 1 files
-extern void* DAT_0051e31c;                                                                    // 0x51e31c, 4 bytes; 1 of 1 files
-extern int DAT_0051e528;                                                                      // 0x51e528, 4 bytes; 1 of 1 files
-extern int DAT_0051e52c;                                                                      // 0x51e52c, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00512ffc[4];                                                         // 0x512ffc, 4 bytes; nothing refers to it
 extern int DAT_0051e53c;                                                                      // 0x51e53c, 4 bytes; 1 of 1 files
 extern int DAT_0051e540;                                                                      // 0x51e540, 4 bytes; 2 of 2 files
 extern int DAT_0051e544;                                                                      // 0x51e544, 4 bytes; 1 of 1 files
 extern int (__stdcall* DAT_0051e54c)(int*, int);                                              // 0x51e54c, 4 bytes; 1 of 1 files
 extern int (__stdcall* DAT_0051e554)(char*);                                                  // 0x51e554, 4 bytes; 1 of 1 files
 extern void (__cdecl* DAT_0051e558)(void);                                                    // 0x51e558, 4 bytes; 2 of 2 files
+extern unsigned char DAT_0051e55c[4];                                                         // 0x51e55c, 4 bytes; nothing refers to it
 extern unsigned char DAT_0051e560[20];                                                        // 0x51e560, 20 bytes; Name_0046c620 by value in 1 of 1 files
 extern void (__stdcall* DAT_0051e578)(void (__stdcall*)(int), int (__stdcall*)(char*, int));  // 0x51e578, 4 bytes; 1 of 1 files
 extern int (__stdcall* DAT_0051e588)(int);                                                    // 0x51e588, 4 bytes; 2 of 2 files
@@ -551,13 +507,18 @@ extern int DAT_0051e590;                                                        
 extern int DAT_0051e594;                                                                      // 0x51e594, 4 bytes; 2 of 2 files
 extern char DAT_0051e5a0[104];                                                                // 0x51e5a0, 104 bytes; 1 of 1 files
 extern char DAT_0051e608;                                                                     // 0x51e608, 1 bytes; 21 of 21 files
+extern unsigned char DAT_0051e609[7];                                                         // 0x51e609, 7 bytes; nothing refers to it
 extern unsigned char DAT_0051e610[36];                                                        // 0x51e610, 36 bytes; Class_00470ed0 by value in 26 of 28 files (conflicting: struct names only)
 extern unsigned char DAT_0051e634;                                                            // 0x51e634, 1 bytes; 1 of 1 files
+extern unsigned char DAT_0051e635[7];                                                         // 0x51e635, 7 bytes; nothing refers to it
 extern char* DAT_0051e63c;                                                                    // 0x51e63c, 4 bytes; 3 of 3 files
+extern unsigned char DAT_0051e644[8];                                                         // 0x51e644, 8 bytes; nothing refers to it
 extern int DAT_0051e64c;                                                                      // 0x51e64c, 4 bytes; 1 of 1 files
 extern int DAT_0051e650;                                                                      // 0x51e650, 4 bytes; 2 of 2 files
 extern int DAT_0051e654;                                                                      // 0x51e654, 4 bytes; 2 of 2 files
+extern unsigned char DAT_0051e658[4];                                                         // 0x51e658, 4 bytes; nothing refers to it
 extern int* DAT_0051e65c;                                                                     // 0x51e65c, 4 bytes; 3 of 3 files
+extern unsigned char DAT_0051e664[4];                                                         // 0x51e664, 4 bytes; nothing refers to it
 extern int DAT_0051e668;                                                                      // 0x51e668, 4 bytes; 2 of 2 files
 extern int DAT_0051e66c;                                                                      // 0x51e66c, 4 bytes; 1 of 1 files
 extern int DAT_0051e670;                                                                      // 0x51e670, 4 bytes; 2 of 2 files
@@ -573,27 +534,20 @@ extern int DAT_0051e694;                                                        
 extern int DAT_0051e698;                                                                      // 0x51e698, 4 bytes; 2 of 2 files
 extern int DAT_0051e69c;                                                                      // 0x51e69c, 4 bytes; 2 of 2 files
 extern unsigned char DAT_0051e6b0[12];                                                        // 0x51e6b0, 12 bytes, DAT_0051e6b0$S4554; std::vector<Class_00489260, std::allocator<Class_00489260> > by value in 1 of 1 files
+extern unsigned char DAT_0051e6bc[4];                                                         // 0x51e6bc, 4 bytes; nothing refers to it
 extern int DAT_0051e6c0;                                                                      // 0x51e6c0, 4 bytes; 2 of 2 files
 extern unsigned int DAT_0051e6c4;                                                             // 0x51e6c4, 4 bytes; 1 of 1 files
-extern "C" int DAT_0051e6c8;                                                                  // 0x51e6c8, 4 bytes; declared extern "C" in 1 of 1 files
-extern "C" int DAT_0051e6cc;                                                                  // 0x51e6cc, 4 bytes; declared extern "C" in 1 of 1 files
+extern "C" unsigned char DAT_0051e6c8[8];                                                     // 0x51e6c8, 4 bytes; extern "C" (no type) with the globals inside it
 extern int DAT_0051e6d0[10];                                                                  // 0x51e6d0, 40 bytes; 2 of 2 files
 extern char DAT_0051e6f8[24];                                                                 // 0x51e6f8, 24 bytes; 1 of 1 files
 extern int DAT_0051e710[30];                                                                  // 0x51e710, 120 bytes; 3 of 3 files
 extern char DAT_0051e788[136];                                                                // 0x51e788, 136 bytes; 2 of 2 files
 extern unsigned char DAT_0051e810[10];                                                        // 0x51e810, 10 bytes; 2 of 3 files (conflicting: signedness or const)
-extern "C" unsigned char DAT_0051e820;                                                        // 0x51e820, 1 bytes; declared extern "C" in 1 of 1 files
-extern "C" unsigned char DAT_0051e821;                                                        // 0x51e821, 1 bytes; declared extern "C" in 1 of 1 files
-extern "C" unsigned char DAT_0051e822;                                                        // 0x51e822, 1 bytes; declared extern "C" in 1 of 1 files
-extern "C" unsigned char DAT_0051e823;                                                        // 0x51e823, 1 bytes; declared extern "C" in 1 of 1 files
-extern "C" unsigned char DAT_0051e824;                                                        // 0x51e824, 1 bytes; declared extern "C" in 1 of 1 files
-extern "C" unsigned char DAT_0051e825;                                                        // 0x51e825, 1 bytes; declared extern "C" in 1 of 1 files
-extern int DAT_0051e848;                                                                      // 0x51e848, 4 bytes; 1 of 1 files
-extern int DAT_0051e84c;                                                                      // 0x51e84c, 4 bytes; 1 of 1 files
-extern int DAT_0051e850;                                                                      // 0x51e850, 4 bytes; 1 of 1 files
-extern int DAT_0051e854;                                                                      // 0x51e854, 4 bytes; 1 of 1 files
-extern int DAT_0051e858;                                                                      // 0x51e858, 4 bytes; 1 of 1 files
+extern unsigned char DAT_0051e81a[6];                                                         // 0x51e81a, 6 bytes; nothing refers to it
+extern "C" unsigned char DAT_0051e820[5];                                                     // 0x51e820, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
+extern "C" unsigned char DAT_0051e825[3];                                                     // 0x51e825, 1 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern unsigned char DAT_0051f2c8[10];                                                        // 0x51f2c8, 10 bytes; 2 of 3 files (conflicting: signedness or const)
+extern unsigned char DAT_0051f2d2[6];                                                         // 0x51f2d2, 6 bytes; nothing refers to it
 extern unsigned int DAT_0051f2d8;                                                             // 0x51f2d8, 4 bytes; 1 of 2 files (conflicting: signedness or const)
 extern int DAT_0051f2dc;                                                                      // 0x51f2dc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 extern char* DAT_0051f2e0;                                                                    // 0x51f2e0, 4 bytes; 4 of 5 files (conflicting: shape)
@@ -604,13 +558,14 @@ extern unsigned int DAT_0051f2f8;                                               
 extern int DAT_0051f2fc;                                                                      // 0x51f2fc, 4 bytes; 1 of 1 files
 extern int DAT_0051f300;                                                                      // 0x51f300, 4 bytes; 1 of 1 files
 extern int DAT_0051f304;                                                                      // 0x51f304, 4 bytes; 1 of 1 files
-extern "C" int DAT_0051f308;                                                                  // 0x51f308, 4 bytes; declared extern "C" in 1 of 1 files
-extern unsigned char DAT_0051f310[12];                                                        // 0x51f310, 12 bytes; Class_004c2ea0 by value in 1 of 1 files
+extern "C" unsigned char DAT_0051f308[8];                                                     // 0x51f308, 4 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern unsigned char DAT_0051f31c;                                                            // 0x51f31c, 1 bytes; 1 of 1 files
 extern unsigned char DAT_0051f320[2088];                                                      // 0x51f320, 2088 bytes; App_0049e830 by value in 1 of 1 files
-extern int DAT_0051fb48;                                                                      // 0x51fb48, 4 bytes; 1 of 1 files
+extern int DAT_0051fb48;                                                                      // 0x51fb48, 4 bytes; 2 of 2 files
+extern unsigned char DAT_0051fb4c[4];                                                         // 0x51fb4c, 4 bytes; nothing refers to it
 extern int DAT_0051fb90;                                                                      // 0x51fb90, 4 bytes; 1 of 1 files
 extern unsigned long DAT_0051fb94;                                                            // 0x51fb94, 4 bytes; 1 of 1 files
+extern unsigned char DAT_0051fb98[4];                                                         // 0x51fb98, 4 bytes; nothing refers to it
 extern int* DAT_0051fba0;                                                                     // 0x51fba0, 4 bytes; 2 of 2 files
 extern Class_0051fba4* DAT_0051fba4;                                                          // 0x51fba4, 4 bytes; 15 of 31 files (conflicting: shape)
 extern int DAT_0051fba8;                                                                      // 0x51fba8, 4 bytes; 1 of 1 files
@@ -618,25 +573,19 @@ extern int DAT_0051fbac;                                                        
 extern int DAT_0051fbb0;                                                                      // 0x51fbb0, 4 bytes; 1 of 1 files
 extern int DAT_0051fbb4;                                                                      // 0x51fbb4, 4 bytes; 1 of 1 files
 extern int DAT_0051fbb8;                                                                      // 0x51fbb8, 4 bytes; 2 of 2 files
-extern unsigned char DAT_0051fbc0[16];                                                        // 0x51fbc0, 16 bytes, DAT_0051fbc0$S425; std::map<int, int, std::less<int>, std::allocator<int> > by value in 2 of 4 files (conflicting: shape)
-extern unsigned char DAT_0051fbd8[160];                                                       // 0x51fbd8, 160 bytes; Timer_4b63f0[] by value in 1 of 1 files
-extern void (__cdecl* DAT_0051fc78)(int);                                                     // 0x51fc78, 4 bytes; 2 of 2 files
-extern int DAT_0051fc7c;                                                                      // 0x51fc7c, 4 bytes; 2 of 2 files
-extern int DAT_0051fc80;                                                                      // 0x51fc80, 4 bytes; 5 of 5 files
+extern unsigned char DAT_0051fbd4[4];                                                         // 0x51fbd4, 4 bytes; nothing refers to it
+extern unsigned char DAT_0051fbd8[172];                                                       // 0x51fbd8, 172 bytes; Timer_4b63f0[] by value in 1 of 1 files
 extern unsigned int DAT_0051fc84;                                                             // 0x51fc84, 4 bytes; 4 of 4 files
 extern unsigned int DAT_0051fc88;                                                             // 0x51fc88, 4 bytes; 2 of 2 files
+extern unsigned char DAT_0051fc8c[4];                                                         // 0x51fc8c, 4 bytes; nothing refers to it
 extern int DAT_0051fc90;                                                                      // 0x51fc90, 4 bytes; 3 of 3 files
 extern int DAT_0051fc94;                                                                      // 0x51fc94, 4 bytes; 3 of 3 files
 extern unsigned char DAT_0051fcb0[256];                                                       // 0x51fcb0, 256 bytes; 2 of 2 files
 extern int DAT_0051fdb0;                                                                      // 0x51fdb0, 4 bytes; 3 of 3 files
+extern unsigned char DAT_0051fdb4[4];                                                         // 0x51fdb4, 4 bytes; nothing refers to it
 extern Class_004c5840* DAT_0051fdb8;                                                          // 0x51fdb8, 4 bytes; 2 of 3 files (conflicting: struct names only)
-extern char DAT_0051fdc0[256];                                                                // 0x51fdc0, 256 bytes; 2 of 2 files
-extern int DAT_0051fe00;                                                                      // 0x51fe00, 4 bytes; 14 of 14 files
-extern unsigned char DAT_0051fe08[56];                                                        // 0x51fe08, 56 bytes; LockEntry_004c5e70[] by value in 1 of 3 files (conflicting: struct names only)
-extern int DAT_0051fe40;                                                                      // 0x51fe40, 4 bytes; 1 of 1 files
-extern int DAT_0051fe48[20];                                                                  // 0x51fe48, 80 bytes; 2 of 2 files
-extern int DAT_0051fe98;                                                                      // 0x51fe98, 4 bytes; 1 of 1 files
-extern int DAT_0051fea0[20];                                                                  // 0x51fea0, 80 bytes; 2 of 2 files
+extern unsigned char DAT_0051fdbc[4];                                                         // 0x51fdbc, 4 bytes; nothing refers to it
+extern char DAT_0051fdc0[304];                                                                // 0x51fdc0, 304 bytes (declared char[256]); 2 of 2 files
 extern int DAT_0051fef0;                                                                      // 0x51fef0, 4 bytes; 1 of 1 files
 extern int DAT_0051fef4;                                                                      // 0x51fef4, 4 bytes; 1 of 1 files
 extern Chunk* DAT_0051fef8;                                                                   // 0x51fef8, 4 bytes; 2 of 2 files
@@ -647,12 +596,16 @@ extern int DAT_0051ff08;                                                        
 extern int DAT_0051ff0c;                                                                      // 0x51ff0c, 4 bytes; 2 of 2 files
 extern int DAT_0051ff10;                                                                      // 0x51ff10, 4 bytes; 2 of 2 files
 extern void* DAT_0051ff18;                                                                    // 0x51ff18, 4 bytes; 3 of 4 files (conflicting: shape)
+extern unsigned char DAT_0051ff1c[4];                                                         // 0x51ff1c, 4 bytes; nothing refers to it
 extern int DAT_0051ff20[10];                                                                  // 0x51ff20, 40 bytes; 1 of 1 files
 extern int DAT_0051ff48;                                                                      // 0x51ff48, 4 bytes; 2 of 2 files
+extern unsigned char DAT_0051ff4c[12];                                                        // 0x51ff4c, 12 bytes; nothing refers to it
 extern int DAT_0051ff58;                                                                      // 0x51ff58, 4 bytes; 2 of 2 files
+extern unsigned char DAT_0051ff5c[4];                                                         // 0x51ff5c, 4 bytes; nothing refers to it
 extern char DAT_0051ff60[112];                                                                // 0x51ff60, 112 bytes; 2 of 2 files
 extern char DAT_0051ffd0[176];                                                                // 0x51ffd0, 176 bytes; 3 of 3 files
-extern char DAT_00520fe8[12634];                                                              // 0x520fe8, 12634 bytes; 2 of 2 files
+extern unsigned char DAT_00520080[3944];                                                      // 0x520080, 3944 bytes; nothing refers to it
+extern char DAT_00520fe8[24584];                                                              // 0x520fe8, 24584 bytes; 2 of 2 files
 extern Struct_00526ff0* DAT_00526ff0;                                                         // 0x526ff0, 4 bytes; 2 of 10 files (conflicting: shape)
 extern int DAT_00526ff8;                                                                      // 0x526ff8, 4 bytes; 3 of 3 files
 extern int DAT_00526ffc;                                                                      // 0x526ffc, 4 bytes; 4 of 4 files
@@ -661,23 +614,31 @@ extern char DAT_005289b8;                                                       
 extern void (__stdcall* DAT_005289bc)(void);                                                  // 0x5289bc, 4 bytes; 12 of 13 files (conflicting: shape)
 extern int DAT_005289c0;                                                                      // 0x5289c0, 4 bytes; 1 of 1 files
 extern int DAT_005289c4;                                                                      // 0x5289c4, 4 bytes; 2 of 2 files
+extern unsigned char DAT_005289c8;                                                            // 0x5289c8, 1 bytes; 2 of 2 files
+extern unsigned char DAT_005289cc;                                                            // 0x5289cc, 1 bytes; 1 of 1 files
 extern unsigned int DAT_005289d0;                                                             // 0x5289d0, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 extern unsigned int DAT_005289d4;                                                             // 0x5289d4, 4 bytes; 3 of 3 files
 extern unsigned int DAT_005289d8;                                                             // 0x5289d8, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 extern unsigned int DAT_005289dc;                                                             // 0x5289dc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 extern void* DAT_005289e0;                                                                    // 0x5289e0, 4 bytes; 3 of 4 files (conflicting: shape)
+extern unsigned char DAT_005289e4[8];                                                         // 0x5289e4, 8 bytes; nothing refers to it
 extern unsigned int DAT_005289f0;                                                             // 0x5289f0, 4 bytes; 3 of 4 files (conflicting: signedness or const)
+extern unsigned char DAT_005289f4[4];                                                         // 0x5289f4, 4 bytes; nothing refers to it
 extern unsigned int DAT_005289f8;                                                             // 0x5289f8, 4 bytes; 2 of 4 files (conflicting: signedness or const)
 extern unsigned int DAT_005289fc;                                                             // 0x5289fc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 extern unsigned int DAT_00528a00;                                                             // 0x528a00, 4 bytes; 3 of 4 files (conflicting: signedness or const)
 extern unsigned int DAT_00528a04;                                                             // 0x528a04, 4 bytes; 3 of 4 files (conflicting: signedness or const)
 extern unsigned int DAT_00528a08;                                                             // 0x528a08, 4 bytes; 2 of 4 files (conflicting: signedness or const)
+extern unsigned char DAT_00528a0c[4];                                                         // 0x528a0c, 4 bytes; nothing refers to it
+extern unsigned char DAT_00528a14[8];                                                         // 0x528a14, 8 bytes; nothing refers to it
 extern unsigned int DAT_00528a1c;                                                             // 0x528a1c, 4 bytes; 2 of 3 files (conflicting: signedness or const)
+extern unsigned char DAT_00528a20[8];                                                         // 0x528a20, 8 bytes; nothing refers to it
 extern Class_004db000* DAT_00528a40;                                                          // 0x528a40, 4 bytes; 1 of 1 files
 extern void* DAT_00528a44;                                                                    // 0x528a44, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00528a48[4];                                                         // 0x528a48, 4 bytes; Container_004da9f0<int, std::allocator<int> >* by value in 1 of 1 files
 extern int DAT_00528a4c;                                                                      // 0x528a4c, 4 bytes; 1 of 1 files
 extern Node_004dde70* DAT_00528a50;                                                           // 0x528a50, 4 bytes; 1 of 11 files (conflicting: struct names only)
+extern unsigned char DAT_00528a5c[4];                                                         // 0x528a5c, 4 bytes; nothing refers to it
 extern unsigned char DAT_00528a78[44];                                                        // 0x528a78, 44 bytes; Class_004e1650 by value in 1 of 1 files
 extern void* DAT_00528aa4;                                                                    // 0x528aa4, 4 bytes; 1 of 1 files
 extern char DAT_00528aa8;                                                                     // 0x528aa8, 1 bytes; 1 of 1 files
@@ -687,14 +648,21 @@ extern char DAT_00528ad8;                                                       
 extern char DAT_00528adc;                                                                     // 0x528adc, 1 bytes; 1 of 1 files
 extern void* DAT_00528ae0;                                                                    // 0x528ae0, 4 bytes; 2 of 2 files
 extern char DAT_00528ae4;                                                                     // 0x528ae4, 1 bytes; 1 of 1 files
-extern char DAT_00528ae8[488];                                                                // 0x528ae8, 488 bytes; 1 of 1 files
-extern char DAT_00528ed0[488];                                                                // 0x528ed0, 488 bytes; 1 of 1 files
+extern char DAT_00528ae8[1000];                                                               // 0x528ae8, 1000 bytes (declared char[488]); 1 of 1 files
+extern char DAT_00528ed0[1000];                                                               // 0x528ed0, 1000 bytes (declared char[488]); 1 of 1 files
+extern unsigned char DAT_005292b8[4];                                                         // 0x5292b8, 4 bytes; nothing refers to it
+extern unsigned char DAT_005292c8[8];                                                         // 0x5292c8, 8 bytes; nothing refers to it
+extern unsigned char DAT_00529504[4];                                                         // 0x529504, 4 bytes; nothing refers to it
 extern int DAT_00529508;                                                                      // 0x529508, 4 bytes; 3 of 3 files
+extern unsigned char DAT_0052950c[4];                                                         // 0x52950c, 4 bytes; nothing refers to it
 extern int DAT_00529528;                                                                      // 0x529528, 4 bytes; 1 of 1 files
+extern unsigned char DAT_0052952c[4];                                                         // 0x52952c, 4 bytes; nothing refers to it
 extern void* DAT_00529530;                                                                    // 0x529530, 4 bytes; 1 of 1 files
+extern unsigned char DAT_00529534[4];                                                         // 0x529534, 4 bytes; nothing refers to it
 extern int DAT_005295b8;                                                                      // 0x5295b8, 4 bytes; 1 of 1 files
 extern void* DAT_005295bc;                                                                    // 0x5295bc, 4 bytes; 3 of 3 files
 extern int DAT_005295c0;                                                                      // 0x5295c0, 4 bytes; 1 of 1 files
+extern unsigned char DAT_005295c4[4];                                                         // 0x5295c4, 4 bytes; nothing refers to it
 extern int DAT_005295c8;                                                                      // 0x5295c8, 4 bytes; 1 of 1 files
 extern char DAT_005295cc;                                                                     // 0x5295cc, 1 bytes; 3 of 3 files
 extern int DAT_005295d0;                                                                      // 0x5295d0, 4 bytes; 1 of 1 files
@@ -704,17 +672,24 @@ extern unsigned char DAT_00529dc8;                                              
 extern int DAT_00529dcc;                                                                      // 0x529dcc, 4 bytes; 2 of 2 files
 extern int DAT_00529dd0;                                                                      // 0x529dd0, 4 bytes; 2 of 2 files
 extern unsigned char DAT_00529dd4;                                                            // 0x529dd4, 1 bytes; 2 of 3 files (conflicting: signedness or const)
-extern unsigned char DAT_00529dd8;                                                            // 0x529dd8, 1 bytes; 3 of 3 files
-extern unsigned char DAT_00529ddc;                                                            // 0x529ddc, 1 bytes; 2 of 2 files
-extern char DAT_00529e20[56];                                                                 // 0x529e20, 56 bytes; 2 of 2 files
+extern unsigned char DAT_00529dd8;                                                            // 0x529dd8, 1 bytes; 4 of 4 files
+extern unsigned char DAT_00529ddc;                                                            // 0x529ddc, 1 bytes; 3 of 3 files
+extern unsigned char DAT_00529dfc[4];                                                         // 0x529dfc, 4 bytes; nothing refers to it
+extern char DAT_00529e20[56];                                                                 // 0x529e20, 56 bytes; 3 of 3 files
 extern void* DAT_00529e58;                                                                    // 0x529e58, 4 bytes; 5 of 6 files (conflicting: shape)
-extern unsigned char DAT_00529e64;                                                            // 0x529e64, 1 bytes; 2 of 2 files
+extern unsigned char DAT_00529e5c[8];                                                         // 0x529e5c, 8 bytes; nothing refers to it
+extern unsigned char DAT_00529e64;                                                            // 0x529e64, 1 bytes; 3 of 3 files
 extern unsigned char DAT_00529e6c;                                                            // 0x529e6c, 1 bytes; 1 of 1 files
 extern unsigned char DAT_00529e70;                                                            // 0x529e70, 1 bytes; 1 of 1 files
+extern char DAT_00529e74;                                                                     // 0x529e74, 1 bytes; 1 of 1 files
+extern char DAT_00529e78;                                                                     // 0x529e78, 1 bytes; 1 of 1 files
 extern Class_004e17c0* DAT_00529e7c;                                                          // 0x529e7c, 4 bytes; 1 of 1 files
 extern char* DAT_00529e80;                                                                    // 0x529e80, 4 bytes; 1 of 1 files
-extern void* DAT_00529e98;                                                                    // 0x529e98, 4 bytes; 3 of 3 files
-extern int DAT_00529ea0;                                                                      // 0x529ea0, 4 bytes; 2 of 2 files
+extern unsigned char DAT_00529e84[4];                                                         // 0x529e84, 4 bytes; nothing refers to it
+extern char DAT_00529e88[13];                                                                 // 0x529e88, 13 bytes; 1 of 1 files
+extern void* DAT_00529e98;                                                                    // 0x529e98, 4 bytes; 4 of 4 files
+extern int DAT_00529ea0;                                                                      // 0x529ea0, 4 bytes; 3 of 3 files
+extern unsigned char DAT_00529ea4[4];                                                         // 0x529ea4, 4 bytes; nothing refers to it
 extern char DAT_0052a4e4;                                                                     // 0x52a4e4, 1 bytes; 1 of 1 files
 extern long DAT_0052a4e8;                                                                     // 0x52a4e8, 4 bytes; 6 of 7 files (conflicting: signedness or const)
 extern long DAT_0052a4ec;                                                                     // 0x52a4ec, 4 bytes; 6 of 6 files
@@ -723,89 +698,245 @@ extern int DAT_0052a4f4;                                                        
 extern void* DAT_0052a4f8;                                                                    // 0x52a4f8, 4 bytes; 3 of 3 files
 extern long DAT_0052a4fc;                                                                     // 0x52a4fc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 
-// Not declared: 83 globals whose type is not settled (see data/globals.csv).
+// Not declared: 239 globals defined in src/data or whose type is not settled (see data/globals.csv).
+//   0x513000 DAT_00513000: defined in src/unsorted/0x460e20.cpp
 //   0x5119c0 DAT_005119c0: Class_00409160*[] (7), void*[] (5), Owner*[] (3), Class_00409470*[] (2), and 5 more
 //   0x51fbd0 DAT_0051fbd0: void* (4), int (2), Display_004b4f50* (1), Display_004b5370* (1), and 14 more
-//   0x51e598 IURect_0046e160::IU?$pair::?$_Tree::_Nil: template
-//   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: template
-//   0x512344 DAT_00512344: int (3), Entry_00438760* (1), Entry_00438b90* (1), Entry_00439740* (1), and 10 more
-//   0x51fbbc std::HH::HU?$pair::?$_Tree::_Nil: template
-//   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: template
-//   0x4fd2f8 DAT_004fd2f8: vtable
-//   0x4fcdc8 DAT_004fcdc8: char[] (1), Guid_00441460 (1), Guid_00441bc0 (1), Guid_00441c30 (1), and 3 more
+//   0x51e598 IURect_0046e160::IU?$pair::?$_Tree::_Nil: defined in src/unsorted/0x46c920.cpp
+//   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: defined in src/unsorted/0x4db610.cpp
+//   0x512344 DAT_00512344: part of another global: DAT_00512340$S5516+0x4
+//   0x51fbbc std::HH::HU?$pair::?$_Tree::_Nil: defined in src/unsorted/0x4b26f0.cpp
+//   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
+//   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/unsorted/0x4e17c0.cpp
+//   0x51fe00 DAT_0051fe00: part of another global: DAT_0051fdc0+0x40
+//   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
+//   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
+//   0x4fd3b8 DAT_004fd3b8: defined in src/data/vtables.cpp
 //   0x511df0 DAT_00511df0: Obj_00421170*[] (2), int[100] (1), void*[100] (1), Obj_00420f30*[100] (1), and 2 more
-//   0x51e59c IURect_0046e160::IU?$pair::?$_Tree::_Nilrefs: template
+//   0x512358 Class_00440290::DAT_00512358: defined in src/unsorted/0x440230.cpp
+//   0x51e59c IURect_0046e160::IU?$pair::?$_Tree::_Nilrefs: defined in src/unsorted/0x46c920.cpp
 //   0x51f2e8 DAT_0051f2e8: char* (4), int (1), int* (1), void* (1)
-//   0x4fcdb8 DAT_004fcdb8: char[] (1), Guid_00441460 (1), Guid_00441bc0 (1), Guid_00441c30 (1), and 2 more
-//   0x4fd3b8 DAT_004fd3b8: vtable
+//   0x4fcd98 DPSPGUID_IPX: defined in src/data/guids.cpp
+//   0x4fcda8 DPSPGUID_TCPIP: defined in src/data/guids.cpp
 //   0x5129ac DAT_005129ac: char* (4), int* (1), void* (1)
 //   0x512f71 DAT_00512f71: char (3), int (2), unsigned char (1)
 //   0x512f75 DAT_00512f75: char[] (4), char (2)
 //   0x51e58c DAT_0051e58c: int (4), void* (2)
-//   0x51e6a0 DAT_0051e6a0: char[] (3), Class_004330b0 (2), char (1)
+//   0x51e6a0 DAT_0051e6a0: defined in src/unsorted/0x4814c0.cpp
 //   0x51f2e4 DAT_0051f2e4: char* (4), int* (1), void* (1)
 //   0x526ff4 DAT_00526ff4: char* (4), void* (2)
-//   0x4fcda8 DAT_004fcda8: char[] (1), Guid_00441460 (1), Guid_00441bc0 (1), Guid_00441c30 (1), and 1 more
 //   0x5120b8 DAT_005120b8: Entry_00428730[10] (1), char[] (1), Entry_004287d0[10] (1), Entry_00428850[10] (1), and 1 more
-//   0x512d90 DAT_00512d90: char[] (3), unsigned char (2)
+//   0x512c84 DAT_00512c84: part of another global: DAT_00512c80+0x4
+//   0x512d90 DAT_00512d90: part of another global: DAT_00512c80+0x110
+//   0x512f49 DAT_00512f49: part of another global: DAT_00512f18+0x31
+//   0x51e574 DAT_0051e574: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), ElemA_0046c190** (1), void* (1), and 1 more
 //   0x51e828 DAT_0051e828: unsigned int[680] (1), CdLists_490f80 (1), int[680] (1), int[] (1), and 1 more
-//   0x51fbe0 DAT_0051fbe0: int (2), Slot_4b62d0[10] (1), Timer_4b64d0[10] (1), Timer_4b6510[10] (1)
+//   0x51fbe0 DAT_0051fbe0: part of another global: DAT_0051fbd8+0x8
+//   0x51fc80 DAT_0051fc80: part of another global: DAT_0051fbd8+0xa8
 //   0x51ff14 DAT_0051ff14: void* (2), CdAudio_004ce030* (1), Sound_004ce5e0* (1), Class_004d02a0* (1)
+//   0x529e9c DAT_00529e9c: char (3), bool (2)
+//   0x4fd3f8 DAT_004fd3f8: defined in src/data/vtables.cpp
 //   0x4fd670 DAT_004fd670: signed char[] (2), const char[] (2)
 //   0x4fd678 DAT_004fd678: signed char[] (2), const char[] (2)
+//   0x4fd6f0 DAT_004fd6f0: defined in src/data/vtables.cpp
+//   0x511a60 DAT_00511a60: part of another global: DAT_00511a58+0x8
+//   0x511c60 DAT_00511c60: part of another global: DAT_00511c58+0x8
 //   0x512320 DAT_00512320: Point16_00437de0 (1), Point16_00438070 (1), Point16_00438180 (1), short (1)
 //   0x512334 DAT_00512334: Point16_00437de0 (1), Point16_00438070 (1), Point16_00438180 (1), short (1)
 //   0x512770 DAT_00512770: char[] (2), Serial_00441c30 (1), int (1)
-//   0x512f46 DAT_00512f46: int (2), unsigned short (2)
+//   0x5129d0 DAT_005129d0: defined in src/unsorted/0x44f7e0.cpp
+//   0x512f2c DAT_00512f2c: part of another global: DAT_00512f18+0x14
+//   0x512f42 DAT_00512f42: part of another global: DAT_00512f18+0x2a
+//   0x512f46 DAT_00512f46: part of another global: DAT_00512f18+0x2e
+//   0x512f48 DAT_00512f48: part of another global: DAT_00512f18+0x30
+//   0x512f4a DAT_00512f4a: part of another global: DAT_00512f18+0x32
+//   0x512f55 DAT_00512f55: part of another global: DAT_00512f18+0x3d
+//   0x512f59 DAT_00512f59: part of another global: DAT_00512f18+0x41
 //   0x512fe8 DAT_00512fe8: Class_004c6a60* (2), void* (1), int (1)
-//   0x51e574 DAT_0051e574: PlayerInfo_0046bce0** (1), ElemA_0046c190** (1), void* (1), int* (1)
+//   0x51e57c DAT_0051e57c: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), ElemB_0046c190** (1), void* (1)
+//   0x51fbc0 DAT_0051fbc0$S425: defined in src/unsorted/0x4b2290.cpp
 //   0x528ab4 DAT_00528ab4: void* (2), void (__stdcall*)(void) (1), int (__stdcall*)(void*, unsigned long, unsigned long*, Line_004de550*) (1)
 //   0x528acc DAT_00528acc: void* (2), void (__stdcall*)(void) (1), int (__stdcall*)(void*, unsigned long, int*, void*) (1)
-//   0x529e9c DAT_00529e9c: char (2), bool (2)
-//   0x4fd3f8 DAT_004fd3f8: vtable
-//   0x4fd6f0 DAT_004fd6f0: vtable
+//   0x529e00 DAT_00529e00: Counter_004e1e50 (1), Entry_004df590[] (1), unsigned int (1), EventEntry (1)
+//   0x4fcd78 IID_IDirectPlay3A: defined in src/data/guids.cpp
+//   0x4fcec8 DPAID_Modem: defined in src/data/guids.cpp
+//   0x4fcfb8 DAT_004fcfb8: defined in src/data/guids.cpp
+//   0x4fd288 g_readyOrder: defined in src/data/unit_orders.cpp
+//   0x4fd328 DAT_004fd328: defined in src/data/vtables.cpp
+//   0x4fd358 DAT_004fd358: defined in src/data/vtables.cpp
+//   0x4fd388 DAT_004fd388: defined in src/data/vtables.cpp
 //   0x502ae8 DAT_00502ae8: char[] (2), char (1)
+//   0x5086e8 DAT_005086e8: defined in src/data/unit_messages.cpp
 //   0x512298 DAT_00512298: Smoke_00425b80* (1), void* (1), char* (1)
-//   0x512348 DAT_00512348: Entry_00438760* (1), Entry_0043a420* (1), int (1)
+//   0x512348 DAT_00512348: part of another global: DAT_00512340$S5516+0x8
 //   0x5129b8 DAT_005129b8: int* (2), int (1)
 //   0x512c74 DAT_00512c74: void* (2), char* (1)
-//   0x512d48 DAT_00512d48: char (2), char[] (1)
+//   0x512ca8 DAT_00512ca8: part of another global: DAT_00512c80+0x28
+//   0x512d48 DAT_00512d48: part of another global: DAT_00512c80+0xc8
 //   0x512ff4 DAT_00512ff4: Class_004c6a60* (2), void* (1)
 //   0x51e550 DAT_0051e550: char** (1), void** (1), int (1)
-//   0x51e57c DAT_0051e57c: ScoreBoard_0046bce0** (1), ElemB_0046c190** (1), void* (1)
 //   0x51e660 DAT_0051e660: int* (2), char* (1)
+//   0x51fb50 DAT_0051fb50: char[] (2), const char[] (1)
 //   0x51fb9c DAT_0051fb9c: const char* (1), int (1), char* (1)
+//   0x51fe08 DAT_0051fe08: part of another global: DAT_0051fdc0+0x48
 //   0x528a10 DAT_00528a10: void* (2), Node_004ddc00* (1)
 //   0x528ac0 DAT_00528ac0: void* (1), void (__stdcall*)(void) (1), int (__stdcall*)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*) (1)
 //   0x528ac4 DAT_00528ac4: void* (2), void (__stdcall*)(void) (1)
 //   0x528ac8 DAT_00528ac8: void* (2), void (__stdcall*)(void) (1)
 //   0x528ad4 DAT_00528ad4: void* (1), void (__stdcall*)(void) (1), unsigned long (__stdcall*)(char*, char*, unsigned long, unsigned long) (1)
-//   0x529e00 DAT_00529e00: Entry_004df590[] (1), unsigned int (1), EventEntry (1)
-//   0x4fcec8 DAT_004fcec8: Guid_00441c30 (1), const _GUID (1)
-//   0x4fd328 DAT_004fd328: vtable
-//   0x4fd358 DAT_004fd358: vtable
-//   0x4fd388 DAT_004fd388: vtable
+//   0x529e10 DAT_00529e10: part of another global: DAT_00529e00+0x10
+//   0x529f48 _tls_index: defined in src/unsorted/0x4d8df0.cpp
+//   0x4fc490 g_unitOrders: defined in src/data/unit_orders.cpp
+//   0x4fc6e8 g_groundOrders: defined in src/data/unit_orders.cpp
+//   0x4fc9a0 DAT_004fc9a0: defined in src/data/vtables.cpp
+//   0x4fca18 g_vtolOrders: defined in src/data/unit_orders.cpp
+//   0x4fccd8 IID_IDirectDraw2: defined in src/data/guids.cpp
+//   0x4fce18 IID_IDirectPlayLobby2A: defined in src/data/guids.cpp
+//   0x4fce88 DPAID_ServiceProvider: defined in src/data/guids.cpp
+//   0x4fcea8 DPAID_Phone: defined in src/data/guids.cpp
+//   0x4fcee8 DPAID_INet: defined in src/data/guids.cpp
+//   0x4fcf08 DPAID_ComPort: defined in src/data/guids.cpp
+//   0x4fcf68 IID_IDirectSound3DBuffer: defined in src/data/guids.cpp
+//   0x4fd488 DAT_004fd488: defined in src/data/vtables.cpp
+//   0x501d38 g_consoleCommands: defined in src/data/console_commands.cpp
+//   0x501f48 g_cheatCommands: defined in src/data/console_commands.cpp
+//   0x501fd0 g_debugCommands: defined in src/data/console_commands.cpp
+//   0x505205 DAT_00505205: defined in src/data/ballistics.cpp
 //   0x505510 DAT_00505510: unsigned char (1), int (1)
 //   0x507b70 DAT_00507b70: unsigned char[] (1), ColourEntry_00478790[] (1)
+//   0x5086e0 DAT_005086e0: defined in src/data/unit_messages.cpp
+//   0x50a788 DAT_0050a788: defined in src/data/guids.cpp
+//   0x50c958 g_assertDialog: defined in src/data/debug_dialogs.cpp
+//   0x50cd38 g_memoryDialog: defined in src/data/debug_dialogs.cpp
+//   0x50ced8 g_profilerDialog: defined in src/data/debug_dialogs.cpp
+//   0x50d980 g_pentiumEvents: defined in src/data/perf_counters.cpp
+//   0x50da00 g_pentiumProEvents: defined in src/data/perf_counters.cpp
 //   0x5122d4 DAT_005122d4: void* (1), char* (1)
 //   0x512328 DAT_00512328: Player_00437cd0* (1), void* (1)
+//   0x512340 DAT_00512340$S5516: defined in src/unsorted/0x438450.cpp
+//   0x512370 DAT_00512370: part of another global: Class_00440290::DAT_00512358+0x18
 //   0x512764 DAT_00512764: short (1), int (1)
+//   0x5129f1 DAT_005129f1: part of another global: DAT_005129d0+0x21
+//   0x5129f8 DAT_005129f8: defined in src/unsorted/0x44f720.cpp
+//   0x512c98 DAT_00512c98: part of another global: DAT_00512c80+0x18
+//   0x512d28 DAT_00512d28: part of another global: DAT_00512c80+0xa8
 //   0x51e548 DAT_0051e548: int (__stdcall*)(int, char*) (1), int (__stdcall*)(int, int) (1)
 //   0x51e580 DAT_0051e580: int (__stdcall*)(void) (1), void (__stdcall*)(void) (1)
 //   0x51e584 DAT_0051e584: int (__stdcall*)(int, int, int, int, int, int, int, int, int, int) (1), int (__stdcall*)(int, Rect_0046c620*, void*, int, Name_0046c620*, int, int, int, void*, void*) (1)
 //   0x51e640 DAT_0051e640: Anim_00478b40 (1), int (1)
-//   0x51fb50 DAT_0051fb50: char[] (1), const char[] (1)
+//   0x51fc78 DAT_0051fc78: part of another global: DAT_0051fbd8+0xa0
+//   0x51fc7c DAT_0051fc7c: part of another global: DAT_0051fbd8+0xa4
+//   0x51fe48 DAT_0051fe48: part of another global: DAT_0051fdc0+0x88
+//   0x51fea0 DAT_0051fea0: part of another global: DAT_0051fdc0+0xe0
 //   0x528ab8 DAT_00528ab8: void* (1), int (__stdcall*)(void*, char*, unsigned long) (1)
 //   0x528abc DAT_00528abc: int (__stdcall*)(void*) (1), void (__stdcall*)(void) (1)
 //   0x528ad0 DAT_00528ad0: int (1), unsigned long (__stdcall*)(unsigned long) (1)
-//   0x529500 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nilrefs: template
+//   0x529500 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nilrefs: defined in src/unsorted/0x4e17c0.cpp
 //   0x529df8 DAT_00529df8: void* (1), EventEntry* (1)
-//   0x529e10 DAT_00529e10: unsigned int (1), EventEntry (1)
-//   0x529f48 _tls_index: library
+//   0x4fc978 DAT_004fc978: defined in src/data/unused.cpp
 //   0x4fc980 DAT_004fc980: vtable
-//   0x4fc9a0 DAT_004fc9a0: vtable
+//   0x4fcc48 DAT_004fcc48: defined in src/data/unused.cpp
+//   0x4fcca8 CLSID_DirectDraw: defined in src/data/guids.cpp
+//   0x4fccb8 CLSID_DirectDrawClipper: defined in src/data/guids.cpp
+//   0x4fccc8 IID_IDirectDraw: defined in src/data/guids.cpp
+//   0x4fcce8 IID_IDirectDrawSurface: defined in src/data/guids.cpp
+//   0x4fccf8 IID_IDirectDrawSurface2: defined in src/data/guids.cpp
+//   0x4fcd08 IID_IDirectDrawSurface3: defined in src/data/guids.cpp
+//   0x4fcd18 IID_IDirectDrawPalette: defined in src/data/guids.cpp
+//   0x4fcd28 IID_IDirectDrawClipper: defined in src/data/guids.cpp
+//   0x4fcd38 IID_IDirectDrawColorControl: defined in src/data/guids.cpp
+//   0x4fcd48 IID_IDirectPlay2: defined in src/data/guids.cpp
+//   0x4fcd58 IID_IDirectPlay2A: defined in src/data/guids.cpp
+//   0x4fcd68 IID_IDirectPlay3: defined in src/data/guids.cpp
+//   0x4fcd88 CLSID_DirectPlay: defined in src/data/guids.cpp
+//   0x4fcdd8 IID_IDirectPlay: defined in src/data/guids.cpp
+//   0x4fcde8 IID_IDirectPlayLobby: defined in src/data/guids.cpp
+//   0x4fcdf8 IID_IDirectPlayLobbyA: defined in src/data/guids.cpp
+//   0x4fce08 IID_IDirectPlayLobby2: defined in src/data/guids.cpp
+//   0x4fce28 CLSID_DirectPlayLobby: defined in src/data/guids.cpp
+//   0x4fce38 DPLPROPERTY_MessagesSupported: defined in src/data/guids.cpp
+//   0x4fce48 DPLPROPERTY_LobbyGuid: defined in src/data/guids.cpp
+//   0x4fce58 DPLPROPERTY_PlayerGuid: defined in src/data/guids.cpp
+//   0x4fce68 DPLPROPERTY_PlayerScore: defined in src/data/guids.cpp
+//   0x4fce78 DPAID_TotalSize: defined in src/data/guids.cpp
+//   0x4fce98 DPAID_LobbyProvider: defined in src/data/guids.cpp
+//   0x4fceb8 DPAID_PhoneW: defined in src/data/guids.cpp
+//   0x4fced8 DPAID_ModemW: defined in src/data/guids.cpp
+//   0x4fcef8 DPAID_INetW: defined in src/data/guids.cpp
+//   0x4fcf18 CLSID_DirectSound: defined in src/data/guids.cpp
+//   0x4fcf28 CLSID_DirectSoundCapture: defined in src/data/guids.cpp
+//   0x4fcf38 IID_IDirectSound: defined in src/data/guids.cpp
+//   0x4fcf48 IID_IDirectSoundBuffer: defined in src/data/guids.cpp
+//   0x4fcf58 IID_IDirectSound3DListener: defined in src/data/guids.cpp
+//   0x4fcf78 IID_IDirectSoundCapture: defined in src/data/guids.cpp
+//   0x4fcf88 IID_IDirectSoundCaptureBuffer: defined in src/data/guids.cpp
+//   0x4fcf98 IID_IDirectSoundNotify: defined in src/data/guids.cpp
+//   0x4fcfa8 IID_IKsPropertySet: defined in src/data/guids.cpp
+//   0x4fcfc8 DAT_004fcfc8: defined in src/data/guids.cpp
+//   0x4fcfd8 DAT_004fcfd8: defined in src/data/guids.cpp
+//   0x4fcfe8 DAT_004fcfe8: defined in src/data/guids.cpp
+//   0x4fcff8 DAT_004fcff8: defined in src/data/guids.cpp
+//   0x4fd2e4 DAT_004fd2e4: defined in src/data/unused.cpp
 //   0x4fd458 DAT_004fd458: vtable
-//   0x4fd488 DAT_004fd488: vtable
-//   0x528a58 std::IH::IU?$pair::?$_Tree::_Nilrefs: template
+//   0x4fda70 DAT_004fda70: defined in src/data/unused.cpp
+//   0x501fcc DAT_00501fcc: defined in src/data/console_commands.cpp
+//   0x502f98 DAT_00502f98: defined in src/data/unused.cpp
+//   0x505200 g_rangeByPitch: defined in src/data/ballistics.cpp
+//   0x5066f8 DAT_005066f8: defined in src/data/unused.cpp
+//   0x506718 DAT_00506718: defined in src/data/unused.cpp
+//   0x506738 DAT_00506738: defined in src/data/unused.cpp
+//   0x506770 DAT_00506770: defined in src/data/unused.cpp
+//   0x507b64 DAT_00507b64: defined in src/data/unused.cpp
+//   0x507b68 DAT_00507b68: defined in src/data/unused.cpp
+//   0x5086d8 g_unitMessages: defined in src/data/unit_messages.cpp
+//   0x5086dc DAT_005086dc: defined in src/data/unit_messages.cpp
+//   0x5086fc DAT_005086fc: defined in src/data/unit_messages.cpp
+//   0x50b6e0 DAT_0050b6e0: defined in src/data/unused.cpp
+//   0x5120bc DAT_005120bc: part of another global: DAT_005120b8+0x4
+//   0x512322 DAT_00512322: part of another global: DAT_00512320+0x2
+//   0x512336 DAT_00512336: part of another global: DAT_00512334+0x2
+//   0x512774 DAT_00512774: part of another global: DAT_00512770+0x4
+//   0x512c8c DAT_00512c8c: part of another global: DAT_00512c80+0xc
+//   0x512c94 DAT_00512c94: part of another global: DAT_00512c80+0x14
+//   0x512ce8 DAT_00512ce8: part of another global: DAT_00512c80+0x68
+//   0x512d68 DAT_00512d68: part of another global: DAT_00512c80+0xe8
+//   0x512d6c DAT_00512d6c: part of another global: DAT_00512c80+0xec
+//   0x512d70 DAT_00512d70: part of another global: DAT_00512c80+0xf0
+//   0x512d74 DAT_00512d74: part of another global: DAT_00512c80+0xf4
+//   0x512d78 DAT_00512d78: part of another global: DAT_00512c80+0xf8
+//   0x512d7c DAT_00512d7c: part of another global: DAT_00512c80+0xfc
+//   0x512d80 DAT_00512d80: part of another global: DAT_00512c80+0x100
+//   0x512d84 DAT_00512d84: part of another global: DAT_00512c80+0x104
+//   0x512d88 DAT_00512d88: part of another global: DAT_00512c80+0x108
+//   0x512d8c DAT_00512d8c: part of another global: DAT_00512c80+0x10c
+//   0x512f38 DAT_00512f38: part of another global: DAT_00512f18+0x20
+//   0x512f3a DAT_00512f3a: part of another global: DAT_00512f18+0x22
+//   0x512f3e DAT_00512f3e: part of another global: DAT_00512f18+0x26
+//   0x512f4b DAT_00512f4b: part of another global: DAT_00512f18+0x33
+//   0x512f4d DAT_00512f4d: part of another global: DAT_00512f18+0x35
+//   0x512f51 DAT_00512f51: part of another global: DAT_00512f18+0x39
+//   0x513008 DAT_00513008: part of another global: DAT_00513000+0x8
+//   0x51e2f4 DAT_0051e2f4: part of another global: DAT_00513000+0xb2f4
+//   0x51e2f8 DAT_0051e2f8: part of another global: DAT_00513000+0xb2f8
+//   0x51e300 DAT_0051e300: part of another global: DAT_00513000+0xb300
+//   0x51e314 DAT_0051e314: part of another global: DAT_00513000+0xb314
+//   0x51e318 DAT_0051e318: part of another global: DAT_00513000+0xb318
+//   0x51e31c DAT_0051e31c: part of another global: DAT_00513000+0xb31c
+//   0x51e528 DAT_0051e528: part of another global: DAT_00513000+0xb528
+//   0x51e52c DAT_0051e52c: part of another global: DAT_00513000+0xb52c
+//   0x51e6cc DAT_0051e6cc: part of another global: DAT_0051e6c8+0x4
+//   0x51e821 DAT_0051e821: part of another global: DAT_0051e820+0x1
+//   0x51e822 DAT_0051e822: part of another global: DAT_0051e820+0x2
+//   0x51e823 DAT_0051e823: part of another global: DAT_0051e820+0x3
+//   0x51e824 DAT_0051e824: part of another global: DAT_0051e820+0x4
+//   0x51e848 DAT_0051e848: part of another global: DAT_0051e828+0x20
+//   0x51e84c DAT_0051e84c: part of another global: DAT_0051e828+0x24
+//   0x51e850 DAT_0051e850: part of another global: DAT_0051e828+0x28
+//   0x51e854 DAT_0051e854: part of another global: DAT_0051e828+0x2c
+//   0x51e858 DAT_0051e858: part of another global: DAT_0051e828+0x30
+//   0x51f310 DAT_0051f310: defined in src/unsorted/0x49e610.cpp
+//   0x51fe40 DAT_0051fe40: part of another global: DAT_0051fdc0+0x80
+//   0x51fe98 DAT_0051fe98: part of another global: DAT_0051fdc0+0xd8
+//   0x528a58 std::IH::IU?$pair::?$_Tree::_Nilrefs: defined in src/unsorted/0x4db610.cpp
 
 #endif

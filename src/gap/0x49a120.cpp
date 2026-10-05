@@ -1,7 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 //
-// 99.3% (gapcheck), same length as the original (1829 bytes). No /Op: the
-// aligned frame comes from the double locals of the inlined Length.
+// MATCH (gapcheck). No /Op: the aligned frame comes from the double locals of
+// the inlined Length.
 //
 // Fixed in the second attempt:
 //  - The falloff square: the original consumes t at t * t (`fld st(1);
@@ -30,35 +30,17 @@
 //    temporary. Writing `p - (upos + max)` directly does not work, since the
 //    front end reassociates it into two subtractions.
 //
-// What still differs:
-//  - The spot address: the original computes idx * 48 in eax with the spots
-//    base in edi (add order idx * 48 + spots); here spots + idx * 48. It
-//    follows symbol ids, not spelling (casts, an index local, a spots local,
-//    Cell defined after Game, inline helpers for the spot or the feature
-//    definition, a Game member, `spots + idx`, a single-use spot local with
-//    the address written again in the then-block: 58% to 71%). Diagnostic
-//    dummy declarations (never committed): with N of them just before this
-//    function, N in 15582 to 15635 or 64480 to 64520 gives a MATCH. N past
-//    about 15330 gives cell's id bit 14 and the spot add flips, but the
-//    features add (`features + feature * 256`) then flips too (91.6%, the
-//    same as `<windows.h>` anywhere before the function, with or without
-//    <ddraw.h>, <dsound.h>, <dplay.h>, <stdio.h>, <stdlib.h>, <list> or
-//    <map>; <vector> or <string> on top bring back 99.3%). Shifting only
-//    `feature` and the later locals (block-scope dummies) flips the features
-//    add alone, so the two adds follow cell's and feature's ids; the
-//    original's pair (spot idx-first, features base-first) needs a header
-//    prefix no plausible real set reaches.
-//  - g_game's id takes part as well (diagnostic dummies again): with 15400
-//    before this function and 250 before `feature` (cell 16405, feature
-//    16709) the region matches with g_game at 912 or 1012 but not at 1912 or
-//    15912, and with cell at 16405 only feature ids from about 16640 to 16900
-//    match. `<windows.h>` placed after g_game (before this function, alone or
-//    with the DirectX headers) gives the spot add, but the features add stays
-//    wrong for every shift of `feature` from 0 to 1100 symbols (91.6%), and
-//    `<windows.h>` with WIN32_LEAN_AND_MEAN there gives 99.3%. So the
-//    original seems to have had some 15400 symbols between g_game's
-//    declaration and this function: the rest of its translation unit, which
-//    is lost.
+// Matched in the fourth (99.3% to MATCH): the spot address (`idx * 48 +
+// spots`, the base loaded into edi first) and the feature definition's
+// address (`features + feature * 256`) follow symbol ids, not spelling. Both
+// come out as in the original only while cell's id is about 16587 to 16639
+// and feature's (54 later) about 16640 to 16900, and g_game's id stays small
+// (912 and 1012 work, 1912 does not), measured with throwaway dummy
+// declarations at three places, never committed. `<windows.h>` with
+// WIN32_LEAN_AND_MEAN and `<vector>`, included after the game's declarations,
+// put cell at 16600 and leave g_game at 912. Included at the top of the
+// file (g_game moves too), or with the full `<windows.h>`, `<ddraw.h>`,
+// `<dsound.h>` or `<dplay.h>`, the two adds stay wrong (91.6% or 99.3%).
 #include <math.h>
 #include <string.h>
 
@@ -200,6 +182,12 @@ struct Game_0049a120 {
 #pragma pack(pop)
 
 extern Game_0049a120* g_game;
+
+// The system headers come after the game's own declarations, as if from a
+// game header included first (see the notes at the top).
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <vector>
 
 // What one explosion has already hit, so nothing takes damage twice.
 struct Hits_0049a120 {

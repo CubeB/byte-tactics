@@ -318,17 +318,18 @@ counts where each section's bytes came from. On 2026-10-05:
 
 | Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
-| `.text` | 1,026,560 | 850,853 game code, 22,933 gap code, 120,848 runtime library and import thunks, 30,086 padding | 1,840 gap region (0x49a120) |
-| `.rdata` | 18,432 | 3,182 compiled data, 3,771 library data, 3,028 `link/` globals, 372 padding | 6,529 import tables, 1,550 other data |
+| `.text` | 1,026,560 | 850,853 game code, 24,762 gap code, 120,848 runtime library and import thunks, 30,097 padding | none |
+| `.rdata` | 18,432 | 3,186 compiled data, 3,771 library data, 3,028 `link/` globals, 372 padding | 6,529 import tables, 1,546 other data |
 | `.data` | 173,660 | 35,498 compiled data, 24,891 library data, 78,609 `link/` globals | 34,662 |
 
 Before the runtime library's last functions were built (#2662), 8,267 bytes
 of `.text` were copied as library code: 11 functions (3,163 bytes, among
 them the second run of import thunks), two runs of code with no FPO record
 (`_acos` and 87tran.obj, 722 bytes) and the alignment padding between
-library functions.
+library functions. The last gap region, 0x49a120, has matched its source
+since (1,840 bytes with its padding), so no code is copied.
 
-Of the 38,715 relocations in placed pieces, every one in code agrees with the
+Of the 38,740 relocations in placed pieces, every one in code agrees with the
 original (136 of them reach the second copy of a function `data/aliases.csv`
 lists, such as the two `std::_Lockit`). 92 vtable entries in compiled data
 disagree and keep the original's value. The compiled image differs from the
@@ -390,7 +391,7 @@ none, so `carve.py` finds them itself:
 - **`gaps.obj`** holds the gap regions that have no matching source yet and
   the exception handler code of their functions, one section each (a region
   with matching source is linked from its own object instead, named by its
-  symbols). Its relocations come from disassembly:
+  symbols). Every region matches now, so it is empty. Its relocations come from disassembly:
   every `rel32` branch that leaves its region, and every 32-bit immediate or
   displacement that holds an address in the image. Each entry point the tree
   calls gets its `FUN_<address>` name, and a carved WinMain its
@@ -468,8 +469,8 @@ every function has moved, so it compares where each reference leads. For
 every placed game function it reads each relocated field of
 `build/link/TotalA.exe`, maps the address back to the original through the
 map file (`link.py --carve --map`), and compares it with what the original's
-code holds in that field. On 2026-10-05 all 26,517 references it can place,
-in all 3,307 placed functions (the gap regions' among them), agree, apart
+code holds in that field. On 2026-10-05 all 26,540 references it can place,
+in all 3,308 placed functions (the gap regions' among them), agree, apart
 from 134 calls that reach the other copy of `std::_Lockit`. It
 exits non-zero on any difference, so a change that rebinds a name shows up
 before the game is run.
@@ -563,10 +564,13 @@ code), `tools/link.py` links it like any other object (in every mode), and
 naming addresses in the others by their objects' symbols. `tools/linkcmp.py`
 compares the gap functions' references too.
 
-On 2026-10-05, 27 of the 29 regions match their source (22,975 of 25,223
-bytes), the import thunks are built from their library members, and
-0x49a120 (1,829 bytes, at 97.7%) is the one region both builds still take
-from the original.
+On 2026-10-05, 28 of the 29 regions match their source (24,804 of 25,223
+bytes) and the import thunks are built from their library members, so
+neither build takes any code from the original. The last, 0x49a120,
+matched once `<windows.h>` (lean) and `<vector>` were included after the
+game's own declarations rather than before them: two of its adds follow
+the ids of its locals and of g_game, and the locals need ids past 16384
+while g_game's stays small (its notes have the measurements).
 
 | Region | Bytes | What it holds | Source |
 | --- | ---: | --- | --- |
@@ -581,7 +585,7 @@ from the original.
 | 0x466050 | 1,326 | aligned frames: a saved game's player section, loaded and saved | matches |
 | 0x46c2a0 | 882 | aligned frame: the score tables for the statistics DLL | matches |
 | 0x497c70 | 101 | `__try`/`__except`: the loading thread | matches |
-| 0x49a120 | 1,829 | aligned frame: a weapon's area damage | 97.7% (registers in one sum, an add order) |
+| 0x49a120 | 1,829 | aligned frame: a weapon's area damage | matches |
 | 0x49e680 | 106 | `__try`/`__except`, inline `div`: a deliberate fault to report a message | matches |
 | 0x49eda0 | 1,942 | WinMain (`__try`/`__except`); command line (`try`/`catch`, `_alloca`) | matches |
 | 0x49f710 | 419 | the linker's import thunks | placed from the import libraries |

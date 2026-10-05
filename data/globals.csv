@@ -1,4 +1,5 @@
 address,name,section,size,size_from,kind,type,type_files,other_files,types,verdict,files,max_offset,ghidra,pointers,defined,init
+0x4fc474,DAT_004fc474,.rdata,4,type,data,const unsigned char*,1,0,1,one type,1,,,,src/data/unused.cpp,0002fc07
 0x4fc490,g_unitOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Stopping_004fc490,1,src/data/unit_orders.cpp,b0125000
 0x4fc6e8,g_groundOrders,.rdata,4,type,data,const UnitOrderType*,1,1,2,conflicting: shape,2,,PTR_s_Standby_004fc6e8,1,src/data/unit_orders.cpp,18155000
 0x4fc978,DAT_004fc978,.rdata,4,type,float,const float,1,0,1,one type,1,,,,src/data/unused.cpp,00000040
@@ -83,6 +84,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fd750,DAT_004fd750,.rdata,4,type,float,float,1,0,1,one type,1,,,,,8180803b
 0x4fda70,DAT_004fda70,.rdata,8,type,float,const double,1,0,1,one type,1,,,,src/data/unused.cpp,0000000000000040
 0x4fdaf0,DAT_004fdaf0,.rdata,16,gap,data,V4i,1,1,2,conflicting: struct names only,2,0xc,,,,00000000000000000000000000000000
+0x4fdbe0,DAT_004fdbe0,.rdata,4,type,data,const unsigned char*,1,0,1,one type,1,,,,src/data/unused.cpp,00000000
 0x4fdbe8,DAT_004fdbe8,.rdata,8,type,float,double,1,0,1,one type,1,,,,,9a9999999999b1bf
 0x4fdbf0,DAT_004fdbf0,.rdata,40,gap,string,char[],1,0,1,one type,1,,,,,436f7079726967687420303030302043617665646f6720456e7465727461696e6d656e7400000000
 0x501774,DAT_00501774,.data,4,type,data,int,4,0,1,one type,4,,INT_00501774,,,01000000

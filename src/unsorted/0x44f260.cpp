@@ -1,21 +1,23 @@
 // Decompiled by Sonnet. Names are provisional.
-// Returns *this on success (constructor-like "copies ecx into eax and
-// returns it" shape), or null when the flag bit isn't set or the game's
-// budget field can't cover the requested amount.
+// Class_0044f010's override of slot 6 (vtable 0x4fd458, see 0x44f450.cpp):
+// returns this object when its flag bit 1 is set and the counter at
+// g_game+0x38a47 has reached field_60 + 0x3c (storing the counter in
+// field_60), or null. The path search scheduler (0x40eb70) calls it through
+// slot 6 to pick the path to search for next.
 
 extern char* g_game;
 
-class Class_0044f260 {
+class Class_0044f010 {
 public:
-    char unknown_0[0x60];
+    char unknown_4[0x60 - 0x4];
     unsigned int field_60;
     unsigned char field_64;
 
-    Class_0044f260* FUN_0044f260();
+    virtual Class_0044f010* FUN_0044eff0();  // slot 6
 };
 
 // FUNCTION: 0x44f260
-Class_0044f260* Class_0044f260::FUN_0044f260()
+Class_0044f010* Class_0044f010::FUN_0044eff0()
 {
     if (field_64 & 2) {
         unsigned int limit = *(unsigned int*)(g_game + 0x38a47);

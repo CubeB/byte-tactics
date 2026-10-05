@@ -31,6 +31,10 @@ public:
     virtual ~Base_00490a10();
 };
 
+class Class_0044f010;                  // slot 6's result (see 0x44f450.cpp)
+class Class_00415c10;                  // the bit writer slot 8 takes
+class Class_00415dc0;                  // the bit reader slot 9 takes
+
 // Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
 class Class_0044ef20 {
 public:
@@ -41,14 +45,14 @@ public:
     virtual ~Class_0044ef20() {}                    // slot 0
     virtual void FUN_0044ef90(void* param);         // slot 1
     virtual void FUN_0044efb0();                    // slot 2
-    virtual void FUN_0044ef40(int, int, int);       // slot 3
-    virtual void FUN_0044f000(int, int, int);       // slot 4
+    virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3
+    virtual void FUN_0044f000(Vec3_004907e0*, Vec3_004907e0*, short*);  // slot 4
     virtual int FUN_0044ef80();                     // slot 5
-    virtual int FUN_0044eff0();                     // slot 6
+    virtual Class_0044f010* FUN_0044eff0();         // slot 6
     virtual int FUN_0044efe0();                     // slot 7
-    virtual void FUN_0044efc0(int);                 // slot 8
-    virtual void FUN_0044efd0(int);                 // slot 9
-    virtual void FUN_0044ef50(int);                 // slot 10
+    virtual void FUN_0044efc0(Class_00415c10*);     // slot 8
+    virtual void FUN_0044efd0(Class_00415dc0*);     // slot 9
+    virtual void FUN_0044ef50(void*);               // slot 10
 };
 
 // Vtable 0x4fd980, constructor 0x4905e0, ??_G 0x490630.
@@ -63,7 +67,7 @@ public:
 
     Class_00490630(Struct_004907e0* p);
     virtual void FUN_0044efb0();                    // slot 2, 0x490690
-    virtual void FUN_0044f000(int, int, int);       // slot 4, 0x490650
+    virtual void FUN_0044f000(Vec3_004907e0*, Vec3_004907e0*, short*);  // slot 4, 0x490650
 };
 
 // FUNCTION: 0x4905e0

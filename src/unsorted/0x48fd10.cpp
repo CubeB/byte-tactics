@@ -12,17 +12,16 @@ public:
     int FUN_004b4800(char* name, int def);
 };
 
-class Class_0048fd10 {
+class Class_0048fc70 {
 public:
-    char unknown_0[4];
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    void FUN_0048fd10(Class_004b4560* obj);
+    virtual void FUN_0048f880(Class_004b4560* obj);
 };
 
 // FUNCTION: 0x48fd10
-void Class_0048fd10::FUN_0048fd10(Class_004b4560* obj)
+void Class_0048fc70::FUN_0048f880(Class_004b4560* obj)
 {
     obj->FUN_004b4560("DefeatCondition_AnyUnitPassesZ");
     satisfied = ((Class_004b4800*)obj)->FUN_004b4800("Satisfied", 0);

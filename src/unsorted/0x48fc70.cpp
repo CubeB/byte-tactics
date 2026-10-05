@@ -44,18 +44,18 @@ extern Game_0048fc70* g_game;
 
 class Condition_0048fc70 {
 public:
-    virtual int FUN_0048fc70();
+    virtual int FUN_0048ea00();          // IsSatisfied
     int done;                          // +0x04
     int announced;                     // +0x08
 };
 
 class Class_0048fc70 : public Condition_0048fc70, public UnitVisitor_0048fc70 {
 public:
-    int FUN_0048fc70();
+    virtual int FUN_0048ea00();
 };
 
 // FUNCTION: 0x48fc70
-int Class_0048fc70::FUN_0048fc70()
+int Class_0048fc70::FUN_0048ea00()
 {
     if (done == 0) {
         g_game->units.ForEach(this);

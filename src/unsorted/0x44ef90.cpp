@@ -1,26 +1,41 @@
 // Decompiled by Haiku. Names are provisional.
+// Slot 1 of the family's base, Class_0044ef20 (see 0x44ef60.cpp for the
+// family): sets the object at +0x4, first telling the one it replaces 0x80.
 
-#pragma pack(push, 1)
-class Class_44ef90
-{
-public:
-    char unknown_0[0x4];
-    void* ptr_at_0x4;
-
-    void FUN_0044ef90(void* param);
-};
-#pragma pack(pop)
+struct Vec3_004907e0;                  // a position (see 0x4907e0.cpp)
+class Class_0044f010;                  // slot 6's result (see 0x44f450.cpp)
+class Class_00415c10;                  // the bit writer slot 8 takes
+class Class_00415dc0;                  // the bit reader slot 9 takes
 
 class Class_0044ced0 {
 public:
     void FUN_0044ced0(int);
 };
 
+// Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
+class Class_0044ef20 {
+public:
+    void* field_4;                     // +0x4
+    void* owner;                       // +0x8
+
+    virtual ~Class_0044ef20() {}                    // slot 0
+    virtual void FUN_0044ef90(void* param);         // slot 1
+    virtual void FUN_0044efb0();                    // slot 2
+    virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3
+    virtual void FUN_0044f000(Vec3_004907e0*, Vec3_004907e0*, short*);  // slot 4
+    virtual int FUN_0044ef80();                     // slot 5
+    virtual Class_0044f010* FUN_0044eff0();         // slot 6
+    virtual int FUN_0044efe0();                     // slot 7
+    virtual void FUN_0044efc0(Class_00415c10*);     // slot 8
+    virtual void FUN_0044efd0(Class_00415dc0*);     // slot 9
+    virtual void FUN_0044ef50(void*);               // slot 10
+};
+
 // FUNCTION: 0x44ef90
-void Class_44ef90::FUN_0044ef90(void* param)
+void Class_0044ef20::FUN_0044ef90(void* param)
 {
-    if (ptr_at_0x4 != 0) {
-        ((Class_0044ced0*)ptr_at_0x4)->FUN_0044ced0(0x80);
+    if (field_4 != 0) {
+        ((Class_0044ced0*)field_4)->FUN_0044ced0(0x80);
     }
-    ptr_at_0x4 = param;
+    field_4 = param;
 }

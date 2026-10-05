@@ -1,4 +1,6 @@
 // Decompiled by Opus. Names are provisional.
+// Slot 0 of the unit visitor at +0xc of the "unit type passes X" victory
+// condition (visitor vtable 0x4fd868, driven by 0x48f3e0).
 #include <string.h>
 #include <stdlib.h>
 
@@ -8,7 +10,7 @@ struct UnitType_0048f370 {
 };
 
 #pragma pack(push, 1)
-struct Unit_0048f370 {
+struct Unit {
     char unknown_0[0x76];
     short field_76;                    // +0x76
     char unknown_78[0x92 - 0x78];
@@ -20,7 +22,7 @@ void __stdcall FUN_0047f1a0(char* str, int flag);
 
 class Condition_0048f370 {
 public:
-    virtual void Unknown_0();
+    virtual int FUN_0048ea00();          // IsSatisfied
     int done;                          // +0x04
     int announced;                     // +0x08
 };
@@ -28,22 +30,22 @@ public:
 // Interface at +0xc of the object: slot 0 is called for each unit.
 class UnitVisitor_0048f370 {
 public:
-    virtual int FUN_0048f370(Unit_0048f370* unit) = 0;
+    virtual int FUN_0048f790(Unit* unit) = 0;
 };
 
 // Same layout as 0x48ed50.cpp; this method overrides the visitor's slot, so
 // `this` is the visitor subobject (+0xc) and done/announced sit at -8/-4.
 #pragma pack(push, 2)
-class Class_0048f370 : public Condition_0048f370, public UnitVisitor_0048f370 {
+class Class_0048f3e0 : public Condition_0048f370, public UnitVisitor_0048f370 {
 public:
     char name[0x20];                   // +0x10
     int field_30;                      // +0x30
-    int FUN_0048f370(Unit_0048f370* unit);
+    virtual int FUN_0048f790(Unit* unit);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x48f370
-int Class_0048f370::FUN_0048f370(Unit_0048f370* unit)
+int Class_0048f3e0::FUN_0048f790(Unit* unit)
 {
     if (name[0] == 0 || _strcmpi(name, unit->type->name) == 0) {
         if (abs(unit->field_76 - field_30) <= 2) {

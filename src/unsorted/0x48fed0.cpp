@@ -3,36 +3,39 @@
 // default "destroy all units" condition (vtable 0x4fd948), then reports
 // whether every victory condition is satisfied.
 
-// Mission victory/defeat condition (see 0x48ff40.cpp). The slots carry the
-// names their functions already have for the "destroy all units" victory
-// condition, so its vtable matches the original's names.
-class Condition_0048fed0 {
+struct Unit;
+class Class_004b4560;
+
+// Mission victory/defeat condition (see 0x48e010.cpp). The "destroy all
+// units" victory condition's vtable names the base's defaults and the
+// overrides its own files define (0x48eb40, 0x48eb80 and 0x48ebc0).
+class Condition_0048ff40 {
 public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    Condition_0048fed0() { satisfied = celebrated = 0; }
-    virtual int FUN_0048eb40() = 0;              // IsSatisfied
-    virtual void FUN_0048ea10();                 // Slot1
-    virtual void FUN_0048ea20();                 // Slot2
-    virtual void FUN_0048ea30();                 // Slot3
-    virtual void FUN_0048eb80(void* file) = 0;   // Save
-    virtual void FUN_0048ebc0(void* file) = 0;   // Load
+    Condition_0048ff40() { satisfied = celebrated = 0; }
+    virtual int FUN_0048ea00();                  // IsSatisfied
+    virtual void FUN_0048ea10(Unit* unit);       // Slot1
+    virtual void FUN_0048ea20(Unit* unit);       // Slot2
+    virtual void FUN_0048ea30(Unit* unit);       // Slot3
+    virtual void FUN_0048f840(Class_004b4560* file) = 0;   // Save
+    virtual void FUN_0048f880(Class_004b4560* file) = 0;   // Load
 };
 
 // VictoryCondition_DestroyAllUnits.
-class Class_0048eb40 : public Condition_0048fed0 {
+class Class_0048eb40 : public Condition_0048ff40 {
 public:
-    virtual int FUN_0048eb40();
-    virtual void FUN_0048eb80(void* file);
-    virtual void FUN_0048ebc0(void* file);
+    virtual int FUN_0048ea00();
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 class Class_0048ff40 {
 public:
-    Condition_0048fed0* victory[16];     // +0x00
+    Condition_0048ff40* victory[16];     // +0x00
     int victoryCount;                    // +0x40
-    Condition_0048fed0* defeat[16];      // +0x44
+    Condition_0048ff40* defeat[16];      // +0x44
     int defeatCount;                     // +0x84
 
     int FUN_0048fed0();
@@ -46,7 +49,7 @@ int Class_0048ff40::FUN_0048fed0()
         victoryCount++;
     }
     for (int i = 0; i < victoryCount; i++) {
-        if (!victory[i]->FUN_0048eb40())
+        if (!victory[i]->FUN_0048ea00())
             return 0;
     }
     return 1;

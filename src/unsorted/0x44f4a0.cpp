@@ -40,9 +40,8 @@ struct Point_0044f4a0 {
     short y;
 };
 
-class Class_0044f4a0 {
+class Class_0044f010 {
 public:
-    void* vtable;                      // +0x0
     int field_4;                       // +0x4
     Link_0044f4a0* owner;              // +0x8
     Point_0044f4a0 points[20];         // +0xc
@@ -53,11 +52,11 @@ public:
     unsigned char flag_2 : 1;          // bit 2
     unsigned char flag_3 : 1;          // bit 3
 
-    void FUN_0044f4a0(Class_00415c10* stream);
+    virtual void FUN_0044efc0(Class_00415c10* stream);  // slot 8
 };
 
 // FUNCTION: 0x44f4a0
-void Class_0044f4a0::FUN_0044f4a0(Class_00415c10* stream)
+void Class_0044f010::FUN_0044efc0(Class_00415c10* stream)
 {
     int n;
     if (active) {

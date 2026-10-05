@@ -43,18 +43,18 @@ extern Game* g_game;
 
 class Base_0048f7e0 {
 public:
-    virtual void Unknown_0();
+    virtual int FUN_0048ea00();        // IsSatisfied
     int satisfied;                     // +0x4
     int celebrated;                    // +0x8
 };
 
-class Class_0048f7e0 : public Base_0048f7e0, public UnitCallback_0048f7e0 {
+class Class_0048f840 : public Base_0048f7e0, public UnitCallback_0048f7e0 {
 public:
-    int FUN_0048f7e0();
+    virtual int FUN_0048ea00();
 };
 
 // FUNCTION: 0x48f7e0
-int Class_0048f7e0::FUN_0048f7e0()
+int Class_0048f840::FUN_0048ea00()
 {
     satisfied = 1;
     g_game->units.ForEach(this);

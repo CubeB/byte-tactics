@@ -43,7 +43,7 @@ extern Game_0048f3e0* g_game;
 
 class Condition_0048f3e0 {
 public:
-    virtual int FUN_0048f3e0();
+    virtual int FUN_0048ea00();          // IsSatisfied
     int done;                          // +0x04
     int announced;                     // +0x08
 };
@@ -53,12 +53,12 @@ class Class_0048f3e0 : public Condition_0048f3e0, public UnitVisitor_0048f3e0 {
 public:
     char name[0x20];                   // +0x10
     int field_30;                      // +0x30
-    int FUN_0048f3e0();
+    virtual int FUN_0048ea00();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x48f3e0
-int Class_0048f3e0::FUN_0048f3e0()
+int Class_0048f3e0::FUN_0048ea00()
 {
     if (done == 0) {
         g_game->units.ForEach(this);

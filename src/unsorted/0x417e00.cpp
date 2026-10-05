@@ -1,4 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// Class_0044f010's override of slot 10 (vtable 0x4fd458, see 0x44f450.cpp),
+// although it sits far from the class's other methods in the exe.
 // Draws an open polyline stored on the object as 16-bit map points: each
 // consecutive pair is converted to screen space (through the 16.16 fixed-point
 // helper of 0x417bb0) and one line is drawn. The colour byte comes from a
@@ -28,15 +30,15 @@ struct Point_00417e00 {
     short z;
 };
 
-class Class_00417e00 {
+class Class_0044f010 {
 public:
-    char unknown_0[8];
+    char unknown_4[4];
     char* field_8;                     // +0x8
     Point_00417e00 points[20];         // +0xc
     int count;                         // +0x5c
     char unknown_60[4];
     unsigned char field_64;            // +0x64
-    void FUN_00417e00(void* surface);
+    virtual void FUN_0044ef50(void* surface);  // slot 10
 };
 
 int __stdcall FUN_00485070(Pos_00417bb0* pos);
@@ -46,7 +48,7 @@ void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int c
 void __stdcall FUN_0046b9d0(void* a, short* b, int c, int d);
 
 // FUNCTION: 0x417e00
-void Class_00417e00::FUN_00417e00(void* surface)
+void Class_0044f010::FUN_0044ef50(void* surface)
 {
     FUN_0046b9d0(surface, (short*)(this->field_8 + 0x76), *(int*)(this->field_8 + 0x7e), 0xf);
     unsigned char color = *(unsigned char*)((char*)g_game + 0xdcb + ((this->field_64 & 1) ? 9 : 12));

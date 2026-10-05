@@ -18,10 +18,11 @@ no base relocations, so here the relocation sites come from elsewhere:
     region, and every 32-bit immediate or displacement that holds an address
     in the image.
   * origdata.obj holds the runs of the original's .rdata and .data that no
-    object defines (the bytes tools/place.py copies), the vtables it takes
-    over (below) and what those runs point at that no symbol names, each run
-    a section of its own named for its address. The game's data itself comes
-    from source: link/data.cpp, src/data and the tree's own objects. Its
+    object defines (the bytes tools/place.py copies, but for runs of zeros
+    nothing refers to) and what those runs point at that no symbol names,
+    each run a section of its own named for its address. The game's data
+    itself comes from source: link/data.cpp, src/data and the tree's own
+    objects. Its
     relocations come from tools/place.py's layout: every pointer field of a
     placed piece of data; in data no object defines, every dword that holds
     the exact address of a function, a global, a placed piece or a string
@@ -44,12 +45,9 @@ which tools/link.py --carve applies to copies of them (patch_objects):
     in a byte-identical copy of one another file keeps so that it inlines);
   * a name that points inside a global (a field, an entry) has its
     references pointed at that global with the offset added;
-  * every other definition of a placed global (another file's view of the
-    same class, another spelling of a template's static) becomes a static
-    nothing uses, its file's references going to the placed one;
-  * origdata.obj defines, at each placed vtable's address, every name a
-    compiled object defines there, and is linked first, so LINK keeps one
-    copy: the original's, with every slot;
+  * every other definition of a placed global or vtable (another file's
+    view of the same class, another spelling of a template's static) becomes
+    a static nothing uses, its file's references going to the placed one;
   * a placed function's references to file statics and to functions of its
     own file (copies kept so that they inline) point at the original's data
     and at the real function, where the original's code points;
@@ -495,8 +493,7 @@ def run_chars(section: str, start: int) -> int:
     return (RDATA_CHARS if section == ".rdata" else DATA_CHARS) & ~0x00F00000 | (align.bit_length() << 20)
 
 
-def carve_data(img: Image, placer: Placer, namer: Namer, compiled_data: dict[int, list[str]],
-               more: set[int], out: Path) -> dict[int, str]:
+def carve_data(img: Image, placer: Placer, namer: Namer, more: set[int], out: Path) -> dict[int, str]:
     """origdata.obj: the runs of the original's .rdata and .data that nothing
     else defines (namer.kept), one section each. Returns address -> the C name
     it defines for each global data/globals.csv lists (and each address in
@@ -600,20 +597,13 @@ def carve_data(img: Image, placer: Placer, namer: Namer, compiled_data: dict[int
                 coff.reloc(sec, va - start, named[0], REL_DIR32, named[1])
                 stats[kind] += 1
                 last = va
-    # Names: the C name of every global in a run, and every name a compiled
-    # object defines at a vtable kept here.
+    # Names: the C name of every global in a run.
     defined: dict[int, str] = {}
-    globals_at = {int(r["address"], 16) for r in load_rows(GLOBALS)} | more
-    for addr in sorted(globals_at | set(compiled_data)):
+    for addr in sorted({int(r["address"], 16) for r in load_rows(GLOBALS)} | more):
         at = run_of(addr)
-        if at is None:
-            continue
-        if addr in globals_at:
+        if at is not None:
             defined[addr] = f"_DAT_{addr:08x}"
             coff.define(defined[addr], *at)
-        for other in compiled_data.get(addr, ()):
-            coff.define(other, *at)
-            stats["compiled definitions taken over"] += 1
     coff.write(out)
     total = sum(end - start for _, start, end in runs)
     print(f"origdata.obj: {total:,} bytes in {len(runs):,} runs; "
@@ -621,11 +611,11 @@ def carve_data(img: Image, placer: Placer, namer: Namer, compiled_data: dict[int
     return defined
 
 
-def kept_runs(img: Image, placer: Placer, compiled_data: dict[int, list[str]], wanted: set[int],
+def kept_runs(img: Image, placer: Placer, wanted: set[int],
               runs: list[tuple[int, int]] | None = None) -> list[tuple[int, int]]:
     """The runs of the original's data origdata.obj holds: the bytes the
-    layout copied (nothing defines them), the vtables it takes over, and
-    the pieces holding the addresses in `wanted`, merged."""
+    layout copied (nothing defines them) but for runs of zeros, and the
+    pieces holding the addresses in `wanted`, merged."""
     keep = bytearray(img.size)
     for start, end in runs or ():
         keep[start - img.base:end - img.base] = b"\1" * (end - start)
@@ -639,9 +629,20 @@ def kept_runs(img: Image, placer: Placer, compiled_data: dict[int, list[str]], w
         for i in range(lo, hi):
             if img.src[i] == COPIED and not tables[i]:
                 keep[i] = 1
-        for p in placer.pieces:
-            if p.source == OBJDATA and p.va in compiled_data:
-                keep[p.va - img.base:p.va - img.base + p.hi - p.lo] = b"\1" * (p.hi - p.lo)
+        # A run of zeros needs no definition until something refers to it
+        # (`wanted`): LINK lays the library members' data out itself, and
+        # the zeros between two pieces of the game's data hold nothing.
+        i = lo
+        while i < hi:
+            if keep[i]:
+                j = i
+                while j < hi and keep[j]:
+                    j += 1
+                if not any(img.pristine[i:j]):
+                    keep[i:j] = bytes(j - i)
+                i = j
+            else:
+                i += 1
     for v in wanted:
         o = v - img.base
         pid = img.owner[o]
@@ -776,21 +777,28 @@ def second_definitions(img: Image, placer: Placer, namer: Namer
     class), or another spelling of it (the `_Nil` node of a std::map that two
     files instantiate with different views of its value type). Linked as they
     are, each would be a variable of its own, and a map whose `_Nil` one file
-    set up would be empty in another. Returns object file name -> the symbols
-    to make static, and -> the references to point at the placed definition."""
+    set up would be empty in another. A vtable is one too: LINK would keep
+    the first file's copy, which can be another file's view of the class.
+    Returns object file name -> the symbols to make static, and -> the
+    references to point at the placed definition."""
     hide: dict[str, set[int]] = defaultdict(set)
     sites: dict[str, list] = defaultdict(list)
     placed_ids = {(id(p.obj), p.sec.index, p.lo) for p in placer.pieces}
+    vtables = {}
+    for p in placer.pieces:
+        name = external_at(p, p.lo) if p.source == OBJDATA else None
+        if name and name.startswith("??_7"):
+            vtables.setdefault(name, p.va)
     for obj in placer.objects:
         if obj.library or obj.data:
             continue
         mine = {}
         for name, sym in obj.externals.items():
             sec = obj.secs[sym.section - 1]
-            if sec.is_code or name.startswith(("??_7", "??_C@", "__real@", "__TI", "__CT", "__CTA")) \
+            if sec.is_code or name.startswith(("??_C@", "__real@", "__TI", "__CT", "__CTA")) \
                     or sec.name.startswith((".tls", ".CRT", ".xdata")):
                 continue
-            addr = address_of(name, placer.symbols)
+            addr = vtables.get(name) if name.startswith("??_7") else address_of(name, placer.symbols)
             if addr is None or not namer.sections[".rdata"][0] <= addr:
                 continue
             if (id(obj), sym.section, sec.slice_at(sym.value)[0]) in placed_ids:
@@ -854,26 +862,11 @@ def carve(objects: list[Path], verbose: bool = False) -> Carved:
     gap_sources = [g.path for _, g in sorted(placer.gap_regions.items())]
     infos = [read_object(str(o), o.read_bytes()) for o in objects + gap_sources]
     entries = {a for a, _ in namer.gaps}
-    compiled_data: dict[int, list[str]] = defaultdict(list)
     for info in infos:
         for name in info.refs:
             a = address_of(name, placer.symbols)
             if a is not None and namer.in_gap(a):
                 entries.add(a)
-    # The vtables the tree compiles: origdata.obj takes them over, since they
-    # are partial views of their classes (some slots name a base class's
-    # method where the original has the override).
-    for p in placer.pieces:
-        if p.source == OBJDATA:
-            name = external_at(p, p.lo)
-            if name and name.startswith("??_7") and name not in compiled_data.get(p.va, ()):
-                compiled_data[p.va].append(name)
-    for info in infos:
-        for name, d in info.defs.items():
-            if name.startswith("??_7"):
-                a = address_of(name, placer.symbols)
-                if a in compiled_data and name not in compiled_data[a]:
-                    compiled_data[a].append(name)
 
     copies = find_copies(img, placer)
     # What each name the game code uses means: the address the original's code
@@ -889,10 +882,10 @@ def carve(objects: list[Path], verbose: bool = False) -> Carved:
     # copy's): what their address holds in the layout.
     data_refs = {n for info in infos for n, is_func in info.refs.items() if not is_func}
 
-    # origdata.obj holds what no object defines (the bytes the layout copied)
-    # and the vtables it takes over; whatever any of the references below
-    # still needs from the original joins it, until nothing more is needed.
-    runs = kept_runs(img, placer, compiled_data, set())
+    # origdata.obj holds what no object defines (the bytes the layout
+    # copied); whatever any of the references below still needs from the
+    # original joins it, until nothing more is needed.
+    runs = kept_runs(img, placer, set())
     for _ in range(8):
         namer.set_kept(runs)
         gap_names = carve_gaps(img, namer, entries, placer.learned, OUT / "gaps.obj")
@@ -919,12 +912,12 @@ def carve(objects: list[Path], verbose: bool = False) -> Carved:
                 truth[name] = named
             elif named and named[1] and not namer.covered(target):
                 inner[name] = named              # a field or an entry of a global
-        data_names = carve_data(img, placer, namer, compiled_data,
-                                {t for t in truth.values() if isinstance(t, int)}, OUT / "origdata.obj")
+        data_names = carve_data(img, placer, namer, {t for t in truth.values() if isinstance(t, int)},
+                                OUT / "origdata.obj")
         moved = retargets(img, placer, namer, copies)
         if not namer.wanted:
             break
-        runs = kept_runs(img, placer, compiled_data, namer.wanted, runs)
+        runs = kept_runs(img, placer, namer.wanted, runs)
     aliases = {n: (t[0] if isinstance(t, tuple) else data_names[t]) for n, t in truth.items()
                if isinstance(t, tuple) or t in data_names}
     # One definition of each global: the others become statics nothing uses,

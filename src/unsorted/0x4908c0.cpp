@@ -29,21 +29,25 @@ struct Holder_004908c0 {
     Target_004908c0* ptr;
 };
 
-class Class_004908c0 {
+// Class_004907e0's override of slot 8 (vtable 0x4fd9b0, see 0x44ef60.cpp for
+// the family): writes the object at +0x4 (a 2-bit kind, then its own data)
+// and the owner's mode to the stream, then takes that mode as its own and
+// clears the dirty bit. The matching reader looks like 0x490a10
+// (Class_00490880's slot 9).
+class Class_004907e0 {
 public:
-    char unknown_0[4];
     Link_004908c0* link;               // +0x04
     Holder_004908c0* holder;           // +0x08
     char unknown_c[0x27 - 0xc];
     unsigned char state : 3;           // +0x27: bit 0 dirty, bits 1-2 mode
 
-    void FUN_004908c0(Class_00415c10* stream);
+    virtual void FUN_0044efc0(Class_00415c10* stream);  // slot 8
 };
 
 // Separate dirty:1 and mode:2 fields give two masks (0xfe, 0xf9); the original
 // clears all three bits with one 0xf8 mask.
 // FUNCTION: 0x4908c0
-void Class_004908c0::FUN_004908c0(Class_00415c10* stream)
+void Class_004907e0::FUN_0044efc0(Class_00415c10* stream)
 {
     if (link == 0) {
         stream->FUN_00415c10(0, 2);

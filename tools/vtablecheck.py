@@ -72,7 +72,9 @@ def main() -> None:
                 verdict = "the original's function there has no source file (a library function?)"
                 ok = name.startswith("__purecall") or name == "__purecall"
             else:
-                ok = name in defines(file)
+                # A vtable names the vector deleting destructor (??_E), which
+                # MSVC makes the scalar one (??_G) when nothing deletes an array.
+                ok = name in defines(file) or (name.startswith("??_E") and "??_G" + name[4:] in defines(file))
                 verdict = f"{file} defines it" if ok else f"{file} does not define this name"
             bad += not ok
             print(f"  slot {off // 4:2d}: {'ok ' if ok else 'BAD'} {name}  (the original has {fn:#x}; {verdict})")

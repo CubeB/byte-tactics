@@ -12,7 +12,7 @@ struct Vec3_0048f200 {
 
 class Condition_0048f200 {
 public:
-    virtual int FUN_0048f200();
+    virtual int FUN_0048ea00();          // IsSatisfied
     int done;                          // +0x04
     int announced;                     // +0x08
 };
@@ -32,12 +32,12 @@ public:
     char name[0x20];                   // +0x10
     Vec3_0048f200 pos;                 // +0x30
     int radius;                        // +0x3c
-    int FUN_0048f200();
+    virtual int FUN_0048ea00();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x48f200
-int Class_0048f250::FUN_0048f200()
+int Class_0048f250::FUN_0048ea00()
 {
     if (pos.y == 0x12345678) {
         FUN_00484b50(pos.x, pos.z, &pos);

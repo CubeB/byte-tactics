@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
-// Slot 1 of a victory condition (compare 0x48f6b0 and 0x48ec20): when a
-// unit of kind 1 is named after its owner, marks the condition met and
-// announces it once.
+// Slot 1 of the "kill enemy commander" victory condition (vtable 0x4fd960,
+// compare 0x48f6b0 and 0x48ec20): when a unit of kind 1 is named after its
+// owner, marks the condition met and announces it once.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -20,7 +20,7 @@ struct Link_0048ea40 {
     Owner_0048ea40* owner;             // +0x27
 };
 
-struct Unit_0048ea40 {
+struct Unit {
     char unknown_0[0x92];
     Info_0048ea40* info;               // +0x92
     Link_0048ea40* link;               // +0x96
@@ -42,16 +42,15 @@ extern Game_0048ea40* g_game;
 
 void __stdcall FUN_0047f1a0(char* str, int flag);
 
-class Class_0048ea40 {
+class Class_0048ea00 {
 public:
-    int unknown_0;                     // +0x00
     int done;                          // +0x04
     int announced;                     // +0x08
-    void FUN_0048ea40(Unit_0048ea40* unit);
+    virtual void FUN_0048ea10(Unit* unit);
 };
 
 // FUNCTION: 0x48ea40
-void Class_0048ea40::FUN_0048ea40(Unit_0048ea40* unit)
+void Class_0048ea00::FUN_0048ea10(Unit* unit)
 {
     if (unit->kind == 1) {
         if (_strcmpi(unit->info->name, g_game->players[unit->link->owner->playerIndex].name) == 0) {

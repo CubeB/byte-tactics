@@ -1,26 +1,42 @@
 // Decompiled by Sonnet. Names are provisional.
+// Slot 0 of the unit visitor at +0xc of the "any unit passes X" defeat
+// condition (visitor vtable 0x4fd788): marks the condition met when a unit
+// is within 2 of the target X, and returns whether to keep visiting.
 #include <stdlib.h>
 
-struct Other_0048fb30 {
+struct Unit {
     char unknown_0[0x76];
     short value;   // +0x76
 };
 
-struct Class_0048fb30 {
-    int unknown_0;  // +0x0
-    int unknown_4;  // +0x4
+class Condition_0048fb60 {
+public:
+    virtual int FUN_0048ea00();          // IsSatisfied
+    int satisfied;                       // +0x4
+    int celebrated;                      // +0x8
+};
 
-    bool FUN_0048fb30(Other_0048fb30* param_1);
+// Interface at +0xc of the object: slot 0 is called for each unit.
+class UnitVisitor_0048fb60 {
+public:
+    virtual int FUN_0048f790(Unit* unit) = 0;
+};
+
+// This method overrides the visitor's slot, so `this` is the visitor
+// subobject (+0xc) and satisfied sits at -8.
+class Class_0048fb60 : public Condition_0048fb60, public UnitVisitor_0048fb60 {
+public:
+    int field_10;                        // +0x10
+    virtual int FUN_0048f790(Unit* unit);
 };
 
 // FUNCTION: 0x48fb30
-bool Class_0048fb30::FUN_0048fb30(Other_0048fb30* param_1)
+int Class_0048fb60::FUN_0048f790(Unit* unit)
 {
-    int diff = abs((int)param_1->value - unknown_4);
+    int diff = abs((int)unit->value - field_10);
 
-    int* flag = (int*)((char*)this - 8);
     if (diff <= 2) {
-        *flag = 1;
+        satisfied = 1;
     }
-    return *flag == 0;
+    return satisfied == 0;
 }

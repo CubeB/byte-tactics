@@ -33,11 +33,23 @@
 // `#pragma pack(2)` or `operator new` asks for 0x34/0x38; and
 // Class_0048f250's constructor must store pos.z and radius before
 // pos.y = 0x12345678.
+//
+// For the vtables' sake (not the bytes), each class declares exactly the
+// slots it overrides in the original, with the base's name and parameter
+// types, so a slot names the function its own file defines as
+// `Class_0048xxxx::<base name>`, or the base's own default in 0x48ea00 to
+// 0x48ea30 (tools/vtablecheck.py): IsSatisfied, the unit slots 1 to 3, Save
+// and Load (which take the Class_004b4560 section), and the visitor slot,
+// which returns whether to keep visiting (Listener_0048f250's returns
+// nothing).
 
 #include <string.h>
 #include <stdio.h>
 
 extern void* DAT_005119b8;
+
+struct Unit;
+class Class_004b4560;
 
 // Mission victory/defeat condition (6 virtual slots).
 class Condition_0048ff40 {
@@ -47,23 +59,25 @@ public:
 
     Condition_0048ff40() { satisfied = celebrated = 0; }
     virtual int FUN_0048ea00();          // IsSatisfied
-    virtual void FUN_0048ea10();         // Slot1
-    virtual void FUN_0048ea20();         // Slot2
-    virtual void FUN_0048ea30();         // Slot3
-    virtual void FUN_0048f840(void* file);   // Save
-    virtual void FUN_0048f880(void* file);   // Load
+    virtual void FUN_0048ea10(Unit* unit);   // Slot1
+    virtual void FUN_0048ea20(Unit* unit);   // Slot2
+    virtual void FUN_0048ea30(Unit* unit);   // Slot3
+    virtual void FUN_0048f840(Class_004b4560* file);   // Save
+    virtual void FUN_0048f880(Class_004b4560* file);   // Load
 };
 
-// Secondary interface of a condition that watches events (vtable 0x4fd940).
+// Secondary interface of a condition that visits units (vtable 0x4fd940):
+// slot 0 is called for each unit and returns whether to keep going.
 class Listener_0048ff40 {
 public:
-    virtual void FUN_0048f790(void* event) = 0;
+    virtual int FUN_0048f790(Unit* unit) = 0;
 };
 
-// The same one-slot interface again, as its own type (vtable 0x4fd8a8).
+// The same one-slot interface again, as its own type (vtable 0x4fd8a8),
+// whose slot returns nothing.
 class Listener_0048f250 {
 public:
-    virtual void FUN_0048f790(void* event) = 0;
+    virtual void FUN_0048f790(Unit* unit) = 0;
 };
 
 class Class_004c46c0 {
@@ -91,29 +105,35 @@ struct Vec3_0048f250 {
 // KillEnemyCommander (vtable 0x4fd960).
 class Class_0048ea00 : public Condition_0048ff40 {
 public:
-    virtual int FUN_0048ea00();
+    virtual void FUN_0048ea10(Unit* unit);
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 // DestroyAllUnits (vtable 0x4fd948).
 class Class_0048eb40 : public Condition_0048ff40 {
 public:
     virtual int FUN_0048ea00();
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 // KillAllMobileUnits (vtable 0x4fd928, listener vtable 0x4fd920).
 class Class_0048ec20 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
-    virtual void FUN_0048f790(void* event);
+    virtual int FUN_0048f790(Unit* unit);
     int count;                           // +0x10
     Class_0048ec20() { count = 0; }
-    virtual void FUN_0048ea10();
+    virtual void FUN_0048ea10(Unit* unit);
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 // BuildUnitType (vtable 0x4fd908, listener vtable 0x4fd900).
 #pragma pack(push, 2)
 class Class_0048edb0 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
-    virtual void FUN_0048f790(void* event);
+    virtual int FUN_0048f790(Unit* unit);
     char name[0x20];                     // +0x10
     short field_30;                      // +0x30
 
@@ -122,6 +142,9 @@ public:
         strcpy(name, text);
         field_30 = 0;
     }
+    virtual int FUN_0048ea00();
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 #pragma pack(pop)
 
@@ -131,16 +154,22 @@ public:
     char name[0x20];                     // +0xc
 
     Class_0048eeb0(const char* text) { strcpy(name, text); }
+    virtual void FUN_0048ea20(Unit* unit);
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 // KillAllOfType (vtable 0x4fd8d0, listener vtable 0x4fd8c8).
 #pragma pack(push, 2)
 class Class_0048efb0 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
-    virtual void FUN_0048f790(void* event);
+    virtual int FUN_0048f790(Unit* unit);
     char name[0x26];                     // +0x10
 
     Class_0048efb0(const char* text) { strcpy(name, text); }
+    virtual void FUN_0048ea10(Unit* unit);
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 #pragma pack(pop)
 
@@ -155,13 +184,16 @@ public:
         strcpy(name, text);
         count = n;
     }
+    virtual void FUN_0048ea10(Unit* unit);
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 // MoveUnitToRadius (vtable 0x4fd890, listener vtable 0x4fd888).
 #pragma pack(push, 2)
 class Class_0048f250 : public Condition_0048ff40, public Listener_0048f250 {
 public:
-    virtual void FUN_0048f790(void* event);
+    virtual void FUN_0048f790(Unit* unit);
     char name[0x20];                     // +0x10
     Vec3_0048f250 pos;                   // +0x30
     int radius;                          // +0x3c
@@ -177,6 +209,9 @@ public:
         radius = r << 16;
         pos.y = 0x12345678;
     }
+    virtual int FUN_0048ea00();
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 #pragma pack(pop)
 
@@ -184,7 +219,7 @@ public:
 #pragma pack(push, 2)
 class Class_0048f3e0 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
-    virtual void FUN_0048f790(void* event);
+    virtual int FUN_0048f790(Unit* unit);
     char name[0x20];                     // +0x10
     int field_30;                        // +0x30
 
@@ -196,6 +231,9 @@ public:
             strcpy(name, text);
         field_30 = v >> 4;
     }
+    virtual int FUN_0048ea00();
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 #pragma pack(pop)
 
@@ -203,7 +241,7 @@ public:
 #pragma pack(push, 2)
 class Class_0048f530 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
-    virtual void FUN_0048f790(void* event);
+    virtual int FUN_0048f790(Unit* unit);
     char name[0x20];                     // +0x10
     int field_30;                        // +0x30
 
@@ -215,6 +253,9 @@ public:
             strcpy(name, text);
         field_30 = v >> 4;
     }
+    virtual int FUN_0048ea00();
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 #pragma pack(pop)
 
@@ -224,33 +265,41 @@ public:
     int field_c;                         // +0xc
 
     Class_0048f610(int t) { field_c = t * 30; }
+    virtual int FUN_0048ea00();
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 // CommanderKilled (vtable 0x4fd818).
 class Class_0048f6b0 : public Condition_0048ff40 {
 public:
-    virtual void FUN_0048ea10();
+    virtual void FUN_0048ea10(Unit* unit);
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 // AllUnitsKilled (vtable 0x4fd800, listener vtable 0x4fd7f8).
 class Class_0048f840 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
     virtual int FUN_0048ea00();
-    virtual void FUN_0048f840(void* file);
-    virtual void FUN_0048f880(void* file);
-    virtual void FUN_0048f790(void* event);
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
+    virtual int FUN_0048f790(Unit* unit);
 };
 
 // AllUnitsKilledOfType (vtable 0x4fd7e0, listener vtable 0x4fd7d8).
 #pragma pack(push, 2)
 class Class_0048f9d0 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
-    virtual void FUN_0048f790(void* event);
+    virtual int FUN_0048f790(Unit* unit);
     char name[0x20];                     // +0x10
     short id;                            // +0x30
     int count;                           // +0x32
 
     Class_0048f9d0(const char* text) { strcpy(name, text); }
+    virtual void FUN_0048ea10(Unit* unit);
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 #pragma pack(pop)
 
@@ -265,6 +314,9 @@ public:
         strcpy(name, text);
         numLeftToKill = n;
     }
+    virtual void FUN_0048ea10(Unit* unit);
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 // DeathTimerRunsOut (vtable 0x4fd7a8).
@@ -273,24 +325,33 @@ public:
     int field_c;                         // +0xc
 
     Class_0048fd50(int t) { field_c = t * 30; }
+    virtual int FUN_0048ea00();
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 // AnyUnitPassesX (vtable 0x4fd790, listener vtable 0x4fd788).
 class Class_0048fb60 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
-    virtual void FUN_0048f790(void* event);
+    virtual int FUN_0048f790(Unit* unit);
     int field_10;                        // +0x10
 
     Class_0048fb60(int v) { field_10 = v >> 4; }
+    virtual int FUN_0048ea00();
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 // AnyUnitPassesZ (vtable 0x4fd770, listener vtable 0x4fd768).
 class Class_0048fc70 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
-    virtual void FUN_0048f790(void* event);
+    virtual int FUN_0048f790(Unit* unit);
     int field_10;                        // +0x10
 
     Class_0048fc70(int v) { field_10 = v >> 4; }
+    virtual int FUN_0048ea00();
+    virtual void FUN_0048f840(Class_004b4560* file);
+    virtual void FUN_0048f880(Class_004b4560* file);
 };
 
 class Class_0048ff40 {

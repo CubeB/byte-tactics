@@ -35,17 +35,20 @@ public:
 };
 #pragma pack(pop)
 
-class Class_00490a10 {
+// Class_00490880's override of slot 9 (vtable 0x4fd9e0, see 0x44ef60.cpp for
+// the family): rebuilds the object at +0x4 from the bit stream (a 2-bit kind:
+// 1 and 2 pick its class, anything else leaves none), then passes a 2-bit
+// state read after it to the owner.
+class Class_00490880 {
 public:
-    int unknown_0;                     // +0x0
     Base_00490a10* current;            // +0x4
     Owner_00490a10* owner;             // +0x8
 
-    void FUN_00490a10(Class_00415dc0* reader);
+    virtual void FUN_0044efd0(Class_00415dc0* reader);  // slot 9
 };
 
 // FUNCTION: 0x490a10
-void Class_00490a10::FUN_00490a10(Class_00415dc0* reader)
+void Class_00490880::FUN_0044efd0(Class_00415dc0* reader)
 {
     if (current) {
         delete current;

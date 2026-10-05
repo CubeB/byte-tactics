@@ -42,7 +42,7 @@ short __stdcall FUN_00488b10(char* param_1);
 
 class Base_0048edb0 {
 public:
-    virtual void Unknown_0();
+    virtual int FUN_0048ea00();          // IsSatisfied
     int field_4;                       // +0x4
     int field_8;                       // +0x8
 };
@@ -52,11 +52,11 @@ public:
     char field_10[0x20];               // +0x10
     short field_30;                    // +0x30
 
-    int FUN_0048edb0();
+    virtual int FUN_0048ea00();
 };
 
 // FUNCTION: 0x48edb0
-int Class_0048edb0::FUN_0048edb0()
+int Class_0048edb0::FUN_0048ea00()
 {
     if (field_4 != 0) {
         return 1;

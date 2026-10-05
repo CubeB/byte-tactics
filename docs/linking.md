@@ -257,8 +257,8 @@ extern const UnitOrderType g_unitOrders[23] = {
 - **Checks.** `tools/place.py` places each annotated global at its address and
   every literal it points at where the original's pointer points, compares
   the bytes, and resolves every pointer: one that leads elsewhere than the
-  original's is an error (in compiled vtables it is a kept entry instead,
-  below). `tools/globals.py` and `tools/link.py` leave the addresses
+  original's is an error, as it is in compiled code and data.
+  `tools/globals.py` and `tools/link.py` leave the addresses
   `src/data` defines, and every global inside one of them, to it.
 
 | File | What it defines |
@@ -271,7 +271,7 @@ extern const UnitOrderType g_unitOrders[23] = {
 | `debug_dialogs.cpp` | the dialog templates of Cavedog's debug library, as `DLGTEMPLATE` structures |
 | `guids.cpp` | the DirectDraw, DirectPlay, lobby and DirectSound ids (the DirectX 5 SDK's, which the toolchain's headers predate), the game's session id and the four providers 0x4ca100 skips |
 | `ballistics.cpp` | how far a shot carries at each elevation |
-| `unused.cpp` | constants, variables and menu option lists nothing reads |
+| `unused.cpp` | constants, variables, menu option lists and a few bytes among the constants that nothing reads |
 
 ## The placement link
 
@@ -313,9 +313,9 @@ How it places things:
   constants, jump tables, exception tables, vtables, file and function
   statics) is placed one symbol at a time where the original's code refers to
   it, the way a map file would say. Its contents come from the object, and
-  where a vtable or table the source declares disagrees with the original's
-  entry (the source's partial view of a class), the original's entry is kept
-  and listed.
+  a vtable slot that leads elsewhere than the original's is an error like any
+  other relocation (`tools/vtablecheck.py` names the function the slot's own
+  file should define).
 - **The globals**: those a tree file defines (a class object, a template's
   static) from its largest definition, then `src/data`'s, then
   `link/data.cpp`'s and the byte arrays `tools/link.py` adds for the globals
@@ -326,7 +326,13 @@ How it places things:
   the original's initialisers the tree spells as ordinary functions get the
   entry `tools/link.py` writes for them.
 - **Padding**: zeros after one piece of data up to the next, at that piece's
-  alignment, and the even padding of the import name table.
+  alignment; fewer than 8 (or 16) zeros before a piece of the game's data at
+  an 8-byte (or 16-byte) boundary, where one of the original's objects began
+  (they held many functions each, and most of the DirectX setup code's
+  strings start on 8-byte boundaries, which the tree's one-function objects
+  cannot show); the zeros before a communal variable up to its alignment
+  (its size, at most 32 bytes: `___pioinfo` follows `__crtheap` after 24
+  zeros); and the even padding of the import name table and the DLL names.
 - **The runtime library** comes from the members of the libraries the
   original links statically: the VC5 SP3 `LIBCMT.LIB` and `LIBCPMT.LIB`, and
   zlib 1.0.4 as `tools/setup_toolchain.sh` builds it with Cavedog's options. A
@@ -353,7 +359,13 @@ How it places things:
   row names (string.obj's initialiser `_$E50`) comes from the placed member
   nearest it; other static functions and the members' data follow where the
   placed code refers to them, and communal (`.bss`) data where the original
-  has it. The three-byte `return 0` functions (`_matherr`, `__init_collate`,
+  has it. A pointer before a section's first symbol goes with it: each of
+  the library's vtables (compiled with RTTI) is preceded by its complete
+  object locator's address, which leads to the RTTI descriptors. The rest of
+  a data section placed in part goes beside it (zlib's copyright strings),
+  and a placed member's other initialised data where the original holds its
+  bytes with its pointers leading the same way (throw.obj's and frame.obj's
+  pointers to the unhandled exception filter). The three-byte `return 0` functions (`_matherr`, `__init_collate`,
   setlocale's `__init_dummy`) have no name in `data/functions.csv`, so they go
   where the placed code and tables refer to them, not by size. Alignment
   padding (nops, or int3s after assembler code) is counted as padding.
@@ -381,13 +393,17 @@ counts where each section's bytes came from. On 2026-10-05:
 | Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
 | `.text` | 1,026,560 | 850,853 game code, 24,762 gap code, 120,848 runtime library and import thunks, 30,097 padding | none |
-| `.rdata` | 18,432 | 3,234 compiled data, 3,771 library data, 2,953 `src/data`, 324 `link/` globals, 986 padding | 6,666 import tables, 498 other data |
-| `.data` | 173,660 | 82,982 compiled data (with the tree's own globals), 24,915 library data, 7,694 `src/data`, 48,458 `link/` globals, 4,243 padding | 8 linker tables, 5,360 other data |
+| `.rdata` | 18,432 | 3,234 compiled data, 4,148 library data, 2,965 `src/data`, 324 `link/` globals, 1,089 padding | 6,672 import tables, no other data |
+| `.data` | 173,660 | 83,523 compiled data (with the tree's own globals), 29,537 library data, 7,694 `src/data`, 48,458 `link/` globals, 4,384 padding | 8 linker tables, 56 other data |
 
 Before the data was defined in `src/data` (#2662), 34,662 bytes of `.data`
 and 1,546 of `.rdata` were copied: tables whose pointers `link/data.cpp` held
 as numbers left their strings undefined, `.bss` buffers were cut short at
-false boundaries, and the padding between pieces counted as data.
+false boundaries, and the padding between pieces counted as data. The 56
+bytes still copied are zeros nothing refers to: 48 among the runtime
+library's data (members' zero-initialised data, whose place no bytes can
+tell), and 8 between the game's statics (after 0x4df160's guard, and before
+0x4b7ad0's vector).
 
 Before the runtime library's last functions were built (#2662), 8,267 bytes
 of `.text` were copied as library code: 11 functions (3,163 bytes, among
@@ -396,16 +412,16 @@ them the second run of import thunks), two runs of code with no FPO record
 library functions. The last gap region, 0x49a120, has matched its source
 since (1,840 bytes with its padding), so no code is copied.
 
-Of the 39,352 relocations in placed pieces, every one in code and in
-`src/data` agrees with the original (136 of them reach the second copy of a
-function `data/aliases.csv` lists, such as the two `std::_Lockit`). 72 vtable
-entries in compiled data disagree and keep the original's value: the slot
-names a base class's method where the original has the derived class's
-override, which its own file matched under a placeholder class. Renaming the
-override after the virtual it overrides, with the base's parameter types and
-declared virtual, binds the slot with no function's bytes changed;
-`tools/vtablecheck.py` checks it, and 22 of the 94 entries are fixed so
-(`Class_0043a1f0`, the `Class_00471cc0` family, `Class_00485e30`). The compiled image differs from the
+Of the 39,414 relocations in placed pieces, every one agrees with the
+original (136 of them reach the second copy of a function `data/aliases.csv`
+lists, such as the two `std::_Lockit`), the vtables' too. 94 vtable entries
+used to disagree: the slot named a base class's method where the original
+has the derived class's override, which its own file matched under a
+placeholder class. Each override is now named after the virtual it
+overrides, with the base's parameter types and declared virtual, which binds
+the slot with no function's bytes changed (`Class_0043a1f0`, the
+`Class_00471cc0`, `Class_0044ef20` and condition families,
+`Class_00485e30`); `tools/vtablecheck.py` checks a file's slots so. The compiled image differs from the
 original only under the two rows of `data/exe_patches.csv`, where it has the
 compiler's bytes rather than GOG's no-CD music patch, and after the link
 `tools/exepatch.py` writes the patch over them, so `build/place/TotalA.exe` is
@@ -471,10 +487,11 @@ none, so `carve.py` finds them itself:
   `_WinMain@16` (WinMain's region, 0x49eda0, now has source, which defines
   it).
 - **`origdata.obj`** holds the runs of the original's `.rdata` and `.data`
-  that no object defines, the bytes `place.py` copies (7,010 bytes in 95
-  runs, down from the whole 192 KB of both sections), the vtables it takes
-  over (below), and whatever those runs point at that no symbol names (a
-  closure: none at present). Each run is a section of its own named for its
+  that no object defines, the bytes `place.py` copies, but for runs of zeros
+  nothing refers to, and whatever those runs point at that no symbol names
+  (a closure). It is empty now, down from the whole 192 KB of both sections:
+  the 56 bytes `place.py` copies are such zeros, and LINK lays the library
+  members' data out itself. Each run is a section of its own named for its
   address (see the data's order, below). Its relocations come from
   `place.py`'s layout: every pointer field of a placed piece of data; and
   where no object defines the data, every dword that holds the exact address
@@ -495,8 +512,9 @@ of the tree's own objects. What makes that link run:
   `DAT_005086e0` in `g_unitMessages`) has its references pointed at the
   global with the offset added (299 references), and the name itself then
   means the global, so it needs no stub. Every other definition of a placed
-  global becomes a static nothing uses, its file's references going to the
-  placed one: another file's smaller view of the same class, or another
+  global or vtable becomes a static nothing uses, its file's references
+  going to the placed one: another file's smaller view of the same class
+  (whose vtable LINK might otherwise keep), or another
   spelling of the same template static, like the `_Nil` node of a
   `std::map<int, int>` two files instantiate with different views of the
   pair. Linked as they were, that map's tree was set up through one `_Nil`
@@ -520,12 +538,6 @@ and `link.py` applies that to patched copies of the objects under
   original's code holds wherever the name is used, in a placed function or in
   a byte-identical copy of one (4,952 names), rather than guessed from its
   spelling.
-- `origdata.obj` defines, at each placed vtable's address, every name a
-  compiled object defines there, and is linked first, so LINK keeps one copy
-  of each: the original's, with every slot. The tree's vtables are partial
-  views of their classes (some slots name a base class's method where the
-  original has the override); `tools/vtablecheck.py` checks a file's vtables
-  slot by slot against the functions' own definitions.
 - A placed function's references to file statics, and to other functions of
   its own file, point where the original's code points (1,176 references).
   Many files keep a global as a file-scope `static` because that makes their
@@ -579,13 +591,15 @@ every placed game function it reads each relocated field of
 map file (`link.py --carve --map`), and compares it with what the original's
 code holds in that field. A reference past the end of a global (an array's
 end, `&DAT_005119c0[10]`) agrees when its global does, and a function's own
-statics where the layout put them. It then compares the data: every named
+statics where the layout put them. A constructor's store of the vtable its
+own object defines is compared too, since another file's copy may be the
+one LINK keeps. It then compares the data: every named
 piece of data in the link (a global, a literal, a vtable, a run of
 `origdata.obj`) against the original's bytes at its address, pointer fields
 by where they lead, and it flags an address of the original's code held as
-a number. On 2026-10-05 all 26,453 references it can place, in all 3,308
+a number. On 2026-10-05 all 26,627 references it can place, in all 3,308
 placed functions (the gap regions' among them), agree, apart from 134 calls
-that reach the other copy of `std::_Lockit`; of 5,171 pieces of data, 17
+that reach the other copy of `std::_Lockit`; of 5,080 pieces of data, 20
 differ, all of them a pointer to a string the link folded into an identical
 literal of another object, or the library's data (its vtables and throw
 information lead to `LIBCPMT.LIB`'s functions where the original's lead to

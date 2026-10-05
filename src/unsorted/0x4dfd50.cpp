@@ -126,8 +126,17 @@ public:
     }
 };
 
+// The object at 0x5292d0 (0x4df1e0 builds it, 0x4dfd10 hands it out): only
+// its map at +0x21c has anything to destroy.
+class Class_004df1e0 {
+public:
+    char unknown_0[0x21c];
+    Tree_004dfd50 map;                 // +0x21c
+    bool changed;                      // +0x22c
+};
+
 // FUNCTION: 0x4dfd50 _$E2
 void trigger_004dfd50()
 {
-    static Tree_004dfd50 x;
+    static Class_004df1e0 obj;
 }

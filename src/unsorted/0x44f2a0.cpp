@@ -84,7 +84,6 @@ public:
 // Vtable 0x4fd458, constructor 0x44f010, destructor 0x44f450, ??_G 0x44f040.
 class Class_0044f010 {
 public:
-    void* vtable;                      // +0x0
     Base_00490a10* field_4;            // +0x4
     Struct_004907e0* owner;            // +0x8
     Point_0044f2a0 points[20];         // +0xc
@@ -95,7 +94,7 @@ public:
     unsigned char flag_2 : 1;          // bit 2
     unsigned char flag_3 : 1;          // bit 3
 
-    void FUN_0044ef90(void* param);
+    virtual void FUN_0044ef90(void* param);         // slot 1
 };
 
 // FUNCTION: 0x44f2a0

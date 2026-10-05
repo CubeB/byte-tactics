@@ -626,6 +626,11 @@ def lookup(off, sym_name, target, symbols, by_addr) -> Ref:
         return Ref(off, sym_name, target, "ok", "duplicate copy (data/aliases.csv)")
     # A placeholder name carries its own address: it must be where the original points.
     m = PLACEHOLDER.search(name.split("::")[-1])
+    if m and "::" in name and name in symbols:
+        # A method named after the base class's virtual it overrides
+        # (Class_00490630::FUN_0044efb0 is at 0x490690): data/symbols.csv
+        # has its definition's address.
+        m = None
     if m and int(m.group(1), 16) != target:
         return Ref(off, sym_name, target, "mismatch",
                    f"'{name}' names {int(m.group(1), 16):#x}, but the original uses {target:#x}")

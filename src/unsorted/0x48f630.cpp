@@ -12,17 +12,16 @@ public:
     void FUN_004b4630(const char* name, int value);
 };
 
-class Class_0048f630 {
+class Class_0048f610 {
 public:
-    char unknown_0[4];
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    void FUN_0048f630(Class_004b4560* obj);
+    virtual void FUN_0048f840(Class_004b4560* obj);
 };
 
 // FUNCTION: 0x48f630
-void Class_0048f630::FUN_0048f630(Class_004b4560* obj)
+void Class_0048f610::FUN_0048f840(Class_004b4560* obj)
 {
     obj->FUN_004b4560("VictoryCondition_VictoryTimerRunsOut");
     ((Class_004b4630*)obj)->FUN_004b4630("Satisfied", satisfied);

@@ -1,8 +1,9 @@
 // Decompiled by Space Bunny Free. Names are provisional.
-// Class_00490880's override of slot 2 (vtable 0x4fd9e0, the class family is
-// listed in 0x44ef60.cpp and 0x490940.cpp): one update step of a moving
-// object. The object at +0x4 moves this object's position (its slot 8) and
-// the difference goes into vel. When the object has drifted further than
+// Class_00490630's override of slot 2 (vtable 0x4fd980, inherited by
+// Class_00490880 and called directly by Class_004907e0's own override,
+// 0x490880; the class family is listed in 0x44ef60.cpp): one update step of
+// a moving object. The object at +0x4 moves this object's position (its slot
+// 8) and the difference goes into vel. When the object has drifted further than
 // 0xa00000 from its owner, its height is snapped to the ground under it, the
 // sea level for a unit whose def has the flag at +0x241 bit 22 set, the
 // owner's field_82 byte 1 otherwise, plus the def's field_21c, and past
@@ -20,13 +21,13 @@
 // enough for the two branches not to be tail-merged into one.
 #include <math.h>
 
-struct Vec3 {
+struct Vec3_004907e0 {
     int x, y, z;
 };
 
-static inline Vec3 operator-(const Vec3& p, const Vec3& q)
+static inline Vec3_004907e0 operator-(const Vec3_004907e0& p, const Vec3_004907e0& q)
 {
-    Vec3 r;
+    Vec3_004907e0 r;
     r.x = p.x - q.x;
     r.y = p.y - q.y;
     r.z = p.z - q.z;
@@ -49,7 +50,7 @@ struct Struct_004907e0 {               // the object at +0x8
     char pad0[0x66];
     short field_66;                    // +0x66
     short field_68;                    // +0x68
-    Vec3 pos;                          // +0x6a
+    Vec3_004907e0 pos;                 // +0x6a
     char pad76[0x82 - 0x76];
     unsigned char* field_82;           // +0x82
     char pad86[0x92 - 0x86];
@@ -76,12 +77,16 @@ public:
     virtual int FUN_0044ef80();                     // slot 5
     virtual int FUN_0044eff0();                     // slot 6
     virtual int FUN_0044efe0();                     // slot 7
-    virtual void FUN_0044efc0(Vec3* param);         // slot 8
+    virtual void FUN_0044efc0(Vec3_004907e0* param);  // slot 8
     virtual int FUN_0044efd0(short* param);         // slot 9
     virtual void FUN_0044ef50(int);                 // slot 10
     virtual int FUN_0044ef50_11();                  // slot 11
     void FUN_0044ced0(int param);
 };
+
+class Class_0044f010;                  // slot 6's result (see 0x44f450.cpp)
+class Class_00415c10;                  // the bit writer slot 8 takes
+class Class_00415dc0;                  // the bit reader slot 9 takes
 
 // Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
 class Class_0044ef20 {
@@ -93,21 +98,21 @@ public:
     virtual ~Class_0044ef20() {}                    // slot 0
     virtual void FUN_0044ef90(void* param);         // slot 1
     virtual void FUN_0044efb0();                    // slot 2
-    virtual void FUN_0044ef40(int, int, int);       // slot 3
-    virtual void FUN_0044f000(int, int, int);       // slot 4
+    virtual void FUN_0044ef40(Vec3_004907e0*, int, int);  // slot 3
+    virtual void FUN_0044f000(Vec3_004907e0*, Vec3_004907e0*, short*);  // slot 4
     virtual int FUN_0044ef80();                     // slot 5
-    virtual int FUN_0044eff0();                     // slot 6
+    virtual Class_0044f010* FUN_0044eff0();         // slot 6
     virtual int FUN_0044efe0();                     // slot 7
-    virtual void FUN_0044efc0(int);                 // slot 8
-    virtual void FUN_0044efd0(int);                 // slot 9
-    virtual void FUN_0044ef50(int);                 // slot 10
+    virtual void FUN_0044efc0(Class_00415c10*);     // slot 8
+    virtual void FUN_0044efd0(Class_00415dc0*);     // slot 9
+    virtual void FUN_0044ef50(void*);               // slot 10
 };
 
 // Vtable 0x4fd980, constructor 0x4905e0, ??_G 0x490630.
 class Class_00490630 : public Class_0044ef20 {
 public:
-    Vec3 pos;                           // +0xc
-    Vec3 vel;                           // +0x18
+    Vec3_004907e0 pos;                  // +0xc
+    Vec3_004907e0 vel;                  // +0x18
     short field_24;                     // +0x24
     char field_26;                      // +0x26
     unsigned char dirty : 1;            // +0x27 bit 0
@@ -117,25 +122,14 @@ public:
     virtual void FUN_0044efb0();                    // slot 2, 0x490690
 };
 
-// Vtable 0x4fd9e0, constructor 0x490940, destructor 0x4909e0, ??_G 0x4909a0.
-// Slot 2 and slot 4 are inherited from Class_00490630, but the symbol the
-// exe gives slot 2 of Class_00490630's vtable (0x4fd980) is this class's.
-class Class_00490880 : public Class_00490630 {
-public:
-    Class_00490880(Struct_004907e0* p);
-    virtual ~Class_00490880();                      // slot 0
-    virtual void FUN_00490690();                    // slot 2, 0x490690
-    virtual void FUN_0044efd0(int);                 // slot 9, 0x490a10
-};
-
-unsigned short __stdcall FUN_0048a980(Vec3* from, Vec3* to);
+unsigned short __stdcall FUN_0048a980(Vec3_004907e0* from, Vec3_004907e0* to);
 
 // FUNCTION: 0x490690
-void Class_00490880::FUN_00490690()
+void Class_00490630::FUN_0044efb0()
 {
     if (!field_4)
         return;
-    Vec3 old = pos;
+    Vec3_004907e0 old = pos;
     field_4->FUN_0044efc0(&pos);
     vel = pos - old;
     int dist = (int)_hypot(owner->pos.x - pos.x, owner->pos.z - pos.z);

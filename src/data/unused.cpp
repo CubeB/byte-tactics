@@ -16,6 +16,18 @@ extern const float DAT_004fd2e4 = 2.0f;
 // GLOBAL: 0x4fda70
 extern const double DAT_004fda70 = 2.0;
 
+// Eight bytes of zeros between 0x4babd0's constants and the double at
+// 0x4fdbe8, too many to be alignment.
+// GLOBAL: 0x4fdbe0
+extern const unsigned char DAT_004fdbe0[8] = {0};
+
+// Four bytes at the start of the game's constants, before 0x401360's: what
+// they were is unknown. (Last of the constants here: tools/place.py takes
+// each global up to the next one in its section, so no eight-byte one may
+// follow it.)
+// GLOBAL: 0x4fc474
+extern const unsigned char DAT_004fc474[4] = {0x00, 0x02, 0xfc, 0x07};
+
 // Before the "Code segment checksum error" message.
 // GLOBAL: 0x502f98
 int DAT_00502f98 = 16;

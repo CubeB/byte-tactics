@@ -132,8 +132,12 @@ def main() -> None:
             sym = p.obj.syms[symidx]
             if sym.section > 0:
                 target = p.obj.secs[sym.section - 1]
-                if target is p.sec or (not target.is_code and not target.chars & SCN_MEM_WRITE):
-                    continue                 # jump tables, its own constants and literals
+                if target is p.sec or (not target.is_code and not target.chars & SCN_MEM_WRITE
+                                       and not sym.name.startswith("??_7")):
+                    # Jump tables, its own constants and literals. A vtable
+                    # its own object defines is compared: another file's copy
+                    # of it may be the one LINK keeps.
+                    continue
                 if target.name.startswith(".text$x"):
                     continue                 # its own exception handler stub (a static label)
                 if target.name.startswith(".data") and sym.name.startswith("??_C@"):

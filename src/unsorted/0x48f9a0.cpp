@@ -1,28 +1,44 @@
 // Decompiled by Haiku. Names are provisional.
+// Slot 0 of the unit visitor at +0xc of the "all units killed of type"
+// defeat condition (visitor vtable 0x4fd7d8, driven by 0x48f9d0): counts
+// the units of the condition's type and returns whether at most one has
+// been seen.
 
-struct Param
-{
-public:
+struct Unit {
     char unknown_0[0xa6];
-    unsigned short field_a6;
+    short field_a6;                      // +0xa6
 };
 
-struct Class_0048f9a0
-{
+class Condition_0048f9d0 {
 public:
-    char unknown_0[0x2a];
-
-    bool FUN_0048f9a0(Param* p);
+    virtual int FUN_0048ea00();          // IsSatisfied
+    int satisfied;                       // +0x4
+    int celebrated;                      // +0x8
 };
+
+// Interface at +0xc of the object: slot 0 is called for each unit.
+class UnitVisitor_0048f9d0 {
+public:
+    virtual int FUN_0048f790(Unit* unit) = 0;
+};
+
+// This method overrides the visitor's slot, so `this` is the visitor
+// subobject (+0xc) and id and count sit at +0x24 and +0x26 from it.
+#pragma pack(push, 2)
+class Class_0048f9d0 : public Condition_0048f9d0, public UnitVisitor_0048f9d0 {
+public:
+    char name[0x20];                     // +0x10
+    short id;                            // +0x30
+    int count;                           // +0x32
+    virtual int FUN_0048f790(Unit* unit);
+};
+#pragma pack(pop)
 
 // FUNCTION: 0x48f9a0
-bool Class_0048f9a0::FUN_0048f9a0(Param* p)
+int Class_0048f9d0::FUN_0048f790(Unit* unit)
 {
-    unsigned short* field_24_ptr = (unsigned short*)&unknown_0[0x24];
-    int* field_26_ptr = (int*)&unknown_0[0x26];
-
-    if (p->field_a6 == *field_24_ptr) {
-        (*field_26_ptr)++;
+    if (unit->field_a6 == id) {
+        count++;
     }
-    return *field_26_ptr <= 1;
+    return count <= 1;
 }

@@ -698,7 +698,7 @@ extern int DAT_0052a4f4;                                                        
 extern void* DAT_0052a4f8;                                                                    // 0x52a4f8, 4 bytes; 3 of 3 files
 extern long DAT_0052a4fc;                                                                     // 0x52a4fc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 
-// Not declared: 239 globals defined in src/data or whose type is not settled (see data/globals.csv).
+// Not declared: 241 globals defined in src/data or whose type is not settled (see data/globals.csv).
 //   0x513000 DAT_00513000: defined in src/unsorted/0x460e20.cpp
 //   0x5119c0 DAT_005119c0: Class_00409160*[] (7), void*[] (5), Owner*[] (3), Class_00409470*[] (2), and 5 more
 //   0x51fbd0 DAT_0051fbd0: void* (4), int (2), Display_004b4f50* (1), Display_004b5370* (1), and 14 more
@@ -833,6 +833,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x528ad0 DAT_00528ad0: int (1), unsigned long (__stdcall*)(unsigned long) (1)
 //   0x529500 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nilrefs: defined in src/unsorted/0x4e17c0.cpp
 //   0x529df8 DAT_00529df8: void* (1), EventEntry* (1)
+//   0x4fc474 DAT_004fc474: defined in src/data/unused.cpp
 //   0x4fc978 DAT_004fc978: defined in src/data/unused.cpp
 //   0x4fc980 DAT_004fc980: vtable
 //   0x4fcc48 DAT_004fcc48: defined in src/data/unused.cpp
@@ -879,6 +880,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fd2e4 DAT_004fd2e4: defined in src/data/unused.cpp
 //   0x4fd458 DAT_004fd458: vtable
 //   0x4fda70 DAT_004fda70: defined in src/data/unused.cpp
+//   0x4fdbe0 DAT_004fdbe0: defined in src/data/unused.cpp
 //   0x501fcc DAT_00501fcc: defined in src/data/console_commands.cpp
 //   0x502f98 DAT_00502f98: defined in src/data/unused.cpp
 //   0x505200 g_rangeByPitch: defined in src/data/ballistics.cpp

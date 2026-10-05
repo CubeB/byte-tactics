@@ -37,7 +37,7 @@ public:
 // Reads the "Mapping" "Data" chunk into the map's mapping buffer.
 // <string.h> decides which of width and height is loaded before the imul.
 // FUNCTION: 0x484fa0
-void __stdcall FUN_00484fa0(Class_004b4560* file)
+void __stdcall LoadMappingData(Class_004b4560* file)
 {
     if (file->FUN_004b4560("Mapping") && ((Class_004b4ba0*)file)->FUN_004b4ba0("Data")) {
         unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;

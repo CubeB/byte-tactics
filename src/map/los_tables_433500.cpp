@@ -20,11 +20,11 @@ class Class_00433500 {
 public:
     std::vector<Inner_00433500> items;  // +0x0 (_First at +0x4)
 
-    Inner_00433500* FUN_00433500(int n);
+    Inner_00433500* GetLosTable(int n);
 };
 
 // FUNCTION: 0x433500
-Inner_00433500* Class_00433500::FUN_00433500(int n)
+Inner_00433500* Class_00433500::GetLosTable(int n)
 {
     return &items[(short)(n - 1)];
 }

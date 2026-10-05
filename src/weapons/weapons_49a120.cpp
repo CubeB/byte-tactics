@@ -224,12 +224,12 @@ struct Hits_0049a120 {
     }
 };
 
-Cell_0049a120* __stdcall FUN_00481550(int x, int y);
+Cell_0049a120* __stdcall GetMapCell(int x, int y);
 int __stdcall ApplyWeaponDamage(Weapon_0049a120* weapon, Unit_0049a120* target, float scale);
 void __stdcall DetonateProjectile(Weapon_0049a120* weapon, Unit_0049a120* unit);
 int __stdcall VectorLength(Vec3_0049a120* v);
-Vec3_0049a120 __stdcall FUN_00421eb0(CellPos_0049a120* cell, FeatureDef_0049a120* def);
-void __stdcall FUN_004244b0(Cell_0049a120* cell, int x, int z, WeaponDef_0049a120* def);
+Vec3_0049a120 __stdcall GetFootprintCentre(CellPos_0049a120* cell, FeatureDef_0049a120* def);
+void __stdcall DamageFeature(Cell_0049a120* cell, int x, int z, WeaponDef_0049a120* def);
 int __stdcall BroadcastPacket(int id, void* data, int size);
 
 static inline int Length(Vec3_0049a120* v)
@@ -284,7 +284,7 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
     int friendlyDamage = 0;
 
     for (int z = z0; z < z1; z++) {
-        Cell_0049a120* cell = FUN_00481550(x0, z);
+        Cell_0049a120* cell = GetMapCell(x0, z);
         for (int x = x0; x < x1; x++, cell++) {
             if (!cell)
                 continue;
@@ -361,7 +361,7 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
             if (cell->feature == 0xfffe) {
                 fx -= cell->origin.offsetX;
                 fz -= cell->origin.offsetZ;
-                origin = FUN_00481550(fx, fz);
+                origin = GetMapCell(fx, fz);
             }
             unsigned short feature = origin->feature;
             if (feature >= 0xfffb)
@@ -379,7 +379,7 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                 dist.raw = VectorLength(&v);
                 distance = dist.part.whole;
             } else {
-                Vec3_0049a120 p = FUN_00421eb0(&at, &g_game->features[feature]);
+                Vec3_0049a120 p = GetFootprintCentre(&at, &g_game->features[feature]);
                 Vec3_0049a120 v = Sub(*pos, p);
                 Fixed_0049a120 dist;
                 dist.raw = (int)sqrt((double)v.x * v.x + (double)v.y * v.y + (double)v.z * v.z);
@@ -389,7 +389,7 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                 continue;
             if (!hits.AddFeature(origin))
                 continue;
-            FUN_004244b0(origin, fx, fz, weapon->def);
+            DamageFeature(origin, fx, fz, weapon->def);
         }
     }
 

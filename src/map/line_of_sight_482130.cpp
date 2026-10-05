@@ -58,7 +58,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00481d50(Eye_00482130* eye);
+void __stdcall RemoveLineOfSight(Eye_00482130* eye);
 
 
 struct Expired {
@@ -66,13 +66,13 @@ struct Expired {
 };
 
 // FUNCTION: 0x482130
-void FUN_00482130()
+void ExpireEyeballs()
 {
     int changed;
     Eye_00482130* p = g_game->eyes;
     for (int i = 0; i < g_game->count; i++, p++) {
         if (p->expires < g_game->ticks) {
-            FUN_00481d50(p);
+            RemoveLineOfSight(p);
             changed = 1;
         }
     }

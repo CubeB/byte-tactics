@@ -38,7 +38,7 @@ static inline int SumX(Point a, Point b) { return a.x + b.x; }
 static inline int SumY(Point a, Point b) { return a.y + b.y; }
 
 // FUNCTION: 0x483210
-void __stdcall FUN_00483210(Point pos, Point size)
+void __stdcall UpdateCellHeightRange(Point pos, Point size)
 {
     int width = g_game->width;
     int height = g_game->height;

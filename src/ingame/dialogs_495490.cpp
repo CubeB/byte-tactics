@@ -55,10 +55,10 @@ void UpdateAllUnits(void);
 void UpdateProjectiles(void);
 void UpdateExplosions(void);
 void FUN_00464f80(void);
-void FUN_00424050(void);
+void UpdateFeatures(void);
 void FUN_00415b30(void);
 void UpdateWind(void);
-void FUN_00437de0(void);
+void UpdateMeteors(void);
 void UpdateCameraFollow(void);
 void UpdateParticles(void);
 void FUN_00466580(void);
@@ -66,7 +66,7 @@ void FUN_00428bd0(void);
 void FUN_00428be0(void);
 void FUN_00428bf0(void);
 void ExpireOldestMessage(void);
-void FUN_00482130(void);
+void ExpireEyeballs(void);
 void __stdcall UpdateResourceSharing(Player_495490* player);
 
 // FUNCTION: 0x495490
@@ -90,10 +90,10 @@ void __stdcall RunGameSteps(int showStats)
         FUN_00464f80();
         g_game->prof.AccumulateProfileTime(2);
 
-        FUN_00424050();
+        UpdateFeatures();
         FUN_00415b30();
         UpdateWind();
-        FUN_00437de0();
+        UpdateMeteors();
         UpdateCameraFollow();
         g_game->prof.AccumulateProfileTime(8);
 
@@ -113,6 +113,6 @@ void __stdcall RunGameSteps(int showStats)
     FUN_00428be0();
     FUN_00428bf0();
     ExpireOldestMessage();
-    FUN_00482130();
+    ExpireEyeballs();
     g_game->prof.AccumulateProfileTime(8);
 }

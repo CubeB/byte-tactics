@@ -10,7 +10,7 @@
 // the allocator's order. Removing them puts x back at 0x1c and y at 0x20, and
 // every other slot on the original's offset.
 // (2) The lod clamp is the ternary written inline as the argument of
-// FUN_00433500, with no `idx` local; the spill to 0x34 is then the same.
+// GetLosTable, with no `idx` local; the spill to 0x34 is then the same.
 // (3) limitX/limitY as `if (c) v = a; else v = b;` statements (not `?:`), and
 // the byte map reached through a named `ByteMap_482270* ex` local inside the
 // loop: that is what gives `mov edx,[ebx]; add edx,0x7c; imul ecx,[edx+4]`
@@ -47,35 +47,35 @@
 
 class Class_00433500 {
 public:
-    void* FUN_00433500(int n);
+    void* GetLosTable(int n);
 };
 
 class Class_00433520 {
 public:
-    short FUN_00433520();
+    short GetLosTableCount();
 };
 
 class Class_004335c0 {
 public:
-    short FUN_004335c0();
+    short GetLosLineCount();
 };
 
 class Class_4335e0 {
 public:
-    void* FUN_004335e0(short i);
+    void* GetLosLine(short i);
 };
 
 class Class_004339c0 {
 public:
-    short FUN_004339c0();
+    short GetLosLineStepCount();
 };
 
 class Class_004339e0 {
 public:
-    void FUN_004339e0(short i, int* a, int* b);
+    void GetLosLineStep(short i, int* a, int* b);
 };
 
-extern char DAT_0051e6a0[];
+extern char g_losTables[];
 
 struct MapSize_482270 {
     unsigned int width;                // +0x0
@@ -152,7 +152,7 @@ extern Game* g_game;
 Frame_482270* __stdcall GetGafFrame(unsigned short* table, int index);
 
 // FUNCTION: 0x482270
-void __stdcall FUN_00482270(Params_482270* params)
+void __stdcall AddLineOfSight(Params_482270* params)
 {
     if (((Player_482270*)params->field_0)->playerIndex == g_game->playerIndex) {
         g_game->flag3 = 0;
@@ -168,21 +168,21 @@ void __stdcall FUN_00482270(Params_482270* params)
             return;
         if ((unsigned)y >= grid->height)
             return;
-        void* table = ((Class_00433500*)DAT_0051e6a0)
-                          ->FUN_00433500(
+        void* table = ((Class_00433500*)g_losTables)
+                          ->GetLosTable(
                               (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
-                                      < ((Class_00433520*)DAT_0051e6a0)
-                                            ->FUN_00433520() - 1
+                                      < ((Class_00433520*)g_losTables)
+                                            ->GetLosTableCount() - 1
                                   ? (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
-                                  : ((Class_00433520*)DAT_0051e6a0)
-                                        ->FUN_00433520() - 1);
-        short count = ((Class_004335c0*)table)->FUN_004335c0();
+                                  : ((Class_00433520*)g_losTables)
+                                        ->GetLosTableCount() - 1);
+        short count = ((Class_004335c0*)table)->GetLosLineCount();
         short i = 0;
         ((Player_482270*)params->field_0)->grid.at(x, y)++;
         int ref = *params->field_c;
         for (i = 0; i < count; i++) {
-            void* line = ((Class_4335e0*)table)->FUN_004335e0(i);
-            short num = ((Class_004339c0*)line)->FUN_004339c0();
+            void* line = ((Class_4335e0*)table)->GetLosLine(i);
+            short num = ((Class_004339c0*)line)->GetLosLineStepCount();
             int bestIdx = 0;
             int j1;
             int bestDiff = -1;
@@ -192,7 +192,7 @@ void __stdcall FUN_00482270(Params_482270* params)
                 do {
                     int dx;
                     int dy;
-                    ((Class_004339e0*)line)->FUN_004339e0(j, &dx, &dy);
+                    ((Class_004339e0*)line)->GetLosLineStep(j, &dx, &dy);
                     dx += x;
                     dy += y;
                     if ((unsigned)(short)dx >= grid->width)

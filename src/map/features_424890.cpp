@@ -144,7 +144,7 @@ struct Model_00424890 {
 extern Game* g_game;
 
 // FUNCTION: 0x424890
-void __stdcall FUN_00424890(Class_004b4ba0* file)
+void __stdcall SaveFeatures(Class_004b4ba0* file)
 {
     ((Class_004b4560*)file)->FUN_004b4560("Features");
     std::vector<FeatureName_00424890> names(g_game->featureCount);

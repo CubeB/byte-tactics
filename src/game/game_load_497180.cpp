@@ -113,7 +113,7 @@ public:
 
 class Class_00437320 {
 public:
-    int FUN_00437320(FixedPos_497180* pos, int id);
+    int GetStartPosition(FixedPos_497180* pos, int id);
 };
 
 class PacketManager {
@@ -152,7 +152,7 @@ void __stdcall LoadPlayerControllers(void* mission);
 void FUN_0047a760();
 void FUN_004917d0();
 void FUN_00465e30();
-void __stdcall FUN_004816a0(int x);
+void __stdcall RecalculateLineOfSight(int x);
 void __stdcall LoadSavedGameState(void* mission);
 void CreateMissionUnits();
 void FUN_0041d1f0();
@@ -309,7 +309,7 @@ void __cdecl LoadMatch(void*)
                 int side = *(unsigned char*)(pl2 + 0x95);
                 int which = *(unsigned char*)(rec + 0x147);
                 ((Class_00437320*)*(void**)(g_game + 0x391e9))
-                    ->FUN_00437320(&pos, which);
+                    ->GetStartPosition(&pos, which);
                 if (*(int*)rec != 0 && *(unsigned char*)(rec + 0x73) == 1)
                     start = pos;
                 unsigned short id =
@@ -386,7 +386,7 @@ void __cdecl LoadMatch(void*)
         }
     }
 
-    FUN_004816a0(1);
+    RecalculateLineOfSight(1);
 
     if (*(void**)(g_game + 0x38d6b) != 0) {
         ((Class_004b4560*)*(void**)(g_game + 0x38d6b))->FUN_004b4560("summary");

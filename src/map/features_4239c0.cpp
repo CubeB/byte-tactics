@@ -45,13 +45,13 @@ struct Game {
 
 extern Game* g_game;
 
-Cell_004239c0* __stdcall FUN_00481550(int x, int y);
+Cell_004239c0* __stdcall GetMapCell(int x, int y);
 int __stdcall FUN_004b6c30(int range);
-void __stdcall FUN_004233a0(int x, int z, int flag);
+void __stdcall StartFeatureBurning(int x, int z, int flag);
 int __stdcall GetGroundHeight(Vec3_004239c0* pos);
 void __stdcall ApplyAreaDamageAt(void* owner, Vec3_004239c0* pos);
 
-// Inlined copy of FUN_00421eb0: the 16.16 world position of the centre of a
+// Inlined copy of GetFootprintCentre: the 16.16 world position of the centre of a
 // feature footprint whose corner is at map cell `cell`.
 static inline Vec3_004239c0 FootprintCentre_00421eb0(Point16_004239c0* cell, Feature_004239c0* def)
 {
@@ -74,7 +74,7 @@ union Coord_004239c0 {
     Fixed_004239c0 f;
 };
 
-// A burning feature at `cell` sets fire (FUN_004233a0) to flammable features
+// A burning feature at `cell` sets fire (StartFeatureBurning) to flammable features
 // within 3 cells, then to up to five cells downwind (the wind vector at
 // +0x37ecc/+0x37ed4 times 2.0 in 16.16), and leaves its burnt remains
 // (ApplyAreaDamageAt) at its centre.
@@ -83,17 +83,17 @@ union Coord_004239c0 {
 // flag test must be its own `if` rather than part of the `&&` chain. pz must
 // be computed from its own read of cell->z before lastZ copies it.
 // FUNCTION: 0x4239c0
-void __stdcall FUN_004239c0(Feature_004239c0* f, Point16_004239c0* cell)
+void __stdcall SpreadFire(Feature_004239c0* f, Point16_004239c0* cell)
 {
     for (int z = cell->z - 3; z <= cell->z + 3; z++) {
         for (int x = cell->x - 3; x <= cell->x + 3; x++) {
             if (x != cell->x || z != cell->z) {
-                Cell_004239c0* c = FUN_00481550(x, z);
+                Cell_004239c0* c = GetMapCell(x, z);
                 if (c && c->feature < 0xfffb && !(c->flags & 1)) {
                     Feature_004239c0* g = &g_game->features[c->feature];
                     if (g->flammable) {
                         if (FUN_004b6c30(100) < g->spreadChance)
-                            FUN_004233a0(x, z, 0);
+                            StartFeatureBurning(x, z, 0);
                     }
                 }
             }
@@ -111,12 +111,12 @@ void __stdcall FUN_004239c0(Feature_004239c0* f, Point16_004239c0* cell)
         int x = px.f.whole;
         int z = pz.f.whole;
         if (x != lastX || z != lastZ) {
-            Cell_004239c0* c = FUN_00481550(x, z);
+            Cell_004239c0* c = GetMapCell(x, z);
             if (c && c->feature < 0xfffb && !(c->flags & 1)) {
                 Feature_004239c0* g = &g_game->features[c->feature];
                 if (g->flammable) {
                     if (FUN_004b6c30(100) < g->spreadChance)
-                        FUN_004233a0(x, z, 0);
+                        StartFeatureBurning(x, z, 0);
                 }
             }
             lastX = x;

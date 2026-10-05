@@ -65,8 +65,8 @@ struct Params_482ac0 {
 
 extern Game* g_game;
 
-void __stdcall FUN_004825b0(Params_482ac0* params);
-void __stdcall FUN_00482270(Params_482ac0* params);
+void __stdcall UpdateLineOfSight(Params_482ac0* params);
+void __stdcall AddLineOfSight(Params_482ac0* params);
 void __stdcall FUN_00481930(Params_482ac0* params);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 
@@ -87,7 +87,7 @@ void __stdcall FUN_00482ac0(Unit* unit)
     if ((g_game->field_14281 & 2) == 2) {
         *p.field_c = 0;
         if ((g_game->field_14281 & 4) == 4) {
-            FUN_004825b0(&p);
+            UpdateLineOfSight(&p);
         } else {
             int i = p.field_8 / 32 - 5;
             if (i < 0) {
@@ -103,7 +103,7 @@ void __stdcall FUN_00482ac0(Unit* unit)
             p.field_4[0] = (short)cell_x;
             p.field_4[1] = (short)cell_y;
             *p.field_c = i;
-            FUN_00482270(&p);
+            AddLineOfSight(&p);
             FUN_00481930(&p);
         }
     }

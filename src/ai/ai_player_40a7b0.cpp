@@ -67,7 +67,7 @@ public:
 
 extern Game* g_game;
 
-Cell* __stdcall FUN_00481550(int x, int y);
+Cell* __stdcall GetMapCell(int x, int y);
 
 // FUNCTION: 0x40a7b0
 void Class_0040a7b0::BuildFeatureCells()
@@ -75,7 +75,7 @@ void Class_0040a7b0::BuildFeatureCells()
     cells.clear();
     int w = g_game->width;
     for (int y = 0; y < g_game->height; y++) {
-        Cell* row = FUN_00481550(0, y);
+        Cell* row = GetMapCell(0, y);
         for (int x = 0; x < w; x++) {
             if (row[x].feature < 0xfffb) {
                 Feature* f = &g_game->features[row[x].feature];

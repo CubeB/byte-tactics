@@ -57,7 +57,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x466c20
-void FUN_00466c20()
+void UpdateRadarMapped()
 {
     if (g_game->mapChanged) {
         g_game->mapChanged = 0;

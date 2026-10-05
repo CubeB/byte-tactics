@@ -69,7 +69,7 @@ public:
 
 class Class_004373a0 {
 public:
-    unsigned int FUN_004373a0();
+    unsigned int ComputeMapChecksum();
 };
 
 extern Game* g_game;
@@ -115,7 +115,7 @@ void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
         strcpy(player->data->name,
                ((Class_00435c30*)g_game->field_391e9)->FUN_00435c30());
         player->data->field_a9 =
-            ((Class_004373a0*)g_game->field_391e9)->FUN_004373a0();
+            ((Class_004373a0*)g_game->field_391e9)->ComputeMapChecksum();
 
         BroadcastPlayerInfo();
         ReportGameEvent(5);

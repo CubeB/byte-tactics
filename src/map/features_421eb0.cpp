@@ -21,7 +21,7 @@ struct FeatureDef_00421eb0 {
 int __stdcall GetGroundHeight(Pos_00421eb0* pos);
 
 // FUNCTION: 0x421eb0
-Pos_00421eb0 __stdcall FUN_00421eb0(Cell_00421eb0* cell, FeatureDef_00421eb0* def)
+Pos_00421eb0 __stdcall GetFootprintCentre(Cell_00421eb0* cell, FeatureDef_00421eb0* def)
 {
     Cell_00421eb0 f = def->footprint;
     Cell_00421eb0 c = *cell;

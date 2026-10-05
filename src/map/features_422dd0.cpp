@@ -13,7 +13,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x422dd0
-short __stdcall FUN_00422dd0(char* name)
+short __stdcall FindFeatureType(char* name)
 {
     for (int i = 0; i < g_game->nameCount; i++) {
         if (_strcmpi(name, g_game->names[i]) == 0) {

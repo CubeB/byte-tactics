@@ -1,10 +1,10 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // Places the mission's features: for every placement record with a name,
-// find the feature definition by name (loading it with FUN_004224b0 when it
+// find the feature definition by name (loading it with LoadFeatureType when it
 // is not in the table yet), then put it on the map cell at the placement's
 // position, centred on its footprint unless flags bit 0 is set.
 //
-// The cell must be a local assigned from one FUN_00481550 call per branch:
+// The cell must be a local assigned from one GetMapCell call per branch:
 // MSVC merges the two calls, so each branch pushes its own arguments. With
 // x and y locals and a single call, the two coordinates take edi and esi,
 // which pushes the feature index out of edi into ebp. `<windows.h>` is needed.
@@ -50,9 +50,9 @@ struct Cell;
 
 extern Game* g_game;
 
-unsigned short __stdcall FUN_004224b0(char* name);
-Cell* __stdcall FUN_00481550(int x, int y);
-void* __stdcall FUN_00423c50(Cell* cell, unsigned short feature, void* pos, void* rot, unsigned char owner);
+unsigned short __stdcall LoadFeatureType(char* name);
+Cell* __stdcall GetMapCell(int x, int y);
+void* __stdcall PlaceFeature(Cell* cell, unsigned short feature, void* pos, void* rot, unsigned char owner);
 
 static inline int FindFeature(char* name)
 {
@@ -64,7 +64,7 @@ static inline int FindFeature(char* name)
 }
 
 // FUNCTION: 0x423160
-void FUN_00423160(void)
+void PlaceMissionFeatures(void)
 {
     for (int i = 0; i < g_game->mission->placementCount; i++) {
         Placement* p = &g_game->mission->placements[i];
@@ -72,16 +72,16 @@ void FUN_00423160(void)
             continue;
         unsigned short id = (unsigned short)FindFeature(p->name);
         if (id == 0xffff) {
-            id = FUN_004224b0(p->name);
+            id = LoadFeatureType(p->name);
             if (id == 0xffff)
                 continue;
         }
         Feature* f = &g_game->features[id];
         Cell* cell;
         if (f->flags & 1)
-            cell = FUN_00481550(p->x, p->y);
+            cell = GetMapCell(p->x, p->y);
         else
-            cell = FUN_00481550(p->x - f->footprint.x / 2, p->y - f->footprint.z / 2);
-        FUN_00423c50(cell, id, 0, 0, 10);
+            cell = GetMapCell(p->x - f->footprint.x / 2, p->y - f->footprint.z / 2);
+        PlaceFeature(cell, id, 0, 0, 10);
     }
 }

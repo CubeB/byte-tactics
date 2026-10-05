@@ -356,7 +356,7 @@ extern Game* g_game;
 // Scans the rectangle the object covers, and fails if any cell the object's
 // mask marks with `flag ? 2 : 4` belongs to a unit other than this one.
 // FUNCTION: 0x47d970
-int __stdcall FUN_0047d970(Obj_0047d970* obj, int flag)
+int __stdcall IsFootprintClear(Obj_0047d970* obj, int flag)
 {
     short* pp = &obj->pos.x;                  // x end reads pos.x through the alias
     Point_0047d970* q = &obj->pos;            // y end reads pos.y through this one

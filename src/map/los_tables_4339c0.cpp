@@ -6,11 +6,11 @@ public:
     int field_4;
     int field_8;
 
-    int FUN_004339c0();
+    int GetLosLineStepCount();
 };
 
 // FUNCTION: 0x4339c0
-int Class_004339c0::FUN_004339c0()
+int Class_004339c0::GetLosLineStepCount()
 {
     if (field_4 == 0) {
         return 0;

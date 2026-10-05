@@ -24,7 +24,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x4232f0
-void __stdcall FUN_004232f0(int index, int* head)
+void __stdcall MoveFeatureSpot(int index, int* head)
 {
     Pool_004232f0* p = &g_game->pool;
     Entry_004232f0* e = &p->entries[index];

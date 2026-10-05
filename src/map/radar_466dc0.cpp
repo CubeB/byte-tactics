@@ -281,7 +281,7 @@ static inline int ScaleY_00466dc0(Unit* u)
 }
 
 // FUNCTION: 0x466dc0
-void FUN_00466dc0(void)
+void DrawRadarUnits(void)
 {
     unsigned char* base = (unsigned char*)g_game + 0xdcb;
     unsigned short* out = g_game->field_14363;

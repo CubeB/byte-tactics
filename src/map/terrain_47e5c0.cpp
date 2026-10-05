@@ -113,7 +113,7 @@ extern Game* g_game;
 // Scans every grid cell overlapping the rectangle [pos, pos+size), calling
 // visitor->FUN_0047ed30 for each object (and child) whose own rectangle overlaps.
 // FUNCTION: 0x47e5c0
-void __stdcall FUN_0047e5c0(Pt_0047db20 pos, Pt_0047db20 size, Class_0047db20* visitor)
+void __stdcall VisitObjectsInArea(Pt_0047db20 pos, Pt_0047db20 size, Class_0047db20* visitor)
 {
     int sumy;
     Grid_0047e5c0* grid = &g_game->grid;

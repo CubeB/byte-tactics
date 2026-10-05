@@ -165,10 +165,10 @@ unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec3 pos, int a, int b, int c);
-Cell* __stdcall FUN_004815f0(Vec3* pos);
-unsigned short __stdcall FUN_00421e60(Cell* cell);
-Cell* __stdcall FUN_004815a0(Vec3* pos);
-void __stdcall FUN_004246b0(void* target, int flag);
+Cell* __stdcall GetOriginCellAtPosition(Vec3* pos);
+unsigned short __stdcall GetCellFeature(Cell* cell);
+Cell* __stdcall GetMapCellAtPosition(Vec3* pos);
+void __stdcall RemoveFeature(void* target, int flag);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall FUN_0041c110(Unit* unit);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit, Unit* target, int flags);
@@ -259,13 +259,13 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             ((Class_00439e80*)order)->FUN_00439e80(300);
             return 2;
         }
-        Cell* c = FUN_004815f0(&order->pos);
-        if (FUN_00421e60(c) >= 0xfffb)
+        Cell* c = GetOriginCellAtPosition(&order->pos);
+        if (GetCellFeature(c) >= 0xfffb)
             return 8;
         FeatureSpot* spot = &g_game->spots[c->spot];
         if (spot)
             order->target.owner->rot = spot->rot;
-        FUN_004246b0(FUN_004815a0(&order->pos), 0);
+        RemoveFeature(GetMapCellAtPosition(&order->pos), 0);
         if (g_game->net->FUN_00435100() == 3) {
             Packet packet;
             int n = c - g_game->cells;

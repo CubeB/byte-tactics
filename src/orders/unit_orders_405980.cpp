@@ -44,7 +44,7 @@ public:
     virtual void FUN_00405d90(Unit*);
 };
 void __stdcall FUN_0043a020(Unit*, Order*);
-void __stdcall FUN_0047e890(Vec3*, int, const Class_00405d90&);
+void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00405d90&);
 int __stdcall FUN_004b6c30(int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 int __stdcall FUN_0043b400(Unit*, Unit*, int);
@@ -68,7 +68,7 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
             if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
                 std::vector<Unit*> units;
                 int range = unit->def->range << 16;
-                FUN_0047e890(&unit->pos, range, Class_00405d90(unit->owner, &units, unit));
+                VisitObjectsInRange(&unit->pos, range, Class_00405d90(unit->owner, &units, unit));
                 if (!units.empty()) {
                     Unit* target = units[FUN_004b6c30(units.size())];
                     if (unit->owner->allied[target->owner->index]) {

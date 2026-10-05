@@ -153,11 +153,11 @@ void __stdcall SaveSurface(void* surface, void* file);
 void __stdcall WriteCameraPosition(void* file);
 void __stdcall SavePlayers(void* file);
 void __stdcall SaveUnits(void* file);
-void __stdcall FUN_00484f50(void* file);
-void __stdcall FUN_00424890(void* file);
-void __stdcall FUN_00484df0(void* file);
-void __stdcall FUN_00484ce0(void* file);
-void __stdcall FUN_00438180(void* file);
+void __stdcall SaveMappingData(void* file);
+void __stdcall SaveFeatures(void* file);
+void __stdcall SavePlayerFeaturesPlotmap(void* file);
+void __stdcall SaveMetalPlotmap(void* file);
+void __stdcall SaveMeteors(void* file);
 
 // FUNCTION: 0x4326b0
 int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
@@ -206,11 +206,11 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
         WriteCameraPosition(&file);
         SavePlayers(&file);
         SaveUnits(&file);
-        FUN_00484f50(&file);
-        FUN_00424890(&file);
-        FUN_00484df0(&file);
-        FUN_00484ce0(&file);
-        FUN_00438180(&file);
+        SaveMappingData(&file);
+        SaveFeatures(&file);
+        SavePlayerFeaturesPlotmap(&file);
+        SaveMetalPlotmap(&file);
+        SaveMeteors(&file);
         g_game->field_391ed->SaveConditions(&file);
     }
     int result = file.FUN_004b39c0(param_1, DAT_0050331c, 1, 0);

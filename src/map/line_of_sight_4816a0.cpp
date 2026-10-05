@@ -110,15 +110,15 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004825b0(Params_004816a0* params);
-void __stdcall FUN_00482270(Params_004816a0* params);
+void __stdcall UpdateLineOfSight(Params_004816a0* params);
+void __stdcall AddLineOfSight(Params_004816a0* params);
 void __stdcall FUN_00481930(Params_004816a0* params);
 Entry_004816a0* __stdcall GetGafFrame(Cell_004816a0* table, int index);
-void FUN_00466c20();
-void FUN_00466dc0();
+void UpdateRadarMapped();
+void DrawRadarUnits();
 
 // FUNCTION: 0x4816a0
-void __stdcall FUN_004816a0(int arg)
+void __stdcall RecalculateLineOfSight(int arg)
 {
     if (arg != 0) {
         memset(g_game->visibilityMask, (g_game->flags & 1) ? 0 : 0xFFFF,
@@ -147,7 +147,7 @@ void __stdcall FUN_004816a0(int arg)
         if ((g_game->flags & 2) == 2) {
             *params.field_c = 0;
             if ((g_game->flags & 4) == 4) {
-                FUN_004825b0(&params);
+                UpdateLineOfSight(&params);
             } else {
                 int i = params.field_8 / 32 - 5;
                 if (i < 0)
@@ -166,15 +166,15 @@ void __stdcall FUN_004816a0(int arg)
                 params.field_4[0] = (short)vx;
                 params.field_4[1] = (short)vz;
                 *params.field_c = (unsigned char)i;
-                FUN_00482270(&params);
+                AddLineOfSight(&params);
                 FUN_00481930(&params);
             }
         }
     }
     g_game->field_142f1.mapChanged = 1;
     g_game->flags &= 0xfff7;
-    FUN_00466c20();
-    FUN_00466dc0();
+    UpdateRadarMapped();
+    DrawRadarUnits();
 }
 
 // Kept from the earlier partial: none of these source orders or spellings for

@@ -2,12 +2,12 @@
 // Loads table number `table` (0-based) of gamedata\los.tdf: builds the
 // section name "TABLE%d" (table + 1), rewinds the TDF reader, finds the
 // section and, if it is there, resizes the table to numlines * 4 lines and
-// has each line read itself (FUN_004336f0) from the four quarter blocks
+// has each line read itself (LoadLosLine) from the four quarter blocks
 // (line i, numlines + i, 2 * numlines + i, 3 * numlines + i).
 //
 // The shape comes from the out-of-line helpers later in the same original
-// file, which /Ob2 inlined here: GetTable is FUN_00433500 (a 1-based table
-// number that it decrements in place), GetLine is FUN_004335e0 and
+// file, which /Ob2 inlined here: GetTable is GetLosTable (a 1-based table
+// number that it decrements in place), GetLine is GetLosLine and
 // SetNumLines is FUN_004335f0 (the inlined vector::resize). What they pin
 // down:
 //   * `n--` on GetTable's own short parameter keeps `table` 16 bits wide in
@@ -44,13 +44,13 @@ struct Elem_00434360 {
 
 class Class_004336f0 {
 public:
-    void FUN_004336f0(Class_004c3410* file, short line, int col);
+    void LoadLosLine(Class_004c3410* file, short line, int col);
 };
 
 // One table: a vector of lines (see 0x4335f0.cpp).
 class Class_004335f0 : public std::vector<Elem_00434360> {
 public:
-    // Inline copy of FUN_004335e0.
+    // Inline copy of GetLosLine.
     Elem_00434360* GetLine(short i) { return &(*this)[i]; }
     // Inline copy of FUN_004335f0.
     void SetNumLines(short n) { resize(n * 4); }
@@ -78,17 +78,17 @@ class Class_00433380 {
 public:
     std::vector<Class_004335f0> tables; // +0x0
 
-    // Inline copy of FUN_00433500: table number n, counted from 1.
+    // Inline copy of GetLosTable: table number n, counted from 1.
     Class_004335f0* GetTable(short n)
     {
         n--;
         return &tables[n];
     }
-    void FUN_00433380(Class_004c3410* file, short table);
+    void LoadLosTable(Class_004c3410* file, short table);
 };
 
 // FUNCTION: 0x433380
-void Class_00433380::FUN_00433380(Class_004c3410* file, short table)
+void Class_00433380::LoadLosTable(Class_004c3410* file, short table)
 {
     char name[32];
     sprintf(name, "TABLE%d", table + 1);
@@ -100,10 +100,10 @@ void Class_00433380::FUN_00433380(Class_004c3410* file, short table)
         short n2 = numlines * 2;
         short n3 = numlines * 3;
         for (short i = 0; i < numlines; i++) {
-            ((Class_004336f0*)t->GetLine(i))->FUN_004336f0(file, i, 0);
-            ((Class_004336f0*)t->GetLine(numlines + i))->FUN_004336f0(file, i, 1);
-            ((Class_004336f0*)t->GetLine(n2 + i))->FUN_004336f0(file, i, 2);
-            ((Class_004336f0*)t->GetLine(n3 + i))->FUN_004336f0(file, i, 3);
+            ((Class_004336f0*)t->GetLine(i))->LoadLosLine(file, i, 0);
+            ((Class_004336f0*)t->GetLine(numlines + i))->LoadLosLine(file, i, 1);
+            ((Class_004336f0*)t->GetLine(n2 + i))->LoadLosLine(file, i, 2);
+            ((Class_004336f0*)t->GetLine(n3 + i))->LoadLosLine(file, i, 3);
         }
     }
 }

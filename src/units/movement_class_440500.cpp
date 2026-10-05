@@ -61,7 +61,7 @@ public:
     void BuildPassMap();
 };
 
-int __stdcall FUN_0047de60(Class_00440500* obj, Cell_00440500* cell);
+int __stdcall GetPassMapCellValue(Class_00440500* obj, Cell_00440500* cell);
 
 static inline void setcell(unsigned int* q, int sh, unsigned int val)
 {
@@ -89,7 +89,7 @@ void Class_00440500::BuildPassMap()
     for (int j = 0; j < field_14; j++) {
         Cell_00440500* c = &g_game->cells[j * field_10];
         for (n = 0; n < field_10; n++, c++)
-            v[n] = (unsigned char)FUN_0047de60(this, c);
+            v[n] = (unsigned char)GetPassMapCellValue(this, c);
         v[-2] = 0;
         v[-1] = 0;
         for (n = 0; n <= field_4; n++)

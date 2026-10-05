@@ -13,14 +13,14 @@ struct Game {
 
 extern Game* g_game;
 
-void* __stdcall FUN_00481550(int x, int y);
-void __stdcall FUN_004246b0(void* target, int flag);
+void* __stdcall GetMapCell(int x, int y);
+void __stdcall RemoveFeature(void* target, int flag);
 
 // FUNCTION: 0x4163a0
 void __stdcall CmdBurnOne(void* args)
 {
     if (g_game->field_2cbc < 0xfffb) {
-        void* target = FUN_00481550(g_game->x, g_game->y);
-        FUN_004246b0(target, 1);
+        void* target = GetMapCell(g_game->x, g_game->y);
+        RemoveFeature(target, 1);
     }
 }

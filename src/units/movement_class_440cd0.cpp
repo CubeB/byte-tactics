@@ -7,7 +7,7 @@ public:
 
 class Class_004373a0 {
 public:
-    unsigned int FUN_004373a0();
+    unsigned int ComputeMapChecksum();
 };
 
 #pragma pack(push, 1)
@@ -54,5 +54,5 @@ int CheckMapCrc()
     if (!check) {
         return 1;
     }
-    return ((Class_004373a0*)g_game->field_391e9)->FUN_004373a0() == data->field_a9;
+    return ((Class_004373a0*)g_game->field_391e9)->ComputeMapChecksum() == data->field_a9;
 }

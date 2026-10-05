@@ -5,10 +5,10 @@ public:
     void FUN_004330b0();
 };
 
-extern Class_004330b0 DAT_0051e6a0;
+extern Class_004330b0 g_losTables;
 
 // FUNCTION: 0x4814f0
 void FUN_004814f0()
 {
-    DAT_0051e6a0.FUN_004330b0();
+    g_losTables.FUN_004330b0();
 }

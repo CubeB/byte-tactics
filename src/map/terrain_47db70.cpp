@@ -69,7 +69,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0047d2e0(Unit_0047db70* unit, Point_0047db70 cell, int unused1, int unused2);
+int __stdcall CanBuildAt(Unit_0047db70* unit, Point_0047db70 cell, int unused1, int unused2);
 
 // Returns non-zero when the cell's ground does not take a unit: water, a cliff
 // edge, or a feature type whose name entry has the "steep" bit set.
@@ -104,7 +104,7 @@ int __stdcall FUN_0047db70(Unit_0047db70* unit, Unit_0047db70* other, Point_0047
     if (fp.y + cell.y >= g_game->height)
         return flags == 2;
     if (!unit->field_22f)
-        return FUN_0047d2e0(unit, cell, 0, 0);
+        return CanBuildAt(unit, cell, 0, 0);
     Cell_0047db70* c = &g_game->cells[cell.y * g_game->width + cell.x];
     int minHeight, maxHeight, stride;
     stride = g_game->width - fx;

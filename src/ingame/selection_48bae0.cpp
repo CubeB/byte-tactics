@@ -101,7 +101,7 @@ struct Game {
 
 extern Game* g_game;
 
-Cell_0048bae0* __stdcall FUN_004815a0(Vec3_0048bae0* pos);
+Cell_0048bae0* __stdcall GetMapCellAtPosition(Vec3_0048bae0* pos);
 int __stdcall FUN_00465ac0(Player_0048bae0* player, Unit* unit);
 
 // FUNCTION: 0x48bae0
@@ -124,7 +124,7 @@ void FUN_0048bae0(void)
             int y1 = def->f164 + uy;
             int z2 = def->f174 + u->pos_z.parts.whole - g_game->scrollY;
             if ((u->flags & 3) != 1) {
-                Cell_0048bae0* c = FUN_004815a0((Vec3_0048bae0*)&u->pos_x);
+                Cell_0048bae0* c = GetMapCellAtPosition((Vec3_0048bae0*)&u->pos_x);
                 if (c != 0) {
                     int h = c->height;
                     if (y1 > h)

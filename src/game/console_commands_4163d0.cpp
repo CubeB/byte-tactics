@@ -16,16 +16,16 @@ public:
     char* FUN_004b73c0(int index, char* fallback);
 };
 
-short __stdcall FUN_00422dd0(char* name);
-void* __stdcall FUN_00481550(int x, int y);
-void* __stdcall FUN_00423c50(void* target, unsigned short id, void* pos, void* field_64, unsigned char owner);
+short __stdcall FindFeatureType(char* name);
+void* __stdcall GetMapCell(int x, int y);
+void* __stdcall PlaceFeature(void* target, unsigned short id, void* pos, void* field_64, unsigned char owner);
 
 // FUNCTION: 0x4163d0
 void __stdcall CmdFeature(Class_004b73c0* args)
 {
-    unsigned short id = FUN_00422dd0(args->FUN_004b73c0(1, DAT_005119b8));
+    unsigned short id = FindFeatureType(args->FUN_004b73c0(1, DAT_005119b8));
     if (id != 0xffff) {
-        void* target = FUN_00481550(g_game->x, g_game->y);
-        FUN_00423c50(target, id, 0, 0, 10);
+        void* target = GetMapCell(g_game->x, g_game->y);
+        PlaceFeature(target, id, 0, 0, 10);
     }
 }

@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Calls FUN_00483210 on the whole map, from (0, 0) with the map's size.
+// Calls UpdateCellHeightRange on the whole map, from (0, 0) with the map's size.
 
 #pragma pack(push, 1)
 struct Game {
@@ -16,7 +16,7 @@ struct Point16_00483370 {
 
 extern Game* g_game;
 
-void __stdcall FUN_00483210(Point16_00483370 pos, Point16_00483370 size);
+void __stdcall UpdateCellHeightRange(Point16_00483370 pos, Point16_00483370 size);
 
 static inline Point16_00483370 MakePoint(int x, int y)
 {
@@ -27,7 +27,7 @@ static inline Point16_00483370 MakePoint(int x, int y)
 }
 
 // FUNCTION: 0x483370
-void FUN_00483370()
+void UpdateAllCellHeightRanges()
 {
-    FUN_00483210(MakePoint(0, 0), MakePoint(g_game->mapWidth, g_game->mapHeight));
+    UpdateCellHeightRange(MakePoint(0, 0), MakePoint(g_game->mapWidth, g_game->mapHeight));
 }

@@ -67,7 +67,7 @@ struct Vec3_00437320 {
 
 class Class_00437320 {
 public:
-    int FUN_00437320(Vec3_00437320* out, int id);
+    int GetStartPosition(Vec3_00437320* out, int id);
 };
 
 struct Game {
@@ -123,7 +123,7 @@ void __stdcall FUN_00496ee0(int team, int startpos)
     p->size2 = (float)(v >= 200 ? v : 200);
 
     FixedPos_00496ee0 pos;
-    if (g_game->net->FUN_00437320((Vec3_00437320*)&pos, startpos)) {
+    if (g_game->net->GetStartPosition((Vec3_00437320*)&pos, startpos)) {
         unsigned short id = FindUnitTypeId(
             g_game->names[g_game->players[team].player->nameIndex].name);
         CreateUnit(team, id, pos, 1, 1, 0);

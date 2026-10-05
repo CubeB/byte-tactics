@@ -25,7 +25,7 @@ struct Unit_0047ddc0 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_0047d820(Unit_0047ddc0* unit, Point_0047ddc0 cell);
+int __stdcall GetFootprintHeight(Unit_0047ddc0* unit, Point_0047ddc0 cell);
 
 static inline Point_0047ddc0 WorldToCell(Vec3_0047ddc0 v, Point_0047ddc0 origin)
 {
@@ -48,5 +48,5 @@ void __stdcall FUN_0047ddc0(Unit_0047ddc0* unit, Vec3_0047ddc0* pos)
         return;
     Point_0047ddc0 cell = WorldToCell(*pos, unit->origin);
     CellToWorld(unit->origin, cell, pos);
-    pos->y = FUN_0047d820(unit, cell) << 16;
+    pos->y = GetFootprintHeight(unit, cell) << 16;
 }

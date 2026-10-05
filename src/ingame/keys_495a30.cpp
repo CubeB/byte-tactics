@@ -121,7 +121,7 @@ void __stdcall FUN_0048bae0();
 void __stdcall FUN_00468cf0(int a, int b);
 void __stdcall DrawFrame(Surface_00495a30* surf, Dst_004b8ae0* pal, int x, int y);
 void __stdcall ClearFrame(void* b, int color);
-void __stdcall FUN_004816a0(int param);
+void __stdcall RecalculateLineOfSight(int param);
 void __cdecl FUN_004d85a0(void* b);
 
 // FUNCTION: 0x495a30
@@ -166,7 +166,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             int savedA;
             g_game->viewFlags = fl & ~1;
             g_game->viewFlags &= ~2;
-            FUN_004816a0(1);
+            RecalculateLineOfSight(1);
             savedA = g_game->field_38a51 & 1;
             g_game->field_38a51 = (unsigned short)(g_game->field_38a51 & ~1);
             int savedB = (g_game->field_37f2f >> 6) & 1;
@@ -240,7 +240,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
             SetCameraPosition(scrollX, scrollY, 0);
             g_game->viewFlags = (unsigned short)(g_game->viewFlags ^ ((savedbit0 ^ g_game->viewFlags) & 1));
             g_game->viewFlags = (unsigned short)((unsigned short)((g_game->viewFlags & ~2) | ((savedbit1 & 1) << 1)));
-            FUN_004816a0(1);
+            RecalculateLineOfSight(1);
             FUN_0048bae0();
             FUN_00468cf0(1, 1);
         }

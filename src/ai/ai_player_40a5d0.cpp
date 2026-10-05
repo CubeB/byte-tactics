@@ -4,7 +4,7 @@
 // to the class's placement grid (spacing, offset and a random jitter reduced
 // by a margin; the second grid is used for types whose field_1c0 is
 // non-negative). A cell is accepted when FUN_0047db70 allows the type there
-// and the score FUN_0047c770 is at most the type's footprint area times
+// and the score GetBuildSiteMetal is at most the type's footprint area times
 // twice net->field_d30.
 //
 // <windows.h> (or one of several other header sets) is needed: without it
@@ -61,7 +61,7 @@ int __stdcall FUN_004b6c30(int range);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 int __stdcall FUN_0047db70(UnitType* type, short a, Point16 cell, int b);
-int FUN_0047c770(void);
+int GetBuildSiteMetal(void);
 
 static inline Point16 WorldToCell(Vec3 v, Point16 origin)
 {
@@ -95,7 +95,7 @@ bool Class_0040a7b0::FindRandomPlacementCell(UnitType* type, Vec3* pos, int rang
         Point16 cell = WorldToCell(v, type->origin);
         cell.x = cell.x / spacing.x * spacing.x + offset.x + FUN_004b6c30(spacing.x - margin - type->origin.x);
         cell.y = cell.y / spacing.y * spacing.y + offset.y + FUN_004b6c30(spacing.y - margin - type->origin.y);
-        if (FUN_0047db70(type, 0, cell, 1) && FUN_0047c770() <= threshold) {
+        if (FUN_0047db70(type, 0, cell, 1) && GetBuildSiteMetal() <= threshold) {
             if (out)
                 *out = cell;
             return true;

@@ -66,7 +66,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x4843c0
-void FUN_004843c0(void)
+void BuildFogTiles(void)
 {
     MapInfo* info = &g_game->info;
     Grid* grid = info->grid;

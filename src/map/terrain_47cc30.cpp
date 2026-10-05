@@ -115,7 +115,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00483210(Point_0047cc30 pos, Point_0047cc30 size);
+void __stdcall UpdateCellHeightRange(Point_0047cc30 pos, Point_0047cc30 size);
 void __stdcall RefreshAllPassMaps(Point_0047cc30 pos, Point_0047cc30 size);
 
 static void SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
@@ -138,7 +138,7 @@ static void SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
 }
 
 // FUNCTION: 0x47cc30
-void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
+void __stdcall AddUnitToMap(Obj_0047cc30* obj)
 {
     Point_0047cc30 size = obj->size;
     if (obj->field_0 != 0)
@@ -198,7 +198,7 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
             Point_0047cc30 pad;
             pad.x = obj->pos.x - 1;
             pad.y = obj->pos.y - 1;
-            FUN_00483210(pad, grown);
+            UpdateCellHeightRange(pad, grown);
             RefreshAllPassMaps(obj->pos, obj->size);
             return;
         }

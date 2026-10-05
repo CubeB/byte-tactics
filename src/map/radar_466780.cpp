@@ -80,7 +80,7 @@ void* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall FreeSurface(void* picture);
 
 // FUNCTION: 0x466780
-void __stdcall FUN_00466780()
+void __stdcall BuildRadarPicture()
 {
     int mapWidth = g_game->mapWidth;
     int mapHeight = g_game->mapHeight;

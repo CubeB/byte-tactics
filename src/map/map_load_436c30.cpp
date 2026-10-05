@@ -103,11 +103,11 @@ public:
     MissionFeature_00436c30* features; // +0xdbc
     int featureCount;                  // +0xdc0
 
-    void FUN_00436c30(char* name, Parser_00436c30* parser);
+    void LoadMissionData(char* name, Parser_00436c30* parser);
 };
 
 // FUNCTION: 0x436c30
-void Class_00436c30::FUN_00436c30(char* name, Parser_00436c30* parser)
+void Class_00436c30::LoadMissionData(char* name, Parser_00436c30* parser)
 {
     char text[0x100];
     char buf[0x400];

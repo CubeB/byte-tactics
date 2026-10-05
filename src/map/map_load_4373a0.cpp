@@ -55,7 +55,7 @@ public:
     int field_c1c;                     // +0xc1c
     int field_c20;                     // +0xc20
 
-    int FUN_004373a0();
+    int ComputeMapChecksum();
 
     // 0x435320, inlined
     char* GetName(int index)
@@ -116,7 +116,7 @@ void* __cdecl FUN_004d83b0(const char* tag, int size);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4373a0
-int Class_004373a0::FUN_004373a0()
+int Class_004373a0::ComputeMapChecksum()
 {
     if (field_c1c != 0) {
         return field_c20 ^ field_c1c;

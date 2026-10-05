@@ -315,7 +315,7 @@ struct Thing_0043f0e0 {
 
 extern Game* g_game;
 
-Cell_0043f0e0* __stdcall FUN_004815a0(Pos_0043f0e0* pos);
+Cell_0043f0e0* __stdcall GetMapCellAtPosition(Pos_0043f0e0* pos);
 class Class_004899b0 {
   public:
     int CanRepair(Unit_0043f0e0* other);
@@ -331,7 +331,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
 
 // GetOrderCursor as in 0x43e490.cpp (the annotated copy). It precedes FUN_0043f0e0 in the
 // original file and is compiled first here for the compiler state it leaves; see the top.
-Cell_0043e490* __stdcall FUN_004815a0(Pos_0043e490* pos);
+Cell_0043e490* __stdcall GetMapCellAtPosition(Pos_0043e490* pos);
 int __stdcall WeaponCanReachPos(Unit_0043e490* unit, void* slot, Pos_0043e490* pos, int which);
 int __stdcall WeaponCanReachUnit(Unit_0043e490* unit, Unit_0043e490* target, int which);
 class Class_00489960 {
@@ -383,7 +383,7 @@ static inline Feature_0043e490* GetFeature(Cell_0043e490* cell) {
 #define RECLAIM_CHECK(def, unit, pos, mask, result)                  \
     do {                                                             \
         if (((def)->f245 & (mask)) && Visible((unit), (pos))) {      \
-            Feature_0043e490* f = GetFeature(FUN_004815a0(pos));     \
+            Feature_0043e490* f = GetFeature(GetMapCellAtPosition(pos));     \
             if (f && (f->flags & 0x80))                              \
                 return (result);                                     \
         }                                                            \
@@ -534,7 +534,7 @@ static inline int Visible(Unit_0043f0e0* unit, Pos_0043f0e0* pos) {
 static inline int Marked(Thing_0043f0e0* t) { return t && (t->ffe & 0x80); }
 
 static inline Thing_0043f0e0* Lookup(Pos_0043f0e0* pos) {
-    Cell_0043f0e0* cell = FUN_004815a0(pos);
+    Cell_0043f0e0* cell = GetMapCellAtPosition(pos);
     if (!cell)
         return 0;
     unsigned short id = cell->feature;
@@ -653,7 +653,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
     case 12: {
         if (!(def->f245 & 0x400))
             break;
-        // Suspected original bug: the lookup runs before pos is tested, and FUN_004815a0 reads
+        // Suspected original bug: the lookup runs before pos is tested, and GetMapCellAtPosition reads
         // [pos] unchecked (0x4815a5), so a null pos crashes here although the tests below allow it.
         Thing_0043f0e0* t = Lookup(pos);
         if (pos && (def->f245 & 0x800)) {

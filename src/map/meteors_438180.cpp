@@ -16,25 +16,25 @@ struct Point16_00438180 {
     short y;
 };
 
-extern int DAT_0051232c;
-extern int DAT_00512318;
-extern int DAT_005122e8;
-extern int DAT_0051231c;
-extern int DAT_00512330;
-extern Point16_00438180 DAT_00512320;
-extern Point16_00438180 DAT_00512334;
+extern int g_meteorsEnabled;
+extern int g_meteorActive;
+extern int g_meteorNextStrikeTime;
+extern int g_meteorStrikeEndTime;
+extern int g_meteorNextHitTime;
+extern Point16_00438180 g_meteorOrigin;
+extern Point16_00438180 g_meteorTarget;
 
 // FUNCTION: 0x438180
-void __stdcall FUN_00438180(Class_004b4560* file)
+void __stdcall SaveMeteors(Class_004b4560* file)
 {
     file->FUN_004b4560("Meteor");
-    ((Class_004b4630*)file)->FUN_004b4630("Enabled", DAT_0051232c);
-    ((Class_004b4630*)file)->FUN_004b4630("Active", DAT_00512318);
-    ((Class_004b4630*)file)->FUN_004b4630("Next Strike Time", DAT_005122e8);
-    ((Class_004b4630*)file)->FUN_004b4630("Time Strike Ends", DAT_0051231c);
-    ((Class_004b4630*)file)->FUN_004b4630("Next Hit Time", DAT_00512330);
-    ((Class_004b4630*)file)->FUN_004b4630("Origin X", DAT_00512320.x);
-    ((Class_004b4630*)file)->FUN_004b4630("Origin Z", DAT_00512320.y);
-    ((Class_004b4630*)file)->FUN_004b4630("Target X", DAT_00512334.x);
-    ((Class_004b4630*)file)->FUN_004b4630("Target Z", DAT_00512334.y);
+    ((Class_004b4630*)file)->FUN_004b4630("Enabled", g_meteorsEnabled);
+    ((Class_004b4630*)file)->FUN_004b4630("Active", g_meteorActive);
+    ((Class_004b4630*)file)->FUN_004b4630("Next Strike Time", g_meteorNextStrikeTime);
+    ((Class_004b4630*)file)->FUN_004b4630("Time Strike Ends", g_meteorStrikeEndTime);
+    ((Class_004b4630*)file)->FUN_004b4630("Next Hit Time", g_meteorNextHitTime);
+    ((Class_004b4630*)file)->FUN_004b4630("Origin X", g_meteorOrigin.x);
+    ((Class_004b4630*)file)->FUN_004b4630("Origin Z", g_meteorOrigin.y);
+    ((Class_004b4630*)file)->FUN_004b4630("Target X", g_meteorTarget.x);
+    ((Class_004b4630*)file)->FUN_004b4630("Target Z", g_meteorTarget.y);
 }

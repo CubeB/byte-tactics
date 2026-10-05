@@ -197,7 +197,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x47d820
-int __stdcall FUN_0047d820(Unit_0047d820* unit, Point cell)
+int __stdcall GetFootprintHeight(Unit_0047d820* unit, Point cell)
 {
     short y = cell.y;
     Point fp = unit->origin;

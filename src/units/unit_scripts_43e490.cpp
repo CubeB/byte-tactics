@@ -160,7 +160,7 @@ struct Cell_0043e490 {
 
 extern Game* g_game;
 
-Cell_0043e490* __stdcall FUN_004815a0(Pos_0043e490* pos);
+Cell_0043e490* __stdcall GetMapCellAtPosition(Pos_0043e490* pos);
 int __stdcall WeaponCanReachPos(Unit_0043e490* unit, void* slot, Pos_0043e490* pos, int which);
 int __stdcall WeaponCanReachUnit(Unit_0043e490* unit, Unit_0043e490* target, int which);
 class Class_00489960 {
@@ -220,7 +220,7 @@ static inline Feature_0043e490* GetFeature(Cell_0043e490* cell) {
 #define RECLAIM_CHECK(def, unit, pos, mask, result)                  \
     do {                                                             \
         if (((def)->f245 & (mask)) && Visible((unit), (pos))) {      \
-            Feature_0043e490* f = GetFeature(FUN_004815a0(pos));     \
+            Feature_0043e490* f = GetFeature(GetMapCellAtPosition(pos));     \
             if (f && (f->flags & 0x80))                              \
                 return (result);                                     \
         }                                                            \

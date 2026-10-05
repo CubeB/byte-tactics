@@ -56,7 +56,7 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_004843c0();
+void BuildFogTiles();
 void* __stdcall GetGafFrame(void* table, int index);
 void __stdcall DrawFrame(void* surface, void* bmp, int x, int y);
 void __stdcall DrawFrameGray(void* surface, void* bmp, int x, int y);
@@ -72,10 +72,10 @@ void __stdcall DitherRectangle(void* surface, Rect_004848e0* rect, int color);
 // sum from the two locals alone always gives the mirrored [edi+ebx].
 //
 // FUNCTION: 0x4848e0
-void __stdcall FUN_004848e0(void* surface)
+void __stdcall DrawFogOfWar(void* surface)
 {
     if (!(g_game->flags_14281 & 8)) {
-        FUN_004843c0();
+        BuildFogTiles();
         g_game->flags_14281 |= 8;
     }
 

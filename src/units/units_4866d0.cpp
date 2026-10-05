@@ -204,7 +204,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00482910(void* pos, int a, int b, int c);
+void __stdcall AddEyeball(void* pos, int a, int b, int c);
 unsigned char __stdcall FindSlotByDpid(int id);
 void __stdcall DeleteOrders(void* unit, int flag);
 void __stdcall RemoveSpeechOfUnit(void* unit);
@@ -213,7 +213,7 @@ void __stdcall RemoveUnitProjectiles(void* unit);
 void __stdcall AttachUnitToPiece(void* unit, void* builder, int a, int c);
 void __stdcall DamageUnit(void* a, void* b, int c, int d, int e);
 void __stdcall FUN_0047cbd0(void* unit);
-void __stdcall FUN_00482090(void* unit);
+void __stdcall RemoveUnitLineOfSight(void* unit);
 void __stdcall FUN_00494ff0(int flag);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall AddMessage(char* text, int a, int b, int c);
@@ -238,7 +238,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
         return;
 
     if (unit->player->index == g_game->x2a43)
-        FUN_00482910(unit->pos, unit->info->x202, unit->info->x170, 60);
+        AddEyeball(unit->pos, unit->info->x202, unit->info->x170, 60);
     Unit* parent;
     if (cmd->parentId == 0)
         parent = 0;
@@ -260,7 +260,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
     }
     FUN_0047cbd0(unit);
     if ((g_game->x14281 & 2) == 2)
-        FUN_00482090(unit);
+        RemoveUnitLineOfSight(unit);
     if (local == 0 && cmd->amount > 0)
         ((CobScript*)unit->script)->StartScriptWithArgs(DAT_00508be8, 0, 1, 1, cmd->amount, 0, 0, 0);
 

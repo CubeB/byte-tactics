@@ -41,7 +41,7 @@ public:
 };
 
 // FUNCTION: 0x484df0
-void __stdcall FUN_00484df0(Class_004b4560* file)
+void __stdcall SavePlayerFeaturesPlotmap(Class_004b4560* file)
 {
     file->FUN_004b4560("PlayerFeatures");
     Cell_00484df0* cells = g_game->cells;

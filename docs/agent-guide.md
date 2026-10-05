@@ -1501,7 +1501,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   whatever address its name says, which must be exactly the original's.
 - **A visitor object whose field and vtable stores come after the pushes, in its
   own frame slot**: pass it as a temporary by const reference,
-  `FUN_0047e890(&unit->pos, range, Class_00405d90(owner, &units, unit))`
+  `VisitObjectsInRange(&unit->pos, range, Class_00405d90(owner, &units, unit))`
   (0x405980; the same call shape is at 0x410a9a and 0x4154e8).
 - **x87 load order in `a >= b * 0.2`** depends on what else is in the basic
   block, not on how the comparison is written.
@@ -2039,7 +2039,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   weighted use**: adding or removing one use of either is a quick test for a
   priority tie. Found by Claude Opus 5.5 in #276 (0x424890).
 - **An inlined helper's spelling can differ from its standalone file**: the
-  inlined copy of FUN_00422e40 in 0x424c00 wants
+  inlined copy of FindOrLoadFeatureType in 0x424c00 wants
   `if (i != 0xffff) return i; return f(name);`, while 0x422e40.cpp matches with
   `if (i == 0xffff) i = f(name); return i;`.
 - **Finding what spends the inline budget in a big STL function**: delete later
@@ -2082,8 +2082,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   while the two success paths share one tail: a helper with early
   `return 0`s that ends on the success return; a trailing `return 0;` would
   merge all the null returns. Found by Claude Opus 5.5 in #274 (0x4237d0).
-- **Feature code near 0x4233a0 to 0x424050** inlines FUN_004232a0 (spot free
-  list), FUN_00421eb0 (footprint centre) and FUN_00423bf0 (burnt-out
+- **Feature code near 0x4233a0 to 0x424050** inlines AllocFeatureSpot (spot free
+  list), GetFootprintCentre (footprint centre) and ReplaceFeatureWithBurnt (burnt-out
   replacement); write them as inline copies.
 - **Converted Vec3f locals with all `fild`s first**: MSVC 5 issues the x87
   loads of several converted locals ahead of their stores only when each local

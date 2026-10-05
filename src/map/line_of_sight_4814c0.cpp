@@ -20,4 +20,4 @@ public:
 };
 
 // FUNCTION: 0x4814c0 _$E4
-Class_004330b0 DAT_0051e6a0;
+Class_004330b0 g_losTables;

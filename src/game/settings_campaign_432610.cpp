@@ -38,12 +38,12 @@ extern char* DAT_00503320;           // "Summary"
 
 void __stdcall LoadPlayers(Class_004b4560* file);
 void __stdcall ReadCameraPosition(Class_004b4560* file);
-void __stdcall FUN_00424c00(Class_004b4560* file);
-void __stdcall FUN_00484d60(Class_004b4560* file);
-void __stdcall FUN_00484e80(Class_004b4560* file);
-void __stdcall FUN_00484fa0(Class_004b4560* file);
+void __stdcall LoadFeatures(Class_004b4560* file);
+void __stdcall LoadMetalPlotmap(Class_004b4560* file);
+void __stdcall LoadPlayerFeaturesPlotmap(Class_004b4560* file);
+void __stdcall LoadMappingData(Class_004b4560* file);
 void __stdcall LoadUnits(Class_004b4560* file);
-void __stdcall FUN_00438250(Class_004b4560* file);
+void __stdcall LoadMeteors(Class_004b4560* file);
 
 // Reads the game summary section and every subsystem's saved state.
 // FUNCTION: 0x432610
@@ -54,12 +54,12 @@ int __stdcall LoadSavedGameState(Class_004b4560* file)
         g_game->maxUnits = ((Class_004b4800*)file)->FUN_004b4800("maxunits", 0);
     LoadPlayers(file);
     ReadCameraPosition(file);
-    FUN_00424c00(file);
-    FUN_00484d60(file);
-    FUN_00484e80(file);
-    FUN_00484fa0(file);
+    LoadFeatures(file);
+    LoadMetalPlotmap(file);
+    LoadPlayerFeaturesPlotmap(file);
+    LoadMappingData(file);
     LoadUnits(file);
-    FUN_00438250(file);
+    LoadMeteors(file);
     g_game->unknown_391ed->LoadConditions(file);
     g_game->loaded = 1;
     return 1;

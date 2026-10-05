@@ -47,9 +47,9 @@ struct Result_486360 {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-void* __stdcall FUN_00481550(int x, int y);
+void* __stdcall GetMapCell(int x, int y);
 int __stdcall GetGroundHeight(Pos_486360* pos);
-Result_486360* __stdcall FUN_00423c50(void* target, unsigned short id, Pos_486360* pos, void* field_64, unsigned char owner);
+Result_486360* __stdcall PlaceFeature(void* target, unsigned short id, Pos_486360* pos, void* field_64, unsigned char owner);
 void __stdcall EmitSmoke(Pos_486360* pos, int a, int b, int c);
 
 // FUNCTION: 0x486360
@@ -63,11 +63,11 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
         id = g_game->entries[id].next;
     }
     if (id < 0xfffb) {
-        void* target = FUN_00481550(unit->x, unit->y);
+        void* target = GetMapCell(unit->x, unit->y);
         if (target != 0) {
             Pos_486360* pos = &unit->pos;
             if (GetGroundHeight(pos) <= g_game->limit) {
-                Result_486360* r = FUN_00423c50(target, id, pos, unit->field_64, unit->owner);
+                Result_486360* r = PlaceFeature(target, id, pos, unit->field_64, unit->owner);
                 if (r != 0) {
                     if (!(unit->type->flags & 0x1000000)) {
                         r->field_18 = -11468;
@@ -76,7 +76,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
                     flag = 0;
                 }
             } else {
-                FUN_00423c50(target, id, pos, unit->field_64, unit->owner);
+                PlaceFeature(target, id, pos, unit->field_64, unit->owner);
             }
             if (flag) {
                 EmitSmoke(pos, 0xf, 900, 9);

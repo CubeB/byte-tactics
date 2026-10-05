@@ -21,7 +21,7 @@ void __stdcall DrawSurface(void* param_1, void* param_2, int param_3, int param_
 void __stdcall DrawRectangle(void* param_1, void* param_2, int param_3);
 
 // FUNCTION: 0x466b00
-void __stdcall FUN_00466b00(void* param_1)
+void __stdcall DrawRadar(void* param_1)
 {
     if (g_game->pending) {
         g_game->pending = 0;

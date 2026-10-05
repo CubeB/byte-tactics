@@ -85,20 +85,20 @@ public:
 
 class Class_00433380 {
 public:
-    void FUN_00433380(Class_004c2ea0* tdf, short index);
+    void LoadLosTable(Class_004c2ea0* tdf, short index);
 };
 
 class Class_00433130 {
 public:
     W2_00433130 tables;                // +0x0
 
-    void FUN_00433130();
+    void LoadLosTables();
 };
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 
 // FUNCTION: 0x433130
-void Class_00433130::FUN_00433130()
+void Class_00433130::LoadLosTables()
 {
     Class_004c2ea0 tdf;
     char path[256];
@@ -115,7 +115,7 @@ void Class_00433130::FUN_00433130()
                     tables.erase(tables.begin() + n, tables.end());
             }
             for (short i = 0; i < numtables; i++)
-                ((Class_00433380*)this)->FUN_00433380(&tdf, i);
+                ((Class_00433380*)this)->LoadLosTable(&tdf, i);
         }
         ((Class_004c3240*)&tdf)->FUN_004c3240();
     }

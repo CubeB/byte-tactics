@@ -77,7 +77,7 @@ struct Holder_00499eb0 {
 
 extern char* g_game;
 
-void* __stdcall FUN_004815a0(Vec3_00499eb0* position);
+void* __stdcall GetMapCellAtPosition(Vec3_00499eb0* position);
 void __stdcall FUN_0041c640(int a, int b, int c);
 void __stdcall AddExplosionEffect(Vec3_00499eb0* position, void* value, int a, int b);
 void __stdcall EmitWhiteSmoke(Vec3_00499eb0* position, int value);
@@ -91,7 +91,7 @@ void __stdcall DetonateProjectile(Projectile_00499eb0* projectile, Unit* unit)
     int hostile = 0;
     ProjectileType_00499eb0* type = projectile->type;
     Vec3_00499eb0* position = &projectile->position;
-    unsigned char* value = (unsigned char*)FUN_004815a0(position);
+    unsigned char* value = (unsigned char*)GetMapCellAtPosition(position);
     if (value != 0)
         hostile = value[5] < *(unsigned char*)(g_game + 0x1427f);
     if (!type->flags.bit22) {

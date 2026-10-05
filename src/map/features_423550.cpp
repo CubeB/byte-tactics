@@ -2,10 +2,10 @@
 // Kills the feature on map cell (x, z) (a footprint cell is first moved to
 // the feature's origin cell): flag 0 when it was destroyed, 1 when it was
 // reclaimed. A feature with an animation for that case (flags bit 0) takes a
-// spot from the pool (the inlined FUN_004232a0) that plays it; any other is
-// handed to FUN_00423710, which replaces it straight away.
+// spot from the pool (the inlined AllocFeatureSpot) that plays it; any other is
+// handed to ReplaceFeatureWithDead, which replaces it straight away.
 // Needs <windows.h>: 78.1% without it. The if/else around the spot code
-// (not an early return for a null animation) puts the FUN_00423710 call last.
+// (not an early return for a null animation) puts the ReplaceFeatureWithDead call last.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -84,10 +84,10 @@ struct Game {
 
 extern Game* g_game;
 
-Cell_00423550* __stdcall FUN_00481550(int x, int y);
-void __stdcall FUN_004232f0(int index, int* head);
+Cell_00423550* __stdcall GetMapCell(int x, int y);
+void __stdcall MoveFeatureSpot(int index, int* head);
 void __stdcall InitGafSequence(AnimRef_00423550* ref, AnimSrc_00423550* src, int index);
-void __stdcall FUN_00423710(int x, int y, int flag);
+void __stdcall ReplaceFeatureWithDead(int x, int y, int flag);
 
 static inline int AllocSpot()
 {
@@ -96,19 +96,19 @@ static inline int AllocSpot()
     if (i == -1) {
         return 0x800;
     }
-    FUN_004232f0(i, &p->usedHead);
+    MoveFeatureSpot(i, &p->usedHead);
     p->entries[i].used = 0;
     return i;
 }
 
 // FUNCTION: 0x423550
-void __stdcall FUN_00423550(int x, int z, int flag)
+void __stdcall KillFeature(int x, int z, int flag)
 {
-    Cell_00423550* cell = FUN_00481550(x, z);
+    Cell_00423550* cell = GetMapCell(x, z);
     if (cell->feature == 0xfffe) {
         x -= cell->offsetX;
         z -= cell->offsetY;
-        cell = FUN_00481550(x, z);
+        cell = GetMapCell(x, z);
     }
     if (cell->feature >= 0xfffb)
         return;
@@ -145,6 +145,6 @@ void __stdcall FUN_00423550(int x, int z, int flag)
         s->x = x;
         s->z = z;
     } else {
-        FUN_00423710(x, z, flag);
+        ReplaceFeatureWithDead(x, z, flag);
     }
 }

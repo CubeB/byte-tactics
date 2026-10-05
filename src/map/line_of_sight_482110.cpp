@@ -8,7 +8,7 @@ struct Class_00482110 {
 extern void* g_game;
 
 // FUNCTION: 0x482110
-int __stdcall FUN_00482110(Class_00482110* obj)
+int __stdcall IsEyeballExpired(Class_00482110* obj)
 {
     unsigned int field_val = obj->field_1c;
     unsigned int cmp_val = *(unsigned int*)((char*)g_game + 0x38a47);

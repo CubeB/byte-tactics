@@ -112,12 +112,12 @@ public:
     float density;                      // +0x24
     float duration;                     // +0x28
     float interval;                     // +0x2c
-    void FUN_00438320();
+    void LoadMeteorDefaults();
 };
 
 class Class_00436c30 {
 public:
-    void FUN_00436c30(char* schema, Class_004c2ea0* parser);
+    void LoadMissionData(char* schema, Class_004c2ea0* parser);
 };
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
@@ -130,9 +130,9 @@ char* __stdcall FUN_004c5840(char* name);
 int __stdcall FUN_004c58a0(Class_004c2ea0* obj, char* buf, const char* key, int size, char* def);
 void* __cdecl FUN_004d83b0(const char* tag, int size);
 void __cdecl FUN_004d85a0(void* p);
-void FUN_00437d40();
-void FUN_00437d50();
-void __stdcall FUN_00437d60(Class_00438320* p);
+void EnableMeteors();
+void DisableMeteors();
+void __stdcall SetMeteorParams(Class_00438320* p);
 
 struct Buffer_00435da0 {
     int* data;                         // +0x0
@@ -207,7 +207,7 @@ public:
 
     void BuildCampaignFilePath(int index, char* dir, char* name, char* ext);
     int FUN_00436860(int type, Class_004c2ea0* parser, char* schema);
-    int FUN_00435da0(char* map);
+    int LoadMission(char* map);
 };
 
 static inline float GetFloat(Class_004c46c0* section, const char* key)
@@ -218,7 +218,7 @@ static inline float GetFloat(Class_004c46c0* section, const char* key)
 }
 
 // FUNCTION: 0x435da0
-int Class_00435c00::FUN_00435da0(char* map)
+int Class_00435c00::LoadMission(char* map)
 {
     Class_004c2ea0 parser;
     char schema[0x20];
@@ -382,14 +382,14 @@ int Class_00435c00::FUN_00435da0(char* map)
         meteor.duration = GetFloat(parser.current, "MeteorDuration");
         meteor.interval = GetFloat(parser.current, "MeteorInterval");
         if (meteor.radius == 0 || meteor.density == 0.0f || meteor.duration == 0.0f || meteor.interval == 0.0f)
-            meteor.FUN_00438320();
-        FUN_00437d40();
+            meteor.LoadMeteorDefaults();
+        EnableMeteors();
     } else {
-        FUN_00437d50();
-        meteor.FUN_00438320();
+        DisableMeteors();
+        meteor.LoadMeteorDefaults();
     }
-    FUN_00437d60(&meteor);
-    ((Class_00436c30*)this)->FUN_00436c30(schema, &parser);
+    SetMeteorParams(&meteor);
+    ((Class_00436c30*)this)->LoadMissionData(schema, &parser);
     return 1;
 }
 

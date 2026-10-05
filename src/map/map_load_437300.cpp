@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Counts the type-1 entries (see FUN_00437320).
+// Counts the type-1 entries (see GetStartPosition).
 
 struct Entry_00437300 {
     int type;                          // +0x0
@@ -14,11 +14,11 @@ public:
     Entry_00437300* entries;           // +0xdb4
     int entry_count;                   // +0xdb8
 
-    int FUN_00437300();
+    int CountStartPositions();
 };
 
 // FUNCTION: 0x437300
-int Class_00437300::FUN_00437300()
+int Class_00437300::CountStartPositions()
 {
     int n = 0;
     for (int i = 0; i < entry_count; i++) {

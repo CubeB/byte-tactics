@@ -3,8 +3,8 @@
 // two low bits of the flags at +0x110 only change when the new position falls
 // in a different cell (the fixed-point WorldToCell of the unit type's origin
 // at +0x7e) or the low flag bits differ. Then the unit is detached
-// (FUN_0047d0e0), the cell and the flags are updated, and it is put back into
-// the map (FUN_0047cc30) with its path redone (FUN_004827b0). Either way flag
+// (RemoveUnitFromMap), the cell and the flags are updated, and it is put back into
+// the map (AddUnitToMap) with its path redone (UpdateUnitLineOfSight). Either way flag
 // 0x10000 (the "position changed" bit UpdateUnitHeight tests) is set, and the new
 // flags value is returned. The callers (0x406aa0, 0x43d730) pass the position
 // as a Vec3 by value and 1 as the last argument.
@@ -44,9 +44,9 @@ struct Unit {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0047d0e0(Unit* unit);
-void __stdcall FUN_0047cc30(Unit* unit);
-void __stdcall FUN_004827b0(Unit* unit);
+void __stdcall RemoveUnitFromMap(Unit* unit);
+void __stdcall AddUnitToMap(Unit* unit);
+void __stdcall UpdateUnitLineOfSight(Unit* unit);
 
 static inline Point_0048a9f0 WorldToCell(Pos_0048a9f0 v, Point_0048a9f0 origin)
 {
@@ -63,12 +63,12 @@ int __stdcall SetUnitPosition(Unit* unit, Pos_0048a9f0 pos, int param_5)
     if (cell.x == unit->cell.x && cell.y == unit->cell.y && param_5 == (unit->flags & 3)) {
         unit->pos = pos;
     } else {
-        FUN_0047d0e0(unit);
+        RemoveUnitFromMap(unit);
         unit->pos = pos;
         unit->cell = cell;
         unit->flags = (unit->flags & 0xfffffffc) | (short)(param_5 & 3);
-        FUN_0047cc30(unit);
-        FUN_004827b0(unit);
+        AddUnitToMap(unit);
+        UpdateUnitLineOfSight(unit);
     }
     unit->flags |= 0x10000;
     return unit->flags;

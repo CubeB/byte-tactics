@@ -19,13 +19,13 @@ public:
     Entry_00437320* entries;           // +0xdb4
     int entry_count;                   // +0xdb8
 
-    int FUN_00437320(Vec3_00437320* out, int id);
+    int GetStartPosition(Vec3_00437320* out, int id);
 };
 
 // Finds the type-1 entry with the given id and returns its position (16.16
 // fixed point, y = 0) in `out`. Returns 0 if there is none.
 // FUNCTION: 0x437320
-int Class_00437320::FUN_00437320(Vec3_00437320* out, int id)
+int Class_00437320::GetStartPosition(Vec3_00437320* out, int id)
 {
     for (int i = 0; i < entry_count; i++) {
         if (entries[i].type == 1 && entries[i].id == id) {

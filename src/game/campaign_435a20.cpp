@@ -62,7 +62,7 @@ public:
     int missionIndex;                   // +0xc18
     int field_c1c;                      // +0xc1c
 
-    int FUN_00435da0(char* map);
+    int LoadMission(char* map);
 };
 
 class Class_00435a20 : public Class_00435c00 {
@@ -82,7 +82,7 @@ int Class_00435a20::LoadMissionByName(char* map)
     field_c1c = 0;
     if (type != 1) {
         if (type > 1 && type <= 3) {
-            res = FUN_00435da0(map);
+            res = LoadMission(map);
             if (res && FUN_0049f580() && _strcmpi((char*)FUN_0049f580(), "english")) {
                 char lower[200];
                 strcpy(lower, map);
@@ -104,7 +104,7 @@ int Class_00435a20::LoadMissionByName(char* map)
                     FUN_004d85a0((void*)res);
                     field_c1c = 0;
                     missionIndex = i;
-                    return FUN_00435da0(0);
+                    return LoadMission(0);
                 }
                 p += strlen(p) + 1;
             }

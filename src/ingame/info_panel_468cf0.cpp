@@ -60,7 +60,7 @@ float __stdcall FUN_00464ac0(int);
 float __stdcall FUN_00464af0(int);
 float __stdcall FUN_00464b00(int);
 int __stdcall FUN_004658e0(int,int,int,int,int,int);
-int __stdcall FUN_00466b00(int);
+int __stdcall DrawRadar(int);
 int __stdcall FUN_00467a20(int,int,int,int);
 int __stdcall FUN_00467c00(int,int,int,int);
 int __stdcall DrawNetworkStats(int);
@@ -71,8 +71,8 @@ int __stdcall FUN_0046a610(int,int,int,int);
 int __stdcall DrawUnitInfoPanel(int);
 int __stdcall FUN_0046b900(int,int,int);
 int __stdcall DrawParticleList(int,int);
-int __stdcall FUN_00483fa0(int);
-int __stdcall FUN_004848e0(int);
+int __stdcall DrawMapTiles(int);
+int __stdcall DrawFogOfWar(int);
 int __stdcall FindNextSelectedUnit(int,int);
 int __stdcall FUN_0048cc30(int,int);
 int __stdcall FUN_004948e0(int);
@@ -268,7 +268,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   FUN_004c2470();
   ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
   ProfileMark((Class_0046a400 *)(g_game + 0x38d85), 8);
-  FUN_00483fa0((int)&ctx);
+  DrawMapTiles((int)&ctx);
   FUN_00418310((int)&ctx);
   x = *(short *)(g_game + 0x2cac) - *(int *)(g_game + 0x1431f) + 0x80;
   // Compiler state, not meaning: reading viewY through this alias of g_game
@@ -308,7 +308,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     }
   }
   DrawUnitInfoPanel((int)&ctx);
-  FUN_00466b00((int)&ctx);
+  DrawRadar((int)&ctx);
   ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
   ProfileMark((Class_0046a400 *)(g_game + 0x38d85), 3);
 
@@ -479,7 +479,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   if ((*(ushort *)(g_game + 0x3923b) & 1) && (*(ushort *)(g_game + 0x3923b) & 2) && param_1 != 0)
     FUN_00417f30((int)&ctx, FindNextSelectedUnit(0, 0));
   if (param_1 != 0)
-    FUN_004848e0((int)&ctx);
+    DrawFogOfWar((int)&ctx);
   ProfileMark((Class_0046a400 *)(g_game + 0x38d85), 5);
 
   // selection box

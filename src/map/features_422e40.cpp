@@ -12,7 +12,7 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned short __stdcall FUN_004224b0(char* name);
+unsigned short __stdcall LoadFeatureType(char* name);
 
 static inline unsigned short FindName(char* name)
 {
@@ -25,10 +25,10 @@ static inline unsigned short FindName(char* name)
 }
 
 // FUNCTION: 0x422e40
-unsigned short __stdcall FUN_00422e40(char* name)
+unsigned short __stdcall FindOrLoadFeatureType(char* name)
 {
     unsigned short i = FindName(name);
     if (i == 0xffff)
-        i = FUN_004224b0(name);
+        i = LoadFeatureType(name);
     return i;
 }

@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Runs FUN_0047e5c0 over an area with a stack visitor of Class_0047db20, as
+// Runs VisitObjectsInArea over an area with a stack visitor of Class_0047db20, as
 // FUN_0047db20 does for an object's area.
 
 class Class_0047db20 {
@@ -12,11 +12,11 @@ struct Pt_0047db20 {
     short y;
 };
 
-void __stdcall FUN_0047e5c0(Pt_0047db20 pos, Pt_0047db20 size, Class_0047db20* visitor);
+void __stdcall VisitObjectsInArea(Pt_0047db20 pos, Pt_0047db20 size, Class_0047db20* visitor);
 
 // FUNCTION: 0x47cac0
 void __stdcall FUN_0047cac0(Pt_0047db20 pos, Pt_0047db20 size)
 {
     Class_0047db20 visitor;
-    FUN_0047e5c0(pos, size, &visitor);
+    VisitObjectsInArea(pos, size, &visitor);
 }

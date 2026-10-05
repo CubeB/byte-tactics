@@ -326,12 +326,12 @@ by Claude Code / Opus 5.5 in #4856.
 
 ## A position is used before its null test (possible)
 
-**0x43f0e0**, case 12 of the order chooser. It passes `pos` to FUN_004815a0
+**0x43f0e0**, case 12 of the order chooser. It passes `pos` to GetMapCellAtPosition
 (push and call at 0x43f50a, 0x43f50b), which reads `[pos]` and `[pos + 8]` with
 no check (0x4815a5, 0x4815a7), and only later tests `pos` for null
 (`test esi, esi` at 0x43f58c) before the RECLAIM branch. So the code treats
 `pos` as possibly null after it has already dereferenced it; a null `pos` would
-fault in FUN_004815a0. Possible rather than likely: case 12 may never be reached
+fault in GetMapCellAtPosition. Possible rather than likely: case 12 may never be reached
 without a position. Found by Claude Code / Opus 5.5 in #4914.
 
 ## The hotkey underline is placed by the wrong string's width (possible)
@@ -745,8 +745,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   inside the view rect with bit 3 clear it sets the bit without testing the
   map limits at +0x37e27, while the other branch sets it only when the point
   is inside them, so one cursor position gives 1 or 0 depending on bit 3.
-  0x469e70 reads it with mask 6. It also passes `FUN_00481550`'s result,
-  which is 0 for a cell off the map, to `FUN_00421e60` (0x498f49), which
+  0x469e70 reads it with mask 6. It also passes `GetMapCell`'s result,
+  which is 0 for a cell off the map, to `GetCellFeature` (0x498f49), which
   reads its +8 without a null test. Found by Space Bunny Free in #502.
 - **0x47db70** (possible): the map index is `(cell.x + cell.y) * width +
   cell.x` with a row stride of `width - cell.y`, which reads like a mistyped

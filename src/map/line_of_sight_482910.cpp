@@ -67,13 +67,13 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004825b0(Eye_482910* e);
-void __stdcall FUN_00482270(Eye_482910* e);
+void __stdcall UpdateLineOfSight(Eye_482910* e);
+void __stdcall AddLineOfSight(Eye_482910* e);
 void __stdcall FUN_00481930(Eye_482910* e);
 Entry_482910* __stdcall GetGafFrame(unsigned short* table, int index);
 
 // FUNCTION: 0x482910
-void __stdcall FUN_00482910(Vec3_482910* src, int a, int b, int c)
+void __stdcall AddEyeball(Vec3_482910* src, int a, int b, int c)
 {
     if ((g_game->flags & 2) == 2 && g_game->count < 0x14) {
         Eye_482910* e = &g_game->eyes[g_game->count];
@@ -91,7 +91,7 @@ void __stdcall FUN_00482910(Vec3_482910* src, int a, int b, int c)
         if ((g_game->flags & 2) == 2) {
             *e->flagPtr = 0;
             if ((g_game->flags & 4) == 4) {
-                FUN_004825b0(e);
+                UpdateLineOfSight(e);
             } else {
                 int lod = e->x / 32 - 5;
                 if (lod < 0) {
@@ -107,7 +107,7 @@ void __stdcall FUN_00482910(Vec3_482910* src, int a, int b, int c)
                 e->screen->x = (short)cell_x;
                 e->screen->y = (short)cell_y;
                 *e->flagPtr = (char)lod;
-                FUN_00482270(e);
+                AddLineOfSight(e);
                 FUN_00481930(e);
             }
         }

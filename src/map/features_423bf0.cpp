@@ -23,19 +23,19 @@ struct Game {
 
 extern Game* g_game;
 
-void* __stdcall FUN_00481550(int x, int y);
-void __stdcall FUN_004246b0(void* target, int flag);
-void* __stdcall FUN_00423c50(void* target, unsigned short id, void* pos, void* field_64, unsigned char owner);
+void* __stdcall GetMapCell(int x, int y);
+void __stdcall RemoveFeature(void* target, int flag);
+void* __stdcall PlaceFeature(void* target, unsigned short id, void* pos, void* field_64, unsigned char owner);
 
 // FUNCTION: 0x423bf0
-void __stdcall FUN_00423bf0(Obj_00423bf0* obj)
+void __stdcall ReplaceFeatureWithBurnt(Obj_00423bf0* obj)
 {
-    void* target = FUN_00481550(obj->x, obj->y);
+    void* target = GetMapCell(obj->x, obj->y);
     if (target != 0) {
         unsigned short id = g_game->entries[obj->entry].id;
-        FUN_004246b0(target, 0);
+        RemoveFeature(target, 0);
         if (id != 0xffff) {
-            FUN_00423c50(target, id, 0, 0, 10);
+            PlaceFeature(target, id, 0, 0, 10);
         }
     }
 }

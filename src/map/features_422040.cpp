@@ -44,10 +44,10 @@ struct Game {
 
 extern Game* g_game;
 
-Cell* __stdcall FUN_00481550(int x, int y);
+Cell* __stdcall GetMapCell(int x, int y);
 
 // FUNCTION: 0x422040
-void FUN_00422040(void)
+void StampFeatureMetal(void)
 {
     Cell* c = g_game->cells;
     for (int i = 0; i < g_game->width * g_game->height; i++, c++) {
@@ -58,7 +58,7 @@ void FUN_00422040(void)
                 int y0 = i / g_game->width;
                 for (int y = y0; y < y0 + f->footprintY; y++) {
                     for (int x = x0; x < x0 + f->footprintX; x++) {
-                        Cell* cc = FUN_00481550(x, y);
+                        Cell* cc = GetMapCell(x, y);
                         if (cc != 0)
                             cc->field7 = (char)f->value;
                     }

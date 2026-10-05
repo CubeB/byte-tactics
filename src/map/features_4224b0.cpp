@@ -124,7 +124,7 @@ Seq_004224b0* __stdcall FindGafEntry(Gaf_004224b0* gaf, const char* name);
 char* __stdcall FindWeaponByName(char* name);
 void __stdcall InitGafSequence(Ref_004224b0* ref, Seq_004224b0* src, int index);
 
-// FUN_00422460, inlined
+// FindFeatureFile, inlined
 static inline Class_004c3e10* FindEntry(char* name)
 {
     for (Class_004c3e10** p = DAT_00511fb4->first; p < DAT_00511fb4->last; p++) {
@@ -135,7 +135,7 @@ static inline Class_004c3e10* FindEntry(char* name)
     return 0;
 }
 
-// FUN_004222b0, inlined
+// FindOptionalGafEntry, inlined
 static inline Seq_004224b0* SeqByName(Gaf_004224b0* gaf, int unused, char* name)
 {
     if (strlen(name) == 0) {
@@ -152,7 +152,7 @@ static inline Seq_004224b0* SeqByName(Gaf_004224b0* gaf, int unused, char* name)
 // <windows.h> before <stdio.h> decides the base and index of
 // `features[j].anims`.
 // FUNCTION: 0x4224b0
-int __stdcall FUN_004224b0(char* name)
+int __stdcall LoadFeatureType(char* name)
 {
     Gaf_004224b0* anims;
     int j;

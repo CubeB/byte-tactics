@@ -48,11 +48,11 @@ public:
     float density;                      // +0x24
     float duration;                     // +0x28
     float interval;                     // +0x2c
-    void FUN_00438320();
+    void LoadMeteorDefaults();
 };
 
 // FUNCTION: 0x438320
-void Class_00438320::FUN_00438320()
+void Class_00438320::LoadMeteorDefaults()
 {
     Class_004c2ea0 parser;
     char path[256];

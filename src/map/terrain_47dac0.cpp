@@ -19,14 +19,14 @@ struct Obj_0047dac0 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_0047d970(Obj_0047dac0* obj, int flag);
+int __stdcall IsFootprintClear(Obj_0047dac0* obj, int flag);
 void __stdcall FUN_0047c790(Obj_0047dac0* obj);
 void __stdcall RefreshAllPassMaps(Pt_0047dac0 pos, Pt_0047dac0 size);
 
 // FUNCTION: 0x47dac0
 void __stdcall FUN_0047dac0(Obj_0047dac0* obj, int flag)
 {
-    if (FUN_0047d970(obj, flag)) {
+    if (IsFootprintClear(obj, flag)) {
         obj->bit2 = flag;
         obj->flags |= 0x8000000;
         FUN_0047c790(obj);

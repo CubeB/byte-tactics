@@ -86,11 +86,11 @@ int GetLocalDpid();
 int GetHostDpid();
 int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 int __stdcall BroadcastPacket(int player, void* data, int size);
-void __stdcall FUN_004233a0(int x, int z, int flag);
-void __stdcall FUN_00423550(int x, int z, int flag);
+void __stdcall StartFeatureBurning(int x, int z, int flag);
+void __stdcall KillFeature(int x, int z, int flag);
 
 // FUNCTION: 0x4244b0
-void __stdcall FUN_004244b0(Cell_004244b0* cell, int x, int z, Weapon_004244b0* weapon)
+void __stdcall DamageFeature(Cell_004244b0* cell, int x, int z, Weapon_004244b0* weapon)
 {
     if (!(g_game->flags_37f2f & 8))
         return;
@@ -116,7 +116,7 @@ void __stdcall FUN_004244b0(Cell_004244b0* cell, int x, int z, Weapon_004244b0* 
         send = 0;
     }
     if (f->flag4 && weapon->flag_10b && !(cell->flags & 1)) {
-        FUN_004233a0(x, z, 0);
+        StartFeatureBurning(x, z, 0);
     } else if (cell->flags & 1) {
         if (!f->flag0) {
             Spot_004244b0* s = &g_game->spots[cell->spot];
@@ -126,14 +126,14 @@ void __stdcall FUN_004244b0(Cell_004244b0* cell, int x, int z, Weapon_004244b0* 
                 return;
             s->damage += weapon->damage;
             if (s->damage >= f->damage) {
-                FUN_00423550(s->x, s->z, 0);
+                KillFeature(s->x, s->z, 0);
                 packet.sub = 0xfd;
             }
         }
     } else {
         int d = weapon->damage + cell->spot;
         if (d >= f->damage) {
-            FUN_00423550(x, z, 0);
+            KillFeature(x, z, 0);
             packet.sub = 0xfd;
         } else {
             cell->spot = d;

@@ -39,7 +39,7 @@ public:
 };
 
 // FUNCTION: 0x484ce0
-void __stdcall FUN_00484ce0(Class_004b4560* file)
+void __stdcall SaveMetalPlotmap(Class_004b4560* file)
 {
     file->FUN_004b4560("Metal");
     int size = g_game->width * g_game->height;

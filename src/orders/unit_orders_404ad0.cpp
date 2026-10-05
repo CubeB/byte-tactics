@@ -88,7 +88,7 @@ void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitReverseNanoParticles(Box* from, Vec3* to, int count);
-void __stdcall FUN_004237d0(Unit* unit, Vec3* pos);
+void __stdcall ReclaimFeature(Unit* unit, Vec3* pos);
 
 // Order handler "Reclaiming" for a feature (wreck, tree, rock) at the order
 // position.
@@ -150,7 +150,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
         }
         return 2;
     case 5:
-        FUN_004237d0(unit, &order->pos);
+        ReclaimFeature(unit, &order->pos);
         return 5;
     }
     return 7;

@@ -73,7 +73,7 @@ static inline void ClearFeature(Cell_004833b0* c)
 }
 
 // FUNCTION: 0x4833b0
-void FUN_004833b0()
+void ClearBorderFeatures()
 {
     g_game->mapWidth = g_game->baseX - 0x20;
     g_game->mapHeight = g_game->baseY - 0x80;

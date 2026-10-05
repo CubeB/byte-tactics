@@ -1,9 +1,9 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern int DAT_0051232c;
+extern int g_meteorsEnabled;
 
 // FUNCTION: 0x437d40
-void FUN_00437d40()
+void EnableMeteors()
 {
-    DAT_0051232c = 1;
+    g_meteorsEnabled = 1;
 }

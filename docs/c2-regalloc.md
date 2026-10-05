@@ -299,7 +299,7 @@ named and the counts the ids come from. Part of 0x424c00:
       it makes itself (temporaries, inlined locals, sections) on from there, function after function,
       and had reached 34468 (0x86a4) when this function's allocation started.
       name                               kind           id  low 16  bit 14  bit 15
-      FUN_00424c00 (this function)       function    32883  0x8073       0       1
+      LoadFeatures (this function)       function    32883  0x8073       0       1
       g_game                             data        32690  0x7fb2       1       0
       Class_004b4560: a type, which never reaches C2. It was numbered before its members; the first one C2 has:
         Class_004b4560::FUN_004b4560     function    32542  0x7f1e       1       0
@@ -578,8 +578,8 @@ Cavedog's headers also had and we cannot write yet: the member functions
 the globals' declarations and the real struct definitions.
 
 The header also clashes with three of the four files as they stand. 0x424c00
-declares `unsigned short FUN_004224b0(char*)` where 0x4224b0.cpp has `int`
-(the `int` version scores 91.8% here) and `Cell_00424c00* FUN_00481550(int,
+declares `unsigned short LoadFeatureType(char*)` where 0x4224b0.cpp has `int`
+(the `int` version scores 91.8% here) and `Cell_00424c00* GetMapCell(int,
 int)` where 0x481550.cpp returns `Cell_00481550*` (overloads that differ only
 in their return type, error C2556). 0x41b2e0's `OpenGeneratorDialog(0)` becomes an
 ambiguous call between its own `Unit_0041b2e0*` declaration and the header's

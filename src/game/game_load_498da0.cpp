@@ -114,8 +114,8 @@ extern Game* g_game;
 
 int __stdcall PointInRect(Rect_00498da0* r, int x, int y);
 void __stdcall FUN_00484b50(int x, int y, Pos_00498da0* out);
-Cell_00498da0* __stdcall FUN_00481550(int x, int y);
-unsigned short __stdcall FUN_00421e60(Cell_00498da0* cell);
+Cell_00498da0* __stdcall GetMapCell(int x, int y);
+unsigned short __stdcall GetCellFeature(Cell_00498da0* cell);
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -147,5 +147,5 @@ void __stdcall FUN_00498da0(View_00498da0* r)
         pt.y = (short)(v.z >> 20);
         g_game->point = pt;
     }
-    g_game->cellFeature = FUN_00421e60(FUN_00481550(g_game->point.x, g_game->point.y));
+    g_game->cellFeature = GetCellFeature(GetMapCell(g_game->point.x, g_game->point.y));
 }

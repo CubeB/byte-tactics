@@ -74,7 +74,7 @@ extern Game* g_game;
 extern char* DAT_00512990;
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-int __stdcall FUN_00434bf0(char** out, int param_2, int param_3);
+int __stdcall LoadMapList(char** out, int param_2, int param_3);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(Menu_00444ea0* menu, char* text, int width, int a, int b);
 Layer_00444ea0* __stdcall LoadGuiLayer(Menu_00444ea0* menu, const char* name, int flags);
@@ -115,7 +115,7 @@ void FUN_00444ea0()
            ((Class_00435c30*)g_game->field_391e9)->FUN_00435c30());
     ((Class_00435d30*)g_game->field_391e9)->FUN_00435d30(0);
 
-    int n = FUN_00434bf0(0, 0, 0);
+    int n = LoadMapList(0, 0, 0);
     if (n == 0) {
         OpenMessageBox(&g_game->menu,
                      FUN_004c5740("There are no multiplayer maps to choose from"),
@@ -128,7 +128,7 @@ void FUN_00444ea0()
     Data_00444ea0* data = (Data_00444ea0*)FUN_004d83b0("SELECT MAP DATA", 0x20);
     layer->data = data;
     FUN_004288d0("DSELECTMAP2", 0, 0, 0);
-    FUN_00434bf0(&data->items, 0, 0);
+    LoadMapList(&data->items, 0, 0);
     SortFileList(data->items, 0, 0, n);
     FUN_004a32a0(&g_game->menu, "MAPNAMES", data->items, n, 0);
     FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = FUN_00444c40;

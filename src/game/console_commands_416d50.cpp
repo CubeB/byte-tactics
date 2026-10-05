@@ -12,12 +12,12 @@ struct Game {
 extern Game* g_game;
 
 extern void SaveSettings();
-extern void __stdcall FUN_004816a0(int flag);
+extern void __stdcall RecalculateLineOfSight(int flag);
 
 // FUNCTION: 0x416d50
 void __stdcall CmdLOS(int unused)
 {
     g_game->flag1 = !g_game->flag1;
     SaveSettings();
-    FUN_004816a0(0);
+    RecalculateLineOfSight(0);
 }

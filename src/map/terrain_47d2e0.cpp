@@ -217,7 +217,7 @@ Cell_0047d2e0* c)
 }
 
 // FUNCTION: 0x47d2e0
-int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047d2e0* los)
+int __stdcall CanBuildAt(Unit_0047d2e0* unit, Point cell, short type, Los_0047d2e0* los)
 {
     int ok;
     DAT_0051e684 = 0;

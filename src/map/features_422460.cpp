@@ -24,7 +24,7 @@ struct Class_00422460 {
 extern Class_00422460* DAT_00511fb4;
 
 // FUNCTION: 0x422460
-Class_004c3e10* __stdcall FUN_00422460(char* name)
+Class_004c3e10* __stdcall FindFeatureFile(char* name)
 {
     for (Class_004c3e10** p = DAT_00511fb4->first; p < DAT_00511fb4->last; p++) {
         (*p)->FUN_004c3e10();

@@ -42,7 +42,7 @@ public:
 
 // Reads the "Metal" "Plotmap" chunk into the metal byte of every map cell.
 // FUNCTION: 0x484d60
-void __stdcall FUN_00484d60(Class_004b4560* file)
+void __stdcall LoadMetalPlotmap(Class_004b4560* file)
 {
     if (file->FUN_004b4560("Metal") && ((Class_004b4ba0*)file)->FUN_004b4ba0("Plotmap")) {
         int size = g_game->width * g_game->height;

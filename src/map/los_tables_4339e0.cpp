@@ -2,11 +2,11 @@
 
 class Class_004339e0 {
 public:
-    void FUN_004339e0(short index, unsigned short* out1, unsigned short* out2);
+    void GetLosLineStep(short index, unsigned short* out1, unsigned short* out2);
 };
 
 // FUNCTION: 0x4339e0
-void Class_004339e0::FUN_004339e0(short index, unsigned short* out1, unsigned short* out2)
+void Class_004339e0::GetLosLineStep(short index, unsigned short* out1, unsigned short* out2)
 {
     int idx = index;
     unsigned char* base = (unsigned char*)*(void**)((char*)this + 4);

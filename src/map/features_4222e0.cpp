@@ -45,7 +45,7 @@ extern std::vector<Class_004c2ea0*>* DAT_00511fb4;
 void __stdcall FUN_004bcb50(char* dir, char* pattern, void* list, int flags, char recurse);
 
 // FUNCTION: 0x4222e0
-void __stdcall FUN_004222e0()
+void __stdcall LoadFeatureFileList()
 {
     DAT_00511fb4 = new std::vector<Class_004c2ea0*>;
     std::vector<Elem_004222e0> list;

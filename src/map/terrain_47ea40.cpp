@@ -34,8 +34,8 @@ extern Game* g_game;
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 
-void* __stdcall FUN_004815a0(Vec3* pos);
-unsigned short __stdcall FUN_00421e60(void* cell);
+void* __stdcall GetMapCellAtPosition(Vec3* pos);
+unsigned short __stdcall GetCellFeature(void* cell);
 int __stdcall FUN_004b6c30(int range);
 
 // FUNCTION: 0x47ea40
@@ -50,10 +50,10 @@ int __stdcall FUN_0047ea40(Vec3* center, Fixed radius, Vec3** out1, float* val1,
     Vec3 pos;
     for (pos.z = center->z - half; pos.z <= center->z + half; pos.z += 0x300000) {
         for (pos.x = center->x - half; pos.x <= center->x + half; pos.x += 0x300000) {
-            void* cell = FUN_004815a0(&pos);
+            void* cell = GetMapCellAtPosition(&pos);
             if (!cell)
                 continue;
-            unsigned short index = FUN_00421e60(cell);
+            unsigned short index = GetCellFeature(cell);
             if (index >= 0xfffb)
                 continue;
             unsigned short fl = g_game->features[index].flags;

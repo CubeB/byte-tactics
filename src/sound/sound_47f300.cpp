@@ -112,7 +112,7 @@ int __cdecl GetLocalDpid();
 int __stdcall BroadcastPacket(int player, void* data, int size);
 int __stdcall PlaySoundByIndex(int index, int param_2);
 struct Cell_0047f300;
-Cell_0047f300* __stdcall FUN_00481550(int x, int y);
+Cell_0047f300* __stdcall GetMapCell(int x, int y);
 
 // 86.5% (775 bytes, same size as the original). Everything outside the
 // visibility block is byte exact, and the whole diff is ONE cause: the player
@@ -354,7 +354,7 @@ int __stdcall PlaySoundAt(int index, Pos_0047f300* pos, int param_3)
         BroadcastPacket(GetLocalDpid(), &packet, 0x12);
     }
 
-    if (FUN_00481550(pos->xVal / (1 << 20), pos->zVal / (1 << 20)) == 0)
+    if (GetMapCell(pos->xVal / (1 << 20), pos->zVal / (1 << 20)) == 0)
         return 0;
 
     int pi = g_game->playerIndex;

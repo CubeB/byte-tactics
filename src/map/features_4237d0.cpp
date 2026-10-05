@@ -1,7 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // Reclaims the feature at a world position: the unit gets the feature's
 // resources (an AI player only half on the easy and 70% on the medium
-// setting), the feature is replaced by its reclaimed state (FUN_00423550
+// setting), the feature is replaced by its reclaimed state (KillFeature
 // with flag 1) and the reclaim is sent to the other players.
 //
 // Notes for matching:
@@ -90,8 +90,8 @@ struct Vec3_004237d0 {
 
 extern Game* g_game;
 
-Cell_004237d0* __stdcall FUN_00481550(int x, int y);
-void __stdcall FUN_00423550(int x, int z, int flag);
+Cell_004237d0* __stdcall GetMapCell(int x, int y);
+void __stdcall KillFeature(int x, int z, int flag);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 
 static inline Feature_004237d0* GetFeature(Cell_004237d0* cell)
@@ -130,12 +130,12 @@ static inline void AddScaled(Unit* unit, float& res, double amount)
 }
 
 // FUNCTION: 0x4237d0
-int __stdcall FUN_004237d0(Unit* unit, Vec3_004237d0* pos)
+int __stdcall ReclaimFeature(Unit* unit, Vec3_004237d0* pos)
 {
     int x = pos->x / 0x100000;
     int z = pos->z / 0x100000;
-    Cell_004237d0* cell = FUN_00481550(x, z);
-    Feature_004237d0* f = GetFeature(FUN_00481550(x, z));
+    Cell_004237d0* cell = GetMapCell(x, z);
+    Feature_004237d0* f = GetFeature(GetMapCell(x, z));
     if (f == 0)
         return 0;
     if ((cell->flags & 1) && (f->flags & 1))
@@ -157,7 +157,7 @@ int __stdcall FUN_004237d0(Unit* unit, Vec3_004237d0* pos)
     } else {
         unit->metal += metal;
     }
-    FUN_00423550(x, z, 1);
+    KillFeature(x, z, 1);
     if (g_game->net->FUN_00435100() == 3) {
         Packet_004237d0 packet;
         packet.type = 0xf;

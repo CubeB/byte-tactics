@@ -44,10 +44,10 @@ struct Params_482090 {
 
 extern Game* g_game;
 
-void __stdcall FUN_00481d50(Params_482090* params);
+void __stdcall RemoveLineOfSight(Params_482090* params);
 
 // FUNCTION: 0x482090
-void __stdcall FUN_00482090(Unit* unit)
+void __stdcall RemoveUnitLineOfSight(Unit* unit)
 {
     Params_482090 p;
     p.field_0 = unit->field_96;
@@ -60,5 +60,5 @@ void __stdcall FUN_00482090(Unit* unit)
     if (p.pos.y < minY) {
         p.pos.y = minY;
     }
-    FUN_00481d50(&p);
+    RemoveLineOfSight(&p);
 }

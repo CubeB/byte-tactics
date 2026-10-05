@@ -155,9 +155,9 @@ Vec3 __stdcall GetPiecePosition(Path_0043d6d0* obj, int index);
 Short3 __stdcall GetPieceAngles(Path_0043d6d0* obj, int index);
 void __stdcall SetUnitPosition(Unit* unit, Vec3 pos, int mode);
 int __stdcall FUN_0047db70(UnitType_0043d6d0* type, short a8, Point cell, int mode);
-void __stdcall FUN_0047d0e0(Unit* unit);
-void __stdcall FUN_0047cc30(Unit* unit);
-void __stdcall FUN_004827b0(Unit* unit);
+void __stdcall RemoveUnitFromMap(Unit* unit);
+void __stdcall AddUnitToMap(Unit* unit);
+void __stdcall UpdateUnitLineOfSight(Unit* unit);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 
@@ -266,11 +266,11 @@ void Class_0043d6d0::UpdatePosition(Unit* u)
         return;
     }
 
-    FUN_0047d0e0(u);
+    RemoveUnitFromMap(u);
     u->pos = pos;
     u->cell = cell;
     u->mode = (short)m;
-    FUN_0047cc30(u);
+    AddUnitToMap(u);
     u->moved = 1;
-    FUN_004827b0(u);
+    UpdateUnitLineOfSight(u);
 }

@@ -44,7 +44,7 @@ void __cdecl FUN_004d85a0(void* p);
 void __stdcall FreeObjectState(void* obj);
 
 // FUNCTION: 0x422170
-void FUN_00422170()
+void FreeFeaturePool()
 {
     int i;
     for (i = 0; i <= 1; i++) {

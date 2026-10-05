@@ -44,7 +44,7 @@ public:
 };
 
 // FUNCTION: 0x484e80
-void __stdcall FUN_00484e80(Class_004b4560* file)
+void __stdcall LoadPlayerFeaturesPlotmap(Class_004b4560* file)
 {
     if (file->FUN_004b4560("PlayerFeatures") && ((Class_004b4ba0*)file)->FUN_004b4ba0("Plotmap")) {
         int size = g_game->width * g_game->height / 2;

@@ -394,16 +394,16 @@ int DAT_005122d8;  // 0x5122d8 .bss
 int DAT_005122dc;  // 0x5122dc .bss
 int DAT_005122e0;  // 0x5122e0 .bss
 unsigned char DAT_005122e4[4];  // 0x5122e4 .bss
-int DAT_005122e8;  // 0x5122e8 .bss
+int g_meteorNextStrikeTime;  // 0x5122e8 .bss
 unsigned char DAT_005122ec[4];  // 0x5122ec .bss
 char DAT_005122f0[32];  // 0x5122f0 .bss
 int DAT_00512310;  // 0x512310 .bss
 int DAT_00512314;  // 0x512314 .bss
-int DAT_00512318;  // 0x512318 .bss
-int DAT_0051231c;  // 0x51231c .bss
+int g_meteorActive;  // 0x512318 .bss
+int g_meteorStrikeEndTime;  // 0x51231c .bss
 int DAT_00512324;  // 0x512324 .bss
-int DAT_0051232c;  // 0x51232c .bss
-int DAT_00512330;  // 0x512330 .bss
+int g_meteorsEnabled;  // 0x51232c .bss
+int g_meteorNextHitTime;  // 0x512330 .bss
 int DAT_00512338;  // 0x512338 .bss
 unsigned char DAT_0051233c[4];  // 0x51233c .bss
 unsigned char DAT_00512350[8];  // 0x512350 .bss

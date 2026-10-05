@@ -74,7 +74,7 @@ public:
     }
 
     void BuildCampaignFilePath(int index, char* dir, char* name, char* ext);
-    int FUN_00435da0(char* map);
+    int LoadMission(char* map);
 };
 
 class Class_00435110 : public Class_00435c00 {
@@ -103,6 +103,6 @@ void Class_00435110::LoadCampaign(char* file)
         }
         field_c1c = 0;
         missionIndex = 0;
-        FUN_00435da0(0);
+        LoadMission(0);
     }
 }

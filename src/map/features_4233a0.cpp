@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // Sets the feature on map cell (x, z) burning: takes a spot from the pool
-// (the inlined FUN_004232a0), starts the feature's burn animations on it,
+// (the inlined AllocFeatureSpot), starts the feature's burn animations on it,
 // plays "treeburn" and, unless flag is set, sends the burn to the others.
 // Needs <windows.h> (tools/headers.py): 72.5% without it.
 #include <windows.h>
@@ -80,8 +80,8 @@ struct Packet_004233a0 {
 
 extern Game* g_game;
 
-Cell_004233a0* __stdcall FUN_00481550(int x, int y);
-void __stdcall FUN_004232f0(int index, int* head);
+Cell_004233a0* __stdcall GetMapCell(int x, int y);
+void __stdcall MoveFeatureSpot(int index, int* head);
 void __stdcall InitGafSequence(AnimRef_004233a0* ref, AnimSrc_004233a0* src, int index);
 int __stdcall FUN_004b6c30(int range);
 void __stdcall PlaySoundAtByName(char* name, Vec3_004233a0* pos, int param_3);
@@ -95,15 +95,15 @@ static inline int AllocSpot()
     if (i == -1) {
         return 0x800;
     }
-    FUN_004232f0(i, &p->usedHead);
+    MoveFeatureSpot(i, &p->usedHead);
     p->entries[i].used = 0;
     return i;
 }
 
 // FUNCTION: 0x4233a0
-void __stdcall FUN_004233a0(int x, int z, int flag)
+void __stdcall StartFeatureBurning(int x, int z, int flag)
 {
-    Cell_004233a0* cell = FUN_00481550(x, z);
+    Cell_004233a0* cell = GetMapCell(x, z);
     if (cell == 0)
         return;
     if (cell->feature >= 0xfffb)

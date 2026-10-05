@@ -64,13 +64,13 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00481d50(Params_4825b0* params);
-void __stdcall FUN_00482270(Params_4825b0* params);
+void __stdcall RemoveLineOfSight(Params_4825b0* params);
+void __stdcall AddLineOfSight(Params_4825b0* params);
 void __stdcall FUN_00481930(Params_4825b0* params);
 Entry_4825b0* __stdcall GetGafFrame(Cell_4825b0* table, int index);
 
 // FUNCTION: 0x4825b0
-void __stdcall FUN_004825b0(Params_4825b0* params)
+void __stdcall UpdateLineOfSight(Params_4825b0* params)
 {
     if ((g_game->flags & 4) == 4) {
         int x = ((short*)&params->pos.x)[1] >> 5;
@@ -86,7 +86,7 @@ void __stdcall FUN_004825b0(Params_4825b0* params)
         unsigned char c = *params->field_c;
         if (params->field_4[0] != x || params->field_4[1] != y || diff > 5) {
             if (c != 0 && (g_game->flags & 2)) {
-                FUN_00481d50(params);
+                RemoveLineOfSight(params);
             }
             params->field_4[0] = (short)x;
             params->field_4[1] = (short)y;
@@ -96,7 +96,7 @@ void __stdcall FUN_004825b0(Params_4825b0* params)
             }
             *params->field_c = (unsigned char)v;
             if ((unsigned char)(g_game->flags >> 1) & 1) {
-                FUN_00482270(params);
+                AddLineOfSight(params);
             }
             if (g_game->flags & 1) {
                 FUN_00481930(params);
@@ -117,11 +117,11 @@ void __stdcall FUN_004825b0(Params_4825b0* params)
         cy -= e->field_6;
         if (params->field_4[0] != cx || params->field_4[1] != cy || *params->field_c != i) {
             if ((g_game->flags & 2) == 2) {
-                FUN_00481d50(params);
+                RemoveLineOfSight(params);
                 params->field_4[0] = (short)cx;
                 params->field_4[1] = (short)cy;
                 *params->field_c = (unsigned char)i;
-                FUN_00482270(params);
+                AddLineOfSight(params);
             } else {
                 params->field_4[0] = (short)cx;
                 params->field_4[1] = (short)cy;

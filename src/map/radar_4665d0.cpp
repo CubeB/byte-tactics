@@ -44,7 +44,7 @@ void __stdcall DrawFrameQuad(Surface_4665d0* surface, void* pic, Quad_4665d0* ds
 void __cdecl FUN_004d85a0(void* pic);
 
 // FUNCTION: 0x4665d0
-void __stdcall FUN_004665d0(Pic_4665d0* pic, int x, int y, int w, int h)
+void __stdcall ResizeRadarPicture(Pic_4665d0* pic, int x, int y, int w, int h)
 {
     if (pic == 0) {
         return;

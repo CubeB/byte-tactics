@@ -471,10 +471,10 @@ extern Game* g_game;
 extern int DAT_0051e53c;
 
 void __stdcall UpdatePlayerAI(int player);
-void __stdcall FUN_004827b0(Unit* unit);
-void FUN_00466dc0();
+void __stdcall UpdateUnitLineOfSight(Unit* unit);
+void DrawRadarUnits();
 void FUN_00467440();
-void FUN_00466c20();
+void UpdateRadarMapped();
 unsigned char __stdcall FindHostSlot();
 unsigned short __stdcall FindUnitTypeId(const char* name);
 int __stdcall FUN_004b6c30(int range);
@@ -484,7 +484,7 @@ int __stdcall GetCellMeanHeight(Pos_00464f80* pos);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
                                      Pos_00464f80 pos, int a, int b, int c);
 void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width);
-void __stdcall FUN_004816a0(int on);
+void __stdcall RecalculateLineOfSight(int on);
 void __stdcall FUN_0048d630(int on);
 void __stdcall UpdatePlayerEconomy(PlayerInfo_00464f80* player);
 void __stdcall SendPlayerEconomy(PlayerInfo_00464f80* player, int a, int b);
@@ -566,13 +566,13 @@ void __stdcall FUN_00464f80()
             Unit* u = pi->units;
             while (u <= pi->units_end) {
                 if (u->flags_110 & 0x10000000)
-                    FUN_004827b0(u);
+                    UpdateUnitLineOfSight(u);
                 u = (Unit*)((char*)u + 0x118);
             }
         }
 
         if (bl == g_game->field_2a43)
-            FUN_00466dc0();
+            DrawRadarUnits();
 
         if ((unsigned int)pi->field_f0 > g_game->tick)
             goto next_bl;
@@ -711,7 +711,7 @@ void __stdcall FUN_00464f80()
                                     }
                                     *slot = f;
                                 }
-                                FUN_004816a0(1);
+                                RecalculateLineOfSight(1);
                                 FUN_0048d630(1);
                             }
                         } else {
@@ -740,7 +740,7 @@ void __stdcall FUN_00464f80()
 
         if (bl == g_game->field_2a43) {
             FUN_00467440();
-            FUN_00466c20();
+            UpdateRadarMapped();
             if (g_game->mode->FUN_00435100() == 3) {
                 DAT_0051e53c++;
                 if ((DAT_0051e53c & 3) == 0)
@@ -758,7 +758,7 @@ void __stdcall FUN_00464f80()
                 if (bl == g_game->localPlayer) {
                     g_game->field_14281 &= 0xfffe;
                     g_game->field_14281 &= 0xfffd;
-                    FUN_004816a0(1);
+                    RecalculateLineOfSight(1);
                     BroadcastPlayerInfo();
                     if (FUN_00457bc0() == 0) {
                         Dialog_00464f80* dlg = (Dialog_00464f80*)

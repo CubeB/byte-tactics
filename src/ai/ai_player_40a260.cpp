@@ -2,7 +2,7 @@
 // Picks a build cell near a world position: every candidate in `list` (a
 // vector of cells with a score) within `range` cells goes into a max-heap
 // keyed on minus the squared distance, then the cells are popped nearest
-// first and tried with FUN_0047d2e0. The best-scoring cell (FUN_0047c770)
+// first and tried with CanBuildAt. The best-scoring cell (GetBuildSiteMetal)
 // wins; once one is found, candidates more than 160 beyond the first hit's
 // squared distance stop the search.
 //
@@ -49,8 +49,8 @@ struct UnitType {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_0047d2e0(UnitType* type, Point16 cell, int a, int b);
-int FUN_0047c770(void);
+int __stdcall CanBuildAt(UnitType* type, Point16 cell, int a, int b);
+int GetBuildSiteMetal(void);
 void __stdcall MakeHeap(Elem_0040cc40* first, Elem_0040cc40* last, int*, Elem_0040cc40*);
 void __stdcall PopHeapFirst(Elem_0040cc40* first, Elem_0040cc40* last, Elem_0040cc40* dest,
                             Elem_0040cc40 val, int*);
@@ -111,9 +111,9 @@ bool Class_0040a7b0::FindCellNearFeatures(UnitType* type, Vec3* pos, ElemVec* li
         int d = DistSq(cell, center);
         if (limit >= 0 && d > limit + 160)
             break;
-        if (FUN_0047d2e0(type, cell, 0, 0) && FUN_0047c770() > best) {
+        if (CanBuildAt(type, cell, 0, 0) && GetBuildSiteMetal() > best) {
             result = cell;
-            best = FUN_0047c770();
+            best = GetBuildSiteMetal();
             if (limit == -1)
                 limit = d;
         }

@@ -237,7 +237,7 @@ public:
 
 extern Game* g_game;
 
-void __stdcall FUN_0047e890(Vec3_00467440* pos, int range, void* visitor);
+void __stdcall VisitObjectsInRange(Vec3_00467440* pos, int range, void* visitor);
 bool __stdcall HasReadyUnitInRange(int player, Vec3_00467440* p, int range);
 
 static inline int IsExplored_00467440(PlayerInfo_00467440* p, UnitPos_00467440* pos)
@@ -303,7 +303,7 @@ void FUN_00467440(void)
                 v.field_4 = t;
                 v.field_8 = s;
                 v.pos = u->pos.vec;
-                FUN_0047e890(pp, (int)a << 16, &v);
+                VisitObjectsInRange(pp, (int)a << 16, &v);
             }
         }
     }
@@ -315,13 +315,13 @@ void FUN_00467440(void)
                 int r = (int)u->def->field_20a << 16;
                 Vec3_00467440* pp = &u->pos.vec;
                 Class_00467960 v;
-                FUN_0047e890(pp, r, &v);
+                VisitObjectsInRange(pp, r, &v);
             }
             if (u->def->field_20c != 0) {
                 int r2 = (int)u->def->field_20c << 16;
                 Vec3_00467440* pp2 = &u->pos.vec;
                 Class_00467980 v;
-                FUN_0047e890(pp2, r2, &v);
+                VisitObjectsInRange(pp2, r2, &v);
             }
         }
     }

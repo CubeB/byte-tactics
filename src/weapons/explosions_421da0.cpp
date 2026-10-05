@@ -34,7 +34,7 @@ struct Game {
 
 extern Game* g_game;
 
-Cell_00421da0* __stdcall FUN_00481550(int x, int y);
+Cell_00421da0* __stdcall GetMapCell(int x, int y);
 
 // FUNCTION: 0x421da0
 unsigned short __stdcall FindFeatureAtPos(Vec3_00421da0* pos, Point16_00421da0* cell, Point16_00421da0* size)
@@ -42,13 +42,13 @@ unsigned short __stdcall FindFeatureAtPos(Vec3_00421da0* pos, Point16_00421da0* 
     Point16_00421da0 c;
     c.x = (short)(pos->x >> 20);
     c.z = (short)(pos->z >> 20);
-    Cell_00421da0* p = FUN_00481550(c.x, c.z);
+    Cell_00421da0* p = GetMapCell(c.x, c.z);
     if (p == 0)
         return 0xffff;
     if (p->feature == 0xfffe) {
         c.x -= p->offsetX;
         c.z -= p->offsetY;
-        p = FUN_00481550(c.x, c.z);
+        p = GetMapCell(c.x, c.z);
     }
     if (p->feature >= 0xfffb)
         return 0xffff;

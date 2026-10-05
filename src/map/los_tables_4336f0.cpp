@@ -38,11 +38,11 @@ extern char DAT_005119b8[];
 
 class Class_004336f0 : public Vec_004336f0 {
 public:
-    void FUN_004336f0(Class_004c3e10* obj, short line, short mode);
+    void LoadLosLine(Class_004c3e10* obj, short line, short mode);
 };
 
 // FUNCTION: 0x4336f0
-void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
+void Class_004336f0::LoadLosLine(Class_004c3e10* obj, short line, short mode)
 {
     char name[32];
     char buf[0x200];

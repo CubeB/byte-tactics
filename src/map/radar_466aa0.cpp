@@ -5,7 +5,7 @@ extern char* g_game;
 void __stdcall FreeSurface(void* param_1);
 
 // FUNCTION: 0x466aa0
-void FUN_00466aa0()
+void FreeRadar()
 {
     FreeSurface(*(void**)(g_game + 0x142e3));
     FreeSurface(*(void**)(g_game + 0x142df));

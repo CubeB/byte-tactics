@@ -24,7 +24,7 @@ public:
 };
 
 void __stdcall FUN_00484b50(int x, int z, Vec3_0048f200* out);
-void __stdcall FUN_0047e890(Vec3_0048f200* pos, int radius, UnitVisitor_0048f200* visitor);
+void __stdcall VisitObjectsInRange(Vec3_0048f200* pos, int radius, UnitVisitor_0048f200* visitor);
 
 #pragma pack(push, 2)
 class VictoryMoveUnitToRadius : public Condition_0048f200, public UnitVisitor_0048f200 {
@@ -42,6 +42,6 @@ int VictoryMoveUnitToRadius::IsSatisfied()
     if (pos.y == 0x12345678) {
         FUN_00484b50(pos.x, pos.z, &pos);
     }
-    FUN_0047e890(&pos, radius, this);
+    VisitObjectsInRange(&pos, radius, this);
     return done;
 }

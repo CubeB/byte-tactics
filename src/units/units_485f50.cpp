@@ -117,7 +117,7 @@ void __stdcall InitUnitScript(Unit* unit);
 void __stdcall InitUnitWeaponSlots(Unit* unit);
 void __stdcall UpdateMetalExtraction(Unit* unit);
 void __stdcall UpdateUnitHeight(Unit* unit);
-void __stdcall FUN_0047cc30(Unit* unit);
+void __stdcall AddUnitToMap(Unit* unit);
 void __stdcall SendNewUnit(Unit* unit);
 void __stdcall FUN_004560c0(Unit* a, Unit* b);
 void __stdcall FUN_00482ac0(Unit* unit);
@@ -182,7 +182,7 @@ found:
     InitUnit_00485e90(typeId, pos, param_5, unit);
     unit->mode = mode;
     UpdateUnitHeight(unit);
-    FUN_0047cc30(unit);
+    AddUnitToMap(unit);
     SendNewUnit(unit);
     if (param_5) {
         if (type->field_22f == 0)

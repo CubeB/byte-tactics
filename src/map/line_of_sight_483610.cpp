@@ -16,7 +16,7 @@
 // SHARED begin
 #include <string.h>
 extern int DAT_00511de8;
-extern char DAT_0051e6a0;
+extern char g_losTables;
 
 struct TntHeader_00483610 {
     unsigned short width;
@@ -66,7 +66,7 @@ public:
 
 class Class_00433130 {
 public:
-    void FUN_00433130();
+    void LoadLosTables();
 };
 
 int* __stdcall FUN_00429660(int* file);
@@ -77,19 +77,19 @@ void __cdecl FUN_004d85a0(void* block);
 void* __stdcall AllocFrame(const char* name, int width, int height);
 void __stdcall SurfaceFromFrame(void* dst, void* src);
 void __stdcall DrawFrame(void* surface, void* header, int x, int y);
-void __stdcall FUN_00421f20(int* info);
-void* __stdcall FUN_00423c50(void* target, unsigned short id, void* pos, void* field_64, unsigned char owner);
-void __stdcall FUN_00423160();
-void __stdcall FUN_00483210(Point_00483610 pos, Point_00483610 size);
+void __stdcall InitFeatureAnimPool(int* info);
+void* __stdcall PlaceFeature(void* target, unsigned short id, void* pos, void* field_64, unsigned char owner);
+void __stdcall PlaceMissionFeatures();
+void __stdcall UpdateCellHeightRange(Point_00483610 pos, Point_00483610 size);
 void FUN_00482c20();
-void FUN_004833b0();
-void FUN_00422040();
+void ClearBorderFeatures();
+void StampFeatureMetal();
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 // SHARED end
 
 // FUNCTION: 0x483610
-void FUN_00483610()
+void LoadTntMap()
 {
     int* tmp0 = (int*)(DAT_00511de8 + 0x141fb);
     MapInfo_00483610 info;
@@ -213,7 +213,7 @@ void FUN_00483610()
         plot[7] = (unsigned char)fill;
         plot += 0xd;
     }
-    FUN_00421f20(&info.version);
+    InitFeatureAnimPool(&info.version);
     if (info.attr_b != 0) {
         unsigned char* q = *(unsigned char**)&tmp0[35];
         if (a.n > 0) {
@@ -232,7 +232,7 @@ void FUN_00483610()
                 unsigned char* src = info.attr_b + 2;
                 do {
                     if (*src < info.attr_limit)
-                        FUN_00423c50(q, *src, 0, 0, 10);
+                        PlaceFeature(q, *src, 0, 0, 10);
                     q += 0xd;
                     src += 8;
                     a.n--;
@@ -249,7 +249,7 @@ void FUN_00483610()
                     q[4] = *src;
                     q[0xc] = (q[0xc] & 0xd7) | 0x50;
                     if (*(unsigned short*)(src + 1) == 0xfffc)
-                        FUN_00423c50(q, 0xfffc, 0, 0, 10);
+                        PlaceFeature(q, 0xfffc, 0, 0, 10);
                     q += 0xd;
                     src += 4;
                     b.n--;
@@ -262,13 +262,13 @@ void FUN_00483610()
                     int n = a.n;
                     do {
                         if ((int)*sp < info.attr_limit)
-                            FUN_00423c50(q, *sp, 0, 0, 10);
+                            PlaceFeature(q, *sp, 0, 0, 10);
                         q += 0xd;
                         sp += 2;
                         n--;
                     } while (n != 0);
                 }
-                FUN_00423160();
+                PlaceMissionFeatures();
             }
         }
     }
@@ -281,7 +281,7 @@ void FUN_00483610()
     *(int*)(*(int*)((char*)tmp0 + 0x88) + 4) = *(int*)((char*)tmp0 + 0x88) + 8;
     memcpy(*(void**)(*(int*)((char*)tmp0 + 0x88) + 4), info.tile_set_src, info.tile_set_count * 0x400);
     FUN_004d85a0(tnt);
-    ((Class_00433130*)&DAT_0051e6a0)->FUN_00433130();
+    ((Class_00433130*)&g_losTables)->LoadLosTables();
     int mw = *(int*)(DAT_00511de8 + 0x37e37);
     int mh = *(int*)(DAT_00511de8 + 0x37e3b);
     *(int*)((char*)tmp0 + 0x40) = mw / 16;
@@ -323,12 +323,12 @@ void FUN_00483610()
     b.p.y = 0;
     a.p.x = *(short*)(DAT_00511de8 + 0x14233);
     a.p.y = *(short*)(DAT_00511de8 + 0x14237);
-    FUN_00483210(b.p, a.p);
+    UpdateCellHeightRange(b.p, a.p);
     // REGION r4 end
 
     // REGION r5 begin
     FUN_00482c20();
-    FUN_004833b0();
+    ClearBorderFeatures();
     unsigned int total2 = (unsigned int)(tmp0[14] * tmp0[15]) * 2;
     unsigned int half = total2 / 4;
     int* mapped = (int*)FUN_004d83b0("MAPPED MEMORY", half);
@@ -341,7 +341,7 @@ void FUN_00483610()
     *tmp0 = (int)FUN_004d83b0("SORT UNIT LIST", sy * sx * 4);
     tmp0[1] = (int)FUN_004d83b0("SORT INDICES", tmp0[21] << 2);
     tmp0[2] = (int)FUN_004d83b0("SORT LINE COUNT", tmp0[21] << 1);
-    FUN_00422040();
+    StampFeatureMetal();
     *(int*)(DAT_00511de8 + 0x14277) = 0;
     *(int*)(DAT_00511de8 + 0x1427b) = (int)FUN_004d83b0("EYEBALL MEMORY", 0x2d0);
     tmp0[23] = 0;

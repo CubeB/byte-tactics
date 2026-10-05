@@ -7,12 +7,12 @@ public:
     int field_4;
     int field_8;
 
-    int FUN_00433520();
+    int GetLosTableCount();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x433520
-int Class_00433520::FUN_00433520()
+int Class_00433520::GetLosTableCount()
 {
     if (field_4 == 0) {
         return 0;

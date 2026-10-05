@@ -20,11 +20,11 @@ public:
     Buffer_00437280 buffer1;           // +0xdb4
     Buffer_00437280 buffer2;           // +0xdbc
 
-    void FUN_00437280();
+    void FreeMissionData();
 };
 
 // FUNCTION: 0x437280
-void Class_00437280::FUN_00437280()
+void Class_00437280::FreeMissionData()
 {
     if (buffer0.data)
         FUN_004d85a0(buffer0.data);

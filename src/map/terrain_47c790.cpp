@@ -70,7 +70,7 @@ struct Obj_0047c790 {
 
 extern Game* g_game;
 
-Cell_0047c790* __stdcall FUN_00481550(int x, int y);
+Cell_0047c790* __stdcall GetMapCell(int x, int y);
 
 // FUNCTION: 0x47c790
 void __stdcall FUN_0047c790(Obj_0047c790* obj)
@@ -83,7 +83,7 @@ void __stdcall FUN_0047c790(Obj_0047c790* obj)
     obj->flags.all = f;
     Point_0047c790 size = obj->size;
     if (f & 0x20000000) {
-        Cell_0047c790* cell = FUN_00481550(obj->pos.x, obj->pos.y);
+        Cell_0047c790* cell = GetMapCell(obj->pos.x, obj->pos.y);
         int index = 0;
         for (int j = size.y; j > 0; j--) {
             for (int i = size.x; i > 0; i--) {
@@ -115,7 +115,7 @@ void __stdcall FUN_0047c790(Obj_0047c790* obj)
             cell += g_game->width - size.x;
         }
     } else if ((obj->flags.all & 3) == 1) {
-        Cell_0047c790* cell = FUN_00481550(obj->pos.x, obj->pos.y);
+        Cell_0047c790* cell = GetMapCell(obj->pos.x, obj->pos.y);
         for (int j = size.y; j > 0; j--) {
             for (int i = size.x; i > 0; i--) {
                 UnitRec_0047c790* rec;
@@ -141,7 +141,7 @@ void __stdcall FUN_0047c790(Obj_0047c790* obj)
             cell += g_game->width - size.x;
         }
     } else {
-        Cell_0047c790* cell = FUN_00481550(obj->pos.x, obj->pos.y);
+        Cell_0047c790* cell = GetMapCell(obj->pos.x, obj->pos.y);
         for (int j = size.y; j > 0; j--) {
             for (int i = size.x; i > 0; i--) {
                 UnitRec_0047c790* rec;

@@ -22,17 +22,17 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004232f0(int index, int* head);
+void __stdcall MoveFeatureSpot(int index, int* head);
 
 // FUNCTION: 0x4232a0
-int FUN_004232a0()
+int AllocFeatureSpot()
 {
     Pool_004232a0* p = &g_game->pool;
     int i = p->freeHead;
     if (i == -1) {
         return 0x800;
     }
-    FUN_004232f0(i, &p->usedHead);
+    MoveFeatureSpot(i, &p->usedHead);
     p->entries[i].flag0 = 0;
     return i;
 }

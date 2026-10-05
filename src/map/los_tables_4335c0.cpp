@@ -7,11 +7,11 @@ public:
     int field_4;
     int field_8;
 
-    int FUN_004335c0();
+    int GetLosLineCount();
 };
 
 // FUNCTION: 0x4335c0
-int Class_004335c0::FUN_004335c0()
+int Class_004335c0::GetLosLineCount()
 {
     if (field_4 == 0) {
         return 0;

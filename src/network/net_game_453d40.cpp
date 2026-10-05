@@ -253,10 +253,10 @@ void __stdcall ApplyUnitDamage(void*);
 void __stdcall ApplyUnitDeath(void*, int);
 void __stdcall ApplyWeaponFirePacket(Player*, void*);
 void __stdcall ApplyProjectileHitPacket(Player*, void*);
-void __stdcall FUN_00423550(int, int, int);
-void __stdcall FUN_004233a0(int, int, int);
-int __stdcall FUN_00481550(int, int);
-void __stdcall FUN_004244b0(int, int, int, Feature*);
+void __stdcall KillFeature(int, int, int);
+void __stdcall StartFeatureBurning(int, int, int);
+int __stdcall GetMapCell(int, int);
+void __stdcall DamageFeature(int, int, int, Feature*);
 void __stdcall FinishConstruction(Class_0048b090*, Class_0048b090*);
 void __stdcall PlaySoundByIndex(int, int);
 void __stdcall PlaySoundAt(int, void*, int);
@@ -734,16 +734,16 @@ int HandleNetPackets()
         case 15:
             switch (packet[1]) {
             case 0xfd:
-                FUN_00423550(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4), 0);
+                KillFeature(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4), 0);
                 break;
             case 0xfe:
-                FUN_004233a0(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4), 1);
+                StartFeatureBurning(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4), 1);
                 break;
             case 0xff:
-                FUN_00423550(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4), 1);
+                KillFeature(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4), 1);
                 break;
             default:
-                FUN_004244b0(FUN_00481550(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4)),
+                DamageFeature(GetMapCell(*(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4)),
                              *(unsigned short*)(packet + 2), *(unsigned short*)(packet + 4),
                              &g_game->features[packet[1]]);
                 break;

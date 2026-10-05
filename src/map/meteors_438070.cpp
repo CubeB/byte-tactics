@@ -17,14 +17,14 @@ struct Point16_00438070 {
 };
 
 extern Game* g_game;
-extern int DAT_00512318;
-extern int DAT_0051231c;
+extern int g_meteorActive;
+extern int g_meteorStrikeEndTime;
 extern int DAT_00512324;
 extern int DAT_00512338;
-extern int DAT_005122e8;
-extern int DAT_00512330;
-extern Point16_00438070 DAT_00512334;
-extern Point16_00438070 DAT_00512320;
+extern int g_meteorNextStrikeTime;
+extern int g_meteorNextHitTime;
+extern Point16_00438070 g_meteorTarget;
+extern Point16_00438070 g_meteorOrigin;
 
 // C-style helpers returning the struct by value; with a constructor and
 // operator+= the offset's x never goes through the stack slot as it does here.
@@ -45,15 +45,15 @@ static inline Point16_00438070 AddPoints(Point16_00438070 a, Point16_00438070 b)
 }
 
 // FUNCTION: 0x438070
-void FUN_00438070()
+void StartMeteorShower()
 {
-    DAT_00512318 = 1;
-    DAT_0051231c = DAT_00512324 + g_game->field_38a47;
-    DAT_005122e8 = DAT_00512338 + DAT_0051231c;
-    DAT_00512330 = g_game->field_38a47;
-    DAT_00512334 = MakePoint((int)((__int64)rand() * g_game->mapWidth / 0x8000),
+    g_meteorActive = 1;
+    g_meteorStrikeEndTime = DAT_00512324 + g_game->field_38a47;
+    g_meteorNextStrikeTime = DAT_00512338 + g_meteorStrikeEndTime;
+    g_meteorNextHitTime = g_game->field_38a47;
+    g_meteorTarget = MakePoint((int)((__int64)rand() * g_game->mapWidth / 0x8000),
                              (int)((__int64)rand() * g_game->mapHeight / 0x8000));
-    DAT_00512320 = AddPoints(MakePoint((int)((__int64)rand() * 30 / 0x8000) - 15,
+    g_meteorOrigin = AddPoints(MakePoint((int)((__int64)rand() * 30 / 0x8000) - 15,
                                        (int)((__int64)rand() * 10 / 0x8000) - 15),
-                             DAT_00512334);
+                             g_meteorTarget);
 }

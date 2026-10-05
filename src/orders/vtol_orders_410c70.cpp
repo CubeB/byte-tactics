@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // Unit visitor (vtable 0x4fcc60, built on the stack by 0x410850 and passed to
-// FUN_0047e890): collects every unit whose owner is allied with this owner,
+// VisitObjectsInRange): collects every unit whose owner is allied with this owner,
 // whose def lacks flag 0x800, and that is not the visitor's own unit. The
 // same shape as Class_00405d90 (0x405d90), with the vector::push_back inlined.
 struct Unit;

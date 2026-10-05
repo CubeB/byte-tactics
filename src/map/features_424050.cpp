@@ -151,19 +151,19 @@ extern Game* g_game;
 
 int __stdcall StepGafSequence(Anim_00424050* anim);
 int __stdcall FUN_004b6c30(int range);
-Cell_00424050* __stdcall FUN_00481550(int x, int y);
-void* __stdcall FUN_00423c50(Cell_00424050* cell, unsigned short feature, void* pos, void* rot,
+Cell_00424050* __stdcall GetMapCell(int x, int y);
+void* __stdcall PlaceFeature(Cell_00424050* cell, unsigned short feature, void* pos, void* rot,
                              unsigned char owner);
-void __stdcall FUN_004232f0(int index, int* head);
+void __stdcall MoveFeatureSpot(int index, int* head);
 int __stdcall GetCellMeanHeight(Vec3_00424050* pos);
 int __stdcall GetGroundHeight(Vec3_00424050* pos);
 Frame_00424050* __stdcall GetGafSequenceFrame(Anim_00424050* anim);
 void __stdcall EmitWhiteSmoke(SmokePos_00424050* pos, short index);
-int __stdcall FUN_004246b0(Cell_00424050* cell, int flag);
-void __stdcall FUN_00423710(int x, int z, int flag);
-void __stdcall FUN_004239c0(Feature_00424050* f, Point16_00424050* cell);
+int __stdcall RemoveFeature(Cell_00424050* cell, int flag);
+void __stdcall ReplaceFeatureWithDead(int x, int z, int flag);
+void __stdcall SpreadFire(Feature_00424050* f, Point16_00424050* cell);
 
-// Inlined copy of FUN_00421eb0: the 16.16 world position of the centre of a
+// Inlined copy of GetFootprintCentre: the 16.16 world position of the centre of a
 // feature footprint whose corner is at map cell `cell`.
 static inline SmokePos_00424050 FootprintCentre_00421eb0(Point16_00424050* cell, Feature_00424050* def)
 {
@@ -176,15 +176,15 @@ static inline SmokePos_00424050 FootprintCentre_00421eb0(Point16_00424050* cell,
     return p;
 }
 
-// Inlined copy of FUN_00423bf0: replaces a burnt-out feature with its remains.
+// Inlined copy of ReplaceFeatureWithBurnt: replaces a burnt-out feature with its remains.
 static inline void BurnOut_00423bf0(Spot_00424050* spot)
 {
-    Cell_00424050* target = FUN_00481550(spot->cell.x, spot->cell.z);
+    Cell_00424050* target = GetMapCell(spot->cell.x, spot->cell.z);
     if (target != 0) {
         unsigned short id = g_game->features[spot->feature].burnt;
-        FUN_004246b0(target, 0);
+        RemoveFeature(target, 0);
         if (id != 0xffff) {
-            FUN_00423c50(target, id, 0, 0, 10);
+            PlaceFeature(target, id, 0, 0, 10);
         }
     }
 }
@@ -210,12 +210,12 @@ static inline SmokePos_00424050 SmokeAt_00424050(Spot_00424050* spot, Feature_00
 // nearby (chance +0xfc, spread +0xfd), then walks the used spot list: falling
 // debris moves under gravity until it lands (or sinks below sea level), burning
 // features puff smoke every third tick, burn down and spread fire
-// (FUN_004239c0), and finished animations are replaced by their remains.
+// (SpreadFire), and finished animations are replaced by their remains.
 // Suspected original bug: the seed position's row is scanIndex / height
 // (+0x14237), not scanIndex / width, so on non-square maps the seed lands in
 // the wrong row.
 // FUNCTION: 0x424050
-void __stdcall FUN_00424050()
+void __stdcall UpdateFeatures()
 {
     Feature_00424050* types = g_game->features;
     for (int k = 0; k < g_game->featureCount; k++) {
@@ -235,9 +235,9 @@ void __stdcall FUN_00424050()
                 int z = g_game->scanIndex / g_game->height;
                 x += FUN_004b6c30(f->seedSpread) - f->seedSpread / 2;
                 z += FUN_004b6c30(f->seedSpread) - f->seedSpread / 2;
-                Cell_00424050* t = FUN_00481550(x, z);
+                Cell_00424050* t = GetMapCell(x, z);
                 if (t && c->unknown_0 == 0 && t->feature == 0xffff)
-                    FUN_00423c50(t, c->feature, 0, 0, 10);
+                    PlaceFeature(t, c->feature, 0, 0, 10);
             }
         }
     }
@@ -262,7 +262,7 @@ void __stdcall FUN_00424050()
                     spot->vel.y -= g_game->gravity;
                 }
             } else {
-                FUN_004232f0(i, &g_game->pool.restHead);
+                MoveFeatureSpot(i, &g_game->pool.restHead);
             }
         } else if (spot->flags & 1) {
             if (smoke) {
@@ -276,14 +276,14 @@ void __stdcall FUN_00424050()
                 BurnOut_00423bf0(spot);
             } else if (spot->timer > 0 && !(spot->flags & 8)) {
                 if (--spot->timer == 0)
-                    FUN_004239c0(f, &spot->cell);
+                    SpreadFire(f, &spot->cell);
             }
         } else {
             StepGafSequence(&spot->anim);
             if (spot->flags & 4)
                 StepGafSequence(&spot->anim2);
             if (spot->anim.src == 0)
-                FUN_00423710(spot->cell.x, spot->cell.z, 0);
+                ReplaceFeatureWithDead(spot->cell.x, spot->cell.z, 0);
         }
         i = next;
     }

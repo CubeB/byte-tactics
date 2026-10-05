@@ -143,8 +143,8 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004825b0(Params_482830* params);
-void __stdcall FUN_00482270(Params_482830* params);
+void __stdcall UpdateLineOfSight(Params_482830* params);
+void __stdcall AddLineOfSight(Params_482830* params);
 void __stdcall FUN_00481930(Params_482830* params);
 Entry_482830* __stdcall GetGafFrame(Table_482830* table, int index);
 
@@ -156,7 +156,7 @@ void __stdcall FUN_00482830(Params_482830* params)
     }
     *params->field_c = 0;
     if ((g_game->flags & 4) == 4) {
-        FUN_004825b0(params);
+        UpdateLineOfSight(params);
         return;
     }
     int lod = params->field_8 / 32 - 5;
@@ -175,6 +175,6 @@ void __stdcall FUN_00482830(Params_482830* params)
     params->field_4->x = (short)x;
     params->field_4->y = (short)y;
     *params->field_c = (char)lod;
-    FUN_00482270(params);
+    AddLineOfSight(params);
     FUN_00481930(params);
 }

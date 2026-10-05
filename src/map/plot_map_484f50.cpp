@@ -32,7 +32,7 @@ public:
 // Writes the "Mapping" "Data" chunk from the map's mapping buffer; the
 // reading counterpart is 0x484fa0.
 // FUNCTION: 0x484f50
-void __stdcall FUN_00484f50(Class_004b4560* file)
+void __stdcall SaveMappingData(Class_004b4560* file)
 {
     file->FUN_004b4560("Mapping");
     unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;

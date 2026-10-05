@@ -5,7 +5,7 @@
 void* __stdcall FindGafEntry(void* list, char* name);
 
 // FUNCTION: 0x4222b0
-void* __stdcall FUN_004222b0(void* list, int unused, char* name)
+void* __stdcall FindOptionalGafEntry(void* list, int unused, char* name)
 {
     // Returning a value on both paths keeps them apart: with a void return the
     // early exit is folded into a jump to the shared epilogue.

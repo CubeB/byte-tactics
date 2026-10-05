@@ -62,10 +62,10 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0047d2e0(Item_004197d0* type, Point16_004197d0 cell, int a,
+int __stdcall CanBuildAt(Item_004197d0* type, Point16_004197d0 cell, int a,
                            Player_004197d0* player);
-int FUN_0047c780(void);
-int __stdcall FUN_0047d820(Item_004197d0* unit, Point16_004197d0 cell);
+int GetBuildSiteHeight(void);
+int __stdcall GetFootprintHeight(Item_004197d0* unit, Point16_004197d0 cell);
 
 static inline Point16_004197d0 WorldToCell(Vec3_004197d0 v, Point16_004197d0 origin)
 {
@@ -85,12 +85,12 @@ int FUN_004197d0(void)
     Point16_004197d0 origin = item->origin;
     g_game->field_2c9e = (origin.x << 4) + g_game->field_2c92;
     g_game->field_2ca6 = (origin.y << 4) + g_game->field_2c9a;
-    g_game->flags.bits.b6 = FUN_0047d2e0(item, cell, 0, &g_game->players[g_game->local_player]);
+    g_game->flags.bits.b6 = CanBuildAt(item, cell, 0, &g_game->players[g_game->local_player]);
     unsigned char r;
     if (g_game->flags.value & 0x40)
-        r = FUN_0047c780();
+        r = GetBuildSiteHeight();
     else
-        r = FUN_0047d820(item, cell);
+        r = GetFootprintHeight(item, cell);
     g_game->field_2c96 = r;
     g_game->field_2ca2 = r;
     return (g_game->flags.value >> 6) & 1;

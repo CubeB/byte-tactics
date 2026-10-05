@@ -97,7 +97,7 @@ void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 int __stdcall GetGroundHeight(Vec3* pos);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitReverseNanoParticles(Box* from, Vec3* to, int count);
-void __stdcall FUN_004237d0(Unit* unit, Vec3* pos);
+void __stdcall ReclaimFeature(Unit* unit, Vec3* pos);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
@@ -173,7 +173,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
         }
         return 2;
     case 4:
-        FUN_004237d0(unit, &order->pos);
+        ReclaimFeature(unit, &order->pos);
         return 5;
     }
     return 7;

@@ -19,16 +19,16 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004246b0(void* target, int flag);
+void __stdcall RemoveFeature(void* target, int flag);
 
 // FUNCTION: 0x424840
-void FUN_00424840(void)
+void RemoveAllFeatures(void)
 {
     int n = g_game->width * g_game->height;
     for (int i = 0; i < n; i++) {
         Cell_00424840* c = &g_game->cells[i];
         if (c->owner < 0xfffb || c->owner == 0xfffe) {
-            FUN_004246b0(c, 1);
+            RemoveFeature(c, 1);
         }
     }
 }

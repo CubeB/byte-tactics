@@ -27,7 +27,7 @@ typedef std::vector<Class_004c2ea0*> FeatureList;
 static FeatureList* DAT_00511fb4;
 
 // FUNCTION: 0x4223e0
-void FUN_004223e0()
+void FreeFeatureFileList()
 {
     for (Class_004c2ea0** p = DAT_00511fb4->begin(); p < DAT_00511fb4->end(); p++)
         delete *p;

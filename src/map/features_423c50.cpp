@@ -79,14 +79,14 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004246b0(Cell_00423c50* cell, int flag);
-void __stdcall FUN_004232f0(int index, int* head);
+int __stdcall RemoveFeature(Cell_00423c50* cell, int flag);
+void __stdcall MoveFeatureSpot(int index, int* head);
 int __stdcall GetGroundHeight(Vec3_00423c50* pos);
 void* __stdcall CreateObjectState(void* obj);
 void __stdcall FUN_00472c50(Vec3_00423c50* p, short index);
 void __stdcall RefreshAllPassMaps(Point16_00423c50 a, Point16_00423c50 b);
 
-// Inlined copy of FUN_004232a0: takes a spot off the free list.
+// Inlined copy of AllocFeatureSpot: takes a spot off the free list.
 static inline int AllocSpot_004232a0()
 {
     Pool_00423c50* p = &g_game->pool;
@@ -94,12 +94,12 @@ static inline int AllocSpot_004232a0()
     if (i == -1) {
         return 0x800;
     }
-    FUN_004232f0(i, &p->usedHead);
+    MoveFeatureSpot(i, &p->usedHead);
     p->entries[i].flag0 = 0;
     return i;
 }
 
-// Inlined copy of FUN_00421eb0: the 16.16 world position of the centre of a
+// Inlined copy of GetFootprintCentre: the 16.16 world position of the centre of a
 // feature footprint whose corner is at map cell `cell`.
 static inline Vec3_00423c50 FootprintCentre_00421eb0(Point16_00423c50* cell, Feature_00423c50* def)
 {
@@ -114,14 +114,14 @@ static inline Vec3_00423c50 FootprintCentre_00421eb0(Point16_00423c50* cell, Fea
 
 // Places feature `feature` on map cell `cell` (its footprint's corner): fails
 // when the footprint leaves the map or a feature already there cannot be
-// removed (FUN_004246b0), takes a spot for features that keep state, marks the
+// removed (RemoveFeature), takes a spot for features that keep state, marks the
 // other footprint cells 0xfffe with their offsets from the corner, and returns
 // the spot (0 when none).
 // Both footprint loops walk an explicit `c++` pointer; indexing `row[x]`
 // gives other registers in the first loop and no strength reduction in the
 // second. `f` must be computed before the cell index.
 // FUNCTION: 0x423c50
-Spot_00423c50* __stdcall FUN_00423c50(Cell_00423c50* cell, unsigned short feature,
+Spot_00423c50* __stdcall PlaceFeature(Cell_00423c50* cell, unsigned short feature,
                                       Vec3_00423c50* pos, Rot16_00423c50* rot,
                                       unsigned char owner)
 {
@@ -145,7 +145,7 @@ Spot_00423c50* __stdcall FUN_00423c50(Cell_00423c50* cell, unsigned short featur
     for (int z = 0; z < f->footprint.z; z++) {
         Cell_00423c50* c = &cell[z * g_game->width];
         for (int x = 0; x < f->footprint.x; x++, c++) {
-            if (c->feature != 0xffff && !FUN_004246b0(c, 0))
+            if (c->feature != 0xffff && !RemoveFeature(c, 0))
                 return 0;
         }
     }

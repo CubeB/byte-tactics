@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // Same shape as 0x482090: builds a parameter block from a unit (raising
 // pos.y to at least (g_game byte +0x1427f + 1) << 16) and passes it to
-// FUN_004825b0.
+// UpdateLineOfSight.
 
 struct Vec3_4827b0 {
     int x;
@@ -47,10 +47,10 @@ struct Params_4827b0 {
 
 extern Game* g_game;
 
-void __stdcall FUN_004825b0(Params_4827b0* params);
+void __stdcall UpdateLineOfSight(Params_4827b0* params);
 
 // FUNCTION: 0x4827b0
-void __stdcall FUN_004827b0(Unit* unit)
+void __stdcall UpdateUnitLineOfSight(Unit* unit)
 {
     Params_4827b0 p;
     p.field_0 = unit->field_96;
@@ -63,5 +63,5 @@ void __stdcall FUN_004827b0(Unit* unit)
     if (p.pos.y < minY) {
         p.pos.y = minY;
     }
-    FUN_004825b0(&p);
+    UpdateLineOfSight(&p);
 }

@@ -75,7 +75,7 @@ char* __stdcall FUN_004c5740(char* text);
 void HandleNetPackets();
 
 // FUNCTION: 0x434bf0
-int __stdcall FUN_00434bf0(void** param_1, int param_2, int param_3)
+int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
 {
     if (DAT_005122d4 != 0) {
         if (param_1 != 0) {
@@ -145,6 +145,6 @@ int __stdcall FUN_00434bf0(void** param_1, int param_2, int param_3)
     FUN_00491c80(0x13);
     if (DAT_005122d8 == 0)
         DAT_005122d8 = (param_2 == 0);
-    int result = FUN_00434bf0(param_1, param_2, param_3);
+    int result = LoadMapList(param_1, param_2, param_3);
     return result;
 }

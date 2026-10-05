@@ -5854,7 +5854,7 @@ struct Elem_00434360 {  // 0x10 bytes, 17 views
 class Class_00433130 {  // 0x10 bytes, 2 views
 public:
     std::vector<std::vector<Elem_00434360> > tables;  // +0x0
-    void FUN_00433130(void);
+    void LoadLosTables(void);
 };
 
 class Class_00433270 {  // 0x10 bytes, 1 view
@@ -5879,19 +5879,19 @@ class Class_00433380 {  // 0x10 bytes, 2 views
 public:
     std::vector<Class_004335f0> tables;  // +0x0
     Class_004335f0* GetTable(short);
-    void FUN_00433380(Unit*, short);
+    void LoadLosTable(Unit*, short);
 };
 
 class Class_004336f0 {  // 0x10 bytes, 2 views
 public:
     char unknown_0[16];
-    void FUN_004336f0(Unit*, short, short);
+    void LoadLosLine(Unit*, short, short);
 };
 
 class Class_00433500 {  // 0x10 bytes, 4 views
 public:
     std::vector<std::vector<Elem_00434020> > items;  // +0x0
-    std::vector<Elem_00434020>* FUN_00433500(int);
+    std::vector<Elem_00434020>* GetLosTable(int);
 };
 
 class Class_00433520 {  // 0xc bytes, 4 views
@@ -5899,7 +5899,7 @@ public:
     char unknown_0[4];
     int field_4;  // +0x4
     int field_8;  // +0x8
-    int FUN_00433520(void);
+    int GetLosTableCount(void);
 };
 
 class Class_00433540 {  // 0x1 bytes, 1 view
@@ -5913,14 +5913,14 @@ public:
     char unknown_0[4];
     int field_4;  // +0x4
     int field_8;  // +0x8
-    int FUN_004335c0(void);
+    int GetLosLineCount(void);
 };
 
 class Class_4335e0 {  // 0x8 bytes, 4 views
 public:
     char unknown_0[4];
     int field_4;  // +0x4
-    int FUN_004335e0(short);
+    int GetLosLine(short);
 };
 
 struct Elem_004336c0 {  // 0x4 bytes, 1 view
@@ -5932,13 +5932,13 @@ public:
     char unknown_0[4];
     int field_4;  // +0x4
     int field_8;  // +0x8
-    int FUN_004339c0(void);
+    int GetLosLineStepCount(void);
 };
 
 class Class_004339e0 {  // 0x1 bytes, 4 views
 public:
     char unknown_0[1];
-    void FUN_004339e0(short, unsigned short*, unsigned short*);
+    void GetLosLineStep(short, unsigned short*, unsigned short*);
 };
 
 struct Elem_00434a60 {  // 0x8 bytes, 1 view
@@ -6034,10 +6034,10 @@ public:
     int FUN_00435c30(void);
     int AdvanceMission(void);
     int FUN_00436860(int, Unit*, char*);
-    int FUN_00437320(Vec3*, int);
+    int GetStartPosition(Vec3*, int);
     void LoadCampaign(char*);
     void FUN_00435c00(int);
-    int FUN_00435da0(char*);
+    int LoadMission(char*);
     void LoadBriefing(void);
     void BuildCampaignFilePath(int, char*, char*, char*);
 };
@@ -6130,7 +6130,7 @@ public:
     int ruleCount;  // +0xdb8
     MissionFeature_00436c30* features;  // +0xdbc
     int featureCount;  // +0xdc0
-    void FUN_00436c30(char*, Class_004c2ea0*);
+    void LoadMissionData(char*, Class_004c2ea0*);
 };
 
 class Class_00438320 {  // 0x30 bytes, 3 views
@@ -6140,7 +6140,7 @@ public:
     float density;  // +0x24
     float duration;  // +0x28
     float interval;  // +0x2c
-    void FUN_00438320(void);
+    void LoadMeteorDefaults(void);
 };
 
 class Class_004c44c0 {  // 0x14 bytes, 3 views
@@ -6190,7 +6190,7 @@ public:
     Buffer_00434ff0 buffer0;  // +0xdac
     Buffer_00434ff0 buffer1;  // +0xdb4
     Buffer_00434ff0 buffer2;  // +0xdbc
-    void FUN_00437280(void);
+    void FreeMissionData(void);
 };
 
 class Class_00437300 {  // 0xdbc bytes, 2 views
@@ -6198,7 +6198,7 @@ public:
     char unknown_0[3508];
     Entry* entries;  // +0xdb4
     int entry_count;  // +0xdb8
-    int FUN_00437300(void);
+    int CountStartPositions(void);
 };
 
 class Class_004373a0 {  // 0xc24 bytes, 7 views
@@ -6210,7 +6210,7 @@ public:
     int missionIndex;  // +0xc18
     int field_c1c;  // +0xc1c
     int field_c20;  // +0xc20
-    int FUN_004373a0(void);
+    int ComputeMapChecksum(void);
     char* GetName(int);
 };
 

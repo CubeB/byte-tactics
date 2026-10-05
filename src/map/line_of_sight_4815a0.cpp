@@ -25,7 +25,7 @@ struct Vec3_004815a0 {
 extern Game* g_game;
 
 // FUNCTION: 0x4815a0
-Cell_004815a0* __stdcall FUN_004815a0(Vec3_004815a0* pos)
+Cell_004815a0* __stdcall GetMapCellAtPosition(Vec3_004815a0* pos)
 {
     int x = pos->x >> 20;
     int y = pos->z >> 20;

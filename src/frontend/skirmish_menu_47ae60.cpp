@@ -70,7 +70,7 @@ struct Menu_0047ae60 {
 };
 
 class Class_00435a20 { public: int LoadMissionByName(char* name); };
-class Class_00437300 { public: int FUN_00437300(); };
+class Class_00437300 { public: int CountStartPositions(); };
 
 struct Frame_0047ae60 {
     char sA[0xc];
@@ -172,7 +172,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
                 }
             }
             if (c1 >= 1) {
-                int maxPlayers = (*(Class_00437300**)(g_game + 0x391e9))->FUN_00437300();
+                int maxPlayers = (*(Class_00437300**)(g_game + 0x391e9))->CountStartPositions();
                 if ((int)(unsigned short)*(short*)(g_game + 0x2a3c) > maxPlayers) {
                     OpenMessageBox(g_game + 0x519,
                                  FUN_004c5740("There are too many players enabled for this map"),

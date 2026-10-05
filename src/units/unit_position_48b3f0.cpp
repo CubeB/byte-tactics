@@ -202,9 +202,9 @@ extern float DAT_004fd750;
 
 Class_0048b090* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_0048b3f0* spawn);
 void __stdcall ApplyAttachUnit(Order_0048b3f0* order);
-void __stdcall FUN_0047d0e0(Class_0048b090* u);
-void __stdcall FUN_0047cc30(Class_0048b090* u);
-void __stdcall FUN_004827b0(Class_0048b090* u);
+void __stdcall RemoveUnitFromMap(Class_0048b090* u);
+void __stdcall AddUnitToMap(Class_0048b090* u);
+void __stdcall UpdateUnitLineOfSight(Class_0048b090* u);
 
 // FUNCTION: 0x48b3f0
 void __stdcall ReadUnitState(BitReader* reader, Class_0048b090* u)
@@ -269,12 +269,12 @@ void __stdcall ReadUnitState(BitReader* reader, Class_0048b090* u)
     if (np.x == u->np.x && np.y == u->np.y && colour == (u->f110.all & 3)) {
         u->pos = pos;
     } else {
-        FUN_0047d0e0(u);
+        RemoveUnitFromMap(u);
         u->pos = pos;
         u->np = np;
         u->f110.bits.colour = (unsigned int)(unsigned short)colour;
-        FUN_0047cc30(u);
-        FUN_004827b0(u);
+        AddUnitToMap(u);
+        UpdateUnitLineOfSight(u);
     }
     u->f110.bits.b16 = 1;
     u->tail = tail;

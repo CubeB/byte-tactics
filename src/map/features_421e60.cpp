@@ -22,7 +22,7 @@ extern Game* g_game;
 // Reading the field directly each time (no local) gives `or ax, 0xffff` for
 // the 0xffff return; a local gives `mov eax, 0xffff`.
 // FUNCTION: 0x421e60
-unsigned short __stdcall FUN_00421e60(Cell_00421e60* cell)
+unsigned short __stdcall GetCellFeature(Cell_00421e60* cell)
 {
     if (cell->feature >= 0xfffb) {
         if (cell->feature == 0xfffe)

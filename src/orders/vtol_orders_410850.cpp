@@ -139,7 +139,7 @@ public:
     Class_00410c70(Owner* o, std::vector<Unit*>* u, Unit* s) : owner(o), units(u), self(s) {}
     Owner* owner; std::vector<Unit*>* units; Unit* self;
 };
-void __stdcall FUN_0047e890(Vec3*, int, const Class_00410c70&);
+void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00410c70&);
 static inline int IsDamaged(Unit* u) { return (unsigned int)u->health < (u->def->maxHealth>>2)*3; }
 static inline void FindPads(Unit* u, std::vector<Unit*>* pads) { GetFactoriesInRadius(u->owner->index,&u->pos,0xf00,pads); }
 static inline int SearchRange(Unit* u) { return u->def->searchRange<<16; }
@@ -159,7 +159,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     UnitList units;
     int range=SearchRange(unit);
     Class_00410c70 visitor(unit->owner,&units,unit);
-    FUN_0047e890(&unit->pos,range,visitor);
+    VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
         ((Class_004388d0*)order)->FUN_004388d0(0);
         Class_00438760 kind=FUN_0043f0e0(7,unit,units[0],0);

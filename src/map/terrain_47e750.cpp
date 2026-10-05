@@ -42,7 +42,7 @@ static inline int Clamp_0047e750(int v, unsigned int size)
 }
 
 // FUNCTION: 0x47e750
-void __stdcall FUN_0047e750(int x1, int y1, int x2, int y2, Visitor_0047e750* visitor)
+void __stdcall VisitObjectsInRect(int x1, int y1, int x2, int y2, Visitor_0047e750* visitor)
 {
     int cx1 = Clamp_0047e750(x1 >> 23, g_game->width);
     int cy1 = Clamp_0047e750(y1 >> 23, g_game->height);

@@ -21,7 +21,7 @@ struct Obj_0047db20 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0047e5c0(Pt_0047db20 pos, Pt_0047db20 size, Class_0047db20* visitor);
+void __stdcall VisitObjectsInArea(Pt_0047db20 pos, Pt_0047db20 size, Class_0047db20* visitor);
 void __stdcall RefreshAllPassMaps(Pt_0047db20 pos, Pt_0047db20 size);
 
 // The visitor is declared after the flag update so that it reuses obj's
@@ -34,6 +34,6 @@ void __stdcall FUN_0047db20(Obj_0047db20* obj)
     Class_0047db20 visitor;
     Pt_0047db20 size = obj->size;
     Pt_0047db20 pos = obj->pos;
-    FUN_0047e5c0(pos, size, &visitor);
+    VisitObjectsInArea(pos, size, &visitor);
     RefreshAllPassMaps(obj->pos, obj->size);
 }

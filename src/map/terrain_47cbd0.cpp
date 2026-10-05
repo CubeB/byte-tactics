@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Detaches a unit from its owner: FUN_0047d0e0 first, then (unless +0x86 is
+// Detaches a unit from its owner: RemoveUnitFromMap first, then (unless +0x86 is
 // set) unlinks it from the owner's list (head at owner +0x6, link at unit
 // +0x8e) and clears the owner. The reverse of 0x47cb60.
 
@@ -20,12 +20,12 @@ struct Unit {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0047d0e0(Unit* unit);
+void __stdcall RemoveUnitFromMap(Unit* unit);
 
 // FUNCTION: 0x47cbd0
 void __stdcall FUN_0047cbd0(Unit* unit)
 {
-    FUN_0047d0e0(unit);
+    RemoveUnitFromMap(unit);
     if (unit->unknown_86 == 0) {
         Owner_0047cb60* cur = unit->owner;
         if (cur != 0) {

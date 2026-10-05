@@ -51,7 +51,7 @@ void __stdcall FUN_004a0bf0(Sub_00444a20* obj, char* name, int param_3, int para
 Entry_00444a20* __stdcall FUN_004a0280(Entry_00444a20* entries, char* name);
 void __cdecl FUN_004d85a0(void* param_1);
 void* __stdcall FUN_004295b0(char* path, int* outX, int* outY);
-void __stdcall FUN_004665d0(void* bmp, int param_2, int param_3, int param_4, int param_5);
+void __stdcall ResizeRadarPicture(void* bmp, int param_2, int param_3, int param_4, int param_5);
 void __stdcall FUN_0049fa90(Sub_00444a20* obj);
 char* __stdcall FUN_004c5740(char* text);
 
@@ -82,7 +82,7 @@ void FUN_00444a20()
         (char*)((Class_004356c0*)g_game->field_391e9)->FUN_004356c0(1), &outX, &outY);
     entry->field_c2 = bmp;
     if (bmp != 0) {
-        FUN_004665d0(bmp, entry->field_17, entry->field_19, outX << 4, outY << 4);
+        ResizeRadarPicture(bmp, entry->field_17, entry->field_19, outX << 4, outY << 4);
     }
 
     FUN_004a0bf0(&g_game->sub, "DESCRIPTION",

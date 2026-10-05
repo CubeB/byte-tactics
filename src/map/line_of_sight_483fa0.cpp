@@ -65,7 +65,7 @@ void __stdcall DrawFrameOpaque(void* dst, Bitmap_00483fa0* bmp, int x, int y);
 void __stdcall DrawTile(void* dst, int x, int y, unsigned char* pix);
 
 // FUNCTION: 0x483fa0
-void __stdcall FUN_00483fa0(void* surface)
+void __stdcall DrawMapTiles(void* surface)
 {
     int tilesX, tilesY;
     int tileX, tileY;

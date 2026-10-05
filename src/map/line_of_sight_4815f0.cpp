@@ -38,7 +38,7 @@ struct Vec3_004815f0 {
 extern Game* g_game;
 
 // FUNCTION: 0x4815f0
-Cell_004815f0* __stdcall FUN_004815f0(Vec3_004815f0* pos)
+Cell_004815f0* __stdcall GetOriginCellAtPosition(Vec3_004815f0* pos)
 {
     int x = pos->x >> 20;
     int z = pos->z >> 20;

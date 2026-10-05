@@ -38,7 +38,7 @@
 //   original inlines it (copy and _Destroy out of line), which needs the
 //   function's IL size at 1055 or more with the ternary FeatureIndex (IL 38,
 //   free). The `got` and `type` locals add the IL; plain loops without them
-//   keep erase out of line (89.6%). Above about 1150 FUN_004223e0's ~vector
+//   keep erase out of line (89.6%). Above about 1150 FreeFeatureFileList's ~vector
 //   inlines its _Destroy too (63.7%).
 // - Both loops' spot address orders follow bit 14 of g_game's id below the
 //   wrap; no declaration count without the wrap gives the original's mix of
@@ -100,15 +100,15 @@ extern Game* g_game;
 typedef std::vector<Class_004c2ea0*> FeatureList;
 static FeatureList* DAT_00511fb4;
 
-void __stdcall FUN_004222e0();
-unsigned short __stdcall FUN_004224b0(char* name);
-void __stdcall FUN_00422ea0();
-void __stdcall FUN_004233a0(int x, int y, int flag);
-void __stdcall FUN_00423550(int x, int y, int flag);
-Cell_00424c00* __stdcall FUN_00481550(int x, int y);
-void* __stdcall FUN_00423c50(Cell_00424c00* cell, unsigned short feature, void* pos, void* rot, unsigned char owner);
+void __stdcall LoadFeatureFileList();
+unsigned short __stdcall LoadFeatureType(char* name);
+void __stdcall ResolveFeatureLinks();
+void __stdcall StartFeatureBurning(int x, int y, int flag);
+void __stdcall KillFeature(int x, int y, int flag);
+Cell_00424c00* __stdcall GetMapCell(int x, int y);
+void* __stdcall PlaceFeature(Cell_00424c00* cell, unsigned short feature, void* pos, void* rot, unsigned char owner);
 
-// FUN_00422e40, inlined
+// FindOrLoadFeatureType, inlined
 static inline unsigned short FindName(char* name)
 {
     for (int i = 0; i < g_game->featureCount; i++) {
@@ -120,10 +120,10 @@ static inline unsigned short FindName(char* name)
 static inline unsigned short FeatureIndex(char* name)
 {
     unsigned short i = FindName(name);
-    return i != 0xffff ? i : FUN_004224b0(name);
+    return i != 0xffff ? i : LoadFeatureType(name);
 }
 
-// FUN_004223e0, inlined
+// FreeFeatureFileList, inlined
 static inline void FreeFeatureList()
 {
     for (Class_004c2ea0** p = DAT_00511fb4->begin(); p < DAT_00511fb4->end(); p++)
@@ -133,12 +133,12 @@ static inline void FreeFeatureList()
 }
 
 // FUNCTION: 0x424c00
-void __stdcall FUN_00424c00(Class_004b4560* file)
+void __stdcall LoadFeatures(Class_004b4560* file)
 {
     int j;
     file->FUN_004b4560("Features");
     std::vector<unsigned short> remap;
-    FUN_004222e0();
+    LoadFeatureFileList();
     if (file->FUN_004b4ba0("Feature Type Names")) {
         int count = ((Class_004b4bf0*)file)->FUN_004b4bf0() / sizeof(FeatureName_00424c00);
         remap.resize(count);
@@ -163,7 +163,7 @@ void __stdcall FUN_00424c00(Class_004b4560* file)
         int i = 0;
         for (; i < g_game->featureCount; i++) remap[i] = i;
     }
-    FUN_00422ea0();
+    ResolveFeatureLinks();
     FreeFeatureList();
 
     int k, n;
@@ -174,9 +174,9 @@ void __stdcall FUN_00424c00(Class_004b4560* file)
         ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Normal_00424890));
         int got = file->FUN_004b4c80(&rec, sizeof(Normal_00424890));
         if (got >= sizeof(Normal_00424890)) {
-            Cell_00424c00* c = FUN_00481550(rec.x, rec.y);
+            Cell_00424c00* c = GetMapCell(rec.x, rec.y);
             unsigned short type = remap[rec.feature];
-            FUN_00423c50(c, type, 0, 0, 10);
+            PlaceFeature(c, type, 0, 0, 10);
             c->spot = rec.spot;
         }
     }
@@ -188,18 +188,18 @@ void __stdcall FUN_00424c00(Class_004b4560* file)
         ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Anim_00424c00));
         int got = file->FUN_004b4c80(&rec, sizeof(Anim_00424c00));
         if (got >= sizeof(Anim_00424c00)) {
-            Cell_00424c00* c = FUN_00481550(rec.x, rec.y);
+            Cell_00424c00* c = GetMapCell(rec.x, rec.y);
             unsigned short type = remap[rec.feature];
-            FUN_00423c50(c, type, 0, 0, 10);
+            PlaceFeature(c, type, 0, 0, 10);
             switch (rec.anim) {
             case 0:
-                FUN_004233a0(rec.x, rec.y, 0);
+                StartFeatureBurning(rec.x, rec.y, 0);
                 break;
             case 1:
-                FUN_00423550(rec.x, rec.y, 0);
+                KillFeature(rec.x, rec.y, 0);
                 break;
             case 2:
-                FUN_00423550(rec.x, rec.y, 1);
+                KillFeature(rec.x, rec.y, 1);
                 break;
             }
             Spot_00424c00* s = (Spot_00424c00*)&g_game->spots[c->spot];
@@ -217,9 +217,9 @@ void __stdcall FUN_00424c00(Class_004b4560* file)
         ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Model3D_00424c00));
         int got = file->FUN_004b4c80(&rec, sizeof(Model3D_00424c00));
         if (got >= sizeof(Model3D_00424c00)) {
-            Cell_00424c00* c = FUN_00481550(rec.x, rec.y);
+            Cell_00424c00* c = GetMapCell(rec.x, rec.y);
             unsigned short type = remap[rec.feature];
-            FUN_00423c50(c, type, &rec.pos, &rec.rot, 10);
+            PlaceFeature(c, type, &rec.pos, &rec.rot, 10);
             g_game->spots[c->spot].damage = rec.damage;
         }
     }

@@ -57,10 +57,10 @@ struct Game {
 extern Game* g_game;
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-unsigned short __stdcall FUN_004224b0(char* name);
+unsigned short __stdcall LoadFeatureType(char* name);
 
 // FUNCTION: 0x421f20
-void __stdcall FUN_00421f20(List_00421f20* list)
+void __stdcall InitFeatureAnimPool(List_00421f20* list)
 {
     AnimManager_00421f20* m = &g_game->anim;
 
@@ -92,6 +92,6 @@ void __stdcall FUN_00421f20(List_00421f20* list)
     NameEntry_00421f20*& entries = list->entries;
 
     for (int j = 0; j < list->count; j++) {
-        FUN_004224b0(entries[j].name);
+        LoadFeatureType(entries[j].name);
     }
 }

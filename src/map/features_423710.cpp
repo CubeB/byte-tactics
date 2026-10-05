@@ -44,16 +44,16 @@ struct Game {
 
 extern Game* g_game;
 
-Cell_00423710* __stdcall FUN_00481550(int x, int y);
-void __stdcall FUN_004246b0(Cell_00423710* cell, int flag);
-void* __stdcall FUN_00423c50(Cell_00423710* cell, unsigned short feature,
+Cell_00423710* __stdcall GetMapCell(int x, int y);
+void __stdcall RemoveFeature(Cell_00423710* cell, int flag);
+void* __stdcall PlaceFeature(Cell_00423710* cell, unsigned short feature,
                             Vec3_00423710* pos, Rot_00423710* rot,
                             unsigned char owner);
 
 // FUNCTION: 0x423710
-void __stdcall FUN_00423710(int x, int y, int flag)
+void __stdcall ReplaceFeatureWithDead(int x, int y, int flag)
 {
-    Cell_00423710* cell = FUN_00481550(x, y);
+    Cell_00423710* cell = GetMapCell(x, y);
     if (cell == 0)
         return;
     if (cell->feature >= 0xfffb)
@@ -68,10 +68,10 @@ void __stdcall FUN_00423710(int x, int y, int flag)
         Spot_00423710* spot = g_game->spots + cell->spot;
         if (spot->flags & 2)
             v = f->field_f8;
-        FUN_004246b0(cell, 0);
-        FUN_00423c50(cell, v, &spot->pos, &spot->rot, 10);
+        RemoveFeature(cell, 0);
+        PlaceFeature(cell, v, &spot->pos, &spot->rot, 10);
         return;
     }
-    FUN_004246b0(cell, 0);
-    FUN_00423c50(cell, v, 0, 0, 10);
+    RemoveFeature(cell, 0);
+    PlaceFeature(cell, v, 0, 0, 10);
 }

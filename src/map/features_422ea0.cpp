@@ -51,9 +51,9 @@ extern Game* g_game;
 extern List_00422ea0* DAT_00511fb4;
 extern char DAT_005119b8[];
 
-unsigned short __stdcall FUN_004224b0(char* name);
+unsigned short __stdcall LoadFeatureType(char* name);
 
-// FUN_00422460, inlined
+// FindFeatureFile, inlined
 static inline Class_004c3e10* FindEntry(char* name)
 {
     for (Class_004c3e10** p = DAT_00511fb4->first; p < DAT_00511fb4->last; p++) {
@@ -64,7 +64,7 @@ static inline Class_004c3e10* FindEntry(char* name)
     return 0;
 }
 
-// FUN_00422dd0-like search, inlined
+// FindFeatureType-like search, inlined
 static inline unsigned short FindName(char* name)
 {
     for (int i = 0; i < g_game->featureCount; i++) {
@@ -75,13 +75,13 @@ static inline unsigned short FindName(char* name)
     return 0xffff;
 }
 
-// FUN_00422e40, inlined
+// FindOrLoadFeatureType, inlined
 static inline unsigned short FeatureIndex(char* name)
 {
     unsigned short i = FindName(name);
     if (i != 0xffff)
         return i;
-    return FUN_004224b0(name);
+    return LoadFeatureType(name);
 }
 
 // The loop is a do/while behind its own guard: the pointer to the feature
@@ -90,7 +90,7 @@ static inline unsigned short FeatureIndex(char* name)
 // register order of `features + i` depends on compiler state (the
 // N-declarations test matches only for N = 0 and 1).
 // FUNCTION: 0x422ea0
-void FUN_00422ea0()
+void ResolveFeatureLinks()
 {
     char buf[0x100];
     FeatureDef_00422ea0** features;

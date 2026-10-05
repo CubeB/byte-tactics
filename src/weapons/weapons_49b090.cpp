@@ -116,7 +116,7 @@
 // cx/cz/f/mf) never moved it; without oz the cell lands in ebp, with it in ebx.
 //
 // 0x49b090 is the projectile collision test. It looks up the map cell holding
-// the projectile with FUN_004815a0(&proj->pos); if there is none it stores the
+// the projectile with GetMapCellAtPosition(&proj->pos); if there is none it stores the
 // selected projectile's last position and sound, clears the selection, sets the
 // dead flag and returns. Otherwise: (1) if the projectile is attached to a unit,
 // the 64-bit squared distance is checked against type->radius^2 and the
@@ -357,7 +357,7 @@ struct Net_0049b090 {
 
 extern Game* g_game;
 
-Cell_0049b090* __stdcall FUN_004815a0(Pos_0049b090* pos);
+Cell_0049b090* __stdcall GetMapCellAtPosition(Pos_0049b090* pos);
 void __stdcall DetonateProjectile(Proj_0049b090* proj, Unit* unit);
 
 // The second argument (the type) is the first stack dword: the prologue's
@@ -368,7 +368,7 @@ void __stdcall DetonateProjectile(Proj_0049b090* proj, Unit* unit);
 void __stdcall CheckProjectileCollision(ProjType_0049b090* type, Proj_0049b090* proj)
 {
     Pos_0049b090* pos = (Pos_0049b090*)&proj->px;
-    Cell_0049b090* cell = FUN_004815a0(pos);
+    Cell_0049b090* cell = GetMapCellAtPosition(pos);
 
     if (!cell) {
         if (proj == g_game->selected) {

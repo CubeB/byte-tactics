@@ -52,7 +52,7 @@ union Fixed_437840 {
     } parts;
 };
 
-Cell_437840* __stdcall FUN_00481550(int x, int y);
+Cell_437840* __stdcall GetMapCell(int x, int y);
 
 // FUNCTION: 0x437840
 void __stdcall UpdateMetalExtraction(Unit* unit)
@@ -63,7 +63,7 @@ void __stdcall UpdateMetalExtraction(Unit* unit)
         Point16_437840 fp = unit->footprint;
         for (int y = unit->cell.y; y < unit->cell.y + fp.y; y++) {
             for (int x = unit->cell.x; x < unit->cell.x + fp.x; x++) {
-                Cell_437840* c = FUN_00481550(x, y);
+                Cell_437840* c = GetMapCell(x, y);
                 if (c) {
                     total.parts.whole += c->metal + 1;
                 }

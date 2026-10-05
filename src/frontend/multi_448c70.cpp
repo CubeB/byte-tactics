@@ -142,7 +142,7 @@ public:
 };
 class Class_004373a0 {
 public:
-    unsigned int FUN_004373a0();
+    unsigned int ComputeMapChecksum();
 };
 class UnitSync {
 public:
@@ -265,7 +265,7 @@ int CheckMapCrc()
     if (!check) {
         return 1;
     }
-    if (((Class_004373a0*)g_game->map)->FUN_004373a0() != data->mapCrc)
+    if (((Class_004373a0*)g_game->map)->ComputeMapChecksum() != data->mapCrc)
         return 0;
     return 1;
 }

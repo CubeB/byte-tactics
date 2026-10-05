@@ -61,7 +61,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004232f0(int index, int* head);
+void __stdcall MoveFeatureSpot(int index, int* head);
 void __stdcall FreeObjectState(void* state);
 void __stdcall RefreshAllPassMaps(Point16_004246b0 a, Point16_004246b0 b);
 
@@ -72,7 +72,7 @@ static inline void ClearCell(Cell_004246b0* c)
 }
 
 // FUNCTION: 0x4246b0
-int __stdcall FUN_004246b0(Cell_004246b0* cell, int flag)
+int __stdcall RemoveFeature(Cell_004246b0* cell, int flag)
 {
     if (cell->feature == 0xfffe)
         cell -= cell->sf.offsetY * g_game->width + cell->sf.offsetX;
@@ -87,7 +87,7 @@ int __stdcall FUN_004246b0(Cell_004246b0* cell, int flag)
             FreeObjectState(spot->state);
             spot->state = 0;
         }
-        FUN_004232f0(cell->sf.spot, &g_game->list_1421b);
+        MoveFeatureSpot(cell->sf.spot, &g_game->list_1421b);
     }
     ClearCell(cell);
     for (int y = 0; y < f->footprint.z; y++) {

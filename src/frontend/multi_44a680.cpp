@@ -106,7 +106,7 @@ struct Game {
 #pragma pack(pop)
 
 struct Class_004358f0 { int FUN_004358f0(); };
-struct Class_004373a0 { int FUN_004373a0(); };
+struct Class_004373a0 { int ComputeMapChecksum(); };
 struct Class_00435a20 { void LoadMissionByName(PlayerInfo_0044a680* info); };
 struct Class_00435c30 { char* FUN_00435c30(); };
 struct Class_0046e000 { int AllPlayersSynced(); };
@@ -171,7 +171,7 @@ int CheckMapCrc()
     if (!check) {
         return 1;
     }
-    if (((Class_004373a0*)g_game->map)->FUN_004373a0() != data->mapCrc)
+    if (((Class_004373a0*)g_game->map)->ComputeMapChecksum() != data->mapCrc)
         return 0;
     return 1;
 }

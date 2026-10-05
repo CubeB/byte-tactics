@@ -615,7 +615,7 @@ struct Pathfinder_0047de60 {
 extern Game* g_game;
 
 // FUNCTION: 0x47de60
-int __stdcall FUN_0047de60(Pathfinder_0047de60* obj, Cell_0047de60* cell)
+int __stdcall GetPassMapCellValue(Pathfinder_0047de60* obj, Cell_0047de60* cell)
 {
     int blocked;
     unsigned short feature = cell->feature;

@@ -425,7 +425,7 @@ void FUN_00449bb0()
     if (!((Class_00435c40*)g_game->map)->FUN_00435c40())
         FatalError("Could not find the multiplayer map!!");
     strcpy(info->map, ((Class_00435c30*)g_game->map)->FUN_00435c30());
-    info->mapCrc = ((Class_004373a0*)g_game->map)->FUN_004373a0();
+    info->mapCrc = ((Class_004373a0*)g_game->map)->ComputeMapChecksum();
     BroadcastPlayerInfo();
     FUN_004a7190(&g_game->gui, FindGadgetIndex(g_game->gui.table->entries, "MESSAGE", 0xe));
 

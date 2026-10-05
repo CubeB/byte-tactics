@@ -63,7 +63,7 @@ class MovementClass {
     void ReadMoveInfo(void* parser);
 };
 extern char* g_game;
-short __stdcall FUN_00422e40(char* name);
+short __stdcall FindOrLoadFeatureType(char* name);
 void* __stdcall FindMovementClass(char* name);
 char* __stdcall FindWeaponByName(char* name);
 void* __cdecl FUN_004d83b0(char* name, int size);
@@ -519,7 +519,7 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
         SOUND_DONE:
             unitdef->corpse = -1;
             if (((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "corpse", 100, DAT_005119b8))
-                unitdef->corpse = FUN_00422e40(buf);
+                unitdef->corpse = FindOrLoadFeatureType(buf);
             unitdef->movementclass = 0;
             if (((Class_004c48c0*)parser.current)
                     ->FUN_004c48c0(buf, "movementclass", 100, DAT_005119b8))

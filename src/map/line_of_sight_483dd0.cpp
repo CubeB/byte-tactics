@@ -40,14 +40,14 @@ struct Game {
 extern Game* g_game;
 
 void __cdecl FUN_004d85a0(void* p);
-void FUN_00422170();
+void FreeFeaturePool();
 void __cdecl operator delete(void* p);
 
 // FUNCTION: 0x483dd0
-void FUN_00483dd0()
+void FreeMapResources()
 {
     FUN_004d85a0(g_game->eyeball);
-    FUN_00422170();
+    FreeFeaturePool();
     if (g_game->radarFrame) {
         FUN_004d85a0(g_game->radarFrame);
         g_game->radarFrame = 0;

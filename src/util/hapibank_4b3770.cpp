@@ -302,7 +302,7 @@ long __stdcall FUN_004bb7a0(File_004bb5d0* file);
 void __stdcall FUN_004bb7c0(File_004bb5d0* file, void* buf, int size);
 long __stdcall FUN_004bbd00(File_004bb5d0* file);
 void* __cdecl FUN_004d8450(unsigned int size);
-void* __cdecl FUN_004d8460(unsigned int count, unsigned int size);
+void* __cdecl GameCalloc(unsigned int count, unsigned int size);
 void* __cdecl FUN_004d8580(void* ptr, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_004d1b40(unsigned char* src);
@@ -410,7 +410,7 @@ int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
     }
 
     FUN_004b3630();
-    table = (Table_004b3630*)FUN_004d8460(1, 0xc);
+    table = (Table_004b3630*)GameCalloc(1, 0xc);
     ((int*)table)[2] = -1;
 
     FUN_004bb710(file, h.seekoff);

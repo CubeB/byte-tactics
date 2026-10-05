@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 // Allocator address map lookup, the same tree 0x4daa30 walks (the one
-// FUN_004da8d0 lazily creates; its _Lbound is 0x4dd3d0). Under the allocator
+// GetBlockMap lazily creates; its _Lbound is 0x4dd3d0). Under the allocator
 // lock it builds the 0x30-byte Class_004d8820 search record, runs the tree's
 // inline find() (lower_bound plus the `_P == end() || _Kfn(_Kv, _Key(_P)) ?
 // end() : _P` test) and returns the found record's second dword, or 0 when the
@@ -8,10 +8,10 @@
 //
 // Shape notes that decide the bytes:
 //  - `tree` must be a named local fetched BEFORE `rec` is constructed: that is
-//    what lands `call FUN_004da8d0` before the Class_004d8820 ctor argument
-//    pushes (writing `FUN_004da8d0()->find(rec.key)` instead evaluates the ctor
+//    what lands `call GetBlockMap` before the Class_004d8820 ctor argument
+//    pushes (writing `GetBlockMap()->find(rec.key)` instead evaluates the ctor
 //    first and scores 95.3 percent with that single reordered block as the
-//    only hunk). The final end() test calls FUN_004da8d0() a second time, so
+//    only hunk). The final end() test calls GetBlockMap() a second time, so
 //    the local only supplies the lower_bound `this`.
 //  - the frame is 13 dwords: 12 for the record plus one for the unnamed End()
 //    temporary of the ternary; the iterator itself has no slot, it reuses the
@@ -65,18 +65,18 @@ public:
     }
 };
 
-Class_004dd3d0* FUN_004da8d0();
+Class_004dd3d0* GetBlockMap();
 LPCRITICAL_SECTION FUN_004da780();
 
 // FUNCTION: 0x4dbae0
-unsigned int __cdecl FUN_004dbae0(unsigned int key)
+unsigned int __cdecl LookupBlockSize(unsigned int key)
 {
     LPCRITICAL_SECTION cs = FUN_004da780();
     EnterCriticalSection(cs);
-    Class_004dd3d0* tree = FUN_004da8d0();
+    Class_004dd3d0* tree = GetBlockMap();
     Class_004d8820 rec(key, 0, 0, 0, 0);
     Iter_004dd3d0 it = tree->find(rec.key);
-    if (it == FUN_004da8d0()->End()) {
+    if (it == GetBlockMap()->End()) {
         LeaveCriticalSection(cs);
         return 0;
     }

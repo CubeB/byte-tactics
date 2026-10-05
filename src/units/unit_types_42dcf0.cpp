@@ -121,8 +121,8 @@ extern char DAT_005119b8[];
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_004bca30(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
 void* __cdecl FUN_004d83b0(const char* name, int size);
-void __cdecl FUN_004d8780(void* p);
-void __cdecl FUN_004d8710(void* p);
+void __cdecl ProtectBlockReadWrite(void* p);
+void __cdecl ProtectBlockReadOnly(void* p);
 void __cdecl AddDownloadBuildOptions();
 
 // FUNCTION: 0x42dcf0
@@ -167,7 +167,7 @@ void LoadDownloadMenus()
         }
     }
 
-    FUN_004d8780(g_game->unitDefs);
+    ProtectBlockReadWrite(g_game->unitDefs);
     for (unsigned short u = 0; u < g_game->unitDefCount; u++) {
         for (c = 0; c < n; c++) {
             for (int d = 0; d < g_game->buildLists[c].count; d++) {
@@ -178,7 +178,7 @@ void LoadDownloadMenus()
             }
         }
     }
-    FUN_004d8710(g_game->unitDefs);
+    ProtectBlockReadOnly(g_game->unitDefs);
 
     UnitDef_0042dcf0* defs = g_game->unitDefs;
     for (c = 0; c < g_game->unitDefCount; c++) {
@@ -187,9 +187,9 @@ void LoadDownloadMenus()
                 && !defs[c].flags_241.downloadable) {
                 char buf[128];
                 sprintf(buf, "Hey!  Somebody forgot to set downloadable=1 for %s", defs[c].name);
-                FUN_004d8780(g_game->unitDefs);
+                ProtectBlockReadWrite(g_game->unitDefs);
                 defs[c].flags_241.downloadable = 1;
-                FUN_004d8710(g_game->unitDefs);
+                ProtectBlockReadOnly(g_game->unitDefs);
             }
         }
     }

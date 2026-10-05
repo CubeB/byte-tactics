@@ -14,7 +14,7 @@ __declspec(thread) char g_stackKnown;      // g_stackHigh has been looked up
 // Whether [p, p + size) lies outside this thread's live stack: 0 when it is
 // between the current stack pointer and the end of the stack's region.
 // FUNCTION: 0x4d8d70
-char __cdecl FUN_004d8d70(char* p, int size)
+char __cdecl IsOutsideStack(char* p, int size)
 {
     MEMORY_BASIC_INFORMATION info;
     char* top;

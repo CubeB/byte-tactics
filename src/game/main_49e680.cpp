@@ -1,7 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 #include <windows.h>
 
-void __cdecl FUN_004d8e60(EXCEPTION_POINTERS* exception, const char* message);
+void __cdecl ReportException(EXCEPTION_POINTERS* exception, const char* message);
 
 // Raises a divide-by-zero on purpose and reports it, so that `message`
 // arrives with a register dump and stack trace of the place it came from.
@@ -17,6 +17,6 @@ void __stdcall ReportViaException(const char* message)
             pop edx
             pop eax
         }
-    } __except (FUN_004d8e60(GetExceptionInformation(), message), EXCEPTION_EXECUTE_HANDLER) {
+    } __except (ReportException(GetExceptionInformation(), message), EXCEPTION_EXECUTE_HANDLER) {
     }
 }

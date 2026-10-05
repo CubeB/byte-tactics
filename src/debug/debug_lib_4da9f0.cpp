@@ -24,7 +24,7 @@ public:
 extern Container_004da9f0<int>* DAT_00528a48;
 
 // FUNCTION: 0x4da9f0
-Container_004da9f0<int>* FUN_004da9f0()
+Container_004da9f0<int>* GetFreedBlockRing()
 {
     if (DAT_00528a48 == 0) {
         DAT_00528a48 = new Container_004da9f0<int>;

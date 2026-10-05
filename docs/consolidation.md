@@ -166,7 +166,7 @@ revisit them once the surrounding code is known.
   vtables by hand; 0x44ef90's class is spelt `Class_44ef90`.
 
 - The timer class is `Class_004e2150` in 0x4e2150.cpp and `Class_004e2160`
-  elsewhere; its getter 0x4e1e30 is `Class_004e1e30::FUN_004e1e30`.
+  elsewhere; its getter 0x4e1e30 is `Class_004e1e30::GetElapsedSeconds`.
 
 - `Class_004402e0` (constructor 0x4402e0) is the class 0x440290.cpp calls
   `MovementClass`, while 0x440320 is recorded as the free function

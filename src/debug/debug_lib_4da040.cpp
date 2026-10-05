@@ -4,7 +4,7 @@
 // ("0x...") or decimal.
 #include <stdio.h>
 
-char* __cdecl FUN_004d9f60(char* name);
+char* __cdecl FindCommandLineSwitch(char* name);
 
 class Class_004da040 {
 public:
@@ -16,7 +16,7 @@ public:
 Class_004da040::Class_004da040(char* name, int a, int def, char* sw)
 {
     value = def;
-    char* p = FUN_004d9f60(sw);
+    char* p = FindCommandLineSwitch(sw);
     if (p) {
         while (*p == ' ' || *p == '\t' || *p == '=')
             p++;

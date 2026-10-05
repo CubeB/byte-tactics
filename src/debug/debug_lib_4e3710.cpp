@@ -5,7 +5,7 @@ extern char DAT_00529e9c;
 extern HANDLE DAT_00529e98;
 
 // FUNCTION: 0x4e3710
-bool FUN_004e3710()
+bool CloseGdperf()
 {
     if (DAT_00529e9c) {
         DAT_00529e9c = 0;

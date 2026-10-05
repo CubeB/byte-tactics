@@ -43,11 +43,11 @@ public:
     int stopped;                        // +0x08
     HWND hwnd;                          // +0x0c
 
-    void FUN_0047c530();
+    void WriteSmackStats();
 };
 
 // FUNCTION: 0x47c530
-void Class_0047c6c0::FUN_0047c530()
+void Class_0047c6c0::WriteSmackStats()
 {
     SmkStats_0047c530 stats;
     SmackSummary(smack, &stats);

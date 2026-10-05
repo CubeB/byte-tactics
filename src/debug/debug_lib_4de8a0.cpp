@@ -15,10 +15,10 @@ extern char DAT_00528ae4;
 extern char DAT_00528ae8[0x1e8];
 extern char DAT_00528ed0[0x1e8];
 
-bool __cdecl FUN_004de810(char* dir, char* name);
+bool __cdecl FileExists(char* dir, char* name);
 
 // FUNCTION: 0x4de8a0
-void __cdecl FUN_004de8a0(char* out, char* name)
+void __cdecl GetSourceFilePath(char* out, char* name)
 {
     char* dir = DAT_005119b8;
     if (strchr(name, '\\') == 0) {
@@ -38,9 +38,9 @@ void __cdecl FUN_004de8a0(char* out, char* name)
                 strcat(DAT_00528ed0, "\\vc\\mfc\\src\\");
             }
         }
-        if (FUN_004de810(DAT_00528ed0, name)) {
+        if (FileExists(DAT_00528ed0, name)) {
             dir = DAT_00528ed0;
-        } else if (FUN_004de810(DAT_00528ae8, name)) {
+        } else if (FileExists(DAT_00528ae8, name)) {
             dir = DAT_00528ae8;
         }
     }

@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern double FUN_004e1730();
+extern double GetTimeSeconds();
 
 class Class_004e2160 {
 public:
@@ -8,14 +8,14 @@ public:
     char unknown_8[0x40];
     char flag_48;
 
-    void FUN_004e2160();
+    void ResumeTimer();
 };
 
 // FUNCTION: 0x4e2160
-void Class_004e2160::FUN_004e2160()
+void Class_004e2160::ResumeTimer()
 {
     if (flag_48 != 0) {
-        double fVar1 = FUN_004e1730();
+        double fVar1 = GetTimeSeconds();
         value = fVar1 - value;
         flag_48 = 0;
     }

@@ -11,29 +11,29 @@ struct Fpo_004de020 {
 
 class Class_004ddfa0 {
 public:
-    Fpo_004de020* FUN_004ddfa0();
+    Fpo_004de020* GetFpoRecords();
 };
 
 class Class_004ddfe0 {
 public:
-    int FUN_004ddfe0();
+    int GetFpoRecordCount();
 };
 
 class Class_004de020 {
 public:
     char unknown_0[0x18];
     unsigned int imageBase;            // +0x18
-    Fpo_004de020* FUN_004de020(unsigned int address);
+    Fpo_004de020* FindFpoRecord(unsigned int address);
 };
 
 // Binary search of the FPO records for the one covering an address.
 // FUNCTION: 0x4de020
-Fpo_004de020* Class_004de020::FUN_004de020(unsigned int address)
+Fpo_004de020* Class_004de020::FindFpoRecord(unsigned int address)
 {
-    Fpo_004de020* first = ((Class_004ddfa0*)this)->FUN_004ddfa0();
+    Fpo_004de020* first = ((Class_004ddfa0*)this)->GetFpoRecords();
     if (first == 0)
         return 0;
-    int n = ((Class_004ddfe0*)this)->FUN_004ddfe0();
+    int n = ((Class_004ddfe0*)this)->GetFpoRecordCount();
     if (n == 0)
         return 0;
     Fpo_004de020* last = first + n;

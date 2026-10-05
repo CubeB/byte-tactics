@@ -9,7 +9,7 @@ public:
 };
 
 // FUNCTION: 0x4d8260
-int FUN_004d8260()
+int GetMemSetValue()
 {
     static Class_004da040 setValue("setvalue", 0xdeadbeef, 0xdeadbeef, "-memset");
     return setValue.value;

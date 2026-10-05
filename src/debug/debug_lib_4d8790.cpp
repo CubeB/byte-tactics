@@ -10,7 +10,7 @@ struct BlockInfo_004d8790 {
 };
 
 // FUNCTION: 0x4d8790
-void __cdecl FUN_004d8790(BlockInfo_004d8790 info, char* buf, int unused)
+void __cdecl FormatBlockInfo(BlockInfo_004d8790 info, char* buf, int unused)
 {
     if (info.name[0] != 0) {
         sprintf(buf, "\tBlock info: %ld bytes at %08lX - Alloc #%d - '%s'",

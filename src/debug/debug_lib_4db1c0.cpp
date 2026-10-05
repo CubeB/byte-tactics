@@ -17,7 +17,7 @@
 //    callee addresses differ, since this file's copy of the set's members is
 //    0x4dd250 (_Ubound), 0x4dc130 (erase) and 0x4dbec0 (insert).
 //  * The lookup key `k` is declared at function scope. Inside the `if` MSVC
-//    turns the recursive `return FUN_004db1c0(bytes)` into a jump (589 bytes).
+//    turns the recursive `return TakeFreeBlock(bytes)` into a jump (589 bytes).
 //  * In Grow, `len` is declared before `base` (the other order swaps the
 //    operands of `base + len`).
 //  * In the found block, `len` is declared before `base` but `base` is read
@@ -119,8 +119,8 @@ public:
         return Class_004dd2a0(((Class_004dd250*)this)->FUN_004dd250(k));
     }
 
-    void FUN_004db000(Pair_004db000 p);
-    unsigned int FUN_004db1c0(unsigned int bytes);
+    void AddFreeBlock(Pair_004db000 p);
+    unsigned int TakeFreeBlock(unsigned int bytes);
 
     // 0x4db450: reserve more address space and add it to the free blocks.
     bool Grow(unsigned int size)
@@ -146,13 +146,13 @@ public:
                                               PAGE_READWRITE);
         }
         total += len;
-        FUN_004db000(Pair_004db000(base, len));
+        AddFreeBlock(Pair_004db000(base, len));
         return true;
     }
 };
 
 // FUNCTION: 0x4db1c0
-unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
+unsigned int Class_004db000::TakeFreeBlock(unsigned int bytes)
 {
     Pair_004db000 k;
     if (size() > 0) {
@@ -198,6 +198,6 @@ unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
         } while (tries < 2);
     }
     if (Grow(bytes))
-        return FUN_004db1c0(bytes);
+        return TakeFreeBlock(bytes);
     return 0;
 }

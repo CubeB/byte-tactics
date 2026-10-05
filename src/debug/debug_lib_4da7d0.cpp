@@ -9,7 +9,7 @@ extern unsigned int DAT_005289f8;
 extern unsigned int DAT_005289d8;
 
 // FUNCTION: 0x4da7d0
-void __cdecl FUN_004da7d0(unsigned int size)
+void __cdecl CountAlloc(unsigned int size)
 {
     DAT_00528a04++;
     DAT_00528a08++;

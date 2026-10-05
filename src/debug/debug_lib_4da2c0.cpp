@@ -1,23 +1,23 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Od /Gy
 //
-// The debug thread FUN_004da1d0 starts, compiled without optimisation like
+// The debug thread InitDebugSupport starts, compiled without optimisation like
 // the rest of Cavedog's debug helpers.
 #include <windows.h>
 
-void FUN_004e1460(void);
-void FUN_004dfe80(void);
-void __cdecl FUN_004da1d0(unsigned int flags);
+void StartMemoryStatus(void);
+void StartPerformanceStatus(void);
+void __cdecl InitDebugSupport(unsigned int flags);
 
 extern unsigned char DAT_005289c8;      // the debug thread is running
 
-void __cdecl FUN_004da2e0(void* param);
-BOOL __cdecl FUN_004da380(MSG* msg);
+void __cdecl RunDebugThread(void* param);
+BOOL __cdecl HandleDialogMessage(MSG* msg);
 
 // FUNCTION: 0x4da2c0
-DWORD __stdcall FUN_004da2c0(void* param)
+DWORD __stdcall DebugThreadProc(void* param)
 {
-    FUN_004da2e0(param);
+    RunDebugThread(param);
     return 0;
 }
 
@@ -29,20 +29,20 @@ DWORD __stdcall FUN_004da2c0(void* param)
 // these four names give the original's frame (hThread at -4, ret at -8,
 // message at -0x24, priority at -0x28); `thread` / `result` do not.
 // FUNCTION: 0x4da2e0
-void __cdecl FUN_004da2e0(void* param)
+void __cdecl RunDebugThread(void* param)
 {
     HANDLE hThread = GetCurrentThread();
     int ret;
     MSG message;
     int priority = GetThreadPriority(hThread);
     SetThreadPriority(hThread, THREAD_PRIORITY_ABOVE_NORMAL);
-    FUN_004e1460();
-    FUN_004dfe80();
+    StartMemoryStatus();
+    StartPerformanceStatus();
     SetThreadPriority(hThread, priority);
     DAT_005289c8 = 1;
     while ((ret = GetMessageA(&message, 0, 0, 0)) != 0) {
         if (ret == -1) {
-        } else if (!FUN_004da380(&message)) {
+        } else if (!HandleDialogMessage(&message)) {
             TranslateMessage(&message);
             DispatchMessageA(&message);
         }
@@ -50,9 +50,9 @@ void __cdecl FUN_004da2e0(void* param)
 }
 
 // Lets the dialog at the top of msg's window chain handle it (the names give
-// the original's frame, as in FUN_004da2e0).
+// the original's frame, as in RunDebugThread).
 // FUNCTION: 0x4da380
-BOOL __cdecl FUN_004da380(MSG* msg)
+BOOL __cdecl HandleDialogMessage(MSG* msg)
 {
     HWND root;
     HWND parent = msg->hwnd;
@@ -69,5 +69,5 @@ BOOL __cdecl FUN_004da380(MSG* msg)
 // FUNCTION: 0x4da3e0
 void __cdecl FUN_004da3e0(void)
 {
-    FUN_004da1d0(0);
+    InitDebugSupport(0);
 }

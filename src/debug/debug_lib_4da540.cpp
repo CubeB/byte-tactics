@@ -1,16 +1,16 @@
 // Decompiled by Opus. Names are provisional.
 #include <windows.h>
 
-int FUN_004d9f50(void);
-HGLOBAL __cdecl FUN_004da480(int id);
+int GetDebugLibInstance(void);
+HGLOBAL __cdecl GetDialogTemplate(int id);
 
 // FUNCTION: 0x4da540
-HWND __cdecl FUN_004da540(int id, HWND parent, DLGPROC proc, LPARAM param)
+HWND __cdecl CreateDialogFromTemplate(int id, HWND parent, DLGPROC proc, LPARAM param)
 {
-    HGLOBAL mem = FUN_004da480(id);
+    HGLOBAL mem = GetDialogTemplate(id);
     if (mem == 0)
         return 0;
-    HWND result = CreateDialogIndirectParamA((HINSTANCE)FUN_004d9f50(), (LPCDLGTEMPLATEA)mem, parent, proc, param);
+    HWND result = CreateDialogIndirectParamA((HINSTANCE)GetDebugLibInstance(), (LPCDLGTEMPLATEA)mem, parent, proc, param);
     GlobalFree(mem);
     return result;
 }

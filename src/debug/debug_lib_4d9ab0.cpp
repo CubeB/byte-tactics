@@ -2,9 +2,9 @@
 #include <windows.h>
 #include <string.h>
 
-void __cdecl FUN_004d8e60(EXCEPTION_POINTERS* exception, const char* message);
+void __cdecl ReportException(EXCEPTION_POINTERS* exception, const char* message);
 void FUN_004d8390(void);
-void FUN_004da0c0(void);
+void AbortProgram(void);
 
 // The fatal error handler: appends `message` to ErrorLog.txt beside the exe,
 // breaks into the debugger with a register dump and stack trace, shows the
@@ -15,7 +15,7 @@ void FUN_004da0c0(void);
 // block that declares `sep`, `file` and `written` give the original's frame:
 // `written` at ebp-0x40c.
 // FUNCTION: 0x4d9ab0
-void __cdecl FUN_004d9ab0(const char* message)
+void __cdecl FatalError(const char* message)
 {
     char path[1000];
     DWORD length;
@@ -38,10 +38,10 @@ void __cdecl FUN_004d9ab0(const char* message)
     }
     __try {
         __asm int 3
-    } __except (FUN_004d8e60(GetExceptionInformation(), "fatal error handler"), EXCEPTION_EXECUTE_HANDLER) {
+    } __except (ReportException(GetExceptionInformation(), "fatal error handler"), EXCEPTION_EXECUTE_HANDLER) {
     }
     if (message)
         MessageBoxA(0, message, "Cavedog", MB_OK | MB_ICONSTOP | MB_SYSTEMMODAL | MB_TOPMOST);
     FUN_004d8390();
-    FUN_004da0c0();
+    AbortProgram();
 }

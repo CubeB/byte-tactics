@@ -150,7 +150,7 @@ public:
 };
 #pragma pack(pop)
 
-char* __cdecl FUN_004d8610(char* text);
+char* __cdecl GameStrdup(char* text);
 char* FUN_004b6ba0(char* text, int len);
 void FatalError(char* text);
 
@@ -165,7 +165,7 @@ static inline char* SkipSpace(char* p)
 Class_004c3e40::Class_004c3e40(char* name, char* text, char** nextblock, char* filename)
 {
     char error[2000] = "Parse error in .TDF File! ";
-    this->name = FUN_004d8610(name);
+    this->name = GameStrdup(name);
     char* current = text;
     for (;;) {
         current = SkipSpace(current);

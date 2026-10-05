@@ -8,11 +8,11 @@ class Class_004df590 {
 public:
     HWND hwnd;
 
-    BOOL FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam);
+    BOOL HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 };
 
 // FUNCTION: 0x4df330
-BOOL __stdcall FUN_004df330(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+BOOL __stdcall PerformanceDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     if (msg == WM_INITDIALOG) {
         SetWindowLongA(hwnd, GWL_USERDATA, lParam);
@@ -20,6 +20,6 @@ BOOL __stdcall FUN_004df330(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     Class_004df590* obj = (Class_004df590*)GetWindowLongA(hwnd, GWL_USERDATA);
     if (obj)
-        return obj->FUN_004df590(msg, wParam, lParam);
+        return obj->HandlePerformanceMessage(msg, wParam, lParam);
     return 0;
 }

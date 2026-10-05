@@ -25,7 +25,7 @@ struct File_004b4910 {
 };
 
 void* __cdecl FUN_004d8580(void* ptr, int size);
-char* __cdecl FUN_004d8610(char* s);
+char* __cdecl GameStrdup(char* s);
 
 class Class_004b48f0 {
 public:
@@ -50,6 +50,6 @@ int Class_004b48f0::FUN_004b4910(char* name, int flag)
     s->count = n + 1;
     s->values = (Value_004b4910*)FUN_004d8580(s->values, (n + 1) * sizeof(Value_004b4910));
     memset(&s->values[n], 0, sizeof(Value_004b4910));
-    s->values[n].name = FUN_004d8610(name);
+    s->values[n].name = GameStrdup(name);
     return n;
 }

@@ -14,19 +14,19 @@ extern EventEntry DAT_0050d980[];
 extern EventEntry DAT_00529e00;        // "Event0"
 extern EventEntry DAT_00529e10;        // "Event1"
 
-void __cdecl FUN_004e1b10(int arg);
-unsigned char FUN_004e1680(void);
-int FUN_004e39a0(void);
+void __cdecl SyncPerformanceSettings(int arg);
+unsigned char HasPerfCounters(void);
+int GetCpuFamily(void);
 
 // FUNCTION: 0x4e1be0
-void FUN_004e1be0(void)
+void InitPerformanceEvents(void)
 {
     if (DAT_00529df8 == 0) {
         DAT_00529df8 = DAT_0050da00;
         DAT_00529dcc = 0x11;
-        FUN_004e1b10(1);
-        if (FUN_004e1680() != 0) {
-            if (FUN_004e39a0() < 6) {
+        SyncPerformanceSettings(1);
+        if (HasPerfCounters() != 0) {
+            if (GetCpuFamily() < 6) {
                 DAT_00529df8 = DAT_0050d980;
                 DAT_00529dcc = 8;
             }

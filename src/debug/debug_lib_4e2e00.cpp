@@ -6,11 +6,11 @@ class Class_004e2e00 {
 public:
     HKEY key;                          // +0x0
 
-    void FUN_004e2e00(LPCSTR name, int value);
+    void WriteInt(LPCSTR name, int value);
 };
 
 // FUNCTION: 0x4e2e00
-void Class_004e2e00::FUN_004e2e00(LPCSTR name, int value)
+void Class_004e2e00::WriteInt(LPCSTR name, int value)
 {
     RegSetValueExA(key, name, 0, REG_DWORD, (LPBYTE)&value, 4);
 }

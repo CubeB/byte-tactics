@@ -10,7 +10,7 @@ public:
 };
 
 // FUNCTION: 0x4d8140
-char FUN_004d8140()
+char IsGonzo()
 {
     static Class_004d9fe0 gonzo("gonzo", 1, 1, 0, "-gonzo", 0, 0);
     return gonzo.on;

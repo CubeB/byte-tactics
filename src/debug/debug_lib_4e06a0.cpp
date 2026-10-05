@@ -8,11 +8,11 @@ class Class_004e0b90 {
 public:
     HWND hwnd;
 
-    BOOL FUN_004e0b90(UINT msg, WPARAM wParam, LPARAM lParam);
+    BOOL HandleMemoryStatusMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 };
 
 // FUNCTION: 0x4e06a0
-BOOL __stdcall FUN_004e06a0(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+BOOL __stdcall MemoryStatusDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     if (msg == WM_INITDIALOG) {
         SetWindowLongA(hwnd, GWL_USERDATA, lParam);
@@ -20,6 +20,6 @@ BOOL __stdcall FUN_004e06a0(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     Class_004e0b90* obj = (Class_004e0b90*)GetWindowLongA(hwnd, GWL_USERDATA);
     if (obj)
-        return obj->FUN_004e0b90(msg, wParam, lParam);
+        return obj->HandleMemoryStatusMessage(msg, wParam, lParam);
     return 0;
 }

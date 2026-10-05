@@ -10,7 +10,7 @@
 extern char* DAT_0050d660;
 
 void __cdecl FUN_004e33d0(HWND hwnd, char* name, double a, double b);
-void __cdecl FUN_004e3400(HWND hwnd, char* name);
+void __cdecl SaveWindowPosition(HWND hwnd, char* name);
 
 class Class_004df280 {
 public:
@@ -18,11 +18,11 @@ public:
     char unknown_4[0x1c];
     unsigned char flag_20;              // +0x20
 
-    void FUN_004df280(char show);
+    void SetPerformanceWindowVisible(char show);
 };
 
 // FUNCTION: 0x4df280
-void Class_004df280::FUN_004df280(char show)
+void Class_004df280::SetPerformanceWindowVisible(char show)
 {
     if (show) {
         if (hwnd) {
@@ -36,7 +36,7 @@ void Class_004df280::FUN_004df280(char show)
         }
     } else if (IsWindowVisible(hwnd)) {
         KillTimer(hwnd, 1);
-        FUN_004e3400(hwnd, DAT_0050d660);
+        SaveWindowPosition(hwnd, DAT_0050d660);
         ShowWindow(hwnd, 0);
     }
 }

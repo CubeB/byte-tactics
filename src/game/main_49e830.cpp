@@ -177,8 +177,8 @@ extern const char DAT_00504ab8[];
 
 void OutOfMemoryHandler();
 void __cdecl FUN_0049ed90();
-void __cdecl FUN_004da1d0(int param_1);
-void __cdecl FUN_004d8e50(void (*param_1)());
+void __cdecl InitDebugSupport(int param_1);
+void __cdecl SetOutOfMemoryHandler(void (*param_1)());
 void FUN_0041d920();
 void RegisterDataArchives();
 void FUN_00428bb0();
@@ -214,8 +214,8 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
     (void)hPrevInstance;
 
-    FUN_004da1d0(8);
-    FUN_004d8e50(OutOfMemoryHandler);
+    InitDebugSupport(8);
+    SetOutOfMemoryHandler(OutOfMemoryHandler);
     if ((DAT_0051f31c & 1) == 0) {
         DAT_0051f31c |= 1;
         atexit(FUN_0049ed90);

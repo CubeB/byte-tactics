@@ -54,7 +54,7 @@ loops and fixed structure.
 **Integration (3.5 minutes).** Two fixes moved `check.py` from 40.4% to 48.8%,
 and both were shared changes no region could make:
 
-- `FUN_004d98c0` returns the exception description string that r2 prints.
+- `GetExceptionName` returns the exception description string that r2 prints.
   That value is a function-scope local set in r1 and read in r2. r2 had
   declared its own uninitialised `char* reason`, which added 4 bytes to the
   frame. The fix changed a prototype, a local and two regions.

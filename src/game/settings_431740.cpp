@@ -62,8 +62,8 @@ struct Game {
 
 extern Game* g_game;
 
-void __cdecl FUN_004d8780(void* param_1);
-void __cdecl FUN_004d8710(void* param_1);
+void __cdecl ProtectBlockReadWrite(void* param_1);
+void __cdecl ProtectBlockReadOnly(void* param_1);
 
 // FUNCTION: 0x431740
 void FUN_00431740()
@@ -76,7 +76,7 @@ void FUN_00431740()
     if (!((Class_004c2f60*)&parser)->FUN_004c2f60(file))
         return;
     {
-        FUN_004d8780(g_game->defs);
+        ProtectBlockReadWrite(g_game->defs);
         for (int i = 1; i < g_game->count; i++)
             g_game->defs[i].flags &= 0xff7fffff;
         ((Class_004c3e10*)&parser)->FUN_004c3e10();
@@ -89,6 +89,6 @@ void FUN_00431740()
                 }
             }
         }
-        FUN_004d8710(g_game->defs);
+        ProtectBlockReadOnly(g_game->defs);
     }
 }

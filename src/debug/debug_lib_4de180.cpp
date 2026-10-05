@@ -36,7 +36,7 @@ public:
     ~Class_004d9fe0() {}
 };
 
-void FUN_004de110(void);
+void UnloadImageHelp(void);
 void __stdcall FUN_004de0a0(int unused, unsigned int address);
 void __stdcall FUN_004de100(int arg1, int arg2);
 
@@ -58,7 +58,7 @@ extern SymProc_004de180 DAT_00528ab4;
 extern SymProc_004de180 DAT_00528ad4;
 
 // FUNCTION: 0x4de180
-char __cdecl FUN_004de180(char param)
+char __cdecl LoadImageHelp(char param)
 {
     static Class_004d9fe0 imagehlp("imagehlp", 0, 1, "-enableimagehlp",
                                    "-disableimagehlp", 0, 0);
@@ -121,7 +121,7 @@ char __cdecl FUN_004de180(char param)
         DAT_00528ab4 = 0;
         if (!DAT_00528ab8(getCurrentProcess(), searchPath, inited)) {
             GetLastError();
-            FUN_004de110();
+            UnloadImageHelp();
             DAT_00528ad8 = 1;
             return 0;
         }

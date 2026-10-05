@@ -92,7 +92,7 @@ public:
 void* __cdecl FUN_004d8450(int size);
 void* __cdecl FUN_004d8580(void* ptr, int size);
 void __cdecl FUN_004d85a0(void* ptr);
-int __cdecl FUN_004d8e50(int handle);
+int __cdecl SetOutOfMemoryHandler(int handle);
 int __stdcall FUN_004d1aa0(int size, int level);
 int __stdcall FUN_004d1820(void* dest, int* destSize, void* src, int srcSize, int param_5, int param_6);
 
@@ -207,7 +207,7 @@ void Class_004b3750::FUN_004b3c60(int index, FILE* file, Buffer_004b3c60* buf, i
     h.size = ftell(file) - off;
 
     if (compress != 0) {
-        int handle = FUN_004d8e50(0);
+        int handle = SetOutOfMemoryHandler(0);
         int len = h.size - 0x20;
         // A redundant conditional re-assignment of `len`: it mentions `off` once
         // more and compiles to nothing (both arms store the same value), which
@@ -232,7 +232,7 @@ void Class_004b3750::FUN_004b3c60(int index, FILE* file, Buffer_004b3c60* buf, i
             }
             FUN_004d85a0(raw);
         }
-        FUN_004d8e50(handle);
+        SetOutOfMemoryHandler(handle);
     }
 
     fseek(file, off, 0);

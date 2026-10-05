@@ -1,17 +1,17 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 #include <windows.h>
 
-class Class_004ddf00 {
+class LoadedImage {
 public:
-    Class_004ddf00(HMODULE m);
-    ~Class_004ddf00();
+    LoadedImage(HMODULE m);
+    ~LoadedImage();
 };
 
 class Class_004de020 {
 public:
     char unknown_0[0x18];
     unsigned int imageBase;            // +0x18
-    void* FUN_004de020(unsigned int address);
+    void* FindFpoRecord(unsigned int address);
 };
 
 // The FPO-record lookup callback: lazily builds the module's FPO table
@@ -19,6 +19,6 @@ public:
 // FUNCTION: 0x4de0a0
 void __stdcall FUN_004de0a0(int unused, unsigned int address)
 {
-    static Class_004ddf00 table(GetModuleHandleA(0));
-    ((Class_004de020*)&table)->FUN_004de020(address);
+    static LoadedImage table(GetModuleHandleA(0));
+    ((Class_004de020*)&table)->FindFpoRecord(address);
 }

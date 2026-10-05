@@ -6,7 +6,7 @@
 void FUN_004d8390(void);
 
 // FUNCTION: 0x4da0c0
-void FUN_004da0c0(void)
+void AbortProgram(void)
 {
     FUN_004d8390();
     raise(SIGABRT);

@@ -44,8 +44,8 @@ File_0042a610* __stdcall FUN_004bb5b0(char* path);
 long __stdcall FUN_004bbd00(File_0042a610* f);
 void* __stdcall FUN_004bbff0(char* name, File_0042a610* f, unsigned int* outSize);
 int __stdcall FUN_004bb5d0(File_0042a610* f);
-void __cdecl FUN_004d8780(void* p);
-void __cdecl FUN_004d8710(void* p);
+void __cdecl ProtectBlockReadWrite(void* p);
+void __cdecl ProtectBlockReadOnly(void* p);
 
 // Loads a unit type's script (scripts\NAME.cob), every GUI file matching
 // guis\NAME*.gui and its download file (download\NAME.tdf), XORs the 4-byte
@@ -58,7 +58,7 @@ void __stdcall FUN_0042a610(Def_0042a610* def)
     if (def->field_142)
         return;
 
-    FUN_004d8780(g_game->field_1439b);
+    ProtectBlockReadWrite(g_game->field_1439b);
 
     char path[256];
     int size;
@@ -101,5 +101,5 @@ void __stdcall FUN_0042a610(Def_0042a610* def)
     }
 
     def->field_142 ^= def->field_146;
-    FUN_004d8710(g_game->field_1439b);
+    ProtectBlockReadOnly(g_game->field_1439b);
 }

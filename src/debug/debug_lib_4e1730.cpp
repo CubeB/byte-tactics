@@ -4,7 +4,7 @@
 #include <windows.h>
 
 // FUNCTION: 0x4e1730
-double __cdecl FUN_004e1730()
+double __cdecl GetTimeSeconds()
 {
     LARGE_INTEGER frequency;
     LARGE_INTEGER counter;

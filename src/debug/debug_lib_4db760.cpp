@@ -11,7 +11,7 @@ public:
 };
 
 // FUNCTION: 0x4db760
-char FUN_004db760(void)
+char IsBackAlign(void)
 {
     static Class_004d9fe0 DAT_00528a20("backalign", 1, 1, 0, "-memfrontalign", 0, 0);
     return DAT_00528a20.on;

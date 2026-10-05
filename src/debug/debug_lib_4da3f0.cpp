@@ -15,7 +15,7 @@
 #include <string.h>
 
 // FUNCTION: 0x4da3f0
-void __cdecl FUN_004da3f0(char *text, int size)
+void __cdecl NormalizeLineEndings(char *text, int size)
 {
     int len = strlen(text);
     char *dst = text + (size - len) - 1;

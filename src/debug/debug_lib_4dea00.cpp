@@ -35,8 +35,8 @@ struct Line_004de550 {
 };
 
 extern char FUN_004de4d0();
-extern char __cdecl FUN_004de550(DWORD addr, Line_004de550* out, DWORD* err);
-extern void __cdecl FUN_004de8a0(char* out, char* name);
+extern char __cdecl GetLineFromAddress(DWORD addr, Line_004de550* out, DWORD* err);
+extern void __cdecl GetSourceFilePath(char* out, char* name);
 
 struct Sym_004dea00 {
     unsigned long SizeOfStruct;
@@ -54,7 +54,7 @@ extern SymFn_004dea00 DAT_00528acc;
 extern UnDecFn_004dea00 DAT_00528ad4;
 
 // FUNCTION: 0x4dea00
-void __cdecl FUN_004dea00(char* dest, int space, int per, int n, unsigned long* addrs)
+void __cdecl FormatCallStack(char* dest, int space, int per, int n, unsigned long* addrs)
 {
     int i = 0;
     space--;
@@ -79,8 +79,8 @@ void __cdecl FUN_004dea00(char* dest, int space, int per, int n, unsigned long* 
         if (space <= width)
             break;
         if (lines) {
-            if (FUN_004de550(addrs[i], &line, &err)) {
-                FUN_004de8a0(path, (char*)line.FileName);
+            if (GetLineFromAddress(addrs[i], &line, &err)) {
+                GetSourceFilePath(path, (char*)line.FileName);
                 sprintf(dest, "%s(%d) : %08lX", path, line.LineNumber, addrs[i]);
                 found = 1;
             } else {

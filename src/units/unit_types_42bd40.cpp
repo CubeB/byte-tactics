@@ -41,8 +41,8 @@ struct Game {
 
 extern Game* g_game;
 
-void __cdecl FUN_004d8780(void* param_1);
-void __cdecl FUN_004d8710(void* param_1);
+void __cdecl ProtectBlockReadWrite(void* param_1);
+void __cdecl ProtectBlockReadOnly(void* param_1);
 
 // FUNCTION: 0x42bd40
 void CheckDownloadableFlags()
@@ -57,9 +57,9 @@ void CheckDownloadableFlags()
                 sprintf(message,
                         "Hey!  Somebody forgot to set downloadable=1 for %s",
                         def->name);
-                FUN_004d8780(g_game->defs);
+                ProtectBlockReadWrite(g_game->defs);
                 def->downloadable = 1;
-                FUN_004d8710(g_game->defs);
+                ProtectBlockReadOnly(g_game->defs);
             }
         }
     }

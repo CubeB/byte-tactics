@@ -100,7 +100,7 @@ inline Tree_004da8d0::Tree_004da8d0(const char& a, const char& b)
 }
 
 // FUNCTION: 0x4da8d0
-void* FUN_004da8d0()
+void* GetBlockMap()
 {
     if (DAT_00528a44 == 0) {
         char s0, s1;

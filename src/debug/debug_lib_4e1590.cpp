@@ -12,11 +12,11 @@ public:
     DWORD size;        // +0xc
     int state;         // +0x10
 
-    void FUN_004e1590(const char* fileName);
+    void OpenMappedFile(const char* fileName);
 };
 
 // FUNCTION: 0x4e1590
-void Class_004e1590::FUN_004e1590(const char* fileName)
+void Class_004e1590::OpenMappedFile(const char* fileName)
 {
     hFile = CreateFileA(fileName, GENERIC_READ, FILE_SHARE_READ, NULL,
                         OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);

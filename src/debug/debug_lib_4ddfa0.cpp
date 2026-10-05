@@ -29,13 +29,13 @@ public:
     DebugDir_004ddfa0* debugDirs;      // +0x24
     int numDebugDirs;                  // +0x28
 
-    Fpo_004de020* FUN_004ddfa0();
+    Fpo_004de020* GetFpoRecords();
 };
 
 // Returns the image's FPO records (debug directory type 3,
 // IMAGE_DEBUG_TYPE_FPO), or 0 if it has none.
 // FUNCTION: 0x4ddfa0
-Fpo_004de020* Class_004ddfa0::FUN_004ddfa0()
+Fpo_004de020* Class_004ddfa0::GetFpoRecords()
 {
     if (debugDirs == 0)
         return 0;

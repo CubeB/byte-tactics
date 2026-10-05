@@ -32,7 +32,7 @@ struct Frame_004de700 {
 };
 
 // FUNCTION: 0x4de700
-void __cdecl FUN_004de700(int param1, int param2, int param3, int param4, int* param5, int param6, int* param7)
+void __cdecl WalkStack(int param1, int param2, int param3, int param4, int* param5, int param6, int* param7)
 {
     Frame_004de700 frame;
     memset(&frame, 0, sizeof(frame));

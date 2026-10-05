@@ -288,11 +288,11 @@ void __stdcall FatalError(const char* msg);
 void* __stdcall FUN_004b2450(char* path);
 void __stdcall StripExtension(char* text);
 short __stdcall FindUnitTypeId(char* text);
-int __cdecl FUN_004d8610(char* name);
+int __cdecl GameStrdup(char* name);
 void* __cdecl FUN_004d83b0(const char* name, int size);
 void __cdecl FUN_004d85a0(void* p);
-void __cdecl FUN_004d8780(void* p);
-void __cdecl FUN_004d8710(void* p);
+void __cdecl ProtectBlockReadWrite(void* p);
+void __cdecl ProtectBlockReadOnly(void* p);
 void __stdcall FUN_00432fb0(void* start, void* end, void* cmp, int param);
 void __stdcall FUN_00432d40(void* start, void* end, void* cmp, int param);
 int __stdcall CompareUnitTypeNames(const char* a, const char* b);
@@ -321,7 +321,7 @@ void LoadUnitTypes() {
             if (((Class_004c3410*)&parser)->FUN_004c3410(classbuf)) {
                 ((Class_004c48c0*)parser.current)
                     ->FUN_004c48c0(classbuf, "name", 100, DAT_005119b8);
-                cls->field_0 = (int*)FUN_004d8610(classbuf);
+                cls->field_0 = (int*)GameStrdup(classbuf);
                 cls->ReadMoveInfo(&parser);
             }
             cls++;
@@ -349,7 +349,7 @@ void LoadUnitTypes() {
     int size = (int)(v * scale);
     ((Class_00458180*)g_game->field_1437b)->Initialize((size + 0xfff) & 0xfffff000);
 
-    FUN_004d8780(g_game->field_1439b);
+    ProtectBlockReadWrite(g_game->field_1439b);
 
     Class_0042b370* end = g_game->field_1439b + g_game->field_1438f;
     Class_0042b370* start = g_game->field_1439b + 1;
@@ -469,7 +469,7 @@ void LoadUnitTypes() {
         type->field_18e = FUN_004b2450(path);
     }
 
-    FUN_004d8710(g_game->field_14377);
+    ProtectBlockReadOnly(g_game->field_14377);
 
     Class_004c2ea0 parser2;
     BuildDataPath(path, "gamedata", "sidedata", "TDF");
@@ -511,5 +511,5 @@ void LoadUnitTypes() {
 
     g_game->field_38d71 = 100;
     g_game->field_14397 = 1;
-    FUN_004d8710(g_game->field_1439b);
+    ProtectBlockReadOnly(g_game->field_1439b);
 }

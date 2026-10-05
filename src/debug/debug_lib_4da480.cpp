@@ -7,7 +7,7 @@ extern char DAT_0050ced8;
 extern char DAT_0050c958;
 
 // FUNCTION: 0x4da480
-HGLOBAL __cdecl FUN_004da480(int id)
+HGLOBAL __cdecl GetDialogTemplate(int id)
 {
     char* src = 0;
     int size = 0;

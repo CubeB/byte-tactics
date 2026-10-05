@@ -10,7 +10,7 @@
 // each whole dword must equal `fill`, and the bytes left over the first bytes
 // of it.
 // FUNCTION: 0x4d8310
-void __cdecl FUN_004d8310(unsigned int* block, unsigned int fill, unsigned int size)
+void __cdecl CheckFillPattern(unsigned int* block, unsigned int fill, unsigned int size)
 {
     unsigned int* p = block;
     while (size >= 4) {

@@ -4,8 +4,8 @@ extern char DAT_005119b8[];
 extern int DAT_00529dcc;
 extern void* DAT_00529df8;
 
-extern double FUN_004e1730();
-void FUN_004e1be0();
+extern double GetTimeSeconds();
+void InitPerformanceEvents();
 
 class Class_004e17c0 {
 public:
@@ -15,7 +15,7 @@ public:
 
 class Class_004df250 {
 public:
-    void FUN_004df250();
+    void CreatePerformanceDialog();
 };
 
 class Id_004df1e0 {
@@ -55,9 +55,9 @@ Class_004df1e0::Class_004df1e0()
     unknown_4 = -1;
     unknown_8 = -1;
     flag_20 = 0;
-    FUN_004e1be0();
+    InitPerformanceEvents();
     count = DAT_00529dcc;
     table = DAT_00529df8;
-    time = FUN_004e1730();
-    ((Class_004df250*)this)->FUN_004df250();
+    time = GetTimeSeconds();
+    ((Class_004df250*)this)->CreatePerformanceDialog();
 }

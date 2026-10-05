@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 // The map is the tree whose _Ubound is 0x4dd7d0 and whose _Dec is 0x4dd820
-// (the same tree FUN_004da8d0 lazily creates, _Nil = DAT_00528a50). Its
+// (the same tree GetBlockMap lazily creates, _Nil = DAT_00528a50). Its
 // value_type is the 0x30-byte Class_004d8820 and the key is that record's
 // first dword, so the temporary built here is itself the lookup key.
 // The lookup is an upper_bound plus the iterator predecessor: arg2 gets the
@@ -11,12 +11,12 @@
 // MATCH: 214 of 214 bytes. The previous 82.9 percent attempt was one chained
 // call away: the first lookup must go through a named tree local,
 //
-//     Class_004dd7d0* tree = FUN_004da8d0();
+//     Class_004dd7d0* tree = GetBlockMap();
 //     it.ptr = tree->FUN_004dd7d0(rec.key);
 //
-// because the chained form FUN_004da8d0()->FUN_004dd7d0(rec.key) evaluates
+// because the chained form GetBlockMap()->FUN_004dd7d0(rec.key) evaluates
 // the `lea ecx,[esp+0x10]` argument before the object call and homes the
-// critical section in ebp; the split form calls FUN_004da8d0 first and keeps
+// critical section in ebp; the split form calls GetBlockMap first and keeps
 // its result in eax across the lea/push, which flips cs to ebx and every
 // register choice after it (esi for the end() compare and the following
 // `add esi,0xc` copy) falls into place. The iterator type must also be
@@ -69,25 +69,25 @@ public:
     Node_004daa30* FUN_004dd7d0(const unsigned int& kv);
 };
 
-Class_004dd7d0* FUN_004da8d0();
+Class_004dd7d0* GetBlockMap();
 LPCRITICAL_SECTION FUN_004da780();
 
 // FUNCTION: 0x4daa30
-void __cdecl FUN_004daa30(unsigned int key, Class_004d8820* prev, Class_004d8820* next)
+void __cdecl FindBlocksAroundAddress(unsigned int key, Class_004d8820* prev, Class_004d8820* next)
 {
     LPCRITICAL_SECTION cs = FUN_004da780();
     EnterCriticalSection(cs);
     Class_004d8820 rec(key, 0, 0, 0, 0);
-    Class_004dd7d0* tree = FUN_004da8d0();
+    Class_004dd7d0* tree = GetBlockMap();
     Class_004dd820 it;
     it.ptr = tree->FUN_004dd7d0(rec.key);
-    if (it == FUN_004da8d0()->End()) {
+    if (it == GetBlockMap()->End()) {
         next->key = 0;
         next->field_4 = 0;
     } else {
         *next = it.ptr->value;
     }
-    if (it == FUN_004da8d0()->Begin()) {
+    if (it == GetBlockMap()->Begin()) {
         prev->key = 0;
         prev->field_4 = 0;
     } else {

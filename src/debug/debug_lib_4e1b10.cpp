@@ -1,12 +1,12 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Loads (or saves) the PerformanceSettings block of the Cavedog registry key.
 
-class Class_004e2be0 {
+class CavedogRegistryKey {
 public:
     int key;                           // +0x00
     unsigned char readOnly;            // +0x04
-    Class_004e2be0(int readOnly, char* app, char* section);
-    ~Class_004e2be0();
+    CavedogRegistryKey(int readOnly, char* app, char* section);
+    ~CavedogRegistryKey();
 };
 
 class Class_004e2fe0 {
@@ -28,9 +28,9 @@ extern unsigned int DAT_00529e00;
 extern unsigned int DAT_00529e10;
 
 // FUNCTION: 0x4e1b10
-void __cdecl FUN_004e1b10(int readOnly)
+void __cdecl SyncPerformanceSettings(int readOnly)
 {
-    Class_004e2be0 key(readOnly, "PerformanceSettings", "CavedogLibrary");
+    CavedogRegistryKey key(readOnly, "PerformanceSettings", "CavedogLibrary");
     ((Class_004e2fe0*)&key)->FUN_004e2fe0("EnabledInRelease", &DAT_00529dd8, 0);
     ((Class_004e2fe0*)&key)->FUN_004e2fe0("RaisePriority", &DAT_00529dd4, 1);
     ((Class_004e2fe0*)&key)->FUN_004e2fe0("DisplayInDebugger", &DAT_00529ddc, 0);

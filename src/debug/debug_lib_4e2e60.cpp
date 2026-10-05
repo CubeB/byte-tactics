@@ -4,12 +4,12 @@
 
 class Class_004e2d00 {
 public:
-    int FUN_004e2d00(char* name, int minValue, int maxValue, int defaultValue);
+    int ReadInt(char* name, int minValue, int maxValue, int defaultValue);
 };
 
 class Class_004e2d70 {
 public:
-    void FUN_004e2d70(const char* name, unsigned long value);
+    void WriteDword(const char* name, unsigned long value);
 };
 
 class Class_004e2e60 {
@@ -23,8 +23,8 @@ public:
 void Class_004e2e60::FUN_004e2e60(char* name, int* value, int minValue, int maxValue, int defaultValue)
 {
     if (reading) {
-        *value = ((Class_004e2d00*)this)->FUN_004e2d00(name, minValue, maxValue, defaultValue);
+        *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);
     } else {
-        ((Class_004e2d70*)this)->FUN_004e2d70(name, *value);
+        ((Class_004e2d70*)this)->WriteDword(name, *value);
     }
 }

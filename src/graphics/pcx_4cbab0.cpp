@@ -18,7 +18,7 @@ extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
 
 App_004cbab0* GetDisplay(void);
-void __cdecl FUN_004d8e60(int param_1, int param_2);
+void __cdecl ReportException(int param_1, int param_2);
 void __stdcall ReleaseDirectDraw(App_004cbab0* app);
 void UnlockAllScreens(void);
 
@@ -48,7 +48,7 @@ static inline void Unlock(LONG held)
 // FUNCTION: 0x4cbab0
 int __stdcall ExceptionFilter(int param_1, int param_2)
 {
-    FUN_004d8e60(param_1, param_2);
+    ReportException(param_1, param_2);
     App_004cbab0* app = GetDisplay();
     if (app != 0) {
         LONG held = Lock();

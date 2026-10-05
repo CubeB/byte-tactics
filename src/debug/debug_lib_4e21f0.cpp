@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-extern double FUN_004e1730();
+extern double GetTimeSeconds();
 
 // The timer of 0x4e2160..0x4e21c0. This one keeps the last five sample times
 // and returns a rate: five samples divided by the time since the oldest one
@@ -19,7 +19,7 @@ public:
 // FUNCTION: 0x4e21f0
 double Class_004e21f0::FUN_004e21f0()
 {
-    double now = FUN_004e1730();
+    double now = GetTimeSeconds();
     double rate;
     if (now - history[0] > 0.0)
         rate = 5.0 / (now - history[0]);

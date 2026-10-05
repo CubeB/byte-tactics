@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-extern double FUN_004e1730();
+extern double GetTimeSeconds();
 
 // A timer: while stopped, `time` holds the elapsed time; while running, it
 // holds the start time (see the neighbouring methods at 0x4e2160..0x4e21f0).
@@ -19,6 +19,6 @@ void Class_004e21c0::FUN_004e21c0(double elapsed)
     if (stopped) {
         time = elapsed;
     } else {
-        time = FUN_004e1730() - elapsed;
+        time = GetTimeSeconds() - elapsed;
     }
 }

@@ -106,11 +106,11 @@ public:
     }
     ((Class_004dbec0*)this)->FUN_004dbec0(&f.r, &f.p);
     }
-    bool FUN_004db450(unsigned int size);
+    bool GrowReservation(unsigned int size);
 };
 
 // FUNCTION: 0x4db450
-bool Class_004db450::FUN_004db450(unsigned int size)
+bool Class_004db450::GrowReservation(unsigned int size)
 {
     unsigned int len = 0x10000000;
     unsigned int base;

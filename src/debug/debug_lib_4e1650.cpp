@@ -9,11 +9,11 @@ public:
     HANDLE hMapping;                   // +0x4
     void* view;                        // +0x8
 
-    void FUN_004e1650();
+    void CloseMappedFile();
 };
 
 // FUNCTION: 0x4e1650
-void Class_004e1650::FUN_004e1650()
+void Class_004e1650::CloseMappedFile()
 {
     if (view != 0) {
         UnmapViewOfFile(view);

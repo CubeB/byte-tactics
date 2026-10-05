@@ -16,7 +16,7 @@ void* __cdecl FUN_004e1a80(unsigned int size);
 extern Class_004e17c0* DAT_00529e7c;
 
 // FUNCTION: 0x4e1a90
-Class_004e17c0* FUN_004e1a90()
+Class_004e17c0* GetNameTable()
 {
     if (DAT_00529e7c == 0)
         DAT_00529e7c = new (FUN_004e1a80(sizeof(Class_004e17c0))) Class_004e17c0;

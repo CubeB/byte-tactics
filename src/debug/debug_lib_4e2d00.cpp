@@ -6,11 +6,11 @@
 class Class_004e2d00 {
 public:
     HKEY key;                        // +0x00
-    int FUN_004e2d00(LPCSTR name, int minValue, int maxValue, int defaultValue);
+    int ReadInt(LPCSTR name, int minValue, int maxValue, int defaultValue);
 };
 
 // FUNCTION: 0x4e2d00
-int Class_004e2d00::FUN_004e2d00(LPCSTR name, int minValue, int maxValue, int defaultValue)
+int Class_004e2d00::ReadInt(LPCSTR name, int minValue, int maxValue, int defaultValue)
 {
     int value;
     DWORD size = 4;

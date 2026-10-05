@@ -26,7 +26,7 @@ public:
 };
 
 // FUNCTION: 0x4dfd10
-Class_004df1e0* FUN_004dfd10(void)
+Class_004df1e0* GetPerformanceWindow(void)
 {
     static Class_004df1e0 obj;
     return &obj;

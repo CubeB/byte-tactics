@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 #include <string.h>
 
-extern double FUN_004e1730();
+extern double GetTimeSeconds();
 
 class Class_004e0520 {
 public:
@@ -10,7 +10,7 @@ public:
 
 class Class_004e05c0 {
 public:
-    void FUN_004e05c0();
+    void CreateMemoryStatusDialog();
 };
 
 struct Triple_004e0570 {
@@ -47,7 +47,7 @@ Class_004e0570::Class_004e0570()
     field_8 = -1;
     field_c = -1;
     flag_78 = 0;
-    time = FUN_004e1730();
+    time = GetTimeSeconds();
     ((Class_004e0520*)this)->FUN_004e0520(1);
-    ((Class_004e05c0*)this)->FUN_004e05c0();
+    ((Class_004e05c0*)this)->CreateMemoryStatusDialog();
 }

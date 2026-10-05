@@ -17,7 +17,7 @@ extern void* DAT_00528ab4;
 extern void* DAT_00528ad4;
 
 // FUNCTION: 0x4de110
-void FUN_004de110()
+void UnloadImageHelp()
 {
     DAT_00528ad8 = 0;
     if (DAT_00528ae0) {

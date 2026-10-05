@@ -28,13 +28,13 @@
 // not work; exactly one of the pair has to keep the plain `?:` shape.
 #include <windows.h>
 
-extern bool __cdecl FUN_004e38e0(DWORD a, void* out);
-extern bool __cdecl FUN_004e3930(DWORD a, __int64 b);
+extern bool __cdecl ReadGdperf(DWORD a, void* out);
+extern bool __cdecl WriteGdperf(DWORD a, __int64 b);
 extern char DAT_00529e9c;
 extern int DAT_00529ea0;
 
 // FUNCTION: 0x4e3750
-bool __cdecl FUN_004e3750(unsigned int effect, unsigned int level, char f1, char f2)
+bool __cdecl ProgramPerfEvent(unsigned int effect, unsigned int level, char f1, char f2)
 {
     __int64 val;
     if (level > 1)
@@ -47,21 +47,21 @@ bool __cdecl FUN_004e3750(unsigned int effect, unsigned int level, char f1, char
         return false;
     if (DAT_00529ea0 == 5) {
         unsigned char sub = (unsigned char)((effect >> 16) & 0x3f);
-        FUN_004e38e0(0x11, &val);
+        ReadGdperf(0x11, &val);
         val &= (level ? 0xffffu : 0xffff0000u);
-        FUN_004e3930(0x11, val);
-        FUN_004e3930(0x12 + (level != 0), 0);
+        WriteGdperf(0x11, val);
+        WriteGdperf(0x12 + (level != 0), 0);
         val |= (f2 ? 0x40 : 0) | (0x80 & (f1 ? -1 : 0));
         if (sub == 0x3f)
-            return FUN_004e3930(0x11, val | 0x100);
-        return FUN_004e3930(0x11, val | sub);
+            return WriteGdperf(0x11, val | 0x100);
+        return WriteGdperf(0x11, val | sub);
     }
     if (DAT_00529ea0 == 6) {
         unsigned char sub = (unsigned char)(effect >> 16);
         int v = (0x4400 | (effect & 0xff)) * 0x100
               | (f1 ? 0x10000 : 0) | (0x20000 & (f2 ? -1 : 0))
               | sub;
-        return FUN_004e3930(0x186 + (level != 0), v);
+        return WriteGdperf(0x186 + (level != 0), v);
     }
     return false;
 }

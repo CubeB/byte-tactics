@@ -223,8 +223,8 @@ int FUN_0041d8b0();
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __cdecl FUN_004d83b0(char* name, int size);
 void __cdecl FUN_004d85a0(void* p);
-void __cdecl FUN_004d8710(void* p);
-void __cdecl FUN_004d8780(void* p);
+void __cdecl ProtectBlockReadOnly(void* p);
+void __cdecl ProtectBlockReadWrite(void* p);
 void* __stdcall FUN_004bb5b0(char* path);
 int __stdcall FUN_004bb5d0(void* file);
 int __stdcall FUN_004bb650(void* file);
@@ -281,7 +281,7 @@ int LoadUnitInfo()
     LoadWeaponTDFs();
 
     if (g_game->unitinfo) {
-        FUN_004d8780(g_game->unitinfo);
+        ProtectBlockReadWrite(g_game->unitinfo);
         FUN_004d85a0(g_game->unitinfo);
         g_game->unitinfo = 0;
     }
@@ -323,7 +323,7 @@ int LoadUnitInfo()
             if (!((Class_004c3410*)&parser)->FUN_004c3410("UNITINFO")) {
                 // Original bug: this exit leaves the FBI file open (no
                 // FUN_004bb5d0), the weapon TDF table allocated and the unit
-                // table locked (no FUN_004d8710).
+                // table locked (no ProtectBlockReadOnly).
                 FUN_004d85a0(buf);
                 return 0;
             }
@@ -391,6 +391,6 @@ int LoadUnitInfo()
     g_game->unit_count = count;
     if (oldcount != count && !bad)
         FUN_004b6b80(FUN_004c5740("Incompatible units found.  They will be ignored.  Please download the latest version of the game."), DAT_005119b8);
-    FUN_004d8710(g_game->unitinfo);
+    ProtectBlockReadOnly(g_game->unitinfo);
     return 1;
 }

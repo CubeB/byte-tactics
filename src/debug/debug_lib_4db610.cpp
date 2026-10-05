@@ -53,7 +53,7 @@ public:
     Map_004db610 freeMap;              // +0x0
     int total;                         // +0x10
 
-    void FUN_004db000(Pair_004db610 p);
+    void AddFreeBlock(Pair_004db610 p);
 
     void* operator new(size_t n) { return GlobalAlloc(0, n); }
 
@@ -77,7 +77,7 @@ public:
             Pair_004db610 pair;
             pair.offset = (unsigned int)m;
             pair.length = len;
-            FUN_004db000(pair);
+            AddFreeBlock(pair);
         next:
             ;
         } while (--n);
@@ -87,7 +87,7 @@ public:
 extern Class_004db000* DAT_00528a40;
 
 // FUNCTION: 0x4db610
-Class_004db000* FUN_004db610()
+Class_004db000* GetFreeBlockSet()
 {
     if (DAT_00528a40 == 0)
         DAT_00528a40 = new Class_004db000;

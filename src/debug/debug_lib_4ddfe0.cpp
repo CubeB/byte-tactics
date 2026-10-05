@@ -29,11 +29,11 @@ public:
     DebugDir_004ddfa0* debugDirs;      // +0x24
     int numDebugDirs;                  // +0x28
 
-    unsigned int FUN_004ddfe0();
+    unsigned int GetFpoRecordCount();
 };
 
 // FUNCTION: 0x4ddfe0
-unsigned int Class_004ddfe0::FUN_004ddfe0()
+unsigned int Class_004ddfe0::GetFpoRecordCount()
 {
     if (debugDirs == 0)
         return 0;

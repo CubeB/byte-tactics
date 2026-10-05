@@ -36,11 +36,11 @@ extern char DAT_005295d8[];
 extern char* DAT_0050d72c;
 
 void __cdecl FUN_004e33d0(HWND hwnd, char* name, double a, double b);
-void __cdecl FUN_004e3400(HWND hwnd, char* name);
-void __cdecl FUN_004da5b0(HWND hwnd, char* url, char* ext);
-void FUN_004da860(void);
-double FUN_004e1730(void);
-char __cdecl FUN_004e07e0(char* dest);
+void __cdecl SaveWindowPosition(HWND hwnd, char* name);
+void __cdecl OpenUrl(HWND hwnd, char* url, char* ext);
+void ResetAllocStats(void);
+double GetTimeSeconds(void);
+char __cdecl FormatWorkingSet(char* dest);
 
 class Class_004e0520 {
 public:
@@ -54,7 +54,7 @@ public:
     HWND hwnd;                         // +0x00
     char unknown_4[0x74];
     char flag_78;                      // +0x78
-    void FUN_004e05f0(char on);
+    void SetMemoryStatusWindowVisible(char on);
 };
 
 struct Rate_004e0b90 {
@@ -84,7 +84,7 @@ public:
     char flag_78;                      // +0x78
     unsigned char workingSet;          // +0x79
 
-    int FUN_004e0b90(unsigned int msg, int wParam, int lParam);
+    int HandleMemoryStatusMessage(unsigned int msg, int wParam, int lParam);
 };
 
 // Same routine as fmt_004e07e0 (0x4e07e0.cpp): decimal with thousands
@@ -122,13 +122,13 @@ static void __inline fmt_004e0b90(char* buf, unsigned int n)
 }
 
 // FUNCTION: 0x4e0b90
-int Class_004e0b90::FUN_004e0b90(unsigned int msg, int wParam, int lParam)
+int Class_004e0b90::HandleMemoryStatusMessage(unsigned int msg, int wParam, int lParam)
 {
     switch (msg) {
     case 0x312:
         if (wParam != 10)
             return 0;
-        ((Class_004e05f0*)this)->FUN_004e05f0(!IsWindowVisible(hwnd));
+        ((Class_004e05f0*)this)->SetMemoryStatusWindowVisible(!IsWindowVisible(hwnd));
         return 0;
 
     case 0x110: {
@@ -139,7 +139,7 @@ int Class_004e0b90::FUN_004e0b90(unsigned int msg, int wParam, int lParam)
         RegisterHotKey(hwnd, 10, 1, 0x23);
         CheckDlgButton(hwnd, 0x3f9, workingSet);
         if (flag_78)
-            ((Class_004e05f0*)this)->FUN_004e05f0(1);
+            ((Class_004e05f0*)this)->SetMemoryStatusWindowVisible(1);
         return 1;
     }
 
@@ -150,14 +150,14 @@ int Class_004e0b90::FUN_004e0b90(unsigned int msg, int wParam, int lParam)
             ((Class_004e0520*)this)->FUN_004e0520(0);
             return 0;
         case 0x3fa:
-            FUN_004da5b0(hwnd, "http://10.0.150.18/programming/library/extras/memorystatusdialog.html", ".htm");
+            OpenUrl(hwnd, "http://10.0.150.18/programming/library/extras/memorystatusdialog.html", ".htm");
             return 0;
         case 0x3eb:
-            FUN_004da860();
+            ResetAllocStats();
             return 0;
         case 1:
         case 2:
-            ((Class_004e05f0*)this)->FUN_004e05f0(0);
+            ((Class_004e05f0*)this)->SetMemoryStatusWindowVisible(0);
             return 0;
         default:
             return 0;
@@ -186,11 +186,11 @@ int Class_004e0b90::FUN_004e0b90(unsigned int msg, int wParam, int lParam)
         if (rect.left != left || rect.top != top) {
             left = rect.left;
             top = rect.top;
-            FUN_004e3400(hwnd, DAT_0050d72c);
+            SaveWindowPosition(hwnd, DAT_0050d72c);
         }
 
         int delta = DAT_00528a04 - field_4;
-        double now = FUN_004e1730();
+        double now = GetTimeSeconds();
         double speed = now - time;
         time = now;
         rate_add(&rates, delta, speed);
@@ -267,7 +267,7 @@ int Class_004e0b90::FUN_004e0b90(unsigned int msg, int wParam, int lParam)
                 s6, s5, s4, rateText, s3, s2, req, DAT_00528a00, DAT_005289d4, s1, s0);
 
         if (workingSet != 0)
-            FUN_004e07e0(&buf[strlen(buf)]);
+            FormatWorkingSet(&buf[strlen(buf)]);
 
         if (strcmp(DAT_005295d8, buf) == 0)
             return 0;

@@ -1,10 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free,
 // matched by deepseek-v4.1-flash. Names are provisional.
 // MATCH, 1013 bytes. Calling convention is __cdecl (original symbol
-// ?FUN_004ded60@@YAXPADH@Z; the original ends in plain `ret`), so the /Gz
+// ?FormatSystemInfo@@YAXPADH@Z; the original ends in plain `ret`), so the /Gz
 // __stdcall lever does not apply here: __stdcall gives ?...@@YG... and `ret 8`.
 // /Gz changes nothing, and dropping the explicit convention on the
-// FUN_004d8df0/FUN_004d8e20 externs changes nothing (0-arg callees).
+// GetStackLow/GetStackHigh externs changes nothing (0-arg callees).
 //
 // Two source facts took it from 94.2% to MATCH. Both are about VALUE NUMBERS.
 //
@@ -38,11 +38,11 @@
 
 extern char DAT_005119b8;
 extern char* DAT_0050d4d0;
-extern "C" int __cdecl FUN_004d8df0(void);
-extern "C" void* __cdecl FUN_004d8e20(void);
+extern "C" int __cdecl GetStackLow(void);
+extern "C" void* __cdecl GetStackHigh(void);
 
 // FUNCTION: 0x4ded60
-void __cdecl FUN_004ded60(char* dest, int destLen)
+void __cdecl FormatSystemInfo(char* dest, int destLen)
 {
     WORD fatDate;
     time_t now;
@@ -126,7 +126,7 @@ void __cdecl FUN_004ded60(char* dest, int destLen)
 
     p = buf + strlen(buf);
     sprintf(p, "Stack goes from %08lX to %08lX\n",
-            FUN_004d8df0(), FUN_004d8e20());
+            GetStackLow(), GetStackHigh());
 
     strncpy(dest, buf, destLen);
     dest[destLen - 1] = '\0';

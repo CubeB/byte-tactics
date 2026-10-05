@@ -24,10 +24,10 @@ struct Container_004da9f0 {
     void* field_8;               // +0x8
 };
 
-extern Container_004da9f0* FUN_004da9f0();
-extern char FUN_004d80d0();
+extern Container_004da9f0* GetFreedBlockRing();
+extern char IsMemFussy();
 extern CRITICAL_SECTION* FUN_004da780();
-extern void __cdecl FUN_004d8790(Class_004d87f0 info, char* buf, int unused);
+extern void __cdecl FormatBlockInfo(Class_004d87f0 info, char* buf, int unused);
 
 // FUNCTION: 0x4dabb0
 char __cdecl FUN_004dabb0(unsigned int address, char* buf, unsigned int n)
@@ -35,10 +35,10 @@ char __cdecl FUN_004dabb0(unsigned int address, char* buf, unsigned int n)
     CRITICAL_SECTION* cs = FUN_004da780();
     EnterCriticalSection(cs);
     *buf = 0;
-    if (FUN_004d80d0()) {
-        Class_004d87f0* p = (Class_004d87f0*)FUN_004da9f0()->field_8;
+    if (IsMemFussy()) {
+        Class_004d87f0* p = (Class_004d87f0*)GetFreedBlockRing()->field_8;
         char found = 0;
-        while (p != (Class_004d87f0*)FUN_004da9f0()->field_4 && n > 100) {
+        while (p != (Class_004d87f0*)GetFreedBlockRing()->field_4 && n > 100) {
             p = (Class_004d87f0*)((char*)p - 0x30);
             Class_004d87f0 info = *p;
             bool inRange = address >= (unsigned int)info.field_0
@@ -46,7 +46,7 @@ char __cdecl FUN_004dabb0(unsigned int address, char* buf, unsigned int n)
             if (inRange) {
                 if (found)
                     strcat(buf, "\n");
-                FUN_004d8790(info, buf + strlen(buf), n);
+                FormatBlockInfo(info, buf + strlen(buf), n);
                 unsigned int len = strlen(buf);
                 found = 1;
                 buf += len;

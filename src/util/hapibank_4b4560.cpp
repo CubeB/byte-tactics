@@ -18,7 +18,7 @@ struct File_004b4560 {
 };
 
 void* __cdecl FUN_004d8580(void* ptr, int size);
-char* __cdecl FUN_004d8610(char* s);
+char* __cdecl GameStrdup(char* s);
 
 class Class_004b4560 {
 public:
@@ -41,7 +41,7 @@ int Class_004b4560::FUN_004b4560(char* name)
     file->sections = (Section_004b4560*)FUN_004d8580(
         file->sections, file->count * sizeof(Section_004b4560));
     memset(&file->sections[file->current], 0, sizeof(Section_004b4560));
-    file->sections[file->current].name = FUN_004d8610(name);
+    file->sections[file->current].name = GameStrdup(name);
     file->sections[file->current].field_c = -1;
     return 0;
 }

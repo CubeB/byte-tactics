@@ -1,10 +1,10 @@
 // Decompiled by Haiku. Names are provisional.
 
 void OutOfMemoryHandler();
-void __cdecl FUN_004d8e50(void* func);
+void __cdecl SetOutOfMemoryHandler(void* func);
 
 // FUNCTION: 0x49e6f0
 void FUN_0049e6f0()
 {
-    FUN_004d8e50((void*)OutOfMemoryHandler);
+    SetOutOfMemoryHandler((void*)OutOfMemoryHandler);
 }

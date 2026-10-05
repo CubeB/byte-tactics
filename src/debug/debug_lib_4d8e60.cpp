@@ -12,7 +12,7 @@
 //    the destination pointer.
 //  - the whole tail of the dump (lstrcpynA, the Dr/FPU lines, Cr0NpxState and the
 //    trailing newlines) is inside `if (room > 0)`; the original's jle jumps
-//    straight to the FUN_004da3f0 call.
+//    straight to the NormalizeLineEndings call.
 //  - `log[0] = 0` after the first WriteFile is inside the GetModuleFileNameA
 //    success block, so the failure path skips it.
 //  - the EAX register-dump format string really reads "EFLGS" in the exe.
@@ -29,26 +29,26 @@ class Class_004d9c60 {
 public:
     char unknown_0[0x2084];
     char dump_text[0xa44c];
-    void FUN_004d9c60(unsigned long ebp, unsigned long esp, unsigned long eip, int zero);
+    void CaptureStack(unsigned long ebp, unsigned long esp, unsigned long eip, int zero);
 };
 
 class Class_004d9ca0 {
 public:
-    void FUN_004d9ca0();
+    void FormatStackReport();
 };
 
 extern int DAT_005289c0;
 
 char __cdecl FUN_004d8680();
-char* __cdecl FUN_004d98c0(int code);
-void __cdecl FUN_004da3f0(char* buf, int size);
-void __cdecl FUN_004ded60(char* dst, int size);
-void __cdecl FUN_004de110();
+char* __cdecl GetExceptionName(int code);
+void __cdecl NormalizeLineEndings(char* buf, int size);
+void __cdecl FormatSystemInfo(char* dst, int size);
+void __cdecl UnloadImageHelp();
 
 // The game's structured-exception reporter: builds a text dump in a 0x7358-byte
 // stack buffer and appends it to ErrorLog.txt next to the executable.
 // FUNCTION: 0x4d8e60
-int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
+int __cdecl ReportException(EXCEPTION_POINTERS* ep, char* handlerName)
 {
     HANDLE file;
     char* dot, * base, name[1000], path[1000], log[0x7358], exe[1000];
@@ -61,8 +61,8 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     DAT_005289c0 = 1;
     CONTEXT* ctx = ep->ContextRecord;
     EXCEPTION_RECORD* rec = ep->ExceptionRecord;
-    obj.FUN_004d9c60(ctx->Ebp, ctx->Esp, ctx->Eip, 0);
-    ((Class_004d9ca0*)&obj)->FUN_004d9ca0();
+    obj.CaptureStack(ctx->Ebp, ctx->Esp, ctx->Eip, 0);
+    ((Class_004d9ca0*)&obj)->FormatStackReport();
 
     // find the executable's directory and open the log there
     char* slash;
@@ -72,7 +72,7 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     if (file) { SetFilePointer(file, 0, 0, FILE_END); } else {
     }
     log[0] = 0;
-    reason = FUN_004d98c0(rec->ExceptionCode);
+    reason = GetExceptionName(rec->ExceptionCode);
 
     // the "what crashed" header, written out early
     if (((0 < GetModuleFileNameA(0, exe, 1000)) != 0)) {
@@ -92,7 +92,7 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     // the handler name, the module walk and the code/data address the fault
     // happened at
     { size_t L = strlen(log); sprintf(log + L, "Exception handler called in %s. ", handlerName); }
-    { char* d = log + strlen(log); FUN_004ded60(d, 0x7358 - strlen(log)); }
+    { char* d = log + strlen(log); FormatSystemInfo(d, 0x7358 - strlen(log)); }
     { char* d = log + strlen(log); sprintf(d, "Instruction pointer is %08lX\n", ctx->Eip); }
     { char* d = log + strlen(log); sprintf(d, "ExceptionCode = %08lX", rec->ExceptionCode); }
     sprintf(log + strlen(log), " - %s\n", reason);
@@ -175,11 +175,11 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     }
 
     // flush the buffer, close the log and exit the handler
-    FUN_004da3f0(log, 0x7358);
+    NormalizeLineEndings(log, 0x7358);
     if (0 != file) {
         WriteFile(file, log, strlen(log), &written, 0);
         CloseHandle(file);
     }
-    FUN_004de110();
+    UnloadImageHelp();
     return 0;
 }

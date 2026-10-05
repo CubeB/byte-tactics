@@ -30,7 +30,7 @@ public:
 };
 
 void __cdecl FUN_004d85a0(int* param_1);
-char* __cdecl FUN_004d8610(char* s);
+char* __cdecl GameStrdup(char* s);
 
 class Class_004b4750 {
 public:
@@ -46,7 +46,7 @@ int Class_004b4750::FUN_004b4750(const char* name, char* value)
         int i = ((Class_004b48f0*)this)->FUN_004b4910(name, 1);
         if (file->sections[file->current].values[i].type == 3)
             FUN_004d85a0((int*)file->sections[file->current].values[i].value);
-        file->sections[file->current].values[i].value = FUN_004d8610(value);
+        file->sections[file->current].values[i].value = GameStrdup(value);
         file->sections[file->current].values[i].type = 3;
         return 1;
     }

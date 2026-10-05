@@ -36,15 +36,15 @@ struct Game {
 
 extern Game* g_game;
 
-void __cdecl FUN_004d8780(void* param_1);
+void __cdecl ProtectBlockReadWrite(void* param_1);
 void __cdecl FUN_004d85a0(int* param_1);
 void __stdcall FUN_004b2540(void* param_1);
 
 // FUNCTION: 0x42db90
 void FreeUnitTypes()
 {
-    FUN_004d8780(g_game->field_1439b);
-    FUN_004d8780(g_game->field_14377);
+    ProtectBlockReadWrite(g_game->field_1439b);
+    ProtectBlockReadWrite(g_game->field_14377);
 
     for (unsigned short i = 1; i < g_game->field_1438f; i++) {
         UnitType_0042db90* type = &g_game->field_1439b[i];

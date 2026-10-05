@@ -9,10 +9,10 @@ struct Game {
 
 extern Game* g_game;
 
-void __cdecl FUN_004d8710(void* param_1);
+void __cdecl ProtectBlockReadOnly(void* param_1);
 
 // FUNCTION: 0x428fc0
 void FUN_00428fc0()
 {
-    FUN_004d8710(g_game->field_1439b);
+    ProtectBlockReadOnly(g_game->field_1439b);
 }

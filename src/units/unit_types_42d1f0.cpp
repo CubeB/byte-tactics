@@ -31,8 +31,8 @@ int __stdcall FUN_004bbc40(char* path);
 void __stdcall LoadUnitFbi(char* path, UnitType_0042d1f0* type);
 void __stdcall FUN_004b2540(CobFile_0042d1f0* cob);
 CobFile_0042d1f0* __stdcall FUN_004b2450(char* path);
-void __cdecl FUN_004d8780(void* param_1);
-void __cdecl FUN_004d8710(void* param_1);
+void __cdecl ProtectBlockReadWrite(void* param_1);
+void __cdecl ProtectBlockReadOnly(void* param_1);
 
 // FUNCTION: 0x42d1f0
 void __stdcall ReloadUnitType(unsigned short index)
@@ -42,7 +42,7 @@ void __stdcall ReloadUnitType(unsigned short index)
     UnitType_0042d1f0* type = &g_game->unitTypes[index];
     if ((type->flags & 0x800000) == 0)
         return;
-    FUN_004d8780(g_game->unitTypes);
+    ProtectBlockReadWrite(g_game->unitTypes);
     char path[256];
     BuildDataPath(path, "units", type->name, "FBI");
     if (FUN_004bbc40(path)) {
@@ -51,8 +51,8 @@ void __stdcall ReloadUnitType(unsigned short index)
         BuildDataPath(path, "scripts", type->name, "COB");
         CobFile_0042d1f0* cob = FUN_004b2450(path);
         *(CobFile_0042d1f0**)((char*)type + 0x18e) = cob;
-        FUN_004d8710(g_game->unitTypes);
+        ProtectBlockReadOnly(g_game->unitTypes);
     } else {
-        FUN_004d8710(g_game->unitTypes);
+        ProtectBlockReadOnly(g_game->unitTypes);
     }
 }

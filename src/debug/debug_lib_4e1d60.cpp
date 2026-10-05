@@ -3,7 +3,7 @@
 
 class Class_004e20a0 {
 public:
-    double FUN_004e20a0();
+    double RestartTimer();
 };
 
 class Class_004e1d60 {
@@ -39,5 +39,5 @@ void Class_004e1d60::FUN_004e1d60(int a, int b)
         oldPriorityClass = GetPriorityClass(process);
         SetPriorityClass(process, HIGH_PRIORITY_CLASS);
     }
-    ((Class_004e20a0*)this)->FUN_004e20a0();
+    ((Class_004e20a0*)this)->RestartTimer();
 }

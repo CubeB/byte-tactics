@@ -4,11 +4,11 @@
 class Class_004e2d90 {
 public:
     HKEY key;                        // +0x00
-    DWORD FUN_004e2d90(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue);
+    DWORD ReadDword(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue);
 };
 
 // FUNCTION: 0x4e2d90
-DWORD Class_004e2d90::FUN_004e2d90(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue)
+DWORD Class_004e2d90::ReadDword(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue)
 {
     DWORD value;
     DWORD size = 4;

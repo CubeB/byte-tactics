@@ -111,7 +111,7 @@ struct Class_004c6b10 {
 
 void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name, const char* ext);
 Class_004b8da0* __stdcall AllocFrame(const char* name, int width, int height);
-void __cdecl FUN_004d8e50(int param);
+void __cdecl SetOutOfMemoryHandler(int param);
 void __stdcall FUN_0049e6f0();
 void __stdcall SurfaceFromFrame(Surface_00495a30* dst, void* src);
 void* __stdcall GetDisplay();
@@ -145,7 +145,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
         off2b = g_game->field_37e2b;
         bh = (g_game->screenTilesY * 16) - 1;
 
-        FUN_004d8e50(0);
+        SetOutOfMemoryHandler(0);
         bm = AllocFrame("ScreenShot", w, bh);
         if (bm == 0) {
             bh /= 2;

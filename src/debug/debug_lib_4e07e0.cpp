@@ -76,7 +76,7 @@ static void __inline fmt_004e07e0(char *buf, unsigned int n)
 }
 
 // FUNCTION: 0x4e07e0
-char __cdecl FUN_004e07e0(char *dest)
+char __cdecl FormatWorkingSet(char *dest)
 {
     LPCRITICAL_SECTION cs = FUN_004e06f0();
     WSInfo_004e07e0 ws;

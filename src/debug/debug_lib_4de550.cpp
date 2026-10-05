@@ -39,7 +39,7 @@ typedef BOOL (__stdcall *SymGetLineFromAddr_004de550)(HANDLE, DWORD, DWORD*, Lin
 extern SymGetLineFromAddr_004de550 DAT_00528ab4;
 
 // FUNCTION: 0x4de550
-char __cdecl FUN_004de550(DWORD addr, Line_004de550* out, DWORD* err)
+char __cdecl GetLineFromAddress(DWORD addr, Line_004de550* out, DWORD* err)
 {
     if (DAT_00528ab4) {
         if (!(DAT_00528aac & 1)) {

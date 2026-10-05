@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Constructor of the global name-table singleton (allocated by FUN_004e1a90).
+// Constructor of the global name-table singleton (allocated by GetNameTable).
 // It is an MSVC 5 std::map whose value is a 500-byte buffer, so the tree node
 // is 0x208 bytes with the colour at +0x204 (see 0x4df380.cpp, 0x4e1990.cpp).
 // The tree's static _Nil / _Nilrefs are DAT_005292c4 / DAT_00529500 and the

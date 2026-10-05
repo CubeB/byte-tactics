@@ -5,12 +5,12 @@
 
 class Class_004e2d90 {
 public:
-    DWORD FUN_004e2d90(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue);
+    DWORD ReadDword(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue);
 };
 
 class Class_004e2e00 {
 public:
-    void FUN_004e2e00(LPCSTR name, int value);
+    void WriteInt(LPCSTR name, int value);
 };
 
 class Class_004e2e20 {
@@ -24,8 +24,8 @@ public:
 void Class_004e2e20::FUN_004e2e20(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue)
 {
     if (reading) {
-        *value = ((Class_004e2d90*)this)->FUN_004e2d90(name, minValue, maxValue, defaultValue);
+        *value = ((Class_004e2d90*)this)->ReadDword(name, minValue, maxValue, defaultValue);
     } else {
-        ((Class_004e2e00*)this)->FUN_004e2e00(name, *value);
+        ((Class_004e2e00*)this)->WriteInt(name, *value);
     }
 }

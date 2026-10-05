@@ -2,11 +2,11 @@
 // Space Bunny Free, finished by claude-opus-5-5. Names are provisional.
 // Commits a block for a pool allocation: rounds the request into need/want,
 // takes `want` bytes of reserved address space from the free-block set (the
-// allocator's FUN_004db1c0, inlined here), commits `need` of it with
+// allocator's TakeFreeBlock, inlined here), commits `need` of it with
 // VirtualAlloc, pads the block and records it in the second set.
 //
 // MATCH (claude-opus-5-5, #5052; was 79.8% after #5034, 66.4% before that).
-//  * The search is FUN_004db1c0's body inlined one level deep, which is why
+//  * The search is TakeFreeBlock's body inlined one level deep, which is why
 //    the set's own members (lower_bound 0x4dc620, begin 0x4dbeb0, the
 //    postfix -- and ++ 0x4dbe10/0x4dbd80, erase 0x4dbd00, insert 0x4dbbc0)
 //    are called out of line here, and the "grow and retry" tail is a call to
@@ -92,7 +92,7 @@ class Class_004dc620 { public: Class_004dbe10 FUN_004dc620(const Pair_004db000& 
 class Class_004dbeb0 { public: Class_004dbe10 FUN_004dbeb0(); };
 class Class_004dbd00 { public: Class_004dbe10 FUN_004dbd00(Class_004dbe10 it); };
 class Class_004dce60 { public: Class_004ddbe0 FUN_004dbbc0(const Pair_004db000& v); };
-class Class_004db450 { public: bool FUN_004db450(unsigned int); };
+class Class_004db450 { public: bool GrowReservation(unsigned int); };
 class Class_004dc680 { public: Class_004ddbe0 FUN_004dc680(const Class_004d8820& v); };
 
 class Class_004db000 {
@@ -106,24 +106,24 @@ public:
     Class_004dbe10 begin() { return ((Class_004dbeb0*)this)->FUN_004dbeb0(); }
     Class_004dbe10 end() { return Class_004dbe10(head); }
     unsigned int size() const { return count; }
-    unsigned int FUN_004db1c0(unsigned int bytes);
-    void FUN_004db000(Pair_004db000);
+    unsigned int TakeFreeBlock(unsigned int bytes);
+    void AddFreeBlock(Pair_004db000);
 };
 
 CRITICAL_SECTION* FUN_004da780();
 unsigned int __cdecl FUN_004da8a0(unsigned int size);
-unsigned int __cdecl FUN_004da8c0(unsigned int size);
-Class_004db000* FUN_004db610();
-Class_004dc680* FUN_004da8d0();
-void __cdecl FUN_004da7d0(unsigned int size);
-char FUN_004db760();
+unsigned int __cdecl RoundUpToPage(unsigned int size);
+Class_004db000* GetFreeBlockSet();
+Class_004dc680* GetBlockMap();
+void __cdecl CountAlloc(unsigned int size);
+char IsBackAlign();
 int FUN_004db7c0();
-void __cdecl FUN_004d82c0(void* at, int value, unsigned int count);
+void __cdecl FillPattern(void* at, int value, unsigned int count);
 
 // The allocator's alloc() (0x4db1c0, see the notes above): find a free block
 // of `bytes`, preferring the one the last allocation came from, and hand back
 // the leftovers around the request as new free blocks.
-inline unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
+inline unsigned int Class_004db000::TakeFreeBlock(unsigned int bytes)
 {
     if (size() > 0) {
         Pair_004db000 k;
@@ -166,13 +166,13 @@ inline unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
             cur.FUN_004dbd80(0);
         } while (tries < 2);
     }
-    if (((Class_004db450*)this)->FUN_004db450(bytes))
-        return FUN_004db1c0(bytes);
+    if (((Class_004db450*)this)->GrowReservation(bytes))
+        return TakeFreeBlock(bytes);
     return 0;
 }
 
 // FUNCTION: 0x4dacf0
-unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2)
+unsigned int __cdecl AllocDebugBlock(unsigned int n, unsigned int arg2)
 {
     CRITICAL_SECTION* lock = FUN_004da780();
     EnterCriticalSection(lock);
@@ -180,18 +180,18 @@ unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2)
     unsigned int res = 0;
     if (size == 0)
         size = 1;
-    unsigned int need = FUN_004da8c0(size);
+    unsigned int need = RoundUpToPage(size);
     unsigned int want = FUN_004da8a0(size);
     if (want < need) {
         LeaveCriticalSection(lock);
         return 0;
     }
-    unsigned int base = FUN_004db610()->FUN_004db1c0(want);
+    unsigned int base = GetFreeBlockSet()->TakeFreeBlock(want);
     if (base != 0) {
         res = (unsigned int)VirtualAlloc((void*)base, need, MEM_COMMIT, PAGE_READWRITE);
         if (res == 0) {
-            Class_004db000* pool = FUN_004db610();
-            pool->FUN_004db000(Pair_004db000(base, want));
+            Class_004db000* pool = GetFreeBlockSet();
+            pool->AddFreeBlock(Pair_004db000(base, want));
         }
     }
     if (res == 0) {
@@ -199,16 +199,16 @@ unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2)
         return 0;
     }
     unsigned int pad = (0 - (n & 0xfff)) & 0xfff;
-    if (FUN_004db760()) {
-        FUN_004d82c0((void*)res, FUN_004db7c0(), pad);
+    if (IsBackAlign()) {
+        FillPattern((void*)res, FUN_004db7c0(), pad);
         res += pad;
     } else {
-        FUN_004d82c0((void*)(res + n), FUN_004db7c0(), pad);
+        FillPattern((void*)(res + n), FUN_004db7c0(), pad);
     }
     Class_004d8820 rec(res, n, DAT_00528a04, arg2, 0);
-    Class_004dc680* blocks = FUN_004da8d0();
+    Class_004dc680* blocks = GetBlockMap();
     blocks->FUN_004dc680(rec);
-    FUN_004da7d0(n);
+    CountAlloc(n);
     DAT_005289f0 += (n + 0xfff) & 0xfffff000;
     if (DAT_005289f0 > DAT_005289d0)
         DAT_005289d0 = DAT_005289f0;

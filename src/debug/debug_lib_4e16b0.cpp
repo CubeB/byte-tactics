@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 
-char FUN_004e1700(void);
+char IsPentiumOrBetter(void);
 
 extern char DAT_00529e74;
 extern char DAT_00529e78;
@@ -11,7 +11,7 @@ char FUN_004e16b0(void)
     unsigned int features;
     if (!DAT_00529e74) {
         DAT_00529e74 = 1;
-        if (FUN_004e1700()) {
+        if (IsPentiumOrBetter()) {
             __asm {
                 push eax
                 push ebx

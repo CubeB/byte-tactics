@@ -100,11 +100,11 @@ public:
     // MSVC 5 only does for a `!` applied to a bool-returning member.
     bool Neq(Class_004dd2a0 a, Class_004dd2a0 b) { return !(a == b); }
 
-    void FUN_004db000(Pair_004db000 p);
+    void AddFreeBlock(Pair_004db000 p);
 };
 
 // FUNCTION: 0x4db000
-void Class_004db000::FUN_004db000(Pair_004db000 p)
+void Class_004db000::AddFreeBlock(Pair_004db000 p)
 {
     Class_004dd2a0 it;
     Class_004dd2a0 it2;

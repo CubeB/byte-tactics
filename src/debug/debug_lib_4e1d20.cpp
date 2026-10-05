@@ -9,7 +9,7 @@ public:
 
 class Class_004e20a0 {
 public:
-    double FUN_004e20a0();
+    double RestartTimer();
 };
 
 class Class_004e1d20 {
@@ -23,5 +23,5 @@ public:
 Class_004e1d20::Class_004e1d20(int param_1)
 {
     ((Class_004e1d60*)this)->FUN_004e1d60(0, param_1);
-    ((Class_004e20a0*)this)->FUN_004e20a0();
+    ((Class_004e20a0*)this)->RestartTimer();
 }

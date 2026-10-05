@@ -23,7 +23,7 @@ struct Table_004b4a80 {
 };
 
 void* __cdecl FUN_004d8580(void* ptr, int size);
-char* __cdecl FUN_004d8610(char* s);
+char* __cdecl GameStrdup(char* s);
 
 class Class_004b4a80 {
 public:
@@ -48,7 +48,7 @@ int Class_004b4a80::FUN_004b4a80(char* name, int flag)
     s->count = n + 1;
     s->entries = (Entry_004b4a80*)FUN_004d8580(s->entries, (n + 1) * sizeof(Entry_004b4a80));
     memset(&s->entries[n], 0, sizeof(Entry_004b4a80));
-    s->entries[n].name = FUN_004d8610(name);
+    s->entries[n].name = GameStrdup(name);
     s->entries[n].used = 1;
     return n;
 }

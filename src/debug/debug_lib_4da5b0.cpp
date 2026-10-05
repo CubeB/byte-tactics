@@ -18,7 +18,7 @@
 #include <stdio.h>
 
 // FUNCTION: 0x4da5b0
-void __cdecl FUN_004da5b0(HWND hwnd, char* url, char* ext)
+void __cdecl OpenUrl(HWND hwnd, char* url, char* ext)
 {
     int res = 0;
     char buf1[500];

@@ -807,7 +807,7 @@ class Class_004ddce0;
 class Class_004ddd70;
 class Class_004dddf0;
 class Class_004dde70;
-class Class_004ddf00;
+class LoadedImage;
 class Class_004ddfa0;
 class Class_004ddfe0;
 class Class_004de020;
@@ -825,7 +825,7 @@ class Class_004e0570;
 class Class_004e05c0;
 class Class_004e05f0;
 class Class_004e0b90;
-class Class_004e1560;
+class MappedFile;
 class Class_004e1590;
 class Class_004e1650_2;
 class Class_004e17c0;
@@ -852,7 +852,7 @@ class Class_004e29b0;
 class Class_004e2a10;
 class Class_004e2a30;
 class Class_004e2b60;
-class Class_004e2be0;
+class CavedogRegistryKey;
 class Class_004e2cc0;
 class Class_004e2ce0;
 class Class_004e2d00;
@@ -5307,7 +5307,7 @@ public:
     int unknown_4;  // +0x4
     int stopped;  // +0x8
     void* hwnd;  // +0xc
-    void FUN_0047c530(void);
+    void WriteSmackStats(void);
     void Play(void);
 };
 
@@ -18811,7 +18811,7 @@ public:
     char name[64];  // +0x0
     int line;  // +0x40
     Stack_004d89b0 stack;  // +0x44
-    void FUN_004d89b0(char*, int);
+    void FormatCallSite(char*, int);
 };
 
 struct Base_004d8ae0 {  // 0x8c bytes, 1 view
@@ -18873,7 +18873,7 @@ class Class_004d8d40 {  // 0x148 bytes, 2 views
 public:
     Class_004d8820 block;  // +0x0
     char unknown_30[280];
-    void FUN_004d8c50(char*, int, char);
+    void FormatBlockHistory(char*, int, char);
     void FUN_004d8d40(char);
 };
 
@@ -18896,7 +18896,7 @@ public:
     int field_207c;  // +0x207c
     int* field_2080;  // +0x2080
     char dump_text[42060];  // +0x2084
-    void FUN_004d9c60(int*, int*, int, int);
+    void CaptureStack(int*, int*, int, int);
 };
 
 class Class_004d9ca0 {  // 0xc4d0 bytes, 2 views
@@ -18907,7 +18907,7 @@ public:
     int copied;  // +0x207c
     unsigned long* pc;  // +0x2080
     char buf[42060];  // +0x2084
-    void FUN_004d9ca0(void);
+    void FormatStackReport(void);
 };
 
 struct ExceptionName {  // 0x8 bytes, 1 view
@@ -18987,7 +18987,7 @@ public:
     LiveNode* head;  // +0x4
     char unknown_8[8];
     int total;  // +0x10
-    bool FUN_004db450(unsigned int);
+    bool GrowReservation(unsigned int);
     unsigned char Neq(Class_004dd2a0, Class_004dd2a0);
     void Tail(unsigned int, unsigned int, Class_004dd2a0&);
 };
@@ -19042,9 +19042,9 @@ public:
     unsigned char Neq(Class_004dd2a0, Class_004dd2a0);
     unsigned int size(void);
     Class_004dd2a0 erase(Class_004dd2a0);
-    unsigned int FUN_004db1c0(unsigned int);
+    unsigned int TakeFreeBlock(unsigned int);
     Class_004ddbe0 insert(Pair_00419560&);
-    void FUN_004db000(Pair_00419560);
+    void AddFreeBlock(Pair_00419560);
     unsigned char Grow(unsigned int);
 };
 
@@ -19377,17 +19377,17 @@ public:
     LiveNode* FUN_004ddc90(unsigned int&);
 };
 
-class Class_004e1560 {  // 0x14 bytes, 2 views
+class MappedFile {      // 0x14 bytes, 2 views
 public:
     void* hFile;  // +0x0
     void* hMapping;  // +0x4
     void* view;  // +0x8
     int size;  // +0xc
     int state;  // +0x10
-    Class_004e1560(char*);
+    MappedFile(char*);
 };
 
-class Class_004ddf00 : public Class_004e1560 {  // 0x2c bytes, 2 views
+class LoadedImage : public MappedFile {         // 0x2c bytes, 2 views
 public:
     void* module;  // +0x14
     unsigned int imageBase;  // +0x18
@@ -19395,8 +19395,8 @@ public:
     _IMAGE_NT_HEADERS* ntHeaders;  // +0x20
     _IMAGE_DEBUG_DIRECTORY* debugDirs;  // +0x24
     unsigned int numDebugDirs;  // +0x28
-    Class_004ddf00(void*);
-    ~Class_004ddf00(void);
+    LoadedImage(void*);
+    ~LoadedImage(void);
 };
 
 class Class_004e1590 {  // 0x14 bytes, 3 views
@@ -19406,7 +19406,7 @@ public:
     void* view;  // +0x8
     unsigned long size;  // +0xc
     int state;  // +0x10
-    void FUN_004e1590(char*);
+    void OpenMappedFile(char*);
 };
 
 class Class_004ddfa0 {  // 0x2c bytes, 2 views
@@ -19416,7 +19416,7 @@ public:
     char unknown_c[24];
     DebugDir_004ddfa0* debugDirs;  // +0x24
     int numDebugDirs;  // +0x28
-    Fpo_004de020* FUN_004ddfa0(void);
+    Fpo_004de020* GetFpoRecords(void);
 };
 
 struct DebugDir_004ddfa0 {  // 0x1c bytes, 2 views
@@ -19445,14 +19445,14 @@ public:
     char unknown_c[24];
     DebugDir_004ddfa0* debugDirs;  // +0x24
     int numDebugDirs;  // +0x28
-    unsigned int FUN_004ddfe0(void);
+    unsigned int GetFpoRecordCount(void);
 };
 
 class Class_004de020 {  // 0x1c bytes, 2 views
 public:
     char unknown_0[24];
     unsigned int imageBase;  // +0x18
-    Fpo_004de020* FUN_004de020(unsigned int);
+    Fpo_004de020* FindFpoRecord(unsigned int);
 };
 
 struct Line_004de550 {  // 0x14 bytes, 2 views
@@ -19489,7 +19489,7 @@ struct Sym_004dea00 {  // 0x218 bytes, 1 view
 class Class_004df250 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_004df250(void);
+    void CreatePerformanceDialog(void);
 };
 
 class Id_004df1e0 {  // 0x1f8 bytes, 1 view
@@ -19505,7 +19505,7 @@ public:
     char unknown_4[28];
     unsigned char flag_20;  // +0x20
     char unknown_21[3];
-    void FUN_004df280(char);
+    void SetPerformanceWindowVisible(char);
 };
 
 class Class_004df380 {  // 0x28 bytes, 2 views
@@ -19633,7 +19633,7 @@ public:
     char unknown_21[3];
     Value_004df590 selected;  // +0x24
     Map_004df590 set;  // +0x21c
-    int FUN_004df590(unsigned int, unsigned int, long);
+    int HandlePerformanceMessage(unsigned int, unsigned int, long);
 };
 
 class Class_004dfea0 {  // 0x10 bytes, 4 views
@@ -19671,14 +19671,14 @@ public:
     void FUN_004e0520(int);
 };
 
-class Class_004e2be0 {  // 0x34 bytes, 6 views
+class CavedogRegistryKey {  // 0x34 bytes, 6 views
 public:
     int key;  // +0x0
     unsigned char readOnly;  // +0x4
     char unknown_5[3];
     tagWINDOWPLACEMENT placement;  // +0x8
-    Class_004e2be0(char, char*, char*);
-    ~Class_004e2be0(void);
+    CavedogRegistryKey(char, char*, char*);
+    ~CavedogRegistryKey(void);
 };
 
 class Class_004e2fe0 {  // 0x5 bytes, 3 views
@@ -19691,7 +19691,7 @@ public:
 class Class_004e05c0 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_004e05c0(void);
+    void CreateMemoryStatusDialog(void);
 };
 
 struct Triple_004e0570 {  // 0xc bytes, 1 view
@@ -19728,7 +19728,7 @@ public:
     char unknown_4[116];
     char flag_78;  // +0x78
     char unknown_79[3];
-    void FUN_004e05f0(char);
+    void SetMemoryStatusWindowVisible(char);
 };
 
 struct Rate_004e0b90 {  // 0x60 bytes, 1 view
@@ -19749,7 +19749,7 @@ public:
     char flag_78;  // +0x78
     unsigned char workingSet;  // +0x79
     char unknown_7a[6];
-    int FUN_004e0b90(unsigned int, int, int);
+    int HandleMemoryStatusMessage(unsigned int, int, int);
 };
 
 class Class_004e1650_2 {  // 0xc bytes, 1 view
@@ -19757,7 +19757,7 @@ public:
     void* hFile;  // +0x0
     void* hMapping;  // +0x4
     void* view;  // +0x8
-    void FUN_004e1650(void);
+    void CloseMappedFile(void);
 };
 
 class Class_004e2b60 {  // 0x1 bytes, 3 views
@@ -19875,13 +19875,13 @@ public:
 class Class_004e20a0 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    double FUN_004e20a0(void);
+    double RestartTimer(void);
 };
 
 class Class_004e1e50 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    void FUN_004e1e50(char*);
+    void ReportElapsedTime(char*);
 };
 
 class Class_004e1e30 {  // 0x50 bytes, 2 views
@@ -19890,7 +19890,7 @@ public:
     char unknown_8[64];
     char stopped;  // +0x48
     char unknown_49[7];
-    double FUN_004e1e30(void);
+    double GetElapsedSeconds(void);
 };
 
 struct Class_004e2150 {  // 0x50 bytes, 1 view
@@ -19898,7 +19898,7 @@ struct Class_004e2150 {  // 0x50 bytes, 1 view
     char unknown_8[64];
     unsigned char field_48;  // +0x48
     char unknown_49[7];
-    void FUN_004e2150(void);
+    void StopTimer(void);
 };
 
 class Class_004e2160 {  // 0x50 bytes, 1 view
@@ -19907,7 +19907,7 @@ public:
     char unknown_8[64];
     char flag_48;  // +0x48
     char unknown_49[7];
-    void FUN_004e2160(void);
+    void ResumeTimer(void);
 };
 
 struct Class_004e2180 {  // 0x4c bytes, 1 view
@@ -19916,7 +19916,7 @@ struct Class_004e2180 {  // 0x4c bytes, 1 view
     char unknown_8[64];
     unsigned char field_48;  // +0x48
     char unknown_49[3];
-    void FUN_004e2180(void);
+    void ResetTimer(void);
 };
 
 struct Class_004e21a0 {  // 0x50 bytes, 1 view
@@ -20052,19 +20052,19 @@ public:
 class Class_004e2d70 {  // 0x4 bytes, 10 views
 public:
     void* field_0;  // +0x0
-    void FUN_004e2d70(char*, unsigned long);
+    void WriteDword(char*, unsigned long);
 };
 
 class Class_004e2d90 {  // 0x4 bytes, 2 views
 public:
     void* key;  // +0x0
-    unsigned long FUN_004e2d90(char*, unsigned long, unsigned long, unsigned long);
+    unsigned long ReadDword(char*, unsigned long, unsigned long, unsigned long);
 };
 
 class Class_004e2e00 {  // 0x4 bytes, 2 views
 public:
     void* key;  // +0x0
-    void FUN_004e2e00(char*, int);
+    void WriteInt(char*, int);
 };
 
 class Class_004e2e60 {  // 0x8 bytes, 1 view

@@ -13,7 +13,7 @@ extern char DAT_005289b4;
 extern char DAT_005289b8;
 
 // FUNCTION: 0x4d80d0
-char FUN_004d80d0()
+char IsMemFussy()
 {
     DAT_005289b4 = 1;
     static Class_004d9fe0 memFussy("memfussy", 1, DAT_005289b8, "-memfussy", "-memnofussy", "-memfrontalign", 0);

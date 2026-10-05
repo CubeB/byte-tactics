@@ -1,7 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 #include <string.h>
 
-void __cdecl FUN_004de600(int* frame, int* stack, int eip, int skip, int* out, int max, int* count,
+void __cdecl WalkFrameChain(int* frame, int* stack, int eip, int skip, int* out, int max, int* count,
                           int* field_3c, int size, int* field_40);
 
 // A stack trace of up to 14 return addresses (0x4d9c60.cpp has a bigger one).
@@ -27,7 +27,7 @@ struct Trace_004d8870 {
             mov eip, eax
         }
         stack = top;
-        FUN_004de600(frame, top, eip, skip, entries, 14, &count, &field_3c, 1, &field_40);
+        WalkFrameChain(frame, top, eip, skip, entries, 14, &count, &field_3c, 1, &field_40);
     }
 };
 

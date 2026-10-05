@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Pushes the global name table (FUN_004e1a90) entry whose key equals this
+// Pushes the global name table (GetNameTable) entry whose key equals this
 // object's name into the edit control at id 0x3f0, but only when the control
 // does not already hold that text. The whole scan runs under the global
 // critical section (FUN_004e1ac0) and stops at the first key that matches, so
@@ -83,7 +83,7 @@ public:
     Map_004df380 names;                // +0x00
 };
 
-Class_004e17c0* FUN_004e1a90();
+Class_004e17c0* GetNameTable();
 
 class Class_004df380 {
 public:
@@ -105,7 +105,7 @@ void Class_004df380::FUN_004df380()
 {
     CritSec_004e1ac0* lock = FUN_004e1ac0();
     EnterCriticalSection(&lock->cs);
-    Map_004df380* map = &FUN_004e1a90()->names;
+    Map_004df380* map = &GetNameTable()->names;
     for (Iter_004df380 it = map->begin(); it != map->end(); ++it) {
         if (Same(it.ptr->first)) {
             char buf[500];

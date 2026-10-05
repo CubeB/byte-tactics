@@ -5,7 +5,7 @@
 typedef int (__stdcall* DebugFunc_004cbb70)(int);
 
 // FUNCTION: 0x4cbb70
-int __stdcall FUN_004cbb70(int value)
+int __stdcall PassThroughDebugHelper(int value)
 {
     HMODULE lib = LoadLibraryA("DebugHelper.dll");
     if (lib != 0) {

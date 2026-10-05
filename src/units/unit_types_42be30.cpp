@@ -33,13 +33,13 @@ struct Game {
 extern Game* g_game;
 
 unsigned short __stdcall FindUnitTypeId(char* name);
-void __cdecl FUN_004d8710(void* p);
-void __cdecl FUN_004d8780(void* p);
+void __cdecl ProtectBlockReadOnly(void* p);
+void __cdecl ProtectBlockReadWrite(void* p);
 
 // FUNCTION: 0x42be30
 void AddDownloadBuildOptions()
 {
-    FUN_004d8780(g_game->entries);
+    ProtectBlockReadWrite(g_game->entries);
     Entry_0042be30* e = g_game->entries;
     for (int a = 0; a < g_game->count1; a++, e++) {
         if (e->items != 0) {
@@ -56,5 +56,5 @@ void AddDownloadBuildOptions()
             }
         }
     }
-    FUN_004d8710(g_game->entries);
+    ProtectBlockReadOnly(g_game->entries);
 }

@@ -2,7 +2,7 @@
 #include <windows.h>
 
 // FUNCTION: 0x4e1700
-char FUN_004e1700(void)
+char IsPentiumOrBetter(void)
 {
     SYSTEM_INFO info;
     GetSystemInfo(&info);

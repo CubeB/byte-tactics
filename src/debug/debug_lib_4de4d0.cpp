@@ -10,7 +10,7 @@ public:
     ~Class_004d9fe0() {}
 };
 
-char __cdecl FUN_004de180(int param);
+char __cdecl LoadImageHelp(int param);
 
 extern void* DAT_00528ab4;
 extern void* DAT_00528acc;
@@ -22,7 +22,7 @@ char FUN_004de4d0()
 {
     static Class_004d9fe0 lines("imagehlplines", 1, 1, "-enableimagehlplines",
                                 "-disableimagehlplines", 0, 0);
-    if (lines.on && FUN_004de180(1) && (DAT_00528ab4 || DAT_00528acc))
+    if (lines.on && LoadImageHelp(1) && (DAT_00528ab4 || DAT_00528acc))
         return 1;
     return 0;
 }

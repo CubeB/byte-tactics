@@ -6,21 +6,21 @@
 #include <string.h>
 
 CRITICAL_SECTION* FUN_004da780();
-size_t __cdecl FUN_004d8360(void* p);
-void* __cdecl FUN_004dacf0(unsigned int size, int flags);
-void __cdecl FUN_004db7d0(void* p, int flags);
+size_t __cdecl GetBlockSize(void* p);
+void* __cdecl AllocDebugBlock(unsigned int size, int flags);
+void __cdecl FreeDebugBlock(void* p, int flags);
 
 // FUNCTION: 0x4dba40
-void* __cdecl FUN_004dba40(void* p, unsigned int size, int flags)
+void* __cdecl ReallocDebugBlock(void* p, unsigned int size, int flags)
 {
     CRITICAL_SECTION* cs = FUN_004da780();
     EnterCriticalSection(cs);
     void* q = 0;
     size_t old = 0;
     if (p)
-        old = FUN_004d8360(p);
+        old = GetBlockSize(p);
     if (size > 0) {
-        q = FUN_004dacf0(size, flags);
+        q = AllocDebugBlock(size, flags);
         if (!q) {
             LeaveCriticalSection(cs);
             return 0;
@@ -30,7 +30,7 @@ void* __cdecl FUN_004dba40(void* p, unsigned int size, int flags)
             memcpy(q, p, n);
     }
     if (p)
-        FUN_004db7d0(p, flags);
+        FreeDebugBlock(p, flags);
     LeaveCriticalSection(cs);
     return q;
 }

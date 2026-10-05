@@ -9,16 +9,16 @@
 
 extern char* DAT_00529e80;
 
-class Class_004e2be0 {
+class CavedogRegistryKey {
 public:
     int key;                           // +0x00
     unsigned char readOnly;            // +0x04
-    Class_004e2be0(char readOnly, char* app, char* section);
-    ~Class_004e2be0();
+    CavedogRegistryKey(char readOnly, char* app, char* section);
+    ~CavedogRegistryKey();
 };
 
 // FUNCTION: 0x4e2be0
-Class_004e2be0::Class_004e2be0(char readOnly, char* app, char* section)
+CavedogRegistryKey::CavedogRegistryKey(char readOnly, char* app, char* section)
 {
     HKEY k;
     if (section == 0) {

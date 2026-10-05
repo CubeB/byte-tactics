@@ -58,7 +58,7 @@ public:
     Map_004df590 names;                // +0x0
 };
 
-Class_004e17c0* FUN_004e1a90();
+Class_004e17c0* GetNameTable();
 
 class Class_004e1ac0 {
 public:
@@ -88,7 +88,7 @@ public:
     HWND hwnd;
     char unknown_4[0x1c];
     unsigned char flag_20;
-    void FUN_004df280(char show);
+    void SetPerformanceWindowVisible(char show);
 };
 
 class Class_004df380 {
@@ -116,9 +116,9 @@ extern unsigned char DAT_00529dc8;
 extern Entry_004df590 DAT_00529e00[];
 extern char* DAT_0050d660;
 
-void __cdecl FUN_004e1b10(int flag);
-void __cdecl FUN_004e3400(HWND hwnd, char* name);
-void __cdecl FUN_004da5b0(HWND hwnd, const char* url, const char* ext);
+void __cdecl SyncPerformanceSettings(int flag);
+void __cdecl SaveWindowPosition(HWND hwnd, char* name);
+void __cdecl OpenUrl(HWND hwnd, const char* url, const char* ext);
 
 class Class_004df590 {
 public:
@@ -133,7 +133,7 @@ public:
     Value_004df590 selected;           // +0x24
     Map_004df590 set;                  // +0x21c
 
-    BOOL FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam);
+    BOOL HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 };
 
 static inline Node_004df590* Min_004df590(Node_004df590* p)
@@ -147,7 +147,7 @@ static inline Node_004df590* Min_004df590(Node_004df590* p)
 static inline bool NamesEqual_004df590(const char* a, const char* b) { return a == b || strcmp(a,b) == 0; }
 
 // FUNCTION: 0x4df590
-BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
+BOOL Class_004df590::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg) {
     case 0x111: {
@@ -155,7 +155,7 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
         switch (id) {
         case IDOK:
         case IDCANCEL:
-            ((Class_004df280*)this)->FUN_004df280(0);
+            ((Class_004df280*)this)->SetPerformanceWindowVisible(0);
             return 0;
 
         case 0x3ed:
@@ -191,40 +191,40 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
                         i++;
                     }
                 }
-                FUN_004e1b10(0);
+                SyncPerformanceSettings(0);
                 return 0;
             }
 
             case 0x3fa:
-                FUN_004da5b0(hwnd,
+                OpenUrl(hwnd,
                     "http://10.0.150.18/programming/library/extras/performancestatusdialog.html",
                     ".htm");
                 return 0;
 
             case 0x3ef:
                 DAT_00529dd8 = (DAT_00529dd8 == 0);
-                FUN_004e1b10(0);
+                SyncPerformanceSettings(0);
                 ((Class_004df4e0*)this)->FUN_004df4e0();
                 return 0;
 
             case 0x3f1:
                 DAT_00529dd4 = (DAT_00529dd4 == 0);
-                FUN_004e1b10(0);
+                SyncPerformanceSettings(0);
                 return 0;
 
             case 0x3f6:
                 DAT_00529ddc = (DAT_00529ddc == 0);
-                FUN_004e1b10(0);
+                SyncPerformanceSettings(0);
                 return 0;
 
             case 0x3f7:
                 DAT_00529e64 = (DAT_00529e64 == 0);
-                FUN_004e1b10(0);
+                SyncPerformanceSettings(0);
                 return 0;
 
             case 0x3f8:
                 DAT_00529dc8 = (DAT_00529dc8 == 0);
-                FUN_004e1b10(0);
+                SyncPerformanceSettings(0);
                 return 0;
 
             case 0x3f4: {
@@ -266,11 +266,11 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
         if (rect.left != left || rect.top != top) {
             left = rect.left;
             top = rect.top;
-            FUN_004e3400(hwnd, DAT_0050d660);
+            SaveWindowPosition(hwnd, DAT_0050d660);
         }
         Class_004e1ac0* cs = FUN_004e1ac0();
         EnterCriticalSection(&cs->cs);
-        Class_004e17c0* info = FUN_004e1a90();
+        Class_004e17c0* info = GetNameTable();
         if (info->names.changed) {
             int sel = -1;
             int n = 0;
@@ -327,13 +327,13 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
         CheckDlgButton(hwnd, 0x3f8, DAT_00529dc8);
         ((Class_004df4e0*)this)->FUN_004df4e0();
         if (flag_20)
-            ((Class_004df280*)this)->FUN_004df280(1);
+            ((Class_004df280*)this)->SetPerformanceWindowVisible(1);
         return 1;
     }
 
     case 0x312:
         if (wParam == 10) {
-            ((Class_004df280*)this)->FUN_004df280(IsWindowVisible(hwnd) == 0);
+            ((Class_004df280*)this)->SetPerformanceWindowVisible(IsWindowVisible(hwnd) == 0);
         }
         return 0;
 

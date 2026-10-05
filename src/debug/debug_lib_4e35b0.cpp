@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <string.h>
 
-bool __cdecl FUN_004e3750(unsigned int effect, unsigned int level, char f1, char f2);
+bool __cdecl ProgramPerfEvent(unsigned int effect, unsigned int level, char f1, char f2);
 
 extern char DAT_00529e88[13];           // the CPU's vendor string (cpuid 0: ebx, edx, ecx)
 extern HANDLE DAT_00529e98;             // the GDPERF driver
@@ -16,7 +16,7 @@ extern int DAT_00529ea0;                // the CPU family, 4 for anything but 5 
 // The two CreateFileA calls are the original's: the compiler merges their
 // common argument pushes, so the call pushes the name last, on a branch.
 // FUNCTION: 0x4e35b0
-char FUN_004e35b0(void)
+char OpenGdperf(void)
 {
     OSVERSIONINFOA info;
     if (DAT_00529e9c)
@@ -61,8 +61,8 @@ char FUN_004e35b0(void)
             mov DAT_00529ea0, ebx
         }
         if (DAT_00529ea0 == 6) {
-            FUN_004e3750(0x60790300, 0, 1, 1);
-            FUN_004e3750(0x60790300, 1, 1, 1);
+            ProgramPerfEvent(0x60790300, 0, 1, 1);
+            ProgramPerfEvent(0x60790300, 1, 1, 1);
         }
         if (DAT_00529ea0 >= 5)
             return 1;

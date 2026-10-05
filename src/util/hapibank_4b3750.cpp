@@ -5,7 +5,7 @@ public:
     void FUN_004b3630(void);
 };
 
-extern void* __cdecl FUN_004d8460(int, int);
+extern void* __cdecl GameCalloc(int, int);
 
 class Class_004b3750 {
 public:
@@ -20,7 +20,7 @@ public:
 void Class_004b3750::FUN_004b3750(void)
 {
     ((Class_004b3630*)this)->FUN_004b3630();
-    void* result = FUN_004d8460(1, 0xc);
+    void* result = GameCalloc(1, 0xc);
     field_0 = result;
     ((int*)result)[2] = -1;
 }

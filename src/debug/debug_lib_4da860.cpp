@@ -12,7 +12,7 @@ extern int DAT_005289fc;
 extern int DAT_00528a00;
 
 // FUNCTION: 0x4da860
-void FUN_004da860(void)
+void ResetAllocStats(void)
 {
     DAT_00528a1c = 0;
     DAT_00528a08 = 0;

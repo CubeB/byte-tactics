@@ -5,7 +5,7 @@
 
 // Shows the contents of stats.txt in a message box.
 // FUNCTION: 0x47c4d0
-void FUN_0047c4d0()
+void ShowStatsSummary()
 {
     char text[0x400];
     memset(text, 0, sizeof(text));

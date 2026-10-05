@@ -28,11 +28,11 @@ public:
     unsigned long* pc;
     char buf[0xa44c];
 
-    void FUN_004d9ca0();
+    void FormatStackReport();
 };
 
 // FUNCTION: 0x4d9ca0
-void Class_004d9ca0::FUN_004d9ca0()
+void Class_004d9ca0::FormatStackReport()
 {
     int m = copied;
     unsigned long* q0 = pc;

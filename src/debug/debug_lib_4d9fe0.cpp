@@ -2,7 +2,7 @@
 // A command-line switch: `on` is set from the default, then forced on by
 // either on-switch and off by either off-switch (off wins).
 
-char* __cdecl FUN_004d9f60(char* name);
+char* __cdecl FindCommandLineSwitch(char* name);
 
 class Class_004d9fe0 {
 public:
@@ -16,8 +16,8 @@ Class_004d9fe0::Class_004d9fe0(char* name, int a, char def, char* onSwitch,
                                char* offSwitch, char* onSwitch2, char* offSwitch2)
 {
     on = def;
-    if (FUN_004d9f60(onSwitch) || FUN_004d9f60(onSwitch2))
+    if (FindCommandLineSwitch(onSwitch) || FindCommandLineSwitch(onSwitch2))
         on = 1;
-    if (FUN_004d9f60(offSwitch) || FUN_004d9f60(offSwitch2))
+    if (FindCommandLineSwitch(offSwitch) || FindCommandLineSwitch(offSwitch2))
         on = 0;
 }

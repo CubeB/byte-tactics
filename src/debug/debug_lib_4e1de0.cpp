@@ -7,7 +7,7 @@
 
 class Class_004e1e50 {
 public:
-    void FUN_004e1e50(char* text);
+    void ReportElapsedTime(char* text);
 };
 
 class Class_004e1d20 {
@@ -31,7 +31,7 @@ Class_004e1d20::~Class_004e1d20()
 {
     DAT_00529e20[--DAT_00529dd0] = 0;
     if (name) {
-        ((Class_004e1e50*)this)->FUN_004e1e50(0);
+        ((Class_004e1e50*)this)->ReportElapsedTime(0);
     }
     if (boosted) {
         HANDLE process = GetCurrentProcess();

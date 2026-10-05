@@ -9,7 +9,7 @@
 // to the free-block set.
 //
 // What matched it (it sat at 83.0 percent with a hand-built nested block):
-//  * The give-back is FUN_004db000 (0x4db000, add a free block merged with its
+//  * The give-back is AddFreeBlock (0x4db000, add a free block merged with its
 //    neighbours) inlined, written as in its own file, but with this file's
 //    copies of the set's members out of line: upper_bound 0x4dbd20, begin
 //    0x4dbeb0, operator--(int) 0x4dbe10, erase 0x4dbd00 and insert 0x4dbbc0
@@ -17,11 +17,11 @@
 //    `p` by itself.
 //  * The live map's erase is an inline wrapper around the out-of-line
 //    _Tree::erase (0x4dc910), as std::map::erase is. The wrapper's parameter
-//    is why `it` is loaded into esi before FUN_004da8d0 is called.
+//    is why `it` is loaded into esi before GetBlockMap is called.
 //  * The ring is a real std::vector of the 0x30-byte record (0x4dd8c0 is its
 //    out-of-line insert): `push_back` when it is not full, `ring[count &
 //    0x1fff] = *old` when it is. The record pointer is taken before
-//    FUN_004da9f0, the live map before the record is built, and the commit and
+//    GetFreedBlockRing, the live map before the record is built, and the commit and
 //    reserve sizes and the free-block set are fetched into locals first.
 //  * The record and the ring's element are one 0x30-byte record type in the
 //    original; they have two names here because 0x4d8820's and 0x4dd8c0's
@@ -183,7 +183,7 @@ public:
     Class_004ddbe0 insert(const Pair_004db000& v) { return ((Class_004dce60*)this)->FUN_004dbbc0(v); }
 
     // 0x4db000: add a free block, merged with the free blocks on either side.
-    void FUN_004db000(Pair_004db000 p)
+    void AddFreeBlock(Pair_004db000 p)
     {
         Class_004dbe10 it;
         Class_004dbe10 n = upper_bound(p.offset);
@@ -210,53 +210,53 @@ public:
 };
 
 CRITICAL_SECTION* FUN_004da780();
-Class_004dce00* FUN_004da8d0();
-Arena_004da9f0* FUN_004da9f0();
-Class_004db000* FUN_004db610();
-char FUN_004db760();
+Class_004dce00* GetBlockMap();
+Arena_004da9f0* GetFreedBlockRing();
+Class_004db000* GetFreeBlockSet();
+char IsBackAlign();
 int FUN_004db7c0();
-void __cdecl FUN_004d8310(void* at, int value, unsigned int count);
-void __cdecl FUN_004da840(unsigned int size);
-unsigned int __cdecl FUN_004da8c0(unsigned int size);
+void __cdecl CheckFillPattern(void* at, int value, unsigned int count);
+void __cdecl CountFree(unsigned int size);
+unsigned int __cdecl RoundUpToPage(unsigned int size);
 unsigned int __cdecl FUN_004da8a0(unsigned int size);
 
 // FUNCTION: 0x4db7d0
-void __cdecl FUN_004db7d0(void* p, int flags)
+void __cdecl FreeDebugBlock(void* p, int flags)
 {
     if (p == 0)
         return;
     CRITICAL_SECTION* lock = FUN_004da780();
     EnterCriticalSection(lock);
-    Class_004dce00* live = FUN_004da8d0();
+    Class_004dce00* live = GetBlockMap();
     Class_004d8820 rec((unsigned int)p, 0, 0, 0, 0);
     Iter_004dce00 it = live->FUN_004dce00(rec.base);
-    if (it == FUN_004da8d0()->end()) {
+    if (it == GetBlockMap()->end()) {
         LeaveCriticalSection(lock);
         return;
     }
     unsigned int size = it->size;
     unsigned int pad = (0 - (size & 0xfff)) & 0xfff;
-    if (FUN_004db760())
-        FUN_004d8310((char*)p - pad, FUN_004db7c0(), pad);
+    if (IsBackAlign())
+        CheckFillPattern((char*)p - pad, FUN_004db7c0(), pad);
     else
-        FUN_004d8310((char*)p + size, FUN_004db7c0(), pad);
+        CheckFillPattern((char*)p + size, FUN_004db7c0(), pad);
     Elem_004dd8c0* old = (Elem_004dd8c0*)&*it;
-    Arena_004da9f0* arena = FUN_004da9f0();
+    Arena_004da9f0* arena = GetFreedBlockRing();
     if (arena->count < 0x2000)
         arena->ring.push_back(*old);
     else
         arena->ring[arena->count & 0x1fff] = *old;
     arena->count++;
-    FUN_004da8d0()->erase(it);
-    FUN_004da840(size);
+    GetBlockMap()->erase(it);
+    CountFree(size);
     DAT_005289f0 -= (size + 0xfff) & 0xfffff000;
     p = (void*)((unsigned int)p & 0xfffff000);
     if (size == 0)
         size = 1;
-    unsigned int commit = FUN_004da8c0(size);
+    unsigned int commit = RoundUpToPage(size);
     VirtualFree(p, commit, MEM_DECOMMIT);
     unsigned int reserve = FUN_004da8a0(size);
-    Class_004db000* blocks = FUN_004db610();
-    blocks->FUN_004db000(Pair_004db000((unsigned int)p, reserve));
+    Class_004db000* blocks = GetFreeBlockSet();
+    blocks->AddFreeBlock(Pair_004db000((unsigned int)p, reserve));
     LeaveCriticalSection(lock);
 }

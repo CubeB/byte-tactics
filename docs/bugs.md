@@ -573,6 +573,12 @@ Things that look wrong in the original but have no effect, kept for the record.
 
 ## Possible leaks and unchecked inputs
 
+- **0x42a8d0** (the unit type loader, a gap region; likely): when an FBI file
+  has no UNITINFO section it returns 0 at once (`je 0x42b1bc` from 0x42ac78),
+  freeing that file's buffer but not closing the file (the normal path calls
+  FUN_004bb5d0 at 0x42b173) and not freeing the weapon TDF table at
+  DAT_005122a0 (only the normal end does, from 0x42b20a). Found by a Claude
+  Code / Opus 5.5 subagent in #2662.
 - **0x413470** (an order handler), state 3 (likely): after two misses it
   allocates a `Class_0044e2d0` waypoint and sets its speed with
   `FUN_0044e730(0x80)`, then only ORs 0x110e8 into the order flags and returns

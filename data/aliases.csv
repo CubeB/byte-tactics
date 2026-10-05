@@ -33,3 +33,4 @@ Class_0044e740::Class_0044e740,0x44e7d0,"Class_0044e740's second constructor (ow
 Class_004b4560::FUN_004b4ba0,0x4b4ba0,"Class_004b4ba0::FUN_004b4ba0 under its class in include/ta_types.h, which 0x424c00 includes"
 Class_004b4560::FUN_004b4c80,0x4b4c80,"Class_004b4c80::FUN_004b4c80 under its class in include/ta_types.h, which 0x424c00 includes"
 DAT_00511fb4$S64984,0x511fb4,"DAT_00511fb4$S4411 in 0x424c00, where the static's symbol id (its $S suffix) is 64984 with include/ta_types.h <shlobj.h> <imagehlp.h>"
+??_GElem_00432be0@@QAEPAXI@Z,0x432c00,"Elem_00432be0's scalar deleting destructor, called with 0 by the vector _Destroy inlined into the gap region 0x42a8d0's return-0 path; matched as Class_00432c00::FUN_00432c00"

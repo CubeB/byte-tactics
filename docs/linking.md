@@ -522,7 +522,7 @@ compares the gap functions' references too.
 | --- | ---: | --- | --- |
 | 0x41dc20 | 697 | aligned frame: the end-of-game statistics table | matches |
 | 0x420d20 | 291 | aligned frame: an explosion frame bitmap | matches |
-| 0x42a8d0 | 2,719 | aligned frame | |
+| 0x42a8d0 | 2,719 | aligned frame: the unit type loader | matches |
 | 0x4441a0 | 801 | `try`/`catch`: the SELPROV.GUI menu handler | matches |
 | 0x444580 | 898 | `try`/`catch`: SELPROV.GUI, a button per online service | matches |
 | 0x45b250 | 560 | `try`/`catch`: online.dll button commands | matches |

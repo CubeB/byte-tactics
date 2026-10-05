@@ -1,0 +1,396 @@
+// Decompiled by Claude Opus 5.5. Names are provisional.
+// The unit type loader: loads every Weapons\*.tdf into the weapon TDF table,
+// reads the UNITINFO section of every units\*.fbi into the unit type table at
+// g_game+0x1439b, then drops the units whose version or copyright does not
+// check out and compacts the table.
+//
+// The bytes match. The one reference check.py rejects is the call in the
+// `return 0` path's inlined ~vector: its _Destroy calls Elem_00432be0's scalar
+// deleting destructor with 0 (??_GElem_00432be0@@QAEPAXI@Z, 0x432c00), which
+// data/symbols.csv knows as Class_00432c00::FUN_00432c00. It needs a
+// data/aliases.csv row like the one for 0x432c20 (0x42e440's ??_GEntry).
+//
+// What the match needed (no FLAGS line; the aligned frame comes from the
+// `double version` local):
+//  * The weapon part is an inline helper: its size(), ~vector() and ??_H stay
+//    out of line only because a helper's call sites share (budget - cost) / R
+//    of the /Ob2 budget. The TDF getters are inline wrappers too: they raise
+//    R, so the `return 0` path's ~vector inlines _Destroy but calls ??_G,
+//    while the final one inlines it all (`uv run tools/c2prio.py --inline`).
+//  * The weapon TDF globals are file statics: with an extern count, new[]
+//    computes its size from its own copy of the count (esi/edi swapped).
+//  * `char copyright[128]`: a 0x80 local sorts before the 0x100 paths, which
+//    gives C2's slot quicksort (FUN_00459eb7, a K&R quicksort) the
+//    original's order of the three path buffers.
+//  * The file names go through an inline `operator char*`; with `.data` the
+//    path temporary is generated after the name's and the rotation is off.
+//  * The compaction keeps the byte offset `size` and decrements it: with
+//    `unitinfo[count - 1]` the compiler makes its own induction variable,
+//    which loses ebp to j * 0x249.
+//  * Four base/index orders (the weapon searches' `[k * 12 + tdfs]`, the file
+//    name loads `[i * 4 + first - 4]` and the compaction's `[size + unitinfo]`)
+//    follow front-end symbol ids modulo 65536 (docs/c2-regalloc.md, "Symbol
+//    ids"): the TDF statics, `files` and `size` all need ids just past 65536.
+//    The plausible header set below with the game types header in its own
+//    namespace (as in 0x410850) puts `size` at 66413; `<memory.h>` on top, or
+//    `<float.h>` left out, already breaks one of them.
+
+#include <windows.h>
+#include <ddraw.h>
+#include <dsound.h>
+#include <dplay.h>
+#include <stdio.h>
+#include <vector>
+#include <list>
+#include <map>
+#include <shlobj.h>
+#include <imagehlp.h>
+#include <string.h>
+#include <math.h>
+#include <io.h>
+#include <process.h>
+#include <mbstring.h>
+#include <tchar.h>
+#include <time.h>
+#include <float.h>
+namespace ta {
+#include <ta_types.h>
+}
+
+class Class_004c9390 {
+public:
+    char* data;
+    void FUN_004c9390();
+};
+
+// One file name of FUN_004bca30's list (a reference-counted string handle).
+struct Elem_00432be0 {
+    char* data;                        // +0x0
+
+    ~Elem_00432be0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    operator char*() const { return data; }
+};
+
+typedef std::vector<Elem_00432be0> FileList;
+
+void __stdcall FUN_004bca30(const char* pattern, int dirs, FileList* out);
+
+class Class_004c2f60 {
+public:
+    int FUN_004c2f60(char* path);
+    void FUN_004c3120(char* data, int size, int flag, char* name);
+};
+
+class Class_004c3410 {
+public:
+    int FUN_004c3410(char* name);
+};
+
+class Class_004c3e10 {
+public:
+    void FUN_004c3e10();
+};
+
+class Class_004c4630 {
+public:
+    char* FUN_004c4630(char* key);
+};
+
+class Class_004c46c0 {
+public:
+    int FUN_004c46c0(char* key, int def);
+};
+
+class Class_004c4760 {
+public:
+    double FUN_004c4760(char* key, double def);
+};
+
+class Class_004c48c0 {
+public:
+    int FUN_004c48c0(char* dst, char* key, int size, char* def);
+};
+
+// A parsed TDF file; the getters read the current section.
+class Class_004c2ea0 {
+public:
+    int field_0;
+    void* current;                     // +0x4, the current section
+    int field_8;                       // +0x8
+    Class_004c2ea0();
+    ~Class_004c2ea0();
+
+    int GetString(char* dst, char* key, int size, char* def)
+    {
+        return ((Class_004c48c0*)current)->FUN_004c48c0(dst, key, size, def);
+    }
+    int GetInt(char* key, int def) { return ((Class_004c46c0*)current)->FUN_004c46c0(key, def); }
+    double GetDouble(char* key, double def) { return ((Class_004c4760*)current)->FUN_004c4760(key, def); }
+    char* GetValue(char* key) { return ((Class_004c4630*)current)->FUN_004c4630(key); }
+};
+
+// The override file (units\NAME.OVR).
+class Class_004b3620 {
+public:
+    int field_0;
+    Class_004b3620* FUN_004b3620();
+};
+
+class Class_004b3630 {
+public:
+    void FUN_004b3630();
+};
+
+class Class_004b3770 {
+public:
+    int FUN_004b3770(char* path, char* type, int flag);
+};
+
+class Class_004b4560 {
+public:
+    int FUN_004b4560(char* name);
+};
+
+class Class_004b4800 {
+public:
+    int FUN_004b4800(char* name, int def);
+};
+
+// The override file object: 0x4b3620 builds it and 0x4b3630 frees it.
+class OvrFile {
+public:
+    void* table;
+    OvrFile() { ((Class_004b3620*)this)->FUN_004b3620(); }
+    ~OvrFile() { ((Class_004b3630*)this)->FUN_004b3630(); }
+};
+
+#pragma pack(push, 1)
+// One unit type, 0x249 bytes.
+class Class_0042b370 {
+public:
+    char name[0x20];                   // +0x000
+    char unitname[0x20];               // +0x020
+    char description[0x40];            // +0x040
+    char objectname[0x20];             // +0x080
+    char side[0x1e];                   // +0x0a0
+    char ai_weight[0x40];              // +0x0be
+    char ai_limit[0x40];               // +0x0fe
+    unsigned int checksum;             // +0x13e
+    int field_142;                     // +0x142
+    int weapons;                       // +0x146
+    char unknown_14a[0x10];
+    int field_15a;                     // +0x15a
+    char unknown_15e[0x28];
+    float buildcostenergy;             // +0x186
+    float buildcostmetal;              // +0x18a
+    char unknown_18e[0x90];
+    unsigned short id;                 // +0x21e
+    char unknown_220[0x21];
+    unsigned int flags1;               // +0x241
+    union {
+        unsigned int flags2;           // +0x245
+        struct {
+            unsigned int low : 15;
+            unsigned int norestrict : 1;
+            unsigned int wacky : 1;
+            unsigned int high : 15;
+        };
+    };
+
+    Class_0042b370& operator=(const Class_0042b370& src);
+};
+
+struct Game {
+    char unknown_0;
+    char version_major;                // +0x1
+    char version_minor;                // +0x2
+    char unknown_3[0x1438c];
+    int unit_count;                    // +0x1438f
+    char unknown_14393[8];
+    Class_0042b370* unitinfo;          // +0x1439b
+};
+#pragma pack(pop)
+
+extern Game* g_game;
+static Class_004c2ea0* DAT_005122a0;
+static int DAT_005122a4;
+static int DAT_005122a8;
+
+extern char DAT_005119b8[];
+
+int FUN_0041d8a0();
+int FUN_0041d8b0();
+void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void* __cdecl FUN_004d83b0(char* name, int size);
+void __cdecl FUN_004d85a0(void* p);
+void __cdecl FUN_004d8710(void* p);
+void __cdecl FUN_004d8780(void* p);
+void* __stdcall FUN_004bb5b0(char* path);
+int __stdcall FUN_004bb5d0(void* file);
+int __stdcall FUN_004bb650(void* file);
+int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
+int __stdcall FUN_004bbd00(void* file);
+unsigned int __stdcall FUN_004b6ba0(char* data, int len);
+void __stdcall FUN_004b6b80(const char* text, const char* caption);
+char* __stdcall FUN_004c5740(char* text);
+void __stdcall FUN_004c58a0(void* parser, char* dst, char* key, int size, char* def);
+
+#define COPYRIGHT "Copyright 0000 Humongous Entertainment. All rights reserved."
+
+// Loads every Weapons\*.tdf into the weapon TDF table.
+static inline void LoadWeaponTDFs()
+{
+    FileList files;
+    FUN_004bca30("Weapons\\*.tdf", 0, &files);
+    if (files.size() == 0)
+        return;
+    DAT_005122a8 = files.size();
+    DAT_005122a0 = new Class_004c2ea0[DAT_005122a8];
+    for (Elem_00432be0* it = files.begin(); it < files.end(); it++) {
+        char path[256];
+        Class_004c2ea0* tdf = &DAT_005122a0[DAT_005122a4];
+        FUN_004290f0(path, "Weapons", it->data, "TDF");
+        if (((Class_004c2f60*)tdf)->FUN_004c2f60(path)) {
+            if (tdf->field_8 != 0 || FUN_0041d8a0() == 0)
+                DAT_005122a4++;
+        }
+    }
+}
+
+// The id of the weapon named `name` in the weapon TDFs, 0 when there is none.
+static inline int FindWeapon(char* name)
+{
+    if (name != 0 && *name != 0) {
+        for (int k = 0; k < DAT_005122a4; k++) {
+            Class_004c2ea0* tdf = &DAT_005122a0[k];
+            ((Class_004c3e10*)tdf)->FUN_004c3e10();
+            if (((Class_004c3410*)tdf)->FUN_004c3410(name))
+                return *(int*)((char*)tdf->current + 0x25);
+        }
+        return 0;
+    }
+    return 0;
+}
+
+// FUNCTION: 0x42a8d0
+int FUN_0042a8d0()
+{
+    int bad = 0;
+    char path[256];
+
+    LoadWeaponTDFs();
+
+    if (g_game->unitinfo) {
+        FUN_004d8780(g_game->unitinfo);
+        FUN_004d85a0(g_game->unitinfo);
+        g_game->unitinfo = 0;
+    }
+
+    FUN_004290f0(path, "units", "*", "FBI");
+    FileList files;
+    FUN_004bca30(path, 0, &files);
+    int count = files.size() + 1;
+    g_game->unit_count = count;
+    int size = count * sizeof(Class_0042b370);
+    g_game->unitinfo = (Class_0042b370*)FUN_004d83b0("UNITINFO", size);
+    memset(g_game->unitinfo, 0, size);
+    strcpy(g_game->unitinfo->unitname, "None");
+    g_game->unitinfo->flags1 |= 0x800000;
+    int offset = strstr(COPYRIGHT, "0000") - COPYRIGHT;
+
+    for (unsigned short i = 1; i < count; i++) {
+        Class_0042b370* u = &g_game->unitinfo[i];
+        u->id = i;
+        FUN_004290f0(path, "units", files[i - 1], "FBI");
+        void* f = FUN_004bb5b0(path);
+        if (f) {
+            int len = FUN_004bbd00(f);
+            char* buf = (char*)FUN_004d83b0(path, len);
+            FUN_004bb7c0(f, buf, len);
+            u->checksum = FUN_004b6ba0(buf, len);
+            OvrFile ovr;
+            char ovrpath[256];
+            FUN_004290f0(ovrpath, "units", files[i - 1], "OVR");
+            if (((Class_004b3770*)&ovr)->FUN_004b3770(ovrpath, "TA Unit Override", 0)) {
+                if (((Class_004b4560*)&ovr)->FUN_004b4560("Compatability")) {
+                    char num[16];
+                    sprintf(num, "%u", u->checksum);
+                    u->checksum = ((Class_004b4800*)&ovr)->FUN_004b4800(num, u->checksum);
+                }
+            }
+            Class_004c2ea0 parser;
+            ((Class_004c2f60*)&parser)->FUN_004c3120(buf, len, 0, "<NO FILE>");
+            if (!((Class_004c3410*)&parser)->FUN_004c3410("UNITINFO")) {
+                // Original bug: this exit leaves the FBI file open (no
+                // FUN_004bb5d0), the weapon TDF table allocated and the unit
+                // table locked (no FUN_004d8710).
+                FUN_004d85a0(buf);
+                return 0;
+            }
+            FUN_004c58a0(&parser, u->name, "name", 0x20, 0);
+            parser.GetString(u->unitname, "unitname", 0x20, DAT_005119b8);
+            parser.GetString(u->side, "side", 0x1e, DAT_005119b8);
+            parser.GetString(u->ai_weight, "ai_weight", 0x40, DAT_005119b8);
+            parser.GetString(u->ai_limit, "ai_limit", 0x40, DAT_005119b8);
+            if (parser.GetString(u->objectname, "objectname", 0x20, DAT_005119b8) == 0)
+                strcpy(u->objectname, u->unitname);
+            u->buildcostenergy = (float)parser.GetInt("buildcostenergy", 0);
+            u->buildcostmetal = (float)parser.GetInt("buildcostmetal", 0);
+            u->norestrict = parser.GetInt("norestrict", 0);
+            u->wacky = parser.GetInt("wacky", 0);
+            u->weapons ^= FindWeapon(parser.GetValue("weapon1"));
+            u->weapons ^= FindWeapon(parser.GetValue("weapon2"));
+            u->weapons ^= FindWeapon(parser.GetValue("weapon3"));
+            u->weapons ^= FindWeapon(parser.GetValue("explodeas"));
+            u->weapons ^= FindWeapon(parser.GetValue("selfdestructas"));
+            double version = parser.GetDouble("Version", 0.0);
+            int major = (int)floor(version);
+            int minor = (int)floor((version - major) * 10.0);
+            if (major < g_game->version_major)
+                u->flags1 |= 0x800000;
+            else if (major == g_game->version_major && minor <= g_game->version_minor)
+                u->flags1 |= 0x800000;
+            else
+                u->flags1 &= ~0x800000;
+            if ((FUN_004bb650(f) == 0 && FUN_0041d8a0() != 0) || FUN_0041d8b0() != 0) {
+                u->flags1 &= ~0x800000;
+                bad = 1;
+            }
+            char copyright[128];
+            parser.GetString(copyright, "Copyright", 0x80, "Run to the Village!  Warn your brother!");
+            memcpy(copyright + offset, "0000", 4);
+            if (strcmp(copyright, COPYRIGHT) != 0) {
+                u->flags1 &= ~0x800000;
+                bad = 1;
+            }
+            u->field_15a = -1;
+            FUN_004bb5d0(f);
+            FUN_004d85a0(buf);
+        }
+    }
+
+    delete[] DAT_005122a0;
+    DAT_005122a0 = 0;
+    DAT_005122a4 = 0;
+    DAT_005122a8 = 0;
+
+    // Drop the units marked incompatible, moving the last kept one into each
+    // hole; `size` is the byte offset of the end of the kept units.
+    int oldcount = count;
+    for (unsigned short j = count - 1; j > 0; j--) {
+        Class_0042b370* u = &g_game->unitinfo[j];
+        if (!(u->flags1 & 0x800000)) {
+            if (j != count - 1) {
+                *u = *(Class_0042b370*)((char*)g_game->unitinfo + size - sizeof(Class_0042b370));
+                u->id = j;
+            }
+            count--;
+            size -= sizeof(Class_0042b370);
+        }
+    }
+    g_game->unit_count = count;
+    if (oldcount != count && !bad)
+        FUN_004b6b80(FUN_004c5740("Incompatible units found.  They will be ignored.  Please download the latest version of the game."), DAT_005119b8);
+    FUN_004d8710(g_game->unitinfo);
+    return 1;
+}

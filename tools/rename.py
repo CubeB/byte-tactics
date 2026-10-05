@@ -54,10 +54,12 @@ Any refusal stops the rename, unless --keep-going, which renames the pairs
 that pass and lists the others.
 
 The checks, unless --no-check: tools/progress.py (every function that
-matched before still matches), tools/place.py --write-layout (the shipped
-MD5, and data/layout.csv kept current), tools/place.py --no-orig (the same MD5
-from data/layout.csv alone) and tools/globals.py (link/ follows the new
-names); with --full also tools/link.py --carve and tools/linkcmp.py. On a
+matched before still matches), tools/globals.py (link/ follows the new
+names), tools/place.py --write-layout (the shipped MD5, and data/layout.csv
+unchanged: it holds no names, so a change means a rename moved a piece within
+its object, as renaming file statics can reorder an object's .bss) and
+tools/place.py --no-orig (the same MD5 from data/layout.csv alone); with
+--full also tools/link.py --carve and tools/linkcmp.py. On a
 failure the files stay renamed for a look; `git checkout -- .` undoes it.
 """
 
@@ -86,6 +88,7 @@ TEXT_FILES = ["data/modules.csv", "AGENTS.md", "docs/*.md"]
 NAME_TABLES = ["data/aliases.csv", "data/symbols.csv"]
 SYMBOLS = ROOT / "data/symbols.csv"
 PROGRESS = ROOT / "data/progress.csv"
+LAYOUT = ROOT / "data/layout.csv"
 ANNOTATED = re.compile(r"(//\s*(?:FUNCTION|ENTRY):\s*0x[0-9a-fA-F]+\s+)(\S+)")
 TRAILING = re.compile(r"^(.*?\S)(\s{2,})(//.*?)(\r?)$")
 
@@ -349,7 +352,7 @@ def matched() -> dict[str, str]:
         return {r["address"]: r["status"] for r in csv.DictReader(fh)}
 
 
-def checks(full: bool, before: dict[str, str]) -> list[str]:
+def checks(full: bool, before: dict[str, str], layout: str) -> list[str]:
     failures = []
     print("tools/progress.py ...", flush=True)
     _, out = run("tools/progress.py", "--quiet")
@@ -358,6 +361,11 @@ def checks(full: bool, before: dict[str, str]) -> list[str]:
     lost = sorted(a for a, s in before.items() if s == "matched" and after.get(a) != "matched")
     if lost:
         failures.append(f"{len(lost)} function(s) no longer match: {' '.join(lost[:12])}")
+    # globals.py first: place.py lays out link/data.cpp, which it writes.
+    print("tools/globals.py ...", flush=True)
+    code, out = run("tools/globals.py")
+    if code:
+        failures.append("tools/globals.py failed:\n" + out[-2000:])
     for label, args in (("tools/place.py --write-layout", ("tools/place.py", "--write-layout")),
                         ("tools/place.py --no-orig", ("tools/place.py", "--no-orig"))):
         print(f"{label} ...", flush=True)
@@ -366,10 +374,9 @@ def checks(full: bool, before: dict[str, str]) -> list[str]:
         print("  " + line[:100])
         if "the shipped exe" not in line or "NOT the shipped exe" in line:
             failures.append(f"{label}: not the shipped exe")
-    print("tools/globals.py ...", flush=True)
-    code, out = run("tools/globals.py")
-    if code:
-        failures.append("tools/globals.py failed:\n" + out[-2000:])
+        if label.endswith("--write-layout") and LAYOUT.read_text() != layout:
+            failures.append("data/layout.csv changed: a piece moved within its object "
+                            "(renamed file statics can reorder .bss); `git diff data/layout.csv`")
     if full:
         print("tools/link.py --carve --map ...", flush=True)
         code, out = run("tools/link.py", "--carve", "--map")
@@ -420,6 +427,7 @@ def main() -> None:
         if not pairs:
             sys.exit(2)
     before = matched()
+    layout = LAYOUT.read_text()
     # A join gives many views one name: the docs keep the names they tell apart.
     changed = apply(pairs, texts, args.dry_run, docs=not args.join)
     files = [f for f in changed if f.startswith("src/")]
@@ -427,7 +435,7 @@ def main() -> None:
           f"{len(files)} under src/")
     if args.dry_run or args.no_check:
         return
-    failures = checks(args.full, before)
+    failures = checks(args.full, before, layout)
     if failures:
         print("FAILED:\n  " + "\n  ".join(failures))
         sys.exit(1)

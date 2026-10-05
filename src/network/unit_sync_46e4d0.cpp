@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Like 0x46e450, but sets the entry's width to 1 before FUN_0046d860
+// Like 0x46e450, but sets the entry's width to 1 before NotifyEntryChanged
 // recomputes it; returns whether the entry now has a non-empty size.
 
 struct Rect_0046e4d0 {                 // 0x10 bytes
@@ -45,7 +45,7 @@ public:
 
 class Class_0046d860 {
 public:
-    void FUN_0046d860(unsigned int key);
+    void NotifyEntryChanged(unsigned int key);
 };
 
 class Class_0046e4d0 {
@@ -59,14 +59,14 @@ public:
         Iter_0046e4d0 p = Iter_0046e4d0(((Class_0046fe60*)this)->FUN_0046fe60(key));
         return (p == End() || compare(*key, p.ptr->key)) ? End() : p;
     }
-    int FUN_0046e4d0(Unit_0046e4d0* unit);
+    int AllowUnit(Unit_0046e4d0* unit);
 };
 
 // FUNCTION: 0x46e4d0
-int Class_0046e4d0::FUN_0046e4d0(Unit_0046e4d0* unit)
+int Class_0046e4d0::AllowUnit(Unit_0046e4d0* unit)
 {
     Node_0046e4d0* n = Find(&unit->key).ptr;
     n->value.w = 1;
-    ((Class_0046d860*)this)->FUN_0046d860(unit->key);
+    ((Class_0046d860*)this)->NotifyEntryChanged(unit->key);
     return n->value.w != 0 && n->value.h != 0;
 }

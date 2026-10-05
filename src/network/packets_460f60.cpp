@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // The compiler-generated static destructor (_$E2) of the global object
-// DAT_00513000, whose dynamic initialiser is 0x460e20 and whose out-of-line
+// g_packetManager, whose dynamic initialiser is 0x460e20 and whose out-of-line
 // destructor is 0x461420. The class is built so the compiler inlines the
 // embedded Class_00462d30 destructor and the two array destructors in the same
 // order as the original.
@@ -22,7 +22,7 @@ struct Buffers_00462d30 {
     ~Buffers_00462d30();
 };
 
-struct Entry_00462d30 {
+struct PlayerFrameInfo {
     int field_0;
     int field_4;
     int field_8;
@@ -43,7 +43,7 @@ public:
     int field_14;
     void* field_18;                    // +0x18
     void* field_1c;                    // +0x1c
-    Entry_00462d30 entries[10];        // +0x20
+    PlayerFrameInfo entries[10];       // +0x20
 };
 
 // One of the eleven per-player objects embedded in the global.
@@ -66,7 +66,7 @@ public:
 };
 
 // FUNCTION: 0x460f60 _$E2
-Class_00460f60 DAT_00513000;
+Class_00460f60 g_packetManager;
 
 Buffers_00462d30::~Buffers_00462d30()
 {

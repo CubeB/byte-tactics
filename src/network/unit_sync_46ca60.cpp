@@ -4,7 +4,7 @@
 // unchanged; or the TU was built with /Gr). As a plain __cdecl function MSVC
 // reloads the list iterator before the erase loop's bottom test, `mov edx,[esp+0x10];
 // cmp edx,ebp`, where the original compares the slot directly. The map at +0x00 is
-// the real std::map<unsigned int, Rect_0046e160> so its erase keeps its data/symbols.csv
+// the real std::map<unsigned int, UnitSyncEntry> so its erase keeps its data/symbols.csv
 // name, as in 0x46d1a0.cpp.
 #include <list>
 #include <map>
@@ -48,7 +48,7 @@ typedef List_0046ca60::iterator (List_0046ca60::iterator::*PostIncFn_0046ca60)(i
 EraseFn_0046ca60 g_erase_0046ca60 = &List_0046ca60::erase;
 PostIncFn_0046ca60 g_postinc_0046ca60 = &List_0046ca60::iterator::operator++;
 
-struct Rect_0046e160 {                 // the map mapped type, 0x10 bytes
+struct UnitSyncEntry {                 // the map mapped type, 0x10 bytes
     int x;
     int y;
     short w;
@@ -122,9 +122,9 @@ static inline void DestroyR2_0046ca60(Class_0046ded0* _F, Class_0046ded0* _L)
         alloc.destroy(p);
 }
 
-class Class_0046d040 {
+class UnitSync {
 public:
-    std::map<unsigned int, Rect_0046e160> rects;
+    std::map<unsigned int, UnitSyncEntry> rects;
     VecElems_0046ca60 elems;
     std::list<int> ids;
     int field_2c;
@@ -137,25 +137,25 @@ public:
     int field_60;
     int field_64;
 
-    ~Class_0046d040() {}
+    ~UnitSync() {}
 };
 
 class Class_0046e160 {
 public:
-    void FUN_0046e160();
+    void ApplyToUnitTypes();
 };
 
 struct Game {
     char unknown_0[0x2a30];
-    Class_0046d040* field_2a30;
+    UnitSync* field_2a30;
 };
 
 extern Game* g_game;
 
 // FUNCTION: 0x46ca60
-void __fastcall FUN_0046ca60()
+void __fastcall FinishUnitSync()
 {
-    ((Class_0046e160*)g_game->field_2a30)->FUN_0046e160();
+    ((Class_0046e160*)g_game->field_2a30)->ApplyToUnitTypes();
     delete g_game->field_2a30;
     g_game->field_2a30 = 0;
 }

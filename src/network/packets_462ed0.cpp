@@ -8,7 +8,7 @@ struct Link_00462ed0 {
     int field_c;                       // +0xc
 };
 
-class Class_00462ed0 {
+class PacketReceiver {
 public:
     char unknown_0[0x14];
     Link_00462ed0* link;               // +0x14
@@ -18,11 +18,11 @@ public:
     int capacity;                      // +0x228
     int length;                        // +0x22c
 
-    int FUN_00462ed0();
+    int ResetReceiveBuffer();
 };
 
 // FUNCTION: 0x462ed0
-int Class_00462ed0::FUN_00462ed0()
+int PacketReceiver::ResetReceiveBuffer()
 {
     if (buffer == 0) {
         if (spare != 0) {

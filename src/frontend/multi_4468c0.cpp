@@ -29,8 +29,8 @@ struct Game {
 extern Game* g_game;
 
 // With both calls in one expression MSVC calls the later-declared one first.
-int FUN_00457af0();
-int FUN_00457b40();
+int CountHumanPlayers();
+int CountComputerPlayers();
 
 static inline int IsPlaying(Player_004468c0* p)
 {
@@ -65,7 +65,7 @@ static inline int CountAlliance(int alliance)
 // FUNCTION: 0x4468c0
 char FUN_004468c0()
 {
-    int total = FUN_00457b40() + FUN_00457af0();
+    int total = CountComputerPlayers() + CountHumanPlayers();
     for (int alliance = 0; alliance < 5; alliance++) {
         if (CountAlliance(alliance) == total)
             return 1;

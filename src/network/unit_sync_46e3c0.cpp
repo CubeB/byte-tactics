@@ -2,7 +2,7 @@
 // Like 0x46e450, but toggles the entry's width instead of clearing it:
 // looks the unit up in a std::map<unsigned int, Rect> (the find() is inlined
 // as in 0x46e330, whose declarations this copies), sets width to !width,
-// has FUN_0046d860 recompute it, and returns whether the entry now has a
+// has NotifyEntryChanged recompute it, and returns whether the entry now has a
 // non-empty size. FUN_0046fe60 is the tree's lower_bound(), and a missing key
 // yields the head node (end()).
 
@@ -49,10 +49,10 @@ public:
 
 class Class_0046d860 {
 public:
-    void FUN_0046d860(unsigned int key);
+    void NotifyEntryChanged(unsigned int key);
 };
 
-class Class_0046e3c0 {
+class UnitSync {
 public:
     Less_0046e3c0 compare;
     Node_0046e3c0* head;               // +0x4
@@ -63,14 +63,14 @@ public:
         Iter_0046e3c0 p = Iter_0046e3c0(((Class_0046fe60*)this)->FUN_0046fe60(key));
         return (p == End() || compare(*key, p.ptr->key)) ? End() : p;
     }
-    int FUN_0046e3c0(Unit_0046e3c0* unit);
+    int ToggleUnitAllowed(Unit_0046e3c0* unit);
 };
 
 // FUNCTION: 0x46e3c0
-int Class_0046e3c0::FUN_0046e3c0(Unit_0046e3c0* unit)
+int UnitSync::ToggleUnitAllowed(Unit_0046e3c0* unit)
 {
     Node_0046e3c0* n = Find(&unit->key).ptr;
     n->value.w = (n->value.w == 0);
-    ((Class_0046d860*)this)->FUN_0046d860(unit->key);
+    ((Class_0046d860*)this)->NotifyEntryChanged(unit->key);
     return n->value.w != 0 && n->value.h != 0;
 }

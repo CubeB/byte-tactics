@@ -88,7 +88,7 @@ void __stdcall FUN_0043e240(Unit*, Vec3_0049dd60*, unsigned char, int);
 void __stdcall FUN_0049c740(Projectile_0049dd60*, Type_0049dd60*, Vec3_0049dd60*, int, int, Unit*);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
-int __stdcall FUN_00451df0(int, void*, int);
+int __stdcall BroadcastPacket(int, void*, int);
 
 // FUNCTION: 0x49dd60
 int __stdcall FUN_0049dd60(Unit* unit, Aim_0049dd60* aim,
@@ -127,7 +127,7 @@ int __stdcall FUN_0049dd60(Unit* unit, Aim_0049dd60* aim,
             packet.heading = aim->field_16;
             packet.pitch = aim->field_18;
             packet.unknown_1a = packet.unknown_1a ^ ((aim->type->flags >> 30 ^ packet.unknown_1a) & 1);
-            FUN_00451df0(unit->player->id, &packet, 0x24);
+            BroadcastPacket(unit->player->id, &packet, 0x24);
         }
         return 1;
     }

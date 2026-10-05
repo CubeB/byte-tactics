@@ -50,7 +50,7 @@ public:
     char unknown_3b[0x73 - 0x3b];
     unsigned char field_73;                  // +0x73
     char unknown_74[0x14b - 0x74];
-    void FUN_00463c60(int value);
+    void SetType(int value);
 };
 
 struct Game {
@@ -77,7 +77,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004ca6a0(void* net, unsigned long* id, char* shortName,
+int __stdcall HAPINET_addplayer(void* net, unsigned long* id, char* shortName,
                            char* longName, char* name, short field_11, short field_13);
 void __stdcall FUN_004abd90(void* menu, const char* text, int a, int b, int c);
 char* __stdcall FUN_004c5740(const char* text);
@@ -94,12 +94,12 @@ static inline unsigned char FindPlayerInUse()
 }
 
 // FUNCTION: 0x451220
-int __stdcall FUN_00451220(unsigned char playerIndex, int flag)
+int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
 {
     char buf[256];
 
     Class_00463c60* player = &g_game->players[playerIndex];
-    player->FUN_00463c60(flag);
+    player->SetType(flag);
 
     int same = (playerIndex == FindPlayerInUse());
 
@@ -123,10 +123,10 @@ int __stdcall FUN_00451220(unsigned char playerIndex, int flag)
     info->field_a7 = g_game->field_1;
     info->field_a8 = g_game->field_2;
 
-    int r = FUN_004ca6a0(g_game->net_14, (unsigned long*)&player->field_4,
+    int r = HAPINET_addplayer(g_game->net_14, (unsigned long*)&player->field_4,
                          buf, buf, g_game->passWord, 0, 0x50);
     if (r == 0) {
-        g_game->players[playerIndex].FUN_00463c60(0);
+        g_game->players[playerIndex].SetType(0);
         unsigned char i = FindPlayerInUse();
         Class_00463c60* slot = &g_game->players[i];
         if (slot->field_0 != 0 && (slot->field_73 == 1 || slot->field_73 == 2)) {

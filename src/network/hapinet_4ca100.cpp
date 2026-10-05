@@ -37,16 +37,16 @@ struct Net_4ca100 {
 
 extern Guid_4ca100* DAT_0050a788[4];
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 char* __stdcall FUN_004b6af0(char* text, int n);
 
 // FUNCTION: 0x4ca100
-int __stdcall FUN_004ca100(Guid_4ca100* guid, void* connection, unsigned long size,
+int __stdcall HAPINET_enumconnections(Guid_4ca100* guid, void* connection, unsigned long size,
                            DPName_4ca100* name, unsigned long flags, Net_4ca100* net)
 {
     char local[200];
-    FUN_004c9740((int)"HAPINET_enumconnections\n");
+    HapinetTrace((int)"HAPINET_enumconnections\n");
     for (unsigned int i = 0; i < 4; i++) {
         if (memcmp(guid, DAT_0050a788[i], sizeof(Guid_4ca100)) == 0)
             return 1;

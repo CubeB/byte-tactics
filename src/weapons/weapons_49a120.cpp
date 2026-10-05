@@ -230,7 +230,7 @@ void __stdcall FUN_00499eb0(Weapon_0049a120* weapon, Unit_0049a120* unit);
 int __stdcall FUN_0049a850(Vec3_0049a120* v);
 Vec3_0049a120 __stdcall FUN_00421eb0(CellPos_0049a120* cell, FeatureDef_0049a120* def);
 void __stdcall FUN_004244b0(Cell_0049a120* cell, int x, int z, WeaponDef_0049a120* def);
-int __stdcall FUN_00451df0(int id, void* data, int size);
+int __stdcall BroadcastPacket(int id, void* data, int size);
 
 static inline int Length(Vec3_0049a120* v)
 {
@@ -410,11 +410,11 @@ void __stdcall FUN_0049a120(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                 packet.type = 0xe;
                 packet.pos = other->field_28;
                 packet.kind = other->def->kind;
-                FUN_00451df0(weapon->attacker->holder->playerId, &packet, sizeof(packet));
+                BroadcastPacket(weapon->attacker->holder->playerId, &packet, sizeof(packet));
                 packet.type = 0xe;
                 packet.pos = weapon->field_28;
                 packet.kind = weapon->def->kind;
-                FUN_00451df0(weapon->attacker->holder->playerId, &packet, sizeof(packet));
+                BroadcastPacket(weapon->attacker->holder->playerId, &packet, sizeof(packet));
             }
         }
     }

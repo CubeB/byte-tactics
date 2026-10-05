@@ -22,15 +22,15 @@ struct Net_4ca330 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 char* __stdcall FUN_004b6af0(char* text, int n);
 
 // FUNCTION: 0x4ca330
-int __stdcall FUN_004ca330(Guid_4ca330* guid, char* name, unsigned long major,
+int __stdcall HAPINET_enumproviders(Guid_4ca330* guid, char* name, unsigned long major,
                            unsigned long minor, Net_4ca330* net)
 {
     char local[200];
-    FUN_004c9740((int)"HAPINET_enumproviders\n");
+    HapinetTrace((int)"HAPINET_enumproviders\n");
     net->guids[net->field_4e5] = *guid;
     sprintf(local, "%s %d.%d", name, major, minor);
     char* slot = FUN_004b6af0(net->names, net->field_4e5);

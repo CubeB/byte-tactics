@@ -67,7 +67,7 @@ static inline Player_00450240* FindPlayer(int id)
 }
 
 // FUNCTION: 0x450240
-unsigned char FUN_00450240()
+unsigned char PickNewHost()
 {
     unsigned int max = 0;
     Player_00450240* p = g_game->players;

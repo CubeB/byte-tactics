@@ -48,7 +48,7 @@ extern int DAT_0051e590;
 
 int FUN_0046bce0();
 void FUN_0046c190();
-void __stdcall FUN_004caa20(int param_1, int param_2);
+void __stdcall RISetCallbacks(int param_1, int param_2);
 
 // The eight GetProcAddress calls are nested one inside the next so that the
 // cleanup is the fall-through out of all eight, not a goto target: MSVC 5 lays
@@ -84,7 +84,7 @@ int __stdcall FUN_0046bf30(int* param_1, int param_2)
     }
 
     DAT_0051e590 = 1;
-    FUN_004caa20((int)FUN_0046bc60, (int)FUN_0046bc70);
+    RISetCallbacks((int)FUN_0046bc60, (int)FUN_0046bc70);
 
     if (DAT_0051e58c == 0) {
         DAT_0051e58c = LoadLibraryA("reporter.dll");

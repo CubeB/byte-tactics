@@ -27,7 +27,7 @@
 // - The 0x2d/0x5f and 0x2b/0x3d guards are a raw `& 2` test (test byte,2) while
 //   the tail and 0xec use the `b1` bitfield (mov al; shr; test); the union
 //   keeps both spellings.
-// - Case 0xf8: writing `FUN_00451df0(FUN_0044fdb0(), data, 3)` as one expression
+// - Case 0xf8: writing `BroadcastPacket(GetLocalDpid(), data, 3)` as one expression
 //   pushes the literal 3 before the toggle, as the original does.
 // - The `key == 0` arms are written as `if (key != 0) { ... } else`, so the
 //   `key == 0` arm is out of line.
@@ -186,12 +186,12 @@ void __stdcall FUN_0048ca20(void* param);
 void __stdcall FUN_0048d920(int param);
 void __stdcall FUN_0041d3b0(int param);
 void __stdcall FUN_0041d3f0(int param);
-void FUN_00464000(void);
+void CycleMessageUnits(void);
 void FUN_00463c80(void);
 void __stdcall FUN_00490df0(int param_1, int param_2);
 void __stdcall FUN_004ab190(Sub_495e90* gui, int param);
-int FUN_0044fdb0(void);
-void __stdcall FUN_00451df0(int param_1, void* param_2, int param_3);
+int GetLocalDpid(void);
+void __stdcall BroadcastPacket(int param_1, void* param_2, int param_3);
 void FUN_00495010(void);
 void __stdcall FUN_004956c0(int eventType);
 void __stdcall FUN_00460cc0(void);
@@ -315,7 +315,7 @@ void FUN_00495e90(void)
         data[1] = 0;
         g_game->flags_38a51.b0 = !g_game->flags_38a51.b0;
         data[2] = (unsigned char)(g_game->flags_38a51.b0);
-        FUN_00451df0(FUN_0044fdb0(), data, 3);
+        BroadcastPacket(GetLocalDpid(), data, 3);
         break;
     }
 
@@ -356,7 +356,7 @@ void FUN_00495e90(void)
         break;
 
     case 0xe4:
-        FUN_00464000();
+        CycleMessageUnits();
         break;
 
     case 0xd7: {

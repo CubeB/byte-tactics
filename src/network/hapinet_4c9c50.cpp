@@ -5,7 +5,7 @@
 
 #include <string.h>
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 struct Guid_4c9c50 {
     int d1;
@@ -53,9 +53,9 @@ struct Net_4c9c50 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4c9c50
-int __stdcall FUN_004c9c50(SessionDesc_4c9c50* lpsd, int* lpdwTimeout, unsigned int dwFlags, Net_4c9c50* ctx)
+int __stdcall HAPINET_getgamescallback(SessionDesc_4c9c50* lpsd, int* lpdwTimeout, unsigned int dwFlags, Net_4c9c50* ctx)
 {
-    FUN_004c9740((int)"HAPINET_getgamescallback\n");
+    HapinetTrace((int)"HAPINET_getgamescallback\n");
     if ((dwFlags & 1) == 0)
     {
         GameRec_4c9c50* rec = &ctx->games[ctx->count];

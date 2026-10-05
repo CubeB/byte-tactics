@@ -84,7 +84,7 @@ public:
 
 extern Callback_0043a1f0* DAT_00512344;
 
-int __stdcall FUN_00456190(Unit* obj, short index);
+int __stdcall SendScriptCallNoArgs(Unit* obj, short index);
 
 // FUNCTION: 0x43a1f0
 Class_0043a1f0::~Class_0043a1f0()
@@ -96,7 +96,7 @@ Class_0043a1f0::~Class_0043a1f0()
         Unit* obj = unit;
         int index = obj->names->FUN_004b07c0("StopBuilding");
         ((Class_004b0b00*)obj->names)->FUN_004b0b00(index, 0, 0, 0, 0, 0, 0, 0);
-        FUN_00456190(obj, index);
+        SendScriptCallNoArgs(obj, index);
         flags &= ~0x400000;
     }
     if (unit->owner != 0) {

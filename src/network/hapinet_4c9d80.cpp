@@ -33,12 +33,12 @@ struct Net_4c9d80 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4c9d80
-int __stdcall FUN_004c9d80(Net_4c9d80* net, unsigned long player, void* data, unsigned long* size)
+int __stdcall HAPINET_getplayerdatabuffer(Net_4c9d80* net, unsigned long player, void* data, unsigned long* size)
 {
-    FUN_004c9740((int)"HAPINET_getplayerdatabuffer\n");
+    HapinetTrace((int)"HAPINET_getplayerdatabuffer\n");
     if (net->dp != 0 && net->dp->GetPlayerData(player, data, size, 0) == 0) {
         return 1;
     }

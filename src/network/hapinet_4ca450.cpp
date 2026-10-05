@@ -21,12 +21,12 @@ struct Net_004ca450 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4ca450
-unsigned int __stdcall FUN_004ca450(Net_004ca450* net)
+unsigned int __stdcall HAPINET_passwordrequired(Net_004ca450* net)
 {
-    FUN_004c9740((int)"HAPINET_passwordrequired\n");
+    HapinetTrace((int)"HAPINET_passwordrequired\n");
     if (net->connection != 0)
         return net->connection->desc->flags & 0x400;
     return net->flags & 0x400;

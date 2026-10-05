@@ -22,21 +22,21 @@
 // in the packet's prev field at +0x18.
 #include <string.h>
 
-void __cdecl FUN_00461170(const char* fmt, ...);
+void __cdecl PacketTrace(const char* fmt, ...);
 
-class Class_004628d0;
+class PacketBuffer;
 
 struct Packet_004628d0 {
     char unknown_0[4];
     int offset;                        // +4
     int size;                          // +8
-    Class_004628d0* owner;             // +0xc
+    PacketBuffer* owner;               // +0xc
     char unknown_10[8];                // +0x10
     int value;                         // +0x18
     Packet_004628d0* next;             // +0x1c
 };
 
-class Class_004628d0 {
+class PacketBuffer {
 public:
     char unknown_0[4];                 // +0
     int firstIndex;                    // +4
@@ -45,17 +45,17 @@ public:
     Packet_004628d0* first;            // +0x10
     char buffer[0x416];                // +0x14
 
-    int FUN_004628d0(Packet_004628d0* p, int index, const void* data,
+    int AppendPacket(Packet_004628d0* p, int index, const void* data,
                      unsigned int size, int value);
 };
 
 // FUNCTION: 0x4628d0
-int Class_004628d0::FUN_004628d0(Packet_004628d0* p, int index, const void* data,
+int PacketBuffer::AppendPacket(Packet_004628d0* p, int index, const void* data,
                                  unsigned int size, int value)
 {
-    FUN_00461170("adding packet %ld (data=\"%s\")\n", index,
+    PacketTrace("adding packet %ld (data=\"%s\")\n", index,
                  (const char*)data + 1);
-    FUN_00461170("current buffer length: %ld, toadd=%ld, max=%ld\n", length,
+    PacketTrace("current buffer length: %ld, toadd=%ld, max=%ld\n", length,
                  size, 0x42a);
     if (length + size <= 0x42a) {
         memcpy(buffer + length, data, size);
@@ -69,12 +69,12 @@ int Class_004628d0::FUN_004628d0(Packet_004628d0* p, int index, const void* data
         length += size;
         if (count++ == 0) {
             firstIndex = index;
-            FUN_00461170("set first packet ix to: %ld\n", index);
+            PacketTrace("set first packet ix to: %ld\n", index);
             first = p;
         }
-        FUN_00461170("assigned packet count this buf: %ld\n", count);
+        PacketTrace("assigned packet count this buf: %ld\n", count);
         return 1;
     }
-    FUN_00461170("out of space in buffer!\n");
+    PacketTrace("out of space in buffer!\n");
     return 0;
 }

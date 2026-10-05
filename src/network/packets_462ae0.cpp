@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
-void __cdecl FUN_00461170(const char* fmt, ...);
+void __cdecl PacketTrace(const char* fmt, ...);
 unsigned int FUN_004b6340();
 
 class Class_00462ae0;
@@ -23,17 +23,17 @@ public:
     int unused;                        // +0x8
     int buffer[0x400];                 // +0xc
 
-    int FUN_004623b0();
+    int PopPacket();
 };
 
-class Class_00462370 {
+class PacketRing {
 public:
     int count;                         // +0x0
     char unknown_4[4];
     int writeIdx;                      // +0x8
     int buf[0x400];                    // +0xc
 
-    int FUN_00462370(int value);
+    int PushPacket(int value);
 };
 
 struct Manager_00462ae0 {
@@ -51,28 +51,28 @@ public:
     char unknown_4[0xc];
     Packet_00462ae0* first;            // +0x10
 
-    void FUN_00462ae0(Packet_00462ae0* packet);
+    void RemovePacket(Packet_00462ae0* packet);
 };
 
 // FUNCTION: 0x462ae0
-void Class_00462ae0::FUN_00462ae0(Packet_00462ae0* packet)
+void Class_00462ae0::RemovePacket(Packet_00462ae0* packet)
 {
-    FUN_00461170("removing packet (len=%ld, type=%d, data=\"%s\")\n",
+    PacketTrace("removing packet (len=%ld, type=%d, data=\"%s\")\n",
                  packet->size,
                  *(unsigned char*)((char*)packet->offset + (int)packet->owner + 0x14),
                  (char*)packet->offset + (int)packet->owner + 0x15);
 
     if (packet->queued >= 0) {
-        FUN_00461170("Warning! RemovePacket called for packet in pending queue!\n");
+        PacketTrace("Warning! RemovePacket called for packet in pending queue!\n");
         Manager_00462ae0* mgr = manager;
         packet->queued = -1;
         packet->sentTime = FUN_004b6340();
         int n = mgr->queue.count;
         while (n-- > 0) {
-            int value = mgr->queue.FUN_004623b0();
+            int value = mgr->queue.PopPacket();
             if (value == (int)packet)
                 break;
-            ((Class_00462370*)&mgr->queue)->FUN_00462370(value);
+            ((PacketRing*)&mgr->queue)->PushPacket(value);
         }
         mgr->total -= packet->size;
     }

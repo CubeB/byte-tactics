@@ -11,7 +11,7 @@
 // the gui is fetched through FUN_004aa8f0 and given a click handler and an owner,
 // and the three ALLIES / SHARE / CONTROL checkboxes are set. The two first ones
 // are enabled when the player count of free, non allied slots is positive and
-// the net mode is 3, CONTROL also needs bit 0 of +0x2c74 clear and FUN_00457a50
+// the net mode is 3, CONTROL also needs bit 0 of +0x2c74 clear and IsHostLocal
 // true.
 //
 // Two things in the disassembly that the source has to reproduce rather than
@@ -83,7 +83,7 @@ void __stdcall FUN_004a9660(Sub_00495010* sub);
 void FUN_004c2470();
 Gadget_00495010* __stdcall FUN_004aa8f0(Sub_00495010* sub, const char* name, int flags);
 void __stdcall FUN_00494740(Gadget_00495010* gadget);
-int FUN_00457a50();
+int IsHostLocal();
 void __stdcall FUN_004a0570(Sub_00495010* sub, char* name, int value);
 void __stdcall FUN_0049fa50(Sub_00495010* sub);
 void __stdcall FUN_004a81e0(Sub_00495010* sub, int value);
@@ -120,7 +120,7 @@ void FUN_00495010()
         int v = count > 0;
         FUN_004a0570(&g_game->sub, "ALLIES", v);
         FUN_004a0570(&g_game->sub, "SHARE", v);
-        int ctl = !(g_game->field_2c74 & 1) && FUN_00457a50();
+        int ctl = !(g_game->field_2c74 & 1) && IsHostLocal();
         FUN_004a0570(&g_game->sub, "CONTROL", ctl);
     } else {
         FUN_004a0570(&g_game->sub, "ALLIES", 0);

@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_00461a70 {
+class PacketChannel {
 public:
     int field_0;        // +0
     int field_4;        // +4
@@ -20,11 +20,11 @@ public:
     int field_3c;       // +0x3c
     int field_40;       // +0x40
 
-    Class_00461a70();
+    PacketChannel();
 };
 
 // FUNCTION: 0x461a70
-Class_00461a70::Class_00461a70()
+PacketChannel::PacketChannel()
 {
     field_0 = -1;
     field_8 = 0;

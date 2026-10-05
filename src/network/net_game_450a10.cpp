@@ -67,9 +67,9 @@ struct DPNAME {
     char* lpszLongNameA;
 };
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
 class Class_00435100 {
@@ -78,15 +78,15 @@ public:
 };
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 
-int __stdcall FUN_004ca7c0(void* net, unsigned long id, void* data, unsigned long* size);
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall HAPINET_getplayername(void* net, unsigned long id, void* data, unsigned long* size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall FUN_00464290(unsigned char player, char type);
 void FUN_00450530();
 int FUN_004b6340();
-void __stdcall FUN_0046c620(int param_1);
+void __stdcall ReportGameEvent(int param_1);
 
 static inline unsigned char FindSlot_00450a10(int id)
 {
@@ -106,7 +106,7 @@ static inline unsigned char FindSlot_00450a10(int id)
 }
 
 // FUNCTION: 0x450a10
-int __stdcall FUN_00450a10(int param_1)
+int __stdcall AddNetPlayer(int param_1)
 {
     unsigned char slot;
     if (param_1 == -1) {
@@ -156,7 +156,7 @@ int __stdcall FUN_00450a10(int param_1)
     char* d_name = p->name;
     if (param_1 != -1) {
         size = 0x400;
-        result = FUN_004ca7c0(g_game->net, param_1, buf, &size);
+        result = HAPINET_getplayername(g_game->net, param_1, buf, &size);
         if (result == 0) {
             strcpy(d_full, ((DPNAME*)buf)->lpszShortNameA);
             strcpy(d_name, ((DPNAME*)buf)->lpszLongNameA);
@@ -181,24 +181,24 @@ int __stdcall FUN_00450a10(int param_1)
                 packet.data = *q->data;
                 packet.data.id = q->id;
                 packet.type = 0x20;
-                FUN_00451df0(q->id, &packet, sizeof(packet));
+                BroadcastPacket(q->id, &packet, sizeof(packet));
                 if (q->active != 0 && (q->type == 1 || q->type == 2)) {
                     unsigned char* msg = g_game->buffer;
                     msg[0] = 0x24;
                     *(int*)(msg + 1) = q->id;
                     msg[5] = q->alliance;
-                    FUN_00451df0(q->id, msg, 6);
-                    if (DAT_00506dbc != 0) {
-                        DAT_00513000.FUN_004618a0(1);
+                    BroadcastPacket(q->id, msg, 6);
+                    if (g_usePacketManager != 0) {
+                        g_packetManager.SendAllQueued(1);
                     }
                 }
             }
         }
         FUN_00450530();
-        DAT_00513000.FUN_004618a0(1);
+        g_packetManager.SendAllQueued(1);
     }
     if (g_game->campaign->FUN_00435100() == 3 && g_game->count > 1) {
-        FUN_0046c620(2);
+        ReportGameEvent(2);
     }
     return 1;
 }

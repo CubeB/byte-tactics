@@ -32,7 +32,7 @@ public:
     int FUN_004b73e0(int index, int fallback);
 };
 
-void __stdcall FUN_00463ca0(char* param_1, int param_2, int param_3, int param_4);
+void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
 
 // The min() macro's parentheses load field_a4 before the call and spill it,
 // and the explicit (float) cast on the argument makes the store come after
@@ -45,6 +45,6 @@ void __stdcall FUN_00419400(Class_004b73e0* args)
         Player_00419400* p = &g_game->players[g_game->local_player];
         p->share_energy = __min(p->field_a4, (float)args->FUN_004b73e0(1, 0));
         sprintf(buf, "OK.  Will share energy if above %d", args->FUN_004b73e0(1, 0));
-        FUN_00463ca0(buf, 2, 0, 10);
+        AddMessage(buf, 2, 0, 10);
     }
 }

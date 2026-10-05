@@ -11,10 +11,10 @@
 // (the array start in ecx, and in eax the group member the inlined Init runs
 // from). MSVC 5 anchors that second variable on the third store of the first
 // inlined member function, so the shape of the members decides every
-// displacement in the run: the three-dword Channel_00460f40 at +0x38 gives
+// displacement in the run: the three-dword PacketRing at +0x38 gives
 // loop one its +0x40, the four-dword Mid_00462d30 at +0x18 gives the ten small
-// entries their +0x20. The two setters (Class_00462860::FUN_00462860 with
-// 4000 ms and Class_004628a0::FUN_004628a0 with 200 ms) are inlined and
+// entries their +0x20. The two setters (Class_00462860::SetMinRetainMs with
+// 4000 ms and Class_004628a0::SetSendPacingMs with 200 ms) are inlined and
 // constant-folded into the two trailing stores, 0x78 and 6.
 //
 // The small entries are built by the array member's own constructor loop, with
@@ -24,7 +24,7 @@
 
 #include <stdlib.h>
 
-struct Channel_00460f40 {              // the channel's last member (ctor 0x460f40)
+struct PacketRing {                    // the channel's last member (ctor 0x460f40)
     int field_0;                       // +0x38
     int field_4;                       // +0x3c
     int field_8;                       // +0x40
@@ -32,7 +32,7 @@ struct Channel_00460f40 {              // the channel's last member (ctor 0x460f
     void Init() { field_0 = 0; field_4 = 0; field_8 = -1; }
 };
 
-struct Channel_00460f60 {
+struct PacketChannel {
     int field_0;                       // +0x00
     int field_4;                       // +0x04
     int field_8;                       // +0x08
@@ -47,7 +47,7 @@ struct Channel_00460f60 {
     int field_2c;                      // +0x2c
     int field_30;                      // +0x30
     int field_34;                      // +0x34
-    Channel_00460f40 field_38;         // +0x38
+    PacketRing field_38;               // +0x38
     char unknown_44[0x1044 - 0x44];
 
     void Init()
@@ -70,14 +70,14 @@ struct Channel_00460f60 {
 };
 
 struct Table_004611e0 {
-    Channel_00460f60 channels[11];
+    PacketChannel channels[11];
     char* buffer;                      // +0xb2f4
     int used;                          // +0xb2f8
     int capacity;                      // +0xb2fc
 
     Table_004611e0()
     {
-        Channel_00460f60* p = channels;
+        PacketChannel* p = channels;
         for (int i = 0; i < 11; i++, p++) {
             channels[i].field_0 = -1;
             p->Init();
@@ -108,13 +108,13 @@ struct Mid_00462d30 {
     void Init() { field_18 = 0; field_1c = 0; field_20 = 0; field_24 = 0; }
 };
 
-struct Tail_00462d30 {
+struct FrameQueue {
     Mid_00462d30 mid;                  // +0x18
     Buffer_00462d30* buffer;           // +0x28
     int field_2c;                      // +0x2c
     int field_30;                      // +0x30
 
-    Tail_00462d30()
+    FrameQueue()
     {
         buffer = 0;
         mid.Init();
@@ -130,15 +130,15 @@ struct F0_00462d30 {
     F0_00462d30() { field_0 = -1; }
 };
 
-struct Entry_00462d30 : public F0_00462d30 {
+struct PlayerFrameInfo : public F0_00462d30 {
     int field_4;                       // +0x04
     int field_8;                       // +0x08
     int field_c;                       // +0x0c
     int field_10;                      // +0x10
     int field_14;                      // +0x14
-    Tail_00462d30 tail;                // +0x18
+    FrameQueue tail;                   // +0x18
 
-    Entry_00462d30()
+    PlayerFrameInfo()
         : field_4(-1), field_8(-1), field_c(0), field_10(-1), field_14(0)
     {
     }
@@ -154,7 +154,7 @@ public:
     int field_14;                      // +0x14
     int field_18;                      // +0x18
     int field_1c;                      // +0x1c
-    Entry_00462d30 entries[10];         // +0x20
+    PlayerFrameInfo entries[10];        // +0x20
     int field_228;                     // +0x228
     int field_22c;                     // +0x22c
     int field_230;                     // +0x230

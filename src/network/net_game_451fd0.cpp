@@ -10,7 +10,7 @@
 // register assignments remain the only recorded differences.
 // deepseek-v4.1-flash (#3429): moved `DAT_00512b80 = 2;` from the very end up
 // into the store run, between `DAT_00512bcc = 7;` and `DAT_00512ac8 =
-// FUN_0044fd40;`, which is exactly where the original emits that store (the
+// DefaultPacketHandler;`, which is exactly where the original emits that store (the
 // stray trailing store hunk is gone, four hunks remain instead of five). The
 // score is byte-flat at 88.5% / 915 bytes: only the 1/6/2 register hunks are
 // left, and no tried source shape moves them.
@@ -30,7 +30,7 @@
 //   0x45204f  mov edi, 6  ->  mov esi, 6
 //   0x452059  mov edx, 2  ->  mov edi, 2
 // and then every store of 1, 6 or 2 uses the register above. 4 keeps EDX, 7
-// keeps ECX, FUN_0044fd40 keeps EAX and 3 keeps EBP in both. The original
+// keeps ECX, DefaultPacketHandler keeps EAX and 3 keeps EBP in both. The original
 // gives 1 ESI, 6 EDI and 2 EDX (reusing 4's dead slot last); ours gives 1 EDX
 // (reusing 4's slot immediately), 6 ESI and 2 EDI. Tried and flat at 85.9%:
 // memset through a char* or void*, length as 176, sizeof(int) * 44, 44 * 4, a
@@ -76,7 +76,7 @@
 
 typedef int (__stdcall *EntryFunc)(int);
 
-int __stdcall FUN_0044fd40(int arg1);
+int __stdcall DefaultPacketHandler(int arg1);
 int __stdcall FUN_0044fd50(int arg1);
 int __stdcall FUN_0044fd60(int arg1);
 int __stdcall FUN_0044fd70(int arg1);
@@ -225,10 +225,10 @@ public:
 
 #pragma pack(pop)
 
-int __stdcall FUN_00451fd0(Class_00451fd0* param_1);
+int __stdcall InitPacketTables(Class_00451fd0* param_1);
 
 // FUNCTION: 0x451fd0
-int __stdcall FUN_00451fd0(Class_00451fd0* param_1)
+int __stdcall InitPacketTables(Class_00451fd0* param_1)
 {
     DAT_00512be4 = 4;
     DAT_00512c70 = 4;
@@ -260,98 +260,98 @@ int __stdcall FUN_00451fd0(Class_00451fd0* param_1)
     DAT_00512a40 = FUN_0044fd90;
     DAT_00512be0 = 7;
     DAT_00512afc = 23;
-    DAT_00512a44 = FUN_0044fd40;
+    DAT_00512a44 = DefaultPacketHandler;
     DAT_00512b88 = 3;
-    DAT_00512ad0 = FUN_0044fd40;
+    DAT_00512ad0 = DefaultPacketHandler;
     DAT_00512b00 = 7;
-    DAT_00512a48 = FUN_0044fd40;
+    DAT_00512a48 = DefaultPacketHandler;
     DAT_00512b04 = 9;
-    DAT_00512a4c = FUN_0044fd40;
+    DAT_00512a4c = DefaultPacketHandler;
     DAT_00512b08 = 11;
-    DAT_00512a50 = FUN_0044fd40;
+    DAT_00512a50 = DefaultPacketHandler;
     DAT_00512b0c = 36;
-    DAT_00512a54 = FUN_0044fd40;
+    DAT_00512a54 = DefaultPacketHandler;
     DAT_00512b10 = 14;
-    DAT_00512a58 = FUN_0044fd40;
+    DAT_00512a58 = DefaultPacketHandler;
     DAT_00512b14 = 6;
-    DAT_00512a5c = FUN_0044fd40;
+    DAT_00512a5c = DefaultPacketHandler;
     DAT_00512b18 = 22;
-    DAT_00512a60 = FUN_0044fd40;
-    DAT_00512a64 = FUN_0044fd40;
+    DAT_00512a60 = DefaultPacketHandler;
+    DAT_00512a64 = DefaultPacketHandler;
     DAT_00512b20 = 5;
-    DAT_00512a68 = FUN_0044fd40;
+    DAT_00512a68 = DefaultPacketHandler;
     DAT_00512b24 = 18;
-    DAT_00512a6c = FUN_0044fd40;
+    DAT_00512a6c = DefaultPacketHandler;
     DAT_00512c0c = 7;
     DAT_00512b28 = 24;
-    DAT_00512a70 = FUN_0044fd40;
+    DAT_00512a70 = DefaultPacketHandler;
     DAT_00512b2c = 1;
-    DAT_00512a74 = FUN_0044fd40;
+    DAT_00512a74 = DefaultPacketHandler;
     DAT_00512c14 = 6;
     DAT_00512b30 = 17;
-    DAT_00512a78 = FUN_0044fd40;
+    DAT_00512a78 = DefaultPacketHandler;
     DAT_00512c18 = 4;
     DAT_00512b34 = 2;
-    DAT_00512a7c = FUN_0044fd40;
+    DAT_00512a7c = DefaultPacketHandler;
     DAT_00512c1c = 7;
     DAT_00512b38 = 2;
-    DAT_00512a80 = FUN_0044fd40;
+    DAT_00512a80 = DefaultPacketHandler;
     DAT_00512c20 = 7;
     DAT_00512b3c = 3;
-    DAT_00512a84 = FUN_0044fd40;
+    DAT_00512a84 = DefaultPacketHandler;
     DAT_00512c24 = 7;
     DAT_00512b44 = 6;
-    DAT_00512a8c = FUN_0044fd40;
+    DAT_00512a8c = DefaultPacketHandler;
     DAT_00512c2c = 7;
     DAT_00512b48 = 5;
-    DAT_00512a90 = FUN_0044fd40;
+    DAT_00512a90 = DefaultPacketHandler;
     DAT_00512c30 = 7;
     DAT_00512b40 = 14;
-    DAT_00512a88 = FUN_0044fd40;
+    DAT_00512a88 = DefaultPacketHandler;
     DAT_00512c28 = 1;
     DAT_00512b4c = 9;
-    DAT_00512a94 = FUN_0044fd40;
+    DAT_00512a94 = DefaultPacketHandler;
     DAT_00512b6c = 5;
-    DAT_00512ab4 = FUN_0044fd40;
+    DAT_00512ab4 = DefaultPacketHandler;
     DAT_00512c54 = 1;
     DAT_00512b70 = 41;
-    DAT_00512ab8 = FUN_0044fd40;
+    DAT_00512ab8 = DefaultPacketHandler;
     DAT_00512c58 = 7;
     DAT_00512b64 = 14;
-    DAT_00512aac = FUN_0044fd40;
+    DAT_00512aac = DefaultPacketHandler;
     DAT_00512c4c = 7;
     DAT_00512b68 = 6;
-    DAT_00512ab0 = FUN_0044fd40;
+    DAT_00512ab0 = DefaultPacketHandler;
     DAT_00512c50 = 7;
     DAT_00512b50 = 2;
-    DAT_00512a98 = FUN_0044fd40;
+    DAT_00512a98 = DefaultPacketHandler;
     DAT_00512c38 = 6;
     DAT_00512b54 = 5;
-    DAT_00512a9c = FUN_0044fd40;
+    DAT_00512a9c = DefaultPacketHandler;
     DAT_00512c3c = 6;
     DAT_00512b58 = 186;
-    DAT_00512aa0 = FUN_0044fd40;
+    DAT_00512aa0 = DefaultPacketHandler;
     DAT_00512c40 = 7;
     DAT_00512b5c = 10;
-    DAT_00512aa4 = FUN_0044fd40;
+    DAT_00512aa4 = DefaultPacketHandler;
     DAT_00512c44 = 1;
     DAT_00512b60 = 6;
-    DAT_00512aa8 = FUN_0044fd40;
+    DAT_00512aa8 = DefaultPacketHandler;
     DAT_00512c48 = 1;
     DAT_00512b74 = 17;
-    DAT_00512abc = FUN_0044fd40;
+    DAT_00512abc = DefaultPacketHandler;
     DAT_00512c5c = 7;
     DAT_00512b78 = 58;
-    DAT_00512ac0 = FUN_0044fd40;
+    DAT_00512ac0 = DefaultPacketHandler;
     DAT_00512c60 = 7;
     DAT_00512b7c = 3;
-    DAT_00512ac4 = FUN_0044fd40;
+    DAT_00512ac4 = DefaultPacketHandler;
     DAT_00512c64 = 7;
     DAT_00512ae4 = 3;
-    DAT_00512a2c = FUN_0044fd40;
+    DAT_00512a2c = DefaultPacketHandler;
     DAT_00512bcc = 7;
     DAT_00512b80 = 2;
-    DAT_00512ac8 = FUN_0044fd40;
+    DAT_00512ac8 = DefaultPacketHandler;
     DAT_00512c68 = 7;
     param_1->field_870 = FUN_004b6340();
     param_1->field_1745 = 0x2000;

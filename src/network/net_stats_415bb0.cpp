@@ -11,7 +11,7 @@ public:
     unsigned int* data;                // +0xc
     unsigned int buffer[0x100];        // +0x10
 
-    void FUN_00415bb0();
+    void GrowBuffer();
 };
 
 static inline void CopyWords(unsigned int* first, unsigned int* last, unsigned int* dst)
@@ -23,7 +23,7 @@ static inline void CopyWords(unsigned int* first, unsigned int* last, unsigned i
 }
 
 // FUNCTION: 0x415bb0
-void Class_00415b60::FUN_00415bb0()
+void Class_00415b60::GrowBuffer()
 {
     int newCapacity = capacity * 2;
     unsigned int* grown = new unsigned int(newCapacity);

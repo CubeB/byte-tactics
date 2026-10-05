@@ -24,12 +24,12 @@
 // (0x461ee8 writes 0x4614..0x462c, the copy starts at 0x4610), so a new
 // pool's first dword stays whatever operator new returned. It does not matter
 // because nothing in this function reads it. Also `q->count = 0` before
-// FUN_004629b0() (0x461ecb) is redundant: that method sets count to 0 itself
+// FreePackets() (0x461ecb) is redundant: that method sets count to 0 itself
 // (0x4629b0.cpp).
 
 void* __cdecl operator new(unsigned int size);
 
-class Class_00462470;
+class PacketChannel;
 
 // One 0x20-byte pool entry. The first dword is never written by this function,
 // neither by the allocation loop nor by the reset copy further down.
@@ -44,22 +44,22 @@ struct Entry_00461db0 {
     int field_1c;                   // +0x1c
 };
 
-class Class_004629b0 {
+class PacketBuffer {
 public:
-    Class_00462470* pool;           // +0x00
+    PacketChannel* pool;            // +0x00
     int start;                      // +0x04
     int count;                      // +0x08
     int field_c;                    // +0x0c
     int field_10;                   // +0x10
-    void FUN_004629b0();
+    void FreePackets();
 };
 
-class Packet_00461db0 : public Class_004629b0 {
+class Packet_00461db0 : public PacketBuffer {
 public:
     char unknown_14[0x43e - 0x14];
 };
 
-class Class_00462470 {
+class PacketChannel {
 public:
     int field_0;                    // +0x00
     int field_4;                    // +0x04
@@ -78,11 +78,11 @@ public:
     int field_38;                   // +0x38
     int field_3c;                   // +0x3c
 
-    int FUN_00461db0(int a1, unsigned int a2, int a3, int a4);
+    int InitPools(int a1, unsigned int a2, int a3, int a4);
 };
 
 // FUNCTION: 0x461db0
-int Class_00462470::FUN_00461db0(int a1, unsigned int a2, int a3, int a4)
+int PacketChannel::InitPools(int a1, unsigned int a2, int a3, int a4)
 {
     unsigned int i;
     unsigned int j;
@@ -144,7 +144,7 @@ int Class_00462470::FUN_00461db0(int a1, unsigned int a2, int a3, int a4)
         // The pointer local is what puts the store in eax and the call in ecx.
         Packet_00461db0* q = packets[i];
         q->count = 0;
-        packets[i]->FUN_004629b0();
+        packets[i]->FreePackets();
     }
     Entry_00461db0 t;
     t.field_4 = 0;

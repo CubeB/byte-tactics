@@ -41,7 +41,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x451090
-void __stdcall FUN_00451090(char* name, int* d, int* c, int* b, int* a)
+void __stdcall BuildGameInfo(char* name, int* d, int* c, int* b, int* a)
 {
     PlayerInfo_451090* info = g_game->players[g_game->localPlayer].info;
     char* p = (char*)info;

@@ -33,24 +33,24 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern int DAT_00506dbc;
+extern int g_usePacketManager;
 
 class Class_004619b0 {
 public:
-    int FUN_004619b0(int param_1, int param_2, void* param_3, unsigned int param_4);
+    int QueuePacket(int param_1, int param_2, void* param_3, unsigned int param_4);
 };
-extern Class_004619b0 DAT_00513000;
+extern Class_004619b0 g_packetManager;
 
-int __stdcall FUN_0044ffd0(unsigned char index);
-unsigned char __stdcall FUN_0044fe40(int id);
-int __stdcall FUN_004c97b0(void* net, unsigned long from, unsigned long to, void* data, unsigned long size);
-void __stdcall FUN_00415ef0(unsigned char kind, int amount, int player);
-void __stdcall FUN_00415f40(int size, int overhead, int sent);
+int __stdcall GetSlotDpid(unsigned char index);
+unsigned char __stdcall FindSlotByDpid(int id);
+int __stdcall HAPINET_sendpacket(void* net, unsigned long from, unsigned long to, void* data, unsigned long size);
+void __stdcall CountMessage(unsigned char kind, int amount, int player);
+void __stdcall CountPacket(int size, int overhead, int sent);
 
 static inline unsigned char FindIndex_00451bc0(int id)
 {
     for (unsigned char i = 0; i < 10; i++) {
-        if (FUN_0044ffd0(i) == id)
+        if (GetSlotDpid(i) == id)
             return i;
     }
     return 10;
@@ -75,7 +75,7 @@ static inline unsigned char FindPlayerIndex_00451bc0(int id)
 }
 
 // FUNCTION: 0x451bc0
-int __stdcall FUN_00451bc0(int from, int to, unsigned char* packet, int size)
+int __stdcall SendPacketToPlayer(int from, int to, unsigned char* packet, int size)
 {
     unsigned char fi;
     if (from == -1)
@@ -86,7 +86,7 @@ int __stdcall FUN_00451bc0(int from, int to, unsigned char* packet, int size)
     if (fi == 10)
         fromPlayer = 0;
     else
-        fromPlayer = &g_game->players[FUN_0044fe40(from)];
+        fromPlayer = &g_game->players[FindSlotByDpid(from)];
 
     unsigned char ti;
     if (to == -1)
@@ -97,7 +97,7 @@ int __stdcall FUN_00451bc0(int from, int to, unsigned char* packet, int size)
     if (ti == 10)
         toPlayer = 0;
     else
-        toPlayer = &g_game->players[FUN_0044fe40(to)];
+        toPlayer = &g_game->players[FindSlotByDpid(to)];
 
     if ((g_game->flags & 1) && fromPlayer != 0 && fromPlayer->active != 0 &&
         (fromPlayer->state == 1 || fromPlayer->state == 2) &&
@@ -105,12 +105,12 @@ int __stdcall FUN_00451bc0(int from, int to, unsigned char* packet, int size)
         toPlayer->state == 3 && toPlayer->field_22 == 0) {
         Player_00451bc0* target = &g_game->players[FindPlayerIndex_00451bc0(to)];
         if (target->active == 0 || (target->state != 1 && target->state != 2)) {
-            if (DAT_00506dbc != 0)
-                return DAT_00513000.FUN_004619b0(from, to, packet, size);
-            if (FUN_004c97b0((char*)g_game + 0x14, from, to, packet, size) != 0)
+            if (g_usePacketManager != 0)
+                return g_packetManager.QueuePacket(from, to, packet, size);
+            if (HAPINET_sendpacket((char*)g_game + 0x14, from, to, packet, size) != 0)
                 return 0;
-            FUN_00415ef0(packet[0], size, 1);
-            FUN_00415f40(size, 0, 1);
+            CountMessage(packet[0], size, 1);
+            CountPacket(size, 0, 1);
         }
         return 1;
     }

@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, retries by GPT-6.1-sol and space-bunny-free, finished by deepseek-v4.1-flash, improved by claude-sonnet-5-5, matched by Space Bunny Free. Names are provisional.
 //
-// Sends a 10-byte 0x21 message via FUN_00451bc0 for each player slot in state
+// Sends a 10-byte 0x21 message via SendPacketToPlayer for each player slot in state
 // 1, 2 or 3 with f_146 != 10 and field_c == 0 (to = first slot whose data->flags
 // has bit 0, from = first slot in state 1 or 2). State 1 sets the flag byte and
 // arg = -1, state 2 sets the flag byte and arg = the local player's id, state 3
@@ -14,9 +14,9 @@
 // `IsPlaying(p) && p->state == 1/2` (this is where the original's redundant
 // cmp al,1 / cmp al,2 chains come from), FindFrom (first IsPlaying slot's id,
 // else -1, with `return` inside the loop), FindTo (flags loop,
-// `return FUN_0044ffd0(j)` else -1), FindToB (same with GetPlayerId) and
-// FindPlayer (the uchar loop that is FUN_00456850 inlined, in state 3 only).
-// `from` and `to` are call arguments, not locals: FUN_00451bc0(FindFrom(),
+// `return GetSlotDpid(j)` else -1), FindToB (same with GetPlayerId) and
+// FindPlayer (the uchar loop that is FindHostSlot inlined, in state 3 only).
+// `from` and `to` are call arguments, not locals: SendPacketToPlayer(FindFrom(),
 // FindTo(), &msg, 10) gives the original's duplicated push sequences with one
 // shared `push eax; call`. `msg` has to be declared at function scope, before
 // the `mode == 6` guard, or the three branches order their stores differently.
@@ -32,7 +32,7 @@
 // branch with a body that falls through. That is what the `if (i == 9)` in the
 // state-3 arm below is for, and the body has to be something the optimiser can
 // delete completely, so it is a self-assignment. Ladder: 59.8% (975B) clean,
-// 75.9% with `if (i == 11) FUN_0044ffd0(0);` at the end of the body, 88.3% with
+// 75.9% with `if (i == 11) GetSlotDpid(0);` at the end of the body, 88.3% with
 // a dead `if (i == 9)` store in the state-3 arm, 98.0% once msg is hoisted out
 // of the loop, MATCH at 977B. Storing a constant instead (`p->field_c = 0`)
 // does not work: MSVC 5 will not drop the store, and the cmp ebp,9 / jne pair
@@ -105,9 +105,9 @@ struct Msg_00450530 {
 
 extern Game* g_game;
 
-int __stdcall FUN_0044ffd0(unsigned char index);
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
-unsigned char FUN_00456850();
+int __stdcall GetSlotDpid(unsigned char index);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
+unsigned char FindHostSlot();
 
 static inline int IsPlaying_00450530(Player_00450530* player)
 {
@@ -147,7 +147,7 @@ static inline int FindTo_00450530()
 {
     for (int j = 0; j < 10; j++) {
         if (g_game->players[j].data->flags & 1)
-            return FUN_0044ffd0(j);
+            return GetSlotDpid(j);
     }
     return -1;
 }
@@ -174,7 +174,7 @@ void FUN_00450530()
             && p->f_146 != 10
             && p->field_c == 0) {
             if (IsPlaying_00450530(p) && p->state == 1) {
-                Player_00450530* q = &g_game->players[FUN_00456850()];
+                Player_00450530* q = &g_game->players[FindHostSlot()];
                 if (IsPlaying_00450530(q)) {
                     p->field_c = 1;
                     continue;
@@ -183,12 +183,12 @@ void FUN_00450530()
                 msg.flag = 1;
                 msg.id = p->id;
                 msg.arg = -1;
-                if (FUN_00456850() == 10)
+                if (FindHostSlot() == 10)
                     continue;
-                FUN_00451bc0(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
+                SendPacketToPlayer(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
             }
             else if (IsPlaying_00450530(p) && p->state == 2) {
-                Player_00450530* q = &g_game->players[FUN_00456850()];
+                Player_00450530* q = &g_game->players[FindHostSlot()];
                 if (IsPlaying_00450530(q)) {
                     p->field_c = 1;
                     continue;
@@ -197,9 +197,9 @@ void FUN_00450530()
                 msg.flag = 1;
                 msg.id = p->id;
                 msg.arg = g_game->players[g_game->local_player].id;
-                if (FUN_00456850() == 10)
+                if (FindHostSlot() == 10)
                     continue;
-                FUN_00451bc0(FindFrom_00450530(), FindToB_00450530(), &msg, 10);
+                SendPacketToPlayer(FindFrom_00450530(), FindToB_00450530(), &msg, 10);
             }
             else if (p->state == 3) {
                 msg.type = 0x21;
@@ -214,7 +214,7 @@ void FUN_00450530()
                 // header note; removing these two lines costs the match.
                 if (i == 9)
                     p->field_c = p->field_c;
-                FUN_00451bc0(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
+                SendPacketToPlayer(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
             }
         }
     }

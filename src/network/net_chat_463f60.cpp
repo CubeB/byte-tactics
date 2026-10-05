@@ -34,7 +34,7 @@ extern Game* g_game;
 void __stdcall FUN_0041c7c0(int a, int b, int c);
 
 // FUNCTION: 0x463f60
-int FUN_00463f60(void)
+int ScrollToNextMessageUnit(void)
 {
     Game* g = g_game;
     int i = g->head;

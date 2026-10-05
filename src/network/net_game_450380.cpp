@@ -28,10 +28,10 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern char* DAT_005061b8[8];
+extern char* g_leftGameTexts[8];
 
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_00463ca0(char* text, int param_2, int param_3, char param_4);
+void __stdcall AddMessage(char* text, int param_2, int param_3, char param_4);
 
 static inline int GetPlayerField_00450380(unsigned char i)
 {
@@ -52,7 +52,7 @@ static inline unsigned char FindPlayerIndex_00450380(int id)
 }
 
 // FUNCTION: 0x450380
-void __stdcall FUN_00450380(int id)
+void __stdcall AnnouncePlayerLeft(int id)
 {
     char buf[200];
     if (g_game->players[g_game->localPlayer].field_22 == 1)
@@ -64,6 +64,6 @@ void __stdcall FUN_00450380(int id)
         p = &g_game->players[FindPlayerIndex_00450380(id)];
     if (p == 0)
         return;
-    sprintf(buf, "%s %s", p->name, FUN_004c5740(DAT_005061b8[rand() & 7]));
-    FUN_00463ca0(buf, 4, 0, p->field_146);
+    sprintf(buf, "%s %s", p->name, FUN_004c5740(g_leftGameTexts[rand() & 7]));
+    AddMessage(buf, 4, 0, p->field_146);
 }

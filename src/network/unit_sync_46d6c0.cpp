@@ -4,7 +4,7 @@
 // the entry's two std::vector<int> members through the out-of-line
 // vector::insert at 0x46e640 and then calls 0x46d970, arg 4 raises a
 // maximum). Otherwise an arg 3 packet stores a rectangle in the
-// std::map<unsigned int, Rect_0046e160> at +0x0 and calls 0x46d860.
+// std::map<unsigned int, UnitSyncEntry> at +0x0 and calls 0x46d860.
 //
 // The map store is `map[key] = r` with <map>'s operator[] (see Map_0046d6c0):
 // it inserts a default-constructed value, which MSVC 5 builds as an
@@ -72,7 +72,7 @@ public:
     void insert(int* pos, int n, int const& val);
 };
 
-struct Rect_0046e160 {                // 0x10 bytes
+struct UnitSyncEntry {                // 0x10 bytes
     int x;                            // +0x0
     int y;                            // +0x4
     short w;                          // +0x8
@@ -80,7 +80,7 @@ struct Rect_0046e160 {                // 0x10 bytes
     int unknown_c;                    // +0xc
 };
 
-// The tree behind a std::map<unsigned int, Rect_0046e160> (MSVC 5's <xtree>
+// The tree behind a std::map<unsigned int, UnitSyncEntry> (MSVC 5's <xtree>
 // layout: empty allocator and key_compare at +0 and +1, _Head, _Multi, _Size).
 // It is declared by hand, as a template with <xtree>'s own name and first two
 // arguments, because the real tree's insert is 0x46ef50 and <xtree>'s inline
@@ -113,19 +113,19 @@ public:
     _Pairib insert(const _Ty& _V);    // 0x46ef50
 };
 
-typedef std::pair<const unsigned int, Rect_0046e160> Value_0046d6c0;
+typedef std::pair<const unsigned int, UnitSyncEntry> Value_0046d6c0;
 
-// std::map<unsigned int, Rect_0046e160>::operator[] from MSVC 5's <map>: insert
+// std::map<unsigned int, UnitSyncEntry>::operator[] from MSVC 5's <map>: insert
 // a default value if the key is new, then hand back the mapped value. The
-// default `Rect_0046e160()` is an uninitialised temporary in this compiler,
+// default `UnitSyncEntry()` is an uninitialised temporary in this compiler,
 // which is where the copies of uninitialised stack words in the original come
 // from.
 class Map_0046d6c0 : public _Tree<unsigned int, Value_0046d6c0, Kfn_0046d6c0,
                                    Less_0046d6c0, Alloc_0046d6c0> {
 public:
-    Rect_0046e160& operator[](const unsigned int& k)
+    UnitSyncEntry& operator[](const unsigned int& k)
     {
-        _Pairib p = insert(Value_0046d6c0(k, Rect_0046e160()));
+        _Pairib p = insert(Value_0046d6c0(k, UnitSyncEntry()));
         return p.first->_Value.second;
     }
 };
@@ -142,11 +142,11 @@ struct Entry_0046d6c0 {               // 0x5c bytes
 
 class Class_0046d860 {
 public:
-    void FUN_0046d860(unsigned int key);
-    void FUN_0046d970(unsigned int key, int y);
+    void NotifyEntryChanged(unsigned int key);
+    void CheckUnitAvailable(unsigned int key, int y);
 };
 
-class Class_0046d6c0 {
+class UnitSync {
 public:
     Map_0046d6c0 map;                            // +0x00
     std::vector<Entry_0046d6c0> players;         // +0x10
@@ -156,13 +156,13 @@ public:
     char unknown_60[0x64 - 0x60];
     int disabled;                                // +0x64
 
-    void FUN_0046d6c0(Packet_0046d6c0* packet, unsigned char player);
+    void HandleSyncPacket(Packet_0046d6c0* packet, unsigned char player);
 
 
 };
 
 // FUNCTION: 0x46d6c0
-void Class_0046d6c0::FUN_0046d6c0(Packet_0046d6c0* packet, unsigned char player)
+void UnitSync::HandleSyncPacket(Packet_0046d6c0* packet, unsigned char player)
 {
     if (disabled != 0) {
         return;
@@ -208,7 +208,7 @@ void Class_0046d6c0::FUN_0046d6c0(Packet_0046d6c0* packet, unsigned char player)
                 Vec_0046d6c0& w = i->pairs;
                 w.insert(w.end(), 1, packet->field_a.all);
             }
-            ((Class_0046d860*)this)->FUN_0046d970(packet->field_6, packet->field_a.all);
+            ((Class_0046d860*)this)->CheckUnitAvailable(packet->field_6, packet->field_a.all);
             break;
 
         case 3:
@@ -222,14 +222,14 @@ void Class_0046d6c0::FUN_0046d6c0(Packet_0046d6c0* packet, unsigned char player)
         }
     } else {
         if (packet->arg != 0 && packet->arg == 3) {
-            Rect_0046e160 r;
+            UnitSyncEntry r;
             r.x = packet->field_6;
             r.y = 0;
             r.w = packet->field_a.part.lo;
             r.h = packet->field_a.part.hi;
             r.unknown_c = packet->field_a.part.top;
             map[packet->field_6] = r;
-            ((Class_0046d860*)this)->FUN_0046d860(packet->field_6);
+            ((Class_0046d860*)this)->NotifyEntryChanged(packet->field_6);
         }
     }
 }

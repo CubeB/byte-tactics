@@ -52,7 +52,7 @@ void FUN_004c2870();
 void FUN_00496ce0();
 void FUN_00496db0();
 void FUN_00497f40();
-void __cdecl FUN_004578f0(int param);
+void __cdecl LeaveNetGameCallback(int param);
 void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
 void __stdcall FUN_004ab170(Sub_00496bb0* sub, unsigned int* param_2, int* param_3);
 
@@ -65,18 +65,18 @@ void FUN_00496bb0()
         FUN_004c2470();
         g_game->mode = 4;
         g_game->handler = FUN_00496db0;
-        FUN_004b4fd0(FUN_004578f0, 0);
+        FUN_004b4fd0(LeaveNetGameCallback, 0);
     } else if (g_game->bit2 && g_game->obj_391e9->FUN_00435100() == 2) {
         FUN_004c2470();
         g_game->mode = 5;
         g_game->handler = FUN_00497f40;
-        FUN_004b4fd0(FUN_004578f0, 0);
+        FUN_004b4fd0(LeaveNetGameCallback, 0);
     } else if (g_game->state_2bbe == 0x11) {
         if (g_game->bit2) {
             FUN_004c2470();
             g_game->mode = 3;
             g_game->handler = FUN_00496ce0;
-            FUN_004b4fd0(FUN_004578f0, 0);
+            FUN_004b4fd0(LeaveNetGameCallback, 0);
         }
     } else if (g_game->state_2bbe == 0x10) {
         if (g_game->flag_2b4c) {
@@ -84,7 +84,7 @@ void FUN_00496bb0()
                 FUN_004c2470();
                 g_game->mode = 3;
                 g_game->handler = FUN_00496ce0;
-                FUN_004b4fd0(FUN_004578f0, 0);
+                FUN_004b4fd0(LeaveNetGameCallback, 0);
             }
         }
     }

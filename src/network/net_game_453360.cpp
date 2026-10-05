@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Claude Opus 5.5. Names are provisional.
 // Sends a chat/text message (type 5, up to 64 characters) to the players
 // selected by the game's chat mode at +0x2bf0, from the first player in state
-// 1 (FUN_0044fe00 inlined), and returns the last send's result.
+// 1 (GetLocalHumanDpid inlined), and returns the last send's result.
 //
 // What earlier passes were missing (54.4%):
 // - The function returns an int: `result` takes each send's return value and
@@ -43,10 +43,10 @@ struct Game {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_00451df0(int player, void* data, int size);
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 
-// The body of FUN_0044fe00, inlined here.
+// The body of GetLocalHumanDpid, inlined here.
 static inline int FindTarget(Game* game)
 {
     for (int i = 0; i < 10; i++) {
@@ -57,7 +57,7 @@ static inline int FindTarget(Game* game)
 }
 
 // FUNCTION: 0x453360
-int __stdcall FUN_00453360(char* text)
+int __stdcall SendChatPacket(char* text)
 {
     int result;
     int i;
@@ -68,13 +68,13 @@ int __stdcall FUN_00453360(char* text)
     int target = FindTarget(g_game);
 
     if (text[0] == '+' || g_game->mode == 0) {
-        result = FUN_00451df0(target, g_game->buffer, 0x41);
+        result = BroadcastPacket(target, g_game->buffer, 0x41);
     } else if (g_game->mode == 3) {
         for (i = 0; i < 10; i++) {
             if (g_game->field_2bf1[i] != 0) {
                 int id = g_game->players[i].id;
                 if (id != 0)
-                    result = FUN_00451bc0(target, id, g_game->buffer, 0x41);
+                    result = SendPacketToPlayer(target, id, g_game->buffer, 0x41);
             }
         }
     } else {
@@ -84,7 +84,7 @@ int __stdcall FUN_00453360(char* text)
             if (p->active != 0 && p->state == 3) {
                 if ((g_game->mode == 1 && lp->allied[i] != 0) ||
                     (g_game->mode == 2 && lp->allied[i] == 0))
-                    result = FUN_00451bc0(target, p->id, g_game->buffer, 0x41);
+                    result = SendPacketToPlayer(target, p->id, g_game->buffer, 0x41);
             }
         }
     }

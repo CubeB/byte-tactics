@@ -54,16 +54,16 @@ public:
     }
 };
 
-class Class_0046e280 {
+class UnitSync {
 public:
     std::map<unsigned int, Event_0046e280> map;   // +0x00
     char unknown_14[0x10];                        // +0x14
     std::list<Event_0046e280> queue;              // +0x24
-    int FUN_0046e280(Event_0046e280* out);
+    int PopChangedEntry(Event_0046e280* out);
 };
 
 // FUNCTION: 0x46e280
-int Class_0046e280::FUN_0046e280(Event_0046e280* out)
+int UnitSync::PopChangedEntry(Event_0046e280* out)
 {
     if (queue.empty())
         return 0;

@@ -123,12 +123,12 @@ struct TeamPacket_00457540 {           // 3 bytes
 
 extern Game* g_game;
 
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
-void __stdcall FUN_004573d0(Player_00457540* player, Player_00457540* target,
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
+void __stdcall SendPlayerEconomy(Player_00457540* player, Player_00457540* target,
                             unsigned char flag);
 
 // FUNCTION: 0x457540
-void __stdcall FUN_00457540(Packet_00457540* packet, Player_00457540* player)
+void __stdcall HandlePlayerEconomy(Packet_00457540* packet, Player_00457540* player)
 {
     if (player == 0)
         return;
@@ -181,12 +181,12 @@ void __stdcall FUN_00457540(Packet_00457540* packet, Player_00457540* player)
             team.flag2 = 1;
         else
             team.flag2 = 0;
-        FUN_00451bc0(p->dpid, player->dpid, &team, 3);
+        SendPacketToPlayer(p->dpid, player->dpid, &team, 3);
         if (g_game->conditions->FUN_00490230() != 0)
             continue;
         if (p->t0[player->field_146] != 0)
             continue;
-        FUN_004573d0(p, player, 1);
+        SendPlayerEconomy(p, player, 1);
     }
     }
 }

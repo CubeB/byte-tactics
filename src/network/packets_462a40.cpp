@@ -9,7 +9,7 @@ public:
     Entry* next;
 };
 
-struct Class_00462a40
+struct PacketBuffer
 {
 public:
     char unknown_0[0x8];
@@ -21,7 +21,7 @@ public:
 };
 
 // FUNCTION: 0x462a40
-void Class_00462a40::FUN_00462a40()
+void PacketBuffer::FUN_00462a40()
 {
     if (field_8 != 0) {
         Entry* eax = field_10;

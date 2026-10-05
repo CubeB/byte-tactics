@@ -8,28 +8,28 @@ struct Entry_004618a0 {
 
 class Class_004624a0 {
 public:
-    int FUN_004624a0(int param_1);
+    int SendQueued(int param_1);
 };
 
-class Class_004618a0 {
+class PacketManager {
 public:
     char unknown_0[8];
     Entry_004618a0 entries[11];          // +0x8
 
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
-extern int DAT_00506dbc;
+extern int g_usePacketManager;
 
 // FUNCTION: 0x4618a0
-int Class_004618a0::FUN_004618a0(int param_1)
+int PacketManager::SendAllQueued(int param_1)
 {
-    if (DAT_00506dbc == 0) {
+    if (g_usePacketManager == 0) {
         return 0;
     }
     for (unsigned int i = 0; i <= 10; i++) {
         if (entries[i].field_14 != -1) {
-            if (((Class_004624a0*)&entries[i])->FUN_004624a0(param_1) == 0) {
+            if (((Class_004624a0*)&entries[i])->SendQueued(param_1) == 0) {
                 return 0;
             }
         }

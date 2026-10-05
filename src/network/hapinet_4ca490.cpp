@@ -38,9 +38,9 @@ struct Net_4ca490 {
 #pragma pack(pop)
 
 extern GUID DAT_004fce18;              // IID_IDirectPlayLobby2A
-extern int DAT_0050a780;
+extern int g_guaranteePackets;
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 void* __cdecl FUN_004d83b0(unsigned int name, unsigned int size);
 extern "C" HRESULT __stdcall DirectPlayLobbyCreateA(GUID* lpGUID,
                                                     DirectPlayLobby_4ca490** lplpDPL,
@@ -48,9 +48,9 @@ extern "C" HRESULT __stdcall DirectPlayLobbyCreateA(GUID* lpGUID,
                                                     unsigned long dwFlags);
 
 // FUNCTION: 0x4ca490
-int __stdcall FUN_004ca490(Net_4ca490* net)
+int __stdcall HAPINET_initlobbiedconnection(Net_4ca490* net)
 {
-    FUN_004c9740((int)"HAPINET_initlobbiedconnection\n");
+    HapinetTrace((int)"HAPINET_initlobbiedconnection\n");
     if (net->lobby != 0)
         return 0;
     net->created = 0;
@@ -73,8 +73,8 @@ int __stdcall FUN_004ca490(Net_4ca490* net)
                     hr = (int)0x8007000e;
                 }
             }
-            FUN_004c9740((int)"HAPINET_guaranteepackets\n");
-            DAT_0050a780 = 1;
+            HapinetTrace((int)"HAPINET_guaranteepackets\n");
+            g_guaranteePackets = 1;
         }
     }
     return hr >= 0;

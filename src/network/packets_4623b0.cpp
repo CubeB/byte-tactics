@@ -7,11 +7,11 @@ public:
     int unused;
     int buffer[0x400];
 
-    int FUN_004623b0();
+    int PopPacket();
 };
 
 // FUNCTION: 0x4623b0
-int Class_004623b0::FUN_004623b0()
+int Class_004623b0::PopPacket()
 {
     if (count > 0) {
         count--;

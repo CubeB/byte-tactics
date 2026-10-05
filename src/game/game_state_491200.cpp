@@ -154,7 +154,7 @@ void __stdcall FUN_00434ab0(int param_1);
 void FUN_00429870();
 void FUN_0047ed40();
 void FUN_004259b0();
-void __stdcall FUN_00451fd0(void* param_1);
+void __stdcall InitPacketTables(void* param_1);
 void FUN_0043c050();
 void FUN_0042a320();
 void FUN_0042a400();
@@ -187,7 +187,7 @@ void __stdcall FUN_004b4fd0(void (__cdecl *param_1)(), int param_2);
 void FUN_004287b0();
 int __stdcall FUN_0049f5a0(const char* name, int param_2);
 void FUN_00496a60();
-void __cdecl FUN_004578f0();
+void __cdecl LeaveNetGameCallback();
 
 // FUNCTION: 0x491200
 void FUN_00491200()
@@ -223,7 +223,7 @@ void FUN_00491200()
     FUN_00429870();
     FUN_0047ed40();
     FUN_004259b0();
-    FUN_00451fd0(g_game->field_12ef);
+    InitPacketTables(g_game->field_12ef);
     FUN_0043c050();
     FUN_0042a320();
     FUN_0042a400();
@@ -269,7 +269,7 @@ void FUN_00491200()
     g_game->field_38d7b = 0;
     g_game->field_391f1 = 0;
     g_game->field_391f5 = FUN_00496a60;
-    FUN_004b4fd0(FUN_004578f0, 0);
+    FUN_004b4fd0(LeaveNetGameCallback, 0);
     {
         MEMORYSTATUS mem2;
         mem2.dwLength = 0x20;

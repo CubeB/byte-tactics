@@ -13,12 +13,12 @@ struct Net_004ca900 {
 
 extern GUID DAT_004fcd78;              // IID_IDirectPlay3A
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4ca900
-HRESULT __stdcall FUN_004ca900(GUID* sp, Net_004ca900* net)
+HRESULT __stdcall HAPINET_createdplayinterface(GUID* sp, Net_004ca900* net)
 {
-    FUN_004c9740((int)"HAPINET_createdplayinterface\n");
+    HapinetTrace((int)"HAPINET_createdplayinterface\n");
     memset(net, 0, sizeof(Net_004ca900));
     HRESULT hr = DirectPlayCreate(sp, &net->dp, 0);
     if (hr >= 0) {

@@ -34,7 +34,7 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned char FUN_00456850();
+unsigned char FindHostSlot();
 
 // FUNCTION: 0x440cd0
 int FUN_00440cd0()
@@ -42,7 +42,7 @@ int FUN_00440cd0()
     if (!g_game->field_391e9->FUN_004358f0()) {
         return 0;
     }
-    unsigned char me = FUN_00456850();
+    unsigned char me = FindHostSlot();
     PlayerData_00440cd0* data = 0;
     int check = 0;
     if (me != 10) {

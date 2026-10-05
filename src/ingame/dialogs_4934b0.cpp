@@ -65,9 +65,9 @@ void __stdcall FUN_00464c60(unsigned char from, unsigned char to, float amount, 
 void __stdcall FUN_00464b30(unsigned char from, unsigned char to, float amount, int flag);
 int __stdcall FUN_004a0f60(Gadget_4934b0* obj, char* name);
 void __stdcall FUN_004933e0(unsigned char player);
-unsigned char __stdcall FUN_0044fe40(int id);
+unsigned char __stdcall FindSlotByDpid(int id);
 void __stdcall FUN_00485420(unsigned char from, unsigned char to);
-void __stdcall FUN_004571c0(unsigned char from, unsigned char to);
+void __stdcall SendShareMapInfo(unsigned char from, unsigned char to);
 
 static inline int IsPlaying_4934b0(Player_4934b0* p)
 {
@@ -110,7 +110,7 @@ void __stdcall FUN_004934b0(Gadget_4934b0* obj)
         short idx = plyr->selected;
         if (idx < 0)
             return;
-        int pi = FUN_0044fe40(DAT_0051e6d0[idx]);
+        int pi = FindSlotByDpid(DAT_0051e6d0[idx]);
         Player_4934b0* p = &g_game->players[pi];
         if (IsPlaying_4934b0(p) && !(p->info->flags & 0x40) && IsCounted_4934b0(p)) {
             FUN_00464c60(g_game->localPlayer, pi,
@@ -121,7 +121,7 @@ void __stdcall FUN_004934b0(Gadget_4934b0* obj)
                 FUN_004933e0(pi);
             if (FUN_004a0f60(obj, "MAPINFO")) {
                 FUN_00485420(g_game->localPlayer, pi);
-                FUN_004571c0(g_game->localPlayer, pi);
+                SendShareMapInfo(g_game->localPlayer, pi);
             }
         }
         return;

@@ -4,9 +4,9 @@
 // to `id` if that player is a live client. The player id search is the inlined
 // FindPlayer helper: it searches twice (once to decide whether the player
 // exists, once to take the address), which is what produces the two copies of
-// the id loop. When the net layer has no DirectPlay interface (DAT_00506dbc
-// clear) it goes through FUN_004c97b0 on g_game + 0x14 and reports the packet
-// as forwarded with FUN_00415ef0/FUN_00415f40. If instead g_game + 0x299c is
+// the id loop. When the net layer has no DirectPlay interface (g_usePacketManager
+// clear) it goes through HAPINET_sendpacket on g_game + 0x14 and reports the packet
+// as forwarded with CountMessage/CountPacket. If instead g_game + 0x299c is
 // non-zero this is a broadcast round: every in-use player in state 3 whose
 // target group has not been told yet gets the packet, and the group is marked
 // in DAT_00512b90. A single shared `return 1` at the end is what made the
@@ -41,30 +41,30 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_00462710;
+class PacketChannel;
 
-class Class_00461990 {
+class PacketManager {
 public:
-    int FUN_00461990(int param_1, Class_00462710* param_2, int param_3, int param_4);
+    int QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4);
 };
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_00462710 DAT_00513008;
-extern Class_00461990 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketChannel DAT_00513008;
+extern PacketManager g_packetManager;
 extern int DAT_00512b90[11];
 
-int __stdcall FUN_0044ffd0(unsigned char index);
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
-int __stdcall FUN_004c97b0(void* net, unsigned long from, unsigned long to, void* data, unsigned long size);
-void __stdcall FUN_00415ef0(unsigned char kind, int amount, int player);
-void __stdcall FUN_00415f40(int size, int overhead, int sent);
+int __stdcall GetSlotDpid(unsigned char index);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
+int __stdcall HAPINET_sendpacket(void* net, unsigned long from, unsigned long to, void* data, unsigned long size);
+void __stdcall CountMessage(unsigned char kind, int amount, int player);
+void __stdcall CountPacket(int size, int overhead, int sent);
 
 static inline unsigned char FindPlayerIndex(int id)
 {
     if (id != -1) {
         for (unsigned char i = 0; i < 10; i++) {
-            if (FUN_0044ffd0(i) == id)
+            if (GetSlotDpid(i) == id)
                 return i;
         }
     }
@@ -79,7 +79,7 @@ static inline Player_00451df0* FindPlayer(int id)
 }
 
 // FUNCTION: 0x451df0
-int __stdcall FUN_00451df0(int id, unsigned char* packet, int size)
+int __stdcall BroadcastPacket(int id, unsigned char* packet, int size)
 {
     Player_00451df0* p = FindPlayer(id);
     if (p == 0 || p->active == 0)
@@ -90,12 +90,12 @@ int __stdcall FUN_00451df0(int id, unsigned char* packet, int size)
         return 0;
     if ((g_game->flags_2a44 & 1) != 0) {
         if (g_game->field_299c == 0) {
-            if (DAT_00506dbc != 0)
-                return DAT_00513000.FUN_00461990(id, &DAT_00513008, (int)packet, size);
-            if (FUN_004c97b0((char*)g_game + 0x14, id, 0, packet, size) != 0)
+            if (g_usePacketManager != 0)
+                return g_packetManager.QueueOnChannel(id, &DAT_00513008, (int)packet, size);
+            if (HAPINET_sendpacket((char*)g_game + 0x14, id, 0, packet, size) != 0)
                 return 0;
-            FUN_00415ef0(packet[0], size, 1);
-            FUN_00415f40(size, 0, 1);
+            CountMessage(packet[0], size, 1);
+            CountPacket(size, 0, 1);
             return 1;
         }
         memset(DAT_00512b90, 0, 0x2c);
@@ -106,7 +106,7 @@ int __stdcall FUN_00451df0(int id, unsigned char* packet, int size)
                 continue;
             if (DAT_00512b90[g_game->players[i].field_c] != 0)
                 continue;
-            FUN_00451bc0(id, g_game->players[i].field_4, packet, size);
+            SendPacketToPlayer(id, g_game->players[i].field_4, packet, size);
             int c = g_game->players[i].field_c;
             if (c >= 0 && c < 10)
                 DAT_00512b90[c] = 1;

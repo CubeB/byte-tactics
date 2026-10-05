@@ -91,8 +91,8 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_00450010(Player_00488570* player);
-void __stdcall FUN_00451df0(int who, Packet_00488570* packet, int size);
+int __stdcall GetPlayerDpid(Player_00488570* player);
+void __stdcall BroadcastPacket(int who, Packet_00488570* packet, int size);
 Unit* __stdcall FUN_00485f50(unsigned char player, unsigned short type, Pos_00488570 pos,
                                       int param_5, int mode, unsigned short id);
 void __stdcall FUN_00489bb0(Unit* source, Unit* target, int amount, int type,
@@ -118,7 +118,7 @@ void __stdcall FUN_00488570(Unit* unit, Player_00488570* other, Packet_00488570*
             unit->flags &= ~0x10;
             unit->fb = 0x96;
             pk.type = 0x14;
-            pk.who = FUN_00450010(other);
+            pk.who = GetPlayerDpid(other);
             pk.team = unit->team;
             pk.x = (int)unit->speed;
             pk.y = unit->s108;
@@ -127,7 +127,7 @@ void __stdcall FUN_00488570(Unit* unit, Player_00488570* other, Packet_00488570*
             pk.b15 = a ? unit->b1e : 0;
             pk.b16 = a ? unit->b3a : 0;
             pk.b17 = a ? unit->b56 : 0;
-            FUN_00451df0(unit->player->f4, &pk, 0x18);
+            BroadcastPacket(unit->player->f4, &pk, 0x18);
             FUN_00489bb0(0, unit, 30000, 4, 0);
             return;
         }

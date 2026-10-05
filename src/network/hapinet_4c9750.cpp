@@ -4,19 +4,19 @@
 // DPERR_GENERIC (0x80004005).
 #include <string.h>
 
-extern int DAT_0051ff0c;
+extern int g_enumSessionsResult;
 
-char* __stdcall FUN_004c9530(int error);
+char* __stdcall HAPINET_GetDPErrorString(int error);
 char* __stdcall FUN_004c5740(char* text);
 
 // FUNCTION: 0x4c9750
-char* FUN_004c9750()
+char* GetEnumSessionsErrorText()
 {
-    char* s = FUN_004c9530(DAT_0051ff0c);
+    char* s = HAPINET_GetDPErrorString(g_enumSessionsResult);
     if (s == 0)
-        s = FUN_004c9530(0x80004005);
+        s = HAPINET_GetDPErrorString(0x80004005);
     s = strstr(s, " - ");
     if (s == 0)
-        return FUN_004c9530(0x80004005);
+        return HAPINET_GetDPErrorString(0x80004005);
     return FUN_004c5740(s + 3);
 }

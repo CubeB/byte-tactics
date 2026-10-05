@@ -162,9 +162,9 @@ class Class_0040f1e0;
 class Class_00410830;
 class Class_00415b60;
 struct Class_00415b90;
-class Class_00415c10;
+class BitWriter;
 struct Class_00415da0;
-class Class_00415dc0;
+class BitReader;
 class Class_00417e00;
 class Class_00428c90;
 class Class_00428d10;
@@ -360,7 +360,7 @@ struct Class_00462bf0;
 class Class_00462d30;
 class Class_00462d30_3;
 class Class_00462d30_4;
-class Class_00462ed0;
+class PacketReceiver;
 class Class_00462f30_2;
 class Class_00463680;
 class Class_004636b0;
@@ -3134,7 +3134,7 @@ struct Player {  // 0x14b bytes, 312 views
     float GetEnergy(void);
     int IsAllied(unsigned char);
     void Clear(void);
-    void FUN_00463c60(int);
+    void SetType(int);
     float GetMetal(void);
 };
 
@@ -3758,9 +3758,9 @@ public:
     virtual void vf6(void);
     virtual int vf7(void);
     virtual void v7(void);
-    virtual void WriteTo(Class_00415c10*);
+    virtual void WriteTo(BitWriter*);
     virtual void v8(void);
-    virtual void ReadFrom(Class_00415dc0*);
+    virtual void ReadFrom(BitReader*);
 };
 
 struct Node_0040eb70 {  // 0x14 bytes, 1 view
@@ -3896,39 +3896,39 @@ public:
     unsigned int* data;  // +0xc
     unsigned int buffer[256];  // +0x10
     Class_00415b60(void);
-    void FUN_00415bb0(void);
+    void GrowBuffer(void);
 };
 
 struct Class_00415b90 {  // 0x14 bytes, 2 views
     char unknown_0[12];
     void* ptr;  // +0xc
     char unknown_10[4];
-    void FUN_00415b90(void);
+    void FreeBuffer(void);
 };
 
-class Class_00415c10 {  // 0x410 bytes, 7 views
+class BitWriter {       // 0x410 bytes, 7 views
 public:
     int bit;  // +0x0
     int index;  // +0x4
     int capacity;  // +0x8
     unsigned int* data;  // +0xc
     unsigned int buffer[256];  // +0x10
-    void FUN_00415c10(int, int);
+    void WriteBits(int, int);
 };
 
 struct Class_00415da0 {  // 0x10 bytes, 2 views
     char unknown_0[12];
     void* field_c;  // +0xc
-    void FUN_00415da0(int, unsigned char);
+    void SetByteAt(int, unsigned char);
 };
 
-class Class_00415dc0 {  // 0xc bytes, 9 views
+class BitReader {       // 0xc bytes, 9 views
 public:
     unsigned int* data;  // +0x0
     int index;  // +0x4
     int bit;  // +0x8
-    int FUN_00415dc0(int);
-    int FUN_00415e60(int);
+    int ReadBits(int);
+    int ReadSignedBits(int);
     int ReadBit(void);
 };
 
@@ -3942,12 +3942,12 @@ struct Pair_00419560 {  // 0x8 bytes, 21 views
 class Class_004618a0 {  // 0x1 bytes, 27 views
 public:
     char unknown_0[1];
-    int FUN_004614e0(unsigned char*, unsigned int);
-    int FUN_004618a0(int);
+    int AppendToSendBuffer(unsigned char*, unsigned int);
+    int SendAllQueued(int);
     void FUN_00461610(void);
-    void FUN_00461990(int, Class_00462710*, int, int);
-    void FUN_004619e0(int);
-    void* FUN_004619b0(int, int, void*, unsigned int);
+    void QueueOnChannel(int, Class_00462710*, int, int);
+    void SetDefaultSendPacing(int);
+    void* QueuePacket(int, int, void*, unsigned int);
 };
 
 class Class_00437c80 {  // 0x14 bytes, 16 views
@@ -7029,7 +7029,7 @@ public:
     int field_58;  // +0x58
     char unknown_5c[8];
     int field_64;  // +0x64
-    int FUN_0046e000(void);
+    int AllPlayersSynced(void);
 };
 
 struct Record_005129b4 {  // 0x62 bytes, 7 views
@@ -7136,7 +7136,7 @@ public:
     Class_0044e740(int, Class_004b4560*, char*);
     int FUN_0044e880(int, Class_004b4560*, char*);
     int FUN_0044eb60(Object_0044e880*);
-    void FUN_0044e930(Class_00415c10*);
+    void FUN_0044e930(BitWriter*);
     void FUN_0044ec10(int);
 };
 
@@ -7467,7 +7467,7 @@ public:
     int field_26;  // +0x26
     int field_2a;  // +0x2a
     int field_2e;  // +0x2e
-    void FUN_0044ddc0(Class_00415c10*);
+    void FUN_0044ddc0(BitWriter*);
 };
 
 struct Target_0044ddc0 {  // 0xaa bytes, 1 view
@@ -7557,7 +7557,7 @@ public:
     int pos_z;  // +0x2e
     char unknown_32[4];
     Class_0044e080(Class_0044e080&);
-    Class_0044e080(Owner_0044e080*, Class_00415dc0*);
+    Class_0044e080(Owner_0044e080*, BitReader*);
 };
 
 class Class_0044e3a0 {  // 0x1e bytes, 1 view
@@ -7687,7 +7687,7 @@ public:
     short pad_26;  // +0x26
     Owner_0044e9c0* owner;  // +0x28
     Class_0044e9c0(Class_0044e9c0&);
-    Class_0044e9c0(Owner_0044e9c0*, Class_00415dc0*);
+    Class_0044e9c0(Owner_0044e9c0*, BitReader*);
 };
 
 class Class_0044ea60 {  // 0x2c bytes, 1 view
@@ -7887,7 +7887,7 @@ public:
     unsigned char flag_3 : 1;
     unsigned char : 4;
     char unknown_65[3];
-    void FUN_0044f4a0(Class_00415c10*);
+    void FUN_0044f4a0(BitWriter*);
 };
 
 struct Link_0044f4a0 {  // 0x4 bytes, 1 view
@@ -7913,7 +7913,7 @@ public:
     Owner_0044f5c0* owner;  // +0x8
     Point16 points[3];  // +0xc
     int count;  // +0x18
-    void FUN_0044f5c0(Class_00415dc0*);
+    void FUN_0044f5c0(BitReader*);
 };
 
 struct Owner_0044f5c0 {  // 0x4 bytes, 1 view
@@ -7961,13 +7961,13 @@ public:
     unsigned char flag_1c;  // +0x1c
     int size_1d;  // +0x1d
     int to_21;  // +0x21
-    int FUN_0044fc10(void*, int);
+    int SendPacket(void*, int);
 };
 
 class Class_0044fda0 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    void FUN_0044fda0(void);
+    void DispatchPacket(void);
 };
 
 struct Player_0044feb0 {  // 0x147 bytes, 1 view
@@ -8120,7 +8120,7 @@ struct Packet {  // 0x20 bytes, 16 views
     int sentTime;  // +0x14
     Packet* prev;  // +0x18
     Packet* next;  // +0x1c
-    int FUN_004628d0(Packet*, int, void*, unsigned int, int);
+    int AppendPacket(Packet*, int, void*, unsigned int, int);
 };
 
 struct Settings {  // 0x50 bytes, 1 view
@@ -8698,14 +8698,14 @@ class Class_00462860 {  // 0x1c bytes, 2 views
 public:
     char unknown_0[24];
     unsigned int ticks;  // +0x18
-    void FUN_00462860(unsigned int);
+    void SetMinRetainMs(unsigned int);
 };
 
 class Class_004628a0 {  // 0x8 bytes, 2 views
 public:
     char unknown_0[4];
     unsigned int field_4;  // +0x4
-    void FUN_004628a0(int);
+    void SetSendPacingMs(int);
 };
 
 struct Entry_00462d30_2 {  // 0x34 bytes, 2 views
@@ -8736,8 +8736,8 @@ struct Buffer_461020 {  // 0x10 bytes, 1 view
 class Class_0044f940 {  // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
-    void FUN_0044f940(void*, int);
-    void FUN_004626e0(void*, int, int, void*, int);
+    void Accumulate(void*, int);
+    void SendPacketTo(void*, int, int, void*, int);
 };
 
 struct Buffer_00462d30 {  // 0x180c bytes, 6 views
@@ -8760,8 +8760,8 @@ struct Class_00463730 {  // 0x1c bytes, 6 views
     int field_18;  // +0x18
     Class_00463730(void);
     int Count(void);
-    int FUN_00463730(void);
-    int FUN_00463790(char*, unsigned int, int, int, int, int);
+    int ResetFrames(void);
+    int QueueFrames(char*, unsigned int, int, int, int, int);
     void Init(void);
     Frame_00462f30* Peek(void);
     void* Take(Frame_00462f30*, int, int&);
@@ -8799,7 +8799,7 @@ public:
     virtual ~Class_00462d30(void);
     Class_00462d30(void);
     Class_00462d30(void*);
-    Entry_00462d30* FUN_00462d90(long);
+    Entry_00462d30* FindPlayerFrameInfo(long);
 };
 
 struct F0_00462d30 {  // 0x4 bytes, 1 view
@@ -8888,13 +8888,13 @@ struct Class_004615f0 {  // 0xb2fc bytes, 1 view
     char unknown_0[45812];
     int field_b2f4;  // +0xb2f4
     int field_b2f8;  // +0xb2f8
-    void FUN_004615f0(void);
+    void ClearSendBuffer(void);
 };
 
 class Class_00461820 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    void FUN_00461820(int);
+    void ReleaseChannel(int);
 };
 
 struct Entry_004618a0 {  // 0x1044 bytes, 1 view
@@ -8953,19 +8953,19 @@ public:
     unsigned int count;  // +0xc
     char unknown_10[8];
     int minRetain;  // +0x18
-    Class_004629b0* FUN_00461b10(void);
+    Class_004629b0* AllocBuffer(void);
 };
 
 struct Class_00461d80 {  // 0x1c bytes, 1 view
     char unknown_0[24];
     int field_18;  // +0x18
-    int FUN_00461d80(void);
+    int GetMinRetainMs(void);
 };
 
 struct Class_00461da0 {  // 0x2c bytes, 1 view
     char unknown_0[40];
     int field_28;  // +0x28
-    int FUN_00461da0(int);
+    int GetPacketEntry(int);
 };
 
 struct Entry_00461db0 {  // 0x20 bytes, 2 views
@@ -9008,7 +9008,7 @@ public:
     unsigned int nextSend;  // +0x24
     char unknown_28[16];
     Queue_00461f90 queue;  // +0x38
-    int FUN_004624a0(int);
+    int SendQueued(int);
 };
 
 class Class_00462710 {  // 0x1044 bytes, 4 views
@@ -9026,8 +9026,8 @@ public:
     Packet* field_30;  // +0x30
     Packet* field_34;  // +0x34
     Queue_00461f90 queue;  // +0x38
-    Packet* FUN_00461c20(int);
-    int FUN_00462710(int, void*, unsigned int);
+    Packet* AllocPacket(int);
+    int AddPacket(int, void*, unsigned int);
 };
 
 class Class_00461fd0 {  // 0x1044 bytes, 3 views
@@ -9047,9 +9047,9 @@ public:
     Packet* field_30;  // +0x30
     Packet* field_34;  // +0x34
     Queue_00461f90 queue;  // +0x38
-    int FUN_00461fd0(int, int);
-    void FUN_004623e0(Packet*);
-    void FUN_00461f90(Packet*);
+    int GrowPools(int, int);
+    void DequeuePacket(Packet*);
+    void EnqueuePacket(Packet*);
 };
 
 class Class_00461f90 {  // 0x1044 bytes, 1 view
@@ -9058,7 +9058,7 @@ public:
     int total;  // +0x20
     char unknown_24[20];
     Queue_00461f90 queue;  // +0x38
-    void FUN_00461f90(Packet*);
+    void EnqueuePacket(Packet*);
 };
 
 class Class_00462370 {  // 0x100c bytes, 3 views
@@ -9067,7 +9067,7 @@ public:
     char unknown_4[4];
     int writeIdx;  // +0x8
     int buf[1024];  // +0xc
-    int FUN_00462370(int);
+    int PushPacket(int);
 };
 
 class Class_004623b0 {  // 0x100c bytes, 3 views
@@ -9076,7 +9076,7 @@ public:
     int index;  // +0x4
     int unused;  // +0x8
     int buffer[1024];  // +0xc
-    int FUN_004623b0(void);
+    int PopPacket(void);
 };
 
 class Class_00462470 {  // 0x1044 bytes, 9 views
@@ -9096,8 +9096,8 @@ public:
     int field_30;  // +0x30
     int field_34;  // +0x34
     Class_004623b0 queue;  // +0x38
-    int FUN_00461db0(int, unsigned int, int, int);
-    void FUN_00462470(void);
+    int InitPools(int, unsigned int, int, int);
+    void ResetChannel(void);
 };
 
 class Class_00461630 {  // 0xb2f4 bytes, 3 views
@@ -9105,7 +9105,7 @@ public:
     char unknown_0[4];
     int field_4;  // +0x4
     Class_00462470 entries[11];  // +0x8
-    Class_00462470* FUN_00461630(int, int);
+    Class_00462470* FindChannel(int, int);
 };
 
 class Class_00461750 {  // 0xb530 bytes, 1 view
@@ -9120,14 +9120,14 @@ public:
     char unknown_b320[520];
     int field_b528;  // +0xb528
     int field_b52c;  // +0xb52c
-    int FUN_00461750(int, int);
+    int InitChannels(int, int);
 };
 
 class Class_00461860 {  // 0xb2f4 bytes, 1 view
 public:
     char unknown_0[8];
     Class_00462470 entries[11];  // +0x8
-    void FUN_00461860(void);
+    void ReleaseAllChannels(void);
 };
 
 class Class_004623e0 {  // 0x1044 bytes, 1 view
@@ -9136,7 +9136,7 @@ public:
     int total;  // +0x20
     char unknown_24[20];
     Queue_00461f90 queue;  // +0x38
-    void FUN_004623e0(Packet*);
+    void DequeuePacket(Packet*);
 };
 
 struct Class_00462a40 {  // 0x14 bytes, 1 view
@@ -9158,7 +9158,7 @@ class Class_00462bd0 {  // 0x10 bytes, 1 view
 public:
     char unknown_0[12];
     void* field_c;  // +0xc
-    void FUN_00462bd0(void);
+    void RemoveFromBuffer(void);
 };
 
 struct Class_00462bf0 {  // 0x10 bytes, 1 view
@@ -9166,7 +9166,7 @@ struct Class_00462bf0 {  // 0x10 bytes, 1 view
     int field_0x4;  // +0x4
     char unknown_8[4];
     int field_0xc;  // +0xc
-    int FUN_00462bf0(void);
+    int GetData(void);
 };
 
 struct F0_00462d30_2 {  // 0x4 bytes, 1 view
@@ -9174,7 +9174,7 @@ struct F0_00462d30_2 {  // 0x4 bytes, 1 view
     F0_00462d30_2(void);
 };
 
-class Class_00462ed0 {  // 0x230 bytes, 1 view
+class PacketReceiver {  // 0x230 bytes, 1 view
 public:
     char unknown_0[20];
     Link_00462ed0* link;  // +0x14
@@ -9183,7 +9183,7 @@ public:
     char unknown_20[520];
     int capacity;  // +0x228
     int length;  // +0x22c
-    int FUN_00462ed0(void);
+    int ResetReceiveBuffer(void);
 };
 
 struct Link_00462ed0 {  // 0x10 bytes, 1 view
@@ -9194,7 +9194,7 @@ struct Link_00462ed0 {  // 0x10 bytes, 1 view
 class Class_0044f9c0_2 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    int FUN_0044f9c0(void*, char*, int*);
+    int ReceivePacket(void*, char*, int*);
 };
 
 class Class_00462f30_2 {  // 0x23c bytes, 1 view
@@ -9213,7 +9213,7 @@ public:
     int field_230;  // +0x230
     int field_234;  // +0x234
     int field_238;  // +0x238
-    int FUN_00462f30(void*, unsigned char*, int*);
+    int ReceiveFrame(void*, unsigned char*, int*);
 };
 
 struct Frame_00462f30 {  // 0xc bytes, 2 views
@@ -10098,13 +10098,13 @@ public:
     int field_0;  // +0x0
     char unknown_4[8];
     std::vector<Elem_0046faf0> vec;  // +0xc
-    void FUN_0046cc10(Elem_0046faf0*, Elem_0046faf0*);
+    void SendSequenced(Elem_0046faf0*, Elem_0046faf0*);
 };
 
 class Class_0046cec0 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_0046cec0(unsigned int, void*);
+    void SendUnsequenced(unsigned int, void*);
     void Inl(unsigned int, void*);
 };
 
@@ -10124,7 +10124,7 @@ public:
     unsigned int max;  // +0x8
     Class_0046eba0 sent;  // +0xc
     Class_0046eba0 queue;  // +0x1c
-    void FUN_0046cef0(Packet_0046cef0*, int, void*, unsigned int);
+    void ReceiveSequenced(Packet_0046cef0*, int, void*, unsigned int);
 };
 
 struct Packet_0046cef0 {  // 0xe bytes, 1 view
@@ -10168,7 +10168,7 @@ public:
     int a;  // +0x0
     int b;  // +0x4
     int c;  // +0x8
-    void FUN_0046cec0(void*, int);
+    void SendUnsequenced(void*, int);
 };
 
 class ListWrap_0046d1a0 {  // 0xc bytes, 1 view
@@ -10233,10 +10233,10 @@ public:
     int direct;  // +0x58
     char unknown_5c[8];
     int disabled;  // +0x64
-    void FUN_0046d4c0(unsigned int*, Packet_0046d860*, int);
-    void FUN_0046d5b0(Target_0046d5b0*, unsigned char, int, int, int);
+    void SendSyncPacket(unsigned int*, Packet_0046d860*, int);
+    void SendSyncMessageTo(Target_0046d5b0*, unsigned char, int, int, int);
     void Send(Target_0046d530*, void*);
-    void FUN_0046d530(unsigned char, int, int, int);
+    void SendSyncMessage(unsigned char, int, int, int);
 };
 
 struct Packet_0046d860 {  // 0xe bytes, 2 views
@@ -10281,7 +10281,7 @@ public:
     int direct;  // +0x58
     char unknown_5c[8];
     int disabled;  // +0x64
-    void FUN_0046d630(Target_0046d630*, unsigned char, Source_0046d630*, int);
+    void SendEntryTo(Target_0046d630*, unsigned char, Source_0046d630*, int);
 };
 
 struct Packet_0046d630 {  // 0xe bytes, 1 view
@@ -10359,7 +10359,7 @@ public:
     int field_5c;  // +0x5c
     char unknown_60[4];
     int disabled;  // +0x64
-    void FUN_0046d6c0(Packet_0046d6c0*, unsigned char);
+    void HandleSyncPacket(Packet_0046d6c0*, unsigned char);
 };
 
 class Iter_0046e330 {  // 0x4 bytes, 16 views
@@ -10459,7 +10459,7 @@ public:
     char unknown_8[92];
     int field_64;  // +0x64
     Iter_0046e330 End(void);
-    void FUN_0046e160(void);
+    void ApplyToUnitTypes(void);
     Iter_0046e330 Find(unsigned int*);
 };
 
@@ -10494,7 +10494,7 @@ public:
     LiveNode* head;  // +0x4
     Iter_0046e330 End(void);
     Iter_0046e330 Find(unsigned int*);
-    int FUN_0046e3c0(Unit_0046e3c0*);
+    int ToggleUnitAllowed(Unit_0046e3c0*);
 };
 
 struct Unit_0046e3c0 {  // 0x142 bytes, 1 view
@@ -10512,7 +10512,7 @@ struct Class_0046e450 {  // 0x8 bytes, 2 views
     char unknown_1[3];
     LiveNode* head;  // +0x4
     Iter_0046e330 End(void);
-    int FUN_0046e450(UnitDef*);
+    int DisallowUnit(UnitDef*);
     Iter_0046e330 Find(unsigned int*);
 };
 
@@ -10526,7 +10526,7 @@ struct Class_0046e4d0 {  // 0x8 bytes, 2 views
     char unknown_1[3];
     LiveNode* head;  // +0x4
     Iter_0046e330 End(void);
-    int FUN_0046e4d0(UnitDef*);
+    int AllowUnit(UnitDef*);
     Iter_0046e330 Find(unsigned int*);
 };
 
@@ -10541,7 +10541,7 @@ public:
     char unknown_1[3];
     LiveNode* head;  // +0x4
     Iter_0046e330 End(void);
-    void FUN_0046e550(UnitDef*, int);
+    void SetUnitLimit(UnitDef*, int);
     Iter_0046e330 Find(unsigned int*);
 };
 
@@ -10583,9 +10583,9 @@ public:
     int field_5c;  // +0x5c
     int field_60;  // +0x60
     int disabled;  // +0x64
-    void FUN_0046d860(unsigned int);
-    void FUN_0046dad0(void);
-    void FUN_0046d970(unsigned int, int);
+    void NotifyEntryChanged(unsigned int);
+    void ProcessSync(void);
+    void CheckUnitAvailable(unsigned int, int);
 };
 
 class Class_0046ded0 : public Class_0046eaa0 {  // 0x5c bytes, 10 views
@@ -10612,12 +10612,12 @@ public:
     Class_0046d040(int);
     ~Class_0046d040(void);
     Iter_0046e330 End(void);
-    char* FUN_0046df40(void);
-    int FUN_0046e0b0(int);
-    int FUN_0046e280(Event_0046d860*);
-    int FUN_0046e330(UnitDef*, Rect*);
-    void FUN_0046d2e0(void);
-    void FUN_0046d500(void*, int);
+    char* GetSyncStatusText(void);
+    int IsPlayerSynced(int);
+    int PopChangedEntry(Event_0046d860*);
+    int GetUnitEntry(UnitDef*, Rect*);
+    void ResetEntries(void);
+    void ReceiveSyncPacket(void*, int);
     Iter_0046e330 Find(unsigned int*);
 };
 
@@ -13883,7 +13883,7 @@ public:
     char unknown_c[27];
     unsigned char state : 3;  // +0x27
     unsigned char : 5;
-    void FUN_004908c0(Class_00415c10*);
+    void FUN_004908c0(BitWriter*);
 };
 
 struct Holder_004908c0 {  // 0x4 bytes, 1 view
@@ -13902,7 +13902,7 @@ public:
     virtual void vf7(void);
     virtual void vf8(void);
     virtual void vf9(void);
-    virtual void Write(Class_00415c10*);
+    virtual void Write(BitWriter*);
 };
 
 struct Target_004908c0 {  // 0x2f bytes, 1 view
@@ -13921,7 +13921,7 @@ public:
     int unknown_0;  // +0x0
     Base_00490a10_3* current;  // +0x4
     Unit* owner;  // +0x8
-    void FUN_00490a10(Class_00415dc0*);
+    void FUN_00490a10(BitReader*);
 };
 
 struct CdLists_490f80 {  // 0xaa0 bytes, 2 views

@@ -115,7 +115,7 @@ void __stdcall FUN_004a9660(Sub_004437c0* sub);
 void __stdcall FUN_004a7190(Sub_004437c0* sub, char* text);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004abd90(Sub_004437c0* sub, char* text, int a, int b, int c);
-unsigned char FUN_00456850();
+unsigned char FindHostSlot();
 int __stdcall FUN_0049fd60(Sub_004437c0* sub, const char* name);
 
 // FUNCTION: 0x4437c0
@@ -195,7 +195,7 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
             lstrcpynA(g_game->password, pass + 0xb6, 0xb);
             cur = g_game->cur_conn;
             lstrcpynA((char*)g_game->players[cur].data + 0x80, pass + 0xb6, 0xb);
-            b = FUN_00456850();
+            b = FindHostSlot();
             if (b != 0xa &&
                 (*(unsigned short*)((char*)g_game->players[b].data + 0x9b) & 0x10) == 0x10)
                 g_game->field_2a44 |= 4;

@@ -40,13 +40,13 @@ struct Net_004ca6a0 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4ca6a0
-int __stdcall FUN_004ca6a0(Net_004ca6a0* net, unsigned long* id, char* shortName, char* longName,
+int __stdcall HAPINET_addplayer(Net_004ca6a0* net, unsigned long* id, char* shortName, char* longName,
                            char* name, short field_11, short field_13)
 {
-    FUN_004c9740((int)"HAPINET_addplayer\n");
+    HapinetTrace((int)"HAPINET_addplayer\n");
     if (net->dp != 0) {
         DPName_004ca6a0 dpname;
         dpname.dwSize = sizeof(DPName_004ca6a0);

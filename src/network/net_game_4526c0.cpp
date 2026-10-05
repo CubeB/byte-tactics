@@ -2,7 +2,7 @@
 //
 // Finds the first in-use player whose info has the "ready" bit set (or 10
 // when there is none). If that is the local player, the group change in
-// `param` is applied locally (through FUN_004523e0 when the group is taken);
+// `param` is applied locally (through AssignPlayerColor when the group is taken);
 // otherwise packet 0x17 is sent to that player, or broadcast when there is
 // none.
 //
@@ -41,19 +41,19 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
-int __stdcall FUN_00451df0(int player, void* data, int size);
-int __stdcall FUN_004523e0(int a, int b, int c);
-int __stdcall FUN_00452570(int a, int b);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
+int __stdcall AssignPlayerColor(int a, int b, int c);
+int __stdcall IsColorFree(int a, int b);
 
 static inline unsigned char FindReadyPlayer()
 {
@@ -65,13 +65,13 @@ static inline unsigned char FindReadyPlayer()
 }
 
 // FUNCTION: 0x4526c0
-int __stdcall FUN_004526c0(int param)
+int __stdcall RequestPlayerColor(int param)
 {
     Player_004526c0* p = &g_game->players[g_game->localPlayer];
     int i = FindReadyPlayer();
     if (i == g_game->localPlayer) {
-        if (FUN_00452570(p->field_4, param) == 0) {
-            FUN_004523e0(p->field_4, p->field_4, param);
+        if (IsColorFree(p->field_4, param) == 0) {
+            AssignPlayerColor(p->field_4, p->field_4, param);
             return 1;
         }
         p->info->field_96 = param;
@@ -84,11 +84,11 @@ int __stdcall FUN_004526c0(int param)
 
     int result;
     if (i == 10)
-        result = FUN_00451df0(p->field_4, buffer, 2);
+        result = BroadcastPacket(p->field_4, buffer, 2);
     else
-        result = FUN_00451bc0(p->field_4, g_game->players[i].field_4, buffer, 2);
+        result = SendPacketToPlayer(p->field_4, g_game->players[i].field_4, buffer, 2);
 
-    if (DAT_00506dbc != 0)
-        DAT_00513000.FUN_004618a0(1);
+    if (g_usePacketManager != 0)
+        g_packetManager.SendAllQueued(1);
     return result;
 }

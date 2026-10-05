@@ -4,9 +4,9 @@
 
 #pragma pack(push, 2)
 
-class Class_00415c10 {
+class BitWriter {
 public:
-    void FUN_00415c10(int value, int bits);
+    void WriteBits(int value, int bits);
 };
 
 struct Target_0044ddc0 {
@@ -29,31 +29,31 @@ public:
     int field_2a;                   // +0x2a
     int field_2e;                   // +0x2e
 
-    void FUN_0044ddc0(Class_00415c10* stream);
+    void FUN_0044ddc0(BitWriter* stream);
 };
 
 #pragma pack(pop)
 
 // FUNCTION: 0x44ddc0
-void Class_0044ddc0::FUN_0044ddc0(Class_00415c10* stream)
+void Class_0044ddc0::FUN_0044ddc0(BitWriter* stream)
 {
-    stream->FUN_00415c10(flags, 8);
+    stream->WriteBits(flags, 8);
     if ((flags & 1) != 0) {
-        stream->FUN_00415c10(field_10, 0x10);
-        stream->FUN_00415c10((int)(unsigned short)(ptr == 0 ? 0 : ptr->field_a8), 0x10);
+        stream->WriteBits(field_10, 0x10);
+        stream->WriteBits((int)(unsigned short)(ptr == 0 ? 0 : ptr->field_a8), 0x10);
     }
     if ((flags & 0x10) != 0) {
-        stream->FUN_00415c10(field_a, 0x10);
+        stream->WriteBits(field_a, 0x10);
     }
     if ((flags & 8) != 0) {
-        stream->FUN_00415c10(field_c, 0x10);
+        stream->WriteBits(field_c, 0x10);
     }
     if ((flags & 0x40) != 0) {
-        stream->FUN_00415c10(field_e, 0x10);
+        stream->WriteBits(field_e, 0x10);
     }
     if ((flags & 0x20) != 0) {
-        stream->FUN_00415c10(field_26, 0x20);
-        stream->FUN_00415c10(field_2a, 0x20);
-        stream->FUN_00415c10(field_2e, 0x20);
+        stream->WriteBits(field_26, 0x20);
+        stream->WriteBits(field_2a, 0x20);
+        stream->WriteBits(field_2e, 0x20);
     }
 }

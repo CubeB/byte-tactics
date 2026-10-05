@@ -30,8 +30,8 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00463ca0(char* param_1, int param_2, int param_3, int param_4);
-void FUN_00450f90();
+void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
+void BroadcastPlayerInfo();
 
 static inline void ShareMetal(int unused)
 {
@@ -42,8 +42,8 @@ static inline void ShareMetal(int unused)
         sprintf(buf, "Toggled ShareMetal to: %s",
                 (g_game->players[g_game->localPlayer].data->flags & 2)
                     ? "ON" : "OFF");
-        FUN_00463ca0(buf, 2, 0, 10);
-        FUN_00450f90();
+        AddMessage(buf, 2, 0, 10);
+        BroadcastPlayerInfo();
     }
 }
 
@@ -56,8 +56,8 @@ static inline void ShareEnergy(int unused)
         sprintf(buf, "Toggled ShareEnergy to: %s",
                 (g_game->players[g_game->localPlayer].data->flags & 4)
                     ? "ON" : "OFF");
-        FUN_00463ca0(buf, 2, 0, 10);
-        FUN_00450f90();
+        AddMessage(buf, 2, 0, 10);
+        BroadcastPlayerInfo();
     }
 }
 
@@ -70,8 +70,8 @@ static inline void ShareMapping(int unused)
         sprintf(buf, "Toggled ShareMapping to: %s",
                 (g_game->players[g_game->localPlayer].data->flags & 0x20)
                     ? "ON" : "OFF");
-        FUN_00463ca0(buf, 2, 0, 10);
-        FUN_00450f90();
+        AddMessage(buf, 2, 0, 10);
+        BroadcastPlayerInfo();
     }
 }
 
@@ -84,8 +84,8 @@ static inline void ShareRadar(int unused)
         sprintf(buf, "Toggled ShareRadar to: %s",
                 (g_game->players[g_game->localPlayer].data->flags & 0x40)
                     ? "ON" : "OFF");
-        FUN_00463ca0(buf, 2, 0, 10);
-        FUN_00450f90();
+        AddMessage(buf, 2, 0, 10);
+        BroadcastPlayerInfo();
     }
 }
 

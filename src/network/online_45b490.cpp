@@ -4,7 +4,7 @@
 #include <string.h>
 
 extern char DAT_00512dd0[MAX_PATH + 1];
-extern HMODULE DAT_00512eec;
+extern HMODULE g_onlineDll;
 
 char* __stdcall FUN_004c5740(char* text);
 
@@ -31,9 +31,9 @@ static BOOL LoadOnline(void)
         }
         strcpy(p + ((len > 0) & 1), "online.dll");
     }
-    if (DAT_00512eec == 0) {
-        DAT_00512eec = LoadLibraryA(DAT_00512dd0);
-        if (DAT_00512eec == 0)
+    if (g_onlineDll == 0) {
+        g_onlineDll = LoadLibraryA(DAT_00512dd0);
+        if (g_onlineDll == 0)
             return FALSE;
     }
     return TRUE;
@@ -42,8 +42,8 @@ static BOOL LoadOnline(void)
 static BOOL CheckVersion(void)
 {
     BOOL ok = FALSE;
-    if (DAT_00512eec) {
-        OnlGetVersion f = (OnlGetVersion)GetProcAddress(DAT_00512eec, "ONLGetVersion");
+    if (g_onlineDll) {
+        OnlGetVersion f = (OnlGetVersion)GetProcAddress(g_onlineDll, "ONLGetVersion");
         if (f)
             ok = f() >= 3;
     }
@@ -53,8 +53,8 @@ static BOOL CheckVersion(void)
 static unsigned int GetLinkInfo(LinkInfo* links)
 {
     unsigned int count = 0;
-    if (DAT_00512eec) {
-        OnlGetLinkInfo f = (OnlGetLinkInfo)GetProcAddress(DAT_00512eec, "ONLGetLinkInfo");
+    if (g_onlineDll) {
+        OnlGetLinkInfo f = (OnlGetLinkInfo)GetProcAddress(g_onlineDll, "ONLGetLinkInfo");
         if (f)
             count = f(links);
     }
@@ -62,7 +62,7 @@ static unsigned int GetLinkInfo(LinkInfo* links)
 }
 
 // FUNCTION: 0x45b490
-unsigned int __stdcall FUN_0045b490(LinkInfo* links)
+unsigned int __stdcall OnlineGetLinkInfo(LinkInfo* links)
 {
     unsigned int count = 0;
     try {

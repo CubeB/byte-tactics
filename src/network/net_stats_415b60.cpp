@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Constructor of a bit writer with a 0x100-dword inline buffer (a 0x410-byte
-// stack object in 0x48b710; FUN_00415c10 writes to it and FUN_00415b90 frees
+// stack object in 0x48b710; WriteBits writes to it and FreeBuffer frees
 // a grown buffer).
 
 class Class_00415b60 {

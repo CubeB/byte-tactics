@@ -52,17 +52,17 @@ public:
     int FUN_00436860(int type, Class_004c2ea0* parser, char* schema);
 };
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    void FUN_004618a0(int param);
+    void SendAllQueued(int param);
 };
 
 extern char* DAT_005122d4;
 extern int DAT_005122d8;
 extern int DAT_005122dc;
 extern int DAT_005122e0;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 extern char* g_game;
 
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
@@ -72,7 +72,7 @@ void __stdcall FUN_004bca30(const char* pattern, int flags, std::vector<Class_00
 char* __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 char* __stdcall FUN_004bb0f0(char* name);
 char* __stdcall FUN_004c5740(char* text);
-void FUN_00453d40();
+void HandleNetPackets();
 
 // FUNCTION: 0x434bf0
 int __stdcall FUN_00434bf0(void** param_1, int param_2, int param_3)
@@ -137,9 +137,9 @@ int __stdcall FUN_00434bf0(void** param_1, int param_2, int param_3)
                 break;
         }
         if (s.bFlag != 0) {
-            FUN_00453d40();
-            if (DAT_00506dbc != 0)
-                DAT_00513000.FUN_004618a0(0);
+            HandleNetPackets();
+            if (g_usePacketManager != 0)
+                g_packetManager.SendAllQueued(0);
         }
     }
     FUN_00491c80(0x13);

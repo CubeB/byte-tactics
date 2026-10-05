@@ -66,7 +66,7 @@
 //   byte (`mov edx,[u+0x64] / ... / mov dl,[u+0xff] / push edx`), so the
 //   argument really does carry the tail's upper three bytes into a parameter
 //   that FUN_004861d0 uses as a player index (see "suspected bug" below).
-// - `__int64 alpha = (unsigned int)reader->FUN_00415dc0(8)` gives the original's
+// - `__int64 alpha = (unsigned int)reader->ReadBits(8)` gives the original's
 //   `fild qword` with a constant 0 in the high word. A signed int gives a
 //   `cdq` the original does not have and `unsigned __int64` does not convert
 //   to float at all in VC5.
@@ -97,13 +97,13 @@
 
 #pragma pack(push, 1)
 
-class Class_00415dc0 {
+class BitReader {
 public:
     unsigned int* data;                // +0x00
     int index;                         // +0x04
     int bit;                           // +0x08
-    int FUN_00415dc0(int bits);
-    int FUN_00415e60(int bits);
+    int ReadBits(int bits);
+    int ReadSignedBits(int bits);
 
     int ReadBit()
     {
@@ -207,9 +207,9 @@ void __stdcall FUN_0047cc30(Class_0048b090* u);
 void __stdcall FUN_004827b0(Class_0048b090* u);
 
 // FUNCTION: 0x48b3f0
-void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Class_0048b090* u)
+void __stdcall FUN_0048b3f0(BitReader* reader, Class_0048b090* u)
 {
-    unsigned short type = (unsigned short)reader->FUN_00415dc0(g_game->field_14393);
+    unsigned short type = (unsigned short)reader->ReadBits(g_game->field_14393);
     int zero = 0;
     if (type == zero) {
         if (u->type != zero)
@@ -226,22 +226,22 @@ void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Class_0048b090* u)
         FUN_004861d0((u->tail.a & ~0xff) | u->player, &spawn);
     }
     ((Block_0048b3f0*)u->block)->field_10 = zero;
-    u->field_108 = reader->FUN_00415dc0(0x10);
-    __int64 alpha = (unsigned int)reader->FUN_00415dc0(8);
+    u->field_108 = reader->ReadBits(0x10);
+    __int64 alpha = (unsigned int)reader->ReadBits(8);
     float scale = (float)alpha * DAT_004fd750;
     if (scale != u->field_104) {
         u->field_104 = scale;
         u->f110.bits.b13 = 1;
     }
-    unsigned char state = (unsigned char)reader->FUN_00415dc0(8);
+    unsigned char state = (unsigned char)reader->ReadBits(8);
     u->FUN_0048b090(state, 1);
     u->FUN_0048b090((unsigned char)~state, zero);
-    int colour = reader->FUN_00415dc0(2);
+    int colour = reader->ReadBits(2);
     if (reader->ReadBit()) {
         Order_0048b3f0 order;
         order.id1 = u->id;
-        order.id2 = (unsigned short)reader->FUN_00415dc0(0xf);
-        order.param = (unsigned char)reader->FUN_00415e60(8);
+        order.id2 = (unsigned short)reader->ReadBits(0xf);
+        order.param = (unsigned char)reader->ReadSignedBits(8);
         order.param2 = (unsigned char)colour;
         FUN_0048ab70(&order);
         return;
@@ -255,13 +255,13 @@ void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Class_0048b090* u)
         FUN_0048ab70(&order);
     }
     Pos_0048b3f0 pos;
-    pos.x = reader->FUN_00415dc0(0x20);
-    pos.y = reader->FUN_00415dc0(0x20);
-    pos.z = reader->FUN_00415dc0(0x20);
+    pos.x = reader->ReadBits(0x20);
+    pos.y = reader->ReadBits(0x20);
+    pos.z = reader->ReadBits(0x20);
     Tail_0048b3f0 tail;
-    tail.b = (unsigned short)reader->FUN_00415dc0(0x10);
-    tail.c = (unsigned short)reader->FUN_00415dc0(0x10);
-    tail.a = (unsigned short)reader->FUN_00415dc0(0x10);
+    tail.b = (unsigned short)reader->ReadBits(0x10);
+    tail.c = (unsigned short)reader->ReadBits(0x10);
+    tail.a = (unsigned short)reader->ReadBits(0x10);
     Pos2_0048b3f0 fixed = u->fixed2;
     Pos2_0048b3f0 np;
     np.x = (short)((pos.x - fixed.x * 0x80000 + 0x80000) >> 20);
@@ -279,7 +279,7 @@ void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Class_0048b090* u)
     u->f110.bits.b16 = 1;
     u->tail = tail;
     if (u->vptr)
-        ((Owner_0048b3f0*)u->vptr)->field_20 = reader->FUN_00415dc0(0x20);
+        ((Owner_0048b3f0*)u->vptr)->field_20 = reader->ReadBits(0x20);
 }
 //
 // Three shape notes, and one correction to a bug claim.

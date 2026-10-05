@@ -1,9 +1,9 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Leaves the game: if the "leaving game" flag at +0x2a44 is set, drops every
-// connected human or computer player (type 1 or 2) with FUN_00452cc0 and
+// connected human or computer player (type 1 or 2) with RemovePlayer and
 // calls FUN_0046c190. Then closes the network, installs a null callback, sets
 // the game flag at +0x3923b and quits with the text for the local player's
-// rejection reason (+0x22), the same text FUN_00452c40 returns, and no text at
+// rejection reason (+0x22), the same text GetRejectReasonText returns, and no text at
 // all when the reason is 0.
 //
 // `#include <string.h>` is load bearing here even though nothing in this file
@@ -60,24 +60,24 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00452cc0(int dpid);
+void __stdcall RemovePlayer(int dpid);
 void FUN_0046c190();
-int __stdcall FUN_004c9f90(Net_4c9f90* net);
+int __stdcall HAPINET_quitgame(Net_4c9f90* net);
 void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
 void __stdcall FUN_004b6230(char* message);
 
 // FUNCTION: 0x4578f0
-void __cdecl FUN_004578f0(int)
+void __cdecl LeaveNetGameCallback(int)
 {
     if (g_game->leaving) {
         for (int i = 0; i < 10; i++) {
             if (g_game->players[i].active != 0
                 && (g_game->players[i].type == 1 || g_game->players[i].type == 2))
-                FUN_00452cc0(g_game->players[i].dpid);
+                RemovePlayer(g_game->players[i].dpid);
         }
         FUN_0046c190();
     }
-    FUN_004c9f90(&g_game->net);
+    HAPINET_quitgame(&g_game->net);
     FUN_004b4fd0(0, 0);
     g_game->flag2 = 1;
     int reason = g_game->players[g_game->localPlayer].rejectReason;

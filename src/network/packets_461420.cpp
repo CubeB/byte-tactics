@@ -27,7 +27,7 @@ struct Buffers_00462d30 {
     }
 };
 
-struct Entry_00462d30 {
+struct PlayerFrameInfo {
     int field_0;
     int field_4;
     int field_8;
@@ -55,7 +55,7 @@ public:
     int field_14;
     void* field_18;                    // +0x18
     void* field_1c;                    // +0x1c
-    Entry_00462d30 entries[10];        // +0x20
+    PlayerFrameInfo entries[10];       // +0x20
 };
 
 struct Entry_00461420 {

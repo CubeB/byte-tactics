@@ -172,7 +172,7 @@ revisit them once the surrounding code is known.
   `Class_00440320`, while 0x440320 is recorded as the free function
   `FUN_00440320`.
 
-- `Class_0046e4d0::FUN_0046e4d0` and `Class_0046e450` are the same object's
+- `Class_0046e4d0::AllowUnit` and `Class_0046e450` are the same object's
   class (both called on g_game+0x2a30 from the two arms of one branch at
   0x44c4f8).
 - 0x4352d0, 0x463730 and 0x45ca50 have no callers and no pointers to them:
@@ -195,7 +195,7 @@ revisit them once the surrounding code is known.
   could not store `??_7Class_0043a1f0`), so its caller 0x487080 will need a
   data/aliases.csv row for that name at 0x43a420.
 
-- `Class_00415b60`, `Class_00415b90` and `Class_00415c10` are one bit-writer
+- `Class_00415b60`, `Class_00415b90` and `BitWriter` are one bit-writer
   class (0x48b710 calls all three on one 0x410-byte stack object).
 
 
@@ -299,7 +299,7 @@ can disagree on types (a real link would fail). Known cases:
 - FUN_004a11c0's third parameter is `short` in 0x4a11c0.cpp, but 0x41a120
   only matches with `int` (#175); it is probably `int`.
 
-- `Class_00460f60`, the object at DAT_00513000: eleven 0x1044-byte channels
+- `Class_00460f60`, the object at g_packetManager: eleven 0x1044-byte channels
   from +0x08, a {buffer, used, capacity} triple at +0xb2f4 and a
   `Class_00462d30` member at +0xb300; 0x460e20.cpp has the full class (#225).
   Its destructors 0x461340 and 0x461420 view each channel's items/count pair
@@ -399,7 +399,7 @@ can disagree on types (a real link would fail). Known cases:
   `vector<Elem_00434020>`, and 0x4335f0 (partial) calls 0x433db0 and 0x433a30
   under `Class_` placeholders.
 - The map around 0x46e160-0x46ff90 (#201, #249) is
-  `std::map<unsigned int, Rect_0046e160>`, a 16-byte value (`x`, `y`, short
+  `std::map<unsigned int, UnitSyncEntry>`, a 16-byte value (`x`, `y`, short
   `w` and `h`, one int) keyed by the dword at +0x13e of the 0x249-byte unit
   definitions (0x46e160); its `_Tree` has `_Nil` at 0x51e598 and
   `_Nilrefs` at 0x51e59c. The object holding it at +0 is destroyed by
@@ -427,7 +427,7 @@ can disagree on types (a real link would fail). Known cases:
 - The element of the vector erased in 0x46dad0 is `Class_0046eaa0`
   (0x5c bytes, operator= 0x470040, `_Destroy` 0x46eaa0): an int, two
   `vector<Elem_004702a0>` (+0x4, +0x14), three dwords, and at +0x30 a
-  struct `Class_00470560` (its operator= is 0x470560) holding three dwords
+  struct `PacketSequencer` (its operator= is 0x470560) holding three dwords
   and two `vector<Elem_0046faf0>` (+0x3c, +0x4c; the second's operator= is
   0x4707a0). FUN_00470030 is `std::_Destroy(Elem_0046faf0*)` from a `/Gz`
   file; 0x46eaa0 reaches it one inline level deeper than /Ob2 would go,

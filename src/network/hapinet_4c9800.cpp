@@ -42,12 +42,12 @@ struct Net_4c9800 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4c9800
-int __stdcall FUN_004c9800(Net_4c9800* net, unsigned long from, unsigned long to, void* data, unsigned long size)
+int __stdcall HAPINET_sendpacketguaranteed(Net_4c9800* net, unsigned long from, unsigned long to, void* data, unsigned long size)
 {
-    FUN_004c9740((int)"HAPINET_sendpacketguaranteed\n");
+    HapinetTrace((int)"HAPINET_sendpacketguaranteed\n");
     int result = 0x887700aa;
     if (net->dp != 0) {
         result = net->dp->Send(from, to, 1, data, size);

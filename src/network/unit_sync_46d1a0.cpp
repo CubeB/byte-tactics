@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // The destructor of the 0x68-byte object held at g_game+0x2a30
-// (Class_0046d040, constructor 0x46d040, created by 0x46c8e0). Nothing calls
+// (UnitSync, constructor 0x46d040, created by 0x46c8e0). Nothing calls
 // it: 0x46ca60 tears the same object down inline and then frees it, so this is
 // the out-of-line copy /Ob2 emitted for another delete.
 //
@@ -20,7 +20,7 @@
 //  - the list member is one derived class deeper (ListWrap_0046d1a0): at the
 //    extra inline depth ~list's erase(_F++) calls iterator::operator++
 //    (0x46fac0) and erase (0x46eb60) instead of folding the increment.
-//  - the map is the real std::map<unsigned int, Rect_0046e160>, so its erase
+//  - the map is the real std::map<unsigned int, UnitSyncEntry>, so its erase
 //    keeps the name 0x46e890 already has in data/symbols.csv, and the shared
 //    _Nil / _Nilrefs globals the tree frees come out named too.
 #include <list>
@@ -57,7 +57,7 @@ struct Elem_0046faf0 {             // the 14-byte element type
 };
 #pragma pack(pop)
 
-struct Rect_0046e160 {             // the map's mapped type, 0x10 bytes
+struct UnitSyncEntry {             // the map's mapped type, 0x10 bytes
     int x;                         // +0x0
     int y;                         // +0x4
     short w;                       // +0x8
@@ -123,9 +123,9 @@ PostIncFn_0046d1a0 g_postinc_0046d1a0 = &List_0046d1a0::iterator::operator++;
 class ListWrap_0046d1a0 : public List_0046d1a0 {   // one inline level deeper, so
 };                                                 // ~list's erase(_F++) is a call
 
-class Class_0046d040 {
+class UnitSync {
 public:
-    std::map<unsigned int, Rect_0046e160> rects;  // +0x00
+    std::map<unsigned int, UnitSyncEntry> rects;  // +0x00
     VecElems_0046d1a0 elems;              // +0x10
     ListWrap_0046d1a0 ids;                // +0x20
     int field_2c;                         // +0x2c
@@ -138,10 +138,10 @@ public:
     int field_60;                         // +0x60
     int field_64;                         // +0x64
 
-    ~Class_0046d040();
+    ~UnitSync();
 };
 
 // FUNCTION: 0x46d1a0
-Class_0046d040::~Class_0046d040()
+UnitSync::~UnitSync()
 {
 }

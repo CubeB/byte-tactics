@@ -26,13 +26,13 @@ struct Mid_00462d30 {
     void Init() { field_18 = 0; field_1c = 0; field_20 = 0; field_24 = 0; }
 };
 
-struct Tail_00462d30 {
+struct FrameQueue {
     Mid_00462d30 mid;                  // +0x18
     Buffer_00462d30* buffer;           // +0x28
     int field_2c;                      // +0x2c
     int field_30;                      // +0x30
 
-    Tail_00462d30()
+    FrameQueue()
     {
         buffer = 0;
         mid.Init();
@@ -48,15 +48,15 @@ struct F0_00462d30 {
     F0_00462d30() { field_0 = -1; }
 };
 
-struct Entry_00462d30 : public F0_00462d30 {
+struct PlayerFrameInfo : public F0_00462d30 {
     int field_4;                       // +0x04
     int field_8;                       // +0x08
     int field_c;                       // +0x0c
     int field_10;                      // +0x10
     int field_14;                      // +0x14
-    Tail_00462d30 tail;                // +0x18
+    FrameQueue tail;                   // +0x18
 
-    Entry_00462d30()
+    PlayerFrameInfo()
         : field_4(-1), field_8(-1), field_c(0), field_10(-1), field_14(0)
     {
     }
@@ -72,7 +72,7 @@ public:
     int field_14;                      // +0x14
     int field_18;                      // +0x18
     int field_1c;                      // +0x1c
-    Entry_00462d30 entries[10];         // +0x20
+    PlayerFrameInfo entries[10];        // +0x20
     int field_228;                     // +0x228
     int field_22c;                     // +0x22c
     int field_230;                     // +0x230

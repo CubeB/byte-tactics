@@ -109,9 +109,9 @@ struct Class_004358f0 { int FUN_004358f0(); };
 struct Class_004373a0 { int FUN_004373a0(); };
 struct Class_00435a20 { void FUN_00435a20(PlayerInfo_0044a680* info); };
 struct Class_00435c30 { char* FUN_00435c30(); };
-struct Class_0046e000 { int FUN_0046e000(); };
-struct Class_00463c60 { void FUN_00463c60(int param); };
-class Class_0046d860 { public: void FUN_0046dad0(); };
+struct Class_0046e000 { int AllPlayersSynced(); };
+struct Class_00463c60 { void SetType(int param); };
+class Class_0046d860 { public: void ProcessSync(); };
 
 
 extern Game* g_game;
@@ -120,8 +120,8 @@ extern int DAT_005129a4;
 extern unsigned int DAT_005129a8;
 extern unsigned int DAT_0050550c;
 
-int __stdcall FUN_00453d40();
-unsigned char __stdcall FUN_00456850();
+int __stdcall HandleNetPackets();
+unsigned char __stdcall FindHostSlot();
 void __stdcall FUN_004455b0();
 void __stdcall FUN_00448c70();
 void FUN_00444a20();
@@ -147,9 +147,9 @@ void __stdcall FUN_0045b9b0(Gadget_0044a680* gadget, int value);
 int __stdcall FUN_0045ba20(Gadget_0044a680* gadget);
 int __stdcall FUN_004b6340();
 unsigned char __stdcall FUN_0041d6a0(int param);
-void __stdcall FUN_00456310();
-void __stdcall FUN_00450f90();
-void __stdcall FUN_00451180();
+void __stdcall SendNetHeartbeat();
+void __stdcall BroadcastPlayerInfo();
+void __stdcall UpdateNetGameInfo();
 int __stdcall FUN_00456760();
 
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
@@ -158,7 +158,7 @@ int FUN_00440cd0()
     if (!((Class_004358f0*)g_game->map)->FUN_004358f0()) {
         return 0;
     }
-    unsigned char me = FUN_00456850();
+    unsigned char me = FindHostSlot();
     PlayerInfo_0044a680* data = 0;
     int check = 0;
     if (me != 10) {
@@ -183,7 +183,7 @@ inline void __stdcall FUN_004453a0(Player_0044a680* param_1, Player_0044a680* pa
     Player_0044a680 tmp = *param_2;
     *param_2 = *param_1;
     *param_1 = tmp;
-    ((Class_00463c60*)param_1)->FUN_00463c60(0);
+    ((Class_00463c60*)param_1)->SetType(0);
     param_1->active = 0;
     for (int i = 0; i <= 10; i++) {
         Player_0044a680* p = &g_game->players[i];
@@ -246,8 +246,8 @@ void __stdcall FUN_00445d60(Gui_0044a680* gui, int unused)
         info = g_game->players[g_game->localPlayer].info;
         info->energy = (unsigned short)(shown / 100);
         if (info->flags & 1) {
-            FUN_00450f90();
-            FUN_00451180();
+            BroadcastPlayerInfo();
+            UpdateNetGameInfo();
         }
     }
 }
@@ -267,7 +267,7 @@ void FUN_0044a680()
 
     g_game->frame++;
 
-    if (FUN_00453d40())
+    if (HandleNetPackets())
         g_game->dirty = 1;
     else if (!FUN_00440cd0())
         g_game->dirty = 1;
@@ -294,11 +294,11 @@ void FUN_0044a680()
 
         if ((unsigned int)g_game->field_2a3c != DAT_0050550c) {
             DAT_0050550c = g_game->field_2a3c;
-            FUN_00451180();
+            UpdateNetGameInfo();
         }
 
         if ((pl->info->flags & 1) == 0) {
-            unsigned char host = FUN_00456850();
+            unsigned char host = FindHostSlot();
             if (host != 10) {
                 if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
                     PlayerInfo_0044a680* info = g_game->players[host].info;
@@ -322,7 +322,7 @@ void FUN_0044a680()
         g_game->dirty = 0;
         if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
             if (pl->info->flags & 1) {
-                int synched = ((Class_0046e000*)g_game->net)->FUN_0046e000();
+                int synched = ((Class_0046e000*)g_game->net)->AllPlayersSynced();
                 int ready = FUN_00456760();
                 Gadget_0044a680* start;
 
@@ -395,7 +395,7 @@ void FUN_0044a680()
         FUN_004a5d30(&g_game->gui, 0);
     }
 
-    ((Class_0046d860*)g_game->net)->FUN_0046dad0();
+    ((Class_0046d860*)g_game->net)->ProcessSync();
     if (DAT_005129a8 < (unsigned int)FUN_004b6340()) {
         unsigned char r;
         PlayerInfo_0044a680* info;
@@ -403,6 +403,6 @@ void FUN_0044a680()
         r = FUN_0041d6a0(1);
         info = pl->info;
         info->f9d_2 = (r != 0);
-        FUN_00456310();
+        SendNetHeartbeat();
     }
 }

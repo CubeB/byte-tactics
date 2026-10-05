@@ -5,7 +5,7 @@
 // What made this match (87.4% before):
 // - Both aim arms read DAT_00509688[(e->flags >> 2) & 3] afresh for each call,
 //   as the original does; no cached name local. With the temporaries in the
-//   original's rotation, MSVC merges the two FUN_00456200 tails at 0x49e393.
+//   original's rotation, MSVC merges the two SendScriptCallByName tails at 0x49e393.
 // - The bit-4 test in the non-b19 arm goes through a `bool` local. Testing the
 //   bitfield in place compiles to `test al, 0x10`, which skips one step of the
 //   eax/ecx/edx rotation, so the later temporaries land one register off and
@@ -133,7 +133,7 @@ int __stdcall FUN_0049d910(Unit* unit, Target_0049e1a0* target,
                            unsigned char weapon, Vec3_0049e1a0* point);
 int __stdcall FUN_0049aa80(Unit* unit, Vec3_0049e1a0* a2, Vec3_0049e1a0* a3,
                            unsigned char a4);
-int __stdcall FUN_00456200(Unit* obj, char* name, char field_5, int field_6, int field_a,
+int __stdcall SendScriptCallByName(Unit* obj, char* name, char field_5, int field_6, int field_a,
                            unsigned short field_e, unsigned short field_12);
 void __stdcall FUN_0041c150(Unit* unit);
 
@@ -184,7 +184,7 @@ void __stdcall FUN_0049e1a0(Unit* unit) {
                     e->f_8 = 0;
                     unit->script->FUN_004b0a70(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2,
                                                heading, angle, 0, 0);
-                    FUN_00456200(unit, DAT_00509688[(e->flags >> 2) & 3], 2, heading, angle, 0, 0);
+                    SendScriptCallByName(unit, DAT_00509688[(e->flags >> 2) & 3], 2, heading, angle, 0, 0);
                     e->flags |= 1;
                 }
             }
@@ -194,7 +194,7 @@ void __stdcall FUN_0049e1a0(Unit* unit) {
                 e->f_8 = 0;
                 unit->script->FUN_004b0a70(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2, 0, 0,
                                            0, 0);
-                FUN_00456200(unit, DAT_00509688[(e->flags >> 2) & 3], 2, 0, 0, 0, 0);
+                SendScriptCallByName(unit, DAT_00509688[(e->flags >> 2) & 3], 2, 0, 0, 0, 0);
                 e->flags |= 1;
             }
         }

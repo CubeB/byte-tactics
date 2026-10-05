@@ -2,7 +2,7 @@
 // Writes one unit's state into a bit stream (the writer of 0x415c10, the read
 // counterpart is 0x48b3f0). The unit's type index (+0xa6) goes out in a bit
 // count taken from g_game+0x14393, and a unit with none of that is done.
-// The "advance one bit" tail is the tail of FUN_00415c10's fast path written
+// The "advance one bit" tail is the tail of WriteBits's fast path written
 // out by hand, as in the matched 0x44f4a0, and it is the store through
 // stream->data that makes the compiler reload the unit's link pointer and test
 // it a second time. `!= 0.0f` is what MSVC 5 turns into the fcomp / C3 test
@@ -13,10 +13,10 @@
 #pragma pack(push, 1)
 class Class_00415b60 {
 public:
-    void FUN_00415bb0();
+    void GrowBuffer();
 };
 
-class Class_00415c10 : public Class_00415b60 {
+class BitWriter : public Class_00415b60 {
 public:
     int bit;                           // +0x0 current word index
     int index;                         // +0x4 bits used in the current word
@@ -24,7 +24,7 @@ public:
     unsigned int* data;                // +0xc
     unsigned int buffer[0x100];        // +0x10
 
-    void FUN_00415c10(int value, int bits);
+    void WriteBits(int value, int bits);
 };
 
 struct Link_0048b200 {
@@ -70,15 +70,15 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x48b200
-void __stdcall FUN_0048b200(Class_00415c10* stream, Unit* u)
+void __stdcall FUN_0048b200(BitWriter* stream, Unit* u)
 {
-    stream->FUN_00415c10(u->field_a6, g_game->field_14393);
+    stream->WriteBits(u->field_a6, g_game->field_14393);
     if (u->field_a6 == 0)
         return;
-    stream->FUN_00415c10(u->field_108, 0x10);
-    stream->FUN_00415c10((u->field_104 != 0.0f) ? 1 - (int)(u->field_104 * -254.0f) : 0, 8);
-    stream->FUN_00415c10(u->field_10e, 8);
-    stream->FUN_00415c10(u->flags & 3, 2);
+    stream->WriteBits(u->field_108, 0x10);
+    stream->WriteBits((u->field_104 != 0.0f) ? 1 - (int)(u->field_104 * -254.0f) : 0, 8);
+    stream->WriteBits(u->field_10e, 8);
+    stream->WriteBits(u->flags & 3, 2);
     if (u->link) {
         stream->data[stream->bit] |= 1 << stream->index;
         stream->index++;
@@ -86,29 +86,29 @@ void __stdcall FUN_0048b200(Class_00415c10* stream, Unit* u)
             stream->index = 0;
             stream->bit++;
             if (stream->bit == stream->capacity) {
-                stream->FUN_00415bb0();
+                stream->GrowBuffer();
             }
             stream->data[stream->bit] = 0;
         }
-        stream->FUN_00415c10((!u->link ? 0 : u->link->field_a8) & 0xffff, 0xf);
-        stream->FUN_00415c10(u->field_f9, 8);
+        stream->WriteBits((!u->link ? 0 : u->link->field_a8) & 0xffff, 0xf);
+        stream->WriteBits(u->field_f9, 8);
     } else {
         stream->index++;
         if (stream->index == 0x20) {
             stream->index = 0;
             stream->bit++;
             if (stream->bit == stream->capacity) {
-                stream->FUN_00415bb0();
+                stream->GrowBuffer();
             }
             stream->data[stream->bit] = 0;
         }
-        stream->FUN_00415c10(u->field_6a, 0x20);
-        stream->FUN_00415c10(u->field_6e, 0x20);
-        stream->FUN_00415c10(u->field_72, 0x20);
-        stream->FUN_00415c10(u->field_66, 0x10);
-        stream->FUN_00415c10(u->field_68, 0x10);
-        stream->FUN_00415c10(u->field_64, 0x10);
+        stream->WriteBits(u->field_6a, 0x20);
+        stream->WriteBits(u->field_6e, 0x20);
+        stream->WriteBits(u->field_72, 0x20);
+        stream->WriteBits(u->field_66, 0x10);
+        stream->WriteBits(u->field_68, 0x10);
+        stream->WriteBits(u->field_64, 0x10);
         if (u->owner)
-            stream->FUN_00415c10(u->owner->field_20, 0x20);
+            stream->WriteBits(u->owner->field_20, 0x20);
     }
 }

@@ -20,7 +20,7 @@ struct Packet_004560c0 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x4560c0
 void __stdcall FUN_004560c0(Object_004560c0* obj, Object_004560c0* target)
@@ -29,5 +29,5 @@ void __stdcall FUN_004560c0(Object_004560c0* obj, Object_004560c0* target)
     packet.type = 0x12;
     packet.field_1 = target->field_a8;
     packet.field_3 = obj->field_a8;
-    FUN_00451df0(obj->player->field_4, &packet, 5);
+    BroadcastPacket(obj->player->field_4, &packet, 5);
 }

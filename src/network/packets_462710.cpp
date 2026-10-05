@@ -32,27 +32,27 @@ struct Queue_00462710 {
 
 class Class_00461b10 {
 public:
-    void* FUN_00461b10();
+    void* AllocBuffer();
 };
 
-class Class_004628d0 {
+class PacketBuffer {
 public:
-    int FUN_004628d0(Packet_00462710* packet, int number, void* data, unsigned int length, void* prev);
+    int AppendPacket(Packet_00462710* packet, int number, void* data, unsigned int length, void* prev);
 };
 
 class Class_00462ae0 {
 public:
-    void FUN_00462ae0(void* param);
+    void RemovePacket(void* param);
 };
 
 class Class_004624a0 {
 public:
-    void FUN_004624a0(int param_1);
+    void SendQueued(int param_1);
 };
 
-class Class_00462710 {
+class PacketChannel {
 public:
-    Packet_00462710* FUN_00461c20(int param_1);  // 0x461c20, a method of this class
+    Packet_00462710* AllocPacket(int param_1);   // 0x461c20, a method of this class
     int field_00;                      // +0x0
     char unknown_04[4];
     void** field_08;                   // +0x8
@@ -64,14 +64,14 @@ public:
     Packet_00462710* field_34;         // +0x34
     Queue_00462710 queue;              // +0x38
 
-    int FUN_00462710(int param_1, void* param_2, unsigned int param_3);
+    int AddPacket(int param_1, void* param_2, unsigned int param_3);
 };
 
 // FUNCTION: 0x462710
-int Class_00462710::FUN_00462710(int param_1, void* param_2, unsigned int param_3)
+int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
 {
     if (field_20 >= 0x42a || queue.count == 0x400) {
-        ((Class_004624a0*)this)->FUN_004624a0(1);
+        ((Class_004624a0*)this)->SendQueued(1);
         if (queue.count != 0)
             return 0;
     }
@@ -80,21 +80,21 @@ int Class_00462710::FUN_00462710(int param_1, void* param_2, unsigned int param_
     if (idx >= 0)
         block = (Class_00462ae0*)field_08[idx];
     if (block == 0) {
-        block = (Class_00462ae0*)((Class_00461b10*)this)->FUN_00461b10();
+        block = (Class_00462ae0*)((Class_00461b10*)this)->AllocBuffer();
         if (block == 0)
             return 0;
     }
-    Packet_00462710* pkt = FUN_00461c20(param_1);
+    Packet_00462710* pkt = AllocPacket(param_1);
     if (pkt == 0)
         return 0;
-    int r = ((Class_004628d0*)block)->FUN_004628d0(pkt, field_1c, param_2, param_3, field_34);
+    int r = ((PacketBuffer*)block)->AppendPacket(pkt, field_1c, param_2, param_3, field_34);
     if (r == 0) {
         field_1c = field_1c - 1;
-        block = (Class_00462ae0*)((Class_00461b10*)this)->FUN_00461b10();
+        block = (Class_00462ae0*)((Class_00461b10*)this)->AllocBuffer();
         if (block != 0) {
-            pkt = FUN_00461c20(param_1);
+            pkt = AllocPacket(param_1);
             if (pkt != 0)
-                r = ((Class_004628d0*)block)->FUN_004628d0(pkt, field_1c, param_2, param_3, field_34);
+                r = ((PacketBuffer*)block)->AppendPacket(pkt, field_1c, param_2, param_3, field_34);
             else
                 r = 0;
         }
@@ -111,6 +111,6 @@ int Class_00462710::FUN_00462710(int param_1, void* param_2, unsigned int param_
         return 1;
     }
     if (block != 0 && pkt->owner == block)
-        block->FUN_00462ae0(pkt);
+        block->RemovePacket(pkt);
     return 0;
 }

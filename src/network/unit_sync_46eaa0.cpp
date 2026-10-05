@@ -41,7 +41,7 @@ struct Elem_004702a0 {
     int unknown_0;
 };
 
-struct Class_00470560 {                // operator= is 0x470560
+struct PacketSequencer {               // operator= is 0x470560
     int field_0;                       // +0x00
     int field_4;                       // +0x04
     int field_8;                       // +0x08
@@ -56,7 +56,7 @@ struct Class_0046eaa0 {                // operator= is 0x470040
     int field_24;                      // +0x24
     int field_28;                      // +0x28
     int field_2c;                      // +0x2c
-    Class_00470560 sub;                // +0x30
+    PacketSequencer sub;               // +0x30
 };
 
 typedef std::vector<Class_0046eaa0> Vec_0046eaa0;

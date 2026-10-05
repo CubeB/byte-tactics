@@ -14,14 +14,14 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-class Class_0044f9c0 {
+class NetCondenser {
 public:
     char* buffer;                    // +0x0
     int unknown_4;                   // +0x4
     int unknown_8;                   // +0x8
     int unknown_c;                   // +0xc
 
-    int FUN_0044f9c0(void* net, char* data, int* size);
+    int ReceivePacket(void* net, char* data, int* size);
 };
 #pragma pack(pop)
 
@@ -32,14 +32,14 @@ struct Net_0044f9c0 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004c9840(void* net, void* data, int* size);
-void __stdcall FUN_00415f40(int size, int overhead, int sent);
+int __stdcall HAPINET_receivepacket(void* net, void* data, int* size);
+void __stdcall CountPacket(int size, int overhead, int sent);
 int __stdcall FUN_004d1480(char* out, char* in);
 void FUN_004d1800();
 void FUN_004d1810();
 
 // FUNCTION: 0x44f9c0
-int Class_0044f9c0::FUN_0044f9c0(void* net, char* data, int* size)
+int NetCondenser::ReceivePacket(void* net, char* data, int* size)
 {
     char msg[256];
     unsigned int n;
@@ -59,10 +59,10 @@ int Class_0044f9c0::FUN_0044f9c0(void* net, char* data, int* size)
         return 0;
     }
 
-    int result = FUN_004c9840(net, data, size);
+    int result = HAPINET_receivepacket(net, data, size);
     if (((Net_0044f9c0*)net)->field_4b5 != 0) {
         if (result == 0) {
-            FUN_00415f40(*size, 0, 0);
+            CountPacket(*size, 0, 0);
             if (data[0] != 3 && data[0] != 4)
                 return 0;
             if (*size < 4)

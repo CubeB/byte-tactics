@@ -54,8 +54,8 @@ struct Dmg_00489bb0 {              // 9 bytes, the record FUN_00489ce0 takes
 #pragma pack(pop)
 
 void __stdcall FUN_00489ce0(Dmg_00489bb0* dmg);
-void __stdcall FUN_00451df0(int who, Dmg_00489bb0* dmg, int size);
-int __cdecl FUN_0044fdb0(void);
+void __stdcall BroadcastPacket(int who, Dmg_00489bb0* dmg, int size);
+int __cdecl GetLocalDpid(void);
 
 // FUNCTION: 0x489bb0
 void __stdcall FUN_00489bb0(Class_00489a70* source, Class_00489a70* target, int amount, int type, unsigned short extra)
@@ -81,8 +81,8 @@ void __stdcall FUN_00489bb0(Class_00489a70* source, Class_00489a70* target, int 
     FUN_00489ce0(&d);
     if (target->kind->f0 != 0 && target->kind->f73 == 3 && type != 11) {
         if (source)
-            FUN_00451df0(source->kind->f4, &d, 9);
+            BroadcastPacket(source->kind->f4, &d, 9);
         else
-            FUN_00451df0(FUN_0044fdb0(), &d, 9);
+            BroadcastPacket(GetLocalDpid(), &d, 9);
     }
 }

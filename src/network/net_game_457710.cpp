@@ -8,21 +8,21 @@ extern char* g_game;
 extern char DAT_00512ca8[];
 extern char DAT_00512c98[];
 
-int __stdcall FUN_004ca490(void* p);
-void __stdcall FUN_004c9c20(void* p);
-int __stdcall FUN_00461020(int a, int b);
+int __stdcall HAPINET_initlobbiedconnection(void* p);
+void __stdcall HAPINET_initmultiplaydefaults(void* p);
+int __stdcall InitPacketManager(int a, int b);
 void __stdcall FUN_00434ab0(int a);
 
 // FUNCTION: 0x457710
-int FUN_00457710()
+int InitLobbiedConnection()
 {
     if (*(int*)(g_game + 0x4e5) != 0)
         return 1;
 
-    if (FUN_004ca490(g_game + 0x14)) {
-        FUN_004c9c20(g_game + 0x14);
+    if (HAPINET_initlobbiedconnection(g_game + 0x14)) {
+        HAPINET_initmultiplaydefaults(g_game + 0x14);
         *(int*)(g_game + 0x4f1) = 10;
-        if (FUN_00461020(2, 100)) {
+        if (InitPacketManager(2, 100)) {
             FUN_00434ab0(3);
             char* name = *(char**)(*(char**)(*(char**)(g_game + 0x4e5) + 8) + 0x30);
             if (name != 0) {

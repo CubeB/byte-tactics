@@ -68,9 +68,9 @@ public:
     Iter_0046d860 FUN_0046e9b0(const unsigned int& key);
 };
 
-class Class_0046d4c0 {
+class UnitSync {
 public:
-    void FUN_0046d4c0(Player_0046d860* target, Packet_0046d860* packet, int unused);
+    void SendSyncPacket(Player_0046d860* target, Packet_0046d860* packet, int unused);
 };
 
 class Class_0046d860 {
@@ -83,11 +83,11 @@ public:
     char unknown_5c[0x64 - 0x5c];
     int disabled;                                   // +0x64
 
-    void FUN_0046d860(unsigned int param_1);
+    void NotifyEntryChanged(unsigned int param_1);
 };
 
 // FUNCTION: 0x46d860
-void Class_0046d860::FUN_0046d860(unsigned int param_1)
+void Class_0046d860::NotifyEntryChanged(unsigned int param_1)
 {
     if (disabled != 0) {
         return;
@@ -104,7 +104,7 @@ void Class_0046d860::FUN_0046d860(unsigned int param_1)
                 packet.field_a = v->field_8;
                 packet.field_b = v->field_a;
                 packet.field_c = v->field_c;
-                ((Class_0046d4c0*)this)->FUN_0046d4c0(&*i, &packet, 1);
+                ((UnitSync*)this)->SendSyncPacket(&*i, &packet, 1);
                 i->sent++;
             }
         }

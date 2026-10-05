@@ -34,15 +34,15 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0044ffd0(unsigned char index);
-unsigned char __stdcall FUN_0044fe40(int id);
-int __stdcall FUN_00451df0(int player, unsigned char* data, int size);
-void __stdcall FUN_00452cc0(int id);
+int __stdcall GetSlotDpid(unsigned char index);
+unsigned char __stdcall FindSlotByDpid(int id);
+int __stdcall BroadcastPacket(int player, unsigned char* data, int size);
+void __stdcall RemovePlayer(int id);
 
 static inline unsigned char FindIndex_00453010(int id)
 {
     for (unsigned char i = 0; i < 10; i++) {
-        if (FUN_0044ffd0(i) == id)
+        if (GetSlotDpid(i) == id)
             return i;
     }
     return 10;
@@ -61,7 +61,7 @@ static inline int FindActiveId_00453010()
     }
 }
 // FUNCTION: 0x453010
-int __stdcall FUN_00453010(int id, unsigned char value)
+int __stdcall RejectPlayer(int id, unsigned char value)
 {
     int result = 0;
 
@@ -75,7 +75,7 @@ int __stdcall FUN_00453010(int id, unsigned char value)
     if (fi == 10)
         p = 0;
     else
-        p = &g_game->players[FUN_0044fe40(id)];
+        p = &g_game->players[FindSlotByDpid(id)];
 
     if (p == 0)
         return 0;
@@ -93,31 +93,31 @@ int __stdcall FUN_00453010(int id, unsigned char value)
                 if (g_game->players[i].active != 0
                     && (g_game->players[i].state == 1 || g_game->players[i].state == 2)) {
                     *(int*)(msg + 1) = g_game->players[i].id;
-                    FUN_00451df0(FindActiveId_00453010(), msg, 6);
-                    FUN_00452cc0(p->id);
+                    BroadcastPacket(FindActiveId_00453010(), msg, 6);
+                    RemovePlayer(p->id);
                     g_game->players[i].field_22 = value;
                 }
             }
             result = 1;
         } else {
             *(int*)(msg + 1) = p->id;
-            FUN_00451df0(FindActiveId_00453010(), msg, 6);
-            FUN_00452cc0(p->id);
+            BroadcastPacket(FindActiveId_00453010(), msg, 6);
+            RemovePlayer(p->id);
             result = 1;
         }
     } else if (p->active != 0 && p->state == 3 && p->field_22 == 0) {
         *(int*)(msg + 1) = id;
-        result = FUN_00451df0(FindActiveId_00453010(), msg, 6);
+        result = BroadcastPacket(FindActiveId_00453010(), msg, 6);
         if (p->active != 0 && p->state == 3 && p->field_27->field_94 == 1) {
             unsigned char c = p->field_c;
             for (int i = 0; i < 10; i++) {
                 if (g_game->players[i].field_c == c) {
-                    FUN_00452cc0(g_game->players[i].id);
+                    RemovePlayer(g_game->players[i].id);
                     g_game->players[i].field_22 = value;
                 }
             }
         } else {
-            FUN_00452cc0(p->id);
+            RemovePlayer(p->id);
         }
     }
 

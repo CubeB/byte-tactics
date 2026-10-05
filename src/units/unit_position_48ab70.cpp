@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free, finished by mimo-v2.6-flash, finished by space-bunny-free, finished by MiMo-V2.6-Pro. Names are provisional.
 // The order record handler at 0x48aac0 builds a seven byte record on its stack
 // (type 0x0a, two unit ids, two bytes) and passes it here after it has been
-// through FUN_004fdb0 and FUN_00451df0, so this runs the order on the sending
+// through FUN_004fdb0 and BroadcastPacket, so this runs the order on the sending
 // player's own units. The two ids index the unit array at g_game+0x14357
 // (0x118 byte entries) and both index 0 means "no unit".
 //

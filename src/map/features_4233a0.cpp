@@ -85,8 +85,8 @@ void __stdcall FUN_004232f0(int index, int* head);
 void __stdcall FUN_004b8b30(AnimRef_004233a0* ref, AnimSrc_004233a0* src, int index);
 int __stdcall FUN_004b6c30(int range);
 void __stdcall FUN_0047f610(char* name, Vec3_004233a0* pos, int param_3);
-int FUN_0044fdb0();
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int GetLocalDpid();
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 static inline int AllocSpot()
 {
@@ -142,6 +142,6 @@ void __stdcall FUN_004233a0(int x, int z, int flag)
         packet.sub = 0xfe;
         packet.x = x;
         packet.z = z;
-        FUN_00451df0(FUN_0044fdb0(), &packet, 6);
+        BroadcastPacket(GetLocalDpid(), &packet, 6);
     }
 }

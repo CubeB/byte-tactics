@@ -12,16 +12,16 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004c9c20(void* net);
-int __stdcall FUN_00461020(int a, int b);
-void __stdcall FUN_004ca590(void* net, void* connection);
+void __stdcall HAPINET_initmultiplaydefaults(void* net);
+int __stdcall InitPacketManager(int a, int b);
+void __stdcall HAPINET_initconnection(void* net, void* connection);
 
 // FUNCTION: 0x450d80
-void FUN_00450d80()
+void InitNetConnection()
 {
-    FUN_004c9c20(g_game->net);
+    HAPINET_initmultiplaydefaults(g_game->net);
     g_game->netMode = 10;
-    if (FUN_00461020(2, 100)) {
-        FUN_004ca590(g_game->net, g_game->connection);
+    if (InitPacketManager(2, 100)) {
+        HAPINET_initconnection(g_game->net, g_game->connection);
     }
 }

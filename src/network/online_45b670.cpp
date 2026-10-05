@@ -9,8 +9,8 @@
 
 extern int DAT_00512c80[0x54];      // the online configuration, 0x150 bytes
 extern char DAT_00512dd0[MAX_PATH + 1];
-extern int DAT_00512ee8;
-extern HMODULE DAT_00512eec;
+extern int g_onlineConfigLoaded;
+extern HMODULE g_onlineDll;
 
 typedef unsigned int (__stdcall* OnlGetVersion)(void);
 typedef int (__stdcall* OnlLoadConfigFile)(char* file, void* config, int size);
@@ -31,9 +31,9 @@ static BOOL LoadOnline(void)
         // The `& 1` is in the original (`and edx, 1` after the setg).
         strcpy(p + ((len > 0) & 1), "online.dll");
     }
-    if (DAT_00512eec == 0) {
-        DAT_00512eec = LoadLibraryA(DAT_00512dd0);
-        if (DAT_00512eec == 0)
+    if (g_onlineDll == 0) {
+        g_onlineDll = LoadLibraryA(DAT_00512dd0);
+        if (g_onlineDll == 0)
             return FALSE;
     }
     return TRUE;
@@ -42,8 +42,8 @@ static BOOL LoadOnline(void)
 static BOOL CheckVersion(void)
 {
     BOOL ok = FALSE;
-    if (DAT_00512eec) {
-        OnlGetVersion f = (OnlGetVersion)GetProcAddress(DAT_00512eec, "ONLGetVersion");
+    if (g_onlineDll) {
+        OnlGetVersion f = (OnlGetVersion)GetProcAddress(g_onlineDll, "ONLGetVersion");
         if (f)
             ok = f() >= 3;
     }
@@ -53,8 +53,8 @@ static BOOL CheckVersion(void)
 static int LoadConfigFile(char* file, void* config, int size)
 {
     int result = 0;
-    if (DAT_00512eec) {
-        OnlLoadConfigFile f = (OnlLoadConfigFile)GetProcAddress(DAT_00512eec, "ONLLoadConfigFile");
+    if (g_onlineDll) {
+        OnlLoadConfigFile f = (OnlLoadConfigFile)GetProcAddress(g_onlineDll, "ONLLoadConfigFile");
         if (f)
             result = f(file, config, size);
     }
@@ -64,13 +64,13 @@ static int LoadConfigFile(char* file, void* config, int size)
 // FUNCTION: 0x45b670
 int __stdcall FUN_0045b670(char* file)
 {
-    DAT_00512ee8 = 0;
+    g_onlineConfigLoaded = 0;
     memset(DAT_00512c80, 0, sizeof(DAT_00512c80));
     try {
         if (LoadOnline() && CheckVersion())
-            DAT_00512ee8 = LoadConfigFile(file, DAT_00512c80, sizeof(DAT_00512c80));
+            g_onlineConfigLoaded = LoadConfigFile(file, DAT_00512c80, sizeof(DAT_00512c80));
     } catch (...) {
-        DAT_00512ee8 = 0;
+        g_onlineConfigLoaded = 0;
     }
-    return DAT_00512ee8;
+    return g_onlineConfigLoaded;
 }

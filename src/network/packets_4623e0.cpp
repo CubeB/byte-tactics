@@ -46,18 +46,18 @@ struct Item_004623e0 {
     unsigned int time;                 // +0x14
 };
 
-class Class_004623e0 {
+class PacketChannel {
 public:
     char unknown_0[0x20];
     int total;                         // +0x20
     char unknown_24[0x38 - 0x24];
     Queue_004623e0 queue;              // +0x38
 
-    void FUN_004623e0(Item_004623e0* item);
+    void DequeuePacket(Item_004623e0* item);
 };
 
 // FUNCTION: 0x4623e0
-void Class_004623e0::FUN_004623e0(Item_004623e0* item)
+void PacketChannel::DequeuePacket(Item_004623e0* item)
 {
     item->field_10 = -1;
     item->time = FUN_004b6340();

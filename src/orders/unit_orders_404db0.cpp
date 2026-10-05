@@ -169,7 +169,7 @@ Cell* __stdcall FUN_004815f0(Vec3* pos);
 unsigned short __stdcall FUN_00421e60(Cell* cell);
 Cell* __stdcall FUN_004815a0(Vec3* pos);
 void __stdcall FUN_004246b0(void* target, int flag);
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall FUN_0041c110(Unit* unit);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit, Unit* target, int flags);
 void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
@@ -277,7 +277,7 @@ int __stdcall FUN_00404db0(Unit* unit, Order* order, int flags)
             xz.z = n / w;
             packet.x = xz.x;
             packet.z = xz.z;
-            FUN_00451df0(unit->player->id, &packet, 6);
+            BroadcastPacket(unit->player->id, &packet, 6);
         }
         order->target.owner->buildLeft = 0;
         order->target.owner->health = 1;

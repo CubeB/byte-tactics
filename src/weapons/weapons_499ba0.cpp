@@ -23,8 +23,8 @@ struct Packet_00499ba0 {
 };
 #pragma pack(pop)
 
-int __cdecl FUN_0044fdb0();
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __cdecl GetLocalDpid();
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x499ba0
 void __stdcall FUN_00499ba0(char param_1, Vec3_00499ba0* a, Vec3_00499ba0* b)
@@ -35,6 +35,6 @@ void __stdcall FUN_00499ba0(char param_1, Vec3_00499ba0* a, Vec3_00499ba0* b)
         packet.a = *a;
         packet.b = *b;
         packet.field_19 = param_1;
-        FUN_00451df0(FUN_0044fdb0(), &packet, 0x24);
+        BroadcastPacket(GetLocalDpid(), &packet, 0x24);
     }
 }

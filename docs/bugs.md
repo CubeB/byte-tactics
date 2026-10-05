@@ -35,7 +35,7 @@ enough for the game's own data, which would explain why it went unnoticed.
 
 ## Send reads a target's id through a null pointer (possible)
 
-**0x46d530**. The send helper `Class_0046d4c0::Send(target, packet)` (inlined)
+**0x46d530**. The send helper `UnitSync::Send(target, packet)` (inlined)
 reads `target->id` when the object is in "direct" mode. 0x46d530 calls it with
 no target, so in direct mode it reads address 0 (`mov eax, [0]` in the
 original) and would crash. Either direct mode is never on when this runs, or
@@ -188,7 +188,7 @@ unit text is interpreted again. Found by ozgb's Codex / GPT-6 Astra in #78.
 
 ## Watching another player overwrites your own unit limit (likely)
 
-**0x445b70**: when FUN_00456850 names a player other than the local one, the
+**0x445b70**: when FindHostSlot names a player other than the local one, the
 code reads that player's maxunits (+0xa5) but stores it into the local
 player's record (via +0x2a42), so watching someone else replaces your own
 unit limit. It also stores the value twice. Found by Space Bunny Free in #125.
@@ -810,9 +810,15 @@ Things that look wrong in the original but have no effect, kept for the record.
   Claude Opus 5.5 in #228.
 - **0x4523e0** (possible): when all ten group slots are in use (possible when
   `to` is not an active player, such as -1), the loop ends without writing
-  the message's value byte at `[esp+0x13]`, so FUN_00451bc0 sends a two-byte
+  the message's value byte at `[esp+0x13]`, so SendPacketToPlayer sends a two-byte
   message whose second byte is uninitialised. Found by DeepSeek V4.1 Flash in
   #139.
+- **0x451df0** (possible): BroadcastPacket's per-group loop reads its "group
+  already sent" table DAT_00512b90 (eleven ints) at the player's group index
+  (+0xc, `mov ecx, [eax*4+0x512b90]` at 0x451f5f) before anything checks the
+  index; only the store after the send (0x451f90) tests `0 <= group < 10`. A
+  group outside 0 to 10 reads past the table. Harmless if the group is always
+  a slot index. Found by Claude Opus 5.5 while naming the network module.
 - **0x476830** (possible): its "lowercase" loop adds 0x20 to every non-zero
   byte, so `.` becomes `N` and `a` becomes 0x81; fine only if the input is
   always upper case. It also writes one byte past a `count * 30` buffer for a
@@ -949,10 +955,10 @@ Things that look wrong in the original but have no effect, kept for the record.
   checked. Found by Space Bunny Free (CubeB) in #2102.
 - **0x453d40** (likely), the network message handler, two findings. The range
   check at 0x4547f5 (`cmp al, 1; ja; cmp al, 0x2d; jb`) sends the error reply
-  `FUN_00453010(sender, 6)` only when `cmd <= 1 && cmd >= 45`, which can never
+  `RejectPlayer(sender, 6)` only when `cmd <= 1 && cmd >= 45`, which can never
   hold, so `||` was surely meant; out-of-range commands are still dropped by
   the switch bound, but silently, after the raw byte has indexed the
-  DAT_00512bc0 mask table (0x454758). (The same block also repeats the status
+  g_packetModes mask table (0x454758). (The same block also repeats the status
   test of 0x4547cc at 0x45480e.) And command 20 (0x455649) looks up the player
   named at packet+3; when there is none the lookup gives 10, the code sets the
   player pointer to 0 (0x4556ef to 0x4556f5) and then reads `[eax]` at

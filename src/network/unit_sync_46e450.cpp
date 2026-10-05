@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Looks up the unit's entry in a std::map<unsigned int, Rect> (inlined
-// find(), as in 0x46e330.cpp), clears its width, has FUN_0046d860 recompute
+// find(), as in 0x46e330.cpp), clears its width, has NotifyEntryChanged recompute
 // it, and returns whether the entry now has a non-empty size.
 
 struct Rect_0046e450 {                 // 0x10 bytes
@@ -46,7 +46,7 @@ public:
 
 class Class_0046d860 {
 public:
-    void FUN_0046d860(unsigned int key);
+    void NotifyEntryChanged(unsigned int key);
 };
 
 class Class_0046e450 {
@@ -60,14 +60,14 @@ public:
         Iter_0046e450 p = Iter_0046e450(((Class_0046fe60*)this)->FUN_0046fe60(key));
         return (p == End() || compare(*key, p.ptr->key)) ? End() : p;
     }
-    int FUN_0046e450(Unit_0046e450* unit);
+    int DisallowUnit(Unit_0046e450* unit);
 };
 
 // FUNCTION: 0x46e450
-int Class_0046e450::FUN_0046e450(Unit_0046e450* unit)
+int Class_0046e450::DisallowUnit(Unit_0046e450* unit)
 {
     Node_0046e450* n = Find(&unit->key).ptr;
     n->value.w = 0;
-    ((Class_0046d860*)this)->FUN_0046d860(unit->key);
+    ((Class_0046d860*)this)->NotifyEntryChanged(unit->key);
     return n->value.w != 0 && n->value.h != 0;
 }

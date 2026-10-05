@@ -181,7 +181,7 @@ void FUN_004c1a40();
 int __stdcall FUN_004c1b80(int a);
 void FUN_00499880();
 void FUN_00496bb0();
-void __cdecl FUN_004578f0();
+void __cdecl LeaveNetGameCallback();
 
 static inline void SetCursor(int n)
 {
@@ -306,7 +306,7 @@ void FUN_00499200(void)
             g_game->field_10->FUN_004ce690(4);
             g_game->field_391f1 = 7;
             g_game->field_391f5 = FUN_00499880;
-            FUN_004b4fd0(FUN_004578f0, 0);
+            FUN_004b4fd0(LeaveNetGameCallback, 0);
             FUN_0041d9f0(0);
         }
     }
@@ -326,7 +326,7 @@ void FUN_00499200(void)
             }
             g_game->field_391f1 = 2;
             g_game->field_391f5 = FUN_00496bb0;
-            FUN_004b4fd0(FUN_004578f0, 0);
+            FUN_004b4fd0(LeaveNetGameCallback, 0);
         } else {
             unsigned int saved = g_game->field_2a3c;
             FUN_00491b60();
@@ -340,7 +340,7 @@ void FUN_00499200(void)
             g_game->field_2a44.value |= 4;
             g_game->field_391f1 = 2;
             g_game->field_391f5 = FUN_00496bb0;
-            FUN_004b4fd0(FUN_004578f0, 0);
+            FUN_004b4fd0(LeaveNetGameCallback, 0);
         }
         g_game->field_10->FUN_004ce690(4);
     }

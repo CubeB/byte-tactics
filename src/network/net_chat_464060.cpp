@@ -58,7 +58,7 @@ void __stdcall FUN_00467c00(void*, void*, Rect_00464060*, int);
 void __stdcall FUN_004a50e0(void*, void*, int, int, int, int);
 
 // FUNCTION: 0x464060
-void __stdcall FUN_00464060(void* surf)
+void __stdcall DrawMessages(void* surf)
 {
     int max_lines = g_game->max_lines;
     int t;

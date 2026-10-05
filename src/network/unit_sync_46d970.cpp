@@ -5,7 +5,7 @@
 // 0x46e000.cpp. Given the unit's key and a y value, it makes sure the entry's
 // Rect has that y (looking the unit type up in g_game when it has none),
 // checks that every entry lists the key, and then sets the Rect's height to
-// whether all of that held before letting FUN_0046d860 recompute the entry.
+// whether all of that held before letting NotifyEntryChanged recompute the entry.
 
 struct Rect_0046d970 {
     int x;                             // +0x10
@@ -97,15 +97,15 @@ public:
     char unknown_1c[0x64 - 0x1c];
     int field_64;                      // +0x64
 
-    void FUN_0046d860(unsigned int key);
-    void FUN_0046d970(unsigned int key, int y);
+    void NotifyEntryChanged(unsigned int key);
+    void CheckUnitAvailable(unsigned int key, int y);
 };
 
 int __stdcall FUN_0042a610(Def_0046d970* def);
-Player_0046d970* __stdcall FUN_0044fed0(int id);
+Player_0046d970* __stdcall FindPlayerByDpid(int id);
 
 // FUNCTION: 0x46d970
-void Class_0046d860::FUN_0046d970(unsigned int key, int y)
+void Class_0046d860::CheckUnitAvailable(unsigned int key, int y)
 {
     if (field_64 != 0)
         return;
@@ -137,7 +137,7 @@ void Class_0046d860::FUN_0046d970(unsigned int key, int y)
         for (Entry_0046d970* e = begin; e != end; e++) {
             int flag;
             if (y != 0) {
-                Player_0046d970* pl = FUN_0044fed0(e->id);
+                Player_0046d970* pl = FindPlayerByDpid(e->id);
                 if (pl == 0)
                     break;
                 flag = pl->data->count_0 >= 2 ? 1 : (pl->data->count_0 == 1 && pl->data->count_1 >= 2 ? 1 : 0);
@@ -166,5 +166,5 @@ void Class_0046d860::FUN_0046d970(unsigned int key, int y)
     }
 
     it.ptr->value.h = h;
-    FUN_0046d860(key);
+    NotifyEntryChanged(key);
 }

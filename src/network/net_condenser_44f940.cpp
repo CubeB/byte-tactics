@@ -3,7 +3,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-class Class_0044f940 {
+class NetCondenser {
 public:
     char* buffer;                    // +0x0
     int unknown_4;                   // +0x4
@@ -15,14 +15,14 @@ public:
     unsigned char sendCount;         // +0x1c
     int sendSize;                    // +0x1d
 
-    void FUN_0044f940(void* data, int size);
+    void Accumulate(void* data, int size);
 };
 #pragma pack(pop)
 
 // Net condenser: copies an outgoing packet into the send buffer, growing it
 // past its default BUFFER_ACC_SIZE (0xaf0) when needed.
 // FUNCTION: 0x44f940
-void Class_0044f940::FUN_0044f940(void* data, int size)
+void NetCondenser::Accumulate(void* data, int size)
 {
     char msg[256];
     if (size > 0xaf0) {

@@ -16,12 +16,12 @@
 
 // Bit reader, the counterpart of the writer used by 0x48b710 (see
 // src/network/net_stats_415dc0.cpp). Fields are data, index (the dword), bit.
-class Class_00415dc0 {
+class BitReader {
 public:
     unsigned int* data;                // +0x00
     int index;                         // +0x04
     int bit;                           // +0x08
-    int FUN_00415dc0(int bits);
+    int ReadBits(int bits);
 
     int ReadBit()
     {
@@ -47,7 +47,7 @@ public:
     virtual void v6();
     virtual void v7();
     virtual void v8();
-    virtual void ReadFrom(Class_00415dc0* reader);   // +0x24
+    virtual void ReadFrom(BitReader* reader);        // +0x24
 };
 
 struct Unit;
@@ -103,29 +103,29 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Unit* unit);
+void __stdcall FUN_0048b3f0(BitReader* reader, Unit* unit);
 void __stdcall FUN_0048a870(Unit* unit);
 Unit* __stdcall FUN_004861d0(unsigned char player, Spawn_0048b920* spawn);
 
 // FUNCTION: 0x48b920
 void __stdcall FUN_0048b920(Player_0048b920* p, unsigned int* data)
 {
-    Class_00415dc0 reader;
+    BitReader reader;
 
     reader.data = data;
     reader.index = 0;
     reader.bit = 0;
-    reader.FUN_00415dc0(8);
-    reader.FUN_00415dc0(0x10);
-    int tick = reader.FUN_00415dc0(0x20);
+    reader.ReadBits(8);
+    reader.ReadBits(0x10);
+    int tick = reader.ReadBits(0x20);
     p->ticks = tick;
     if (p->units_begin == 0)
         return;
 
-    short index = (short)reader.FUN_00415dc0(0x10);
+    short index = (short)reader.ReadBits(0x10);
     while (index != -1) {
         Unit* unit = &p->units_begin[index];
-        unsigned short type = (unsigned short)reader.FUN_00415dc0(g_game->field_14393);
+        unsigned short type = (unsigned short)reader.ReadBits(g_game->field_14393);
         if (unit->field_a6 != type) {
             Spawn_0048b920 spawn;
             spawn.id = unit->field_a8;
@@ -136,7 +136,7 @@ void __stdcall FUN_0048b920(Player_0048b920* p, unsigned int* data)
             FUN_004861d0(unit->player, &spawn);
         }
         unit->owner->iface->ReadFrom(&reader);
-        index = (short)reader.FUN_00415dc0(0x10);
+        index = (short)reader.ReadBits(0x10);
     }
 
     for (Unit* u = p->units_begin; u <= p->units_end;

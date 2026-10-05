@@ -55,9 +55,9 @@ void __stdcall FUN_00446080(int player);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_0049fa90(Class_004a1080* obj);
-void FUN_00450f90(void);
-void FUN_00451180(void);
-void __stdcall FUN_00453010(int obj, int value);
+void BroadcastPlayerInfo(void);
+void UpdateNetGameInfo(void);
+void __stdcall RejectPlayer(int obj, int value);
 void __stdcall FUN_004ab0a0(Gui_004464d0* gui);
 
 // FUNCTION: 0x4464d0
@@ -80,16 +80,16 @@ void __stdcall FUN_004464d0(Gui_004464d0* gui)
             FUN_004a1080((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
             FUN_004a1080((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
             FUN_0049fa90((Class_004a1080*)g_game->gui);
-            FUN_00450f90();
+            BroadcastPlayerInfo();
         } else if (FUN_0049fd60(gui, "OK")) {
-            FUN_00451180();
+            UpdateNetGameInfo();
             FUN_0047f1a0("Options", 0);
             if (!info->watching) {
                 for (int i = 0; i < 10; i++) {
                     if (g_game->players[i].active != 0) {
                         if (g_game->players[i].state == 3) {
                             if (g_game->players[i].info->bit6) {
-                                FUN_00453010(g_game->players[i].field_4, 9);
+                                RejectPlayer(g_game->players[i].field_4, 9);
                             }
                         }
                     }

@@ -26,18 +26,18 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 
-void __stdcall FUN_00452cc0(int id);
+void __stdcall RemovePlayer(int id);
 void FUN_0046c190();
-int __stdcall FUN_004c9f90(void* net);
+int __stdcall HAPINET_quitgame(void* net);
 void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
 void __stdcall FUN_004b6230(char* message);
 
@@ -51,20 +51,20 @@ static inline int IsPlaying(Player_00450e20* player)
 }
 
 // FUNCTION: 0x450e20
-void FUN_00450e20()
+void LeaveNetGame()
 {
-    if (DAT_00506dbc != 0) {
-        DAT_00513000.FUN_004618a0(1);
+    if (g_usePacketManager != 0) {
+        g_packetManager.SendAllQueued(1);
     }
     if (g_game->flags_2a44 & 1) {
         for (int i = 0; i < 10; i++) {
             if (IsPlaying(&g_game->players[i])) {
-                FUN_00452cc0(g_game->players[i].id);
+                RemovePlayer(g_game->players[i].id);
             }
         }
         FUN_0046c190();
     }
-    FUN_004c9f90(g_game->field_14);
+    HAPINET_quitgame(g_game->field_14);
     FUN_004b4fd0(0, 0);
     g_game->field_3923b |= 4;
     int reason = g_game->players[g_game->local_player].reason;

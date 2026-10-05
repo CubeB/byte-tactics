@@ -8,10 +8,10 @@
 #include <string.h>
 
 extern char DAT_00512dd0[MAX_PATH + 1];
-extern HMODULE DAT_00512eec;
+extern HMODULE g_onlineDll;
 
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_0045b480(char* text);
+void __stdcall OnlineTranslate(char* text);
 
 typedef unsigned int (__stdcall* OnlGetVersion)(void);
 typedef int (__stdcall* OnlProcessButtonCommand)(int button, char* message, unsigned int size,
@@ -32,9 +32,9 @@ static BOOL LoadOnline(void)
         }
         strcpy(p + ((len > 0) & 1), "online.dll");
     }
-    if (DAT_00512eec == 0) {
-        DAT_00512eec = LoadLibraryA(DAT_00512dd0);
-        if (DAT_00512eec == 0)
+    if (g_onlineDll == 0) {
+        g_onlineDll = LoadLibraryA(DAT_00512dd0);
+        if (g_onlineDll == 0)
             return FALSE;
     }
     return TRUE;
@@ -43,8 +43,8 @@ static BOOL LoadOnline(void)
 static BOOL CheckVersion(void)
 {
     BOOL ok = FALSE;
-    if (DAT_00512eec) {
-        OnlGetVersion f = (OnlGetVersion)GetProcAddress(DAT_00512eec, "ONLGetVersion");
+    if (g_onlineDll) {
+        OnlGetVersion f = (OnlGetVersion)GetProcAddress(g_onlineDll, "ONLGetVersion");
         if (f)
             ok = f() >= 3;
     }
@@ -54,17 +54,17 @@ static BOOL CheckVersion(void)
 static int ProcessButtonCommand(int button, char* message, unsigned int size)
 {
     int result = 2;
-    if (DAT_00512eec) {
+    if (g_onlineDll) {
         OnlProcessButtonCommand f =
-            (OnlProcessButtonCommand)GetProcAddress(DAT_00512eec, "ONLProcessButtonCommand");
+            (OnlProcessButtonCommand)GetProcAddress(g_onlineDll, "ONLProcessButtonCommand");
         if (f)
-            result = f(button, message, size, FUN_0045b480);
+            result = f(button, message, size, OnlineTranslate);
     }
     return result;
 }
 
 // FUNCTION: 0x45b250
-int __stdcall FUN_0045b250(int button, char* message, unsigned int size)
+int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int size)
 {
     int result = 2;
     try {

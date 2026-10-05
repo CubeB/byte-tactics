@@ -1,14 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // Receives one network packet into the shared buffer (g_game+0x2a38),
 // growing the buffer ("PACKET DATA AGAIN") while the receive call returns
-// 0x8877001e (buffer too small), through DAT_0051e300 when DAT_00506dbc is
-// set, else through DirectPlay (FUN_004c9840), and counts it in the
+// 0x8877001e (buffer too small), through DAT_0051e300 when g_usePacketManager is
+// set, else through DirectPlay (HAPINET_receivepacket), and counts it in the
 // network statistics.
 //
 // MATCH. The one instruction that used to be out of place is fixed by
 // declaring the function itself __stdcall (it still returns with a plain
 // `ret`, it only takes no arguments): as __cdecl, MSVC 5 hoists the reload
-// of the size local above the two `push 0` of FUN_00415f40, as __stdcall it
+// of the size local above the two `push 0` of CountPacket, as __stdcall it
 // emits it late, as `mov ecx, [esp+8]`, right before the `push ecx`. The
 // same trick is used at 0x41f0a0. Notes from Claude Opus 5.5 (#295): the
 // include must not be needed, but adding unrelated externs/prototypes or
@@ -25,22 +25,22 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern int DAT_00506dbc;
+extern int g_usePacketManager;
 
 class Class_00462f30 {
 public:
-    int FUN_00462f30(void* net, unsigned char* data, int* size);
+    int ReceiveFrame(void* net, unsigned char* data, int* size);
 };
 
 extern Class_00462f30 DAT_0051e300;
 
-int __stdcall FUN_004c9840(void* net, void* data, int* size);
-void __stdcall FUN_00415ef0(unsigned char kind, int amount, int player);
-void __stdcall FUN_00415f40(int size, int overhead, int sent);
+int __stdcall HAPINET_receivepacket(void* net, void* data, int* size);
+void __stdcall CountMessage(unsigned char kind, int amount, int player);
+void __stdcall CountPacket(int size, int overhead, int sent);
 void* __cdecl FUN_004d84a0(void* param_1, const char* name, unsigned int param_3);
 
 // FUNCTION: 0x4534e0
-int __stdcall FUN_004534e0(void)
+int __stdcall ReceiveNetPacket(void)
 {
     int size;
 
@@ -48,11 +48,11 @@ int __stdcall FUN_004534e0(void)
         return 0;
 
     size = g_game->field_2a34;
-    if (DAT_00506dbc != 0) {
+    if (g_usePacketManager != 0) {
         while (1) {
-            int result = DAT_0051e300.FUN_00462f30((char*)g_game + 0x14, g_game->buffer, &size);
+            int result = DAT_0051e300.ReceiveFrame((char*)g_game + 0x14, g_game->buffer, &size);
             if (result == 0) {
-                FUN_00415ef0(*g_game->buffer, size, 0);
+                CountMessage(*g_game->buffer, size, 0);
                 return 1;
             }
             if (result == 0x887700be)
@@ -64,10 +64,10 @@ int __stdcall FUN_004534e0(void)
         }
     } else {
         while (1) {
-            int result = FUN_004c9840((char*)g_game + 0x14, g_game->buffer, &size);
+            int result = HAPINET_receivepacket((char*)g_game + 0x14, g_game->buffer, &size);
             if (result == 0) {
-                FUN_00415ef0(*g_game->buffer, size, 0);
-                FUN_00415f40(size, 0, 0);
+                CountMessage(*g_game->buffer, size, 0);
+                CountPacket(size, 0, 0);
                 return 1;
             }
             if (result == 0x887700be)

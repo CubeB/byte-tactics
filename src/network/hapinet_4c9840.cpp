@@ -44,12 +44,12 @@ struct Net_4c9840 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4c9840
-int __stdcall FUN_004c9840(Net_4c9840* net, void* data, unsigned long* size)
+int __stdcall HAPINET_receivepacket(Net_4c9840* net, void* data, unsigned long* size)
 {
-    FUN_004c9740((int)"HAPINET_receivepacket\n");
+    HapinetTrace((int)"HAPINET_receivepacket\n");
     int result = 0x887700aa;
     if (net->dp != 0) {
         result = net->dp->Receive(&net->from, &net->to, 1, data, size);

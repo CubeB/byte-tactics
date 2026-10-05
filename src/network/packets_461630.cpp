@@ -3,13 +3,13 @@
 // it. When there is none, param_2 decides whether a new entry may be made:
 // first an unused slot (field_14 == -1), otherwise the first slot whose
 // field_14 is not the color of any of the ten player slots in g_game. The
-// chosen entry is re-initialised with FUN_00461db0 and returned.
+// chosen entry is re-initialised with InitPools and returned.
 //
 // The one instruction that decides the whole register allocation is in the
 // player-colour scan: walking a pointer (`Player* p = &g_game->players[0]; for
 // (j = 0; j < 10; j++, p++)`) instead of indexing `g_game->players[j]` adds
 // just enough register pressure that MSVC 5 stops assuming ecx survives the two
-// FUN_00461db0 calls, and gives the object pointer the callee-saved ebx
+// InitPools calls, and gives the object pointer the callee-saved ebx
 // (`push ebx; mov ebx, ecx`, plus a spill to [esp+0x10] for the block that
 // later borrows ebx as a cursor). With plain array indexing every instruction
 // is identical but for that missing `mov ebx, ecx` and the rotation it causes,
@@ -18,7 +18,7 @@
 
 #pragma pack(push, 1)
 // One entry, 0x1044 bytes, as laid out by the neighbours 0x461820 and 0x462470.
-class Class_00462470 {
+class PacketChannel {
 public:
     int field_0;                       // +0x00
     char unknown_4[0x14 - 0x4];
@@ -29,16 +29,16 @@ public:
     int field_24;                      // +0x24
     char unknown_28[0x1044 - 0x28];
 
-    void FUN_00461db0(int a1, int a2, int a3, int a4);
+    void InitPools(int a1, int a2, int a3, int a4);
 };
 
-class Class_00461630 {
+class PacketManager {
 public:
     char unknown_0[4];
     int field_4;                       // +0x04
-    Class_00462470 entries[11];        // +0x08
+    PacketChannel entries[11];         // +0x08
 
-    Class_00462470* FUN_00461630(int param_1, int param_2);
+    PacketChannel* FindChannel(int param_1, int param_2);
 };
 
 // A player slot: the 0x14b byte record the game keeps in g_game->players.
@@ -57,7 +57,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x461630
-Class_00462470* Class_00461630::FUN_00461630(int param_1, int param_2)
+PacketChannel* PacketManager::FindChannel(int param_1, int param_2)
 {
     unsigned i;
     for (i = 0; i <= 10; i++) {
@@ -68,7 +68,7 @@ Class_00462470* Class_00461630::FUN_00461630(int param_1, int param_2)
         return 0;
     for (i = 0; i <= 10; i++) {
         if (entries[i].field_14 == -1) {
-            entries[i].FUN_00461db0(param_1, field_4, 2, 0x64);
+            entries[i].InitPools(param_1, field_4, 2, 0x64);
             return &entries[i];
         }
     }
@@ -82,7 +82,7 @@ Class_00462470* Class_00461630::FUN_00461630(int param_1, int param_2)
             }
         }
         if (used == 0) {
-            entries[i].FUN_00461db0(param_1, field_4, 2, 0x64);
+            entries[i].InitPools(param_1, field_4, 2, 0x64);
             return &entries[i];
         }
     }

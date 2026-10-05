@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Sibling of 0x451180: marks the local player's info, then reads the same
-// five values and hands them to FUN_004c9920.
+// five values and hands them to HAPINET_createnewgame.
 
 #pragma pack(push, 1)
 struct PlayerInfo_451540 {
@@ -29,14 +29,14 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];
 
-void __stdcall FUN_00451090(char* name, int* d, int* c, int* b, int* a);
-void __stdcall FUN_004c9920(void* obj, char* name, char* data, int d, int c, int b, int a);
+void __stdcall BuildGameInfo(char* name, int* d, int* c, int* b, int* a);
+void __stdcall HAPINET_createnewgame(void* obj, char* name, char* data, int d, int c, int b, int a);
 
 // The flag is a bit of an unsigned short bitfield in the packed info struct:
 // that gives "or byte ptr [m], 1"; an unsigned char or a plain byte "|= 1"
 // goes through a register.
 // FUNCTION: 0x451540
-void FUN_00451540(void)
+void CreateNetGame(void)
 {
     int a;
     int b;
@@ -45,7 +45,7 @@ void FUN_00451540(void)
     char name[32];
 
     g_game->players[g_game->localPlayer].info->flag_97_0 = 1;
-    FUN_00451090(name, &d, &c, &b, &a);
+    BuildGameInfo(name, &d, &c, &b, &a);
     g_game->field_2a3c = 0;
-    FUN_004c9920(g_game->unknown_14, name, DAT_005119b8, d, c, b, a);
+    HAPINET_createnewgame(g_game->unknown_14, name, DAT_005119b8, d, c, b, a);
 }

@@ -49,8 +49,8 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00452cc0(int id);
-int __stdcall FUN_00451df0(int player, void* data, int size);
+void __stdcall RemovePlayer(int id);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 static inline int PlayerId(unsigned char i)
 {
@@ -84,7 +84,7 @@ int __stdcall FUN_00452800(int id)
     if ((player->field_0 != 0 && player->flag_73 == 3)
         || !(g_game->flags_38d75 & 1)
         || (g_game->flags_38d75 & 2)) {
-        FUN_00452cc0(id);
+        RemovePlayer(id);
     }
-    return FUN_00451df0(g_game->players[g_game->field_2a42].field_4, msg, 5);
+    return BroadcastPacket(g_game->players[g_game->field_2a42].field_4, msg, 5);
 }

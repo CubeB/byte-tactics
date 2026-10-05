@@ -44,17 +44,17 @@ struct Message_004565a0 {
 
 #pragma pack(pop)
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
-int __stdcall FUN_004c9790(int param_1);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
+int __stdcall HAPINET_guaranteepackets(int param_1);
 
 static inline int GetPlayerId(unsigned char i)
 {
@@ -75,20 +75,20 @@ static inline unsigned char FindPlayerIndex(int id)
 }
 
 // FUNCTION: 0x4565a0
-void __stdcall FUN_004565a0(Message_004565a0* p)
+void __stdcall HandlePing(Message_004565a0* p)
 {
     if (p->sent_tick == 0) {                       // not sent yet
-        if (DAT_00506dbc != 0) {
-            DAT_00513000.FUN_004618a0(1);
+        if (g_usePacketManager != 0) {
+            g_packetManager.SendAllQueued(1);
         }
         p->sent_tick = GetTickCount();
-        int packets_were_guaranteed = FUN_004c9790(0);
-        FUN_00451bc0(g_game->lobby1, p->id, p, 0xd);
-        if (DAT_00506dbc != 0) {
-            DAT_00513000.FUN_004618a0(1);
+        int packets_were_guaranteed = HAPINET_guaranteepackets(0);
+        SendPacketToPlayer(g_game->lobby1, p->id, p, 0xd);
+        if (g_usePacketManager != 0) {
+            g_packetManager.SendAllQueued(1);
         }
         if (packets_were_guaranteed != 0) {          // hand them back
-            FUN_004c9790(1);
+            HAPINET_guaranteepackets(1);
         }
         return;
     }

@@ -28,7 +28,7 @@ public:
 
 class Class_00463c60 {
 public:
-    void FUN_00463c60(int param_1);
+    void SetType(int param_1);
 };
 
 // FUNCTION: 0x416280
@@ -43,9 +43,9 @@ void __stdcall FUN_00416280(Class_004b73e0* args)
             // reusing the values tested above.
             Player_00416280* q = &g_game->players[i];
             if (q->active != 0 && q->type == 1)
-                ((Class_00463c60*)q)->FUN_00463c60(2);
+                ((Class_00463c60*)q)->SetType(2);
             else
-                ((Class_00463c60*)q)->FUN_00463c60(1);
+                ((Class_00463c60*)q)->SetType(1);
         }
     }
 }

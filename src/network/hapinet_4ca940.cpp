@@ -13,13 +13,13 @@ struct Net_004ca940 {
     Iface_004ca940* dp;                // +0x4
 };
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // Releases the DirectPlay interface, then the lobby interface.
 // FUNCTION: 0x4ca940
-int __stdcall FUN_004ca940(Net_004ca940* net)
+int __stdcall HAPINET_releasedplayinterface(Net_004ca940* net)
 {
-    FUN_004c9740((int)"HAPINET_releasedplayinterface\n");
+    HapinetTrace((int)"HAPINET_releasedplayinterface\n");
     int result = 0;
     if (net->dp != 0) {
         result = net->dp->Release();

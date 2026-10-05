@@ -20,7 +20,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x44fdb0
-int FUN_0044fdb0()
+int GetLocalDpid()
 {
     int i = 0;
     while (!(g_game->players[i].field_0 != 0

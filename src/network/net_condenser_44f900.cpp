@@ -3,7 +3,7 @@
 // 0x44f8a0 (the global copies at 0x44f720/0x44f7e0 inline the same body).
 
 #pragma pack(push, 1)
-class Class_0044f8a0 {
+class NetCondenser {
 public:
     char* buffer;                    // +0x0
     int unknown_4;                   // +0x4
@@ -16,13 +16,13 @@ public:
     int unknown_1d;                  // +0x1d
     int unknown_21;                  // +0x21
 
-    Class_0044f8a0();
-    ~Class_0044f8a0();
+    NetCondenser();
+    ~NetCondenser();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x44f900
-Class_0044f8a0::~Class_0044f8a0()
+NetCondenser::~NetCondenser()
 {
     delete[] buffer;
     delete[] buffer_10;

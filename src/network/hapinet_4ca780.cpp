@@ -22,12 +22,12 @@ struct Net_4ca780 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4ca780
-int __stdcall FUN_004ca780(Net_4ca780* net, unsigned long id)
+int __stdcall HAPINET_removeplayer(Net_4ca780* net, unsigned long id)
 {
-    FUN_004c9740((int)"HAPINET_removeplayer\n");
+    HapinetTrace((int)"HAPINET_removeplayer\n");
     if (net->dp != 0) {
         int hr = net->dp->DestroyPlayer(id);
         return hr == 0 ? 1 : 0;

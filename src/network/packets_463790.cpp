@@ -40,12 +40,12 @@ void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 
 // Bit reader, see src/network/net_stats_415dc0.cpp.
-class Class_00415dc0 {
+class BitReader {
 public:
     unsigned int* data;                // +0x00
     int index;                         // +0x04
     int bit;                           // +0x08
-    int FUN_00415dc0(int bits);
+    int ReadBits(int bits);
 };
 
 // Length of each packet command, one word per 4-byte entry.
@@ -91,7 +91,7 @@ struct Ring_00463790 {
     }
 };
 
-class Class_00463730 {
+class FrameQueue {
 public:
     int field_0;                       // +0x00
     unsigned int field_4;              // +0x04
@@ -103,11 +103,11 @@ public:
 
     int Count() { return buffer ? buffer->count : 0; }
 
-    int FUN_00463790(char* src, unsigned int size, int tick, int a4, int a5, int a6);
+    int QueueFrames(char* src, unsigned int size, int tick, int a4, int a5, int a6);
 };
 
 // FUNCTION: 0x463790
-int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4, int a5, int a6)
+int FrameQueue::QueueFrames(char* src, unsigned int size, int tick, int a4, int a5, int a6)
 {
     if (size <= 0)
         return 1;
@@ -145,12 +145,12 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
             break;
         unsigned short w;
         if (c == 0x2c) {
-            Class_00415dc0 reader;
+            BitReader reader;
             reader.data = (unsigned int*)p;
             reader.index = 0;
             reader.bit = 0;
-            reader.FUN_00415dc0(8);
-            w = (unsigned short)reader.FUN_00415dc0(0x10);
+            reader.ReadBits(8);
+            w = (unsigned short)reader.ReadBits(0x10);
         } else {
             w = DAT_00512ad8[c][0];
         }
@@ -180,12 +180,12 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
                 unsigned char c = *q;
                 unsigned short w;
                 if (c == 0x2c) {
-                    Class_00415dc0 reader;
+                    BitReader reader;
                     reader.data = (unsigned int*)q;
                     reader.index = 0;
                     reader.bit = 0;
-                    reader.FUN_00415dc0(8);
-                    w = (unsigned short)reader.FUN_00415dc0(0x10);
+                    reader.ReadBits(8);
+                    w = (unsigned short)reader.ReadBits(0x10);
                     if (left > 0) {
                         left--;
                         remaining -= w;
@@ -218,12 +218,12 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int tick, int a4,
                 break;
             unsigned short w;
             if (c == 0x2c) {
-                Class_00415dc0 reader;
+                BitReader reader;
                 reader.data = (unsigned int*)q;
                 reader.index = 0;
                 reader.bit = 0;
-                reader.FUN_00415dc0(8);
-                w = (unsigned short)reader.FUN_00415dc0(0x10);
+                reader.ReadBits(8);
+                w = (unsigned short)reader.ReadBits(0x10);
                 if (left > 0) {
                     left--;
                     rem -= w;

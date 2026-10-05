@@ -129,7 +129,7 @@ int __stdcall FUN_0049c9c0(Unit* fire, Unit* unit, Vec3_0049d580* p3,
 int __stdcall FUN_0049cde0(Unit* shot, Unit* unit, Vec3_0049d580* pos,
                            Vec3_0049d580* aim, Unit* target);
 int __stdcall FUN_004b6c30(int range);
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x49d580
 int __stdcall FUN_0049d580(Unit* fire, Unit* unit,
@@ -200,7 +200,7 @@ int __stdcall FUN_0049d580(Unit* fire, Unit* unit,
             msg.heading = unit->f_16;
             msg.pitch = unit->f_18;
             msg.unknown_1a = msg.unknown_1a ^ ((unit->f_c->flags.value >> 30 ^ msg.unknown_1a) & 1);
-            FUN_00451df0(fire->f_96->id, &msg, 0x24);
+            BroadcastPacket(fire->f_96->id, &msg, 0x24);
         }
         return 1;
     }

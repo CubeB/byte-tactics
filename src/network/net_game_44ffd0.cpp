@@ -20,7 +20,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x44ffd0
-int __stdcall FUN_0044ffd0(unsigned char index)
+int __stdcall GetSlotDpid(unsigned char index)
 {
     if (index != 10 && g_game->players[index].type != 0)
         return g_game->players[index].field_4;

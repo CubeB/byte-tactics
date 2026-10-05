@@ -28,28 +28,28 @@ struct Target_0046d630 {
     int sent;                          // +0x28
 };
 
-int FUN_0044fe00();
-unsigned int FUN_00450030();
-void __stdcall FUN_00451bc0(int a, unsigned int b, void* c, int d);
+int GetLocalHumanDpid();
+unsigned int GetHostDpid();
+void __stdcall SendPacketToPlayer(int a, unsigned int b, void* c, int d);
 
-// Inlined copy of Class_0046cec0::FUN_0046cec0 (a method that ignores this).
+// Inlined copy of Class_0046cec0::SendUnsequenced (a method that ignores this).
 static inline void SendPacket(unsigned int to, void* packet)
 {
     *(int*)((char*)packet + 2) = 0;
-    FUN_00451bc0(FUN_0044fe00(), to, packet, 0xe);
+    SendPacketToPlayer(GetLocalHumanDpid(), to, packet, 0xe);
 }
 
-class Class_0046d630 {
+class UnitSync {
 public:
     char unknown_0[0x58];
     int direct;                        // +0x58
     char unknown_5c[0x64 - 0x5c];
     int disabled;                      // +0x64
-    void FUN_0046d630(Target_0046d630* target, unsigned char arg, Source_0046d630* src, int unused);
+    void SendEntryTo(Target_0046d630* target, unsigned char arg, Source_0046d630* src, int unused);
 };
 
 // FUNCTION: 0x46d630
-void Class_0046d630::FUN_0046d630(Target_0046d630* target, unsigned char arg, Source_0046d630* src, int unused)
+void UnitSync::SendEntryTo(Target_0046d630* target, unsigned char arg, Source_0046d630* src, int unused)
 {
     if (disabled == 0) {
         Packet_0046d630 packet;
@@ -62,7 +62,7 @@ void Class_0046d630::FUN_0046d630(Target_0046d630* target, unsigned char arg, So
         if (direct != 0) {
             SendPacket(target->id, &packet);
         } else {
-            SendPacket(FUN_00450030(), &packet);
+            SendPacket(GetHostDpid(), &packet);
         }
         target->sent++;
     }

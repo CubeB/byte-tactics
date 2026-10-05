@@ -54,7 +54,7 @@ static __inline unsigned char FindSlot_00452570(int id)
 }
 
 // FUNCTION: 0x452570
-int __stdcall FUN_00452570(int id, int slot)
+int __stdcall IsColorFree(int id, int slot)
 {
     if (slot == 0xff || slot < 0 || slot >= 10) {
         return 0;

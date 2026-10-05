@@ -60,18 +60,18 @@ struct Net_4ca250 {
 
 extern Guid_4ca250 DAT_004fdaf0;
 
-void __cdecl FUN_004c9740(int);
-int __stdcall FUN_004ca5d0(Net_4ca250* net, Guid_4ca250* sp, Guid_4ca250* application);
-int __stdcall FUN_004ca100(Guid_4ca250* sp, void* connection, unsigned long size, void* name, unsigned long flags, void* context);
+void __cdecl HapinetTrace(int);
+int __stdcall HAPINET_initmultiplay(Net_4ca250* net, Guid_4ca250* sp, Guid_4ca250* application);
+int __stdcall HAPINET_enumconnections(Guid_4ca250* sp, void* connection, unsigned long size, void* name, unsigned long flags, void* context);
 
 // FUNCTION: 0x4ca250
-int __stdcall FUN_004ca250(Net_4ca250* net, int a, int b, int c, Guid_4ca250* application)
+int __stdcall HAPINET_getconnections(Net_4ca250* net, int a, int b, int c, Guid_4ca250* application)
 {
-    FUN_004c9740((int)"HAPINET_getconnections\n");
+    HapinetTrace((int)"HAPINET_getconnections\n");
     if (net->dp == 0) {
         Guid_4ca250 sp = DAT_004fdaf0;
         Guid_4ca250 app = *application;
-        if (!FUN_004ca5d0(net, &sp, &app)) {
+        if (!HAPINET_initmultiplay(net, &sp, &app)) {
             return 0;
         }
     }
@@ -79,6 +79,6 @@ int __stdcall FUN_004ca250(Net_4ca250* net, int a, int b, int c, Guid_4ca250* ap
     net->field_4e5 = 0;
     net->field_435 = b;
     net->field_439 = c;
-    int hr = net->dp->EnumConnections(application, FUN_004ca100, net, 1);
+    int hr = net->dp->EnumConnections(application, HAPINET_enumconnections, net, 1);
     return hr == 0 ? 1 : 0;
 }

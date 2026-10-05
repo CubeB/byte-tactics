@@ -16,16 +16,16 @@ struct Net_4ca400 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
-BOOL __stdcall FUN_004ca330(GUID* sp, char* name, DWORD major, DWORD minor, void* context);
+void __cdecl HapinetTrace(int);
+BOOL __stdcall HAPINET_enumproviders(GUID* sp, char* name, DWORD major, DWORD minor, void* context);
 
 // FUNCTION: 0x4ca400
-int __stdcall FUN_004ca400(Net_4ca400* net, int a, int c)
+int __stdcall HAPINET_getproviders(Net_4ca400* net, int a, int c)
 {
-    FUN_004c9740((int)"HAPINET_getproviders\n");
+    HapinetTrace((int)"HAPINET_getproviders\n");
     net->field_4e5 = 0;
     net->field_431 = a;
     net->field_439 = c;
-    DirectPlayEnumerateA(FUN_004ca330, net);
+    DirectPlayEnumerateA(HAPINET_enumproviders, net);
     return 1;
 }

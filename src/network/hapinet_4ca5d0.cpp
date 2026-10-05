@@ -32,18 +32,18 @@ struct Net_4ca5d0 {
 };
 #pragma pack(pop)
 
-extern int DAT_0050a780;
+extern int g_guaranteePackets;
 extern GUID DAT_004fcd78;
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 int FUN_004b6220();
 extern "C" HRESULT __stdcall DirectPlayCreate(GUID* sp, void** dp, void* unknown);
 
 // FUNCTION: 0x4ca5d0
-int __stdcall FUN_004ca5d0(Net_4ca5d0* net, Guid_4ca5d0* sp, Guid_4ca5d0* application)
+int __stdcall HAPINET_initmultiplay(Net_4ca5d0* net, Guid_4ca5d0* sp, Guid_4ca5d0* application)
 {
-    FUN_004c9740((int)"HAPINET_initmultiplay\n");
-    DAT_0050a780 = 0;
+    HapinetTrace((int)"HAPINET_initmultiplay\n");
+    g_guaranteePackets = 0;
     net->field_4ad = *(int*)(FUN_004b6220() + 0x40);
     net->application = *application;
     net->field_4c9 = 0;

@@ -5,7 +5,7 @@
 // rect has a non-empty size", and def+0x15a takes the rect's last field.
 
 #pragma pack(push, 1)
-struct Rect_0046e160 {
+struct UnitSyncEntry {
     int x;                             // +0x0
     int y;                             // +0x4
     short w;                           // +0x8
@@ -18,7 +18,7 @@ struct Node_0046e160 {
     Node_0046e160* parent;             // +0x4
     Node_0046e160* right;              // +0x8
     unsigned int key;                  // +0xc
-    Rect_0046e160 value;               // +0x10
+    UnitSyncEntry value;               // +0x10
 };
 
 struct Flags_0046e160 {
@@ -78,7 +78,7 @@ public:
         Iter_0046e160 p = Iter_0046e160(((Class_0046fe60*)this)->FUN_0046fe60(key));
         return (p == End() || compare(*key, p.ptr->key)) ? End() : p;
     }
-    void FUN_0046e160();
+    void ApplyToUnitTypes();
 };
 
 extern Game* g_game;
@@ -87,7 +87,7 @@ void FUN_00428fe0();
 void FUN_00428fc0();
 
 // FUNCTION: 0x46e160
-void Class_0046e160::FUN_0046e160()
+void Class_0046e160::ApplyToUnitTypes()
 {
     if (field_64 != 0)
         return;

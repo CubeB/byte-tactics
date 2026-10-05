@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-class Class_0044f8a0 {
+class NetCondenser {
 public:
     char* buffer;                    // +0x0
     int unknown_4;                   // +0x4
@@ -14,12 +14,12 @@ public:
     int unknown_1d;                  // +0x1d
     int unknown_21;                  // +0x21
 
-    Class_0044f8a0();
+    NetCondenser();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x44f8a0
-Class_0044f8a0::Class_0044f8a0()
+NetCondenser::NetCondenser()
 {
     buffer = new char[0x6d60];
     unknown_4 = 0;

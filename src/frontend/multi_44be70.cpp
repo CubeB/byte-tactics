@@ -54,9 +54,9 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_0046e330 {
+class UnitSync {
 public:
-    void FUN_0046e550(UnitType_0044be70* unit, int value);
+    void SetUnitLimit(UnitType_0044be70* unit, int value);
 };
 
 extern Game* g_game;
@@ -83,7 +83,7 @@ void __stdcall FUN_0044be70(void* obj, char* gadget)
         _itoa(value, buf, 10);
     }
     DAT_005129b4[n + desc->field_bc].field_5a = value;
-    ((Class_0046e330*)g_game->field_2a30)->FUN_0046e550(
+    ((UnitSync*)g_game->field_2a30)->SetUnitLimit(
         &g_game->field_1439b[DAT_005129b4[n + desc->field_bc].field_52], value);
     desc->field_d6[n + desc->field_bc] = DAT_005129b4[n + desc->field_bc].field_5e == 0;
     desc->field_d6[n + desc->field_bc] |= DAT_005129b4[n + desc->field_bc].field_5a == 0 ? 2 : 0;

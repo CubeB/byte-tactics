@@ -219,14 +219,14 @@ void __stdcall FUN_00445c70(Gui_00449bb0* gui, int index);
 void FUN_00445ed0();
 void FUN_00446a50();
 void FUN_00448c70();
-void FUN_00450f90();
-void FUN_00451180();
+void BroadcastPlayerInfo();
+void UpdateNetGameInfo();
 int FUN_00456760();
-int FUN_00457a50();
-int FUN_0045b660();
+int IsHostLocal();
+int IsOnlineConfigLoaded();
 void __stdcall FUN_0045b9b0(Gadget_00449bb0* gadget, int value);
 int __stdcall FUN_0045ba20(Gadget_00449bb0* gadget);
-void __stdcall FUN_0046c8e0(int param_1);
+void __stdcall CreateUnitSync(int param_1);
 void __stdcall FUN_0049fa90(Gui_00449bb0* gui);
 void __stdcall FUN_0049fb10(Gui_00449bb0* gui, int value);
 int __stdcall FUN_0049fdf0(Gadget_00449bb0* entries, char* name, int type);
@@ -262,8 +262,8 @@ void __stdcall FUN_00445d60(Gui_00449bb0* gui, int unused)
         info = g_game->players[g_game->localPlayer].info;
         info->energy = (unsigned short)(shown / 100);
         if (info->f97_0 & 1) {
-            FUN_00450f90();
-            FUN_00451180();
+            BroadcastPlayerInfo();
+            UpdateNetGameInfo();
         }
     }
 }
@@ -323,7 +323,7 @@ void FUN_00449bb0()
     i = FUN_0049fdf0(entries, "MESSAGE", 3);
     if (i != -1)
         entries[i].field_138 = 0x7f;
-    if (!FUN_00457a50()) {
+    if (!IsHostLocal()) {
         i = FUN_0049fdf0(entries, "MAP", 1);
         if (i != -1) {
             entries[i].field_1b = 2;
@@ -331,7 +331,7 @@ void FUN_00449bb0()
         }
     }
 
-    if (FUN_0045b660()) {
+    if (IsOnlineConfigLoaded()) {
         if (DAT_00512d6c) {
             info->maxUnits = DAT_00512d6c;
             g_game->maxUnits = DAT_00512d6c;
@@ -395,10 +395,10 @@ void FUN_00449bb0()
         sprintf(mem->text, "%d", g_game->players[g_game->localPlayer].info->memory);
     }
     isHost = g_game->players[g_game->localPlayer].info->f97_0;
-    FUN_0046c8e0(isHost);
-    FUN_004a0570(&g_game->gui, "START", ((Class_0046e000*)g_game->net)->FUN_0046e000());
+    CreateUnitSync(isHost);
+    FUN_004a0570(&g_game->gui, "START", ((Class_0046e000*)g_game->net)->AllPlayersSynced());
     FUN_004a1250(&g_game->gui, "START",
-                 host && FUN_00456760() && ((Class_0046e000*)g_game->net)->FUN_0046e000() ? 0 : 1);
+                 host && FUN_00456760() && ((Class_0046e000*)g_game->net)->AllPlayersSynced() ? 0 : 1);
     FUN_004a1250(&g_game->gui, "RESTRICTIONS", 0);
     FUN_004a32a0(&g_game->gui, "OUTPUT", g_game->chatter, 0, 0);
     {
@@ -420,13 +420,13 @@ void FUN_00449bb0()
     FUN_00445e50("ENERGY", 0x2711, energy, FUN_00445d60);
 
     ((Class_00435d30*)g_game->map)->FUN_00435d30(1);
-    if (isHost && FUN_0045b660() && DAT_00512ce8[0])
+    if (isHost && IsOnlineConfigLoaded() && DAT_00512ce8[0])
         ((Class_00435a20*)g_game->map)->FUN_00435a20(DAT_00512ce8);
     if (!((Class_00435c40*)g_game->map)->FUN_00435c40())
         FUN_004b6290("Could not find the multiplayer map!!");
     strcpy(info->map, ((Class_00435c30*)g_game->map)->FUN_00435c30());
     info->mapCrc = ((Class_004373a0*)g_game->map)->FUN_004373a0();
-    FUN_00450f90();
+    BroadcastPlayerInfo();
     FUN_004a7190(&g_game->gui, FUN_0049fdf0(g_game->gui.table->entries, "MESSAGE", 0xe));
 
     for (char** p = DAT_005054b0; *p; p++) {

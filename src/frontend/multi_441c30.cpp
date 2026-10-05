@@ -47,7 +47,7 @@ extern char* DAT_00512980;
 extern Serial_00441c30 DAT_00512770;
 
 char* __stdcall FUN_004a0d00(void* obj, char* name, char* buf);
-int __stdcall FUN_004ca880(void* net, void* elements, unsigned long count, void* address,
+int __stdcall HAPINET_createcompoundaddress(void* net, void* elements, unsigned long count, void* address,
                            unsigned long* size);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 
@@ -141,14 +141,14 @@ int __stdcall FUN_00441c30(HGLOBAL* addressOut, unsigned long* sizeOut)
         count = 1;
     }
 
-    result = FUN_004ca880(g_game + 0x14, elements, count, 0, &size);
+    result = HAPINET_createcompoundaddress(g_game + 0x14, elements, count, 0, &size);
     if (result != 0x8877001e) goto cleanup;
     block = (HGLOBAL)FUN_004d83b0("COMPOUND ADDR", size);
     if (block == 0) {
         result = 0x8007000e;
         goto cleanup;
     }
-    result = FUN_004ca880(g_game + 0x14, elements, count, block, &size);
+    result = HAPINET_createcompoundaddress(g_game + 0x14, elements, count, block, &size);
     if (result < 0) {
 cleanup:
         if (block != 0) {

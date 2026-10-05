@@ -18,16 +18,16 @@ struct Player_00452bd0 {
 };
 #pragma pack(pop)
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // An inlined helper with one return per outcome: written as a plain
 // condition, MSVC moves the `return 0` path after the body.
@@ -50,9 +50,9 @@ int __stdcall FUN_00452bd0(Player_00452bd0* player)
     msg[0] = 0x24;
     *(int*)(msg + 1) = player->id;
     msg[5] = player->field_13f;
-    int result = FUN_00451df0(player->id, msg, 6);
-    if (DAT_00506dbc != 0) {
-        DAT_00513000.FUN_004618a0(1);
+    int result = BroadcastPacket(player->id, msg, 6);
+    if (g_usePacketManager != 0) {
+        g_packetManager.SendAllQueued(1);
     }
     return result;
 }

@@ -1,12 +1,12 @@
 // Decompiled by Opus. Names are provisional.
 
 // Reads bit fields from an array of dwords, lowest bits first.
-class Class_00415dc0 {
+class BitReader {
 public:
     unsigned int* data;                // +0x00
     int index;                         // +0x04
     int bit;                           // +0x08
-    int FUN_00415dc0(int bits);
+    int ReadBits(int bits);
 
     int ReadBit()
     {
@@ -44,16 +44,16 @@ public:
     Point_0044f5c0 points[3];          // +0xc
     int count;                         // +0x18
 
-    void FUN_0044f5c0(Class_00415dc0* reader);
+    void FUN_0044f5c0(BitReader* reader);
 };
 
 // FUNCTION: 0x44f5c0
-void Class_0044f5c0::FUN_0044f5c0(Class_00415dc0* reader)
+void Class_0044f5c0::FUN_0044f5c0(BitReader* reader)
 {
     owner->target->flag_2 = reader->ReadBit();
-    count = reader->FUN_00415dc0(2);
+    count = reader->ReadBits(2);
     for (int i = 0; i < count; i++) {
-        points[i].x = reader->FUN_00415dc0(16);
-        points[i].y = reader->FUN_00415dc0(16);
+        points[i].x = reader->ReadBits(16);
+        points[i].y = reader->ReadBits(16);
     }
 }

@@ -37,7 +37,7 @@ void __stdcall FUN_0049fa90(void* obj);
 void __stdcall FUN_0049fad0(void* obj);
 
 // FUNCTION: 0x463ca0
-void __stdcall FUN_00463ca0(char* text, unsigned char key, unsigned short value, char last)
+void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, char last)
 {
     if (!*text)
         return;

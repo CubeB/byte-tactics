@@ -3,11 +3,11 @@
 // Joins the game as the local player: picks the player/session name (from the
 // network object or the two default strings), fills in the player's info block
 // and, depending on whether a DirectPlay interface is present, either joins the
-// lobby in a worker thread (FUN_00451640) or connects through the local net
-// object (FUN_004c9fd0). On success it starts the game (FUN_00451220,
-// FUN_004ca840), broadcasts every playing player's 0xb9-byte data block and
-// 6-byte message (the same code as FUN_00450f90), and finishes with
-// FUN_004526c0(0).
+// lobby in a worker thread (JoinLobbyGame) or connects through the local net
+// object (HAPINET_joingame). On success it starts the game (CreateLocalPlayer,
+// HAPINET_enumplayers), broadcasts every playing player's 0xb9-byte data block and
+// 6-byte message (the same code as BroadcastPlayerInfo), and finishes with
+// RequestPlayerColor(0).
 //
 // What made this match:
 // - The user name read into the 0x100-byte stack buffer is never read again:
@@ -106,36 +106,36 @@ struct Obj_4517b0 {
     unsigned short flag : 1;           // +0xf0, mask 2
 };
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
 extern Game* g_game;
 extern char DAT_00512d48;
 extern char DAT_005119b8;
 extern char DAT_00512d28;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 
-int FUN_0045b660(void);
+int IsOnlineConfigLoaded(void);
 void FUN_004644d0(void);
 void FUN_00450530(void);
-int __stdcall FUN_00451640(Player_4517b0* p);
-int __stdcall FUN_00451df0(int player, void* data, int size);
-int __stdcall FUN_004526c0(int param);
-int __stdcall FUN_00451220(int player, int param);
-int __stdcall FUN_004c9fd0(void* net, Guid_4517b0 guid);
-int __stdcall FUN_004ca840(void* net, void* session, void* callback, void* context,
+int __stdcall JoinLobbyGame(Player_4517b0* p);
+int __stdcall BroadcastPacket(int player, void* data, int size);
+int __stdcall RequestPlayerColor(int param);
+int __stdcall CreateLocalPlayer(int player, int param);
+int __stdcall HAPINET_joingame(void* net, Guid_4517b0 guid);
+int __stdcall HAPINET_enumplayers(void* net, void* session, void* callback, void* context,
                            unsigned long flags);
-void __stdcall FUN_004515d0(int, int, int, int, int);
+void __stdcall EnumPlayersCallback(int, int, int, int, int);
 Obj_4517b0* FUN_004b6220(void);
 void FUN_004b5910(void);
 char* __stdcall FUN_004c5740(char* s);
 void __stdcall FUN_004b6290(char* msg);
 
 // FUNCTION: 0x4517b0
-int __stdcall FUN_004517b0(Guid_4517b0 guid, int player)
+int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
 {
     char name[0x100];
     Packet_4517b0 packet;
@@ -146,7 +146,7 @@ int __stdcall FUN_004517b0(Guid_4517b0 guid, int player)
 
         Net_4517b0* net = g_game->field_4e5;
         if (net != 0) {
-            int v = FUN_0045b660();
+            int v = IsOnlineConfigLoaded();
             char* s = &DAT_00512d48;
             if (v == 0)
                 s = &DAT_005119b8;
@@ -199,7 +199,7 @@ int __stdcall FUN_004517b0(Guid_4517b0 guid, int player)
 
         int result;
         if (g_game->field_4e5 != 0) {
-            result = FUN_00451640(p);
+            result = JoinLobbyGame(p);
             if (result == 0) {
                 if (FUN_004b6220()->flag) {
                     FUN_004b5910();
@@ -208,13 +208,13 @@ int __stdcall FUN_004517b0(Guid_4517b0 guid, int player)
                 FUN_004b6290(FUN_004c5740("Unable to connect to DirectPlay lobby."));
             }
         } else {
-            result = FUN_004c9fd0((Net_4517b0*)((char*)g_game + 0x14), guid);
+            result = HAPINET_joingame((Net_4517b0*)((char*)g_game + 0x14), guid);
         }
         if (result == 0)
             return 0;
 
-        FUN_00451220(player, 1);
-        FUN_004ca840((Net_4517b0*)((char*)g_game + 0x14), 0, (void*)FUN_004515d0, 0, 0);
+        CreateLocalPlayer(player, 1);
+        HAPINET_enumplayers((Net_4517b0*)((char*)g_game + 0x14), 0, (void*)EnumPlayersCallback, 0, 0);
         if (g_game->flags_2a44 & 1) {
             for (int i = 0; i < 10; i++) {
                 Player_4517b0* q = &g_game->players[i];
@@ -222,23 +222,23 @@ int __stdcall FUN_004517b0(Guid_4517b0 guid, int player)
                     packet.data = *q->info;
                     packet.data.id = q->id;
                     packet.type = 0x20;
-                    FUN_00451df0(q->id, &packet, sizeof(packet));
+                    BroadcastPacket(q->id, &packet, sizeof(packet));
                     if (q->active != 0 && (q->state == 1 || q->state == 2)) {
                         unsigned char* msg = g_game->buffer;
                         msg[0] = 0x24;
                         *(int*)(msg + 1) = q->id;
                         msg[5] = q->field_13f;
-                        FUN_00451df0(q->id, msg, 6);
-                        if (DAT_00506dbc != 0)
-                            DAT_00513000.FUN_004618a0(1);
+                        BroadcastPacket(q->id, msg, 6);
+                        if (g_usePacketManager != 0)
+                            g_packetManager.SendAllQueued(1);
                     }
                 }
             }
             FUN_00450530();
-            DAT_00513000.FUN_004618a0(1);
+            g_packetManager.SendAllQueued(1);
         }
 
-        FUN_004526c0(0);
+        RequestPlayerColor(0);
         return 1;
     }
     return 0;

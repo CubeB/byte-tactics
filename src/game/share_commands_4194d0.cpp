@@ -13,7 +13,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00463ca0(char* param_1, int param_2, int param_3, int param_4);
+void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
 
 // FUNCTION: 0x4194d0
 void __stdcall FUN_004194d0(int unused)
@@ -23,6 +23,6 @@ void __stdcall FUN_004194d0(int unused)
         g_game->field_4ed = (g_game->field_4ed == 0);
         sprintf(buf, "Ok.  Outgoing packet compression turned %s",
                 g_game->field_4ed ? "OFF" : "ON");
-        FUN_00463ca0(buf, 2, 0, 10);
+        AddMessage(buf, 2, 0, 10);
     }
 }

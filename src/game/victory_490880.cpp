@@ -22,8 +22,8 @@ struct Vec3_004907e0 {
 };
 
 class Class_0044f010;                  // slot 6's result (see 0x44f450.cpp)
-class Class_00415c10;                  // the bit writer slot 8 takes
-class Class_00415dc0;                  // the bit reader slot 9 takes
+class BitWriter;                       // the bit writer slot 8 takes
+class BitReader;                       // the bit reader slot 9 takes
 
 // Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
 class Class_0044ef20 {
@@ -40,8 +40,8 @@ public:
     virtual int FUN_0044ef80();                     // slot 5
     virtual Class_0044f010* FUN_0044eff0();         // slot 6
     virtual int FUN_0044efe0();                     // slot 7
-    virtual void FUN_0044efc0(Class_00415c10*);     // slot 8
-    virtual void FUN_0044efd0(Class_00415dc0*);     // slot 9
+    virtual void FUN_0044efc0(BitWriter*);          // slot 8
+    virtual void FUN_0044efd0(BitReader*);          // slot 9
     virtual void FUN_0044ef50(void*);               // slot 10
 };
 
@@ -67,7 +67,7 @@ public:
     virtual void FUN_0044ef90(void* param);         // slot 1, 0x490860
     virtual void FUN_0044efb0();                    // slot 2, 0x490880
     virtual int FUN_0044efe0();                     // slot 7, 0x4908b0
-    virtual void FUN_0044efc0(Class_00415c10*);     // slot 8, 0x4908c0
+    virtual void FUN_0044efc0(BitWriter*);          // slot 8, 0x4908c0
 };
 
 // FUNCTION: 0x490880

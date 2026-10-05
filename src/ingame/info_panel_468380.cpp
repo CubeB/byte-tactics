@@ -25,7 +25,7 @@ struct Game {
 extern Game* g_game;
 
 int FUN_004c1450();
-void __stdcall FUN_00416150(unsigned int* sent, unsigned int* received);
+void __stdcall GetByteRates(unsigned int* sent, unsigned int* received);
 void __stdcall FUN_004c14f0(void* surface, const char* text, int x, int y, int maxWidth);
 void __stdcall FUN_004bf8c0(void* surface, Rect_004b0510* rect, int color);
 void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
@@ -55,7 +55,7 @@ void __stdcall FUN_00468380(void* surface)
     r.y1 = g_game->f_37e23 - 0x5f;
     r.y2 = r.y1 + 8;
     int h = FUN_004c1450();
-    FUN_00416150(&sent, &received);
+    GetByteRates(&sent, &received);
     sprintf(buf, "Send - %1.1f K/s", sent * 0.001);
     FUN_004c14f0(surface, buf, r.x1, r.y1, -1);
     r.y1 += h;

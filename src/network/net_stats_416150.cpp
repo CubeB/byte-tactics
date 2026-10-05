@@ -7,26 +7,26 @@
 
 extern int DAT_00511bc8;
 extern int DAT_00511c50;
-extern int DAT_00511c2c;
-extern int DAT_00511a40;
-extern unsigned int DAT_00511ddc;
-extern unsigned int DAT_00511a48;
-extern unsigned int DAT_00511a50;
+extern int g_byteRatesLastSent;
+extern int g_byteRatesLastReceived;
+extern unsigned int g_byteRatesTick;
+extern unsigned int g_bytesSentPerSecond;
+extern unsigned int g_bytesReceivedPerSecond;
 
 unsigned int __cdecl FUN_004b6340();
 
 // FUNCTION: 0x416150
-void __stdcall FUN_00416150(unsigned int* sent, unsigned int* received)
+void __stdcall GetByteRates(unsigned int* sent, unsigned int* received)
 {
     unsigned int now = FUN_004b6340();
-    unsigned int elapsed = now - DAT_00511ddc;
+    unsigned int elapsed = now - g_byteRatesTick;
     if (elapsed > 30) {
-        DAT_00511ddc = now;
-        DAT_00511a48 = (DAT_00511bc8 * 30 - DAT_00511c2c * 30) / elapsed;
-        DAT_00511a50 = (DAT_00511c50 * 30 - DAT_00511a40 * 30) / elapsed;
-        DAT_00511c2c = DAT_00511bc8;
-        DAT_00511a40 = DAT_00511c50;
+        g_byteRatesTick = now;
+        g_bytesSentPerSecond = (DAT_00511bc8 * 30 - g_byteRatesLastSent * 30) / elapsed;
+        g_bytesReceivedPerSecond = (DAT_00511c50 * 30 - g_byteRatesLastReceived * 30) / elapsed;
+        g_byteRatesLastSent = DAT_00511bc8;
+        g_byteRatesLastReceived = DAT_00511c50;
     }
-    *sent = DAT_00511a48;
-    *received = DAT_00511a50;
+    *sent = g_bytesSentPerSecond;
+    *received = g_bytesReceivedPerSecond;
 }

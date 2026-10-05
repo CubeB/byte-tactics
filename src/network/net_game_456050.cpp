@@ -34,10 +34,10 @@ struct Packet_00456050 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x456050
-void __stdcall FUN_00456050(Object_00456050* obj)
+void __stdcall SendNewUnit(Object_00456050* obj)
 {
     Packet_00456050 packet;
     packet.type = 9;
@@ -45,5 +45,5 @@ void __stdcall FUN_00456050(Object_00456050* obj)
     packet.field_3 = obj->field_a8;
     packet.field_5 = obj->field_6a;
     packet.field_11 = obj->field_64;
-    FUN_00451df0(obj->player->field_4, &packet, 0x17);
+    BroadcastPacket(obj->player->field_4, &packet, 0x17);
 }

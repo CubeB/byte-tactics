@@ -33,7 +33,7 @@ void __stdcall FUN_00434ab0(int param);
 void FUN_004c1a40();
 void __stdcall FUN_0049fa50(Sub_00496b10* p);
 void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
-void __cdecl FUN_004578f0(int param);
+void __cdecl LeaveNetGameCallback(int param);
 void FUN_00496bb0();
 
 // FUNCTION: 0x496b10
@@ -50,5 +50,5 @@ void FUN_00496b10()
     FUN_0049fa50(&g_game->sub);
     g_game->mode = 2;
     g_game->handler = FUN_00496bb0;
-    FUN_004b4fd0(FUN_004578f0, 0);
+    FUN_004b4fd0(LeaveNetGameCallback, 0);
 }

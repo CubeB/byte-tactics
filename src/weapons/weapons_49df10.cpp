@@ -41,8 +41,8 @@ struct Packet_0049df10 {
 
 extern Game* g_game;
 
-int __cdecl FUN_0044fdb0();
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __cdecl GetLocalDpid();
+int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall FUN_0049c740(Proj_0049df10*, void*, void*, int, int, void*);
 
 // FUNCTION: 0x49df10
@@ -70,7 +70,7 @@ int __stdcall FUN_0049df10(Unit_0049df10* unit, Vec3_0049df10* a, Vec3_0049df10*
             packet.a = *a;
             packet.b = *b;
             packet.field_19 = team;
-            FUN_00451df0(FUN_0044fdb0(), &packet, 0x24);
+            BroadcastPacket(GetLocalDpid(), &packet, 0x24);
         }
     }
     return 1;

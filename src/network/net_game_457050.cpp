@@ -33,7 +33,7 @@ struct Packet_00457050 {
 
 extern Game* g_game;
 
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 
 static inline int PlayerDpid(unsigned char i)
 {
@@ -43,7 +43,7 @@ static inline int PlayerDpid(unsigned char i)
 }
 
 // FUNCTION: 0x457050
-void __stdcall FUN_00457050(unsigned char from, unsigned char to, int value)
+void __stdcall SendShareEnergy(unsigned char from, unsigned char to, int value)
 {
     Player_00457050* first = &g_game->players[from];
     Player_00457050* second = &g_game->players[to];
@@ -61,6 +61,6 @@ void __stdcall FUN_00457050(unsigned char from, unsigned char to, int value)
         packet.from = PlayerDpid(from);
         packet.to = PlayerDpid(to);
         packet.value = value;
-        FUN_00451bc0(PlayerDpid(from), PlayerDpid(to), &packet, sizeof(packet));
+        SendPacketToPlayer(PlayerDpid(from), PlayerDpid(to), &packet, sizeof(packet));
     }
 }

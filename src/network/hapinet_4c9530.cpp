@@ -1,15 +1,15 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // HAPINET_GetDPErrorString: maps a DirectPlay HRESULT (the DPERR_* values of
 // dplay.h, 0x88770000 + the enum ordinal) to the message TA prints. DP_OK and
-// the undocumented default are Cavedog's own additions. FUN_004c9740 is the
+// the undocumented default are Cavedog's own additions. HapinetTrace is the
 // trace stub, so the argument is re-read from the stack after the call.
 
-extern void __cdecl FUN_004c9740(const char*);
+extern void __cdecl HapinetTrace(const char*);
 
 // FUNCTION: 0x4c9530
-char* __stdcall FUN_004c9530(int error)
+char* __stdcall HAPINET_GetDPErrorString(int error)
 {
-    FUN_004c9740("HAPINET_GetDPErrorString\n");
+    HapinetTrace("HAPINET_GetDPErrorString\n");
     switch (error)
     {
     case 0x80004001:

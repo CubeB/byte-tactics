@@ -32,7 +32,7 @@ extern Guid_443ff0 DAT_004fcd98;
 extern Guid_443ff0 DAT_004fcdc8;
 extern Guid_443ff0 DAT_004fcdb8;
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
-int FUN_0045b660();
+int IsOnlineConfigLoaded();
 // FUNCTION: 0x443ff0
 int __stdcall FUN_00443ff0(int index)
 {
@@ -66,7 +66,7 @@ int __stdcall FUN_00443ff0(int index)
         } else {
             g_game->info.conn.size = 0;
         }
-        if (FUN_0045b660() && DAT_00512d28 != 0) {
+        if (IsOnlineConfigLoaded() && DAT_00512d28 != 0) {
             lstrcpynA(g_game->name, &DAT_00512d28, 0xb);
         }
         return 1;

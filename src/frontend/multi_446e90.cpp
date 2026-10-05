@@ -30,7 +30,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00452960(int, int, int, int);
+void __stdcall SetAlliance(int, int, int, int);
 
 static inline int IsSelectable(Player_00446e90* p)
 {
@@ -54,7 +54,7 @@ void __stdcall FUN_00446e90(Player_00446e90* player)
                 && g_game->players[i].type != 4
                 && g_game->players[i].alliance == player->alliance
                 && i != player->field_146) {
-                FUN_00452960(player->field_4, p->field_4, 0, 1);
+                SetAlliance(player->field_4, p->field_4, 0, 1);
                 player->info->flags_9d &= 0xfffd;
             }
         }

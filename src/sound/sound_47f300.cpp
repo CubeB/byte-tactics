@@ -108,8 +108,8 @@ extern Game* g_game;
 extern int DAT_0051e690;
 extern int DAT_0051e694;
 
-int __cdecl FUN_0044fdb0();
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __cdecl GetLocalDpid();
+int __stdcall BroadcastPacket(int player, void* data, int size);
 int __stdcall FUN_0047f0c0(int index, int param_2);
 struct Cell_0047f300;
 Cell_0047f300* __stdcall FUN_00481550(int x, int y);
@@ -351,7 +351,7 @@ int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
         packet.flag = 1;
         packet.index = index;
         packet.pos = *pos;
-        FUN_00451df0(FUN_0044fdb0(), &packet, 0x12);
+        BroadcastPacket(GetLocalDpid(), &packet, 0x12);
     }
 
     if (FUN_00481550(pos->xVal / (1 << 20), pos->zVal / (1 << 20)) == 0)

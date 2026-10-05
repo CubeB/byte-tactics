@@ -118,7 +118,7 @@ void __stdcall FUN_0049e070(Unit* unit);
 void __stdcall FUN_00437840(Unit* unit);
 void __stdcall FUN_0048a870(Unit* unit);
 void __stdcall FUN_0047cc30(Unit* unit);
-void __stdcall FUN_00456050(Unit* unit);
+void __stdcall SendNewUnit(Unit* unit);
 void __stdcall FUN_004560c0(Unit* a, Unit* b);
 void __stdcall FUN_00482ac0(Unit* unit);
 void* __cdecl operator new(unsigned int size);
@@ -183,7 +183,7 @@ found:
     unit->mode = mode;
     FUN_0048a870(unit);
     FUN_0047cc30(unit);
-    FUN_00456050(unit);
+    SendNewUnit(unit);
     if (param_5) {
         if (type->field_22f == 0)
             FUN_004560c0(unit, unit);

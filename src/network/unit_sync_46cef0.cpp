@@ -16,8 +16,8 @@ struct Packet_0046cef0 {         // 0xe bytes
 };
 #pragma pack(pop)
 
-int __cdecl FUN_0044fe00();
-void __stdcall FUN_00451bc0(int a, unsigned int b, void* c, int d);
+int __cdecl GetLocalHumanDpid();
+void __stdcall SendPacketToPlayer(int a, unsigned int b, void* c, int d);
 
 class Class_0046eba0 {
 public:
@@ -28,28 +28,28 @@ public:
     void FUN_0046eba0(Packet_0046cef0* where, int count, Packet_0046cef0* val);
 };
 
-class Class_0046d6c0 {
+class UnitSync {
 public:
-    void FUN_0046d6c0(void* param_1, int param_2);
+    void HandleSyncPacket(void* param_1, int param_2);
 };
 
-class Class_0046cef0 {
+class PacketSequencer {
 public:
     char unknown_0[4];
     unsigned int cur;            // +0x4
     unsigned int max;            // +0x8
     Class_0046eba0 sent;         // +0xc
     Class_0046eba0 queue;        // +0x1c
-    void FUN_0046cef0(Packet_0046cef0* packet, int param_2, void* param_3, unsigned int target);
+    void ReceiveSequenced(Packet_0046cef0* packet, int param_2, void* param_3, unsigned int target);
 };
 
 // FUNCTION: 0x46cef0
-void Class_0046cef0::FUN_0046cef0(Packet_0046cef0* packet, int param_2, void* param_3, unsigned int target)
+void PacketSequencer::ReceiveSequenced(Packet_0046cef0* packet, int param_2, void* param_3, unsigned int target)
 {
     if (packet->arg == 0x65) {
         for (Packet_0046cef0* p = sent.first; p != sent.last; p++) {
             if (p->id == packet->id) {
-                FUN_00451bc0(FUN_0044fe00(), target, p, 0xe);
+                SendPacketToPlayer(GetLocalHumanDpid(), target, p, 0xe);
                 break;
             }
         }
@@ -60,7 +60,7 @@ void Class_0046cef0::FUN_0046cef0(Packet_0046cef0* packet, int param_2, void* pa
     }
     if (packet->id == cur + 1) {
         cur = packet->id;
-        ((Class_0046d6c0*)param_3)->FUN_0046d6c0(packet, param_2);
+        ((UnitSync*)param_3)->HandleSyncPacket(packet, param_2);
         for (unsigned int i = cur + 1; i <= max; i++) {
             Packet_0046cef0* p;
             for (p = queue.first; p != queue.last; p++) {
@@ -68,7 +68,7 @@ void Class_0046cef0::FUN_0046cef0(Packet_0046cef0* packet, int param_2, void* pa
             }
             if (p == queue.last) break;
             cur = i;
-            ((Class_0046d6c0*)param_3)->FUN_0046d6c0(p, param_2);
+            ((UnitSync*)param_3)->HandleSyncPacket(p, param_2);
         }
         return;
     }
@@ -89,7 +89,7 @@ void Class_0046cef0::FUN_0046cef0(Packet_0046cef0* packet, int param_2, void* pa
             msg.type = 0x1a;
             msg.arg = 0x65;
             msg.id = i;
-            FUN_00451bc0(FUN_0044fe00(), target, &msg, 0xe);
+            SendPacketToPlayer(GetLocalHumanDpid(), target, &msg, 0xe);
         }
     }
 }

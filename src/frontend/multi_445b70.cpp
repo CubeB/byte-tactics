@@ -1,7 +1,7 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 // GUI callback (see the entry a slider widget stores at +0x144): shows the
 // unit limit of the player being watched, as text, and remembers it on the
-// local player. FUN_00456850 picks the watched player, or 10 for "nobody",
+// local player. FindHostSlot picks the watched player, or 10 for "nobody",
 // in which case the value comes from the widget's own slider instead.
 #include <stdlib.h>
 
@@ -46,9 +46,9 @@ extern Game* g_game;
 
 void* __stdcall FUN_004a0200(void* entries, char* name);
 void __stdcall FUN_004a0bf0(Gui_445b70* gui, char* name, char* data, int param_4);
-unsigned char FUN_00456850();
+unsigned char FindHostSlot();
 int __stdcall FUN_0045ba20(Entry_445b70* entry);
-void FUN_00450f90();
+void BroadcastPlayerInfo();
 
 // FUNCTION: 0x445b70
 void __stdcall FUN_00445b70(Gui_445b70* gui, int index)
@@ -57,7 +57,7 @@ void __stdcall FUN_00445b70(Gui_445b70* gui, int index)
     int count;
     Entry_445b70* maxunits = (Entry_445b70*)FUN_004a0200(gui->table->entries, "MAXUNITS");
     if (maxunits != 0) {
-        int player = FUN_00456850();
+        int player = FindHostSlot();
         if (player == g_game->localPlayer || player == 10) {
             count = FUN_0045ba20(maxunits) + 0x14;
         } else {
@@ -70,7 +70,7 @@ void __stdcall FUN_00445b70(Gui_445b70* gui, int index)
         unsigned char f = data->flags;
         data->maxunits = count;
         if (f & 1) {
-            FUN_00450f90();
+            BroadcastPlayerInfo();
         }
     }
 }

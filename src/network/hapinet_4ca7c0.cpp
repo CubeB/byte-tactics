@@ -36,12 +36,12 @@ struct Net_4ca7c0 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4ca7c0
-int __stdcall FUN_004ca7c0(Net_4ca7c0* net, unsigned long id, void* data, unsigned long* size)
+int __stdcall HAPINET_getplayername(Net_4ca7c0* net, unsigned long id, void* data, unsigned long* size)
 {
-    FUN_004c9740((int)"HAPINET_getplayername\n");
+    HapinetTrace((int)"HAPINET_getplayername\n");
     if (net->dp != 0) {
         return net->dp->GetPlayerName(id, data, size);
     }

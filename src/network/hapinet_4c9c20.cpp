@@ -9,12 +9,12 @@ struct Net_4c9c20 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4c9c20
-void __stdcall FUN_004c9c20(Net_4c9c20* net)
+void __stdcall HAPINET_initmultiplaydefaults(Net_4c9c20* net)
 {
-    FUN_004c9740((int)"HAPINET_initmultiplaydefaults\n");
+    HapinetTrace((int)"HAPINET_initmultiplaydefaults\n");
     net->field_4dd = 0x10;
     net->field_4e1 = 0x5dc;
 }

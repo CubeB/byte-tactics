@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // HAPINET_getgames: enumerates the available DirectPlay sessions. The
-// EnumSessions callback (FUN_004c9c50) appends each session to the buffer at
+// EnumSessions callback (HAPINET_getgamescallback) appends each session to the buffer at
 // net+0x4bd and bumps the counter at net+0x4e9. The Windows message queue is
 // pumped while the enumeration runs; ESC aborts it. Returns the number of
 // sessions collected, or -1 when there is no DirectPlay interface or the
@@ -57,17 +57,17 @@ struct Net_004c9e50 {
 };
 #pragma pack(pop)
 
-extern int DAT_0051ff0c;
+extern int g_enumSessionsResult;
 
-void __cdecl FUN_004c9740(const char* text);
-int __stdcall FUN_004c9c50();
+void __cdecl HapinetTrace(const char* text);
+int __stdcall HAPINET_getgamescallback();
 int __cdecl FUN_004c1b00();
 int __cdecl FUN_004c1ab0();
 
 // FUNCTION: 0x4c9e50
-int __stdcall FUN_004c9e50(Net_004c9e50* net, void* sessions, int unused)
+int __stdcall HAPINET_getgames(Net_004c9e50* net, void* sessions, int unused)
 {
-    FUN_004c9740("HAPINET_getgames\n");
+    HapinetTrace("HAPINET_getgames\n");
     net->count = 0;
     if (net->dp == 0)
         return -1;
@@ -79,8 +79,8 @@ int __stdcall FUN_004c9e50(Net_004c9e50* net, void* sessions, int unused)
     net->sessions = sessions;
     int result;
     do {
-        result = net->dp->EnumSessions(&desc, net->timeout, FUN_004c9c50, net, 0x81);
-        DAT_0051ff0c = result;
+        result = net->dp->EnumSessions(&desc, net->timeout, HAPINET_getgamescallback, net, 0x81);
+        g_enumSessionsResult = result;
         MSG msg;
         if (PeekMessageA(&msg, 0, 0, 0, 0)) {
             GetMessageA(&msg, 0, 0, 0);

@@ -41,8 +41,8 @@ extern Game* g_game;
 void* __stdcall FUN_004a0200(void* entries, char* name);
 int __stdcall FUN_0045ba20(void* gadget);
 void __stdcall FUN_004a0bf0(Sub_00445d60* obj, char* name, char* text, int param_4);
-void FUN_00450f90(void);
-void FUN_00451180(void);
+void BroadcastPlayerInfo(void);
+void UpdateNetGameInfo(void);
 
 // FUNCTION: 0x445d60
 void __stdcall FUN_00445d60(Sub_00445d60* sub, int unused)
@@ -59,8 +59,8 @@ void __stdcall FUN_00445d60(Sub_00445d60* sub, int unused)
         unit = g_game->players[g_game->localPlayer].unit;
         unit->field_a1 = (unsigned short)(shown / 100);
         if (unit->flag_97 & 1) {
-            FUN_00450f90();
-            FUN_00451180();
+            BroadcastPlayerInfo();
+            UpdateNetGameInfo();
         }
     }
 }

@@ -24,17 +24,17 @@ extern ElemA_0046c190** DAT_0051e574;
 extern ElemB_0046c190** DAT_0051e57c;
 extern void** DAT_0051e550;
 
-void __stdcall FUN_004c9b70(void* p);
-void __stdcall FUN_004caa20(int param_1, int param_2);
+void __stdcall HAPINET_uninitmultiplay(void* p);
+void __stdcall RISetCallbacks(int param_1, int param_2);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x46c190
 void FUN_0046c190()
 {
     DAT_0051e590 = 0;
-    FUN_004caa20(0, 0);
+    RISetCallbacks(0, 0);
     if (DAT_0051e58c != 0) {
-        FUN_004c9b70(g_game->field_14);
+        HAPINET_uninitmultiplay(g_game->field_14);
         if (DAT_0051e558 != 0)
             DAT_0051e558();
         FreeLibrary(DAT_0051e58c);

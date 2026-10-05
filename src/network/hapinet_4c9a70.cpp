@@ -57,14 +57,14 @@ struct Net_4c9a70 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4c9a70
-int __stdcall FUN_004c9a70(Net_4c9a70* net, char* password, unsigned long maxPlayers,
+int __stdcall HAPINET_createorjoinlobbygame(Net_4c9a70* net, char* password, unsigned long maxPlayers,
                            unsigned long user1, unsigned long user2, unsigned long user3,
                            unsigned long user4)
 {
-    FUN_004c9740((int)"HAPINET_createorjoinlobbygame\n");
+    HapinetTrace((int)"HAPINET_createorjoinlobbygame\n");
     int hr = 0;
     if (password != 0 || maxPlayers != 0 || user1 != 0 || user2 != 0 || user3 != 0 || user4 != 0) {
         DPSessionDesc_4c9a70* d = net->connection->desc;

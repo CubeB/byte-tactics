@@ -51,7 +51,7 @@ extern char DAT_00512d48;
 void __stdcall FUN_00440d70(void* gadget);
 Layer_441080* __stdcall FUN_004aa8f0(Menu_441080* menu, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-int FUN_0045b660(void);
+int IsOnlineConfigLoaded(void);
 Entry_441080* __stdcall FUN_004a0010(Entry_441080* entries, char* name);
 void __stdcall FUN_004a0bf0(Menu_441080* menu, char* name, char* text, int param_4);
 void FUN_00428b60(void);
@@ -67,7 +67,7 @@ void FUN_00441080()
     layer->data = g_game;
     FUN_004288d0("createnew", 0, 0, 0);
     Entry_441080* entries = layer->entries;
-    if (FUN_0045b660() && DAT_00512d48 != 0) {
+    if (IsOnlineConfigLoaded() && DAT_00512d48 != 0) {
         g_game->nickName[0] = 0;
         strncat(g_game->nickName, &DAT_00512d48, 0x10);
     }

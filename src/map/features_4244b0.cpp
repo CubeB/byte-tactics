@@ -82,10 +82,10 @@ struct Game {
 
 extern Game* g_game;
 
-int FUN_0044fdb0();
-int FUN_00450030();
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int GetLocalDpid();
+int GetHostDpid();
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall FUN_004233a0(int x, int z, int flag);
 void __stdcall FUN_00423550(int x, int z, int flag);
 
@@ -107,7 +107,7 @@ void __stdcall FUN_004244b0(Cell_004244b0* cell, int x, int z, Weapon_004244b0* 
             packet.sub = weapon->kind;
             packet.x = x;
             packet.z = z;
-            FUN_00451bc0(FUN_0044fdb0(), FUN_00450030(), &packet, 6);
+            SendPacketToPlayer(GetLocalDpid(), GetHostDpid(), &packet, 6);
             return;
         }
         send = 1;
@@ -143,6 +143,6 @@ void __stdcall FUN_004244b0(Cell_004244b0* cell, int x, int z, Weapon_004244b0* 
         packet.type = 0xf;
         packet.x = x;
         packet.z = z;
-        FUN_00451df0(FUN_0044fdb0(), &packet, 6);
+        BroadcastPacket(GetLocalDpid(), &packet, 6);
     }
 }

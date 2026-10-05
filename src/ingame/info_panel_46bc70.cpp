@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Shows a message: mode 0 through FUN_00463ca0 (and sets a game flag),
+// Shows a message: mode 0 through AddMessage (and sets a game flag),
 // mode 1 in the game's message line for half of FUN_004b6700's value.
 
 struct Game {
@@ -11,7 +11,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00463ca0(char* param_1, int param_2, int param_3, int param_4);
+void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
 int __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
 int FUN_004b6700();
 
@@ -20,7 +20,7 @@ int __stdcall FUN_0046bc70(char* text, int mode)
 {
     int result = 1;
     if (mode == 0) {
-        FUN_00463ca0(text, 0x10, 0, 10);
+        AddMessage(text, 0x10, 0, 10);
         g_game->flag0 = 1;
         return 1;
     }

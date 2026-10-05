@@ -2,7 +2,7 @@
 // std::vector<Elem_0046faf0>::operator= from MSVC 5's <vector>. The element
 // type is 14 bytes (three ints and a short, packed to 2), the same vector as
 // _Ucopy (0x46faf0), _Destroy (0x46e870), _Ufill (0x46fb40) and size (0x470770).
-// Its one caller is Class_00470560::operator= (0x470560), where the first
+// Its one caller is PacketSequencer::operator= (0x470560), where the first
 // vector's operator= is inlined by /Ob2 but this second one is emitted
 // out of line. operator= is defined in the class (implicitly inline), so its
 // body is emitted once its address is taken by a pointer to member.

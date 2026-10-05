@@ -1,5 +1,5 @@
 // Decompiled by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
-// The map at +0x00 is the std::map<unsigned int, Rect_0046e160> whose tree
+// The map at +0x00 is the std::map<unsigned int, UnitSyncEntry> whose tree
 // header lives at 0x46f720 (written out by hand there as
 // Class_0046f720::FUN_0046f720). Because that file named the tree's _Init
 // Class_0046f720::FUN_0046f720, the member is a hand-written Class_0046f720
@@ -17,7 +17,7 @@
 #include <map>
 #include <vector>
 
-struct Rect_0046e160 {                // the std::map's value, 0x10 bytes
+struct UnitSyncEntry {                // the std::map's value, 0x10 bytes
     int x;                             // +0x0
     int y;                             // +0x4
     short w;                           // +0x8
@@ -58,7 +58,7 @@ public:
     int b;                             // +0x4
     int c;                             // +0x8
 
-    void FUN_0046cec0(void* packet, int to);
+    void SendUnsequenced(void* packet, int to);
 };
 
 class Sub2_0046d040 {                  // the object at +0x58
@@ -95,13 +95,13 @@ public:
 
     void FUN_0046f720();
 
-    Rect_0046e160& operator[](unsigned int key)
+    UnitSyncEntry& operator[](unsigned int key)
     {
-        return ((std::map<unsigned int, Rect_0046e160>*)this)->operator[](key);
+        return ((std::map<unsigned int, UnitSyncEntry>*)this)->operator[](key);
     }
 };
 
-class Class_0046d040 {
+class UnitSync {
 public:
     Class_0046f720 rects;                            // +0x00
     std::vector<PlayerSync_0046d040> players;        // +0x10
@@ -111,7 +111,7 @@ public:
     std::vector<int> list_b;                         // +0x48
     Sub2_0046d040 sub2;                              // +0x58
 
-    Class_0046d040(int param);
+    UnitSync(int param);
 };
 
 // A plain inline helper makes MSVC keep the tested bit in ebx, the callee-saved
@@ -123,7 +123,7 @@ static inline bool FlagOf_0046d040(Def_0046d040* d)
 }
 
 // FUNCTION: 0x46d040
-Class_0046d040::Class_0046d040(int param)
+UnitSync::UnitSync(int param)
     : rects(Cmp_0046d040(), Alloc_0046d040())
 {
     sub.a = 0;
@@ -134,7 +134,7 @@ Class_0046d040::Class_0046d040(int param)
     sub2.first = 0;
     sub2.last = 0;
     {
-        Rect_0046e160 v;
+        UnitSyncEntry v;
         for (unsigned short i = 1; i < g_game->count; i++) {
             unsigned int key = g_game->defs[i].key;
             v.x = key;

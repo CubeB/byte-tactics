@@ -17,12 +17,12 @@ struct Net_4c9f90 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4c9f90
-int __stdcall FUN_004c9f90(Net_4c9f90* net)
+int __stdcall HAPINET_quitgame(Net_4c9f90* net)
 {
-    FUN_004c9740((int)"HAPINET_quitgame\n");
+    HapinetTrace((int)"HAPINET_quitgame\n");
     if (net->dp != 0 && net->dp->Close() != 0) {
         return 0;
     }

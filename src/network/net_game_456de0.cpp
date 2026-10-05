@@ -7,7 +7,7 @@
 // and stores it in that player's +0x20.
 //
 // PARTIAL (98.6%). One difference is left, a two-instruction order at the
-// loop latch. After the call to FUN_00451df0 the original reloads the two
+// loop latch. After the call to BroadcastPacket the original reloads the two
 // values the call may have clobbered in this order
 //
 //     mov ecx, dword ptr [g_game]     ; for the next iteration's active test
@@ -87,7 +87,7 @@ struct Packet_00456de0 {
 
 extern Game* g_game;
 
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 static inline int PlayerId(unsigned char i)
 {
@@ -97,7 +97,7 @@ static inline int PlayerId(unsigned char i)
 }
 
 // FUNCTION: 0x456de0
-void __stdcall FUN_00456de0()
+void __stdcall SendLoadProgress()
 {
     Packet_00456de0 packet;
     packet.type = 0x2a;
@@ -113,7 +113,7 @@ void __stdcall FUN_00456de0()
         if (g_game->players[i].active != 0
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2)) {
             g_game->players[i].progress = packet.progress;
-            FUN_00451df0(PlayerId(i), &packet, 2);
+            BroadcastPacket(PlayerId(i), &packet, 2);
         }
     }
 }

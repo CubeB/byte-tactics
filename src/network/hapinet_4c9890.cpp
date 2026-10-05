@@ -64,12 +64,12 @@ struct Net_4c9890 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(const char* fmt, ...);
+void __cdecl HapinetTrace(const char* fmt, ...);
 
 // FUNCTION: 0x4c9890
-int __stdcall FUN_004c9890(Net_4c9890* net, char* name, char* data, int d, int c, int b, int a)
+int __stdcall HAPINET_updategameinfo(Net_4c9890* net, char* name, char* data, int d, int c, int b, int a)
 {
-    FUN_004c9740("HAPINET_updategameinfo\n");
+    HapinetTrace("HAPINET_updategameinfo\n");
     if (net->dp != 0) {
         strncpy(net->name, name, 0x10);
         net->desc.size = 0x50;

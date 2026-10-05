@@ -5,25 +5,25 @@ struct Channel_4619e0 {
     char unknown_4[0x1044 - 4];
 };
 
-class Class_004619e0 {
+class PacketManager {
 public:
     char unknown_0[4];
     unsigned long m_defaultSendPacingMs;   // +4
     char unknown_8[4];
     Channel_4619e0 channels[11];           // +0xc
 
-    void FUN_004619e0(int rate);
+    void SetDefaultSendPacing(int rate);
 };
 
-extern int DAT_00506dbc;
+extern int g_usePacketManager;
 
-void __cdecl FUN_00461170(const char* fmt, ...);
+void __cdecl PacketTrace(const char* fmt, ...);
 
 // FUNCTION: 0x4619e0
-void Class_004619e0::FUN_004619e0(int rate)
+void PacketManager::SetDefaultSendPacing(int rate)
 {
     if (rate < 0) {
-        DAT_00506dbc = 0;
+        g_usePacketManager = 0;
         return;
     }
     if (rate == 0) {
@@ -36,7 +36,7 @@ void Class_004619e0::FUN_004619e0(int rate)
         }
         m_defaultSendPacingMs = 1000 / rate;
     }
-    FUN_00461170("setting m_defaultSendPacingMs to: %lums\n", m_defaultSendPacingMs);
+    PacketTrace("setting m_defaultSendPacingMs to: %lums\n", m_defaultSendPacingMs);
     for (int i = 0; i < 11; i++) {
         channels[i].pacing = (m_defaultSendPacingMs * 30 + 999) / 1000;
     }

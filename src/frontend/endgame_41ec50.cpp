@@ -96,7 +96,7 @@ extern Game* g_game;
 void FUN_004257a0();
 void __stdcall FUN_004c6ac0(void* image);
 void __cdecl FUN_004d85a0(void* p);
-void FUN_00450e20();
+void LeaveNetGame();
 Display_0041ec50* FUN_004b6220();
 int __stdcall FUN_0049fd60(Gadget_0041ec50* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
@@ -143,7 +143,7 @@ void __stdcall FUN_0041ec50(Gadget_0041ec50* gadget)
         FUN_004d85a0(data->items);
         FUN_004d85a0(data);
         if (g_game->flag4)
-            FUN_00450e20();
+            LeaveNetGame();
         g_game->field_10->FUN_004ce690(4);
         Display_0041ec50* display = FUN_004b6220();
         display->field_614 = g_game->field_3906f;

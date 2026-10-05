@@ -18,7 +18,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x457c80
-int FUN_00457c80()
+int CountRemotePlayers()
 {
     int count = 0;
     for (int i = 0; i < 10; i++) {

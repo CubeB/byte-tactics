@@ -50,7 +50,7 @@ public:
 
 extern Game* g_game;
 
-void __stdcall FUN_00457050(unsigned char from, unsigned char to, int value);
+void __stdcall SendShareEnergy(unsigned char from, unsigned char to, int value);
 
 // FUNCTION: 0x464c60
 void __stdcall FUN_00464c60(unsigned char from, unsigned char to, float amount, int flag)
@@ -85,5 +85,5 @@ void __stdcall FUN_00464c60(unsigned char from, unsigned char to, float amount, 
         g_game->players[to].econ->energy = amount + g_game->players[to].econ->energy;
     }
     if (flag)
-        FUN_00457050(from, to, *(int*)&amount);
+        SendShareEnergy(from, to, *(int*)&amount);
 }

@@ -1,9 +1,9 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern int DAT_00512ee8;
+extern int g_onlineConfigLoaded;
 
 // FUNCTION: 0x45b660
-int FUN_0045b660(void)
+int IsOnlineConfigLoaded(void)
 {
-    return DAT_00512ee8;
+    return g_onlineConfigLoaded;
 }

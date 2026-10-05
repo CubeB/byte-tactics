@@ -4,7 +4,7 @@
 // atexit (0x44f7a0), which frees the four buffers in the same order.
 
 #pragma pack(push, 1)
-class Class_005129f8 {
+class NetCondenser {
 public:
     char* buffer;                      // +0x0
     int field_4;                       // +0x4
@@ -17,7 +17,7 @@ public:
     int field_1d;                      // +0x1d
     int field_21;                      // +0x21
 
-    Class_005129f8()
+    NetCondenser()
     {
         buffer = new char[0x6d60];
         field_4 = 0;
@@ -30,7 +30,7 @@ public:
         field_1d = 0;
         field_21 = 0;
     }
-    ~Class_005129f8()
+    ~NetCondenser()
     {
         delete[] buffer;
         delete[] table_10;
@@ -42,4 +42,4 @@ public:
 
 // FUNCTION: 0x44f720 _$E4
 // FUNCTION: 0x44f7a0 _$E2
-Class_005129f8 DAT_005129f8;
+NetCondenser g_receiveCondenser;

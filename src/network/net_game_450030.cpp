@@ -32,7 +32,7 @@ static inline int PlayerField(unsigned char index)
 }
 
 // FUNCTION: 0x450030
-int FUN_00450030()
+int GetHostDpid()
 {
     int i;
     for (i = 0; i < 10; i++) {

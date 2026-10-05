@@ -154,7 +154,7 @@ void __stdcall FUN_004b6a20(void* section, void* key, void* value);
 void __stdcall FUN_004b6a50(void* section, void* key, int value);
 int __stdcall FUN_004b6a80(void* buf);
 void __stdcall FUN_00434ab0(int mode);
-int __cdecl FUN_0045b660();
+int __cdecl IsOnlineConfigLoaded();
 
 class Class_004cf210 {
 public:
@@ -386,7 +386,7 @@ void FUN_0042f9a0()
     if (FUN_004b69b0("Total Annihilation", "Password", g_game->password, &value) == 0) {
         g_game->password[0] = 0;
     }
-    if (FUN_0045b660() != 0 && DAT_00512d48[0] != 0) {
+    if (IsOnlineConfigLoaded() != 0 && DAT_00512d48[0] != 0) {
         g_game->nickname[0] = 0;
         strncat(g_game->nickname, DAT_00512d48, 0x10);
     } else {

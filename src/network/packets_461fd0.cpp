@@ -27,7 +27,7 @@ void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* ptr);
 
 unsigned int FUN_004b6340();
-void __cdecl FUN_00461170(const char* fmt, ...);
+void __cdecl PacketTrace(const char* fmt, ...);
 
 class Class_00461fd0;
 
@@ -61,18 +61,18 @@ public:
     int unused;                     // +0x08
     Entry_00461fd0* buffer[0x400];  // +0x0c
 
-    Entry_00461fd0* FUN_004623b0();
+    Entry_00461fd0* PopPacket();
 };
 
 // Write side of the ring buffer at +0x38 (out of line, cf. 0x462ae0).
-class Class_00462370 {
+class PacketRing {
 public:
     int count;                      // +0x00
     char unknown_4[4];
     int writeIdx;                   // +0x08
     Entry_00461fd0* buf[0x400];     // +0x0c
 
-    int FUN_00462370(Entry_00461fd0* value);
+    int PushPacket(Entry_00461fd0* value);
 };
 
 // The same ring buffer with the push inlined here (cf. 0x461f90).
@@ -116,26 +116,26 @@ public:
     Entry_00461fd0* field_34;       // +0x34
     Queue_00461fd0 queue;           // +0x38
 
-    int FUN_00461fd0(int growbufs, int growpackets);
-    void FUN_004623e0(Entry_00461fd0* item);
-    void FUN_00461f90(Entry_00461fd0* item);
+    int GrowPools(int growbufs, int growpackets);
+    void DequeuePacket(Entry_00461fd0* item);
+    void EnqueuePacket(Entry_00461fd0* item);
 };
 
-void Class_00461fd0::FUN_004623e0(Entry_00461fd0* item)
+void Class_00461fd0::DequeuePacket(Entry_00461fd0* item)
 {
     item->field_10 = -1;
     item->field_14 = FUN_004b6340();
     int n = queue.count;
     while (n-- > 0) {
-        Entry_00461fd0* value = ((Class_004623b0*)&queue)->FUN_004623b0();
+        Entry_00461fd0* value = ((Class_004623b0*)&queue)->PopPacket();
         if (value == item)
             break;
-        ((Class_00462370*)&queue)->FUN_00462370(value);
+        ((PacketRing*)&queue)->PushPacket(value);
     }
     field_20 -= item->field_8;
 }
 
-void Class_00461fd0::FUN_00461f90(Entry_00461fd0* item)
+void Class_00461fd0::EnqueuePacket(Entry_00461fd0* item)
 {
     queue.Push(item);
     item->field_10 = 0;
@@ -144,12 +144,12 @@ void Class_00461fd0::FUN_00461f90(Entry_00461fd0* item)
 
 
 // FUNCTION: 0x461fd0
-int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
+int Class_00461fd0::GrowPools(int growbufs, int growpackets)
 {
-    FUN_00461170("current buffer pool count: %d, current packet pool count: %d\n",
+    PacketTrace("current buffer pool count: %d, current packet pool count: %d\n",
                  field_c, count);
-    FUN_00461170("bufs to grow by: %d, packets to grow by: %d\n", growbufs, growpackets);
-    FUN_00461170("current buffer pool ix: %d, current packet pool ix: %d\n",
+    PacketTrace("bufs to grow by: %d, packets to grow by: %d\n", growbufs, growpackets);
+    PacketTrace("current buffer pool ix: %d, current packet pool ix: %d\n",
                  field_0, field_1c);
     if (field_c <= 0 || count <= 0) {
         return 1;
@@ -240,8 +240,8 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
                             n++;
                             *e = *c;
                             if (c->field_10 >= 0) {
-                                FUN_004623e0(c);
-                                FUN_00461f90(e);
+                                DequeuePacket(c);
+                                EnqueuePacket(e);
                             }
                             e->field_18 = field_34;
                             e->field_c = p;
@@ -270,7 +270,7 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
         entries = base;
         count = totalentries;
         field_1c = n - 1;
-        FUN_00461170("current packet pool index set to: %ld\n", n - 1);
+        PacketTrace("current packet pool index set to: %ld\n", n - 1);
         return 1;
         }
         }

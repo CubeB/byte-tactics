@@ -1,17 +1,17 @@
 // Decompiled by Sonnet. Names are provisional.
 
 typedef void (__stdcall *FuncPtr)(void*);
-extern FuncPtr DAT_00512a20[];
+extern FuncPtr g_packetHandlers[];
 
 class Class_0044fda0 {
 public:
-    void FUN_0044fda0();
+    void DispatchPacket();
 };
 
 // FUNCTION: 0x44fda0
-void Class_0044fda0::FUN_0044fda0()
+void Class_0044fda0::DispatchPacket()
 {
     unsigned int idx = 0;
     idx = *(unsigned char*)this;
-    DAT_00512a20[idx](this);
+    g_packetHandlers[idx](this);
 }

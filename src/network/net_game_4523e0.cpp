@@ -42,16 +42,16 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 
 static inline int GetPlayerId(unsigned char i)
 {
@@ -72,7 +72,7 @@ static inline unsigned char FindPlayerIndex(int id)
 }
 
 // FUNCTION: 0x4523e0
-int __stdcall FUN_004523e0(int from, int to, int group)
+int __stdcall AssignPlayerColor(int from, int to, int group)
 {
     unsigned char packet[4];
     for (int i = 0; i < 10; i++, group++) {
@@ -94,10 +94,10 @@ int __stdcall FUN_004523e0(int from, int to, int group)
         return 1;
     }
     packet[2] = 0x18;
-    int result = FUN_00451bc0(from, to, packet + 2, 2);
-    if (result != 0 && DAT_00506dbc != 0) {
+    int result = SendPacketToPlayer(from, to, packet + 2, 2);
+    if (result != 0 && g_usePacketManager != 0) {
         g_game->players[FindPlayerIndex(to)].data->group = group;
-        DAT_00513000.FUN_004618a0(1);
+        g_packetManager.SendAllQueued(1);
     }
     return result;
 }

@@ -4,7 +4,7 @@
 // The class has no virtual destructor, so MSVC only emits this ??_G where an
 // inlined vector<Class_0046ded0> destroy loop runs out of inline depth and
 // calls it with flag 0: its one caller, 0x46ca60, which deletes the object
-// held at g_game+0x2a30 (Class_0046d040, constructor 0x46d040).
+// held at g_game+0x2a30 (UnitSync, constructor 0x46d040).
 //
 // That caller is rebuilt below, unannotated and only approximately (about
 // 63%), to emit this COMDAT. Its sibling 0x46c920 deletes the same object
@@ -42,7 +42,7 @@ public:
     std::vector<int> vec;
 };
 
-class Class_0046d040 {
+class UnitSync {
 public:
     std::map<unsigned int, Rect_0046e330> rects;   // +0x00
     std::vector<Class_0046ded0> elems;             // +0x10
@@ -60,20 +60,20 @@ public:
 
 class Class_0046e160 {
 public:
-    void FUN_0046e160();
+    void ApplyToUnitTypes();
 };
 
 struct Game {
     char unknown_0[0x2a30];
-    Class_0046d040* field_2a30;                    // +0x2a30
+    UnitSync* field_2a30;                          // +0x2a30
 };
 
 extern Game* g_game;
 
 // FUNCTION: 0x470300 ??_GClass_0046ded0@@QAEPAXI@Z
-void FUN_0046ca60()
+void FinishUnitSync()
 {
-    ((Class_0046e160*)g_game->field_2a30)->FUN_0046e160();
+    ((Class_0046e160*)g_game->field_2a30)->ApplyToUnitTypes();
     if (g_game->field_2a30)
         delete g_game->field_2a30;
     g_game->field_2a30 = 0;

@@ -34,8 +34,8 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00463ca0(char* param_1, int param_2, int param_3, int param_4);
-void FUN_00450f90();
+void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
+void BroadcastPlayerInfo();
 
 // FUNCTION: 0x418f10
 void __stdcall FUN_00418f10(int unused)
@@ -47,7 +47,7 @@ void __stdcall FUN_00418f10(int unused)
         sprintf(buf, "Toggled ShareLOS to: %s",
                 (g_game->players[g_game->local_player].data->flags.shareLOS != 0)
                     ? "ON" : "OFF");
-        FUN_00463ca0(buf, 2, 0, 10);
-        FUN_00450f90();
+        AddMessage(buf, 2, 0, 10);
+        BroadcastPlayerInfo();
     }
 }

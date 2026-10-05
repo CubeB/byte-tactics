@@ -2,7 +2,7 @@
 // FLAGS: /Gi
 // std::vector<Packet_0046cef0>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, emitted out of line. Its one caller, 0x46cef0, appends a
-// packet to the queue at +0x1c of Class_0046cef0 with push_back, whose inlined
+// packet to the queue at +0x1c of PacketSequencer with push_back, whose inlined
 // insert(end(), x) calls this with a count of 1. The element is the 14-byte
 // packed packet of 0x46cef0 (copied as three dwords and a word).
 //

@@ -45,7 +45,7 @@ void __stdcall FUN_0041d4a0(int val);
 void __stdcall FUN_0045b820(int flag, char* text);
 void __stdcall FUN_0045b800(char* param_1);
 void __stdcall FUN_0045b860(int param_1);
-void __stdcall FUN_004578d0(int param_1);
+void __stdcall SetPacketRate(int param_1);
 char* __stdcall FUN_004c5740(char* text);
 void FUN_0047efc0();
 void FUN_0047efd0();
@@ -199,7 +199,7 @@ int __stdcall FUN_0049ee30(char* cmdLine, char* appName)
                     int v = -1;
                     if (*p != '-')
                         v = atoi(p);
-                    FUN_004578d0(v);
+                    SetPacketRate(v);
                 }
                 break;
             case 'R':

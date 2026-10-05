@@ -71,7 +71,7 @@ Gadget_004461d0* __stdcall FUN_0049ff90(Gadget_004461d0* gadgets, char* name);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_004ab0a0(Gui_004461d0* gui);
 void FUN_00430f00(void);
-void FUN_00450f90(void);
+void BroadcastPlayerInfo(void);
 
 // FUNCTION: 0x4461d0
 void __stdcall FUN_004461d0(Gui_004461d0* gui)
@@ -93,7 +93,7 @@ void __stdcall FUN_004461d0(Gui_004461d0* gui)
         g_game->field_37f1f = mode->height;
         player->data->field_8b = (unsigned short)mode->width;
         player->data->field_8d = (unsigned short)mode->height;
-        FUN_00450f90();
+        BroadcastPlayerInfo();
         FUN_00430f00();
         return;
     }

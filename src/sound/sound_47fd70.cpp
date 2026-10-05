@@ -95,7 +95,7 @@ extern int DAT_0051e694;
 extern int DAT_0051e698;
 
 char* __stdcall FUN_004290f0(char* buf, char* dir, char* name, char* ext);
-void __stdcall FUN_00463ca0(char* text, unsigned char key, unsigned short value, char last);
+void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, char last);
 int __stdcall FUN_0049f6c0(char* path);
 
 // FUNCTION: 0x47fd70
@@ -142,7 +142,7 @@ void Class_0047f960::FUN_0047fd70(int index, int param_2, int param_3)
         if (e->field_8->field_110 & 0x10000000) {
             char msg[100];
             sprintf(msg, "%s: %s", e->field_8->name, text);
-            FUN_00463ca0(msg, 1, e->field_8->field_a8, '\n');
+            AddMessage(msg, 1, e->field_8->field_a8, '\n');
         }
     }
 }

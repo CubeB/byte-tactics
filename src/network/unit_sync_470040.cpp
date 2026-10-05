@@ -124,13 +124,13 @@ public:
     }
 };
 
-struct Class_00470560 {
+struct PacketSequencer {
     int field_0;                       // +0x00
     int field_4;                       // +0x04
     int field_8;                       // +0x08
     char unknown_c[0x20];              // +0x0c
 
-    Class_00470560& operator=(const Class_00470560& src);
+    PacketSequencer& operator=(const PacketSequencer& src);
 };
 
 struct Class_0046eaa0 {
@@ -140,7 +140,7 @@ struct Class_0046eaa0 {
     int field_24;                      // +0x24
     int field_28;                      // +0x28
     int field_2c;                      // +0x2c
-    Class_00470560 sub;                // +0x30
+    PacketSequencer sub;               // +0x30
 
     Class_0046eaa0& operator=(const Class_0046eaa0& src);
 };

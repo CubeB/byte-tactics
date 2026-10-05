@@ -20,18 +20,18 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00452cc0(int index);
+void __stdcall RemovePlayer(int index);
 void FUN_0046c190();
 
 // FUNCTION: 0x451b60
-void FUN_00451b60()
+void RemoveLocalPlayers()
 {
     if (!(g_game->flags_2a44 & 1))
         return;
     for (int i = 0; i < 10; i++) {
         if (g_game->players[i].active != 0
             && (g_game->players[i].type == 1 || g_game->players[i].type == 2)) {
-            FUN_00452cc0(g_game->players[i].field_4);
+            RemovePlayer(g_game->players[i].field_4);
         }
     }
     FUN_0046c190();

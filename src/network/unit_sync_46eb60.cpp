@@ -2,7 +2,7 @@
 // std::list<int>::erase(iterator), out of line: its callers (0x46c920,
 // 0x46ca60, 0x46d040's neighbours) call it as `erase(_F++)` with the
 // iterator post-increment at 0x46fac0, on the list at +0x20 of
-// Class_0046d040. Taking the member's address makes the compiler emit the
+// UnitSync. Taking the member's address makes the compiler emit the
 // template instantiation out of line.
 #include <list>
 

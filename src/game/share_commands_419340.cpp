@@ -38,7 +38,7 @@ public:
     int FUN_004b73e0(int index, int fallback);
 };
 
-void __stdcall FUN_00463ca0(char* param_1, int param_2, int param_3, int param_4);
+void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
 
 // FUNCTION: 0x419340
 void __stdcall FUN_00419340(Class_004b73e0* args)
@@ -48,6 +48,6 @@ void __stdcall FUN_00419340(Class_004b73e0* args)
         Player_00419340* p = &g_game->players[g_game->local_player];
         p->share_metal = __min(p->field_a8, (float)args->FUN_004b73e0(1, 0));
         sprintf(buf, "OK.  Will share metal if above %d", args->FUN_004b73e0(1, 0));
-        FUN_00463ca0(buf, 2, 0, 10);
+        AddMessage(buf, 2, 0, 10);
     }
 }

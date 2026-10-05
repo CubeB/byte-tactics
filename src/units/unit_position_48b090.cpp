@@ -417,7 +417,7 @@ public:
 
 void __stdcall FUN_0047f780(Class_0048b090* unit, int kind, char* text);
 void __stdcall FUN_0041c110(Class_0048b090* unit);
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 static inline int HasBit(unsigned char bits) { return 1 & bits; }
 
@@ -478,7 +478,7 @@ void Class_0048b090::FUN_0048b090(int mask, int set)
                     packet.type = 0x11;
                     packet.field_1 = id;
                     packet.field_3 = state;
-                    FUN_00451df0(player->id, &packet, 4);
+                    BroadcastPacket(player->id, &packet, 4);
                 }
             }
         }

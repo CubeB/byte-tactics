@@ -30,7 +30,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004ca800(void* net, int dpid, DPNAME* name, int flags);
+int __stdcall HAPINET_setplayername(void* net, int dpid, DPNAME* name, int flags);
 
 static inline int PlayerDpid(Player_00450090* p)
 {
@@ -40,7 +40,7 @@ static inline int PlayerDpid(Player_00450090* p)
 }
 
 // FUNCTION: 0x450090
-int __stdcall FUN_00450090(unsigned char index, char* shortName, char* longName)
+int __stdcall SetPlayerName(unsigned char index, char* shortName, char* longName)
 {
     Player_00450090* p = &g_game->players[index];
     strncpy(p->longName, longName, 30);
@@ -50,6 +50,6 @@ int __stdcall FUN_00450090(unsigned char index, char* shortName, char* longName)
     name.dwFlags = 0;
     name.lpszShortNameA = shortName;
     name.lpszLongNameA = longName;
-    int r = FUN_004ca800(g_game->net, PlayerDpid(p), &name, 2);
+    int r = HAPINET_setplayername(g_game->net, PlayerDpid(p), &name, 2);
     return r == 0 ? 1 : 0;
 }

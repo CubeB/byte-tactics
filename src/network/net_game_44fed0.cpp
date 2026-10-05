@@ -41,7 +41,7 @@ static inline unsigned char FindPlayerIndex(int id)
 }
 
 // FUNCTION: 0x44fed0
-Player_0044fed0* __stdcall FUN_0044fed0(int id)
+Player_0044fed0* __stdcall FindPlayerByDpid(int id)
 {
     if (FindPlayerIndex(id) == 10)
         return 0;

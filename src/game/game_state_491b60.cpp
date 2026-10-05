@@ -49,7 +49,7 @@ void FUN_0042a570();
 void FUN_00499a80();
 void FUN_00440a00();
 void FUN_00488bf0();
-void FUN_00450dd0();
+void CloseNetSession();
 
 // FUNCTION: 0x491b60
 void FUN_00491b60()
@@ -80,6 +80,6 @@ void FUN_00491b60()
     FUN_00440a00();
     FUN_00488bf0();
     if (g_game->field_391e9->FUN_00435100() == 3) {
-        FUN_00450dd0();
+        CloseNetSession();
     }
 }

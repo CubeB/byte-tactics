@@ -81,10 +81,10 @@ Entry_00444cb0* __stdcall FUN_004a0280(void* entries, char* name);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 void __stdcall FUN_004ab0a0(Gadget_00444cb0* gadget);
-void __stdcall FUN_0046c620(int msg);
+void __stdcall ReportGameEvent(int msg);
 void __cdecl FUN_004d85a0(void* p);
-void FUN_00450f90(void);
-void FUN_00451180(void);
+void BroadcastPlayerInfo(void);
+void UpdateNetGameInfo(void);
 
 // FUNCTION: 0x444cb0
 void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
@@ -117,9 +117,9 @@ void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
         player->data->field_a9 =
             ((Class_004373a0*)g_game->field_391e9)->FUN_004373a0();
 
-        FUN_00450f90();
-        FUN_0046c620(5);
-        FUN_00451180();
+        BroadcastPlayerInfo();
+        ReportGameEvent(5);
+        UpdateNetGameInfo();
 
         for (int i = 0; i < 10; i++) {
             if (g_game->players[i].active == 0 ||
@@ -133,7 +133,7 @@ void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
     if (FUN_0049fd60(param_1, "PREVMENU")) {
         FUN_0047f1a0("Previous", 0);
         ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(DAT_00512990);
-        FUN_00450f90();
+        BroadcastPlayerInfo();
         return;
     }
 

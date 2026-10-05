@@ -48,7 +48,7 @@ start,folder,module,evidence
 0x4665d0,map,radar,TEMP RADAR PIC / RADARPIC TEMP / RADAR MAPPED
 0x467440,ingame,info_panel,LIGHTBAR / Veteran / Mission Q: / Receive - %1.1f K/s / Game Time / unit information
 0x46bce0,game,statistics,Scores%d / ScoreBoard%d / _RITerminate@0 / _RIReportGameChat@8; the score tables for the statistics DLL
-0x46c620,network,unit_sync,packets sent=%d ackd=%d / expected %d units; std::map<unsigned int, Rect_0046e160> and the packet vectors
+0x46c620,network,unit_sync,packets sent=%d ackd=%d / expected %d units; std::map<unsigned int, UnitSyncEntry> and the packet vectors
 0x470a40,graphics,particles,the object pool Class_00470ae0 and the Class_00471cc0 family (position / velocity / animation counter)
 0x476740,frontend,campaign_menu,SideList / CAMPAIGN NAMES / SOLARSYSTEM / AnyMsn / SINGLE.GUI / Missions
 0x479660,frontend,skirmish_menu,Allies%d / Color%d / SELMAP.GUI / SkirmishCheat / Skirmsetup4x

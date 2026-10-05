@@ -29,8 +29,8 @@ struct Gadget_00464de0 {
     int selected;                      // +0x60
 };
 
-void FUN_00450f90();
-void __stdcall FUN_0046c620(int param_1);
+void BroadcastPlayerInfo();
+void __stdcall ReportGameEvent(int param_1);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 int __stdcall FUN_004a0300(int param1, int param2, char* name);
 void __stdcall FUN_004ab0a0(void* param_1);
@@ -43,9 +43,9 @@ void __stdcall FUN_00464de0(Gadget_00464de0* gadget)
         return;
     FUN_0047f1a0("BigButton", 0);
     if (FUN_004a0300(screen, gadget->selected, "CHOICE1")) {
-        FUN_00450f90();
+        BroadcastPlayerInfo();
         g_game->flags.flag4 = 0;
-        FUN_0046c620(4);
+        ReportGameEvent(4);
         return;
     }
     if (!FUN_004a0300(screen, gadget->selected, "CHOICE2")) {

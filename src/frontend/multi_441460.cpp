@@ -125,7 +125,7 @@ void __stdcall FUN_004abd90(Sub_00441460* sub, char* text, int a, int b, int c);
 void __stdcall FUN_004ab170(Sub_00441460* sub, int a, int b);
 void __stdcall FUN_004c69a0(int a);
 void FUN_004c63a0();
-int __stdcall FUN_004c9e50(char* net, void* desc, int a);
+int __stdcall HAPINET_getgames(char* net, void* desc, int a);
 void __stdcall FUN_004a9660(Sub_00441460* sub);
 void __stdcall FUN_004a32a0(Sub_00441460* sub, const char* name, char* text, int count, int flag);
 char* FUN_0049f580();
@@ -177,7 +177,7 @@ shown:
     FUN_004c63a0();
     FUN_004c63a0();
 
-    count = FUN_004c9e50((char*)&g_game->unknown_14, g_game->desc, 0);
+    count = HAPINET_getgames((char*)&g_game->unknown_14, g_game->desc, 0);
     FUN_004a9660(&g_game->sub);
     if (count < 0)
         return 0;

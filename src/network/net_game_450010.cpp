@@ -8,7 +8,7 @@ struct Class_00450010 {
 };
 
 // FUNCTION: 0x450010
-int __stdcall FUN_00450010(Class_00450010* obj)
+int __stdcall GetPlayerDpid(Class_00450010* obj)
 {
     if (obj != 0 && obj->field_73 != 0) {
         return (int)obj->field_4;

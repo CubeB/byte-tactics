@@ -55,8 +55,8 @@ int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
 int __stdcall FUN_00443ff0(int index);
 void __stdcall FUN_0047f1a0(char* name, int flag);
 void __stdcall FUN_00491c80(int value);
-int __stdcall FUN_0045b250(int button, char* message, unsigned int size);
-void FUN_0045b640();
+int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int size);
+void OnlineUnload();
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004abd90(void* menu, char* text, int size, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);
@@ -106,13 +106,13 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
         int result = 2;
         try {
             FUN_00491c80(0x14);
-            result = FUN_0045b250(DAT_005127c8[link].id, message, sizeof(message));
+            result = OnlineProcessButtonCommand(DAT_005127c8[link].id, message, sizeof(message));
             FUN_00491c80(0x13);
         } catch (...) {
             FUN_00491c80(0x13);
         }
         if (result == 0) {
-            FUN_0045b640();
+            OnlineUnload();
             exit(0);
             return;
         }

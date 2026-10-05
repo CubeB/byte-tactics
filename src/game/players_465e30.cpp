@@ -61,7 +61,7 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned char FUN_00456850();
+unsigned char FindHostSlot();
 void __stdcall FUN_00496e90(Player_00465e30* player, int x, int y);
 
 // FUNCTION: 0x465e30
@@ -82,7 +82,7 @@ void FUN_00465e30()
                 player->y = (float)g_game->slots[i].field_c;
                 break;
             case 3: {
-                int index = FUN_00456850();
+                int index = FindHostSlot();
                 if (index == 10)
                     index = i;
                 Player_00465e30* other = &g_game->players[index];

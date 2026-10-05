@@ -11,7 +11,7 @@ struct Buffer_00463730 {               // 0x180c bytes
     Buffer_00463730() : field_0(0), field_4(0), field_8(-1) {}
 };
 
-class Class_00463730 {
+class FrameQueue {
 public:
     int field_0;                       // +0x0
     int field_4;                       // +0x4
@@ -21,11 +21,11 @@ public:
     int field_14;                      // +0x14
     int field_18;                      // +0x18
 
-    int FUN_00463730();
+    int ResetFrames();
 };
 
 // FUNCTION: 0x463730
-int Class_00463730::FUN_00463730()
+int FrameQueue::ResetFrames()
 {
     field_0 = 0;
     field_4 = 0;

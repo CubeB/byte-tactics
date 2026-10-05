@@ -46,7 +46,7 @@ struct Obj_00462d90 {
     Obj_00462d90() { field_0 = 0; field_4 = 0; field_8 = -1; }
 };
 
-void __cdecl FUN_00461170(const char* fmt, ...);
+void __cdecl PacketTrace(const char* fmt, ...);
 
 struct Tail_00462d90 {
     int field_0;                           // +0x18
@@ -70,7 +70,7 @@ struct Tail_00462d90 {
     }
 };
 
-struct Entry_00462d90 {
+struct PlayerFrameInfo {
     int field_0;                           // +0x00, the id
     int field_4;                           // +0x04
     int field_8;                           // +0x08
@@ -81,7 +81,7 @@ struct Entry_00462d90 {
 
     void Init(long id)
     {
-        FUN_00461170("PlayerFrameInfo::Initialize: %ld", id);
+        PacketTrace("PlayerFrameInfo::Initialize: %ld", id);
         field_0 = id;
         field_4 = -1;
         field_8 = -1;
@@ -104,19 +104,19 @@ public:
     int field_14;                          // +0x14
     void* field_18;                        // +0x18
     void* field_1c;                        // +0x1c
-    Entry_00462d90 entries[10];            // +0x20
+    PlayerFrameInfo entries[10];           // +0x20
 
-    Entry_00462d90* FUN_00462d90(long id);
+    PlayerFrameInfo* FindPlayerFrameInfo(long id);
 };
 
 extern Game* g_game;
 
 // FUNCTION: 0x462d90
-Entry_00462d90* Class_00462d30::FUN_00462d90(long id)
+PlayerFrameInfo* Class_00462d30::FindPlayerFrameInfo(long id)
 {
     unsigned int i;
     int j;
-    Entry_00462d90* e;
+    PlayerFrameInfo* e;
 
     for (i = 0; i < 10; i++) {
         e = &entries[i];
@@ -127,7 +127,7 @@ Entry_00462d90* Class_00462d30::FUN_00462d90(long id)
     }
     if (i < 10) {
         for (; i < 10; i++) {
-            Entry_00462d90* p = &entries[i];
+            PlayerFrameInfo* p = &entries[i];
             if (p->field_0 == -1) {
                 entries[i].Init(id);
                 e = &entries[i];

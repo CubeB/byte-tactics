@@ -11,8 +11,8 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_00451df0(int player, void* data, int size);
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 
 // FUNCTION: 0x453320
 void __stdcall FUN_00453320(int from, int to)
@@ -20,8 +20,8 @@ void __stdcall FUN_00453320(int from, int to)
     unsigned char* buf = g_game->buffer;
     *buf = 6;
     if (to == 0) {
-        FUN_00451df0(from, buf, 1);
+        BroadcastPacket(from, buf, 1);
     } else {
-        FUN_00451bc0(from, to, buf, 1);
+        SendPacketToPlayer(from, to, buf, 1);
     }
 }

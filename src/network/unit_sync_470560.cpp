@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Class_00470560::operator=: copies three ints, then assigns two vectors of a
+// PacketSequencer::operator=: copies three ints, then assigns two vectors of a
 // 14-byte element type (Elem_0046faf0, packed to 2 bytes, so the three ints and
 // the short give 14 bytes and the copy loops move three dwords and a word).
 // The first vector's operator= is inlined by /Ob2, the second stays a call to
@@ -145,17 +145,17 @@ struct Elem_0046faf0 {
 };
 #pragma pack(pop)
 
-struct Class_00470560 {
+struct PacketSequencer {
     int field_0;                       // +0x00
     int field_4;                       // +0x04
     int field_8;                       // +0x08
     std::vector<Elem_0046faf0> list_c; // +0x0c (16 bytes, _First at +0x10)
     std::vector<Elem_0046faf0> list_d; // +0x1c (operator= is 0x4707a0)
-    Class_00470560& operator=(const Class_00470560& rhs);
+    PacketSequencer& operator=(const PacketSequencer& rhs);
 };
 
-// FUNCTION: 0x470560 ??4Class_00470560@@QAEAAU0@ABU0@@Z
-Class_00470560& Class_00470560::operator=(const Class_00470560& rhs)
+// FUNCTION: 0x470560 ??4PacketSequencer@@QAEAAU0@ABU0@@Z
+PacketSequencer& PacketSequencer::operator=(const PacketSequencer& rhs)
 {
     field_0 = rhs.field_0;
     field_4 = rhs.field_4;

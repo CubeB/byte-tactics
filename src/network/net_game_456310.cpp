@@ -62,23 +62,23 @@ struct Msg20_00456310 {
 };
 #pragma pack(pop)
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 
 unsigned int FUN_004b6340();
-int __stdcall FUN_00451df0(int id, unsigned char* packet, int size);
-int __stdcall FUN_004c9790(int param_1);
-int __stdcall FUN_004526c0(int param_1);
+int __stdcall BroadcastPacket(int id, unsigned char* packet, int size);
+int __stdcall HAPINET_guaranteepackets(int param_1);
+int __stdcall RequestPlayerColor(int param_1);
 void FUN_00450530();
 
 // FUNCTION: 0x456310
-void FUN_00456310()
+void SendNetHeartbeat()
 {
     unsigned int now = FUN_004b6340();
     if ((int)(now - g_game->field_1b5f) <= 0x3c)
@@ -88,8 +88,8 @@ void FUN_00456310()
     for (int i = 0; i < 10; i++) {
         Player_00456310* p = &g_game->players[i];
         if (p->active != 0 && (p->state == 1 || p->state == 2)) {
-            if (DAT_00506dbc != 0)
-                DAT_00513000.FUN_004618a0(1);
+            if (g_usePacketManager != 0)
+                g_packetManager.SendAllQueued(1);
 
             Msg13_00456310 msg;
             msg.type = 2;
@@ -97,20 +97,20 @@ void FUN_00456310()
             msg.sent_tick = 0;
             msg.id = p->id;
 
-            int was = FUN_004c9790(0);
-            FUN_00451df0(p->id, (unsigned char*)&msg, 0xd);
-            if (DAT_00506dbc != 0)
-                DAT_00513000.FUN_004618a0(1);
+            int was = HAPINET_guaranteepackets(0);
+            BroadcastPacket(p->id, (unsigned char*)&msg, 0xd);
+            if (g_usePacketManager != 0)
+                g_packetManager.SendAllQueued(1);
             if (was != 0)
-                FUN_004c9790(1);
+                HAPINET_guaranteepackets(1);
 
             int id = p->id;
             unsigned char* buf = g_game->buffer;
             buf[0] = 6;
-            FUN_00451df0(id, buf, 1);
+            BroadcastPacket(id, buf, 1);
 
             if (p->info->field_96 == 0xff)
-                FUN_004526c0(0);
+                RequestPlayerColor(0);
 
             if (p->info->bit_97 & 1) {
                 for (int k = 0; k < 10; k++) {
@@ -126,7 +126,7 @@ void FUN_00456310()
                 Msg26_00456310 msg26;
                 memcpy(msg26.table, g_game->table_2c28, 0x28);
                 msg26.type = 0x26;
-                FUN_00451df0(p->id, (unsigned char*)&msg26, 0x29);
+                BroadcastPacket(p->id, (unsigned char*)&msg26, 0x29);
             }
         }
     }
@@ -139,21 +139,21 @@ void FUN_00456310()
                 msg.info = *p->info;
                 msg.info.id = p->id;
                 msg.type = 0x20;
-                FUN_00451df0(p->id, (unsigned char*)&msg, 0xba);
+                BroadcastPacket(p->id, (unsigned char*)&msg, 0xba);
 
                 if (p->active != 0 && (p->state == 1 || p->state == 2)) {
                     unsigned char* buf2 = g_game->buffer;
                     buf2[0] = 0x24;
                     *(int*)(buf2 + 1) = p->id;
                     buf2[5] = p->field_13f;
-                    FUN_00451df0(p->id, buf2, 6);
-                    if (DAT_00506dbc != 0)
-                        DAT_00513000.FUN_004618a0(1);
+                    BroadcastPacket(p->id, buf2, 6);
+                    if (g_usePacketManager != 0)
+                        g_packetManager.SendAllQueued(1);
                 }
             }
         }
         FUN_00450530();
-        DAT_00513000.FUN_004618a0(1);
+        g_packetManager.SendAllQueued(1);
     }
 
     g_game->bit0_2bee = 1;

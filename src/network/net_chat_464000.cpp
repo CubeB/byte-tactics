@@ -11,17 +11,17 @@ struct Game {
 };
 
 extern Game* g_game;
-int FUN_00463f60(void);
+int ScrollToNextMessageUnit(void);
 
 // FUNCTION: 0x464000
-void FUN_00464000(void)
+void CycleMessageUnits(void)
 {
     int i;
     for (i = 0; i < 30; i++)
         g_game->entries[i].flags &= ~0x20;
-    if (FUN_00463f60() == 0) {
+    if (ScrollToNextMessageUnit() == 0) {
         for (i = 0; i < 30; i++)
             g_game->entries[i].flags &= ~0x10;
-        FUN_00463f60();
+        ScrollToNextMessageUnit();
     }
 }

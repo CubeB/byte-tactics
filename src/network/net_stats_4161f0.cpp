@@ -5,14 +5,14 @@ struct Pair_00419560 {
     int b;
 };
 
-class Class_00461610 {
+class PacketManager {
 public:
     void FUN_00461610();
 };
 
 extern Pair_00419560 DAT_00511a60[44];
 extern Pair_00419560 DAT_00511c60[44];
-extern Class_00461610 DAT_00513000;
+extern PacketManager g_packetManager;
 
 // The sums are never used (their consumer was presumably compiled out).
 // As in FUN_00419560, the second field of the second table is read through a
@@ -29,5 +29,5 @@ void FUN_004161f0()
         sum4 += p->b;
         p++;
     }
-    DAT_00513000.FUN_00461610();
+    g_packetManager.FUN_00461610();
 }

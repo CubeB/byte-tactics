@@ -32,13 +32,13 @@ struct Net_4c9b70 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x4c9b70
-void __stdcall FUN_004c9b70(Net_4c9b70* net)
+void __stdcall HAPINET_uninitmultiplay(Net_4c9b70* net)
 {
-    FUN_004c9740((int)"HAPINET_uninitmultiplay\n");
+    HapinetTrace((int)"HAPINET_uninitmultiplay\n");
     if (net->dp != 0) {
         net->dp->Close();
         net->dp->Release();

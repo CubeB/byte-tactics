@@ -90,7 +90,7 @@ void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void FUN_00428b60();
 int __stdcall FUN_00441460(Gadget_00443cb0* gadget);
 void __stdcall FUN_004437c0(Sub_00443cb0* sub);
-char* __stdcall FUN_00452c40(int value);
+char* __stdcall GetRejectReasonText(int value);
 void __stdcall FUN_0049fa90(Sub_00443cb0* sub);
 void __stdcall FUN_0049fad0(Sub_00443cb0* sub);
 void __stdcall FUN_0049fb10(Sub_00443cb0* sub, int value);
@@ -153,7 +153,7 @@ void FUN_00443cb0()
     Conn_00443cb0* conn = &g_game->conns[g_game->cur_conn];
     if (conn->status != 0 && conn->status != 2) {
         FUN_004a81e0(&g_game->sub, 0x40);
-        char* msg = FUN_00452c40(conn->status);
+        char* msg = GetRejectReasonText(conn->status);
         FUN_004abd90(&g_game->sub, FUN_004c5740(msg), 0x140, 1, 1);
         FUN_0049fa90(&g_game->sub);
         FUN_0049fad0(&g_game->sub);

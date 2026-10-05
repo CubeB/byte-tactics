@@ -22,7 +22,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x463ef0
-int FUN_00463ef0()
+int ExpireOldestMessage()
 {
     int result = 0;
     unsigned short i = g_game->head;

@@ -54,15 +54,15 @@ extern Game* g_game;
 
 int __stdcall FUN_0049fd60(void* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-void __stdcall FUN_00452960(int, int, unsigned char, int);
+void __stdcall SetAlliance(int, int, unsigned char, int);
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_00463e50(void* from, char* text, int param_3, void* to);
+void __stdcall SendChatMessage(void* from, char* text, int param_3, void* to);
 void FUN_00446fb0();
 void __stdcall FUN_004a5f40(void* sub, int param_2);
 int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
 int __stdcall FUN_004a0ff0(void* gadget, int index);
 void __stdcall FUN_004ab0a0(void* gadget);
-void FUN_00450f90();
+void BroadcastPlayerInfo();
 
 // FUNCTION: 0x447150
 void __stdcall FUN_00447150(Gadget_00447150* gadget)
@@ -85,11 +85,11 @@ void __stdcall FUN_00447150(Gadget_00447150* gadget)
             && (p->type == 1 || p->type == 2 || p->type == 3)
             && p->field_146 != 10) {
             FUN_0047f1a0("Options", 0);
-            FUN_00452960(local->field_4, p->field_4, local->allies[i] ^= 1, 0);
+            SetAlliance(local->field_4, p->field_4, local->allies[i] ^= 1, 0);
             char* verb = local->allies[i] ? "allied with" : "broke alliance with";
             sprintf(buf, " %s %s", FUN_004c5740(verb),
                     (char*)g_game + 0x1b8e + i * 0x14b);
-            FUN_00463e50(local, buf, 4, 0);
+            SendChatMessage(local, buf, 4, 0);
             FUN_00446fb0();
             FUN_004a5f40(&g_game->message, gadget->field_60);
         }
@@ -107,7 +107,7 @@ void __stdcall FUN_00447150(Gadget_00447150* gadget)
         unsigned int value = FUN_004a0ff0(gadget, index);
         local->info->flags_9d = (local->info->flags_9d & 0xfffd) | ((value & 1) << 1);
         if (old != ((local->info->flags_9d >> 1) & 1))
-            FUN_00450f90();
+            BroadcastPlayerInfo();
     } else {
         FUN_004ab0a0(gadget);
     }

@@ -130,7 +130,7 @@
 // (3) `shl edi,0x10` scheduled after `sub eax,ebp` here, before it in original.
 // (4) The watch_check / dialog region: g_game+0x519 reloads pick edx/ecx/eax
 // differently and `mov ebp,[ebx+4]` (w = dlg->field_4) scheduling differs.
-// (5) watch_check player-index lea/mov order (the FUN_00456850 result math).
+// (5) watch_check player-index lea/mov order (the FindHostSlot result math).
 // More switch/owner attempts this session, all byte-identical to r2 (85.1,
 // 2386): inline getSw() helper returning field_37eee (block1-only and
 // both-blocks), nested if instead of &&, own/own2 fresh locals for owner,
@@ -475,7 +475,7 @@ void __stdcall FUN_004827b0(Unit* unit);
 void FUN_00466dc0();
 void FUN_00467440();
 void FUN_00466c20();
-unsigned char __stdcall FUN_00456850();
+unsigned char __stdcall FindHostSlot();
 unsigned short __stdcall FUN_00488b10(const char* name);
 int __stdcall FUN_004b6c30(int range);
 int __stdcall FUN_0047db70(UnitDef_00464f80* type, int a, Point16 cell, int c);
@@ -487,10 +487,10 @@ void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width);
 void __stdcall FUN_004816a0(int on);
 void __stdcall FUN_0048d630(int on);
 void __stdcall FUN_00401360(PlayerInfo_00464f80* player);
-void __stdcall FUN_004573d0(PlayerInfo_00464f80* player, int a, int b);
+void __stdcall SendPlayerEconomy(PlayerInfo_00464f80* player, int a, int b);
 int __stdcall FUN_00457cb0();
 int __stdcall FUN_00457bc0();
-void __stdcall FUN_00450f90();
+void __stdcall BroadcastPlayerInfo();
 void* __stdcall FUN_004aa8f0(char* gui, const char* file, int flags);
 void __stdcall FUN_0049fb10(char* gui, int a);
 void __stdcall FUN_004a0bf0(char* gui, const char* gadget, const char* text, int a);
@@ -622,7 +622,7 @@ void __stdcall FUN_00464f80()
                     if (g_game->field_39239 < 0) {
                         if (g_game->field_37ef6 == 2) {
                             Player_00464f80* self =
-                                g_game->players[FUN_00456850()].data;
+                                g_game->players[FindHostSlot()].data;
                             unsigned int typeId;
                             typeId = FUN_00488b10(
                                 &g_game->startPos[0x232 *
@@ -744,7 +744,7 @@ void __stdcall FUN_00464f80()
             if (g_game->mode->FUN_00435100() == 3) {
                 DAT_0051e53c++;
                 if ((DAT_0051e53c & 3) == 0)
-                    FUN_004573d0(pi, 0, 0);
+                    SendPlayerEconomy(pi, 0, 0);
             }
         }
         goto next_bl;
@@ -752,14 +752,14 @@ void __stdcall FUN_00464f80()
     watch_check:
         if (g_game->mode->FUN_00435100() == 3 &&
             pi->field_22 == 0) {
-            if ((g_game->players[FUN_00456850()].data->flags_9b & 0x80) != 0 ||
+            if ((g_game->players[FindHostSlot()].data->flags_9b & 0x80) != 0 ||
                 FUN_00457bc0() > 0) {
                 pi->data->fb.bit6b = 1;
                 if (bl == g_game->localPlayer) {
                     g_game->field_14281 &= 0xfffe;
                     g_game->field_14281 &= 0xfffd;
                     FUN_004816a0(1);
-                    FUN_00450f90();
+                    BroadcastPlayerInfo();
                     if (FUN_00457bc0() == 0) {
                         Dialog_00464f80* dlg = (Dialog_00464f80*)
                             FUN_004aa8f0(g_game->gui, "YESORNO.GUI", 0x900);

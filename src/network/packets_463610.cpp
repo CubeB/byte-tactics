@@ -2,7 +2,7 @@
 // PlayerFrameInfo::Initialize (from its debug string), a method of the class
 // built by the constructor 0x4635b0: resets the fields that constructor sets
 // and allocates the buffer if there is none yet. The tail's reset is an
-// inline method of the member (same layout as Class_004636b0); written out
+// inline method of the member (same layout as FrameQueue); written out
 // flat, MSVC hoists the buffer load above the head stores.
 
 struct Buffer_00463610 {
@@ -47,20 +47,20 @@ struct Tail_00463610 {
     }
 };
 
-class Class_004635b0 {
+class PlayerFrameInfo {
 public:
     Head_00463610 head;                // +0x00
     Tail_00463610 tail;                // +0x18
 
-    void FUN_00463610(long id);
+    void Initialize(long id);
 };
 
-void __cdecl FUN_00461170(const char* fmt, ...);
+void __cdecl PacketTrace(const char* fmt, ...);
 
 // FUNCTION: 0x463610
-void Class_004635b0::FUN_00463610(long id)
+void PlayerFrameInfo::Initialize(long id)
 {
-    FUN_00461170("PlayerFrameInfo::Initialize: %ld", id);
+    PacketTrace("PlayerFrameInfo::Initialize: %ld", id);
     head.Init(id);
     tail.Init();
 }

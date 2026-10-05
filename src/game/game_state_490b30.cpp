@@ -14,7 +14,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
-void __cdecl FUN_004578f0(int param);
+void __cdecl LeaveNetGameCallback(int param);
 void __cdecl FUN_004609a0(int param);
 void FUN_00496a60();
 void FUN_00496b10();
@@ -61,6 +61,6 @@ void __stdcall FUN_00490b30(int param)
     if (param == 6) {
         FUN_004b4fd0(FUN_004609a0, 0);
     } else {
-        FUN_004b4fd0(FUN_004578f0, 0);
+        FUN_004b4fd0(LeaveNetGameCallback, 0);
     }
 }

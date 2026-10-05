@@ -70,14 +70,14 @@ struct Net_4c9fd0 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(const char*);
+void __cdecl HapinetTrace(const char*);
 void* __cdecl FUN_004d83b0(char* name, unsigned long size);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4c9fd0
-int __stdcall FUN_004c9fd0(Net_4c9fd0* net, Guid_4c9fd0 guid)
+int __stdcall HAPINET_joingame(Net_4c9fd0* net, Guid_4c9fd0 guid)
 {
-    FUN_004c9740("HAPINET_joingame\n");
+    HapinetTrace("HAPINET_joingame\n");
     if (net->dp != 0) {
         memset(&net->desc, 0, 0x50);
         net->desc.dwSize = 0x50;

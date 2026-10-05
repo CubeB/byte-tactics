@@ -51,9 +51,9 @@
 //    helper.
 #include <stddef.h>
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    void FUN_004618a0(int param_1);
+    void SendAllQueued(int param_1);
 };
 
 #pragma pack(push, 1)
@@ -127,8 +127,8 @@ Flags_38d75 flags_38d75;   // +0x38d75
 #pragma pack(pop)
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 extern int DAT_0051f300;
 
 int FUN_004b6560();
@@ -141,9 +141,9 @@ void FUN_00428c30();
 void FUN_00428c40();
 void FUN_00428c50();
 int FUN_004568c0();
-void FUN_00453d40();
+void HandleNetPackets();
 unsigned int FUN_004b6340();
-int FUN_0044fdb0();
+int GetLocalDpid();
 void __stdcall FUN_00453320(int a, int b);
 void FUN_00495e90();
 void FUN_0041ce90();
@@ -192,12 +192,12 @@ void FUN_00496790()
             FUN_00428c40();
             FUN_00428c50();
         } else if (g_game->paused) {
-            if (DAT_00506dbc)
-                DAT_00513000.FUN_004618a0(0);
-            FUN_00453d40();
+            if (g_usePacketManager)
+                g_packetManager.SendAllQueued(0);
+            HandleNetPackets();
             if ((int)FUN_004b6340() > DAT_0051f300) {
                 DAT_0051f300 = FUN_004b6340() + 60;
-                FUN_00453320(FUN_0044fdb0(), 0);
+                FUN_00453320(GetLocalDpid(), 0);
             }
             CHARGE(0);
         }

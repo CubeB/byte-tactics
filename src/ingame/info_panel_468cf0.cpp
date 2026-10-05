@@ -47,14 +47,14 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 extern char* g_game;
 unsigned long FUN_004b6560();
-int __stdcall FUN_00415fa0(int);
+int __stdcall FormatNetStats(int);
 int __stdcall FUN_00417f30(int,int);
 int __stdcall FUN_00418310(int);
 int __stdcall FUN_00420b00(int);
 struct Class_00435100 { int FUN_00435100(); };
 int __stdcall FUN_0045ac20(int,int);
 int __stdcall FUN_0045ffb0(int);
-int __stdcall FUN_00464060(int);
+int __stdcall DrawMessages(int);
 float __stdcall FUN_00464ab0(int);
 float __stdcall FUN_00464ac0(int);
 float __stdcall FUN_00464af0(int);
@@ -530,7 +530,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   if (*(int *)(g_game + 0x391c3) != 0)
     FUN_00468380((int)&ctx);
   if (param_1 != 0)
-    FUN_00464060((int)&ctx);
+    DrawMessages((int)&ctx);
   if ((*(byte *)(g_game + 0x3923b) & 2) && param_1 != 0) {
     FUN_004c13a0(colors[0xf], FUN_004c13f0());
     FUN_004c1420(*(int *)(g_game + 0x391f9));
@@ -543,7 +543,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     FUN_004c14f0((int)&ctx, (int)debugText, 0x1ee, ty, -1);
     ty += FUN_004c1450();
     if (*(byte *)(g_game + 0x2a44) & 1) {
-      FUN_00415fa0((int)debugText);
+      FormatNetStats((int)debugText);
       FUN_004c14f0((int)&ctx, (int)debugText, 0xbc, ty, -1);
     }
   }

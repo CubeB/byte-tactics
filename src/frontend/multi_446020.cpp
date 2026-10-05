@@ -18,8 +18,8 @@ extern unsigned char DAT_00505510;
 
 int __stdcall FUN_004a0300(int param1, int param2, char* name);
 void __stdcall FUN_004ab0a0(Gadget_00446020* gadget);
-int __stdcall FUN_0044ffd0(unsigned char player);
-void __stdcall FUN_00453010(int param_1, int param_2);
+int __stdcall GetSlotDpid(unsigned char player);
+void __stdcall RejectPlayer(int param_1, int param_2);
 
 // FUNCTION: 0x446020
 void __stdcall FUN_00446020(Gadget_00446020* gadget)
@@ -28,7 +28,7 @@ void __stdcall FUN_00446020(Gadget_00446020* gadget)
     if (gadget->field_60 == -1)
         return;
     if (FUN_004a0300(owner, gadget->field_60, "CHOICE1")) {
-        FUN_00453010(FUN_0044ffd0(DAT_00505510), 1);
+        RejectPlayer(GetSlotDpid(DAT_00505510), 1);
     } else if (!FUN_004a0300(owner, gadget->field_60, "CHOICE2")) {
         FUN_004ab0a0(gadget);
     }

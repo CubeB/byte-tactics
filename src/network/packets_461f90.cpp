@@ -30,18 +30,18 @@ struct Queue_00461f90 {
     }
 };
 
-class Class_00461f90 {
+class PacketChannel {
 public:
     char unknown_0[0x20];
     int total;                         // +0x20
     char unknown_24[0x38 - 0x24];
     Queue_00461f90 queue;              // +0x38
 
-    void FUN_00461f90(Item_00461f90* item);
+    void EnqueuePacket(Item_00461f90* item);
 };
 
 // FUNCTION: 0x461f90
-void Class_00461f90::FUN_00461f90(Item_00461f90* item)
+void PacketChannel::EnqueuePacket(Item_00461f90* item)
 {
     queue.Push(item);
     item->field_10 = 0;

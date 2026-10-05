@@ -54,7 +54,7 @@ public:
 
 extern Game* g_game;
 
-void __stdcall FUN_00456ee0(unsigned char from, unsigned char to, int value);
+void __stdcall SendShareMetal(unsigned char from, unsigned char to, int value);
 
 // FUNCTION: 0x464b30
 void __stdcall FUN_00464b30(unsigned char from, unsigned char to, float amount, int flag)
@@ -97,5 +97,5 @@ void __stdcall FUN_00464b30(unsigned char from, unsigned char to, float amount, 
         g_game->players[to].econ->metal = m;
     }
     if (flag)
-        FUN_00456ee0(from, to, *(int*)&amount);
+        SendShareMetal(from, to, *(int*)&amount);
 }

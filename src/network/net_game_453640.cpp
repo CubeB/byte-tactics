@@ -1,9 +1,9 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // Chat message history refresh. Finds the "OUTPUT" list gadget, throttles the
-// refresh with DAT_00512c78 (at most one every 2 ticks), clears the 0xa00-byte
-// scratch buffer at DAT_00512c74 and copies the last few chat lines out of the
+// refresh with g_loungeRefreshTime (at most one every 2 ticks), clears the 0xa00-byte
+// scratch buffer at g_loungeChatter and copies the last few chat lines out of the
 // 30-entry ring buffer at g_game+0x12ef into it. Then, if the player named by
-// DAT_005061d8 is active and in state 3, it shows the seconds left before that
+// g_timeoutPlayerDpid is active and in state 3, it shows the seconds left before that
 // player is dropped from the game and rejects them once the timer has run out.
 #include <stdio.h>
 #include <string.h>
@@ -56,9 +56,9 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern char* DAT_00512c74;
-extern int DAT_00512c78;
-extern int DAT_005061d8;
+extern char* g_loungeChatter;
+extern int g_loungeRefreshTime;
+extern int g_timeoutPlayerDpid;
 
 int FUN_004b6340();
 Entry_00453640* __stdcall FUN_0049ff90(void* entries, char* name);
@@ -66,7 +66,7 @@ void __stdcall FUN_0049fa90(void* obj);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004a0bf0(void* obj, char* name, char* text, int param_4);
 void __stdcall FUN_004a9660(void* obj);
-void __stdcall FUN_00453010(int param_1, int param_2);
+void __stdcall RejectPlayer(int param_1, int param_2);
 
 static inline int GetPlayerId_00453640(unsigned char i)
 {
@@ -87,16 +87,16 @@ static inline unsigned char FindPlayerIndex_00453640(int id)
 }
 
 // FUNCTION: 0x453640
-void FUN_00453640()
+void UpdateTimeoutDialog()
 {
     Entry_00453640* entry = FUN_0049ff90(g_game->holder->entries, "OUTPUT");
 
-    if (DAT_00512c78 < FUN_004b6340()) {
-        DAT_00512c78 = FUN_004b6340() + 2;
+    if (g_loungeRefreshTime < FUN_004b6340()) {
+        g_loungeRefreshTime = FUN_004b6340() + 2;
         FUN_0049fa90(g_game->message);
     }
 
-    memset(DAT_00512c74, 0, 0xa00);
+    memset(g_loungeChatter, 0, 0xa00);
 
     int tail = g_game->tail;
     int count = entry->count;
@@ -109,7 +109,7 @@ void FUN_00453640()
             idx = 29;
     }
 
-    char* p = DAT_00512c74;
+    char* p = g_loungeChatter;
     if (idx != tail) {
         do {
             strcpy(p, g_game->ring[idx].text);
@@ -122,12 +122,12 @@ void FUN_00453640()
 
     // The original searches for the player twice: once for the == 10 test and
     // again for the index used to fetch the record. Keep it; the bytes do this.
-    unsigned char found = FindPlayerIndex_00453640(DAT_005061d8);
+    unsigned char found = FindPlayerIndex_00453640(g_timeoutPlayerDpid);
     Player_00453640* player;
     if (found == 10)
         player = 0;
     else
-        player = &g_game->players[FindPlayerIndex_00453640(DAT_005061d8)];
+        player = &g_game->players[FindPlayerIndex_00453640(g_timeoutPlayerDpid)];
 
     if (player != 0 && player->active != 0 && player->state == 3) {
         int elapsed = (FUN_004b6340() - player->lastHeard) / 30;
@@ -138,7 +138,7 @@ void FUN_00453640()
         FUN_0049fa90(g_game->message);
         if (elapsed < g_game->field_37f31 + 0x78)
             return;
-        FUN_00453010(DAT_005061d8, 6);
+        RejectPlayer(g_timeoutPlayerDpid, 6);
         FUN_004a9660(g_game->message);
     }
 }

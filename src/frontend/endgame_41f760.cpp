@@ -30,7 +30,7 @@ extern Game* g_game;
 
 Display_0041f760* FUN_004b6220(void);
 void __stdcall FUN_004c6b70(void* dest, void* image, int x, int y);
-void __stdcall FUN_00464060(void* surface);
+void __stdcall DrawMessages(void* surface);
 void __stdcall FUN_004a9fd0(Sub_0041f760* sub);
 void __stdcall FUN_004ab170(Sub_0041f760* sub, unsigned int* param_2, int* param_3);
 void FUN_004c2870();
@@ -42,7 +42,7 @@ int FUN_0041f760()
     if (g_game->state == 1) {
         Display_0041f760* d = FUN_004b6220();
         FUN_004c6b70(g_game->surface, g_game->image, d->x, d->y);
-        FUN_00464060(g_game->surface);
+        DrawMessages(g_game->surface);
         FUN_004a9fd0(&g_game->sub);
         FUN_004ab170(&g_game->sub, 0, 0);
         FUN_004c2870();

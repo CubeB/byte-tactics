@@ -39,16 +39,16 @@ struct Packet_00450f90 {
 };
 #pragma pack(pop)
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 void FUN_00450530();
 
 static inline int IsPlaying(Player_00450f90* player)
@@ -61,10 +61,10 @@ static inline int IsPlaying(Player_00450f90* player)
 }
 
 // The packet is declared at function scope: its address escapes to
-// FUN_00451df0 in one iteration, so MSVC re-reads player->id around the
+// BroadcastPacket in one iteration, so MSVC re-reads player->id around the
 // stores into it in the next, as the original does.
 // FUNCTION: 0x450f90
-void FUN_00450f90()
+void BroadcastPlayerInfo()
 {
     Packet_00450f90 packet;
     if (g_game->flags_2a44 & 1) {
@@ -74,20 +74,20 @@ void FUN_00450f90()
                 packet.data = *player->data;
                 packet.data.id = player->id;
                 packet.type = 0x20;
-                FUN_00451df0(player->id, &packet, sizeof(packet));
+                BroadcastPacket(player->id, &packet, sizeof(packet));
                 if (IsPlaying(player)) {
                     unsigned char* msg = g_game->buffer;
                     msg[0] = 0x24;
                     *(int*)(msg + 1) = player->id;
                     msg[5] = player->field_13f;
-                    FUN_00451df0(player->id, msg, 6);
-                    if (DAT_00506dbc != 0) {
-                        DAT_00513000.FUN_004618a0(1);
+                    BroadcastPacket(player->id, msg, 6);
+                    if (g_usePacketManager != 0) {
+                        g_packetManager.SendAllQueued(1);
                     }
                 }
             }
         }
         FUN_00450530();
-        DAT_00513000.FUN_004618a0(1);
+        g_packetManager.SendAllQueued(1);
     }
 }

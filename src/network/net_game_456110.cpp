@@ -38,10 +38,10 @@ struct Packet_00456110 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x456110
-int __stdcall FUN_00456110(Object_00456110* obj, char* name)
+int __stdcall SendScriptCallNoArgsByName(Object_00456110* obj, char* name)
 {
     Packet_00456110 packet;
     int index = obj->names->FUN_004b07c0(name);
@@ -56,5 +56,5 @@ int __stdcall FUN_00456110(Object_00456110* obj, char* name)
     packet.field_a = 0;
     packet.field_e = 0;
     packet.field_12 = 0;
-    return FUN_00451df0(obj->player->field_4, &packet, 0x16);
+    return BroadcastPacket(obj->player->field_4, &packet, 0x16);
 }

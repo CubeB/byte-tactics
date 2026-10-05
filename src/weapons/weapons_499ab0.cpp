@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Builds the 0x24 byte "unit status" network message (type 0xd) and hands it
-// to FUN_00451df0. Only sent while g_game's bit 0 flag is set. Sibling of
+// to BroadcastPacket. Only sent while g_game's bit 0 flag is set. Sibling of
 // 0x499ba0, which sends the same type and size.
 //
 // The byte at packet +0x1a is a 1 bit bitfield that is only ever read and
@@ -64,7 +64,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x499ab0
 void __stdcall FUN_00499ab0(Unit* unit, Obj_00499ab0* source,
@@ -83,6 +83,6 @@ void __stdcall FUN_00499ab0(Unit* unit, Obj_00499ab0* source,
         packet.f1b = unit->f16;
         packet.f1d = unit->f18;
         packet.flag = unit->def->f111 >> 30;
-        FUN_00451df0(source->kind->f4, &packet, 0x24);
+        BroadcastPacket(source->kind->f4, &packet, 0x24);
     }
 }

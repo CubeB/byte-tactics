@@ -5,17 +5,17 @@
 #include <windows.h>
 #include <ddraw.h>
 
-void __cdecl FUN_00461170(const char* fmt, ...);
+void __cdecl PacketTrace(const char* fmt, ...);
 unsigned int FUN_004b6340();
 
-class Class_004629b0 {
+class PacketBuffer {
 public:
-    void FUN_004629b0();
+    void FreePackets();
 };
 
 class Class_00461fd0 {
 public:
-    void FUN_00461fd0(int a, int b);
+    void GrowPools(int a, int b);
 };
 
 struct Packet_00461c20;
@@ -37,7 +37,7 @@ struct Packet_00461c20 {
     Packet_00461c20* next;              // +0x1c
 };
 
-class Class_00462710 {
+class PacketChannel {
 public:
     char unknown_0[0x18];
     unsigned int minRetain;             // +0x18
@@ -46,7 +46,7 @@ public:
     Packet_00461c20* packets;           // +0x28
     unsigned int poolSize;              // +0x2c
 
-    Packet_00461c20* FUN_00461c20(int param_1);
+    Packet_00461c20* AllocPacket(int param_1);
 };
 
 static inline int IsReusable(Buffer_00461c20* buf, int minRetain)
@@ -56,7 +56,7 @@ static inline int IsReusable(Buffer_00461c20* buf, int minRetain)
     Packet_00461c20* p = buf->first;
     unsigned int now = FUN_004b6340();
     int mustBeSentBefore = now - minRetain;
-    FUN_00461170("cur game time: %ld, min retain=%ld, mustBeSentBefore=%ld\n",
+    PacketTrace("cur game time: %ld, min retain=%ld, mustBeSentBefore=%ld\n",
                  now, minRetain, mustBeSentBefore);
     for (; p != 0; p = p->next) {
         if (p->owner != buf)
@@ -66,18 +66,18 @@ static inline int IsReusable(Buffer_00461c20* buf, int minRetain)
         if (p->sentTime > mustBeSentBefore && p->sentTime <= now)
             return 0;
     }
-    FUN_00461170("buffer eligible for reuse:  all packets have been sent more than %lu game ticks ago\n",
+    PacketTrace("buffer eligible for reuse:  all packets have been sent more than %lu game ticks ago\n",
                  minRetain);
     return 1;
 }
 
 // FUNCTION: 0x461c20
-Packet_00461c20* Class_00462710::FUN_00461c20(int param_1)
+Packet_00461c20* PacketChannel::AllocPacket(int param_1)
 {
     unsigned int idx;
     Packet_00461c20* packet;
     for (;;) {
-        FUN_00461170("current packet pool index: %ld\n", index);
+        PacketTrace("current packet pool index: %ld\n", index);
         idx = index + 1;
         if (idx >= poolSize)
             idx = 0;
@@ -86,18 +86,18 @@ Packet_00461c20* Class_00462710::FUN_00461c20(int param_1)
         if (owner == 0)
             break;
         if (IsReusable(owner, minRetain)) {
-            ((Class_004629b0*)owner)->FUN_004629b0();
+            ((PacketBuffer*)owner)->FreePackets();
             break;
         }
         if (poolSize >= 0x6a4) {
-            FUN_00461170("force-initializing a in-use buffer which was not eligible for reuse!\n");
-            ((Class_004629b0*)owner)->FUN_004629b0();
+            PacketTrace("force-initializing a in-use buffer which was not eligible for reuse!\n");
+            ((PacketBuffer*)owner)->FreePackets();
             break;
         }
-        ((Class_00461fd0*)this)->FUN_00461fd0(0, 0x320);
+        ((Class_00461fd0*)this)->GrowPools(0, 0x320);
     }
     index = idx;
-    FUN_00461170("current packet pool index set to: %ld\n", idx);
+    PacketTrace("current packet pool index set to: %ld\n", idx);
     packet->field_0 = param_1;
     return packet;
 }

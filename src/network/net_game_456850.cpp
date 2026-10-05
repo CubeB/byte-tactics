@@ -24,7 +24,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x456850
-unsigned char FUN_00456850()
+unsigned char FindHostSlot()
 {
     unsigned char i;
     for (i = 0; i < 10; i++) {

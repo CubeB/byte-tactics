@@ -93,7 +93,7 @@ int __cdecl FUN_004b715a(int x, int z);
 int __stdcall FUN_0049d880(Unit* unit, Aim_0049d9c0* aim, short angle1, short angle2);
 int __stdcall FUN_0049c9c0(Aim_0049d9c0* aim, Unit* unit, Vec3* aimPos,
                            Vec3* point, Unit* target);
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x49d9c0
 int __stdcall FUN_0049d9c0(Unit* unit, Aim_0049d9c0* aim,
@@ -125,7 +125,7 @@ int __stdcall FUN_0049d9c0(Unit* unit, Aim_0049d9c0* aim,
                 msg.heading = aim->field_16;
                 msg.pitch = aim->field_18;
                 msg.unknown_1a = msg.unknown_1a ^ ((aim->type->flags >> 30 ^ msg.unknown_1a) & 1);
-                FUN_00451df0(unit->player->id, &msg, 0x24);
+                BroadcastPacket(unit->player->id, &msg, 0x24);
             }
             return 1;
         }

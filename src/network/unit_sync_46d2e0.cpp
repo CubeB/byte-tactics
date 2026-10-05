@@ -38,7 +38,7 @@
 // `unsigned int` and the map's real `value_type` gives the STL mangled names
 // while the walk itself stays hand written: MSVC 5 concatenates template
 // arguments with no separator, so `_Tree<unsigned int, std::pair<const
-// unsigned int, Rect_0046e160>, ...>` mangles as `?$_Tree@IU?$pair@IURect...`,
+// unsigned int, UnitSyncEntry>, ...>` mangles as `?$_Tree@IU?$pair@IURect...`,
 // and check.py's base_name() only looks at the part before the first `@@`.
 //
 // BUG (kept as the original has it): the value handed to the map insert has an
@@ -49,7 +49,7 @@
 // copies the word, and nothing ever writes it.
 #include <map>
 
-struct Rect_0046e160 {                // the std::map's value, 0x10 bytes
+struct UnitSyncEntry {                // the std::map's value, 0x10 bytes
     int x;                             // +0x0
     int y;                             // +0x4
     short w;                           // +0x8
@@ -62,7 +62,7 @@ struct Node_0046d2e0 {                 // the map's tree node, 0x24 bytes
     Node_0046d2e0* parent;             // +0x4
     Node_0046d2e0* right;              // +0x8
     unsigned int key;                  // +0xc
-    Rect_0046e160 value;               // +0x10
+    UnitSyncEntry value;               // +0x10
     int color;                         // +0x20
 };
 
@@ -70,7 +70,7 @@ extern Node_0046d2e0* DAT_0051e598;    // the tree's shared _Nil node
 
 // The map's value_type, the real std::pair: its mangled name is the first half
 // of _Tree's, and that is what the callee names in data/symbols.csv come from.
-typedef std::pair<const unsigned int, Rect_0046e160> Pair_0046d2e0;
+typedef std::pair<const unsigned int, UnitSyncEntry> Pair_0046d2e0;
 
 // std::_Tree<...> out of MSVC 5's <xtree>, with only the two members this
 // function calls out of line. The template arguments are the point of writing
@@ -121,11 +121,11 @@ public:
     char unknown_9[3];
     int size;                          // +0xc
 
-    Rect_0046e160& operator[](const unsigned int& k)
+    UnitSyncEntry& operator[](const unsigned int& k)
     {
         // std::map::operator[]: insert a default value under the key, then hand
         // back the node's value to assign to. The Rect() is never written.
-        iterator p = insert(Pair_0046d2e0(k, Rect_0046e160())).first;
+        iterator p = insert(Pair_0046d2e0(k, UnitSyncEntry())).first;
         return p.ptr->value;
     }
 
@@ -194,13 +194,13 @@ struct Game {
 
 extern Game* g_game;
 
-class Class_0046d040 {
+class UnitSync {
 public:
     Map_0046d2e0 rects;                // +0x00
     char unknown_10[0x58 - 0x10];
     int field_58;                      // +0x58
 
-    void FUN_0046d2e0();
+    void ResetEntries();
 };
 
 // The flag expression in its own small inline helper. Written out in the loop
@@ -212,9 +212,9 @@ static inline bool FlagOf_0046d2e0(Def_0046d2e0* d)
 }
 
 // FUNCTION: 0x46d2e0
-void Class_0046d040::FUN_0046d2e0()
+void UnitSync::ResetEntries()
 {
-    Rect_0046e160 v;
+    UnitSyncEntry v;
     for (unsigned short i = 1; i < g_game->count; i++) {
         v.x = g_game->defs[i].key;
         v.y = 0;

@@ -13,20 +13,20 @@ extern Game* g_game;
 
 extern int DAT_0051e58c;
 extern int DAT_0051e590;
-extern int DAT_0051e594;
+extern int g_reportFlags;
 extern int* DAT_0051e574;
 extern int (__stdcall* DAT_0051e548)(int, int);
 
 void FUN_0046c2a0();
-int __stdcall FUN_004caa00(int arg1, int arg2);
+int __stdcall RIReportGameChat(int arg1, int arg2);
 
 // FUNCTION: 0x46c810
-int __stdcall FUN_0046c810(int msg)
+int __stdcall ReportGameChat(int msg)
 {
-    if ((DAT_0051e590 != 0 && (DAT_0051e594 & 8)) || DAT_0051e58c != 0) {
+    if ((DAT_0051e590 != 0 && (g_reportFlags & 8)) || DAT_0051e58c != 0) {
         FUN_0046c2a0();
-        if (DAT_0051e590 != 0 && (DAT_0051e594 & 8)) {
-            if (FUN_004caa00(DAT_0051e574[g_game->player], msg))
+        if (DAT_0051e590 != 0 && (g_reportFlags & 8)) {
+            if (RIReportGameChat(DAT_0051e574[g_game->player], msg))
                 DAT_0051e590 = 0;
         }
         if (DAT_0051e58c != 0)

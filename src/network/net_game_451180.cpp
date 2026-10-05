@@ -30,14 +30,14 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];
 
-void __stdcall FUN_00451090(char* name, int* d, int* c, int* b, int* a);
-void __stdcall FUN_004c9890(void* obj, char* name, char* data, int d, int c, int b, int a);
+void __stdcall BuildGameInfo(char* name, int* d, int* c, int* b, int* a);
+void __stdcall HAPINET_updategameinfo(void* obj, char* name, char* data, int d, int c, int b, int a);
 
 // The flag is a bit of an unsigned short bitfield whose storage starts at the
 // odd offset 0x9b (packed struct): that gives the byte load and "shr al, 4;
 // test al, 1". An unsigned char bitfield folds to "test byte ptr".
 // FUNCTION: 0x451180
-void FUN_00451180(void)
+void UpdateNetGameInfo(void)
 {
     int a;
     int b;
@@ -45,9 +45,9 @@ void FUN_00451180(void)
     int d;
     char name[32];
 
-    FUN_00451090(name, &d, &c, &b, &a);
+    BuildGameInfo(name, &d, &c, &b, &a);
     if (g_game->players[g_game->localPlayer].info->flag_9b_4) {
         g_game->flag_475_5 = 1;
     }
-    FUN_004c9890(g_game->unknown_14, name, DAT_005119b8, d, c, b, a);
+    HAPINET_updategameinfo(g_game->unknown_14, name, DAT_005119b8, d, c, b, a);
 }

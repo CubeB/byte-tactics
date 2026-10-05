@@ -34,7 +34,7 @@ struct Game {
 extern Game* g_game;
 
 unsigned int FUN_004b6340();
-void FUN_0046c8b0();
+void ReportIntervalTimer();
 
 extern unsigned int DAT_0051f2f8;
 extern int DAT_0051f2fc;
@@ -117,7 +117,7 @@ void FUN_00494e70()
         if (++DAT_0051f2dc >= 30)
             DAT_0051f2dc = 0;
         DAT_0051e710[DAT_0051f2dc] = 0;
-        FUN_0046c8b0();
+        ReportIntervalTimer();
         DAT_0051f2f8 = FUN_004b6340();
     }
 }

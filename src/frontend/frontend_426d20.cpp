@@ -19,7 +19,7 @@ extern Game* g_game;
 extern char DAT_00511fb8[];
 
 int FUN_00428bc0(void);
-int FUN_00450d80(void);
+int InitNetConnection(void);
 void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
 
 // FUNCTION: 0x426d20
@@ -27,7 +27,7 @@ int FUN_00426d20(void)
 {
     char buf[256];
 
-    if (FUN_00450d80()) {
+    if (InitNetConnection()) {
         g_game->bit0 = 1;
         return 1;
     }

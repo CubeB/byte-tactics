@@ -1,16 +1,16 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_00460f40 {
+class PacketRing {
 public:
     int field_0;
     int field_4;
     int field_8;
 
-    Class_00460f40();
+    PacketRing();
 };
 
 // FUNCTION: 0x460f40
-Class_00460f40::Class_00460f40()
+PacketRing::PacketRing()
 {
     field_0 = 0;
     field_4 = 0;

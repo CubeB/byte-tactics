@@ -82,7 +82,7 @@ void __stdcall FUN_0047f780(Unit*, int, const char*);
 // p3 is int here (its own file says char): the original pushes order->piece
 // as a dword, which a char parameter would load as a byte.
 void __stdcall FUN_0048aac0(Unit* unit, Unit* target, int p3, char p4);
-int __stdcall FUN_00456200(Unit* unit, char* name, char p3, int p4, int p5, int p6, int p7);
+int __stdcall SendScriptCallByName(Unit* unit, char* name, char p3, int p4, int p5, int p6, int p7);
 Vec3 __stdcall FUN_0043def0(Unit* unit, int piece);
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
@@ -150,7 +150,7 @@ int __stdcall FUN_004111b0(Unit* unit, Order* order, int flags)
         case 3: {
             int height = target->def->field_16e;
             unit->script->FUN_004b0a70("BeginTransport", 0, 1, 1, height, 0, 0, 0);
-            FUN_00456200(unit, "BeginTransport", 1, height, 0, 0, 0);
+            SendScriptCallByName(unit, "BeginTransport", 1, height, 0, 0, 0);
             Vec3 offset = FUN_0043def0(unit, order->piece);
             Class_0044e250* obj = new Class_0044e250(order, order->target, -1);
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(-offset.yw);

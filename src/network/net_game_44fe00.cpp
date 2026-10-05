@@ -19,7 +19,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x44fe00
-int FUN_0044fe00()
+int GetLocalHumanDpid()
 {
     for (int i = 0; i < 10; i++) {
         if (g_game->players[i].flag_73 == 1) {

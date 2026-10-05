@@ -37,8 +37,8 @@ extern int DAT_0051e690;
 extern int DAT_0051e694;
 extern int DAT_0051e69c;
 
-int __cdecl FUN_0044fdb0();
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __cdecl GetLocalDpid();
+int __stdcall BroadcastPacket(int player, void* data, int size);
 int __stdcall FUN_0049f680(int sound);
 int __stdcall FUN_0049f6a0(int sound);
 
@@ -59,7 +59,7 @@ int __stdcall FUN_0047f0c0(int index, int param_2)
                 packet.type = 0x13;
                 packet.flag = 1;
                 packet.index = index;
-                FUN_00451df0(FUN_0044fdb0(), &packet, sizeof(packet));
+                BroadcastPacket(GetLocalDpid(), &packet, sizeof(packet));
             }
             if (DAT_0051e69c)
                 return ((Class_004cf540*)g_game->sound)->FUN_004cf540(sound, -585);

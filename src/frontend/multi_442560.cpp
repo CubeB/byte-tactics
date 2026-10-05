@@ -35,7 +35,7 @@ extern Game* g_game;
 
 Gadget_00442560* __stdcall FUN_004aa8f0(Menu_00442560* menu, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-int __stdcall FUN_004ca490(char* p);
+int __stdcall HAPINET_initlobbiedconnection(char* p);
 void __stdcall FUN_004a32a0(Menu_00442560* menu, char* name, char* text, int value, int flag);
 int __stdcall FUN_0042f980(const char* key, void* buf, unsigned int* size);
 void __stdcall FUN_004a2e40(Menu_00442560* menu, char* name, int index);
@@ -54,7 +54,7 @@ void FUN_00442560()
     gadget->game = g_game;
     gadget->field_1c = 0;
     FUN_004288d0(0, 0, 0, 0);
-    FUN_004ca490((char*)g_game + 0x14);
+    HAPINET_initlobbiedconnection((char*)g_game + 0x14);
     FUN_004a32a0(&g_game->menu, "PORTS", "COM1\0COM2\0COM3\0COM4", 4, 0);
     FUN_004a32a0(&g_game->menu, "SPEEDS", "115200\0" "57600\0" "38400\0" "19200\0" "14400\0" "9600", 6, 0);
 

@@ -31,13 +31,13 @@ struct Net_4ca880 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4ca880
-int __stdcall FUN_004ca880(Net_4ca880* net, void* elements, unsigned long count, void* address,
+int __stdcall HAPINET_createcompoundaddress(Net_4ca880* net, void* elements, unsigned long count, void* address,
                            unsigned long* size)
 {
-    FUN_004c9740((int)"HAPINET_createcompoundaddress\n");
+    HapinetTrace((int)"HAPINET_createcompoundaddress\n");
     if (net->lobby != 0) {
         return net->lobby->CreateCompoundAddress(elements, count, address, size);
     }

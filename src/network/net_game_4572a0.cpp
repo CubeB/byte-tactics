@@ -3,7 +3,7 @@
 // like a local player (active, type 1 or 2, field_140 set, field_22 clear); the
 // inner pass then looks for a network slot (active, type 3) whose data->field_94
 // is 1 and whose team (field_146) is still clear in the target's three per-team
-// byte tables, and hands the pair to FUN_004573d0, returning 0 in that case.
+// byte tables, and hands the pair to SendPlayerEconomy, returning 0 in that case.
 // The three tables live at +0x11e, +0x129 and +0x134, eleven bytes each: the
 // first test reads them in the order t0, t2, t1 and the second reads t1 again.
 //
@@ -58,7 +58,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_004b6b50(unsigned int param_1);
-void __stdcall FUN_004573d0(Player_004572a0* from, Player_004572a0* to,
+void __stdcall SendPlayerEconomy(Player_004572a0* from, Player_004572a0* to,
                             unsigned char param_3);
 
 // FUNCTION: 0x4572a0
@@ -88,13 +88,13 @@ int FUN_004572a0()
                 }
                 if (pj->active != 0 && pj->type == 3) {
                     if (pi->t1[pj->field_146] == 0) {
-                        FUN_004573d0(pi, pj, 1);
+                        SendPlayerEconomy(pi, pj, 1);
                         result = 0;
                     }
                 }
                 continue;
             send:
-                FUN_004573d0(pi, pj, 1);
+                SendPlayerEconomy(pi, pj, 1);
                 result = 0;
             }
         }

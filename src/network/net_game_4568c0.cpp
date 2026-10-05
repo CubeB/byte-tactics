@@ -74,8 +74,8 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
-int __stdcall FUN_00451df0(int id, void* packet, int size);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
+int __stdcall BroadcastPacket(int id, void* packet, int size);
 
 static inline unsigned char FindOccupied_004568c0() {
     for (unsigned char i = 0; i < 10; i++) {
@@ -180,7 +180,7 @@ int FUN_004568c0() {
             packet[1] = (unsigned char)g_game->field_29fc[k4];
             if (g_game->players[k4].active != 0) {
                 if (g_game->players[k4].state == 3) {
-                    FUN_00451bc0(FirstJoinedId_004568c0(), PlayerId_004568c0(k4), packet, 2);
+                    SendPacketToPlayer(FirstJoinedId_004568c0(), PlayerId_004568c0(k4), packet, 2);
                 } else if (IsConnected_004568c0(&g_game->players[k4])) {
                     g_game->players[k4].field_147 = packet[1];
                     g_game->field_29d0[k4] = 1;
@@ -192,12 +192,12 @@ int FUN_004568c0() {
     if (res == 0) {
         for (int k6 = 0; k6 < 10; k6++) {
             if (IsConnected_004568c0(&g_game->players[k6]))
-                FUN_00451df0(PlayerId_004568c0(k6), &pkt, 1);
+                BroadcastPacket(PlayerId_004568c0(k6), &pkt, 1);
         }
     } else if (ok) {
         for (int k5 = 0; k5 < 10; k5++) {
             if (IsConnected_004568c0(&g_game->players[k5]))
-                FUN_00451df0(PlayerId_004568c0(k5), &pkt, 1);
+                BroadcastPacket(PlayerId_004568c0(k5), &pkt, 1);
         }
     }
     return ok;

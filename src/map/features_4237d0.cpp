@@ -92,7 +92,7 @@ extern Game* g_game;
 
 Cell_004237d0* __stdcall FUN_00481550(int x, int y);
 void __stdcall FUN_00423550(int x, int z, int flag);
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 static inline Feature_004237d0* GetFeature(Cell_004237d0* cell)
 {
@@ -164,7 +164,7 @@ int __stdcall FUN_004237d0(Unit* unit, Vec3_004237d0* pos)
         packet.sub = 0xff;
         packet.x = x;
         packet.z = z;
-        FUN_00451df0(unit->info->id, &packet, 6);
+        BroadcastPacket(unit->info->id, &packet, 6);
     }
     return 1;
 }

@@ -21,9 +21,9 @@
 
 void* __cdecl operator new(unsigned int size);
 
-extern int DAT_00506dbc;
+extern int g_usePacketManager;
 
-class Class_00462470 {
+class PacketChannel {
 public:
     int field_0;                       // +0
     char unknown_4[0x18];              // +4
@@ -32,14 +32,14 @@ public:
     int field_24;                      // +0x24
     char unknown_28[0x1044 - 0x28];    // pad to 0x1044
 
-    void FUN_00461db0(int a1, int a2, int a3, int a4);
+    void InitPools(int a1, int a2, int a3, int a4);
 };
 
-class Class_00461750 {
+class PacketManager {
 public:
     char unknown_0[4];
     int field_4;                       // +4
-    Class_00462470 entries[11];        // +8
+    PacketChannel entries[11];         // +8
     char unknown_b2f4[0x20];           // +0xb2f4
     int field_b314;                    // +0xb314
     int field_b318;                    // +0xb318
@@ -48,13 +48,13 @@ public:
     int field_b528;                    // +0xb528
     int field_b52c;                    // +0xb52c
 
-    int FUN_00461750(int arg1, int arg2);
+    int InitChannels(int arg1, int arg2);
 };
 
 // FUNCTION: 0x461750
-int Class_00461750::FUN_00461750(int arg1, int arg2)
+int PacketManager::InitChannels(int arg1, int arg2)
 {
-    if (DAT_00506dbc == 0) {
+    if (g_usePacketManager == 0) {
         return 0;
     }
     do {
@@ -75,11 +75,11 @@ int Class_00461750::FUN_00461750(int arg1, int arg2)
             *(int*)(field_b314 + 0xc) = 0;
             field_b314 = 0;
         }
-        entries[0].FUN_00461db0(0, field_4, arg1, arg2);
-        Class_00462470* e = entries + 1;
+        entries[0].InitPools(0, field_4, arg1, arg2);
+        PacketChannel* e = entries + 1;
         int n = 10;
         do {
-            e->FUN_00461db0(-1, field_4, 2, 100);
+            e->InitPools(-1, field_4, 2, 100);
             e++;
         } while (--n);
     } while (0);

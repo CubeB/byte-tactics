@@ -25,7 +25,7 @@ extern Pair_00419560 DAT_00511c60[44];
 
 // Same reset sequence as FUN_00419560 and FUN_00417570.
 // FUNCTION: 0x415e90
-void FUN_00415e90()
+void ResetNetStats()
 {
     DAT_00511c20 = g_game->field_38a47;
     DAT_00511bc0 = 0;

@@ -2,7 +2,7 @@
 // Text for the reason a player could not join a multiplayer game.
 
 // FUNCTION: 0x452c40
-char* __stdcall FUN_00452c40(int reason)
+char* __stdcall GetRejectReasonText(int reason)
 {
     switch (reason) {
     case 4:

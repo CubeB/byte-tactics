@@ -8,7 +8,7 @@ struct Elem_0046cbe0 {
     int unknown_0;
 };
 
-class Class_0046cbe0 {
+class PacketSequencer {
 public:
     int field_0;                              // +0x0
     int field_4;                              // +0x4
@@ -16,11 +16,11 @@ public:
     std::vector<Elem_0046cbe0> first;         // +0xc (_First +0x10)
     std::vector<Elem_0046cbe0> second;        // +0x1c (_First +0x20)
 
-    Class_0046cbe0();
+    PacketSequencer();
 };
 
 // FUNCTION: 0x46cbe0
-Class_0046cbe0::Class_0046cbe0()
+PacketSequencer::PacketSequencer()
 {
     field_0 = 0;
     field_4 = 0;

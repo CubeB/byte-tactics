@@ -80,10 +80,10 @@ Gadget_00444580* __stdcall FUN_004aa8f0(void* menu, char* name, int size);
 void __stdcall FUN_004441a0(void* menu);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __stdcall FUN_004c9b70(void* param_1);
-void __stdcall FUN_004ca250(void* param_1, void* guids, void* conns, void* descriptions, void* param_5);
+void __stdcall HAPINET_uninitmultiplay(void* param_1);
+void __stdcall HAPINET_getconnections(void* param_1, void* guids, void* conns, void* descriptions, void* param_5);
 int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
-unsigned int __stdcall FUN_0045b490(LinkInfo* links);
+unsigned int __stdcall OnlineGetLinkInfo(LinkInfo* links);
 void __stdcall FUN_004a09c0(void* menu, int index, int param_3, int param_4);
 void __stdcall FUN_004a32a0(void* menu, char* name, void* items, int count, int flag);
 void FUN_00428b60();
@@ -131,8 +131,8 @@ void FUN_00444580()
     if (g_game->conns != 0)
         memset(g_game->conns, 0, 0x50);
     g_game->field_391e9->FUN_00435d30(1);
-    FUN_004c9b70(g_game->field_14);
-    FUN_004ca250(g_game->field_14, g_game->guids, g_game->conns, g_game->descriptions, DAT_004fcfb8);
+    HAPINET_uninitmultiplay(g_game->field_14);
+    HAPINET_getconnections(g_game->field_14, g_game->guids, g_game->conns, g_game->descriptions, DAT_004fcfb8);
     Entry_00444580* entries = menu->entries;
     int tmpl = FUN_0049fdf0(entries, "SERVICEX", 1);
     int y;
@@ -140,7 +140,7 @@ void FUN_00444580()
     int n = 0;
     int count = 0;
     try {
-        count = FUN_0045b490(DAT_005127c8);
+        count = OnlineGetLinkInfo(DAT_005127c8);
     } catch (...) {
     }
     if (count != 0 && tmpl != -1) {

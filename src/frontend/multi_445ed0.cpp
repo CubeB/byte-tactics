@@ -5,7 +5,7 @@
 struct Class_004a1080;
 
 int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
-unsigned char FUN_00456850();
+unsigned char FindHostSlot();
 
 #pragma pack(push, 1)
 struct PlayerInfo_00445ed0 {
@@ -42,7 +42,7 @@ extern Game* g_game;
 // FUNCTION: 0x445ed0
 void FUN_00445ed0()
 {
-    int i = FUN_00456850();
+    int i = FindHostSlot();
     if (i == 10) {
         i = g_game->localPlayer;
     }

@@ -15,51 +15,51 @@ extern int DAT_00511bc8;
 extern int DAT_00511c34;
 extern int DAT_00511c48;
 extern int DAT_00511c50;
-extern int DAT_00511dc8;
-extern unsigned int DAT_00511dd8;
-extern int DAT_00511c40;
-extern int DAT_00511c44;
-extern int DAT_00511dcc;
-extern int DAT_00511a4c;
-extern int DAT_00511bcc;
-extern int DAT_00511c24;
-extern int DAT_00511c28;
-extern unsigned int DAT_00511c38;
-extern unsigned int DAT_00511c3c;
-extern int DAT_00511a44;
-extern unsigned int DAT_00511c4c;
-extern unsigned int DAT_00511c30;
-extern unsigned int DAT_00511dc4;
-extern unsigned int DAT_00511dc0;
+extern int g_compressedBytesSent;
+extern unsigned int g_netStatsTick;
+extern int g_lastMessageBytesReceived;
+extern int g_lastMessageBytesSent;
+extern int g_lastCompressedBytesSent;
+extern int g_lastPacketBytesSent;
+extern int g_lastPacketBytesReceived;
+extern int g_lastPacketsSent;
+extern int g_lastPacketsReceived;
+extern unsigned int g_messageBytesReceivedRate;
+extern unsigned int g_messageBytesSentRate;
+extern int g_compressionPercent;
+extern unsigned int g_packetBytesSentRate;
+extern unsigned int g_packetBytesReceivedRate;
+extern unsigned int g_packetsSentRate;
+extern unsigned int g_packetsReceivedRate;
 
 unsigned int __cdecl FUN_004b6340();
 
 // FUNCTION: 0x415fa0
-void __stdcall FUN_00415fa0(char* text)
+void __stdcall FormatNetStats(char* text)
 {
     unsigned int now = FUN_004b6340();
-    unsigned int elapsed = now - DAT_00511dd8;
+    unsigned int elapsed = now - g_netStatsTick;
     if (elapsed > 30) {
-        DAT_00511dd8 = now;
-        DAT_00511c38 = (DAT_00511bc0 * 30 - DAT_00511c40 * 30) / elapsed;
-        int packets = DAT_00511bc4 - DAT_00511c44;
-        DAT_00511c3c = packets * 30 / elapsed;
-        DAT_00511c40 = DAT_00511bc0;
-        DAT_00511c44 = DAT_00511bc4;
+        g_netStatsTick = now;
+        g_messageBytesReceivedRate = (DAT_00511bc0 * 30 - g_lastMessageBytesReceived * 30) / elapsed;
+        int packets = DAT_00511bc4 - g_lastMessageBytesSent;
+        g_messageBytesSentRate = packets * 30 / elapsed;
+        g_lastMessageBytesReceived = DAT_00511bc0;
+        g_lastMessageBytesSent = DAT_00511bc4;
         if (packets > 0)
-            DAT_00511a44 = (DAT_00511dcc + packets - DAT_00511dc8) * 100 / packets;
+            g_compressionPercent = (g_lastCompressedBytesSent + packets - g_compressedBytesSent) * 100 / packets;
         else
-            DAT_00511a44 = 0;
-        DAT_00511dcc = DAT_00511dc8;
-        DAT_00511c4c = (DAT_00511bc8 * 30 - DAT_00511a4c * 30) / elapsed;
-        DAT_00511c30 = (DAT_00511c50 * 30 - DAT_00511bcc * 30) / elapsed;
-        DAT_00511dc4 = (DAT_00511c34 * 30 - DAT_00511c24 * 30) / elapsed;
-        DAT_00511dc0 = (DAT_00511c48 * 30 - DAT_00511c28 * 30) / elapsed;
-        DAT_00511a4c = DAT_00511bc8;
-        DAT_00511bcc = DAT_00511c50;
-        DAT_00511c24 = DAT_00511c34;
-        DAT_00511c28 = DAT_00511c48;
+            g_compressionPercent = 0;
+        g_lastCompressedBytesSent = g_compressedBytesSent;
+        g_packetBytesSentRate = (DAT_00511bc8 * 30 - g_lastPacketBytesSent * 30) / elapsed;
+        g_packetBytesReceivedRate = (DAT_00511c50 * 30 - g_lastPacketBytesReceived * 30) / elapsed;
+        g_packetsSentRate = (DAT_00511c34 * 30 - g_lastPacketsSent * 30) / elapsed;
+        g_packetsReceivedRate = (DAT_00511c48 * 30 - g_lastPacketsReceived * 30) / elapsed;
+        g_lastPacketBytesSent = DAT_00511bc8;
+        g_lastPacketBytesReceived = DAT_00511c50;
+        g_lastPacketsSent = DAT_00511c34;
+        g_lastPacketsReceived = DAT_00511c48;
     }
-    sprintf(text, "pS=%4d pR=%4d (S=%d/%4d, R=%d/%4d) C=%3d%%\n", DAT_00511c3c, DAT_00511c38,
-            DAT_00511dc4, DAT_00511c4c, DAT_00511dc0, DAT_00511c30, DAT_00511a44);
+    sprintf(text, "pS=%4d pR=%4d (S=%d/%4d, R=%d/%4d) C=%3d%%\n", g_messageBytesSentRate, g_messageBytesReceivedRate,
+            g_packetsSentRate, g_packetBytesSentRate, g_packetsReceivedRate, g_packetBytesReceivedRate, g_compressionPercent);
 }

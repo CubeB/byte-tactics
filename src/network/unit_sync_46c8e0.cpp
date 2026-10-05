@@ -3,15 +3,15 @@
 
 extern char* g_game;
 
-class Class_0046d040 {
+class UnitSync {
 public:
     char unknown_0[0x68];
 
-    Class_0046d040(int param_1);
+    UnitSync(int param_1);
 };
 
 // FUNCTION: 0x46c8e0
-void __stdcall FUN_0046c8e0(int param_1)
+void __stdcall CreateUnitSync(int param_1)
 {
-    *(Class_0046d040**)(g_game + 0x2a30) = new Class_0046d040(param_1);
+    *(UnitSync**)(g_game + 0x2a30) = new UnitSync(param_1);
 }

@@ -43,23 +43,23 @@ typedef int (__stdcall *SendFn_0046c620)(int, Rect_0046c620*, void*, int, Name_0
                                          int, int, int, void*, void*);
 
 extern int DAT_0051e550;
-extern Name_0046c620 DAT_0051e560;
+extern Name_0046c620 g_reportPlayerName;
 extern void* DAT_0051e574;
 extern void* DAT_0051e57c;
 extern SendFn_0046c620 DAT_0051e584;
 extern int DAT_0051e58c;
 extern int DAT_0051e590;
-extern int DAT_0051e594;
+extern int g_reportFlags;
 
 Rect_0046c620* __stdcall FUN_004ca9e0(Class_0046c620* p);
 int __stdcall FUN_004ca9d0(Class_0046c620* p);
 int __stdcall FUN_004ca9f0(int mode);
-int __stdcall FUN_004caa10(int, Rect_0046c620*, void*, int, Name_0046c620*, int,
+int __stdcall RIReport(int, Rect_0046c620*, void*, int, Name_0046c620*, int,
                            int, int, void*, void*);
 int FUN_0046c2a0();
 
 // FUNCTION: 0x46c620
-int __stdcall FUN_0046c620(int msg)
+int __stdcall ReportGameEvent(int msg)
 {
     if (!DAT_0051e590 && !DAT_0051e58c)
         return 4;
@@ -70,9 +70,9 @@ int __stdcall FUN_0046c620(int msg)
     int thing = FUN_004ca9d0(&g_game->net);
 
     if (msg == 1) {
-        DAT_0051e560 = g_game->net.name;
-        char* p = DAT_0051e560.text + 15;
-        while (p > DAT_0051e560.text && *p == ' ')
+        g_reportPlayerName = g_game->net.name;
+        char* p = g_reportPlayerName.text + 15;
+        while (p > g_reportPlayerName.text && *p == ' ')
             *p-- = 0;
     }
 
@@ -80,12 +80,12 @@ int __stdcall FUN_0046c620(int msg)
 
     if (DAT_0051e590) {
         if (msg == 1 || msg == 6 || msg == 7)
-            DAT_0051e594 = FUN_004ca9f0(msg == 1 ? 1 : 2 + (msg != 6));
-        if (DAT_0051e594 & 3) {
+            g_reportFlags = FUN_004ca9f0(msg == 1 ? 1 : 2 + (msg != 6));
+        if (g_reportFlags & 3) {
             // its own statement, not an argument: the call has to be emitted
             // ahead of the other nine arguments being set up
             int team = g_game->field_391e9->FUN_00435c30();
-            if (FUN_004caa10(msg, &rect, (char*)&g_game->field_39201, thing, &DAT_0051e560,
+            if (RIReport(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
                              team, g_game->player,
                              id, DAT_0051e574, DAT_0051e57c))
                 DAT_0051e590 = 0;
@@ -94,7 +94,7 @@ int __stdcall FUN_0046c620(int msg)
 
     if (DAT_0051e58c) {
         int team = g_game->field_391e9->FUN_00435c30();
-        DAT_0051e584(msg, &rect, (char*)&g_game->field_39201, thing, &DAT_0051e560,
+        DAT_0051e584(msg, &rect, (char*)&g_game->field_39201, thing, &g_reportPlayerName,
                      team, g_game->player,
                      id, DAT_0051e574, DAT_0051e57c);
     }

@@ -11,8 +11,8 @@ extern char* g_game;
 int __stdcall FUN_004d0f60(char* out, char* in, int size);
 void FUN_004d1800();
 void FUN_004d1810();
-int __stdcall FUN_004c97b0(void* net, unsigned long from, unsigned long to, void* data, unsigned long size);
-void __stdcall FUN_00415f40(int size, int overhead, int sent);
+int __stdcall HAPINET_sendpacket(void* net, unsigned long from, unsigned long to, void* data, unsigned long size);
+void __stdcall CountPacket(int size, int overhead, int sent);
 
 #pragma pack(push, 1)
 class Class_0044fc10 {
@@ -25,12 +25,12 @@ public:
     int size_1d;                       // +0x1d
     int to_21;                         // +0x21
 
-    int FUN_0044fc10(void* session, int from);
+    int SendPacket(void* session, int from);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x44fc10
-int Class_0044fc10::FUN_0044fc10(void* session, int from)
+int Class_0044fc10::SendPacket(void* session, int from)
 {
     unsigned int compressed;
     if (size_1d > 12) {
@@ -68,9 +68,9 @@ int Class_0044fc10::FUN_0044fc10(void* session, int from)
     if (*(int*)(g_game + 0x37f35) != 0 && (int)((__int64)rand() * 101 / 32768) <= *(int*)(g_game + 0x37f35))
         result = 0;
     else
-        result = FUN_004c97b0(session, from, to_21, packet, total);
+        result = HAPINET_sendpacket(session, from, to_21, packet, total);
     if (result == 0)
-        FUN_00415f40(size_1d + 3, total, 1);
+        CountPacket(size_1d + 3, total, 1);
     size_1d = 0;
     flag_1c = 0;
     return result;

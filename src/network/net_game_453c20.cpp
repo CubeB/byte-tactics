@@ -1,9 +1,9 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // Unless bit 0 of g_game+0x37f2f is set, looks for active players
 // (state 3) that have not been heard from for field_37f31 * 30 ticks since
-// the later of their last message time (+0x1c) and DAT_00512c7c. If all such
+// the later of their last message time (+0x1c) and g_timeoutTimerStart. If all such
 // players are on one team (+0xc), the first of them is passed to
-// FUN_00453a50 (by its id at +0x4); otherwise FUN_00453a50(-1). With bit 0
+// OpenTimeoutDialog (by its id at +0x4); otherwise OpenTimeoutDialog(-1). With bit 0
 // of +0x38a51 set it only restarts the timer.
 
 #pragma pack(push, 1)
@@ -32,17 +32,17 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern unsigned int DAT_00512c7c;
+extern unsigned int g_timeoutTimerStart;
 
 unsigned int FUN_004b6340();
-void __stdcall FUN_00453a50(int value);
+void __stdcall OpenTimeoutDialog(int value);
 
 static inline int IsTimedOut(Player_00453c20* p, unsigned int now)
 {
     if (p->active != 0 && p->state == 3) {
         unsigned int last = p->lastHeard;
-        if (DAT_00512c7c > last)
-            last = DAT_00512c7c;
+        if (g_timeoutTimerStart > last)
+            last = g_timeoutTimerStart;
         if (now - last > (unsigned int)(g_game->field_37f31 * 30))
             return 1;
     }
@@ -52,12 +52,12 @@ static inline int IsTimedOut(Player_00453c20* p, unsigned int now)
 // The first loop walks a pointer (p++) and the second indexes the array;
 // indexing in the first loop biases the loop pointer to +0xc instead.
 // FUNCTION: 0x453c20
-void FUN_00453c20()
+void CheckPlayerTimeouts()
 {
     if (g_game->field_37f2f & 1)
         return;
     if (g_game->field_38a51 & 1) {
-        DAT_00512c7c = FUN_004b6340();
+        g_timeoutTimerStart = FUN_004b6340();
         return;
     }
     unsigned int now = FUN_004b6340();
@@ -76,9 +76,9 @@ void FUN_00453c20()
     for (i = 0; i < 10; i++) {
         Player_00453c20* q = &g_game->players[i];
         if (IsTimedOut(q, now) && !mixed) {
-            FUN_00453a50(q->id);
+            OpenTimeoutDialog(q->id);
             return;
         }
     }
-    FUN_00453a50(-1);
+    OpenTimeoutDialog(-1);
 }

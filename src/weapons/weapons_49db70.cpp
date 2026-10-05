@@ -3,7 +3,7 @@
 // 16.16 fixed point), optionally ask the per-player table for a target through
 // FUN_0049d120, then hand everything to FUN_0049cc20. When the game flag
 // g_game+0x2a44 is set the shot is also packed into a 0x24 byte network
-// packet and sent through FUN_00451df0.
+// packet and sent through BroadcastPacket.
 //
 // Three details are load bearing:
 //   - `dy` must be a 4-byte union whose high half is read as `movsx cx, word
@@ -86,7 +86,7 @@ short __cdecl FUN_004b715a(int a, int b);
 int* __stdcall FUN_0049d120(Object_0049db70* obj, unsigned char weapon);
 int __stdcall FUN_0049cc20(Shot_0049db70* shot, Object_0049db70* source, Vec3_0049db70* pos,
                            Vec3_0049db70* aim, Object_0049db70* target, int* param_6);
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 double __cdecl _hypot(double x, double y);
 long __cdecl _ftol();
 
@@ -125,7 +125,7 @@ int __stdcall FUN_0049db70(Object_0049db70* source, Shot_0049db70* shot,
                 packet.heading = shot->heading;
                 packet.pitch = shot->pitch;
                 packet.flag = shot->def->flags.special;
-                FUN_00451df0(source->kind->player, &packet, 0x24);
+                BroadcastPacket(source->kind->player, &packet, 0x24);
             }
             shot->piece = 0;
             shot->weapon &= 0xfe;

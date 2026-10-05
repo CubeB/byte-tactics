@@ -12,10 +12,10 @@
 // data/symbols.csv still names after the class of 0x415b60.
 class Class_00415b60 {
 public:
-    void FUN_00415bb0();
+    void GrowBuffer();
 };
 
-class Class_00415c10 : public Class_00415b60 {
+class BitWriter : public Class_00415b60 {
 public:
     int bit;                           // +0x0 current word index
     int index;                         // +0x4 bits used in the current word
@@ -23,7 +23,7 @@ public:
     unsigned int* data;                // +0xc
     unsigned int buffer[0x100];        // +0x10
 
-    void FUN_00415c10(int value, int bits);
+    void WriteBits(int value, int bits);
 };
 
 struct Target_0044f4a0 {
@@ -52,11 +52,11 @@ public:
     unsigned char flag_2 : 1;          // bit 2
     unsigned char flag_3 : 1;          // bit 3
 
-    virtual void FUN_0044efc0(Class_00415c10* stream);  // slot 8
+    virtual void FUN_0044efc0(BitWriter* stream);       // slot 8
 };
 
 // FUNCTION: 0x44f4a0
-void Class_0044f010::FUN_0044efc0(Class_00415c10* stream)
+void Class_0044f010::FUN_0044efc0(BitWriter* stream)
 {
     int n;
     if (active) {
@@ -72,14 +72,14 @@ void Class_0044f010::FUN_0044efc0(Class_00415c10* stream)
         stream->index = 0;
         stream->bit++;
         if (stream->bit == stream->capacity) {
-            stream->FUN_00415bb0();
+            stream->GrowBuffer();
         }
         stream->data[stream->bit] = 0;
     }
-    stream->FUN_00415c10(n, 2);
+    stream->WriteBits(n, 2);
     for (int i = 0; i < n; i++) {
-        stream->FUN_00415c10(points[i].x, 0x10);
-        stream->FUN_00415c10(points[i].y, 0x10);
+        stream->WriteBits(points[i].x, 0x10);
+        stream->WriteBits(points[i].y, 0x10);
     }
     flag_2 = (owner->target->field_2e & 4) != 0;
     flag_3 = 0;

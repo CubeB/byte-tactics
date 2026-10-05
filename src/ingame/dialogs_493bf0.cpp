@@ -139,7 +139,7 @@ int __stdcall FUN_00417b50(char* cmd, int flags);
 int __stdcall FUN_0049fd60(Gadget_00493bf0* gadget, char* name);
 int __stdcall FUN_0049fdf0(Entry_00493bf0* entries, char* name, int type);
 void __stdcall FUN_0049fc50(Gadget_00493bf0* obj, int index);
-void __stdcall FUN_00463e50(Player_00493bf0* from, char* text, int param_3, char* to);
+void __stdcall SendChatMessage(Player_00493bf0* from, char* text, int param_3, char* to);
 
 // FUNCTION: 0x493bf0
 void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
@@ -248,7 +248,7 @@ skip0:;
 after:
             g_game->mode_2bf0 = mode;
             memset(buf2, 0, sizeof(buf2));
-            FUN_00463e50(base, p, 4, to);
+            SendChatMessage(base, p, 4, to);
             *(Saved_00493bf0*)g_game->field_2bf1 = saved;
             g_game->mode_2bf0 = oldmode;
         }

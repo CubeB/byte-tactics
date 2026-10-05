@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // The compiler-generated dynamic initialiser (_$E4) of the global
-// DAT_00513000 (vtable 0x4fd514): its constructor (out of line at 0x4611e0)
+// g_packetManager (vtable 0x4fd514): its constructor (out of line at 0x4611e0)
 // is inlined, and registers the atexit destructor _$E2 (0x460f60).
 //
 // Layout: m_defaultSendPacingMs at +0x04 (the name comes from 0x461020's
@@ -13,7 +13,7 @@
 //
 // What decides the match is which calls /Ob2 leaves out of line. The two
 // element types need their destructors (the channel frees its item list,
-// Class_004635b0 frees three buffers): with them the entries array is built
+// PlayerFrameInfo frees three buffers): with them the entries array is built
 // through the `vector constructor iterator' (0x401000) instead of an inlined
 // loop. The tail at +0x228 has to be initialised in the member-initialiser
 // list, so that the Class_00462d30 vtable store comes after it. The two
@@ -25,23 +25,23 @@
 // data/symbols.csv calls FUN_00401000 (the ??_H this file emits matches
 // 0x401000 byte for byte).
 
-class Class_00460f40 {
+class PacketRing {
 public:
     int field_0;
     int field_4;
     int field_8;
 
-    Class_00460f40() { field_0 = 0; field_4 = 0; field_8 = -1; }
+    PacketRing() { field_0 = 0; field_4 = 0; field_8 = -1; }
 };
 
 class Class_00462860 {
 public:
-    void FUN_00462860(unsigned int ms);
+    void SetMinRetainMs(unsigned int ms);
 };
 
 class Class_004628a0 {
 public:
-    void FUN_004628a0(int ms);
+    void SetSendPacingMs(int ms);
 };
 
 struct Buffers_00462d30 {
@@ -59,7 +59,7 @@ struct Buffers_00462d30 {
     }
 };
 
-class Class_004635b0 {
+class PlayerFrameInfo {
 public:
     int field_0;
     int field_4;
@@ -70,10 +70,10 @@ public:
     int field_2c;
     int field_30;
 
-    Class_004635b0();
+    PlayerFrameInfo();
 };
 
-struct Channel_00460f60 {
+struct PacketChannel {
     int field_0;                       // +0x00
     unsigned int sendPacingTicks;      // +0x04, set by 0x4628a0
     void** items;                      // +0x08
@@ -88,17 +88,17 @@ struct Channel_00460f60 {
     int field_2c;                      // +0x2c
     int field_30;                      // +0x30
     int field_34;                      // +0x34
-    Class_00460f40 field_38;           // +0x38
+    PacketRing field_38;               // +0x38
     char unknown_44[0x1044 - 0x44];
 
-    Channel_00460f60()
+    PacketChannel()
         : field_0(-1), sendPacingTicks(0), items(0), count(0), field_10(-2), field_14(-1), timeoutTicks(0),
           field_1c(-1), field_20(0), field_24(0), field_28(0), field_2c(0), field_30(0), field_34(0)
     {
-        ((Class_00462860*)this)->FUN_00462860(4000);
-        ((Class_004628a0*)this)->FUN_004628a0(200);
+        ((Class_00462860*)this)->SetMinRetainMs(4000);
+        ((Class_004628a0*)this)->SetSendPacingMs(200);
     }
-    ~Channel_00460f60()
+    ~PacketChannel()
     {
         if (items) {
             for (unsigned i = 0; i < count; i++)
@@ -125,7 +125,7 @@ public:
     int field_14;                      // +0x14
     void* field_18;                    // +0x18
     void* field_1c;                    // +0x1c
-    Class_004635b0 entries[10];        // +0x20
+    PlayerFrameInfo entries[10];       // +0x20
     int field_228;                     // +0x228
     int field_22c;                     // +0x22c
     int field_230;                     // +0x230
@@ -143,7 +143,7 @@ class Class_00460f60 {
 public:
     virtual ~Class_00460f60() { }
     int m_defaultSendPacingMs;         // +0x04
-    Channel_00460f60 channels[11];     // +0x08
+    PacketChannel channels[11];        // +0x08
     char* buffer;                      // +0xb2f4
     int used;                          // +0xb2f8
     int capacity;                      // +0xb2fc
@@ -153,6 +153,6 @@ public:
 };
 
 // FUNCTION: 0x460e20 _$E4
-Class_00460f60 DAT_00513000;
+Class_00460f60 g_packetManager;
 
 Class_00460f60::Class_00460f60() : m_defaultSendPacingMs(200), buffer(0), used(0), capacity(0), member(this) { }

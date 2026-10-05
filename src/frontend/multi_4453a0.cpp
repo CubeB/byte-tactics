@@ -5,7 +5,7 @@
 
 #pragma pack(push, 1)
 // A player slot: the same 0x14b byte record the game keeps in g_game->players
-// (see 0x416ab0). FUN_00463c60 below writes this->type at +0x73.
+// (see 0x416ab0). SetType below writes this->type at +0x73.
 struct Player_004453a0 {
     int active;                        // +0x00
     char unknown_4[0x73 - 0x4];
@@ -17,7 +17,7 @@ struct Player_004453a0 {
 
 class Class_00463c60 {
 public:
-    void FUN_00463c60(int param_1);
+    void SetType(int param_1);
 };
 
 struct Game {
@@ -34,7 +34,7 @@ void __stdcall FUN_004453a0(Player_004453a0* param_1, Player_004453a0* param_2)
     Player_004453a0 tmp = *param_2;
     *param_2 = *param_1;
     *param_1 = tmp;
-    ((Class_00463c60*)param_1)->FUN_00463c60(0);
+    ((Class_00463c60*)param_1)->SetType(0);
     param_1->active = 0;
     // The original bound is i <= 10, not i < 10: the offset test is
     // "cmp eax, 0xcee; jle" (0xcee is 10 * 0x14b, the size of players), so

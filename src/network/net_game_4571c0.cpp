@@ -28,7 +28,7 @@ struct Packet_004571c0 {
 
 extern Game* g_game;
 
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 
 static inline int PlayerDpid(unsigned char i)
 {
@@ -38,7 +38,7 @@ static inline int PlayerDpid(unsigned char i)
 }
 
 // FUNCTION: 0x4571c0
-void __stdcall FUN_004571c0(unsigned char from, unsigned char to)
+void __stdcall SendShareMapInfo(unsigned char from, unsigned char to)
 {
     if (from != 10 && to != 10) {
         Packet_004571c0 packet;
@@ -47,6 +47,6 @@ void __stdcall FUN_004571c0(unsigned char from, unsigned char to)
         packet.from = PlayerDpid(from);
         packet.to = PlayerDpid(to);
         packet.zero = 0;
-        FUN_00451bc0(PlayerDpid(from), PlayerDpid(to), &packet, sizeof(packet));
+        SendPacketToPlayer(PlayerDpid(from), PlayerDpid(to), &packet, sizeof(packet));
     }
 }

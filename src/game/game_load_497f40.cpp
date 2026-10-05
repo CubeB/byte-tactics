@@ -131,8 +131,8 @@ extern unsigned char DAT_0051e810[10];
 extern "C" int DAT_0051e6c8;
 extern "C" int DAT_0051e6cc;
 extern "C" int DAT_0051f308;
-extern "C" int DAT_00506dbc;
-extern "C" char DAT_00513000;
+extern "C" int g_usePacketManager;
+extern "C" char g_packetManager;
 extern "C" unsigned char DAT_0051e820, DAT_0051e821, DAT_0051e822;
 extern "C" unsigned char DAT_0051e823, DAT_0051e824, DAT_0051e825;
 
@@ -142,9 +142,9 @@ void __cdecl FUN_004609a0(int);
 void __cdecl FUN_004257a0();
 void __cdecl FUN_00428730();
 void __cdecl FUN_00430f00();
-void __cdecl FUN_00453d40();
-void __cdecl FUN_00456de0();
-void __cdecl FUN_0045b640();
+void __cdecl HandleNetPackets();
+void __cdecl SendLoadProgress();
+void __cdecl OnlineUnload();
 void __cdecl FUN_00467d70();
 void __cdecl FUN_0047f750();
 void __cdecl FUN_00496790();
@@ -183,7 +183,7 @@ void __stdcall FUN_004c61f0(int);
 void __stdcall FUN_004c69a0(void*);
 void* __stdcall FUN_004c69f0(char*, int, int);
 void __stdcall FUN_004c6b70(void*, void*, int, int);
-void __stdcall FUN_004c9790(int);
+void __stdcall HAPINET_guaranteepackets(int);
 class Class_004cdb40 { public: void FUN_004cdb40(); };
 class Class_004ce690 { public: void FUN_004ce690(int); };
 class Class_004ce800 { public: int FUN_004ce800(); };
@@ -206,9 +206,9 @@ public:
     char* FUN_00435c30();
 };
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    void FUN_004618a0(int);
+    void SendAllQueued(int);
 };
 
 // FUNCTION: 0x497f40
@@ -295,7 +295,7 @@ void FUN_00497f40(void)
         memset(&DAT_0051e6c8, 0, 6);
         memset(&DAT_0051e820, 0, 6);
         g_game->flags38d75.bits.started = 1;
-        FUN_0045b640();
+        OnlineUnload();
     }
     if (g_game->flags38d75.bits.loaded) {
         FUN_0047f750();
@@ -334,20 +334,20 @@ void FUN_00497f40(void)
         if (g_game->players[i].active != 0
             && (g_game->players[i].control == 1 || g_game->players[i].control == 2)) {
             FUN_00453320(g_game->players[i].id, 0);
-            if (DAT_00506dbc != 0)
-                ((Class_004618a0*)&DAT_00513000)->FUN_004618a0(1);
+            if (g_usePacketManager != 0)
+                ((PacketManager*)&g_packetManager)->SendAllQueued(1);
         }
     }
-    FUN_00453d40();
+    HandleNetPackets();
     if (g_game->flags38d75.bits.b2) {
         if (FUN_004568c0() != 0) {
             g_game->flags38d75.bits.b2 = 0;
             g_game->flags38d75.bits.b3 = 1;
-            FUN_004c9790(0);
+            HAPINET_guaranteepackets(0);
         }
     }
-    if (DAT_00506dbc != 0) {
-        ((Class_004618a0*)&DAT_00513000)->FUN_004618a0(1);
+    if (g_usePacketManager != 0) {
+        ((PacketManager*)&g_packetManager)->SendAllQueued(1);
     }
     FUN_004c69a0((void*)g_game->field_37e1b);
     int ok = FUN_004c5e70(&gadget);
@@ -474,7 +474,7 @@ void FUN_00497f40(void)
         }
         if (((Class_00435100*)g_game->field_391e9)->FUN_00435100() == 3) {
             FUN_00497ce0(&gadget);
-            FUN_00456de0();
+            SendLoadProgress();
         }
         FUN_004c5fa0(&gadget);
         FUN_004c63a0();

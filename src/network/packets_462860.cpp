@@ -7,11 +7,11 @@ public:
     char unknown_0[0x18];
     unsigned int ticks;                // +0x18
 
-    void FUN_00462860(unsigned int ms);
+    void SetMinRetainMs(unsigned int ms);
 };
 
 // FUNCTION: 0x462860
-void Class_00462860::FUN_00462860(unsigned int ms)
+void Class_00462860::SetMinRetainMs(unsigned int ms)
 {
     if (ms > 60000)
         ms = 60000;

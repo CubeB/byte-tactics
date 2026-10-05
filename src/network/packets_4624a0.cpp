@@ -1,15 +1,15 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, mimo-v2.6-pro and opus. Names are provisional.
 //
 // Sends one player's queued packets: every packet whose frame matches the
-// queue head's is appended to the outgoing buffer (DAT_00513000, whose
+// queue head's is appended to the outgoing buffer (g_packetManager, whose
 // buffer and size fields are DAT_0051e2f4 and DAT_0051e2f8), the others go
-// back on the queue, and the buffer is handed to DAT_005129d0 with the frame
+// back on the queue, and the buffer is handed to g_sendCondenser with the frame
 // and the player's DPID.
 //
 // What matched it (opus, #4310), rebuilt from the disassembly instead of the
 // 81.7% file's address-escape and do/while(0) devices:
 //  * A packet's data is `owner->data[offset]`: +0x4 is the offset and +0xc
-//    the owning buffer (Class_004628d0, data at +0x14). Written twice as an
+//    the owning buffer (PacketBuffer, data at +0x14). Written twice as an
 //    expression, it gives the original's base+offset for the log call and
 //    the fresh reload after FUN_004b6340, with the zero kept in ebx.
 //  * `if (now >= nextSend || force != 0) { ...; while ((n = queue.count) != 0)
@@ -18,24 +18,24 @@
 //    before the log call, in that order: equal priorities, so the one written
 //    first takes edi (`nbytes` before `id`; 97.5% the other way round).
 unsigned int __cdecl FUN_004b6340();
-void __cdecl FUN_00461170(const char* fmt, ...);
+void __cdecl PacketTrace(const char* fmt, ...);
 
 extern char* g_game;
 extern int* DAT_0051e2f4;
 extern unsigned int DAT_0051e2f8;
 
-class Class_004614e0 {
+class PacketManager {
 public:
-    int FUN_004614e0(unsigned char* data, unsigned int len);
+    int AppendToSendBuffer(unsigned char* data, unsigned int len);
 };
 
 class Class_004626e0 {
 public:
-    void FUN_004626e0(void* session, int from, int value, void* data, int size);
+    void SendPacketTo(void* session, int from, int value, void* data, int size);
 };
 
-extern Class_004614e0 DAT_00513000;
-extern Class_004626e0 DAT_005129d0;
+extern PacketManager g_packetManager;
+extern Class_004626e0 g_sendCondenser;
 
 struct Buffer_004624a0 {
     char unknown_0[0x14];
@@ -108,14 +108,14 @@ public:
     char unknown_28[0x10];
     Queue_004624a0 queue;             // +0x38
 
-    int FUN_004624a0(int force);
+    int SendQueued(int force);
 };
 
 // FUNCTION: 0x4624a0
-int Class_004624a0::FUN_004624a0(int force)
+int Class_004624a0::SendQueued(int force)
 {
     unsigned int now = FUN_004b6340();
-    FUN_00461170("player: %ld, ticks betw sends=%lu, nextsend=%lu, gametimereal=%lu\n",
+    PacketTrace("player: %ld, ticks betw sends=%lu, nextsend=%lu, gametimereal=%lu\n",
                  dpid, ticks, nextSend, now);
     if (now >= nextSend || force != 0) {
         nextSend = now + ticks;
@@ -123,17 +123,17 @@ int Class_004624a0::FUN_004624a0(int force)
         while ((n = queue.count) != 0) {
             int headFrame = queue.Peek()->frame;
             int sent = 0;
-            FUN_00461170("assigning packets to frame number: %ld\n", frame);
+            PacketTrace("assigning packets to frame number: %ld\n", frame);
             for (int i = 0; i < n; i++) {
                 Packet_004624a0* entry = queue.Peek();
                 queue.Pop();
                 if (entry->frame == headFrame) {
-                    FUN_00461170("extracted packet (len=%ld, type=%d, data=\"%s\")\n",
+                    PacketTrace("extracted packet (len=%ld, type=%d, data=\"%s\")\n",
                                  entry->size, entry->owner->data[entry->offset],
                                  &entry->owner->data[entry->offset + 1]);
                     entry->queued = frame;
                     entry->time = FUN_004b6340();
-                    if (DAT_00513000.FUN_004614e0(&entry->owner->data[entry->offset], entry->size) == 0)
+                    if (g_packetManager.AppendToSendBuffer(&entry->owner->data[entry->offset], entry->size) == 0)
                         return 0;
                     sent++;
                 } else {
@@ -142,13 +142,13 @@ int Class_004624a0::FUN_004624a0(int force)
             }
             queuedBytes = 0;
             if (sent > 0) {
-                FUN_00461170("sending %ld packets in frame: %ld\n", sent, frame);
+                PacketTrace("sending %ld packets in frame: %ld\n", sent, frame);
                 *DAT_0051e2f4 = dpid != 0 ? -1 : frame;
                 unsigned int nbytes = DAT_0051e2f8;
                 int id = dpid;
                 int* data = DAT_0051e2f4;
-                FUN_00461170("bytes to send to (DPID)(%ld): %ld\n", id, nbytes);
-                DAT_005129d0.FUN_004626e0(g_game + 0x14, headFrame, id, data, nbytes);
+                PacketTrace("bytes to send to (DPID)(%ld): %ld\n", id, nbytes);
+                g_sendCondenser.SendPacketTo(g_game + 0x14, headFrame, id, data, nbytes);
                 DAT_0051e2f8 = DAT_0051e2f4 != 0 ? 4 : 0;
                 frame--;
                 if (frame >= -1)

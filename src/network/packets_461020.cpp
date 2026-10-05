@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// MATCH. The function guards a body on DAT_00506dbc and returns 1 from a single
+// MATCH. The function guards a body on g_usePacketManager and returns 1 from a single
 // shared epilogue, with the allocation-failure `return 0` as a second, out of
 // line epilogue reached by `je` from the new() null test.
 //
@@ -18,12 +18,12 @@
 //
 // Two things the disassembly forces:
 //
-//  - The object at DAT_00513000 holds m_defaultSendPacingMs at +4 and the
-//    0x1044 byte entries at +8: the first Class_00462470::FUN_00461db0 call
+//  - The object at g_packetManager holds m_defaultSendPacingMs at +4 and the
+//    0x1044 byte entries at +8: the first PacketChannel::InitPools call
 //    sets ecx to 0x513008 and the pacing store lands on 0x51300c, so the
 //    per-entry pacing field is entry+4. 0x4619e0.cpp models the same array as
 //    channels at +0xc with pacing at +0, which is indistinguishable there.
-//  - The pacing block is 0x4619e0 (Class_004619e0::FUN_004619e0) inlined, and
+//  - The pacing block is 0x4619e0 (PacketManager::SetDefaultSendPacing) inlined, and
 //    it has to be inlined from source with `__inline`: written out inline in
 //    the body, MSVC 5 folds its second `rate == 0` test away, and called out of
 //    line, as in 0x4578d0, it would not be inlined at all. Inlined it keeps the
@@ -31,9 +31,9 @@
 #include <windows.h>
 
 void* __cdecl operator new(unsigned int size);
-void __cdecl FUN_00461170(const char* fmt, ...);
+void __cdecl PacketTrace(const char* fmt, ...);
 
-class Class_00462470 {
+class PacketChannel {
 public:
     int field_0;                       // +0x00
     unsigned long m_pacingMs;          // +0x04
@@ -45,16 +45,16 @@ public:
     int field_24;                      // +0x24
     char unknown_28[0x1044 - 0x28];
 
-    void FUN_00461db0(int a1, int a2, int a3, int a4);
+    void InitPools(int a1, int a2, int a3, int a4);
 };
 
-class Class_004619e0 {
+class PacketManager {
 public:
     char unknown_0[4];
     unsigned long m_defaultSendPacingMs;   // +0x04
-    Class_00462470 entries[11];            // +0x08
+    PacketChannel entries[11];             // +0x08
 
-    void FUN_004619e0(int rate);
+    void SetDefaultSendPacing(int rate);
 };
 
 struct Buffer_461020 {
@@ -62,20 +62,20 @@ struct Buffer_461020 {
     int field_c;
 };
 
-extern Class_004619e0 DAT_00513000;
+extern PacketManager g_packetManager;
 extern int DAT_00512c94;
-extern int DAT_00506dbc;
+extern int g_usePacketManager;
 extern Buffer_461020* DAT_0051e314;
 extern void* DAT_0051e318;
 extern void* DAT_0051e31c;
 extern int DAT_0051e528;
 extern int DAT_0051e52c;
 
-__inline void Class_004619e0::FUN_004619e0(int rate)
+__inline void PacketManager::SetDefaultSendPacing(int rate)
 {
     unsigned long pace;
     if (rate < 0) {
-        DAT_00506dbc = 0;
+        g_usePacketManager = 0;
         return;
     }
     if (rate == 0) {
@@ -89,20 +89,20 @@ __inline void Class_004619e0::FUN_004619e0(int rate)
         pace = 1000 / rate;
     }
     m_defaultSendPacingMs = pace;
-    FUN_00461170("setting m_defaultSendPacingMs to: %lums\n", pace);
-    Class_00462470* p = &entries[0];
+    PacketTrace("setting m_defaultSendPacingMs to: %lums\n", pace);
+    PacketChannel* p = &entries[0];
     for (int i = 0; i < 11; i++, p++) {
         p->m_pacingMs = (m_defaultSendPacingMs * 30 + 999) / 1000;
     }
 }
 
 // FUNCTION: 0x461020
-int __stdcall FUN_00461020(int param_1, int param_2)
+int __stdcall InitPacketManager(int param_1, int param_2)
 {
     if (DAT_00512c94 != 0) {
-        DAT_00513000.FUN_004619e0(DAT_00512c94);
+        g_packetManager.SetDefaultSendPacing(DAT_00512c94);
     }
-    if (DAT_00506dbc != 0) {
+    if (g_usePacketManager != 0) {
         do {
             if (DAT_0051e318 == 0) {
                 if (DAT_0051e31c != 0) {
@@ -121,10 +121,10 @@ int __stdcall FUN_00461020(int param_1, int param_2)
                 DAT_0051e314->field_c = 0;
                 DAT_0051e314 = 0;
             }
-            DAT_00513000.entries[0].FUN_00461db0(0, DAT_00513000.m_defaultSendPacingMs, param_1, param_2);
-            Class_00462470* p = &DAT_00513000.entries[1];
+            g_packetManager.entries[0].InitPools(0, g_packetManager.m_defaultSendPacingMs, param_1, param_2);
+            PacketChannel* p = &g_packetManager.entries[1];
             for (int i = 1; i < 11; i++, p++) {
-                p->FUN_00461db0(-1, DAT_00513000.m_defaultSendPacingMs, 2, 100);
+                p->InitPools(-1, g_packetManager.m_defaultSendPacingMs, 2, 100);
             }
         } while (0);
         SetThreadPriority(GetCurrentThread(), -2);

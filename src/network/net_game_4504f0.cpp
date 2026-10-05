@@ -19,7 +19,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x4504f0
-int FUN_004504f0()
+int FindFreeSlot()
 {
     int found = 0;
     int i;

@@ -5,7 +5,7 @@
 // #5650, #5666, #5675): no change; pass 27 (Opus, #5678): MATCH.
 // The class name is data/symbols.csv's
 // Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
-// Class_00462d30, its own file's class, and returns Entry_00462d90*.
+// Class_00462d30, its own file's class, and returns PlayerFrameInfo*.
 //
 // Pass 27 (#5678), what matched it: a dead `if (entry == 0) tick = 0;` right after the
 // Find block.
@@ -54,7 +54,7 @@
 //    path's exit on its own block too, the long piece gets edi, as in the original
 //    (84.2 -> 98.4). (tools/c2prio.py --blocks only shows the first pass; a scratch
 //    copy that keeps the block hooks on for every re-sort showed the pieces.)
-//  * After the 0x463790 call: `Class_00463730* tail = &entry->tail;` for the call,
+//  * After the 0x463790 call: `FrameQueue* tail = &entry->tail;` for the call,
 //    both Peeks and one Take after the join, which is the original's code exactly
 //    (the Take's Pop reuses the Peek's buffer register). One GetFrame after the join
 //    instead loses the duplicated Peek (94.2%).
@@ -64,7 +64,7 @@
 //    after the setg.
 //
 // Earlier passes, still true:
-//  * The tail of each entry (+0x18) is Class_00463730, the class of 0x463730/0x463790,
+//  * The tail of each entry (+0x18) is FrameQueue, the class of 0x463730/0x463790,
 //    and its 0x180c-byte ring is read through small inline methods (Peek, Pop, Take,
 //    GetFrame). Pop is the same code 0x463790 inlines.
 //  * The first loop walks `Entry* e = &entries[i]`: with plain `entries[i].` indexing
@@ -119,7 +119,7 @@ struct Ring_00462f30 {
 };
 
 // The tail of a PlayerFrameInfo entry (see 0x463730 and 0x463790).
-class Class_00463730 {
+class FrameQueue {
 public:
     int field_0;                       // +0x00
     int field_4;                       // +0x04
@@ -129,7 +129,7 @@ public:
     int field_14;                      // +0x14
     int field_18;                      // +0x18
 
-    int FUN_00463790(char* src, unsigned int size, int tick, int a4, int a5, int a6);
+    int QueueFrames(char* src, unsigned int size, int tick, int a4, int a5, int a6);
 
     Frame_00462f30* Peek()
     {
@@ -159,14 +159,14 @@ public:
     }
 };
 
-struct Entry_00462d90 {
+struct PlayerFrameInfo {
     int field_0;                       // +0x00 the id
     int field_4;                       // +0x04
     int field_8;                       // +0x08 last sequence number, -1 for none
     int field_c;                       // +0x0c saved frame length
     int field_10;                      // +0x10 saved frame capacity
     char* field_14;                    // +0x14 saved frame
-    Class_00463730 tail;               // +0x18
+    FrameQueue tail;                   // +0x18
 };
 
 #pragma pack(push, 1)
@@ -178,17 +178,17 @@ struct Game {
 
 extern Game* g_game;
 
-class Class_0044f9c0 {
+class NetCondenser {
 public:
-    int FUN_0044f9c0(void* net, char* data, int* size);
+    int ReceivePacket(void* net, char* data, int* size);
 };
-extern Class_0044f9c0 DAT_005129f8;
+extern NetCondenser g_receiveCondenser;
 
-void __stdcall FUN_004568b0(int a, int b, int c);
-void __cdecl FUN_00461170(const char* fmt, ...);
+void __stdcall ReportPacketGap(int a, int b, int c);
+void __cdecl PacketTrace(const char* fmt, ...);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
-char* __stdcall FUN_004c9530(int error);
+char* __stdcall HAPINET_GetDPErrorString(int error);
 
 // The sequence numbers next to n, held below -1 (-1 or more becomes -2).
 static int Prev_00462f30(int n)
@@ -209,7 +209,7 @@ static int Next_00462f30(int n)
 
 class Class_00462d30 {
 public:
-    Entry_00462d90* FUN_00462d90(long id);
+    PlayerFrameInfo* FindPlayerFrameInfo(long id);
 };
 
 class Class_00462f30 {
@@ -219,31 +219,31 @@ public:
     void* owner;                       // +0x08
     int field_c;                       // +0x0c current frame's sender
     int field_10;                      // +0x10
-    Entry_00462d90* field_14;          // +0x14 entry whose saved frame is in use
+    PlayerFrameInfo* field_14;         // +0x14 entry whose saved frame is in use
     char* buffer;                      // +0x18
     char* spare;                       // +0x1c
-    Entry_00462d90 entries[10];        // +0x20
+    PlayerFrameInfo entries[10];       // +0x20
     int capacity;                      // +0x228
     int length;                        // +0x22c
     int field_230;                     // +0x230 spare buffer's length
     int field_234;                     // +0x234
     int field_238;                     // +0x238
 
-    int FUN_00462f30(void* net, unsigned char* data, int* size);
+    int ReceiveFrame(void* net, unsigned char* data, int* size);
 };
 
 // FUNCTION: 0x462f30
-int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
+int Class_00462f30::ReceiveFrame(void* net, unsigned char* data, int* size)
 {
     int tick = g_game->tick;
-    Entry_00462d90* entry;
+    PlayerFrameInfo* entry;
     unsigned int i;
     void* src;
     int len;
     int rc;
 
     for (i = 0; i < 10; i++) {
-        Entry_00462d90* e = &entries[i];
+        PlayerFrameInfo* e = &entries[i];
         if (e->field_0 == -1)
             break;
         src = e->tail.GetFrame(tick, len);
@@ -293,7 +293,7 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
         }
         if (n == 0) {
             length = capacity;
-            rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
+            rc = g_receiveCondenser.ReceivePacket((char*)g_game + 0x14, buffer, &length);
             while (rc != 0) {
                 if (rc == (int)0x887700be) {    // DPERR_NOMESSAGES
                     length = 0;
@@ -310,7 +310,7 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
                     return (int)0x8007000e;
                 }
                 length = capacity;
-                rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
+                rc = g_receiveCondenser.ReceivePacket((char*)g_game + 0x14, buffer, &length);
             }
             // Always true here (the enclosing test), so MSVC emits no test; the error
             // block stays after B only as this if's else arm.
@@ -322,7 +322,7 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
                         if (length == sizeof(int))
                             return (int)0x80004005;
                         if (*(int*)buffer != -1) {
-                            entry = ((Class_00462d30*)this)->FUN_00462d90(field_c);
+                            entry = ((Class_00462d30*)this)->FindPlayerFrameInfo(field_c);
                             if (entry != 0) {
                                 if (entry->field_8 != -1) {
                                     int prev = entry->field_8 - 1;
@@ -344,7 +344,7 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
                                                 delete entry->field_14;
                                                 entry->field_14 = new char[length];
                                                 if (entry->field_14 == 0) {
-                                                    FUN_00461170("no memory for allocating saved receive frame\n");
+                                                    PacketTrace("no memory for allocating saved receive frame\n");
                                                     entry->field_10 = -1;
                                                     return (int)0x8007000e;
                                                 }
@@ -360,18 +360,18 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
                                         prev = Prev_00462f30(entry->field_8);
                                         if (*(int*)entry->field_14 <= cur) {
                                             if (prev != cur)
-                                                FUN_004568b0(field_c, prev, Next_00462f30(cur));
+                                                ReportPacketGap(field_c, prev, Next_00462f30(cur));
                                             int p2 = Prev_00462f30(*(int*)buffer);
                                             if (p2 != *(int*)entry->field_14)
-                                                FUN_004568b0(field_c, p2, Next_00462f30(*(int*)entry->field_14));
+                                                ReportPacketGap(field_c, p2, Next_00462f30(*(int*)entry->field_14));
                                             flag = 0;
                                             field_14 = entry;
                                         } else {
                                             if (prev != *(int*)entry->field_14)
-                                                FUN_004568b0(field_c, prev, Next_00462f30(*(int*)entry->field_14));
+                                                ReportPacketGap(field_c, prev, Next_00462f30(*(int*)entry->field_14));
                                             int p2 = Prev_00462f30(*(int*)entry->field_14);
                                             if (p2 != *(int*)buffer)
-                                                FUN_004568b0(field_c, p2, Next_00462f30(*(int*)buffer));
+                                                ReportPacketGap(field_c, p2, Next_00462f30(*(int*)buffer));
                                         }
                                     }
                                     if (flag && entry->field_c > 0) {
@@ -410,7 +410,7 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
                 }
             } else {
             error:
-                FUN_00461170("HAPINET_receivepacket failed (%s)\n", FUN_004c9530(rc));
+                PacketTrace("HAPINET_receivepacket failed (%s)\n", HAPINET_GetDPErrorString(rc));
                 length = 0;
                 return rc;
             }
@@ -418,7 +418,7 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
     }
 
     if (entry == 0) {
-        entry = ((Class_00462d30*)this)->FUN_00462d90(field_c);
+        entry = ((Class_00462d30*)this)->FindPlayerFrameInfo(field_c);
         if (entry == 0) {
             length = 0;
             return (int)0x887700be;
@@ -429,9 +429,9 @@ int Class_00462f30::FUN_00462f30(void* net, unsigned char* data, int* size)
     if (entry == 0)
         tick = 0;
     {
-        Class_00463730* tail = &entry->tail;
+        FrameQueue* tail = &entry->tail;
         Frame_00462f30* f;
-        if (tail->FUN_00463790(buffer, length, tick, field_c, field_10, field_14 == 0)) {
+        if (tail->QueueFrames(buffer, length, tick, field_c, field_10, field_14 == 0)) {
             length = 0;
             len = 0;
             f = tail->Peek();

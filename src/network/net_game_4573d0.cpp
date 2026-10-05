@@ -86,10 +86,10 @@ struct Packet_004573d0 {              // 0x3a bytes
 
 extern Game* g_game;
 
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 
 // FUNCTION: 0x4573d0
-void __stdcall FUN_004573d0(Player_004573d0* player, Player_004573d0* target,
+void __stdcall SendPlayerEconomy(Player_004573d0* player, Player_004573d0* target,
                             unsigned char flag)
 {
     if (player->active == 0)
@@ -119,7 +119,7 @@ void __stdcall FUN_004573d0(Player_004573d0* player, Player_004573d0* target,
 
     if (target != 0) {
         if (target->field_22 == 0)
-            FUN_00451bc0(player->dpid, target->dpid, &packet, 0x3a);
+            SendPacketToPlayer(player->dpid, target->dpid, &packet, 0x3a);
         return;
     }
 
@@ -132,6 +132,6 @@ void __stdcall FUN_004573d0(Player_004573d0* player, Player_004573d0* target,
             continue;
         if (g_game->players[i].field_22 != 0)
             continue;
-        FUN_00451bc0(player->dpid, g_game->players[i].dpid, &packet, 0x3a);
+        SendPacketToPlayer(player->dpid, g_game->players[i].dpid, &packet, 0x3a);
     }
 }

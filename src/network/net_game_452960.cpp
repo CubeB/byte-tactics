@@ -9,7 +9,7 @@
 //
 // Notes on what the byte match needs:
 //  * The first lookup is the inlined FindIndex helper: an `unsigned char`
-//    counter calling the out-of-line FUN_0044ffd0, with `from == -1` handled
+//    counter calling the out-of-line GetSlotDpid, with `from == -1` handled
 //    in the caller (that is what leaves the separate `mov bl, 10` at the loop
 //    exit while the sentinel case stores 10 directly).
 //  * The state tests are inlined helpers with one `return` per outcome; the
@@ -69,24 +69,24 @@ struct Game {
 
 #pragma pack(pop)
 
-class Class_004618a0 {
+class PacketManager {
 public:
-    int FUN_004618a0(int param_1);
+    int SendAllQueued(int param_1);
 };
 
 extern Game* g_game;
-extern int DAT_00506dbc;
-extern Class_004618a0 DAT_00513000;
+extern int g_usePacketManager;
+extern PacketManager g_packetManager;
 
-int __stdcall FUN_0044ffd0(unsigned char index);
-unsigned char __stdcall FUN_0044fe40(int id);
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
-void __stdcall FUN_0046c620(int param_1);
+int __stdcall GetSlotDpid(unsigned char index);
+unsigned char __stdcall FindSlotByDpid(int id);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
+void __stdcall ReportGameEvent(int param_1);
 
 static inline unsigned char FindIndex_00452960(int id)
 {
     for (unsigned char i = 0; i < 10; i++) {
-        if (FUN_0044ffd0(i) == id)
+        if (GetSlotDpid(i) == id)
             return i;
     }
     return 10;
@@ -129,7 +129,7 @@ static inline int IsState3_00452960(Player_00452960* p)
 }
 
 // FUNCTION: 0x452960
-int __stdcall FUN_00452960(int from, int to, unsigned char value, int extra)
+int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
 {
     unsigned char fi;
     if (from == -1)
@@ -141,13 +141,13 @@ int __stdcall FUN_00452960(int from, int to, unsigned char value, int extra)
     if (fi == 10)
         p1 = 0;
     else
-        p1 = &g_game->players[FUN_0044fe40(from)];
+        p1 = &g_game->players[FindSlotByDpid(from)];
 
     Player_00452960* p2;
-    if (FUN_0044fe40(to) == 10)
+    if (FindSlotByDpid(to) == 10)
         p2 = 0;
     else
-        p2 = &g_game->players[FUN_0044fe40(to)];
+        p2 = &g_game->players[FindSlotByDpid(to)];
 
     int result = 0;
     if (p1 == 0 || p2 == 0)
@@ -183,12 +183,12 @@ int __stdcall FUN_00452960(int from, int to, unsigned char value, int extra)
         msg->from = from;
         msg->to = to;
         msg->extra = extra;
-        int r = FUN_00451bc0(from, to, msg, 0xe);
-        if (DAT_00506dbc != 0)
-            DAT_00513000.FUN_004618a0(1);
+        int r = SendPacketToPlayer(from, to, msg, 0xe);
+        if (g_usePacketManager != 0)
+            g_packetManager.SendAllQueued(1);
         result = r;
     }
     if (g_game->net->FUN_00435100() == 3)
-        FUN_0046c620(4);
+        ReportGameEvent(4);
     return result;
 }

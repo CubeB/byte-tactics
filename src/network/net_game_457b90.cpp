@@ -20,7 +20,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x457b90
-int FUN_00457b90()
+int CountLocalComputerPlayers()
 {
     int count = 0;
     for (int i = 0; i < 10; i++) {

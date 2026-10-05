@@ -21,7 +21,7 @@ struct Player_0047bd70 {
 extern char* DAT_00507b88[];
 
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_00463ca0(char* text, int param_2, int param_3, unsigned char param_4);
+void __stdcall AddMessage(char* text, int param_2, int param_3, unsigned char param_4);
 
 // FUNCTION: 0x47bd70
 void __stdcall FUN_0047bd70(Player_0047bd70* player)
@@ -31,5 +31,5 @@ void __stdcall FUN_0047bd70(Player_0047bd70* player)
     if (!player->side->isCore)
         side = "Arm";
     sprintf(buf, "%s %s", side, FUN_004c5740(DAT_00507b88[(unsigned int)rand() % 3]));
-    FUN_00463ca0(buf, 4, 0, player->color);
+    AddMessage(buf, 4, 0, player->color);
 }

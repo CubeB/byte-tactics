@@ -47,7 +47,7 @@ extern SliderInfo_005129b4* DAT_005129b4;
 
 Entry_0044bfd0* __stdcall FUN_0049ff90(void* gadgets, char* name);
 Entry_0044bfd0* __stdcall FUN_004a0200(void* gadgets, char* name);
-int FUN_00457a50();
+int IsHostLocal();
 void __stdcall FUN_0045b9b0(Entry_0044bfd0* slider, int value);
 void __stdcall FUN_004a1450(Menu_0044bfd0* obj, char* name, int param_3);
 
@@ -64,7 +64,7 @@ void __stdcall FUN_0044bfd0(Menu_0044bfd0* param_1, int unused)
     char name[20];
 
     desc = FUN_0049ff90(param_1->inner->gadgets, "DESCLIST");
-    human = FUN_00457a50();
+    human = IsHostLocal();
     base = desc->field_bc;
 
     for (i = 0; i < 12; i++) {

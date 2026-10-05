@@ -44,7 +44,7 @@ public:
 
 class Class_00463c60 {
 public:
-    void FUN_00463c60(int param_1);
+    void SetType(int param_1);
 };
 
 struct Game {
@@ -93,7 +93,7 @@ void FUN_00445450()
         Player_00445450 tmp = *p;
         *p = *q;
         *q = tmp;
-        ((Class_00463c60*)q)->FUN_00463c60(0);
+        ((Class_00463c60*)q)->SetType(0);
         q->active = 0;
         for (int i = 0; i <= 10; i++) {
             Game* g = g_game;

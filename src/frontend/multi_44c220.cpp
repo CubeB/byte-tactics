@@ -39,15 +39,15 @@ struct Event_44c220 {
     int field_c;                       // +0x0c
 };
 
-struct Class_0046e280 {
-    int FUN_0046e280(Event_44c220* event);
+struct UnitSync {
+    int PopChangedEntry(Event_44c220* event);
 };
 
 struct Game {
     char unknown_0[0x531];
     Holder_44c220* holder;             // +0x531
     char unknown_535[0x2a30 - 0x535];
-    Class_0046e280* queue;             // +0x2a30
+    UnitSync* queue;                   // +0x2a30
     char unknown_2a34[0x1439b - 0x2a34];
     Item_44c220* items;                // +0x1439b
 };
@@ -78,7 +78,7 @@ void FUN_0044c220()
         FUN_0044c0d0();
     }
 
-    while (g_game->queue->FUN_0046e280(&event) != 0) {
+    while (g_game->queue->PopChangedEntry(&event) != 0) {
         n++;
         for (int i = 0; i < entry->count; i++) {
             if (event.field_0 == g_game->items[DAT_005129b4[i].field_52].field_13e) {

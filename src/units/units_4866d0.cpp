@@ -205,7 +205,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_00482910(void* pos, int a, int b, int c);
-unsigned char __stdcall FUN_0044fe40(int id);
+unsigned char __stdcall FindSlotByDpid(int id);
 void __stdcall FUN_00439eb0(void* unit, int flag);
 void __stdcall FUN_0047f8c0(void* unit);
 void __stdcall FUN_00480250(void* unit, int flag);
@@ -216,14 +216,14 @@ void __stdcall FUN_0047cbd0(void* unit);
 void __stdcall FUN_00482090(void* unit);
 void __stdcall FUN_00494ff0(int flag);
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_00463ca0(char* text, int a, int b, int c);
+void __stdcall AddMessage(char* text, int a, int b, int c);
 void __stdcall FUN_004948b0(int a, int b);
 void __stdcall FUN_0049b000(void* unit, int flag);
 void __stdcall FUN_00486360(void* unit, int a, int b);
 void __stdcall FUN_00489740(void* unit);
 void __stdcall FUN_0045aaa0(void* state);
 void __cdecl operator delete(void* p);
-void __stdcall FUN_00450380(int id);
+void __stdcall AnnouncePlayerLeft(int id);
 void __stdcall FUN_0047bd70(void* player);
 
 // FUNCTION: 0x4866d0
@@ -245,7 +245,7 @@ void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
     else
         parent = &g_game->units[cmd->parentId];
     unit->parent = parent;
-    unit->killer = FUN_0044fe40(cmd->killerId);
+    unit->killer = FindSlotByDpid(cmd->killerId);
     g_game->x391ed->FUN_004904c0(unit);
     FUN_00439eb0(unit, 1);
     FUN_0047f8c0(unit);
@@ -344,7 +344,7 @@ void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
                     char text[100];
                     sprintf(text, FUN_004c5740(DAT_00508bf0), rec->name,
                             g_game->mode == 2 ? rec->kills2 : rec->kills);
-                    FUN_00463ca0(text, 2, 0, 10);
+                    AddMessage(text, 2, 0, 10);
                 }
             }
         }
@@ -401,7 +401,7 @@ void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
     unit->player->unitCount--;
     if (unit->player->unitCount == 0) {
         if (g_game->x391e9->FUN_00435100() == 3)
-            FUN_00450380(unit->player->dpid);
+            AnnouncePlayerLeft(unit->player->dpid);
         if (g_game->x391e9->FUN_00435100() == 2)
             FUN_0047bd70(unit->player);
     }

@@ -20,12 +20,12 @@ struct Net_4ca8c0 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4ca8c0
-int __stdcall FUN_004ca8c0(Net_4ca8c0* net, void* callback, void* address, unsigned long size, void* context)
+int __stdcall HAPINET_enumaddress(Net_4ca8c0* net, void* callback, void* address, unsigned long size, void* context)
 {
-    FUN_004c9740((int)"HAPINET_enumaddress\n");
+    HapinetTrace((int)"HAPINET_enumaddress\n");
     if (net->lobby != 0) {
         return net->lobby->EnumAddress(callback, address, size, context);
     }

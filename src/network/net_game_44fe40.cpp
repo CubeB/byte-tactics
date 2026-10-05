@@ -28,7 +28,7 @@ static inline int PlayerId(unsigned char i)
 }
 
 // FUNCTION: 0x44fe40
-unsigned char __stdcall FUN_0044fe40(int id)
+unsigned char __stdcall FindSlotByDpid(int id)
 {
     if (id != -1) {
         for (unsigned char i = 0; i < 10; i++) {

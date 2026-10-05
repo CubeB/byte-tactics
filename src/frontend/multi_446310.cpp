@@ -53,7 +53,7 @@ void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_004b5370(Class_00446310* obj);
 void __stdcall FUN_0045e4c0(Class_00446310* obj);
-void FUN_00450f90(void);
+void BroadcastPlayerInfo(void);
 
 // FUNCTION: 0x446310
 void FUN_00446310(void)
@@ -84,7 +84,7 @@ void FUN_00446310(void)
                 Mode_00446310& mode = obj->modes[i];
                 player->data->field_8b = (unsigned short)mode.width;
                 player->data->field_8d = (unsigned short)mode.height;
-                FUN_00450f90();
+                BroadcastPlayerInfo();
                 g_game->field_37f1b = mode.width;
                 g_game->field_37f1f = mode.height;
                 break;

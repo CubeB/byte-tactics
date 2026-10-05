@@ -1,11 +1,11 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern void __cdecl FUN_004c9740(const char*);
+extern void __cdecl HapinetTrace(const char*);
 
 // FUNCTION: 0x4c9d10
-int __stdcall FUN_004c9d10(int p1, int p2, int p3, int p4, void* p5)
+int __stdcall HAPINET_justone(int p1, int p2, int p3, int p4, void* p5)
 {
-    FUN_004c9740("HAPINET_justone\n");
+    HapinetTrace("HAPINET_justone\n");
     int* addr = (int*)p5;
     addr[0x12] = p1;
     return 0;

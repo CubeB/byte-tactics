@@ -63,7 +63,7 @@ extern "C" int __stdcall FUN_0049fd60(Gadget_00444930* gadget, char* name);
 extern "C" Entry_00444930* __stdcall FUN_0049ff90(Entry_00444930* entries, char* name);
 extern "C" void __stdcall FUN_0047f1a0(char* str, int flag);
 extern "C" void __stdcall FUN_004ab0a0(Gadget_00444930* gadget);
-extern "C" void __stdcall FUN_004526c0(int value);
+extern "C" void __stdcall RequestPlayerColor(int value);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x444930
@@ -84,7 +84,7 @@ void __stdcall FUN_00444930(Gadget_00444930* param_1)
         Entry_00444930* entry = FUN_0049ff90(entries, "LOGOS");
         player->info->field_96 = ((char*)layout)[entry->field_ba];
         g_game->flag0 = 1;
-        FUN_004526c0(player->info->field_96);
+        RequestPlayerColor(player->info->field_96);
         return;
     }
     if (!FUN_0049fd60(param_1, "Cancel"))

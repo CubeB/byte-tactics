@@ -88,8 +88,8 @@ struct Cmd_4864b0 {
 
 extern Game* g_game;
 
-int __stdcall FUN_0044ffd0(unsigned char index);
-int __stdcall FUN_00451df0(int id, unsigned char* packet, int size);
+int __stdcall GetSlotDpid(unsigned char index);
+int __stdcall BroadcastPacket(int id, unsigned char* packet, int size);
 void __stdcall FUN_004866d0(unsigned char* cmd, int param);
 void __stdcall FUN_00491d70(int param);
 void __stdcall FUN_00486f10(unsigned char player);
@@ -128,14 +128,14 @@ void __stdcall FUN_004864b0(Unit* unit, int param_2)
         cmd.type = 0xc;
         cmd.count = flag;
         cmd.kind = param_2;
-        cmd.field_3 = FUN_0044ffd0(unit->field_f4);
+        cmd.field_3 = GetSlotDpid(unit->field_f4);
         if (unit->field_f0 == 0)
             cmd.field_7 = 0;
         else
             cmd.field_7 = unit->field_f0->field_a8;
         if (unit->link->active != 0 &&
             (unit->link->state == 1 || unit->link->state == 2)) {
-            FUN_00451df0(unit->link->field_4, (unsigned char*)&cmd, 0xb);
+            BroadcastPacket(unit->link->field_4, (unsigned char*)&cmd, 0xb);
         }
         FUN_004866d0((unsigned char*)&cmd, 1);
         if (same && g_game->field_37ef6 != 0 && unit->link->active != 0 &&

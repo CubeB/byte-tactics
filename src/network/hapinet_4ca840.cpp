@@ -27,12 +27,12 @@ struct Net_4ca840 {
 };
 #pragma pack(pop)
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4ca840
-int __stdcall FUN_004ca840(Net_4ca840* net, void* session, void* callback, void* context, unsigned long flags)
+int __stdcall HAPINET_enumplayers(Net_4ca840* net, void* session, void* callback, void* context, unsigned long flags)
 {
-    FUN_004c9740((int)"HAPINET_enumplayers\n");
+    HapinetTrace((int)"HAPINET_enumplayers\n");
     if (net->dp != 0) {
         return net->dp->EnumPlayers(session, callback, context, flags);
     }

@@ -33,12 +33,12 @@ struct Net_004ca990 {
     DirectPlay_004ca990* dp;           // +0x4
 };
 
-void __cdecl FUN_004c9740(int);
+void __cdecl HapinetTrace(int);
 
 // FUNCTION: 0x4ca990
-int __stdcall FUN_004ca990(Net_004ca990* net, unsigned long player, void* data, unsigned long* size)
+int __stdcall HAPINET_getplayeraddress(Net_004ca990* net, unsigned long player, void* data, unsigned long* size)
 {
-    FUN_004c9740((int)"HAPINET_getplayeraddress\n");
+    HapinetTrace((int)"HAPINET_getplayeraddress\n");
     if (net->dp != 0)
         return net->dp->GetPlayerAddress(player, data, size);
     return DPERR_UNINITIALIZED_004ca990;

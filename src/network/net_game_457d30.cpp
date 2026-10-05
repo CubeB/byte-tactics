@@ -95,7 +95,7 @@ extern Game* g_game;
 
 void __stdcall FUN_00464c60(unsigned char from, unsigned char to, float amount, int flag);
 void __stdcall FUN_00464b30(unsigned char from, unsigned char to, float amount, int flag);
-int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
+int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 
 static inline int PlayerDpid_00457d30(unsigned char i)
 {
@@ -105,7 +105,7 @@ static inline int PlayerDpid_00457d30(unsigned char i)
 }
 
 // FUNCTION: 0x457d30
-void __stdcall FUN_00457d30(Player_00457d30* player)
+void __stdcall UpdateResourceSharing(Player_00457d30* player)
 {
     if ((g_game->flags_2a44 & 1) == 0)
         return;
@@ -181,7 +181,7 @@ void __stdcall FUN_00457d30(Player_00457d30* player)
                     packet.from = PlayerDpid_00457d30(a);
                     packet.to = PlayerDpid_00457d30(b);
                     packet.zero = 0;
-                    FUN_00451bc0(PlayerDpid_00457d30(a), PlayerDpid_00457d30(b),
+                    SendPacketToPlayer(PlayerDpid_00457d30(a), PlayerDpid_00457d30(b),
                                  &packet, sizeof(packet));
                 }
             }

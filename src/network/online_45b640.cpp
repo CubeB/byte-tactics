@@ -2,13 +2,13 @@
 
 #include <windows.h>
 
-extern HMODULE DAT_00512eec;
+extern HMODULE g_onlineDll;
 
 // FUNCTION: 0x45b640
-void FUN_0045b640(void)
+void OnlineUnload(void)
 {
-    if (DAT_00512eec != 0) {
-        FreeLibrary(DAT_00512eec);
-        DAT_00512eec = 0;
+    if (g_onlineDll != 0) {
+        FreeLibrary(g_onlineDll);
+        g_onlineDll = 0;
     }
 }

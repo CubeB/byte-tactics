@@ -10,9 +10,9 @@ struct Vec3_0044e930 {
     int z;
 };
 
-class Class_00415c10 {
+class BitWriter {
 public:
-    void FUN_00415c10(int value, int bits);
+    void WriteBits(int value, int bits);
 };
 
 class Class_0044e740 {
@@ -24,21 +24,21 @@ public:
     short field_22;                     // +0x22
     unsigned short field_24;            // +0x24
 
-    void FUN_0044e930(Class_00415c10* stream);
+    void FUN_0044e930(BitWriter* stream);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x44e930
-void Class_0044e740::FUN_0044e930(Class_00415c10* stream)
+void Class_0044e740::FUN_0044e930(BitWriter* stream)
 {
-    stream->FUN_00415c10(field_8, 1);
-    stream->FUN_00415c10(target.x, 0x20);
-    stream->FUN_00415c10(target.y, 0x20);
-    stream->FUN_00415c10(target.z, 0x20);
-    stream->FUN_00415c10(other.x, 0x20);
-    stream->FUN_00415c10(other.y, 0x20);
-    stream->FUN_00415c10(other.z, 0x20);
+    stream->WriteBits(field_8, 1);
+    stream->WriteBits(target.x, 0x20);
+    stream->WriteBits(target.y, 0x20);
+    stream->WriteBits(target.z, 0x20);
+    stream->WriteBits(other.x, 0x20);
+    stream->WriteBits(other.y, 0x20);
+    stream->WriteBits(other.z, 0x20);
     if ((field_8 & 1) != 0) {
-        stream->FUN_00415c10(field_24, 0x10);
+        stream->WriteBits(field_24, 0x10);
     }
 }

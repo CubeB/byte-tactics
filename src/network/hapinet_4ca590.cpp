@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-void __cdecl FUN_004c9740(int param_1);
+void __cdecl HapinetTrace(int param_1);
 
 class Iface_4ca590 {
 public:
@@ -28,8 +28,8 @@ struct Obj_4ca590 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4ca590
-int __stdcall FUN_004ca590(Obj_4ca590* param_1, int* param_2)
+int __stdcall HAPINET_initconnection(Obj_4ca590* param_1, int* param_2)
 {
-    FUN_004c9740((int)"HAPINET_initconnection\n");
+    HapinetTrace((int)"HAPINET_initconnection\n");
     return param_1->iface->Slot38(*param_2, 0) >= 0;
 }

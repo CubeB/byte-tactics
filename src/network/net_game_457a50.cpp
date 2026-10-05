@@ -43,7 +43,7 @@ static inline int IsHuman(Player_00457a50* p)
 }
 
 // FUNCTION: 0x457a50
-int FUN_00457a50()
+int IsHostLocal()
 {
     return IsHuman(&g_game->players[FindPlayer()]);
 }

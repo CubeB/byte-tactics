@@ -32,10 +32,10 @@ struct Packet_00456190 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_00451df0(int player, void* data, int size);
+int __stdcall BroadcastPacket(int player, void* data, int size);
 
 // FUNCTION: 0x456190
-int __stdcall FUN_00456190(Object_00456190* obj, short index)
+int __stdcall SendScriptCallNoArgs(Object_00456190* obj, short index)
 {
     Packet_00456190 packet;
     if (!(g_game->flags_2a44 & 1)) {
@@ -49,5 +49,5 @@ int __stdcall FUN_00456190(Object_00456190* obj, short index)
     packet.field_a = 0;
     packet.field_e = 0;
     packet.field_12 = 0;
-    return FUN_00451df0(obj->player->field_4, &packet, 0x16);
+    return BroadcastPacket(obj->player->field_4, &packet, 0x16);
 }

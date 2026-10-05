@@ -73,11 +73,11 @@ extern char* DAT_0051298c;
 Gadget_00443100* __stdcall FUN_004aa8f0(void* gui, const char* name, int flags);
 void __stdcall FUN_00442a30(void*);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-int __stdcall FUN_004ca490(Net_00443100* net);
-int __stdcall FUN_004ca900(Guid_00443100* sp, Net_00443100* net);
-int __stdcall FUN_004ca990(Net_00443100* net, unsigned long player, void* data, unsigned long* size);
-int __stdcall FUN_004ca8c0(Net_00443100* net, void* callback, void* address, unsigned long size, void* context);
-int __stdcall FUN_004ca940(Net_00443100* net);
+int __stdcall HAPINET_initlobbiedconnection(Net_00443100* net);
+int __stdcall HAPINET_createdplayinterface(Guid_00443100* sp, Net_00443100* net);
+int __stdcall HAPINET_getplayeraddress(Net_00443100* net, unsigned long player, void* data, unsigned long* size);
+int __stdcall HAPINET_enumaddress(Net_00443100* net, void* callback, void* address, unsigned long size, void* context);
+int __stdcall HAPINET_releasedplayinterface(Net_00443100* net);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_0042f980(const char* key, void* buf, unsigned int* size);
@@ -262,19 +262,19 @@ void __stdcall FUN_00443100()
     gadget->handler = FUN_00442a30;
     gadget->owner = g_game;
     FUN_004288d0(0, 0, 0, 0);
-    FUN_004ca490(&g_game->net);
-    r = FUN_004ca900(&iid, (Net_00443100*)&net);
+    HAPINET_initlobbiedconnection(&g_game->net);
+    r = HAPINET_createdplayinterface(&iid, (Net_00443100*)&net);
     if (r >= 0) {
-        r = FUN_004ca990((Net_00443100*)&net, 0, 0, &size);
+        r = HAPINET_getplayeraddress((Net_00443100*)&net, 0, 0, &size);
         if (r == DPERR_BUFFERTOOSMALL_00443100) {
             addr = (char*)FUN_004d83b0("MODEMADDR", size);
             if (addr != 0) {
-                r = FUN_004ca990((Net_00443100*)&net, 0, addr, &size);
+                r = HAPINET_getplayeraddress((Net_00443100*)&net, 0, addr, &size);
                 if (r >= 0) {
                     DAT_00512980 = (char*)FUN_004d83b0("MODEMINFO", 0xc8);
                     memset(DAT_00512980, 0, 0xc8);
                     DAT_00512984 = 0;
-                    r = FUN_004ca8c0(&g_game->net, (void*)FUN_00443070, addr, size, 0);
+                    r = HAPINET_enumaddress(&g_game->net, (void*)FUN_00443070, addr, size, 0);
                     if (DAT_00512984 == 0) {
                         FUN_004a9660(&g_game->menu);
                         FUN_00425730("Unable to find any modems");
@@ -282,7 +282,7 @@ void __stdcall FUN_00443100()
                         FUN_004257e0(0, 0x4e5, "c:\\cavedog\\wargame\\multi.cpp");
                         FUN_004d85a0(DAT_00512980);
                         FUN_004d85a0(addr);
-                        FUN_004ca940((Net_00443100*)&net);
+                        HAPINET_releasedplayinterface((Net_00443100*)&net);
                         return;
                     }
                     if (r >= 0) {
@@ -319,6 +319,6 @@ void __stdcall FUN_00443100()
     }
     FUN_0049fb10(&g_game->menu, 1);
     FUN_004a81e0(&g_game->menu, 0x40);
-    FUN_004ca940((Net_00443100*)&net);
+    HAPINET_releasedplayinterface((Net_00443100*)&net);
     FUN_004d85a0(addr);
 }

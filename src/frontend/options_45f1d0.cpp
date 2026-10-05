@@ -4,9 +4,9 @@
 // *33/*165 players scale, reading playerType and rules afterwards. Two source
 // details reproduce it: `opts` is computed before `rule`, and the player index
 // is masked in its own statement:
-//     unsigned int index = FUN_00456850();
+//     unsigned int index = FindHostSlot();
 //     index &= 0xff;
-// Writing `FUN_00456850() & 0xff` in one statement, adding a `Game* game`
+// Writing `FindHostSlot() & 0xff` in one statement, adding a `Game* game`
 // local, or swapping opts/rule each flip the global allocation (g_game to
 // ecx/edx) and cost 20+ points. The split mask keeps the index in ecx so the
 // players scale lands in eax, which is exactly the original's preference.
@@ -107,7 +107,7 @@ extern Game* g_game;
 
 Layer_0045f1d0* __stdcall FUN_004aa8f0(Layer_0045f1d0* menu, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int, int, int);
-int FUN_00456850();
+int FindHostSlot();
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004ab1b0(Layer_0045f1d0* layer, char* type, char* text, int x, int y,
                             int width, int attr);
@@ -126,7 +126,7 @@ void FUN_0045f1d0()
     layer->handler = FUN_0045f190;
     FUN_004288d0("GameSettings", 0, 0, 0);
     int count = layer->entries->u.count;
-    unsigned int index = FUN_00456850();
+    unsigned int index = FindHostSlot();
     index &= 0xff;
     char num[0x40];
     Opts_0045f1d0* opts = g_game->players[index].info;

@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 //
-// 97.7% (gapcheck), same length as the original (1829 bytes). No /Op: the
+// 99.3% (gapcheck), same length as the original (1829 bytes). No /Op: the
 // aligned frame comes from the double locals of the inlined Length.
 //
 // Fixed in the second attempt:
@@ -16,38 +16,49 @@
 //    the derived pointer (other + 0xc) is stepped after `other`, as in the
 //    original.
 //
+// Fixed in the third attempt (97.7% to 99.3%):
+//  - The upper-bound branch of each axis (`mov edx, [max]; add edi, edx`,
+//    the sum in unit->pos's register). A named `int b = upos + max;` used in
+//    both the test and the subtraction is lowered as two tuples (b = max;
+//    b += upos), so b interferes with the upos temporary and can never get
+//    its edi (c2prio --trace: with upos coloured first, b's allowed set loses
+//    edi). A common subexpression is one three-operand tuple instead: C2
+//    gives it upos's edi, and the code generator loads max into a scratch
+//    register because the destination is also the second operand. So the sum
+//    is written in the test and again in a block local used once (`hi`),
+//    which C2 forwards into the subtraction: the two sums become one
+//    temporary. Writing `p - (upos + max)` directly does not work, since the
+//    front end reassociates it into two subtractions.
+//
 // What still differs:
-//  - The upper-bound branch of each axis in the unit distance: the original
-//    loads boxMax into a register and adds it into the register holding
-//    unit->pos (`mov edx, [max]; add edi, edx; cmp ecx, edi; sub ecx, edi`);
-//    here the sum goes into boxMax's register (`add edx, edi`). In C2 (see
-//    tools/c2prio.py --trace) `b` interferes with the unit->pos common
-//    subexpression: the add is lowered as b = max; b += upos, so b can never
-//    share upos's edi, and b (priority 576) is coloured before the upos
-//    temporary (512) anyway. The original must have lowered it the other way
-//    (b = upos; b += max, with max in a scratch register). Every spelling of
-//    `int b = ...` (operands swapped, `b = upos; b += max`, an Add() helper,
-//    a ?:, `b < p`, def declared earlier) gives the same IL. Tried before
-//    that: an inline helper with every parameter kind and order (also with
-//    pointer and reference parameters, about 51%), a named or modified
-//    origin (`u += max` turns into `add reg, [mem]`; with a named `lo` as
-//    well, 85.2%), unnamed sums (MSVC reassociates p - (o + max) into two
-//    subtractions), comparison spellings, eager lo/hi (helper or Vec3
-//    operator+, 62% to 92%). Named per-axis locals other than `p` reshuffle
-//    the whole register allocation (about 62%).
 //  - The spot address: the original computes idx * 48 in eax with the spots
-//    base in edi (add order idx * 48 + spots); here spots + idx * 48. No
-//    spelling moves it (casts to char* or int with either operand first, an
-//    index local, a spots local, Cell defined after Game); it follows symbol
-//    ids. With <windows.h> (any header set that gives g_game's id bit 14) the
-//    spot add matches but the feature block breaks (feature in ecx, `test
-//    byte ptr [edx + 0xc], 1`, features + idx * 256 the other way round:
-//    89.5%). Diagnostic dummy declarations (never committed) between the
-//    prototypes and this function show both right only in narrow windows
-//    about 15585 to 15630 and about 64500 ids further on, with g_game's id
-//    below 16384; no plausible real header arrangement was found for that.
-// build/scratch/gap/combo.py (alternative snippets, every combination
-// compiled and scored, optionally on an address range) found most of this.
+//    base in edi (add order idx * 48 + spots); here spots + idx * 48. It
+//    follows symbol ids, not spelling (casts, an index local, a spots local,
+//    Cell defined after Game, inline helpers for the spot or the feature
+//    definition, a Game member, `spots + idx`, a single-use spot local with
+//    the address written again in the then-block: 58% to 71%). Diagnostic
+//    dummy declarations (never committed): with N of them just before this
+//    function, N in 15582 to 15635 or 64480 to 64520 gives a MATCH. N past
+//    about 15330 gives cell's id bit 14 and the spot add flips, but the
+//    features add (`features + feature * 256`) then flips too (91.6%, the
+//    same as `<windows.h>` anywhere before the function, with or without
+//    <ddraw.h>, <dsound.h>, <dplay.h>, <stdio.h>, <stdlib.h>, <list> or
+//    <map>; <vector> or <string> on top bring back 99.3%). Shifting only
+//    `feature` and the later locals (block-scope dummies) flips the features
+//    add alone, so the two adds follow cell's and feature's ids; the
+//    original's pair (spot idx-first, features base-first) needs a header
+//    prefix no plausible real set reaches.
+//  - g_game's id takes part as well (diagnostic dummies again): with 15400
+//    before this function and 250 before `feature` (cell 16405, feature
+//    16709) the region matches with g_game at 912 or 1012 but not at 1912 or
+//    15912, and with cell at 16405 only feature ids from about 16640 to 16900
+//    match. `<windows.h>` placed after g_game (before this function, alone or
+//    with the DirectX headers) gives the spot add, but the features add stays
+//    wrong for every shift of `feature` from 0 to 1100 symbols (91.6%), and
+//    `<windows.h>` with WIN32_LEAN_AND_MEAN there gives 99.3%. So the
+//    original seems to have had some 15400 symbols between g_game's
+//    declaration and this function: the rest of its translation unit, which
+//    is lost.
 #include <math.h>
 #include <string.h>
 
@@ -299,38 +310,38 @@ void __stdcall FUN_0049a120(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                 Vec3_0049a120 d;
                 {
                     int p = pos->x;
-                    if (p < def->boxMin.x + unit->pos.x) {
-                        d.x = def->boxMin.x + unit->pos.x - p;
+                    if (p < unit->pos.x + def->boxMin.x) {
+                        int lo = unit->pos.x + def->boxMin.x;
+                        d.x = lo - p;
+                    } else if (p > unit->pos.x + def->boxMax.x) {
+                        int hi = unit->pos.x + def->boxMax.x;
+                        d.x = p - hi;
                     } else {
-                        int b = unit->pos.x + def->boxMax.x;
-                        if (p > b)
-                            d.x = p - b;
-                        else
-                            d.x = 0;
+                        d.x = 0;
                     }
                 }
                 {
                     int p = pos->y;
-                    if (p < def->boxMin.y + unit->pos.y) {
-                        d.y = def->boxMin.y + unit->pos.y - p;
+                    if (p < unit->pos.y + def->boxMin.y) {
+                        int lo = unit->pos.y + def->boxMin.y;
+                        d.y = lo - p;
+                    } else if (p > unit->pos.y + def->boxMax.y) {
+                        int hi = unit->pos.y + def->boxMax.y;
+                        d.y = p - hi;
                     } else {
-                        int b = unit->pos.y + def->boxMax.y;
-                        if (p > b)
-                            d.y = p - b;
-                        else
-                            d.y = 0;
+                        d.y = 0;
                     }
                 }
                 {
                     int p = pos->z;
-                    if (p < def->boxMin.z + unit->pos.z) {
-                        d.z = def->boxMin.z + unit->pos.z - p;
+                    if (p < unit->pos.z + def->boxMin.z) {
+                        int lo = unit->pos.z + def->boxMin.z;
+                        d.z = lo - p;
+                    } else if (p > unit->pos.z + def->boxMax.z) {
+                        int hi = unit->pos.z + def->boxMax.z;
+                        d.z = p - hi;
                     } else {
-                        int b = unit->pos.z + def->boxMax.z;
-                        if (p > b)
-                            d.z = p - b;
-                        else
-                            d.z = 0;
+                        d.z = 0;
                     }
                 }
                 Fixed_0049a120 dist;

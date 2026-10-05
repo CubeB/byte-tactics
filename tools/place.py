@@ -3,6 +3,8 @@
     uv run tools/place.py                # build build/place/TotalA.exe and compare it
     uv run tools/place.py --verbose      # also list every difference in full
     uv run tools/place.py --strict       # exit non-zero if any built byte differs
+    uv run tools/place.py --no-orig      # build from data/layout.csv, without orig/TotalA.exe
+    uv run tools/place.py --write-layout # rewrite data/layout.csv from this build
 
 tools/link.py links the tree the ordinary way, so every function lands
 wherever LINK puts it. That image cannot run as the game yet: the 29 gap
@@ -45,6 +47,12 @@ they expect it, and every call reaches the one function at its address:
   * what has no source yet would be copied from the original and counted as
     copied: gap regions without matching source and data no object defines.
     Nothing is.
+
+The build with the original writes build/place/layout.csv, everything it
+took from the original's bytes to lay the image out; data/layout.csv is the
+recorded copy (--write-layout), from which --no-orig (or a checkout without
+orig/TotalA.exe) builds the same exe with nothing of the original but the
+art, and checks it against the recorded hashes. See docs/linking.md.
 
 Every relocation is checked against the address the original uses at that
 spot, and the image is compared with the original byte for byte (the
@@ -152,6 +160,10 @@ class Obj:
     # An import descriptor's section symbols (.idata$4, .idata$5, of storage
     # class SECTION): where LINK put the first of its DLL's contributions.
     section_starts: dict[str, int] = field(default_factory=dict)
+    # What names the object in data/layout.csv: a source file, a library and
+    # the member's place in it (LIBCMT.LIB#123), link/data.obj and so on, and
+    # @<n> for a second copy.
+    key: str = ""
 
 
 def parse(path: Path, data: bytes | None = None, library: bool = False) -> Obj:
@@ -211,8 +223,20 @@ def read_library(path: Path) -> list[Obj]:
         elif name != "/" and body[:2] == b"\x4c\x01":
             if name.startswith("/"):
                 name = longnames[int(name[1:]):].split(b"\0", 1)[0].decode("latin-1")
-            members.append(parse(Path(f"{path.name}({name.rstrip('/')})"), body, library=True))
+            member = parse(Path(f"{path.name}({name.rstrip('/')})"), body, library=True)
+            member.key = f"{path.name}#{len(members)}"
+            members.append(member)
     return members
+
+
+def copy_object(obj: Obj, objects: list[Obj]) -> Obj:
+    """Another copy of an object, for a library member linked twice."""
+    base = obj.key.split("@", 1)[0]
+    n = sum(1 for o in objects if o.key.split("@", 1)[0] == base)
+    copy = parse(obj.path, obj.raw, library=obj.library)
+    copy.key = f"{base}@{n}"
+    objects.append(copy)
+    return copy
 
 
 # --- the original -------------------------------------------------------------------
@@ -241,6 +265,21 @@ class Image:
         self.owner = array("i", bytes(4 * self.size))   # 1 + the index of the piece that wrote it
         self.sections = [(s.Name.rstrip(b"\0").decode(), self.base + s.VirtualAddress,
                           s.Misc_VirtualSize, s.SizeOfRawData, s) for s in self.pe.sections]
+
+    @classmethod
+    def blank(cls, base: int, size: int) -> "Image":
+        """An image to build with nothing of the original: no bytes to compare
+        with or to take a layout from (a build from data/layout.csv)."""
+        img = cls.__new__(cls)
+        img.pe = img.orig = img.pristine = None
+        img.base, img.size = base, size
+        img.patches = []
+        img.copied_library = []
+        img.out = bytearray(size)
+        img.src = bytearray(size)
+        img.owner = array("i", bytes(4 * size))
+        img.sections = []
+        return img
 
     def inside(self, va: int) -> bool:
         return self.base + 0x1000 <= va < self.base + self.size
@@ -277,6 +316,8 @@ class Image:
     def imports(self) -> dict[tuple[str, str], int]:
         """(dll, name) -> the address of its slot in the import address table.
         Ordinal imports are named through link/*.def."""
+        if self.pe is None:
+            return {}
         names: dict[tuple[str, int], str] = {}
         for path in DEF_FILES:
             dll = ""
@@ -336,6 +377,7 @@ class Piece:
     label: str
     id: int
     why: str = ""     # for a piece placed where the original refers to it: the referring site
+    derived: bool = False   # placed from data/progress.csv (a game function), not recorded in the layout
 
 
 class Placer:
@@ -376,9 +418,9 @@ class Placer:
         self.thunks: dict[str, int] = {}
         in_runs: dict[str, int] = {}
         runs = thunk_runs()
-        text = next(s for s in img.sections if s[0] == ".text")
-        lo = text[1] - img.base
-        for m in re.finditer(rb"\xff\x25(....)", bytes(img.pristine[lo:lo + text[2]])):
+        text = next((s for s in img.sections if s[0] == ".text"), None)
+        lo = text[1] - img.base if text else 0
+        for m in re.finditer(rb"\xff\x25(....)", bytes(img.pristine[lo:lo + text[2]]) if text else b""):
             (slot,) = struct.unpack("<I", m.group(1))
             if slot in slot_name and m.start() % 2 == 0:
                 va = img.base + lo + m.start()
@@ -393,6 +435,12 @@ class Placer:
         self.clashes: list[str] = []
         self.renamed: list[str] = []
         self.todo: list[Piece] = []
+        self.frozen = False                         # place nothing more: resolve by what is placed
+        # (id(obj), section) -> (lo, hi, address): a slice of an object that is
+        # not placed itself but stands for the piece at that address (another
+        # object's copy of the same literal, constant or file static).
+        self.same: dict[tuple[int, int], list[tuple[int, int, int]]] = defaultdict(list)
+        self.overrides: dict[int, int] = {}         # relocation site -> target, from data/layout.csv
         # Library function names by address, for refs_agree: data/functions.csv's,
         # corrected as members are placed.
         self.named_at: dict[int, str] = {}
@@ -428,6 +476,9 @@ class Placer:
         for p in self.placed.get((id(obj), section), ()):
             if p.lo <= offset < p.hi:
                 return p.va + offset - p.lo
+        for lo, hi, va in self.same.get((id(obj), section), ()):
+            if lo <= offset < hi:
+                return va + offset - lo
         return None
 
     def place_at(self, obj: Obj, sym: Sym, offset: int, va: int, why: str = "") -> bool:
@@ -435,7 +486,7 @@ class Placer:
         lands at va: a whole section for code, one symbol's slice for data.
         Nothing is placed over another piece; returns whether it was placed."""
         sec = obj.secs[sym.section - 1]
-        if sec.name.startswith(SKIP_SECTIONS):
+        if sec.name.startswith(SKIP_SECTIONS) or self.frozen:
             return False
         lo, hi = (0, len(sec.data)) if sec.is_code else sec.slice_at(offset)
         start = va - (offset - lo)
@@ -601,6 +652,8 @@ class Placer:
     def place_copy(self, name: str, va: int) -> bool:
         """Place a second copy of a library function at va when the original
         holds one there (LIBCMT's lseek is linked twice)."""
+        if self.frozen:
+            return False
         for obj, sym in self.definers.get(name, ()):
             sec = obj.secs[sym.section - 1]
             if not obj.library or not sec.is_code:
@@ -609,8 +662,7 @@ class Placer:
             body = body_size(sec)
             if not self.img.free(start) or not masked_match(self.img, sec, start, body):
                 continue
-            copy = parse(obj.path, obj.raw, library=True)
-            self.objects.append(copy)
+            copy = copy_object(obj, self.objects)
             self.place(copy, copy.secs[sec.index - 1], 0, body, start, LIBCODE, f"{name} (second copy)")
             self.stats["library sections placed as a second copy"] += 1
             return True
@@ -744,13 +796,110 @@ class Placer:
 
     def placed_definition(self, name: str) -> int | None:
         """Where a placed piece defines the external name, if one does (a
-        thread-local variable another object defines)."""
+        thread-local variable another object defines, a literal another
+        object's copy of was placed): the piece placed first, if several do."""
+        best = None
         for obj, sym in self.definers.get(name, ()):
-            if sym.section > 0:
-                at = self.address_in(obj, sym.section, sym.value)
-                if at is not None:
-                    return at
-        return None
+            if sym.section <= 0:
+                continue
+            for p in self.placed.get((id(obj), sym.section), ()):
+                if p.lo <= sym.value < p.hi and (best is None or p.id < best[0]):
+                    best = (p.id, p.va + sym.value - p.lo)
+        return best[1] if best else None
+
+    def replay_target(self, obj: Obj, sym: Sym, offset: int) -> int | None:
+        """Where a relocation leads by the names and the placed pieces alone,
+        with nothing from the original: what a build without it works out."""
+        frozen, self.frozen = self.frozen, True
+        target = self.resolve(obj, sym, offset)
+        self.frozen = frozen
+        if target is None:
+            target = self.placed_definition(sym.name)
+        if target is None and sym.name in self.common_at:
+            target = self.common_at[sym.name]
+        return target
+
+    def field_target(self, piece: Piece, off: int, rtype: int) -> tuple[int, int, int]:
+        """(site, the target its field holds, the object's addend there)."""
+        site = piece.va + off - piece.lo
+        (ours,) = struct.unpack_from("<I", piece.sec.data, off)
+        (value,) = struct.unpack_from("<I", self.img.out, site - self.img.base)
+        if rtype == REL_DIR32:
+            target = value - ours
+        elif rtype == REL_REL32:
+            target = value - ours + site + 4
+        elif rtype == REL_DIR32NB:
+            target = value - ours + self.img.base
+        else:
+            target = value - ours + self.tls_start
+        return site, target & 0xFFFFFFFF, ours
+
+    def unreplayable(self) -> tuple[list[tuple[Obj, int, int, int, int]], dict[int, int]]:
+        """What a build without the original cannot work out from the names
+        and the placed pieces, for data/layout.csv to record:
+
+          * the slices of an object that stand for another piece (its own
+            copy is not placed: the original had one copy, of a literal, a
+            constant, a file static, which the tree's objects each keep),
+            as (object, section, lo, hi, address);
+          * relocation site -> target for the references left (the other
+            copy of std::_Lockit, the names whose address only the
+            original's bytes gave)."""
+        def failing():
+            for piece in self.pieces:
+                obj = piece.obj
+                for off, symidx, rtype in piece.sec.relocs:
+                    if (rtype not in (REL_DIR32, REL_DIR32NB, REL_REL32, REL_SECREL)
+                            or not piece.lo <= off <= piece.hi - 4):
+                        continue
+                    site, target, ours = self.field_target(piece, off, rtype)
+                    if not self.pieces_own(piece, site):
+                        continue
+                    sym = obj.syms[symidx]
+                    offset = sym.value + (ours if rtype == REL_DIR32 and sym.name.startswith(".") else 0)
+                    if self.replay_target(obj, sym, offset) != target:
+                        yield site, target, obj, sym, offset
+
+        same = []
+        for site, target, obj, sym, offset in list(failing()):
+            if sym.section <= 0 or self.address_in(obj, sym.section, offset) is not None:
+                continue
+            sec = obj.secs[sym.section - 1]
+            lo, hi = (0, len(sec.data)) if sec.is_code else sec.slice_at(offset)
+            va = target - sym.value + lo
+            self.same[(id(obj), sym.section)].append((lo, hi, va))
+            same.append((obj, sym.section, lo, hi, va))
+        return same, {site: target for site, target, *_ in failing()}
+
+    def relocate_replay(self) -> None:
+        """Resolve every relocation of the placed pieces by name, and where
+        data/layout.csv records a target, to it (a build without the original)."""
+        self.frozen = True
+        while self.todo:
+            piece = self.todo.pop()
+            obj = piece.obj
+            for off, symidx, rtype in piece.sec.relocs:
+                if (rtype not in (REL_DIR32, REL_DIR32NB, REL_REL32, REL_SECREL)
+                        or not piece.lo <= off <= piece.hi - 4):
+                    continue
+                site = piece.va + off - piece.lo
+                if not self.pieces_own(piece, site):
+                    continue
+                sym = obj.syms[symidx]
+                (ours,) = struct.unpack_from("<I", piece.sec.data, off)
+                offset = sym.value + (ours if rtype == REL_DIR32 and sym.name.startswith(".") else 0)
+                target = self.overrides.get(site)
+                how = "recorded in data/layout.csv"
+                if target is None:
+                    target, how = self.replay_target(obj, sym, offset), "by name"
+                if target is None:
+                    self.mismatches.append(f"{site:#x} in {piece.label}: nothing names {sym.name}")
+                    continue
+                self.stats[f"relocations resolved {how}"] += 1
+                base = {REL_DIR32: 0, REL_REL32: site + 4, REL_DIR32NB: self.img.base,
+                        REL_SECREL: self.tls_start}[rtype]
+                o = site - self.img.base
+                self.img.out[o:o + 4] = struct.pack("<I", (target + ours - base) & 0xFFFFFFFF)
 
     def pieces_own(self, piece: Piece, site: int) -> bool:
         """Whether this piece wrote the field at site (a piece placed partly
@@ -781,7 +930,8 @@ def place_functions(placer: Placer, objects_by_src: dict[str, Obj]) -> None:
             continue
         sec = obj.secs[found.section - 1]
         size = sizes.get(addr, len(sec.data) - found.value)
-        placer.place(obj, sec, found.value, found.value + size, addr, CODE, symbol)
+        piece = placer.place(obj, sec, found.value, found.value + size, addr, CODE, symbol)
+        piece.derived = True
         placer.stats["game functions placed"] += 1
     # The alignment padding the compiler leaves after each function (every
     # function is its own COMDAT section, padded to 16 bytes with nops).
@@ -800,6 +950,7 @@ def place_gaps(placer: Placer, gaps: dict) -> None:
     for region, gap in sorted(gaps.items()):
         obj = parse(gap.path)
         obj.gap = True
+        obj.key = f"src/gap/{region:#x}.cpp"
         placer.objects.append(obj)
         placer.add_definer(obj)
         for addr, symbol, size in gap.functions:
@@ -913,6 +1064,7 @@ def place_globals(placer: Placer, data_objs: list[Path], data_addr: dict[int, st
     sizes = {int(r["address"], 16): int(r["size"]) for r in load_rows(GLOBALS)}
     for path in data_objs:
         obj = parse(path)
+        obj.key = f"link/{path.name}"
         placer.objects.append(obj)
         placer.add_definer(obj)
         for sec in obj.secs:
@@ -948,6 +1100,20 @@ def body_size(sec: Sec) -> int:
     return len(sec.data.rstrip(b"\x90\xcc")) or len(sec.data)
 
 
+def library_members(sources: list[Path] = ()) -> list[Obj]:
+    """The runtime library's members: src/lib/'s objects (`sources`), those
+    of LIBCMT.LIB and LIBCPMT.LIB, and zlib's."""
+    members = []
+    for p in sources:
+        members.append(parse(p, library=True))
+        members[-1].key = f"src/lib/{p.stem}.cpp"
+    members += [m for lib in LIBRARIES if lib.exists() for m in read_library(lib)]
+    for p in sorted(THIRD_PARTY.glob("*.obj")):
+        members.append(parse(p, library=True))
+        members[-1].key = f"zlib/{p.name}"
+    return members
+
+
 def place_library(placer: Placer, sources: list[Path] = ()) -> None:
     """The runtime library and zlib code, from the members of the libraries
     the original links, at the addresses data/functions.csv gives, and the
@@ -963,9 +1129,7 @@ def place_library(placer: Placer, sources: list[Path] = ()) -> None:
     puts what the placed code calls where the original's code points
     (__matherr, ___init_collate and setlocale's __init_dummy are the same three
     bytes), and to place_unreferenced_library for anything nothing calls."""
-    members = [parse(p, library=True) for p in sources]
-    members += [m for lib in LIBRARIES if lib.exists() for m in read_library(lib)]
-    members += [parse(p, library=True) for p in sorted(THIRD_PARTY.glob("*.obj"))]
+    members = library_members(sources)
     by_name: dict[str, list[tuple[Obj, Sym]]] = defaultdict(list)
     by_size: dict[int, list[tuple[Obj, Sym]]] = defaultdict(list)
     statics: dict[str, list[tuple[Obj, Sym]]] = defaultdict(list)
@@ -1013,8 +1177,7 @@ def place_library(placer: Placer, sources: list[Path] = ()) -> None:
                     continue
                 if (id(obj), sec.index) in placer.placed:
                     # Linked twice (std::_Lockit): a second copy of the member.
-                    obj = parse(obj.path, obj.raw, library=True)
-                    placer.objects.append(obj)
+                    obj = copy_object(obj, placer.objects)
                     sec = obj.secs[sym.section - 1]
                 placer.place(obj, sec, 0, body, start, LIBCODE, sym.name)
                 placer.stats["library sections placed"] += 1
@@ -1079,8 +1242,7 @@ def place_unreferenced_library(placer: Placer) -> None:
             if not masked_match(img, sec, addr, body) or not placer.refs_agree(obj, sec, addr):
                 continue
             if (id(obj), sec.index) in placer.placed:
-                obj = parse(obj.path, obj.raw, library=True)
-                placer.objects.append(obj)
+                obj = copy_object(obj, placer.objects)
                 sec = obj.secs[sym.section - 1]
             placer.place(obj, sec, 0, body, addr, LIBCODE, sym.name)
             placer.stats["library sections placed by size, with nothing referring to them"] += 1
@@ -1287,6 +1449,7 @@ def place_imports(placer: Placer) -> None:
 
     def own(member: Obj) -> Obj:
         obj = parse(member.path, member.raw, library=True)    # each placed once
+        obj.key = member.key
         placer.objects.append(obj)
         return obj
 
@@ -1455,6 +1618,7 @@ def place_crt_tables(placer: Placer) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         write_init_object(names[v], path)
         obj = parse(path)
+        obj.key = f"init/{names[v]}"
         placer.objects.append(obj)
         placer.place(obj, obj.secs[0], 0, 4, va, OBJDATA, f".CRT$XCU for {names[v]}")
         placer.stats["initialiser table entries placed from .CRT$X* sections"] += 1
@@ -1566,6 +1730,7 @@ def place_resources(placer: Placer) -> None:
     alignment. Their relocations are the data entries' addresses."""
     from resources import build
     obj = parse(build())
+    obj.key = "res"
     placer.objects.append(obj)
     placer.resources = obj
     va = next(start for name, start, *_ in placer.img.sections if name == ".rsrc")
@@ -1791,9 +1956,251 @@ def report(img: Image, placer: Placer, verbose: bool) -> int:
         print(f"names whose address only the original's bytes give: {len(placer.unresolved):,}")
         for name, n in placer.unresolved.most_common(limit):
             print(f"  {name} ({n})")
+    if img.orig is None:
+        return len(placer.mismatches)
     total, lines = compare(img, placer, verbose)
     print("\n".join(lines))
     return total
+
+
+# --- the layout, recorded: a build without the original -------------------------------
+
+LAYOUT = ROOT / "data/layout.csv"
+LAYOUT_FIELDS = ["kind", "address", "size", "object", "section", "offset", "source"]
+SHA256 = ROOT / "orig/TotalA.exe.sha256"
+
+
+def layout_rows(placer: Placer) -> list[dict]:
+    """What a build without the original needs to lay the image out as this
+    one is: every piece but the game functions (data/progress.csv places
+    those) with the object and section it comes from, in the order placed;
+    the runs of padding and zeros no piece wrote; the gap regions' entry
+    labels; where the communal variables are; and the references no name
+    leads to (Placer.unreplayable)."""
+    img = placer.img
+    rows = []
+    for p in placer.pieces:
+        if not p.derived:
+            rows.append({"kind": "piece", "address": f"{p.va:#x}", "size": p.hi - p.lo, "object": p.obj.key,
+                         "section": p.sec.index, "offset": p.lo, "source": SOURCES[p.source]})
+    for region, gap in sorted(placer.gap_regions.items()):
+        for a in gap.aliases:
+            rows.append({"kind": "alias", "address": f"{a.address:#x}", "size": "",
+                         "object": f"src/gap/{region:#x}.cpp", "section": a.section, "offset": a.value,
+                         "source": a.name})
+    # The fills inside the sections: past a section's virtual size the
+    # linker's zero fill follows from the section itself.
+    inside = bytearray(img.size + 1)
+    for x in placer.exe.sections:
+        inside[x.rva:x.rva + x.vsize] = b"\1" * x.vsize
+    run = None
+    for o in range(0x1000, img.size + 1):
+        key = None
+        if inside[o] and not img.owner[o] and img.src[o] not in (UNSET, DEBUGDIR):
+            key = (img.src[o], img.out[o])
+        if run and key == run[1]:
+            continue
+        if run:
+            rows.append({"kind": "fill", "address": f"{img.base + run[0]:#x}", "size": o - run[0], "object": "",
+                         "section": "", "offset": f"{run[1][1]:02x}", "source": SOURCES[run[1][0]]})
+        run = (o, key) if key else None
+    for name, addr in sorted(placer.common_at.items(), key=lambda kv: kv[1]):
+        rows.append({"kind": "common", "address": f"{addr:#x}", "size": placer.commons.get(name, ""),
+                     "object": name, "section": "", "offset": "", "source": ""})
+    same, overrides = placer.unreplayable()
+    # They stand in for the original only in a build without it: tools/carve.py
+    # and tools/linkcmp.py ask the layout what is placed itself.
+    placer.same.clear()
+    for obj, section, lo, hi, va in same:
+        rows.append({"kind": "same", "address": f"{va:#x}", "size": hi - lo, "object": obj.key,
+                     "section": section, "offset": lo, "source": ""})
+    for site, target in sorted(overrides.items()):
+        rows.append({"kind": "reloc", "address": f"{site:#x}", "size": "", "object": f"{target:#x}",
+                     "section": "", "offset": "", "source": ""})
+    return rows
+
+
+def write_layout(rows: list[dict], path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="") as fh:
+        w = csv.DictWriter(fh, LAYOUT_FIELDS, lineterminator="\n")
+        w.writeheader()
+        w.writerows(rows)
+
+
+def replay(jobs: int | None = None) -> tuple[Image, Placer]:
+    """Lay the image out from data/layout.csv and the repository alone, with
+    nothing of the original: the same objects, each piece where the layout
+    puts it, every reference resolved by name or to the target the layout
+    records, the headers generated."""
+    from check import winpath  # noqa: F401  (the toolchain's tools run through it)
+    from gapcheck import add_symbols, compile_gap
+    from link import write_init_object
+    from pe import settings
+    from resources import build
+    if not LAYOUT.exists():
+        raise SystemExit(f"{LAYOUT.relative_to(ROOT)} is missing: tools/place.py --write-layout writes it")
+    with LAYOUT.open() as fh:
+        rows = list(csv.DictReader(fh))
+    paths, failed = compile_all(jobs)
+    if failed:
+        raise SystemExit(f"{len(failed)} file(s) did not compile; tools/link.py lists them")
+    symbols = load_symbols()
+    link = settings()
+    lib_objs = ROOT / "build/progress" / LIB_DIR.relative_to(ROOT / "src")
+    lib_paths = [p for p in paths if p.is_relative_to(lib_objs)]
+    paths = [p for p in paths if not p.is_relative_to(lib_objs)]
+    objects = [parse(p) for p in paths]
+    by_src = {}
+    for p, obj in zip(paths, objects):
+        obj.key = str(Path("src") / p.relative_to(ROOT / "build/progress").with_suffix(".cpp"))
+        obj.data = obj.key.startswith("src/data/")
+        by_src[obj.key] = obj
+
+    end = max(int(r["address"], 16) + int(r["size"] or 0) for r in rows if r["kind"] in ("piece", "fill"))
+    img = Image.blank(link["image_base"], pe_align(end - link["image_base"], link["section_alignment"]))
+    placer = Placer(img, objects, symbols)
+    library_names(placer)
+    place_functions(placer, by_src)
+    keyed: dict[str, Obj] = dict(by_src)
+
+    def register(obj: Obj, definer: bool = True) -> Obj:
+        keyed[obj.key] = obj
+        placer.objects.append(obj)
+        if definer:
+            placer.add_definer(obj)
+        return obj
+
+    # The gap regions' objects, with the public symbols of their entry labels.
+    aliases: dict[str, list] = defaultdict(list)
+    for r in rows:
+        if r["kind"] == "alias":
+            aliases[r["object"]].append((r["source"], int(r["section"]), int(r["offset"])))
+    for key in sorted({r["object"] for r in rows if r["kind"] == "piece" and r["object"].startswith("src/gap/")}):
+        compiled, log = compile_gap(ROOT / key)
+        if compiled is None:
+            raise SystemExit(f"{key} did not compile:\n{log}")
+        path = ROOT / "build/gap" / f"{Path(key).stem}.obj"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(add_symbols(compiled.read_bytes(), aliases.get(key, [])))
+        obj = parse(path)
+        obj.gap, obj.key = True, key
+        register(obj)
+    for member in library_members(lib_paths):
+        register(member)
+    data_objs, _ = build_data(symbols)
+    for path in data_objs:
+        obj = parse(path)
+        obj.key = f"link/{path.name}"
+        register(obj)
+    import_libs = {path.name: path for path in import_libraries().values()}
+
+    def lookup(key: str) -> Obj:
+        if key in keyed:
+            return keyed[key]
+        base = key.split("@", 1)[0]
+        if base != key:
+            first = lookup(base)
+            copy = parse(first.path, first.raw, library=first.library)
+            copy.key = key
+            return register(copy, definer=False)
+        if key == "res":
+            obj = parse(build())
+            obj.key = key
+            placer.resources = obj
+            return register(obj, definer=False)
+        if key.startswith("init/"):
+            path = OUT_DIR / "init" / f"{len(keyed)}.obj"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            write_init_object(key[len("init/"):], path)
+            obj = parse(path)
+            obj.key = key
+            return register(obj, definer=False)
+        lib = key.split("#", 1)[0]
+        if lib in import_libs:
+            for member in read_library(import_libs[lib]):
+                keyed.setdefault(member.key, member)
+            obj = keyed[key]
+            placer.objects.append(obj)
+            return obj
+        raise SystemExit(f"data/layout.csv: no object {key}")
+
+    for r in rows:
+        if r["kind"] == "piece":
+            obj = lookup(r["object"])
+            sec = obj.secs[int(r["section"]) - 1]
+            lo = int(r["offset"])
+            placer.place(obj, sec, lo, lo + int(r["size"]), int(r["address"], 16), SOURCES.index(r["source"]),
+                         f"{sec.name} of {obj.key}")
+            placer.stats["pieces placed from data/layout.csv"] += 1
+        elif r["kind"] == "fill":
+            img.write(int(r["address"], 16), bytes([int(r["offset"], 16)]) * int(r["size"]),
+                      SOURCES.index(r["source"]))
+        elif r["kind"] == "common":
+            placer.common_at[r["object"]] = int(r["address"], 16)
+        elif r["kind"] == "reloc":
+            placer.overrides[int(r["address"], 16)] = int(r["object"], 16)
+        elif r["kind"] == "same":
+            obj, lo = lookup(r["object"]), int(r["offset"])
+            placer.same[(id(obj), int(r["section"]))].append((lo, lo + int(r["size"]), int(r["address"], 16)))
+
+    # What the build with the original takes from its import directory and
+    # sections, from the pieces now placed instead.
+    for p in sorted(placer.pieces, key=lambda p: p.va):
+        imps = [s for s in p.obj.syms.values() if s.name.startswith("__imp_") and s.section == p.sec.index]
+        if p.sec.name == ".idata$5" and imps:
+            placer.import_slots[(p.obj.key.split("#", 1)[0], undecorate(imps[0].name[len("__imp_"):]))] = p.va
+            placer.import_members[p.va] = p.obj
+        elif p.sec.is_code and p.sec.data[:2] == b"\xff\x25" and p.obj.key.split("#", 1)[0] in import_libs:
+            imp = next(s for s in p.obj.syms.values() if s.name.startswith("__imp_") and s.section > 0)
+            placer.thunks.setdefault(undecorate(imp.name[len("__imp_"):]), p.va)
+        if p.sec.name == ".tls" and "__tls_start" in p.obj.externals:
+            placer.tls_start = p.va
+        if "__tls_used" in p.obj.externals and p.sec.index == p.obj.externals["__tls_used"].section:
+            placer.tls_directory = p.va
+    # An import descriptor's .idata$4 and .idata$5 mean where its DLL's
+    # tables start: the first of its library's members' entries.
+    starts: dict[tuple[str, str], int] = {}
+    for p in placer.pieces:
+        if p.sec.name in (".idata$4", ".idata$5"):
+            key = (p.obj.key.split("#", 1)[0], p.sec.name)
+            starts[key] = min(starts.get(key, p.va), p.va)
+    for p in placer.pieces:
+        if p.sec.name == ".idata$2":
+            lib = p.obj.key.split("#", 1)[0]
+            p.obj.section_starts = {name: starts[(lib, name)] for name in (".idata$4", ".idata$5")}
+    placer.relocate_replay()
+    place_debug_directory(placer)
+    sections = image_sections(placer, link)
+    placer.exe, placer.debug_records = link_image(placer, link, sections)
+    # Past each section's virtual size, up to its raw size: the linker's zero fill.
+    for x in sections:
+        for o in range(x.rva + x.vsize, x.rva + x.raw):
+            if img.src[o] == UNSET:
+                img.src[o] = PADDING
+    unset = sum(1 for x in sections for o in range(x.rva, x.rva + x.vsize) if img.src[o] == UNSET)
+    if unset:
+        placer.mismatches.append(f"{unset:,} bytes inside the sections that data/layout.csv does not account for")
+    return img, placer
+
+
+def pe_align(n: int, a: int) -> int:
+    return (n + a - 1) & ~(a - 1)
+
+
+def check_hashes(data: bytes) -> bool:
+    """Whether the exe is the shipped one: its SHA-256 against
+    orig/TotalA.exe.sha256 and its MD5 against link/link.toml's."""
+    import hashlib
+    from pe import settings
+    sha = hashlib.sha256(data).hexdigest()
+    md5 = hashlib.md5(data).hexdigest()
+    want_sha = SHA256.read_text().split()[0]
+    want_md5 = settings().get("md5", "")
+    ok = sha == want_sha and (not want_md5 or md5 == want_md5)
+    print(f"MD5 {md5}, SHA-256 {sha}: {'the shipped exe' if ok else 'NOT the shipped exe'} "
+          f"(orig/TotalA.exe.sha256, link/link.toml)")
+    return ok
 
 
 def layout(jobs: int | None = None) -> tuple[Image, Placer]:
@@ -1810,7 +2217,8 @@ def layout(jobs: int | None = None) -> tuple[Image, Placer]:
     objects = [parse(p) for p in paths]
     by_src = {}
     for p, obj in zip(paths, objects):
-        by_src[str(Path("src") / p.relative_to(ROOT / "build/progress").with_suffix(".cpp"))] = obj
+        obj.key = str(Path("src") / p.relative_to(ROOT / "build/progress").with_suffix(".cpp"))
+        by_src[obj.key] = obj
 
     img = Image(ROOT / "orig/TotalA.exe")
     placer = Placer(img, objects, symbols)
@@ -1843,6 +2251,7 @@ def layout(jobs: int | None = None) -> tuple[Image, Placer]:
     sections = image_sections(placer, link)
     placer.exe, placer.debug_records = link_image(placer, link, sections)
     copy_unbuilt(img, sections)
+    placer.layout = layout_rows(placer)
     return img, placer
 
 
@@ -1856,14 +2265,34 @@ def main() -> None:
     ap.add_argument("--art", type=Path,
                     help="the directory with the game's icon and cursor (TotalA.ico, TotalA.cur) for the "
                          "resources (default: BT_ART_DIR, or extracted from orig/TotalA.exe)")
+    ap.add_argument("--no-orig", action="store_true",
+                    help="build from data/layout.csv without reading orig/TotalA.exe (the default when it "
+                         "is missing; the art still comes from --art or BT_ART_DIR)")
+    ap.add_argument("--write-layout", action="store_true",
+                    help="rewrite data/layout.csv from this build (with the original)")
     ap.add_argument("--verbose", "-v", action="store_true")
     args = ap.parse_args()
     if args.art:
         import os
         os.environ["BT_ART_DIR"] = str(args.art.resolve())
     output = args.output if args.output.is_absolute() else ROOT / args.output
+    original = ROOT / "orig/TotalA.exe"
+    replaying = args.no_orig or not original.exists()
+    if replaying and args.write_layout:
+        raise SystemExit("--write-layout needs orig/TotalA.exe")
 
-    img, placer = layout(args.jobs)
+    if replaying:
+        print("building from data/layout.csv, without the original")
+        img, placer = replay(args.jobs)
+    else:
+        img, placer = layout(args.jobs)
+        write_layout(placer.layout, OUT_DIR / "layout.csv")
+        if args.write_layout:
+            write_layout(placer.layout, LAYOUT)
+            print(f"wrote {LAYOUT.relative_to(ROOT)}: {len(placer.layout):,} rows")
+        elif not LAYOUT.exists() or LAYOUT.read_text() != (OUT_DIR / "layout.csv").read_text():
+            print(f"{LAYOUT.relative_to(ROOT)} is not this build's layout ({(OUT_DIR / 'layout.csv').relative_to(ROOT)}): "
+                  "run with --write-layout to update it")
     if not args.no_exe_patches:
         from exepatch import apply_placed
         apply_placed(img.out, img.base)
@@ -1871,11 +2300,16 @@ def main() -> None:
     data = write_exe(placer, settings(), output)
     write_map(placer, output.with_suffix(".map"))
     total = report(img, placer, args.verbose)
-    original = bytes(img.pe.__data__)
-    differ = sum(a != b for a, b in zip(data, original)) + abs(len(data) - len(original))
-    print(f"{output.relative_to(ROOT)}: {len(data):,} bytes, {differ:,} of them differ from orig/TotalA.exe "
-          f"(headers {sum(a != b for a, b in zip(data[:0x400], original[:0x400])):,})")
-    total += differ
+    if img.pe is not None:
+        theirs = bytes(img.pe.__data__)
+        differ = sum(a != b for a, b in zip(data, theirs)) + abs(len(data) - len(theirs))
+        print(f"{output.relative_to(ROOT)}: {len(data):,} bytes, {differ:,} of them differ from orig/TotalA.exe "
+              f"(headers {sum(a != b for a, b in zip(data[:0x400], theirs[:0x400])):,})")
+        total += differ
+    else:
+        print(f"{output.relative_to(ROOT)}: {len(data):,} bytes")
+    if not args.no_exe_patches and not check_hashes(data):
+        total += 1
     if args.strict and total:
         raise SystemExit(1)
 

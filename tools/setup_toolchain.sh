@@ -2,6 +2,9 @@
 # Download and unpack Visual C++ 5.0 Professional plus Service Pack 3 into toolchain/,
 # and copy the original TotalA.exe from the Steam install into orig/.
 # Needs: curl, 7z, cabextract, wine.
+# For a build without the game (CI: tools/place.py builds the exe from
+# data/layout.csv), set BT_NO_ORIG=1 to skip the original, and BT_NO_GHIDRA=1
+# to skip Ghidra, which only the decompiling tools use.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -91,7 +94,7 @@ fi
 
 # Ghidra, for pseudo-C starting points (tools/ghidra.sh). Needs Java 21 to run.
 GHIDRA_ZIP=ghidra_12.1.4_PUBLIC_20260921.zip
-if [ ! -d "$TC/ghidra" ]; then
+if [ ! -d "$TC/ghidra" ] && [ -z "${BT_NO_GHIDRA:-}" ]; then
     if [ ! -f "$DL/$GHIDRA_ZIP" ]; then
         curl -fSL -o "$DL/$GHIDRA_ZIP.part" \
             "https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.4_build/$GHIDRA_ZIP"
@@ -117,9 +120,11 @@ if [ ! -f "$TC/thirdparty/$ZLIB/zutil.obj" ]; then
     done)
 fi
 
-if [ ! -f "$ROOT/orig/TotalA.exe" ]; then
-    cp "$STEAM_TA/TotalA.exe" "$ROOT/orig/TotalA.exe"
+if [ -z "${BT_NO_ORIG:-}" ]; then
+    if [ ! -f "$ROOT/orig/TotalA.exe" ]; then
+        cp "$STEAM_TA/TotalA.exe" "$ROOT/orig/TotalA.exe"
+    fi
+    (cd "$ROOT/orig" && sha256sum -c --quiet TotalA.exe.sha256)
 fi
-(cd "$ROOT/orig" && sha256sum -c --quiet TotalA.exe.sha256)
 
 echo "Toolchain ready. Try: tools/wcl /c /O2 some.cpp"

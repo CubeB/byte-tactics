@@ -197,14 +197,22 @@ def build_data(symbols: dict[str, int]) -> tuple[list[Path], dict[int, str]]:
     have |= {a for a in rows if inside(extents, a)}
     extra = {a: r for a, r in rows.items() if a not in have}
     if extra:
-        from check import Original
-        exe = Original()
+        exe = None
         lines = ['extern "C" {']
         for addr in sorted(extra):
             _, size, section, init = extra[addr]
             name = f"DAT_{addr:08x}"
-            # The whole initial value (globals.csv shows only its start).
-            bytes_ = exe.read(addr, size).rstrip(b"\0") if section != ".bss" else b""
+            # The whole initial value: globals.csv's, which holds the first 64
+            # bytes, or the original's for a longer one.
+            if section == ".bss":
+                bytes_ = b""
+            elif len(init) >= 2 * size:
+                bytes_ = bytes.fromhex(init)[:size].rstrip(b"\0")
+            else:
+                if exe is None:
+                    from check import Original
+                    exe = Original()
+                bytes_ = exe.read(addr, size).rstrip(b"\0")
             if section == ".bss" or not bytes_:
                 lines.append(f"unsigned char {name}[{max(size, 1)}];")
             else:

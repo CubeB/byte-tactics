@@ -15,6 +15,8 @@ uv run tools/globals.py                # rebuild data/globals.csv, link/globals.
 uv run tools/globals.py --check        # also compile link/data.cpp and compare it with the exe
 uv run tools/stateprobe.py HEADER --rename   # how many matches a shared header would break
 uv run tools/place.py                  # link at the original's addresses: build/place/TotalA.exe
+uv run tools/place.py --no-orig        # the same from data/layout.csv, without reading orig/TotalA.exe
+uv run tools/place.py --write-layout   # rewrite data/layout.csv after a change moves a piece
 uv run tools/resources.py              # compile src/res/ and compare it with the original's .rsrc
 uv run tools/link.py --carve           # an ordinary LINK.EXE link that runs: build/link/TotalA.exe
 uv run tools/linkcmp.py                # does every reference in it reach what the original's does?
@@ -571,6 +573,47 @@ install, with `smackw32.dll` and `win32.dll`) and start it under Wine, for
 example `wine explorer /desktop=TA,800x600 TotalA.exe`. Like the original, it
 shows a DirectX version warning over the main menu in a fresh Wine prefix,
 and it starts and plays a skirmish game.
+
+### Building without the original
+
+`uv run tools/place.py --no-orig` builds the same exe without opening
+`orig/TotalA.exe` at all, and so does `tools/place.py` when that file is
+missing (as in CI). Everything comes from the repository and the toolchain:
+
+- **The layout** comes from `data/layout.csv`, which the build with the
+  original writes: `place.py` writes `build/place/layout.csv` on every run
+  and says when it differs from `data/layout.csv`, and `--write-layout`
+  updates the latter. Rerun it after any change that moves a piece (a
+  function that grows, a file that moves, a new global in `src/data`).
+- **The art** (the icon and cursor) comes from `--art` or `BT_ART_DIR`, the
+  one input that is not in the repository (see the resources, above).
+- **The check**: the exe's SHA-256 must be `orig/TotalA.exe.sha256`'s and its
+  MD5 `link/link.toml`'s (8e74a1dffa1f5988624c52048f5b20cd). With the
+  original present, `place.py` also compares the file byte for byte.
+
+`data/layout.csv` records what the build with the original decides from the
+original's bytes, as rows of these kinds:
+
+| Kind | What it says | Rows |
+| --- | --- | ---: |
+| `piece` | a slice of an object's section (`object`, `section`, `offset`, `size`) goes at `address`; every piece but the game functions, which `data/progress.csv` places, in the order the pieces were placed | 5,962 |
+| `fill` | `size` bytes of `offset` (0x00, 0x90 or 0xcc) that no piece wrote: padding, communal variables, `.bss` | 5,908 |
+| `alias` | a gap region's entry label: the public symbol `gapcheck.py` adds to its object | 32 |
+| `common` | where a communal variable is | 19 |
+| `same` | a slice of an object that is not placed itself but stands for the piece at `address`: the original had one copy of a literal, a constant or a file static that the tree's objects each keep | 572 |
+| `reloc` | the target of a reference that no name leads to: the 136 calls to the other copy of `std::_Lockit`, the 30 names whose address only the original's bytes give (the vector deleting destructors, `SmackSoundEnable`), and three more | 169 |
+
+An object is named by its source (`src/unsorted/0x4223e0.cpp`,
+`src/gap/0x49a120.cpp`), by a library and the member's place in it
+(`LIBCMT.LIB#123`, `KERNEL32.LIB#40`, the import libraries too), as
+`zlib/deflate.obj`, `link/data.obj`, `init/<symbol>` (the initialiser table
+entries `place.py` writes) and `res`, with `@<n>` for a second copy of a
+member. Everything else follows from the placed pieces as LINK's rules
+have it: the game functions and their padding, the import address table's
+slots and the stubs that jump through them, where each import descriptor's
+tables start, `.tls` and its directory, the sections, the headers and the
+debug data. Every other reference is resolved by name, as in the build with
+the original; a reference the layout cannot account for stops the build.
 
 ### Why not LINK's own layout
 

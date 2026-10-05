@@ -37,3 +37,7 @@ stack_reserve = 0x100000
 stack_commit = 0x1000
 heap_reserve = 0x100000
 heap_commit = 0x1000
+
+# The exe the build must reproduce, GOG's and Steam's (orig/TotalA.exe.sha256
+# has its SHA-256).
+md5 = "8e74a1dffa1f5988624c52048f5b20cd"

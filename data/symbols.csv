@@ -3744,6 +3744,7 @@ address,name
 0x4fa3b0,_store_number
 0x4fa420,_store_winword
 0x4fa770,__getlocaleinfo
+0x4fa920,localeconv
 0x4fa930,_itoa
 0x4fa970,xtoa
 0x4fa9e0,_ltoa
@@ -3753,7 +3754,7 @@ address,name
 0x4fab30,_ui64toa
 0x4fab50,_strnicmp
 0x4fac60,_mbschr
-0x4fad30,_mbsdup
+0x4fad30,_strdup
 0x4fad80,__crtGetLocaleInfoW
 0x4faeb0,__crtGetLocaleInfoA
 0x4faff0,DirectPlayEnumerateA

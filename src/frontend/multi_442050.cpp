@@ -45,7 +45,7 @@ void __stdcall FUN_0047f1a0(const char* name, int param_2);
 void FUN_004257a0();
 void __stdcall FUN_004ab0a0(Gadget_00442050* gadget);
 void __stdcall FUN_00425860(int state, int line, const char* file);
-void __stdcall FUN_0042f960(void* key, void* buf, int value);
+void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 char* __stdcall GetGadgetText(Gadget_00442050* gadget, const char* key, void* out);
 
 // The original build called this helper from both connection paths and /Ob2
@@ -105,5 +105,5 @@ connect:
     FUN_0047f1a0("Smlbutton", 0);
     FUN_004257a0();
 tcpaddr:
-    FUN_0042f960("TCPADDR", GetGadgetText(gadget, "ADDRESS", 0), 0x80);
+    WriteGameRegistryValue("TCPADDR", GetGadgetText(gadget, "ADDRESS", 0), 0x80);
 }

@@ -44,18 +44,18 @@ extern Game* g_game;
 
 class Condition_0048fc70 {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
+    virtual int IsSatisfied();           // IsSatisfied
     int done;                          // +0x04
     int announced;                     // +0x08
 };
 
-class Class_0048fc70 : public Condition_0048fc70, public UnitVisitor_0048fc70 {
+class DefeatAnyUnitPassesZ : public Condition_0048fc70, public UnitVisitor_0048fc70 {
 public:
-    virtual int FUN_0048ea00();
+    virtual int IsSatisfied();
 };
 
 // FUNCTION: 0x48fc70
-int Class_0048fc70::FUN_0048ea00()
+int DefeatAnyUnitPassesZ::IsSatisfied()
 {
     if (done == 0) {
         g_game->units.ForEach(this);

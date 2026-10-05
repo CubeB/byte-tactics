@@ -9,7 +9,7 @@ extern int DAT_00511dd0;
 extern int DAT_00511dd4;
 
 // FUNCTION: 0x416db0
-void __stdcall FUN_00416db0(Class_004b7410* args)
+void __stdcall CmdContour(Class_004b7410* args)
 {
     DAT_00511dd0 = (int)(args->FUN_004b7410(1, 0.0f) * 256.0f);
     DAT_00511dd4 = (int)(args->FUN_004b7410(2, 0.75f) * 256.0f);

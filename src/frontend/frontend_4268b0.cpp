@@ -4,7 +4,7 @@
 
 class Class_00435110 {
 public:
-    void FUN_00435110(char* name);
+    void LoadCampaign(char* name);
 };
 
 class Class_00435c00 {
@@ -48,7 +48,7 @@ void __stdcall FUN_004268b0(int param_1)
     wsprintfA(key, "warp%dmission", param_1);
     int n = GetPrivateProfileIntA("WARPLEVELS", key, 0, path);
     FUN_00434ab0(1);
-    g_game->level->FUN_00435110(value);
+    g_game->level->LoadCampaign(value);
     if (((Class_00435c00*)g_game->level)->FUN_00435c00(n)) {
         g_game->flags.b3 = 1;
         g_game->flags.b2 = 1;

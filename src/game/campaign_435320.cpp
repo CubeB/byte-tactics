@@ -15,11 +15,11 @@ public:
     char text_304[0x910];              // +0x304
     char* field_c14;                   // +0xc14
 
-    void FUN_00435320();
+    void LoadBriefing();
 };
 
 // FUNCTION: 0x435320
-void Class_00435320::FUN_00435320()
+void Class_00435320::LoadBriefing()
 {
     if (field_c14)
         FUN_004d85a0(field_c14);

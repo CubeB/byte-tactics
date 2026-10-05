@@ -17,14 +17,14 @@ extern int g_reportFlags;
 extern int* DAT_0051e574;
 extern int (__stdcall* DAT_0051e548)(int, int);
 
-void FUN_0046c2a0();
+void FillScoreTables();
 int __stdcall RIReportGameChat(int arg1, int arg2);
 
 // FUNCTION: 0x46c810
 int __stdcall ReportGameChat(int msg)
 {
     if ((DAT_0051e590 != 0 && (g_reportFlags & 8)) || DAT_0051e58c != 0) {
-        FUN_0046c2a0();
+        FillScoreTables();
         if (DAT_0051e590 != 0 && (g_reportFlags & 8)) {
             if (RIReportGameChat(DAT_0051e574[g_game->player], msg))
                 DAT_0051e590 = 0;

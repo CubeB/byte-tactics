@@ -28,7 +28,7 @@ public:
 };
 
 // FUNCTION: 0x416860
-void __stdcall FUN_00416860(Class_004b73e0* args)
+void __stdcall CmdMove(Class_004b73e0* args)
 {
     if (_strcmpi(((Class_004b73c0*)args)->FUN_004b73c0(0, DAT_005119b8), "move") == 0) {
         int dx = args->FUN_004b73e0(1, 0);

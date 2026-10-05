@@ -22,7 +22,7 @@ void __stdcall FUN_0047f1a0(char* str, int flag);
 
 class Condition_0048f4c0 {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
+    virtual int IsSatisfied();           // IsSatisfied
     int done;                          // +0x04
     int announced;                     // +0x08
 };
@@ -30,22 +30,22 @@ public:
 // Interface at +0xc of the object: slot 0 is called for each unit.
 class UnitVisitor_0048f4c0 {
 public:
-    virtual int FUN_0048f790(Unit* unit) = 0;
+    virtual int VisitUnit(Unit* unit) = 0;
 };
 
 // Same layout as 0x48ed50.cpp; this method overrides the visitor's slot, so
 // `this` is the visitor subobject (+0xc) and done/announced sit at -8/-4.
 #pragma pack(push, 2)
-class Class_0048f530 : public Condition_0048f4c0, public UnitVisitor_0048f4c0 {
+class VictoryUnitTypePassesZ : public Condition_0048f4c0, public UnitVisitor_0048f4c0 {
 public:
     char name[0x20];                   // +0x10
     int field_30;                      // +0x30
-    virtual int FUN_0048f790(Unit* unit);
+    virtual int VisitUnit(Unit* unit);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x48f4c0
-int Class_0048f530::FUN_0048f790(Unit* unit)
+int VictoryUnitTypePassesZ::VisitUnit(Unit* unit)
 {
     if (name[0] == 0 || _strcmpi(name, unit->type->name) == 0) {
         if (abs(unit->field_78 - field_30) <= 2) {

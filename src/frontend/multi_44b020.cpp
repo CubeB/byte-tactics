@@ -30,7 +30,7 @@ struct Game {
 extern Game* g_game;
 
 void FUN_004257a0();
-void* __stdcall FUN_00429290(char* name, unsigned char* palette);
+void* __stdcall LoadBitmapByName(char* name, unsigned char* palette);
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 void __stdcall SetOffscreenSurface(int param_1);
 void __stdcall DrawSurface(void* dest, void* image, int x, int y);
@@ -50,7 +50,7 @@ void FUN_0044b020()
     void* image;
 
     FUN_004257a0();
-    image = FUN_00429290("Mission02WinBW", palette);
+    image = LoadBitmapByName("Mission02WinBW", palette);
     SetPaletteColors(palette, 0, 0x100);
     SetOffscreenSurface(g_game->field_37e1b);
     DrawSurface(0, image, 0, 0);

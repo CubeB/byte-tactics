@@ -108,7 +108,7 @@ public:
 
 class Class_00435a20 {
 public:
-    void FUN_00435a20(void* player);
+    void LoadMissionByName(void* player);
 };
 
 class Class_00437320 {
@@ -148,12 +148,12 @@ int __stdcall FUN_004b6c30(int x);
 unsigned char __stdcall FindHostSlot();
 void FUN_00431740();
 void HandleNetPackets();
-void __stdcall FUN_00465fb0(void* mission);
+void __stdcall LoadPlayerControllers(void* mission);
 void FUN_0047a760();
 void FUN_004917d0();
 void FUN_00465e30();
 void __stdcall FUN_004816a0(int x);
-void __stdcall FUN_00432610(void* mission);
+void __stdcall LoadSavedGameState(void* mission);
 void CreateMissionUnits();
 void FUN_0041d1f0();
 void __stdcall FUN_004288d0(int a, int b, int c, int d);
@@ -181,7 +181,7 @@ inline void __stdcall FUN_00496e10(Settings_00496e10* s)
 }
 
 // FUNCTION: 0x497180
-void __cdecl FUN_00497180(void*)
+void __cdecl LoadMatch(void*)
 {
     LARGE_INTEGER perfCount;
     FixedPos_497180 pos;
@@ -233,7 +233,7 @@ void __cdecl FUN_00497180(void*)
         }
 
         ((Class_00435a20*)*(void**)(g_game + 0x391e9))
-            ->FUN_00435a20(*(void**)(g_game + 0x1b63 + 0x14b * sel + 0x27));
+            ->LoadMissionByName(*(void**)(g_game + 0x1b63 + 0x14b * sel + 0x27));
         if (FindHostSlot() == 10)
             break;
 
@@ -256,7 +256,7 @@ void __cdecl FUN_00497180(void*)
         ((Class_004b4560*)*(void**)(g_game + 0x38d6b))->FUN_004b4560("summary");
         if (((Class_004b48f0*)*(void**)(g_game + 0x38d6b))->FUN_004b48f0("BetweenMissions") ==
             0) {
-            FUN_00465fb0(*(void**)(g_game + 0x38d6b));
+            LoadPlayerControllers(*(void**)(g_game + 0x38d6b));
             if (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100() == 2) {
                 int count = 0;
                 int* def = (int*)*(void**)(g_game + 0x29a0);
@@ -392,7 +392,7 @@ void __cdecl FUN_00497180(void*)
         ((Class_004b4560*)*(void**)(g_game + 0x38d6b))->FUN_004b4560("summary");
         if (((Class_004b48f0*)*(void**)(g_game + 0x38d6b))->FUN_004b48f0("BetweenMissions") ==
             0) {
-            FUN_00432610(*(void**)(g_game + 0x38d6b));
+            LoadSavedGameState(*(void**)(g_game + 0x38d6b));
             goto tail;
         }
     } else if (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100() != 1) {

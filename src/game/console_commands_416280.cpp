@@ -32,7 +32,7 @@ public:
 };
 
 // FUNCTION: 0x416280
-void __stdcall FUN_00416280(Class_004b73e0* args)
+void __stdcall CmdAI(Class_004b73e0* args)
 {
     unsigned char i = args->FUN_004b73e0(1, g_game->field_2a42);
     if (i < 10) {

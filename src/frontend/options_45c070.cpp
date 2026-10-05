@@ -53,7 +53,7 @@ struct Object_45c070 {
 extern Game* g_game;
 
 Entry_45c070* __stdcall FUN_004a0200(Entry_45c070* entries, char* name);
-void __stdcall FUN_00490df0(unsigned int param1, int param2);
+void __stdcall SetGameSpeed(unsigned int param1, int param2);
 void __stdcall FUN_0049fa90(Object_45c070* obj);
 
 static inline int SliderValue(Entry_45c070* e)
@@ -72,7 +72,7 @@ void __stdcall FUN_0045c070(Object_45c070* obj, int unused)
         if (e != 0) {
             int value = SliderValue(e);
             g_game->field_38a4b = (unsigned short)(value < 1 ? 1 : SliderValue(e));
-            FUN_00490df0(g_game->field_38a4b, 1);
+            SetGameSpeed(g_game->field_38a4b, 1);
             FUN_0049fa90(obj);
         }
     }

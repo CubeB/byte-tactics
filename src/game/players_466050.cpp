@@ -105,7 +105,7 @@ public:
 // clock, and each player's resources, statistics, logo, side and alliances
 // from its "Player%i" section (a player without one gets no controller).
 // FUNCTION: 0x466050
-void __stdcall FUN_00466050(Class_004b4560* file)
+void __stdcall LoadPlayers(Class_004b4560* file)
 {
     char name[16];
     file->FUN_004b4560("Players");
@@ -146,9 +146,9 @@ void __stdcall FUN_00466050(Class_004b4560* file)
     }
 }
 
-// Saves what FUN_00466050 loads, for every player that has a controller.
+// Saves what LoadPlayers loads, for every player that has a controller.
 // FUNCTION: 0x4662f0
-void __stdcall FUN_004662f0(Class_004b4560* file)
+void __stdcall SavePlayers(Class_004b4560* file)
 {
     char name[16];
     file->FUN_004b4560("Players");

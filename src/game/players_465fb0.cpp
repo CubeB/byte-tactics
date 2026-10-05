@@ -35,7 +35,7 @@ public:
 };
 
 // FUNCTION: 0x465fb0
-void __stdcall FUN_00465fb0(Class_004b4560* file)
+void __stdcall LoadPlayerControllers(Class_004b4560* file)
 {
     char name[16];
     for (int i = 0; i < 10; i++) {

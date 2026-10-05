@@ -73,7 +73,7 @@ void __stdcall FUN_004a50e0(void* surface, const char* text, int x, int y, int l
 char* __stdcall FUN_004c5740(char* s);
 
 // FUNCTION: 0x497ce0
-void __stdcall FUN_00497ce0(void* surface)
+void __stdcall DrawSyncStatus(void* surface)
 {
     int off;
     extern Game* g_game;

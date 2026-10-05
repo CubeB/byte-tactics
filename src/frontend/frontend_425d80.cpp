@@ -37,11 +37,11 @@ extern char* g_game;
 extern void* DAT_00512298;
 
 int FUN_00428bc0(void);
-void FUN_0041d4c0();
-char __stdcall FUN_0041d6a0(int param_1);
+void RegisterDataArchives();
+char __stdcall FindGameCdDrive(int param_1);
 int PopKey(void);
 void FlipScreen();
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_00491c80(int param_1);
@@ -71,8 +71,8 @@ void __stdcall FUN_00425d80(Gadget_00425d80* gadget)
     if (IsCurrentGadgetNamed(gadget, "MULTI")) {
         FUN_0047f1a0("BigButton", 0);
         FUN_00491c80(0x14);
-        FUN_0041d4c0();
-        FUN_004290f0(buf, "maps", "multiplay", "tdf");
+        RegisterDataArchives();
+        BuildDataPath(buf, "maps", "multiplay", "tdf");
         Class_004c2ea0 obj;
         if (((Class_004c2f60*)&obj)->FUN_004c2f60(buf) != 0) {
             g_game[0x2bc0] = 6;
@@ -97,7 +97,7 @@ void __stdcall FUN_00425d80(Gadget_00425d80* gadget)
             FUN_004ab0a0(g_game + 0x519);
             return;
         }
-        if (!FUN_0041d6a0(0) && !FUN_0041d6a0(1)) {
+        if (!FindGameCdDrive(0) && !FindGameCdDrive(1)) {
             OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("Please insert a Total Annihilation CD and try again"),
                          200, 1, 1);
@@ -143,7 +143,7 @@ void __stdcall FUN_00425d80(Gadget_00425d80* gadget)
             FUN_004ab0a0(g_game + 0x519);
             return;
         }
-        if (!FUN_0041d6a0(0) && !FUN_0041d6a0(1)) {
+        if (!FindGameCdDrive(0) && !FindGameCdDrive(1)) {
             OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("Please insert a Total Annihilation CD and try again"),
                          200, 1, 1);

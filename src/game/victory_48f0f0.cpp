@@ -22,21 +22,21 @@ void __stdcall FUN_0047f1a0(char* str, int flag);
 
 class Condition_0048f0f0 {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
-    virtual void FUN_0048ea10(Unit* unit);
+    virtual int IsSatisfied();           // IsSatisfied
+    virtual void OnUnitDied(Unit* unit);
     int done;                          // +0x04
     int announced;                     // +0x08
 };
 
-class Class_0048f0f0 : public Condition_0048f0f0 {
+class VictoryKillUnitType : public Condition_0048f0f0 {
 public:
     char name[0x20];                   // +0x0c
     int count;                         // +0x2c
-    virtual void FUN_0048ea10(Unit* unit);
+    virtual void OnUnitDied(Unit* unit);
 };
 
 // FUNCTION: 0x48f0f0
-void Class_0048f0f0::FUN_0048ea10(Unit* unit)
+void VictoryKillUnitType::OnUnitDied(Unit* unit)
 {
     if (count > 0 && unit->kind == 1 && _strcmpi(name, unit->info->name) == 0) {
         if (--count <= 0) {

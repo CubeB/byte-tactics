@@ -233,12 +233,12 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FatalError(char* path);
 void* __stdcall Load3do(char* path);
 void __stdcall MirrorObject(void* p);
 void __stdcall FUN_0042a140(void* a, char* b);
-void* __stdcall FUN_00429700(char* name);
+void* __stdcall LoadAnimGaf(char* name);
 void* __stdcall FindGafEntry(void* a, char* b);
 int __stdcall FUN_00429470(void* a, char* b);
 
@@ -331,7 +331,7 @@ void __stdcall FUN_0042e440(Class_004c4440* parser) {
             }
         }
         char path[0x100];
-        FUN_004290f0(path, "objects3d", model, "3DO");
+        BuildDataPath(path, "objects3d", model, "3DO");
         void* h = Load3do(path);
         if (h == 0)
             FatalError(path);
@@ -347,7 +347,7 @@ model_done:
     char gaf[0x100];
     if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "explosiongaf", 0x100, DAT_005119b8) != 0 &&
         ((Class_004c48c0*)parser)->FUN_004c48c0(model, "explosionart", 0x100, DAT_005119b8) != 0) {
-        void* a = FUN_00429700(gaf);
+        void* a = LoadAnimGaf(gaf);
         void* r = FindGafEntry(a, model);
         *(unsigned char*)((char*)r + 2) = 0;
         w->anim1 = r;
@@ -358,7 +358,7 @@ model_done:
                 0 &&
             ((Class_004c48c0*)parser)
                     ->FUN_004c48c0(model, "lavaexplosionart", 0x100, DAT_005119b8) != 0) {
-            void* a = FUN_00429700(gaf);
+            void* a = LoadAnimGaf(gaf);
             void* r = FindGafEntry(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
             w->anim2 = r;
@@ -368,7 +368,7 @@ model_done:
                     ->FUN_004c48c0(gaf, "waterexplosiongaf", 0x100, DAT_005119b8) != 0 &&
             ((Class_004c48c0*)parser)
                     ->FUN_004c48c0(model, "waterexplosionart", 0x100, DAT_005119b8) != 0) {
-            void* a = FUN_00429700(gaf);
+            void* a = LoadAnimGaf(gaf);
             void* r = FindGafEntry(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
             w->anim2 = r;

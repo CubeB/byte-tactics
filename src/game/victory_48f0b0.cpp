@@ -12,16 +12,16 @@ public:
 };
 
 // The "kill all of type" victory condition; reads its state from a section.
-class Class_0048efb0 {
+class VictoryKillAllOfType {
 public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    virtual void FUN_0048f880(Class_004b4560* obj);
+    virtual void LoadState(Class_004b4560* obj);
 };
 
 // FUNCTION: 0x48f0b0
-void Class_0048efb0::FUN_0048f880(Class_004b4560* obj)
+void VictoryKillAllOfType::LoadState(Class_004b4560* obj)
 {
     obj->FUN_004b4560("VictoryCondition_KillAllOfType");
     satisfied = ((Class_004b4800*)obj)->FUN_004b4800("Satisfied", 0);

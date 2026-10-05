@@ -16,18 +16,18 @@ struct Unit {
 };
 #pragma pack(pop)
 
-class Class_0048f8c0 {
+class DefeatUnitTypeKilled {
 public:
     int satisfied;                     // +0x4
     int celebrated;                    // +0x8
     char name[0x20];                   // +0xc
     int numLeftToKill;                 // +0x2c
 
-    virtual void FUN_0048ea10(Unit* unit);
+    virtual void OnUnitDied(Unit* unit);
 };
 
 // FUNCTION: 0x48f8c0
-void Class_0048f8c0::FUN_0048ea10(Unit* unit)
+void DefeatUnitTypeKilled::OnUnitDied(Unit* unit)
 {
     if (_strcmpi(name, unit->info->name) == 0) {
         if (--numLeftToKill <= 0) {

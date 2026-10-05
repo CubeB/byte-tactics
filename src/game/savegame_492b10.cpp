@@ -36,7 +36,7 @@ extern char DAT_005119b8[];
 extern char* DAT_0051f2e0;
 extern char* DAT_0051f2e4;
 
-char* __stdcall FUN_004290f0(char* buf, char* dir, char* name, char* ext);
+char* __stdcall BuildDataPath(char* buf, char* dir, char* name, char* ext);
 Class_004b3620* __stdcall FUN_00432520(char* name);
 void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int value, int flag);
 void __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int flag, int what);
@@ -48,7 +48,7 @@ void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 
 // FUNCTION: 0x492b10
-char* __stdcall FUN_00492b10(int* count)
+char* __stdcall ListSavedGames(int* count)
 {
     char buf[0x100];
     int found;
@@ -56,7 +56,7 @@ char* __stdcall FUN_00492b10(int* count)
     int i;
     char* dp;
 
-    FUN_004290f0(buf, DAT_005091c8, "*", "SAV");
+    BuildDataPath(buf, DAT_005091c8, "*", "SAV");
     *count = FUN_004bc930(buf, 0);
     if (*count == 0) {
         FUN_004a32a0(g_game->menu, "GAMES", DAT_005119b8, 0, 0);

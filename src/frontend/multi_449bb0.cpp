@@ -189,7 +189,7 @@ struct Game_00449bb0 {
 };
 #pragma pack(pop)
 
-class Class_00435a20 { public: int FUN_00435a20(char* map); };
+class Class_00435a20 { public: int LoadMissionByName(char* map); };
 class Class_00435c30 { public: char* FUN_00435c30(); };
 
 extern Game_00449bb0* g_game;
@@ -211,7 +211,7 @@ extern char* DAT_00505518[];
 extern char* DAT_005054b0[];
 #include "ta_protos.h"
 
-char __stdcall FUN_0041d6a0(int side);
+char __stdcall FindGameCdDrive(int side);
 int __stdcall FUN_004288d0(const char* name, int param_2, int param_3, int param_4);
 void FUN_00428b60();
 void __stdcall FUN_00445b70(Gui_00449bb0* gui, int index);
@@ -311,7 +311,7 @@ void FUN_00449bb0()
         g_game->maxUnits = g_game->field_37eec;
     info->width = g_game->width;
     info->height = g_game->height;
-    info->f9d_2 = FUN_0041d6a0(1) != 0;
+    info->f9d_2 = FindGameCdDrive(1) != 0;
 
     layer = LoadGuiLayer(&g_game->gui, "LOUNGE2.GUI", 0);
     layer->handler = FUN_00447b10;
@@ -421,7 +421,7 @@ void FUN_00449bb0()
 
     ((Class_00435d30*)g_game->map)->FUN_00435d30(1);
     if (isHost && IsOnlineConfigLoaded() && DAT_00512ce8[0])
-        ((Class_00435a20*)g_game->map)->FUN_00435a20(DAT_00512ce8);
+        ((Class_00435a20*)g_game->map)->LoadMissionByName(DAT_00512ce8);
     if (!((Class_00435c40*)g_game->map)->FUN_00435c40())
         FatalError("Could not find the multiplayer map!!");
     strcpy(info->map, ((Class_00435c30*)g_game->map)->FUN_00435c30());

@@ -30,11 +30,11 @@ public:
     char name[0xa08 - 4];              // +0x4
     Class_004c3e10 list;               // +0xa08
 
-    int FUN_00435760(int* param_1);
+    int BuildMissionList(int* param_1);
 };
 
 // FUNCTION: 0x435760
-int Class_00435760::FUN_00435760(int* param_1)
+int Class_00435760::BuildMissionList(int* param_1)
 {
     char buf[128];
     char temp[256];

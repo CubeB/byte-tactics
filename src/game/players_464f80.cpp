@@ -21,7 +21,7 @@
 // past the one inside `countdown_extra`; ours put the load after the branch, so
 // the jump target was 0x46587c, five bytes short. Every if/else vs early-goto
 // respelling at that `if` was byte-identical, and the fix is one step further
-// out: the else of `if (g_game->list->FUN_00490230() == 0)` carries its OWN copy
+// out: the else of `if (g_game->list->CheckVictory() == 0)` carries its OWN copy
 // of the countdown block instead of `goto countdown_extra`. MSVC 5 then
 // tail-merges the two copies itself and keeps the load in the branch.
 // (C) The string at +0x87f was truncated: the original's is "You are placed in
@@ -86,7 +86,7 @@
 // the next worker should look for what makes MSVC's local-value table drop
 // `unit->owner` between the two blocks (pressure or a tracking limit), not for
 // another aliasing trick.
-// (b) At the first `Class_0048ff40::FUN_00490230` call the original hoists
+// (b) At the first `MissionConditions::CheckVictory` call the original hoists
 // `mov eax,[g_game]` between `test eax,eax` and `jne`, so both successors share
 // it and its `jne` lands past the reload inside `countdown_extra`; ours puts the
 // load after the `jne` and `countdown_extra` reloads it. Same instruction
@@ -181,7 +181,7 @@
 // 78.5%. pi2 (fresh `&g_game->players[bl]`) reproduces the group byte-for-byte
 // but swaps esi/edi globally (previous passes, 75.6-79.5).
 // Still open beyond those: the `shl edi, 0x10` scheduling in the subscreen
-// setup, the `mov eax,[g_game]` hoisted before the FUN_00490230 jne, the
+// setup, the `mov eax,[g_game]` hoisted before the CheckVictory jne, the
 // switch value in eax vs ecx (first field_37eee block) and edx vs ecx (second
 // g_game reload), the second owner block re-loading `unit->field_ec` from
 // `[esi + 0xec]` instead of caching it, and the watch_check player-index
@@ -307,8 +307,8 @@ struct Class_00435100 {
     int field_d44;                     // +0xd44
     int FUN_00435100();
 };
-struct Class_0048ff40 { int FUN_00490230(); };
-struct Class_00490360 { int FUN_00490360(); };
+struct MissionConditions { int CheckVictory(); };
+struct Class_00490360 { int CheckDefeat(); };
 class Class_0048b090 { public: void SetStateBits(int which, int on); };
 
 #pragma pack(push, 1)
@@ -448,7 +448,7 @@ struct Game {
     unsigned int tick;                 // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
     Class_00435100* mode;              // +0x391e9
-    Class_0048ff40* list;              // +0x391ed
+    MissionConditions* list;           // +0x391ed
     char unknown_391f1[0x39239 - 0x391f1];
     short field_39239;                 // +0x39239
     union {
@@ -486,7 +486,7 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
 void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width);
 void __stdcall FUN_004816a0(int on);
 void __stdcall FUN_0048d630(int on);
-void __stdcall FUN_00401360(PlayerInfo_00464f80* player);
+void __stdcall UpdatePlayerEconomy(PlayerInfo_00464f80* player);
 void __stdcall SendPlayerEconomy(PlayerInfo_00464f80* player, int a, int b);
 int __stdcall FUN_00457cb0();
 int __stdcall FUN_00457bc0();
@@ -580,8 +580,8 @@ void __stdcall FUN_00464f80()
 
         if (bl == g_game->localPlayer) {
             if (g_game->mode->FUN_00435100() == 1) {
-                if (g_game->list->FUN_00490230() == 0) {
-                    if (((Class_00490360*)g_game->list)->FUN_00490360() != 0) {
+                if (g_game->list->CheckVictory() == 0) {
+                    if (((Class_00490360*)g_game->list)->CheckDefeat() != 0) {
                         if (g_game->field_39239 < 0) {
                             g_game->field_39239 = 4;
                         } else {
@@ -614,7 +614,7 @@ void __stdcall FUN_00464f80()
                 }
             } else if ((pi->active == 0 ||
                         (pi->data->flags_9b & 0x40) == 0) &&
-                       ((Class_00490360*)g_game->list)->FUN_00490360() != 0) {
+                       ((Class_00490360*)g_game->list)->CheckDefeat() != 0) {
                 if (g_game->field_39239 < 0) {
                     g_game->field_39239 = 4;
                 } else {
@@ -732,7 +732,7 @@ void __stdcall FUN_00464f80()
                     (t == 1 || t == 2)) {
                     if ((g_game->flags_3923b.w & 4) == 0 &&
                         g_game->field_39239 < 0) {
-                        FUN_00401360(pi);
+                        UpdatePlayerEconomy(pi);
                     }
                 }
             }
@@ -797,7 +797,7 @@ void __stdcall FUN_00464f80()
         goto skip508;
 
     check230:
-        if (g_game->list->FUN_00490230() != 0)
+        if (g_game->list->CheckVictory() != 0)
             goto countdown_extra;
         goto skip508;
 

@@ -43,7 +43,7 @@ class Class_004012a0 {
     float y0;
     char unknown_20[0x30 - 0x20];
     Store_0049e1a0* store; // +0x30
-    int FUN_004012a0(float dx, float dy);
+    int SpendMetalAndEnergy(float dx, float dy);
 };
 #pragma pack(pop)
 
@@ -229,7 +229,7 @@ void __stdcall FUN_0049e1a0(Unit* unit) {
             int m = (attached->f_111.b26) ? 0x800 : 0x400;
             unit->f_ba.w |= m;
             if (!attached->f_111.b28)
-                unit->f_bc.FUN_004012a0(attached->f_c0, attached->f_c4);
+                unit->f_bc.SpendMetalAndEnergy(attached->f_c0, attached->f_c4);
         } else {
             unit->f_ba.b[1] |= 0x10;
         }

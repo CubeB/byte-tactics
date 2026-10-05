@@ -51,7 +51,7 @@ void FUN_004c2470();
 void FUN_004c2870();
 void FUN_00496ce0();
 void FUN_00496db0();
-void FUN_00497f40();
+void LoadingScreenFrame();
 void __cdecl LeaveNetGameCallback(int param);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __stdcall FUN_004ab170(Sub_00496bb0* sub, unsigned int* param_2, int* param_3);
@@ -69,7 +69,7 @@ void FUN_00496bb0()
     } else if (g_game->bit2 && g_game->obj_391e9->FUN_00435100() == 2) {
         FUN_004c2470();
         g_game->mode = 5;
-        g_game->handler = FUN_00497f40;
+        g_game->handler = LoadingScreenFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
     } else if (g_game->state_2bbe == 0x11) {
         if (g_game->bit2) {

@@ -61,7 +61,7 @@ struct SoundInfo_005086fc {
 extern char* g_game;
 extern SoundInfo_005086fc DAT_005086fc[];
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 int __stdcall FUN_0042f450(void* source, char* key, int* out);
 
@@ -75,7 +75,7 @@ void FUN_0042f580()
     char path[256];
     SoundInfo_005086fc* p;
 
-    FUN_004290f0(path, "gamedata", "sound", "TDF");
+    BuildDataPath(path, "gamedata", "sound", "TDF");
     if (((Class_004c2f60*)&obj)->FUN_004c2f60(path)) {
         *(int*)(g_game + 0x37e17) = ((Class_004c4450*)obj.field_0)->FUN_004c4450();
         int size = *(int*)(g_game + 0x37e17) * 0x160;

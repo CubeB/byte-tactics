@@ -25,7 +25,7 @@ extern Game* g_game;
 
 void __stdcall FUN_004a0570(Menu_00477510* menu, char* name, int value);
 void __stdcall FUN_0049fa90(Menu_00477510* menu);
-void FUN_00432b60();
+void SaveAllMissionsSetting();
 
 // FUNCTION: 0x477510
 void __stdcall FUN_00477510(Object_00477510* obj)
@@ -38,7 +38,7 @@ void __stdcall FUN_00477510(Object_00477510* obj)
             FUN_004a0570((Menu_00477510*)g_game->menu, "AnyMsn", 0);
             g_game->flags_38d7f &= ~1;
         }
-        FUN_00432b60();
+        SaveAllMissionsSetting();
         FUN_0049fa90((Menu_00477510*)g_game->menu);
     }
 }

@@ -21,7 +21,7 @@ void FUN_0041e420();
 void FUN_0041f400();
 void __stdcall FUN_0049fad0(Menu_0041f630* menu);
 void __stdcall FUN_0049fa90(Menu_0041f630* menu);
-void __stdcall FUN_00490b30(int a);
+void __stdcall SetGameMode(int a);
 
 // FUNCTION: 0x41f630
 void FUN_0041f630()
@@ -32,6 +32,6 @@ void FUN_0041f630()
     FUN_0041f400();
     FUN_0049fad0(&g_game->menu);
     FUN_0049fa90(&g_game->menu);
-    FUN_00490b30(7);
+    SetGameMode(7);
     g_game->field_39057 = 7;
 }

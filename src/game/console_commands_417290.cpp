@@ -17,12 +17,12 @@ public:
 };
 
 void __stdcall SetBrightness(float value);
-void FUN_00430f00();
+void SaveSettings();
 
 // FUNCTION: 0x417290
-void __stdcall FUN_00417290(Class_004b73e0* args)
+void __stdcall CmdGamma(Class_004b73e0* args)
 {
     SetBrightness(args->FUN_004b73e0(1, 0) * 0.1f);
     g_game->brightness = args->FUN_004b73e0(1, 0);
-    FUN_00430f00();
+    SaveSettings();
 }

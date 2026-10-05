@@ -17,16 +17,16 @@ public:
     void FUN_004cfe80();
 };
 
-void FUN_00430f00();
+void SaveSettings();
 
 // FUNCTION: 0x416820
-void __stdcall FUN_00416820(int unused)
+void __stdcall CmdSound3D(int unused)
 {
     if ((*(Class_004cfea0**)((char*)g_game + 0x10))->FUN_004cfea0()) {
         (*(Class_004cfe90**)((char*)g_game + 0x10))->FUN_004cfe90();
-        FUN_00430f00();
+        SaveSettings();
     } else {
         (*(Class_004cfe80**)((char*)g_game + 0x10))->FUN_004cfe80();
-        FUN_00430f00();
+        SaveSettings();
     }
 }

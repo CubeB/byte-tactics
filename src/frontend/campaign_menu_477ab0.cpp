@@ -38,12 +38,12 @@ struct Menu_00477ab0 {
 
 class Class_00435110 {
 public:
-    void FUN_00435110(char* name);
+    void LoadCampaign(char* name);
 };
 
 class Class_00435760 {
 public:
-    int FUN_00435760(int** out);
+    int BuildMissionList(int** out);
 };
 
 class Class_00435c00 {
@@ -58,10 +58,10 @@ extern int DAT_0051e668;               // 0x51e668
 extern int DAT_00507b6c;               // 0x507b6c
 
 int __stdcall IsCurrentGadgetNamed(Menu_00477ab0* menu, char* name);
-char __stdcall FUN_0041d6a0(int param_1);
-void FUN_0041d4c0();
+char __stdcall FindGameCdDrive(int param_1);
+void RegisterDataArchives();
 void FUN_0041da30();
-void FUN_00430f00();
+void SaveSettings();
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_00491c80(int value);
 Entry_00477ab0* __stdcall FindGadgetChecked(Entry_00477ab0* entries, char* name);
@@ -102,9 +102,9 @@ void __stdcall FUN_004779e0(Menu_00477ab0* menu, Entry_00477ab0* unused)
     }
     Entry_00477ab0* layout =
         FindGadgetChecked((*(Holder_00477ab0**)(g_game + 0x531))->entries, "Campaign");
-    ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(
+    ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign(
         FUN_004b6af0(layout->text, layout->selected));
-    int count = ((Class_00435760*)*(void**)(g_game + 0x391e9))->FUN_00435760(&DAT_0051e660);
+    int count = ((Class_00435760*)*(void**)(g_game + 0x391e9))->BuildMissionList(&DAT_0051e660);
     FUN_004a32a0(menu, "Missions", DAT_0051e660, count, 0);
     FUN_004a2be0(g_game + 0x519,
                  FindGadgetIndex(gadgets->entries, "Missions", 2));
@@ -130,25 +130,25 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
         (DAT_0051e668 == 0 && (IsCurrentGadgetNamed(menu, "Campaign") || IsCurrentGadgetNamed(menu, "Start")))) {
         index = 0;
         FUN_0047f1a0("bigButton", 0);
-        if (!FUN_0041d6a0(0)) {
+        if (!FindGameCdDrive(0)) {
             OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
                          200, 1, 1);
             FUN_004ab0a0(g_game + 0x519);
             return;
         }
-        FUN_0041d4c0();
+        RegisterDataArchives();
         FUN_0041da30();
         {
             char* name;
             if (DAT_00507b6c == 0) {
                 Entry_00477ab0* e = FindGadgetChecked(entries, "Campaign");
                 name = FUN_004b6af0(e->text, e->selected);
-                ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(name);
+                ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign(name);
             } else if (*(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) == 0) {
-                ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110("Arm Campaign");
+                ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign("Arm Campaign");
             } else {
-                ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110("Core Campaign");
+                ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign("Core Campaign");
             }
         }
         if (DAT_0051e668 != 0) {
@@ -159,7 +159,7 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
             FUN_00491c80(0x14);
             *(unsigned char*)(*(int*)(g_game + 0x1b8a) + 0x96) = 0;
             *(unsigned char*)(*(int*)(g_game + 0x1cd5) + 0x96) = 1;
-            FUN_00430f00();
+            SaveSettings();
             if (DAT_0051e668 != 0) {
                 *(unsigned char*)(g_game + 0x2bc0) = 0x10;
                 return;

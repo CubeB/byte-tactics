@@ -162,7 +162,7 @@ What stands out:
   (0x405d90 and four others) and one inlining it (0x406c10 and five others);
   `vector<Elem_00434360>::operator=` has four. The `std` exception classes
   differ in 0x4c3cc0 only, and the vtables of `NanoParticles`,
-  `ThrustParticles`, `Class_0048eb40` and `Class_0048f840` differ between the
+  `ThrustParticles`, `VictoryDestroyAllUnits` and `DefeatAllUnitsKilled` differ between the
   files that declare them. A linked build needs one version of each, and for a
   byte-identical build it must be the original's.
 - **`.bss` starts before the raw end of `.data`.** The section's raw bytes run

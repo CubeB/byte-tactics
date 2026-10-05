@@ -10,15 +10,15 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall LoadGaf(char* path);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 
 // FUNCTION: 0x4318c0
-void FUN_004318c0()
+void LoadLogos()
 {
     char path[256];
-    FUN_004290f0(path, "textures", "logos", "GAF");
+    BuildDataPath(path, "textures", "logos", "GAF");
     g_game->logos = LoadGaf(path);
     g_game->logos32 = FindGafEntry(g_game->logos, "32xlogos");
 }

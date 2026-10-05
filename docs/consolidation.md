@@ -211,7 +211,7 @@ revisit them once the surrounding code is known.
   0x470ae0.cpp.
 
 - The victory condition with vtables 0x4fd890 (primary) and 0x4fd888 (visitor
-  base) is `Class_0048f250`; its slots 4 and 5 (0x48f2f0, 0x48f330) are still
+  base) is `VictoryMoveUnitToRadius`; its slots 4 and 5 (0x48f2f0, 0x48f330) are still
   filed as `Class_0048f2f0` and `Class_0048f330`.
 - **A probable Cavedog bug** (see docs/bugs.md): the bit writer grows its buffer with `new
   unsigned int(capacity * 2)` (one dword initialised to the size) where an

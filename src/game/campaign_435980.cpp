@@ -24,11 +24,11 @@ public:
     char name[0xa08 - 4];              // +0x4
     Class_004c3e10 list;               // +0xa08
 
-    int FUN_00435980(int index);
+    int MissionExists(int index);
 };
 
 // FUNCTION: 0x435980
-int Class_00435980::FUN_00435980(int index)
+int Class_00435980::MissionExists(int index)
 {
     char buf[128];
     int n;

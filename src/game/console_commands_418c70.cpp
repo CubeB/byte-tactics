@@ -12,7 +12,7 @@ public:
 };
 
 // FUNCTION: 0x418c70
-void __stdcall FUN_00418c70(Class_004b73e0* args)
+void __stdcall CmdSenderror(Class_004b73e0* args)
 {
     if (args->count == 2) {
         int value = args->FUN_004b73e0(1, 0);

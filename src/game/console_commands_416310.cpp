@@ -25,7 +25,7 @@ extern char* g_game;
 void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
 
 // FUNCTION: 0x416310
-void __stdcall FUN_00416310(Class_004b73e0* args)
+void __stdcall CmdAssign(Class_004b73e0* args)
 {
     Class_00438760 kind(((Class_004b73c0*)args)->FUN_004b73c0(1, DAT_005119b8));
     if (kind.index) {

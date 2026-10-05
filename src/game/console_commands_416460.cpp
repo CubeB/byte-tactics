@@ -17,7 +17,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x416460
-void __stdcall FUN_00416460(int unused)
+void __stdcall CmdSelectable(int unused)
 {
     for (Unit* u = &g_game->units[1]; u <= g_game->units_end; u++) {
         if (u->flags & 0x10000000) {

@@ -2,13 +2,13 @@
 // The victory/defeat condition base's IsSatisfied (slot 0 of the condition
 // vtables whose class does not override it): returns `satisfied` (+0x4).
 
-class Condition_0048ff40 {
+class MissionCondition {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
+    virtual int IsSatisfied();           // IsSatisfied
 };
 
 // FUNCTION: 0x48ea00
-int Condition_0048ff40::FUN_0048ea00()
+int MissionCondition::IsSatisfied()
 {
     return *(int*)((char*)this + 4);
 }

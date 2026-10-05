@@ -87,7 +87,7 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 // FUNCTION: 0x4644d0
-void FUN_004644d0()
+void ResetPlayerSlots()
 {
     Player_004644d0* p;
     int i;

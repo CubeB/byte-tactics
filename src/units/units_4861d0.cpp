@@ -34,7 +34,7 @@ public:
 
 class Class_00490520 {
 public:
-    void FUN_00490580(Unit* unit);
+    void NotifyUnitCreated(Unit* unit);
 };
 
 struct Pos_004861d0 {
@@ -152,6 +152,6 @@ Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_004861d0* spawn
     FUN_00482ac0(unit);
     g_game->players[player].field_144++;
     g_game->players[player].field_140++;
-    g_game->list->FUN_00490580(unit);
+    g_game->list->NotifyUnitCreated(unit);
     return unit;
 }

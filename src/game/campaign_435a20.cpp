@@ -46,7 +46,7 @@ public:
     char name[0xa08 - 4];               // +0x4
     Class_004c3e10 list;                // +0xa08
 
-    int FUN_00435760(char** param_1);
+    int BuildMissionList(char** param_1);
 };
 
 class Class_00435c00 {
@@ -67,7 +67,7 @@ public:
 
 class Class_00435a20 : public Class_00435c00 {
 public:
-    int FUN_00435a20(char* map);
+    int LoadMissionByName(char* map);
 };
 
 int FUN_0049f580(void);
@@ -75,7 +75,7 @@ char* __stdcall FUN_004c5740(char* text);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x435a20
-int Class_00435a20::FUN_00435a20(char* map)
+int Class_00435a20::LoadMissionByName(char* map)
 {
     int res;
 
@@ -96,7 +96,7 @@ int Class_00435a20::FUN_00435a20(char* map)
             return res;
         }
     } else {
-        int count = ((Class_00435760*)this)->FUN_00435760((char**)&res);
+        int count = ((Class_00435760*)this)->BuildMissionList((char**)&res);
         if (count > 0) {
             char* p = (char*)res;
             for (int i = 0; i < count; i++) {

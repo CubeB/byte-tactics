@@ -31,7 +31,7 @@ extern Game* g_game;
 void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x42a010
-void FUN_0042a010()
+void FreeAnimFiles()
 {
     int i;
     for (i = 0; i < g_game->count; i++) {

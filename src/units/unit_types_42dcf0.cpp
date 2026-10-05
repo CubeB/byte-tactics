@@ -118,7 +118,7 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_004bca30(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
 void* __cdecl FUN_004d83b0(const char* name, int size);
 void __cdecl FUN_004d8780(void* p);
@@ -133,7 +133,7 @@ void LoadDownloadMenus()
     char path[256];
     char unitbuf[256];
     std::vector<Class_004c91a0> files;
-    FUN_004290f0(path, "download", "*", "TDF");
+    BuildDataPath(path, "download", "*", "TDF");
     FUN_004bca30(path, 0, &files);
 
     int n = files.size();
@@ -142,7 +142,7 @@ void LoadDownloadMenus()
 
     for (i = 0; i < n; i++) {
         Class_004c2ea0 parser;
-        FUN_004290f0(path, "download", files[i].p, "TDF");
+        BuildDataPath(path, "download", files[i].p, "TDF");
         if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
             int j = 0;
             while (1) {

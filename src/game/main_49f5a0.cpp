@@ -5,7 +5,7 @@
 void __stdcall StripFileName(char* path);
 
 // FUNCTION: 0x49f5a0
-UINT __stdcall FUN_0049f5a0(char* key, int defaultValue)
+UINT __stdcall GetPreferenceInt(char* key, int defaultValue)
 {
     char exePath[256];
     char iniPath[256];

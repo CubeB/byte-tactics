@@ -38,7 +38,7 @@ void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
 // and the explicit (float) cast on the argument makes the store come after
 // the next call's pushes, as in the original (see 0x419340, #106).
 // FUNCTION: 0x419400
-void __stdcall FUN_00419400(Class_004b73e0* args)
+void __stdcall CmdSetShareEnergy(Class_004b73e0* args)
 {
     char buf[256];
     if (g_game->flags & 1) {

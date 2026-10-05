@@ -95,14 +95,14 @@ public:
     void FUN_00433130();
 };
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 
 // FUNCTION: 0x433130
 void Class_00433130::FUN_00433130()
 {
     Class_004c2ea0 tdf;
     char path[256];
-    FUN_004290f0(path, "gamedata", "los", "TDF");
+    BuildDataPath(path, "gamedata", "los", "TDF");
     if (((Class_004c2f60*)&tdf)->FUN_004c2f60(path) != 0) {
         if (((Class_004c3410*)&tdf)->FUN_004c3410("TABLEINFO") != 0) {
             short numtables = (short)((Class_004c46c0*)tdf.field_4)->FUN_004c46c0("numtables", 0);

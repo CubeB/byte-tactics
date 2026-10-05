@@ -28,19 +28,19 @@ public:
 extern char DAT_005119b8[];
 extern char* g_game;
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 
 // FUNCTION: 0x429000
-void FUN_00429000()
+void CheckGpfVersion()
 {
     Class_004c2ea0 parser;
     char buf[64];
     char path[256];
     int found = 0;
 
-    FUN_004290f0(path, "gamedata", "version", "tdf");
+    BuildDataPath(path, "gamedata", "version", "tdf");
     if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
         if (((Class_004c3410*)&parser)->FUN_004c3410("Version")) {
             if (((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "GPFVersion", 0x40, DAT_005119b8)) {

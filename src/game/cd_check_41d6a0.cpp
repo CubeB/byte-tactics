@@ -34,7 +34,7 @@ extern int DAT_00511de4;
 char __stdcall FUN_004bb190(char c);
 
 // FUNCTION: 0x41d6a0
-char __stdcall FUN_0041d6a0(int side)
+char __stdcall FindGameCdDrive(int side)
 {
     if (DAT_0050289c != 0)
         return '.';

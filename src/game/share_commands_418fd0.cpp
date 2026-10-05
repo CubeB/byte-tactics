@@ -40,7 +40,7 @@ void __stdcall AddMessage(char* text, int param_2, int param_3, int param_4);
 void BroadcastPlayerInfo();
 
 // FUNCTION: 0x418fd0
-void __stdcall FUN_00418fd0(int unused)
+void __stdcall CmdShareRadar(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {

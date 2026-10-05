@@ -49,7 +49,7 @@ public:
     char unknown_4[0x30 - 0x4];
     Player_00464b30* player;           // +0x30
 
-    int FUN_00401220(float amount);
+    int SpendMetal(float amount);
 };
 
 extern Game* g_game;
@@ -57,7 +57,7 @@ extern Game* g_game;
 void __stdcall SendShareMetal(unsigned char from, unsigned char to, int value);
 
 // FUNCTION: 0x464b30
-void __stdcall FUN_00464b30(unsigned char from, unsigned char to, float amount, int flag)
+void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount, int flag)
 {
     if (from == 10)
         return;
@@ -71,7 +71,7 @@ void __stdcall FUN_00464b30(unsigned char from, unsigned char to, float amount, 
     if (amount == 0.0f)
         return;
     Player_00464b30* player;
-    player = flag ? (g_game->players[from].econ->FUN_00401220(amount),
+    player = flag ? (g_game->players[from].econ->SpendMetal(amount),
                      g_game->players[to].econ->player)
                   : g_game->players[to].econ->player;
     if (player->active != 0 && player->type == 2) {

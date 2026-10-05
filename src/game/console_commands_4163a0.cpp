@@ -17,7 +17,7 @@ void* __stdcall FUN_00481550(int x, int y);
 void __stdcall FUN_004246b0(void* target, int flag);
 
 // FUNCTION: 0x4163a0
-void __stdcall FUN_004163a0(void* args)
+void __stdcall CmdBurnOne(void* args)
 {
     if (g_game->field_2cbc < 0xfffb) {
         void* target = FUN_00481550(g_game->x, g_game->y);

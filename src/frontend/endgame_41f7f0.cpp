@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <string.h>
 class Class_00435100 { public: int FUN_00435100(); };
-class Class_00435980 { public: int FUN_00435980(int); };
+class Class_00435980 { public: int MissionExists(int); };
 class Class_004cfb40 { public: void FUN_004cfb40(); };
 #pragma pack(push,1)
 struct Amount { int current,required; };
@@ -58,14 +58,14 @@ int GetTickRate();
 void __stdcall FUN_004c22d0(int);
 void FUN_00491a70();
 void __stdcall FadeRectangle(void*,int*,int);
-char __stdcall FUN_0041d6a0(int);
+char __stdcall FindGameCdDrive(int);
 Layer* __stdcall LoadGuiLayer(Menu*,const char*,int);
 void __stdcall FUN_0041f680(void*);
 void __stdcall FUN_0049fb10(Menu*,int);
 void __stdcall RenderLayer(Menu*,int);
 void FUN_0041da60();
 void __stdcall FUN_00425860(int,int,const char*);
-void __stdcall FUN_00490b30(int);
+void __stdcall SetGameMode(int);
 void __stdcall FUN_0041dfc0(void*,void*,int);
 void FUN_0041f0a0();
 void FUN_0041e420();
@@ -161,7 +161,7 @@ void __stdcall FUN_0041f7f0()
         }
         break;
     case 4:
-        if(g_game->campaign->FUN_00435100()==1 && !FUN_0041d6a0(0)) {
+        if(g_game->campaign->FUN_00435100()==1 && !FindGameCdDrive(0)) {
             Layer* l=LoadGuiLayer(&g_game->menu,"CDCHECK.GUI",0x101);
             l->handler=FUN_0041f680;
             FUN_004c22d0(1);
@@ -172,13 +172,13 @@ void __stdcall FUN_0041f7f0()
         break;
     case 5: {
         FUN_0041da60();
-        int next=((Class_00435980*)g_game->campaign)->FUN_00435980(g_game->mission+1);
+        int next=((Class_00435980*)g_game->campaign)->MissionExists(g_game->mission+1);
         if(g_game->campaign->FUN_00435100()==1 && (g_game->flags&0x10) && !next && !g_game->skip) {
             if((unsigned char)GetDisplay()->network) {
                 if(!g_game->players[0].owner->flag) FUN_00425860(4,0x4ce,"c:\\cavedog\\wargame\\endgame.cpp");
                 else FUN_00425860(5,0x4d3,"c:\\cavedog\\wargame\\endgame.cpp");
             } else FUN_00425860(2,0x4d9,"c:\\cavedog\\wargame\\endgame.cpp");
-            FUN_00490b30(2);
+            SetGameMode(2);
         } else if(g_game->campaign->FUN_00435100()==1 && (g_game->flags&0x10) && g_game->image) {
             memset(palette,0,sizeof(palette));
             FUN_0041dfc0(g_game->palette,palette,5);

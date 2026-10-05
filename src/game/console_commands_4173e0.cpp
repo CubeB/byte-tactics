@@ -20,14 +20,14 @@ public:
     int FUN_004b73e0(int index, int fallback);
 };
 
-void FUN_00430f00();
+void SaveSettings();
 
 // FUNCTION: 0x4173e0
-void __stdcall FUN_004173e0(Class_004b73e0* args)
+void __stdcall CmdFilmSpeed(Class_004b73e0* args)
 {
     if (args->count > 1 && args->FUN_004b73e0(1, 0) > 0) {
         g_game->value = args->FUN_004b73e0(1, 0);
         g_game->valueSet = 1;
-        FUN_00430f00();
+        SaveSettings();
     }
 }

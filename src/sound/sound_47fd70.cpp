@@ -94,7 +94,7 @@ extern int DAT_0051e690;
 extern int DAT_0051e694;
 extern int DAT_0051e698;
 
-char* __stdcall FUN_004290f0(char* buf, char* dir, char* name, char* ext);
+char* __stdcall BuildDataPath(char* buf, char* dir, char* name, char* ext);
 void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, char last);
 int __stdcall FUN_0049f6c0(char* path);
 
@@ -118,7 +118,7 @@ void Class_0047f960::FUN_0047fd70(int index, int param_2, int param_3)
             name = cat->slots[slot].table1 + idx * 0x40;
 
         char path[256];
-        FUN_004290f0(path, "sounds", name, "WAV");
+        BuildDataPath(path, "sounds", name, "WAV");
         if (DAT_0051e694) {
             FUN_0049f6c0(path);
         } else if (path && strlen(path) && g_game->field_37f0c

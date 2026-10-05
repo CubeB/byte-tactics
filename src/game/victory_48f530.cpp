@@ -42,18 +42,18 @@ extern Game* g_game;
 
 class Base_0048f530 {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
+    virtual int IsSatisfied();           // IsSatisfied
     int satisfied;                     // +0x4
     int celebrated;                    // +0x8
 };
 
-class Class_0048f530 : public Base_0048f530, public UnitCallback_0048f530 {
+class VictoryUnitTypePassesZ : public Base_0048f530, public UnitCallback_0048f530 {
 public:
-    virtual int FUN_0048ea00();
+    virtual int IsSatisfied();
 };
 
 // FUNCTION: 0x48f530
-int Class_0048f530::FUN_0048ea00()
+int VictoryUnitTypePassesZ::IsSatisfied()
 {
     if (satisfied == 0) {
         g_game->units.ForEach(this);

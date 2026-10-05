@@ -56,7 +56,7 @@ extern char* DAT_0051298c;
 
 int __stdcall FUN_00441c30(int* a, int* b);
 void FUN_004426e0(void);
-void __stdcall FUN_0042f960(void* key, void* buf, int value);
+void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 void __stdcall FUN_0047f1a0(const char* name, int param_2);
 void FUN_004257a0(void);
 void __stdcall FUN_00425860(int state, int line, const char* file);
@@ -100,7 +100,7 @@ static inline void SaveModemNumbers_00442a30()
                 memcpy(&DAT_00512988[i], &DAT_00512988[i - 1], 0x102);
             memcpy(&DAT_00512988[0], &temp, 0x102);
         }
-        FUN_0042f960("MODEMNUMBERS", DAT_00512988, 0x1428);
+        WriteGameRegistryValue("MODEMNUMBERS", DAT_00512988, 0x1428);
     }
 }
 

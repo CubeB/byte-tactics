@@ -50,7 +50,7 @@ public:
 extern char* g_game;
 extern char DAT_005119b8[];
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_00429470(char* name, char* value);
 void FUN_0042f580();
 
@@ -63,7 +63,7 @@ void FUN_0042f7e0()
     char value[256];
 
     *(int*)(g_game + 0x33a0f) = 0;
-    FUN_004290f0(path, "gamedata", "allsound", "TDF");
+    BuildDataPath(path, "gamedata", "allsound", "TDF");
     if (((Class_004c2f60*)&obj)->FUN_004c2f60(path)) {
         int i = 0;
         int more = ((Class_004c3490*)&obj)->FUN_004c3490(i);

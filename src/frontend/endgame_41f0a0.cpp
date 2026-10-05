@@ -19,7 +19,7 @@ public:
 
 class Class_00435980 {
 public:
-    int FUN_00435980(int index);
+    int MissionExists(int index);
 };
 
 class Class_00435c00 {
@@ -29,7 +29,7 @@ public:
 
 class Class_00435760 {
 public:
-    int FUN_00435760(int* param_1);
+    int BuildMissionList(int* param_1);
 };
 
 #pragma pack(push, 1)
@@ -130,8 +130,8 @@ static inline int HasNextMission()
 {
     if (g_game->campaign->FUN_00435100() == 1 &&
         ((g_game->field_391af == 0 &&
-          ((Class_00435980*)g_game->campaign)->FUN_00435980(g_game->mission + 1) == 0) ||
-         ((Class_00435980*)g_game->campaign)->FUN_00435980(g_game->mission + 1) != 0)) {
+          ((Class_00435980*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
+         ((Class_00435980*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {
         return 1;
     }
     return 0;
@@ -160,7 +160,7 @@ void __stdcall FUN_0041f0a0()
     }
     next = HasNextMission();
     if (next) {
-        int count = ((Class_00435760*)g_game->campaign)->FUN_00435760(&data->items);
+        int count = ((Class_00435760*)g_game->campaign)->BuildMissionList(&data->items);
         data->items = FUN_0041eaa0(data->items, g_game->missionFlags, count);
         // Suspected original bug: this finds the first 'U' mission flag but
         // the index is never used (perhaps a lost "select the first

@@ -15,7 +15,7 @@ void FUN_00437d50();
 void FUN_00438070();
 
 // FUNCTION: 0x417760
-void __stdcall FUN_00417760(Class_004b73e0* args)
+void __stdcall CmdMeteor(Class_004b73e0* args)
 {
     if (args->count > 1) {
         if (args->FUN_004b73e0(1, 0))

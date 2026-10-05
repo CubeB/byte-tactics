@@ -45,7 +45,7 @@ public:
     char unknown_1c[0x30 - 0x1c];
     Player_00464c60* player;           // +0x30
 
-    int FUN_00401260(float amount);
+    int SpendEnergy(float amount);
 };
 
 extern Game* g_game;
@@ -53,7 +53,7 @@ extern Game* g_game;
 void __stdcall SendShareEnergy(unsigned char from, unsigned char to, int value);
 
 // FUNCTION: 0x464c60
-void __stdcall FUN_00464c60(unsigned char from, unsigned char to, float amount, int flag)
+void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount, int flag)
 {
     if (from == 10)
         return;
@@ -67,7 +67,7 @@ void __stdcall FUN_00464c60(unsigned char from, unsigned char to, float amount, 
     if (amount == 0.0f)
         return;
     Player_00464c60* player;
-    player = flag ? (g_game->players[from].econ->FUN_00401260(amount), g_game->players[to].econ->player)
+    player = flag ? (g_game->players[from].econ->SpendEnergy(amount), g_game->players[to].econ->player)
                   : g_game->players[to].econ->player;
     if (player->active != 0 && player->type == 2) {
         switch (g_game->difficulty) {

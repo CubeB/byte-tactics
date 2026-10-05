@@ -99,7 +99,7 @@ Class_004b48a0* __stdcall FUN_00432520(char* name);
 void __stdcall FUN_00432590(Class_004b48a0* obj);
 
 // FUNCTION: 0x491ec0
-void __stdcall FUN_00491ec0()
+void __stdcall ShowSavedGameInfo()
 {
     Menu_00491ec0* menu = &g_game->menu;
     Layer_00491ec0* layer = g_game->menu.layer;

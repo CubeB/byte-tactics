@@ -57,7 +57,7 @@ void FUN_00420f30(void);
 void FUN_00464f80(void);
 void FUN_00424050(void);
 void FUN_00415b30(void);
-void FUN_00490c40(void);
+void UpdateWind(void);
 void FUN_00437de0(void);
 void FUN_0041ca10(void);
 void UpdateParticles(void);
@@ -92,7 +92,7 @@ void __stdcall FUN_00495490(int showStats)
 
         FUN_00424050();
         FUN_00415b30();
-        FUN_00490c40();
+        UpdateWind();
         FUN_00437de0();
         FUN_0041ca10();
         g_game->prof.FUN_0046a400(8);

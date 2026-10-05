@@ -261,11 +261,11 @@ void __stdcall FUN_0041b8d0(Class_0048b090*, Class_0048b090*);
 void __stdcall FUN_0047f0c0(int, int);
 void __stdcall FUN_0047f300(int, void*, int);
 void __stdcall GiveUnitToPlayer(Class_0048b090*, Player*, void*);
-void __stdcall FUN_00464b30(unsigned char, unsigned char, int, int);
-void __stdcall FUN_00464c60(unsigned char, unsigned char, int, int);
+void __stdcall TransferMetal(unsigned char, unsigned char, int, int);
+void __stdcall TransferEnergy(unsigned char, unsigned char, int, int);
 void __stdcall ShareMapInfo(unsigned char, unsigned char);
 void __stdcall HandlePlayerEconomy(void*, Player*);
-void __stdcall FUN_00490df0(int, int);
+void __stdcall SetGameSpeed(int, int);
 
 static inline int GetPlayerId(unsigned char i)
 {
@@ -803,10 +803,10 @@ int HandleNetPackets()
                 break;
             switch (*(int*)(packet + 1)) {
             case 1:
-                FUN_00464b30(a, b, *(int*)(packet + 13), 0);
+                TransferMetal(a, b, *(int*)(packet + 13), 0);
                 break;
             case 2:
-                FUN_00464c60(a, b, *(int*)(packet + 13), 0);
+                TransferEnergy(a, b, *(int*)(packet + 13), 0);
                 break;
             case 3:
                 ShareMapInfo(a, b);
@@ -826,7 +826,7 @@ int HandleNetPackets()
             break;
         case 25:
             if (packet[1])
-                FUN_00490df0(packet[2], 0);
+                SetGameSpeed(packet[2], 0);
             else
                 g_game->bit_38a51 = packet[2];
             break;

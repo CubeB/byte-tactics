@@ -20,11 +20,11 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall IsCurrentGadgetNamed(Gadget_004775a0* gadget, char* name);
-char __stdcall FUN_0041d6a0(int side);
-void FUN_0041d4c0();
+char __stdcall FindGameCdDrive(int side);
+void RegisterDataArchives();
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_00491c80(int n);
-void FUN_004931d0();
+void ShowLoadGameScreen();
 void FUN_00460160();
 void __stdcall FUN_004ab0a0(void* param_1);
 char* __stdcall FUN_004c5740(char* text);
@@ -36,8 +36,8 @@ void __stdcall FUN_004775a0(Gadget_004775a0* gadget)
     if (gadget->field_60 == -1)
         return;
     if (IsCurrentGadgetNamed(gadget, "NewCamp")) {
-        if (FUN_0041d6a0(0)) {
-            FUN_0041d4c0();
+        if (FindGameCdDrive(0)) {
+            RegisterDataArchives();
             FUN_0047f1a0("BigButton", 0);
             g_game->field_2bc0 = 10;
             FUN_00491c80(0x14);
@@ -48,8 +48,8 @@ void __stdcall FUN_004775a0(Gadget_004775a0* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "Skirmish")) {
-        if (FUN_0041d6a0(1)) {
-            FUN_0041d4c0();
+        if (FindGameCdDrive(1)) {
+            RegisterDataArchives();
             FUN_0047f1a0("skirmish", 0);
             g_game->field_2bc0 = 11;
             FUN_00491c80(0x14);
@@ -62,7 +62,7 @@ void __stdcall FUN_004775a0(Gadget_004775a0* gadget)
     if (IsCurrentGadgetNamed(gadget, "LoadGame")) {
         FUN_0047f1a0("BigButton", 0);
         FUN_00491c80(0x14);
-        FUN_004931d0();
+        ShowLoadGameScreen();
         FUN_004ab0a0(gadget);
         return;
     }
@@ -80,8 +80,8 @@ void __stdcall FUN_004775a0(Gadget_004775a0* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "AnyMsn")) {
-        if (FUN_0041d6a0(0)) {
-            FUN_0041d4c0();
+        if (FindGameCdDrive(0)) {
+            RegisterDataArchives();
             FUN_0047f1a0("bigButton", 0);
             g_game->field_2bc0 = 14;
             FUN_00491c80(0x14);

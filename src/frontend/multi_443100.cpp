@@ -80,7 +80,7 @@ int __stdcall HAPINET_enumaddress(Net_00443100* net, void* callback, void* addre
 int __stdcall HAPINET_releasedplayinterface(Net_00443100* net);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
-int __stdcall FUN_0042f980(const char* key, void* buf, unsigned int* size);
+int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* size);
 Layout_00443100* __stdcall FindGadgetChecked(Layout_00443100* entries, char* name);
 void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int count, int flag);
 void __stdcall FUN_004a2e40(void* menu, char* name, int index);
@@ -290,7 +290,7 @@ void __stdcall FUN_00443100()
                         FUN_004a32a0(&g_game->menu, "MODEMS", DAT_00512980, DAT_00512984, 0);
                         DAT_00512988 = (Entry_00443100*)FUN_004d83b0("MODEMACCOUNTS", 0x1428);
                         len.v = 0x1428;
-                        r = FUN_0042f980("MODEMNUMBERS", DAT_00512988, &len.v);
+                        r = ReadGameRegistryValue("MODEMNUMBERS", DAT_00512988, &len.v);
                         if (r == 0) {
                             for (i = 0; i < 20; i++) {
                                 strcpy(DAT_00512988[i].name, "UNUSED");

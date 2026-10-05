@@ -107,7 +107,7 @@ void __stdcall FUN_0047f1a0(char* str, int flag);
 void FUN_0045ed50();
 void __stdcall FUN_0045e5e0(int flag);
 void FUN_0045d7c0();
-void FUN_00430f00();
+void SaveSettings();
 void __stdcall FUN_0045c820();
 void FUN_0045cae0();
 void FUN_0045de30();
@@ -142,7 +142,7 @@ void __stdcall FUN_0045fc60(Gadget_0045fc60* gadget)
             FUN_0045d7c0();
         } else if (IsCurrentGadgetNamed(gadget, "PREV")) {
             FUN_0047f1a0("Options", 0);
-            FUN_00430f00();
+            SaveSettings();
             DAT_00506788 = 1;
             return;
         } else if (IsCurrentGadgetNamed(gadget, "CANCEL")) {

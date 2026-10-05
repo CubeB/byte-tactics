@@ -18,7 +18,7 @@ struct Flags_00417090
 };
 
 // FUNCTION: 0x417090
-void __stdcall FUN_00417090(int unused)
+void __stdcall CmdRadar(int unused)
 {
     Flags_00417090* f = (Flags_00417090*)((char*)g_game + 0x37f2f);
     f->b9 = !f->b9;

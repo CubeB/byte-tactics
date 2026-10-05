@@ -70,7 +70,7 @@ int __stdcall IsCurrentGadgetNamed(Gui_004461d0* gui, char* name);
 Gadget_004461d0* __stdcall FindGadgetChecked(Gadget_004461d0* gadgets, char* name);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_004ab0a0(Gui_004461d0* gui);
-void FUN_00430f00(void);
+void SaveSettings(void);
 void BroadcastPlayerInfo(void);
 
 // FUNCTION: 0x4461d0
@@ -94,17 +94,17 @@ void __stdcall FUN_004461d0(Gui_004461d0* gui)
         player->data->field_8b = (unsigned short)mode->width;
         player->data->field_8d = (unsigned short)mode->height;
         BroadcastPlayerInfo();
-        FUN_00430f00();
+        SaveSettings();
         return;
     }
     if (IsCurrentGadgetNamed(gui, "CANCEL")) {
         FUN_0047f1a0("Exit", 0);
-        FUN_00430f00();
+        SaveSettings();
         return;
     }
     if (IsCurrentGadgetNamed(gui, "OK")) {
         FUN_0047f1a0("SMLBUTTON", 0);
-        FUN_00430f00();
+        SaveSettings();
         return;
     }
     FUN_004ab0a0(gui);

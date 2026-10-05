@@ -31,7 +31,7 @@ struct Obj_00431950 {
 void __stdcall FatalError(char* message);
 
 // FUNCTION: 0x431950
-void __stdcall FUN_00431950(Obj_00431950* obj, int* out, char* name, char* side)
+void __stdcall ReadSideRect(Obj_00431950* obj, int* out, char* name, char* side)
 {
     int saved = ((Class_004c3e20*)obj)->FUN_004c3e20();
     if (!((Class_004c3410*)obj)->FUN_004c3410(name)) {

@@ -3,7 +3,7 @@
 extern int DAT_00511de8;
 
 // FUNCTION: 0x417030
-void __stdcall FUN_00417030(int unused)
+void __stdcall CmdDoubleShot(int unused)
 {
     int ecx = DAT_00511de8;
     unsigned short* ptr = (unsigned short*)((char*)ecx + 0x37f2f);

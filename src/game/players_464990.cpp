@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// For each player whose type byte is set, calls FUN_00464700 on its entry,
+// For each player whose type byte is set, calls InitPlayerSlot on its entry,
 // then calls FUN_004648e0 (compare 0x40a100).
 
 #pragma pack(push, 1)
@@ -18,18 +18,18 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00464700(Player_00464990* player);
+void __stdcall InitPlayerSlot(Player_00464990* player);
 void FUN_004648e0();
 
 // A char loop counter gives the separate countdown register (edi = 10), as
 // in 0x403100; the entry pointer is computed before the test.
 // FUNCTION: 0x464990
-void FUN_00464990()
+void InitPlayers()
 {
     for (char i = 0; i < 10; i++) {
         Player_00464990* p = &g_game->players[i];
         if (p->type) {
-            FUN_00464700(p);
+            InitPlayerSlot(p);
         }
     }
     FUN_004648e0();

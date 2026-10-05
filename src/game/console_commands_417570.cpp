@@ -27,7 +27,7 @@ void FUN_004161f0();
 
 // Same reset sequence as FUN_00419560, run as a callback after FUN_004161f0.
 // FUNCTION: 0x417570
-void __stdcall FUN_00417570(int)
+void __stdcall CmdNetStats(int)
 {
     FUN_004161f0();
     DAT_00511c20 = g_game->field_38a47;

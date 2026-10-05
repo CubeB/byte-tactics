@@ -3,7 +3,7 @@
 // otherwise builds it from the palette with BuildShadeTable and saves it.
 // Returns the table (freed again in the load case).
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bbc40(char* path);
 void* __stdcall FUN_004bbe50(char* path, int flags);
 void __stdcall FatalError(char* path);
@@ -16,7 +16,7 @@ int __stdcall FUN_004bc290(char* filename, void* data, int size);
 unsigned int* __stdcall LoadShadeTable(void* palette)
 {
     char path[256];
-    FUN_004290f0(path, "palettes", "PALETTE", "SHD");
+    BuildDataPath(path, "palettes", "PALETTE", "SHD");
     if (FUN_004bbc40(path)) {
         unsigned int* table = (unsigned int*)FUN_004bbe50(path, 0);
         if (table == 0) {

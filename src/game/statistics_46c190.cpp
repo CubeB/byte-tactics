@@ -29,7 +29,7 @@ void __stdcall RISetCallbacks(int param_1, int param_2);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x46c190
-void FUN_0046c190()
+void ShutdownScoreTables()
 {
     DAT_0051e590 = 0;
     RISetCallbacks(0, 0);

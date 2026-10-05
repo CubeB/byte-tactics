@@ -17,7 +17,7 @@ public:
 
 class Class_0048fe60 {
 public:
-    void FUN_0048fe60(Class_004b4560* file);
+    void LoadConditions(Class_004b4560* file);
 };
 
 #pragma pack(push, 1)
@@ -36,7 +36,7 @@ struct Game {
 extern Game* g_game;
 extern char* DAT_00503320;           // "Summary"
 
-void __stdcall FUN_00466050(Class_004b4560* file);
+void __stdcall LoadPlayers(Class_004b4560* file);
 void __stdcall FUN_0041d2b0(Class_004b4560* file);
 void __stdcall FUN_00424c00(Class_004b4560* file);
 void __stdcall FUN_00484d60(Class_004b4560* file);
@@ -47,12 +47,12 @@ void __stdcall FUN_00438250(Class_004b4560* file);
 
 // Reads the game summary section and every subsystem's saved state.
 // FUNCTION: 0x432610
-int __stdcall FUN_00432610(Class_004b4560* file)
+int __stdcall LoadSavedGameState(Class_004b4560* file)
 {
     file->FUN_004b4560(DAT_00503320);
     if (((Class_004b48f0*)file)->FUN_004b48f0("maxunits"))
         g_game->maxUnits = ((Class_004b4800*)file)->FUN_004b4800("maxunits", 0);
-    FUN_00466050(file);
+    LoadPlayers(file);
     FUN_0041d2b0(file);
     FUN_00424c00(file);
     FUN_00484d60(file);
@@ -60,7 +60,7 @@ int __stdcall FUN_00432610(Class_004b4560* file)
     FUN_00484fa0(file);
     LoadUnits(file);
     FUN_00438250(file);
-    g_game->unknown_391ed->FUN_0048fe60(file);
+    g_game->unknown_391ed->LoadConditions(file);
     g_game->loaded = 1;
     return 1;
 }

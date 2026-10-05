@@ -38,7 +38,7 @@ void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
 void BroadcastPlayerInfo();
 
 // FUNCTION: 0x418f10
-void __stdcall FUN_00418f10(int unused)
+void __stdcall ToggleShareLos(int unused)
 {
     char buf[256];
     if (g_game->flags & 1) {

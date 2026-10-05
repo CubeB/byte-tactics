@@ -61,8 +61,8 @@ void __stdcall FUN_0047f1a0(char* name, int flag);
 void __stdcall FUN_004ab0a0(Gadget_4934b0* obj);
 Entry_4934b0* __stdcall FUN_004a0200(Entry_4934b0* entries, char* name);
 int __stdcall FUN_0045ba20(Entry_4934b0* entry);
-void __stdcall FUN_00464c60(unsigned char from, unsigned char to, float amount, int flag);
-void __stdcall FUN_00464b30(unsigned char from, unsigned char to, float amount, int flag);
+void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount, int flag);
+void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount, int flag);
 int __stdcall GetButtonStageByName(Gadget_4934b0* obj, char* name);
 void __stdcall FUN_004933e0(unsigned char player);
 unsigned char __stdcall FindSlotByDpid(int id);
@@ -113,9 +113,9 @@ void __stdcall FUN_004934b0(Gadget_4934b0* obj)
         int pi = FindSlotByDpid(DAT_0051e6d0[idx]);
         Player_4934b0* p = &g_game->players[pi];
         if (IsPlaying_4934b0(p) && !(p->info->flags & 0x40) && IsCounted_4934b0(p)) {
-            FUN_00464c60(g_game->localPlayer, pi,
+            TransferEnergy(g_game->localPlayer, pi,
                          (float)FUN_0045ba20(FUN_004a0200(data, "METAL")), 1);
-            FUN_00464b30(g_game->localPlayer, pi,
+            TransferMetal(g_game->localPlayer, pi,
                          (float)FUN_0045ba20(FUN_004a0200(data, "ENERGY")), 1);
             if (GetButtonStageByName(obj, "SHARUNIT"))
                 FUN_004933e0(pi);

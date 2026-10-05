@@ -27,7 +27,7 @@ public:
 };
 
 // FUNCTION: 0x416b50
-void __stdcall FUN_00416b50(Class_004b73e0* args)
+void __stdcall CmdView(Class_004b73e0* args)
 {
     unsigned char i = args->FUN_004b73e0(1, 0);
     if (i < 10) {

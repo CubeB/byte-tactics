@@ -23,11 +23,11 @@ public:
     char name[0xa08 - 4];              // +0x4
     Class_004c3e10 list;               // +0xa08
 
-    int FUN_004356f0();
+    int CountMissions();
 };
 
 // FUNCTION: 0x4356f0
-int Class_004356f0::FUN_004356f0()
+int Class_004356f0::CountMissions()
 {
     char buf[128];
     if (strlen(name) == 0)

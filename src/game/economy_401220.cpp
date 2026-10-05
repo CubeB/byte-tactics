@@ -15,11 +15,11 @@ public:
     char unknown_8[0x30 - 0x8];
     Store_00401220* store;             // +0x30
 
-    int FUN_00401220(float amount);
+    int SpendMetal(float amount);
 };
 
 // FUNCTION: 0x401220
-int Class_00401220::FUN_00401220(float amount)
+int Class_00401220::SpendMetal(float amount)
 {
     if (store->metal >= amount) {
         store->metal -= amount;

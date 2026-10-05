@@ -16,16 +16,16 @@ extern char DAT_00508fb4[]; // "VictoryCondition_BuildUnitType"
 extern char DAT_00508f30[]; // "Satisfied"
 extern char DAT_00508f24[]; // "Celebrated"
 
-class Class_0048edb0 {
+class VictoryBuildUnitType {
 public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    virtual void FUN_0048f880(Class_004b4560* obj);
+    virtual void LoadState(Class_004b4560* obj);
 };
 
 // FUNCTION: 0x48ee70
-void Class_0048edb0::FUN_0048f880(Class_004b4560* obj)
+void VictoryBuildUnitType::LoadState(Class_004b4560* obj)
 {
     obj->FUN_004b4560(DAT_00508fb4);
     satisfied = ((Class_004b4800*)obj)->FUN_004b4800(DAT_00508f30, 0);

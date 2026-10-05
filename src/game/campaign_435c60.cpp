@@ -39,12 +39,12 @@ public:
     int field_c18;                      // +0xc18
     int field_c1c;                      // +0xc1c
 
-    int FUN_00435c60();
+    int AdvanceMission();
     void FUN_00435da0(char* param);
 };
 
 // FUNCTION: 0x435c60
-int Class_00435c00::FUN_00435c60()
+int Class_00435c00::AdvanceMission()
 {
     char buf[128];
     int n;

@@ -36,7 +36,7 @@ void ToggleFullScreen();
 void __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // FUNCTION: 0x417a60
-void __stdcall FUN_00417a60(Class_004b73e0* args)
+void __stdcall CmdDebugBreak(Class_004b73e0* args)
 {
     if ((g_game->flags_37f2f & 2) && (g_game->flags_3923b & 2)) {
         if (args->count > 0) {

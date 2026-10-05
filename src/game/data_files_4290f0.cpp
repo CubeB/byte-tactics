@@ -11,7 +11,7 @@ void* __stdcall FUN_004bb5b0(char* path);
 int __stdcall FUN_004bb5d0(void* file);
 
 // FUNCTION: 0x4290f0
-char* __stdcall FUN_004290f0(char* buf, char* dir, char* name, char* ext)
+char* __stdcall BuildDataPath(char* buf, char* dir, char* name, char* ext)
 {
     char* side = (char*)FUN_0049f580();
     if (side) {

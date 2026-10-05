@@ -39,7 +39,7 @@ public:
 void __stdcall FUN_0040c250(int player, FILE* file);
 
 // FUNCTION: 0x418bb0
-void __stdcall FUN_00418bb0(Class_004b73e0* args)
+void __stdcall CmdPrintWeights(Class_004b73e0* args)
 {
     if (args->count == 3) {
         unsigned char i = args->FUN_004b73e0(1, 0);

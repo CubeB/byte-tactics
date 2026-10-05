@@ -165,7 +165,7 @@ void __stdcall CloseTopScreen(Sub_495e90* gui);
 int __stdcall FindGadgetIndexBySubstring(int handle, const char* text);
 void __stdcall FUN_004a6a40(Sub_495e90* gui, int handle);
 int __stdcall IsScreenNamed(Sub_495e90* gui, char* name);
-void FUN_00430f00(void);
+void SaveSettings(void);
 void __stdcall FUN_0047f1a0(const char* name, int param);
 void FUN_00494050(void);
 void __stdcall FUN_0041bf10(int param);
@@ -188,7 +188,7 @@ void __stdcall FUN_0041d3b0(int param);
 void __stdcall FUN_0041d3f0(int param);
 void CycleMessageUnits(void);
 void FUN_00463c80(void);
-void __stdcall FUN_00490df0(int param_1, int param_2);
+void __stdcall SetGameSpeed(int param_1, int param_2);
 void __stdcall FUN_004ab190(Sub_495e90* gui, int param);
 int GetLocalDpid(void);
 void __stdcall BroadcastPacket(int param_1, void* param_2, int param_3);
@@ -298,7 +298,7 @@ void FUN_00495e90(void)
     case 0x60:
     case 0x7e:
         g_game->flags_37f06.b0 = !g_game->flags_37f06.b0;
-        FUN_00430f00();
+        SaveSettings();
         break;
 
     case 0x2c:
@@ -506,7 +506,7 @@ void FUN_00495e90(void)
                 break;
             if (g_game->field_38a4b <= 1)
                 break;
-            FUN_00490df0(g_game->field_38a4b - 1, 1);
+            SetGameSpeed(g_game->field_38a4b - 1, 1);
         }
         break;
 
@@ -518,7 +518,7 @@ void FUN_00495e90(void)
                 break;
             if (g_game->field_38a4b >= 0x14)
                 break;
-            FUN_00490df0(g_game->field_38a4b + 1, 1);
+            SetGameSpeed(g_game->field_38a4b + 1, 1);
         }
         break;
 

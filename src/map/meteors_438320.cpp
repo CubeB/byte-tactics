@@ -1,7 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 #include <string.h>
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FatalError(char* text);
 
 extern char DAT_0050310c[];
@@ -56,7 +56,7 @@ void Class_00438320::FUN_00438320()
 {
     Class_004c2ea0 parser;
     char path[256];
-    FUN_004290f0(path, "gamedata", "meteor", DAT_0050310c);
+    BuildDataPath(path, "gamedata", "meteor", DAT_0050310c);
     if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)
         && ((Class_004c3410*)&parser)->FUN_004c3410("Default")) {
         if (((Class_004c48c0*)parser.current)->FUN_004c48c0((char*)this, "MeteorWeapon", 0x20, DAT_005119b8)) {

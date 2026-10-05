@@ -46,8 +46,8 @@ extern ChatFn_0046bf30 DAT_0051e548;          // _RIReportGameChat@8
 extern HMODULE DAT_0051e58c;
 extern int DAT_0051e590;
 
-int FUN_0046bce0();
-void FUN_0046c190();
+int AllocScoreTables();
+void ShutdownScoreTables();
 void __stdcall RISetCallbacks(int param_1, int param_2);
 
 // The eight GetProcAddress calls are nested one inside the next so that the
@@ -63,7 +63,7 @@ int __stdcall FUN_0046bf30(int* param_1, int param_2)
 {
     char* net;
 
-    FUN_0046c190();
+    ShutdownScoreTables();
 
     net = *(char**)(g_game + 0x4e5);
     if (net != 0) {
@@ -78,8 +78,8 @@ int __stdcall FUN_0046bf30(int* param_1, int param_2)
         }
     }
 
-    if (FUN_0046bce0() == 2) {
-        FUN_0046c190();
+    if (AllocScoreTables() == 2) {
+        ShutdownScoreTables();
         return 2;
     }
 

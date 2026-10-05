@@ -12,13 +12,13 @@ struct Game {
 
 extern Game* g_game;
 
-extern void FUN_00430f00();
+extern void SaveSettings();
 extern void __stdcall FUN_004816a0(int flag);
 
 // FUNCTION: 0x416d80
-void __stdcall FUN_00416d80(int unused)
+void __stdcall CmdMapping(int unused)
 {
     g_game->flag0 = !g_game->flag0;
-    FUN_00430f00();
+    SaveSettings();
     FUN_004816a0(1);
 }

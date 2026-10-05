@@ -12,7 +12,7 @@ struct Vec3_0048f200 {
 
 class Condition_0048f200 {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
+    virtual int IsSatisfied();           // IsSatisfied
     int done;                          // +0x04
     int announced;                     // +0x08
 };
@@ -27,17 +27,17 @@ void __stdcall FUN_00484b50(int x, int z, Vec3_0048f200* out);
 void __stdcall FUN_0047e890(Vec3_0048f200* pos, int radius, UnitVisitor_0048f200* visitor);
 
 #pragma pack(push, 2)
-class Class_0048f250 : public Condition_0048f200, public UnitVisitor_0048f200 {
+class VictoryMoveUnitToRadius : public Condition_0048f200, public UnitVisitor_0048f200 {
 public:
     char name[0x20];                   // +0x10
     Vec3_0048f200 pos;                 // +0x30
     int radius;                        // +0x3c
-    virtual int FUN_0048ea00();
+    virtual int IsSatisfied();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x48f200
-int Class_0048f250::FUN_0048ea00()
+int VictoryMoveUnitToRadius::IsSatisfied()
 {
     if (pos.y == 0x12345678) {
         FUN_00484b50(pos.x, pos.z, &pos);

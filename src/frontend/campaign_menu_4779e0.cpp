@@ -28,12 +28,12 @@ struct Table_004779e0 {
 
 class Class_00435110 {
 public:
-    int FUN_00435110(char* name);
+    int LoadCampaign(char* name);
 };
 
 class Class_00435760 {
 public:
-    int FUN_00435760(int* list);
+    int BuildMissionList(int* list);
 };
 
 #pragma pack(push, 1)
@@ -69,8 +69,8 @@ void __stdcall FUN_004779e0(Menu_004779e0* menu, int unused)
     }
     Layout_004779e0* layout =
         FindGadgetChecked(g_game->table->entries, "Campaign");
-    g_game->net->FUN_00435110(FUN_004b6af0(layout->text, layout->selected));
-    int count = ((Class_00435760*)g_game->net)->FUN_00435760((int*)&DAT_0051e660);
+    g_game->net->LoadCampaign(FUN_004b6af0(layout->text, layout->selected));
+    int count = ((Class_00435760*)g_game->net)->BuildMissionList((int*)&DAT_0051e660);
     FUN_004a32a0(menu, "Missions", DAT_0051e660, count, 0);
     FUN_004a2be0((char*)g_game + 0x519,
                  FindGadgetIndex(gadgets->gadgets, "Missions", 2));

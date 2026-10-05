@@ -85,7 +85,7 @@ void __stdcall FUN_0049fa50(Sub_004263b0* sub);
 void __stdcall FUN_00425d80(void* gadget);
 void __stdcall FUN_00425b80();
 
-void __stdcall FUN_004290f0(char* dest, const char* a, const char* b, const char* c);
+void __stdcall BuildDataPath(char* dest, const char* a, const char* b, const char* c);
 void* __stdcall FUN_004bbe50(char* name, int flag);
 void __stdcall FUN_004ac7d0(Sub_004263b0* sub, int value, void* palette);
 void __cdecl FUN_004d85a0(void* palette);
@@ -105,7 +105,7 @@ void __stdcall FUN_00426200();
 int __stdcall CheckDirectXVersion(int a, int b, int c, int d, int e);
 char* __stdcall FUN_004c5740(const char* text);
 void __stdcall OpenMessageBox(Sub_004263b0* sub, char* text, int a, int b, int c);
-void __stdcall FUN_00429000();
+void __stdcall CheckGpfVersion();
 
 // FUNCTION: 0x4263b0
 void __stdcall FUN_004263b0()
@@ -137,7 +137,7 @@ void __stdcall FUN_004263b0()
     char palpath[256];
     char text[300];
 
-    FUN_004290f0(palpath, "palettes", "guipal", "PAL");
+    BuildDataPath(palpath, "palettes", "guipal", "PAL");
     void* palette = FUN_004bbe50(palpath, 0);
     FUN_004ac7d0(&g_game->sub, (int)found, palette);
     FUN_004d85a0(palette);
@@ -187,7 +187,7 @@ void __stdcall FUN_004263b0()
     }
 
     if (DAT_00512290 == 0) {
-        FUN_00429000();
+        CheckGpfVersion();
         DAT_00512290 = 1;
     }
 }

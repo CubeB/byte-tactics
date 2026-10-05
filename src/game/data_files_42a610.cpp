@@ -35,7 +35,7 @@ extern Game* g_game;
 
 struct File_0042a610;
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall FUN_004bbe50(char* path, int* outSize);
 int __stdcall FUN_004b6ba0(unsigned char* data, int len);
 void __cdecl FUN_004d85a0(void* p);
@@ -62,7 +62,7 @@ void __stdcall FUN_0042a610(Def_0042a610* def)
 
     char path[256];
     int size;
-    FUN_004290f0(path, "scripts", def->name, "cob");
+    BuildDataPath(path, "scripts", def->name, "cob");
     void* data = FUN_004bbe50(path, &size);
     if (data) {
         def->field_142 ^= FUN_004b6ba0((unsigned char*)data, size);
@@ -74,11 +74,11 @@ void __stdcall FUN_0042a610(Def_0042a610* def)
     strcpy(name, def->name);
     strcat(name, "*");
 
-    FUN_004290f0(path, "guis", name, "gui");
+    BuildDataPath(path, "guis", name, "gui");
     FUN_004bca30(path, 0, &files);
 
     for (unsigned int i = 0; i < files.size(); i++) {
-        FUN_004290f0(path, "guis", files[i].p, "gui");
+        BuildDataPath(path, "guis", files[i].p, "gui");
         void* data2 = FUN_004bbe50(path, &size);
         if (data2) {
             def->field_142 ^= FUN_004b6ba0((unsigned char*)data2, size);
@@ -86,7 +86,7 @@ void __stdcall FUN_0042a610(Def_0042a610* def)
         }
     }
 
-    FUN_004290f0(path, "download", def->name, "tdf");
+    BuildDataPath(path, "download", def->name, "tdf");
     File_0042a610* f = FUN_004bb5b0(path);
     if (f) {
         size = FUN_004bbd00(f);

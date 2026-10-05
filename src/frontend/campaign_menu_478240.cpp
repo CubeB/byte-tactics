@@ -78,7 +78,7 @@ extern int DAT_00507b6c;
 
 void FUN_004257a0();
 Layer_00478240* __stdcall LoadGuiLayer(void* menu, const char* name, int flags);
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name,
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name,
                             const char* ext);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 int __stdcall FUN_004bc930(char* name, int flag);
@@ -106,12 +106,12 @@ char* __stdcall FUN_004b6af0(char* text, int line);
 
 class Class_00435110 {
 public:
-    void FUN_00435110(char* file);
+    void LoadCampaign(char* file);
 };
 
 class Class_00435760 {
 public:
-    int FUN_00435760(int* param_1);
+    int BuildMissionList(int* param_1);
 };
 
 void __stdcall FUN_004779e0();
@@ -137,7 +137,7 @@ void __stdcall FUN_00478240(int param_1)
         FUN_004288d0("playanygame4", 0, 0, 0);
         DAT_00507b6c = 0;
     } else {
-        FUN_004290f0(buf, "camps", "*", "TDF");
+        BuildDataPath(buf, "camps", "*", "TDF");
         if (FUN_004bc930(buf, 0) <= 2) {
             FUN_004288d0("newcampaign4x", 0, 0, 0);
             DAT_00507b6c = 1;
@@ -242,8 +242,8 @@ void __stdcall FUN_00478240(int param_1)
             Entry_00478240* m = FindGadgetChecked(g_game->menu.layer->entries,
                                              "Campaign");
             char* text = FUN_004b6af0(m->text, m->line);
-            ((Class_00435110*)g_game->net)->FUN_00435110(text);
-            int mc = ((Class_00435760*)g_game->net)->FUN_00435760(
+            ((Class_00435110*)g_game->net)->LoadCampaign(text);
+            int mc = ((Class_00435760*)g_game->net)->BuildMissionList(
                 (int*)&DAT_0051e660);
             FUN_004a32a0(menu, "Missions", DAT_0051e660, mc, 0);
             int mi = FindGadgetIndex(mlayer->entries, "Missions", 2);

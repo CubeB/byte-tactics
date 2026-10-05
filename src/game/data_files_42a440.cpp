@@ -20,7 +20,7 @@ struct FindData_0042a440 {
 
 extern Game* g_game;
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bc930(const char* path, int flag);
 void* __cdecl FUN_004d83b0(const char* tag, int size);
 int __stdcall FUN_004bc4b0(const char* path, FindData_0042a440* fd, int a, int b);
@@ -29,12 +29,12 @@ void __stdcall FUN_004bc8d0(int handle);
 void* __stdcall LoadGaf(char* path);
 
 // FUNCTION: 0x42a440
-void FUN_0042a440()
+void LoadTextureGafs()
 {
     char path[256];
     FindData_0042a440 fd;
 
-    FUN_004290f0(path, "textures", "*", "GAF");
+    BuildDataPath(path, "textures", "*", "GAF");
     int count = FUN_004bc930(path, 0);
     g_game->count = count - 1;
     int* texturePtrs = (int*)FUN_004d83b0("TEXTURE PTRS", count * 4);
@@ -47,7 +47,7 @@ void FUN_0042a440()
             if (_strcmpi(fd.name, "logos.GAF") == 0) {
                 texturePtrs--;
             } else {
-                FUN_004290f0(path, "textures", fd.name, "GAF");
+                BuildDataPath(path, "textures", fd.name, "GAF");
                 *texturePtrs = (int)LoadGaf(path);
                 g_game->progress = (char)(progress / (count - 1));
             }

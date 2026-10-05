@@ -18,7 +18,7 @@ int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall AddMessage(char* text, int param_2, int param_3, int param_4);
 
 // FUNCTION: 0x490df0
-void __stdcall FUN_00490df0(int speed, int param_2)
+void __stdcall SetGameSpeed(int speed, int param_2)
 {
     if (speed > 0x14)
         speed = 0x14;

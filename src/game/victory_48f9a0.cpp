@@ -11,7 +11,7 @@ struct Unit {
 
 class Condition_0048f9d0 {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
+    virtual int IsSatisfied();           // IsSatisfied
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 };
@@ -19,23 +19,23 @@ public:
 // Interface at +0xc of the object: slot 0 is called for each unit.
 class UnitVisitor_0048f9d0 {
 public:
-    virtual int FUN_0048f790(Unit* unit) = 0;
+    virtual int VisitUnit(Unit* unit) = 0;
 };
 
 // This method overrides the visitor's slot, so `this` is the visitor
 // subobject (+0xc) and id and count sit at +0x24 and +0x26 from it.
 #pragma pack(push, 2)
-class Class_0048f9d0 : public Condition_0048f9d0, public UnitVisitor_0048f9d0 {
+class DefeatAllUnitsKilledOfType : public Condition_0048f9d0, public UnitVisitor_0048f9d0 {
 public:
     char name[0x20];                     // +0x10
     short id;                            // +0x30
     int count;                           // +0x32
-    virtual int FUN_0048f790(Unit* unit);
+    virtual int VisitUnit(Unit* unit);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x48f9a0
-int Class_0048f9d0::FUN_0048f790(Unit* unit)
+int DefeatAllUnitsKilledOfType::VisitUnit(Unit* unit)
 {
     if (unit->field_a6 == id) {
         count++;

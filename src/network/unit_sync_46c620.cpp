@@ -56,7 +56,7 @@ int __stdcall FUN_004ca9d0(Class_0046c620* p);
 int __stdcall FUN_004ca9f0(int mode);
 int __stdcall RIReport(int, Rect_0046c620*, void*, int, Name_0046c620*, int,
                            int, int, void*, void*);
-int FUN_0046c2a0();
+int FillScoreTables();
 
 // FUNCTION: 0x46c620
 int __stdcall ReportGameEvent(int msg)
@@ -76,7 +76,7 @@ int __stdcall ReportGameEvent(int msg)
             *p-- = 0;
     }
 
-    int id = FUN_0046c2a0();
+    int id = FillScoreTables();
 
     if (DAT_0051e590) {
         if (msg == 1 || msg == 6 || msg == 7)

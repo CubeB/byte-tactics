@@ -3,7 +3,7 @@
 // palettes\PALETTE.PCX file (0x400 bytes) and tries to drop the cached
 // ALP/LHT/SHD derivatives so they get rebuilt.
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bbc40(char* path);
 void* __stdcall FUN_004bbe50(char* path, int flags);
 void __stdcall FatalError(char* path);
@@ -13,13 +13,13 @@ int __stdcall FUN_004bc290(char* filename, void* data, int size);
 void __stdcall FUN_004bbc30(char* path);
 
 // FUNCTION: 0x429330
-void* __stdcall FUN_00429330(char* name)
+void* __stdcall LoadPaletteByName(char* name)
 {
     char path[256];
     char namepath[256];
     void* result;
 
-    FUN_004290f0(namepath, "palettes", name, "PAL");
+    BuildDataPath(namepath, "palettes", name, "PAL");
     if (FUN_004bbc40(namepath) != 0) {
         result = FUN_004bbe50(namepath, 0);
         int bad = (result == 0);
@@ -30,16 +30,16 @@ void* __stdcall FUN_00429330(char* name)
     }
     else {
         result = FUN_004d83b0("PALETTE", 0x400);
-        FUN_004290f0(path, "palettes", name, "PCX");
+        BuildDataPath(path, "palettes", name, "PCX");
         if (LoadPcxPalette(path, result) == 0) {
             FatalError(path);
         }
         FUN_004bc290(namepath, result, 0x400);
-        FUN_004290f0(path, "palettes", "PALETTE", "ALP");
+        BuildDataPath(path, "palettes", "PALETTE", "ALP");
         FUN_004bbc30(path);
-        FUN_004290f0(path, "palettes", "PALETTE", "LHT");
+        BuildDataPath(path, "palettes", "PALETTE", "LHT");
         FUN_004bbc30(path);
-        FUN_004290f0(path, "palettes", "PALETTE", "SHD");
+        BuildDataPath(path, "palettes", "PALETTE", "SHD");
         FUN_004bbc30(path);
     }
     return result;

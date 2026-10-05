@@ -27,11 +27,11 @@ class Class_00401110 {
 public:
     char acc0[0x18];                 // +0x00
     char acc1[0x18];                 // +0x18
-    void FUN_00401110(UnitInfo_401110* info, Class_004b4ba0* file);
+    void LoadUnitAccounts(UnitInfo_401110* info, Class_004b4ba0* file);
 };
 
 // FUNCTION: 0x401110
-void Class_00401110::FUN_00401110(UnitInfo_401110* info, Class_004b4ba0* file)
+void Class_00401110::LoadUnitAccounts(UnitInfo_401110* info, Class_004b4ba0* file)
 {
     char name[32];
     sprintf(name, "u%04xacc", info->id);

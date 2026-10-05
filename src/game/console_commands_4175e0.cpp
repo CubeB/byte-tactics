@@ -13,7 +13,7 @@ public:
 extern void* g_game;
 
 // FUNCTION: 0x4175e0
-void __stdcall FUN_004175e0(void* param_1)
+void __stdcall CmdMusicMode(void* param_1)
 {
     Class_004b73e0* obj = (Class_004b73e0*)param_1;
     int result = obj->FUN_004b73e0(1, 0);

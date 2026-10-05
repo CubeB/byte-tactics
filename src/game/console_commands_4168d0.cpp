@@ -44,7 +44,7 @@ public:
 void __stdcall AddMessage(char* text, int param_2, int param_3, int param_4);
 
 // FUNCTION: 0x4168d0
-void __stdcall FUN_004168d0(Class_004b73e0* args)
+void __stdcall CmdLogo(Class_004b73e0* args)
 {
     int n = args->FUN_004b73e0(1, 0);
     if (n >= 0) {

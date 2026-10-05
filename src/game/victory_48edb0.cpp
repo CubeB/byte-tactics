@@ -42,21 +42,21 @@ short __stdcall FindUnitTypeId(char* param_1);
 
 class Base_0048edb0 {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
+    virtual int IsSatisfied();           // IsSatisfied
     int field_4;                       // +0x4
     int field_8;                       // +0x8
 };
 
-class Class_0048edb0 : public Base_0048edb0, public UnitCallback_0048edb0 {
+class VictoryBuildUnitType : public Base_0048edb0, public UnitCallback_0048edb0 {
 public:
     char field_10[0x20];               // +0x10
     short field_30;                    // +0x30
 
-    virtual int FUN_0048ea00();
+    virtual int IsSatisfied();
 };
 
 // FUNCTION: 0x48edb0
-int Class_0048edb0::FUN_0048ea00()
+int VictoryBuildUnitType::IsSatisfied()
 {
     if (field_4 != 0) {
         return 1;

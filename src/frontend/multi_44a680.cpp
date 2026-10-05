@@ -107,7 +107,7 @@ struct Game {
 
 struct Class_004358f0 { int FUN_004358f0(); };
 struct Class_004373a0 { int FUN_004373a0(); };
-struct Class_00435a20 { void FUN_00435a20(PlayerInfo_0044a680* info); };
+struct Class_00435a20 { void LoadMissionByName(PlayerInfo_0044a680* info); };
 struct Class_00435c30 { char* FUN_00435c30(); };
 struct Class_0046e000 { int AllPlayersSynced(); };
 struct Class_00463c60 { void SetType(int param); };
@@ -146,7 +146,7 @@ int __stdcall IsScreenNamed(Gui_0044a680* gui, char* name);
 void __stdcall FUN_0045b9b0(Gadget_0044a680* gadget, int value);
 int __stdcall FUN_0045ba20(Gadget_0044a680* gadget);
 int __stdcall GetTicks();
-unsigned char __stdcall FUN_0041d6a0(int param);
+unsigned char __stdcall FindGameCdDrive(int param);
 void __stdcall SendNetHeartbeat();
 void __stdcall BroadcastPlayerInfo();
 void __stdcall UpdateNetGameInfo();
@@ -302,7 +302,7 @@ void FUN_0044a680()
             if (host != 10) {
                 if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
                     PlayerInfo_0044a680* info = g_game->players[host].info;
-                    ((Class_00435a20*)g_game->map)->FUN_00435a20(info);
+                    ((Class_00435a20*)g_game->map)->LoadMissionByName(info);
                     FUN_00445e20(&g_game->gui, "MAXUNITS", g_game->players[host].info->maxUnits - 0x14);
                     FUN_00445e20(&g_game->gui, "METAL", g_game->players[host].info->metal * 100);
                     FUN_00445e20(&g_game->gui, "ENERGY", g_game->players[host].info->energy * 100);
@@ -312,7 +312,7 @@ void FUN_0044a680()
                 } else if (IsScreenNamed(&g_game->gui, "viewmap.gui") != 0) {
                     PlayerInfo_0044a680* info = g_game->players[host].info;
                     if (strcmp(((Class_00435c30*)g_game->map)->FUN_00435c30(), info->map) != 0) {
-                        ((Class_00435a20*)g_game->map)->FUN_00435a20(g_game->players[host].info);
+                        ((Class_00435a20*)g_game->map)->LoadMissionByName(g_game->players[host].info);
                         FUN_00444a20();
                         FUN_0049fad0(&g_game->gui);
                     }
@@ -400,7 +400,7 @@ void FUN_0044a680()
         unsigned char r;
         PlayerInfo_0044a680* info;
         DAT_005129a8 = GetTicks() + 0x3c;
-        r = FUN_0041d6a0(1);
+        r = FindGameCdDrive(1);
         info = pl->info;
         info->f9d_2 = (r != 0);
         SendNetHeartbeat();

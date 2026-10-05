@@ -14,7 +14,7 @@ struct Flags_00416e60
 };
 
 // FUNCTION: 0x416e60
-void __stdcall FUN_00416e60(int unused)
+void __stdcall CmdNoShake(int unused)
 {
     Flags_00416e60* f = (Flags_00416e60*)((char*)g_game + 0x37f2f);
     f->b4 = !f->b4;

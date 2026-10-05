@@ -19,12 +19,12 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_00430f00();
+void SaveSettings();
 
 // FUNCTION: 0x416550
-void __stdcall FUN_00416550(int unused)
+void __stdcall CmdShadow(int unused)
 {
     g_game->toggle = !g_game->toggle;
     g_game->obj->FlushCache();
-    FUN_00430f00();
+    SaveSettings();
 }

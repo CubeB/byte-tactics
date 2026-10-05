@@ -31,7 +31,7 @@ public:
 };
 
 // FUNCTION: 0x417150
-void __stdcall FUN_00417150(Class_004b73e0* args)
+void __stdcall CmdNoMetal(Class_004b73e0* args)
 {
     unsigned char i;
     if (args->count == 1)

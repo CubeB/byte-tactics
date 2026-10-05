@@ -115,10 +115,10 @@ extern Game* g_game;
 extern List_004224b0* DAT_00511fb4;
 extern char DAT_005119b8[];
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FatalError(char* path);
 void* __cdecl FUN_004d84a0(void* p, const char* name, unsigned int size);
-void* __stdcall FUN_0042a2c0(const char* name);
+void* __stdcall LoadObject3d(const char* name);
 Gaf_004224b0* __stdcall LoadGaf(char* path);
 Seq_004224b0* __stdcall FindGafEntry(Gaf_004224b0* gaf, const char* name);
 char* __stdcall FUN_0049e5b0(char* name);
@@ -177,7 +177,7 @@ int __stdcall FUN_004224b0(char* name)
     ok = ((Class_004c48c0*)entry->parser)->FUN_004c48c0(file, "object", 0x100, DAT_005119b8);
     if (ok) {
         def->noobject = 0;
-        def->object = FUN_0042a2c0(file);
+        def->object = LoadObject3d(file);
     } else {
         def->noobject = 1;
         ((Class_004c48c0*)entry->parser)->FUN_004c48c0(file, "filename", 0x100, DAT_005119b8);
@@ -190,7 +190,7 @@ int __stdcall FUN_004224b0(char* name)
             }
         }
         if (j == g_game->featureCount) {
-            FUN_004290f0(path, "anims", file, "GAF");
+            BuildDataPath(path, "anims", file, "GAF");
             def->anims = LoadGaf(path);
             strncpy(def->filename, file, 0x10);
             anims = def->anims;

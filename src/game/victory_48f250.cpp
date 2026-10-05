@@ -28,7 +28,7 @@ void __stdcall FUN_0047f1a0(char* str, int flag);
 
 class Condition_0048f250 {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
+    virtual int IsSatisfied();           // IsSatisfied
     int done;                          // +0x04
     int announced;                     // +0x08
 };
@@ -38,19 +38,19 @@ public:
 // negative offsets.
 class UnitVisitor_0048f250 {
 public:
-    virtual void FUN_0048f790(Unit* unit) = 0;
+    virtual void VisitUnit(Unit* unit) = 0;
 };
 
 #pragma pack(push, 2)
-class Class_0048f250 : public Condition_0048f250, public UnitVisitor_0048f250 {
+class VictoryMoveUnitToRadius : public Condition_0048f250, public UnitVisitor_0048f250 {
 public:
     char name[0x20];                   // +0x10
-    virtual void FUN_0048f790(Unit* unit);
+    virtual void VisitUnit(Unit* unit);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x48f250
-void Class_0048f250::FUN_0048f790(Unit* unit)
+void VictoryMoveUnitToRadius::VisitUnit(Unit* unit)
 {
     if (unit->kind == 0) {
         if (name[0] != 0 && _strcmpi(name, unit->info->name) != 0) {

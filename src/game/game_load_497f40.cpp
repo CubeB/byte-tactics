@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
 //
 // MATCH (claude-opus-5-5, #4267; was 84.3%). The loading-screen frame: on the
-// first call it starts the loader thread (FUN_00497c70), once the loader sets
+// first call it starts the loader thread (LoadThreadMain), once the loader sets
 // the "loaded" bit it restores the game screen and installs the game frame
 // handler (FUN_00499200), and otherwise it draws the six progress bars.
 // What it took, from the earlier partial:
@@ -136,12 +136,12 @@ extern "C" char g_packetManager;
 extern "C" unsigned char DAT_0051e820, DAT_0051e821, DAT_0051e822;
 extern "C" unsigned char DAT_0051e823, DAT_0051e824, DAT_0051e825;
 
-void FUN_00497c70();
+void LoadThreadMain();
 void FUN_00499200();
 void __cdecl FUN_004609a0(int);
 void __cdecl FUN_004257a0();
 void __cdecl FUN_00428730();
-void __cdecl FUN_00430f00();
+void __cdecl SaveSettings();
 void __cdecl HandleNetPackets();
 void __cdecl SendLoadProgress();
 void __cdecl OnlineUnload();
@@ -155,9 +155,9 @@ void __cdecl FlipScreen();
 int __cdecl FUN_004ce800();
 void __cdecl FUN_004d85a0(void*);
 void __stdcall FUN_004288d0(char*, int, int, int);
-void __stdcall FUN_004290f0(void*, char*, char*, char*);
+void __stdcall BuildDataPath(void*, char*, char*, char*);
 void __stdcall FUN_00453320(unsigned int, int);
-void __stdcall FUN_00497ce0(void*);
+void __stdcall DrawSyncStatus(void*);
 void __stdcall FUN_0049fa70(void*);
 int __stdcall GetTextPixelWidth(char*);
 void __stdcall FUN_004a50e0(void*, char*, int, int, int, int);
@@ -212,7 +212,7 @@ public:
 };
 
 // FUNCTION: 0x497f40
-void FUN_00497f40(void)
+void LoadingScreenFrame(void)
 {
     struct Surface { int width, height; char unknown_8[0x28]; };
     Surface gadget;
@@ -240,7 +240,7 @@ void FUN_00497f40(void)
         SetFont(g_game->field_391f9);
         SetPaletteColors(SURFACE_143a7, 0, 0x100);
         if (((Class_00435100*)g_game->field_391e9)->FUN_00435100() != 2) {
-            FUN_00430f00();
+            SaveSettings();
         }
         while (g_game->field_531 != 0) {
             CloseTopScreen(&g_game->field_519);
@@ -259,7 +259,7 @@ void FUN_00497f40(void)
             SetRestoreSurface(g_game->field_37e1b);
             SetOffscreenSurface((void*)g_game->field_37e1b);
         }
-        FUN_004290f0(aux, "palettes", "guipal", "PAL");
+        BuildDataPath(aux, "palettes", "guipal", "PAL");
         surfaceHandle = FUN_004bbe50((unsigned int*)aux, 0);
         FUN_004ac7d0(&g_game->field_519, SURFACE_143a7, surfaceHandle);
         FUN_004d85a0(surfaceHandle);
@@ -287,7 +287,7 @@ void FUN_00497f40(void)
             }
             g_game->slots.flag40[i] = (pi->active != 0 && (pi->data->flags & 0x40) != 0) ? 1 : 0;
         }
-        if (!FUN_004b6b20(FUN_00497c70, 0, 0)) {
+        if (!FUN_004b6b20(LoadThreadMain, 0, 0)) {
             FatalError("Unable to start the loading thread!");
         }
         memset(DAT_0051f2c8, 0, 10);
@@ -473,7 +473,7 @@ void FUN_00497f40(void)
             DrawFrame(&gadget, lightbar, rect[0], rect[1]);
         }
         if (((Class_00435100*)g_game->field_391e9)->FUN_00435100() == 3) {
-            FUN_00497ce0(&gadget);
+            DrawSyncStatus(&gadget);
             SendLoadProgress();
         }
         UnlockScreen(&gadget);

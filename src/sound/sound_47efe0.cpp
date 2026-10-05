@@ -3,7 +3,7 @@
 extern int DAT_0051e690;
 extern int DAT_0051e694;
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall FUN_004bbe50(char* path, int flags);
 
 class Class_004d0620 {
@@ -26,7 +26,7 @@ void* __stdcall FUN_0047efe0(const char* name)
     if (DAT_0051e690 != 0 && DAT_0051e694 == 0) {
         return 0;
     }
-    FUN_004290f0(path, "sounds", name, "WAV");
+    BuildDataPath(path, "sounds", name, "WAV");
     if (DAT_0051e694 != 0) {
         return FUN_004bbe50(path, 0);
     }

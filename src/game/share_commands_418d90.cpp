@@ -31,7 +31,7 @@ void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
 void BroadcastPlayerInfo(void);
 
 // FUNCTION: 0x418d90
-void __stdcall FUN_00418d90(int unused)
+void __stdcall CmdShareEnergy(int unused)
 {
     char buf[256];
     if (g_game->flags_2a44 & 1) {

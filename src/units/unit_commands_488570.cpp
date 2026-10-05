@@ -10,7 +10,7 @@
 
 class Class_00490520 {
 public:
-    void FUN_00490520(struct Unit* unit);
+    void NotifyUnitCaptured(struct Unit* unit);
 };
 
 class Class_0048b090 {
@@ -107,7 +107,7 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488570* other, Packet_00488
         return;
     if (unit->flags & 0x4000)
         return;
-    g_game->list->FUN_00490520(unit);
+    g_game->list->NotifyUnitCaptured(unit);
 
     Player_00488570* cur = unit->player;
     if (cur->f0 != 0 && (cur->f73 == 1 || cur->f73 == 2)) {

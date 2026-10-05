@@ -39,7 +39,7 @@ class Class_004b73e0;
 void __stdcall KillPlayerUnits(unsigned char player);
 
 // FUNCTION: 0x416a30
-void __stdcall FUN_00416a30(Class_004b73e0* args)
+void __stdcall CmdILose(Class_004b73e0* args)
 {
     KillPlayerUnits(g_game->players[g_game->localPlayer].data->field_95);
     g_game->flag4 = 0;

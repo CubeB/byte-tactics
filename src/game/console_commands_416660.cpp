@@ -12,7 +12,7 @@ struct Flags_00416660
 };
 
 // FUNCTION: 0x416660
-void __stdcall FUN_00416660(int unused)
+void __stdcall CmdFShadow(int unused)
 {
     Flags_00416660* f = (Flags_00416660*)((char*)g_game + 0x37f06);
     f->flag = !f->flag;

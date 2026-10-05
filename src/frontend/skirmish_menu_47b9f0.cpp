@@ -32,9 +32,9 @@ extern const char DAT_00508474[];
 extern const char DAT_00508470[];
 extern const char DAT_00508460[];
 
-void FUN_00430f00();
-void FUN_00432b80();
-void FUN_0042f9a0();
+void SaveSettings();
+void SaveNumSkirmishPlayers();
+void LoadSettings();
 void FUN_0047a0e0();
 void __stdcall FUN_0047f1a0(const char*, int);
 void __stdcall FUN_004a7960(Cheat_0047b9f0*, int);
@@ -67,10 +67,10 @@ void __stdcall FUN_0047b9f0(Cheat_0047b9f0* cheat)
             for (int i = 0; i < 0xf; i++)
                 ((char*)cheat->text)[i + 0x28] = (char)zero;
         }
-        FUN_00430f00();
+        SaveSettings();
         g_game->cheat = code;
-        FUN_00432b80();
-        FUN_0042f9a0();
+        SaveNumSkirmishPlayers();
+        LoadSettings();
         *(short*)((char*)cheat->text->target + 0xb6) =
             *(short*)((char*)g_game->field_29a0 + 0x220);
         FUN_0047a0e0();

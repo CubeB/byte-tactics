@@ -30,8 +30,8 @@ extern Game* g_game;
 int __stdcall IsCurrentGadgetNamed(Gadget_00460340* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 int __stdcall GetButtonStageByName(Gadget_00460340* gadget, char* name);
-char __stdcall FUN_0041d6a0(int disc);
-void __stdcall FUN_0041d4c0();
+char __stdcall FindGameCdDrive(int disc);
+void __stdcall RegisterDataArchives();
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* gadget);
@@ -47,7 +47,7 @@ void __stdcall FUN_00460340(Gadget_00460340* gadget)
         int mode = g_game->mode->FUN_00435100();
         switch (mode) {
         case 1:
-            if (!FUN_0041d6a0(0)) {
+            if (!FindGameCdDrive(0)) {
                 OpenMessageBox(g_game->message,
                              FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
                              200, 1, 1);
@@ -57,7 +57,7 @@ void __stdcall FUN_00460340(Gadget_00460340* gadget)
             ok = true;
             break;
         case 2:
-            if (!FUN_0041d6a0(1)) {
+            if (!FindGameCdDrive(1)) {
                 OpenMessageBox(g_game->message,
                              FUN_004c5740("Please insert the Multiplayer CD (Disc 1) and try again"),
                              200, 1, 1);
@@ -69,7 +69,7 @@ void __stdcall FUN_00460340(Gadget_00460340* gadget)
         }
         if (!ok)
             return;
-        FUN_0041d4c0();
+        RegisterDataArchives();
         g_game->difficulty = GetButtonStageByName(gadget, "Difficulty");
         g_game->field_39249 = 1;
     } else if (IsCurrentGadgetNamed(gadget, "Difficulty")) {

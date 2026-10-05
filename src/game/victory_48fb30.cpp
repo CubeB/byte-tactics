@@ -11,7 +11,7 @@ struct Unit {
 
 class Condition_0048fb60 {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
+    virtual int IsSatisfied();           // IsSatisfied
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 };
@@ -19,19 +19,19 @@ public:
 // Interface at +0xc of the object: slot 0 is called for each unit.
 class UnitVisitor_0048fb60 {
 public:
-    virtual int FUN_0048f790(Unit* unit) = 0;
+    virtual int VisitUnit(Unit* unit) = 0;
 };
 
 // This method overrides the visitor's slot, so `this` is the visitor
 // subobject (+0xc) and satisfied sits at -8.
-class Class_0048fb60 : public Condition_0048fb60, public UnitVisitor_0048fb60 {
+class DefeatAnyUnitPassesX : public Condition_0048fb60, public UnitVisitor_0048fb60 {
 public:
     int field_10;                        // +0x10
-    virtual int FUN_0048f790(Unit* unit);
+    virtual int VisitUnit(Unit* unit);
 };
 
 // FUNCTION: 0x48fb30
-int Class_0048fb60::FUN_0048f790(Unit* unit)
+int DefeatAnyUnitPassesX::VisitUnit(Unit* unit)
 {
     int diff = abs((int)unit->value - field_10);
 

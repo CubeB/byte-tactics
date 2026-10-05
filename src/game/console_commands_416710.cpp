@@ -15,7 +15,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x416710
-void __stdcall FUN_00416710(int unused)
+void __stdcall CmdRCache(int unused)
 {
     g_game->field_1437b->FlushCache();
 }

@@ -9,7 +9,7 @@
 // What made it match (it sat at 89.5% for many passes):
 //  * The constant registers (0 in ebx, -1 in esi; with them name/size in
 //    esi/edi and the old object in esi) came from case 2/3: the found-at-once
-//    arm calls FUN_00435430 and breaks, and only the fallback reassigns
+//    arm calls BuildCampaignFilePath and breaks, and only the fallback reassigns
 //    `map`. That splits map into two webs, so its priority drops from 76 to
 //    46/44, below LoadBriefing's `name` (56). name is then coloured before
 //    map takes ebx and gets esi while no constant piece is pinned there, and
@@ -22,7 +22,7 @@
 //    local and returns it. A plain `(float)` call, a double local alone or a
 //    float local alone all keep the fstp right after the call whenever the
 //    next call also returns a double.
-//  * The 0x48e010 callee is Class_0048ff40::FUN_0048e010 (data/symbols.csv).
+//  * The 0x48e010 callee is MissionConditions::RegisterConditions (data/symbols.csv).
 // 0x437280 (the buffer reset, no callers) is written out: C1 does not
 // auto-inline it out of class (IL 180), while 0x435320 (IL 157) is.
 #include <windows.h>
@@ -100,9 +100,9 @@ struct Class_0048df90 {
     ~Class_0048df90() { ((Class_0048dfb0*)this)->FUN_0048dfb0(); }
 };
 
-class Class_0048ff40 {
+class MissionConditions {
 public:
-    void FUN_0048e010(Class_004c2ea0* parser);
+    void RegisterConditions(Class_004c2ea0* parser);
 };
 
 class Class_00438320 {
@@ -120,7 +120,7 @@ public:
     void FUN_00436c30(char* schema, Class_004c2ea0* parser);
 };
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004b6b80(const char* text, const char* caption);
 int __stdcall FUN_004bbc40(char* path);
@@ -205,7 +205,7 @@ public:
         }
     }
 
-    void FUN_00435430(int index, char* dir, char* name, char* ext);
+    void BuildCampaignFilePath(int index, char* dir, char* name, char* ext);
     int FUN_00436860(int type, Class_004c2ea0* parser, char* schema);
     int FUN_00435da0(char* map);
 };
@@ -271,7 +271,7 @@ int Class_00435c00::FUN_00435da0(char* map)
         int found = ((Class_004c48c0*)list.current)->FUN_004c48c0(path, "missionfile", 0x100, DAT_005119b8);
         if (found) {
             char file[0x100];
-            FUN_004290f0(file, "Maps", path, "OTA");
+            BuildDataPath(file, "Maps", path, "OTA");
             if (!((Class_004c2f60*)&parser)->FUN_004c2f60(file)) {
                 char msg[0x100];
                 sprintf(msg, "Hey, joker!  There is no mission defintion for this mission: %s", path);
@@ -282,7 +282,7 @@ int Class_00435c00::FUN_00435da0(char* map)
             if (((Class_004c3410*)&parser)->FUN_004c3410("GlobalHeader")) {
                 g_game->maxUnits = parser.current->FUN_004c46c0("maxunits", 200);
                 ((Class_004c3e10*)&parser)->FUN_004c3e10();
-                FUN_00435430(1, "Maps", path, "TNT");
+                BuildCampaignFilePath(1, "Maps", path, "TNT");
             } else {
                 char msg[0x100];
                 sprintf(msg, "Hey, joker!  Mission file %s is corrupt (no header found).", path);
@@ -299,19 +299,19 @@ int Class_00435c00::FUN_00435da0(char* map)
     case 3:
         exists = 0;
         strcpy(missionName, map);
-        FUN_004290f0(path, "Maps", map, "OTA");
+        BuildDataPath(path, "Maps", map, "OTA");
         if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
-            FUN_00435430(1, "Maps", map, "TNT");
+            BuildCampaignFilePath(1, "Maps", map, "TNT");
             break;
         }
         map = FUN_004c5840(map);
         if (map == 0)
             return 0;
         strcpy(missionName, map);
-        FUN_004290f0(path, "Maps", map, "OTA");
+        BuildDataPath(path, "Maps", map, "OTA");
         if (!((Class_004c2f60*)&parser)->FUN_004c2f60(path))
             return 0;
-        FUN_00435430(1, "Maps", map, "TNT");
+        BuildCampaignFilePath(1, "Maps", map, "TNT");
         break;
     case 0:
         return 0;
@@ -325,18 +325,18 @@ int Class_00435c00::FUN_00435da0(char* map)
     }
     field_c20 = *(int*)((char*)parser.current + 0x25);
     FUN_004c58a0(&parser, value, "brief", 0x100, DAT_005119b8);
-    FUN_00435430(2, "camps\\briefs", value, "TXT");
+    BuildCampaignFilePath(2, "camps\\briefs", value, "TXT");
     LoadBriefing();
     FUN_004c58a0(&parser, value, "narration", 0x100, DAT_005119b8);
-    FUN_00435430(3, "camps\\briefs", value, "WAV");
+    BuildCampaignFilePath(3, "camps\\briefs", value, "WAV");
     FUN_004c58a0(&parser, value, "missionhint", 0x100, DAT_005119b8);
-    FUN_00435430(4, "camps\\hints", value, "TXT");
+    BuildCampaignFilePath(4, "camps\\hints", value, "TXT");
     ((Class_004c48c0*)parser.current)->FUN_004c48c0(value, "glamour", 0x100, DAT_005119b8);
-    FUN_00435430(5, DAT_005119b8, value, "PCX");
+    BuildCampaignFilePath(5, DAT_005119b8, value, "PCX");
     ((Class_004c48c0*)parser.current)->FUN_004c48c0(value, "glamoursound", 0x100, DAT_005119b8);
-    FUN_00435430(8, "camps\\briefs", value, "WAV");
+    BuildCampaignFilePath(8, "camps\\briefs", value, "WAV");
     ((Class_004c48c0*)parser.current)->FUN_004c48c0(value, "UseOnlyUnits", 0x100, DAT_005119b8);
-    FUN_00435430(6, "camps\\useonly", value, "TDF");
+    BuildCampaignFilePath(6, "camps\\useonly", value, "TDF");
     g_game->mapping = parser.current->FUN_004c46c0("mapping", 0);
     g_game->lineOfSight = parser.current->FUN_004c46c0("lineofsight", 0);
     g_game->field_39225 = 1;
@@ -359,7 +359,7 @@ int Class_00435c00::FUN_00435da0(char* map)
     noSeaLevelTrigger = parser.current->FUN_004c46c0("nosealeveltrigger", 0);
     waterDoesDamage = parser.current->FUN_004c46c0("waterdoesdamage", 0);
     waterDamage = parser.current->FUN_004c46c0("waterdamage", 0);
-    ((Class_0048ff40*)g_game->field_391ed)->FUN_0048e010(&parser);
+    ((MissionConditions*)g_game->field_391ed)->RegisterConditions(&parser);
     killMul = GetFloat(parser.current, "killmul");
     timeMul = GetFloat(parser.current, "timemul");
     if (!FUN_00436860(type, &parser, schema)) {
@@ -372,9 +372,9 @@ int Class_00435c00::FUN_00435da0(char* map)
     computerEnergy = (float)parser.current->FUN_004c46c0("ComputerEnergy", 0);
     surfaceMetal = parser.current->FUN_004c46c0("SurfaceMetal", 0);
     ((Class_004c48c0*)parser.current)->FUN_004c48c0(value, "aiprofile", 0x100, DAT_005119b8);
-    FUN_00435430(7, "ai", value, "txt");
+    BuildCampaignFilePath(7, "ai", value, "txt");
     if (!GetName(7))
-        FUN_00435430(7, "ai", "default", "txt");
+        BuildCampaignFilePath(7, "ai", "default", "txt");
     ((Class_004c48c0*)parser.current)->FUN_004c48c0(meteor.name, "MeteorWeapon", 0x20, DAT_005119b8);
     if (strlen(meteor.name) != 0) {
         meteor.radius = parser.current->FUN_004c46c0("MeteorRadius", 0);

@@ -151,12 +151,12 @@ int __stdcall AllocSurface(const char* name, int width, int height);
 void __stdcall SetRestoreSurface(int param_1);
 void __stdcall SetPageFlipping(int param_1);
 void __stdcall FUN_00434ab0(int param_1);
-void FUN_00429870();
+void LoadGameResources();
 void FUN_0047ed40();
 void FUN_004259b0();
 void __stdcall InitPacketTables(void* param_1);
 void RegisterAllOrderTypes();
-void FUN_0042a320();
+void LoadGameFonts();
 void FUN_0042a400();
 void FUN_0042f7e0();
 void __stdcall LoadAlphaTable(void* param_1);
@@ -165,12 +165,12 @@ void __stdcall LoadLightTable(void* param_1);
 void __stdcall MakeGrayTable(void* param_1);
 void __stdcall MakeBlueTable(void* param_1);
 void* __cdecl FUN_004d83b0(const char* name, int size);
-void FUN_0042f9a0();
-int __stdcall FUN_0042f980(const char* name, void* buf, int* size);
+void LoadSettings();
+int __stdcall ReadGameRegistryValue(const char* name, void* buf, int* size);
 void FUN_00490fe0();
 void FUN_0045bcc0();
-void FUN_00431a60();
-void FUN_004318c0();
+void LoadSideData();
+void LoadLogos();
 void __stdcall SetBrightness(float param_1);
 void __stdcall SetCurrentGuiContext(void* param_1);
 void __stdcall FUN_0049fba0(void* param_1, const char* name);
@@ -185,12 +185,12 @@ void __stdcall SetTextKeyColor(int param_1);
 void __stdcall SetFont(int param_1);
 void __stdcall SetCloseHandler(void (__cdecl *param_1)(), int param_2);
 void FUN_004287b0();
-int __stdcall FUN_0049f5a0(const char* name, int param_2);
+int __stdcall GetPreferenceInt(const char* name, int param_2);
 void FUN_00496a60();
 void __cdecl LeaveNetGameCallback();
 
 // FUNCTION: 0x491200
-void FUN_00491200()
+void InitGame()
 {
     int size;
 
@@ -220,12 +220,12 @@ void FUN_00491200()
     g_game->field_37f2f &= 0xff7f;
     g_game->field_37f2f &= 0xfeff;
     SetPageFlipping(0);
-    FUN_00429870();
+    LoadGameResources();
     FUN_0047ed40();
     FUN_004259b0();
     InitPacketTables(g_game->field_12ef);
     RegisterAllOrderTypes();
-    FUN_0042a320();
+    LoadGameFonts();
     FUN_0042a400();
     FUN_0042f7e0();
     LoadAlphaTable(g_game->field_143a7);
@@ -234,9 +234,9 @@ void FUN_00491200()
     MakeGrayTable(g_game->field_143a7);
     MakeBlueTable(g_game->field_143a7);
     g_game->field_29a0 = FUN_004d83b0(DAT_00509268, 0x22c);
-    FUN_0042f9a0();
+    LoadSettings();
     size = 0xaa0;
-    int ok = FUN_0042f980(DAT_00509200, DAT_0051e828, &size);
+    int ok = ReadGameRegistryValue(DAT_00509200, DAT_0051e828, &size);
     if (ok == 0)
         memset(DAT_0051e828, 0, 0xaa0);
     ((Class_004cedc0*)g_game->field_10)->FUN_004cedc0(g_game->field_37f14 & 1);
@@ -245,8 +245,8 @@ void FUN_00491200()
     FUN_00490fe0();
     ((Class_004ce690*)g_game->field_10)->FUN_004ce690(0);
     FUN_0045bcc0();
-    FUN_00431a60();
-    FUN_004318c0();
+    LoadSideData();
+    LoadLogos();
     SetBrightness(0.5 - g_game->field_37f08 * -0.041666668f);
     SetCurrentGuiContext(g_game->field_519);
     FUN_0049fba0(g_game->field_519, DAT_00502820);
@@ -277,7 +277,7 @@ void FUN_00491200()
     }
     FUN_004287b0();
     g_game->field_589 = 1;
-    int limit = FUN_0049f5a0(DAT_00509238, 0xfa);
+    int limit = GetPreferenceInt(DAT_00509238, 0xfa);
     if (limit > 500)
         limit = 500;
     else if (limit < 20)

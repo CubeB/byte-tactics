@@ -11,7 +11,7 @@ unsigned int __stdcall FUN_004bbbe0(File_004bb5d0* file, void* data, unsigned in
 int __stdcall FUN_004bb5d0(File_004bb5d0* file);
 
 // FUNCTION: 0x49e640
-void __stdcall FUN_0049e640(char* text)
+void __stdcall AppendToDebugFile(char* text)
 {
     File_004bb5d0* file = FUN_004bb2c0("DEBUG.FIL");
     if (!file)

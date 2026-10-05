@@ -12,16 +12,16 @@ public:
     int FUN_004b4800(char* name, int def);
 };
 
-class Class_0048f6b0 {
+class DefeatCommanderKilled {
 public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    virtual void FUN_0048f880(Class_004b4560* obj);
+    virtual void LoadState(Class_004b4560* obj);
 };
 
 // FUNCTION: 0x48f750
-void Class_0048f6b0::FUN_0048f880(Class_004b4560* obj)
+void DefeatCommanderKilled::LoadState(Class_004b4560* obj)
 {
     obj->FUN_004b4560("DefeatCondition_CommanderKilled");
     satisfied = ((Class_004b4800*)obj)->FUN_004b4800("Satisfied", 0);

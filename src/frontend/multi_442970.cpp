@@ -27,7 +27,7 @@ extern Game* g_game;
 extern Entry_00442970* DAT_00512988;
 
 Gadget_00442970* __stdcall FindGadgetChecked(void* gadgets, char* name);
-void __stdcall FUN_0042f960(void* key, void* buf, int value);
+void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 
 // The last used entry is moved to the front of the modem number list, which is
 // then written to the registry under "MODEMNUMBERS".
@@ -43,6 +43,6 @@ void FUN_00442970(void)
                 memcpy(&DAT_00512988[i], &DAT_00512988[i - 1], 0x102);
             memcpy(&DAT_00512988[0], &temp, 0x102);
         }
-        FUN_0042f960("MODEMNUMBERS", DAT_00512988, 0x1428);
+        WriteGameRegistryValue("MODEMNUMBERS", DAT_00512988, 0x1428);
     }
 }

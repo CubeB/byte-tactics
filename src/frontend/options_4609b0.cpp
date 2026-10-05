@@ -81,8 +81,8 @@ void __stdcall AllocBlinkWords(Sub_004609b0* sub, int value);
 void __stdcall FUN_0049fb10(Sub_004609b0* sub, int value);
 void __stdcall RenderLayer(Sub_004609b0* sub, int value);
 void __stdcall FUN_004ab0a0(Gadget_004609b0* gadget);
-void FUN_004931d0();
-void FUN_00493060();
+void ShowLoadGameScreen();
+void ShowSaveGameScreen();
 void FUN_00460160();
 void FUN_0045f1d0();
 void FUN_00476d80();
@@ -114,12 +114,12 @@ void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "LOADGAME")) {
         FUN_0047f1a0("Options", 0);
-        FUN_004931d0();
+        ShowLoadGameScreen();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "SAVEGAME")) {
         FUN_0047f1a0("Options", 0);
-        FUN_00493060();
+        ShowSaveGameScreen();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "PREFS")) {

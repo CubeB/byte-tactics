@@ -1,5 +1,5 @@
 // Decompiled by mimo-v2.6-pro. Names are provisional.
-// Click handler of the save game dialog (opened by FUN_00493060). On close
+// Click handler of the save game dialog (opened by ShowSaveGameScreen). On close
 // (field +0x60 == -1) it clears the save game name lists and the dialog flag;
 // CANCEL goes back to "Previous", DELETE removes the selected entry's path
 // ("dir\name" through FUN_004bbc30, the CRT _rmdir) and rebuilds the "GAMES"
@@ -61,7 +61,7 @@ void __stdcall FUN_004ab190(Menu_0044b690* menu, int flag);
 void __stdcall FUN_004bbc30(char* path);
 void* __stdcall FUN_0044b4e0(int* out);
 void __stdcall FUN_004a32a0(Menu_0044b690* menu, char* name, char* text, int value, int flag);
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_0044b230(char* filename);
 void __cdecl FUN_004d85a0(char* p);
 
@@ -122,7 +122,7 @@ void __stdcall FUN_0044b690(Menu_0044b690* menu)
         int idx = FindGadgetIndex(entries, "GAMENAME", 3);
         char* name = entries[idx].text;
         if (strlen(name) != 0) {
-            FUN_004290f0(g_game->save_38c6b, DAT_005091c8, name, "LST");
+            BuildDataPath(g_game->save_38c6b, DAT_005091c8, name, "LST");
             FUN_0044b230(g_game->save_38c6b);
         }
     } else if (menu->current != -1) {

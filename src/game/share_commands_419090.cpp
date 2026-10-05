@@ -90,7 +90,7 @@ static inline void ShareRadar(int unused)
 }
 
 // FUNCTION: 0x419090
-void __stdcall FUN_00419090(int unused)
+void __stdcall CmdShareAll(int unused)
 {
     if (g_game->flags & 1) {
         ShareMetal(unused);

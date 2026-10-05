@@ -12,14 +12,14 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall FUN_004bbe50(char* path, int flags);
 void __stdcall FatalError(char* path);
 
 static inline void* LoadFont(const char* name)
 {
     char path[256];
-    FUN_004290f0(path, "fonts", name, "FNT");
+    BuildDataPath(path, "fonts", name, "FNT");
     void* font = FUN_004bbe50(path, 0);
     if (font == 0) {
         FatalError(path);
@@ -28,7 +28,7 @@ static inline void* LoadFont(const char* name)
 }
 
 // FUNCTION: 0x42a320
-void FUN_0042a320()
+void LoadGameFonts()
 {
     g_game->field_391f9 = LoadFont("COMIX");
     g_game->field_391fd = LoadFont("smlfont");

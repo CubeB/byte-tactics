@@ -126,7 +126,7 @@ public:
 };
 class Class_00435a20 {
 public:
-    int FUN_00435a20(char* map);
+    int LoadMissionByName(char* map);
 };
 class Class_00435c20 {
 public:
@@ -327,7 +327,7 @@ void FUN_00448c70()
             if (IsScreenNamed(g_game->gui, "viewmap.gui"))
                 FUN_00444a20();
             else
-                ((Class_00435a20*)g_game->map)->FUN_00435a20(map);
+                ((Class_00435a20*)g_game->map)->LoadMissionByName(map);
         }
         if (!CheckMapCrc()) {
             mapname->colour = (GetTicks() / 30 & 1) ? 0xc : 0;

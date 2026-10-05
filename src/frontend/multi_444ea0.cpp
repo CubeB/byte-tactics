@@ -43,7 +43,7 @@ struct Layer_00444ea0 {
 
 class Class_00435a20 {
 public:
-    int FUN_00435a20(char* name);
+    int LoadMissionByName(char* name);
 };
 
 class Class_00435c30 {
@@ -142,7 +142,7 @@ void FUN_00444ea0()
 
     Menu_00444ea0* menu = &g_game->menu;
     Entry_00444ea0* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
-    if (((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(
+    if (((Class_00435a20*)g_game->field_391e9)->LoadMissionByName(
             FUN_004b6af0(g->text, g->selected)) == 0) {
         FUN_004a0570(menu, "MAPPIC", 0);
     } else {

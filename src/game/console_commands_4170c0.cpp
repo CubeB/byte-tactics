@@ -25,7 +25,7 @@ extern Game* g_game;
 class Class_004b73e0;
 
 // FUNCTION: 0x4170c0
-void __stdcall FUN_004170c0(Class_004b73e0* args)
+void __stdcall CmdATM(Class_004b73e0* args)
 {
     g_game->players[g_game->localPlayer].metal += 1000.0f;
     g_game->players[g_game->localPlayer].energy += 1000.0f;

@@ -11,7 +11,7 @@ struct Game { char pad0[0x37f2f]; unsigned short flags; };
 extern Game* g_game;
 extern char DAT_005119b8[];
 // FUNCTION: 0x416e90
-void __stdcall FUN_00416e90(Class_004b73c0* args)
+void __stdcall CmdNow(Class_004b73c0* args)
 {
     if (args->count==6 && !strcmp(args->FUN_004b73c0(1,DAT_005119b8),"Film") &&
         !strcmp(args->FUN_004b73c0(2,DAT_005119b8),"Chris") &&

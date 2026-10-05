@@ -11,13 +11,13 @@
 // can never be null. Kept as the original has it.
 //
 // MATCHED (335 bytes). The old 4-hunk wall was one compiler decision. The
-// original keeps the def base in esi and rematerialises the FUN_004290f0 name
+// original keeps the def base in esi and rematerialises the BuildDataPath name
 // argument from defs (edx) and type (ecx) instead of reusing the base. Neither
 // a local `def` nor a local `defs` breaks that CSE: MSVC folds every spelling
 // of `defs[type].name` back to the condition's temporary.
 //
 // What breaks it: index the body argument by the *reloaded* entry field,
-//     FUN_004290f0(path, "unitpics", defs[DAT_005129b4[i].unitType].name, "PCX");
+//     BuildDataPath(path, "unitpics", defs[DAT_005129b4[i].unitType].name, "PCX");
 // The reloaded load is CSE'd to the same register, but the value numbering no
 // longer ties this address to the condition's `defs[type].name`, so MSVC
 // rebuilds the whole address from defs/type at the call, which then forces the
@@ -97,7 +97,7 @@ extern int DAT_005129b8;
 extern Entry_0044c0d0* DAT_005129b4;
 
 Pic_0044c0d0* __stdcall FindGadgetChecked(void* gadgets, char* name);
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall LoadPcx(char* path, int param_2);
 void __stdcall FrameFromSurface(void* dst, void* src);
 void __stdcall FUN_0049fa90(void* obj);
@@ -117,7 +117,7 @@ void FUN_0044c0d0()
         int type = DAT_005129b4[i].unitType;
         Def_0044c0d0* defs = g_game->defs;
         if (defs[type].name && ((unsigned char)(defs[type].field_245 >> 15) & 1) == 0) {
-            FUN_004290f0(path, "unitpics", defs[DAT_005129b4[i].unitType].name, "PCX");
+            BuildDataPath(path, "unitpics", defs[DAT_005129b4[i].unitType].name, "PCX");
             void* img = LoadPcx(path, 0);
             *(void**)DAT_00512978 = img;
             DAT_00512978 += 4;

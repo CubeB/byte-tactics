@@ -59,7 +59,7 @@ struct Game {
 
 class Class_00435a20 {
 public:
-    int FUN_00435a20(char* name);
+    int LoadMissionByName(char* name);
 };
 
 class Class_00435c30 {
@@ -108,7 +108,7 @@ void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
     if (IsCurrentGadgetNamed(param_1, "MAPNAMES") || IsCurrentGadgetNamed(param_1, "LOAD")) {
         FUN_0047f1a0("Multi", 0);
         Entry_00444cb0* g = FindGadgetChecked(entries, "MAPNAMES");
-        ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(
+        ((Class_00435a20*)g_game->field_391e9)->LoadMissionByName(
             FUN_004b6af0(g->text, g->selected));
 
         Player_00444cb0* player = &g_game->players[g_game->localPlayer];
@@ -132,7 +132,7 @@ void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
 
     if (IsCurrentGadgetNamed(param_1, "PREVMENU")) {
         FUN_0047f1a0("Previous", 0);
-        ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(DAT_00512990);
+        ((Class_00435a20*)g_game->field_391e9)->LoadMissionByName(DAT_00512990);
         BroadcastPlayerInfo();
         return;
     }

@@ -29,7 +29,7 @@ void KillAllUnits(void);
 void __stdcall KillPlayerUnits(unsigned char player);
 
 // FUNCTION: 0x4164b0
-void __stdcall FUN_004164b0(Class_004b73e0* args)
+void __stdcall CmdKill(Class_004b73e0* args)
 {
     if (args->field_d0 == 1) {
         KillAllUnits();

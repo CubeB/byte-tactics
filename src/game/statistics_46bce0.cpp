@@ -3,7 +3,7 @@
 // block, that player's allies block, a scoreboard, the scoreboard's ppScores
 // block and a zeroed scores block, every block allocated through FUN_004d83b0
 // with a name wsprintfA formats from the slot number. Any allocation that
-// comes back null tears the lot down again through FUN_0046c190 and reports 1,
+// comes back null tears the lot down again through ShutdownScoreTables and reports 1,
 // so the slot loop only records the failure in a flag and breaks; the
 // epilogue tests that flag.
 // Both loops are `while (1)` with the test as an early `break`, not a `for`:
@@ -31,11 +31,11 @@ extern PlayerInfo_0046bce0** DAT_0051e574;
 extern ScoreBoard_0046bce0** DAT_0051e57c;
 extern char** DAT_0051e550;
 
-void FUN_0046c190();
+void ShutdownScoreTables();
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 
 // FUNCTION: 0x46bce0
-int FUN_0046bce0()
+int AllocScoreTables()
 {
     char name[64];
     int failed;
@@ -104,6 +104,6 @@ int FUN_0046bce0()
     if (!failed)
         return 0;
 failed:
-    FUN_0046c190();
+    ShutdownScoreTables();
     return 1;
 }

@@ -69,7 +69,7 @@ struct Menu_0047ae60 {
     int field_60;                      // +0x60
 };
 
-class Class_00435a20 { public: int FUN_00435a20(char* name); };
+class Class_00435a20 { public: int LoadMissionByName(char* name); };
 class Class_00437300 { public: int FUN_00437300(); };
 
 struct Frame_0047ae60 {
@@ -86,10 +86,10 @@ void __stdcall GetGadgetName(Entry_0047ae60* entries, char* text, int id);
 int __stdcall FindGadgetIndex(Entry_0047ae60* entries, char* name, int flag);
 int __stdcall IsCurrentGadgetNamed(Menu_0047ae60* menu, char* name);
 void __stdcall FUN_0047f1a0(char* name, int value);
-char __stdcall FUN_0041d6a0(int param_1);
-void FUN_0041d4c0();
+char __stdcall FindGameCdDrive(int param_1);
+void RegisterDataArchives();
 void FUN_0041da30();
-void FUN_00430f00();
+void SaveSettings();
 void FUN_00479660();
 int FUN_00479760();
 void __stdcall FUN_004797e0(int param_1);
@@ -123,13 +123,13 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
 
     if (IsCurrentGadgetNamed(menu, "Start")) {
         FUN_0047f1a0("BigButton", 0);
-        if (!FUN_0041d6a0(1)) {
+        if (!FindGameCdDrive(1)) {
             OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("Please insert the Multiplayer CD (Disc 1) and try again"),
                          0xc8, 1, 1);
             FUN_004ab0a0(g_game + 0x519);
         }
-        FUN_0041d4c0();
+        RegisterDataArchives();
 
         int n = 0;
         int count = *(int*)(g_game + 0x38d81);
@@ -143,7 +143,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         }
         *(short*)(g_game + 0x2a3c) = n + 1;
 
-        if ((*(Class_00435a20**)(g_game + 0x391e9))->FUN_00435a20((*(Table_0047ae60**)(g_game + 0x29a0))->mapName) == 0) {
+        if ((*(Class_00435a20**)(g_game + 0x391e9))->LoadMissionByName((*(Table_0047ae60**)(g_game + 0x29a0))->mapName) == 0) {
             OpenMessageBox(g_game + 0x519,
                          FUN_004c5740("The terrain for the selected map does not exist."),
                          0x1e0, 1, 1);
@@ -212,7 +212,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
 
                 FUN_0047a760();
                 FUN_0041da30();
-                FUN_00430f00();
+                SaveSettings();
                 *(char*)(g_game + 0x2bc0) = 2;
                 FUN_00491c80(0x14);
                 return;

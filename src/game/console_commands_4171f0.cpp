@@ -34,7 +34,7 @@ public:
 };
 
 // FUNCTION: 0x4171f0
-void __stdcall FUN_004171f0(Class_004b73e0* args)
+void __stdcall CmdNoEnergy(Class_004b73e0* args)
 {
     unsigned char i;
     if (args->count == 1)

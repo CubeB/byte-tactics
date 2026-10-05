@@ -75,7 +75,7 @@ public:
 
 class Class_00435110 {
 public:
-    void FUN_00435110(void* p);
+    void LoadCampaign(void* p);
 };
 
 class Class_00435c00 {
@@ -85,7 +85,7 @@ public:
 
 class Class_00435a20 {
 public:
-    void FUN_00435a20(void* p);
+    void LoadMissionByName(void* p);
 };
 
 class Class_004ce690 {
@@ -319,7 +319,7 @@ void FUN_00499200(void)
             FUN_004257a0();
             int a = ((Class_00435c50*)g_game->net)->FUN_00435c50();
             char* b = ((Class_004352b0*)g_game->net)->FUN_004352b0();
-            ((Class_00435110*)g_game->net)->FUN_00435110(b);
+            ((Class_00435110*)g_game->net)->LoadCampaign(b);
             if (((Class_00435c00*)g_game->net)->FUN_00435c00(a) != 0) {
                 g_game->field_2a44.bits.b3 = 1;
                 g_game->field_2a44.value |= 4;
@@ -335,7 +335,7 @@ void FUN_00499200(void)
             FUN_004257a0();
             SetCursor(0x14);
             g_game->field_2a3c = saved;
-            ((Class_00435a20*)g_game->net)->FUN_00435a20(g_game->field_29a0 + 0x11c);
+            ((Class_00435a20*)g_game->net)->LoadMissionByName(g_game->field_29a0 + 0x11c);
             FUN_0047a760();
             g_game->field_2a44.value |= 4;
             g_game->field_391f1 = 2;

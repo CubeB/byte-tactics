@@ -25,7 +25,7 @@ void __stdcall FUN_0047b9f0(void *);
 
 class Class_00435a20 {
 public:
-    int FUN_00435a20(char *);
+    int LoadMissionByName(char *);
 };
 class Class_00435d30 {
 public:
@@ -64,7 +64,7 @@ void FUN_0047bbb0(void)
     }
     FUN_0049fa90(g_game + 0x519);
 
-    if (!((Class_00435a20 *)*(int *)(g_game + 0x391e9))->FUN_00435a20(*(char **)(g_game + 0x29a0) + 0x11c)) {
+    if (!((Class_00435a20 *)*(int *)(g_game + 0x391e9))->LoadMissionByName(*(char **)(g_game + 0x29a0) + 0x11c)) {
         ((Class_00435d30 *)*(int *)(g_game + 0x391e9))->FUN_00435d30(0);
         strncpy(*(char **)(g_game + 0x29a0) + 0x11c,
                 ((Class_00435c30 *)*(int *)(g_game + 0x391e9))->FUN_00435c30(), 0x100);

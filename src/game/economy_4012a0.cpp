@@ -18,11 +18,11 @@ public:
     float y0;                          // +0x1c
     char unknown_20[0x30 - 0x20];
     Store_004012a0* store;             // +0x30
-    int FUN_004012a0(float dx, float dy);
+    int SpendMetalAndEnergy(float dx, float dy);
 };
 
 // FUNCTION: 0x4012a0
-int Class_004012a0::FUN_004012a0(float dx, float dy)
+int Class_004012a0::SpendMetalAndEnergy(float dx, float dy)
 {
     if (store->metal >= dx && store->energy >= dy) {
         store->metal -= dx;

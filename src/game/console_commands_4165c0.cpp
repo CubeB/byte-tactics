@@ -17,15 +17,15 @@ public:
     unsigned char FUN_004b73e0(int index, int fallback);
 };
 
-void FUN_00430f00(void);
+void SaveSettings(void);
 
 // FUNCTION: 0x4165c0
-void __stdcall FUN_004165c0(Class_004b73e0* args)
+void __stdcall CmdSwitchAlt(Class_004b73e0* args)
 {
     if (args->count < 2) {
         Flags_004165c0* f = (Flags_004165c0*)((char*)g_game + 0x37f06);
         f->flag = !f->flag;
-        FUN_00430f00();
+        SaveSettings();
         return;
     }
     ((Flags_004165c0*)((char*)g_game + 0x37f06))->flag = args->FUN_004b73e0(1, 0);

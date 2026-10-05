@@ -220,7 +220,7 @@ extern char DAT_005119b8[];
 
 int FUN_0041d8a0();
 int FUN_0041d8b0();
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __cdecl FUN_004d83b0(char* name, int size);
 void __cdecl FUN_004d85a0(void* p);
 void __cdecl FUN_004d8710(void* p);
@@ -249,7 +249,7 @@ static inline void LoadWeaponTDFs()
     for (Elem_00432be0* it = files.begin(); it < files.end(); it++) {
         char path[256];
         Class_004c2ea0* tdf = &DAT_005122a0[DAT_005122a4];
-        FUN_004290f0(path, "Weapons", it->data, "TDF");
+        BuildDataPath(path, "Weapons", it->data, "TDF");
         if (((Class_004c2f60*)tdf)->FUN_004c2f60(path)) {
             if (tdf->field_8 != 0 || FUN_0041d8a0() == 0)
                 DAT_005122a4++;
@@ -286,7 +286,7 @@ int LoadUnitInfo()
         g_game->unitinfo = 0;
     }
 
-    FUN_004290f0(path, "units", "*", "FBI");
+    BuildDataPath(path, "units", "*", "FBI");
     FileList files;
     FUN_004bca30(path, 0, &files);
     int count = files.size() + 1;
@@ -301,7 +301,7 @@ int LoadUnitInfo()
     for (unsigned short i = 1; i < count; i++) {
         Class_0042b370* u = &g_game->unitinfo[i];
         u->id = i;
-        FUN_004290f0(path, "units", files[i - 1], "FBI");
+        BuildDataPath(path, "units", files[i - 1], "FBI");
         void* f = FUN_004bb5b0(path);
         if (f) {
             int len = FUN_004bbd00(f);
@@ -310,7 +310,7 @@ int LoadUnitInfo()
             u->checksum = FUN_004b6ba0(buf, len);
             OvrFile ovr;
             char ovrpath[256];
-            FUN_004290f0(ovrpath, "units", files[i - 1], "OVR");
+            BuildDataPath(ovrpath, "units", files[i - 1], "OVR");
             if (((Class_004b3770*)&ovr)->FUN_004b3770(ovrpath, "TA Unit Override", 0)) {
                 if (((Class_004b4560*)&ovr)->FUN_004b4560("Compatability")) {
                     char num[16];

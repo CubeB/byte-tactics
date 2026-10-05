@@ -4,17 +4,17 @@
 
 extern char* g_game;
 
-class Class_0048fd50 {
+class DefeatDeathTimerRunsOut {
 public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
     int field_c;                         // +0xc
 
-    virtual int FUN_0048ea00();
+    virtual int IsSatisfied();
 };
 
 // FUNCTION: 0x48fd50
-int Class_0048fd50::FUN_0048ea00()
+int DefeatDeathTimerRunsOut::IsSatisfied()
 {
     unsigned int game_val = *(unsigned int*)(g_game + 0x38a47);
     return game_val >= (unsigned int)field_c;

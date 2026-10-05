@@ -4,7 +4,7 @@
 // the base height and the per-side panel graphics.
 //
 // The long straight-line head re-reads g_game-><group> into a local (`gaf`)
-// after the FUN_00429700 group load, which is what keeps the pointer in esi
+// after the LoadAnimGaf group load, which is what keeps the pointer in esi
 // across the FindGafEntry calls; storing straight into the field and reusing
 // the call's eax instead loses the reload and the register.
 //
@@ -93,9 +93,9 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];
 
-void* __stdcall FUN_00429700(char* name);
+void* __stdcall LoadAnimGaf(char* name);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 
 class Class_004c2ea0 {
 public:
@@ -144,11 +144,11 @@ struct Frame_00429870 {
 #define FLAG(p) (((Frame_00429870*)(p))->flag = 0)
 
 // FUNCTION: 0x429870
-void FUN_00429870()
+void LoadGameResources()
 {
     char* gaf;
 
-    g_game->fxGaf = (int)FUN_00429700("fx");
+    g_game->fxGaf = (int)LoadAnimGaf("fx");
     gaf = (char*)g_game->fxGaf;
     g_game->smoke1 = (int)FindGafEntry(gaf, "smoke 1");
     g_game->smoke2 = (int)FindGafEntry(gaf, "smoke 2");
@@ -182,17 +182,17 @@ void FUN_00429870()
     FLAG(g_game->nuke1);
     g_game->shadow = (int)FindGafEntry(gaf, "shadow");
 
-    g_game->igTitles = (int)FUN_00429700("igtitles");
+    g_game->igTitles = (int)LoadAnimGaf("igtitles");
     gaf = (char*)g_game->igTitles;
     g_game->igvictory = (int)FindGafEntry(gaf, "igvictory");
     g_game->igdefeat = (int)FindGafEntry(gaf, "igdefeat");
     g_game->igpaused = (int)FindGafEntry(gaf, "igpaused");
 
-    g_game->vismasks = (int)FUN_00429700("vismasks");
+    g_game->vismasks = (int)LoadAnimGaf("vismasks");
     gaf = (char*)g_game->vismasks;
     g_game->vismask = (int)FindGafEntry(gaf, "vismask");
 
-    g_game->fog = (int)FUN_00429700("fog");
+    g_game->fog = (int)LoadAnimGaf("fog");
     gaf = (char*)g_game->fog;
     g_game->black1 = (int)FindGafEntry(gaf, "Black1");
     g_game->black2 = (int)FindGafEntry(gaf, "Black2");
@@ -203,7 +203,7 @@ void FUN_00429870()
     g_game->gray3 = (int)FindGafEntry(gaf, "Gray3");
     g_game->gray4 = (int)FindGafEntry(gaf, "Gray4");
 
-    g_game->cursors = (int)FUN_00429700("cursors");
+    g_game->cursors = (int)LoadAnimGaf("cursors");
     gaf = (char*)g_game->cursors;
     g_game->cursorAttack = (int)FindGafEntry(gaf, "cursorattack");
     g_game->cursorAirstrike = (int)FindGafEntry(gaf, "cursorairstrike");
@@ -230,7 +230,7 @@ void FUN_00429870()
     Class_004c2ea0 parser;
     char buf[256];
 
-    FUN_004290f0(buf, "gamedata", "sidedata", "TDF");
+    BuildDataPath(buf, "gamedata", "sidedata", "TDF");
     ((Class_004c2f60*)&parser)->FUN_004c2f60(buf);
     sprintf(buf, "GENERAL");
     ((Class_004c3e10*)&parser)->FUN_004c3e10();
@@ -248,7 +248,7 @@ void FUN_00429870()
             break;
         int intgaf = ((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "intgaf", 0x1e, DAT_005119b8);
         if (intgaf != 0) {
-            char* side = (char*)FUN_00429700(buf);
+            char* side = (char*)LoadAnimGaf(buf);
             if (side) {
                 g_game->panelTop[i] = (int)side;
                 g_game->panelSide[i] = (int)FindGafEntry(side, "PANELTOP");

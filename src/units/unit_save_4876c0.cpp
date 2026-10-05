@@ -182,7 +182,7 @@ public:
 
 class Class_004010b0 {
 public:
-    void FUN_004010b0(Unit* unit, void* file);
+    void SaveUnitAccounts(Unit* unit, void* file);
 };
 
 class UnitMotion {
@@ -257,7 +257,7 @@ void __stdcall SaveUnits(Class_004b4560* file)
 
             if (unit->vtable != 0)
                 ((UnitMotion*)unit->vtable)->SaveMotion(unit, file);
-            ((Class_004010b0*)((char*)unit + 0xbc))->FUN_004010b0(unit, file);
+            ((Class_004010b0*)((char*)unit + 0xbc))->SaveUnitAccounts(unit, file);
 
             strcpy(rec.name, (char*)(*(char**)((char*)unit + 0x92) + 0x20));
             rec.f20 = unit->f_ff;

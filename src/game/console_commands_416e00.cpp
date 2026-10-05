@@ -12,7 +12,7 @@ struct Flags_00416e00
 };
 
 // FUNCTION: 0x416e00
-void __stdcall FUN_00416e00(int unused)
+void __stdcall CmdSelBoxes(int unused)
 {
     Flags_00416e00* f = (Flags_00416e00*)((char*)g_game + 0x37f2f);
     f->flag = !f->flag;

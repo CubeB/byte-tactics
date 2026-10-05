@@ -21,12 +21,12 @@ void FUN_00496b10();
 void FUN_00496bb0();
 void FUN_00496ce0();
 void FUN_00496db0();
-void FUN_00497f40();
+void LoadingScreenFrame();
 void FUN_00499200();
 void FUN_00499880();
 
 // FUNCTION: 0x490b30
-void __stdcall FUN_00490b30(int param)
+void __stdcall SetGameMode(int param)
 {
     g_game->mode = param;
     switch (param) {
@@ -46,7 +46,7 @@ void __stdcall FUN_00490b30(int param)
         g_game->handler = FUN_00496db0;
         break;
     case 5:
-        g_game->handler = FUN_00497f40;
+        g_game->handler = LoadingScreenFrame;
         break;
     case 6:
         g_game->handler = FUN_00499200;

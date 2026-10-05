@@ -11,16 +11,16 @@ public:
 };
 
 // The "death timer runs out" defeat condition; writes its state to a section.
-class Class_0048fd50 {
+class DefeatDeathTimerRunsOut {
 public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    virtual void FUN_0048f840(Class_004b4560* obj);
+    virtual void SaveState(Class_004b4560* obj);
 };
 
 // FUNCTION: 0x48fd70
-void Class_0048fd50::FUN_0048f840(Class_004b4560* obj)
+void DefeatDeathTimerRunsOut::SaveState(Class_004b4560* obj)
 {
     obj->FUN_004b4560("DefeatCondition_DeathTimerRunsOut");
     ((Class_004b4630*)obj)->FUN_004b4630("Satisfied", satisfied);

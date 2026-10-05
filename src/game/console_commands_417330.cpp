@@ -20,10 +20,10 @@ public:
     char* FUN_004b73c0(int index, char* fallback);
 };
 
-void FUN_00430f00();
+void SaveSettings();
 
 // FUNCTION: 0x417330
-void __stdcall FUN_00417330(Class_004b73c0* args)
+void __stdcall CmdFilm(Class_004b73c0* args)
 {
     if (args->count > 1) {
         strcpy(g_game->path, args->FUN_004b73c0(1, DAT_005119b8));
@@ -31,6 +31,6 @@ void __stdcall FUN_00417330(Class_004b73c0* args)
             g_game->path[strlen(g_game->path) - 1] == '/')
             g_game->path[strlen(g_game->path) - 1] = 0;
         g_game->valueSet = 1;
-        FUN_00430f00();
+        SaveSettings();
     }
 }

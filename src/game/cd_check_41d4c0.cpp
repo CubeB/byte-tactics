@@ -18,7 +18,7 @@ struct FindData_0041d4c0 {
 extern int DAT_0050289c;
 
 void FUN_004be180();
-void FUN_0049f540();
+void ChdirToExeDirectory();
 void FUN_004be320();
 int __stdcall FUN_004bc4b0(const char* path, FindData_0041d4c0* fd, int a, int b);
 int __stdcall FUN_004bc640(int handle, FindData_0041d4c0* fd);
@@ -27,14 +27,14 @@ int __stdcall FUN_004be0b0(char* path, int flag);
 char __stdcall FUN_004bb190(char drive);
 
 // FUNCTION: 0x41d4c0
-void FUN_0041d4c0()
+void RegisterDataArchives()
 {
     FindData_0041d4c0 fd;
     char pattern[64];
     char path[256];
     if (DAT_0050289c != 0) {
         FUN_004be180();
-        FUN_0049f540();
+        ChdirToExeDirectory();
         sprintf(pattern, "rev%s.GP3", "31");
         int h = FUN_004bc4b0(pattern, &fd, -1, 1);
         if (h >= 0) {

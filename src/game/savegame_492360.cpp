@@ -102,8 +102,8 @@ struct Game {
 #pragma pack(pop)
 
 struct Class_00435100 { int FUN_00435100(); };
-struct Class_00435110 { void FUN_00435110(char* name); };
-struct Class_00435a20 { void* FUN_00435a20(char* name); };
+struct Class_00435110 { void LoadCampaign(char* name); };
+struct Class_00435a20 { void* LoadMissionByName(char* name); };
 struct Class_004b3630 { void FUN_004b3630(); };
 struct Class_004b4560 { void FUN_004b4560(char* name); };
 struct Class_004b4800 { int FUN_004b4800(char* name, int def); };
@@ -118,8 +118,8 @@ extern char* DAT_0051f2e8;
 extern char* DAT_0051f2ec;
 
 void __cdecl operator delete(void* p);
-void __stdcall FUN_0041d4c0();
-char __stdcall FUN_0041d6a0(int flag);
+void __stdcall RegisterDataArchives();
+char __stdcall FindGameCdDrive(int flag);
 void __stdcall FUN_0041da30();
 void __stdcall FUN_004257a0();
 void __stdcall FUN_00425860(int code, int line, char* file);
@@ -152,7 +152,7 @@ __inline void DeleteSave_00492360(Class_004b3630* obj)
 }
 
 // FUNCTION: 0x492360
-void __stdcall FUN_00492360(Gadget_00492360* gadget)
+void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
 {
     Entry_00492360* entries = gadget->layer->entries;
     char buf[0x104];
@@ -191,7 +191,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
         FUN_00432590(save);
         switch (type) {
         case 1:
-            if (!FUN_0041d6a0(0)) {
+            if (!FindGameCdDrive(0)) {
                 OpenMessageBox(g_game->message,
                     FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
                     200, 1, 1);
@@ -200,7 +200,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
             }
             break;
         case 2:
-            if (!FUN_0041d6a0(1)) {
+            if (!FindGameCdDrive(1)) {
                 OpenMessageBox(g_game->message,
                     FUN_004c5740("Please insert the Multiplayer CD (Disc 1) and try again"),
                     200, 1, 1);
@@ -211,7 +211,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
         default:
             goto invalid;
         }
-        FUN_0041d4c0();
+        RegisterDataArchives();
         FUN_004257a0();
         if (g_game->field_2cbe != 20) {
             g_game->field_2cbe = 20;
@@ -234,7 +234,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
         FUN_00434ab0(((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("Gametype", 0));
         char* campaign = ((Class_004b48a0*)g_game->p38d6b)->FUN_004b48a0("Campaign", 0);
         if (campaign != 0)
-            ((Class_00435110*)g_game->p391e9)->FUN_00435110(campaign);
+            ((Class_00435110*)g_game->p391e9)->LoadCampaign(campaign);
         g_game->field_37ef2 = ((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("Side", 0);
         g_game->field_37eee = ((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("Difficulty", 0);
         if (((Class_00435100*)g_game->p391e9)->FUN_00435100() == 1) {
@@ -251,7 +251,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
             goto invalid;
         if (strlen(mission) == 0)
             goto invalid;
-        if (((Class_00435a20*)g_game->p391e9)->FUN_00435a20(mission) == 0)
+        if (((Class_00435a20*)g_game->p391e9)->LoadMissionByName(mission) == 0)
             goto invalid;
         strcpy((char*)g_game->p29a0 + 0x11c, mission);
         char* thumbs = ((Class_004b48a0*)g_game->p38d6b)->FUN_004b48a0("Thumbs", 0);

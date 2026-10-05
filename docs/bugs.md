@@ -263,7 +263,7 @@ deepseek-v4.1 in #2151.
 ## Skirmish starts after the missing-CD warning (likely)
 
 **0x47ae60**, the skirmish menu handler. When the Start check for the
-multiplayer CD fails (FUN_0041d6a0(1) returns 0, so `jne 0x47af2e` at 0x47aef8
+multiplayer CD fails (FindGameCdDrive(1) returns 0, so `jne 0x47af2e` at 0x47aef8
 is not taken), it shows "Please insert the Multiplayer CD (Disc 1) and try
 again" (0x5030c0, through 0x4abd90 at 0x47af19) and resets the button
 (0x4ab0a0 at 0x47af29), then falls straight into the Start validation at

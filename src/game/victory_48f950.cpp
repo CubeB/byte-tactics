@@ -12,18 +12,18 @@ public:
     int FUN_004b4800(char* name, int def);
 };
 
-class Class_0048f8c0 {
+class DefeatUnitTypeKilled {
 public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
     char unknown_c[0x2c - 0xc];
     int numLeftToKill;                   // +0x2c
 
-    virtual void FUN_0048f880(Class_004b4560* obj);
+    virtual void LoadState(Class_004b4560* obj);
 };
 
 // FUNCTION: 0x48f950
-void Class_0048f8c0::FUN_0048f880(Class_004b4560* obj)
+void DefeatUnitTypeKilled::LoadState(Class_004b4560* obj)
 {
     obj->FUN_004b4560("DefeatCondition_UnitTypeKilled");
     numLeftToKill = ((Class_004b4800*)obj)->FUN_004b4800("NumLeftToKill", 0);

@@ -28,7 +28,7 @@ public:
 };
 
 // FUNCTION: 0x416ab0
-void __stdcall FUN_00416ab0(Class_004b73e0* args)
+void __stdcall CmdControl(Class_004b73e0* args)
 {
     unsigned char i = args->FUN_004b73e0(1, 0);
     if (i < 10) {

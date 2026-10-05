@@ -35,7 +35,7 @@ struct DirectXRegisterApp {
 };
 typedef int (__stdcall* DirectXRegisterApplicationProc)(HWND, DirectXRegisterApp*);
 
-int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                            LPSTR lpCmdLine, int nCmdShow);
 int __stdcall ExceptionFilter(EXCEPTION_POINTERS* exception, const char* thread);
 bool __cdecl FUN_004da0e0(const char* arg);
@@ -57,7 +57,7 @@ extern "C" int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                                  LPSTR lpCmdLine, int nCmdShow)
 {
     __try {
-        return FUN_0049e830(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+        return GameMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
     } __except (ExceptionFilter(GetExceptionInformation(), "Main Thread")) {
     }
     return 0;
@@ -77,7 +77,7 @@ extern "C" int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 // name's bucket), and the message text reuses `p` because one more named
 // local would add a slot.
 // FUNCTION: 0x49ee30
-int __stdcall FUN_0049ee30(char* cmdLine, char* appName)
+int __stdcall ParseCommandLine(char* cmdLine, char* appName)
 {
     char* copy = (char*)_alloca(strlen(cmdLine) + 1);
     strcpy(copy, cmdLine);

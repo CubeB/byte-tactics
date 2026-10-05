@@ -20,7 +20,7 @@ extern void* DAT_0051f2e8;
 
 Gadget_004931d0* __stdcall LoadGuiLayer(char* sub, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-int __stdcall FUN_00492b10(int* out);
+int __stdcall ListSavedGames(int* out);
 void __stdcall CloseTopScreen(char* sub);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int a, int b, int c);
@@ -29,22 +29,22 @@ void __stdcall FUN_004a32a0(char* menu, char* name, void* text, int count, int f
 void __stdcall FUN_004a0570(char* menu, char* name, int value);
 Entry_004931d0* __stdcall FindGadgetChecked(void* entries, char* name);
 void __stdcall FUN_00492de0(int a, int b);
-void __stdcall FUN_00492360(void* gadget);
-void FUN_00491ec0();
+void __stdcall LoadGameScreenHandler(void* gadget);
+void ShowSavedGameInfo();
 void __stdcall FUN_0049fb10(char* sub, int value);
 void FUN_00428b60();
 void __stdcall FUN_0049fa50(char* sub);
 void __stdcall RenderLayer(char* sub, int value);
 
 // FUNCTION: 0x4931d0
-void FUN_004931d0()
+void ShowLoadGameScreen()
 {
     Gadget_004931d0* gadget = LoadGuiLayer(g_game + 0x519, "LOADGAME.GUI", 0x980);
-    gadget->handler = FUN_00492360;
+    gadget->handler = LoadGameScreenHandler;
     gadget->context = g_game;
     FUN_004288d0("DLOADGAME2", 0, 0, 0);
     int count;
-    if (FUN_00492b10(&count) == 0) {
+    if (ListSavedGames(&count) == 0) {
         CloseTopScreen(g_game + 0x519);
         OpenMessageBox(g_game + 0x519,
                      FUN_004c5740("There are no saved games to choose from"),
@@ -59,7 +59,7 @@ void FUN_004931d0()
     if (entry != 0) {
         entry->field_ce = (void*)FUN_00492de0;
     }
-    FUN_00491ec0();
+    ShowSavedGameInfo();
     FUN_0049fb10(g_game + 0x519, 1);
     FUN_00428b60();
     FUN_004a0570(g_game + 0x519, "SaveGame", 0);

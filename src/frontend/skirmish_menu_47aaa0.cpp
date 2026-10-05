@@ -21,7 +21,7 @@ struct Menu_0047aaa0 {
 
 class Class_00435a20 {
 public:
-    int FUN_00435a20(char* name);
+    int LoadMissionByName(char* name);
 };
 
 #pragma pack(push, 1)
@@ -42,7 +42,7 @@ void FUN_00444a20();
 void __stdcall FUN_0047aaa0(Menu_0047aaa0* menu, int unused)
 {
     Gadget_0047aaa0* g = FindGadgetChecked(menu->inner->gadgets, "MAPNAMES");
-    if (g_game->field_391e9->FUN_00435a20(FUN_004b6af0(g->text, g->selected)) != 0) {
+    if (g_game->field_391e9->LoadMissionByName(FUN_004b6af0(g->text, g->selected)) != 0) {
         FUN_00444a20();
     }
 }

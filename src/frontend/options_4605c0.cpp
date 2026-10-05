@@ -38,7 +38,7 @@ void FUN_00491c60();
 int __stdcall FUN_00491d70(int force);
 void __stdcall CloseTopScreen(void* queue);
 void FUN_004257a0();
-void __stdcall FUN_00490b30(int a);
+void __stdcall SetGameMode(int a);
 
 // FUNCTION: 0x4605c0
 void __stdcall FUN_004605c0(Gadget_004605c0* gadget)
@@ -56,7 +56,7 @@ void __stdcall FUN_004605c0(Gadget_004605c0* gadget)
             FUN_00491d70(1);
             CloseTopScreen(g_game->field_519);
             FUN_004257a0();
-            FUN_00490b30(1);
+            SetGameMode(1);
             return;
         case 2:
             g_game->flags_3923b |= 4;

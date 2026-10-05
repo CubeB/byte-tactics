@@ -73,17 +73,17 @@ public:
         return 0;
     }
 
-    void FUN_00435430(int index, char* dir, char* name, char* ext);
+    void BuildCampaignFilePath(int index, char* dir, char* name, char* ext);
     int FUN_00435da0(char* map);
 };
 
 class Class_00435110 : public Class_00435c00 {
 public:
-    void FUN_00435110(char* file);
+    void LoadCampaign(char* file);
 };
 
 // FUNCTION: 0x435110
-void Class_00435110::FUN_00435110(char* file)
+void Class_00435110::LoadCampaign(char* file)
 {
     char msg[0x80];
 
@@ -92,12 +92,12 @@ void Class_00435110::FUN_00435110(char* file)
     for (int i = 0; i < 9; i++)
         SetName(i, DAT_005119b8);
     if (strlen(file) != 0) {
-        FUN_00435430(0, "camps", campaign, "TDF");
+        BuildCampaignFilePath(0, "camps", campaign, "TDF");
         if (strlen(file) != 0) {
             if (!((Class_004c2f60*)&list)->FUN_004c2f60(GetName(0))) {
                 wsprintfA(msg, "The requested campaign file, %s, does not exist.", GetName(0));
                 OpenMessageBox(g_game + 0x519, msg, 0x1e0, 1, 1);
-                FUN_00435110(DAT_005119b8);
+                LoadCampaign(DAT_005119b8);
                 return;
             }
         }

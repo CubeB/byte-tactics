@@ -39,14 +39,14 @@ struct Game {
 
 extern Game* g_game;
 
-class Class_0048f6b0 {
+class DefeatCommanderKilled {
 public:
     int done;                          // +0x04
-    virtual void FUN_0048ea10(Unit* unit);
+    virtual void OnUnitDied(Unit* unit);
 };
 
 // FUNCTION: 0x48f6b0
-void Class_0048f6b0::FUN_0048ea10(Unit* unit)
+void DefeatCommanderKilled::OnUnitDied(Unit* unit)
 {
     if (unit->kind == 0) {
         if (_strcmpi(unit->info->name, g_game->players[unit->link->owner->playerIndex].name) == 0) {

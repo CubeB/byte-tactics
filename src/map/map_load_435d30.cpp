@@ -1,13 +1,13 @@
 // Decompiled by Opus. Names are provisional.
 // Makes sure the map list at +0xd24 is loaded (dropping it first when the
-// multiplayer flag changes back to 0), then passes it to FUN_00435a20.
+// multiplayer flag changes back to 0), then passes it to LoadMissionByName.
 
 void __cdecl FUN_004d85a0(int* param_1);
 int __stdcall FUN_00434bf0(char** out, int param_2, int param_3);
 
 class Class_00435a20 {
 public:
-    int FUN_00435a20(char* name);
+    int LoadMissionByName(char* name);
 };
 
 class Class_00435d30 {
@@ -30,6 +30,6 @@ void Class_00435d30::FUN_00435d30(int param_1)
     if (list == 0) {
         count = FUN_00434bf0(&list, param_1, param_1);
     }
-    ((Class_00435a20*)this)->FUN_00435a20(list);
+    ((Class_00435a20*)this)->LoadMissionByName(list);
     multi = param_1;
 }

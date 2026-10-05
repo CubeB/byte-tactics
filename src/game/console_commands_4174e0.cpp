@@ -15,7 +15,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x4174e0
-void __stdcall FUN_004174e0(int unused)
+void __stdcall CmdBigBrother(int unused)
 {
     if (g_game->paused) {
         g_game->paused = 0;

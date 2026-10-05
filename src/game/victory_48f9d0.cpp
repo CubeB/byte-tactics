@@ -64,25 +64,25 @@ short __stdcall FindUnitTypeId(char* name);
 
 class Condition_0048f9d0 {
 public:
-    virtual int FUN_0048ea00();        // IsSatisfied
-    virtual void FUN_0048ea10(Unit* unit) = 0;
+    virtual int IsSatisfied();         // IsSatisfied
+    virtual void OnUnitDied(Unit* unit) = 0;
     int done;                          // +0x04
     int announced;                     // +0x08
 };
 
 #pragma pack(push, 2)
-class Class_0048f9d0 : public Condition_0048f9d0, public UnitVisitor_0048f9d0 {
+class DefeatAllUnitsKilledOfType : public Condition_0048f9d0, public UnitVisitor_0048f9d0 {
 public:
     char name[0x20];                   // +0x10
     short id;                          // +0x30
     int count;                         // +0x32
-    virtual void FUN_0048ea10(Unit* unit);
+    virtual void OnUnitDied(Unit* unit);
     int Visit(Unit* unit);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x48f9d0
-void Class_0048f9d0::FUN_0048ea10(Unit* unit)
+void DefeatAllUnitsKilledOfType::OnUnitDied(Unit* unit)
 {
     if (_strcmpi(name, unit->info->name) == 0) {
         id = FindUnitTypeId(name);

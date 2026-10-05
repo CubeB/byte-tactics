@@ -16,7 +16,7 @@ extern Game* g_game;
 void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
 
 // FUNCTION: 0x4194d0
-void __stdcall FUN_004194d0(int unused)
+void __stdcall CmdCompression(int unused)
 {
     char buf[256];
     if (g_game->flags_2a44 & 1) {

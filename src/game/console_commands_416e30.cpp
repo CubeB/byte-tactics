@@ -12,7 +12,7 @@ struct Flags_00416e30
 };
 
 // FUNCTION: 0x416e30
-void __stdcall FUN_00416e30(int unused)
+void __stdcall CmdTreeDeath(int unused)
 {
     Flags_00416e30* f = (Flags_00416e30*)((char*)g_game + 0x37f2f);
     f->b3 = !f->b3;

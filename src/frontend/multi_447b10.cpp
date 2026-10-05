@@ -194,7 +194,7 @@ extern int DAT_00512994;
 extern PacketManager g_packetManager;
 
 void __cdecl FUN_004d85a0(void* data);
-void FUN_00430f00();
+void SaveSettings();
 void FUN_00444a20();
 void __stdcall FUN_00444ba0(void* gadget);
 void FUN_00444ea0();
@@ -617,7 +617,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         g_game->commander = me->info->b.commander;
         g_game->options->fixedloc = me->info->b.fixedloc;
         g_game->mapping = me->info->b.mapping;
-        FUN_00430f00();
+        SaveSettings();
         g_game->field_37eee = 2;
         return;
     } else if (IsCurrentGadgetNamed(gadget, "GAMEOPEN")) {

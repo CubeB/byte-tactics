@@ -133,7 +133,7 @@ void __stdcall CreateSquads(Player_00464700* p);
 void __stdcall FUN_0040b320(int player);
 
 // FUNCTION: 0x464700
-void __stdcall FUN_00464700(Player_00464700* p)
+void __stdcall InitPlayerSlot(Player_00464700* p)
 {
     p->ff0 = g_game->ticks;
     p->ff4 = g_game->ticks;

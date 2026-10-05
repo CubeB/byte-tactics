@@ -119,7 +119,7 @@ extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 
 int IsOnlineConfigLoaded(void);
-void FUN_004644d0(void);
+void ResetPlayerSlots(void);
 void FUN_00450530(void);
 int __stdcall JoinLobbyGame(Player_4517b0* p);
 int __stdcall BroadcastPacket(int player, void* data, int size);
@@ -175,7 +175,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
                     lstrcpynA(g_game->field_2be3, &DAT_00512d28, 0xb);
             }
 
-            FUN_004644d0();
+            ResetPlayerSlots();
         }
 
         if (strlen(g_game->field_2bd2) == 0) {

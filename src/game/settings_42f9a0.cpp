@@ -197,7 +197,7 @@ public:
 };
 
 // FUNCTION: 0x42f9a0
-void FUN_0042f9a0()
+void LoadSettings()
 {
     int value;
     char name[32];

@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Constructor: clears the state, stores the owner and resets the object with
-// an empty name through FUN_00435110 (which copies the name to +0x4).
+// an empty name through LoadCampaign (which copies the name to +0x4).
 
 class Class_004c2ea0 {
 public:
@@ -13,7 +13,7 @@ public:
 
 class Class_00435110 {
 public:
-    void FUN_00435110(char* name);
+    void LoadCampaign(char* name);
 };
 
 extern char DAT_005119b8[];
@@ -59,5 +59,5 @@ Class_00434f70::Class_00434f70(int owner_)
     text_a14[0] = 0;
     text_b14[0] = 0;
     owner = owner_;
-    ((Class_00435110*)this)->FUN_00435110(DAT_005119b8);
+    ((Class_00435110*)this)->LoadCampaign(DAT_005119b8);
 }

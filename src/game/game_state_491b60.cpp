@@ -38,7 +38,7 @@ void FreeUnitMemory();
 void DestroyParticleLists();
 void FUN_00420960();
 void FUN_0044f6e0();
-void FUN_00464a00();
+void FreePlayers();
 void FUN_00466aa0();
 void FUN_00483dd0();
 void __cdecl FUN_004d85a0(void* param_1);
@@ -63,7 +63,7 @@ void FUN_00491b60()
     DestroyParticleLists();
     FUN_00420960();
     FUN_0044f6e0();
-    FUN_00464a00();
+    FreePlayers();
     FUN_00466aa0();
     FUN_00483dd0();
     FUN_004d85a0(g_game->field_1438b);

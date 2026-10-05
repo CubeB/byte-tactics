@@ -28,7 +28,7 @@ struct Obj_004aeda0;
 struct Obj_004aef80;
 struct Class_00452370;
 
-void __stdcall FUN_0042f960(void* key, void* buf, int value);
+void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 void FUN_00428730();
 void __stdcall FUN_004aeda0(Obj_004aeda0* obj, int i);
 void __stdcall FUN_004aef80(Obj_004aef80* obj);
@@ -37,7 +37,7 @@ void FUN_00431a20();
 void FUN_0042f8c0();
 void FUN_0042a3b0();
 void FUN_0047eee0();
-void FUN_0042a010();
+void FreeAnimFiles();
 void __cdecl FUN_004d85a0(int* param_1);
 void __stdcall SetRestoreSurface(int param_1);
 void RestoreScreen();
@@ -47,12 +47,12 @@ void __stdcall ReleasePacketData(Class_00452370* obj);
 void FUN_00434b90();
 
 // FUNCTION: 0x4916a0
-void FUN_004916a0(void)
+void ShutdownGame(void)
 {
     for (int i = 0; i < ((Class_004ce450*)*(void**)(g_game + 0x10))->FUN_004ce450(); i++) {
         DAT_0051e828.tracks[i] = ((Class_004ce7e0*)*(void**)(g_game + 0x10))->FUN_004ce7e0(i + 1);
     }
-    FUN_0042f960("CDLISTS", &DAT_0051e828, 0xaa0);
+    WriteGameRegistryValue("CDLISTS", &DAT_0051e828, 0xaa0);
     FUN_00428730();
     FUN_004aeda0((Obj_004aeda0*)(g_game + 0x519), 1);
     FUN_004aeda0((Obj_004aeda0*)(g_game + 0x519), 0);
@@ -62,7 +62,7 @@ void FUN_004916a0(void)
     FUN_0042f8c0();
     FUN_0042a3b0();
     FUN_0047eee0();
-    FUN_0042a010();
+    FreeAnimFiles();
     FUN_004d85a0(*(int**)(g_game + 0x37e1b));
     *(int*)(g_game + 0x37e1b) = 0;
     SetRestoreSurface(0);

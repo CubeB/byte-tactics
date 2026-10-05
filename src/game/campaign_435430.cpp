@@ -33,11 +33,11 @@ public:
         }
     }
 
-    void FUN_00435430(int index, char* dir, char* name, char* ext);
+    void BuildCampaignFilePath(int index, char* dir, char* name, char* ext);
 };
 
 // FUNCTION: 0x435430
-void Class_00435c00::FUN_00435430(int index, char* dir, char* name, char* ext)
+void Class_00435c00::BuildCampaignFilePath(int index, char* dir, char* name, char* ext)
 {
     char path[256];
     if (strlen(name) == 0) {

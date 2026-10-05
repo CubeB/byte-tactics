@@ -5,7 +5,7 @@
 extern int DAT_0051e698;
 
 // FUNCTION: 0x4172e0
-void __stdcall FUN_004172e0(int unused)
+void __stdcall CmdSing(int unused)
 {
     DAT_0051e698 = !DAT_0051e698;
 }

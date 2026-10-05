@@ -86,7 +86,7 @@ public:
 extern int DAT_00512ef0;
 extern char DAT_005119b8[];
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_0049fa90(Sub_0045f8c0* sub);
 int __stdcall AddTextGadget(Layer_0045f8c0* layer, char* type, char* text, int x, int y,
                            int width, int attr);
@@ -120,7 +120,7 @@ void __stdcall FUN_0045f8c0(Sub_0045f8c0* sub, int page, int lineCount)
     char path[256];
     char key[12];
     char value[0x80];
-    FUN_004290f0(path, "gamedata", "help", "TDF");
+    BuildDataPath(path, "gamedata", "help", "TDF");
     if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
         int y = 0x32;
         if (((Class_004c3410*)&parser)->FUN_004c3410("Help")) {

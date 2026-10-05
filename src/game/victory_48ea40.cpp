@@ -42,15 +42,15 @@ extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* str, int flag);
 
-class Class_0048ea00 {
+class VictoryKillEnemyCommander {
 public:
     int done;                          // +0x04
     int announced;                     // +0x08
-    virtual void FUN_0048ea10(Unit* unit);
+    virtual void OnUnitDied(Unit* unit);
 };
 
 // FUNCTION: 0x48ea40
-void Class_0048ea00::FUN_0048ea10(Unit* unit)
+void VictoryKillEnemyCommander::OnUnitDied(Unit* unit)
 {
     if (unit->kind == 1) {
         if (_strcmpi(unit->info->name, g_game->players[unit->link->owner->playerIndex].name) == 0) {

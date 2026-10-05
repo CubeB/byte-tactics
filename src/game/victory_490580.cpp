@@ -17,12 +17,12 @@ public:
     Item_00490520* second[16];         // +0x44
     int secondCount;                   // +0x84
 
-    void FUN_00490520(int param_1);
-    void FUN_00490580(int param_1);
+    void NotifyUnitCaptured(int param_1);
+    void NotifyUnitCreated(int param_1);
 };
 
 // FUNCTION: 0x490580
-void Class_00490520::FUN_00490580(int param_1)
+void Class_00490520::NotifyUnitCreated(int param_1)
 {
     int i;
     for (i = 0; i < firstCount; i++) {

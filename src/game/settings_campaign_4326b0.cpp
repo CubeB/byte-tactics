@@ -7,9 +7,9 @@
 // check.py: MATCH (976 bytes, both).
 #include <stdio.h>
 
-class Class_0048ff40 {
+class MissionConditions {
 public:
-    int FUN_0048fdf0(void* file);
+    int SaveConditions(void* file);
 };
 
 #pragma pack(push, 1)
@@ -57,7 +57,7 @@ struct Game {
     char thumbs[0x19];                 // +0x391cf
     char unknown_391e8[0x391e9 - 0x391e8];
     void* campaign;                    // +0x391e9
-    Class_0048ff40* field_391ed;      // +0x391ed
+    MissionConditions* field_391ed;   // +0x391ed
     int state;                         // +0x391f1
 };
 #pragma pack(pop)
@@ -120,7 +120,7 @@ public:
 
 class Class_00435c00 {
 public:
-    void FUN_00435c60();
+    void AdvanceMission();
     int FUN_00435c00(int param_1);
 };
 
@@ -151,7 +151,7 @@ extern char DAT_00504904[];           // "Radar Image"
 
 void __stdcall SaveSurface(void* surface, void* file);
 void __stdcall FUN_0041d360(void* file);
-void __stdcall FUN_004662f0(void* file);
+void __stdcall SavePlayers(void* file);
 void __stdcall SaveUnits(void* file);
 void __stdcall FUN_00484f50(void* file);
 void __stdcall FUN_00424890(void* file);
@@ -160,7 +160,7 @@ void __stdcall FUN_00484ce0(void* file);
 void __stdcall FUN_00438180(void* file);
 
 // FUNCTION: 0x4326b0
-int __stdcall FUN_004326b0(char* param_1, char* param_2, int param_3)
+int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
 {
     Class_004b3750 file;
 
@@ -175,7 +175,7 @@ int __stdcall FUN_004326b0(char* param_1, char* param_2, int param_3)
     ((Class_004b4630*)&file)->FUN_004b4630(DAT_005048f8, g_game->maxUnits);
     ((Class_004b4750*)&file)->FUN_004b4750(DAT_005028f8, ((Class_004352b0*)g_game->campaign)->FUN_004352b0());
     if (g_game->state != 6) {
-        ((Class_00435c00*)g_game->campaign)->FUN_00435c60();
+        ((Class_00435c00*)g_game->campaign)->AdvanceMission();
     }
     ((Class_004b4750*)&file)->FUN_004b4750(DAT_00504994, ((Class_00435c30*)g_game->campaign)->FUN_00435c30());
     ((Class_004b4750*)&file)->FUN_004b4750(DAT_00504990, ((Class_00435c30*)g_game->campaign)->FUN_00435c30());
@@ -204,14 +204,14 @@ int __stdcall FUN_004326b0(char* param_1, char* param_2, int param_3)
         ((Class_004b4ba0*)&file)->FUN_004b4ba0(DAT_00504904);
         SaveSurface(g_game->finalSurface, &file);
         FUN_0041d360(&file);
-        FUN_004662f0(&file);
+        SavePlayers(&file);
         SaveUnits(&file);
         FUN_00484f50(&file);
         FUN_00424890(&file);
         FUN_00484df0(&file);
         FUN_00484ce0(&file);
         FUN_00438180(&file);
-        g_game->field_391ed->FUN_0048fdf0(&file);
+        g_game->field_391ed->SaveConditions(&file);
     }
     int result = file.FUN_004b39c0(param_1, DAT_0050331c, 1, 0);
     ((Class_004b3630*)&file)->FUN_004b3630();

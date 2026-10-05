@@ -12,7 +12,7 @@ extern Game* g_game;
 extern int __stdcall FUN_004b6a50(const char* param1, const char* param2, int param3);
 
 // FUNCTION: 0x432b60
-void FUN_00432b60()
+void SaveAllMissionsSetting()
 {
     FUN_004b6a50("Total Annihilation", "AllMissions", g_game->flags_38d7f & 1);
 }

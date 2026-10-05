@@ -175,31 +175,31 @@ extern const char DAT_005097b0[];
 extern const char DAT_005097a8[];
 extern const char DAT_00504ab8[];
 
-void FUN_0049e700();
+void OutOfMemoryHandler();
 void __cdecl FUN_0049ed90();
 void __cdecl FUN_004da1d0(int param_1);
 void __cdecl FUN_004d8e50(void (*param_1)());
 void FUN_0041d920();
-void FUN_0041d4c0();
+void RegisterDataArchives();
 void FUN_00428bb0();
-void FUN_00491200();
+void InitGame();
 void __stdcall InitDisplayDefaults(void* param_1);
 int __stdcall InitEnvironment(void* param_1);
 void __stdcall InitTimers(int param_1);
 void __stdcall FUN_004b62c0(const char* param_1);
 void __stdcall ShutdownEnvironment(void* param_1);
-void FUN_00490f80();
+void SaveCdLists();
 void FUN_00490fe0();
 void FUN_00499890();
 void ShutdownMouse();
-void FUN_004916a0();
-int __stdcall FUN_0049ee30(char* param_1, char* param_2);
-void __stdcall FUN_0042f980(const char* param_1, void* param_2, int* param_3);
-void __stdcall FUN_0042f960(const char* param_1, void* param_2, int param_3);
+void ShutdownGame();
+int __stdcall ParseCommandLine(char* param_1, char* param_2);
+void __stdcall ReadGameRegistryValue(const char* param_1, void* param_2, int* param_3);
+void __stdcall WriteGameRegistryValue(const char* param_1, void* param_2, int param_3);
 void __stdcall FUN_004c54f0(const char* param_1, char* param_2);
 
 // FUNCTION: 0x49e830
-int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                            LPSTR lpCmdLine, int nCmdShow)
 {
     HKEY hKey;
@@ -215,7 +215,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     (void)hPrevInstance;
 
     FUN_004da1d0(8);
-    FUN_004d8e50(FUN_0049e700);
+    FUN_004d8e50(OutOfMemoryHandler);
     if ((DAT_0051f31c & 1) == 0) {
         DAT_0051f31c |= 1;
         atexit(FUN_0049ed90);
@@ -226,7 +226,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         return -1;
     CreateSemaphoreA(NULL, 1, 1, DAT_0050971c);
     srand(time(0));
-    if (FUN_0049ee30(lpCmdLine, DAT_0050971c) == 0)
+    if (ParseCommandLine(lpCmdLine, DAT_0050971c) == 0)
         return 1;
     InitDisplayDefaults(&DAT_0051f320);
     DAT_0051f320.startWidth = 0x280;
@@ -248,7 +248,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     if (bGameOk == lzero)
         return 0;
     InitTimers(0x1e);
-    FUN_0041d4c0();
+    RegisterDataArchives();
     FUN_004b62c0(DAT_005097f4);
     g_game->field_c = &DAT_0051f320;
     g_game->field_1 = 3;
@@ -256,14 +256,14 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     g_game->field_3 = 1;
     if (strlen(DAT_0051fb50) == 0) {
         size1c = 0x40;
-        FUN_0042f980(DAT_005097e8, DAT_0051fb50, (int*)&size1c);
+        ReadGameRegistryValue(DAT_005097e8, DAT_0051fb50, (int*)&size1c);
         if (DAT_0051fb50[0] == 0)
             strcpy(DAT_0051fb50, DAT_00504ab8);
     }
     FUN_004c54f0(DAT_005097d0, DAT_0051fb50);
     g_game->field_10 = new Class_004cee50;
     FUN_00428bb0();
-    FUN_00491200();
+    InitGame();
 
     size20 = 0x32;
     hKey = NULL;
@@ -275,11 +275,11 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             strcpy(buf40, DAT_005119b8);
         }
         size14 = 0x32;
-        FUN_0042f980(DAT_005097a8, buf74, (int*)&size14);
+        ReadGameRegistryValue(DAT_005097a8, buf74, (int*)&size14);
         if (strlen(buf74) != 0)
             strcpy(buf40, buf74);
         else
-            FUN_0042f960(DAT_005097a8, buf40, 0x32);
+            WriteGameRegistryValue(DAT_005097a8, buf40, 0x32);
         RegFlushKey(hKey);
         RegCloseKey(hKey);
     }
@@ -287,7 +287,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     for (;;) {
         for (;;) {
             if (DAT_0051f320.field_e0 == lzero && *(int*)g_game->field_10 != 0) {
-                FUN_00490f80();
+                SaveCdLists();
                 DAT_0051fb90 = ((Class_004ce680*)g_game->field_10)->FUN_004ce680();
                 ((Class_004ce410*)g_game->field_10)->FUN_004ce410();
                 DAT_00509720 = 1;
@@ -322,7 +322,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
     if (DAT_0051f320.flags.bits.b11) {
         ShutdownMouse();
-        FUN_004916a0();
+        ShutdownGame();
     }
     if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, DAT_005097b0, 0, 0xf003f, &hKey) == 0) {
         RegSetValueExA(hKey, NULL, 0, type, (const BYTE*)buf40,
@@ -330,7 +330,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         RegFlushKey(hKey);
         RegCloseKey(hKey);
         strcpy(buf40, DAT_005119b8);
-        FUN_0042f960(DAT_005097a8, buf40, 0x32);
+        WriteGameRegistryValue(DAT_005097a8, buf40, 0x32);
     }
     ShutdownEnvironment(&DAT_0051f320);
     return msg.wParam;

@@ -6,7 +6,7 @@ void __cdecl FUN_004d8e60(EXCEPTION_POINTERS* exception, const char* message);
 // Raises a divide-by-zero on purpose and reports it, so that `message`
 // arrives with a register dump and stack trace of the place it came from.
 // FUNCTION: 0x49e680
-void __stdcall FUN_0049e680(const char* message)
+void __stdcall ReportViaException(const char* message)
 {
     int zero = 0;
     __try {

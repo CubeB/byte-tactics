@@ -23,26 +23,26 @@ struct Unit;
 class Class_004b4560;
 
 // Mission victory/defeat condition (see 0x48e010.cpp and 0x48fed0.cpp).
-class Condition_0048ff40 {
+class MissionCondition {
 public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    Condition_0048ff40() { satisfied = celebrated = 0; }
-    virtual int FUN_0048ea00();                  // IsSatisfied
-    virtual void FUN_0048ea10(Unit* unit);       // Slot1
-    virtual void FUN_0048ea20(Unit* unit);       // Slot2
-    virtual void FUN_0048ea30(Unit* unit);       // Slot3
-    virtual void FUN_0048f840(Class_004b4560* file) = 0;   // Save
-    virtual void FUN_0048f880(Class_004b4560* file) = 0;   // Load
+    MissionCondition() { satisfied = celebrated = 0; }
+    virtual int IsSatisfied();                   // IsSatisfied
+    virtual void OnUnitDied(Unit* unit);         // Slot1
+    virtual void OnUnitCaptured(Unit* unit);     // Slot2
+    virtual void OnUnitCreated(Unit* unit);      // Slot3
+    virtual void SaveState(Class_004b4560* file) = 0;      // Save
+    virtual void LoadState(Class_004b4560* file) = 0;      // Load
 };
 
 // VictoryCondition_DestroyAllUnits.
-class Class_0048eb40 : public Condition_0048ff40 {
+class VictoryDestroyAllUnits : public MissionCondition {
 public:
-    virtual int FUN_0048ea00();
-    virtual void FUN_0048f840(Class_004b4560* file);
-    virtual void FUN_0048f880(Class_004b4560* file);
+    virtual int IsSatisfied();
+    virtual void SaveState(Class_004b4560* file);
+    virtual void LoadState(Class_004b4560* file);
 };
 
 #pragma pack(push, 1)
@@ -72,39 +72,39 @@ extern Game* g_game;
 // ecx and gives the linker the established name FUN_00490080.
 int __fastcall FUN_00490080(void* self);
 
-class Class_0048ff40 {
+class MissionConditions {
 public:
-    Condition_0048ff40* victory[16];     // +0x00
+    MissionCondition* victory[16];       // +0x00
     int victoryCount;                    // +0x40
-    Condition_0048ff40* defeat[16];      // +0x44
+    MissionCondition* defeat[16];        // +0x44
     int defeatCount;                     // +0x84
     int active;                          // +0x88, set to 1 by Class_0048df90
 
     // 0x48fed0, written in the class so that /Ob2 inlines it here.
-    inline int FUN_0048fed0()
+    inline int AllVictoryConditionsMet()
     {
         if (victoryCount == 0) {
-            victory[victoryCount] = new Class_0048eb40;
+            victory[victoryCount] = new VictoryDestroyAllUnits;
             victoryCount++;
         }
         for (int i = 0; i < victoryCount; i++) {
-            if (!victory[i]->FUN_0048ea00())
+            if (!victory[i]->IsSatisfied())
                 return 0;
         }
         return 1;
     }
 
-    int FUN_00490230();
+    int CheckVictory();
 };
 
 // FUNCTION: 0x490230
-int Class_0048ff40::FUN_00490230()
+int MissionConditions::CheckVictory()
 {
     if (active == 0)
         return 0;
     switch (g_game->mode->FUN_00435100()) {
     case 1:
-        return FUN_0048fed0();
+        return AllVictoryConditionsMet();
     case 2: {
         unsigned char player = g_game->player;
         Player_00490230* me = &g_game->players[player];

@@ -4,12 +4,12 @@
 
 struct Unit;
 
-class Condition_0048ff40 {
+class MissionCondition {
 public:
-    virtual void FUN_0048ea30(Unit* unit);   // Slot3
+    virtual void OnUnitCreated(Unit* unit);  // Slot3
 };
 
 // FUNCTION: 0x48ea30
-void Condition_0048ff40::FUN_0048ea30(Unit*)
+void MissionCondition::OnUnitCreated(Unit*)
 {
 }

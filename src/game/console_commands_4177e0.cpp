@@ -28,7 +28,7 @@ void __cdecl FUN_004d85a0(void* data);
 int __stdcall FUN_004bb5d0(void* file);
 
 // FUNCTION: 0x4177e0
-void __stdcall FUN_004177e0(Class_004b73c0* args)
+void __stdcall CmdInclude(Class_004b73c0* args)
 {
     Vec3_004177e0 pos;
     int info;

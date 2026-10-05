@@ -51,20 +51,20 @@ void __stdcall FUN_0047f1a0(char* str, int flag);
 
 class Condition_0048ec20 {
 public:
-    virtual int FUN_0048ea00();        // IsSatisfied
-    virtual void FUN_0048ea10(Unit* unit);
+    virtual int IsSatisfied();         // IsSatisfied
+    virtual void OnUnitDied(Unit* unit);
     int done;                          // +0x04
     int announced;                     // +0x08
 };
 
-class Class_0048ec20 : public Condition_0048ec20, public UnitVisitor_0048ec20 {
+class VictoryKillAllMobileUnits : public Condition_0048ec20, public UnitVisitor_0048ec20 {
 public:
     int count;                         // +0x10
-    virtual void FUN_0048ea10(Unit* unit);
+    virtual void OnUnitDied(Unit* unit);
 };
 
 // FUNCTION: 0x48ec20
-void Class_0048ec20::FUN_0048ea10(Unit* unit)
+void VictoryKillAllMobileUnits::OnUnitDied(Unit* unit)
 {
     if (unit->kind == 1 && unit->field_0 != 0) {
         count = 0;

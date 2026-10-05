@@ -36,7 +36,7 @@ extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 
 void __stdcall RemovePlayer(int id);
-void FUN_0046c190();
+void ShutdownScoreTables();
 int __stdcall HAPINET_quitgame(void* net);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __stdcall QuitApp(char* message);
@@ -62,7 +62,7 @@ void LeaveNetGame()
                 RemovePlayer(g_game->players[i].id);
             }
         }
-        FUN_0046c190();
+        ShutdownScoreTables();
     }
     HAPINET_quitgame(g_game->field_14);
     SetCloseHandler(0, 0);

@@ -277,7 +277,7 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall LoadUnitFbi(char* path, Class_0042b370* type);
 void __stdcall FUN_0042a140(void* obj, char* name);
 int __stdcall FUN_004bbc40(char* path);
@@ -308,7 +308,7 @@ void LoadUnitTypes() {
 
     {
         Class_004c2ea0 parser;
-        FUN_004290f0(path, "gamedata", "moveinfo", "TDF");
+        BuildDataPath(path, "gamedata", "moveinfo", "TDF");
         if (!((Class_004c2f60*)&parser)->FUN_004c2f60(path))
             FatalError("Can't load MOVEINFO.TDF");
 
@@ -419,13 +419,13 @@ void LoadUnitTypes() {
         Game* gp = g_game;
         g_game->field_38d71 = (unsigned char)((u * 100) / gp->field_1438f);
         type->field_21e = u;
-        FUN_004290f0(path, "units", type->name, "FBI");
+        BuildDataPath(path, "units", type->name, "FBI");
         if (FUN_004bbc40(path))
             LoadUnitFbi(path, type);
 
         strncpy(namebuf, type->model, 0x20);
         namebuf[0x1f] = 0;
-        FUN_004290f0(objpath, "objects3d", namebuf, "3DO");
+        BuildDataPath(objpath, "objects3d", namebuf, "3DO");
         void* model = Load3do(objpath);
         if (model == 0)
             FatalError(objpath);
@@ -439,7 +439,7 @@ void LoadUnitTypes() {
         strcpy(namebuf, type->name);
         StripExtension(namebuf);
         sprintf(section, "%s0", namebuf);
-        FUN_004290f0(path, "guis", section, "GUI");
+        BuildDataPath(path, "guis", section, "GUI");
         if (FUN_004bbc40(path))
             type->flags.bits.gui = 1;
         else
@@ -450,7 +450,7 @@ void LoadUnitTypes() {
         int more;
         do {
             sprintf(section, "%s%d", namebuf, suffix);
-            FUN_004290f0(path, "guis", section, "GUI");
+            BuildDataPath(path, "guis", section, "GUI");
             more = FUN_004bbc40(path);
             if (more) {
                 suffix++;
@@ -465,14 +465,14 @@ void LoadUnitTypes() {
         else
             type->field_22e = 0;
 
-        FUN_004290f0(path, "scripts", type->name, "COB");
+        BuildDataPath(path, "scripts", type->name, "COB");
         type->field_18e = FUN_004b2450(path);
     }
 
     FUN_004d8710(g_game->field_14377);
 
     Class_004c2ea0 parser2;
-    FUN_004290f0(path, "gamedata", "sidedata", "TDF");
+    BuildDataPath(path, "gamedata", "sidedata", "TDF");
     if (!((Class_004c2f60*)&parser2)->FUN_004c2f60(path)) {
         FatalError("Can't load GAMEDATA.TDF");
     } else {

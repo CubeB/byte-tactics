@@ -14,11 +14,11 @@ public:
     char unknown_20[0x30 - 0x20];
     Store_00401260* store;             // +0x30
 
-    int FUN_00401260(float amount);
+    int SpendEnergy(float amount);
 };
 
 // FUNCTION: 0x401260
-int Class_00401260::FUN_00401260(float amount)
+int Class_00401260::SpendEnergy(float amount)
 {
     if (store->energy >= amount) {
         store->energy -= amount;

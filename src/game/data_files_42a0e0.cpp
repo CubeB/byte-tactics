@@ -16,7 +16,7 @@ extern Game* g_game;
 void* __cdecl FUN_004d84a0(void* param_1, const char* name, unsigned int param_3);
 
 // FUNCTION: 0x42a0e0
-void __stdcall FUN_0042a0e0(void* item)
+void __stdcall AddAnimplayPointer(void* item)
 {
     g_game->items = (void**)FUN_004d84a0(g_game->items, "Animplay Pointers", (g_game->count + 1) * 4);
     g_game->items[g_game->count] = item;

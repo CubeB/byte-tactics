@@ -52,7 +52,7 @@ void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void __stdcall HAPINET_initlobbiedconnection(Info_004421f0* info);
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 char* __stdcall GetGadgetText(Menu_004421f0* menu, const char* key, char* out);
-int __stdcall FUN_0042f980(const char* key, char* out, int* len);
+int __stdcall ReadGameRegistryValue(const char* key, char* out, int* len);
 void __stdcall FUN_004a0bf0(Menu_004421f0* menu, const char* key, int value, int param_4);
 void __stdcall FUN_00442050(Menu_004421f0* menu);
 void __stdcall SelectGadgetByIndex(Menu_004421f0* menu, int index);
@@ -77,7 +77,7 @@ void FUN_004421f0()
         address[0] = 0;
         strncat(address, DAT_00512d90, len - 1);
     } else {
-        if (!FUN_0042f980("TCPADDR", address, &len)) {
+        if (!ReadGameRegistryValue("TCPADDR", address, &len)) {
             address[0] = 0;
         }
     }

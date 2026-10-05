@@ -11,7 +11,7 @@ struct Flags_418ca0
 };
 
 // FUNCTION: 0x418ca0
-void __stdcall FUN_00418ca0(int unused)
+void __stdcall CmdShootAll(int unused)
 {
     Flags_418ca0* f = (Flags_418ca0*)((char*)g_game + 0x37f2f);
     f->flag = !f->flag;

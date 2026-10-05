@@ -14,11 +14,11 @@ public:
     Item_004904c0* b[16];               // +0x44
     int count_b;                        // +0x84
 
-    void FUN_004904c0(int param);
+    void NotifyUnitDied(int param);
 };
 
 // FUNCTION: 0x4904c0
-void Class_004904c0::FUN_004904c0(int param)
+void Class_004904c0::NotifyUnitDied(int param)
 {
     int i;
     for (i = 0; i < count_a; i++)

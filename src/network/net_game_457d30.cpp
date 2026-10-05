@@ -93,8 +93,8 @@ struct Packet_00457d30 {
 
 extern Game* g_game;
 
-void __stdcall FUN_00464c60(unsigned char from, unsigned char to, float amount, int flag);
-void __stdcall FUN_00464b30(unsigned char from, unsigned char to, float amount, int flag);
+void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount, int flag);
+void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount, int flag);
 int __stdcall SendPacketToPlayer(int from, int to, void* packet, int size);
 
 static inline int PlayerDpid_00457d30(unsigned char i)
@@ -132,7 +132,7 @@ void __stdcall UpdateResourceSharing(Player_00457d30* player)
             float limit = found->field_a8 - found->energy;
             float result = amount < limit ? amount : limit;
             amount = result;
-            FUN_00464c60(player->field_146, found->field_146, amount, 1);
+            TransferEnergy(player->field_146, found->field_146, amount, 1);
         }
 
         found = player;
@@ -156,7 +156,7 @@ void __stdcall UpdateResourceSharing(Player_00457d30* player)
             float limit = found->field_a4 - found->metal;
             float result = amount < limit ? amount : limit;
             amount = result;
-            FUN_00464b30(player->field_146, found->field_146, amount, 1);
+            TransferMetal(player->field_146, found->field_146, amount, 1);
         }
     }
 

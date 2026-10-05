@@ -44,7 +44,7 @@ void __stdcall FUN_0047f1a0(char* name, int param_2);
 void FUN_004257a0();
 void __stdcall FUN_004ab0a0(Gadget_004423c0* gadget);
 void __stdcall FUN_00425860(int state, int line, char* file);
-void __stdcall FUN_0042f960(void* key, void* buf, int value);
+void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 
 // FUNCTION: 0x4423c0
 void __stdcall FUN_004423c0(Gadget_004423c0* gadget)
@@ -85,7 +85,7 @@ void __stdcall FUN_004423c0(Gadget_004423c0* gadget)
         return;
     }
     a = FindGadgetChecked(entries, "SPEEDS")->field_ba;
-    FUN_0042f960("SERBAUD", &a, 4);
+    WriteGameRegistryValue("SERBAUD", &a, 4);
     a = FindGadgetChecked(entries, "PORTS")->field_ba;
-    FUN_0042f960("SERPORT", &a, 4);
+    WriteGameRegistryValue("SERPORT", &a, 4);
 }

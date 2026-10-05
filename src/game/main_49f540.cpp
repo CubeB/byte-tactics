@@ -5,7 +5,7 @@
 char* __stdcall StripFileName(char* path);
 
 // FUNCTION: 0x49f540
-void FUN_0049f540()
+void ChdirToExeDirectory()
 {
     char path[256];
 

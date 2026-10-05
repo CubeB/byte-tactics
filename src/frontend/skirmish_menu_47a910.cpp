@@ -44,7 +44,7 @@ struct Player_0047a910 {
 
 class Class_00435a20 {
 public:
-    int FUN_00435a20(char* name);
+    int LoadMissionByName(char* name);
 };
 
 #pragma pack(push, 1)
@@ -100,7 +100,7 @@ void __stdcall FUN_0047a910(Menu_0047a910* menu)
     }
     Entry_0047a910* g = FindGadgetChecked(entries, "MAPNAMES");
     strncpy(g_game->player->name, FUN_004b6af0(g->text, g->selected), 0x100);
-    g_game->field_391e9->FUN_00435a20(g_game->player->name);
+    g_game->field_391e9->LoadMissionByName(g_game->player->name);
     strncpy(buffer, g_game->player->name, 0x100);
     FUN_004a0e00(menu, "MapName", buffer);
 }

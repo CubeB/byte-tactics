@@ -18,7 +18,7 @@ void __stdcall KillUnitsOfType(short id);
 void __stdcall ReloadUnitType(unsigned short id);
 
 // FUNCTION: 0x417490
-void __stdcall FUN_00417490(Class_004b73c0* args)
+void __stdcall CmdReload(Class_004b73c0* args)
 {
     if (args->count > 1) {
         short id = FindUnitTypeId(args->FUN_004b73c0(1, DAT_005119b8));

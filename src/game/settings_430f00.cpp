@@ -128,7 +128,7 @@ int __stdcall FUN_004b6a50(char* section, char* name, int value);
 int __stdcall FUN_004b6a20(char* section, char* name, char* value);
 
 // FUNCTION: 0x430f00
-void FUN_00430f00()
+void SaveSettings()
 {
     char name[32];
     int i;

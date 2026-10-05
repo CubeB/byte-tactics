@@ -14,16 +14,16 @@ extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* str, int flag);
 
-class Class_0048eb40 {
+class VictoryDestroyAllUnits {
 public:
     int satisfied;                     // +0x4
     int announced;                     // +0x8
 
-    virtual int FUN_0048ea00();
+    virtual int IsSatisfied();
 };
 
 // FUNCTION: 0x48eb40
-int Class_0048eb40::FUN_0048ea00()
+int VictoryDestroyAllUnits::IsSatisfied()
 {
     if (g_game->field_1df2 == 0) {
         if (announced == 0) {

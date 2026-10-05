@@ -29,7 +29,7 @@
 // - The unit's resource account is a class at +0xbc whose owner pointer is at
 //   +0x30 (unit+0xec); 0x401180..0x4012a0 are its methods and 0x401320 is the
 //   end-of-tick update, all defined above without FUNCTION lines. The cost
-//   block is FUN_00401220 inlined.
+//   block is SpendMetal inlined.
 // - UseEnergy's positive arm is a helper taking the unit whose `used` store
 //   goes through a float* (otherwise the backlog compare is scheduled above
 //   it). UseEnergyD's positive arm converts the amount to a double for the
@@ -66,9 +66,9 @@ public:
     Player_00401360* owner;            // +0x30
     int FUN_00401180(Econ_00401360* e, float amount);
     int FUN_004011c0(float energy, float metal);
-    int FUN_00401220(float amount);
-    int FUN_00401260(float amount);
-    int FUN_004012a0(float energy, float metal);
+    int SpendMetal(float amount);
+    int SpendEnergy(float amount);
+    int SpendMetalAndEnergy(float energy, float metal);
 };
 
 struct UnitDef_00401360 {
@@ -175,7 +175,7 @@ int Econ_00401360::FUN_004011c0(float energy, float metal)
     return 0;
 }
 
-int Econ_00401360::FUN_00401220(float amount)
+int Econ_00401360::SpendMetal(float amount)
 {
     if (owner->res[0].stored >= amount) {
         owner->res[0].stored -= amount;
@@ -185,7 +185,7 @@ int Econ_00401360::FUN_00401220(float amount)
     return 0;
 }
 
-int Econ_00401360::FUN_00401260(float amount)
+int Econ_00401360::SpendEnergy(float amount)
 {
     if (owner->res[1].stored >= amount) {
         owner->res[1].stored -= amount;
@@ -195,7 +195,7 @@ int Econ_00401360::FUN_00401260(float amount)
     return 0;
 }
 
-int Econ_00401360::FUN_004012a0(float energy, float metal)
+int Econ_00401360::SpendMetalAndEnergy(float energy, float metal)
 {
     if (owner->res[0].stored >= energy && owner->res[1].stored >= metal) {
         owner->res[0].stored -= energy;
@@ -334,7 +334,7 @@ static int UseEnergyD(Unit* u, float v)
 }
 
 // FUNCTION: 0x401360
-void __stdcall FUN_00401360(Player_00401360* p)
+void __stdcall UpdatePlayerEconomy(Player_00401360* p)
 {
     float usedA[2];
     float backlogA[2];
@@ -387,7 +387,7 @@ void __stdcall FUN_00401360(Player_00401360* p)
             if (u->bit11) {
                 if (!(u->flags & 0x1000) && u->nextTick <= g_game->ticks) {
                     int cost = (int)((u->flags & 0xc) > 0 ? u->def->costActive : u->def->cost);
-                    ((Class_0048b090*)u)->SetStateBits(4, u->econ.FUN_00401220(cost));
+                    ((Class_0048b090*)u)->SetStateBits(4, u->econ.SpendMetal(cost));
                 } else
                     ((Class_0048b090*)u)->SetStateBits(4, 0);
             } else

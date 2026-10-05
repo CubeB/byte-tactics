@@ -27,13 +27,13 @@ struct CdLists_490f80 {
 
 extern CdLists_490f80 DAT_0051e828;
 
-void __stdcall FUN_0042f960(const char* key, void* data, int size);
+void __stdcall WriteGameRegistryValue(const char* key, void* data, int size);
 
 // FUNCTION: 0x490f80
-void FUN_00490f80()
+void SaveCdLists()
 {
     for (int i = 0; i < g_game->cd->FUN_004ce450(); i++) {
         DAT_0051e828.tracks[i] = ((Class_004ce7e0*)g_game->cd)->FUN_004ce7e0(i + 1);
     }
-    FUN_0042f960("CDLISTS", &DAT_0051e828, sizeof(DAT_0051e828));
+    WriteGameRegistryValue("CDLISTS", &DAT_0051e828, sizeof(DAT_0051e828));
 }

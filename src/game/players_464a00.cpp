@@ -55,7 +55,7 @@ void __stdcall FreeSquads(Player_00464a00* param_1);
 void __stdcall FUN_0040b390(int param_1);
 
 // FUNCTION: 0x464a00
-void FUN_00464a00()
+void FreePlayers()
 {
     for (Player_00464a00* p = g_game->players; p <= g_game->players + 10; p++) {
         int* q = (int*)((char*)p + 0x84);

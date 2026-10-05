@@ -9,13 +9,13 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-void __stdcall FUN_00490df0(unsigned int param1, int param2);
+void __stdcall SetGameSpeed(unsigned int param1, int param2);
 
 // FUNCTION: 0x490f10
 void FUN_00490f10()
 {
     unsigned short value = g_game->field_38a4b;
     if (value > 1) {
-        FUN_00490df0(value - 1, 1);
+        SetGameSpeed(value - 1, 1);
     }
 }

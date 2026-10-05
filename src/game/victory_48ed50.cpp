@@ -14,7 +14,7 @@ void __stdcall FUN_0047f1a0(char* str, int flag);
 
 class Condition_0048ed50 {
 public:
-    virtual int FUN_0048ea00();          // IsSatisfied
+    virtual int IsSatisfied();           // IsSatisfied
     int done;                          // +0x04
     int announced;                     // +0x08
 };
@@ -22,23 +22,23 @@ public:
 // Interface at +0xc of the object: slot 0 is called for each unit.
 class UnitVisitor_0048ed50 {
 public:
-    virtual int FUN_0048f790(Unit* unit) = 0;
+    virtual int VisitUnit(Unit* unit) = 0;
 };
 
 // The same layout as the classes in 0x48edb0.cpp and 0x48efb0.cpp. This
 // method overrides the visitor's slot, so MSVC passes `this` as the visitor
 // subobject (+0xc) and the other fields appear at negative offsets.
 #pragma pack(push, 2)
-class Class_0048edb0 : public Condition_0048ed50, public UnitVisitor_0048ed50 {
+class VictoryBuildUnitType : public Condition_0048ed50, public UnitVisitor_0048ed50 {
 public:
     char name[0x20];                   // +0x10
     short id;                          // +0x30
-    virtual int FUN_0048f790(Unit* unit);
+    virtual int VisitUnit(Unit* unit);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x48ed50
-int Class_0048edb0::FUN_0048f790(Unit* unit)
+int VictoryBuildUnitType::VisitUnit(Unit* unit)
 {
     if (unit->field_a6 == id && unit->field_104 == 0.0f) {
         done = 1;

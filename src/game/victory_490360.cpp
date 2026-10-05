@@ -9,33 +9,33 @@ struct Unit;
 class Class_004b4560;
 
 // Mission victory/defeat condition (see 0x48ff40.cpp).
-class Condition_0048ff40 {
+class MissionCondition {
 public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    Condition_0048ff40() { satisfied = celebrated = 0; }
-    virtual int FUN_0048ea00();          // IsSatisfied
-    virtual void FUN_0048ea10(Unit* unit);   // Slot1
-    virtual void FUN_0048ea20(Unit* unit);   // Slot2
-    virtual void FUN_0048ea30(Unit* unit);   // Slot3
-    virtual void FUN_0048f840(Class_004b4560* file) = 0;   // Save
-    virtual void FUN_0048f880(Class_004b4560* file) = 0;   // Load
+    MissionCondition() { satisfied = celebrated = 0; }
+    virtual int IsSatisfied();           // IsSatisfied
+    virtual void OnUnitDied(Unit* unit);     // Slot1
+    virtual void OnUnitCaptured(Unit* unit);  // Slot2
+    virtual void OnUnitCreated(Unit* unit);  // Slot3
+    virtual void SaveState(Class_004b4560* file) = 0;      // Save
+    virtual void LoadState(Class_004b4560* file) = 0;      // Load
 };
 
 // Secondary interface of a condition that visits units.
 class Listener_0048ff40 {
 public:
-    virtual int FUN_0048f790(Unit* unit) = 0;
+    virtual int VisitUnit(Unit* unit) = 0;
 };
 
 // DefeatCondition_AllUnitsKilled.
-class Class_0048f840 : public Condition_0048ff40, public Listener_0048ff40 {
+class DefeatAllUnitsKilled : public MissionCondition, public Listener_0048ff40 {
 public:
-    virtual int FUN_0048ea00();
-    virtual void FUN_0048f840(Class_004b4560* file);   // Save
-    virtual void FUN_0048f880(Class_004b4560* file);   // Load
-    virtual int FUN_0048f790(Unit* unit);
+    virtual int IsSatisfied();
+    virtual void SaveState(Class_004b4560* file);      // Save
+    virtual void LoadState(Class_004b4560* file);      // Load
+    virtual int VisitUnit(Unit* unit);
 };
 
 class Class_00435100 {
@@ -66,13 +66,13 @@ extern Game* g_game;
 
 class Class_00490360 {
 public:
-    Condition_0048ff40* first[16];      // +0x00
+    MissionCondition* first[16];        // +0x00
     int firstCount;                     // +0x40
-    Condition_0048ff40* second[16];     // +0x44
+    MissionCondition* second[16];       // +0x44
     int secondCount;                    // +0x84
     int field_88;                       // +0x88
 
-    int FUN_00490360();
+    int CheckDefeat();
 };
 
 // The defeat-condition check, written as a helper so that MSVC 5 inlines it
@@ -82,18 +82,18 @@ public:
 static inline int check_second(Class_00490360* self)
 {
     if (self->secondCount == 0) {
-        self->second[self->secondCount] = new Class_0048f840;
+        self->second[self->secondCount] = new DefeatAllUnitsKilled;
         self->secondCount++;
     }
     for (int i = 0; i < self->secondCount; i++) {
-        if (self->second[i]->FUN_0048ea00())
+        if (self->second[i]->IsSatisfied())
             return 1;
     }
     return 0;
 }
 
 // FUNCTION: 0x490360
-int Class_00490360::FUN_00490360()
+int Class_00490360::CheckDefeat()
 {
     if (field_88) {
         if (FUN_0041d8b0()) {

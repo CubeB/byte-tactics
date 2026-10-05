@@ -6,11 +6,11 @@
 #include <signal.h>
 #include <stdlib.h>
 
-void __stdcall FUN_0049e680(char* text);
+void __stdcall ReportViaException(char* text);
 void FUN_004d8390(void);
 
 // FUNCTION: 0x49e700
-void FUN_0049e700()
+void OutOfMemoryHandler()
 {
     char path[1000];
     DWORD written;
@@ -31,7 +31,7 @@ void FUN_0049e700()
                   strlen("Out of memory!\r\nYour hard disk may be full\r\n"), &written, NULL);
         CloseHandle(file);
     }
-    FUN_0049e680("Out of memory handler");
+    ReportViaException("Out of memory handler");
     MessageBoxA(NULL, "Out of memory!\r\nYour hard disk may be full\r\n", "Total Annihilation", 0x41010);
     FUN_004d8390();
     raise(SIGABRT);

@@ -99,11 +99,11 @@ extern ScoreBoard_0046c2a0** DAT_0051e57c;
 extern char* DAT_00507948[2];          // "Arm", "Core"
 extern char* DAT_00507950[9];          // "Kills", "Losses", ..., "I am Winner"
 
-// Fills the player and score-board tables FUN_0046bce0 allocated (handed to
+// Fills the player and score-board tables AllocScoreTables allocated (handed to
 // the stats DLL by ReportGameEvent) for every player in the game, and returns
 // how many there are.
 // FUNCTION: 0x46c2a0
-int FUN_0046c2a0()
+int FillScoreTables()
 {
     // j declared first, so that p->allied[j] is addressed [p + j], and n
     // set before the allies pointer is read: both are needed for a match.

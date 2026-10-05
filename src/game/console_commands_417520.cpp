@@ -11,7 +11,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x417520
-void __stdcall FUN_00417520(void* args)
+void __stdcall CmdProfile(void* args)
 {
     g_game->field_38dd5 = g_game->field_38dd5 == 0 ? 1 : 0;
 }

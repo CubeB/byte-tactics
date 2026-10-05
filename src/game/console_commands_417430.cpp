@@ -12,15 +12,15 @@ public:
 };
 
 void __stdcall FUN_004bcf00(char* dir);
-void __stdcall FUN_004326b0(char* path, char* description, int param_3);
+void __stdcall SaveGameFile(char* path, char* description, int param_3);
 
 // FUNCTION: 0x417430
-void __stdcall FUN_00417430(Class_004b73c0* args)
+void __stdcall CmdSave(Class_004b73c0* args)
 {
     char path[256];
     if (args->count > 1) {
         sprintf(path, "savegame\\%s.sav", args->FUN_004b73c0(1, DAT_005119b8));
         FUN_004bcf00("savegame");
-        FUN_004326b0(path, "Generic Game Description", 0x29a);
+        SaveGameFile(path, "Generic Game Description", 0x29a);
     }
 }

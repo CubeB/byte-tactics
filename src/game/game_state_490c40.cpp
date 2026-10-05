@@ -47,7 +47,7 @@ int __cdecl FUN_004b7123(short angle, int scale);
 int __stdcall FUN_004b6c30(int range);
 
 // FUNCTION: 0x490c40
-void __cdecl FUN_00490c40()
+void __cdecl UpdateWind()
 {
     if (g_game->windCounter < g_game->field_38a47) {
         g_game->windCounter += ((int)((__int64)rand() * 10 / 0x8000) + 5) * 30;

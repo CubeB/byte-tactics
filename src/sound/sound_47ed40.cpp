@@ -59,7 +59,7 @@ extern char DAT_00508ab4[]; // "NoDirectSound"
 extern char DAT_00508aa4[]; // "UseWindowsSound"
 extern char DAT_00508a78[]; // "Error:  Sound system initialization failed."
 
-unsigned int __stdcall FUN_0049f5a0(char* key, int defaultValue);
+unsigned int __stdcall GetPreferenceInt(char* key, int defaultValue);
 int FUN_0049f610(void);
 void __stdcall FatalError(char* text);
 void* __cdecl operator new(size_t size);
@@ -70,9 +70,9 @@ void* __cdecl operator new(size_t size);
 // FUNCTION: 0x47ed40
 void FUN_0047ed40(void)
 {
-    if (FUN_0049f5a0(DAT_00508ab4, 0))
+    if (GetPreferenceInt(DAT_00508ab4, 0))
         DAT_0051e690 = 1;
-    if (FUN_0049f5a0(DAT_00508aa4, 0))
+    if (GetPreferenceInt(DAT_00508aa4, 0))
         DAT_0051e694 = 1;
     if (DAT_0051e694) {
         if (!FUN_0049f610())

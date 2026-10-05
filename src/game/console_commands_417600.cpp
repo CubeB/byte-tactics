@@ -46,7 +46,7 @@ void __stdcall FUN_00495a30(char* name, char* description, int x, int y, int w, 
 unsigned int GetTicks();
 
 // FUNCTION: 0x417600
-void __stdcall FUN_00417600(Class_004b73c0* args)
+void __stdcall CmdMakePoster(Class_004b73c0* args)
 {
     int w = 0xc80;
     int h = 0x960;

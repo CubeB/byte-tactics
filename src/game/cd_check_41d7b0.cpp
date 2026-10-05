@@ -4,8 +4,8 @@
 
 extern int DAT_0050289c;                     // campaign/multiplayer flag
 
-char* __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-char __stdcall FUN_0041d6a0(int mode);
+char* __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
+char __stdcall FindGameCdDrive(int mode);
 char* __stdcall StripExtension(char* name);
 
 // FUNCTION: 0x41d7b0
@@ -15,7 +15,7 @@ char* __stdcall FUN_0041d7b0(char* out, const char* dir, const char* name, const
         char c = 0;
         int i;
         for (i = 0; i < 2; i++) {
-            c = FUN_0041d6a0(i);
+            c = FindGameCdDrive(i);
             if (c != 0) {
                 break;
             }
@@ -32,5 +32,5 @@ char* __stdcall FUN_0041d7b0(char* out, const char* dir, const char* name, const
         }
         return out;
     }
-    return FUN_004290f0(out, dir, name, ext);
+    return BuildDataPath(out, dir, name, ext);
 }

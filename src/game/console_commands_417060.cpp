@@ -12,7 +12,7 @@ struct Flags_00417060
 };
 
 // FUNCTION: 0x417060
-void __stdcall FUN_00417060(int unused)
+void __stdcall CmdHalfShot(int unused)
 {
     Flags_00417060* f = (Flags_00417060*)((char*)g_game + 0x37f2f);
     f->flag = !f->flag;

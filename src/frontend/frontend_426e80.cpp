@@ -118,7 +118,7 @@ void __stdcall FUN_004c22d0(int param);
 void __stdcall FUN_00434ab0(int param);
 void __stdcall FUN_00426780(char* param);
 void __stdcall FUN_00478240(int param);
-void __stdcall FUN_00490b30(int param);
+void __stdcall SetGameMode(int param);
 void __stdcall FUN_0041d9f0(int param);
 int __stdcall FUN_00443ff0(int param);
 int __stdcall CreateLocalPlayer(unsigned char playerIndex, int param2);
@@ -137,11 +137,11 @@ void __stdcall InitPacketManager(int param1, int param2);
 void __stdcall PopKey(void);
 Obj_00426e80* __stdcall GetDisplay(void);
 void __stdcall FUN_004263b0(void);
-void __stdcall FUN_00430f00(void);
+void __stdcall SaveSettings(void);
 int __stdcall InitLobbiedConnection(void);
-void __stdcall FUN_004644d0(void);
+void __stdcall ResetPlayerSlots(void);
 void __stdcall FUN_004777a0(void);
-void __stdcall FUN_0042f9a0(void);
+void __stdcall LoadSettings(void);
 void __stdcall FUN_00478e80(void);
 void __stdcall FUN_0047bbb0(void);
 void __stdcall FUN_00444580(void);
@@ -161,14 +161,14 @@ void __stdcall FUN_0044a680(void);
 int __stdcall FUN_00441bc0(void);
 void __stdcall ReportGameEvent(int param);
 void __stdcall DeleteUnitSync(void);
-void __stdcall FUN_0046c190(void);
+void __stdcall ShutdownScoreTables(void);
 void __stdcall FUN_00491a70(void);
 int __stdcall FUN_004436e0(void);
 void __stdcall FUN_0041f630(void);
 void __stdcall FUN_004c2470(void);
 void __stdcall FUN_004c2870(void);
 struct Class_00463c60 { void SetType(int param); };
-struct Class_00435a20 { void FUN_00435a20(int param); };
+struct Class_00435a20 { void LoadMissionByName(int param); };
 
 void __stdcall FUN_004256d0(int line, char* file);
 void __stdcall FUN_004257e0(char state, int line, char* file);
@@ -300,7 +300,7 @@ void FUN_00426e80(void)
                 FUN_00426780(DAT_0050329c);
                 SetState(1, 0x3dc, DAT_00503004);
                 *(int*)(g_game + 0x3923d) = 0;
-                FUN_00430f00();
+                SaveSettings();
                 return;
             }
             if (*(int*)(g_game + 0x39245) == 0) {
@@ -381,7 +381,7 @@ void FUN_00426e80(void)
             FUN_00426780(DAT_0050328c);
             ((Bits_00426e80*)(g_game + 0x2a44))->b2 = 0;
             SetState(2, 0x44a, DAT_00503004);
-            FUN_00490b30(2);
+            SetGameMode(2);
             return;
         }
         break;
@@ -396,7 +396,7 @@ void FUN_00426e80(void)
             FUN_00426780(DAT_0050328c);
             ((Bits_00426e80*)(g_game + 0x2a44))->b2 = 0;
             SetState(2, 0x45b, DAT_00503004);
-            FUN_00490b30(2);
+            SetGameMode(2);
             return;
         }
         break;
@@ -406,7 +406,7 @@ void FUN_00426e80(void)
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
             FUN_004777a0();
-            FUN_004644d0();
+            ResetPlayerSlots();
             SetSubState(1, 0x47c, DAT_00503004);
             return;
         case 1:
@@ -418,7 +418,7 @@ void FUN_00426e80(void)
             SetSubState(1, 0x486, DAT_00503004);
             return;
         case 11:
-            FUN_0042f9a0();
+            LoadSettings();
             FUN_00434ab0(2);
             SetState(9, 0x493, DAT_00503004);
             return;
@@ -519,12 +519,12 @@ void FUN_00426e80(void)
             case 0xd:
                 FUN_004c2470();
                 FUN_0041f630();
-                FUN_00490b30(7);
+                SetGameMode(7);
                 FUN_0041d9f0(7);
                 FUN_004c2870();
                 return;
             case 0xe:
-                FUN_00490b30(2);
+                SetGameMode(2);
                 SetState(7, 0x516, DAT_00503004);
                 return;
             }
@@ -613,7 +613,7 @@ void FUN_00426e80(void)
         case 0:
             HAPINET_guaranteepackets(1);
             SetSubState(1, 0x587, DAT_00503004);
-            FUN_004644d0();
+            ResetPlayerSlots();
             if (memcmp(g_game + 0x39201, DAT_004fcdc8, 0x10) == 0 ||
                 memcmp(g_game + 0x39201, DAT_004fcdb8, 0x10) == 0) {
                 if (g_game[0x2aaf] & 1) {
@@ -667,7 +667,7 @@ void FUN_00426e80(void)
             unsigned char* q = (unsigned char*)(g_game + 0x14b * (unsigned char)g_game[0x2a42] + 0x1b84);
             *q = (((Bits_00426e80*)(g_game + 0x2b4c))->b4 << 1) | (*q & 0xfd);
             if (((Bits_00426e80*)(g_game + 0x2b4c))->b4) {
-                ((Class_00435a20*)*(int*)(g_game + 0x391e9))->FUN_00435a20((int)(g_game + 0x2ab1));
+                ((Class_00435a20*)*(int*)(g_game + 0x391e9))->LoadMissionByName((int)(g_game + 0x2ab1));
                 for (int i = 0; i < 10; i++) {
                     if (*(int*)(g_game + i * 0x14b + 0x1b63)) {
                         char t = g_game[i * 0x14b + 0x1bd6];
@@ -729,7 +729,7 @@ void FUN_00426e80(void)
             InitPacketManager(2, 100);
             DeleteUnitSync();
             ReportGameEvent(8);
-            FUN_0046c190();
+            ShutdownScoreTables();
             if (((Bits_00426e80*)(g_game + 0x2bee))->b4) {
                 LeaveNetGame();
                 return;

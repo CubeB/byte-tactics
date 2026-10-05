@@ -4,7 +4,7 @@
 extern int __stdcall FUN_004b69b0(const char* app, const char* key, char* buf, int* size);
 
 // FUNCTION: 0x432a80
-void __stdcall FUN_00432a80(int core, char* name)
+void __stdcall LoadCampaignRegistryName(int core, char* name)
 {
     char key[64];
     if (core)

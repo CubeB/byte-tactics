@@ -44,7 +44,7 @@ extern char DAT_00508bf0[];
 
 class Class_004904c0 {
 public:
-    void FUN_004904c0(void* unit);
+    void NotifyUnitDied(void* unit);
 };
 
 class Class_00435100 {
@@ -246,7 +246,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
         parent = &g_game->units[cmd->parentId];
     unit->parent = parent;
     unit->killer = FindSlotByDpid(cmd->killerId);
-    g_game->x391ed->FUN_004904c0(unit);
+    g_game->x391ed->NotifyUnitDied(unit);
     DeleteOrders(unit, 1);
     FUN_0047f8c0(unit);
     SetUnitSquad(unit, -1);

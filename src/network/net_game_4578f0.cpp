@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Leaves the game: if the "leaving game" flag at +0x2a44 is set, drops every
 // connected human or computer player (type 1 or 2) with RemovePlayer and
-// calls FUN_0046c190. Then closes the network, installs a null callback, sets
+// calls ShutdownScoreTables. Then closes the network, installs a null callback, sets
 // the game flag at +0x3923b and quits with the text for the local player's
 // rejection reason (+0x22), the same text GetRejectReasonText returns, and no text at
 // all when the reason is 0.
@@ -61,7 +61,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall RemovePlayer(int dpid);
-void FUN_0046c190();
+void ShutdownScoreTables();
 int __stdcall HAPINET_quitgame(Net_4c9f90* net);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __stdcall QuitApp(char* message);
@@ -75,7 +75,7 @@ void __cdecl LeaveNetGameCallback(int)
                 && (g_game->players[i].type == 1 || g_game->players[i].type == 2))
                 RemovePlayer(g_game->players[i].dpid);
         }
-        FUN_0046c190();
+        ShutdownScoreTables();
     }
     HAPINET_quitgame(&g_game->net);
     SetCloseHandler(0, 0);

@@ -37,8 +37,8 @@ extern char* DAT_0051e63c;
 
 int __stdcall IsCurrentGadgetNamed(Menu_00478cb0* menu, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
-char __stdcall FUN_0041d6a0(int param_1);
-void FUN_0041d4c0();
+char __stdcall FindGameCdDrive(int param_1);
+void RegisterDataArchives();
 void __stdcall FUN_00491c80(int param_1);
 void FUN_004257a0();
 char* __stdcall FUN_004c5740(char* text);
@@ -62,8 +62,8 @@ void __stdcall FUN_00478cb0(Menu_00478cb0* menu)
     }
     if (IsCurrentGadgetNamed(menu, "Start")) {
         FUN_0047f1a0("BigButton", 0);
-        if (FUN_0041d6a0(0)) {
-            FUN_0041d4c0();
+        if (FindGameCdDrive(0)) {
+            RegisterDataArchives();
             FUN_00491c80(0x14);
             g_game->input->FUN_004cfb40();
             FUN_004257a0();

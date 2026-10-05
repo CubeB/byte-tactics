@@ -3,7 +3,7 @@
 #include <windows.h>
 
 // FUNCTION: 0x416240
-void __stdcall FUN_00416240(char* args)
+void __stdcall CmdMemDump(char* args)
 {
     HANDLE file = CreateFileA("memdump.txt", GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
                               FILE_ATTRIBUTE_NORMAL, 0);

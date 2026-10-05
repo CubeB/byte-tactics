@@ -45,7 +45,7 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];             // ""
 
-void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bc930(const char* path, int flag);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* data);
@@ -66,7 +66,7 @@ int __stdcall FUN_00476a60(char** out, int side)
     char name[0x40];
     char path[0x100];
     name[0] = '0';
-    FUN_004290f0(path, "camps", "*", "TDF");
+    BuildDataPath(path, "camps", "*", "TDF");
     int n = FUN_004bc930(path, 0);
     char* names = (char*)FUN_004d83b0("CAMPAIGN NAMES1", n << 8);
     *out = (char*)FUN_004d83b0("CAMPAIGN NAMES2", n << 8);
@@ -74,7 +74,7 @@ int __stdcall FUN_00476a60(char** out, int side)
     char* q = names;
     char* p = *out;
     for (int i = 0; i < n; i++) {
-        FUN_004290f0(path, "camps", q, "tdf");
+        BuildDataPath(path, "camps", q, "tdf");
         if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
             if (((Class_004c3410*)&parser)->FUN_004c3410("HEADER")) {
                 ((Class_004c48c0*)parser.current)->FUN_004c48c0(name, "campaignside", 0x40, DAT_005119b8);

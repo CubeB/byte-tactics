@@ -37,7 +37,7 @@ Gadget_00442560* __stdcall LoadGuiLayer(Menu_00442560* menu, const char* name, i
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 int __stdcall HAPINET_initlobbiedconnection(char* p);
 void __stdcall FUN_004a32a0(Menu_00442560* menu, char* name, char* text, int value, int flag);
-int __stdcall FUN_0042f980(const char* key, void* buf, unsigned int* size);
+int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* size);
 void __stdcall FUN_004a2e40(Menu_00442560* menu, char* name, int index);
 Entry_00442560* __stdcall FindGadgetChecked(void* gadgets, char* name);
 void __stdcall FUN_004423a0(Menu_00442560* menu, Entry_00442560* entry);
@@ -61,10 +61,10 @@ void FUN_00442560()
     int value;
     unsigned int size = 4;
 
-    if (FUN_0042f980("SERBAUD", &value, &size)) {
+    if (ReadGameRegistryValue("SERBAUD", &value, &size)) {
         FUN_004a2e40(&g_game->menu, "SPEEDS", value);
     }
-    if (FUN_0042f980("SERPORT", &value, &size)) {
+    if (ReadGameRegistryValue("SERPORT", &value, &size)) {
         FUN_004a2e40(&g_game->menu, "PORTS", value);
     }
     Entry_00442560* entry = FindGadgetChecked(gadget->gadgets, "PORTS");

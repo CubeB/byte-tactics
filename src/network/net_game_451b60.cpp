@@ -21,7 +21,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall RemovePlayer(int index);
-void FUN_0046c190();
+void ShutdownScoreTables();
 
 // FUNCTION: 0x451b60
 void RemoveLocalPlayers()
@@ -34,5 +34,5 @@ void RemoveLocalPlayers()
             RemovePlayer(g_game->players[i].field_4);
         }
     }
-    FUN_0046c190();
+    ShutdownScoreTables();
 }

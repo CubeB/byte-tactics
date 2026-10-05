@@ -23,7 +23,7 @@ extern int DAT_00511c50;
 extern Pair_00419560 DAT_00511a60[44];
 extern Pair_00419560 DAT_00511c60[44];
 
-// Same reset sequence as FUN_00419560 and FUN_00417570.
+// Same reset sequence as FUN_00419560 and CmdNetStats.
 // FUNCTION: 0x415e90
 void ResetNetStats()
 {

@@ -34,7 +34,7 @@ public:
 };
 
 // FUNCTION: 0x416780
-void __stdcall FUN_00416780(Class_004b73e0* args)
+void __stdcall CmdSearch(Class_004b73e0* args)
 {
     if (args->FUN_004b73e0(1, 0)) {
         g_game->obj->value = args->FUN_004b73e0(1, 0);

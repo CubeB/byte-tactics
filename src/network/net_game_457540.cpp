@@ -41,9 +41,9 @@ struct PlayerData_00457540 {
     unsigned char field_94;            // +0x94
 };
 
-class Class_0048ff40 {
+class MissionConditions {
 public:
-    int FUN_00490230();
+    int CheckVictory();
 };
 
 #pragma pack(push, 1)
@@ -88,7 +88,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player_00457540 players[10];       // +0x1b63
     char unknown_2851[0x391ed - 0x2851];
-    Class_0048ff40* conditions;        // +0x391ed
+    MissionConditions* conditions;     // +0x391ed
 };
 
 struct Packet_00457540 {              // 0x3a bytes
@@ -182,7 +182,7 @@ void __stdcall HandlePlayerEconomy(Packet_00457540* packet, Player_00457540* pla
         else
             team.flag2 = 0;
         SendPacketToPlayer(p->dpid, player->dpid, &team, 3);
-        if (g_game->conditions->FUN_00490230() != 0)
+        if (g_game->conditions->CheckVictory() != 0)
             continue;
         if (p->t0[player->field_146] != 0)
             continue;

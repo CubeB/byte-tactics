@@ -21,7 +21,7 @@ void* __stdcall FUN_00481550(int x, int y);
 void* __stdcall FUN_00423c50(void* target, unsigned short id, void* pos, void* field_64, unsigned char owner);
 
 // FUNCTION: 0x4163d0
-void __stdcall FUN_004163d0(Class_004b73c0* args)
+void __stdcall CmdFeature(Class_004b73c0* args)
 {
     unsigned short id = FUN_00422dd0(args->FUN_004b73c0(1, DAT_005119b8));
     if (id != 0xffff) {

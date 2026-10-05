@@ -142,7 +142,7 @@ public:
 
 int __stdcall FUN_004b6c30(int range);
 
-// Copies the 12-byte position at +0x35 of DAT_005119c0[index] into *out.
+// Copies the 12-byte position at +0x35 of g_playerAI[index] into *out.
 void __stdcall FUN_0040ba80(int index, Pos_00407ae0* out);
 
 static inline Pos_00407ae0 GetRallyPoint(int index)

@@ -8,14 +8,14 @@ struct Unit_004030d0 {
     unsigned int unknown_bits2 : 12;
 };
 
-struct Order_004030d0 {
+struct Order {
     char unknown_0[0x36];
     int mode;                            // +0x36
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x4030d0
-int __stdcall FUN_004030d0(Unit_004030d0* unit, Order_004030d0* order, int unused)
+int __stdcall FUN_004030d0(Unit_004030d0* unit, Order* order, int unused)
 {
     unit->mode2 = order->mode;
     return 5;

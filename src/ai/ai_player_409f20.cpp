@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-class Class_00409160 {
+class PlayerAI {
 public:
     char unknown_0[0xd1];
     int* values;                        // +0xd1
@@ -16,13 +16,13 @@ struct Game {
 };
 #pragma pack(pop)
 
-extern Class_00409160* DAT_005119c0[];
+extern PlayerAI* g_playerAI[];
 extern Game* g_game;
 // FUNCTION: 0x409f20
 int __stdcall FUN_00409f20(int player, unsigned short index, int value)
 {
     if (index >= 1 && index < g_game->count) {
-        int* values = DAT_005119c0[player]->values;
+        int* values = g_playerAI[player]->values;
         if (values[index] == -1)
             return 1;
         return value < values[index];

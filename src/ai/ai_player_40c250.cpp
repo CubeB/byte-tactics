@@ -20,11 +20,11 @@ struct Game {
 };
 #pragma pack(pop)
 extern Game* g_game;
-extern AI* DAT_005119c0[];
+extern AI* g_playerAI[];
 // FUNCTION: 0x40c250
 void __stdcall FUN_0040c250(int player, FILE* file)
 {
-    AI* ai=DAT_005119c0[player];
+    AI* ai=g_playerAI[player];
     char buffer[256];
     unsigned int hours=g_game->tick/108000;
     int remaining=g_game->tick-hours*108000;

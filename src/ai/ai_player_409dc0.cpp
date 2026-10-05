@@ -23,13 +23,13 @@ struct Game {
 };
 #pragma pack(pop)
 
-extern Class_00409470* DAT_005119c0[];
+extern Class_00409470* g_playerAI[];
 extern Game* g_game;
 
 // FUNCTION: 0x409dc0
 void __stdcall FUN_00409dc0(int player, unsigned int* mask, float scale, int lock)
 {
-    Class_00409470* p = DAT_005119c0[player];
+    Class_00409470* p = g_playerAI[player];
     for (unsigned short i = 1; i < g_game->count; i++) {
         if (mask[i >> 5] & (1 << (i & 0x1f))) {
             int off = i * 4;

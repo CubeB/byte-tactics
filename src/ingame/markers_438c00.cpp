@@ -75,7 +75,7 @@ struct Unit {
     unsigned int flags_rest : 27;
 };
 
-struct Order_00438c00 {
+struct Order {
     char unknown_0[0xe];
     Unit* owner;                      // +0xe
     char unknown_12[0x22 - 0x12];
@@ -127,7 +127,7 @@ static int ScreenY(View_00438c00* v, int z, int y)
 }
 
 // FUNCTION: 0x438c00
-void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* order,
+void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order* order,
                             Pos_00438c00* out, int unused)
 {
     if (order->type == 0)

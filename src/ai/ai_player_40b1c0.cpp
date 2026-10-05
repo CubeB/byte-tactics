@@ -28,13 +28,13 @@ public:
 };
 #pragma pack(pop)
 
-extern Class_0040b1c0* DAT_005119c0[];
+extern Class_0040b1c0* g_playerAI[];
 
 // FUNCTION: 0x40b1c0
 int __stdcall FUN_0040b1c0(int player, Vec_0040b1c0* pos, int range)
 {
     int total = 0;
-    Class_0040b1c0* p = DAT_005119c0[player];
+    Class_0040b1c0* p = g_playerAI[player];
     int r2 = range * range;
     std::vector<Unit*>& units = p->units;
     for (std::vector<Unit*>::iterator it = units.begin(); it != units.end(); it++) {

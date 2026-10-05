@@ -8,7 +8,7 @@ struct Game {
     unsigned int ticks;                // +0x38a47
 };
 
-class Class_00409160 {
+class PlayerAI {
 public:
     char unknown_0[0xed];
     unsigned int lastTick;             // +0xed
@@ -16,7 +16,7 @@ public:
 #pragma pack(pop)
 
 extern Game* g_game;
-extern Class_00409160* DAT_005119c0[];
+extern PlayerAI* g_playerAI[];
 
 int __stdcall FUN_004b6c30(int range);
 
@@ -33,7 +33,7 @@ public:
 // FUNCTION: 0x40b2c0
 void __stdcall FUN_0040b2c0(int player)
 {
-    Class_00409160* p = DAT_005119c0[player];
+    PlayerAI* p = g_playerAI[player];
     if (p && g_game->ticks >= p->lastTick + 0x1e) {
         ((Class_0040aa40*)p)->FUN_0040aa40();
         p->lastTick = g_game->ticks;

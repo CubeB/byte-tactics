@@ -63,7 +63,7 @@ struct Game {
     int count;                         // +0x1438f
 };
 
-class Class_00409160 {
+class PlayerAI {
 public:
     char* player;                      // +0x00
     unsigned char index;               // +0x04
@@ -92,10 +92,10 @@ public:
 };
 #pragma pack(pop)
 
-extern Class_00409160* DAT_005119c0[];
+extern PlayerAI* g_playerAI[];
 // FUNCTION: 0x40b390
 void __stdcall FUN_0040b390(int player)
 {
-    delete DAT_005119c0[player];
-    DAT_005119c0[player]=0;
+    delete g_playerAI[player];
+    g_playerAI[player]=0;
 }

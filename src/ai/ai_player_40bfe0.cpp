@@ -58,7 +58,7 @@ public:
 };
 #pragma pack(pop)
 extern Game* g_game;
-extern Class_0040a7b0* DAT_005119c0[];
+extern Class_0040a7b0* g_playerAI[];
 int __stdcall FUN_004b6c30(int);
 static inline void CellToWorld(Vec3* out, Point p, Point origin) {
     out->x=(origin.x+p.x*2)<<19;
@@ -67,7 +67,7 @@ static inline void CellToWorld(Vec3* out, Point p, Point origin) {
 // FUNCTION: 0x40bfe0
 int __stdcall FUN_0040bfe0(int player, const Vec3* from, UnitType* type, Vec3* out)
 {
-    Class_0040a7b0* ai=DAT_005119c0[player];
+    Class_0040a7b0* ai=g_playerAI[player];
     int maximum=g_game->width > g_game->height ? g_game->width : g_game->height;
     if (ai->range<maximum) ai->range+=160;
     Vec3 pos=MoveTowards(from,&ai->pos,ai->range<<16);

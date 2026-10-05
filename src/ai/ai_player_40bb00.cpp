@@ -31,7 +31,7 @@ struct Game { char pad[0x1b63]; Player players[10]; char pad2851[0x1439b-0x1b63-
 struct Owner { char pad[0x69]; Rating* ratings; char pad6d[0x81-0x6d]; short* counts; char pad85[0xb1-0x85]; unsigned char* weights; };
 #pragma pack(pop)
 extern Game* g_game;
-extern Owner* DAT_005119c0[];
+extern Owner* g_playerAI[];
 float __stdcall FUN_00464ad0(Player*);
 float __stdcall FUN_00464b10(Player*);
 float __stdcall FUN_00464ab0(Player*);
@@ -41,7 +41,7 @@ static inline float Max(float a,float b) { return a>b?a:b; }
 // FUNCTION: 0x40bb00
 int __stdcall FUN_0040bb00(int player,unsigned short type)
 {
-    Owner* owner=DAT_005119c0[player];
+    Owner* owner=g_playerAI[player];
     Player* p=&g_game->players[player];
     if(p->energy<50.0f) return 0;
     if(p->metal<25.0f) return 0;

@@ -46,7 +46,7 @@ struct Unit {
     unsigned int flags;                // +0x110
 };
 
-struct Order_004021f0 {
+struct Order {
     char unknown_0[5];
     unsigned char state;               // +0x5
     unsigned int flags;                // +0x6
@@ -67,7 +67,7 @@ void __stdcall FUN_0040ad80(int player, Vec_004021f0* pos, int radius, int flags
                             std::vector<Unit*>* out);
 
 // FUNCTION: 0x4021f0
-int __stdcall FUN_004021f0(Unit* unit, Order_004021f0* order, int flags)
+int __stdcall FUN_004021f0(Unit* unit, Order* order, int flags)
 {
     if (flags & 0x10008) {
         order->state = 3;

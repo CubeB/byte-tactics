@@ -15,7 +15,7 @@ struct Unit {
     short health;                      // +0x108
 };
 
-class Order_00415250 {
+class Order {
 public:
     char unknown_0[5];
     unsigned char state;               // +0x5
@@ -37,7 +37,7 @@ public:
 void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
 
 // FUNCTION: 0x415250
-int __stdcall FUN_00415250(Unit* unit, Order_00415250* order, int unused)
+int __stdcall FUN_00415250(Unit* unit, Order* order, int unused)
 {
     if (order->target == 0) {
         FUN_0047f780(unit, 7, "Repair aborted.");

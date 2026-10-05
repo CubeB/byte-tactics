@@ -21,7 +21,7 @@ extern char* g_game;
 extern int DAT_005119e8[10];
 
 #pragma pack(push, 1)
-class Class_0040e9e0 {
+class Pathfinder {
 public:
     int field_00;
     int field_04;
@@ -46,13 +46,13 @@ public:
     int field_79[10];
     int field_a1[10];
 
-    Class_0040e9e0();
+    Pathfinder();
     void FUN_0040d900();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x40e9e0
-Class_0040e9e0::Class_0040e9e0()
+Pathfinder::Pathfinder()
 {
     field_00 = 0;
     field_04 = 0;

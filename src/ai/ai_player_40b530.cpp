@@ -11,11 +11,11 @@ struct Def { char pad[0x241]; unsigned flags; };
 struct Unit { char pad[0x6a]; Vec pos; char pad76[0x92-0x76]; Def* def; char pad96[0x10e-0x96]; unsigned char active; };
 struct Owner { char pad[0x25]; std::vector<Unit*> factories; };
 #pragma pack(pop)
-extern Owner* DAT_005119c0[];
+extern Owner* g_playerAI[];
 // FUNCTION: 0x40b530
 void __stdcall FUN_0040b530(int player,const Vec* pos,int radius,std::vector<Unit*>* out)
 {
-    std::vector<Unit*>& list=DAT_005119c0[player]->factories;
+    std::vector<Unit*>& list=g_playerAI[player]->factories;
     radius*=radius;
     for(std::vector<Unit*>::iterator it=list.begin();it!=list.end();++it) {
         Unit* unit=*it;

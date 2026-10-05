@@ -355,9 +355,9 @@ can disagree on types (a real link would fail). Known cases:
 - One element type, one name: `Elem_0040cc40` (a cell and its float sort key,
   copy constructor 0x40a5b0) is the element of the vector at +0x4d of the
   player AI object, and `Elem_0040cfb0` (three bytes) the one at +0x65. The
-  files that use them define them identically. `Class_00409160`,
+  files that use them define them identically. `PlayerAI`,
   `Class_00409470`, `Class_00409730`, `Class_0040a150` and `Class_0040a7b0`
-  are all that AI object (DAT_005119c0[player]).
+  are all that AI object (g_playerAI[player]).
 - The unit list is `std::vector<Unit*>`, and `Unit` is its only element name
   (#135). Its out-of-line members are 0x406c00 (`_Destroy`), 0x406c10
   (`_Ucopy`), 0x406c40 (`_Ufill`), 0x408f30 (`insert`), 0x40c510 (the

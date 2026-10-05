@@ -23,7 +23,7 @@ public:
 struct Unit_00402d10;
 
 #pragma pack(push, 1)
-struct Order_00402d10 {
+struct Order {
     char unknown_0[0x36];
     int ticks;                           // +0x36
 };
@@ -34,7 +34,7 @@ void __stdcall FUN_0048a0f0(Unit_00402d10* unit, int weapon);
 // Order handler: waits for the order's time (at most 1800 ticks).
 // A char loop counter gives the separate countdown register (ebx = 3).
 // FUNCTION: 0x402d10
-int __stdcall FUN_00402d10(Unit_00402d10* unit, Order_00402d10* order, int unused)
+int __stdcall FUN_00402d10(Unit_00402d10* unit, Order* order, int unused)
 {
     if (order->ticks == 0) {
         ((Class_0048b090*)unit)->FUN_0048b090(0x10, 0);

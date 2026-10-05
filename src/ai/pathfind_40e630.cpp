@@ -146,7 +146,7 @@ public:
     void FUN_00440af0(Object_0040e630* p);
 };
 
-class Class_0040e9e0 {
+class Pathfinder {
 public:
     void FUN_0040d900();
 };
@@ -250,7 +250,7 @@ void Class_0040e630::FUN_0040e630(Target_0040e630* t)
     start = object->pos;
     ((Class_00440af0*)owner)->FUN_00440af0(object);
     ResetTable();
-    ((Class_0040e9e0*)this)->FUN_0040d900();
+    ((Pathfinder*)this)->FUN_0040d900();
 
     std::vector<Point_0040e630> goals;
     target->GetGoals(goals);

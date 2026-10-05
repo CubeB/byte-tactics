@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // For each active player of type 2, calls FUN_00409470 on its entry in
-// DAT_005119c0, then calls FUN_004648e0.
+// g_playerAI, then calls FUN_004648e0.
 
 #pragma pack(push, 1)
 struct Player_0040a100 {
@@ -23,7 +23,7 @@ public:
     void FUN_00409470();
 };
 
-extern Class_00409470* DAT_005119c0[];
+extern Class_00409470* g_playerAI[];
 
 void FUN_004648e0();
 
@@ -32,7 +32,7 @@ void FUN_0040a100()
 {
     for (int i = 0; i < 10; i++) {
         if (g_game->players[i].active != 0 && g_game->players[i].type == 2) {
-            DAT_005119c0[i]->FUN_00409470();
+            g_playerAI[i]->FUN_00409470();
         }
     }
     FUN_004648e0();

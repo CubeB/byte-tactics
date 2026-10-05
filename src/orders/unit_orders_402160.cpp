@@ -20,7 +20,7 @@ struct Unit_00402160;
 void __stdcall FUN_0048a060(char* unit, char* param_2, int param_3);
 
 #pragma pack(push, 1)
-struct Order_00402160 {
+struct Order {
     char unknown_0[5];
     unsigned char state;               // +0x5
     int field_6;                       // +0x6
@@ -30,7 +30,7 @@ struct Order_00402160 {
 #pragma pack(pop)
 
 // FUNCTION: 0x402160
-int __stdcall FUN_00402160(Unit_00402160* unit, Order_00402160* order, int flags)
+int __stdcall FUN_00402160(Unit_00402160* unit, Order* order, int flags)
 {
     if (order->field_16 == 0 || (flags & 0x10808) != 0)
         return 5;

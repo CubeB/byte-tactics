@@ -20,13 +20,13 @@ struct Player_40b0d0 {
 };
 #pragma pack(pop)
 
-extern Player_40b0d0* DAT_005119c0[];
+extern Player_40b0d0* g_playerAI[];
 
 // FUNCTION: 0x40b0d0
 bool __stdcall FUN_0040b0d0(int player, Vec3_40b0d0* p, int range)
 {
     int r2 = range * range;
-    Player_40b0d0* t = DAT_005119c0[player];
+    Player_40b0d0* t = g_playerAI[player];
     std::vector<Unit*>& units = t->units;
     std::vector<Unit*>::iterator it = units.begin();
     if (it != units.end()) {

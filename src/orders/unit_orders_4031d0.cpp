@@ -11,7 +11,7 @@ struct UnitBody_004031d0 {
     int field_86;                      // +0x86
 };
 
-class Order_004031d0 {
+class Order {
 public:
     char unknown_0[5];
     unsigned char state;               // +0x5
@@ -35,7 +35,7 @@ public:
 void __stdcall FUN_0047f780(UnitBody_004031d0* unit, int kind, char* text);
 
 // FUNCTION: 0x4031d0
-int __stdcall FUN_004031d0(UnitBody_004031d0* unit, Order_004031d0* order, int flags)
+int __stdcall FUN_004031d0(UnitBody_004031d0* unit, Order* order, int flags)
 {
     switch (order->state) {
     case 0:

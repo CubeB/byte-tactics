@@ -12,14 +12,14 @@ struct Game {
 #pragma pack(pop)
 
 extern Game* g_game;
-extern void* DAT_005119c0[];
+extern void* g_playerAI[];
 
 // FUNCTION: 0x40bab0
 void __stdcall FUN_0040bab0(int index, int unused, Struct_0040bab0* out)
 {
     out->a = (g_game->baseX << 16) -
-             ((Struct_0040bab0*)((char*)DAT_005119c0[index] + 0x35))->a;
+             ((Struct_0040bab0*)((char*)g_playerAI[index] + 0x35))->a;
     out->b = 0;
     out->c = (g_game->baseX << 16) -
-             ((Struct_0040bab0*)((char*)DAT_005119c0[index] + 0x35))->c;
+             ((Struct_0040bab0*)((char*)g_playerAI[index] + 0x35))->c;
 }

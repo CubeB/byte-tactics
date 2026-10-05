@@ -1,5 +1,5 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-// Constructor of a player's AI state object (DAT_005119c0[player], built by
+// Constructor of a player's AI state object (g_playerAI[player], built by
 // 0x40b320; 0x40b390 destroys it). Its out-of-line STL callees are
 // std::vector<Unit*>::vector(const allocator&) (0x40c510),
 // std::vector<short>::size() (0x40d000) and
@@ -77,7 +77,7 @@ struct Game {
     int count;                         // +0x1438f
 };
 
-class Class_00409160 {
+class PlayerAI {
 public:
     char* player;                      // +0x00
     unsigned char index;               // +0x04
@@ -102,7 +102,7 @@ public:
     char unknown_f1[0x109 - 0xf1];
     int field_109;                     // +0x109
 
-    Class_00409160(unsigned char player);
+    PlayerAI(unsigned char player);
 };
 #pragma pack(pop)
 
@@ -119,7 +119,7 @@ public:
 };
 
 // FUNCTION: 0x409160
-Class_00409160::Class_00409160(unsigned char p)
+PlayerAI::PlayerAI(unsigned char p)
     : player(g_game->players[p]), index(p),
       center(g_game->width / 2, g_game->height / 2), field_75(0)
 {

@@ -241,7 +241,7 @@ struct Grid_0040d900 {
     }
 };
 
-class Class_0040e9e0 {
+class Pathfinder {
 public:
     char unknown_0[0x1c];
     Grid_0040d900 grid;                // +0x1c
@@ -250,7 +250,7 @@ public:
 };
 
 // FUNCTION: 0x40d900
-void Class_0040e9e0::FUN_0040d900()
+void Pathfinder::FUN_0040d900()
 {
     int n = ((grid.count + 0xff) >> 8) - 1;
     int i;

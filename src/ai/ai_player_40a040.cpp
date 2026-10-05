@@ -18,7 +18,7 @@ struct Game {
     Def_0040a040* defs;                // +0x1439b
 };
 
-class Class_00409160 {
+class PlayerAI {
 public:
     char unknown_0[0xe1];
     int* locked;                       // +0xe1
@@ -39,7 +39,7 @@ public:
 };
 
 extern Game* g_game;
-extern Class_00409160* DAT_005119c0[];
+extern PlayerAI* g_playerAI[];
 
 void FUN_00406da0();
 int __stdcall FUN_004b7a30(char* text, int len, Class_004b74f0* vars, int param_4);
@@ -47,7 +47,7 @@ int __stdcall FUN_004b7a30(char* text, int len, Class_004b74f0* vars, int param_
 // FUNCTION: 0x40a040
 void __stdcall FUN_0040a040(int player)
 {
-    Class_00409160* p = DAT_005119c0[player];
+    PlayerAI* p = g_playerAI[player];
     FUN_00406da0();
     for (unsigned short i = 1; i < g_game->count; i++) {
         Def_0040a040* def = &g_game->defs[i];

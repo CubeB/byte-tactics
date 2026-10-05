@@ -203,7 +203,7 @@ type, is declared as a byte array of its size with the type in a comment; a
 global only ever declared `extern "C"` is declared `extern "C"`. The globals
 left out are listed at the end: those a data file or a tree file defines, the
 parts of other globals, vtables, STL tree statics, and globals whose files
-disagree (`DAT_0051fba4`, `DAT_005119c0`, ...). `tools/link.py` defines
+disagree (`DAT_0051fba4`, `g_playerAI`, ...). `tools/link.py` defines
 those last ones as byte arrays with their whole initial value.
 
 **`link/data.cpp`** defines every global `globals.h` declares, with the
@@ -776,7 +776,7 @@ every placed game function it reads each relocated field of
 `build/link/TotalA.exe`, maps the address back to the original through the
 map file (`link.py --carve --map`), and compares it with what the original's
 code holds in that field. A reference past the end of a global (an array's
-end, `&DAT_005119c0[10]`) agrees when its global does, and a function's own
+end, `&g_playerAI[10]`) agrees when its global does, and a function's own
 statics where the layout put them. A constructor's store of the vtable its
 own object defines is compared too, since another file's copy may be the
 one LINK keeps. It then compares the data: every named

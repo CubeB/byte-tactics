@@ -16,7 +16,7 @@ struct Unit {
     unsigned int unknown_bits2 : 10;
 };
 
-struct Order_00403100 {
+struct Order {
     char unknown_0[0x36];
     int mode;                            // +0x36
 };
@@ -26,7 +26,7 @@ void __stdcall FUN_0048a0f0(Unit* unit, int weapon);
 
 // A char loop counter gives the separate countdown register (ebx = 3).
 // FUNCTION: 0x403100
-int __stdcall FUN_00403100(Unit* unit, Order_00403100* order, int unused)
+int __stdcall FUN_00403100(Unit* unit, Order* order, int unused)
 {
     unit->mode = order->mode;
     if (order->mode == 0 || order->mode == 1) {

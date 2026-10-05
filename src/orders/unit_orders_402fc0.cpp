@@ -18,14 +18,14 @@ struct Unit_00402fc0 {
     int field_86;                      // +0x86
 };
 
-struct Order_00402fc0 {
+struct Order {
     char unknown_0[5];
     unsigned char state;               // +0x5
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x402fc0
-int __stdcall FUN_00402fc0(Unit_00402fc0* unit, Order_00402fc0* order, int unused)
+int __stdcall FUN_00402fc0(Unit_00402fc0* unit, Order* order, int unused)
 {
     if (unit->field_86 == 0) {
         return 5;

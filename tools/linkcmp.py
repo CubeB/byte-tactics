@@ -121,6 +121,8 @@ def main() -> None:
                 target = p.obj.secs[sym.section - 1]
                 if target is p.sec or (not target.is_code and not target.chars & SCN_MEM_WRITE):
                     continue                 # jump tables, its own constants and literals
+                if target.name.startswith(".text$x"):
+                    continue                 # its own exception handler stub (a static label)
                 if target.name.startswith(".data") and sym.name.startswith("??_C@"):
                     continue
             if sym.name.startswith("__imp_"):

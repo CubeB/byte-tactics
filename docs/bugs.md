@@ -364,6 +364,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   if the pushed arguments straddled a 64 KB boundary. These routines run at a
   steady stack depth, where that evidently never happens. Found by Claude
   Code / Opus 5.5 in #2662.
+- **0x4d9ab0** (the fatal error handler, a gap region): it tests CreateFileA's
+  result against 0 (`test esi, esi` at 0x4d9b91) where failure is
+  INVALID_HANDLE_VALUE (-1), so when ErrorLog.txt cannot be opened it calls
+  SetFilePointer, WriteFile and CloseHandle on -1, which is the current
+  process's pseudo-handle: the calls fail or do nothing. Found by Claude
+  Code / Opus 5.5 in #2662.
 - **0x4cca33** (a 16-bit line drawer in the gap region 0x4cbbe0): it calls the
   clipping routine 0x4cc650 with four arguments and no surface, so 0x4cc650
   takes x0 as the surface, and it reads `word ptr [edi]` from an edi nothing

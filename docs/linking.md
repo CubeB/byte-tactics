@@ -451,7 +451,12 @@ opens with `push ebp / mov ebp, esp`, and they fall into a few kinds:
 - **C++ exception handling**, `try`/`catch` frames (0x4441a0, 0x444580, the
   three at 0x45b250, 0x49ee30, and 0x4c4fa0, which is `basic_string::_Copy`
   from the compiler's own `<xstring>`). MSVC 5 builds these frames without
-  `/GX` too (with a warning), and 0x4c4fa0 matches only without it.
+  `/GX` too (with a warning), and none of them matches with it. In a function
+  with a `try` or `__try`, every local gets a frame slot of its own (unused
+  ones, those kept in registers and those of inlined callees too), allocated
+  one scope after another and, within a scope, in 16 buckets by a hash of
+  the name (the later declaration first within a bucket): the names in those
+  files are ones that give the original's frame.
 - **Aligned frames**, `and esp, -8` before the locals (0x41dc20, 0x420d20,
   0x42a8d0, 0x466050, 0x46c2a0, 0x49a120): MSVC 5 builds this frame under the
   game's usual flags once a function keeps enough 8-byte values on the stack
@@ -512,11 +517,11 @@ compares the gap functions' references too.
 | 0x41dc20 | 697 | aligned frame: the end-of-game statistics table | matches |
 | 0x420d20 | 291 | aligned frame: an explosion frame bitmap | matches |
 | 0x42a8d0 | 2,719 | aligned frame | |
-| 0x4441a0 | 801 | `try`/`catch` | |
-| 0x444580 | 898 | `try`/`catch` | |
-| 0x45b250 | 560 | `try`/`catch` | |
-| 0x45b490 | 417 | `try`/`catch` | |
-| 0x45b670 | 395 | `try`/`catch` | |
+| 0x4441a0 | 801 | `try`/`catch`: the SELPROV.GUI menu handler | matches |
+| 0x444580 | 898 | `try`/`catch`: SELPROV.GUI, a button per online service | matches |
+| 0x45b250 | 560 | `try`/`catch`: online.dll button commands | matches |
+| 0x45b490 | 417 | `try`/`catch`: online.dll link names | matches |
+| 0x45b670 | 395 | `try`/`catch`: online.dll configuration | matches |
 | 0x466050 | 1,326 | aligned frames: a saved game's player section, loaded and saved | matches |
 | 0x46c2a0 | 882 | aligned frame: the score tables for the statistics DLL | matches |
 | 0x497c70 | 101 | `__try`/`__except`: the loading thread | matches |
@@ -530,14 +535,14 @@ compares the gap functions' references too.
 | 0x4c4fa0 | 255 | `basic_string::_Copy`, `try`/`catch` | matches |
 | 0x4cbbe0 | 7,622 | hand-written: surface drawing, five modules with 23 more entry points | matches |
 | 0x4d8310 | 67 | inline `int 3` | |
-| 0x4d8870 | 318 | inline asm: stack trace | |
+| 0x4d8870 | 318 | inline asm: two constructors that record a stack trace | matches |
 | 0x4d8d70 | 125 | inline asm: stack bounds, in three thread-local variables | matches |
-| 0x4d9ab0 | 420 | `__try`/`__except`, inline `int 3` | |
+| 0x4d9ab0 | 420 | `__try`/`__except`, inline `int 3`: the fatal error handler | matches |
 | 0x4da120 | 379 | `/Od`: DebugHelper.dll and the debug set-up | matches |
 | 0x4da2c0 | 303 | `/Od`: the debug thread and its message pump | matches |
 | 0x4e16b0 | 74 | inline `cpuid` | matches |
-| 0x4e1e50 | 761 | inline `rdpmc` | |
-| 0x4e35b0 | 349 | inline `cpuid` | |
+| 0x4e1e50 | 761 | inline `rdpmc`: a profiling timer's report and restart | matches |
+| 0x4e35b0 | 349 | inline `cpuid`: opens the GDPERF counter driver | matches |
 
 ## Next steps
 

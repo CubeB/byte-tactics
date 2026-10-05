@@ -580,7 +580,10 @@ def retargets(img: Image, placer: Placer, namer: Namer,
             site = va + off - lo
             (ours,) = struct.unpack_from("<I", sec.data, off)
             if target_sec.is_code:
-                named = namer.name(site_targets(img, sec, off, rtype, site), f"call to {sym.name}")
+                target = site_targets(img, sec, off, rtype, site)
+                if placer.address_in(obj, sym.section, sym.value) == target:
+                    continue             # its own code, placed where the original's is (an EH stub)
+                named = namer.name(target, f"call to {sym.name}")
                 if named:
                     out[obj.path.name].append((sec.index, off, named[0], ours + named[1]))
             elif (sym.sclass == IMAGE_SYM_CLASS_STATIC and rtype == REL_DIR32

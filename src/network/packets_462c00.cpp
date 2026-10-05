@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// The real constructor of Class_00462d30 (vtable 0x4fd518, scalar deleting
+// The real constructor of PacketReceiver (vtable 0x4fd518, scalar deleting
 // destructor 0x462cc0, destructor 0x462d30). 0x4611e0.cpp already matches this
-// same constructor inlined into Class_00460f60's constructor, so the member
+// same constructor inlined into PacketManager's constructor, so the member
 // declarations are copied from there: the ten entries are the array member, and
 // MSVC 5 builds their ten constructions as the loop, with the first field
 // written through the array index and the rest through the walking pointer.
@@ -62,9 +62,9 @@ struct PlayerFrameInfo : public F0_00462d30 {
     }
 };
 
-class Class_00462d30 {
+class PacketReceiver {
 public:
-    virtual ~Class_00462d30();
+    virtual ~PacketReceiver();
     int field_4;                       // +0x04
     void* owner;                       // +0x08
     int field_c;                       // +0x0c
@@ -79,11 +79,11 @@ public:
     int field_234;                     // +0x234
     int field_238;                     // +0x238
 
-    Class_00462d30(void* o);
+    PacketReceiver(void* o);
 };
 
 // FUNCTION: 0x462c00
-Class_00462d30::Class_00462d30(void* o)
+PacketReceiver::PacketReceiver(void* o)
     : field_4(0), owner(o), field_c(-1), field_10(-1), field_14(0), field_18(0), field_1c(0),
       field_228(0), field_22c(0), field_230(0), field_234(-1), field_238(-1)
 {

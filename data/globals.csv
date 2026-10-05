@@ -641,7 +641,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x512ff4,DAT_00512ff4,.bss,4,type,data,Class_004c6a60*,2,1,2,conflicting: shape,3,,DAT_00512ff4,,,
 0x512ff8,DAT_00512ff8,.bss,4,type,data,int,4,0,1,one type,4,,INT_00512ff8,,,
 0x512ffc,DAT_00512ffc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x513000,g_packetManager,.bss,46396,definition,data,PacketManager,24,4,4,conflicting: struct names only,28,0xb54c,DAT_00513000,,src/network/packets_460e20.cpp,
+0x513000,g_packetManager,.bss,46396,definition,data,PacketManager,26,2,3,conflicting: struct names only,28,0xb54c,DAT_00513000,,src/network/packets_460e20.cpp,
 0x513008,DAT_00513008,.bss,4,gap,data,PacketChannel,1,0,1,one type,1,,DAT_00513008,,in g_packetManager+0x8,
 0x51e2f4,DAT_0051e2f4,.bss,4,type,data,int*,1,0,1,one type,1,,PTR_0051e2f4,,in g_packetManager+0xb2f4,
 0x51e2f8,DAT_0051e2f8,.bss,4,type,data,unsigned int,1,0,1,one type,1,,INT_0051e2f8,,in g_packetManager+0xb2f8,

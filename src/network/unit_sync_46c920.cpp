@@ -23,11 +23,11 @@ struct UnitSyncEntry {                 // the map's mapped type, 0x10 bytes
     int unknown_c;                     // +0xc
 };
 
-class Class_0046ded0 {                 // the vector's element, 0x5c bytes
+class UnitSyncPlayer {                 // the vector's element, 0x5c bytes
 public:
     char unknown_0[0x5c];
 
-    ~Class_0046ded0();
+    ~UnitSyncPlayer();
 };
 
 class Class_0046e610 {                 // holds a std::vector<int>
@@ -40,7 +40,7 @@ public:
 class UnitSync {
 public:
     std::map<unsigned int, UnitSyncEntry> map;     // +0x00
-    std::vector<Class_0046ded0> elems;             // +0x10
+    std::vector<UnitSyncPlayer> elems;             // +0x10
     std::list<int> ids;                            // +0x20
     int field_2c;                                  // +0x2c
     int field_30;                                  // +0x30

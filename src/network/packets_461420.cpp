@@ -1,8 +1,8 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 // Out-of-line destructor of the class whose vtable is 0x4fd514 (its scalar
 // deleting destructor is 0x461340, which has this body inlined). It first
-// destroys the Class_00462d30 member at +0xb300, then the eleven big entries
-// at +0x10 in reverse order. The class declarations for Class_00462d30 are
+// destroys the PacketReceiver member at +0xb300, then the eleven big entries
+// at +0x10 in reverse order. The class declarations for PacketReceiver are
 // copied from 0x462cc0.cpp so its destructor is inlined here.
 // The channels start at +0x08; the +0x10 here is each channel's own
 // items/count pair at its +0x08 (settled in #225, see 0x460e20.cpp).
@@ -38,10 +38,10 @@ struct PlayerFrameInfo {
     int field_30;
 };
 
-class Class_00462d30 {
+class PacketReceiver {
 public:
-    Class_00462d30();
-    virtual ~Class_00462d30()
+    PacketReceiver();
+    virtual ~PacketReceiver()
     {
         if (field_1c)
             operator delete(field_1c);
@@ -75,20 +75,20 @@ struct Entry_00461420 {
     }
 };
 
-class Class_00460f60 {
+class PacketManager {
 public:
-    Class_00460f60();
-    virtual ~Class_00460f60();
+    PacketManager();
+    virtual ~PacketManager();
     int field_4;
     char unknown_8[8];
     Entry_00461420 entries[11];        // +0x10
     int field_b2fc;
-    Class_00462d30 member;              // +0xb300
+    PacketReceiver member;              // +0xb300
 };
 
-static Class_00460f60 s_obj;
+static PacketManager s_obj;
 
 // FUNCTION: 0x461420
-Class_00460f60::~Class_00460f60()
+PacketManager::~PacketManager()
 {
 }

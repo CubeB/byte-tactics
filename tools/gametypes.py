@@ -2298,12 +2298,16 @@ def main() -> int:
     ap.add_argument("--jobs", type=int, default=min(8, os.cpu_count() or 4))
     ap.add_argument("--dump", type=Path, help="write the extracted views as JSON and stop")
     ap.add_argument("--stats", action="store_true", help="list the types left out and the joins refused")
-    ap.add_argument("--explain", nargs="*", help="list the views of these types and what joined them")
+    ap.add_argument("--explain", nargs="*", help="list the views of these types and what joined them "
+                    "(writes the header only with --out)")
     ap.add_argument("--verify", action="store_true",
                     help="compile the header with a check of every size and field offset")
     args = ap.parse_args()
     if args.reorder and not args.last:
         ap.error("--reorder needs at least one --last LO-HI")
+    # --explain only reports: it writes the header only when --out names a file, so a
+    # look at a type never replaces include/ta_types.h.
+    write = args.explain is None or args.out is not None
     args.out = args.out or args.reorder or OUT
     files = extract_all(args.jobs)
     if args.dump:
@@ -2326,11 +2330,13 @@ def main() -> int:
             return 1
         return 0
     text, stats = write_header(p, layouts, set(own_types(layouts, args.last)))
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(text)
+    if write:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(text)
     nviews = sum(len(lay.nodes) for lay in layouts)
     disputed = sum(1 for lay in layouts if lay.disputed)
-    print(f"{args.out.relative_to(ROOT) if args.out.is_relative_to(ROOT) else args.out}: "
+    print(f"{args.out.relative_to(ROOT) if args.out.is_relative_to(ROOT) else args.out}"
+          f"{'' if write else ' (not written)'}: "
           f"{stats['types']} types from {nviews} views, {stats['forward']} forward declarations")
     print(f"  {len(p.rejected)} joins refused, {disputed} types with bytes the views disagree on")
     print(f"  left out: {len(stats['left out'])}, and {len(p.disputes)} groups of views whose evidence "

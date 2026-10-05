@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// The compiler-generated scalar deleting destructor of Class_00462d30 (vtable
+// The compiler-generated scalar deleting destructor of PacketReceiver (vtable
 // 0x4fd518, one slot); its out-of-line destructor 0x462d30 is inlined here.
 // The class declaration is copied from 0x462d30.cpp with the destructor body
 // made inline. The static object below exists only to make the compiler emit
@@ -36,13 +36,13 @@ struct PlayerFrameInfo {
     int field_30;
 };
 
-class Class_00462d30 {
+class PacketReceiver {
 public:
     // The real constructor 0x462c00 takes a void*. Declaring a default
     // constructor here would emit a call aliased onto it, and the callee's
     // `ret 4` would then unbalance the initialiser's stack.
-    Class_00462d30(void* o);
-    virtual ~Class_00462d30()
+    PacketReceiver(void* o);
+    virtual ~PacketReceiver()
     {
         if (field_1c)
             operator delete(field_1c);
@@ -59,5 +59,5 @@ public:
     PlayerFrameInfo entries[10];       // +0x20
 };
 
-// FUNCTION: 0x462cc0 ??_GClass_00462d30@@UAEPAXI@Z
-static Class_00462d30 s_obj(0);
+// FUNCTION: 0x462cc0 ??_GPacketReceiver@@UAEPAXI@Z
+static PacketReceiver s_obj(0);

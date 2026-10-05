@@ -34,9 +34,9 @@ struct PlayerFrameInfo {
     int field_30;
 };
 
-class Class_00462d30 {
+class PacketReceiver {
 public:
-    virtual ~Class_00462d30();
+    virtual ~PacketReceiver();
     int field_4;
     int field_8;
     int field_c;
@@ -48,7 +48,7 @@ public:
 };
 
 // FUNCTION: 0x462d30
-Class_00462d30::~Class_00462d30()
+PacketReceiver::~PacketReceiver()
 {
     if (field_1c)
         operator delete(field_1c);

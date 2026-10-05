@@ -6,7 +6,7 @@
 //
 // The members are destroyed last-declared first: the trivial vector at +0x48,
 // the vector<Elem_0046faf0> at +0x38, the list<int> at +0x20, the
-// vector<Class_0046ded0> at +0x10 and the std::map at +0x00.
+// vector<UnitSyncPlayer> at +0x10 and the std::map at +0x00.
 //
 // vector<Elem_0046faf0>::_Destroy is empty (its element is trivial), yet the
 // original calls it out of line from the +0x38 member only. As in
@@ -65,10 +65,10 @@ struct UnitSyncEntry {             // the map's mapped type, 0x10 bytes
     int unknown_c;                 // +0xc
 };
 
-class Class_0046ded0 {             // 0x5c bytes, the vector at +0x10 holds these
+class UnitSyncPlayer {             // 0x5c bytes, the vector at +0x10 holds these
 public:
     char unknown_0[0x5c];
-    ~Class_0046ded0();
+    ~UnitSyncPlayer();
 };
 
 class Vec_0046d1a0 {               // the trivial vector at +0x48
@@ -92,14 +92,14 @@ public:
     }
 };
 
-class VecElems_0046d1a0 {          // std::vector<Class_0046ded0> at +0x10
+class VecElems_0046d1a0 {          // std::vector<UnitSyncPlayer> at +0x10
 public:
-    std::allocator<Class_0046ded0> alloc;
-    Class_0046ded0* _First;
-    Class_0046ded0* _Last;
-    Class_0046ded0* _End;
+    std::allocator<UnitSyncPlayer> alloc;
+    UnitSyncPlayer* _First;
+    UnitSyncPlayer* _Last;
+    UnitSyncPlayer* _End;
 
-    void _Destroy(Class_0046ded0* _F, Class_0046ded0* _L)
+    void _Destroy(UnitSyncPlayer* _F, UnitSyncPlayer* _L)
     {
         for (; _F != _L; ++_F)
             alloc.destroy(_F);

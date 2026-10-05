@@ -70,7 +70,7 @@ public:
     }
 };
 
-class Class_0046ded0 {                 // 0x5c bytes
+class UnitSyncPlayer {                 // 0x5c bytes
 public:
     int field_0;                       // +0x00
     VecInt_0046ca60 list_a;            // +0x04
@@ -80,17 +80,17 @@ public:
     VecInt_0046ca60 list_d;            // +0x4c
 };
 
-static inline void DestroyR0_0046ca60(Class_0046ded0* _F, Class_0046ded0* _L);
-static inline void DestroyR1_0046ca60(Class_0046ded0* _F, Class_0046ded0* _L);
-static inline void DestroyR2_0046ca60(Class_0046ded0* _F, Class_0046ded0* _L);
-class VecElems_0046ca60 {              // std::vector<Class_0046ded0>
+static inline void DestroyR0_0046ca60(UnitSyncPlayer* _F, UnitSyncPlayer* _L);
+static inline void DestroyR1_0046ca60(UnitSyncPlayer* _F, UnitSyncPlayer* _L);
+static inline void DestroyR2_0046ca60(UnitSyncPlayer* _F, UnitSyncPlayer* _L);
+class VecElems_0046ca60 {              // std::vector<UnitSyncPlayer>
 public:
-    std::allocator<Class_0046ded0> alloc;
-    Class_0046ded0* _First;
-    Class_0046ded0* _Last;
-    Class_0046ded0* _End;
+    std::allocator<UnitSyncPlayer> alloc;
+    UnitSyncPlayer* _First;
+    UnitSyncPlayer* _Last;
+    UnitSyncPlayer* _End;
 
-    void _Destroy(Class_0046ded0* _F, Class_0046ded0* _L)
+    void _Destroy(UnitSyncPlayer* _F, UnitSyncPlayer* _L)
     {
         for (; _F != _L; ++_F)
             alloc.destroy(_F);
@@ -105,20 +105,20 @@ public:
     }
 };
 
-static inline void DestroyR0_0046ca60(Class_0046ded0* _F, Class_0046ded0* _L)
+static inline void DestroyR0_0046ca60(UnitSyncPlayer* _F, UnitSyncPlayer* _L)
 {
     DestroyR1_0046ca60(_F, _L);
 }
 
-static inline void DestroyR1_0046ca60(Class_0046ded0* _F, Class_0046ded0* _L)
+static inline void DestroyR1_0046ca60(UnitSyncPlayer* _F, UnitSyncPlayer* _L)
 {
     DestroyR2_0046ca60(_F, _L);
 }
 
-static inline void DestroyR2_0046ca60(Class_0046ded0* _F, Class_0046ded0* _L)
+static inline void DestroyR2_0046ca60(UnitSyncPlayer* _F, UnitSyncPlayer* _L)
 {
-    std::allocator<Class_0046ded0> alloc;
-    for (Class_0046ded0* p = _F; p != _L; ++p)
+    std::allocator<UnitSyncPlayer> alloc;
+    for (UnitSyncPlayer* p = _F; p != _L; ++p)
         alloc.destroy(p);
 }
 

@@ -3,7 +3,7 @@
 // vtable is 0x4fd514, the scalar deleting destructor 0x461340, the destructor
 // 0x461420). It builds, in declaration order: an int at +0x04, a table of
 // eleven 0x1044-byte channels from +0x08, a {pointer, used, capacity} triple at
-// +0xb2f4, and a Class_00462d30 member at +0xb300 that is given the new object.
+// +0xb2f4, and a PacketReceiver member at +0xb300 that is given the new object.
 //
 // The eleven channels come from a hand-written loop that writes the first
 // field through the array index and the rest through a walking pointer: that
@@ -144,9 +144,9 @@ struct PlayerFrameInfo : public F0_00462d30 {
     }
 };
 
-class Class_00462d30 {
+class PacketReceiver {
 public:
-    virtual ~Class_00462d30();
+    virtual ~PacketReceiver();
     int field_4;                       // +0x04
     void* owner;                       // +0x08
     int field_c;                       // +0x0c
@@ -161,24 +161,24 @@ public:
     int field_234;                     // +0x234
     int field_238;                     // +0x238
 
-    Class_00462d30(void* o)
+    PacketReceiver(void* o)
         : field_4(0), owner(o), field_c(-1), field_10(-1), field_14(0), field_18(0), field_1c(0),
           field_228(0), field_22c(0), field_230(0), field_234(-1), field_238(-1)
     {
     }
 };
 
-class Class_00460f60 {
+class PacketManager {
 public:
-    virtual ~Class_00460f60();
+    virtual ~PacketManager();
     int field_4;                       // +0x04
     Table_004611e0 table;              // +0x08
-    Class_00462d30 base;               // +0xb300
+    PacketReceiver base;               // +0xb300
 
-    Class_00460f60();
+    PacketManager();
 };
 
 // FUNCTION: 0x4611e0
-Class_00460f60::Class_00460f60() : field_4(200), table(), base(this)
+PacketManager::PacketManager() : field_4(200), table(), base(this)
 {
 }

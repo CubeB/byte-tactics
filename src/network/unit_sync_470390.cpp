@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// The copy constructor of Class_0046ded0, the 0x5c-byte class whose
+// The copy constructor of UnitSyncPlayer, the 0x5c-byte class whose
 // out-of-line destructor is 0x46ded0 and whose scalar deleting destructor is
 // 0x470300. Its one caller copies a 0x5c-byte array of these.
 // A std::vector in this build is 16 bytes: the empty allocator member is its
@@ -36,7 +36,7 @@ struct Pair_0046faf0 {                 // 32 bytes
     }
 };
 
-class Class_0046ded0 {
+class UnitSyncPlayer {
 public:
     int field_0;                               // +0x00
     std::vector<int> list_a;                   // +0x04
@@ -49,11 +49,11 @@ public:
     int field_38;                              // +0x38
     Pair_0046faf0 pair;                        // +0x3c
 
-    Class_0046ded0(const Class_0046ded0& other);
+    UnitSyncPlayer(const UnitSyncPlayer& other);
 };
 
 // FUNCTION: 0x470390
-Class_0046ded0::Class_0046ded0(const Class_0046ded0& other)
+UnitSyncPlayer::UnitSyncPlayer(const UnitSyncPlayer& other)
     : field_0(other.field_0), list_a(other.list_a), list_b(other.list_b),
       field_24(other.field_24), field_28(other.field_28), field_2c(other.field_2c),
       field_30(other.field_30), field_34(other.field_34), field_38(other.field_38),

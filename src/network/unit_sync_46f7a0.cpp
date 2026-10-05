@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
-// std::vector<Class_0046ded0>::insert(iterator, size_type, const T&) from
+// std::vector<UnitSyncPlayer>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, for the 0x5c-byte element (four vectors and a sub-struct,
 // see 0x46eaa0.cpp) of the vector that 0x46dad0 appends to with an inlined
 // push_back. The element's copy constructor (0x470390), destructor (0x46ded0)
@@ -35,13 +35,13 @@ public:
     Class_0046eaa0& operator=(const Class_0046eaa0& rhs);
 };
 
-class Class_0046ded0 : public Class_0046eaa0 {
+class UnitSyncPlayer : public Class_0046eaa0 {
 public:
-    Class_0046ded0(const Class_0046ded0& other);
-    ~Class_0046ded0();
-    Class_0046ded0& operator=(const Class_0046ded0& rhs)
+    UnitSyncPlayer(const UnitSyncPlayer& other);
+    ~UnitSyncPlayer();
+    UnitSyncPlayer& operator=(const UnitSyncPlayer& rhs)
     {
-        return (Class_0046ded0&)Class_0046eaa0::operator=(rhs);
+        return (UnitSyncPlayer&)Class_0046eaa0::operator=(rhs);
     }
 };
 
@@ -108,10 +108,10 @@ protected:
 
 } // namespace std
 
-typedef std::vector<Class_0046ded0> Vec_0046f7a0;
+typedef std::vector<UnitSyncPlayer> Vec_0046f7a0;
 typedef void (Vec_0046f7a0::*InsertFn_0046f7a0)(
     Vec_0046f7a0::iterator, Vec_0046f7a0::size_type,
-    const Class_0046ded0&);
+    const UnitSyncPlayer&);
 
-// FUNCTION: 0x46f7a0 ?insert@?$vector@VClass_0046ded0@@V?$allocator@VClass_0046ded0@@@std@@@std@@QAEXPAVClass_0046ded0@@IABV3@@Z
+// FUNCTION: 0x46f7a0 ?insert@?$vector@VUnitSyncPlayer@@V?$allocator@VUnitSyncPlayer@@@std@@@std@@QAEXPAVUnitSyncPlayer@@IABV3@@Z
 InsertFn_0046f7a0 g_insert_0046f7a0 = &Vec_0046f7a0::insert;

@@ -1251,9 +1251,9 @@ address,size,file,symbol,status,similarity
 0x461020,333,src/network/packets_461020.cpp,?InitPacketManager@@YGHHH@Z,matched,100.0
 0x461170,1,src/network/packets_461170.cpp,?PacketTrace@@YAXPBDZZ,matched,100.0
 0x461180,87,src/network/packets_461180.cpp,?SendToDPID@@YGHHHPAXH@Z,matched,100.0
-0x4611e0,352,src/network/packets_4611e0.cpp,??0Class_00460f60@@QAE@XZ,matched,100.0
-0x461340,209,src/network/packets_461340.cpp,??_GClass_00460f60@@UAEPAXI@Z,matched,100.0
-0x461420,186,src/network/packets_461420.cpp,??1Class_00460f60@@UAE@XZ,matched,100.0
+0x4611e0,352,src/network/packets_4611e0.cpp,??0PacketManager@@QAE@XZ,matched,100.0
+0x461340,209,src/network/packets_461340.cpp,??_GPacketManager@@UAEPAXI@Z,matched,100.0
+0x461420,186,src/network/packets_461420.cpp,??1PacketManager@@UAE@XZ,matched,100.0
 0x4614e0,260,src/network/packets_4614e0.cpp,?AppendToSendBuffer@PacketManager@@QAEHPAEI@Z,matched,100.0
 0x4615f0,20,src/network/packets_4615f0.cpp,?ClearSendBuffer@PacketManager@@QAEXXZ,matched,100.0
 0x461610,1,src/network/packets_461610.cpp,?FUN_00461610@PacketManager@@QAEXXZ,matched,100.0
@@ -1294,10 +1294,10 @@ address,size,file,symbol,status,similarity
 0x462ae0,233,src/network/packets_462ae0.cpp,?RemovePacket@Class_00462ae0@@QAEXPAUPacket_00462ae0@@@Z,matched,100.0
 0x462bd0,21,src/network/packets_462bd0.cpp,?RemoveFromBuffer@Class_00462bd0@@QAEXXZ,matched,100.0
 0x462bf0,11,src/network/packets_462bf0.cpp,?GetData@Class_00462bf0@@QAEHXZ,matched,100.0
-0x462c00,188,src/network/packets_462c00.cpp,??0Class_00462d30@@QAE@PAX@Z,matched,100.0
-0x462cc0,106,src/network/packets_462cc0.cpp,??_GClass_00462d30@@UAEPAXI@Z,matched,100.0
-0x462d30,84,src/network/packets_462d30.cpp,??1Class_00462d30@@UAE@XZ,matched,100.0
-0x462d90,314,src/network/packets_462d90.cpp,?FindPlayerFrameInfo@Class_00462d30@@QAEPAUPlayerFrameInfo@@J@Z,matched,100.0
+0x462c00,188,src/network/packets_462c00.cpp,??0PacketReceiver@@QAE@PAX@Z,matched,100.0
+0x462cc0,106,src/network/packets_462cc0.cpp,??_GPacketReceiver@@UAEPAXI@Z,matched,100.0
+0x462d30,84,src/network/packets_462d30.cpp,??1PacketReceiver@@UAE@XZ,matched,100.0
+0x462d90,314,src/network/packets_462d90.cpp,?FindPlayerFrameInfo@PacketReceiver@@QAEPAUPlayerFrameInfo@@J@Z,matched,100.0
 0x462ed0,88,src/network/packets_462ed0.cpp,?ResetReceiveBuffer@PacketReceiver@@QAEHXZ,matched,100.0
 0x462f30,1653,src/network/packets_462f30.cpp,?ReceiveFrame@Class_00462f30@@QAEHPAXPAEPAH@Z,matched,100.0
 0x4635b0,93,src/network/packets_4635b0.cpp,??0PlayerFrameInfo@@QAE@XZ,matched,100.0
@@ -1409,7 +1409,7 @@ address,size,file,symbol,status,similarity
 0x46d860,259,src/network/unit_sync_46d860.cpp,?NotifyEntryChanged@Class_0046d860@@QAEXI@Z,matched,100.0
 0x46d970,351,src/network/unit_sync_46d970.cpp,?CheckUnitAvailable@Class_0046d860@@QAEXIH@Z,matched,100.0
 0x46dad0,1024,src/network/unit_sync_46dad0.cpp,?ProcessSync@Class_0046d860@@QAEXXZ,matched,100.0
-0x46ded0,111,src/network/unit_sync_46ded0.cpp,??1Class_0046ded0@@QAE@XZ,matched,100.0
+0x46ded0,111,src/network/unit_sync_46ded0.cpp,??1UnitSyncPlayer@@QAE@XZ,matched,100.0
 0x46df40,185,src/network/unit_sync_46df40.cpp,?GetSyncStatusText@UnitSync@@QAEPADXZ,matched,100.0
 0x46e000,166,src/network/unit_sync_46e000.cpp,?AllPlayersSynced@Class_0046e000@@QAEHXZ,matched,100.0
 0x46e0b0,163,src/network/unit_sync_46e0b0.cpp,?IsPlayerSynced@UnitSync@@QAEHH@Z,matched,100.0
@@ -1436,7 +1436,7 @@ address,size,file,symbol,status,similarity
 0x46f1e0,1254,src/network/unit_sync_46f1e0.cpp,?erase@?$_Tree@IU?$pair@IUUnitSyncEntry@@@std@@U_Kfn@?$map@IUUnitSyncEntry@@U?$less@I@std@@V?$allocator@UUnitSyncEntry@@@3@@2@U?$less@I@2@V?$allocator@UUnitSyncEntry@@@2@@std@@QAE?AViterator@12@V312@@Z,matched,100.0
 0x46f6d0,79,src/network/unit_sync_46f6d0.cpp,?_Erase@?$_Tree@IU?$pair@IUUnitSyncEntry@@@std@@U_Kfn@?$map@IUUnitSyncEntry@@U?$less@I@std@@V?$allocator@UUnitSyncEntry@@@3@@2@U?$less@I@2@V?$allocator@UUnitSyncEntry@@@2@@std@@IAEXPAU_Node@12@@Z,matched,100.0
 0x46f720,124,src/network/unit_sync_46f720.cpp,?FUN_0046f720@Class_0046f720@@QAEXXZ,matched,100.0
-0x46f7a0,798,src/network/unit_sync_46f7a0.cpp,?insert@?$vector@VClass_0046ded0@@V?$allocator@VClass_0046ded0@@@std@@@std@@QAEXPAVClass_0046ded0@@IABV3@@Z,matched,100.0
+0x46f7a0,798,src/network/unit_sync_46f7a0.cpp,?insert@?$vector@VUnitSyncPlayer@@V?$allocator@VUnitSyncPlayer@@@std@@@std@@QAEXPAVUnitSyncPlayer@@IABV3@@Z,matched,100.0
 0x46fac0,15,src/network/unit_sync_46fac0.cpp,??Eiterator@?$list@HV?$allocator@H@std@@@std@@QAE?AV012@H@Z,matched,100.0
 0x46fad0,22,src/network/unit_sync_46fad0.cpp,??0Class_0046fad0@@QAE@ABQAUNode_0046fad0@@AB_N@Z,matched,100.0
 0x46faf0,74,src/network/unit_sync_46faf0.cpp,?_Ucopy@?$vector@UElem_0046faf0@@V?$allocator@UElem_0046faf0@@@std@@@std@@IAEPAUElem_0046faf0@@PBU3@0PAU3@@Z,matched,100.0
@@ -1454,8 +1454,8 @@ address,size,file,symbol,status,similarity
 0x470290,3,src/network/unit_sync_470290.cpp,?_Destroy@?$vector@UElem_004702a0@@V?$allocator@UElem_004702a0@@@std@@@std@@IAEXPAUElem_004702a0@@0@Z,matched,100.0
 0x4702a0,46,src/network/unit_sync_4702a0.cpp,?_Ucopy@?$vector@UElem_004702a0@@V?$allocator@UElem_004702a0@@@std@@@std@@IAEPAUElem_004702a0@@PBU3@0PAU3@@Z,matched,100.0
 0x4702d0,42,src/network/unit_sync_4702d0.cpp,?FUN_004702d0@@YGPAHPAH00@Z,matched,100.0
-0x470300,132,src/network/unit_sync_470300.cpp,??_GClass_0046ded0@@QAEPAXI@Z,matched,100.0
-0x470390,457,src/network/unit_sync_470390.cpp,??0Class_0046ded0@@QAE@ABV0@@Z,matched,100.0
+0x470300,132,src/network/unit_sync_470300.cpp,??_GUnitSyncPlayer@@QAEPAXI@Z,matched,100.0
+0x470390,457,src/network/unit_sync_470390.cpp,??0UnitSyncPlayer@@QAE@ABV0@@Z,matched,100.0
 0x470560,515,src/network/unit_sync_470560.cpp,??4PacketSequencer@@QAEAAU0@ABU0@@Z,matched,100.0
 0x470770,35,src/network/unit_sync_470770.cpp,?size@?$vector@UElem_0046faf0@@V?$allocator@UElem_0046faf0@@@std@@@std@@QBEIXZ,matched,100.0
 0x4707a0,661,src/network/unit_sync_4707a0.cpp,??4?$vector@UElem_0046faf0@@V?$allocator@UElem_0046faf0@@@std@@@std@@QAEAAV01@ABV01@@Z,matched,100.0

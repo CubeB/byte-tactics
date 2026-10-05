@@ -21,7 +21,7 @@ Class_0046eba0::FUN_0046eba0,0x46eba0,"std::vector<Packet>::insert, matched with
 PAUUnit::?$vector::insert,0x48ddc0,"overload: insert(iterator, const T&); 0x408f30 (insert(iterator, size_type, const T&)) now matches with /Gi under the same checker name and takes it in data/symbols.csv; caller 0x48d220 uses it for this one"
 ??4Class_00437820@@QAEAAV0@ABV0@@Z,0x437800,"Class_00437820::operator=, the element assignment the /Gi vector insert 0x437580 calls (#5056); matched as the 27-byte copy constructor Class_00437800::Class_00437800, same code"
 Class_00437580::FUN_00437580,0x437580,"std::vector<Class_00437820>::insert, matched with /Gi under its real name (#5056); caller 0x4373a0 uses this view name"
-Vec_0046d860::FUN_0046f7a0,0x46f7a0,"std::vector<Class_0046ded0>::insert, matched with /Gi under its real name (#5042); caller 0x46dad0 uses this view name"
+Vec_0046d860::FUN_0046f7a0,0x46f7a0,"std::vector<UnitSyncPlayer>::insert, matched with /Gi under its real name (#5042); caller 0x46dad0 uses this view name"
 UElem_0043c390::?$vector::size,0x43c360,"std::vector<Elem_0043c390>::size, matched as Class_0043c360::FUN_0043c360; reserve in 0x43bc90 and 0x43c050 calls it under its real name"
 std::_Construct,0x432cf0,"std::_Construct<Entry_00432cf0>, the placement copy the vector insert inlined into 0x42e440 calls without setting ecx; matched as allocator<Entry_00432cf0>::construct, same code"
 ??_GEntry_00432cf0@@QAEPAXI@Z,0x432c20,"Entry_00432cf0's scalar deleting destructor, called with 0 by the vector _Destroy inlined into 0x42e440; matched as Class_00432c20::FUN_00432c20"

@@ -3,7 +3,7 @@
 // ~vector frees its buffer and zeroes _First/_Last/_End, in reverse order.
 #include <vector>
 
-class Class_0046ded0 {
+class UnitSyncPlayer {
 public:
     int field_0;                    // +0x00
     std::vector<int> list_a;        // +0x04
@@ -12,10 +12,10 @@ public:
     std::vector<int> list_c;        // +0x3c
     std::vector<int> list_d;        // +0x4c
 
-    ~Class_0046ded0();
+    ~UnitSyncPlayer();
 };
 
 // FUNCTION: 0x46ded0
-Class_0046ded0::~Class_0046ded0()
+UnitSyncPlayer::~UnitSyncPlayer()
 {
 }

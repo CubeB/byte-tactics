@@ -381,7 +381,7 @@ class Class_0046d4c0;
 class Class_0046d630;
 class Class_0046d6c0;
 class Class_0046d860;
-class Class_0046ded0;
+class UnitSyncPlayer;
 class Class_0046e000;
 class Class_0046e160;
 class Class_0046e330;
@@ -10588,17 +10588,17 @@ public:
     void CheckUnitAvailable(unsigned int, int);
 };
 
-class Class_0046ded0 : public Class_0046eaa0 {  // 0x5c bytes, 10 views
+class UnitSyncPlayer : public Class_0046eaa0 {  // 0x5c bytes, 10 views
 public:
-    Class_0046ded0(Class_0046ded0&);
-    ~Class_0046ded0(void);
-    Class_0046ded0& operator=(Class_0046ded0&);
+    UnitSyncPlayer(UnitSyncPlayer&);
+    ~UnitSyncPlayer(void);
+    UnitSyncPlayer& operator=(UnitSyncPlayer&);
 };
 
 class Class_0046d040 {  // 0x68 bytes, 17 views
 public:
     std::map<unsigned int, Rect> rects;  // +0x0
-    std::vector<Class_0046ded0> players;  // +0x10
+    std::vector<UnitSyncPlayer> players;  // +0x10
     std::list<int> ids;  // +0x20
     int field_2c;  // +0x2c
     int field_30;  // +0x30
@@ -10623,13 +10623,13 @@ public:
 
 class VecElems_0046ca60 {  // 0x10 bytes, 2 views
 public:
-    std::allocator<Class_0046ded0> alloc;  // +0x0
+    std::allocator<UnitSyncPlayer> alloc;  // +0x0
     char unknown_1[3];
-    Class_0046ded0* _First;  // +0x4
-    Class_0046ded0* _Last;  // +0x8
-    Class_0046ded0* _End;  // +0xc
+    UnitSyncPlayer* _First;  // +0x4
+    UnitSyncPlayer* _Last;  // +0x8
+    UnitSyncPlayer* _End;  // +0xc
     ~VecElems_0046ca60(void);
-    void _Destroy(Class_0046ded0*, Class_0046ded0*);
+    void _Destroy(UnitSyncPlayer*, UnitSyncPlayer*);
 };
 
 struct Elem_004702a0_2 {  // 0x4 bytes, 1 view

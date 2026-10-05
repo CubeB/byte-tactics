@@ -2,7 +2,7 @@
 // The compiler-generated static destructor (_$E2) of the global object
 // g_packetManager, whose dynamic initialiser is 0x460e20 and whose out-of-line
 // destructor is 0x461420. The class is built so the compiler inlines the
-// embedded Class_00462d30 destructor and the two array destructors in the same
+// embedded PacketReceiver destructor and the two array destructors in the same
 // order as the original.
 
 void __cdecl operator delete(void*);
@@ -33,9 +33,9 @@ struct PlayerFrameInfo {
     int field_30;
 };
 
-class Class_00462d30 {
+class PacketReceiver {
 public:
-    virtual ~Class_00462d30();
+    virtual ~PacketReceiver();
     int field_4;
     int field_8;
     int field_c;
@@ -56,17 +56,17 @@ struct Sub_00460f60 {
     ~Sub_00460f60();
 };
 
-class Class_00460f60 {
+class PacketManager {
 public:
     char pad0[0xc];
     Sub_00460f60 subs[11];             // +0x10
     char pad1[4];
-    Class_00462d30 member;             // +0xb300
-    virtual ~Class_00460f60() {}
+    PacketReceiver member;             // +0xb300
+    virtual ~PacketManager() {}
 };
 
 // FUNCTION: 0x460f60 _$E2
-Class_00460f60 g_packetManager;
+PacketManager g_packetManager;
 
 Buffers_00462d30::~Buffers_00462d30()
 {
@@ -75,7 +75,7 @@ Buffers_00462d30::~Buffers_00462d30()
     delete b;
 }
 
-Class_00462d30::~Class_00462d30()
+PacketReceiver::~PacketReceiver()
 {
     void* p = field_1c;
     if (!p)

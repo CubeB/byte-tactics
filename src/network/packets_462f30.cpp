@@ -5,7 +5,7 @@
 // #5650, #5666, #5675): no change; pass 27 (Opus, #5678): MATCH.
 // The class name is data/symbols.csv's
 // Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
-// Class_00462d30, its own file's class, and returns PlayerFrameInfo*.
+// PacketReceiver, its own file's class, and returns PlayerFrameInfo*.
 //
 // Pass 27 (#5678), what matched it: a dead `if (entry == 0) tick = 0;` right after the
 // Find block.
@@ -207,7 +207,7 @@ static int Next_00462f30(int n)
     return r;
 }
 
-class Class_00462d30 {
+class PacketReceiver {
 public:
     PlayerFrameInfo* FindPlayerFrameInfo(long id);
 };
@@ -322,7 +322,7 @@ int Class_00462f30::ReceiveFrame(void* net, unsigned char* data, int* size)
                         if (length == sizeof(int))
                             return (int)0x80004005;
                         if (*(int*)buffer != -1) {
-                            entry = ((Class_00462d30*)this)->FindPlayerFrameInfo(field_c);
+                            entry = ((PacketReceiver*)this)->FindPlayerFrameInfo(field_c);
                             if (entry != 0) {
                                 if (entry->field_8 != -1) {
                                     int prev = entry->field_8 - 1;
@@ -418,7 +418,7 @@ int Class_00462f30::ReceiveFrame(void* net, unsigned char* data, int* size)
     }
 
     if (entry == 0) {
-        entry = ((Class_00462d30*)this)->FindPlayerFrameInfo(field_c);
+        entry = ((PacketReceiver*)this)->FindPlayerFrameInfo(field_c);
         if (entry == 0) {
             length = 0;
             return (int)0x887700be;

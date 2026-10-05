@@ -5,7 +5,7 @@
 //
 // Layout: m_defaultSendPacingMs at +0x04 (the name comes from 0x461020's
 // debug string), eleven 0x1044-byte per-player channels from +0x08, a
-// {buffer, used, capacity} triple at +0xb2f4 and a Class_00462d30 member at
+// {buffer, used, capacity} triple at +0xb2f4 and a PacketReceiver member at
 // +0xb300 that is handed the owner. The destructors 0x460f60, 0x461340 and
 // 0x461420 walk "entries at +0x10": that is each channel's own +0x08 (the
 // items/count pair), not a second array. This same class definition also
@@ -16,7 +16,7 @@
 // PlayerFrameInfo frees three buffers): with them the entries array is built
 // through the `vector constructor iterator' (0x401000) instead of an inlined
 // loop. The tail at +0x228 has to be initialised in the member-initialiser
-// list, so that the Class_00462d30 vtable store comes after it. The two
+// list, so that the PacketReceiver vtable store comes after it. The two
 // channel setters (0x462860, 0x4628a0) are only declared: with their bodies
 // in the file /Ob2 inlines 0x4628a0, which the original does not.
 //
@@ -109,9 +109,9 @@ struct PacketChannel {
     }
 };
 
-class Class_00462d30 {
+class PacketReceiver {
 public:
-    virtual ~Class_00462d30()
+    virtual ~PacketReceiver()
     {
         void* p = field_1c;
         if (!p)
@@ -132,27 +132,27 @@ public:
     int field_234;                     // +0x234
     int field_238;                     // +0x238
 
-    Class_00462d30(void* o)
+    PacketReceiver(void* o)
         : field_4(0), owner(o), field_c(-1), field_10(-1), field_14(0), field_18(0), field_1c(0),
           field_228(0), field_22c(0), field_230(0), field_234(-1), field_238(-1)
     {
     }
 };
 
-class Class_00460f60 {
+class PacketManager {
 public:
-    virtual ~Class_00460f60() { }
+    virtual ~PacketManager() { }
     int m_defaultSendPacingMs;         // +0x04
     PacketChannel channels[11];        // +0x08
     char* buffer;                      // +0xb2f4
     int used;                          // +0xb2f8
     int capacity;                      // +0xb2fc
-    Class_00462d30 member;             // +0xb300
+    PacketReceiver member;             // +0xb300
 
-    Class_00460f60();
+    PacketManager();
 };
 
 // FUNCTION: 0x460e20 _$E4
-Class_00460f60 g_packetManager;
+PacketManager g_packetManager;
 
-Class_00460f60::Class_00460f60() : m_defaultSendPacingMs(200), buffer(0), used(0), capacity(0), member(this) { }
+PacketManager::PacketManager() : m_defaultSendPacingMs(200), buffer(0), used(0), capacity(0), member(this) { }

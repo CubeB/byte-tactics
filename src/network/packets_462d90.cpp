@@ -94,7 +94,7 @@ struct PlayerFrameInfo {
     }
 };
 
-class Class_00462d30 {
+class PacketReceiver {
 public:
     char unknown_0[4];
     int field_4;                           // +0x04
@@ -112,7 +112,7 @@ public:
 extern Game* g_game;
 
 // FUNCTION: 0x462d90
-PlayerFrameInfo* Class_00462d30::FindPlayerFrameInfo(long id)
+PlayerFrameInfo* PacketReceiver::FindPlayerFrameInfo(long id)
 {
     unsigned int i;
     int j;

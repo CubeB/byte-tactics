@@ -711,10 +711,51 @@ def unresolved_names(objects: list[Path], alias_keys: set[str], libs: dict[str, 
             if n not in defined and n not in alias_keys and n not in libs}
 
 
+# --- /ORDER: the original's function order --------------------------------------
+
+def build_order(map_path: Path, out: Path) -> Path:
+    """Write the /ORDER list for a link whose map is map_path.
+
+    With an /ORDER list LINK lays the named functions out first, in the order
+    given, so listing every game function in original-address order reproduces
+    the original's code order wherever the objects allow it. A function whose
+    body LINK keeps from another object (a copy kept so that it inlines,
+    docs/consolidation.md) is named by the symbol the baseline link put at that
+    address, so the copy is ordered at the function's own rank too."""
+    from check import load_symbols
+    from carve import Namer
+    from imagecmp import build_index
+    from linkcmp import read_map
+    from place import layout
+
+    ranks: dict[int, list[str]] = defaultdict(list)
+    for row in csv.DictReader(PROGRESS.open()):
+        if row["status"] == "matched" and row["symbol"]:
+            ranks[int(row["address"], 16)].append(row["symbol"])
+    game = {int(r["address"], 16) for r in csv.DictReader(FUNCTIONS.open())
+            if r["kind"] in ("game", "gap")}
+    img, placer = layout()
+    namer = Namer(img, placer)
+    index = build_index(img, placer, namer, read_map(map_path), load_symbols(), identity=False)
+    for line in map_path.read_text(errors="replace").splitlines():
+        m = re.match(r"\s*([0-9a-f]{4}):[0-9a-f]{8}\s+(\S+)\s+([0-9a-f]{8})\s*(.*)$", line)
+        if m is None or m.group(1) != "0001":
+            continue
+        sym, va, flags = m.group(2), int(m.group(3), 16), m.group(4).split()
+        if not flags or "f" not in flags[:-1] or flags[-1].endswith(("stubs.obj", "aliases.obj")):
+            continue
+        orig, _ = index.translate(va)
+        if orig in game and sym not in ranks[orig]:
+            ranks[orig].append(sym)
+    out.write_text("\n".join(s for a in sorted(ranks) for s in ranks[a]) + "\n")
+    return out
+
+
 # --- linking --------------------------------------------------------------------
 
 def link(objects: list[Path], output: Path, verbose: bool, force_unresolved: bool,
-         map_path: Path | None = None, libs: tuple[str, ...] = LIBS) -> int:
+         map_path: Path | None = None, libs: tuple[str, ...] = LIBS,
+         order: Path | None = None) -> int:
     BUILD.mkdir(parents=True, exist_ok=True)
     rsp = BUILD / "objects.rsp"
     rsp.write_text("\n".join(winpath(o) for o in objects) + "\n")
@@ -722,6 +763,8 @@ def link(objects: list[Path], output: Path, verbose: bool, force_unresolved: boo
            "/SUBSYSTEM:WINDOWS", f"/OUT:{winpath(output)}", f"@{winpath(rsp)}", *libs]
     if map_path is not None:
         cmd.insert(2, f"/MAP:{winpath(map_path)}")
+    if order is not None:
+        cmd.insert(2, f"/ORDER:@{winpath(order)}")
     if force_unresolved:
         cmd[2:2] = ["/FORCE:UNRESOLVED", "/FORCE:MULTIPLE"]
     else:
@@ -764,6 +807,9 @@ def main() -> None:
     ap.add_argument("--map", action="store_true", help="also write build/link/TotalA.map")
     ap.add_argument("--no-exe-patches", action="store_true",
                     help="with --carve, leave out data/exe_patches.csv (GOG's no-CD music patch)")
+    ap.add_argument("--order", action="store_true",
+                    help="add /ORDER listing the game functions in their original order "
+                         "(an extra link pass to read the baseline map)")
     ap.add_argument("--jobs", type=int, default=None, help="parallel compiles (default: all cores)")
     ap.add_argument("--verbose", "-v", action="store_true")
     args = ap.parse_args()
@@ -841,8 +887,17 @@ def main() -> None:
     map_path = BUILD / "TotalA.map" if args.map or args.carve else None
     # The generated WIN32.LIB stands in for WINMM.LIB (see build_win32_lib).
     libs = tuple(l for l in LIBS if not (stub_mode and l == "WINMM.LIB"))
+    order_path = None
+    if args.order:
+        # The /ORDER list names the functions by the symbols LINK keeps, which
+        # only a baseline link's map can say, so link once more without it.
+        prelim = BUILD / "linkorder-baseline.exe"
+        link(link_objects, prelim, args.verbose, force_unresolved=not stub_mode,
+             map_path=prelim.with_suffix(".map"), libs=libs)
+        order_path = build_order(prelim.with_suffix(".map"), BUILD / "linkorder.txt")
+        print(f"/ORDER: {order_path.relative_to(ROOT)}", file=sys.stderr)
     rc = link(link_objects, output, args.verbose, force_unresolved=not stub_mode, map_path=map_path,
-              libs=libs)
+              libs=libs, order=order_path)
     if rc == 0 and output.exists():
         if args.carve and not args.no_exe_patches:
             from exepatch import apply_linked

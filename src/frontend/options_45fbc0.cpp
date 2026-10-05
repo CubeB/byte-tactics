@@ -2,7 +2,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_0045fbc0 {
+struct Game {
     char unknown_0[0xdcb];
     unsigned char field_dcb;           // +0xdcb
     char unknown_dcc[0x37e1b - 0xdcc];
@@ -14,7 +14,7 @@ struct Surface_0045fbc0 {
     int data[12];
 };
 
-extern Game_0045fbc0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004ba200(unsigned char* palette, int first, int count);
 void __stdcall FUN_004c69a0(int param_1);

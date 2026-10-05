@@ -18,7 +18,7 @@ struct Entry_00463f60 {                 // 0x48 bytes
     unsigned char flags;                // +0x47
 };
 
-struct Game_00463f60 {
+struct Game {
     char unknown_0[0x12ef];
     Entry_00463f60 entries[30];         // +0x12ef
     char unknown_1b5f[0x2a3e - 0x1b5f];
@@ -29,14 +29,14 @@ struct Game_00463f60 {
 };
 #pragma pack(pop)
 
-extern Game_00463f60* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0041c7c0(int a, int b, int c);
 
 // FUNCTION: 0x463f60
 int FUN_00463f60(void)
 {
-    Game_00463f60* g = g_game;
+    Game* g = g_game;
     int i = g->head;
     int end = g->tail;
     while (end != i) {

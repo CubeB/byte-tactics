@@ -23,7 +23,7 @@ struct Cell_00483210 {
     char unknown_7[0xd - 0x7];
 };
 
-struct Game_00483210 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -32,7 +32,7 @@ struct Game_00483210 {
 };
 #pragma pack(pop)
 
-extern Game_00483210* g_game;
+extern Game* g_game;
 
 static inline int SumX(Point a, Point b) { return a.x + b.x; }
 static inline int SumY(Point a, Point b) { return a.y + b.y; }

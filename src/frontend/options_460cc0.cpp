@@ -32,7 +32,7 @@ struct Gui_00460cc0 {
     int field_cca;                     // +0xcca
 };
 
-struct Game_00460cc0 {
+struct Game {
     char unknown_0[0x10];
     Class_004ce910* field_10;          // +0x10
     char unknown_14[0x519 - 0x14];
@@ -50,7 +50,7 @@ struct Gadget_00460cc0 {
     void (__stdcall* handler)(void*);  // +0x8
 };
 
-extern Game_00460cc0* g_game;
+extern Game* g_game;
 
 Gadget_00460cc0* __stdcall FUN_004aa8f0(Gui_00460cc0* sub, const char* name, int flags);
 int __stdcall FUN_0049fdf0(Entry_00460cc0* entries, const char* name, int type);

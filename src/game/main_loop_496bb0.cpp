@@ -19,7 +19,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_00496bb0 {
+struct Game {
     char unknown_0[0x519];
     Sub_00496bb0 sub;                  // +0x519
     char unknown_5bf[0x2a44 - 0x519 - sizeof(Sub_00496bb0)];
@@ -43,7 +43,7 @@ struct Game_00496bb0 {
 };
 #pragma pack(pop)
 
-extern Game_00496bb0* g_game;
+extern Game* g_game;
 
 void FUN_0042bd10();
 void FUN_00426e80();

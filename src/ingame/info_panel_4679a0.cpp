@@ -17,7 +17,7 @@ struct Sub_004679a0_b {
     unsigned short* lightbar;        // +0x34
 };
 
-struct Game_004679a0 {
+struct Game {
     char unknown_0[0x51d];
     void* gaf;                       // +0x51d
     char unknown_521[0x37e3f - 0x521];
@@ -26,7 +26,7 @@ struct Game_004679a0 {
 };
 #pragma pack(pop)
 
-extern Game_004679a0* g_game;
+extern Game* g_game;
 
 unsigned short* __stdcall FUN_004b8d40(void* gaf, const char* name);
 int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);

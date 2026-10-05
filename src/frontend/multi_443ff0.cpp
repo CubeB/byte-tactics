@@ -10,7 +10,7 @@ struct Guid_443ff0 { unsigned long data1; unsigned short data2; unsigned short d
 struct Conn_443ff0 { void* data; int size; };
 struct ConnInfo_443ff0 { Guid_443ff0 guid; Conn_443ff0 conn; };
 #pragma pack(push,1)
-struct Game_443ff0 {
+struct Game {
     char unknown_0[0x445];
     Guid_443ff0* guids;
     char unknown_449[0x4f9 - 0x449];
@@ -24,7 +24,7 @@ struct Game_443ff0 {
     ConnInfo_443ff0 info;
 };
 #pragma pack(pop)
-extern Game_443ff0* g_game;
+extern Game* g_game;
 extern int DAT_00512c80;
 extern char DAT_00512d28;
 extern Guid_443ff0 DAT_004fcda8;

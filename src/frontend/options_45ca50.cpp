@@ -2,7 +2,7 @@
 // Copies saved option values (globals around 0x512f2c) into the game.
 
 #pragma pack(push, 1)
-struct Game_0045ca50 {
+struct Game {
     char unknown_0[0x1434d];
     char field_1434d;                  // +0x1434d
     char unknown_1434e[0x37efa - 0x1434e];
@@ -19,7 +19,7 @@ struct Game_0045ca50 {
 };
 #pragma pack(pop)
 
-extern Game_0045ca50* g_game;
+extern Game* g_game;
 extern int DAT_00512f2c;
 extern char DAT_00512f49;
 extern char DAT_00512f4a;

@@ -34,7 +34,7 @@ struct Object_0041a920 {
     void* data;                        // +0x18
 };
 
-struct Game_0041a920 {
+struct Game {
     char unknown_0[0x519];
     Object_0041a920 obj;               // +0x519
     char unknown_519[0x37f5b - 0x519 - sizeof(Object_0041a920)];
@@ -42,7 +42,7 @@ struct Game_0041a920 {
 };
 #pragma pack(pop)
 
-extern Game_0041a920* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004a0570(Object_0041a920* obj, char* name, int param_3);
 

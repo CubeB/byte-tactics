@@ -35,7 +35,7 @@ struct Vec3Init_0043a1f0 : Vec3_0043a1f0 {
     Vec3Init_0043a1f0(int a, int b, int c) { x = a; y = b; z = c; }
 };
 
-struct Game_0043a1f0 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int ticks;              // +0x38a47
 };
@@ -51,7 +51,7 @@ struct PointInit_0043a1f0 : Point_0043a1f0 {
 };
 #pragma pack(pop)
 
-extern Game_0043a1f0* g_game;
+extern Game* g_game;
 extern Entry_0043a1f0* DAT_00512344;
 
 struct ListOwner_0043a1f0;            // the owner of a link list

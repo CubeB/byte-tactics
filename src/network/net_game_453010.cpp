@@ -24,7 +24,7 @@ struct Player_00453010 {
     char unknown_74[0x14b - 0x74];
 };
 
-struct Game_00453010 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00453010 players[10];       // +0x1b63
     char unknown_2851[0x2a38 - (0x1b63 + 0x14b * 10)];
@@ -32,7 +32,7 @@ struct Game_00453010 {
 };
 #pragma pack(pop)
 
-extern Game_00453010* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0044ffd0(unsigned char index);
 unsigned char __stdcall FUN_0044fe40(int id);

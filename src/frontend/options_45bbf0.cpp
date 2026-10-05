@@ -34,7 +34,7 @@ struct Object_0045bbf0 {
     Holder_0045bbf0* holder;           // +0x18
 };
 
-struct Game_0045bbf0 {
+struct Game {
     char unknown_0[0x519];
     char menu[0x37f1b - 0x519];
     int resolutionX;                  // +0x37f1b
@@ -42,7 +42,7 @@ struct Game_0045bbf0 {
 };
 #pragma pack(pop)
 
-extern Game_0045bbf0* g_game;
+extern Game* g_game;
 
 Slider_0045bbf0* __stdcall FUN_004a0200(Res_0045bbf0* entries, char* name);
 char* __stdcall FUN_004a0180(Res_0045bbf0* entries, char* name);

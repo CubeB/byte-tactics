@@ -36,7 +36,7 @@ struct Entry_004609b0 {
     char unknown_b8[0x15a - 0xb8];
 };
 
-struct Game_004609b0 {
+struct Game {
     char unknown_0[0x10];
     Class_004ce910* field_10;          // +0x10
     char unknown_14[0x519 - 0x14];
@@ -63,7 +63,7 @@ struct Info_004609b0 {
     int (__stdcall* handler)(void*);   // +0x8
 };
 
-extern Game_004609b0* g_game;
+extern Game* g_game;
 extern Class_004c6a60* DAT_00512fe8;
 extern Class_004c6a60* DAT_00512ff4;
 extern int DAT_00512fe4;

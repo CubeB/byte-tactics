@@ -77,7 +77,7 @@ struct Anim_004394e0 {
     unsigned short field_2c;            // +0x2c
 };
 
-struct Game_004394e0 {
+struct Game {
     char unknown_0[0x1487f];
     Anim_004394e0* anims[22];           // +0x1487f, this function uses [21]
     char unknown_148d7[0x38a47 - 0x148d7];
@@ -86,7 +86,7 @@ struct Game_004394e0 {
 
 #pragma pack(pop)
 
-extern Game_004394e0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00439740(void* surface, View_004394e0* view,
                             Node_004394e0* node, Pos_004394e0* out, int unused);

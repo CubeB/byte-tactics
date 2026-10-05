@@ -94,7 +94,7 @@ struct Player_495e90 {
     char unknown_2b[0x14b - 0x2b];
 };
 
-struct Game_495e90 {
+struct Game {
     char unknown_0[0x519];
     Sub_495e90 gui;                     // +0x519
     char unknown_529[0x531 - 0x529];
@@ -155,7 +155,7 @@ public:
     unsigned char index;                // +0
 };
 
-extern Game_495e90* g_game;
+extern Game* g_game;
 
 int FUN_004c1ab0(void);
 int __stdcall FUN_004c1b80(int key);

@@ -18,13 +18,13 @@ struct Unit {
     char unknown_114[0x118 - 0x114];
 };
 
-struct Game_004813b0 {
+struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
 };
 #pragma pack(pop)
 
-extern Game_004813b0* g_game;
+extern Game* g_game;
 
 struct Player_004813b0 {
     char unknown_0[0xc];

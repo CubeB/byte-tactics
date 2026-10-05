@@ -7,14 +7,14 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_476830 {
+struct Game {
     char unknown_0[0x37f39];
     int count;                         // +0x37f39
     char names[1][0x232];              // +0x37f3d
 };
 #pragma pack(pop)
 
-extern Game_476830* g_game;
+extern Game* g_game;
 char* __cdecl FUN_004d83b0(char* name, int size);
 
 // FUNCTION: 0x476830

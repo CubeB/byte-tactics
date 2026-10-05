@@ -32,7 +32,7 @@ struct Options_004326b0 {
     int location;                      // +0x118
 };
 
-struct Game_004326b0 {
+struct Game {
     char unknown_0[4];
     char* buildDate;                   // +0x04
     char* buildTime;                   // +0x08
@@ -124,7 +124,7 @@ public:
     int FUN_00435c00(int param_1);
 };
 
-extern Game_004326b0* g_game;
+extern Game* g_game;
 extern char* DAT_0050331c;
 extern char* DAT_00503320;
 extern char DAT_005049ac[];           // "BUILD DATE: %s"

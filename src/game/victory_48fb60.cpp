@@ -33,13 +33,13 @@ struct UnitList_0048fb60 {
 };
 
 #pragma pack(push, 1)
-struct Game_0048fb60 {
+struct Game {
     char unknown_0[0x1d15];
     UnitList_0048fb60 units;           // +0x1d15
 };
 #pragma pack(pop)
 
-extern Game_0048fb60* g_game;
+extern Game* g_game;
 
 class Condition_0048fb60 {
 public:

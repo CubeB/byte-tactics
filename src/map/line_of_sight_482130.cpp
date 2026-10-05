@@ -47,7 +47,7 @@ struct Eye_00482130 {
     }
 };
 
-struct Game_00482130 {
+struct Game {
     char unknown_0[0x14277];
     int count;                             // +0x14277
     Eye_00482130* eyes;                    // +0x1427b
@@ -56,7 +56,7 @@ struct Game_00482130 {
 };
 #pragma pack(pop)
 
-extern Game_00482130* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00481d50(Eye_00482130* eye);
 

@@ -31,7 +31,7 @@ struct Player_441080 {                 // 0x14b bytes
     char unknown_2b[0x14b - 0x2b];
 };
 
-struct Game_441080 {
+struct Game {
     char unknown_0[0x519];
     Menu_441080 menu;                  // +0x519
     char unknown_535[0x1b63 - 0x535];
@@ -45,7 +45,7 @@ struct Game_441080 {
 };
 #pragma pack(pop)
 
-extern Game_441080* g_game;
+extern Game* g_game;
 extern char DAT_00512d48;
 
 void __stdcall FUN_00440d70(void* gadget);

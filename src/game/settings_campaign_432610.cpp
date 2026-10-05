@@ -21,7 +21,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_00432610 {
+struct Game {
     char unknown_0[0x37ebe];
     unsigned short flags_0 : 4;      // +0x37ebe
     unsigned short loaded : 1;       // +0x37ebe, bit 4
@@ -33,7 +33,7 @@ struct Game_00432610 {
 };
 #pragma pack(pop)
 
-extern Game_00432610* g_game;
+extern Game* g_game;
 extern char* DAT_00503320;           // "Summary"
 
 void __stdcall FUN_00466050(Class_004b4560* file);

@@ -2,13 +2,13 @@
 // Same shape as FUN_00428fc0, calling FUN_004d8780 on the same game field.
 
 #pragma pack(push, 1)
-struct Game_00428fe0 {
+struct Game {
     char unknown_0[0x1439b];
     void* field_1439b;                 // +0x1439b
 };
 #pragma pack(pop)
 
-extern Game_00428fe0* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d8780(void* param_1);
 

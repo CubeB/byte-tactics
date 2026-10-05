@@ -31,7 +31,7 @@ struct Unit {
     unsigned int flags;                // +0x110
 };
 
-struct Game_0041ca10 {
+struct Game {
     char unknown_0[0x1422b];
     int mapWidth;                      // +0x1422b
     int mapHeight;                     // +0x1422f
@@ -55,7 +55,7 @@ struct Game_0041ca10 {
 };
 #pragma pack(pop)
 
-extern Game_0041ca10* g_game;
+extern Game* g_game;
 
 void FUN_0041c6f0();
 void FUN_0041c3c0();

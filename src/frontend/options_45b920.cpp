@@ -20,13 +20,13 @@ struct Menu_0045b920 {
     Data_0045b920* data;               // +0x18
 };
 
-struct Game_0045b920 {
+struct Game {
     char unknown_0[0x519];
     Menu_0045b920 menu;                // +0x519
 };
 #pragma pack(pop)
 
-extern Game_0045b920* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004a0570(Menu_0045b920* menu, char* name, int value);
 

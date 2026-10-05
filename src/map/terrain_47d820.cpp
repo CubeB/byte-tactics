@@ -183,7 +183,7 @@ struct Unit_0047d820 {
     unsigned char draft;                // +0x22c
 };
 
-struct Game_0047d820 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -194,7 +194,7 @@ struct Game_0047d820 {
 };
 #pragma pack(pop)
 
-extern Game_0047d820* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x47d820
 int __stdcall FUN_0047d820(Unit_0047d820* unit, Point cell)

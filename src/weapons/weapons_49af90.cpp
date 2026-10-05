@@ -26,14 +26,14 @@ struct Packet_0049af90 {
     unsigned char typeId;              // +0xd
 };
 
-struct Game_0049af90 {
+struct Game {
     char unknown_0[0x141f3];
     int projectileCount;               // +0x141f3
     Projectile_0049af90* projectiles;  // +0x141f7
 };
 #pragma pack(pop)
 
-extern Game_0049af90* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00499eb0(Projectile_0049af90* proj, int flag);
 

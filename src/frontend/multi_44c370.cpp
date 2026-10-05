@@ -22,13 +22,13 @@ struct Def_0044c370 {
     char unknown_18e[0x249 - 0x18e];
 };
 
-struct Game_0044c370 {
+struct Game {
     char unknown_0[0x1439b];
     Def_0044c370* defs;                 // +0x1439b
 };
 #pragma pack(pop)
 
-extern Game_0044c370* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004a0bf0(void* obj, char* name, int param_3, int param_4);
 

@@ -102,7 +102,7 @@ struct Proj_0049cde0 {
     unsigned short flags;              // +0x69
 };
 
-struct Game_0049cde0 {
+struct Game {
     char unknown_0[0x141f3];
     int projCount;                     // +0x141f3
     Proj_0049cde0* projs;              // +0x141f7
@@ -113,7 +113,7 @@ struct Game_0049cde0 {
 };
 #pragma pack(pop)
 
-extern Game_0049cde0* g_game;
+extern Game* g_game;
 extern char* DAT_00509678[4];
 
 void __stdcall FUN_0049c740(Proj_0049cde0* proj, UnitType_0049cde0* shot, Vec3_0049cde0* pos,

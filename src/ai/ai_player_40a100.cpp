@@ -10,13 +10,13 @@ struct Player_0040a100 {
     char unknown_74[0x14b - 0x74];
 };
 
-struct Game_0040a100 {
+struct Game {
     char unknown_0[0x1b63];
     Player_0040a100 players[10];       // +0x1b63
 };
 #pragma pack(pop)
 
-extern Game_0040a100* g_game;
+extern Game* g_game;
 
 class Class_00409470 {
 public:

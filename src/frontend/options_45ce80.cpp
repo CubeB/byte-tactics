@@ -33,7 +33,7 @@ struct Holder_0045ce80 {
     Entry_0045ce80* entries;           // +0x04
 };
 
-struct Game_0045ce80 {
+struct Game {
     char unknown_0[0x531];
     Holder_0045ce80* holder;           // +0x531
     char unknown_535[0x37ebe - 0x535];
@@ -41,7 +41,7 @@ struct Game_0045ce80 {
 };
 #pragma pack(pop)
 
-extern Game_0045ce80* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fdf0(Entry_0045ce80* entries, char* name, int type);
 

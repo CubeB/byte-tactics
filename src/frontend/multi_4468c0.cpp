@@ -15,7 +15,7 @@ struct Player_004468c0 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_004468c0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_004468c0 players[10];       // +0x1b63
     char unknown_2851[0x2a44 - 0x2851];
@@ -26,7 +26,7 @@ struct Game_004468c0 {
 };
 #pragma pack(pop)
 
-extern Game_004468c0* g_game;
+extern Game* g_game;
 
 // With both calls in one expression MSVC calls the later-declared one first.
 int FUN_00457af0();

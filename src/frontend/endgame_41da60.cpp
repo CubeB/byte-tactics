@@ -22,7 +22,7 @@ struct Display_0041da60 {
 };
 
 #pragma pack(push, 1)
-struct Game_0041da60 {
+struct Game {
     char unknown_0[0x3906f];
     float field_3906f;                 // +0x3906f
     char unknown_39073[0x3907b - 0x39073];
@@ -38,7 +38,7 @@ struct Game_0041da60 {
 };
 #pragma pack(pop)
 
-extern Game_0041da60* g_game;
+extern Game* g_game;
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 Display_0041da60* FUN_004b6220();

@@ -60,12 +60,12 @@ struct Msg_00441220 {
 };
 #pragma pack(pop)
 
-struct Game_00441220 {
+struct Game {
     char unknown_0[0x2ab1];
     char buffer[0x200];
 };
 
-extern Game_00441220* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
 void __stdcall FUN_004a0570(void* menu, const char* name, int value);

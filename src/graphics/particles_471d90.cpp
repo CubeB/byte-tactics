@@ -13,13 +13,13 @@ struct Lists_00471d90 {
 };
 
 #pragma pack(push, 1)
-struct Game_00471d90 {
+struct Game {
     char unknown_0[0x38d77];
     Lists_00471d90* lists;             // +0x38d77
 };
 #pragma pack(pop)
 
-extern Game_00471d90* g_game;
+extern Game* g_game;
 
 // Creates the ten listener lists used by 0x471f40 and 0x471f90.
 // FUNCTION: 0x471d90

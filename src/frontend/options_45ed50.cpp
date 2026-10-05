@@ -25,7 +25,7 @@ struct Object_0045ed50 {
     void (__stdcall* fn)(void* obj, int arg);   // +0x08
 };
 
-struct Game_0045ed50 {
+struct Game {
     char unknown_0[0x519];
     char menu[1];                        // +0x519
     char unknown_51a[0x1434d - 0x51a];
@@ -44,7 +44,7 @@ struct Game_0045ed50 {
 };
 #pragma pack(pop)
 
-extern Game_0045ed50* g_game;
+extern Game* g_game;
 
 Object_0045ed50* __cdecl FUN_0045cfc0();
 void FUN_0045ce80();

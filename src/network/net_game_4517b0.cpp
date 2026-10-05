@@ -72,7 +72,7 @@ struct Net_4517b0 {
     Net2_4517b0* field_c;              // +0xc
 };
 
-struct Game_4517b0 {
+struct Game {
     char unknown_0[0x14];
     char net[0x4e5 - 0x14];            // +0x14
     Net_4517b0* field_4e5;             // +0x4e5
@@ -111,7 +111,7 @@ public:
     int FUN_004618a0(int param_1);
 };
 
-extern Game_4517b0* g_game;
+extern Game* g_game;
 extern char DAT_00512d48;
 extern char DAT_005119b8;
 extern char DAT_00512d28;

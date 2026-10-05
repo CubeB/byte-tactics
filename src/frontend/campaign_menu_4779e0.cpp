@@ -37,7 +37,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_004779e0 {
+struct Game {
     char unknown_0[0x519];
     // The menu at +0x519 is only ever passed on by address, so it stays an
     // unnamed blob here; `g_game + 0x519` is what the code computes.
@@ -48,7 +48,7 @@ struct Game_004779e0 {
 };
 #pragma pack(pop)
 
-extern Game_004779e0* g_game;
+extern Game* g_game;
 extern char* DAT_0051e660;
 
 void __cdecl FUN_004d85a0(int* param_1);

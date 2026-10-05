@@ -2,13 +2,13 @@
 
 int __stdcall FUN_00485070(void* param_1);
 
-struct GameGlobal_00474720
+struct Game
 {
     char unknown_0[0x1427f];
     unsigned char byte_1427f; // +0x1427f
 };
 
-extern GameGlobal_00474720* g_game;
+extern Game* g_game;
 
 class Class_00474720
 {

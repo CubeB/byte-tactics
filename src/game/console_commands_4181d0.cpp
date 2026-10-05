@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 
-struct Game_00417f60 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;            // +0x1427f
 };
@@ -28,7 +28,7 @@ struct Point_00417f60 {
     int y;
 };
 
-extern Game_00417f60* g_game;
+extern Game* g_game;
 extern int DAT_00511dd0;               // contour spacing
 extern int DAT_00511dd4;               // contour offset
 extern unsigned char DAT_00501d18[];   // colour by height band

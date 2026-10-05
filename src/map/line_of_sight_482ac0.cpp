@@ -41,7 +41,7 @@ struct Cell_482ac0 {
 };
 
 #pragma pack(push, 1)
-struct Game_482ac0 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char field_1427f;          // +0x1427f
     char unknown_14280;
@@ -63,7 +63,7 @@ struct Params_482ac0 {
     int unknown_20;
 };
 
-extern Game_482ac0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004825b0(Params_482ac0* params);
 void __stdcall FUN_00482270(Params_482ac0* params);

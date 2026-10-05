@@ -12,13 +12,13 @@ struct Entry_004195f0 {
     char unknown_40[0x249 - 0x40];
 };
 
-struct Game_004195f0 {
+struct Game {
     char unknown_0[0x1439b];
     Entry_004195f0* entries;           // +0x1439b
 };
 #pragma pack(pop)
 
-extern Game_004195f0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x4195f0
 void __stdcall FUN_004195f0(char* dest, unsigned short index)

@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_00421e60 {
+struct Game {
     char unknown_0[0x14233];
     int mapWidth;                    // +0x14233
 };
@@ -17,7 +17,7 @@ struct Cell_00421e60 {
 };
 #pragma pack(pop)
 
-extern Game_00421e60* g_game;
+extern Game* g_game;
 
 // Reading the field directly each time (no local) gives `or ax, 0xffff` for
 // the 0xffff return; a local gives `mov eax, 0xffff`.

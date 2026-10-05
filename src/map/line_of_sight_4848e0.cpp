@@ -33,7 +33,7 @@ struct Flags_004848e0 {
     unsigned short switchAlt : 1;
 };
 
-struct Game_004848e0 {
+struct Game {
     char unknown_0[0xdcb];
     unsigned char colors[16];          // +0xdcb
     char unknown_ddb[0x1421f - 0xddb];
@@ -54,7 +54,7 @@ struct Game_004848e0 {
 };
 #pragma pack(pop)
 
-extern Game_004848e0* g_game;
+extern Game* g_game;
 
 void FUN_004843c0();
 void* __stdcall FUN_004b7f30(void* table, int index);

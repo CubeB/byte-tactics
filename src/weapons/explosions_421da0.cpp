@@ -26,13 +26,13 @@ struct Feature_00421da0 {
     char unknown_98[0x100 - 0x98];
 };
 
-struct Game_00421da0 {
+struct Game {
     char unknown_0[0x1426f];
     Feature_00421da0* features;      // +0x1426f
 };
 #pragma pack(pop)
 
-extern Game_00421da0* g_game;
+extern Game* g_game;
 
 Cell_00421da0* __stdcall FUN_00481550(int x, int y);
 

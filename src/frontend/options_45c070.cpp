@@ -30,7 +30,7 @@ struct Entry_45c070 {
     short pos;                        // +0x140
 };
 
-struct Game_45c070 {
+struct Game {
     char unknown_0[0x1b63];
     Player_45c070 players[10];         // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -50,7 +50,7 @@ struct Object_45c070 {
     Holder_45c070* holder;            // +0x18
 };
 
-extern Game_45c070* g_game;
+extern Game* g_game;
 
 Entry_45c070* __stdcall FUN_004a0200(Entry_45c070* entries, char* name);
 void __stdcall FUN_00490df0(unsigned int param1, int param2);

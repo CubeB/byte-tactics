@@ -9,7 +9,7 @@ struct Gadget_004775a0 {
     int field_60;                        // +0x60
 };
 
-struct Game_004775a0 {
+struct Game {
     char unknown_0[0x519];
     char message[0x29a0 - 0x519];        // +0x519
     char unknown_29a0[0x2bc0 - 0x29a0];
@@ -17,7 +17,7 @@ struct Game_004775a0 {
 };
 #pragma pack(pop)
 
-extern Game_004775a0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fd60(Gadget_004775a0* gadget, char* name);
 char __stdcall FUN_0041d6a0(int side);

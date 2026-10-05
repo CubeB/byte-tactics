@@ -11,7 +11,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_0041f040 {
+struct Game {
     char unknown_0[0x391ab];
     int value_391ab;                 // +0x391ab
     int value_391af;                 // +0x391af
@@ -21,7 +21,7 @@ struct Game_0041f040 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_0041f040* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x41f040
 int FUN_0041f040()

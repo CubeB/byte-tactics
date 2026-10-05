@@ -38,7 +38,7 @@ struct Player_00453640 {               // 0x14b bytes, 10 of them at g_game+0x1b
     char unknown_74[0x14b - 0x74];
 };
 
-struct Game_00453640 {
+struct Game {
     char unknown_0[0x519];
     char message[0x531 - 0x519];       // +0x519
     Holder_00453640* holder;           // +0x531
@@ -55,7 +55,7 @@ struct Game_00453640 {
 
 #pragma pack(pop)
 
-extern Game_00453640* g_game;
+extern Game* g_game;
 extern char* DAT_00512c74;
 extern int DAT_00512c78;
 extern int DAT_005061d8;

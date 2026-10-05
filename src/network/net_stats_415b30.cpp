@@ -1,7 +1,7 @@
 // Decompiled by Sonnet. Names are provisional.
 
 #pragma pack(push, 1)
-struct GameState {
+struct Game {
     char unknown_0[0x148e7];
     int count;          // +0x148e7
     void** items;       // +0x148eb
@@ -9,7 +9,7 @@ struct GameState {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern GameState* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004b8b90(void* item);
 

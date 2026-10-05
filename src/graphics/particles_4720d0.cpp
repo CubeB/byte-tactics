@@ -95,13 +95,13 @@ struct Ctx_004720d0 {                  // both copies, one 24-byte local
 struct Lists_004720d0 { std::vector<Class_00471cc0*> lists[1]; };  // 0x10 each
 
 #pragma pack(push, 1)
-struct Game_004720d0 {
+struct Game {
     char unknown_0[0x38d77];
     Lists_004720d0* lists;             // +0x38d77
 };
 #pragma pack(pop)
 
-extern Game_004720d0* g_game;
+extern Game* g_game;
 
 static void Add_004720d0(Lists_004720d0* lists, short index, Class_00471cc0* p)
 {

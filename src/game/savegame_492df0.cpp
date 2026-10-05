@@ -49,7 +49,7 @@ struct Gadget_00492df0 {
     int field_60;                        // +0x60
 };
 
-struct Game_00492df0 {
+struct Game {
     char unknown_0[0x519];
     char message[0x2a44 - 0x519];        // +0x519
     unsigned short bits0_2a44 : 2;       // +0x2a44
@@ -69,7 +69,7 @@ struct Save_00492df0 {
     char path[0x100];                    // +8
 };
 
-extern Game_00492df0* g_game;
+extern Game* g_game;
 extern char* DAT_005091c8;
 extern char* DAT_0051f2e0;
 extern char* DAT_0051f2e4;

@@ -20,7 +20,7 @@ struct Cell_004815f0 {
     unsigned char flags;                 // +0xc
 };
 
-struct Game_004815f0 {
+struct Game {
     char unknown_0[0x14233];
     int width;                           // +0x14233
     int height;                          // +0x14237
@@ -35,7 +35,7 @@ struct Vec3_004815f0 {
     int z;
 };
 
-extern Game_004815f0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x4815f0
 Cell_004815f0* __stdcall FUN_004815f0(Vec3_004815f0* pos)

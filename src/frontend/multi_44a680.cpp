@@ -82,7 +82,7 @@ struct Gui_0044a680 {
     Layer_0044a680* table;              // +0x18
 };
 
-struct Game_0044a680 {
+struct Game {
     char unknown_0[0x519];
     Gui_0044a680 gui;                   // +0x519
     char unknown_535[0x1b63 - 0x535];
@@ -114,7 +114,7 @@ struct Class_00463c60 { void FUN_00463c60(int param); };
 class Class_0046d860 { public: void FUN_0046dad0(); };
 
 
-extern Game_0044a680* g_game;
+extern Game* g_game;
 extern int DAT_00512994;
 extern int DAT_005129a4;
 extern unsigned int DAT_005129a8;

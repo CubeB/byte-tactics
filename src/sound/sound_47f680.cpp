@@ -8,7 +8,7 @@ void __cdecl FUN_004d85a0(void* param_1);
 void FUN_0049f620();
 
 #pragma pack(push, 1)
-struct Game_0047f680 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int frame;               // +0x38a47
 };
@@ -33,7 +33,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_0047f680* g_game;
+extern Game* g_game;
 extern Class_0047f960* DAT_0051e68c;
 extern int DAT_0051e694;
 

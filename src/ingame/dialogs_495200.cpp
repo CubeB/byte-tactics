@@ -7,7 +7,7 @@ struct Sub_00495200 {
 };
 
 #pragma pack(push, 1)
-struct Game_00495200 {
+struct Game {
     char unknown_0[0x519];
     Sub_00495200 sub;                  // +0x519
     char unknown_529[0x37ea0 - 0x529];
@@ -18,11 +18,11 @@ struct Game_00495200 {
 struct Gadget_00495200 {
     char unknown_0[0x8];
     void (__stdcall* handler)(Gadget_00495200*); // +0x8
-    Game_00495200* owner;              // +0xc
+    Game* owner;                       // +0xc
 };
 
 // GLOBAL: 0x511de8
-extern Game_00495200* g_game;
+extern Game* g_game;
 
 Gadget_00495200* __stdcall FUN_004aa8f0(Sub_00495200* sub, const char* name, int flags);
 void __stdcall FUN_00494890(Gadget_00495200* gadget);

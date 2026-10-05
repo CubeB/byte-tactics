@@ -15,13 +15,13 @@ struct Unit {
     UnitDef_0040bdb0* def;             // +0x92
 };
 
-struct Game_0040bdb0 {
+struct Game {
     char unknown_0[0x1439b];
     UnitDef_0040bdb0* defs;            // +0x1439b
 };
 #pragma pack(pop)
 
-extern Game_0040bdb0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0040bb00(unsigned int player, unsigned short id);
 int __stdcall FUN_004b6c30(int range);

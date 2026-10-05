@@ -84,7 +84,7 @@ struct Player_004936f0 {                 // 0x14b bytes
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_004936f0 {
+struct Game {
     char unknown_0[0x519];
     Menu_004936f0 menu;                  // +0x519
     char unknown_535[0x1b63 - 0x535];
@@ -100,7 +100,7 @@ struct Game_004936f0 {
 };
 #pragma pack(pop)
 
-extern Game_004936f0* g_game;
+extern Game* g_game;
 extern int DAT_0051e6d0[10];
 
 Layer_004936f0* __stdcall FUN_004aa8f0(Menu_004936f0* menu, const char* name, int flags);

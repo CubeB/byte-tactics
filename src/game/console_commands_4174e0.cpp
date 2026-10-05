@@ -3,7 +3,7 @@
 extern void FUN_0041c390(void);
 
 #pragma pack(push, 1)
-struct GameState {
+struct Game {
     char unknown_0[0x14371];
     unsigned short field_14371;
     unsigned int bit0 : 1;
@@ -12,7 +12,7 @@ struct GameState {
 };
 #pragma pack(pop)
 
-extern GameState* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x4174e0
 void __stdcall FUN_004174e0(int unused)

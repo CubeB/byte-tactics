@@ -22,7 +22,7 @@ struct Player_467d70 {
     char unknown_4[0x14b - 4];
 };
 
-struct Game_467d70 {
+struct Game {
     char unknown_0[0x1b8a];
     Player_467d70 players[10];          // +0x1b8a
     char unknown_2878[0x2a43 - 0x2878];
@@ -36,7 +36,7 @@ struct Game_467d70 {
 };
 #pragma pack(pop)
 
-extern Game_467d70* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b7f30(unsigned short* frames, int frame);
 void __stdcall FUN_004b7f90(void* surf, short* frame, int x, int y);

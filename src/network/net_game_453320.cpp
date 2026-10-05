@@ -3,13 +3,13 @@
 // everyone when `to` is 0, otherwise to that player.
 
 #pragma pack(push, 1)
-struct Game_00453320 {
+struct Game {
     char unknown_0[0x2a38];
     unsigned char* buffer;             // +0x2a38
 };
 #pragma pack(pop)
 
-extern Game_00453320* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00451df0(int player, void* data, int size);
 int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);

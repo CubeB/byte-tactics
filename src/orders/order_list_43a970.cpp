@@ -39,7 +39,7 @@ struct UnitType_0043a970 {             // 0x249 bytes
     char unknown_40[0x249 - 0x40];
 };
 
-struct Game_0043a970 {
+struct Game {
     char unknown_0[0x1438f];
     int unitTypeCount;                 // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -131,7 +131,7 @@ struct SaveDesc_0043a970 {             // the 0x3a-byte snapshot written raw
 #pragma pack(pop)
 
 extern Entry_0043a970* DAT_00512344;
-extern Game_0043a970* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x43a970
 int Class_0043a1f0::FUN_0043a970(Unit* punit, File_0043a970* file, char* name)

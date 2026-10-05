@@ -57,7 +57,7 @@ struct Terrain_00425b80 {
 };
 
 #pragma pack(push, 1)
-struct Game_00425b80 {
+struct Game {
     char unknown_0[0x519];
     void* menu;                       // +0x519
     char unknown_51d[0x531 - 0x51d];
@@ -65,7 +65,7 @@ struct Game_00425b80 {
 };
 #pragma pack(pop)
 
-extern Game_00425b80* g_game;
+extern Game* g_game;
 extern Smoke_00425b80* DAT_00512298;
 
 void __stdcall FUN_0049fad0(void* menu);

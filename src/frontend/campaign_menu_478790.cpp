@@ -92,7 +92,7 @@ struct Net_00478790 {
     int field_d3c;                     // +0xd3c
 };
 
-struct Game_00478790 {
+struct Game {
     char unknown_0[0x519];
     Window_00478790 menu;              // +0x519
     char unknown_11e7[0x1b8a - 0x11e7];
@@ -113,7 +113,7 @@ struct ColourEntry_00478790 {
 };
 #pragma pack(pop)
 
-extern Game_00478790* g_game;
+extern Game* g_game;
 extern int DAT_0051e654;
 extern int DAT_0051e670;
 extern short DAT_0051e674;

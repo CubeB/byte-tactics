@@ -26,7 +26,7 @@
 #include <windows.h>
 #pragma pack(push, 1)
 
-struct Game_0043e490 {
+struct Game {
     char unknown_0[0x2a42];
     unsigned char localPlayer;    // +0x2a42
     unsigned char localPlayerBit; // +0x2a43
@@ -158,7 +158,7 @@ struct Cell_0043e490 {
 };
 #pragma pack(pop)
 
-extern Game_0043e490* g_game;
+extern Game* g_game;
 
 Cell_0043e490* __stdcall FUN_004815a0(Pos_0043e490* pos);
 int __stdcall FUN_0049aa80(Unit_0043e490* unit, void* slot, Pos_0043e490* pos, int which);

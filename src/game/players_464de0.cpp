@@ -9,13 +9,13 @@ struct Flags_00464de0 {
 };
 
 #pragma pack(push, 1)
-struct Game_00464de0 {
+struct Game {
     char unknown_0[0x3923b];
     Flags_00464de0 flags;              // +0x3923b
 };
 #pragma pack(pop)
 
-extern Game_00464de0* g_game;
+extern Game* g_game;
 
 struct Screen_00464de0 {
     char unknown_0[4];

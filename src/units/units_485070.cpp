@@ -15,7 +15,7 @@ struct Cell_00485070 {
     char unknown_5[0xd - 0x5];
 };
 
-struct Game_00485070 {
+struct Game {
     char unknown_0[0x14233];
     int width;                         // +0x14233
     int height;                        // +0x14237
@@ -35,7 +35,7 @@ struct Pos_00485070 {
     Fixed_00485070 z;                  // +0x8
 };
 
-extern Game_00485070* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x485070
 int __stdcall FUN_00485070(Pos_00485070* p)

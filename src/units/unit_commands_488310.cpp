@@ -117,7 +117,7 @@ struct Unit {
     int flags;                        // +0x110
 };
 
-struct Game_00488310 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00488310 players[10];      // +0x1b63
     char unknown_2851[0x391e9 - 0x2851];
@@ -134,7 +134,7 @@ struct Table_00488310 {
 };
 #pragma pack(pop)
 
-extern Game_00488310* g_game;
+extern Game* g_game;
 
 Item_00488310* __stdcall FUN_00488a50(const char* name);
 void __stdcall FUN_0047ddc0(Item_00488310* type, Pos_00488310* pos);

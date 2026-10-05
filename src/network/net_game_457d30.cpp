@@ -73,7 +73,7 @@ struct Player_00457d30 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_00457d30 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00457d30 players[10];       // +0x1b63
     char unknown_2851[0x2a44 - 0x2851];
@@ -91,7 +91,7 @@ struct Packet_00457d30 {
 };
 #pragma pack(pop)
 
-extern Game_00457d30* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00464c60(unsigned char from, unsigned char to, float amount, int flag);
 void __stdcall FUN_00464b30(unsigned char from, unsigned char to, float amount, int flag);

@@ -14,7 +14,7 @@ struct Rect_004b0510 {
 };
 
 #pragma pack(push, 1)
-struct Game_00468380 {
+struct Game {
     char unknown_0[0xdda];
     unsigned char color;             // +0xdda
     char unknown_ddb[0x37e23 - 0xddb];
@@ -22,7 +22,7 @@ struct Game_00468380 {
 };
 #pragma pack(pop)
 
-extern Game_00468380* g_game;
+extern Game* g_game;
 
 int FUN_004c1450();
 void __stdcall FUN_00416150(unsigned int* sent, unsigned int* received);

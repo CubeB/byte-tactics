@@ -4,14 +4,14 @@
 // table. Mode 6 also gets a different quit callback from FUN_004b4fd0.
 
 #pragma pack(push, 1)
-struct Game_00490b30 {
+struct Game {
     char unknown_0[0x391f1];
     int mode;                          // +0x391f1
     void (*handler)();                 // +0x391f5
 };
 #pragma pack(pop)
 
-extern Game_00490b30* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
 void __cdecl FUN_004578f0(int param);

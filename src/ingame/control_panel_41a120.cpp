@@ -49,7 +49,7 @@ struct Orders_0041a120 {
     unsigned short unknown_1 : 15;
 };
 
-struct Game_0041a120 {
+struct Game {
     char unknown_0[0x519];
     Menu_0041a120 menu;                // +0x519
     char unknown_535[0x37ebe - 0x535];
@@ -57,7 +57,7 @@ struct Game_0041a120 {
 };
 #pragma pack(pop)
 
-extern Game_0041a120* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fe60(int value, char* name);
 // 0x4a11c0.cpp declares the value `short`; here it must be `int`, or the

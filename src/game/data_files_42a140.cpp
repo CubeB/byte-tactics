@@ -18,7 +18,7 @@
 // the original does.
 
 #pragma pack(push, 1)
-struct Game_0042a140 {
+struct Game {
     char unknown_0[0x148d7];
     void* logos;                    // +0x148d7
     void* logos32;                  // +0x148db
@@ -29,7 +29,7 @@ struct Game_0042a140 {
 };
 #pragma pack(pop)
 
-extern Game_0042a140* g_game;
+extern Game* g_game;
 
 struct Ref_0042a140 {
     unsigned short index;           // +0x0

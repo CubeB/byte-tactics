@@ -10,12 +10,12 @@ struct Rect_004b0510 {
     int y2;                          // +0xc
 };
 
-struct Game_00468310 {
+struct Game {
     char unknown_0[0xdda];
     unsigned char color;             // +0xdda
 };
 
-extern Game_00468310* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004bf8c0(void* param_1, void* param_2, int param_3);
 void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);

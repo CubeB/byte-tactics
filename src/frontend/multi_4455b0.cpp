@@ -65,7 +65,7 @@ struct Player_004455b0 {
     char unknown_74[0x14b - 0x74];
 };
 
-struct Game_004455b0 {
+struct Game {
     char unknown_0[0x519];
     Menu_004455b0 menu;                // +0x519
     char unknown_1[0x1b63 - 0x519 - sizeof(Menu_004455b0)];
@@ -75,7 +75,7 @@ struct Game_004455b0 {
 };
 #pragma pack(pop)
 
-extern Game_004455b0* g_game;
+extern Game* g_game;
 extern char* DAT_005054b0[];
 extern int DAT_00512760;
 extern short DAT_00512764;

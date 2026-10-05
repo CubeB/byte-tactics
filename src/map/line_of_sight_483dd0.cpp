@@ -13,7 +13,7 @@ struct Grid_00483dd0 {
     int field_c;                       // +0xc
 };
 
-struct Game_00483dd0 {
+struct Game {
     char unknown_0[0x141fb];
     void* field_141fb;                 // +0x141fb
     void* field_141ff;                 // +0x141ff
@@ -37,7 +37,7 @@ struct Game_00483dd0 {
 };
 #pragma pack(pop)
 
-extern Game_00483dd0* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d85a0(void* p);
 void FUN_00422170();

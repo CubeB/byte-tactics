@@ -6,7 +6,7 @@ struct Gadget_00494740 {
 };
 
 #pragma pack(push, 1)
-struct Game_00494740 {
+struct Game {
     char unknown_0[0x2bee];
     unsigned short flags;              // +0x2bee
     char unknown_2bf0[0x37ebe - 0x2bf0];
@@ -14,7 +14,7 @@ struct Game_00494740 {
 };
 #pragma pack(pop)
 
-extern Game_00494740* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0049fa70(void* menu);
 int __stdcall FUN_0049fd60(Gadget_00494740* gadget, char* name);

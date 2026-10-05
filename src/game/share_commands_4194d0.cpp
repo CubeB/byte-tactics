@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #pragma pack(push, 1)
-struct Game_004194d0 {
+struct Game {
     char unknown_0[0x4ed];
     int field_4ed;                     // +0x4ed
     char unknown_4f1[0x2a44 - 0x4f1];
@@ -11,7 +11,7 @@ struct Game_004194d0 {
 };
 #pragma pack(pop)
 
-extern Game_004194d0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00463ca0(char* param_1, int param_2, int param_3, int param_4);
 

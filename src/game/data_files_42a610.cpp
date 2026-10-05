@@ -25,13 +25,13 @@ struct Def_0042a610 {
     unsigned int field_146;            // +0x146
 };
 
-struct Game_0042a610 {
+struct Game {
     char unknown_0[0x1439b];
     int* field_1439b;                  // +0x1439b
 };
 #pragma pack(pop)
 
-extern Game_0042a610* g_game;
+extern Game* g_game;
 
 struct File_0042a610;
 

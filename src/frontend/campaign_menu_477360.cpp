@@ -13,7 +13,7 @@ struct Sub_00477360 {
     unsigned char side;                 // +0x95
 };
 
-struct Game_00477360 {
+struct Game {
     char unknown_0[0x519];
     Side_00477360 sides;                // +0x519
     char unknown_535[0x1b8a - 0x535];
@@ -25,7 +25,7 @@ struct Game_00477360 {
 };
 #pragma pack(pop)
 
-extern Game_00477360* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004a1110(Side_00477360* sides, char* name, int value);
 

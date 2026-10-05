@@ -21,13 +21,13 @@ struct Menu_0045b880 {
     Holder_0045b880* holder;           // +0x18
 };
 
-struct Game_0045b880 {
+struct Game {
     char unknown_0[0x519];
     Menu_0045b880 menu;                // +0x519
 };
 #pragma pack(pop)
 
-extern Game_0045b880* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004a1200(Menu_0045b880* menu, int index, int value);
 void __stdcall FUN_0049fa90(Menu_0045b880* menu);

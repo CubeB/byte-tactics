@@ -12,7 +12,7 @@ struct Cheat_0047b9f0 {
 };
 
 #pragma pack(push, 1)
-struct Game_0047b9f0 {
+struct Game {
     char unknown_0[0x519];
     char unknown_519[0x29a0 - 0x519];
     void* field_29a0;
@@ -21,7 +21,7 @@ struct Game_0047b9f0 {
 };
 #pragma pack(pop)
 
-extern Game_0047b9f0* g_game;
+extern Game* g_game;
 extern const char DAT_00508498[];
 extern const char DAT_00508494[];
 extern const char DAT_00508490[];

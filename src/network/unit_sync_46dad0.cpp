@@ -52,7 +52,7 @@ struct Def_0046dad0 { // 0x249 bytes
     char unknown_146[0x249 - 0x146];
 };
 
-struct Game_0046dad0 {
+struct Game {
     char unknown_0[0x1438f];
     int count; // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -254,11 +254,11 @@ void Class_0046d860::FUN_0046dad0() {
     }
 
     if (field_5c > 0) {
-        if (field_60 < ((Game_0046dad0*)g_game)->count) {
+        if (field_60 < ((Game*)g_game)->count) {
             if (field_60 == 0) {
                 if (FUN_00450030() == -1)
                     return;
-                int v = ((Game_0046dad0*)g_game)->count - 1;
+                int v = ((Game*)g_game)->count - 1;
                 if (disabled == 0) {
                     Packet_0046dad0 packet;
                     packet.type = 0x1a;
@@ -277,7 +277,7 @@ void Class_0046d860::FUN_0046dad0() {
             }
 
             for (int n = 0; n < 4;) {
-                Game_0046dad0* game = (Game_0046dad0*)g_game;
+                Game* game = (Game*)g_game;
                 if (field_60 >= game->count)
                     return;
                 Def_0046dad0* def = &game->defs[field_60];

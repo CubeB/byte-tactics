@@ -14,13 +14,13 @@ struct Player_00418bb0 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_00418bb0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00418bb0 players[10];       // +0x1b63
 };
 #pragma pack(pop)
 
-extern Game_00418bb0* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 // Command arguments.

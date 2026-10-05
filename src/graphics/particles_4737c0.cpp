@@ -30,7 +30,7 @@ struct Vec3_004737c0 {
 };
 
 #pragma pack(push, 1)
-struct Game_004737c0 {
+struct Game {
     char unknown_0[0x147f3];
     void* unknown_147f3;                // +0x147f3
     char unknown_147f7[0x38a47 - 0x147f7];
@@ -38,7 +38,7 @@ struct Game_004737c0 {
 };
 #pragma pack(pop)
 
-extern Game_004737c0* g_game;
+extern Game* g_game;
 
 extern "C" int __stdcall FUN_004b7f60(void* ptr);
 

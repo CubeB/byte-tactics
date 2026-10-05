@@ -3,13 +3,13 @@
 // passes the local player's id and `msg` to the active handlers.
 
 #pragma pack(push, 1)
-struct Game_0046c810 {
+struct Game {
     char unknown_0[0x2a42];
     unsigned char player;              // +0x2a42
 };
 #pragma pack(pop)
 
-extern Game_0046c810* g_game;
+extern Game* g_game;
 
 extern int DAT_0051e58c;
 extern int DAT_0051e590;

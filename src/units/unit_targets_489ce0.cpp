@@ -70,7 +70,7 @@ struct Event_00489ce0 {
     unsigned char kind;                // +0x8
 };
 
-struct Game_00489ce0 {
+struct Game {
     char unknown_0[0x2a42];
     unsigned char teamId;              // +0x2a42
     char unknown_2a43[0x14357 - 0x2a43];
@@ -78,7 +78,7 @@ struct Game_00489ce0 {
 };
 #pragma pack(pop)
 
-extern Game_00489ce0* g_game;
+extern Game* g_game;
 extern char s_paralyze_00508d80[];
 extern char s_HitByWeapon_00508d74[];
 extern char s_TakeDamage_00508d68[];

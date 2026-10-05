@@ -28,7 +28,7 @@ struct Player_004538f0 {
     char unknown_0[0x14b];
 };
 
-struct Game_004538f0 {
+struct Game {
     char unknown_0[0x519];
     char message[0x531 - 0x519];       // +0x519
     Layer_004538f0* layer_531;         // +0x531
@@ -41,7 +41,7 @@ struct Game_004538f0 {
 };
 #pragma pack(pop)
 
-extern Game_004538f0* g_game;
+extern Game* g_game;
 extern void* DAT_00512c74;
 extern int DAT_005061d8;
 extern char DAT_005119b8[];

@@ -33,13 +33,13 @@ public:
     void FUN_0047fca0();
 };
 
-struct Game_0047fca0 {
+struct Game {
     char unknown_0[0x38a47];
     int field_38a47;
 };
 #pragma pack(pop)
 
-extern Game_0047fca0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x47fca0
 void Class_0047fca0::FUN_0047fca0()

@@ -113,14 +113,14 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_0045ac20 {
+struct Game {
     char pad0[0x1437b];
     Class_00437c80* obj;                // +0x1437b
 };
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_0045ac20* g_game;
+extern Game* g_game;
 
 // Nonzero when the state's position is 8 or more away from `pos` on any axis.
 static inline int FarFrom(State_0045ac20* state, const Vec3s_0045ac20* pos)

@@ -75,7 +75,7 @@ struct Flags_37f06 {
 };
 
 #pragma pack(push, 1)
-struct Game_0045e100 {
+struct Game {
     char unknown_0[0x10];
     void* sound;                       // +0x10
     char unknown_14[0x2a44 - 0x14];
@@ -97,7 +97,7 @@ struct Game_0045e100 {
 };
 #pragma pack(pop)
 
-extern Game_0045e100* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d85a0(void* p);
 void FUN_0045cae0();

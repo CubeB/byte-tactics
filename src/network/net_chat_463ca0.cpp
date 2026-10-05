@@ -16,7 +16,7 @@ struct Entry_00463ca0 {                // 0x48 bytes
     unsigned char field_47;            // +0x47
 };
 
-struct Game_00463ca0 {
+struct Game {
     char unknown_0[0x12ef];
     Entry_00463ca0 entries[30];         // +0x12ef
     char unknown_1b5f[0x2a3e - 0x1b5f];
@@ -29,7 +29,7 @@ struct Game_00463ca0 {
 };
 #pragma pack(pop)
 
-extern Game_00463ca0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 int __stdcall FUN_004ab060(void* obj, const char* name);

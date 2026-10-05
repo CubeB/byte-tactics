@@ -23,7 +23,7 @@ struct Gadget_00442050 {
 };
 
 #pragma pack(push, 1)
-struct Game_00442050 {
+struct Game {
     char unknown_0[0x2aaf];
     unsigned short bit0 : 1;         // +0x2aaf
     unsigned short bit1 : 1;
@@ -34,7 +34,7 @@ struct Game_00442050 {
 };
 #pragma pack(pop)
 
-extern Game_00442050* g_game;
+extern Game* g_game;
 extern int DAT_00512c84;
 extern char DAT_00512d90[];
 

@@ -13,13 +13,13 @@
 #include <vector>
 
 #pragma pack(push, 1)
-struct Game_00473010 {
+struct Game {
     char unknown_0[0x38a47];
     int f_38a47;                     // +0x38a47
 };
 #pragma pack(pop)
 
-extern Game_00473010* g_game;
+extern Game* g_game;
 
 class Class_00474130 {                   // vector element
 public:

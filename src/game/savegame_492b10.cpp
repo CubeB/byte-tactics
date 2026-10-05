@@ -25,12 +25,12 @@ public:
     Class_004b3620* FUN_004b3620();
 };
 
-struct Game_00492b10 {
+struct Game {
     char unknown_0[0x519];
     char menu[1];                      // +0x519
 };
 
-extern Game_00492b10* g_game;
+extern Game* g_game;
 extern char* DAT_005091c8;
 extern char DAT_005119b8[];
 extern char* DAT_0051f2e0;

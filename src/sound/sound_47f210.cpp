@@ -9,7 +9,7 @@ struct Sound_0047f210 {
 };
 
 #pragma pack(push, 1)
-struct Game_0047f210 {
+struct Game {
     char unknown_0[0x33a0f];
     int soundCount;                    // +0x33a0f
     char unknown_33a13[0x33e13 - 0x33a13];
@@ -17,7 +17,7 @@ struct Game_0047f210 {
 };
 #pragma pack(pop)
 
-extern Game_0047f210* g_game;
+extern Game* g_game;
 extern int DAT_0051e69c;
 
 void __stdcall FUN_0047f0c0(int index, int param_2);

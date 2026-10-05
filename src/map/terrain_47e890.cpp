@@ -36,7 +36,7 @@ struct Cell_0047e890 {                            // 10 bytes
     Unit* head;                                   // +0x6
 };
 
-struct Game_0047e890 {
+struct Game {
     char unknown_0[0x1429f];
     Cell_0047e890* cells;                         // +0x1429f
     unsigned int width;                           // +0x142a3
@@ -49,7 +49,7 @@ public:
     virtual void FUN_00405d90(Unit* unit);
 };
 
-extern Game_0047e890* g_game;
+extern Game* g_game;
 
 static inline int Clamp_0047e890(int v, unsigned int size)
 {

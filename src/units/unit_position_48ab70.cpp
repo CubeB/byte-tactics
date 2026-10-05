@@ -98,7 +98,7 @@ struct Unit {
     char unknown_114[0x118 - 0x114];
 };
 
-struct Game_0048ab70 {
+struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
 };
@@ -115,7 +115,7 @@ struct Order_0048ab70 {
 struct Beacon_0048ab70;                // what FUN_004384a0 wants
 #pragma pack(pop)
 
-extern Game_0048ab70* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004384a0(Beacon_0048ab70* beacon);
 void __stdcall FUN_0048c9b0(Unit* u);

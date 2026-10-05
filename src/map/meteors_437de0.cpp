@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct Game_00437de0 {
+struct Game {
     char unknown_0[0x14233];
     int mapWidth;                    // +0x14233
     int mapHeight;                   // +0x14237
@@ -29,7 +29,7 @@ struct Vec3_00437de0 {
     int z;
 };
 
-extern Game_00437de0* g_game;
+extern Game* g_game;
 extern unsigned int DAT_005122e8;      // next strike time
 extern int DAT_00512310;               // strike radius
 extern int DAT_00512314;               // ticks between meteors

@@ -38,7 +38,7 @@ struct Orders_0048bf30 {
     unsigned short unknown_5 : 11;
 };
 
-struct Game_0048bf30 {
+struct Game {
     char unknown_0[0x1b63];
     Player_0048bf30 players[10];        // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -51,7 +51,7 @@ struct Game_0048bf30 {
 
 #pragma pack(pop)
 
-extern Game_0048bf30* g_game;
+extern Game* g_game;
 
 void* __stdcall FUN_00488c50(char* name);
 void __stdcall FUN_00495860(void);

@@ -92,7 +92,7 @@ struct View_00438c00 {
     int cy;                           // +0x30
 };
 
-struct Game_00438c00 {
+struct Game {
     char unknown_0[0xdcc];
     unsigned char field_dcc;          // +0xdcc
     char unknown_dcd[0xdce - 0xdcd];
@@ -108,7 +108,7 @@ struct Game_00438c00 {
 
 #pragma pack(pop)
 
-extern Game_00438c00* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
 

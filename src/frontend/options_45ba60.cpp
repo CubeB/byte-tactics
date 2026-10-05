@@ -17,13 +17,13 @@ struct Menu_0045ba60 {
     Layer_0045ba60* layer;           // +0x18
 };
 
-struct Game_0045ba60 {
+struct Game {
     char unknown_0[0x519];
     Menu_0045ba60 menu;              // +0x519
 };
 #pragma pack(pop)
 
-extern Game_0045ba60* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004a11c0(Menu_0045ba60* menu, int index, short value);
 void __stdcall FUN_0049fed0(Entry_0045ba60* entries, char* name, int index);

@@ -26,13 +26,13 @@ struct Unit {
     UnitType_0048a7f0* type;           // +0x92
 };
 
-struct Game_0048a7f0 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;            // +0x1427f
 };
 #pragma pack(pop)
 
-extern Game_0048a7f0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00485070(Pos_0048a7f0* pos);
 

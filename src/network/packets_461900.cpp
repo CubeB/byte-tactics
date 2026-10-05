@@ -12,12 +12,12 @@ public:
     int FUN_0044fc10(void* session, int from);
 };
 
-struct Game_00461900 {
+struct Game {
     char unknown_0[0x14];
     char session[4];                 // +0x14
 };
 
-extern Game_00461900* g_game;
+extern Game* g_game;
 extern Class_0044f940 DAT_005129d0;  // net condenser
 extern int DAT_005129f1;
 

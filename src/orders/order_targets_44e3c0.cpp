@@ -33,7 +33,7 @@ struct Unit {
     UnitDef_0044e3c0* def;                 // +0x92
 };
 
-struct Game_0044e3c0 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;                // +0x1427f
     char unknown_14280[0x142b7 - 0x14280];
@@ -59,7 +59,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_0044e3c0* g_game;
+extern Game* g_game;
 
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);

@@ -31,7 +31,7 @@ struct Cell_00440500 {
     unsigned char flags;               // +0xc
 };
 
-struct Game_00440500 {
+struct Game {
     char unknown_0[0x14233];
     unsigned int width;                // +0x14233
     unsigned int height;               // +0x14237
@@ -40,7 +40,7 @@ struct Game_00440500 {
 };
 #pragma pack(pop)
 
-extern Game_00440500* g_game;
+extern Game* g_game;
 
 class Class_00440500 {
 public:

@@ -7,14 +7,14 @@ struct AnimEntry_00429700 {
 };
 
 #pragma pack(push, 1)
-struct Game_00429700 {
+struct Game {
     char unknown_0[0x147ab];
     int animCount;           // +0x147ab
     AnimEntry_00429700* anims;  // +0x147af
 };
 #pragma pack(pop)
 
-extern Game_00429700* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall FUN_004b8c60(char* path);

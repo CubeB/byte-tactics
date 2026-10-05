@@ -56,14 +56,14 @@ struct Order_00401e00 {
     int id;                            // +0x36
 };
 
-struct Game_00401e00 {
+struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
     Unit* units_end;                   // +0x1435b
 };
 #pragma pack(pop)
 
-extern Game_00401e00* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b6c30(int range);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,

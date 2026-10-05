@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct Game_00474b00 {
+struct Game {
     char unknown_0[0x14263];
     int count2;                        // +0x14263
     char unknown_14267[0x37ecc - 0x14267];
@@ -17,7 +17,7 @@ struct Game_00474b00 {
 };
 #pragma pack(pop)
 
-extern Game_00474b00* g_game;
+extern Game* g_game;
 
 struct Pair_00474b00 {
     int a;

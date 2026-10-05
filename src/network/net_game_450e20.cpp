@@ -12,7 +12,7 @@ struct Player_00450e20 {
     char unknown_74[0x14b - 0x74];
 };
 
-struct Game_00450e20 {
+struct Game {
     char unknown_0[0x14];
     char field_14[0x1b63 - 0x14];
     Player_00450e20 players[10];       // +0x1b63
@@ -31,7 +31,7 @@ public:
     int FUN_004618a0(int param_1);
 };
 
-extern Game_00450e20* g_game;
+extern Game* g_game;
 extern int DAT_00506dbc;
 extern Class_004618a0 DAT_00513000;
 

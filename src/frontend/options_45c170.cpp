@@ -22,13 +22,13 @@ struct Object_45c170 {
     Holder_45c170* holder;             // +0x18
 };
 
-struct Game_45c170 {
+struct Game {
     char unknown_0[0x1434d];
     char field_1434d;                  // +0x1434d
 };
 #pragma pack(pop)
 
-extern Game_45c170* g_game;
+extern Game* g_game;
 
 Entry_45c170* __stdcall FUN_004a0200(Entry_45c170* entries, char* name);
 void __stdcall FUN_0049fa90(Object_45c170* obj);

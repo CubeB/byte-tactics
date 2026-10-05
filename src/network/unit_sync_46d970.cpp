@@ -64,7 +64,7 @@ struct Def_0046d970 {                  // 0x249 bytes
     char unknown_146[0x249 - 0x146];
 };
 
-struct Game_0046d970 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                         // +0x1438f
     char unknown_14393[8];
@@ -72,7 +72,7 @@ struct Game_0046d970 {
 };
 #pragma pack(pop)
 
-extern Game_0046d970* g_game;
+extern Game* g_game;
 
 struct Ids_0046d970 {
     int* begin;                        // +0x0

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct Game_0040d7b0 {
+struct Game {
     char unknown_0[0x14233];
     int width;                         // +0x14233
     int height;                        // +0x14237
@@ -18,7 +18,7 @@ struct Game_0040d7b0 {
 };
 #pragma pack(pop)
 
-extern Game_0040d7b0* g_game;
+extern Game* g_game;
 
 struct Map_0040d7b0 {
     char unknown_0[4];

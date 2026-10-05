@@ -58,7 +58,7 @@ struct Projectile_0049dd60 {
     unsigned short flags;
 };
 
-struct Game_0049dd60 {
+struct Game {
     char unknown_0[0x2a44];
     unsigned char flags;
     char unknown_2a45[0x141f3 - 0x2a45];
@@ -82,7 +82,7 @@ struct Packet_0049dd60 {
 };
 #pragma pack(pop)
 
-extern Game_0049dd60* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0043e240(Unit*, Vec3_0049dd60*, unsigned char, int);
 void __stdcall FUN_0049c740(Projectile_0049dd60*, Type_0049dd60*, Vec3_0049dd60*, int, int, Unit*);

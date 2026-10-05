@@ -19,7 +19,7 @@ struct Dialog_004421f0 {
     int unknown_0;
     void* gadgets;                     // +0x4
     void (__stdcall* handler)(Menu_004421f0*); // +0x8
-    struct Game_004421f0* owner;       // +0xc
+    struct Game* owner;                // +0xc
     char unknown_10[0x1c - 0x10];
     int field_1c;                      // +0x1c
 };
@@ -29,7 +29,7 @@ struct Info_004421f0 {
 };
 
 #pragma pack(push, 1)
-struct Game_004421f0 {
+struct Game {
     char unknown_0[0x10];
     void* field_10;                    // +0x10
     Info_004421f0 info;                // +0x14
@@ -41,7 +41,7 @@ struct Game_004421f0 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_004421f0* g_game;
+extern Game* g_game;
 // GLOBAL: 0x512c84
 extern int DAT_00512c84;
 // GLOBAL: 0x512d90

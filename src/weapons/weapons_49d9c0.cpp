@@ -72,7 +72,7 @@ struct Packet_0049d9c0 {
     unsigned char weapon;             // +0x23
 };
 
-struct Game_0049d9c0 {
+struct Game {
     char unknown_0[0x2a44];
     unsigned char flags;              // +0x2a44
 };
@@ -86,7 +86,7 @@ union Fixed {
     };
 };
 
-extern Game_0049d9c0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0043e240(Unit* obj, Vec3* out, unsigned char weapon, int piece);
 int __cdecl FUN_004b715a(int x, int z);

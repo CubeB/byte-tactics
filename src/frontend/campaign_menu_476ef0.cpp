@@ -52,7 +52,7 @@ struct Menu_476ef0 {
     char unknown_0[1];
 };
 
-struct Game_476ef0 {
+struct Game {
     char unknown_0[0x519];
     Menu_476ef0 menu;                   // +0x519
     char unknown_51a[0x531 - 0x51a];
@@ -62,7 +62,7 @@ struct Game_476ef0 {
 };
 #pragma pack(pop)
 
-extern Game_476ef0* g_game;
+extern Game* g_game;
 extern char* DAT_0051e63c;
 extern int DAT_0051e64c;
 extern int DAT_0051e650;

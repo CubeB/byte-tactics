@@ -12,13 +12,13 @@ struct Player_00406db0 {
     char unknown_78[0x14b - 0x78];
 };
 
-struct Game_00406db0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00406db0 players[10];       // +0x1b63
 };
 #pragma pack(pop)
 
-extern Game_00406db0* g_game;
+extern Game* g_game;
 extern int DAT_00501774;
 extern char DAT_005119b8[];
 

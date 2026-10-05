@@ -8,7 +8,7 @@ struct Rect_0041d0f0 {
 };
 
 #pragma pack(push, 1)
-struct Game_0041d0f0 {
+struct Game {
     char unknown_0[0x2c76];
     Rect_0041d0f0 view;                // +0x2c76
     char unknown_2c8e[0x1422b - 0x2c8e];
@@ -39,7 +39,7 @@ struct Game_0041d0f0 {
 };
 #pragma pack(pop)
 
-extern Game_0041d0f0* g_game;
+extern Game* g_game;
 
 void FUN_0041c3c0(void);
 

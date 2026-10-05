@@ -6,13 +6,13 @@ void __stdcall FUN_004c61f0(int param_1);
 void FUN_004c62c0();
 
 #pragma pack(push, 1)
-struct Game_00490b00 {
+struct Game {
     char unknown_0[0x37e1b];
     int* field_37e1b;                  // +0x37e1b
 };
 #pragma pack(pop)
 
-extern Game_00490b00* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x490b00
 void FUN_00490b00()

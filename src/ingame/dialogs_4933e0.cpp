@@ -27,12 +27,12 @@ struct Player_004933e0 {
     char unknown_0[0x14b];
 };
 
-struct Game_004933e0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_004933e0 players[10];       // +0x1b63
 };
 
-extern Game_004933e0* g_game;
+extern Game* g_game;
 void __stdcall FUN_0048ca20(std::vector<Unit*>* list);
 unsigned int* __stdcall FUN_00488c50(char* name);
 void __stdcall FUN_00488570(Unit* unit, void* player, int arg);

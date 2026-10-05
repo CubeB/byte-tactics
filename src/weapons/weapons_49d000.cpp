@@ -42,7 +42,7 @@ struct Proj_0049d000 {
     void Setup(Unit* u) { angle = u->angle; field_3a = 0; field_20 = 0; }
 };
 
-struct Game_0049d000 {
+struct Game {
     char unknown_0[0x141f3];
     int projCount;                    // +0x141f3
     Proj_0049d000* projs;             // +0x141f7
@@ -51,7 +51,7 @@ struct Game_0049d000 {
 };
 #pragma pack(pop)
 
-extern Game_0049d000* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0049c740(Proj_0049d000*, void*, void*, int, int, Unit*);
 int __cdecl FUN_004b70ef(short, int);

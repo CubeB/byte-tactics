@@ -53,7 +53,7 @@ struct Layer_00447380 {
     Entry_00447380* entries;            // +0x4
 };
 
-struct Game_00447380 {
+struct Game {
     char unknown_0[0x519];
     char gui[0x531 - 0x519];            // +0x519
     Layer_00447380* table;              // +0x531
@@ -68,7 +68,7 @@ struct Game_00447380 {
 };
 #pragma pack(pop)
 
-extern Game_00447380* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fdf0(Entry_00447380* entries, char* name, int type);
 Entry_00447380* __stdcall FUN_0049ff10(Entry_00447380* entries, char* name);

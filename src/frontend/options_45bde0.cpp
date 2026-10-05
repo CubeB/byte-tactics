@@ -21,7 +21,7 @@ struct Entry_4a0200 {
     short pos;                         // +0x140
 };
 
-struct Game_0045bde0 {
+struct Game {
     char unknown_0[0x10];
     void* sound;                       // +0x10
     char unknown_14[0x37f08 - 0x14];
@@ -41,7 +41,7 @@ struct Object_0045bde0 {
     Holder_0045bde0* holder;           // +0x18
 };
 
-extern Game_0045bde0* g_game;
+extern Game* g_game;
 
 Entry_4a0200* __stdcall FUN_004a0200(Entry_4a0200* entries, char* name);
 void __stdcall FUN_004ba590(float value);

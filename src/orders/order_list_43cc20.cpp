@@ -5,7 +5,7 @@
 // for the unit's heading at that distance into the position vector.
 
 #pragma pack(push, 1)
-struct Game_0043cc20 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;            // +0x1427f
 };
@@ -34,7 +34,7 @@ struct Vec3_0043cc20 {
     int z;
 };
 
-extern Game_0043cc20* g_game;
+extern Game* g_game;
 extern signed char DAT_00505205[];
 
 // Fixed-point trig helpers written in assembly.

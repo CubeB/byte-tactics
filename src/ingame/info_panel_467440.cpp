@@ -196,7 +196,7 @@ struct PlayerInfo_00467440 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_00467440 {
+struct Game {
     char unknown_0[0x1b63];
     PlayerInfo_00467440 players[10];   // +0x1b63, stride 0x14b
     char unknown_2851[0x2a3c - 0x2851];
@@ -235,7 +235,7 @@ public:
     virtual void FUN_00467980(Unit* unit);
 };
 
-extern Game_00467440* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0047e890(Vec3_00467440* pos, int range, void* visitor);
 bool __stdcall FUN_0040b0d0(int player, Vec3_00467440* p, int range);

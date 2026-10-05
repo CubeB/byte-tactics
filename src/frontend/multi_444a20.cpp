@@ -21,7 +21,7 @@ struct Sub_00444a20 {
     Holder_00444a20* holder;           // +0x18
 };
 
-struct Game_00444a20 {
+struct Game {
     char unknown_0[0x519];
     Sub_00444a20 sub;                  // +0x519
     char unknown_535[0x391e9 - 0x535];
@@ -44,7 +44,7 @@ public:
     int FUN_00435900();
 };
 
-extern Game_00444a20* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fdf0(Entry_00444a20* entries, char* name, int type);
 void __stdcall FUN_004a0bf0(Sub_00444a20* obj, char* name, int param_3, int param_4);

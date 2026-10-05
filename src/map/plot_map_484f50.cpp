@@ -2,7 +2,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_00484f50 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -11,7 +11,7 @@ struct Game_00484f50 {
 };
 #pragma pack(pop)
 
-extern Game_00484f50* g_game;
+extern Game* g_game;
 
 // Chunked file writer.
 class Class_004b4560 {

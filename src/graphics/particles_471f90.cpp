@@ -17,13 +17,13 @@ struct Lists_00471f90 {
 };
 
 #pragma pack(push, 1)
-struct Game_00471f90 {
+struct Game {
     char unknown_0[0x38d77];
     Lists_00471f90* lists;             // +0x38d77
 };
 #pragma pack(pop)
 
-extern Game_00471f90* g_game;
+extern Game* g_game;
 
 // Passes msg to every listener in one list (compare 0x471f40, which does
 // all ten).

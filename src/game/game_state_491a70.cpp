@@ -7,7 +7,7 @@ struct Display_00491a70 {
 };
 
 #pragma pack(push, 1)
-struct Game_00491a70 {
+struct Game {
     char unknown_0[0xc];
     Display_00491a70* field_c;         // +0xc
     char unknown_10[0x37e1b - 0x10];
@@ -17,7 +17,7 @@ struct Game_00491a70 {
 };
 #pragma pack(pop)
 
-extern Game_00491a70* g_game;
+extern Game* g_game;
 extern const char DAT_005091d4[];      // "OFFSCREEN"
 
 int FUN_004b6700();

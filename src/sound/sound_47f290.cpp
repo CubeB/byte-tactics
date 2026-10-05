@@ -5,7 +5,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_0047f290 {
+struct Game {
     char unknown_0[0x10];
     void* sound;                       // +0x10
     char unknown_14[0x37f0c - 0x14];
@@ -20,7 +20,7 @@ public:
     int FUN_004d0640(const char* param1, int param2, int param3);
 };
 
-extern Game_0047f290* g_game;
+extern Game* g_game;
 extern int DAT_0051e694;
 extern int DAT_0051e690;
 

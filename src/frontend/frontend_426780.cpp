@@ -28,7 +28,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_00426780 {
+struct Game {
     char unknown_0[0x37e1b];
     int field_37e1b;                   // +0x37e1b
     char unknown_37e1f[0x38d7b - 0x37e1f];
@@ -38,7 +38,7 @@ struct Game_00426780 {
 };
 #pragma pack(pop)
 
-extern Game_00426780* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x426780
 void __stdcall FUN_00426780(char* param_1)

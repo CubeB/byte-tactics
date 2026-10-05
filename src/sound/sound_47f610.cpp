@@ -6,7 +6,7 @@
 extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 
 #pragma pack(push, 1)
-struct Game_0047f610 {
+struct Game {
     char unknown_0[0x33a0f];
     int soundCount;                    // +0x33a0f
     char unknown_33a13[0x33e13 - 0x33a13];
@@ -14,7 +14,7 @@ struct Game_0047f610 {
 };
 #pragma pack(pop)
 
-extern Game_0047f610* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0047f300(int index, int param_2, int param_3);
 

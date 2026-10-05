@@ -57,7 +57,7 @@ struct Flags_00460160 {
     unsigned short rest : 13;
 };
 
-struct Game_00460160 {
+struct Game {
     char unknown_0[0x10];
     void* field_10;                      // +0x10
     char unknown_14[0x519 - 0x14];
@@ -88,7 +88,7 @@ struct Settings_00460160 {
 };
 #pragma pack(pop)
 
-extern Game_00460160* g_game;
+extern Game* g_game;
 extern Class_004c6a60* DAT_00512fe8;
 extern Class_004c6a60* DAT_00512ff4;
 extern Dst_004b8ae0 DAT_00512ef8;

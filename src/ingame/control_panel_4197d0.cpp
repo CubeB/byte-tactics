@@ -39,7 +39,7 @@ union Flags_004197d0 {
     BitFlags_004197d0 bits;
 };
 
-struct Game_004197d0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_004197d0 players[10];       // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -60,7 +60,7 @@ struct Game_004197d0 {
 };
 #pragma pack(pop)
 
-extern Game_004197d0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0047d2e0(Item_004197d0* type, Point16_004197d0 cell, int a,
                            Player_004197d0* player);

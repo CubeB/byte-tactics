@@ -74,7 +74,7 @@ struct RuleSet_0045f1d0 {                // +0x118 startType, read from element 
 struct Class_00435100 { int FUN_00435100(); };
 struct Class_00435c30 { char* FUN_00435c30(); };
 
-struct Game_0045f1d0 {
+struct Game {
     char unknown_0[0x519];
     Layer_0045f1d0 menu;                 // +0x519
     char unknown_525[0x1b8a - 0x525];
@@ -103,7 +103,7 @@ struct Game_0045f1d0 {
 };
 #pragma pack(pop)
 
-extern Game_0045f1d0* g_game;
+extern Game* g_game;
 
 Layer_0045f1d0* __stdcall FUN_004aa8f0(Layer_0045f1d0* menu, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int, int, int);

@@ -41,13 +41,13 @@ struct Struct_00440a70 {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct Game_00440a70 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int ticks;                // +0x38a47
 };
 #pragma pack(pop)
 
-extern Game_00440a70* g_game;
+extern Game* g_game;
 
 static inline void UpdateAll(Point_00440a70 a, Point_00440a70 b)
 {

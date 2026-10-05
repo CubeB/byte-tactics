@@ -13,7 +13,7 @@ struct Player_00446080 {
     char name[0x14b];                  // +0x0
 };
 
-struct Game_00446080 {
+struct Game {
     char unknown_0[0x519];
     Sub_00446080 sub;                  // +0x519
     char unknown_529[0x1b8e - 0x529];
@@ -25,10 +25,10 @@ struct Gadget_00446080 {
     char unknown_0[0x4];
     void* entries;                     // +0x4
     void (__stdcall* handler)(void*);  // +0x8
-    Game_00446080* owner;              // +0xc
+    Game* owner;                       // +0xc
 };
 
-extern Game_00446080* g_game;
+extern Game* g_game;
 extern int DAT_00505510;
 
 Gadget_00446080* __stdcall FUN_004aa8f0(Sub_00446080* sub, const char* name, int flags);

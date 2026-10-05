@@ -19,7 +19,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_0045c630 {
+struct Game {
     char unknown_0[0x10];
     Class_004cdb40* sound;             // +0x10
     char unknown_14[0x37f08 - 0x14];
@@ -31,7 +31,7 @@ struct Game_0045c630 {
 };
 #pragma pack(pop)
 
-extern Game_0045c630* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004ba590(float value);
 

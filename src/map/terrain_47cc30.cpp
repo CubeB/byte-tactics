@@ -95,7 +95,7 @@ struct Obj_0047cc30 {
     Flags_0047cc30 flags;               // +0x110
 };
 
-struct Game_0047cc30 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -113,7 +113,7 @@ struct Game_0047cc30 {
 };
 #pragma pack(pop)
 
-extern Game_0047cc30* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00483210(Point_0047cc30 pos, Point_0047cc30 size);
 void __stdcall FUN_00440a40(Point_0047cc30 pos, Point_0047cc30 size);

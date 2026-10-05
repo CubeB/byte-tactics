@@ -11,12 +11,12 @@ public:
     void* FUN_004d0620(char* path);
 };
 
-struct Game_0047efe0 {
+struct Game {
     char unknown_0[0x10];
     Class_004d0620* sound;             // +0x10
 };
 
-extern Game_0047efe0* g_game;
+extern Game* g_game;
 
 // Loads sounds/<name>.WAV, either as a plain file or through the sound system.
 // FUNCTION: 0x47efe0

@@ -159,7 +159,7 @@ struct Obj_00421170 {
 };
 
 #pragma pack(push, 1)
-struct Game_004211d0 {
+struct Game {
     char unknown_0[0x1431f];
     int cameraX;                     // +0x1431f
     int cameraZ;                     // +0x14323
@@ -168,7 +168,7 @@ struct Game_004211d0 {
 };
 #pragma pack(pop)
 
-extern Game_004211d0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b6720(void* rect, int x, int y);
 void* __stdcall FUN_004b7ee0(Pic_004211d0* pic);

@@ -5,14 +5,14 @@ struct Obj_44afb0 {
     int field_60;                    // +0x60
 };
 
-struct Game_44afb0 {
+struct Game {
     char unknown_0[0x2bee];
     unsigned short bits0 : 4;
     unsigned short flag4 : 1;        // +0x2bee, bit 4
     unsigned short bits5 : 11;
 };
 
-extern Game_44afb0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fd60(Obj_44afb0* obj, char* str);
 void __stdcall FUN_0047f1a0(char* str, int flag);

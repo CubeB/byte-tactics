@@ -15,7 +15,7 @@ struct Proj_0049df10 {
     unsigned short flags;              // +0x69
 };
 
-struct Game_0049df10 {
+struct Game {
     char unknown_0[0x2a44];
     unsigned short flags_2a44;         // +0x2a44
     char unknown_2a46[0x141f3 - 0x2a46];
@@ -39,7 +39,7 @@ struct Packet_0049df10 {
 };
 #pragma pack(pop)
 
-extern Game_0049df10* g_game;
+extern Game* g_game;
 
 int __cdecl FUN_0044fdb0();
 int __stdcall FUN_00451df0(int player, void* data, int size);

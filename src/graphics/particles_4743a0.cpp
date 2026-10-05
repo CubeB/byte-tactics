@@ -32,7 +32,7 @@ struct Record_004743a0 {
 };
 
 #pragma pack(push, 1)
-struct Game_004743a0 {
+struct Game {
     char unknown_0[0x147f3];
     unsigned short* unknown_147f3;                 // +0x147f3
     char unknown_147f7[0x38a47 - 0x147f7];
@@ -40,7 +40,7 @@ struct Game_004743a0 {
 };
 #pragma pack(pop)
 
-extern Game_004743a0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b7f60(unsigned short* p);
 

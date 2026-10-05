@@ -33,7 +33,7 @@ struct Entry_00420a30 {
 };
 
 #pragma pack(push, 1)
-struct Game_00420a30 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char field_1427f;         // +0x1427f
     char unknown_14280[0x1491b - 0x14280];
@@ -43,7 +43,7 @@ struct Game_00420a30 {
 };
 #pragma pack(pop)
 
-extern Game_00420a30* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004b8b30(Ref_00420a30* ref, Src_00420a30* src, int index);
 void __stdcall FUN_00472630(int* pos, int a, int b, int c);

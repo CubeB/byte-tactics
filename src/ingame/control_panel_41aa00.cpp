@@ -57,7 +57,7 @@ struct Sub_0041aa00 {
     char unknown_0[0x10];
 };
 
-struct Game_0041aa00 {
+struct Game {
     char unknown_0[0x519];
     Sub_0041aa00 menu;                   // +0x519
     char unknown_529[0x2cc3 - 0x529];
@@ -79,7 +79,7 @@ struct Game_0041aa00 {
 };
 #pragma pack(pop)
 
-extern Game_0041aa00* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0049fed0(Entry_0041aa00* entries, char* name, int index);
 unsigned short __stdcall FUN_00488b10(char* name);

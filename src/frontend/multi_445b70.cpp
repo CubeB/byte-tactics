@@ -19,7 +19,7 @@ struct Player_445b70 {
     char unknown_2b[0x14b - 0x2b];
 };
 
-struct Game_445b70 {
+struct Game {
     char unknown_0[0x1b63];
     Player_445b70 players[10];          // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -42,7 +42,7 @@ struct Entry_445b70 {
     char unknown_0[0x15b];
 };
 
-extern Game_445b70* g_game;
+extern Game* g_game;
 
 void* __stdcall FUN_004a0200(void* entries, char* name);
 void __stdcall FUN_004a0bf0(Gui_445b70* gui, char* name, char* data, int param_4);

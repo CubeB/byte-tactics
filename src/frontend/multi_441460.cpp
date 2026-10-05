@@ -88,7 +88,7 @@ struct Record_00441460 {
     char name2[0x20];
 };
 
-struct Game_00441460 {
+struct Game {
     char unknown_0;
     signed char field_1;
     char unknown_2[0x14 - 2];
@@ -114,7 +114,7 @@ struct Gadget_00441460 {
     char* entries;
 };
 
-extern Game_00441460* g_game;
+extern Game* g_game;
 extern Guid_00441460 DAT_004fcdc8;
 extern Guid_00441460 DAT_004fcda8;
 extern Guid_00441460 DAT_004fcd98;

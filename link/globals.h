@@ -269,7 +269,7 @@ extern unsigned int DAT_00511dd8;                                               
 extern unsigned int DAT_00511ddc;                                                             // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                      // 0x511de0, 4 bytes; 2 of 2 files
 extern int DAT_00511de4;                                                                      // 0x511de4, 4 bytes; 2 of 2 files
-extern Game* g_game;                                                                          // 0x511de8, 4 bytes; 101 of 1042 files (conflicting: shape)
+extern Game* g_game;                                                                          // 0x511de8, 4 bytes; 907 of 1042 files (conflicting: shape)
 extern int DAT_00511dec;                                                                      // 0x511dec, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                        // 0x511f80, 16 bytes; Class_00437a30 by value in 1 of 5 files (conflicting: struct names only)
 extern int DAT_00511f90;                                                                      // 0x511f90, 4 bytes; 1 of 1 files

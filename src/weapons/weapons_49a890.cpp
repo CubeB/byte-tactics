@@ -30,13 +30,13 @@
 extern "C" double __cdecl _hypot(double x, double y);
 
 #pragma pack(push, 1)
-struct Game_0049a890 {
+struct Game {
     char unknown_0[0x14263];
     int gravity;
 };
 #pragma pack(pop)
 
-extern Game_0049a890* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x49a890
 short __stdcall FUN_0049a890(int x, int height, int z, int speed, float angle)

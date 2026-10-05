@@ -72,7 +72,7 @@ struct Player_00464290 {
     char unknown_149[0x14b - 0x149];
 };
 
-struct Game_00464290 {
+struct Game {
     char unknown_0[0xc];
     Map_00464290* map;                // +0x0c
     char unknown_10[0x1b63 - 0x10];
@@ -82,7 +82,7 @@ struct Game_00464290 {
 };
 #pragma pack(pop)
 
-extern Game_00464290* g_game;
+extern Game* g_game;
 
 char* __stdcall FUN_004c5740(char* text);
 

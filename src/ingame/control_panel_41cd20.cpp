@@ -14,13 +14,13 @@ struct CursorState_0041cd20 {
     int flag;                          // +0x18
 };
 
-struct Game_0041cd20 {
+struct Game {
     char unknown_0[0x2cc7];
     CursorState_0041cd20 cursor;       // +0x2cc7
 };
 #pragma pack(pop)
 
-extern Game_0041cd20* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x41cd20
 void FUN_0041cd20()

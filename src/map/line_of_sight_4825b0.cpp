@@ -51,7 +51,7 @@ struct Params_4825b0 {
     Vec3_4825b0 pos;            // +0x10
 };
 
-struct Game_4825b0 {
+struct Game {
     char unknown_0[0x14281];
     unsigned short flags;       // +0x14281
     char unknown_14283[0x14293 - 0x14283];
@@ -62,7 +62,7 @@ struct Game_4825b0 {
 };
 #pragma pack(pop)
 
-extern Game_4825b0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00481d50(Params_4825b0* params);
 void __stdcall FUN_00482270(Params_4825b0* params);

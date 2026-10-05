@@ -18,13 +18,13 @@ struct Unit {
     unsigned char field_ff;            // +0xff
 };
 
-struct Game_00419b00 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char field_2a43;          // +0x2a43
 };
 #pragma pack(pop)
 
-extern Game_00419b00* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_0043b0b0(Class_00438760 kind, Unit* unit, int id, int count);

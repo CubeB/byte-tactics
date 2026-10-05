@@ -77,7 +77,7 @@ struct Sub_00446fb0 {
     void* entry;                       // +0x18
 };
 
-struct Game_00446fb0 {
+struct Game {
     char unknown_0[0x519];
     Sub_00446fb0 sub;                  // +0x519
     char unknown_535[0x1b63 - 0x535];
@@ -87,7 +87,7 @@ struct Game_00446fb0 {
 };
 #pragma pack(pop)
 
-extern Game_00446fb0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004ab060(Sub_00446fb0* obj, const char* name);
 int __stdcall FUN_004a1080(Sub_00446fb0* obj, char* name, int value);

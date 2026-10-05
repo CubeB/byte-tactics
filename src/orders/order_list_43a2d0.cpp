@@ -10,7 +10,7 @@ struct UnitType_0043a2d0 {             // 0x249 bytes
     char unknown_40[0x249 - 0x40];
 };
 
-struct Game_0043a2d0 {
+struct Game {
     char unknown_0[0x1438f];
     int unitTypeCount;                 // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -18,7 +18,7 @@ struct Game_0043a2d0 {
 };
 #pragma pack(pop)
 
-extern Game_0043a2d0* g_game;
+extern Game* g_game;
 
 class Class_004b48f0 {
 public:

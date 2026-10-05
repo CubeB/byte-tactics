@@ -44,7 +44,7 @@ struct UnitType_0044be70 {
 };
 
 #pragma pack(push, 1)
-struct Game_0044be70 {
+struct Game {
     char unknown_0[0x519];
     Menu_0044be70 menu;                // +0x519
     char unknown_535[0x2a30 - 0x535];
@@ -59,7 +59,7 @@ public:
     void FUN_0046e550(UnitType_0044be70* unit, int value);
 };
 
-extern Game_0044be70* g_game;
+extern Game* g_game;
 extern Item_005129b4* DAT_005129b4;
 
 Entry_0044be70* __stdcall FUN_0049ff90(void* gadgets, char* name);

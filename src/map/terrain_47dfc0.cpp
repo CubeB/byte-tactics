@@ -104,7 +104,7 @@ struct Cell_0047dfc0 {
     unsigned char flags;               // +0xc
 };
 
-struct Game_0047dfc0 {
+struct Game {
     char unknown_0[0x14233];
     int width;                         // +0x14233
     int height;                        // +0x14237
@@ -135,7 +135,7 @@ struct Pathfinder_0047dfc0 {
     unsigned int lastTick;             // +0x1c
 };
 
-extern Game_0047dfc0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x47dfc0
 int __stdcall FUN_0047dfc0(Pathfinder_0047dfc0* obj, int x, int y, int w, int h)

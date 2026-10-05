@@ -41,7 +41,7 @@ struct Node_00489a90 {
     Node_00489a90* next;          // +0x8e
 };
 
-struct Game_00489a90 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char f1427f;         // +0x1427f
 };
@@ -64,7 +64,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_00489a90* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x489a90
 int Class_00489a70::FUN_00489a90(Class_00489a70* other)

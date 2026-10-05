@@ -11,7 +11,7 @@ struct Def_00409f80 {
     char unknown_245[0x249 - 0x245];
 };
 
-struct Game_00409f80 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                         // +0x1438f
     char unknown_14393[8];
@@ -38,7 +38,7 @@ public:
     int count;                         // +0xd0
 };
 
-extern Game_00409f80* g_game;
+extern Game* g_game;
 extern Class_00409160* DAT_005119c0[];
 
 void FUN_00406da0();

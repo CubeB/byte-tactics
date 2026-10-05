@@ -44,7 +44,7 @@ struct Menu_00497ce0 {
     void* data;                        // +0x18
 };
 
-struct Game_00497ce0 {
+struct Game {
     char unknown_0[0x519];
     Menu_00497ce0 menu;                // +0x519
     char unknown_519[0xdcf - 0x519 - sizeof(Menu_00497ce0)];
@@ -76,7 +76,7 @@ char* __stdcall FUN_004c5740(char* s);
 void __stdcall FUN_00497ce0(void* surface)
 {
     int off;
-    extern Game_00497ce0* g_game;
+    extern Game* g_game;
 
     FUN_004a81e0(&g_game->menu, 0x40);
     FUN_0049fad0(&g_game->menu);

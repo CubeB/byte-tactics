@@ -138,7 +138,7 @@ struct Unit {
     char unknown_114[0x118 - 0x114];
 };
 
-struct Game_00401360 {
+struct Game {
     char unknown_0[0x14267];
     float tidal;                       // +0x14267
     char unknown_1426b[0x37ede - 0x1426b];
@@ -150,7 +150,7 @@ struct Game_00401360 {
 };
 #pragma pack(pop)
 
-extern Game_00401360* g_game;
+extern Game* g_game;
 
 // The functions before 0x401360 in the original file (each matched in its own
 // file under another class name), defined here without FUNCTION lines.

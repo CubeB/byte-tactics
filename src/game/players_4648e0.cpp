@@ -16,7 +16,7 @@ struct Player_004648e0 {
     char unknown_74[0x14b - 0x74];
 };
 
-struct Game_004648e0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_004648e0 players[10];       // +0x1b63
     char unknown_2851[0x391e9 - 0x2851];
@@ -37,7 +37,7 @@ public:
     Class_004b73b0* FUN_004b73b0();
 };
 
-extern Game_004648e0* g_game;
+extern Game* g_game;
 
 char* __stdcall FUN_004bbe50(const char* name, int* size);
 int __stdcall FUN_004b7a30(char* text, int len, Class_004b74f0* vars, int param_4);

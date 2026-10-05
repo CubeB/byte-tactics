@@ -73,7 +73,7 @@ struct Unit {
     unsigned short field_ba;       // +0xba, the unit's pending mask
 };
 
-struct Game_0043b7c0 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int frame;            // +0x38a47
 };
@@ -87,7 +87,7 @@ struct Callback_0043b7c0 {
 
 #pragma pack(pop)
 
-extern Game_0043b7c0* g_game;
+extern Game* g_game;
 extern Callback_0043b7c0* DAT_00512344;
 
 void __stdcall FUN_0048a0f0(Unit* unit, int index);

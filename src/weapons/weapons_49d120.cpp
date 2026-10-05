@@ -65,14 +65,14 @@ struct Proj_0049d120 {               // 0x6b bytes
     char unknown_67[0x6b - 0x67];
 };
 
-struct Game_0049d120 {
+struct Game {
     char unknown_0[0x141f3];
     int projCount;                   // +0x141f3
     Proj_0049d120* projs;            // +0x141f7
 };
 #pragma pack(pop)
 
-extern Game_0049d120* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x49d120
 Proj_0049d120* __stdcall FUN_0049d120(Table_0049d120* table, int index)

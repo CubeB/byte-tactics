@@ -39,7 +39,7 @@ struct Flags_00430f00 {
     unsigned short switchAlt : 1;        // bit 8
 };
 
-struct Game_00430f00 {
+struct Game {
     char unknown_0[0x10];
     void* sound;                         // +0x10
     char unknown_14[0x29a0 - 0x14];
@@ -122,7 +122,7 @@ public:
     int FUN_004d0040();
 };
 
-extern Game_00430f00* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b6a50(char* section, char* name, int value);
 int __stdcall FUN_004b6a20(char* section, char* name, char* value);

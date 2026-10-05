@@ -13,7 +13,7 @@ struct Owner_00428730 {
 };
 
 #pragma pack(push, 1)
-struct Game_00428730 {
+struct Game {
     char unknown_0[0x531];
     Owner_00428730* owner;             // +0x531
     char unknown_535[0x11eb - 0x535];
@@ -21,7 +21,7 @@ struct Game_00428730 {
 };
 #pragma pack(pop)
 
-extern Game_00428730* g_game;
+extern Game* g_game;
 extern Entry_00428730 DAT_005120b8[10];
 
 void __stdcall FUN_004c6ac0(void* param_1);

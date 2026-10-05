@@ -397,7 +397,7 @@ struct Unit {
     unsigned int flags;                 // +0x110
 };
 
-struct Game_0048a490 {
+struct Game {
     char unknown_0[0x14233];
     int gridW;                          // +0x14233
     int gridH;                          // +0x14237
@@ -413,7 +413,7 @@ struct Game_0048a490 {
 
 #pragma pack(pop)
 
-extern Game_0048a490* g_game;
+extern Game* g_game;
 
 unsigned int FUN_004b6340();
 int __cdecl FUN_004b7123(short a, int b);

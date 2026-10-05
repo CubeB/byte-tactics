@@ -28,13 +28,13 @@ struct Unit {
     char unknown_0[0x118];
 };
 
-struct Game_0044e080 {
+struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
 };
 #pragma pack(pop)
 
-extern Game_0044e080* g_game;
+extern Game* g_game;
 
 #pragma pack(push, 2)
 class Class_0044ce20 {

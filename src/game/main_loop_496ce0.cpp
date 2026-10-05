@@ -28,7 +28,7 @@ struct Flags_00496ce0 {
     unsigned short rest : 11;
 };
 
-struct Game_00496ce0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00496ce0 players[10];       // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -41,7 +41,7 @@ struct Game_00496ce0 {
 };
 #pragma pack(pop)
 
-extern Game_00496ce0* g_game;
+extern Game* g_game;
 extern int DAT_0051f304;
 
 int __stdcall FUN_00451df0(int player, void* data, int size);

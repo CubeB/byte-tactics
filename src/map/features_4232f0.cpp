@@ -15,13 +15,13 @@ struct Pool_004232f0 {
 };
 
 #pragma pack(push, 1)
-struct Game_004232f0 {
+struct Game {
     char unknown_0[0x1420b];
     Pool_004232f0 pool;                  // +0x1420b
 };
 #pragma pack(pop)
 
-extern Game_004232f0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x4232f0
 void __stdcall FUN_004232f0(int index, int* head)

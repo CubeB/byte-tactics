@@ -41,7 +41,7 @@ struct Team_0048cc30 {
     char unknown_6f[0x14b - 0x6f];
 };
 
-struct Game_0048cc30 {
+struct Game {
     char unknown_0[0x1b63];
     Team_0048cc30 teams[10];                  // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -55,7 +55,7 @@ struct Game_0048cc30 {
 };
 #pragma pack(pop)
 
-extern Game_0048cc30* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00439b30(Unit* unit, int mask, void* obj,
                            Unit** sel, int flag);

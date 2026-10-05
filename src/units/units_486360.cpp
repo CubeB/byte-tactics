@@ -30,7 +30,7 @@ struct Entry_486360 {
     char unknown_f6[0x100 - 0xf6];
 };
 
-struct Game_486360 {
+struct Game {
     char unknown_0[0x1426f];
     Entry_486360* entries;           // +0x1426f
     char unknown_14273[0x1427f - 0x14273];
@@ -45,7 +45,7 @@ struct Result_486360 {
 };
 
 // GLOBAL: 0x511de8
-extern Game_486360* g_game;
+extern Game* g_game;
 
 void* __stdcall FUN_00481550(int x, int y);
 int __stdcall FUN_00485070(Pos_486360* pos);

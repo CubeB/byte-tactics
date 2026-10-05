@@ -10,7 +10,7 @@ struct Menu_00442560 {
     char unknown_0[0x10];
 };
 
-struct Game_00442560 {
+struct Game {
     char unknown_0[0x519];
     Menu_00442560 menu;                 // +0x519
 };
@@ -19,7 +19,7 @@ struct Gadget_00442560 {
     char unknown_0[0x4];
     void* gadgets;                      // +0x04
     void (__stdcall* handler)(void*);   // +0x08
-    Game_00442560* game;                // +0x0c
+    Game* game;                         // +0x0c
     char unknown_10[0x1c - 0x10];
     int field_1c;                       // +0x1c
 };
@@ -31,7 +31,7 @@ struct Entry_00442560 {
 };
 #pragma pack(pop)
 
-extern Game_00442560* g_game;
+extern Game* g_game;
 
 Gadget_00442560* __stdcall FUN_004aa8f0(Menu_00442560* menu, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);

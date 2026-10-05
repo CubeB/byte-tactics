@@ -4,7 +4,7 @@
 // object. Same unit flag field as the neighbours 0x467960 and 0x467980.
 
 #pragma pack(push, 1)
-struct Game_00467840 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x1427f - 0x2a44];
@@ -53,7 +53,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_00467840* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x467840
 void Class_00467840::FUN_00467840(Unit* unit)

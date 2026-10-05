@@ -47,7 +47,7 @@ struct Slot_0048cd80 {
     int y;                             // +0x6
 };
 
-struct Game_0048cd80 {
+struct Game {
     char unknown_0[0x2c76];
     Point_0048cd80 view;               // +0x2c76
     char unknown_2c7e[0x142bb - 0x2c7e];
@@ -64,7 +64,7 @@ struct Game_0048cd80 {
 };
 #pragma pack(pop)
 
-extern Game_0048cd80* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b6720(Rect_0048cd80* rect, int x, int y);
 int __stdcall FUN_0048c6a0(Unit* unit, Point_0048cd80* p);

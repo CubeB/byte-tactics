@@ -14,14 +14,14 @@ struct Object_00477510 {
 };
 
 #pragma pack(push, 1)
-struct Game_00477510 {
+struct Game {
     char unknown_0[0x519];
     char menu[0x38d7f - 0x519];        // +0x519
     unsigned short flags_38d7f;        // +0x38d7f
 };
 #pragma pack(pop)
 
-extern Game_00477510* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004a0570(Menu_00477510* menu, char* name, int value);
 void __stdcall FUN_0049fa90(Menu_00477510* menu);

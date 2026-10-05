@@ -342,7 +342,7 @@ struct Obj_0047d970 {
     short field_a8;                     // +0xa8, the owner's own id
 };
 
-struct Game_0047d970 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -351,7 +351,7 @@ struct Game_0047d970 {
 };
 #pragma pack(pop)
 
-extern Game_0047d970* g_game;
+extern Game* g_game;
 
 // Scans the rectangle the object covers, and fails if any cell the object's
 // mask marks with `flag ? 2 : 4` belongs to a unit other than this one.

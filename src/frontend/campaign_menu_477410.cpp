@@ -22,7 +22,7 @@ struct Menu_00477410 {
     char unknown_0[0x18];
 };
 
-struct Game_00477410 {
+struct Game {
     char unknown_0[0x519];
     Menu_00477410 menu;                // +0x519
     Dialog_00477410* dialog;           // +0x531
@@ -31,7 +31,7 @@ struct Game_00477410 {
 };
 #pragma pack(pop)
 
-extern Game_00477410* g_game;
+extern Game* g_game;
 
 Gadget_00477410* __stdcall FUN_0049ff10(Gadget_00477410* gadgets, const char* name);
 void __stdcall FUN_004a1110(Menu_00477410* menu, const char* name, int value);

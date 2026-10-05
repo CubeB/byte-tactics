@@ -28,7 +28,7 @@ struct Unit {
     char field_f8[4];            // +0xf8
 };
 
-struct Game_4827b0 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char field_1427f;   // +0x1427f
 };
@@ -45,7 +45,7 @@ struct Params_4827b0 {
     int unknown_20;              // +0x20
 };
 
-extern Game_4827b0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004825b0(Params_4827b0* params);
 

@@ -11,12 +11,12 @@ public:
     void FUN_004cf4d0(IDirectSoundBuffer** set);
 };
 
-struct Game_0047f060 {
+struct Game {
     char unknown_0[0x10];
     Class_004cf4d0* sound;             // +0x10
 };
 
-extern Game_0047f060* g_game;
+extern Game* g_game;
 extern int DAT_0051e694;
 
 // FUNCTION: 0x47f060

@@ -77,12 +77,12 @@ public:
     int FUN_004cfba0();
 };
 
-struct Game_00478b40 {
+struct Game {
     char unknown_0[0x10];
     Class_004cfba0* f_0x10;            // +0x10
 };
 
-extern Game_00478b40* g_game;
+extern Game* g_game;
 extern Anim_00478b40 DAT_0051e640;
 extern unsigned int DAT_0051e67c;
 extern unsigned int DAT_0051e680;

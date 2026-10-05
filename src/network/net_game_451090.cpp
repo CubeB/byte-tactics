@@ -21,7 +21,7 @@ struct Player_451090 {
     char unknown_2b[0x14b - 0x2b];
 };
 
-struct Game_451090 {
+struct Game {
     char unknown_0[1];
     unsigned char field_1;            // +0x1
     unsigned char field_2;            // +0x2
@@ -38,7 +38,7 @@ struct Game_451090 {
 };
 #pragma pack(pop)
 
-extern Game_451090* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x451090
 void __stdcall FUN_00451090(char* name, int* d, int* c, int* b, int* a)

@@ -31,7 +31,7 @@ struct Player_004526c0 {
     char unknown_74[0x14b - 0x74];
 };
 
-struct Game_004526c0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_004526c0 players[10];       // +0x1b63
     char unknown_2851[0x2a38 - 0x2851];
@@ -46,7 +46,7 @@ public:
     int FUN_004618a0(int param_1);
 };
 
-extern Game_004526c0* g_game;
+extern Game* g_game;
 extern int DAT_00506dbc;
 extern Class_004618a0 DAT_00513000;
 

@@ -22,7 +22,7 @@ struct Menu_00493060 {
     Layer_00493060* layer;             // +0x18
 };
 
-struct Game_00493060 {
+struct Game {
     char unknown_0[0x519];
     Menu_00493060 menu;                // +0x519
     char unknown_535[0x38a51 - 0x535];
@@ -31,7 +31,7 @@ struct Game_00493060 {
 };
 #pragma pack(pop)
 
-extern Game_00493060* g_game;
+extern Game* g_game;
 extern char* DAT_005091c8;
 extern char* DAT_0051f2e8;
 

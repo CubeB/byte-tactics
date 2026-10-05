@@ -13,7 +13,7 @@ struct Slot_0041f5c0 {                 // 0x3a bytes
     char unknown_1[0x3a - 1];
 };
 
-struct Game_0041f5c0 {
+struct Game {
     char unknown_0[0x519];
     Menu_0041f5c0 menu;                // +0x519
     char unknown_535[0x38dd9 - 0x519 - sizeof(Menu_0041f5c0)];
@@ -21,7 +21,7 @@ struct Game_0041f5c0 {
 };
 #pragma pack(pop)
 
-extern Game_0041f5c0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004a0570(Menu_0041f5c0* menu, char* name, int value);
 

@@ -1,13 +1,13 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_00499a80 {
+struct Game {
     char unknown_0[0x141f7];
     void* field_141f7;                 // +0x141f7
 };
 #pragma pack(pop)
 
-extern Game_00499a80* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d85a0(void* p);
 

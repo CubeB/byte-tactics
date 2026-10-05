@@ -418,7 +418,7 @@ struct Dialog_00464f80 {
     void* field_8;                     // +0x8
 };
 
-struct Game_00464f80 {
+struct Game {
     char unknown_0[0x519];
     char gui[0x1b63 - 0x519];
     PlayerInfo_00464f80 players[10];   // +0x1b63
@@ -467,7 +467,7 @@ struct Game_00464f80 {
 
 #pragma pack(pop)
 
-extern Game_00464f80* g_game;
+extern Game* g_game;
 extern int DAT_0051e53c;
 
 void __stdcall FUN_0040b2c0(int player);

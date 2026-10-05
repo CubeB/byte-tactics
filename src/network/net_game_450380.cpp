@@ -19,7 +19,7 @@ struct Player_00450380 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_00450380 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00450380 players[10];       // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -27,7 +27,7 @@ struct Game_00450380 {
 };
 #pragma pack(pop)
 
-extern Game_00450380* g_game;
+extern Game* g_game;
 extern char* DAT_005061b8[8];
 
 char* __stdcall FUN_004c5740(char* text);

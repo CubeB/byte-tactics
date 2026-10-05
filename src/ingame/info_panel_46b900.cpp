@@ -120,7 +120,7 @@ struct Rect_0046b900 {
 };
 
 #pragma pack(push, 1)
-struct Game_0046b900 {
+struct Game {
     char unknown_0[0x37e1f];
     int width;                      // +0x37e1f
     char unknown_37e23[0x38d89 - 0x37e23];
@@ -129,7 +129,7 @@ struct Game_0046b900 {
 };
 #pragma pack(pop)
 
-extern Game_0046b900* g_game;
+extern Game* g_game;
 
 int FUN_004c1450();
 void __stdcall FUN_004bf8c0(int surface, Rect_0046b900* rect, int color);

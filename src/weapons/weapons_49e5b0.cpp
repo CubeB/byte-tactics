@@ -10,13 +10,13 @@ struct Entry_0049e5b0 {
 };
 
 #pragma pack(push, 1)
-struct Game_0049e5b0 {
+struct Game {
     char unknown_0[0x2cf3];
     Entry_0049e5b0 entries[0x100];     // +0x2cf3
 };
 #pragma pack(pop)
 
-extern Game_0049e5b0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x49e5b0
 char* __stdcall FUN_0049e5b0(char* name)

@@ -49,13 +49,13 @@ struct PlayerEntry_0046d6c0 {         // 0x14b bytes
     char unknown_4[0x14b - 4];
 };
 
-struct Game_0046d6c0 {
+struct Game {
     char unknown_0[0x1b67];
     PlayerEntry_0046d6c0 players[10];
 };
 #pragma pack(pop)
 
-extern Game_0046d6c0* g_game;
+extern Game* g_game;
 
 
 // A std::vector<int>, whose insert() is the out-of-line 0x46e640. Leaving the

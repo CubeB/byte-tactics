@@ -63,7 +63,7 @@ struct PlayerSlots_00497f40 {
     char unknown_54[0x8c - 0x54];
 };
 
-struct Game_00497f40 {
+struct Game {
     char unknown_0[0xc];
     int field_c;                       // +0xc
     int field_10;                      // +0x10
@@ -121,7 +121,7 @@ struct Game_00497f40 {
 
 #pragma pack(pop)
 
-extern Game_00497f40* g_game;
+extern Game* g_game;
 
 // Embedded surface at game offset 0x143a7.
 #define SURFACE_143a7 ((void*)((char*)g_game + 0x143a7))

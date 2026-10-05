@@ -13,7 +13,7 @@ struct Menu_00419ac0 {
 };
 
 #pragma pack(push, 1)
-struct Game_00419ac0 {
+struct Game {
     char unknown_0[0x519];
     Menu_00419ac0 menu;                // +0x519
 };
@@ -24,7 +24,7 @@ struct Unit_00419ac0 {
 };
 #pragma pack(pop)
 
-extern Game_00419ac0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fe60(int value, char* name);
 void __stdcall FUN_004a11c0(Menu_00419ac0* menu, int index, short value);

@@ -10,13 +10,13 @@ struct Entry_00431a20 {
     char unknown_4[0x22e];
 };
 
-struct Game_00431a20 {
+struct Game {
     char unknown_0[0x3816b];
     Entry_00431a20 entries[5];         // +0x3816b
 };
 #pragma pack(pop)
 
-extern Game_00431a20* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x431a20
 void FUN_00431a20()

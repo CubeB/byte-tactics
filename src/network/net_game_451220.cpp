@@ -53,7 +53,7 @@ public:
     void FUN_00463c60(int value);
 };
 
-struct Game_00451220 {
+struct Game {
     char unknown_0[1];
     unsigned char field_1;                   // +0x1
     unsigned char field_2;                   // +0x2
@@ -75,7 +75,7 @@ struct Game_00451220 {
 };
 #pragma pack(pop)
 
-extern Game_00451220* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004ca6a0(void* net, unsigned long* id, char* shortName,
                            char* longName, char* name, short field_11, short field_13);

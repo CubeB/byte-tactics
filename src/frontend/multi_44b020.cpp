@@ -13,7 +13,7 @@ struct Gadget_0044b020 {
 };
 
 #pragma pack(push, 1)
-struct Game_0044b020 {
+struct Game {
     char unknown_0[0x519];
     Sub_0044b020 sub;                  // +0x519
     char unknown_529[0x37e1b - 0x529];
@@ -27,7 +27,7 @@ struct Game_0044b020 {
 };
 #pragma pack(pop)
 
-extern Game_0044b020* g_game;
+extern Game* g_game;
 
 void FUN_004257a0();
 void* __stdcall FUN_00429290(char* name, unsigned char* palette);

@@ -5,13 +5,13 @@ struct Struct_0040bab0 {
 };
 
 #pragma pack(push, 1)
-struct Game_0040bab0 {
+struct Game {
     char unknown_0[0x14223];
     int baseX;                         // +0x14223
 };
 #pragma pack(pop)
 
-extern Game_0040bab0* g_game;
+extern Game* g_game;
 extern void* DAT_005119c0[];
 
 // FUNCTION: 0x40bab0

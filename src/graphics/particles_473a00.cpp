@@ -76,7 +76,7 @@ struct Player_00473a00 {
     char unknown_88[0x14b - 0x88];   // stride 331
 };
 
-struct Game_00473a00 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00473a00 players[11];     // +0x1b63, stride 0x14b
     char unknown_299c[0x2a43 - 0x299c];
@@ -87,7 +87,7 @@ struct Game_00473a00 {
     unsigned char flags;             // +0x14281, bit 1 (mask 2)
 };
 
-extern Game_00473a00* g_game;
+extern Game* g_game;
 
 static inline int Identity_00473a00(int v) { return v; }
 

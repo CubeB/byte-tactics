@@ -55,7 +55,7 @@ struct Data_00480770 {
     Unit* unit;                         // +0xc
 };
 
-struct Game_00480770 {
+struct Game {
     char unknown_0[0x14357];
     Unit* units;                        // +0x14357
 };
@@ -67,7 +67,7 @@ struct Vec3_00480770 {
     int z;
 };
 
-extern Game_00480770* g_game;
+extern Game* g_game;
 
 Vec3_00480770 __stdcall FUN_0043e060(Unit* obj, int param);
 int __stdcall FUN_00485070(Vec3_00480770* pos);

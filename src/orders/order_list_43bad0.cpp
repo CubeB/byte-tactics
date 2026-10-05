@@ -43,7 +43,7 @@ struct Parent_0043bad0 {
     Class_0043a1f0* firstTop;       // +0x60
 };
 
-struct Game_0043bad0 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int frame;             // +0x38a47
 };
@@ -51,7 +51,7 @@ struct Game_0043bad0 {
 #pragma pack(pop)
 
 extern Callback_0043bad0* DAT_00512344;
-extern Game_0043bad0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b6c30(int n);
 

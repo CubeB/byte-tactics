@@ -19,7 +19,7 @@ struct Menu_00478cb0 {
 };
 
 #pragma pack(push, 1)
-struct Game_00478cb0 {
+struct Game {
     char unknown_0[0x10];
     Class_004cfb40* input;             // +0x10
     char unknown_14[0x519 - 0x14];
@@ -32,7 +32,7 @@ struct Game_00478cb0 {
 };
 #pragma pack(pop)
 
-extern Game_00478cb0* g_game;
+extern Game* g_game;
 extern char* DAT_0051e63c;
 
 int __stdcall FUN_0049fd60(Menu_00478cb0* menu, char* name);

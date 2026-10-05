@@ -11,7 +11,7 @@
 //     edx (`cmp eax, edx / jle`, the original's own order) and frees ax for the
 //     cellZ compare. The negative form gives `xor edx,edx` first and swaps both.
 //     Worth 0.7 points on its own and it was the unblocking change.
-//  2. There is NO `Game_0049b090* g = g_game;` local. Reading `g_game->` at
+//  2. There is NO `Game* g = g_game;` local. Reading `g_game->` at
 //     every use is what keeps g_game in edi from 0x49b1ca to 0x49b3ba, which in
 //     turn spills cz to [esp+0x30], produces the single `mov edi,[g_game]` in
 //     the cellX/cellZ store branch, and lets both feature-map arms merge into
@@ -77,7 +77,7 @@
 // deepseek-v4.1-flash (issue 1715): 73.6% -> 81.9% (855 bytes against 844). Three changes, all in the
 // source shape, none of them register hints: (1) delete the `int oz = proj->py.i;` local and read
 // `proj->py.i` directly in the unit0 test, which removes the hoisted `mov ebp,[esi+8]`; (2) declare
-// `Game_0049b090* g = g_game;` and reassign `g = g_game;` immediately before the 0x4000 flags test,
+// `Game* g = g_game;` and reassign `g = g_game;` immediately before the 0x4000 flags test,
 // which is what makes MSVC emit the single `mov edi,[g_game]` reload at 0x49b284 instead of keeping a
 // spilled g; (3) replace `MapFeature* mf = 0;` with an uninitialised `mf` and explicit `else mf = 0;`
 // in every arm, which moves the `xor` out of the declaration and lands the feature-id load at the
@@ -107,7 +107,7 @@
 // Not matched yet: 73.6%, 842 bytes against 844 (Sonnet 5.5 retry, #1097; was 72.8%). This header was rewritten
 // because the previous one still described the 66.0% / 870-byte state, which
 // the current body no longer has.
-// Retry note: a `Game_0049b090* g = g_game;` local declared just before
+// Retry note: a `Game* g = g_game;` local declared just before
 // `if (cell->unit0)` (all later g_game-> uses go through it) gave +0.8 points and the
 // right size. Still differs as described below: `oz` is hoisted into a register
 // (ebp) where the original loads proj->py.i inside each unit block, and g then
@@ -193,11 +193,11 @@
 //     `mov dx,[ebx+8]` and an `and edx,0xffff` on the taken path only.
 //
 // Where to look next, in order (items 1 and 2 were the answer: delete the
-// `Game_0049b090* g` local entirely, item 3 became hs.py in the scratch dir):
+// `Game* g` local entirely, item 3 became hs.py in the scratch dir):
 //   1. The g_game-in-edi problem, which is the highest value. Not yet tried: an
 //      extra variable live only in a region where edi is dead (before
 //      0x49b1ca or after 0x49b284), two extra variables whose net register cost
-//      is zero, or a `Game_0049b090*` local declared so the compiler
+//      is zero, or a `Game*` local declared so the compiler
 //      rematerialises g_game rather than keeping it.
 //   2. Forcing the cz spill to [esp+0x30], for instance by giving cz a second
 //      use, which should also fix the cellX/cellZ compare shape.
@@ -329,7 +329,7 @@ struct Proj_0049b090 {
     Flags_0049b090 flags;              // +0x69
 };
 
-struct Game_0049b090 {
+struct Game {
     char unknown_0[0x14233];
     int width;                         // +0x14233
     char unknown_14237[0x14253 - 0x14237];
@@ -355,7 +355,7 @@ struct Net_0049b090 {
 };
 #pragma pack(pop)
 
-extern Game_0049b090* g_game;
+extern Game* g_game;
 
 Cell_0049b090* __stdcall FUN_004815a0(Pos_0049b090* pos);
 void __stdcall FUN_00499eb0(Proj_0049b090* proj, Unit* unit);

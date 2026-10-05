@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_450d80 {
+struct Game {
     char unknown_0[0x14];
     char net[0x4dd];             // +0x14
     int netMode;                 // +0x4f1
@@ -10,7 +10,7 @@ struct Game_450d80 {
 };
 #pragma pack(pop)
 
-extern Game_450d80* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004c9c20(void* net);
 int __stdcall FUN_00461020(int a, int b);

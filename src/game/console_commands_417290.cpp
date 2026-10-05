@@ -2,13 +2,13 @@
 // Console command: sets the brightness from the first argument (tenths).
 
 #pragma pack(push, 1)
-struct Game_00417290 {
+struct Game {
     char unknown_0[0x37f08];
     int brightness;                    // +0x37f08
 };
 #pragma pack(pop)
 
-extern Game_00417290* g_game;
+extern Game* g_game;
 
 // Command arguments.
 class Class_004b73e0 {

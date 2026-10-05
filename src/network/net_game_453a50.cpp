@@ -17,7 +17,7 @@ struct Entry_00453a50 {
     char unknown_70[0x14b - 0x70];
 };
 
-struct Game_00453a50 {
+struct Game {
     char unknown_0[0x1b67];
     Entry_00453a50 entries[10];            // +0x1b67
 };
@@ -39,7 +39,7 @@ struct Gui_00453a50 {
 
 #pragma pack(pop)
 
-extern Game_00453a50* g_game;
+extern Game* g_game;
 extern int DAT_005061d8;
 extern void* DAT_00512c74;
 

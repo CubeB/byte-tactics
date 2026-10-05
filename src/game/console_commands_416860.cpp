@@ -5,7 +5,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_00416860 {
+struct Game {
     char unknown_0[0x2caa];
     int x;                             // +0x2caa
     int y;                             // +0x2cae
@@ -13,7 +13,7 @@ struct Game_00416860 {
 };
 #pragma pack(pop)
 
-extern Game_00416860* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 // Command arguments.

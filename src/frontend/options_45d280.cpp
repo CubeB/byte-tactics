@@ -60,7 +60,7 @@ union Flags_0045d280 {
     Bits_0045d280 bits;
 };
 
-struct Game_0045d280 {
+struct Game {
     char unknown_0[0x10];
     void* sound;                     // +0x10
     char unknown_14[0x531 - 0x14];
@@ -152,7 +152,7 @@ public:
     void FUN_004d00d0(int level, int flag);
 };
 
-extern Game_0045d280* g_game;
+extern Game* g_game;
 extern int DAT_00512fe0;                // current track
 extern int DAT_00512f42;
 extern int DAT_00512f46;

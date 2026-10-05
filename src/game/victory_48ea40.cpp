@@ -32,13 +32,13 @@ struct Player_0048ea40 {
     char name[0x232];                  // +0x00
 };
 
-struct Game_0048ea40 {
+struct Game {
     char unknown_0[0x37f5f];
     Player_0048ea40 players[10];       // +0x37f5f
 };
 #pragma pack(pop)
 
-extern Game_0048ea40* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* str, int flag);
 

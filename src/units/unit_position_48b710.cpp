@@ -98,7 +98,7 @@ struct Player_0048b710 {
     Unit* units_end;                    // +0x6b
 };
 
-struct Game_0048b710 {
+struct Game {
     char unknown_0[0x14393];
     int field_14393;                    // +0x14393, bits for the unit type index
     char unknown_14397[0x37ee6 - 0x14397];
@@ -109,7 +109,7 @@ struct Game_0048b710 {
 
 #pragma pack(pop)
 
-extern Game_0048b710* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0048b200(Class_00415c10* stream, Unit* u);
 int __stdcall FUN_00451df0(int player, void* data, int size);

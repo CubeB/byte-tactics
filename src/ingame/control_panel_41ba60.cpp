@@ -49,7 +49,7 @@ struct Unit {
     unsigned int flags;                // +0x110
 };
 
-struct Game_0041ba60 {
+struct Game {
     char unknown_0[0x37eee];
     int difficulty;                    // +0x37eee (a guess)
 };
@@ -65,7 +65,7 @@ struct Builder_0041ba60 {
     Class_004011c0 store;              // +0xbc
 };
 
-extern Game_0041ba60* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00489bb0(Unit* obj, Unit* unit, int n, int kind, int flag);
 void __stdcall FUN_0041b8d0(Builder_0041ba60* builder, Unit* unit);

@@ -6,14 +6,14 @@ struct PlayerStruct {
     char unknown[0x14B];
 };
 
-struct GameState {
+struct Game {
     char unknown[0x1B63];
     PlayerStruct players[10];
 };
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern GameState* g_game;
+extern Game* g_game;
 
 class PlayerRef {
 public:

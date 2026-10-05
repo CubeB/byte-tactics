@@ -36,13 +36,13 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_476a60 {
+struct Game {
     char unknown_0[0x37f3d];
     char names[1][0x232];               // +0x37f3d
 };
 #pragma pack(pop)
 
-extern Game_476a60* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];             // ""
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);

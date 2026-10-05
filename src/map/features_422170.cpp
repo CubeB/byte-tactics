@@ -28,7 +28,7 @@ struct Pool_00422170 {
     int headC;                         // +0xc
 };
 
-struct Game_00422170 {
+struct Game {
     char unknown_0[0x1420b];
     Pool_00422170 pool;                // +0x1420b
     char unknown_1421b[0x14253 - 0x1421b];
@@ -38,7 +38,7 @@ struct Game_00422170 {
 };
 #pragma pack(pop)
 
-extern Game_00422170* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall FUN_0045aaa0(void* obj);

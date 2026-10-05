@@ -102,7 +102,7 @@ struct Player_004854a0 {
 };
 
 #pragma pack(push, 1)
-struct Game_004854a0 {
+struct Game {
     char unknown_0[0x1b63];
     unsigned char players[10 * 0x14b];  // +0x1b63, stride 0x14b
     char unknown_2851[0x1434f - 0x2851];
@@ -126,7 +126,7 @@ struct Game_004854a0 {
 };
 #pragma pack(pop)
 
-extern Game_004854a0* g_game;
+extern Game* g_game;
 
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 

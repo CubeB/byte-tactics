@@ -67,7 +67,7 @@ struct Unit {                          // 0x118 bytes
     char unknown_114[4];
 };
 
-struct Game_004089a0 {
+struct Game {
     char unknown_0[0x37ee6];
     unsigned short field_37ee6;        // +0x37ee6
 };
@@ -82,7 +82,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_004089a0* g_game;
+extern Game* g_game;
 
 Unit* __stdcall FUN_0048a190(Unit* unit, int weapon);
 int* __stdcall FUN_0049d120(Unit* unit, unsigned int weapon);

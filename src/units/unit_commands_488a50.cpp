@@ -14,7 +14,7 @@ struct Item_00488a50 {                 // 0x249 bytes
     char name[0x249 - 0x20];           // +0x20
 };
 
-struct Game_00488a50 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                         // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -22,7 +22,7 @@ struct Game_00488a50 {
 };
 #pragma pack(pop)
 
-extern Game_00488a50* g_game;
+extern Game* g_game;
 extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 
 static inline int Less_00488a50(const char* a, const char* b)

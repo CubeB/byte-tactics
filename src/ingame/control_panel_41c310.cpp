@@ -16,7 +16,7 @@ struct Player_0041c310 {
     char unknown_6f[0x14b - 0x6f];
 };
 
-struct Game_0041c310 {
+struct Game {
     char unknown_0[0x1b63];
     Player_0041c310 players[10];       // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -26,7 +26,7 @@ struct Game_0041c310 {
 };
 #pragma pack(pop)
 
-extern Game_0041c310* g_game;
+extern Game* g_game;
 
 // Returns the bit set of the unit types in the named category.
 unsigned int* __stdcall FUN_00488c50(char* name);

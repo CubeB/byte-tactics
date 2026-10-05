@@ -16,7 +16,7 @@ struct Player_450980 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_450980 {
+struct Game {
     char unknown_0[0x1b63];
     Player_450980 players[10];       // +0x1b63
     char unknown_2851[0x299c - 0x2851];
@@ -25,7 +25,7 @@ struct Game_450980 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_450980* g_game;
+extern Game* g_game;
 
 // Indexing g_game->players[i] in every test (rather than a player pointer
 // local) is what makes MSVC walk the array from the type field.

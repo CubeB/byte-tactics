@@ -7,13 +7,13 @@
 // so keep it.
 
 #pragma pack(push, 1)
-struct Game_00434ff0 {
+struct Game {
     char unknown_0[0x391ed];
     void* field_391ed;                 // +0x391ed
 };
 #pragma pack(pop)
 
-extern Game_00434ff0* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d85a0(int* param_1);
 

@@ -15,7 +15,7 @@ struct Player_004467f0 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_004467f0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_004467f0 players[10];       // +0x1b63
     char unknown_2851[0x2a44 - 0x2851];
@@ -26,7 +26,7 @@ struct Game_004467f0 {
 };
 #pragma pack(pop)
 
-extern Game_004467f0* g_game;
+extern Game* g_game;
 
 static inline int IsPlaying_004467f0(Player_004467f0* p)
 {

@@ -45,7 +45,7 @@ struct Player_004797e0 { // 0x18 bytes
     int color;           // +0x14
 };
 
-struct Game_004797e0 {
+struct Game {
     char unknown_0[0x519];
     Menu_004797e0 menu;      // +0x519
     Holder_004797e0* holder; // +0x531
@@ -58,7 +58,7 @@ struct Game_004797e0 {
 };
 #pragma pack(pop)
 
-extern Game_004797e0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00479660(void);
 int __stdcall FUN_0049fdf0(Entry_004797e0* entries, char* name, int type);

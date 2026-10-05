@@ -69,7 +69,7 @@ struct Class_0046e330 {
     void FUN_0046e550(Item_0044c420* unit, int value);
 };
 
-struct Game_0044c420 {
+struct Game {
     char unknown_0[0x2a30];
     void* queue;                       // +0x2a30
     char unknown_2a34[0x1438f - 0x2a34];
@@ -84,7 +84,7 @@ struct Struct_004c6ac0 {
     unsigned char flags;               // +0x2c
 };
 
-extern Game_0044c420* g_game;
+extern Game* g_game;
 extern int* DAT_005129b8;
 extern Record_005129b4* DAT_005129b4;
 extern int* DAT_005129c4;

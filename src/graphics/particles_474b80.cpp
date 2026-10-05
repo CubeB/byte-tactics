@@ -343,7 +343,7 @@ struct Player_00474b80 {
     char unknown_88[0x14b - 0x88];
 };
 
-struct Game_00474b80 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00474b80 players[10];   // +0x1b63, stride 0x14b
     char unknown_2851[0x2a43 - 0x2851];
@@ -364,7 +364,7 @@ struct Record_00474b80 {
 };
 #pragma pack(pop)
 
-extern Game_00474b80* g_game;
+extern Game* g_game;
 
 // The pin the earlier passes were looking for: a helper that returns its
 // argument. It emits no instruction, but MSVC 5 allocates what it returns as a

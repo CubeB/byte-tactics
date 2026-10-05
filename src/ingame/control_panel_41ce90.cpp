@@ -27,7 +27,7 @@ struct Display_0041ce90 {
     unsigned char flags_f0;            // +0xf0
 };
 
-struct Game_0041ce90 {
+struct Game {
     char unknown_0[0x519];
     char menu[0x14281 - 0x519];        // +0x519
     unsigned short flags_14281;        // +0x14281
@@ -52,7 +52,7 @@ struct Game_0041ce90 {
 };
 #pragma pack(pop)
 
-extern Game_0041ce90* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004c2340(Mouse_0041ce90* mouse);
 Display_0041ce90* FUN_004b6220();

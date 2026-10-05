@@ -138,7 +138,7 @@ struct Unit {
     char* pieces;                       // +0x9e
 };
 
-struct Game_00421700 {
+struct Game {
     char unknown_0[0x14263];
     int ticks;                          // +0x14263
     char unknown_14267[0x1491b - 0x14267];
@@ -158,7 +158,7 @@ struct Header_00421700 {
     unsigned int flag : 1;
 };
 
-extern Game_00421700* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b6c30(int range);
 Vec3f_00421700 __stdcall FUN_004b6eb0(Vec3f_00421700 from, Vec3f_00421700 to);

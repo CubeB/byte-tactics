@@ -12,13 +12,13 @@ public:
     unsigned char FUN_004ce7e0(int param_1);
 };
 
-struct Game_490f80 {
+struct Game {
     char unknown_0[0x10];
     Class_004ce450* cd;                 // +0x10
 };
 
 // GLOBAL: 0x511de8
-extern Game_490f80* g_game;
+extern Game* g_game;
 
 struct CdLists_490f80 {
     char unknown_0[0x24];

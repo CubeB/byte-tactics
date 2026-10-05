@@ -7,7 +7,7 @@ struct Cell_00481550 {
     char unknown_0[0xd];
 };
 
-struct Game_00481550 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -16,7 +16,7 @@ struct Game_00481550 {
 };
 #pragma pack(pop)
 
-extern Game_00481550* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x481550
 Cell_00481550* __stdcall FUN_00481550(int x, int y)

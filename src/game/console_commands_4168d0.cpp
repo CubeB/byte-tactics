@@ -23,7 +23,7 @@ public:
     void FUN_00437c80();
 };
 
-struct Game_004168d0 {
+struct Game {
     char unknown_0[0x1b63];
     Player players[10];                // +0x1b63
     char unknown_2851[0x1437b - 0x2851];
@@ -33,7 +33,7 @@ struct Game_004168d0 {
 };
 #pragma pack(pop)
 
-extern Game_004168d0* g_game;
+extern Game* g_game;
 
 // Command arguments.
 class Class_004b73e0 {

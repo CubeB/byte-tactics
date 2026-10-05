@@ -33,7 +33,7 @@ struct Menu_004777a0 {
     Layer_004777a0* layer;             // +0x18 (g_game + 0x531)
 };
 
-struct Game_004777a0 {
+struct Game {
     char unknown_0[0x519];
     Menu_004777a0 menu;                // +0x519
     char unknown_535[0x1b8a - 0x535];
@@ -49,7 +49,7 @@ struct Game_004777a0 {
 };
 #pragma pack(pop)
 
-extern Game_004777a0* g_game;
+extern Game* g_game;
 
 Layer_004777a0* __stdcall FUN_004aa8f0(Menu_004777a0* menu, const char* name, int flags);
 void __stdcall FUN_004775a0(void* layer);

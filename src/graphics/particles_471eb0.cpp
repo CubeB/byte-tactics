@@ -17,13 +17,13 @@ struct Lists_00471eb0 {
 };
 
 #pragma pack(push, 1)
-struct Game_00471eb0 {
+struct Game {
     char unknown_0[0x38d77];
     Lists_00471eb0* lists;             // +0x38d77
 };
 #pragma pack(pop)
 
-extern Game_00471eb0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x471eb0
 void FUN_00471eb0()

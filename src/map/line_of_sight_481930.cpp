@@ -131,7 +131,7 @@ struct Frame_00481930 {
     unsigned char* data;               // +0x10
 };
 
-struct Game_00481930 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14233 - 0x2a44];
@@ -155,7 +155,7 @@ struct Game_00481930 {
 
 #pragma pack(pop)
 
-extern Game_00481930* g_game;
+extern Game* g_game;
 
 Frame_00481930* __stdcall FUN_004b7f30(LosTable_00481930* table, int index);
 

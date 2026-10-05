@@ -10,7 +10,7 @@ void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 
 #pragma pack(push, 1)
-struct Game_00440940 {
+struct Game {
     char unknown_0[0x14233];
     unsigned int width;                // +0x14233
     unsigned int height;               // +0x14237
@@ -19,7 +19,7 @@ struct Game_00440940 {
 };
 #pragma pack(pop)
 
-extern Game_00440940* g_game;
+extern Game* g_game;
 
 extern char DAT_00512370[];
 extern char DAT_00512770[];

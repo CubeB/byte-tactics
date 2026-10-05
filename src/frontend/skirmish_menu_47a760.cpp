@@ -45,7 +45,7 @@ struct Entry_0047a760 {
     unsigned char marks[0x14b - 0x108];
 };
 
-struct Game_0047a760 {
+struct Game {
     char unknown_0[0x1b63];
     Entry_0047a760 entries[10];
     char unknown_2851[0x29a0 - 0x2851];
@@ -58,7 +58,7 @@ struct Game_0047a760 {
 };
 #pragma pack(pop)
 
-extern Game_0047a760* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00464290(unsigned char player, unsigned char kind);
 

@@ -11,7 +11,7 @@
 #include <vector>
 
 #pragma pack(push, 1)
-struct Game_00475600 {
+struct Game {
     char unknown_0[0x14263];
     int rise;                          // +0x14263
     char unknown_14267[0x37ecc - 0x14267];
@@ -21,7 +21,7 @@ struct Game_00475600 {
 };
 #pragma pack(pop)
 
-extern Game_00475600* g_game;
+extern Game* g_game;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
 class Class_00471cc0 {

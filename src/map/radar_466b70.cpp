@@ -6,7 +6,7 @@
 #include <windows.h>
 
 #pragma pack(push, 1)
-struct Game_00466b70 {
+struct Game {
     char unknown_0[0x1422b];
     int divX;                          // +0x1422b
     int divY;                          // +0x1422f
@@ -25,7 +25,7 @@ struct Game_00466b70 {
 };
 #pragma pack(pop)
 
-extern Game_00466b70* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x466b70
 void __stdcall FUN_00466b70(int* param_1)

@@ -44,14 +44,14 @@ struct UnitList_48efb0 {
 };
 
 #pragma pack(push, 1)
-struct Game_48efb0 {
+struct Game {
     char unknown_0[0x1d15];
     UnitList_48efb0 units;           // +0x1d15
 };
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_48efb0* g_game;
+extern Game* g_game;
 
 short __stdcall FUN_00488b10(char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);

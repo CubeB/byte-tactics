@@ -196,7 +196,7 @@ union Flags245_0043f0e0 {
     };
 };
 
-struct Game_0043f0e0 {
+struct Game {
     char unknown_0[0x2a42];
     unsigned char localPlayer;    // +0x2a42
     unsigned char localPlayerBit; // +0x2a43
@@ -313,7 +313,7 @@ struct Thing_0043f0e0 {
 };
 #pragma pack(pop)
 
-extern Game_0043f0e0* g_game;
+extern Game* g_game;
 
 Cell_0043f0e0* __stdcall FUN_004815a0(Pos_0043f0e0* pos);
 class Class_004899b0 {

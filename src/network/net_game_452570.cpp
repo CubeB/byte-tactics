@@ -26,14 +26,14 @@ struct Entry_00452570 {
     char unknown_70[0x14b - 0x70];         // +0x70
 };
 
-struct Game_00452570 {
+struct Game {
     char unknown_0[0x1b67];
     Entry_00452570 entries[10];            // +0x1b67
 };
 
 #pragma pack(pop)
 
-extern Game_00452570* g_game;
+extern Game* g_game;
 
 // Returns the index of the first in-use entry whose id matches, else 10.
 static __inline unsigned char FindSlot_00452570(int id)

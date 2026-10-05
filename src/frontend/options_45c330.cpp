@@ -12,7 +12,7 @@ struct Entry_4a0200 {
     short pos;                         // +0x140
 };
 
-struct Game_0045c330 {
+struct Game {
     char unknown_0[0x37f23];
     int scroll_time;                   // +0x37f23
 };
@@ -28,7 +28,7 @@ struct Object_0045c330 {
     Holder_0045c330* holder;           // +0x18
 };
 
-extern Game_0045c330* g_game;
+extern Game* g_game;
 
 Entry_4a0200* __stdcall FUN_004a0200(Entry_4a0200* entries, char* name);
 void __stdcall FUN_004a0bf0(Object_0045c330* obj, char* name, char* text, int param_4);

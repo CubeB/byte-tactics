@@ -12,19 +12,19 @@ struct Player_450910 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_450910 {
+struct Game {
     char unknown_0[0x1b63];
     Player_450910 players[10];       // +0x1b63
 };
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_450910* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x450910
 char FUN_00450910(void)
 {
-    Game_450910* game = g_game;
+    Game* game = g_game;
     for (int id = 1; id <= 10; id++) {
         int used = 0;
         for (int i = 0; i < 10; i++) {

@@ -7,13 +7,13 @@ struct Unit {
     char unknown_0[0x118];
 };
 
-struct Game_0048a190 {
+struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
 };
 #pragma pack(pop)
 
-extern Game_0048a190* g_game;
+extern Game* g_game;
 
 struct Point_0048a190 {
     short a;                           // +0x0

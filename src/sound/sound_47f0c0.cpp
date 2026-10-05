@@ -21,7 +21,7 @@ public:
     int FUN_004cf570(int a, int b, int c);
 };
 
-struct Game_0047f0c0 {
+struct Game {
     char unknown_0[0x10];
     Class_004cf570* sound;             // +0x10
     char unknown_14[0x33a13 - 0x14];
@@ -32,7 +32,7 @@ struct Game_0047f0c0 {
 };
 #pragma pack(pop)
 
-extern Game_0047f0c0* g_game;
+extern Game* g_game;
 extern int DAT_0051e690;
 extern int DAT_0051e694;
 extern int DAT_0051e69c;

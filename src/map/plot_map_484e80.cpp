@@ -11,7 +11,7 @@ struct Cell_00484e80 {
     unsigned char feature : 4;
 };
 
-struct Game_00484e80 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -20,7 +20,7 @@ struct Game_00484e80 {
 };
 #pragma pack(pop)
 
-extern Game_00484e80* g_game;
+extern Game* g_game;
 
 // Chunked file reader.
 class Class_004b4560 {

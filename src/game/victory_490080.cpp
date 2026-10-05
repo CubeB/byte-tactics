@@ -33,7 +33,7 @@ struct Player_00490080 {                // 0x14b bytes, ten of them in the game
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_00490080 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00490080 players[10];         // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -43,7 +43,7 @@ struct Game_00490080 {
 };
 #pragma pack(pop)
 
-extern Game_00490080* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x490080
 int FUN_00490080()

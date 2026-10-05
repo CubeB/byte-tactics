@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_41d3f0 {
+struct Game {
     char unknown_0[0x14281];
     unsigned short flags_14281;      // +0x14281
     char unknown_14283[0x142f1 - 0x14283];
@@ -22,7 +22,7 @@ struct Game_41d3f0 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_41d3f0* g_game;
+extern Game* g_game;
 
 void FUN_0041c3c0(void);
 

@@ -41,7 +41,7 @@ struct Net_00420f30 {
     int f_d48;                          // +0xd48
 };
 
-struct Game_00420f30 {
+struct Game {
     char unknown_0[0x14263];
     int gravity;                        // +0x14263
     char unknown_14267[0x1427f - 0x14267];
@@ -59,7 +59,7 @@ struct Game_00420f30 {
 };
 #pragma pack(pop)
 
-extern Game_00420f30* g_game;
+extern Game* g_game;
 extern Obj_00420f30* DAT_00511df0[100];
 
 int __stdcall FUN_004213b0(Obj_00420f30* obj);

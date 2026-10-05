@@ -69,13 +69,13 @@ inline Class_00434f70::Class_00434f70(int owner_)
 }
 
 #pragma pack(push, 1)
-struct Game_00434ab0 {
+struct Game {
     char unknown_0[0x391e9];
     Class_00434f70* field_391e9;       // +0x391e9
 };
 #pragma pack(pop)
 
-extern Game_00434ab0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x434ab0
 void __stdcall FUN_00434ab0(int owner)

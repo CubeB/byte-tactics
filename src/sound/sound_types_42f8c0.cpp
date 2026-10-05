@@ -4,14 +4,14 @@
 #include <dsound.h>
 
 #pragma pack(push, 1)
-struct Game_0042f8c0 {
+struct Game {
     char unknown_0[0x33a0f];
     int soundCount;                    // +0x33a0f
     IDirectSoundBuffer** sounds[1];    // +0x33a13
 };
 #pragma pack(pop)
 
-extern Game_0042f8c0* g_game;
+extern Game* g_game;
 
 void FUN_0042f740();
 void __stdcall FUN_0047f060(IDirectSoundBuffer** set);

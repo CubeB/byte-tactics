@@ -3,13 +3,13 @@
 // progress (9..90) after each chunk.
 
 #pragma pack(push, 1)
-struct Game_00429660 {
+struct Game {
     char unknown_0[0x38d70];
     unsigned char loadProgress;        // +0x38d70
 };
 #pragma pack(pop)
 
-extern Game_00429660* g_game;
+extern Game* g_game;
 
 void* __stdcall FUN_004bb5b0(char* path);
 void __stdcall FUN_004b6290(char* path);

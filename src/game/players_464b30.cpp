@@ -35,7 +35,7 @@ struct Player_00464b30 {
     char unknown_f0[0x14b - 0xf0];
 };
 
-struct Game_00464b30 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00464b30 players[10];        // +0x1b63
     char unknown_2851[0x37eee - 0x2851];
@@ -52,7 +52,7 @@ public:
     int FUN_00401220(float amount);
 };
 
-extern Game_00464b30* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00456ee0(unsigned char from, unsigned char to, int value);
 

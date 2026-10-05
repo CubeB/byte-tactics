@@ -8,7 +8,7 @@ struct Cell_00424840 {
     char unknown_a[0xd - 0xa];
 };
 
-struct Game_00424840 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -17,7 +17,7 @@ struct Game_00424840 {
 };
 #pragma pack(pop)
 
-extern Game_00424840* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004246b0(void* target, int flag);
 

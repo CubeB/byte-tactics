@@ -33,7 +33,7 @@ struct Feature_004239c0 {
     unsigned short bits5 : 11;
 };
 
-struct Game_004239c0 {
+struct Game {
     char unknown_0[0x1426f];
     Feature_004239c0* features;        // +0x1426f
     char unknown_14273[0x37ecc - 0x14273];
@@ -43,7 +43,7 @@ struct Game_004239c0 {
 };
 #pragma pack(pop)
 
-extern Game_004239c0* g_game;
+extern Game* g_game;
 
 Cell_004239c0* __stdcall FUN_00481550(int x, int y);
 int __stdcall FUN_004b6c30(int range);

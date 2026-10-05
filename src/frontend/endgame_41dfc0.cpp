@@ -8,7 +8,7 @@
 #include <ddraw.h>
 
 #pragma pack(push, 1)
-struct Game_0041dfc0 {
+struct Game {
     char unknown_0[0x39063];
     int done;                          // +0x39063
     char unknown_39067[0x39083 - 0x39067];
@@ -18,7 +18,7 @@ struct Game_0041dfc0 {
 };
 #pragma pack(pop)
 
-extern Game_0041dfc0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004ba200(unsigned char* palette, int first, int count);
 

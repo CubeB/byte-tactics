@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 #include <windows.h>
 
-struct Game_0046c190 {
+struct Game {
     char unknown_0[0x14];
     char field_14[1];
 };
@@ -16,7 +16,7 @@ struct ElemB_0046c190 {
     void* field_8;
 };
 
-extern Game_0046c190* g_game;
+extern Game* g_game;
 extern int DAT_0051e590;
 extern HMODULE DAT_0051e58c;
 extern void (__cdecl* DAT_0051e558)();

@@ -50,7 +50,7 @@ union Flags_0045da90 {
     Bits_0045da90 bits;
 };
 
-struct Game_0045da90 {
+struct Game {
     char unknown_0[0x10];
     void* sound;                     // +0x10
     char unknown_14[0x519 - 0x14];
@@ -94,7 +94,7 @@ public:
     void FUN_004d00d0(int level, int flag);
 };
 
-extern Game_0045da90* g_game;
+extern Game* g_game;
 extern char DAT_005069b8[];           // "SPEECH"
 extern char DAT_005069d0[];           // "MODE"
 extern char DAT_00506998[];           // "UNDO"

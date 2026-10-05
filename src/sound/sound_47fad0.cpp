@@ -44,13 +44,13 @@ public:
     void FUN_0047fad0(Unit_0047fad0* unit, int kind, char* text);
 };
 
-struct Game_0047fad0 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int frame;                // +0x38a47
 };
 #pragma pack(pop)
 
-extern Game_0047fad0* g_game;
+extern Game* g_game;
 extern Message_0047fad0 DAT_005086dc[];
 
 // FUNCTION: 0x47fad0

@@ -109,13 +109,13 @@ struct Packet_0049d580 {
     unsigned char weapon;             // +0x23
 };
 
-struct Game_0049d580 {
+struct Game {
     char unknown_0[0x2a44];
     unsigned char flags;              // +0x2a44
 };
 #pragma pack(pop)
 
-extern Game_0049d580* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0043e2e0(Unit* obj, Vec3_0049d580* out, unsigned char weapon);
 void __stdcall FUN_0043e240(Unit* obj, Vec3_0049d580* out, unsigned char weapon, int piece);

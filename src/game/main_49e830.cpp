@@ -83,7 +83,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_0049e830 {
+struct Game {
     char unknown_0[1];                       // +0
     unsigned char field_1;                   // +1
     unsigned char field_2;                   // +2
@@ -100,7 +100,7 @@ struct Game_0049e830 {
 };
 #pragma pack(pop)
 
-extern Game_0049e830* g_game;
+extern Game* g_game;
 
 extern unsigned char DAT_0051f31c;
 extern char* DAT_0050971c;

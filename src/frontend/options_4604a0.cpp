@@ -38,7 +38,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_004604a0 {
+struct Game {
     char unknown_0[0x519];
     Menu_004604a0 menu;               // +0x519
     char unknown_535[0x391e9 - 0x535];
@@ -47,7 +47,7 @@ struct Game_004604a0 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_004604a0* g_game;
+extern Game* g_game;
 
 Dialog_004604a0* __stdcall FUN_004aa8f0(Menu_004604a0* menu, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);

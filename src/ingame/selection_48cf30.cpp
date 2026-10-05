@@ -95,7 +95,7 @@ struct Player_0048cf30 {
     char unknown_6f[0x14b - 0x6f];
 };
 
-struct Game_0048cf30 {
+struct Game {
     char unknown_0[0x1b63];
     Player_0048cf30 players[10];        // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -108,7 +108,7 @@ struct Game_0048cf30 {
     Unit* field_14357;                  // +0x14357
 };
 
-extern Game_0048cf30* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0043e470(unsigned char type);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,

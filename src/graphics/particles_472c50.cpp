@@ -112,13 +112,13 @@ struct Lists_00472c50 {
 };
 
 #pragma pack(push, 1)
-struct Game_00472c50 {
+struct Game {
     char unknown_0[0x38d77];
     Lists_00472c50* lists;              // +0x38d77
 };
 #pragma pack(pop)
 
-extern Game_00472c50* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x472c50
 void __stdcall FUN_00472c50(Vec3_00475150* p, short index)

@@ -145,12 +145,12 @@ public:
     void FUN_0046e160();
 };
 
-struct Game_0046ca60 {
+struct Game {
     char unknown_0[0x2a30];
     Class_0046d040* field_2a30;
 };
 
-extern Game_0046ca60* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x46ca60
 void __fastcall FUN_0046ca60()

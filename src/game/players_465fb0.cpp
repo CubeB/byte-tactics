@@ -14,7 +14,7 @@ struct Slot_00465fb0 {
     char unknown_4[0x18 - 0x4];
 };
 
-struct Game_00465fb0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00465fb0 players[10];       // +0x1b63
     char unknown_2851[0x29a0 - 0x2851];
@@ -22,7 +22,7 @@ struct Game_00465fb0 {
 };
 #pragma pack(pop)
 
-extern Game_00465fb0* g_game;
+extern Game* g_game;
 
 class Class_004b4800 {
 public:

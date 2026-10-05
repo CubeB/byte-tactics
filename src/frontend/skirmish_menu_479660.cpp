@@ -24,7 +24,7 @@ struct Menu_00479660 {
     char unknown_0[0x18];
 };
 
-struct Game_00479660 {
+struct Game {
     char unknown_0[0x519];
     Menu_00479660 menu;                // +0x519
     Table_00479660* table;             // +0x531
@@ -35,7 +35,7 @@ struct Game_00479660 {
 };
 #pragma pack(pop)
 
-extern Game_00479660* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fdf0(Layout_00479660* entries, const char* name, int flag);
 void __stdcall FUN_0049fa90(Menu_00479660* menu);

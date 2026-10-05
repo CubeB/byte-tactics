@@ -119,7 +119,7 @@ union GameFlags_459200 {
 };
 
 
-struct Game_459200 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char field_2a43;
     char unknown_2a44[0x1427f-0x2a44];
@@ -153,7 +153,7 @@ union Vec3_459200 {
 };
 #pragma pack(pop)
 
-extern Game_459200* g_game;
+extern Game* g_game;
 extern const float DAT_004fd4c0;
 
 struct Class_00437a30 { void FUN_0045a790(Model_459200*, int); };

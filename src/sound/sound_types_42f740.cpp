@@ -14,14 +14,14 @@ struct Entry_0042f740 {
 };
 
 #pragma pack(push, 1)
-struct Game_0042f740 {
+struct Game {
     char unknown_0[0x37e13];
     Entry_0042f740* entries;           // +0x37e13
     int entry_count;                   // +0x37e17
 };
 #pragma pack(pop)
 
-extern Game_0042f740* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x42f740
 void FUN_0042f740()

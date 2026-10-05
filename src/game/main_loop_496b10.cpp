@@ -5,7 +5,7 @@ struct Sub_00496b10 {
 };
 
 #pragma pack(push, 1)
-struct Game_00496b10 {
+struct Game {
     char unknown_0[0x519];
     Sub_00496b10 sub;                  // +0x519
     char unknown_5bf[0x2a44 - 0x519 - sizeof(Sub_00496b10)];
@@ -26,7 +26,7 @@ struct Game_00496b10 {
 };
 #pragma pack(pop)
 
-extern Game_00496b10* g_game;
+extern Game* g_game;
 
 void FUN_00425a90();
 void __stdcall FUN_00434ab0(int param);

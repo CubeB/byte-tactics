@@ -7,14 +7,14 @@ struct Vec3_00474d50 {
 };
 
 #pragma pack(push, 1)
-struct Game_00474d50 {
+struct Game {
     char unknown_0[0x147cf];
     void* unknown_147cf;            // +0x147cf
     void* unknown_147d3;            // +0x147d3
 };
 #pragma pack(pop)
 
-extern Game_00474d50* g_game;
+extern Game* g_game;
 
 // Declared returning int: the original uses the full eax without masking it.
 int __stdcall FUN_004b7f60(void* ptr);

@@ -46,7 +46,7 @@ struct Gadget_004478b0 {
     int field_c;                        // +0xc
 };
 
-struct Game_004478b0 {
+struct Game {
     char unknown_0[0x519];
     char gui[0x531 - 0x519];            // +0x519
     Layer_004478b0* table;              // +0x531
@@ -63,7 +63,7 @@ struct Game_004478b0 {
 };
 #pragma pack(pop)
 
-extern Game_004478b0* g_game;
+extern Game* g_game;
 
 Gadget_004478b0* __stdcall FUN_004aa8f0(char* sub, const char* name, int flags);
 void __stdcall FUN_00447150(void* gadget);

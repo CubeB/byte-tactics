@@ -104,7 +104,7 @@ struct UnitDef_0042dcf0 {
     char unknown_245[0x249 - 0x245];   // +0x245
 };
 
-struct Game_0042dcf0 {
+struct Game {
     char unknown_0[0x1438f];
     int unitDefCount;                  // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -115,7 +115,7 @@ struct Game_0042dcf0 {
 };
 #pragma pack(pop)
 
-extern Game_0042dcf0* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);

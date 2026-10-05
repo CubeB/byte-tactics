@@ -9,13 +9,13 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_0044f6e0 {
+struct Game {
     char unknown_0[0x14207];
     Class_0040eb30* field_14207;       // +0x14207
 };
 #pragma pack(pop)
 
-extern Game_0044f6e0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x44f6e0
 void FUN_0044f6e0()

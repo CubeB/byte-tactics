@@ -9,7 +9,7 @@ struct Entry_0042a010 {
     int* field_40;                     // +0x40
 };
 
-struct Game_0042a010 {
+struct Game {
     char unknown_0[0x147ab];
     int count;                         // +0x147ab
     Entry_0042a010* entries;           // +0x147af
@@ -26,7 +26,7 @@ struct Game_0042a010 {
 };
 #pragma pack(pop)
 
-extern Game_0042a010* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d85a0(int* param_1);
 

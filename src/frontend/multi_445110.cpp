@@ -66,7 +66,7 @@ struct Gui_00445110 {
     Layout_00445110* layout;           // +0x0c
 };
 
-struct Game_00445110 {
+struct Game {
     char unknown_0[0x519];
     Sub_00445110 sub;                  // +0x519
     char unknown_529[0x1b63 - 0x529];
@@ -78,7 +78,7 @@ struct Game_00445110 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_00445110* g_game;
+extern Game* g_game;
 
 Gui_00445110* __stdcall FUN_004aa8f0(Sub_00445110* sub, const char* name, int flags);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);

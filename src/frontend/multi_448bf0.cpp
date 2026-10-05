@@ -18,14 +18,14 @@ struct Player_448bf0 {
     char unknown_2b[0x14b - 0x2b];
 };
 
-struct Game_448bf0 {
+struct Game {
     char unknown_0[0x519];
     char unknown_519[0x1b63 - 0x519]; // +0x519
     Player_448bf0 players[10];       // +0x1b63
 };
 #pragma pack(pop)
 
-extern Game_448bf0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, char value);
 

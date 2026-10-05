@@ -35,13 +35,13 @@ struct Menu_0044b990 {
 };
 
 #pragma pack(push, 1)
-struct Game_0044b990 {
+struct Game {
     char unknown_0[0x519];
     Menu_0044b990 menu;                // +0x519
 };
 #pragma pack(pop)
 
-extern Game_0044b990* g_game;
+extern Game* g_game;
 extern char* DAT_005091c8;             // savegame directory
 extern char* DAT_005129ac;             // savegame names
 extern char* DAT_005129b0;             // savegame descriptions

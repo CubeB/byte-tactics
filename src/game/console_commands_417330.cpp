@@ -2,14 +2,14 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_00417330 {
+struct Game {
     char unknown_0[0x38a53];
     char path[0x20c];                  // +0x38a53
     int valueSet;                      // +0x38c5f
 };
 #pragma pack(pop)
 
-extern Game_00417330* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 // Command arguments.

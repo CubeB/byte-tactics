@@ -23,7 +23,7 @@ struct Menu_45c3f0 {
 };
 
 #pragma pack(push, 1)
-struct Game_45c3f0 {
+struct Game {
     char unknown_0[0x10];
     Class_004ce7e0* field_10;         // +0x10
     char unknown_14[0x519 - 0x14];
@@ -35,7 +35,7 @@ struct Game_45c3f0 {
 };
 #pragma pack(pop)
 
-extern Game_45c3f0* g_game;
+extern Game* g_game;
 extern int DAT_00512fe0;
 
 int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);

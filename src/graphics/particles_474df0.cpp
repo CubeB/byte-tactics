@@ -25,7 +25,7 @@ struct Record_00474cd0 {
 };
 
 #pragma pack(push, 1)
-struct Game_00474cd0 {
+struct Game {
     char unknown_0[0x147cf];
     void* unknown_147cf;
     void* unknown_147d3;
@@ -34,7 +34,7 @@ struct Game_00474cd0 {
 };
 #pragma pack(pop)
 
-extern Game_00474cd0* g_game;
+extern Game* g_game;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
 class Class_00471cc0 {

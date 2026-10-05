@@ -17,7 +17,7 @@
 #include <stdio.h>
 
 #pragma pack(push, 1)
-struct Game_00429870 {
+struct Game {
     char pad_0[0x147a7];
     int baseHeight;  // +0x147a7
     char pad_147ab[0x10];
@@ -90,7 +90,7 @@ struct Game_00429870 {
 };
 #pragma pack(pop)
 
-extern Game_00429870* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 void* __stdcall FUN_00429700(char* name);

@@ -85,13 +85,13 @@ struct Lists_00471fd0 {
 };
 
 #pragma pack(push, 1)
-struct Game_00471fd0 {
+struct Game {
     char unknown_0[0x38d77];
     Lists_00471fd0* lists;             // +0x38d77
 };
 #pragma pack(pop)
 
-extern Game_00471fd0* g_game;
+extern Game* g_game;
 
 // Appends to one list, dropping its oldest entry once it holds 400 or more.
 static void __stdcall Add(Lists_00471fd0* l, short index, Class_00471cc0* p)

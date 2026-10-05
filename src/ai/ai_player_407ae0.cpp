@@ -32,7 +32,7 @@
 #include <vector>
 
 #pragma pack(push, 1)
-struct Game_00407ae0 {
+struct Game {
     char unknown_0[0x14223];
     int baseX;                         // +0x14223
     int baseY;                         // +0x14227
@@ -41,7 +41,7 @@ struct Game_00407ae0 {
 };
 #pragma pack(pop)
 
-extern Game_00407ae0* g_game;
+extern Game* g_game;
 
 struct FixedParts_00407ae0 {
     unsigned int frac : 16;

@@ -15,7 +15,7 @@
 // padded `lea ecx, [eax*8 + 0]`.
 //
 #pragma pack(push, 1)
-struct Game_0045ead0 {
+struct Game {
     char unknown_0[0x519];
     char window[0x1434d - 0x519];     // +0x519
     unsigned char field_1434d;         // +0x1434d
@@ -48,7 +48,7 @@ struct Gadget_0045ead0 {
     int field_60;                      // +0x60
 };
 
-extern Game_0045ead0* g_game;
+extern Game* g_game;
 extern int DAT_00512f2c;
 extern unsigned char DAT_00512f49;
 extern unsigned char DAT_00512f4a;

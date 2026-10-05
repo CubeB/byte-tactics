@@ -64,7 +64,7 @@ struct Pool_00423c50 {
     int freeHead;                      // +0x10
 };
 
-struct Game_00423c50 {
+struct Game {
     char unknown_0[0x1420b];
     Pool_00423c50 pool;                // +0x1420b
     char unknown_1421f[0x14233 - 0x1421f];
@@ -77,7 +77,7 @@ struct Game_00423c50 {
 };
 #pragma pack(pop)
 
-extern Game_00423c50* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004246b0(Cell_00423c50* cell, int flag);
 void __stdcall FUN_004232f0(int index, int* head);

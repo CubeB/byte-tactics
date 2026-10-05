@@ -44,14 +44,14 @@ struct Menu_0045bb00 {
     Layer_0045bb00* layer;          // +0x18
 };
 
-struct Game_0045bb00 {
+struct Game {
     char unknown_0[0x37f1b];
     int width;                      // +0x37f1b
     int height;                     // +0x37f1f
 };
 #pragma pack(pop)
 
-extern Game_0045bb00* g_game;
+extern Game* g_game;
 
 Entry_0045bb00* __stdcall FUN_004a0180(Entry_0045bb00* entries, char* name);
 
@@ -61,7 +61,7 @@ void __stdcall FUN_0045bb00(Menu_0045bb00* param_1, Video_0045bb00* param_2)
     int i = 0;
     int count = param_2->field_14a->count;
     if (count > 0) {
-        Game_0045bb00* g = g_game;
+        Game* g = g_game;
         int w = g->width;
         Mode_0045bb00* m = param_2->field_14a->modes;
         do {

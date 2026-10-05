@@ -37,7 +37,7 @@ struct FeatureDef_00422ea0 {
 };
 
 #pragma pack(push, 1)
-struct Game_00422ea0 {
+struct Game {
     char unknown_0[0x14253];
     int featureCount;                   // +0x14253
     char unknown_14257[0x1426f - 0x14257];
@@ -47,7 +47,7 @@ struct Game_00422ea0 {
 };
 #pragma pack(pop)
 
-extern Game_00422ea0* g_game;
+extern Game* g_game;
 extern List_00422ea0* DAT_00511fb4;
 extern char DAT_005119b8[];
 

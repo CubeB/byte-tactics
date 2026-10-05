@@ -155,7 +155,7 @@ struct Layer_00448c70 {
 };
 
 #pragma pack(push, 1)
-struct Game_00448c70 {
+struct Game {
     char unknown_0[0x519];
     char gui[0x531 - 0x519];            // +0x519
     Layer_00448c70* table;              // +0x531
@@ -178,7 +178,7 @@ struct Game_00448c70 {
 };
 #pragma pack(pop)
 
-extern Game_00448c70* g_game;
+extern Game* g_game;
 
 int FUN_004a50b0();
 char* __stdcall FUN_004b6af0(int list, int index);

@@ -43,7 +43,7 @@ struct Object_0045d7c0 {
     void (__cdecl* callback1c)();      // +0x1c
 };
 
-struct Game_0045d7c0 {
+struct Game {
     char unknown_0[0x10];
     Class_004ce7c0* sound;             // +0x10
     char unknown_14[0x519 - 0x14];
@@ -59,7 +59,7 @@ struct Game_0045d7c0 {
 };
 #pragma pack(pop)
 
-extern Game_0045d7c0* g_game;
+extern Game* g_game;
 extern int DAT_00512fe0;
 
 Object_0045d7c0* FUN_0045cfc0();

@@ -25,7 +25,7 @@ struct Player_00464060 {                // 0x14b bytes
     char unknown_2b[0x14b - 0x2b];
 };
 
-struct Game_00464060 {
+struct Game {
     char unknown_0[0xdcb];
     unsigned char colors[16];           // +0xdcb
     char unknown_ddb[0x12ef - 0xddb];
@@ -45,7 +45,7 @@ struct Game_00464060 {
 };
 #pragma pack(pop)
 
-extern Game_00464060* g_game;
+extern Game* g_game;
 
 struct Rect_00464060 {
     int left, top, right, bottom;

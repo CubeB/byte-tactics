@@ -3,14 +3,14 @@
 // 0x4292e0, inlined twice.
 
 #pragma pack(push, 1)
-struct Game_0042a320 {
+struct Game {
     char unknown_0[0x391f9];
     void* field_391f9;                 // +0x391f9
     void* field_391fd;                 // +0x391fd
 };
 #pragma pack(pop)
 
-extern Game_0042a320* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall FUN_004bbe50(char* path, int flags);

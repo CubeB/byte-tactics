@@ -22,13 +22,13 @@ struct Menu_0044b600 {
 };
 
 #pragma pack(push, 1)
-struct Game_0044b600 {
+struct Game {
     char unknown_0[0x519];
     Menu_0044b600 menu;                // +0x519
 };
 #pragma pack(pop)
 
-extern Game_0044b600* g_game;
+extern Game* g_game;
 extern char* DAT_005129b0;
 extern char DAT_005119b8[];
 

@@ -9,7 +9,7 @@ class Class_004a1250;
 class Object_004a1450;
 
 #pragma pack(push, 1)
-struct Game_0045d130 {
+struct Game {
     char unknown_0[0x519];
     char gui[0x37f14 - 0x519];          // +0x519
     char notrak;                         // +0x37f14
@@ -18,7 +18,7 @@ struct Game_0045d130 {
 };
 #pragma pack(pop)
 
-extern Game_0045d130* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_004a1250(Class_004a1250* obj, char* name, int value);

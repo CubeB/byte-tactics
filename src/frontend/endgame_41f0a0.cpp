@@ -75,7 +75,7 @@ struct Player_0041f0a0 {                 // 0x14b bytes
     char unknown_2b[0x14b - 0x2b];
 };
 
-struct Game_0041f0a0 {
+struct Game {
     char unknown_0[0x519];
     Menu_0041f0a0 menu;                  // +0x519
     char unknown_535[0x1b63 - 0x535];
@@ -102,7 +102,7 @@ struct Game_0041f0a0 {
 };
 #pragma pack(pop)
 
-extern Game_0041f0a0* g_game;
+extern Game* g_game;
 
 void FUN_004257a0();
 void __stdcall FUN_004c6890(int param_1, int param_2);

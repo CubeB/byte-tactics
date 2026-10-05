@@ -14,13 +14,13 @@ struct Player_467c00 {
     PlayerData_467c00* data;           // +0x27
 };
 
-struct Game_467c00 {
+struct Game {
     char unknown_0[0x148db];
     void* logos32;                     // +0x148db
 };
 #pragma pack(pop)
 
-extern Game_467c00* g_game;
+extern Game* g_game;
 
 struct Rect_467c00 {
     int left;                          // +0

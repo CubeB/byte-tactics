@@ -66,7 +66,7 @@ struct Player_00475470 {
     char unknown_88[0x14b - 0x88];
 };
 
-struct Game_00475470 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00475470 players[10];       // +0x1b63
     char unknown_2851[0x2a43 - 0x2851];
@@ -82,7 +82,7 @@ struct Game_00475470 {
 };
 #pragma pack(pop)
 
-extern Game_00475470* g_game;
+extern Game* g_game;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
 class Class_00471cc0 {

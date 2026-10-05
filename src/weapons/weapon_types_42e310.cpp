@@ -51,13 +51,13 @@ struct Weapon_0042e310 {
     char unknown_10b[0x115 - 0x10b];
 };
 
-struct Game_0042e310 {
+struct Game {
     char unknown_0[0x2cf3];
     Weapon_0042e310 weapons[0x100];    // +0x2cf3
 };
 #pragma pack(pop)
 
-extern Game_0042e310* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_004bca30(const char* pattern, int flags, std::vector<Class_004c91a0>* out);

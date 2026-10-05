@@ -84,7 +84,7 @@ struct Player_00457540 {               // 0x14b bytes
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_00457540 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00457540 players[10];       // +0x1b63
     char unknown_2851[0x391ed - 0x2851];
@@ -121,7 +121,7 @@ struct TeamPacket_00457540 {           // 3 bytes
 };
 #pragma pack(pop)
 
-extern Game_00457540* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
 void __stdcall FUN_004573d0(Player_00457540* player, Player_00457540* target,

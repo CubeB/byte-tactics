@@ -14,13 +14,13 @@ struct Player_0044fed0 {
     char unknown_74[0x14b - 0x73 - 1];
 };
 
-struct Game_0044fed0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_0044fed0 players[10];        // +0x1b63
 };
 #pragma pack(pop)
 
-extern Game_0044fed0* g_game;
+extern Game* g_game;
 
 static inline int GetPlayerField_0044fed0(unsigned char i)
 {

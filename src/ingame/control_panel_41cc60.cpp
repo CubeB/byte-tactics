@@ -16,7 +16,7 @@ struct CursorState_0041cc60 {
     int field_28;                      // +0x28
 };
 
-struct Game_0041cc60 {
+struct Game {
     char unknown_0[0x2c76];
     Rect_0041cc60 view;                // +0x2c76
     char unknown_2c8e[0x2cc7 - 0x2c8e];
@@ -32,7 +32,7 @@ struct Game_0041cc60 {
 };
 #pragma pack(pop)
 
-extern Game_0041cc60* g_game;
+extern Game* g_game;
 
 void FUN_004c2470();
 int FUN_004b6700();

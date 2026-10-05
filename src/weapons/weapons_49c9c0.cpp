@@ -115,7 +115,7 @@ struct Fire_0049c9c0 {
 };
 
 #pragma pack(push, 1)
-struct Game_0049c9c0 {
+struct Game {
     char unknown_0[0x141f3];
     int projectileCount;               // +0x141f3
     Proj_0049c9c0* projectiles;        // +0x141f7
@@ -124,7 +124,7 @@ struct Game_0049c9c0 {
 };
 #pragma pack(pop)
 
-extern Game_0049c9c0* g_game;
+extern Game* g_game;
 extern char* DAT_00509678[];
 
 int __cdecl FUN_004b715a(int x, int z);

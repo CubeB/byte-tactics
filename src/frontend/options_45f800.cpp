@@ -9,7 +9,7 @@ struct Sub_0045f800 {
 };
 
 #pragma pack(push, 1)
-struct Game_0045f800 {
+struct Game {
     char unknown_0[0x519];
     Sub_0045f800 sub;                  // +0x519
 };
@@ -27,7 +27,7 @@ struct Info_0045f800 {
     int (__stdcall* handler)(void*);   // +0x8
 };
 
-extern Game_0045f800* g_game;
+extern Game* g_game;
 
 Info_0045f800* __stdcall FUN_004aa8f0(Sub_0045f800* sub, const char* name, int flags);
 int __stdcall FUN_0049fdf0(Entry_0045f800* info, const char* name, int type);

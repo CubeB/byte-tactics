@@ -37,7 +37,7 @@ struct Def_0046e160 {
     char unknown_245[0x249 - 0x245];
 };
 
-struct Game_0046e160 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                         // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -81,7 +81,7 @@ public:
     void FUN_0046e160();
 };
 
-extern Game_0046e160* g_game;
+extern Game* g_game;
 
 void FUN_00428fe0();
 void FUN_00428fc0();

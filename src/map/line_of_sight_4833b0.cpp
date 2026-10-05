@@ -30,7 +30,7 @@ struct Net_004833b0 {
     int field_d44;                     // +0xd44
 };
 
-struct Game_004833b0 {
+struct Game {
     char unknown_0[0x14223];
     int baseX;                         // +0x14223, map size in x
     int baseY;                         // +0x14227, map size in y
@@ -47,7 +47,7 @@ struct Game_004833b0 {
 };
 #pragma pack(pop)
 
-extern Game_004833b0* g_game;
+extern Game* g_game;
 
 static inline Cell_004833b0* GetCell(int x, int y)
 {

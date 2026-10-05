@@ -58,7 +58,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_0046bae0 {
+struct Game {
     char unknown_0[0x14383];
     Vec3_0046bae0* scratch;            // +0x14383
     Point_0046bae0* points;            // +0x14387
@@ -66,7 +66,7 @@ struct Game_0046bae0 {
 };
 #pragma pack(pop)
 
-extern Game_0046bae0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004b6cc0(Vec3_0046bae0* in, Vec3_0046bae0* out, short* angles);
 int __stdcall FUN_004b7ee0(short* ref);

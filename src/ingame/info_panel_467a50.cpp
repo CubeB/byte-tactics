@@ -33,7 +33,7 @@ struct Point_00467a50 {
 };
 
 #pragma pack(push, 1)
-struct Game_00467a50 {
+struct Game {
     char unknown_0[0xdd5];
     unsigned char color;                  // +0xdd5
     char unknown_dd6[0x14383 - 0xdd6];
@@ -42,7 +42,7 @@ struct Game_00467a50 {
 };
 #pragma pack(pop)
 
-extern Game_00467a50* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004b6cc0(Vec3_00467a50* in, Vec3_00467a50* out, short* angles);
 void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);

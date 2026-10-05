@@ -53,7 +53,7 @@ struct Data_00481140 {
     Unit* unit;                        // +0x0c
 };
 
-struct Game_00481140 {
+struct Game {
     char unknown_0[0x147f7];
     void* sources[6];                  // +0x147f7
 };
@@ -76,7 +76,7 @@ struct Header_00481140 {
 
 struct Vec3_00481140 { int x, y, z; };
 
-extern Game_00481140* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b6c30(int range);
 void __stdcall FUN_00421620(Header_00481140* h);

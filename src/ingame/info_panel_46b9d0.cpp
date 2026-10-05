@@ -4,7 +4,7 @@
 // selects a colour from the table at g_game+0xdcb.
 
 #pragma pack(push, 1)
-struct Game_0046b9d0 {
+struct Game {
     char unknown_0[0xdcb];
     unsigned char colors[0x1431f - 0xdcb];
     int scroll_x;                       // +0x1431f
@@ -24,7 +24,7 @@ struct Rect_0046b9d0 {
     int y2;
 };
 
-extern Game_0046b9d0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00485010(void* p);
 void __stdcall FUN_004bf8c0(void* surface, void* rect, int color);

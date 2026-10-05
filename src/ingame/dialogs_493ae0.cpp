@@ -16,7 +16,7 @@ struct Player_00493ae0 {
     char unknown_146[0x14b - 0x146];   // +0x146
 };
 
-struct Game_00493ae0 {
+struct Game {
     char unknown_0[0x1b63];            // +0x0000
     Player_00493ae0 players[10];       // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];// +0x2851
@@ -30,7 +30,7 @@ struct Game_00493ae0 {
 struct Object_004a0570;
 struct Class_004a1080;
 
-extern Game_00493ae0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004a0570(Object_004a0570* obj, char* name, int value);
 int __stdcall FUN_004a1080(Class_004a1080* obj, char* name, char value);

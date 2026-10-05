@@ -50,7 +50,7 @@ struct UnitDef_00431740 {
     char unknown_245[0x249 - 0x245];
 };
 
-struct Game_00431740 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                         // +0x1438f
     char unknown_14393[8];
@@ -60,7 +60,7 @@ struct Game_00431740 {
 };
 #pragma pack(pop)
 
-extern Game_00431740* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d8780(void* param_1);
 void __cdecl FUN_004d8710(void* param_1);

@@ -34,7 +34,7 @@ struct Gadget_00442a30 {
 };
 
 #pragma pack(push, 1)
-struct Game_00442a30 {
+struct Game {
     char unknown_0[0x519];
     void* menu;                        // +0x519
     char unknown_51d[0x531 - 0x51d];
@@ -49,7 +49,7 @@ struct Game_00442a30 {
 };
 #pragma pack(pop)
 
-extern Game_00442a30* g_game;
+extern Game* g_game;
 extern char* DAT_00512980;
 extern Entry_00442a30* DAT_00512988;
 extern char* DAT_0051298c;

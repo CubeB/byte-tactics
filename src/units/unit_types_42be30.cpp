@@ -19,7 +19,7 @@ struct Entry_0042be30 {             // 0x249 bytes
     unsigned short* items;          // +0x156
     char unknown_15a[0x249 - 0x15a];
 };
-struct Game_0042be30 {
+struct Game {
     char unknown_0[0x1438f];
     int count1;                     // +0x1438f
     char unknown_14393[8];
@@ -30,7 +30,7 @@ struct Game_0042be30 {
 };
 #pragma pack(pop)
 
-extern Game_0042be30* g_game;
+extern Game* g_game;
 
 unsigned short __stdcall FUN_00488b10(char* name);
 void __cdecl FUN_004d8710(void* p);

@@ -8,7 +8,7 @@ struct Item_004795e0 {
 };
 
 #pragma pack(push, 1)
-struct Game_004795e0 {
+struct Game {
     char unknown_0[0x29a0];
     Item_004795e0* items;              // +0x29a0
     char unknown_29a4[0x38d81 - 0x29a4];
@@ -16,7 +16,7 @@ struct Game_004795e0 {
 };
 #pragma pack(pop)
 
-extern Game_004795e0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x4795e0
 int FUN_004795e0()

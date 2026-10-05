@@ -170,13 +170,13 @@ struct Entry_00462d90 {
 };
 
 #pragma pack(push, 1)
-struct Game_00462f30 {
+struct Game {
     char unknown_0[0x38a47];
     int tick;                          // +0x38a47
 };
 #pragma pack(pop)
 
-extern Game_00462f30* g_game;
+extern Game* g_game;
 
 class Class_0044f9c0 {
 public:

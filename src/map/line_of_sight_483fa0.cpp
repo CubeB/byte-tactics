@@ -26,7 +26,7 @@ struct IconSet_00483fa0 {
     unsigned char* data;               // +0x4, 32x32 icons, 0x400 bytes each
 };
 
-struct Game_00483fa0 {
+struct Game {
     char unknown_0[0x14233];
     int mapWidth;                      // +0x14233
     char unknown_14237[0x14283 - 0x14237];
@@ -59,7 +59,7 @@ struct Bitmap_00483fa0 {
 };
 #pragma pack(pop)
 
-extern Game_00483fa0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004b8150(void* dst, Bitmap_00483fa0* bmp, int x, int y);
 void __stdcall FUN_004c6e70(void* dst, int x, int y, unsigned char* pix);

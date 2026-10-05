@@ -27,7 +27,7 @@ struct Gadget_00440d70 {
     int field_60;                     // +0x60, gadget that was clicked (-1 = close)
 };
 
-struct Game_00440d70 {
+struct Game {
     char unknown_0[0x2bc0];
     unsigned char field_2bc0;         // +0x2bc0, pending front-end state
     char gameName[0x11];              // +0x2bc1
@@ -36,7 +36,7 @@ struct Game_00440d70 {
 };
 #pragma pack(pop)
 
-extern Game_00440d70* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fdf0(Entry_00440d70* entries, const char* name, int flag);
 int __stdcall FUN_0049fd60(Gadget_00440d70* gadget, const char* name);

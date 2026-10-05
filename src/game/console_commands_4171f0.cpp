@@ -15,7 +15,7 @@ struct Player_004171f0 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_004171f0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_004171f0 players[10];       // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -23,7 +23,7 @@ struct Game_004171f0 {
 };
 #pragma pack(pop)
 
-extern Game_004171f0* g_game;
+extern Game* g_game;
 
 // Command arguments.
 class Class_004b73e0 {

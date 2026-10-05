@@ -53,7 +53,7 @@ struct Sub_00495010 {
     char unknown_0[0x10];
 };
 
-struct Game_00495010 {
+struct Game {
     char unknown_0[0x519];
     Sub_00495010 sub;                  // +0x519
     char unknown_529[0x1b63 - 0x529];
@@ -72,10 +72,10 @@ struct Game_00495010 {
 struct Gadget_00495010 {
     char unknown_0[0x8];
     void (__stdcall* handler)(Gadget_00495010*); // +0x8
-    Game_00495010* owner;              // +0xc
+    Game* owner;                       // +0xc
 };
 
-extern Game_00495010* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 int __stdcall FUN_004ab060(Sub_00495010* sub, const char* name);

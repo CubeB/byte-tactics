@@ -72,7 +72,7 @@ struct Player_004948e0 {               // 0x14b bytes
     char unknown_149[0x14b - 0x149];
 };
 
-struct Game_004948e0 {
+struct Game {
     char unknown_0[0x531];
     Team_004948e0* teams;              // +0x531
     char unknown_535[0x57d - 0x535];
@@ -92,7 +92,7 @@ struct Game_004948e0 {
 };
 #pragma pack(pop)
 
-extern Game_004948e0* g_game;
+extern Game* g_game;
 extern unsigned char DAT_0051f2c8[10];
 extern unsigned char DAT_0051e810[10];
 extern int DAT_0051f2d8;

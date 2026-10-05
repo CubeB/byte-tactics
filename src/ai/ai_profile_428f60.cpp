@@ -10,13 +10,13 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_00428f60 {
+struct Game {
     char unknown_0[0x391e9];
     Class_004356c0* field_391e9;       // +0x391e9
 };
 #pragma pack(pop)
 
-extern Game_00428f60* g_game;
+extern Game* g_game;
 
 class Class_00428f60 {
 public:

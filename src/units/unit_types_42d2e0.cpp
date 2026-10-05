@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // MATCH (deepseek-v4.1-flash). The 96.8 residual was one loop-carried CSE: the units loop's
 // latch loaded g_game->field_1438f into ecx and the idiv reused it (`idiv ecx`) with g_game
-// parked in edi. Reading the divisor through a body-local pointer (`Game_0042d2e0* gp = g_game;`
+// parked in edi. Reading the divisor through a body-local pointer (`Game* gp = g_game;`
 // then `gp->field_1438f`) makes that load a different value, so it rematerialises as
 // `idiv [ecx+0x1438f]`, g_game takes ecx, and the mov cx placement and lea order follow.
 // `else break;` in the GUI suffix do-while fixes the tail (`jmp`, not test/jne) and is exactly
@@ -252,7 +252,7 @@ struct Class_00440290 {
     static Class_00440290 DAT_00512358;
 };
 
-struct Game_0042d2e0 {
+struct Game {
     char unknown_0[0xc];
     void* field_c;
     char unknown_10[0x14377 - 0x10];
@@ -274,7 +274,7 @@ struct Game_0042d2e0 {
 };
 #pragma pack(pop)
 
-extern Game_0042d2e0* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
@@ -416,7 +416,7 @@ void FUN_0042d2e0() {
 
     for (unsigned short u = 1; u < g_game->field_1438f; u++) {
         Class_0042b370* type = &g_game->field_1439b[u];
-        Game_0042d2e0* gp = g_game;
+        Game* gp = g_game;
         g_game->field_38d71 = (unsigned char)((u * 100) / gp->field_1438f);
         type->field_21e = u;
         FUN_004290f0(path, "units", type->name, "FBI");

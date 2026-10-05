@@ -1,13 +1,13 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_00416a90 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char field_1427f;         // +0x1427f
 };
 #pragma pack(pop)
 
-extern Game_00416a90* g_game;
+extern Game* g_game;
 
 // Command arguments.
 class Class_004b73e0 {

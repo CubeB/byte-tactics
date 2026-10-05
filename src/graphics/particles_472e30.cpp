@@ -11,7 +11,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_00472e30 {
+struct Game {
     char unknown_0[0x1431f];
     short field_1431f;                 // +0x1431f
     char unknown_14321[2];
@@ -19,7 +19,7 @@ struct Game_00472e30 {
 };
 #pragma pack(pop)
 
-extern Game_00472e30* g_game;
+extern Game* g_game;
 
 struct Class_00472e30 {
     char unknown_0[0xc];

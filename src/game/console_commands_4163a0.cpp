@@ -2,7 +2,7 @@
 // Console command handler (same family as 0x4163d0); the argument is unused.
 
 #pragma pack(push, 1)
-struct Game_004163a0 {
+struct Game {
     char unknown_0[0x2c8e];
     short x;                         // +0x2c8e
     short y;                         // +0x2c90
@@ -11,7 +11,7 @@ struct Game_004163a0 {
 };
 #pragma pack(pop)
 
-extern Game_004163a0* g_game;
+extern Game* g_game;
 
 void* __stdcall FUN_00481550(int x, int y);
 void __stdcall FUN_004246b0(void* target, int flag);

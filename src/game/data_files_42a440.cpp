@@ -2,7 +2,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_0042a440 {
+struct Game {
     char unknown_0[0x148df];
     int count;                         // +0x148df
     int* texturePtrs;                  // +0x148e3
@@ -18,7 +18,7 @@ struct FindData_0042a440 {
     char name[260];                    // +0x14
 };
 
-extern Game_0042a440* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bc930(const char* path, int flag);

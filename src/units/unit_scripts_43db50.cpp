@@ -26,13 +26,13 @@ struct Unit {
     unsigned int flags;                // +0x110
 };
 
-struct Game_0043db50 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;            // +0x1427f
 };
 #pragma pack(pop)
 
-extern Game_0043db50* g_game;
+extern Game* g_game;
 
 class Class_0043db50 {
 public:

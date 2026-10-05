@@ -133,7 +133,7 @@ struct Params_482830 {
     Pos_482830 pos;               // +0x10
 };
 
-struct Game_482830 {
+struct Game {
     char unknown_0[0x14281];
     unsigned char flags;          // +0x14281
     char unknown_14282[0x1485b - 0x14282];
@@ -141,7 +141,7 @@ struct Game_482830 {
 };
 #pragma pack(pop)
 
-extern Game_482830* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004825b0(Params_482830* params);
 void __stdcall FUN_00482270(Params_482830* params);

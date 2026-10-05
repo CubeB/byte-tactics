@@ -31,13 +31,13 @@ struct Player_0048f6b0 {
     char name[0x232];                  // +0x00
 };
 
-struct Game_0048f6b0 {
+struct Game {
     char unknown_0[0x37f5f];
     Player_0048f6b0 players[10];       // +0x37f5f
 };
 #pragma pack(pop)
 
-extern Game_0048f6b0* g_game;
+extern Game* g_game;
 
 class Class_0048f6b0 {
 public:

@@ -7,14 +7,14 @@ struct Unit {
     char unknown_114[0x118 - 0x114];
 };
 
-struct Game_00416460 {
+struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
     Unit* units_end;                   // +0x1435b
 };
 #pragma pack(pop)
 
-extern Game_00416460* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x416460
 void __stdcall FUN_00416460(int unused)

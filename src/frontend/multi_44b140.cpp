@@ -16,7 +16,7 @@ struct Sub_0044b140 {
     char unknown_5e[0x62 - 0x5e];
 };
 
-struct Game_0044b140 {
+struct Game {
     char unknown_0[0x1438f];
     int field_1438f;                   // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -24,7 +24,7 @@ struct Game_0044b140 {
 };
 #pragma pack(pop)
 
-extern Game_0044b140* g_game;
+extern Game* g_game;
 extern Sub_0044b140* DAT_005129b4;
 
 // Reads pairs of ints from a binary file given by `name`. For each pair the

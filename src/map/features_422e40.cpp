@@ -2,7 +2,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_00422e40 {
+struct Game {
     char unknown_0[0x14253];
     int nameCount;              // +0x14253
     char unknown_14257[0x1426f - 0x14257];
@@ -10,7 +10,7 @@ struct Game_00422e40 {
 };
 #pragma pack(pop)
 
-extern Game_00422e40* g_game;
+extern Game* g_game;
 
 unsigned short __stdcall FUN_004224b0(char* name);
 

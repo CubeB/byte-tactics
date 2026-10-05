@@ -286,7 +286,7 @@ struct BuildList_0041ace0 {              // 0xbd bytes
     BuildEntry_0041ace0 entries[5];      // +0x04
 };
 
-struct Game_0041ace0 {
+struct Game {
     char unknown_0[0x519];
     Menu_0041ace0 menu;                  // +0x519
     char unknown_535[0x1b63 - 0x535];
@@ -304,7 +304,7 @@ struct Game_0041ace0 {
 };
 #pragma pack(pop)
 
-extern Game_0041ace0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bbc40(char* path);

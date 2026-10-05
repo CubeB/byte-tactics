@@ -64,7 +64,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_004244b0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_004244b0 players[10];       // +0x1b63
     char unknown_2851[0x2a43 - 0x2851];
@@ -80,7 +80,7 @@ struct Game_004244b0 {
 };
 #pragma pack(pop)
 
-extern Game_004244b0* g_game;
+extern Game* g_game;
 
 int FUN_0044fdb0();
 int FUN_00450030();

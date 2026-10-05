@@ -25,7 +25,7 @@ public:
     int field_40;
 };
 
-struct Game_0047ed40 {
+struct Game {
     char unknown_0[0xc];
     SoundParams_0047ed40* field_0c;
     Class_004cef90* field_10;
@@ -50,7 +50,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_0047ed40* g_game;
+extern Game* g_game;
 extern int DAT_0051e690;             // NoDirectSound
 extern int DAT_0051e694;             // UseWindowsSound
 extern Sound_0047ed40* DAT_0051e68c;

@@ -187,7 +187,7 @@ struct Blip_00466dc0 {
     int y;                               // +0x6
 };
 
-struct Game_00466dc0 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char currentPlayer;         // +0x2a43
     char unknown_2a44[0x2cba - 0x2a44];
@@ -228,7 +228,7 @@ struct Game_00466dc0 {
 };
 #pragma pack(pop)
 
-extern Game_00466dc0* g_game;
+extern Game* g_game;
 
 void* __stdcall FUN_004b7f30(void* a, int index);
 void __stdcall FUN_004b7f90(void* surface, void* bmp, int x, int y);

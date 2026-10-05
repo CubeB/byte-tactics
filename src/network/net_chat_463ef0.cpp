@@ -6,7 +6,7 @@ struct Entry_00463ef0 {                // 0x48 bytes
     char unknown_4[0x44];
 };
 
-struct Game_00463ef0 {
+struct Game {
     char unknown_0[0x132f];
     Entry_00463ef0 entries[30];        // +0x132f
     char unknown_1b9f[0x2a3e - 0x1b9f];
@@ -19,7 +19,7 @@ struct Game_00463ef0 {
 };
 #pragma pack(pop)
 
-extern Game_00463ef0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x463ef0
 int FUN_00463ef0()

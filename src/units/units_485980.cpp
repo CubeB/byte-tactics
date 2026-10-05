@@ -10,7 +10,7 @@ struct Unit {
     char unknown_a8[0x118 - 0xa8];
 };
 
-struct Game_00485980 {
+struct Game {
     char unknown_0[0x14357];
     Unit* units;                        // +0x14357
     Unit* units_end;                    // +0x1435b
@@ -19,7 +19,7 @@ struct Game_00485980 {
 };
 #pragma pack(pop)
 
-extern Game_00485980* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x485980
 void FUN_00485980(void)

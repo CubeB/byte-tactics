@@ -102,7 +102,7 @@ public:
     int FUN_0046e330(UnitType_0044c7e0* type, Info_0044c7e0* out);
 };
 
-struct Game_0044c7e0 {
+struct Game {
     char unknown_0[0x519];
     Gui_0044c7e0 gui;                   // +0x519
     char unknown_535[0x1b63 - 0x535];
@@ -118,7 +118,7 @@ struct Game_0044c7e0 {
 };
 #pragma pack(pop)
 
-extern Game_0044c7e0* g_game;
+extern Game* g_game;
 extern Record_0044c7e0* DAT_005129b4;
 extern int* DAT_005129b8;
 extern int* DAT_005129c4;

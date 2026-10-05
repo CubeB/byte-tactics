@@ -3,7 +3,7 @@
 // dword from the shared packet buffer.
 
 #pragma pack(push, 1)
-struct Game_00452b70 {
+struct Game {
     char unknown_0[0x2a38];
     unsigned char* buffer;             // +0x2a38
 };
@@ -22,7 +22,7 @@ public:
     int FUN_004618a0(int param_1);
 };
 
-extern Game_00452b70* g_game;
+extern Game* g_game;
 extern int DAT_00506dbc;
 extern Class_004618a0 DAT_00513000;
 

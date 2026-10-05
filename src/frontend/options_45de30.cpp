@@ -65,7 +65,7 @@ union Flags_0045de30 {
     Bits_0045de30 bits;
 };
 
-struct Game_0045de30 {
+struct Game {
     char unknown_0[0x519];
     Menu_0045de30 menu;                  // +0x519
     char unknown_535[0x37ebe - 0x535];
@@ -79,7 +79,7 @@ struct Game_0045de30 {
 };
 #pragma pack(pop)
 
-extern Game_0045de30* g_game;
+extern Game* g_game;
 
 Object_0045de30* __cdecl FUN_0045cfc0();
 void FUN_0045ce80();

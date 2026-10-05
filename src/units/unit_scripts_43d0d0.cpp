@@ -52,13 +52,13 @@ struct Owner_0043d0d0 {
     Sub_0043d0d0* sub;                 // +0x92
 };
 
-struct Game_0043d0d0 {
+struct Game {
     char unknown_0[0x14263];
     int count2;                        // +0x14263
 };
 #pragma pack(pop)
 
-extern Game_0043d0d0* g_game;
+extern Game* g_game;
 void __cdecl FUN_004b7173(short angle, int* xz);
 int __cdecl FUN_004b715a(int x, int z);
 

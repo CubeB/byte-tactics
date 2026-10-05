@@ -8,13 +8,13 @@
 #include <vector>
 
 #pragma pack(push, 1)
-struct Game_00472d50 {
+struct Game {
     char unknown_0[0x38a47];
     int field_38a47;                      // +0x38a47
 };
 #pragma pack(pop)
 
-extern Game_00472d50* g_game;
+extern Game* g_game;
 
 class Class_00473560 {                   // vector element, 0x34 bytes
 public:

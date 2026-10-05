@@ -7,7 +7,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_00416550 {
+struct Game {
     char pad0[0x1437b];
     Class_00437c80* obj;               // +0x1437b
     char pad1[0x37f06 - 0x1437f];
@@ -17,7 +17,7 @@ struct Game_00416550 {
 };
 #pragma pack(pop)
 
-extern Game_00416550* g_game;
+extern Game* g_game;
 
 void FUN_00430f00();
 

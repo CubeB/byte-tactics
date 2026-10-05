@@ -56,7 +56,7 @@ struct Map_00465ac0 {
     char unknown_0[0x7c];
     ByteMap_00465ac0 explored;           // +0x7c
 };
-struct Game_00465ac0 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char playerIndex;           // +0x2a43
     char unknown_2a44[0x14273 - 0x2a44];
@@ -105,7 +105,7 @@ struct Pos_00465ac0 {                   // 16.16 fixed point
 };
 #pragma pack(pop)
 
-extern Game_00465ac0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00408090(Map_00465ac0* map, Position_00465ac0* pos);
 

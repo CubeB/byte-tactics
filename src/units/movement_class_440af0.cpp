@@ -35,7 +35,7 @@ struct Record_00440af0 {
     char unknown_114[0x118 - 0x114];
 };
 
-struct Game_00440af0 {
+struct Game {
     char unknown_0[0x14357];
     Record_00440af0* units;            // +0x14357
     Record_00440af0* units_end;        // +0x1435b
@@ -44,7 +44,7 @@ struct Game_00440af0 {
 };
 #pragma pack(pop)
 
-extern Game_00440af0* g_game;
+extern Game* g_game;
 
 class Class_00440830 {
 public:

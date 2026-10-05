@@ -184,7 +184,7 @@ struct Def_0046d2e0 {                  // 0x249 bytes
     unsigned int flags;                // +0x245
 };
 
-struct Game_0046d2e0 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                         // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -192,7 +192,7 @@ struct Game_0046d2e0 {
 };
 #pragma pack(pop)
 
-extern Game_0046d2e0* g_game;
+extern Game* g_game;
 
 class Class_0046d040 {
 public:

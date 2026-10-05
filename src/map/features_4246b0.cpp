@@ -45,7 +45,7 @@ struct Spot_004246b0 {
     char unknown_8[0x30 - 8];
 };
 
-struct Game_004246b0 {
+struct Game {
     char unknown_0[0x1420b];
     Spot_004246b0* spots;              // +0x1420b
     char unknown_1420f[0x1421b - 0x1420f];
@@ -59,7 +59,7 @@ struct Game_004246b0 {
 };
 #pragma pack(pop)
 
-extern Game_004246b0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004232f0(int index, int* head);
 void __stdcall FUN_0045aaa0(void* state);

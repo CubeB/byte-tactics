@@ -8,7 +8,7 @@ struct Sub_0041f760 {
 };
 
 #pragma pack(push, 1)
-struct Game_0041f760 {
+struct Game {
     char unknown_0[0x519];
     Sub_0041f760 sub;                  // +0x519
     char unknown_529[0x37e1b - 0x529];
@@ -26,7 +26,7 @@ struct Display_0041f760 {
     int y;                             // +0xd8
 };
 
-extern Game_0041f760* g_game;
+extern Game* g_game;
 
 Display_0041f760* FUN_004b6220(void);
 void __stdcall FUN_004c6b70(void* dest, void* image, int x, int y);

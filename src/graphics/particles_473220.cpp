@@ -2,13 +2,13 @@
 // Virtual method (slot 5 of the vtable at 0x4fd5f8).
 
 #pragma pack(push, 1)
-struct Game_00473220 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int now;                  // +0x38a47
 };
 #pragma pack(pop)
 
-extern Game_00473220* g_game;
+extern Game* g_game;
 
 class Class_00473220 {
 public:

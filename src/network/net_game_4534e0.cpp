@@ -15,7 +15,7 @@
 // headers never changes this now.
 
 #pragma pack(push, 1)
-struct Game_004534e0 {
+struct Game {
     char unknown_0[0x2a34];
     int field_2a34;                    // +0x2a34
     unsigned char* buffer;             // +0x2a38
@@ -24,7 +24,7 @@ struct Game_004534e0 {
 };
 #pragma pack(pop)
 
-extern Game_004534e0* g_game;
+extern Game* g_game;
 extern int DAT_00506dbc;
 
 class Class_00462f30 {

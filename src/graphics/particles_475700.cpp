@@ -13,7 +13,7 @@ void* __stdcall FUN_004b7f30(void* a, int b);
 void __stdcall FUN_004b8500(void* dest, void* src, int x, int y);
 
 #pragma pack(push, 1)
-struct Game_00475700 {
+struct Game {
     char unknown_0[0x1431f];
     short field_1431f;                 // +0x1431f
     char unknown_14321[2];
@@ -21,7 +21,7 @@ struct Game_00475700 {
 };
 #pragma pack(pop)
 
-extern Game_00475700* g_game;
+extern Game* g_game;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
 class Class_00471cc0 {

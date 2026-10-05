@@ -27,13 +27,13 @@ struct Player_00486460 {
     char name[0x232];                  // +0x00
 };
 
-struct Game_00486460 {
+struct Game {
     char unknown_0[0x37f5f];
     Player_00486460 players[10];       // +0x37f5f
 };
 #pragma pack(pop)
 
-extern Game_00486460* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x486460
 int __stdcall FUN_00486460(Unit* unit)

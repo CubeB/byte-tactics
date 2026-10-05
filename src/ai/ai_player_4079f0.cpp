@@ -16,7 +16,7 @@ struct Class_00408cb0 {                // the owner (constructor 0x408cb0)
     Class_00407350* members[8];        // +0x11
 };
 
-struct Game_004079f0 {
+struct Game {
     char unknown_0[0x38a47];
     int ticks;                         // +0x38a47
 };
@@ -64,7 +64,7 @@ public:
     virtual void FUN_00407380();                    // slot 0, 0x4079f0
 };
 
-extern Game_004079f0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00480460(void* a, void* b, int c, int d, int* e, Vec3_00407410* pos, int f, int g);
 

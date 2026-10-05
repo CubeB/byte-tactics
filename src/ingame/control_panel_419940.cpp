@@ -16,7 +16,7 @@ struct Item_00419940 {                 // 0x249 bytes
     char name[0x249 - 0x20];           // +0x20
 };
 
-struct Game_00419940 {
+struct Game {
     char unknown_0[0x1439b];
     Item_00419940* items;              // +0x1439b
 };
@@ -32,7 +32,7 @@ struct Object_00419940 {
     Data_00419940* data;               // +0x18
 };
 
-extern Game_00419940* g_game;
+extern Game* g_game;
 
 Entry_49ff10* __stdcall FUN_0049ff10(Entry_49ff10* entries, char* name);
 

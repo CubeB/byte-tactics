@@ -15,7 +15,7 @@ struct Screen_00479bf0 {
     Holder_00479bf0* holder;           // +0x4
 };
 #pragma pack(push, 1)
-struct Game_00479bf0 {
+struct Game {
     char unknown_0[0x531];
     Screen_00479bf0* screen;           // +0x531
 };
@@ -29,7 +29,7 @@ struct Obj_00479bf0 {
     unsigned char frame;               // +0x13b
 };
 #pragma pack(pop)
-extern Game_00479bf0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x479bf0
 void __stdcall FUN_00479bf0(Obj_00479bf0* obj, char* name)

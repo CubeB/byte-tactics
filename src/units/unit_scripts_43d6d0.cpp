@@ -42,7 +42,7 @@
 
 
 #pragma pack(push, 1)
-struct Game_0043d6d0 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;                         // +0x1427f
     char unknown_14280[0x38a47 - 0x14280];
@@ -50,7 +50,7 @@ struct Game_0043d6d0 {
 };
 #pragma pack(pop)
 
-extern Game_0043d6d0* g_game;
+extern Game* g_game;
 
 #pragma pack(push, 1)
 

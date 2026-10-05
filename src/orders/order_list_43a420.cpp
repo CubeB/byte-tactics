@@ -58,7 +58,7 @@ struct UnitType_0043a420 {             // 0x249 bytes
     char unknown_242[0x249 - 0x242];
 };
 
-struct Game_0043a420 {
+struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x1438f - 0x1435b];
@@ -124,7 +124,7 @@ Entry_0043a420* __stdcall FUN_0043c6b0(Entry_0043a420* first, Entry_0043a420* la
 Unit* __stdcall FUN_00487080(unsigned short id, void* file);
 unsigned short __stdcall FUN_00488b10(const char* name);
 
-extern Game_0043a420* g_game;
+extern Game* g_game;
 extern Entry_0043a420* DAT_00512344;
 extern Entry_0043a420* DAT_00512348;
 

@@ -61,13 +61,13 @@ struct Unit {
     int flags;                         // +0x110
 };
 
-struct Game_0048b200 {
+struct Game {
     char unknown_0[0x14393];
     int field_14393;                   // +0x14393, bit count for the type index
 };
 #pragma pack(pop)
 
-extern Game_0048b200* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x48b200
 void __stdcall FUN_0048b200(Class_00415c10* stream, Unit* u)

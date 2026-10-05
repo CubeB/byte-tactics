@@ -83,7 +83,7 @@ struct Cell_00498da0 {
     char unknown_c;
 };
 
-struct Game_00498da0 {
+struct Game {
     char unknown_0[0x2c8e];
     Point_00498da0 point;              // +0x2c8e
     char unknown_2c92[0x2caa - 0x2c92];
@@ -110,7 +110,7 @@ struct Game_00498da0 {
 };
 #pragma pack(pop)
 
-extern Game_00498da0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b6720(Rect_00498da0* r, int x, int y);
 void __stdcall FUN_00484b50(int x, int y, Pos_00498da0* out);

@@ -9,12 +9,12 @@ struct Player_00467cb0 {
     unsigned short kills;              // +0xb8
 };
 
-struct Game_00467cb0 {
+struct Game {
     char unknown_0[0xdcb];
     unsigned char colors[16];          // +0xdcb
 };
 
-extern Game_00467cb0* g_game;
+extern Game* g_game;
 
 char* __stdcall FUN_004c5740(char* text);
 int FUN_004c13f0();

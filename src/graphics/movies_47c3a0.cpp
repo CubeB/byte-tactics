@@ -29,13 +29,13 @@ struct Display_0047c3a0 {
 };
 
 #pragma pack(push, 1)
-struct Game_0047c3a0 {
+struct Game {
     char unknown_0[0x37e1b];
     Display_0047c3a0* display;          // +0x37e1b
 };
 #pragma pack(pop)
 
-extern Game_0047c3a0* g_game;
+extern Game* g_game;
 
 // smackw32.dll, imported by ordinal: 19 SmackDoFrame, 21 SmackNextFrame,
 // 23 SmackToBuffer, 28 SmackToBufferRect.

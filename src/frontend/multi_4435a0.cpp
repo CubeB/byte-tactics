@@ -8,7 +8,7 @@ struct Sub_004435a0 {
     char unknown_0[0x10];
 };
 
-struct Game_004435a0 {
+struct Game {
     char unknown_0[0x519];
     Sub_004435a0 sub;                  // +0x519
 };
@@ -17,13 +17,13 @@ struct Game_004435a0 {
 struct Gadget_004435a0 {
     char unknown_0[0x8];
     void (__stdcall* handler)(void*);  // +0x8
-    Game_004435a0* field_c;            // +0xc
+    Game* field_c;                     // +0xc
     char unknown_10[0xc];
     void (__stdcall* field_1c)();      // +0x1c
 };
 
 // GLOBAL: 0x511de8
-extern Game_004435a0* g_game;
+extern Game* g_game;
 
 Gadget_004435a0* __stdcall FUN_004aa8f0(Sub_004435a0* sub, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);

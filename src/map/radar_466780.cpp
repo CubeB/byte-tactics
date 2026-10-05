@@ -49,7 +49,7 @@ struct IconSet_00466780 {
 };
 
 #pragma pack(push, 1)
-struct Game_00466780 {
+struct Game {
     char unknown_0[0x1422b];
     int mapWidth;                   // +0x1422b
     int mapHeight;                  // +0x1422f
@@ -69,7 +69,7 @@ struct Game_00466780 {
 };
 #pragma pack(pop)
 
-extern Game_00466780* g_game;
+extern Game* g_game;
 extern char DAT_005074f8[];
 extern char DAT_005074e8[];
 

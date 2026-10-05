@@ -11,7 +11,7 @@ struct Unit {
     char unknown_114[0x118 - 0x114];
 };
 
-struct Game_0048c320 {
+struct Game {
     char unknown_0[0x2a42];
     char player;                       // +0x2a42
     char unknown_2a43[0x14357 - 0x2a43];
@@ -23,7 +23,7 @@ struct Game_0048c320 {
 };
 #pragma pack(pop)
 
-extern Game_0048c320* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x48c320
 void FUN_0048c320(void)

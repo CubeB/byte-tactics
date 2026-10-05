@@ -6,7 +6,7 @@ struct Obj_004ab400;
 struct Src_004ab400;
 
 #pragma pack(push, 1)
-struct Game_00491cc0 {
+struct Game {
     char unknown_0[0x519];
     char field_519[0x2cba - 0x519];  // +0x519
     unsigned short field_2cba;       // +0x2cba
@@ -21,7 +21,7 @@ struct Game_00491cc0 {
 };
 #pragma pack(pop)
 
-extern Game_00491cc0* g_game;
+extern Game* g_game;
 
 int __cdecl FUN_004197d0(void);
 unsigned short __cdecl FUN_0048cd80(void);

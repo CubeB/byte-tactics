@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_00408bf0 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int now;                  // +0x38a47
 };
@@ -14,7 +14,7 @@ public:
     unsigned int time;                 // +0xc
 };
 
-extern Game_00408bf0* g_game;
+extern Game* g_game;
 
 class Class_00408830 {
 public:

@@ -37,7 +37,7 @@ struct Rec_482c20 {
     int field_6;                        // +0x6
 };
 
-struct Game_482c20 {
+struct Game {
     char unknown_0[0x14223];
     int field_14223;                    // +0x14223
     int field_14227;                    // +0x14227
@@ -56,7 +56,7 @@ struct Game_482c20 {
 
 #pragma pack(pop)
 
-extern Game_482c20* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x482c20
 void FUN_00482c20(void)

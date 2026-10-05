@@ -76,7 +76,7 @@ struct Anim_00439740 {
     unsigned short field_2c;          // +0x2c
 };
 
-struct Game_00439740 {
+struct Game {
     char unknown_0[0xdcf];
     unsigned char field_dcf;          // +0xdcf
     char unknown_dd0[0xdd7 - 0xdd0];
@@ -97,7 +97,7 @@ struct View_00439740 {
 
 #pragma pack(pop)
 
-extern Game_00439740* g_game;
+extern Game* g_game;
 extern Entry_00439740* DAT_00512344;
 
 int __stdcall FUN_00465ac0(Player_00439740* owner, Unit* unit);

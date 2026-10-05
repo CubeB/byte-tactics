@@ -22,7 +22,7 @@ struct Sub_0041b0f0 {
     char unknown_0[0x10];
 };
 
-struct Game_0041b0f0 {
+struct Game {
     char unknown_0[0x519];
     Sub_0041b0f0 sub;                  // +0x519
     char unknown_529[0x1b8a - 0x529];
@@ -43,7 +43,7 @@ struct Gadget_0041b0f0 {
     int field_c;                       // +0xc
 };
 
-extern Game_0041b0f0* g_game;
+extern Game* g_game;
 
 Gadget_0041b0f0* __stdcall FUN_004aa8f0(Sub_0041b0f0* sub, const char* name, int flags);
 void __stdcall FUN_0041a120(Unit* unit);

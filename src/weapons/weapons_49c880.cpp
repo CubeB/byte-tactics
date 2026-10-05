@@ -65,7 +65,7 @@ struct Projectile_0049c880 {
                                        // the register allocation of 0x49c880
 };
 
-struct Game_0049c880 {
+struct Game {
     char unknown_0[0x141f3];
     int projectileCount;               // +0x141f3
     Projectile_0049c880* projectiles;  // +0x141f7
@@ -77,7 +77,7 @@ struct Game_0049c880 {
 };
 #pragma pack(pop)
 
-extern Game_0049c880* g_game;
+extern Game* g_game;
 
 void FUN_0049ae20();
 

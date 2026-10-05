@@ -33,7 +33,7 @@ struct Map_004658e0 {
     char unknown_0[0x7c];
     ByteMap_004658e0 explored;
 };
-struct Game_004658e0 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char playerIndex;
     char unknown_2a44[0x14273 - 0x2a44];
@@ -42,7 +42,7 @@ struct Game_004658e0 {
     unsigned short flags;
 };
 #pragma pack(pop)
-extern Game_004658e0* g_game;
+extern Game* g_game;
 struct Pos_004658e0 {
     short xFrac;
     short x;

@@ -66,7 +66,7 @@ struct Obj_0047db20 {
     Flags_0047db20 flags;
 };
 
-struct Game_0047db20 {
+struct Game {
     char unknown_0[0x14233];
     int width;
     char unknown_14237[0x14287 - 0x14237];
@@ -81,7 +81,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_0047db20* g_game;
+extern Game* g_game;
 extern Class_0047db20 DAT_004fd660[];
 
 void __stdcall FUN_00483210(Point pos, Point size);

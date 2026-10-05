@@ -18,7 +18,7 @@
 //    matched by itself because the guard still differed.
 //
 // The earlier writer's two findings still hold and should not be undone:
-//  - reading the global into a local (`Game_00445450* g = g_game;`) as the
+//  - reading the global into a local (`Game* g = g_game;`) as the
 //    first statement of the loop body moves the reloaded global into ecx;
 //  - taking the field through a byte pointer (`unsigned char* f =
 //    &g->players[i].field_146;` then `*f`) stops MSVC emitting an extra
@@ -47,14 +47,14 @@ public:
     void FUN_00463c60(int param_1);
 };
 
-struct Game_00445450 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00445450 players[10];       // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
 };
 #pragma pack(pop)
 
-extern Game_00445450* g_game;
+extern Game* g_game;
 
 // Compacts the player list: finds the first slot the renumbering pass would
 // call dead, moves the next live slot into it, clears the slot it left, then
@@ -96,7 +96,7 @@ void FUN_00445450()
         ((Class_00463c60*)q)->FUN_00463c60(0);
         q->active = 0;
         for (int i = 0; i <= 10; i++) {
-            Game_00445450* g = g_game;
+            Game* g = g_game;
             unsigned char* f = &g->players[i].field_146;
             if (g->players[i].active != 0
                 && (g->players[i].type == 1 || g->players[i].type == 2

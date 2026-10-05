@@ -26,7 +26,7 @@ struct Sub_00494050 {
     char unknown_0[0x10];
 };
 
-struct Game_00494050 {
+struct Game {
     char unknown_0[0x519];
     Sub_00494050 sub;                  // +0x519
     char unknown_529[0x1b63 - 0x529];
@@ -47,12 +47,12 @@ struct Gadget_00494050 {
     char unknown_0[4];
     void* entries;                     // +0x4
     void (__stdcall* handler)(void*);  // +0x8
-    Game_00494050* owner;              // +0xc
+    Game* owner;                       // +0xc
     char unknown_10[0x20 - 0x10];
     int field_20;                      // +0x20
 };
 
-extern Game_00494050* g_game;
+extern Game* g_game;
 extern int DAT_0051f2f0;
 extern char DAT_0051e788[];
 

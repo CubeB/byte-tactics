@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_00408090 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char playerIndex;          // +0x2a43
     char unknown_2a44[0x14273 - 0x2a44];
@@ -33,7 +33,7 @@ struct Position_00408090 {              // 16.16 fixed point; only high words re
     short z;                            // +0xa
 };
 
-extern Game_00408090* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x408090
 int __stdcall FUN_00408090(Map_00408090* map, Position_00408090* pos)

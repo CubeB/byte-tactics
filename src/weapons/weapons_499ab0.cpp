@@ -56,13 +56,13 @@ struct Packet_00499ab0 {
     unsigned char f23;               // +0x23
 };
 
-struct Game_00499ab0 {
+struct Game {
     char unknown_0[0x2a44];
     unsigned short flags_2a44;       // +0x2a44
 };
 #pragma pack(pop)
 
-extern Game_00499ab0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00451df0(int player, void* data, int size);
 

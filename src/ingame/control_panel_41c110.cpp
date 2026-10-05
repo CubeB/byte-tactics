@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_0041c110 {
+struct Game {
     char unknown_0[0x2a42];
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x37ebe - 0x2a43];
@@ -16,7 +16,7 @@ struct Unit {
 };
 #pragma pack(pop)
 
-extern Game_0041c110* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x41c110
 void __stdcall FUN_0041c110(Unit* unit)

@@ -107,7 +107,7 @@ struct Event_0049d270 {
     unsigned char entryIndex;         // +0x23
 };
 
-struct Game_0049d270 {
+struct Game {
     char unknown_0[0x2a42];
     char localPlayer;                 // +0x2a42
     char unknown_2a43[0x2cf3 - 0x2a43];
@@ -121,7 +121,7 @@ struct Game_0049d270 {
 };
 #pragma pack(pop)
 
-extern Game_0049d270* g_game;
+extern Game* g_game;
 
 static inline int SamePos_0049d270(Vec3_0049d270& a, Vec3_0049d270& b)
 {

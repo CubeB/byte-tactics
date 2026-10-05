@@ -30,7 +30,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_00435da0 {
+struct Game {
     char unknown_0[0x519];
     char messages[0x37ee6 - 0x519];    // +0x519
     short maxUnits;                    // +0x37ee6
@@ -46,7 +46,7 @@ struct Game_00435da0 {
 };
 #pragma pack(pop)
 
-extern Game_00435da0* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 class Class_004c46c0 {

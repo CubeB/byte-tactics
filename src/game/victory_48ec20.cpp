@@ -39,13 +39,13 @@ struct UnitList_0048ec20 {
 };
 
 #pragma pack(push, 1)
-struct Game_0048ec20 {
+struct Game {
     char unknown_0[0x1d15];
     UnitList_0048ec20 units;           // +0x1d15
 };
 #pragma pack(pop)
 
-extern Game_0048ec20* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* str, int flag);
 

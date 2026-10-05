@@ -6,7 +6,7 @@ struct Obj_004ab400;
 struct Src_004ab400;
 
 #pragma pack(push, 1)
-struct Game_00491c80 {
+struct Game {
     char unknown_0[0x519];
     char field_519[0x2cbe - 0x519];  // +0x519
     signed char selected;            // +0x2cbe
@@ -15,7 +15,7 @@ struct Game_00491c80 {
 };
 #pragma pack(pop)
 
-extern Game_00491c80* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src);
 

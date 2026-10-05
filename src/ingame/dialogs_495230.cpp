@@ -48,7 +48,7 @@ struct Player_00495230 {
     char unknown_146[0x14b - 0x146];
 };
 
-struct Game_00495230 {
+struct Game {
     char unknown_0[0x511];
     Player_00495230* slowest;          // +0x511
     int lag;                           // +0x515
@@ -70,7 +70,7 @@ struct Game_00495230 {
 };
 #pragma pack(pop)
 
-extern Game_00495230* g_game;
+extern Game* g_game;
 
 unsigned int FUN_004b6340();
 

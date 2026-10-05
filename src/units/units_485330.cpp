@@ -12,7 +12,7 @@ struct Cell_00485330 {
     char unknown_5[0xd - 0x5];
 };
 
-struct Game_00485330 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -32,7 +32,7 @@ struct Pos_00485330 {
     Fixed_00485330 z;                   // +0x8
 };
 
-extern Game_00485330* g_game;
+extern Game* g_game;
 
 static inline Cell_00485330* GetCell(int x, int y)
 {

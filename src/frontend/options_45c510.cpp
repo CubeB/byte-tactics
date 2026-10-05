@@ -19,7 +19,7 @@ struct Holder_0045c510 {
     Gadget_0045c510* gadgets;          // +0x4
 };
 
-struct Game_0045c510 {
+struct Game {
     char unknown_0[0x10];
     Class_004ce7c0* field_10;          // +0x10
     char unknown_14[0x531 - 0x14];
@@ -29,7 +29,7 @@ struct Game_0045c510 {
 };
 #pragma pack(pop)
 
-extern Game_0045c510* g_game;
+extern Game* g_game;
 extern int DAT_00512fe0;
 
 int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);

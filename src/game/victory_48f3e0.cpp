@@ -33,13 +33,13 @@ struct UnitRange_0048f3e0 {
 };
 
 #pragma pack(push, 2)
-struct Game_0048f3e0 {
+struct Game {
     char unknown_0[0x1bca];
     UnitRange_0048f3e0 units;          // +0x1bca
 };
 #pragma pack(pop)
 
-extern Game_0048f3e0* g_game;
+extern Game* g_game;
 
 class Condition_0048f3e0 {
 public:

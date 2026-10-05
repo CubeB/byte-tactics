@@ -55,12 +55,12 @@ struct Proj_0049b3e0 {
 };
 #pragma pack(pop)
 
-struct Game_0049b3e0 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;            // +0x1427f
 };
 
-extern Game_0049b3e0* g_game;
+extern Game* g_game;
 int __stdcall FUN_00485070(Vec3_0049b3e0* pos);
 
 // FUNCTION: 0x49b3e0

@@ -70,7 +70,7 @@ struct Msg_004437c0 {                  // 0xbc bytes
     char pad_1[0x13];
 };
 
-struct Game_004437c0 {
+struct Game {
     char unknown_0[1];
     signed char version;               // +0x1
     char unknown_2[0x1b63 - 2];
@@ -95,7 +95,7 @@ struct Game_004437c0 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_004437c0* g_game;
+extern Game* g_game;
 extern unsigned char DAT_00512d90;
 extern int DAT_00512c84;
 

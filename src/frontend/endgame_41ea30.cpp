@@ -22,14 +22,14 @@ struct Holder_41ea30 {
     Entry_41ea30* entries;           // +0x04
 };
 
-struct Game_41ea30 {
+struct Game {
     char unknown_0[0x531];
     Holder_41ea30* holder;           // +0x531
 };
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_41ea30* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x41ea30
 int FUN_0041ea30(void)

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct Game_00417a60 {
+struct Game {
     char unknown_0[0x37f2f];
     unsigned char flags_37f2f;         // +0x37f2f
     char unknown_37f30[0x3923b - 0x37f30];
@@ -21,7 +21,7 @@ struct Display_00417a60 {
 };
 #pragma pack(pop)
 
-extern Game_00417a60* g_game;
+extern Game* g_game;
 
 // Command arguments.
 class Class_004b73e0 {

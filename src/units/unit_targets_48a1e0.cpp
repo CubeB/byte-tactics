@@ -58,7 +58,7 @@ struct Unit {
     unsigned short field_b8;           // +0xb8
 };
 
-struct Game_0048a1e0 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x14357 - 0x14280];
@@ -66,7 +66,7 @@ struct Game_0048a1e0 {
 };
 #pragma pack(pop)
 
-extern Game_0048a1e0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00485070(Vec3_0048a1e0* pos);
 void __stdcall FUN_0043e3c0(UnitDef_0048a1e0* def, int pos);

@@ -78,7 +78,7 @@ struct Proj_0049c740 {
     void SetOwner(Unit* u) { player = u->field_ff; owner = u; }
 };
 
-struct Game_0049c740 {
+struct Game {
     char unknown_0[0x141f3];
     int projectileCount;               // +0x141f3
     Proj_0049c740* projectiles;        // +0x141f7
@@ -90,7 +90,7 @@ struct Game_0049c740 {
 };
 #pragma pack(pop)
 
-extern Game_0049c740* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0043e1e0(Unit* unit, unsigned char weapon);
 void __stdcall FUN_0047f300(int sound, Vec3_0049c740* pos, int param_3);

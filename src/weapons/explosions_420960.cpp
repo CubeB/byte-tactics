@@ -26,14 +26,14 @@ struct List_00420960 {
 };
 
 #pragma pack(push, 1)
-struct Game_00420960 {
+struct Game {
     char unknown_0[0x1ab8f];
     List_00420960* lists[3];           // +0x1ab8f
     void* field_1ab9b;                 // +0x1ab9b
 };
 #pragma pack(pop)
 
-extern Game_00420960* g_game;
+extern Game* g_game;
 extern Class_00437a00 DAT_00511f80;
 void __cdecl FUN_004d85a0(void* p);
 

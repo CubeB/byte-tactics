@@ -117,7 +117,7 @@ struct Player_00464700 {
     unsigned short flags;              // +0x149
 };
 
-struct Game_00464700 {
+struct Game {
     char unknown_0[0x14233];
     int width;                         // +0x14233
     int height;                        // +0x14237
@@ -126,7 +126,7 @@ struct Game_00464700 {
 };
 #pragma pack(pop)
 
-extern Game_00464700* g_game;
+extern Game* g_game;
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 void __stdcall FUN_00480190(Player_00464700* p);

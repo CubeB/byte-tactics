@@ -2,7 +2,7 @@
 // Calls FUN_00483210 on the whole map, from (0, 0) with the map's size.
 
 #pragma pack(push, 1)
-struct Game_00483370 {
+struct Game {
     char unknown_0[0x14233];
     int mapWidth;                    // +0x14233
     int mapHeight;                   // +0x14237
@@ -14,7 +14,7 @@ struct Point16_00483370 {
     short y;
 };
 
-extern Game_00483370* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00483210(Point16_00483370 pos, Point16_00483370 size);
 

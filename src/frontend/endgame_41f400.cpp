@@ -31,7 +31,7 @@ struct Menu_0041f400 {
     Layer_0041f400* layer;               // +0x18
 };
 
-struct Game_0041f400 {
+struct Game {
     char unknown_0[0x519];
     Menu_0041f400 menu;                  // +0x519
     char unknown_535[0x391ab - 0x535];
@@ -42,7 +42,7 @@ struct Game_0041f400 {
 };
 #pragma pack(pop)
 
-extern Game_0041f400* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004a0570(Menu_0041f400* menu, char* name, int value);
 int __stdcall FUN_0049fdf0(Entry_0041f400* entries, char* name, int type);

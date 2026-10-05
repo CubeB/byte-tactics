@@ -79,7 +79,7 @@ struct Timers_00496790 {
     int cur[9];                        // +0x2c
 };
 
-struct Game_00496790 {
+struct Game {
     char unknown_0[0x2a44 - 0x0];
     unsigned short bit0_2a44 : 1;
     unsigned short rest_2a44 : 15;   // +0x2a44
@@ -126,7 +126,7 @@ Flags_38d75 flags_38d75;   // +0x38d75
 };
 #pragma pack(pop)
 
-extern Game_00496790* g_game;
+extern Game* g_game;
 extern int DAT_00506dbc;
 extern Class_004618a0 DAT_00513000;
 extern int DAT_0051f300;

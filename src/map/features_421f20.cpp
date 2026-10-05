@@ -46,7 +46,7 @@ struct AnimManager_00421f20 {
 };
 
 #pragma pack(push, 1)
-struct Game_00421f20 {
+struct Game {
     char unknown_0[0x141fb];
     AnimManager_00421f20 anim;         // +0x141fb
     char unknown_14273[0x1439b - 0x14273];
@@ -54,7 +54,7 @@ struct Game_00421f20 {
 };
 #pragma pack(pop)
 
-extern Game_00421f20* g_game;
+extern Game* g_game;
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 unsigned short __stdcall FUN_004224b0(char* name);

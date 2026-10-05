@@ -8,13 +8,13 @@ struct Slot_00420920 {
 };
 
 #pragma pack(push, 1)
-struct Game_00420920 {
+struct Game {
     char unknown_0[0x1ab9f];
     Slot_00420920 slots[300];          // +0x1ab9f
 };
 #pragma pack(pop)
 
-extern Game_00420920* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x420920
 Slot_00420920* FUN_00420920()

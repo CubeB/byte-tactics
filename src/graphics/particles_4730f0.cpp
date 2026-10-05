@@ -7,7 +7,7 @@
 #include <vector>
 
 #pragma pack(push, 1)
-struct Game_004730f0 {
+struct Game {
     char unknown_0[0x1431f];
     short f_1431f;                     // +0x1431f
     char unknown_14321[2];
@@ -15,7 +15,7 @@ struct Game_004730f0 {
 };
 #pragma pack(pop)
 
-extern Game_004730f0* g_game;
+extern Game* g_game;
 
 class Class_00474170 {
 public:

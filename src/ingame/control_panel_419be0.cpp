@@ -30,7 +30,7 @@ struct Entry_00419be0 {
     char unknown_13a[0x15b - 0x13a];
 };
 
-struct Game_00419be0 {
+struct Game {
     char unknown_0[0x2c76];
     char orders[0x2cc3 - 0x2c76];      // +0x2c76
     unsigned char orderMode;           // +0x2cc3
@@ -39,7 +39,7 @@ struct Game_00419be0 {
 };
 #pragma pack(pop)
 
-extern Game_00419be0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0049fed0(Entry_00419be0* entries, char* name, int index);
 void __stdcall FUN_0047f1a0(char* name, int param_2);

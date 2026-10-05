@@ -175,7 +175,7 @@ struct Name_004866d0 {
     char name[0x232];
 };
 
-struct Game_004866d0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_004866d0 players[10];        // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -202,7 +202,7 @@ struct Game_004866d0 {
 };
 #pragma pack(pop)
 
-extern Game_004866d0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00482910(void* pos, int a, int b, int c);
 unsigned char __stdcall FUN_0044fe40(int id);

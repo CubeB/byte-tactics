@@ -60,7 +60,7 @@ struct Conn_00443cb0 {                 // 0x14b bytes
     char unknown_23[0x14b - 0x23];
 };
 
-struct Game_00443cb0 {
+struct Game {
     char unknown_0[0x519];
     Sub_00443cb0 sub;                  // +0x519
     char unknown_529[0x1b63 - 0x529];
@@ -81,7 +81,7 @@ struct Game_00443cb0 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_00443cb0* g_game;
+extern Game* g_game;
 extern unsigned char DAT_00512d90;
 extern int DAT_00512c84;
 

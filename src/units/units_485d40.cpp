@@ -35,7 +35,7 @@ struct Unit_00485d40 {
     Data_00485d40* data;               // +0x18e
 };
 
-struct Game_00485d40 {
+struct Game {
     char unknown_0[0x14377];
     Class_0045ae80** definitions;      // +0x14377
 };
@@ -137,7 +137,7 @@ struct Object_00485d40 {
 };
 #pragma pack(pop)
 
-extern Game_00485d40* g_game;
+extern Game* g_game;
 
 void* __cdecl operator new(size_t size);
 ObjectState_00485d40* __stdcall FUN_0045a950(Class_0045ae80* obj, Data_00485d40* data, int player);

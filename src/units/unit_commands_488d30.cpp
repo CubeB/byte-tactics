@@ -17,7 +17,7 @@ struct Item_00488d30 {                  // 0x249 bytes
     char unknown_220[0x249 - 0x220];
 };
 
-struct Game_00488d30 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                         // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -25,7 +25,7 @@ struct Game_00488d30 {
 };
 #pragma pack(pop)
 
-extern Game_00488d30* g_game;
+extern Game* g_game;
 extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 
 // 0x40-byte set (512 bits), as in the callers 0x406db0 and 0x406e40.

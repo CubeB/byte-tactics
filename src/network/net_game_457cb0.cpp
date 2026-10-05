@@ -21,13 +21,13 @@ struct Player_00457cb0 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_00457cb0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00457cb0 players[10];       // +0x1b63
 };
 #pragma pack(pop)
 
-extern Game_00457cb0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x457cb0
 int FUN_00457cb0()

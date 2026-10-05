@@ -22,7 +22,7 @@ struct Ctx_00499890 {
 };
 
 #pragma pack(push, 1)
-struct Game_00499890 {
+struct Game {
     char unknown_0[0xc];
     Ctx_00499890* unknown_c;
     char unknown_10[0x519 - 0x10];
@@ -46,7 +46,7 @@ struct Game_00499890 {
 };
 #pragma pack(pop)
 
-extern Game_00499890* g_game;
+extern Game* g_game;
 extern char DAT_005024fc[];
 extern char DAT_0050966c[];
 

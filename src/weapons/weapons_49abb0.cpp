@@ -243,14 +243,14 @@ struct Unit {
     unsigned int state;                             // +0x110
 };
 
-struct Game_0049abb0 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char sea_level;                        // +0x1427f
 };
 
 #pragma pack(pop)
 
-extern Game_0049abb0* g_game;
+extern Game* g_game;
 
 short __stdcall FUN_0049a890(int dx, int dy, int dz, int a, int b);
 

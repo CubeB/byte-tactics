@@ -121,7 +121,7 @@ struct Player_0048ad30 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_0048ad30 {
+struct Game {
     char unknown_0[0x1b63];
     Player_0048ad30 players[10];       // +0x1b63
     char unknown_1c3f[0x2a44 - 0x1b63 - 10 * 0x14b];
@@ -174,7 +174,7 @@ void __stdcall FUN_0048ad30(void)
     unsigned char i;
     int off;
     // Declared here, after the locals, not at file scope: see the notes above.
-    extern Game_0048ad30* g_game;
+    extern Game* g_game;
     cnt = &g_game->f14353;
     *cnt = 0;
     i = 0;

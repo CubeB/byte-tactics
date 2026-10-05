@@ -2,7 +2,7 @@
 // Console command: takes a positive number from the first argument.
 
 #pragma pack(push, 1)
-struct Game_004173e0 {
+struct Game {
     char unknown_0[0x38c57];
     int value;                         // +0x38c57
     char unknown_38c5b[0x38c63 - 0x38c5b];
@@ -10,7 +10,7 @@ struct Game_004173e0 {
 };
 #pragma pack(pop)
 
-extern Game_004173e0* g_game;
+extern Game* g_game;
 
 // Command arguments.
 class Class_004b73e0 {

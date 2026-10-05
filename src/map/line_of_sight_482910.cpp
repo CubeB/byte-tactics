@@ -49,7 +49,7 @@ struct Eye_482910 {
     Pos_482910 screenPos;              // +0x20
 };
 
-struct Game_482910 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14277 - 0x2a44];
@@ -65,7 +65,7 @@ struct Game_482910 {
 };
 #pragma pack(pop)
 
-extern Game_482910* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004825b0(Eye_482910* e);
 void __stdcall FUN_00482270(Eye_482910* e);

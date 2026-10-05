@@ -34,7 +34,7 @@ struct Holder_00446310 {
     int field_37;                      // +0x37
 };
 
-struct Game_00446310 {
+struct Game {
     char unknown_0[0x531];
     Holder_00446310* holder;           // +0x531
     char unknown_535[0x1b63 - 0x535];
@@ -47,7 +47,7 @@ struct Game_00446310 {
 };
 #pragma pack(pop)
 
-extern Game_00446310* g_game;
+extern Game* g_game;
 
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);

@@ -23,7 +23,7 @@ struct Player_00451bc0 {
     char unknown_74[0x14b - 0x74];
 };
 
-struct Game_00451bc0 {
+struct Game {
     char unknown_0[0x14];
     char unknown_14[0x1b63 - 0x14];
     Player_00451bc0 players[10];         // +0x1b63
@@ -32,7 +32,7 @@ struct Game_00451bc0 {
 };
 #pragma pack(pop)
 
-extern Game_00451bc0* g_game;
+extern Game* g_game;
 extern int DAT_00506dbc;
 
 class Class_004619b0 {

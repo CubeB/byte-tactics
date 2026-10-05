@@ -209,7 +209,7 @@ struct Player_00473590 {
     char unknown_88[0x14b - 0x88];
 };
 
-struct Game_00473590 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00473590 players[10];   // +0x1b63, stride 0x14b
     char unknown_2851[0x2a43 - 0x2851];
@@ -230,7 +230,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_00473590* g_game;
+extern Game* g_game;
 
 static inline int Identity_00474170(int v) { return v; }
 

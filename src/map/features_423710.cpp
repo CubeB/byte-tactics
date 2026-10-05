@@ -34,7 +34,7 @@ struct Spot_00423710 {
     unsigned char flags;               // +0x2f
 };
 
-struct Game_00423710 {
+struct Game {
     char unknown_0[0x1420b];
     Spot_00423710* spots;              // +0x1420b
     char unknown_1420f[0x1426f - 0x1420f];
@@ -42,7 +42,7 @@ struct Game_00423710 {
 };
 #pragma pack(pop)
 
-extern Game_00423710* g_game;
+extern Game* g_game;
 
 Cell_00423710* __stdcall FUN_00481550(int x, int y);
 void __stdcall FUN_004246b0(Cell_00423710* cell, int flag);

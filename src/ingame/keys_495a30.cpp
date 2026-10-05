@@ -15,7 +15,7 @@
 // <windows.h> is load-bearing: without it the score drops to 83.3%.
 #include <windows.h>
 #pragma pack(push, 1)
-struct Game_00495a30 {
+struct Game {
     char unknown_0[0x1423b];
     int screenTilesX;                       // +0x1423b
     int screenTilesY;                       // +0x1423f
@@ -36,7 +36,7 @@ struct Game_00495a30 {
 };
 #pragma pack(pop)
 
-extern Game_00495a30* g_game;
+extern Game* g_game;
 
 struct Class_004b8da0;
 

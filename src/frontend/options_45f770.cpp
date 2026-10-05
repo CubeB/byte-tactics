@@ -5,12 +5,12 @@ struct Gadget_0045f770 {
     int field_60;                      // +0x60
 };
 
-struct Game_0045f770 {
+struct Game {
     char unknown_0[0x519];
     char field_519[1];                 // +0x519
 };
 
-extern Game_0045f770* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fd60(Gadget_0045f770* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);

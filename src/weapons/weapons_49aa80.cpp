@@ -129,14 +129,14 @@ struct Unit {
     UnitDef_0049aa80* def;             // +0x92
 };
 
-struct Game_0049aa80 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char field_1427f;         // +0x1427f
 };
 
 #pragma pack(pop)
 
-extern Game_0049aa80* g_game;
+extern Game* g_game;
 
 short __stdcall FUN_0049a890(int dx, int dy, int dz, int a, int b);
 

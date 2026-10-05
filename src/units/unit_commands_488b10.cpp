@@ -17,7 +17,7 @@ struct UnitType_00488b10 {              // 0x249 bytes
     char unknown_220[0x249 - 0x220];
 };
 
-struct Game_00488b10 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                          // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -25,7 +25,7 @@ struct Game_00488b10 {
 };
 #pragma pack(pop)
 
-extern Game_00488b10* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x488b10
 unsigned short __stdcall FUN_00488b10(const char* name)

@@ -36,7 +36,7 @@ union Flags_0045c570 {
     Bits_0045c570 bits;
 };
 
-struct Game_0045c570 {
+struct Game {
     char unknown_0[0x10];
     void* sound;                       // +0x10
     char unknown_14[0x37f08 - 0x14];
@@ -50,7 +50,7 @@ struct Game_0045c570 {
 };
 #pragma pack(pop)
 
-extern Game_0045c570* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004ba590(float value);
 

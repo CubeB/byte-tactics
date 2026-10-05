@@ -24,12 +24,12 @@ public:
     void FUN_004ce190();
 };
 
-struct Game_00426190 {
+struct Game {
     char unknown_0[0x10];
     Class_004ce190* field_10;          // +0x10
 };
 
-extern Game_00426190* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* str, int flag);
 int __stdcall FUN_004a0300(int param1, int param2, char* name);

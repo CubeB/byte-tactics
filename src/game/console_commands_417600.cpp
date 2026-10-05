@@ -6,7 +6,7 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
 #pragma pack(push, 1)
-struct Game_00417600 {
+struct Game {
     char unknown_0[0x1422b];
     int mapWidth;                      // +0x1422b
     int mapHeight;                     // +0x1422f
@@ -23,7 +23,7 @@ struct Game_00417600 {
 };
 #pragma pack(pop)
 
-extern Game_00417600* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 // Command-line arguments, as used by FUN_004b73c0 and FUN_004b73e0.

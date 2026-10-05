@@ -83,13 +83,13 @@ struct Unit {                          // 0x118 bytes
     char unknown_114[0x118 - 0x114];
 };
 
-struct Game_00488570 {
+struct Game {
     char unknown_0[0x391ed];
     Class_00490520* list;              // +0x391ed
 };
 #pragma pack(pop)
 
-extern Game_00488570* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00450010(Player_00488570* player);
 void __stdcall FUN_00451df0(int who, Packet_00488570* packet, int size);

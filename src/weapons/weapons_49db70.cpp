@@ -60,7 +60,7 @@ struct Object_0049db70 {
     short team;
 };
 
-struct Game_0049db70 {
+struct Game {
     char unknown_0[0x2a44];
     unsigned short flags;
 };
@@ -79,7 +79,7 @@ struct Packet_0049db70 {
 };
 #pragma pack(pop)
 
-extern Game_0049db70* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0043e240(Object_0049db70* obj, Vec3_0049db70* out, unsigned char weapon, int piece);
 short __cdecl FUN_004b715a(int a, int b);

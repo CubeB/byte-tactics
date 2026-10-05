@@ -3,7 +3,7 @@
 // 0x40ad20, inlined): at most once every 30 ticks.
 
 #pragma pack(push, 1)
-struct Game_0040b2c0 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int ticks;                // +0x38a47
 };
@@ -15,7 +15,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_0040b2c0* g_game;
+extern Game* g_game;
 extern Class_00409160* DAT_005119c0[];
 
 int __stdcall FUN_004b6c30(int range);

@@ -125,7 +125,7 @@ struct Pool_00424050 {
     int freeHead;                      // +0x10
 };
 
-struct Game_00424050 {
+struct Game {
     char unknown_0[0x1420b];
     Pool_00424050 pool;                // +0x1420b
     char unknown_1421f[0x14233 - 0x1421f];
@@ -147,7 +147,7 @@ struct Game_00424050 {
 };
 #pragma pack(pop)
 
-extern Game_00424050* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b8b90(Anim_00424050* anim);
 int __stdcall FUN_004b6c30(int range);

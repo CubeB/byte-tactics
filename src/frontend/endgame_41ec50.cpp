@@ -51,7 +51,7 @@ struct Options_0041ec50 {
     int difficulty;                      // +0x228
 };
 
-struct Game_0041ec50 {
+struct Game {
     char unknown_0[0x10];
     Class_004ce690* field_10;            // +0x10
     char unknown_14[0x519 - 0x14];
@@ -91,7 +91,7 @@ struct Game_0041ec50 {
 };
 #pragma pack(pop)
 
-extern Game_0041ec50* g_game;
+extern Game* g_game;
 
 void FUN_004257a0();
 void __stdcall FUN_004c6ac0(void* image);

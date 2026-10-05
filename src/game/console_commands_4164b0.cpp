@@ -17,13 +17,13 @@ public:
     void FUN_004904b0();
 };
 
-struct Game_004164b0 {
+struct Game {
     char unknown_0[0x391ed];
     Class_004904b0* field_391ed;       // +0x391ed
 };
 #pragma pack(pop)
 
-extern Game_004164b0* g_game;
+extern Game* g_game;
 
 void FUN_00486ed0(void);
 void __stdcall FUN_00486f10(unsigned char player);

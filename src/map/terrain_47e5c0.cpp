@@ -102,13 +102,13 @@ struct Grid_0047e5c0 {
     unsigned int height;                    // +0x8
 };
 
-struct Game_0047e5c0 {
+struct Game {
     char unknown_0[0x1429f];
     Grid_0047e5c0 grid;                     // +0x1429f
 };
 #pragma pack(pop)
 
-extern Game_0047e5c0* g_game;
+extern Game* g_game;
 
 // Scans every grid cell overlapping the rectangle [pos, pos+size), calling
 // visitor->FUN_0047ed30 for each object (and child) whose own rectangle overlaps.

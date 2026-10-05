@@ -64,7 +64,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_00491200 {
+struct Game {
     char unknown_0[0x10];
     void* field_10;                          // +0x10
     char unknown_14[0x519 - 0x14];
@@ -131,7 +131,7 @@ struct Game_00491200 {
 };
 #pragma pack(pop)
 
-extern Game_00491200* g_game;
+extern Game* g_game;
 
 extern const char DAT_005091d4[];          // "OFFSCREEN"
 extern const char DAT_00509268[];          // "SkirmishInfo"

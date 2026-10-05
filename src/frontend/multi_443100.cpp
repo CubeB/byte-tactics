@@ -54,7 +54,7 @@ struct Gui_00443100 {
     char unknown_0[0x18];
 };
 
-struct Game_00443100 {
+struct Game {
     char unknown_0[0x14];
     Net_00443100 net;                   // +0x14
     char unknown_4e5[0x519 - 0x4e5];
@@ -63,7 +63,7 @@ struct Game_00443100 {
 };
 #pragma pack(pop)
 
-extern Game_00443100* g_game;
+extern Game* g_game;
 extern Guid_00443100 DAT_004fcdc8;
 extern char* DAT_00512980;
 extern int DAT_00512984;

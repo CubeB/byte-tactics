@@ -17,13 +17,13 @@ struct Holder_00442970 {
     void* gadgets;                     // +0x04
 };
 
-struct Game_00442970 {
+struct Game {
     char unknown_0[0x531];
     Holder_00442970* holder;           // +0x531
 };
 #pragma pack(pop)
 
-extern Game_00442970* g_game;
+extern Game* g_game;
 extern Entry_00442970* DAT_00512988;
 
 Gadget_00442970* __stdcall FUN_0049ff90(void* gadgets, char* name);

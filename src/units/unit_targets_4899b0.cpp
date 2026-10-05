@@ -42,7 +42,7 @@ struct Def_004899b0 {
     int f245;                      // +0x245, bit 9
 };
 
-struct Game_004899b0 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char f1427f;          // +0x1427f
 };
@@ -62,7 +62,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_004899b0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x4899b0
 int Class_004899b0::FUN_004899b0(Class_004899b0* other)

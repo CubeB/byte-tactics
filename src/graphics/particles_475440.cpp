@@ -1,13 +1,13 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_00475440 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int ticks;                // +0x38a47
 };
 #pragma pack(pop)
 
-extern Game_00475440* g_game;
+extern Game* g_game;
 
 class Class_00475440 {
 public:

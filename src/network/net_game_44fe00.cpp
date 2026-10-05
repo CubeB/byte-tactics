@@ -9,14 +9,14 @@ struct PlayerStruct_44fe00 {
     char unknown_74[0x14b - 0x73 - 1];
 };
 
-struct GameState_44fe00 {
+struct Game {
     char unknown_0[0x1b63];
     PlayerStruct_44fe00 players[10];
 };
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern GameState_44fe00* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x44fe00
 int FUN_0044fe00()

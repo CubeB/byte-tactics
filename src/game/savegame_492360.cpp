@@ -50,7 +50,7 @@ struct Obj_00492360 {
     char text_11c[1];                    // +0x11c
 };
 
-struct Game_00492360 {
+struct Game {
     char unknown_0[0x519];
     char message[0x1b8a - 0x519];        // +0x519
     void* p1b8a;                         // +0x1b8a
@@ -110,7 +110,7 @@ struct Class_004b4800 { int FUN_004b4800(char* name, int def); };
 struct Class_004b48a0 { char* FUN_004b48a0(char* name, int def); };
 struct Class_004b48f0 { int FUN_004b48f0(char* name); };
 
-extern Game_00492360* g_game;
+extern Game* g_game;
 extern char* DAT_005091c8;
 extern char* DAT_0051f2e0;
 extern char* DAT_0051f2e4;

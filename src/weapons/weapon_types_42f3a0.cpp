@@ -35,13 +35,13 @@ struct Obj_0042f3a0 {
     char name[0x95];             // +0x80
 };
 
-struct Game_0042f3a0 {
+struct Game {
     char unknown_0[0x2cf3];
     Obj_0042f3a0 objs[256];      // +0x2cf3, stride 0x115
 };
 #pragma pack(pop)
 
-extern Game_0042f3a0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x42f3a0
 void FUN_0042f3a0()

@@ -10,7 +10,7 @@ struct Gadget_00443480 {
 };
 
 #pragma pack(push, 1)
-struct Game_00443480 {
+struct Game {
     char unknown_0[0x2bbf];
     unsigned char field_2bbf;          // +0x2bbf
     unsigned char field_2bc0;          // +0x2bc0
@@ -19,7 +19,7 @@ struct Game_00443480 {
 };
 #pragma pack(pop)
 
-extern Game_00443480* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fd60(Gadget_00443480* obj, char* str);
 int __stdcall FUN_0049fdf0(int a, char* name, int flag);

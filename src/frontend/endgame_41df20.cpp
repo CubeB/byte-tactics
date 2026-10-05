@@ -10,7 +10,7 @@ struct Rect_0041df20 {
 };
 
 #pragma pack(push, 1)
-struct Game_0041df20 {
+struct Game {
     char unknown_0[0x37e1f];
     int width;                         // +0x37e1f
     int height;                        // +0x37e23
@@ -21,7 +21,7 @@ struct Game_0041df20 {
 };
 #pragma pack(pop)
 
-extern Game_0041df20* g_game;
+extern Game* g_game;
 
 unsigned int __cdecl FUN_004b6340();
 void __stdcall FUN_004bf4d0(Surface_0041df20* dst, Rect_0041df20* rect, int level);

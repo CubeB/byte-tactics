@@ -43,13 +43,13 @@ struct Unit {
     unsigned int flags;                 // +0x110
 };
 
-struct Game_0048a870 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;             // +0x1427f
 };
 #pragma pack(pop)
 
-extern Game_0048a870* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00485070(Pos_0048a870* pos);
 void __stdcall FUN_0048a490(Unit* unit);

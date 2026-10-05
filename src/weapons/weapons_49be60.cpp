@@ -135,7 +135,7 @@ struct PlayerInfo_0049be60 {
     ByteMap_0049be60 explored;         // +0x7c
 };
 
-struct Game_0049be60 {
+struct Game {
     char unknown_0[0xdcb];
     unsigned char palette[0x2a];       // +0xdcb
     char unknown_df5[0x2a43 - 0xdf5];
@@ -166,7 +166,7 @@ struct Game_0049be60 {
 };
 #pragma pack(pop)
 
-extern Game_0049be60* g_game;
+extern Game* g_game;
 
 void* __stdcall FUN_004b7f30(void* gaf, int frame);
 void __stdcall FUN_004b7f90(void* dest, void* src, int x, int y);

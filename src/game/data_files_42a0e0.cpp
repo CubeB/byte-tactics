@@ -3,14 +3,14 @@
 // array that 0x415b30 walks).
 
 #pragma pack(push, 1)
-struct GameState {
+struct Game {
     char unknown_0[0x148e7];
     int count;          // +0x148e7
     void** items;       // +0x148eb
 };
 #pragma pack(pop)
 
-extern GameState* g_game;
+extern Game* g_game;
 
 // Reallocates a named block (its own file returns void; the result is used here).
 void* __cdecl FUN_004d84a0(void* param_1, const char* name, unsigned int param_3);

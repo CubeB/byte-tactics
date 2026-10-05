@@ -23,13 +23,13 @@ struct Menu_00445300 {
     Holder_00445300* holder;           // +0x18
 };
 
-struct Game_00445300 {
+struct Game {
     char unknown_0[0x519];
     Menu_00445300 menu;                // +0x519
 };
 #pragma pack(pop)
 
-extern Game_00445300* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fdf0(void* gadgets, char* name, int type);
 void __stdcall FUN_004a5d50(Menu_00445300* menu, int index);

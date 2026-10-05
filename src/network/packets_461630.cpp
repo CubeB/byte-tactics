@@ -48,13 +48,13 @@ struct Player_00461630 {
     char unknown_8[0x14b - 0x8];
 };
 
-struct Game_00461630 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00461630 players[10];       // +0x1b63
 };
 #pragma pack(pop)
 
-extern Game_00461630* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x461630
 Class_00462470* Class_00461630::FUN_00461630(int param_1, int param_2)

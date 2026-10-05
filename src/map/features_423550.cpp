@@ -74,7 +74,7 @@ struct Pool_00423550 {
 };
 
 #pragma pack(push, 1)
-struct Game_00423550 {
+struct Game {
     char unknown_0[0x1420b];
     Pool_00423550 pool;                // +0x1420b
     char unknown_1421f[0x1426f - 0x1421f];
@@ -82,7 +82,7 @@ struct Game_00423550 {
 };
 #pragma pack(pop)
 
-extern Game_00423550* g_game;
+extern Game* g_game;
 
 Cell_00423550* __stdcall FUN_00481550(int x, int y);
 void __stdcall FUN_004232f0(int index, int* head);

@@ -86,7 +86,7 @@ struct MissionFlags_0042f9a0 {
     unsigned short allMissions : 1;      // bit 0
 };
 
-struct Game_0042f9a0 {
+struct Game {
     char unknown_0[0xc];
     char* field_c;                       // +0x0c
     void* sound;                         // +0x10
@@ -144,7 +144,7 @@ struct Game_0042f9a0 {
 };
 #pragma pack(pop)
 
-extern Game_0042f9a0* g_game;
+extern Game* g_game;
 extern char DAT_00512d48[];
 extern char DAT_00512ca8[];
 

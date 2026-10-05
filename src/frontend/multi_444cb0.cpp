@@ -45,7 +45,7 @@ struct Gadget_00444cb0 {
     int field_60;                      // +0x60
 };
 
-struct Game_00444cb0 {
+struct Game {
     char unknown_0[0x531];
     Holder_00444cb0* holder;           // +0x531
     char unknown_535[0x1b63 - 0x535];
@@ -72,7 +72,7 @@ public:
     unsigned int FUN_004373a0();
 };
 
-extern Game_00444cb0* g_game;
+extern Game* g_game;
 extern char* DAT_00512990;
 
 int __stdcall FUN_0049fd60(Gadget_00444cb0* gadget, char* name);

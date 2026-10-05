@@ -12,7 +12,7 @@ struct Menu_00445e50 {
     Holder_00445e50* holder;           // +0x18
 };
 
-struct Game_00445e50;
+struct Game;
 
 typedef void (__stdcall* Callback_00445e50)(Menu_00445e50* menu, int index);
 
@@ -24,18 +24,18 @@ struct Gadget_00445e50 {
     short unknown_142;
     Callback_00445e50 callback;        // +0x144
     char unknown_148[2];
-    Game_00445e50* game;               // +0x14a
+    Game* game;                        // +0x14a
 };
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct Game_00445e50 {
+struct Game {
     char unknown_0[0x519];
     Menu_00445e50 menu;                // +0x519
 };
 #pragma pack(pop)
 
-extern Game_00445e50* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
 Gadget_00445e50* __stdcall FUN_004a0200(void* data, char* key);

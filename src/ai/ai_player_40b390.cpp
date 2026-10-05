@@ -53,7 +53,7 @@ struct Group_00409160 {
 };
 
 #pragma pack(push, 1)
-struct Game_00409160 {
+struct Game {
     char unknown_0[0x1b63];
     char players[1][0x14b];            // +0x1b63
     char unknown_1[0x14233 - 0x1b63 - 0x14b];

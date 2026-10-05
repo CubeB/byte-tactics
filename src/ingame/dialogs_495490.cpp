@@ -32,7 +32,7 @@ struct Player_495490 {                  // 0x14b bytes
 };
 
 #pragma pack(push, 1)
-struct Game_495490 {
+struct Game {
     char unknown_0[0x1b63];
     Player_495490 players[10];          // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -46,7 +46,7 @@ struct Game_495490 {
 };
 #pragma pack(pop)
 
-extern Game_495490* g_game;
+extern Game* g_game;
 extern int DAT_00506dbc;
 extern Class_004618a0 DAT_00513000;
 

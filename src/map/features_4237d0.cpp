@@ -70,7 +70,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_004237d0 {
+struct Game {
     char unknown_0[0x14233];
     int width;                         // +0x14233
     char unknown_14237[0x14253 - 0x14237];
@@ -88,7 +88,7 @@ struct Vec3_004237d0 {
     int x, y, z;
 };
 
-extern Game_004237d0* g_game;
+extern Game* g_game;
 
 Cell_004237d0* __stdcall FUN_00481550(int x, int y);
 void __stdcall FUN_00423550(int x, int z, int flag);

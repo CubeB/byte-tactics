@@ -10,7 +10,7 @@ struct UnitType_0044b230 {
     char unknown_142[0x249 - 0x142];
 };
 
-struct Game_0044b230 {
+struct Game {
     char unknown_0[0x1438f];
     int field_1438f;                   // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -19,7 +19,7 @@ struct Game_0044b230 {
 
 #pragma pack(pop)
 
-extern Game_0044b230* g_game;
+extern Game* g_game;
 extern char* DAT_005129b4;
 
 // FUNCTION: 0x44b230

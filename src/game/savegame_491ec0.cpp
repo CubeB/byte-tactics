@@ -54,7 +54,7 @@ struct Menu_00491ec0 {
     Layer_00491ec0* layer;             // +0x18
 };
 
-struct Game_00491ec0 {
+struct Game {
     char unknown_0[0x519];
     Menu_00491ec0 menu;                // +0x519
 };
@@ -75,7 +75,7 @@ public:
     void FUN_004b4ba0(char* name);
 };
 
-extern Game_00491ec0* g_game;
+extern Game* g_game;
 extern char* DAT_005091c8;
 extern char* DAT_0051f2e0;
 extern char* DAT_0051f2e4;

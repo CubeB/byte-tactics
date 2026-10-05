@@ -17,14 +17,14 @@ public:
     char unknown_c5[0x10];
 };
 
-struct Game_00409dc0 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                          // +0x1438f
 };
 #pragma pack(pop)
 
 extern Class_00409470* DAT_005119c0[];
-extern Game_00409dc0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x409dc0
 void __stdcall FUN_00409dc0(int player, unsigned int* mask, float scale, int lock)

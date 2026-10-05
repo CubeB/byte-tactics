@@ -17,7 +17,7 @@ struct Player_00494e70 {                // 0x14b bytes
     char unknown_146[0x14b - 0x146];
 };
 
-struct Game_00494e70 {
+struct Game {
     char unknown_0[0x10];
     Class_004ce680* field_10;           // +0x10
     char unknown_14[0x1b63 - 0x14];
@@ -31,7 +31,7 @@ struct Game_00494e70 {
 };
 #pragma pack(pop)
 
-extern Game_00494e70* g_game;
+extern Game* g_game;
 
 unsigned int FUN_004b6340();
 void FUN_0046c8b0();

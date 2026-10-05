@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_0040ad20 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int ticks;                // +0x38a47
 };
@@ -14,7 +14,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_0040ad20* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004b6c30(int range);
 

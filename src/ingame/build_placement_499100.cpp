@@ -26,7 +26,7 @@ struct Vec3_00499100 {
     int z;
 };
 
-struct Game_00499100 {
+struct Game {
     char unknown_0[0x519];
     char field_519[0x18];              // +0x519
     Struct_00499100* unknown_531;      // +0x531
@@ -50,7 +50,7 @@ struct Arg_00499100 {
 };
 #pragma pack(pop)
 
-extern Game_00499100* g_game;
+extern Game* g_game;
 
 void FUN_0041cc60();
 void FUN_0048bd00(void);

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct Game_00474fc0 {
+struct Game {
     char unknown_0[0x14263];
     int rise;                          // +0x14263
     char unknown_14267[0x37ecc - 0x14267];
@@ -19,7 +19,7 @@ struct Game_00474fc0 {
 };
 #pragma pack(pop)
 
-extern Game_00474fc0* g_game;
+extern Game* g_game;
 
 class Class_00474fc0 {
 public:

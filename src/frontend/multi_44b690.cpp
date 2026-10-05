@@ -32,7 +32,7 @@ struct Menu_0044b690 {
     int current;                       // +0x60
 };
 
-struct Game_0044b690 {
+struct Game {
     char unknown_0[0x519];
     Menu_0044b690 menu;                // +0x519
     char unknown_57d[0x38a51 - 0x57d];
@@ -43,7 +43,7 @@ struct Game_0044b690 {
 };
 #pragma pack(pop)
 
-extern Game_0044b690* g_game;
+extern Game* g_game;
 extern char* DAT_005091c8;             // savegame directory
 extern char DAT_005119b8[];
 extern char* DAT_005129ac;

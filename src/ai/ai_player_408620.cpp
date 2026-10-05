@@ -7,7 +7,7 @@ struct Item_00408620 {                 // 0x249 bytes
     char name[0x249 - 0x20];           // +0x20
 };
 
-struct Game_00408620 {
+struct Game {
     char unknown_0[0x1439b];
     Item_00408620* items;              // +0x1439b
 };
@@ -18,7 +18,7 @@ struct Obj_00408620 {
     int field_5c;                      // +0x5c
 };
 
-extern Game_00408620* g_game;
+extern Game* g_game;
 
 unsigned short __stdcall FUN_0040bdb0(int param_1, Obj_00408620* param_2);
 void __stdcall FUN_00419b00(char* name, Obj_00408620* param_2, int param_3);

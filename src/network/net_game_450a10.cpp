@@ -41,7 +41,7 @@ struct Player_00450a10 {
     char unknown_140[0x14b - 0x140];
 };
 
-struct Game_00450a10 {
+struct Game {
     char unknown_0[0x14];
     char net[0x1b63 - 0x14];           // +0x14
     Player_00450a10 players[10];       // +0x1b63
@@ -77,7 +77,7 @@ public:
     int FUN_00435100();
 };
 
-extern Game_00450a10* g_game;
+extern Game* g_game;
 extern int DAT_00506dbc;
 extern Class_004618a0 DAT_00513000;
 

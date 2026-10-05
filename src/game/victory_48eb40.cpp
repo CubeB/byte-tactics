@@ -4,13 +4,13 @@
 // +0x1df2 is zero, announcing "Victory Condition" once.
 
 #pragma pack(push, 1)
-struct Game_0048eb40 {
+struct Game {
     char unknown_0[0x1df2];
     short field_1df2;                  // +0x1df2
 };
 #pragma pack(pop)
 
-extern Game_0048eb40* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* str, int flag);
 

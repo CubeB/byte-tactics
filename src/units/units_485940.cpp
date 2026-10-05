@@ -8,13 +8,13 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_00485940 {
+struct Game {
     char unknown_0[0x391e9];
     Class_00435100* mode;              // +0x391e9
 };
 #pragma pack(pop)
 
-extern Game_00485940* g_game;
+extern Game* g_game;
 
 struct Item_00485940 {
     char unknown_0[4];

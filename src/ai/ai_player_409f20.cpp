@@ -10,14 +10,14 @@ public:
     char unknown_e5[0x10d - 0xe5];
 };
 
-struct Game_00409f20 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                          // +0x1438f
 };
 #pragma pack(pop)
 
 extern Class_00409160* DAT_005119c0[];
-extern Game_00409f20* g_game;
+extern Game* g_game;
 // FUNCTION: 0x409f20
 int __stdcall FUN_00409f20(int player, unsigned short index, int value)
 {

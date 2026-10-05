@@ -17,7 +17,7 @@ struct Arg_00498f70 {
     unsigned int field_8;            // +0x8
 };
 
-struct Game_00498f70 {
+struct Game {
     char unknown_0[0x519];
     char unknown_519[0x18];          // +0x519
     Struct_00498f70* ptr_531;        // +0x531
@@ -39,7 +39,7 @@ public:
     unsigned char index;
 };
 
-extern Game_00498f70* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00419670(Arg_00498f70* arg);
 void __stdcall FUN_0047f1a0(char* name, int param_2);

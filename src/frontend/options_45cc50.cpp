@@ -34,7 +34,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_0045cc50 {
+struct Game {
     char unknown_0[0x10];
     void* field_10;                    // +0x10
     char unknown_14[0x1434d - 0x14];
@@ -58,7 +58,7 @@ struct Game_0045cc50 {
 };
 #pragma pack(pop)
 
-extern Game_0045cc50* g_game;
+extern Game* g_game;
 extern int DAT_00512f2c;
 extern int DAT_00512f42;
 extern unsigned short DAT_00512f46;

@@ -18,7 +18,7 @@ struct Player_0048d420 {               // 0x14b bytes
     char unknown_6f[0x14b - 0x6f];
 };
 
-struct Game_0048d420 {
+struct Game {
     char unknown_0[0x1b63];
     Player_0048d420 players[10];       // +0x1b63, stride 0x14b
     char unknown_2851[0x2a42 - 0x2851];
@@ -29,7 +29,7 @@ struct Game_0048d420 {
 };
 #pragma pack(pop)
 
-extern Game_0048d420* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x48d420
 Unit* FUN_0048d420(void)

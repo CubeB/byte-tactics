@@ -106,7 +106,7 @@ struct Los_0047d2e0 {
     ByteMap_0047d2e0 explored;
 };
 
-struct Game_0047d2e0 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char player;
     char unknown_2a44[0x14233 - 0x2a44];
@@ -126,7 +126,7 @@ struct Game_0047d2e0 {
 };
 #pragma pack(pop)
 
-extern Game_0047d2e0* g_game;
+extern Game* g_game;
 extern int DAT_0051e684;
 extern int DAT_0051e688;
 

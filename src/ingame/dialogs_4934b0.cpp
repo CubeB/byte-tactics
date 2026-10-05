@@ -40,7 +40,7 @@ struct Player_4934b0 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Game_4934b0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_4934b0 players[10];         // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -50,7 +50,7 @@ struct Game_4934b0 {
 };
 #pragma pack(pop)
 
-extern Game_4934b0* g_game;
+extern Game* g_game;
 extern int DAT_0051e6d0[];
 
 Entry_4934b0* __stdcall FUN_0049ff90(Entry_4934b0* entries, char* name);

@@ -6,7 +6,7 @@ struct Struct_004958c0 {
 };
 
 #pragma pack(push, 1)
-struct Game_004958c0 {
+struct Game {
     char unknown_0[0x519];
     char unknown_519[0x18];          // +0x519
     Struct_004958c0* unknown_531;    // +0x531
@@ -17,7 +17,7 @@ struct Game_004958c0 {
 };
 #pragma pack(pop)
 
-extern Game_004958c0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fe60(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);

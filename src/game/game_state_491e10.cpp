@@ -7,7 +7,7 @@ struct Queue_00491e10 {
 };
 
 #pragma pack(push, 1)
-struct Game_00491e10 {
+struct Game {
     char unknown_0[0x519];
     Queue_00491e10 queue;              // +0x519
     char unknown_535[0x37e9c - 0x535];
@@ -17,7 +17,7 @@ struct Game_00491e10 {
 };
 #pragma pack(pop)
 
-extern Game_00491e10* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004ab060(Queue_00491e10* queue, char* name);
 void __stdcall FUN_004a9660(Queue_00491e10* queue);

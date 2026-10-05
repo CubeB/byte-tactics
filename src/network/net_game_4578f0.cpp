@@ -37,7 +37,7 @@ struct Net_4c9f90 {
     char unknown_0[0x4c9];
 };
 
-struct Game_004578f0 {
+struct Game {
     char unknown_0[0x14];
     Net_4c9f90 net;                    // +0x14
     char unknown_4dd[0x1b63 - 0x4dd];
@@ -58,7 +58,7 @@ struct Game_004578f0 {
 };
 #pragma pack(pop)
 
-extern Game_004578f0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00452cc0(int dpid);
 void FUN_0046c190();

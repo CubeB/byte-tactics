@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_0042bcc0 {
+struct Game {
     char unknown_0[0x1438f];
     int field_1438f;                   // +0x1438f
     char unknown_14393[8];
@@ -9,7 +9,7 @@ struct Game_0042bcc0 {
 };
 #pragma pack(pop)
 
-extern Game_0042bcc0* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d8780(void* param_1);
 void __cdecl FUN_004d85a0(int* param_1);

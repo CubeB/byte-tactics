@@ -79,7 +79,7 @@ struct Unit {
     char unknown_114[0x118 - 0x114];
 };
 
-struct Game_0048bae0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_0048bae0 players[10];       // +0x1b63, stride 0x14b
     char unknown_2851[0x2a43 - 0x2851];
@@ -99,7 +99,7 @@ struct Game_0048bae0 {
 
 #pragma pack(pop)
 
-extern Game_0048bae0* g_game;
+extern Game* g_game;
 
 Cell_0048bae0* __stdcall FUN_004815a0(Vec3_0048bae0* pos);
 int __stdcall FUN_00465ac0(Player_0048bae0* player, Unit* unit);

@@ -23,7 +23,7 @@ struct Player_0048c190 {                // 0x14b bytes
     char unknown_73[0x14b - 0x73];
 };
 
-struct Game_0048c190 {
+struct Game {
     char unknown_0[0x1b63];
     Player_0048c190 players[10];        // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -33,7 +33,7 @@ struct Game_0048c190 {
 };
 #pragma pack(pop)
 
-extern Game_0048c190* g_game;
+extern Game* g_game;
 
 static inline Unit* GetUnit_0048c190(unsigned short i)
 {

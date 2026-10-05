@@ -3,14 +3,14 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_00499a30 {
+struct Game {
     char unknown_0[0x141f3];
     int field_141f3;                   // +0x141f3
     void* field_141f7;                 // +0x141f7
 };
 #pragma pack(pop)
 
-extern Game_00499a30* g_game;
+extern Game* g_game;
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 

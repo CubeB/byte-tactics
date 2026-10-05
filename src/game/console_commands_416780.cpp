@@ -11,13 +11,13 @@ struct Obj_00416780 {
 };
 
 #pragma pack(push, 1)
-struct Game_00416780 {
+struct Game {
     char unknown_0[0x14207];
     Obj_00416780* obj;                 // +0x14207
 };
 #pragma pack(pop)
 
-extern Game_00416780* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 // Command arguments.

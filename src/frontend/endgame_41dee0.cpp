@@ -3,7 +3,7 @@
 // next tick.
 
 #pragma pack(push, 1)
-struct Game_0041dee0 {
+struct Game {
     char unknown_0[0x3905f];
     unsigned int nextTime;             // +0x3905f
     int done;                          // +0x39063
@@ -11,7 +11,7 @@ struct Game_0041dee0 {
 };
 #pragma pack(pop)
 
-extern Game_0041dee0* g_game;
+extern Game* g_game;
 
 unsigned int __cdecl FUN_004b6340();
 

@@ -8,7 +8,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Game_0041e270 {
+struct Game {
     char unknown_0[0x3905f];
     unsigned int nextTime;             // +0x3905f
     int done;                          // +0x39063
@@ -19,7 +19,7 @@ struct Game_0041e270 {
 };
 #pragma pack(pop)
 
-extern Game_0041e270* g_game;
+extern Game* g_game;
 
 unsigned int __cdecl FUN_004b6340();
 void __stdcall FUN_004ba200(unsigned char* palette, int first, int count);

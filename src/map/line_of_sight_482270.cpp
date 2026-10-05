@@ -112,7 +112,7 @@ struct Params_482270 {
     char unknown_10[0xc];              // +0x10
 };
 
-struct Game_482270 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14233 - 0x2a44];
@@ -147,7 +147,7 @@ struct Frame_482270 {
 
 #pragma pack(pop)
 
-extern Game_482270* g_game;
+extern Game* g_game;
 
 Frame_482270* __stdcall FUN_004b7f30(unsigned short* table, int index);
 

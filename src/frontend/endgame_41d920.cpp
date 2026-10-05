@@ -22,7 +22,7 @@ struct Grid_0041d920 {
     Grid_0041d920() { width = 0; height = 0; field_c = 0; cells = 0; }
 };
 
-class Game_0041d920 {
+class Game {
 public:
     int unknown_0;
     const char* build_date;            // +0x4
@@ -36,20 +36,20 @@ public:
     int field_142b3;                   // +0x142b3
     char unknown_142b7[0x3924d - 0x142b7];
 
-    Game_0041d920() : build_date("Jul 30 1998"), build_time("11:16:36"),
+    Game() : build_date("Jul 30 1998"), build_time("11:16:36"),
         field_142af(0), field_142b3(0) {}
 };
 #pragma pack(pop)
 
-extern Game_0041d920* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x41d920
 void FUN_0041d920()
 {
     unsigned int offset = GetTickCount() % 1000 * 7;
-    unsigned int size = offset + sizeof(Game_0041d920);
+    unsigned int size = offset + sizeof(Game);
     char* mem = (char*)operator new(size);
     memset(mem, 0, size);
     FUN_004d83a0((int)mem);
-    g_game = new (mem + offset) Game_0041d920;
+    g_game = new (mem + offset) Game;
 }

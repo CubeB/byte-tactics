@@ -87,7 +87,7 @@ struct Button_0041e420 {               // 0xcc bytes, passed to FUN_004ab310
     int flags;                         // +0xc8
 };
 
-struct Game_0041e420 {
+struct Game {
     char unknown_0[0x519];
     Menu_0041e420 menu;                // +0x519
     char unknown_535[0xdcf - 0x535];
@@ -107,7 +107,7 @@ struct Game_0041e420 {
 };
 #pragma pack(pop)
 
-extern Game_0041e420* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fdf0(Entry_0041e420* entries, char* name, int type);
 int FUN_004a50b0();

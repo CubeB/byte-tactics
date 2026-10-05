@@ -25,7 +25,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_0046c620 {
+struct Game {
     char unknown_0[0x14];
     Class_0046c620 net;                 // +0x14
     char unknown_25[0x2a42 - 0x14 - sizeof(Class_0046c620)];
@@ -37,7 +37,7 @@ struct Game_0046c620 {
 };
 #pragma pack(pop)
 
-extern Game_0046c620* g_game;
+extern Game* g_game;
 
 typedef int (__stdcall *SendFn_0046c620)(int, Rect_0046c620*, void*, int, Name_0046c620*,
                                          int, int, int, void*, void*);

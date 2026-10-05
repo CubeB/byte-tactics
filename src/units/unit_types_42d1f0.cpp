@@ -13,7 +13,7 @@ struct UnitType_0042d1f0 {
     char unknown_245[0x249 - 0x245];
 };
 
-struct Game_0042d1f0 {
+struct Game {
     char unknown_0[0x1439b];
     UnitType_0042d1f0* unitTypes;      // +0x1439b
 };
@@ -24,7 +24,7 @@ struct CobFile_0042d1f0 {
     int field_18e;                     // +0x18e
 };
 
-extern Game_0042d1f0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bbc40(char* path);

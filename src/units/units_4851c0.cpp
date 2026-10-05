@@ -44,7 +44,7 @@ struct Unit {
     char unknown_96[0x118 - 0x96];
 };
 
-struct Game_004851c0 {
+struct Game {
     char unknown_0[0x14233];
     int width;                         // +0x14233
     int height;                        // +0x14237
@@ -57,7 +57,7 @@ struct Game_004851c0 {
 };
 #pragma pack(pop)
 
-extern Game_004851c0* g_game;
+extern Game* g_game;
 
 struct Vec3_004851c0 {
     int x;

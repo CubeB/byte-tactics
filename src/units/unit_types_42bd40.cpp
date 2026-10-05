@@ -28,7 +28,7 @@ struct Inner_0042bd40 {                // 0xbd bytes
     char name[0xbd - 8];               // +0x8
 };
 
-struct Game_0042bd40 {
+struct Game {
     char unknown_0[0x1438f];
     int count;                         // +0x1438f
     char unknown_14393[8];
@@ -39,7 +39,7 @@ struct Game_0042bd40 {
 };
 #pragma pack(pop)
 
-extern Game_0042bd40* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d8780(void* param_1);
 void __cdecl FUN_004d8710(void* param_1);

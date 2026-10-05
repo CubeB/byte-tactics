@@ -11,7 +11,7 @@ struct Cell_00484ce0 {
     char unknown_8[0xd - 0x8];
 };
 
-struct Game_00484ce0 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -20,7 +20,7 @@ struct Game_00484ce0 {
 };
 #pragma pack(pop)
 
-extern Game_00484ce0* g_game;
+extern Game* g_game;
 
 // Chunked file writer.
 class Class_004b4560 {

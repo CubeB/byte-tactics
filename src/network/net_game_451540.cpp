@@ -15,7 +15,7 @@ struct Player_451540 {
     char unknown_2b[0x14b - 0x2b];
 };
 
-struct Game_451540 {
+struct Game {
     char unknown_0[0x14];
     char unknown_14[0x1b63 - 0x14];  // +0x14
     Player_451540 players[10];       // +0x1b63
@@ -26,7 +26,7 @@ struct Game_451540 {
 };
 #pragma pack(pop)
 
-extern Game_451540* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 void __stdcall FUN_00451090(char* name, int* d, int* c, int* b, int* a);

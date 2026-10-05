@@ -100,7 +100,7 @@ struct Cell_00424890 {
     unsigned char flags;               // +0xc
 };
 
-struct Game_00424890 {
+struct Game {
     char unknown_0[0x1420b];
     Spot_00424890* spots;              // +0x1420b
     char unknown_1420f[0x14233 - 0x1420f];
@@ -141,7 +141,7 @@ struct Model_00424890 {
 };
 #pragma pack(pop)
 
-extern Game_00424890* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x424890
 void __stdcall FUN_00424890(Class_004b4ba0* file)

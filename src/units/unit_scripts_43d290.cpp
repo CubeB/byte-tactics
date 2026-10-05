@@ -87,7 +87,7 @@ struct Unit {
     unsigned int flags_17 : 15;
 };
 
-struct Game_0043d290 {
+struct Game {
     char unknown_0[0x142b7];
     int field_142b7; // +0x142b7
 };
@@ -128,7 +128,7 @@ class Iface_0043d290 {
     virtual void v4(Vec3* a, Vec3* b, short* heading);
 };
 
-extern Game_0043d290* g_game;
+extern Game* g_game;
 
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);

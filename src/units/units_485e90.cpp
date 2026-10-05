@@ -45,13 +45,13 @@ struct Unit {
     short field_a6;                    // +0xa6
 };
 
-struct Game_00485e90 {
+struct Game {
     char unknown_0[0x1439b];
     UnitType_00485e90* unitTypes;      // +0x1439b
 };
 #pragma pack(pop)
 
-extern Game_00485e90* g_game;
+extern Game* g_game;
 extern void* DAT_004fd6f0[];
 
 class Class_0043dc00 {

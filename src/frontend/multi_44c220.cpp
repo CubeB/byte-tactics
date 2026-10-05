@@ -43,7 +43,7 @@ struct Class_0046e280 {
     int FUN_0046e280(Event_44c220* event);
 };
 
-struct Game_44c220 {
+struct Game {
     char unknown_0[0x531];
     Holder_44c220* holder;             // +0x531
     char unknown_535[0x2a30 - 0x535];
@@ -54,7 +54,7 @@ struct Game_44c220 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_44c220* g_game;
+extern Game* g_game;
 // GLOBAL: 0x5129b4
 extern Record_005129b4* DAT_005129b4;
 // GLOBAL: 0x5129c8

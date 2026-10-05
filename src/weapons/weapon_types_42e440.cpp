@@ -224,13 +224,13 @@ struct Weapon_0042e440 {
     unsigned int : 1;              // bit 31
 };
 
-struct Game_0042e440 {
+struct Game {
     char unknown_0[0x2cf3];
     Weapon_0042e440 weapons[0x100]; // +0x2cf3, stride 0x115
 };
 #pragma pack(pop)
 
-extern Game_0042e440* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);

@@ -583,7 +583,7 @@ struct UnitSlot_0047de60 {
     char unknown_4[0x118 - 0x4];
 };
 
-struct Game_0047de60 {
+struct Game {
     char unknown_0[0x14233];
     int width;                         // +0x14233
     int height;                        // +0x14237
@@ -612,7 +612,7 @@ struct Pathfinder_0047de60 {
 };
 #pragma pack(pop)
 
-extern Game_0047de60* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x47de60
 int __stdcall FUN_0047de60(Pathfinder_0047de60* obj, Cell_0047de60* cell)

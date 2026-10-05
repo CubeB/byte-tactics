@@ -32,7 +32,7 @@ struct Sub_004263b0 {
     Dialog_004263b0* current;         // +0x18
 };
 
-struct Game_004263b0 {
+struct Game {
     char unknown_0[0x10];
     void* field_10;                   // +0x10
     char unknown_14[0x519 - 0x14];
@@ -51,7 +51,7 @@ struct Entry_004263b0 {
 };
 #pragma pack(pop)
 
-extern Game_004263b0* g_game;
+extern Game* g_game;
 extern Entry_004263b0 DAT_005120bc[10];
 extern char DAT_004fd050[];
 

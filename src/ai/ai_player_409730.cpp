@@ -242,7 +242,7 @@ struct Def_00409730 {
     unsigned int bits_245_9 : 23;
 };
 
-struct Game_00409730 {
+struct Game {
     char unknown_0[0x1425f];
     int field_1425f;                   // +0x1425f
     char unknown_14263[0x1434f - 0x14263];
@@ -288,7 +288,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_00409730* g_game;
+extern Game* g_game;
 
 float __stdcall FUN_00488f30(Def_00409730* def);
 

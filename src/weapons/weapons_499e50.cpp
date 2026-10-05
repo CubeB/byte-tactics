@@ -19,7 +19,7 @@ struct Unit_499e50 {
 };
 
 #pragma pack(push, 1)
-struct Game_499e50 {
+struct Game {
     char unknown_0[0x142f7];
     Unit_499e50* tracked;        // +0x142f7
     char unknown_142fb[0x1433f - 0x142fb];
@@ -28,7 +28,7 @@ struct Game_499e50 {
 };
 #pragma pack(pop)
 
-extern Game_499e50* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x499e50
 void __stdcall FUN_00499e50(Unit_499e50* unit)

@@ -17,7 +17,7 @@ struct Projectile_0049ae20 {
     unsigned short flagRest : 14;
 };
 
-struct Game_0049ae20 {
+struct Game {
     char unknown_0[0x141f3];
     int projectileCount;                        // +0x141f3
     Projectile_0049ae20* projectiles;           // +0x141f7
@@ -26,7 +26,7 @@ struct Game_0049ae20 {
 };
 #pragma pack(pop)
 
-extern Game_0049ae20* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x49ae20
 void FUN_0049ae20()

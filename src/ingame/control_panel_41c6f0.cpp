@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct Game_0041c6f0 {
+struct Game {
     char unknown_0[0x1431f];
     int scroll_x;                    // +0x1431f
     int scroll_y;                    // +0x14323
@@ -17,7 +17,7 @@ struct Game_0041c6f0 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_0041c6f0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x41c6f0
 void FUN_0041c6f0()

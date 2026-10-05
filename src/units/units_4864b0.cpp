@@ -68,7 +68,7 @@ struct Name_4864b0 {
     char name[0x232];                  // +0x0
 };
 
-struct Game_4864b0 {
+struct Game {
     char unknown_0[0x37ef6];
     int field_37ef6;                   // +0x37ef6
     char unknown_37efa[0x37f5f - 0x37efa];
@@ -86,7 +86,7 @@ struct Cmd_4864b0 {
 };
 #pragma pack(pop)
 
-extern Game_4864b0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0044ffd0(unsigned char index);
 int __stdcall FUN_00451df0(int id, unsigned char* packet, int size);

@@ -70,7 +70,7 @@ public:
     int FUN_00437320(Vec3_00437320* out, int id);
 };
 
-struct Game_00496ee0 {
+struct Game {
     char unknown_0[0x1b63];
     PlayerRec_00496ee0 players[10];    // +0x1b63
     char unknown_2851[0x29a0 - 0x2851];
@@ -87,7 +87,7 @@ struct Game_00496ee0 {
 };
 #pragma pack(pop)
 
-extern Game_00496ee0* g_game;
+extern Game* g_game;
 
 unsigned short __stdcall FUN_00488b10(const char* name);
 void __stdcall FUN_004b6290(char* message);

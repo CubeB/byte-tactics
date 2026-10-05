@@ -54,7 +54,7 @@ struct Unit {
     char unknown_114[4];
 };
 
-struct Game_004685a0 {
+struct Game {
     char unknown_0[0xdcb];
     unsigned char colors[16];          // +0xdcb, [15] is the text colour
     char unknown_ddb[0x14357 - 0xddb];
@@ -72,7 +72,7 @@ struct Game_004685a0 {
 
 #pragma pack(pop)
 
-extern Game_004685a0* g_game;
+extern Game* g_game;
 extern int DAT_0051e540;
 
 int FUN_004c13f0();

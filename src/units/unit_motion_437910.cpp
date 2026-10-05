@@ -21,7 +21,7 @@ struct Unit {
     Class_004b0a70* script;            // +0x9a
 };
 
-struct Game_00437910 {
+struct Game {
     char unknown_0[0x37ed8];
     unsigned short windDirection;      // +0x37ed8
     int windSpeed;                     // +0x37eda
@@ -30,7 +30,7 @@ struct Game_00437910 {
 };
 #pragma pack(pop)
 
-extern Game_00437910* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x437910
 void __stdcall FUN_00437910(Unit* unit)

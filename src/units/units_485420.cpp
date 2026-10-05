@@ -5,7 +5,7 @@
 #include <math.h>
 
 #pragma pack(push, 1)
-struct Game_00485420 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -14,7 +14,7 @@ struct Game_00485420 {
 };
 #pragma pack(pop)
 
-extern Game_00485420* g_game;
+extern Game* g_game;
 
 // Copies one player's visibility bit into another player's bit on every cell.
 // FUNCTION: 0x485420

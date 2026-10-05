@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_00488f30 {
+struct Game {
     char unknown_0[0x14267];
     float field_14267;                 // +0x14267
     char unknown_1426b[0x37ede - 0x1426b];
@@ -17,7 +17,7 @@ struct Unit_00488f30 {
 };
 #pragma pack(pop)
 
-extern Game_00488f30* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x488f30
 float __stdcall FUN_00488f30(Unit_00488f30* unit)

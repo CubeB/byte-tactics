@@ -64,7 +64,7 @@ struct Menu_0045e5e0 {
     Holder_0045e5e0* holder;             // +0x18
 };
 
-struct Game_0045e5e0 {
+struct Game {
     char unknown_0[0x519];
     Menu_0045e5e0 menu;                  // +0x519 (holder at +0x531)
     char unknown_535[0x37ebe - 0x535];
@@ -79,7 +79,7 @@ struct Game_0045e5e0 {
 };
 #pragma pack(pop)
 
-extern Game_0045e5e0* g_game;
+extern Game* g_game;
 
 Layer_0045e5e0* __cdecl FUN_0045cfc0();
 void FUN_0045ce80();

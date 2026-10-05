@@ -63,12 +63,12 @@ public:
     void FUN_0046e160();
 };
 
-struct Game_00470300 {
+struct Game {
     char unknown_0[0x2a30];
     Class_0046d040* field_2a30;                    // +0x2a30
 };
 
-extern Game_00470300* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x470300 ??_GClass_0046ded0@@QAEPAXI@Z
 void FUN_0046ca60()

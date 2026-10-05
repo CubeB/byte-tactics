@@ -75,7 +75,7 @@ struct Menu_00479c50 {
     Holder_00479c50* holder;           // +0x18
 };
 
-struct Game_00479c50 {
+struct Game {
     char unknown_0[0x519];
     Menu_00479c50 menu;                // +0x519
     char unknown_535[0x38d81 - 0x535];
@@ -83,7 +83,7 @@ struct Game_00479c50 {
 };
 #pragma pack(pop)
 
-extern Game_00479c50* g_game;
+extern Game* g_game;
 
 static void __stdcall SetEntry_00479c50(Rec1_00479c50* obj, char* name)
 {

@@ -149,7 +149,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_00447b10 {
+struct Game {
     char unknown_0[0x499];
     int field_499;                      // +0x499
     char unknown_49d[0x519 - 0x49d];
@@ -188,7 +188,7 @@ struct Game_00447b10 {
 };
 #pragma pack(pop)
 
-extern Game_00447b10* g_game;
+extern Game* g_game;
 extern int DAT_00506dbc;
 extern int DAT_00512994;
 extern Class_004618a0 DAT_00513000;

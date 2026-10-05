@@ -164,7 +164,7 @@ struct Unit {
     Flags114_485a40 field_114;         // +0x114
 };
 
-struct Game_485a40 {
+struct Game {
     char unknown_0[0x2a43];
     unsigned char field_2a43;          // +0x2a43
     char unknown_2a44[0x1439b - 0x2a44];
@@ -172,7 +172,7 @@ struct Game_485a40 {
 };
 #pragma pack(pop)
 
-extern Game_485a40* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0048a160(Unit* unit, int index);
 void __stdcall FUN_00480250(Unit* unit, int param_2);

@@ -11,13 +11,13 @@
 extern "C" __declspec(dllimport) unsigned int __stdcall DAT_004fc40c(void* smack);
 
 #pragma pack(push, 1)
-struct Game_0047c6c0 {
+struct Game {
     char unknown_0[0x39241];
     int field_39241;                    // +0x39241
 };
 #pragma pack(pop)
 
-extern Game_0047c6c0* g_game;
+extern Game* g_game;
 
 class Class_0047c3a0 {
 public:

@@ -21,14 +21,14 @@ struct Player_00450090 {
     char unknown_74[0x14b - 0x74];
 };
 
-struct Game_00450090 {
+struct Game {
     char unknown_0[0x14];
     char net[0x1b63 - 0x14];           // +0x14
     Player_00450090 players[10];       // +0x1b63
 };
 #pragma pack(pop)
 
-extern Game_00450090* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004ca800(void* net, int dpid, DPNAME* name, int flags);
 

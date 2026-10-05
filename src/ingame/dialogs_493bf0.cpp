@@ -95,7 +95,7 @@ struct Flags16_00493bf0 {
     unsigned short bits9_15 : 7;
 };
 
-struct Game_00493bf0 {
+struct Game {
     char unknown_0[0x519];
     Gadget_00493bf0 gadget;            // +0x519
     char unknown_57d[0x1b63 - 0x57d];
@@ -151,7 +151,7 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
     int n;
     int d;
     // Declared here, after n and d, not at file scope: see the notes above.
-    extern Game_00493bf0* g_game;
+    extern Game* g_game;
     Entry_00493bf0* entries = gadget->layer->entries;
     if (gadget->field_60 == -1) {
         g_game->flags_37ebe &= ~4;

@@ -15,13 +15,13 @@ struct Entry_00423bf0 {
     char unknown_f8[0x100 - 0xf8];
 };
 
-struct Game_00423bf0 {
+struct Game {
     char unknown_0[0x1426f];
     Entry_00423bf0* entries;         // +0x1426f
 };
 #pragma pack(pop)
 
-extern Game_00423bf0* g_game;
+extern Game* g_game;
 
 void* __stdcall FUN_00481550(int x, int y);
 void __stdcall FUN_004246b0(void* target, int flag);

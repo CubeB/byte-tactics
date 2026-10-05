@@ -10,7 +10,7 @@ struct Settings_00496e10 {
 };
 
 #pragma pack(push, 1)
-struct Game_00496e10 {
+struct Game {
     char unknown_0[0x14281];
     unsigned short bit0 : 1;           // +0x14281, bit 0
     unsigned short bit1 : 1;           // bit 1
@@ -21,7 +21,7 @@ struct Game_00496e10 {
 };
 #pragma pack(pop)
 
-extern Game_00496e10* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x496e10
 void __stdcall FUN_00496e10(Settings_00496e10* s)

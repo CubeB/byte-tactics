@@ -14,7 +14,7 @@ struct Gadget_00460340 {
 };
 
 #pragma pack(push, 1)
-struct Game_00460340 {
+struct Game {
     char unknown_0[0x519];
     char message[0x37eee - 0x519];     // +0x519
     int difficulty;                    // +0x37eee
@@ -25,7 +25,7 @@ struct Game_00460340 {
 };
 #pragma pack(pop)
 
-extern Game_00460340* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0049fd60(Gadget_00460340* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);

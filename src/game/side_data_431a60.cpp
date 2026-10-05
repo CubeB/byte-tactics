@@ -171,14 +171,14 @@ struct Side_00431a60 {                  // 0x232 bytes
     void* font;                         // +0x22e
 };
 
-struct Game_00431a60 {
+struct Game {
     char unknown_0[0x37f39];
     int sideCount;                      // +0x37f39
     Side_00431a60 sides[2];             // +0x37f3d
 };
 #pragma pack(pop)
 
-extern Game_00431a60* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);

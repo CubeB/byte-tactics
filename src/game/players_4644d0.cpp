@@ -68,7 +68,7 @@ struct Player_004644d0 {
     void Clear() { active = 0; type = 0; }
 };
 
-struct Game_004644d0 {
+struct Game {
     char unknown_0[0x1a3f];
     PlayerInfo_004644d0* infos[11];    // +0x1a3f (addressing only, see above)
     char unknown_1a6b[0x1b63 - 0x1a6b];
@@ -83,7 +83,7 @@ struct Game_004644d0 {
 };
 #pragma pack(pop)
 
-extern Game_004644d0* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 // FUNCTION: 0x4644d0

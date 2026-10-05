@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct Game_00438070 {
+struct Game {
     char unknown_0[0x14233];
     int mapWidth;                    // +0x14233
     int mapHeight;                   // +0x14237
@@ -16,7 +16,7 @@ struct Point16_00438070 {
     short y;
 };
 
-extern Game_00438070* g_game;
+extern Game* g_game;
 extern int DAT_00512318;
 extern int DAT_0051231c;
 extern int DAT_00512324;

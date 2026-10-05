@@ -9,7 +9,7 @@
 // Writing z as a separate variable made the compiler share the constant 0x80
 // with the counter and mask in edi, which is what all the earlier notes fought.
 #pragma pack(push, 1)
-struct Game_00484b50 {
+struct Game {
     char unknown_0[0x14223];
     int baseX;                         // +0x14223
     int baseY;                         // +0x14227
@@ -18,7 +18,7 @@ struct Game_00484b50 {
 };
 #pragma pack(pop)
 
-extern Game_00484b50* g_game;
+extern Game* g_game;
 
 struct Fixed_00484b50 {
     unsigned short frac;               // +0x0

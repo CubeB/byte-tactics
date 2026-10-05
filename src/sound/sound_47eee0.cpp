@@ -143,13 +143,13 @@ public:
     void FUN_004ceee0();
 };
 
-struct Game_0047eee0 {
+struct Game {
     char unknown_0[0x10];
     Class_004d0130* sound;             // +0x10
 };
 
 extern List_0047f8c0* DAT_0051e68c;
-extern Game_0047eee0* g_game;
+extern Game* g_game;
 
 void __cdecl operator delete(void* p);
 void __cdecl FUN_004d85a0(int* data);

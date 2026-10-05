@@ -70,7 +70,7 @@ struct Node_004390a0 {
     Unit* unit;                         // +0xe
 };
 
-struct Game_004390a0 {
+struct Game {
     char unknown_0[0xdcf];
     unsigned char field_dcf;            // +0xdcf
     char unknown_dd0[0xdd7 - 0xdd0];
@@ -88,7 +88,7 @@ struct View_004390a0;
 
 #pragma pack(pop)
 
-extern Game_004390a0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00438ea0(void* surface, View_004390a0* view, Pos_004390a0* pos,
                             int value, int color, const char* text, int index);

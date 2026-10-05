@@ -65,7 +65,7 @@ struct Menu_0044c0d0 {
     Inner_0044c0d0* inner;         // +0x18
 };
 
-struct Game_0044c0d0 {
+struct Game {
     char unknown_0[0x519];
     Menu_0044c0d0 menu;            // +0x519
     char unknown_535[0x1438f - 0x535];
@@ -89,7 +89,7 @@ struct Record_0044c0d0 {
 };
 #pragma pack(pop)
 
-extern Game_0044c0d0* g_game;
+extern Game* g_game;
 extern int DAT_00512768;
 extern int DAT_0051297c;
 extern int DAT_00512978;

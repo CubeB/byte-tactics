@@ -30,7 +30,7 @@ struct Player_00453360 {
     char unknown_146[0x14b - 0x146];
 };
 
-struct Game_00453360 {
+struct Game {
     char unknown_0[0x1b63];
     Player_00453360 players[10];       // +0x1b63
     char unknown_2851[0x2a38 - 0x2851];
@@ -47,7 +47,7 @@ int __stdcall FUN_00451df0(int player, void* data, int size);
 int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
 
 // The body of FUN_0044fe00, inlined here.
-static inline int FindTarget(Game_00453360* game)
+static inline int FindTarget(Game* game)
 {
     for (int i = 0; i < 10; i++) {
         if (game->players[i].state == 1)
@@ -61,7 +61,7 @@ int __stdcall FUN_00453360(char* text)
 {
     int result;
     int i;
-    extern Game_00453360* g_game;
+    extern Game* g_game;
     g_game->buffer[0] = 5;
     strncpy(g_game->buffer + 1, text, 0x40);
 

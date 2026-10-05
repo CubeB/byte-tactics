@@ -20,13 +20,13 @@ public:
     void FUN_00463c60(int param_1);
 };
 
-struct Game_004453a0 {
+struct Game {
     char unknown_0[0x1b63];
     Player_004453a0 players[10];       // +0x1b63
 };
 #pragma pack(pop)
 
-extern Game_004453a0* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x4453a0
 void __stdcall FUN_004453a0(Player_004453a0* param_1, Player_004453a0* param_2)

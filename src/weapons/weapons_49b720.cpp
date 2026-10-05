@@ -131,7 +131,7 @@ struct Net_0049b720 {
     int field_d48;
 };
 
-struct Game_0049b720 {
+struct Game {
     char unknown_0[0x141f3];
     int projCount;                     // +0x141f3
     Proj_0049b720* projs;              // +0x141f7
@@ -159,7 +159,7 @@ struct Cell_0049b720 {
 
 #pragma pack(pop)
 
-extern Game_0049b720* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_0049ae20();
 void __stdcall FUN_0049b090(ProjType_0049b720* type, Proj_0049b720* p);

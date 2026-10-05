@@ -18,7 +18,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Game_004605c0 {
+struct Game {
     char unknown_0[0x10];
     Class_004ce690* field_10;          // +0x10
     char unknown_14[0x519 - 0x14];
@@ -27,7 +27,7 @@ struct Game_004605c0 {
 };
 #pragma pack(pop)
 
-extern Game_004605c0* g_game;
+extern Game* g_game;
 extern int DAT_00512ff8;
 
 void __stdcall FUN_0047f1a0(char* str, int flag);

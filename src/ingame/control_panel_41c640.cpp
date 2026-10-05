@@ -3,7 +3,7 @@
 #include <windows.h>
 
 #pragma pack(push, 1)
-struct Game_0041c640 {
+struct Game {
     char unknown_0[0x1432f];
     int value_1432f;                 // +0x1432f
     int value_14333;                 // +0x14333
@@ -17,7 +17,7 @@ struct Game_0041c640 {
 #pragma pack(pop)
 
 // GLOBAL: 0x511de8
-extern Game_0041c640* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x41c640
 void __stdcall FUN_0041c640(int dx, int dy, int value)

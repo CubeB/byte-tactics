@@ -14,7 +14,7 @@ struct Player_451180 {
     char unknown_2b[0x14b - 0x2b];
 };
 
-struct Game_451180 {
+struct Game {
     char unknown_0[0x14];
     char unknown_14[0x475 - 0x14];   // +0x14
     unsigned int unknown_475_0 : 5;  // +0x475
@@ -27,7 +27,7 @@ struct Game_451180 {
 };
 #pragma pack(pop)
 
-extern Game_451180* g_game;
+extern Game* g_game;
 extern char DAT_005119b8[];
 
 void __stdcall FUN_00451090(char* name, int* d, int* c, int* b, int* a);

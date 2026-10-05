@@ -85,7 +85,7 @@ struct Map_004745e0 {               // one entry of g_game->players
     char unknown_88[0x14b - 0x88];
 };
 
-struct Game_004745e0 {
+struct Game {
     char unknown_0[0x1b63];
     Map_004745e0 players[1];         // +0x1b63
     char unknown_1[0x2a43 - 0x1b63 - 0x14b];
@@ -97,7 +97,7 @@ struct Game_004745e0 {
 };
 #pragma pack(pop)
 
-extern Game_004745e0* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
 

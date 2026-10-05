@@ -5,7 +5,7 @@ struct Menu_0041f630 {
 };
 
 #pragma pack(push, 1)
-struct Game_0041f630 {
+struct Game {
     char unknown_0[0x519];
     Menu_0041f630 menu;                // +0x519
     char unknown_535[0x39057 - 0x519 - sizeof(Menu_0041f630)];
@@ -13,7 +13,7 @@ struct Game_0041f630 {
 };
 #pragma pack(pop)
 
-extern Game_0041f630* g_game;
+extern Game* g_game;
 
 void FUN_004257a0();
 void FUN_0041f0a0();

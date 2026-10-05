@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_0049c920 {
+struct Game {
     char unknown_0[0x38a47];
     unsigned int now;                  // +0x38a47
 };
@@ -24,7 +24,7 @@ struct Object_0049c920 {
 };
 #pragma pack(pop)
 
-extern Game_0049c920* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x49c920
 void __stdcall FUN_0049c920(Object_0049c920* obj)

@@ -34,12 +34,12 @@ struct Display_0047bdf0 {
     unsigned short flags;            // +0xf0
 };
 
-struct Game_0047bdf0 {
+struct Game {
     char unknown_0[0x10];
     Display_0047bdf0* display;       // +0x10
 };
 
-extern Game_0047bdf0* g_game;        // 0x511de8
+extern Game* g_game;                 // 0x511de8
 
 Display_0047bdf0* FUN_004b6220();
 void __stdcall FUN_004b6290(char* message);

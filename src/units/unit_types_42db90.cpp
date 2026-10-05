@@ -23,7 +23,7 @@ public:
     void FUN_004581c0();
 };
 
-struct Game_0042db90 {
+struct Game {
     char unknown_0[0x14377];
     void** field_14377;                // +0x14377
     Class_004581c0* field_1437b;       // +0x1437b
@@ -34,7 +34,7 @@ struct Game_0042db90 {
 };
 #pragma pack(pop)
 
-extern Game_0042db90* g_game;
+extern Game* g_game;
 
 void __cdecl FUN_004d8780(void* param_1);
 void __cdecl FUN_004d85a0(int* param_1);

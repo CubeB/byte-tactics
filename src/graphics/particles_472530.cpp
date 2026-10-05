@@ -96,13 +96,13 @@ struct Lists_00472530 {
 };
 
 #pragma pack(push, 1)
-struct Game_00472530 {
+struct Game {
     char unknown_0[0x38d77];
     Lists_00472530* lists;              // +0x38d77
 };
 #pragma pack(pop)
 
-extern Game_00472530* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x472530
 void __stdcall FUN_00472530(int param_1, int param_2, int param_3, short index)

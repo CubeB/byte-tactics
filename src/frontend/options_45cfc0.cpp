@@ -14,7 +14,7 @@ struct Menu_0045cfc0 {
     void* layer;                         // +0x18
 };
 
-struct Game_0045cfc0 {
+struct Game {
     char unknown_0[0x10];
     int* field_10;                       // +0x10
     char unknown_14[0x519 - 0x14];
@@ -37,7 +37,7 @@ struct Game_0045cfc0 {
 };
 #pragma pack(pop)
 
-extern Game_0045cfc0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_004aa8f0(void* obj, char* buf, int size);
 void __stdcall FUN_004a1250(void* obj, char* name, int value);

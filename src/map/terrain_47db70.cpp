@@ -50,7 +50,7 @@ struct Unit_0047db70 {
     unsigned char field_22f;            // +0x22f
 };
 
-struct Game_0047db70 {
+struct Game {
     char unknown_0[0x14233];
     int width;                          // +0x14233
     int height;                         // +0x14237
@@ -67,7 +67,7 @@ struct Game_0047db70 {
 };
 #pragma pack(pop)
 
-extern Game_0047db70* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_0047d2e0(Unit_0047db70* unit, Point_0047db70 cell, int unused1, int unused2);
 

@@ -2,14 +2,14 @@
 // Shows a message: mode 0 through FUN_00463ca0 (and sets a game flag),
 // mode 1 in the game's message line for half of FUN_004b6700's value.
 
-struct Game_0046bc70 {
+struct Game {
     char unknown_0[0x519];
     char message[0x2bee - 0x519];      // +0x519
     unsigned short flag0 : 1;          // +0x2bee, bit 0
     unsigned short bits1 : 15;
 };
 
-extern Game_0046bc70* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_00463ca0(char* param_1, int param_2, int param_3, int param_4);
 int __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);

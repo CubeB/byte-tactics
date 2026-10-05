@@ -16,14 +16,14 @@ struct Pos_00417bb0 {
 };
 
 #pragma pack(push, 1)
-struct Game_00417bb0 {
+struct Game {
     char unknown_0[0x1431f];
     int scroll_x;                      // +0x1431f
     int scroll_y;                      // +0x14323
 };
 #pragma pack(pop)
 
-extern Game_00417bb0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00485070(Pos_00417bb0* pos);
 void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);

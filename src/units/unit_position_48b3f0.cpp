@@ -190,14 +190,14 @@ public:
     void FUN_0048b090(unsigned char mask, int set);
 };
 
-struct Game_0048b3f0 {
+struct Game {
     char unknown_0[0x14393];
     int field_14393;                   // +0x14393, bits of the unit type index
 };
 
 #pragma pack(pop)
 
-extern Game_0048b3f0* g_game;
+extern Game* g_game;
 extern float DAT_004fd750;
 
 Class_0048b090* __stdcall FUN_004861d0(unsigned char player, Spawn_0048b3f0* spawn);

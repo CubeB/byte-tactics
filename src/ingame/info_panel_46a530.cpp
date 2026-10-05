@@ -22,7 +22,7 @@ struct Unit {
     unsigned short type;            // +0xa6
 };
 
-struct Game_0046a530 {
+struct Game {
     char unknown_0[0x1431f];
     int scroll_x;                   // +0x1431f
     int scroll_y;                   // +0x14323
@@ -41,7 +41,7 @@ struct Flags_0046a530 {
     unsigned short rest : 13;
 };
 
-extern Game_0046a530* g_game;
+extern Game* g_game;
 
 void __stdcall FUN_004cb650(Object_004cb650* obj, Vec3_0046a530* lo,
                             Vec3_0046a530* hi, int arg);

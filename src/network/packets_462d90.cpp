@@ -29,7 +29,7 @@ struct GameEntry_00462d90 {
     char unknown_4[0x14b - 4];
 };
 
-struct Game_00462d90 {
+struct Game {
     char unknown_0[0x1b67];
     GameEntry_00462d90 players[10];
 };
@@ -109,7 +109,7 @@ public:
     Entry_00462d90* FUN_00462d90(long id);
 };
 
-extern Game_00462d90* g_game;
+extern Game* g_game;
 
 // FUNCTION: 0x462d90
 Entry_00462d90* Class_00462d30::FUN_00462d90(long id)

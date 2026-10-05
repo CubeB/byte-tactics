@@ -1,7 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 
 #pragma pack(push, 1)
-struct Game_0044e6c0 {
+struct Game {
     char unknown_0[0x1427f];
     unsigned char seaLevel;            // +0x1427f
 };
@@ -26,7 +26,7 @@ public:
 };
 #pragma pack(pop)
 
-extern Game_0044e6c0* g_game;
+extern Game* g_game;
 
 int __stdcall FUN_00485070(Pos_0044e6c0* pos);
 

@@ -2,7 +2,7 @@
 #include <windows.h>
 
 #pragma pack(push, 1)
-struct Game_41c8e0 {
+struct Game {
     char unknown_0[0x1422b];
     int mapWidth;                    // +0x1422b
     int mapHeight;                   // +0x1422f
@@ -28,7 +28,7 @@ struct Pos_41c8e0 {
 };
 
 // GLOBAL: 0x511de8
-extern Game_41c8e0* g_game;
+extern Game* g_game;
 
 void FUN_0041c3c0(void);
 

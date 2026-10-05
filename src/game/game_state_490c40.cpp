@@ -20,7 +20,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct Game_00490c40 {
+struct Game {
     char unknown_0[0x1425b];
     int field_1425b;                       // +0x1425b
     int field_1425f;                       // +0x1425f
@@ -39,7 +39,7 @@ struct Game_00490c40 {
 };
 #pragma pack(pop)
 
-extern Game_00490c40* g_game;
+extern Game* g_game;
 
 // Fixed-point trig helpers, written in assembly: the angle is a short.
 int __cdecl FUN_004b70ef(short angle, int scale);

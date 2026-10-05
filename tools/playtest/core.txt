@@ -1,0 +1,213 @@
+# Core campaign: mission 1 played out, 2 and 3 through the campaign, then 10, 18 and 25 from the list (about 15 minutes, with the ending).
+#
+# Mission 1, The Commander Reactivated, has the player's units destroy an Arm
+# landing party: every unit patrols towards the Arm units for four minutes,
+# and +iwin ends it if they have not won by then. The other missions play for
+# a minute each with +nowisee before +iwin, as in arm. Winning the last
+# mission plays the Core ending.
+reg DisplaymodeDepth dword 256
+reg Games dword 1
+reg PlayMovie dword 0
+timeout 45
+start
+every 10
+until warning_ok 60 key Escape ; sleep 2
+click 377 356
+waitfor mainmenu 20
+click 187 402
+waitfor single_title 10
+click 506 145
+waitfor campaign_title 10
+# Core side; the Core campaign is fifth in its list
+click 504 261
+sleep 1
+click 150 319
+repeat 8 key Up
+repeat 4 key Down
+sleep 1
+shot campaign_core
+
+# --- mission 1, played
+click 535 431
+waitfor briefing_start 30
+shot m01_briefing
+click 547 447
+waitfor ingame_core 60
+sleep 2
+ifmatch paused key Pause
+on continue goto m01_won
+chat +nowisee
+shot m01_start
+key ctrl+a
+click 96 423
+click 40 30
+sleep 60
+shot m01_1
+key ctrl+a
+click 96 423
+click 100 30
+sleep 60
+shot m01_2
+key ctrl+a
+click 96 423
+click 20 100
+sleep 60
+shot m01_3
+key ctrl+a
+click 96 423
+click 100 100
+sleep 60
+alive
+shot m01_4
+note mission 1 not won in 4 minutes: +iwin
+on continue off
+chat +iwin
+waitfor continue 30
+label m01_won
+on continue off
+shot m01_continue
+click 320 300
+waitfor campaign_end 30
+shot m01_won
+click 520 324
+
+# --- missions 2 and 3, on through the campaign
+waitfor briefing_start 30
+shot m02_briefing
+click 547 447
+waitfor ingame_core 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m02
+chat +iwin
+waitfor continue 30
+click 320 300
+waitfor campaign_end 30
+shot m02_won
+click 520 324
+waitfor briefing_start 30
+shot m03_briefing
+click 547 447
+waitfor ingame_core 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m03
+chat +iwin
+waitfor continue 30
+click 320 300
+waitfor campaign_end 30
+shot m03_won
+click 520 404
+waitfor mainmenu 30
+
+# --- mission 10 from the list
+click 187 402
+waitfor single_title 10
+click 506 145
+waitfor campaign_title 10
+click 504 261
+sleep 1
+click 150 319
+repeat 8 key Up
+repeat 4 key Down
+sleep 1
+click 150 397
+repeat 30 key Up
+repeat 9 key Down
+sleep 1
+shot m10_list
+click 535 431
+waitfor briefing_start 30
+shot m10_briefing
+click 547 447
+waitfor ingame_core 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m10
+chat +iwin
+waitfor continue 30
+click 320 300
+waitfor campaign_end 30
+shot m10_won
+click 520 404
+waitfor mainmenu 30
+
+# --- mission 18
+click 187 402
+waitfor single_title 10
+click 506 145
+waitfor campaign_title 10
+click 504 261
+sleep 1
+click 150 319
+repeat 8 key Up
+repeat 4 key Down
+sleep 1
+click 150 397
+repeat 30 key Up
+repeat 17 key Down
+sleep 1
+shot m18_list
+click 535 431
+waitfor briefing_start 30
+shot m18_briefing
+click 547 447
+waitfor ingame_core 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m18
+chat +iwin
+waitfor continue 30
+click 320 300
+waitfor campaign_end 30
+shot m18_won
+click 520 404
+waitfor mainmenu 30
+
+# --- the last mission: its victory plays the ending and the credits
+click 187 402
+waitfor single_title 10
+click 506 145
+waitfor campaign_title 10
+click 504 261
+sleep 1
+click 150 319
+repeat 8 key Up
+repeat 4 key Down
+sleep 1
+click 150 397
+repeat 40 key Down
+sleep 1
+shot m25_list
+click 535 431
+waitfor briefing_start 30
+shot m25_briefing
+click 547 447
+waitfor ingame_core 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m25
+chat +iwin
+sleep 10
+shot m25_ending
+# the ending and the credits play, then the main menu
+waitfor mainmenu 420
+
+# --- quit
+click 457 438
+waitexit 30

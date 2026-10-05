@@ -1,0 +1,11 @@
+# Two instances, for driving multiplayer by hand (see idle).
+instances 2
+directplay
+reg DisplaymodeDepth dword 256
+reg Games dword 1
+reg PlayMovie dword 0
+timeout 65
+start
+@1 every 10
+@2 every 10
+sleep 3600

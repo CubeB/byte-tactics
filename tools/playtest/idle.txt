@@ -1,0 +1,12 @@
+# Start with the debug commands on and wait an hour, for driving the game by hand.
+#
+# xdotool and import work on the display steps.log names. The debug commands
+# (+iwin, +ilose, +kill, +control) need DisplaymodeDepth 256 and Games 1 (see
+# 0x42f9a0); PlayMovie 0 skips the intro.
+reg DisplaymodeDepth dword 256
+reg Games dword 1
+reg PlayMovie dword 0
+timeout 65
+start
+every 10
+sleep 3600

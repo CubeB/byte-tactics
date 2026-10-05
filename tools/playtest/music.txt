@@ -1,0 +1,37 @@
+# Music: in a skirmish the game opens a music/*.mp3 track and it is heard (about 1.5 minutes).
+#
+# GOG's win32.dll plays the CD tracks from music/*.mp3. Sound effects are off
+# (fxvol 0), so what reaches the run's audio sink in the game is the music:
+# `music` waits for a track the game holds open while the sink carries sound,
+# and audio.log has the level of every second with the tracks open then.
+reg fxvol dword 0
+reg PlayMovie dword 0
+timeout 10
+start
+every 10
+until warning_ok 60 key Escape ; sleep 2
+click 377 356
+waitfor mainmenu 20
+click 187 402
+waitfor single_title 10
+click 506 187
+waitfor skirmish_title 15
+click 550 445
+waitfor ingame 60
+music 60
+shot playing
+sleep 60
+music 10
+shot still_playing
+key F2
+waitfor f2menu 5
+click 60 373
+sleep 1.5
+click 384 190
+sleep 1.5
+click 311 254
+sleep 4
+ifmatch skirmish_end click 520 424
+waitfor mainmenu 30
+click 457 438
+waitexit 30

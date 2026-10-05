@@ -18,6 +18,7 @@ uv run tools/place.py                  # link at the original's addresses: build
 uv run tools/link.py --carve           # an ordinary LINK.EXE link that runs: build/link/TotalA.exe
 uv run tools/linkcmp.py                # does every reference in it reach what the original's does?
 uv run tools/gapcheck.py [0x...]       # the gap regions' source (src/gap/) against the original
+uv run tools/playtest.py --exe orig,carve --scenario full   # play both under Wine, PASS or FAIL
 ```
 
 `linkcheck.py` and `globals.py` compile through `tools/progress.py`'s cache in
@@ -474,6 +475,139 @@ in all 3,308 placed functions (the gap regions' among them), agree, apart
 from 134 calls that reach the other copy of `std::_Lockit`. It
 exits non-zero on any difference, so a change that rebinds a name shows up
 before the game is run.
+
+## Play tests: tools/playtest.py
+
+`linkcmp.py` checks references; `tools/playtest.py` checks that a build plays
+the way the original does. It drives the game under Wine through a scripted
+scenario and gives each run PASS or FAIL:
+
+```sh
+uv run tools/playtest.py --list                                  # the scenarios
+uv run tools/playtest.py --exe orig,place,carve --scenario full  # three runs at once
+uv run tools/playtest.py --exe carve --scenario arm,core --repeat 2 --parallel 4
+```
+
+`--exe` takes `orig`, `place` (`build/place/TotalA.exe`), `carve`
+(`build/link/TotalA.exe`) or the path of an exe, and `orig+carve` puts orig
+in a scenario's first instance and carve in the others (a multiplayer game
+between the two builds). Every pair of scenario and exe is a run, `--parallel` says how many run at once (all of them, at most
+three, by default), and the game data comes from the Steam install
+(`--game-dir` for another, such as GOG's). Each run is fenced off:
+
+- its own nested X server (Xephyr, a window on the desktop), so its pointer
+  and keyboard are nobody else's;
+- its own Wine prefix, a copy of a template that `wineboot` makes once
+  (`build/playtest/prefix`, made again when the Wine version changes), with
+  Wine's crash dialog off, so a crash ends the game and leaves winedbg's
+  message in `wine.log`;
+- its own game directory: the install's small files copied, its large
+  archives linked;
+- its own PulseAudio null sink, so the game is silent on the desktop and the
+  run can measure what it plays.
+
+The output goes to `build/playtest/<session>/` (`build/playtest/latest` links
+the newest): `summary.md`, one line per run with its result, the time, the
+exit code, the end screens it met, the music tracks it opened and how many
+of its named screenshots are identical to the first original run's of the
+same scenario (`screens.md` lists the pixels that differ in the others: in a
+game, the units and the shots fired are never quite where they were); and
+one directory per run with `steps.log` (every step, timed), `wine.log`
+(`WINEDEBUG=-all,err+seh` unless `--debug` says otherwise), `audio.log` (the
+sink's level each second, with the music tracks open at the time),
+`files.log` (when each music track was opened and closed), `result.json`,
+the named screenshots as PNG and one JPEG every few seconds. A run fails when
+a step fails (a screen not seen in time, the game gone when it should run),
+when the game exits with a non-zero code or does not exit when told to, or
+when `wine.log` reports an unhandled exception. Everything a run starts
+(Xephyr, Wine and its server, `parec`, the sink) is stopped when it ends,
+also on Ctrl-C (the run is then INTERRUPTED and the summary still written),
+and the prefix and game directory are deleted unless `--keep` is given.
+
+`--trap-stubs` plays a copy of each ordinary link instead (any exe whose map
+names `stubs.obj`): every function stub there starts with `int3` and every
+reference to a data stub holds 0 again, as the original's `mov eax, [0]`
+does. A stub the game reaches then ends the run with a crash at the stub's
+address (the map names it), where the link itself would carry on without
+what the original does there. That is how the destructor 0x4b2290 registered
+with `atexit` was found: the link called a stub at exit (#5701).
+
+The scenarios (`tools/playtest/*.txt`):
+
+| Scenario | What it plays | Time |
+| --- | --- | ---: |
+| `smoke` | the intro skipped, the main menu, quit | 10 s |
+| `full` | #2662's first test: the whole intro, the options screens, a skirmish with save and load, Arm mission 1, quit | 12 min |
+| `arm` | Arm missions 1 to 3 through the campaign, then 10, 18 and the last from the mission list, whose victory plays the ending and the credits | 11 min |
+| `core` | Core mission 1 played out, 2 and 3 through the campaign, then 10, 18 and the last | 15 min |
+| `long` | a 2 against 2 skirmish with Hard AIs and three factories queueing 100 units each, for about 45 minutes | 47 min |
+| `mp` | two instances: one hosts a TCP/IP game, the other joins it at 127.0.0.1, both build and fight until a commander dies or the guest surrenders | 7 to 11 min |
+| `music` | a skirmish with sound effects off: the game opens a `music/*.mp3` track and the sink carries it | 1.5 min |
+| `idle`, `idle2` | one or two instances with the debug commands on, left for an hour to drive by hand | |
+
+Three things in the game make these possible:
+
+- **Any mission.** The campaign screen ("Play any game") lists every
+  mission of every campaign, so a scenario picks one with the keyboard.
+- **Debug commands.** With `DisplaymodeDepth` 256 and `Games` 1 in the
+  game's registry key (0x42f9a0 reads them into a flag that the chat handler
+  0x493bf0 turns into the command mask 7), the chat line accepts the debug
+  commands of the table at 0x501fd0 as well as the cheats: `+iwin` and
+  `+ilose` end a game or mission, `+kill`, `+control` and `+ai` change
+  players. Without them `+iwin` is just a chat message. `PlayMovie` 0 skips
+  the intro (the Cavedog logo still plays).
+- **Multiplayer.** Wine's own DirectPlay TCP/IP provider (`dpwsockx`) is a
+  stub up to Wine 9 (`DPWSCB_EnumSessions` and the rest only print fixmes),
+  so TA finds no games. A scenario with `directplay` runs on a second
+  template prefix with Microsoft's DirectPlay from the DirectX June 2010
+  redistributable (`winetricks directplay`, which uses its cache in
+  `~/.cache/winetricks` or downloads the redistributable). The two instances
+  then see each other on 127.0.0.1. With Microsoft's DLLs the connection list
+  is in the other order: TCP/IP is fourth. A host holds DirectPlay's port and
+  a guest joins the first game it finds, so `directplay` runs take turns (a
+  lock file in the temporary directory), also across sessions.
+
+A scenario is a list of steps, one per line (`#` starts a comment). Lines
+before `start` set up the run; `@2` before a step sends it to the second
+instance.
+
+| Step | Meaning |
+| --- | --- |
+| `instances N` | run N copies of the game (default 1) |
+| `directplay` | use the prefix with Microsoft's DirectPlay |
+| `reg [SUBKEY/]NAME dword\|sz VALUE` | set a value under the game's registry key before it starts |
+| `file NAME TEXT` | write a file into the game directory (`\n` for line breaks) |
+| `timeout MINUTES` | fail the run when it takes longer (default 60) |
+| `start [WINEDEBUG]` | start the game (every instance) |
+| `every S` | a JPEG screenshot every S seconds (0 stops them) |
+| `click X Y [BUTTON]`, `sclick X Y`, `dclick X Y`, `hold X Y [S]`, `drag X1 Y1 X2 Y2`, `move X Y` | the mouse, in game coordinates; `sclick` holds shift |
+| `key KEYS...`, `keyhold KEY S`, `type TEXT`, `chat TEXT` | the keyboard (xdotool key names); `chat` types a line between two Returns |
+| `sleep S` | wait (the watched screens are checked meanwhile) |
+| `shot NAME` | a PNG screenshot, compared with the original's in the summary |
+| `waitfor SCREEN S` | fail unless the screen shows within S seconds |
+| `trywait SCREEN S` | the same, carrying on either way |
+| `until SCREEN S STEP [; STEP...]` | repeat the steps until the screen shows |
+| `ifmatch SCREEN STEP`, `ifnot SCREEN STEP` | a step on condition |
+| `expect SCREEN` | fail unless the screen shows now |
+| `repeat N STEP [; STEP...]` | repeat steps |
+| `label NAME`, `goto NAME` | jump |
+| `on SCREEN goto NAME`, `on SCREEN off` | jump whenever the screen shows, such as a victory screen that may come at any time |
+| `music S` | fail unless within S seconds the game holds a `music/*.mp3` track open while the sink carries sound |
+| `alive` | fail if the game has exited |
+| `waitexit S` | fail unless the game exits with code 0 within S seconds |
+| `note TEXT`, `fail TEXT`, `stop` | a note in the summary, a failure, stop the game now |
+
+Screens are recognised by signatures in `tools/playtest/screens.txt`, taken
+from screenshots of the original exe rather than stored images: the mean
+grey of every 4 x 4 square of an area (a button, a title), or for text over
+terrain (PAUSED, "Click to continue.") the pixels of the text and its
+outline. `--signature NAME WxH+X+Y SCREENSHOT...` prints a new line (several
+screenshots of text over different terrain make a better mask) and
+`--match SCREENSHOT...` lists the screens a screenshot shows.
+
+The harness needs Xephyr, xdotool, ImageMagick (`import`, `convert`,
+`compare`), Wine, PulseAudio's `pactl` and `parec` (PipeWire's work), and
+winetricks for `directplay`.
 
 ## The gap regions as source
 

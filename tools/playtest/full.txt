@@ -1,0 +1,182 @@
+# Options, a skirmish with save and load, Arm mission 1 and quitting (about 12 minutes).
+#
+# The test of #2662's first report. The intro plays to the end (Smacker), the
+# skirmish is Comet Catcher against a Medium Core AI with +nowisee and +atm,
+# and the mission is A Hero Returns. Either may be won before the script gets
+# there: the watched end screens jump to the code that leaves them.
+timeout 30
+start
+every 5
+waitfor warning_ok 300
+shot warning
+click 377 356
+waitfor mainmenu 20
+shot mainmenu
+
+# --- options: Sound, Music (5 x previous track, 3 x next), Interface, Visuals, Cancel
+click 187 402
+sleep 3
+click 506 229
+sleep 3
+click 127 91
+sleep 1.5
+shot opt_sound
+click 127 141
+sleep 1.5
+shot opt_music
+repeat 5 click 295 271 ; sleep 0.6
+sleep 1
+shot opt_music_prev5
+repeat 3 click 386 271 ; sleep 0.6
+sleep 1
+shot opt_music_next3
+click 127 191
+sleep 1.5
+shot opt_interface
+click 127 241
+sleep 1.5
+shot opt_visuals
+click 539 336
+sleep 3
+
+# --- skirmish: Comet Catcher, the two bases in opposite corners
+click 506 187
+waitfor skirmish_title 15
+click 322 388
+sleep 3
+click 200 182
+sleep 1
+click 482 346
+sleep 2
+shot skirmish_setup
+click 550 445
+waitfor ingame 60
+sleep 2
+alive
+shot sk_start
+chat +nowisee
+chat +atm
+# the commander builds a Kbot lab
+click 380 203
+sleep 1
+click 96 357
+sleep 0.5
+click 32 185
+sleep 0.5
+click 300 330
+sleep 1
+shot sk_lab_placed
+repeat 5 chat +atm ; sleep 9
+shot sk_lab
+# the lab builds 12 Kbots, its rally point on the enemy base
+click 330 300
+sleep 1
+repeat 6 click 96 185 ; sleep 0.3
+repeat 3 click 96 250 ; sleep 0.3
+repeat 3 click 32 250 ; sleep 0.3
+click 32 388
+sleep 0.5
+click 94 8
+sleep 1
+shot sk_queued
+key Escape
+sleep 1
+
+# --- save and load, before the Kbots reach the enemy
+key F2
+waitfor f2menu 5
+click 60 207
+waitfor save_title 5
+type btsave
+sleep 0.5
+click 480 358
+sleep 4
+shot saved
+click 60 165
+waitfor load_title 5
+click 160 110
+sleep 0.5
+shot load_list
+click 472 363
+sleep 12
+ifmatch paused key Pause
+sleep 2
+shot loaded
+
+# --- the Kbots fight at the Core base; the game may be won from here on
+on skirmish_end goto skirmish_over
+repeat 15 chat +atm ; sleep 9
+alive
+shot sk_late
+move 400 250
+keyhold Up 8
+keyhold Right 6
+sleep 1
+shot sk_enemy
+repeat 15 chat +atm ; sleep 9
+alive
+shot sk_enemy_late
+# not won yet: surrender
+key F2
+waitfor f2menu 5
+click 60 373
+sleep 1.5
+click 384 190
+sleep 1.5
+click 311 254
+sleep 4
+label skirmish_over
+on skirmish_end off
+ifmatch skirmish_end click 520 424
+waitfor mainmenu 30
+
+# --- Arm mission 1, A Hero Returns: every unit to the Galactic Gate
+click 187 402
+sleep 3
+click 506 145
+sleep 3
+shot campaign_select
+click 535 431
+waitfor briefing_start 30
+shot briefing
+click 547 447
+waitfor ingame 60
+sleep 2
+ifmatch paused key Pause
+sleep 2
+shot mission
+on continue goto mission_won
+drag 170 100 625 305
+sleep 1
+click 32 388
+sleep 0.5
+click 58 28
+sleep 12
+move 400 250
+keyhold Up 1.2
+sleep 90
+alive
+shot mission_late
+# not won yet: surrender
+on continue off
+key F2
+waitfor f2menu 5
+click 60 373
+sleep 1.5
+click 384 190
+sleep 1.5
+click 311 254
+sleep 4
+goto mission_over
+label mission_won
+shot continue
+click 320 300
+waitfor campaign_end 30
+shot victory
+label mission_over
+ifmatch campaign_end click 520 403
+waitfor mainmenu 30
+
+# --- quit
+click 457 438
+waitexit 30

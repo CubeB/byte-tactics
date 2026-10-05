@@ -1,0 +1,168 @@
+# Arm campaign: missions 1 to 3 through the campaign, then 10, 18 and 25 from the list (about 11 minutes, with the ending).
+#
+# Each mission plays for a minute with +nowisee, then +iwin wins it: a debug
+# command, on with DisplaymodeDepth 256 and Games 1 in the registry (see
+# 0x42f9a0 and the chat handler 0x493bf0). After missions 1 and 2 the victory
+# screen's Start goes on to the next mission, the campaign's own path; the
+# later missions come from the "Play any game" list. Winning the last
+# mission plays the ending.
+reg DisplaymodeDepth dword 256
+reg Games dword 1
+reg PlayMovie dword 0
+timeout 40
+start
+every 10
+until warning_ok 60 key Escape ; sleep 2
+click 377 356
+waitfor mainmenu 20
+click 187 402
+waitfor single_title 10
+click 506 145
+waitfor campaign_title 10
+shot campaign_arm
+
+# --- mission 1, then on through the campaign
+click 535 431
+waitfor briefing_start 30
+shot m01_briefing
+click 547 447
+waitfor ingame 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m01
+chat +iwin
+waitfor continue 30
+click 320 300
+waitfor campaign_end 30
+shot m01_won
+click 520 324
+waitfor briefing_start 30
+shot m02_briefing
+click 547 447
+waitfor ingame 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m02
+chat +iwin
+waitfor continue 30
+click 320 300
+waitfor campaign_end 30
+shot m02_won
+click 520 324
+waitfor briefing_start 30
+shot m03_briefing
+click 547 447
+waitfor ingame 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m03
+chat +iwin
+waitfor continue 30
+click 320 300
+waitfor campaign_end 30
+shot m03_won
+click 520 404
+waitfor mainmenu 30
+
+# --- mission 10 from the list
+click 187 402
+waitfor single_title 10
+click 506 145
+waitfor campaign_title 10
+click 258 261
+sleep 1
+click 150 397
+repeat 30 key Up
+repeat 9 key Down
+sleep 1
+shot m10_list
+click 535 431
+waitfor briefing_start 30
+shot m10_briefing
+click 547 447
+waitfor ingame 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m10
+chat +iwin
+waitfor continue 30
+click 320 300
+waitfor campaign_end 30
+shot m10_won
+click 520 404
+waitfor mainmenu 30
+
+# --- mission 18
+click 187 402
+waitfor single_title 10
+click 506 145
+waitfor campaign_title 10
+click 258 261
+sleep 1
+click 150 397
+repeat 30 key Up
+repeat 17 key Down
+sleep 1
+shot m18_list
+click 535 431
+waitfor briefing_start 30
+shot m18_briefing
+click 547 447
+waitfor ingame 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m18
+chat +iwin
+waitfor continue 30
+click 320 300
+waitfor campaign_end 30
+shot m18_won
+click 520 404
+waitfor mainmenu 30
+
+# --- the last mission (the end of the list): its victory plays the ending and the credits
+click 187 402
+waitfor single_title 10
+click 506 145
+waitfor campaign_title 10
+click 258 261
+sleep 1
+click 150 397
+repeat 40 key Down
+sleep 1
+shot m25_list
+click 535 431
+waitfor briefing_start 30
+shot m25_briefing
+click 547 447
+waitfor ingame 60
+sleep 2
+ifmatch paused key Pause
+chat +nowisee
+sleep 60
+alive
+shot m25
+chat +iwin
+sleep 10
+shot m25_ending
+# the ending and the credits play, then the main menu
+waitfor mainmenu 420
+
+# --- quit
+click 457 438
+waitexit 30

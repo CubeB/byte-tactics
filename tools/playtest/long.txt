@@ -1,0 +1,182 @@
+# A long skirmish: 2 against 2 Hard AIs on Comet Catcher, about 45 minutes of play with big armies (about 47 minutes).
+#
+# The player and an Arm AI are allied against two Core AIs; a commander's
+# death does not end the game. With +atm every few seconds the commander
+# builds a Kbot lab, a vehicle plant and an aircraft plant, and each queues
+# 100 units (shift-click queues five) with its rally point on the enemy
+# corner. The AIs build up to the unit limit too. After about 45 minutes +iwin (a
+# debug command, see arm) ends the game on the score screen. If the game ends
+# before that, the run goes straight to the score screen.
+reg DisplaymodeDepth dword 256
+reg Games dword 1
+reg PlayMovie dword 0
+timeout 70
+start
+every 30
+until warning_ok 60 key Escape ; sleep 2
+click 377 356
+waitfor mainmenu 20
+click 187 402
+waitfor single_title 10
+click 506 187
+waitfor skirmish_title 15
+# Comet Catcher
+click 322 388
+sleep 3
+click 200 182
+sleep 1
+click 482 346
+sleep 2
+# players 3 and 4 become computers; the player allied with 3, 2 with 4
+click 100 203
+sleep 0.5
+click 100 254
+sleep 0.5
+click 260 104
+sleep 0.4
+click 260 205
+sleep 0.4
+repeat 2 click 260 155 ; sleep 0.4
+repeat 2 click 260 255 ; sleep 0.4
+# the game continues after a commander's death; Hard
+click 580 105
+sleep 0.4
+click 580 335
+sleep 0.5
+shot setup
+click 550 445
+waitfor ingame 60
+sleep 2
+alive
+shot start
+on skirmish_end goto over
+chat +nowisee
+chat +atm
+
+# --- the commander queues a Kbot lab, a vehicle plant and an aircraft plant
+click 380 203
+sleep 1
+click 96 357
+sleep 0.5
+click 32 185
+sleep 0.5
+sclick 300 330
+sleep 0.5
+click 96 185
+sleep 0.5
+sclick 470 330
+sleep 0.5
+click 32 250
+sleep 0.5
+sclick 470 110
+sleep 1
+shot queued_plants
+key Escape
+repeat 24 chat +atm ; sleep 10
+shot plants
+
+# --- each plant queues 100 units, rally point on the enemy corner
+click 300 330
+sleep 1
+repeat 4 sclick 32 185 ; sclick 96 185 ; sclick 32 250 ; sclick 96 250 ; sclick 32 315 ; sleep 0.2
+click 32 388
+sleep 0.5
+click 94 8
+sleep 1
+shot lab_queue
+key Escape
+sleep 0.5
+click 470 330
+sleep 1
+repeat 4 sclick 32 185 ; sclick 96 185 ; sclick 32 250 ; sclick 96 250 ; sclick 32 315 ; sleep 0.2
+click 32 388
+sleep 0.5
+click 94 8
+sleep 1
+shot vehicle_queue
+key Escape
+sleep 0.5
+click 470 110
+sleep 1
+repeat 4 sclick 32 185 ; sclick 96 185 ; sclick 32 250 ; sclick 96 250 ; sclick 32 315 ; sleep 0.2
+click 32 388
+sleep 0.5
+click 94 8
+sleep 1
+shot aircraft_queue
+key Escape
+
+# --- about 40 more minutes, a look at the middle of the map every 6 (with nothing
+# selected, a right click on the minimap moves the view)
+repeat 30 chat +atm ; sleep 10
+alive
+shot base_05
+key Escape
+click 64 64 3
+sleep 2
+shot middle_05
+key Escape
+click 22 114 3
+repeat 30 chat +atm ; sleep 10
+alive
+shot base_10
+key Escape
+click 64 64 3
+sleep 2
+shot middle_10
+key Escape
+click 22 114 3
+repeat 30 chat +atm ; sleep 10
+alive
+shot base_15
+key Escape
+click 64 64 3
+sleep 2
+shot middle_15
+key Escape
+click 22 114 3
+repeat 30 chat +atm ; sleep 10
+alive
+shot base_20
+key Escape
+click 64 64 3
+sleep 2
+shot middle_20
+key Escape
+click 22 114 3
+repeat 30 chat +atm ; sleep 10
+alive
+shot base_25
+key Escape
+click 64 64 3
+sleep 2
+shot middle_25
+key Escape
+click 22 114 3
+repeat 30 chat +atm ; sleep 10
+alive
+shot base_30
+key Escape
+click 64 64 3
+sleep 2
+shot middle_30
+key Escape
+click 94 8 3
+sleep 2
+shot enemy_30
+key Escape
+click 22 114 3
+repeat 30 chat +atm ; sleep 10
+alive
+shot base_45
+note played the full 45 minutes
+chat +iwin
+waitfor skirmish_end 60
+label over
+on skirmish_end off
+waitfor skirmish_end 30
+shot score
+click 520 424
+waitfor mainmenu 30
+click 457 438
+waitexit 30

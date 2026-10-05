@@ -41,7 +41,7 @@
 //   branch's (C2's cross-jumper compares tuples, not bytes).
 #include <ddraw.h>
 #include <float.h>
-struct Unit_00401360;
+struct Unit;
 struct Player_00401360;
 
 class Class_0048b090 {
@@ -96,8 +96,8 @@ struct PlayerRes_00401360 {
 struct Player_00401360 {
     int active;                        // +0x0
     char unknown_4[0x67 - 4];
-    Unit_00401360* units;              // +0x67
-    Unit_00401360* units_end;          // +0x6b
+    Unit* units;                       // +0x67
+    Unit* units_end;                   // +0x6b
     char unknown_6f[0x73 - 0x6f];
     unsigned char type;                // +0x73
     char unknown_74[0x8c - 0x74];
@@ -113,7 +113,7 @@ struct Player_00401360 {
     unsigned char flags149;            // +0x149
 };
 
-struct Unit_00401360 {
+struct Unit {
     char unknown_0[0x58];
     float extraction;                  // +0x58
     char unknown_5c[0x92 - 0x5c];
@@ -220,7 +220,7 @@ void __stdcall FUN_00401320(Res_00401360* r, float ratioBacklog, float ratioDema
     r->demand = 0;
 }
 
-static inline void AddIncome(Unit_00401360* u, float* dst, float v)
+static inline void AddIncome(Unit* u, float* dst, float v)
 {
     Player_00401360* o = u->econ.owner;
     if (o->active && o->type == 2) {
@@ -239,7 +239,7 @@ static inline void AddIncome(Unit_00401360* u, float* dst, float v)
     *dst += v;
 }
 
-static inline void AddIncomeD(Unit_00401360* u, float* dst, double v)
+static inline void AddIncomeD(Unit* u, float* dst, double v)
 {
     Player_00401360* o = u->econ.owner;
     if (o->active && o->type == 2) {
@@ -260,7 +260,7 @@ static inline void AddIncomeD(Unit_00401360* u, float* dst, double v)
 
 // The 0x4237d0 layout (break and else) with a double amount: tidal and the
 // else branch (see the top).
-static inline void AddIncomeDB(Unit_00401360* u, float* dst, double v)
+static inline void AddIncomeDB(Unit* u, float* dst, double v)
 {
     Player_00401360* o = u->econ.owner;
     if (o->active && o->type == 2) {
@@ -279,7 +279,7 @@ static inline void AddIncomeDB(Unit_00401360* u, float* dst, double v)
         *dst += v;
 }
 
-static inline void AddIncomeW(Unit_00401360* u, float* dst, double v)
+static inline void AddIncomeW(Unit* u, float* dst, double v)
 {
     Player_00401360* o = u->econ.owner;
     if (o->active && o->type == 2) {
@@ -298,7 +298,7 @@ static inline void AddIncomeW(Unit_00401360* u, float* dst, double v)
     *dst += (float)v;
 }
 
-static int Use_00401180(Unit_00401360* u, float amount)
+static int Use_00401180(Unit* u, float amount)
 {
     float* used = &u->econ.res[0].used;
     *used += amount;
@@ -308,7 +308,7 @@ static int Use_00401180(Unit_00401360* u, float amount)
     return 1;
 }
 
-static int UseEnergy(Unit_00401360* u, float v)
+static int UseEnergy(Unit* u, float v)
 {
     if (v >= 0)
         return Use_00401180(u, v);
@@ -318,7 +318,7 @@ static int UseEnergy(Unit_00401360* u, float v)
 
 // The demand add goes through a double copy of the amount: it makes the
 // backlog > 0 pop shared with the default add's.
-static int UseEnergyD(Unit_00401360* u, float v)
+static int UseEnergyD(Unit* u, float v)
 {
     if (v >= 0) {
         double a = v;
@@ -343,7 +343,7 @@ void __stdcall FUN_00401360(Player_00401360* p)
     float ratioA[2];
     float avail[2];
     float demandRatio[2];
-    Unit_00401360* u;
+    Unit* u;
     int i;
 
     p->storage[1] = 0;

@@ -15,7 +15,7 @@ struct Aim_0049d880 {
     short field_18;                    // +0x18
 };
 
-struct Unit_0049d880 {
+struct Unit {
     char unknown_0[0x110];
     unsigned int flags;                // +0x110
 };
@@ -27,7 +27,7 @@ struct Unit_0049d880 {
 // field, not as `b ? b : a`: the ternary gives the two tolerances the other
 // way round in ecx/esi and the bytes no longer match.
 // FUNCTION: 0x49d880
-int __stdcall FUN_0049d880(Unit_0049d880* unit, Aim_0049d880* aim, short angle1, short angle2)
+int __stdcall FUN_0049d880(Unit* unit, Aim_0049d880* aim, short angle1, short angle2)
 {
     unsigned short a = aim->type->field_106;
     int x;

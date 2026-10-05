@@ -12,7 +12,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Unit_00419b00 {
+struct Unit {
     int field_0;                       // +0
     char unknown_4[0xff - 4];
     unsigned char field_ff;            // +0xff
@@ -27,11 +27,11 @@ struct Game_00419b00 {
 extern Game_00419b00* g_game;
 
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-void __stdcall FUN_0043b0b0(Class_00438760 kind, Unit_00419b00* unit, int id, int count);
+void __stdcall FUN_0043b0b0(Class_00438760 kind, Unit* unit, int id, int count);
 short __stdcall FUN_00488b10(char* name);
 
 // FUNCTION: 0x419b00
-void __stdcall FUN_00419b00(char* name, Unit_00419b00* unit, int count)
+void __stdcall FUN_00419b00(char* name, Unit* unit, int count)
 {
     if (unit->field_ff == g_game->field_2a43) {
         if (count > 0)

@@ -11,7 +11,7 @@ struct UnitType_0049d000 {
     int range;                        // +0x20
 };
 
-struct Unit_0049d000 {
+struct Unit {
     UnitType_0049d000* type;          // +0x0
     char unknown_4[0x66 - 4];
     short angle;                      // +0x66
@@ -39,7 +39,7 @@ struct Proj_0049d000 {
     unsigned short flags;             // +0x69
     // Only inside an inline method does MSVC 5 put the angle load before the
     // +0x3a store, as the original does; inline it in the caller and it sinks.
-    void Setup(Unit_0049d000* u) { angle = u->angle; field_3a = 0; field_20 = 0; }
+    void Setup(Unit* u) { angle = u->angle; field_3a = 0; field_20 = 0; }
 };
 
 struct Game_0049d000 {
@@ -53,12 +53,12 @@ struct Game_0049d000 {
 
 extern Game_0049d000* g_game;
 
-void __stdcall FUN_0049c740(Proj_0049d000*, void*, void*, int, int, Unit_0049d000*);
+void __stdcall FUN_0049c740(Proj_0049d000*, void*, void*, int, int, Unit*);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 
 // FUNCTION: 0x49d000
-int __stdcall FUN_0049d000(Shot_0049d000* shot, Unit_0049d000* unit, Vec3_0049d000* pos)
+int __stdcall FUN_0049d000(Shot_0049d000* shot, Unit* unit, Vec3_0049d000* pos)
 {
     Proj_0049d000* proj = 0;
     if (g_game->projCount < 300) {

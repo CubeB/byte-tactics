@@ -36,7 +36,7 @@ struct Menu_004199b0 {
     Data_004199b0* data;               // +0x18
 };
 
-struct Unit_004199b0 {
+struct Unit {
     char unknown_0[0x1e];
     unsigned char field_1e;            // +0x1e
 };
@@ -48,7 +48,7 @@ int __stdcall FUN_00439d80(void* owner, int index);
 void __stdcall FUN_0049fa90(void* obj);
 
 // FUNCTION: 0x4199b0
-void __stdcall FUN_004199b0(Menu_004199b0* menu, Unit_004199b0* unit)
+void __stdcall FUN_004199b0(Menu_004199b0* menu, Unit* unit)
 {
     Entry_004199b0* e = menu->data->entries;
     int count = e->u.count;

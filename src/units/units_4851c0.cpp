@@ -36,7 +36,7 @@ struct Type_004851c0 {
     int field_16e;                     // +0x16e
 };
 
-struct Unit_004851c0 {
+struct Unit {
     char unknown_0[0x6e];
     int field_6e;                      // +0x6e
     char unknown_72[0x92 - 0x72];
@@ -53,7 +53,7 @@ struct Game_004851c0 {
     char unknown_14273[0x14287 - 0x14273];
     Cell_004851c0* cells;              // +0x14287
     char unknown_1428b[0x14357 - 0x1428b];
-    Unit_004851c0* units;              // +0x14357
+    Unit* units;                       // +0x14357
 };
 #pragma pack(pop)
 

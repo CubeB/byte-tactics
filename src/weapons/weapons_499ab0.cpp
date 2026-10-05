@@ -21,7 +21,7 @@ struct Def_00499ab0 {
     unsigned int f111;               // +0x111, bits 30 and 31
 };
 
-struct Unit_00499ab0 {
+struct Unit {
     char unknown_0[0xc];
     Def_00499ab0* def;               // +0xc
     char unknown_10[0x16 - 0x10];
@@ -67,7 +67,7 @@ extern Game_00499ab0* g_game;
 int __stdcall FUN_00451df0(int player, void* data, int size);
 
 // FUNCTION: 0x499ab0
-void __stdcall FUN_00499ab0(Unit_00499ab0* unit, Obj_00499ab0* source,
+void __stdcall FUN_00499ab0(Unit* unit, Obj_00499ab0* source,
                             Obj_00499ab0* target, Vec3_00499ab0* a,
                             Vec3_00499ab0* b)
 {

@@ -5,7 +5,7 @@
 
 #pragma pack(push, 1)
 
-struct Unit_0041b0f0 {
+struct Unit {
     char unknown_0[0x95];
     unsigned char side;                // +0x95
     char unknown_96[0xa6 - 0x96];
@@ -14,7 +14,7 @@ struct Unit_0041b0f0 {
 };
 
 struct PlayerEntry_0041b0f0 {
-    Unit_0041b0f0* unit;               // +0x00
+    Unit* unit;                        // +0x00
     char unknown_4[0x14b - 4];
 };
 
@@ -46,12 +46,12 @@ struct Gadget_0041b0f0 {
 extern Game_0041b0f0* g_game;
 
 Gadget_0041b0f0* __stdcall FUN_004aa8f0(Sub_0041b0f0* sub, const char* name, int flags);
-void __stdcall FUN_0041a120(Unit_0041b0f0* unit);
+void __stdcall FUN_0041a120(Unit* unit);
 void __stdcall FUN_004a81e0(Sub_0041b0f0* sub, int value);
 void __stdcall FUN_0041aa00(void* unit);
 
 // FUNCTION: 0x41b0f0
-void __stdcall FUN_0041b0f0(Unit_0041b0f0* unit)
+void __stdcall FUN_0041b0f0(Unit* unit)
 {
     char name[256];
     sprintf(name, "%sGEN.GUI",

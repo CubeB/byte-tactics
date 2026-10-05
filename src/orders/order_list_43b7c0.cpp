@@ -30,7 +30,7 @@
 
 #pragma pack(push, 1)
 
-struct Unit_0043b7c0;
+struct Unit;
 
 class Class_0043a1f0 {
 public:
@@ -39,7 +39,7 @@ public:
     unsigned char count;           // +0x5
     unsigned int flags6;           // +0x6, bit 0 set while the node waits
     unsigned int wakeFrame;        // +0xa
-    Unit_0043b7c0* unit;           // +0xe, handed to the callback
+    Unit* unit;                    // +0xe, handed to the callback
     char unknown_12[0x42 - 0x12];
     unsigned int flags;            // +0x42, bit 0x40000 picks the second list
     char unknown_46[0x4a - 0x46];
@@ -62,7 +62,7 @@ struct UnitDef_0043b7c0 {
     unsigned char field_230;       // +0x230, the kind of a fresh command
 };
 
-struct Unit_0043b7c0 {
+struct Unit {
     char unknown_0[0x5c];
     Class_0043a1f0* list;          // +0x5c
     Class_0043a1f0* list2;         // +0x60, nodes with flag 0x40000
@@ -81,7 +81,7 @@ struct Game_0043b7c0 {
 // One entry of the callback table, 0x19 bytes.
 struct Callback_0043b7c0 {
     char unknown_0[4];
-    int (__stdcall* notify)(Unit_0043b7c0* unit, Class_0043a1f0* node, unsigned int pending);  // +0x4
+    int (__stdcall* notify)(Unit* unit, Class_0043a1f0* node, unsigned int pending);           // +0x4
     char unknown_8[0x19 - 0x8];
 };
 
@@ -90,13 +90,13 @@ struct Callback_0043b7c0 {
 extern Game_0043b7c0* g_game;
 extern Callback_0043b7c0* DAT_00512344;
 
-void __stdcall FUN_0048a0f0(Unit_0043b7c0* unit, int index);
+void __stdcall FUN_0048a0f0(Unit* unit, int index);
 int __stdcall FUN_004b6c30(int n);
-void __stdcall FUN_00439f80(Unit_0043b7c0* owner, Class_0043a1f0* node);
+void __stdcall FUN_00439f80(Unit* owner, Class_0043a1f0* node);
 
 // 0x439eb0: deletes the nodes of the +0x5c list (all of them, or only those
 // without flag 4), then with `all` every node of the +0x60 list.
-void __stdcall FUN_00439eb0(Unit_0043b7c0* owner, int all)
+void __stdcall FUN_00439eb0(Unit* owner, int all)
 {
     Class_0043a1f0* first = owner->list;
     Class_0043a1f0** pp = &owner->list;
@@ -120,7 +120,7 @@ void __stdcall FUN_00439eb0(Unit_0043b7c0* owner, int all)
 
 // 0x439f80: unlinks `node` from the list its flag 0x40000 selects and
 // deletes it.
-void __stdcall FUN_00439f80(Unit_0043b7c0* owner, Class_0043a1f0* node)
+void __stdcall FUN_00439f80(Unit* owner, Class_0043a1f0* node)
 {
     Class_0043a1f0* first = owner->list;
     Class_0043a1f0** link = (node->flags & 0x40000) ? &owner->list2 : &owner->list;
@@ -138,7 +138,7 @@ void __stdcall FUN_00439f80(Unit_0043b7c0* owner, Class_0043a1f0* node)
 }
 
 // 0x439fe0: moves `node` to the end of the +0x5c list.
-void __stdcall FUN_00439fe0(Unit_0043b7c0* owner, Class_0043a1f0* node)
+void __stdcall FUN_00439fe0(Unit* owner, Class_0043a1f0* node)
 {
     Class_0043a1f0** pp = &owner->list;
     Class_0043a1f0* n = *pp;
@@ -155,7 +155,7 @@ void __stdcall FUN_00439fe0(Unit_0043b7c0* owner, Class_0043a1f0* node)
 }
 
 // 0x43ac60: links `node` in front of `before`.
-void __stdcall FUN_0043ac60(Unit_0043b7c0* owner, Class_0043a1f0* node, Class_0043a1f0* before)
+void __stdcall FUN_0043ac60(Unit* owner, Class_0043a1f0* node, Class_0043a1f0* before)
 {
     Class_0043a1f0** link = (node->flags & 0x40000) ? &owner->list2
                                                    : &owner->list;
@@ -169,7 +169,7 @@ void __stdcall FUN_0043ac60(Unit_0043b7c0* owner, Class_0043a1f0* node, Class_00
 }
 
 // 0x43b730: queues a fresh command of the given kind at the front.
-void __stdcall FUN_0043b730(Unit_0043b7c0* p, unsigned char type)
+void __stdcall FUN_0043b730(Unit* p, unsigned char type)
 {
     Class_0043a1f0* child = new Class_0043a1f0(type, 0, 0, 0, 0, 0);
     child->flags |= 0x4000;
@@ -186,14 +186,14 @@ static void Wait_0043b7c0(Class_0043a1f0* node, int n)
 }
 
 // Clears the unit's three weapon targets.
-static void ClearTargets_0043b7c0(Unit_0043b7c0* unit)
+static void ClearTargets_0043b7c0(Unit* unit)
 {
     for (char i = 0; i < 3; i++)
         FUN_0048a0f0(unit, i);
 }
 
 // FUNCTION: 0x43b7c0
-void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
+void __stdcall FUN_0043b7c0(Unit* unit)
 {
     Class_0043a1f0* node;
     for (;;) {

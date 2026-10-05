@@ -10,7 +10,7 @@ struct UnitDef_0040bdb0 {
     char unknown_15a[0x249 - 0x15a];
 };
 
-struct Unit_0040bdb0 {
+struct Unit {
     char unknown_0[0x92];
     UnitDef_0040bdb0* def;             // +0x92
 };
@@ -27,7 +27,7 @@ int __stdcall FUN_0040bb00(unsigned int player, unsigned short id);
 int __stdcall FUN_004b6c30(int range);
 
 // FUNCTION: 0x40bdb0
-unsigned short __stdcall FUN_0040bdb0(unsigned int player, Unit_0040bdb0* unit)
+unsigned short __stdcall FUN_0040bdb0(unsigned int player, Unit* unit)
 {
     unsigned short chosen = 0;
     int total = 0;

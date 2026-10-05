@@ -43,7 +43,7 @@ public:
     int FUN_004b0bc0(char* name, int* a, int* b, int c, int d);
 };
 
-struct Unit_4864b0 {
+struct Unit {
     char unknown_0[0x92];
     Info_4864b0* info;                 // +0x92
     Link_4864b0* link;                 // +0x96
@@ -51,7 +51,7 @@ struct Unit_4864b0 {
     char unknown_9e[0xa8 - 0x9e];
     unsigned short field_a8;           // +0xa8
     char unknown_aa[0xf0 - 0xaa];
-    Unit_4864b0* field_f0;             // +0xf0
+    Unit* field_f0;                    // +0xf0
     unsigned char field_f4;            // +0xf4
     char unknown_f5[0xf7 - 0xf5];
     unsigned char field_f7;            // +0xf7
@@ -95,7 +95,7 @@ void __stdcall FUN_00491d70(int param);
 void __stdcall FUN_00486f10(unsigned char player);
 
 // FUNCTION: 0x4864b0
-void __stdcall FUN_004864b0(Unit_4864b0* unit, int param_2)
+void __stdcall FUN_004864b0(Unit* unit, int param_2)
 {
     if ((unit->flags & 0x10000000) != 0) {
         int same = _strcmpi(g_game->players[unit->link->owner->playerIndex].name,

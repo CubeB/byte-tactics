@@ -15,7 +15,7 @@ struct UnitType_0049b000 {
 };
 
 #pragma pack(push, 1)
-struct Unit_0049b000 {
+struct Unit {
     char unknown_0[0x6a];
     Vec3_0049b000 pos;                 // +0x6a
     char unknown_76[0x92 - 0x76];
@@ -40,7 +40,7 @@ struct Projectile_0049b000 {
 void __stdcall FUN_00499eb0(Projectile_0049b000* proj, int flag);
 
 // FUNCTION: 0x49b000
-void __stdcall FUN_0049b000(Unit_0049b000* unit, int second)
+void __stdcall FUN_0049b000(Unit* unit, int second)
 {
     Weapon_0049b000* weapon = second ? unit->type->weapon2 : unit->type->weapon1;
     if (weapon) {

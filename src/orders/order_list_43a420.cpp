@@ -46,7 +46,7 @@ struct Entry_0043a420 {                // 0x19-byte entries at DAT_00512344
     char* name;                        // +0x15
 };
 
-struct Unit_0043a420 {                 // 0x118 bytes
+struct Unit {                          // 0x118 bytes
     char unknown_0[0x118];
 };
 
@@ -60,7 +60,7 @@ struct UnitType_0043a420 {             // 0x249 bytes
 
 struct Game_0043a420 {
     char unknown_0[0x14357];
-    Unit_0043a420* units;              // +0x14357
+    Unit* units;                       // +0x14357
     char unknown_1435b[0x1438f - 0x1435b];
     int unitTypeCount;                 // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
@@ -121,7 +121,7 @@ int __stdcall FUN_0043a940(int param_1, char* param_2);
 Entry_0043a420* __stdcall FUN_0043c6b0(Entry_0043a420* first, Entry_0043a420* last,
                                        char* const& value, int(__stdcall* pred)(int, char*),
                                        int* unused);
-Unit_0043a420* __stdcall FUN_00487080(unsigned short id, void* file);
+Unit* __stdcall FUN_00487080(unsigned short id, void* file);
 unsigned short __stdcall FUN_00488b10(const char* name);
 
 extern Game_0043a420* g_game;
@@ -184,7 +184,7 @@ struct Head_0043a420 {
     unsigned char flag5;               // +0x5
     unsigned int flags6;               // +0x6
     int last_id;                       // +0xa
-    Unit_0043a420* unit;               // +0xe
+    Unit* unit;                        // +0xe
 
     Head_0043a420() : kind(0) {}
 };
@@ -206,7 +206,7 @@ public:
     int field_4e;                      // +0x4e
     void* attached;                    // +0x52
 
-    Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char* name);
+    Class_0043a1f0(Unit* punit, Class_004b4ba0* file, char* name);
 };
 #pragma pack(pop)
 
@@ -254,7 +254,7 @@ static unsigned char KindByIndex_0043a420(unsigned char want)
 }
 
 // FUNCTION: 0x43a420
-Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char* name)
+Class_0043a1f0::Class_0043a1f0(Unit* punit, Class_004b4ba0* file, char* name)
     : link(0, 0)
 {
     link.SetValue(this);
@@ -285,7 +285,7 @@ Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char*
             desc.kind = KindByIndex_0043a420(desc.kind);
     }
 
-    Unit_0043a420* u;
+    Unit* u;
     if (desc.unitType == 0)
         u = 0;
     else

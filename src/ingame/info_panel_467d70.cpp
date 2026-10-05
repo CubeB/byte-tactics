@@ -12,13 +12,13 @@
 #include <stdio.h>
 
 #pragma pack(push, 1)
-struct Unit_467d70 {
+struct Unit {
     char unknown_0[0x95];
     unsigned char side;                 // +0x95
 };
 
 struct Player_467d70 {
-    Unit_467d70* unit;                  // +0x00
+    Unit* unit;                         // +0x00
     char unknown_4[0x14b - 4];
 };
 

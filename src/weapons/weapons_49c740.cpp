@@ -29,7 +29,7 @@ struct Vec3_0049c740 {
     int z;
 };
 
-struct Unit_0049c740;
+struct Unit;
 
 struct Shot_0049c740 {
     char unknown_0[0xf4];
@@ -41,7 +41,7 @@ struct Slot_0049c740 {
     char unknown_4[0x18];              // the three slots are 0x1c apart
 };
 
-struct Unit_0049c740 {
+struct Unit {
     char unknown_0[0x10];
     Slot_0049c740 slots[3];            // +0x10
     char unknown_64[0xb0 - 0x64];
@@ -63,7 +63,7 @@ struct Proj_0049c740 {
     char unknown_46[0x4a - 0x46];
     int field_4a;                      // +0x4a, the current frame number
     int field_4e;                      // +0x4e
-    Unit_0049c740* owner;              // +0x52, the unit that fired it
+    Unit* owner;                       // +0x52, the unit that fired it
     int field_56;                      // +0x56
     char unknown_5a[0x60 - 0x5a];
     short active;                      // +0x60
@@ -75,7 +75,7 @@ struct Proj_0049c740 {
     // Written as an inline method the load of u->field_ff comes before the
     // store of owner, as the original has it; in the enclosing function it
     // sinks below it.
-    void SetOwner(Unit_0049c740* u) { player = u->field_ff; owner = u; }
+    void SetOwner(Unit* u) { player = u->field_ff; owner = u; }
 };
 
 struct Game_0049c740 {
@@ -83,7 +83,7 @@ struct Game_0049c740 {
     int projectileCount;               // +0x141f3
     Proj_0049c740* projectiles;        // +0x141f7
     char unknown_141fb[0x142f3 - 0x141fb];
-    Unit_0049c740* trackedUnit;        // +0x142f3
+    Unit* trackedUnit;                 // +0x142f3
     Proj_0049c740* trackedProj;        // +0x142f7
     char unknown_142fb[0x38a47 - 0x142fb];
     int field_38a47;                   // +0x38a47, the current frame number
@@ -92,12 +92,12 @@ struct Game_0049c740 {
 
 extern Game_0049c740* g_game;
 
-int __stdcall FUN_0043e1e0(Unit_0049c740* unit, unsigned char weapon);
+int __stdcall FUN_0043e1e0(Unit* unit, unsigned char weapon);
 void __stdcall FUN_0047f300(int sound, Vec3_0049c740* pos, int param_3);
 
 // FUNCTION: 0x49c740
 void __stdcall FUN_0049c740(Proj_0049c740* proj, Shot_0049c740* shot, Vec3_0049c740* pos,
-                           Vec3_0049c740* aim, int field_5, Unit_0049c740* unit)
+                           Vec3_0049c740* aim, int field_5, Unit* unit)
 {
     unsigned char i;
     proj->shot = shot;

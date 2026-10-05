@@ -14,7 +14,7 @@ struct Rect_004b0510 {
 };
 
 #pragma pack(push, 1)
-struct Unit_00467e50 {
+struct Unit {
     char pad_0[0x1f];
     unsigned char f_1f;            // +0x1f
     char pad_20[0x3b - 0x20];
@@ -74,7 +74,7 @@ int __stdcall FUN_00467e50(void* surface)
     char buf[0x80];
     char* names[3];
     unsigned char* colors;
-    Unit_00467e50* unit;
+    Unit* unit;
     Rect_004b0510 r;
     int lineH;
     int y;
@@ -83,7 +83,7 @@ int __stdcall FUN_00467e50(void* surface)
 
     if (*(int*)(g_game + 0x391b3) == 0 || *(unsigned short*)(g_game + 0x391b7) == 0)
         return 0;
-    unit = (Unit_00467e50*)(*(int*)(g_game + 0x14357)
+    unit = (Unit*)(*(int*)(g_game + 0x14357)
                             + *(unsigned short*)(g_game + 0x391b7) * 0x118);
     if ((unit->f_110 & 0x10000000) == 0 || (unit->f_110 & 0x4000) != 0) {
         *(int*)(g_game + 0x391b3) = 0;

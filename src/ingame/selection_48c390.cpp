@@ -38,7 +38,7 @@
 // is applied to the horizontal edges only, as the code implies.
 
 #pragma pack(push, 1)
-struct Unit_0048c390 {
+struct Unit {
     char unknown_0[0x6c];
     short x;                            // +0x6c
     char unknown_6e[0x70 - 0x6e];
@@ -46,7 +46,7 @@ struct Unit_0048c390 {
     char unknown_72[0x74 - 0x72];
     short y;                            // +0x74
     char unknown_76[0x86 - 0x76];
-    Unit_0048c390* parent;              // +0x86
+    Unit* parent;                       // +0x86
     char unknown_8a[0xfb - 0x8a];
     int unknown_fb;                     // +0xfb
     unsigned char owner;               // +0xff
@@ -75,8 +75,8 @@ struct Select_0048c390 {
 
 struct Player_0048c390 {
     char unknown_0[0x67];
-    Unit_0048c390* first;               // +0x67
-    Unit_0048c390* last;                // +0x6b
+    Unit* first;                        // +0x67
+    Unit* last;                         // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -96,8 +96,8 @@ struct Game_0048c390 {
     int scroll_x;                       // +0x1431f
     int scroll_y;                       // +0x14323
     char unknown_14327[0x14357 - 0x14327];
-    Unit_0048c390* units_begin;         // +0x14357
-    Unit_0048c390* units_end;           // +0x1435b
+    Unit* units_begin;                  // +0x14357
+    Unit* units_end;                    // +0x1435b
     unsigned short* list;               // +0x1435f
     char unknown_14363[0x14367 - 0x14363];
     int count;                          // +0x14367
@@ -112,7 +112,7 @@ extern Game_0048c390* g_game;
 extern char s_SelectMultipleUnits_00508d8c[];
 
 int __stdcall FUN_00491d70(int a);
-int __stdcall FUN_0047f780(Unit_0048c390* unit, int a, int b);
+int __stdcall FUN_0047f780(Unit* unit, int a, int b);
 int __stdcall FUN_0047f1a0(char* msg, int a);
 
 // FUNCTION: 0x48c390
@@ -128,14 +128,14 @@ int __stdcall FUN_0048c390(void* param_1)
     if (xmin > xmax) { t = xmin; xmin = xmax; xmax = t; }
     int toggle = (((Select_0048c390*)param_1)->flags >> 2) & 1;
     if (!toggle) {
-        for (Unit_0048c390* v = g_game->units_begin; v <= g_game->units_end; v++)
+        for (Unit* v = g_game->units_begin; v <= g_game->units_end; v++)
             v->flags &= 0xffffff2f;
         FUN_00491d70(0);
     }
     Player_0048c390* p = &g_game->players[g_game->player];
     int count = 0;
-    Unit_0048c390* last;
-    for (Unit_0048c390* u = p->first; u <= p->last; u++) {
+    Unit* last;
+    for (Unit* u = p->first; u <= p->last; u++) {
         if ((u->flags & 0x20) && u->unknown_104 == 0.0f && !u->unknown_fb &&
             (!u->parent || (u->parent->flags & 0x40000000))) {
             int sy = (u->x - g_game->scroll_x) + 0x80;
@@ -151,11 +151,11 @@ int __stdcall FUN_0048c390(void* param_1)
         }
     }
     g_game->flag_37e9c = 0;
-    for (Unit_0048c390* v = g_game->units_begin; v <= g_game->units_end; v++)
+    for (Unit* v = g_game->units_begin; v <= g_game->units_end; v++)
         v->flags &= 0xffffff3f;
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
-        Unit_0048c390* v = &g_game->units_begin[list[i]];
+        Unit* v = &g_game->units_begin[list[i]];
         if (v->owner == g_game->player)
             v->state = 1;
     }

@@ -33,7 +33,7 @@ struct Pos_0048a870 {
     int z;                              // +0x8
 };
 
-struct Unit_0048a870 {
+struct Unit {
     int* owner;                         // +0x0
     char unknown_4[0x6a - 4];
     Pos_0048a870 pos;                   // +0x6a
@@ -52,12 +52,12 @@ struct Game_0048a870 {
 extern Game_0048a870* g_game;
 
 int __stdcall FUN_00485070(Pos_0048a870* pos);
-void __stdcall FUN_0048a490(Unit_0048a870* unit);
+void __stdcall FUN_0048a490(Unit* unit);
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 // FUNCTION: 0x48a870
-void __stdcall FUN_0048a870(Unit_0048a870* unit)
+void __stdcall FUN_0048a870(Unit* unit)
 {
     if ((unit->flags & 0x10000) || unit->type->floats) {
         unit->flags &= ~0x10000;

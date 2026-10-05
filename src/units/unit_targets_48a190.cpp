@@ -3,13 +3,13 @@
 // entry is not a unit target.
 
 #pragma pack(push, 1)
-struct Unit_0048a190 {
+struct Unit {
     char unknown_0[0x118];
 };
 
 struct Game_0048a190 {
     char unknown_0[0x14357];
-    Unit_0048a190* units;              // +0x14357
+    Unit* units;                       // +0x14357
 };
 #pragma pack(pop)
 
@@ -31,7 +31,7 @@ struct Class_0048a190 {
 };
 
 // FUNCTION: 0x48a190
-Unit_0048a190* __stdcall FUN_0048a190(Class_0048a190* obj, int index)
+Unit* __stdcall FUN_0048a190(Class_0048a190* obj, int index)
 {
     Point_0048a190* p = &obj->entries[index].point;
     if (p->b != (short)0x8000) {

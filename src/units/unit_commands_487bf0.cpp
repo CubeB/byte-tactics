@@ -72,7 +72,7 @@ struct Vec3_00487bf0 {
     int x, y, z;
 };
 
-struct Unit_00487bf0 {
+struct Unit {
     int field_0;
     char unknown_4[0x110 - 4];
     unsigned int flags;
@@ -92,20 +92,20 @@ public:
     Class_00438760() {}
 };
 
-void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit_00487bf0* owner,
+void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit* owner,
                             int id, Vec3_00487bf0* pos, int param_6, int param_7);
-void __stdcall FUN_0043f0e0(Class_00438760* out, int mode, Unit_00487bf0* unit,
+void __stdcall FUN_0043f0e0(Class_00438760* out, int mode, Unit* unit,
                             int target, Vec3_00487bf0* pos);
 int __stdcall FUN_00487af0(char* name, Table_00487bf0* table, int value);
 unsigned short __stdcall FUN_00488b10(char* name);
-void __stdcall FUN_0048aac0(Unit_00487bf0* unit, int target, int a, int b);
+void __stdcall FUN_0048aac0(Unit* unit, int target, int a, int b);
 
 struct Outs_t {
     Class_00438760 g, a, m, u, p;
 };
 
 // FUNCTION: 0x487bf0
-void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* table)
+void __stdcall FUN_00487bf0(Unit* unit, char* text, Table_00487bf0* table)
 {
     int count;
     struct { float f1, f2; int n; Vec3_00487bf0 pos; int move; } L;

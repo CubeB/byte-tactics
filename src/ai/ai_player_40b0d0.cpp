@@ -7,7 +7,7 @@ struct Vec3_40b0d0 {
     int z;
 };
 
-struct Unit_40b0d0 {
+struct Unit {
     char unknown_0[0x6a];
     Vec3_40b0d0 pos;
     char unknown_76[0x110 - 0x76];
@@ -16,7 +16,7 @@ struct Unit_40b0d0 {
 
 struct Player_40b0d0 {
     char unknown_0[5];
-    std::vector<Unit_40b0d0*> units;
+    std::vector<Unit*> units;
 };
 #pragma pack(pop)
 
@@ -27,11 +27,11 @@ bool __stdcall FUN_0040b0d0(int player, Vec3_40b0d0* p, int range)
 {
     int r2 = range * range;
     Player_40b0d0* t = DAT_005119c0[player];
-    std::vector<Unit_40b0d0*>& units = t->units;
-    std::vector<Unit_40b0d0*>::iterator it = units.begin();
+    std::vector<Unit*>& units = t->units;
+    std::vector<Unit*>::iterator it = units.begin();
     if (it != units.end()) {
         do {
-            Unit_40b0d0* u = *it;
+            Unit* u = *it;
             int dz = p->z - u->pos.z;
             int dx = p->x - u->pos.x;
             if ((int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dz * dz) >> 32) <= r2

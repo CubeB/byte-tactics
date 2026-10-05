@@ -11,13 +11,13 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Unit_00478240 {
+struct Unit {
     char unknown_0[0x95];
     unsigned char side;                // +0x95
 };
 
 struct PlayerEntry_00478240 {          // 0x14b bytes
-    Unit_00478240* unit;               // +0x0
+    Unit* unit;                        // +0x0
     char unknown_4[0x14b - 4];
 };
 

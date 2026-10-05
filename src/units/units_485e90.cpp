@@ -31,7 +31,7 @@ struct Class_00481490 {                // 0x1c bytes, vtable 0x4fd6f0
     char unknown_4[0x1c - 0x4];
 };
 
-struct Unit_00485e90 {
+struct Unit {
     Class_0043dc00* obj;               // +0x0
     char unknown_4[0x8 - 0x4];
     Class_00481490 sub_8;              // +0x8
@@ -57,17 +57,17 @@ extern void* DAT_004fd6f0[];
 class Class_0043dc00 {
 public:
     char unknown_0[0x2f];
-    Class_0043dc00(Unit_00485e90* unit);
+    Class_0043dc00(Unit* unit);
 };
 
-void __stdcall FUN_00485a40(Unit_00485e90* unit, Pos_00485e90 pos, int param_5);
-void __stdcall FUN_00485d40(Unit_00485e90* unit);
-void __stdcall FUN_0049e070(Unit_00485e90* unit);
-void __stdcall FUN_00437840(Unit_00485e90* unit);
+void __stdcall FUN_00485a40(Unit* unit, Pos_00485e90 pos, int param_5);
+void __stdcall FUN_00485d40(Unit* unit);
+void __stdcall FUN_0049e070(Unit* unit);
+void __stdcall FUN_00437840(Unit* unit);
 void* __cdecl operator new(unsigned int size);
 
 // FUNCTION: 0x485e90
-void __stdcall FUN_00485e90(int unitType, Pos_00485e90 pos, int param_5, Unit_00485e90* unit)
+void __stdcall FUN_00485e90(int unitType, Pos_00485e90 pos, int param_5, Unit* unit)
 {
     UnitType_00485e90* type = &g_game->unitTypes[(unsigned short)unitType];
     if (unit) {

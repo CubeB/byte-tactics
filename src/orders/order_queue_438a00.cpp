@@ -19,7 +19,7 @@ struct Owner_00438a00 {
     Handler_00438a00* handler;         // +0
 };
 
-struct Unit_00438a00 {
+struct Unit {
     Owner_00438a00* owner;             // +0
     char unknown_4[0x92 - 4];
     Def_00438a00* def;                 // +0x92
@@ -46,7 +46,7 @@ public:
 class Class_00438a00 {
 public:
     char unknown_0[0xe];
-    Unit_00438a00* unit;               // +0xe
+    Unit* unit;                        // +0xe
     char unknown_12[0x4e - 0x12];
     unsigned int flags;                // +0x4e
     Attached_00438a00* attached;       // +0x52

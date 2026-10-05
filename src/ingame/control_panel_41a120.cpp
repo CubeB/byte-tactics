@@ -10,7 +10,7 @@ struct UnitType_0041a120 {
     unsigned char field_22e;           // +0x22e
 };
 
-struct Unit_0041a120 {
+struct Unit {
     char unknown_0[0x92];
     UnitType_0041a120* type;           // +0x92
     char unknown_96[0x110 - 0x96];
@@ -67,7 +67,7 @@ void __stdcall FUN_004a1200(Menu_0041a120* menu, int index, int value);
 void __stdcall FUN_004a03f0(Menu_0041a120* menu, int index, char value);
 
 // FUNCTION: 0x41a120
-void __stdcall FUN_0041a120(Unit_0041a120* unit)
+void __stdcall FUN_0041a120(Unit* unit)
 {
     Menu_0041a120* menu = &g_game->menu;
     int layer = g_game->menu.layer->value;

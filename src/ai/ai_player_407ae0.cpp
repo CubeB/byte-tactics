@@ -85,7 +85,7 @@ struct Pos_00407ae0 {
 };
 
 #pragma pack(push, 1)
-struct Unit_00407ae0 {
+struct Unit {
     char unknown_0[0x6a];
     Vec3_00407410 pos;                 // +0x6a
 };
@@ -94,14 +94,14 @@ struct Unit_00407ae0 {
 struct Player_00407ae0;
 
 void __stdcall FUN_00480460(Player_00407ae0* player, int id, unsigned char mode, int remove,
-                            Unit_00407ae0* target, Vec3_00407410* pos, int flags, int extra);
+                            Unit* target, Vec3_00407410* pos, int flags, int extra);
 
 struct Group_00407ae0 {
     Player_00407ae0* player;           // +0x0
     int id;                            // +0x4
     char unknown_8[0x10 - 0x8];
-    std::vector<Unit_00407ae0*> units; // +0x10
-    void Send(unsigned char mode, int remove, Unit_00407ae0* target, Vec3_00407410* pos,
+    std::vector<Unit*> units; // +0x10
+    void Send(unsigned char mode, int remove, Unit* target, Vec3_00407410* pos,
               int flags, int extra)
     {
         FUN_00480460(player, id, mode, remove, target, pos, flags, extra);
@@ -115,7 +115,7 @@ struct Class_00408cb0 {                // the owner (constructor 0x408cb0)
 
 class Class_004071f0 {
 public:
-    Unit_00407ae0* FUN_004071f0(Vec3_00407410 pos);
+    Unit* FUN_004071f0(Vec3_00407410 pos);
 };
 
 // Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.
@@ -162,7 +162,7 @@ void Class_00407a90::FUN_00407380()
         Pos_00407ae0 pos = GetRallyPoint(field_10);
         if ((pos.x.s.whole | pos.z.s.whole) == 0) {
             FUN_00407410(&dest);
-            Unit_00407ae0* target = ((Class_004071f0*)owner)->FUN_004071f0(dest);
+            Unit* target = ((Class_004071f0*)owner)->FUN_004071f0(dest);
             group->Send(9, 1, 0, &target->pos, 0, 0);
         } else {
             int n = FUN_004b6c30(2) + 2;

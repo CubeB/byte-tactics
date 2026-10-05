@@ -13,7 +13,7 @@ struct Vec3_0046a530 {
 
 struct Object_004cb650;
 
-struct Unit_0046a530 {
+struct Unit {
     char unknown_0[0x6a];
     int x;                          // +0x6a
     int y;                          // +0x6e
@@ -49,7 +49,7 @@ void __stdcall FUN_00467a50(Vec3_0046a530* view, Vec3_0046a530* pos,
                             Vec3_0046a530* corners, void* unit);
 
 // FUNCTION: 0x46a530
-void __stdcall FUN_0046a530(Vec3_0046a530* view, Unit_0046a530* unit)
+void __stdcall FUN_0046a530(Vec3_0046a530* view, Unit* unit)
 {
     Flags_0046a530* f = (Flags_0046a530*)((char*)g_game + 0x37f2f);
     if (f->flag) {

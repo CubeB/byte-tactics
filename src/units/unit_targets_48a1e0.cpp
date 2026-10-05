@@ -47,7 +47,7 @@ struct UnitDef_0048a1e0 {
     char unknown_115[0x118 - 0x115];
 };
 
-struct Unit_0048a1e0 {
+struct Unit {
     char unknown_0[4];
     Entry_0048a1e0 entries[3];         // +0x4
     char unknown_58[0x6a - 0x58];
@@ -89,7 +89,7 @@ static Vec3_0048a1e0 offset_0048a1e0(Muzzle_0048a1e0* m, __int64 s)
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 // FUNCTION: 0x48a1e0
-int __stdcall FUN_0048a1e0(Unit_0048a1e0* unit, Vec3_0048a1e0* pos, int index)
+int __stdcall FUN_0048a1e0(Unit* unit, Vec3_0048a1e0* pos, int index)
 {
     Entry_0048a1e0* e = &unit->entries[index];
     if (e->z != (short)0x8000) {

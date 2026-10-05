@@ -22,7 +22,7 @@ struct Link_0048c7f0 {
     unsigned int flags;                 // +0x110
 };
 
-struct Unit_0048c7f0 {
+struct Unit {
     char unknown_0[0x86];
     Link_0048c7f0* link;                // +0x86
     char unknown_8a[0xfb - 0x8a];
@@ -41,8 +41,8 @@ struct Game_0048c7f0 {
     char unknown_2a43[0x2cba - 0x2a43];
     unsigned short sel2;                // +0x2cba
     char unknown_2cbc[0x14357 - 0x2cbc];
-    Unit_0048c7f0* units;               // +0x14357
-    Unit_0048c7f0* units_end;           // +0x1435b
+    Unit* units;                        // +0x14357
+    Unit* units_end;                    // +0x1435b
     unsigned short* list;               // +0x1435f
     char unknown_14363[0x14367 - 0x14363];
     int count;                          // +0x14367
@@ -60,13 +60,13 @@ struct Param_0048c7f0 {
 
 extern Game_0048c7f0* g_game;
 
-void __stdcall FUN_0047f780(Unit_0048c7f0* unit, int kind, char* text);
+void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
 void __stdcall FUN_00491d70(int force);
 
 // FUNCTION: 0x48c7f0
 void __stdcall FUN_0048c7f0(Param_0048c7f0* param)
 {
-    Unit_0048c7f0* unit = !g_game->sel2 ? 0 : &g_game->units[g_game->sel2];
+    Unit* unit = !g_game->sel2 ? 0 : &g_game->units[g_game->sel2];
     if (unit == 0)
         return;
     if (unit->owner != g_game->player)
@@ -89,12 +89,12 @@ void __stdcall FUN_0048c7f0(Param_0048c7f0* param)
         return;
     }
 
-    for (Unit_0048c7f0* u = g_game->units; u <= g_game->units_end; u++)
+    for (Unit* u = g_game->units; u <= g_game->units_end; u++)
         u->flags.raw &= 0xffffff2f;
     FUN_00491d70(0);
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
-        Unit_0048c7f0* u = &g_game->units[list[i]];
+        Unit* u = &g_game->units[list[i]];
         if (u->owner == g_game->player)
             u->flags.raw = u->flags.raw & 0xffffff7f | 0x40;
     }

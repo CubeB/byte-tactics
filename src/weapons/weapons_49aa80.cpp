@@ -122,7 +122,7 @@ struct UnitDef_0049aa80 {
     short field_170;                   // +0x170
 };
 
-struct Unit_0049aa80 {
+struct Unit {
     char unknown_0[8];
     Weapon_0049aa80 weapons[3];        // +0x8, stride 0x1c
     char unknown_5c[0x92 - 0x5c];
@@ -163,7 +163,7 @@ static inline short LineOfFire_0049aa80(Vec3_0049aa80 to, Vec3_0049aa80 from, in
 }
 
 // FUNCTION: 0x49aa80
-int __stdcall FUN_0049aa80(Unit_0049aa80* a1, Vec3_0049aa80* a2, Vec3_0049aa80* a3, int a4)
+int __stdcall FUN_0049aa80(Unit* a1, Vec3_0049aa80* a2, Vec3_0049aa80* a3, int a4)
 {
     WeaponDef_0049aa80* wdef = a1->weapons[a4 & 0xff].def;
 

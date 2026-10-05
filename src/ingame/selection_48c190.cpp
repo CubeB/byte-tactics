@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
 #pragma pack(push, 1)
-struct Unit_0048c190 {
+struct Unit {
     char unknown_0[0xa8];
     unsigned short index;               // +0xa8
     char unknown_aa[0x110 - 0xaa];
@@ -29,19 +29,19 @@ struct Game_0048c190 {
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char player;               // +0x2a42
     char unknown_2a43[0x14357 - 0x2a43];
-    Unit_0048c190* units;               // +0x14357
+    Unit* units;                        // +0x14357
 };
 #pragma pack(pop)
 
 extern Game_0048c190* g_game;
 
-static inline Unit_0048c190* GetUnit_0048c190(unsigned short i)
+static inline Unit* GetUnit_0048c190(unsigned short i)
 {
     return i == 0 ? 0 : g_game->units + i;
 }
 
 // FUNCTION: 0x48c190
-Unit_0048c190* __stdcall FUN_0048c190(Unit_0048c190* unit, int dir)
+Unit* __stdcall FUN_0048c190(Unit* unit, int dir)
 {
     Player_0048c190* p = &g_game->players[g_game->player];
     unsigned short x = unit == 0 ? 0 : unit->index;
@@ -52,7 +52,7 @@ Unit_0048c190* __stdcall FUN_0048c190(Unit_0048c190* unit, int dir)
         short j = x;
         while ((unsigned short)j != p->firstIndex) {
             --j;
-            Unit_0048c190* v = GetUnit_0048c190((unsigned short)j);
+            Unit* v = GetUnit_0048c190((unsigned short)j);
             if (v->selected) {
                 return v;
             }
@@ -60,7 +60,7 @@ Unit_0048c190* __stdcall FUN_0048c190(Unit_0048c190* unit, int dir)
         j = p->lastIndex + 1;
         while ((unsigned short)j != x) {
             --j;
-            Unit_0048c190* v = GetUnit_0048c190((unsigned short)j);
+            Unit* v = GetUnit_0048c190((unsigned short)j);
             if (v->selected) {
                 return v;
             }
@@ -68,13 +68,13 @@ Unit_0048c190* __stdcall FUN_0048c190(Unit_0048c190* unit, int dir)
     } else {
         short j;
         for (j = x; (unsigned short)j != p->lastIndex; j++) {
-            Unit_0048c190* v = GetUnit_0048c190((unsigned short)(j + 1));
+            Unit* v = GetUnit_0048c190((unsigned short)(j + 1));
             if (v->selected) {
                 return v;
             }
         }
         for (j = p->firstIndex - 1; (unsigned short)j != x; j++) {
-            Unit_0048c190* v = GetUnit_0048c190((unsigned short)(j + 1));
+            Unit* v = GetUnit_0048c190((unsigned short)(j + 1));
             if (v->selected) {
                 return v;
             }

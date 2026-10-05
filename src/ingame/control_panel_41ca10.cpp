@@ -24,7 +24,7 @@ struct Follow_0041ca10 {
     Pos_0041ca10 pos;                  // +0x4
 };
 
-struct Unit_0041ca10 {
+struct Unit {
     char unknown_0[0x6a];
     Pos_0041ca10 pos;                  // +0x6a
     char unknown_76[0x110 - 0x76];
@@ -39,7 +39,7 @@ struct Game_0041ca10 {
     unsigned short flags_14281;        // +0x14281
     char unknown_14283[0x142f1 - 0x14283];
     unsigned short flags_142f1;        // +0x142f1
-    Unit_0041ca10* followUnit;         // +0x142f3
+    Unit* followUnit;                  // +0x142f3
     Follow_0041ca10* follow;           // +0x142f7
     char unknown_142fb[0x1431f - 0x142fb];
     int x;                             // +0x1431f

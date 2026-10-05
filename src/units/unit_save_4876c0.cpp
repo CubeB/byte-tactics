@@ -119,7 +119,7 @@ struct Obj_004876c0 {
     unsigned char f10a;             // +0x10a
 };
 
-struct Unit_004876c0 {
+struct Unit {
     void* vtable;                   // +0x0
     Piece_004876c0 pieces[3];       // +0x4
     int f58;                        // +0x58
@@ -176,18 +176,18 @@ class Class_0043a1f0 {
 public:
     char gap_0[0x4a];
     Class_0043a1f0* next;           // +0x4a
-    void FUN_0043a970(Unit_004876c0* unit, void* file, char* name);
+    void FUN_0043a970(Unit* unit, void* file, char* name);
 };
 #pragma pack(pop)
 
 class Class_004010b0 {
 public:
-    void FUN_004010b0(Unit_004876c0* unit, void* file);
+    void FUN_004010b0(Unit* unit, void* file);
 };
 
 class Class_0043dd70 {
 public:
-    void FUN_0043dd70(Unit_004876c0* unit, void* file);
+    void FUN_0043dd70(Unit* unit, void* file);
 };
 
 class Class_004b4560 {
@@ -224,12 +224,12 @@ public:
 void __stdcall FUN_004876c0(Class_004b4560* file)
 {
     int count = 0;
-    Unit_004876c0* end = 0;
-    Unit_004876c0* unit;
+    Unit* end = 0;
+    Unit* unit;
     file->FUN_004b4560("Units");
-    end = *(Unit_004876c0**)((char*)g_game + 0x1435b);
-    unit = *(Unit_004876c0**)((char*)g_game + 0x14357);
-    for (; unit <= end; unit = (Unit_004876c0*)((char*)unit + 0x118)) {
+    end = *(Unit**)((char*)g_game + 0x1435b);
+    unit = *(Unit**)((char*)g_game + 0x14357);
+    for (; unit <= end; unit = (Unit*)((char*)unit + 0x118)) {
         if (unit->flags & 0x10000000) {
             UnitRecord_004876c0 rec;
             char bufTail[32], script[32];
@@ -271,7 +271,7 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
             rec.f27 = unit->vtable != 0;
 
             short id8b = 0;
-            Unit_004876c0* a = (Unit_004876c0*)unit->f86;
+            Unit* a = (Unit*)unit->f86;
             if (a != 0 && (a->flags & 0x10000000)) {
                 rec.f89 = unit->f86 == 0 ? 0 : a->f_a8;
                 rec.f8d = unit->f_f9;
@@ -279,7 +279,7 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
                 rec.f89 = 0;
                 rec.f8d = 0xff;
             }
-            Unit_004876c0* a2 = (Unit_004876c0*)unit->f_f0;
+            Unit* a2 = (Unit*)unit->f_f0;
             if (a2 != 0) {
                 if (a2->flags & 0x10000000)
                     id8b = unit->f_f0 == 0 ? 0 : a2->f_a8;

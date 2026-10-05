@@ -76,7 +76,7 @@ struct Owner_0048b710 {
     int field_20;                      // +0x20
 };
 
-struct Unit_0048b710 {                              // 0x118 bytes
+struct Unit {                                       // 0x118 bytes
     Owner_0048b710* owner;              // +0x0
     char unknown_4[0x96 - 0x4];
     Link_0048b710* link;                // +0x96
@@ -94,8 +94,8 @@ struct Player_0048b710 {
     char unknown_8[0x18 - 0x8];
     int ticks;                          // +0x18
     char unknown_1c[0x67 - 0x1c];
-    Unit_0048b710* units_begin;         // +0x67
-    Unit_0048b710* units_end;           // +0x6b
+    Unit* units_begin;                  // +0x67
+    Unit* units_end;                    // +0x6b
 };
 
 struct Game_0048b710 {
@@ -111,7 +111,7 @@ struct Game_0048b710 {
 
 extern Game_0048b710* g_game;
 
-void __stdcall FUN_0048b200(Class_00415c10* stream, Unit_0048b710* u);
+void __stdcall FUN_0048b200(Class_00415c10* stream, Unit* u);
 int __stdcall FUN_00451df0(int player, void* data, int size);
 
 // FUNCTION: 0x48b710
@@ -122,7 +122,7 @@ void __stdcall FUN_0048b710(Player_0048b710* p)
     stream.FUN_00415c10(0, 0x10);
     stream.FUN_00415c10(g_game->ticks, 0x20);
     p->ticks = g_game->ticks;
-    for (Unit_0048b710* u = p->units_begin; u <= p->units_end; u++) {
+    for (Unit* u = p->units_begin; u <= p->units_end; u++) {
         if (!(u->flags & 0x10000000))
             continue;
         if (!u->owner)

@@ -16,7 +16,7 @@
 //   `[edx+edi+K]` (a different SIB byte) at all seven sites.
 #include <windows.h>
 
-struct Unit_00485f50;
+struct Unit;
 
 struct Class_00481490 {                  // 0x1c bytes, vtable 0x4fd6f0
     void* vtable;                        // +0x0
@@ -26,12 +26,12 @@ struct Class_00481490 {                  // 0x1c bytes, vtable 0x4fd6f0
 class Class_0043dc00 {
 public:
     char unknown_0[0x2f];
-    Class_0043dc00(Unit_00485f50* unit);
+    Class_0043dc00(Unit* unit);
 };
 
 class Class_00490520 {
 public:
-    void FUN_00490580(Unit_00485f50* unit);
+    void FUN_00490580(Unit* unit);
 };
 
 class Class_0048b090 {                  // the unit's own method, under its own name
@@ -65,7 +65,7 @@ struct UnitType_00485f50 {               // 0x249 bytes
     char unknown_245[0x249 - 0x245];
 };
 
-struct Unit_00485f50 {                   // 0x118 bytes
+struct Unit {                            // 0x118 bytes
     Class_0043dc00* obj;                 // +0x0
     char unknown_4[0x8 - 0x4];
     Class_00481490 sub_8;                // +0x8
@@ -89,8 +89,8 @@ struct Unit_00485f50 {                   // 0x118 bytes
 
 struct Player_00485f50 {                 // 0x14b bytes
     char unknown_0[0x67];
-    Unit_00485f50* units_begin;          // +0x67
-    Unit_00485f50* units_end;            // +0x6b
+    Unit* units_begin;                   // +0x67
+    Unit* units_end;                     // +0x6b
     char unknown_6f[0x140 - 0x6f];
     int field_140;                       // +0x140
     unsigned short field_144;            // +0x144
@@ -101,7 +101,7 @@ struct Game_00485f50 {
     char unknown_0[0x1b63];
     Player_00485f50 players[10];         // +0x1b63
     char unknown_2851[0x14357 - 0x2851];
-    Unit_00485f50* units;                // +0x14357
+    Unit* units;                         // +0x14357
     char unknown_1435b[0x1439b - 0x1435b];
     UnitType_00485f50* unitTypes;        // +0x1439b
     char unknown_1439f[0x391ed - 0x1439f];
@@ -112,19 +112,19 @@ struct Game_00485f50 {
 extern Game_00485f50* g_game;
 extern void* DAT_004fd6f0[];
 
-void __stdcall FUN_00485a40(Unit_00485f50* unit, Pos_00485f50 pos, int param_5);
-void __stdcall FUN_00485d40(Unit_00485f50* unit);
-void __stdcall FUN_0049e070(Unit_00485f50* unit);
-void __stdcall FUN_00437840(Unit_00485f50* unit);
-void __stdcall FUN_0048a870(Unit_00485f50* unit);
-void __stdcall FUN_0047cc30(Unit_00485f50* unit);
-void __stdcall FUN_00456050(Unit_00485f50* unit);
-void __stdcall FUN_004560c0(Unit_00485f50* a, Unit_00485f50* b);
-void __stdcall FUN_00482ac0(Unit_00485f50* unit);
+void __stdcall FUN_00485a40(Unit* unit, Pos_00485f50 pos, int param_5);
+void __stdcall FUN_00485d40(Unit* unit);
+void __stdcall FUN_0049e070(Unit* unit);
+void __stdcall FUN_00437840(Unit* unit);
+void __stdcall FUN_0048a870(Unit* unit);
+void __stdcall FUN_0047cc30(Unit* unit);
+void __stdcall FUN_00456050(Unit* unit);
+void __stdcall FUN_004560c0(Unit* a, Unit* b);
+void __stdcall FUN_00482ac0(Unit* unit);
 void* __cdecl operator new(unsigned int size);
 
 static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_00485f50 pos,
-                                               int param_5, Unit_00485f50* unit)
+                                               int param_5, Unit* unit)
 {
     UnitType_00485f50* type = &g_game->unitTypes[unitType];
     if (unit) {
@@ -146,7 +146,7 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
 }
 
 // FUNCTION: 0x485f50
-Unit_00485f50* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId, Pos_00485f50 pos,
+Unit* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId, Pos_00485f50 pos,
                                       int param_5, int mode, unsigned short id)
 {
     int off = player * 0x14b;
@@ -158,14 +158,14 @@ Unit_00485f50* __stdcall FUN_00485f50(unsigned char player, unsigned short typeI
         return 0;
     if (type->limit != -1) {
         int count = 0;
-        for (Unit_00485f50* u = pl->units_begin; u <= pl->units_end; u++) {
+        for (Unit* u = pl->units_begin; u <= pl->units_end; u++) {
             if (u->field_a6 == typeId)
                 count++;
         }
         if (count >= type->limit)
             return 0;
     }
-    Unit_00485f50* unit;
+    Unit* unit;
     for (unit = pl->units_begin; unit <= pl->units_end; unit++) {
         if (id != 0) {
             unit = &g_game->units[id];

@@ -81,7 +81,7 @@ struct UnitDef_00465ac0 {
 struct Vec3_00465ac0 {
     int x, y, z;
 };
-struct Unit_00465ac0 {
+struct Unit {
     char unknown_0[0x6a];
     Vec3_00465ac0 pos;                   // +0x6a
     char unknown_76[0x92 - 0x76];
@@ -168,7 +168,7 @@ static inline int IsVisible3(Map_00465ac0* map, Position_00465ac0* pos)
     return IsSeen(map, pos);
 }
 // FUNCTION: 0x465ac0
-int __stdcall FUN_00465ac0(Map_00465ac0* map, Unit_00465ac0* u)
+int __stdcall FUN_00465ac0(Map_00465ac0* map, Unit* u)
 {
     if (u->f96 == map)
         return 1;

@@ -128,7 +128,7 @@ struct Piece_00421700 {
     char unknown_26[0x36 - 0x26];
 };
 
-struct Unit_00421700 {
+struct Unit {
     Size_00421700* size;                // +0x00
     char unknown_4[0x6a - 4];
     Vec3_00421700 pos;                  // +0x6a
@@ -150,7 +150,7 @@ struct Game_00421700 {
 #pragma pack(pop)
 
 struct Header_00421700 {
-    Unit_00421700* obj;                 // +0x00
+    Unit* obj;                          // +0x00
     int index;                          // +0x04
     char unknown_8[0x1c];
     int scale;                          // +0x24
@@ -182,7 +182,7 @@ static inline Object3D_00421700* NewObject()
 // FUNCTION: 0x421700
 void __stdcall FUN_00421700(Header_00421700* param)
 {
-    Unit_00421700* unit = param->obj;
+    Unit* unit = param->obj;
     Piece_00421700* piece =
         (Piece_00421700*)(unit->pieces + 0x22 + param->index * 0x36);
     int* count = &g_game->debrisCount;

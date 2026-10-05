@@ -13,7 +13,7 @@ struct UnitDef_0043db50 {
     unsigned char draft;               // +0x22c
 };
 
-struct Unit_0043db50 {
+struct Unit {
     char unknown_0[0x70];
     short field_70;                    // +0x70
     char unknown_72[0x92 - 0x72];
@@ -36,11 +36,11 @@ extern Game_0043db50* g_game;
 
 class Class_0043db50 {
 public:
-    void FUN_0043db50(Unit_0043db50* unit);
+    void FUN_0043db50(Unit* unit);
 };
 
 // FUNCTION: 0x43db50
-void Class_0043db50::FUN_0043db50(Unit_0043db50* unit)
+void Class_0043db50::FUN_0043db50(Unit* unit)
 {
     int seaLevel = g_game->seaLevel;
     int y = unit->field_70;

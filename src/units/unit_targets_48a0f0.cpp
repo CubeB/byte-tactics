@@ -23,7 +23,7 @@ struct Entry_0048a0f0 {
 };
 
 #pragma pack(push, 1)
-struct Unit_0048a0f0 {
+struct Unit {
     int unknown_0;
     Entry_0048a0f0 entries[5];         // +0x4
     char unknown_90[0x9a - 0x90];
@@ -32,7 +32,7 @@ struct Unit_0048a0f0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x48a0f0
-void __stdcall FUN_0048a0f0(Unit_0048a0f0* unit, int index)
+void __stdcall FUN_0048a0f0(Unit* unit, int index)
 {
     Point_0048a0f0* p = &unit->entries[index].point;
     if (p->a != 0 || p->b != (short)0x8000) {

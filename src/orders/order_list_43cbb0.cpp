@@ -6,7 +6,7 @@ struct UnitType_0043cbb0 {
     unsigned short max_turn;           // +0x1ba
 };
 
-struct Unit_0043cbb0 {
+struct Unit {
     char unknown_0[0x66];
     short heading;                     // +0x66
     char unknown_68[0x92 - 0x68];
@@ -23,13 +23,13 @@ public:
     char unknown_0[0x24];
     short turn;                        // +0x24
 
-    void FUN_0043cbb0(Unit_0043cbb0* unit, short amount);
+    void FUN_0043cbb0(Unit* unit, short amount);
 };
 
 // Clamps a turn amount to +-the unit type's limit, applies it to the unit's
 // heading and flags the unit as moved.
 // FUNCTION: 0x43cbb0
-void Class_0043cbb0::FUN_0043cbb0(Unit_0043cbb0* unit, short amount)
+void Class_0043cbb0::FUN_0043cbb0(Unit* unit, short amount)
 {
     if (amount != 0) {
         unsigned short max = unit->type->max_turn;

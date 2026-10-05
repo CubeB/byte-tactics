@@ -47,7 +47,7 @@ struct Obj_00439b30 {
     Obj_00439b30* next;
 };
 
-struct Unit_00439b30 {
+struct Unit {
     char unknown_0[0x5c];
     Obj_00439b30* first;
     char unknown_60[0x6a - 0x60];
@@ -64,7 +64,7 @@ void __stdcall FUN_00439740(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, 
 void __stdcall FUN_004399f0(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
 
 // FUNCTION: 0x439b30
-void __stdcall FUN_00439b30(Unit_00439b30* unit, unsigned int mask, void* obj,
+void __stdcall FUN_00439b30(Unit* unit, unsigned int mask, void* obj,
                             void* sel, int flag)
 {
     Pos_00439b30 base = unit->pos;

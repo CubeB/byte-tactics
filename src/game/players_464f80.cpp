@@ -297,7 +297,7 @@
 #include <windows.h>
 #include <string.h>
 
-struct Unit_00464f80;
+struct Unit;
 struct Player_00464f80;
 
 struct Class_0040eb70 { void FUN_0040eb70(); };
@@ -355,7 +355,7 @@ struct UnitType_00464f80 {
 };
 
 // A unit. Only the fields this function reads are named.
-struct Unit_00464f80 {
+struct Unit {
     char unknown_0[0x92];
     UnitType_00464f80* type;           // +0x92
     char unknown_96[0xa6 - 0x96];
@@ -378,8 +378,8 @@ struct PlayerInfo_00464f80 {           // +0x1b63, stride 0x14b
     char unknown_23[0x27 - 0x23];
     Player_00464f80* data;             // +0x27
     char unknown_2b[0x67 - 0x2b];
-    Unit_00464f80* units;              // +0x67
-    Unit_00464f80* units_end;          // +0x6b
+    Unit* units;                       // +0x67
+    Unit* units_end;                   // +0x6b
     char unknown_6f[0x73 - 0x6f];
     unsigned char type;                // +0x73
     Class_00408c40* field_74;          // +0x74
@@ -471,7 +471,7 @@ extern Game_00464f80* g_game;
 extern int DAT_0051e53c;
 
 void __stdcall FUN_0040b2c0(int player);
-void __stdcall FUN_004827b0(Unit_00464f80* unit);
+void __stdcall FUN_004827b0(Unit* unit);
 void FUN_00466dc0();
 void FUN_00467440();
 void FUN_00466c20();
@@ -481,7 +481,7 @@ int __stdcall FUN_004b6c30(int range);
 int __stdcall FUN_0047db70(UnitDef_00464f80* type, int a, Point16 cell, int c);
 short __stdcall FUN_00421da0(Pos_00464f80* pos, int a, int b);
 int __stdcall FUN_00485140(Pos_00464f80* pos);
-Unit_00464f80* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId,
+Unit* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId,
                                      Pos_00464f80 pos, int a, int b, int c);
 void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width);
 void __stdcall FUN_004816a0(int on);
@@ -563,11 +563,11 @@ void __stdcall FUN_00464f80()
         FUN_0040b2c0(bl);
 
         {
-            Unit_00464f80* u = pi->units;
+            Unit* u = pi->units;
             while (u <= pi->units_end) {
                 if (u->flags_110 & 0x10000000)
                     FUN_004827b0(u);
-                u = (Unit_00464f80*)((char*)u + 0x118);
+                u = (Unit*)((char*)u + 0x118);
             }
         }
 
@@ -668,7 +668,7 @@ void __stdcall FUN_00464f80()
                             } while (--bound > 0);
 
                             {
-                                Unit_00464f80* unit = FUN_00485f50(
+                                Unit* unit = FUN_00485f50(
                                     g_game->localPlayer, typeId, pos, 1, 1, 0);
                                 FUN_00496e90((Struct_00496e90*)pi,
                                              self->field_a3 * 100,

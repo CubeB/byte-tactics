@@ -76,12 +76,12 @@ union F110_0048ad30 {
     unsigned int all;
 };
 
-struct Unit_0048ad30 {
+struct Unit {
     Class_0043dd20* def;                // +0x00
     char unknown_4[0x70 - 4];
     short f70;                         // +0x70
     char unknown_72[0x86 - 0x72];
-    Unit_0048ad30* owner;              // +0x86
+    Unit* owner;                       // +0x86
     char unknown_8a[0x92 - 0x8a];
     Type_0048ad30* type;               // +0x92
     Player_0048ad30* player;           // +0x96
@@ -106,14 +106,14 @@ struct Unit_0048ad30 {
 class Class_0043dd20 {
 public:
     char unknown_0[0x8a];
-    void FUN_0043dd20(Unit_0048ad30* u);
+    void FUN_0043dd20(Unit* u);
 };
 
 struct Player_0048ad30 {
     int f0;                            // +0x00
     char unknown_4[0x67 - 4];
-    Unit_0048ad30* f67;                // +0x67
-    Unit_0048ad30* f6b;                // +0x6b
+    Unit* f67;                         // +0x67
+    Unit* f6b;                         // +0x6b
     char unknown_6f[0x73 - 0x6f];
     unsigned char f73;                 // +0x73
     char unknown_74[0x146 - 0x74];
@@ -148,14 +148,14 @@ struct Game_0048ad30 {
 #pragma pack(pop)
 
 
-void __stdcall FUN_00437910(Unit_0048ad30* u);
-void __stdcall FUN_0049e1a0(Unit_0048ad30* u);
-void __stdcall FUN_0043b7c0(Unit_0048ad30* u);
-void __stdcall FUN_0043bad0(Unit_0048ad30* u);
-void __stdcall FUN_0048a870(Unit_0048ad30* u);
-void __stdcall FUN_004864b0(Unit_0048ad30* u, int n);
-void __stdcall FUN_00489bb0(int a, Unit_0048ad30* u, int damage, int kind, int flag);
-int __stdcall FUN_0041bd10(Unit_0048ad30* u, Unit_0048ad30* u2, float f);
+void __stdcall FUN_00437910(Unit* u);
+void __stdcall FUN_0049e1a0(Unit* u);
+void __stdcall FUN_0043b7c0(Unit* u);
+void __stdcall FUN_0043bad0(Unit* u);
+void __stdcall FUN_0048a870(Unit* u);
+void __stdcall FUN_004864b0(Unit* u, int n);
+void __stdcall FUN_00489bb0(int a, Unit* u, int damage, int kind, int flag);
+int __stdcall FUN_0041bd10(Unit* u, Unit* u2, float f);
 void __stdcall FUN_0048b710(Player_0048ad30* p);
 void __stdcall FUN_0048d790(void);
 int __stdcall FUN_004c1b80(int n);
@@ -187,8 +187,8 @@ void __stdcall FUN_0048ad30(void)
         if (k != 1 && k != 2 && k != 3) continue;
         if (p->f146 == 0xa) continue;
         {
-            Unit_0048ad30* last = p->f6b;
-            Unit_0048ad30* u = p->f67;
+            Unit* last = p->f6b;
+            Unit* u = p->f67;
             while (u <= last) {
                     if (u->fa6 != 0) {
                         (*cnt)++;
@@ -252,7 +252,7 @@ void __stdcall FUN_0048ad30(void)
                             FUN_004864b0(u, u->ff5);
                         }
                     }
-                    u = (Unit_0048ad30*)((char*)u + 0x118);
+                    u = (Unit*)((char*)u + 0x118);
                 }
                 if (g_game->f2a44 & 1) {
                     if (p->f0 != 0) {

@@ -11,7 +11,7 @@ struct Owner_0048d790 {
     unsigned int flags;                // +0x110
 };
 
-struct Unit_0048d790 {
+struct Unit {
     char unknown_0[0x86];
     Owner_0048d790* owner;             // +0x86
     char unknown_8a[0xfb - 0x8a];
@@ -32,8 +32,8 @@ struct Unit_0048d790 {
 
 struct Team_0048d790 {
     char unknown_0[0x67];
-    Unit_0048d790* begin;              // +0x67
-    Unit_0048d790* end;                // +0x6b
+    Unit* begin;                       // +0x67
+    Unit* end;                         // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -43,8 +43,8 @@ struct Game_0048d790 {
     char unknown_2a43[0x2a43 - (0x1b63 + 10 * 0x14b)];
     unsigned char field_2a43;
     char unknown_2a44[0x14357 - 0x2a44];
-    Unit_0048d790* list_begin;         // +0x14357
-    Unit_0048d790* list_end;           // +0x1435b
+    Unit* list_begin;                  // +0x14357
+    Unit* list_end;                    // +0x1435b
     char unknown_1435f[0x37e9c - 0x1435f];
     short field_37e9c;                 // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
@@ -59,10 +59,10 @@ int __stdcall FUN_00491d70(int force);
 // FUNCTION: 0x48d790
 void __stdcall FUN_0048d790(void)
 {
-    Unit_0048d790* found = 0;
+    Unit* found = 0;
     Team_0048d790* t = &g_game->teams[g_game->field_2a43];
-    Unit_0048d790* u = t->begin;
-    Unit_0048d790* last = t->end;
+    Unit* u = t->begin;
+    Unit* last = t->end;
 
     for (; u <= last; u++) {
         if (u->u.flags & 0x20) {
@@ -73,7 +73,7 @@ void __stdcall FUN_0048d790(void)
                         found = u;
                     }
                     if (u->u.bits.bit4) {
-                        for (Unit_0048d790* q = g_game->list_begin;
+                        for (Unit* q = g_game->list_begin;
                              q <= g_game->list_end; q++) {
                             q->u.flags &= 0xffffff2f;
                         }

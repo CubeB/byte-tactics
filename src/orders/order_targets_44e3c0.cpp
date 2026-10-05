@@ -24,7 +24,7 @@ struct UnitDef_0044e3c0 {
     unsigned int flag22 : 1;               // bit 22 of the flags
 };
 
-struct Unit_0044e3c0 {
+struct Unit {
     char unknown_0[0x66];
     short heading;                         // +0x66
     char unknown_68[0x82 - 0x68];
@@ -48,9 +48,9 @@ public:
     short field_c;                         // +0xc
     short field_e;                         // +0xe
     short field_10;                        // +0x10
-    Unit_0044e3c0* unit;                   // +0x12
+    Unit* unit;                            // +0x12
     char unknown_16[4];                    // +0x16
-    Unit_0044e3c0* target;                 // +0x1a
+    Unit* target;                          // +0x1a
     char unknown_1e[8];                    // +0x1e
     Vec3_0044e3c0 pos;                     // +0x26
     int field_32;                          // +0x32
@@ -63,7 +63,7 @@ extern Game_0044e3c0* g_game;
 
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
-Vec3_0044e3c0 __stdcall FUN_0043e060(Unit_0044e3c0* obj, int param);
+Vec3_0044e3c0 __stdcall FUN_0043e060(Unit* obj, int param);
 
 static inline Vec3_0044e3c0 Direction(short angle, int scale)
 {

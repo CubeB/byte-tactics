@@ -17,7 +17,7 @@ struct Link_00486460 {
     Owner_00486460* owner;             // +0x27
 };
 
-struct Unit_00486460 {
+struct Unit {
     char unknown_0[0x92];
     Info_00486460* info;               // +0x92
     Link_00486460* link;               // +0x96
@@ -36,7 +36,7 @@ struct Game_00486460 {
 extern Game_00486460* g_game;
 
 // FUNCTION: 0x486460
-int __stdcall FUN_00486460(Unit_00486460* unit)
+int __stdcall FUN_00486460(Unit* unit)
 {
     return _strcmpi(g_game->players[unit->link->owner->playerIndex].name, unit->info->name) == 0;
 }

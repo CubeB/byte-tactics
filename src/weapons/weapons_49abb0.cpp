@@ -232,7 +232,7 @@ struct UnitDef_0049abb0 {
     } flags;                                        // +0x241
 };
 
-struct Unit_0049abb0 {
+struct Unit {
     char unknown_0[0x10];
     Weapon_0049abb0 weapons[1];                     // +0x10, stride 0x1c
     char unknown_2c[0x6a - 0x2c];
@@ -302,7 +302,7 @@ static inline int Dist2_0049abb0(Vec3_0049abb0* b, Vec3_0049abb0* a)
 // the front and perturbs the block. The single residual hunk is unchanged: ours does
 // `add ebx,0x6a` and reloads unit2 from [esp+0x24] after the call, the original
 // `lea edx,[ebx+0x6a]` keeps unit2 in ebx live for the second distance tail.
-int __stdcall FUN_0049abb0(Unit_0049abb0* unit1, Unit_0049abb0* unit2, unsigned char weapon)
+int __stdcall FUN_0049abb0(Unit* unit1, Unit* unit2, unsigned char weapon)
 {
     WeaponDef_0049abb0* w = unit1->weapons[weapon].def;
 

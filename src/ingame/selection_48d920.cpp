@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
 #pragma pack(push, 1)
-struct Unit_0048d920 {
+struct Unit {
     char unknown_0[0xa6];
     short field_a6;                    // +0xa6
     char unknown_a8[0xac - 0xa8];
@@ -14,8 +14,8 @@ struct Unit_0048d920 {
 };
 
 struct UnitRange_0048d920 {
-    Unit_0048d920* begin;              // +0x67 in Player
-    Unit_0048d920* end;                // +0x6b in Player (last unit, inclusive)
+    Unit* begin;                       // +0x67 in Player
+    Unit* end;                         // +0x6b in Player (last unit, inclusive)
 };
 
 struct Player_0048d920 {               // 0x14b bytes
@@ -34,13 +34,13 @@ struct Game_0048d920 {
 
 extern Game_0048d920* g_game;
 
-void __stdcall FUN_00480250(Unit_0048d920* unit, int arg);
+void __stdcall FUN_00480250(Unit* unit, int arg);
 
 // FUNCTION: 0x48d920
 void __stdcall FUN_0048d920(int param_1)
 {
     Player_0048d920* player = &g_game->players[g_game->player];
-    for (Unit_0048d920* u = player->units.begin; u <= player->units.end; u++) {
+    for (Unit* u = player->units.begin; u <= player->units.end; u++) {
         if (u->field_a6 != 0) {
             if (u->field_110_4) {
                 FUN_00480250(u, param_1);

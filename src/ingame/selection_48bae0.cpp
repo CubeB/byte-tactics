@@ -62,7 +62,7 @@ struct Player_0048bae0 {
     char unknown_0[0x14b];
 };
 
-struct Unit_0048bae0 {
+struct Unit {
     char unknown_0[0x6a];
     Fixed_0048bae0 pos_x;              // +0x6a
     Fixed_0048bae0 pos_y;              // +0x6e
@@ -88,8 +88,8 @@ struct Game_0048bae0 {
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
     char unknown_14327[0x14357 - 0x14327];
-    Unit_0048bae0* units;              // +0x14357
-    Unit_0048bae0* unitsEnd;           // +0x1435b
+    Unit* units;                       // +0x14357
+    Unit* unitsEnd;                    // +0x1435b
     unsigned short* list;              // +0x1435f
     char unknown_14363[0x14367 - 0x14363];
     int count;                         // +0x14367
@@ -102,7 +102,7 @@ struct Game_0048bae0 {
 extern Game_0048bae0* g_game;
 
 Cell_0048bae0* __stdcall FUN_004815a0(Vec3_0048bae0* pos);
-int __stdcall FUN_00465ac0(Player_0048bae0* player, Unit_0048bae0* unit);
+int __stdcall FUN_00465ac0(Player_0048bae0* player, Unit* unit);
 
 // FUNCTION: 0x48bae0
 void FUN_0048bae0(void)
@@ -111,7 +111,7 @@ void FUN_0048bae0(void)
     unsigned short* out = g_game->list;
     Rect_0048bae0* rect = &g_game->rect;
     Player_0048bae0* player = &g_game->players[g_game->playerIndex];
-    for (Unit_0048bae0* u = g_game->units; u <= g_game->unitsEnd; u++) {
+    for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++) {
         if (u->field_a6 != 0) {
             UnitType_0048bae0* def = u->def;
             int ux = u->pos_x.parts.whole;

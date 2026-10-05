@@ -36,7 +36,7 @@ struct UnitDef_00489fa0 {
     unsigned int flags;                // +0x241
 };
 
-struct Unit_00489fa0 {
+struct Unit {
     char unknown_0[0x5c];
     Class_0043a1f0* effect;            // +0x5c
     char unknown_60[0x92 - 0x60];
@@ -47,10 +47,10 @@ struct Unit_00489fa0 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0043acb0(Unit_00489fa0* owner, Class_0043a1f0* node);
+void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
 
 // FUNCTION: 0x489fa0
-void __stdcall FUN_00489fa0(Unit_00489fa0* unit, int ticks)
+void __stdcall FUN_00489fa0(Unit* unit, int ticks)
 {
     if (!(unit->flags & 0x10000000))
         return;

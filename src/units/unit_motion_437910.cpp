@@ -14,7 +14,7 @@ struct UnitType_00437910 {
     float field_1d2;                   // +0x1d2
 };
 
-struct Unit_00437910 {
+struct Unit {
     char unknown_0[0x92];
     UnitType_00437910* type;           // +0x92
     char unknown_96[0x9a - 0x96];
@@ -33,7 +33,7 @@ struct Game_00437910 {
 extern Game_00437910* g_game;
 
 // FUNCTION: 0x437910
-void __stdcall FUN_00437910(Unit_00437910* unit)
+void __stdcall FUN_00437910(Unit* unit)
 {
     if (unit->type->field_1d2 > 0.0f && g_game->windEnabled) {
         unit->script->FUN_004b0a70("SetDirection", 0, 0, 1, g_game->windDirection, 0, 0, 0);

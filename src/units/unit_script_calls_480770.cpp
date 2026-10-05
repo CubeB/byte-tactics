@@ -23,7 +23,7 @@ struct Def_00480770 {
     unsigned int maxHealth;             // +0x1fa
 };
 
-struct Unit_00480770 {
+struct Unit {
     char unknown_0[0x66];
     short field_66;                     // +0x66
     char unknown_68[0x6a - 0x68];
@@ -52,12 +52,12 @@ struct Data_00480770 {
     int unknown_0;                      // +0x0
     int unknown_4;                      // +0x4
     int unknown_8;                      // +0x8
-    Unit_00480770* unit;                // +0xc
+    Unit* unit;                         // +0xc
 };
 
 struct Game_00480770 {
     char unknown_0[0x14357];
-    Unit_00480770* units;               // +0x14357
+    Unit* units;                        // +0x14357
 };
 #pragma pack(pop)
 
@@ -69,11 +69,11 @@ struct Vec3_00480770 {
 
 extern Game_00480770* g_game;
 
-Vec3_00480770 __stdcall FUN_0043e060(Unit_00480770* obj, int param);
+Vec3_00480770 __stdcall FUN_0043e060(Unit* obj, int param);
 int __stdcall FUN_00485070(Vec3_00480770* pos);
 int __cdecl FUN_004b715a(int a, int b);
 
-static inline Unit_00480770* GetUnit(unsigned short id)
+static inline Unit* GetUnit(unsigned short id)
 {
     if (id == 0)
         return 0;
@@ -91,7 +91,7 @@ public:
 // FUNCTION: 0x480770
 int Class_00485e30::FUN_004b0680(int which, int a, int b, int c, int d)
 {
-    Unit_00480770* unit = data->unit;
+    Unit* unit = data->unit;
     switch (which) {
     case 1:
         return unit->on;
@@ -116,19 +116,19 @@ int Class_00485e30::FUN_004b0680(int which, int a, int b, int c, int d)
         return v.y;
     }
     case 9: {
-        Unit_00480770* u = GetUnit((unsigned short)a);
+        Unit* u = GetUnit((unsigned short)a);
         if (u != 0 && (u->flags & 0x10000000))
             return (u->posZ >> 16) + (u->posX & 0xffff0000);
         break;
     }
     case 10: {
-        Unit_00480770* u = GetUnit((unsigned short)a);
+        Unit* u = GetUnit((unsigned short)a);
         if (u != 0 && (u->flags & 0x10000000))
             return u->posY;
         break;
     }
     case 11: {
-        Unit_00480770* u = GetUnit((unsigned short)a);
+        Unit* u = GetUnit((unsigned short)a);
         if (u != 0 && (u->flags & 0x10000000))
             return u->def->field_16e;
         break;

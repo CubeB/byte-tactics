@@ -12,7 +12,7 @@ struct Sub_0041bde0 {
     unsigned char pageCount;             // +0x22e
 };
 
-struct Unit_0041bde0 {
+struct Unit {
     char unknown_0[0x92];
     Sub_0041bde0* sub;                   // +0x92
     char unknown_96[0xa6 - 0x96];
@@ -27,7 +27,7 @@ struct Unit_0041bde0 {
 
 struct Game_0041bde0 {
     char unknown_0[0x14357];
-    Unit_0041bde0* units;                // +0x14357
+    Unit* units;                         // +0x14357
     char unknown_1435b[0x37e9c - 0x1435b];
     unsigned short unitIndex;            // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
@@ -43,7 +43,7 @@ void __stdcall FUN_0041bde0(int param_1)
 {
     unsigned short index = g_game->unitIndex;
     if (index != 0) {
-        Unit_0041bde0* unit = &g_game->units[index];
+        Unit* unit = &g_game->units[index];
         if (unit->field_a6 == 0)
             unit = 0;
         if (unit != 0) {

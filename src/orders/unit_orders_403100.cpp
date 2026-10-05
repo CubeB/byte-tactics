@@ -7,7 +7,7 @@ struct Weapon_00403100 {
 };
 
 #pragma pack(push, 1)
-struct Unit_00403100 {
+struct Unit {
     char unknown_0[0x10];
     Weapon_00403100 weapons[3];          // +0x10
     char unknown_64[0x110 - 0x64];
@@ -22,11 +22,11 @@ struct Order_00403100 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0048a0f0(Unit_00403100* unit, int weapon);
+void __stdcall FUN_0048a0f0(Unit* unit, int weapon);
 
 // A char loop counter gives the separate countdown register (ebx = 3).
 // FUNCTION: 0x403100
-int __stdcall FUN_00403100(Unit_00403100* unit, Order_00403100* order, int unused)
+int __stdcall FUN_00403100(Unit* unit, Order_00403100* order, int unused)
 {
     unit->mode = order->mode;
     if (order->mode == 0 || order->mode == 1) {

@@ -24,7 +24,7 @@ struct Flags_0048cc30 {
     };
 };
 
-struct Unit_0048cc30 {
+struct Unit {
     char unknown_0[0x92];
     UnitInfo_0048cc30* info;                  // +0x92
     char unknown_96[0xa8 - 0x96];
@@ -36,8 +36,8 @@ struct Unit_0048cc30 {
 
 struct Team_0048cc30 {
     char unknown_0[0x67];
-    Unit_0048cc30* first;                     // +0x67
-    Unit_0048cc30* last;                      // +0x6b
+    Unit* first;                              // +0x67
+    Unit* last;                               // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -49,7 +49,7 @@ struct Game_0048cc30 {
     char unknown_2a43[0x2cba - 0x2a43];
     unsigned short sel2;                      // +0x2cba
     char unknown_2cbc[0x14357 - 0x2cbc];
-    Unit_0048cc30* units;                     // +0x14357
+    Unit* units;                              // +0x14357
     char unknown_1435b[0x37e9c - 0x1435b];
     unsigned short sel1;                      // +0x37e9c
 };
@@ -57,20 +57,20 @@ struct Game_0048cc30 {
 
 extern Game_0048cc30* g_game;
 
-void __stdcall FUN_00439b30(Unit_0048cc30* unit, int mask, void* obj,
-                           Unit_0048cc30** sel, int flag);
+void __stdcall FUN_00439b30(Unit* unit, int mask, void* obj,
+                           Unit** sel, int flag);
 
 // FUNCTION: 0x48cc30
-void __stdcall FUN_0048cc30(void* obj, Unit_0048cc30** sel)
+void __stdcall FUN_0048cc30(void* obj, Unit** sel)
 {
     Team_0048cc30* team = &g_game->teams[g_game->player];
-    Unit_0048cc30* sel1unit = !g_game->sel1 ? 0 : &g_game->units[g_game->sel1];
-    Unit_0048cc30* sel2unit = !g_game->sel2 ? 0 : &g_game->units[g_game->sel2];
-    Unit_0048cc30* selunit = *sel;
+    Unit* sel1unit = !g_game->sel1 ? 0 : &g_game->units[g_game->sel1];
+    Unit* sel2unit = !g_game->sel2 ? 0 : &g_game->units[g_game->sel2];
+    Unit* selunit = *sel;
     bool flag = (selunit && selunit->info->field_156)
         || (sel1unit && sel1unit->info->field_156)
         || (sel2unit && sel2unit->info->field_156);
-    for (Unit_0048cc30* u = team->first; u <= team->last; u++) {
+    for (Unit* u = team->first; u <= team->last; u++) {
         if ((u->flags.raw & 0x10000000) && !(u->flags.raw & 0x4000)) {
             if (u == *sel || u->team == g_game->sel1 || u->team == g_game->sel2)
                 FUN_00439b30(u, 0x1f, obj, sel, 1);

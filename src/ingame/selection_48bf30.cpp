@@ -10,9 +10,9 @@
 
 #pragma pack(push, 1)
 
-struct Unit_0048bf30 {
+struct Unit {
     char unknown_0[0x86];
-    Unit_0048bf30* owner;              // +0x86
+    Unit* owner;                       // +0x86
     char unknown_8a[0xa6 - 0x8a];
     unsigned short field_a6;           // +0xa6
     char unknown_a8[0xfb - 0xa8];
@@ -26,8 +26,8 @@ struct Unit_0048bf30 {
 
 struct Player_0048bf30 {
     char unknown_0[0x67];
-    Unit_0048bf30* units_begin;        // +0x67
-    Unit_0048bf30* units_end;          // +0x6b
+    Unit* units_begin;                 // +0x67
+    Unit* units_end;                   // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -63,7 +63,7 @@ void __stdcall FUN_0048bf30(char* name, int param_2)
     int player = g_game->localPlayer;
     Player_0048bf30* p = &g_game->players[player];
     Player_0048bf30* q = &g_game->players[player];
-    Unit_0048bf30* u = q->units_begin;
+    Unit* u = q->units_begin;
 
     for (; u <= p->units_end; u++) {
         unsigned int flags = u->flags;

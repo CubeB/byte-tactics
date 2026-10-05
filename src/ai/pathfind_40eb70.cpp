@@ -93,7 +93,7 @@ struct Owner_0040eb70 {
 };
 
 #pragma pack(push, 1)
-struct Unit_0040eb70 {
+struct Unit {
     Owner_0040eb70* owner;             // +0x0
     char unknown_4[0xa6 - 0x4];
     short field_a6;                    // +0xa6
@@ -103,8 +103,8 @@ struct Unit_0040eb70 {
 struct Player_0040eb70 {
     int active;                        // +0x0
     char unknown_4[0x67 - 0x4];
-    Unit_0040eb70* unitsBegin;         // +0x67
-    Unit_0040eb70* unitsEnd;           // +0x6b
+    Unit* unitsBegin;                  // +0x67
+    Unit* unitsEnd;                    // +0x6b
     char unknown_6f[0x73 - 0x6f];
     unsigned char type;                // +0x73
     char unknown_74[0x146 - 0x74];
@@ -130,7 +130,7 @@ extern int DAT_005119e8[10];
 
 class Dummy_00440be0 {
 public:
-    void FUN_00440be0(Unit_0040eb70* p);
+    void FUN_00440be0(Unit* p);
 };
 
 #pragma pack(push, 1)
@@ -153,13 +153,13 @@ public:
     int steps;                         // +0x4c
     int costScale;                     // +0x50
     int baseScale;                     // +0x54
-    Unit_0040eb70* object;             // +0x58
+    Unit* object;                      // +0x58
     Class_0044f010* path;              // +0x5c
     Target_0040eb70* target;           // +0x60
     Dummy_00440be0* owner;             // +0x64
     char unknown_68[0x78 - 0x68];
     unsigned char player;              // +0x78
-    Unit_0040eb70* cursor[10];         // +0x79
+    Unit* cursor[10];                  // +0x79
     int budget[10];                    // +0xa1
 
     int Size()
@@ -227,12 +227,12 @@ void Class_0040eb70::FUN_0040eb70()
             }
             Player_0040eb70* pl = &g_game->players[player];
             DAT_00511a10[player]++;
-            Unit_0040eb70** c = &cursor[player];
+            Unit** c = &cursor[player];
             if (*c == pl->unitsEnd)
                 *c = pl->unitsBegin;
             else
                 (*c)++;
-            Unit_0040eb70* u = cursor[player];
+            Unit* u = cursor[player];
             if (u->field_a6 != 0 && u->owner != 0 && u->owner->owner != 0) {
                 path = u->owner->planner->GetPath();
                 if (path != 0) {

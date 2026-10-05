@@ -45,11 +45,11 @@ public:
                      int param_5, int param_6, int param_7, int param_8);
 };
 
-struct Unit_0049e070;
+struct Unit;
 
 #pragma pack(push, 1)
 struct Slot_0049e070 {
-    Unit_0049e070* attached;         // +0x0
+    Unit* attached;                  // +0x0
     int field_4;                     // +0x4
     short field_8;                   // +0x8
     char unknown_a[0xe - 0xa];
@@ -60,10 +60,10 @@ struct Slot_0049e070 {
 
 struct UnitType_0049e070 {
     char unknown_0[0x1ee];
-    Unit_0049e070* attached[3];      // +0x1ee
+    Unit* attached[3];               // +0x1ee
 };
 
-struct Unit_0049e070 {
+struct Unit {
     char unknown_0[0x10];
     Slot_0049e070 slots[3];          // +0x10
     char unknown_64[0x92 - 0x64];
@@ -84,11 +84,11 @@ struct Frame_0049e070 {
     int maxTime;                      // +0x4
 };
 
-void __stdcall FUN_0043e240(Unit_0049e070*, Vec3_0049e070*, unsigned char, int);
-void __stdcall FUN_0043e2e0(Unit_0049e070*, Vec3_0049e070*, unsigned char);
+void __stdcall FUN_0043e240(Unit*, Vec3_0049e070*, unsigned char, int);
+void __stdcall FUN_0043e2e0(Unit*, Vec3_0049e070*, unsigned char);
 
 // FUNCTION: 0x49e070
-void __stdcall FUN_0049e070(Unit_0049e070* unit)
+void __stdcall FUN_0049e070(Unit* unit)
 {
     Frame_0049e070 frame = {0, 0};
     for (frame.i = 0; frame.i < 3; frame.i++) {

@@ -14,7 +14,7 @@ struct Vec3_482ac0 {
 };
 
 #pragma pack(push, 2)
-struct Unit_482ac0 {
+struct Unit {
     char unknown_0[0x6a];
     Vec3_482ac0 pos;                    // +0x6a
     char unknown_76[0x7a - 0x76];
@@ -71,7 +71,7 @@ void __stdcall FUN_00481930(Params_482ac0* params);
 int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
 
 // FUNCTION: 0x482ac0
-void __stdcall FUN_00482ac0(Unit_482ac0* unit)
+void __stdcall FUN_00482ac0(Unit* unit)
 {
     Params_482ac0 p;
     p.field_0 = unit->field_96;

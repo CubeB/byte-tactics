@@ -9,13 +9,13 @@ public:
     Class_00438760(const char* name);
 };
 
-struct Unit_00401e00;
+struct Unit;
 
 #pragma pack(push, 2)
 class Class_0043a1f0 {
 public:
     char unknown_0[0x56];
-    Class_0043a1f0(Class_00438760 type, Unit_00401e00* target, void* pos, int c, int d, int e);
+    Class_0043a1f0(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
 };
 #pragma pack(pop)
 
@@ -36,7 +36,7 @@ struct Player_00401e00 {
     unsigned char index;               // +0x146
 };
 
-struct Unit_00401e00 {
+struct Unit {
     char unknown_0[0x6a];
     int x;                             // +0x6a
     int y;                             // +0x6e
@@ -58,20 +58,20 @@ struct Order_00401e00 {
 
 struct Game_00401e00 {
     char unknown_0[0x14357];
-    Unit_00401e00* units;              // +0x14357
-    Unit_00401e00* units_end;          // +0x1435b
+    Unit* units;                       // +0x14357
+    Unit* units_end;                   // +0x1435b
 };
 #pragma pack(pop)
 
 extern Game_00401e00* g_game;
 
 int __stdcall FUN_004b6c30(int range);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_00401e00* unit,
-                                       Unit_00401e00* target, int flags);
-void __stdcall FUN_0043acb0(Unit_00401e00* owner, Class_0043a1f0* node);
+Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
+                                       Unit* target, int flags);
+void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
 
 // FUNCTION: 0x401e00
-int __stdcall FUN_00401e00(Unit_00401e00* unit, Order_00401e00* order, int unused)
+int __stdcall FUN_00401e00(Unit* unit, Order_00401e00* order, int unused)
 {
     unsigned int s = 0;
     s = order->state;
@@ -82,9 +82,9 @@ int __stdcall FUN_00401e00(Unit_00401e00* unit, Order_00401e00* order, int unuse
         ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(0x5a) + 1);
         return 1;
     case 1: {
-        Unit_00401e00* best = 0;
+        Unit* best = 0;
         int bestDist = 0x7fffffff;
-        for (Unit_00401e00* u = g_game->units + 1; u <= g_game->units_end; u++) {
+        for (Unit* u = g_game->units + 1; u <= g_game->units_end; u++) {
             if (u->id == order->id && unit->owner->allied[u->owner->index] == 0) {
                 int dz = u->z - unit->z;
                 int dx = u->x - unit->x;

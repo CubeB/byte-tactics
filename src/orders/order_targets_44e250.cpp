@@ -9,14 +9,14 @@ struct Vec3_0044e250 {
 };
 
 #pragma pack(push, 2)
-struct Unit_0044e250 {
+struct Unit {
     char unknown_0[0x6a];
     Vec3_0044e250 pos;                 // +0x6a
 };
 
 struct Source_0044e250 {
     char unknown_0[0xe];
-    Unit_0044e250* unit;               // +0xe
+    Unit* unit;                        // +0xe
 };
 #pragma pack(pop)
 
@@ -54,7 +54,7 @@ public:
     short field_c;                     // +0xc
     short field_e;                     // +0xe
     short field_10;                    // +0x10
-    Unit_0044e250* field_12;           // +0x12
+    Unit* field_12;                    // +0x12
     Class_004895c0 ref;                // +0x16
     Vec3_0044e250 pos;                 // +0x26
 

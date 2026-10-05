@@ -65,7 +65,7 @@ struct UnitType_00438c00 {
     char unknown_176[0x249 - 0x176];
 };
 
-struct Unit_00438c00 {
+struct Unit {
     char unknown_0[0x110];
     unsigned int flag0 : 1;           // +0x110
     unsigned int flag1 : 1;
@@ -77,7 +77,7 @@ struct Unit_00438c00 {
 
 struct Order_00438c00 {
     char unknown_0[0xe];
-    Unit_00438c00* owner;             // +0xe
+    Unit* owner;                      // +0xe
     char unknown_12[0x22 - 0x12];
     Pos_00438c00 pos;                 // +0x22
     char unknown_2e[0x36 - 0x2e];

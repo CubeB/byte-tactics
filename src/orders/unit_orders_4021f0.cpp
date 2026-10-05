@@ -5,16 +5,16 @@
 
 #include <vector>
 
-struct Unit_004021f0;
+struct Unit;
 
 class Class_004895c0 {
 public:
-    Unit_004021f0* owner;              // +0x4
+    Unit* owner;                       // +0x4
     Class_004895c0* next;              // +0x8
     int value;                         // +0xc
 
     virtual ~Class_004895c0();
-    void FUN_00489690(Unit_004021f0* o);
+    void FUN_00489690(Unit* o);
 };
 
 class Class_00439e80 {
@@ -37,7 +37,7 @@ struct Vec_004021f0 {
 };
 
 #pragma pack(push, 1)
-struct Unit_004021f0 {
+struct Unit {
     char unknown_0[0x6a];
     Vec_004021f0 pos;                  // +0x6a
     char unknown_76[0xff - 0x76];
@@ -60,14 +60,14 @@ struct Order_004021f0 {
 #pragma pack(pop)
 
 int __stdcall FUN_004b6c30(int range);
-Unit_004021f0* __stdcall FUN_0048a190(Unit_004021f0* unit, int index);
-void __stdcall FUN_0048a060(Unit_004021f0* unit, Unit_004021f0* target, int weapon);
-int __stdcall FUN_0049abb0(Unit_004021f0* unit, Unit_004021f0* target, int param_3);
+Unit* __stdcall FUN_0048a190(Unit* unit, int index);
+void __stdcall FUN_0048a060(Unit* unit, Unit* target, int weapon);
+int __stdcall FUN_0049abb0(Unit* unit, Unit* target, int param_3);
 void __stdcall FUN_0040ad80(int player, Vec_004021f0* pos, int radius, int flags,
-                            std::vector<Unit_004021f0*>* out);
+                            std::vector<Unit*>* out);
 
 // FUNCTION: 0x4021f0
-int __stdcall FUN_004021f0(Unit_004021f0* unit, Order_004021f0* order, int flags)
+int __stdcall FUN_004021f0(Unit* unit, Order_004021f0* order, int flags)
 {
     if (flags & 0x10008) {
         order->state = 3;
@@ -80,7 +80,7 @@ int __stdcall FUN_004021f0(Unit_004021f0* unit, Order_004021f0* order, int flags
         return 1;
     case 1: {
         order->target.FUN_00489690(FUN_0048a190(unit, 0));
-        Unit_004021f0* t = order->target.owner;
+        Unit* t = order->target.owner;
         if (t != 0 && (t->flags & 0x10000000)) {
             order->pos = t->pos;
             ((Class_004898b0*)unit)->FUN_004898b0(0);
@@ -107,7 +107,7 @@ int __stdcall FUN_004021f0(Unit_004021f0* unit, Order_004021f0* order, int flags
         }
         break;
     case 3: {
-        std::vector<Unit_004021f0*> units;
+        std::vector<Unit*> units;
         FUN_0040ad80(unit->player, &order->pos, 0x280, 0, &units);
         if (!units.empty()) {
             order->target.FUN_00489690(units[FUN_004b6c30(units.size())]);

@@ -32,7 +32,7 @@ struct UnitDef_0048cd80 {
     int field_17e;                     // +0x17e
 };
 
-struct Unit_0048cd80 {
+struct Unit {
     char unknown_0[0x92];
     UnitDef_0048cd80* def;             // +0x92
     char unknown_96[0xa6 - 0x96];
@@ -53,8 +53,8 @@ struct Game_0048cd80 {
     char unknown_2c7e[0x142bb - 0x2c7e];
     Rect_0048cd80 rect_142bb;          // +0x142bb
     char unknown_142cb[0x14357 - 0x142cb];
-    Unit_0048cd80* units;              // +0x14357
-    Unit_0048cd80* units_end;          // +0x1435b
+    Unit* units;                       // +0x14357
+    Unit* units_end;                   // +0x1435b
     unsigned short* list;              // +0x1435f
     Slot_0048cd80* list2;              // +0x14363
     int count;                         // +0x14367
@@ -67,7 +67,7 @@ struct Game_0048cd80 {
 extern Game_0048cd80* g_game;
 
 int __stdcall FUN_004b6720(Rect_0048cd80* rect, int x, int y);
-int __stdcall FUN_0048c6a0(Unit_0048cd80* unit, Point_0048cd80* p);
+int __stdcall FUN_0048c6a0(Unit* unit, Point_0048cd80* p);
 
 static inline int FixMul(int a, int b)
 {
@@ -85,7 +85,7 @@ unsigned short __stdcall FUN_0048cd80(void)
         if (ids == 0)
             return 0;
         for (int i = 0; i < g_game->count; i++, ids++) {
-            Unit_0048cd80* u = &g_game->units[*ids];
+            Unit* u = &g_game->units[*ids];
             if (u->field_a6 != 0) {
                 if (FUN_0048c6a0(u, p)) {
                     UnitDef_0048cd80* def = u->def;

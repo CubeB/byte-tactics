@@ -8,7 +8,7 @@ struct Game_0041c110 {
     unsigned short flags;              // +0x37ebe
 };
 
-struct Unit_0041c110 {
+struct Unit {
     char unknown_0[0xff];
     unsigned char player;              // +0xff
     char unknown_100[0x110 - 0x100];
@@ -19,7 +19,7 @@ struct Unit_0041c110 {
 extern Game_0041c110* g_game;
 
 // FUNCTION: 0x41c110
-void __stdcall FUN_0041c110(Unit_0041c110* unit)
+void __stdcall FUN_0041c110(Unit* unit)
 {
     if (unit->player == g_game->localPlayer && (unit->flags & 0x10)) {
         g_game->flags |= 0x10;

@@ -14,7 +14,7 @@ struct Team_0048dc30 {
     unsigned int flags;                // +0x110
 };
 
-struct Unit_0048dc30 {
+struct Unit {
     char unknown_0[0x86];
     Team_0048dc30* owner;              // +0x86
     char unknown_8a[0xa6 - 0x8a];
@@ -32,8 +32,8 @@ struct Unit_0048dc30 {
 
 struct Player_0048dc30 {
     char unknown_0[0x67];
-    Unit_0048dc30* unitsBegin;         // +0x67
-    Unit_0048dc30* unitsEnd;           // +0x6b
+    Unit* unitsBegin;                  // +0x67
+    Unit* unitsEnd;                    // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -66,8 +66,8 @@ int __stdcall FUN_0048dc30(int id)
 {
     Class_00488d30* set = FUN_00488c50("CTRL_F");
     Player_0048dc30* p = &g_game->players[g_game->localPlayer];
-    Unit_0048dc30* u = p->unitsBegin;
-    Unit_0048dc30* end = p->unitsEnd;
+    Unit* u = p->unitsBegin;
+    Unit* end = p->unitsEnd;
     if (u > end)
         return 0;
     while (u <= end) {

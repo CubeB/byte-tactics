@@ -50,12 +50,12 @@ public:
     virtual void ReadFrom(Class_00415dc0* reader);   // +0x24
 };
 
-struct Unit_0048b920;
+struct Unit;
 
 class Class_0043dd20 {
 public:
     Iface_0048b920* iface;             // +0x0, see src/units/unit_scripts_43dd20.cpp
-    void FUN_0043dd20(Unit_0048b920* u);
+    void FUN_0043dd20(Unit* u);
 };
 
 #pragma pack(push, 1)
@@ -70,7 +70,7 @@ struct Spawn_0048b920 {
     Tail_0048b920 tail;                // +0x11
 };
 
-struct Unit_0048b920 {                 // 0x118 bytes
+struct Unit {                          // 0x118 bytes
     Class_0043dd20* owner;             // +0x0
     char unknown_4[0x64 - 4];
     Tail_0048b920 tail;                // +0x64
@@ -89,8 +89,8 @@ struct Player_0048b920 {               // 0x14b bytes
     char unknown_0[0x18];
     int ticks;                         // +0x18
     char unknown_1c[0x67 - 0x1c];
-    Unit_0048b920* units_begin;        // +0x67
-    Unit_0048b920* units_end;          // +0x6b
+    Unit* units_begin;                 // +0x67
+    Unit* units_end;                   // +0x6b
 };
 
 struct Game_0048b920 {
@@ -103,9 +103,9 @@ struct Game_0048b920 {
 
 extern Game_0048b920* g_game;
 
-void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Unit_0048b920* unit);
-void __stdcall FUN_0048a870(Unit_0048b920* unit);
-Unit_0048b920* __stdcall FUN_004861d0(unsigned char player, Spawn_0048b920* spawn);
+void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Unit* unit);
+void __stdcall FUN_0048a870(Unit* unit);
+Unit* __stdcall FUN_004861d0(unsigned char player, Spawn_0048b920* spawn);
 
 // FUNCTION: 0x48b920
 void __stdcall FUN_0048b920(Player_0048b920* p, unsigned int* data)
@@ -124,7 +124,7 @@ void __stdcall FUN_0048b920(Player_0048b920* p, unsigned int* data)
 
     short index = (short)reader.FUN_00415dc0(0x10);
     while (index != -1) {
-        Unit_0048b920* unit = &p->units_begin[index];
+        Unit* unit = &p->units_begin[index];
         unsigned short type = (unsigned short)reader.FUN_00415dc0(g_game->field_14393);
         if (unit->field_a6 != type) {
             Spawn_0048b920 spawn;
@@ -139,8 +139,8 @@ void __stdcall FUN_0048b920(Player_0048b920* p, unsigned int* data)
         index = (short)reader.FUN_00415dc0(0x10);
     }
 
-    for (Unit_0048b920* u = p->units_begin; u <= p->units_end;
-         u = (Unit_0048b920*)((char*)u + 0x118)) {
+    for (Unit* u = p->units_begin; u <= p->units_end;
+         u = (Unit*)((char*)u + 0x118)) {
         if ((u->flags & 0x10000000) && u->owner) {
             u->owner->FUN_0043dd20(u);
             FUN_0048a870(u);

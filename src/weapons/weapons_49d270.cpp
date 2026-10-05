@@ -64,7 +64,7 @@ struct UnitFlags_0049d270 {
     unsigned int b31 : 1;
 };
 
-struct Unit_0049d270 {                // 0x118 bytes
+struct Unit {                         // 0x118 bytes
     Type_0049d270* type;              // +0
     Entry_0049d270 entries[1];        // +4
     char unknown_20[0x66 - 0x20];
@@ -87,7 +87,7 @@ struct Proj_0049d270 {                // 0x6b bytes
     int f_3a;                         // +0x3a
     char unknown_3e[0x4e - 0x3e];
     int f_4e;                         // +0x4e
-    Unit_0049d270* owner;             // +0x52
+    Unit* owner;                      // +0x52
     char unknown_56[0x66 - 0x56];
     char player;                      // +0x66
     char unknown_67[0x69 - 0x67];
@@ -115,7 +115,7 @@ struct Game_0049d270 {
     int projCount;                    // +0x141f3
     Proj_0049d270* projs;             // +0x141f7
     char unknown_141fb[0x14357 - 0x141fb];
-    Unit_0049d270* units;             // +0x14357
+    Unit* units;                      // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
     int teamColor;                    // +0x38a47
 };
@@ -174,7 +174,7 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
         proj->pos = *pos;
         return;
     }
-    Unit_0049d270* unit = ev->unitId == 0 ? 0 : &g_game->units[ev->unitId];
+    Unit* unit = ev->unitId == 0 ? 0 : &g_game->units[ev->unitId];
     if (!unit)
         return;
     if (!unit->flags.b28)
@@ -183,7 +183,7 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
     entry->f_18 = ev->f_1d;
     entry->f_16 = ev->f_1b;
     unsigned short ownerId = ev->ownerId;
-    Unit_0049d270* owner = ownerId == 0 ? 0 : &g_game->units[ownerId];
+    Unit* owner = ownerId == 0 ? 0 : &g_game->units[ownerId];
     Proj_0049d270* found = FUN_0049d1e0(ev);
     if (def->flags.b1) {
         FUN_0049cde0(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);

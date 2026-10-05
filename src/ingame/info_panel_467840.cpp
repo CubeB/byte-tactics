@@ -24,7 +24,7 @@ struct UnitDef_00467840 {
     } field_241;
 };
 
-struct Unit_00467980 {
+struct Unit {
     char unknown_0[0x6a];
     int x;                             // +0x6a
     int y;                             // +0x6e
@@ -49,14 +49,14 @@ public:
     int field_4;                       // +0x4
     int field_8;                       // +0x8
     Vec3_00467840 pos;                 // +0xc
-    void FUN_00467840(Unit_00467980* unit);
+    void FUN_00467840(Unit* unit);
 };
 #pragma pack(pop)
 
 extern Game_00467840* g_game;
 
 // FUNCTION: 0x467840
-void Class_00467840::FUN_00467840(Unit_00467980* unit)
+void Class_00467840::FUN_00467840(Unit* unit)
 {
     if (unit->field_a6 == 0 || unit->field_ff == g_game->playerIndex) {
         return;

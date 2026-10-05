@@ -8,16 +8,16 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Unit_00411840 {
+struct Unit {
     char unknown_0[0x9a];
     Class_004b0bc0* script;            // +0x9a
 };
 #pragma pack(pop)
 
-int __stdcall FUN_0047e570(Unit_00411840* unit, int id);
+int __stdcall FUN_0047e570(Unit* unit, int id);
 
 // FUNCTION: 0x411840
-int __stdcall FUN_00411840(Unit_00411840* unit, int pad)
+int __stdcall FUN_00411840(Unit* unit, int pad)
 {
     if (pad != -1 && FUN_0047e570(unit, pad)) {
         return pad;

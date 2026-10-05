@@ -102,7 +102,7 @@ struct UnitDef_00407e90 {
     unsigned int flag4 : 1;             // +0x245 bit 4
 };
 
-struct Unit_00407e90 {
+struct Unit {
     int field_0;                        // +0x0
     char unknown_4[0x6a - 0x4];
     Vec3_00407d40 pos;                  // +0x6a
@@ -115,7 +115,7 @@ struct Group_00407e90 {
     Player_00408090* player;            // +0x0
     int id;                             // +0x4
     char unknown_8[0x10 - 0x8];
-    std::vector<Unit_00407e90*> units;  // +0x10
+    std::vector<Unit*> units;           // +0x10
 };
 
 class Class_00438760 {
@@ -169,11 +169,11 @@ static inline Vec3_00407d40 Offset(int angle, int distance)
 }
 
 int __stdcall FUN_0040b1c0(int index, Vec3_00407d40* pos, int range);
-int __stdcall FUN_0049aa80(Unit_00407e90* unit, Vec3_00407d40* from, Vec3_00407d40* to, int flags);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_00407e90* unit,
-                                      Unit_00407e90* target, Vec3_00407d40* pos);
-void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit_00407e90* unit,
-                            Unit_00407e90* target, Vec3_00407d40* pos, int a, int b);
+int __stdcall FUN_0049aa80(Unit* unit, Vec3_00407d40* from, Vec3_00407d40* to, int flags);
+Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
+                                      Unit* target, Vec3_00407d40* pos);
+void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit* unit,
+                            Unit* target, Vec3_00407d40* pos, int a, int b);
 
 // FUNCTION: 0x407e90
 void Class_00407d40::FUN_00407380()
@@ -182,7 +182,7 @@ void Class_00407d40::FUN_00407380()
     field_c = g_game->ticks + delay;
     if (((Group_00407e90*)field_8)->units.empty())
         return;
-    std::vector<Unit_00407e90*> unused;
+    std::vector<Unit*> unused;
     if (FUN_004b6c30(10) == 0) {
         b = a;
         int angle = FUN_004b6c30(0x10000);
@@ -196,9 +196,9 @@ void Class_00407d40::FUN_00407380()
             a = b;
         }
     }
-    for (std::vector<Unit_00407e90*>::iterator it = ((Group_00407e90*)field_8)->units.begin();
+    for (std::vector<Unit*>::iterator it = ((Group_00407e90*)field_8)->units.begin();
          it != ((Group_00407e90*)field_8)->units.end(); ++it) {
-        Unit_00407e90* u = *it;
+        Unit* u = *it;
         if (u->def->flag4) {
             if (u->field_0 || FUN_0049aa80(u, &u->pos, &a, 0)) {
                 Class_00438760 kind = FUN_0043f0e0(3, u, 0, &a);

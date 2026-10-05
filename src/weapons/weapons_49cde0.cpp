@@ -72,7 +72,7 @@ struct Heading_0049cde0 {
     short heading;                     // +0x66
 };
 
-struct Unit_0049cde0 {
+struct Unit {
     char unknown_0[0x1a];
     // The four aim directions, 0x1c bytes apart, start at +0x1a; the unit's
     // own heading at +0x66 lies inside that block, so the two overlap.
@@ -117,13 +117,13 @@ extern Game_0049cde0* g_game;
 extern char* DAT_00509678[4];
 
 void __stdcall FUN_0049c740(Proj_0049cde0* proj, UnitType_0049cde0* shot, Vec3_0049cde0* pos,
-                            Vec3_0049cde0* aim, int field_5, Unit_0049cde0* unit);
+                            Vec3_0049cde0* aim, int field_5, Unit* unit);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 void __stdcall FUN_004729d0(Vec3_0049cde0* p, short index);
 
 // FUNCTION: 0x49cde0
-int __stdcall FUN_0049cde0(Shot_0049cde0* shot, Unit_0049cde0* unit, Vec3_0049cde0* pos,
+int __stdcall FUN_0049cde0(Shot_0049cde0* shot, Unit* unit, Vec3_0049cde0* pos,
                            Vec3_0049cde0* aim, int param_5)
 {
     Proj_0049cde0* proj = 0;

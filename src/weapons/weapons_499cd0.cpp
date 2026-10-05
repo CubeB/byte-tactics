@@ -43,7 +43,7 @@ struct UnitDef_00499cd0 {
     char name[1];                   // +0x20
 };
 
-struct Unit_00499cd0 {
+struct Unit {
     char unknown_0[0x66];
     short heading;                  // +0x66
     short unknown_68;               // +0x68
@@ -64,7 +64,7 @@ struct Weapon_00499cd0 {
     int y;                          // +0x8
     int z;                          // +0xc
     char unknown_10[0x52 - 0x10];
-    Unit_00499cd0* attacker;        // +0x52
+    Unit* attacker;                 // +0x52
     char unknown_56[0x66 - 0x56];
     unsigned char owner;            // +0x66
 };
@@ -80,7 +80,7 @@ struct Flags_00499cd0 {
 extern char* g_game;
 
 short __cdecl FUN_004b715a(int x, int z);
-void __stdcall FUN_00489bb0(Unit_00499cd0* source, Unit_00499cd0* target,
+void __stdcall FUN_00489bb0(Unit* source, Unit* target,
                             int amount, int type, unsigned short extra);
 
 static inline int* Find_00499cd0(Table_00499cd0* table, char* name)
@@ -101,7 +101,7 @@ static inline int* Find_00499cd0(Table_00499cd0* table, char* name)
 }
 
 // FUNCTION: 0x499cd0
-int __stdcall FUN_00499cd0(Weapon_00499cd0* weapon, Unit_00499cd0* target,
+int __stdcall FUN_00499cd0(Weapon_00499cd0* weapon, Unit* target,
                            float scale)
 {
     Def_00499cd0* def = weapon->def;
@@ -115,7 +115,7 @@ int __stdcall FUN_00499cd0(Weapon_00499cd0* weapon, Unit_00499cd0* target,
     damage = (int)(damage * scale);
     short angle = FUN_004b715a(weapon->x - target->x,
                                weapon->z - target->z) - target->heading;
-    Unit_00499cd0* attacker = weapon->attacker;
+    Unit* attacker = weapon->attacker;
     if (attacker) {
         int armour = attacker->armour / 5;
         if (armour > 5)

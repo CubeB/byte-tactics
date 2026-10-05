@@ -42,7 +42,7 @@ struct Owner_0043a1f0 {
 };
 
 #pragma pack(push, 1)
-struct Unit_0043a1f0 {
+struct Unit {
     Owner_0043a1f0* owner;             // +0x0
     char unknown_4[0x9a - 0x4];
     Class_004b07c0* names;             // +0x9a
@@ -52,7 +52,7 @@ class Class_0043a1f0;
 
 struct Callback_0043a1f0 {
     char unknown_0[4];
-    void (__stdcall* notify)(Unit_0043a1f0* unit, Class_0043a1f0* obj, int code);  // +0x4
+    void (__stdcall* notify)(Unit* unit, Class_0043a1f0* obj, int code);           // +0x4
     char unknown_8[0x19 - 0x8];
 };
 
@@ -72,7 +72,7 @@ public:
     char unknown_5;
     unsigned char flags_6;             // +0x6
     char unknown_7[0xe - 0x7];
-    Unit_0043a1f0* unit;               // +0xe
+    Unit* unit;                        // +0xe
     char unknown_12[0x42 - 0x12];
     unsigned int flags;                // +0x42
     char unknown_46[0x52 - 0x46];
@@ -84,7 +84,7 @@ public:
 
 extern Callback_0043a1f0* DAT_00512344;
 
-int __stdcall FUN_00456190(Unit_0043a1f0* obj, short index);
+int __stdcall FUN_00456190(Unit* obj, short index);
 
 // FUNCTION: 0x43a1f0
 Class_0043a1f0::~Class_0043a1f0()
@@ -93,7 +93,7 @@ Class_0043a1f0::~Class_0043a1f0()
         DAT_00512344[kind].notify(unit, this, 2);
     }
     if (flags & 0x400000) {
-        Unit_0043a1f0* obj = unit;
+        Unit* obj = unit;
         int index = obj->names->FUN_004b07c0("StopBuilding");
         ((Class_004b0b00*)obj->names)->FUN_004b0b00(index, 0, 0, 0, 0, 0, 0, 0);
         FUN_00456190(obj, index);

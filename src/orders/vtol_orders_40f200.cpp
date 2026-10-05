@@ -24,13 +24,13 @@ public:
     void FUN_0044e6c0(int param);
 };
 
-struct Unit_0040f200;
+struct Unit;
 
 class Class_0043d210 {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
-    void FUN_0043d210(Unit_0040f200* unit, int state);
+    void FUN_0043d210(Unit* unit, int state);
 };
 
 struct Info_0040f200 {
@@ -50,7 +50,7 @@ struct Source_0044e2d0 {
     unsigned int flags;                // +0x6
 };
 
-struct Unit_0040f200 {
+struct Unit {
     Class_0043d210* type;              // +0x0
     char unknown_4[0x6a - 0x4];
     Vec3_0044e2d0 pos;                 // +0x6a
@@ -68,10 +68,10 @@ public:
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0048aac0(Unit_0040f200* unit, Unit_0040f200* target, char p3, char p4);
+void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4);
 
 // FUNCTION: 0x40f200
-void __stdcall FUN_0040f200(Unit_0040f200* unit, Source_0044e2d0* order, unsigned int flags)
+void __stdcall FUN_0040f200(Unit* unit, Source_0044e2d0* order, unsigned int flags)
 {
     ((Class_004898b0*)unit)->FUN_004898b0(3);
     if (unit->field_86)

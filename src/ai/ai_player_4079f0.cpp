@@ -31,13 +31,13 @@ struct Vec3_00407410 {
     Vec3_00407410(int a, int b, int c) : x(a), y(b), z(c) {}
 };
 
-struct Unit_00407410;
+struct Unit;
 
 struct Group_00407410 {
     void* field_0;                     // +0x0
     void* field_4;                     // +0x4
     char unknown_8[0x10 - 0x8];
-    std::vector<Unit_00407410*> units; // +0x10
+    std::vector<Unit*> units; // +0x10
 };
 
 // Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.

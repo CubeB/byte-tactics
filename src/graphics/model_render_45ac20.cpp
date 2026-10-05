@@ -69,13 +69,13 @@ struct State_0045ac20 {
     Entry_0045ac20 entries[1];          // +0x22
 };
 
-struct Unit_0045ac20 {
+struct Unit {
     char unknown_0[0x64];
     Vec3s_0045ac20 pos;                 // +0x64
     char unknown_6a[0x86 - 0x6a];
     int field_86;                       // +0x86
-    Unit_0045ac20* child;               // +0x8a
-    Unit_0045ac20* next;                // +0x8e
+    Unit* child;                        // +0x8a
+    Unit* next;                         // +0x8e
     char unknown_92[0x9e - 0x92];
     State_0045ac20* state;              // +0x9e
     char unknown_a2[0x110 - 0xa2];
@@ -131,7 +131,7 @@ static inline int FarFrom(State_0045ac20* state, const Vec3s_0045ac20* pos)
 }
 
 // FUNCTION: 0x45ac20
-void __stdcall FUN_0045ac20(void* context, Unit_0045ac20* unit)
+void __stdcall FUN_0045ac20(void* context, Unit* unit)
 {
     if (unit->field_86 == 0) {
         State_0045ac20* state = unit->state;
@@ -148,7 +148,7 @@ void __stdcall FUN_0045ac20(void* context, Unit_0045ac20* unit)
             FUN_0045b0a0(unit->state, unit->state->root, 0);
             unit->state->field_8 = 0;
         }
-        for (Unit_0045ac20* u = unit->child; u; u = u->next) {
+        for (Unit* u = unit->child; u; u = u->next) {
             if (!(u->flags & 0x20000)) {
                 State_0045ac20* child = u->state;
                 if (FarFrom(child, &u->pos)) {

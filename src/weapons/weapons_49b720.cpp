@@ -81,7 +81,7 @@ struct Weapon_0049b720 {
     char unknown_14[0x1c - 0x14];
 };
 
-struct Unit_0049b720 {
+struct Unit {
     Weapon_0049b720 weapons[3];
 };
 
@@ -116,7 +116,7 @@ struct Proj_0049b720 {
     unsigned int f46;                  // +0x46
     unsigned int f4a;                  // +0x4a
     int f4e;                           // +0x4e
-    Unit_0049b720* unit;               // +0x52
+    Unit* unit;                        // +0x52
     void* f56;                         // +0x56
     char unknown_5a[0x60 - 0x5a];
     unsigned short counter;            // +0x60
@@ -166,7 +166,7 @@ void __stdcall FUN_0049b090(ProjType_0049b720* type, Proj_0049b720* p);
 Vec3_0049b720* __stdcall FUN_0049b3e0(Proj_0049b720* p);
 int __stdcall FUN_0049b520(Proj_0049b720* p, Vec3_0049b720* target);
 void __stdcall FUN_00499eb0(Proj_0049b720* p, void* unit);
-void __stdcall FUN_0043e240(Unit_0049b720* unit, Vec3_0049b720* out, unsigned char weapon, int piece);
+void __stdcall FUN_0043e240(Unit* unit, Vec3_0049b720* out, unsigned char weapon, int piece);
 int __stdcall FUN_0047f300(int sound, Vec3_0049b720* pos, int flag);
 void __stdcall FUN_00472810(Vec3_0049b720* pos, short kind);
 Cell_0049b720* __stdcall FUN_004815a0(Vec3_0049b720* pos);

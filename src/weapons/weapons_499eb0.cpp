@@ -34,7 +34,7 @@ struct ProjectileType_00499eb0 {
     } flags;
 };
 
-struct Unit_00499eb0 {
+struct Unit {
     char unknown_0[0x96];
     struct Holder_00499eb0* field_96;
     char unknown_9a[0xff - 0x9a];
@@ -45,7 +45,7 @@ struct Projectile_00499eb0 {
     ProjectileType_00499eb0* type;
     Vec3_00499eb0 position;
     char unknown_10[0x52 - 0x10];
-    Unit_00499eb0* unit;
+    Unit* unit;
     char unknown_56[0x66 - 0x56];
     unsigned char owner;
     char unknown_67[2];
@@ -82,11 +82,11 @@ void __stdcall FUN_0041c640(int a, int b, int c);
 void __stdcall FUN_00420a30(Vec3_00499eb0* position, void* value, int a, int b);
 void __stdcall FUN_00472810(Vec3_00499eb0* position, int value);
 void __stdcall FUN_0047f300(unsigned int sound, Vec3_00499eb0* position, int value);
-int __stdcall FUN_00499cd0(Projectile_00499eb0* projectile, Unit_00499eb0* unit, float scale);
+int __stdcall FUN_00499cd0(Projectile_00499eb0* projectile, Unit* unit, float scale);
 void __stdcall FUN_0049a120(Projectile_00499eb0* projectile, Vec3_00499eb0* position);
 
 // FUNCTION: 0x499eb0
-void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit_00499eb0* unit)
+void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit* unit)
 {
     int hostile = 0;
     ProjectileType_00499eb0* type = projectile->type;
@@ -127,7 +127,7 @@ void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit_00499eb0* unit
     if (!record->field_0 || record->state != 3) {
         if (type->field_d6 <= 0x10 && unit) {
             int damage = FUN_00499cd0(projectile, unit, 1.0f);
-            Unit_00499eb0* source = projectile->unit;
+            Unit* source = projectile->unit;
             if (source) {
                 int a = 0;
                 int b = 0;

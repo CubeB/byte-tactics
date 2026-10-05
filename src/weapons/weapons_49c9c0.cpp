@@ -61,10 +61,10 @@ struct Shot_0049c9c0 {
     unsigned int f_bit9 : 1;           // bit 9 of +0x111
 };
 
-struct Unit_0049c9c0;
+struct Unit;
 
 struct Proj_0049c9c0 {
-    Unit_0049c9c0* unit;               // +0x00
+    Unit* unit;                        // +0x00
     char unknown_4[0x1c - 4];
     int f_1c;                          // +0x1c
     int f_20;                          // +0x20
@@ -91,7 +91,7 @@ struct Gun_0049c9c0 {
 };
 
 #pragma pack(push, 1)
-struct Unit_0049c9c0 {
+struct Unit {
     char unknown_0[0x1a];
     Gun_0049c9c0 f_1a[19];             // +0x1a, indexed as f_1a[i * 7]
     short heading;                     // +0x66
@@ -133,11 +133,11 @@ int __cdecl FUN_004b7123(unsigned short angle, int scale);
 
 void __stdcall FUN_0049c740(Proj_0049c9c0* proj, Shot_0049c9c0* shot,
                            Vec3_0049c9c0* pos, Vec3_0049c9c0* aim, int frame,
-                           Unit_0049c9c0* unit);
+                           Unit* unit);
 void __stdcall FUN_004729d0(Vec3_0049c9c0* p, short index);
 
 // FUNCTION: 0x49c9c0
-int __stdcall FUN_0049c9c0(Fire_0049c9c0* fire, Unit_0049c9c0* unit,
+int __stdcall FUN_0049c9c0(Fire_0049c9c0* fire, Unit* unit,
                            Vec3_0049c9c0* p3, Vec3_0049c9c0* p4, int param_5)
 {
     Proj_0049c9c0* proj = 0;
@@ -179,7 +179,7 @@ int __stdcall FUN_0049c9c0(Fire_0049c9c0* fire, Unit_0049c9c0* unit,
     proj->f_24 = -FUN_004b7123(a1, t);
 
     // The same helper as 0x49c920, inlined here.
-    Unit_0049c9c0* u = proj->unit;
+    Unit* u = proj->unit;
     if (u->f_68 != 0 && !(u->flags & 0x8000000))
         proj->f_46 = (u->f_dc << 16) / u->f_68 + g_game->frame;
     else

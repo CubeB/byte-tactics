@@ -35,7 +35,7 @@ struct UnitType_004685a0 {
     unsigned char mobile;              // +0x22f
 };
 
-struct Unit_004685a0 {
+struct Unit {
     char unknown_0[0x1f];
     unsigned char f_1f;                // +0x1f
     char unknown_20[0x3b - 0x20];
@@ -58,7 +58,7 @@ struct Game_004685a0 {
     char unknown_0[0xdcb];
     unsigned char colors[16];          // +0xdcb, [15] is the text colour
     char unknown_ddb[0x14357 - 0xddb];
-    Unit_004685a0* units;              // +0x14357
+    Unit* units;                       // +0x14357
     char unknown_1435b[0x1439b - 0x1435b];
     Def_004685a0* defs;                // +0x1439b
     char unknown_1439f[0x391b3 - 0x1439f];
@@ -103,7 +103,7 @@ int __stdcall FUN_004685a0(void* surface)
 {
     if (g_game->f_391b9 == 0 || g_game->f_391bd == 0)
         return 0;
-    Unit_004685a0* unit = &g_game->units[g_game->f_391bd];
+    Unit* unit = &g_game->units[g_game->f_391bd];
     if ((unit->f_110 & 0x10000000) == 0 || (unit->f_110 & 0x4000) != 0
             || unit->type->types == 0) {
         g_game->f_391b3 = 0;

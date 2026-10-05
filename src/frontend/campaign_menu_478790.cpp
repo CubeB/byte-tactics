@@ -75,13 +75,13 @@ struct Rect_00478790 {
     int y2;
 };
 
-struct Unit_00478790 {
+struct Unit {
     char unknown_0[0x95];
     unsigned char side;                // +0x95
 };
 
 struct PlayerEntry_00478790 {
-    Unit_00478790* unit;               // +0x0
+    Unit* unit;                        // +0x0
     char unknown_4[0x14b - 0x4];
 };
 
@@ -226,7 +226,7 @@ void __stdcall FUN_00478790(Window_00478790* arg1, Item_00478790* arg2)
 
         void* panGaf = arg1->table->entries->gaf;
         void* pan = FUN_004b8d40(panGaf, "Panmask");
-        Unit_00478790* unit =
+        Unit* unit =
             g_game->players[g_game->localPlayer].unit;
         Frame_00478790* pf = (Frame_00478790*)FUN_004b7f30((unsigned short*)pan, unit->side);
         pf->yoffset = 0;

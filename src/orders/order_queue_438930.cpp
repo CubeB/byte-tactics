@@ -24,7 +24,7 @@ struct Flag_00438930 {
     unsigned int value;                 // +0x241
 };
 
-struct Unit_00438930 {
+struct Unit {
     Owner_004388d0* owner;              // +0
     char unknown_4[0x8e];
     Flag_00438930* def;                 // +0x92
@@ -43,7 +43,7 @@ public:
 class Class_00438930 {
 public:
     char unknown_0[0xe];
-    Unit_00438930* unit;                // +0xe
+    Unit* unit;                         // +0xe
     char unknown_12[0x4e - 0x12];
     unsigned int flags;                 // +0x4e
     Attached_004388d0* attached;        // +0x52

@@ -16,7 +16,7 @@ public:
 #pragma pack(push, 1)
 struct Entry_0041a490;
 
-struct Unit_0041a490 {
+struct Unit {
     char unknown_0[0x118];
 };
 
@@ -35,7 +35,7 @@ struct Game_0041a490 {
     char unknown_529[0x2c76 - 0x529];
     char orders[0x10];                   // +0x2c76
     char unknown_2c86[0x14357 - 0x2c86];
-    Unit_0041a490* units;                // +0x14357
+    Unit* units;                         // +0x14357
     char unknown_1435b[0x37e9c - 0x1435b];
     unsigned short unitIndex;            // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
@@ -55,7 +55,7 @@ void __stdcall FUN_0049fed0(Entry_0041a490* entries, char* name, int index);
 void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_004a11c0(Sub_0041a490* menu, int index, int value);
-void __stdcall FUN_0041a120(Unit_0041a490* unit);
+void __stdcall FUN_0041a120(Unit* unit);
 void __stdcall FUN_004a81e0(Sub_0041a490* menu, int value);
 
 // Inlined copy of FUN_00419630.
@@ -69,7 +69,7 @@ static inline int Contains(Entry_0041a490* entries, char* text, int index)
 // FUNCTION: 0x41a490
 int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
 {
-    Unit_0041a490* unit = &g_game->units[g_game->unitIndex];
+    Unit* unit = &g_game->units[g_game->unitIndex];
     void* orders = g_game->orders;
     int index = menu->index;
 

@@ -10,7 +10,7 @@ struct Vec3_0049d1e0 {
     int z;
 };
 
-struct Unit_0049d1e0 {
+struct Unit {
     char unknown_0[0xa8];
     short id;                          // +0xa8
 };
@@ -20,7 +20,7 @@ struct Projectile_0049d1e0 {
     char unknown_0[0x28];
     Vec3_0049d1e0 pos;                 // +0x28
     char unknown_34[0x52 - 0x34];
-    Unit_0049d1e0* owner;              // +0x52
+    Unit* owner;                       // +0x52
     char unknown_56[0x66 - 0x56];
     char player;                       // +0x66
     char unknown_67[0x6b - 0x67];

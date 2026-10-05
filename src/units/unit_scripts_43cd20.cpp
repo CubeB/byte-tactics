@@ -312,7 +312,7 @@
 //   - ppos introduced before the first delta (first reference to ppos earlier
 //     than to unit) gives 62.0-62.4%, so the allocator's choice follows
 //     reference order, not a source declaration order we can flip.
-//   - a local `Unit_0043cc20* u = unit;` copy is scalarised (byte-identical).
+//   - a local `Unit* u = unit;` copy is scalarised (byte-identical).
 //   - a Vec3 first-delta temp (with dead y) and int[3] with dead index 1 are
 //     scalarised too: same 964 bytes.
 //   - tools/headers.py: 128 sets, best 74.8% (<math.h> etc), and a sweep of
@@ -348,7 +348,7 @@
 //     `int d[3]` with members 0 and 2) compiles byte-identical to the plain
 //     int ax/az form: VC5 coalesces both temps into one slot and the frame
 //     stays 0x40, so the missing 4 bytes are NOT reclaimable this way.
-//   - A local copy `Unit_0043cc20* u = unit;` for the whole main path, a
+//   - A local copy `Unit* u = unit;` for the whole main path, a
 //     `Vec3& ppos` reference and moving ppos between ax and az all compile
 //     byte-identical to this file (60.9 at the time).
 //   - Replacing the two tail calls with a common `amount` select (if/else or
@@ -487,7 +487,7 @@ struct UnitType_0043cd20 {
     int field_241;                    // +0x241
 };
 
-struct Unit_0043cc20 {
+struct Unit {
     char unknown_0[0x66];
     short heading;                    // +0x66
     short field_68;                   // +0x68, in 2048ths of a circle
@@ -548,7 +548,7 @@ public:
     char unknown_14[0x20 - 0x14];
     int field_20;                      // +0x20
 
-    void FUN_0043cc20(Unit_0043cc20* unit, int amount);
+    void FUN_0043cc20(Unit* unit, int amount);
 };
 
 class Class_0043cd20 {
@@ -558,12 +558,12 @@ public:
     int field_20;                     // +0x20
     short turn;                       // +0x24
 
-    void FUN_0043cd20(Unit_0043cc20* unit);
+    void FUN_0043cd20(Unit* unit);
 };
 
 // The preceding function in the original object file (0x43cc20, matched in
 // its own file), defined here without its annotation: see the note above.
-void Class_0043cc20::FUN_0043cc20(Unit_0043cc20* unit, int amount)
+void Class_0043cc20::FUN_0043cc20(Unit* unit, int amount)
 {
     field_20 = field_20 + amount;
     ClampToZero(field_20);
@@ -591,7 +591,7 @@ void Class_0043cc20::FUN_0043cc20(Unit_0043cc20* unit, int amount)
 }
 
 // FUNCTION: 0x43cd20
-void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
+void Class_0043cd20::FUN_0043cd20(Unit* unit)
 {
     if (obj->v5() == 0) {
         turn = 0;

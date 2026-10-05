@@ -136,7 +136,7 @@ struct UnitType_00466dc0 {
     unsigned char field_245;             // +0x245
 };
 
-struct Unit_00466dc0 {
+struct Unit {
     char unknown_0[0x10];
     Slot_00466dc0 slots[3];              // +0x10
     char unknown_64[0x8];
@@ -167,7 +167,7 @@ struct Projectile_00466dc0 {
     int posy;                            // +0x8
     int posz;                            // +0xc
     char unknown_10[0x52 - 0x10];
-    Unit_00466dc0* owner;                // +0x52
+    Unit* owner;                         // +0x52
     char unknown_56[0x66 - 0x56];
     unsigned char player;                // +0x66
     char unknown_67[0x6b - 0x67];
@@ -176,7 +176,7 @@ struct Projectile_00466dc0 {
 
 struct Tail_00466dc0 {
     char unknown_0[0x48];
-    Unit_00466dc0* owner;                // q+0x48
+    Unit* owner;                         // q+0x48
     char unknown_4c[0x5c - 0x4c];
     unsigned char player;                // q+0x5c
 };
@@ -213,8 +213,8 @@ struct Game_00466dc0 {
     char unknown_142ef[1];
     Flags142f0_00466dc0 field_142f0;     // +0x142f0
     char unknown_142f2[0x14357 - 0x142f2];
-    Unit_00466dc0* units;                // +0x14357
-    Unit_00466dc0* unitsEnd;             // +0x1435b
+    Unit* units;                         // +0x14357
+    Unit* unitsEnd;                      // +0x1435b
     char unknown_1435f[0x14363 - 0x1435f];
     unsigned short* field_14363;         // +0x14363
     char unknown_14367[0x1436b - 0x14367];
@@ -275,7 +275,7 @@ static inline int OnRadar_00466dc0(int px, int py)
 }
 
 // A unit's screen y (height folded into z) times the minimap scale.
-static inline int ScaleY_00466dc0(Unit_00466dc0* u)
+static inline int ScaleY_00466dc0(Unit* u)
 {
     return ((int)u->field_74 - ((int)u->field_70 >> 1)) * (int)g_game->field_142ed;
 }
@@ -298,8 +298,8 @@ void FUN_00466dc0(void)
     if (g_game->field_37f2f.bits.bit9)
         enabled = 1;
 
-    Unit_00466dc0* u = g_game->units;
-    Unit_00466dc0* end = g_game->unitsEnd;
+    Unit* u = g_game->units;
+    Unit* end = g_game->unitsEnd;
     if (u <= end) {
         do {
             UnitType_00466dc0*& type = u->type;
@@ -367,7 +367,7 @@ void FUN_00466dc0(void)
                     g_game->field_1436b++;
                 }
             }
-            u = (Unit_00466dc0*)((char*)u + 0x118);
+            u = (Unit*)((char*)u + 0x118);
         } while (u <= g_game->unitsEnd);
     }
 

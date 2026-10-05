@@ -237,9 +237,14 @@ does it:
    annotation too), in `include/ta_types.h` and `include/ta_protos.h`, in
    `data/symbols.csv` and `data/aliases.csv` (inside decorated names), and in
    `data/modules.csv` and the docs.
-2. It refuses:
-   - a name that a file spelling OLD already uses: two things would share the
-     name there, and merging two types in one file is phase 3;
+   The generated headers take only the renames that merge no two of their
+   names: the files that include them match only at their exact symbol counts
+   (`docs/c2-regalloc.md`), and a name declared twice counts once.
+2. It refuses, pair by pair (`--keep-going` renames the pairs that pass and
+   lists the others):
+   - a name that a file spelling OLD already uses, or that another OLD in that
+     file is renamed to: two things would share the name there, and merging two
+     types in one file is phase 3;
    - a name `data/symbols.csv` gives another address;
    - a local of a function whose frame follows its locals' names (below);
    - a gap entry label;

@@ -7,7 +7,7 @@ struct UnitType_0043dd20 {
     unsigned int flag_800 : 1;         // bit 11
 };
 
-struct Unit_0043dd20 {
+struct Unit {
     char unknown_0[0x92];
     UnitType_0043dd20* type;           // +0x92
 };
@@ -20,20 +20,20 @@ public:
     virtual void v2();
 };
 
-class Class_0043cd20 { public: void FUN_0043cd20(Unit_0043dd20* u); };
-class Class_0043d290 { public: void FUN_0043d290(Unit_0043dd20* u); };
-class Class_0043d6d0 { public: void FUN_0043d6d0(Unit_0043dd20* u); };
-class Class_0043da70 { public: void FUN_0043da70(Unit_0043dd20* u); };
-class Class_0043db50 { public: void FUN_0043db50(Unit_0043dd20* u); };
+class Class_0043cd20 { public: void FUN_0043cd20(Unit* u); };
+class Class_0043d290 { public: void FUN_0043d290(Unit* u); };
+class Class_0043d6d0 { public: void FUN_0043d6d0(Unit* u); };
+class Class_0043da70 { public: void FUN_0043da70(Unit* u); };
+class Class_0043db50 { public: void FUN_0043db50(Unit* u); };
 
 class Class_0043dd20 {
 public:
     Iface_0043dd20* iface;             // +0x0
-    void FUN_0043dd20(Unit_0043dd20* u);
+    void FUN_0043dd20(Unit* u);
 };
 
 // FUNCTION: 0x43dd20
-void Class_0043dd20::FUN_0043dd20(Unit_0043dd20* u)
+void Class_0043dd20::FUN_0043dd20(Unit* u)
 {
     iface->v2();
     if (u->type->flag_800)

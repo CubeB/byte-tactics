@@ -19,7 +19,7 @@
 // the same file. That keeps only the scaled index (player * 0x14b) alive, in
 // the dead first-parameter slot, and puts its multiply before the unit lookup.
 
-struct Unit_004861d0;
+struct Unit;
 
 struct Class_00481490 {                  // 0x1c bytes, vtable 0x4fd6f0
     void* vtable;                        // +0x0
@@ -29,12 +29,12 @@ struct Class_00481490 {                  // 0x1c bytes, vtable 0x4fd6f0
 class Class_0043dc00 {
 public:
     char unknown_0[0x2f];
-    Class_0043dc00(Unit_004861d0* unit);
+    Class_0043dc00(Unit* unit);
 };
 
 class Class_00490520 {
 public:
-    void FUN_00490580(Unit_004861d0* unit);
+    void FUN_00490580(Unit* unit);
 };
 
 struct Pos_004861d0 {
@@ -57,7 +57,7 @@ struct Spawn_004861d0 {                  // 0x11 bytes
     Pos_004861d0 pos;                    // +0x5
 };
 
-struct Unit_004861d0 {                   // 0x118 bytes
+struct Unit {                            // 0x118 bytes
     Class_0043dc00* obj;                 // +0x0
     char unknown_4[0x8 - 0x4];
     Class_00481490 sub_8;                // +0x8
@@ -74,7 +74,7 @@ struct Unit_004861d0 {                   // 0x118 bytes
 
 struct Player_004861d0 {                 // 0x14b bytes
     char unknown_0[0x67];
-    Unit_004861d0* units_begin;          // +0x67
+    Unit* units_begin;                   // +0x67
     char unknown_6b[0x140 - 0x6b];
     int field_140;                       // +0x140
     short field_144;                     // +0x144
@@ -85,7 +85,7 @@ struct Game_004861d0 {
     char unknown_0[0x1b63];
     Player_004861d0 players[10];         // +0x1b63
     char unknown_2851[0x14357 - 0x2851];
-    Unit_004861d0* units;                // +0x14357
+    Unit* units;                         // +0x14357
     char unknown_1435b[0x1439b - 0x1435b];
     UnitType_004861d0* unitTypes;        // +0x1439b
     char unknown_1439f[0x391ed - 0x1439f];
@@ -96,20 +96,20 @@ struct Game_004861d0 {
 extern Game_004861d0* g_game;
 extern void* DAT_004fd6f0[];
 
-void __stdcall FUN_004864b0(Unit_004861d0* unit, int param_2);
-void __stdcall FUN_00485a40(Unit_004861d0* unit, Pos_004861d0 pos, int param_5);
-void __stdcall FUN_00485d40(Unit_004861d0* unit);
-void __stdcall FUN_0049e070(Unit_004861d0* unit);
-void __stdcall FUN_00437840(Unit_004861d0* unit);
-void __stdcall FUN_0048a870(Unit_004861d0* unit);
-void __stdcall FUN_0047cc30(Unit_004861d0* unit);
-void __stdcall FUN_00482ac0(Unit_004861d0* unit);
+void __stdcall FUN_004864b0(Unit* unit, int param_2);
+void __stdcall FUN_00485a40(Unit* unit, Pos_004861d0 pos, int param_5);
+void __stdcall FUN_00485d40(Unit* unit);
+void __stdcall FUN_0049e070(Unit* unit);
+void __stdcall FUN_00437840(Unit* unit);
+void __stdcall FUN_0048a870(Unit* unit);
+void __stdcall FUN_0047cc30(Unit* unit);
+void __stdcall FUN_00482ac0(Unit* unit);
 void* __cdecl operator new(unsigned int size);
 
 // Inlined copy of FUN_00485e90. As there, the three vtable stores are guarded
 // by `if (unit)` but the +0xa6 store and the new expression are not.
 static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_004861d0 pos,
-                                               int param_5, Unit_004861d0* unit)
+                                               int param_5, Unit* unit)
 {
     UnitType_004861d0* type = &g_game->unitTypes[unitType];
     if (unit) {
@@ -131,10 +131,10 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
 }
 
 // FUNCTION: 0x4861d0
-Unit_004861d0* __stdcall FUN_004861d0(unsigned char player, Spawn_004861d0* spawn)
+Unit* __stdcall FUN_004861d0(unsigned char player, Spawn_004861d0* spawn)
 {
     Player_004861d0* pl = &g_game->players[player];
-    Unit_004861d0* unit;
+    Unit* unit;
     if (spawn->id == 0) {
         unit = 0;
     } else {

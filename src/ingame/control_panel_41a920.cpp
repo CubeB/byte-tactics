@@ -19,7 +19,7 @@ struct Info_0041a920 {
     unsigned char field_22e;           // +0x22e
 };
 
-struct Unit_0041a920 {
+struct Unit {
     char unknown_0[0x92];
     Info_0041a920* info;               // +0x92
     Link_0041a920* link;               // +0x96
@@ -47,7 +47,7 @@ extern Game_0041a920* g_game;
 void __stdcall FUN_004a0570(Object_0041a920* obj, char* name, int param_3);
 
 // FUNCTION: 0x41a920
-void __stdcall FUN_0041a920(Unit_0041a920* unit)
+void __stdcall FUN_0041a920(Unit* unit)
 {
     char buf[256];
     if (unit->info->field_22e < 2) {

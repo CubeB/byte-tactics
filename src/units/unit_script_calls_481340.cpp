@@ -4,7 +4,7 @@
 // src/units/units_485e30.cpp.
 
 #pragma pack(push, 1)
-struct Unit_00481340 {
+struct Unit {
     char unknown_0[0x86];
     int owner;                         // +0x86
     char unknown_8a[0x110 - 0x8a];
@@ -14,7 +14,7 @@ struct Unit_00481340 {
 
 struct Game_00481340 {
     char unknown_0[0x14357];
-    Unit_00481340* units;              // +0x14357
+    Unit* units;                       // +0x14357
 };
 #pragma pack(pop)
 
@@ -25,9 +25,9 @@ struct Player_00481340 {
     int id;                            // +0x0c
 };
 
-void __stdcall FUN_0048aac0(Unit_00481340* unit, int player, int a, int b);
+void __stdcall FUN_0048aac0(Unit* unit, int player, int a, int b);
 
-static inline Unit_00481340* GetUnit(unsigned short id)
+static inline Unit* GetUnit(unsigned short id)
 {
     if (id == 0)
         return 0;
@@ -104,7 +104,7 @@ public:
 // FUNCTION: 0x481340
 void Class_00485e30::FUN_004b0650(unsigned short id, int a, int b)
 {
-    Unit_00481340* u = GetUnit(id);
+    Unit* u = GetUnit(id);
     if (u != 0 && (u->flags & 0x10000000)
         && (u->owner == 0 || u->owner == player->id)) {
         FUN_0048aac0(u, player->id, a, b);

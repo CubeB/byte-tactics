@@ -71,7 +71,7 @@ struct State_0045ab10 {
     Entry_0045ab10 entries[1];          // +0x22
 };
 
-struct Unit_0045ab10 {
+struct Unit {
     char unknown_0[0x64];
     Vec3s_0045ab10 pos;                 // +0x64
     char unknown_6a[0x9e - 0x6a];
@@ -114,7 +114,7 @@ static inline int FarFrom(State_0045ab10* state, const Vec3s_0045ab10* pos)
 }
 
 // FUNCTION: 0x45ab10
-void __stdcall FUN_0045ab10(Unit_0045ab10* unit)
+void __stdcall FUN_0045ab10(Unit* unit)
 {
     State_0045ab10* state = unit->state;
     if (FarFrom(state, &unit->pos)) {

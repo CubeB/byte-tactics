@@ -40,7 +40,7 @@ struct Vec3_004816a0 {
     int z;                             // +0x08
 };
 
-struct Unit_004816a0 {
+struct Unit {
     char unknown_0[0x6a];
     Vec3_004816a0 position;            // +0x6a
     char unknown_76[0x7a - 0x76];
@@ -101,8 +101,8 @@ struct Game_004816a0 {
     char unknown_14283[0x142f1 - 0x14283];
     Flags_142f1_004816a0 field_142f1;  // +0x142f1
     char unknown_142f2[0x14356 - 0x142f2];
-    Unit_004816a0* units;              // +0x14357
-    Unit_004816a0* units_end;          // +0x1435b
+    Unit* units;                       // +0x14357
+    Unit* units_end;                   // +0x1435b
     char unknown_1435f[0x1485b - 0x1435f];
     Cell_004816a0* field_1485b;        // +0x1485b
 };
@@ -132,7 +132,7 @@ void __stdcall FUN_004816a0(int arg)
         if (p->field_146 == 10) continue;
         memset(p->seenMap, (unsigned char)~((unsigned char)g_game->flags >> 1) & 1, p->seenCount);
     }
-    for (Unit_004816a0* u = g_game->units + 1; u <= g_game->units_end; u++) {
+    for (Unit* u = g_game->units + 1; u <= g_game->units_end; u++) {
         if (u->id == 0)
             continue;
         Params_004816a0 params;

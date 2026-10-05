@@ -16,7 +16,7 @@ struct Sub_00445c70 {
 };
 
 #pragma pack(push, 1)
-struct Unit_00445c70 {
+struct Unit {
     char unknown_0[0x97];
     unsigned short flag_97 : 1;      // +0x97, stored in the two bytes at 0x97
     char unknown_99[0xa3 - 0x99];
@@ -24,7 +24,7 @@ struct Unit_00445c70 {
 };
 
 struct PlayerEntry_00445c70 {
-    Unit_00445c70* unit;              // +0x00
+    Unit* unit;                       // +0x00
     char unknown_4[0x14b - 4];
 };
 
@@ -53,7 +53,7 @@ void __stdcall FUN_00445c70(Sub_00445c70* sub, int unused)
     if (value != 0) {
         int shown = FUN_0045ba20(value) / 100 * 100;
         int hundreds;
-        Unit_00445c70* unit;
+        Unit* unit;
 
         _itoa(shown, text, 10);
         FUN_004a0bf0(sub, "METALTEXT", text, 0);

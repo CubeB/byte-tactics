@@ -39,7 +39,7 @@ struct Slot_00439740 {
     char unknown_10[0x1c - 0x10];
 };
 
-struct Unit_00439740 {
+struct Unit {
     char unknown_0[0x10];
     Slot_00439740 slots[3];           // +0x10
     char unknown_64[0x6a - 0x64];
@@ -53,9 +53,9 @@ struct Node_00439740 {
     char unknown_0[4];
     unsigned char kind;               // +0x4
     char unknown_5[0xe - 5];
-    Unit_00439740* unit;              // +0xe
+    Unit* unit;                       // +0xe
     char unknown_12[0x16 - 0x12];
-    Unit_00439740* target;            // +0x16
+    Unit* target;                     // +0x16
     char unknown_1a[0x22 - 0x1a];
     Pos_00439740 pos;                 // +0x22
     Point_00439740 field_2e;          // +0x2e
@@ -100,7 +100,7 @@ struct View_00439740 {
 extern Game_00439740* g_game;
 extern Entry_00439740* DAT_00512344;
 
-int __stdcall FUN_00465ac0(Player_00439740* owner, Unit_00439740* unit);
+int __stdcall FUN_00465ac0(Player_00439740* owner, Unit* unit);
 void __stdcall FUN_00438ea0(void* surface, View_00439740* view, Pos_00439740* pos,
                             int radius, int color, const char* text, int index);
 void __stdcall FUN_004b8500(void* dest, void* bmp, int x, int y);
@@ -111,7 +111,7 @@ void __stdcall FUN_00439740(void* surface, View_00439740* view, Node_00439740* n
 {
     char buf[0x40];
     Pos_00439740 pos;
-    Unit_00439740* u = node->unit;
+    Unit* u = node->unit;
     if (node->target != 0) {
         if (FUN_00465ac0(u->owner, node->target) == 0 && (node->flags & 0x200000) != 0) {
             *(int*)&pos.x_frac = node->cached.x << 16;

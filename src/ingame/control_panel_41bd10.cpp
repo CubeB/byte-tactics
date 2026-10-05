@@ -10,7 +10,7 @@ struct Stats_0041bd10 {
     int field_1fa;                     // +0x1fa
 };
 
-struct Unit_0041bd10 {
+struct Unit {
     char unknown_0[0x92];
     Stats_0041bd10* stats;             // +0x92
     char unknown_96[0x108 - 0x96];
@@ -32,14 +32,14 @@ struct Obj_0041bd10 {
     Class_00401180 field_bc;           // +0xbc
 };
 
-void __stdcall FUN_00489bb0(Obj_0041bd10* obj, Unit_0041bd10* unit, int n, int kind, int flag);
+void __stdcall FUN_00489bb0(Obj_0041bd10* obj, Unit* unit, int n, int kind, int flag);
 
 // Code bytes match. check.py still fails the 1.0f constant: it compares 16
 // bytes from each $T float constant, so it reads our adjacent -1.0f, while the
 // original pool (shared with 0x41ba60) has the -0.7 double after 1.0f.
 
 // FUNCTION: 0x41bd10
-int __stdcall FUN_0041bd10(Obj_0041bd10* obj, Unit_0041bd10* unit, float f)
+int __stdcall FUN_0041bd10(Obj_0041bd10* obj, Unit* unit, float f)
 {
     int result = 0;
     Stats_0041bd10* s = unit->stats;

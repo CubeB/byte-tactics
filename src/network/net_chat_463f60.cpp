@@ -1,7 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 
 #pragma pack(push, 1)
-struct Unit_00463f60 {
+struct Unit {
     char unknown_0[0x6c];
     short field_6c;                     // +0x6c
     char unknown_6e[0x74 - 0x6e];
@@ -25,7 +25,7 @@ struct Game_00463f60 {
     unsigned short tail;                // +0x2a3e
     unsigned short head;                // +0x2a40
     char unknown_2a42[0x14357 - 0x2a42];
-    Unit_00463f60* units;               // +0x14357
+    Unit* units;                        // +0x14357
 };
 #pragma pack(pop)
 
@@ -43,7 +43,7 @@ int FUN_00463f60(void)
         Entry_00463f60* e = &g->entries[i];
         unsigned short id = e->unit;
         if (id != 0 && (e->flags & 0x10) == 0) {
-            Unit_00463f60* u = &g->units[id];
+            Unit* u = &g->units[id];
             if (u->flags & 0x10000000) {
                 e->flags |= 0x30;
                 FUN_0041c7c0(u->field_6c, u->field_74, 1);

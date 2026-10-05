@@ -10,7 +10,7 @@ struct Vec3_0044de80 {
     int z;
 };
 
-struct Unit_0044de80 {
+struct Unit {
     char unknown_0[0xa8];
     short id;                          // +0xa8
 };
@@ -30,7 +30,7 @@ public:
     int FUN_004b4c80(void* buf, int size);
 };
 
-Unit_0044de80* __stdcall FUN_00487080(unsigned short index, void* file);
+Unit* __stdcall FUN_00487080(unsigned short index, void* file);
 
 class Class_004895c0 {
 public:
@@ -89,7 +89,7 @@ public:
     short field_c;                     // +0xc
     short field_e;                     // +0xe
     short field_10;                    // +0x10
-    Unit_0044de80* field_12;           // +0x12
+    Unit* field_12;                    // +0x12
     Class_004895c0 ref;                // +0x16
     Vec3_0044de80 pos;                 // +0x26
     int field_32;                      // +0x32

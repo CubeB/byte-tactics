@@ -33,7 +33,7 @@ struct Owner_0049dd60 {
     int id;
 };
 
-struct Unit_0049dd60 {
+struct Unit {
     Owner_0049dd60* owner;
     char unknown_4[0x66 - 4];
     short heading;
@@ -84,15 +84,15 @@ struct Packet_0049dd60 {
 
 extern Game_0049dd60* g_game;
 
-void __stdcall FUN_0043e240(Unit_0049dd60*, Vec3_0049dd60*, unsigned char, int);
-void __stdcall FUN_0049c740(Projectile_0049dd60*, Type_0049dd60*, Vec3_0049dd60*, int, int, Unit_0049dd60*);
+void __stdcall FUN_0043e240(Unit*, Vec3_0049dd60*, unsigned char, int);
+void __stdcall FUN_0049c740(Projectile_0049dd60*, Type_0049dd60*, Vec3_0049dd60*, int, int, Unit*);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall FUN_00451df0(int, void*, int);
 
 // FUNCTION: 0x49dd60
-int __stdcall FUN_0049dd60(Unit_0049dd60* unit, Aim_0049dd60* aim,
-                           Unit_0049dd60* target, Vec3_0049dd60* point)
+int __stdcall FUN_0049dd60(Unit* unit, Aim_0049dd60* aim,
+                           Unit* target, Vec3_0049dd60* point)
 {
     Vec3_0049dd60 p;
     FUN_0043e240(unit, &p, aim->weapon >> 2 & 3, -1);

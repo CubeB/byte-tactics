@@ -16,7 +16,7 @@ struct Sub_00445d60 {
 };
 
 #pragma pack(push, 1)
-struct Unit_00445d60 {
+struct Unit {
     char unknown_0[0x97];
     unsigned char flag_97;             // +0x97
     char unknown_98[0xa1 - 0x98];
@@ -24,7 +24,7 @@ struct Unit_00445d60 {
 };
 
 struct PlayerEntry_00445d60 {
-    Unit_00445d60* unit;               // +0x00
+    Unit* unit;                        // +0x00
     char unknown_4[0x14b - 4];
 };
 
@@ -52,7 +52,7 @@ void __stdcall FUN_00445d60(Sub_00445d60* sub, int unused)
 
     if (value != 0) {
         int shown = FUN_0045ba20(value) / 100 * 100;
-        Unit_00445d60* unit;
+        Unit* unit;
 
         _itoa(shown, text, 10);
         FUN_004a0bf0(sub, "ENERGYTEXT", text, 0);

@@ -225,7 +225,7 @@ struct UnitType_0041ace0 {
     unsigned char field_22e;             // +0x22e
 };
 
-struct Unit_0041ace0 {
+struct Unit {
     char unknown_0[0x92];
     UnitType_0041ace0* type;             // +0x92
     Player_0041ace0* player;             // +0x96
@@ -312,15 +312,15 @@ Layer_0041ace0* __stdcall FUN_004aa8f0(Menu_0041ace0* menu, const char* name, in
 void __stdcall FUN_0041aa00(void* menu);
 void __stdcall FUN_004a81e0(Menu_0041ace0* menu, int value);
 void __stdcall FUN_004a0570(Menu_0041ace0* menu, char* name, int param_3);
-void __stdcall FUN_0041a120(Unit_0041ace0* unit);
-void __stdcall FUN_004199b0(Menu_0041ace0* menu, Unit_0041ace0* unit);
+void __stdcall FUN_0041a120(Unit* unit);
+void __stdcall FUN_004199b0(Menu_0041ace0* menu, Unit* unit);
 int __stdcall FUN_0049fe60(Entry_0041ace0* entries, char* name);
 void __stdcall FUN_004a11c0(Menu_0041ace0* menu, int index, int value);
 short __stdcall FUN_00488b10(Entry_0041ace0* entry);
 void __stdcall FUN_004a1200(Menu_0041ace0* menu, int index, int flag);
 
 // Inlined copy of FUN_0041a920.
-static inline void SetPrevNext(Unit_0041ace0* unit)
+static inline void SetPrevNext(Unit* unit)
 {
     char buf[256];
     if (unit->type->field_22e < 2) {
@@ -352,7 +352,7 @@ static inline void UpdateCounts(Menu_0041ace0* menu)
 }
 
 // FUNCTION: 0x41ace0
-void __stdcall FUN_0041ace0(Unit_0041ace0* unit, char* guiName, int page)
+void __stdcall FUN_0041ace0(Unit* unit, char* guiName, int page)
 {
     if (unit->field_104 == 0.0f) {
         Player_0041ace0* player = &g_game->players[g_game->localPlayer];

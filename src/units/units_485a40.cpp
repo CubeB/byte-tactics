@@ -114,7 +114,7 @@ union Flags114_485a40 {
     } bits;
 };
 
-struct Unit_485a40 {
+struct Unit {
     Class_0043dc00* obj;               // +0x0
     char unknown_4[0x64 - 0x4];
     short field_64;                    // +0x64
@@ -126,9 +126,9 @@ struct Unit_485a40 {
     short field_7c;                    // +0x7c
     ShortPair_485a40 offset;           // +0x7e
     Class_0047cb00* list;              // +0x82
-    Unit_485a40* owner;                // +0x86
-    Unit_485a40* first;                // +0x8a
-    Unit_485a40* next;                 // +0x8e
+    Unit* owner;                       // +0x86
+    Unit* first;                       // +0x8a
+    Unit* next;                        // +0x8e
     UnitType_485a40* type;             // +0x92
     Player_485a40* player;             // +0x96
     char unknown_9a[0xa6 - 0x9a];
@@ -174,12 +174,12 @@ struct Game_485a40 {
 
 extern Game_485a40* g_game;
 
-void __stdcall FUN_0048a160(Unit_485a40* unit, int index);
-void __stdcall FUN_00480250(Unit_485a40* unit, int param_2);
+void __stdcall FUN_0048a160(Unit* unit, int index);
+void __stdcall FUN_00480250(Unit* unit, int param_2);
 int __stdcall FUN_004b6c30(int range);
 
 // FUNCTION: 0x485a40
-void __stdcall FUN_00485a40(Unit_485a40* unit, Pos_485a40 pos, int param_5)
+void __stdcall FUN_00485a40(Unit* unit, Pos_485a40 pos, int param_5)
 {
     unit->type = &g_game->unitTypes[(unsigned short)unit->id];
     unit->flags.bits.b28 = 1;

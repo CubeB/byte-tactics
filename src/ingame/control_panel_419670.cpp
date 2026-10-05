@@ -40,7 +40,7 @@ struct UnitDef_00419670 {
     char unknown_245[0x249 - 0x245];
 };
 
-struct Unit_00419670 {
+struct Unit {
     char unknown_0[8];
     unsigned int field_8;              // +0x8
     char unknown_c[0x92 - 0xc];
@@ -52,8 +52,8 @@ struct Unit_00419670 {
 
 struct Player_00419670 {
     char unknown_0[0x67];
-    Unit_00419670* units;              // +0x67
-    Unit_00419670* unitsEnd;           // +0x6b
+    Unit* units;                       // +0x67
+    Unit* unitsEnd;                    // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -80,7 +80,7 @@ struct Arg_00419670 {
     unsigned int field_8;              // +0x8
 };
 
-void __stdcall FUN_0043afc0(Class_00438760 kind, int remove, Unit_00419670* owner,
+void __stdcall FUN_0043afc0(Class_00438760 kind, int remove, Unit* owner,
                             int id, Vec3* pos, int param_6, int param_7);
 static inline Point WorldToCell(Vec3 v, Point origin)
 {
@@ -109,7 +109,7 @@ void __stdcall FUN_00419670(Arg_00419670* arg)
 
     unsigned char team = g_game->field_2a42;
     Player_00419670* p = &g_game->players[team];
-    for (Unit_00419670* u = p->units; u <= p->unitsEnd; u++) {
+    for (Unit* u = p->units; u <= p->unitsEnd; u++) {
         if ((u->flags & 0x10) && (u->def->flags.raw & 0x40)) {
             if (!(u->def->flags.raw & 0x800)) {
                 FUN_0043afc0("MOBILEBUILD", remove, u, 0, &pos, index, 0);

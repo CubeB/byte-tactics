@@ -137,7 +137,7 @@ struct Pair_00487080 {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct Unit_00487080 {
+struct Unit {
     void* vtable;                       // +0x0
     Piece_00487080 pieces[3];           // +0x4
     int field_58;                       // +0x58
@@ -161,7 +161,7 @@ struct Unit_00487080 {
     short field_b8;                     // +0xb8
     short field_ba;                     // +0xba
     char info[0x34];                    // +0xbc
-    Unit_00487080* child;               // +0xf0
+    Unit* child;                        // +0xf0
     unsigned char b_f4;
     unsigned char b_f5;
     unsigned char b_f6;
@@ -209,11 +209,11 @@ extern void* g_game;
 
 
 unsigned short __stdcall FUN_00488b10(const char* name);
-Unit_00487080* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId,
+Unit* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId,
                                       Vec3_00487080 pos, int param_5, int mode,
                                       unsigned short id);
-void __stdcall FUN_0048aac0(Unit_00487080* unit, Unit_00487080* builder, int piece, int p4);
-void __stdcall FUN_00480250(Unit_00487080* unit, int id);
+void __stdcall FUN_0048aac0(Unit* unit, Unit* builder, int piece, int p4);
+void __stdcall FUN_00480250(Unit* unit, int id);
 #pragma pack(push, 1)
 // An order (0x56 bytes); 0x43a420 is its constructor from a saved record.
 class Class_0043a420 {
@@ -223,24 +223,24 @@ public:
     char gap_46[4];
     Class_0043a420* next;               // +0x4a
     char gap_4e[8];
-    Class_0043a420(Unit_00487080* unit, Class_004b4560* file, char* name);
+    Class_0043a420(Unit* unit, Class_004b4560* file, char* name);
 };
 #pragma pack(pop)
 class Class_004388b0 { public: void FUN_004388b0(); };
-void __stdcall FUN_0047db20(Unit_00487080* unit);
-class Class_00401110 { public: void FUN_00401110(Unit_00487080*, Class_004b4560*); };
-class Class_0043d210 { public: void FUN_0043de30(Unit_00487080*, Class_004b4560*); };
+void __stdcall FUN_0047db20(Unit* unit);
+class Class_00401110 { public: void FUN_00401110(Unit*, Class_004b4560*); };
+class Class_0043d210 { public: void FUN_0043de30(Unit*, Class_004b4560*); };
 class Class_004b0610 { public: void FUN_004b2040(Class_004b4560*); };
 
 
 // FUNCTION: 0x487080
-Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
+Unit* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
 {
-    Unit_00487080* unit;
+    Unit* unit;
     if (id == 0)
         unit = 0;
     else
-        unit = (Unit_00487080*)(*(char**)((char*)g_game + 0x14357) + id * 0x118);
+        unit = (Unit*)(*(char**)((char*)g_game + 0x14357) + id * 0x118);
     if (unit == 0 || (unit->flags & 0x10000000))
         return unit;
 
@@ -273,7 +273,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     unit->field_6e = rec.f2f;
 
     if (rec.childA != 0) {
-        Unit_00487080* child = FUN_00487080(rec.childA, file);
+        Unit* child = FUN_00487080(rec.childA, file);
         if (child != 0)
             FUN_0048aac0(unit, child, rec.b8d, rec.flags.b & 3);
     }

@@ -45,7 +45,7 @@ struct PlayerInfo_004237d0 {
     int id;                            // +0x4
 };
 
-struct Unit_004237d0 {
+struct Unit {
     char unknown_0[0x96];
     PlayerInfo_004237d0* info;         // +0x96
     char unknown_9a[0xbc - 0x9a];
@@ -110,7 +110,7 @@ static inline Feature_004237d0* GetFeature(Cell_004237d0* cell)
     return &g_game->features[(cell - (cell->offsetY * g_game->width + cell->offsetX))->feature];
 }
 
-static inline void AddScaled(Unit_004237d0* unit, float& res, double amount)
+static inline void AddScaled(Unit* unit, float& res, double amount)
 {
     if (unit->player->active && unit->player->type == 2) {
         switch (g_game->difficulty) {
@@ -130,7 +130,7 @@ static inline void AddScaled(Unit_004237d0* unit, float& res, double amount)
 }
 
 // FUNCTION: 0x4237d0
-int __stdcall FUN_004237d0(Unit_004237d0* unit, Vec3_004237d0* pos)
+int __stdcall FUN_004237d0(Unit* unit, Vec3_004237d0* pos)
 {
     int x = pos->x / 0x100000;
     int z = pos->z / 0x100000;

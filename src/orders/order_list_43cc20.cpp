@@ -17,7 +17,7 @@ struct Flags_0043cc20 {
     int field_241;                     // +0x241
 };
 
-struct Unit_0043cc20 {
+struct Unit {
     char unknown_0[0x66];
     unsigned short heading;            // +0x66
     short field_68;                    // +0x68, in 2048ths of a circle
@@ -56,11 +56,11 @@ public:
     char unknown_14[0x20 - 0x14];
     int field_20;                      // +0x20
 
-    void FUN_0043cc20(Unit_0043cc20* unit, int amount);
+    void FUN_0043cc20(Unit* unit, int amount);
 };
 
 // FUNCTION: 0x43cc20
-void Class_0043cc20::FUN_0043cc20(Unit_0043cc20* unit, int amount)
+void Class_0043cc20::FUN_0043cc20(Unit* unit, int amount)
 {
     field_20 = field_20 + amount;
     ClampToZero(field_20);

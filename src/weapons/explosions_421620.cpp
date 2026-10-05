@@ -21,7 +21,7 @@ struct Rec_00421620 {
     char unknown_2a[0x36 - 0x2a];
 };
 
-struct Unit_00421620 {
+struct Unit {
     char unknown_0[0x6a];
     int field_6a;               // +0x6a
     int field_6e;               // +0x6e
@@ -31,7 +31,7 @@ struct Unit_00421620 {
 };
 
 struct Header_00421620 {
-    Unit_00421620* obj;         // +0x00
+    Unit* obj;                  // +0x00
     int index;                  // +0x04
     char unknown_8[0x20];       // +0x08
     unsigned int bits_28 : 2;   // +0x28
@@ -70,7 +70,7 @@ static int FindFreeSlot_00421620()
 // FUNCTION: 0x421620
 void __stdcall FUN_00421620(Header_00421620* param_1)
 {
-    Unit_00421620* obj = param_1->obj;
+    Unit* obj = param_1->obj;
     Rec_00421620* rec = (Rec_00421620*)((char*)obj->field_9e + 0x22 + param_1->index * 0x36);
     rec->field_28 &= 0xfffe;
     if (param_1->flag_28) {

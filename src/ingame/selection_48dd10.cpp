@@ -12,9 +12,9 @@
 // Writing it `!(... != 0.0f)` compiles to the same bytes.
 
 #pragma pack(push, 1)
-struct Unit_0048dd10 {                   // 0x118 bytes
+struct Unit {                            // 0x118 bytes
     char unknown_0[0x86];
-    Unit_0048dd10* owner;                // +0x86
+    Unit* owner;                         // +0x86
     char unknown_8a[0xac - 0x8a];
     int field_ac;                        // +0xac
     char unknown_b0[0xfb - 0xb0];
@@ -28,8 +28,8 @@ struct Unit_0048dd10 {                   // 0x118 bytes
 
 struct Player_0048dd10 {                 // 0x14b bytes
     char unknown_0[0x67];
-    Unit_0048dd10* units_begin;          // +0x67
-    Unit_0048dd10* units_end;            // +0x6b
+    Unit* units_begin;                   // +0x67
+    Unit* units_end;                     // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -47,12 +47,12 @@ extern Game_0048dd10* g_game;
 int __stdcall FUN_0048dd10(int param_1)
 {
     Player_0048dd10* player = &g_game->players[g_game->localPlayer];
-    for (Unit_0048dd10* u = player->units_begin; u <= player->units_end; u++) {
+    for (Unit* u = player->units_begin; u <= player->units_end; u++) {
         unsigned int flags = u->flags;
         if (flags & 0x20) {
             if (u->field_104 == 0.0f) {
                 if (u->field_fb == 0) {
-                    Unit_0048dd10* owner = u->owner;
+                    Unit* owner = u->owner;
                     if (owner == 0 || (owner->flags & 0x40000000)) {
                         if (u->field_ac == param_1) {
                             if (flags & 0x80000000)

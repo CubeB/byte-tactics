@@ -13,7 +13,7 @@ struct Player_499c70 {
 };
 
 #pragma pack(push, 1)
-struct Unit_499c70 {
+struct Unit {
     char unknown_0[0x96];
     Player_499c70* player;             // +0x96
     char unknown_9a[0xff - 0x9a];
@@ -22,19 +22,19 @@ struct Unit_499c70 {
 
 struct Weapon_499c70 {
     char unknown_0[0x52];
-    Unit_499c70* attacker;             // +0x52
+    Unit* attacker;                    // +0x52
     char unknown_56[0x66 - 0x56];
     unsigned char owner;               // +0x66
 };
 #pragma pack(pop)
 
-unsigned short __stdcall FUN_00499cd0(Weapon_499c70* weapon, Unit_499c70* target, float scale);
+unsigned short __stdcall FUN_00499cd0(Weapon_499c70* weapon, Unit* target, float scale);
 
 // FUNCTION: 0x499c70
-void __stdcall FUN_00499c70(Weapon_499c70* weapon, Unit_499c70* target)
+void __stdcall FUN_00499c70(Weapon_499c70* weapon, Unit* target)
 {
     unsigned short damage = FUN_00499cd0(weapon, target, 1.0f);
-    Unit_499c70* attacker = weapon->attacker;
+    Unit* attacker = weapon->attacker;
     if (attacker) {
         unsigned short a = 0;
         unsigned short b = 0;

@@ -73,7 +73,7 @@ struct UnitType_0043d290 {
     unsigned short max_turn; // +0x1ba
 };
 
-struct Unit_0043d290 {
+struct Unit {
     char unknown_0[0x64];
     Short3 f64; // +0x64
     Vec3 pos;   // +0x6a
@@ -106,13 +106,13 @@ class Class_0043d210 {
     unsigned char flag : 1; // +0x2e bit 2
     unsigned char rest : 5;
 
-    void FUN_0043d0d0(Unit_0043d290* unit, Vec3* v);
+    void FUN_0043d0d0(Unit* unit, Vec3* v);
 };
 
 // data/symbols.csv knows this method by the name its caller 0x43dd20 uses.
 class Class_0043d290 : public Class_0043d210 {
   public:
-    void FUN_0043d290(Unit_0043d290* unit);
+    void FUN_0043d290(Unit* unit);
 };
 
 #pragma pack(pop)
@@ -148,7 +148,7 @@ static inline Vec3 Offset(short angle, int distance)
 }
 
 // FUNCTION: 0x43d290
-void Class_0043d290::FUN_0043d290(Unit_0043d290* unit) {
+void Class_0043d290::FUN_0043d290(Unit* unit) {
     if (mode != 2) {
         p1 = Vec3(0, 0, 0);
         field_20 = 0;

@@ -6,7 +6,7 @@ struct Stats_0041bf10 {
     unsigned char field_22e;           // +0x22e
 };
 
-struct Unit_0041bf10 {
+struct Unit {
     char unknown_0[0x92];
     Stats_0041bf10* stats;             // +0x92
     char unknown_96[0xa6 - 0x96];
@@ -18,7 +18,7 @@ struct Unit_0041bf10 {
 
 struct Game_0041bf10 {
     char unknown_0[0x14357];
-    Unit_0041bf10* units;              // +0x14357
+    Unit* units;                       // +0x14357
     char unknown_1435b[0x37e9c - 0x1435b];
     unsigned short unitIndex;          // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
@@ -32,7 +32,7 @@ void __stdcall FUN_0047f1a0(char* name, int param_2);
 
 // The 3-bit page field (bits 23-25) is set from stats->field_22e, or stepped
 // down with wraparound when it is already past the first page.
-static inline unsigned int SetPage(Unit_0041bf10* u, unsigned int f)
+static inline unsigned int SetPage(Unit* u, unsigned int f)
 {
     return (((u->stats->field_22e + 0x1ff) << 23) ^ f) & 0x3800000 ^ f;
 }
@@ -46,7 +46,7 @@ static inline unsigned int StepPage(unsigned int f)
 void __stdcall FUN_0041bf10(int param_1)
 {
     unsigned short index = g_game->unitIndex;
-    Unit_0041bf10* u;
+    Unit* u;
     if (index == 0)
         goto nextbuild;
     u = &g_game->units[index];

@@ -13,7 +13,7 @@ struct Pos_4399f0 {
     unsigned short z_frac;           // +0x8
     short z;                         // +0xa
 };
-struct Unit_4399f0 {
+struct Unit {
     char pad_0[0x6a];
     Pos_4399f0 pos;                  // +0x6a
     char pad_76[0x92 - 0x76];
@@ -21,7 +21,7 @@ struct Unit_4399f0 {
 };
 struct Obj_4399f0 {
     char pad_0[0x16];
-    Unit_4399f0* unit;               // +0x16
+    Unit* unit;                      // +0x16
     char pad_1a[0x22 - 0x1a];
     Pos_4399f0 pos;                  // +0x22
 };

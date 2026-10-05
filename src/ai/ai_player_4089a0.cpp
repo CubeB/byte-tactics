@@ -31,7 +31,7 @@ struct UnitDef_004089a0 {
 };
 #pragma pack(pop)
 
-struct Unit_004089a0;
+struct Unit;
 
 struct Weapon_004089a0 {               // 0x1c bytes
     WeaponDef_004089a0* def;           // +0x0
@@ -43,14 +43,14 @@ struct Weapon_004089a0 {               // 0x1c bytes
 #pragma pack(push, 1)
 struct Player_004089a0 {
     char unknown_0[0x67];
-    Unit_004089a0* firstUnit;          // +0x67
-    Unit_004089a0* lastUnit;           // +0x6b
+    Unit* firstUnit;                   // +0x67
+    Unit* lastUnit;                    // +0x6b
     char unknown_6f[0x108 - 0x6f];
     unsigned char allied[0x3e];        // +0x108
     unsigned char index;               // +0x146
 };
 
-struct Unit_004089a0 {                 // 0x118 bytes
+struct Unit {                          // 0x118 bytes
     char unknown_0[0x10];
     Weapon_004089a0 weapons[3];        // +0x10
     char unknown_64[0x92 - 0x64];
@@ -76,7 +76,7 @@ class Class_004089a0 {                 // 0x3d bytes, laid out in 0x408cb0.cpp
 public:
     Player_004089a0* player;           // +0x0
     char unknown_4[0x39 - 0x4];
-    Unit_004089a0* cursor;             // +0x39
+    Unit* cursor;                      // +0x39
 
     void FUN_004089a0(int force);
 };
@@ -84,12 +84,12 @@ public:
 
 extern Game_004089a0* g_game;
 
-Unit_004089a0* __stdcall FUN_0048a190(Unit_004089a0* unit, int weapon);
-int* __stdcall FUN_0049d120(Unit_004089a0* unit, unsigned int weapon);
-int __stdcall FUN_0040b7b0(Unit_004089a0* unit, unsigned int weapon, int param_3);
-void __stdcall FUN_0048a060(Unit_004089a0* unit, int param_2, unsigned int weapon);
-void __stdcall FUN_0048a0a0(Unit_004089a0* unit, int* param_2, unsigned int weapon);
-void __stdcall FUN_0048a0f0(Unit_004089a0* unit, unsigned int weapon);
+Unit* __stdcall FUN_0048a190(Unit* unit, int weapon);
+int* __stdcall FUN_0049d120(Unit* unit, unsigned int weapon);
+int __stdcall FUN_0040b7b0(Unit* unit, unsigned int weapon, int param_3);
+void __stdcall FUN_0048a060(Unit* unit, int param_2, unsigned int weapon);
+void __stdcall FUN_0048a0a0(Unit* unit, int* param_2, unsigned int weapon);
+void __stdcall FUN_0048a0f0(Unit* unit, unsigned int weapon);
 
 static inline int Contains(unsigned int* bits, unsigned short index)
 {
@@ -97,7 +97,7 @@ static inline int Contains(unsigned int* bits, unsigned short index)
 }
 
 // Matched in 0x408920.cpp; defined in the same file, and inlined below.
-void __stdcall FUN_00408920(Unit_004089a0* unit, unsigned int weapon)
+void __stdcall FUN_00408920(Unit* unit, unsigned int weapon)
 {
     if (unit->weapons[weapon].def->flag30) {
         int* p = FUN_0049d120(unit, weapon);
@@ -128,7 +128,7 @@ void Class_004089a0::FUN_004089a0(int force)
                 if ((cursor->weapons[w].flags & 2) && (cursor->weapons[w].flags & 0x10)
                     && !(unsigned char)cursor->weapons[w].def->flag8
                     && (force || !cursor->weapons[w].def->flag26)) {
-                    Unit_004089a0* target = FUN_0048a190(cursor, w);
+                    Unit* target = FUN_0048a190(cursor, w);
                     if (target && (player->allied[target->owner->index]
                         || Contains(cursor->def->weaponCategories[w], target->category)
                         || (cursor->weapons[w].def->flag7 && (target->field_10e & 0x10))))

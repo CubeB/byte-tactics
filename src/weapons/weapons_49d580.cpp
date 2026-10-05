@@ -65,7 +65,7 @@ struct Weapon_0049d580 {
     Flags_0049d580 flags;             // +0x111
 };
 
-struct Unit_0049d580 {
+struct Unit {
     char unknown_0[8];
     int f_8;
     Weapon_0049d580* f_c;
@@ -117,23 +117,23 @@ struct Game_0049d580 {
 
 extern Game_0049d580* g_game;
 
-void __stdcall FUN_0043e2e0(Unit_0049d580* obj, Vec3_0049d580* out, unsigned char weapon);
-void __stdcall FUN_0043e240(Unit_0049d580* obj, Vec3_0049d580* out, unsigned char weapon, int piece);
+void __stdcall FUN_0043e2e0(Unit* obj, Vec3_0049d580* out, unsigned char weapon);
+void __stdcall FUN_0043e240(Unit* obj, Vec3_0049d580* out, unsigned char weapon, int piece);
 int __cdecl FUN_004b715a(int x, int z);
 int __stdcall FUN_0049a890(int dx, int dy, int dz, int speed, float pitch);
-int __stdcall FUN_0049d910(Unit_0049d580* unit, Weapon_0049d580* target, short* out_heading,
+int __stdcall FUN_0049d910(Unit* unit, Weapon_0049d580* target, short* out_heading,
                            short* out_pitch, unsigned char weapon, Vec3_0049d580* point);
-int __stdcall FUN_0049d880(Unit_0049d580* unit, Unit_0049d580* aim, short angle1, short angle2);
-int __stdcall FUN_0049c9c0(Unit_0049d580* fire, Unit_0049d580* unit, Vec3_0049d580* p3,
-                           Vec3_0049d580* point, Unit_0049d580* target);
-int __stdcall FUN_0049cde0(Unit_0049d580* shot, Unit_0049d580* unit, Vec3_0049d580* pos,
-                           Vec3_0049d580* aim, Unit_0049d580* target);
+int __stdcall FUN_0049d880(Unit* unit, Unit* aim, short angle1, short angle2);
+int __stdcall FUN_0049c9c0(Unit* fire, Unit* unit, Vec3_0049d580* p3,
+                           Vec3_0049d580* point, Unit* target);
+int __stdcall FUN_0049cde0(Unit* shot, Unit* unit, Vec3_0049d580* pos,
+                           Vec3_0049d580* aim, Unit* target);
 int __stdcall FUN_004b6c30(int range);
 int __stdcall FUN_00451df0(int player, void* data, int size);
 
 // FUNCTION: 0x49d580
-int __stdcall FUN_0049d580(Unit_0049d580* fire, Unit_0049d580* unit,
-                           Unit_0049d580* target, Vec3_0049d580* point)
+int __stdcall FUN_0049d580(Unit* fire, Unit* unit,
+                           Unit* target, Vec3_0049d580* point)
 {
     if ((unit->f_1b & 1) && unit->f_8) {
         Weapon_0049d580* def = unit->f_c;

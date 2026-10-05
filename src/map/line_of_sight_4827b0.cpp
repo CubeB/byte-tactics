@@ -17,7 +17,7 @@ struct UnitType_4827b0 {
 };
 
 #pragma pack(push, 2)
-struct Unit_4827b0 {
+struct Unit {
     char unknown_0[0x6a];
     Vec3_4827b0 pos;             // +0x6a
     char unknown_76[4];
@@ -50,7 +50,7 @@ extern Game_4827b0* g_game;
 void __stdcall FUN_004825b0(Params_4827b0* params);
 
 // FUNCTION: 0x4827b0
-void __stdcall FUN_004827b0(Unit_4827b0* unit)
+void __stdcall FUN_004827b0(Unit* unit)
 {
     Params_4827b0 p;
     p.field_0 = unit->field_96;

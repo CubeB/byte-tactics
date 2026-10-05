@@ -25,7 +25,7 @@ struct Player_004956c0 {
     char unknown_147[0x14b - 0x147];
 };
 
-struct Unit_004956c0 {
+struct Unit {
     char unknown_0[0xa6];
     unsigned short field_a6;          // +0xa6
     char unknown_a8[0xf0 - 0xa8];
@@ -45,7 +45,7 @@ struct Game_004956c0 {
     char unknown_2cbc[0x14280 - 0x2cbc];
     unsigned char counter_14280;      // +0x14280
     char unknown_14281[0x14357 - 0x14281];
-    Unit_004956c0* units;             // +0x14357
+    Unit* units;                      // +0x14357
     char unknown_1435b[0x3923b - 0x1435b];
     unsigned short bit0_3923b : 1;    // +0x3923b
     unsigned short rest_3923b : 15;
@@ -75,7 +75,7 @@ void __stdcall FUN_004956c0(int eventType)
         FUN_004c61b0(0);
         break;
     case 0x5d: {
-        Unit_004956c0* u = &g_game->units[g_game->field_2cba];
+        Unit* u = &g_game->units[g_game->field_2cba];
         if (u->field_a6 != 0) {
             u->field_f4 = 10;
             u->flag_110 = 1;

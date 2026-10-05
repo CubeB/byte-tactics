@@ -308,7 +308,7 @@ struct UnitType_00438650 {
     unsigned short field_1fe;        // +0x1fe
 };
 
-struct Unit_00438650 {
+struct Unit {
     char unknown_0[0x92];
     UnitType_00438650* type;         // +0x92
     char unknown_96[0xb8 - 0x96];
@@ -321,7 +321,7 @@ struct Unit_00438650 {
 // when the product is converted as unsigned, and only a code-emitting 16-bit
 // narrowing kept the original order. The union above avoids both.
 // FUNCTION: 0x438650
-int __stdcall FUN_00438650(Unit_00438650* a, Unit_00438650* b, int n)
+int __stdcall FUN_00438650(Unit* a, Unit* b, int n)
 {
     UnitType_00438650* bt = b->type;
     float v = bt->field_18a > 10.0f ? bt->field_18a : 10.0f;

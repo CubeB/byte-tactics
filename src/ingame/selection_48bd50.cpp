@@ -5,9 +5,9 @@
 // (+0x37e9c) to none, then issues the STOP order and sets order flag 0x10.
 
 #pragma pack(push, 1)
-struct Unit_0048bd50 {                   // 0x118 bytes
+struct Unit {                            // 0x118 bytes
     char unknown_0[0x86];
-    Unit_0048bd50* owner;               // +0x86
+    Unit* owner;                        // +0x86
     char unknown_8a[0xfb - 0x8a];
     int field_fb;                       // +0xfb
     char unknown_ff[0x104 - 0xff];
@@ -18,8 +18,8 @@ struct Unit_0048bd50 {                   // 0x118 bytes
 
 struct Player_0048bd50 {                 // 0x14b bytes
     char unknown_0[0x67];
-    Unit_0048bd50* unitsBegin;          // +0x67
-    Unit_0048bd50* unitsEnd;            // +0x6b
+    Unit* unitsBegin;                   // +0x67
+    Unit* unitsEnd;                     // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -43,7 +43,7 @@ void FUN_00495860(void);
 void FUN_0048bd50(void)
 {
     Player_0048bd50* pl = &g_game->players[g_game->localPlayer];
-    Unit_0048bd50* u = pl->unitsBegin;
+    Unit* u = pl->unitsBegin;
     if (u <= pl->unitsEnd) {
         do {
             if ((u->flags & 0x20) && u->field_104 == 0.0f && u->field_fb == 0
@@ -51,7 +51,7 @@ void FUN_0048bd50(void)
                 u->flags |= 0x10;
                 g_game->unitIndex = 0;
             }
-            u = (Unit_0048bd50*)((char*)u + 0x118);
+            u = (Unit*)((char*)u + 0x118);
         } while (u <= pl->unitsEnd);
     }
     FUN_00495860();

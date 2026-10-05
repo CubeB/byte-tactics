@@ -12,7 +12,7 @@ struct Link_0048c030 {
     unsigned char flags;                // +0x113
 };
 
-struct Unit_0048c030 {
+struct Unit {
     char unknown_0[0x86];
     Link_0048c030* link;                // +0x86
     char unknown_8a[0xfb - 0x8a];
@@ -29,8 +29,8 @@ struct Game_0048c030 {
     char unknown_0[0x2a42];
     unsigned char player;               // +0x2a42
     char unknown_2a43[0x14357 - 0x2a43];
-    Unit_0048c030* units_begin;         // +0x14357
-    Unit_0048c030* units_end;           // +0x1435b
+    Unit* units_begin;                  // +0x14357
+    Unit* units_end;                    // +0x1435b
     unsigned short* list;               // +0x1435f
     char unknown_14363[0x14367 - 0x14363];
     int count;                          // +0x14367
@@ -50,12 +50,12 @@ void FUN_00495860(void);
 void FUN_0048c030(void)
 {
     int found = 0;
-    for (Unit_0048c030* u = g_game->units_begin; u <= g_game->units_end; u++)
+    for (Unit* u = g_game->units_begin; u <= g_game->units_end; u++)
         u->flags &= 0xffffff2f;
     FUN_00491d70(0);
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
-        Unit_0048c030* u = &g_game->units_begin[list[i]];
+        Unit* u = &g_game->units_begin[list[i]];
         unsigned int flags = u->flags;
         if ((flags & 0x20) && u->field_104 == 0.0f && u->field_fb == 0
             && (u->link == 0 || (u->link->flags & 0x40))

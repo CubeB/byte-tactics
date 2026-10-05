@@ -8,7 +8,7 @@ public:
     Class_00438760(const char* name);
 };
 
-struct Unit_00401c20;
+struct Unit;
 struct Vec_00401c20 {
     int x, y, z;
 };
@@ -32,7 +32,7 @@ struct UnitDef_00401c20 {
     unsigned int flags;                // +0x241
 };
 
-struct Unit_00401c20 {
+struct Unit {
     char unknown_0[0x6a];
     Vec_00401c20 pos;                  // +0x6a
     char unknown_76[0x92 - 0x76];
@@ -42,11 +42,11 @@ struct Unit_00401c20 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0048a0f0(Unit_00401c20* unit, int which);
-void __stdcall FUN_0043acb0(Unit_00401c20* owner, Class_0043a1f0* node);
+void __stdcall FUN_0048a0f0(Unit* unit, int which);
+void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
 
 // FUNCTION: 0x401c20
-int __stdcall FUN_00401c20(Unit_00401c20* unit, Class_00438880* order, int unused)
+int __stdcall FUN_00401c20(Unit* unit, Class_00438880* order, int unused)
 {
     order->FUN_00438880(0);
     FUN_0048a0f0(unit, 0);

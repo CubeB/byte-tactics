@@ -10,7 +10,7 @@
 
 class Class_00490520 {
 public:
-    void FUN_00490520(struct Unit_00488570* unit);
+    void FUN_00490520(struct Unit* unit);
 };
 
 class Class_0048b090 {
@@ -50,7 +50,7 @@ struct Packet_00488570 {               // 0x18 bytes
     unsigned char b17;                 // +0x17
 };
 
-struct Unit_00488570 {                 // 0x118 bytes
+struct Unit {                          // 0x118 bytes
     char unknown_0[0x1e];
     unsigned char b1e;                 // +0x1e
     unsigned char b1f;                 // +0x1f
@@ -93,13 +93,13 @@ extern Game_00488570* g_game;
 
 int __stdcall FUN_00450010(Player_00488570* player);
 void __stdcall FUN_00451df0(int who, Packet_00488570* packet, int size);
-Unit_00488570* __stdcall FUN_00485f50(unsigned char player, unsigned short type, Pos_00488570 pos,
+Unit* __stdcall FUN_00485f50(unsigned char player, unsigned short type, Pos_00488570 pos,
                                       int param_5, int mode, unsigned short id);
-void __stdcall FUN_00489bb0(Unit_00488570* source, Unit_00488570* target, int amount, int type,
+void __stdcall FUN_00489bb0(Unit* source, Unit* target, int amount, int type,
                             unsigned short extra);
 
 // FUNCTION: 0x488570
-void __stdcall FUN_00488570(Unit_00488570* unit, Player_00488570* other, Packet_00488570* p)
+void __stdcall FUN_00488570(Unit* unit, Player_00488570* other, Packet_00488570* p)
 {
     if (unit->player == other)
         return;
@@ -137,7 +137,7 @@ void __stdcall FUN_00488570(Unit_00488570* unit, Player_00488570* other, Packet_
     if (other->f73 != 1 && other->f73 != 2)
         return;
 
-    Unit_00488570* n = FUN_00485f50(other->f146, unit->type, unit->pos, 1, unit->flags & 3, 0);
+    Unit* n = FUN_00485f50(other->f146, unit->type, unit->pos, 1, unit->flags & 3, 0);
     if (!n)
         return;
     n->flags &= 0xffc3ffff;

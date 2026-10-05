@@ -1,13 +1,13 @@
 // Decompiled by Opus. Names are provisional.
 #include <vector>
 
-struct Unit_004800c0 {
+struct Unit {
     int unknown_0;
 };
 
 class Class_004800c0 {
 public:
-    typedef std::vector<Unit_004800c0*> UnitVector;
+    typedef std::vector<Unit*> UnitVector;
     UnitVector units;       // allocator +0x0, _First +0x4, _Last +0x8, _End +0xc
 
     UnitVector::iterator FUN_004800c0(UnitVector::iterator where);

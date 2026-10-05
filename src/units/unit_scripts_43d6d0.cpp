@@ -120,7 +120,7 @@ struct Path_0043d6d0 {
     TargetData_0043d6d0* field_0;                   // +0x0
 };
 
-struct Unit_0043d6d0 {
+struct Unit {
     char unknown_0[0x64];
     Short3 f64;                                     // +0x64
     Vec3 pos;                                       // +0x6a
@@ -153,11 +153,11 @@ struct Unit_0043d6d0 {
 
 Vec3 __stdcall FUN_0043e060(Path_0043d6d0* obj, int index);
 Short3 __stdcall FUN_0043e180(Path_0043d6d0* obj, int index);
-void __stdcall FUN_0048a9f0(Unit_0043d6d0* unit, Vec3 pos, int mode);
+void __stdcall FUN_0048a9f0(Unit* unit, Vec3 pos, int mode);
 int __stdcall FUN_0047db70(UnitType_0043d6d0* type, short a8, Point cell, int mode);
-void __stdcall FUN_0047d0e0(Unit_0043d6d0* unit);
-void __stdcall FUN_0047cc30(Unit_0043d6d0* unit);
-void __stdcall FUN_004827b0(Unit_0043d6d0* unit);
+void __stdcall FUN_0047d0e0(Unit* unit);
+void __stdcall FUN_0047cc30(Unit* unit);
+void __stdcall FUN_004827b0(Unit* unit);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 
@@ -174,7 +174,7 @@ public:
     unsigned char flag : 1;                         // bit 2
     unsigned char unknown_2f : 5;
 
-    void FUN_0043d6d0(Unit_0043d6d0* unit);
+    void FUN_0043d6d0(Unit* unit);
 };
 #pragma pack(pop)
 
@@ -202,7 +202,7 @@ inline Vec3 operator+(const Vec3& a, const Vec3& b)
 }
 
 // FUNCTION: 0x43d6d0
-void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
+void Class_0043d6d0::FUN_0043d6d0(Unit* u)
 {
     if (u->obj != 0) {
         Vec3 v;

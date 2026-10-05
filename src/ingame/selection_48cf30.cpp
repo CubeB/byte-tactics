@@ -76,7 +76,7 @@ struct UnitDef_0048cf30 {
     unsigned char flags;                // +0x245
 };
 
-struct Unit_0048cf30 {
+struct Unit {
     char unknown_0[0x6a];
     int x;                              // +0x6a
     char unknown_6e[0x72 - 0x6e];
@@ -90,8 +90,8 @@ struct Unit_0048cf30 {
 
 struct Player_0048cf30 {
     char unknown_0[0x67];
-    Unit_0048cf30* first;               // +0x67
-    Unit_0048cf30* last;                // +0x6b
+    Unit* first;                        // +0x67
+    Unit* last;                         // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -105,16 +105,16 @@ struct Game_0048cf30 {
     char unknown_2cae[0x2cba - 0x2cae];
     unsigned short field_2cba;          // +0x2cba
     char unknown_2cbc[0x14357 - 0x2cbc];
-    Unit_0048cf30* field_14357;         // +0x14357
+    Unit* field_14357;                  // +0x14357
 };
 
 extern Game_0048cf30* g_game;
 
 int __stdcall FUN_0043e470(unsigned char type);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0048cf30* unit,
-                                       Unit_0048cf30* target, void* param_5);
-void __stdcall FUN_0043afc0(Class_00438830 kind, int flag, Unit_0048cf30* unit,
-                            Unit_0048cf30* target, int* pos, int param_5, int param_6);
+Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
+                                       Unit* target, void* param_5);
+void __stdcall FUN_0043afc0(Class_00438830 kind, int flag, Unit* unit,
+                            Unit* target, int* pos, int param_5, int param_6);
 
 static inline Class_00438760 Order(const char* name) { return Class_00438760(name); }
 
@@ -123,7 +123,7 @@ void __stdcall FUN_0048cf30(UnitType_0048cf30* entry, unsigned char mode,
                             Class_00438830 kind, int* pos, int param_5, int param_6)
 {
     int flag_a = (entry->flags_a >> 2) & 1;
-    Unit_0048cf30* except = 0;
+    Unit* except = 0;
     int flag_b;
     if (mode)
         flag_b = FUN_0043e470(mode);
@@ -133,13 +133,13 @@ void __stdcall FUN_0048cf30(UnitType_0048cf30* entry, unsigned char mode,
         if (!g_game->field_2cba)
             except = 0;
         else
-            except = (Unit_0048cf30*)((char*)g_game->field_14357 + 280 * g_game->field_2cba);
+            except = (Unit*)((char*)g_game->field_14357 + 280 * g_game->field_2cba);
     }
     Player_0048cf30* p = &g_game->players[g_game->field_2a42];
     int count = 0;
     int sum_x = 0;
     int sum_z = 0;
-    Unit_0048cf30* u;
+    Unit* u;
     for (u = p->first; u <= p->last; u++) {
         if ((u->flags & 0x10) && u != except) {
             count++;

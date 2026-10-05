@@ -33,7 +33,7 @@ struct Pos_0048a9f0 {
     int z;
 };
 
-struct Unit_0048a9f0 {
+struct Unit {
     char unknown_0[0x6a];
     Pos_0048a9f0 pos;             // +0x6a
     Point_0048a9f0 cell;          // +0x76
@@ -44,9 +44,9 @@ struct Unit_0048a9f0 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0047d0e0(Unit_0048a9f0* unit);
-void __stdcall FUN_0047cc30(Unit_0048a9f0* unit);
-void __stdcall FUN_004827b0(Unit_0048a9f0* unit);
+void __stdcall FUN_0047d0e0(Unit* unit);
+void __stdcall FUN_0047cc30(Unit* unit);
+void __stdcall FUN_004827b0(Unit* unit);
 
 static inline Point_0048a9f0 WorldToCell(Pos_0048a9f0 v, Point_0048a9f0 origin)
 {
@@ -57,7 +57,7 @@ static inline Point_0048a9f0 WorldToCell(Pos_0048a9f0 v, Point_0048a9f0 origin)
 }
 
 // FUNCTION: 0x48a9f0
-int __stdcall FUN_0048a9f0(Unit_0048a9f0* unit, Pos_0048a9f0 pos, int param_5)
+int __stdcall FUN_0048a9f0(Unit* unit, Pos_0048a9f0 pos, int param_5)
 {
     Point_0048a9f0 cell = WorldToCell(pos, unit->origin);
     if (cell.x == unit->cell.x && cell.y == unit->cell.y && param_5 == (unit->flags & 3)) {

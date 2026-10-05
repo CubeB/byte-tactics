@@ -53,7 +53,7 @@ struct Point_0049e1a0 {
     short z;
 };
 
-struct Unit_0049e1a0;
+struct Unit;
 
 struct Flags_0049e1a0 {
     unsigned int b0 : 1, b1 : 1, b2_3 : 2, b4 : 1, b5_18 : 14, b19 : 1, b20_25 : 6, b26 : 1,
@@ -63,7 +63,7 @@ struct Flags_0049e1a0 {
 // The unit a slot points at. Its class vtable sits at +0x60.
 struct Target_0049e1a0 {
     char unknown_00[0x60];
-    int(__stdcall* f60)(Unit_0049e1a0*, Point_0049e1a0*, Unit_0049e1a0*, Vec3_0049e1a0*);
+    int(__stdcall* f60)(Unit*, Point_0049e1a0*, Unit*, Vec3_0049e1a0*);
     char unknown_64[0x68 - 0x64];
     int f_68;
     char unknown_6c[0xc0 - 0x6c];
@@ -94,7 +94,7 @@ struct UnitType_0049e1a0 {
     unsigned int f_1fa;
 };
 
-struct Unit_0049e1a0 {
+struct Unit {
     char unknown_00[0x4];
     Entry_0049e1a0 entries[3]; // +0x04
     char unknown_58[0x66 - 0x58];
@@ -122,23 +122,23 @@ struct Unit_0049e1a0 {
 // string bytes as a pointer.
 extern char* DAT_00509688[3];
 
-int __stdcall FUN_0048a1e0(Unit_0049e1a0* unit, Vec3_0049e1a0* pos, int index);
-Unit_0049e1a0* __stdcall FUN_0048a190(Unit_0049e1a0* obj, int index);
-void __stdcall FUN_0043e2e0(Unit_0049e1a0* unit, Vec3_0049e1a0* out, unsigned char weapon);
+int __stdcall FUN_0048a1e0(Unit* unit, Vec3_0049e1a0* pos, int index);
+Unit* __stdcall FUN_0048a190(Unit* obj, int index);
+void __stdcall FUN_0043e2e0(Unit* unit, Vec3_0049e1a0* out, unsigned char weapon);
 void __stdcall FUN_0049e570(Vec3_0049e1a0* a, Vec3_0049e1a0* b, int* dx, int* dy, int* dz);
 short __cdecl FUN_004b715a(int x, int z);
 unsigned short __stdcall FUN_0049a890(int a, int b, int c, int d, float e);
-int __stdcall FUN_0049d910(Unit_0049e1a0* unit, Target_0049e1a0* target,
+int __stdcall FUN_0049d910(Unit* unit, Target_0049e1a0* target,
                            unsigned short* out_heading, unsigned short* out_pitch,
                            unsigned char weapon, Vec3_0049e1a0* point);
-int __stdcall FUN_0049aa80(Unit_0049e1a0* unit, Vec3_0049e1a0* a2, Vec3_0049e1a0* a3,
+int __stdcall FUN_0049aa80(Unit* unit, Vec3_0049e1a0* a2, Vec3_0049e1a0* a3,
                            unsigned char a4);
-int __stdcall FUN_00456200(Unit_0049e1a0* obj, char* name, char field_5, int field_6, int field_a,
+int __stdcall FUN_00456200(Unit* obj, char* name, char field_5, int field_6, int field_a,
                            unsigned short field_e, unsigned short field_12);
-void __stdcall FUN_0041c150(Unit_0049e1a0* unit);
+void __stdcall FUN_0041c150(Unit* unit);
 
 // FUNCTION: 0x49e1a0
-void __stdcall FUN_0049e1a0(Unit_0049e1a0* unit) {
+void __stdcall FUN_0049e1a0(Unit* unit) {
     unsigned short heading;
     unsigned char i;
     int dz;
@@ -212,7 +212,7 @@ void __stdcall FUN_0049e1a0(Unit_0049e1a0* unit) {
             }
             if (can == 0)
                 continue;
-            Unit_0049e1a0* fired = FUN_0048a190(unit, i);
+            Unit* fired = FUN_0048a190(unit, i);
             if (attached->f60(unit, &e->point, fired, &pos) == 0)
                 continue;
             if (attached->f_111.b28) {

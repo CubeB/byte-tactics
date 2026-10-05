@@ -19,7 +19,7 @@ struct UnitType_0043dc00 {
     unsigned int flag_800 : 1;         // bit 11
 };
 
-struct Unit_0043dc00 {
+struct Unit {
     char unknown_0[0x92];
     UnitType_0043dc00* type;           // +0x92
     Target_0043dc00* target;           // +0x96
@@ -35,10 +35,10 @@ struct Vec3_0043dc00 {
 
 // The four behaviour classes, only their sizes matter here (the operands of the
 // operator new calls). Their constructors are declared, not defined.
-class Class_00490880 { public: char unknown[0x27]; Class_00490880(Unit_0043dc00* unit); };
-class Class_004907e0 { public: char unknown[0x28]; Class_004907e0(Unit_0043dc00* unit); };
-class Class_0044f570 { public: char unknown[0x1c]; Class_0044f570(Unit_0043dc00* unit); };
-class Class_0044f010 { public: char unknown[0x65]; Class_0044f010(Unit_0043dc00* unit); };
+class Class_00490880 { public: char unknown[0x27]; Class_00490880(Unit* unit); };
+class Class_004907e0 { public: char unknown[0x28]; Class_004907e0(Unit* unit); };
+class Class_0044f570 { public: char unknown[0x1c]; Class_0044f570(Unit* unit); };
+class Class_0044f010 { public: char unknown[0x65]; Class_0044f010(Unit* unit); };
 
 #pragma pack(push, 1)
 class Class_0043dc00 {
@@ -55,12 +55,12 @@ public:
     unsigned char flag : 1;            // bit 2
     unsigned char rest : 5;
 
-    Class_0043dc00(Unit_0043dc00* unit);
+    Class_0043dc00(Unit* unit);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x43dc00
-Class_0043dc00::Class_0043dc00(Unit_0043dc00* unit)
+Class_0043dc00::Class_0043dc00(Unit* unit)
 {
     p1 = Vec3_0043dc00(0, 0, 0);
     field_20 = 0;

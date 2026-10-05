@@ -141,12 +141,12 @@ struct UnitInfo_004866d0 {
     short x202;                         // +0x202
 };
 
-struct Unit_004866d0 {
+struct Unit {
     Class_0043dd10* head;               // +0x0
     char unknown_4[0x66];
     char pos[0x1c];                     // +0x6a
     int x86;                            // +0x86
-    Unit_004866d0* x8a;                 // +0x8a
+    Unit* x8a;                          // +0x8a
     char unknown_8e[4];
     UnitInfo_004866d0* info;            // +0x92
     Player_004866d0* player;            // +0x96
@@ -160,7 +160,7 @@ struct Unit_004866d0 {
     float xd4;                          // +0xd4
     char unknown_d8[0x14];
     Player_004866d0* xec;               // +0xec
-    Unit_004866d0* parent;              // +0xf0
+    Unit* parent;                       // +0xf0
     unsigned char killer;               // +0xf4
     char unknown_f5[0xa];
     unsigned char owner;                // +0xff
@@ -184,7 +184,7 @@ struct Game_004866d0 {
     char unknown_2a44[0x14281 - 0x2a44];
     unsigned char x14281;               // +0x14281
     char unknown_14282[0x14357 - 0x14282];
-    Unit_004866d0* units;               // +0x14357
+    Unit* units;                        // +0x14357
     char unknown_1435b[0x1439b - 0x1435b];
     UnitInfo_004866d0* x1439b;          // +0x1439b
     char unknown_1439f[0x37eee - 0x1439f];
@@ -229,7 +229,7 @@ void __stdcall FUN_0047bd70(void* player);
 // FUNCTION: 0x4866d0
 void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
 {
-    Unit_004866d0* unit;
+    Unit* unit;
     if (cmd->unitId == 0)
         unit = 0;
     else
@@ -239,7 +239,7 @@ void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
 
     if (unit->player->index == g_game->x2a43)
         FUN_00482910(unit->pos, unit->info->x202, unit->info->x170, 60);
-    Unit_004866d0* parent;
+    Unit* parent;
     if (cmd->parentId == 0)
         parent = 0;
     else
@@ -353,7 +353,7 @@ void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
     }
 
     if (cmd->kind == 5 && unit->parent != 0) {
-        Unit_004866d0** par = &unit->parent;
+        Unit** par = &unit->parent;
         float health = 1.0f - unit->x104;
         float f = health;
         f *= unit->info->x18a;

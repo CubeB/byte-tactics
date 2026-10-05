@@ -8,7 +8,7 @@ struct UnitType_00415250 {
     unsigned int max_health;           // +0x1fa
 };
 
-struct Unit_00415250 {
+struct Unit {
     char unknown_0[0x92];
     UnitType_00415250* type;           // +0x92
     char unknown_96[0x72];
@@ -34,10 +34,10 @@ public:
     void FUN_00439e80(int ticks);
 };
 
-void __stdcall FUN_0047f780(Unit_00415250* unit, int kind, const char* text);
+void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
 
 // FUNCTION: 0x415250
-int __stdcall FUN_00415250(Unit_00415250* unit, Order_00415250* order, int unused)
+int __stdcall FUN_00415250(Unit* unit, Order_00415250* order, int unused)
 {
     if (order->target == 0) {
         FUN_0047f780(unit, 7, "Repair aborted.");

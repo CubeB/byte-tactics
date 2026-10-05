@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 #pragma pack(push, 1)
-struct Unit_0048aac0 {
+struct Unit {
     char unknown_0[0x86];
     int field_86;                      // +0x86
     int field_8a;                      // +0x8a
@@ -25,7 +25,7 @@ int __stdcall FUN_00451df0(int player, void* data, int size);
 void __stdcall FUN_0048ab70(Packet_0048aac0* packet);
 
 // FUNCTION: 0x48aac0
-void __stdcall FUN_0048aac0(Unit_0048aac0* unit, Unit_0048aac0* target, char p3, char p4)
+void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4)
 {
     Packet_0048aac0 packet;
     if ((unit->flags & 0x10000000) && !(unit->flags & 0x20000000) && unit->field_8a == 0

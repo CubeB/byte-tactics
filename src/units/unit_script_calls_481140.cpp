@@ -40,7 +40,7 @@
 
 #pragma pack(push, 1)
 
-struct Unit_00481140 {
+struct Unit {
     char unknown_0[0xba];
     unsigned short unknown_ba : 2;
     unsigned short dirty : 1;
@@ -50,7 +50,7 @@ struct Data_00481140 {
     int unknown_0;
     int unknown_4;
     int dirty;
-    Unit_00481140* unit;               // +0x0c
+    Unit* unit;                        // +0x0c
 };
 
 struct Game_00481140 {
@@ -80,7 +80,7 @@ extern Game_00481140* g_game;
 
 int __stdcall FUN_004b6c30(int range);
 void __stdcall FUN_00421620(Header_00481140* h);
-Vec3_00481140 __stdcall FUN_0043e060(Unit_00481140* obj, int param);
+Vec3_00481140 __stdcall FUN_0043e060(Unit* obj, int param);
 void __stdcall FUN_00420a30(void* pos, void* src, int index, int flag);
 
 struct Elem_4b0610 {

@@ -14,7 +14,7 @@ struct PlayerData_00486f10 {
     unsigned char field_73;             // +0x73
 };
 
-struct Unit_00486f10 {
+struct Unit {
     char unknown_0[0x96];
     PlayerData_00486f10* owner;         // +0x96
     char unknown_9a[0x110 - 0x9a];
@@ -25,8 +25,8 @@ struct Unit_00486f10 {
 struct Player_00486f10 {
     PlayerData_00486f10* field_0;       // +0x00
     char unknown_4[0x67 - 0x4];
-    Unit_00486f10* units_begin;         // +0x67
-    Unit_00486f10* units_end;           // +0x6b
+    Unit* units_begin;                  // +0x67
+    Unit* units_end;                    // +0x6b
     char unknown_6f[0x144 - 0x6f];
     short field_144;                    // +0x144
     char unknown_146[0x14b - 0x146];
@@ -41,10 +41,10 @@ struct Game_00486f10 {
 
 extern Game_00486f10* g_game;
 
-void __stdcall FUN_004864b0(Unit_00486f10* unit, int param_2);
-void __stdcall FUN_00489bb0(Unit_00486f10* unit, Unit_00486f10* unit2, int param_3,
+void __stdcall FUN_004864b0(Unit* unit, int param_2);
+void __stdcall FUN_00489bb0(Unit* unit, Unit* unit2, int param_3,
                             int param_4, int param_5);
-void __stdcall FUN_0049b000(Unit_00486f10* unit, int second);
+void __stdcall FUN_0049b000(Unit* unit, int second);
 
 // FUNCTION: 0x486f10
 void __stdcall FUN_00486f10(unsigned char player)
@@ -52,8 +52,8 @@ void __stdcall FUN_00486f10(unsigned char player)
     Player_00486f10* p = &g_game->players[player];
     if (p != 0) {
         if (p->field_144 != 0) {
-            Unit_00486f10* u = g_game->players[player].units_begin;
-            Unit_00486f10* last = g_game->players[player].units_end;
+            Unit* u = g_game->players[player].units_begin;
+            Unit* last = g_game->players[player].units_end;
             if (u != 0) {
                 for (; u <= last; u++) {
                     unsigned int flags = u->flags;

@@ -50,7 +50,7 @@ struct UnitFlags_0048d630 {
     unsigned int bits8 : 24;
 };
 
-struct Unit_0048d630 {
+struct Unit {
     char unknown_0[0x6a];
     Pos_0048d630 pos;                  // +0x6a
     char unknown_70[0x86 - 0x70];
@@ -70,8 +70,8 @@ struct Team_0048d630 {
     char unknown_0[0x27];
     Player_0048d630* player;           // +0x27
     char unknown_2b[0x67 - 0x2b];
-    Unit_0048d630* unitsBegin;         // +0x67
-    Unit_0048d630* unitsEnd;           // +0x6b
+    Unit* unitsBegin;                  // +0x67
+    Unit* unitsEnd;                    // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -91,8 +91,8 @@ struct Game_0048d630 {
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char team;                // +0x2a43
     char unknown_2a44[0x14357 - 0x2a44];
-    Unit_0048d630* units;              // +0x14357
-    Unit_0048d630* unitsEnd;           // +0x1435b
+    Unit* units;                       // +0x14357
+    Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x37ebe - 0x1435f];
     Orders_0048d630 orders;            // +0x37ebe
     char unknown_37ec0[0x37f5f - 0x37ec0];
@@ -112,8 +112,8 @@ void __stdcall FUN_0048d630(int param_1)
 {
     Team_0048d630* team = &g_game->teams[g_game->team];
     char* playerName = g_game->players[team->player->index].name;
-    Unit_0048d630* last = team->unitsEnd;
-    for (Unit_0048d630* u = team->unitsBegin; u <= last; u++) {
+    Unit* last = team->unitsEnd;
+    for (Unit* u = team->unitsBegin; u <= last; u++) {
         if (u->flags.done && u->remaining == 0.0f && u->unknown_fb == 0
             && (u->attached == 0 || u->attached->bit30)) {
             if (strcmp(u->type->name, playerName) == 0) {
@@ -122,7 +122,7 @@ void __stdcall FUN_0048d630(int param_1)
                 if (param_1 == 0)
                     return;
                 FUN_00495860();
-                for (Unit_0048d630* v = g_game->units; v <= g_game->unitsEnd; v++) {
+                for (Unit* v = g_game->units; v <= g_game->unitsEnd; v++) {
                     v->flags.selected = 0;
                     v->flags.bit6 = 0;
                     v->flags.bit7 = 0;

@@ -8,9 +8,9 @@ struct Game {
     unsigned char flags_37ebe;         // +0x37ebe
 };
 
-struct Unit_0048c9b0 {
+struct Unit {
     char unknown_0[0x86];
-    Unit_0048c9b0* field_86;           // +0x86
+    Unit* field_86;                    // +0x86
     char unknown_8a[0xfb - 0x8a];
     int field_fb;                      // +0xfb
     char unknown_ff[0x104 - 0xff];
@@ -23,7 +23,7 @@ struct Unit_0048c9b0 {
 extern Game* g_game;
 
 // FUNCTION: 0x48c9b0
-void __stdcall FUN_0048c9b0(Unit_0048c9b0* unit)
+void __stdcall FUN_0048c9b0(Unit* unit)
 {
     unsigned int flags = unit->flags;
     if (flags & 0x10) {

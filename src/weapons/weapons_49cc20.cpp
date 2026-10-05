@@ -69,7 +69,7 @@ struct Head_0049cc20 {
     char pad2[0x80 - 0x4c - 2];
 };
 
-struct Unit_0049cc20 {
+struct Unit {
     char unknown_0[0x1a];
     union {
         short aim[4][7][2];            // +0x1a, the four aim directions
@@ -111,13 +111,13 @@ extern Game_0049cc20* g_game;
 extern char* DAT_00509678[4];
 
 void __stdcall FUN_0049c740(Proj_0049cc20* proj, UnitType_0049cc20* shot, Vec3_0049cc20* pos,
-                            Vec3_0049cc20* aim, int field_5, Unit_0049cc20* unit);
+                            Vec3_0049cc20* aim, int field_5, Unit* unit);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 void __stdcall FUN_004729d0(Vec3_0049cc20* p, short index);
 
 // FUNCTION: 0x49cc20
-int __stdcall FUN_0049cc20(Shot_0049cc20* shot, Unit_0049cc20* unit, Vec3_0049cc20* pos,
+int __stdcall FUN_0049cc20(Shot_0049cc20* shot, Unit* unit, Vec3_0049cc20* pos,
                            Vec3_0049cc20* aim, int param_5, int param_6)
 {
     Proj_0049cc20* proj = 0;

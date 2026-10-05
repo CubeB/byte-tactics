@@ -279,7 +279,7 @@ struct UnitType_0049b090 {
     int high;                          // +0x16e
 };
 
-struct Unit_0049b090 {
+struct Unit {
     char unknown_0[4];
     Pos_0049b090 pos;                  // +0x4
     char unknown_10[0x6e - 0x10];
@@ -319,7 +319,7 @@ struct Proj_0049b090 {
     char unknown_10[0x20 - 0x10];
     int field_20;                      // +0x20
     char unknown_24[0x56 - 0x24];
-    Unit_0049b090* unit;               // +0x56
+    Unit* unit;                        // +0x56
     short cellX;                       // +0x5a
     short cellZ;                       // +0x5c
     short radius;                      // +0x5e
@@ -344,7 +344,7 @@ struct Game_0049b090 {
     Pos_0049b090 lastPos;              // +0x1433f
     unsigned short lastSound;          // +0x1434b
     char unknown_1434d[0x14357 - 0x1434d];
-    Unit_0049b090* units;              // +0x14357
+    Unit* units;                       // +0x14357
     char unknown_1435b[0x391e9 - 0x1435b];
     void* net;                         // +0x391e9
 };
@@ -358,7 +358,7 @@ struct Net_0049b090 {
 extern Game_0049b090* g_game;
 
 Cell_0049b090* __stdcall FUN_004815a0(Pos_0049b090* pos);
-void __stdcall FUN_00499eb0(Proj_0049b090* proj, Unit_0049b090* unit);
+void __stdcall FUN_00499eb0(Proj_0049b090* proj, Unit* unit);
 
 // The second argument (the type) is the first stack dword: the prologue's
 // spill to [esp+0x30] overwrites arg1, and both later reloads of the type
@@ -391,14 +391,14 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
     }
     proj->radius = (cell->radius + cell->ground) / 2;
     if (cell->unit0) {
-        Unit_0049b090* u = &g_game->units[cell->unit0];
+        Unit* u = &g_game->units[cell->unit0];
         if (u->owner != proj->owner && proj->py.i < u->type->high + u->elev) {
             FUN_00499eb0(proj, u);
             return;
         }
     }
     if (cell->unit1) {
-        Unit_0049b090* u = &g_game->units[cell->unit1];
+        Unit* u = &g_game->units[cell->unit1];
         if (u->owner != proj->owner) {
             if (proj->py.i >= u->type->low + u->elev
                 && proj->py.i <= u->type->high + u->elev) {

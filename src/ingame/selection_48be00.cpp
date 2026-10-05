@@ -29,9 +29,9 @@ struct UnitFlags_0048be00 {
     unsigned int bits5 : 27;
 };
 
-struct Unit_0048be00 {                 // 0x118 bytes
+struct Unit {                          // 0x118 bytes
     char unknown_0[0x86];
-    Unit_0048be00* field_86;            // +0x86
+    Unit* field_86;                     // +0x86
     char unknown_8a[0xa6 - 0x8a];
     short field_a6;                    // +0xa6
     char unknown_a8[0xfb - 0xa8];
@@ -45,8 +45,8 @@ struct Unit_0048be00 {                 // 0x118 bytes
 
 struct Player_0048be00 {               // 0x14b bytes
     char unknown_0[0x67];
-    Unit_0048be00* unitsBegin;          // +0x67
-    Unit_0048be00* unitsEnd;            // +0x6b
+    Unit* unitsBegin;                   // +0x67
+    Unit* unitsEnd;                     // +0x6b
     char unknown_6f[0x14b - 0x6f];
 };
 
@@ -72,7 +72,7 @@ void FUN_00495860(void);
 // bitfield view in the first, which is what the original does: bit 4 through
 // the bitfield (shr 4; test cl, 1), bits 5, 30 and the store as a dword
 // (test bl, 0x20; test dword [...], esi; or ebx, 0x10).
-static inline unsigned int* FlagsPtr(Unit_0048be00* u)
+static inline unsigned int* FlagsPtr(Unit* u)
 {
     return (unsigned int*)&u->flags;
 }
@@ -84,14 +84,14 @@ void FUN_0048be00(void)
     unsigned int selected[16];
     memset(selected, 0, sizeof(selected));
     {
-        for (Unit_0048be00* u = player->unitsBegin; u <= player->unitsEnd; u++) {
+        for (Unit* u = player->unitsBegin; u <= player->unitsEnd; u++) {
             if (u->flags.selected) {
                 unsigned int v = u->field_a6 & 0xffff;
                 selected[v >> 5] |= 1 << (v & 0x1f);
             }
         }
     }
-    for (Unit_0048be00* u = player->unitsBegin; u <= player->unitsEnd; u++) {
+    for (Unit* u = player->unitsBegin; u <= player->unitsEnd; u++) {
         unsigned int f = *FlagsPtr(u);
         if (f & 0x20) {
             if (u->field_104 == 0.0f) {

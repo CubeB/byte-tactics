@@ -48,7 +48,7 @@ struct Player_0049d9c0 {
     int id;                           // +0x4
 };
 
-struct Unit_0049d9c0 {
+struct Unit {
     char unknown_0[0x66];
     short heading;                    // +0x66
     short pitch;                      // +0x68
@@ -88,16 +88,16 @@ union Fixed {
 
 extern Game_0049d9c0* g_game;
 
-void __stdcall FUN_0043e240(Unit_0049d9c0* obj, Vec3* out, unsigned char weapon, int piece);
+void __stdcall FUN_0043e240(Unit* obj, Vec3* out, unsigned char weapon, int piece);
 int __cdecl FUN_004b715a(int x, int z);
-int __stdcall FUN_0049d880(Unit_0049d9c0* unit, Aim_0049d9c0* aim, short angle1, short angle2);
-int __stdcall FUN_0049c9c0(Aim_0049d9c0* aim, Unit_0049d9c0* unit, Vec3* aimPos,
-                           Vec3* point, Unit_0049d9c0* target);
+int __stdcall FUN_0049d880(Unit* unit, Aim_0049d9c0* aim, short angle1, short angle2);
+int __stdcall FUN_0049c9c0(Aim_0049d9c0* aim, Unit* unit, Vec3* aimPos,
+                           Vec3* point, Unit* target);
 int __stdcall FUN_00451df0(int player, void* data, int size);
 
 // FUNCTION: 0x49d9c0
-int __stdcall FUN_0049d9c0(Unit_0049d9c0* unit, Aim_0049d9c0* aim,
-                           Unit_0049d9c0* target, Vec3* point)
+int __stdcall FUN_0049d9c0(Unit* unit, Aim_0049d9c0* aim,
+                           Unit* target, Vec3* point)
 {
     Vec3 p;
     FUN_0043e240(unit, &p, aim->weapon >> 2 & 3, -1);

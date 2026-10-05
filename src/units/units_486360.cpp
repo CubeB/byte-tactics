@@ -12,7 +12,7 @@ struct Pos_486360 {
     char unknown_0[0xc];
 };
 
-struct Unit_486360 {
+struct Unit {
     char unknown_0[0x64];
     char field_64[6];                // +0x64
     Pos_486360 pos;                  // +0x6a
@@ -53,7 +53,7 @@ Result_486360* __stdcall FUN_00423c50(void* target, unsigned short id, Pos_48636
 void __stdcall FUN_00472630(Pos_486360* pos, int a, int b, int c);
 
 // FUNCTION: 0x486360
-void __stdcall FUN_00486360(Unit_486360* unit, int depth, int flag)
+void __stdcall FUN_00486360(Unit* unit, int depth, int flag)
 {
     unsigned short id = unit->type->field_1bc;
     for (; depth > 1; depth--) {

@@ -41,7 +41,7 @@ struct UnitDef_00489ce0 {
     unsigned int flags;                // +0x241
 };
 
-struct Unit_00489ce0 {
+struct Unit {
     char unknown_0[0x5c];
     Class_0043a1f0* effect;            // +0x5c
     char unknown_60[0x92 - 0x60];
@@ -74,7 +74,7 @@ struct Game_00489ce0 {
     char unknown_0[0x2a42];
     unsigned char teamId;              // +0x2a42
     char unknown_2a43[0x14357 - 0x2a43];
-    Unit_00489ce0* units;              // +0x14357
+    Unit* units;                       // +0x14357
 };
 #pragma pack(pop)
 
@@ -83,9 +83,9 @@ extern char s_paralyze_00508d80[];
 extern char s_HitByWeapon_00508d74[];
 extern char s_TakeDamage_00508d68[];
 
-void __stdcall FUN_0043acb0(Unit_00489ce0* owner, Class_0043a1f0* node);
-void __stdcall FUN_00467950(Unit_00489ce0* unit);
-void __stdcall FUN_00406f80(Unit_00489ce0* target, Unit_00489ce0* attacker, int amount);
+void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
+void __stdcall FUN_00467950(Unit* unit);
+void __stdcall FUN_00406f80(Unit* target, Unit* attacker, int amount);
 void __stdcall FUN_00494ff0(int flag);
 int __cdecl FUN_004b7123(unsigned short idx, int scale);
 int __cdecl FUN_004b70ef(short idx, int scale);
@@ -98,8 +98,8 @@ int __cdecl FUN_004b70ef(short idx, int scale);
 // FUNCTION: 0x489ce0
 void __stdcall FUN_00489ce0(Event_00489ce0* ev)
 {
-    Unit_00489ce0* unit = ev->attacker == 0 ? 0 : &g_game->units[ev->attacker];
-    Unit_00489ce0* target = ev->target == 0 ? 0 : &g_game->units[ev->target];
+    Unit* unit = ev->attacker == 0 ? 0 : &g_game->units[ev->attacker];
+    Unit* target = ev->target == 0 ? 0 : &g_game->units[ev->target];
 
     if (unit == 0)
         return;

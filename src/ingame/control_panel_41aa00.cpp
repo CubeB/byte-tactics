@@ -35,7 +35,7 @@ struct UnitType_0041aa00 {
     unsigned int flags;                  // +0x111
 };
 
-struct Unit_0041aa00 {
+struct Unit {
     char unknown_0[0x10];
     UnitType_0041aa00* type;             // +0x10
     char unknown_14[0x110 - 0x14];
@@ -64,7 +64,7 @@ struct Game_0041aa00 {
     unsigned char field_2cc3;            // +0x2cc3
     unsigned short field_2cc4;           // +0x2cc4
     char unknown_2cc6[0x14357 - 0x2cc6];
-    Unit_0041aa00* units;                // +0x14357
+    Unit* units;                         // +0x14357
     char unknown_1435b[0x1439b - 0x1435b];
     BuildType_0041aa00* buildTypes;      // +0x1439b
     char unknown_1439f[0x37e9c - 0x1439f];
@@ -89,8 +89,8 @@ int __stdcall FUN_0041a490(Menu_0041aa00* menu, Entry_0041aa00* entries);
 int __stdcall FUN_00419be0(Menu_0041aa00* menu, Entry_0041aa00* entries);
 int __stdcall FUN_004c1b80(int key);
 int __stdcall FUN_004ab6b0(Menu_0041aa00* menu);
-void __stdcall FUN_00419b00(char* name, Unit_0041aa00* unit, int count);
-void __stdcall FUN_004199b0(Menu_0041aa00* menu, Unit_0041aa00* unit);
+void __stdcall FUN_00419b00(char* name, Unit* unit, int count);
+void __stdcall FUN_004199b0(Menu_0041aa00* menu, Unit* unit);
 void __stdcall FUN_0049fa90(Sub_0041aa00* menu);
 
 // FUNCTION: 0x41aa00
@@ -102,7 +102,7 @@ void __stdcall FUN_0041aa00(Menu_0041aa00* menu)
         FUN_0049fed0(entries, idName, menu->index);
         idName[16] = 0;
         unsigned short id = FUN_00488b10(idName);
-        Unit_0041aa00* unit = &g_game->units[g_game->unitIndex];
+        Unit* unit = &g_game->units[g_game->unitIndex];
         char name[32];
         FUN_0049fed0(entries, name, menu->index);
         if (strstr(name, "PREV")) {

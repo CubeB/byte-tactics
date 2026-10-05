@@ -10,7 +10,7 @@ struct Vec3 {
     int z;
 };
 
-struct Unit_0043de30 {
+struct Unit {
     char unknown_0[0xa8];
     unsigned short id;               // +0xa8
 };
@@ -53,12 +53,12 @@ public:
     unsigned char state : 2;         // +0x2e bits 0-1
     unsigned char flag : 1;          // +0x2e bit 2
 
-    void FUN_0043de30(Unit_0043de30* unit, Class_004b4ba0* file);
+    void FUN_0043de30(Unit* unit, Class_004b4ba0* file);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x43de30
-void Class_0043d210::FUN_0043de30(Unit_0043de30* unit, Class_004b4ba0* file)
+void Class_0043d210::FUN_0043de30(Unit* unit, Class_004b4ba0* file)
 {
     char name[32];
     Record_0043de30 rec;

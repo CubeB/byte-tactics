@@ -53,7 +53,7 @@ struct Slot_004390a0 {
     char unknown_10[0x1c - 0x10];
 };
 
-struct Unit_004390a0 {
+struct Unit {
     int field_0;                        // +0x0
     char unknown_4[0x10 - 4];
     Slot_004390a0 slots[3];             // +0x10
@@ -67,7 +67,7 @@ struct Unit_004390a0 {
 
 struct Node_004390a0 {
     char unknown_0[0xe];
-    Unit_004390a0* unit;                // +0xe
+    Unit* unit;                         // +0xe
 };
 
 struct Game_004390a0 {
@@ -97,7 +97,7 @@ void __stdcall FUN_00438ea0(void* surface, View_004390a0* view, Pos_004390a0* po
 void __stdcall FUN_004390a0(void* surface, View_004390a0* view, Node_004390a0* node,
                             int unused1, int unused2)
 {
-    Unit_004390a0* unit = node->unit;
+    Unit* unit = node->unit;
     Def_004390a0* def = unit->def;
     int index = 0;
     if (g_game->field_391bf == 0) {

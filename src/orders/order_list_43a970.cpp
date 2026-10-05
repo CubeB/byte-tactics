@@ -11,7 +11,7 @@ struct Vec3_0043a970 {
     int x, y, z;
 };
 
-struct Unit_0043a970 {
+struct Unit {
     void* owner;                       // +0x0
     char unknown_4[0x9a - 0x4];
     void* names;                       // +0x9a
@@ -23,7 +23,7 @@ struct Unit_0043a970 {
 
 struct Link_0043a970 {                 // the 0x10-byte link member at +0x12
     void* vptr;                        // +0x0
-    Unit_0043a970* owner;              // +0x4
+    Unit* owner;                       // +0x4
     Link_0043a970* next;               // +0x8
     void* value;                       // +0xc
 };
@@ -94,7 +94,7 @@ public:
     unsigned char flag5;               // +0x5
     unsigned int flags6;               // +0x6
     int last_id;                       // +0xa
-    Unit_0043a970* unit;               // +0xe
+    Unit* unit;                        // +0xe
     Link_0043a970 link;                // +0x12
     Vec3_0043a970 pos;                 // +0x22
     int field_2e;                      // +0x2e
@@ -108,7 +108,7 @@ public:
     int field_4e;                      // +0x4e
     Attached_0043a970* attached;       // +0x52
 
-    int FUN_0043a970(Unit_0043a970* punit, File_0043a970* file, char* name);
+    int FUN_0043a970(Unit* punit, File_0043a970* file, char* name);
 };
 
 struct SaveDesc_0043a970 {             // the 0x3a-byte snapshot written raw
@@ -134,7 +134,7 @@ extern Entry_0043a970* DAT_00512344;
 extern Game_0043a970* g_game;
 
 // FUNCTION: 0x43a970
-int Class_0043a1f0::FUN_0043a970(Unit_0043a970* punit, File_0043a970* file, char* name)
+int Class_0043a1f0::FUN_0043a970(Unit* punit, File_0043a970* file, char* name)
 {
     if (unit->typeId != punit->typeId || !file || !name)
         return 0;
@@ -145,14 +145,14 @@ int Class_0043a1f0::FUN_0043a970(Unit_0043a970* punit, File_0043a970* file, char
     // A local copy of the pointer and the test written as `== 0` is what the
     // original wants here: the copy stops if-conversion, and the polarity
     // gives the `jne` over the zero store instead of the `je` after it.
-    Unit_0043a970* u = unit;
+    Unit* u = unit;
     if (u == 0)
         desc.unitType = 0;
     else
         desc.unitType = u->typeId;
     // The owner is tested for null twice on purpose: mixing the copy with a
     // fresh read of link.owner keeps the compiler from dropping the third test.
-    Unit_0043a970* o = link.owner;
+    Unit* o = link.owner;
     desc.ownerType = (o != 0 && (link.owner->flags & 0x10000000) != 0 && link.owner != 0) ? o->typeId : 0;
     desc.field_4 = attached ? attached->Slot2() : 0;
     desc.kind = kind;

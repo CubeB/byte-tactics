@@ -24,13 +24,13 @@ extern void* DAT_004fd2f8[];
 extern void* DAT_004fd3b8[];
 
 #pragma pack(push, 1)
-struct Unit_0044e080 {
+struct Unit {
     char unknown_0[0x118];
 };
 
 struct Game_0044e080 {
     char unknown_0[0x14357];
-    Unit_0044e080* units;              // +0x14357
+    Unit* units;                       // +0x14357
 };
 #pragma pack(pop)
 

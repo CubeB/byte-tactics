@@ -30,7 +30,7 @@ struct UnitType_437840 {
     float extractsMetal;               // +0x1ce
 };
 
-struct Unit_437840 {
+struct Unit {
     char unknown_0[0x58];
     float extraction;                  // +0x58
     char unknown_5c[0x76 - 0x5c];
@@ -55,7 +55,7 @@ union Fixed_437840 {
 Cell_437840* __stdcall FUN_00481550(int x, int y);
 
 // FUNCTION: 0x437840
-void __stdcall FUN_00437840(Unit_437840* unit)
+void __stdcall FUN_00437840(Unit* unit)
 {
     if (unit->type->extractsMetal > 0.0f) {
         Fixed_437840 total;

@@ -37,7 +37,7 @@ struct Owner_0048b200 {
     int field_20;
 };
 
-struct Unit_0048b200 {
+struct Unit {
     Owner_0048b200* owner;             // +0x0
     char unknown_4[0x64 - 4];
     unsigned short field_64;           // +0x64
@@ -70,7 +70,7 @@ struct Game_0048b200 {
 extern Game_0048b200* g_game;
 
 // FUNCTION: 0x48b200
-void __stdcall FUN_0048b200(Class_00415c10* stream, Unit_0048b200* u)
+void __stdcall FUN_0048b200(Class_00415c10* stream, Unit* u)
 {
     stream->FUN_00415c10(u->field_a6, g_game->field_14393);
     if (u->field_a6 == 0)

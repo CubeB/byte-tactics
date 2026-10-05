@@ -82,13 +82,13 @@ public:
     void FUN_0047cb40(int node);
 };
 
-struct Unit_0048ab70 {
+struct Unit {
     Def_0048ab70* def;                 // +0x00
     char unknown_4[0x82 - 4];
     Class_0047cb00* list;              // +0x82
-    Unit_0048ab70* owner;              // +0x86
-    Unit_0048ab70* first;              // +0x8a
-    Unit_0048ab70* next;               // +0x8e
+    Unit* owner;                       // +0x86
+    Unit* first;                       // +0x8a
+    Unit* next;                        // +0x8e
     Type_0048ab70* type;               // +0x92
     Player_0048ab70* player;           // +0x96
     char unknown_9a[0xf9 - 0x9a];
@@ -100,7 +100,7 @@ struct Unit_0048ab70 {
 
 struct Game_0048ab70 {
     char unknown_0[0x14357];
-    Unit_0048ab70* units;              // +0x14357
+    Unit* units;                       // +0x14357
 };
 
 // The seven byte order record the caller at 0x48aac0 builds on its stack.
@@ -118,13 +118,13 @@ struct Beacon_0048ab70;                // what FUN_004384a0 wants
 extern Game_0048ab70* g_game;
 
 void __stdcall FUN_004384a0(Beacon_0048ab70* beacon);
-void __stdcall FUN_0048c9b0(Unit_0048ab70* u);
+void __stdcall FUN_0048c9b0(Unit* u);
 
 // FUNCTION: 0x48ab70
 void __stdcall FUN_0048ab70(Order_0048ab70* order)
 {
-    Unit_0048ab70* u = !order->id1 ? 0 : &g_game->units[order->id1];
-    Unit_0048ab70* t = !order->id2 ? 0 : &g_game->units[order->id2];
+    Unit* u = !order->id1 ? 0 : &g_game->units[order->id1];
+    Unit* t = !order->id2 ? 0 : &g_game->units[order->id2];
     if (u) {
         unsigned int f = u->f110.all;
         if (f & 0x10000000) {
@@ -133,8 +133,8 @@ void __stdcall FUN_0048ab70(Order_0048ab70* order)
                     if (t == 0
                         || ((t->f110.all & 0x10000000) && t != u && t->owner == 0)) {
                         if (u->owner != 0) {
-                            Unit_0048ab70* n = u->owner;
-                            Unit_0048ab70** link = &n->first;
+                            Unit* n = u->owner;
+                            Unit** link = &n->first;
                             n = n->first;
                             while (n != u) {
                                 link = &n->next;

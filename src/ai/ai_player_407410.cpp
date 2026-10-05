@@ -36,7 +36,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct Unit_00407410 {
+struct Unit {
     char unknown_0[0x6c];
     short x;                           // +0x6c
     char unknown_6e[2];
@@ -48,7 +48,7 @@ struct Unit_00407410 {
 
 struct Group_00407410 {
     char unknown_0[0x10];
-    std::vector<Unit_00407410*> units; // +0x10
+    std::vector<Unit*> units; // +0x10
 };
 
 // FUNCTION: 0x407410
@@ -59,7 +59,7 @@ int Class_00407350::FUN_00407410(Vec3_00407410* out)
     if (n == 0)
         return 0;
     int x = 0, y = 0, z = 0;
-    for (std::vector<Unit_00407410*>::iterator it = g->units.begin(); it != g->units.end(); ++it) {
+    for (std::vector<Unit*>::iterator it = g->units.begin(); it != g->units.end(); ++it) {
         x += (*it)->x;
         y += (*it)->y;
         z += (*it)->z;

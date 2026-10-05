@@ -148,7 +148,7 @@ struct Owner_00467440 {
     unsigned char field_108[1];        // +0x108
 };
 
-struct Unit_00467440 {
+struct Unit {
     char unknown_0[0x6a];
     UnitPos_00467440 pos;              // +0x6a
     char unknown_76[0x92 - 0x76];
@@ -187,8 +187,8 @@ struct PlayerInfo_00467440 {
     char unknown_4[0x27 - 0x4];
     PlayerData_00467440* data;         // +0x27
     char unknown_2b[0x67 - 0x2b];
-    Unit_00467440* field_67;           // +0x67
-    Unit_00467440* field_6b;           // +0x6b
+    Unit* field_67;                    // +0x67
+    Unit* field_6b;                    // +0x6b
     char unknown_6f[0x7c - 0x6f];
     ByteMap_00467440 explored;         // +0x7c
     char unknown_88[0x146 - 0x88];
@@ -208,8 +208,8 @@ struct Game_00467440 {
     char unknown_14277[0x14281 - 0x14277];
     unsigned char field_14281;         // +0x14281
     char unknown_14282[0x14357 - 0x14282];
-    Unit_00467440* units;              // +0x14357
-    Unit_00467440* units_end;          // +0x1435b
+    Unit* units;                       // +0x14357
+    Unit* units_end;                   // +0x1435b
     char unknown_1435f[0x38a47 - 0x1435f];
     int field_38a47;                   // +0x38a47
 
@@ -219,7 +219,7 @@ struct Game_00467440 {
 
 class Class_00467840 {
 public:
-    virtual void FUN_00467840(Unit_00467440* unit);
+    virtual void FUN_00467840(Unit* unit);
     int field_4;                       // +0x4
     int field_8;                       // +0x8
     Vec3_00467440 pos;                 // +0xc
@@ -227,12 +227,12 @@ public:
 
 class Class_00467960 {
 public:
-    virtual void FUN_00467960(Unit_00467440* unit);
+    virtual void FUN_00467960(Unit* unit);
 };
 
 class Class_00467980 {
 public:
-    virtual void FUN_00467980(Unit_00467440* unit);
+    virtual void FUN_00467980(Unit* unit);
 };
 
 extern Game_00467440* g_game;
@@ -266,13 +266,13 @@ void FUN_00467440(void)
         return;
     }
     unsigned char player = g_game->playerIndex;
-    Unit_00467440* first = g_game->units + 1;
-    Unit_00467440* last = g_game->units_end;
+    Unit* first = g_game->units + 1;
+    Unit* last = g_game->units_end;
     PlayerInfo_00467440* pl = (PlayerInfo_00467440*)((char*)g_game + 0x1b63
         + (unsigned int)g_game->playerIndex * 0x14b);
-    Unit_00467440* u;
+    Unit* u;
 
-    Unit_00467440* a;
+    Unit* a;
     for (a = first; a <= last; a++) {
         if (a->flags & 0x10000000) {
             a->flags &= ~0x1000;

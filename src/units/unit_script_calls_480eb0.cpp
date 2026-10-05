@@ -15,7 +15,7 @@ struct Vec3_00480eb0 {
     int x, y, z;
 };
 
-struct Unit_00480eb0 {
+struct Unit {
     char unknown_0[0x6a];
     Vec3_00480eb0 pos;                 // +0x6a
 };
@@ -41,7 +41,7 @@ struct Game_00480eb0 {
 
 struct Data_00480eb0 {
     char unknown_0[0xc];
-    Unit_00480eb0* unit;               // +0x0c
+    Unit* unit;                        // +0x0c
     char unknown_10[0x38 - 0x10];
     Entry_00480eb0 entries[1];         // +0x38
 };
@@ -50,8 +50,8 @@ struct Data_00480eb0 {
 
 extern Game_00480eb0* g_game;
 
-int __stdcall FUN_00465ac0(Player_00480eb0* player, Unit_00480eb0* unit);
-void __stdcall FUN_0045ab10(Unit_00480eb0* unit);
+int __stdcall FUN_00465ac0(Player_00480eb0* player, Unit* unit);
+void __stdcall FUN_0045ab10(Unit* unit);
 void __stdcall FUN_00472330(int, int, int, int, short);
 void __stdcall FUN_00472430(int, int, int, short);
 void __stdcall FUN_00472530(int, int, int, short);
@@ -84,7 +84,7 @@ void Class_00485e30::FUN_004b1ea0(int a, int b)
     } else {
         // Binding the unit once is load bearing: without it MSVC reloads
         // data->unit for the second copy and the whole allocation shifts.
-        Unit_00480eb0* u = data->unit;
+        Unit* u = data->unit;
         v2 = u->pos;
         v1 = u->pos;
         v1.x += data->entries[a].offset[0];

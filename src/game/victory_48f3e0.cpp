@@ -3,7 +3,7 @@
 // visitor vtable 0x4fd868 holding 0x48f370; state saved by 0x48f440): until
 // the condition is met, visits every live unit and returns whether it is met.
 
-struct Unit_0048f3e0 {
+struct Unit {
     char unknown_0[0xa6];
     short field_a6;                    // +0xa6
     char unknown_a8[0x118 - 0xa8];
@@ -12,16 +12,16 @@ struct Unit_0048f3e0 {
 // Interface at +0xc of the object: slot 0 is called for each unit.
 class UnitVisitor_0048f3e0 {
 public:
-    virtual int Visit(Unit_0048f3e0* unit) = 0;
+    virtual int Visit(Unit* unit) = 0;
 };
 
 struct UnitRange_0048f3e0 {
-    Unit_0048f3e0* begin;              // +0x0
-    Unit_0048f3e0* end;                // +0x4 (last unit, inclusive)
+    Unit* begin;                       // +0x0
+    Unit* end;                         // +0x4 (last unit, inclusive)
 
     void ForEach(UnitVisitor_0048f3e0* visitor)
     {
-        for (Unit_0048f3e0* u = begin; u <= end; u++) {
+        for (Unit* u = begin; u <= end; u++) {
             if (u->field_a6 != 0) {
                 int result = visitor->Visit(u);
                 if (!result) {

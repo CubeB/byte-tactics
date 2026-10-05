@@ -33,7 +33,7 @@ struct Player_0041ba60 {
     unsigned char type;                // +0x73
 };
 
-struct Unit_0041ba60 {
+struct Unit {
     char unknown_0[0x92];
     UnitType_0041ba60* type;           // +0x92
     char unknown_96[0xbb - 0x96];
@@ -67,11 +67,11 @@ struct Builder_0041ba60 {
 
 extern Game_0041ba60* g_game;
 
-void __stdcall FUN_00489bb0(Unit_0041ba60* obj, Unit_0041ba60* unit, int n, int kind, int flag);
-void __stdcall FUN_0041b8d0(Builder_0041ba60* builder, Unit_0041ba60* unit);
+void __stdcall FUN_00489bb0(Unit* obj, Unit* unit, int n, int kind, int flag);
+void __stdcall FUN_0041b8d0(Builder_0041ba60* builder, Unit* unit);
 
 // FUNCTION: 0x41ba60
-int __stdcall FUN_0041ba60(Builder_0041ba60* builder, Unit_0041ba60* unit, float amount)
+int __stdcall FUN_0041ba60(Builder_0041ba60* builder, Unit* unit, float amount)
 {
     int result = 0;
     if (unit->remaining == 0.0f)

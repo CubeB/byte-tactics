@@ -664,7 +664,7 @@ int DAT_0051fb90;  // 0x51fb90 .bss
 unsigned long DAT_0051fb94;  // 0x51fb94 .bss
 unsigned char DAT_0051fb98[4];  // 0x51fb98 .bss
 int* DAT_0051fba0;  // 0x51fba0 .bss
-Class_0051fba4* DAT_0051fba4;  // 0x51fba4 .bss
+Class_0051fba4* g_guiContext;  // 0x51fba4 .bss
 int DAT_0051fba8;  // 0x51fba8 .bss
 int DAT_0051fbac;  // 0x51fbac .bss
 int DAT_0051fbb0;  // 0x51fbb0 .bss

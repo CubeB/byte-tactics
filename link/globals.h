@@ -567,7 +567,7 @@ extern int DAT_0051fb90;                                                        
 extern unsigned long DAT_0051fb94;                                                            // 0x51fb94, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051fb98[4];                                                         // 0x51fb98, 4 bytes; nothing refers to it
 extern int* DAT_0051fba0;                                                                     // 0x51fba0, 4 bytes; 2 of 2 files
-extern Class_0051fba4* DAT_0051fba4;                                                          // 0x51fba4, 4 bytes; 15 of 31 files (conflicting: shape)
+extern Class_0051fba4* g_guiContext;                                                          // 0x51fba4, 4 bytes; 15 of 31 files (conflicting: shape)
 extern int DAT_0051fba8;                                                                      // 0x51fba8, 4 bytes; 1 of 1 files
 extern int DAT_0051fbac;                                                                      // 0x51fbac, 4 bytes; 1 of 1 files
 extern int DAT_0051fbb0;                                                                      // 0x51fbb0, 4 bytes; 1 of 1 files

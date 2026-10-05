@@ -17,7 +17,7 @@ static inline Entry_004b7f70* GetEntries(Obj_004b7f70* obj)
 }
 
 // FUNCTION: 0x4b7f70
-unsigned short __stdcall FUN_004b7f70(Obj_004b7f70* param1)
+unsigned short __stdcall GetGafFrameDuration(Obj_004b7f70* param1)
 {
     unsigned short result;
     if (param1->table != 0) {

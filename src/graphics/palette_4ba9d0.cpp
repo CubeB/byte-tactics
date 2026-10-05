@@ -8,7 +8,7 @@
 #include <windows.h>
 
 // FUNCTION: 0x4ba9d0
-unsigned char __stdcall FUN_004ba9d0(PALETTEENTRY* palette, int* band, unsigned char* order, PALETTEENTRY color)
+unsigned char __stdcall NearestColorInBand(PALETTEENTRY* palette, int* band, unsigned char* order, PALETTEENTRY color)
 {
     int best = 1000000000;
     unsigned char bestIndex;

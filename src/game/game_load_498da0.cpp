@@ -25,7 +25,7 @@
 //   two bits back for bit 2 gives the `test cl, 3` the original does.
 // - +0x37e27 is the visible limit rect (left, top, right, bottom). Its address
 //   is taken once and kept in a register, because the same rect is both the
-//   clamp bounds and the argument of the second FUN_004b6720 call.
+//   clamp bounds and the argument of the second PointInRect call.
 // - +0x1422b and +0x1422f are the world size, +0x142e7..+0x142ed the view
 //   origin and screen size as shorts, +0x1431f and +0x14323 the world origin
 //   the clamped point is measured from.
@@ -112,7 +112,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6720(Rect_00498da0* r, int x, int y);
+int __stdcall PointInRect(Rect_00498da0* r, int x, int y);
 void __stdcall FUN_00484b50(int x, int y, Pos_00498da0* out);
 Cell_00498da0* __stdcall FUN_00481550(int x, int y);
 unsigned short __stdcall FUN_00421e60(Cell_00498da0* cell);
@@ -125,7 +125,7 @@ void __stdcall FUN_00498da0(View_00498da0* r)
 {
     int mx, my;
 
-    if (FUN_004b6720(&g_game->viewLimit, r->x, r->y) && !(g_game->flags.value & 8)) {
+    if (PointInRect(&g_game->viewLimit, r->x, r->y) && !(g_game->flags.value & 8)) {
         mx = (r->x - g_game->originX) * g_game->worldW / g_game->screenW;
         my = (r->y - g_game->originY) * g_game->worldH / g_game->screenH;
         g_game->flags.value |= 1;
@@ -135,7 +135,7 @@ void __stdcall FUN_00498da0(View_00498da0* r)
         mx = g_game->mapOriginX + MIN(MAX(r->x, lim->left), lim->right) - lim->left;
         my = g_game->mapOriginY + MIN(MAX(r->y, lim->top), lim->bottom) - lim->top;
         g_game->flags.value &= ~1;
-        g_game->flags.bits.b1 = FUN_004b6720(lim, r->x, r->y);
+        g_game->flags.bits.b1 = PointInRect(lim, r->x, r->y);
     }
     g_game->flags.bits.b2 = g_game->flags.bits.b0 || g_game->flags.bits.b1;
     FUN_00484b50(mx, my, &g_game->pos);

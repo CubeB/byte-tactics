@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Milliseconds since boot scaled by the rate at +0xe8 of the object at
-// DAT_0051fbd0, divided by 1000 (unsigned, so `mul` by the magic number).
+// g_display, divided by 1000 (unsigned, so `mul` by the magic number).
 #include <windows.h>
 
 struct GlobalObj_004b6340 {
@@ -8,10 +8,10 @@ struct GlobalObj_004b6340 {
     int rate;                          // +0xe8
 };
 
-extern GlobalObj_004b6340* DAT_0051fbd0;
+extern GlobalObj_004b6340* g_display;
 
 // FUNCTION: 0x4b6340
-unsigned int FUN_004b6340()
+unsigned int GetTicks()
 {
-    return GetTickCount() * DAT_0051fbd0->rate / 1000;
+    return GetTickCount() * g_display->rate / 1000;
 }

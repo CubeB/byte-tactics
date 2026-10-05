@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Records a surface and flag in the top slot of the screen lock stack
-// (count DAT_0051fe00, at most 10 entries at DAT_0051fe08).
+// (count g_screenLockCount, at most 10 entries at g_screenLocks).
 
 struct Surface_004c5d90;
 
@@ -11,14 +11,14 @@ struct LockEntry_004c5d90 {
 };
 #pragma pack(pop)
 
-extern int DAT_0051fe00;
-extern LockEntry_004c5d90 DAT_0051fe08[];
+extern int g_screenLockCount;
+extern LockEntry_004c5d90 g_screenLocks[];
 
 // FUNCTION: 0x4c5d90
-void __stdcall FUN_004c5d90(Surface_004c5d90* surface, char flag)
+void __stdcall SetLockEntry(Surface_004c5d90* surface, char flag)
 {
-    if (DAT_0051fe00 < 10) {
-        DAT_0051fe08[DAT_0051fe00].surface = surface;
-        DAT_0051fe08[DAT_0051fe00].flag = flag;
+    if (g_screenLockCount < 10) {
+        g_screenLocks[g_screenLockCount].surface = surface;
+        g_screenLocks[g_screenLockCount].flag = flag;
     }
 }

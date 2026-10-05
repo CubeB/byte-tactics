@@ -1,9 +1,9 @@
 // Decompiled by Haiku. Names are provisional.
 
-int FUN_004b6220();
+int GetDisplay();
 
 // FUNCTION: 0x4c1440
-int FUN_004c1440()
+int GetFont()
 {
-    return *(int*)(FUN_004b6220() + 0x204);
+    return *(int*)(GetDisplay() + 0x204);
 }

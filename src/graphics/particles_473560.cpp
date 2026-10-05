@@ -25,11 +25,11 @@ public:
     int count;                         // +0x28
     int index;                         // +0x2c
 
-    void FUN_00473560();
+    void Step();
 };
 
 // FUNCTION: 0x473560
-void Class_00473560::FUN_00473560()
+void Class_00473560::Step()
 {
     pos += vel;
     index = (index + 1) % count;

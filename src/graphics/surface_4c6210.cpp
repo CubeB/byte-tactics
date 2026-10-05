@@ -2,12 +2,12 @@
 // Locks the screen into a local surface, blits the bitmap at display+0x98
 // into it at (0, 0), then unlocks. Both objects at arg+4 and arg+8 are
 // COM-like interfaces; slot 27 (+0x6c) is tested first and its non-zero
-// result aborts the blit. The unlock is FUN_004c5fa0 inlined (see
+// result aborts the blit. The unlock is UnlockScreen inlined (see
 // 0x4c6c50.cpp); the result variable, zero on the success path, is reused
 // as the zero arguments.
 #include <ddraw.h>
 
-struct Surface_004c6210 {
+struct Surface {
     int data[12];
 };
 
@@ -57,7 +57,7 @@ struct Display_004c6210 {
     char unknown_48[0x80 - 0x48];
     Screen_004c6210 screen;            // +0x80
     char unknown_90[0x98 - 0x90];
-    Surface_004c6210* field_98;        // +0x98
+    Surface* field_98;                 // +0x98
     char unknown_9c[0xdc - 0x9c];
     int field_dc;                      // +0xdc
 };
@@ -68,16 +68,16 @@ struct Arg_004c6210 {
     Intf_004c6210* field_8;            // +0x8
 };
 
-extern int DAT_0051fe00;
+extern int g_screenLockCount;
 
-Display_004c6210* FUN_004b6220(void);
-int __stdcall FUN_004c5e70(Surface_004c6210* out);
-void __cdecl FUN_004cbbe0(Surface_004c6210* dst, Surface_004c6210* src, int x, int y);
+Display_004c6210* GetDisplay(void);
+int __stdcall LockScreen(Surface* out);
+void __cdecl BlitSurface(Surface* dst, Surface* src, int x, int y);
 
 // FUNCTION: 0x4c6210
-int __stdcall FUN_004c6210(Arg_004c6210* arg)
+int __stdcall RestoreSurfaces(Arg_004c6210* arg)
 {
-    Display_004c6210* d = FUN_004b6220();
+    Display_004c6210* d = GetDisplay();
     if (d->field_44 != 0)
         return 0;
 
@@ -85,15 +85,15 @@ int __stdcall FUN_004c6210(Arg_004c6210* arg)
     if (r == 0) {
         r = arg->field_8->Slot27();
         if (r == 0) {
-            Surface_004c6210 screen;
-            FUN_004c5e70(&screen);
-            FUN_004cbbe0(&screen, d->field_98, r, r);
+            Surface screen;
+            LockScreen(&screen);
+            BlitSurface(&screen, d->field_98, r, r);
 
-            Display_004c6210* d2 = FUN_004b6220();
+            Display_004c6210* d2 = GetDisplay();
             if (d2->field_44 == 0 && d2->field_dc == 0 && d2->screen.surface != 0) {
                 d2->screen.UnlockRect((LPRECT)r);
-                if (DAT_0051fe00 > 0)
-                    DAT_0051fe00--;
+                if (g_screenLockCount > 0)
+                    g_screenLockCount--;
             }
         }
     }

@@ -14,12 +14,12 @@ struct Obj {
 };
 #pragma pack(pop)
 
-extern int FUN_004b6220(void);
+extern int GetDisplay(void);
 
 // FUNCTION: 0x4bab00
-void __stdcall FUN_004bab00(unsigned int* param_1)
+void __stdcall SetShadeTable(unsigned int* param_1)
 {
-    Obj* obj = (Obj*)FUN_004b6220();
+    Obj* obj = (Obj*)GetDisplay();
     if (obj->flag6) {
         memcpy(obj->buffer, param_1, 0x800 * 4);
     }

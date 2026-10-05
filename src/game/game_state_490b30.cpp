@@ -1,7 +1,7 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 // Stores the new game mode in g_game->mode (+0x391f1) and installs the state
 // handler for it in g_game->handler (+0x391f5), through the 0x490c14 jump
-// table. Mode 6 also gets a different quit callback from FUN_004b4fd0.
+// table. Mode 6 also gets a different quit callback from SetCloseHandler.
 
 #pragma pack(push, 1)
 struct Game {
@@ -13,7 +13,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
+void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __cdecl LeaveNetGameCallback(int param);
 void __cdecl FUN_004609a0(int param);
 void FUN_00496a60();
@@ -59,8 +59,8 @@ void __stdcall FUN_00490b30(int param)
         break;
     }
     if (param == 6) {
-        FUN_004b4fd0(FUN_004609a0, 0);
+        SetCloseHandler(FUN_004609a0, 0);
     } else {
-        FUN_004b4fd0(LeaveNetGameCallback, 0);
+        SetCloseHandler(LeaveNetGameCallback, 0);
     }
 }

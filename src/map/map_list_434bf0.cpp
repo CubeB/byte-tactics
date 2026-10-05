@@ -24,13 +24,13 @@ class Class_004c2ea0;
 class Class_004c9390 {
 public:
     char* data;
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 class Class_004c91a0 {
 public:
     char* ptr;
-    ~Class_004c91a0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
 class Class_004c2ea0 {
@@ -70,7 +70,7 @@ void* __cdecl FUN_004d84a0(void* p, const char* name, unsigned int size);
 void __stdcall FUN_00491c80(int n);
 void __stdcall FUN_004bca30(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
 char* __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-char* __stdcall FUN_004bb0f0(char* name);
+char* __stdcall StripExtension(char* name);
 char* __stdcall FUN_004c5740(char* text);
 void HandleNetPackets();
 
@@ -119,7 +119,7 @@ int __stdcall FUN_00434bf0(void** param_1, int param_2, int param_3)
             && ((Class_00435c00*)(*(int*)(g_game + 0x391e9)))
                    ->FUN_00436860(3, &parser, 0) != 0) {
             strcpy(a.name, files[s.i].ptr);
-            FUN_004bb0f0(a.name);
+            StripExtension(a.name);
             strcpy(a.lower, a.name);
             _strlwr(a.lower);
             char* src = FUN_004c5740(a.lower);

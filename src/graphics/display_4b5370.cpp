@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <ddraw.h>
 
-// One display mode, as the FUN_004b5330 enum callback stores it.
+// One display mode, as the EnumModesCallback enum callback stores it.
 struct Mode_004b5330 {
     DWORD width;                       // +0x0
     DWORD height;                      // +0x4
@@ -22,17 +22,17 @@ struct Display_004b5370 {
     LPDIRECTDRAW2 ddraw;               // +0x84, set in DirectDraw mode
 };
 
-extern Display_004b5370* DAT_0051fbd0;
+extern Display_004b5370* g_display;
 
-HRESULT __stdcall FUN_004b5330(DDSURFACEDESC* desc, void* context);
+HRESULT __stdcall EnumModesCallback(DDSURFACEDESC* desc, void* context);
 
 // FUNCTION: 0x4b5370
 // Fills the list with the display modes to offer. In GDI mode the modes come
 // from a fixed table plus the two big desktop sizes when the screen is big
 // enough; in DirectDraw mode they come from EnumDisplayModes. Returns 1.
-int __stdcall FUN_004b5370(ModeList_004b5330* list)
+int __stdcall GetDisplayModes(ModeList_004b5330* list)
 {
-    if (DAT_0051fbd0->old_palette) {
+    if (g_display->old_palette) {
         int width;
         int height;
         list->count = 0;
@@ -69,9 +69,9 @@ int __stdcall FUN_004b5370(ModeList_004b5330* list)
     int result = 1;
     DWORD hr;
     list->count = 0;
-    hr = DAT_0051fbd0->ddraw->QueryInterface(IID_IDirectDraw2, (LPVOID*)&ddraw2);
+    hr = g_display->ddraw->QueryInterface(IID_IDirectDraw2, (LPVOID*)&ddraw2);
     if (hr == 0) {
-        hr = ddraw2->EnumDisplayModes(0, 0, list, (LPDDENUMMODESCALLBACK)FUN_004b5330);
+        hr = ddraw2->EnumDisplayModes(0, 0, list, (LPDDENUMMODESCALLBACK)EnumModesCallback);
         if (hr != 0)
             result = 0;
     } else {

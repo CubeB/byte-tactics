@@ -7,7 +7,7 @@ struct Obj_004b7f00 {
 };
 
 // FUNCTION: 0x4b7f00
-int __stdcall FUN_004b7f00(Obj_004b7f00* obj, int index)
+int __stdcall SetGafSequenceFrame(Obj_004b7f00* obj, int index)
 {
     int result = 0;
     if (obj->table != 0 && *obj->table > index) {

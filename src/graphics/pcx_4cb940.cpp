@@ -18,12 +18,12 @@ public:
     int dataOffset;                    // +0x8
     FILE* file;                        // +0xc
 
-    bool FUN_004cb940(Image_004cb940* image, int x, int rows, int unused_4, int y,
+    bool WriteRows(Image_004cb940* image, int x, int rows, int unused_4, int y,
                       int unused_6, int srcY);
 };
 
 // FUNCTION: 0x4cb940
-bool Class_004cb940::FUN_004cb940(Image_004cb940* image, int x, int rows, int unused_4,
+bool Class_004cb940::WriteRows(Image_004cb940* image, int x, int rows, int unused_4,
                                   int y, int unused_6, int srcY)
 {
     int stride = (image->width + 3) & ~3;

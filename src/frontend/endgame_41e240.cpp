@@ -9,10 +9,10 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned int __cdecl FUN_004b6340();
+unsigned int __cdecl GetTicks();
 
 // FUNCTION: 0x41e240
 void FUN_0041e240(void)
 {
-    g_game->nextTime = FUN_004b6340() + 1;
+    g_game->nextTime = GetTicks() + 1;
 }

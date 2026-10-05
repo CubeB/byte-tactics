@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Looks up an entry of the table that FUN_004b7f30 indexes (count at +0,
+// Looks up an entry of the table that GetGafFrame indexes (count at +0,
 // 8-byte entries from +0x28) through a handle holding an index and the table.
 
 struct Entry_004b7ee0 {
@@ -20,7 +20,7 @@ struct Handle_004b7ee0 {
 };
 
 // FUNCTION: 0x4b7ee0
-int __stdcall FUN_004b7ee0(Handle_004b7ee0* h)
+int __stdcall GetGafSequenceFrame(Handle_004b7ee0* h)
 {
     int result = 0;
     if (h->table != 0)

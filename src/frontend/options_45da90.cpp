@@ -120,7 +120,7 @@ void __stdcall FUN_004a1450(void* obj, char* name, int value);
 void __stdcall FUN_004a9660(void* obj);
 void FUN_0045de30();
 void FUN_0045c820();
-void __stdcall FUN_004ba590(float value);
+void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45da90
 void __stdcall FUN_0045da90(Object_0045da90* obj)
@@ -173,7 +173,7 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
         ((Class_004cfe90*)g_game->sound)->FUN_004cfe90();
         g_game->soundFlags.word = (g_game->soundFlags.word & 0xfff9) | 1;
         g_game->field_37f17 = 10;
-        FUN_004ba590(0.5 - g_game->brightness * -0.041666668f);
+        SetBrightness(0.5 - g_game->brightness * -0.041666668f);
         ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
         ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
         FUN_004a9660(obj);

@@ -10,11 +10,11 @@ public:
     char unknown_0[0x10];
     int field_10;
 
-    Class_00458160* FUN_00458160(void);
+    Class_00458160* Construct(void);
 };
 
 // FUNCTION: 0x458160
-Class_00458160* Class_00458160::FUN_00458160(void)
+Class_00458160* Class_00458160::Construct(void)
 {
     ((CMemoryCache*)this)->FUN_004379a0();
     field_10 = 0;

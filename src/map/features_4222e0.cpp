@@ -31,13 +31,13 @@ public:
 class Class_004c9390 {
 public:
     char* data;                        // +0x0
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 struct Elem_004222e0 {
     Class_004c9390 name;               // +0x0
 
-    ~Elem_004222e0() { name.FUN_004c9390(); }
+    ~Elem_004222e0() { name.ReleaseRef(); }
 };
 
 extern std::vector<Class_004c2ea0*>* DAT_00511fb4;

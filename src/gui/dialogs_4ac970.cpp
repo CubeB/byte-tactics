@@ -63,7 +63,7 @@ struct Rect_004ac970 {
 };
 
 int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
-void __stdcall FUN_004bf8c0(void* param_1, void* param_2, int param_3);
+void __stdcall DrawRectangle(void* param_1, void* param_2, int param_3);
 
 // The x of one cell of the grid: the grid gadget's x plus the cell gadget's.
 static inline int CellX(Gadget_004ac970* gadgets, int index)
@@ -85,5 +85,5 @@ void __stdcall FUN_004ac970(Object_004ac970* obj, int cell, int color)
     rect.top = y + (cell / 16) * 8;
     rect.right = rect.left + 7;
     rect.bottom = rect.top + 7;
-    FUN_004bf8c0(surface, &rect, color);
+    DrawRectangle(surface, &rect, color);
 }

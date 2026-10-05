@@ -149,7 +149,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004b8b90(Anim_00424050* anim);
+int __stdcall StepGafSequence(Anim_00424050* anim);
 int __stdcall FUN_004b6c30(int range);
 Cell_00424050* __stdcall FUN_00481550(int x, int y);
 void* __stdcall FUN_00423c50(Cell_00424050* cell, unsigned short feature, void* pos, void* rot,
@@ -157,8 +157,8 @@ void* __stdcall FUN_00423c50(Cell_00424050* cell, unsigned short feature, void* 
 void __stdcall FUN_004232f0(int index, int* head);
 int __stdcall GetCellMeanHeight(Vec3_00424050* pos);
 int __stdcall GetGroundHeight(Vec3_00424050* pos);
-Frame_00424050* __stdcall FUN_004b7ee0(Anim_00424050* anim);
-void __stdcall FUN_00472810(SmokePos_00424050* pos, short index);
+Frame_00424050* __stdcall GetGafSequenceFrame(Anim_00424050* anim);
+void __stdcall EmitWhiteSmoke(SmokePos_00424050* pos, short index);
 int __stdcall FUN_004246b0(Cell_00424050* cell, int flag);
 void __stdcall FUN_00423710(int x, int z, int flag);
 void __stdcall FUN_004239c0(Feature_00424050* f, Point16_00424050* cell);
@@ -197,7 +197,7 @@ static inline int Rand_00424050(unsigned short n)
 static inline SmokePos_00424050 SmokeAt_00424050(Spot_00424050* spot, Feature_00424050* f)
 {
     SmokePos_00424050 p = FootprintCentre_00421eb0(&spot->cell, f);
-    Frame_00424050* frame = FUN_004b7ee0(&spot->anim);
+    Frame_00424050* frame = GetGafSequenceFrame(&spot->anim);
     unsigned short w = frame->width;
     p.x.f.whole += Rand_00424050(w >> 1) - frame->originX + (unsigned short)(w >> 2);
     unsigned short h = frame->height;
@@ -220,8 +220,8 @@ void __stdcall FUN_00424050()
     Feature_00424050* types = g_game->features;
     for (int k = 0; k < g_game->featureCount; k++) {
         if (types[k].animated) {
-            FUN_004b8b90(&types[k].anim);
-            FUN_004b8b90(&types[k].anim2);
+            StepGafSequence(&types[k].anim);
+            StepGafSequence(&types[k].anim2);
         }
     }
     if (--g_game->scanIndex < 0) {
@@ -267,11 +267,11 @@ void __stdcall FUN_00424050()
         } else if (spot->flags & 1) {
             if (smoke) {
                 SmokePos_00424050 q = SmokeAt_00424050(spot, f);
-                FUN_00472810(&q, 5);
+                EmitWhiteSmoke(&q, 5);
             }
-            FUN_004b8b90(&spot->anim);
+            StepGafSequence(&spot->anim);
             if (spot->flags & 4)
-                FUN_004b8b90(&spot->anim2);
+                StepGafSequence(&spot->anim2);
             if (spot->anim.src == 0) {
                 BurnOut_00423bf0(spot);
             } else if (spot->timer > 0 && !(spot->flags & 8)) {
@@ -279,9 +279,9 @@ void __stdcall FUN_00424050()
                     FUN_004239c0(f, &spot->cell);
             }
         } else {
-            FUN_004b8b90(&spot->anim);
+            StepGafSequence(&spot->anim);
             if (spot->flags & 4)
-                FUN_004b8b90(&spot->anim2);
+                StepGafSequence(&spot->anim2);
             if (spot->anim.src == 0)
                 FUN_00423710(spot->cell.x, spot->cell.z, 0);
         }

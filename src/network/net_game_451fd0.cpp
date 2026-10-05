@@ -83,7 +83,7 @@ int __stdcall FUN_0044fd70(int arg1);
 int __stdcall FUN_0044fd80(int arg1);
 int __stdcall FUN_0044fd90(int arg1);
 
-unsigned int __cdecl FUN_004b6340(void);
+unsigned int __cdecl GetTicks(void);
 int __cdecl FUN_004d83b0(const char* name, int size);
 
 extern EntryFunc DAT_00512a28;
@@ -353,7 +353,7 @@ int __stdcall InitPacketTables(Class_00451fd0* param_1)
     DAT_00512b80 = 2;
     DAT_00512ac8 = DefaultPacketHandler;
     DAT_00512c68 = 7;
-    param_1->field_870 = FUN_004b6340();
+    param_1->field_870 = GetTicks();
     param_1->field_1745 = 0x2000;
     param_1->field_1749 = (int*)FUN_004d83b0(s_PACKET_DATA_00506524, 0x2000);
     return 0 != param_1->field_1749;

@@ -64,14 +64,14 @@ public:
     DDraw_0047bf70 *ddraw;             // +0x544
     SurfaceDesc_0047bf70 surfaceDesc;  // +0x548
 
-    int FUN_0047bf70();
+    int SetupDirectDraw();
 };
 
 // The same object seen as the class the pixel format query belongs to
 // (0x47c150): it is a member of this one in the original.
 class Class_0047c150 {
 public:
-    int FUN_0047c150(void *surface);
+    int GetBlitMode(void *surface);
 };
 
 extern int __stdcall FUN_0049f710(int guid, void *display, int zero);
@@ -85,7 +85,7 @@ extern "C" __declspec(dllimport) void __stdcall DAT_004fc414(Smk_0047bf70_b *smk
 extern "C" __declspec(dllimport) void __stdcall DAT_004fc418(Smk_0047bf70 *smk, DWORD *field_3c, DWORD field_2c, DWORD field_43c);
 
 // FUNCTION: 0x47bf70
-int Class_0047bf70::FUN_0047bf70()
+int Class_0047bf70::SetupDirectDraw()
 {
     POINT point;
     int i;
@@ -105,7 +105,7 @@ int Class_0047bf70::FUN_0047bf70()
     surfaceDesc.dwFlags = 1;
     surfaceDesc.dwCaps = 0x200;
     if (ddraw->lpDD->CreateSurface((LPDDSURFACEDESC)&surfaceDesc, &ddraw->lpSurface, 0) == 0) {
-        paletteResult = ((Class_0047c150 *)this)->FUN_0047c150(ddraw->lpSurface);
+        paletteResult = ((Class_0047c150 *)this)->GetBlitMode(ddraw->lpSurface);
         if (paletteResult == 0) {
             hdc = GetDC(hwnd);
             GetSystemPaletteEntries(hdc, 0, 0x100, entries);

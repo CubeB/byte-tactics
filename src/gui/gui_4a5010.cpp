@@ -13,10 +13,10 @@ struct Class_0051fba4 {
 
 extern Class_0051fba4* DAT_0051fba4;
 
-void* __stdcall FUN_004b7f30(void* a, int b);
+void* __stdcall GetGafFrame(void* a, int b);
 
 // FUNCTION: 0x4a5010
 void* __stdcall FUN_004a5010(unsigned char c)
 {
-    return FUN_004b7f30(DAT_0051fba4->font->glyphs, c);
+    return GetGafFrame(DAT_0051fba4->font->glyphs, c);
 }

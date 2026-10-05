@@ -29,7 +29,7 @@ struct Class_004a4890 {
     Table_004a4890* table;             // +0x18
 };
 
-int __cdecl FUN_004b6340();
+int __cdecl GetTicks();
 void __stdcall FUN_004a4660(Class_004a4890* obj, int i);
 
 // FUNCTION: 0x4a4890
@@ -37,13 +37,13 @@ void __stdcall FUN_004a4890(Class_004a4890* obj, int i)
 {
     Entry_004a4890* e = &obj->table->entries[i];
     if (e->active && e->value < e->max) {
-        if (FUN_004b6340() > e->next) {
+        if (GetTicks() > e->next) {
             e->value += (int)e->step;
             if (e->value > e->max) {
                 e->value = e->max;
                 e->active = 0;
             }
-            e->next = FUN_004b6340() + e->interval;
+            e->next = GetTicks() + e->interval;
         }
         FUN_004a4660(obj, i);
     }

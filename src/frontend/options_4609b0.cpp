@@ -72,7 +72,7 @@ extern int DAT_00512ef0;
 int __stdcall FUN_0049fd60(Gadget_004609b0* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 void __stdcall FUN_0049fa70(Sub_004609b0* sub);
-void __stdcall FUN_004c6ac0(Class_004c6a60* surface);
+void __stdcall FreeSurface(Class_004c6a60* surface);
 Info_004609b0* __stdcall FUN_004aa8f0(Sub_004609b0* sub, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 int __stdcall FUN_0045f8c0(Sub_004609b0* sub, int a, int b);
@@ -97,11 +97,11 @@ void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
         FUN_0049fa70(&g_game->sub);
         DAT_00512fe4 = 0;
         if (DAT_00512fe8) {
-            FUN_004c6ac0(DAT_00512fe8);
+            FreeSurface(DAT_00512fe8);
             DAT_00512fe8 = 0;
         }
         if (DAT_00512ff4) {
-            FUN_004c6ac0(DAT_00512ff4);
+            FreeSurface(DAT_00512ff4);
             DAT_00512ff4 = 0;
         }
         if (g_game->flags_2a44 & 4) {

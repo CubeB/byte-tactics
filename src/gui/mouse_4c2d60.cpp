@@ -15,12 +15,12 @@ struct Queue_4c2d60 {
 };
 #pragma pack(pop)
 
-int FUN_004b6220(void);
+int GetDisplay(void);
 
 // FUNCTION: 0x4c2d60
 int __stdcall FUN_004c2d60(Event_4c2d60* out)
 {
-    Queue_4c2d60* q = (Queue_4c2d60*)FUN_004b6220();
+    Queue_4c2d60* q = (Queue_4c2d60*)GetDisplay();
     if (q->head == q->tail) {
         *out = q->empty;
         return 0;

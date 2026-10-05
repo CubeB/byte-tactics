@@ -24,7 +24,7 @@ struct Class_004acc70 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004ba200(unsigned char* palette, int first, int count);
+void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 
 // FUNCTION: 0x4acc70
 void __stdcall FUN_004acc70(Class_004acc70* obj, Color_004acc70* palette)
@@ -34,5 +34,5 @@ void __stdcall FUN_004acc70(Class_004acc70* obj, Color_004acc70* palette)
     c.g = obj->green->value;
     c.b = obj->blue->value;
     palette[obj->index] = c;
-    FUN_004ba200((unsigned char*)&c, obj->index, 1);
+    SetPaletteColors((unsigned char*)&c, obj->index, 1);
 }

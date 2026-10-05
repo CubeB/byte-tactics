@@ -33,14 +33,14 @@ struct State_004be320 {
 
 extern char DAT_005119b8[];
 
-State_004be320* FUN_004b6220(void);
+State_004be320* GetDisplay(void);
 void __stdcall FUN_004be3b0(List_004be3b0* list);
 void __stdcall FUN_004be400(char* name, int a, int b);
 
 // FUNCTION: 0x4be320
 void FUN_004be320(void)
 {
-    State_004be320* state = FUN_004b6220();
+    State_004be320* state = GetDisplay();
     if (state->itemCount > 0) {
         for (int i = 0; i < state->itemCount; i++) {
             List_004be3b0* list = state->items[i]->node->list;

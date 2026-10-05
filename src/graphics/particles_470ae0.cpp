@@ -16,7 +16,7 @@ struct Item_00470ae0 {
 
 void __cdecl FUN_004d85a0(void* p);
 
-class Class_00470ae0 {
+class ObjectPool {
 public:
     std::vector<Item_00470ae0*> items;  // +0x4
     void* field_14;                     // +0x14
@@ -24,8 +24,8 @@ public:
     int field_1c;                       // +0x1c
     int field_20;                       // +0x20
 
-    Class_00470ae0(int param_1, int param_2);
-    virtual ~Class_00470ae0()
+    ObjectPool(int param_1, int param_2);
+    virtual ~ObjectPool()
     {
         if (field_14 != 0)
             FUN_004d85a0(field_14);
@@ -37,5 +37,5 @@ public:
     }
 };
 
-// FUNCTION: 0x470ae0 ??_GClass_00470ae0@@UAEPAXI@Z
-static Class_00470ae0 s_obj(1000, 0x4c);
+// FUNCTION: 0x470ae0 ??_GObjectPool@@UAEPAXI@Z
+static ObjectPool s_obj(1000, 0x4c);

@@ -3,7 +3,7 @@
 #include <string.h>
 
 // FUNCTION: 0x4bb0f0
-char* __stdcall FUN_004bb0f0(char* name)
+char* __stdcall StripExtension(char* name)
 {
     for (int i = strlen(name); i >= 0; i--) {
         if (name[i] == '.') {

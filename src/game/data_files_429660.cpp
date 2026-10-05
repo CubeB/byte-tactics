@@ -12,7 +12,7 @@ struct Game {
 extern Game* g_game;
 
 void* __stdcall FUN_004bb5b0(char* path);
-void __stdcall FUN_004b6290(char* path);
+void __stdcall FatalError(char* path);
 int __stdcall FUN_004bbd00(void* file);
 void* __cdecl FUN_004d83b0(char* name, int size);
 int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
@@ -23,7 +23,7 @@ char* __stdcall FUN_00429660(char* path)
 {
     void* file = FUN_004bb5b0(path);
     if (file == 0) {
-        FUN_004b6290(path);
+        FatalError(path);
     }
     int size = FUN_004bbd00(file);
     int chunk = size / 10;

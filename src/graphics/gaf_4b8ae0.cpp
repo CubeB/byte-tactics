@@ -29,7 +29,7 @@ struct Dst_004b8ae0 {
 };
 
 // FUNCTION: 0x4b8ae0
-void __stdcall FUN_004b8ae0(Dst_004b8ae0* dst, Src_004b8ae0* src)
+void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Src_004b8ae0* src)
 {
     dst->a = src->a;
     dst->b = src->b;

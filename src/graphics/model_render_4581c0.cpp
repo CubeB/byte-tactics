@@ -12,11 +12,11 @@ public:
     char unknown_0[0x10];
     void* ptr;              // +0x10
 
-    void FUN_004581c0();
+    void Destroy();
 };
 
 // FUNCTION: 0x4581c0
-void Class_004581c0::FUN_004581c0()
+void Class_004581c0::Destroy()
 {
     if (ptr) {
         FUN_004d85a0(ptr);

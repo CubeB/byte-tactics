@@ -43,7 +43,7 @@ struct Entry_467c00 {
     unsigned short h;                  // +2
 };
 
-void __stdcall FUN_004c7580(void* surf, void* entry, Quad_467c00* dst, Quad_467c00* src);
+void __stdcall DrawFrameQuad(void* surf, void* entry, Quad_467c00* dst, Quad_467c00* src);
 
 // FUNCTION: 0x467c00
 void __stdcall FUN_00467c00(void* surf, Player_467c00* player, Rect_467c00* rect, int dy)
@@ -71,5 +71,5 @@ void __stdcall FUN_00467c00(void* surf, Player_467c00* player, Rect_467c00* rect
     dst.p[3].x = rect->left;
     dst.p[3].y = rect->bottom + dy;
 
-    FUN_004c7580(surf, entry, &dst, &src);
+    DrawFrameQuad(surf, entry, &dst, &src);
 }

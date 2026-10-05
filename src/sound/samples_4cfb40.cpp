@@ -6,7 +6,7 @@
 
 struct File_004bb5d0;
 
-int __stdcall FUN_004b64d0(int i);
+int __stdcall RemoveTimer(int i);
 int __stdcall FUN_004bb5d0(File_004bb5d0* file);
 
 class Class_004cfb40 {
@@ -24,7 +24,7 @@ public:
 void Class_004cfb40::FUN_004cfb40()
 {
     if (handle != -1) {
-        FUN_004b64d0(handle);
+        RemoveTimer(handle);
         handle = -1;
     }
     if (stream != 0) {

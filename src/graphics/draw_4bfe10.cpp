@@ -1,9 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and claude-opus-5-5, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
 
 // Translates every pixel of `rect` in `surface` through the byte table at
-// g_game+0xcc (FUN_004cced5), or in the locked screen (FUN_004c5e70 /
-// FUN_004c5fa0) when `surface` is 0. The rect is copied to a local first
-// because the clip helper FUN_004bf620 clips it in place. The locked path
+// g_game+0xcc (FUN_004cced5), or in the locked screen (LockScreen /
+// UnlockScreen) when `surface` is 0. The rect is copied to a local first
+// because the clip helper ClipRectangle clips it in place. The locked path
 // returns the lock result.
 //
 // check.py prints MATCH (267 bytes).
@@ -86,33 +86,33 @@ struct Game_004bfe10 {
     unsigned char flags;               // +0xf1
 };
 
-Game_004bfe10* FUN_004b6220();
-int __stdcall FUN_004c5e70(Surface_004bfe10* out);
-int __stdcall FUN_004c5fa0(Surface_004bfe10* s);
-int __stdcall FUN_004bf620(void* s, Rect_004bfe10* r);
+Game_004bfe10* GetDisplay();
+int __stdcall LockScreen(Surface_004bfe10* out);
+int __stdcall UnlockScreen(Surface_004bfe10* s);
+int __stdcall ClipRectangle(void* s, Rect_004bfe10* r);
 void __cdecl FUN_004cced5(int dst, int pitch, int w, int h, int table);
 
 // FUNCTION: 0x4bfe10
-int __stdcall FUN_004bfe10(Surface_004bfe10* surface, Rect_004bfe10* rect)
+int __stdcall GrayRectangle(Surface_004bfe10* surface, Rect_004bfe10* rect)
 {
     Surface_004bfe10 screen;
     Rect_004bfe10 r = *rect;
-    Game_004bfe10* g = FUN_004b6220();
+    Game_004bfe10* g = GetDisplay();
     if ((g->flags & 1) == 0)
         return 0;
     int result;
     int status;
     if (surface == 0) {
-        result = FUN_004c5e70(&screen);
+        result = LockScreen(&screen);
         if (result != 0) {
-            if (FUN_004bf620(&screen, &r))
+            if (ClipRectangle(&screen, &r))
                 FUN_004cced5(r.top * screen.pitch + r.left + (int)screen.pixels,
                              screen.pitch, r.right - r.left + 1,
                              r.bottom - r.top + 1, g->field_cc);
-            FUN_004c5fa0(&screen);
+            UnlockScreen(&screen);
         }
     } else {
-        if (FUN_004bf620(surface, &r))
+        if (ClipRectangle(surface, &r))
             FUN_004cced5((int)surface->pixels + r.top * surface->pitch + r.left,
                          surface->pitch, r.right - r.left + 1,
                          r.bottom - r.top + 1, g->field_cc);

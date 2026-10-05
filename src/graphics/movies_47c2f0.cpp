@@ -12,11 +12,11 @@ public:
     char unknown_0[0x544];
     SurfaceWrapper* wrapper; // +0x544
 
-    void FUN_0047c2f0();
+    void ClearScreen();
 };
 
 // FUNCTION: 0x47c2f0
-void Class_0047c2f0::FUN_0047c2f0()
+void Class_0047c2f0::ClearScreen()
 {
     DDBLTFX fx;
     fx.dwSize = sizeof(DDBLTFX);

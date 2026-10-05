@@ -10,7 +10,7 @@ struct Sprite_004b94c0 {
     unsigned char* bits;         // +0x10
 };
 
-struct Surface_004b94c0 {
+struct Surface {
     int width;                   // +0x0
     int height;                  // +0x4
     int pitch;                   // +0x8
@@ -31,13 +31,13 @@ struct Rect_004b94c0 {
     int bottom;                  // +0xc
 };
 
-void __stdcall FUN_004c69c0(Surface_004b94c0* surface);
-void __stdcall FUN_004c6d20(void* dst, void* src, Rect_004b94c0* rect, Rect_004b94c0* pos);
+void __stdcall ResetClipRect(Surface* surface);
+void __stdcall CopySurfaceRect(void* dst, void* src, Rect_004b94c0* rect, Rect_004b94c0* pos);
 
 // FUNCTION: 0x4b94c0
-void __stdcall FUN_004b94c0(void* dst, Sprite_004b94c0* sprite, int x, int y)
+void __stdcall GrabBackground(void* dst, Sprite_004b94c0* sprite, int x, int y)
 {
-    Surface_004b94c0 surface;
+    Surface surface;
     surface.width = sprite->width;
     surface.height = sprite->height;
     surface.pitch = sprite->width;
@@ -48,7 +48,7 @@ void __stdcall FUN_004b94c0(void* dst, Sprite_004b94c0* sprite, int x, int y)
     surface.y = sprite->y;
     surface.flag0 = 1;
     surface.flag1 = 0;
-    FUN_004c69c0(&surface);
+    ResetClipRect(&surface);
 
     Rect_004b94c0 srcRect;
     srcRect.left = 0;
@@ -62,5 +62,5 @@ void __stdcall FUN_004b94c0(void* dst, Sprite_004b94c0* sprite, int x, int y)
     dstRect.top = y - sprite->y;
     dstRect.bottom = surface.height + y - sprite->y - 1;
 
-    FUN_004c6d20(&surface, dst, &dstRect, &srcRect);
+    CopySurfaceRect(&surface, dst, &dstRect, &srcRect);
 }

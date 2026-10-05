@@ -100,8 +100,8 @@ void __stdcall FUN_004a11c0(Gadget_0045fc60* gadget, int id, int flag);
 void __stdcall FUN_004a81e0(char* menu, int value);
 void __stdcall FUN_0049fa90(char* menu);
 void __stdcall FUN_004ab170(char* menu, int a, int b);
-void __stdcall FUN_004c69a0(int value);
-void FUN_004c63a0();
+void __stdcall SetOffscreenSurface(int value);
+void FlipScreen();
 int __stdcall FUN_0049fd60(Gadget_0045fc60* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 void FUN_0045ed50();
@@ -112,9 +112,9 @@ void __stdcall FUN_0045c820();
 void FUN_0045cae0();
 void FUN_0045de30();
 void __stdcall FUN_004ab0a0(Gadget_0045fc60* gadget);
-void __stdcall FUN_004ba590(float value);
-void __stdcall FUN_004c6b70(int a, void* surface, int b, int c);
-void __stdcall FUN_004c6ac0(void* surface);
+void __stdcall SetBrightness(float value);
+void __stdcall DrawSurface(int a, void* surface, int b, int c);
+void __stdcall FreeSurface(void* surface);
 
 // FUNCTION: 0x45fc60
 void __stdcall FUN_0045fc60(Gadget_0045fc60* gadget)
@@ -128,8 +128,8 @@ void __stdcall FUN_0045fc60(Gadget_0045fc60* gadget)
             FUN_004a81e0(g_game->menu_519, 0x40);
             FUN_0049fa90(g_game->menu_519);
             FUN_004ab170(g_game->menu_519, 0, 0);
-            FUN_004c69a0(*(int*)((char*)g_game + 0x37e1b));
-            FUN_004c63a0();
+            SetOffscreenSurface(*(int*)((char*)g_game + 0x37e1b));
+            FlipScreen();
         }
         if (FUN_0049fd60(gadget, "SPEEDS")) {
             FUN_0047f1a0("Options", 0);
@@ -158,7 +158,7 @@ void __stdcall FUN_0045fc60(Gadget_0045fc60* gadget)
             unsigned short f = g_game->flags;
             g_game->flags = f ^ ((f ^ DAT_00512f46) & 1);
             ((Class_004ce580*)g_game->field_10)->FUN_004ce580(DAT_00512fd9);
-            FUN_004ba590(0.5 - g_game->brightness * -0.041666668f);
+            SetBrightness(0.5 - g_game->brightness * -0.041666668f);
             ((Class_004d0070*)g_game->field_10)->FUN_004d0070(g_game->volume1 << 10);
             ((Class_004d00d0*)g_game->field_10)->FUN_004d00d0(g_game->volume2 << 10, 0);
             g_game->field_37f23 = DAT_00512f55;
@@ -183,12 +183,12 @@ void __stdcall FUN_0045fc60(Gadget_0045fc60* gadget)
         DAT_00506788 = 0;
 cleanup:
         if (DAT_00512ff4) {
-            FUN_004c6b70(0, DAT_00512ff4, 0, 0);
-            FUN_004c6ac0(DAT_00512ff4);
+            DrawSurface(0, DAT_00512ff4, 0, 0);
+            FreeSurface(DAT_00512ff4);
             DAT_00512ff4 = 0;
         }
         if (DAT_00512fe8) {
-            FUN_004c6ac0(DAT_00512fe8);
+            FreeSurface(DAT_00512fe8);
             DAT_00512fe8 = 0;
         }
         DAT_00512fe4 = 0;

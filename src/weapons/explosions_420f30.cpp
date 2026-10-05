@@ -64,7 +64,7 @@ extern Obj_00420f30* DAT_00511df0[100];
 
 int __stdcall FUN_004213b0(Obj_00420f30* obj);
 int __stdcall GetCellMeanHeight(Vec3_00420f30* pos);
-int __stdcall FUN_004b8b90(Ref_00420f30* ref);
+int __stdcall StepGafSequence(Ref_00420f30* ref);
 void __stdcall FUN_00420a30(Vec3_00420f30* pos, void* src, int index, int flag);
 
 // FUNCTION: 0x420f30
@@ -115,9 +115,9 @@ void FUN_00420f30()
             }
         }
         if (d->ref1.src != 0)
-            FUN_004b8b90(&d->ref1);
+            StepGafSequence(&d->ref1);
         if (d->ref2.src != 0)
-            FUN_004b8b90(&d->ref2);
+            StepGafSequence(&d->ref2);
     }
 
     int removed = 1;

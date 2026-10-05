@@ -3,7 +3,7 @@
 // library the game's DirectSound object, then paints a black frame into the
 // surface the player blits through. That surface is the display's own
 // DirectDraw surface when the game has one, otherwise a private one made by
-// FUN_0047bf70.
+// SetupDirectDraw.
 #include <windows.h>
 #include <ddraw.h>
 
@@ -41,15 +41,15 @@ struct Game {
 
 extern Game* g_game;                 // 0x511de8
 
-Display_0047bdf0* FUN_004b6220();
-void __stdcall FUN_004b6290(char* message);
+Display_0047bdf0* GetDisplay();
+void __stdcall FatalError(char* message);
 
 class Class_0047bf70 {
 public:
-    int FUN_0047bf70();
+    int SetupDirectDraw();
 };
 
-class Class_0047bdf0 {
+class MoviePlayer {
 public:
     void* smack;                     // +0x0
     int frame;                       // +0x4
@@ -62,11 +62,11 @@ public:
     char unknown_53c[0x544 - 0x53c];
     Surfaces_0047bdf0* wrapper;      // +0x544
 
-    Class_0047bdf0(char* path, int a, int b, int c, int d, int e);
+    MoviePlayer(char* path, int a, int b, int c, int d, int e);
 };
 
 // FUNCTION: 0x47bdf0
-Class_0047bdf0::Class_0047bdf0(char* path, int a, int b, int c, int d, int e)
+MoviePlayer::MoviePlayer(char* path, int a, int b, int c, int d, int e)
 {
     field_8 = 0;
     frame = 0;
@@ -76,10 +76,10 @@ Class_0047bdf0::Class_0047bdf0(char* path, int a, int b, int c, int d, int e)
     SmackSoundUseDirectSound(sound);
     smack = SmackOpen(path, 0xfe100, -1);
     if (!smack)
-        FUN_004b6290("Could not open movie file, please check filename in INI.");
+        FatalError("Could not open movie file, please check filename in INI.");
     SmackSoundOnOff(smack, sound != 0);
 
-    Display_0047bdf0* disp = FUN_004b6220();
+    Display_0047bdf0* disp = GetDisplay();
     hwnd = disp->hwnd;
     if ((disp->flags & 2) && disp->surfaces.ddraw) {
         wrapper = &disp->surfaces;
@@ -91,8 +91,8 @@ Class_0047bdf0::Class_0047bdf0(char* path, int a, int b, int c, int d, int e)
         wrapper->back = 0;
         wrapper->palette = 0;
         wrapper->field_c = 0;
-        if (!((Class_0047bf70*)this)->FUN_0047bf70())
-            FUN_004b6290("Could not setup Direct Draw to play movie.");
+        if (!((Class_0047bf70*)this)->SetupDirectDraw())
+            FatalError("Could not setup Direct Draw to play movie.");
         hasSurfaces = 1;
     }
 

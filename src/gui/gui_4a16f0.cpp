@@ -42,7 +42,7 @@ struct Rect_004a16f0 {
     int bottom;
 };
 
-void __stdcall FUN_004bf7b0(int surface, Rect_004a16f0* rect, int level);
+void __stdcall DrawLitRectangle(int surface, Rect_004a16f0* rect, int level);
 
 // FUNCTION: 0x4a16f0
 void __stdcall FUN_004a16f0(Class_004a16f0* obj, int index, int param_3)
@@ -87,7 +87,7 @@ void __stdcall FUN_004a16f0(Class_004a16f0* obj, int index, int param_3)
             rect.top--;
             rect.right++;
             rect.bottom++;
-            FUN_004bf7b0(obj->holder->entries->surface, &rect, level);
+            DrawLitRectangle(obj->holder->entries->surface, &rect, level);
             level += -3 - step;
         }
     }

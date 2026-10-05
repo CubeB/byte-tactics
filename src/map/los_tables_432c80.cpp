@@ -7,7 +7,7 @@
 class Class_004c93b0 {
 public:
     char* ptr;
-    Class_004c93b0* FUN_004c93b0(Class_004c93b0* param_1);
+    Class_004c93b0* Assign(Class_004c93b0* param_1);
 };
 
 struct Elem_432cb0 {
@@ -19,7 +19,7 @@ struct Elem_432cb0 {
 void __stdcall FUN_00432c80(Elem_432cb0* first, Elem_432cb0* last, Elem_432cb0* value)
 {
     for (; first != last; ++first) {
-        first->handle.FUN_004c93b0(&value->handle);
+        first->handle.Assign(&value->handle);
         first->field4 = value->field4;
     }
 }

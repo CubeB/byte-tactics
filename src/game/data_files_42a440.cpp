@@ -26,7 +26,7 @@ void* __cdecl FUN_004d83b0(const char* tag, int size);
 int __stdcall FUN_004bc4b0(const char* path, FindData_0042a440* fd, int a, int b);
 int __stdcall FUN_004bc640(int handle, FindData_0042a440* fd);
 void __stdcall FUN_004bc8d0(int handle);
-void* __stdcall FUN_004b8c60(char* path);
+void* __stdcall LoadGaf(char* path);
 
 // FUNCTION: 0x42a440
 void FUN_0042a440()
@@ -48,7 +48,7 @@ void FUN_0042a440()
                 texturePtrs--;
             } else {
                 FUN_004290f0(path, "textures", fd.name, "GAF");
-                *texturePtrs = (int)FUN_004b8c60(path);
+                *texturePtrs = (int)LoadGaf(path);
                 g_game->progress = (char)(progress / (count - 1));
             }
             r = FUN_004bc640(handle, &fd);

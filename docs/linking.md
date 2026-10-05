@@ -152,7 +152,7 @@ What stands out:
   (`FUN_0040f200` is defined in 13 files; see "Context-dependent functions" in
   `docs/consolidation.md`) and constructors, destructors and class
   `operator delete`s repeated in each file of a class family
-  (`Class_00407350`'s constructor in 8 files, `Class_00471cc0`'s destructor and
+  (`Class_00407350`'s constructor in 8 files, `ParticleSystem`'s destructor and
   `operator delete` in 6). The 3 globals defined twice are `DAT_00512340`,
   `g_movementClasses` and `g_packetManager`.
 - **53 folds are silent hazards.** Inline functions and vtables that differ
@@ -161,8 +161,8 @@ What stands out:
   exists in two versions, one calling the `/Gz` stand-in `FUN_00406c70`
   (0x405d90 and four others) and one inlining it (0x406c10 and five others);
   `vector<Elem_00434360>::operator=` has four. The `std` exception classes
-  differ in 0x4c3cc0 only, and the vtables of `Class_00471560`,
-  `Class_004716a0`, `Class_0048eb40` and `Class_0048f840` differ between the
+  differ in 0x4c3cc0 only, and the vtables of `NanoParticles`,
+  `ThrustParticles`, `Class_0048eb40` and `Class_0048f840` differ between the
   files that declare them. A linked build needs one version of each, and for a
   byte-identical build it must be the original's.
 - **`.bss` starts before the raw end of `.data`.** The section's raw bytes run
@@ -506,7 +506,7 @@ has the derived class's override, which its own file matched under a
 placeholder class. Each override is now named after the virtual it
 overrides, with the base's parameter types and declared virtual, which binds
 the slot with no function's bytes changed (`Class_0043a1f0`, the
-`Class_00471cc0`, `Class_0044ef20` and condition families,
+`ParticleSystem`, `Class_0044ef20` and condition families,
 `UnitScript`); `tools/vtablecheck.py` checks a file's slots so. The compiled image differs from the
 original only under the two rows of `data/exe_patches.csv`, where it has the
 compiler's bytes rather than GOG's no-CD music patch, and after the link

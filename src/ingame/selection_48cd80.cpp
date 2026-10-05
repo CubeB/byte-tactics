@@ -66,7 +66,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6720(Rect_0048cd80* rect, int x, int y);
+int __stdcall PointInRect(Rect_0048cd80* rect, int x, int y);
 int __stdcall FUN_0048c6a0(Unit* unit, Point_0048cd80* p);
 
 static inline int FixMul(int a, int b)
@@ -79,7 +79,7 @@ unsigned short __stdcall FUN_0048cd80(void)
 {
     Point_0048cd80* p = &g_game->view;
     unsigned short result = 0;
-    if (FUN_004b6720(&g_game->rect_37e27, p->x, p->y)) {
+    if (PointInRect(&g_game->rect_37e27, p->x, p->y)) {
         int best = 0x7fff0000;
         unsigned short* ids = g_game->list;
         if (ids == 0)
@@ -98,7 +98,7 @@ unsigned short __stdcall FUN_0048cd80(void)
                 }
             }
         }
-    } else if (FUN_004b6720(&g_game->rect_142bb, p->x, p->y)) {
+    } else if (PointInRect(&g_game->rect_142bb, p->x, p->y)) {
         int best = 99999;
         Slot_0048cd80* s = g_game->list2;
         for (int i = g_game->count2; i > 0; i--) {

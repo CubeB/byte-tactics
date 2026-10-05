@@ -31,7 +31,7 @@ struct Vec3_004742c0 {
 
 class Class_00471d70 {
 public:
-    void FUN_00471d70(int param_1);
+    void SetLifetime(int param_1);
 };
 
 class Class_004742c0 {
@@ -52,7 +52,7 @@ public:
 // FUNCTION: 0x4742c0
 void Class_004742c0::FUN_004742c0(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b)
 {
-    ((Class_00471d70*)this)->FUN_00471d70(b);
+    ((Class_00471d70*)this)->SetLifetime(b);
     unknown_1c = a;
     unknown_20 = *p;
     unknown_2c = *q;

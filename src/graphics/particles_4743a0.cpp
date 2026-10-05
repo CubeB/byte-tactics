@@ -42,7 +42,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004b7f60(unsigned short* p);
+int __stdcall GetGafFrameCount(unsigned short* p);
 
 typedef std::vector<Record_004743a0> Vec_004743a0;
 
@@ -86,7 +86,7 @@ void Class_004743a0::FUN_004743a0()
         rec.pos1 = pos1;
         rec.pos2 = pos2;
         rec.bitmask = g_game->unknown_147f3;
-        rec.field_28 = (int)FUN_004b7f60(g_game->unknown_147f3) - 1;
+        rec.field_28 = (int)GetGafFrameCount(g_game->unknown_147f3) - 1;
         rec.field_2c = 0;
         ((Class_00475bd0*)v)->FUN_00475bd0(v->end(), 1, rec);
     }

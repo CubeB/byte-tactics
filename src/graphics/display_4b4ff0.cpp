@@ -14,7 +14,7 @@ struct Display_004b4ff0 {
 };
 
 // FUNCTION: 0x4b4ff0
-void __stdcall FUN_004b4ff0(Display_004b4ff0* d)
+void __stdcall ReleaseDirectDraw(Display_004b4ff0* d)
 {
     if (d->ddraw) {
         if (d->palette) {

@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Builds the screen-space vertex list of every drawable piece of a model into
 // a 2000-entry local array, then hands each piece's line segments to
-// FUN_004c1000 (a bounding-box/line pass) through a 25-entry scratch buffer.
+// FillFlatPolygon (a bounding-box/line pass) through a 25-entry scratch buffer.
 // Pieces are walked last to first: the `dec ecx; js` guard, the `inc ecx`
 // after it, and the `dec ecx; jne` latch together mean the walk starts at
 // pieces[count-1], runs exactly count times and stops at pieces[0].
@@ -49,8 +49,8 @@ struct Vertex_0045a610 {
 };
 
 struct View_0045a610 {
-    short field_0;                   // width, read by FUN_004c1000
-    short field_2;                   // height, read by FUN_004c1000
+    short field_0;                   // width, read by FillFlatPolygon
+    short field_2;                   // height, read by FillFlatPolygon
     short field_4;                   // x origin, added to every vertex x
     short field_6;                   // y origin, added to every vertex y
 };
@@ -89,17 +89,17 @@ struct Model_0045a610 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004c1000(View_0045a610* view, Vertex_0045a610* verts, int field_10, int count);
+void __stdcall FillFlatPolygon(View_0045a610* view, Vertex_0045a610* verts, int field_10, int count);
 
 // A method whose `this` is never used: its caller 0x45a790 loads ecx before
 // the call. It compiles the same as a __stdcall free function.
 class Class_0045a610 {
 public:
-    void FUN_0045a610(View_0045a610* view, Model_0045a610* model);
+    void DrawShadowShape(View_0045a610* view, Model_0045a610* model);
 };
 
 // FUNCTION: 0x45a610
-void Class_0045a610::FUN_0045a610(View_0045a610* view, Model_0045a610* model)
+void Class_0045a610::DrawShadowShape(View_0045a610* view, Model_0045a610* model)
 {
     Vertex_0045a610 verts[2000];
     Vertex_0045a610 tmp[25];
@@ -134,7 +134,7 @@ void Class_0045a610::FUN_0045a610(View_0045a610* view, Model_0045a610* model)
                         for (int k = 0; k < seg->count; k++, ip++) {
                             tmp[k] = verts[*ip];
                         }
-                        FUN_004c1000(view, tmp, seg->count, 0);
+                        FillFlatPolygon(view, tmp, seg->count, 0);
                     }
                 }
             }

@@ -42,7 +42,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004ba590(float value);
+void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45c740
 void FUN_0045c740()
@@ -58,7 +58,7 @@ void FUN_0045c740()
         g_game->height = 480;
         g_game->bit6 = 0;
     }
-    FUN_004ba590(0.5 - g_game->brightness * -0.041666668f);
+    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
     ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
 }

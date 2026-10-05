@@ -9,7 +9,7 @@ struct Struct_004c6ac0 {
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4c6ac0
-void __stdcall FUN_004c6ac0(Struct_004c6ac0* obj)
+void __stdcall FreeSurface(Struct_004c6ac0* obj)
 {
     if (obj != 0 && (obj->flags & 1)) {
         FUN_004d85a0(obj);

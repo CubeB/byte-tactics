@@ -21,11 +21,11 @@ public:
     char unknown_0[0x544];
     SmackerSurfaces* surfaces;      // +0x544
 
-    int FUN_0047c150(SmackerSurface* unused);
+    int GetBlitMode(SmackerSurface* unused);
 };
 
 // FUNCTION: 0x47c150
-int Class_0047c150::FUN_0047c150(SmackerSurface* unused)
+int Class_0047c150::GetBlitMode(SmackerSurface* unused)
 {
     DDPIXELFORMAT format;
     format.dwSize = sizeof(format);

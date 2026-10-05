@@ -137,7 +137,7 @@ Entry_00492360* __stdcall FUN_0049ff90(Entry_00492360* entries, char* name);
 void __stdcall FUN_004ab0a0(Gadget_00492360* menu);
 void __stdcall FUN_004ab400(void* menu, void* data);
 void __stdcall FUN_004abd90(void* menu, char* message, int a, int b, int c);
-void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
+void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __cdecl LeaveNetGameCallback(int param);
 char* __stdcall FUN_004c5740(char* text);
@@ -276,7 +276,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
         g_game->flags_2a44.b2 = 1;
         g_game->field_391f1 = 2;
         g_game->field_391f5 = FUN_00496bb0;
-        FUN_004b4fd0(LeaveNetGameCallback, 0);
+        SetCloseHandler(LeaveNetGameCallback, 0);
         if (DAT_0051f2e0)
             FUN_004d85a0(DAT_0051f2e0);
         if (DAT_0051f2e4)
@@ -300,7 +300,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
             g_game->flags_2a44.b2 = 0;
             g_game->field_391f1 = 2;
             g_game->field_391f5 = FUN_00496bb0;
-            FUN_004b4fd0(LeaveNetGameCallback, 0);
+            SetCloseHandler(LeaveNetGameCallback, 0);
             FUN_00425860(0xe, 0x48c, "c:\\cavedog\\wargame\\wargame.cpp");
         }
         FUN_004257a0();

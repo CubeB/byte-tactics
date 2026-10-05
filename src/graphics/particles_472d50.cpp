@@ -20,47 +20,47 @@ class Class_00473560 {                   // vector element, 0x34 bytes
 public:
     char unknown_0[0x34];
 
-    void FUN_00473560();
+    void Step();
 };
 
 class Class_004736c0 {                   // the same element, ageing test
 public:
     char unknown_0[0x34];
 
-    int FUN_004736c0(int param_1);
+    int IsExpired(int param_1);
 };
 
 // Vtable 0x4fd588, ??_G 0x471430; 0x44 bytes. The class is the one the
 // constructor at 0x471cc0 news up (see 0x471430.cpp).
-class Class_00471430 {
+class TeleportParticles {
 public:
     char unknown_0[8];                   // +0x0 vptr, +0x4 field_4
     std::vector<Class_00473560> items;   // +0x8 (_First +0x10, _Last +0x14)
     char unknown_1c[0x44 - 0x1c];
 
     virtual void FUN_00471430();         // +0x00
-    virtual void FUN_00472d50();         // +0x04
+    virtual void Update();               // +0x04
     virtual void FUN_00472e30(int);      // +0x08
     virtual int FUN_00472e70();          // +0x0c
-    virtual void FUN_004737c0();         // +0x10
+    virtual void Emit();                 // +0x10
     virtual int FUN_00472e00();          // +0x14
     virtual void FUN_004736e0(int, int, int); // +0x18
 };
 
 // FUNCTION: 0x472d50
-void Class_00471430::FUN_00472d50()
+void TeleportParticles::Update()
 {
     std::vector<Class_00473560>::iterator it = items.begin();
 
     while (it != items.end()) {
-        it->FUN_00473560();
-        if (((Class_004736c0*)it)->FUN_004736c0(g_game->field_38a47)) {
+        it->Step();
+        if (((Class_004736c0*)it)->IsExpired(g_game->field_38a47)) {
             items.erase(it);
         } else {
             ++it;
         }
     }
     if (FUN_00472e00()) {
-        FUN_004737c0();
+        Emit();
     }
 }

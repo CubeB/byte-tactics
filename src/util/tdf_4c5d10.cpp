@@ -11,11 +11,11 @@
 struct Class_004c93b0 {
     char* ptr;
 
-    Class_004c93b0* FUN_004c93b0(Class_004c93b0* param_1);
+    Class_004c93b0* Assign(Class_004c93b0* param_1);
 
     Class_004c93b0& operator=(const Class_004c93b0& other)
     {
-        FUN_004c93b0((Class_004c93b0*)&other);
+        Assign((Class_004c93b0*)&other);
         return *this;
     }
 };

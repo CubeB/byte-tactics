@@ -28,7 +28,7 @@
 //    searches, `base[1].field_28`, focusName searched with a `while` and
 //    `i < entry->count + 1`, the Menu field at +0x60 as a second field
 //    (field_64 at +0x64), `if (ret == 1) { ...; return layer; }` with the
-//    free path last, and FUN_004c13a0 declared `(int, int)` with a zeroed
+//    free path last, and SetTextColors declared `(int, int)` with a zeroed
 //    `unsigned int v` before the byte load.
 //
 // Suspected original bug: when FUN_004bbc40(layerName) returns 0 (GUI file
@@ -96,9 +96,9 @@ struct Menu_004aa8f0 {
 
 #pragma pack(pop)
 
-extern void __stdcall FUN_004bf4d0(int handle, int* rect, int mode);
-extern char* __stdcall FUN_004bb150(char* path);
-extern char* __stdcall FUN_004baff0(char* out, char* in, char* ext);
+extern void __stdcall FadeRectangle(int handle, int* rect, int mode);
+extern char* __stdcall StripPath(char* path);
+extern char* __stdcall ChangeExtension(char* out, char* in, char* ext);
 extern int __stdcall FUN_004bbc40(char* path);
 extern void* __cdecl FUN_004d83b0(const char* path, unsigned int size);
 extern int __stdcall FUN_004aeac0(void* entry, char* path);
@@ -108,9 +108,9 @@ extern void __cdecl FUN_004c2470(void);
 extern void __cdecl FUN_004c2870(void);
 extern void __stdcall FUN_004a7960(Menu_004aa8f0* menu, int value);
 extern void __stdcall FUN_0049fc50(Menu_004aa8f0* menu, int value);
-extern int __cdecl FUN_004c13f0(void);
-extern void __stdcall FUN_004c13a0(int a, int b);
-extern void __stdcall FUN_004c1420(int a);
+extern int __cdecl GetTextKeyColor(void);
+extern void __stdcall SetTextColors(int a, int b);
+extern void __stdcall SetFont(int a);
 extern void __cdecl FUN_004c1a40(void);
 extern void __stdcall FUN_004ab6c0(Menu_004aa8f0* menu, int a, char* text,
                                    int maxLength, int clear);
@@ -152,18 +152,18 @@ Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name,
             }
             rect[2] = rect[0] + e->w - 1;
             rect[3] = rect[1] + e->h - 1;
-            FUN_004bf4d0(cur->entries->handle, rect, -0x18);
+            FadeRectangle(cur->entries->handle, rect, -0x18);
             if (menu->layer != 0)
                 menu->layer->field_14 = 1;
         } else {
-            FUN_004bf4d0(0, 0, -0x18);
+            FadeRectangle(0, 0, -0x18);
         }
     }
     strncpy(layerName, menu->name, 0x100);
     strcat(layerName, name);
     strncpy(guiName, name, 0x100);
-    FUN_004bb150(guiName);
-    FUN_004baff0(layerName, layerName, "GUI");
+    StripPath(guiName);
+    ChangeExtension(layerName, layerName, "GUI");
     if (FUN_004bbc40(layerName) != 0) {
         int mask = flags & 0x200;
         if (mask != 0) {
@@ -283,10 +283,10 @@ Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name,
         if (entry->count == 1 && ((char*)entry)[0x15b] == 3) {
         Entry_004aa8f0* base = menu->layer->entries;
         Entry_004aa8f0* sub = &base[1];
-        int r = FUN_004c13f0();
+        int r = GetTextKeyColor();
         unsigned int v = 0;
         v = menu->field_8b2[sub->field_1f];
-        FUN_004c13a0(v, r);
+        SetTextColors(v, r);
         int i = 0;
         int j;
         int n = base->count + 1;
@@ -295,13 +295,13 @@ Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name,
                 continue;
             }
             if (i == base[1].field_28) {
-                FUN_004c1420(*(int*)((char*)&base[j] + 0xd6));
+                SetFont(*(int*)((char*)&base[j] + 0xd6));
                 break;
             }
             i++;
         }
         if (j == base->count + 1)
-            FUN_004c1420(*DAT_0051fba4);
+            SetFont(*DAT_0051fba4);
         FUN_0049fc50(menu, 1);
         menu->layer->field_20 = 1;
         FUN_004ab6c0(menu, 1, (char*)sub + 0xb6,

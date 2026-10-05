@@ -16,7 +16,7 @@ struct Bitmap_004b8e50 {
 };
 
 // FUNCTION: 0x4b8e50
-void __stdcall FUN_004b8e50(Bitmap_004b8e50* b, int color)
+void __stdcall ClearFrame(Bitmap_004b8e50* b, int color)
 {
     if (b->locked == 0) {
         memset(b->plane0, color, b->width * b->height);

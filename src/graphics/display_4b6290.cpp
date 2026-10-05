@@ -10,13 +10,13 @@ struct App_004b6290 {
     HWND hwnd;                         // +0x40
 };
 
-extern App_004b6290* DAT_0051fbd0;
+extern App_004b6290* g_display;
 
 // FUNCTION: 0x4b6290
-void __stdcall FUN_004b6290(char* message)
+void __stdcall FatalError(char* message)
 {
     if (message) {
-        MessageBoxA(DAT_0051fbd0->hwnd, message, DAT_0051fbd0->title, MB_ICONHAND | MB_SYSTEMMODAL);
+        MessageBoxA(g_display->hwnd, message, g_display->title, MB_ICONHAND | MB_SYSTEMMODAL);
     }
     exit(1);
 }

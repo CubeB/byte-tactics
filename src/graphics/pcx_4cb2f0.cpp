@@ -21,7 +21,7 @@ struct List_004cb2f0 {
 };
 
 // FUNCTION: 0x4cb2f0
-int __stdcall FUN_004cb2f0(Table_004cb2f0* table, List_004cb2f0* list)
+int __stdcall AveragePrimitiveY(Table_004cb2f0* table, List_004cb2f0* list)
 {
     int sum = 0;
     int n = list->count;

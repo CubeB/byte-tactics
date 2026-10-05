@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Steps one 32-byte record of the kind Class_00474cd0 keeps in its vector
+// Steps one 32-byte record of the kind SmokeParticles keeps in its vector
 // (0x471cc0.cpp lists that family; 0x475340 inlines this same step): advances
 // three cursors by the game's per-tick counts and, when the countdown runs
 // out, counts one more round and restarts the countdown at half the period
@@ -34,11 +34,11 @@ struct Class_00474b00 {
     int period;                        // +0x18
     int countdown;                     // +0x1c
 
-    void FUN_00474b00();
+    void Step();
 };
 
 // FUNCTION: 0x474b00
-void Class_00474b00::FUN_00474b00()
+void Class_00474b00::Step()
 {
     cursor1 += g_game->count1;
     cursor2 += g_game->count2;

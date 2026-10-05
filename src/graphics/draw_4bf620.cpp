@@ -7,19 +7,19 @@ struct Rect_004bf620 {
     int bottom;                        // +0xc
 };
 
-class Class_004c6ae0 {
+class Surface {
 public:
     char unknown_0[0x1c];
     Rect_004bf620 field_1c;            // +0x1c
 
-    Rect_004bf620* FUN_004c6ae0(Rect_004bf620* out);
+    Rect_004bf620* GetClipRect(Rect_004bf620* out);
 };
 
 // FUNCTION: 0x4bf620
-int __stdcall FUN_004bf620(Class_004c6ae0* surface, Rect_004bf620* r)
+int __stdcall ClipRectangle(Surface* surface, Rect_004bf620* r)
 {
     Rect_004bf620 local;
-    surface->FUN_004c6ae0(&local);
+    surface->GetClipRect(&local);
     if (r->right < local.left)
         return 0;
     if (r->left > local.right)

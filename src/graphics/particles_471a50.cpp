@@ -38,7 +38,7 @@
 
 class Class_00470eb0 {                 // the pool's allocation method
 public:
-    void* FUN_00470eb0(unsigned int size);
+    void* AllocSlot(unsigned int size);
 };
 
 // The object pool (see 0x470ae0.cpp); its method returns the object to the
@@ -46,20 +46,20 @@ public:
 class Class_00470ed0 {
 public:
     char unknown_0[4];
-    void FUN_00470ed0(void* p);
+    void FreeSlot(void* p);
 };
 
 extern Class_00470ed0 DAT_0051e610;
 extern char DAT_0051e608;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
-class Class_00471cc0 {
+class ParticleSystem {
 public:
     int field_4;                                        // +0x4
 
-    Class_00471cc0();
-    virtual ~Class_00471cc0();                          // slot 0
-    virtual void FUN_00472d50() = 0;                    // slot 1
+    ParticleSystem();
+    virtual ~ParticleSystem();                          // slot 0
+    virtual void Update() = 0;                          // slot 1
     virtual void FUN_00472e30(int) = 0;                 // slot 2
     virtual int FUN_00472e70() = 0;                     // slot 3
 
@@ -67,7 +67,7 @@ public:
     {
         if (DAT_0051e608)
             return 0;
-        void* p = ((Class_00470eb0*)&DAT_0051e610)->FUN_00470eb0(size);
+        void* p = ((Class_00470eb0*)&DAT_0051e610)->AllocSlot(size);
         if (p)
             memset(p, 0, size);
         return p;
@@ -75,7 +75,7 @@ public:
 
     static void __stdcall operator delete(void* p)
     {
-        DAT_0051e610.FUN_00470ed0(p);
+        DAT_0051e610.FreeSlot(p);
     }
 };
 
@@ -96,17 +96,17 @@ struct Record_004750b0 {
 };
 
 // Vtable 0x4fd638, constructor 0x4750b0, ??_G 0x475110; 0x34 bytes.
-class Class_004750b0 : public Class_00471cc0 {
+class Class_004750b0 : public ParticleSystem {
 public:
     int time;                                           // +0x8
     std::vector<Record_004750b0> records;               // +0xc (_First +0x10)
     char unknown_1c[0x34 - 0x1c];
 
     Class_004750b0();
-    virtual void FUN_00472d50();                        // slot 1, 0x475600
+    virtual void Update();                              // slot 1, 0x475600
     virtual void FUN_00472e30(int);                     // slot 2, 0x475700
     virtual int FUN_00472e70();                         // slot 3, 0x475330
-    virtual void FUN_004751c0();                        // slot 4, 0x4751c0
+    virtual void Emit();                                // slot 4, 0x4751c0
     virtual int FUN_004750f0();                         // slot 5, 0x4750f0
     virtual void FUN_00475150(Vec3_00475150* p, int a, int b, int c);  // slot 6
 };

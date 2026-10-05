@@ -25,13 +25,13 @@ public:
     int val_30;               // +0x30
     int mod_34;               // +0x34
 
-    void FUN_00474130();
+    void Step();
 };
 
 // The three adds are an inlined vector operator+=: written as plain
 // statements, MSVC sinks the third store past the load of val_30.
 // FUNCTION: 0x474130
-void Class_00474130::FUN_00474130()
+void Class_00474130::Step()
 {
     pos += vel;
     val_30 = (val_30 + 1) % mod_34;

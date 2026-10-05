@@ -24,7 +24,7 @@ struct Class_004c6a60 {
 };
 
 // FUNCTION: 0x4c6a60
-void __stdcall FUN_004c6a60(Class_004c6a60* s, int width, int height, int a, int b)
+void __stdcall InitSurface(Class_004c6a60* s, int width, int height, int a, int b)
 {
     s->width = width;
     s->height = height;

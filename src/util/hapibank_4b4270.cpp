@@ -47,7 +47,7 @@ int __stdcall FUN_004d1970(void* dest, void* src);
 char* __stdcall FUN_004d1c60(int code);
 void* __cdecl FUN_004d8580(void* ptr, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
-void __stdcall FUN_004b6290(char* message);
+void __stdcall FatalError(char* message);
 
 struct Entry_004b4270 {           // 0x14 bytes, one box of a section
     int used;                     // +0x00
@@ -196,7 +196,7 @@ void Class_004b3770::FUN_004b4270(File_004b4270* fh, int* image, char* name)
             if (err != 0) {
                 sprintf(message, "[HapiBank::LoadAccount] Decompression Error: %s\nFile: %s",
                         FUN_004d1c60(err), fh->name);
-                FUN_004b6290(message);
+                FatalError(message);
             }
             FUN_004d85a0(tmp);
         } else {

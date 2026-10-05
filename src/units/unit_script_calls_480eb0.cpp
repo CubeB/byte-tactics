@@ -4,7 +4,7 @@
 //
 // First the unit's visibility against the local player's map is tested; if the
 // unit is not visible nothing happens. Otherwise the unit's state is snapped
-// (FUN_0045ab10) and a two-position record is built: with bit 0x100 of `b`
+// (UpdateObjectState) and a two-position record is built: with bit 0x100 of `b`
 // set, only one position is needed, otherwise two (the second from the six
 // dwords the entry's +0xc pointer aims at). The message id `b` then selects
 // which list-append helper receives the pair.
@@ -51,12 +51,12 @@ struct Data_00480eb0 {
 extern Game* g_game;
 
 int __stdcall FUN_00465ac0(Player_00480eb0* player, Unit* unit);
-void __stdcall FUN_0045ab10(Unit* unit);
-void __stdcall FUN_00472330(int, int, int, int, short);
-void __stdcall FUN_00472430(int, int, int, short);
-void __stdcall FUN_00472530(int, int, int, short);
-void __stdcall FUN_00472810(int, short);
-void __stdcall FUN_004728f0(int, short);
+void __stdcall UpdateObjectState(Unit* unit);
+void __stdcall EmitThrustParticles(int, int, int, int, short);
+void __stdcall EmitWakeParticles(int, int, int, short);
+void __stdcall EmitBubbles(int, int, int, short);
+void __stdcall EmitWhiteSmoke(int, short);
+void __stdcall EmitBlackSmoke(int, short);
 
 class UnitScript {
 public:
@@ -71,7 +71,7 @@ void UnitScript::EmitSfx(int a, int b)
 {
     if (!FUN_00465ac0(&g_game->players[g_game->playerIndex], data->unit))
         return;
-    FUN_0045ab10(data->unit);
+    UpdateObjectState(data->unit);
 
     Vec3_00480eb0 v1;
     Vec3_00480eb0 v2;
@@ -97,35 +97,35 @@ void UnitScript::EmitSfx(int a, int b)
 
     switch (b) {
     case 0:
-        FUN_00472330((int)&v1, (int)&v2, 1, 6, 7);
+        EmitThrustParticles((int)&v1, (int)&v2, 1, 6, 7);
         break;
     case 1:
-        FUN_00472330((int)&v1, (int)&v2, 1, 7, 7);
+        EmitThrustParticles((int)&v1, (int)&v2, 1, 7, 7);
         break;
     case 2:
-        FUN_00472430((int)&v1, (int)&v2, 0x10, 2);
+        EmitWakeParticles((int)&v1, (int)&v2, 0x10, 2);
         break;
     case 3:
-        FUN_00472430((int)&v1, (int)&v2, 8, 2);
+        EmitWakeParticles((int)&v1, (int)&v2, 8, 2);
         break;
     case 4:
-        FUN_00472430((int)&v2, (int)&v1, 0x10, 2);
+        EmitWakeParticles((int)&v2, (int)&v1, 0x10, 2);
         break;
     case 5:
-        FUN_00472430((int)&v2, (int)&v1, 8, 2);
+        EmitWakeParticles((int)&v2, (int)&v1, 8, 2);
         break;
     case 0x101:
-        FUN_00472810((int)&v1, 9);
+        EmitWhiteSmoke((int)&v1, 9);
         break;
     case 0x102:
-        FUN_004728f0((int)&v1, 9);
+        EmitBlackSmoke((int)&v1, 9);
         break;
     case 0x103:
         v2.x = v1.x;
         v2.y = v1.y;
         v2.z = v1.z;
         v2.y = g_game->limitY << 16;
-        FUN_00472530((int)&v1, (int)&v2, 8, 7);
+        EmitBubbles((int)&v1, (int)&v2, 8, 7);
         break;
     }
 }

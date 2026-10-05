@@ -123,8 +123,8 @@ extern Guid_00441460 DAT_004fcdb8;
 char* __stdcall FUN_004c5740(const char* text);
 void __stdcall FUN_004abd90(Sub_00441460* sub, char* text, int a, int b, int c);
 void __stdcall FUN_004ab170(Sub_00441460* sub, int a, int b);
-void __stdcall FUN_004c69a0(int a);
-void FUN_004c63a0();
+void __stdcall SetOffscreenSurface(int a);
+void FlipScreen();
 int __stdcall HAPINET_getgames(char* net, void* desc, int a);
 void __stdcall FUN_004a9660(Sub_00441460* sub);
 void __stdcall FUN_004a32a0(Sub_00441460* sub, const char* name, char* text, int count, int flag);
@@ -173,9 +173,9 @@ conn:
 shown:
     FUN_004abd90(&g_game->sub, FUN_004c5740(msg), 0x96, 0, 1);
     FUN_004ab170(&g_game->sub, g_game->field_37e1b, 0);
-    FUN_004c69a0(g_game->field_37e1b);
-    FUN_004c63a0();
-    FUN_004c63a0();
+    SetOffscreenSurface(g_game->field_37e1b);
+    FlipScreen();
+    FlipScreen();
 
     count = HAPINET_getgames((char*)&g_game->unknown_14, g_game->desc, 0);
     FUN_004a9660(&g_game->sub);

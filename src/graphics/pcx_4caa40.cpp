@@ -55,7 +55,7 @@ static inline void FUN_row(void* file, unsigned char* p, int x)
 }
 
 // FUNCTION: 0x4caa40
-int __stdcall FUN_004caa40(void* file, PCX_004caa40* pcx)
+int __stdcall DecodePcx(void* file, PCX_004caa40* pcx)
 {
     unsigned char header[0x80];
     memset(pcx, 0, 16);

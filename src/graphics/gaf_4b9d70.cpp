@@ -72,7 +72,7 @@ struct Image_004b9d70 {
 // skipping source pixels equal to the source colour key and writing the
 // destination colour key.
 // FUNCTION: 0x4b9d70
-void __stdcall FUN_004b9d70(Image_004b9d70* src, Image_004b9d70* dst, int x, int y)
+void __stdcall CutOutFrame(Image_004b9d70* src, Image_004b9d70* dst, int x, int y)
 {
     int srcCol, dstCol, srcRow, dstRow;
     x += src->x - dst->x;

@@ -1,7 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // If the local player's info has bit 0 of +0x97 set, sends a one-byte
 // message 8 to its id; otherwise, with bit 4 of +0x2b4c set, calls
-// SendNetHeartbeat once FUN_004b6340() passes DAT_0051f304 (then 0x3c later).
+// SendNetHeartbeat once GetTicks() passes DAT_0051f304 (then 0x3c later).
 // Every path then switches to state 5 (FUN_00497f40).
 //
 // Each branch has its own copy of the state change; MSVC merges the first two
@@ -45,10 +45,10 @@ extern Game* g_game;
 extern int DAT_0051f304;
 
 int __stdcall BroadcastPacket(int player, void* data, int size);
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 void SendNetHeartbeat();
 void FUN_00497f40();
-void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
+void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __cdecl LeaveNetGameCallback(int param);
 
 // FUNCTION: 0x496ce0
@@ -61,18 +61,18 @@ void FUN_00496ce0()
         BroadcastPacket(p->dpid, &msg, 1);
         g_game->mode = 5;
         g_game->handler = FUN_00497f40;
-        FUN_004b4fd0(LeaveNetGameCallback, 0);
+        SetCloseHandler(LeaveNetGameCallback, 0);
     } else if (g_game->flags_2b4c.flag) {
-        if (DAT_0051f304 < FUN_004b6340()) {
-            DAT_0051f304 = FUN_004b6340() + 0x3c;
+        if (DAT_0051f304 < GetTicks()) {
+            DAT_0051f304 = GetTicks() + 0x3c;
             SendNetHeartbeat();
         }
         g_game->mode = 5;
         g_game->handler = FUN_00497f40;
-        FUN_004b4fd0(LeaveNetGameCallback, 0);
+        SetCloseHandler(LeaveNetGameCallback, 0);
     } else {
         g_game->mode = 5;
         g_game->handler = FUN_00497f40;
-        FUN_004b4fd0(LeaveNetGameCallback, 0);
+        SetCloseHandler(LeaveNetGameCallback, 0);
     }
 }

@@ -24,11 +24,11 @@ public:
         return data;
     }
 
-    Class_004c9290* FUN_004c9290();
+    Class_004c9290* MakeLower();
 };
 
 // FUNCTION: 0x4c9290
-Class_004c9290* Class_004c9290::FUN_004c9290()
+Class_004c9290* Class_004c9290::MakeLower()
 {
     _strlwr(GetUnique());
     return this;

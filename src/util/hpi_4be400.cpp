@@ -235,7 +235,7 @@ struct Display_004be400 {
 };
 #pragma pack(pop)
 
-Display_004be400* FUN_004b6220();
+Display_004be400* GetDisplay();
 Entry_004be400* __stdcall FUN_004bb4e0(Table_004be400* table, char* name);
 int __stdcall FUN_004bc4b0(const char* path, struct _finddata_t* fd, int state, char recursive);
 int __stdcall FUN_004bc640(int handle, struct _finddata_t* fd);
@@ -244,7 +244,7 @@ void __cdecl FUN_004d85a0(void* p);
 // FUNCTION: 0x4be400
 void __stdcall FUN_004be400(char* path, int state, int recursive)
 {
-    Display_004be400* d = FUN_004b6220();
+    Display_004be400* d = GetDisplay();
     char buf[0x100];
     struct _finddata_t fd;
     int i;

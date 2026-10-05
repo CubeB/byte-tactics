@@ -53,7 +53,7 @@
 // Always read the byte count in the check.py header, not just the percentage.
 // GPT-6-Luna tested alternate operand and store orders. Both scored below
 // this file's 93.7% best, so the prior source shape is retained.
-// Draws one labelled bar: FUN_004c1450 returns the current text line height
+// Draws one labelled bar: GetFontHeight returns the current text line height
 // (c); the empty bar is outlined in white, the label is drawn, then the fill
 // bar for g_game->values[index] is drawn at 100/total scale.
 //
@@ -131,25 +131,25 @@ struct Game {
 
 extern Game* g_game;
 
-int FUN_004c1450();
-void __stdcall FUN_004bf8c0(int surface, Rect_0046b900* rect, int color);
-void __stdcall FUN_004c14f0(int surface, const char* text, int x, int y, int maxWidth);
-void __stdcall FUN_004bf6f0(int surface, Rect_0046b900* rect, int color);
+int GetFontHeight();
+void __stdcall DrawRectangle(int surface, Rect_0046b900* rect, int color);
+void __stdcall DrawString(int surface, const char* text, int x, int y, int maxWidth);
+void __stdcall FillRectangle(int surface, Rect_0046b900* rect, int color);
 
 // FUNCTION: 0x46b900
 void __stdcall FUN_0046b900(int surface, const char* text, int index)
 {
     Rect_0046b900 rect;
     int x = g_game->width - 0x5a;
-    int c = FUN_004c1450();
+    int c = GetFontHeight();
 
     rect.a = x - 0xc8;
     rect.c = 0x27f;
     rect.b = 0x26;
     rect.d = c * 9 + 0x29;
-    FUN_004bf8c0(surface, &rect, 0xff);
+    DrawRectangle(surface, &rect, 0xff);
 
-    FUN_004c14f0(surface, text, x + 5, c * index + 0x28, -1);
+    DrawString(surface, text, x + 5, c * index + 0x28, -1);
 
     int w = g_game->values[index] * 100 / g_game->total * 2;
     rect.a = x - w;
@@ -157,5 +157,5 @@ void __stdcall FUN_0046b900(int surface, const char* text, int index)
     rect.d = c * index + 0x28;
     rect.b = rect.d;
     rect.d = rect.d + c;
-    FUN_004bf6f0(surface, &rect, index + 1);
+    FillRectangle(surface, &rect, index + 1);
 }

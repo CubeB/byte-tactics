@@ -15,7 +15,7 @@ struct ModeList_004b5330 {
 };
 
 // FUNCTION: 0x4b5330
-HRESULT __stdcall FUN_004b5330(DDSURFACEDESC* desc, void* context)
+HRESULT __stdcall EnumModesCallback(DDSURFACEDESC* desc, void* context)
 {
     ModeList_004b5330* list = (ModeList_004b5330*)context;
     Mode_004b5330* mode = &list->modes[list->count];

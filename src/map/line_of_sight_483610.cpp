@@ -71,12 +71,12 @@ public:
 
 int* __stdcall FUN_00429660(int* file);
 int __cdecl sprintf(char* buf, const char* fmt, ...);
-void __stdcall FUN_004b6290(char* message);
+void __stdcall FatalError(char* message);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* block);
-void* __stdcall FUN_004b8da0(const char* name, int width, int height);
-void __stdcall FUN_004b8a80(void* dst, void* src);
-void __stdcall FUN_004b7f90(void* surface, void* header, int x, int y);
+void* __stdcall AllocFrame(const char* name, int width, int height);
+void __stdcall SurfaceFromFrame(void* dst, void* src);
+void __stdcall DrawFrame(void* surface, void* header, int x, int y);
 void __stdcall FUN_00421f20(int* info);
 void* __stdcall FUN_00423c50(void* target, unsigned short id, void* pos, void* field_64, unsigned char owner);
 void __stdcall FUN_00423160();
@@ -142,7 +142,7 @@ void FUN_00483610()
         break;
     default:
         sprintf(text, "Unknown TNT version:  0x%08x", info.version);
-        FUN_004b6290(text);
+        FatalError(text);
         break;
     }
     // REGION r1 end
@@ -186,9 +186,9 @@ void FUN_00483610()
         pic.zero0 = 0;
         pic.data = info.feature_data + 4;
         pic.zero1 = 0;
-        *(void**)(DAT_00511de8 + 0x1426b) = FUN_004b8da0("TED GENERATED PIC", *(int*)info.feature_data, *(int*)(info.feature_data + 2));
-        FUN_004b8a80(text, *(void**)(DAT_00511de8 + 0x1426b));
-        FUN_004b7f90(text, &pic, 0, 0);
+        *(void**)(DAT_00511de8 + 0x1426b) = AllocFrame("TED GENERATED PIC", *(int*)info.feature_data, *(int*)(info.feature_data + 2));
+        SurfaceFromFrame(text, *(void**)(DAT_00511de8 + 0x1426b));
+        DrawFrame(text, &pic, 0, 0);
     } else {
         *(int*)(DAT_00511de8 + 0x1426b) = 0;
     }

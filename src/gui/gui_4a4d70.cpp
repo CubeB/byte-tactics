@@ -5,13 +5,13 @@
 // vertical line) after the text up to the cursor position.
 //
 // What it took, in order of weight:
-//  1. FUN_004be950's colour parameter is `int`, as in 0x4be950 itself and in
+//  1. DrawLine's colour parameter is `int`, as in 0x4be950 itself and in
 //     the matched siblings 0x4a4c90 and 0x4a56b0. The old `unsigned char`
 //     declaration (with an `int colour` local to get the zero extension) was
 //     a local optimum at 99.1% that could never fix the cursor call's surface
 //     load.
 //  2. Every glyph fetch goes through one inline helper, GetGlyph, which wraps
-//     FUN_004b7f30 on the current language's glyph table. Used for the line
+//     GetGafFrame on the current language's glyph table. Used for the line
 //     height, it is what keeps the text width in esi (so the zero register
 //     appears in the inlined Measure) while the glyph table still loads into
 //     ecx; spelling the height fetch out in full gives 87.9% with this
@@ -88,23 +88,23 @@ struct LanguageRoot_004a4d70 {
 
 extern LanguageRoot_004a4d70* DAT_0051fba4;
 
-void __stdcall FUN_004c1420(int id);
-int FUN_004c1440();
-int __stdcall FUN_004c1480(int font, char* text);
-int FUN_004c1450();
-int __stdcall FUN_004b7f30(unsigned short* glyphs, int c);
-void __stdcall FUN_004c13a0(int colour, int font);
-int FUN_004c13f0();
+void __stdcall SetFont(int id);
+int GetFont();
+int __stdcall GetTextWidth(int font, char* text);
+int GetFontHeight();
+int __stdcall GetGafFrame(unsigned short* glyphs, int c);
+void __stdcall SetTextColors(int colour, int font);
+int GetTextKeyColor();
 int __stdcall FUN_004b0230(Class_004a4d70* obj, int index, void* bmp);
-void __stdcall FUN_004c6d20(void* dst, void* src, Rect_004a4d70* rect, int* pos);
-int __stdcall FUN_004bf6f0(void* surface, Rect_004a4d70* rect, int colour);
+void __stdcall CopySurfaceRect(void* dst, void* src, Rect_004a4d70* rect, int* pos);
+int __stdcall FillRectangle(void* surface, Rect_004a4d70* rect, int colour);
 int __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2,
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int colour);
 
 static inline Glyph_004a4d70* GetGlyph_004a4d70(unsigned char c)
 {
-    return (Glyph_004a4d70*)FUN_004b7f30(DAT_0051fba4->language->glyphs, c);
+    return (Glyph_004a4d70*)GetGafFrame(DAT_0051fba4->language->glyphs, c);
 }
 
 static inline int Measure_004a4d70(char* text)
@@ -114,7 +114,7 @@ static inline int Measure_004a4d70(char* text)
     if (p == 0)
         return 0;
     if (DAT_0051fba4->language == 0)
-        return FUN_004c1480(FUN_004c1440(), text);
+        return GetTextWidth(GetFont(), text);
     char* q = text;
     while (*q != 0) {
         char ch = *q;
@@ -135,14 +135,14 @@ void __stdcall FUN_004a4d70(Class_004a4d70* obj, int index)
     for (; i < entries->b6.count + 1; i++) {
         if (entries[i].type == 7) {
             if (t == entries[index].tab) {
-                FUN_004c1420(entries[i].language);
+                SetFont(entries[i].language);
                 break;
             }
             t++;
         }
     }
     if (i == entries->b6.count + 1)
-        FUN_004c1420(DAT_0051fba4->current);
+        SetFont(DAT_0051fba4->current);
 
     Entry_004a4d70* me = &entries[index];
 
@@ -158,7 +158,7 @@ void __stdcall FUN_004a4d70(Class_004a4d70* obj, int index)
     rect.bottom = me->h + rect.top - 1;
 
     if (me->align & 1) {
-        FUN_004bf6f0(entries->surface, &rect, obj->colours[0]);
+        FillRectangle(entries->surface, &rect, obj->colours[0]);
     } else {
         void* surface = obj->holder->surface;
         if (surface == 0)
@@ -166,11 +166,11 @@ void __stdcall FUN_004a4d70(Class_004a4d70* obj, int index)
         if (surface == 0) {
             FUN_004b0230(obj, index, 0);
         } else {
-            FUN_004c6d20(entries->surface, surface, &rect, (int*)&rect);
+            CopySurfaceRect(entries->surface, surface, &rect, (int*)&rect);
         }
     }
 
-    FUN_004c13a0(obj->colours[me->colours], FUN_004c13f0());
+    SetTextColors(obj->colours[me->colours], GetTextKeyColor());
     rect.top += 3;
     // The style is read as entries[index].colours rather than me->colours:
     // sharing one load with the colour read above swaps the SIB registers of
@@ -186,10 +186,10 @@ void __stdcall FUN_004a4d70(Class_004a4d70* obj, int index)
         *at = save;
         int height;
         if (DAT_0051fba4->language == 0)
-            height = FUN_004c1450();
+            height = GetFontHeight();
         else
             height = GetGlyph_004a4d70(0x49)->height + 2;
         int x = rect.left + w;
-        FUN_004be950(entries->surface, x, rect.top, x, height + rect.top, obj->colours[9]);
+        DrawLine(entries->surface, x, rect.top, x, height + rect.top, obj->colours[9]);
     }
 }

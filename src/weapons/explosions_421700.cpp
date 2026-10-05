@@ -164,7 +164,7 @@ int __stdcall FUN_004b6c30(int range);
 Vec3f_00421700 __stdcall FUN_004b6eb0(Vec3f_00421700 from, Vec3f_00421700 to);
 Vec3f_00421700 __stdcall FUN_004b6f70(Vec3f_00421700 a, Vec3f_00421700 b);
 Vec3f_00421700 __stdcall FUN_004b6ff0(Vec3f_00421700 v);
-int __stdcall FUN_004b7f30(unsigned short* list, int index);
+int __stdcall GetGafFrame(unsigned short* list, int index);
 
 #define FIX2F(x) (((float)(x)) / 65535.0f)
 // FUN_00420920, inlined
@@ -269,7 +269,7 @@ void __stdcall FUN_00421700(Header_00421700* param)
                 o->prims[m].color = desc->prims[i].color;
                 int flags = o->prims[m].flags;
                 if (!(flags & 1) && (flags & 2) && (flags & 4)) {
-                    o->prims[m].tex.tex = FUN_004b7f30(o->prims[m].tex.texlist, unit->owner->player->color);
+                    o->prims[m].tex.tex = GetGafFrame(o->prims[m].tex.texlist, unit->owner->player->color);
                     o->prims[m].flags &= ~2;
                 }
             }

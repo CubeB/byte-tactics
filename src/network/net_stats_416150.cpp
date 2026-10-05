@@ -13,12 +13,12 @@ extern unsigned int g_byteRatesTick;
 extern unsigned int g_bytesSentPerSecond;
 extern unsigned int g_bytesReceivedPerSecond;
 
-unsigned int __cdecl FUN_004b6340();
+unsigned int __cdecl GetTicks();
 
 // FUNCTION: 0x416150
 void __stdcall GetByteRates(unsigned int* sent, unsigned int* received)
 {
-    unsigned int now = FUN_004b6340();
+    unsigned int now = GetTicks();
     unsigned int elapsed = now - g_byteRatesTick;
     if (elapsed > 30) {
         g_byteRatesTick = now;

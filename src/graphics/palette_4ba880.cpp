@@ -6,7 +6,7 @@
 #include <windows.h>
 
 // FUNCTION: 0x4ba880
-unsigned char __stdcall FUN_004ba880(PALETTEENTRY* palette, PALETTEENTRY color)
+unsigned char __stdcall NearestColor(PALETTEENTRY* palette, PALETTEENTRY color)
 {
     int best = 1000000000;
     unsigned char bestIndex;

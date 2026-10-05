@@ -75,26 +75,26 @@ struct Game {
 extern Game* g_game;
 extern int DAT_0051e540;
 
-int FUN_004c13f0();
-void __stdcall FUN_004c13a0(int param_1, int param_2);
-void __stdcall FUN_004c1420(int param_1);
-int FUN_004c1450();
+int GetTextKeyColor();
+void __stdcall SetTextColors(int param_1, int param_2);
+void __stdcall SetFont(int param_1);
+int GetFontHeight();
 int FUN_004c6b60();
 int __stdcall FUN_0040bb00(int player, unsigned short type);
-void __stdcall FUN_004bf4d0(void* surface, void* rect, int level);
-void __stdcall FUN_004bf8c0(void* surface, void* rect, int color);
-void __stdcall FUN_004bf6f0(void* surface, void* rect, int color);
-void __stdcall FUN_004c14f0(void* dst, const char* text, int x, int y, int maxWidth);
+void __stdcall FadeRectangle(void* surface, void* rect, int level);
+void __stdcall DrawRectangle(void* surface, void* rect, int color);
+void __stdcall FillRectangle(void* surface, void* rect, int color);
+void __stdcall DrawString(void* dst, const char* text, int x, int y, int maxWidth);
 
 
 static void Bar_004685a0(void* surface, Rect_004685a0* rect, int percent)
 {
     unsigned char& color = g_game->colors[15];
-    FUN_004bf8c0(surface, rect, color);
+    DrawRectangle(surface, rect, color);
     percent = (percent >= 100) ? 100 : percent;
     if (percent > 0) {
         rect->right = (rect->right - rect->left) * percent / 100 + rect->left;
-        FUN_004bf6f0(surface, rect, color);
+        FillRectangle(surface, rect, color);
     }
 }
 
@@ -110,9 +110,9 @@ int __stdcall FUN_004685a0(void* surface)
         g_game->f_391b7 = 0;
     }
     unsigned char* colors = g_game->colors;
-    FUN_004c13a0(colors[15], FUN_004c13f0());
-    FUN_004c1420(g_game->f_391f9);
-    int lineHeight = FUN_004c1450() + 3;
+    SetTextColors(colors[15], GetTextKeyColor());
+    SetFont(g_game->f_391f9);
+    int lineHeight = GetFontHeight() + 3;
     int y = lineHeight * 3;
     FUN_004c6b60();
     Rect_004685a0 r;
@@ -123,18 +123,18 @@ int __stdcall FUN_004685a0(void* surface)
         r.bottom = lineHeight * 20;
     else
         r.bottom = DAT_0051e540;
-    FUN_004bf4d0(surface, &r, -0x18);
+    FadeRectangle(surface, &r, -0x18);
     r.right++;
     r.bottom++;
-    FUN_004bf8c0(surface, &r, colors[5]);
+    DrawRectangle(surface, &r, colors[5]);
     char buf[0x80];
     y += 3;
-    FUN_004c14f0(surface, "Unit Builder Probe", 0x86, y, -1);
+    DrawString(surface, "Unit Builder Probe", 0x86, y, -1);
     y += lineHeight;
-    FUN_004c14f0(surface, "==================", 0x86, y, -1);
+    DrawString(surface, "==================", 0x86, y, -1);
     y += lineHeight;
     sprintf(buf, "uid: %03d '%s'\n", unit->f_a8, (char*)unit->type);
-    FUN_004c14f0(surface, buf, 0x86, y, -1);
+    DrawString(surface, buf, 0x86, y, -1);
     y += lineHeight;
     char* mobile = unit->type->mobile ? "MOBILE" : "BUILDING";
     char* remote;
@@ -143,17 +143,17 @@ int __stdcall FUN_004685a0(void* surface)
     else
         remote = "REMOTE";
     sprintf(buf, "playerno: %d '%s' %s - %s\n", unit->player->player, unit->player->name, remote, mobile);
-    FUN_004c14f0(surface, buf, 0x86, y, -1);
+    DrawString(surface, buf, 0x86, y, -1);
     y += lineHeight;
     sprintf(buf, "controller: %d\n\n", unit->player->controller);
-    FUN_004c14f0(surface, buf, 0x86, y, -1);
+    DrawString(surface, buf, 0x86, y, -1);
     y += lineHeight;
     if (unit->player->f_0 != 0 && (unit->player->controller == 1 || unit->player->controller == 2)) {
         sprintf(buf, "Units I can build, and the probabilities:\n",
                 ((unit->f_1f & 0x10) ? 'X' : '-'),
                 ((unit->f_3b & 0x10) ? 'X' : '-'),
                 ((unit->f_57 & 0x10) ? 'X' : '-'));
-        FUN_004c14f0(surface, buf, 0x86, y, -1);
+        DrawString(surface, buf, 0x86, y, -1);
         int i = 0;
         y += lineHeight;
         if (unit->type->count > 0) {
@@ -169,7 +169,7 @@ int __stdcall FUN_004685a0(void* surface)
                 Bar_004685a0(surface, &bar, prob);
                 char* name = def->name;
                 sprintf(buf, "       %3d %% - '%s'\n", prob, name);
-                FUN_004c14f0(surface, buf, 0x86, y, -1);
+                DrawString(surface, buf, 0x86, y, -1);
                 y += lineHeight;
                 i++;
             } while (i < unit->type->count);

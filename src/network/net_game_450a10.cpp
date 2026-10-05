@@ -85,7 +85,7 @@ int __stdcall HAPINET_getplayername(void* net, unsigned long id, void* data, uns
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall FUN_00464290(unsigned char player, char type);
 void FUN_00450530();
-int FUN_004b6340();
+int GetTicks();
 void __stdcall ReportGameEvent(int param_1);
 
 static inline unsigned char FindSlot_00450a10(int id)
@@ -172,7 +172,7 @@ int __stdcall AddNetPlayer(int param_1)
     FUN_00464290(slot, g_game->players[slot].type);
     p->field_22 = 0;
     p->id = param_1;
-    p->field_1c = FUN_004b6340();
+    p->field_1c = GetTicks();
     g_game->count++;
     if (g_game->flags_2a44 & 1) {
         for (int i = 0; i < 10; i++) {

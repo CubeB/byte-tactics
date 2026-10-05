@@ -14,10 +14,10 @@ void FUN_004257a0();
 void FUN_004c2870();
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall FUN_00429290(char* name, unsigned char* palette);
-void __stdcall FUN_004ba200(unsigned char* palette, int first, int count);
-void __stdcall FUN_004c69a0(int param_1);
-void __stdcall FUN_004c6b70(void* dest, void* image, int x, int y);
-void __stdcall FUN_004c6ac0(void* param_1);
+void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
+void __stdcall SetOffscreenSurface(int param_1);
+void __stdcall DrawSurface(void* dest, void* image, int x, int y);
+void __stdcall FreeSurface(void* param_1);
 
 // FUNCTION: 0x476740
 void __stdcall FUN_00476740(char* name, int lock)
@@ -32,10 +32,10 @@ void __stdcall FUN_00476740(char* name, int lock)
     }
     FUN_004290f0(path, "bitmaps", name, "PCX");
     image = FUN_00429290(name, palette);
-    FUN_004ba200(palette, 0, 0x100);
-    FUN_004c69a0(g_game->field_37e1b);
-    FUN_004c6b70(0, image, 0, 0);
-    FUN_004c6ac0(image);
+    SetPaletteColors(palette, 0, 0x100);
+    SetOffscreenSurface(g_game->field_37e1b);
+    DrawSurface(0, image, 0, 0);
+    FreeSurface(image);
     if (lock) {
         FUN_004c2870();
     }

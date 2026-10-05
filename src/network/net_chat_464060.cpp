@@ -51,9 +51,9 @@ struct Rect_00464060 {
     int left, top, right, bottom;
 };
 
-void __stdcall FUN_004c1420(int);
-void __stdcall FUN_004c13a0(int, int);
-int FUN_004c1450();
+void __stdcall SetFont(int);
+void __stdcall SetTextColors(int, int);
+int GetFontHeight();
 void __stdcall FUN_00467c00(void*, void*, Rect_00464060*, int);
 void __stdcall FUN_004a50e0(void*, void*, int, int, int, int);
 
@@ -72,8 +72,8 @@ void __stdcall DrawMessages(void* surf)
         if (i < 0)
             i = 0x1d;
     }
-    FUN_004c1420(g_game->font);
-    int start = FUN_004c1450();
+    SetFont(g_game->font);
+    int start = GetFontHeight();
     if (g_game->tail == i)
         return;
     int y = 0x34;
@@ -117,13 +117,13 @@ void __stdcall DrawMessages(void* surf)
         }
         if (show) {
             if (g_game->entries[i].flags & 0x20)
-                FUN_004c13a0(g_game->colors[10], 0xfe);
+                SetTextColors(g_game->colors[10], 0xfe);
             else
-                FUN_004c13a0(g_game->colors[15], 0xfe);
+                SetTextColors(g_game->colors[15], 0xfe);
             int height = 138;
             int id = g_game->entries[i].unit;
             if (id != 10) {
-                t = (int)(FUN_004c1450() * 0.8);
+                t = (int)(GetFontHeight() * 0.8);
                 Rect_00464060 r;
                 r.top = y;
                 r.left = 138;

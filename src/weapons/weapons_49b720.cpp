@@ -168,7 +168,7 @@ int __stdcall FUN_0049b520(Proj_0049b720* p, Vec3_0049b720* target);
 void __stdcall FUN_00499eb0(Proj_0049b720* p, void* unit);
 void __stdcall GetWeaponPiecePosition(Unit* unit, Vec3_0049b720* out, unsigned char weapon, int piece);
 int __stdcall FUN_0047f300(int sound, Vec3_0049b720* pos, int flag);
-void __stdcall FUN_00472810(Vec3_0049b720* pos, short kind);
+void __stdcall EmitWhiteSmoke(Vec3_0049b720* pos, short kind);
 Cell_0049b720* __stdcall FUN_004815a0(Vec3_0049b720* pos);
 void __stdcall FUN_00420a30(Vec3_0049b720* pos, void* src, int index, int flag);
 int __stdcall FUN_004b6c30(int range);
@@ -321,7 +321,7 @@ void FUN_0049b720()
                 } else if (type->flags.b.b23) {
                     FUN_00499eb0(p, 0);
                 } else {
-                    FUN_00472810(&p->pos, 9);
+                    EmitWhiteSmoke(&p->pos, 9);
                     Remove(p);
                 }
             } else {
@@ -344,7 +344,7 @@ void FUN_0049b720()
 
         if (!p->flags.dead) {
             if ((type->flags.raw & 0x40000) && p->f46 > g_game->time && p->f4a < g_game->time) {
-                FUN_00472810(&p->pos, 9);
+                EmitWhiteSmoke(&p->pos, 9);
                 p->f4a += type->smokeRate;
             }
             if (oldY > g_game->seaLevel && p->pos.yw.hi <= g_game->seaLevel) {

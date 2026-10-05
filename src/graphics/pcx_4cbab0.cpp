@@ -17,10 +17,10 @@ extern LONG DAT_0052a4e8;
 extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
 
-App_004cbab0* FUN_004b6220(void);
+App_004cbab0* GetDisplay(void);
 void __cdecl FUN_004d8e60(int param_1, int param_2);
-void __stdcall FUN_004b4ff0(App_004cbab0* app);
-void FUN_004c5df0(void);
+void __stdcall ReleaseDirectDraw(App_004cbab0* app);
+void UnlockAllScreens(void);
 
 static inline LONG Lock()
 {
@@ -46,16 +46,16 @@ static inline void Unlock(LONG held)
 }
 
 // FUNCTION: 0x4cbab0
-int __stdcall FUN_004cbab0(int param_1, int param_2)
+int __stdcall ExceptionFilter(int param_1, int param_2)
 {
     FUN_004d8e60(param_1, param_2);
-    App_004cbab0* app = FUN_004b6220();
+    App_004cbab0* app = GetDisplay();
     if (app != 0) {
         LONG held = Lock();
         app->field_1b2 = 0;
-        FUN_004c5df0();
+        UnlockAllScreens();
         Unlock(held);
-        FUN_004b4ff0(app);
+        ReleaseDirectDraw(app);
         if (app->hwnd != 0) {
             SetWindowPos(app->hwnd, (HWND)-2, 0, 0, 0, 0, 0x13);
         }

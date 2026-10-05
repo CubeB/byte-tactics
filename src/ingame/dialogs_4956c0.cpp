@@ -54,7 +54,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004c61b0(int enable);
+int __stdcall SetPageFlipping(int enable);
 
 // FUNCTION: 0x4956c0
 void __stdcall FUN_004956c0(int eventType)
@@ -69,10 +69,10 @@ void __stdcall FUN_004956c0(int eventType)
             g_game->counter_14280 = 0;
         break;
     case 0x50:
-        FUN_004c61b0(1);
+        SetPageFlipping(1);
         break;
     case 0x70:
-        FUN_004c61b0(0);
+        SetPageFlipping(0);
         break;
     case 0x5d: {
         Unit* u = &g_game->units[g_game->field_2cba];

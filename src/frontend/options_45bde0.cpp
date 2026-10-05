@@ -44,7 +44,7 @@ struct Object_0045bde0 {
 extern Game* g_game;
 
 Entry_4a0200* __stdcall FUN_004a0200(Entry_4a0200* entries, char* name);
-void __stdcall FUN_004ba590(float value);
+void __stdcall SetBrightness(float value);
 
 static inline int SliderValue(Entry_4a0200* e)
 {
@@ -55,7 +55,7 @@ static inline int SliderValue(Entry_4a0200* e)
 
 static inline void ApplySound()
 {
-    FUN_004ba590(0.5 - g_game->brightness * -0.041666668f);
+    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
     ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
 }

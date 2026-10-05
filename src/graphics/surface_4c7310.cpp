@@ -23,7 +23,7 @@ struct Info_4c7310 {
     unsigned char* data;
 };
 
-class Class_004c6ae0 {
+class Surface {
 public:
     char unknown_0[8];
     int field_8;
@@ -31,7 +31,7 @@ public:
     char unknown_10[0x1c - 0x10];
     Rect_4c7310 field_1c;                 // +0x1c
 
-    Rect_4c7310* FUN_004c6ae0(Rect_4c7310* out);
+    Rect_4c7310* GetClipRect(Rect_4c7310* out);
 };
 
 void __cdecl FUN_004cd896(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
@@ -40,7 +40,7 @@ void __cdecl FUN_004cd91e(unsigned char* dest, unsigned char* src, int width, in
 void __cdecl FUN_004cd962(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
 
 // FUNCTION: 0x4c7310
-void __stdcall FUN_004c7310(int param_1, int* rect, Class_004c6ae0* surf, Info_4c7310* info)
+void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, Info_4c7310* info)
 {
     unsigned char* dest = (unsigned char*)surf->field_c;
     unsigned char* src = info->data;
@@ -51,7 +51,7 @@ void __stdcall FUN_004c7310(int param_1, int* rect, Class_004c6ae0* surf, Info_4
     int y;
     int x;
 
-    surf->FUN_004c6ae0(&bounds);
+    surf->GetClipRect(&bounds);
     if (rect[0] < bounds.left) {
         rect[2] += rowstep * (bounds.left - rect[0]);
         rect[3] += colstep * (bounds.left - rect[0]);

@@ -24,7 +24,7 @@ struct State_004be180 {
     int numRecords;              // +0x61c
 };
 
-State_004be180* FUN_004b6220(void);
+State_004be180* GetDisplay(void);
 void __cdecl FUN_004d85a0(void* p);
 
 static void FreeRecord_004be180(Record_004be180* p)
@@ -40,7 +40,7 @@ static void FreeRecord_004be180(Record_004be180* p)
 // FUNCTION: 0x4be180
 void FUN_004be180(void)
 {
-    State_004be180* state = FUN_004b6220();
+    State_004be180* state = GetDisplay();
     int i;
     for (i = 0; i < state->numRecords; i++) {
         if (state->records[i]->file == 0) {

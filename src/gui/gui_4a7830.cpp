@@ -54,9 +54,9 @@ struct Class_0051fba4 {
 
 extern Class_0051fba4* DAT_0051fba4;
 
-int FUN_004c13f0();
-void __stdcall FUN_004c13a0(int param_1, int param_2);
-void __stdcall FUN_004c1420(int param_1);
+int GetTextKeyColor();
+void __stdcall SetTextColors(int param_1, int param_2);
+void __stdcall SetFont(int param_1);
 void FUN_004c1a40();
 int __stdcall FUN_0049fc50(Menu_004a7830* obj, int index);
 void __stdcall FUN_004ab6c0(Menu_004a7830* control, int param_2, char* text,
@@ -72,22 +72,22 @@ void __stdcall FUN_004a7830(Menu_004a7830* menu, int index)
         int i = menu->holder->field_20;
         Entry_004a7830* entries = menu->holder->entries;
         Entry_004a7830* entry = &entries[i];
-        int font = FUN_004c13f0();
-        FUN_004c13a0((int)((unsigned char*)entry->colours)[(int)menu + 0x8b2], font);
+        int font = GetTextKeyColor();
+        SetTextColors((int)((unsigned char*)entry->colours)[(int)menu + 0x8b2], font);
 
         int n = 0;
         int j = 1;
         for (; j < entries->data.count + 1; j++) {
             if (entries[j].type == 7) {
                 if (n == entry->group) {
-                    FUN_004c1420(entries[j].data.list.id);
+                    SetFont(entries[j].data.list.id);
                     break;
                 }
                 n++;
             }
         }
         if (j == entries->data.count + 1) {
-            FUN_004c1420(DAT_0051fba4->group);
+            SetFont(DAT_0051fba4->group);
         }
 
         FUN_0049fc50(menu, i);

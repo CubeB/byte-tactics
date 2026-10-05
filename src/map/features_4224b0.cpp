@@ -116,13 +116,13 @@ extern List_004224b0* DAT_00511fb4;
 extern char DAT_005119b8[];
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-void __stdcall FUN_004b6290(char* path);
+void __stdcall FatalError(char* path);
 void* __cdecl FUN_004d84a0(void* p, const char* name, unsigned int size);
 void* __stdcall FUN_0042a2c0(const char* name);
-Gaf_004224b0* __stdcall FUN_004b8c60(char* path);
-Seq_004224b0* __stdcall FUN_004b8d40(Gaf_004224b0* gaf, const char* name);
+Gaf_004224b0* __stdcall LoadGaf(char* path);
+Seq_004224b0* __stdcall FindGafEntry(Gaf_004224b0* gaf, const char* name);
 char* __stdcall FUN_0049e5b0(char* name);
-void __stdcall FUN_004b8b30(Ref_004224b0* ref, Seq_004224b0* src, int index);
+void __stdcall InitGafSequence(Ref_004224b0* ref, Seq_004224b0* src, int index);
 
 // FUN_00422460, inlined
 static inline Class_004c3e10* FindEntry(char* name)
@@ -141,7 +141,7 @@ static inline Seq_004224b0* SeqByName(Gaf_004224b0* gaf, int unused, char* name)
     if (strlen(name) == 0) {
         return 0;
     }
-    return FUN_004b8d40(gaf, name);
+    return FindGafEntry(gaf, name);
 }
 
 // The TDF lookups that are tested go through an int local (`cmp eax, esi`
@@ -164,7 +164,7 @@ int __stdcall FUN_004224b0(char* name)
     Class_004c3e10* entry = FindEntry(name);
     if (entry == 0) {
         sprintf(path, "Record \"%s\" missing from feature files", name);
-        FUN_004b6290(path);
+        FatalError(path);
     }
     g_game->features = (FeatureDef_004224b0*)FUN_004d84a0(g_game->features, "FEATURES",
                                                           (g_game->featureCount + 1) * 0x100);
@@ -191,7 +191,7 @@ int __stdcall FUN_004224b0(char* name)
         }
         if (j == g_game->featureCount) {
             FUN_004290f0(path, "anims", file, "GAF");
-            def->anims = FUN_004b8c60(path);
+            def->anims = LoadGaf(path);
             strncpy(def->filename, file, 0x10);
             anims = def->anims;
         }
@@ -292,9 +292,9 @@ int __stdcall FUN_004224b0(char* name)
     def->refshad.src = 0;
     if (def->animating) {
         if (def->seq)
-            FUN_004b8b30(&def->ref, def->seq, 0);
+            InitGafSequence(&def->ref, def->seq, 0);
         if (def->seqshad)
-            FUN_004b8b30(&def->refshad, def->seqshad, 0);
+            InitGafSequence(&def->refshad, def->seqshad, 0);
     }
     return g_game->featureCount++;
 }

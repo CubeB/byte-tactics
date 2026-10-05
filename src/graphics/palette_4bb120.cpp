@@ -5,7 +5,7 @@
 // The scan starts at strlen, on the terminator, not at strlen - 1: starting
 // one lower adds a `dec ecx` that MSVC cannot fold into the strlen sequence.
 // FUNCTION: 0x4bb120
-char* __stdcall FUN_004bb120(char* path)
+char* __stdcall StripFileName(char* path)
 {
     for (int i = strlen(path); i >= 0; i--) {
         if (path[i] == '\\') {

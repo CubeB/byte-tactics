@@ -200,7 +200,7 @@ int __stdcall FUN_004bc640(int handle, void* findData);
 void __stdcall FUN_004bc8d0(int handle);
 void __stdcall FUN_004bcf00(char* path);
 void __stdcall FUN_00468cf0(int param_1, int param_2);
-void __stdcall FUN_004cb170(char* param_1, const char* param_2);
+void __stdcall SaveScreenshot(char* param_1, const char* param_2);
 void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
 int __stdcall FUN_00439e30(int unit, Class_00438760 kind);
 void __stdcall FUN_00439f80(int unit, int arg);
@@ -382,7 +382,7 @@ void FUN_00495e90(void)
                         g_game->field_38a53, g_game->field_38c53);
                 FUN_004bcf00(g_game->field_38b53);
                 FUN_00468cf0(0, 1);
-                FUN_004cb170(g_game->field_38b53, "FRAM");
+                SaveScreenshot(g_game->field_38b53, "FRAM");
                 g_game->field_38c5b = g_game->field_38a47;
             }
         }

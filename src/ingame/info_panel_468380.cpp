@@ -24,22 +24,22 @@ struct Game {
 
 extern Game* g_game;
 
-int FUN_004c1450();
+int GetFontHeight();
 void __stdcall GetByteRates(unsigned int* sent, unsigned int* received);
-void __stdcall FUN_004c14f0(void* surface, const char* text, int x, int y, int maxWidth);
-void __stdcall FUN_004bf8c0(void* surface, Rect_004b0510* rect, int color);
-void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
+void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
+void __stdcall DrawRectangle(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 
 // FUN_00468310, the out-of-line bar, written here so both calls inline.
 static void Bar(void* surface, Rect_004b0510* rect, int percent)
 {
     unsigned char& color = g_game->color;
-    FUN_004bf8c0(surface, rect, color);
+    DrawRectangle(surface, rect, color);
     if (percent >= 100)
         percent = 100;
     if (percent > 0) {
         rect->x2 = (rect->x2 - rect->x1) * percent / 100 + rect->x1;
-        FUN_004bf6f0(surface, rect, color);
+        FillRectangle(surface, rect, color);
     }
 }
 
@@ -54,10 +54,10 @@ void __stdcall FUN_00468380(void* surface)
     r.x2 = 0xc1;
     r.y1 = g_game->f_37e23 - 0x5f;
     r.y2 = r.y1 + 8;
-    int h = FUN_004c1450();
+    int h = GetFontHeight();
     GetByteRates(&sent, &received);
     sprintf(buf, "Send - %1.1f K/s", sent * 0.001);
-    FUN_004c14f0(surface, buf, r.x1, r.y1, -1);
+    DrawString(surface, buf, r.x1, r.y1, -1);
     r.y1 += h;
     r.y2 = r.y1 + 8;
     Bar(surface, &r, sent * 100 / 5600);
@@ -65,7 +65,7 @@ void __stdcall FUN_00468380(void* surface)
     r.x2 = 0xc1;
     r.y1 = r.y2 + 1;
     sprintf(buf, "Receive - %1.1f K/s", received * 0.001);
-    FUN_004c14f0(surface, buf, r.x1, r.y1, -1);
+    DrawString(surface, buf, r.x1, r.y1, -1);
     r.y1 += h;
     r.y2 = r.y1 + 8;
     Bar(surface, &r, received * 100 / 5600);

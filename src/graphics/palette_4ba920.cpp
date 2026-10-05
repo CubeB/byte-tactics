@@ -11,7 +11,7 @@ struct RGBA {
 };
 
 // FUNCTION: 0x4ba920
-void __stdcall FUN_004ba920(unsigned char* data, int* sums, unsigned char* idx)
+void __stdcall SortByBrightness(unsigned char* data, int* sums, unsigned char* idx)
 {
     int i;
     RGBA* p = (RGBA*)data;

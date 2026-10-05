@@ -17,7 +17,7 @@ int __stdcall FUN_004aefa0(char* names, char* sizes, void* times, int count);
 int __stdcall FUN_004bc4b0(const char* path, struct _finddata_t* fd, int state, char recursive);
 int __stdcall FUN_004bc640(int handle, struct _finddata_t* fd);
 void __stdcall FUN_004bc8d0(int handle);
-char* __stdcall FUN_004bb0f0(char* name);
+char* __stdcall StripExtension(char* name);
 long __stdcall FUN_004bbc40(char* name);
 
 // FUNCTION: 0x4af320
@@ -58,7 +58,7 @@ int __stdcall FUN_004af320(char* path, char* list, char* sizes, int mode, int fl
                 if (fd.name[0] != '.' && fd.attrib != 0x10) {
                     strcpy(list, fd.name);
                     if (flag == 1) {
-                        FUN_004bb0f0(list);
+                        StripExtension(list);
                     }
                     list += strlen(list) + 1;
                     *tp++ = fd.time_write;

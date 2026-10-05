@@ -22,7 +22,7 @@
 // / 64;`), as two named term locals (`int yz = ...; int yh = ...; int y = yz
 // - yh;`), as `-(pos.y_hi / 64) + pos.z / 0x200000`, with an explicit (int) cast
 // on either side, with the high half read as `((short*)&pos.y)[1]`, with yz read
-// before x, or with the FUN_004b7f30 call written before or between the two
+// before x, or with the GetGafFrame call written before or between the two
 // divisions all give the same 231 byte 87.3 percent build, so MSVC 5
 // canonicalises them to one tree and the order is picked after that. What does
 // move the number is the ORDER of the two x and y statements, and the three
@@ -57,7 +57,7 @@
 // params, short* versus struct out pointer, signed char versus unsigned char
 // cell_id, the clamp with and without a local table pointer, the nested if
 // against the early return form, int versus long, and removing the two
-// trailing calls. Removing the FUN_004b7f30 call, or the x division, makes the
+// trailing calls. Removing the GetGafFrame call, or the x division, makes the
 // order come out as in the original, so the pressure across that call is what
 // picks the wrong order.
 //
@@ -146,7 +146,7 @@ extern Game* g_game;
 void __stdcall FUN_004825b0(Params_482830* params);
 void __stdcall FUN_00482270(Params_482830* params);
 void __stdcall FUN_00481930(Params_482830* params);
-Entry_482830* __stdcall FUN_004b7f30(Table_482830* table, int index);
+Entry_482830* __stdcall GetGafFrame(Table_482830* table, int index);
 
 // FUNCTION: 0x482830
 void __stdcall FUN_00482830(Params_482830* params)
@@ -169,7 +169,7 @@ void __stdcall FUN_00482830(Params_482830* params)
     }
     int x = params->pos.x / 0x200000;
     int y = params->pos.z / 0x200000 - params->pos.y_hi / 64;
-    Entry_482830* entry = FUN_004b7f30(g_game->field_1485b, lod);
+    Entry_482830* entry = GetGafFrame(g_game->field_1485b, lod);
     x -= entry->field_4;
     y -= entry->field_6;
     params->field_4->x = (short)x;

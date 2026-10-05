@@ -74,9 +74,9 @@ extern char* DAT_00512298;
 
 void __stdcall FUN_004a9660(Sub_004263b0* sub);
 void FUN_004c2470();
-void __stdcall FUN_004c69a0(int param);
-void __stdcall FUN_004c6890(int a, int b);
-void FUN_004c63a0();
+void __stdcall SetOffscreenSurface(int param);
+void __stdcall FillSurface(int a, int b);
+void FlipScreen();
 void FUN_00491a70();
 Dialog_004263b0* __stdcall FUN_004aa8f0(Sub_004263b0* sub, const char* name, int flags);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
@@ -91,18 +91,18 @@ void __stdcall FUN_004ac7d0(Sub_004263b0* sub, int value, void* palette);
 void __cdecl FUN_004d85a0(void* palette);
 void __stdcall FUN_004a81e0(Sub_004263b0* sub, int value);
 void __stdcall FUN_0049fb10(Sub_004263b0* sub, int value);
-void __stdcall FUN_004c1420(void* param);
+void __stdcall SetFont(void* param);
 void __stdcall FUN_004a0570(Sub_004263b0* sub, const char* name, int value);
 void __stdcall FUN_004a07d0(Sub_004263b0* sub, const char* name, const char* text);
 int __stdcall FUN_004a5030(const char* text);
 int __stdcall FUN_0049fdf0(char* gadgets, const char* name, int type);
-int FUN_004c13f0();
-void __stdcall FUN_004c13a0(unsigned int a, int b);
+int GetTextKeyColor();
+void __stdcall SetTextColors(unsigned int a, int b);
 void FUN_004c2870();
 void FUN_004c2bb0();
 void* __cdecl FUN_004d83b0(const char* name, int size);
 void __stdcall FUN_00426200();
-int __stdcall FUN_004b5070(int a, int b, int c, int d, int e);
+int __stdcall CheckDirectXVersion(int a, int b, int c, int d, int e);
 char* __stdcall FUN_004c5740(const char* text);
 void __stdcall FUN_004abd90(Sub_004263b0* sub, char* text, int a, int b, int c);
 void __stdcall FUN_00429000();
@@ -115,9 +115,9 @@ void __stdcall FUN_004263b0()
     }
 
     FUN_004c2470();
-    FUN_004c69a0(g_game->field_37e1b);
-    FUN_004c6890(0, 0);
-    FUN_004c63a0();
+    SetOffscreenSurface(g_game->field_37e1b);
+    FillSurface(0, 0);
+    FlipScreen();
     FUN_00491a70();
 
     Dialog_004263b0* dialog = FUN_004aa8f0(&g_game->sub, "MAINMENU.GUI", 0x80);
@@ -143,7 +143,7 @@ void __stdcall FUN_004263b0()
     FUN_004d85a0(palette);
     FUN_004a81e0(&g_game->sub, 0xc0);
     FUN_0049fb10(&g_game->sub, 1);
-    FUN_004c1420(g_game->field_391f9);
+    SetFont(g_game->field_391f9);
 
     strcpy(version, "v3.1");
     strcpy(palpath, version);
@@ -155,7 +155,7 @@ void __stdcall FUN_004263b0()
     short* px = (short*)(gadgets + 0x15b * FUN_0049fdf0(gadgets, "DebugString", 5) + 0x13);
     *px += -(width / 2);
 
-    FUN_004c13a0(g_game->field_dda, FUN_004c13f0());
+    SetTextColors(g_game->field_dda, GetTextKeyColor());
     FUN_004c2870();
     FUN_004c2bb0();
 
@@ -171,7 +171,7 @@ void __stdcall FUN_004263b0()
 
     if (DAT_0051228c == 0) {
         DAT_0051228c = 1;
-        if (FUN_004b5070(4, 5, 0, 0x9b, 3) == 0) {
+        if (CheckDirectXVersion(4, 5, 0, 0x9b, 3) == 0) {
             if (_snprintf(text, 300, FUN_004c5740(DAT_004fd050), "\n", "\n", "\n", "\n") < 0) {
                 text[299] = 0;
             }

@@ -32,12 +32,12 @@ extern unsigned int g_packetBytesReceivedRate;
 extern unsigned int g_packetsSentRate;
 extern unsigned int g_packetsReceivedRate;
 
-unsigned int __cdecl FUN_004b6340();
+unsigned int __cdecl GetTicks();
 
 // FUNCTION: 0x415fa0
 void __stdcall FormatNetStats(char* text)
 {
-    unsigned int now = FUN_004b6340();
+    unsigned int now = GetTicks();
     unsigned int elapsed = now - g_netStatsTick;
     if (elapsed > 30) {
         g_netStatsTick = now;

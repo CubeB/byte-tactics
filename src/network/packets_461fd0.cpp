@@ -26,7 +26,7 @@
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* ptr);
 
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 void __cdecl PacketTrace(const char* fmt, ...);
 
 class Class_00461fd0;
@@ -124,7 +124,7 @@ public:
 void Class_00461fd0::DequeuePacket(Entry_00461fd0* item)
 {
     item->field_10 = -1;
-    item->field_14 = FUN_004b6340();
+    item->field_14 = GetTicks();
     int n = queue.count;
     while (n-- > 0) {
         Entry_00461fd0* value = ((Class_004623b0*)&queue)->PopPacket();

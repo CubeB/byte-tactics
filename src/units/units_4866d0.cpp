@@ -221,7 +221,7 @@ void __stdcall FUN_004948b0(int a, int b);
 void __stdcall FUN_0049b000(void* unit, int flag);
 void __stdcall CreateUnitCorpse(void* unit, int a, int b);
 void __stdcall ClearUnitRefs(void* unit);
-void __stdcall FUN_0045aaa0(void* state);
+void __stdcall FreeObjectState(void* state);
 void __cdecl operator delete(void* p);
 void __stdcall AnnouncePlayerLeft(int id);
 void __stdcall FUN_0047bd70(void* player);
@@ -385,7 +385,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
         unit->script = 0;
     }
     if (unit->x9e != 0) {
-        FUN_0045aaa0(unit->x9e);
+        FreeObjectState(unit->x9e);
         unit->x9e = 0;
     }
     UnitMotion* head = unit->head;

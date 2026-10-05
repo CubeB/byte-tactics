@@ -3,7 +3,7 @@
 // queued, and none was sent within the last `minRetain` game ticks.
 
 void __cdecl PacketTrace(const char* fmt, ...);
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 
 class PacketBuffer;
 
@@ -31,7 +31,7 @@ int PacketBuffer::IsReusable(int minRetain)
 {
     if (field_8) {
         Packet_00462a60* p = first;
-        unsigned int now = FUN_004b6340();
+        unsigned int now = GetTicks();
         int mustBeSentBefore = now - minRetain;
         PacketTrace("cur game time: %ld, min retain=%ld, mustBeSentBefore=%ld\n",
                      now, minRetain, mustBeSentBefore);

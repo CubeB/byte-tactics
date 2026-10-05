@@ -51,8 +51,8 @@ struct Entry_004a0010 {
 #pragma pack(pop)
 
 void* __cdecl FUN_004d83b0(unsigned int param_1, unsigned int param_2);
-void __stdcall FUN_004bb120(char* path);
-void __stdcall FUN_004bb150(char* path);
+void __stdcall StripFileName(char* path);
+void __stdcall StripPath(char* path);
 void __stdcall FUN_004bc2e0(char* buf);
 char* __stdcall FUN_004bc320(char* drive, char* buf, int size);
 Entry_004a0010* __stdcall FUN_004a0010(Entry_004a0010* entries, char* name);
@@ -75,7 +75,7 @@ Class_004af5b0* Class_004afa30::FUN_004afa30(Class_004afa30* self, char* arg2, c
     Class_004af5b0* obj = (Class_004af5b0*)FUN_004d83b0((unsigned int)"FILE REQUESTER DATA", 0x24c);
     obj->gui = (char*)self;
     strcpy(obj->cwd, arg2);
-    FUN_004bb120(obj->cwd);
+    StripFileName(obj->cwd);
 
     if (strlen(obj->cwd) == 0) {
         strcpy(obj->cwd, "NO PATH");
@@ -107,7 +107,7 @@ Class_004af5b0* Class_004afa30::FUN_004afa30(Class_004afa30* self, char* arg2, c
     obj->field_240 = (int)arg3;
     obj->field_23c = (int)arg2;
 
-    FUN_004bb150(arg2);
+    StripPath(arg2);
 
     strcpy((char*)obj->field_8 + 0xb6, arg2);
     strcpy((char*)obj->field_c + 0xb6, arg3);

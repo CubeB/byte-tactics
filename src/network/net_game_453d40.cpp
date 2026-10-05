@@ -226,7 +226,7 @@ extern char DAT_00506290[];
 int ReceiveNetPacket();
 void FUN_00450980();
 void CheckPlayerTimeouts();
-int FUN_004b6340();
+int GetTicks();
 void FUN_00450530();
 void FUN_00446fb0();
 int __stdcall GetSlotDpid(unsigned char);
@@ -573,7 +573,7 @@ int HandleNetPackets()
             continue;
         if (!InGame(recipient))
             continue;
-        player->last_time = FUN_004b6340();
+        player->last_time = GetTicks();
         player->messages++;
         switch (packet[0]) {
         case 32: {

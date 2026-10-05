@@ -72,8 +72,8 @@ extern Game* g_game;
 
 struct Gaf_0047a0e0;
 
-Gaf_0047a0e0* __stdcall FUN_004b8d40(Gaf_0047a0e0* gaf, const char* name);
-int __stdcall FUN_004b7f30(unsigned short* entry, int frame);
+Gaf_0047a0e0* __stdcall FindGafEntry(Gaf_0047a0e0* gaf, const char* name);
+int __stdcall GetGafFrame(unsigned short* entry, int frame);
 int __stdcall FUN_0049fdf0(Entry_0047a0e0* entries, char* name, int type);
 void __stdcall FUN_004a0bf0(Menu_0047a0e0* menu, char* key, char* value, int flag);
 void __stdcall FUN_004a0570(Menu_0047a0e0* menu, char* name, int value);
@@ -111,13 +111,13 @@ void FUN_0047a0e0()
     }
 
     unsigned short* icons =
-        (unsigned short*)FUN_004b8d40(*(Gaf_0047a0e0**)((char*)entries + 0xc0), "TEAMICONSx");
+        (unsigned short*)FindGafEntry(*(Gaf_0047a0e0**)((char*)entries + 0xc0), "TEAMICONSx");
     teamIcons = icons;
     if (icons != 0) {
         int j = 0;
         if (*icons > 0) {
             do {
-                short* f = (short*)FUN_004b7f30(icons, 0);
+                short* f = (short*)GetGafFrame(icons, 0);
                 f[3] = 0;
                 f[2] = 0;
                 j++;

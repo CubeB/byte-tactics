@@ -54,9 +54,9 @@ struct Class_004a99c0 {
 extern Holder_004a99c0* DAT_0051fba4;
 extern char DAT_00502a20[];
 
-void __stdcall FUN_004c1420(int id);
-int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
-int FUN_004c1450();
+void __stdcall SetFont(int id);
+int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
+int GetFontHeight();
 char* __stdcall FUN_004b6af0(char* text, int line);
 void __stdcall FUN_004a1b40(Class_004a99c0* param_1, int param_2);
 void __stdcall FUN_004a2be0(Class_004a99c0* param_1, int param_2);
@@ -72,17 +72,17 @@ void __stdcall FUN_004a99c0(Class_004a99c0* param_1, int index)
     for (; i < entries->count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == me->group) {
-                FUN_004c1420(entries[i].id);
+                SetFont(entries[i].id);
                 break;
             }
             n++;
         }
     }
     if (i == entries->count + 1) {
-        FUN_004c1420(DAT_0051fba4->current);
+        SetFont(DAT_0051fba4->current);
     }
-    int size = (DAT_0051fba4->list == 0) ? FUN_004c1450()
-        : (*(unsigned short*)(FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49) + 2) + 2);
+    int size = (DAT_0051fba4->list == 0) ? GetFontHeight()
+        : (*(unsigned short*)(GetGafFrame(DAT_0051fba4->list->field_0c, 0x49) + 2) + 2);
     size++;
     int step = (me->field_19 - 2) / size;
     short last = me->field_bc;           // last line of the window

@@ -82,7 +82,7 @@ extern Game* g_game;
 int __stdcall FUN_004246b0(Cell_00423c50* cell, int flag);
 void __stdcall FUN_004232f0(int index, int* head);
 int __stdcall GetGroundHeight(Vec3_00423c50* pos);
-void* __stdcall FUN_0045a8d0(void* obj);
+void* __stdcall CreateObjectState(void* obj);
 void __stdcall FUN_00472c50(Vec3_00423c50* p, short index);
 void __stdcall RefreshAllPassMaps(Point16_00423c50 a, Point16_00423c50 b);
 
@@ -165,7 +165,7 @@ Spot_00423c50* __stdcall FUN_00423c50(Cell_00423c50* cell, unsigned short featur
             spot->rot = *rot;
         else
             memset(&spot->rot, 0, sizeof(spot->rot));
-        spot->state = FUN_0045a8d0(f->object);
+        spot->state = CreateObjectState(f->object);
         cell->feature = feature;
         cell->spot = i;
         cell->flag0 = 1;

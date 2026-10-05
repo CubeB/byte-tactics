@@ -11,7 +11,7 @@
 //    `repne scasb` reload of p to land where it does. `p += wsprintfA(p, ...)`
 //    does not match (the return value is never used).
 //  - the two speed readouts scale their field by 1/65536 in float, and that
-//    product has to be computed (and spilled) before the call to FUN_004b6330.
+//    product has to be computed (and spilled) before the call to GetTickRate.
 //    Written inline, MSVC evaluates the call first and emits the multiply after
 //    it; wrapping it in the `static inline` helper below makes the compiler
 //    materialise it in the pointer local's own frame slot, which is where the
@@ -42,7 +42,7 @@ struct UnitType_00489280 {
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 char* __stdcall FUN_004c5740(const char* text);
-int FUN_004b6330();
+int GetTickRate();
 
 static inline float spd(int v)
 {
@@ -72,16 +72,16 @@ char* __stdcall MakePropList(UnitType_00489280* obj)
     p += strlen(p) + 1;
 
     if (obj->field_22f) {
-        sprintf(p, "%.1f %s ", (double)FUN_004b6330() * spd(obj->field_192) * 0.4,
+        sprintf(p, "%.1f %s ", (double)GetTickRate() * spd(obj->field_192) * 0.4,
                 FUN_004c5740("m/s"));
         p += strlen(p) + 1;
 
-        sprintf(p, "%.2f %s", (double)FUN_004b6330() * spd(obj->field_19e) * 0.4,
+        sprintf(p, "%.2f %s", (double)GetTickRate() * spd(obj->field_19e) * 0.4,
                 FUN_004c5740("m/s/s"));
         p += strlen(p) + 1;
 
         sprintf(p, "%.0f %s",
-                (double)FUN_004b6330() * obj->field_1ba * 0.0054931640625,
+                (double)GetTickRate() * obj->field_1ba * 0.0054931640625,
                 FUN_004c5740("deg/s"));
     } else {
         sprintf(p, "%s", FUN_004c5740("N/A"));

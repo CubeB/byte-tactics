@@ -6,7 +6,7 @@ extern unsigned char DAT_0051fcb0[];
 extern int DAT_0051fdb0;
 
 // FUNCTION: 0x4b9ed0
-void __stdcall FUN_004b9ed0(char* out, int count)
+void __stdcall EmitCopyRun(char* out, int count)
 {
     int index = 0;
     do {

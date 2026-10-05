@@ -415,7 +415,7 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 int __cdecl FUN_004b7123(short a, int b);
 int __cdecl FUN_004b715a(int x, int y);
 void __cdecl FUN_004b7173(unsigned short deg, Pos2_0048a490* p);
@@ -476,7 +476,7 @@ void __stdcall AlignUnitToGround(Unit* u)
                 int H = hs[k].h;
                 int sea = g_game->seaLevel;
                 hs[k].h = max(H, sea);
-                short p = (short)(((FUN_004b6340() & 0x1f) + k * 8) * 2048 + u->fix_lo);
+                short p = (short)(((GetTicks() & 0x1f) + k * 8) * 2048 + u->fix_lo);
                 int s = u->type->sight / 2;
                 PlayerRec_0048a490* o = u->owner;
                 int q = o->sight;

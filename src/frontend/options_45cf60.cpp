@@ -24,8 +24,8 @@ extern Game* g_game;
 void __stdcall FUN_004a81e0(Sub_0045cf60* sub, int value);
 void __stdcall FUN_0049fa90(Sub_0045cf60* sub);
 void __stdcall FUN_004ab170(Sub_0045cf60* sub, unsigned int* a, int* b);
-void __stdcall FUN_004c69a0(void* p);
-void FUN_004c63a0();
+void __stdcall SetOffscreenSurface(void* p);
+void FlipScreen();
 
 // A bitfield tested for being set gives "mov cl, [m]; shr cl, 2; test cl, 1";
 // testing it for being clear ("if (!bit2) {...}") folds to "test byte ptr".
@@ -38,6 +38,6 @@ void FUN_0045cf60()
     FUN_004a81e0(&g_game->sub, 0x40);
     FUN_0049fa90(&g_game->sub);
     FUN_004ab170(&g_game->sub, 0, 0);
-    FUN_004c69a0(g_game->field_37e1b);
-    FUN_004c63a0();
+    SetOffscreenSurface(g_game->field_37e1b);
+    FlipScreen();
 }

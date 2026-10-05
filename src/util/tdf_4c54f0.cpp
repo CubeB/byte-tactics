@@ -15,7 +15,7 @@
 //    exe's order: ctor of the empty handle, ctor of the entry into a hidden
 //    result slot (its address by lea, the handle's constructor result in eax),
 //    insert, then both destructors, with `&value` already computed in esi and
-//    the single shared FUN_004c93f0 call (`mov ecx,esi` / `lea ecx,[edi+4]`).
+//    the single shared AssignText call (`mov ecx,esi` / `lea ecx,[edi+4]`).
 //    The pair is passed as `const Elem&`, so the call is the real member
 //    Class_004c5ba0::FUN_004c59d0 (same class as 0x4c59d0).
 //  * Freeing the old map is written out in the caller as
@@ -44,14 +44,14 @@ class Class_004c9390 {
 public:
     char* ptr;
 
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 class Class_004c93f0 {
 public:
     char* ptr;
 
-    Class_004c93f0* FUN_004c93f0(const char* text);
+    Class_004c93f0* AssignText(const char* text);
 };
 
 class Class_004c91a0 {
@@ -64,13 +64,13 @@ public:
 class Class_004c91b0 : public Class_004c91a0 {
 public:
     Class_004c91b0(const char* text);
-    ~Class_004c91b0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Class_004c91b0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
 class Class_004c9180 : public Class_004c91a0 {
 public:
     Class_004c9180();
-    ~Class_004c9180() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Class_004c9180() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
 static inline bool operator==(const Class_004c91a0& a, const Class_004c91a0& b)
@@ -267,7 +267,7 @@ void __stdcall FUN_004c54f0(char* filename, char* section)
                     } else {
                         r = (Class_004c93f0*)&e->value;
                     }
-                    r->FUN_004c93f0(value);
+                    r->AssignText(value);
                 }
                 ((Class_004c3e10*)&f)->FUN_004c3e10();
                 index++;

@@ -63,7 +63,7 @@ static inline bool operator==(const Class_004c91a0& a, const Class_004c91a0& b)
 
 class Class_004c9390 {
 public:
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 struct Pair_004b7620 {
@@ -76,12 +76,12 @@ Class_004b7e30::Class_004b7e30(const Class_004c91a0& h, Pair_004b7620 pp) : hand
 {
     *(Pair_004b7620*)&value1 = pp;
 }
-Class_004b7e30::~Class_004b7e30() { ((Class_004c9390*)&handle)->FUN_004c9390(); }
+Class_004b7e30::~Class_004b7e30() { ((Class_004c9390*)&handle)->ReleaseRef(); }
 
 class Class_004c91b0 : public Class_004c91a0 {
 public:
     Class_004c91b0(const char* text);
-    ~Class_004c91b0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Class_004c91b0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
 struct NameLess_004b7620 {

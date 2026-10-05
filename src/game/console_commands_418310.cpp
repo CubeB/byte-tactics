@@ -107,13 +107,13 @@ extern unsigned char DAT_004fcc68[];
 extern signed char DAT_004fd670[], DAT_004fd678[];
 
 Unit* __stdcall FUN_0048c190(int, int);
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
-void __stdcall FUN_004c1420(int font);
-int __stdcall FUN_004c13f0();
-void __stdcall FUN_004c13a0(int color, int background);
-void __stdcall FUN_004c14f0(void* surface, const char* text, int x, int y, int maxWidth);
-void __stdcall FUN_004c0310(void* surface, Point_00417f60* points, int count, int color);
-void __stdcall FUN_004bf6f0(void* surface, Rect* rect, int color);
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
+void __stdcall SetFont(int font);
+int __stdcall GetTextKeyColor();
+void __stdcall SetTextColors(int color, int background);
+void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
+void __stdcall FillPolygon(void* surface, Point_00417f60* points, int count, int color);
+void __stdcall FillRectangle(void* surface, Rect* rect, int color);
 void __stdcall FUN_004181d0(void* surface, Point_00417f60* corners, unsigned char* heights);
 
 // FUNCTION: 0x418310
@@ -161,15 +161,15 @@ void __stdcall FUN_00418310(void* surface)
                     unsigned int state = (movement->states[movement->width * (y >> 4) + x] >> ((y & 15) * 2)) & 3;
                     if (state < 3) {
                         unsigned char color = colors[DAT_004fcc68[state]];
-                        FUN_004be950(surface, p[0].x, p[0].y, p[2].x, p[2].y, color);
-                        FUN_004be950(surface, p[1].x, p[1].y, p[3].x, p[3].y, color);
+                        DrawLine(surface, p[0].x, p[0].y, p[2].x, p[2].y, color);
+                        DrawLine(surface, p[1].x, p[1].y, p[3].x, p[3].y, color);
                     }
                 }
                 PathCell* cell = g_game->paths->grid.At(x, y);
                 if (cell->flags & 4) {
-                    FUN_004c1420(g_game->font);
-                    FUN_004c13a0(rand() & 255, FUN_004c13f0());
-                    FUN_004c14f0(surface, "G", p[0].x, p[0].y, -1);
+                    SetFont(g_game->font);
+                    SetTextColors(rand() & 255, GetTextKeyColor());
+                    DrawString(surface, "G", p[0].x, p[0].y, -1);
                 }
                 unsigned char kind = cell->flags & ~4;
                 if (kind != 0 && kind != 3) {
@@ -180,61 +180,61 @@ void __stdcall FUN_00418310(void* surface)
                     case 1: arrowColor = colors[15]; break;
                     case 2: arrowColor = colors[4]; break;
                     }
-                    FUN_004be950(surface, cx - DAT_004fd670[cell->direction] * 14,
+                    DrawLine(surface, cx - DAT_004fd670[cell->direction] * 14,
                                  cy - DAT_004fd678[cell->direction] * 14, cx, cy, arrowColor);
                     int direction = (cell->direction + 1) & 7;
-                    FUN_004be950(surface, cx - DAT_004fd670[direction] * 4,
+                    DrawLine(surface, cx - DAT_004fd670[direction] * 4,
                                  cy - DAT_004fd678[direction] * 4, cx, cy, arrowColor);
                     direction = (cell->direction - 1) & 7;
-                    FUN_004be950(surface, cx - DAT_004fd670[direction] * 4,
+                    DrawLine(surface, cx - DAT_004fd670[direction] * 4,
                                  cy - DAT_004fd678[direction] * 4, cx, cy, arrowColor);
                 }
             } else if (g_game->mode == 2) {
                 if (tile->height > g_game->seaLevel) {
-                    FUN_004be950(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[15]);
-                    FUN_004be950(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[15]);
+                    DrawLine(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[15]);
+                    DrawLine(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[15]);
                 } else {
-                    FUN_004be950(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[13]);
-                    FUN_004be950(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[13]);
+                    DrawLine(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[13]);
+                    DrawLine(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[13]);
                 }
-                if (tile->unit) FUN_004c0310(surface, p, 4, tile->unit & 0xff);
-                else if (tile->object != 0xffff) FUN_004c0310(surface, p, 4, (tile->object - 56) & 0xff);
+                if (tile->unit) FillPolygon(surface, p, 4, tile->unit & 0xff);
+                else if (tile->object != 0xffff) FillPolygon(surface, p, 4, (tile->object - 56) & 0xff);
                 if (tile->feature) {
-                    FUN_004be950(surface, p[0].x, p[0].y, p[2].x, p[2].y, tile->feature & 0xff);
-                    FUN_004be950(surface, p[1].x, p[1].y, p[3].x, p[3].y, tile->feature & 0xff);
+                    DrawLine(surface, p[0].x, p[0].y, p[2].x, p[2].y, tile->feature & 0xff);
+                    DrawLine(surface, p[1].x, p[1].y, p[3].x, p[3].y, tile->feature & 0xff);
                 }
                 if (tile->flags & 2) {
-                    FUN_004be950(surface, (p[0].x + p[1].x) / 2, (p[0].y + p[1].y) / 2 + 2,
+                    DrawLine(surface, (p[0].x + p[1].x) / 2, (p[0].y + p[1].y) / 2 + 2,
                                  (p[1].x + p[2].x) / 2 - 2, (p[1].y + p[2].y) / 2, colors[15]);
-                    FUN_004be950(surface, (p[1].x + p[2].x) / 2 - 2, (p[1].y + p[2].y) / 2,
+                    DrawLine(surface, (p[1].x + p[2].x) / 2 - 2, (p[1].y + p[2].y) / 2,
                                  (p[2].x + p[3].x) / 2, (p[2].y + p[3].y) / 2 - 2, colors[15]);
-                    FUN_004be950(surface, (p[2].x + p[3].x) / 2, (p[2].y + p[3].y) / 2 - 2,
+                    DrawLine(surface, (p[2].x + p[3].x) / 2, (p[2].y + p[3].y) / 2 - 2,
                                  (p[3].x + p[0].x) / 2 + 2, (p[3].y + p[0].y) / 2, colors[15]);
-                    FUN_004be950(surface, (p[3].x + p[0].x) / 2 + 2, (p[3].y + p[0].y) / 2,
+                    DrawLine(surface, (p[3].x + p[0].x) / 2 + 2, (p[3].y + p[0].y) / 2,
                                  (p[0].x + p[1].x) / 2, (p[0].y + p[1].y) / 2 + 2, colors[15]);
                 }
             } else if (g_game->mode == 3) {
                 if (tile->height > g_game->seaLevel) {
-                    FUN_004be950(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[15]);
-                    FUN_004be950(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[15]);
+                    DrawLine(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[15]);
+                    DrawLine(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[15]);
                 } else {
-                    FUN_004be950(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[13]);
-                    FUN_004be950(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[13]);
+                    DrawLine(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[13]);
+                    DrawLine(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[13]);
                 }
-                FUN_004c1420(g_game->font);
-                FUN_004c13a0(colors[15], FUN_004c13f0());
+                SetFont(g_game->font);
+                SetTextColors(colors[15], GetTextKeyColor());
                 char buffer[20];
-                FUN_004c14f0(surface, _itoa(tile->metal, buffer, 10), p[0].x + 2, p[0].y + 2, -1);
+                DrawString(surface, _itoa(tile->metal, buffer, 10), p[0].x + 2, p[0].y + 2, -1);
             } else if (g_game->mode == 4) {
-                FUN_004be950(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[0]);
-                FUN_004be950(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[0]);
+                DrawLine(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[0]);
+                DrawLine(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[0]);
                 if (player->fog[(y / 2) * player->fogWidth + x / 2]) {
                     Rect r;
                     r.left = p[0].x - 5;
                     r.right = p[0].x + 5;
                     r.top = p[0].y - 5;
                     r.bottom = p[0].y + 5;
-                    FUN_004bf6f0(surface, &r, colors[15]);
+                    FillRectangle(surface, &r, colors[15]);
                 }
             }
             if (DAT_00511dd0) FUN_004181d0(surface, p, heights);

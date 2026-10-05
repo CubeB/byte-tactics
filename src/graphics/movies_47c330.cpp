@@ -22,11 +22,11 @@ public:
     Smack_0047c330* smack;             // +0x0
     unsigned int frame;                // +0x4
 
-    void FUN_0047c330(HWND hwnd);
+    void OnPaint(HWND hwnd);
 };
 
 // FUNCTION: 0x47c330
-void Class_0047c330::FUN_0047c330(HWND hwnd)
+void Class_0047c330::OnPaint(HWND hwnd)
 {
     PAINTSTRUCT ps;
     HDC dc = BeginPaint(hwnd, &ps);

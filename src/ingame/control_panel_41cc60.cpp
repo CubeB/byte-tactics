@@ -35,8 +35,8 @@ struct Game {
 extern Game* g_game;
 
 void FUN_004c2470();
-int FUN_004b6700();
-int FUN_004b6710();
+int GetScreenWidth();
+int GetScreenHeight();
 void __stdcall FUN_004c22f0(int x, int y);
 
 // FUNCTION: 0x41cc60
@@ -51,7 +51,7 @@ void FUN_0041cc60()
     cursor->rect = g_game->view;
     cursor->field_24 = g_game->scroll_x / 16;
     cursor->field_28 = g_game->scroll_y / 16;
-    cursor->field_1c = FUN_004b6700() / 2;
-    cursor->field_20 = FUN_004b6710() / 2;
+    cursor->field_1c = GetScreenWidth() / 2;
+    cursor->field_20 = GetScreenHeight() / 2;
     FUN_004c22f0(cursor->field_1c, cursor->field_20);
 }

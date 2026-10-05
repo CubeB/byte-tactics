@@ -87,9 +87,9 @@ struct Class_0051fba4 {
 };
 extern Class_0051fba4* DAT_0051fba4;
 
-int FUN_004c13f0();
-void __stdcall FUN_004c13a0(int colour, int font);
-void __stdcall FUN_004c1420(int id);
+int GetTextKeyColor();
+void __stdcall SetTextColors(int colour, int font);
+void __stdcall SetFont(int id);
 void FUN_004c1a40();
 int __stdcall FUN_0049fc50(Menu_004a7960* menu, int index);
 void __stdcall FUN_004ab6c0(Menu_004a7960* menu, int index, char* text,
@@ -101,21 +101,21 @@ static inline void FUN_004a7190(Menu_004a7960* obj, int index)
     Entry_004a7960* entries = obj->layer->entries;
     Entry_004a7960* target = &entries[index];
 
-    FUN_004c13a0(obj->colors[target->colourIndex], FUN_004c13f0());
+    SetTextColors(obj->colors[target->colourIndex], GetTextKeyColor());
 
     int n = 0;
     int i = 1;
     for (; i < entries->data.count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == target->group) {
-                FUN_004c1420(entries[i].data.list.id);
+                SetFont(entries[i].data.list.id);
                 break;
             }
             n++;
         }
     }
     if (i == entries->data.count + 1) {
-        FUN_004c1420(DAT_0051fba4->group);
+        SetFont(DAT_0051fba4->group);
     }
 
     FUN_0049fc50(obj, index);

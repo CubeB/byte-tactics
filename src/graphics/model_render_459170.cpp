@@ -19,11 +19,11 @@ public:
     char unknown_0[0x10];
     Image_00459170* image;             // +0x10
 
-    void FUN_00459170(Image_00459170* source);
+    void CopyPicture(Image_00459170* source);
 };
 
 // FUNCTION: 0x459170
-void Class_00459170::FUN_00459170(Image_00459170* source)
+void Class_00459170::CopyPicture(Image_00459170* source)
 {
     image->width = source->width;
     image->height = source->height;

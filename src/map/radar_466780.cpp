@@ -73,11 +73,11 @@ extern Game* g_game;
 extern char DAT_005074f8[];
 extern char DAT_005074e8[];
 
-void __stdcall FUN_004b8ae0(Frame_004b8ae0* dst, void* src);
-void __stdcall FUN_004b95a0(Frame_004b8ae0* dst, Frame_004b8ae0* src);
-void __stdcall FUN_004bee60(void* picture, int x, int y, int pixel);
-void* __stdcall FUN_004c69f0(char* name, int width, int height);
-void __stdcall FUN_004c6ac0(void* picture);
+void __stdcall FrameFromSurface(Frame_004b8ae0* dst, void* src);
+void __stdcall DownsampleFrame(Frame_004b8ae0* dst, Frame_004b8ae0* src);
+void __stdcall DrawPixel(void* picture, int x, int y, int pixel);
+void* __stdcall AllocSurface(char* name, int width, int height);
+void __stdcall FreeSurface(void* picture);
 
 // FUNCTION: 0x466780
 void __stdcall FUN_00466780()
@@ -99,16 +99,16 @@ void __stdcall FUN_00466780()
     }
     g_game->width = width;
     g_game->height = height;
-    g_game->picture = FUN_004c69f0(DAT_005074f8, width, height);
+    g_game->picture = AllocSurface(DAT_005074f8, width, height);
     Frame_004b8ae0 frame;
-    FUN_004b8ae0(&frame, g_game->picture);
+    FrameFromSurface(&frame, g_game->picture);
     if (g_game->radarFrame) {
-        FUN_004b95a0(g_game->radarFrame, &frame);
+        DownsampleFrame(g_game->radarFrame, &frame);
         return;
     }
     int h2 = height * 2;
     int w2 = width * 2;
-    void* temp = FUN_004c69f0(DAT_005074e8, w2, h2);
+    void* temp = AllocSurface(DAT_005074e8, w2, h2);
     for (int j = 0; j < h2; j++) {
         for (int i = 0; i < w2; i++) {
             int x = g_game->mapWidth * i / w2;
@@ -119,11 +119,11 @@ void __stdcall FUN_00466780()
                 value = 0;
             }
             int pixel = g_game->iconSet->cell[value][y % 32][x % 32];
-            FUN_004bee60(temp, i, j, pixel);
+            DrawPixel(temp, i, j, pixel);
         }
     }
     Frame_004b8ae0 tempFrame;
-    FUN_004b8ae0(&tempFrame, temp);
-    FUN_004b95a0(&tempFrame, &frame);
-    FUN_004c6ac0(temp);
+    FrameFromSurface(&tempFrame, temp);
+    DownsampleFrame(&tempFrame, &frame);
+    FreeSurface(temp);
 }

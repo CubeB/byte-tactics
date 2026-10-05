@@ -2,7 +2,7 @@
 #include <windows.h>
 
 void __cdecl FUN_00497180(void* param);
-int __stdcall FUN_004cbab0(EXCEPTION_POINTERS* exception, const char* thread);
+int __stdcall ExceptionFilter(EXCEPTION_POINTERS* exception, const char* thread);
 
 // The loading thread's body: an exception in it is reported, with the
 // thread's name, before the process dies.
@@ -11,6 +11,6 @@ void __cdecl FUN_00497c70(void* param)
 {
     __try {
         FUN_00497180(param);
-    } __except (FUN_004cbab0(GetExceptionInformation(), "Load Thread")) {
+    } __except (ExceptionFilter(GetExceptionInformation(), "Load Thread")) {
     }
 }

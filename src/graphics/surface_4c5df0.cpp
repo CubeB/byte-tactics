@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
-// Pops every entry of the screen lock stack (count DAT_0051fe00, entries
-// written by FUN_004c5e70 at DAT_0051fe08), unlocking each one. The screen
-// unlock is FUN_004c5fa0 inlined (see 0x4c6d20.cpp).
+// Pops every entry of the screen lock stack (count g_screenLockCount, entries
+// written by LockScreen at g_screenLocks), unlocking each one. The screen
+// unlock is UnlockScreen inlined (see 0x4c6d20.cpp).
 #include <ddraw.h>
 
 struct Surface_004c5df0 {
@@ -31,36 +31,36 @@ struct Display_004c5df0 {
     int field_dc;                      // +0xdc
 };
 
-extern int DAT_0051fe00;
-extern LockEntry_004c5df0 DAT_0051fe08[];
+extern int g_screenLockCount;
+extern LockEntry_004c5df0 g_screenLocks[];
 
-Display_004c5df0* FUN_004b6220(void);
-int __stdcall FUN_004c60d0(Surface_004c5df0* s, int a, int b);
+Display_004c5df0* GetDisplay(void);
+int __stdcall UnlockPrimary(Surface_004c5df0* s, int a, int b);
 
 // 0x4c5fa0, inlined here.
-static inline int UnlockScreen(Surface_004c5df0* s)
+static inline int UnlockScreenInline(Surface_004c5df0* s)
 {
-    Display_004c5df0* d = FUN_004b6220();
+    Display_004c5df0* d = GetDisplay();
     if (d->field_44 == 0 && d->field_dc == 0) {
         if (d->screen.surface == 0)
             return 0;
         d->screen.UnlockSurface();
-        if (DAT_0051fe00 > 0)
-            DAT_0051fe00--;
+        if (g_screenLockCount > 0)
+            g_screenLockCount--;
     }
     return 1;
 }
 
 // FUNCTION: 0x4c5df0
-void FUN_004c5df0(void)
+void UnlockAllScreens(void)
 {
-    while (DAT_0051fe00 > 0) {
-        int i = DAT_0051fe00;
-        if (DAT_0051fe08[DAT_0051fe00].flag)
-            FUN_004c60d0(DAT_0051fe08[DAT_0051fe00 - 1].surface, 0, 0);
+    while (g_screenLockCount > 0) {
+        int i = g_screenLockCount;
+        if (g_screenLocks[g_screenLockCount].flag)
+            UnlockPrimary(g_screenLocks[g_screenLockCount - 1].surface, 0, 0);
         else
-            UnlockScreen(DAT_0051fe08[DAT_0051fe00 - 1].surface);
-        if (i == DAT_0051fe00)
-            DAT_0051fe00--;
+            UnlockScreenInline(g_screenLocks[g_screenLockCount - 1].surface);
+        if (i == g_screenLockCount)
+            g_screenLockCount--;
     }
 }

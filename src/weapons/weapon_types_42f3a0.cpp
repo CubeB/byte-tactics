@@ -7,7 +7,7 @@ extern void __cdecl operator delete(void*);
 class Class_004c9390 {
 public:
     char* data;
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 void __cdecl FUN_004d85a0(void* p);
@@ -16,7 +16,7 @@ struct Elem_0042f3a0 {
     Class_004c9390 handle;
     int unknown_4;
     Elem_0042f3a0() { }
-    ~Elem_0042f3a0() { handle.FUN_004c9390(); }
+    ~Elem_0042f3a0() { handle.ReleaseRef(); }
 };
 
 #pragma pack(push, 1)

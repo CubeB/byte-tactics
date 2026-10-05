@@ -63,8 +63,8 @@ extern Game* g_game;
 void __stdcall RemovePlayer(int dpid);
 void FUN_0046c190();
 int __stdcall HAPINET_quitgame(Net_4c9f90* net);
-void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
-void __stdcall FUN_004b6230(char* message);
+void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
+void __stdcall QuitApp(char* message);
 
 // FUNCTION: 0x4578f0
 void __cdecl LeaveNetGameCallback(int)
@@ -78,7 +78,7 @@ void __cdecl LeaveNetGameCallback(int)
         FUN_0046c190();
     }
     HAPINET_quitgame(&g_game->net);
-    FUN_004b4fd0(0, 0);
+    SetCloseHandler(0, 0);
     g_game->flag2 = 1;
     int reason = g_game->players[g_game->localPlayer].rejectReason;
     char* text;
@@ -116,5 +116,5 @@ void __cdecl LeaveNetGameCallback(int)
     else {
         text = 0;
     }
-    FUN_004b6230(text);
+    QuitApp(text);
 }

@@ -3,7 +3,7 @@
 struct Quad { int a, b, c, d; };
 
 // FUNCTION: 0x4c69c0
-void __stdcall FUN_004c69c0(int* param_1)
+void __stdcall ResetClipRect(int* param_1)
 {
     Quad q;
     q.a = 0;

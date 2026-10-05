@@ -114,14 +114,14 @@ public:
     int color;                       // +0x28
     char unknown_2c[0x30 - 0x2c];
 
-    void FUN_00473a00(int param_1, short x, short y);
+    void DrawParticle(int param_1, short x, short y);
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 
 // FUNCTION: 0x473a00
-void Class_00473a00::FUN_00473a00(int param_1, short x, short y)
+void Class_00473a00::DrawParticle(int param_1, short x, short y)
 {
     Rect_004b0510 r;
     r.x1 = (short)(this->x - x) + 0x80;
@@ -148,5 +148,5 @@ void Class_00473a00::FUN_00473a00(int param_1, short x, short y)
     }
 
     if (visible)
-        FUN_004bf6f0((void*)param_1, &r, this->color);
+        FillRectangle((void*)param_1, &r, this->color);
 }

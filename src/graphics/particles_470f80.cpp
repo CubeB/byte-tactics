@@ -9,14 +9,14 @@ public:
     virtual ~Listener_00470fb0();      // vtable +0x0
 };
 
-class Class_00470fb0 {
+class ParticleLists {
 public:
     std::vector<Listener_00470fb0*> lists[10];
 
-    Class_00470fb0();
+    ParticleLists();
 };
 
 // FUNCTION: 0x470f80
-Class_00470fb0::Class_00470fb0()
+ParticleLists::ParticleLists()
 {
 }

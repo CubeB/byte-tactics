@@ -69,7 +69,7 @@ struct File_004bb2e0 {
     char name[0x100];                    // +0x18
 };
 
-State_004bb2e0* FUN_004b6220(void);
+State_004bb2e0* GetDisplay(void);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 Entry_004bb2e0* __stdcall FUN_004bb4e0(List_004bb2e0* list, char* name);
@@ -87,7 +87,7 @@ File_004bb2e0* __stdcall FUN_004bb2e0(char* filename, const char* mode)
     int off;
     int k;
     unsigned char* p;
-    State_004bb2e0* state = FUN_004b6220();
+    State_004bb2e0* state = GetDisplay();
     File_004bb2e0* h = (File_004bb2e0*)FUN_004d83b0("File Handle", 0x118);
     memset(h, 0, 0x118);
     strncpy(h->name, filename, 0x100);

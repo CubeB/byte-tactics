@@ -5,7 +5,7 @@
 extern int DAT_0050b540;
 extern int DAT_0050b544;
 
-extern void __stdcall FUN_004b64d0(int);
+extern void __stdcall RemoveTimer(int);
 
 class Class_004ced40 {
 public:
@@ -31,8 +31,8 @@ int Class_004ced40::FUN_004ced40()
         unknown_208 = 0;
     unknown_20c = 0;
     unknown_284 = 0;
-    FUN_004b64d0(DAT_0050b540);
-    FUN_004b64d0(DAT_0050b544);
+    RemoveTimer(DAT_0050b540);
+    RemoveTimer(DAT_0050b544);
     DAT_0050b540 = DAT_0050b544 = -1;
     return err == 0 ? 1 : 0;
 }

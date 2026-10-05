@@ -10,7 +10,7 @@
 extern char DAT_005119b8[];
 
 int FUN_0049f580(void);
-char* __stdcall FUN_004bb0f0(char* name);
+char* __stdcall StripExtension(char* name);
 void* __stdcall FUN_004bb5b0(char* path);
 int __stdcall FUN_004bb5d0(void* file);
 int __stdcall FUN_004bbc40(char* path);
@@ -47,7 +47,7 @@ void Class_00435c00::FUN_00435430(int index, char* dir, char* name, char* ext)
     char* side = (char*)FUN_0049f580();
     if (side) {
         sprintf(path, "%s-%s\\%s", dir, side, name);
-        FUN_004bb0f0(path);
+        StripExtension(path);
         strcat(path, ".");
         strcat(path, ext);
         void* file = FUN_004bb5b0(path);
@@ -58,7 +58,7 @@ void Class_00435c00::FUN_00435430(int index, char* dir, char* name, char* ext)
         }
     }
     sprintf(path, "%s\\%s", dir, name);
-    FUN_004bb0f0(path);
+    StripExtension(path);
     strcat(path, ".");
     strcat(path, ext);
     SetName(index, path);

@@ -29,7 +29,7 @@ struct App_004b6220 {
     HWND hwnd;                         // +0x40
 };
 
-extern App_004b6220* FUN_004b6220();
+extern App_004b6220* GetDisplay();
 
 class Class_004cdb40 {
 public:
@@ -87,7 +87,7 @@ int Class_004ceb60::FUN_004ceb60(int index, int flag)
         return 1;
     field_208 = index;
     index += field_280;
-    hwnd = FUN_004b6220()->hwnd;
+    hwnd = GetDisplay()->hwnd;
     ((Class_004d00d0*)this)->FUN_004d00d0(field_20, 1);
     if (mciSendStringA("set cdaudio time format tmsf", 0, 0, 0) != 0)
         return 0;

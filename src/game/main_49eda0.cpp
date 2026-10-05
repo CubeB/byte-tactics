@@ -37,7 +37,7 @@ typedef int (__stdcall* DirectXRegisterApplicationProc)(HWND, DirectXRegisterApp
 
 int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                            LPSTR lpCmdLine, int nCmdShow);
-int __stdcall FUN_004cbab0(EXCEPTION_POINTERS* exception, const char* thread);
+int __stdcall ExceptionFilter(EXCEPTION_POINTERS* exception, const char* thread);
 bool __cdecl FUN_004da0e0(const char* arg);
 void __stdcall FUN_0045b670(char* param_1);
 void __stdcall FUN_0041d4b0(int val);
@@ -58,7 +58,7 @@ extern "C" int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 {
     __try {
         return FUN_0049e830(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-    } __except (FUN_004cbab0(GetExceptionInformation(), "Main Thread")) {
+    } __except (ExceptionFilter(GetExceptionInformation(), "Main Thread")) {
     }
     return 0;
 }

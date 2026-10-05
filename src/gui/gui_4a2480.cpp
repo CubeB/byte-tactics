@@ -39,8 +39,8 @@ struct Class_004a2480 {
 };
 #pragma pack(pop)
 
-Glyph_004a2480* __stdcall FUN_004b7f30(unsigned short* table, int index);
-void __stdcall FUN_004b7f90(void* surface, void* image, int x, int y);
+Glyph_004a2480* __stdcall GetGafFrame(unsigned short* table, int index);
+void __stdcall DrawFrame(void* surface, void* image, int x, int y);
 
 // FUNCTION: 0x4a2480
 void __stdcall FUN_004a2480(Class_004a2480* param_1, int index)
@@ -49,7 +49,7 @@ void __stdcall FUN_004a2480(Class_004a2480* param_1, int index)
     void* surface = base->surface;
     Entry_004a2480* e = &base[index];
     unsigned short* glyphs = e->glyphs;
-    Glyph_004a2480* glyph = FUN_004b7f30(glyphs, 0);
+    Glyph_004a2480* glyph = GetGafFrame(glyphs, 0);
     int x = e->x;
     int y = e->y + e->h / 2;
     if (glyph != 0)
@@ -58,15 +58,15 @@ void __stdcall FUN_004a2480(Class_004a2480* param_1, int index)
         y = e->y;
     int limit = e->x + e->w;
     if (glyph != 0)
-        FUN_004b7f90(surface, glyph, x, y);
+        DrawFrame(surface, glyph, x, y);
     x += glyph->width;
-    Glyph_004a2480* mid = FUN_004b7f30(glyphs, 1);
+    Glyph_004a2480* mid = GetGafFrame(glyphs, 1);
     if (x + mid->width < limit) {
         do {
-            FUN_004b7f90(surface, mid, x, y);
+            DrawFrame(surface, mid, x, y);
             x += mid->width;
         } while (x + mid->width < limit);
     }
-    Glyph_004a2480* last = FUN_004b7f30(glyphs, 2);
-    FUN_004b7f90(surface, last, limit - last->width, y);
+    Glyph_004a2480* last = GetGafFrame(glyphs, 2);
+    DrawFrame(surface, last, limit - last->width, y);
 }

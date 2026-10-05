@@ -156,26 +156,26 @@ union Vec3_459200 {
 extern Game* g_game;
 extern const float DAT_004fd4c0;
 
-struct CMemoryCache { void FUN_0045a790(Model_459200*, int); };
-struct Class_0045a470 { void FUN_0045a470(int); };
-struct Class_004581e0 { void FUN_004586a0(Model_459200*,int,int); void FUN_00459830(int,Model_459200*,int,int); };
-struct Class_00458d30 { void FUN_00458dd0(int,Model_459200*); };
-struct Class_004584d0 { void FUN_004584d0(Model_459200*,int,Vec3_459200*,int,int,unsigned char,int); };
+struct CMemoryCache { void BuildShadow(Model_459200*, int); };
+struct Class_0045a470 { void MakeSilhouette(int); };
+struct Class_004581e0 { void BuildObjectPicture(Model_459200*,int,int); void DrawPieces(int,Model_459200*,int,int); };
+struct Class_00458d30 { void ShadeByIntensity(int,Model_459200*); };
+struct Class_004584d0 { void DrawPiece(Model_459200*,int,Vec3_459200*,int,int,unsigned char,int); };
 
 class Class_00459200 {
 public:
     char unknown_0[0x10];
     int bitmap;                       // +0x10
-    void FUN_00459200(int param_2, Model_459200* model, Vec3_459200 v, int useColor);
-    void FUN_004589c0(int bmp, Model_459200* model);
+    void DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor);
+    void MergeIntoComposite(int bmp, Model_459200* model);
 };
 
 int __stdcall GetGroundHeight(Pos_459200* p);
-void __stdcall FUN_004b7f90(int param_1, int param_2, int x, int y);
-void __stdcall FUN_004b8500(int param_1, int param_2, int x, int y);
-void __stdcall FUN_004b90a0(int bmp, int param_2, int x, int y, int z);
-void __stdcall FUN_004b96e0(int param_1, int value);
-void __stdcall FUN_004ba1b0(int param_1, int value);
+void __stdcall DrawFrame(int param_1, int param_2, int x, int y);
+void __stdcall DrawFrameBlended(int param_1, int param_2, int x, int y);
+void __stdcall DrawFrameDepth(int bmp, int param_2, int x, int y, int z);
+void __stdcall TintFrameBelow(int param_1, int value);
+void __stdcall CutFrameBelow(int param_1, int value);
 
 static inline int team_bias(Model_459200* model)
 {
@@ -191,7 +191,7 @@ static inline int shade_bias(Model_459200* model)
 }
 
 // FUNCTION: 0x459200
-void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 v, int useColor)
+void Class_00459200::DrawObjectPicture(int param_2, Model_459200* model, Vec3_459200 v, int useColor)
 {
     int bmp = model->bitmap;
     TeamFlags_459200 f;
@@ -220,30 +220,30 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
                     && (f.word & 0x40000000) == 0) {
                     if (model->owner->field_a6 != 0 || dx >= g_game->field_1427f) {
                         if (model->field_14 == 0)
-                            ((CMemoryCache*)this)->FUN_0045a790(model,bmp);
-                        FUN_004b8500(param_2, model->field_14, v.p.x.whole + 0x85, y);
+                            ((CMemoryCache*)this)->BuildShadow(model,bmp);
+                        DrawFrameBlended(param_2, model->field_14, v.p.x.whole + 0x85, y);
                     }
                 } else {
                     if (gameFlags.bits.b3) {
                         if ((f.word & 0x81000) == 0) {
-                            ((Class_0045a470*)this)->FUN_0045a470(bmp);
-                            FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x85, y);
+                            ((Class_0045a470*)this)->MakeSilhouette(bmp);
+                            DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x85, y);
                         }
                     }
                 }
             }
         }
         if (model->bitmap == 0) {
-            ((Class_004581e0*)this)->FUN_004586a0(model, 0, 1);
+            ((Class_004581e0*)this)->BuildObjectPicture(model, 0, 1);
             bmp = model->bitmap;
         }
         if (!(model->owner->field_10e & 4) && g_game->field_14280 == 0)
-            FUN_004b7f90(param_2, bmp, v.p.x.whole + 0x80, z);
+            DrawFrame(param_2, bmp, v.p.x.whole + 0x80, z);
         else
-            FUN_004b8500(param_2, bmp, v.p.x.whole + 0x80, z);
+            DrawFrameBlended(param_2, bmp, v.p.x.whole + 0x80, z);
         for (int i = model->count - 1; i >= 0; i--) {
             if ((1 & model->pieces[i].flags) && !(model->pieces[i].flags & 2)) {
-                    ((Class_004584d0*)this)->FUN_004584d0(model, param_2, &cv, model->pieces[i].field_0,
+                    ((Class_004584d0*)this)->DrawPiece(model, param_2, &cv, model->pieces[i].field_0,
                                  model->pieces[i].field_22, model->owner->kind, useColor);
                 }
         }
@@ -253,7 +253,7 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
                 for (int i = unit->sprites->count - 1; i >= 0; i--) {
                     Piece_459200* piece = &unit->sprites->pieces[i];
                     if (piece->flags & 1) {
-                        ((Class_004584d0*)this)->FUN_004584d0(unit->sprites, param_2, &cv, piece->field_0, piece->field_22,
+                        ((Class_004584d0*)this)->DrawPiece(unit->sprites, param_2, &cv, piece->field_0, piece->field_22,
                                      unit->sprites->owner->kind, useColor);
                     }
                 }
@@ -269,27 +269,27 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
             f = model->owner->field_92->flags;
             if ((f.word & 0x2000000) == 0) {
                 if (f.bits.b30) {
-                    ((Class_0045a470*)this)->FUN_0045a470(bmp);
-                    FUN_004ba1b0(this->bitmap, team_bias(model));
-                    FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x85, y);
+                    ((Class_0045a470*)this)->MakeSilhouette(bmp);
+                    CutFrameBelow(this->bitmap, team_bias(model));
+                    DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x85, y);
                 } else {
                     if (model->owner->flags & 0x20000000) {
                         if (model->owner->field_a6 != 0 || dx >= g_game->field_1427f) {
                             if (model->field_14 == 0)
-                                ((CMemoryCache*)this)->FUN_0045a790(model,bmp);
-                            FUN_004b8500(param_2, model->field_14, v.p.x.whole + 0x85, y);
+                                ((CMemoryCache*)this)->BuildShadow(model,bmp);
+                            DrawFrameBlended(param_2, model->field_14, v.p.x.whole + 0x85, y);
                         }
                     } else {
                         if (gameFlags.bits.b3) {
                             if ((f.word & 0x81000) == 0) {
-                                ((Class_0045a470*)this)->FUN_0045a470(bmp);
+                                ((Class_0045a470*)this)->MakeSilhouette(bmp);
                                 int diff = g_game->field_1427f - dx;
                                 if (diff > 0) {
                                     diff += shade_bias(model);
                                     do {} while (0);    // no code: see the notes at the top
-                                    FUN_004ba1b0(this->bitmap, diff);
+                                    CutFrameBelow(this->bitmap, diff);
                                 }
-                                FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x85, y);
+                                DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x85, y);
                             }
                         }
                     }
@@ -297,25 +297,25 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
             }
         }
         if (model->bitmap == 0) {
-            ((Class_004581e0*)this)->FUN_004586a0(model, 0, 1);
+            ((Class_004581e0*)this)->BuildObjectPicture(model, 0, 1);
             bmp = model->bitmap;
         }
-        FUN_004589c0(bmp, model);
+        MergeIntoComposite(bmp, model);
         if ((model->owner->flags & 0x20000000) == 0 || model->owner->intensity == DAT_004fd4c0)
-            ((Class_004581e0*)this)->FUN_00459830(this->bitmap,model,model->owner->kind,0);
+            ((Class_004581e0*)this)->DrawPieces(this->bitmap,model,model->owner->kind,0);
         Unit_459200* unit = model->owner->list_head;
         while (unit) {
             if (!(unit->flags & 0x20000)) {
-                ((Class_004581e0*)this)->FUN_004586a0(unit->sprites,1,-1);
+                ((Class_004581e0*)this)->BuildObjectPicture(unit->sprites,1,-1);
                 if (unit->sprites->bitmap) {
-                    ((Class_00458d30*)this)->FUN_00458dd0(unit->sprites->bitmap,unit->sprites);
+                    ((Class_00458d30*)this)->ShadeByIntensity(unit->sprites->bitmap,unit->sprites);
                     int* op = &model->owner->pos_x;
                     d.v[0] = unit->pos_x - op[0];
                     d.v[1] = unit->pos_y - op[1];
                     d.v[2] = unit->pos_z - op[2];
                     int ddy = d.p.y.whole;
                     int ddz = d.p.z.whole;
-                    FUN_004b90a0(unit->sprites->bitmap, this->bitmap, d.p.x.whole, ddz - (ddy >> 1), ddy);
+                    DrawFrameDepth(unit->sprites->bitmap, this->bitmap, d.p.x.whole, ddz - (ddy >> 1), ddy);
                 }
             }
             unit = unit->list_next;
@@ -324,16 +324,16 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
         if (diff > 0) {
             diff += shade_bias(model);
             if ((model->owner->flags & 0x200) == 0 && model->owner->kind != g_game->field_2a43) {
-                FUN_004ba1b0(this->bitmap, diff);
+                CutFrameBelow(this->bitmap, diff);
             } else {
-                FUN_004b96e0(this->bitmap, diff);
+                TintFrameBelow(this->bitmap, diff);
             }
         }
         if (model->owner->field_92->flags.bits.b30)
-            FUN_004ba1b0(this->bitmap, 0x7d);
+            CutFrameBelow(this->bitmap, 0x7d);
         if (!(model->owner->field_10e & 4) && g_game->field_14280 == 0)
-            FUN_004b7f90(param_2, this->bitmap, v.p.x.whole + 0x80, z);
+            DrawFrame(param_2, this->bitmap, v.p.x.whole + 0x80, z);
         else
-            FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x80, z);
+            DrawFrameBlended(param_2, this->bitmap, v.p.x.whole + 0x80, z);
     }
 }

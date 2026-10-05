@@ -157,7 +157,7 @@ struct Game {
 
 extern Game* g_game;
 
-Frame_00481930* __stdcall FUN_004b7f30(LosTable_00481930* table, int index);
+Frame_00481930* __stdcall GetGafFrame(LosTable_00481930* table, int index);
 
 inline int LodRaw_00481930(Params_00481930* params)
 {
@@ -245,7 +245,7 @@ void __stdcall FUN_00481930(Params_00481930* params)
             lod = 0;
         else if (lod >= g_game->losTable->count)
             lod = g_game->losTable->count - 1;
-        frame = FUN_004b7f30(g_game->losTable, lod);
+        frame = GetGafFrame(g_game->losTable, lod);
         limitX = (x + frame->width < halfW) ? frame->width : halfW - x;
         limitY = (y + frame->height >= halfH) ? halfH - y : frame->height;
         nx = x < 0 ? -x : 0;

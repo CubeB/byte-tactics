@@ -190,7 +190,7 @@ void BroadcastPlayerInfo();
 void UpdateNetGameInfo();
 unsigned char FindHostSlot();
 int IsHostLocal();
-int FUN_004b6340();
+int GetTicks();
 int __stdcall GetSlotDpid(unsigned char player);
 void __stdcall RejectPlayer(int id, unsigned char msg);
 void __stdcall SendChatMessage(Player_00448c70* p, char* text, int a, int b);
@@ -330,7 +330,7 @@ void FUN_00448c70()
                 ((Class_00435a20*)g_game->map)->FUN_00435a20(map);
         }
         if (!CheckMapCrc()) {
-            mapname->colour = (FUN_004b6340() / 30 & 1) ? 0xc : 0;
+            mapname->colour = (GetTicks() / 30 & 1) ? 0xc : 0;
             if (differs) {
                 SendChatMessage(me, FUN_004c5740("does not have this map"), 4, 0);
                 me->info->b.ready = 0;

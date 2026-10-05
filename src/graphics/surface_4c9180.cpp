@@ -1,7 +1,7 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern int DAT_0050a778;
-extern void* DAT_0050a77c;
+extern int g_emptyStringRefs;
+extern void* g_emptyString;
 
 class Class_004c9180
 {
@@ -13,6 +13,6 @@ public:
 // FUNCTION: 0x4c9180
 Class_004c9180::Class_004c9180()
 {
-    DAT_0050a778++;
-    vtable = &DAT_0050a77c;
+    g_emptyStringRefs++;
+    vtable = &g_emptyString;
 }

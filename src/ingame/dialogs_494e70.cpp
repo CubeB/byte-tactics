@@ -33,7 +33,7 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 void ReportIntervalTimer();
 
 extern unsigned int DAT_0051f2f8;
@@ -78,7 +78,7 @@ void FUN_00494e70()
 {
     if ((g_game->flags_2a44 & 4)
         && (!(g_game->netFlags & 1) || (g_game->netFlags & 2))
-        && FUN_004b6340() > DAT_0051f2f8 + 0x1e) {
+        && GetTicks() > DAT_0051f2f8 + 0x1e) {
         int state = g_game->field_10->FUN_004ce680();
         if (++DAT_0051f2fc > 10) {
             int recent = 0;
@@ -118,6 +118,6 @@ void FUN_00494e70()
             DAT_0051f2dc = 0;
         DAT_0051e710[DAT_0051f2dc] = 0;
         ReportIntervalTimer();
-        DAT_0051f2f8 = FUN_004b6340();
+        DAT_0051f2f8 = GetTicks();
     }
 }

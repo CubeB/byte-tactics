@@ -21,8 +21,8 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned int __cdecl FUN_004b6340();
-void __stdcall FUN_004ba200(unsigned char* palette, int first, int count);
+unsigned int __cdecl GetTicks();
+void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 
 #define FADE_TICK(k)                                                        \
     {                                                                       \
@@ -35,7 +35,7 @@ void __stdcall FUN_004ba200(unsigned char* palette, int first, int count);
 // FUNCTION: 0x41e270
 void FUN_0041e270(void)
 {
-    if (g_game->nextTime <= FUN_004b6340()) {
+    if (g_game->nextTime <= GetTicks()) {
         for (int i = 0; i < 0x100; i++) {
             FADE_TICK(i * 4)
             FADE_TICK(i * 4 + 1)
@@ -44,7 +44,7 @@ void FUN_0041e270(void)
         }
         if (memcmp(g_game->current, g_game->target, 0x400) == 0)
             g_game->done = 1;
-        FUN_004ba200(g_game->current, 0, 0x100);
-        g_game->nextTime = FUN_004b6340() + 1;
+        SetPaletteColors(g_game->current, 0, 0x100);
+        g_game->nextTime = GetTicks() + 1;
     }
 }

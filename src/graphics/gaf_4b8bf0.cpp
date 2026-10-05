@@ -31,7 +31,7 @@ static inline unsigned short Value_004b8bf0(Ref_004b8bf0* r)
 }
 
 // FUNCTION: 0x4b8bf0
-void __stdcall FUN_004b8bf0(Ref_004b8bf0* ref, short step)
+void __stdcall AdvanceGafSequence(Ref_004b8bf0* ref, short step)
 {
     Src_004b8bf0* src = ref->src;
     if (src == 0 || src->count <= 1) {

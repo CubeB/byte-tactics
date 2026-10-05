@@ -3,13 +3,13 @@
 // reference-counted string handles, see 0x4c5bc0.cpp): called on each
 // element in the vectors' destroy loops, and on the local passed to insert
 // (0x4c59d0) at the end of its scope. The handles are released in reverse
-// order with FUN_004c9390.
+// order with ReleaseRef.
 
 class Class_004c9390 {
 public:
     char* data;
 
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 struct Elem_004c5bc0 {
@@ -22,6 +22,6 @@ struct Elem_004c5bc0 {
 // FUNCTION: 0x4c5190
 Elem_004c5bc0::~Elem_004c5bc0()
 {
-    b.FUN_004c9390();
-    a.FUN_004c9390();
+    b.ReleaseRef();
+    a.ReleaseRef();
 }

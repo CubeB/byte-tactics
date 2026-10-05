@@ -13,11 +13,11 @@ public:
     char unknown_0[0x1c];
     Rect_004c6b10 rect;                // +0x1c
 
-    void FUN_004c6b10(Rect_004c6b10 r);
+    void SetClipRect(Rect_004c6b10 r);
 };
 
 // FUNCTION: 0x4c6b10
-void Class_004c6b10::FUN_004c6b10(Rect_004c6b10 r)
+void Class_004c6b10::SetClipRect(Rect_004c6b10 r)
 {
     rect = r;
 }

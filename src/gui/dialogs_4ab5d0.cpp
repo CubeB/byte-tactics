@@ -10,8 +10,8 @@ struct Sub_004ab5d0;
 struct Event_004ab5d0;
 struct Rect_004ab5d0;
 
-extern void __stdcall FUN_004b8bf0(Ref_004ab5d0* ref, int step);
-extern int __stdcall FUN_004b7ee0(Ref_004ab5d0* ref);
+extern void __stdcall AdvanceGafSequence(Ref_004ab5d0* ref, int step);
+extern int __stdcall GetGafSequenceFrame(Ref_004ab5d0* ref);
 extern void __stdcall FUN_004c2b20(int handle);
 extern int __stdcall FUN_004c2de0(Event_004ab5d0* out);
 extern void __stdcall FUN_004c2340(Event_004ab5d0* out);
@@ -68,9 +68,9 @@ void __stdcall FUN_004ab5d0(Class_004ab5d0* p)
 {
     if (p->flags.active) {
         int old = p->ref.index;
-        FUN_004b8bf0(&p->ref, p->field_9a);
+        AdvanceGafSequence(&p->ref, p->field_9a);
         if (p->ref.index != old)
-            FUN_004c2b20(FUN_004b7ee0(&p->ref));
+            FUN_004c2b20(GetGafSequenceFrame(&p->ref));
     }
 
     Event_004ab5d0 e;

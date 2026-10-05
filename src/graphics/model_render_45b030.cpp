@@ -27,7 +27,7 @@ struct Piece_0045b030 {
 // when `force` is set) from the object, and clears its offset. Returns
 // nonzero if the last piece visited was restored.
 // FUNCTION: 0x45b030
-int __fastcall FUN_0045b030(Piece_0045b030* piece, int force)
+int __fastcall RestorePieceVertices(Piece_0045b030* piece, int force)
 {
     int result;
     do {
@@ -41,7 +41,7 @@ int __fastcall FUN_0045b030(Piece_0045b030* piece, int force)
             result = 1;
         }
         if (piece->child) {
-            result = FUN_0045b030(piece->child, result);
+            result = RestorePieceVertices(piece->child, result);
         }
         piece = piece->sibling;
     } while (piece);

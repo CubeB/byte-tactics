@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Loads a PCX file whose header starts with 0x0a 0x05, opens its body through
-// FUN_004caa40 (which allocates the pixel data and the 256-entry packed RGB
+// DecodePcx (which allocates the pixel data and the 256-entry packed RGB
 // palette), expands the palette to 256 PALETTEENTRY quads (peFlags = 0), copies
 // them into the caller's buffer and frees the PCX buffers. Returns 1 on
 // success, 0 when the file is missing or is not the expected PCX variant.
@@ -18,11 +18,11 @@ void* __stdcall FUN_004bb5b0(char* path);
 int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
 int __stdcall FUN_004bb710(void* file, int pos);
 int __stdcall FUN_004bb5d0(void* file);
-void __stdcall FUN_004caa40(void* file, PCX_004cb080* pcx);
+void __stdcall DecodePcx(void* file, PCX_004cb080* pcx);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4cb080
-int __stdcall FUN_004cb080(char* path, unsigned int* out)
+int __stdcall LoadPcxPalette(char* path, unsigned int* out)
 {
     void* file = FUN_004bb5b0(path);
     if (file == 0)
@@ -39,7 +39,7 @@ int __stdcall FUN_004cb080(char* path, unsigned int* out)
         return 0;
     }
     FUN_004bb710(file, 0);
-    FUN_004caa40(file, &pcx);
+    DecodePcx(file, &pcx);
     FUN_004bb5d0(file);
     unsigned char* s = pcx.palette;
     for (int i = 0; i < 0x100; i++) {

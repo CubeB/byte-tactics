@@ -14,15 +14,15 @@ struct Image_004ba1b0 {
     unsigned char* mask;               // +0x14
 };
 
-Palette_004ba1b0* FUN_004b6220();
+Palette_004ba1b0* GetDisplay();
 
 // FUNCTION: 0x4ba1b0
-void __stdcall FUN_004ba1b0(Image_004ba1b0* image, unsigned char level)
+void __stdcall CutFrameBelow(Image_004ba1b0* image, unsigned char level)
 {
     unsigned char* p = image->data;
     unsigned char* m = image->mask;
     int count = image->height * image->width;
-    Palette_004ba1b0* pal = FUN_004b6220();
+    Palette_004ba1b0* pal = GetDisplay();
     while (count--) {
         if (*m <= level) {
             *p = image->colorKey;

@@ -216,7 +216,7 @@ int IsHostLocal();
 int CountHumanPlayers();
 int CountComputerPlayers();
 int CountLocalComputerPlayers();
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 void __stdcall AddMessage(char* text, int a, int b, int c);
 void __stdcall SendChatMessage(Player_00447b10* p, char* text, int a, int b);
 void __stdcall ReportGameEvent(int sound);
@@ -380,7 +380,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                 p->id = -1;
                 g_game->field_499--;
             } else if (type != 4 && type != 0) {
-                if (p->active != 0 && type == 2 && FUN_004b6340() - p->time > 30) {
+                if (p->active != 0 && type == 2 && GetTicks() - p->time > 30) {
                     RejectPlayer(p->id, 1);
                     ((Class_00463c60*)p)->SetType(0);
                 } else if (canAdd && p->active != 0 && p->type == 3) {

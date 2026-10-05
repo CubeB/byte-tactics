@@ -26,7 +26,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x471eb0
-void FUN_00471eb0()
+void UpdateParticles()
 {
     Lists_00471eb0* l = g_game->lists;
     for (int i = 0; i < 10; i++) {

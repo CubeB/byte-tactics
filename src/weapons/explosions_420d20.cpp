@@ -18,7 +18,7 @@ struct Class_004b8da0 {
     unsigned char* data;      // +0x10
 };
 
-Class_004b8da0* __stdcall FUN_004b8da0(const char* name, int width, int height);
+Class_004b8da0* __stdcall AllocFrame(const char* name, int width, int height);
 
 // A size x size explosion frame: a noisy, slightly squashed radial gradient
 // from the centre outwards, transparent (0xff) outside the circle.
@@ -26,7 +26,7 @@ Class_004b8da0* __stdcall FUN_004b8da0(const char* name, int width, int height);
 Class_004b8da0* FUN_00420d20(int size)
 {
     double half = size / 2;
-    Class_004b8da0* img = FUN_004b8da0("ExplosionFrame", size, size);
+    Class_004b8da0* img = AllocFrame("ExplosionFrame", size, size);
     img->field_6 = img->field_4 = (short)half;
     for (int y = 0; y < size; y++) {
         double dy = half - y;

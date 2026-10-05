@@ -11,13 +11,13 @@
 //  * A packet's data is `owner->data[offset]`: +0x4 is the offset and +0xc
 //    the owning buffer (PacketBuffer, data at +0x14). Written twice as an
 //    expression, it gives the original's base+offset for the log call and
-//    the fresh reload after FUN_004b6340, with the zero kept in ebx.
+//    the fresh reload after GetTicks, with the zero kept in ebx.
 //  * `if (now >= nextSend || force != 0) { ...; while ((n = queue.count) != 0)
 //    {...} } return 1;` gives the original's three epilogues.
 //  * The send block reads DAT_0051e2f8, dpid and DAT_0051e2f4 into locals
 //    before the log call, in that order: equal priorities, so the one written
 //    first takes edi (`nbytes` before `id`; 97.5% the other way round).
-unsigned int __cdecl FUN_004b6340();
+unsigned int __cdecl GetTicks();
 void __cdecl PacketTrace(const char* fmt, ...);
 
 extern char* g_game;
@@ -114,7 +114,7 @@ public:
 // FUNCTION: 0x4624a0
 int Class_004624a0::SendQueued(int force)
 {
-    unsigned int now = FUN_004b6340();
+    unsigned int now = GetTicks();
     PacketTrace("player: %ld, ticks betw sends=%lu, nextsend=%lu, gametimereal=%lu\n",
                  dpid, ticks, nextSend, now);
     if (now >= nextSend || force != 0) {
@@ -132,7 +132,7 @@ int Class_004624a0::SendQueued(int force)
                                  entry->size, entry->owner->data[entry->offset],
                                  &entry->owner->data[entry->offset + 1]);
                     entry->queued = frame;
-                    entry->time = FUN_004b6340();
+                    entry->time = GetTicks();
                     if (g_packetManager.AppendToSendBuffer(&entry->owner->data[entry->offset], entry->size) == 0)
                         return 0;
                     sent++;

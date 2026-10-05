@@ -34,7 +34,7 @@ struct ObjectState_0045af90 {
 #pragma pack(pop)
 
 // FUNCTION: 0x45af90
-Entry_0045af90* __stdcall FUN_0045af90(ObjectState_0045af90* state, Class_0045ae80* obj, Entry_0045af90* parent)
+Entry_0045af90* __stdcall LinkStateEntries(ObjectState_0045af90* state, Class_0045ae80* obj, Entry_0045af90* parent)
 {
     int i = state->count - 1;
     if (i >= 0) {
@@ -47,12 +47,12 @@ Entry_0045af90* __stdcall FUN_0045af90(ObjectState_0045af90* state, Class_0045ae
         }
         Entry_0045af90* e = &state->entries[i];
         if (e->object->unknown_2c != 0) {
-            e->sibling = FUN_0045af90(state, e->object->unknown_2c, parent);
+            e->sibling = LinkStateEntries(state, e->object->unknown_2c, parent);
         } else {
             e->sibling = 0;
         }
         if (e->object->unknown_30 != 0) {
-            e->child = FUN_0045af90(state, e->object->unknown_30, e);
+            e->child = LinkStateEntries(state, e->object->unknown_30, e);
         } else {
             e->child = 0;
         }

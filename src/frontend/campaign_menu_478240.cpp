@@ -86,8 +86,8 @@ int __stdcall FUN_0049fdf0(Entry_00478240* entries, const char* name, int type);
 void FUN_004c2470();
 void __stdcall FUN_004a81e0(void* menu, int value);
 void FUN_004c2870();
-void* __stdcall FUN_004b8d40(void* gaf, const char* name);
-int __stdcall FUN_004b7f30(unsigned short* p, int index);
+void* __stdcall FindGafEntry(void* gaf, const char* name);
+int __stdcall GetGafFrame(unsigned short* p, int index);
 void FUN_00477360();
 Entry_00478240* __stdcall FUN_0049ff10(Entry_00478240* entries,
                                        const char* name);
@@ -170,18 +170,18 @@ void __stdcall FUN_00478240(int param_1)
     FUN_004c2870();
 
     unsigned short* p =
-        (unsigned short*)FUN_004b8d40(((GafEntry_00478240*)entries)->gaf, "Side0");
+        (unsigned short*)FindGafEntry(((GafEntry_00478240*)entries)->gaf, "Side0");
     int n = 0;
     while (n < *p) {
-        char* r = (char*)FUN_004b7f30(p, 0);
+        char* r = (char*)GetGafFrame(p, 0);
         *(short*)(r + 6) = 0;
         *(short*)(r + 4) = 0;
         n++;
     }
-    p = (unsigned short*)FUN_004b8d40(((GafEntry_00478240*)entries)->gaf, "Side1");
+    p = (unsigned short*)FindGafEntry(((GafEntry_00478240*)entries)->gaf, "Side1");
     n = 0;
     while (n < *p) {
-        char* r = (char*)FUN_004b7f30(p, 0);
+        char* r = (char*)GetGafFrame(p, 0);
         *(short*)(r + 6) = 0;
         *(short*)(r + 4) = 0;
         n++;

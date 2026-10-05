@@ -20,10 +20,10 @@ struct Object_004aedd0 {
     char dir[0x100];                   // +0xab6
 };
 
-void __stdcall FUN_004baff0(char* out, char* in, const char* ext);
+void __stdcall ChangeExtension(char* out, char* in, const char* ext);
 int __stdcall FUN_004bbc40(char* path);
-void* __stdcall FUN_004b8c60(char* path);
-void* __stdcall FUN_004b7f30(void* table, int index);
+void* __stdcall LoadGaf(char* path);
+void* __stdcall GetGafFrame(void* table, int index);
 
 // FUNCTION: 0x4aedd0
 void __stdcall FUN_004aedd0(Object_004aedd0* obj, char* name, int index)
@@ -35,19 +35,19 @@ void __stdcall FUN_004aedd0(Object_004aedd0* obj, char* name, int index)
     char path[256];
     strncpy(path, obj->dir, 0x100);
     strcat(path, name);
-    FUN_004baff0(path, path, "GAF");
+    ChangeExtension(path, path, "GAF");
     if (FUN_004bbc40(path)) {
-        void* gaf = FUN_004b8c60(path);
+        void* gaf = LoadGaf(path);
         obj->items[index] = gaf;
         Table_004aedd0* table = *(Table_004aedd0**)((char*)gaf + 0xc);
-        char* e = (char*)FUN_004b7f30(table, 0x49);
+        char* e = (char*)GetGafFrame(table, 0x49);
         int d;
         if (e)
             d = *(unsigned short*)(e + 2);
         else
             d = unknown;
         for (int i = 0; i < table->count; i++) {
-            char* f = (char*)FUN_004b7f30(table, i);
+            char* f = (char*)GetGafFrame(table, i);
             if (f)
                 *(short*)(f + 6) -= d;
         }

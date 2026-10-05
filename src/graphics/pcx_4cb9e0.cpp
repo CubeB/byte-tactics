@@ -1,8 +1,8 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Writes the pixel rows of a bitmap into the file opened by
-// Class_004cb7f0::FUN_004cb7f0, bottom-up, each row padded to 4 bytes.
+// Class_004cb7f0::Open, bottom-up, each row padded to 4 bytes.
 // Suspected original bug: the seek offset subtracts `n` (the image height the
-// caller just passed to FUN_004cb7f0, which stores it in bmp.height), so
+// caller just passed to Open, which stores it in bmp.height), so
 // `bmp.height - n` is always 0 and the seek always lands on dataOffset.
 #include <stdio.h>
 
@@ -20,16 +20,16 @@ public:
     int dataOffset;                    // +0x8
     FILE* file;                        // +0xc
 
-    bool FUN_004cb7f0(char* name, int width, int height);
+    bool Open(char* name, int width, int height);
 };
 
 // FUNCTION: 0x4cb9e0
-int __stdcall FUN_004cb9e0(char* name, Image_004cb9e0* image)
+int __stdcall SaveBmp(char* name, Image_004cb9e0* image)
 {
     Class_004cb7f0 bmp;
     bool ok;
     bmp.file = 0;
-    if (!bmp.FUN_004cb7f0(name, image->width, image->height)) {
+    if (!bmp.Open(name, image->width, image->height)) {
         if (bmp.file) fclose(bmp.file);
         return 0;
     }

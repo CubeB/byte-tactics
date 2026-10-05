@@ -19,7 +19,7 @@
 // The real preceding function, 0x4ae630, matched in its own file (see the
 // note above). It has no annotation here to avoid a duplicate.
 struct Class_004bbbe0;
-char* __stdcall FUN_004baff0(char*, char*, const char*);
+char* __stdcall ChangeExtension(char*, char*, const char*);
 int __stdcall FUN_004bbc40(char*);
 void __stdcall FUN_004bbc30(char*);
 void __stdcall FUN_004bbc10(char*, char*);
@@ -45,9 +45,9 @@ void __stdcall FUN_004ae630(char* obj, char* name)
     char edit[100];
     char empty[100];
     char list[100];
-    FUN_004baff0(name, path, "GUI");
+    ChangeExtension(name, path, "GUI");
     if (FUN_004bbc40(path)) {
-        FUN_004baff0(name, backup, "BGU");
+        ChangeExtension(name, backup, "BGU");
         FUN_004bbc30(backup);
         FUN_004bbc10(path, backup);
     }
@@ -177,7 +177,7 @@ public:
 
 extern char DAT_005119b8[];
 
-char* __stdcall FUN_004baff0(char* name, char* out, const char* ext);
+char* __stdcall ChangeExtension(char* name, char* out, const char* ext);
 char* __stdcall FUN_004c5740(char* text);
 
 #pragma pack(push, 1)
@@ -245,7 +245,7 @@ int __stdcall FUN_004aeac0(Elem_004aeac0* obj, char* name)
     int i;
     int ret = 0;
     char path[256];
-    FUN_004baff0(name, path, "GUI");
+    ChangeExtension(name, path, "GUI");
     if (((Class_004c2f60*)&parser)->FUN_004c2f60(path) == 1) {
         ret = 1;
         i = 0;

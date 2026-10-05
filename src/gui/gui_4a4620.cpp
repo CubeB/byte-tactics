@@ -20,11 +20,11 @@ struct Class_004a4620 {
     Table_004a4620* table;             // +0x18
 };
 
-unsigned int __cdecl FUN_004b6340();
+unsigned int __cdecl GetTicks();
 
 // FUNCTION: 0x4a4620
 void __stdcall FUN_004a4620(Class_004a4620* obj, int i)
 {
     Entry_004a4620* e = &obj->table->entries[i];
-    e->end = FUN_004b6340() + e->duration;
+    e->end = GetTicks() + e->duration;
 }

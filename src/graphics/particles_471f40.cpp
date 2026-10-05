@@ -22,7 +22,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x471f40
-void __stdcall FUN_00471f40(int arg)
+void __stdcall DrawParticles(int arg)
 {
     Lists_471f40* l = g_game->lists;
     for (int i = 0; i < 10; i++) {

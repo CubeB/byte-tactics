@@ -12,13 +12,13 @@
 // level, MSVC calls ~Elem_004c5bc0 out of line instead of this ??_G. The
 // real wrapper classes are unknown (0x4c48c0 binary-searches the entries).
 // 0x4c9390 is really the handle's destructor, but it is established as
-// Class_004c9390::FUN_004c9390, so the handle's inline destructor calls it.
+// Class_004c9390::ReleaseRef, so the handle's inline destructor calls it.
 #include <vector>
 
 class Class_004c9390 {
 public:
     char* data;
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 class Class_004c91a0 {
@@ -26,7 +26,7 @@ public:
     char* p;
     Class_004c91a0();
     Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
 struct Elem_004c5bc0 {

@@ -9,7 +9,7 @@ struct Obj_004ba610 {
 };
 
 // FUNCTION: 0x4ba610
-int __stdcall FUN_004ba610(Obj_004ba610* param_1) {
+int __stdcall AllocShadeTable(Obj_004ba610* param_1) {
     void* result = FUN_004d83b0(DAT_0050a43c, 0x2000);
     param_1->field_c4 = result;
     return 1;

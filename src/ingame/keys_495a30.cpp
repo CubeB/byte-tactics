@@ -6,7 +6,7 @@
 // sorted by memory references divided by size, highest ratio nearest esp,
 // ties broken in favour of the earlier declared object. The clip rect is a
 // plain 16-byte Rect (2 refs, 0.125) and the sprite reference built by
-// FUN_004b8ae0 is 24 bytes, not 20 (3 refs, 0.125): the tie puts the sprite
+// FrameFromSurface is 24 bytes, not 20 (3 refs, 0.125): the tie puts the sprite
 // at 0x64 and the rect at 0x7c, under the 48-byte surface (5 refs, 0.104).
 // With a 20-byte sprite the rect would have to be 20 bytes to put its bottom
 // at 0x88, and a 20-byte rect (0.100) sorts above the surface. 0x44c0d0.cpp
@@ -43,21 +43,21 @@ struct Class_004b8da0;
 struct Class_004cb7c0 {
     char unknown_0[0xc];
     int field_c;                            // +0xc
-    Class_004cb7c0* FUN_004cb7c0();
+    Class_004cb7c0* Init();
 };
 
 struct Class_004cb7f0 : public Class_004cb7c0 {
-    bool FUN_004cb7f0(const char* name, int width, int height);
+    bool Open(const char* name, int width, int height);
 };
 
 struct Class_004cb940 {
-    bool FUN_004cb940(void* image, int x, int rows, int unused_4, int y, int unused_6, int srcY);
+    bool WriteRows(void* image, int x, int rows, int unused_4, int y, int unused_6, int srcY);
 };
 
 struct Class_004cb7d0 {
     char unknown_0[0xc];
     void* file;                             // +0xc
-    void FUN_004cb7d0();
+    void Close();
 };
 
 struct Dst_004b8ae0 {
@@ -106,21 +106,21 @@ struct Rect_00495a30 {
 
 struct Class_004c6b10 {
     char unknown_0[0x1c];
-    void FUN_004c6b10(Rect_00495a30 r);
+    void SetClipRect(Rect_00495a30 r);
 };
 
 void __stdcall FUN_00495930(char* out, const char* dir, const char* name, const char* ext);
-Class_004b8da0* __stdcall FUN_004b8da0(const char* name, int width, int height);
+Class_004b8da0* __stdcall AllocFrame(const char* name, int width, int height);
 void __cdecl FUN_004d8e50(int param);
 void __stdcall FUN_0049e6f0();
-void __stdcall FUN_004b8a80(Surface_00495a30* dst, void* src);
-void* __stdcall FUN_004b6220();
-void __stdcall FUN_004b8ae0(Dst_004b8ae0* dst, Src_004b8ae0* src);
+void __stdcall SurfaceFromFrame(Surface_00495a30* dst, void* src);
+void* __stdcall GetDisplay();
+void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Src_004b8ae0* src);
 void __stdcall FUN_0041c4c0(int x, int y, int z);
 void __stdcall FUN_0048bae0();
 void __stdcall FUN_00468cf0(int a, int b);
-void __stdcall FUN_004b7f90(Surface_00495a30* surf, Dst_004b8ae0* pal, int x, int y);
-void __stdcall FUN_004b8e50(void* b, int color);
+void __stdcall DrawFrame(Surface_00495a30* surf, Dst_004b8ae0* pal, int x, int y);
+void __stdcall ClearFrame(void* b, int color);
 void __stdcall FUN_004816a0(int param);
 void __cdecl FUN_004d85a0(void* b);
 
@@ -136,8 +136,8 @@ void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
 
     int y2;
     Class_004cb7f0 bmp;
-    bmp.FUN_004cb7c0();
-    if (bmp.FUN_004cb7f0(filename, w, h)) {
+    bmp.Init();
+    if (bmp.Open(filename, w, h)) {
         Class_004b8da0* bm;
         off27 = g_game->field_37e27;
         int bh, off2b;
@@ -146,10 +146,10 @@ void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
         bh = (g_game->screenTilesY * 16) - 1;
 
         FUN_004d8e50(0);
-        bm = FUN_004b8da0("ScreenShot", w, bh);
+        bm = AllocFrame("ScreenShot", w, bh);
         if (bm == 0) {
             bh /= 2;
-            bm = FUN_004b8da0("ScreenShot", w, bh);
+            bm = AllocFrame("ScreenShot", w, bh);
         }
         FUN_0049e6f0();
         if (bm != 0) {
@@ -175,8 +175,8 @@ void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
             savedC = g_game->field_37f27;
 
             g_game->field_37f27 = 0;
-            FUN_004b8a80(&surf, bm);
-            FUN_004b8ae0(&pal, ((SrcHolder_00495a30*)FUN_004b6220())->frame);
+            SurfaceFromFrame(&surf, bm);
+            FrameFromSurface(&pal, ((SrcHolder_00495a30*)GetDisplay())->frame);
 
             pal.flag8 = 0;
             int row = 0;
@@ -188,7 +188,7 @@ void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
                 negbh = -bh;
                 var1c = -1;
                 while (1) {
-                    FUN_004b8e50(bm, 0);
+                    ClearFrame(bm, 0);
                     int col, rows;
                     col = 0;
                     if (col < w) do {
@@ -203,8 +203,8 @@ void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
                         box.top = 0;
                         box.right = right;
                         box.bottom = bh - 1;
-                        ((Class_004c6b10*)&surf)->FUN_004c6b10(box);
-                        FUN_004b7f90(&surf, &pal, g_game->scrollX - x - off27,
+                        ((Class_004c6b10*)&surf)->SetClipRect(box);
+                        DrawFrame(&surf, &pal, g_game->scrollX - x - off27,
                                      g_game->scrollY - row - y - off2b);
                     } while (((col += bw), (col < w)));
                     sy = var10;
@@ -218,7 +218,7 @@ void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
                         srcY = 1;
                     }
                     if (y2 + rows > h) rows = h + sy;
-                    if (!((Class_004cb940*)&bmp)->FUN_004cb940(&surf, w, rows, 0, row, 0, srcY)) break;
+                    if (!((Class_004cb940*)&bmp)->WriteRows(&surf, w, rows, 0, row, 0, srcY)) break;
                     if (var24 < h) {
                         row = row - 1;
                         var10++;
@@ -245,5 +245,5 @@ void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
             FUN_00468cf0(1, 1);
         }
     }
-    ((Class_004cb7d0*)&bmp)->FUN_004cb7d0();
+    ((Class_004cb7d0*)&bmp)->Close();
 }

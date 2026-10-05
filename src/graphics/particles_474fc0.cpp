@@ -5,7 +5,7 @@
 // vertical rate (y), and when the timer runs out counts one more step and
 // restarts the timer at a random value between period/2 and period. Slot 1
 // of Class_004750b0 (0x475600) inlines this; this out-of-line copy is never
-// called. 0x474b00 is the same update for Class_00474cd0's records (y * 4).
+// called. 0x474b00 is the same update for SmokeParticles's records (y * 4).
 #include <stdlib.h>
 
 #pragma pack(push, 1)
@@ -32,11 +32,11 @@ public:
     int period;                        // +0x18
     int timer;                         // +0x1c
 
-    void FUN_00474fc0();
+    void Step();
 };
 
 // FUNCTION: 0x474fc0
-void Class_00474fc0::FUN_00474fc0()
+void Class_00474fc0::Step()
 {
     x += g_game->windX * 8;
     y += g_game->rise * 16;

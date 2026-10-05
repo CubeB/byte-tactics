@@ -37,7 +37,7 @@ extern int DAT_00512f3a;
 extern int DAT_00512f4d;
 extern int DAT_00512f51;
 
-void __stdcall FUN_004ba590(float value);
+void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45cae0
 void FUN_0045cae0()
@@ -61,7 +61,7 @@ void FUN_0045cae0()
         g_game->height = DAT_00512f51;
     }
 
-    FUN_004ba590(0.5 - g_game->brightness * -0.041666668f);
+    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
     ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
 }

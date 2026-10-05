@@ -7,7 +7,7 @@ class Class_00473590 {
 public:
     char unknown_0[0x34];
 
-    void FUN_00473590(void* p, short a, short b);
+    void DrawParticle(void* p, short a, short b);
 };
 
 #pragma pack(push, 1)
@@ -32,6 +32,6 @@ struct Class_00472e30 {
 void Class_00472e30::FUN_00472e30(void* p)
 {
     for (std::vector<Class_00473590>::iterator it = items.begin(); it != items.end(); ++it) {
-        it->FUN_00473590(p, g_game->field_1431f, g_game->field_14323);
+        it->DrawParticle(p, g_game->field_1431f, g_game->field_14323);
     }
 }

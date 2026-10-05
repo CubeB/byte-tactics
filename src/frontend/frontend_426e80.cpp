@@ -125,17 +125,17 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int param2);
 int __stdcall JoinNetGame(V4i v, int idx);
 int __stdcall FUN_004a5030(char* param);
 void __stdcall AddNetPlayer(int param);
-void __stdcall FUN_004c69a0(int param);
-void __stdcall FUN_004c6890(int param1, int param2);
-void __stdcall FUN_004c63a0(void);
-void __stdcall FUN_004b6230(int param);
+void __stdcall SetOffscreenSurface(int param);
+void __stdcall FillSurface(int param1, int param2);
+void __stdcall FlipScreen(void);
+void __stdcall QuitApp(int param);
 void __stdcall HAPINET_guaranteepackets(int param);
 void __stdcall FUN_004a9660(int param);
 void __stdcall FUN_004ab0a0(int param);
 void __stdcall HAPINET_quitgame(int param);
 void __stdcall InitPacketManager(int param1, int param2);
 void __stdcall FUN_004c1ab0(void);
-Obj_00426e80* __stdcall FUN_004b6220(void);
+Obj_00426e80* __stdcall GetDisplay(void);
 void __stdcall FUN_004263b0(void);
 void __stdcall FUN_00430f00(void);
 int __stdcall InitLobbiedConnection(void);
@@ -248,17 +248,17 @@ void FUN_00425750()
 
 void FUN_004257a0()
 {
-    FUN_004c69a0(*(int*)(g_game + 0x37e1b));
-    FUN_004c6890(0, 0);
-    FUN_004c63a0();
+    SetOffscreenSurface(*(int*)(g_game + 0x37e1b));
+    FillSurface(0, 0);
+    FlipScreen();
 }
 
 void FUN_00425b60()
 {
-    FUN_004c69a0(*(int*)(g_game + 0x37e1b));
+    SetOffscreenSurface(*(int*)(g_game + 0x37e1b));
     FUN_004c2470();
     FUN_004c2870();
-    FUN_004c63a0();
+    FlipScreen();
 }
 
 // FUN_00426d20, as inlined in case 15 and in case 20.
@@ -293,7 +293,7 @@ void FUN_00426e80(void)
 
     switch ((unsigned char)g_game[0x2bbe]) {
     case 0: {
-        Obj_00426e80* p = FUN_004b6220();
+        Obj_00426e80* p = GetDisplay();
         FUN_004c22d0(0);
         if (p->flag) {
             if (*(int*)(g_game + 0x3923d)) {
@@ -356,7 +356,7 @@ void FUN_00426e80(void)
             return;
         case 8:
             FUN_004257a0();
-            FUN_004b6230(0);
+            QuitApp(0);
             return;
         }
         break;

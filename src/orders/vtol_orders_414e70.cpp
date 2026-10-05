@@ -102,7 +102,7 @@ public:
 void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
 int __stdcall FUN_0041bd10(Unit* builder, Unit* unit, float amount);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
-void __stdcall FUN_004720d0(Vec3* from, Box* to, int count);
+void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
@@ -185,7 +185,7 @@ int __stdcall FUN_00414e70(Unit* unit, Order* order, int flags)
             box.hi.x += order->target->type->bounds.hi.x;
             box.hi.z += order->target->type->bounds.hi.z;
             box.hi.y += order->target->type->bounds.hi.y;
-            FUN_004720d0(&nano, &box, 6);
+            EmitNanoParticles(&nano, &box, 6);
         }
         ((Class_00439e80*)order)->FUN_00439e80(1);
         order->flags |= 8;

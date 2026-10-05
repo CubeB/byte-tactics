@@ -1,13 +1,13 @@
 // Decompiled by Opus. Names are provisional.
 // Constructor of the reference-counted string handle (see 0x4c91b0) from the
 // first len characters of a string. A null string shares the global empty
-// string, whose count is DAT_0050a778. The class is named after this address
+// string, whose count is g_emptyStringRefs. The class is named after this address
 // because data/symbols.csv maps one name per constructor.
 #include <stdlib.h>
 #include <string.h>
 
-extern int DAT_0050a778;
-extern void* DAT_0050a77c;
+extern int g_emptyStringRefs;
+extern void* g_emptyString;
 
 class Class_004c9230 {
 public:
@@ -20,8 +20,8 @@ public:
 Class_004c9230::Class_004c9230(const char* text, int len)
 {
     if (text == 0) {
-        DAT_0050a778++;
-        ptr = (char*)&DAT_0050a77c;
+        g_emptyStringRefs++;
+        ptr = (char*)&g_emptyString;
     } else {
         int* block = (int*)malloc(len + 1 + sizeof(int));
         *block = 1;

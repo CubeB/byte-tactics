@@ -13,7 +13,7 @@
 #include <string.h>
 
 struct Class_004bbbe0;
-char* __stdcall FUN_004baff0(char*, char*, const char*);
+char* __stdcall ChangeExtension(char*, char*, const char*);
 int __stdcall FUN_004bbc40(char*);
 void __stdcall FUN_004bbc30(char*);
 void __stdcall FUN_004bbc10(char*, char*);
@@ -40,9 +40,9 @@ void __stdcall FUN_004ae630(char* obj, char* name)
     char edit[100];
     char empty[100];
     char list[100];
-    FUN_004baff0(name, path, "GUI");
+    ChangeExtension(name, path, "GUI");
     if (FUN_004bbc40(path)) {
-        FUN_004baff0(name, backup, "BGU");
+        ChangeExtension(name, backup, "BGU");
         FUN_004bbc30(backup);
         FUN_004bbc10(path, backup);
     }

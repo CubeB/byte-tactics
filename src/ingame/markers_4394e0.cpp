@@ -90,7 +90,7 @@ extern Game* g_game;
 
 void __stdcall FUN_00439740(void* surface, View_004394e0* view,
                             Node_004394e0* node, Pos_004394e0* out, int unused);
-void __stdcall FUN_004b7f90(void* surface, void* bmp, int x, int y);
+void __stdcall DrawFrame(void* surface, void* bmp, int x, int y);
 
 // The three 16.16 steps of the interpolated position. The original keeps them
 // in memory (the values are stored as each _allmul/_allshr pair finishes and
@@ -129,7 +129,7 @@ struct Trail_004394e0 {
             p.x.value = start.x.value + o.x.value;
             p.y.value = start.y.value + o.y.value;
             p.z.value = start.z.value + o.z.value;
-            FUN_004b7f90(surface, *(void**)((char*)anim + idx * 8 + 0x28),
+            DrawFrame(surface, *(void**)((char*)anim + idx * 8 + 0x28),
                          p.x.whole - view->scroll_x + 0x80,
                          p.z.whole - (p.y.whole >> 1) - view->scroll_y + 0x20);
             idx = (idx + 1) % anim->count;

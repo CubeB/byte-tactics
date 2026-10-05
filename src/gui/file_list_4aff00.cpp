@@ -32,12 +32,12 @@ struct Class_004aff00 {
 };
 #pragma pack(pop)
 
-unsigned int FUN_004b6340();
-int FUN_004b6330();
-int FUN_004c13f0();
+unsigned int GetTicks();
+int GetTickRate();
+int GetTextKeyColor();
 void __stdcall FUN_004a1810(Entry_004a1810* entries, int index);
-void __stdcall FUN_004c13a0(int param_1, int param_2);
-void __stdcall FUN_004c14f0(void* surface, const char* text, int x, int y,
+void __stdcall SetTextColors(int param_1, int param_2);
+void __stdcall DrawString(void* surface, const char* text, int x, int y,
                             int maxWidth);
 
 // FUNCTION: 0x4aff00
@@ -46,7 +46,7 @@ void __stdcall FUN_004aff00(Class_004aff00* obj)
     if (obj->active == 0)
         return;
 
-    int time = FUN_004b6340();
+    int time = GetTicks();
 
     if (obj->words->value != -1)
         FUN_004a1810((Entry_004a1810*)obj->field_18->field_4,
@@ -60,21 +60,21 @@ void __stdcall FUN_004aff00(Class_004aff00* obj)
         if (obj->words[i].field_9c < ft) {
             if (obj->words[i].field_98 != 0) {
                 obj->words[i].field_9c =
-                    (float)FUN_004b6330() * obj->words[i].field_8c + ft;
+                    (float)GetTickRate() * obj->words[i].field_8c + ft;
                 obj->words[i].field_98 = 0;
             } else {
                 obj->words[i].field_9c =
-                    (float)FUN_004b6330() * obj->words[i].field_94 + ft;
+                    (float)GetTickRate() * obj->words[i].field_94 + ft;
                 obj->words[i].field_98 = 1;
             }
         }
 
         if (obj->words[i].field_98 != 0)
-            FUN_004c13a0(obj->words[i].field_90, FUN_004c13f0());
+            SetTextColors(obj->words[i].field_90, GetTextKeyColor());
         else
-            FUN_004c13a0(obj->words[i].field_88, FUN_004c13f0());
+            SetTextColors(obj->words[i].field_88, GetTextKeyColor());
 
-        FUN_004c14f0((void*)*(int*)(obj->field_18->field_4 + 0xbc),
+        DrawString((void*)*(int*)(obj->field_18->field_4 + 0xbc),
                      obj->words[i].text, obj->words[i].field_80,
                      obj->words[i].field_84, -1);
     }

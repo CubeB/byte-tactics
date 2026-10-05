@@ -131,7 +131,7 @@ extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 extern int DAT_0051f300;
 
-int FUN_004b6560();
+int GetMilliseconds();
 void FUN_00495230();
 void __stdcall FUN_00495490(int param_1);
 void FUN_00428c00();
@@ -142,7 +142,7 @@ void FUN_00428c40();
 void FUN_00428c50();
 int FUN_004568c0();
 void HandleNetPackets();
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 int GetLocalDpid();
 void __stdcall FUN_00453320(int a, int b);
 void FUN_00495e90();
@@ -150,12 +150,12 @@ void FUN_0041ce90();
 void FUN_0048bae0();
 void FUN_0041b2e0();
 void __stdcall FUN_00468cf0(int a, int b);
-void __stdcall FUN_004cb170(char* buf, char* name);
+void __stdcall SaveScreenshot(char* buf, char* name);
 
 static inline void Charge(int bucket)
 {
     Timers_00496790* t = &g_game->timers;
-    int now = FUN_004b6560();
+    int now = GetMilliseconds();
     t->cur[bucket] += now - t->last;
     t->last = now;
 }
@@ -173,7 +173,7 @@ void FUN_00496790()
     }
     if (t->total <= 0)
         t->total = 1;
-    t->last = FUN_004b6560();
+    t->last = GetMilliseconds();
 
     if (g_game->bit0_2a44) {
         FUN_00495230();
@@ -195,8 +195,8 @@ void FUN_00496790()
             if (g_usePacketManager)
                 g_packetManager.SendAllQueued(0);
             HandleNetPackets();
-            if ((int)FUN_004b6340() > DAT_0051f300) {
-                DAT_0051f300 = FUN_004b6340() + 60;
+            if ((int)GetTicks() > DAT_0051f300) {
+                DAT_0051f300 = GetTicks() + 60;
                 FUN_00453320(GetLocalDpid(), 0);
             }
             CHARGE(0);
@@ -229,9 +229,9 @@ void FUN_00496790()
     CHARGE(8);
     FUN_00428c40();
     if (g_game->field_38c53 > 0 && g_game->field_38c5b <= g_game->leadTick) {
-        FUN_004cb170(g_game->text_38b53, "FRAM");
+        SaveScreenshot(g_game->text_38b53, "FRAM");
         g_game->field_38c5b += 30 / g_game->field_38c57;
-        g_game->lastTick = FUN_004b6340();
+        g_game->lastTick = GetTicks();
     }
     FUN_00428c50();
 }

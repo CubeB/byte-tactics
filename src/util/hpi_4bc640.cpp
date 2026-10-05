@@ -63,7 +63,7 @@ struct Find_004bc640 {
 };
 #pragma pack(pop)
 
-int FUN_004b6220(void);
+int GetDisplay(void);
 int __stdcall FUN_004bc370(const char* str, const char* pat);
 int __stdcall FUN_004bc800(List_004bc640* list, Find_004bc640* f);
 
@@ -83,7 +83,7 @@ int __stdcall FUN_004bc640(Find_004bc640* f, struct _finddata_t* fd)
         if (!f->recursive)
             return -1;
     }
-    Groups_004bc640* g = (Groups_004bc640*)FUN_004b6220();
+    Groups_004bc640* g = (Groups_004bc640*)GetDisplay();
     for (; f->state < g->count; f->index = -1, f->state++) {
         if (f->index < 0) {
             f->handle = (long)FUN_004bc800(((Path_004bc640*)((Group_004bc640*)g->group[f->state])->path)->list, f);

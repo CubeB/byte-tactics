@@ -9,11 +9,11 @@ public:
     int field_1c;
     int field_20;
 
-    int FUN_00470eb0(int unused);
+    int AllocSlot(int unused);
 };
 
 // FUNCTION: 0x470eb0
-int Class_00470eb0::FUN_00470eb0(int unused)
+int Class_00470eb0::AllocSlot(int unused)
 {
     int edx = field_20;
     int esi = field_1c;

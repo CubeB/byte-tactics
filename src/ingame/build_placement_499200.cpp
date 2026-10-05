@@ -10,7 +10,7 @@
 // once per function), in code-generation order. Earlier files were stuck
 // because the else arm started one step off the original. Each arm of the
 // `FUN_00435100() == 1` test ends with its own copy of the
-// `field_391f1 = 2; field_391f5 = FUN_00496bb0; FUN_004b4fd0(...)` sequence:
+// `field_391f1 = 2; field_391f5 = FUN_00496bb0; SetCloseHandler(...)` sequence:
 // the then arm's copy takes two rotation steps before the else arm is
 // generated, and MSVC then merges the two copies into one. The FUN_00435c00
 // call's g_game load is an ordinary rotating load again (edx), with no local.
@@ -175,8 +175,8 @@ int __stdcall FUN_0049fe60(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);
 void __stdcall FUN_004a9660(void* a);
 void __stdcall FUN_004ab400(void* a, void* b);
-void __stdcall FUN_004b4fd0(void* a, int b);
-int FUN_004b6340();
+void __stdcall SetCloseHandler(void* a, int b);
+int GetTicks();
 void FUN_004c1a40();
 int __stdcall FUN_004c1b80(int a);
 void FUN_00499880();
@@ -249,7 +249,7 @@ void FUN_00499200(void)
             int dz = g_game->field_2c9a - g_game->field_2ca6;
             dx = abs(dx);
             dz = abs(dz);
-            int now = FUN_004b6340();
+            int now = GetTicks();
             if (g_game->field_2cb6 + 0x19 > now && dx < 0x20 && dz < 0x20) {
                 FUN_00498f70(&view);
             } else if (FUN_0048c390(&view) == 0) {
@@ -264,7 +264,7 @@ void FUN_00499200(void)
     } else if (view.msg == 0x201) {
         if ((flags & 2) != 0) {
             g_game->flags_2cc6 = flags | 8;
-            g_game->field_2cb6 = FUN_004b6340();
+            g_game->field_2cb6 = GetTicks();
             g_game->field_2c92 = g_game->field_2cac;
             g_game->field_2c96 = g_game->field_2cb0;
             g_game->field_2c9a = g_game->field_2cb4;
@@ -306,7 +306,7 @@ void FUN_00499200(void)
             g_game->field_10->FUN_004ce690(4);
             g_game->field_391f1 = 7;
             g_game->field_391f5 = FUN_00499880;
-            FUN_004b4fd0(LeaveNetGameCallback, 0);
+            SetCloseHandler(LeaveNetGameCallback, 0);
             FUN_0041d9f0(0);
         }
     }
@@ -326,7 +326,7 @@ void FUN_00499200(void)
             }
             g_game->field_391f1 = 2;
             g_game->field_391f5 = FUN_00496bb0;
-            FUN_004b4fd0(LeaveNetGameCallback, 0);
+            SetCloseHandler(LeaveNetGameCallback, 0);
         } else {
             unsigned int saved = g_game->field_2a3c;
             FUN_00491b60();
@@ -340,7 +340,7 @@ void FUN_00499200(void)
             g_game->field_2a44.value |= 4;
             g_game->field_391f1 = 2;
             g_game->field_391f5 = FUN_00496bb0;
-            FUN_004b4fd0(LeaveNetGameCallback, 0);
+            SetCloseHandler(LeaveNetGameCallback, 0);
         }
         g_game->field_10->FUN_004ce690(4);
     }

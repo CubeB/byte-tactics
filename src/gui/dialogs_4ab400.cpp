@@ -6,8 +6,8 @@
 struct Ref_004ab400;
 struct Src_004ab400;
 
-extern void __stdcall FUN_004b8b30(Ref_004ab400* ref, Src_004ab400* src, int index);
-extern int __stdcall FUN_004b7ee0(Ref_004ab400* ref);
+extern void __stdcall InitGafSequence(Ref_004ab400* ref, Src_004ab400* src, int index);
+extern int __stdcall GetGafSequenceFrame(Ref_004ab400* ref);
 extern void __stdcall FUN_004c2b20(int handle);
 
 struct Ref_004ab400 {
@@ -35,7 +35,7 @@ struct Obj_004ab400 {
 void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src)
 {
     p->src = src;
-    FUN_004b8b30(&p->ref, src, 0);
+    InitGafSequence(&p->ref, src, 0);
     p->flags_5c.active = 1;
-    FUN_004c2b20(FUN_004b7ee0(&p->ref));
+    FUN_004c2b20(GetGafSequenceFrame(&p->ref));
 }

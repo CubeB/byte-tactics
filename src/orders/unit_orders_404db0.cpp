@@ -163,7 +163,7 @@ void __stdcall FUN_00438590(Unit* unit, Order* order, short turn);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
 unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
-void __stdcall FUN_004720d0(Vec3* from, Box* to, int count);
+void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec3 pos, int a, int b, int c);
 Cell* __stdcall FUN_004815f0(Vec3* pos);
 unsigned short __stdcall FUN_00421e60(Cell* cell);
@@ -246,7 +246,7 @@ int __stdcall FUN_00404db0(Unit* unit, Order* order, int flags)
             box.hi.x += f->footprint.x << 20;
             box.hi.z += f->footprint.z << 20;
             box.hi.y += f->height << 16;
-            FUN_004720d0(&nano, &box, 6);
+            EmitNanoParticles(&nano, &box, 6);
             unit->workTime = g_game->ticks + 300;
             ((Class_00439e80*)order)->FUN_00439e80(1);
             return 2;

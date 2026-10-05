@@ -17,11 +17,11 @@ struct Slot_00471120 {
 class Class_00471120 {
 public:
     Slot_00471120 slots[1];
-    void FUN_00471120(void* param, short index);
+    void DrawList(void* param, short index);
 };
 
 // FUNCTION: 0x471120
-void Class_00471120::FUN_00471120(void* param, short index)
+void Class_00471120::DrawList(void* param, short index)
 {
     Slot_00471120* s = &slots[index];
     for (Listener_00471120** p = s->first; p != s->last; p++)

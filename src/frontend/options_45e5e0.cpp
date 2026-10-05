@@ -92,7 +92,7 @@ int __stdcall FUN_0049fdf0(Entry_0045e5e0* entries, char* name, int type);
 Entry_0045e5e0* __stdcall FUN_004a0200(Entry_0045e5e0* entries, char* name);
 char* __stdcall FUN_004a0180(Entry_0045e5e0* entries, char* name);
 void __stdcall FUN_0045e4c0(List_0045e5e0* list);
-int __stdcall FUN_004b5370(List_0045e5e0* list);
+int __stdcall GetDisplayModes(List_0045e5e0* list);
 void __stdcall FUN_0045e100(void* layer);
 void __stdcall FUN_0045bbf0(void* obj, int value);
 void __stdcall FUN_0045bd20(void* obj, int value);
@@ -129,7 +129,7 @@ void __stdcall FUN_0045e5e0(int param_1)
         List_0045e5e0* list = (List_0045e5e0*)FUN_004d83b0("SELECT VIDEO MODE", 0x20);
         layer->data = list;
         list->modes = (Mode_0045e5e0*)FUN_004d83b0("DISPLAY MODES", 0x4b0);
-        if (FUN_004b5370(list) != 0) {
+        if (GetDisplayModes(list) != 0) {
             FUN_0045e4c0(list);
             list->buffer = (char*)FUN_004d83b0("AVAILABLE MODES", list->count << 8);
             list->buffer[0] = 0;

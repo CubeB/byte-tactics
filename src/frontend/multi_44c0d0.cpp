@@ -4,7 +4,7 @@
 // index counting up in DAT_00512768. On the first call it initialises the two
 // parallel output arrays: DAT_00512978 (image pointers from DAT_005129b8) and
 // DAT_0051297c (24-byte sprite records based at pic+0xc6). Each record is a
-// 0x14-byte sprite reference built by FUN_004b8ae0 plus 4 trailing bytes.
+// 0x14-byte sprite reference built by FrameFromSurface plus 4 trailing bytes.
 //
 // Suspected original bug: `if (def->name)` tests the address of the name
 // array inside the unit definition (lea eax, [esi+0x20]; test eax, eax), which
@@ -98,8 +98,8 @@ extern Entry_0044c0d0* DAT_005129b4;
 
 Pic_0044c0d0* __stdcall FUN_0049ff90(void* gadgets, char* name);
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-void* __stdcall FUN_004caf30(char* path, int param_2);
-void __stdcall FUN_004b8ae0(void* dst, void* src);
+void* __stdcall LoadPcx(char* path, int param_2);
+void __stdcall FrameFromSurface(void* dst, void* src);
 void __stdcall FUN_0049fa90(void* obj);
 
 // FUNCTION: 0x44c0d0
@@ -118,11 +118,11 @@ void FUN_0044c0d0()
         Def_0044c0d0* defs = g_game->defs;
         if (defs[type].name && ((unsigned char)(defs[type].field_245 >> 15) & 1) == 0) {
             FUN_004290f0(path, "unitpics", defs[DAT_005129b4[i].unitType].name, "PCX");
-            void* img = FUN_004caf30(path, 0);
+            void* img = LoadPcx(path, 0);
             *(void**)DAT_00512978 = img;
             DAT_00512978 += 4;
             if (img != 0) {
-                FUN_004b8ae0(&rec, img);
+                FrameFromSurface(&rec, img);
                 rec.flag8 = 9;
             } else {
                 rec.a = pic->field_17;

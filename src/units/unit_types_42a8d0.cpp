@@ -60,14 +60,14 @@ namespace ta {
 class Class_004c9390 {
 public:
     char* data;
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 // One file name of FUN_004bca30's list (a reference-counted string handle).
 struct Elem_00432be0 {
     char* data;                        // +0x0
 
-    ~Elem_00432be0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Elem_00432be0() { ((Class_004c9390*)this)->ReleaseRef(); }
     operator char*() const { return data; }
 };
 

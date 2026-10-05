@@ -1,10 +1,10 @@
 // Decompiled by Opus. Names are provisional.
 // Looks up the object's GAF entry by name and copies the first two words
-// of frame obj->frame (from FUN_004b7f30) into the object.
+// of frame obj->frame (from GetGafFrame) into the object.
 struct GafEntry_004b8d40;
 struct Gaf_004b8d40;
-GafEntry_004b8d40* __stdcall FUN_004b8d40(Gaf_004b8d40* gaf, const char* name);
-int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
+GafEntry_004b8d40* __stdcall FindGafEntry(Gaf_004b8d40* gaf, const char* name);
+int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 
 struct Holder_00479bf0 {
     char unknown_0[0xc0];
@@ -37,10 +37,10 @@ void __stdcall FUN_00479bf0(Obj_00479bf0* obj, char* name)
     Holder_00479bf0* h = g_game->screen->holder;
     obj->entry = 0;
     if (h->gaf) {
-        GafEntry_004b8d40* e = FUN_004b8d40(h->gaf, name);
+        GafEntry_004b8d40* e = FindGafEntry(h->gaf, name);
         if (e) {
             obj->entry = e;
-            short* f = (short*)FUN_004b7f30((unsigned short*)e, obj->frame);
+            short* f = (short*)GetGafFrame((unsigned short*)e, obj->frame);
             if (f) {
                 obj->x = f[0];
                 obj->y = f[1];

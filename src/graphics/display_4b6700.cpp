@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern void* DAT_0051fbd0;
+extern void* g_display;
 
 struct GlobalObj {
     char unknown_0[0xd4];
@@ -8,8 +8,8 @@ struct GlobalObj {
 };
 
 // FUNCTION: 0x4b6700
-int FUN_004b6700()
+int GetScreenWidth()
 {
-    GlobalObj* obj = (GlobalObj*)DAT_0051fbd0;
+    GlobalObj* obj = (GlobalObj*)g_display;
     return obj->field_d4;
 }

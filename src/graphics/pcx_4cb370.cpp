@@ -28,7 +28,7 @@ struct Node_004cb4c0 {
 };
 
 // FUNCTION: 0x4cb370
-void __stdcall FUN_004cb370(Node_004cb4c0* node)
+void __stdcall SortPrimitives(Node_004cb4c0* node)
 {
     if (node->index != -1 && node->count > 0) {
         Elem_004cb4c0* elems = node->elems;

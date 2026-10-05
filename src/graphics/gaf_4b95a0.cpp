@@ -33,12 +33,12 @@ struct Palette_004b95a0 {
     unsigned char* table;   // +0xc0
 };
 
-Palette_004b95a0* FUN_004b6220();
+Palette_004b95a0* GetDisplay();
 
 // FUNCTION: 0x4b95a0
-void __stdcall FUN_004b95a0(Image_004b95a0* src, Image_004b95a0* dst)
+void __stdcall DownsampleFrame(Image_004b95a0* src, Image_004b95a0* dst)
 {
-    Palette_004b95a0* pal = FUN_004b6220();
+    Palette_004b95a0* pal = GetDisplay();
     int row = 0;
     for (; row < dst->height; row++) {
         for (int x = 0; x < dst->width; x++) {

@@ -60,7 +60,7 @@ extern char* g_loungeChatter;
 extern int g_loungeRefreshTime;
 extern int g_timeoutPlayerDpid;
 
-int FUN_004b6340();
+int GetTicks();
 Entry_00453640* __stdcall FUN_0049ff90(void* entries, char* name);
 void __stdcall FUN_0049fa90(void* obj);
 char* __stdcall FUN_004c5740(char* text);
@@ -91,8 +91,8 @@ void UpdateTimeoutDialog()
 {
     Entry_00453640* entry = FUN_0049ff90(g_game->holder->entries, "OUTPUT");
 
-    if (g_loungeRefreshTime < FUN_004b6340()) {
-        g_loungeRefreshTime = FUN_004b6340() + 2;
+    if (g_loungeRefreshTime < GetTicks()) {
+        g_loungeRefreshTime = GetTicks() + 2;
         FUN_0049fa90(g_game->message);
     }
 
@@ -130,7 +130,7 @@ void UpdateTimeoutDialog()
         player = &g_game->players[FindPlayerIndex_00453640(g_timeoutPlayerDpid)];
 
     if (player != 0 && player->active != 0 && player->state == 3) {
-        int elapsed = (FUN_004b6340() - player->lastHeard) / 30;
+        int elapsed = (GetTicks() - player->lastHeard) / 30;
         char buf[200];
         sprintf(buf, FUN_004c5740("will be rejected in %d seconds"),
                 g_game->field_37f31 - elapsed + 0x78);

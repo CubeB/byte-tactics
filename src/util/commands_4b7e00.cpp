@@ -1,7 +1,7 @@
 // Decompiled by Haiku. Names are provisional.
 
 struct Class_004c93b0 {
-    void FUN_004c93b0(int);
+    void Assign(int);
 };
 
 class Class_004b7e00 {
@@ -16,7 +16,7 @@ public:
 // FUNCTION: 0x4b7e00
 void* Class_004b7e00::FUN_004b7e00(int* param_1)
 {
-    obj0.FUN_004c93b0((int)param_1);
+    obj0.Assign((int)param_1);
     field1 = param_1[1];
     field2 = param_1[2];
     return this;

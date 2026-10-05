@@ -3,7 +3,7 @@
 #include <string.h>
 
 // FUNCTION: 0x4bb0a0
-int __stdcall FUN_004bb0a0(char* name)
+int __stdcall HasExtension(char* name)
 {
     for (unsigned int i = 0; i < strlen(name); i++) {
         if (name[i] == '.')

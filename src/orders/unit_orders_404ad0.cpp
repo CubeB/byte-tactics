@@ -87,7 +87,7 @@ unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 void __stdcall FUN_00438590(Unit* unit, Order* order, short turn);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
-void __stdcall FUN_00472200(Box* from, Vec3* to, int count);
+void __stdcall EmitReverseNanoParticles(Box* from, Vec3* to, int count);
 void __stdcall FUN_004237d0(Unit* unit, Vec3* pos);
 
 // Order handler "Reclaiming" for a feature (wreck, tree, rock) at the order
@@ -145,8 +145,8 @@ int __stdcall FUN_00404ad0(Unit* unit, Order* order, int flags)
             box.hi.x += f->footprint.x << 20;
             box.hi.z += f->footprint.z << 20;
             box.hi.y += f->height << 16;
-            FUN_00472200(&box, &nano, 6);
-            FUN_00472200(&box, &nano, 6);
+            EmitReverseNanoParticles(&box, &nano, 6);
+            EmitReverseNanoParticles(&box, &nano, 6);
         }
         return 2;
     case 5:

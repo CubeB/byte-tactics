@@ -18,19 +18,19 @@ struct Surface_004c8020 {
     unsigned char* depth;
 };
 struct Display_004c8020 { char pad[0xc4]; unsigned char* palette; };
-Display_004c8020* FUN_004b6220();
+Display_004c8020* GetDisplay();
 void __cdecl FUN_004cd896(unsigned char*, unsigned char*, int, int, int, int, int);
 void __cdecl FUN_004cd8da(unsigned char*, unsigned char*, int, int, int, int, int);
 void __cdecl FUN_004cd91e(unsigned char*, unsigned char*, int, int, int, int, int);
 void __cdecl FUN_004cd962(unsigned char*, unsigned char*, int, int, int, int, int);
 
 // FUNCTION: 0x4c8020
-void __stdcall FUN_004c8020(int row, int* span, Surface_004c8020* target, Surface_004c8020* texture)
+void __stdcall DrawLitTexturedSpan(int row, int* span, Surface_004c8020* target, Surface_004c8020* texture)
 {
     unsigned char* dest = target->data;
     unsigned char* depth = target->depth;
     unsigned char* src = texture->data;
-    Display_004c8020* display = FUN_004b6220();
+    Display_004c8020* display = GetDisplay();
     int width = span[1] - span[0];
     int du = (span[4] - span[2]) / width;
     int dv = (span[5] - span[3]) / width;

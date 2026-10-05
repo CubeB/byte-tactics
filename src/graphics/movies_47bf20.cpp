@@ -19,11 +19,11 @@ public:
     char unknown_418[0x544 - 0x418];
     Surfaces_0047bf20* surfaces;     // +0x544
 
-    void FUN_0047bf20();
+    void Close();
 };
 
 // FUNCTION: 0x47bf20
-void Class_0047bf20::FUN_0047bf20()
+void Class_0047bf20::Close()
 {
     SmackClose(smack);
     if (hasSurfaces) {

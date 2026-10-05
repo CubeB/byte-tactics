@@ -68,7 +68,7 @@ extern Game* g_game;
 void __stdcall FUN_004825b0(Params_482ac0* params);
 void __stdcall FUN_00482270(Params_482ac0* params);
 void __stdcall FUN_00481930(Params_482ac0* params);
-int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
+int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 
 // FUNCTION: 0x482ac0
 void __stdcall FUN_00482ac0(Unit* unit)
@@ -97,7 +97,7 @@ void __stdcall FUN_00482ac0(Unit* unit)
             }
             int cell_x = p.pos.x / 0x200000;
             int cell_y = p.pos.z / 0x200000 - ((short*)&p.pos.y)[1] / 64;   // high half of y
-            Entry_482ac0* e = (Entry_482ac0*)FUN_004b7f30((unsigned short*)g_game->field_1485b, i);
+            Entry_482ac0* e = (Entry_482ac0*)GetGafFrame((unsigned short*)g_game->field_1485b, i);
             cell_x -= e->field_4;
             cell_y -= e->field_6;
             p.field_4[0] = (short)cell_x;

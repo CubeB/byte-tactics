@@ -23,8 +23,8 @@ struct Class_004afd80 {
 };
 #pragma pack(pop)
 
-int FUN_004b6330();
-unsigned int FUN_004b6340();
+int GetTickRate();
+unsigned int GetTicks();
 
 // FUNCTION: 0x4afd80
 int __stdcall FUN_004afd80(Class_004afd80* obj, const char* text, int p2, int p3,
@@ -43,7 +43,7 @@ int __stdcall FUN_004afd80(Class_004afd80* obj, const char* text, int p2, int p3
     if (i == count)
         return 0;
 
-    int time = FUN_004b6340();
+    int time = GetTicks();
 
     strncpy(obj->words[i].text, text, 0x80);
     obj->words[i].field_80 = p2;
@@ -53,7 +53,7 @@ int __stdcall FUN_004afd80(Class_004afd80* obj, const char* text, int p2, int p3
     obj->words[i].field_8c = f6;
     obj->words[i].field_94 = f7;
 
-    int rate = FUN_004b6330();
+    int rate = GetTickRate();
     obj->words[i].field_9c = (float)rate * f6 + (float)time;
     obj->words[i].field_98 = 0;
     return 1;

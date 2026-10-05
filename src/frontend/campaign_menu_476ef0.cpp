@@ -74,9 +74,9 @@ int __stdcall FUN_0049fdf0(Entry_476ef0* gadgets, const char* name, int type);
 void __stdcall FUN_004afec0(Menu_476ef0* menu);
 void __stdcall FUN_004afd20(Menu_476ef0* menu, int value);
 void __stdcall FUN_004a1810(Entry_476ef0* gadgets, int index);
-void* __cdecl FUN_004c1440();
-int __stdcall FUN_004c1470(void* font);
-int __stdcall FUN_004c1480(void* font, const char* text);
+void* __cdecl GetFont();
+int __stdcall FontHeight(void* font);
+int __stdcall GetTextWidth(void* font, const char* text);
 char* __stdcall FUN_004c5740(const char* key);
 void __stdcall FUN_004ab1b0(Holder_476ef0* dialog, const char* name, char* text,
                             int x, int y, int w, int flags);
@@ -133,7 +133,7 @@ void FUN_00476ef0()
     gp->field_28 = g_game->field_37ef2 + 1;
     FUN_004a1810(gadgets, idx);
 
-    int divisor = FUN_004c1470(FUN_004c1440()) + 2;
+    int divisor = FontHeight(GetFont()) + 2;
     int linesPerPage = gp->h / divisor;
     int textX = gp->x + 5;
     int y = gp->y + divisor / 2;
@@ -189,7 +189,7 @@ void FUN_00476ef0()
                     lineStart++;
                     int colour =
                         DAT_00507b70[g_game->field_37ef2 * 4 + sel];
-                    int x = FUN_004c1480(FUN_004c1440(), gadgets[count].u.text) + textX;
+                    int x = GetTextWidth(GetFont(), gadgets[count].u.text) + textX;
                     int ey = gadgets[count].y;
                     int k = 0;
                     char* q = lineStart;

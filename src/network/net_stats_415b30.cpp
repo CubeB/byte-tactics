@@ -11,11 +11,11 @@ struct Game {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-void __stdcall FUN_004b8b90(void* item);
+void __stdcall StepGafSequence(void* item);
 
 // FUNCTION: 0x415b30
 void FUN_00415b30(void)
 {
     for (int i = g_game->count - 1; i >= 0; i--)
-        FUN_004b8b90(g_game->items[i]);
+        StepGafSequence(g_game->items[i]);
 }

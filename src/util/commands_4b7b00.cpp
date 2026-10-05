@@ -9,7 +9,7 @@
 class Class_004c9390 {
 public:
     char* data;                        // +0x0
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 class Class_004b7e00 {
@@ -30,7 +30,7 @@ public:
         ((Class_004b7e00*)this)->FUN_004b7e00((int*)&other);
         return *this;
     }
-    ~Class_004b7e30() { name.FUN_004c9390(); }
+    ~Class_004b7e30() { name.ReleaseRef(); }
 };
 
 typedef std::vector<Class_004b7e30> Vec_004b7b00;

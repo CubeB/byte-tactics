@@ -27,17 +27,17 @@ struct Obj_004c24b0 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004c5ff0(Surface_004c24b0* s);
-void __cdecl FUN_004cbbe0(void* dst, void* src, int x, int y);
-void __stdcall FUN_004b7f90(void* dst, Bitmap_004c24b0* bmp, int x, int y);
-int __stdcall FUN_004c60d0(Surface_004c24b0* s, RECT* r, int b);
+int __stdcall LockPrimary(Surface_004c24b0* s);
+void __cdecl BlitSurface(void* dst, void* src, int x, int y);
+void __stdcall DrawFrame(void* dst, Bitmap_004c24b0* bmp, int x, int y);
+int __stdcall UnlockPrimary(Surface_004c24b0* s, RECT* r, int b);
 
 // FUNCTION: 0x4c24b0
 void __stdcall FUN_004c24b0(Obj_004c24b0* obj)
 {
     if (obj->visible) {
         Surface_004c24b0 s;
-        if (FUN_004c5ff0(&s)) {
+        if (LockPrimary(&s)) {
             RECT r;
             POINT pt;
             GetCursorPos(&pt);
@@ -48,13 +48,13 @@ void __stdcall FUN_004c24b0(Obj_004c24b0* obj)
             obj->field_1be[0] = obj->bmp->width;
             obj->field_1be[1] = obj->bmp->height;
             obj->field_1be[2] = obj->bmp->width;
-            FUN_004cbbe0(obj->field_1be, &s, -obj->x, -obj->y);
-            FUN_004b7f90(&s, obj->bmp, obj->rect_x, obj->rect_y);
+            BlitSurface(obj->field_1be, &s, -obj->x, -obj->y);
+            DrawFrame(&s, obj->bmp, obj->rect_x, obj->rect_y);
             r.left = obj->x;
             r.top = obj->y;
             r.right = r.left + obj->bmp->width;
             r.bottom = r.top + obj->bmp->height;
-            FUN_004c60d0(&s, &r, 0);
+            UnlockPrimary(&s, &r, 0);
         }
     }
 }

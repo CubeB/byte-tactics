@@ -3,7 +3,7 @@
 #include <windows.h>
 
 // FUNCTION: 0x4b6560
-unsigned long FUN_004b6560(void)
+unsigned long GetMilliseconds(void)
 {
     return GetTickCount();
 }

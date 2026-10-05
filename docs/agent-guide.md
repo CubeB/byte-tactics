@@ -2165,7 +2165,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A field tested in one register, then re-read before a COM call** (or copied
   with `mov eax, ecx` when inlined): the call went through an inline method of
   an embedded struct (`d->screen.UnlockSurface()`). The screen lock/unlock pair
-  is FUN_004c5e70/FUN_004c5fa0 (`IDirectDrawSurface::Lock` +0x64 and `Unlock`
+  is LockScreen/UnlockScreen (`IDirectDrawSurface::Lock` +0x64 and `Unlock`
   +0x80 on the surface at display+0x8c), used by many functions around
   0x4c6b70-0x4c6dc0; see `src/graphics/surface_4c6d20.cpp`.
 - **STL templates ending in `ret N`**: that original file was compiled with
@@ -2412,9 +2412,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   statement and operand orders with `check.py <addr> <scratch> --sym` costs no
   runs, and found 0x49a890's and 0x49abb0's best forms (Sonnet 5.5, #1082).
 - **Store order around a call can depend on how `this` is reached**: with a
-  plain local `Display* d = FUN_004b6220();` MSVC puts a struct store before a
+  plain local `Display* d = GetDisplay();` MSVC puts a struct store before a
   field load; writing the body as an inline method called on the call's result
-  (`return FUN_004b6220()->LockMe(out);`) lets the store slide between the
+  (`return GetDisplay()->LockMe(out);`) lets the store slide between the
   argument pushes as in the original (0x4c5e70, 0x4c5ff0).
 - **A one-expression inline method of an embedded struct** keeps a null test
   and the reload after it separate, where a local or a multi-statement helper

@@ -59,14 +59,14 @@ struct Class_00438830 {
 extern char* g_game;
 extern int DAT_0051e540;
 
-int FUN_004c13f0();
-void __stdcall FUN_004c13a0(int color, int font);
-void __stdcall FUN_004c1420(int arg);
-int FUN_004c1450();
+int GetTextKeyColor();
+void __stdcall SetTextColors(int color, int font);
+void __stdcall SetFont(int arg);
+int GetFontHeight();
 void FUN_004c6b60();
-void __stdcall FUN_004bf4d0(void* surface, Rect_004b0510* rect, int level);
-void __stdcall FUN_004bf8c0(void* surface, Rect_004b0510* rect, int color);
-void __stdcall FUN_004c14f0(void* surface, const char* text, int x, int y, int maxWidth);
+void __stdcall FadeRectangle(void* surface, Rect_004b0510* rect, int level);
+void __stdcall DrawRectangle(void* surface, Rect_004b0510* rect, int color);
+void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
 
 // FUNCTION: 0x467e50
 int __stdcall FUN_00467e50(void* surface)
@@ -90,9 +90,9 @@ int __stdcall FUN_00467e50(void* surface)
         *(unsigned short*)(g_game + 0x391b7) = 0;
     }
     colors = (unsigned char*)(g_game + 0xdcb);
-    FUN_004c13a0(colors[15], FUN_004c13f0());
-    FUN_004c1420(*(int*)(g_game + 0x391f9));
-    lineH = FUN_004c1450() + 3;
+    SetTextColors(colors[15], GetTextKeyColor());
+    SetFont(*(int*)(g_game + 0x391f9));
+    lineH = GetFontHeight() + 3;
     y = lineH * 7;
     FUN_004c6b60();
     prev = DAT_0051e540;
@@ -100,17 +100,17 @@ int __stdcall FUN_00467e50(void* surface)
     r.x2 = 0x191;
     r.y1 = y;
     r.y2 = prev == 0 ? lineH * 20 : prev;
-    FUN_004bf4d0(surface, &r, -0x18);
+    FadeRectangle(surface, &r, -0x18);
     r.x2++;
     r.y2++;
-    FUN_004bf8c0(surface, &r, colors[5]);
+    DrawRectangle(surface, &r, colors[5]);
     y += 3;
-    FUN_004c14f0(surface, "Unit State Probe", 0x86, y, -1);
+    DrawString(surface, "Unit State Probe", 0x86, y, -1);
     y += lineH;
-    FUN_004c14f0(surface, "================", 0x86, y, -1);
+    DrawString(surface, "================", 0x86, y, -1);
     y += lineH;
     sprintf(buf, "uid: %03d/%04x '%s'\n", unit->f_a8, unit->f_a8, unit->f_92);
-    FUN_004c14f0(surface, buf, 0x86, y, -1);
+    DrawString(surface, buf, 0x86, y, -1);
     y += lineH;
     sprintf(buf, "playerno: %d '%s' %s - %s\n",
             *(unsigned char*)((char*)unit->f_96 + 0x146),
@@ -120,22 +120,22 @@ int __stdcall FUN_00467e50(void* surface)
                  || *(unsigned char*)((char*)unit->f_96 + 0x73) == 2))
                 ? "LOCAL" : "REMOTE",
             *(unsigned char*)(unit->f_92 + 0x22f) != 0 ? "MOBILE" : "BUILDING");
-    FUN_004c14f0(surface, buf, 0x86, y, -1);
+    DrawString(surface, buf, 0x86, y, -1);
     y += lineH;
     sprintf(buf, "controller: %d\n", *(unsigned char*)((char*)unit->f_96 + 0x73));
-    FUN_004c14f0(surface, buf, 0x86, y, -1);
+    DrawString(surface, buf, 0x86, y, -1);
     y += lineH;
     sprintf(buf, "buildtimeleft: %1.3f\n", unit->f_104);
-    FUN_004c14f0(surface, buf, 0x86, y, -1);
+    DrawString(surface, buf, 0x86, y, -1);
     y += lineH;
     sprintf(buf, "damage: %d\n", unit->f_108);
-    FUN_004c14f0(surface, buf, 0x86, y, -1);
+    DrawString(surface, buf, 0x86, y, -1);
     y += lineH;
     names[0] = "NONE";
     names[1] = "GROUND";
     names[2] = "AIR";
     sprintf(buf, "occupy: %s\n", names[unit->f_110 & 3]);
-    FUN_004c14f0(surface, buf, 0x86, y, -1);
+    DrawString(surface, buf, 0x86, y, -1);
     y += lineH;
     if (*unit->f_96 != 0
         && (*(unsigned char*)((char*)unit->f_96 + 0x73) == 1
@@ -144,10 +144,10 @@ int __stdcall FUN_00467e50(void* surface)
                 (unit->f_1f & 0x10) ? 'X' : '-',
                 (unit->f_3b & 0x10) ? 'X' : '-',
                 (unit->f_57 & 0x10) ? 'X' : '-');
-        FUN_004c14f0(surface, buf, 0x86, y, -1);
+        DrawString(surface, buf, 0x86, y, -1);
         y += lineH;
         if (unit->f_5c != 0) {
-            FUN_004c14f0(surface, "Mission Q:", 0x86, y, -1);
+            DrawString(surface, "Mission Q:", 0x86, y, -1);
             y += lineH;
             for (m = (Mission_00467e50*)unit->f_5c; m != 0;
                  m = (Mission_00467e50*)m->next) {
@@ -159,12 +159,12 @@ int __stdcall FUN_00467e50(void* surface)
                     sprintf(buf, "    '%s' state: %d\n",
                             ((Class_00438830*)((char*)m + 4))->FUN_00438830()->name,
                             m->state);
-                FUN_004c14f0(surface, buf, 0x86, y, -1);
+                DrawString(surface, buf, 0x86, y, -1);
                 y += lineH;
             }
         }
         if (unit->f_60 != 0) {
-            FUN_004c14f0(surface, "Background Mission Q:", 0x86, y, -1);
+            DrawString(surface, "Background Mission Q:", 0x86, y, -1);
             y += lineH;
             for (m = (Mission_00467e50*)unit->f_60; m != 0;
                  m = (Mission_00467e50*)m->next) {
@@ -176,7 +176,7 @@ int __stdcall FUN_00467e50(void* surface)
                     sprintf(buf, "    '%s' state: %d\n",
                             ((Class_00438830*)((char*)m + 4))->FUN_00438830()->name,
                             m->state);
-                FUN_004c14f0(surface, buf, 0x86, y, -1);
+                DrawString(surface, buf, 0x86, y, -1);
                 y += lineH;
             }
         }

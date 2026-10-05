@@ -1,20 +1,20 @@
 // Decompiled by Opus. Names are provisional.
 // Empties the file-local global vector (see 0x4889d0.cpp and 0x488a00.cpp):
 // frees each element's value, then clears the vector, which releases each
-// element's reference-counted name through FUN_004c9390.
+// element's reference-counted name through ReleaseRef.
 #include <vector>
 
 class Class_004c9390 {
 public:
     char* data;                        // +0x0
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 struct UnitCategory {
     Class_004c9390 name;               // +0x0
     void* value;                       // +0x4
 
-    ~UnitCategory() { name.FUN_004c9390(); }
+    ~UnitCategory() { name.ReleaseRef(); }
 };
 
 static std::vector<UnitCategory> DAT_0051e6b0;

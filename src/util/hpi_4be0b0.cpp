@@ -10,14 +10,14 @@ struct Display_004be0b0 {
 
 extern char DAT_0050a5c0[];            // "HAPIFILE array"
 
-Display_004be0b0* FUN_004b6220();
+Display_004be0b0* GetDisplay();
 void* __stdcall FUN_004bdd70(const char* name, int mode);
 void* __cdecl FUN_004d84a0(void* p, const char* name, unsigned int size);
 
 // FUNCTION: 0x4be0b0
 void* __stdcall FUN_004be0b0(LPCSTR param_1, int param_2)
 {
-    Display_004be0b0* display = FUN_004b6220();
+    Display_004be0b0* display = GetDisplay();
     char fullPath[0x100];
     char* filePart;
     GetFullPathNameA(param_1, 0x100, fullPath, &filePart);

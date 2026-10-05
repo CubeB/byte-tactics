@@ -8,7 +8,7 @@
 // The two hunks that were left (the 0x10 arm's denominator registers and the
 // 0x20 arm's `e->field_c6` load before `test eax,eax`) both came from two
 // inline helpers:
-//  - GetGlyph, the one helper for every FUN_004b7f30 glyph fetch (the same
+//  - GetGlyph, the one helper for every GetGafFrame glyph fetch (the same
 //    helper matched 0x4a4d70), used for the line height in the 0x10 arm. With
 //    it the ternary denominator compiles to the original's registers.
 //  - LineSize reads the count AND the font pointer before its `count > 0`
@@ -82,14 +82,14 @@ struct Class_004a3ef0 {
 
 extern Holder_004a3ef0* DAT_0051fba4;
 
-void __stdcall FUN_004c1420(int id);
-int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
-int FUN_004c1450();
+void __stdcall SetFont(int id);
+int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
+int GetFontHeight();
 void __stdcall FUN_004a2580(Class_004a3ef0* param_1, int param_2);
 
 static inline Glyph_004a3ef0* GetGlyph_004a3ef0(unsigned char c)
 {
-    return (Glyph_004a3ef0*)FUN_004b7f30(DAT_0051fba4->list->field_0c, c);
+    return (Glyph_004a3ef0*)GetGafFrame(DAT_0051fba4->list->field_0c, c);
 }
 
 static inline int Find_004a3ef0(Entry_004a3ef0* entries, unsigned char kind)
@@ -130,16 +130,16 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
                 for (; i < entries->count + 1; i++) {
                     if (entries[i].type == 7) {
                         if (n == e->group) {
-                            FUN_004c1420(entries[i].id);
+                            SetFont(entries[i].id);
                             break;
                         }
                         n++;
                     }
                 }
                 if (i == entries->count + 1) {
-                    FUN_004c1420(DAT_0051fba4->current);
+                    SetFont(DAT_0051fba4->current);
                 }
-                int size = (DAT_0051fba4->list == 0) ? FUN_004c1450()
+                int size = (DAT_0051fba4->list == 0) ? GetFontHeight()
                     : GetGlyph_004a3ef0(0x49)->height + 2;
                 int numerator = e->field_19 - 2;
                 int denominator = (e->field_da > size + 1) ? e->field_da : size + 1;

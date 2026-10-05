@@ -7,7 +7,7 @@
 #include <string.h>
 
 // FUNCTION: 0x4bb150
-char* __stdcall FUN_004bb150(char* path)
+char* __stdcall StripPath(char* path)
 {
     int len = strlen(path);
     int i = len - 1;

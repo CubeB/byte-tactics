@@ -17,9 +17,9 @@ struct Game {
 extern Game* g_game;
 
 char* __stdcall FUN_004c5740(char* text);
-int FUN_004c13f0();
-void __stdcall FUN_004c13a0(int color, int font);
-void __stdcall FUN_004c14f0(void* surface, const char* text, int x, int y, int maxWidth);
+int GetTextKeyColor();
+void __stdcall SetTextColors(int color, int font);
+void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
 
 // FUNCTION: 0x467cb0
 void __stdcall FUN_00467cb0(void* surface, Player_00467cb0* player, int x, int y)
@@ -34,6 +34,6 @@ void __stdcall FUN_00467cb0(void* surface, Player_00467cb0* player, int x, int y
         sprintf(buf, "%d %s", player->kills,
                 player->kills == 1 ? kill : kills);
     }
-    FUN_004c13a0(g_game->colors[15], FUN_004c13f0());
-    FUN_004c14f0(surface, buf, x, y, -1);
+    SetTextColors(g_game->colors[15], GetTextKeyColor());
+    DrawString(surface, buf, x, y, -1);
 }

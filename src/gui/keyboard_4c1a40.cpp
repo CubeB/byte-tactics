@@ -11,12 +11,12 @@ struct Queue_004c1ab0 {
 };
 #pragma pack(pop)
 
-Queue_004c1ab0* FUN_004b6220(void);
+Queue_004c1ab0* GetDisplay(void);
 
 // FUNCTION: 0x4c1a40
 void FUN_004c1a40(void)
 {
-    Queue_004c1ab0* q = FUN_004b6220();
+    Queue_004c1ab0* q = GetDisplay();
     q->head = 0;
     q->tail = 0;
 }

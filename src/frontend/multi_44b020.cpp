@@ -31,11 +31,11 @@ extern Game* g_game;
 
 void FUN_004257a0();
 void* __stdcall FUN_00429290(char* name, unsigned char* palette);
-void __stdcall FUN_004ba200(unsigned char* palette, int first, int count);
-void __stdcall FUN_004c69a0(int param_1);
-void __stdcall FUN_004c6b70(void* dest, void* image, int x, int y);
-void __stdcall FUN_004c6ac0(void* image);
-void FUN_004c63a0();
+void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
+void __stdcall SetOffscreenSurface(int param_1);
+void __stdcall DrawSurface(void* dest, void* image, int x, int y);
+void __stdcall FreeSurface(void* image);
+void FlipScreen();
 Gadget_0044b020* __stdcall FUN_004aa8f0(Sub_0044b020* sub, const char* name, int flags);
 void __stdcall FUN_0044afb0(void* gadget);
 int __stdcall FUN_004c5740(const char* str);
@@ -51,11 +51,11 @@ void FUN_0044b020()
 
     FUN_004257a0();
     image = FUN_00429290("Mission02WinBW", palette);
-    FUN_004ba200(palette, 0, 0x100);
-    FUN_004c69a0(g_game->field_37e1b);
-    FUN_004c6b70(0, image, 0, 0);
-    FUN_004c6ac0(image);
-    FUN_004c63a0();
+    SetPaletteColors(palette, 0, 0x100);
+    SetOffscreenSurface(g_game->field_37e1b);
+    DrawSurface(0, image, 0, 0);
+    FreeSurface(image);
+    FlipScreen();
     FUN_004aa8f0(&g_game->sub, "ENDMULTI.GUI", 0x80)->handler = FUN_0044afb0;
     FUN_004a0bf0(&g_game->sub, "RESULT",
                  FUN_004c5740(g_game->flag4_3923b ? "Victory" : "Failure"), 0);

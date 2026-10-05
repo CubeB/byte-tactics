@@ -20,7 +20,7 @@ extern Shape DAT_00502bf8[6];
 extern int DAT_00511df0[100];
 class CMemoryCache { public: void InitCache(int); };
 extern CMemoryCache DAT_00511f80;
-extern void* __stdcall FUN_004b91b0(int, int, int);
+extern void* __stdcall BuildLensFrame(int, int, int);
 extern void* __cdecl FUN_004d83b0(const char*, unsigned);
 extern void* __stdcall FUN_00420d20(int);
 inline Explosion* MakeExplosion(int count, int start, int end) {
@@ -39,7 +39,7 @@ inline Explosion* MakeExplosion(int count, int start, int end) {
 // FUNCTION: 0x420620
 void FUN_00420620() {
  g_game->active = 0;
- g_game->image = FUN_004b91b0(22,22,8);
+ g_game->image = BuildLensFrame(22,22,8);
  DAT_00511f90=24; DAT_00511f94=64; DAT_00511f98=8;
  DAT_00511f9c=30; DAT_00511fa0=128; DAT_00511fa4=16;
  DAT_00511fa8=30; DAT_00511fac=200; DAT_00511fb0=32;

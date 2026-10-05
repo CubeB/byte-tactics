@@ -35,7 +35,7 @@ struct Surface_004c0a90 {
 };
 
 // FUNCTION: 0x4c0a90
-void __stdcall FUN_004c0a90(int row, Span_004c0a90* span, Surface_004c0a90* surf, unsigned char color)
+void __stdcall PlotSpanEnds(int row, Span_004c0a90* span, Surface_004c0a90* surf, unsigned char color)
 {
     unsigned char* d = surf->depth;
     unsigned char* p = surf->bits;

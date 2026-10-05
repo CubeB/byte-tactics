@@ -55,7 +55,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_004c2340(Mouse_0041ce90* mouse);
-Display_0041ce90* FUN_004b6220();
+Display_0041ce90* GetDisplay();
 int __stdcall FUN_004ab060(void* obj, const char* name);
 int __stdcall FUN_004c1b80(int key);
 void FUN_0041c3c0();
@@ -71,7 +71,7 @@ void FUN_0041ce90()
     if (speed == 0)
         return;
     FUN_004c2340(&mouse);
-    Display_0041ce90* d = FUN_004b6220();
+    Display_0041ce90* d = GetDisplay();
     if (!(d->flags_f0 & 2)) {
         GetCursorPos(&pt);
         int w = g_game->width;

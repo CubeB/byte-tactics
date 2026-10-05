@@ -12,18 +12,18 @@ struct Queue_004c1ab0 {
 };
 #pragma pack(pop)
 
-Queue_004c1ab0* FUN_004b6220(void);
+Queue_004c1ab0* GetDisplay(void);
 
 // FUNCTION: 0x4c1a60
 void __stdcall FUN_004c1a60(int size)
 {
-    Queue_004c1ab0* q = FUN_004b6220();
+    Queue_004c1ab0* q = GetDisplay();
     if (size <= 0x1e)
         q->size = size;
     else
         q->size = 0x1e;
 
-    q = FUN_004b6220();
+    q = GetDisplay();
     q->head = 0;
     q->tail = 0;
 }

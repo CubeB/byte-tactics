@@ -48,7 +48,7 @@ union Fix_004736e0 {
 
 class Class_00471d70 {
 public:
-    void FUN_00471d70(int param_1);
+    void SetLifetime(int param_1);
 };
 
 class Class_004736e0 {
@@ -69,7 +69,7 @@ public:
 // FUNCTION: 0x4736e0
 void Class_004736e0::FUN_004736e0(Vec3_004736e0* a, Vec3_004736e0* b, int c)
 {
-    ((Class_00471d70*)this)->FUN_00471d70(c);
+    ((Class_00471d70*)this)->SetLifetime(c);
     pos1 = *a;
     pos2 = *b;
     dir = pos2 - pos1;

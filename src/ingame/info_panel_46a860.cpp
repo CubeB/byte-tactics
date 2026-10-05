@@ -7,7 +7,7 @@
 //   fixed the strncpy, entry, sprintf and font-load register hunks (the "g_game
 //   in eax" pair the old notes blamed on allocation), leaving two real hunks.
 //   Without the FLAGS line the file below is 93.1%, one byte long.
-// - pfstate is `g_game->... - FUN_004c1450() - 1` with no pfable or field_c
+// - pfstate is `g_game->... - GetFontHeight() - 1` with no pfable or field_c
 //   locals, and the PFSTATE sprintf re-reads *(g_game + 0xc) for each argument.
 // - the weapon loop writes `*out = -1` twice (nested ifs); MSVC merges the two
 //   stores, but the extra use gives `out` the original's eax and `slot` ecx.
@@ -24,15 +24,15 @@
 
 extern char* g_game;
 
-int FUN_004b6710();
-int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
-void __stdcall FUN_004b7f90(void* dst, void* bmp, int x, int y);
-void __stdcall FUN_004c13a0(int param_1, int param_2);
-int FUN_004c13f0();
-void __stdcall FUN_004c1420(int param_1);
-int FUN_004c1450();
-int __stdcall FUN_004c1480(void* font, unsigned char* text);
-void __stdcall FUN_004c14f0(void* dst, unsigned char* text, int x, int y, int maxWidth);
+int GetScreenHeight();
+int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
+void __stdcall DrawFrame(void* dst, void* bmp, int x, int y);
+void __stdcall SetTextColors(int param_1, int param_2);
+int GetTextKeyColor();
+void __stdcall SetFont(int param_1);
+int GetFontHeight();
+int __stdcall GetTextWidth(void* font, unsigned char* text);
+void __stdcall DrawString(void* dst, unsigned char* text, int x, int y, int maxWidth);
 char* __stdcall FUN_004c5740(char* key);
 int __stdcall FUN_00439d20(void* owner);
 int __stdcall FUN_00439dd0(void* unit);
@@ -40,7 +40,7 @@ int __stdcall FUN_00439df0(void* obj);
 int __stdcall FUN_00465ac0(void* map, void* u);
 void __stdcall FUN_00467c00(void* surf, void* player, void* rect, int dy);
 unsigned short __stdcall FindUnitTypeId(const char* name);
-int __stdcall FUN_004bf6f0(void* surface, void* rect, int color);
+int __stdcall FillRectangle(void* surface, void* rect, int color);
 
 class Class_00435100 {
   public:
@@ -76,11 +76,11 @@ static void DrawBar_0046a860(void* surface, Rect_0046a860* bounds, int value, in
     if (value > maximum)
         value = maximum;
     rect.right = rect.left + (bounds->right - bounds->left) * value / maximum;
-    FUN_004bf6f0(surface, &rect, palette[10]);
+    FillRectangle(surface, &rect, palette[10]);
     if (rect.right != bounds->right) {
         rect.left = rect.right + 1;
         rect.right = bounds->right;
-        FUN_004bf6f0(surface, &rect, palette[4]);
+        FillRectangle(surface, &rect, palette[4]);
     }
 }
 
@@ -105,45 +105,45 @@ void __stdcall FUN_0046a860(void* surface) {
         char* table = *(char**)(g_game + player * 331 + 0x1b8a);
         int idx = *(unsigned char*)(table + 0x95);
         do {
-            int dy = FUN_004b6710() - 0x20;
+            int dy = GetScreenHeight() - 0x20;
             unsigned short* icon = *(unsigned short**)(g_game + idx * 4 + 0x14833);
-            int bmp = FUN_004b7f30(icon, 0);
-            FUN_004b7f90(surface, (void*)bmp, (short)*(unsigned short*)(bmp + 4) + y,
+            int bmp = GetGafFrame(icon, 0);
+            DrawFrame(surface, (void*)bmp, (short)*(unsigned short*)(bmp + 4) + y,
                          (short)*(unsigned short*)(bmp + 6) + dy);
             y += *(unsigned short*)bmp;
         } while (y < *(int*)(g_game + 0x37e1f));
 
-        FUN_004c1420(*(int*)(g_game + 0x391f9));
-        FUN_004c13a0(0x53, FUN_004c13f0());
-        int pfstate = *(int*)(g_game + 0x37e23) - FUN_004c1450() - 1;
+        SetFont(*(int*)(g_game + 0x391f9));
+        SetTextColors(0x53, GetTextKeyColor());
+        int pfstate = *(int*)(g_game + 0x37e23) - GetFontHeight() - 1;
         sprintf(text, "PFSTATE %d, PFABLE %d\n", *(unsigned char*)(*(char**)(g_game + 0xc) + 0xf0) & 1,
                 *(int*)(*(char**)(g_game + 0xc) + 0x9c));
-        FUN_004c14f0(surface, (unsigned char*)text, 0x82, pfstate, -1);
+        DrawString(surface, (unsigned char*)text, 0x82, pfstate, -1);
 
         if (*(unsigned short*)(g_game + 0x2cba) != 0) {
             int idx = *(unsigned short*)(g_game + 0x2cba) & 0xffff;
             char* unit = *(char**)(g_game + 0x14357) + idx * 0x118;
             sprintf(text, "MOVEORD: %d FIREORD: %d\n", (*(unsigned int*)(unit + 0x110) >> 0x12) & 3,
                     (*(unsigned int*)(unit + 0x110) >> 0x14) & 3);
-            FUN_004c14f0(surface, (unsigned char*)text, 0x108, pfstate, -1);
+            DrawString(surface, (unsigned char*)text, 0x108, pfstate, -1);
         }
 
         sprintf(text, "DELTATIME: %d\n", *(int*)(g_game + 0x38a3b));
-        FUN_004c14f0(surface, (unsigned char*)text, 0x190, pfstate, -1);
+        DrawString(surface, (unsigned char*)text, 0x190, pfstate, -1);
 
         sprintf(text, "GAMETIME: %d\n", *(int*)(g_game + 0x38a47));
-        FUN_004c14f0(surface, (unsigned char*)text, 0x208, pfstate, -1);
+        DrawString(surface, (unsigned char*)text, 0x208, pfstate, -1);
 
         pfstate -= 0x10;
         sprintf(text, "X: %d  Y: %d\n", *(int*)(g_game + 0x1431f), *(int*)(g_game + 0x14323));
-        FUN_004c14f0(surface, (unsigned char*)text, 0x82, pfstate, -1);
+        DrawString(surface, (unsigned char*)text, 0x82, pfstate, -1);
 
         sprintf(text, "UNITS %d\\%d\n", *(int*)(g_game + 0x14353), *(int*)(g_game + 0x14367));
-        FUN_004c14f0(surface, (unsigned char*)text, 0x108, pfstate, -1);
+        DrawString(surface, (unsigned char*)text, 0x108, pfstate, -1);
 
         sprintf(text, "PACKETS: %d %d %d\n", *(int*)(g_game + 0x1cbe), *(int*)(g_game + 0x1e09),
                 *(int*)(g_game + 0x1f54));
-        FUN_004c14f0(surface, (unsigned char*)text, 0x190, pfstate, -1);
+        DrawString(surface, (unsigned char*)text, 0x190, pfstate, -1);
 
         int v = *(int*)(g_game + 0x14233);
         v *= (short)*(unsigned short*)(g_game + 0x2c90);
@@ -151,7 +151,7 @@ void __stdcall FUN_0046a860(void* surface) {
         unsigned char c = *(unsigned char*)(*(int*)(g_game + 0x14287) + v * 13 + 4);
         sprintf(text, "XYH: %d %d %d\n", (short)*(unsigned short*)(g_game + 0x2c8e),
                 (short)*(unsigned short*)(g_game + 0x2c90), c);
-        FUN_004c14f0(surface, (unsigned char*)text, 0x208, pfstate, -1);
+        DrawString(surface, (unsigned char*)text, 0x208, pfstate, -1);
         return;
     }
 
@@ -203,22 +203,22 @@ void __stdcall FUN_0046a860(void* surface) {
     memcpy(saved, &snapshot, sizeof(snapshot));
 
     char* palette = g_game + 0xdcb;
-    FUN_004c13a0(0x53, FUN_004c13f0());
+    SetTextColors(0x53, GetTextKeyColor());
 
     int player = *(unsigned char*)(g_game + 0x2a43);
     Player_0046a860* playerInfo = (Player_0046a860*)(g_game + 0x1b63) + player;
     char* info = playerInfo->info;
     int side = *(unsigned char*)(info + 0x95);
     char* panel = g_game + side * 562 + 0x37f3d;
-    FUN_004c1420(*(int*)(panel + 0x22e));
+    SetFont(*(int*)(panel + 0x22e));
     int y = 0x81;
     do {
-        int dy = FUN_004b6710() - 0x20;
+        int dy = GetScreenHeight() - 0x20;
         char* loopInfo = playerInfo->info;
         int loopSide = *(unsigned char*)(loopInfo + 0x95);
         unsigned short* icon = *(unsigned short**)(g_game + loopSide * 4 + 0x14833);
-        int bmp = FUN_004b7f30(icon, 0);
-        FUN_004b7f90(surface, (void*)bmp, (short)*(unsigned short*)(bmp + 4) + y,
+        int bmp = GetGafFrame(icon, 0);
+        DrawFrame(surface, (void*)bmp, (short)*(unsigned short*)(bmp + 4) + y,
                      (short)*(unsigned short*)(bmp + 6) + dy);
         y += *(unsigned short*)bmp;
     } while (y < *(int*)(g_game + 0x37e1f));
@@ -232,9 +232,9 @@ void __stdcall FUN_0046a860(void* surface) {
             if (_strcmpi(text, "CORBUILD") != 0) {
                 sprintf(text, "%s  M:%d E:%d", entry, (int)*(float*)(entry + 0x18a),
                         (int)*(float*)(entry + 0x186));
-                FUN_004c14f0(surface, (unsigned char*)text, *(int*)(panel + 0x1d2),
+                DrawString(surface, (unsigned char*)text, *(int*)(panel + 0x1d2),
                              *(int*)(panel + 0x1d6) + yOffset, -1);
-                FUN_004c14f0(surface, (unsigned char*)(entry + 0x40), *(int*)(panel + 0x1e2),
+                DrawString(surface, (unsigned char*)(entry + 0x40), *(int*)(panel + 0x1e2),
                              *(int*)(panel + 0x1e6) + yOffset, -1);
                 return;
             }
@@ -253,9 +253,9 @@ void __stdcall FUN_0046a860(void* surface) {
                 else
                     strcpy(text, *(char**)(unit + 0x92));
                 int titleX = *(int*)(panel + 0x142) -
-                             FUN_004c1480((void*)*(int*)(panel + 0x22e), (unsigned char*)text) / 2;
-                FUN_004c13a0(0x53, FUN_004c13f0());
-                FUN_004c14f0(surface, (unsigned char*)text, titleX, yOffset + *(int*)(panel + 0x146), -1);
+                             GetTextWidth((void*)*(int*)(panel + 0x22e), (unsigned char*)text) / 2;
+                SetTextColors(0x53, GetTextKeyColor());
+                DrawString(surface, (unsigned char*)text, titleX, yOffset + *(int*)(panel + 0x146), -1);
                 if (*(unsigned char*)(*(char**)(unit + 0x96) + 0x146) == *(unsigned char*)(g_game + 0x2a43) ||
                     !(*(unsigned int*)(*(char**)(unit + 0x92) + 0x241) & 0x4000)) {
                     int maximum = *(int*)(*(char**)(unit + 0x92) + 0x1fa);
@@ -267,19 +267,19 @@ void __stdcall FUN_0046a860(void* surface) {
                     (*(unsigned char*)(g_game + 0x3923b) & 2)) {
                     char amount[100];
                     char killsText[100];
-                    FUN_004c13a0((unsigned char)palette[10], FUN_004c13f0());
+                    SetTextColors((unsigned char)palette[10], GetTextKeyColor());
                     sprintf(amount, "+%.1f", Positive_0046a860(snapshot.values[3]));
-                    FUN_004c14f0(surface, (unsigned char*)amount, *(int*)(panel + 0x182),
+                    DrawString(surface, (unsigned char*)amount, *(int*)(panel + 0x182),
                                  *(int*)(panel + 0x186) + yOffset, -1);
                     sprintf(amount, "+%.0f", Positive_0046a860(snapshot.values[1]));
-                    FUN_004c14f0(surface, (unsigned char*)amount, *(int*)(panel + 0x162),
+                    DrawString(surface, (unsigned char*)amount, *(int*)(panel + 0x162),
                                  *(int*)(panel + 0x166) + yOffset, -1);
-                    FUN_004c13a0((unsigned char)palette[12], FUN_004c13f0());
+                    SetTextColors((unsigned char)palette[12], GetTextKeyColor());
                     sprintf(amount, "-%.1f", Positive_0046a860(snapshot.values[2]));
-                    FUN_004c14f0(surface, (unsigned char*)amount, *(int*)(panel + 0x192),
+                    DrawString(surface, (unsigned char*)amount, *(int*)(panel + 0x192),
                                  *(int*)(panel + 0x196) + yOffset, -1);
                     sprintf(amount, "-%.0f", Positive_0046a860(snapshot.values[0]));
-                    FUN_004c14f0(surface, (unsigned char*)amount, *(int*)(panel + 0x172),
+                    DrawString(surface, (unsigned char*)amount, *(int*)(panel + 0x172),
                                  *(int*)(panel + 0x176) + yOffset, -1);
                     if ((*(unsigned int*)(unit + 0x110) & 0x80000000) && *(unsigned short*)(unit + 0xb8)) {
                         int killsY = *(int*)(panel + 0x15e) + yOffset + 2, killsX = *(int*)(panel + 0x152);
@@ -292,15 +292,15 @@ void __stdcall FUN_0046a860(void* surface) {
                         else
                             sprintf(killsText, "%d %s", *(unsigned short*)(unit + 0xb8),
                                     *(unsigned short*)(unit + 0xb8) == 1 ? singular : plural);
-                        FUN_004c13a0(*(unsigned char*)(g_game + 0xdda), FUN_004c13f0());
-                        FUN_004c14f0(surface, (unsigned char*)killsText, killsX, killsY, -1);
+                        SetTextColors(*(unsigned char*)(g_game + 0xdda), GetTextKeyColor());
+                        DrawString(surface, (unsigned char*)killsText, killsX, killsY, -1);
                     }
                     if (snapshot.orderName) {
                         strcpy(amount, FUN_004c5740((char*)snapshot.orderName));
                         int orderX = *(int*)(panel + 0x1a2) -
-                                     FUN_004c1480((void*)*(int*)(panel + 0x22e), (unsigned char*)amount) / 2;
-                        FUN_004c13a0(0x53, FUN_004c13f0());
-                        FUN_004c14f0(surface, (unsigned char*)amount, orderX, *(int*)(panel + 0x1a6) + yOffset, -1);
+                                     GetTextWidth((void*)*(int*)(panel + 0x22e), (unsigned char*)amount) / 2;
+                        SetTextColors(0x53, GetTextKeyColor());
+                        DrawString(surface, (unsigned char*)amount, orderX, *(int*)(panel + 0x1a6) + yOffset, -1);
                     }
                 }
                 int progress = FUN_00439d20(unit);
@@ -309,9 +309,9 @@ void __stdcall FUN_0046a860(void* surface) {
                         return;
                     char* weaponText = FUN_004c5740("Weapon");
                     int progressX = *(int*)(panel + 0x1b2) -
-                                    FUN_004c1480((void*)*(int*)(panel + 0x22e), (unsigned char*)weaponText) / 2;
-                    FUN_004c13a0(0x53, FUN_004c13f0());
-                    FUN_004c14f0(surface, (unsigned char*)weaponText, progressX, *(int*)(panel + 0x1b6) + yOffset, -1);
+                                    GetTextWidth((void*)*(int*)(panel + 0x22e), (unsigned char*)weaponText) / 2;
+                    SetTextColors(0x53, GetTextKeyColor());
+                    DrawString(surface, (unsigned char*)weaponText, progressX, *(int*)(panel + 0x1b6) + yOffset, -1);
                     DrawBar_0046a860(surface, (Rect_0046a860*)(panel + 0x1c2), progress, 100, yOffset,
                                      (unsigned char*)palette);
                     return;
@@ -321,9 +321,9 @@ void __stdcall FUN_0046a860(void* surface) {
                     if (!*(unsigned short*)(target + 0xa6) || !FUN_00465ac0(playerMap, target))
                         return;
                     int targetX = *(int*)(panel + 0x1b2) -
-                                  FUN_004c1480((void*)*(int*)(panel + 0x22e), (unsigned char*)*(char**)(target + 0x92)) / 2;
-                    FUN_004c13a0(0x53, FUN_004c13f0());
-                    FUN_004c14f0(surface, (unsigned char*)*(char**)(target + 0x92), targetX,
+                                  GetTextWidth((void*)*(int*)(panel + 0x22e), (unsigned char*)*(char**)(target + 0x92)) / 2;
+                    SetTextColors(0x53, GetTextKeyColor());
+                    DrawString(surface, (unsigned char*)*(char**)(target + 0x92), targetX,
                                  *(int*)(panel + 0x1b6) + yOffset, -1);
                     if (*(unsigned char*)(*(char**)(target + 0x96) + 0x146) == *(unsigned char*)(g_game + 0x2a43) ||
                         !(*(unsigned int*)(*(char**)(target + 0x92) + 0x241) & 0x4000)) {
@@ -336,10 +336,10 @@ void __stdcall FUN_0046a860(void* surface) {
                 char* prefix = ((unsigned char)(*(unsigned int*)(unit + 0x110) >> 9) & 1) != 0 ? "S: " : "R: ";
                 char* s = FUN_004c5740("Unidentified object");
                 sprintf(text, "%s%s", prefix, s);
-                int w = FUN_004c1480((void*)*(int*)(panel + 0x22e), (unsigned char*)text);
+                int w = GetTextWidth((void*)*(int*)(panel + 0x22e), (unsigned char*)text);
                 int x = *(int*)(panel + 0x142) - w / 2;
-                FUN_004c13a0(0x53, FUN_004c13f0());
-                FUN_004c14f0(surface, (unsigned char*)text, x, *(int*)(panel + 0x146) + yOffset, -1);
+                SetTextColors(0x53, GetTextKeyColor());
+                DrawString(surface, (unsigned char*)text, x, *(int*)(panel + 0x146) + yOffset, -1);
                 return;
             }
         }
@@ -361,8 +361,8 @@ void __stdcall FUN_0046a860(void* surface) {
                 sprintf(text, "%s %s%s", FUN_004c5740(name), mText, eText);
             else
                 strcpy(text, FUN_004c5740(name));
-            FUN_004c13a0(0x53, FUN_004c13f0());
-            FUN_004c14f0(surface, (unsigned char*)text, *(int*)(panel + 0x1d2), *(int*)(panel + 0x1d6) + yOffset, -1);
+            SetTextColors(0x53, GetTextKeyColor());
+            DrawString(surface, (unsigned char*)text, *(int*)(panel + 0x1d2), *(int*)(panel + 0x1d6) + yOffset, -1);
         }
     }
 }

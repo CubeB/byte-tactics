@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-void __stdcall FUN_004b64d0(int param_1);
+void __stdcall RemoveTimer(int param_1);
 
 class Class_004d02a0 {
 public:
@@ -16,7 +16,7 @@ extern char DAT_0051ff60[];
 // FUNCTION: 0x4d0680
 void __stdcall FUN_004d0680(int unused1)
 {
-    FUN_004b64d0(DAT_0051ff14->field288);
+    RemoveTimer(DAT_0051ff14->field288);
     DAT_0051ff14->field288 = -1;
     DAT_0051ff14->FUN_004d02a0(DAT_0051ff60, 2, DAT_0051ff58, 0);
 }

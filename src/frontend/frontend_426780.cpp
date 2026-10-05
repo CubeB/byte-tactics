@@ -3,9 +3,9 @@
 void FUN_0047f750();
 void __stdcall FUN_0041d7b0(char* dest, const char* a, const char* b, const char* c);
 int __stdcall FUN_004bbc40(char* path);
-void __stdcall FUN_004c69a0(int param);
-void __stdcall FUN_004c6890(int a, int b);
-void FUN_004c63a0();
+void __stdcall SetOffscreenSurface(int param);
+void __stdcall FillSurface(int a, int b);
+void FlipScreen();
 void __stdcall FUN_004c22d0(int param);
 int FUN_004c1ab0(void);
 void* __cdecl operator new(unsigned int size);
@@ -13,18 +13,18 @@ void __cdecl operator delete(void* p);
 
 class Class_0047bf20 {
 public:
-    void FUN_0047bf20();
+    void Close();
 };
 
 class Class_0047c6c0 {
 public:
-    void FUN_0047c6c0();
+    void Play();
 };
 
-class Class_0047bdf0 {
+class MoviePlayer {
 public:
     char pad[0x5b8];
-    Class_0047bdf0(char* path, int a, int b, int c, int d, int e);
+    MoviePlayer(char* path, int a, int b, int c, int d, int e);
 };
 
 #pragma pack(push, 1)
@@ -48,24 +48,24 @@ void __stdcall FUN_00426780(char* param_1)
     FUN_0047f750();
     FUN_0041d7b0(path, "Data", param_1, "zrb");
     if (FUN_004bbc40(path) != 0) {
-        FUN_004c69a0(g_game->field_37e1b);
-        FUN_004c6890(0, 0);
-        FUN_004c63a0();
+        SetOffscreenSurface(g_game->field_37e1b);
+        FillSurface(0, 0);
+        FlipScreen();
         FUN_004c22d0(0);
         do {
-            g_game->field_38d7b = new Class_0047bdf0(path, 0, 600000, 1, 2000000, 1);
-            ((Class_0047c6c0*)g_game->field_38d7b)->FUN_0047c6c0();
+            g_game->field_38d7b = new MoviePlayer(path, 0, 600000, 1, 2000000, 1);
+            ((Class_0047c6c0*)g_game->field_38d7b)->Play();
             Class_0047bf20* p = (Class_0047bf20*)g_game->field_38d7b;
             if (p != 0) {
-                p->FUN_0047bf20();
+                p->Close();
                 operator delete(p);
             }
         } while (g_game->field_39241 != 0);
         g_game->field_38d7b = 0;
         while (FUN_004c1ab0() != 0) {
         }
-        FUN_004c69a0(g_game->field_37e1b);
-        FUN_004c6890(0, 0);
-        FUN_004c63a0();
+        SetOffscreenSurface(g_game->field_37e1b);
+        FillSurface(0, 0);
+        FlipScreen();
     }
 }

@@ -96,7 +96,7 @@ unsigned short __stdcall FUN_00421da0(Vec3* pos, Point16* cell, Point16* size);
 void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
 int __stdcall GetGroundHeight(Vec3* pos);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
-void __stdcall FUN_00472200(Box* from, Vec3* to, int count);
+void __stdcall EmitReverseNanoParticles(Box* from, Vec3* to, int count);
 void __stdcall FUN_004237d0(Unit* unit, Vec3* pos);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 
@@ -168,8 +168,8 @@ int __stdcall FUN_00414770(Unit* unit, Order* order, int flags)
             box.hi.x += f->footprint.x << 20;
             box.hi.z += f->footprint.z << 20;
             box.hi.y += f->height << 16;
-            FUN_00472200(&box, &nano, 6);
-            FUN_00472200(&box, &nano, 6);
+            EmitReverseNanoParticles(&box, &nano, 6);
+            EmitReverseNanoParticles(&box, &nano, 6);
         }
         return 2;
     case 4:

@@ -81,7 +81,7 @@ class Class_004c45e0 {
 class Class_004c9390 {
   public:
     char* ptr;
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 // A reference-counted string handle (0x4c91a0 copies, 0x4c9390 releases).
@@ -89,7 +89,7 @@ class Class_004c91a0 {
   public:
     char* ptr;
     Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
     Class_004c91a0& operator=(const Class_004c91a0& other);
 };
 
@@ -234,12 +234,12 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-void __stdcall FUN_004b6290(char* path);
-void* __stdcall FUN_004cb560(char* path);
-void __stdcall FUN_004cb590(void* p);
+void __stdcall FatalError(char* path);
+void* __stdcall Load3do(char* path);
+void __stdcall MirrorObject(void* p);
 void __stdcall FUN_0042a140(void* a, char* b);
 void* __stdcall FUN_00429700(char* name);
-void* __stdcall FUN_004b8d40(void* a, char* b);
+void* __stdcall FindGafEntry(void* a, char* b);
 int __stdcall FUN_00429470(void* a, char* b);
 
 // FUNCTION: 0x42e440
@@ -332,10 +332,10 @@ void __stdcall FUN_0042e440(Class_004c4440* parser) {
         }
         char path[0x100];
         FUN_004290f0(path, "objects3d", model, "3DO");
-        void* h = FUN_004cb560(path);
+        void* h = Load3do(path);
         if (h == 0)
-            FUN_004b6290(path);
-        FUN_004cb590(h);
+            FatalError(path);
+        MirrorObject(h);
         FUN_0042a140(h, model);
         g_game->weapons[count].text = h;
         strcpy(g_game->weapons[count].model, model);
@@ -348,7 +348,7 @@ model_done:
     if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "explosiongaf", 0x100, DAT_005119b8) != 0 &&
         ((Class_004c48c0*)parser)->FUN_004c48c0(model, "explosionart", 0x100, DAT_005119b8) != 0) {
         void* a = FUN_00429700(gaf);
-        void* r = FUN_004b8d40(a, model);
+        void* r = FindGafEntry(a, model);
         *(unsigned char*)((char*)r + 2) = 0;
         w->anim1 = r;
     }
@@ -359,7 +359,7 @@ model_done:
             ((Class_004c48c0*)parser)
                     ->FUN_004c48c0(model, "lavaexplosionart", 0x100, DAT_005119b8) != 0) {
             void* a = FUN_00429700(gaf);
-            void* r = FUN_004b8d40(a, model);
+            void* r = FindGafEntry(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
             w->anim2 = r;
         }
@@ -369,7 +369,7 @@ model_done:
             ((Class_004c48c0*)parser)
                     ->FUN_004c48c0(model, "waterexplosionart", 0x100, DAT_005119b8) != 0) {
             void* a = FUN_00429700(gaf);
-            void* r = FUN_004b8d40(a, model);
+            void* r = FindGafEntry(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
             w->anim2 = r;
         }

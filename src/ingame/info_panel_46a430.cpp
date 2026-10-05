@@ -31,7 +31,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 
 // FUNCTION: 0x46a430
 void __stdcall FUN_0046a430(void* surface, Unit* unit, int x, int y)
@@ -44,7 +44,7 @@ void __stdcall FUN_0046a430(void* surface, Unit* unit, int x, int y)
     r.y1 = y - 2;
     r.x2 = x + 17;
     r.y2 = y + 2;
-    FUN_004bf6f0(surface, &r, colors[0]);
+    FillRectangle(surface, &r, colors[0]);
     // The width has to be a separate local: written inline, MSVC tail merges
     // the three colour calls below into one.
     int width;
@@ -54,9 +54,9 @@ void __stdcall FUN_0046a430(void* surface, Unit* unit, int x, int y)
     width = unit->health * 32 / unit->def->maxHealth;
     r.x2 = r.x1 + width;
     if (unit->health > (int)(unit->def->maxHealth / 3) * 2)
-        FUN_004bf6f0(surface, &r, colors[10]);
+        FillRectangle(surface, &r, colors[10]);
     else if (unit->health > (int)(unit->def->maxHealth / 3))
-        FUN_004bf6f0(surface, &r, colors[14]);
+        FillRectangle(surface, &r, colors[14]);
     else
-        FUN_004bf6f0(surface, &r, colors[12]);
+        FillRectangle(surface, &r, colors[12]);
 }

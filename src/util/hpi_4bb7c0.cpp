@@ -49,7 +49,7 @@ void __cdecl FUN_004d85a0(void* p);
 long __stdcall FUN_004bb710(File_004bb7c0* file, long pos);
 int __stdcall FUN_004d1970(unsigned char* dst, unsigned char* src);
 char* __stdcall FUN_004d1c60(int code);
-void __stdcall FUN_004b6290(char* text);
+void __stdcall FatalError(char* text);
 
 static inline int nblocks(int w)
 {
@@ -119,7 +119,7 @@ int __stdcall FUN_004bb7c0(File_004bb7c0* file, unsigned char* buf, int size)
                         sprintf(msg + strlen(msg), "base name '%s'\n", file->shared->name);
                         sprintf(msg + strlen(msg), "length = %d\n", size);
                         sprintf(msg + strlen(msg), "name = '%s'\n", file->name);
-                        FUN_004b6290(msg);
+                        FatalError(msg);
                     }
                     FUN_004d85a0(comp);
                 }

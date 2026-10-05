@@ -20,10 +20,10 @@ struct Node_004cb5f0 {
     Node_004cb5f0* child;              // +0x30
 };
 
-int __stdcall FUN_004cb5f0(Node_004cb5f0* node);
+int __stdcall GetObjectHeight(Node_004cb5f0* node);
 
 // FUNCTION: 0x4cb5f0
-int __stdcall FUN_004cb5f0(Node_004cb5f0* node)
+int __stdcall GetObjectHeight(Node_004cb5f0* node)
 {
     int best = 0;
     for (; node; node = node->next) {
@@ -33,7 +33,7 @@ int __stdcall FUN_004cb5f0(Node_004cb5f0* node)
                 best = v;
         }
         if (node->child) {
-            int v = FUN_004cb5f0(node->child) + node->offset;
+            int v = GetObjectHeight(node->child) + node->offset;
             if (v > best)
                 best = v;
         }

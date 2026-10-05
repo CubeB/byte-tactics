@@ -16,8 +16,8 @@ struct App_004ce910 {
     HWND hwnd;                         // +0x40
 };
 
-extern App_004ce910* DAT_0051fbd0;
-extern App_004ce910* FUN_004b6220();
+extern App_004ce910* g_display;
+extern App_004ce910* GetDisplay();
 
 class Class_004ce910 {
 public:
@@ -44,7 +44,7 @@ int Class_004ce910::FUN_004ce910(int pause)
     if (field_20c == 0)
         return 1;
 
-    HWND hwnd = FUN_004b6220()->hwnd;
+    HWND hwnd = GetDisplay()->hwnd;
 
     if (pause == 0) {
         sprintf(cmd, "status cdaudio current track");

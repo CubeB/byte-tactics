@@ -213,11 +213,11 @@ public:
 
     bool IsEmpty() const { return *ptr == 0; }
 
-    Class_004c90b0* FUN_004c90b0(const Class_004c90b0& other);
+    Class_004c90b0* Append(const Class_004c90b0& other);
 };
 
 // FUNCTION: 0x4c90b0
-Class_004c90b0* Class_004c90b0::FUN_004c90b0(const Class_004c90b0& other)
+Class_004c90b0* Class_004c90b0::Append(const Class_004c90b0& other)
 {
     if (!other.IsEmpty()) {
         char* chars;

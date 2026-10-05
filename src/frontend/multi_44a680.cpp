@@ -145,7 +145,7 @@ void __stdcall FUN_004a9660(void* gui);
 int __stdcall FUN_004ab060(Gui_0044a680* gui, char* name);
 void __stdcall FUN_0045b9b0(Gadget_0044a680* gadget, int value);
 int __stdcall FUN_0045ba20(Gadget_0044a680* gadget);
-int __stdcall FUN_004b6340();
+int __stdcall GetTicks();
 unsigned char __stdcall FUN_0041d6a0(int param);
 void __stdcall SendNetHeartbeat();
 void __stdcall BroadcastPlayerInfo();
@@ -328,7 +328,7 @@ void FUN_0044a680()
 
                 FUN_004a1250(&g_game->gui, "SYNCHING", 1);
                 start = FUN_004a0280(g_game->gui.table->entries, "battlestart");
-                if (start->frame > 0 && DAT_005129a4 < FUN_004b6340()) {
+                if (start->frame > 0 && DAT_005129a4 < GetTicks()) {
                     if (start->frame < 8) {
                         start->frame++;
                         FUN_0049fa90(&g_game->gui);
@@ -344,13 +344,13 @@ void FUN_0044a680()
                     g_game->dirty = 1;
                     if (start->frame == 0) {
                         start->frame = 1;
-                        DAT_005129a4 = FUN_004b6340();
+                        DAT_005129a4 = GetTicks();
                         FUN_0047f1a0("Options", 0);
                     }
                     start->c8_0 = 0;
                     {
                         int idx = FUN_0049fdf0(entries, "START", 1);
-                        unsigned int colour = FUN_004b6340() & 0x1f;
+                        unsigned int colour = GetTicks() & 0x1f;
                         if (colour != entries[idx].colour) {
                             entries[idx].colour = colour;
                             FUN_0049fa90(&g_game->gui);
@@ -396,10 +396,10 @@ void FUN_0044a680()
     }
 
     ((Class_0046d860*)g_game->net)->ProcessSync();
-    if (DAT_005129a8 < (unsigned int)FUN_004b6340()) {
+    if (DAT_005129a8 < (unsigned int)GetTicks()) {
         unsigned char r;
         PlayerInfo_0044a680* info;
-        DAT_005129a8 = FUN_004b6340() + 0x3c;
+        DAT_005129a8 = GetTicks() + 0x3c;
         r = FUN_0041d6a0(1);
         info = pl->info;
         info->f9d_2 = (r != 0);

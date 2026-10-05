@@ -39,10 +39,10 @@ void* __cdecl FUN_004d83b0(char* tag, int size);
 void __stdcall FUN_00491c80(int n);
 void __cdecl FUN_004d85a0(void* p);
 unsigned __stdcall JoinLobbyGameThread(void* args);
-Obj_00451640* FUN_004b6220();
-void FUN_004b5910();
+Obj_00451640* GetDisplay();
+void ToggleFullScreen();
 char* __stdcall FUN_004c5740(char* s);
-void __stdcall FUN_004b6290(char* msg);
+void __stdcall FatalError(char* msg);
 
 // FUNCTION: 0x451640
 int __stdcall JoinLobbyGame(Player_00451640* p)
@@ -77,11 +77,11 @@ int __stdcall JoinLobbyGame(Player_00451640* p)
         if (h != 0) {
             if (WaitForSingleObject((HANDLE)h, 40000) == WAIT_TIMEOUT) {
                 FUN_00491c80(0x13);
-                if (FUN_004b6220()->flag) {
-                    FUN_004b5910();
+                if (GetDisplay()->flag) {
+                    ToggleFullScreen();
                     Sleep(500);
                 }
-                FUN_004b6290(FUN_004c5740("Timed out while connecting to DirectPlay lobby!"));
+                FatalError(FUN_004c5740("Timed out while connecting to DirectPlay lobby!"));
             } else {
                 result = args->result;
             }

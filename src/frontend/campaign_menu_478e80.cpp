@@ -76,8 +76,8 @@ int __stdcall FUN_0049fdf0(Gadget* gadgets, char* name, int param_3);
 void __stdcall FUN_004a0570(char* menu, char* name, int param_3);
 void __stdcall FUN_004a1080(char* menu, char* name, int param_3);
 int __stdcall FUN_004a75d0(char* menu, char* name);
-void* __stdcall FUN_004b8d40(void* surface, char* name);
-void __stdcall FUN_004b8b30(void* state, void* gaf, int param_3);
+void* __stdcall FindGafEntry(void* surface, char* name);
+void __stdcall InitGafSequence(void* state, void* gaf, int param_3);
 void __stdcall FUN_004afc60(char* menu, int param_2);
 void __stdcall FUN_0049fb10(char* menu, int param_2);
 void __stdcall FUN_004a81e0(char* menu, int param_2);
@@ -211,7 +211,7 @@ void FUN_00478e80(void)
         if (idx != -1) {
             Gadget* g = &gadgets[idx];
             g->field_c6 = 0;
-            void* gaf = FUN_004b8d40(((GadgetRoot*)gadgets)->surface, pans[i]);
+            void* gaf = FindGafEntry(((GadgetRoot*)gadgets)->surface, pans[i]);
             if (gaf != 0) {
                 g->field_be = gaf;
                 g->field_b6 = (void*)FUN_00478790;
@@ -219,9 +219,9 @@ void FUN_00478e80(void)
         }
         idx = FUN_0049fdf0(gadgets, "PLANET", 6);
         if (idx != -1) {
-            void* gaf = FUN_004b8d40(((GadgetRoot*)gadgets)->surface, rotates[i]);
+            void* gaf = FindGafEntry(((GadgetRoot*)gadgets)->surface, rotates[i]);
             if (gaf != 0) {
-                FUN_004b8b30(&DAT_0051e640, gaf, 0);
+                InitGafSequence(&DAT_0051e640, gaf, 0);
                 Gadget* g = &gadgets[idx];
                 g->field_c6 = 0;
                 g->field_be = gaf;

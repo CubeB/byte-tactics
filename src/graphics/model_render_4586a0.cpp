@@ -69,21 +69,21 @@ public:
 
 class Class_004581e0 {
 public:
-    void FUN_004581e0(int* width, int* height, int* originX, int* originY, List_004586a0* list, void* offset);
-    int FUN_00459c70(Bitmap_004586a0* bitmap, List_004586a0* list, int kind, int param);
-    int FUN_00459830(Bitmap_004586a0* bitmap, List_004586a0* list, int kind, int param);
-    int FUN_004586a0(List_004586a0* list, int param_2, int param_3);
+    void MeasureModel(int* width, int* height, int* originX, int* originY, List_004586a0* list, void* offset);
+    int DrawLitPieces(Bitmap_004586a0* bitmap, List_004586a0* list, int kind, int param);
+    int DrawPieces(Bitmap_004586a0* bitmap, List_004586a0* list, int kind, int param);
+    int BuildObjectPicture(List_004586a0* list, int param_2, int param_3);
 };
 
 // FUNCTION: 0x4586a0
-int Class_004581e0::FUN_004586a0(List_004586a0* list, int param_2, int param_3)
+int Class_004581e0::BuildObjectPicture(List_004586a0* list, int param_2, int param_3)
 {
     int w;
     int h;
     int oy;
     int ox;
     Owner_004586a0* owner = list->owner;
-    FUN_004581e0(&w, &h, &oy, &ox, list, 0);
+    MeasureModel(&w, &h, &oy, &ox, list, 0);
     if (param_2 == 0 && (owner->field_114 & 1) == 0 && owner->field_104 == 0.0f) {
         ((CMemoryCache*)this)->AllocBitmap(&list->bitmap, w, h);
     } else {
@@ -95,9 +95,9 @@ int Class_004581e0::FUN_004586a0(List_004586a0* list, int param_2, int param_3)
         bitmap->field_6 = (short)ox;
         if ((owner->field_110 & 0x20000000) != 0
             && (*(unsigned char*)((char*)g_game + 0x37f06) & 0x20) != 0) {
-            FUN_00459c70(bitmap, list, owner->kind, param_3);
+            DrawLitPieces(bitmap, list, owner->kind, param_3);
         } else {
-            FUN_00459830(bitmap, list, owner->kind, param_3);
+            DrawPieces(bitmap, list, owner->kind, param_3);
         }
         return 1;
     }

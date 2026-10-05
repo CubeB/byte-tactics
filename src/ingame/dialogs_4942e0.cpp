@@ -65,7 +65,7 @@ void __stdcall FUN_00494290(void* gadget, void* entry);
 Holder_004942e0* __stdcall FUN_004aa8f0(Menu_004942e0* menu, const char* name, int flags);
 Entry_004942e0* __stdcall FUN_004a0280(Entry_004942e0* entries, char* name);
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-void* __stdcall FUN_004caf30(char* path, int param);
+void* __stdcall LoadPcx(char* path, int param);
 char* __stdcall MakePropList(void* obj);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004ab1b0(Holder_004942e0* obj, char* name, char* text, int x,
@@ -115,7 +115,7 @@ void __stdcall FUN_004942e0(void)
     hotr->u.callback = (void*)FUN_00494290;
     char* def = g_game->unitDefs + 0x249 * (unsigned)type;
     FUN_004290f0(buf, "unitpics", def + 0x20, "PCX");
-    hotr->image = FUN_004caf30(buf, 0);
+    hotr->image = LoadPcx(buf, 0);
     stats = MakePropList(def);
     int n = entries->u.count;
 

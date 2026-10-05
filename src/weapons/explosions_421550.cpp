@@ -34,7 +34,7 @@ struct Obj_00421170 {
     Inner_00421550* inner;        // +0x2c
 };
 
-void __stdcall FUN_00472810(void* buf, int arg);
+void __stdcall EmitWhiteSmoke(void* buf, int arg);
 void __stdcall FUN_00472ab0(void* buf, int arg);
 void __stdcall FUN_004b6cc0(Vec3_004b6cc0* in, Vec3_004b6cc0* out, short* angles);
 void __stdcall FUN_004211d0(int param_1, Obj_00421170* obj, Inner_00421550* inner);
@@ -50,7 +50,7 @@ int __stdcall FUN_00421550(int param_1, Obj_00421170* obj)
         buf[0] = inner->f16;
         buf[1] = inner->f1a;
         buf[2] = inner->f1e;
-        FUN_00472810(buf, 9);
+        EmitWhiteSmoke(buf, 9);
     }
     if (obj->b0) {
         buf[0] = inner->f16;

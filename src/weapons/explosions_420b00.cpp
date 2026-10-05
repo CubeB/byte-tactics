@@ -14,10 +14,10 @@ struct Game {
 extern Game* g_game;
 extern void* DAT_00511df0[100];
 extern int __stdcall FUN_00421550(void*, void*);
-extern int __stdcall FUN_004b6720(void*, int, int);
-extern void* __stdcall FUN_004b7ee0(Handle*);
-extern void __stdcall FUN_004b8ec0(void*, void*, int, int);
-extern void __stdcall FUN_004b7f90(void*, void*, int, int);
+extern int __stdcall PointInRect(void*, int, int);
+extern void* __stdcall GetGafSequenceFrame(Handle*);
+extern void __stdcall DrawFrameShadow(void*, void*, int, int);
+extern void __stdcall DrawFrame(void*, void*, int, int);
 extern void __stdcall FUN_0046bae0(void*, Position*, void*, short*);
 // FUNCTION: 0x420b00
 void __stdcall FUN_00420b00(void* surface) {
@@ -33,8 +33,8 @@ void __stdcall FUN_00420b00(void* surface) {
   pos.z.value=d->position.z.value-(g_game->cameraZ<<16);
   int x=pos.x.parts.whole+128;
   int y=pos.z.parts.whole-(pos.y.parts.whole>>1)+32;
-  if(FUN_004b6720(g_game->viewport,x,y) && d->shadow.table)
-   FUN_004b8ec0(surface,FUN_004b7ee0(&d->shadow),x,y);
+  if(PointInRect(g_game->viewport,x,y) && d->shadow.table)
+   DrawFrameShadow(surface,GetGafSequenceFrame(&d->shadow),x,y);
  }
  d=effects->entries;
  for(i=0; i<effects->count; ++i,d++) {
@@ -43,9 +43,9 @@ void __stdcall FUN_00420b00(void* surface) {
   pos.z.value=d->position.z.value-(g_game->cameraZ<<16);
   int x=pos.x.parts.whole+128;
   int y=pos.z.parts.whole-(pos.y.parts.whole>>1)+32;
-  if(FUN_004b6720(g_game->viewport,x,y)) {
+  if(PointInRect(g_game->viewport,x,y)) {
    if(d->model) FUN_0046bae0(surface,&pos,d->model,d->rotation);
-   if(d->image.table) FUN_004b7f90(surface,FUN_004b7ee0(&d->image),x,y);
+   if(d->image.table) DrawFrame(surface,GetGafSequenceFrame(&d->image),x,y);
   }
  }
 }

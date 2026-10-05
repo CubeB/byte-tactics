@@ -1,7 +1,7 @@
 // Decompiled by GPT-5.6-Terra, finished by Sonnet 5.5. Names are provisional.
 // Locks the DirectDraw surface and fills a 0x30-byte surface descriptor,
-// registering it in the screen lock stack (DAT_0051fe00 entries at
-// DAT_0051fe08) so FUN_004c5df0 can unlock it later. When the display is
+// registering it in the screen lock stack (g_screenLockCount entries at
+// g_screenLocks) so UnlockAllScreens can unlock it later. When the display is
 // already locked (+0xdc) or using the cached descriptor (+0x44) it copies
 // the cached block instead.
 //
@@ -28,7 +28,7 @@ struct Vec16_004c5e70 {
     int w;
 };
 
-struct Out_004c5e70 {
+struct Surface {
     int field_0;                     // +0x00
     int field_4;                     // +0x04
     int field_8;                     // +0x08
@@ -41,14 +41,14 @@ struct Out_004c5e70 {
     int field_2c;                    // +0x2c
 };
 
-extern int DAT_0051fe00;
-extern LockEntry_004c5e70 DAT_0051fe08[];
+extern int g_screenLockCount;
+extern LockEntry_004c5e70 g_screenLocks[];
 
 struct Display_004c5e70 {
     char unknown_0[0x44];
     int field_44;                    // +0x44
     char unknown_48[0x8];
-    Out_004c5e70 cached;             // +0x50
+    Surface cached;                  // +0x50
     struct Screen {
         char unknown_0[0xc];
         IDirectDrawSurface* surface; // +0x8c
@@ -57,13 +57,13 @@ struct Display_004c5e70 {
     char unknown_90[0x10];
     Vec16_004c5e70 vec;              // +0xa0
     char unknown_b0[0xc];
-    Out_004c5e70* field_bc;          // +0xbc
+    Surface* field_bc;               // +0xbc
     char unknown_c0[0x14];
     int field_d4;                    // +0xd4
     int field_d8;                    // +0xd8
     int field_dc;                    // +0xdc
 
-    int LockMe(Out_004c5e70* out)
+    int LockMe(Surface* out)
     {
         if (field_dc != 0) {
             *out = *field_bc;
@@ -88,18 +88,18 @@ struct Display_004c5e70 {
         out->field_14 = -1;
         out->field_2c &= ~1;
         out->vec = vec;
-        if (DAT_0051fe00 < 10) {
-            DAT_0051fe08[DAT_0051fe00].surface = out;
-            DAT_0051fe08[DAT_0051fe00].flag = 0;
+        if (g_screenLockCount < 10) {
+            g_screenLocks[g_screenLockCount].surface = out;
+            g_screenLocks[g_screenLockCount].flag = 0;
         }
         return 1;
     }
 };
 
-Display_004c5e70* FUN_004b6220(void);
+Display_004c5e70* GetDisplay(void);
 
 // FUNCTION: 0x4c5e70
-int __stdcall FUN_004c5e70(Out_004c5e70* out)
+int __stdcall LockScreen(Surface* out)
 {
-    return FUN_004b6220()->LockMe(out);
+    return GetDisplay()->LockMe(out);
 }

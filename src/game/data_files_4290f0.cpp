@@ -6,7 +6,7 @@
 #include <string.h>
 
 int FUN_0049f580(void);
-char* __stdcall FUN_004bb0f0(char* name);
+char* __stdcall StripExtension(char* name);
 void* __stdcall FUN_004bb5b0(char* path);
 int __stdcall FUN_004bb5d0(void* file);
 
@@ -17,7 +17,7 @@ char* __stdcall FUN_004290f0(char* buf, char* dir, char* name, char* ext)
     if (side) {
         sprintf(buf, "%s-%s\\%s", dir, side, name);
         if (ext != 0 && strlen(ext) != 0) {
-            FUN_004bb0f0(buf);
+            StripExtension(buf);
             strcat(buf, ".");
             strcat(buf, ext);
         }
@@ -31,7 +31,7 @@ char* __stdcall FUN_004290f0(char* buf, char* dir, char* name, char* ext)
     strcat(buf, "\\");
     strcat(buf, name);
     if (ext != 0 && strlen(ext) != 0) {
-        FUN_004bb0f0(buf);
+        StripExtension(buf);
         strcat(buf, ".");
         strcat(buf, ext);
     }

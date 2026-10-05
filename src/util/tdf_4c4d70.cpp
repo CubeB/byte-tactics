@@ -17,7 +17,7 @@
 // neighbourhood (it stores the pointer a new Class_004c3e40 returned, and
 // 0x4c3e40 itself has a vector at +0x4) makes Class_004c3e40* the natural pick.
 // The name follows 0x4732e0.cpp, which is the same template instantiated on
-// vector<Class_00471cc0*>: taking the member's address is what makes the
+// vector<ParticleSystem*>: taking the member's address is what makes the
 // compiler emit the instantiation out of line, as the original file did, and
 // the member pointer has to return void, or VC5 resolves the two-argument
 // insert overload instead. Unlike that 0x4732e0 (which the plain file misses

@@ -8,7 +8,7 @@ struct Struct_004ba700 {
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // FUNCTION: 0x4ba700
-int __stdcall FUN_004ba700(Struct_004ba700* obj)
+int __stdcall AllocBlueTable(Struct_004ba700* obj)
 {
     obj->blue_table = FUN_004d83b0("BLUE TABLE", 0x100);
     return 1;

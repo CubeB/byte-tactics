@@ -29,7 +29,7 @@ struct Piece_0045b150 {
 void __stdcall FUN_004b6cc0(Vec3* in, Vec3* out, short* angles);
 
 // FUNCTION: 0x45b150
-void __fastcall FUN_0045b150(Class_0045b150* owner, Piece_0045b150* piece,
+void __fastcall TransformPieces(Class_0045b150* owner, Piece_0045b150* piece,
                              short* angles, Vec3* delta, int deep)
 {
     for (;;) {
@@ -51,7 +51,7 @@ void __fastcall FUN_0045b150(Class_0045b150* owner, Piece_0045b150* piece,
             }
         }
         if (piece->child) {
-            FUN_0045b150(owner, piece->child, angles, delta, 1);
+            TransformPieces(owner, piece->child, angles, delta, 1);
         }
         if (deep == 0)
             break;

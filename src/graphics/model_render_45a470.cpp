@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Copies an 8-bit image (header, pixels and the optional second plane) into
-// the image at +0x10, clears its non-key pixels (FUN_004b96a0) and returns it.
+// the image at +0x10, clears its non-key pixels (ZeroFramePixels) and returns it.
 #include <string.h>
 
 struct Image_0045a470 {
@@ -14,17 +14,17 @@ struct Image_0045a470 {
     char* data2;                        // +0x14
 };
 
-void __stdcall FUN_004b96a0(Image_0045a470* image);
+void __stdcall ZeroFramePixels(Image_0045a470* image);
 
 class Class_0045a470 {
 public:
     char unknown_0[0x10];
     Image_0045a470* image;              // +0x10
-    Image_0045a470* FUN_0045a470(Image_0045a470* src);
+    Image_0045a470* MakeSilhouette(Image_0045a470* src);
 };
 
 // FUNCTION: 0x45a470
-Image_0045a470* Class_0045a470::FUN_0045a470(Image_0045a470* src)
+Image_0045a470* Class_0045a470::MakeSilhouette(Image_0045a470* src)
 {
     image->width = src->width;
     image->height = src->height;
@@ -34,6 +34,6 @@ Image_0045a470* Class_0045a470::FUN_0045a470(Image_0045a470* src)
     memcpy(image->data, src->data, src->width * src->height);
     if (src->data2)
         memcpy(image->data2, src->data2, src->width * src->height);
-    FUN_004b96a0(image);
+    ZeroFramePixels(image);
     return image;
 }

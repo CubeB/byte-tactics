@@ -13,7 +13,7 @@ struct Entry_004a0010 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004b6290(char* path);
+void __stdcall FatalError(char* path);
 
 static inline int FindEntry(Entry_004a0010* entries, char* name)
 {
@@ -32,6 +32,6 @@ Entry_004a0010* __stdcall FUN_004a0010(Entry_004a0010* entries, char* name)
     if (i != -1) {
         return &entries[i];
     }
-    FUN_004b6290("Error in GUI layout");
+    FatalError("Error in GUI layout");
     return 0;
 }

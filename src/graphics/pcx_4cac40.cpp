@@ -54,7 +54,7 @@ struct Header_004cac40 {
 };
 
 // FUNCTION: 0x4cac40
-int __stdcall FUN_004cac40(void* filename, unsigned char* data, int width, int height, unsigned char* block)
+int __stdcall WritePcx(void* filename, unsigned char* data, int width, int height, unsigned char* block)
 {
     Header_004cac40 hdr;
     Class_004bbbe0* file = (Class_004bbbe0*)FUN_004bb2c0(filename);

@@ -3,7 +3,7 @@
 // `dst`, or into the locked screen when `dst` is null. When `maxWidth` is not
 // -1 and the text is wider, a copy is cut back one character at a time until
 // it fits. The text's rectangle is checked against the surface's clip rect
-// with FUN_004b6750 and only then drawn by the glyph blitter FUN_004ccf60,
+// with FUN_004b6750 and only then drawn by the glyph blitter BlitText,
 // which takes the surface's pixels and pitch, the font, the text, the
 // position and the game's three colour fields at +0x208, +0x20c, +0x210.
 //
@@ -22,7 +22,7 @@
 //  2. `r.bottom = r.top + height`, not `r.bottom = y + height`. `r` is
 //     address-taken (it is passed to FUN_004b6750), so writing the second
 //     rectangle field from the first makes MSVC reload it after the
-//     FUN_004b6220() call: that is the original's `mov ecx, [esp+0x1c]` /
+//     GetDisplay() call: that is the original's `mov ecx, [esp+0x1c]` /
 //     `add edx, ecx` at 0x4c165b and 0x4c165f, where reading `y` kept it live
 //     in a register instead and also left the tail rotating y and dst into
 //     edi and ebx rather than ebp and edi.
@@ -42,7 +42,7 @@
 // initialiser for the rect; `if (!dst)` and `dst != 0` with the arms swapped;
 // passing r.left/r.top to the blitter instead of x/y; a separate `clip`
 // variable hoisted out of the screen branch; the height into a local;
-// `game->font` instead of a second FUN_004b6220() call for the height;
+// `game->font` instead of a second GetDisplay() call for the height;
 // `const unsigned char*` helper parameters; an explicit walker
 // `unsigned char* s` with `c = s[1]` or `c = *(++s)`; a separate `p`
 // induction variable in the helper; `char* t` instead of `unsigned char* t`
@@ -74,21 +74,21 @@ struct Rect_004c14f0 {
     int bottom;
 };
 
-class Class_004c6ae0 {
+class Surface {
 public:
     int unknown_0[2];
     int pitch;                          // +0x8
     unsigned char* pixels;              // +0xc
     int unknown_10[8];                  // 0x30 bytes, the lock descriptor
 
-    Rect_004c14f0* FUN_004c6ae0(Rect_004c14f0* out);
+    Rect_004c14f0* GetClipRect(Rect_004c14f0* out);
 };
 
-Game_004c14f0* FUN_004b6220(void);
+Game_004c14f0* GetDisplay(void);
 int __stdcall FUN_004b6750(Rect_004c14f0* a, Rect_004c14f0* b);
-int __stdcall FUN_004c5e70(Class_004c6ae0* out);
-int __stdcall FUN_004c5fa0(Class_004c6ae0* s);
-void __cdecl FUN_004ccf60(unsigned char* pixels, int pitch, Font_004c14f0* font, unsigned char* text,
+int __stdcall LockScreen(Surface* out);
+int __stdcall UnlockScreen(Surface* s);
+void __cdecl BlitText(unsigned char* pixels, int pitch, Font_004c14f0* font, unsigned char* text,
                           int x, int y, int c1, int c2, int c3);
 
 static inline int WidthText(Font_004c14f0* font, unsigned char* text)
@@ -110,9 +110,9 @@ static inline int WidthText(Font_004c14f0* font, unsigned char* text)
 }
 
 // FUNCTION: 0x4c14f0
-void __stdcall FUN_004c14f0(Class_004c6ae0* dst, unsigned char* text, int x, int y, int maxWidth)
+void __stdcall DrawString(Surface* dst, unsigned char* text, int x, int y, int maxWidth)
 {
-    Game_004c14f0* game = FUN_004b6220();
+    Game_004c14f0* game = GetDisplay();
     int width = WidthText(game->font, text);
     if (maxWidth != -1 && width > maxWidth) {
         unsigned char buf[0x12c];
@@ -134,22 +134,22 @@ void __stdcall FUN_004c14f0(Class_004c6ae0* dst, unsigned char* text, int x, int
     r.left = x;
     r.top = y;
     r.right = x + width;
-    r.bottom = r.top + FUN_004b6220()->font->glyphs[0];
+    r.bottom = r.top + GetDisplay()->font->glyphs[0];
     if (dst == 0) {
-        Class_004c6ae0 screen;
-        if (FUN_004c5e70(&screen) != 0) {
+        Surface screen;
+        if (LockScreen(&screen) != 0) {
             Rect_004c14f0 clip;
-            screen.FUN_004c6ae0(&clip);
+            screen.GetClipRect(&clip);
             if (FUN_004b6750(&r, &clip))
-                FUN_004ccf60(screen.pixels, screen.pitch, game->font, text, x, y, game->colour1,
+                BlitText(screen.pixels, screen.pitch, game->font, text, x, y, game->colour1,
                              game->colour2, game->colour3);
-            FUN_004c5fa0(&screen);
+            UnlockScreen(&screen);
         }
     } else {
         Rect_004c14f0 clip;
-        dst->FUN_004c6ae0(&clip);
+        dst->GetClipRect(&clip);
         if (FUN_004b6750(&r, &clip))
-            FUN_004ccf60(dst->pixels, dst->pitch, game->font, text, x, y, game->colour1,
+            BlitText(dst->pixels, dst->pitch, game->font, text, x, y, game->colour1,
                          game->colour2, game->colour3);
     }
 }

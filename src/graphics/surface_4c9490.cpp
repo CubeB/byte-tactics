@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern int DAT_0050a778;
-extern void* DAT_0050a77c;
+extern int g_emptyStringRefs;
+extern void* g_emptyString;
 
 class Class_004c9490 {
 public:
@@ -17,14 +17,14 @@ public:
 
     Class_004c9490()
     {
-        DAT_0050a778++;
-        ptr = (char*)&DAT_0050a77c;
+        g_emptyStringRefs++;
+        ptr = (char*)&g_emptyString;
     }
     Class_004c9490(const char* text, int len)
     {
         if (text == 0) {
-            DAT_0050a778++;
-            ptr = (char*)&DAT_0050a77c;
+            g_emptyStringRefs++;
+            ptr = (char*)&g_emptyString;
         } else {
             int* block = (int*)malloc(len + 1 + sizeof(int));
             *block = 1;
@@ -35,11 +35,11 @@ public:
         }
     }
 
-    Class_004c9490 FUN_004c9490(int start, int end) const;
+    Class_004c9490 SubString(int start, int end) const;
 };
 
 // FUNCTION: 0x4c9490
-Class_004c9490 Class_004c9490::FUN_004c9490(int start, int end) const
+Class_004c9490 Class_004c9490::SubString(int start, int end) const
 {
     int len = strlen(ptr);
     if (start < 0)

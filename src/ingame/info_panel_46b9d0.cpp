@@ -27,7 +27,7 @@ struct Rect_0046b9d0 {
 extern Game* g_game;
 
 int __stdcall GetCellHeight(void* p);
-void __stdcall FUN_004bf8c0(void* surface, void* rect, int color);
+void __stdcall DrawRectangle(void* surface, void* rect, int color);
 
 // FUNCTION: 0x46b9d0
 void __stdcall FUN_0046b9d0(void* surface, short* pos, Size_0046b9d0 size, int kind)
@@ -47,5 +47,5 @@ void __stdcall FUN_0046b9d0(void* surface, short* pos, Size_0046b9d0 size, int k
         rect.x2--;
         rect.y2--;
     }
-    FUN_004bf8c0(surface, &rect, colors[kind]);
+    DrawRectangle(surface, &rect, colors[kind]);
 }

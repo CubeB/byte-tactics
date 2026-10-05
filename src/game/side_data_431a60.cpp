@@ -182,7 +182,7 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-void __stdcall FUN_004b6290(char* message);
+void __stdcall FatalError(char* message);
 void* __stdcall FUN_004bbe50(char* path, int flags);
 void __stdcall FUN_00431950(void* parser, int* out, const char* name, const char* side);
 
@@ -228,7 +228,7 @@ void __stdcall FUN_00431a60(void)
             FUN_004290f0(fontPath, "fonts", name, "FNT");
             font = FUN_004bbe50(fontPath, 0);
             if (font == 0)
-                FUN_004b6290(fontPath);
+                FatalError(fontPath);
             s->font = font;
         }
         s->energyColor = ((Class_004c46c0*)parser.current)->FUN_004c46c0("energycolor", 0);
@@ -237,7 +237,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("LOGO")) {
             sprintf(msgLogo, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "LOGO", s->name);
-            FUN_004b6290(msgLogo);
+            FatalError(msgLogo);
         } else {
             int* r = &s->logo.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
@@ -250,7 +250,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("ENERGYBAR")) {
             sprintf(msgEnergybar, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGYBAR", s->name);
-            FUN_004b6290(msgEnergybar);
+            FatalError(msgEnergybar);
         } else {
             int* r = &s->energyBar.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
@@ -263,7 +263,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("ENERGYNUM")) {
             sprintf(msgEnergynum, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGYNUM", s->name);
-            FUN_004b6290(msgEnergynum);
+            FatalError(msgEnergynum);
         } else {
             int* r = &s->energyNum.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
@@ -276,7 +276,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("METALBAR")) {
             sprintf(msgMetalbar, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METALBAR", s->name);
-            FUN_004b6290(msgMetalbar);
+            FatalError(msgMetalbar);
         } else {
             int* r = &s->metalBar.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
@@ -289,7 +289,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("METALNUM")) {
             sprintf(msgMetalnum, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METALNUM", s->name);
-            FUN_004b6290(msgMetalnum);
+            FatalError(msgMetalnum);
         } else {
             int* r = &s->metalNum.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
@@ -302,7 +302,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("TOTALUNITS")) {
             sprintf(msgTotalunits, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "TOTALUNITS", s->name);
-            FUN_004b6290(msgTotalunits);
+            FatalError(msgTotalunits);
         } else {
             int* r = &s->totalUnits.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
@@ -315,7 +315,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("TOTALTIME")) {
             sprintf(msgTotaltime, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "TOTALTIME", s->name);
-            FUN_004b6290(msgTotaltime);
+            FatalError(msgTotaltime);
         } else {
             int* r = &s->totalTime.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
@@ -328,7 +328,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("ENERGY0")) {
             sprintf(msgEnergy0, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGY0", s->name);
-            FUN_004b6290(msgEnergy0);
+            FatalError(msgEnergy0);
         } else {
             int* r = &s->energy0.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
@@ -341,7 +341,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("METAL0")) {
             sprintf(msgMetal0, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METAL0", s->name);
-            FUN_004b6290(msgMetal0);
+            FatalError(msgMetal0);
         } else {
             int* r = &s->metal0.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
@@ -354,7 +354,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("ENERGYMAX")) {
             sprintf(msgEnergymax, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGYMAX", s->name);
-            FUN_004b6290(msgEnergymax);
+            FatalError(msgEnergymax);
         } else {
             int* r = &s->energyMax.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
@@ -367,7 +367,7 @@ void __stdcall FUN_00431a60(void)
         saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
         if (!((Class_004c3410*)&parser)->FUN_004c3410("METALMAX")) {
             sprintf(msgMetalmax, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METALMAX", s->name);
-            FUN_004b6290(msgMetalmax);
+            FatalError(msgMetalmax);
         } else {
             int* r = &s->metalMax.x1;
             r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);

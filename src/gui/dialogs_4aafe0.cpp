@@ -32,7 +32,7 @@ struct Object_004aafe0 {
     int y;                             // +0x40
 };
 
-int __stdcall FUN_004b6720(Rect_004b6720* r, int x, int y);
+int __stdcall PointInRect(Rect_004b6720* r, int x, int y);
 
 // FUNCTION: 0x4aafe0
 int __stdcall FUN_004aafe0(Object_004aafe0* obj)
@@ -45,5 +45,5 @@ int __stdcall FUN_004aafe0(Object_004aafe0* obj)
     r.top = info->y;
     r.right = r.left + info->width - 1;
     r.bottom = r.top + info->height - 1;
-    return FUN_004b6720(&r, obj->x, obj->y);
+    return PointInRect(&r, obj->x, obj->y);
 }

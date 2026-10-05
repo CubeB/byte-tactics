@@ -4,7 +4,7 @@
 // lookup, as in the original. This fixes the earlier register family and permits a normal integer
 // remain local instead of overwriting param_1 with the remaining height. Initialize remain before
 // storing me->first to reproduce the final stack-store ordering.
-// The missing-name path calls the fatal-error routine FUN_004b6290, which
+// The missing-name path calls the fatal-error routine FatalError, which
 // exits the process. Its following null-entry accesses are unreachable.
 #include <string.h>
 
@@ -62,9 +62,9 @@ struct Class_004a32a0 {
 
 extern Root_004a32a0* DAT_0051fba4;
 
-void __stdcall FUN_004b6290(char* msg);
-int FUN_004c1450();
-int __stdcall FUN_004b7f30(unsigned short* glyphs, int c);
+void __stdcall FatalError(char* msg);
+int GetFontHeight();
+int __stdcall GetGafFrame(unsigned short* glyphs, int c);
 void __stdcall FUN_004a03f0(Root_004a32a0* menu, int index, int value);
 void __stdcall FUN_004a3ef0(Root_004a32a0* param_1, int param_2);
 
@@ -73,8 +73,8 @@ void __stdcall FUN_004a3ef0(Root_004a32a0* param_1, int param_2);
 // original evaluates it again in the second arm of the +0xda minimum.
 static inline int FontHeight_004a32a0() {
     if (DAT_0051fba4->language == 0)
-        return FUN_004c1450();
-    return (int)((Glyph_004a32a0*)FUN_004b7f30(DAT_0051fba4->language->glyphs, 0x49))->height + 2;
+        return GetFontHeight();
+    return (int)((Glyph_004a32a0*)GetGafFrame(DAT_0051fba4->language->glyphs, 0x49))->height + 2;
 }
 
 // The entry search of 0x4a0180, 0x4a0200, 0x4a0280 and 0x4a35a0.
@@ -104,7 +104,7 @@ void __stdcall FUN_004a32a0(Class_004a32a0* param_1, char* name, int bitmap, int
     if (index != -1) {
         me = &entries[index];
     } else {
-        FUN_004b6290("Error in GUI layout");
+        FatalError("Error in GUI layout");
         me = 0;
     }
     me->num = (short)count;

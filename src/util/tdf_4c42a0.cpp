@@ -9,14 +9,14 @@ class Class_004c9390 {
 public:
     char* data;
 
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 class Handle_004c42a0 {
 public:
     char* data;
 
-    ~Handle_004c42a0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Handle_004c42a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
 struct Elem_004c42a0 {

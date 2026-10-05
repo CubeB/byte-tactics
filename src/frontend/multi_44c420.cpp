@@ -98,7 +98,7 @@ void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_0044bfd0(Menu_0044c420* menu, int value);
 void FUN_0044bc10();
 void FUN_0044b990();
-void __stdcall FUN_004c6ac0(Struct_004c6ac0* obj);
+void __stdcall FreeSurface(Struct_004c6ac0* obj);
 void __cdecl FUN_004d85a0(void* p);
 int IsHostLocal();
 
@@ -120,7 +120,7 @@ void __stdcall FUN_0044c420(Menu_0044c420* menu)
         if (desc->count > 0) {
             do {
                 if (*p != 0)
-                    FUN_004c6ac0((Struct_004c6ac0*)*p);
+                    FreeSurface((Struct_004c6ac0*)*p);
                 p++;
                 i++;
             } while (i < desc->count);

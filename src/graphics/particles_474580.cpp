@@ -20,11 +20,11 @@ public:
     int tick;                          // +0x38
     int period;                        // +0x3c
 
-    void FUN_00474580();
+    void Step();
 };
 
 // FUNCTION: 0x474580
-void Class_00474580::FUN_00474580()
+void Class_00474580::Step()
 {
     pos += vel;
     tick = (tick + 1) % period;

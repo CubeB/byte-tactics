@@ -20,7 +20,7 @@ public:
     char unknown_0[0x10];
     void* ptr;                         // +0x10
 
-    void FUN_004581c0();
+    void Destroy();
 };
 
 struct Game {
@@ -70,7 +70,7 @@ void FreeUnitTypes()
 
     Class_004581c0* obj = g_game->field_1437b;
     if (obj != 0) {
-        obj->FUN_004581c0();
+        obj->Destroy();
         delete obj;
     }
     g_game->field_1437b = 0;

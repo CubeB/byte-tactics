@@ -8,9 +8,9 @@ struct Object_004aeee0 {
     char dir[0x100];                   // +0xab6
 };
 
-void __stdcall FUN_004baff0(char* out, char* in, const char* ext);
+void __stdcall ChangeExtension(char* out, char* in, const char* ext);
 int __stdcall FUN_004bbc40(char* path);
-void* __stdcall FUN_004b8c60(char* path);
+void* __stdcall LoadGaf(char* path);
 
 // FUNCTION: 0x4aeee0
 void __stdcall FUN_004aeee0(Object_004aeee0* obj, char* name)
@@ -18,8 +18,8 @@ void __stdcall FUN_004aeee0(Object_004aeee0* obj, char* name)
     char path[256];
     strncpy(path, obj->dir, 0x100);
     strcat(path, name);
-    FUN_004baff0(path, path, "GAF");
+    ChangeExtension(path, path, "GAF");
     if (FUN_004bbc40(path)) {
-        obj->gaf = FUN_004b8c60(path);
+        obj->gaf = LoadGaf(path);
     }
 }

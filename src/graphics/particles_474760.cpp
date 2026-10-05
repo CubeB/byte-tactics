@@ -43,7 +43,7 @@ public:
     char unknown_0[4];
     int field_4;                    // +0x04
 
-    void FUN_00471d70(int param_1);
+    void SetLifetime(int param_1);
 };
 
 class Class_00474760 {
@@ -52,7 +52,7 @@ public:
     virtual void unused1();                      // slot 1
     virtual void unused2(int);                   // slot 2
     virtual int unused3();                       // slot 3
-    virtual void FUN_00474880();                 // slot 4
+    virtual void Emit();                         // slot 4
 
     int field_4;                                 // +0x04
     char unknown_8[0x1c - 0x08];
@@ -70,7 +70,7 @@ public:
 void Class_00474760::FUN_00474760(Vec3_00474760* a, Vec3_00474760* b, int param_3,
                                   int param_4, int param_5)
 {
-    ((Class_00471d70*)this)->FUN_00471d70(param_4);
+    ((Class_00471d70*)this)->SetLifetime(param_4);
     field_1c = param_3;
     pos_a = *a;
     pos_b = *b;
@@ -80,5 +80,5 @@ void Class_00474760::FUN_00474760(Vec3_00474760* a, Vec3_00474760* b, int param_
     int scale = 0x100000000 / (int)(((__int64)dir.Length() * 0x20000) >> 16);
     dir.Scale(scale);
     field_44 = param_5;
-    FUN_00474880();
+    Emit();
 }

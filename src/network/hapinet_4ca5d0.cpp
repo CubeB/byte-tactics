@@ -36,7 +36,7 @@ extern int g_guaranteePackets;
 extern GUID DAT_004fcd78;
 
 void __cdecl HapinetTrace(int);
-int FUN_004b6220();
+int GetDisplay();
 extern "C" HRESULT __stdcall DirectPlayCreate(GUID* sp, void** dp, void* unknown);
 
 // FUNCTION: 0x4ca5d0
@@ -44,7 +44,7 @@ int __stdcall HAPINET_initmultiplay(Net_4ca5d0* net, Guid_4ca5d0* sp, Guid_4ca5d
 {
     HapinetTrace((int)"HAPINET_initmultiplay\n");
     g_guaranteePackets = 0;
-    net->field_4ad = *(int*)(FUN_004b6220() + 0x40);
+    net->field_4ad = *(int*)(GetDisplay() + 0x40);
     net->application = *application;
     net->field_4c9 = 0;
     net->field_4cd = 0;

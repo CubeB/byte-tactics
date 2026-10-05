@@ -25,7 +25,7 @@ class Class_004c9390 {
 public:
     char* data;
 
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 class Class_004c4340 {
@@ -43,7 +43,7 @@ Class_004c91a0* Class_004c4340::FUN_004c4340(Class_004c91a0* out, char* start, c
     if (start >= end) {
         Class_004c91b0 tmp(DAT_005119b8);
         out->Class_004c91a0::Class_004c91a0(*(Class_004c91a0*)&tmp);
-        ((Class_004c9390*)&tmp)->FUN_004c9390();
+        ((Class_004c9390*)&tmp)->ReleaseRef();
         return out;
     }
     char* last = end - 1;
@@ -54,6 +54,6 @@ Class_004c91a0* Class_004c4340::FUN_004c4340(Class_004c91a0* out, char* start, c
     Class_004c91b0 tmp(start);
     last[1] = saved;
     out->Class_004c91a0::Class_004c91a0(*(Class_004c91a0*)&tmp);
-    ((Class_004c9390*)&tmp)->FUN_004c9390();
+    ((Class_004c9390*)&tmp)->ReleaseRef();
     return out;
 }

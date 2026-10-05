@@ -11,7 +11,7 @@ extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 class Class_004c9390 {
 public:
     char* data;                        // +0x0
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 // Copy constructor of the reference-counted string handle (0x4c91a0).
@@ -24,7 +24,7 @@ public:
 class Class_004c91b0 : public Class_004c91a0 {
 public:
     Class_004c91b0(const char* text);
-    ~Class_004c91b0() { FUN_004c9390(); }
+    ~Class_004c91b0() { ReleaseRef(); }
 };
 
 class UnitCategory {
@@ -33,7 +33,7 @@ public:
     void* value;                       // +0x4
 
     UnitCategory(const Class_004c91a0& n, void* v) : name(n) { value = v; }
-    ~UnitCategory() { name.FUN_004c9390(); }
+    ~UnitCategory() { name.ReleaseRef(); }
 };
 
 class UnitTypeSet {

@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, finished by Claude Opus 5.5. Names are provisional.
 // Draws one depth-tested scanline of a flat-coloured polygon: clips the span
 // to the surface, then either depth-tests each pixel against the z buffer or,
-// with no z buffer, fills the row. Called once per row by FUN_004c1000.
+// with no z buffer, fills the row. Called once per row by FillFlatPolygon.
 //
 // What matched it (Claude Opus 5.5, issue #4708, after nine passes at 96.5%):
 // - Both arms are `while (n--)` loops inside `if (n > 0)`, as in the matched
@@ -35,7 +35,7 @@ struct Surface_004c06e0 {
 };
 
 // FUNCTION: 0x4c06e0
-void __stdcall FUN_004c06e0(int row, Span_004c06e0* span, Surface_004c06e0* surf, unsigned char color)
+void __stdcall FillFlatSpan(int row, Span_004c06e0* span, Surface_004c06e0* surf, unsigned char color)
 {
     unsigned char* p = surf->bits;
     unsigned char* d = surf->depth;

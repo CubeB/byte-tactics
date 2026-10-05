@@ -72,7 +72,7 @@ struct Control_004ab720 {
 void __stdcall FUN_004a4d70(Control_004ab720* control, int index);
 int __stdcall FUN_004a5030(char* text);
 int FUN_004c1ab0();
-void* FUN_004b6220();
+void* GetDisplay();
 
 
 // FUNCTION: 0x4ab720
@@ -126,7 +126,7 @@ int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
                 break;
             case 0xbf:
             case 0xee: {
-                HWND hwnd = *(HWND*)((char*)FUN_004b6220() + 0x40);
+                HWND hwnd = *(HWND*)((char*)GetDisplay() + 0x40);
                 if (OpenClipboard(hwnd)) {
                     HANDLE hMem = GetClipboardData(1);
                     if (hMem != 0) {

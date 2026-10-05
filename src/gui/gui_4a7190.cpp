@@ -33,9 +33,9 @@ struct Class_004a7190 {
 
 extern Holder_004a7190* DAT_0051fba4;
 
-int FUN_004c13f0();
-void __stdcall FUN_004c13a0(int colour, int font);
-void __stdcall FUN_004c1420(int id);
+int GetTextKeyColor();
+void __stdcall SetTextColors(int colour, int font);
+void __stdcall SetFont(int id);
 void FUN_004c1a40();
 int __stdcall FUN_0049fc50(Class_004a7190* obj, int index);
 void __stdcall FUN_004ab6c0(Class_004a7190* obj, void* param_2, char* text,
@@ -47,21 +47,21 @@ void __stdcall FUN_004a7190(Class_004a7190* obj, int index)
     Entry_004a7190* entries = obj->holder->entries;
     Entry_004a7190* target = &entries[index];
 
-    FUN_004c13a0(obj->colors[target->colourIndex], FUN_004c13f0());
+    SetTextColors(obj->colors[target->colourIndex], GetTextKeyColor());
 
     int n = 0;
     int i = 1;
     for (; i < entries->count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == target->group) {
-                FUN_004c1420(entries[i].id);
+                SetFont(entries[i].id);
                 break;
             }
             n++;
         }
     }
     if (i == entries->count + 1) {
-        FUN_004c1420(DAT_0051fba4->current);
+        SetFont(DAT_0051fba4->current);
     }
 
     FUN_0049fc50(obj, index);

@@ -31,8 +31,8 @@ public:
     int FUN_004b73e0(int index, int fallback);
 };
 
-extern Display_00417a60* FUN_004b6220();
-void FUN_004b5910();
+extern Display_00417a60* GetDisplay();
+void ToggleFullScreen();
 void __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // FUNCTION: 0x417a60
@@ -55,8 +55,8 @@ void __stdcall FUN_00417a60(Class_004b73e0* args)
             }
         }
         if (args->count == 0 || args->FUN_004b73e0(1, 0) == 0) {
-            if (FUN_004b6220()->windowed) {
-                FUN_004b5910();
+            if (GetDisplay()->windowed) {
+                ToggleFullScreen();
                 Sleep(500);
             }
             DebugBreak();

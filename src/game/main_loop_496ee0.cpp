@@ -90,7 +90,7 @@ struct Game {
 extern Game* g_game;
 
 unsigned short __stdcall FindUnitTypeId(const char* name);
-void __stdcall FUN_004b6290(char* message);
+void __stdcall FatalError(char* message);
 void __stdcall FUN_0041c4c0(int x, int y, int instant);
 
 union Fixed_00496ee0 {
@@ -132,7 +132,7 @@ void __stdcall FUN_00496ee0(int team, int startpos)
         sprintf(buf,
             "Error: Could not find start position number %i on the map!",
             startpos);
-        FUN_004b6290(buf);
+        FatalError(buf);
     }
 
     if (team == g_game->localPlayer)

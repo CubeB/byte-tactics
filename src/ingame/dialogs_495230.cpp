@@ -72,12 +72,12 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 
 // FUNCTION: 0x495230
 void FUN_00495230()
 {
-    unsigned int now = FUN_004b6340();
+    unsigned int now = GetTicks();
     g_game->elapsed = now - g_game->lastTick;
     g_game->lastTick = now;
     unsigned short speed = g_game->speed;

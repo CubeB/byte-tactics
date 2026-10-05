@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Slot 4 of Class_00471430 (vtable 0x4fd588; see 0x472d50.cpp and 0x471430.cpp
+// Slot 4 of TeleportParticles (vtable 0x4fd588; see 0x472d50.cpp and 0x471430.cpp
 // for the class and 0x471cc0.cpp for the family). The container at +0xc is a
 // real std::vector<Class_00473590> (0x34-byte elements, the type 0x472e30.cpp
 // and 0x471430.cpp already use). It first makes room for however many ten-tick
@@ -40,7 +40,7 @@ struct Game {
 
 extern Game* g_game;
 
-extern "C" int __stdcall FUN_004b7f60(void* ptr);
+extern "C" int __stdcall GetGafFrameCount(void* ptr);
 
 class Class_00473590 {                   // one element, 0x34 bytes
 public:
@@ -64,13 +64,13 @@ public:
     void FUN_004758c0(char* where, int count, const Class_00473590& val);
 };
 
-class Class_00471430 {
+class TeleportParticles {
 public:
     virtual void FUN_00471430();        // slot 0
-    virtual void FUN_00472d50();        // slot 1
+    virtual void Update();              // slot 1
     virtual void FUN_00472e30(int);     // slot 2
     virtual int FUN_00472e70();         // slot 3
-    virtual void FUN_004737c0();        // slot 4
+    virtual void Emit();                // slot 4
     virtual int FUN_00472e00();         // slot 5
     virtual void FUN_004736e0(int, int, int); // slot 6
 
@@ -84,7 +84,7 @@ public:
 };
 
 // FUNCTION: 0x4737c0
-void Class_00471430::FUN_004737c0()
+void TeleportParticles::Emit()
 {
     int grow = (field_4 - g_game->field_38a47 + 10) / 10;
 
@@ -99,7 +99,7 @@ void Class_00471430::FUN_004737c0()
         e.dir = dir;
         e.field_30 = g_game->field_38a47 + field_1c;
         e.field_0 = g_game->unknown_147f3;
-        e.field_28 = FUN_004b7f60(g_game->unknown_147f3) - 1;
+        e.field_28 = GetGafFrameCount(g_game->unknown_147f3) - 1;
         e.field_2c = (int)(((__int64)rand() * e.field_28) / 0x8000);
         List_004737c0* v = (List_004737c0*)&items;
         v->FUN_004758c0(v->last, 1, e);

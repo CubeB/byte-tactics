@@ -17,11 +17,11 @@ public:
     char sub_4[0x40 - 4]; // +0x4, embedded struct passed to GetGroundHeight
     int field_40;         // +0x40
 
-    int FUN_00474720(int param_1);
+    int IsExpired(int param_1);
 };
 
 // FUNCTION: 0x474720
-int Class_00474720::FUN_00474720(int param_1)
+int Class_00474720::IsExpired(int param_1)
 {
     if (param_1 <= field_40) {
         int r = GetGroundHeight(sub_4);

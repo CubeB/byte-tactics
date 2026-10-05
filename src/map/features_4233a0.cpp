@@ -82,7 +82,7 @@ extern Game* g_game;
 
 Cell_004233a0* __stdcall FUN_00481550(int x, int y);
 void __stdcall FUN_004232f0(int index, int* head);
-void __stdcall FUN_004b8b30(AnimRef_004233a0* ref, AnimSrc_004233a0* src, int index);
+void __stdcall InitGafSequence(AnimRef_004233a0* ref, AnimSrc_004233a0* src, int index);
 int __stdcall FUN_004b6c30(int range);
 void __stdcall FUN_0047f610(char* name, Vec3_004233a0* pos, int param_3);
 int GetLocalDpid();
@@ -120,9 +120,9 @@ void __stdcall FUN_004233a0(int x, int z, int flag)
     s->feature = cell->feature;
     cell->spot = i;
     cell->flags |= 1;
-    FUN_004b8b30(&s->anim, f->burn, 0);
+    InitGafSequence(&s->anim, f->burn, 0);
     if (f->burnShadow != 0) {
-        FUN_004b8b30(&s->shadow, f->burnShadow, 0);
+        InitGafSequence(&s->shadow, f->burnShadow, 0);
         s->hasShadow = 1;
     } else {
         s->hasShadow = 0;

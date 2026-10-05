@@ -22,8 +22,8 @@ extern int DAT_0051ff10;
 extern int DAT_0050b544;
 extern int DAT_0050b540;
 
-void __stdcall FUN_004b64d0(int param_1);
-int __stdcall FUN_004b63f0(int delay, int param, void (__stdcall* callback)(void*));
+void __stdcall RemoveTimer(int param_1);
+int __stdcall AddTimer(int delay, int param, void (__stdcall* callback)(void*));
 void __stdcall FUN_004ce5b0(void*);
 
 // Timer callback: steps the level by the object's step; once it reaches zero
@@ -33,13 +33,13 @@ void __stdcall FUN_004ce5e0(void*)
 {
     DAT_0051ff10 += DAT_0051ff14->step;
     if (DAT_0051ff10 <= 0) {
-        FUN_004b64d0(DAT_0050b544);
+        RemoveTimer(DAT_0050b544);
         DAT_0050b544 = -1;
         DAT_0051ff10 = 0;
         DAT_0051ff14->step = 0;
         ((Class_004d00d0*)DAT_0051ff14)->FUN_004d00d0(DAT_0051ff10, 1);
         if (DAT_0051ff14->field_278 == 0)
-            DAT_0050b540 = FUN_004b63f0(0x78, 0, FUN_004ce5b0);
+            DAT_0050b540 = AddTimer(0x78, 0, FUN_004ce5b0);
         else
             ((Class_004cdb40*)DAT_0051ff14)->FUN_004cdb40();
     } else {

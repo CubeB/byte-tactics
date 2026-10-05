@@ -92,7 +92,7 @@ void __stdcall FUN_004a5f40(Class_004a6ae0* obj, int index);
 void __stdcall FUN_004a0340(Class_004a6ae0* obj, int index);
 void __stdcall FUN_004a2580(Class_004a6ae0* obj, int index);
 void __stdcall FUN_004a2be0(Class_004a6ae0* obj, int index);
-int FUN_004b6340();
+int GetTicks();
 int __stdcall FUN_004c1b80(int param);
 void FUN_004c1ab0();
 int __cdecl tolower(int c);
@@ -242,9 +242,9 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
             return 0;
         }
         if (entry->field_138 != 0 && (entry->flags & 0x2000)) {
-            if (DAT_0051fbb0 == FUN_004b6340())
+            if (DAT_0051fbb0 == GetTicks())
                 goto fail;
-            DAT_0051fbb0 = FUN_004b6340();
+            DAT_0051fbb0 = GetTicks();
             if (DAT_0051fbac > 0) {
                 DAT_0051fbac -= 1;
                 return 0;

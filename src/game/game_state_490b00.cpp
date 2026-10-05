@@ -2,8 +2,8 @@
 // Releases the offscreen object created by 0x490ac0.
 
 void __cdecl FUN_004d85a0(int* param_1);
-void __stdcall FUN_004c61f0(int param_1);
-void FUN_004c62c0();
+void __stdcall SetRestoreSurface(int param_1);
+void RestoreScreen();
 
 #pragma pack(push, 1)
 struct Game {
@@ -19,6 +19,6 @@ void FUN_00490b00()
 {
     FUN_004d85a0(g_game->field_37e1b);
     g_game->field_37e1b = 0;
-    FUN_004c61f0(0);
-    FUN_004c62c0();
+    SetRestoreSurface(0);
+    RestoreScreen();
 }

@@ -8,7 +8,7 @@ struct Rect_004b6720 {
 };
 
 // FUNCTION: 0x4b6720
-int __stdcall FUN_004b6720(Rect_004b6720* r, int x, int y)
+int __stdcall PointInRect(Rect_004b6720* r, int x, int y)
 {
     if (x < r->left || x > r->right)
         return 0;

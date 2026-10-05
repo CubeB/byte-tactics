@@ -32,7 +32,7 @@ public:
 
 extern Class_0051fba4* DAT_0051fba4;
 
-unsigned int __cdecl FUN_004b6340();
+unsigned int __cdecl GetTicks();
 
 // FUNCTION: 0x4aa850
 void __stdcall FUN_004aa850(Class_0051fba4* ctx)
@@ -43,7 +43,7 @@ void __stdcall FUN_004aa850(Class_0051fba4* ctx)
     ctx->text_ab6[0] = 0;
     ctx->text_bb6[0] = 0;
     ctx->field_cc6 = 1;
-    ctx->time = FUN_004b6340();
+    ctx->time = GetTicks();
     ctx->field_9a = 0;
     ctx->field_9e = 1;
     ctx->field_4 = 0;

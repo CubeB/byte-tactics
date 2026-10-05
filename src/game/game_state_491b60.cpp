@@ -35,7 +35,7 @@ extern Game* g_game;
 void __cdecl FUN_0041dc20();
 void FUN_00437d30();
 void FreeUnitMemory();
-void FUN_00471de0();
+void DestroyParticleLists();
 void FUN_00420960();
 void FUN_0044f6e0();
 void FUN_00464a00();
@@ -60,7 +60,7 @@ void FUN_00491b60()
     FUN_0041dc20();
     FUN_00437d30();
     FreeUnitMemory();
-    FUN_00471de0();
+    DestroyParticleLists();
     FUN_00420960();
     FUN_0044f6e0();
     FUN_00464a00();

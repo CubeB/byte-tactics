@@ -1,10 +1,10 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 // Builds the piece-tree "Object State" block of a placed object, called from
 // the three places that finish placing a unit. The block comes from
-// FUN_0045a950, which also reorders the entries to match the build list, when
+// CreatePlayerObjectState, which also reorders the entries to match the build list, when
 // the definition reached through +0x92 has object data at +0x18e; a 0x544-byte
 // variable block is allocated for the object first and told about that data.
-// Without the data the plain FUN_0045a8d0 builds the block and the owner
+// Without the data the plain CreateObjectState builds the block and the owner
 // pointer at +0xc is filled in by hand. Both arms store the block at +0x9e,
 // and clearing its flag at +0x10 as a shared tail after the if/else is what
 // makes MSVC 5 reload the block into eax in both exits and give each exit its
@@ -12,7 +12,7 @@
 //
 // Both calls take the definition object (g_game->definitions[id], in ebx) as
 // their argument. The cold arm pushes it at the top of its block, which looks
-// like a spare register save but is the argument FUN_0045a8d0 pops itself.
+// like a spare register save but is the argument CreateObjectState pops itself.
 
 #include <stddef.h>
 
@@ -140,8 +140,8 @@ struct Object_00485d40 {
 extern Game* g_game;
 
 void* __cdecl operator new(size_t size);
-ObjectState_00485d40* __stdcall FUN_0045a950(Class_0045ae80* obj, Data_00485d40* data, int player);
-ObjectState_00485d40* __stdcall FUN_0045a8d0(Class_0045ae80* obj);
+ObjectState_00485d40* __stdcall CreatePlayerObjectState(Class_0045ae80* obj, Data_00485d40* data, int player);
+ObjectState_00485d40* __stdcall CreateObjectState(Class_0045ae80* obj);
 
 // FUNCTION: 0x485d40
 void __stdcall InitUnitScript(Object_00485d40* self)
@@ -150,12 +150,12 @@ void __stdcall InitUnitScript(Object_00485d40* self)
     if (self->unit->data) {
         self->vars = new UnitScript;
         self->vars->SetCob(self->unit->data);
-        self->state = FUN_0045a950(obj, self->unit->data, (int)self);   // the owner, as an int
+        self->state = CreatePlayerObjectState(obj, self->unit->data, (int)self);  // the owner, as an int
         ((Class_00480d40*)self->vars)->SetObjectState(self->state);
         ((Class_004b0940*)self->vars)->StartScript("Create", 0, 1);
     } else {
         self->vars = 0;
-        self->state = FUN_0045a8d0(obj);
+        self->state = CreateObjectState(obj);
         self->state->field_c = self;
     }
     self->state->field_10 = 0;

@@ -2,8 +2,8 @@
 // MATCH (claude-opus-5-5, #5153). Earlier passes reached 97.2% with the frame
 // test and the bitmap test emitted in the wrong order; writing them in the
 // original's order recoloured the function. What was missing:
-//  - The whole tail (fast path through FUN_00459200, or the piece loop) is the
-//    neighbouring Class_00458430::FUN_00458430, which has no callers in the exe
+//  - The whole tail (fast path through DrawObjectPicture, or the piece loop) is the
+//    neighbouring Class_00458430::DrawObjectPieces, which has no callers in the exe
 //    and is inlined here. Its by-value Vec3 parameter is also what copies the
 //    never-written `coords.y` through its own frame slot, so the old `src`
 //    trick is gone. Inlined, it raises x and z from priority 27 to 35
@@ -71,48 +71,48 @@ struct Vec3_458810;
 
 class Class_004584d0 {
 public:
-    void FUN_004584d0(List_458810* list, Vec3_458810* param_2, void* param_3,
+    void DrawPiece(List_458810* list, Vec3_458810* param_2, void* param_3,
         PieceInfo_458810* info, Vertex_458810* vertices, unsigned char kind, int visible);
 };
 
 class Class_00459200 {
 public:
-    void FUN_00459200(void* param_1, List_458810* list, Vec3_458810 coords, int visible);
+    void DrawObjectPicture(void* param_1, List_458810* list, Vec3_458810 coords, int visible);
 };
 
 class Class_004581e0 {
 public:
-    int FUN_004586a0(List_458810* list, int param_2, int param_3);
+    int BuildObjectPicture(List_458810* list, int param_2, int param_3);
 };
 
 class Class_00437c80 {
 public:
-    void FUN_00458810(List_458810* list, Vec3_458810* result);
+    void DrawObjectState(List_458810* list, Vec3_458810* result);
 };
 
 struct Vec3_458810 { int x; int y; int z; };
 
 class Class_00458430 {
 public:
-    void FUN_00458430(Vec3_458810* result, List_458810* list, Vec3_458810 v, int visible);
+    void DrawObjectPieces(Vec3_458810* result, List_458810* list, Vec3_458810 v, int visible);
 };
 
-void Class_00458430::FUN_00458430(Vec3_458810* result, List_458810* list, Vec3_458810 v, int visible)
+void Class_00458430::DrawObjectPieces(Vec3_458810* result, List_458810* list, Vec3_458810 v, int visible)
 {
     if (list->bitmap != 0) {
-        ((Class_00459200*)this)->FUN_00459200(result, list, v, visible);
+        ((Class_00459200*)this)->DrawObjectPicture(result, list, v, visible);
         return;
     }
     for (int i = list->pieceCount - 1; i >= 0; i--) {
         if (list->pieces[i].flags & 1) {
-            ((Class_004584d0*)this)->FUN_004584d0(list, result, &v, list->pieces[i].info,
+            ((Class_004584d0*)this)->DrawPiece(list, result, &v, list->pieces[i].info,
                 list->pieces[i].vertices, list->owner->kind, visible);
         }
     }
 }
 
 // FUNCTION: 0x458810
-void Class_00437c80::FUN_00458810(List_458810* list, Vec3_458810* result)
+void Class_00437c80::DrawObjectState(List_458810* list, Vec3_458810* result)
 {
     int rebuild = 0;
     int x = *(int*)(g_game + 0x1431f) << 16;
@@ -148,11 +148,11 @@ void Class_00437c80::FUN_00458810(List_458810* list, Vec3_458810* result)
         rebuild = 1;
     if (rebuild) {
         list->field_14 = 0;
-        ((Class_004581e0*)this)->FUN_004586a0(list, 0, 1);
+        ((Class_004581e0*)this)->BuildObjectPicture(list, 0, 1);
     }
     Vec3_458810 coords;
     coords.x = x;
     coords.z = z;
-    ((Class_00458430*)this)->FUN_00458430(result, list, coords, visible);
+    ((Class_00458430*)this)->DrawObjectPieces(result, list, coords, visible);
     list->frame++;
 }

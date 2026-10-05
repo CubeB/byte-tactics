@@ -3,7 +3,7 @@
 extern int DAT_0050b540;
 extern void* DAT_0051ff14;
 
-extern void __stdcall FUN_004b64d0(int);
+extern void __stdcall RemoveTimer(int);
 
 class Class_004cdb40 {
 public:
@@ -14,7 +14,7 @@ public:
 void __stdcall FUN_004ce5b0(void*)
 {
     int temp = DAT_0050b540;
-    FUN_004b64d0(temp);
+    RemoveTimer(temp);
     DAT_0050b540 = 0xffffffff;
     ((Class_004cdb40*)DAT_0051ff14)->FUN_004cdb40();
 }

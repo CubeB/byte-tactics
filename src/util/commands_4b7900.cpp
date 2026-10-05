@@ -16,7 +16,7 @@
 class Class_004c9390 {
 public:
     char* data;                        // +0x0
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 struct Elem_004b75d0 {
@@ -24,7 +24,7 @@ struct Elem_004b75d0 {
     int value1;                        // +0x4
     int value2;                        // +0x8
 
-    ~Elem_004b75d0() { name.FUN_004c9390(); }
+    ~Elem_004b75d0() { name.ReleaseRef(); }
 };
 
 static std::vector<Elem_004b75d0> DAT_0051fc99;
@@ -40,12 +40,12 @@ public:
 class Class_004c91b0 : public Class_004c91a0 {
 public:
     Class_004c91b0(const char* text);
-    ~Class_004c91b0() { FUN_004c9390(); }
+    ~Class_004c91b0() { ReleaseRef(); }
 };
 class Class_004c9290 {
 public:
     char* data;                        // +0x0
-    Class_004c9290* FUN_004c9290();
+    Class_004c9290* MakeLower();
 };
 class Class_004b73c0 {
 public:
@@ -91,7 +91,7 @@ int __stdcall FUN_004b7900(Class_004b73c0* obj, int param_2)
     int result = 0;
     if (obj->count >= 1) {
         Class_004c91b0 key(obj->FUN_004b73c0(0, DAT_005119b8));
-        ((Class_004c9290*)&key)->FUN_004c9290();
+        ((Class_004c9290*)&key)->MakeLower();
         HandlerSlot_004b7900* h = Find_004b7900(key.data);
         if (h != 0 && (h->mask & param_2)) {
             result = h->mask;

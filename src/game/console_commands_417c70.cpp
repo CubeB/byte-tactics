@@ -26,7 +26,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall GetGroundHeight(Pos_00417bb0* pos);
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 
 // FUNCTION: 0x417c70
 void __stdcall FUN_00417c70(void* surface, Pos_00417bb0* p, short dx, short dz, int color)
@@ -42,5 +42,5 @@ void __stdcall FUN_00417c70(void* surface, Pos_00417bb0* p, short dx, short dz, 
     int x2 = pos.x - g_game->scroll_x + 0x80;
     int y2 = pos.z - g_game->scroll_y - (h2 >> 1) + 0x20;
 
-    FUN_004be950(surface, x1, y1, x2, y2, color & 0xff);
+    DrawLine(surface, x1, y1, x2, y2, color & 0xff);
 }

@@ -41,7 +41,7 @@ struct Game {
 extern Game* g_game;
 
 void __cdecl FUN_004d85a0(void* p);
-void __stdcall FUN_0045aaa0(void* obj);
+void __stdcall FreeObjectState(void* obj);
 
 // FUNCTION: 0x422170
 void FUN_00422170()
@@ -52,7 +52,7 @@ void FUN_00422170()
         while (idx != -1) {
             Entry_00422170* e = &g_game->pool.entries[idx];
             if (!(g_game->types[e->type].flags & 1))
-                FUN_0045aaa0(e->obj);
+                FreeObjectState(e->obj);
             idx = e->next;
         }
     }

@@ -15,13 +15,13 @@ struct Image_458d30 {
 // `this` through in ecx.
 class Class_00458d30 {
 public:
-    void FUN_00458d30(Image_458d30* img, unsigned char level, int above, int below, int between);
+    void RecolorByShade(Image_458d30* img, unsigned char level, int above, int below, int between);
 };
 
 // Recolours every opaque pixel by its shade: below level - 4, at or above
 // level, or in between. -1 leaves the pixel, -2 makes it transparent.
 // FUNCTION: 0x458d30
-void Class_00458d30::FUN_00458d30(Image_458d30* img, unsigned char level, int above, int below, int between)
+void Class_00458d30::RecolorByShade(Image_458d30* img, unsigned char level, int above, int below, int between)
 {
     unsigned char low;
     if (level < 4)

@@ -12,27 +12,27 @@ struct App_004bad30 {
 };
 #pragma pack(pop)
 
-extern App_004bad30* FUN_004b6220(void);
-void __stdcall FUN_004ba920(PALETTEENTRY* palette, int* sums, unsigned char* order);
-unsigned char __stdcall FUN_004ba9d0(PALETTEENTRY* palette, int* sums, unsigned char* order,
+extern App_004bad30* GetDisplay(void);
+void __stdcall SortByBrightness(PALETTEENTRY* palette, int* sums, unsigned char* order);
+unsigned char __stdcall NearestColorInBand(PALETTEENTRY* palette, int* sums, unsigned char* order,
                                      PALETTEENTRY color);
 
 // FUNCTION: 0x4bad30
-unsigned char* __stdcall FUN_004bad30(PALETTEENTRY* palette)
+unsigned char* __stdcall BuildGrayTable(PALETTEENTRY* palette)
 {
-    App_004bad30* app = FUN_004b6220();
+    App_004bad30* app = GetDisplay();
     if (app->flag8) {
         PALETTEENTRY color;
         unsigned char order[256];
         int sums[256];
-        FUN_004ba920(palette, sums, order);
+        SortByBrightness(palette, sums, order);
         for (int i = 0; i < 0x100; i++) {
             unsigned char gray = (unsigned char)((unsigned int)(palette[i].peRed +
                 palette[i].peGreen + palette[i].peBlue) / 3);
             color.peGreen = gray;
             color.peBlue = gray;
             color.peRed = gray;
-            app->buffer[i] = FUN_004ba9d0(palette, sums, order, color);
+            app->buffer[i] = NearestColorInBand(palette, sums, order, color);
         }
         return app->buffer;
     }

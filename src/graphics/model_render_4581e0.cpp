@@ -36,11 +36,11 @@ struct Model_4581e0 {
 // `this` through in ecx.
 class Class_004581e0 {
 public:
-    void FUN_004581e0(int* width, int* height, int* originX, int* originY, Model_4581e0* model, Vertex_4581e0* offset);
+    void MeasureModel(int* width, int* height, int* originX, int* originY, Model_4581e0* model, Vertex_4581e0* offset);
 };
 
 // FUNCTION: 0x4581e0
-void Class_004581e0::FUN_004581e0(int* width, int* height, int* originX, int* originY, Model_4581e0* model, Vertex_4581e0* offset)
+void Class_004581e0::MeasureModel(int* width, int* height, int* originX, int* originY, Model_4581e0* model, Vertex_4581e0* offset)
 {
     int minX;
     int minY;

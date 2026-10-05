@@ -30,7 +30,7 @@ extern Game* g_game;
 void __stdcall FUN_0047f780(Unit*, int, const char*);
 int __stdcall FUN_0041bd10(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
-void __stdcall FUN_004720d0(Vec3*, Vec3*, int);
+void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
 // FUNCTION: 0x405740
 int __stdcall FUN_00405740(Unit* unit, Order* order, int unused)
 {
@@ -66,7 +66,7 @@ int __stdcall FUN_00405740(Unit* unit, Order* order, int unused)
             bounds[1].x += order->target.Get()->def->max.x;
             bounds[1].z += order->target.Get()->def->max.z;
             bounds[1].y += order->target.Get()->def->max.y;
-            FUN_004720d0(&start, bounds, 6);
+            EmitNanoParticles(&start, bounds, 6);
         }
         ((Class_00439e80*)order)->FUN_00439e80(1);
         order->flags |= 8;

@@ -13,7 +13,7 @@ struct Font_004c1480 {
 };
 
 // FUNCTION: 0x4c1480
-int __stdcall FUN_004c1480(Font_004c1480* font, unsigned char* text)
+int __stdcall GetTextWidth(Font_004c1480* font, unsigned char* text)
 {
     int width = 0;
     if (text && font) {

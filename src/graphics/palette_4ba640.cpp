@@ -8,7 +8,7 @@ struct Class_004ba640 {
 extern void __cdecl FUN_004d85a0(void* param);
 
 // FUNCTION: 0x4ba640
-void __stdcall FUN_004ba640(Class_004ba640* obj)
+void __stdcall FreeShadeTable(Class_004ba640* obj)
 {
     FUN_004d85a0(obj->field_c4);
 }

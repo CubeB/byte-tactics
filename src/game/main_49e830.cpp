@@ -183,11 +183,11 @@ void FUN_0041d920();
 void FUN_0041d4c0();
 void FUN_00428bb0();
 void FUN_00491200();
-void __stdcall FUN_004b52e0(void* param_1);
-int __stdcall FUN_004b5980(void* param_1);
-void __stdcall FUN_004b62d0(int param_1);
+void __stdcall InitDisplayDefaults(void* param_1);
+int __stdcall InitEnvironment(void* param_1);
+void __stdcall InitTimers(int param_1);
 void __stdcall FUN_004b62c0(const char* param_1);
-void __stdcall FUN_004b6110(void* param_1);
+void __stdcall ShutdownEnvironment(void* param_1);
 void FUN_00490f80();
 void FUN_00490fe0();
 void FUN_00499890();
@@ -228,7 +228,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     srand(time(0));
     if (FUN_0049ee30(lpCmdLine, DAT_0050971c) == 0)
         return 1;
-    FUN_004b52e0(&DAT_0051f320);
+    InitDisplayDefaults(&DAT_0051f320);
     DAT_0051f320.startWidth = 0x280;
     DAT_0051f320.video.bits.b0 = ~DAT_0051fb48;
     DAT_0051f320.video.bits.b1 = 1;
@@ -244,10 +244,10 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     DAT_0051f320.className = (int)DAT_00509718;
     DAT_0051f320.title = (int)DAT_0050971c;
     DAT_0051f320.menuId = 0;
-    int bGameOk = FUN_004b5980(&DAT_0051f320);
+    int bGameOk = InitEnvironment(&DAT_0051f320);
     if (bGameOk == lzero)
         return 0;
-    FUN_004b62d0(0x1e);
+    InitTimers(0x1e);
     FUN_0041d4c0();
     FUN_004b62c0(DAT_005097f4);
     g_game->field_c = &DAT_0051f320;
@@ -332,6 +332,6 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         strcpy(buf40, DAT_005119b8);
         FUN_0042f960(DAT_005097a8, buf40, 0x32);
     }
-    FUN_004b6110(&DAT_0051f320);
+    ShutdownEnvironment(&DAT_0051f320);
     return msg.wParam;
 }

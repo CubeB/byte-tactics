@@ -34,7 +34,7 @@ struct Object_004a0d00 {
     Data_004a0d00* data;               // +0x18
 };
 
-void __stdcall FUN_004b6290(char* path);
+void __stdcall FatalError(char* path);
 
 static inline int FindEntry(Entry_004a0d00* entries, char* name)
 {
@@ -51,7 +51,7 @@ char* __stdcall FUN_004a0d00(Object_004a0d00* obj, char* name, char* buf)
 {
     char* desc = 0;
     if (obj->data == 0) {
-        FUN_004b6290("Internal error");
+        FatalError("Internal error");
     }
     Entry_004a0d00* entries = obj->data->entries;
     int index = FindEntry(entries, name);

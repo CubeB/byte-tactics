@@ -31,11 +31,11 @@ struct GameCtx_4b66a0 {
 };
 #pragma pack(pop)
 
-extern GameCtx_4b66a0* DAT_0051fbd0;
+extern GameCtx_4b66a0* g_display;
 
 // FUNCTION: 0x4b66a0
-int FUN_004b66a0()
+int GetFrameRate()
 {
-    DAT_0051fbd0->counter.Tick();
-    return DAT_0051fbd0->counter.rate;
+    g_display->counter.Tick();
+    return g_display->counter.rate;
 }

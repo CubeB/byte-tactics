@@ -28,7 +28,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall GetGroundHeight(Pos_00417bb0* pos);
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 
 static inline void WorldToScreen(Pos_00417bb0* pos, int* screen_x, int* screen_y)
 {
@@ -50,5 +50,5 @@ void __stdcall FUN_00417d30(void* surface, Point16 from, short dx, short dz, int
     int sx1, sy1, sx2, sy2;
     WorldToScreen(&pos1, &sx1, &sy1);
     WorldToScreen(&pos2, &sx2, &sy2);
-    FUN_004be950(surface, sx1, sy1, sx2, sy2, color & 0xff);
+    DrawLine(surface, sx1, sy1, sx2, sy2, color & 0xff);
 }

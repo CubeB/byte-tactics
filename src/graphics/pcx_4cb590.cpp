@@ -24,7 +24,7 @@ struct Object_004cb590 {
 };
 
 // FUNCTION: 0x4cb590
-void __stdcall FUN_004cb590(Object_004cb590* obj)
+void __stdcall MirrorObject(Object_004cb590* obj)
 {
     for (int i = 0; i < obj->vertexCount; i++) {
         obj->vertices[i].x = -obj->vertices[i].x;
@@ -33,7 +33,7 @@ void __stdcall FUN_004cb590(Object_004cb590* obj)
     obj->field_10 = -obj->field_10;
     obj->field_18 = -obj->field_18;
     if (obj->child)
-        FUN_004cb590(obj->child);
+        MirrorObject(obj->child);
     if (obj->sibling)
-        FUN_004cb590(obj->sibling);
+        MirrorObject(obj->sibling);
 }

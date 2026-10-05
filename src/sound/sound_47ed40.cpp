@@ -61,7 +61,7 @@ extern char DAT_00508a78[]; // "Error:  Sound system initialization failed."
 
 unsigned int __stdcall FUN_0049f5a0(char* key, int defaultValue);
 int FUN_0049f610(void);
-void __stdcall FUN_004b6290(char* text);
+void __stdcall FatalError(char* text);
 void* __cdecl operator new(size_t size);
 
 // The direct sound buffer's result goes into a local: comparing the call
@@ -85,7 +85,7 @@ void FUN_0047ed40(void)
             if (((Class_004cff20*)g_game->field_10)->FUN_004cff20())
                 DAT_0051e690 = 1;
             else
-                FUN_004b6290(DAT_00508a78);
+                FatalError(DAT_00508a78);
         }
     }
     ((Class_004ce260*)g_game->field_10)->FUN_004ce260();

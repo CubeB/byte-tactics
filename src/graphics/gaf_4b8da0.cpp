@@ -18,7 +18,7 @@ struct Class_004b8da0 {
 void* __cdecl FUN_004d83b0(unsigned int param_1, unsigned int param_2);
 
 // FUNCTION: 0x4b8da0
-Class_004b8da0* __stdcall FUN_004b8da0(unsigned int param_1, int width, int height)
+Class_004b8da0* __stdcall AllocFrame(unsigned int param_1, int width, int height)
 {
     Class_004b8da0* p = (Class_004b8da0*)FUN_004d83b0(param_1, height * width + 0x18);
     if (p == 0) {

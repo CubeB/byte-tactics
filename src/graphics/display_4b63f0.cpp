@@ -13,20 +13,20 @@ struct Timer_4b63f0 {
     int countdown;                     // +0xc
 };
 
-extern GameCtx_4b63f0* DAT_0051fbd0;
-extern Timer_4b63f0 DAT_0051fbd8[];    // 10 slots, then DAT_0051fc80 counts them
+extern GameCtx_4b63f0* g_display;
+extern Timer_4b63f0 DAT_0051fbd8[];    // 10 slots, then g_timerCount counts them
 extern int DAT_0051fbe0;               // the interval field of the first slot
-extern int DAT_0051fc80;
+extern int g_timerCount;
 extern unsigned int DAT_0051fc84;      // last tick count, in game ticks
 
 typedef void (__stdcall *TimerCb_4b63f0)(int);
 
 // FUNCTION: 0x4b63f0
-int __stdcall FUN_004b63f0(int interval, int id, TimerCb_4b63f0 callback)
+int __stdcall AddTimer(int interval, int id, TimerCb_4b63f0 callback)
 {
-    unsigned int now = (GetTickCount() * DAT_0051fbd0->rate) / 1000;
+    unsigned int now = (GetTickCount() * g_display->rate) / 1000;
     int diff = (int)now - DAT_0051fc84;
-    DAT_0051fc84 = (GetTickCount() * DAT_0051fbd0->rate) / 1000;
+    DAT_0051fc84 = (GetTickCount() * g_display->rate) / 1000;
 
     int* p = &DAT_0051fbe0;
     do {
@@ -38,7 +38,7 @@ int __stdcall FUN_004b63f0(int interval, int id, TimerCb_4b63f0 callback)
             }
         }
         p += 4;
-    } while ((int)p < (int)&DAT_0051fc80);
+    } while ((int)p < (int)&g_timerCount);
 
     int i = 0;
     int* q = &DAT_0051fbe0;
@@ -50,7 +50,7 @@ int __stdcall FUN_004b63f0(int interval, int id, TimerCb_4b63f0 callback)
             DAT_0051fbd8[i].id = id;
             DAT_0051fbd8[i].interval = interval;
             DAT_0051fbd8[i].countdown = interval;
-            DAT_0051fc80++;
+            g_timerCount++;
             return i;
         }
     }

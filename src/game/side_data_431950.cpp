@@ -28,7 +28,7 @@ struct Obj_00431950 {
     Class_004c46c0* table;              // +0x4
 };
 
-void __stdcall FUN_004b6290(char* message);
+void __stdcall FatalError(char* message);
 
 // FUNCTION: 0x431950
 void __stdcall FUN_00431950(Obj_00431950* obj, int* out, char* name, char* side)
@@ -37,7 +37,7 @@ void __stdcall FUN_00431950(Obj_00431950* obj, int* out, char* name, char* side)
     if (!((Class_004c3410*)obj)->FUN_004c3410(name)) {
         char buf[256];
         sprintf(buf, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", name, side);
-        FUN_004b6290(buf);
+        FatalError(buf);
         ((Class_004c3e30*)obj)->FUN_004c3e30(saved);
         return;
     }

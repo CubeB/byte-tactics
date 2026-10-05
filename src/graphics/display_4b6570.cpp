@@ -63,12 +63,12 @@ struct App_4b6570 {
 };
 #pragma pack(pop)
 
-extern App_4b6570* DAT_0051fbd0;
+extern App_4b6570* g_display;
 
 // FUNCTION: 0x4b6570
-int __stdcall FUN_004b6570()
+int __stdcall DrawFrameRate()
 {
-    FrameCounter_4b6570* c = &DAT_0051fbd0->counter;
+    FrameCounter_4b6570* c = &g_display->counter;
     unsigned int now = GetTickCount();
     c->accum += now - c->lastTick;
     c->lastTick = now;
@@ -82,19 +82,19 @@ int __stdcall FUN_004b6570()
         c->frames = 0;
     }
 
-    if (!DAT_0051fbd0->offscreenDC) {
+    if (!g_display->offscreenDC) {
         HDC dc;
         char buf[128];
-        if (DAT_0051fbd0->surface->GetDC(&dc) == 0) {
+        if (g_display->surface->GetDC(&dc) == 0) {
             SetBkMode(dc, TRANSPARENT);
-            HGDIOBJ oldFont = SelectObject(dc, DAT_0051fbd0->font);
-            int len = wsprintf(buf, "FRATE %d", DAT_0051fbd0->counter.rate);
+            HGDIOBJ oldFont = SelectObject(dc, g_display->font);
+            int len = wsprintf(buf, "FRATE %d", g_display->counter.rate);
             SetTextColor(dc, RGB(255, 255, 0));
             TextOut(dc, 0, 0, buf, len);
             SelectObject(dc, oldFont);
-            DAT_0051fbd0->surface->EndDraw(dc);
+            g_display->surface->EndDraw(dc);
         }
     }
 
-    return DAT_0051fbd0->counter.rate;
+    return g_display->counter.rate;
 }

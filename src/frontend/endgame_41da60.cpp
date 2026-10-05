@@ -41,7 +41,7 @@ struct Game {
 extern Game* g_game;
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-Display_0041da60* FUN_004b6220();
+Display_0041da60* GetDisplay();
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bbc40(char* path);
 void* __stdcall FUN_00429290(char* name, unsigned char* palette);
@@ -54,7 +54,7 @@ void FUN_0041da60()
     g_game->fadeTable = FUN_004d83b0("FadeTable", 0x400);
     g_game->desiredPalette = FUN_004d83b0("desiredPalette", 0x400);
     g_game->currentPalette = FUN_004d83b0("currentPalette", 0x400);
-    Display_0041da60* display = FUN_004b6220();
+    Display_0041da60* display = GetDisplay();
     g_game->field_3906f = display->field_614;
     display->field_614 = 1.0f;
     unsigned char* palette = (unsigned char*)FUN_004d83b0("Palette", 0x400);

@@ -19,12 +19,12 @@ struct Queue_004c1ab0 {
 };
 #pragma pack(pop)
 
-Queue_004c1ab0* FUN_004b6220(void);
+Queue_004c1ab0* GetDisplay(void);
 
 // FUNCTION: 0x4c1ab0
 int FUN_004c1ab0(void)
 {
-    Queue_004c1ab0* q = FUN_004b6220();
+    Queue_004c1ab0* q = GetDisplay();
     int v;
     if (q->head == q->tail) {
         v = 0;

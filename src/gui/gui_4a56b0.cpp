@@ -77,18 +77,18 @@ struct Rect_004a56b0 { int left, top, right, bottom; };
 
 extern LanguageRoot_004a56b0* DAT_0051fba4;
 
-void __stdcall FUN_004c1420(int id);
-int FUN_004c1440();
-int __stdcall FUN_004c1480(int font, char* text);
-int FUN_004c1450();
-int __stdcall FUN_004b7f30(unsigned short* glyphs, int c);
-void __stdcall FUN_004c13a0(int colour, int font);
-int FUN_004c13f0();
-void __stdcall FUN_004c14f0(void* surface, char* text, int x, int y, int maxw);
-int __stdcall FUN_004bf6f0(void* surface, Rect_004a56b0* rect, int colour);
-void __stdcall FUN_004bfe10(void* surface, Rect_004a56b0* rect);
-void __stdcall FUN_004bf4d0(void* surface, Rect_004a56b0* rect, int param);
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2,
+void __stdcall SetFont(int id);
+int GetFont();
+int __stdcall GetTextWidth(int font, char* text);
+int GetFontHeight();
+int __stdcall GetGafFrame(unsigned short* glyphs, int c);
+void __stdcall SetTextColors(int colour, int font);
+int GetTextKeyColor();
+void __stdcall DrawString(void* surface, char* text, int x, int y, int maxw);
+int __stdcall FillRectangle(void* surface, Rect_004a56b0* rect, int colour);
+void __stdcall GrayRectangle(void* surface, Rect_004a56b0* rect);
+void __stdcall FadeRectangle(void* surface, Rect_004a56b0* rect, int param);
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int colour);
 void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw,
                             int style);
@@ -101,11 +101,11 @@ static inline int Measure_004a56b0(char* text)
     if (text == 0)
         return 0;
     if (DAT_0051fba4->language == 0)
-        return FUN_004c1480(FUN_004c1440(), text);
+        return GetTextWidth(GetFont(), text);
     char* p = text;
     while (*p != 0) {
         char ch = *p;
-        Glyph_004a56b0* glyph = (Glyph_004a56b0*)FUN_004b7f30(
+        Glyph_004a56b0* glyph = (Glyph_004a56b0*)GetGafFrame(
             DAT_0051fba4->language->glyphs, (unsigned char)ch);
         if (glyph != 0)
             width += glyph->width;
@@ -117,8 +117,8 @@ static inline int Measure_004a56b0(char* text)
 static inline int LineHeight_004a56b0()
 {
     if (DAT_0051fba4->language == 0)
-        return FUN_004c1450();
-    return (int)((Glyph_004a56b0*)FUN_004b7f30(
+        return GetFontHeight();
+    return (int)((Glyph_004a56b0*)GetGafFrame(
         DAT_0051fba4->language->glyphs, 0x49))->height + 2;
 }
 
@@ -133,14 +133,14 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
     for (; i < entries[0].b6.count + 1; i++) {
         if (entries[i].type == 7) {
             if (t == entries[index].tab) {
-                FUN_004c1420(entries[i].language);
+                SetFont(entries[i].language);
                 break;
             }
             t++;
         }
     }
     if (i == entries[0].b6.count + 1) {
-        FUN_004c1420(DAT_0051fba4->current);
+        SetFont(DAT_0051fba4->current);
         i = -1;
     }
 
@@ -160,7 +160,7 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
     rect.bottom = entries[index].h + rect.top - 1;
 
     if (entries[index].image != 0)
-        FUN_004bf6f0(entries->surface, &rect, obj->colours[entries[index].image]);
+        FillRectangle(entries->surface, &rect, obj->colours[entries[index].image]);
     int nx = rect.left;
     Entry_004a56b0* entry = &entries[index];
 
@@ -174,11 +174,11 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
     }
 
     if (i != -1 && (entries[index].align & 8)) {
-        FUN_004c13a0(obj->colours[0], FUN_004c13f0());
-        FUN_004c14f0(entries->surface, entries[index].b6.text, nx + 1, rect.top + 3, -1);
+        SetTextColors(obj->colours[0], GetTextKeyColor());
+        DrawString(entries->surface, entries[index].b6.text, nx + 1, rect.top + 3, -1);
     }
 
-    FUN_004c13a0(entries[index].colours, FUN_004c13f0());
+    SetTextColors(entries[index].colours, GetTextKeyColor());
 
     if (i == -1) {
         int lh = LineHeight_004a56b0();
@@ -190,7 +190,7 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
             FUN_004a50e0(entries->surface, entries[index].b6.text, nx, rect.top,
                          rect.right - rect.left + 1, entries[index].colours);
     } else {
-        FUN_004c14f0(entries->surface, entries[index].b6.text, nx, rect.top, -1);
+        DrawString(entries->surface, entries[index].b6.text, nx, rect.top, -1);
     }
 
     if (entries[index].field_148 & 1) {
@@ -205,8 +205,8 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
         }
         rect2.right = entries2[index].w + rect2.left - 1;
         rect2.bottom = entries2[index].h + rect2.top - 1;
-        FUN_004bfe10(entries2->surface, &rect2);
-        FUN_004bf4d0(entries2->surface, &rect2, -0x14);
+        GrayRectangle(entries2->surface, &rect2);
+        FadeRectangle(entries2->surface, &rect2, -0x14);
     } else {
         unsigned char c = entries[index].field_147;
         if (c != 0) {
@@ -225,7 +225,7 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
                 x0 += Measure_004a56b0(pat);
                 int lh1 = LineHeight_004a56b0();
                 int lh2 = LineHeight_004a56b0();
-                FUN_004be950(obj->holder->entries->surface, x1, lh2 + y - 1, x0 - 1,
+                DrawLine(obj->holder->entries->surface, x1, lh2 + y - 1, x0 - 1,
                              lh1 + y - 1, obj->colours[2]);
             }
         }

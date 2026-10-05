@@ -15,10 +15,10 @@
 //   with the copy, MSVC compared next and loaded highIndex into ecx.
 
 struct Surface_4c8760 { unsigned short width, height; };
-void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
+void __stdcall DrawTexturedSpan(int, int*, Surface_4c8760*, Surface_4c8760*);
 
 // FUNCTION: 0x4c8760
-void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int* vertices, int* coords)
+void __stdcall DrawTexturedPolygon(Surface_4c8760* target, Surface_4c8760* texture, int* vertices, int* coords)
 {
     int i, defaults[8];
     int spans[800][10];
@@ -139,7 +139,7 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                         int* span=&spans[0][0];
                         for(int row=lowY;row<highY;row++) {
                             if(span[1]-span[0]>0)
-                                FUN_004c7a20(row,span,target,texture);
+                                DrawTexturedSpan(row,span,target,texture);
                             span+=10;
                         }
                     }

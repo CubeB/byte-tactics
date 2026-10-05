@@ -33,7 +33,7 @@ extern int DAT_00511dd0;               // contour spacing
 extern int DAT_00511dd4;               // contour offset
 extern unsigned char DAT_00501d18[];   // colour by height band
 
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 
 // Draws the contour lines that cross one triangle of the height map. Each
 // corner is a screen point and a height (8 fraction bits). The corners are
@@ -74,7 +74,7 @@ void __stdcall FUN_00417f60(void* surface, Point_00417f60 p1, int z1,
         do {
             int h13 = level - z1;
             int h23 = level - z2;
-            FUN_004be950(surface,
+            DrawLine(surface,
                          (p1.x * (dz13 - h13) + h13 * p3.x) / dz13,
                          (p1.y * (dz13 - h13) + h13 * p3.y) / dz13,
                          (p2.x * (dz23 - h23) + h23 * p3.x) / dz23,
@@ -89,7 +89,7 @@ void __stdcall FUN_00417f60(void* surface, Point_00417f60 p1, int z1,
         do {
             int h13 = level - z1;
             int h12 = level - z1;
-            FUN_004be950(surface,
+            DrawLine(surface,
                          (p1.x * (dz13 - h13) + h13 * p3.x) / dz13,
                          (p1.y * (dz13 - h13) + h13 * p3.y) / dz13,
                          (p1.x * (dz12 - h12) + h12 * p2.x) / dz12,

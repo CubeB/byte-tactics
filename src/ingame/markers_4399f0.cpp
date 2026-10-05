@@ -35,7 +35,7 @@ struct View_4399f0 {
 extern char* g_game;
 int __cdecl FUN_004b70ef(int angle, int distance);
 int __cdecl FUN_004b7123(int angle, int distance);
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 
 // Draws an ellipse (radius `height`, 0.89 of it vertically) of 16 segments
 // around an object's screen position, then copies the position to `out`.
@@ -72,7 +72,7 @@ void __stdcall FUN_004399f0(void* surface, View_4399f0* view, Obj_4399f0* obj,
     for (int angle = 0x1000; angle <= 0x10000; angle += 0x1000) {
         int nx = FUN_004b7123(angle, height) + xc;
         int ny = FUN_004b70ef(angle, ry) + yc;
-        FUN_004be950(surface, x1, y1, nx, ny, *(unsigned char*)(g_game + 0xdd7));
+        DrawLine(surface, x1, y1, nx, ny, *(unsigned char*)(g_game + 0xdd7));
         x1 = nx;
         y1 = ny;
     }

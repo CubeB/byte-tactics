@@ -20,7 +20,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004ba200(unsigned char* palette, int first, int count);
+void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 
 #define FADE_STEP(k)                                                        \
     if (current[k] > target[k]) {                                           \
@@ -36,7 +36,7 @@ void __stdcall FUN_0041dfc0(unsigned char* target, unsigned char* current, int s
 {
     memcpy(g_game->target, target, 0x400);
     memcpy(g_game->current, current, 0x400);
-    FUN_004ba200(current, 0, 0x100);
+    SetPaletteColors(current, 0, 0x100);
     g_game->done = 0;
     for (int i = 0; i < 0x100; i++) {
         FADE_STEP(i * 4)

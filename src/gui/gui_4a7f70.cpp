@@ -65,8 +65,8 @@ struct Obj_004a7f70 {
 };
 #pragma pack(pop)
 
-GafEntry_004b8d40* __stdcall FUN_004b8d40(Gaf_004b8d40* gaf, const char* name);
-Frame_004a7f70* __stdcall FUN_004b7f30(GafEntry_004b8d40* table, int index);
+GafEntry_004b8d40* __stdcall FindGafEntry(Gaf_004b8d40* gaf, const char* name);
+Frame_004a7f70* __stdcall GetGafFrame(GafEntry_004b8d40* table, int index);
 
 // FUNCTION: 0x4a7f70
 void __stdcall FUN_004a7f70(Button_004a7f70* button, Obj_004a7f70* obj)
@@ -81,36 +81,36 @@ void __stdcall FUN_004a7f70(Button_004a7f70* button, Obj_004a7f70* obj)
     obj->frame = 0;
     Gaf_004b8d40* gaf = holder->gaf;
     if (gaf)
-        entry = FUN_004b8d40(gaf, name);
+        entry = FindGafEntry(gaf, name);
     if (entry == 0) {
         if (button->gaf != 0) {
-            entry = FUN_004b8d40(button->gaf, name);
+            entry = FindGafEntry(button->gaf, name);
             if (entry == 0) {
                 if (obj->flags & 0x80) {
-                    entry = FUN_004b8d40(button->gaf, "CHECKBOX");
+                    entry = FindGafEntry(button->gaf, "CHECKBOX");
                 } else if (obj->stage != 0) {
                     int n = obj->stage < 4 ? obj->stage : 4;
                     sprintf(str, "stagebuttn%d", n);
-                    entry = FUN_004b8d40(button->gaf, str);
+                    entry = FindGafEntry(button->gaf, str);
                     if (obj->stage == 1) {
                         obj->stage = 2;
                         obj->flags |= 0x4000;
                     }
                 } else {
                     strcpy(str, "BUTTONS0");
-                    entry = FUN_004b8d40(button->gaf, str);
+                    entry = FindGafEntry(button->gaf, str);
                 }
                 if (entry != 0) {
                     best = 1000;
                     for (int i = 0; i < entry->count; i++) {
-                        Frame_004a7f70* f = FUN_004b7f30(entry, i);
+                        Frame_004a7f70* f = GetGafFrame(entry, i);
                         if (f != 0) {
                             f->h = 0;
                             f->w = 0;
                         }
                     }
                     for (int j = 0; j < entry->count; j += 4) {
-                        Frame_004a7f70* f = FUN_004b7f30(entry, j);
+                        Frame_004a7f70* f = GetGafFrame(entry, j);
                         int d = abs(obj->y - f->y) + abs(obj->x - f->x);
                         if (d < best) {
                             obj->frame = (unsigned char)j;
@@ -123,7 +123,7 @@ void __stdcall FUN_004a7f70(Button_004a7f70* button, Obj_004a7f70* obj)
     }
     obj->entry = entry;
     if (entry != 0) {
-        Frame_004a7f70* f = FUN_004b7f30(entry, obj->frame);
+        Frame_004a7f70* f = GetGafFrame(entry, obj->frame);
         if (f != 0) {
             obj->x = f->x;
             obj->y = f->y;

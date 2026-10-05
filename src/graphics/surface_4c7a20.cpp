@@ -23,7 +23,7 @@ void __cdecl FUN_004cd91e(unsigned char* dest, unsigned char* src, int width, in
 void __cdecl FUN_004cd962(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
 
 // FUNCTION: 0x4c7a20
-void __stdcall FUN_004c7a20(int row, int* span, Surf_4c7a20* surf, Info_4c7a20* info)
+void __stdcall DrawTexturedSpan(int row, int* span, Surf_4c7a20* surf, Info_4c7a20* info)
 {
     unsigned char* mask = surf->mask;
     unsigned char* dest = surf->pixels;

@@ -141,7 +141,7 @@ void __stdcall FUN_0047ddc0(Item_00488310* type, Pos_00488310* pos);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short id,
                                       Pos_00488310 pos, int a, int b, int c);
 void __stdcall RunInitialMission(Unit* unit, char* text, Table_00488310* table);
-void __stdcall FUN_004b6290(char* message);
+void __stdcall FatalError(char* message);
 
 // FUNCTION: 0x488310
 void __cdecl CreateMissionUnits()
@@ -163,7 +163,7 @@ void __cdecl CreateMissionUnits()
             || (p->type != 1 && p->type != 2 && p->type != 3)
             || p->f146 == 10) {
             sprintf(buf, "Player number %d invalid for unit %s", e->player, e->name);
-            FUN_004b6290(buf);
+            FatalError(buf);
         }
         FUN_0047ddc0(item, &e->pos);
         Unit* u = CreateUnit((unsigned char)(e->player - 1), item->id, e->pos, 1, 1, 0);

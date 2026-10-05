@@ -36,12 +36,12 @@ struct Model_00458310 {
 
 class Class_00458310 {
 public:
-    void FUN_00458310(int* minX, int* maxX, int* minY, int* maxY, Model_00458310* model,
+    void AddModelBounds(int* minX, int* maxX, int* minY, int* maxY, Model_00458310* model,
                       int posX, int posY, int posZ);
 };
 
 // FUNCTION: 0x458310
-void Class_00458310::FUN_00458310(int* minX, int* maxX, int* minY, int* maxY,
+void Class_00458310::AddModelBounds(int* minX, int* maxX, int* minY, int* maxY,
                                   Model_00458310* model, int posX, int posY, int posZ)
 {
     int hiY = 0;

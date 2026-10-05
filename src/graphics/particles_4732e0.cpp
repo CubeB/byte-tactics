@@ -5,19 +5,19 @@
 // FLAGS: /Gi
 #include <vector>
 
-class Class_00471cc0 {
+class ParticleSystem {
 public:
     int field_4;
 };
 
-typedef std::vector<Class_00471cc0*> Vec_004732e0;
+typedef std::vector<ParticleSystem*> Vec_004732e0;
 typedef void (Vec_004732e0::*InsertFn_004732e0)(
-    Vec_004732e0::iterator, Vec_004732e0::size_type, Class_00471cc0* const&);
+    Vec_004732e0::iterator, Vec_004732e0::size_type, ParticleSystem* const&);
 
 void __stdcall Assign_004732e0(Vec_004732e0* dest, const Vec_004732e0* src)
 {
     *dest = *src;
 }
 
-// FUNCTION: 0x4732e0 ?insert@?$vector@PAVClass_00471cc0@@V?$allocator@PAVClass_00471cc0@@@std@@@std@@QAEXPAPAVClass_00471cc0@@IABQAV3@@Z
+// FUNCTION: 0x4732e0 ?insert@?$vector@PAVParticleSystem@@V?$allocator@PAVParticleSystem@@@std@@@std@@QAEXPAPAVParticleSystem@@IABQAV3@@Z
 InsertFn_004732e0 g_insert_004732e0 = &Vec_004732e0::insert;

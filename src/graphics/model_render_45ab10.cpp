@@ -12,13 +12,13 @@
 //    MSVC gives the unit ebp and keeps no zero register; with the helper
 //    taking both positions by pointer, the registers are right but the
 //    position copy loses its `lea edx, [ecx+0x18]`.
-//  - FUN_0045b030 is written recursively (the sibling is a tail call). /Ob2
+//  - RestorePieceVertices is written recursively (the sibling is a tail call). /Ob2
 //    inlines one level of it here, which is why the original calls it for the
 //    child and again for the sibling (`xor edx, edx ; mov ecx, ebx ; call`)
 //    instead of looping. Out of line, MSVC turns the tail call into the loop
 //    at 0x45b030, byte for byte (checked against 0x45b030 in scratch). Once
 //    the helper above is in place, that level written out by hand (calling
-//    a declared FUN_0045b030) matches too; the loop form never can.
+//    a declared RestorePieceVertices) matches too; the loop form never can.
 //  - The position is one 6-byte struct copy.
 #include <stdlib.h>
 #include <string.h>
@@ -82,10 +82,10 @@ struct Unit {
 
 // Restores the vertices of every modified piece in the tree (or of every
 // piece, when `force` is set) from the object and clears its offset. Defined
-// here so that /Ob2 inlines its first level into FUN_0045ab10, as the
+// here so that /Ob2 inlines its first level into UpdateObjectState, as the
 // original does; src/graphics/model_render_45b030.cpp spells the same function as the
 // loop MSVC makes of it.
-int __fastcall FUN_0045b030(Entry_0045ab10* piece, int force)
+int __fastcall RestorePieceVertices(Entry_0045ab10* piece, int force)
 {
     int result = force;
     if (piece->unknown_26 == 0 || force) {
@@ -97,13 +97,13 @@ int __fastcall FUN_0045b030(Entry_0045ab10* piece, int force)
         result = 1;
     }
     if (piece->child)
-        result = FUN_0045b030(piece->child, result);
+        result = RestorePieceVertices(piece->child, result);
     if (piece->sibling)
-        return FUN_0045b030(piece->sibling, force);
+        return RestorePieceVertices(piece->sibling, force);
     return result;
 }
 
-void __fastcall FUN_0045b0a0(State_0045ab10* state, Entry_0045ab10* entry, int flag);
+void __fastcall PoseModel(State_0045ab10* state, Entry_0045ab10* entry, int flag);
 
 // Nonzero when the state's position is 8 or more away from `pos` on any axis.
 static inline int FarFrom(State_0045ab10* state, const Vec3s_0045ab10* pos)
@@ -114,7 +114,7 @@ static inline int FarFrom(State_0045ab10* state, const Vec3s_0045ab10* pos)
 }
 
 // FUNCTION: 0x45ab10
-void __stdcall FUN_0045ab10(Unit* unit)
+void __stdcall UpdateObjectState(Unit* unit)
 {
     State_0045ab10* state = unit->state;
     if (FarFrom(state, &unit->pos)) {
@@ -126,8 +126,8 @@ void __stdcall FUN_0045ab10(Unit* unit)
         }
     }
     if (unit->state->field_8 != 0) {
-        FUN_0045b030(unit->state->root, 0);
-        FUN_0045b0a0(unit->state, unit->state->root, 0);
+        RestorePieceVertices(unit->state->root, 0);
+        PoseModel(unit->state, unit->state->root, 0);
         unit->state->field_8 = 0;
     }
 }

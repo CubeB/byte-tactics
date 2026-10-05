@@ -9,7 +9,7 @@ struct Rect_004b7e60 {
 };
 
 // FUNCTION: 0x4b7e60
-void __stdcall FUN_004b7e60(Rect_004b7e60* other, Rect_004b7e60* rect, Rect_004b7e60* bounds)
+void __stdcall ClipRects(Rect_004b7e60* other, Rect_004b7e60* rect, Rect_004b7e60* bounds)
 {
     int d;
     d = rect->left - bounds->left;

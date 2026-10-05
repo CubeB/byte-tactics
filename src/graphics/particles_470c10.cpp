@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Grows the arena Class_00470ae0 (vtable 0x4fd580, see 0x470a90.cpp and
+// Grows the arena ObjectPool (vtable 0x4fd580, see 0x470a90.cpp and
 // 0x470ae0.cpp) to param_1 slots of param_2 bytes. The table of slot
 // pointers is reallocated with FUN_004d8580, the raw memory for the new
 // slots comes from FUN_004d8450, and the base of that block is pushed on
@@ -115,11 +115,11 @@ public:
     int field_1c;                              // +0x1c, the slot count
     int field_20;                              // +0x20, slots handed out
 
-    int FUN_00470c10(int param_1, int param_2);
+    int Grow(int param_1, int param_2);
 };
 
 // FUNCTION: 0x470c10
-int Class_00470c10::FUN_00470c10(int param_1, int param_2)
+int Class_00470c10::Grow(int param_1, int param_2)
 {
     int result = 0;
     if (param_1 > field_1c) {

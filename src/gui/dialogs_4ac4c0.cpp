@@ -39,7 +39,7 @@
 // digit), and a line is broken at a space, newline or '-' when the measured
 // line would exceed `width` pixels. `index` selects the current font entry
 // (FUN_004a1810) when it is not -1; measurements go through the same
-// FUN_004a5030 / FUN_004c1440+FUN_004c1480 pair the sibling text fitter
+// FUN_004a5030 / GetFont+GetTextWidth pair the sibling text fitter
 // 0x4ac610 uses (likely via the same kind of inlined Measure helper).
 // The preheader size estimate `len + 3 * (len / (width / w)) + 2` allocates
 // room for the CRLF pairs; the wrap-back loop overwrites the break character
@@ -59,8 +59,8 @@ struct Menu_004ac4c0 {
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 int __stdcall FUN_004a1810(Gadget_004ac4c0* gadgets, int index);
 int __stdcall FUN_004a5030(unsigned char* text);
-int FUN_004c1440();
-int __stdcall FUN_004c1480(int font, unsigned char* text);
+int GetFont();
+int __stdcall GetTextWidth(int font, unsigned char* text);
 
 // FUNCTION: 0x4ac4c0
 char* __stdcall FUN_004ac4c0(Menu_004ac4c0* menu, char* text, int width, int index)
@@ -74,7 +74,7 @@ char* __stdcall FUN_004ac4c0(Menu_004ac4c0* menu, char* text, int width, int ind
     if (index == -1)
         w = FUN_004a5030((unsigned char*)"d");
     else
-        w = FUN_004c1480(FUN_004c1440(), (unsigned char*)"d");
+        w = GetTextWidth(GetFont(), (unsigned char*)"d");
     int size = len + 3 * (len / (width / w)) + 2;
     char* buf = (char*)FUN_004d83b0("WordWrap", size);
     memset(buf, 0, size);
@@ -95,7 +95,7 @@ char* __stdcall FUN_004ac4c0(Menu_004ac4c0* menu, char* text, int width, int ind
             if (index == -1)
                 m = FUN_004a5030((unsigned char*)p);
             else
-                m = FUN_004c1480(FUN_004c1440(), (unsigned char*)p);
+                m = GetTextWidth(GetFont(), (unsigned char*)p);
             if (width <= m) {
                 buf[i] = 0;
                 wrapped = 1;

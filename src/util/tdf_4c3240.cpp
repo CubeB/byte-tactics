@@ -15,7 +15,7 @@
 class Class_004c9390 {
 public:
     char* data;
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 class Class_004c91a0 {
@@ -23,7 +23,7 @@ public:
     char* p;
     Class_004c91a0();
     Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
 struct Elem_004c5bc0 {

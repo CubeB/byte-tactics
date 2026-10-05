@@ -35,8 +35,8 @@ struct Rect_004a1ab0 {
     int bottom;                        // +0xc
 };
 
-void __stdcall FUN_004bfe10(Surface_004a1ab0* dst, Rect_004a1ab0* rect);
-void __stdcall FUN_004bf4d0(Surface_004a1ab0* dst, Rect_004a1ab0* rect, int level);
+void __stdcall GrayRectangle(Surface_004a1ab0* dst, Rect_004a1ab0* rect);
+void __stdcall FadeRectangle(Surface_004a1ab0* dst, Rect_004a1ab0* rect, int level);
 
 // FUNCTION: 0x4a1ab0
 void __stdcall FUN_004a1ab0(Class_004a1ab0* obj, int index)
@@ -53,6 +53,6 @@ void __stdcall FUN_004a1ab0(Class_004a1ab0* obj, int index)
     }
     rect.right = e->width + rect.left - 1;
     rect.bottom = e->height + rect.top - 1;
-    FUN_004bfe10(entries->surface, &rect);
-    FUN_004bf4d0(entries->surface, &rect, -0x14);
+    GrayRectangle(entries->surface, &rect);
+    FadeRectangle(entries->surface, &rect, -0x14);
 }

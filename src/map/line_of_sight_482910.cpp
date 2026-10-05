@@ -70,7 +70,7 @@ extern Game* g_game;
 void __stdcall FUN_004825b0(Eye_482910* e);
 void __stdcall FUN_00482270(Eye_482910* e);
 void __stdcall FUN_00481930(Eye_482910* e);
-Entry_482910* __stdcall FUN_004b7f30(unsigned short* table, int index);
+Entry_482910* __stdcall GetGafFrame(unsigned short* table, int index);
 
 // FUNCTION: 0x482910
 void __stdcall FUN_00482910(Vec3_482910* src, int a, int b, int c)
@@ -101,7 +101,7 @@ void __stdcall FUN_00482910(Vec3_482910* src, int a, int b, int c)
                 }
                 int cell_x = e->pos.x / 0x200000;
                 int cell_y = e->pos.z / 0x200000 - ((short*)&e->pos.y)[1] / 64;
-                Entry_482910* ce = FUN_004b7f30((unsigned short*)g_game->field_1485b, lod);
+                Entry_482910* ce = GetGafFrame((unsigned short*)g_game->field_1485b, lod);
                 cell_x -= ce->field_4;
                 cell_y -= ce->field_6;
                 e->screen->x = (short)cell_x;

@@ -86,7 +86,7 @@ extern Game* g_game;
 
 Cell_00423550* __stdcall FUN_00481550(int x, int y);
 void __stdcall FUN_004232f0(int index, int* head);
-void __stdcall FUN_004b8b30(AnimRef_00423550* ref, AnimSrc_00423550* src, int index);
+void __stdcall InitGafSequence(AnimRef_00423550* ref, AnimSrc_00423550* src, int index);
 void __stdcall FUN_00423710(int x, int y, int flag);
 
 static inline int AllocSpot()
@@ -133,9 +133,9 @@ void __stdcall FUN_00423550(int x, int z, int flag)
         s->bit4 = flag != 0;
         cell->spot = i;
         cell->flags |= 1;
-        FUN_004b8b30(&s->anim, pair.anim, 0);
+        InitGafSequence(&s->anim, pair.anim, 0);
         if (pair.shadow != 0) {
-            FUN_004b8b30(&s->shadow, pair.shadow, 0);
+            InitGafSequence(&s->shadow, pair.shadow, 0);
             s->hasShadow = 1;
         } else {
             s->hasShadow = 0;

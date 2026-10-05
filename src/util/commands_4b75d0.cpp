@@ -4,13 +4,13 @@
 // same shape as 0x434a30/0x434a60 with a 12-byte element.
 //
 // The element's destructor releases the reference-counted string at +0
-// through FUN_004c9390.
+// through ReleaseRef.
 #include <vector>
 
 class Class_004c9390 {
 public:
     char* data;                        // +0x0
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 struct Elem_004b75d0 {
@@ -18,7 +18,7 @@ struct Elem_004b75d0 {
     int value1;                        // +0x4
     int value2;                        // +0x8
 
-    ~Elem_004b75d0() { name.FUN_004c9390(); }
+    ~Elem_004b75d0() { name.ReleaseRef(); }
 };
 
 // FUNCTION: 0x4b75d0 _$E3

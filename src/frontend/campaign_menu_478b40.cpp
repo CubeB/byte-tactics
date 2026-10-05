@@ -87,11 +87,11 @@ extern Anim_00478b40 DAT_0051e640;
 extern unsigned int DAT_0051e67c;
 extern unsigned int DAT_0051e680;
 
-unsigned int __cdecl FUN_004b6340();
-int __stdcall FUN_004b8b90(Anim_00478b40* anim);
-int __stdcall FUN_004b7f30(void* gaf, int frame);
-void __stdcall FUN_004b7f90(void* surface, void* frame, int x, int y);
-void __stdcall FUN_004bf6f0(void* surface, Rect_00478b40* rect, int colour);
+unsigned int __cdecl GetTicks();
+int __stdcall StepGafSequence(Anim_00478b40* anim);
+int __stdcall GetGafFrame(void* gaf, int frame);
+void __stdcall DrawFrame(void* surface, void* frame, int x, int y);
+void __stdcall FillRectangle(void* surface, Rect_00478b40* rect, int colour);
 void __stdcall FUN_0049fa90(Window_00478b40* window);
 void __stdcall FUN_0049fad0(Window_00478b40* window);
 int __stdcall FUN_004a0f60(Window_00478b40* window, char* name);
@@ -122,11 +122,11 @@ void __stdcall FUN_00478b40(Window_00478b40* arg1, Item_00478b40* arg2)
             rect.y1 = y1;
             rect.y2 = y2;
 
-            if (FUN_004b6340() != DAT_0051e67c) {
-                FUN_004b8b90(&DAT_0051e640);
+            if (GetTicks() != DAT_0051e67c) {
+                StepGafSequence(&DAT_0051e640);
                 arg2->frame = DAT_0051e640.index;
             }
-            Frame_00478b40* frame = (Frame_00478b40*)FUN_004b7f30(arg2->gaf, arg2->frame);
+            Frame_00478b40* frame = (Frame_00478b40*)GetGafFrame(arg2->gaf, arg2->frame);
             if (frame == 0) {
                 return;
             }
@@ -136,8 +136,8 @@ void __stdcall FUN_00478b40(Window_00478b40* arg1, Item_00478b40* arg2)
             int py = arg2->y + arg2->h / 2 - frame->height / 2;
             unsigned char colour =
                 ((unsigned char*)arg2->colours)[(int)arg1 + 0x8b2];
-            FUN_004bf6f0(surface, &rect, colour);
-            FUN_004b7f90(surface, frame, px, py);
+            FillRectangle(surface, &rect, colour);
+            DrawFrame(surface, frame, px, py);
         } else {
             FUN_0049fa90(arg1);
         }

@@ -3,7 +3,7 @@
 extern int DAT_0051fdb0;
 
 // FUNCTION: 0x4b9f50
-char* __stdcall FUN_004b9f50(char* out, int count, unsigned char a, unsigned char b)
+char* __stdcall EmitRepeatRun(char* out, int count, unsigned char a, unsigned char b)
 {
     if (a == b) {
         do {

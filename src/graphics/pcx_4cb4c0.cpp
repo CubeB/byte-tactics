@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // Relocates a tree of nodes loaded from a file: adds `delta` to each
 // (non-null) stored pointer of the node, its element array and, recursively,
-// its sibling and child nodes, then hands the node to FUN_004cb370.
+// its sibling and child nodes, then hands the node to SortPrimitives.
 // Any one of the common headers is needed for the `lea` on ptr_20 (with none,
 // MSVC emits `add`; tools/headers.py).
 #include <windows.h>
@@ -26,12 +26,12 @@ struct Node_004cb4c0 {
     Node_004cb4c0* child;              // +0x30
 };
 
-void __stdcall FUN_004cb370(Node_004cb4c0* node);
-void __stdcall FUN_004cb4c0(int delta, Node_004cb4c0* node);
+void __stdcall SortPrimitives(Node_004cb4c0* node);
+void __stdcall RelocateObject(int delta, Node_004cb4c0* node);
 
 // The loop only matches with a pointer walking the element array.
 // FUNCTION: 0x4cb4c0
-void __stdcall FUN_004cb4c0(int delta, Node_004cb4c0* node)
+void __stdcall RelocateObject(int delta, Node_004cb4c0* node)
 {
     if (node->ptr_1c)
         node->ptr_1c += delta;
@@ -41,11 +41,11 @@ void __stdcall FUN_004cb4c0(int delta, Node_004cb4c0* node)
     node->elems = (Elem_004cb4c0*)((char*)node->elems + delta);
     if (node->next) {
         node->next = (Node_004cb4c0*)((char*)node->next + delta);
-        FUN_004cb4c0(delta, node->next);
+        RelocateObject(delta, node->next);
     }
     if (node->child) {
         node->child = (Node_004cb4c0*)((char*)node->child + delta);
-        FUN_004cb4c0(delta, node->child);
+        RelocateObject(delta, node->child);
     }
     Elem_004cb4c0* e = node->elems;
     for (int i = 0; i < node->count; i++, e++) {
@@ -55,5 +55,5 @@ void __stdcall FUN_004cb4c0(int delta, Node_004cb4c0* node)
         if (e->ptr_10)
             e->ptr_10 += delta;
     }
-    FUN_004cb370(node);
+    SortPrimitives(node);
 }

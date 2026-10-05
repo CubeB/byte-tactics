@@ -17,7 +17,7 @@ struct Class_004b52e0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4b52e0
-void __stdcall FUN_004b52e0(Class_004b52e0* p)
+void __stdcall InitDisplayDefaults(Class_004b52e0* p)
 {
     p->flags = 0;
     p->width = 640;

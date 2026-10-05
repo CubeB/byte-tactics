@@ -25,7 +25,7 @@ struct Ref_004b8b90 {
 };
 
 // FUNCTION: 0x4b8b90
-int __stdcall FUN_004b8b90(Ref_004b8b90* ref)
+int __stdcall StepGafSequence(Ref_004b8b90* ref)
 {
     Src_004b8b90* src = ref->src;
     if (src) {

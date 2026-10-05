@@ -179,9 +179,9 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x506578,DAT_00506578,.data,8,gap,string,char[],1,0,1,one type,1,,s_TALK_00506578,,,54414c4b00000000
 0x50658c,DAT_0050658c,.data,56,gap,string,char[],1,0,1,one type,1,,s_has_modified_his_executable__Gam_0050658c,,,686173206d6f646966696564206869732065786563757461626c652e202047616d6520696e746567726974792062726561636865642e0000
 0x5065c4,DAT_005065c4,.data,28,gap,string,char[],1,0,1,one type,1,,s_Player__s_has_disconnected_005065c4,,,506c617965722025732068617320646973636f6e6e65637465640000
-0x5065f8,DAT_005065f8,.data,4,type,float,float,2,0,1,one type,2,,FLOAT_005065f8,,,cdcc4cbf
-0x5065fc,DAT_005065fc,.data,4,type,float,float,2,0,1,one type,2,,FLOAT_005065fc,,,0000803f
-0x506600,DAT_00506600,.data,4,type,float,float,2,0,1,one type,2,,_DAT_00506600,,,0000803e
+0x5065f8,g_lightX,.data,4,type,float,float,2,0,1,one type,2,,FLOAT_005065f8,,,cdcc4cbf
+0x5065fc,g_lightY,.data,4,type,float,float,2,0,1,one type,2,,FLOAT_005065fc,,,0000803f
+0x506600,g_lightZ,.data,4,type,float,float,2,0,1,one type,2,,_DAT_00506600,,,0000803e
 0x5066f8,DAT_005066f8,.data,4,type,data,OptionChoice*,1,0,1,one type,1,,,1,src/data/unused.cpp,58685000
 0x506718,DAT_00506718,.data,4,type,data,OptionChoice*,1,0,1,one type,1,,,1,src/data/unused.cpp,30685000
 0x506738,DAT_00506738,.data,4,type,data,OptionChoice*,1,0,1,one type,1,,,1,src/data/unused.cpp,18685000
@@ -290,8 +290,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50a56c,DAT_0050a56c,.data,16,gap,string,char[],1,0,1,one type,1,,,,,5061636b616765204461746100000000
 0x50a57c,DAT_0050a57c,.data,4,gap,string,char[],1,0,1,one type,1,,s____0050a57c,,,5c2a0000
 0x50a5c0,DAT_0050a5c0,.data,16,gap,string,char[],1,0,1,one type,1,,,,,4841504946494c452061727261790000
-0x50a778,DAT_0050a778,.data,4,type,data,int,5,0,1,one type,5,,INT_0050a778,,,01000000
-0x50a77c,DAT_0050a77c,.data,4,type,data,void*,5,0,1,one type,5,,PTR_0050a77c,,,00000000
+0x50a778,g_emptyStringRefs,.data,4,type,data,int,5,0,1,one type,5,,INT_0050a778,,,01000000
+0x50a77c,g_emptyString,.data,4,type,data,void*,5,0,1,one type,5,,PTR_0050a77c,,,00000000
 0x50a780,g_guaranteePackets,.data,4,type,data,int,4,0,1,one type,4,,INT_0050a780,,,01000000
 0x50a788,DAT_0050a788,.data,16,type,data,const _GUID**,1,1,2,conflicting: array or pointer,2,0x10,PTR_DAT_0050a788,4,src/data/guids.cpp,c8cf4f00d8cf4f00e8cf4f00f8cf4f00
 0x50b540,DAT_0050b540,.data,4,type,data,int,8,0,1,one type,8,,INT_0050b540,,,ffffffff
@@ -761,13 +761,13 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51fbb8,DAT_0051fbb8,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051fbb8,,,
 0x51fbbc,std::HH::HU?$pair::?$_Tree::_Nil,.bss,4,definition,template,"std::_Tree<int, std::pair<int, int>, std::map<int, int, std::less<int>, std::allocator<int> >::_Kfn, std::less<int>, std::allocator<int> >::_Node*",8,8,9,conflicting: struct names only,16,,DAT_0051fbbc,,src/util/int_map_4b26f0.cpp,
 0x51fbc0,DAT_0051fbc0$S425,.bss,16,definition,data,"std::map<int, int, std::less<int>, std::allocator<int> >",2,2,3,conflicting: shape,4,0xc,DAT_0051fbc0,,src/util/int_map_4b2290.cpp,
-0x51fbd0,DAT_0051fbd0,.bss,4,type,data,void*,4,18,18,conflicting: shape,22,,DAT_0051fbd0,,,
+0x51fbd0,g_display,.bss,4,type,data,void*,4,18,18,conflicting: shape,22,,DAT_0051fbd0,,,
 0x51fbd4,DAT_0051fbd4,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51fbd8,DAT_0051fbd8,.bss,172,parts,data,Timer_4b63f0[],1,0,1,one type,1,0xc,Timer_4b63f0_ARRAY_0051fbd8,,,
 0x51fbe0,DAT_0051fbe0,.bss,164,gap>type,data,int,2,3,4,conflicting: shape,5,0xa0,,,in DAT_0051fbd8+0x8,
-0x51fc78,DAT_0051fc78,.bss,4,type,data,void (__cdecl*)(int),2,0,1,one type,2,,DAT_0051fc78,,in DAT_0051fbd8+0xa0,
-0x51fc7c,DAT_0051fc7c,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051fc7c,,in DAT_0051fbd8+0xa4,
-0x51fc80,DAT_0051fc80,.bss,4,type,data,int,5,0,1,one type,5,,INT_0051fc80,,in DAT_0051fbd8+0xa8,
+0x51fc78,g_closeHandler,.bss,4,type,data,void (__cdecl*)(int),2,0,1,one type,2,,DAT_0051fc78,,in DAT_0051fbd8+0xa0,
+0x51fc7c,g_closeHandlerArg,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051fc7c,,in DAT_0051fbd8+0xa4,
+0x51fc80,g_timerCount,.bss,4,type,data,int,5,0,1,one type,5,,INT_0051fc80,,in DAT_0051fbd8+0xa8,
 0x51fc84,DAT_0051fc84,.bss,4,type,data,unsigned int,4,0,1,one type,4,,UINT_0051fc84,,,
 0x51fc88,DAT_0051fc88,.bss,4,type,data,unsigned int,2,0,1,one type,2,,UINT_0051fc88,,,
 0x51fc8c,DAT_0051fc8c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
@@ -779,8 +779,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51fdb8,DAT_0051fdb8,.bss,4,type,data,Class_004c5840*,2,1,2,conflicting: struct names only,3,,DAT_0051fdb8,,,
 0x51fdbc,DAT_0051fdbc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51fdc0,DAT_0051fdc0,.bss,304,parts,data,char[256],2,0,1,one type,2,,s__0051fdc0,,,
-0x51fe00,DAT_0051fe00,.bss,4,type>gap,data,int,14,0,1,one type,14,,,,in DAT_0051fdc0+0x40,
-0x51fe08,DAT_0051fe08,.bss,56,gap,data,LockEntry_004c5e70[],1,2,3,conflicting: struct names only,3,0x4,,,in DAT_0051fdc0+0x48,
+0x51fe00,g_screenLockCount,.bss,4,type>gap,data,int,14,0,1,one type,14,,,,in DAT_0051fdc0+0x40,
+0x51fe08,g_screenLocks,.bss,56,gap,data,LockEntry_004c5e70[],1,2,3,conflicting: struct names only,3,0x4,,,in DAT_0051fdc0+0x48,
 0x51fe40,DAT_0051fe40,.bss,4,type,data,int,1,0,1,one type,1,,,,in DAT_0051fdc0+0x80,
 0x51fe48,DAT_0051fe48,.bss,80,gap,data,int[],2,0,1,one type,2,,,,in DAT_0051fdc0+0x88,
 0x51fe98,DAT_0051fe98,.bss,4,type,data,int,1,0,1,one type,1,,,,in DAT_0051fdc0+0xd8,

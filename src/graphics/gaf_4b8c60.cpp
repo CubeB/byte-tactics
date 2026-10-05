@@ -13,7 +13,7 @@ struct Blk {
 };
 
 // FUNCTION: 0x4b8c60
-void* __stdcall FUN_004b8c60(char* name)
+void* __stdcall LoadGaf(char* name)
 {
     int* base = (int*)FUN_004bbe50(name, 0);
     if (base == 0)

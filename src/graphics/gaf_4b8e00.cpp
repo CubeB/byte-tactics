@@ -17,7 +17,7 @@ struct Bitmap_004b8e00 {
 void* __cdecl FUN_004d83b0(unsigned int param_1, unsigned int param_2);
 
 // FUNCTION: 0x4b8e00
-Bitmap_004b8e00* __stdcall FUN_004b8e00(unsigned int heap, int width, int height)
+Bitmap_004b8e00* __stdcall AllocDepthFrame(unsigned int heap, int width, int height)
 {
     int size = height * width;
     Bitmap_004b8e00* b = (Bitmap_004b8e00*)FUN_004d83b0(heap, size * 2 + sizeof(Bitmap_004b8e00));

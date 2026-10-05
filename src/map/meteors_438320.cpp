@@ -2,7 +2,7 @@
 #include <string.h>
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-void __stdcall FUN_004b6290(char* text);
+void __stdcall FatalError(char* text);
 
 extern char DAT_0050310c[];
 extern char DAT_005119b8[];
@@ -68,6 +68,6 @@ void Class_00438320::FUN_00438320()
             if (radius != 0 && density != 0.0f && duration != 0.0f && intervalTime != 0.0f)
                 return;
         }
-        FUN_004b6290("Hey, hoser!  The default meteor shower data was bogus!");
+        FatalError("Hey, hoser!  The default meteor shower data was bogus!");
     }
 }

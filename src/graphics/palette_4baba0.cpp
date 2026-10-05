@@ -14,12 +14,12 @@ struct Obj_004baba0 {
 };
 #pragma pack(pop)
 
-extern Obj_004baba0* FUN_004b6220(void);
+extern Obj_004baba0* GetDisplay(void);
 
 // FUNCTION: 0x4baba0
-void __stdcall FUN_004baba0(unsigned int* param_1)
+void __stdcall SetBlueTable(unsigned int* param_1)
 {
-    Obj_004baba0* obj = FUN_004b6220();
+    Obj_004baba0* obj = GetDisplay();
     if (obj->flag9) {
         memcpy(obj->buffer, param_1, 0x40 * 4);
     }

@@ -178,7 +178,7 @@ void __stdcall FUN_004a1080(void* obj, char* name, int value);
 void __stdcall FUN_0047f1a0(char* name, int value);
 void __stdcall FUN_004ab0a0(void* obj);
 void __stdcall FUN_004a9660(void* obj);
-void __stdcall FUN_004ba590(float value);
+void __stdcall SetBrightness(float value);
 void FUN_0045c3f0();
 void FUN_0045d130();
 void FUN_0045d7c0();
@@ -186,7 +186,7 @@ void FUN_0045d7c0();
 // 0x45bcc0 (matched in its own file).
 void FUN_0045bcc0()
 {
-    FUN_004ba590(0.5 - g_game->field_37f08 * -0.041666668f);
+    SetBrightness(0.5 - g_game->field_37f08 * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
     ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
 }

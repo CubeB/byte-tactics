@@ -70,7 +70,7 @@ void __stdcall FUN_00438590(Unit*, Order*, short);
 int __stdcall FUN_00438700(Unit*, Order*, int);
 int __stdcall FUN_0041ba60(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
-void __stdcall FUN_004720d0(Vec3*, Vec3*, int);
+void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
 static inline Point WorldToCell(Vec3 v, Point origin)
 {
     Point c;
@@ -164,7 +164,7 @@ int __stdcall FUN_00413d80(Unit* unit,Order* order,int flags)
             Vec3 bounds[2];
             bounds[0]=order->target->pos+order->target->def->min;
             bounds[1]=order->target->pos+order->target->def->max;
-            FUN_004720d0(&start,bounds,6);
+            EmitNanoParticles(&start,bounds,6);
         }
         if (order->target->progress!=0.0f) {
             ((Class_00439e80*)order)->FUN_00439e80(1);

@@ -21,11 +21,11 @@ struct Rect_004689c0 {
     int bottom;
 };
 
-class Class_004c6ae0 {
+class Surface {
 public:
     char unknown_0[0x1c];
     Rect_004689c0 field_1c;              // +0x1c
-    Rect_004689c0* FUN_004c6ae0(Rect_004689c0* out);
+    Rect_004689c0* GetClipRect(Rect_004689c0* out);
 };
 
 struct Team_004689c0 {                  // 347 bytes
@@ -70,19 +70,19 @@ extern int DAT_0051e544;
 
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 int __stdcall FUN_004c1b80(int key);
-int FUN_004b6560();
-void __stdcall FUN_004b7f90(void* dst, void* bmp, int x, int y);
+int GetMilliseconds();
+void __stdcall DrawFrame(void* dst, void* bmp, int x, int y);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004a50e0(void* surf, void* text, int x, int y, int color, int just);
 
 // FUNCTION: 0x4689c0
-void __stdcall FUN_004689c0(Class_004c6ae0* win)
+void __stdcall FUN_004689c0(Surface* win)
 {
     char buf[0x100];
     char num[0x34];
     int v = g_game->panel;
-    if (DAT_0051e544 < FUN_004b6560()) {
-        DAT_0051e544 = FUN_004b6560() + 15;
+    if (DAT_0051e544 < GetMilliseconds()) {
+        DAT_0051e544 = GetMilliseconds() + 15;
         if (!FUN_004c1b80(0x20) || (g_game->team_index != -1 && ((unsigned char*)g_game->teams->data)[g_game->team_index * 347] == 3)) {
             if (v < 0) {
                 if (v == -31)
@@ -113,10 +113,10 @@ void __stdcall FUN_004689c0(Class_004c6ae0* win)
         return;
     g_game->field_52d = g_game->field_525;
     Rect_004689c0 bounds;
-    win->FUN_004c6ae0(&bounds);
+    win->GetClipRect(&bounds);
     int left = bounds.left;
     int bottom = bounds.bottom + v;
-    FUN_004b7f90(win, g_game->sprite, left, bottom);
+    DrawFrame(win, g_game->sprite, left, bottom);
     unsigned int tick = g_game->tick;
     int hours = tick / 108000;
     int rest = tick - hours * 108000;

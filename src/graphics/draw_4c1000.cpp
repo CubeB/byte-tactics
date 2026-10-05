@@ -2,7 +2,7 @@
 // Scanline filler, the sibling of 0x4c0c70 (which also fills a shade channel):
 // it finds the extreme y vertices, then walks the vertex ring from the top one
 // backwards to the bottom one filling the left end of each row, walks it
-// forwards for the right end, and hands every row to FUN_004c06e0. The 2048
+// forwards for the right end, and hands every row to FillFlatSpan. The 2048
 // entry span array is what puts the frame at 0x14028.
 //
 // MATCH. The walks share one function-scope `j` and each has its own
@@ -50,10 +50,10 @@ struct Surface_004c1000 {
     unsigned char* depth;            // +0x14
 };
 
-void __stdcall FUN_004c06e0(int row, Span_004c1000* span, Surface_004c1000* surf, unsigned char color);
+void __stdcall FillFlatSpan(int row, Span_004c1000* span, Surface_004c1000* surf, unsigned char color);
 
 // FUNCTION: 0x4c1000
-int __stdcall FUN_004c1000(Surface_004c1000* surf, Point_004c1000* pts, int n, int color)
+int __stdcall FillFlatPolygon(Surface_004c1000* surf, Point_004c1000* pts, int n, int color)
 {
     int y0, y1, x, dx, dz;
     Span_004c1000 spans[2048];
@@ -187,7 +187,7 @@ int __stdcall FUN_004c1000(Surface_004c1000* surf, Point_004c1000* pts, int n, i
         Span_004c1000* sp = spans;
         for (i = minY; i < maxY; i++) {
             if (sp->x2 - sp->x1 > 0)
-                FUN_004c06e0(i, sp, surf, color);
+                FillFlatSpan(i, sp, surf, color);
             sp++;
         }
     }

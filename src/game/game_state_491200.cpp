@@ -32,7 +32,7 @@
 // own with its own MEMORYSTATUS flips it to match. The mini also shows what
 // else moves that store: three or more stores to globals between the two
 // calls, and any call between them (which is why every spelling tried before
-// could not reach it: FUN_004b4fd0 sits between the two sites here).
+// could not reach it: SetCloseHandler sits between the two sites here).
 //
 // Scratch used: build/scratch/0x491200/{probe,mini,orc}.py and s1-s5.py.
 #include <string.h>
@@ -145,11 +145,11 @@ extern const char DAT_00509244[];          // "hattfont11"
 extern const char DAT_00509238[];          // "UnitLimit"
 extern int DAT_0051e828[];
 
-int FUN_004b6700();
-int FUN_004b6710();
-int __stdcall FUN_004c69f0(const char* name, int width, int height);
-void __stdcall FUN_004c61f0(int param_1);
-void __stdcall FUN_004c61b0(int param_1);
+int GetScreenWidth();
+int GetScreenHeight();
+int __stdcall AllocSurface(const char* name, int width, int height);
+void __stdcall SetRestoreSurface(int param_1);
+void __stdcall SetPageFlipping(int param_1);
 void __stdcall FUN_00434ab0(int param_1);
 void FUN_00429870();
 void FUN_0047ed40();
@@ -159,11 +159,11 @@ void FUN_0043c050();
 void FUN_0042a320();
 void FUN_0042a400();
 void FUN_0042f7e0();
-void __stdcall FUN_0042e140(void* param_1);
-void __stdcall FUN_0042e1d0(void* param_1);
-void __stdcall FUN_0042e260(void* param_1);
-void __stdcall FUN_0042e2f0(void* param_1);
-void __stdcall FUN_0042e300(void* param_1);
+void __stdcall LoadAlphaTable(void* param_1);
+void __stdcall LoadShadeTable(void* param_1);
+void __stdcall LoadLightTable(void* param_1);
+void __stdcall MakeGrayTable(void* param_1);
+void __stdcall MakeBlueTable(void* param_1);
 void* __cdecl FUN_004d83b0(const char* name, int size);
 void FUN_0042f9a0();
 int __stdcall FUN_0042f980(const char* name, void* buf, int* size);
@@ -171,19 +171,19 @@ void FUN_00490fe0();
 void FUN_0045bcc0();
 void FUN_00431a60();
 void FUN_004318c0();
-void __stdcall FUN_004ba590(float param_1);
+void __stdcall SetBrightness(float param_1);
 void __stdcall FUN_004aa850(void* param_1);
 void __stdcall FUN_0049fba0(void* param_1, const char* name);
 void __stdcall FUN_0049fbf0(void* param_1, const char* name);
 void __stdcall FUN_0049fb50(void* param_1, const char* name);
 void __stdcall FUN_004aa8e0(void* param_1, int param_2);
-void* __stdcall FUN_004b7f30(void* param_1, int param_2);
+void* __stdcall GetGafFrame(void* param_1, int param_2);
 void __stdcall FUN_004ab4e0(void* param_1, void* param_2);
 void __stdcall FUN_004aeee0(void* param_1, const char* name);
 void __stdcall FUN_004aedd0(void* param_1, const char* name, int param_3);
-void __stdcall FUN_004c13d0(int param_1);
-void __stdcall FUN_004c1420(int param_1);
-void __stdcall FUN_004b4fd0(void (__cdecl *param_1)(), int param_2);
+void __stdcall SetTextKeyColor(int param_1);
+void __stdcall SetFont(int param_1);
+void __stdcall SetCloseHandler(void (__cdecl *param_1)(), int param_2);
 void FUN_004287b0();
 int __stdcall FUN_0049f5a0(const char* name, int param_2);
 void FUN_00496a60();
@@ -199,11 +199,11 @@ void FUN_00491200()
         mem.dwLength = 0x20;
         GlobalMemoryStatus(&mem);
     }
-    g_game->field_37e1f = FUN_004b6700();
-    g_game->field_37e23 = FUN_004b6710();
-    g_game->field_37e1b = FUN_004c69f0(DAT_005091d4, g_game->field_37e1f,
+    g_game->field_37e1f = GetScreenWidth();
+    g_game->field_37e23 = GetScreenHeight();
+    g_game->field_37e1b = AllocSurface(DAT_005091d4, g_game->field_37e1f,
                                       g_game->field_37e23);
-    FUN_004c61f0(g_game->field_37e1b);
+    SetRestoreSurface(g_game->field_37e1b);
     g_game->field_3923b &= 0xfffe;
     g_game->field_3923b &= 0xfffd;
     g_game->field_39249 = 0;
@@ -219,7 +219,7 @@ void FUN_00491200()
     g_game->field_37f2f &= 0xfdff;
     g_game->field_37f2f &= 0xff7f;
     g_game->field_37f2f &= 0xfeff;
-    FUN_004c61b0(0);
+    SetPageFlipping(0);
     FUN_00429870();
     FUN_0047ed40();
     FUN_004259b0();
@@ -228,11 +228,11 @@ void FUN_00491200()
     FUN_0042a320();
     FUN_0042a400();
     FUN_0042f7e0();
-    FUN_0042e140(g_game->field_143a7);
-    FUN_0042e1d0(g_game->field_143a7);
-    FUN_0042e260(g_game->field_143a7);
-    FUN_0042e2f0(g_game->field_143a7);
-    FUN_0042e300(g_game->field_143a7);
+    LoadAlphaTable(g_game->field_143a7);
+    LoadShadeTable(g_game->field_143a7);
+    LoadLightTable(g_game->field_143a7);
+    MakeGrayTable(g_game->field_143a7);
+    MakeBlueTable(g_game->field_143a7);
     g_game->field_29a0 = FUN_004d83b0(DAT_00509268, 0x22c);
     FUN_0042f9a0();
     size = 0xaa0;
@@ -247,19 +247,19 @@ void FUN_00491200()
     FUN_0045bcc0();
     FUN_00431a60();
     FUN_004318c0();
-    FUN_004ba590(0.5 - g_game->field_37f08 * -0.041666668f);
+    SetBrightness(0.5 - g_game->field_37f08 * -0.041666668f);
     FUN_004aa850(g_game->field_519);
     FUN_0049fba0(g_game->field_519, DAT_00502820);
     FUN_0049fbf0(g_game->field_519, DAT_00502e30);
     FUN_0049fb50(g_game->field_519, DAT_0050338c);
     FUN_004aa8e0(g_game->field_519, g_game->field_391f9);
-    FUN_004ab4e0(g_game->field_519, FUN_004b7f30(g_game->field_148cb, 0));
+    FUN_004ab4e0(g_game->field_519, GetGafFrame(g_game->field_148cb, 0));
     FUN_004aeee0(g_game->field_519, DAT_0050925c);
     FUN_004aedd0(g_game->field_519, DAT_00509250, 0);
     FUN_004aedd0(g_game->field_519, DAT_00509244, 1);
     g_game->field_52d = g_game->field_521;
-    FUN_004c13d0(0xfe);
-    FUN_004c1420(g_game->field_391f9);
+    SetTextKeyColor(0xfe);
+    SetFont(g_game->field_391f9);
     g_game->field_14280 = 0;
     g_game->field_38c53 = 0;
     g_game->field_38c5f = 0;
@@ -269,7 +269,7 @@ void FUN_00491200()
     g_game->field_38d7b = 0;
     g_game->field_391f1 = 0;
     g_game->field_391f5 = FUN_00496a60;
-    FUN_004b4fd0(LeaveNetGameCallback, 0);
+    SetCloseHandler(LeaveNetGameCallback, 0);
     {
         MEMORYSTATUS mem2;
         mem2.dwLength = 0x20;

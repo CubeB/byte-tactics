@@ -109,7 +109,7 @@ void __stdcall FUN_0049fa90(Gui_0045e100* gui);
 void __stdcall FUN_004ab0a0(Gui_0045e100* gui);
 int __stdcall FUN_004ab060(Gui_0045e100* gui, const char* name);
 void __stdcall FUN_004a9660(Gui_0045e100* gui);
-void __stdcall FUN_004ba590(float value);
+void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45e100
 void __stdcall FUN_0045e100(Gui_0045e100* gui)
@@ -185,7 +185,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
             g_game->height = 480;
             g_game->flags_37f06.b6 = 0;
         }
-        FUN_004ba590(0.5 - g_game->brightness * -0.041666668f);
+        SetBrightness(0.5 - g_game->brightness * -0.041666668f);
         ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
         ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
         FUN_004a9660(gui);

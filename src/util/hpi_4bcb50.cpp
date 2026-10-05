@@ -66,7 +66,7 @@ struct Find_004bcb50 {
 class Class_004c9390 {
 public:
     char* data;
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 class Class_004c91a0 : public Class_004c9390 {
@@ -77,7 +77,7 @@ public:
 class Class_004c91b0 : public Class_004c91a0 {
 public:
     Class_004c91b0(const char* text);
-    ~Class_004c91b0() { FUN_004c9390(); }
+    ~Class_004c91b0() { ReleaseRef(); }
 };
 
 // The caller's std::vector<Class_004c91a0>, written by hand so that insert

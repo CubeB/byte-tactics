@@ -400,25 +400,25 @@ class Class_0046fad0;
 class Class_0046fe60;
 class Class_00470250;
 struct Class_00470560;
-class Class_00470ae0;
+class ObjectPool;
 class Class_00470c10;
 class Class_00470e50;
 class Class_00470eb0;
 class Class_00470ed0;
-class Class_00470fb0;
+class ParticleLists;
 class Class_00471120;
 class Class_00471340;
-class Class_00471430;
+class TeleportParticles;
 class Class_00471470;
-class Class_00471560;
+class NanoParticles;
 class Class_004715a0;
-class Class_004716a0;
+class ThrustParticles;
 class Class_004716e0;
-class Class_004717e0;
+class WakeParticles;
 class Class_00471820;
 class Class_00471a50;
-class Class_00471cc0;
-struct Class_00471cc0;
+class ParticleSystem;
+struct ParticleSystem;
 class Class_00471d70;
 struct Class_00472200;
 class Class_00472e00;
@@ -450,7 +450,7 @@ class Class_00474720;
 class Class_00474760;
 struct Class_00474b00;
 class Class_00474cb0;
-class Class_00474cd0;
+class SmokeParticles;
 class Class_00474d50;
 struct Class_00474f80;
 class Class_00474fc0;
@@ -464,7 +464,7 @@ struct Class_00475840;
 class Class_00475bd0;
 class Class_00476210;
 class Class_00476490;
-class Class_0047bdf0;
+class MoviePlayer;
 class Class_0047bf20;
 class Class_0047bf70;
 class Class_0047c150;
@@ -3957,11 +3957,11 @@ public:
     char unknown_8[4];
     void* handle;  // +0xc
     void* ptr;  // +0x10
-    Class_00437c80* FUN_00458160(void);
+    Class_00437c80* Construct(void);
     void FlushCache(void);
     void ReleaseHandle(int);
-    void FUN_004581c0(void);
-    void FUN_00458810(SpotState*, Vec3*);
+    void Destroy(void);
+    void DrawObjectState(SpotState*, Vec3*);
 };
 
 class Class_0048ff40 {  // 0x8c bytes, 23 views
@@ -4992,8 +4992,8 @@ public:
     Class_004c9390(Class_004c9390&);
     ~Class_004c9390(void);
     Class_004c9390(void);
-    Class_004c9390* FUN_004c93b0(Class_004c9390*);
-    void FUN_004c9390(void);
+    Class_004c9390* Assign(Class_004c9390*);
+    void ReleaseRef(void);
     Class_004c9390& operator=(Class_004c9390&);
 };
 
@@ -5308,7 +5308,7 @@ public:
     int stopped;  // +0x8
     void* hwnd;  // +0xc
     void FUN_0047c530(void);
-    void FUN_0047c6c0(void);
+    void Play(void);
 };
 
 struct Flags_004268b0 {  // 0x2 bytes, 1 view
@@ -5536,7 +5536,7 @@ class Class_00458180 {  // 0x14 bytes, 2 views
 public:
     char unknown_0[16];
     void* buffer;  // +0x10
-    int FUN_00458180(unsigned int);
+    int Initialize(unsigned int);
 };
 
 union UType_0042b370_flags {  // 0x4 bytes, 3 views
@@ -6275,7 +6275,7 @@ public:
     Bitmap_00437b50* scratch;  // +0x10
     int AllocHandle(void**, int);
     int AllocBitmap(Bitmap_00437b50**, int, int);
-    void FUN_0045a790(SpotState*, Bitmap_00437b50*);
+    void BuildShadow(SpotState*, Bitmap_00437b50*);
     int AllocTwoPlaneBitmap(Bitmap_00437b50**, int, int);
 };
 
@@ -8323,44 +8323,44 @@ struct Packet_00457d30 {  // 0x11 bytes, 1 view
 struct Class_004581e0 {  // 0x14 bytes, 6 views
     char unknown_0[16];
     Bitmap_00437b50* shadow;  // +0x10
-    int FUN_004586a0(SpotState*, int, int);
-    void FUN_004581e0(int*, int*, int*, int*, SpotState*, Vec3*);
-    void FUN_00459830(Bitmap_00437b50*, SpotState*, int, int);
-    void FUN_00459c70(Bitmap_00437b50*, SpotState*, int, int);
+    int BuildObjectPicture(SpotState*, int, int);
+    void MeasureModel(int*, int*, int*, int*, SpotState*, Vec3*);
+    void DrawPieces(Bitmap_00437b50*, SpotState*, int, int);
+    void DrawLitPieces(Bitmap_00437b50*, SpotState*, int, int);
 };
 
 class Class_00458310 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_00458310(int*, int*, int*, int*, SpotState*, Pos_4589c0);
-    void FUN_00458310(int*, int*, int*, int*, SpotState*, int, int, int);
+    void AddModelBounds(int*, int*, int*, int*, SpotState*, Pos_4589c0);
+    void AddModelBounds(int*, int*, int*, int*, SpotState*, int, int, int);
 };
 
 class Class_00458430 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_00458430(int, SpotState*, Vec3, int);
+    void DrawObjectPieces(int, SpotState*, Vec3, int);
 };
 
 class Class_004584d0 {  // 0x1 bytes, 4 views
 public:
     char unknown_0[1];
-    void FUN_004584d0(SpotState*, void*, Vec3*, Object3do*, Vec3*, unsigned int, int);
+    void DrawPiece(SpotState*, void*, Vec3*, Object3do*, Vec3*, unsigned int, int);
 };
 
 class Class_00459200 {  // 0x14 bytes, 4 views
 public:
     char unknown_0[16];
     int bitmap;  // +0x10
-    void FUN_004589c0(Surface_004c0a90*, SpotState*);
-    void FUN_00459200(int, SpotState*, Vec3_459200, int);
+    void MergeIntoComposite(Surface_004c0a90*, SpotState*);
+    void DrawObjectPicture(int, SpotState*, Vec3_459200, int);
 };
 
 class Class_00458d30 {  // 0x1 bytes, 4 views
 public:
     char unknown_0[1];
-    int FUN_00458dd0(Surface_004c0a90*, SpotState*);
-    void FUN_00458d30(Surface_004c0a90*, unsigned char, int, int, int);
+    int ShadeByIntensity(Surface_004c0a90*, SpotState*);
+    void RecolorByShade(Surface_004c0a90*, unsigned char, int, int, int);
 };
 
 struct Pos_4589c0 {  // 0xc bytes, 1 view
@@ -8383,7 +8383,7 @@ struct Surface {  // 0x30 bytes, 69 views
     unsigned int flag0 : 1;  // +0x2c
     unsigned int flag1 : 1;
     unsigned int : 30;
-    Rect* FUN_004c6ae0(Rect*);
+    Rect* GetClipRect(Rect*);
     void Unlock(void);
 };
 
@@ -8408,7 +8408,7 @@ struct Count_00458d20 {  // 0x4 bytes, 1 view
 class Class_00458fa0 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_00458fa0(Surface_004c0a90*, SpotState*, int);
+    void DrawPieceEdges(Surface_004c0a90*, SpotState*, int);
 };
 
 struct Map_00458fa0 {  // 0x245 bytes, 2 views
@@ -8422,13 +8422,13 @@ class Class_00459170 {  // 0x14 bytes, 1 view
 public:
     char unknown_0[16];
     Surface_004c0a90* image;  // +0x10
-    void FUN_00459170(Surface_004c0a90*);
+    void CopyPicture(Surface_004c0a90*);
 };
 
 struct Class_0045a470 {  // 0x14 bytes, 2 views
     char unknown_0[16];
     Surface_004c0a90* image;  // +0x10
-    Surface_004c0a90* FUN_0045a470(Surface_004c0a90*);
+    Surface_004c0a90* MakeSilhouette(Surface_004c0a90*);
 };
 
 struct Fixed_00485140 {  // 0x4 bytes, 2 views
@@ -8463,13 +8463,13 @@ struct Poly_459c70 {  // 0x10 bytes, 1 view
 class Class_0045a510 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_0045a510(int*, int*, int*, int*, SpotState*);
+    void MeasureShadow(int*, int*, int*, int*, SpotState*);
 };
 
 class Class_0045a610 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_0045a610(Bitmap_00437b50*, SpotState*);
+    void DrawShadowShape(Bitmap_00437b50*, SpotState*);
 };
 
 struct Class_0045ae80 {  // 0x34 bytes, 7 views
@@ -9963,7 +9963,7 @@ struct Game {  // 0x3924d bytes, 904 views
 
 struct Class_004c6b10 {  // 0x30 bytes, 4 views
     int data[12];  // +0x0
-    void FUN_004c6b10(Rect);
+    void SetClipRect(Rect);
 };
 
 struct MapGrid {  // 0x90 bytes, 1 view
@@ -10685,16 +10685,16 @@ struct Elem_00470a40 {  // 0xe bytes, 1 view
     short d;  // +0xc
 };
 
-class Class_00470ae0 {  // 0x24 bytes, 3 views
+class ObjectPool {      // 0x24 bytes, 3 views
 public:
     std::vector<Item_00470ae0*> items;  // +0x4
     void* field_14;  // +0x14
     int field_18;  // +0x18
     int field_1c;  // +0x1c
     int field_20;  // +0x20
-    virtual ~Class_00470ae0(void);
-    Class_00470ae0(Class_00470ae0&);
-    Class_00470ae0(int, int);
+    virtual ~ObjectPool(void);
+    ObjectPool(ObjectPool&);
+    ObjectPool(int, int);
 };
 
 struct Item_00470ae0 {  // 0x4 bytes, 3 views
@@ -10721,7 +10721,7 @@ public:
     int unknown_0;  // +0x0
     std::vector<int*> items;  // +0x4
     int* extra;  // +0x14
-    void FUN_00470e50(void);
+    void FreeBlocks(void);
 };
 
 class Class_00470eb0 {  // 0x24 bytes, 21 views
@@ -10731,17 +10731,17 @@ public:
     char unknown_18[4];
     int field_1c;  // +0x1c
     int field_20;  // +0x20
-    int FUN_00470eb0(int);
+    int AllocSlot(int);
 };
 
-class Class_00470fb0 {  // 0xa0 bytes, 4 views
+class ParticleLists {   // 0xa0 bytes, 4 views
 public:
     std::vector<Listener_00470fb0*> lists[10];  // +0x0
-    Class_00470fb0(Class_00470fb0&);
-    ~Class_00470fb0(void);
-    Class_00470fb0(void);
-    void FUN_00471050(void);
-    void FUN_004710e0(void*);
+    ParticleLists(ParticleLists&);
+    ~ParticleLists(void);
+    ParticleLists(void);
+    void UpdateAll(void);
+    void DrawAll(void*);
 };
 
 class Listener_00470fb0 {  // 0x4 bytes, 4 views
@@ -10766,7 +10766,7 @@ struct Slot_00471120 {  // 0x10 bytes, 1 view
     char unknown_c[4];
 };
 
-class Class_00474cd0 {  // 0x38 bytes, 12 views
+class SmokeParticles {  // 0x38 bytes, 12 views
 public:
     char unknown_4[4];
     int time;  // +0x8
@@ -10776,9 +10776,9 @@ public:
     int unknown_24;  // +0x24
     void* unknown_28;  // +0x28
     Vec3 pos;  // +0x2c
-    virtual ~Class_00474cd0(void);
-    Class_00474cd0(Class_00474cd0&);
-    Class_00474cd0(void);
+    virtual ~SmokeParticles(void);
+    SmokeParticles(SmokeParticles&);
+    SmokeParticles(void);
     virtual void Notify(void*);
     virtual void FUN_00472d50(void);
     virtual void FUN_00472e30(int);
@@ -10795,21 +10795,21 @@ struct Elem_00473500 {  // 0x4 bytes, 7 views
 class Class_00471120 {  // 0x10 bytes, 2 views
 public:
     std::vector<Elem_00473500> lists[1];  // +0x0
-    void FUN_00471120(void*, short);
-    void FUN_00471160(Elem_00473500, short);
+    void DrawList(void*, short);
+    void AddToList(Elem_00473500, short);
 };
 
 class Class_00470ed0 {  // 0x4 bytes, 26 views
 public:
     char unknown_0[4];
-    void FUN_00470ed0(void*);
+    void FreeSlot(void*);
 };
 
 class Class_00471340 {  // 0x10 bytes, 1 view
 public:
-    std::vector<Class_00471cc0*> lists[1];  // +0x0
-    void Add(short, Class_00471cc0*);
-    void FUN_00471340(int, int, int, short);
+    std::vector<ParticleSystem*> lists[1];  // +0x0
+    void Add(short, ParticleSystem*);
+    void AddTeleportParticles(int, int, int, short);
 };
 
 class Class_00473590 {  // 0x34 bytes, 9 views
@@ -10825,7 +10825,7 @@ public:
     void FUN_00473590(void*, short, short);
 };
 
-class Class_00471430 {  // 0x44 bytes, 5 views
+class TeleportParticles {  // 0x44 bytes, 5 views
 public:
     int field_4;  // +0x4
     int field_8;  // +0x8
@@ -10834,8 +10834,8 @@ public:
     Vec3 pos1;  // +0x20
     Vec3 pos2;  // +0x2c
     Vec3 dir;  // +0x38
-    Class_00471430(Class_00471430&);
-    Class_00471430(void);
+    TeleportParticles(TeleportParticles&);
+    TeleportParticles(void);
     virtual void FUN_00471430(void);
     virtual void FUN_00472d50(void);
     virtual void FUN_00472e30(int);
@@ -10847,9 +10847,9 @@ public:
 
 class Class_00471470 {  // 0x10 bytes, 1 view
 public:
-    std::vector<Class_00471cc0*> lists[1];  // +0x0
-    void Add(short, Class_00471cc0*);
-    void FUN_00471470(int, int, int, short);
+    std::vector<ParticleSystem*> lists[1];  // +0x0
+    void Add(short, ParticleSystem*);
+    void AddNanoParticles(int, int, int, short);
 };
 
 class Elem_00475880 {  // 0x30 bytes, 11 views
@@ -10859,7 +10859,7 @@ public:
     void FUN_00473a00(int, short, short);
 };
 
-class Class_00471560 {  // 0x4c bytes, 6 views
+class NanoParticles {   // 0x4c bytes, 6 views
 public:
     char unknown_0[4];
     int field_4;  // +0x4
@@ -10869,8 +10869,8 @@ public:
     Vec3 radius;  // +0x28
     Vec3 target;  // +0x34
     Vec3 spread;  // +0x40
-    Class_00471560(Class_00471560&);
-    Class_00471560(void);
+    NanoParticles(NanoParticles&);
+    NanoParticles(void);
     void FUN_00472d50(void);
     void FUN_00472e30(int);
     int FUN_00472e70(void);
@@ -10881,16 +10881,16 @@ public:
 
 class Class_004715a0 {  // 0x10 bytes, 1 view
 public:
-    std::vector<Class_00471cc0*> lists[1];  // +0x0
-    void Add(short, Class_00471cc0*);
-    void FUN_004715a0(int, int, int, int, short);
+    std::vector<ParticleSystem*> lists[1];  // +0x0
+    void Add(short, ParticleSystem*);
+    void AddThrustParticles(int, int, int, int, short);
 };
 
 class Class_004716e0 {  // 0x10 bytes, 1 view
 public:
-    std::vector<Class_00471cc0*> lists[1];  // +0x0
-    void Add(short, Class_00471cc0*);
-    void FUN_004716e0(int, int, int, int, short, int);
+    std::vector<ParticleSystem*> lists[1];  // +0x0
+    void Add(short, ParticleSystem*);
+    void AddWakeParticles(int, int, int, int, short, int);
 };
 
 class Class_004745e0 {  // 0x44 bytes, 7 views
@@ -10909,7 +10909,7 @@ public:
     void FUN_004745e0(void*, short, short);
 };
 
-class Class_004717e0 {  // 0x48 bytes, 5 views
+class WakeParticles {   // 0x48 bytes, 5 views
 public:
     char unknown_0[8];
     int field_8;  // +0x8
@@ -10919,8 +10919,8 @@ public:
     Vec3 pos_b;  // +0x2c
     Vec3 dir;  // +0x38
     int field_44;  // +0x44
-    Class_004717e0(Class_004717e0&);
-    Class_004717e0(void);
+    WakeParticles(WakeParticles&);
+    WakeParticles(void);
     void FUN_00472d50(void);
     void FUN_00472e30(int);
     int FUN_00472e70(void);
@@ -10932,8 +10932,8 @@ public:
 class Class_00471820 {  // 0x10 bytes, 1 view
 public:
     std::vector<Elem_00473500> lists[1];  // +0x0
-    void Add(short, Class_00474cd0*);
-    void FUN_00471820(Vec3*, int, int, int, int, short, int);
+    void Add(short, SmokeParticles*);
+    void AddSmoke(Vec3*, int, int, int, int, short, int);
 };
 
 class Class_00471a50 {  // 0x10 bytes, 1 view
@@ -10966,13 +10966,13 @@ class Class_00471d70 {  // 0x8 bytes, 7 views
 public:
     char unknown_0[4];
     int field_4;  // +0x4
-    void FUN_00471d70(int);
+    void SetLifetime(int);
 };
 
 struct Class_00472200 {  // 0xa0 bytes, 18 views
-    std::vector<Class_00471cc0*> lists[10];  // +0x0
+    std::vector<ParticleSystem*> lists[10];  // +0x0
     ~Class_00472200(void);
-    void Add(short, Class_00471cc0*);
+    void Add(short, ParticleSystem*);
 };
 
 struct Ctx_004720d0 {  // 0x18 bytes, 1 view
@@ -11225,14 +11225,14 @@ public:
     void FUN_00474170(void*, short, short);
 };
 
-class Class_004716a0 {  // 0x44 bytes, 5 views
+class ThrustParticles {  // 0x44 bytes, 5 views
 public:
     char unknown_0[8];
     int field_8;  // +0x8
     std::vector<Class_00474170> items;  // +0xc
     char unknown_1c[40];
-    Class_004716a0(Class_004716a0&);
-    Class_004716a0(void);
+    ThrustParticles(ThrustParticles&);
+    ThrustParticles(void);
     void FUN_00472d50(void);
     void FUN_00472e30(int);
     int FUN_00472e70(void);
@@ -11626,7 +11626,7 @@ struct Surfaces_0047bdf0 {  // 0x14 bytes, 2 views
     IUnknown* surface_10;  // +0x10
 };
 
-class Class_0047bdf0 {  // 0x5b8 bytes, 2 views
+class MoviePlayer {     // 0x5b8 bytes, 2 views
 public:
     void* smack;  // +0x0
     int frame;  // +0x4
@@ -11639,14 +11639,14 @@ public:
     char unknown_53c[8];
     Surfaces_0047bdf0* wrapper;  // +0x544
     char unknown_548[112];
-    Class_0047bdf0(char*, int, int, int, int, int);
+    MoviePlayer(char*, int, int, int, int, int);
 };
 
 class Class_0047c150 {  // 0x548 bytes, 2 views
 public:
     char unknown_0[1348];
     SmackerSurfaces* surfaces;  // +0x544
-    int FUN_0047c150(SmackerSurface*);
+    int GetBlitMode(SmackerSurface*);
 };
 
 class DDraw_0047bf70 {  // 0x14 bytes, 1 view
@@ -11707,7 +11707,7 @@ public:
     char unknown_414[304];
     DDraw_0047bf70* ddraw;  // +0x544
     SurfaceDesc_0047bf70 surfaceDesc;  // +0x548
-    int FUN_0047bf70(void);
+    int SetupDirectDraw(void);
 };
 
 struct SmackerSurface {  // 0x4 bytes, 1 view
@@ -11724,7 +11724,7 @@ public:
     char unknown_0[12];
     void* hwnd;  // +0xc
     tagPALETTEENTRY entries[256];  // +0x10
-    void FUN_0047c230(int);
+    void ReadSystemPalette(int);
 };
 
 class Class_0047c2a0 {  // 0x548 bytes, 1 view
@@ -11734,7 +11734,7 @@ public:
     tagPALETTEENTRY entries[256];  // +0x10
     char unknown_410[308];
     DisplaySurface* display;  // +0x544
-    void FUN_0047c2a0(void);
+    void UpdatePalette(void);
 };
 
 struct DisplaySurface {  // 0x14 bytes, 1 view
@@ -11751,7 +11751,7 @@ class Class_0047c2f0 {  // 0x548 bytes, 1 view
 public:
     char unknown_0[1348];
     SurfaceWrapper* wrapper;  // +0x544
-    void FUN_0047c2f0(void);
+    void ClearScreen(void);
 };
 
 struct SurfaceWrapper {  // 0x8 bytes, 1 view
@@ -11763,7 +11763,7 @@ class Class_0047c330 {  // 0x8 bytes, 1 view
 public:
     Smack_0047c330* smack;  // +0x0
     unsigned int frame;  // +0x4
-    void FUN_0047c330(void*);
+    void OnPaint(void*);
 };
 
 struct Smack_0047c330 {  // 0xc bytes, 1 view
@@ -11781,7 +11781,7 @@ public:
     tagPALETTEENTRY entries[256];  // +0x10
     char unknown_410[308];
     Display_0047c3a0* display;  // +0x544
-    void FUN_0047c3a0(void*);
+    void PlayFrame(void*);
 };
 
 struct Display_0047c3a0 {  // 0x14 bytes, 1 view
@@ -14006,7 +14006,7 @@ struct Class_004cb7d0 {  // 0x10 bytes, 2 views
 
 class Class_004cb7f0 : public Class_004cb7c0 {  // 0x10 bytes, 3 views
 public:
-    bool FUN_004cb7f0(char*, int, int);
+    bool Open(char*, int, int);
 };
 
 struct Class_004cb940 {  // 0x10 bytes, 2 views
@@ -14014,7 +14014,7 @@ struct Class_004cb940 {  // 0x10 bytes, 2 views
     int height;  // +0x4
     int dataOffset;  // +0x8
     _iobuf* file;  // +0xc
-    bool FUN_004cb940(Image_004cb940*, int, int, int, int, int, int);
+    bool WriteRows(Image_004cb940*, int, int, int, int, int, int);
 };
 
 struct Flags_00495e90_38a51 {  // 0x2 bytes, 1 view
@@ -16132,7 +16132,7 @@ struct Rec_004b7760 {  // 0xc bytes, 1 view
 class Class_004c9290 {  // 0x4 bytes, 2 views
 public:
     char* data;  // +0x0
-    Class_004c9290* FUN_004c9290(void);
+    Class_004c9290* MakeLower(void);
     char* GetUnique(void);
 };
 
@@ -17091,7 +17091,7 @@ struct Class_004c5c60 {  // 0xd bytes, 2 views
 class Class_004c93f0 {  // 0x4 bytes, 2 views
 public:
     char* ptr;  // +0x0
-    Class_004c93f0* FUN_004c93f0(char*);
+    Class_004c93f0* AssignText(char*);
 };
 
 struct Elem_004c5740 {  // 0x8 bytes, 1 view
@@ -17508,7 +17508,7 @@ class Class_004c90b0 {  // 0x4 bytes, 1 view
 public:
     char* ptr;  // +0x0
     unsigned char IsEmpty(void);
-    Class_004c90b0* FUN_004c90b0(Class_004c90b0&);
+    Class_004c90b0* Append(Class_004c90b0&);
 };
 
 class Class_004c9230 {  // 0x4 bytes, 1 view
@@ -17521,7 +17521,7 @@ class Class_004c9310 {  // 0x4 bytes, 1 view
 public:
     char* data;  // +0x0
     char* GetUnique(void);
-    Class_004c9310* FUN_004c9310(void);
+    Class_004c9310* MakeUpper(void);
 };
 
 class Class_004c9490 {  // 0x4 bytes, 1 view
@@ -17529,7 +17529,7 @@ public:
     char* ptr;  // +0x0
     Class_004c9490(char*, int);
     Class_004c9490(void);
-    Class_004c9490 FUN_004c9490(int, int);
+    Class_004c9490 SubString(int, int);
 };
 
 class DirectPlay_4c97b0 {  // 0x4 bytes, 1 view

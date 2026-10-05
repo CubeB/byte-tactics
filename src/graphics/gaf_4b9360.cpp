@@ -2,7 +2,7 @@
 // Draws a sprite with a colour-remap effect: the destination surface is blitted
 // into the sprite's scratch buffer, the sprite's index table is remapped through
 // that buffer (32000 uses the sprite's flat colour), and the result is drawn
-// with FUN_004b7f90.
+// with DrawFrame.
 //
 // The two scratch buffers are swapped twice around the blit. That swap must go
 // through a reference-taking helper: written inline, MSVC 5 forwards the
@@ -25,7 +25,7 @@ struct Sprite_4b9360 {
     unsigned char* buffers[2];   // +0x10, the two interchangeable scratch buffers
 };
 
-struct Surface_4b9360 {
+struct Surface {
     int width;                   // +0x0
     int height;                  // +0x4
     int pitch;                   // +0x8
@@ -46,9 +46,9 @@ struct Rect_4b9360 {
     int bottom;                  // +0xc
 };
 
-void __stdcall FUN_004c69c0(Surface_4b9360* surface);
-void __stdcall FUN_004c6d20(void* dst, void* src, Rect_4b9360* rect, Rect_4b9360* pos);
-void __stdcall FUN_004b7f90(void* dst, Sprite_4b9360* sprite, int x, int y);
+void __stdcall ResetClipRect(Surface* surface);
+void __stdcall CopySurfaceRect(void* dst, void* src, Rect_4b9360* rect, Rect_4b9360* pos);
+void __stdcall DrawFrame(void* dst, Sprite_4b9360* sprite, int x, int y);
 
 static void SwapPtr(unsigned char*& a, unsigned char*& b)
 {
@@ -58,11 +58,11 @@ static void SwapPtr(unsigned char*& a, unsigned char*& b)
 }
 
 // FUNCTION: 0x4b9360
-void __stdcall FUN_004b9360(void* dst, Sprite_4b9360* sprite, int x, int y)
+void __stdcall DrawLens(void* dst, Sprite_4b9360* sprite, int x, int y)
 {
     SwapPtr(sprite->buffers[0], sprite->buffers[1]);
 
-    Surface_4b9360 surface;
+    Surface surface;
     surface.width = sprite->width;
     surface.pitch = sprite->width;
     surface.height = sprite->height;
@@ -73,7 +73,7 @@ void __stdcall FUN_004b9360(void* dst, Sprite_4b9360* sprite, int x, int y)
     surface.y = sprite->y;
     surface.flag0 = 1;
     surface.flag1 = 0;
-    FUN_004c69c0(&surface);
+    ResetClipRect(&surface);
 
     Rect_4b9360 srcRect;
     srcRect.left = 0;
@@ -87,7 +87,7 @@ void __stdcall FUN_004b9360(void* dst, Sprite_4b9360* sprite, int x, int y)
     dstRect.top = y - sprite->y;
     dstRect.bottom = y + surface.height - sprite->y - 1;
 
-    FUN_004c6d20(&surface, dst, &dstRect, &srcRect);
+    CopySurfaceRect(&surface, dst, &dstRect, &srcRect);
 
     SwapPtr(sprite->buffers[0], sprite->buffers[1]);
 
@@ -113,6 +113,6 @@ void __stdcall FUN_004b9360(void* dst, Sprite_4b9360* sprite, int x, int y)
     int m = sprite->width * sprite->height;
     int saved = (int)sprite->buffers[0];
     sprite->buffers[0] = sprite->buffers[1] + m;
-    FUN_004b7f90(dst, sprite, x, y);
+    DrawFrame(dst, sprite, x, y);
     sprite->buffers[0] = (unsigned char*)saved;
 }

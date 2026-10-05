@@ -29,7 +29,7 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];
 
-void __stdcall FUN_004b6290(char* text);
+void __stdcall FatalError(char* text);
 
 class Class_004c48c0 {
 public:
@@ -140,7 +140,7 @@ int Class_00435c00::FUN_00436860(int type, Class_004c2ea0* parser, char* schema)
         for (int n = 0; ; n++) {
             ((Class_004c3e10*)parser)->FUN_004c3e10();
             if (!((Class_004c3410*)parser)->FUN_004c3410("GlobalHeader"))
-                FUN_004b6290("Very bad news!  No MSG!");
+                FatalError("Very bad news!  No MSG!");
             sprintf(name, "Schema %i", n);
             if (!((Class_004c3410*)parser)->FUN_004c3410(name))
                 break;

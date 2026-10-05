@@ -47,7 +47,7 @@ struct Item_004a36a0 {
     int field_28;                      // +0x28
 };
 
-void __stdcall FUN_004b6290(char* path);
+void __stdcall FatalError(char* path);
 
 static inline int FindEntry(Entry_004a36a0* entries, char* name)
 {
@@ -68,7 +68,7 @@ void __stdcall FUN_004a36a0(Table_004a36a0* table, char* name, int* items, int c
     if (i != -1) {
         e = &entries[i];
     } else {
-        FUN_004b6290("Error in GUI layout");
+        FatalError("Error in GUI layout");
         e = 0;
     }
     e->field_c0 = (short)count;

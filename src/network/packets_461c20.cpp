@@ -6,7 +6,7 @@
 #include <ddraw.h>
 
 void __cdecl PacketTrace(const char* fmt, ...);
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 
 class PacketBuffer {
 public:
@@ -54,7 +54,7 @@ static inline int IsReusable(Buffer_00461c20* buf, int minRetain)
     if (buf->inUse == 0)
         return 1;
     Packet_00461c20* p = buf->first;
-    unsigned int now = FUN_004b6340();
+    unsigned int now = GetTicks();
     int mustBeSentBefore = now - minRetain;
     PacketTrace("cur game time: %ld, min retain=%ld, mustBeSentBefore=%ld\n",
                  now, minRetain, mustBeSentBefore);

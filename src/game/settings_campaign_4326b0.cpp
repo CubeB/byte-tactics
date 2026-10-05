@@ -149,7 +149,7 @@ extern char DAT_0050491c[];           // "Game ID"
 extern char DAT_00504910[];           // "Game Time"
 extern char DAT_00504904[];           // "Radar Image"
 
-void __stdcall FUN_004c6f10(void* surface, void* file);
+void __stdcall SaveSurface(void* surface, void* file);
 void __stdcall FUN_0041d360(void* file);
 void __stdcall FUN_004662f0(void* file);
 void __stdcall SaveUnits(void* file);
@@ -202,7 +202,7 @@ int __stdcall FUN_004326b0(char* param_1, char* param_2, int param_3)
     ((Class_004b4630*)&file)->FUN_004b4630(DAT_00504910, g_game->ticks);
     if (g_game->state == 6) {
         ((Class_004b4ba0*)&file)->FUN_004b4ba0(DAT_00504904);
-        FUN_004c6f10(g_game->finalSurface, &file);
+        SaveSurface(g_game->finalSurface, &file);
         FUN_0041d360(&file);
         FUN_004662f0(&file);
         SaveUnits(&file);

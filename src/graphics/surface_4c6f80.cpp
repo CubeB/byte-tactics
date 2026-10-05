@@ -63,7 +63,7 @@ static inline Surface_004c6f80* NewSurface(char* name, int w, int h)
 }
 
 // FUNCTION: 0x4c6f80
-Surface_004c6f80* __stdcall FUN_004c6f80(void* file)
+Surface_004c6f80* __stdcall LoadSurface(void* file)
 {
     ((Class_004b4c10*)file)->FUN_004b4c10(0);
     int header[2];

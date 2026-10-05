@@ -19,7 +19,7 @@
 //     and `while (0) {}` work too, `;` and `{}` do not) put them in the
 //     original's order; each alone stays at 99.3%. Found by tools/permute.py
 //     (do_while0 plus a byte temporary for the flags) and minimised by hand.
-//     A byte colour parameter (`unsigned char` here and in the FUN_004c0820
+//     A byte colour parameter (`unsigned char` here and in the DrawPolygonEdges
 //     prototype) also matches without these two, but 0x4c0820's own notes
 //     found `int color` better in its definition, so it is not used here.
 //     With an int colour and neither change, none of these moved the reload:
@@ -95,17 +95,17 @@ struct Model_00458fa0 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004c0820(View_0045a610* view, Vertex_0045a610* points, int count, int color);
+void __stdcall DrawPolygonEdges(View_0045a610* view, Vertex_0045a610* points, int count, int color);
 
 // A method that ignores `this`: its one caller (0x458dd0, MATCH) passes its own
 // `this` through in ecx, and spells the parameters (image, model, palette).
 class Class_00458fa0 {
 public:
-    void FUN_00458fa0(View_0045a610* view, Model_00458fa0* model, int color);
+    void DrawPieceEdges(View_0045a610* view, Model_00458fa0* model, int color);
 };
 
 // FUNCTION: 0x458fa0
-void Class_00458fa0::FUN_00458fa0(View_0045a610* view, Model_00458fa0* model, int color)
+void Class_00458fa0::DrawPieceEdges(View_0045a610* view, Model_00458fa0* model, int color)
 {
     Vertex_0045a610 verts[2000];
     Vertex_0045a610 tmp[25];
@@ -144,7 +144,7 @@ void Class_00458fa0::FUN_00458fa0(View_0045a610* view, Model_00458fa0* model, in
                     for (k = 0; k < f->count; k++, ip++)
                         tmp[k] = verts[*ip];
                     tmp[k] = tmp[0];
-                    FUN_004c0820(view, tmp, f->count + 1, color);
+                    DrawPolygonEdges(view, tmp, f->count + 1, color);
                 }
             }
             piece--;

@@ -10,7 +10,7 @@ struct Bitmap_004587b0 {
 };
 
 // FUNCTION: 0x4587b0
-void __stdcall FUN_004587b0(Bitmap_004587b0* src, Bitmap_004587b0* dst)
+void __stdcall HalveFrame(Bitmap_004587b0* src, Bitmap_004587b0* dst)
 {
     unsigned char* d = dst->data;
     if (d == 0)

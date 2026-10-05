@@ -62,7 +62,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_004232f0(int index, int* head);
-void __stdcall FUN_0045aaa0(void* state);
+void __stdcall FreeObjectState(void* state);
 void __stdcall RefreshAllPassMaps(Point16_004246b0 a, Point16_004246b0 b);
 
 static inline void ClearCell(Cell_004246b0* c)
@@ -84,7 +84,7 @@ int __stdcall FUN_004246b0(Cell_004246b0* cell, int flag)
     if (cell->flags & 1) {
         Spot_004246b0* spot = &g_game->spots[cell->sf.spot];
         if (!(f->flags & 1)) {
-            FUN_0045aaa0(spot->state);
+            FreeObjectState(spot->state);
             spot->state = 0;
         }
         FUN_004232f0(cell->sf.spot, &g_game->list_1421b);

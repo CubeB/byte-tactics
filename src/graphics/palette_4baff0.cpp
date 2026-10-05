@@ -2,7 +2,7 @@
 #include <string.h>
 
 // FUNCTION: 0x4baff0
-char* __stdcall FUN_004baff0(char* a, char* b, char* c)
+char* __stdcall ChangeExtension(char* a, char* b, char* c)
 {
     strcpy(b, a);
     char* p = b + strlen(b) - 1;

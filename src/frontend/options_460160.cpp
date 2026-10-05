@@ -19,7 +19,7 @@ public:
     unsigned char FUN_004ce7e0(int index);
 };
 
-// The surface laid out by FUN_004c69f0: the pixels follow a 0x30-byte header.
+// The surface laid out by AllocSurface: the pixels follow a 0x30-byte header.
 struct Class_004c6a60 {
     char unknown_0[0xc];
     char* pixels;                   // +0xc
@@ -110,9 +110,9 @@ int __stdcall FUN_0045fc60(void* gadget);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 void __stdcall FUN_0049fb10(Menu_00460160* menu, int value);
 void __stdcall FUN_004a81e0(Menu_00460160* menu, int value);
-void __stdcall FUN_004b8ae0(Dst_004b8ae0* dst, Class_004c6a60* src);
-Class_004c6a60* __stdcall FUN_004c69f0(char* name, int width, int height);
-void __stdcall FUN_004c6b70(Class_004c6a60* surface, int a, int b, int c);
+void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Class_004c6a60* src);
+Class_004c6a60* __stdcall AllocSurface(char* name, int width, int height);
+void __stdcall DrawSurface(Class_004c6a60* surface, int a, int b, int c);
 
 // FUNCTION: 0x460160
 void FUN_00460160()
@@ -121,16 +121,16 @@ void FUN_00460160()
     if (!g_game->flags.bit2) {
         FUN_004257a0();
     }
-    DAT_00512fe8 = FUN_004c69f0("FLIPSURFACE", holder->field_4->field_17, holder->field_4->field_19);
+    DAT_00512fe8 = AllocSurface("FLIPSURFACE", holder->field_4->field_17, holder->field_4->field_19);
     memcpy(DAT_00512fe8->pixels, holder->field_4->field_bc->pixels,
            holder->field_4->field_17 * holder->field_4->field_19);
-    FUN_004b8ae0(&DAT_00512ef8, DAT_00512fe8);
+    FrameFromSurface(&DAT_00512ef8, DAT_00512fe8);
     DAT_00512fec = 0;
     DAT_00512f14 = holder->field_4->field_17 - 1;
     DAT_00512f10 = holder->field_4->field_15;
     DAT_00512fe4 = 1;
-    DAT_00512ff4 = FUN_004c69f0("BKUPSURFACE", 300, 480);
-    FUN_004c6b70(DAT_00512ff4, 0, 0, 0);
+    DAT_00512ff4 = AllocSurface("BKUPSURFACE", 300, 480);
+    DrawSurface(DAT_00512ff4, 0, 0, 0);
     DAT_00512ff0 = 0;
     Layer_00460160* panel = FUN_0045cfc0();
     if (!g_game->flags.bit2) {

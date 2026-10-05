@@ -99,7 +99,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 
 // The pin the earlier passes were looking for: a helper that returns its
 // argument. It emits no instruction, but MSVC 5 allocates what it returns as a
@@ -160,14 +160,14 @@ public:
     int color;                      // +0x30
     char unknown_34[0x44 - 0x34];
 
-    void FUN_004745e0(void* surface, short px, short py);
+    void DrawParticle(void* surface, short px, short py);
 };
 
 // Draws the record's one-pixel marker at (surface, px, py) offset by its own
 // position, when that position is visible to the local player. The marker is a
 // 1x1 rectangle centred on the sprite's origin, 0x80/0x20 to the right of it.
 // FUNCTION: 0x4745e0
-void Class_004745e0::FUN_004745e0(void* surface, short px, short py)
+void Class_004745e0::DrawParticle(void* surface, short px, short py)
 {
     Rect_004b0510 r;
     short sx = pos.x - px;
@@ -177,5 +177,5 @@ void Class_004745e0::FUN_004745e0(void* surface, short px, short py)
     r.x2 = r.x1 + 1;
     r.y2 = r.y1 + 1;
     if (pos.Visible())
-        FUN_004bf6f0(surface, &r, color);
+        FillRectangle(surface, &r, color);
 }

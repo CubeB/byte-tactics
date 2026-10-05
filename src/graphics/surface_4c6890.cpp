@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Fills a surface with one colour byte. With no surface it uses the one the
-// screen object was given by FUN_004c69a0 (+0xbc, when +0xdc is set), else its
+// screen object was given by SetOffscreenSurface (+0xbc, when +0xdc is set), else its
 // own framebuffer, unless bit 1 of the flags byte at +0xf0 sends the work to
 // the driver's function table, which then takes the object as its first
 // argument. Returns 0 only when that call reports a failure.
@@ -73,12 +73,12 @@ static void clear_screen(Class_004c6890* o, int colour)
     memset(o->pixels, colour, o->field_54 * o->field_58);
 }
 
-extern Class_004c6890* FUN_004b6220(void);
+extern Class_004c6890* GetDisplay(void);
 
 // FUNCTION: 0x4c6890
-int __stdcall FUN_004c6890(Surface* surface, int colour)
+int __stdcall FillSurface(Surface* surface, int colour)
 {
-    Class_004c6890* obj = FUN_004b6220();
+    Class_004c6890* obj = GetDisplay();
     int ret = 1;
     if (surface == 0) {
         if (obj->field_dc != 0) {

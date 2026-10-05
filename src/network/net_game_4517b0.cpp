@@ -129,10 +129,10 @@ int __stdcall HAPINET_joingame(void* net, Guid_4517b0 guid);
 int __stdcall HAPINET_enumplayers(void* net, void* session, void* callback, void* context,
                            unsigned long flags);
 void __stdcall EnumPlayersCallback(int, int, int, int, int);
-Obj_4517b0* FUN_004b6220(void);
-void FUN_004b5910(void);
+Obj_4517b0* GetDisplay(void);
+void ToggleFullScreen(void);
 char* __stdcall FUN_004c5740(char* s);
-void __stdcall FUN_004b6290(char* msg);
+void __stdcall FatalError(char* msg);
 
 // FUNCTION: 0x4517b0
 int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
@@ -201,11 +201,11 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
         if (g_game->field_4e5 != 0) {
             result = JoinLobbyGame(p);
             if (result == 0) {
-                if (FUN_004b6220()->flag) {
-                    FUN_004b5910();
+                if (GetDisplay()->flag) {
+                    ToggleFullScreen();
                     Sleep(500);
                 }
-                FUN_004b6290(FUN_004c5740("Unable to connect to DirectPlay lobby."));
+                FatalError(FUN_004c5740("Unable to connect to DirectPlay lobby."));
             }
         } else {
             result = HAPINET_joingame((Net_4517b0*)((char*)g_game + 0x14), guid);

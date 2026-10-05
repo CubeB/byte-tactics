@@ -33,7 +33,7 @@
 
 struct File_004bb5d0;
 
-int __stdcall FUN_004b64d0(int i);
+int __stdcall RemoveTimer(int i);
 int __stdcall FUN_004bb5d0(File_004bb5d0* file);
 
 class Class_004cfb40 {
@@ -64,7 +64,7 @@ void Class_004cfb40::FUN_004cf940(File_004bb5d0* file, int sampleRate, int bits,
     int n;
 
     if (handle != -1) {
-        FUN_004b64d0(handle);
+        RemoveTimer(handle);
         handle = -1;
     }
     if (stream != 0) {
@@ -74,7 +74,7 @@ void Class_004cfb40::FUN_004cf940(File_004bb5d0* file, int sampleRate, int bits,
         FUN_004bb5d0(this->file);
     }
     if (handle != -1) {
-        FUN_004b64d0(handle);
+        RemoveTimer(handle);
         handle = -1;
     }
 
@@ -105,7 +105,7 @@ void Class_004cfb40::FUN_004cf940(File_004bb5d0* file, int sampleRate, int bits,
     FUN_004cfca0();
     if (stream->SetVolume(volume) != 0) {
         if (handle != -1) {
-            FUN_004b64d0(handle);
+            RemoveTimer(handle);
             handle = -1;
         }
         if (stream != 0) {
@@ -118,7 +118,7 @@ void Class_004cfb40::FUN_004cf940(File_004bb5d0* file, int sampleRate, int bits,
     }
     if (stream->Play(0, 0, 1) != 0) {
         if (handle != -1) {
-            FUN_004b64d0(handle);
+            RemoveTimer(handle);
             handle = -1;
         }
         if (stream != 0) {

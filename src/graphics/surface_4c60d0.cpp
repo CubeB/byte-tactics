@@ -21,12 +21,12 @@ struct Display_004c60d0 {
     Screen_004c60d0 screen;            // +0x88
 };
 
-Display_004c60d0* FUN_004b6220(void);
+Display_004c60d0* GetDisplay(void);
 
 // FUNCTION: 0x4c60d0
-int __stdcall FUN_004c60d0(int unused, RECT* r1, RECT* r2)
+int __stdcall UnlockPrimary(int unused, RECT* r1, RECT* r2)
 {
-    Display_004c60d0* d = FUN_004b6220();
+    Display_004c60d0* d = GetDisplay();
     if (d->offscreenDC != 0) {
         HDC dc = GetDC(d->hwnd);
         SelectPalette(dc, d->hpalette, FALSE);

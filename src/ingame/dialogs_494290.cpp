@@ -34,7 +34,7 @@ struct Rect_00494290 {
 };
 
 void __stdcall FUN_004a1630(Entry_00494290* entry, Rect_00494290* rect);
-void __stdcall FUN_004c6b70(void* dest, void* image, int x, int y);
+void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 
 // FUNCTION: 0x494290
 void __stdcall FUN_00494290(Gadget_00494290* gadget, Entry_00494290* entry)
@@ -42,6 +42,6 @@ void __stdcall FUN_00494290(Gadget_00494290* gadget, Entry_00494290* entry)
     if (entry->image) {
         Rect_00494290 r;
         FUN_004a1630(entry, &r);
-        FUN_004c6b70(gadget->inner->entries->surface, entry->image, r.x1, r.y1);
+        DrawSurface(gadget->inner->entries->surface, entry->image, r.x1, r.y1);
     }
 }

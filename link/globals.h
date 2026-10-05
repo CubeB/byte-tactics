@@ -114,9 +114,9 @@ extern char s_PACKET_DATA_00506524[12];                                         
 extern char DAT_00506578[8];                                                                  // 0x506578, 8 bytes; 1 of 1 files
 extern char DAT_0050658c[56];                                                                 // 0x50658c, 56 bytes; 1 of 1 files
 extern char DAT_005065c4[28];                                                                 // 0x5065c4, 28 bytes; 1 of 1 files
-extern float DAT_005065f8;                                                                    // 0x5065f8, 4 bytes; 2 of 2 files
-extern float DAT_005065fc;                                                                    // 0x5065fc, 4 bytes; 2 of 2 files
-extern float DAT_00506600;                                                                    // 0x506600, 4 bytes; 2 of 2 files
+extern float g_lightX;                                                                        // 0x5065f8, 4 bytes; 2 of 2 files
+extern float g_lightY;                                                                        // 0x5065fc, 4 bytes; 2 of 2 files
+extern float g_lightZ;                                                                        // 0x506600, 4 bytes; 2 of 2 files
 extern int DAT_00506788;                                                                      // 0x506788, 4 bytes; 1 of 1 files
 extern char DAT_005067bc[8];                                                                  // 0x5067bc, 8 bytes; 2 of 2 files
 extern char DAT_00506884[8];                                                                  // 0x506884, 8 bytes; 2 of 2 files
@@ -213,8 +213,8 @@ extern char DAT_0050a548[4];                                                    
 extern char DAT_0050a56c[16];                                                                 // 0x50a56c, 16 bytes; 1 of 1 files
 extern char DAT_0050a57c[4];                                                                  // 0x50a57c, 4 bytes; 1 of 1 files
 extern char DAT_0050a5c0[16];                                                                 // 0x50a5c0, 16 bytes; 1 of 1 files
-extern int DAT_0050a778;                                                                      // 0x50a778, 4 bytes; 5 of 5 files
-extern void* DAT_0050a77c;                                                                    // 0x50a77c, 4 bytes; 5 of 5 files
+extern int g_emptyStringRefs;                                                                 // 0x50a778, 4 bytes; 5 of 5 files
+extern void* g_emptyString;                                                                   // 0x50a77c, 4 bytes; 5 of 5 files
 extern int g_guaranteePackets;                                                                // 0x50a780, 4 bytes; 4 of 4 files
 extern int DAT_0050b540;                                                                      // 0x50b540, 4 bytes; 8 of 8 files
 extern int DAT_0050b544;                                                                      // 0x50b544, 4 bytes; 7 of 7 files
@@ -701,14 +701,14 @@ extern long DAT_0052a4fc;                                                       
 // Not declared: 241 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x5119c0 g_playerAI: PlayerAI*[] (7), void*[] (5), Owner*[] (3), Class_00409470*[] (2), and 5 more
-//   0x51fbd0 DAT_0051fbd0: void* (4), int (2), Display_004b4f50* (1), Display_004b5370* (1), and 14 more
+//   0x51fbd0 g_display: void* (4), int (2), Display_004b4f50* (1), Display_004b5370* (1), and 14 more
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync_46c920.cpp
 //   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4db610.cpp
 //   0x512344 DAT_00512344: part of another global: DAT_00512340$S5516+0x4
 //   0x51fbbc std::HH::HU?$pair::?$_Tree::_Nil: defined in src/util/int_map_4b26f0.cpp
 //   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
-//   0x51fe00 DAT_0051fe00: part of another global: DAT_0051fdc0+0x40
+//   0x51fe00 g_screenLockCount: part of another global: DAT_0051fdc0+0x40
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fd3b8 DAT_004fd3b8: defined in src/data/vtables.cpp
@@ -732,7 +732,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e574 DAT_0051e574: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), ElemA_0046c190** (1), void* (1), and 1 more
 //   0x51e828 DAT_0051e828: unsigned int[680] (1), CdLists_490f80 (1), int[680] (1), int[] (1), and 1 more
 //   0x51fbe0 DAT_0051fbe0: part of another global: DAT_0051fbd8+0x8
-//   0x51fc80 DAT_0051fc80: part of another global: DAT_0051fbd8+0xa8
+//   0x51fc80 g_timerCount: part of another global: DAT_0051fbd8+0xa8
 //   0x51ff14 DAT_0051ff14: void* (2), CdAudio_004ce030* (1), Sound_004ce5e0* (1), Class_004d02a0* (1)
 //   0x529e9c DAT_00529e9c: char (3), bool (2)
 //   0x4fd3f8 DAT_004fd3f8: defined in src/data/vtables.cpp
@@ -778,7 +778,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e660 DAT_0051e660: int* (2), char* (1)
 //   0x51fb50 DAT_0051fb50: char[] (2), const char[] (1)
 //   0x51fb9c DAT_0051fb9c: const char* (1), int (1), char* (1)
-//   0x51fe08 DAT_0051fe08: part of another global: DAT_0051fdc0+0x48
+//   0x51fe08 g_screenLocks: part of another global: DAT_0051fdc0+0x48
 //   0x528a10 DAT_00528a10: void* (2), Node_004ddc00* (1)
 //   0x528ac0 DAT_00528ac0: void* (1), void (__stdcall*)(void) (1), int (__stdcall*)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*) (1)
 //   0x528ac4 DAT_00528ac4: void* (2), void (__stdcall*)(void) (1)
@@ -824,8 +824,8 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e580 DAT_0051e580: int (__stdcall*)(void) (1), void (__stdcall*)(void) (1)
 //   0x51e584 DAT_0051e584: int (__stdcall*)(int, int, int, int, int, int, int, int, int, int) (1), int (__stdcall*)(int, Rect_0046c620*, void*, int, Name_0046c620*, int, int, int, void*, void*) (1)
 //   0x51e640 DAT_0051e640: Anim_00478b40 (1), int (1)
-//   0x51fc78 DAT_0051fc78: part of another global: DAT_0051fbd8+0xa0
-//   0x51fc7c DAT_0051fc7c: part of another global: DAT_0051fbd8+0xa4
+//   0x51fc78 g_closeHandler: part of another global: DAT_0051fbd8+0xa0
+//   0x51fc7c g_closeHandlerArg: part of another global: DAT_0051fbd8+0xa4
 //   0x51fe48 DAT_0051fe48: part of another global: DAT_0051fdc0+0x88
 //   0x51fea0 DAT_0051fea0: part of another global: DAT_0051fdc0+0xe0
 //   0x528ab8 DAT_00528ab8: void* (1), int (__stdcall*)(void*, char*, unsigned long) (1)

@@ -13,12 +13,12 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned int __cdecl FUN_004b6340();
+unsigned int __cdecl GetTicks();
 
 // FUNCTION: 0x41dee0
 void FUN_0041dee0(void)
 {
     g_game->steps = 10;
-    g_game->nextTime = FUN_004b6340() + 1;
+    g_game->nextTime = GetTicks() + 1;
     g_game->done = 0;
 }

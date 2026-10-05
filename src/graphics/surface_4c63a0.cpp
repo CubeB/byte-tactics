@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by GPT-6, finished by claude-opus-5-5. Names are provisional.
 // Presents a frame. With flag bit 1 clear it blits the cached bitmap through
 // GDI. Otherwise, when +0xdc is set, it copies the bitmap at +0xbc (if its
-// size matches FUN_004b6700/FUN_004b6710) into the locked primary surface;
+// size matches GetScreenWidth/GetScreenHeight) into the locked primary surface;
 // else it flips, or Blts the back surface to the window's client rect,
 // retrying after DDERR_SURFACELOST.
 // The two "MAIN" Lock()/Unlock() pairs share one Unlock body in the exe.
@@ -16,7 +16,7 @@
 #include <windows.h>
 #include <ddraw.h>
 
-struct Surface_004c63a0 {
+struct Surface {
     int data[12];
 };
 
@@ -46,10 +46,10 @@ struct Display_004c63a0 {
     HPALETTE palette;                  // +0x4c
     Out_004c63a0 cached;               // +0x50
     Screen_004c63a0 screen;            // +0x80
-    Surface_004c63a0* field_98;        // +0x98
+    Surface* field_98;                 // +0x98
     int field_9c;                      // +0x9c
     char unknown_a0[0xbc - 0xa0];
-    Surface_004c63a0* field_bc;        // +0xbc
+    Surface* field_bc;                 // +0xbc
     char unknown_c0[0xd4 - 0xc0];
     int field_d4;                      // +0xd4
     int field_d8;                      // +0xd8
@@ -59,7 +59,7 @@ struct Display_004c63a0 {
     char unknown_f2[0x196 - 0xf2];
     int field_196;                     // +0x196
     char unknown_19a[0x1b2 - 0x19a];
-    Surface_004c63a0* field_1b2;       // +0x1b2
+    Surface* field_1b2;                // +0x1b2
     int field_1b6;                     // +0x1b6
     int field_1ba;                     // +0x1ba
     int* field_1be;                    // +0x1be
@@ -72,15 +72,15 @@ struct Display_004c63a0 {
 extern LONG DAT_0052a4e8;
 extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
-extern int DAT_0051fe00;
+extern int g_screenLockCount;
 
-Display_004c63a0* FUN_004b6220(void);
-int FUN_004b6700(void);
-int FUN_004b6710(void);
-int __stdcall FUN_004c5e70(Surface_004c63a0* out);
-void __stdcall FUN_004c6b70(Surface_004c63a0* dst, Surface_004c63a0* bmp, int x, int y);
-void __stdcall FUN_004c67c0(Display_004c63a0* obj, void* dst);
-void __cdecl FUN_004cbbe0(Surface_004c63a0* dst, Surface_004c63a0* src, int x, int y);
+Display_004c63a0* GetDisplay(void);
+int GetScreenWidth(void);
+int GetScreenHeight(void);
+int __stdcall LockScreen(Surface* out);
+void __stdcall DrawSurface(Surface* dst, Surface* bmp, int x, int y);
+void __stdcall DrawCursor(Display_004c63a0* obj, void* dst);
+void __cdecl BlitSurface(Surface* dst, Surface* src, int x, int y);
 
 static inline LONG Lock()
 {
@@ -106,15 +106,15 @@ static inline void Unlock(LONG held)
 }
 
 // 0x4c5fa0, inlined here.
-static inline int UnlockScreen()
+static inline int UnlockScreenInline()
 {
-    Display_004c63a0* d = FUN_004b6220();
+    Display_004c63a0* d = GetDisplay();
     if (d->field_44 == 0 && d->field_dc == 0) {
         if (d->screen.surface == 0)
             return 0;
         d->screen.UnlockSurface();
-        if (DAT_0051fe00 > 0)
-            DAT_0051fe00--;
+        if (g_screenLockCount > 0)
+            g_screenLockCount--;
     }
     return 1;
 }
@@ -125,17 +125,17 @@ static inline int UnlockScreen()
 // Lock the same registers as the first path and tail-merge the two Unlocks.
 static inline HRESULT RestoreSurfaces(Display_004c63a0* d)
 {
-    Display_004c63a0* dd = FUN_004b6220();
+    Display_004c63a0* dd = GetDisplay();
     if (dd->field_44 != 0)
         return 0;
     HRESULT hr = d->screen.primary->Restore();
     if (hr == 0) {
         hr = d->screen.surface->Restore();
         if (hr == 0) {
-            Surface_004c63a0 screen;
-            FUN_004c5e70(&screen);
-            FUN_004cbbe0(&screen, dd->field_98, 0, 0);
-            UnlockScreen();
+            Surface screen;
+            LockScreen(&screen);
+            BlitSurface(&screen, dd->field_98, 0, 0);
+            UnlockScreenInline();
         }
     }
     return hr;
@@ -150,16 +150,16 @@ struct Desc {
 };
 
 // FUNCTION: 0x4c63a0
-void FUN_004c63a0(void)
+void FlipScreen(void)
 {
-    Display_004c63a0* d = FUN_004b6220();
+    Display_004c63a0* d = GetDisplay();
     unsigned short flags = d->flags;
 
     if ((flags & 2) == 0) {
         LONG held = Lock();
         Out_004c63a0* p = &d->cached;
-        FUN_004c6b70((Surface_004c63a0*)p, d->field_bc, 0, 0);
-        FUN_004c67c0(d, p);
+        DrawSurface((Surface*)p, d->field_bc, 0, 0);
+        DrawCursor(d, p);
         HDC hdc = GetDC(d->hwnd);
         SelectPalette(hdc, d->palette, 0);
         RealizePalette(hdc);
@@ -171,11 +171,11 @@ void FUN_004c63a0(void)
 
     if (d->field_dc != 0) {
         Desc desc;
-        Surface_004c63a0 out;
-        Surface_004c63a0* bmp = d->field_bc;
-        if (bmp->data[0] != FUN_004b6700())
+        Surface out;
+        Surface* bmp = d->field_bc;
+        if (bmp->data[0] != GetScreenWidth())
             return;
-        if (bmp->data[1] != FUN_004b6710())
+        if (bmp->data[1] != GetScreenHeight())
             return;
 
         LONG held = Lock();
@@ -186,10 +186,10 @@ void FUN_004c63a0(void)
             out.data[1] = d->field_d8;
             out.data[2] = desc.lPitch;
             out.data[3] = (int)desc.lpSurface;
-            FUN_004c67c0(d, bmp);
-            FUN_004cbbe0(&out, bmp, 0, 0);
+            DrawCursor(d, bmp);
+            BlitSurface(&out, bmp, 0, 0);
             if (d->field_1ce != 0 && d->field_1d2 != 0)
-                FUN_004c6b70(bmp, (Surface_004c63a0*)d->field_1be, d->field_1b6, d->field_1ba);
+                DrawSurface(bmp, (Surface*)d->field_1be, d->field_1b6, d->field_1ba);
             d->screen.primary->Unlock(0);
         } else if (lr == 0x887601c2) {
             RestoreSurfaces(d);

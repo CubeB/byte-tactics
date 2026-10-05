@@ -21,11 +21,11 @@ public:
     char unknown_24[4];
     int flags;                         // +0x28, low 4 bits: frame
 
-    void FUN_004739b0();
+    void Step();
 };
 
 // FUNCTION: 0x4739b0
-void Class_004739b0::FUN_004739b0()
+void Class_004739b0::Step()
 {
     short frame = (flags & 0xf) + 1;
     pos += vel;

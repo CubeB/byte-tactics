@@ -16,13 +16,13 @@ struct Queue_004c1ab0 {
 };
 #pragma pack(pop)
 
-Queue_004c1ab0* FUN_004b6220(void);
+Queue_004c1ab0* GetDisplay(void);
 void __stdcall FUN_004c1b20(int v);
 
 // FUN_004c1b20, inlined at the constant-key cases.
 static inline void PushKey(int v)
 {
-    Queue_004c1ab0* q = FUN_004b6220();
+    Queue_004c1ab0* q = GetDisplay();
     int next = q->head + 1;
     if ((q->head + 1) % q->size == q->tail)
         return;

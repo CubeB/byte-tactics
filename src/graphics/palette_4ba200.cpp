@@ -37,7 +37,7 @@ extern LONG DAT_0052a4e8;
 extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
 
-Display_004ba200* FUN_004b6220(void);
+Display_004ba200* GetDisplay(void);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 
@@ -65,7 +65,7 @@ static inline void Unlock(LONG held)
 }
 
 // FUNCTION: 0x4ba200
-int __stdcall FUN_004ba200(unsigned char* src, int start, int count)
+int __stdcall SetPaletteColors(unsigned char* src, int start, int count)
 {
     LONG held = Lock();
     float brightness;
@@ -74,7 +74,7 @@ int __stdcall FUN_004ba200(unsigned char* src, int start, int count)
     unsigned char quad[0x400];
     int i;
     int end;
-    d = FUN_004b6220();
+    d = GetDisplay();
     brightness = *(float*)((char*)d + 0x614);
     unsigned int* p = d->entries + start;
     end = start + count;

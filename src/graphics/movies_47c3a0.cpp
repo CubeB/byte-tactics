@@ -44,8 +44,8 @@ extern "C" __declspec(dllimport) void __stdcall SmackNextFrame(Smk_0047c3a0* smk
 extern "C" __declspec(dllimport) void __stdcall SmackToBuffer(Smk_0047c3a0* smk, unsigned int left, unsigned int top, unsigned int width, unsigned int height, unsigned int bufferHeight, void* buffer);
 extern "C" __declspec(dllimport) int __stdcall SmackToBufferRect(Smk_0047c3a0* smk, int flag);
 
-void __stdcall FUN_004c69a0(Display_0047c3a0* display);
-void FUN_004c63a0();
+void __stdcall SetOffscreenSurface(Display_0047c3a0* display);
+void FlipScreen();
 
 class Class_0047c3a0 {
 public:
@@ -57,11 +57,11 @@ public:
     char unknown_410[0x544 - 0x410];
     Display_0047c3a0* display;          // +0x544
 
-    void FUN_0047c3a0(HWND hwnd);
+    void PlayFrame(HWND hwnd);
 };
 
 // FUNCTION: 0x47c3a0
-void Class_0047c3a0::FUN_0047c3a0(HWND hwnd)
+void Class_0047c3a0::PlayFrame(HWND hwnd)
 {
     if (GetFocus() != hwnd)
         return;
@@ -76,10 +76,10 @@ void Class_0047c3a0::FUN_0047c3a0(HWND hwnd)
         }
         display->palette->SetEntries(0, 0, 256, entries);
     }
-    FUN_004c69a0(g_game->display);
+    SetOffscreenSurface(g_game->display);
     SmackToBuffer(video, 0, (0x1e0 - video->height) >> 1, g_game->display->width, video->height, g_game->display->height, 0);
     SmackDoFrame(video);
-    FUN_004c63a0();
+    FlipScreen();
     if (SmackToBufferRect(video, 1) && video->lastLeft == 0 && video->lastTop == 0
         && video->lastWidth == video->width && video->lastHeight == video->height) {
         counter = video->frameNum + 1;

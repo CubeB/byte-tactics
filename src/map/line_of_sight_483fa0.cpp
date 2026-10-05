@@ -1,8 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by opus. Names are provisional.
 // MATCH. Draws the visible map tiles into `surface`: the partial tiles along
-// the left/right edges and then the top/bottom edges through FUN_004b8150
+// the left/right edges and then the top/bottom edges through DrawFrameOpaque
 // (a 32x32 Bitmap whose data points at the tile's icon), then the whole
-// interior tiles through FUN_004c6e70.
+// interior tiles through DrawTile.
 // opus rewrote the earlier 77.2% file from scratch. What it took:
 // * The edge and interior loops are index loops: the screen coordinate is
 //   written from the index (`screenY + j * 32 - offY`, `screenX + i * 32`),
@@ -61,8 +61,8 @@ struct Bitmap_00483fa0 {
 
 extern Game* g_game;
 
-void __stdcall FUN_004b8150(void* dst, Bitmap_00483fa0* bmp, int x, int y);
-void __stdcall FUN_004c6e70(void* dst, int x, int y, unsigned char* pix);
+void __stdcall DrawFrameOpaque(void* dst, Bitmap_00483fa0* bmp, int x, int y);
+void __stdcall DrawTile(void* dst, int x, int y, unsigned char* pix);
 
 // FUNCTION: 0x483fa0
 void __stdcall FUN_00483fa0(void* surface)
@@ -107,11 +107,11 @@ void __stdcall FUN_00483fa0(void* surface)
         for (int j = 0; j < tilesY; j++) {
             if (offX != 0) {
                 bmp.data = g_game->iconSet->data + *left * 0x400;
-                FUN_004b8150(surface, &bmp, screenX - offX, (screenY + j * 32) - offY);
+                DrawFrameOpaque(surface, &bmp, screenX - offX, (screenY + j * 32) - offY);
             }
             if (edgeX != 0) {
                 bmp.data = g_game->iconSet->data + *right * 0x400;
-                FUN_004b8150(surface, &bmp, tilesX * 32 + screenX - offX - 32, (screenY + j * 32) - offY);
+                DrawFrameOpaque(surface, &bmp, tilesX * 32 + screenX - offX - 32, (screenY + j * 32) - offY);
             }
             left += stride;
             right += stride;
@@ -125,11 +125,11 @@ void __stdcall FUN_00483fa0(void* surface)
         for (int i = 0; i < tilesX; i++) {
             if (offY != 0) {
                 bmp.data = g_game->iconSet->data + *top * 0x400;
-                FUN_004b8150(surface, &bmp, (screenX + i * 32) - offX, screenY - offY);
+                DrawFrameOpaque(surface, &bmp, (screenX + i * 32) - offX, screenY - offY);
             }
             if (edgeY != 0) {
                 bmp.data = g_game->iconSet->data + *bottom * 0x400;
-                FUN_004b8150(surface, &bmp, (screenX + i * 32) - offX, tilesY * 32 + screenY - offY - 32);
+                DrawFrameOpaque(surface, &bmp, (screenX + i * 32) - offX, tilesY * 32 + screenY - offY - 32);
             }
             top++;
             bottom++;
@@ -155,7 +155,7 @@ void __stdcall FUN_00483fa0(void* surface)
     for (int j = 0; j < tilesY; j++) {
         unsigned short* p = g_game->mapValues + (tileY + j) * (unsigned short)stride + tileX;
         for (int i = 0; i < tilesX; i++, p++) {
-            FUN_004c6e70(surface, screenX + i * 32, screenY + j * 32, g_game->iconSet->data + *p * 0x400);
+            DrawTile(surface, screenX + i * 32, screenY + j * 32, g_game->iconSet->data + *p * 0x400);
         }
     }
 }

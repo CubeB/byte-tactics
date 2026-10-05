@@ -55,9 +55,9 @@ struct Class_0051fba4 {
 
 extern Class_0051fba4* DAT_0051fba4;
 
-int FUN_004c13f0();
-void __stdcall FUN_004c13a0(int colour, int font);
-void __stdcall FUN_004c1420(int id);
+int GetTextKeyColor();
+void __stdcall SetTextColors(int colour, int font);
+void __stdcall SetFont(int id);
 int __stdcall FUN_0049fc50(Menu_004a76b0* menu, int index);
 void __stdcall FUN_004ab6c0(Menu_004a76b0* menu, int index, char* text, int maxLength, int clear);
 void FUN_004c1a40();
@@ -74,20 +74,20 @@ static inline int FindEntry(Entry_004a76b0* entries, char* name)
 static inline void DoSelect(Menu_004a76b0* menu, Entry_004a76b0* entries, int sel)
 {
     Entry_004a76b0* entry = &entries[sel];
-    FUN_004c13a0(((unsigned char*)entry->field_1f)[(int)menu + 0x8b2], FUN_004c13f0());
+    SetTextColors(((unsigned char*)entry->field_1f)[(int)menu + 0x8b2], GetTextKeyColor());
     int n = 0;
     int i = 1;
     for (; i < entries->u.count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == entry->group) {
-                FUN_004c1420(entries[i].id);
+                SetFont(entries[i].id);
                 break;
             }
             n++;
         }
     }
     if (i == entries->u.count + 1)
-        FUN_004c1420(DAT_0051fba4->group);
+        SetFont(DAT_0051fba4->group);
     FUN_0049fc50(menu, sel);
     menu->layer->field_20 = sel;
     FUN_004ab6c0(menu, sel, entry->u.text, entry->field_138, 0);

@@ -71,7 +71,7 @@ extern Game* g_game;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 int __stdcall BroadcastPacket(int id, unsigned char* packet, int size);
 int __stdcall HAPINET_guaranteepackets(int param_1);
 int __stdcall RequestPlayerColor(int param_1);
@@ -80,7 +80,7 @@ void FUN_00450530();
 // FUNCTION: 0x456310
 void SendNetHeartbeat()
 {
-    unsigned int now = FUN_004b6340();
+    unsigned int now = GetTicks();
     if ((int)(now - g_game->field_1b5f) <= 0x3c)
         return;
     g_game->field_1b5f += 0x3c;

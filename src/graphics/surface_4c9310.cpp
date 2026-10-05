@@ -24,11 +24,11 @@ public:
         return data;
     }
 
-    Class_004c9310* FUN_004c9310();
+    Class_004c9310* MakeUpper();
 };
 
 // FUNCTION: 0x4c9310
-Class_004c9310* Class_004c9310::FUN_004c9310()
+Class_004c9310* Class_004c9310::MakeUpper()
 {
     _strupr(GetUnique());
     return this;

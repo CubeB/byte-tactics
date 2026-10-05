@@ -122,30 +122,30 @@ struct App_4b5980 {
 
 #pragma pack(pop)
 
-extern App_4b5980* DAT_0051fbd0;
+extern App_4b5980* g_display;
 
 void FUN_004bce10(void);
 void __stdcall FUN_004c2360(int* p);
 void __stdcall FUN_004c1a60(int size);
 void __stdcall FUN_004c2bd0(int count, int start);
-int __stdcall FUN_004ba610(App_4b5980* d);
-int __stdcall FUN_004ba5c0(App_4b5980* d);
-int __stdcall FUN_004ba660(App_4b5980* d);
-int __stdcall FUN_004ba6b0(App_4b5980* d);
-int __stdcall FUN_004ba700(App_4b5980* d);
-void __stdcall FUN_004b4ff0(App_4b5980* d);
-int __stdcall FUN_004b5510(int param);
-long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam, long lparam);
+int __stdcall AllocShadeTable(App_4b5980* d);
+int __stdcall AllocAlphaTable(App_4b5980* d);
+int __stdcall AllocLightTable(App_4b5980* d);
+int __stdcall AllocGrayTable(App_4b5980* d);
+int __stdcall AllocBlueTable(App_4b5980* d);
+void __stdcall ReleaseDirectDraw(App_4b5980* d);
+int __stdcall SetFullScreen(int param);
+long __stdcall WindowProc(HWND hwnd, unsigned int msg, unsigned int wparam, long lparam);
 
 // FUNCTION: 0x4b5980
-int __stdcall FUN_004b5980(App_4b5980* d)
+int __stdcall InitEnvironment(App_4b5980* d)
 {
-    DAT_0051fbd0 = d;
+    g_display = d;
     MEMORYSTATUS mem;
     mem.dwLength = 0x20;
     GlobalMemoryStatus(&mem);
     d->availPhys = mem.dwTotalPhys;
-    SystemParametersInfoA(0x5e, 0, (LPRECT)&DAT_0051fbd0->wa_left, TRUE);
+    SystemParametersInfoA(0x5e, 0, (LPRECT)&g_display->wa_left, TRUE);
     SystemParametersInfoA(0x5d, 0, 0, TRUE);
     d->accum = 0;
     d->lastTick = GetTickCount();
@@ -182,23 +182,23 @@ int __stdcall FUN_004b5980(App_4b5980* d)
     int subsys = (d->videoFlags & 0x1fe) << 1;
     d->flags.value = (d->flags.value & 0xfc03) | subsys | 1;
     if (d->flags.bits.has_c4) {
-        FUN_004ba610(d);
+        AllocShadeTable(d);
     } else {
         d->obj_c4 = 0;
     }
     if (d->flags.bits.has_c0) {
-        FUN_004ba5c0(d);
+        AllocAlphaTable(d);
     }
     if (d->flags.bits.has_c8) {
-        FUN_004ba660(d);
+        AllocLightTable(d);
     } else {
         d->obj_c8 = 0;
     }
     if (d->flags.bits.has_cc) {
-        FUN_004ba6b0(d);
+        AllocGrayTable(d);
     }
     if (d->flags.bits.has_d0) {
-        FUN_004ba700(d);
+        AllocBlueTable(d);
     }
     if (d->flags.bits.gdi) {
         d->dc = 0;
@@ -206,7 +206,7 @@ int __stdcall FUN_004b5980(App_4b5980* d)
         d->oldPalette = 0;
         d->unknown_80 = 0;
         d->mode = d->startMode;
-        d->wc.lpfnWndProc = FUN_004b5cc0;
+        d->wc.lpfnWndProc = WindowProc;
         d->wc.style = 8;
         d->wc.hInstance = d->hInstance;
         d->wc.lpszClassName = d->className;
@@ -225,13 +225,13 @@ int __stdcall FUN_004b5980(App_4b5980* d)
             if (d->hwnd != 0) {
                 ShowWindow(d->hwnd, d->nCmdShow);
                 UpdateWindow(d->hwnd);
-                int r = FUN_004b5510(d->videoFlags & 1);
+                int r = SetFullScreen(d->videoFlags & 1);
                 if (r != 0) {
                     return 1;
                 }
             }
         }
-        FUN_004b4ff0(d);
+        ReleaseDirectDraw(d);
         if (d->dc) {
             DeleteDC(d->dc);
         }

@@ -103,7 +103,7 @@ extern Entry_00439740* DAT_00512344;
 int __stdcall FUN_00465ac0(Player_00439740* owner, Unit* unit);
 void __stdcall FUN_00438ea0(void* surface, View_00439740* view, Pos_00439740* pos,
                             int radius, int color, const char* text, int index);
-void __stdcall FUN_004b8500(void* dest, void* bmp, int x, int y);
+void __stdcall DrawFrameBlended(void* dest, void* bmp, int x, int y);
 
 // FUNCTION: 0x439740
 void __stdcall FUN_00439740(void* surface, View_00439740* view, Node_00439740* node,
@@ -157,7 +157,7 @@ void __stdcall FUN_00439740(void* surface, View_00439740* view, Node_00439740* n
     unsigned int n = g_game->frame / ((unsigned int)anim->field_2c * 2);
     n = n % anim->count;
     void* bmp = *(void**)((char*)anim + n * 8 + 0x28);
-    FUN_004b8500(surface, bmp, pos.x - view->cx + 0x80,
+    DrawFrameBlended(surface, bmp, pos.x - view->cx + 0x80,
                  pos.z - (pos.y >> 1) - view->cy + 0x20);
     *out = pos;
 }

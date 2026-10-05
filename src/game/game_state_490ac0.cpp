@@ -1,7 +1,7 @@
 // Decompiled by Sonnet. Names are provisional.
 
-int __stdcall FUN_004c69f0(const char* name, int a, int b);
-void __stdcall FUN_004c61f0(int param_1);
+int __stdcall AllocSurface(const char* name, int a, int b);
+void __stdcall SetRestoreSurface(int param_1);
 
 #pragma pack(push, 1)
 struct Game
@@ -19,6 +19,6 @@ extern const char DAT_005091d4[]; // "OFFSCREEN"
 // FUNCTION: 0x490ac0
 void FUN_00490ac0()
 {
-    g_game->field_37e1b = FUN_004c69f0(DAT_005091d4, g_game->field_37e1f, g_game->field_37e23);
-    FUN_004c61f0(g_game->field_37e1b);
+    g_game->field_37e1b = AllocSurface(DAT_005091d4, g_game->field_37e1f, g_game->field_37e23);
+    SetRestoreSurface(g_game->field_37e1b);
 }

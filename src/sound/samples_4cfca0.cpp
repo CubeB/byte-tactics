@@ -13,7 +13,7 @@
 
 struct File_004bb5d0;
 
-int __stdcall FUN_004b64d0(int i);
+int __stdcall RemoveTimer(int i);
 int __stdcall FUN_004bb5d0(File_004bb5d0* file);
 long __stdcall FUN_004bb7a0(File_004bb5d0* file);
 long __stdcall FUN_004bbd00(File_004bb5d0* file);
@@ -41,7 +41,7 @@ void Class_004cfb40::FUN_004cfca0()
     char* buffer;
     if (stream->Lock(pos, size, &buffer, &flags, 0, 0, 0) != 0) {
         if (handle != -1) {
-            FUN_004b64d0(handle);
+            RemoveTimer(handle);
             handle = -1;
         }
         if (stream != 0) {

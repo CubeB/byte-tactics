@@ -19,11 +19,11 @@ public:
     PALETTEENTRY entries[256];          // +0x10
     char unknown_410[0x134];
     DisplaySurface* display;            // +0x544
-    void FUN_0047c2a0(void);
+    void UpdatePalette(void);
 };
 
 // FUNCTION: 0x47c2a0
-void Class_0047c2a0::FUN_0047c2a0(void)
+void Class_0047c2a0::UpdatePalette(void)
 {
     unsigned char* src = source->rgb[0];
     for (int i = 0; i < 256; i++) {

@@ -52,17 +52,17 @@ extern char DAT_0050966c[];
 
 int FUN_004c1b00();
 void FUN_004c1ab0();
-void FUN_004b5910();
+void ToggleFullScreen();
 void __stdcall FUN_00491d70(int);
 void __stdcall FUN_004bcf00(char*);
-int __stdcall FUN_004b6340();
+int __stdcall GetTicks();
 void __stdcall FUN_004c2de0(Input_00499890*);
 void __stdcall FUN_004a9fd0(void*);
 void FUN_00494e70();
 void FUN_0047f680();
 void __stdcall FUN_004c2d60(int*);
-void FUN_004b6370();
-void __stdcall FUN_004cb170(char*, char*);
+void UpdateTimers();
+void __stdcall SaveScreenshot(char*, char*);
 
 // FUNCTION: 0x499890
 void FUN_00499890()
@@ -75,7 +75,7 @@ void FUN_00499890()
     if (key == 0x7e) {
         if (g_game->screenBitB) {
             FUN_004c1ab0();
-            FUN_004b5910();
+            ToggleFullScreen();
         }
     }
     if ((g_game->orderFlags & 1) && key == 0xe3) {
@@ -90,8 +90,8 @@ void FUN_00499890()
         FUN_004bcf00(g_game->path);
         sprintf(path, DAT_005024fc, g_game->path);
         FUN_004bcf00(path);
-        FUN_004cb170(path, DAT_0050966c);
-        g_game->screenshot = FUN_004b6340();
+        SaveScreenshot(path, DAT_0050966c);
+        g_game->screenshot = GetTicks();
     }
     FUN_004c2de0(&first);
     FUN_004a9fd0(g_game->menu);
@@ -104,7 +104,7 @@ void FUN_00499890()
         g_game->selected = first;
     else
         g_game->selected = second;
-    FUN_004b6370();
+    UpdateTimers();
     if (!(g_game->unknown_c->flags & 8))
         g_game->callback();
 }

@@ -8,7 +8,7 @@
 //
 // claude-opus-5-5 (#4733): 55.9% -> 99.3% (423 of 423 bytes). The earlier
 // "register family" notes were all symptoms of four source-shape errors:
-//  - The header set-up is the real FUN_004b8e00 inlined (alloc w*h*2 cells
+//  - The header set-up is the real AllocDepthFrame inlined (alloc w*h*2 cells
 //    plus a 0x18 header, width, plane0/plane1, height, zeroed x/y/flags).
 //    It has no null check of its own, which is why the stores come before
 //    the null test. The copy below (width, plane0, height, plane1) MATCHES
@@ -60,7 +60,7 @@ struct Bitmap_004b8e00 {
 
 extern void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 
-Bitmap_004b8e00* __stdcall FUN_004b8e00(const char* name, int width, int height)
+Bitmap_004b8e00* __stdcall AllocDepthFrame(const char* name, int width, int height)
 {
     int size = height * width;
     Bitmap_004b8e00* b = (Bitmap_004b8e00*)FUN_004d83b0(name, size * 2 + sizeof(Bitmap_004b8e00));
@@ -79,10 +79,10 @@ Bitmap_004b8e00* __stdcall FUN_004b8e00(const char* name, int width, int height)
 }
 
 // FUNCTION: 0x4b91b0
-void* __stdcall FUN_004b91b0(int w, int h, int lens)
+void* __stdcall BuildLensFrame(int w, int h, int lens)
 {
     double scale = lens;
-    Bitmap_004b8e00* f = FUN_004b8e00("LensFrame", w * 2, h);
+    Bitmap_004b8e00* f = AllocDepthFrame("LensFrame", w * 2, h);
     if (!f)
         return 0;
     f->width /= 2;

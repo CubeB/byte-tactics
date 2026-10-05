@@ -10,11 +10,11 @@ struct Vec3_004cb650 {
 
 struct Object_004cb650;
 
-void __stdcall FUN_004cb6a0(Object_004cb650* obj, Vec3_004cb650* offset,
+void __stdcall AddObjectBounds(Object_004cb650* obj, Vec3_004cb650* offset,
                             Vec3_004cb650* lo, Vec3_004cb650* hi, int arg);
 
 // FUNCTION: 0x4cb650
-void __stdcall FUN_004cb650(Object_004cb650* obj, Vec3_004cb650* lo,
+void __stdcall GetObjectBounds(Object_004cb650* obj, Vec3_004cb650* lo,
                             Vec3_004cb650* hi, int arg)
 {
     Vec3_004cb650 offset;
@@ -27,5 +27,5 @@ void __stdcall FUN_004cb650(Object_004cb650* obj, Vec3_004cb650* lo,
     offset.x = 0;
     offset.y = 0;
     offset.z = 0;
-    FUN_004cb6a0(obj, &offset, lo, hi, arg);
+    AddObjectBounds(obj, &offset, lo, hi, arg);
 }

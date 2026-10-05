@@ -16,7 +16,7 @@ struct Gaf_004b8d40 {
 };
 
 // FUNCTION: 0x4b8d40
-GafEntry_004b8d40* __stdcall FUN_004b8d40(Gaf_004b8d40* gaf, const char* name)
+GafEntry_004b8d40* __stdcall FindGafEntry(Gaf_004b8d40* gaf, const char* name)
 {
     if (gaf) {
         GafEntry_004b8d40** p = gaf->entries;

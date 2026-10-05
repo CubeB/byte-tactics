@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Stores `value` at +0x1b2 of the object FUN_004b6220 returns while holding
+// Stores `value` at +0x1b2 of the object GetDisplay returns while holding
 // the 'MAIN' spin lock (DAT_0052a4e8, owner tag DAT_0052a4ec, event
 // DAT_0052a4f0); a lock already held by 'MAIN' is not released here.
 #include <windows.h>
@@ -15,7 +15,7 @@ extern LONG DAT_0052a4e8;
 extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
 
-State_004c2b20* FUN_004b6220(void);
+State_004c2b20* GetDisplay(void);
 
 static inline LONG Lock()
 {
@@ -44,6 +44,6 @@ static inline void Unlock(LONG held)
 void __stdcall FUN_004c2b20(int value)
 {
     LONG held = Lock();
-    FUN_004b6220()->field_1b2 = value;
+    GetDisplay()->field_1b2 = value;
     Unlock(held);
 }

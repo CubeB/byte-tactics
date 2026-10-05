@@ -29,14 +29,14 @@ extern char DAT_00507518[];
 extern char DAT_00507508[];
 
 void FUN_00466780();
-void* __stdcall FUN_004c69f0(char* name, int width, int height);
+void* __stdcall AllocSurface(char* name, int width, int height);
 
 // FUNCTION: 0x4669b0
 void FUN_004669b0()
 {
     FUN_00466780();
-    g_game->finalSurface = FUN_004c69f0(DAT_00507518, g_game->dim.v[2], g_game->dim.v[3]);
-    g_game->mappedSurface = FUN_004c69f0(DAT_00507508, g_game->dim.v[2], g_game->dim.v[3]);
+    g_game->finalSurface = AllocSurface(DAT_00507518, g_game->dim.v[2], g_game->dim.v[3]);
+    g_game->mappedSurface = AllocSurface(DAT_00507508, g_game->dim.v[2], g_game->dim.v[3]);
     g_game->viewLeft = g_game->dim.v[0];
     g_game->viewTop = g_game->dim.v[1];
     g_game->viewRight = g_game->dim.v[2] + g_game->dim.v[0] - 1;

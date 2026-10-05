@@ -3,7 +3,7 @@
 // translated and dispatched, and two message codes end the movie, one of them
 // with a mouse move that also quits the game. When the queue is empty the
 // player is asked for the next frame, and if there is none yet the frame on
-// screen is redrawn (FUN_0047c3a0).
+// screen is redrawn (PlayFrame).
 #include <windows.h>
 
 // smackw32.dll, imported by ordinal (32) and by no name, so it has no
@@ -25,7 +25,7 @@ public:
     int unknown_4;                      // +0x04
     int stopped;                        // +0x08
     HWND hwnd;                          // +0x0c
-    void FUN_0047c3a0(HWND hwnd);
+    void PlayFrame(HWND hwnd);
 };
 
 class Class_0047c6c0 {
@@ -34,11 +34,11 @@ public:
     int unknown_4;                      // +0x04
     int stopped;                        // +0x08
     HWND hwnd;                          // +0x0c
-    void FUN_0047c6c0();
+    void Play();
 };
 
 // FUNCTION: 0x47c6c0
-void Class_0047c6c0::FUN_0047c6c0()
+void Class_0047c6c0::Play()
 {
     MSG msg;
     while (!stopped) {
@@ -58,7 +58,7 @@ void Class_0047c6c0::FUN_0047c6c0()
             TranslateMessage(&msg);
             DispatchMessageA(&msg);
         } else if (!DAT_004fc40c(smack)) {
-            ((Class_0047c3a0*)this)->FUN_0047c3a0(hwnd);
+            ((Class_0047c3a0*)this)->PlayFrame(hwnd);
         }
     }
 }

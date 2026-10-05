@@ -55,7 +55,7 @@ extern int DAT_00512f3e;
 extern unsigned char DAT_00512f49;
 extern unsigned int DAT_00512f4b;
 
-void __stdcall FUN_004ba590(float value);
+void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45c820
 void FUN_0045c820()
@@ -70,7 +70,7 @@ void FUN_0045c820()
         ((Class_004cfe90*)g_game->sound)->FUN_004cfe90();
     g_game->field_37f19 = (g_game->field_37f19 & ~7) | (DAT_00512f4b & 7);
     g_game->field_37f17 = DAT_00512f49;
-    FUN_004ba590(0.5 - g_game->brightness * -0.041666668f);
+    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->FUN_004d0070(g_game->volume1 << 10);
     ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(g_game->volume2 << 10, 0);
 }

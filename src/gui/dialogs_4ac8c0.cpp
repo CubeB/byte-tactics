@@ -51,7 +51,7 @@ struct Rect_004ac8c0 {
 };
 
 int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
-void __stdcall FUN_004bf6f0(void* surface, Rect_004ac8c0* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect_004ac8c0* rect, int color);
 
 // FUNCTION: 0x4ac8c0
 void __stdcall FUN_004ac8c0(Object_004ac8c0* obj)
@@ -70,7 +70,7 @@ void __stdcall FUN_004ac8c0(Object_004ac8c0* obj)
             rect.top = y + row * 8;
             rect.right = rect.left + 7;
             rect.bottom = rect.top + 7;
-            FUN_004bf6f0(surface, &rect, row * 16 + col);
+            FillRectangle(surface, &rect, row * 16 + col);
         }
     }
 }

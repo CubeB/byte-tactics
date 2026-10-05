@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Allocates an image of width x height bytes with its header (pixels follow
-// the 0x30-byte header); the header set-up is the body of FUN_004c6a60,
+// the 0x30-byte header); the header set-up is the body of InitSurface,
 // inlined.
 
 struct Rect_004c6a60 {
@@ -45,7 +45,7 @@ static inline void Init(Class_004c6a60* s, int width, int height, int a, int b)
 }
 
 // FUNCTION: 0x4c69f0
-Class_004c6a60* __stdcall FUN_004c69f0(char* name, int width, int height)
+Class_004c6a60* __stdcall AllocSurface(char* name, int width, int height)
 {
     Class_004c6a60* s = (Class_004c6a60*)FUN_004d83b0(name, height * width + 0x30);
     Init(s, width, height, width, (int)s->pixels);

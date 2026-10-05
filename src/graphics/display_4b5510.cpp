@@ -22,7 +22,7 @@
 
 struct Class_004c6a60;
 
-struct Surface_004b5510 {
+struct Surface {
     int data[12];
 };
 
@@ -61,15 +61,15 @@ struct Display_004b5510 {
 extern LONG DAT_0052a4e8;
 extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
-extern Display_004b5510 *DAT_0051fbd0;
+extern Display_004b5510 *g_display;
 
 int __stdcall FUN_0049f710(int guid, void *display, int zero);
-void __stdcall FUN_004b4ff0(Display_004b5510 *d);
-void __stdcall FUN_004c6a60(Class_004c6a60 *s, int width, int height, int a, int b);
-int __stdcall FUN_004c5e70(Surface_004b5510 *s);
-void __cdecl FUN_004cbbe0(Surface_004b5510 *dst, void *src, int x, int y);
-int __stdcall FUN_004c5fa0(Surface_004b5510 *s);
-int __stdcall FUN_004ba200(PALETTEENTRY *entries, int start, int count);
+void __stdcall ReleaseDirectDraw(Display_004b5510 *d);
+void __stdcall InitSurface(Class_004c6a60 *s, int width, int height, int a, int b);
+int __stdcall LockScreen(Surface *s);
+void __cdecl BlitSurface(Surface *dst, void *src, int x, int y);
+int __stdcall UnlockScreen(Surface *s);
+int __stdcall SetPaletteColors(PALETTEENTRY *entries, int start, int count);
 
 static inline void FreeGdi_004b5510(Display_004b5510 *d, HDC &dc)
 {
@@ -85,12 +85,12 @@ static inline void FreeGdi_004b5510(Display_004b5510 *d, HDC &dc)
 }
 
 // FUNCTION: 0x4b5510
-int __stdcall FUN_004b5510(int mode) {
+int __stdcall SetFullScreen(int mode) {
     int lockResult;
     Display_004b5510 *d;
     DDSURFACEDESC ddsd;
     BitmapInfo_004b5510 bmi;
-    Surface_004b5510 surf;
+    Surface surf;
     DDSCAPS caps;
     HRESULT hr;
 
@@ -107,30 +107,30 @@ int __stdcall FUN_004b5510(int mode) {
         }
         WaitForSingleObject(DAT_0052a4f0, INFINITE);
     }
-    d = DAT_0051fbd0;
+    d = g_display;
     DirectDrawState *dd = &d->draw;
     dd->field_9c = 0;
-    FUN_004b4ff0(DAT_0051fbd0);
+    ReleaseDirectDraw(g_display);
 
-    FreeGdi_004b5510(DAT_0051fbd0, DAT_0051fbd0->dc);
-    SetWindowPos(d->hwnd, NULL, 0, 0, DAT_0051fbd0->width, DAT_0051fbd0->height,
+    FreeGdi_004b5510(g_display, g_display->dc);
+    SetWindowPos(d->hwnd, NULL, 0, 0, g_display->width, g_display->height,
                  SWP_NOZORDER | SWP_NOMOVE);
 
     if (mode != 0) {
-        DAT_0051fbd0->field_f0 |= 2;
+        g_display->field_f0 |= 2;
 
         hr = FUN_0049f710(0, &dd->ddraw, 0);
         if (hr == DD_OK) {
             hr = dd->ddraw->SetCooperativeLevel(d->hwnd, 0x53);
             if (hr == DD_OK) {
-                hr = dd->ddraw->SetDisplayMode(DAT_0051fbd0->width, DAT_0051fbd0->height, 8);
+                hr = dd->ddraw->SetDisplayMode(g_display->width, g_display->height, 8);
                 if (hr == DD_OK) {
 
                     ZeroMemory(&ddsd, sizeof(ddsd));
                     ddsd.dwSize = sizeof(ddsd);
                     ddsd.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
-                    ddsd.dwWidth = DAT_0051fbd0->width;
-                    ddsd.dwHeight = DAT_0051fbd0->height;
+                    ddsd.dwWidth = g_display->width;
+                    ddsd.dwHeight = g_display->height;
                     ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
                     ddsd.dwBackBufferCount = 1;
                     hr = dd->ddraw->CreateSurface(&ddsd, &dd->primary, NULL);
@@ -148,7 +148,7 @@ int __stdcall FUN_004b5510(int mode) {
                                     hr = dd->primary->SetClipper(dd->clipper);
                                     if (hr == DD_OK) {
 
-                                        hr = dd->ddraw->CreatePalette(4, DAT_0051fbd0->entries,
+                                        hr = dd->ddraw->CreatePalette(4, g_display->entries,
                                                                       &dd->palette, NULL);
                                         if (hr == DD_OK) {
                                             hr = dd->primary->SetPalette(dd->palette);
@@ -156,10 +156,10 @@ int __stdcall FUN_004b5510(int mode) {
                                                 goto fail;
                                         }
 
-                                        if (DAT_0051fbd0->draw.field_98) {
-                                            FUN_004c5e70(&surf);
-                                            FUN_004cbbe0(&surf, DAT_0051fbd0->draw.field_98, 0, 0);
-                                            FUN_004c5fa0(&surf);
+                                        if (g_display->draw.field_98) {
+                                            LockScreen(&surf);
+                                            BlitSurface(&surf, g_display->draw.field_98, 0, 0);
+                                            UnlockScreen(&surf);
                                         }
                                     } else
                                         goto fail;
@@ -178,7 +178,7 @@ int __stdcall FUN_004b5510(int mode) {
         } else
             goto fail;
     } else {
-        DAT_0051fbd0->field_f0 &= ~2;
+        g_display->field_f0 &= ~2;
 
         void *bits;
         HDC hdc = GetDC(d->hwnd);
@@ -186,8 +186,8 @@ int __stdcall FUN_004b5510(int mode) {
         ReleaseDC(d->hwnd, hdc);
 
         bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        bmi.bmiHeader.biWidth = DAT_0051fbd0->width;
-        bmi.bmiHeader.biHeight = -DAT_0051fbd0->height;
+        bmi.bmiHeader.biWidth = g_display->width;
+        bmi.bmiHeader.biHeight = -g_display->height;
         bmi.bmiHeader.biPlanes = 1;
         bmi.bmiHeader.biCompression = 0;
         bmi.bmiHeader.biBitCount = 8;
@@ -197,13 +197,13 @@ int __stdcall FUN_004b5510(int mode) {
         ZeroMemory(bmi.bmiColors, sizeof(bmi.bmiColors));
         d->dib = CreateDIBSection(d->dc, (BITMAPINFO *)&bmi, DIB_RGB_COLORS, &bits,
                                   NULL, 0);
-        FUN_004c6a60((Class_004c6a60 *)&d->unknown_50[0], DAT_0051fbd0->width, DAT_0051fbd0->height,
-                     (DAT_0051fbd0->width + 3) & ~3, (int)bits);
+        InitSurface((Class_004c6a60 *)&d->unknown_50[0], g_display->width, g_display->height,
+                     (g_display->width + 3) & ~3, (int)bits);
         SelectObject(d->dc, d->dib);
         SetWindowPos(d->hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
 
-    FUN_004ba200(DAT_0051fbd0->entries, 0, 0x100);
+    SetPaletteColors(g_display->entries, 0, 0x100);
     if (lockResult == 0) {
         DAT_0052a4ec = 0;
         InterlockedExchange(&DAT_0052a4e8, 0);

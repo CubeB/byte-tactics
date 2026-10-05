@@ -308,7 +308,7 @@ void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_004d1b40(unsigned char* src);
 int __stdcall FUN_004d1970(void* dest, void* source);
 void* __stdcall FUN_004d1c60(int code);
-void __stdcall FUN_004b6290(char* message);
+void __stdcall FatalError(char* message);
 int __cdecl _strcmpi(const char* s1, const char* s2);
 int __cdecl sprintf(char* buf, const char* fmt, ...);
 
@@ -383,7 +383,7 @@ int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
         if (err != 0) {
             sprintf(errmsg, "[HapiBank::OpenBank] Decompression Error: %s",
                     (char*)FUN_004d1c60(err));
-            FUN_004b6290(errmsg);
+            FatalError(errmsg);
         }
         img.buf = FUN_004d8580(img.buf, dsize);
         img.size = dsize;

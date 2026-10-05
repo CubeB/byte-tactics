@@ -179,8 +179,8 @@
 // which already has the right materialisation.
 #include <stddef.h>
 
-void* __stdcall FUN_004b7f30(void* a, int b);
-void __stdcall FUN_004b8500(void* dest, void* src, int x, int y);
+void* __stdcall GetGafFrame(void* a, int b);
+void __stdcall DrawFrameBlended(void* dest, void* src, int x, int y);
 
 #pragma pack(push, 1)
 struct Pos_00473590 {
@@ -226,7 +226,7 @@ public:
     char unknown_4[0x6 - 0x4];
     Pos_00473590 pos;              // +0x06
     int field_2c;                  // +0x2c
-    void FUN_00474170(void* dest, short px, short py);
+    void DrawParticle(void* dest, short px, short py);
 };
 #pragma pack(pop)
 
@@ -243,7 +243,7 @@ static inline int IsSeen_00474170(Player_00473590* p, Player_00473590* q, int co
 }
 
 // FUNCTION: 0x474170
-void Class_00474170::FUN_00474170(void* dest, short px, short py)
+void Class_00474170::DrawParticle(void* dest, short px, short py)
 {
     Pos_00473590* q = &pos;
     short sx = q->x - px + 0x80;
@@ -265,6 +265,6 @@ void Class_00474170::FUN_00474170(void* dest, short px, short py)
         visible = Identity_00474170(IsSeen_00474170(p, p2, col, row));
     }
     if (visible)
-        FUN_004b8500(dest, FUN_004b7f30(data, field_2c), sx, sy);
+        DrawFrameBlended(dest, GetGafFrame(data, field_2c), sx, sy);
 }
 

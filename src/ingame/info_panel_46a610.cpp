@@ -29,7 +29,7 @@ struct Rot16 {
     short x, y, z;
 };
 
-// What FUN_004b7ee0 looks a frame up with: an index and the table it is in.
+// What GetGafSequenceFrame looks a frame up with: an index and the table it is in.
 struct Handle {
     unsigned short index;
     char unknown_2[6];
@@ -119,11 +119,11 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004b7ee0(Handle* h);
-int __stdcall FUN_004b7f30(unsigned short* table, int index);
-void __stdcall FUN_004b7f90(void* dest, short* frame, int x, int y);
-void __stdcall FUN_004b8500(void* dest, short* frame, int x, int y);
-void __stdcall FUN_0045ac20(void* dest, Unit* unit);
+int __stdcall GetGafSequenceFrame(Handle* h);
+int __stdcall GetGafFrame(unsigned short* table, int index);
+void __stdcall DrawFrame(void* dest, short* frame, int x, int y);
+void __stdcall DrawFrameBlended(void* dest, short* frame, int x, int y);
+void __stdcall DrawUnit(void* dest, Unit* unit);
 
 // Bit 4 of the draw flags word: shadows may be drawn.
 static int DrawFlags()
@@ -137,9 +137,9 @@ static int DrawFlags()
 #define DrawFlip(flip, dest, frame, x, y) \
     do { \
         if (flip) \
-            FUN_004b8500(dest, frame, x, y); \
+            DrawFrameBlended(dest, frame, x, y); \
         else \
-            FUN_004b7f90(dest, frame, x, y); \
+            DrawFrame(dest, frame, x, y); \
     } while (0)
 
 // FUNCTION: 0x46a610
@@ -157,12 +157,12 @@ void __stdcall FUN_0046a610(void* dest, Cell* cell, int ix, int iy)
         FeatureSpot* spot = &g_game->spots[cell->spot];
         if (f->drawn) {
             if ((spot->spotFlags & 4) && (DrawFlags() & 0x10)) {
-                short* frame = (short*)FUN_004b7ee0(&spot->shadow);
-                FUN_004b7f90(dest, frame, x, y);
+                short* frame = (short*)GetGafSequenceFrame(&spot->shadow);
+                DrawFrame(dest, frame, x, y);
             }
             {
-                short* frame = (short*)FUN_004b7ee0(&spot->anim);
-                FUN_004b7f90(dest, frame, x, y);
+                short* frame = (short*)GetGafSequenceFrame(&spot->anim);
+                DrawFrame(dest, frame, x, y);
             }
         } else {
             Unit* unit = g_game->unit;
@@ -171,25 +171,25 @@ void __stdcall FUN_0046a610(void* dest, Cell* cell, int ix, int iy)
             st->owner = unit;
             unit->rot = spot->rot;
             unit->pos = spot->pos;
-            FUN_0045ac20(dest, unit);
+            DrawUnit(dest, unit);
         }
     } else {
         if (f->over) {
             if (f->shadowTable && (DrawFlags() & 0x10)) {
-                short* frame = (short*)FUN_004b7ee0(&f->shadowAnim);
+                short* frame = (short*)GetGafSequenceFrame(&f->shadowAnim);
                 DrawFlip(f->flipShadow, dest, frame, x, y);
             }
             if (f->animTable) {
-                short* frame = (short*)FUN_004b7ee0(&f->anim);
+                short* frame = (short*)GetGafSequenceFrame(&f->anim);
                 DrawFlip(f->flipAnim, dest, frame, x, y);
             }
         } else {
             if (f->shadowTable && (DrawFlags() & 0x10)) {
-                short* frame = (short*)FUN_004b7f30(f->shadowTable, 0);
+                short* frame = (short*)GetGafFrame(f->shadowTable, 0);
                 DrawFlip(f->flipShadow, dest, frame, x, y);
             }
             if (f->animTable) {
-                short* frame = (short*)FUN_004b7f30(f->animTable, 0);
+                short* frame = (short*)GetGafFrame(f->animTable, 0);
                 DrawFlip(f->flipAnim, dest, frame, x, y);
             }
         }

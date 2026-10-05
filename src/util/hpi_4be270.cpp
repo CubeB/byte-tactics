@@ -19,13 +19,13 @@ struct Record_004be270 {
     void* data;                     // +0x8
 };
 
-State_004be270* FUN_004b6220(void);
+State_004be270* GetDisplay(void);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4be270
 void __stdcall FUN_004be270(Record_004be270* pRecord)
 {
-    State_004be270* state = FUN_004b6220();
+    State_004be270* state = GetDisplay();
     int i;
     for (i = 0; i < state->numRecords; i++) {
         if (state->records[i] == pRecord) {

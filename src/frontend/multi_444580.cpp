@@ -74,7 +74,7 @@ extern LinkInfo DAT_005127c8[];
 extern char DAT_004fcfb8[];
 
 void __stdcall FUN_004a9660(void* menu);
-void __stdcall FUN_004ba200(unsigned char* palette, int first, int count);
+void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 void __stdcall FUN_004ac7d0(void* menu, void* palette, void* param_3);
 Gadget_00444580* __stdcall FUN_004aa8f0(void* menu, char* name, int size);
 void __stdcall FUN_004441a0(void* menu);
@@ -119,7 +119,7 @@ void FUN_00444580()
 {
     if (g_game->menu.holder != 0 && strcmp(g_game->menu.holder->entries->name, "SELPROV.GUI") == 0)
         FUN_004a9660(&g_game->menu);
-    FUN_004ba200(g_game->palette, 0, 0x100);
+    SetPaletteColors(g_game->palette, 0, 0x100);
     FUN_004ac7d0(&g_game->menu, g_game->palette, g_game->field_5cb);
     Gadget_00444580* menu = FUN_004aa8f0(&g_game->menu, "SELPROV.GUI", 0x80);
     menu->handler = FUN_004441a0;

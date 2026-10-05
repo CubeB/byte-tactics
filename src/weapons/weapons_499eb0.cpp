@@ -80,7 +80,7 @@ extern char* g_game;
 void* __stdcall FUN_004815a0(Vec3_00499eb0* position);
 void __stdcall FUN_0041c640(int a, int b, int c);
 void __stdcall FUN_00420a30(Vec3_00499eb0* position, void* value, int a, int b);
-void __stdcall FUN_00472810(Vec3_00499eb0* position, int value);
+void __stdcall EmitWhiteSmoke(Vec3_00499eb0* position, int value);
 void __stdcall FUN_0047f300(unsigned int sound, Vec3_00499eb0* position, int value);
 int __stdcall FUN_00499cd0(Projectile_00499eb0* projectile, Unit* unit, float scale);
 void __stdcall FUN_0049a120(Projectile_00499eb0* projectile, Vec3_00499eb0* position);
@@ -118,7 +118,7 @@ void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit* unit)
     } else {
         FUN_0047f300(type->sound1, position, 0);
         if (type->flags.bit10)
-            FUN_00472810(position, 9);
+            EmitWhiteSmoke(position, 9);
         else
             FUN_00420a30(position, type->field_78, 0, hostile);
     }

@@ -10,7 +10,7 @@
 #include <memory.h>
 
 void __cdecl PacketTrace(const char* fmt, ...);
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 
 struct Packet_004629b0;
 
@@ -55,7 +55,7 @@ static inline int IsReusable(PacketBuffer* buf, int minRetain)
     if (buf->count == 0)
         return 1;
     Packet_004629b0* p = buf->first;
-    unsigned int now = FUN_004b6340();
+    unsigned int now = GetTicks();
     int mustBeSentBefore = now - minRetain;
     PacketTrace("cur game time: %ld, min retain=%ld, mustBeSentBefore=%ld\n",
                  now, minRetain, mustBeSentBefore);

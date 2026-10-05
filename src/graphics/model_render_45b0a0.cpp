@@ -51,7 +51,7 @@ struct Model_0045b0a0 {
     Piece_0045b030* piece;             // +0x1e
 };
 
-void __fastcall FUN_0045b150(Model_0045b0a0* model, Piece_0045b030* piece,
+void __fastcall TransformPieces(Model_0045b0a0* model, Piece_0045b030* piece,
                              Vector3s* pos, Vector3* box, int force);
 
 // Offsets a piece tree by the model's position (unless `force` says the
@@ -60,10 +60,10 @@ void __fastcall FUN_0045b150(Model_0045b0a0* model, Piece_0045b030* piece,
 // The three shorts of the piece map onto the short vector in reverse
 // (+0x14 -> x, +0x12 -> y, +0x10 -> z), which is what the original does.
 // FUNCTION: 0x45b0a0
-void __fastcall FUN_0045b0a0(Model_0045b0a0* model, Piece_0045b030* piece, int force)
+void __fastcall PoseModel(Model_0045b0a0* model, Piece_0045b030* piece, int force)
 {
     if (piece->child)
-        FUN_0045b0a0(model, piece->child, 1);
+        PoseModel(model, piece->child, 1);
 
     Vector3s pos;
     pos.x = piece->short_14;
@@ -81,8 +81,8 @@ void __fastcall FUN_0045b0a0(Model_0045b0a0* model, Piece_0045b030* piece, int f
     box.y = piece->rot_y + object->box_y;
     box.z = piece->rot_z + object->box_z;
 
-    FUN_0045b150(model, piece, &pos, &box, 0);
+    TransformPieces(model, piece, &pos, &box, 0);
 
     if (force && piece->sibling)
-        FUN_0045b0a0(model, piece->sibling, 1);
+        PoseModel(model, piece->sibling, 1);
 }

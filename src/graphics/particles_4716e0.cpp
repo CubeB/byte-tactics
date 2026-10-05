@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Creates a Class_004717e0 (vtable 0x4fd5f8), initialises it through virtual
+// Creates a WakeParticles (vtable 0x4fd5f8), initialises it through virtual
 // slot 6 with five arguments, then appends it to the
-// std::vector<Class_00471cc0*> selected by the short index. When that list
+// std::vector<ParticleSystem*> selected by the short index. When that list
 // already holds more than 400 entries its oldest element is deleted and erased
 // first. The append lives in an inlined member helper, which is what leaves
 // std::vector::insert (0x4732e0) out of line. Class family listed in
@@ -14,7 +14,7 @@
 
 class Class_00470eb0 {                 // the pool's allocation method
 public:
-    void* FUN_00470eb0(unsigned int size);
+    void* AllocSlot(unsigned int size);
 };
 
 // The object pool (see 0x470ae0.cpp); its method returns the object to the
@@ -22,20 +22,20 @@ public:
 class Class_00470ed0 {
 public:
     char unknown_0[4];
-    void FUN_00470ed0(void* p);
+    void FreeSlot(void* p);
 };
 
 extern Class_00470ed0 DAT_0051e610;
 extern char DAT_0051e608;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
-class Class_00471cc0 {
+class ParticleSystem {
 public:
     int field_4;                                        // +0x4
 
-    Class_00471cc0() { field_4 = 0; }
-    virtual ~Class_00471cc0();                          // slot 0
-    virtual void FUN_00472d50() = 0;                    // slot 1
+    ParticleSystem() { field_4 = 0; }
+    virtual ~ParticleSystem();                          // slot 0
+    virtual void Update() = 0;                          // slot 1
     virtual void FUN_00472e30(int) = 0;                 // slot 2
     virtual int FUN_00472e70() = 0;                     // slot 3
 
@@ -43,7 +43,7 @@ public:
     {
         if (DAT_0051e608)
             return 0;
-        void* p = ((Class_00470eb0*)&DAT_0051e610)->FUN_00470eb0(size);
+        void* p = ((Class_00470eb0*)&DAT_0051e610)->AllocSlot(size);
         if (p)
             memset(p, 0, size);
         return p;
@@ -51,28 +51,28 @@ public:
 
     static void __stdcall operator delete(void* p)
     {
-        DAT_0051e610.FUN_00470ed0(p);
+        DAT_0051e610.FreeSlot(p);
     }
 };
 
 class Class_004745e0 {                 // vector element (see 0x473250.cpp)
 public:
     char unknown_0[0x44];
-    void FUN_004745e0(int param_1, short param_2, short param_3);
+    void DrawParticle(int param_1, short param_2, short param_3);
 };
 
 // Vtable 0x4fd5f8, ??_G 0x4717e0; 0x48 bytes.
-class Class_004717e0 : public Class_00471cc0 {
+class WakeParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8
     std::vector<Class_004745e0> items;                  // +0xc (_First +0x10)
     char unknown_1c[0x48 - 0x1c];
 
-    Class_004717e0() {}
-    virtual void FUN_00472d50();                        // slot 1, 0x473170
+    WakeParticles() {}
+    virtual void Update();                              // slot 1, 0x473170
     virtual void FUN_00472e30(int);                     // slot 2, 0x473250
     virtual int FUN_00472e70();                         // slot 3, 0x473290
-    virtual void FUN_00474880();                        // slot 4, 0x474880
+    virtual void Emit();                                // slot 4, 0x474880
     virtual int FUN_00473220();                         // slot 5, 0x473220
     virtual void FUN_00474760(int, int, int, int, int); // slot 6, 0x474760
 };
@@ -80,9 +80,9 @@ public:
 // The owner of the per-index lists.
 class Class_004716e0 {
 public:
-    std::vector<Class_00471cc0*> lists[1];              // 0x10 bytes each
+    std::vector<ParticleSystem*> lists[1];              // 0x10 bytes each
 
-    void Add(short index, Class_00471cc0* p)
+    void Add(short index, ParticleSystem* p)
     {
         if (lists[index].size() > 400) {
             delete lists[index][0];
@@ -91,15 +91,15 @@ public:
         lists[index].push_back(p);
     }
 
-    void FUN_004716e0(int param_1, int param_2, int param_3, int param_4,
+    void AddWakeParticles(int param_1, int param_2, int param_3, int param_4,
                       short index, int param_6);
 };
 
 // FUNCTION: 0x4716e0
-void Class_004716e0::FUN_004716e0(int param_1, int param_2, int param_3,
+void Class_004716e0::AddWakeParticles(int param_1, int param_2, int param_3,
                                   int param_4, short index, int param_6)
 {
-    Class_004717e0* p = new Class_004717e0;
+    WakeParticles* p = new WakeParticles;
     if (p) {
         p->FUN_00474760(param_1, param_2, param_3, param_4, param_6);
         Add(index, p);

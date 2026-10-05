@@ -59,18 +59,18 @@ struct App_4b5cc0 {
     Flags_4b5cc0 flags;                        // +0xf0
 };
 
-extern App_4b5cc0* DAT_0051fbd0;
-extern void (__cdecl *DAT_0051fc78)(int);
-extern int DAT_0051fc7c;
+extern App_4b5cc0* g_display;
+extern void (__cdecl *g_closeHandler)(int);
+extern int g_closeHandlerArg;
 
-void __stdcall FUN_004b5510(int param);
+void __stdcall SetFullScreen(int param);
 void __stdcall FUN_004c1b20(int v);
 void __stdcall FUN_004c1d50(int v, int flag);
 void __stdcall FUN_004c2360(int* p);
 void __stdcall FUN_004c2e30(Event_4b5cc0* ev);
 
 // FUNCTION: 0x4b5cc0
-long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
+long __stdcall WindowProc(HWND hwnd, unsigned int msg, unsigned int wparam,
                             unsigned int lparam)
 {
     Event_4b5cc0 e;
@@ -78,19 +78,19 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
     case WM_CREATE:
         return 0;
     case WM_DESTROY:
-        if (DAT_0051fbd0->flags.bits.bit1)
-            FUN_004b5510(0);
+        if (g_display->flags.bits.bit1)
+            SetFullScreen(0);
         PostQuitMessage(0);
         return 0;
     case WM_ACTIVATE:
         if ((unsigned short)wparam == 0)
-            DAT_0051fbd0->active = 0;
+            g_display->active = 0;
         else
-            DAT_0051fbd0->active = 1;
+            g_display->active = 1;
         return 0;
     case WM_CLOSE:
-        if (DAT_0051fc78 != 0) {
-            DAT_0051fc78(DAT_0051fc7c);
+        if (g_closeHandler != 0) {
+            g_closeHandler(g_closeHandlerArg);
             return 0;
         }
         DestroyWindow(hwnd);
@@ -112,7 +112,7 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
         e.x = lparam & 0xffff;
         e.y = (lparam >> 16) & 0xffff;
         e.buttons = wparam;
-        e.time = GetTickCount() * DAT_0051fbd0->tickScale / 1000;
+        e.time = GetTickCount() * g_display->tickScale / 1000;
         e.flag = 0;
         e.message = msg;
         FUN_004c2360((int*)&e);
@@ -124,7 +124,7 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
         e.x = lparam & 0xffff;
         e.y = (lparam >> 16) & 0xffff;
         e.buttons = wparam;
-        e.time = GetTickCount() * DAT_0051fbd0->tickScale / 1000;
+        e.time = GetTickCount() * g_display->tickScale / 1000;
         e.flag = 0;
         break;
     case WM_LBUTTONDBLCLK:
@@ -132,46 +132,46 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
         e.x = lparam & 0xffff;
         e.y = (lparam >> 16) & 0xffff;
         e.buttons = wparam;
-        e.time = GetTickCount() * DAT_0051fbd0->tickScale / 1000;
+        e.time = GetTickCount() * g_display->tickScale / 1000;
         e.flag = 1;
         break;
     case 0x219:
-        if (DAT_0051fbd0->callback != 0)
-            DAT_0051fbd0->callback(0x219, wparam, lparam);
+        if (g_display->callback != 0)
+            g_display->callback(0x219, wparam, lparam);
         return 1;
     case 0x30f: {
         long ok;
-        if (DAT_0051fbd0->hpalette) {
-            HDC dc = GetDC(DAT_0051fbd0->hwnd);
-            SelectPalette(dc, DAT_0051fbd0->hpalette, FALSE);
+        if (g_display->hpalette) {
+            HDC dc = GetDC(g_display->hwnd);
+            SelectPalette(dc, g_display->hpalette, FALSE);
             RealizePalette(dc);
-            ReleaseDC(DAT_0051fbd0->hwnd, dc);
+            ReleaseDC(g_display->hwnd, dc);
             ok = 1;
         }
         else {
             HRESULT hr = E_FAIL;
-            if (DAT_0051fbd0->primary && DAT_0051fbd0->palette)
-                hr = DAT_0051fbd0->primary->SetPalette(DAT_0051fbd0->palette);
+            if (g_display->primary && g_display->palette)
+                hr = g_display->primary->SetPalette(g_display->palette);
             ok = hr == DD_OK ? 1 : 0;
         }
         return ok;
     }
     case 0x311:
-        if (DAT_0051fbd0->hwnd == (HWND)wparam)
+        if (g_display->hwnd == (HWND)wparam)
             return 0;
-        if (DAT_0051fbd0->hpalette) {
-            HDC dc = GetDC(DAT_0051fbd0->hwnd);
-            SelectPalette(dc, DAT_0051fbd0->hpalette, FALSE);
+        if (g_display->hpalette) {
+            HDC dc = GetDC(g_display->hwnd);
+            SelectPalette(dc, g_display->hpalette, FALSE);
             RealizePalette(dc);
-            ReleaseDC(DAT_0051fbd0->hwnd, dc);
+            ReleaseDC(g_display->hwnd, dc);
             return 0;
         }
-        if (DAT_0051fbd0->primary && DAT_0051fbd0->palette)
-            DAT_0051fbd0->primary->SetPalette(DAT_0051fbd0->palette);
+        if (g_display->primary && g_display->palette)
+            g_display->primary->SetPalette(g_display->palette);
         return 0;
     case 0x3b9:
-        if (DAT_0051fbd0->callback != 0)
-            DAT_0051fbd0->callback(0x3b9, wparam, lparam);
+        if (g_display->callback != 0)
+            g_display->callback(0x3b9, wparam, lparam);
         return 1;
     default:
         return DefWindowProcA(hwnd, msg, wparam, lparam);

@@ -45,7 +45,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_004b6cc0(Vec3_00467a50* in, Vec3_00467a50* out, short* angles);
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 
 // FUNCTION: 0x467a50
 void __stdcall FUN_00467a50(void* surface, Vec3_00467a50* offset,
@@ -69,8 +69,8 @@ void __stdcall FUN_00467a50(void* surface, Vec3_00467a50* offset,
     }
 
     Point_00467a50* quad = g_game->points;
-    FUN_004be950(surface, quad[0].x, quad[0].y, quad[1].x, quad[1].y, color);
-    FUN_004be950(surface, quad[1].x, quad[1].y, quad[2].x, quad[2].y, color);
-    FUN_004be950(surface, quad[2].x, quad[2].y, quad[3].x, quad[3].y, color);
-    FUN_004be950(surface, quad[3].x, quad[3].y, quad[0].x, quad[0].y, color);
+    DrawLine(surface, quad[0].x, quad[0].y, quad[1].x, quad[1].y, color);
+    DrawLine(surface, quad[1].x, quad[1].y, quad[2].x, quad[2].y, color);
+    DrawLine(surface, quad[2].x, quad[2].y, quad[3].x, quad[3].y, color);
+    DrawLine(surface, quad[3].x, quad[3].y, quad[0].x, quad[0].y, color);
 }

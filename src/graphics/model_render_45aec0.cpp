@@ -44,7 +44,7 @@ struct ObjectState_0045aec0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x45aec0
-Entry_0045aec0* __stdcall FUN_0045aec0(ObjectState_0045aec0* state, Class_0045ae80* obj,
+Entry_0045aec0* __stdcall AddStateEntries(ObjectState_0045aec0* state, Class_0045ae80* obj,
                                        Entry_0045aec0* parent)
 {
     Entry_0045aec0* e = &state->entries[state->count];
@@ -61,12 +61,12 @@ Entry_0045aec0* __stdcall FUN_0045aec0(ObjectState_0045aec0* state, Class_0045ae
     e->flags |= 4;
     state->count++;
     if (obj->unknown_30 != 0) {
-        e->child = FUN_0045aec0(state, obj->unknown_30, e);
+        e->child = AddStateEntries(state, obj->unknown_30, e);
     } else {
         e->child = 0;
     }
     if (obj->unknown_2c != 0) {
-        e->sibling = FUN_0045aec0(state, obj->unknown_2c, parent);
+        e->sibling = AddStateEntries(state, obj->unknown_2c, parent);
     } else {
         e->sibling = 0;
     }

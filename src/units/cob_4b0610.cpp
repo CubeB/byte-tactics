@@ -47,7 +47,7 @@ public:
     virtual ~CobScript();                             // slot 20
 };
 
-extern int FUN_004b6330();
+extern int GetTickRate();
 void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x4b0610
@@ -60,7 +60,7 @@ CobScript::CobScript()
         arr[i].value = 0;
     }
     field_53c = 0;
-    field_4 = FUN_004b6330();
+    field_4 = GetTickRate();
 }
 
 // FUNCTION: 0x4b0650

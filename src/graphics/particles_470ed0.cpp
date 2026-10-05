@@ -7,11 +7,11 @@ public:
     char unknown_18[0x8];
     int field_20;                             // +0x20
 
-    void FUN_00470ed0(int param_1);
+    void FreeSlot(int param_1);
 };
 
 // FUNCTION: 0x470ed0
-void Class_00470ed0::FUN_00470ed0(int param_1)
+void Class_00470ed0::FreeSlot(int param_1)
 {
     int eax = field_20 - 1;
     field_20 = eax;

@@ -37,7 +37,7 @@ void FUN_004c2870();
 void __stdcall FUN_00434ab0(int param);
 void FUN_004c1a40();
 void __cdecl LeaveNetGameCallback(int param);
-void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
+void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void FUN_00496bb0();
 
 // FUNCTION: 0x496a60
@@ -57,5 +57,5 @@ void FUN_00496a60()
     FUN_004c1a40();
     g_game->mode = 2;
     g_game->handler = FUN_00496bb0;
-    FUN_004b4fd0(LeaveNetGameCallback, 0);
+    SetCloseHandler(LeaveNetGameCallback, 0);
 }

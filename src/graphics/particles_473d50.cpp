@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 //
-// Slot 4 of Class_00471560 (vtable 0x4fd5b8, family in 0x471cc0.cpp): makes
+// Slot 4 of NanoParticles (vtable 0x4fd5b8, family in 0x471cc0.cpp): makes
 // room in the std::vector<Elem_00475880> at +0xc for five particles a beat,
 // then per particle picks a random point in the box at +0x28 around the
 // centre at +0x1c and one in the box at +0x40 around the point at +0x34,
@@ -188,7 +188,7 @@ protected:
 
 }
 
-class Class_00471560 {
+class NanoParticles {
 public:
     char unknown_0[4];                          // +0x00
     int field_4;                                // +0x04
@@ -199,11 +199,11 @@ public:
     Vec3_00473d50 target;                       // +0x34
     Vec3_00473d50 spread;                       // +0x40
 
-    void FUN_00473d50();
+    void Emit();
 };
 
 // FUNCTION: 0x473d50
-void Class_00471560::FUN_00473d50()
+void NanoParticles::Emit()
 {
     int grow = field_4 - *(int*)(g_game + 0x38a47) + 1;
     if (grow > 0)

@@ -16,17 +16,17 @@ struct Display_004b4f50 {
     IDirectDrawPalette* palette;       // +0x94
 };
 
-extern Display_004b4f50* DAT_0051fbd0;
+extern Display_004b4f50* g_display;
 
 // FUNCTION: 0x4b4f50
-int FUN_004b4f50()
+int ApplyPalette()
 {
-    Display_004b4f50* d = DAT_0051fbd0;
+    Display_004b4f50* d = g_display;
     if (d->hpalette) {
-        HDC dc = GetDC(DAT_0051fbd0->hwnd);
-        SelectPalette(dc, DAT_0051fbd0->hpalette, FALSE);
+        HDC dc = GetDC(g_display->hwnd);
+        SelectPalette(dc, g_display->hpalette, FALSE);
         RealizePalette(dc);
-        ReleaseDC(DAT_0051fbd0->hwnd, dc);
+        ReleaseDC(g_display->hwnd, dc);
         return 1;
     }
     HRESULT hr = E_FAIL;

@@ -113,7 +113,7 @@ extern Game* g_game;
 void __stdcall FUN_004825b0(Params_004816a0* params);
 void __stdcall FUN_00482270(Params_004816a0* params);
 void __stdcall FUN_00481930(Params_004816a0* params);
-Entry_004816a0* __stdcall FUN_004b7f30(Cell_004816a0* table, int index);
+Entry_004816a0* __stdcall GetGafFrame(Cell_004816a0* table, int index);
 void FUN_00466c20();
 void FUN_00466dc0();
 
@@ -160,7 +160,7 @@ void __stdcall FUN_004816a0(int arg)
                 int y = ((short*)&params.pos.y)[1] / 64;
                 int cx = params.pos.x / 0x200000;
                 int cy = params.pos.z / 0x200000 - y;
-                Entry_004816a0* e = FUN_004b7f30(g_game->field_1485b, i);
+                Entry_004816a0* e = GetGafFrame(g_game->field_1485b, i);
                 int vx = cx - e->field_4;
                 int vz = cy - e->field_6;
                 params.field_4[0] = (short)vx;

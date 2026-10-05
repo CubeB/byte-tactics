@@ -16,7 +16,7 @@
 //  - Each bar's rect is written left, right, top, bottom.
 //  - The two player loops index g_game->players[i]; the explicit offsets of
 //    the old version gave the reversed SIB base and index.
-//  - `int ok` for FUN_004c5e70's result (`cmp eax, ebp`) and a `name` local
+//  - `int ok` for LockScreen's result (`cmp eax, ebp`) and a `name` local
 //    for the strncpy source (the call comes before `push 100`).
 //  - <ddraw.h>: without it the map-name block's x87 schedule differs (97.3%);
 //    tools/headers.py found it, and the gadget is a DirectDraw surface lock.
@@ -149,9 +149,9 @@ void __cdecl FUN_00467d70();
 void __cdecl FUN_0047f750();
 void __cdecl FUN_00496790();
 void __cdecl FUN_004c2870();
-void __stdcall FUN_004c5fa0(void*);
-void __cdecl FUN_004c62c0();
-void __cdecl FUN_004c63a0();
+void __stdcall UnlockScreen(void*);
+void __cdecl RestoreScreen();
+void __cdecl FlipScreen();
 int __cdecl FUN_004ce800();
 void __cdecl FUN_004d85a0(void*);
 void __stdcall FUN_004288d0(char*, int, int, int);
@@ -164,36 +164,36 @@ void __stdcall FUN_004a50e0(void*, char*, int, int, int, int);
 void __stdcall FUN_004a9660(void*);
 void __stdcall FUN_004ab400(void*, void*);
 void __stdcall FUN_004ac7d0(void*, void*, void*);
-void __stdcall FUN_004b4fd0(void (__cdecl *)(int), int);
-void __stdcall FUN_004b5940(int, int);
-void __stdcall FUN_004b6290(char*);
+void __stdcall SetCloseHandler(void (__cdecl *)(int), int);
+void __stdcall SetResolution(int, int);
+void __stdcall FatalError(char*);
 int __stdcall FUN_004b6b20(void (*)(void), int, int);
 void __stdcall FUN_004b6b50(int);
-void* __stdcall FUN_004b7f30(void*, int);
-void __stdcall FUN_004b7f90(void*, void*, int, int);
-void* __stdcall FUN_004b8d40(int, char*);
-void __stdcall FUN_004ba200(void*, int, int);
+void* __stdcall GetGafFrame(void*, int);
+void __stdcall DrawFrame(void*, void*, int, int);
+void* __stdcall FindGafEntry(int, char*);
+void __stdcall SetPaletteColors(void*, int, int);
 void* __stdcall FUN_004bbe50(void*, unsigned int*);
-void __stdcall FUN_004bf6f0(void*, void*, unsigned char);
-void __stdcall FUN_004c13a0(int, int);
-void __stdcall FUN_004c1420(int);
+void __stdcall FillRectangle(void*, void*, unsigned char);
+void __stdcall SetTextColors(int, int);
+void __stdcall SetFont(int);
 char* __stdcall FUN_004c5740(char*);
-int __stdcall FUN_004c5e70(void*);
-void __stdcall FUN_004c61f0(int);
-void __stdcall FUN_004c69a0(void*);
-void* __stdcall FUN_004c69f0(char*, int, int);
-void __stdcall FUN_004c6b70(void*, void*, int, int);
+int __stdcall LockScreen(void*);
+void __stdcall SetRestoreSurface(int);
+void __stdcall SetOffscreenSurface(void*);
+void* __stdcall AllocSurface(char*, int, int);
+void __stdcall DrawSurface(void*, void*, int, int);
 void __stdcall HAPINET_guaranteepackets(int);
 class Class_004cdb40 { public: void FUN_004cdb40(); };
 class Class_004ce690 { public: void FUN_004ce690(int); };
 class Class_004ce800 { public: int FUN_004ce800(); };
 
-int __cdecl FUN_004b6700();
-int __cdecl FUN_004b6710();
-int __cdecl FUN_004c13f0();
-int __cdecl FUN_004c1450();
+int __cdecl GetScreenWidth();
+int __cdecl GetScreenHeight();
+int __cdecl GetTextKeyColor();
+int __cdecl GetFontHeight();
 int __cdecl FUN_004568c0();
-unsigned int __cdecl FUN_004b6340();
+unsigned int __cdecl GetTicks();
 char* __cdecl FUN_0049f580();
 
 class Class_00435100 {
@@ -237,8 +237,8 @@ void FUN_00497f40(void)
             g_game->field_2cbe = 0x14;
             FUN_004ab400(&g_game->field_519, (void*)g_game->field_148cf);
         }
-        FUN_004c1420(g_game->field_391f9);
-        FUN_004ba200(SURFACE_143a7, 0, 0x100);
+        SetFont(g_game->field_391f9);
+        SetPaletteColors(SURFACE_143a7, 0, 0x100);
         if (((Class_00435100*)g_game->field_391e9)->FUN_00435100() != 2) {
             FUN_00430f00();
         }
@@ -248,22 +248,22 @@ void FUN_00497f40(void)
         FUN_004257a0();
         g_game->field_37e1f = 0x280;
         g_game->field_37e23 = 0x1e0;
-        if (FUN_004b6700() != 0x280 || FUN_004b6710() != 0x1e0) {
+        if (GetScreenWidth() != 0x280 || GetScreenHeight() != 0x1e0) {
             FUN_004d85a0((void*)g_game->field_37e1b);
             g_game->field_37e1b = 0;
-            FUN_004c61f0(0);
-            FUN_004c62c0();
+            SetRestoreSurface(0);
+            RestoreScreen();
             SetWindowPos(*(HWND*)(g_game->field_c + 0x40), 0, 0, 0, 0x280, 0x1e0, 4);
-            FUN_004b5940(0x280, 0x1e0);
-            g_game->field_37e1b = (int)FUN_004c69f0("OFFSCREEN", g_game->field_37e1f, g_game->field_37e23);
-            FUN_004c61f0(g_game->field_37e1b);
-            FUN_004c69a0((void*)g_game->field_37e1b);
+            SetResolution(0x280, 0x1e0);
+            g_game->field_37e1b = (int)AllocSurface("OFFSCREEN", g_game->field_37e1f, g_game->field_37e23);
+            SetRestoreSurface(g_game->field_37e1b);
+            SetOffscreenSurface((void*)g_game->field_37e1b);
         }
         FUN_004290f0(aux, "palettes", "guipal", "PAL");
         surfaceHandle = FUN_004bbe50((unsigned int*)aux, 0);
         FUN_004ac7d0(&g_game->field_519, SURFACE_143a7, surfaceHandle);
         FUN_004d85a0(surfaceHandle);
-        g_game->field_38a37 = FUN_004b6340();
+        g_game->field_38a37 = GetTicks();
         g_game->field_38a3b = 0;
         g_game->field_38a47 = 0;
         g_game->field_38a4f = 0;
@@ -288,7 +288,7 @@ void FUN_00497f40(void)
             g_game->slots.flag40[i] = (pi->active != 0 && (pi->data->flags & 0x40) != 0) ? 1 : 0;
         }
         if (!FUN_004b6b20(FUN_00497c70, 0, 0)) {
-            FUN_004b6290("Unable to start the loading thread!");
+            FatalError("Unable to start the loading thread!");
         }
         memset(DAT_0051f2c8, 0, 10);
         memset(DAT_0051e810, 0, 10);
@@ -301,23 +301,23 @@ void FUN_00497f40(void)
         FUN_0047f750();
         FUN_004257a0();
         FUN_00428730();
-        if (FUN_004b6700() != g_game->field_37f1b || FUN_004b6710() != g_game->field_37f1f) {
+        if (GetScreenWidth() != g_game->field_37f1b || GetScreenHeight() != g_game->field_37f1f) {
             FUN_004d85a0((void*)g_game->field_37e1b);
             g_game->field_37e1b = 0;
-            FUN_004c61f0(0);
-            FUN_004c62c0();
+            SetRestoreSurface(0);
+            RestoreScreen();
             SetWindowPos(*(HWND*)(g_game->field_c + 0x40), 0, 0, 0, g_game->field_37f1b,
                          g_game->field_37f1f, 4);
-            FUN_004b5940(g_game->field_37f1b, g_game->field_37f1f);
-            g_game->field_37e1b = (int)FUN_004c69f0("OFFSCREEN", g_game->field_37e1f, g_game->field_37e23);
-            FUN_004c61f0(g_game->field_37e1b);
+            SetResolution(g_game->field_37f1b, g_game->field_37f1f);
+            g_game->field_37e1b = (int)AllocSurface("OFFSCREEN", g_game->field_37e1f, g_game->field_37e23);
+            SetRestoreSurface(g_game->field_37e1b);
         }
         FUN_00467d70();
         FUN_00496790();
         FUN_004c2870();
         g_game->field_391f1 = 6;
         g_game->field_391f5 = FUN_00499200;
-        FUN_004b4fd0(FUN_004609a0, 0);
+        SetCloseHandler(FUN_004609a0, 0);
         g_game->field_589 = 0;
         memset((void*)g_game->progress, 0, 8);
         ((Class_004ce690*)g_game->field_10)->FUN_004ce690(0);
@@ -349,23 +349,23 @@ void FUN_00497f40(void)
     if (g_usePacketManager != 0) {
         ((PacketManager*)&g_packetManager)->SendAllQueued(1);
     }
-    FUN_004c69a0((void*)g_game->field_37e1b);
-    int ok = FUN_004c5e70(&gadget);
+    SetOffscreenSurface((void*)g_game->field_37e1b);
+    int ok = LockScreen(&gadget);
     if (ok != 0) {
         color = g_game->palette[15];
-        stamp = FUN_004b6340();
+        stamp = GetTicks();
         if (DAT_0051f308 < (int)stamp) {
-            DAT_0051f308 = FUN_004b6340();
+            DAT_0051f308 = GetTicks();
             for (i = 0; i < 6; i++) {
                 if (((char*)&DAT_0051e6c8)[i] != 0) {
                     ((char*)&DAT_0051e6c8)[i] -= 2;
                 }
             }
         }
-        FUN_004c1420(g_game->field_391f9);
-        FUN_004c6b70(&gadget, (void*)g_game->field_11eb, 0, 0);
+        SetFont(g_game->field_391f9);
+        DrawSurface(&gadget, (void*)g_game->field_11eb, 0, 0);
         if (((Class_00435100*)g_game->field_391e9)->FUN_00435100() != 1) {
-            FUN_004c13a0(color, 0xfe);
+            SetTextColors(color, 0xfe);
             char* name = ((Class_00435c30*)g_game->field_391e9)->FUN_00435c30();
             strncpy(namebuf, name, 100);
             namebuf[99] = 0;
@@ -377,16 +377,16 @@ void FUN_00497f40(void)
             {
                 int x = gadget.width / 2 - textWidth / 2;
                 FUN_004a50e0(&gadget, buf, x,
-                             (int)((double)gadget.height - (double)FUN_004c1450() * 1.5), -1, 0);
+                             (int)((double)gadget.height - (double)GetFontHeight() * 1.5), -1, 0);
             }
         }
         {
-            void* light = FUN_004b8d40(g_game->field_51d, "LIGHTBAR");
-            void* lightbar = FUN_004b7f30(light, 0);
+            void* light = FindGafEntry(g_game->field_51d, "LIGHTBAR");
+            void* lightbar = GetGafFrame(light, 0);
             *((short*)lightbar + 3) = 0;
             *((short*)lightbar + 2) = 0;
             color = g_game->palette[g_game->progress[0] < 100 ? 12 : 10];
-            FUN_004c13a0(color, FUN_004c13f0());
+            SetTextColors(color, GetTextKeyColor());
             if(g_game->progress[0] == 100 && DAT_0051e820 != 100) {
                 ((unsigned char*)&DAT_0051e6c8)[0] = 0x1e;
             }
@@ -397,10 +397,10 @@ void FUN_00497f40(void)
             rect[2] = ((int)g_game->progress[0] * 7) / 2 + 0xcd;
             rect[1] = 0x87;
             rect[3] = 0x9b;
-            FUN_004bf6f0(&gadget, rect, color);
-            FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
+            FillRectangle(&gadget, rect, color);
+            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
             color = g_game->palette[g_game->progress[1] < 100 ? 12 : 10];
-            FUN_004c13a0(color, FUN_004c13f0());
+            SetTextColors(color, GetTextKeyColor());
             if(g_game->progress[1] == 100 && DAT_0051e821 != 100) {
                 ((unsigned char*)&DAT_0051e6c8)[1] = 0x1e;
             }
@@ -411,10 +411,10 @@ void FUN_00497f40(void)
             rect[2] = ((int)g_game->progress[1] * 7) / 2 + 0xcd;
             rect[1] = 0xb1;
             rect[3] = 0xc5;
-            FUN_004bf6f0(&gadget, rect, color);
-            FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
+            FillRectangle(&gadget, rect, color);
+            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
             color = g_game->palette[g_game->progress[2] < 100 ? 12 : 10];
-            FUN_004c13a0(color, FUN_004c13f0());
+            SetTextColors(color, GetTextKeyColor());
             if(g_game->progress[2] == 100 && DAT_0051e822 != 100) {
                 ((unsigned char*)&DAT_0051e6c8)[2] = 0x1e;
             }
@@ -425,10 +425,10 @@ void FUN_00497f40(void)
             rect[2] = ((int)g_game->progress[2] * 7) / 2 + 0xcd;
             rect[1] = 0xda;
             rect[3] = 0xee;
-            FUN_004bf6f0(&gadget, rect, color);
-            FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
+            FillRectangle(&gadget, rect, color);
+            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
             color = g_game->palette[g_game->progress[3] < 100 ? 12 : 10];
-            FUN_004c13a0(color, FUN_004c13f0());
+            SetTextColors(color, GetTextKeyColor());
             if(g_game->progress[3] == 100 && DAT_0051e823 != 100) {
                 ((unsigned char*)&DAT_0051e6c8)[3] = 0x1e;
             }
@@ -439,10 +439,10 @@ void FUN_00497f40(void)
             rect[2] = ((int)g_game->progress[3] * 7) / 2 + 0xcd;
             rect[1] = 0x106;
             rect[3] = 0x11a;
-            FUN_004bf6f0(&gadget, rect, color);
-            FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
+            FillRectangle(&gadget, rect, color);
+            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
             color = g_game->palette[g_game->progress[4] < 100 ? 12 : 10];
-            FUN_004c13a0(color, FUN_004c13f0());
+            SetTextColors(color, GetTextKeyColor());
             if(g_game->progress[4] == 100 && DAT_0051e824 != 100) {
                 ((unsigned char*)&DAT_0051e6cc)[0] = 0x1e;
             }
@@ -453,12 +453,12 @@ void FUN_00497f40(void)
             rect[2] = ((int)g_game->progress[4] * 7) / 2 + 0xcd;
             rect[1] = 0x130;
             rect[3] = 0x144;
-            FUN_004bf6f0(&gadget, rect, color);
-            FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
-            FUN_004b7f90(&gadget, lightbar, rect[0] + *((short*)lightbar + 2),
+            FillRectangle(&gadget, rect, color);
+            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
+            DrawFrame(&gadget, lightbar, rect[0] + *((short*)lightbar + 2),
                          rect[1] + *((short*)lightbar + 3));
             color = g_game->palette[g_game->progress[5] < 100 ? 12 : 10];
-            FUN_004c13a0(color, FUN_004c13f0());
+            SetTextColors(color, GetTextKeyColor());
             if(g_game->progress[5] == 100 && DAT_0051e825 != 100) {
                 ((unsigned char*)&DAT_0051e6cc)[1] = 0x1e;
             }
@@ -469,15 +469,15 @@ void FUN_00497f40(void)
             rect[2] = ((int)g_game->progress[5] * 7) / 2 + 0xcd;
             rect[1] = 0x15b;
             rect[3] = 0x16f;
-            FUN_004bf6f0(&gadget, rect, color);
-            FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
+            FillRectangle(&gadget, rect, color);
+            DrawFrame(&gadget, lightbar, rect[0], rect[1]);
         }
         if (((Class_00435100*)g_game->field_391e9)->FUN_00435100() == 3) {
             FUN_00497ce0(&gadget);
             SendLoadProgress();
         }
-        FUN_004c5fa0(&gadget);
-        FUN_004c63a0();
+        UnlockScreen(&gadget);
+        FlipScreen();
     }
     FUN_004b6b50(200);
 }

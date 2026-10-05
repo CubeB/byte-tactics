@@ -11,7 +11,7 @@ struct Image_004b96a0 {
 };
 
 // FUNCTION: 0x4b96a0
-void __stdcall FUN_004b96a0(Image_004b96a0* image)
+void __stdcall ZeroFramePixels(Image_004b96a0* image)
 {
     int count = image->height * image->width;
     char* p = image->data;

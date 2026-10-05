@@ -6,7 +6,7 @@
 extern int DAT_0050b540;
 extern int DAT_0050b544;
 
-extern void __stdcall FUN_004b64d0(int);
+extern void __stdcall RemoveTimer(int);
 
 class Class_004cda00 {
 public:
@@ -47,8 +47,8 @@ void __cdecl FUN_004ce030(int param_1, int param_2, int param_3)
             obj->field_208 = 0;
         obj->field_20c = 0;
         obj->field_284 = 0;
-        FUN_004b64d0(DAT_0050b540);
-        FUN_004b64d0(DAT_0050b544);
+        RemoveTimer(DAT_0050b540);
+        RemoveTimer(DAT_0050b544);
         DAT_0050b540 = DAT_0050b544 = -1;
         if (param_2 == 0x8000) {
             ((Class_004cda00*)DAT_0051ff14)->FUN_004cda00();

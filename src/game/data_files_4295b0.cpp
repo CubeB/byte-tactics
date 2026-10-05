@@ -36,7 +36,7 @@ int __stdcall FUN_004bbd00(void* file);
 int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
 int __stdcall FUN_004bb710(void* file, int pos);
 int __stdcall FUN_004bb5d0(void* file);
-Bitmap_004b8da0* __stdcall FUN_004b8da0(char* name, int width, int height);
+Bitmap_004b8da0* __stdcall AllocFrame(char* name, int width, int height);
 
 // FUNCTION: 0x4295b0
 Bitmap_004b8da0* __stdcall FUN_004295b0(char* path, int* outX, int* outY)
@@ -52,7 +52,7 @@ Bitmap_004b8da0* __stdcall FUN_004295b0(char* path, int* outX, int* outY)
     if (pic.header[0x2c] & 1) {
         FUN_004bb710(file, *(int*)(pic.header + 0x28));
         FUN_004bb7c0(file, &pic.w, 8);
-        bmp = FUN_004b8da0("RADARPIC", pic.w, pic.h);
+        bmp = AllocFrame("RADARPIC", pic.w, pic.h);
         FUN_004bb7c0(file, bmp->data, pic.w * pic.h);
     } else {
         bmp = 0;

@@ -9,11 +9,11 @@ public:
     HWND hwnd;                          // +0x0c
     PALETTEENTRY entries[256];          // +0x10
 
-    void FUN_0047c230(int unused);
+    void ReadSystemPalette(int unused);
 };
 
 // FUNCTION: 0x47c230
-void Class_0047c230::FUN_0047c230(int unused)
+void Class_0047c230::ReadSystemPalette(int unused)
 {
     HDC hdc = GetDC(hwnd);
     GetSystemPaletteEntries(hdc, 0, 256, entries);

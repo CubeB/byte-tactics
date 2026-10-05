@@ -43,7 +43,7 @@ struct Flags_0046a530 {
 
 extern Game* g_game;
 
-void __stdcall FUN_004cb650(Object_004cb650* obj, Vec3_0046a530* lo,
+void __stdcall GetObjectBounds(Object_004cb650* obj, Vec3_0046a530* lo,
                             Vec3_0046a530* hi, int arg);
 void __stdcall FUN_00467a50(Vec3_0046a530* view, Vec3_0046a530* pos,
                             Vec3_0046a530* corners, void* unit);
@@ -55,7 +55,7 @@ void __stdcall FUN_0046a530(Vec3_0046a530* view, Unit* unit)
     if (f->flag) {
         Vec3_0046a530 lo;
         Vec3_0046a530 hi;
-        FUN_004cb650(g_game->types[unit->type], &lo, &hi, 0);
+        GetObjectBounds(g_game->types[unit->type], &lo, &hi, 0);
         Vec3_0046a530 corners[4];
         corners[0].x = lo.x;
         corners[0].y = lo.y;

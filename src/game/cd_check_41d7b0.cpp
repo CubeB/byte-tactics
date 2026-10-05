@@ -6,7 +6,7 @@ extern int DAT_0050289c;                     // campaign/multiplayer flag
 
 char* __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 char __stdcall FUN_0041d6a0(int mode);
-char* __stdcall FUN_004bb0f0(char* name);
+char* __stdcall StripExtension(char* name);
 
 // FUNCTION: 0x41d7b0
 char* __stdcall FUN_0041d7b0(char* out, const char* dir, const char* name, const char* ext)
@@ -25,7 +25,7 @@ char* __stdcall FUN_0041d7b0(char* out, const char* dir, const char* name, const
             return 0;
         }
         sprintf(out, "%c\\\\%s\\%s", c, dir, name);
-        FUN_004bb0f0(out);
+        StripExtension(out);
         if (strlen(ext) != 0) {
             strcat(out, ".");
             strcat(out, ext);

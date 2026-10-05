@@ -16,8 +16,8 @@
 
 struct GafEntry_004b8d40;
 struct Gaf_004b8d40;
-GafEntry_004b8d40* __stdcall FUN_004b8d40(Gaf_004b8d40* gaf, const char* name);
-int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
+GafEntry_004b8d40* __stdcall FindGafEntry(Gaf_004b8d40* gaf, const char* name);
+int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 char* __stdcall FUN_004c5740(char* key);
 int __stdcall FUN_004ab2b0(void* obj, void* record);
 int __stdcall FUN_004ab310(void* obj, void* record);
@@ -91,10 +91,10 @@ static void __stdcall SetEntry_00479c50(Rec1_00479c50* obj, char* name)
     obj->entry = 0;
     Gaf_004b8d40* gaf = entries->gaf;
     if (gaf != 0) {
-        GafEntry_004b8d40* e = FUN_004b8d40(gaf, name);
+        GafEntry_004b8d40* e = FindGafEntry(gaf, name);
         if (e != 0) {
             obj->entry = e;
-            short* f = (short*)FUN_004b7f30((unsigned short*)e, obj->frame);
+            short* f = (short*)GetGafFrame((unsigned short*)e, obj->frame);
             if (f != 0) {
                 obj->h.w = f[0];
                 obj->h.h = f[1];

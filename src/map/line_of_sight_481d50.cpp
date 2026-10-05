@@ -116,7 +116,7 @@ struct Frame_00481d50 {
 
 extern Game* g_game;
 
-Frame_00481d50* __stdcall FUN_004b7f30(unsigned short* table, int index);
+Frame_00481d50* __stdcall GetGafFrame(unsigned short* table, int index);
 
 
 
@@ -184,7 +184,7 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
     } else {
         int ref = *params->field_c;
         Frame_00481d50* frame =
-            FUN_004b7f30((unsigned short*)g_game->losTable, ref);
+            GetGafFrame((unsigned short*)g_game->losTable, ref);
         int limitX;
         if (x + frame->width >= halfW)
             limitX = halfW - x;

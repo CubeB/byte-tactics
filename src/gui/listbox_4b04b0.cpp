@@ -9,12 +9,12 @@ struct Rect_004b0510 {
     int y2;                          // +0xc
 };
 
-void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 void __stdcall FUN_004b0090(void* surface, Rect_004b0510* rect, int light, int dark, int fill);
 
 // FUNCTION: 0x4b04b0
 void __stdcall FUN_004b04b0(void* surface, Rect_004b0510* rect, int light, int dark, int fill)
 {
-    FUN_004bf6f0(surface, rect, fill);
+    FillRectangle(surface, rect, fill);
     FUN_004b0090(surface, rect, light, dark, fill);
 }

@@ -28,7 +28,7 @@ static inline unsigned short Value_004b8b30(Src_004b8b30* s, unsigned short i)
 }
 
 // FUNCTION: 0x4b8b30
-void __stdcall FUN_004b8b30(Ref_004b8b30* ref, Src_004b8b30* src, int index)
+void __stdcall InitGafSequence(Ref_004b8b30* ref, Src_004b8b30* src, int index)
 {
     ref->index = index < src->count ? index : 0;
     ref->src = src;

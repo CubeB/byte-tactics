@@ -35,7 +35,7 @@ struct Game {
 extern Game* g_game;
 
 Entry_00494220* __stdcall FUN_004a0280(Entry_00494220* entries, char* name);
-void __stdcall FUN_004c6ac0(void* param_1);
+void __stdcall FreeSurface(void* param_1);
 int __stdcall FUN_0049fd60(Gadget_00494220* gadget, char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 void __stdcall FUN_004ab0a0(Menu_00494220* menu);
@@ -45,7 +45,7 @@ void __stdcall FUN_00494220(Gadget_00494220* gadget)
 {
     if (gadget->field_60 == -1) {
         Entry_00494220* e = FUN_004a0280(gadget->inner->entries, "HOTR");
-        FUN_004c6ac0(e->field_ba);
+        FreeSurface(e->field_ba);
         g_game->flags &= ~0x800;
         return;
     }

@@ -7,18 +7,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern int DAT_0050a778;
-extern void* DAT_0050a77c;
+extern int g_emptyStringRefs;
+extern void* g_emptyString;
 
 class Class_004c93f0 {
 public:
     char* ptr;
 
-    Class_004c93f0* FUN_004c93f0(const char* text);
+    Class_004c93f0* AssignText(const char* text);
 };
 
 // FUNCTION: 0x4c93f0
-Class_004c93f0* Class_004c93f0::FUN_004c93f0(const char* text)
+Class_004c93f0* Class_004c93f0::AssignText(const char* text)
 {
     // The release, phrased as in the destructor body 0x4c9390.
     ((int*)ptr)[-1]--;
@@ -27,8 +27,8 @@ Class_004c93f0* Class_004c93f0::FUN_004c93f0(const char* text)
         free(old);
     char* chars;
     if (text == 0 || *text == 0) {
-        DAT_0050a778++;
-        chars = (char*)&DAT_0050a77c;
+        g_emptyStringRefs++;
+        chars = (char*)&g_emptyString;
     } else {
         int* block = (int*)malloc(strlen(text) + 1 + sizeof(int));
         *block = 1;

@@ -15,13 +15,13 @@ struct Obj_004c2470 {
 };
 #pragma pack(pop)
 
-Obj_004c2470* FUN_004b6220(void);
-void __stdcall FUN_004c6b70(void* dest, void* image, int x, int y);
+Obj_004c2470* GetDisplay(void);
+void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 
 // FUNCTION: 0x4c2470
 void FUN_004c2470()
 {
-    Obj_004c2470* o = FUN_004b6220();
+    Obj_004c2470* o = GetDisplay();
     if (o->mode != 1 && o->count++ == 0)
-        FUN_004c6b70(0, o->image, o->x, o->y);
+        DrawSurface(0, o->image, o->x, o->y);
 }

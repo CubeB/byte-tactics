@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-unsigned int __cdecl FUN_004b6340();
+unsigned int __cdecl GetTicks();
 
 // The ring buffer of 0x462370 (push) and 0x4623b0 (pop), inlined here.
 class Queue_004623e0 {
@@ -60,7 +60,7 @@ public:
 void PacketChannel::DequeuePacket(Item_004623e0* item)
 {
     item->field_10 = -1;
-    item->time = FUN_004b6340();
+    item->time = GetTicks();
     int n = queue.count;
     while (n-- > 0) {
         int value = queue.Pop();

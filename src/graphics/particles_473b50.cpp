@@ -10,7 +10,7 @@
 // in the z part); `d = e - v` drops 4 bytes and the CSE copy.
 class Class_00471d70 {
 public:
-    void FUN_00471d70(int param_1);
+    void SetLifetime(int param_1);
 };
 
 struct Vec3_00473b50 {
@@ -64,7 +64,7 @@ public:
 // FUNCTION: 0x473b50
 void Class_00473b50::FUN_00473b50(Seg_00473b50* a, Seg_00473b50* b, int c)
 {
-    ((Class_00471d70*)this)->FUN_00471d70(c);
+    ((Class_00471d70*)this)->SetLifetime(c);
     seg_1c = *a;
     seg_34 = *b;
     SPLIT_SEG(seg_34);

@@ -1,9 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 
 // Clears a dither pattern inside the clipped rectangle `rect` of `surface`, or
-// of the screen (locked with FUN_004c5e70 and unlocked with FUN_004c5fa0) when
+// of the screen (locked with LockScreen and unlocked with UnlockScreen) when
 // `surface` is null. The rect is copied to a local first because the clip
-// helper FUN_004bf620 clips it in place. Rows alternate between the two byte
+// helper ClipRectangle clips it in place. Rows alternate between the two byte
 // masks (which half of each dword is kept) according to the phase parity
 // `(i + phase) & 1`, the aligned middle is done a dword at a time, and the
 // unaligned byte ends are filled by stepping 2 bytes at a time. Returns 1 once
@@ -25,29 +25,29 @@ struct Rect_004bff20 {
     int bottom;                        // +0xc
 };
 
-struct Surface_004bff20 {
+struct Surface {
     int unknown_0[2];
     int pitch;                         // +0x8
     unsigned char* pixels;             // +0xc
     int unknown_10[8];
 };
 
-int __stdcall FUN_004c5e70(Surface_004bff20* out);
-int __stdcall FUN_004c5fa0(Surface_004bff20* s);
-int __stdcall FUN_004bf620(Surface_004bff20* s, Rect_004bff20* r);
+int __stdcall LockScreen(Surface* out);
+int __stdcall UnlockScreen(Surface* s);
+int __stdcall ClipRectangle(Surface* s, Rect_004bff20* r);
 
 // FUNCTION: 0x4bff20
-int __stdcall FUN_004bff20(Surface_004bff20* surface, Rect_004bff20* rect, int phase)
+int __stdcall DitherRectangle(Surface* surface, Rect_004bff20* rect, int phase)
 {
-    Surface_004bff20 screen;
+    Surface screen;
     if (surface == 0) {
-        if (FUN_004c5e70(&screen))
+        if (LockScreen(&screen))
             surface = &screen;
         else
             return 0;
     }
     Rect_004bff20 r = *rect;
-    if (FUN_004bf620(surface, &r)) {
+    if (ClipRectangle(surface, &r)) {
         int x1 = (r.left + 3) & ~3;
         int x2 = (r.right + 3) & ~3;
         for (int i = r.top; i <= r.bottom; i++) {
@@ -86,6 +86,6 @@ int __stdcall FUN_004bff20(Surface_004bff20* surface, Rect_004bff20* rect, int p
         }
     }
     if (surface == &screen)
-        FUN_004c5fa0(&screen);
+        UnlockScreen(&screen);
     return 1;
 }

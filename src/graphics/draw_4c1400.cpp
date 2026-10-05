@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern void* FUN_004b6220();
+extern void* GetDisplay();
 
 struct Obj {
     char unknown_0[0x208];
@@ -8,8 +8,8 @@ struct Obj {
 };
 
 // FUNCTION: 0x4c1400
-int FUN_004c1400()
+int GetTextForeColor()
 {
-    Obj* obj = (Obj*)FUN_004b6220();
+    Obj* obj = (Obj*)GetDisplay();
     return obj->field_208;
 }

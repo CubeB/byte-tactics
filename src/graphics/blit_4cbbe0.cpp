@@ -20,7 +20,7 @@
 //     because it leaves the ALIGN padding between it and its target out, and
 //     then wraps the displacement.
 //
-// 0x4cbbe0  FUN_004cbbe0(dst, src, x, y)                   blit a bitmap at (x, y), clipped
+// 0x4cbbe0  BlitSurface(dst, src, x, y)                   blit a bitmap at (x, y), clipped
 // 0x4cbcd5  FUN_004cbcd5(dst, src, x, y, key)              the same, skipping the key colour
 // 0x4cbdd1  FUN_004cbdd1(dst, src, rect, pos)              copy a rectangle
 // 0x4cbe70  FUN_004cbe70(dst, src, rect, pos, key)         copy a rectangle, skipping the key colour
@@ -32,23 +32,23 @@
 //           its byte length (a word); a run's count byte says skip, copy or repeat
 // 0x4cc332  FUN_004cc332(dst, src, rect, pos, key, table)  dst = table[src - 0x4f][dst],
 //                                                           skipping the key
-// 0x4cc650  FUN_004cc650(surface, x0, y0, x1, y1)          0 when the segment misses the surface
+// 0x4cc650  IsLineVisible(surface, x0, y0, x1, y1)          0 when the segment misses the surface
 // 0x4cc7ab  FUN_004cc7ab(surface, x0, y0, x1, y1, color)   draw a line
 // 0x4cc8df  FUN_004cc8df(surface, x0, y0, x1, y1, ..., table)   draw a line through a table
 // 0x4cca33  (x0, y0, x1, y1, color)                         16-bit line; no callers, and it
-//                                                           hands FUN_004cc650 no surface
+//                                                           hands IsLineVisible no surface
 // 0x4ccb65  (surface in esi)                                 no callers
 // 0x4ccd1c  FUN_004ccd1c(surface, rect, color)             rectangle outline, four FUN_004cc7ab
 // 0x4ccd85  (rect, color)                                   the same through 0x4cca33; no callers
 // 0x4ccdea  FUN_004ccdea(surface, rect, color)             fill a rectangle
 // 0x4cce87  FUN_004cce87(surface, rect, value)             xor a rectangle with a byte
 // 0x4cced5  FUN_004cced5(pixels, pitch, w, h, table)       translate pixels through a table
-// 0x4ccf60  FUN_004ccf60(pixels, pitch, font, text, x, y, c1, c2, c3)   glyph blitter
+// 0x4ccf60  BlitText(pixels, pitch, font, text, x, y, c1, c2, c3)   glyph blitter
 // 0x4cd010  FUN_004cd010(dst, src, x0, y0, x1, y1, step)   no callers
 // 0x4cd896..0x4cd962  (dest, src, width, y, x, rowstep, colstep)  sample a span of src into dest
 
 // FUNCTION: 0x4cbbe0
-extern "C" __declspec(naked) void __cdecl FUN_004cbbe0(void* dst, void* src, int x, int y)
+extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int x, int y)
 {
     __asm {
         push ebp
@@ -1118,7 +1118,7 @@ extern "C" __declspec(naked) void __cdecl FUN_004cbbe0(void* dst, void* src, int
 }
 
 // FUNCTION: 0x4cc3d0
-extern "C" __declspec(naked) void __cdecl FUN_004cc3d0(unsigned char* pixels, int pitch, void* drect, void* runs,
+extern "C" __declspec(naked) void __cdecl BlitCompressedLit(unsigned char* pixels, int pitch, void* drect, void* runs,
                                              void* srect, unsigned char* table)
 {
     __asm {
@@ -1500,7 +1500,7 @@ extern "C" __declspec(naked) void __cdecl FUN_004cc3d0(unsigned char* pixels, in
 }
 
 // FUNCTION: 0x4cc650
-extern "C" __declspec(naked) int __cdecl FUN_004cc650(void* surface, int x0, int y0, int x1, int y1)
+extern "C" __declspec(naked) int __cdecl IsLineVisible(void* surface, int x0, int y0, int x1, int y1)
 {
     __asm {
     L004cc650:
@@ -2638,7 +2638,7 @@ extern "C" __declspec(naked) int __cdecl FUN_004cc650(void* surface, int x0, int
 }
 
 // FUNCTION: 0x4ccf60
-extern "C" __declspec(naked) void __cdecl FUN_004ccf60(unsigned char* pixels, int pitch, void* font, unsigned char* text,
+extern "C" __declspec(naked) void __cdecl BlitText(unsigned char* pixels, int pitch, void* font, unsigned char* text,
                                              int x, int y, int c1, int c2, int c3)
 {
     __asm {

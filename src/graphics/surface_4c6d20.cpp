@@ -1,12 +1,12 @@
 // Decompiled by Opus. Names are provisional.
 // Draws through the blitter at 0x4cbdd1 (hand-written assembly in a gap
 // region) into `dst`, or, when `dst` is null, into the screen: lock it with
-// FUN_004c5e70, draw, then unlock. The unlock is FUN_004c5fa0 inlined; its
+// LockScreen, draw, then unlock. The unlock is UnlockScreen inlined; its
 // Unlock call goes through a method of the embedded screen struct, which is
 // why the tested surface pointer is copied (and re-read in 0x4c5fa0 itself).
 #include <ddraw.h>
 
-struct Surface_004c6d20 {
+struct Surface {
     int data[12];
 };
 
@@ -29,34 +29,34 @@ struct Display_004c6d20 {
     int field_dc;                      // +0xdc
 };
 
-extern int DAT_0051fe00;
+extern int g_screenLockCount;
 
-Display_004c6d20* FUN_004b6220(void);
-int __stdcall FUN_004c5e70(Surface_004c6d20* out);
-void __cdecl FUN_004cbdd1(Surface_004c6d20* dst, Surface_004c6d20* src, Rect_004c6d20* rect, Point_004c6d20* pos);
+Display_004c6d20* GetDisplay(void);
+int __stdcall LockScreen(Surface* out);
+void __cdecl FUN_004cbdd1(Surface* dst, Surface* src, Rect_004c6d20* rect, Point_004c6d20* pos);
 
 // 0x4c5fa0, inlined here.
-static inline int UnlockScreen(Surface_004c6d20* s)
+static inline int UnlockScreenInline(Surface* s)
 {
-    Display_004c6d20* d = FUN_004b6220();
+    Display_004c6d20* d = GetDisplay();
     if (d->field_44 == 0 && d->field_dc == 0) {
         if (d->screen.surface == 0)
             return 0;
         d->screen.UnlockSurface();
-        if (DAT_0051fe00 > 0)
-            DAT_0051fe00--;
+        if (g_screenLockCount > 0)
+            g_screenLockCount--;
     }
     return 1;
 }
 
 // FUNCTION: 0x4c6d20
-void __stdcall FUN_004c6d20(Surface_004c6d20* dst, Surface_004c6d20* src, Rect_004c6d20* rect, Point_004c6d20* pos)
+void __stdcall CopySurfaceRect(Surface* dst, Surface* src, Rect_004c6d20* rect, Point_004c6d20* pos)
 {
     if (dst == 0) {
-        Surface_004c6d20 screen;
-        if (FUN_004c5e70(&screen)) {
+        Surface screen;
+        if (LockScreen(&screen)) {
             FUN_004cbdd1(&screen, src, rect, pos);
-            UnlockScreen(&screen);
+            UnlockScreenInline(&screen);
         }
     } else {
         FUN_004cbdd1(dst, src, rect, pos);

@@ -11,7 +11,7 @@ struct Point_004c1320 {
 };
 
 // FUNCTION: 0x4c1320
-int __stdcall FUN_004c1320(Point_004c1320* pts, int n, int px, int py)
+int __stdcall PointInPolygon(Point_004c1320* pts, int n, int px, int py)
 {
     if (n < 3)
         return 0;

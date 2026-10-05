@@ -11,15 +11,15 @@ public:
     virtual int IsDone();              // vtable +0xc
 };
 
-class Class_00470fb0 {
+class ParticleLists {
 public:
     std::vector<Listener_00470fb0*> lists[10];
 
-    void FUN_004710e0(void* param);
+    void DrawAll(void* param);
 };
 
 // FUNCTION: 0x4710e0
-void Class_00470fb0::FUN_004710e0(void* param)
+void ParticleLists::DrawAll(void* param)
 {
     for (int i = 0; i < 10; i++) {
         for (std::vector<Listener_00470fb0*>::iterator it = lists[i].begin(); it != lists[i].end(); it++)

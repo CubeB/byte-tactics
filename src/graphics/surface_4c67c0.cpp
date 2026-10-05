@@ -28,11 +28,11 @@ struct Obj_004c67c0 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004c6b70(void* dst, void* bmp, int x, int y);
-void __stdcall FUN_004b7f90(void* dst, Bitmap_004c67c0* bmp, int x, int y);
+void __stdcall DrawSurface(void* dst, void* bmp, int x, int y);
+void __stdcall DrawFrame(void* dst, Bitmap_004c67c0* bmp, int x, int y);
 
 // FUNCTION: 0x4c67c0
-void __stdcall FUN_004c67c0(Obj_004c67c0* obj, void* dst)
+void __stdcall DrawCursor(Obj_004c67c0* obj, void* dst)
 {
     if (obj->field_1ce != 0 && obj->field_1d2 != 0 && obj->bmp != 0) {
         obj->field_1be[0] = obj->bmp->width;
@@ -40,7 +40,7 @@ void __stdcall FUN_004c67c0(Obj_004c67c0* obj, void* dst)
         obj->field_1be[2] = obj->bmp->width;
         obj->x = obj->rect_x - obj->bmp->dx;
         obj->y = obj->rect_y - obj->bmp->dy;
-        FUN_004c6b70(obj->field_1be, dst, -obj->x, -obj->y);
-        FUN_004b7f90(dst, obj->bmp, obj->rect_x, obj->rect_y);
+        DrawSurface(obj->field_1be, dst, -obj->x, -obj->y);
+        DrawFrame(dst, obj->bmp, obj->rect_x, obj->rect_y);
     }
 }

@@ -16,7 +16,7 @@ struct Colors_00467b60 {
     unsigned char full;              // +0xa
 };
 
-void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 
 // FUNCTION: 0x467b60
 void __stdcall FUN_00467b60(void* surface, int value, int max, Rect_004b0510* rect, Colors_00467b60* colors, int dy)
@@ -29,10 +29,10 @@ void __stdcall FUN_00467b60(void* surface, int value, int max, Rect_004b0510* re
     if (value > max)
         value = max;
     r.x2 = (rect->x2 - rect->x1) * value / max + r.x1;
-    FUN_004bf6f0(surface, &r, colors->full);
+    FillRectangle(surface, &r, colors->full);
     if (r.x2 != rect->x2) {
         r.x1 = r.x2 + 1;
         r.x2 = rect->x2;
-        FUN_004bf6f0(surface, &r, colors->empty);
+        FillRectangle(surface, &r, colors->empty);
     }
 }

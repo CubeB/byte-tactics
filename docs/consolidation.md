@@ -98,9 +98,9 @@ the tool.
   separate placeholder classes. 0x485e30.cpp keeps a static `new` to emit its
   `??_G` until 0x485d40 is decompiled. The run 0x4b0720-0x4b1c00 is probably
   more non-virtual methods of `CobScript` (0x485d40 calls 0x4b0940).
-- `Class_00470ae0` (vtable 0x4fd580, `??_G` at 0x470ae0): its constructor is
-  0x470a90 (`Class_00470a90::FUN_00470a90`) and its destructor 0x470b80
-  (`Class_00470b80::FUN_00470b80`).
+- `ObjectPool` (vtable 0x4fd580, `??_G` at 0x470ae0): its constructor is
+  0x470a90 (`Class_00470a90::Construct`) and its destructor 0x470b80
+  (`Class_00470b80::Destroy`).
 - `Class_0044e250` and `Class_0044e330`: two constructors storing vtable
   `DAT_004fd3b8`.
 - The pathfinder ("AISearch touched mapentries" is its grid): one class with
@@ -200,14 +200,14 @@ revisit them once the surrounding code is known.
 
 
 - The 0x4fd5a8 family is consolidated (table in 0x471cc0.cpp): base
-  `Class_00471cc0` (destructor 0x471d00, class `operator new` 0x471d10 and
+  `ParticleSystem` (destructor 0x471d00, class `operator new` 0x471d10 and
   `operator delete` 0x471d50) and six derived classes. Left over: the slot
   methods keep their placeholder classes (0x472f90 is still
   `Class_00472fd0::FUN_00472f90`); 0x471d70 is a non-virtual base method;
   0x475330 is recorded as a free function but is slot 3 of `Class_004750b0`;
   four derived `??_G` files use a static `new` until the real `new` sites
   (0x471340 and others) are decompiled; the pool at DAT_0051e610 is
-  `Class_00470ed0`/`Class_00470eb0` in some files and `Class_00470ae0` in
+  `Class_00470ed0`/`Class_00470eb0` in some files and `ObjectPool` in
   0x470ae0.cpp.
 
 - The victory condition with vtables 0x4fd890 (primary) and 0x4fd888 (visitor
@@ -256,7 +256,7 @@ revisit them once the surrounding code is known.
 The checker compares names, not parameter types, so callers and definitions
 can disagree on types (a real link would fail). Known cases:
 
-- `FUN_004ba590`: its file takes `int`; callers such as 0x417290 pass `float`.
+- `SetBrightness`: its file takes `int`; callers such as 0x417290 pass `float`.
 - `FUN_004d0620`: its file returns `void`; 0x47efe0 uses a `void*` result.
 - `Class_00438b90::FUN_00438b90` takes the 1-byte class `Class_00438760` by value
   (see 0x403190); its own file declares `int k`. FUN_0043f0e0 returns the same
@@ -272,7 +272,7 @@ can disagree on types (a real link would fail). Known cases:
   declares it `unsigned int`. Settle on `unsigned int` when merging the
   pathfinder class.
 
-- FUN_004be950's colour parameter is declared `int` in 0x417c70.cpp,
+- DrawLine's colour parameter is declared `int` in 0x417c70.cpp,
   0x417e00.cpp and 0x4181d0.cpp so that `color & 0xff` is not folded, though
   the callee probably takes `unsigned char`. Settle it when 0x4be950 is
   decompiled. (0x4181d0.cpp also holds 0x417f60, defined above it as the
@@ -315,7 +315,7 @@ can disagree on types (a real link would fail). Known cases:
   `Class_00437820::operator=` (`??4Class_00437820@@QAEAAV0@ABV0@@Z`, the
   compiler-generated assignment of `{Class_004c91a0 handle; int field_4;}`,
   27 bytes, called only from 0x437580's fill and copy_backward); 0x4c93b0
-  (`Class_004c93b0::FUN_004c93b0`) is the string handle's
+  (`Class_004c93b0::Assign`) is the string handle's
   `Class_004c91a0::operator=`. Rename both before 0x437580 can match; its twin
   at 0x488fb0 (with 0x489240) is the same instantiation for another vector
   (#428).

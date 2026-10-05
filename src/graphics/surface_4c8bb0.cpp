@@ -19,10 +19,10 @@
 // gets the rotation but changes the head (94.18%); `index=next` makes `next`
 // a register candidate and moves vertices into esi (42%).
 struct Surface_4c8bb0 { unsigned short width, height; };
-void __stdcall FUN_004c8020(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);
+void __stdcall DrawLitTexturedSpan(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);
 
 // FUNCTION: 0x4c8bb0
-void __stdcall FUN_004c8bb0(Surface_4c8bb0* target, Surface_4c8bb0* texture, int* vertices, int* coords)
+void __stdcall DrawLitTexturedPolygon(Surface_4c8bb0* target, Surface_4c8bb0* texture, int* vertices, int* coords)
 {
     int i, defaults[8];
     int spans[800][10];
@@ -134,7 +134,7 @@ void __stdcall FUN_004c8bb0(Surface_4c8bb0* target, Surface_4c8bb0* texture, int
                         int* span=&spans[0][0];
                         for(int row=lowY;row<highY;row++) {
                             if(span[1]-span[0]>0)
-                                FUN_004c8020(row,span,target,texture);
+                                DrawLitTexturedSpan(row,span,target,texture);
                             span+=10;
                         }
                     }

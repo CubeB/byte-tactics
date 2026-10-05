@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Appends one entry (up to 300) to the table at g_game+0x1491b: a position and
-// two references built by FUN_004b8b30.
+// two references built by InitGafSequence.
 
 struct Src_00420a30 {
     unsigned short count;              // +0x0
@@ -45,8 +45,8 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004b8b30(Ref_00420a30* ref, Src_00420a30* src, int index);
-void __stdcall FUN_00472630(int* pos, int a, int b, int c);
+void __stdcall InitGafSequence(Ref_00420a30* ref, Src_00420a30* src, int index);
+void __stdcall EmitSmoke(int* pos, int a, int b, int c);
 
 // FUNCTION: 0x420a30
 void __stdcall FUN_00420a30(Pos_00420a30* pos, Src_00420a30* src, int index, int flag)
@@ -56,15 +56,15 @@ void __stdcall FUN_00420a30(Pos_00420a30* pos, Src_00420a30* src, int index, int
         Entry_00420a30* e = (Entry_00420a30*)(pCount + 1) + (*pCount)++;
         e->pos = *pos;
         if (src != 0)
-            FUN_004b8b30(&e->ref1, src, 0);
+            InitGafSequence(&e->ref1, src, 0);
         else
             e->ref1.src = 0;
         if (index >= 0)
-            FUN_004b8b30(&e->ref2, *(Src_00420a30**)((char*)pCount + index * 4 + 0x6274), 0);
+            InitGafSequence(&e->ref2, *(Src_00420a30**)((char*)pCount + index * 4 + 0x6274), 0);
         else
             e->ref2.src = 0;
         if (flag == 0 && pos->field_6 > (short)g_game->field_1427f)
-            FUN_00472630((int*)pos, 7, 0xf, 9);
+            EmitSmoke((int*)pos, 7, 0xf, 9);
         e->field_0 = 0;
     }
 }

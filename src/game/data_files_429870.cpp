@@ -5,7 +5,7 @@
 //
 // The long straight-line head re-reads g_game-><group> into a local (`gaf`)
 // after the FUN_00429700 group load, which is what keeps the pointer in esi
-// across the FUN_004b8d40 calls; storing straight into the field and reusing
+// across the FindGafEntry calls; storing straight into the field and reusing
 // the call's eax instead loses the reload and the register.
 //
 // Two things in the tail are load-bearing: the parser local (and buf) must be
@@ -94,7 +94,7 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 void* __stdcall FUN_00429700(char* name);
-void* __stdcall FUN_004b8d40(void* gaf, const char* name);
+void* __stdcall FindGafEntry(void* gaf, const char* name);
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 
 class Class_004c2ea0 {
@@ -150,82 +150,82 @@ void FUN_00429870()
 
     g_game->fxGaf = (int)FUN_00429700("fx");
     gaf = (char*)g_game->fxGaf;
-    g_game->smoke1 = (int)FUN_004b8d40(gaf, "smoke 1");
-    g_game->smoke2 = (int)FUN_004b8d40(gaf, "smoke 2");
-    g_game->fire1 = (int)FUN_004b8d40(gaf, "fire1");
-    g_game->alfboom1 = (int)FUN_004b8d40(gaf, "alfboom1");
+    g_game->smoke1 = (int)FindGafEntry(gaf, "smoke 1");
+    g_game->smoke2 = (int)FindGafEntry(gaf, "smoke 2");
+    g_game->fire1 = (int)FindGafEntry(gaf, "fire1");
+    g_game->alfboom1 = (int)FindGafEntry(gaf, "alfboom1");
     FLAG(g_game->alfboom1);
-    g_game->radlogo = (int)FUN_004b8d40(gaf, "radlogo");
-    g_game->radlogohigh = (int)FUN_004b8d40(gaf, "radlogohigh");
-    g_game->nuclogo = (int)FUN_004b8d40(gaf, "nuclogo");
-    g_game->h2oboom2 = (int)FUN_004b8d40(gaf, "h2oboom2");
+    g_game->radlogo = (int)FindGafEntry(gaf, "radlogo");
+    g_game->radlogohigh = (int)FindGafEntry(gaf, "radlogohigh");
+    g_game->nuclogo = (int)FindGafEntry(gaf, "nuclogo");
+    g_game->h2oboom2 = (int)FindGafEntry(gaf, "h2oboom2");
     FLAG(g_game->h2oboom2);
-    g_game->lavasplash = (int)FUN_004b8d40(gaf, "lavasplash");
+    g_game->lavasplash = (int)FindGafEntry(gaf, "lavasplash");
     FLAG(g_game->lavasplash);
-    g_game->cannonshell = (int)FUN_004b8d40(gaf, "cannonshell");
-    g_game->plasmasm1 = (int)FUN_004b8d40(gaf, "plasmasm");
-    g_game->plasmamd = (int)FUN_004b8d40(gaf, "plasmamd");
-    g_game->ultrashell = (int)FUN_004b8d40(gaf, "ultrashell");
-    g_game->plasmasm2 = (int)FUN_004b8d40(gaf, "plasmasm");
-    g_game->flamestream = (int)FUN_004b8d40(gaf, "flamestream");
-    g_game->explosion = (int)FUN_004b8d40(gaf, "explosion");
+    g_game->cannonshell = (int)FindGafEntry(gaf, "cannonshell");
+    g_game->plasmasm1 = (int)FindGafEntry(gaf, "plasmasm");
+    g_game->plasmamd = (int)FindGafEntry(gaf, "plasmamd");
+    g_game->ultrashell = (int)FindGafEntry(gaf, "ultrashell");
+    g_game->plasmasm2 = (int)FindGafEntry(gaf, "plasmasm");
+    g_game->flamestream = (int)FindGafEntry(gaf, "flamestream");
+    g_game->explosion = (int)FindGafEntry(gaf, "explosion");
     FLAG(g_game->explosion);
-    g_game->explode2 = (int)FUN_004b8d40(gaf, "explode2");
+    g_game->explode2 = (int)FindGafEntry(gaf, "explode2");
     FLAG(g_game->explode2);
-    g_game->explode3 = (int)FUN_004b8d40(gaf, "explode3");
+    g_game->explode3 = (int)FindGafEntry(gaf, "explode3");
     FLAG(g_game->explode3);
-    g_game->explode4 = (int)FUN_004b8d40(gaf, "explode4");
+    g_game->explode4 = (int)FindGafEntry(gaf, "explode4");
     FLAG(g_game->explode4);
-    g_game->explode5 = (int)FUN_004b8d40(gaf, "explode5");
+    g_game->explode5 = (int)FindGafEntry(gaf, "explode5");
     FLAG(g_game->explode5);
-    g_game->nuke1 = (int)FUN_004b8d40(gaf, "nuke1");
+    g_game->nuke1 = (int)FindGafEntry(gaf, "nuke1");
     FLAG(g_game->nuke1);
-    g_game->shadow = (int)FUN_004b8d40(gaf, "shadow");
+    g_game->shadow = (int)FindGafEntry(gaf, "shadow");
 
     g_game->igTitles = (int)FUN_00429700("igtitles");
     gaf = (char*)g_game->igTitles;
-    g_game->igvictory = (int)FUN_004b8d40(gaf, "igvictory");
-    g_game->igdefeat = (int)FUN_004b8d40(gaf, "igdefeat");
-    g_game->igpaused = (int)FUN_004b8d40(gaf, "igpaused");
+    g_game->igvictory = (int)FindGafEntry(gaf, "igvictory");
+    g_game->igdefeat = (int)FindGafEntry(gaf, "igdefeat");
+    g_game->igpaused = (int)FindGafEntry(gaf, "igpaused");
 
     g_game->vismasks = (int)FUN_00429700("vismasks");
     gaf = (char*)g_game->vismasks;
-    g_game->vismask = (int)FUN_004b8d40(gaf, "vismask");
+    g_game->vismask = (int)FindGafEntry(gaf, "vismask");
 
     g_game->fog = (int)FUN_00429700("fog");
     gaf = (char*)g_game->fog;
-    g_game->black1 = (int)FUN_004b8d40(gaf, "Black1");
-    g_game->black2 = (int)FUN_004b8d40(gaf, "Black2");
-    g_game->black3 = (int)FUN_004b8d40(gaf, "Black3");
-    g_game->black4 = (int)FUN_004b8d40(gaf, "Black4");
-    g_game->gray1 = (int)FUN_004b8d40(gaf, "Gray1");
-    g_game->gray2 = (int)FUN_004b8d40(gaf, "Gray2");
-    g_game->gray3 = (int)FUN_004b8d40(gaf, "Gray3");
-    g_game->gray4 = (int)FUN_004b8d40(gaf, "Gray4");
+    g_game->black1 = (int)FindGafEntry(gaf, "Black1");
+    g_game->black2 = (int)FindGafEntry(gaf, "Black2");
+    g_game->black3 = (int)FindGafEntry(gaf, "Black3");
+    g_game->black4 = (int)FindGafEntry(gaf, "Black4");
+    g_game->gray1 = (int)FindGafEntry(gaf, "Gray1");
+    g_game->gray2 = (int)FindGafEntry(gaf, "Gray2");
+    g_game->gray3 = (int)FindGafEntry(gaf, "Gray3");
+    g_game->gray4 = (int)FindGafEntry(gaf, "Gray4");
 
     g_game->cursors = (int)FUN_00429700("cursors");
     gaf = (char*)g_game->cursors;
-    g_game->cursorAttack = (int)FUN_004b8d40(gaf, "cursorattack");
-    g_game->cursorAirstrike = (int)FUN_004b8d40(gaf, "cursorairstrike");
-    g_game->cursorTooFar = (int)FUN_004b8d40(gaf, "cursortoofar");
-    g_game->cursorCapture = (int)FUN_004b8d40(gaf, "cursorcapture");
-    g_game->cursorDefend = (int)FUN_004b8d40(gaf, "cursordefend");
-    g_game->cursorRepair = (int)FUN_004b8d40(gaf, "cursorrepair");
-    g_game->cursorPatrol = (int)FUN_004b8d40(gaf, "cursorpatrol");
-    g_game->cursorPickup = (int)FUN_004b8d40(gaf, "cursorpickup");
-    g_game->cursorTeleport = (int)FUN_004b8d40(gaf, "cursorteleport");
-    g_game->cursorReclamate = (int)FUN_004b8d40(gaf, "cursorreclamate");
-    g_game->cursorLoad = (int)FUN_004b8d40(gaf, "cursorload");
-    g_game->cursorUnload = (int)FUN_004b8d40(gaf, "cursorunload");
-    g_game->cursorMove = (int)FUN_004b8d40(gaf, "cursormove");
-    g_game->cursorSelect = (int)FUN_004b8d40(gaf, "cursorselect");
-    g_game->cursorFindSite = (int)FUN_004b8d40(gaf, "cursorfindsite");
-    g_game->cursorRed = (int)FUN_004b8d40(gaf, "cursorred");
-    g_game->cursorGrn = (int)FUN_004b8d40(gaf, "cursorgrn");
-    g_game->cursorNormal = (int)FUN_004b8d40(gaf, "cursornormal");
-    g_game->cursorHourglass = (int)FUN_004b8d40(gaf, "cursorhourglass");
-    g_game->pathIcon = (int)FUN_004b8d40(gaf, "pathicon");
-    g_game->cursorRevive = (int)FUN_004b8d40(gaf, "cursorrevive");
+    g_game->cursorAttack = (int)FindGafEntry(gaf, "cursorattack");
+    g_game->cursorAirstrike = (int)FindGafEntry(gaf, "cursorairstrike");
+    g_game->cursorTooFar = (int)FindGafEntry(gaf, "cursortoofar");
+    g_game->cursorCapture = (int)FindGafEntry(gaf, "cursorcapture");
+    g_game->cursorDefend = (int)FindGafEntry(gaf, "cursordefend");
+    g_game->cursorRepair = (int)FindGafEntry(gaf, "cursorrepair");
+    g_game->cursorPatrol = (int)FindGafEntry(gaf, "cursorpatrol");
+    g_game->cursorPickup = (int)FindGafEntry(gaf, "cursorpickup");
+    g_game->cursorTeleport = (int)FindGafEntry(gaf, "cursorteleport");
+    g_game->cursorReclamate = (int)FindGafEntry(gaf, "cursorreclamate");
+    g_game->cursorLoad = (int)FindGafEntry(gaf, "cursorload");
+    g_game->cursorUnload = (int)FindGafEntry(gaf, "cursorunload");
+    g_game->cursorMove = (int)FindGafEntry(gaf, "cursormove");
+    g_game->cursorSelect = (int)FindGafEntry(gaf, "cursorselect");
+    g_game->cursorFindSite = (int)FindGafEntry(gaf, "cursorfindsite");
+    g_game->cursorRed = (int)FindGafEntry(gaf, "cursorred");
+    g_game->cursorGrn = (int)FindGafEntry(gaf, "cursorgrn");
+    g_game->cursorNormal = (int)FindGafEntry(gaf, "cursornormal");
+    g_game->cursorHourglass = (int)FindGafEntry(gaf, "cursorhourglass");
+    g_game->pathIcon = (int)FindGafEntry(gaf, "pathicon");
+    g_game->cursorRevive = (int)FindGafEntry(gaf, "cursorrevive");
 
     Class_004c2ea0 parser;
     char buf[256];
@@ -251,9 +251,9 @@ void FUN_00429870()
             char* side = (char*)FUN_00429700(buf);
             if (side) {
                 g_game->panelTop[i] = (int)side;
-                g_game->panelSide[i] = (int)FUN_004b8d40(side, "PANELTOP");
-                g_game->panelBot[i] = (int)FUN_004b8d40(side, "PANELSIDE");
-                g_game->panelBot2[i] = (int)FUN_004b8d40(side, "PANELBOT");
+                g_game->panelSide[i] = (int)FindGafEntry(side, "PANELTOP");
+                g_game->panelBot[i] = (int)FindGafEntry(side, "PANELSIDE");
+                g_game->panelBot2[i] = (int)FindGafEntry(side, "PANELBOT");
             }
         }
         i++;

@@ -93,9 +93,9 @@ struct Class_0051fba4 {
 
 extern Class_0051fba4* DAT_0051fba4;
 
-int FUN_004c13f0();
-void __stdcall FUN_004c13a0(int colour, int font);
-void __stdcall FUN_004c1420(int id);
+int GetTextKeyColor();
+void __stdcall SetTextColors(int colour, int font);
+void __stdcall SetFont(int id);
 int __stdcall FUN_004ab510(Object_004a7290* obj, unsigned char buttons);
 void __stdcall FUN_004ab690(Object_004a7290* obj, int param_2);
 void __stdcall FUN_004ab6c0(Object_004a7290* obj, int index, char* text,
@@ -127,14 +127,14 @@ int __stdcall FUN_004a1810(Entry_004a7290* entries, int index)
     for (; i < entries->data.count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == entries[index].group) {
-                FUN_004c1420(entries[i].data.list.id);
+                SetFont(entries[i].data.list.id);
                 break;
             }
             n++;
         }
     }
     if (i == entries->data.count + 1) {
-        FUN_004c1420(DAT_0051fba4->current);
+        SetFont(DAT_0051fba4->current);
         i = -1;
     }
     return i;
@@ -171,7 +171,7 @@ static inline void Activate(Object_004a7290* obj, int index)
     Out_4a15c0 rect;
     Entry_004a7290* ep = obj->holder->entries;
     FUN_004a15c0((char*)ep, index, &rect);
-    FUN_004c13a0(obj->colors[ep[index].colourIndex], FUN_004c13f0());
+    SetTextColors(obj->colors[ep[index].colourIndex], GetTextKeyColor());
     FUN_004a1810(ep, index);
     FUN_0049fc50(obj, index);
     obj->holder->field_20 = index;
@@ -203,7 +203,7 @@ int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
     }
 
     if (FUN_0049fcf0(obj, index)) {
-        FUN_004c13a0(obj->colors[entries[index].colourIndex],
+        SetTextColors(obj->colors[entries[index].colourIndex],
                      obj->colors[entries[index].field_23]);
         int r = FUN_004ab720(obj, index, text);
         if (r == 13) {

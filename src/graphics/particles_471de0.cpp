@@ -34,15 +34,15 @@
 #include <imagehlp.h>
 #include "ta_types.h"
 
-class Class_00471cc0 {
+class ParticleSystem {
 public:
-    virtual ~Class_00471cc0();
+    virtual ~ParticleSystem();
 };
 
 inline Class_00472200::~Class_00472200()
 {
     for (int i = 0; i < 10; i++) {
-        std::vector<Class_00471cc0*>::iterator it = lists[i].begin();
+        std::vector<ParticleSystem*>::iterator it = lists[i].begin();
         while (it != lists[i].end()) {
             delete *it;
             lists[i].erase(it);
@@ -53,7 +53,7 @@ inline Class_00472200::~Class_00472200()
 extern Game* g_game;
 
 // FUNCTION: 0x471de0
-void FUN_00471de0()
+void DestroyParticleLists()
 {
     if (g_game->lists_38d77) {
         delete g_game->lists_38d77;

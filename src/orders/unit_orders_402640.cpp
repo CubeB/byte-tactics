@@ -154,7 +154,7 @@ void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit* owner, Unit* 
 int __stdcall FUN_0041bd10(Unit* builder, Unit* unit, float amount);
 int __stdcall FUN_0041ba60(Unit* unit, Unit* target, float amount);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
-void __stdcall FUN_004720d0(Vec3* from, Box* to, int count);
+void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 
 // Order handler "Repairing": the order's target unit (the builder) repairs
 // `unit`, spending its worker time and drawing nano particles from its nano
@@ -190,7 +190,7 @@ int __stdcall FUN_00402430(Unit* unit, Order* order, int unused)
             box.hi.x += unit->type->bounds.hi.x;
             box.hi.z += unit->type->bounds.hi.z;
             box.hi.y += unit->type->bounds.hi.y;
-            FUN_004720d0(&nano, &box, 6);
+            EmitNanoParticles(&nano, &box, 6);
         }
         ((Class_00439e80*)order)->FUN_00439e80(1);
         order->flags |= 8;
@@ -308,7 +308,7 @@ int __stdcall FUN_00402640(Unit* unit, Order* order, int flags)
                 box.hi.x += order->target.owner->type->bounds.hi.x;
                 box.hi.z += order->target.owner->type->bounds.hi.z;
                 box.hi.y += order->target.owner->type->bounds.hi.y;
-                FUN_004720d0(&nano, &box, 6);
+                EmitNanoParticles(&nano, &box, 6);
             }
             if (order->target.owner->buildLeft != 0.0f) {
                 ((Class_00439e80*)order)->FUN_00439e80(1);

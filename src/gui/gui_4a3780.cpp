@@ -107,11 +107,11 @@ struct Object_004a3780 {
 extern Holder_004a3780* DAT_0051fba4;
 extern char DAT_00502a20[];
 
-void __stdcall FUN_004c1420(int id);
-int FUN_004c1450();
-int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
+void __stdcall SetFont(int id);
+int GetFontHeight();
+int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 char* __stdcall FUN_004b6af0(char* text, int n);
-int FUN_004b6340();
+int GetTicks();
 int __stdcall FUN_004ab570(Object_004a3780* obj, unsigned char buttons);
 int __stdcall FUN_004ab510(Object_004a3780* obj, unsigned char buttons);
 int __stdcall FUN_004ab5b0(Object_004a3780* obj, unsigned int mask);
@@ -152,8 +152,8 @@ struct Glyph_004a3780 {
 static inline int LineHeight_004a3780()
 {
     if (0 == DAT_0051fba4->list)
-        return FUN_004c1450();
-    return ((Glyph_004a3780*)FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49))->height + 2;
+        return GetFontHeight();
+    return ((Glyph_004a3780*)GetGafFrame(DAT_0051fba4->list->field_0c, 0x49))->height + 2;
 }
 
 // FUNCTION: 0x4a3780
@@ -179,14 +179,14 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
     for (i = 1; i < entries[0].count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == me->group) {
-                FUN_004c1420(entries[i].field_d6);
+                SetFont(entries[i].field_d6);
                 break;
             }
             n++;
         }
     }
     if (i == entries[0].count + 1)
-        FUN_004c1420(DAT_0051fba4->current);
+        SetFont(DAT_0051fba4->current);
 
     int size = LineHeight_004a3780();
     short da = me->field_da;
@@ -298,8 +298,8 @@ ret1:
         }
         obj->field_cca = 1;
     } else if (point.y < r.y0) {
-        if (me->field_bc > 0 && me->field_b6 < FUN_004b6340()) {
-            me->field_b6 = FUN_004b6340() + 2;
+        if (me->field_bc > 0 && me->field_b6 < GetTicks()) {
+            me->field_b6 = GetTicks() + 2;
             if (me->field_ba > me->field_bc)
                 me->field_ba = me->field_bc;
             me->field_bc--;
@@ -317,8 +317,8 @@ ret1:
             goto finish;
         }
     } else if (point.y > r.y1) {
-        if (me->field_bc < me->field_be && me->field_b6 < FUN_004b6340()) {
-            me->field_b6 = FUN_004b6340() + 2;
+        if (me->field_bc < me->field_be && me->field_b6 < GetTicks()) {
+            me->field_b6 = GetTicks() + 2;
             me->field_bc++;
             me->field_ba = me->field_bc + step - 1;
             if (me->field_c2 != 0) {

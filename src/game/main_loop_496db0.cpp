@@ -20,7 +20,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_00464290(unsigned char player, unsigned char kind);
-void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
+void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __cdecl LeaveNetGameCallback(int param);
 void FUN_00497f40();
 
@@ -33,5 +33,5 @@ void FUN_00496db0()
     g_game->sub_1cd5->flag_96 = 1;
     g_game->mode = 5;
     g_game->handler = FUN_00497f40;
-    FUN_004b4fd0(LeaveNetGameCallback, 0);
+    SetCloseHandler(LeaveNetGameCallback, 0);
 }

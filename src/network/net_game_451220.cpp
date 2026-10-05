@@ -81,7 +81,7 @@ int __stdcall HAPINET_addplayer(void* net, unsigned long* id, char* shortName,
                            char* longName, char* name, short field_11, short field_13);
 void __stdcall FUN_004abd90(void* menu, const char* text, int a, int b, int c);
 char* __stdcall FUN_004c5740(const char* text);
-int __cdecl FUN_004b6340();
+int __cdecl GetTicks();
 
 // The index of the first connected player, or 10 when there is none.
 static inline unsigned char FindPlayerInUse()
@@ -113,7 +113,7 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
     player->info->flag_97_0 = same;
     player->info->field_96 = 0xff;
     player->field_21 &= 0xfd;
-    player->field_8 = FUN_004b6340();
+    player->field_8 = GetTicks();
     PlayerInfo_00451220* info = player->info;
     info->field_9b = (info->field_9b ^ ((g_game->field_2a3c ^ info->field_9b) & 0xf)) & 0x7fff;
     info->flag_9d_0 = (strlen(g_game->passWord) != 0);

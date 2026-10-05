@@ -88,7 +88,7 @@ struct DXVersion {
 };
 
 // FUNCTION: 0x4b5070
-int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4)
+int __stdcall CheckDirectXVersion(int want0, int want1, int want2, int want3, int want4)
 {
     int isNT;
     DXVersion v;

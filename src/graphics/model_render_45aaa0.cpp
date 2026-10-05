@@ -35,7 +35,7 @@ struct ObjectState_0045aaa0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x45aaa0
-void __stdcall FUN_0045aaa0(ObjectState_0045aaa0* state)
+void __stdcall FreeObjectState(ObjectState_0045aaa0* state)
 {
     for (int i = 0; i < state->count; i++) {
         FUN_004d85a0(state->entries[i].ptr);

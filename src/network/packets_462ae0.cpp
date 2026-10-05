@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
 void __cdecl PacketTrace(const char* fmt, ...);
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 
 class Class_00462ae0;
 
@@ -66,7 +66,7 @@ void Class_00462ae0::RemovePacket(Packet_00462ae0* packet)
         PacketTrace("Warning! RemovePacket called for packet in pending queue!\n");
         Manager_00462ae0* mgr = manager;
         packet->queued = -1;
-        packet->sentTime = FUN_004b6340();
+        packet->sentTime = GetTicks();
         int n = mgr->queue.count;
         while (n-- > 0) {
             int value = mgr->queue.PopPacket();

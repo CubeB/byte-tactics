@@ -10,12 +10,12 @@ struct Timer_4b64d0 {
 };
 
 extern Timer_4b64d0 DAT_0051fbe0[10];
-extern int DAT_0051fc80;
+extern int g_timerCount;
 
 // FUNCTION: 0x4b64d0
-int __stdcall FUN_004b64d0(int i)
+int __stdcall RemoveTimer(int i)
 {
-    if (i >= DAT_0051fc80)
+    if (i >= g_timerCount)
         return 0;
     if (i < 0)
         return 0;

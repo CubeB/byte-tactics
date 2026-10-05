@@ -45,11 +45,11 @@ struct FaceFlags_459830 {
 
 struct Vec3 { int x; int y; int z; };
 
-void* __stdcall FUN_004b7ee0(void* pic);
-void* __stdcall FUN_004b7f30(unsigned short* table, int index);
-void __stdcall FUN_004b95a0(Bitmap_459c70* dst, Bitmap_459c70* src);
-void __stdcall FUN_004c1000(Bitmap_459c70* surface, void* poly, int count, int flag);
-void __stdcall FUN_004c8760(Bitmap_459c70* surface, void* pic, void* poly, int flag);
+void* __stdcall GetGafSequenceFrame(void* pic);
+void* __stdcall GetGafFrame(unsigned short* table, int index);
+void __stdcall DownsampleFrame(Bitmap_459c70* dst, Bitmap_459c70* src);
+void __stdcall FillFlatPolygon(Bitmap_459c70* surface, void* poly, int count, int flag);
+void __stdcall DrawTexturedPolygon(Bitmap_459c70* surface, void* pic, void* poly, int flag);
 
 struct Bitmap_459c70 {
     unsigned short width;            // +0x00
@@ -124,7 +124,7 @@ struct List_459c70 {
 struct Class_004581e0 {
     char unknown_0[0x10];
     Bitmap_459c70* shadow;           // +0x10
-    void FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list, int kind, int useColor);
+    void DrawPieces(Bitmap_459c70* bitmap, List_459c70* list, int kind, int useColor);
 };
 
 static __inline int shade_bias(Owner_459c70* owner)
@@ -134,7 +134,7 @@ static __inline int shade_bias(Owner_459c70* owner)
 }
 
 // FUNCTION: 0x459830
-void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
+void Class_004581e0::DrawPieces(Bitmap_459c70* bitmap, List_459c70* list,
     int kind, int useColor)
 {
     Vec3 vertex[2000];
@@ -213,20 +213,20 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
                             if (fflags.bits.b) {
                                 if (fflags.bits.c) {
                                     int unit = *(int*)(g_game + 0x1b8a + kind * 0x14b);
-                                    pic = FUN_004b7f30(face->color,
+                                    pic = GetGafFrame(face->color,
                                         *(unsigned char*)(unit + 0x96));
                                 } else if (useColor) {
-                                    pic = FUN_004b7f30(face->color, 0);
+                                    pic = GetGafFrame(face->color, 0);
                                 } else {
-                                    pic = FUN_004b7ee0(&face->pic);
+                                    pic = GetGafSequenceFrame(&face->pic);
                                 }
                             } else {
                                 pic = face->pic;
                             }
-                            FUN_004c8760(bitmap, pic, poly, 0);
+                            DrawTexturedPolygon(bitmap, pic, poly, 0);
                         }
                     } else {
-                        FUN_004c1000(bitmap, poly, face->count, face->unknown_0);
+                        FillFlatPolygon(bitmap, poly, face->count, face->unknown_0);
                     }
                 }
             }
@@ -235,7 +235,7 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
 
     if (((Flags_37f06*)(g_game + 0x37f06))->antiAlias) {
         if (mode != 0) {
-            FUN_004b95a0(bitmap, src);
+            DownsampleFrame(bitmap, src);
             unsigned char* s = (unsigned char*)src->data2;
             if (s != 0) {
                 unsigned char* d = (unsigned char*)bitmap->data2;

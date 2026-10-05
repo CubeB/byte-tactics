@@ -28,8 +28,8 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned short* __stdcall FUN_004b8d40(void* gaf, const char* name);
-int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
+unsigned short* __stdcall FindGafEntry(void* gaf, const char* name);
+int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 
 // FUNCTION: 0x4679a0
 void FUN_004679a0()
@@ -39,8 +39,8 @@ void FUN_004679a0()
     Sub_004679a0_b* b = &g_game->b;
     b->field_30 = 0;
     b->lightbar = 0;
-    unsigned short* frames = FUN_004b8d40(g_game->gaf, "LIGHTBAR");
-    g_game->b.lightbar = (unsigned short*)FUN_004b7f30(frames, 1);
+    unsigned short* frames = FindGafEntry(g_game->gaf, "LIGHTBAR");
+    g_game->b.lightbar = (unsigned short*)GetGafFrame(frames, 1);
     g_game->b.lightbar[3] = 0;
     g_game->b.lightbar[2] = 0;
 }

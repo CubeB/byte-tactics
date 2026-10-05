@@ -45,11 +45,11 @@ struct Model_45a510 {
 // the call. It compiles the same as a __stdcall free function.
 class Class_0045a510 {
 public:
-    void FUN_0045a510(int* width, int* height, int* originX, int* originY, Model_45a510* model);
+    void MeasureShadow(int* width, int* height, int* originX, int* originY, Model_45a510* model);
 };
 
 // FUNCTION: 0x45a510
-void Class_0045a510::FUN_0045a510(int* width, int* height, int* originX, int* originY, Model_45a510* model)
+void Class_0045a510::MeasureShadow(int* width, int* height, int* originX, int* originY, Model_45a510* model)
 {
     int minX;
     int minY;

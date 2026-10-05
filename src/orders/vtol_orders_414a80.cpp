@@ -85,7 +85,7 @@ public:
 
 void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
-void __stdcall FUN_00472200(Vec3* box, Vec3* from, int count);
+void __stdcall EmitReverseNanoParticles(Vec3* box, Vec3* from, int count);
 int __stdcall FUN_00438650(Unit* unit, Unit* target, int n);
 void __stdcall DamageUnit(Unit* unit, Unit* target, int a, int b, int c);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
@@ -176,7 +176,7 @@ int __stdcall FUN_00414a80(Unit* unit, Order* order, unsigned int flags)
             bounds[1].x += order->target.Get()->def->max.x;
             bounds[1].z += order->target.Get()->def->max.z;
             bounds[1].y += order->target.Get()->def->max.y;
-            FUN_00472200(bounds, &start, 6);
+            EmitReverseNanoParticles(bounds, &start, 6);
             ((Class_00439e80*)order)->FUN_00439e80(2);
             order->duration += 2;
             return 2;

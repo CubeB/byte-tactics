@@ -77,11 +77,11 @@ struct Display_004c5ff0 {
     }
 };
 
-Display_004c5ff0* FUN_004b6220(void);
+Display_004c5ff0* GetDisplay(void);
 
 
 // FUNCTION: 0x4c5ff0
-int __stdcall FUN_004c5ff0(Out_004c5ff0* out)
+int __stdcall LockPrimary(Out_004c5ff0* out)
 {
-    return FUN_004b6220()->LockMe(out);
+    return GetDisplay()->LockMe(out);
 }

@@ -4,7 +4,7 @@
 // the index `(int)obj + 0x8b2` into the entry's colour table at +0x1f.
 //
 // The breakthrough (from 62.4% to MATCH) was the colour parameter of
-// FUN_004be950: declared `int`, not `unsigned char`. An unsigned char argument
+// DrawLine: declared `int`, not `unsigned char`. An unsigned char argument
 // gives a bare `mov bl,[eax+edx+0x8b2]`; the int parameter forces the
 // zero-extension `xor ebx,ebx / mov bl,[...]` the original has, and that extra
 // use of ebx is what pushes obj into edx and spills y2, producing the 16-byte
@@ -42,7 +42,7 @@ struct Rect_004a4c90 {
     int x1, y1, x2, y2;
 };
 
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2,
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int color);
 
 static inline void FillRect_004a4c90(Entry_004a4c90* e, Rect_004a4c90* r)
@@ -67,13 +67,13 @@ void __stdcall FUN_004a4c90(Class_004a4c90* obj, int index, unsigned char param_
     FillRect_004a4c90(e, &rect);
     if (param_3 & 1) {
         if (e->flags & 1)
-            FUN_004be950(entries->surface, rect.x1, rect.y1, rect.x2, rect.y1,
+            DrawLine(entries->surface, rect.x1, rect.y1, rect.x2, rect.y1,
                          e->colours[(int)obj + 0x8b2]);
         else if (e->flags & 2)
-            FUN_004be950(entries->surface, rect.x1, rect.y1, rect.x1, rect.y2,
+            DrawLine(entries->surface, rect.x1, rect.y1, rect.x1, rect.y2,
                          e->colours[(int)obj + 0x8b2]);
         else if (e->flags & 4)
-            FUN_004be950(entries->surface, rect.x1, rect.y1, rect.x2, rect.y2,
+            DrawLine(entries->surface, rect.x1, rect.y1, rect.x2, rect.y2,
                          e->colours[(int)obj + 0x8b2]);
     }
 }

@@ -25,7 +25,7 @@ struct Object_004cb650 {
 };
 
 // FUNCTION: 0x4cb6a0
-void __stdcall FUN_004cb6a0(Object_004cb650* obj, Vec3_004cb650* offset,
+void __stdcall AddObjectBounds(Object_004cb650* obj, Vec3_004cb650* offset,
                             Vec3_004cb650* lo, Vec3_004cb650* hi, int arg)
 {
     Vec3_004cb650 local;
@@ -45,8 +45,8 @@ void __stdcall FUN_004cb6a0(Object_004cb650* obj, Vec3_004cb650* offset,
     }
     if (arg != 0) {
         if (obj->child_30 != 0)
-            FUN_004cb6a0(obj->child_30, &local, lo, hi, arg);
+            AddObjectBounds(obj->child_30, &local, lo, hi, arg);
         if (obj->child_2c != 0)
-            FUN_004cb6a0(obj->child_2c, offset, lo, hi, arg);
+            AddObjectBounds(obj->child_2c, offset, lo, hi, arg);
     }
 }

@@ -60,8 +60,8 @@ extern double DAT_004fd2b8;              // 0.125
 int __cdecl FUN_004b70ef(int angle, int radius);
 int __cdecl FUN_004b7123(int angle, int radius);
 int __stdcall GetGroundHeight(Pos_00438ea0* pos);
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
-void __stdcall FUN_004c14f0(void* surface, const char* text, int x, int y, int maxWidth);
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
+void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
 
 // The offset of the point at this angle and distance from the centre.
 static inline Vec3_00438ea0 Offset(int angle, int distance)
@@ -111,7 +111,7 @@ void __stdcall FUN_00438ea0(void* surface, View_00438ea0* view, Pos_00438ea0* po
                 int sy = view->scroll_y;
                 y2 = p2.z.s.whole - (p2.y.s.whole >> 1) - sy + 0x20;
                 x2 = p2.x.s.whole - sx + 0x80;
-                FUN_004be950(surface, p1.x.s.whole - sx + 0x80,
+                DrawLine(surface, p1.x.s.whole - sx + 0x80,
                              p1.z.s.whole - (p1.y.s.whole >> 1) - sy + 0x20, x2, y2, color);
                 if (i == index * 3) {
                     lx = x2;
@@ -125,7 +125,7 @@ void __stdcall FUN_00438ea0(void* surface, View_00438ea0* view, Pos_00438ea0* po
                 lx = x2;
                 ly = y2;
             }
-            FUN_004c14f0(surface, text, lx, ly + 4, -1);
+            DrawString(surface, text, lx, ly + 4, -1);
         }
     }
 }

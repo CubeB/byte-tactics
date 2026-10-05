@@ -5,8 +5,8 @@ extern int DAT_0051ff20[];
 extern int DAT_0050b544;
 extern int DAT_0050b540;
 
-extern int __stdcall FUN_004b64d0(int handle);
-extern int __stdcall FUN_004b63f0(int delay, int id, void (__stdcall* callback)(void*));
+extern int __stdcall RemoveTimer(int handle);
+extern int __stdcall AddTimer(int delay, int id, void (__stdcall* callback)(void*));
 extern void __stdcall FUN_004ce5e0(void* unused);
 
 class Class_004cdb40 {
@@ -48,25 +48,25 @@ void Class_004ce690::FUN_004ce690(int mode)
         DAT_0051ff10 = field_20;
         if (old == 4) {
             if (DAT_0050b544 >= 0) {
-                FUN_004b64d0(DAT_0050b544);
+                RemoveTimer(DAT_0050b544);
                 DAT_0050b544 = -1;
             }
             if (DAT_0050b540 >= 0) {
-                FUN_004b64d0(DAT_0050b540);
+                RemoveTimer(DAT_0050b540);
                 DAT_0050b540 = -1;
             }
             ((Class_004d00d0*)this)->FUN_004d00d0(field_20, 0);
             ((Class_004cdb40*)this)->FUN_004cdb40();
         } else {
             if (DAT_0050b544 >= 0) {
-                FUN_004b64d0(DAT_0050b544);
+                RemoveTimer(DAT_0050b544);
                 DAT_0050b544 = -1;
-                FUN_004b64d0(DAT_0050b540);
+                RemoveTimer(DAT_0050b540);
                 DAT_0050b540 = -1;
                 ((Class_004cdb40*)this)->FUN_004cdb40();
             } else {
                 field_284 = field_20 / -18;
-                DAT_0050b544 = FUN_004b63f0(2, 0, FUN_004ce5e0);
+                DAT_0050b544 = AddTimer(2, 0, FUN_004ce5e0);
             }
         }
     }

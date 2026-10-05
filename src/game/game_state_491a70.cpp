@@ -20,29 +20,29 @@ struct Game {
 extern Game* g_game;
 extern const char DAT_005091d4[];      // "OFFSCREEN"
 
-int FUN_004b6700();
-int FUN_004b6710();
-void __stdcall FUN_004b5940(int x, int y);
+int GetScreenWidth();
+int GetScreenHeight();
+void __stdcall SetResolution(int x, int y);
 void __cdecl FUN_004d85a0(int param_1);
-void __stdcall FUN_004c61f0(int param_1);
-void FUN_004c62c0();
-int __stdcall FUN_004c69f0(const char* name, int width, int height);
-void __stdcall FUN_004c69a0(int param_1);
+void __stdcall SetRestoreSurface(int param_1);
+void RestoreScreen();
+int __stdcall AllocSurface(const char* name, int width, int height);
+void __stdcall SetOffscreenSurface(int param_1);
 
 // FUNCTION: 0x491a70
 void FUN_00491a70()
 {
     g_game->field_37e1f = 0x280;
     g_game->field_37e23 = 0x1e0;
-    if (FUN_004b6700() != 0x280 || FUN_004b6710() != 0x1e0) {
+    if (GetScreenWidth() != 0x280 || GetScreenHeight() != 0x1e0) {
         FUN_004d85a0(g_game->field_37e1b);
         g_game->field_37e1b = 0;
-        FUN_004c61f0(0);
-        FUN_004c62c0();
+        SetRestoreSurface(0);
+        RestoreScreen();
         SetWindowPos(g_game->field_c->hwnd, 0, 0, 0, 0x280, 0x1e0, 4);
-        FUN_004b5940(0x280, 0x1e0);
-        g_game->field_37e1b = FUN_004c69f0(DAT_005091d4, g_game->field_37e1f, g_game->field_37e23);
-        FUN_004c61f0(g_game->field_37e1b);
-        FUN_004c69a0(g_game->field_37e1b);
+        SetResolution(0x280, 0x1e0);
+        g_game->field_37e1b = AllocSurface(DAT_005091d4, g_game->field_37e1f, g_game->field_37e23);
+        SetRestoreSurface(g_game->field_37e1b);
+        SetOffscreenSurface(g_game->field_37e1b);
     }
 }

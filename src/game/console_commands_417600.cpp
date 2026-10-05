@@ -43,7 +43,7 @@ public:
 
 void __stdcall FUN_004bcf00(char* path);
 void __stdcall FUN_00495a30(char* name, char* description, int x, int y, int w, int h);
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 
 // FUNCTION: 0x417600
 void __stdcall FUN_00417600(Class_004b73c0* args)
@@ -74,5 +74,5 @@ void __stdcall FUN_00417600(Class_004b73c0* args)
     sprintf(buf, "%s\\screenshots", g_game->installPath);
     FUN_004bcf00(buf);
     FUN_00495a30(buf, "BIGSHOT", x, y, w, h);
-    g_game->lastShotTime = FUN_004b6340();
+    g_game->lastShotTime = GetTicks();
 }

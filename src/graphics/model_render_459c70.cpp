@@ -28,7 +28,7 @@
 //    0x159d4 (69.6% -> 97.6%, then 98.7% for the k * 3 form).
 //  * The division loop divides by `weight[k]` directly (no float local),
 //    and accum[k][2] is summed through a temporary.
-//  * DAT_005065fc is declared before DAT_005065f8. The order of those
+//  * g_lightY is declared before g_lightX. The order of those
 //    extern declarations decides which product of the lighting sum MSVC
 //    loads first (the later-declared constant's goes first); declared in
 //    address order, accum[k][1] was loaded before accum[k][0]. (Indexing
@@ -44,9 +44,9 @@
 #include <string.h>
 
 extern char* g_game;
-extern float DAT_005065fc;
-extern float DAT_005065f8;
-extern float DAT_00506600;
+extern float g_lightY;
+extern float g_lightX;
+extern float g_lightZ;
 extern const float DAT_004fd4cc;
 struct Bitmap_459c70;
 
@@ -69,11 +69,11 @@ struct Vec3f { float x; float y; float z; };
 Vec3f __stdcall FUN_004b6f00(Vec3 a, Vec3 b);
 Vec3f __stdcall FUN_004b6f70(Vec3f a, Vec3f b);
 Vec3f __stdcall FUN_004b6ff0(Vec3f v);
-void* __stdcall FUN_004b7ee0(void* pic);
-void* __stdcall FUN_004b7f30(unsigned short* table, int index);
-void __stdcall FUN_004b95a0(Bitmap_459c70* dst, Bitmap_459c70* src);
-void __stdcall FUN_004c0c70(Bitmap_459c70* surface, void* poly, int count, int flag);
-void __stdcall FUN_004c8bb0(Bitmap_459c70* surface, void* pic, void* poly, int flag);
+void* __stdcall GetGafSequenceFrame(void* pic);
+void* __stdcall GetGafFrame(unsigned short* table, int index);
+void __stdcall DownsampleFrame(Bitmap_459c70* dst, Bitmap_459c70* src);
+void __stdcall FillShadedPolygon(Bitmap_459c70* surface, void* poly, int count, int flag);
+void __stdcall DrawLitTexturedPolygon(Bitmap_459c70* surface, void* pic, void* poly, int flag);
 
 struct Bitmap_459c70 {
     unsigned short width;            // +0x00
@@ -157,7 +157,7 @@ struct Poly_459c70 { int x; int y; int z; int shade; };
 struct Class_004581e0 {
     char unknown_0[0x10];
     Bitmap_459c70* shadow;           // +0x10
-    void FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list, int kind, int useColor);
+    void DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list, int kind, int useColor);
 };
 
 // The 50 or 125 bias the original materialises separately in each arm of the
@@ -169,7 +169,7 @@ static __inline int shade_bias(List_459c70* list)
 }
 
 // FUNCTION: 0x459c70
-void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
+void Class_004581e0::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
     int kind, int useColor)
 {
     PieceInfo_459c70* info;
@@ -301,8 +301,8 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
                     for (int j = 0; j < face->count; j++, idx++) {
                         poly[j] = vertex[*idx];
                         if (list->pieces[p].flags.lit) {
-                            float light = accum[*idx][0] * DAT_005065f8 + accum[*idx][1] * DAT_005065fc;
-                            light += accum[*idx][2] * DAT_00506600;
+                            float light = accum[*idx][0] * g_lightX + accum[*idx][1] * g_lightY;
+                            light += accum[*idx][2] * g_lightZ;
                             poly[j].shade = 0x1f & ((int)(DAT_004fd4cc * light));
                         } else {
                             poly[j].shade = 0xf;
@@ -314,20 +314,20 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
                             if (face->flags.usePic) {
                                 if (face->flags.shaded) {
                                     int unit = *(int*)(g_game + 0x1b8a + kind * 0x14b);
-                                    pic = FUN_004b7f30(face->color,
+                                    pic = GetGafFrame(face->color,
                                         *(unsigned char*)(unit + 0x96));
                                 } else if (useColor) {
-                                    pic = FUN_004b7f30(face->color, 0);
+                                    pic = GetGafFrame(face->color, 0);
                                 } else {
-                                    pic = FUN_004b7ee0(&face->pic);
+                                    pic = GetGafSequenceFrame(&face->pic);
                                 }
                             } else {
                                 pic = face->pic;
                             }
-                            FUN_004c8bb0(bitmap, pic, poly, 0);
+                            DrawLitTexturedPolygon(bitmap, pic, poly, 0);
                         }
                     } else {
-                        FUN_004c0c70(bitmap, poly, face->count, face->unknown_0);
+                        FillShadedPolygon(bitmap, poly, face->count, face->unknown_0);
                     }
                 }
             }
@@ -336,7 +336,7 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
 
     if (((Flags_37f06*)(g_game + 0x37f06))->antiAlias) {
         if (mode != 0) {
-            FUN_004b95a0(bitmap, src);
+            DownsampleFrame(bitmap, src);
             unsigned char* s = (unsigned char*)src->data2;
             if (s != 0) {
                 unsigned char* d = (unsigned char*)bitmap->data2;

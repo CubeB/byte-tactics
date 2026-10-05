@@ -11,7 +11,7 @@ struct Struct_4ba5f0
 extern void __cdecl FUN_004d85a0(void*);
 
 // FUNCTION: 0x4ba5f0
-void __stdcall FUN_004ba5f0(Struct_4ba5f0* param)
+void __stdcall FreeAlphaTable(Struct_4ba5f0* param)
 {
     FUN_004d85a0(param->ptr_at_0xc0);
 }

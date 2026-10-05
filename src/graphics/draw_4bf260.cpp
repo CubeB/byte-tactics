@@ -1,10 +1,10 @@
 // Decompiled by Sonnet 5.5, finished by space-bunny-free. Names are provisional.
 //
 // Draws a grid of connected lines into `surface`, or into the screen (locked
-// with FUN_004c5e70, unlocked with FUN_004c5fa0) when `surface` is null:
+// with LockScreen, unlocked with UnlockScreen) when `surface` is null:
 // `rows` polylines, where counts[r] is the number of vertices of row r and
 // the vertices follow one another in `points`. Every segment is clipped by
-// FUN_004bea20 and drawn by FUN_004cc7ab. Like 0x4bf060 it returns the lock
+// ClipLine and drawn by FUN_004cc7ab. Like 0x4bf060 it returns the lock
 // result on the screen path (a failed lock returns 0 without unlocking) and 1
 // on the caller-surface path, and the locked loop carries an inlined copy of
 // the single segment drawer (0x4be950) with its own null-surface lock, which
@@ -27,7 +27,7 @@
 //   `inc edi` and then `add esi, 8`; a `for` header increment is emitted after
 //   the body's last statement, so the two come out the wrong way round.
 
-struct Surface_004bf260 {
+struct Surface {
     int unknown_0[2];
     int pitch;                         // +0x8
     unsigned char* pixels;             // +0xc
@@ -39,19 +39,19 @@ struct Point_004bf260 {
     int y;                             // +0x4
 };
 
-int __stdcall FUN_004c5e70(Surface_004bf260* out);
-int __stdcall FUN_004c5fa0(Surface_004bf260* s);
-int __stdcall FUN_004bea20(Surface_004bf260* dst, int* x0, int* y0, int* x1, int* y1);
-void __cdecl FUN_004cc7ab(Surface_004bf260* dst, int x0, int y0, int x1, int y1, int color);
+int __stdcall LockScreen(Surface* out);
+int __stdcall UnlockScreen(Surface* s);
+int __stdcall ClipLine(Surface* dst, int* x0, int* y0, int* x1, int* y1);
+void __cdecl FUN_004cc7ab(Surface* dst, int x0, int y0, int x1, int y1, int color);
 
 // FUNCTION: 0x4bf260
-int __stdcall FUN_004bf260(Surface_004bf260* surface, Point_004bf260* points, int* counts,
+int __stdcall DrawPolylines(Surface* surface, Point_004bf260* points, int* counts,
                            int rows, int color)
 {
     int result;
     if (surface == 0) {
-        Surface_004bf260 screen;
-        result = FUN_004c5e70(&screen);
+        Surface screen;
+        result = LockScreen(&screen);
         if (result != 0) {
             int r = rows;
             int* c = counts;
@@ -65,14 +65,14 @@ int __stdcall FUN_004bf260(Surface_004bf260* surface, Point_004bf260* points, in
                     y0 = p[0].y;
                     x0 = p[0].x;
                     if (&screen == 0) {
-                        Surface_004bf260 inner;
-                        if (FUN_004c5e70(&inner)) {
-                            if (FUN_004bea20(&inner, &x0, &y0, &x1, &y1))
+                        Surface inner;
+                        if (LockScreen(&inner)) {
+                            if (ClipLine(&inner, &x0, &y0, &x1, &y1))
                                 FUN_004cc7ab(&inner, x0, y0, x1, y1, color);
-                            FUN_004c5fa0(&inner);
+                            UnlockScreen(&inner);
                         }
                     } else {
-                        if (FUN_004bea20(&screen, &x0, &y0, &x1, &y1))
+                        if (ClipLine(&screen, &x0, &y0, &x1, &y1))
                             FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
                     }
                     j++;
@@ -82,7 +82,7 @@ int __stdcall FUN_004bf260(Surface_004bf260* surface, Point_004bf260* points, in
                 c++;
                 r--;
             }
-            FUN_004c5fa0(&screen);
+            UnlockScreen(&screen);
         }
     } else {
         int r = rows;
@@ -96,7 +96,7 @@ int __stdcall FUN_004bf260(Surface_004bf260* surface, Point_004bf260* points, in
                 x1 = p[1].x;
                 y0 = p[0].y;
                 x0 = p[0].x;
-                if (FUN_004bea20(surface, &x0, &y0, &x1, &y1))
+                if (ClipLine(surface, &x0, &y0, &x1, &y1))
                     FUN_004cc7ab(surface, x0, y0, x1, y1, color);
                 j++;
                 p++;

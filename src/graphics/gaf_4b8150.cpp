@@ -1,14 +1,14 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Draws a bitmap (or a list of nested bitmaps) into `dst`, or into the screen
-// when `dst` is null: the screen is then locked with FUN_004c5e70 and unlocked
-// with FUN_004c5fa0 at the end (which is why the unlock is guarded by a
+// when `dst` is null: the screen is then locked with LockScreen and unlocked
+// with UnlockScreen at the end (which is why the unlock is guarded by a
 // comparison of `dst` with the address of the local surface).
-// A record with a child count draws each child, through FUN_004b8500 when the
-// child's kind byte is set and through FUN_004b7f90 otherwise (the same code as
+// A record with a child count draws each child, through DrawFrameBlended when the
+// child's kind byte is set and through DrawFrame otherwise (the same code as
 // here, but the one that blits with FUN_004cbe70).
 // A leaf builds the source rect (0, 0, w - 1, h - 1) and the destination rect
 // (x - dx, y - dy, ...), clips the destination to the destination's own clip
-// rect with FUN_004b7e60 and blits through the hand-written FUN_004cbdd1, or,
+// rect with ClipRects and blits through the hand-written FUN_004cbdd1, or,
 // when the mode byte at +9 is set, through FUN_004cc51d.
 // <windows.h> is needed although nothing of it is used: without a header
 // MSVC 5 picks the other base/index order for the second lea.
@@ -21,7 +21,7 @@ struct Rect_004b8150 {
     int bottom;
 };
 
-class Class_004c6ae0 {
+class Surface {
 public:
     char unknown_0[8];
     int field_8;
@@ -29,7 +29,7 @@ public:
     char unknown_10[0x1c - 0x10];
     Rect_004b8150 field_1c;             // +0x1c
 
-    Rect_004b8150* FUN_004c6ae0(Rect_004b8150* out);
+    Rect_004b8150* GetClipRect(Rect_004b8150* out);
 };
 
 struct Bitmap_004b8150 {
@@ -57,31 +57,31 @@ struct Desc_004b8150 {
     char unknown_10[0x30 - 0x10];
 };
 
-int __stdcall FUN_004c5e70(Surface_004b8150* out);
-int __stdcall FUN_004c5fa0(Surface_004b8150* s);
-void __stdcall FUN_004b7e60(Rect_004b8150* other, Rect_004b8150* rect, Rect_004b8150* bounds);
-void __cdecl FUN_004cbdd1(Class_004c6ae0* dst, Desc_004b8150* src, Rect_004b8150* srect, Rect_004b8150* drect);
+int __stdcall LockScreen(Surface_004b8150* out);
+int __stdcall UnlockScreen(Surface_004b8150* s);
+void __stdcall ClipRects(Rect_004b8150* other, Rect_004b8150* rect, Rect_004b8150* bounds);
+void __cdecl FUN_004cbdd1(Surface* dst, Desc_004b8150* src, Rect_004b8150* srect, Rect_004b8150* drect);
 void __cdecl FUN_004cc51d(int param_1, int param_2, Rect_004b8150* rect, void* plane, Rect_004b8150* other);
-void __stdcall FUN_004b8500(Class_004c6ae0* dst, Bitmap_004b8150* bmp, int x, int y);
-void __stdcall FUN_004b7f90(Class_004c6ae0* dst, Bitmap_004b8150* bmp, int x, int y);
+void __stdcall DrawFrameBlended(Surface* dst, Bitmap_004b8150* bmp, int x, int y);
+void __stdcall DrawFrame(Surface* dst, Bitmap_004b8150* bmp, int x, int y);
 
 // FUNCTION: 0x4b8150
-void __stdcall FUN_004b8150(Class_004c6ae0* dst, Bitmap_004b8150* bmp, int x, int y)
+void __stdcall DrawFrameOpaque(Surface* dst, Bitmap_004b8150* bmp, int x, int y)
 {
     Surface_004b8150 screen;
     if (dst == 0) {
-        int locked = FUN_004c5e70(&screen);
+        int locked = LockScreen(&screen);
         if (locked != 0)
-            dst = (Class_004c6ae0*)&screen;
+            dst = (Surface*)&screen;
     }
     if (bmp != 0) {
         if (bmp->count > 0) {
             for (int i = 0; i < (int)bmp->count; i++) {
                 Bitmap_004b8150* e = ((Bitmap_004b8150**)bmp->field_10)[i];
                 if (e->kind > 0)
-                    FUN_004b8500(dst, e, x, y);
+                    DrawFrameBlended(dst, e, x, y);
                 else
-                    FUN_004b7f90(dst, e, x, y);
+                    DrawFrame(dst, e, x, y);
             }
         } else {
             Rect_004b8150 other;
@@ -96,8 +96,8 @@ void __stdcall FUN_004b8150(Class_004c6ae0* dst, Bitmap_004b8150* bmp, int x, in
             rect.top = y - bmp->dy;
             rect.right = rect.left + bmp->width - 1;
             rect.bottom = rect.top + bmp->height - 1;
-            dst->FUN_004c6ae0(&bounds);
-            FUN_004b7e60(&other, &rect, &bounds);
+            dst->GetClipRect(&bounds);
+            ClipRects(&other, &rect, &bounds);
             if (rect.right >= rect.left && rect.bottom >= rect.top &&
                 other.right >= other.left && other.bottom >= other.top) {
                 if (bmp->flag9 == 0) {
@@ -112,6 +112,6 @@ void __stdcall FUN_004b8150(Class_004c6ae0* dst, Bitmap_004b8150* bmp, int x, in
             }
         }
     }
-    if (dst == (Class_004c6ae0*)&screen)
-        FUN_004c5fa0(&screen);
+    if (dst == (Surface*)&screen)
+        UnlockScreen(&screen);
 }

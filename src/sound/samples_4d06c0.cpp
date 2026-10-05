@@ -4,7 +4,7 @@
 #include <string.h>
 
 void __stdcall FUN_004d0680(int unused1);
-int __stdcall FUN_004b63f0(int delay, int param, void (__stdcall* callback)(int));
+int __stdcall AddTimer(int delay, int param, void (__stdcall* callback)(int));
 
 extern int DAT_0051ff58;
 extern char DAT_0051ff60[];
@@ -22,6 +22,6 @@ int Class_004d06c0::FUN_004d06c0(char* name, int value, int delay)
 {
     strcpy(DAT_0051ff60, name);
     DAT_0051ff58 = value;
-    timer = FUN_004b63f0(delay, 0, FUN_004d0680);
+    timer = AddTimer(delay, 0, FUN_004d0680);
     return 1;
 }

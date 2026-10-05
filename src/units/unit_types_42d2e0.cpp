@@ -8,8 +8,8 @@
 // the 2 bytes the count-into-memory adds. The last hunk (the canbuild `je` skipping the list
 // reload on the zero-iteration edge) needs the index store form `list[count] = val; count++;`
 // instead of the walking `*out = val; out++;`. Finally `new Class_00458160` had to become
-// `operator new(0x14)` + `obj = obj ? obj->FUN_00458160() : 0;` because data/symbols.csv names
-// that address Class_00458160::FUN_00458160, not the constructor.
+// `operator new(0x14)` + `obj = obj ? obj->Construct() : 0;` because data/symbols.csv names
+// that address Class_00458160::Construct, not the constructor.
 // Pass 15 (deepseek-v4.1-flash): shape unchanged, re-confirmed 2173/2173 at 96.8. The whole
 // residual diff is three adjacent spots from one allocator decision: (1) the units-loop entry
 // guard, ours materialises the count (`mov ecx,[edi+0x1438f]; cmp ecx,esi`) where the original
@@ -155,12 +155,12 @@ class Class_00458160 {
     char unknown_0[0x10];
     int field_10;
 
-    Class_00458160* FUN_00458160(void);
+    Class_00458160* Construct(void);
 };
 
 class Class_00458180 {
   public:
-    void FUN_00458180(int size);
+    void Initialize(int size);
 };
 
 union UType_0042b370_flags {
@@ -281,12 +281,12 @@ void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const 
 void __stdcall LoadUnitFbi(char* path, Class_0042b370* type);
 void __stdcall FUN_0042a140(void* obj, char* name);
 int __stdcall FUN_004bbc40(char* path);
-void* __stdcall FUN_004cb560(char* path);
-void __stdcall FUN_004cb590(void* obj);
-int __stdcall FUN_004cb5f0(void* obj);
-void __stdcall FUN_004b6290(const char* msg);
+void* __stdcall Load3do(char* path);
+void __stdcall MirrorObject(void* obj);
+int __stdcall GetObjectHeight(void* obj);
+void __stdcall FatalError(const char* msg);
 void* __stdcall FUN_004b2450(char* path);
-void __stdcall FUN_004bb0f0(char* text);
+void __stdcall StripExtension(char* text);
 short __stdcall FindUnitTypeId(char* text);
 int __cdecl FUN_004d8610(char* name);
 void* __cdecl FUN_004d83b0(const char* name, int size);
@@ -310,7 +310,7 @@ void LoadUnitTypes() {
         Class_004c2ea0 parser;
         FUN_004290f0(path, "gamedata", "moveinfo", "TDF");
         if (!((Class_004c2f60*)&parser)->FUN_004c2f60(path))
-            FUN_004b6290("Can't load MOVEINFO.TDF");
+            FatalError("Can't load MOVEINFO.TDF");
 
         int i = 0;
         MovementClass* cls = MovementClassTable::g_movementClasses.entries;
@@ -331,7 +331,7 @@ void LoadUnitTypes() {
     }
 
     Class_00458160* obj = (Class_00458160*)operator new(0x14);
-    obj = obj ? obj->FUN_00458160() : 0;
+    obj = obj ? obj->Construct() : 0;
     g_game->field_1437b = obj;
 
     int t = g_game->field_37e23 * g_game->field_37e1f * 2;
@@ -347,7 +347,7 @@ void LoadUnitTypes() {
             scale = (float)d;
     }
     int size = (int)(v * scale);
-    ((Class_00458180*)g_game->field_1437b)->FUN_00458180((size + 0xfff) & 0xfffff000);
+    ((Class_00458180*)g_game->field_1437b)->Initialize((size + 0xfff) & 0xfffff000);
 
     FUN_004d8780(g_game->field_1439b);
 
@@ -426,18 +426,18 @@ void LoadUnitTypes() {
         strncpy(namebuf, type->model, 0x20);
         namebuf[0x1f] = 0;
         FUN_004290f0(objpath, "objects3d", namebuf, "3DO");
-        void* model = FUN_004cb560(objpath);
+        void* model = Load3do(objpath);
         if (model == 0)
-            FUN_004b6290(objpath);
-        FUN_004cb590(model);
+            FatalError(objpath);
+        MirrorObject(model);
         FUN_0042a140(model, namebuf);
         g_game->field_14377[u] = model;
         type->field_162 = 0;
-        type->field_16e = FUN_004cb5f0(g_game->field_14377[u]);
+        type->field_16e = GetObjectHeight(g_game->field_14377[u]);
         type->field_17a = type->field_16e - type->field_162;
 
         strcpy(namebuf, type->name);
-        FUN_004bb0f0(namebuf);
+        StripExtension(namebuf);
         sprintf(section, "%s0", namebuf);
         FUN_004290f0(path, "guis", section, "GUI");
         if (FUN_004bbc40(path))
@@ -474,7 +474,7 @@ void LoadUnitTypes() {
     Class_004c2ea0 parser2;
     FUN_004290f0(path, "gamedata", "sidedata", "TDF");
     if (!((Class_004c2f60*)&parser2)->FUN_004c2f60(path)) {
-        FUN_004b6290("Can't load GAMEDATA.TDF");
+        FatalError("Can't load GAMEDATA.TDF");
     } else {
         short* list = (short*)FUN_004d83b0("TEMP UTYPE LIST", 0x3c);
         for (unsigned short s = 1; s < g_game->field_1438f; s++) {

@@ -25,7 +25,7 @@ struct Bitmap_004b90a0 {
 };
 
 // FUNCTION: 0x4b90a0
-void __stdcall FUN_004b90a0(Bitmap_004b90a0* src, Bitmap_004b90a0* dst,
+void __stdcall DrawFrameDepth(Bitmap_004b90a0* src, Bitmap_004b90a0* dst,
                             int x, int y, int level)
 {
     int yoff;

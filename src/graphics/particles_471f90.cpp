@@ -28,7 +28,7 @@ extern Game* g_game;
 // Passes msg to every listener in one list (compare 0x471f40, which does
 // all ten).
 // FUNCTION: 0x471f90
-void __stdcall FUN_00471f90(void* msg, short kind)
+void __stdcall DrawParticleList(void* msg, short kind)
 {
     std::vector<Listener_00471f90*>& v = g_game->lists->lists[kind];
     for (std::vector<Listener_00471f90*>::iterator it = v.begin(); it != v.end(); ++it) {

@@ -38,8 +38,8 @@ extern PacketManager g_packetManager;
 void __stdcall RemovePlayer(int id);
 void FUN_0046c190();
 int __stdcall HAPINET_quitgame(void* net);
-void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
-void __stdcall FUN_004b6230(char* message);
+void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
+void __stdcall QuitApp(char* message);
 
 static inline int IsPlaying(Player_00450e20* player)
 {
@@ -65,7 +65,7 @@ void LeaveNetGame()
         FUN_0046c190();
     }
     HAPINET_quitgame(g_game->field_14);
-    FUN_004b4fd0(0, 0);
+    SetCloseHandler(0, 0);
     g_game->field_3923b |= 4;
     int reason = g_game->players[g_game->local_player].reason;
     char* text;
@@ -102,5 +102,5 @@ void LeaveNetGame()
     } else {
         text = 0;
     }
-    FUN_004b6230(text);
+    QuitApp(text);
 }

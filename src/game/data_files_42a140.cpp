@@ -56,8 +56,8 @@ struct Model_0042a140 {
     Model_0042a140* child2;         // +0x30
 };
 
-void* __stdcall FUN_004b8d40(void* gaf, const char* name);
-void __stdcall FUN_004b8b30(Ref_0042a140* ref, void* src, int index);
+void* __stdcall FindGafEntry(void* gaf, const char* name);
+void __stdcall InitGafSequence(Ref_0042a140* ref, void* src, int index);
 void* __cdecl FUN_004d84a0(void* param_1, const char* name, unsigned int param_3);
 
 // FUNCTION: 0x42a140
@@ -74,12 +74,12 @@ void __stdcall FUN_0042a140(Model_0042a140* model, const char* name)
             unsigned short* entry;
             elem->flags &= ~4;
             for (int j = 0; j < g_game->blockCount; j++) {
-                entry = (unsigned short*)FUN_004b8d40(g_game->blocks[j], (const char*)elem->name);
+                entry = (unsigned short*)FindGafEntry(g_game->blocks[j], (const char*)elem->name);
                 if (entry)
                     break;
             }
             if (entry == 0) {
-                entry = (unsigned short*)FUN_004b8d40(g_game->logos, (const char*)elem->name);
+                entry = (unsigned short*)FindGafEntry(g_game->logos, (const char*)elem->name);
                 if (entry != 0 && *entry == 10)
                     elem->flags |= 4;
                 if (entry == 0) {
@@ -89,7 +89,7 @@ void __stdcall FUN_0042a140(Model_0042a140* model, const char* name)
                 }
             }
             if (*entry > 1) {
-                FUN_004b8b30((Ref_0042a140*)&elem->name, entry, 0);
+                InitGafSequence((Ref_0042a140*)&elem->name, entry, 0);
                 elem->flags |= 2;
                 if (!(elem->flags & 4)) {
                     g_game->data = (int*)FUN_004d84a0(g_game->data, "Animplay Pointers", (g_game->count + 1) * 4);

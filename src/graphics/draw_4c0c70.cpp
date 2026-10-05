@@ -71,7 +71,7 @@ struct Surface_004c0c70 {
     unsigned char* depth; // +0x14
 };
 
-void __stdcall FUN_004c0b10(int row, Span_004c0c70* span, Surface_004c0c70* surf,
+void __stdcall FillShadedSpan(int row, Span_004c0c70* span, Surface_004c0c70* surf,
                             unsigned char color);
 
 // deepseek-v4.1-flash (#3755): MATCH. Testing the height inline in the minY guard
@@ -79,7 +79,7 @@ void __stdcall FUN_004c0b10(int row, Span_004c0c70* span, Surface_004c0c70* surf
 // CSEs the two loads and flips the whole rotation: surf stays in ecx, maxY gets eax
 // and maxRow eax, killing all five residual hunks.
 // FUNCTION: 0x4c0c70
-int __stdcall FUN_004c0c70(Surface_004c0c70* surf, Point_004c0c70* pts, int n,
+int __stdcall FillShadedPolygon(Surface_004c0c70* surf, Point_004c0c70* pts, int n,
                            unsigned char color) {
     int y0, y1, x, dx, dz;
     Span_004c0c70 spans[2048];
@@ -222,7 +222,7 @@ int __stdcall FUN_004c0c70(Surface_004c0c70* surf, Point_004c0c70* pts, int n,
         Span_004c0c70* sp = spans;
         for (i = minY; i < maxY; i++) {
             if (sp->x2 - sp->x1 > 0)
-                FUN_004c0b10(i, sp, surf, color);
+                FillShadedSpan(i, sp, surf, color);
             sp++;
         }
     }

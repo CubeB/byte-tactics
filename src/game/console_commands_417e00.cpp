@@ -44,7 +44,7 @@ public:
 int __stdcall GetGroundHeight(Pos_00417bb0* pos);
 // The real callee takes unsigned char; int here reproduces the original's
 // loop-invariant widening of the colour byte.
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 void __stdcall FUN_0046b9d0(void* a, short* b, int c, int d);
 
 // FUNCTION: 0x417e00
@@ -67,6 +67,6 @@ void Class_0044f010::FUN_0044ef50(void* surface)
         int x2 = p2.x - g_game->scroll_x + 0x80;
         int y2 = p2.z - g_game->scroll_y - (h >> 1) + 0x20;
 
-        FUN_004be950(surface, x1, y1, x2, y2, color);
+        DrawLine(surface, x1, y1, x2, y2, color);
     }
 }

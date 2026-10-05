@@ -7,7 +7,7 @@ extern void* DAT_0051ff14;
 extern int DAT_0050b540;
 extern int DAT_0050b544;
 
-extern void __stdcall FUN_004b64d0(int);
+extern void __stdcall RemoveTimer(int);
 extern void __stdcall FUN_004b6b60(void (__stdcall*)(int, int, int));
 extern void __stdcall FUN_004ce030(int, int, int);
 extern BOOL __stdcall FUN_004ce1e0(HWND, LPARAM);
@@ -74,8 +74,8 @@ int Class_004ce260::FUN_004ce260()
     field_20c = 0;
     field_208 = (field_200 != 0);
     field_284 = 0;
-    FUN_004b64d0(DAT_0050b540);
-    FUN_004b64d0(DAT_0050b544);
+    RemoveTimer(DAT_0050b540);
+    RemoveTimer(DAT_0050b544);
     DAT_0050b544 = -1;
     DAT_0050b540 = -1;
     hr = mciSendStringA("set cdaudio time format milliseconds", 0, 0, 0);

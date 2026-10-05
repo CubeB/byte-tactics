@@ -9,7 +9,7 @@ class Class_004c9390 {
 public:
     char* data;
 
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 struct Elem_004c5bc0 {
@@ -18,8 +18,8 @@ struct Elem_004c5bc0 {
 
     ~Elem_004c5bc0()
     {
-        b.FUN_004c9390();
-        a.FUN_004c9390();
+        b.ReleaseRef();
+        a.ReleaseRef();
     }
 };
 

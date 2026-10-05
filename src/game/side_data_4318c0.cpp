@@ -11,14 +11,14 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-void* __stdcall FUN_004b8c60(char* path);
-void* __stdcall FUN_004b8d40(void* gaf, const char* name);
+void* __stdcall LoadGaf(char* path);
+void* __stdcall FindGafEntry(void* gaf, const char* name);
 
 // FUNCTION: 0x4318c0
 void FUN_004318c0()
 {
     char path[256];
     FUN_004290f0(path, "textures", "logos", "GAF");
-    g_game->logos = FUN_004b8c60(path);
-    g_game->logos32 = FUN_004b8d40(g_game->logos, "32xlogos");
+    g_game->logos = LoadGaf(path);
+    g_game->logos32 = FindGafEntry(g_game->logos, "32xlogos");
 }

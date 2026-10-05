@@ -34,7 +34,7 @@ struct Game {
 extern Game* g_game;
 extern unsigned int g_timeoutTimerStart;
 
-unsigned int FUN_004b6340();
+unsigned int GetTicks();
 void __stdcall OpenTimeoutDialog(int value);
 
 static inline int IsTimedOut(Player_00453c20* p, unsigned int now)
@@ -57,10 +57,10 @@ void CheckPlayerTimeouts()
     if (g_game->field_37f2f & 1)
         return;
     if (g_game->field_38a51 & 1) {
-        g_timeoutTimerStart = FUN_004b6340();
+        g_timeoutTimerStart = GetTicks();
         return;
     }
-    unsigned int now = FUN_004b6340();
+    unsigned int now = GetTicks();
     int mixed = 0;
     int team = -1;
     int i;

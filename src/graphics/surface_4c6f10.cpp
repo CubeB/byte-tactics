@@ -25,7 +25,7 @@ public:
 };
 
 // FUNCTION: 0x4c6f10
-void __stdcall FUN_004c6f10(Surface_004c6f10* surface, Class_004b4cf0* file)
+void __stdcall SaveSurface(Surface_004c6f10* surface, Class_004b4cf0* file)
 {
     ((Class_004b4c10*)file)->FUN_004b4c10(0);
     int header[2];

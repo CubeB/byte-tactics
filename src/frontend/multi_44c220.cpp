@@ -61,7 +61,7 @@ extern Record_005129b4* DAT_005129b4;
 extern int DAT_005129c8;
 
 Entry_44c220* __stdcall FUN_0049ff90(void* entries, const char* name);
-int FUN_004b6340();
+int GetTicks();
 void FUN_0044c0d0();
 void __stdcall FUN_0044bfd0(void* menu, int value);
 void __stdcall FUN_0049fa90(void* menu);
@@ -73,8 +73,8 @@ void FUN_0044c220()
     int n = 0;
     Entry_44c220* entry = (Entry_44c220*)FUN_0049ff90(g_game->holder->entries, "PICLIST");
 
-    if (DAT_005129c8 < FUN_004b6340()) {
-        DAT_005129c8 = FUN_004b6340() + 2;
+    if (DAT_005129c8 < GetTicks()) {
+        DAT_005129c8 = GetTicks() + 2;
         FUN_0044c0d0();
     }
 

@@ -12,10 +12,10 @@ struct Obj_004badf0 {
 };
 #pragma pack(pop)
 
-extern Obj_004badf0* FUN_004b6220(void);
+extern Obj_004badf0* GetDisplay(void);
 
-void __stdcall FUN_004ba920(PALETTEENTRY* palette, int* sums, unsigned char* order);
-unsigned char __stdcall FUN_004ba9d0(PALETTEENTRY* palette, int* sums, unsigned char* order,
+void __stdcall SortByBrightness(PALETTEENTRY* palette, int* sums, unsigned char* order);
+unsigned char __stdcall NearestColorInBand(PALETTEENTRY* palette, int* sums, unsigned char* order,
                                      PALETTEENTRY color);
 
 extern double DAT_004fdbe8;
@@ -25,14 +25,14 @@ extern double DAT_004fdbe8;
 // -0.06875) once per row, so the first row is all black; kept as it is in the
 // original.
 // FUNCTION: 0x4badf0
-unsigned char* __stdcall FUN_004badf0(PALETTEENTRY* palette)
+unsigned char* __stdcall BuildShadeTable(PALETTEENTRY* palette)
 {
-    Obj_004badf0* app = FUN_004b6220();
+    Obj_004badf0* app = GetDisplay();
     if (app->flag6) {
         PALETTEENTRY color;
         unsigned char order[256];
         int sums[256];
-        FUN_004ba920(palette, sums, order);
+        SortByBrightness(palette, sums, order);
         double factor = 0.0;
         int offset = 0;
         do {
@@ -50,7 +50,7 @@ unsigned char* __stdcall FUN_004badf0(PALETTEENTRY* palette)
                 color.peBlue = v;
                 if (v > 0xff)
                     color.peBlue = 0xff;
-                app->buffer[offset + i] = FUN_004ba9d0(palette, sums, order, color);
+                app->buffer[offset + i] = NearestColorInBand(palette, sums, order, color);
             }
             factor -= DAT_004fdbe8;
             offset += 0x100;

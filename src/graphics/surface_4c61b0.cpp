@@ -12,12 +12,12 @@ struct Obj_004c61b0 {
 };
 #pragma pack(pop)
 
-extern Obj_004c61b0* FUN_004b6220(void);
+extern Obj_004c61b0* GetDisplay(void);
 
 // FUNCTION: 0x4c61b0
-int __stdcall FUN_004c61b0(int enable)
+int __stdcall SetPageFlipping(int enable)
 {
-    Obj_004c61b0* obj = FUN_004b6220();
+    Obj_004c61b0* obj = GetDisplay();
     obj->flag0 = enable;
     if (enable && obj->field_9c == 0) {
         return 0;

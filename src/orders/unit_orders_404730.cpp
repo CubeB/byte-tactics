@@ -56,7 +56,7 @@ void __stdcall FUN_00438590(Unit*, Order*, short);
 void __stdcall FUN_004385f0(Unit*, Order*);
 int __stdcall FUN_00438700(Unit*, Order*, int);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
-void __stdcall FUN_00472200(Vec3*, Vec3*, int);
+void __stdcall EmitReverseNanoParticles(Vec3*, Vec3*, int);
 void __stdcall GiveUnitToPlayer(Unit*, void*, int);
 class Class_00489960 { public: int CanReclaim(Unit*); };
 int __stdcall FUN_00438650(Unit*, Unit*, int);
@@ -127,7 +127,7 @@ int __stdcall FUN_00404730(Unit* unit, Order* order, unsigned int flags)
             bounds[1].x += order->target.Get()->def->max.x;
             bounds[1].z += order->target.Get()->def->max.z;
             bounds[1].y += order->target.Get()->def->max.y;
-            FUN_00472200(bounds, &start, 6);
+            EmitReverseNanoParticles(bounds, &start, 6);
             ((Class_00439e80*)order)->FUN_00439e80(2);
             order->duration += 2;
             return 2;

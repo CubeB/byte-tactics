@@ -12,7 +12,7 @@
 extern int DAT_0050b540;
 extern int DAT_0050b544;
 
-extern int __stdcall FUN_004b64d0(int);
+extern int __stdcall RemoveTimer(int);
 
 class Class_004ceb60 {
 public:
@@ -68,8 +68,8 @@ void Class_004cdb40::FUN_004cdb40()
             field_208 = zero;
         field_20c = zero;
         field_284 = zero;
-        FUN_004b64d0(DAT_0050b540);
-        FUN_004b64d0(DAT_0050b544);
+        RemoveTimer(DAT_0050b540);
+        RemoveTimer(DAT_0050b544);
         DAT_0050b540 = DAT_0050b544 = -1;
         return;
     }
@@ -95,8 +95,8 @@ void Class_004cdb40::FUN_004cdb40()
                     field_208 = none;
                 field_20c = none;
                 field_284 = none;
-                FUN_004b64d0(DAT_0050b540);
-                FUN_004b64d0(DAT_0050b544);
+                RemoveTimer(DAT_0050b540);
+                RemoveTimer(DAT_0050b544);
                 DAT_0050b540 = DAT_0050b544 = -1;
                 return;
             }
@@ -169,8 +169,8 @@ stop:
     field_20c = 0;
     field_208 = (field_200 != 0);
     field_284 = 0;
-    FUN_004b64d0(DAT_0050b540);
-    FUN_004b64d0(DAT_0050b544);
+    RemoveTimer(DAT_0050b540);
+    RemoveTimer(DAT_0050b544);
     DAT_0050b540 = DAT_0050b544 = -1;
 done:
     ((Class_004d00d0*)this)->FUN_004d00d0(field_20, 1);

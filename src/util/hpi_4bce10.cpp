@@ -7,7 +7,7 @@ struct Class_004bce10 {
     char cwd[0x100];                   // +0x628
 };
 
-extern Class_004bce10* FUN_004b6220();
+extern Class_004bce10* GetDisplay();
 
 // Stores the current directory of the current drive. The drive number is
 // converted on each path separately (`n = d - '@'` in both branches); a
@@ -16,7 +16,7 @@ extern Class_004bce10* FUN_004b6220();
 // FUNCTION: 0x4bce10
 void FUN_004bce10()
 {
-    Class_004bce10* g = FUN_004b6220();
+    Class_004bce10* g = GetDisplay();
     char buf[12];
     char d = _getdrive() + '@';
     char* p = g->cwd;

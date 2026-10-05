@@ -98,23 +98,23 @@ extern unsigned char DAT_0051e810[10];
 extern int DAT_0051f2d8;
 extern int DAT_0051f2f4;
 
-unsigned int FUN_004b6340();
-int FUN_004b6700();
+unsigned int GetTicks();
+int GetScreenWidth();
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 int __stdcall FUN_004c1b80(int key);
-void __stdcall FUN_004bf4d0(void* surface, Rect_004948e0* rect, int level);
+void __stdcall FadeRectangle(void* surface, Rect_004948e0* rect, int level);
 void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
 int __stdcall FUN_004a5030(char* text);
 char* __stdcall FUN_004c5740(char* name);
-void* __stdcall FUN_004b7f30(void* glyphs, int c);
-void __stdcall FUN_004c7580(void* surface, void* pic, Quad_004948e0* dst, Quad_004948e0* src);
+void* __stdcall GetGafFrame(void* glyphs, int c);
+void __stdcall DrawFrameQuad(void* surface, void* pic, Quad_004948e0* dst, Quad_004948e0* src);
 int __cdecl sprintf(char* buf, char* fmt, ...);
 
 // FUNCTION: 0x4948e0
 void __stdcall FUN_004948e0(void* surface)
 {
-    if (DAT_0051f2f4 < (int)FUN_004b6340()) {
-        DAT_0051f2f4 = FUN_004b6340() + 1;
+    if (DAT_0051f2f4 < (int)GetTicks()) {
+        DAT_0051f2f4 = GetTicks() + 1;
         for (int i = 0; i < 10; i++) {
             if (DAT_0051f2c8[i] > 0)
                 DAT_0051f2c8[i] -= 2;
@@ -153,11 +153,11 @@ void __stdcall FUN_004948e0(void* surface)
     }
 
     Rect_004948e0 panel;
-    panel.left = FUN_004b6700() - DAT_0051f2d8;
+    panel.left = GetScreenWidth() - DAT_0051f2d8;
     panel.top = 0x20;
     panel.right = panel.left + 0x7d;
     panel.bottom = g_game->numPlayers * 0x28 + 0x2e;
-    FUN_004bf4d0(surface, &panel, -0x18);
+    FadeRectangle(surface, &panel, -0x18);
 
     panel.right = panel.left + 0x7d;
     int y = panel.top;
@@ -200,17 +200,17 @@ void __stdcall FUN_004948e0(void* surface)
             hr.top = y - 1;
             hr.bottom = y + 0x26;
             if (n == g_game->localPlayer) {
-                FUN_004bf4d0(surface, &hr, 0x1f);
-                FUN_004bf4d0(surface, &hr, 0x14);
+                FadeRectangle(surface, &hr, 0x1f);
+                FadeRectangle(surface, &hr, 0x14);
             }
-            unsigned short* frame = (unsigned short*)FUN_004b7f30(
+            unsigned short* frame = (unsigned short*)GetGafFrame(
                 (void*)g_game->field_148db, p->data->field_96);
 
             src.p[1].x = frame[0] - 1;
             src.p[2].x = frame[0] - 1;
             src.p[2].y = frame[1] - 1;
             src.p[3].y = frame[1] - 1;
-            FUN_004c7580(surface, frame, &dst, &src);
+            DrawFrameQuad(surface, frame, &dst, &src);
 
             FUN_004a50e0(surface, p->name, dst.p[0].x + 2, dst.p[0].y + 5, maxw, 0);
             int kills = g_game->field_37ef6 == 2 ? p->field_104 : p->field_fc;

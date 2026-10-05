@@ -29,7 +29,7 @@ struct Rect_004ab0b0 {
 };
 
 int __stdcall FUN_004b67d0(Rect_004ab0b0* a, Rect_004ab0b0* b);
-void __stdcall FUN_004c6b70(void* dest, void* image, int x, int y);
+void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 
 // FUNCTION: 0x4ab0b0
 int __stdcall FUN_004ab0b0(Node_004ab0b0* node, void* param_2, Rect_004ab0b0* param_3)
@@ -47,14 +47,14 @@ int __stdcall FUN_004ab0b0(Node_004ab0b0* node, void* param_2, Rect_004ab0b0* pa
     if (param_3 == 0) {
         if (node->state == 1) {
             node->state = 0;
-            FUN_004c6b70(param_2, g->surface, g->x, g->y);
+            DrawSurface(param_2, g->surface, g->x, g->y);
         }
     } else {
         if (node->state != 1 && FUN_004b67d0(&rect, param_3) == 0) {
             goto finish;
         }
         node->state = 0;
-        FUN_004c6b70(param_2, g->surface, g->x, g->y);
+        DrawSurface(param_2, g->surface, g->x, g->y);
     }
 finish:
     return 1;

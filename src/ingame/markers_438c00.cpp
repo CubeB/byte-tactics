@@ -110,7 +110,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
+void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 
 struct Rect_00438c00 {
     int x1, y1, x2, y2;
@@ -152,13 +152,13 @@ void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order* order,
         outer = g_game->field_dcc;
         inner = g_game->field_dd4;
     }
-    FUN_004be950(surface, r.x1 + dx - 1, r.y1 - 1, r.x1 + dx - 1, r.y2 + 1, outer);
-    FUN_004be950(surface, r.x2 - dx + 1, r.y1 - 1, r.x2 - dx + 1, r.y2 + 1, outer);
-    FUN_004be950(surface, r.x1 - 1, r.y1 + dy - 1, r.x2 + 1, r.y1 + dy - 1, outer);
-    FUN_004be950(surface, r.x1 - 1, r.y2 - dy + 1, r.x2 + 1, r.y2 - dy + 1, outer);
-    FUN_004be950(surface, r.x1 + dx, r.y1, r.x1 + dx, r.y2, inner);
-    FUN_004be950(surface, r.x2 - dx, r.y1, r.x2 - dx, r.y2, inner);
-    FUN_004be950(surface, r.x1, r.y1 + dy, r.x2, r.y1 + dy, inner);
-    FUN_004be950(surface, r.x1, r.y2 - dy, r.x2, r.y2 - dy, inner);
+    DrawLine(surface, r.x1 + dx - 1, r.y1 - 1, r.x1 + dx - 1, r.y2 + 1, outer);
+    DrawLine(surface, r.x2 - dx + 1, r.y1 - 1, r.x2 - dx + 1, r.y2 + 1, outer);
+    DrawLine(surface, r.x1 - 1, r.y1 + dy - 1, r.x2 + 1, r.y1 + dy - 1, outer);
+    DrawLine(surface, r.x1 - 1, r.y2 - dy + 1, r.x2 + 1, r.y2 - dy + 1, outer);
+    DrawLine(surface, r.x1 + dx, r.y1, r.x1 + dx, r.y2, inner);
+    DrawLine(surface, r.x2 - dx, r.y1, r.x2 - dx, r.y2, inner);
+    DrawLine(surface, r.x1, r.y1 + dy, r.x2, r.y1 + dy, inner);
+    DrawLine(surface, r.x1, r.y2 - dy, r.x2, r.y2 - dy, inner);
     *out = order->pos;
 }

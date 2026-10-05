@@ -11,7 +11,7 @@
 // operator= calls (fill and copy_backward, +0x1ec, +0x241, +0x25f) as a wrong
 // reference: data/symbols.csv names 0x437800 `Class_00437800::Class_00437800`,
 // but it is this element's operator= (??4Class_00437820@@QAEAAV0@ABV0@@Z):
-// it assigns the handle through FUN_004c93b0, copies field_4 and returns
+// it assigns the handle through Assign, copies field_4 and returns
 // *this, and insert calls it on existing elements. It needs a data/aliases.csv
 // row (or the rename), not a source change.
 //
@@ -37,13 +37,13 @@
 class Class_004c9390 {
 public:
     char* data;
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 class Class_004c91a0 {
 public:
     char* ptr;
-    ~Class_004c91a0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
 class Class_00437820 {

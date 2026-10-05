@@ -4,10 +4,10 @@
 // background and the composed image in the three off-screen surface
 // descriptors at +0x1be, +0x1c2 and +0x1c6 (each resized to the sprite),
 // restores what the old cursor covered, draws the sprite, and hands the union
-// of the old and new cursor rectangles to FUN_004c60d0 to be shown.
+// of the old and new cursor rectangles to UnlockPrimary to be shown.
 //
-// The 0x30-byte surface descriptor FUN_004c5ff0 fills (F+0x28) is itself the
-// first rectangle handed to FUN_004cbbe0, so it needs no rect local of its
+// The 0x30-byte surface descriptor LockPrimary fills (F+0x28) is itself the
+// first rectangle handed to BlitSurface, so it needs no rect local of its
 // own; the two cursor rectangles sit at F+0x08 (new) and F+0x18 (old), which
 // is what makes the frame 0x58. Computing the old rectangle's right and
 // bottom from its own just-stored left and top fields is what puts
@@ -56,11 +56,11 @@ struct Info_004c25e0 {
     int data[12];
 };
 
-int __stdcall FUN_004c5ff0(Info_004c25e0* info);
-void __cdecl FUN_004cbbe0(void* a, void* b, int x, int y);
-void __stdcall FUN_004c69c0(Desc_004c25e0* d);
-void __stdcall FUN_004b7f90(Desc_004c25e0* d, Sprite_004c25e0* s, int x, int y);
-int __stdcall FUN_004c60d0(void* out, Rect_004c25e0* a, Rect_004c25e0* b);
+int __stdcall LockPrimary(Info_004c25e0* info);
+void __cdecl BlitSurface(void* a, void* b, int x, int y);
+void __stdcall ResetClipRect(Desc_004c25e0* d);
+void __stdcall DrawFrame(Desc_004c25e0* d, Sprite_004c25e0* s, int x, int y);
+int __stdcall UnlockPrimary(void* out, Rect_004c25e0* a, Rect_004c25e0* b);
 
 // FUNCTION: 0x4c25e0
 void __stdcall FUN_004c25e0(App_004c25e0* app)
@@ -71,7 +71,7 @@ void __stdcall FUN_004c25e0(App_004c25e0* app)
     POINT pt;
     if (app->enabled == 0)
         return;
-    if (FUN_004c5ff0(&info) == 0)
+    if (LockPrimary(&info) == 0)
         return;
     GetCursorPos(&pt);
     int x = pt.x;
@@ -86,12 +86,12 @@ void __stdcall FUN_004c25e0(App_004c25e0* app)
     app->work->width = app->sprite->width;
     app->work->height = app->sprite->height;
     app->work->pitch = app->sprite->width;
-    FUN_004cbbe0(app->under, &info, -x, -y);
-    FUN_004cbbe0(app->under, app->saved, app->savedX - x, app->savedY - y);
-    FUN_004cbbe0(app->work, app->under, 0, 0);
-    FUN_004c69c0(app->work);
-    FUN_004b7f90(app->work, app->sprite, app->sprite->dx, app->sprite->dy);
-    FUN_004cbbe0(app->saved, app->work, x - app->savedX, y - app->savedY);
+    BlitSurface(app->under, &info, -x, -y);
+    BlitSurface(app->under, app->saved, app->savedX - x, app->savedY - y);
+    BlitSurface(app->work, app->under, 0, 0);
+    ResetClipRect(app->work);
+    DrawFrame(app->work, app->sprite, app->sprite->dx, app->sprite->dy);
+    BlitSurface(app->saved, app->work, x - app->savedX, y - app->savedY);
     r1.left = app->savedX;
     r1.top = app->savedY;
     r1.right = r1.left + app->saved->width;
@@ -100,13 +100,13 @@ void __stdcall FUN_004c25e0(App_004c25e0* app)
     r2.top = y;
     r2.right = x + app->sprite->width;
     r2.bottom = y + app->sprite->height;
-    FUN_004cbbe0(&info, app->saved, app->savedX, app->savedY);
-    FUN_004cbbe0(&info, app->work, x, y);
+    BlitSurface(&info, app->saved, app->savedX, app->savedY);
+    BlitSurface(&info, app->work, x, y);
     app->saved->width = app->sprite->width;
     app->saved->height = app->sprite->height;
     app->saved->pitch = app->sprite->width;
-    FUN_004cbbe0(app->saved, app->under, 0, 0);
+    BlitSurface(app->saved, app->under, 0, 0);
     app->savedX = x;
     app->savedY = y;
-    FUN_004c60d0(&info, &r1, &r2);
+    UnlockPrimary(&info, &r1, &r2);
 }

@@ -29,7 +29,7 @@ public:
     void FUN_004b3c60(int index, FILE* file, Buffer_004b39c0* buf, int param_3);
 };
 class Class_004b4d70 { public: void* field_0; void FUN_004b4d70(char* name); };
-char* __stdcall FUN_004bb0f0(char* name);
+char* __stdcall StripExtension(char* name);
 void* __cdecl FUN_004d8450(int size);
 void* __cdecl FUN_004d8580(void* ptr, int size);
 void __cdecl FUN_004d85a0(void* ptr);
@@ -49,7 +49,7 @@ int Class_004b3750::FUN_004b39c0(char* name, char* ext, int param_3, int param_4
     if (field_0 == 0 || field_0->count == 0) { return 0; }
     if (param_4) {
         strcpy(path, name);
-        FUN_004bb0f0(path);
+        StripExtension(path);
         strcat(path, ".cpa");
         ((Class_004b4d70*)this)->FUN_004b4d70(path);
     }

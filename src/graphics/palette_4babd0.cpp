@@ -12,21 +12,21 @@ struct Obj_004babd0 {
 };
 #pragma pack(pop)
 
-extern Obj_004babd0* FUN_004b6220(void);
+extern Obj_004babd0* GetDisplay(void);
 
-void __stdcall FUN_004ba920(PALETTEENTRY* palette, int* sums,
+void __stdcall SortByBrightness(PALETTEENTRY* palette, int* sums,
                             unsigned char* order);
-unsigned char __stdcall FUN_004ba9d0(PALETTEENTRY* palette, int* sums,
+unsigned char __stdcall NearestColorInBand(PALETTEENTRY* palette, int* sums,
                                      unsigned char* order, PALETTEENTRY color);
 
 // FUNCTION: 0x4babd0
-unsigned char* __stdcall FUN_004babd0(PALETTEENTRY* palette)
+unsigned char* __stdcall BuildLightTable(PALETTEENTRY* palette)
 {
-    Obj_004babd0* obj = FUN_004b6220();
+    Obj_004babd0* obj = GetDisplay();
     if (obj->flag7) {
         int sums[256];
         unsigned char order[256];
-        FUN_004ba920(palette, sums, order);
+        SortByBrightness(palette, sums, order);
         for (int row = 0; row < 32; row++) {
             double factor = 1.0 - row * -0.03333333333333333;
             for (int i = 0; i < 256; i++) {
@@ -47,7 +47,7 @@ unsigned char* __stdcall FUN_004babd0(PALETTEENTRY* palette)
                 color.peGreen = green;
                 color.peBlue = blue;
                 obj->buffer[i + row * 256] =
-                    FUN_004ba9d0(palette, sums, order, color);
+                    NearestColorInBand(palette, sums, order, color);
             }
         }
         return obj->buffer;

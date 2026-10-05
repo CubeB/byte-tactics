@@ -23,7 +23,7 @@ struct Class_0051fba4 {
 
 extern Class_0051fba4* DAT_0051fba4;
 
-void __stdcall FUN_004c1420(int id);
+void __stdcall SetFont(int id);
 
 // FUNCTION: 0x4a1810
 int __stdcall FUN_004a1810(Entry_004a1810* entries, int index)
@@ -33,14 +33,14 @@ int __stdcall FUN_004a1810(Entry_004a1810* entries, int index)
     for (; i < entries->count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == entries[index].group) {
-                FUN_004c1420(entries[i].id);
+                SetFont(entries[i].id);
                 break;
             }
             n++;
         }
     }
     if (i == entries->count + 1) {
-        FUN_004c1420(DAT_0051fba4->group);
+        SetFont(DAT_0051fba4->group);
         i = -1;
     }
     return i;

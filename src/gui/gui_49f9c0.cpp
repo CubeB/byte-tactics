@@ -17,7 +17,7 @@ struct Menu_0049f9c0 {
 void __stdcall FUN_004a9fd0(Menu_0049f9c0* menu);
 void __stdcall FUN_004ab0b0(void* param_1, unsigned int* param_2, int* param_3);
 void FUN_004c2870();
-void FUN_004c63a0();
+void FlipScreen();
 
 // FUNCTION: 0x49f9c0
 void __stdcall FUN_0049f9c0(Menu_0049f9c0* menu, char* name)
@@ -33,6 +33,6 @@ void __stdcall FUN_0049f9c0(Menu_0049f9c0* menu, char* name)
         FUN_004a9fd0(menu);
         FUN_004ab0b0(menu->screen, 0, 0);
         FUN_004c2870();
-        FUN_004c63a0();
+        FlipScreen();
     }
 }

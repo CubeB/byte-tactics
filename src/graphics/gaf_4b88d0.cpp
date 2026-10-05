@@ -4,7 +4,7 @@
 // parity of the checkerboard is touched (parity comes from the last
 // argument). Like 0x4b7f90 it draws a bitmap (or a list of nested
 // bitmaps) into `dst`, or into the screen when `dst` is null: the screen
-// is then locked with FUN_004c5e70 and unlocked with FUN_004c5fa0 at the
+// is then locked with LockScreen and unlocked with UnlockScreen at the
 // end (which is why the unlock is guarded by a comparison of `dst` with
 // the address of the local surface). The whole body is skipped when the
 // byte at +9 is set. Suspected original bug: that test dereferences the
@@ -13,7 +13,7 @@
 // with a child count draws each child through this function (recursion).
 // A leaf builds the source rect (0, 0, w - 1, h - 1) and the destination
 // rect (x - dx, y - dy, ...), clips the destination to the destination's
-// own clip rect with FUN_004b7e60, then walks the clipped rows and
+// own clip rect with ClipRects, then walks the clipped rows and
 // columns. The source row index has to be a plain local in the row loop's
 // initialiser (`sy`), not `other.top++`: that is what pins the rects'
 // stack slots, the loop latch's instruction order and the spill of the
@@ -27,7 +27,7 @@ struct Rect_004b88d0 {
     int bottom;
 };
 
-class Class_004c6ae0 {
+class Surface {
 public:
     char unknown_0[8];
     int field_8;                    // pitch
@@ -35,7 +35,7 @@ public:
     char unknown_10[0x1c - 0x10];
     Rect_004b88d0 field_1c;         // +0x1c
 
-    Rect_004b88d0* FUN_004c6ae0(Rect_004b88d0* out);
+    Rect_004b88d0* GetClipRect(Rect_004b88d0* out);
 };
 
 struct Bitmap_004b88d0 {
@@ -55,25 +55,25 @@ struct Surface_004b88d0 {
     int data[12];
 };
 
-int __stdcall FUN_004c5e70(Surface_004b88d0* out);
-int __stdcall FUN_004c5fa0(Surface_004b88d0* s);
-void __stdcall FUN_004b7e60(Rect_004b88d0* other, Rect_004b88d0* rect, Rect_004b88d0* bounds);
+int __stdcall LockScreen(Surface_004b88d0* out);
+int __stdcall UnlockScreen(Surface_004b88d0* s);
+void __stdcall ClipRects(Rect_004b88d0* other, Rect_004b88d0* rect, Rect_004b88d0* bounds);
 
 // FUNCTION: 0x4b88d0
-void __stdcall FUN_004b88d0(Class_004c6ae0* dst, Bitmap_004b88d0* bmp, int x, int y, int parity)
+void __stdcall EraseFrameDithered(Surface* dst, Bitmap_004b88d0* bmp, int x, int y, int parity)
 {
     Surface_004b88d0 screen;
     if (bmp->flag9 == 0) {
         if (dst == 0) {
-            int ok = FUN_004c5e70(&screen);
+            int ok = LockScreen(&screen);
             if (ok != 0)
-                dst = (Class_004c6ae0*)&screen;
+                dst = (Surface*)&screen;
         }
         if (bmp != 0) {
             if (bmp->count > 0) {
                 for (int i = 0; i < (int)bmp->count; i++) {
                     Bitmap_004b88d0* e = ((Bitmap_004b88d0**)bmp->field_10)[i];
-                    FUN_004b88d0(dst, e, x, y, parity);
+                    EraseFrameDithered(dst, e, x, y, parity);
                 }
             } else {
                 Rect_004b88d0 rect;
@@ -87,8 +87,8 @@ void __stdcall FUN_004b88d0(Class_004c6ae0* dst, Bitmap_004b88d0* bmp, int x, in
                 rect.top = y - bmp->dy;
                 rect.right = rect.left + bmp->width - 1;
                 rect.bottom = rect.top + bmp->height - 1;
-                dst->FUN_004c6ae0(&bounds);
-                FUN_004b7e60(&other, &rect, &bounds);
+                dst->GetClipRect(&bounds);
+                ClipRects(&other, &rect, &bounds);
                 if (rect.right >= rect.left && rect.bottom >= rect.top &&
                     other.right >= other.left && other.bottom >= other.top) {
                     for (int yy = rect.top, sy = other.top; yy <= rect.bottom; yy++, sy++) {
@@ -111,7 +111,7 @@ void __stdcall FUN_004b88d0(Class_004c6ae0* dst, Bitmap_004b88d0* bmp, int x, in
                 }
             }
         }
-        if (dst == (Class_004c6ae0*)&screen)
-            FUN_004c5fa0(&screen);
+        if (dst == (Surface*)&screen)
+            UnlockScreen(&screen);
     }
 }

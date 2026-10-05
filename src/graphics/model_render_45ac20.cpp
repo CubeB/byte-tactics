@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // This is 0x45ab10 (which is matched) applied to a unit, to every unit on
-// its child list, and then one call to FUN_00458810; the whole body is inside
+// its child list, and then one call to DrawObjectState; the whole body is inside
 // `if (unit->field_86 == 0)`, which is why the early exit jumps straight to
 // the three-push epilogue.
 //
@@ -9,7 +9,7 @@
 //    POINTER to the unit's position. Written out inline, or with a helper
 //    taking (state, unit), MSVC 5 gives the unit ebp, keeps no zero register
 //    and loses the `lea edx, [ecx+0x18]` of the position copy.
-//  - FUN_0045b030 is spelled RECURSIVELY here so /Ob2 inlines its first level
+//  - RestorePieceVertices is spelled RECURSIVELY here so /Ob2 inlines its first level
 //    into BOTH copies of the body. Out of line, MSVC makes of it the sibling
 //    loop, which the original does not have. The flag the first level
 //    computes is passed to the child but the sibling always gets 0
@@ -87,7 +87,7 @@ struct Unit {
 // Defined here so that /Ob2 inlines its first level into both copies of the
 // body below, as the original does; src/graphics/model_render_45b030.cpp spells the same
 // function as the loop MSVC makes of it.
-int __fastcall FUN_0045b030(Entry_0045ac20* piece, int force)
+int __fastcall RestorePieceVertices(Entry_0045ac20* piece, int force)
 {
     int result = force;
     if (piece->unknown_26 == 0 || force) {
@@ -99,17 +99,17 @@ int __fastcall FUN_0045b030(Entry_0045ac20* piece, int force)
         result = 1;
     }
     if (piece->child)
-        result = FUN_0045b030(piece->child, result);
+        result = RestorePieceVertices(piece->child, result);
     if (piece->sibling)
-        return FUN_0045b030(piece->sibling, force);
+        return RestorePieceVertices(piece->sibling, force);
     return result;
 }
 
-void __fastcall FUN_0045b0a0(State_0045ac20* state, Entry_0045ac20* entry, int flag);
+void __fastcall PoseModel(State_0045ac20* state, Entry_0045ac20* entry, int flag);
 
 class Class_00437c80 {
 public:
-    void FUN_00458810(State_0045ac20* state, void* context);
+    void DrawObjectState(State_0045ac20* state, void* context);
 };
 
 #pragma pack(push, 1)
@@ -131,7 +131,7 @@ static inline int FarFrom(State_0045ac20* state, const Vec3s_0045ac20* pos)
 }
 
 // FUNCTION: 0x45ac20
-void __stdcall FUN_0045ac20(void* context, Unit* unit)
+void __stdcall DrawUnit(void* context, Unit* unit)
 {
     if (unit->field_86 == 0) {
         State_0045ac20* state = unit->state;
@@ -144,8 +144,8 @@ void __stdcall FUN_0045ac20(void* context, Unit* unit)
             }
         }
         if (unit->state->field_8 != 0) {
-            FUN_0045b030(unit->state->root, 0);
-            FUN_0045b0a0(unit->state, unit->state->root, 0);
+            RestorePieceVertices(unit->state->root, 0);
+            PoseModel(unit->state, unit->state->root, 0);
             unit->state->field_8 = 0;
         }
         for (Unit* u = unit->child; u; u = u->next) {
@@ -160,12 +160,12 @@ void __stdcall FUN_0045ac20(void* context, Unit* unit)
                     }
                 }
                 if (u->state->field_8 != 0) {
-                    FUN_0045b030(u->state->root, 0);
-                    FUN_0045b0a0(u->state, u->state->root, 0);
+                    RestorePieceVertices(u->state->root, 0);
+                    PoseModel(u->state, u->state->root, 0);
                     u->state->field_8 = 0;
                 }
             }
         }
-        g_game->obj->FUN_00458810(unit->state, context);
+        g_game->obj->DrawObjectState(unit->state, context);
     }
 }

@@ -38,7 +38,7 @@ class Class_004c9390 {
 public:
     char* data;
 
-    void FUN_004c9390();
+    void ReleaseRef();
 };
 
 class Class_004c91a0;
@@ -47,7 +47,7 @@ class Class_004c93b0 {
 public:
     char* ptr;
 
-    Class_004c93b0* FUN_004c93b0(const Class_004c91a0* other);
+    Class_004c93b0* Assign(const Class_004c91a0* other);
 };
 
 // A reference-counted string handle (0x4c91a0 copies, 0x4c9390 releases,
@@ -58,10 +58,10 @@ public:
 
     Class_004c91a0() {}
     Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
     Class_004c91a0& operator=(const Class_004c91a0& other)
     {
-        ((Class_004c93b0*)this)->FUN_004c93b0(&other);
+        ((Class_004c93b0*)this)->Assign(&other);
         return *this;
     }
 };
@@ -152,7 +152,7 @@ public:
 
 char* __cdecl FUN_004d8610(char* text);
 char* FUN_004b6ba0(char* text, int len);
-void FUN_004b6290(char* text);
+void FatalError(char* text);
 
 static inline char* SkipSpace(char* p)
 {
@@ -236,5 +236,5 @@ Class_004c3e40::Class_004c3e40(char* name, char* text, char** nextblock, char* f
 fail:
     if (name)
         sprintf(error + strlen(error), " - name = '%s' from file %s", name, filename);
-    FUN_004b6290(error);
+    FatalError(error);
 }

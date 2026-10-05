@@ -2,8 +2,8 @@
 //
 // Draws the outline of `r` (top, right, bottom, left edges in that order) into
 // `surface`, or into the screen when `surface` is 0 (locked with
-// FUN_004c5e70, unlocked with FUN_004c5fa0). Each edge is a segment drawer of
-// the same shape as FUN_004be950 (clip with FUN_004bea20, fill with
+// LockScreen, unlocked with UnlockScreen). Each edge is a segment drawer of
+// the same shape as DrawLine (clip with ClipLine, fill with
 // FUN_004cc7ab); the screen path carries four hand-inlined copies of it whose
 // null-surface lock arm survives because the compiler only tests the address
 // of the local `screen`, exactly as in 0x4bf260.
@@ -17,7 +17,7 @@
 // the load order of the FUN_004cc7ab arguments.
 //
 // The surface != 0 path inlines only the first two edges (top, right) and
-// emits real FUN_004be950 calls for the last two, i.e. the compiler ran its
+// emits real DrawLine calls for the last two, i.e. the compiler ran its
 // inline expansion budget out after six copies; the two calls pass the
 // segment helper's spilled parameter slots, not fresh r-> loads.
 //
@@ -26,7 +26,7 @@
 // r->bottom by the right edge's inlined body) into eax, because `r` is dead
 // after being copied to esi; the screen path returns the lock result from ebx.
 
-struct Surface_004bf8c0 {
+struct Surface {
     int unknown_0[2];
     int pitch;                         // +0x8
     unsigned char* pixels;             // +0xc
@@ -40,92 +40,92 @@ struct Rect_004bf8c0 {
     int bottom;                        // +0xc
 };
 
-int __stdcall FUN_004c5e70(Surface_004bf8c0* out);
-int __stdcall FUN_004c5fa0(Surface_004bf8c0* s);
-int __stdcall FUN_004bea20(Surface_004bf8c0* dst, int* x0, int* y0, int* x1, int* y1);
-void __cdecl FUN_004cc7ab(Surface_004bf8c0* dst, int x0, int y0, int x1, int y1, int color);
-int __stdcall FUN_004be950(Surface_004bf8c0* surface, int x0, int y0, int x1, int y1,
+int __stdcall LockScreen(Surface* out);
+int __stdcall UnlockScreen(Surface* s);
+int __stdcall ClipLine(Surface* dst, int* x0, int* y0, int* x1, int* y1);
+void __cdecl FUN_004cc7ab(Surface* dst, int x0, int y0, int x1, int y1, int color);
+int __stdcall DrawLine(Surface* surface, int x0, int y0, int x1, int y1,
                            int color);
 
 // FUNCTION: 0x4bf8c0
-int __stdcall FUN_004bf8c0(Surface_004bf8c0* surface, Rect_004bf8c0* r, int color)
+int __stdcall DrawRectangle(Surface* surface, Rect_004bf8c0* r, int color)
 {
     int result;
     if (surface == 0) {
-        Surface_004bf8c0 screen;
-        result = FUN_004c5e70(&screen);
+        Surface screen;
+        result = LockScreen(&screen);
         if (result != 0) {
             {
                 int x0, y0, x1, y1; y1 = r->top; x1 = r->right; y0 = r->top; x0 = r->left;
                 if (&screen == 0) {
-                    Surface_004bf8c0 inner;
-                    if (FUN_004c5e70(&inner)) {
-                        if (FUN_004bea20(&inner, &x0, &y0, &x1, &y1))
+                    Surface inner;
+                    if (LockScreen(&inner)) {
+                        if (ClipLine(&inner, &x0, &y0, &x1, &y1))
                             FUN_004cc7ab(&inner, x0, y0, x1, y1, color);
-                        FUN_004c5fa0(&inner);
+                        UnlockScreen(&inner);
                     }
                 } else {
-                    if (FUN_004bea20(&screen, &x0, &y0, &x1, &y1))
+                    if (ClipLine(&screen, &x0, &y0, &x1, &y1))
                         FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
                 }
             }
             {
                 int x0, y0, x1, y1; y1 = r->bottom; x1 = r->right; y0 = r->top; x0 = r->right;
                 if (&screen == 0) {
-                    Surface_004bf8c0 inner;
-                    if (FUN_004c5e70(&inner)) {
-                        if (FUN_004bea20(&inner, &x0, &y0, &x1, &y1))
+                    Surface inner;
+                    if (LockScreen(&inner)) {
+                        if (ClipLine(&inner, &x0, &y0, &x1, &y1))
                             FUN_004cc7ab(&inner, x0, y0, x1, y1, color);
-                        FUN_004c5fa0(&inner);
+                        UnlockScreen(&inner);
                     }
                 } else {
-                    if (FUN_004bea20(&screen, &x0, &y0, &x1, &y1))
+                    if (ClipLine(&screen, &x0, &y0, &x1, &y1))
                         FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
                 }
             }
             {
                 int x0, y0, x1, y1; y1 = r->bottom; x1 = r->right; y0 = r->bottom; x0 = r->left;
                 if (&screen == 0) {
-                    Surface_004bf8c0 inner;
-                    if (FUN_004c5e70(&inner)) {
-                        if (FUN_004bea20(&inner, &x0, &y0, &x1, &y1))
+                    Surface inner;
+                    if (LockScreen(&inner)) {
+                        if (ClipLine(&inner, &x0, &y0, &x1, &y1))
                             FUN_004cc7ab(&inner, x0, y0, x1, y1, color);
-                        FUN_004c5fa0(&inner);
+                        UnlockScreen(&inner);
                     }
                 } else {
-                    if (FUN_004bea20(&screen, &x0, &y0, &x1, &y1))
+                    if (ClipLine(&screen, &x0, &y0, &x1, &y1))
                         FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
                 }
             }
             {
                 int x0, y0, x1, y1; y1 = r->bottom; x1 = r->left; y0 = r->top; x0 = r->left;
                 if (&screen == 0) {
-                    Surface_004bf8c0 inner;
-                    if (FUN_004c5e70(&inner)) {
-                        if (FUN_004bea20(&inner, &x0, &y0, &x1, &y1))
+                    Surface inner;
+                    if (LockScreen(&inner)) {
+                        if (ClipLine(&inner, &x0, &y0, &x1, &y1))
                             FUN_004cc7ab(&inner, x0, y0, x1, y1, color);
-                        FUN_004c5fa0(&inner);
+                        UnlockScreen(&inner);
                     }
                 } else {
-                    if (FUN_004bea20(&screen, &x0, &y0, &x1, &y1))
+                    if (ClipLine(&screen, &x0, &y0, &x1, &y1))
                         FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
                 }
             }
-            FUN_004c5fa0(&screen);
+            UnlockScreen(&screen);
         }
     } else {
         {
             int x0, y0, x1, y1; y1 = r->top; x1 = r->right; y0 = r->top; x0 = r->left;
-            if (FUN_004bea20(surface, &x0, &y0, &x1, &y1))
+            if (ClipLine(surface, &x0, &y0, &x1, &y1))
                 FUN_004cc7ab(surface, x0, y0, x1, y1, color);
         }
         {
             int x0, y0, x1, y1; y1 = r->bottom; x1 = r->right; y0 = r->top; x0 = r->right;
-            if (FUN_004bea20(surface, &x0, &y0, &x1, &y1))
+            if (ClipLine(surface, &x0, &y0, &x1, &y1))
                 FUN_004cc7ab(surface, x0, y0, x1, y1, color);
         }
-        FUN_004be950(surface, r->left, r->bottom, r->right, r->bottom, color);
-        FUN_004be950(surface, r->left, r->top, r->left, r->bottom, color);
+        DrawLine(surface, r->left, r->bottom, r->right, r->bottom, color);
+        DrawLine(surface, r->left, r->top, r->left, r->bottom, color);
     }
     return result;
 }

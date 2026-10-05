@@ -50,7 +50,7 @@ extern Game* g_game;
 void* __stdcall FUN_00481550(int x, int y);
 int __stdcall GetGroundHeight(Pos_486360* pos);
 Result_486360* __stdcall FUN_00423c50(void* target, unsigned short id, Pos_486360* pos, void* field_64, unsigned char owner);
-void __stdcall FUN_00472630(Pos_486360* pos, int a, int b, int c);
+void __stdcall EmitSmoke(Pos_486360* pos, int a, int b, int c);
 
 // FUNCTION: 0x486360
 void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
@@ -79,7 +79,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
                 FUN_00423c50(target, id, pos, unit->field_64, unit->owner);
             }
             if (flag) {
-                FUN_00472630(pos, 0xf, 900, 9);
+                EmitSmoke(pos, 0xf, 900, 9);
             }
         }
     }

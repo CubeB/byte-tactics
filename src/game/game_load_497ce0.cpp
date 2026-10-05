@@ -68,7 +68,7 @@ struct Game {
 void __stdcall FUN_004a81e0(Menu_00497ce0* menu, int value);
 void __stdcall FUN_0049fad0(Menu_00497ce0* menu);
 void __stdcall FUN_004ab170(Menu_00497ce0* menu, int a, int b);
-void __stdcall FUN_004bf6f0(void* surface, Rect_00497ce0* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect_00497ce0* rect, int color);
 void __stdcall FUN_004a50e0(void* surface, const char* text, int x, int y, int len, int flag);
 char* __stdcall FUN_004c5740(char* s);
 
@@ -112,10 +112,10 @@ void __stdcall FUN_00497ce0(void* surface)
             {
                 r.x1 = x;
                 r.x2 = slot + x - 2;
-                FUN_004bf6f0(surface, &r, g_game->color1);
+                FillRectangle(surface, &r, g_game->color1);
                 int pc = q->percent;
                 r.x2 = r.x1 + (pc * (slot - 2)) / 100;
-                FUN_004bf6f0(surface, &r, g_game->color2);
+                FillRectangle(surface, &r, g_game->color2);
                 FUN_004a50e0(surface, q->name, r.x1, 420, slot - 2, 0);
                 x += slot;
             }

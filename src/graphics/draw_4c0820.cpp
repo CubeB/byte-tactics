@@ -42,11 +42,11 @@ struct Surface_004c0a90 {
     unsigned char* depth; // +0x14
 };
 
-void __stdcall FUN_004c0a90(int row, Span_004c0a90* span, Surface_004c0a90* surf,
+void __stdcall PlotSpanEnds(int row, Span_004c0a90* span, Surface_004c0a90* surf,
                             unsigned char color);
 
 // FUNCTION: 0x4c0820
-int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int count,
+int __stdcall DrawPolygonEdges(Surface_004c0a90* surf, Point_004c0820* pts, int count,
                            int color) {
     Span_004c0a90 spans[2048];
     Span_004c0a90* out;
@@ -156,7 +156,7 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
         y = ymin;
         while (y < ymax) {
             if (s->x2 - s->x1 > 0)
-                FUN_004c0a90(y, s, surf, color);
+                PlotSpanEnds(y, s, surf, color);
             s++;
             y++;
         }

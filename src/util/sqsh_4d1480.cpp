@@ -3,10 +3,12 @@
 // holding the owning thread id, with DAT_0052a4f4 naming the owner and
 // DAT_0052a4f8 the event that releases the waiters. Then it allocates the
 // 0x1011 byte sliding window, and reloads it from the template at g_lzssPresetWindow
-// unless a re-entrant call is in progress (g_lzssUsePreset) or the template was
-// never set up (g_lzssPresetReady). The bit stream that follows is read through a
-// mask that counts 1, 2, 4 ... 0x80 and then reloads a fresh flag byte: a clear
-// bit is a literal byte, a set bit is a 16 bit word whose high 12 bits are the
+// when the template was set up (g_lzssPresetReady) and the caller switched it on
+// (g_lzssUsePreset, set around each call by the net condenser through
+// LzssEnablePreset / LzssDisablePreset). The bit stream that follows is read
+// through a mask that counts 1, 2, 4 ... 0x80 and then reloads a fresh flag
+// byte: a clear bit is a literal byte, a set bit is a 16 bit word whose high
+// 12 bits are the
 // distance back into the window and whose low four bits are the length minus
 // two, and a distance of zero ends the stream. Every output byte also goes
 // into the window at the current position, which starts at 1 and wraps at

@@ -68,7 +68,7 @@ class Weapon {                       // fields at the offsets the code uses
 public:
     char unknown_0[0x10];
     int damage;                      // +0x10
-    int OpenNamedBox(char* name);    // callee declared, not defined
+    int FUN_00401200(char* name);    // callee declared, not defined
     void FUN_00401234(Unit* target);
 };
 
@@ -90,7 +90,7 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
   (`PlayerRef::Reset`); the checker fails references that disagree with names
   already established.
 - Otherwise use `FUN_<8 hex digits>` for functions and `DAT_<8 hex digits>` for
-  globals, e.g. `OpenNamedBox`, `DAT_00511de8`. Name your own function
+  globals, e.g. `FUN_00401200`, `DAT_00511de8`. Name your own function
   `FUN_<addr>` too unless its purpose is obvious.
 - If your function is a method and its class has no known name yet, call the
   class `Class_<8 hex digits of your function's address>`, e.g.

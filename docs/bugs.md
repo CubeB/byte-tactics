@@ -40,6 +40,10 @@ reads `target->id` when the object is in "direct" mode. 0x46d530 calls it with
 no target, so in direct mode it reads address 0 (`mov eax, [0]` in the
 original) and would crash. Either direct mode is never on when this runs, or
 it is a latent crash. Its sibling 0x46d630 passes a real target.
+The play tests for #2662 point to the first: the null read in the inlined
+helper only happens when `direct` is set, but the call sits in a branch that
+runs only when it is not, and `direct` is fixed when the object is created.
+Five network games with the read pointed back at address 0 never faulted.
 
 ## Entry search always returns 0 (possible)
 

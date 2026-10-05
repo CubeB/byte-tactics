@@ -4,7 +4,7 @@
 #   tools/review.sh 14          # check out PR #14 in .worktrees/pr-14 and re-check it
 #   tools/review.sh 14 --clean  # remove that worktree again
 #
-# Prints the files it changes (anything outside src/unsorted/ needs a look),
+# Prints the files it changes (anything but sources under src/ needs a look),
 # merges origin/main in and rebuilds data/symbols.csv as the real merge will,
 # re-checks every function annotated in the changed files with the real
 # checker, lists functions that match on main but would stop matching (a name
@@ -43,8 +43,8 @@ cd "$DIR"
 changed=$(git diff --name-only "$(git merge-base "pr-$PR" origin/main)" "pr-$PR")
 echo "== files changed"
 echo "$changed" | sed 's/^/  /'
-outside=$(echo "$changed" | grep -v '^src/unsorted/.*\.cpp$' || true)
-[ -n "$outside" ] && echo "!! changes outside src/unsorted/: $(echo $outside)"
+outside=$(echo "$changed" | grep -v '^src/.*\.cpp$' || true)
+[ -n "$outside" ] && echo "!! changes to files other than sources under src/: $(echo $outside)"
 
 # Check the PR as it will be after merging: with everything merged since it
 # branched, and with names rebuilt from all matched files (a caller and its
@@ -92,7 +92,7 @@ awk -F, 'NR == FNR { if ($5 == "partial") s[$1] = $6; next }
          END { exit bad }' \
     build/main-progress.csv data/progress.csv || lowered=1
 
-sources=$(echo "$changed" | grep '^src/unsorted/.*\.cpp$' | while read -r f; do [ -f "$f" ] && echo "$f"; done || true)
+sources=$(echo "$changed" | grep '^src/.*\.cpp$' | while read -r f; do [ -f "$f" ] && echo "$f"; done || true)
 addresses=$(grep -hoE '^// FUNCTION: 0x[0-9a-f]+' $sources 2>/dev/null | awk '{print $3}' | sort -u || true)
 echo "== re-check ($(echo $addresses | wc -w) functions)"
 [ -n "$addresses" ] && uv run --quiet tools/checkall.py $addresses | sed 's/^/  /'

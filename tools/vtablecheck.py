@@ -1,8 +1,8 @@
 """Check that a vtable a source file compiles names, in every slot, the
 function the original's vtable holds there.
 
-    uv run tools/vtablecheck.py src/unsorted/0x48e010.cpp            # every vtable it emits
-    uv run tools/vtablecheck.py src/unsorted/0x48e010.cpp --vtable '??_7Class_0048fc70@@6BCondition_0048ff40@@@'
+    uv run tools/vtablecheck.py 0x48e010         # every vtable the file of 0x48e010 emits
+    uv run tools/vtablecheck.py FILE --vtable '??_7Class_0048fc70@@6BCondition_0048ff40@@@'
 
 A class's vtable is emitted by every file that compiles its constructor or
 destructor, and each slot is a relocation against a virtual function's
@@ -18,11 +18,12 @@ the slot's exact name.
 
 import argparse
 import csv
+import re
 import struct
 import sys
 from pathlib import Path
 
-from check import ROOT, Original, compile_source, load_symbols
+from check import ROOT, Original, compile_source, find_source, load_symbols
 from coff import parse_object
 
 PROGRESS = ROOT / "data/progress.csv"
@@ -30,10 +31,15 @@ PROGRESS = ROOT / "data/progress.csv"
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("source", type=Path)
+    ap.add_argument("source", help="a source file, or a function's address (its file under src/)")
     ap.add_argument("--vtable", help="only this vtable symbol")
     args = ap.parse_args()
-    src = args.source if args.source.is_absolute() else ROOT / args.source
+    if re.fullmatch(r"0x[0-9a-fA-F]+", args.source):
+        src = find_source(int(args.source, 16))
+        if src is None:
+            sys.exit(f"no file under src/ has '// FUNCTION: {args.source}'")
+    else:
+        src = Path(args.source) if Path(args.source).is_absolute() else ROOT / args.source
     symbols = load_symbols()
     orig = Original()
     with PROGRESS.open() as fh:

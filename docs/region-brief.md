@@ -9,7 +9,7 @@ address, file and region names filled in (`<...>`). See
 You are one of several agents decoding ONE big function of a matching
 decompilation of Total Annihilation (MSVC 5.0 SP3, `/O2 /Ob2 /MT /Gz`). Function
 `<addr>` (`<size>` bytes, `<what it does>`) is split into regions; you own
-exactly one region of `src/unsorted/<addr>.cpp`. Work autonomously; nobody
+exactly one region of `<file>` (`uv run tools/sources.py <addr>` prints it). Work autonomously; nobody
 answers questions.
 
 ## Your worktree
@@ -20,7 +20,7 @@ answers questions.
 - Read `docs/agent-guide.md` by grep for specifics, and `AGENTS.md` section 4
   and "Writing style". No inline asm, no `#pragma optimize`, no hard-coded
   addresses, no em dashes.
-- A compiling skeleton is in `src/unsorted/<addr>.cpp`. `<how the stubs are
+- A compiling skeleton is in `<file>`. `<how the stubs are
   incomplete, e.g. every report line is a stub with the arguments missing>`.
 
 ## How to work
@@ -56,7 +56,7 @@ answers questions.
 
 ## Committing
 
-- `git add src/unsorted/<addr>.cpp` only. `git commit -m "Update: <subject>" -m
+- `git add <file>` only. `git commit -m "Update: <subject>" -m
   "Assisted-by: opencode:<model>"`. Subject imperative, at most 50 characters,
   no full stop. No Co-Authored-By. Do not push, do not open a pull request.
 

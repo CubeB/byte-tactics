@@ -48,6 +48,8 @@ from pathlib import Path
 import capstone
 
 from check import ROOT, Original, compile_source, load_symbols
+from sources import link_key, relative
+from sources import sources as files_of_kind
 from link import data_source_extents, inside
 from coff import parse_object
 from linkcheck import (CRT_LIBS, address_of, data_symbol, declare, global_table, library_symbols,
@@ -345,11 +347,11 @@ def build(objects, img: Image) -> list[dict]:
         whole = img.read(addr, size)
         pointers = sum(1 for i in range(0, len(whole) - 3, 4)
                        if 0x401000 <= struct.unpack_from("<I", whole, i)[0] < DATA_HI)
-        # Where it is defined: src/data (the global itself, or one that holds
+        # Where it is defined: a data file (the global itself, or one that holds
         # it: a field or an entry the code reaches by its address), or the tree
         # files that define it.
         container = inside(extents, addr)
-        defined = ([container[3]] if container else []) or sorted(set(g["defined_in"]))
+        defined = ([container[3]] if container else []) or sorted(set(g["defined_in"]), key=link_key)
         rows.append({
             "address": f"{addr:#x}", "name": name, "section": section, "size": size,
             "defined": defined[0] if defined else "",
@@ -363,11 +365,11 @@ def build(objects, img: Image) -> list[dict]:
     # A global a tree file defines (a class object, a template's static
     # member) is as big as its largest definition: the offsets the source
     # uses can run past it (an end pointer) to globals of their own.
+    data_files = {relative(s) for s in files_of_kind("data")}
     for row in rows:
-        sizes = [definition_size(f, row["_g"]) for f in row["_g"]["defined_in"]
-                 if not f.startswith("src/data/")]
+        sizes = [definition_size(f, row["_g"]) for f in row["_g"]["defined_in"] if f not in data_files]
         sizes = [n for n in sizes if n]
-        if sizes and not row["defined"].startswith("src/data/"):
+        if sizes and row["defined"] not in data_files:
             row["size"], row["size_from"] = max(sizes), "definition"
     # A global that starts inside another (a field of a struct, an entry of an
     # array the code reaches by its address) is part of it, not a definition
@@ -555,7 +557,7 @@ def write_header(rows: list[dict]) -> list[Entry]:
     width = max(len(e.declaration) for e in entries)
     for e in entries:
         lines.append(f"{e.declaration:{width}s}  // {e.note}")
-    lines += ["", f"// Not declared: {len(skipped)} globals defined in src/data or whose type is not settled "
+    lines += ["", f"// Not declared: {len(skipped)} globals defined in a data file or whose type is not settled "
               "(see data/globals.csv)."]
     for row in sorted(skipped, key=lambda r: -r["files"]):
         if row["defined"].startswith("in "):

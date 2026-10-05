@@ -11,7 +11,7 @@ no base relocations, so here the relocation sites come from elsewhere:
 
   * gaps.obj holds the gap regions of data/functions.csv (hand-written
     assembly, code with no FPO record, the linker's import stubs) that have
-    no matching source in src/gap/ yet (tools/gapcheck.py; a region whose
+    no matching source yet (tools/gapcheck.py; a region whose
     source matches is linked from its own object), and the exception handler
     stubs of their functions, one section each. Its
     relocations come from disassembly: every rel32 branch that leaves its
@@ -21,7 +21,7 @@ no base relocations, so here the relocation sites come from elsewhere:
     object defines (the bytes tools/place.py copies, but for runs of zeros
     nothing refers to) and what those runs point at that no symbol names,
     each run a section of its own named for its address. The game's data
-    itself comes from source: link/data.cpp, src/data and the tree's own
+    itself comes from source: link/data.cpp, the data files and the tree's own
     objects. Its
     relocations come from tools/place.py's layout: every pointer field of a
     placed piece of data; in data no object defines, every dword that holds
@@ -222,7 +222,7 @@ class Namer:
     """What symbol, plus what offset, names an address of the original.
 
     Data is named by what the layout placed there: a global defined by source
-    (link/, src/data, a tree file), a string literal or vtable by its
+    (link/, a data file, a tree file), a string literal or vtable by its
     external name, a static by a public name patch_objects adds to its
     object (static_alias), library data by its name. What none of those
     names is still the original's bytes: origdata.obj holds those runs

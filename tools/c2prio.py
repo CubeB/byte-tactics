@@ -742,7 +742,7 @@ def host_main() -> None:
         sys.exit(f"no file under src/ has '// FUNCTION: {args.address:#x}'")
     qualname = next((q for a, q in annotations(src) if a == args.address), None)
     text = src.read_text(errors="replace")
-    gap = is_gap_source(src)      # src/gap/ allows inline asm and its own flags
+    gap = is_gap_source(src)      # gap code allows inline asm and its own flags
     bad = (GAP_FORBIDDEN if gap else FORBIDDEN).search(text)
     if bad:
         sys.exit(f"{src}: '{bad.group(0)}' is not allowed; write the function in plain C++")

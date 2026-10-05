@@ -1,7 +1,7 @@
 """Match a near-miss function's stack slots to the original's.
 
     uv run tools/stackcmp.py 0x405980
-    uv run tools/stackcmp.py 0x405980 src/unsorted/0x405980.cpp
+    uv run tools/stackcmp.py 0x405980 FILE        # a scratch copy instead of the file that annotates it
     uv run tools/stackcmp.py --verify-all          # is /Z7 code-neutral on the matched set?
     uv run tools/stackcmp.py --self-test           # does the depth tracking hold on the original?
 

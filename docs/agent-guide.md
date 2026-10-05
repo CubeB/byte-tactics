@@ -13,7 +13,11 @@ Work from the repository root: `~/repos/personal/byte-tactics`.
    float constants, facts about arguments and calling convention, what each
    callee expects, and Ghidra's pseudo-C (a rough starting point; its types and
    control flow are often wrong).
-2. Write `src/unsorted/0x<addr>.cpp` (lower-case hex, e.g. `0x4010b0.cpp`).
+2. Write the function in its file: `uv run tools/sources.py 0x<addr>` prints
+   it, and `uv run tools/modules.py 0x<addr>` gives the path of a new one
+   (`src/<folder>/<module>_<address>.cpp`, lower-case hex without `0x`; the
+   folders are by subsystem, `docs/tidy-up.md`). Every tool finds a file by its
+   `// FUNCTION:` annotation, wherever it is.
 3. `uv run tools/check.py 0x<addr>`: compiles your file and prints `MATCH`, or a
    similarity % with a diff (`-` lines are the original, `+` lines are yours).
    Addresses the linker fills in show as `<addr>` in the diff; in your own
@@ -40,9 +44,9 @@ dispute where a file carries a `// +0xN` comment, so an empty dispute list means
 
 ## Rules
 
-- Only create or edit `src/unsorted/0x<addr>.cpp` for the addresses you were
-  given. Do not touch anything else (tools, data, include, other files), do not
-  run `tools/progress.py`, and do not commit.
+- Only create or edit the files of the addresses you were given. Do not
+  touch anything else (tools, data, include, other files), do not move or
+  rename files, do not run `tools/progress.py`, and do not commit.
 - No inline assembly or byte emission (`__asm`, `_emit`) and no
   `#pragma optimize`/`code_seg`; the checker rejects them. Compiler flags are
   fixed (`/O2 /Ob2 /MT /Gz`: `/Ob2` means the compiler inlines small
@@ -432,8 +436,8 @@ effect, the missing piece is usually a helper that was inlined:
 - **Structs passed by value**: a plain struct is pushed dword by dword; a class
   with a user-defined copy constructor is built in place
   (`sub esp, 8; mov eax, esp; mov [eax], ...`).
-- **Callee types**: when a callee already has a name, look for its file in
-  `src/unsorted/` and copy its parameter types (for example a `char`
+- **Callee types**: when a callee already has a name, look at its file
+  (`uv run tools/sources.py <address>`) and copy its parameter types (for example a `char`
   parameter), since they decide how arguments are prepared.
 - **Bit tests**: a single-bit test on a byte folds to `test byte ptr [m], mask`;
   `shr reg, N; test al, 1` means a bitfield in a wider (`int`) field. Setting
@@ -986,7 +990,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   hand with padding slots, as in `0x4ca250.cpp` and `0x4c9d30.cpp`.
 - **Siblings first**: unnamed functions next to a matched one often differ only
   in a string literal or a constant (a "METAL" version next to an "ENERGY"
-  one), so check neighbouring addresses in `src/unsorted/` before starting.
+  one), so check neighbouring addresses (the files of the same module) before starting.
 - **Registers swapped in `base + index * size`**: try writing the full
   `obj->a->arr[i].field` expression each time it is used; a shared
   `Entry* e = &...[i]` local or getter changes which register holds the base.
@@ -1394,7 +1398,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   implicit destructor gives `add esi, idx` (0x4801f0).
 - **`g_game->f += call() << k` when the original loads `g_game` after the
   call**: put the result in an int local first (0x416860).
-- **Find near-copies before writing**: grep src/unsorted for a distinctive
+- **Find near-copies before writing**: grep src/ for a distinctive
   offset or callee address; many functions differ from a matched sibling only
   in a callee, a key string or a value type.
 - **Victory-condition classes (vtables 0x4fd800-0x4fd978)**: each has a

@@ -1,6 +1,6 @@
 """Per-region similarity for one big function (pilot for splitting huge functions).
 
-    uv run tools/regcheck.py 0x43f0e0 [src/unsorted/0x43f0e0.cpp]
+    uv run tools/regcheck.py 0x43f0e0 [FILE]     # default: the file that annotates it
 
 Compiles the file like check.py, aligns our instructions with the original's
 over the whole function, and reports how many of the original's instructions in

@@ -1,0 +1,113 @@
+start,folder,module,evidence
+0x401000,game,economy,PlayerRef::Reset; u%04xacc save and load; per-tick energy and metal update (0x401360)
+0x401c20,orders,unit_orders,the ground order handlers g_unitOrders names (Stop 0x401c20); Repair / Capture / Reclaim / Transport texts
+0x406c90,ai,ai_player,hard / medium / easy and plan / weight / limit commands; the player AI object 0x409160 and its 0x4fc980 family (0x407350 to 0x40d5b0)
+0x40d5e0,ai,pathfind,AISearch touched mapentries (0x40e9e0); the pathfinder class of docs/consolidation.md
+0x40f200,orders,vtol_orders,VTOL_LANDIFCAN / VTOL_LANDING / VTOL_SEEKATTACK; air transports and landing pads
+0x415b20,network,net_stats,bit writer and reader 0x415b60 to 0x415e60; network statistics pS=%4d pR=%4d
+0x416240,game,console_commands,memdump.txt / BIGSHOT / debugdat\%s.txt / FORCE OUT-OF-MEMORY; the handlers g_consoleCommands names
+0x418cd0,game,share_commands,Toggled ShareMetal / ShareEnergy / ShareLOS; Outgoing packet compression
+0x419560,ingame,control_panel,ONOFF / FIREORD / MOVEORD / BUILDER.GUI / nextbuildmenu / TALK.GUI: the orders and build menus
+0x41d0f0,ingame,camera,Camera / X Position / Z Position
+0x41d4c0,game,cd_check,%c:\*.hpi / TOTALA.ID: the data archives and the game CD
+0x41d920,frontend,endgame,c:\cavedog\wargame\endgame.cpp; Outcome0 / Score%d / EndGameScore / CDCHECK.GUI
+0x420620,weapons,explosions,explodepiece / CalcedExplosion / ExplosionFrame; debris and the 100-slot projectile pool
+0x421e60,map,features,Feature Unit / features\*.tdf / featureburnt / treeburn / Number of Animating Features
+0x4256d0,frontend,frontend,c:\cavedog\wargame\frontend.cpp; Credits / warp%dmission / zrb
+0x428c60,ai,ai_profile,parse error reading AI profile
+0x429000,game,data_files,GPFVersion / bitmaps / fonts / palettes / RADARPIC / anims / PANELBOT / objects3d / logos
+0x42a8d0,units,unit_types,Incompatible units found (the unit type loader); FBI / COB / sidedata / UNITNAME / download
+0x42e140,graphics,palette_tables,palettes\*.ALP / SHD / LHT
+0x42e310,weapons,weapon_types,Weapons\*.tdf; weapon definitions
+0x42f450,sound,sound_types,Say Choice Array / Sound Categories / allsound
+0x42f910,game,settings,Total Annihilation registry key; Gamma / SwitchAlt / Shading / track%d
+0x4318c0,game,side_data,32xlogos / No [%s] in GAMEDATA/SIDEDATA / SIDE%d
+0x432520,game,settings_campaign,ArmCamp / CoreCamp / AllMissions / NumSkirmishPlayers / maxunits
+0x432ba0,map,los_tables,gamedata\los.tdf: numtables / TABLEINFO / numlines / TABLE%d
+0x434a30,map,map_list,Maps\*.ota / MULTI MAPS
+0x435100,game,campaign,camps / Briefing / MISSION%d / missionname / english
+0x435d30,map,map_load,lineofsight / maxunits / GlobalHeader / StartPos / specials / Raw Plot Data
+0x437840,units,unit_motion,SetSpeed / SetDirection (unit script calls); CMemoryCache arena (0x437a30)
+0x437cd0,map,meteors,Meteor / MeteorInterval / MeteorDuration
+0x4384a0,orders,order_queue,BECARRIED / StartBuilding / StopBuilding; the unit's command list Class_0043a1f0 (+0x5c)
+0x438c00,ingame,markers,the footprint box of the unit an order will build / range rings / kamikazedistance / weapon %d - coverage
+0x439b30,orders,order_list,the unit's list of order nodes (Class_0043a1f0); UTYPENAME%4d; the order registration table 0x43bc90
+0x43cd20,units,unit_scripts,MoveRate1 / setSFXoccupy / u%04xmob / QueryPrimary / AimFromPrimary / SweetSpot / QueryNanoPiece
+0x43f0e0,orders,order_dispatch,RECLAIM / VTOL_MOVE / VTOL_HELPBUILD (4420-byte order dispatcher)
+0x440230,units,movement_class,badslope / maxwaterslope / minwaterdepth: the 32-entry movement class table and its passability maps
+0x440d70,frontend,multi,c:\cavedog\wargame\multi.cpp; NEWMULTI.GUI / TCP.GUI / SERPORT / MODEMNUMBERS / SELPROV.GUI / LOADGAME
+0x44ce40,orders,order_targets,the Class_0044ce20 area family (circle / ring / rectangle) and the Class_0044ef20 family, saved through the bit writer
+0x44f720,network,net_condenser,netCondenser: BUFFER_ACC_SIZE; the two global condensers 0x44f720 and 0x44f7e0
+0x44fd40,network,net_game,player lookups by id; COMPUTER / You were rejected from the game / Direct Play failed to add / LOBBY JOIN INFO / PACKET DATA / has modified his executable
+0x458160,graphics,model_render,CompositeBuffer / Object State / Point List
+0x45b250,network,online,online.dll: ONLProcessButtonCommand / ONLGetLinkInfo / ONLLoadConfigFile
+0x45b800,frontend,options,VIDVAL / GAMMA / FXVOL / MUSICVOL / TRACKTYPE / PREFS.GUI / selvmode.gui / BRIEFING.GUI / HELP.GUI / RESTART.GUI / EXITMENU.GUI / ARMOPT.GUI
+0x460e20,network,packets,m_defaultSendPacing / packet pool / PlayerFrameInfo::Initialize / HAPINET_receivepacket failed
+0x463ca0,network,net_chat,TIMEOUT.GUI / MessageArrived / <%s%s%s> %s
+0x464290,game,players,Player / Core / Arm / Player %d First / ai\default.txt / Controller / Player%i; a saved game's player section (0x466050)
+0x4665d0,map,radar,TEMP RADAR PIC / RADARPIC TEMP / RADAR MAPPED
+0x467440,ingame,info_panel,LIGHTBAR / Veteran / Mission Q: / Receive - %1.1f K/s / Game Time / unit information
+0x46bce0,game,statistics,Scores%d / ScoreBoard%d / _RITerminate@0 / _RIReportGameChat@8; the score tables for the statistics DLL
+0x46c620,network,unit_sync,packets sent=%d ackd=%d / expected %d units; std::map<unsigned int, Rect_0046e160> and the packet vectors
+0x470a40,graphics,particles,the object pool Class_00470ae0 and the Class_00471cc0 family (position / velocity / animation counter)
+0x476740,frontend,campaign_menu,SideList / CAMPAIGN NAMES / SOLARSYSTEM / AnyMsn / SINGLE.GUI / Missions
+0x479660,frontend,skirmish_menu,Allies%d / Color%d / SELMAP.GUI / SkirmishCheat / Skirmsetup4x
+0x47bdf0,graphics,movies,Could not setup Direct Draw / Could not open movie file / Smacker Error
+0x47c4d0,debug,memory_stats,Summary / stats.txt / HighestExtraUsed
+0x47c6c0,graphics,movies,the message pump while a Smacker movie plays
+0x47c790,map,terrain,ground height under a footprint; whether a unit can sit at a position; map cells
+0x47ed40,sound,sound,Sound system initialization / UseWindowsSound / WAV / Speech Text / honk
+0x480190,units,squads,SQUADS: the ten unit groups
+0x4804e0,units,unit_script_calls,Class_00485e30 slots 1 to 19 (the unit's script object) and their helpers
+0x4814c0,map,line_of_sight,EYEBALL MEMORY / SORT UNIT LIST / MAPPED MEMORY; map cells by grid and world position
+0x484ce0,map,plot_map,Plotmap / PlayerFeatures / Mapping
+0x485010,units,units,HOT RADAR UNITS / HOT UNITS / UNIT MEMORY / Create / Killed / %s has taken the lead
+0x486fd0,units,unit_save,Version / Units / Number of Units / Script%i / u%04xm%04x
+0x487bf0,units,unit_commands,MOBILEBUILD / BUILDWEAPON / SELFDESTRUCTFG / WAITFORATTACK; Player number %d invalid
+0x489280,units,unit_targets,PropList; owner links (+0xa2); StartBuilding / TargetCleared / TakeDamage / HitByWeapon / paralyze
+0x48a7f0,units,unit_position,ground height / heading / Activate / Deactivate; a unit's state written to and read from a bit stream
+0x48bae0,ingame,selection,SelectMultipleUnits / Standing_FireOrder / Standing_MoveOrder / CTRL_F; the local player's selected units
+0x48dfb0,game,victory,VictoryCondition_* / DefeatCondition_* / Celebrated / Satisfied
+0x490ac0,game,game_state,OFFSCREEN / Game Speed / the wind / CDLISTS / cdaudio settings / ASSEM PTS
+0x491ec0,game,savegame,Invalid savegame file / SAVEGAME DESCS / LOADGAME.GUI
+0x493340,ingame,dialogs,METAL# / ENERGY# / TALK2.GUI / SENDTO / ALLIES / CONTROL / SHARE / TABMENU.GUI
+0x495860,ingame,keys,STOP / ScreenShot / bmp / SELFDESTRUCT / CTRL_C / CTRL_%c
+0x496790,game,main_loop,FRAM / the main loop pass / Could not find start position
+0x497180,game,game_load,BetweenMissions / summary / Load Thread / Synchronization complete / guipal
+0x498f70,ingame,build_placement,notoktobuild / oktobuild
+0x499890,ingame,screenshots,%s\screenshots / SHOT
+0x499a30,weapons,weapons,WEAPON ARRAY / RockUnit / a weapon's area damage (0x49a120) / SetMaxReloadTime
+0x49e640,game,main,DEBUG.FIL / Out of memory handler / WinMain / totala.ini
+0x49f610,sound,play_sound,a WAV image played from memory (SND_ASYNC | SND_MEMORY)
+0x49f8c0,gui,gui,Error in GUI layout / HELPTEXT / SCROLLITEMS / GAF / BUTTONS0 / stagebuttn%d / CHECKBOX
+0x4aa8f0,gui,dialogs,CONFIRM.GUI / YESORNO.GUI / MSGBOX.GUI / NOTEXIST.GUI / CHOICE3.GUI / INPUT.GUI / WordWrap / COLS
+0x4acd00,gui,gui_file,[%s] / %s=%s; / defaultfocus / grayedout / quickkey / knobsize: GUI files written and read
+0x4aefa0,gui,file_list,PTR LIST1 / SORTED LIST1 / <DIR> / FILETIMES / FILE NAMES / BlinkWords
+0x4b0090,gui,listbox,Listbox; bevelled and sunken frames
+0x4b0610,units,cob,Class_004b0610 (the unit's script object at +0x9a): Static Varibles / Object States / Piece States
+0x4b2290,util,int_map,the file-local std::map<int,int> and its tree members
+0x4b3630,util,hapibank,[HapiBank::OpenBank] / [HapiBank::LoadAccount] / Safe-Deposit Box
+0x4b4f10,util,operator_new,Cavedog's replacement global operator new and delete
+0x4b4f50,graphics,display,DirectX version / EnumDisplayModes / Environment Initialization / timers / FRATE
+0x4b6750,util,registry,rectangle tests; Cavedog Entertainment / Software registry values
+0x4b6b80,util,math,checksums / random numbers / vector rotation / fixed-point trigonometry (0x4b70a0)
+0x4b73b0,util,commands,command arguments %N / the named command handler table
+0x4b7e60,graphics,gaf,bitmap trees / GAF entries / shadow bitmaps / LensFrame
+0x4ba200,graphics,palette,Palette / ALPHA TABLE / SHADE TABLE / LIGHT TABLE / GRAY TABLE / BLUE TABLE
+0x4bb190,util,hpi,%c:\ / File Handle / HAPI_readfromfile / Package Data / HAPIFILE header
+0x4be950,graphics,draw,lines / circles / polygons / fades / scanline fills into a surface or the locked screen
+0x4c1480,graphics,font,text width and drawing in a bitmap font
+0x4c1a40,gui,keyboard,key ring buffer / virtual key codes / key handler
+0x4c2380,gui,mouse,the software mouse cursor / SAVEMOUSE / MOUSE EVENTS
+0x4c2ea0,util,tdf,root / TDF file / Parse error in .TDF File; reference-counted string handles
+0x4c4fa0,runtime,basic_string,std::basic_string<char>::_Copy (gap region 0x4c4fa0) from the compiler's <xstring>
+0x4c5170,util,tdf,TDF entries (pairs of string handles) and the sorted (name / value) tables
+0x4c5d90,graphics,surface,screen lock stack / DirectDraw surfaces / Loaded Surface / blitters
+0x4c9530,network,hapinet,DPERR_* / HAPINET_* (the DirectPlay wrapper)
+0x4caa40,graphics,pcx,COLOR MAP / PCX BODY / %s%s%s%04i.pcx
+0x4cbb70,debug,debug_helper,DebugHelper.dll / DebugFunc1
+0x4cbbe0,graphics,blit,the hand-written surface drawing routines
+0x4cd9b0,sound,cd_audio,status cdaudio / SJE_CdPlayerClass
+0x4cee50,sound,samples,the sound object / Digital Audio Sample / WAVE / RIFF / fmt
+0x4d0ab0,util,sqsh,SQSH compression / header.packedSize
+0x4d80b0,debug,debug_lib,-memfussy / -gonzo / ErrorLog.txt / Call stack / imagehlp / performance dialog / psapi / GDPERF / registry helpers / timers

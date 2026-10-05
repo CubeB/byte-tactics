@@ -20,10 +20,11 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from check import (DEFAULT_FLAGS, GAP_DIR, LIB_DIR, ROOT, SYMBOLS, Original, annotations, base_name,
-                   compare, compile_source)
+from check import (DEFAULT_FLAGS, ROOT, SYMBOLS, Original, annotations, base_name, compare,
+                   compile_source)
 from coff import parse_object
 from issues import BANDS
+from sources import sources as files_of_kind
 
 README = ROOT / "README.md"
 PROGRESS = ROOT / "data/progress.csv"
@@ -174,11 +175,9 @@ def main() -> None:
     include_hash = hashlib.sha256(b"".join(
         p.read_bytes() for p in sorted((ROOT / "include").rglob("*")) if p.is_file())).hexdigest()
     work = []
-    for src in sorted((ROOT / "src").rglob("*.cpp")):
-        if src.is_relative_to(GAP_DIR):
-            continue        # gap regions: tools/gapcheck.py
-        if src.is_relative_to(LIB_DIR):
-            continue        # runtime library code, not game functions: tools/place.py places it
+    # Gap regions are checked by tools/gapcheck.py, and runtime library code is
+    # not game functions (tools/place.py places it): only game files count.
+    for src in files_of_kind("game"):
         for address, qualname in annotations(src):
             work.append((address, qualname, src))
     work.sort()

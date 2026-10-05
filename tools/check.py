@@ -31,29 +31,24 @@ import capstone
 import pefile
 
 from coff import REL_I386_DIR32, REL_I386_REL32, CoffObject, parse_object
+# Where the sources are: found by their annotations, wherever they live under
+# src/ (tools/sources.py). A file's kind follows from its addresses: `gap`
+# code (data/functions.csv's `gap` rows, checked by tools/gapcheck.py) may use
+# inline assembly, as the original did there (cpuid, int 3, hand-written
+# routines), and the flags its functions were evidently compiled with; `data`
+# files define the game's data, each global annotated `// GLOBAL: 0x...` on the
+# line before (docs/linking.md, "The data as source"); `library` files hold
+# runtime library code no library member has (the basic_string members
+# Cavedog's objects instantiated), checked like any other file and placed by
+# tools/place.py as library code.
+from sources import (ANNOTATION, GLOBAL_ANNOTATION, ROOT, annotations, data_annotations, find_source,
+                     global_annotations, is_data_source, is_gap_source)
 
-ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_FLAGS = "/O2 /Ob2 /MT /Gz"
 PADDING = (0x90, 0xCC)
 SYMBOLS = ROOT / "data/symbols.csv"
-ANNOTATION = re.compile(r"^\s*//\s*FUNCTION:\s*(0x[0-9a-fA-F]+)(?:\s+(\S+))?")
 FORBIDDEN = re.compile(r"\b(__asm|_asm|_emit|__emit)\b|#\s*pragma\s+(optimize|code_seg)")
-# The code between FPO records (data/functions.csv's `gap` rows) is written in
-# src/gap/ and checked by tools/gapcheck.py. The original used inline assembly
-# there (cpuid, int 3, hand-written routines), so it is allowed in those files
-# only, and so are the flags their functions were evidently compiled with.
-GAP_DIR = ROOT / "src/gap"
-# The game's data as source: definitions of globals, tables and strings, each
-# annotated `// GLOBAL: 0x...` on the line before (docs/linking.md, "The data
-# as source"). tools/place.py places each one at its address and compares it.
-DATA_DIR = ROOT / "src/data"
-GLOBAL_ANNOTATION = re.compile(r"^\s*//\s*GLOBAL:\s*(0x[0-9a-fA-F]+)")
 GAP_FORBIDDEN = re.compile(r"#\s*pragma\s+(optimize|code_seg)")
-# Runtime library code (data/functions.csv's `library` rows) that no library
-# member holds, compiled from the toolchain's own headers with the game's
-# options: the basic_string members Cavedog's objects instantiated. Checked
-# like any other file; tools/place.py places it as library code.
-LIB_DIR = ROOT / "src/lib"
 
 
 # --- the original exe -------------------------------------------------------
@@ -166,81 +161,10 @@ def load_symbols() -> dict[str, int]:
     if SYMBOLS.exists():
         with SYMBOLS.open() as fh:
             out = {row["name"]: int(row["address"], 16) for row in csv.DictReader(fh)}
-    # The names src/data gives the data it defines.
+    # The names the data files (tools/sources.py) give the data they define.
     for address, name in data_annotations():
         out.setdefault(name, address)
     return out
-
-
-def global_annotations(src: Path) -> list[tuple[int, str]]:
-    """(address, name) for every // GLOBAL: annotation in a file: the name of
-    the variable the definition after it defines."""
-    lines = src.read_text(errors="replace").splitlines()
-    out = []
-    for i, line in enumerate(lines):
-        m = GLOBAL_ANNOTATION.match(line)
-        if not m:
-            continue
-        following = [l for l in lines[i + 1:i + 12] if l.strip() and not l.strip().startswith("//")]
-        text = " ".join(following[:3])
-        # The declarator ends at its initialiser or at the end of the declaration;
-        # array extents and a function pointer's parameter list are not names.
-        head = re.split(r"[=;{]", text, maxsplit=1)[0]
-        head = re.sub(r"\[[^\]]*\]", " ", head)
-        head = re.sub(r"\)\s*\([^()]*\)\s*$", ")", head)
-        names = [n for n in re.findall(r"[A-Za-z_]\w*", head)
-                 if n not in ("const", "static", "extern", "volatile", "unsigned", "signed", "struct",
-                              "class", "union", "enum", "__cdecl", "__stdcall", "__fastcall")]
-        out.append((int(m.group(1), 16), names[-1] if names else ""))
-    return out
-
-
-_data_annotations: list[tuple[int, str]] | None = None
-
-
-def data_annotations() -> list[tuple[int, str]]:
-    """(address, name) for every global src/data defines."""
-    global _data_annotations
-    if _data_annotations is None:
-        _data_annotations = [a for src in sorted(DATA_DIR.glob("*.cpp")) for a in global_annotations(src)]
-    return _data_annotations
-
-
-def is_data_source(src: Path) -> bool:
-    return src.resolve().is_relative_to(DATA_DIR)
-
-
-# --- source files -------------------------------------------------------------
-
-def annotations(src: Path) -> list[tuple[int, str]]:
-    """(address, qualified name) for every // FUNCTION: annotation in a file."""
-    lines = src.read_text(errors="replace").splitlines()
-    out = []
-    for i, line in enumerate(lines):
-        m = ANNOTATION.match(line)
-        if not m:
-            continue
-        # The definition follows, possibly after more comments or blank lines.
-        following = [l for l in lines[i + 1:i + 12] if l.strip() and not l.strip().startswith("//")]
-        # Only the definition header counts (up to the opening brace), so an
-        # `operator new(` call in the body is not mistaken for the definition.
-        text = " ".join(following[:3]).split("{", 1)[0]
-        text = re.sub(r"__declspec\s*\(\s*\w+\s*\)", " ", text)
-        op = re.search(r"([\w:]*?)operator\s*(new|delete|==|!=|<=|>=|\[\]|\(\)|=|<|>|\+|-|\*|/)\s*\(", text)
-        sig = text.split("(", 1)[0]
-        names = [op.group(1) + "operator" + op.group(2)] if op else re.findall(r"[A-Za-z_~][\w:~]*", sig)
-        # An explicit symbol after the address (for compiler-generated functions
-        # such as dynamic initialisers, _$E1) is matched exactly, marked with "=".
-        name = "=" + m.group(2) if m.group(2) else (names[-1] if names else "")
-        out.append((int(m.group(1), 16), name))
-    return out
-
-
-def find_source(address: int) -> Path | None:
-    for src in sorted((ROOT / "src").rglob("*.cpp")):
-        if any(a == address for a, _ in annotations(src)):
-            return src
-    return None
 
 
 def winpath(p: Path) -> str:
@@ -260,10 +184,6 @@ FILE_FLAGS = {"/Gi"}
 # local and loaded again; with /Gy again, which /Od turns off, since each of
 # them is a COMDAT of its own).
 GAP_FILE_FLAGS = FILE_FLAGS | {"/Op", "/GX", "/Od", "/Gy"}
-
-
-def is_gap_source(src: Path) -> bool:
-    return src.resolve().is_relative_to(GAP_DIR)
 
 
 def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj") -> tuple[Path | None, str]:

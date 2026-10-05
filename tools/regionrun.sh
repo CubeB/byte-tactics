@@ -30,6 +30,8 @@ MAX_PARALLEL="${MAX_PARALLEL:-4}"
 PIDS_PER_AGENT="${PIDS_PER_AGENT:-150}"
 SK="$HOME/.claude-home/skills/opencode-subagents/scripts"
 CSV="$ROOT/data/regions/$ADDR.csv"
+# The function's file, wherever it lives under src/ (tools/sources.py).
+FILE="$(cd "$ROOT" && uv run --quiet tools/sources.py "$ADDR" | sed -n 's/^[^:]*: \([^ ]*\) .*/\1/p')"
 mkdir -p "$LOGS"
 LOGS="$(cd "$LOGS" && pwd)"
 if [ $# -gt 0 ]; then REGIONS=("$@"); else mapfile -t REGIONS < <(tail -n +2 "$CSV" | cut -d, -f1); fi
@@ -74,7 +76,7 @@ for R in "${REGIONS[@]}"; do
 # Task: region $R of $ADDR
 
 Worktree: $WT (branch region-$ADDR-$R, based on $BASE)
-Your region: \`// REGION $R begin\` .. \`// REGION $R end\` in src/unsorted/$ADDR.cpp
+Your region: \`// REGION $R begin\` .. \`// REGION $R end\` in ${FILE:-the file of $ADDR}
 Original address range: ${ROW:-see data/regions/$ADDR.csv} (name,start,end)
 Goal: raise this region's shape score to 100, then exact, per the brief.
 Hard deadline: $MINUTES minutes from now (started $(date +%H:%M)). Commit each improvement.

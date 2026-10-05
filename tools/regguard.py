@@ -1,6 +1,6 @@
 """Check that a branch only edited the code inside its own region markers.
 
-    uv run tools/regguard.py src/unsorted/0x4d8e60.cpp --base pilot2-4d8e60 \
+    uv run tools/regguard.py FILE --base pilot2-4d8e60 \
         --head region-r3 --region r3
 
 The file marks each region with `// REGION <name> begin` and

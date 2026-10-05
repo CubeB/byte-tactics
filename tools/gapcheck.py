@@ -8,7 +8,8 @@ The 29 `gap` rows of data/functions.csv are code with no FPO record. Most of
 it is compiled code the function finder could not see: functions with inline
 assembly (cpuid, `int 3`), with __try/__except or try/catch frames, and
 functions compiled with /Op, whose frames align the stack (`and esp, -8`).
-Some is hand-written assembly. A region's source is src/gap/<address>.cpp:
+Some is hand-written assembly. A region's source is the file under src/ that
+annotates a function inside it (tools/sources.py finds it, wherever it lives):
 
   * every function in it is annotated `// FUNCTION: 0x...` as everywhere
     else, and tools/check.py checks one of them on its own;
@@ -40,8 +41,9 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from check import GAP_DIR, ROOT, Original, Result, annotations, compare, disasm, load_symbols, report
+from check import ROOT, Original, Result, annotations, compare, disasm, load_symbols, report
 from coff import CoffObject, parse_object
+from sources import gap_sources
 
 FUNCTIONS = ROOT / "data/functions.csv"
 OUT = ROOT / "build/gap"
@@ -55,8 +57,10 @@ def regions() -> dict[int, int]:
         return {int(r["address"], 16): int(r["size"]) for r in csv.DictReader(fh) if r["kind"] == "gap"}
 
 
-def source_of(region: int) -> Path:
-    return GAP_DIR / f"{region:#x}.cpp"
+def source_of(region: int, found: dict[int, Path] | None = None) -> Path | None:
+    """The file holding a region's code (`found` is gap_sources(), when the
+    caller has it already)."""
+    return (gap_sources() if found is None else found).get(region)
 
 
 def entries(src: Path) -> list[tuple[int, str]]:
@@ -82,7 +86,7 @@ class Alias:
 class RegionResult:
     address: int
     size: int
-    source: Path
+    source: Path | None
     obj: Path | None = None
     functions: list[Result] = field(default_factory=list)
     aliases: list[Alias] = field(default_factory=list)
@@ -125,11 +129,11 @@ def symbol_value(obj: CoffObject, name: str) -> tuple[int, int] | None:
 
 
 def check_region(region: int, size: int, orig: Original | None = None,
-                 symbols: dict[str, int] | None = None) -> RegionResult:
-    src = source_of(region)
+                 symbols: dict[str, int] | None = None, found: dict[int, Path] | None = None) -> RegionResult:
+    src = source_of(region, found)
     res = RegionResult(region, size, src)
-    if not src.exists():
-        res.error = f"no source: {src.relative_to(ROOT)}"
+    if src is None:
+        res.error = f"no source: no file under src/ annotates a function in {region:#x}"
         return res
     obj_path, log = compile_gap(src)
     if obj_path is None:
@@ -227,6 +231,7 @@ class GapObject:
     path: Path                                   # build/gap/<region>.obj, with the entry symbols
     functions: list[tuple[int, str, int]]        # (address, symbol, size) of each function
     aliases: list[Alias]
+    source: Path | None = None                   # the file under src/ it was compiled from
 
 
 def add_symbols(data: bytes, defs: list[tuple[str, int, int]]) -> bytes:
@@ -253,13 +258,14 @@ def gap_objects(quiet: bool = False) -> dict[int, GapObject]:
     """Every region whose source matches -> its object for the builds."""
     out: dict[int, GapObject] = {}
     sizes = regions()
-    sources = [r for r in sorted(sizes) if source_of(r).exists()]
+    found = gap_sources()
+    sources = [r for r in sorted(sizes) if r in found]
     if not sources:
         return out
     orig, symbols = Original(), load_symbols()
     OUT.mkdir(parents=True, exist_ok=True)
     for region in sources:
-        res = check_region(region, sizes[region], orig, symbols)
+        res = check_region(region, sizes[region], orig, symbols, found)
         if not res.matched:
             if not quiet:
                 print(f"gap {region:#x}: source does not match ({res.status}); the original's bytes are used",
@@ -268,7 +274,8 @@ def gap_objects(quiet: bool = False) -> dict[int, GapObject]:
         path = OUT / f"{region:#x}.obj"
         path.write_bytes(add_symbols(res.obj.read_bytes(), [(a.name, a.section, a.value) for a in res.aliases]))
         out[region] = GapObject(region, sizes[region], path,
-                                [(f.address, f.symbol, f.ours_size) for f in res.functions], res.aliases)
+                                [(f.address, f.symbol, f.ours_size) for f in res.functions], res.aliases,
+                                res.source)
     return out
 
 
@@ -284,14 +291,15 @@ def main() -> None:
         sys.exit("not a gap region: " + ", ".join(f"{a:#x}" for a in unknown)
                  + " (uv run tools/gapcheck.py --list shows them)")
     orig, symbols = Original(), load_symbols()
+    found = gap_sources()
     done = done_bytes = 0
     failed = False
     for region in wanted:
-        if not args.address and not source_of(region).exists():
+        if not args.address and region not in found:
             if args.list:
                 print(f"{region:#x}  {sizes[region]:>6,} bytes  no source")
             continue
-        res = check_region(region, sizes[region], orig, symbols)
+        res = check_region(region, sizes[region], orig, symbols, found)
         if args.list or not args.address:
             print(f"{region:#x}  {sizes[region]:>6,} bytes  {res.status}")
         else:

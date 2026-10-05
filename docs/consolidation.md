@@ -1,6 +1,6 @@
 # Consolidation notes
 
-Things to resolve when the per-function files in `src/unsorted/` are merged
+Things to resolve when the per-function files under `src/` are merged
 into real classes and translation units. Agents name unknown classes after
 single addresses, so one real class often appears under several names.
 
@@ -8,7 +8,7 @@ single addresses, so one real class often appears under several names.
 
 `tools/unitmap.py` groups the matched members under `src/` into the classes
 they belong to and builds a map in memory on every run. A unit is a class whose
-matched members are spread over more than one file in `src/unsorted/`, which is
+matched members are spread over more than one file under `src/`, which is
 the state every class is in before consolidation. For each unit the map gives its
 members in address order, the file defining each, every file that declares the
 class, the union of the field ledgers those declarations give, and every offset

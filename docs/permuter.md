@@ -195,7 +195,7 @@ and arguments passed by reference count as memory.
   load or a swapped stack slot, after the guide's levers have been tried by
   hand. Below that the differences are usually semantic (a wrong type, a
   missing statement) and a permuter cannot find them.
-- **Run it on the file as it stands.** It starts from `src/unsorted/<addr>.cpp`
+- **Run it on the file as it stands.** It starts from the function's file under `src/`
   (or `--file`). Get the types, struct layouts, callee names and calling
   conventions right first; the permuter keeps all of them.
 - **Give it time.** A few thousand candidates a minute is normal. Small

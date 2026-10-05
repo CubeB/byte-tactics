@@ -76,7 +76,7 @@ def sibling_note(addresses: list[str]) -> str:
     if not lines:
         return ""
     return ("\n\nOther unmatched functions that look like copies of this one. Read their files "
-            "under src/unsorted/ first: a conclusion reached on one usually holds for the rest, "
+            "(uv run tools/sources.py <address>) first: a conclusion reached on one usually holds for the rest, "
             "though check which local owns the stack slot before copying a sibling's shape.\n"
             + "\n".join(lines))
 

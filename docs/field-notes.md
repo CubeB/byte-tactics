@@ -339,7 +339,7 @@ general, but they cost hours.
   unremovable under WSL git.** Fix: `rm -rf .git/worktrees/<name>` and the
   directory, then `git worktree prune` and re-add. Check for real work first.
 - **A fresh worktree is stale and the main checkout may be too.** Read reference
-  files with `git show origin/main:src/unsorted/<addr>.cpp`.
+  files with `git show origin/main:<path>` (`uv run tools/sources.py <addr>` gives the path).
 - Several agents share the same account, so branch names do not identify
   authorship and another session's pull requests appear in your author list.
 

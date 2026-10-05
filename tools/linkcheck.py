@@ -42,6 +42,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from check import DEFAULT_FLAGS, ROOT, base_name, load_symbols
+from sources import link_order, source_files
 
 SRC = ROOT / "src"
 LIBDIR = ROOT / "toolchain/msvc5-sp3/LIB"
@@ -185,7 +186,9 @@ def load_objects(quiet: bool = False) -> tuple[list[ObjectInfo], list[str]]:
     Returns the objects and the files that failed to compile."""
     from progress import compile_cached  # imported here: it pulls in the issue tooling
 
-    sources = sorted(SRC.rglob("*.cpp"))
+    # In link order (tools/sources.py): the counts and the type each global
+    # gets do not depend on where the files live.
+    sources = link_order(source_files())
     ihash = include_hash()
 
     def cached(src: Path) -> bool:

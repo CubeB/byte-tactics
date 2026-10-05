@@ -37,8 +37,9 @@ they expect it, and every call reaches the one function at its address:
     their addresses, one global at a time;
   * the runtime library comes from the members of LIBCMT.LIB, LIBCPMT.LIB and
     zlib that the original links, each where the original holds its bytes and
-    refers to the same functions, imports and data contents, and from
-    src/lib/ (the basic_string members compiled with the game's options);
+    refers to the same functions, imports and data contents, and from the
+    library files under src/ (the basic_string members compiled with the
+    game's options; tools/sources.py);
   * the resources are compiled from src/res/TotalA.rc and the game's icon
     and cursor with RC.EXE and CVTRES.EXE (tools/resources.py) and placed at
     the start of .rsrc;
@@ -73,11 +74,13 @@ from pathlib import Path
 
 import pefile
 
-from check import LIB_DIR, ROOT, base_name, load_symbols
+from check import ROOT, base_name, load_symbols
 from crtmatch import MIN_SIZE
 from gapcheck import gap_objects
 from link import build_data, compile_all
 from linkcheck import address_of
+from sources import kind_of, object_source, relative
+from sources import sources as files_of_kind
 
 OUT_DIR = ROOT / "build/place"
 PROGRESS = ROOT / "data/progress.csv"
@@ -153,7 +156,7 @@ class Obj:
     raw: bytes
     library: bool = False      # a member of a runtime or third-party library
     gap: bool = False          # a gap region's source (tools/gapcheck.py)
-    data: bool = False         # the data as source (src/data)
+    data: bool = False         # the data as source (a data file, tools/sources.py)
     externals: dict[str, Sym] = field(default_factory=dict)
     absolutes: dict[str, int] = field(default_factory=dict)    # IMAGE_SYM_ABSOLUTE externals
     commons: dict[str, int] = field(default_factory=dict)      # communal (.bss) externals -> size
@@ -950,7 +953,7 @@ def place_gaps(placer: Placer, gaps: dict) -> None:
     for region, gap in sorted(gaps.items()):
         obj = parse(gap.path)
         obj.gap = True
-        obj.key = f"src/gap/{region:#x}.cpp"
+        obj.key = relative(gap.source)
         placer.objects.append(obj)
         placer.add_definer(obj)
         for addr, symbol, size in gap.functions:
@@ -978,7 +981,7 @@ def place_tls(placer: Placer) -> None:
     """The thread-local data. LINK builds .tls from the linked objects' .tls
     sections in the order of their names, each at its alignment: the
     runtime's __tls_start (tlssup.obj's .tls), the game's thread-local
-    variables (.tls$: only src/gap/0x4d8d70.cpp's, Cavedog's one object with
+    variables (.tls$: only gap region 0x4d8d70's, Cavedog's one object with
     any, which the tree's other users declare), and __tls_end (tlssup.obj's
     .tls$ZZZ). tlssup.obj's .rdata, __tls_used, is the TLS directory, which
     goes where the original's data directory says; the callback table it
@@ -1016,14 +1019,13 @@ def place_tree_globals(placer: Placer, objects_by_src: dict[str, Obj]) -> None:
     initialisers, template statics), each from its largest definition: two
     files can hold different views of one class (0x460e20's Class_00460f60
     is 0xb53c bytes, 0x460f60's 0xb528)."""
+    tree = {src: obj for src, obj in objects_by_src.items() if kind_of(ROOT / src) == "game"}
     for row in load_rows(GLOBALS):
         if row.get("size_from") != "definition":
             continue
         addr = int(row["address"], 16)
         best = None
-        for src, obj in objects_by_src.items():
-            if not src.startswith("src/unsorted/"):
-                continue
+        for src, obj in tree.items():
             for name, sym in obj.externals.items():
                 sec = obj.secs[sym.section - 1]
                 if sec.is_code or address_of(name, placer.symbols) != addr:
@@ -1038,12 +1040,13 @@ def place_tree_globals(placer: Placer, objects_by_src: dict[str, Obj]) -> None:
 
 
 def place_data_sources(placer: Placer, objects_by_src: dict[str, Obj]) -> None:
-    """src/data, the game's data as source: every global at the address its
+    """The data files (tools/sources.py), the game's data as source: every global at the address its
     `// GLOBAL:` annotation (or its DAT_<address> name) gives, from its
     symbol to the next one. String literals and other data its initial
     values point at follow where the original's pointers point."""
-    for src, obj in sorted(objects_by_src.items()):
-        if not src.startswith("src/data/"):
+    data = {relative(s) for s in files_of_kind("data")}
+    for src, obj in objects_by_src.items():
+        if src not in data:
             continue
         obj.data = True
         for name, sym in sorted(obj.externals.items(), key=lambda kv: (kv[1].section, kv[1].value)):
@@ -1056,7 +1059,7 @@ def place_data_sources(placer: Placer, objects_by_src: dict[str, Obj]) -> None:
                 continue
             lo, hi = sec.slice_at(sym.value)
             placer.place(obj, sec, lo, hi, addr, DATASRC, name)
-            placer.stats["globals placed from src/data"] += 1
+            placer.stats["globals placed from the data files"] += 1
 
 
 def place_globals(placer: Placer, data_objs: list[Path], data_addr: dict[int, str]) -> None:
@@ -1101,12 +1104,12 @@ def body_size(sec: Sec) -> int:
 
 
 def library_members(sources: list[Path] = ()) -> list[Obj]:
-    """The runtime library's members: src/lib/'s objects (`sources`), those
-    of LIBCMT.LIB and LIBCPMT.LIB, and zlib's."""
+    """The runtime library's members: the library files' objects (`sources`,
+    tools/sources.py), those of LIBCMT.LIB and LIBCPMT.LIB, and zlib's."""
     members = []
     for p in sources:
         members.append(parse(p, library=True))
-        members[-1].key = f"src/lib/{p.stem}.cpp"
+        members[-1].key = relative(object_source(p, ROOT / "build/progress"))
     members += [m for lib in LIBRARIES if lib.exists() for m in read_library(lib)]
     for p in sorted(THIRD_PARTY.glob("*.obj")):
         members.append(parse(p, library=True))
@@ -1117,7 +1120,7 @@ def library_members(sources: list[Path] = ()) -> list[Obj]:
 def place_library(placer: Placer, sources: list[Path] = ()) -> None:
     """The runtime library and zlib code, from the members of the libraries
     the original links, at the addresses data/functions.csv gives, and the
-    library code built from src/lib/ (`sources`, which go first).
+    library code built from the library files under src/ (`sources`, which go first).
 
     A member goes where the original holds its bytes (ignoring the fields the
     linker fills in) and its calls reach functions of the right names: the
@@ -1986,7 +1989,7 @@ def layout_rows(placer: Placer) -> list[dict]:
     for region, gap in sorted(placer.gap_regions.items()):
         for a in gap.aliases:
             rows.append({"kind": "alias", "address": f"{a.address:#x}", "size": "",
-                         "object": f"src/gap/{region:#x}.cpp", "section": a.section, "offset": a.value,
+                         "object": relative(gap.source), "section": a.section, "offset": a.value,
                          "source": a.name})
     # The fills inside the sections: past a section's virtual size the
     # linker's zero fill follows from the section itself.
@@ -2047,14 +2050,14 @@ def replay(jobs: int | None = None) -> tuple[Image, Placer]:
         raise SystemExit(f"{len(failed)} file(s) did not compile; tools/link.py lists them")
     symbols = load_symbols()
     link = settings()
-    lib_objs = ROOT / "build/progress" / LIB_DIR.relative_to(ROOT / "src")
-    lib_paths = [p for p in paths if p.is_relative_to(lib_objs)]
-    paths = [p for p in paths if not p.is_relative_to(lib_objs)]
+    cache = ROOT / "build/progress"
+    lib_paths = [p for p in paths if kind_of(object_source(p, cache)) == "library"]
+    paths = [p for p in paths if p not in lib_paths]
     objects = [parse(p) for p in paths]
     by_src = {}
     for p, obj in zip(paths, objects):
-        obj.key = str(Path("src") / p.relative_to(ROOT / "build/progress").with_suffix(".cpp"))
-        obj.data = obj.key.startswith("src/data/")
+        obj.key = str(Path("src") / p.relative_to(cache).with_suffix(".cpp"))
+        obj.data = kind_of(object_source(p, cache)) == "data"
         by_src[obj.key] = obj
 
     end = max(int(r["address"], 16) + int(r["size"] or 0) for r in rows if r["kind"] in ("piece", "fill"))
@@ -2076,7 +2079,10 @@ def replay(jobs: int | None = None) -> tuple[Image, Placer]:
     for r in rows:
         if r["kind"] == "alias":
             aliases[r["object"]].append((r["source"], int(r["section"]), int(r["offset"])))
-    for key in sorted({r["object"] for r in rows if r["kind"] == "piece" and r["object"].startswith("src/gap/")}):
+    def gap_file(key: str) -> bool:
+        return key.startswith("src/") and (ROOT / key).is_file() and kind_of(ROOT / key) == "gap"
+
+    for key in sorted({r["object"] for r in rows if r["kind"] == "piece" and gap_file(r["object"])}):
         compiled, log = compile_gap(ROOT / key)
         if compiled is None:
             raise SystemExit(f"{key} did not compile:\n{log}")
@@ -2210,10 +2216,11 @@ def layout(jobs: int | None = None) -> tuple[Image, Placer]:
     if failed:
         raise SystemExit(f"{len(failed)} file(s) did not compile; tools/link.py lists them")
     symbols = load_symbols()
-    # src/lib/ is runtime library code: placed with the library members.
-    lib_objs = ROOT / "build/progress" / LIB_DIR.relative_to(ROOT / "src")
-    lib_paths = [p for p in paths if p.is_relative_to(lib_objs)]
-    paths = [p for p in paths if not p.is_relative_to(lib_objs)]
+    # Runtime library code (tools/sources.py's `library` files): placed with
+    # the library members.
+    cache = ROOT / "build/progress"
+    lib_paths = [p for p in paths if kind_of(object_source(p, cache)) == "library"]
+    paths = [p for p in paths if p not in lib_paths]
     objects = [parse(p) for p in paths]
     by_src = {}
     for p, obj in zip(paths, objects):

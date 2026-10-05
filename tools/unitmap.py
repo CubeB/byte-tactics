@@ -4,8 +4,8 @@
     uv run tools/unitmap.py --list     # print the units, largest first
     uv run tools/unitmap.py --at 0x4b1000   # the unit nearest an address
 
-A unit is a class whose matched members are spread over more than one file in
-src/unsorted/. Consolidating a unit means giving the class one home, so the map
+A unit is a class whose matched members are spread over more than one file
+under src/. Consolidating a unit means giving the class one home, so the map
 records for each one:
 
   members      the matched members, in address order, and the file defining each
@@ -31,6 +31,7 @@ import re
 from pathlib import Path
 
 from check import ROOT, base_name
+from sources import primary_address
 
 PROGRESS = ROOT / "data/progress.csv"
 SYMBOLS = ROOT / "data/symbols.csv"
@@ -137,7 +138,8 @@ def build() -> dict:
         if len(mem) < 2:                    # one member cannot be consolidated
             continue
         mem.sort(key=lambda m: int(m["address"], 16))
-        files = sorted({m["file"] for m in mem})
+        # In address order (tools/sources.py), wherever the files live.
+        files = sorted({m["file"] for m in mem}, key=lambda f: (primary_address(ROOT / f), f))
         if len(files) < 2:                  # already consolidated, nothing to merge
             continue
 

@@ -26,10 +26,11 @@ For your address:
 
 1. `uv run tools/ctx.py <addr>` shows the disassembly, callees with their
    calling conventions, and Ghidra's pseudo-C (a starting point only).
-2. Look for already-matched near-copies: grep `src/unsorted/` for a
+2. Look for already-matched near-copies: grep `src/` for a
    distinctive offset, string or callee address from the disassembly, and copy
    the closest file.
-3. Write `src/unsorted/<addr>.cpp`. First line:
+3. Write your function's file (`uv run tools/sources.py <addr>` prints it;
+   `uv run tools/modules.py <addr>` gives the path of a new one). First line:
    `// Decompiled by <model>. Names are provisional.`, with the model name
    from your prompt (for example `DeepSeek V4.1 Flash` or `Space Bunny Free`).
 4. `uv run tools/check.py <addr>` and fix what the diff shows. When registers
@@ -45,10 +46,10 @@ When to stop:
 - If you run out of steps while the score is still going up, say so in your
   final line (`partial (still improving)`): the session then starts a fresh
   worker from your file and notes.
-- Whenever a scratch variant scores higher than `src/unsorted/<addr>.cpp`,
+- Whenever a scratch variant scores higher than your function's file,
   copy it into that file at once, so running out of steps never strands a
   better version in `build/scratch/`.
-- Only create or edit `src/unsorted/<addr>.cpp` for your address (and
+- Only create or edit your address's file (and
   scratch files under `build/scratch/<addr>/`). Never edit other files, never
   run `git` or `gh`, never run `tools/progress.py`.
 - Never use inline assembly, `#pragma optimize`, hard-coded addresses or

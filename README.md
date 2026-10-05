@@ -115,8 +115,11 @@ functions in their own working copy, and open a pull request. To help, see
 
 ## Layout
 
-- `src/`: reconstructed source
+- `src/`: reconstructed source, in folders by subsystem (`docs/tidy-up.md`);
+  `uv run tools/sources.py 0x401070` prints the file of a function
 - `data/functions.csv`: every function in the exe (`tools/functions.py`)
+- `data/modules.csv`: the address ranges of the modules and their folders
+  (`tools/modules.py`)
 - `tools/`: comparison and analysis scripts
 - `orig/`: the original exe (ignored by git) and its expected hash
 - `toolchain/`: VC++ 5.0 and the Wine prefix (ignored by git)

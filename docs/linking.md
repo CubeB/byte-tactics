@@ -21,8 +21,8 @@ uv run tools/resources.py              # compile src/res/ and compare it with th
 uv run tools/link.py --carve           # an ordinary LINK.EXE link that runs: build/link/TotalA.exe
 uv run tools/linkcmp.py                # does every reference in it reach what the original's does?
 uv run tools/imagecmp.py               # the whole image's placement and data against the original
-uv run tools/gapcheck.py [0x...]       # the gap regions' source (src/gap/) against the original
-uv run tools/vtablecheck.py src/unsorted/0x48e010.cpp   # does each vtable slot name the original's function?
+uv run tools/gapcheck.py [0x...]       # the gap regions' source against the original
+uv run tools/vtablecheck.py 0x48e010   # does each vtable slot name the original's function?
 uv run tools/playtest.py --exe orig,carve --scenario full   # play both under Wine, PASS or FAIL
 ```
 
@@ -184,7 +184,7 @@ and one per stretch of `.bss` after a global that nothing names (916 rows:
 | `section` | `.rdata`, `.data`, or `.bss` (the zero-filled tail of `.data`, estimated as above) |
 | `size`, `size_from` | `type`: the size of the largest type any file declares; `gap`: the distance to the next address the original's code or data, `data/symbols.csv` or the source refers to (past the largest offset the source uses; a dword of text, "BAR" and its terminator, is no address); `gap>type`: an uninitialised array that runs on to the next known address, or a global the source reaches past its declared type (`DAT_00528ae8` is declared `char[0x1e8]` in a 0x3e8-byte slot); `parts`: grown to hold the globals inside it; `definition`: the size of the largest definition a tree file has (0x460e20's `Class_00460f60` is 0xb53c bytes, 0x460f60's view 0xb528); `type>gap`: a declared type that runs over the next known address (12 rows; for example `DAT_00511a58`, an `int[45][2]`, overlaps `DAT_00511a60`, a `Pair_00419560[44]` that other files declare 8 bytes further on) |
 | `kind` | `data`, `string` (its bytes are a C string), `vtable` (a run of function pointers in `.rdata`), `float`, `template` (a static member of an STL tree), `library` (CRT data), `unreferenced` (`.bss` after a global up to the next known address, that nothing names) |
-| `defined` | where it is defined if not in `link/`: a `src/data` file (the global itself, or one that holds it), a tree file (a class object with a static initialiser, a template's static), or `in DAT_x+0x10` for a global that is a part of another (a field of a struct or an entry of an array that the code reaches by its address) |
+| `defined` | where it is defined if not in `link/`: a data file (the global itself, or one that holds it), a tree file (a class object with a static initialiser, a template's static), or `in DAT_x+0x10` for a global that is a part of another (a field of a struct or an entry of an array that the code reaches by its address) |
 | `type`, `type_files`, `other_files`, `types` | the most common declared type, how many files declare exactly it, how many declare something else, and how many distinct types there are; `T[]` counts as agreeing with `T[N]` |
 | `verdict` | tools/linkcheck.py's verdict on the declarations |
 | `files` | how many files refer to it |
@@ -201,7 +201,7 @@ quarters agree on its shape and it is the commonest type of that shape (so
 declaration; a struct held by value, or a global the source reaches past its
 type, is declared as a byte array of its size with the type in a comment; a
 global only ever declared `extern "C"` is declared `extern "C"`. The globals
-left out are listed at the end: those `src/data` or a tree file defines, the
+left out are listed at the end: those a data file or a tree file defines, the
 parts of other globals, vtables, STL tree statics, and globals whose files
 disagree (`DAT_0051fba4`, `DAT_005119c0`, ...). `tools/link.py` defines
 those last ones as byte arrays with their whole initial value.
@@ -214,7 +214,7 @@ game's flags and compares each definition with the exe: it compiles with no
 warnings and every definition holds the original's bytes (pointer fields are
 compared as "some address"). No initial value is left as `TODO`, and none
 holds an address as a number: tables of pointers to functions or to other
-data are defined in `src/data` with their types (see below).
+data are defined in the data files with their types (see below).
 
 Of the 2,456 references in the tree to the globals `data.cpp` defines, 1,292
 spell them exactly as it does and would resolve against it today; the rest
@@ -228,13 +228,16 @@ Neither file is included by anything under `src/`; both builds link
 agent sees the type most of the tree already uses. Without `globals.csv` it
 prints what it did before.
 
-## The data as source: src/data
+## The data as source: the data files
 
 `link/data.cpp` is generated from what the tree's declarations say, which is
 enough for numbers, strings and pointers to strings. Tables of records, of
 function pointers and of pointers into other data need their real types, so
-they are written by hand in `src/data/`, one file per subject, and every
-global there is annotated with its address on the line before:
+they are written by hand in data files, one file per subject, kept in the
+folder of their subject (`orders/unit_orders.cpp`; `docs/tidy-up.md`), and
+every global there is annotated with its address on the line before. A data
+file is any file with `// GLOBAL:` annotations and no functions
+(`tools/sources.py`):
 
 ```cpp
 // GLOBAL: 0x4fc490
@@ -263,7 +266,7 @@ extern const UnitOrderType g_unitOrders[23] = {
   the bytes, and resolves every pointer: one that leads elsewhere than the
   original's is an error, as it is in compiled code and data.
   `tools/globals.py` and `tools/link.py` leave the addresses
-  `src/data` defines, and every global inside one of them, to it.
+  the data files define, and every global inside one of them, to them.
 
 | File | What it defines |
 | --- | --- |
@@ -331,7 +334,7 @@ How it places things:
   placed where the original has its stub: 70 in the gap row 0x49f710 and 184
   in the unnamed library row 0x4faff0, after the runtime library. Each jumps
   through its own member's `.idata$5`.
-- **Gap regions with matching source** (`src/gap/`, see below) are placed
+- **Gap regions with matching source** (see below) are placed
   function by function from the objects `tools/gapcheck.py` checks, and
   counted as gap code. The padding between their functions is the
   original's.
@@ -350,7 +353,7 @@ How it places things:
   other relocation (`tools/vtablecheck.py` names the function the slot's own
   file should define).
 - **The globals**: those a tree file defines (a class object, a template's
-  static) from its largest definition, then `src/data`'s, then
+  static) from its largest definition, then the data files', then
   `link/data.cpp`'s and the byte arrays `tools/link.py` adds for the globals
   `tools/globals.py` leaves out, each at its address.
 - **The initialiser tables** at the start of `.data` (`__xc_a` to `__xc_z`
@@ -380,7 +383,7 @@ How it places things:
   sections in the order of their names: the runtime's `__tls_start`
   (`tlssup.obj`'s `.tls`), the game's thread-local variables (`.tls$`), and
   `__tls_end` (`.tls$ZZZ`), each at its alignment. The only `.tls$` the
-  original has is Cavedog's object at 0x4d8d70 (`src/gap/0x4d8d70.cpp`),
+  original has is Cavedog's object at 0x4d8d70 (gap region 0x4d8d70),
   whose three variables 0x4d8df0 and 0x4d8e20 read too; they declare them
   rather than defining struct views of their own, so the ordinary link has
   one copy as well. A thread-local variable's offset (a `SECREL` relocation)
@@ -425,7 +428,8 @@ How it places things:
   setlocale's `__init_dummy`) have no name in `data/functions.csv`, so they go
   where the placed code and tables refer to them, not by size. Alignment
   padding (nops, or int3s after assembler code) is counted as padding.
-- **`basic_string` members compiled from source** (`src/lib/`): six members of
+- **`basic_string` members compiled from source** (a `library` file,
+  `tools/sources.py`): six members of
   `std::basic_string<char>` that no `LIBCPMT.LIB` member matches, because the
   original's copies were compiled with the game's options. Five sit among
   Cavedog's functions (the copies one of Cavedog's objects instantiated, at
@@ -434,8 +438,8 @@ How it places things:
   explicitly instantiates them from the compiler's own `<xstring>`, each
   annotated and checked by `tools/check.py`; `tools/place.py` places them as
   library code, before the library members, and `tools/link.py` links the
-  object like any other (`tools/progress.py` leaves `src/lib/` out: these are
-  not `game` rows).
+  object like any other (`tools/progress.py` leaves `library` files out:
+  these are not `game` rows).
 - **The resources** are `src/res/TotalA.rc` (the icon, the cursor and the
   version resource), which `tools/resources.py --extract` wrote out of the
   original once, and the icon and cursor it names. Those two are Cavedog's
@@ -471,13 +475,13 @@ counts where each section's bytes came from. On 2026-10-05:
 | Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
 | `.text` | 1,026,560 | 850,853 game code, 24,762 gap code, 120,848 runtime library and import thunks, 30,097 padding | none |
-| `.rdata` | 18,432 | 6,564 import tables, 3,234 compiled data, 4,172 library data (with the TLS directory), 2,965 `src/data`, 324 `link/` globals, 1,089 padding, 84 debug directory | none |
-| `.data` | 173,660 | 83,515 compiled data (with the tree's own globals), 29,549 library data, 7,694 `src/data`, 48,458 `link/` globals, 4,436 padding, 8 uninitialised | none |
+| `.rdata` | 18,432 | 6,564 import tables, 3,234 compiled data, 4,172 library data (with the TLS directory), 2,965 the data files, 324 `link/` globals, 1,089 padding, 84 debug directory | none |
+| `.data` | 173,660 | 83,515 compiled data (with the tree's own globals), 29,549 library data, 7,694 the data files, 48,458 `link/` globals, 4,436 padding, 8 uninitialised | none |
 | `.tls` | 512 | 8 `__tls_start` and `__tls_end`, 9 thread-local variables, 495 padding | none |
 | `.rsrc` | 3,072 | 2,640 resources, 432 padding | none |
 | headers and debug data | 61,862 | 1,024 headers, 84 debug directory (in `.rdata`), 60,838 debug records after the sections | none |
 
-Before the data was defined in `src/data` (#2662), 34,662 bytes of `.data`
+Before the data was defined in the data files (#2662), 34,662 bytes of `.data`
 and 1,546 of `.rdata` were copied: tables whose pointers `link/data.cpp` held
 as numbers left their strings undefined, `.bss` buffers were cut short at
 false boundaries, and the padding between pieces counted as data. The last 56
@@ -585,7 +589,7 @@ missing (as in CI). Everything comes from the repository and the toolchain:
   original writes: `place.py` writes `build/place/layout.csv` on every run
   and says when it differs from `data/layout.csv`, and `--write-layout`
   updates the latter. Rerun it after any change that moves a piece (a
-  function that grows, a file that moves, a new global in `src/data`).
+  function that grows, a file that moves, a new global in a data file).
 - **The art** (the icon and cursor) comes from `--art` or `BT_ART_DIR`, the
   one input that is not in the repository (see the resources, above).
 - **The check**: the exe's SHA-256 must be `orig/TotalA.exe.sha256`'s and its
@@ -604,7 +608,7 @@ original's bytes, as rows of these kinds:
 | `same` | a slice of an object that is not placed itself but stands for the piece at `address`: the original had one copy of a literal, a constant or a file static that the tree's objects each keep | 572 |
 | `reloc` | the target of a reference that no name leads to: the 136 calls to the other copy of `std::_Lockit`, the 30 names whose address only the original's bytes give (the vector deleting destructors, `SmackSoundEnable`), and three more | 169 |
 
-An object is named by its source (`src/unsorted/0x4223e0.cpp`,
+An object is named by its source file (`src/unsorted/0x4223e0.cpp`,
 `src/gap/0x49a120.cpp`), by a library and the member's place in it
 (`LIBCMT.LIB#123`, `KERNEL32.LIB#40`, the import libraries too), as
 `zlib/deflate.obj`, `link/data.obj`, `init/<symbol>` (the initialiser table
@@ -680,7 +684,7 @@ none, so `carve.py` finds them itself:
   address in the compiler's exception tables.
 
 The game's data itself comes from source: `link/data.cpp`, the globals
-`tools/link.py` adds as byte arrays, `src/data`, and the globals and statics
+`tools/link.py` adds as byte arrays, the data files, and the globals and statics
 of the tree's own objects. What makes that link run:
 
 - **One definition per global.** The layout names every address of data by
@@ -737,7 +741,7 @@ and `link.py` applies that to patched copies of the objects under
   run, in its order (see `fix_initialisers` in `link.py`): files that define
   global objects only so that a function matches would otherwise construct
   them with the wrong constructors at start-up. The gap regions' objects and
-  `src/lib/` add none either (those that include `<string>` carry an
+  the library files add none either (those that include `<string>` carry an
   initialiser for a `locale::id` guard).
 - zlib comes from the objects `tools/setup_toolchain.sh` builds, and the
   runtime library from `LIBCMT.LIB` and `LIBCPMT.LIB`, as LINK picks them.
@@ -1027,12 +1031,14 @@ opens with `push ebp / mov ebp, esp`, and they fall into a few kinds:
   LIB.EXE's from `link/*.def` for the DLLs imported by ordinal), and
   `tools/carve.py` no longer carves the row.
 
-A region's source is `src/gap/<address>.cpp`, one file per region, and
-`uv run tools/gapcheck.py <address>` checks it:
+A region's source is one file, in the folder of its subsystem like any
+other (`game/main_49eda0.cpp` is WinMain), and `uv run tools/gapcheck.py
+<address>` checks it. A file is gap code when it annotates a function inside a
+gap region (`tools/sources.py`), wherever it lives:
 
 - Each function is annotated `// FUNCTION: 0x...` as everywhere else, and
   `tools/check.py` checks one function on its own. `tools/progress.py` leaves
-  `src/gap/` out: these are not `game` rows.
+  gap files out: these are not `game` rows.
 - Inline assembly is allowed in these files only (`__asm`, and `_emit` for
   instructions MSVC 5's inline assembler does not know: `cpuid` is
   `_emit 0x0f` `_emit 0xa2`). `// FLAGS:` may add `/Op`, `/GX`, `/Od` and

@@ -16,7 +16,7 @@ Class members are left alone (__thiscall whatever the default). Run it only
 on source written for the old default: tools/review.sh does so for pull
 requests branched before the switch.
 
-    uv run tools/fix_conventions.py [--dry-run] [src/unsorted/0x....cpp ...]
+    uv run tools/fix_conventions.py [--dry-run] [FILE ...]      # default: every file under src/
 """
 
 import argparse

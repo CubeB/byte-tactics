@@ -23,7 +23,7 @@ missing code. link.py bridges the spellings without changing any function:
     a C runtime function (tolower, sprintf, ...) to the library's symbol.
 
 What is still unresolved after that is exactly what has no source yet or lives
-outside the tree: the gap regions with no matching source in src/gap/ (those
+outside the tree: the gap regions with no matching source yet (those
 with it are linked from their objects, tools/gapcheck.py), the game entry
 point, and the DLLs with no import library in the toolchain (smackw32,
 DPLAYX). The default run passes
@@ -62,10 +62,12 @@ from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from check import DATA_DIR, DEFAULT_FLAGS, GAP_DIR, ROOT, winpath
+from check import DEFAULT_FLAGS, ROOT, winpath
 from linkcheck import (CRT_LIBS, IMPORT_LIBS, Demangle, MEMBER_STATIC, address_of,
                        archive_symbols, base_name, data_symbol, include_hash, library_symbols,
                        load_known, read_object, type_size)
+from sources import relative
+from sources import sources as files_of_kind
 
 SRC = ROOT / "src"
 BUILD = ROOT / "build/link"
@@ -107,11 +109,12 @@ WINMAIN_ADDR = 0x49E830
 
 def compile_all(jobs: int) -> tuple[list[Path], list[tuple[Path, str]]]:
     """Every source file's object, through tools/progress.py's cache. The gap
-    regions' sources (src/gap/) are left out: tools/gapcheck.py's gap_objects
+    regions' sources (tools/sources.py's `gap` files) are left out: tools/gapcheck.py's gap_objects
     gives the builds those whose source matches."""
     from progress import compile_cached
 
-    sources = sorted(s for s in SRC.rglob("*.cpp") if not s.is_relative_to(GAP_DIR))
+    # In link order: data, library code, then game code (tools/sources.py).
+    sources = files_of_kind("data", "library", "game")
     ihash = include_hash()
 
     def cached(src: Path) -> bool:
@@ -138,7 +141,7 @@ def compile_all(jobs: int) -> tuple[list[Path], list[tuple[Path, str]]]:
 
 def global_rows() -> dict[int, tuple[str, int, str, str]]:
     """address -> (name, size, section, init-hex) for every globals.csv row
-    that link/ has to define: not one src/data or a tree file defines, nor
+    that link/ has to define: not one a data file or a tree file defines, nor
     one inside another global, nor the runtime library's (_tls_index)."""
     out = {}
     if not GLOBALS.exists():
@@ -153,9 +156,9 @@ def global_rows() -> dict[int, tuple[str, int, str, str]]:
 
 
 def build_data(symbols: dict[str, int]) -> tuple[list[Path], dict[int, str]]:
-    """Compile link/data.cpp, emit the globals it and src/data omit, and
+    """Compile link/data.cpp, emit the globals it and the data files omit, and
     return the two objects with address -> the symbol each defines (and each
-    src/data definition)."""
+    data file's definition)."""
     BUILD.mkdir(parents=True, exist_ok=True)
     compile_data = ROOT / "tools/wcl"
     objects = []
@@ -178,7 +181,7 @@ def build_data(symbols: dict[str, int]) -> tuple[list[Path], dict[int, str]]:
     else:
         out = None
 
-    # The data src/data defines (compiled with the rest of src/ by compile_all).
+    # The data the data files define (compiled with the rest of src/ by compile_all).
     extents = data_source_extents(symbols)
     sources: dict[int, str] = {a: name for a, _, name, _ in extents}
 
@@ -188,11 +191,11 @@ def build_data(symbols: dict[str, int]) -> tuple[list[Path], dict[int, str]]:
         if name.startswith("??_7") and addr not in sources:
             sources[addr] = name
 
-    # Extra globals: those globals.csv lists but neither data.cpp nor src/data defines.
+    # Extra globals: those globals.csv lists but neither data.cpp nor a data file defines.
     rows = global_rows()
     rows = {a: r for a, r in rows.items() if GLOBAL_LO <= a < GLOBAL_HI}
     have = (set(defined_addresses(out, symbols)) if out else set()) | set(sources)
-    # What the code reaches inside a src/data global (a field, an entry: the
+    # What the code reaches inside a data file's global (a field, an entry: the
     # tree's DAT_005086e0 is a field of g_unitMessages[0]) is that global.
     have |= {a for a in rows if inside(extents, a)}
     extra = {a: r for a, r in rows.items() if a not in have}
@@ -233,14 +236,14 @@ def build_data(symbols: dict[str, int]) -> tuple[list[Path], dict[int, str]]:
 
 
 def data_source_extents(symbols: dict[str, int]) -> list[tuple[int, int, str, str]]:
-    """(address, size, symbol, source file) of every global src/data defines,
+    """(address, size, symbol, source file) of every global a data file defines,
     from its compiled object (tools/progress.py's cache, which compile_all
     fills): a global runs from its symbol to the next one in its section."""
     from place import parse
     out = []
-    for obj_path in sorted((ROOT / "build/progress/data").glob("*.obj")):
-        src = DATA_DIR / obj_path.with_suffix(".cpp").name
-        if not src.exists():
+    for src in files_of_kind("data"):
+        obj_path = ROOT / "build/progress" / src.relative_to(SRC).with_suffix(".obj")
+        if not obj_path.exists():
             continue
         obj = parse(obj_path)
         for name, sym in obj.externals.items():
@@ -250,7 +253,7 @@ def data_source_extents(symbols: dict[str, int]) -> list[tuple[int, int, str, st
             addr = address_of(name, symbols)
             if addr is not None:
                 lo, hi = sec.slice_at(sym.value)
-                out.append((addr, hi - lo, name, str(src.relative_to(ROOT))))
+                out.append((addr, hi - lo, name, relative(src)))
     return sorted(out)
 
 
@@ -782,7 +785,7 @@ def main() -> None:
         carved = result.objects
         gaps = result.gap_sources
         # The game's data from source (link/data.cpp and the globals it leaves
-        # out; src/data is among the objects), what origdata.obj still holds,
+        # out; the data files are among the objects), what origdata.obj still holds,
         # and zlib, which the original links too.
         data_objs, data_addr = build_data(symbols)
         data_addr.update(result.data_names)
@@ -793,7 +796,7 @@ def main() -> None:
         gaps = [g.path for _, g in sorted(gap_objects().items())]
         data_objs, data_addr = build_data(symbols)
     if gaps:
-        print(f"{len(gaps)} gap region(s) built from source (src/gap/)")
+        print(f"{len(gaps)} gap region(s) built from source (tools/gapcheck.py)")
 
     libs = library_symbols(set(CRT_LIBS) | set(IMPORT_LIBS))
     import_libs: list[Path] = []

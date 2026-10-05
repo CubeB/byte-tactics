@@ -20,7 +20,7 @@ Target: 20 minutes of wall clock for one function.
 | 14 to 17 | **Merge**: guard, merge, score each branch | orchestrator |
 | 17 to 20 | **Integration**: cross-region fixes, final `check.py` | strong model |
 
-1. **Skeleton.** Write `src/unsorted/<addr>.cpp` so it compiles and has the
+1. **Skeleton.** Write the function's file so it compiles and has the
    right frame. Put everything shared (structs, helpers, declarations, the
    locals, callee prototypes) between `// SHARED begin` and `// SHARED end`.
    Mark each region `// REGION rN begin` and `// REGION rN end`. Region bodies

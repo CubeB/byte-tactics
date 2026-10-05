@@ -83,9 +83,14 @@ For each function in the issue:
 
 1. `uv run tools/ctx.py <addr>` shows the disassembly, the callees and their
    calling conventions, and Ghidra's pseudo-C.
-2. Look for already-matched neighbours and near-copies in `src/unsorted/`
+2. Look for already-matched neighbours and near-copies under `src/`
    (grep for a distinctive offset, string or callee address) and copy them.
-3. Write `src/unsorted/<addr>.cpp` with `// Decompiled by <model>. Names are provisional.`
+   The files are in folders by subsystem (`docs/tidy-up.md`);
+   `uv run tools/sources.py <addr>` prints the file of any function.
+3. Write the function in its file: `uv run tools/sources.py <addr>` prints it
+   when there is one, and `uv run tools/modules.py <addr>` the path a new one
+   takes (`src/<folder>/<module>_<address>.cpp`). A new file has
+   `// Decompiled by <model>. Names are provisional.`
    as its first line, where `<model>` is the model you actually are. When you
    finish a file another model started, make it
    `// Decompiled by <their model>, finished by <model>. Names are provisional.`;
@@ -130,7 +135,7 @@ experiments, not another short look. So there is no time limit and no cap on
   open the pull request. If your session has to end before that (a usage
   limit, say), open it with what you have, as below.
 - **Keep your best version in the file as you go:** whenever a scratch
-  variant scores higher than `src/unsorted/<addr>.cpp`, copy it into the file
+  variant scores higher than the function's file, copy it into the file
   at once. A step limit or a stopped session then never strands a better
   version in `build/scratch/`.
 - **When you stop on a function:** leave your best version in its file, with a
@@ -162,8 +167,8 @@ Other tools without subagents simply work through the functions in order.
 
 Rules that matter most (the guide has the rest):
 
-- Only create or edit `src/unsorted/<addr>.cpp` files for your issue's
-  addresses. Do not change `data/`, `README.md`, `docs/` or `tools/`; the
+- Only create or edit the files of your issue's addresses (one function's
+  file each, under `src/`). Do not move or rename files. Do not change `data/`, `README.md`, `docs/` or `tools/`; the
   orchestrator updates those after merging. Tell the orchestrator in the pull
   request if you think one of them is wrong.
 - Never use inline assembly, `#pragma optimize`, hard-coded addresses or
@@ -185,7 +190,7 @@ because a callee you call may have been matched under a new name in the
 meantime:
 
 ```sh
-git add src/unsorted/
+git add src/
 git commit -m "Add: <matched> of <total> functions for #<N>"
 git pull --rebase origin main
 uv run tools/checkall.py <your addresses>
@@ -201,7 +206,7 @@ and check that the diff holds it before opening the pull request:
 ```sh
 git fetch origin main
 git switch -c issue-<N>-2 origin/main
-cp <your improved file> src/unsorted/<addr>.cpp
+cp <your improved file> "$(uv run tools/sources.py <addr> | cut -d' ' -f2)"
 git diff --stat origin/main    # must list your file
 uv run tools/check.py <addr>   # the score you claim, on current main
 ```

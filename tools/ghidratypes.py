@@ -29,6 +29,7 @@ from pathlib import Path
 
 from check import DEFAULT_FLAGS, ROOT, compile_source
 from coff import parse_object
+from sources import link_order
 
 PROGRESS = ROOT / "data/progress.csv"
 GLOBALS = ROOT / "data/globals.csv"
@@ -387,7 +388,7 @@ def main():
     rows = list(csv.DictReader(PROGRESS.open()))
     wanted = {"matched", "partial"} if args.partial else {"matched"}
     symbol_address = {r["symbol"]: int(r["address"], 16) for r in rows if r["status"] in wanted}
-    sources = sorted({ROOT / r["file"] for r in rows if r["status"] in wanted})
+    sources = link_order(list({ROOT / r["file"] for r in rows if r["status"] in wanted}))
     include = ROOT / "include"
     include_hash = hashlib.sha256(b"".join(
         p.read_bytes() for p in sorted(include.rglob("*")) if p.is_file())).hexdigest() if include.exists() else ""

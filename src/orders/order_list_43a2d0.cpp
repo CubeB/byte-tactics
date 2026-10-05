@@ -31,7 +31,7 @@ public:
 };
 
 // FUNCTION: 0x43a2d0
-void __stdcall FUN_0043a2d0(Class_004b48f0* file, unsigned short id)
+void __stdcall WriteUnitTypeNameKey(Class_004b48f0* file, unsigned short id)
 {
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);

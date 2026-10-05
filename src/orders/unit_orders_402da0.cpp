@@ -65,10 +65,10 @@ struct Unit {
 #pragma pack(pop)
 void __stdcall FUN_0041c110(Unit*);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, void*);
-void __stdcall FUN_0043adc0(Class_00438760, int, Unit*, Unit*, void*, int, int);
+void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, void*, int, int);
 void __stdcall FUN_0041bcd0(Unit*, int);
 // FUNCTION: 0x402da0
-int __stdcall FUN_00402da0(Unit* unit, Order* order, unsigned int flags)
+int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
 {
     if (unit->progress == 0.0f) {
         FUN_0041c110(unit);
@@ -84,7 +84,7 @@ int __stdcall FUN_00402da0(Unit* unit, Order* order, unsigned int flags)
                     else if (node->kind.index == patrol.index)
                         kind = FUN_0043f0e0(9, unit, 0, node->Position());
                     if (kind.index) {
-                        FUN_0043adc0(kind, 1, unit, 0, node->Position(), 0, 0);
+                        AddOrder(kind, 1, unit, 0, node->Position(), 0, 0);
                         queued = 1;
                     }
                 }
@@ -96,7 +96,7 @@ int __stdcall FUN_00402da0(Unit* unit, Order* order, unsigned int flags)
                 }
             }
             if (!queued)
-                FUN_0043adc0("PARK", 1, unit, 0, 0, 0, 0);
+                AddOrder("PARK", 1, unit, 0, 0, 0, 0);
         }
         return 5;
     }

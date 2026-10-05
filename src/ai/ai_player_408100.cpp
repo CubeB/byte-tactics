@@ -119,7 +119,7 @@ unsigned short __stdcall FUN_0040bdb0(unsigned int player, Unit_00408100* unit);
 int __stdcall FUN_0040bfe0(unsigned int player, Vec3* from, Item_00408100* item, Vec3* out);
 int __stdcall FUN_0040c230(unsigned int player);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_00408100* unit, Unit_00408100* target, Vec3* pos);
-void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit_00408100* unit, Unit_00408100* target, Vec3* pos, int param_6, int param_7);
+void __stdcall AddOrder(Class_00438760 kind, int remove, Unit_00408100* unit, Unit_00408100* target, Vec3* pos, int param_6, int param_7);
 int __stdcall FUN_004b6c30(int range);
 
 // Fixed-point trig helpers written in assembly.
@@ -187,7 +187,7 @@ void Class_004085d0::FUN_00407380()
                 }
                 if (ok) {
                     Class_00438760 kind = FUN_0043f0e0(0xe, u, 0, &pos);
-                    FUN_0043adc0(kind, 0, u, 0, &pos, idx, 1);
+                    AddOrder(kind, 0, u, 0, &pos, idx, 1);
                 }
             }
         }
@@ -206,9 +206,9 @@ void Class_004085d0::FUN_00407380()
                 target = origin + d;
                 Class_00438760 kind;
                 kind = FUN_0043f0e0(2, u, 0, &target);
-                FUN_0043adc0(kind, 0, u, 0, &target, 0, 0);
+                AddOrder(kind, 0, u, 0, &target, 0, 0);
                 kind = FUN_0043f0e0(9, u, 0, &origin);
-                FUN_0043adc0(kind, 1, u, 0, &origin, 0, 0);
+                AddOrder(kind, 1, u, 0, &origin, 0, 0);
             } else {
                 Vec3 d = origin - u->pos;
                 int len = Length(d);
@@ -224,7 +224,7 @@ void Class_004085d0::FUN_00407380()
                     target = u->pos + d;
                 }
                 Class_00438760 kind = FUN_0043f0e0(9, u, 0, &target);
-                FUN_0043adc0(kind, 0, u, 0, &target, 0, 0);
+                AddOrder(kind, 0, u, 0, &target, 0, 0);
             }
         }
     }

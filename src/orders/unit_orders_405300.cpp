@@ -120,9 +120,9 @@ extern Game* g_game;
 void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
 int __stdcall FUN_004b6c30(int range);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
-void __stdcall FUN_00438590(Unit* unit, Order* order, short turn);
+void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
-void __stdcall FUN_004385f0(Unit* unit, Order* order);
+void __stdcall StopBuildingScript(Unit* unit, Order* order);
 int __stdcall FUN_0041bd10(Unit* builder, Unit* unit, float amount);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
@@ -130,7 +130,7 @@ void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 // Order handler "Repair" of a builder: walks up to the target unit, then
 // spends worker time on it until its health is full.
 // FUNCTION: 0x405300
-int __stdcall FUN_00405300(Unit* unit, Order* order, int flags)
+int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
 {
     if (!order->target) {
         FUN_0047f780(unit, 7, "Repairs unsuccessful.");
@@ -165,7 +165,7 @@ int __stdcall FUN_00405300(Unit* unit, Order* order, int flags)
             return 2;
         }
         ((Class_004898b0*)unit)->ClaimWeapons(3);
-        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
         return 1;
     }
     case 2:
@@ -174,7 +174,7 @@ int __stdcall FUN_00405300(Unit* unit, Order* order, int flags)
         if ((unsigned int)order->target->health >= order->target->type->maxHealth)
             return 1;
         if (order->target->flags & 0xc) {
-            FUN_004385f0(unit, order);
+            StopBuildingScript(unit, order);
             ((Class_00439e80*)order)->FUN_00439e80(15);
             return 0;
         }

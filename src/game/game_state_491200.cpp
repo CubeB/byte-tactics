@@ -155,7 +155,7 @@ void FUN_00429870();
 void FUN_0047ed40();
 void FUN_004259b0();
 void __stdcall InitPacketTables(void* param_1);
-void FUN_0043c050();
+void RegisterAllOrderTypes();
 void FUN_0042a320();
 void FUN_0042a400();
 void FUN_0042f7e0();
@@ -224,7 +224,7 @@ void FUN_00491200()
     FUN_0047ed40();
     FUN_004259b0();
     InitPacketTables(g_game->field_12ef);
-    FUN_0043c050();
+    RegisterAllOrderTypes();
     FUN_0042a320();
     FUN_0042a400();
     FUN_0042f7e0();

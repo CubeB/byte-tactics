@@ -14,7 +14,7 @@ struct Unit { int valid; char pad4[0x6a-4]; Vec pos; char pad76[8]; short size; 
 struct Order { char pad[5]; unsigned char state; unsigned flags; char pada[0x22-10]; Vec pos; char pad2e[0x4a-0x2e]; void* next; };
 #pragma pack(pop)
 // FUNCTION: 0x4061a0
-int __stdcall FUN_004061a0(Unit* unit,Order* order,int flags)
+int __stdcall ParkOrder(Unit* unit,Order* order,int flags)
 {
     switch(order->state) {
     case 0:

@@ -52,7 +52,7 @@ typedef int(__stdcall* Pred_0043c390)(const Elem_0043c390&, const Elem_0043c390&
 
 static Vec_0043c390 DAT_00512340;
 
-int __stdcall FUN_0043c020(const Elem_0043c390& a, const Elem_0043c390& b);
+int __stdcall CompareOrderTypeNames(const Elem_0043c390& a, const Elem_0043c390& b);
 
 // std::_Unguarded_insert
 inline void __stdcall FUN_0043c940(Elem_0043c390* _L, Elem_0043c390 _V, Pred_0043c390 _P)
@@ -241,33 +241,33 @@ void __stdcall FUN_0043bad0(Parent_0043bad0* p)
 }
 
 // FUNCTION: 0x43bc90
-void __stdcall FUN_0043bc90(Elem_0043c390* from, int count)
+void __stdcall RegisterOrderTypes(Elem_0043c390* from, int count)
 {
     int sz = DAT_00512340.size();
     DAT_00512340.reserve(sz + count);
     std::copy(from, from + count, std::back_inserter(DAT_00512340));
-    sort_0043bc90(DAT_00512340.begin(), DAT_00512340.end(), FUN_0043c020);
+    sort_0043bc90(DAT_00512340.begin(), DAT_00512340.end(), CompareOrderTypeNames);
 }
 
 // The rest of the translation unit (each matched in its own file).
-int __stdcall FUN_0043c020(const Elem_0043c390& a, const Elem_0043c390& b)
+int __stdcall CompareOrderTypeNames(const Elem_0043c390& a, const Elem_0043c390& b)
 {
     return _strcmpi(a.name, b.name) < 0 ? 1 : 0;
 }
 
 extern Elem_0043c390 DAT_004fd288[];
-void FUN_00406bf0();
+void RegisterGroundOrders();
 void FUN_00415b20();
 void FUN_00406f00();
-void FUN_00403180();
+void RegisterUnitOrders();
 
-void FUN_0043c050()
+void RegisterAllOrderTypes()
 {
-    FUN_0043bc90(DAT_004fd288, 1);
-    FUN_00406bf0();
+    RegisterOrderTypes(DAT_004fd288, 1);
+    RegisterGroundOrders();
     FUN_00415b20();
     FUN_00406f00();
-    FUN_00403180();
+    RegisterUnitOrders();
 }
 
 void FUN_0043c350()

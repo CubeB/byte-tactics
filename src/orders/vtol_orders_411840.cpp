@@ -17,7 +17,7 @@ struct Unit {
 int __stdcall FUN_0047e570(Unit* unit, int id);
 
 // FUNCTION: 0x411840
-int __stdcall FUN_00411840(Unit* unit, int pad)
+int __stdcall FindLandingPad(Unit* unit, int pad)
 {
     if (pad != -1 && FUN_0047e570(unit, pad)) {
         return pad;

@@ -22,7 +22,7 @@ struct Owner_00439f80 {
 #pragma pack(pop)
 
 // FUNCTION: 0x439f80
-void __stdcall FUN_00439f80(Owner_00439f80* owner, Class_0043a1f0* node)
+void __stdcall DeleteOrder(Owner_00439f80* owner, Class_0043a1f0* node)
 {
     Class_0043a1f0* first = owner->list;
     Class_0043a1f0** link = (node->flags & 0x40000) ? &owner->list2 : &owner->list;

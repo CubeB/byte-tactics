@@ -1,5 +1,5 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-// Visitor used by FUN_004152f0 (vtable 0x4fcc64): collects allied units
+// Visitor used by VtolRepairPatrolOrder (vtable 0x4fcc64): collects allied units
 // whose flags & 3 == 1 that are damaged or still being built and are not
 // already running this player's order kind 5. A near copy of
 // Class_00405d90::FUN_00405d90; it needs a header (<math.h> here, many sets

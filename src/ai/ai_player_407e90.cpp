@@ -172,7 +172,7 @@ int __stdcall FUN_0040b1c0(int index, Vec3_00407d40* pos, int range);
 int __stdcall FUN_0049aa80(Unit* unit, Vec3_00407d40* from, Vec3_00407d40* to, int flags);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
                                       Unit* target, Vec3_00407d40* pos);
-void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit* unit,
+void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* unit,
                             Unit* target, Vec3_00407d40* pos, int a, int b);
 
 // FUNCTION: 0x407e90
@@ -203,7 +203,7 @@ void Class_00407d40::FUN_00407380()
             if (u->field_0 || FUN_0049aa80(u, &u->pos, &a, 0)) {
                 Class_00438760 kind = FUN_0043f0e0(3, u, 0, &a);
                 if (kind.index)
-                    FUN_0043adc0(kind, 0, u, 0, &a, 0, 0);
+                    AddOrder(kind, 0, u, 0, &a, 0, 0);
             }
         }
     }

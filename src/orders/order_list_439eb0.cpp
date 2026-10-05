@@ -26,7 +26,7 @@ struct Owner_00439eb0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x439eb0
-void __stdcall FUN_00439eb0(Owner_00439eb0* owner, int all)
+void __stdcall DeleteOrders(Owner_00439eb0* owner, int all)
 {
     Class_0043a1f0* first = owner->list;
     Class_0043a1f0** pp = &owner->list;

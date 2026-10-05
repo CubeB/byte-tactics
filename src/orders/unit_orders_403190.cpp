@@ -27,7 +27,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_00403190* unit,
                                        Unit_00403190* target, int flags);
 
 // FUNCTION: 0x403190
-int __stdcall FUN_00403190(Unit_00403190* unit, Class_00438b90* order, int unused)
+int __stdcall AttackSpecialOrder(Unit_00403190* unit, Class_00438b90* order, int unused)
 {
     order->FUN_00438b90(FUN_0043f0e0(3, unit, order->target, 0));
     order->state = 2;

@@ -26,7 +26,7 @@
 // Kept from earlier passes, still needed: the flat continue chain with
 // PlayerMore(i) (a static inline testing the byte counter, which gives the
 // original's unfolded `xor al,al / cmp al,0xa / jae` entry test), and
-// FUN_0043b7c0, FUN_0043bad0 and the def block inside
+// RunOrders, FUN_0043bad0 and the def block inside
 // `if (k3 == 1 || k3 == 2)` (Claude Opus 5.5, #5106).
 #pragma pack(push, 1)
 
@@ -150,7 +150,7 @@ struct Game {
 
 void __stdcall UpdateWindGenerator(Unit* u);
 void __stdcall FUN_0049e1a0(Unit* u);
-void __stdcall FUN_0043b7c0(Unit* u);
+void __stdcall RunOrders(Unit* u);
 void __stdcall FUN_0043bad0(Unit* u);
 void __stdcall UpdateUnitHeight(Unit* u);
 void __stdcall KillUnit(Unit* u, int n);
@@ -240,7 +240,7 @@ void __stdcall UpdateAllUnits(void)
                                     int n = u->type->f200 * 8;
                                     FUN_0041bd10(u, u, (float)(n / 30));
                                 }
-                                FUN_0043b7c0(u);
+                                RunOrders(u);
                                 FUN_0043bad0(u);
                                 if (u->def != 0) {
                                     u->def->UpdateMotion(u);

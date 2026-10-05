@@ -6,7 +6,7 @@
 //
 // Matched by writing case 2's order-steal chain the way the matched ground
 // twin 0x406300 writes it: every branch issues its own
-// `FUN_0043acb0(unit, new Class_0043a1f0(...)); order->flags = 0; return 3;`
+// `AppendOrder(unit, new Class_0043a1f0(...)); order->flags = 0; return 3;`
 // and MSVC tail-merges them by itself (the two order-steal branches share one
 // `new` site, and the null paths of both `new` sites share one block at
 // 0x410120). The earlier version spelled that sharing out with
@@ -65,7 +65,7 @@ Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 int __stdcall FUN_004b6c30(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
@@ -75,7 +75,7 @@ static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef
 static inline Unit* OrderTarget(Order*order) { return order->target; }
 
 // FUNCTION: 0x40fbe0
-int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
+int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
 {
     if (order->target && !(flags&0x48)) {
         if (unit->terrain==g_game->water) {
@@ -144,7 +144,7 @@ int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
                 Class_00438760 kind=FUN_0043f0e0(8,unit,order->target,0);
                 if (kind.index) {
                     ((Class_004388d0*)order)->FUN_004388d0(0);
-                    FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target,0,0,0,0));
+                    AppendOrder(unit,new Class_0043a1f0(kind,order->target,0,0,0,0));
                     order->flags=0; return 3;
                 }
             }
@@ -166,13 +166,13 @@ int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
                     if (kind=="RECLAIMUNIT") kind=Class_00438760("VTOL_RECLAIMUNIT");
                     if (kind=="HELPBUILD") kind=Class_00438760("VTOL_HELPBUILD");
                     ((Class_004388d0*)order)->FUN_004388d0(0);
-                    FUN_0043acb0(unit,new Class_0043a1f0(kind,OrderTarget(order)->order->target,&order->target->order->pos,0,0,0));
+                    AppendOrder(unit,new Class_0043a1f0(kind,OrderTarget(order)->order->target,&order->target->order->pos,0,0,0));
                     order->flags=0; return 3;
                 }
                 if (building && order->target->order->target) {
                     ((Class_004388d0*)order)->FUN_004388d0(0);
                     kind=Class_00438760("VTOL_HelpBuild");
-                    FUN_0043acb0(unit,new Class_0043a1f0(kind,OrderTarget(order)->order->target,&order->target->order->pos,0,0,0));
+                    AppendOrder(unit,new Class_0043a1f0(kind,OrderTarget(order)->order->target,&order->target->order->pos,0,0,0));
                     order->flags=0; return 3;
                 }
             }

@@ -24,7 +24,7 @@ struct Game { char pad0[0x38a47]; int tick; };
 extern Game* g_game;
 void __stdcall NotifyUnitRefs(Unit*, int);
 int __stdcall FUN_004b6c30(int);
-void __stdcall FUN_00439eb0(Unit*, int);
+void __stdcall DeleteOrders(Unit*, int);
 int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
@@ -39,7 +39,7 @@ void __stdcall FUN_00406f80(Unit* attacker, Unit* unit, int unused)
     if (attacker && !attacker->category) attacker=0;
     if ((unit->def->flags2&0x1000) && unit->owner->active && unit->owner->control==2) {
         unit->owner->ai->nextAction=FUN_004b6c30(300)+g_game->tick+30;
-        FUN_00439eb0(unit,0);
+        DeleteOrders(unit,0);
     }
     if (attacker && unit->owner->active && (unit->owner->control==1 || unit->owner->control==2) &&
         (unit->def->flags&0x10010000) && unit->progress==0.0f && !unit->owner->allied[attacker->owner->index]) {

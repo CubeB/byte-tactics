@@ -112,7 +112,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 }
 
 // FUNCTION: 0x40f2a0
-int __stdcall FUN_0040f2a0(Unit* unit, Order* order, int flags)
+int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
 {
     if (order->field_4a)
         return 5;

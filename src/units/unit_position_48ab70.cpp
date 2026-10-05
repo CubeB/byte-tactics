@@ -112,12 +112,12 @@ struct Order_0048ab70 {
     unsigned char param2;              // +0x06
 };
 
-struct Beacon_0048ab70;                // what FUN_004384a0 wants
+struct Beacon_0048ab70;                // what AddBeCarriedOrder wants
 #pragma pack(pop)
 
 extern Game* g_game;
 
-void __stdcall FUN_004384a0(Beacon_0048ab70* beacon);
+void __stdcall AddBeCarriedOrder(Beacon_0048ab70* beacon);
 void __stdcall FUN_0048c9b0(Unit* u);
 
 // FUNCTION: 0x48ab70
@@ -162,7 +162,7 @@ void __stdcall ApplyAttachUnit(Order_0048ab70* order)
                             unsigned char k = u->player->f73;
                             if (k == 1 || k == 2) {
                                 if (t && !(t->type->f241 & 0x200))
-                                    FUN_004384a0((Beacon_0048ab70*)u);
+                                    AddBeCarriedOrder((Beacon_0048ab70*)u);
                             }
                         }
                         FUN_0048c9b0(u);

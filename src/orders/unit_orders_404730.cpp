@@ -52,8 +52,8 @@ struct Game { char pad0[0x38a47]; int tick; };
 extern Game* g_game;
 void __stdcall FUN_0047f780(Unit*, int, const char*);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
-void __stdcall FUN_00438590(Unit*, Order*, short);
-void __stdcall FUN_004385f0(Unit*, Order*);
+void __stdcall StartBuildingScript(Unit*, Order*, short);
+void __stdcall StopBuildingScript(Unit*, Order*);
 int __stdcall FUN_00438700(Unit*, Order*, int);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitReverseNanoParticles(Vec3*, Vec3*, int);
@@ -68,7 +68,7 @@ static inline int SquaredDistance(int dx, int dz)
     return (int)((x * x) >> 32) + (int)((z * z) >> 32);
 }
 // FUNCTION: 0x404730
-int __stdcall FUN_00404730(Unit* unit, Order* order, unsigned int flags)
+int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
 {
     Unit* target = order->target.Get();
     if (!target || (flags & 0x10008)) return 5;
@@ -98,7 +98,7 @@ int __stdcall FUN_00404730(Unit* unit, Order* order, unsigned int flags)
         return 2;
     case 2:
         if (flags & 0x40) return 9;
-        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &target->pos) - unit->angle);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &target->pos) - unit->angle);
         return 1;
     case 3:
         return FUN_00438700(unit, order, 0x10008);
@@ -133,7 +133,7 @@ int __stdcall FUN_00404730(Unit* unit, Order* order, unsigned int flags)
             return 2;
         }
         ((Class_00439e80*)order)->FUN_00439e80(15);
-        FUN_004385f0(unit, order);
+        StopBuildingScript(unit, order);
         return 0;
     }
     }

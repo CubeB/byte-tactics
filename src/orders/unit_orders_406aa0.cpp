@@ -14,7 +14,7 @@ extern Game* g_game;
 void __stdcall EmitTeleportParticles(Vec*,Vec*,int,int);
 void __stdcall SetUnitPosition(Unit*,Vec,int);
 // FUNCTION: 0x406aa0
-int __stdcall FUN_00406aa0(Unit* unit,Order* order,int unused)
+int __stdcall TeleportOrder(Unit* unit,Order* order,int unused)
 {
     Vec low = Add(unit->pos, unit->def->low);
     Vec high = Add(unit->pos, unit->def->high);

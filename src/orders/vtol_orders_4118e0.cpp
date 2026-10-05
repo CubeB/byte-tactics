@@ -2,7 +2,7 @@
 // "Landing" order handler of air units landing on a pad unit (the order's
 // target). State 0 prepares the order (FUN_0040f200 is defined here because
 // /Ob2 inlined it) and picks a random angle, state 1 looks for a free pad
-// (FUN_00411840 is defined here because /Ob2 inlined it) and circles the pad
+// (FindLandingPad is defined here because /Ob2 inlined it) and circles the pad
 // unit until one is free, states 2 to 5 approach the pad and land, and state
 // 6 hands the unit (or its cargo) to the pad and starts a "SELFREPAIR" order
 // when the pad repairs and the unit is damaged.
@@ -108,7 +108,7 @@ int __cdecl FUN_004b7123(short, int);
 int __stdcall FUN_0047e570(Unit* unit, int id);
 void __stdcall FUN_0047f780(Unit*, int, const char*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, int p3, int p4);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 
 static inline Vec3 Offset(short angle, int distance)
 {
@@ -136,7 +136,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 }
 
 // 0x411840, matched in 0x411840.cpp; inlined into the cases below.
-int __stdcall FUN_00411840(Unit* unit, int pad)
+int __stdcall FindLandingPad(Unit* unit, int pad)
 {
     if (pad != -1 && FUN_0047e570(unit, pad)) {
         return pad;
@@ -156,7 +156,7 @@ int __stdcall FUN_00411840(Unit* unit, int pad)
 }
 
 // FUNCTION: 0x4118e0
-int __stdcall FUN_004118e0(Unit* unit, Order* order, int flags)
+int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
 {
     int radius = unit->field_10->field_dc;
     Unit* host = order->target.owner;
@@ -176,7 +176,7 @@ int __stdcall FUN_004118e0(Unit* unit, Order* order, int flags)
         }
         break;
     case 1: {
-        if (FUN_00411840(order->target.owner, FUN_00411840(host, -1)) != -1) {
+        if (FindLandingPad(order->target.owner, FindLandingPad(host, -1)) != -1) {
             order->state = 2;
             return 2;
         }
@@ -197,7 +197,7 @@ int __stdcall FUN_004118e0(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 3: {
-        int pad = FUN_00411840(host, -1);
+        int pad = FindLandingPad(host, -1);
         order->angle = pad;
         if (pad == -1) {
             FUN_0047f780(unit, 7, "Landing failed");
@@ -214,7 +214,7 @@ int __stdcall FUN_004118e0(Unit* unit, Order* order, int flags)
     case 5: {
         if (flags & 0x20)
             return 1;
-        int pad = FUN_00411840(host, order->angle);
+        int pad = FindLandingPad(host, order->angle);
         order->angle = pad;
         if (pad == -1) {
             FUN_0047f780(unit, 7, "Landing aborted: all pads are occupied");
@@ -252,7 +252,7 @@ int __stdcall FUN_004118e0(Unit* unit, Order* order, int flags)
             && (order->target.owner->def->flags & 0x40)
             && order->target.owner->buildLeft == 0.0f) {
             ((Class_004388d0*)order)->FUN_004388d0(0);
-            FUN_0043acb0(unit, new Class_0043a1f0("SELFREPAIR", order->target.owner, 0, 0, 0, 0));
+            AppendOrder(unit, new Class_0043a1f0("SELFREPAIR", order->target.owner, 0, 0, 0, 0));
         }
         return 5;
     }

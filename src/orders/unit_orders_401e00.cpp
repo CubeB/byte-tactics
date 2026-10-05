@@ -68,10 +68,10 @@ extern Game* g_game;
 int __stdcall FUN_004b6c30(int range);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
                                        Unit* target, int flags);
-void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
+void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
 
 // FUNCTION: 0x401e00
-int __stdcall FUN_00401e00(Unit* unit, Order_00401e00* order, int unused)
+int __stdcall AttackUTypeOrder(Unit* unit, Order_00401e00* order, int unused)
 {
     unsigned int s = 0;
     s = order->state;
@@ -98,7 +98,7 @@ int __stdcall FUN_00401e00(Unit* unit, Order_00401e00* order, int unused)
         }
         if (best) {
             Class_00438760 kind = FUN_0043f0e0(3, unit, best, 0);
-            FUN_0043acb0(unit, new Class_0043a1f0(kind, best, 0, 0, 0, 0));
+            AppendOrder(unit, new Class_0043a1f0(kind, best, 0, 0, 0, 0));
             return 0;
         }
         return 5;

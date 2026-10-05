@@ -37,7 +37,7 @@ public:
 void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
 
 // FUNCTION: 0x415250
-int __stdcall FUN_00415250(Unit* unit, Order* order, int unused)
+int __stdcall VtolGetRepairedOrder(Unit* unit, Order* order, int unused)
 {
     if (order->target == 0) {
         FUN_0047f780(unit, 7, "Repair aborted.");

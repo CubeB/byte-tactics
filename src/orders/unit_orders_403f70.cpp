@@ -58,9 +58,9 @@ void __stdcall FUN_0041c110(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
-void __stdcall FUN_0043adc0(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
+void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
-void __stdcall FUN_00438590(Unit*, Order*, short);
+void __stdcall StartBuildingScript(Unit*, Order*, short);
 int __stdcall FUN_00438700(Unit*, Order*, int);
 int __stdcall FUN_0041ba60(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
@@ -69,7 +69,7 @@ class Class_00438a00 { public: void FUN_00438a00(Vec3*, int, int); };
 // The original radius expression adds the second dimension twice rather than
 // squaring it: fld x; fld y; fld st(1); fmul st(2); fadd st(1); fadd st(1).
 // FUNCTION: 0x403f70
-int __stdcall FUN_00403f70(Unit* unit, Order* order, int flags)
+int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 2) { FUN_0041c110(unit); return 5; }
     Unit* target = order->target;
@@ -98,7 +98,7 @@ int __stdcall FUN_00403f70(Unit* unit, Order* order, int flags)
         }
         if (target->progress == 0.0f) return 5;
         ((Class_004898b0*)unit)->ClaimWeapons(3);
-        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
         FUN_0041c110(unit);
         return 1;
     case 2:

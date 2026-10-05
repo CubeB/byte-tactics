@@ -17,7 +17,7 @@ void __stdcall FUN_0047f780(Unit*, int, const char*);
 int __stdcall FUN_00438730(Unit*, Order*, int);
 // Keep cases 1 and 3 separate: MSVC merges their identical bodies.
 // FUNCTION: 0x406780
-int __stdcall FUN_00406780(Unit* unit, Order* order, unsigned char flags)
+int __stdcall GroundPickupOrder(Unit* unit, Order* order, unsigned char flags)
 {
     Unit* target = order->target;
     if (target && !(flags & 8)) {

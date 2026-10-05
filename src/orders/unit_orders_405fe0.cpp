@@ -9,7 +9,7 @@ Order* __stdcall FUN_0043b700(Unit*);
 int __stdcall FUN_0043b1f0(Unit*,Order*,int);
 int __stdcall FUN_004b6c30(int);
 // FUNCTION: 0x405fe0
-int __stdcall FUN_00405fe0(Unit* unit,Order* order,int flags)
+int __stdcall StandbyOrder(Unit* unit,Order* order,int flags)
 {
     unsigned state=0; state=order->state;
     switch(state) {

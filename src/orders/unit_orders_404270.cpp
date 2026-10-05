@@ -73,9 +73,9 @@ void __stdcall FUN_0041c110(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
 Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
-void __stdcall FUN_0043adc0(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
+void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
-void __stdcall FUN_00438590(Unit*, Order*, short);
+void __stdcall StartBuildingScript(Unit*, Order*, short);
 int __stdcall FUN_00438700(Unit*, Order*, int);
 int __stdcall FUN_0041ba60(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
@@ -94,7 +94,7 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
     v->z = (origin.y + c.y * 2) << 19;
 }
 // 0x403a20, matched in 0x403a20.cpp
-int __stdcall FUN_00403a20(Unit* unit, Order* order, int flags)
+int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 8) {
         FUN_0047f780(unit, 7, "Construction terminated");
@@ -153,8 +153,8 @@ int __stdcall FUN_00403a20(Unit* unit, Order* order, int flags)
         }
         FUN_0047f780(unit, 9, "Starting construction");
         FUN_0041c110(unit);
-        FUN_0043adc0("getbuilt", 1, order->target, unit, 0, 0, 0);
-        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
+        AddOrder("getbuilt", 1, order->target, unit, 0, 0, 0);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
         return 1;
     }
     case 2:
@@ -186,7 +186,7 @@ int __stdcall FUN_00403a20(Unit* unit, Order* order, int flags)
 }
 
 // 0x403f70, matched in 0x403f70.cpp
-int __stdcall FUN_00403f70(Unit* unit, Order* order, int flags)
+int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 2) { FUN_0041c110(unit); return 5; }
     Unit* target = order->target;
@@ -215,7 +215,7 @@ int __stdcall FUN_00403f70(Unit* unit, Order* order, int flags)
         }
         if (target->progress == 0.0f) return 5;
         ((Class_004898b0*)unit)->ClaimWeapons(3);
-        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
         FUN_0041c110(unit);
         return 1;
     case 2:
@@ -290,14 +290,14 @@ struct Game { char pad0[0x38a47]; int tick; };
 extern Game* g_game;
 void __stdcall FUN_0047f780(Unit*, int, const char*);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
-void __stdcall FUN_00438590(Unit*, Order*, short);
-void __stdcall FUN_004385f0(Unit*, Order*);
+void __stdcall StartBuildingScript(Unit*, Order*, short);
+void __stdcall StopBuildingScript(Unit*, Order*);
 int __stdcall FUN_00438700(Unit*, Order*, int);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitReverseNanoParticles(Vec3*, Vec3*, int);
 void __stdcall GiveUnitToPlayer(Unit*, void*, int);
 // FUNCTION: 0x404270
-int __stdcall FUN_00404270(Unit* unit, Order* order, unsigned int flags)
+int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
 {
     Unit* target = order->target.Get();
     if (!target || (flags & 0x10008)) {
@@ -340,7 +340,7 @@ int __stdcall FUN_00404270(Unit* unit, Order* order, unsigned int flags)
         unsigned int range = 0;
         range = unit->def->buildRange;
         if (gap > (int)range) return 0;
-        FUN_00438590(unit, order, GetHeadingBetween(position, &order->target.Get()->pos) - unit->angle);
+        StartBuildingScript(unit, order, GetHeadingBetween(position, &order->target.Get()->pos) - unit->angle);
         return 1;
     }
     case 2:
@@ -350,7 +350,7 @@ int __stdcall FUN_00404270(Unit* unit, Order* order, unsigned int flags)
         return 1;
     case 4: {
         if (target->active && (target->flags & 0xc)) {
-            FUN_004385f0(unit, order);
+            StopBuildingScript(unit, order);
             ((Class_00439e80*)order)->FUN_00439e80(30);
             return 0;
         }

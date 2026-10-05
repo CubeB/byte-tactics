@@ -17,7 +17,7 @@ struct Order { char pad0[5]; unsigned char state; unsigned int flags; char pada[
 void __stdcall FUN_0047f780(Unit*, int, const char*);
 int __stdcall FUN_00438730(Unit*, Order*, int);
 // FUNCTION: 0x406900
-int __stdcall FUN_00406900(Unit* unit, Order* order, int flags)
+int __stdcall GroundUnloadOrder(Unit* unit, Order* order, int flags)
 {
     if (flags&8) {
         FUN_0047f780(unit,7,"Unloading process is proceeding non-optimally");

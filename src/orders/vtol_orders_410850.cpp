@@ -110,7 +110,7 @@ extern Game* g_game;
 class Class_0044e730 { public: void FUN_0044e730(int); };
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 int __stdcall FUN_004b6c30(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
@@ -151,7 +151,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
         if (!pads.empty()) {
             ((Class_004388d0*)order)->FUN_004388d0(0);
             Unit* pad=pads[FUN_004b6c30(pads.size())];
-            FUN_0043acb0(unit,new Class_0043a1f0("VTOL_LANDING",pad,0,0,0,0));
+            AppendOrder(unit,new Class_0043a1f0("VTOL_LANDING",pad,0,0,0,0));
             order->flags=0;
             return 0;
         }
@@ -163,7 +163,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     if (!units.empty()) {
         ((Class_004388d0*)order)->FUN_004388d0(0);
         Class_00438760 kind=FUN_0043f0e0(7,unit,units[0],0);
-        FUN_0043acb0(unit,new Class_0043a1f0(kind,units[0],0,0,0,0));
+        AppendOrder(unit,new Class_0043a1f0(kind,units[0],0,0,0,0));
         order->flags=0;
         return 3;
     }
@@ -177,7 +177,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     return 2;
 }
 // FUNCTION: 0x410850
-int __stdcall FUN_00410850(Unit* unit, Order* order, int flags)
+int __stdcall VtolSeekGuardOrder(Unit* unit, Order* order, int flags)
 {
     if (flags&0x40) return 5;
     if (unit->terrain==g_game->water) {

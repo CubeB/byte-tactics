@@ -15,7 +15,7 @@ struct Order {
 #pragma pack(pop)
 
 // FUNCTION: 0x4030d0
-int __stdcall FUN_004030d0(Unit_004030d0* unit, Order* order, int unused)
+int __stdcall StandingMoveOrder(Unit_004030d0* unit, Order* order, int unused)
 {
     unit->mode2 = order->mode;
     return 5;

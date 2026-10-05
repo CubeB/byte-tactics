@@ -6,7 +6,7 @@ public:
 };
 
 // FUNCTION: 0x403160
-int __stdcall FUN_00403160(int param_1, void* param_2, int param_3)
+int __stdcall QMoveQPatrolOrder(int param_1, void* param_2, int param_3)
 {
     ((Class_00439e80*)param_2)->FUN_00439e80(0x3c);
     return 6;

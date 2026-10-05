@@ -11,7 +11,7 @@ struct Obj {
 #pragma pack(pop)
 
 // FUNCTION: 0x401fd0
-int __stdcall FUN_00401fd0(int unused1, Obj* obj, int unused3)
+int __stdcall WaitForAttackOrder(int unused1, Obj* obj, int unused3)
 {
     if (obj->flag_16 == 0) {
         return 5;

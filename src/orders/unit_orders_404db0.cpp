@@ -159,7 +159,7 @@ void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
 int __stdcall FUN_004b6c30(int range);
 int __stdcall GetGroundHeight(Vec3* pos);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
-void __stdcall FUN_00438590(Unit* unit, Order* order, short turn);
+void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
 unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
@@ -172,7 +172,7 @@ void __stdcall FUN_004246b0(void* target, int flag);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall FUN_0041c110(Unit* unit);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit, Unit* target, int flags);
-void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
+void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
 
 // Order handler "Resurrecting": raises the unit a wreck (feature) came from.
 // The feature pointer starts at entry 0xffff (the "no feature" index), which
@@ -181,7 +181,7 @@ void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
 // MSVC then keeps x in bx with a 16-bit move and stores both fields late;
 // a plain short or int local gives `mov ebx, edx`.
 // FUNCTION: 0x404db0
-int __stdcall FUN_00404db0(Unit* unit, Order* order, int flags)
+int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
 {
     Point16 cell;
     Point16 size;
@@ -211,7 +211,7 @@ int __stdcall FUN_00404db0(Unit* unit, Order* order, int flags)
         pos.x = (size.x + cell.x * 2) << 19;
         pos.z = (size.z + cell.z * 2) << 19;
         pos.y = (FUN_004b6c30(f->height) + GetGroundHeight(&pos)) << 16;
-        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->rot.y);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->rot.y);
         return 1;
     }
     case 2:
@@ -288,7 +288,7 @@ int __stdcall FUN_00404db0(Unit* unit, Order* order, int flags)
         FUN_0047f780(unit, 8, "Resurrection complete");
         Class_00438760 kind = FUN_0043f0e0(8, unit, order->target.owner, 0);
         if (kind.index)
-            FUN_0043acb0(unit, new Class_0043a1f0(kind, order->target.owner, 0, 0, 0, 0));
+            AppendOrder(unit, new Class_0043a1f0(kind, order->target.owner, 0, 0, 0, 0));
         return 5;
     }
     default:

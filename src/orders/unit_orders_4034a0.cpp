@@ -59,7 +59,7 @@ int __stdcall FUN_004b6c30(int);
 int __cdecl FUN_004b70ef(int, int);
 int __cdecl FUN_004b7123(int, int);
 // FUNCTION: 0x4034a0
-int __stdcall FUN_004034a0(Unit* unit, Order* order, unsigned int flags)
+int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
 {
     int weapon = order->weapon;
     if ((flags & 0x800) || !order->target || (flags & 0x10008)) return 5;

@@ -30,7 +30,7 @@ struct Order {
 #pragma pack(pop)
 
 // FUNCTION: 0x402160
-int __stdcall FUN_00402160(Unit_00402160* unit, Order* order, int flags)
+int __stdcall AttackNoMoveOrder(Unit_00402160* unit, Order* order, int flags)
 {
     if (order->field_16 == 0 || (flags & 0x10808) != 0)
         return 5;

@@ -24,7 +24,7 @@ struct Target_004385f0 {
 int __stdcall SendScriptCallNoArgs(Object_004385f0* obj, short index);
 
 // FUNCTION: 0x4385f0
-void __stdcall FUN_004385f0(Object_004385f0* obj, Target_004385f0* target)
+void __stdcall StopBuildingScript(Object_004385f0* obj, Target_004385f0* target)
 {
     if (target->flags & 0x400000) {
         int index = obj->names->FindScript("StopBuilding");

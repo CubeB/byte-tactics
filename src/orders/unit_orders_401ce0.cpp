@@ -9,7 +9,7 @@ class Class_00439e80 { public: void FUN_00439e80(int); };
 void __stdcall FUN_0040ad80(int,Vec*,int,int,std::vector<Unit*>*);
 int __stdcall FUN_004b6c30(int);
 // FUNCTION: 0x401ce0
-int __stdcall FUN_00401ce0(Unit* unit,Order* order,int flags)
+int __stdcall WaitOrder(Unit* unit,Order* order,int flags)
 {
     if(order->radius) {
         std::vector<Unit*> units;

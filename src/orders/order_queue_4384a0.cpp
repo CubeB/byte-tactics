@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // If the owner has a count at +0x86, drop every object without flag 4 from its
-// list at +0x5c (marking all but the head 0x10000 first, as FUN_00439eb0 does),
+// list at +0x5c (marking all but the head 0x10000 first, as DeleteOrders does),
 // then build a "BECARRIED" object and insert it at the head of the list its
 // own flag 0x40000 selects.
 
@@ -55,7 +55,7 @@ static inline void InsertBefore(Parent_004384a0* p, Class_0043a1f0* child, Class
 }
 
 // FUNCTION: 0x4384a0
-void __stdcall FUN_004384a0(Parent_004384a0* p)
+void __stdcall AddBeCarriedOrder(Parent_004384a0* p)
 {
     if (p->field_86) {
         Class_0043a1f0* first = p->first;

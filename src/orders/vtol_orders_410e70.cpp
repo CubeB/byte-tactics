@@ -82,7 +82,7 @@ int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 void __stdcall FUN_0043a020(Unit*, Order*);
 Unit* __stdcall FUN_0043b700(Unit*);
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
@@ -125,7 +125,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 
 static inline void Dummy(void) {}
 // FUNCTION: 0x410e70
-int __stdcall FUN_00410e70(Unit* unit, Order* order, int flags)
+int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
 {
     unsigned int state = 0;
     state = order->state;
@@ -145,7 +145,7 @@ int __stdcall FUN_00410e70(Unit* unit, Order* order, int flags)
             if (!v.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 Unit* target = v[FUN_004b6c30(v.size())];
-                FUN_0043acb0(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
+                AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
                 order->flags = 0;
                 return 0;
             }

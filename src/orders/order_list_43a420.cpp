@@ -12,7 +12,7 @@
 // fallback scan put the compared counter in ECX and lost the `mov dl, cl`
 // that copies the helper's result into place; as a helper with `int idx`
 // declared before `int k` the scan is byte-identical. The real resolver
-// FUN_0043a360 is defined above and inlined, as in the original file.
+// ResolveUnitTypeKey is defined above and inlined, as in the original file.
 //
 // The prologue (Claude Opus 5.5, #5496; 96.6% to MATCH): the original stores
 // the base vtable 0x4fd2cc between the two `push edi` arguments of the link
@@ -117,7 +117,7 @@ public:
     int FUN_004b48f0(const char* key);
 };
 
-int __stdcall FUN_0043a940(int param_1, char* param_2);
+int __stdcall OrderTypeNameLess(int param_1, char* param_2);
 Entry_0043a420* __stdcall FUN_0043c6b0(Entry_0043a420* first, Entry_0043a420* last,
                                        char* const& value, int(__stdcall* pred)(int, char*),
                                        int* unused);
@@ -212,7 +212,7 @@ public:
 
 // The real resolver at 0x43a360 (matched in its own file), defined here without
 // its annotation as in the original file, which /Ob2 inlines into the constructor.
-short __stdcall FUN_0043a360(Class_004b48f0* file, unsigned short id)
+short __stdcall ResolveUnitTypeKey(Class_004b48f0* file, unsigned short id)
 {
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);
@@ -233,7 +233,7 @@ short __stdcall FUN_0043a360(Class_004b48f0* file, unsigned short id)
 
 static unsigned char KindByName_0043a420(char* s)
 {
-    Entry_0043a420* e = FUN_0043c6b0(DAT_00512344, DAT_00512348, s, FUN_0043a940, 0);
+    Entry_0043a420* e = FUN_0043c6b0(DAT_00512344, DAT_00512348, s, OrderTypeNameLess, 0);
     if (e == DAT_00512348 || _strcmpi(e->name, s) != 0)
         return 0;
     return (unsigned char)(e - DAT_00512344);
@@ -314,7 +314,7 @@ Class_0043a1f0::Class_0043a1f0(Unit* punit, Class_004b4ba0* file, char* name)
     char* sname = DAT_00512344[desc.kind].name;
     if (strcmp(sname, "MobileBuild") == 0 || strcmp(sname, "VTOL_MobileBuild") == 0 ||
         strcmp(sname, "BuildingBuild") == 0) {
-        field_36 = (unsigned short)FUN_0043a360((Class_004b48f0*)file, (unsigned short)field_36);
+        field_36 = (unsigned short)ResolveUnitTypeKey((Class_004b48f0*)file, (unsigned short)field_36);
     }
 
     char buf3[0x20];

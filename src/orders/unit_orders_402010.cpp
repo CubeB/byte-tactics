@@ -9,7 +9,7 @@ void __stdcall FUN_0047f780(Unit*,int,void*);
 void __stdcall DamageUnit(Unit*,Unit*,int,int,int);
 int __stdcall FUN_004b6c30(int);
 // FUNCTION: 0x402010
-int __stdcall FUN_00402010(Unit* unit,Order* order,int flags)
+int __stdcall SelfDestructOrder(Unit* unit,Order* order,int flags)
 {
     if(!(order->count&0xf0000000)) order->count=unit->def->countdown|0xf0000000;
     if(!order->done && unit->def->countdown>0) {

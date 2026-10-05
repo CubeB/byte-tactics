@@ -153,7 +153,7 @@ static inline void AddMarked(Owner_0043adc0* owner, Class_0043a1f0* node)
 }
 
 // FUNCTION: 0x43adc0
-void __stdcall FUN_0043adc0(int kind, int remove, Owner_0043adc0* owner, void* id,
+void __stdcall AddOrder(int kind, int remove, Owner_0043adc0* owner, void* id,
                             Vec3_0043adc0* pos, int param_6, int param_7)
 {
     Class_0043a1f0* obj = new Class_0043a1f0(kind, id, pos, param_6, param_7, 0);

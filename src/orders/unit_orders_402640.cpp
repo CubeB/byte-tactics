@@ -150,7 +150,7 @@ Vec3 __stdcall GetPiecePosition(Unit* unit, int piece);
 int __stdcall FUN_0047db70(UnitType* type, short a, Point16 cell, int b);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec3 pos, int a, int b, int c);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* builder, char piece, char p4);
-void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit* owner, Unit* id, int flags, int param_6, int param_7);
+void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, int flags, int param_6, int param_7);
 int __stdcall FUN_0041bd10(Unit* builder, Unit* unit, float amount);
 int __stdcall FUN_0041ba60(Unit* unit, Unit* target, float amount);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
@@ -160,7 +160,7 @@ void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 // `unit`, spending its worker time and drawing nano particles from its nano
 // piece to the unit's bounding box.
 // FUNCTION: 0x402430
-int __stdcall FUN_00402430(Unit* unit, Order* order, int unused)
+int __stdcall SelfRepairOrder(Unit* unit, Order* order, int unused)
 {
     if (order->target.owner == 0) {
         FUN_0047f780(unit, 7, "Repair aborted.");
@@ -221,7 +221,7 @@ static inline Point16 GridCell(Vec3 pos, Point16 size)
 // `refund` on the FP stack in that path (fld; fadd st, st(1); fstp; fstp st(0))
 // instead of adding it straight to the field.
 // FUNCTION: 0x402640
-int __stdcall FUN_00402640(Unit* unit, Order* order, int flags)
+int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 2) {
         if (order->target.owner != 0) {
@@ -290,7 +290,7 @@ int __stdcall FUN_00402640(Unit* unit, Order* order, int flags)
         AttachUnitToPiece(order->target.owner, unit, piece, 1);
         order->target.owner->bits.bits18 = unit->bits.bits18;
         order->target.owner->bits.bits20 = unit->bits.bits20;
-        FUN_0043adc0("getbuilt", 1, order->target.owner, unit, 0, 0, 0);
+        AddOrder("getbuilt", 1, order->target.owner, unit, 0, 0, 0);
         ((Class_0048b090*)unit)->SetStateBits(8, 1);
         FUN_0041c150(unit);
         return 1;

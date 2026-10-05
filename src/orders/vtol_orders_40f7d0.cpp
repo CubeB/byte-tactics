@@ -64,7 +64,7 @@ int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 Unit* __stdcall FUN_0043b700(Unit*);
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 
 static inline Vec3 Offset(short angle, int distance)
 {
@@ -76,7 +76,7 @@ static inline Vec3 Offset(short angle, int distance)
 }
 
 // FUNCTION: 0x40f7d0
-int __stdcall FUN_0040f7d0(Unit* unit, Order* order, int flags)
+int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
 {
     unsigned int state = 0;
     state = order->state;
@@ -117,7 +117,7 @@ int __stdcall FUN_0040f7d0(Unit* unit, Order* order, int flags)
                 order->state = 1;
                 return 2;
             }
-            FUN_0043acb0(unit, new Class_0043a1f0(Class_00438760("VTOL_LANDIFCAN"), 0, &order->pos, 0, 0, 0));
+            AppendOrder(unit, new Class_0043a1f0(Class_00438760("VTOL_LANDIFCAN"), 0, &order->pos, 0, 0, 0));
             return 5;
         }
         order->flags |= 0x10000;

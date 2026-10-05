@@ -17,7 +17,7 @@ int __cdecl FUN_004b70ef(short,int);
 int __cdecl FUN_004b7123(short,int);
 static inline Vec3 Offset(short angle,int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
 // FUNCTION: 0x413bc0
-int __stdcall FUN_00413bc0(Unit* unit,Order* order,int flags)
+int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
 {
     int range=unit->weapon->range;
     if (order->target && !(flags&0x10008)) {

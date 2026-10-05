@@ -129,7 +129,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 // keeps &order->pos in ebx for state 1. A plain `order->pos = ...` keeps the
 // target in ebx instead.
 // FUNCTION: 0x414e70
-int __stdcall FUN_00414e70(Unit* unit, Order* order, int flags)
+int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
 {
     if (!order->target) {
         FUN_0047f780(unit, 7, "Repairs unsuccessful.");

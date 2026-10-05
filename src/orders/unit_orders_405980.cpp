@@ -49,10 +49,10 @@ int __stdcall FUN_004b6c30(int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 int __stdcall FUN_0043b400(Unit*, Unit*, int);
 int __stdcall FUN_0047ea40(Vec3*, int, Vec3**, float*, Vec3**, float*);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 
 // FUNCTION: 0x405980
-int __stdcall FUN_00405980(Unit* unit, Order* order, int flags)
+int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
 {
     for (;;) {
         switch (order->state) {
@@ -92,26 +92,26 @@ int __stdcall FUN_00405980(Unit* unit, Order* order, int flags)
                 if (FUN_0047ea40(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {
                     if (metal && unit->owner->metal < unit->owner->metalCapacity * 0.2) {
                         ((Class_004388d0*)order)->FUN_004388d0(0);
-                        FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
+                        AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
                         ((Class_004388d0*)order)->FUN_004388d0(0);
                         order->flags = 0;
                         return 3;
                     }
                     if (energy && unit->owner->energy < unit->owner->energyCapacity * 0.2) {
                         ((Class_004388d0*)order)->FUN_004388d0(0);
-                        FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
+                        AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }
                     if (metal && unit->owner->metal + metalAmount <= unit->owner->metalCapacity) {
                         ((Class_004388d0*)order)->FUN_004388d0(0);
-                        FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
+                        AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }
                     if (energy && unit->owner->energy + energyAmount <= unit->owner->energyCapacity) {
                         ((Class_004388d0*)order)->FUN_004388d0(0);
-                        FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
+                        AppendOrder(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }

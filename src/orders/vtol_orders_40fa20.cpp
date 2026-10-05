@@ -84,7 +84,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 }
 
 // FUNCTION: 0x40fa20
-int __stdcall FUN_0040fa20(Unit* unit, Order* order, int flags)
+int __stdcall VtolMoveOrder(Unit* unit, Order* order, int flags)
 {
     unsigned int state = 0;
     state = order->state;

@@ -34,7 +34,7 @@ void __stdcall ClearWeaponTarget(Unit_00402d10* unit, int weapon);
 // Order handler: waits for the order's time (at most 1800 ticks).
 // A char loop counter gives the separate countdown register (ebx = 3).
 // FUNCTION: 0x402d10
-int __stdcall FUN_00402d10(Unit_00402d10* unit, Order* order, int unused)
+int __stdcall ParalyzeOrder(Unit_00402d10* unit, Order* order, int unused)
 {
     if (order->ticks == 0) {
         ((Class_0048b090*)unit)->SetStateBits(0x10, 0);

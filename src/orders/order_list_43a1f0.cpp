@@ -1,7 +1,7 @@
 // Decompiled by Opus, class hierarchy fixed by Claude Opus 5.5. Names are provisional.
 // Destructor (callers do `if (p) { p->~X(); operator delete(p); }`): notifies
 // the owner through a callback table, stops the unit's build animation (the
-// same code as FUN_004385f0), releases the attached object at +0x52 and
+// same code as StopBuildingScript), releases the attached object at +0x52 and
 // unlinks the list node at +0x12 (0x489650 is the link's destructor).
 
 class Class_004b07c0 {

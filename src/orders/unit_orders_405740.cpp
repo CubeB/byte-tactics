@@ -32,7 +32,7 @@ int __stdcall FUN_0041bd10(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
 // FUNCTION: 0x405740
-int __stdcall FUN_00405740(Unit* unit, Order* order, int unused)
+int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
 {
     Unit* target = order->target.Get();
     if (!target) {

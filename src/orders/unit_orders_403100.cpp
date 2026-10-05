@@ -26,7 +26,7 @@ void __stdcall ClearWeaponTarget(Unit* unit, int weapon);
 
 // A char loop counter gives the separate countdown register (ebx = 3).
 // FUNCTION: 0x403100
-int __stdcall FUN_00403100(Unit* unit, Order* order, int unused)
+int __stdcall StandingFireOrder(Unit* unit, Order* order, int unused)
 {
     unit->mode = order->mode;
     if (order->mode == 0 || order->mode == 1) {

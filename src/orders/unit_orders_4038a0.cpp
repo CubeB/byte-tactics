@@ -13,7 +13,7 @@ void __stdcall SetWeaponTargetPos(Unit*,Vec*,int);
 int __stdcall FUN_0049adf0(Unit*,unsigned char);
 int __stdcall FUN_004b6c30(int);
 // FUNCTION: 0x4038a0
-int __stdcall FUN_004038a0(Unit* unit,Order* order,unsigned flags)
+int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
 {
     if(flags&0x800) return 5;
     unsigned state=0; state=order->state;

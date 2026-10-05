@@ -20,7 +20,7 @@ struct Owner_0043acb0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x43acb0
-void __stdcall FUN_0043acb0(Owner_0043acb0* owner, Node_0043acb0* node)
+void __stdcall AppendOrder(Owner_0043acb0* owner, Node_0043acb0* node)
 {
     unsigned int which = node->flags & 0x40000;
     Node_0043acb0* before = which ? owner->list_b : owner->list_a;

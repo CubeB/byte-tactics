@@ -47,7 +47,7 @@ struct Unit {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
+void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
 
 // FUNCTION: 0x489fa0
 void __stdcall ParalyzeUnit(Unit* unit, int ticks)
@@ -67,7 +67,7 @@ void __stdcall ParalyzeUnit(Unit* unit, int ticks)
                 effect->field_36 += ticks;
                 return;
             }
-            FUN_0043acb0(unit, new Class_0043a1f0(kind, 0, 0, ticks, 0, 0));
+            AppendOrder(unit, new Class_0043a1f0(kind, 0, 0, ticks, 0, 0));
         }
     }
 }

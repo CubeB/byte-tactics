@@ -66,7 +66,7 @@ static inline Point WorldToCell(Vec3 v, Point origin)
 }
 
 // FUNCTION: 0x411560
-int __stdcall FUN_00411560(Unit* unit, Order* order, int flags)
+int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
 {
     if (!unit->cargo)
         return 5;

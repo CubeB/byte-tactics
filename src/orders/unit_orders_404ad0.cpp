@@ -84,7 +84,7 @@ void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
 int __stdcall FUN_004b6c30(int range);
 int __stdcall GetGroundHeight(Vec3* pos);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
-void __stdcall FUN_00438590(Unit* unit, Order* order, short turn);
+void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitReverseNanoParticles(Box* from, Vec3* to, int count);
@@ -93,7 +93,7 @@ void __stdcall FUN_004237d0(Unit* unit, Vec3* pos);
 // Order handler "Reclaiming" for a feature (wreck, tree, rock) at the order
 // position.
 // FUNCTION: 0x404ad0
-int __stdcall FUN_00404ad0(Unit* unit, Order* order, int flags)
+int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
 {
     Point16 cell;
     Point16 size;
@@ -121,7 +121,7 @@ int __stdcall FUN_00404ad0(Unit* unit, Order* order, int flags)
         pos.x = (size.x + cell.x * 2) << 19;
         pos.z = (size.z + cell.z * 2) << 19;
         pos.y = (FUN_004b6c30(f->height) + GetGroundHeight(&pos)) << 16;
-        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->angle);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->angle);
         return 1;
     }
     case 2:

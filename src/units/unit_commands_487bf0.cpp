@@ -37,7 +37,7 @@
 //    uv run tools/headers.py 0x487bf0 --cpp is flat at 76.9% over all 1536
 //    sets. msvc5-rtm emits the same bytes, so none of this was a header or a
 //    compiler-version effect.
-//  - 'D': `processed = 1;` goes after the FUN_0043adc0 call, not before it.
+//  - 'D': `processed = 1;` goes after the AddOrder call, not before it.
 //    With the two fixes above in place that single reorder is the last byte: it
 //    moves the D arm's loop-back `jmp` from 0x487e49 to 0x487e50, past the
 //    `mov ebp,[esp+0x158]` that only the G arm needs, because the G arm
@@ -54,10 +54,10 @@
 // L+0x2c, wf L+0x30, pf L+0x34, O's second "%d" L+0x38, and out.g, out.a,
 // out.m, out.u, out.p at L+0x3c, 0x40, 0x44, 0x48 and 0x4c.
 // Class_00438760 is trivially copyable (no copy constructor declared). The
-// string kinds are implicit conversions (`FUN_0043adc0("WAIT", ...)`): MSVC 5
+// string kinds are implicit conversions (`AddOrder("WAIT", ...)`): MSVC 5
 // builds them straight in the argument slot (`push ecx; mov ecx,esp; push str;
 // call ctor`), so a named temporary is wrong. P and W pass `(int)(f * 30.0f)`
-// straight to FUN_0043adc0; there is no float local. W-a: `int count =
+// straight to AddOrder; there is no float local. W-a: `int count =
 // sscanf(...); int target = 0; if (count == 1) ...` leaves target in eax.
 // The frame order f1 f2 n pos move | selected | wf pf fire | G A M U P outs
 // (all dwords from frame 0x00 to 0x3c) is only reached with the locals grouped
@@ -92,7 +92,7 @@ public:
     Class_00438760() {}
 };
 
-void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit* owner,
+void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner,
                             int id, Vec3_00487bf0* pos, int param_6, int param_7);
 void __stdcall FUN_0043f0e0(Class_00438760* out, int mode, Unit* unit,
                             int target, Vec3_00487bf0* pos);
@@ -145,7 +145,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
             L.pos.y = 0;
             L.pos.z = (int)(L.f2 * 65536.0);
             FUN_0043f0e0(&out.m, 2, unit, 0, &L.pos);
-            FUN_0043adc0(out.m, 1, unit, 0, &L.pos, 0, 0);
+            AddOrder(out.m, 1, unit, 0, &L.pos, 0, 0);
             processed = 1;
             break;
         }
@@ -156,7 +156,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
             L.pos.y = 0;
             L.pos.z = (int)(65536.0 * L.f2);
             FUN_0043f0e0(&out.u, 5, unit, 0, &L.pos);
-            FUN_0043adc0(out.u, 1, unit, 0, &L.pos, 0, 0);
+            AddOrder(out.u, 1, unit, 0, &L.pos, 0, 0);
             processed = 1;
             break;
         }
@@ -166,7 +166,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
             int target = FindMissionUnit(buf, table, 0);
             if (target != 0) {
                 FUN_0043f0e0(&out.g, 7, unit, target, 0);
-                FUN_0043adc0(out.g, 1, unit, target, 0, 0, 0);
+                AddOrder(out.g, 1, unit, target, 0, 0, 0);
                 processed = 1;
             }
             break;
@@ -179,7 +179,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
             L.pos.y = 0;
             L.pos.z = (int)(L.f2 * 65536.0);
             FUN_0043f0e0(&out.p, 9, unit, 0, &L.pos);
-            FUN_0043adc0(out.p, 1, unit, 0, &L.pos, (int)(M2.pf * 30.0f), 0);
+            AddOrder(out.p, 1, unit, 0, &L.pos, (int)(M2.pf * 30.0f), 0);
             processed = 1;
             selected = 1;
             break;
@@ -191,14 +191,14 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
                 L.pos.y = 0;
                 L.pos.z = (int)(L.f2 * 65536.0);
                 FUN_0043f0e0(&out.a, 3, unit, 0, &L.pos);
-                FUN_0043adc0(out.a, 1, unit, 0, &L.pos, 0, 0);
+                AddOrder(out.a, 1, unit, 0, &L.pos, 0, 0);
                 selected = 1;
                 processed = 1;
             } else {
                 sscanf(buf + 1, " %[a-zA-Z0-9_.]", buf);
                 unsigned short id = FindUnitTypeId(buf);
                 if (id != 0) {
-                    FUN_0043adc0("ATTACKUTYPE", 1, unit, 0, 0, id, 0);
+                    AddOrder("ATTACKUTYPE", 1, unit, 0, 0, id, 0);
                     processed = 1;
                 }
             }
@@ -209,7 +209,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
             L.n = 1;
             if (buf[1] == 'w' || buf[1] == 'W') {
                 sscanf(buf + 2, " %d", &L.n);
-                FUN_0043adc0("BUILDWEAPON", 1, unit, 0, 0, 0, L.n);
+                AddOrder("BUILDWEAPON", 1, unit, 0, 0, 0, L.n);
             } else {
                 sscanf(buf + 1, " %[a-zA-Z0-9_.] %d %f %f", buf, &L.n, &L.f1, &L.f2);
                 L.pos.x = (int)(L.f1 * 65536.0);
@@ -218,10 +218,10 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
                 unsigned short id = FindUnitTypeId(buf);
                 if (id != 0) {
                     if (unit->field_0 != 0)
-                        FUN_0043adc0("MOBILEBUILD", 1, unit, 0,
+                        AddOrder("MOBILEBUILD", 1, unit, 0,
                                      &L.pos, id, L.n);
                     else
-                        FUN_0043adc0("BUILDINGBUILD", 1, unit, 0,
+                        AddOrder("BUILDINGBUILD", 1, unit, 0,
                                      0, id, L.n);
                     processed = 1;
                 }
@@ -237,26 +237,26 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
                     target = FindMissionUnit(buf, table, 0);
                 if (target == 0)
                     target = (int)unit;
-                FUN_0043adc0("WAITFORATTACK", 1, unit, target,
+                AddOrder("WAITFORATTACK", 1, unit, target,
                              0, 0, 0);
                 processed = 1;
             } else {
                 M2.wf = 0.0f;
                 L.move = 0;
                 sscanf(buf + 1, " %f %d", &M2.wf, &L.move);
-                FUN_0043adc0("WAIT", 1, unit, 0, 0, (int)(M2.wf * 30.0f), L.move);
+                AddOrder("WAIT", 1, unit, 0, 0, (int)(M2.wf * 30.0f), L.move);
                 processed = 1;
             }
             break;
         case 'D':
         case 'd':
-            FUN_0043adc0("SELFDESTRUCTFG", 1, unit, 0, 0, 1, 0);
+            AddOrder("SELFDESTRUCTFG", 1, unit, 0, 0, 1, 0);
             processed = 1;
             selected = 1;
             break;
         case 'S':
         case 's':
-            FUN_0043adc0("MAKESELECTABLE", 1, unit, 0, 0, 0, 0);
+            AddOrder("MAKESELECTABLE", 1, unit, 0, 0, 0, 0);
             processed = 1;
             selected = 1;
             break;
@@ -273,6 +273,6 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
     if (processed) {
         unit->flags &= ~0x20u;
         if (selected == 0)
-            FUN_0043adc0("MAKESELECTABLE", 1, unit, 0, 0, 0, 0);
+            AddOrder("MAKESELECTABLE", 1, unit, 0, 0, 0, 0);
     }
 }

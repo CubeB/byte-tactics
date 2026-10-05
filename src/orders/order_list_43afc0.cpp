@@ -2,7 +2,7 @@
 // With `remove` set, looks in the owner's list at +0x5c for an object of the
 // given kind (and id, and within 0x100000 of `pos` in x and z, when those are
 // given) and deletes it; otherwise, or when nothing matches, hands all the
-// arguments on to FUN_0043adc0.
+// arguments on to AddOrder.
 // The match test and the removal are inlined helpers; written in place,
 // MSVC assigns the parameters other registers and lays out the blocks
 // differently.
@@ -33,7 +33,7 @@ struct Owner_0043afc0 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0043adc0(unsigned char kind, int remove, Owner_0043afc0* owner, int id, int* pos, int param_6, int param_7);
+void __stdcall AddOrder(unsigned char kind, int remove, Owner_0043afc0* owner, int id, int* pos, int param_6, int param_7);
 
 // |d| <= 0x100000
 static inline int InRange(int d)
@@ -79,5 +79,5 @@ void __stdcall FUN_0043afc0(unsigned char kind, int remove, Owner_0043afc0* owne
             }
         }
     }
-    FUN_0043adc0(kind, remove, owner, id, pos, param_6, param_7);
+    AddOrder(kind, remove, owner, id, pos, param_6, param_7);
 }

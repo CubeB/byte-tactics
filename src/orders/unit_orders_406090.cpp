@@ -10,10 +10,10 @@ struct Unit { char pad[0x110]; union { unsigned flags; struct { unsigned mode:2;
 struct Order { char pad[5]; unsigned char state; unsigned flags; };
 #pragma pack(pop)
 Unit* __stdcall FUN_0043b700(Unit*);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 int __stdcall FUN_004b6c30(int);
 // FUNCTION: 0x406090
-int __stdcall FUN_00406090(Unit* unit, Order* order, int unused)
+int __stdcall StandbyMineOrder(Unit* unit, Order* order, int unused)
 {
     switch (order->state) {
     case 0:
@@ -26,7 +26,7 @@ int __stdcall FUN_00406090(Unit* unit, Order* order, int unused)
         {
             Unit* other = FUN_0043b700(unit);
             if (other && other->mode == 1 && (unit->flags & 0x300000)) {
-                FUN_0043acb0(unit, new Class_0043a1f0("SELFDESTRUCT", 0, 0, 1, 0, 0));
+                AppendOrder(unit, new Class_0043a1f0("SELFDESTRUCT", 0, 0, 1, 0, 0));
                 return 5;
             }
             order->flags |= 0x10000;

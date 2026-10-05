@@ -9,7 +9,7 @@ struct Target_004030a0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4030a0
-int __stdcall FUN_004030a0(char* unit, int unused1, int unused2)
+int __stdcall CloakOffOrder(char* unit, int unused1, int unused2)
 {
     Target_004030a0* p = *(Target_004030a0**)(unit + 0x92);
     if (p->flag) {

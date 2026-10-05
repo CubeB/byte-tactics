@@ -35,7 +35,7 @@ public:
 void __stdcall FUN_0047f780(UnitBody_004031d0* unit, int kind, char* text);
 
 // FUNCTION: 0x4031d0
-int __stdcall FUN_004031d0(UnitBody_004031d0* unit, Order* order, int flags)
+int __stdcall MoveGroundOrder(UnitBody_004031d0* unit, Order* order, int flags)
 {
     switch (order->state) {
     case 0:

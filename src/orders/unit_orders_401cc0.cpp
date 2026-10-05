@@ -12,7 +12,7 @@ struct Unit_00401cc0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x401cc0
-int __stdcall FUN_00401cc0(Unit_00401cc0* unit, Class_00438880* order, int unused)
+int __stdcall MakeSelectableOrder(Unit_00401cc0* unit, Class_00438880* order, int unused)
 {
     unit->flags = (unit->flags & ~0x8000) | 0x20;
     return 5;

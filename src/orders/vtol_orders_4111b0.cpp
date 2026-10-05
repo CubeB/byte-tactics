@@ -111,7 +111,7 @@ static inline int BelowSeaLevel(Order* order)
 }
 
 // FUNCTION: 0x4111b0
-int __stdcall FUN_004111b0(Unit* unit, Order* order, int flags)
+int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
 {
     Unit* target = order->target;
     if (target && !(flags & 0x10048)) {

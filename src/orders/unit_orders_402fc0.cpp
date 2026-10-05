@@ -25,7 +25,7 @@ struct Order {
 #pragma pack(pop)
 
 // FUNCTION: 0x402fc0
-int __stdcall FUN_00402fc0(Unit_00402fc0* unit, Order* order, int unused)
+int __stdcall BeCarriedOrder(Unit_00402fc0* unit, Order* order, int unused)
 {
     if (unit->field_86 == 0) {
         return 5;

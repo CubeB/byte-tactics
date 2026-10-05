@@ -75,7 +75,7 @@
 // (1116 bytes, it also merges the earlier ctor site); accessor + raw mixes 92.77.
 // The double-load fingerprint (mov ecx,[edx+0x5c]; mov edx,[edx+0x5c]) occurs exactly
 // twice in the whole exe: here and in the matched twin 0x40fbe0 at 0x4100ea. In the twin
-// the unit pointer lives in ESI (push esi before FUN_0043acb0) so ESI is busy, while here
+// the unit pointer lives in ESI (push esi before AppendOrder) so ESI is busy, while here
 // unit is in EDI and ESI is free; an isolated repro of this tail (scratch iso9) also picks
 // the free ESI and the cheap schedule, so the twin's extra live register is the best
 // remaining explanation, but no source spelling tried here moves it: the cheap schedule
@@ -110,7 +110,7 @@
 // `if (cmd)` the null fallback block stops sharing with the earlier ctor site's null
 // path at 0x406514 and is duplicated (1186 bytes, 66.2%), and without it the shared
 // null check disappears (1116 bytes, 80.2%). The two inline
-// `FUN_0043acb0(unit, new ...)` sites we have let the compiler tail merge all of
+// `AppendOrder(unit, new ...)` sites we have let the compiler tail merge all of
 // that correctly by itself, so the goto is the wrong tool here.
 // A TRAP worth recording: `(((Order*)((char*)order->target))+0x5c)->Target()` scores
 // 99.08% at exactly 1152 bytes, because the wrongly typed add needs a 4 byte
@@ -185,14 +185,14 @@ Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 int __stdcall FUN_004b6c30(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
 static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
 // FUNCTION: 0x406300
-int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
+int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
 {
     if (!order->target) return 5;
     if (unit->busy) return 7;
@@ -228,7 +228,7 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
             Class_00438760 kind=FUN_0043f0e0(8,unit,order->target,0);
             if(kind.index) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target,0,0,0,0));
+                AppendOrder(unit,new Class_0043a1f0(kind,order->target,0,0,0,0));
                 order->flags=0; return 3;
             }
         }
@@ -243,13 +243,13 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
             if (!building && actionable) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 kind=order->target->order->kind;
-                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
+                AppendOrder(unit,new Class_0043a1f0(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
                 order->flags=0; return 3;
             }
             if (building && other->target) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 kind=Class_00438760("HelpBuild");
-                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
+                AppendOrder(unit,new Class_0043a1f0(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
                 order->flags=0; return 3;
             }
         }

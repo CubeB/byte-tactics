@@ -120,7 +120,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 // position to the target's cell and moves over it, state 2 drains the target
 // while it stays in build range.
 // FUNCTION: 0x414a80
-int __stdcall FUN_00414a80(Unit* unit, Order* order, unsigned int flags)
+int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
 {
     Unit* target = order->target.Get();
     if (!target || (flags & 0x10008))

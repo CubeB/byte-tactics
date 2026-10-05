@@ -206,7 +206,7 @@ extern Game* g_game;
 
 void __stdcall FUN_00482910(void* pos, int a, int b, int c);
 unsigned char __stdcall FindSlotByDpid(int id);
-void __stdcall FUN_00439eb0(void* unit, int flag);
+void __stdcall DeleteOrders(void* unit, int flag);
 void __stdcall FUN_0047f8c0(void* unit);
 void __stdcall SetUnitSquad(void* unit, int flag);
 void __stdcall FUN_0049c880(void* unit);
@@ -247,7 +247,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
     unit->parent = parent;
     unit->killer = FindSlotByDpid(cmd->killerId);
     g_game->x391ed->FUN_004904c0(unit);
-    FUN_00439eb0(unit, 1);
+    DeleteOrders(unit, 1);
     FUN_0047f8c0(unit);
     SetUnitSquad(unit, -1);
     FUN_0049c880(unit);

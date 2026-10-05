@@ -54,7 +54,7 @@ void __stdcall FUN_0041c150(Unit* unit);
 // first use) for the fild order; `total` after the ternary gives the
 // lea ecx, [eax+5] temp.
 // FUNCTION: 0x402b70
-int __stdcall FUN_00402b70(Unit* unit, Order* order, int unused)
+int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
 {
     WeaponType* t = unit->weapons[order->weapon].type;
     switch (order->state) {

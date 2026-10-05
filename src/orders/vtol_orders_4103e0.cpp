@@ -63,7 +63,7 @@ Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
+void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 int __stdcall FUN_004b6c30(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
@@ -74,7 +74,7 @@ class Class_00410830 : public std::vector<Unit*> { public: Class_00410830(); };
 void __stdcall FUN_0040b530(int, Vec3*, int, std::vector<Unit*>*);
 Unit* __stdcall FUN_0043b700(Unit*);
 // FUNCTION: 0x4103e0
-int __stdcall FUN_004103e0(Unit* unit, Order* order, int flags)
+int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 0x40) return 5;
     if (unit->terrain == g_game->water) {
@@ -121,7 +121,7 @@ int __stdcall FUN_004103e0(Unit* unit, Order* order, int flags)
             if (!pads.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 Unit* pad=pads[FUN_004b6c30(pads.count())];
-                FUN_0043acb0(unit,new Class_0043a1f0("VTOL_LANDING",pad,0,0,0,0));
+                AppendOrder(unit,new Class_0043a1f0("VTOL_LANDING",pad,0,0,0,0));
                 order->flags=0;
                 return 0;
             }

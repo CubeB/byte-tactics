@@ -7,13 +7,13 @@
 //
 // The list helpers are the real neighbouring functions of this file,
 // defined here (without FUNCTION lines, they match in their own files) so
-// that /Ob2 makes the original's choices: FUN_00439f80 (unlink and delete)
+// that /Ob2 makes the original's choices: DeleteOrder (unlink and delete)
 // inlines in cases 5/8 and 9, FUN_00439fe0 (move to the end, 0 callers)
-// inlines in case 6, FUN_00439eb0 (clear the lists) inlines in case 7 with
-// its own FUN_00439f80 call left out of line, but stays an out-of-line call
+// inlines in case 6, DeleteOrders (clear the lists) inlines in case 7 with
+// its own DeleteOrder call left out of line, but stays an out-of-line call
 // in the default case, and FUN_0043b730 (0 callers) inlines at the end with
 // its FUN_0043ac60 call out of line. The Wait and ClearTargets helpers spend
-// the budget that leaves the default case's FUN_00439eb0 out of line; with
+// the budget that leaves the default case's DeleteOrders out of line; with
 // the target loop written out in place it is inlined there too. The
 // countdown register of the target loop (ebx = 3) needs the char counter.
 //
@@ -92,11 +92,11 @@ extern Callback_0043b7c0* DAT_00512344;
 
 void __stdcall ClearWeaponTarget(Unit* unit, int index);
 int __stdcall FUN_004b6c30(int n);
-void __stdcall FUN_00439f80(Unit* owner, Class_0043a1f0* node);
+void __stdcall DeleteOrder(Unit* owner, Class_0043a1f0* node);
 
 // 0x439eb0: deletes the nodes of the +0x5c list (all of them, or only those
 // without flag 4), then with `all` every node of the +0x60 list.
-void __stdcall FUN_00439eb0(Unit* owner, int all)
+void __stdcall DeleteOrders(Unit* owner, int all)
 {
     Class_0043a1f0* first = owner->list;
     Class_0043a1f0** pp = &owner->list;
@@ -114,13 +114,13 @@ void __stdcall FUN_00439eb0(Unit* owner, int all)
     }
     if (all) {
         while ((node = owner->list2) != 0)
-            FUN_00439f80(owner, node);
+            DeleteOrder(owner, node);
     }
 }
 
 // 0x439f80: unlinks `node` from the list its flag 0x40000 selects and
 // deletes it.
-void __stdcall FUN_00439f80(Unit* owner, Class_0043a1f0* node)
+void __stdcall DeleteOrder(Unit* owner, Class_0043a1f0* node)
 {
     Class_0043a1f0* first = owner->list;
     Class_0043a1f0** link = (node->flags & 0x40000) ? &owner->list2 : &owner->list;
@@ -193,7 +193,7 @@ static void ClearTargets_0043b7c0(Unit* unit)
 }
 
 // FUNCTION: 0x43b7c0
-void __stdcall FUN_0043b7c0(Unit* unit)
+void __stdcall RunOrders(Unit* unit)
 {
     Class_0043a1f0* node;
     for (;;) {
@@ -227,12 +227,12 @@ void __stdcall FUN_0043b7c0(Unit* unit)
             break;
         case 5:
         case 8:
-            FUN_00439f80(unit, node);
+            DeleteOrder(unit, node);
             break;
         case 9:
             node->flags |= 0x800000;
             if (node->next != 0) {
-                FUN_00439f80(unit, node);
+                DeleteOrder(unit, node);
             } else {
                 node->count = 0;
                 Wait_0043b7c0(node, 0x1e);
@@ -242,10 +242,10 @@ void __stdcall FUN_0043b7c0(Unit* unit)
             FUN_00439fe0(unit, node);
             break;
         case 7:
-            FUN_00439eb0(unit, 1);
+            DeleteOrders(unit, 1);
             return;
         default:
-            FUN_00439eb0(unit, 1);
+            DeleteOrders(unit, 1);
             return;
         }
     }

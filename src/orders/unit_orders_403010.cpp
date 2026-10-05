@@ -20,7 +20,7 @@ public:
 };
 
 // FUNCTION: 0x403010
-int __stdcall FUN_00403010(Obj_403010* param_1, int unused1, int unused2)
+int __stdcall ActivateOrder(Obj_403010* param_1, int unused1, int unused2)
 {
     if (param_1->sub->flag) {
         ((Class_0048b090*)param_1)->SetStateBits(1, 1);

@@ -83,7 +83,7 @@ extern char s_paralyze_00508d80[];
 extern char s_HitByWeapon_00508d74[];
 extern char s_TakeDamage_00508d68[];
 
-void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
+void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
 void __stdcall FUN_00467950(Unit* unit);
 void __stdcall FUN_00406f80(Unit* target, Unit* attacker, int amount);
 void __stdcall FUN_00494ff0(int flag);
@@ -142,7 +142,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
                             e->field_36 += ticks;
                             return;
                         }
-                        FUN_0043acb0(unit, new Class_0043a1f0(kind, 0, 0, ticks, 0, 0));
+                        AppendOrder(unit, new Class_0043a1f0(kind, 0, 0, ticks, 0, 0));
                         return;
                     }
                 }

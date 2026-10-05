@@ -242,7 +242,7 @@ file is any file with `// GLOBAL:` annotations and no functions
 ```cpp
 // GLOBAL: 0x4fc490
 extern const UnitOrderType g_unitOrders[23] = {
-    {"Stopping", FUN_00401c20, 0, 0, 0x13, 0, "Stop"},
+    {"Stopping", StopOrder, 0, 0, 0x13, 0, "Stop"},
     ...
 ```
 

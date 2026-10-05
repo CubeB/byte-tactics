@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Adds `amount` to the object's last list node of the given kind and id when the
-// amount is positive (asking FUN_0043adc0 to make a new node if there is none);
+// amount is positive (asking AddOrder to make a new node if there is none);
 // when it is not positive it takes the amount off the matching node, deleting
 // nodes (and asking again) until the amount is used up. The kind table's flag
 // 0x40000 selects which of the object's two lists (+0x60 or +0x5c) is used.
@@ -41,7 +41,7 @@ struct Owner_0043b0b0 {
 
 extern KindEntry_0043b0b0* DAT_00512344;
 
-void __stdcall FUN_0043adc0(unsigned char kind, int remove, Owner_0043b0b0* owner, int id, int* pos, int param_6, int param_7);
+void __stdcall AddOrder(unsigned char kind, int remove, Owner_0043b0b0* owner, int id, int* pos, int param_6, int param_7);
 
 // FUNCTION: 0x43b0b0
 void __stdcall FUN_0043b0b0(int kind, Owner_0043b0b0* owner, int id, int amount)
@@ -59,7 +59,7 @@ void __stdcall FUN_0043b0b0(int kind, Owner_0043b0b0* owner, int id, int amount)
             node->amount += amount;
             return;
         }
-        FUN_0043adc0(kind, 1, owner, 0, 0, id, amount);
+        AddOrder(kind, 1, owner, 0, 0, id, amount);
         return;
     }
     for (;;) {

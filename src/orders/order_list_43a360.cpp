@@ -36,7 +36,7 @@ public:
 short __stdcall FindUnitTypeId(char* name);
 
 // FUNCTION: 0x43a360
-short __stdcall FUN_0043a360(Class_004b48f0* file, unsigned short id)
+short __stdcall ResolveUnitTypeKey(Class_004b48f0* file, unsigned short id)
 {
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);

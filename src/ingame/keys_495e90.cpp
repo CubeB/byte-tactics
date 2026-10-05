@@ -203,7 +203,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2);
 void __stdcall SaveScreenshot(char* param_1, const char* param_2);
 void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
 int __stdcall FUN_00439e30(int unit, Class_00438760 kind);
-void __stdcall FUN_00439f80(int unit, int arg);
+void __stdcall DeleteOrder(int unit, int arg);
 void __cdecl operator delete(void* p);
 
 // FUNCTION: 0x495e90
@@ -464,7 +464,7 @@ void FUN_00495e90(void)
             int r = FUN_00439e30(*it, order);
             if (r != 0) {
                 found = 1;
-                FUN_00439f80(*it, r);
+                DeleteOrder(*it, r);
             }
         }
         if (found == 0)

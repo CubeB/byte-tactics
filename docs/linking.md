@@ -596,6 +596,17 @@ missing (as in CI). Everything comes from the repository and the toolchain:
   MD5 `link/link.toml`'s (8e74a1dffa1f5988624c52048f5b20cd). With the
   original present, `place.py` also compares the file byte for byte.
 
+GitHub Actions does exactly this on every push to main and every pull request
+that touches the code, the data, the link inputs or the tools
+(`.github/workflows/build.yml`): it installs Wine, 7-Zip and cabextract, runs
+`BT_NO_ORIG=1 BT_NO_GHIDRA=1 tools/setup_toolchain.sh` (the compiler is
+cached between runs), unpacks the icon and cursor from the `BT_ART_TGZ`
+repository secret (a base64 tar.gz of `TotalA.ico` and `TotalA.cur`, as
+`tools/resources.py` extracts them into `build/res/art/`), checks
+`tools/modules.py --check`, runs `uv run tools/place.py --no-orig --strict`
+and fails unless the exe's MD5 is the shipped one. The run's summary shows
+the MD5 and SHA-256; the exe itself is never uploaded.
+
 `data/layout.csv` records what the build with the original decides from the
 original's bytes, as rows of these kinds:
 

@@ -1,0 +1,111 @@
+name: Build
+
+# Builds TotalA.exe from the source tree alone (no original exe) with the
+# original compiler under Wine, and checks that it is the shipped v3.1 exe byte
+# for byte. The exe is only checked, never uploaded.
+#
+# The icon and cursor are Cavedog's art, which stays out of the repository:
+# the BT_ART_TGZ secret holds them as a base64 tar.gz of TotalA.ico and
+# TotalA.cur (tools/resources.py extracts both from a TotalA.exe into
+# build/res/art/).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "include/**"
+      - "data/**"
+      - "link/**"
+      - "tools/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/build.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "include/**"
+      - "data/**"
+      - "link/**"
+      - "tools/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      SHIPPED_MD5: 8e74a1dffa1f5988624c52048f5b20cd
+      # A new Wine prefix would offer to install Mono and Gecko; the compiler
+      # needs neither.
+      WINEDLLOVERRIDES: "mscoree,mshtml="
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Wine, 7-Zip and cabextract
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends wine wine32:i386 wine64 p7zip-full cabextract
+          wine --version
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Cache the toolchain
+        uses: actions/cache@v4
+        with:
+          path: |
+            toolchain/msvc5-rtm
+            toolchain/msvc5-sp3
+            toolchain/thirdparty
+          key: toolchain-${{ hashFiles('tools/setup_toolchain.sh') }}
+
+      - name: Set up Visual C++ 5.0 SP3
+        run: BT_NO_ORIG=1 BT_NO_GHIDRA=1 tools/setup_toolchain.sh
+
+      - name: Unpack the icon and cursor
+        env:
+          BT_ART_TGZ: ${{ secrets.BT_ART_TGZ }}
+        run: |
+          if [ -z "$BT_ART_TGZ" ]; then
+            echo "::error::The BT_ART_TGZ secret is missing (a base64 tar.gz of TotalA.ico and TotalA.cur)"
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/art"
+          echo "$BT_ART_TGZ" | base64 -d | tar xz -C "$RUNNER_TEMP/art"
+          echo "BT_ART_DIR=$RUNNER_TEMP/art" >> "$GITHUB_ENV"
+
+      - name: Check the source folders
+        run: uv run tools/modules.py --check
+
+      - name: Build TotalA.exe from source
+        run: uv run tools/place.py --no-orig --strict
+
+      - name: Check the MD5
+        run: |
+          md5=$(md5sum build/place/TotalA.exe | cut -d' ' -f1)
+          sha=$(sha256sum build/place/TotalA.exe | cut -d' ' -f1)
+          {
+            echo "### TotalA.exe built from source"
+            echo
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| MD5 | \`$md5\` |"
+            echo "| SHA-256 | \`$sha\` |"
+            echo "| shipped v3.1 MD5 | \`$SHIPPED_MD5\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$md5" != "$SHIPPED_MD5" ]; then
+            echo "::error::MD5 $md5 is not the shipped exe's $SHIPPED_MD5"
+            exit 1
+          fi
+          echo "MD5 $md5: the shipped exe"

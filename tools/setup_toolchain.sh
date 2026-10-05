@@ -13,7 +13,7 @@ TC="$ROOT/toolchain"
 # fetched once. Override with BT_DL_CACHE.
 DL="${BT_DL_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/byte-tactics}"
 STEAM_TA="${STEAM_TA:-$HOME/.local/share/Steam/steamapps/common/Total Annihilation}"
-mkdir -p "$DL" "$ROOT/orig"
+mkdir -p "$DL" "$ROOT/orig" "$TC"
 
 fetch() {  # url dest md5
     if [ ! -f "$2" ]; then curl -fSL -o "$2.part" "$1" && mv "$2.part" "$2"; fi

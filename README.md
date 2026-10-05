@@ -92,6 +92,12 @@ tools/setup_toolchain.sh   # downloads VC++ 5.0 + SP3 into toolchain/, copies To
 
 Set `STEAM_TA` if the game is not in the default Steam library.
 
+`uv run tools/place.py --no-orig` builds `TotalA.exe` from the source tree
+without the game's exe (the icon and cursor come from `--art DIR` or
+`BT_ART_DIR`), and GitHub Actions checks on every change that the result is
+the shipped v3.1 exe, MD5 `8e74a1dffa1f5988624c52048f5b20cd`
+([docs/linking.md](docs/linking.md#building-without-the-original)).
+
 ## Checking a function
 
 ```sh

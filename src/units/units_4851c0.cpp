@@ -73,7 +73,7 @@ static inline Cell_004851c0* GetCell(int x, int y)
 }
 
 // FUNCTION: 0x4851c0
-int __stdcall FUN_004851c0(Vec3_004851c0 a, Vec3_004851c0 b)
+int __stdcall FindHighestPointOnLine(Vec3_004851c0 a, Vec3_004851c0 b)
 {
     int dz = b.z - a.z;
     b.z = dz;

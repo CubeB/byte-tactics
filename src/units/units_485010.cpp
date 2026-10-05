@@ -32,7 +32,7 @@ static inline Cell_00485010* GetCell(int x, int y)
 }
 
 // FUNCTION: 0x485010
-int __stdcall FUN_00485010(Point16_00485010* p)
+int __stdcall GetCellHeight(Point16_00485010* p)
 {
     Cell_00485010* cell = GetCell(p->x, p->y);
     if (cell)

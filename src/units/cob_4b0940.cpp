@@ -27,7 +27,7 @@ public:
     Channel_004b0940 channels[8];      // +0x1c
     int activeCount;                   // +0x53c
 
-    int FUN_004b0940(const char* name, int value, int update);
+    int StartScript(const char* name, int value, int update);
 };
 
 class Class_004b07c0 {
@@ -35,27 +35,27 @@ public:
     char unknown_0[8];
     NameTable_004b0940* table;         // +0x8
 
-    int FUN_004b07c0(const char* name);
+    int FindScript(const char* name);
 };
 
-class Class_004b08c0 {
+class CobScript {
 public:
-    int FUN_004b08c0(int id);
+    int StartThread(int id);
 };
 
 class Class_004b0da0 {
 public:
-    void FUN_004b0da0(int channel, int param_2);
+    void RunThread(int channel, int param_2);
 };
 
 class Class_004b1c00 {
 public:
-    void FUN_004b1c00(int param_1);
+    void AnimatePieces(int param_1);
 };
 
 // The name lookup just before this function in the original file, defined here
 // so /Ob2 inlines it as the original did (the same helper as in 0x4b0830.cpp).
-int Class_004b07c0::FUN_004b07c0(const char* name)
+int Class_004b07c0::FindScript(const char* name)
 {
     for (int i = 0; i < table->count; i++) {
         if (strcmp(name, table->names[i]) == 0) {
@@ -66,18 +66,18 @@ int Class_004b07c0::FUN_004b07c0(const char* name)
 }
 
 // FUNCTION: 0x4b0940
-int Class_004b0940::FUN_004b0940(const char* name, int value, int update)
+int Class_004b0940::StartScript(const char* name, int value, int update)
 {
-    int i = ((Class_004b08c0*)this)->FUN_004b08c0(((Class_004b07c0*)this)->FUN_004b07c0(name));
+    int i = ((CobScript*)this)->StartThread(((Class_004b07c0*)this)->FindScript(name));
     if (i < 0)
         return 0;
     channels[i].value = value;
     if (update) {
         if (activeCount) {
             for (int j = 0; j < 8; j++)
-                ((Class_004b0da0*)this)->FUN_004b0da0(j, 0);
+                ((Class_004b0da0*)this)->RunThread(j, 0);
         }
-        ((Class_004b1c00*)this)->FUN_004b1c00(0);
+        ((Class_004b1c00*)this)->AnimatePieces(0);
     }
     return 1;
 }

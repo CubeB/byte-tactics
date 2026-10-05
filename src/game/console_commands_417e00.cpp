@@ -41,7 +41,7 @@ public:
     virtual void FUN_0044ef50(void* surface);  // slot 10
 };
 
-int __stdcall FUN_00485070(Pos_00417bb0* pos);
+int __stdcall GetGroundHeight(Pos_00417bb0* pos);
 // The real callee takes unsigned char; int here reproduces the original's
 // loop-invariant widening of the colour byte.
 void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
@@ -56,14 +56,14 @@ void Class_0044f010::FUN_0044ef50(void* surface)
         Pos_00417bb0 p1;
         *(int*)&p1.x_frac = this->points[i].x << 16;
         *(int*)&p1.z_frac = this->points[i].z << 16;
-        int h = FUN_00485070(&p1);
+        int h = GetGroundHeight(&p1);
         int x1 = p1.x - g_game->scroll_x + 0x80;
         int y1 = p1.z - g_game->scroll_y - (h >> 1) + 0x20;
 
         Pos_00417bb0 p2;
         *(int*)&p2.x_frac = this->points[i + 1].x << 16;
         *(int*)&p2.z_frac = this->points[i + 1].z << 16;
-        h = FUN_00485070(&p2);
+        h = GetGroundHeight(&p2);
         int x2 = p2.x - g_game->scroll_x + 0x80;
         int y2 = p2.z - g_game->scroll_y - (h >> 1) + 0x20;
 

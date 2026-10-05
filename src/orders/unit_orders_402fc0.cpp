@@ -1,10 +1,10 @@
 // Decompiled by Opus. Names are provisional.
-// Order handler: state 0 calls FUN_004898b0(3) on the unit, state 1 waits
+// Order handler: state 0 calls ClaimWeapons(3) on the unit, state 1 waits
 // ten ticks.
 
 class Class_004898b0 {
 public:
-    void FUN_004898b0(int param);
+    void ClaimWeapons(int param);
 };
 
 class Class_00439e80 {
@@ -32,7 +32,7 @@ int __stdcall FUN_00402fc0(Unit_00402fc0* unit, Order* order, int unused)
     }
     switch (order->state) {
     case 0:
-        ((Class_004898b0*)unit)->FUN_004898b0(3);
+        ((Class_004898b0*)unit)->ClaimWeapons(3);
         return 1;
     case 1:
         ((Class_00439e80*)order)->FUN_00439e80(10);

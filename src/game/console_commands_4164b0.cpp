@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // Command callback: with no arguments (token count 1) resets everything
-// (FUN_00486ed0); otherwise sets the local player (FUN_00486f10) from
+// (KillAllUnits); otherwise sets the local player (KillPlayerUnits) from
 // argument 1. Both paths then pump the object at g_game+0x391ed.
 // Compare 0x4169d0 / 0x416a30.
 
@@ -25,16 +25,16 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_00486ed0(void);
-void __stdcall FUN_00486f10(unsigned char player);
+void KillAllUnits(void);
+void __stdcall KillPlayerUnits(unsigned char player);
 
 // FUNCTION: 0x4164b0
 void __stdcall FUN_004164b0(Class_004b73e0* args)
 {
     if (args->field_d0 == 1) {
-        FUN_00486ed0();
+        KillAllUnits();
     } else {
-        FUN_00486f10(args->FUN_004b73e0(1, 0));
+        KillPlayerUnits(args->FUN_004b73e0(1, 0));
     }
     g_game->field_391ed->FUN_004904b0();
 }

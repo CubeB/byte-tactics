@@ -6,22 +6,22 @@
 
 class Class_004b07c0 {
 public:
-    int FUN_004b07c0(char* name);
+    int FindScript(char* name);
 };
 
 class Class_004b0b00 {
 public:
-    int FUN_004b0b00(int index, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
+    int StartScriptWithArgsByIndex(int index, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
 };
 
-class Class_00489650 {
+class UnitRef {
 public:
     void FUN_00489650();
 };
 
 class Class_00489800 {
 public:
-    void FUN_00489800(int param_1);
+    void ReleaseWeapons(int param_1);
 };
 
 // Object at +0x52, deleted through its virtual destructor.
@@ -94,8 +94,8 @@ Class_0043a1f0::~Class_0043a1f0()
     }
     if (flags & 0x400000) {
         Unit* obj = unit;
-        int index = obj->names->FUN_004b07c0("StopBuilding");
-        ((Class_004b0b00*)obj->names)->FUN_004b0b00(index, 0, 0, 0, 0, 0, 0, 0);
+        int index = obj->names->FindScript("StopBuilding");
+        ((Class_004b0b00*)obj->names)->StartScriptWithArgsByIndex(index, 0, 0, 0, 0, 0, 0, 0);
         SendScriptCallNoArgs(obj, index);
         flags &= ~0x400000;
     }
@@ -113,7 +113,7 @@ Class_0043a1f0::~Class_0043a1f0()
         }
     }
     if (!(flags & 0x10000)) {
-        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_00489800*)unit)->ReleaseWeapons(3);
     }
-    ((Class_00489650*)((char*)this + 0x12))->FUN_00489650();
+    ((UnitRef*)((char*)this + 0x12))->FUN_00489650();
 }

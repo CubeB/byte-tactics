@@ -66,7 +66,7 @@ Holder_004942e0* __stdcall FUN_004aa8f0(Menu_004942e0* menu, const char* name, i
 Entry_004942e0* __stdcall FUN_004a0280(Entry_004942e0* entries, char* name);
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall FUN_004caf30(char* path, int param);
-char* __stdcall FUN_00489280(void* obj);
+char* __stdcall MakePropList(void* obj);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004ab1b0(Holder_004942e0* obj, char* name, char* text, int x,
                             short y, int w, int flags);
@@ -74,7 +74,7 @@ void __cdecl FUN_004d85a0(void* data);
 void __stdcall FUN_004a0bf0(Menu_004942e0* menu, char* name, char* text, int param);
 void __stdcall FUN_0049fa90(Menu_004942e0* menu);
 int __stdcall FUN_00465ac0(void* player, void* unit);
-unsigned short __stdcall FUN_00488b10(char* name);
+unsigned short __stdcall FindUnitTypeId(char* name);
 
 // FUNCTION: 0x4942e0
 void __stdcall FUN_004942e0(void)
@@ -91,7 +91,7 @@ void __stdcall FUN_004942e0(void)
     if (g_game->selected != -1) {
         strncpy(name, g_game->menu.holder->entries[g_game->selected].name, 0x10);
         name[0x10] = 0;
-        type = FUN_00488b10(name);
+        type = FindUnitTypeId(name);
     } else {
         unsigned short t = g_game->field_2cba;
         if (t != 0) {
@@ -116,7 +116,7 @@ void __stdcall FUN_004942e0(void)
     char* def = g_game->unitDefs + 0x249 * (unsigned)type;
     FUN_004290f0(buf, "unitpics", def + 0x20, "PCX");
     hotr->image = FUN_004caf30(buf, 0);
-    stats = FUN_00489280(def);
+    stats = MakePropList(def);
     int n = entries->u.count;
 
     FUN_004ab1b0(g_game->menu.holder, "TEXT", FUN_004c5740("Cost"), 0x82, 0x20, -1, 2);

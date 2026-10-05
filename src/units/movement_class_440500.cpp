@@ -58,7 +58,7 @@ public:
     unsigned int* field_18;            // +0x18, the 2-bit map
     int field_1c;
 
-    void FUN_00440500();
+    void BuildPassMap();
 };
 
 int __stdcall FUN_0047de60(Class_00440500* obj, Cell_00440500* cell);
@@ -69,7 +69,7 @@ static inline void setcell(unsigned int* q, int sh, unsigned int val)
 }
 
 // FUNCTION: 0x440500
-void Class_00440500::FUN_00440500()
+void Class_00440500::BuildPassMap()
 {
     unsigned char b;
     unsigned char* p;

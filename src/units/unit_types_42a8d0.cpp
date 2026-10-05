@@ -273,7 +273,7 @@ static inline int FindWeapon(char* name)
 }
 
 // FUNCTION: 0x42a8d0
-int FUN_0042a8d0()
+int LoadUnitInfo()
 {
     int bad = 0;
     char path[256];

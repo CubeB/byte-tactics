@@ -38,7 +38,7 @@ struct Game {
 
 extern Game* g_game;
 
-short __stdcall FUN_00488b10(char* param_1);
+short __stdcall FindUnitTypeId(char* param_1);
 
 class Base_0048edb0 {
 public:
@@ -62,7 +62,7 @@ int Class_0048edb0::FUN_0048ea00()
         return 1;
     }
     if (field_30 == 0) {
-        field_30 = FUN_00488b10(field_10);
+        field_30 = FindUnitTypeId(field_10);
     }
     g_game->units.ForEach(this);
     return field_4;

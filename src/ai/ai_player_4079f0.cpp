@@ -3,7 +3,7 @@
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Sets field_c to 150 ticks from now; when both this object's group and the
 // group of the owner's member field_14 have units, passes the other group's
-// average position (FUN_00407410) to FUN_00480460 for this group.
+// average position (FUN_00407410) to OrderSquad for this group.
 #include <vector>
 
 class Class_00407350;
@@ -66,7 +66,7 @@ public:
 
 extern Game* g_game;
 
-void __stdcall FUN_00480460(void* a, void* b, int c, int d, int* e, Vec3_00407410* pos, int f, int g);
+void __stdcall OrderSquad(void* a, void* b, int c, int d, int* e, Vec3_00407410* pos, int f, int g);
 
 // FUNCTION: 0x4079f0
 void Class_004079d0::FUN_00407380()
@@ -78,7 +78,7 @@ void Class_004079d0::FUN_00407380()
         Vec3_00407410 pos;
         if (other->FUN_00407410(&pos)) {
             Group_00407410* g = (Group_00407410*)field_8;
-            FUN_00480460(g->field_0, g->field_4, 2, 0, 0, &pos, 0, 0);
+            OrderSquad(g->field_0, g->field_4, 2, 0, 0, &pos, 0, 0);
         }
     }
 }

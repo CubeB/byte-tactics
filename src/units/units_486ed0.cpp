@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-void __stdcall FUN_004864b0(void* unit, int param_2);
+void __stdcall KillUnit(void* unit, int param_2);
 
 #pragma pack(push, 1)
 struct Unit {
@@ -19,14 +19,14 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x486ed0
-void FUN_00486ed0(void)
+void KillAllUnits(void)
 {
     Unit* u = g_game->units;
     Unit* end = g_game->units_end;
     if (u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
             if (u->field_a6 != 0) {
-                FUN_004864b0(u, 8);
+                KillUnit(u, 8);
             }
         }
     }

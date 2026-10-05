@@ -82,11 +82,11 @@ extern Game* g_game;
 unsigned short __stdcall FUN_00421da0(Vec3* pos, Point16* cell, Point16* size);
 void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
 int __stdcall FUN_004b6c30(int range);
-int __stdcall FUN_00485070(Vec3* pos);
-unsigned short __stdcall FUN_0048a980(Vec3* from, Vec3* to);
+int __stdcall GetGroundHeight(Vec3* pos);
+unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 void __stdcall FUN_00438590(Unit* unit, Order* order, short turn);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
-void __stdcall FUN_0043e400(Unit* unit, Vec3* out);
+void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall FUN_00472200(Box* from, Vec3* to, int count);
 void __stdcall FUN_004237d0(Unit* unit, Vec3* pos);
 
@@ -120,8 +120,8 @@ int __stdcall FUN_00404ad0(Unit* unit, Order* order, int flags)
         Vec3 pos;
         pos.x = (size.x + cell.x * 2) << 19;
         pos.z = (size.z + cell.z * 2) << 19;
-        pos.y = (FUN_004b6c30(f->height) + FUN_00485070(&pos)) << 16;
-        FUN_00438590(unit, order, FUN_0048a980(&unit->pos, &pos) - unit->angle);
+        pos.y = (FUN_004b6c30(f->height) + GetGroundHeight(&pos)) << 16;
+        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->angle);
         return 1;
     }
     case 2:
@@ -136,11 +136,11 @@ int __stdcall FUN_00404ad0(Unit* unit, Order* order, int flags)
         unit->workTime = g_game->ticks + 300;
         if (order->time > 15) {
             Vec3 nano;
-            FUN_0043e400(unit, &nano);
+            GetNanoPiecePosition(unit, &nano);
             Box box;
             box.lo.x = cell.x << 20;
             box.lo.z = cell.z << 20;
-            box.lo.y = FUN_00485070(&box.lo) << 16;
+            box.lo.y = GetGroundHeight(&box.lo) << 16;
             box.hi = box.lo;
             box.hi.x += f->footprint.x << 20;
             box.hi.z += f->footprint.z << 20;

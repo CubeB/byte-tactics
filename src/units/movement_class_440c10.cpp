@@ -29,7 +29,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x440c10
-int FUN_00440c10()
+int FindUnusedLogo()
 {
     int used[10];
     memset(used, 0, sizeof(used));

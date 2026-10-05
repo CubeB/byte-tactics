@@ -130,7 +130,7 @@ extern Game* g_game;
 extern int DAT_0051e684;
 extern int DAT_0051e688;
 
-int __stdcall FUN_00485010(Point* p);
+int __stdcall GetCellHeight(Point* p);
 
 struct Pos_0047d2e0 {
     Fix_0047d2e0 x, y, z;
@@ -235,7 +235,7 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
         Fix_0047d2e0 hgt;
         pos.x.v = (origin.x + cell.x * 2) << 19;
         pos.z.v = (origin.y + cell.y * 2) << 19;
-        hgt.v = FUN_00485010(&cell) << 16;
+        hgt.v = GetCellHeight(&cell) << 16;
         x = pos.x.p.hi >> 5;
         y = (pos.z.p.hi - (hgt.p.hi >> 1)) >> 5;
         if (!los->explored.size.Contains(x, y))

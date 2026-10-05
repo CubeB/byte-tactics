@@ -29,11 +29,11 @@ class Class_0043d210 {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
-    void FUN_0043d210(Unit* unit, int state);
+    void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void FUN_004898b0(int); };
-class Class_00489800 { public: void FUN_00489800(int); };
-class Class_0048b090 { public: void FUN_0048b090(int, int); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
+class Class_00489800 { public: void ReleaseWeapons(int); };
+class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
@@ -80,8 +80,8 @@ public:
 int __stdcall FUN_004b6c30(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
-int __stdcall FUN_0048a980(Vec3*, Vec3*);
-void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4);
+int __stdcall GetHeadingBetween(Vec3*, Vec3*);
+void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
 void __stdcall FUN_0043a020(Unit*, Order*);
 Unit* __stdcall FUN_0043b700(Unit*);
@@ -110,12 +110,12 @@ Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->FUN_004898b0(3);
+    ((Class_004898b0*)unit)->ClaimWeapons(3);
     if (unit->field_86)
-        FUN_0048aac0(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->FUN_0048b090(1, 1);
+        AttachUnitToPiece(unit, 0, -1, 2);
+    ((Class_0048b090*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
-        unit->type->FUN_0043d210(unit, 2);
+        unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
@@ -133,7 +133,7 @@ int __stdcall FUN_00410e70(Unit* unit, Order* order, int flags)
     case 2: {
         if (flags & 0xe0)
             return 6;
-        short angle = FUN_0048a980(&unit->pos, &order->pos);
+        short angle = GetHeadingBetween(&unit->pos, &order->pos);
         Vec3 dest = FUN_0040f790(order->pos, Offset(angle, 0x1400000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->FUN_0044e730(0x150);
@@ -182,7 +182,7 @@ int __stdcall FUN_00410e70(Unit* unit, Order* order, int flags)
             FUN_0043a020(unit, order);
             ((Class_00438880*)order)->FUN_00438880("Patrolling");
             FUN_0040f200(unit, order, 0);
-            ((Class_00489800*)unit)->FUN_00489800(3);
+            ((Class_00489800*)unit)->ReleaseWeapons(3);
             return 1;
         }
         break;

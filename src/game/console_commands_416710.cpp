@@ -2,7 +2,7 @@
 
 class Class_00437c80 {
 public:
-    void FUN_00437c80();
+    void FlushCache();
 };
 
 #pragma pack(push, 1)
@@ -17,5 +17,5 @@ extern Game* g_game;
 // FUNCTION: 0x416710
 void __stdcall FUN_00416710(int unused)
 {
-    g_game->field_1437b->FUN_00437c80();
+    g_game->field_1437b->FlushCache();
 }

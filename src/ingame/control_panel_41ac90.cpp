@@ -23,7 +23,7 @@ struct Obj_41ac90 {
     Inner_41ac90* inner;         // +0x18
 };
 
-short __stdcall FUN_00488b10(Entry_41ac90* entry);
+short __stdcall FindUnitTypeId(Entry_41ac90* entry);
 void __stdcall FUN_004a1200(Obj_41ac90* obj, int index, int flag);
 
 static inline Entry_41ac90* Entries_41ac90(Table_41ac90* t)
@@ -38,7 +38,7 @@ void __stdcall FUN_0041ac90(Obj_41ac90* obj)
     int n = t->count;
     for (int i = 0; i < n; i++) {
         if (Entries_41ac90(t)[i].flags & 4) {
-            FUN_004a1200(obj, i, FUN_00488b10(&Entries_41ac90(t)[i]) == 0);
+            FUN_004a1200(obj, i, FindUnitTypeId(&Entries_41ac90(t)[i]) == 0);
         }
     }
 }

@@ -52,10 +52,10 @@ public:
 
 struct Unit;
 
-class Class_0043dd20 {
+class UnitMotion {
 public:
     Iface_0048b920* iface;             // +0x0, see src/units/unit_scripts_43dd20.cpp
-    void FUN_0043dd20(Unit* u);
+    void UpdateMotion(Unit* u);
 };
 
 #pragma pack(push, 1)
@@ -71,7 +71,7 @@ struct Spawn_0048b920 {
 };
 
 struct Unit {                          // 0x118 bytes
-    Class_0043dd20* owner;             // +0x0
+    UnitMotion* owner;                 // +0x0
     char unknown_4[0x64 - 4];
     Tail_0048b920 tail;                // +0x64
     Pos_0048b920 pos;                  // +0x6a
@@ -103,12 +103,12 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0048b3f0(BitReader* reader, Unit* unit);
-void __stdcall FUN_0048a870(Unit* unit);
-Unit* __stdcall FUN_004861d0(unsigned char player, Spawn_0048b920* spawn);
+void __stdcall ReadUnitState(BitReader* reader, Unit* unit);
+void __stdcall UpdateUnitHeight(Unit* unit);
+Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_0048b920* spawn);
 
 // FUNCTION: 0x48b920
-void __stdcall FUN_0048b920(Player_0048b920* p, unsigned int* data)
+void __stdcall ReceiveUnitStates(Player_0048b920* p, unsigned int* data)
 {
     BitReader reader;
 
@@ -133,7 +133,7 @@ void __stdcall FUN_0048b920(Player_0048b920* p, unsigned int* data)
             spawn.player = 9;
             spawn.pos = unit->pos;
             spawn.tail = unit->tail;
-            FUN_004861d0(unit->player, &spawn);
+            CreateUnitFromPacket(unit->player, &spawn);
         }
         unit->owner->iface->ReadFrom(&reader);
         index = (short)reader.ReadBits(0x10);
@@ -142,11 +142,11 @@ void __stdcall FUN_0048b920(Player_0048b920* p, unsigned int* data)
     for (Unit* u = p->units_begin; u <= p->units_end;
          u = (Unit*)((char*)u + 0x118)) {
         if ((u->flags & 0x10000000) && u->owner) {
-            u->owner->FUN_0043dd20(u);
-            FUN_0048a870(u);
+            u->owner->UpdateMotion(u);
+            UpdateUnitHeight(u);
         }
     }
 
     if (reader.ReadBit())
-        FUN_0048b3f0(&reader, &p->units_begin[tick % g_game->field_37ee6]);
+        ReadUnitState(&reader, &p->units_begin[tick % g_game->field_37ee6]);
 }

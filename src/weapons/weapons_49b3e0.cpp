@@ -61,7 +61,7 @@ struct Game {
 };
 
 extern Game* g_game;
-int __stdcall FUN_00485070(Vec3_0049b3e0* pos);
+int __stdcall GetGroundHeight(Vec3_0049b3e0* pos);
 
 // FUNCTION: 0x49b3e0
 Vec3_0049b3e0* __stdcall FUN_0049b3e0(Proj_0049b3e0* p)
@@ -83,7 +83,7 @@ Vec3_0049b3e0* __stdcall FUN_0049b3e0(Proj_0049b3e0* p)
     }
     if (flag) {
         p->start = p->target;
-        p->start.y = max(FUN_00485070(&p->target), g_game->seaLevel) << 16;
+        p->start.y = max(GetGroundHeight(&p->target), g_game->seaLevel) << 16;
         return &p->start;
     }
     return &p->target;

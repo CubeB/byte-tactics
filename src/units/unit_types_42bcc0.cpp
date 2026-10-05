@@ -15,7 +15,7 @@ void __cdecl FUN_004d8780(void* param_1);
 void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x42bcc0
-void FUN_0042bcc0()
+void FreeUnitInfo()
 {
     if (g_game->field_1439b != 0) {
         FUN_004d8780(g_game->field_1439b);

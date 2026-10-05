@@ -1,8 +1,8 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_004b0a70 {
+class CobScript {
 public:
-    int FUN_004b0a70(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
+    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
 };
 
 #pragma pack(push, 2)
@@ -10,7 +10,7 @@ struct Object_00499c10 {
     char unknown_0[0x66];
     short heading;                     // +0x66
     char unknown_68[0x9a - 0x68];
-    Class_004b0a70* anims;             // +0x9a
+    CobScript* anims;                  // +0x9a
 };
 #pragma pack(pop)
 
@@ -29,5 +29,5 @@ void __stdcall FUN_00499c10(Object_00499c10* obj, Source_00499c10* src)
     short angle = src->heading - obj->heading;
     int a = -FUN_004b70ef(angle, 800);
     int b = -FUN_004b7123(angle, 800);
-    obj->anims->FUN_004b0a70("RockUnit", 0, 0, 2, b, a, 0, 0);
+    obj->anims->StartScriptWithArgs("RockUnit", 0, 0, 2, b, a, 0, 0);
 }

@@ -82,7 +82,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_0049fed0(Entry_0041aa00* entries, char* name, int index);
-unsigned short __stdcall FUN_00488b10(char* name);
+unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall FUN_004ab0a0(Menu_0041aa00* menu);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 int __stdcall FUN_0041a490(Menu_0041aa00* menu, Entry_0041aa00* entries);
@@ -101,7 +101,7 @@ void __stdcall FUN_0041aa00(Menu_0041aa00* menu)
         char idName[17];
         FUN_0049fed0(entries, idName, menu->index);
         idName[16] = 0;
-        unsigned short id = FUN_00488b10(idName);
+        unsigned short id = FindUnitTypeId(idName);
         Unit* unit = &g_game->units[g_game->unitIndex];
         char name[32];
         FUN_0049fed0(entries, name, menu->index);

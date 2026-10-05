@@ -2,15 +2,15 @@
 // Frees the entries of an object state block (one 0x36-byte entry per piece),
 // clears its two ids from the global id-registry buffer, then frees the block.
 
-class Class_00437c90 {
+class CMemoryCache {
 public:
-    void FUN_00437c90(int id);
+    void ReleaseHandle(int id);
 };
 
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x1437b];
-    Class_00437c90* obj;       // +0x1437b
+    CMemoryCache* obj;         // +0x1437b
 };
 #pragma pack(pop)
 
@@ -41,8 +41,8 @@ void __stdcall FUN_0045aaa0(ObjectState_0045aaa0* state)
         FUN_004d85a0(state->entries[i].ptr);
     }
     if (g_game->obj != 0) {
-        g_game->obj->FUN_00437c90((int)&state->field_10);
-        g_game->obj->FUN_00437c90((int)&state->field_14);
+        g_game->obj->ReleaseHandle((int)&state->field_10);
+        g_game->obj->ReleaseHandle((int)&state->field_14);
     }
     FUN_004d85a0(state);
 }

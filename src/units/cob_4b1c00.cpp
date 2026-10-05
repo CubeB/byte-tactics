@@ -35,15 +35,15 @@ public:
     Data_004b1c00* ptr14;              // +0x14
     int field_18;                      // +0x18
 
-    virtual void FUN_00480c50(int, int, int) = 0;  // slot 0
-    virtual void FUN_00480ce0(int, int, int) = 0;  // slot 1
-    virtual int FUN_00480d50(int, int) = 0;        // slot 2
-    virtual int FUN_00480db0(int, int) = 0;        // slot 3
-    virtual int FUN_00480df0(int, int) = 0;        // slot 4
-    virtual int FUN_00480c30(int, int) = 0;        // slot 5
-    virtual int FUN_00480cb0(int, int) = 0;        // slot 6
+    virtual void SetPieceTranslation(int, int, int) = 0;  // slot 0
+    virtual void SetPieceRotation(int, int, int) = 0;  // slot 1
+    virtual int SetPieceVisible(int, int) = 0;     // slot 2
+    virtual int SetPieceCached(int, int) = 0;      // slot 3
+    virtual int SetPieceShaded(int, int) = 0;      // slot 4
+    virtual int GetPieceTranslation(int, int) = 0;  // slot 5
+    virtual int GetPieceRotation(int, int) = 0;    // slot 6
 
-    void FUN_004b1c00(int param_1);
+    void AnimatePieces(int param_1);
 };
 
 // FUNCTION: 0x4b1c00
@@ -52,7 +52,7 @@ public:
 // e[4] limit, e[3] the current angle, e[2] the wanted angle (-1 means none). Each
 // element that still moves leaves its record's flag set, and any such flag keeps
 // field_18 (the "something is still animating" flag) at 1.
-void Class_004b1c00::FUN_004b1c00(int param_1)
+void Class_004b1c00::AnimatePieces(int param_1)
 {
     if (param_1 == 0)
         return;
@@ -64,7 +64,7 @@ void Class_004b1c00::FUN_004b1c00(int param_1)
             ptr14[i].flag = 0;
             for (int j = 0; j <= 2; j++) {
                 if (ptr14[i].e[1][j] != 0) {
-                    int v = FUN_00480c30(i, j);
+                    int v = GetPieceTranslation(i, j);
                     v += param_1 * ptr14[i].e[1][j];
                     if (ptr14[i].e[1][j] > 0) {
                         if (v >= ptr14[i].e[0][j]) {
@@ -79,7 +79,7 @@ void Class_004b1c00::FUN_004b1c00(int param_1)
                         } else
                             ptr14[i].flag = 1;
                     }
-                    FUN_00480c50(i, j, v);
+                    SetPieceTranslation(i, j, v);
                 }
                 if (ptr14[i].e[5][j] != 0) {
                     ptr14[i].e[3][j] += ptr14[i].e[5][j];
@@ -96,7 +96,7 @@ void Class_004b1c00::FUN_004b1c00(int param_1)
                     }
                 }
                 if (ptr14[i].e[3][j] != 0) {
-                    int r = FUN_00480cb0(i, j);
+                    int r = GetPieceRotation(i, j);
                     int cur = r;
                     int step = param_1 * ptr14[i].e[3][j];
                     r += step;
@@ -117,7 +117,7 @@ void Class_004b1c00::FUN_004b1c00(int param_1)
                         }
                     } else
                         ptr14[i].flag = 1;
-                    FUN_00480ce0(i, j, r & 0xffff);
+                    SetPieceRotation(i, j, r & 0xffff);
                 }
             }
             if (ptr14[i].flag != 0)

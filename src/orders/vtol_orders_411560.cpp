@@ -19,13 +19,13 @@ public:
     Class_004895c0* next;              // +0x8
     int value;                         // +0xc
     virtual ~Class_004895c0();
-    void FUN_00489690(Unit* o);
+    void SetUnit(Unit* o);
 };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(short); };
-class Class_004b0940 { public: void FUN_004b0940(const char*, int, int); };
+class Class_004b0940 { public: void StartScript(const char*, int, int); };
 
 #pragma pack(push, 1)
 struct UnitDef {
@@ -55,7 +55,7 @@ public:
 
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047f780(Unit*, int, const char*);
-void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4);
+void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 
 static inline Point WorldToCell(Vec3 v, Point origin)
 {
@@ -76,7 +76,7 @@ int __stdcall FUN_00411560(Unit* unit, Order* order, int flags)
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
             ((Class_00438880*)order)->FUN_00438880("Unloading");
-            order->target.FUN_00489690(unit->cargo);
+            order->target.SetUnit(unit->cargo);
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
             ((Class_0044e730*)obj)->FUN_0044e730(0x140);
@@ -106,8 +106,8 @@ int __stdcall FUN_00411560(Unit* unit, Order* order, int flags)
             FUN_0047f780(unit, 7, "Unable to unload unit");
             return 9;
         }
-        unit->script->FUN_004b0940("EndTransport", 0, 0);
-        FUN_0048aac0(unit->cargo, 0, -1, 1);
+        unit->script->StartScript("EndTransport", 0, 0);
+        AttachUnitToPiece(unit->cargo, 0, -1, 1);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);

@@ -31,7 +31,7 @@ static inline int Less_00488a50(const char* a, const char* b)
 }
 
 // FUNCTION: 0x488a50
-Item_00488a50* __stdcall FUN_00488a50(const char* name)
+Item_00488a50* __stdcall FindUnitType(const char* name)
 {
     Item_00488a50* end = g_game->items + g_game->count;
     Item_00488a50* lo = g_game->items + 1;

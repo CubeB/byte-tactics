@@ -18,17 +18,17 @@ struct Bitmap_00437be0 {
     unsigned char* plane2;             // +0x14
 };
 
-class Class_00437a30 {
+class CMemoryCache {
 public:
-    int FUN_00437a30(void** handle, int size);
-    int FUN_00437be0(Bitmap_00437be0** handle, int w, int h);
+    int AllocHandle(void** handle, int size);
+    int AllocTwoPlaneBitmap(Bitmap_00437be0** handle, int w, int h);
 };
 
 // FUNCTION: 0x437be0
-int Class_00437a30::FUN_00437be0(Bitmap_00437be0** handle, int w, int h)
+int CMemoryCache::AllocTwoPlaneBitmap(Bitmap_00437be0** handle, int w, int h)
 {
     int n = w * h;
-    if (!FUN_00437a30((void**)handle, n * 2 + 0x18))
+    if (!AllocHandle((void**)handle, n * 2 + 0x18))
         return 0;
     Bitmap_00437be0* b = *handle;
     if (!b)

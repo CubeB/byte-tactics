@@ -21,11 +21,11 @@ public:
 
     Class_004895c0(Owner_004895c0* o, int v);
     virtual ~Class_004895c0();
-    void FUN_00489690(Owner_004895c0* o);
+    void SetUnit(Owner_004895c0* o);
 };
 
 // FUNCTION: 0x489690
-void Class_004895c0::FUN_00489690(Owner_004895c0* o)
+void Class_004895c0::SetUnit(Owner_004895c0* o)
 {
     if (owner != 0) {
         Class_004895c0** pp = &owner->head;

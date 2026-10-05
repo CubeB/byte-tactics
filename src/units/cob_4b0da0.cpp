@@ -121,10 +121,10 @@ struct Piece
     int spin[3];
     int acceleration[3];
 };
-class Class_004b08c0
+class CobScript
 {
   public:
-    int FUN_004b08c0(int);
+    int StartThread(int);
 };
 int __stdcall FUN_004b6c30(int);
 class Class_004b0da0
@@ -138,27 +138,27 @@ class Class_004b0da0
     int changed;
     Channel channels[8];
     int activeCount;
-    virtual void FUN_00480c50(int, int, int) = 0;
-    virtual void FUN_00480ce0(int, int, int) = 0;
-    virtual void FUN_00480d50(int, int) = 0;
-    virtual void FUN_00480db0(int, int) = 0;
-    virtual void FUN_00480df0(int, int) = 0;
-    virtual int FUN_00480c30(int, int) = 0;
-    virtual int FUN_00480cb0(int, int) = 0;
-    virtual int FUN_004b1e50(int);
-    virtual int FUN_004b1e60(int);
-    virtual int FUN_004b1e70(int);
+    virtual void SetPieceTranslation(int, int, int) = 0;
+    virtual void SetPieceRotation(int, int, int) = 0;
+    virtual void SetPieceVisible(int, int) = 0;
+    virtual void SetPieceCached(int, int) = 0;
+    virtual void SetPieceShaded(int, int) = 0;
+    virtual int GetPieceTranslation(int, int) = 0;
+    virtual int GetPieceRotation(int, int) = 0;
+    virtual int IsPieceVisible(int);
+    virtual int IsPieceCached(int);
+    virtual int IsPieceShaded(int);
     virtual void FUN_004b1e80(int, int, int);
     virtual void FUN_004b1e90(int);
-    virtual void FUN_004b1ea0(int, int);
-    virtual void FUN_004b1eb0(int, unsigned int);
-    virtual void FUN_004b0650(unsigned short, int, int);
-    virtual void FUN_004b0660(unsigned short);
-    virtual void FUN_004b0670(int, int);
-    virtual int FUN_004b0680(int, int, int, int, int);
-    virtual int FUN_004b0690(int);
-    virtual int FUN_004b06a0();
-    void FUN_004b0da0(unsigned int channel, int elapsed);
+    virtual void EmitSfx(int, int);
+    virtual void ExplodePiece(int, unsigned int);
+    virtual void AttachUnit(unsigned short, int, int);
+    virtual void DropUnit(unsigned short);
+    virtual void SetUnitValue(int, int);
+    virtual int GetUnitValue(int, int, int, int, int);
+    virtual int IsCarryingUnit(int);
+    virtual int GetTransporterId();
+    void RunThread(unsigned int channel, int elapsed);
     void Wake(unsigned int index)
     {
         for (int i = 0; i < 8; i++)
@@ -168,7 +168,7 @@ class Class_004b0da0
 };
 
 // FUNCTION: 0x4b0da0
-void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
+void Class_004b0da0::RunThread(unsigned int channel, int elapsed)
 {
     Channel *c = &channels[channel];
     if ((c->state & 0xff000000) == 0)
@@ -209,7 +209,7 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
                 pieces[piece].move[axis] = c->Pop();
                 pieces[piece].moveSpeed[axis] = c->Pop() / scale;
                 p = pieces;
-                if (p[piece].move[axis] < FUN_00480c30(piece, axis))
+                if (p[piece].move[axis] < GetPieceTranslation(piece, axis))
                     p[piece].moveSpeed[axis] = -p[piece].moveSpeed[axis];
                 pieces[piece].active = 1;
                 changed = 1;
@@ -223,7 +223,7 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
                 pieces[piece].acceleration[axis] = 0;
                 pieces[piece].turnSpeed[axis] = c->Pop() / scale;
                 p = pieces;
-                int delta = p[piece].turn[axis] - FUN_00480cb0(piece, axis);
+                int delta = p[piece].turn[axis] - GetPieceRotation(piece, axis);
                 if (delta == 0)
                     p[piece].turnSpeed[axis] = 0;
                 else if ((abs(delta) > 0x8000) ^ (delta < 0))
@@ -257,22 +257,22 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
                 break;
             }
             case 0x10005000: {
-                FUN_00480d50(table->code[c->pc + 1], 1);
+                SetPieceVisible(table->code[c->pc + 1], 1);
                 c->pc += 2;
                 break;
             }
             case 0x10006000: {
-                FUN_00480d50(table->code[c->pc + 1], 0);
+                SetPieceVisible(table->code[c->pc + 1], 0);
                 c->pc += 2;
                 break;
             }
             case 0x10007000: {
-                FUN_00480db0(table->code[c->pc + 1], 1);
+                SetPieceCached(table->code[c->pc + 1], 1);
                 c->pc += 2;
                 break;
             }
             case 0x10008000: {
-                FUN_00480db0(table->code[c->pc + 1], 0);
+                SetPieceCached(table->code[c->pc + 1], 0);
                 c->pc += 2;
                 break;
             }
@@ -293,7 +293,7 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
                 int axis = table->code[c->pc + 2];
                 pieces[piece].move[axis] = c->Pop();
                 pieces[piece].moveSpeed[axis] = 0;
-                FUN_00480c50(piece, axis, pieces[piece].move[axis]);
+                SetPieceTranslation(piece, axis, pieces[piece].move[axis]);
                 c->pc += 3;
                 break;
             }
@@ -303,23 +303,23 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
                 pieces[piece].turn[axis] = c->Pop() & 0xffff;
                 pieces[piece].acceleration[axis] = 0;
                 pieces[piece].turnSpeed[axis] = 0;
-                FUN_00480ce0(piece, axis, pieces[piece].turn[axis]);
+                SetPieceRotation(piece, axis, pieces[piece].turn[axis]);
                 c->pc += 3;
                 break;
             }
             case 0x1000d000: {
-                FUN_00480df0(table->code[c->pc + 1], 1);
+                SetPieceShaded(table->code[c->pc + 1], 1);
                 c->pc += 2;
                 break;
             }
             case 0x1000e000: {
-                FUN_00480df0(table->code[c->pc + 1], 0);
+                SetPieceShaded(table->code[c->pc + 1], 0);
                 c->pc += 2;
                 break;
             }
             case 0x1000f000: {
                 int a = c->Pop();
-                FUN_004b1ea0(table->code[c->pc + 1], a);
+                EmitSfx(table->code[c->pc + 1], a);
                 c->pc += 2;
                 break;
             }
@@ -458,7 +458,7 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
             }
             case 0x10042000: {
                 int a = c->Pop();
-                c->Push(FUN_004b0680(a, 0, 0, 0, 0));
+                c->Push(GetUnitValue(a, 0, 0, 0, 0));
                 c->pc++;
                 break;
             }
@@ -468,18 +468,18 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
                 int d = c->Pop();
                 int e = c->Pop();
                 int f = c->Pop();
-                c->Push(FUN_004b0680(f, e, d, b, a));
+                c->Push(GetUnitValue(f, e, d, b, a));
                 c->pc++;
                 break;
             }
             case 0x10044000: {
                 int a = c->Pop();
-                c->Push(FUN_004b0690(a));
+                c->Push(IsCarryingUnit(a));
                 c->pc++;
                 break;
             }
             case 0x10045000: {
-                c->Push(FUN_004b06a0());
+                c->Push(GetTransporterId());
                 c->pc++;
                 break;
             }
@@ -552,7 +552,7 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
             }
             case 0x10061000: {
                 int count = table->code[c->pc + 2];
-                int child = ((Class_004b08c0 *)this)->FUN_004b08c0(table->code[c->pc + 1]);
+                int child = ((CobScript *)this)->StartThread(table->code[c->pc + 1]);
                 if (child >= 0)
                 {
                     if (count > 0)
@@ -574,7 +574,7 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
             }
             case 0x10062000: {
                 int count = table->code[c->pc + 2];
-                int child = ((Class_004b08c0 *)this)->FUN_004b08c0(table->code[c->pc + 1]);
+                int child = ((CobScript *)this)->StartThread(table->code[c->pc + 1]);
                 if (child >= 0)
                 {
                     if (count > 0)
@@ -648,14 +648,14 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
             }
             case 0x10071000: {
                 int a = c->Pop();
-                FUN_004b1eb0(table->code[c->pc + 1], a);
+                ExplodePiece(table->code[c->pc + 1], a);
                 c->pc += 2;
                 break;
             }
             case 0x10082000: {
                 int a = c->Pop();
                 int b = c->Pop();
-                FUN_004b0670(b, a);
+                SetUnitValue(b, a);
                 c->pc++;
                 break;
             }
@@ -663,12 +663,12 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
                 int a = c->Pop();
                 int b = c->Pop();
                 int d = c->Pop();
-                FUN_004b0650(d, b, a);
+                AttachUnit(d, b, a);
                 c->pc++;
                 break;
             }
             case 0x10084000: {
-                FUN_004b0660(c->Pop());
+                DropUnit(c->Pop());
                 c->pc++;
                 break;
             }

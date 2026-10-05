@@ -40,7 +40,7 @@ struct Info_4864b0 {
 
 class Class_004b0bc0 {
 public:
-    int FUN_004b0bc0(char* name, int* a, int* b, int c, int d);
+    int QueryScript(char* name, int* a, int* b, int c, int d);
 };
 
 struct Unit {
@@ -90,12 +90,12 @@ extern Game* g_game;
 
 int __stdcall GetSlotDpid(unsigned char index);
 int __stdcall BroadcastPacket(int id, unsigned char* packet, int size);
-void __stdcall FUN_004866d0(unsigned char* cmd, int param);
+void __stdcall ApplyUnitDeath(unsigned char* cmd, int param);
 void __stdcall FUN_00491d70(int param);
-void __stdcall FUN_00486f10(unsigned char player);
+void __stdcall KillPlayerUnits(unsigned char player);
 
 // FUNCTION: 0x4864b0
-void __stdcall FUN_004864b0(Unit* unit, int param_2)
+void __stdcall KillUnit(Unit* unit, int param_2)
 {
     if ((unit->flags & 0x10000000) != 0) {
         int same = _strcmpi(g_game->players[unit->link->owner->playerIndex].name,
@@ -117,7 +117,7 @@ void __stdcall FUN_004864b0(Unit* unit, int param_2)
                 amount = 1;
             if (amount > 100)
                 amount = 100;
-            unit->field_9a->FUN_004b0bc0("Killed", &amount, &flag, 0, 0);
+            unit->field_9a->QueryScript("Killed", &amount, &flag, 0, 0);
         }
         if (unit->field_104 != 0.0f) {
             flag = 0;
@@ -137,11 +137,11 @@ void __stdcall FUN_004864b0(Unit* unit, int param_2)
             (unit->link->state == 1 || unit->link->state == 2)) {
             BroadcastPacket(unit->link->field_4, (unsigned char*)&cmd, 0xb);
         }
-        FUN_004866d0((unsigned char*)&cmd, 1);
+        ApplyUnitDeath((unsigned char*)&cmd, 1);
         if (same && g_game->field_37ef6 != 0 && unit->link->active != 0 &&
             (unit->link->state == 1 || unit->link->state == 2)) {
             FUN_00491d70(1);
-            FUN_00486f10(unit->field_ff);
+            KillPlayerUnits(unit->field_ff);
         }
     }
 }

@@ -37,7 +37,7 @@ extern Game* g_game;
 unsigned char FindHostSlot();
 
 // FUNCTION: 0x440cd0
-int FUN_00440cd0()
+int CheckMapCrc()
 {
     if (!g_game->field_391e9->FUN_004358f0()) {
         return 0;

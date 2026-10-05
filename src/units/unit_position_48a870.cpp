@@ -51,22 +51,22 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_00485070(Pos_0048a870* pos);
-void __stdcall FUN_0048a490(Unit* unit);
+int __stdcall GetGroundHeight(Pos_0048a870* pos);
+void __stdcall AlignUnitToGround(Unit* unit);
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 // FUNCTION: 0x48a870
-void __stdcall FUN_0048a870(Unit* unit)
+void __stdcall UpdateUnitHeight(Unit* unit)
 {
     if ((unit->flags & 0x10000) || unit->type->floats) {
         unit->flags &= ~0x10000;
         if (unit->owner && (unit->flags & 3) == 1) {
             if (unit->type->over_water) {
                 if (unit->type->floats) {
-                    unit->pos.y.value = max(FUN_00485070(&unit->pos), g_game->seaLevel - unit->type->draft) << 16;
+                    unit->pos.y.value = max(GetGroundHeight(&unit->pos), g_game->seaLevel - unit->type->draft) << 16;
                 } else {
-                    unit->pos.y.value = FUN_00485070(&unit->pos) << 16;
+                    unit->pos.y.value = GetGroundHeight(&unit->pos) << 16;
                 }
             } else if (unit->type->on_water) {
                 Fixed h;
@@ -74,7 +74,7 @@ void __stdcall FUN_0048a870(Unit* unit)
                 h.value <<= 16;
                 unit->pos.y = h;
             } else {
-                FUN_0048a490(unit);
+                AlignUnitToGround(unit);
             }
         }
     }

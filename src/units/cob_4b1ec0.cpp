@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Save method of Class_004b0610 (the object at Unit+0x9a), the counterpart of
+// Save method of CobScript (the object at Unit+0x9a), the counterpart of
 // the loader 0x4b2040. Writes the eight 0xa4-byte records at +0x1c, the block
 // at ptr10, then one 0x6c-byte record per element of the array at ptr14.
 
@@ -61,7 +61,7 @@ struct Rec2_004b1ec0 {                 // 0x6c
     int h2;                            // +0x68
 };
 
-class Class_004b0610 {
+class CobScript {
 public:
     int field_4;                       // +0x4
     Table_004b1ec0* field_8;           // +0x8
@@ -72,22 +72,22 @@ public:
     Elem_4b0610 arr[8];                // +0x1c
     int field_53c;                     // +0x53c
 
-    virtual void FUN_00480c50(int, int, int) = 0;     // slot 0
-    virtual void FUN_00480ce0(int, int, int) = 0;     // slot 1
-    virtual void FUN_00480d50(int, int) = 0;          // slot 2
-    virtual void FUN_00480db0(int, int) = 0;          // slot 3
-    virtual void FUN_00480df0(int, int) = 0;          // slot 4
-    virtual int FUN_00480c30(int, int) = 0;           // slot 5
-    virtual int FUN_00480cb0(int, int) = 0;           // slot 6
-    virtual int FUN_004b1e50(int);                    // slot 7
-    virtual int FUN_004b1e60(int);                    // slot 8
-    virtual int FUN_004b1e70(int);                    // slot 9
+    virtual void SetPieceTranslation(int, int, int) = 0;  // slot 0
+    virtual void SetPieceRotation(int, int, int) = 0;  // slot 1
+    virtual void SetPieceVisible(int, int) = 0;       // slot 2
+    virtual void SetPieceCached(int, int) = 0;        // slot 3
+    virtual void SetPieceShaded(int, int) = 0;        // slot 4
+    virtual int GetPieceTranslation(int, int) = 0;    // slot 5
+    virtual int GetPieceRotation(int, int) = 0;       // slot 6
+    virtual int IsPieceVisible(int);                  // slot 7
+    virtual int IsPieceCached(int);                   // slot 8
+    virtual int IsPieceShaded(int);                   // slot 9
 
-    void FUN_004b1ec0(Class_004b4cf0* file);
+    void SaveScriptState(Class_004b4cf0* file);
 };
 
 // FUNCTION: 0x4b1ec0
-void Class_004b0610::FUN_004b1ec0(Class_004b4cf0* file)
+void CobScript::SaveScriptState(Class_004b4cf0* file)
 {
     ((Class_004b4c10*)file)->FUN_004b4c10(0);
 
@@ -103,9 +103,9 @@ void Class_004b0610::FUN_004b1ec0(Class_004b4cf0* file)
 
     for (int i = 0; i < field_8->count; i++) {
         Rec2_004b1ec0 rec;
-        rec.h0 = FUN_004b1e50(i);
-        rec.h1 = FUN_004b1e60(i);
-        rec.h2 = FUN_004b1e70(i);
+        rec.h0 = IsPieceVisible(i);
+        rec.h1 = IsPieceCached(i);
+        rec.h2 = IsPieceShaded(i);
         for (int j = 0; j <= 2; j++) {
             rec.block.e[0].v[j] = ptr14[i].block.e[0].v[j];
             rec.block.e[1].v[j] = ptr14[i].block.e[1].v[j];
@@ -113,8 +113,8 @@ void Class_004b0610::FUN_004b1ec0(Class_004b4cf0* file)
             rec.block.e[3].v[j] = ptr14[i].block.e[3].v[j];
             rec.block.e[4].v[j] = ptr14[i].block.e[4].v[j];
             rec.block.e[5].v[j] = ptr14[i].block.e[5].v[j];
-            rec.a[j] = FUN_00480c30(i, j);
-            rec.b[j] = FUN_00480cb0(i, j);
+            rec.a[j] = GetPieceTranslation(i, j);
+            rec.b[j] = GetPieceRotation(i, j);
         }
         file->FUN_004b4cf0(&rec, 0x6c);
     }

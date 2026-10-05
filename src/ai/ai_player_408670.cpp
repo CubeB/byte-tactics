@@ -17,7 +17,7 @@ struct Unit_00408670 {
 
 class Class_0048b090 {
 public:
-    void FUN_0048b090(int param_1, int param_2);
+    void SetStateBits(int param_1, int param_2);
 };
 
 float __stdcall FUN_00464ad0(void* param_1);
@@ -29,9 +29,9 @@ void __stdcall FUN_00408670(Unit_00408670* unit)
     Info_00408670* info = unit->info;
     if (info->field_98 + info->field_98 < info->field_8c) {
         if (FUN_00464ad0(info) > 0.0f && FUN_004b6c30(5) != 0) {
-            ((Class_0048b090*)unit)->FUN_0048b090(1, 1);
+            ((Class_0048b090*)unit)->SetStateBits(1, 1);
         }
     } else {
-        ((Class_0048b090*)unit)->FUN_0048b090(1, 0);
+        ((Class_0048b090*)unit)->SetStateBits(1, 0);
     }
 }

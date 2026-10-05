@@ -271,7 +271,7 @@ extern int DAT_00511de0;                                                        
 extern int DAT_00511de4;                                                                      // 0x511de4, 4 bytes; 2 of 2 files
 extern Game* g_game;                                                                          // 0x511de8, 4 bytes; 907 of 1042 files (conflicting: shape)
 extern int DAT_00511dec;                                                                      // 0x511dec, 4 bytes; 1 of 1 files
-extern unsigned char DAT_00511f80[16];                                                        // 0x511f80, 16 bytes; Class_00437a30 by value in 1 of 5 files (conflicting: struct names only)
+extern unsigned char DAT_00511f80[16];                                                        // 0x511f80, 16 bytes; CMemoryCache by value in 5 of 5 files
 extern int DAT_00511f90;                                                                      // 0x511f90, 4 bytes; 1 of 1 files
 extern int DAT_00511f94;                                                                      // 0x511f94, 4 bytes; 1 of 1 files
 extern int DAT_00511f98;                                                                      // 0x511f98, 4 bytes; 1 of 1 files
@@ -533,7 +533,7 @@ extern int DAT_0051e690;                                                        
 extern int DAT_0051e694;                                                                      // 0x51e694, 4 bytes; 9 of 10 files (conflicting: shape)
 extern int DAT_0051e698;                                                                      // 0x51e698, 4 bytes; 2 of 2 files
 extern int DAT_0051e69c;                                                                      // 0x51e69c, 4 bytes; 2 of 2 files
-extern unsigned char DAT_0051e6b0[12];                                                        // 0x51e6b0, 12 bytes, DAT_0051e6b0$S4554; std::vector<Class_00489260, std::allocator<Class_00489260> > by value in 1 of 1 files
+extern unsigned char DAT_0051e6b0[12];                                                        // 0x51e6b0, 12 bytes, DAT_0051e6b0$S4554; std::vector<UnitCategory, std::allocator<UnitCategory> > by value in 1 of 1 files
 extern unsigned char DAT_0051e6bc[4];                                                         // 0x51e6bc, 4 bytes; nothing refers to it
 extern int DAT_0051e6c0;                                                                      // 0x51e6c0, 4 bytes; 2 of 2 files
 extern unsigned int DAT_0051e6c4;                                                             // 0x51e6c4, 4 bytes; 1 of 1 files
@@ -713,7 +713,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fd3b8 DAT_004fd3b8: defined in src/data/vtables.cpp
 //   0x511df0 DAT_00511df0: Obj_00421170*[] (2), int[100] (1), void*[100] (1), Obj_00420f30*[100] (1), and 2 more
-//   0x512358 Class_00440290::DAT_00512358: defined in src/units/movement_class_440230.cpp
+//   0x512358 MovementClassTable::g_movementClasses: defined in src/units/movement_class_440230.cpp
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync_46c920.cpp
 //   0x51f2e8 DAT_0051f2e8: char* (4), int (1), int* (1), void* (1)
 //   0x4fcd98 DPSPGUID_IPX: defined in src/data/guids.cpp
@@ -814,7 +814,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x5122d4 DAT_005122d4: void* (1), char* (1)
 //   0x512328 DAT_00512328: Player_00437cd0* (1), void* (1)
 //   0x512340 DAT_00512340$S5516: defined in src/map/meteors_438450.cpp
-//   0x512370 DAT_00512370: part of another global: Class_00440290::DAT_00512358+0x18
+//   0x512370 DAT_00512370: part of another global: MovementClassTable::g_movementClasses+0x18
 //   0x512764 DAT_00512764: short (1), int (1)
 //   0x5129f1 DAT_005129f1: part of another global: g_sendCondenser+0x21
 //   0x5129f8 g_receiveCondenser: defined in src/network/net_condenser_44f720.cpp

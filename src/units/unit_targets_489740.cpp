@@ -8,32 +8,32 @@ public:
     virtual void Notify(int code);
 };
 
-class Class_00489740;
+class UnitRef;
 
 #pragma pack(push, 2)
 struct Owner_00489740 {
     char unknown_0[0xa2];
-    Class_00489740* head;              // +0xa2
+    UnitRef* head;                     // +0xa2
 };
 #pragma pack(pop)
 
-class Class_00489740 {
+class UnitRef {
 public:
     char unknown_0[4];
     Owner_00489740* owner;             // +0x4
-    Class_00489740* next;              // +0x8
+    UnitRef* next;                     // +0x8
     Listener_00489740* listener;       // +0xc
 };
 
 // FUNCTION: 0x489740
-void __stdcall FUN_00489740(Owner_00489740* obj)
+void __stdcall ClearUnitRefs(Owner_00489740* obj)
 {
-    for (Class_00489740* n = obj->head; n != 0; n = obj->head) {
+    for (UnitRef* n = obj->head; n != 0; n = obj->head) {
         Owner_00489740* saved = n->owner;
         if (n->listener)
             n->listener->Notify(8);
         if (n->owner == saved && n->owner) {
-            Class_00489740** pp = &n->owner->head;
+            UnitRef** pp = &n->owner->head;
             while (*pp != n)
                 pp = &(*pp)->next;
             *pp = n->next;

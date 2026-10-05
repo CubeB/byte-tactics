@@ -393,7 +393,7 @@ public:
 
 class Class_004b0940 {
 public:
-    void FUN_004b0940(const char* name, int a, int b);
+    void StartScript(const char* name, int a, int b);
 };
 
 #pragma pack(push, 1)
@@ -411,7 +411,7 @@ public:
 
     unsigned char GetState() { return state; }
 
-    void FUN_0048b090(int mask, int set);
+    void SetStateBits(int mask, int set);
 };
 #pragma pack(pop)
 
@@ -428,7 +428,7 @@ static inline unsigned char GainedBits(unsigned char was, int is) { return (unsi
 static inline unsigned char AsByte(unsigned char bits) { return (unsigned char)bits; }
 
 // FUNCTION: 0x48b090
-void Class_0048b090::FUN_0048b090(int mask, int set)
+void Class_0048b090::SetStateBits(int mask, int set)
 {
     unsigned char lost, gained, old = GetState();
     int isOne, active;
@@ -451,17 +451,17 @@ void Class_0048b090::FUN_0048b090(int mask, int set)
             gained = ~old & now;
             lost = (unsigned char)newLost;
             if (gained & 1) {
-                vars->FUN_004b0940("Activate", 0, 0);
+                vars->StartScript("Activate", 0, 0);
                 FUN_0047f780(this, 3, 0);
             }
             if (lost & 1) {
-                vars->FUN_004b0940("Deactivate", 0, 0);
+                vars->StartScript("Deactivate", 0, 0);
                 FUN_0047f780(this, 4, 0);
             }
             if (gained & 8)
-                vars->FUN_004b0940("StartBuilding", 0, 0);
+                vars->StartScript("StartBuilding", 0, 0);
             if (lost & 8)
-                vars->FUN_004b0940("StopBuilding", 0, 0);
+                vars->StartScript("StopBuilding", 0, 0);
             if (gained & 4) {
                 FUN_0047f780(this, 0xe, 0);
                 for (link = head; link; link = link->next) {

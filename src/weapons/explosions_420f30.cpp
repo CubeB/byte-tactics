@@ -63,7 +63,7 @@ extern Game* g_game;
 extern Obj_00420f30* DAT_00511df0[100];
 
 int __stdcall FUN_004213b0(Obj_00420f30* obj);
-int __stdcall FUN_00485140(Vec3_00420f30* pos);
+int __stdcall GetCellMeanHeight(Vec3_00420f30* pos);
 int __stdcall FUN_004b8b90(Ref_00420f30* ref);
 void __stdcall FUN_00420a30(Vec3_00420f30* pos, void* src, int index, int flag);
 
@@ -90,7 +90,7 @@ void FUN_00420f30()
             d->angle_x += d->spin.x;
             d->angle_y += d->spin.y;
             d->angle_z += d->spin.z;
-            int r = FUN_00485140(&d->pos);
+            int r = GetCellMeanHeight(&d->pos);
             if (d->pos.y > (int)((unsigned)g_game->seaLevel << 16) || r >= (int)g_game->seaLevel) {
                 if (*(short*)((char*)&d->pos.y + 2) <= r) {
                     d->pos = old;

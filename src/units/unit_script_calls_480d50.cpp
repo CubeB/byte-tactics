@@ -16,16 +16,16 @@ struct Data_00480d50 {
 };
 #pragma pack(pop)
 
-class Class_00480d50 {
+class UnitScript {
 public:
     char unknown_0[0x540];
     Data_00480d50* data;               // +0x540
 
-    void FUN_00480d50(int index, int flag);
+    void SetPieceVisible(int index, int flag);
 };
 
 // FUNCTION: 0x480d50
-void Class_00480d50::FUN_00480d50(int index, int flag)
+void UnitScript::SetPieceVisible(int index, int flag)
 {
     if (data->entries[index].flag0 != flag) {
         data->entries[index].flag0 = flag;

@@ -24,7 +24,7 @@ extern Game* g_game;
 extern char DAT_00512370[];
 extern char DAT_00512770[];
 
-struct Class_00440320 {
+struct MovementClass {
     int* field_0;                      // +0x0
     short field_4;
     short field_6;
@@ -42,27 +42,27 @@ struct Class_00440320 {
 
 class Class_00440500 {
 public:
-    void FUN_00440500();
+    void BuildPassMap();
 };
 
-struct Class_00440290 {
-    Class_00440320 entries[32];
+struct MovementClassTable {
+    MovementClass entries[32];
 
-    static Class_00440290 DAT_00512358;
+    static MovementClassTable g_movementClasses;
 };
 
 // FUNCTION: 0x440940
-void FUN_00440940(void)
+void BuildAllPassMaps(void)
 {
     int count = 0;
     unsigned int n;
-    int p = (int)&Class_00440290::DAT_00512358;
+    int p = (int)&MovementClassTable::g_movementClasses;
     do {
         if (*(int*)p != 0) {
             count++;
         }
         p += 0x20;
-    } while (p < (int)&Class_00440290::DAT_00512358 + 0x400);
+    } while (p < (int)&MovementClassTable::g_movementClasses + 0x400);
 
     int progress = 100;
     unsigned int* q = (unsigned int*)DAT_00512370;
@@ -79,7 +79,7 @@ void FUN_00440940(void)
             } else {
                 q[0] = 0;
             }
-            ((Class_00440500*)(q - 6))->FUN_00440500();
+            ((Class_00440500*)(q - 6))->BuildPassMap();
             progress += 100;
             g_game->progress = progress / count;
         }

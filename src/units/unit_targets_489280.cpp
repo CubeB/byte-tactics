@@ -50,7 +50,7 @@ static inline float spd(int v)
 }
 
 // FUNCTION: 0x489280
-char* __stdcall FUN_00489280(UnitType_00489280* obj)
+char* __stdcall MakePropList(UnitType_00489280* obj)
 {
     char* buf = (char*)FUN_004d83b0("PropList", 0xc0);
     memset(buf, 0, 0xc0);

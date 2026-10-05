@@ -130,7 +130,7 @@ extern Game* g_game;
 
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 
-int __stdcall FUN_00485940(Player_004854a0* a, Player_004854a0* b)
+int __stdcall ComparePlayers(Player_004854a0* a, Player_004854a0* b)
 {
     if (g_game->mode->FUN_00435100() == 3)
         return a->key < b->key;
@@ -138,7 +138,7 @@ int __stdcall FUN_00485940(Player_004854a0* a, Player_004854a0* b)
 }
 
 // FUNCTION: 0x4854a0
-void __stdcall FUN_004854a0(void)
+void __stdcall AllocateUnitMemory(void)
 {
     g_game->field_1436f = 0;
     g_game->field_14373 &= 0xfffffffd;
@@ -164,7 +164,7 @@ void __stdcall FUN_004854a0(void)
     for (k = 0; k < 10; k++)
         v[k] = (Player_004854a0*)(g_game->players + k * 0x14b);
 
-    std::sort(v, v + 10, FUN_00485940);
+    std::sort(v, v + 10, ComparePlayers);
 
     pool[0xff] = 0xff;
     *(unsigned int*)(pool + 0x96) = 0;

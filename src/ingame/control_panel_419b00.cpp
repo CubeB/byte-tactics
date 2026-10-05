@@ -28,7 +28,7 @@ extern Game* g_game;
 
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_0043b0b0(Class_00438760 kind, Unit* unit, int id, int count);
-short __stdcall FUN_00488b10(char* name);
+short __stdcall FindUnitTypeId(char* name);
 
 // FUNCTION: 0x419b00
 void __stdcall FUN_00419b00(char* name, Unit* unit, int count)
@@ -43,7 +43,7 @@ void __stdcall FUN_00419b00(char* name, Unit* unit, int count)
         FUN_0043b0b0(Class_00438760("BUILDWEAPON"), unit, 0, count);
         return;
     }
-    unsigned short id = FUN_00488b10(name);
+    unsigned short id = FindUnitTypeId(name);
     if (id == 0)
         return;
     int mobile = unit->field_0;

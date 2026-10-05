@@ -4,7 +4,7 @@
 // is looked up in it (the same sorted (name, value) array and lower_bound as
 // 0x4c4630). The result is scaled, boosted by the attacker's armour
 // (6% per point, capped at 5 points), doubled or halved by two global flags,
-// and handed to FUN_00489bb0 together with the angle from the weapon to the
+// and handed to DamageUnit together with the angle from the weapon to the
 // target minus the target's heading.
 #include <string.h>
 
@@ -80,7 +80,7 @@ struct Flags_00499cd0 {
 extern char* g_game;
 
 short __cdecl FUN_004b715a(int x, int z);
-void __stdcall FUN_00489bb0(Unit* source, Unit* target,
+void __stdcall DamageUnit(Unit* source, Unit* target,
                             int amount, int type, unsigned short extra);
 
 static inline int* Find_00499cd0(Table_00499cd0* table, char* name)
@@ -129,6 +129,6 @@ int __stdcall FUN_00499cd0(Weapon_00499cd0* weapon, Unit* target,
         damage /= 2;
     bool veteran = (weapon->def->flags >> 7) & 1;
     int type = veteran ? 2 : 1;
-    FUN_00489bb0(attacker, target, damage, type, angle);
+    DamageUnit(attacker, target, damage, type, angle);
     return damage;
 }

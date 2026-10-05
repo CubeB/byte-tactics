@@ -5,7 +5,7 @@
 // at +0x7e) or the low flag bits differ. Then the unit is detached
 // (FUN_0047d0e0), the cell and the flags are updated, and it is put back into
 // the map (FUN_0047cc30) with its path redone (FUN_004827b0). Either way flag
-// 0x10000 (the "position changed" bit FUN_0048a870 tests) is set, and the new
+// 0x10000 (the "position changed" bit UpdateUnitHeight tests) is set, and the new
 // flags value is returned. The callers (0x406aa0, 0x43d730) pass the position
 // as a Vec3 by value and 1 as the last argument.
 //
@@ -57,7 +57,7 @@ static inline Point_0048a9f0 WorldToCell(Pos_0048a9f0 v, Point_0048a9f0 origin)
 }
 
 // FUNCTION: 0x48a9f0
-int __stdcall FUN_0048a9f0(Unit* unit, Pos_0048a9f0 pos, int param_5)
+int __stdcall SetUnitPosition(Unit* unit, Pos_0048a9f0 pos, int param_5)
 {
     Point_0048a9f0 cell = WorldToCell(pos, unit->origin);
     if (cell.x == unit->cell.x && cell.y == unit->cell.y && param_5 == (unit->flags & 3)) {

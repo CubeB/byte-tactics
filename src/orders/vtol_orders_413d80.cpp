@@ -13,18 +13,18 @@ struct Vec3 {
     }
 };
 struct Unit;
-class Class_0043d210 { public: char pad0[0x2e]; unsigned char flags; void FUN_0043d210(Unit*,int); };
+class Class_0043d210 { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*,int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_0044e730 { public: void FUN_0044e730(int); };
 class Class_0044e720 { public: void FUN_0044e720(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
-class Class_0048b090 { public: void FUN_0048b090(int,int); };
+class Class_0048b090 { public: void SetStateBits(int,int); };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004898b0 { public: void FUN_004898b0(int); };
-class Class_004895c0 { public: void FUN_00489690(Unit*); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
+class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x14a]; Point origin;
@@ -63,13 +63,13 @@ void __stdcall FUN_0047f780(Unit*, int, const char*);
 void __stdcall FUN_0041c110(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
-Unit* __stdcall FUN_00485f50(unsigned char, short, Vec3, int, int, int);
+Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
 void __stdcall FUN_0043adc0(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
-int __stdcall FUN_0048a980(Vec3*, Vec3*);
+int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall FUN_00438590(Unit*, Order*, short);
 int __stdcall FUN_00438700(Unit*, Order*, int);
 int __stdcall FUN_0041ba60(Unit*, Unit*, float);
-void __stdcall FUN_0043e400(Unit*, Vec3*);
+void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall FUN_004720d0(Vec3*, Vec3*, int);
 static inline Point WorldToCell(Vec3 v, Point origin)
 {
@@ -84,7 +84,7 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
     v->z = (origin.y + c.y * 2) << 19;
 }
 
-void __stdcall FUN_0048aac0(Unit*,Unit*,char,char);
+void __stdcall AttachUnitToPiece(Unit*,Unit*,char,char);
 void __stdcall FUN_00414350(Point,Vec3*,Point);
 int __cdecl FUN_004b70ef(short,int);
 int __cdecl FUN_004b7123(short,int);
@@ -101,11 +101,11 @@ int __stdcall FUN_00413d80(Unit* unit,Order* order,int flags)
     case 0:
         if (unit->motion && (unit->def->flags&0x800)) {
             ((Class_00438880*)order)->FUN_00438880("Building");
-            ((Class_004898b0*)unit)->FUN_004898b0(3);
-            if (unit->busy) FUN_0048aac0(unit,0,-1,2);
-            ((Class_0048b090*)unit)->FUN_0048b090(1,1);
+            ((Class_004898b0*)unit)->ClaimWeapons(3);
+            if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
+            ((Class_0048b090*)unit)->SetStateBits(1,1);
             if ((unit->motion->flags&3)==1) {
-                unit->motion->FUN_0043d210(unit,2);
+                unit->motion->SetFlightMode(unit,2);
                 Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                 ((Class_0044e6c0*)move)->FUN_0044e6c0(unit->def->altitude/2);
                 ((Class_004388d0*)order)->FUN_004388d0((int)move);
@@ -137,7 +137,7 @@ int __stdcall FUN_00413d80(Unit* unit,Order* order,int flags)
             return 2;
         }
         FUN_0047ddc0(def,&order->pos);
-        ((Class_004895c0*)((char*)order+0x12))->FUN_00489690(FUN_00485f50(unit->player,(short)order->type,order->pos,0,1,0));
+        ((Class_004895c0*)((char*)order+0x12))->SetUnit(CreateUnit(unit->player,(short)order->type,order->pos,0,1,0));
         if (!order->target) { FUN_0047f780(unit,7,"Unable to create any more units"); return 8; }
         FUN_0047f780(unit,9,"Starting construction");
         FUN_0043adc0("GETBUILT",1,order->target,unit,0,0,0);
@@ -149,7 +149,7 @@ int __stdcall FUN_00413d80(Unit* unit,Order* order,int flags)
         FUN_00438700(unit,order,10);
     case 4: {
         if (g_game->tick%150==0) {
-            int angle=FUN_0048a980(&unit->pos,&order->target->pos);
+            int angle=GetHeadingBetween(&unit->pos,&order->target->pos);
             int range=unit->def->buildRange<<16;
             angle+=0xdb6e;
             Vec3 pos=order->target->pos-Offset(angle,range);
@@ -160,7 +160,7 @@ int __stdcall FUN_00413d80(Unit* unit,Order* order,int flags)
         int rate=0; rate=unit->def->buildRate;
         if (FUN_0041ba60(unit,order->target,(float)(rate/30))) {
             Vec3 start;
-            FUN_0043e400(unit,&start);
+            GetNanoPiecePosition(unit,&start);
             Vec3 bounds[2];
             bounds[0]=order->target->pos+order->target->def->min;
             bounds[1]=order->target->pos+order->target->def->max;

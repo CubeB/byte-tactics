@@ -3,7 +3,7 @@
 // Aim angles from a unit's AimFrom piece to a point: writes the heading
 // difference and the pitch through two out-pointers and returns 1.
 //
-// Two details decide the code shape. FUN_0043e2e0 fills a local Vec3, so the
+// Two details decide the code shape. GetAimFromPosition fills a local Vec3, so the
 // three differences are named locals; the y difference is read back through a
 // 16.16 fixed-point union, which is what makes the compiler load only the high
 // word (`movsx ecx, word [slot+2]`) where a plain `>> 16` shifts the whole dword
@@ -29,14 +29,14 @@ struct Unit {
 
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
 
-void __stdcall FUN_0043e2e0(Unit* obj, Vec3* out, unsigned char weapon);
+void __stdcall GetAimFromPosition(Unit* obj, Vec3* out, unsigned char weapon);
 int __cdecl FUN_004b715a(int x, int z);
 
 // FUNCTION: 0x49d910
 int __stdcall FUN_0049d910(Unit* unit, Unit* target, short* out_heading, short* out_pitch, int weapon, Vec3* point)
 {
     Vec3 p;
-    FUN_0043e2e0(unit, &p, weapon);
+    GetAimFromPosition(unit, &p, weapon);
     int dx = p.x - point->x;
     Fixed dy;
     dy.value = p.y - point->y;

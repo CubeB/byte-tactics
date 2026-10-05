@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Slot 3 of Class_00485e30 (see 0x485e30.cpp); the same as 0x480df0 (slot 4)
+// Slot 3 of UnitScript (see 0x485e30.cpp); the same as 0x480df0 (slot 4)
 // but for bit 1 of the entry flags.
 
 #pragma pack(push, 1)
@@ -21,16 +21,16 @@ struct Data_00480db0 {
 };
 #pragma pack(pop)
 
-class Class_00485e30 {
+class UnitScript {
 public:
     char unknown_0[0x540];
     Data_00480db0* data;               // +0x540
 
-    void FUN_00480db0(int index, int flag);
+    void SetPieceCached(int index, int flag);
 };
 
 // FUNCTION: 0x480db0
-void Class_00485e30::FUN_00480db0(int index, int flag)
+void UnitScript::SetPieceCached(int index, int flag)
 {
     data->entries[index].flag1 = flag;
     data->field_10 = 0;

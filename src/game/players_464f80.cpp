@@ -193,9 +193,9 @@
 // byte write and the CSE'd duplicate player guard remain open as before.
 
 // deepseek-v4.1-flash 2026-10-01 (retry 5, timeboxed): 79.7 -> 80.2 percent,
-// 2385 -> 2386 bytes. Declaring the FUN_00488b10 result as
-// `unsigned int typeId = FUN_00488b10(...) & 0xffff;` instead of
-// `unsigned short typeId = FUN_00488b10(...);` deletes the raw-eax spill to
+// 2385 -> 2386 bytes. Declaring the FindUnitTypeId result as
+// `unsigned int typeId = FindUnitTypeId(...) & 0xffff;` instead of
+// `unsigned short typeId = FindUnitTypeId(...);` deletes the raw-eax spill to
 // [esp+0x30] plus the mov ecx,eax / mov eax,ecx pair and clears that hunk.
 // Still open: the shl edi,0x10 (screen_hh) schedule in the subscreen setup
 // (original shifts hh after `mov ebx,eax`, ours before `sub eax,ebp`), and the
@@ -309,7 +309,7 @@ struct Class_00435100 {
 };
 struct Class_0048ff40 { int FUN_00490230(); };
 struct Class_00490360 { int FUN_00490360(); };
-class Class_0048b090 { public: void FUN_0048b090(int which, int on); };
+class Class_0048b090 { public: void SetStateBits(int which, int on); };
 
 #pragma pack(push, 1)
 
@@ -476,12 +476,12 @@ void FUN_00466dc0();
 void FUN_00467440();
 void FUN_00466c20();
 unsigned char __stdcall FindHostSlot();
-unsigned short __stdcall FUN_00488b10(const char* name);
+unsigned short __stdcall FindUnitTypeId(const char* name);
 int __stdcall FUN_004b6c30(int range);
 int __stdcall FUN_0047db70(UnitDef_00464f80* type, int a, Point16 cell, int c);
 short __stdcall FUN_00421da0(Pos_00464f80* pos, int a, int b);
-int __stdcall FUN_00485140(Pos_00464f80* pos);
-Unit* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId,
+int __stdcall GetCellMeanHeight(Pos_00464f80* pos);
+Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
                                      Pos_00464f80 pos, int a, int b, int c);
 void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width);
 void __stdcall FUN_004816a0(int on);
@@ -624,7 +624,7 @@ void __stdcall FUN_00464f80()
                             Player_00464f80* self =
                                 g_game->players[FindHostSlot()].data;
                             unsigned int typeId;
-                            typeId = FUN_00488b10(
+                            typeId = FindUnitTypeId(
                                 &g_game->startPos[0x232 *
                                     g_game->players[g_game->localPlayer].data->field_95]) & 0xffff;
                             int bound = 9999;
@@ -661,14 +661,14 @@ void __stdcall FUN_00464f80()
                                 if (hits >= 9 && FUN_00421da0(&pos, 0, 0) == -1) {
                                     if (g_game->mode->field_d44 == 0)
                                         break;
-                                    if (FUN_00485140(&pos) >
+                                    if (GetCellMeanHeight(&pos) >
                                         (int)g_game->field_1427f)
                                         break;
                                 }
                             } while (--bound > 0);
 
                             {
-                                Unit* unit = FUN_00485f50(
+                                Unit* unit = CreateUnit(
                                     g_game->localPlayer, typeId, pos, 1, 1, 0);
                                 FUN_00496e90((Struct_00496e90*)pi,
                                              self->field_a3 * 100,

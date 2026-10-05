@@ -86,7 +86,7 @@ extern Class_0047db20 DAT_004fd660[];
 
 void __stdcall FUN_00483210(Point pos, Point size);
 void __stdcall FUN_0047e5c0(Point pos, Point size, Class_0047db20* visitor);
-void __stdcall FUN_00440a70(Obj_0047db20* obj);
+void __stdcall RefreshPassMapsForUnit(Obj_0047db20* obj);
 
 static inline Cell_0047db20* CellAt(const Point& p)
 {
@@ -142,5 +142,5 @@ void __stdcall FUN_0047d0e0(Obj_0047db20* obj)
         Class_0047db20 visitor;
         FUN_0047e5c0(obj->pos, obj->size, &visitor);
     }
-    FUN_00440a70(obj);
+    RefreshPassMapsForUnit(obj);
 }

@@ -89,14 +89,14 @@ extern Game* g_game;
 
 void FUN_00495860(void);
 
-class Class_00488d30 {
+class UnitTypeSet {
 public:
     int bits[16];
 };
 
-Class_00488d30* __stdcall FUN_00488c50(char* name);
+UnitTypeSet* __stdcall GetCategoryMask(char* name);
 
-static inline int TestBit(Class_00488d30* set, unsigned short n)
+static inline int TestBit(UnitTypeSet* set, unsigned short n)
 {
     return set->bits[n >> 5] & (1 << (n & 0x1f));
 }
@@ -104,10 +104,10 @@ static inline int TestBit(Class_00488d30* set, unsigned short n)
 // FUNCTION: 0x48d9a0
 bool __stdcall FUN_0048d9a0(int id, int param_2)
 {
-    Class_00488d30* setA = FUN_00488c50("CTRL_F");
+    UnitTypeSet* setA = GetCategoryMask("CTRL_F");
     int cnt = 0;
     Player_0048d9a0* player = &g_game->players[g_game->localPlayer];
-    Class_00488d30* setB = FUN_00488c50("CTRL_F");
+    UnitTypeSet* setB = GetCategoryMask("CTRL_F");
 
     Unit8_0048d9a0* u;
     Unit32_0048d9a0* v;

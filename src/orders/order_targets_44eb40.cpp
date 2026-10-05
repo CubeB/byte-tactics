@@ -22,11 +22,11 @@ public:
 };
 #pragma pack(pop)
 
-unsigned short __stdcall FUN_0048a980(Vec3_0044eb40* from, Vec3_0044eb40* to);
+unsigned short __stdcall GetHeadingBetween(Vec3_0044eb40* from, Vec3_0044eb40* to);
 
 // FUNCTION: 0x44eb40
 int Class_0044eb40::FUN_0044eb40(unsigned short* out)
 {
-    *out = FUN_0048a980(&self->pos, &target);
+    *out = GetHeadingBetween(&self->pos, &target);
     return 1;
 }

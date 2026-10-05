@@ -9,7 +9,7 @@ struct Owner_00490a10;
 
 class Class_0043d210 {
 public:
-    void FUN_0043d210(Owner_00490a10* owner, int state);
+    void SetFlightMode(Owner_00490a10* owner, int state);
 };
 
 struct Owner_00490a10 {
@@ -60,5 +60,5 @@ void Class_00490880::FUN_0044efd0(BitReader* reader)
     else if (kind == 2)
         current = new Class_0044e9c0(owner, reader);
     int state = reader->ReadBits(2);
-    owner->obj->FUN_0043d210(owner, state);
+    owner->obj->SetFlightMode(owner, state);
 }

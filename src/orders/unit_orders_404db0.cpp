@@ -42,7 +42,7 @@ public:
     int value;                         // +0xc
 
     virtual ~Class_004895c0();
-    void FUN_00489690(Unit* o);
+    void SetUnit(Unit* o);
 };
 
 class Class_00438ad0 {
@@ -157,14 +157,14 @@ extern Game* g_game;
 unsigned short __stdcall FUN_00421da0(Vec3* pos, Point16* cell, Point16* size);
 void __stdcall FUN_0047f780(Unit* unit, int kind, char* text);
 int __stdcall FUN_004b6c30(int range);
-int __stdcall FUN_00485070(Vec3* pos);
-unsigned short __stdcall FUN_0048a980(Vec3* from, Vec3* to);
+int __stdcall GetGroundHeight(Vec3* pos);
+unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 void __stdcall FUN_00438590(Unit* unit, Order* order, short turn);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
-unsigned short __stdcall FUN_00488b10(char* name);
-void __stdcall FUN_0043e400(Unit* unit, Vec3* out);
+unsigned short __stdcall FindUnitTypeId(char* name);
+void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall FUN_004720d0(Vec3* from, Box* to, int count);
-Unit* __stdcall FUN_00485f50(unsigned char player, unsigned short type, Vec3 pos, int a, int b, int c);
+Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec3 pos, int a, int b, int c);
 Cell* __stdcall FUN_004815f0(Vec3* pos);
 unsigned short __stdcall FUN_00421e60(Cell* cell);
 Cell* __stdcall FUN_004815a0(Vec3* pos);
@@ -210,8 +210,8 @@ int __stdcall FUN_00404db0(Unit* unit, Order* order, int flags)
         Vec3 pos;
         pos.x = (size.x + cell.x * 2) << 19;
         pos.z = (size.z + cell.z * 2) << 19;
-        pos.y = (FUN_004b6c30(f->height) + FUN_00485070(&pos)) << 16;
-        FUN_00438590(unit, order, FUN_0048a980(&unit->pos, &pos) - unit->rot.y);
+        pos.y = (FUN_004b6c30(f->height) + GetGroundHeight(&pos)) << 16;
+        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->rot.y);
         return 1;
     }
     case 2:
@@ -225,7 +225,7 @@ int __stdcall FUN_00404db0(Unit* unit, Order* order, int flags)
                 break;
             }
         }
-        order->unitType = FUN_00488b10(name);
+        order->unitType = FindUnitTypeId(name);
         if (!order->unitType) {
             FUN_0047f780(unit, 7, "Ressurection failed");
             return 8;
@@ -237,11 +237,11 @@ int __stdcall FUN_00404db0(Unit* unit, Order* order, int flags)
     case 4:
         if (order->time--) {
             Vec3 nano;
-            FUN_0043e400(unit, &nano);
+            GetNanoPiecePosition(unit, &nano);
             Box box;
             box.lo.x = cell.x << 20;
             box.lo.z = cell.z << 20;
-            box.lo.y = FUN_00485070(&box.lo) << 16;
+            box.lo.y = GetGroundHeight(&box.lo) << 16;
             box.hi = box.lo;
             box.hi.x += f->footprint.x << 20;
             box.hi.z += f->footprint.z << 20;
@@ -253,7 +253,7 @@ int __stdcall FUN_00404db0(Unit* unit, Order* order, int flags)
         }
         break;
     case 5: {
-        order->target.FUN_00489690(FUN_00485f50(unit->playerIndex, order->unitType, order->pos, 0, 1, 0));
+        order->target.SetUnit(CreateUnit(unit->playerIndex, order->unitType, order->pos, 0, 1, 0));
         if (!order->target.owner) {
             FUN_0047f780(unit, 7, "Unable to create any more units");
             ((Class_00439e80*)order)->FUN_00439e80(300);

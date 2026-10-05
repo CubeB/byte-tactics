@@ -30,22 +30,22 @@ public:
 };
 
 // 0x40-byte set (512 bits).
-class Class_00488d30 {
+class UnitTypeSet {
 public:
     int bits[16];
-    void FUN_00488d30(char* text, int* out);
+    void AddTypeOrCategory(char* text, int* out);
 };
 
-void __stdcall FUN_00409e90(int player, Class_00488d30* set, int value, int param_4);
+void __stdcall FUN_00409e90(int player, UnitTypeSet* set, int value, int param_4);
 
 // FUNCTION: 0x406e40
 void __stdcall FUN_00406e40(Class_004b73e0* args)
 {
     if (DAT_00501774 != 0) {
         int count;
-        Class_00488d30 set;
+        UnitTypeSet set;
         memset(&set, 0, sizeof(set));
-        set.FUN_00488d30(((Class_004b73c0*)args)->FUN_004b73c0(1, DAT_005119b8), &count);
+        set.AddTypeOrCategory(((Class_004b73c0*)args)->FUN_004b73c0(1, DAT_005119b8), &count);
         int value = args->FUN_004b73e0(2, 0);
         // A narrow index: MSVC then counts the loop down in a separate
         // register instead of testing the player offset.

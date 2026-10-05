@@ -2,7 +2,7 @@
 
 void __cdecl FUN_004d85a0(int* param_1);
 
-class Class_00437a20 {
+class CMemoryCache {
 public:
     char unknown_0[4];
     int* field_4;
@@ -11,7 +11,7 @@ public:
 };
 
 // FUNCTION: 0x437a20
-void Class_00437a20::FUN_00437a20()
+void CMemoryCache::FUN_00437a20()
 {
     FUN_004d85a0(field_4);
 }

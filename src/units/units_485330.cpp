@@ -42,7 +42,7 @@ static inline Cell_00485330* GetCell(int x, int y)
 }
 
 // FUNCTION: 0x485330
-void __stdcall FUN_00485330(int x, int y, Pos_00485330* out)
+void __stdcall GetCellPosition(int x, int y, Pos_00485330* out)
 {
     Cell_00485330* cell = GetCell(x, y);
     if (cell) {

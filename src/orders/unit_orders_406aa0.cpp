@@ -12,7 +12,7 @@ struct Game { char pad[0x14357]; Unit* first; Unit* last; };
 #pragma pack(pop)
 extern Game* g_game;
 void __stdcall FUN_00471fd0(Vec*,Vec*,int,int);
-void __stdcall FUN_0048a9f0(Unit*,Vec,int);
+void __stdcall SetUnitPosition(Unit*,Vec,int);
 // FUNCTION: 0x406aa0
 int __stdcall FUN_00406aa0(Unit* unit,Order* order,int unused)
 {
@@ -22,7 +22,7 @@ int __stdcall FUN_00406aa0(Unit* unit,Order* order,int unused)
         if(p->pos.x >= low.x && p->pos.x <= high.x && p->pos.z >= low.z && p->pos.z <= high.z && p->pos.y >= low.y && p->pos.y <= high.y && unit != p) {
             Vec dest = Sub(Add(order->pos,p->pos),unit->pos);
             FUN_00471fd0(&p->pos,&dest,30,5);
-            FUN_0048a9f0(p,dest,1);
+            SetUnitPosition(p,dest,1);
         }
     }
     return 5;

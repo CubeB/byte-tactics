@@ -8,7 +8,7 @@ struct Point_00440a70 {
     short y;
 };
 
-struct Class_00440320 {
+struct MovementClass {
     int* field_0;                      // +0x0
     char unknown_4[0x1c - 0x4];
     unsigned int field_1c;             // +0x1c
@@ -16,13 +16,13 @@ struct Class_00440320 {
 
 class Class_00440830 {
 public:
-    void FUN_00440830(Point_00440a70 a, Point_00440a70 b);
+    void RefreshPassMap(Point_00440a70 a, Point_00440a70 b);
 };
 
-struct Class_00440290 {
-    Class_00440320 entries[32];
+struct MovementClassTable {
+    MovementClass entries[32];
 
-    static Class_00440290 DAT_00512358;
+    static MovementClassTable g_movementClasses;
 };
 
 #pragma pack(push, 2)
@@ -52,21 +52,21 @@ extern Game* g_game;
 static inline void UpdateAll(Point_00440a70 a, Point_00440a70 b)
 {
     for (int i = 0; i < 32; i++) {
-        if (Class_00440290::DAT_00512358.entries[i].field_0 != 0) {
-            ((Class_00440830*)&Class_00440290::DAT_00512358.entries[i])->FUN_00440830(a, b);
+        if (MovementClassTable::g_movementClasses.entries[i].field_0 != 0) {
+            ((Class_00440830*)&MovementClassTable::g_movementClasses.entries[i])->RefreshPassMap(a, b);
         }
     }
 }
 
 // FUNCTION: 0x440a70
-void __stdcall FUN_00440a70(Struct_00440a70* p)
+void __stdcall RefreshPassMapsForUnit(Struct_00440a70* p)
 {
     if (p->unit != 0) {
         unsigned int last = p->unit->lastTick;
         p->unit->lastTick = g_game->ticks;
         for (int i = 0; i < 32; i++) {
-            if (last < Class_00440290::DAT_00512358.entries[i].field_1c) {
-                ((Class_00440830*)&Class_00440290::DAT_00512358.entries[i])->FUN_00440830(p->a, p->b);
+            if (last < MovementClassTable::g_movementClasses.entries[i].field_1c) {
+                ((Class_00440830*)&MovementClassTable::g_movementClasses.entries[i])->RefreshPassMap(p->a, p->b);
             }
         }
         return;

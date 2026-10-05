@@ -11,7 +11,7 @@ extern Game* g_game;
 
 class Class_004b07c0 {
 public:
-    int FUN_004b07c0(char* name);
+    int FindScript(char* name);
 };
 
 struct Player_00456200 {
@@ -47,7 +47,7 @@ int __stdcall SendScriptCallByName(Object_00456200* obj, char* name, char field_
                            int field_6, int field_a, int field_e, int field_12)
 {
     Packet_00456200 packet;
-    short index = obj->names->FUN_004b07c0(name);
+    short index = obj->names->FindScript(name);
     if (!(g_game->flags_2a44 & 1)) {
         return 0;
     }

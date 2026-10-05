@@ -123,10 +123,10 @@ void __stdcall FUN_004bca30(const char* pattern, int flags, std::vector<Class_00
 void* __cdecl FUN_004d83b0(const char* name, int size);
 void __cdecl FUN_004d8780(void* p);
 void __cdecl FUN_004d8710(void* p);
-void __cdecl FUN_0042be30();
+void __cdecl AddDownloadBuildOptions();
 
 // FUNCTION: 0x42dcf0
-void FUN_0042dcf0()
+void LoadDownloadMenus()
 {
     int c;
     int i;
@@ -194,5 +194,5 @@ void FUN_0042dcf0()
         }
     }
 
-    FUN_0042be30();
+    AddDownloadBuildOptions();
 }

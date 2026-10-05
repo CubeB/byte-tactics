@@ -20,7 +20,7 @@ struct Unit_00488f30 {
 extern Game* g_game;
 
 // FUNCTION: 0x488f30
-float __stdcall FUN_00488f30(Unit_00488f30* unit)
+float __stdcall GetEnergyUse(Unit_00488f30* unit)
 {
     if (unit->field_1c6 != 0.0) {
         return unit->field_1c6;

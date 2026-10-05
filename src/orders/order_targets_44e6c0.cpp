@@ -28,7 +28,7 @@ public:
 
 extern Game* g_game;
 
-int __stdcall FUN_00485070(Pos_0044e6c0* pos);
+int __stdcall GetGroundHeight(Pos_0044e6c0* pos);
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -38,7 +38,7 @@ void Class_0044e6c0::FUN_0044e6c0(int param_1)
     field_8 |= 8;
     field_c = param_1;
     if ((unsigned char)field_8 & 0x20) {
-        pos.y = (max(FUN_00485070(&pos), g_game->seaLevel) + param_1) << 16;
+        pos.y = (max(GetGroundHeight(&pos), g_game->seaLevel) + param_1) << 16;
         if (pos.y > 0x1ff0000)
             pos.y = 0x1ff0000;
     }

@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Slot 12 of Class_00485e30 (vtable 0x4fd698); see 0x485e30.cpp and the
+// Slot 12 of UnitScript (vtable 0x4fd698); see 0x485e30.cpp and the
 // sibling slot 13 (0x481140) for the class and its +0x540 data block.
 //
 // First the unit's visibility against the local player's map is tested; if the
@@ -58,16 +58,16 @@ void __stdcall FUN_00472530(int, int, int, short);
 void __stdcall FUN_00472810(int, short);
 void __stdcall FUN_004728f0(int, short);
 
-class Class_00485e30 {
+class UnitScript {
 public:
     char unknown_0[0x540];
     Data_00480eb0* data;               // +0x540
 
-    void FUN_004b1ea0(int a, int b);
+    void EmitSfx(int a, int b);
 };
 
 // FUNCTION: 0x480eb0
-void Class_00485e30::FUN_004b1ea0(int a, int b)
+void UnitScript::EmitSfx(int a, int b)
 {
     if (!FUN_00465ac0(&g_game->players[g_game->playerIndex], data->unit))
         return;

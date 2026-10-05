@@ -17,17 +17,17 @@ struct Bitmap_00437b50 {
     int field_14;                      // +0x14
 };
 
-class Class_00437a30 {
+class CMemoryCache {
 public:
-    int FUN_00437a30(void** handle, int size);
-    int FUN_00437b50(Bitmap_00437b50** handle, int w, int h);
+    int AllocHandle(void** handle, int size);
+    int AllocBitmap(Bitmap_00437b50** handle, int w, int h);
 };
 
 // FUNCTION: 0x437b50
-int Class_00437a30::FUN_00437b50(Bitmap_00437b50** handle, int w, int h)
+int CMemoryCache::AllocBitmap(Bitmap_00437b50** handle, int w, int h)
 {
     int n = w * h;
-    if (!FUN_00437a30((void**)handle, n + 0x18))
+    if (!AllocHandle((void**)handle, n + 0x18))
         return 0;
     Bitmap_00437b50* b = *handle;
     if (!b)

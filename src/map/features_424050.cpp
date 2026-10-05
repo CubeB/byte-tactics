@@ -2,7 +2,7 @@
 // This file of the original was built with /Gz, so the function is __stdcall;
 // found by the orchestrator's calling-convention sweep of every partial.
 // Partial, 99.1%: the only difference left is the scheduling of the copy of
-// FootprintCentre's result right after the FUN_00485070 call in SmokeAt. The
+// FootprintCentre's result right after the GetGroundHeight call in SmokeAt. The
 // original issues `shl eax, 0x10` first and stores q.x before `push ecx`;
 // ours hoists `mov edx, [esp+0x2c]` and `lea ecx, [esi+4]` above the shl
 // and stores q.x after the push. The N-declarations test (0 to 600) and every
@@ -155,8 +155,8 @@ Cell_00424050* __stdcall FUN_00481550(int x, int y);
 void* __stdcall FUN_00423c50(Cell_00424050* cell, unsigned short feature, void* pos, void* rot,
                              unsigned char owner);
 void __stdcall FUN_004232f0(int index, int* head);
-int __stdcall FUN_00485140(Vec3_00424050* pos);
-int __stdcall FUN_00485070(Vec3_00424050* pos);
+int __stdcall GetCellMeanHeight(Vec3_00424050* pos);
+int __stdcall GetGroundHeight(Vec3_00424050* pos);
 Frame_00424050* __stdcall FUN_004b7ee0(Anim_00424050* anim);
 void __stdcall FUN_00472810(SmokePos_00424050* pos, short index);
 int __stdcall FUN_004246b0(Cell_00424050* cell, int flag);
@@ -172,7 +172,7 @@ static inline SmokePos_00424050 FootprintCentre_00421eb0(Point16_00424050* cell,
     SmokePos_00424050 p;
     p.x.value = (f.x + c.x * 2) << 19;
     p.z.value = (f.z + c.z * 2) << 19;
-    p.y.value = FUN_00485070((Vec3_00424050*)&p) << 16;
+    p.y.value = GetGroundHeight((Vec3_00424050*)&p) << 16;
     return p;
 }
 
@@ -250,7 +250,7 @@ void __stdcall FUN_00424050()
         if (!f->flag0) {
             if (spot->vel.NonZero()) {
                 spot->pos += spot->vel;
-                int ground = FUN_00485140(&spot->pos) << 16;
+                int ground = GetCellMeanHeight(&spot->pos) << 16;
                 if (spot->pos.y <= ground) {
                     spot->pos.y = ground;
                     spot->vel = Vec3_00424050(0, 0, 0);

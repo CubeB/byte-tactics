@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Looks a name up in the table at +8 and claims a channel slot for its index
-// (FUN_004b08c0, see 0x4b0a10.cpp); -1 when there is no table.
+// (StartThread, see 0x4b0a10.cpp); -1 when there is no table.
 #include <string.h>
 
 struct NameTable_004b0830 {
@@ -15,12 +15,12 @@ public:
     char unknown_0[8];
     NameTable_004b0830* table;         // +0x8
 
-    int FUN_004b07c0(const char* name);
+    int FindScript(const char* name);
 };
 
-class Class_004b08c0 {
+class CobScript {
 public:
-    int FUN_004b08c0(int id);
+    int StartThread(int id);
 };
 
 class Class_004b0830 {
@@ -28,7 +28,7 @@ public:
     char unknown_0[8];
     NameTable_004b0830* table;         // +0x8
 
-    int FUN_004b0830(const char* name);
+    int StartThreadByName(const char* name);
 };
 
 // The name lookup at 0x4b07c0 (the function just before this one in the
@@ -37,7 +37,7 @@ public:
 // gives the loop guard its own copy of the "-1" call instead of sharing the
 // loop exit.
 // FUNCTION: 0x4b07c0
-int Class_004b07c0::FUN_004b07c0(const char* name)
+int Class_004b07c0::FindScript(const char* name)
 {
     for (int i = 0; i < table->count; i++) {
         if (strcmp(name, table->names[i]) == 0) {
@@ -48,10 +48,10 @@ int Class_004b07c0::FUN_004b07c0(const char* name)
 }
 
 // FUNCTION: 0x4b0830
-int Class_004b0830::FUN_004b0830(const char* name)
+int Class_004b0830::StartThreadByName(const char* name)
 {
     if (table == 0) {
         return -1;
     }
-    return ((Class_004b08c0*)this)->FUN_004b08c0(((Class_004b07c0*)this)->FUN_004b07c0(name));
+    return ((CobScript*)this)->StartThread(((Class_004b07c0*)this)->FindScript(name));
 }

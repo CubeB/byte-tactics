@@ -11,7 +11,7 @@ public:
 
 class Class_00437c80 {
 public:
-    void FUN_00437c80();
+    void FlushCache();
 };
 
 void __stdcall FUN_004597f0(int param_1, int param_2, int param_3);
@@ -20,5 +20,5 @@ void __stdcall FUN_004597f0(int param_1, int param_2, int param_3);
 void __stdcall FUN_004166c0(Class_004b73e0* args)
 {
     FUN_004597f0(args->FUN_004b73e0(1, 0), args->FUN_004b73e0(2, 0), args->FUN_004b73e0(3, 0));
-    (*(Class_00437c80**)((char*)g_game + 0x1437b))->FUN_00437c80();
+    (*(Class_00437c80**)((char*)g_game + 0x1437b))->FlushCache();
 }

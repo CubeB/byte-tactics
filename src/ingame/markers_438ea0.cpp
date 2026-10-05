@@ -59,7 +59,7 @@ extern double DAT_004fd2b8;              // 0.125
 
 int __cdecl FUN_004b70ef(int angle, int radius);
 int __cdecl FUN_004b7123(int angle, int radius);
-int __stdcall FUN_00485070(Pos_00438ea0* pos);
+int __stdcall GetGroundHeight(Pos_00438ea0* pos);
 void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
 void __stdcall FUN_004c14f0(void* surface, const char* text, int x, int y, int maxWidth);
 
@@ -103,10 +103,10 @@ void __stdcall FUN_00438ea0(void* surface, View_00438ea0* view, Pos_00438ea0* po
             int rad = radius << 16;
             do {
                 Pos_00438ea0 p1 = *pos - Offset(angle, rad);
-                p1.y.s.whole = __max(pos->y.s.whole, FUN_00485070(&p1));
+                p1.y.s.whole = __max(pos->y.s.whole, GetGroundHeight(&p1));
                 angle += step;
                 Pos_00438ea0 p2 = *pos - Offset(angle, rad);
-                p2.y.s.whole = __max(pos->y.s.whole, FUN_00485070(&p2));
+                p2.y.s.whole = __max(pos->y.s.whole, GetGroundHeight(&p2));
                 int sx = view->scroll_x;
                 int sy = view->scroll_y;
                 y2 = p2.z.s.whole - (p2.y.s.whole >> 1) - sy + 0x20;

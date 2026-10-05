@@ -40,7 +40,7 @@ static inline short SumZ_0043e180(Obj_0043e180* obj, Rec_0043e180* q)
 }
 
 // FUNCTION: 0x43e180
-Out_0043e180 __stdcall FUN_0043e180(Obj_0043e180* obj, int index)
+Out_0043e180 __stdcall GetPieceAngles(Obj_0043e180* obj, int index)
 {
     Rec_0043e180* r = obj->recs;
     Out_0043e180 p;

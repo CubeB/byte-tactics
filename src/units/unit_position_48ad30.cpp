@@ -37,13 +37,13 @@ public:
     int waterDamage;                   // +0xd50
 };
 
-class Class_0043dd20;
+class UnitMotion;
 struct Player_0048ad30;
 
-class Class_004b0d60 {
+class CobScript {
 public:
     char unknown_0[8];
-    void FUN_004b0d60(int n);
+    void RunScripts(int n);
 };
 
 struct Type_0048ad30 {
@@ -77,7 +77,7 @@ union F110_0048ad30 {
 };
 
 struct Unit {
-    Class_0043dd20* def;                // +0x00
+    UnitMotion* def;                    // +0x00
     char unknown_4[0x70 - 4];
     short f70;                         // +0x70
     char unknown_72[0x86 - 0x72];
@@ -85,7 +85,7 @@ struct Unit {
     char unknown_8a[0x92 - 0x8a];
     Type_0048ad30* type;               // +0x92
     Player_0048ad30* player;           // +0x96
-    Class_004b0d60* f9a;                // +0x9a
+    CobScript* f9a;                     // +0x9a
     char unknown_9e[0xa6 - 0x9e];
     unsigned short fa6;                // +0xa6
     char unknown_a8[0xf5 - 0xa8];
@@ -103,10 +103,10 @@ struct Unit {
     char unknown_114[0x118 - 0x114];
 };
 
-class Class_0043dd20 {
+class UnitMotion {
 public:
     char unknown_0[0x8a];
-    void FUN_0043dd20(Unit* u);
+    void UpdateMotion(Unit* u);
 };
 
 struct Player_0048ad30 {
@@ -148,15 +148,15 @@ struct Game {
 #pragma pack(pop)
 
 
-void __stdcall FUN_00437910(Unit* u);
+void __stdcall UpdateWindGenerator(Unit* u);
 void __stdcall FUN_0049e1a0(Unit* u);
 void __stdcall FUN_0043b7c0(Unit* u);
 void __stdcall FUN_0043bad0(Unit* u);
-void __stdcall FUN_0048a870(Unit* u);
-void __stdcall FUN_004864b0(Unit* u, int n);
-void __stdcall FUN_00489bb0(int a, Unit* u, int damage, int kind, int flag);
+void __stdcall UpdateUnitHeight(Unit* u);
+void __stdcall KillUnit(Unit* u, int n);
+void __stdcall DamageUnit(int a, Unit* u, int damage, int kind, int flag);
 int __stdcall FUN_0041bd10(Unit* u, Unit* u2, float f);
-void __stdcall FUN_0048b710(Player_0048ad30* p);
+void __stdcall SendUnitStates(Player_0048ad30* p);
 void __stdcall FUN_0048d790(void);
 int __stdcall FUN_004c1b80(int n);
 void __stdcall FUN_0041c2e0(int n);
@@ -168,7 +168,7 @@ static inline int PlayerMore(unsigned char i)
 }
 
 // FUNCTION: 0x48ad30
-void __stdcall FUN_0048ad30(void)
+void __stdcall UpdateAllUnits(void)
 {
     int* cnt;
     unsigned char i;
@@ -192,7 +192,7 @@ void __stdcall FUN_0048ad30(void)
             while (u <= last) {
                     if (u->fa6 != 0) {
                         (*cnt)++;
-                        FUN_00437910(u);
+                        UpdateWindGenerator(u);
                         if (p->f0 != 0) {
                             unsigned char k2 = p->f73;
                             if (k2 == 1 || k2 == 2) {
@@ -200,7 +200,7 @@ void __stdcall FUN_0048ad30(void)
                             }
                         }
                         if (u->f9a != 0) {
-                            u->f9a->FUN_004b0d60(1);
+                            u->f9a->RunScripts(1);
                         }
                         if (u->ffa != 0) {
                             u->ffa--;
@@ -233,7 +233,7 @@ void __stdcall FUN_0048ad30(void)
                                     && g_game->mode->waterDamage != 0
                                     && g_game->ticks % 30 == 0 && u->f70 <= g_game->seaLevel
                                     && !u->type->f241.bits.floats) {
-                                    FUN_00489bb0(0, u, g_game->mode->waterDamage, 0xb, 0);
+                                    DamageUnit(0, u, g_game->mode->waterDamage, 0xb, 0);
                                 }
                                 if (u->type->f200 != 0 && u->f108 < u->type->f1fa
                                     && (g_game->ticks & 7) == 0) {
@@ -243,13 +243,13 @@ void __stdcall FUN_0048ad30(void)
                                 FUN_0043b7c0(u);
                                 FUN_0043bad0(u);
                                 if (u->def != 0) {
-                                    u->def->FUN_0043dd20(u);
-                                    FUN_0048a870(u);
+                                    u->def->UpdateMotion(u);
+                                    UpdateUnitHeight(u);
                                 }
                             }
                         }
                         if (u->f110.bits.b14) {
-                            FUN_004864b0(u, u->ff5);
+                            KillUnit(u, u->ff5);
                         }
                     }
                     u = (Unit*)((char*)u + 0x118);
@@ -258,7 +258,7 @@ void __stdcall FUN_0048ad30(void)
                     if (p->f0 != 0) {
                         unsigned char k4 = p->f73;
                         if (k4 == 1 || k4 == 2) {
-                            FUN_0048b710(p);
+                            SendUnitStates(p);
                         }
                     }
                 }

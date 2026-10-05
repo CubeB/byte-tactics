@@ -63,7 +63,7 @@ extern Game* g_game;
 
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
-Vec3_0044e3c0 __stdcall FUN_0043e060(Unit* obj, int param);
+Vec3_0044e3c0 __stdcall GetPiecePosition(Unit* obj, int param);
 
 static inline Vec3_0044e3c0 Direction(short angle, int scale)
 {
@@ -82,7 +82,7 @@ int Class_0044e3c0::FUN_0044e3c0(Vec3_0044e3c0* out)
         if (target == 0 || target->field_82 == g_game->field_142b7)
             return 0;
         Vec3_0044e3c0* p = &pos;
-        *p = FUN_0043e060(target, field_10);
+        *p = GetPiecePosition(target, field_10);
         if (flags & 2) {
             short angle = target->heading;
             if (flags & 0x40)

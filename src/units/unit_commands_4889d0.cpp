@@ -11,12 +11,12 @@ public:
     void FUN_004c9390();
 };
 
-struct Elem_00488a00 {
+struct UnitCategory {
     Class_004c9390 name;               // +0x0
     int value;                         // +0x4
 
-    ~Elem_00488a00() { name.FUN_004c9390(); }
+    ~UnitCategory() { name.FUN_004c9390(); }
 };
 
 // FUNCTION: 0x4889d0 _$E5
-static std::vector<Elem_00488a00> DAT_0051e6b0;
+static std::vector<UnitCategory> DAT_0051e6b0;

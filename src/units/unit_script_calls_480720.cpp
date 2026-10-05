@@ -11,7 +11,7 @@ struct Point_00480720 {
 // makes the last case branchless. <stdlib.h> sets the load order of to.x and
 // from.x.
 // FUNCTION: 0x480720
-char __stdcall FUN_00480720(Point_00480720 from, Point_00480720 to)
+char __stdcall OctantBetween(Point_00480720 from, Point_00480720 to)
 {
     int dx = to.x - from.x;
     int dy = to.y - from.y;

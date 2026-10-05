@@ -19,7 +19,7 @@ static inline Vec3 operator+(const Vec3& a, const Vec3& b)
 
 class Class_004b0bc0 {
 public:
-    int FUN_004b0bc0(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
+    int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
 };
 
 #pragma pack(push, 1)
@@ -31,12 +31,12 @@ struct Object {
 };
 #pragma pack(pop)
 
-Vec3 __stdcall FUN_0043def0(Object* obj, int param);
+Vec3 __stdcall GetPieceOffset(Object* obj, int param);
 
 // FUNCTION: 0x43e400
-void __stdcall FUN_0043e400(Object* obj, Vec3* out)
+void __stdcall GetNanoPiecePosition(Object* obj, Vec3* out)
 {
     int piece = 0;
-    obj->script->FUN_004b0bc0("QueryNanoPiece", &piece, 0, 0, 0);
-    *out = obj->pos + FUN_0043def0(obj, piece);
+    obj->script->QueryScript("QueryNanoPiece", &piece, 0, 0, 0);
+    *out = obj->pos + GetPieceOffset(obj, piece);
 }

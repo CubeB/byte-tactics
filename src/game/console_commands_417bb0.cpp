@@ -20,12 +20,12 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_00485070(Pos_00417bb0* pos);
+int __stdcall GetGroundHeight(Pos_00417bb0* pos);
 
 // FUNCTION: 0x417bb0
 void __stdcall FUN_00417bb0(Pos_00417bb0* pos, int* screen_x, int* screen_y)
 {
-    int height = FUN_00485070(pos);
+    int height = GetGroundHeight(pos);
     *screen_x = pos->x - g_game->scroll_x + 0x80;
     *screen_y = pos->z - g_game->scroll_y - (height >> 1) + 0x20;
 }

@@ -48,7 +48,7 @@ public:
 };
 #pragma pack(pop)
 
-unsigned short __stdcall FUN_0048a980(Vec3_0044ea60* from, Vec3_0044ea60* to);
+unsigned short __stdcall GetHeadingBetween(Vec3_0044ea60* from, Vec3_0044ea60* to);
 void __cdecl FUN_004b7173(short angle, int* xy);
 
 // FUNCTION: 0x44ea60
@@ -59,7 +59,7 @@ int Class_0044ea60::FUN_0044ea60(Vec3_0044ea60* out)
     target.z += other.z;
     Vec3_0044ea60 v;
     v = Vec3_0044ea60(0, 0, 0);
-    unsigned short h = FUN_0048a980(&v, &other);
+    unsigned short h = GetHeadingBetween(&v, &other);
     if ((field_8 & 1) && h != heading) {
         short diff = heading - h;
         v.x = other.x;

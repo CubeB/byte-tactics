@@ -17,16 +17,16 @@ struct Data_00480c30 {
 };
 #pragma pack(pop)
 
-class Class_00480c30 {
+class UnitScript {
 public:
     char unknown_0[0x540];
     Data_00480c30* data;               // +0x540
 
-    int FUN_00480c30(int index, int slot);
+    int GetPieceTranslation(int index, int slot);
 };
 
 // FUNCTION: 0x480c30
-int Class_00480c30::FUN_00480c30(int index, int slot)
+int UnitScript::GetPieceTranslation(int index, int slot)
 {
     return data->entries[index].values[slot];
 }

@@ -48,7 +48,7 @@ static inline Cell_00485140* GetCell(int x, int y)
 }
 
 // FUNCTION: 0x485140
-int __stdcall FUN_00485140(Pos_00485140* p)
+int __stdcall GetCellMeanHeight(Pos_00485140* p)
 {
     int x = p->x.whole / 16, y = p->z.whole / 16;
     Cell_00485140* cell = GetCell(x, y);

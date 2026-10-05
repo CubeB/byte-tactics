@@ -11,7 +11,7 @@ class Class_004b73c0 { public: char* FUN_004b73c0(int,char*); };
 class Class_004b73e0 { public: int FUN_004b73e0(int,int); };
 int __stdcall FUN_004bc370(const char*,const char*);
 void __stdcall FUN_0047ddc0(UnitDef*,Vec3*);
-void* __stdcall FUN_00485f50(unsigned char,short,Vec3,int,int,int);
+void* __stdcall CreateUnit(unsigned char,short,Vec3,int,int,int);
 void* __stdcall FUN_004bb5b0(char*);
 void* __stdcall FUN_004bbff0(char*,void*,int*);
 unsigned int __stdcall FUN_004b7a30(char*,int,Class_004b73c0*,unsigned int);
@@ -27,7 +27,7 @@ void __stdcall FUN_00417890(Class_004b73c0* args)
         if (FUN_004bc370(def->name,args->FUN_004b73c0(0,DAT_005119b8))) {
             if (count) pos.x-=def->min.x;
             FUN_0047ddc0(def,&pos);
-            FUN_00485f50(((Class_004b73e0*)args)->FUN_004b73e0(1,0),i,pos,1,1,0);
+            CreateUnit(((Class_004b73e0*)args)->FUN_004b73e0(1,0),i,pos,1,1,0);
             pos.x+=def->max.x+0x200000;
             if (pos.x >= (g_game->width<<16)) { pos.x=0xa00000; pos.z+=0xa00000; }
             ++count;

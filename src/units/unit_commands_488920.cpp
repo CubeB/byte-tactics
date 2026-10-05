@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // std::sort's _Unguarded_insert for a vector of item pointers ordered by
-// FUN_00485940, from a file compiled with __stdcall as the default
+// ComparePlayers, from a file compiled with __stdcall as the default
 // (compare 0x488960).
 
 struct Item_00485940;

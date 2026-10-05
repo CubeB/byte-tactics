@@ -48,7 +48,7 @@ static inline int* Elem_00487af0(int* arr, int i)
 }
 
 // FUNCTION: 0x487af0
-int __stdcall FUN_00487af0(char* name, Struct_00487af0* param_2, int value)
+int __stdcall FindMissionUnit(char* name, Struct_00487af0* param_2, int value)
 {
     int i = 0;
 

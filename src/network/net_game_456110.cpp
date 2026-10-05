@@ -9,7 +9,7 @@ extern Game* g_game;
 
 class Class_004b07c0 {
 public:
-    int FUN_004b07c0(char* name);
+    int FindScript(char* name);
 };
 
 struct Player_00456110 {
@@ -44,7 +44,7 @@ int __stdcall BroadcastPacket(int player, void* data, int size);
 int __stdcall SendScriptCallNoArgsByName(Object_00456110* obj, char* name)
 {
     Packet_00456110 packet;
-    int index = obj->names->FUN_004b07c0(name);
+    int index = obj->names->FindScript(name);
     if (!(g_game->flags_2a44 & 1)) {
         return 0;
     }

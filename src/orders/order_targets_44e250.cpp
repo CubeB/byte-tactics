@@ -28,7 +28,7 @@ public:
     int field_c;
 
     Class_004895c0(int unit, int value);
-    void FUN_00489690(int unit);
+    void SetUnit(int unit);
 };
 
 extern void* DAT_004fd2f8[];
@@ -72,5 +72,5 @@ Class_0044e250::Class_0044e250(Source_0044e250* source, int unit, short value)
     field_8 = 5;
     field_12 = source->unit;
     pos = field_12->pos;
-    ref.FUN_00489690(unit);
+    ref.SetUnit(unit);
 }

@@ -19,9 +19,9 @@ struct Vec3_0049e1a0 {
     int z;
 };
 
-class Class_004b0a70 {
+class CobScript {
   public:
-    int FUN_004b0a70(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6,
+    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6,
                      int param_7, int param_8);
 };
 
@@ -104,7 +104,7 @@ struct Unit {
     char unknown_76[0x92 - 0x76];
     UnitType_0049e1a0* type; // +0x92
     char unknown_96[0x9a - 0x96];
-    Class_004b0a70* script; // +0x9a
+    CobScript* script; // +0x9a
     char unknown_9e[0xb8 - 0x9e];
     unsigned short f_b8; // +0xb8
     union {              // +0xba
@@ -122,9 +122,9 @@ struct Unit {
 // string bytes as a pointer.
 extern char* DAT_00509688[3];
 
-int __stdcall FUN_0048a1e0(Unit* unit, Vec3_0049e1a0* pos, int index);
-Unit* __stdcall FUN_0048a190(Unit* obj, int index);
-void __stdcall FUN_0043e2e0(Unit* unit, Vec3_0049e1a0* out, unsigned char weapon);
+int __stdcall GetWeaponTargetPos(Unit* unit, Vec3_0049e1a0* pos, int index);
+Unit* __stdcall GetWeaponTargetUnit(Unit* obj, int index);
+void __stdcall GetAimFromPosition(Unit* unit, Vec3_0049e1a0* out, unsigned char weapon);
 void __stdcall FUN_0049e570(Vec3_0049e1a0* a, Vec3_0049e1a0* b, int* dx, int* dy, int* dz);
 short __cdecl FUN_004b715a(int x, int z);
 unsigned short __stdcall FUN_0049a890(int a, int b, int c, int d, float e);
@@ -155,7 +155,7 @@ void __stdcall FUN_0049e1a0(Unit* unit) {
             continue;
         if (e->f_14 > 0)
             e->f_14--;
-        if (!FUN_0048a1e0(unit, &pos, i)) {
+        if (!GetWeaponTargetPos(unit, &pos, i)) {
             e->flags &= 0xfe;
             continue;
         }
@@ -167,7 +167,7 @@ void __stdcall FUN_0049e1a0(Unit* unit) {
                 unsigned short angle;
                 int ok;
                 if (t->f_111.b1) {
-                    FUN_0043e2e0(unit, &aim, (unsigned char)((e->flags >> 2) & 3));
+                    GetAimFromPosition(unit, &aim, (unsigned char)((e->flags >> 2) & 3));
                     FUN_0049e570(&aim, &pos, &dx, &dy, &dz);
                     heading = (unsigned short)(FUN_004b715a(dx, dz) - unit->heading);
                     angle = FUN_0049a890(dx, dy, dz, t->f_68, t->f_c8);
@@ -182,7 +182,7 @@ void __stdcall FUN_0049e1a0(Unit* unit) {
                     e->f_18 = angle;
                     e->f_16 = heading;
                     e->f_8 = 0;
-                    unit->script->FUN_004b0a70(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2,
+                    unit->script->StartScriptWithArgs(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2,
                                                heading, angle, 0, 0);
                     SendScriptCallByName(unit, DAT_00509688[(e->flags >> 2) & 3], 2, heading, angle, 0, 0);
                     e->flags |= 1;
@@ -192,7 +192,7 @@ void __stdcall FUN_0049e1a0(Unit* unit) {
             bool armed = attached->f_111.b4;
             if (armed && (!attached->f_111.b28 || e->f_1a) && !(e->flags & 1)) {
                 e->f_8 = 0;
-                unit->script->FUN_004b0a70(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2, 0, 0,
+                unit->script->StartScriptWithArgs(DAT_00509688[(e->flags >> 2) & 3], &e->name, 0, 2, 0, 0,
                                            0, 0);
                 SendScriptCallByName(unit, DAT_00509688[(e->flags >> 2) & 3], 2, 0, 0, 0, 0);
                 e->flags |= 1;
@@ -212,7 +212,7 @@ void __stdcall FUN_0049e1a0(Unit* unit) {
             }
             if (can == 0)
                 continue;
-            Unit* fired = FUN_0048a190(unit, i);
+            Unit* fired = GetWeaponTargetUnit(unit, i);
             if (attached->f60(unit, &e->point, fired, &pos) == 0)
                 continue;
             if (attached->f_111.b28) {

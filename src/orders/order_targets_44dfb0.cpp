@@ -41,7 +41,7 @@ public:
     Class_004895c0(int unit = 0, int value = 0);
 };
 
-class Class_00489650 {
+class UnitRef {
 public:
     void FUN_00489650();
 };
@@ -110,6 +110,6 @@ int Class_0044dfb0::FUN_0044dfb0(int unused, Class_004b4ba0* file, char* name)
     file->FUN_004b4ba0(name);
     ((Class_004b4c10*)file)->FUN_004b4c10(0);
     ((Class_004b4cf0*)file)->FUN_004b4cf0(&rec, 0x36);
-    ((Class_00489650*)&rec.ref_vt)->FUN_00489650();
+    ((UnitRef*)&rec.ref_vt)->FUN_00489650();
     return 1;
 }

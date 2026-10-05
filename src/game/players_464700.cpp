@@ -129,7 +129,7 @@ struct Game {
 extern Game* g_game;
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
-void __stdcall FUN_00480190(Player_00464700* p);
+void __stdcall CreateSquads(Player_00464700* p);
 void __stdcall FUN_0040b320(int player);
 
 // FUNCTION: 0x464700
@@ -197,7 +197,7 @@ guard:
     // read directly the load comes first, the original has it second).
     void*& bref = p->buffer;
     memset(bref, 0, sz);
-    FUN_00480190(p);
+    CreateSquads(p);
     if (!p->active || p->type != 3) {
         p->unit = new Class_00408cb0(p);
         FUN_0040b320(p->team);

@@ -1,12 +1,12 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004b07a0 {
+class CobScript {
 public:
-    int FUN_004b07a0();
+    int GetCob();
 };
 
 // FUNCTION: 0x4b07a0
-int Class_004b07a0::FUN_004b07a0()
+int CobScript::GetCob()
 {
     return *(int*)((char*)this + 8);
 }

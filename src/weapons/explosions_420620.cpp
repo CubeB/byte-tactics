@@ -18,8 +18,8 @@ extern Game* g_game;
 extern int DAT_00511f90, DAT_00511f94, DAT_00511f98, DAT_00511f9c, DAT_00511fa0, DAT_00511fa4, DAT_00511fa8, DAT_00511fac, DAT_00511fb0;
 extern Shape DAT_00502bf8[6];
 extern int DAT_00511df0[100];
-class Class_004379b0 { public: void FUN_004379b0(int); };
-extern Class_004379b0 DAT_00511f80;
+class CMemoryCache { public: void InitCache(int); };
+extern CMemoryCache DAT_00511f80;
 extern void* __stdcall FUN_004b91b0(int, int, int);
 extern void* __cdecl FUN_004d83b0(const char*, unsigned);
 extern void* __stdcall FUN_00420d20(int);
@@ -65,6 +65,6 @@ void FUN_00420620() {
   g_game->frames[i][j].count=4;
   g_game->frames[i][j].shape=&DAT_00502bf8[j];
  }
- DAT_00511f80.FUN_004379b0(100000);
+ DAT_00511f80.InitCache(100000);
  memset(DAT_00511df0,0,sizeof(DAT_00511df0));
 }

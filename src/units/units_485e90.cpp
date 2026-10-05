@@ -3,13 +3,13 @@
 // at +8, +0x24 and +0x40 their vtable, stores the type id at +0xa6, then hands
 // the unit to the position/flags setter, the object builder and two more
 // methods. When the unit type's +0x22f is 1 the unit also gets a new
-// Class_0043dc00 and the type's +0x210 copied to +0x66, the tail of the
-// matched FUN_00485e50 (src/units/units_485e50.cpp) inlined.
+// UnitMotion and the type's +0x210 copied to +0x66, the tail of the
+// matched CreateUnitMotion (src/units/units_485e50.cpp) inlined.
 // The three vtable stores are guarded by `if (unit)` but the +0xa6 store right
 // after them, and the new expression at the end, are not: a null unit pointer
 // writes to 0xa6, then to 0, and reads 0x92. Kept as the original has it.
 
-class Class_0043dc00;
+class UnitMotion;
 
 #pragma pack(push, 1)
 struct UnitType_00485e90 {
@@ -32,7 +32,7 @@ struct Class_00481490 {                // 0x1c bytes, vtable 0x4fd6f0
 };
 
 struct Unit {
-    Class_0043dc00* obj;               // +0x0
+    UnitMotion* obj;                   // +0x0
     char unknown_4[0x8 - 0x4];
     Class_00481490 sub_8;              // +0x8
     Class_00481490 sub_24;             // +0x24
@@ -54,20 +54,20 @@ struct Game {
 extern Game* g_game;
 extern void* DAT_004fd6f0[];
 
-class Class_0043dc00 {
+class UnitMotion {
 public:
     char unknown_0[0x2f];
-    Class_0043dc00(Unit* unit);
+    UnitMotion(Unit* unit);
 };
 
-void __stdcall FUN_00485a40(Unit* unit, Pos_00485e90 pos, int param_5);
-void __stdcall FUN_00485d40(Unit* unit);
+void __stdcall InitUnitFromType(Unit* unit, Pos_00485e90 pos, int param_5);
+void __stdcall InitUnitScript(Unit* unit);
 void __stdcall FUN_0049e070(Unit* unit);
-void __stdcall FUN_00437840(Unit* unit);
+void __stdcall UpdateMetalExtraction(Unit* unit);
 void* __cdecl operator new(unsigned int size);
 
 // FUNCTION: 0x485e90
-void __stdcall FUN_00485e90(int unitType, Pos_00485e90 pos, int param_5, Unit* unit)
+void __stdcall InitUnit(int unitType, Pos_00485e90 pos, int param_5, Unit* unit)
 {
     UnitType_00485e90* type = &g_game->unitTypes[(unsigned short)unitType];
     if (unit) {
@@ -78,12 +78,12 @@ void __stdcall FUN_00485e90(int unitType, Pos_00485e90 pos, int param_5, Unit* u
         }
     }
     unit->field_a6 = (short)unitType;
-    FUN_00485a40(unit, pos, param_5);
-    FUN_00485d40(unit);
+    InitUnitFromType(unit, pos, param_5);
+    InitUnitScript(unit);
     FUN_0049e070(unit);
-    FUN_00437840(unit);
+    UpdateMetalExtraction(unit);
     if (type->field_22f == 1) {
-        unit->obj = new Class_0043dc00(unit);
+        unit->obj = new UnitMotion(unit);
         unit->field_66 = unit->type->field_210;
     }
 }

@@ -3,11 +3,11 @@
 struct Vec { int x,y,z; };
 struct Unit { int unused; };
 struct Player;
-void __stdcall FUN_00480460(Player*,int,unsigned char,int,Unit*,Vec*,int,int);
+void __stdcall OrderSquad(Player*,int,unsigned char,int,Unit*,Vec*,int,int);
 struct Group {
     Player* player; int id; char pad8[8]; std::vector<Unit*> units;
     void Send(unsigned char mode,int remove,Unit* target,Vec* pos,int flags,int extra) {
-        FUN_00480460(player,id,mode,remove,target,pos,flags,extra);
+        OrderSquad(player,id,mode,remove,target,pos,flags,extra);
     }
 };
 class Class_00407350 { public: int FUN_00407410(Vec*); };

@@ -22,7 +22,7 @@ public:
     int field_c;
 
     Class_004895c0(int unit, int value);
-    void FUN_00489690(int unit);
+    void SetUnit(int unit);
 };
 
 // The vtables are stored by hand: the base one already has a DAT_ name.
@@ -62,7 +62,7 @@ Class_0044e330::Class_0044e330(Source_0044e330* source, int unit, const Vec3_004
     : Class_0044ce20(source), ref(0, 0)
 {
     vtable = DAT_004fd3b8;
-    ref.FUN_00489690(unit);
+    ref.SetUnit(unit);
     pos = p;
     field_a = 0;
     field_c = 0;

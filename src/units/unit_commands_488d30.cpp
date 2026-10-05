@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Parses a player list: binary searches the sorted item table (g_game->items,
 // 0x249 bytes per item, name at +0x20, id at +0x21e) and, on a hit, sets that
-// id's bit in the 0x40-byte set; on a miss it merges the mask that FUN_00488c50
+// id's bit in the 0x40-byte set; on a miss it merges the mask that GetCategoryMask
 // returns for an alias name. *out is 1 for a single item, 0 for an alias.
 // The search and the final comparison are one inlined helper: that is what puts
 // the object pointer in ebx and the walking pointer in ebp, and it is also why
@@ -29,13 +29,13 @@ extern Game* g_game;
 extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 
 // 0x40-byte set (512 bits), as in the callers 0x406db0 and 0x406e40.
-class Class_00488d30 {
+class UnitTypeSet {
 public:
     int bits[16];
-    void FUN_00488d30(char* text, int* out);
+    void AddTypeOrCategory(char* text, int* out);
 };
 
-Class_00488d30* __stdcall FUN_00488c50(char* name);
+UnitTypeSet* __stdcall GetCategoryMask(char* name);
 
 static inline char* FindByName(char* first, char* last, char* text)
 {
@@ -56,7 +56,7 @@ static inline char* FindByName(char* first, char* last, char* text)
 }
 
 // FUNCTION: 0x488d30
-void Class_00488d30::FUN_00488d30(char* text, int* out)
+void UnitTypeSet::AddTypeOrCategory(char* text, int* out)
 {
     char* base = (char*)g_game->items;
     char* last = base + g_game->count * 0x249;
@@ -67,7 +67,7 @@ void Class_00488d30::FUN_00488d30(char* text, int* out)
         *out = 1;
         return;
     }
-    Class_00488d30* other = FUN_00488c50(text);
+    UnitTypeSet* other = GetCategoryMask(text);
     for (int i = 0; i < 16; i++)
         bits[i] |= other->bits[i];
     *out = 0;

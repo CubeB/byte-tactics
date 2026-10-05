@@ -81,7 +81,7 @@ struct Packet_0049db70 {
 
 extern Game* g_game;
 
-void __stdcall FUN_0043e240(Object_0049db70* obj, Vec3_0049db70* out, unsigned char weapon, int piece);
+void __stdcall GetWeaponPiecePosition(Object_0049db70* obj, Vec3_0049db70* out, unsigned char weapon, int piece);
 short __cdecl FUN_004b715a(int a, int b);
 int* __stdcall FUN_0049d120(Object_0049db70* obj, unsigned char weapon);
 int __stdcall FUN_0049cc20(Shot_0049db70* shot, Object_0049db70* source, Vec3_0049db70* pos,
@@ -96,7 +96,7 @@ int __stdcall FUN_0049db70(Object_0049db70* source, Shot_0049db70* shot,
 {
     Vec3_0049db70 pos;
     if (shot->piece != 0) {
-        FUN_0043e240(source, &pos, (shot->weapon >> 2) & 3, -1);
+        GetWeaponPiecePosition(source, &pos, (shot->weapon >> 2) & 3, -1);
         int dx = pos.x - aim->x;
         union { int value; short halves[2]; } dy;
         dy.value = pos.y - aim->y;

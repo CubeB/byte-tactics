@@ -1,6 +1,6 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 
-void __stdcall FUN_004864b0(void* unit, int param_2);
+void __stdcall KillUnit(void* unit, int param_2);
 void __cdecl FUN_004d85a0(void* p);
 
 #pragma pack(push, 1)
@@ -22,14 +22,14 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x485980
-void FUN_00485980(void)
+void FreeUnitMemory(void)
 {
     Unit* u = g_game->units;
     Unit* end = g_game->units_end;
     if (u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
             if (u->field_a6 != 0)
-                FUN_004864b0(u, 8);
+                KillUnit(u, 8);
         }
     }
     if (g_game->buffer != 0)

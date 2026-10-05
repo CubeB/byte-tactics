@@ -185,9 +185,9 @@ public:
     void FUN_004010b0(Unit* unit, void* file);
 };
 
-class Class_0043dd70 {
+class UnitMotion {
 public:
-    void FUN_0043dd70(Unit* unit, void* file);
+    void SaveMotion(Unit* unit, void* file);
 };
 
 class Class_004b4560 {
@@ -215,13 +215,13 @@ public:
     int FUN_004b4630(char* name, int value);
 };
 
-class Class_004b0610 {
+class CobScript {
 public:
-    int FUN_004b1ec0(void* file);
+    int SaveScriptState(void* file);
 };
 
 // FUNCTION: 0x4876c0
-void __stdcall FUN_004876c0(Class_004b4560* file)
+void __stdcall SaveUnits(Class_004b4560* file)
 {
     int count = 0;
     Unit* end = 0;
@@ -237,7 +237,7 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
 
             sprintf(script, "Script%i", count);
             ((Class_004b4ba0*)file)->FUN_004b4ba0(script);
-            ((Class_004b0610*)unit->f9a)->FUN_004b1ec0(file);
+            ((CobScript*)unit->f9a)->SaveScriptState(file);
 
             int n = 0;
             Class_0043a1f0* c = (Class_0043a1f0*)unit->listHead;
@@ -256,7 +256,7 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
             }
 
             if (unit->vtable != 0)
-                ((Class_0043dd70*)unit->vtable)->FUN_0043dd70(unit, file);
+                ((UnitMotion*)unit->vtable)->SaveMotion(unit, file);
             ((Class_004010b0*)((char*)unit + 0xbc))->FUN_004010b0(unit, file);
 
             strcpy(rec.name, (char*)(*(char**)((char*)unit + 0x92) + 0x20));

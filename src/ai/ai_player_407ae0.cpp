@@ -28,7 +28,7 @@
 // to `lea eax, [eax+edx+0x1e]`; the delay has to be computed first. The final
 // MakeFixed ternaries give the `lea eax, [tmp]; mov ecx, [eax]` selection.
 // Group::Send is the inline from the matched sibling 0x4077e0 (calling
-// FUN_00480460 directly compiles to the same bytes).
+// OrderSquad directly compiles to the same bytes).
 #include <vector>
 
 #pragma pack(push, 1)
@@ -93,7 +93,7 @@ struct Unit {
 
 struct Player_00407ae0;
 
-void __stdcall FUN_00480460(Player_00407ae0* player, int id, unsigned char mode, int remove,
+void __stdcall OrderSquad(Player_00407ae0* player, int id, unsigned char mode, int remove,
                             Unit* target, Vec3_00407410* pos, int flags, int extra);
 
 struct Group_00407ae0 {
@@ -104,7 +104,7 @@ struct Group_00407ae0 {
     void Send(unsigned char mode, int remove, Unit* target, Vec3_00407410* pos,
               int flags, int extra)
     {
-        FUN_00480460(player, id, mode, remove, target, pos, flags, extra);
+        OrderSquad(player, id, mode, remove, target, pos, flags, extra);
     }
 };
 

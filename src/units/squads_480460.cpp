@@ -30,7 +30,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
 void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit* owner, Unit* id, int flags, int param_6, int param_7);
 
 // FUNCTION: 0x480460
-void __stdcall FUN_00480460(Owner_00480460* owner, int key, unsigned char mode, int remove,
+void __stdcall OrderSquad(Owner_00480460* owner, int key, unsigned char mode, int remove,
                             Unit* target, int flags, int param_7, int param_8)
 {
     for (Unit* u = owner->first; u <= owner->last; u++) {

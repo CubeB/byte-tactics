@@ -15,7 +15,7 @@ public:
 
 class Class_0048b090 {
 public:
-    void FUN_0048b090(unsigned char mask, int set);
+    void SetStateBits(unsigned char mask, int set);
 };
 
 struct Pos_00488570 {
@@ -93,13 +93,13 @@ extern Game* g_game;
 
 int __stdcall GetPlayerDpid(Player_00488570* player);
 void __stdcall BroadcastPacket(int who, Packet_00488570* packet, int size);
-Unit* __stdcall FUN_00485f50(unsigned char player, unsigned short type, Pos_00488570 pos,
+Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Pos_00488570 pos,
                                       int param_5, int mode, unsigned short id);
-void __stdcall FUN_00489bb0(Unit* source, Unit* target, int amount, int type,
+void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type,
                             unsigned short extra);
 
 // FUNCTION: 0x488570
-void __stdcall FUN_00488570(Unit* unit, Player_00488570* other, Packet_00488570* p)
+void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488570* other, Packet_00488570* p)
 {
     if (unit->player == other)
         return;
@@ -128,7 +128,7 @@ void __stdcall FUN_00488570(Unit* unit, Player_00488570* other, Packet_00488570*
             pk.b16 = a ? unit->b3a : 0;
             pk.b17 = a ? unit->b56 : 0;
             BroadcastPacket(unit->player->f4, &pk, 0x18);
-            FUN_00489bb0(0, unit, 30000, 4, 0);
+            DamageUnit(0, unit, 30000, 4, 0);
             return;
         }
     }
@@ -137,7 +137,7 @@ void __stdcall FUN_00488570(Unit* unit, Player_00488570* other, Packet_00488570*
     if (other->f73 != 1 && other->f73 != 2)
         return;
 
-    Unit* n = FUN_00485f50(other->f146, unit->type, unit->pos, 1, unit->flags & 3, 0);
+    Unit* n = CreateUnit(other->f146, unit->type, unit->pos, 1, unit->flags & 3, 0);
     if (!n)
         return;
     n->flags &= 0xffc3ffff;
@@ -161,8 +161,8 @@ void __stdcall FUN_00488570(Unit* unit, Player_00488570* other, Packet_00488570*
             n->b3a = unit->b3a;
         if (n->b57 & 2)
             n->b56 = unit->b56;
-        FUN_00489bb0(0, unit, 30000, 4, 0);
+        DamageUnit(0, unit, 30000, 4, 0);
     }
-    ((Class_0048b090*)n)->FUN_0048b090(unit->state, 1);
-    ((Class_0048b090*)n)->FUN_0048b090(~unit->state, 0);
+    ((Class_0048b090*)n)->SetStateBits(unit->state, 1);
+    ((Class_0048b090*)n)->SetStateBits(~unit->state, 0);
 }

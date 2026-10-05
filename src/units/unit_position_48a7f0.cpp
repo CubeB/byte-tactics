@@ -34,18 +34,18 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_00485070(Pos_0048a7f0* pos);
+int __stdcall GetGroundHeight(Pos_0048a7f0* pos);
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 // FUNCTION: 0x48a7f0
-void __stdcall FUN_0048a7f0(Unit* unit)
+void __stdcall SnapUnitToGround(Unit* unit)
 {
     if (unit->type->floats) {
-        unit->pos.y = max(FUN_00485070(&unit->pos), g_game->seaLevel - unit->type->draft) << 16;
+        unit->pos.y = max(GetGroundHeight(&unit->pos), g_game->seaLevel - unit->type->draft) << 16;
     } else {
-        unit->pos.y = FUN_00485070(&unit->pos) << 16;
+        unit->pos.y = GetGroundHeight(&unit->pos) << 16;
     }
 }

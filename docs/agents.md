@@ -86,7 +86,7 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 - Three class families that had been matched as unrelated placeholder
   functions with hand-stored vtable pointers (vtables 0x4fd428, 0x4fc980 and
   0x4fd5a8) are now real base and derived classes whose vtables the compiler
-  emits, plus `Class_004b0610` and its derived class.
+  emits, plus `CobScript` and its derived class.
 
 ## Method
 

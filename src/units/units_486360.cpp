@@ -48,12 +48,12 @@ struct Result_486360 {
 extern Game* g_game;
 
 void* __stdcall FUN_00481550(int x, int y);
-int __stdcall FUN_00485070(Pos_486360* pos);
+int __stdcall GetGroundHeight(Pos_486360* pos);
 Result_486360* __stdcall FUN_00423c50(void* target, unsigned short id, Pos_486360* pos, void* field_64, unsigned char owner);
 void __stdcall FUN_00472630(Pos_486360* pos, int a, int b, int c);
 
 // FUNCTION: 0x486360
-void __stdcall FUN_00486360(Unit* unit, int depth, int flag)
+void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
 {
     unsigned short id = unit->type->field_1bc;
     for (; depth > 1; depth--) {
@@ -66,7 +66,7 @@ void __stdcall FUN_00486360(Unit* unit, int depth, int flag)
         void* target = FUN_00481550(unit->x, unit->y);
         if (target != 0) {
             Pos_486360* pos = &unit->pos;
-            if (FUN_00485070(pos) <= g_game->limit) {
+            if (GetGroundHeight(pos) <= g_game->limit) {
                 Result_486360* r = FUN_00423c50(target, id, pos, unit->field_64, unit->owner);
                 if (r != 0) {
                     if (!(unit->type->flags & 0x1000000)) {

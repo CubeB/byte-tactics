@@ -18,7 +18,7 @@ extern Game* g_game;
 
 // Copies one player's visibility bit into another player's bit on every cell.
 // FUNCTION: 0x485420
-void __stdcall FUN_00485420(unsigned char from, unsigned char to)
+void __stdcall ShareMapInfo(unsigned char from, unsigned char to)
 {
     unsigned short fromBit = 1 << from;
     unsigned short toBit = 1 << to;

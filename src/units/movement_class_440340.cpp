@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Reads the movement fields from a TDF section (the object at src+4) into the
-// 32-byte entry whose layout 0x440290.cpp declares as Class_00440320. The four
+// 32-byte entry whose layout 0x440290.cpp declares as MovementClass. The four
 // slope fields are clamped so that each is never larger than its limit.
 
 class Class_004c46c0 {
@@ -13,7 +13,7 @@ struct Source_00440340 {
     Class_004c46c0* tdf;               // +0x4
 };
 
-struct Class_00440320 {
+struct MovementClass {
     int* field_0;
     short field_4;                     // FootPrintX
     short field_6;                     // FootPrintZ
@@ -28,11 +28,11 @@ struct Class_00440320 {
     void* field_18;
     int field_1c;
 
-    void FUN_00440340(Source_00440340* src);
+    void ReadMoveInfo(Source_00440340* src);
 };
 
 // FUNCTION: 0x440340
-void Class_00440320::FUN_00440340(Source_00440340* src)
+void MovementClass::ReadMoveInfo(Source_00440340* src)
 {
     field_4 = src->tdf->FUN_004c46c0("FootPrintX", 0);
     field_6 = src->tdf->FUN_004c46c0("FootPrintZ", 0);

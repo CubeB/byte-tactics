@@ -37,7 +37,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_00485070(Pos_00498d00* pos);
+int __stdcall GetGroundHeight(Pos_00498d00* pos);
 
 // FUNCTION: 0x498d00
 void __stdcall FUN_00498d00(Pos_00498d00* out)
@@ -48,5 +48,5 @@ void __stdcall FUN_00498d00(Pos_00498d00* out)
     memset(out, 0, sizeof(Pos_00498d00));
     out->x.whole = g_game->world_w * dx / g_game->screen_w;
     out->z.whole = g_game->world_h * dy / g_game->screen_h;
-    out->y.whole = FUN_00485070(out);
+    out->y.whole = GetGroundHeight(out);
 }

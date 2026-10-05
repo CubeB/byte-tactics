@@ -41,7 +41,7 @@ static inline Fixed_004853b0 MakeFixed(int i)
 }
 
 // FUNCTION: 0x4853b0
-void __stdcall FUN_004853b0(Vec3_004853b0* p)
+void __stdcall ClampPositionToMap(Vec3_004853b0* p)
 {
     if (p->x.value < 0)
         p->x.value = 0;

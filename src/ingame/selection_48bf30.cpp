@@ -53,13 +53,13 @@ struct Game {
 
 extern Game* g_game;
 
-void* __stdcall FUN_00488c50(char* name);
+void* __stdcall GetCategoryMask(char* name);
 void __stdcall FUN_00495860(void);
 
 // FUNCTION: 0x48bf30
 void __stdcall FUN_0048bf30(char* name, int param_2)
 {
-    int* mask = (int*)FUN_00488c50(name);
+    int* mask = (int*)GetCategoryMask(name);
     int player = g_game->localPlayer;
     Player_0048bf30* p = &g_game->players[player];
     Player_0048bf30* q = &g_game->players[player];

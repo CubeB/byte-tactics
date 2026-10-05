@@ -287,7 +287,7 @@ static inline int CountAlliance_00447b10(int alliance)
 
 // The free slot search at 0x440c10, which has no callers. MSVC inlines it only
 // when it is declared inline (it has two loops).
-inline int FUN_00440c10()
+inline int FindUnusedLogo()
 {
     int used[10];
     memset(used, 0, sizeof(used));
@@ -307,7 +307,7 @@ inline int FUN_00440c10()
 }
 
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
-int FUN_00440cd0()
+int CheckMapCrc()
 {
     if (!g_game->map->FUN_004358f0()) {
         return 0;
@@ -400,7 +400,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                 }
                 if (g_game->players[FindHostSlot()].info->b.commander != 2 && !CountLocalComputerPlayers()) {
                     CreateLocalPlayer(i, 2);
-                    p->info->slot = FUN_00440c10();
+                    p->info->slot = FindUnusedLogo();
                 }
             }
             g_game->dirty = 1;
@@ -480,7 +480,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         sprintf(text, "READY%d", i);
         if (FUN_0049fd60(gadget, text) && IsLocalHuman_00447b10(p)) {
             FUN_0047f1a0("Multi", 0);
-            if (FUN_00440cd0()) {
+            if (CheckMapCrc()) {
                 p->info->b.ready = FUN_004a0f30(g_game->gui, FUN_0049fdf0(entries, text, 1));
                 if (p->info->f97_0) {
                     strcpy(entries->label, "START");

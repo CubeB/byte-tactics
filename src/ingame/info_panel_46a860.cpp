@@ -39,7 +39,7 @@ int __stdcall FUN_00439dd0(void* unit);
 int __stdcall FUN_00439df0(void* obj);
 int __stdcall FUN_00465ac0(void* map, void* u);
 void __stdcall FUN_00467c00(void* surf, void* player, void* rect, int dy);
-unsigned short __stdcall FUN_00488b10(const char* name);
+unsigned short __stdcall FindUnitTypeId(const char* name);
 int __stdcall FUN_004bf6f0(void* surface, void* rect, int color);
 
 class Class_00435100 {
@@ -226,7 +226,7 @@ void __stdcall FUN_0046a860(void* surface) {
     if (snapshot.button != -1) {
         strncpy(text, (char*)(snapshot.button * 0x15b + *(int*)(*(int*)(g_game + 0x531) + 4) + 2), 0x10);
         text[0x10] = 0;
-        unsigned short type = FUN_00488b10(text);
+        unsigned short type = FindUnitTypeId(text);
         if (type != 0) {
             char* entry = (char*)(0x249 * type + *(int*)(g_game + 0x1439b));
             if (_strcmpi(text, "CORBUILD") != 0) {

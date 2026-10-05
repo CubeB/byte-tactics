@@ -1,17 +1,17 @@
 // Decompiled by Opus. Names are provisional.
-// Stops a unit (FUN_004898b0(3), FUN_0048aac0 when +0x86 is set, then
-// FUN_0048b090(1, 1)); for units whose type has mode 1 in the low bits of
+// Stops a unit (ClaimWeapons(3), AttachUnitToPiece when +0x86 is set, then
+// SetStateBits(1, 1)); for units whose type has mode 1 in the low bits of
 // +0x2e, also attaches a new Class_0044e2d0 at the unit's position to the
 // order and sets flags on it.
 
 class Class_004898b0 {
 public:
-    void FUN_004898b0(int param);
+    void ClaimWeapons(int param);
 };
 
 class Class_0048b090 {
 public:
-    void FUN_0048b090(int param_1, int param_2);
+    void SetStateBits(int param_1, int param_2);
 };
 
 class Class_004388d0 {
@@ -30,7 +30,7 @@ class Class_0043d210 {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
-    void FUN_0043d210(Unit* unit, int state);
+    void SetFlightMode(Unit* unit, int state);
 };
 
 struct Info_0040f200 {
@@ -68,17 +68,17 @@ public:
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4);
+void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 
 // FUNCTION: 0x40f200
 void __stdcall FUN_0040f200(Unit* unit, Source_0044e2d0* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->FUN_004898b0(3);
+    ((Class_004898b0*)unit)->ClaimWeapons(3);
     if (unit->field_86)
-        FUN_0048aac0(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->FUN_0048b090(1, 1);
+        AttachUnitToPiece(unit, 0, -1, 2);
+    ((Class_0048b090*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
-        unit->type->FUN_0043d210(unit, 2);
+        unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->info->field_21c / 2);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);

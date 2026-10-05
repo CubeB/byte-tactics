@@ -28,14 +28,14 @@ extern Game* g_game;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bbc40(char* path);
-void __stdcall FUN_0042bf40(char* path, UnitType_0042d1f0* type);
+void __stdcall LoadUnitFbi(char* path, UnitType_0042d1f0* type);
 void __stdcall FUN_004b2540(CobFile_0042d1f0* cob);
 CobFile_0042d1f0* __stdcall FUN_004b2450(char* path);
 void __cdecl FUN_004d8780(void* param_1);
 void __cdecl FUN_004d8710(void* param_1);
 
 // FUNCTION: 0x42d1f0
-void __stdcall FUN_0042d1f0(unsigned short index)
+void __stdcall ReloadUnitType(unsigned short index)
 {
     if (index == 0)
         return;
@@ -46,7 +46,7 @@ void __stdcall FUN_0042d1f0(unsigned short index)
     char path[256];
     FUN_004290f0(path, "units", type->name, "FBI");
     if (FUN_004bbc40(path)) {
-        FUN_0042bf40(path, type);
+        LoadUnitFbi(path, type);
         FUN_004b2540(*(CobFile_0042d1f0**)((char*)type + 0x18e));
         FUN_004290f0(path, "scripts", type->name, "COB");
         CobFile_0042d1f0* cob = FUN_004b2450(path);

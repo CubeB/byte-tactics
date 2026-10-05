@@ -106,13 +106,13 @@ class Class_0043d210 {
     unsigned char flag : 1; // +0x2e bit 2
     unsigned char rest : 5;
 
-    void FUN_0043d0d0(Unit* unit, Vec3* v);
+    void ApplyBankAndPitch(Unit* unit, Vec3* v);
 };
 
 // data/symbols.csv knows this method by the name its caller 0x43dd20 uses.
 class Class_0043d290 : public Class_0043d210 {
   public:
-    void FUN_0043d290(Unit* unit);
+    void SteerAircraft(Unit* unit);
 };
 
 #pragma pack(pop)
@@ -148,7 +148,7 @@ static inline Vec3 Offset(short angle, int distance)
 }
 
 // FUNCTION: 0x43d290
-void Class_0043d290::FUN_0043d290(Unit* unit) {
+void Class_0043d290::SteerAircraft(Unit* unit) {
     if (mode != 2) {
         p1 = Vec3(0, 0, 0);
         field_20 = 0;
@@ -231,6 +231,6 @@ void Class_0043d290::FUN_0043d290(Unit* unit) {
 
     {
         Vec3 delta = p1 - old;
-        FUN_0043d0d0(unit, &delta);
+        ApplyBankAndPitch(unit, &delta);
     }
 }

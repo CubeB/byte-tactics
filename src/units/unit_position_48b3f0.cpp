@@ -65,7 +65,7 @@
 //   is: MSVC 5 keeps the mask in the loaded dword and only replaces the low
 //   byte (`mov edx,[u+0x64] / ... / mov dl,[u+0xff] / push edx`), so the
 //   argument really does carry the tail's upper three bytes into a parameter
-//   that FUN_004861d0 uses as a player index (see "suspected bug" below).
+//   that CreateUnitFromPacket uses as a player index (see "suspected bug" below).
 // - `__int64 alpha = (unsigned int)reader->ReadBits(8)` gives the original's
 //   `fild qword` with a constant 0 in the high word. A signed int gives a
 //   `cdq` the original does not have and `unsigned __int64` does not convert
@@ -187,7 +187,7 @@ public:
     Flags_0048b3f0 f110;               // +0x110
     char unknown_114[0x118 - 0x114];
 
-    void FUN_0048b090(unsigned char mask, int set);
+    void SetStateBits(unsigned char mask, int set);
 };
 
 struct Game {
@@ -200,14 +200,14 @@ struct Game {
 extern Game* g_game;
 extern float DAT_004fd750;
 
-Class_0048b090* __stdcall FUN_004861d0(unsigned char player, Spawn_0048b3f0* spawn);
-void __stdcall FUN_0048ab70(Order_0048b3f0* order);
+Class_0048b090* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_0048b3f0* spawn);
+void __stdcall ApplyAttachUnit(Order_0048b3f0* order);
 void __stdcall FUN_0047d0e0(Class_0048b090* u);
 void __stdcall FUN_0047cc30(Class_0048b090* u);
 void __stdcall FUN_004827b0(Class_0048b090* u);
 
 // FUNCTION: 0x48b3f0
-void __stdcall FUN_0048b3f0(BitReader* reader, Class_0048b090* u)
+void __stdcall ReadUnitState(BitReader* reader, Class_0048b090* u)
 {
     unsigned short type = (unsigned short)reader->ReadBits(g_game->field_14393);
     int zero = 0;
@@ -223,7 +223,7 @@ void __stdcall FUN_0048b3f0(BitReader* reader, Class_0048b090* u)
         spawn.player = 9;
         spawn.pos = u->pos;
         spawn.tail = u->tail;
-        FUN_004861d0((u->tail.a & ~0xff) | u->player, &spawn);
+        CreateUnitFromPacket((u->tail.a & ~0xff) | u->player, &spawn);
     }
     ((Block_0048b3f0*)u->block)->field_10 = zero;
     u->field_108 = reader->ReadBits(0x10);
@@ -234,8 +234,8 @@ void __stdcall FUN_0048b3f0(BitReader* reader, Class_0048b090* u)
         u->f110.bits.b13 = 1;
     }
     unsigned char state = (unsigned char)reader->ReadBits(8);
-    u->FUN_0048b090(state, 1);
-    u->FUN_0048b090((unsigned char)~state, zero);
+    u->SetStateBits(state, 1);
+    u->SetStateBits((unsigned char)~state, zero);
     int colour = reader->ReadBits(2);
     if (reader->ReadBit()) {
         Order_0048b3f0 order;
@@ -243,7 +243,7 @@ void __stdcall FUN_0048b3f0(BitReader* reader, Class_0048b090* u)
         order.id2 = (unsigned short)reader->ReadBits(0xf);
         order.param = (unsigned char)reader->ReadSignedBits(8);
         order.param2 = (unsigned char)colour;
-        FUN_0048ab70(&order);
+        ApplyAttachUnit(&order);
         return;
     }
     if (u->owner) {
@@ -252,7 +252,7 @@ void __stdcall FUN_0048b3f0(BitReader* reader, Class_0048b090* u)
         order.id2 = 0;
         order.param = 0xff;
         order.param2 = (unsigned char)colour;
-        FUN_0048ab70(&order);
+        ApplyAttachUnit(&order);
     }
     Pos_0048b3f0 pos;
     pos.x = reader->ReadBits(0x20);
@@ -308,7 +308,7 @@ void __stdcall FUN_0048b3f0(BitReader* reader, Class_0048b090* u)
 // 0x48b475-0x48b491, which is `mov edx,[ecx] / mov dl,[edi+0xff] / push edx`,
 // i.e. `(u->tail.a & ~0xff) | u->player`, on the grounds that the tail's upper
 // three bytes are carried into an argument that is used as a player index. That
-// is not a bug. FUN_004861d0's third instruction is `and eax, 0xff` at
+// is not a bug. CreateUnitFromPacket's third instruction is `and eax, 0xff` at
 // 0x4861d8, so the callee discards the upper three bytes itself; the composite
 // construction at the call site and the mask in the callee are complementary,
 // and the source is almost certainly exactly `(u->tail.a & ~0xff) | u->player`

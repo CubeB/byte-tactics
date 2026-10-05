@@ -43,7 +43,7 @@ public:
 };
 #pragma pack(pop)
 
-unsigned short __stdcall FUN_0048a980(Vec3_0044eb60* from, Vec3_0044eb60* to);
+unsigned short __stdcall GetHeadingBetween(Vec3_0044eb60* from, Vec3_0044eb60* to);
 
 // FUNCTION: 0x44eb60
 int Class_0044e740::FUN_0044eb60(Object_0044eb60* unit)
@@ -53,7 +53,7 @@ int Class_0044e740::FUN_0044eb60(Object_0044eb60* unit)
     if (field_8 & 1) {
         Vec3_0044eb60 origin;
         origin = Vec3_0044eb60(0, 0, 0);
-        if (FUN_0048a980(&origin, &other) == heading)
+        if (GetHeadingBetween(&origin, &other) == heading)
             return 1;
     }
     return 0;

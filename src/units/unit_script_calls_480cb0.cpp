@@ -1,15 +1,15 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_00480cb0 {
+class UnitScript {
 public:
     char unknown_0[0x540];
     void* table;                 // +0x540
 
-    int FUN_00480cb0(int param_1, int param_2);
+    int GetPieceRotation(int param_1, int param_2);
 };
 
 // FUNCTION: 0x480cb0
-int Class_00480cb0::FUN_00480cb0(int param_1, int param_2)
+int UnitScript::GetPieceRotation(int param_1, int param_2)
 {
     void* ptr = *(void**)((char*)this + 0x540);
     int idx = param_1 + param_1*2;

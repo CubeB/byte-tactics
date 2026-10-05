@@ -31,7 +31,7 @@ struct Class_0048a190 {
 };
 
 // FUNCTION: 0x48a190
-Unit* __stdcall FUN_0048a190(Class_0048a190* obj, int index)
+Unit* __stdcall GetWeaponTargetUnit(Class_0048a190* obj, int index)
 {
     Point_0048a190* p = &obj->entries[index].point;
     if (p->b != (short)0x8000) {

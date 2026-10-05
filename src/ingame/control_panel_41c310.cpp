@@ -29,7 +29,7 @@ struct Game {
 extern Game* g_game;
 
 // Returns the bit set of the unit types in the named category.
-unsigned int* __stdcall FUN_00488c50(char* name);
+unsigned int* __stdcall GetCategoryMask(char* name);
 
 // The bit test was an inlined helper taking the type as unsigned short.
 static inline int TestBit(unsigned int* set, unsigned short n)
@@ -41,7 +41,7 @@ static inline int TestBit(unsigned int* set, unsigned short n)
 void FUN_0041c310()
 {
     Player_0041c310* p = &g_game->players[g_game->localPlayer];
-    unsigned int* set = FUN_00488c50("Commander");
+    unsigned int* set = GetCategoryMask("Commander");
     for (Unit* u = p->unitsBegin; u <= p->unitsEnd; u++) {
         if (TestBit(set, u->type)) {
             g_game->commander = u;

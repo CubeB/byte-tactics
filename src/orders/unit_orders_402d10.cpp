@@ -2,12 +2,12 @@
 
 class Class_0048b090 {
 public:
-    void FUN_0048b090(int param_1, int param_2);
+    void SetStateBits(int param_1, int param_2);
 };
 
 class Class_004898b0 {
 public:
-    void FUN_004898b0(int param);
+    void ClaimWeapons(int param);
 };
 
 class Class_004388d0 {
@@ -29,7 +29,7 @@ struct Order {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0048a0f0(Unit_00402d10* unit, int weapon);
+void __stdcall ClearWeaponTarget(Unit_00402d10* unit, int weapon);
 
 // Order handler: waits for the order's time (at most 1800 ticks).
 // A char loop counter gives the separate countdown register (ebx = 3).
@@ -37,17 +37,17 @@ void __stdcall FUN_0048a0f0(Unit_00402d10* unit, int weapon);
 int __stdcall FUN_00402d10(Unit_00402d10* unit, Order* order, int unused)
 {
     if (order->ticks == 0) {
-        ((Class_0048b090*)unit)->FUN_0048b090(0x10, 0);
+        ((Class_0048b090*)unit)->SetStateBits(0x10, 0);
         return 5;
     }
     if (order->ticks > 0x708)
         order->ticks = 0x708;
-    ((Class_004898b0*)unit)->FUN_004898b0(3);
+    ((Class_004898b0*)unit)->ClaimWeapons(3);
     for (char i = 0; i < 3; i++)
-        FUN_0048a0f0(unit, i);
+        ClearWeaponTarget(unit, i);
     ((Class_004388d0*)order)->FUN_004388d0(0);
     ((Class_00439e80*)order)->FUN_00439e80(order->ticks);
     order->ticks = 0;
-    ((Class_0048b090*)unit)->FUN_0048b090(0x10, 1);
+    ((Class_0048b090*)unit)->SetStateBits(0x10, 1);
     return 1;
 }

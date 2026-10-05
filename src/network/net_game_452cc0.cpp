@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by claude-opus-5-5. Names are provisional.
 // Removes the player with the given id: clears its slot in every playing
-// player's two alliance tables, tells FUN_00486f10, drops it from the
+// player's two alliance tables, tells KillPlayerUnits, drops it from the
 // session (or only resets it when the 0x2a44 bit 2 mode keeps playing
 // players), and when that player was the host (bit 0 of +0x97) hands the
 // host bit to the type 3 or type 1 player with the highest id.
@@ -87,7 +87,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00486f10(unsigned char player);
+void __stdcall KillPlayerUnits(unsigned char player);
 void __stdcall ReportGameEvent(int msg);
 int __stdcall HAPINET_removeplayer(void* net, int id);
 
@@ -180,7 +180,7 @@ void __stdcall RemovePlayer(int id)
         }
     }
 
-    FUN_00486f10(FindSlotByDpid(id));
+    KillPlayerUnits(FindSlotByDpid(id));
 
     if (g_game->flags.b2) {
         if (!IsPlaying(p))

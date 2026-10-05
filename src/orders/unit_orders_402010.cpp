@@ -6,7 +6,7 @@ struct Order { char pad[6]; unsigned flags; char pada[0x36-10]; int done; unsign
 #pragma pack(pop)
 class Class_00439e80 { public: void FUN_00439e80(int); };
 void __stdcall FUN_0047f780(Unit*,int,void*);
-void __stdcall FUN_00489bb0(Unit*,Unit*,int,int,int);
+void __stdcall DamageUnit(Unit*,Unit*,int,int,int);
 int __stdcall FUN_004b6c30(int);
 // FUNCTION: 0x402010
 int __stdcall FUN_00402010(Unit* unit,Order* order,int flags)
@@ -31,8 +31,8 @@ int __stdcall FUN_00402010(Unit* unit,Order* order,int flags)
                     order->flags|=2; return 1;
                 }
             }
-            FUN_00489bb0(unit,unit,30000,3,0);
+            DamageUnit(unit,unit,30000,3,0);
         }
-    } else FUN_00489bb0(unit,unit,30000,3,0);
+    } else DamageUnit(unit,unit,30000,3,0);
     return 5;
 }

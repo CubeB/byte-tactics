@@ -12,17 +12,17 @@ struct Chunk_00437a30 {
     int size;                          // +0x4
 };
 
-class Class_00437a30 {
+class CMemoryCache {
 public:
     int cap;                           // +0x0
     int base;                          // +0x4
     int cur;                           // +0x8
 
-    int FUN_00437a30(void** p, int need);
+    int AllocHandle(void** p, int need);
 };
 
 // FUNCTION: 0x437a30
-int Class_00437a30::FUN_00437a30(void** p, int need)
+int CMemoryCache::AllocHandle(void** p, int need)
 {
     int total = 0;
     if (need <= 0) {

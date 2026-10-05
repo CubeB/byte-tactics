@@ -209,7 +209,7 @@ class Class_004379a0;
 class Class_004379a0_2;
 class Class_004379b0;
 class Class_00437a20;
-class Class_00437a30;
+class CMemoryCache;
 class Class_00437c80;
 class Class_00438320;
 class Class_00438760;
@@ -234,11 +234,11 @@ class Class_0043d290;
 class Class_0043d6d0;
 class Class_0043da70;
 class Class_0043db50;
-struct Class_0043dc00;
+struct UnitMotion;
 class Class_0043dd70;
-struct Class_00440290;
+struct MovementClassTable;
 struct Class_004402e0;
-struct Class_00440320;
+struct MovementClass;
 class Class_00440470;
 struct Class_004404c0;
 class Class_00440500;
@@ -485,7 +485,7 @@ class Class_0047ffa0;
 class Class_00480020;
 class Class_004800c0;
 class Class_00480100;
-class Class_00480160;
+class Squad;
 class Class_00480c30;
 class Class_00480c50;
 class Class_00480cb0;
@@ -500,12 +500,12 @@ class Class_00481430;
 class Class_00481470;
 struct Class_00481490;
 struct Class_00482110;
-class Class_00485e30;
+class UnitScript;
 class Class_00488c50;
-class Class_00488d30;
+class UnitTypeSet;
 struct Class_00488e70;
 class Class_00489240;
-class Class_00489260;
+class UnitCategory;
 class Class_00489540;
 class Class_004895c0;
 class Class_00489650;
@@ -614,14 +614,14 @@ struct Class_004acc70;
 struct Class_004af5b0;
 struct Class_004afc60;
 struct Class_004aff00;
-class Class_004b0610;
+class CobScript;
 class Class_004b07a0;
 class Class_004b0830;
 class Class_004b08c0;
 class Class_004b0a10;
 class Class_004b0a70;
 class Class_004b0b00;
-class Class_004b0b00_param2;
+class ScriptCallback;
 class Class_004b0c40;
 class Class_004b0d20;
 class Class_004b0da0;
@@ -2322,7 +2322,7 @@ public:
     Class_004895c0(Unit*, int);
     virtual void Unknown_0(void);
     void SetValue(void*);
-    void FUN_00489690(Unit*);
+    void SetUnit(Unit*);
 };
 
 struct Order_004021f0 {  // 0x3e bytes, 1 view
@@ -2366,7 +2366,7 @@ struct Unit {  // 0x118 bytes, 462 views
     int field_0;  // +0x0
     Class_004c48c0* current;  // +0x4
     int field_8;  // +0x8
-    Class_0043dc00* type;  // +0xc
+    UnitMotion* type;      // +0xc
     Mover* f10;  // +0x10
     char unknown_14[2];
     short field_16;  // +0x16
@@ -2456,7 +2456,7 @@ struct Unit {  // 0x118 bytes, 462 views
     int Ready(void);
     unsigned char GetState(void);
     unsigned char PlayerIndex(void);
-    void FUN_0048b090(int, int);
+    void SetStateBits(int, int);
 };
 
 struct UnitDef {  // 0x249 bytes, 220 views
@@ -2694,7 +2694,7 @@ struct Order_00403100 {  // 0x3a bytes, 1 view
 };
 
 struct Slot_004390a0 {  // 0x1c bytes, 8 views
-    Class_0043dc00* weapon;  // +0x0
+    UnitMotion* weapon;      // +0x0
     int field_4;  // +0x4
     short field_8;  // +0x8
     char unknown_a[4];
@@ -2764,7 +2764,7 @@ public:
     unsigned char flags_3b;  // +0x3b
     char unknown_3c[27];
     unsigned char flags_57;  // +0x57
-    unsigned char FUN_004897e0(void);
+    unsigned char ChooseWeapon(void);
 };
 
 struct Order_7 {  // 0x42 bytes, 1 view
@@ -2816,7 +2816,7 @@ struct UnitRef {  // 0x8 bytes, 5 views
 class Class_00489960 {  // 0x1 bytes, 5 views
 public:
     char unknown_0[1];
-    int FUN_00489960(void*);
+    int CanReclaim(void*);
 };
 
 struct Cell {  // 0x14 bytes, 52 views
@@ -2954,10 +2954,10 @@ public:
     void FUN_004b74f0(Class_004b73c0*);
 };
 
-class Class_00488d30 {  // 0x40 bytes, 5 views
+class UnitTypeSet {     // 0x40 bytes, 5 views
 public:
     int bits[16];  // +0x0
-    void FUN_00488d30(char*, int*);
+    void AddTypeOrCategory(char*, int*);
 };
 
 class Class_004b7410 {  // 0x1 bytes, 3 views
@@ -2980,7 +2980,7 @@ public:
 };
 
 struct Obj_00406f50 {  // 0x6b bytes, 26 views
-    Class_0043dc00* type;  // +0x0
+    UnitMotion* type;      // +0x0
     Vec3 pos;  // +0x4
     Vec3 start;  // +0x10
     int field_1c;  // +0x1c
@@ -3076,7 +3076,7 @@ struct Player {  // 0x14b bytes, 312 views
     unsigned short lastIndex;  // +0x71
     unsigned char type;  // +0x73
     int field_74;  // +0x74
-    Class_00480160* squads;  // +0x78
+    Squad* squads;           // +0x78
     ByteMap_00408090 explored;  // +0x7c
     int seenCount;  // +0x88
     float metal;  // +0x8c
@@ -3138,7 +3138,7 @@ struct Player {  // 0x14b bytes, 312 views
     float GetMetal(void);
 };
 
-struct Class_0043dc00 {  // 0x115 bytes, 58 views
+struct UnitMotion {      // 0x115 bytes, 58 views
     Handler_004388d0* handler;  // +0x0
     void* owner;  // +0x4
     Vec3 p1;  // +0x8
@@ -3192,9 +3192,9 @@ struct Class_0043dc00 {  // 0x115 bytes, 58 views
     unsigned char field_10e;  // +0x10e
     char unknown_10f[2];
     unsigned int flags;  // +0x111
-    Class_0043dc00(Unit*);
+    UnitMotion(Unit*);
     void FUN_0043dd10(void);
-    void FUN_0043dd20(Unit*);
+    void UpdateMotion(Unit*);
 };
 
 struct Slot_4b62d0 {  // 0x10 bytes, 5 views
@@ -3204,15 +3204,15 @@ struct Slot_4b62d0 {  // 0x10 bytes, 5 views
     virtual void Fire(void);
 };
 
-class Class_00480160 {  // 0x20 bytes, 5 views
+class Squad {           // 0x20 bytes, 5 views
 public:
     int field_0;  // +0x0
     int field_4;  // +0x4
     int field_8;  // +0x8
     int field_c;  // +0xc
     std::vector<int> items;  // +0x10
-    Class_00480160(Class_00480160&);
-    Class_00480160(int, int);
+    Squad(Squad&);
+    Squad(int, int);
 };
 
 struct Elem_0040cc40 {  // 0x8 bytes, 19 views
@@ -3612,7 +3612,7 @@ public:
     void* field_0;  // +0x0
     char unknown_4[24];
     unsigned int lastTick;  // +0x1c
-    void FUN_00440af0(Unit*);
+    void RefreshMovedUnits(Unit*);
 };
 
 class Dummy_00440be0 {  // 0x20 bytes, 4 views
@@ -3620,7 +3620,7 @@ public:
     int* field_0;  // +0x0
     char unknown_4[24];
     unsigned int field_1c;  // +0x1c
-    void FUN_00440be0(Unit*);
+    void RefreshUnitIfStale(Unit*);
 };
 
 struct Grid_0040e630 {  // 0x14 bytes, 1 view
@@ -3799,9 +3799,9 @@ public:
     unsigned char state : 2;  // +0x2e
     unsigned char flag : 1;
     unsigned char rest : 5;
-    void FUN_0043d0d0(Unit*, Vec3*);
-    void FUN_0043d210(Unit*, int);
-    void FUN_0043de30(Unit*, Class_004b4560*);
+    void ApplyBankAndPitch(Unit*, Vec3*);
+    void SetFlightMode(Unit*, int);
+    void LoadMotion(Unit*, Class_004b4560*);
 };
 
 class Class_0044e6c0 {  // 0x32 bytes, 21 views
@@ -3958,8 +3958,8 @@ public:
     void* handle;  // +0xc
     void* ptr;  // +0x10
     Class_00437c80* FUN_00458160(void);
-    void FUN_00437c80(void);
-    void FUN_00437c90(int);
+    void FlushCache(void);
+    void ReleaseHandle(int);
     void FUN_004581c0(void);
     void FUN_00458810(SpotState*, Vec3*);
 };
@@ -4648,9 +4648,9 @@ struct Engine {  // 0xf2 bytes, 2 views
 class Class_004379a0 {  // 0x1 bytes, 4 views
 public:
     char unknown_0[1];
-    int FUN_00437a30(int*, int);
+    int AllocHandle(int*, int);
     void FUN_004379a0(void);
-    void FUN_004379b0(int);
+    void InitCache(int);
     void FUN_00437a20(void);
 };
 
@@ -5457,7 +5457,7 @@ struct Class_004402e0 {  // 0x20 bytes, 3 views
     ~Class_004402e0(void);
 };
 
-struct Class_00440320 {  // 0x20 bytes, 9 views
+struct MovementClass {   // 0x20 bytes, 9 views
     int* field_0;  // +0x0
     short field_4;  // +0x4
     short field_6;  // +0x6
@@ -5471,14 +5471,14 @@ struct Class_00440320 {  // 0x20 bytes, 9 views
     int field_14;  // +0x14
     void* field_18;  // +0x18
     int field_1c;  // +0x1c
-    Class_00440320(void);
-    void FUN_00440340(Source_00440340*);
+    MovementClass(void);
+    void ReadMoveInfo(Source_00440340*);
 };
 
 struct Class_00488e70 {  // 0x220 bytes, 2 views
     char unknown_0[542];
     unsigned short team;  // +0x21e
-    void FUN_00488e70(char*);
+    void AddToCategories(char*);
 };
 
 class Class_004c4630 {  // 0x21 bytes, 2 views
@@ -5526,10 +5526,10 @@ struct CobFile_0042d1f0 {  // 0x194 bytes, 2 views
     int field_18e;  // +0x190
 };
 
-struct Class_00440290 {  // 0x400 bytes, 7 views
-    Class_00440320 entries[32];  // +0x0
-    ~Class_00440290(void);
-    static Class_00440290 DAT_00512358;
+struct MovementClassTable {  // 0x400 bytes, 7 views
+    MovementClass entries[32];   // +0x0
+    ~MovementClassTable(void);
+    static MovementClassTable g_movementClasses;
 };
 
 class Class_00458180 {  // 0x14 bytes, 2 views
@@ -6259,7 +6259,7 @@ public:
     unsigned int size;  // +0x0
     int* block;  // +0x4
     Chunk* free;  // +0x8
-    int FUN_004379b0(unsigned int);
+    int InitCache(unsigned int);
 };
 
 class Class_00437a20 {  // 0x8 bytes, 2 views
@@ -6269,14 +6269,14 @@ public:
     void FUN_00437a20(void);
 };
 
-class Class_00437a30 {  // 0x14 bytes, 7 views
+class CMemoryCache {    // 0x14 bytes, 7 views
 public:
     int unknown_0[4];  // +0x0
     Bitmap_00437b50* scratch;  // +0x10
-    int FUN_00437a30(void**, int);
-    int FUN_00437b50(Bitmap_00437b50**, int, int);
+    int AllocHandle(void**, int);
+    int AllocBitmap(Bitmap_00437b50**, int, int);
     void FUN_0045a790(SpotState*, Bitmap_00437b50*);
-    int FUN_00437be0(Bitmap_00437b50**, int, int);
+    int AllocTwoPlaneBitmap(Bitmap_00437b50**, int, int);
 };
 
 struct Record_00474cd0 {  // 0x3c bytes, 24 views
@@ -6596,7 +6596,7 @@ public:
     int field_20;  // +0x20
     short turn;  // +0x24
     char unknown_26[2];
-    void FUN_0043cd20(Unit*);
+    void SteerGroundUnit(Unit*);
 };
 
 class Iface_0043dd20 {  // 0x4 bytes, 1 view
@@ -6611,7 +6611,7 @@ public:
 
 class Class_0043d290 : public Class_0043d210 {  // 0x2f bytes, 2 views
 public:
-    void FUN_0043d290(Unit*);
+    void SteerAircraft(Unit*);
 };
 
 class Class_0043d6d0 {  // 0x2f bytes, 2 views
@@ -6625,7 +6625,7 @@ public:
     unsigned char mode : 2;  // +0x2e
     unsigned char flag : 1;
     unsigned char unknown_2f : 5;
-    void FUN_0043d6d0(Unit*);
+    void UpdatePosition(Unit*);
 };
 
 struct FP_0043d6d0 {  // 0x4 bytes, 1 view
@@ -6640,13 +6640,13 @@ public:
     short field_24;  // +0x24
     char unknown_26[8];
     unsigned char field_2e;  // +0x2e
-    void FUN_0043da70(Unit*);
+    void UpdateMoveRate(Unit*);
 };
 
 class Class_0043db50 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    void FUN_0043db50(Unit*);
+    void UpdateSfxOccupy(Unit*);
 };
 
 struct Vec3i_00474130 {  // 0xc bytes, 3 views
@@ -6669,7 +6669,7 @@ public:
     unsigned char f2 : 1;
     unsigned char : 5;
     char unknown_2f[1];
-    void FUN_0043dd70(Unit*, Class_004b4560*);
+    void SaveMotion(Unit*, Class_004b4560*);
 };
 
 struct MobHdr_43dd70 {  // 0x24 bytes, 1 view
@@ -6716,8 +6716,8 @@ public:
     float f104;  // +0x104
     char unknown_108[8];
     int f110;  // +0x110
-    int FUN_00489a70(void);
-    int FUN_00489a90(Class_00489a70*);
+    int CountCargo(void);
+    int CanLoad(Class_00489a70*);
 };
 
 struct Flags_0043e490 {  // 0x4 bytes, 2 views
@@ -6790,7 +6790,7 @@ public:
     unsigned int width;  // +0x10
     unsigned int height;  // +0x14
     int* cells;  // +0x18
-    void FUN_00440470(unsigned int, unsigned int);
+    void ResizePassMap(unsigned int, unsigned int);
 };
 
 struct Class_004404c0 {  // 0x1c bytes, 1 view
@@ -6798,7 +6798,7 @@ struct Class_004404c0 {  // 0x1c bytes, 1 view
     int stride;  // +0x10
     char unknown_14[4];
     unsigned int* base;  // +0x18
-    void FUN_004404c0(int, int, int);
+    void SetPassMapCell(int, int, int);
 };
 
 class Class_00440500 {  // 0x20 bytes, 3 views
@@ -6816,7 +6816,7 @@ public:
     unsigned int field_14;  // +0x14
     unsigned int* field_18;  // +0x18
     unsigned int lastTick;  // +0x1c
-    void FUN_00440500(void);
+    void BuildPassMap(void);
 };
 
 class Class_00440830 {  // 0x20 bytes, 7 views
@@ -6834,7 +6834,7 @@ public:
     unsigned int height;  // +0x14
     unsigned int* data;  // +0x18
     unsigned int lastTick;  // +0x1c
-    void FUN_00440830(Point16, Point16);
+    void RefreshPassMap(Point16, Point16);
 };
 
 struct Dst_00440ca0 {  // 0xa9 bytes, 1 view
@@ -12106,7 +12106,7 @@ class Class_00480c30 {  // 0x544 bytes, 1 view
 public:
     char unknown_0[1344];
     Data_00480c30* data;  // +0x540
-    int FUN_00480c30(int, int);
+    int GetPieceTranslation(int, int);
 };
 
 struct Entry_00480c30 {  // 0x36 bytes, 1 view
@@ -12124,7 +12124,7 @@ class Class_00480c50 {  // 0x544 bytes, 1 view
 public:
     char unknown_0[1344];
     BuildList_0045a950* data;  // +0x540
-    void FUN_00480c50(int, int, int);
+    void SetPieceTranslation(int, int, int);
 };
 
 struct Entry_00480c50 {  // 0x36 bytes, 2 views
@@ -12141,7 +12141,7 @@ class Class_00480cb0 {  // 0x544 bytes, 1 view
 public:
     char unknown_0[1344];
     void* table;  // +0x540
-    int FUN_00480cb0(int, int);
+    int GetPieceRotation(int, int);
 };
 
 struct Elem_4b0610 {  // 0xa4 bytes, 8 views
@@ -12151,7 +12151,7 @@ struct Elem_4b0610 {  // 0xa4 bytes, 8 views
     char unknown_24[128];
 };
 
-class Class_004b0610 {  // 0x540 bytes, 10 views
+class CobScript {       // 0x540 bytes, 10 views
 public:
     int field_4;  // +0x4
     int field_8;  // +0x8
@@ -12161,57 +12161,57 @@ public:
     int field_18;  // +0x18
     Elem_4b0610 arr[8];  // +0x1c
     int field_53c;  // +0x53c
-    virtual ~Class_004b0610(void);
-    Class_004b0610(Class_004b0610&);
-    Class_004b0610(void);
-    virtual void FUN_00480c50(int, int, int) = 0;
-    virtual void FUN_00480ce0(int, int, int) = 0;
-    virtual void FUN_00480d50(int, int) = 0;
-    virtual void FUN_00480db0(int, int) = 0;
-    virtual void FUN_00480df0(int, int) = 0;
-    virtual int FUN_00480c30(int, int) = 0;
-    virtual int FUN_00480cb0(int, int) = 0;
-    virtual int FUN_004b1e50(int);
-    virtual int FUN_004b1e60(int);
-    virtual int FUN_004b1e70(int);
+    virtual ~CobScript(void);
+    CobScript(CobScript&);
+    CobScript(void);
+    virtual void SetPieceTranslation(int, int, int) = 0;
+    virtual void SetPieceRotation(int, int, int) = 0;
+    virtual void SetPieceVisible(int, int) = 0;
+    virtual void SetPieceCached(int, int) = 0;
+    virtual void SetPieceShaded(int, int) = 0;
+    virtual int GetPieceTranslation(int, int) = 0;
+    virtual int GetPieceRotation(int, int) = 0;
+    virtual int IsPieceVisible(int);
+    virtual int IsPieceCached(int);
+    virtual int IsPieceShaded(int);
     virtual void FUN_004b1e80(int, int, int);
     virtual void FUN_004b1e90(int);
-    virtual void FUN_004b1ea0(int, int);
-    virtual void FUN_004b1eb0(int, int);
-    virtual void FUN_004b0650(int, int, int);
-    virtual void FUN_004b0660(int);
-    virtual void FUN_004b0670(int, int);
-    virtual int FUN_004b0680(int, int, int, int, int);
-    virtual int FUN_004b0690(int);
-    virtual int FUN_004b06a0(void);
-    int FUN_004b2040(Class_004b4560*);
-    void FUN_004b0720(BuildList_0045a950*);
-    void FUN_004b1ec0(Class_004b4cf0*);
+    virtual void EmitSfx(int, int);
+    virtual void ExplodePiece(int, int);
+    virtual void AttachUnit(int, int, int);
+    virtual void DropUnit(int);
+    virtual void SetUnitValue(int, int);
+    virtual int GetUnitValue(int, int, int, int, int);
+    virtual int IsCarryingUnit(int);
+    virtual int GetTransporterId(void);
+    int LoadScriptState(Class_004b4560*);
+    void SetCob(BuildList_0045a950*);
+    void SaveScriptState(Class_004b4cf0*);
 };
 
-class Class_00485e30 : public Class_004b0610 {  // 0x544 bytes, 9 views
+class UnitScript : public CobScript {           // 0x544 bytes, 9 views
 public:
     BuildList_0045a950* data;  // +0x540
-    virtual void FUN_00480c50(int, int, int);
-    virtual void FUN_00480ce0(int, int, int);
-    virtual void FUN_00480d50(int, int);
-    virtual void FUN_00480db0(int, int);
-    virtual void FUN_00480df0(int, int);
-    virtual int FUN_00480c30(int, int);
-    virtual int FUN_00480cb0(int, int);
-    virtual int FUN_004b1e50(int);
-    virtual int FUN_004b1e60(int);
-    virtual int FUN_004b1e70(int);
+    virtual void SetPieceTranslation(int, int, int);
+    virtual void SetPieceRotation(int, int, int);
+    virtual void SetPieceVisible(int, int);
+    virtual void SetPieceCached(int, int);
+    virtual void SetPieceShaded(int, int);
+    virtual int GetPieceTranslation(int, int);
+    virtual int GetPieceRotation(int, int);
+    virtual int IsPieceVisible(int);
+    virtual int IsPieceCached(int);
+    virtual int IsPieceShaded(int);
     virtual void FUN_004b1e80(int, int, int);
     virtual void FUN_004b1e90(int);
-    virtual void FUN_004b1ea0(int, int);
-    virtual void FUN_004b1eb0(int, int);
-    virtual void FUN_004b0650(int, int, int);
-    virtual void FUN_004b0660(int);
-    virtual void FUN_004b0670(int, int);
-    virtual int FUN_004b0680(int, int, int, int, int);
-    virtual int FUN_004b0690(int);
-    virtual int FUN_004b06a0(void);
+    virtual void EmitSfx(int, int);
+    virtual void ExplodePiece(int, int);
+    virtual void AttachUnit(int, int, int);
+    virtual void DropUnit(int);
+    virtual void SetUnitValue(int, int);
+    virtual int GetUnitValue(int, int, int, int, int);
+    virtual int IsCarryingUnit(int);
+    virtual int GetTransporterId(void);
     void FUN_00481140(int, unsigned int);
 };
 
@@ -12219,14 +12219,14 @@ class Class_00480d40 {  // 0x544 bytes, 2 views
 public:
     char unknown_0[1344];
     void* field_540;  // +0x540
-    void FUN_00480d40(int);
+    void SetObjectState(int);
 };
 
 class Class_00480d50 {  // 0x544 bytes, 1 view
 public:
     char unknown_0[1344];
     BuildList_0045a950* data;  // +0x540
-    void FUN_00480d50(int, int);
+    void SetPieceVisible(int, int);
 };
 
 struct Entry_00480d50 {  // 0x36 bytes, 3 views
@@ -12761,14 +12761,14 @@ public:
     Class_00488c50(void);
 };
 
-class Class_00489260 {  // 0x8 bytes, 3 views
+class UnitCategory {    // 0x8 bytes, 3 views
 public:
     Class_004c9390 name;  // +0x0
     int value;  // +0x4
-    Class_00489260(Class_00489260&);
-    Class_00489260(Class_004c9390&, void*);
-    ~Class_00489260(void);
-    Class_00489260& operator=(Class_00489260&);
+    UnitCategory(UnitCategory&);
+    UnitCategory(Class_004c9390&, void*);
+    ~UnitCategory(void);
+    UnitCategory& operator=(UnitCategory&);
 };
 
 class Class_00489240 {  // 0x8 bytes, 2 views
@@ -12805,8 +12805,8 @@ public:
     char unknown_0[4];
     Owner_00489540* owner;  // +0x4
     Class_00489540* next;  // +0x8
-    void FUN_00489540(Owner_00489540*);
-    void FUN_00489580(void);
+    void LinkToUnit(Owner_00489540*);
+    void UnlinkFromUnit(void);
 };
 
 struct Owner_00489540 {  // 0xa8 bytes, 2 views
@@ -12821,7 +12821,7 @@ public:
     Owner_004896f0* owner;  // +0x4
     Class_004896f0* next;  // +0x8
     Listener_004896f0* listener;  // +0xc
-    void FUN_004896f0(void);
+    void ClearRef(void);
 };
 
 class Listener_004896f0 {  // 0x4 bytes, 1 view
@@ -12868,7 +12868,7 @@ public:
     Entry_004898b0 entries[5];  // +0x4
     char unknown_90[10];
     Class_004b0a70* script;  // +0x9a
-    void FUN_00489800(unsigned char);
+    void ReleaseWeapons(unsigned char);
 };
 
 union Flags_004898b0_2 {  // 0x1 bytes, 1 view
@@ -12887,7 +12887,7 @@ public:
     Entry_004898b0_2 entries[5];  // +0x4
     char unknown_90[10];
     Class_004b0a70* script;  // +0x9a
-    void FUN_004898b0(unsigned char);
+    void ClaimWeapons(unsigned char);
 };
 
 struct Def_004899b0 {  // 0x249 bytes, 1 view
@@ -14229,7 +14229,7 @@ struct ProjFlags_0049b720 {  // 0x2 bytes, 1 view
 
 struct Weapon_0049b720 {  // 0x1c bytes, 1 view
     char unknown_0[16];
-    Class_0043dc00* type;  // +0x10
+    UnitMotion* type;      // +0x10
     char unknown_14[8];
 };
 
@@ -14282,7 +14282,7 @@ struct Head_0049cc20 {  // 0x80 bytes, 1 view
 struct Shot_0049cc20 {  // 0x1c bytes, 2 views
     char unknown_0[8];
     int piece;  // +0x8
-    Class_0043dc00* def;  // +0xc
+    UnitMotion* def;      // +0xc
     char unknown_10[6];
     short heading;  // +0x16
     short pitch;  // +0x18
@@ -14302,7 +14302,7 @@ struct Shot_0049d000 {  // 0x10 bytes, 1 view
 
 struct Entry_0049d120 {  // 0x1c bytes, 1 view
     char unknown_0[12];
-    Class_0043dc00* def;  // +0xc
+    UnitMotion* def;      // +0xc
     char unknown_10[10];
     unsigned char active;  // +0x1a
     char unknown_1b;  // +0x1b
@@ -14336,7 +14336,7 @@ struct DefFlags_0049d270 {  // 0x4 bytes, 1 view
 
 struct Entry_0049d270 {  // 0x1c bytes, 1 view
     char unknown_0[12];
-    Class_0043dc00* type;  // +0xc
+    UnitMotion* type;      // +0xc
     char unknown_10[6];
     short f_16;  // +0x16
     short f_18;  // +0x18
@@ -14385,7 +14385,7 @@ struct Packet_0049db70 {  // 0x24 bytes, 1 view
 
 struct Aim_0049dd60 {  // 0x1c bytes, 1 view
     char unknown_0[12];
-    Class_0043dc00* type;  // +0xc
+    UnitMotion* type;      // +0xc
     char unknown_10[6];
     short field_16;  // +0x16
     short field_18;  // +0x18
@@ -15412,14 +15412,14 @@ struct Cell_004b0230 {  // 0x8 bytes, 1 view
 class Class_004b07a0 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    int FUN_004b07a0(void);
+    int GetCob(void);
 };
 
 class Class_004b0830 {  // 0xc bytes, 1 view
 public:
     char unknown_0[8];
     NameTable_004b0830* table;  // +0x8
-    int FUN_004b0830(char*);
+    int StartThreadByName(char*);
 };
 
 struct NameTable_004b0830 {  // 0x20 bytes, 4 views
@@ -15446,7 +15446,7 @@ public:
     char unknown_c[16];
     Channel_004b08c0 channels[8];  // +0x1c
     int activeCount;  // +0x53c
-    int FUN_004b08c0(int);
+    int StartThread(int);
 };
 
 struct Table_004b08c0 {  // 0x1c bytes, 1 view
@@ -15492,11 +15492,11 @@ public:
     virtual void v44(void);
     virtual void v48(void);
     virtual void v4c(void);
-    int FUN_004b07c0(char*);
-    int FUN_004b0940(char*, int, int);
-    int FUN_004b0a70(char*, void*, int, int, int, int, int, int);
-    int FUN_004b0bc0(char*, int*, int*, int*, int*);
-    void FUN_004b0d60(int);
+    int FindScript(char*);
+    int StartScript(char*, int, int);
+    int StartScriptWithArgs(char*, void*, int, int, int, int, int, int);
+    int QueryScript(char*, int*, int*, int*, int*);
+    void RunScripts(int);
 };
 
 class Class_004b1c00 {  // 0x1c bytes, 5 views
@@ -15506,14 +15506,14 @@ public:
     char unknown_c[8];
     Data_004b1c00* ptr14;  // +0x14
     int field_18;  // +0x18
-    virtual void FUN_00480c50(int, int, int) = 0;
-    virtual void FUN_00480ce0(int, int, int) = 0;
-    virtual int FUN_00480d50(int, int) = 0;
-    virtual int FUN_00480db0(int, int) = 0;
-    virtual int FUN_00480df0(int, int) = 0;
-    virtual int FUN_00480c30(int, int) = 0;
-    virtual int FUN_00480cb0(int, int) = 0;
-    void FUN_004b1c00(int);
+    virtual void SetPieceTranslation(int, int, int) = 0;
+    virtual void SetPieceRotation(int, int, int) = 0;
+    virtual int SetPieceVisible(int, int) = 0;
+    virtual int SetPieceCached(int, int) = 0;
+    virtual int SetPieceShaded(int, int) = 0;
+    virtual int GetPieceTranslation(int, int) = 0;
+    virtual int GetPieceRotation(int, int) = 0;
+    void AnimatePieces(int);
 };
 
 struct Channel_004b0a10 {  // 0xa4 bytes, 1 view
@@ -15531,7 +15531,7 @@ public:
     char unknown_0[28];
     Channel_004b0a10 channels[8];  // +0x1c
     int activeCount;  // +0x53c
-    int FUN_004b0a10(int, int, int);
+    int StartScriptByIndex(int, int, int);
 };
 
 struct Channel_004b0b00 {  // 0xa4 bytes, 1 view
@@ -15542,9 +15542,9 @@ struct Channel_004b0b00 {  // 0xa4 bytes, 1 view
     int stack[25];  // +0x40
 };
 
-class Class_004b0b00_param2 {  // 0x4 bytes, 1 view
+class ScriptCallback {         // 0x4 bytes, 1 view
 public:
-    virtual void FUN_004b0b00(int);
+    virtual void StartScriptWithArgsByIndex(int);
 };
 
 struct Channel_004b0c40 {  // 0xa4 bytes, 1 view
@@ -15560,7 +15560,7 @@ class Class_004b0c40 {  // 0x524 bytes, 2 views
 public:
     Channel_004b0c40 channels[8];  // +0x0
     int activeCount;  // +0x520
-    int FUN_004b0c40(int, int*, int*, int*, int*);
+    int QueryScriptByIndex(int, int*, int*, int*, int*);
 };
 
 struct Entry_004b0d20 {  // 0xa4 bytes, 1 view
@@ -15575,7 +15575,7 @@ public:
     char unknown_0[28];
     Entry_004b0d20 entries[8];  // +0x1c
     int guard_53c;  // +0x53c
-    void FUN_004b0d20(int);
+    void RemoveCallback(int);
 };
 
 struct Callback {  // 0x4 bytes, 1 view
@@ -15608,27 +15608,27 @@ public:
     int changed;  // +0x18
     Channel channels[8];  // +0x1c
     int activeCount;  // +0x53c
-    virtual void FUN_00480c50(int, int, int) = 0;
-    virtual void FUN_00480ce0(int, int, int) = 0;
-    virtual void FUN_00480d50(int, int) = 0;
-    virtual void FUN_00480db0(int, int) = 0;
-    virtual void FUN_00480df0(int, int) = 0;
-    virtual int FUN_00480c30(int, int) = 0;
-    virtual int FUN_00480cb0(int, int) = 0;
-    virtual int FUN_004b1e50(int);
-    virtual int FUN_004b1e60(int);
-    virtual int FUN_004b1e70(int);
+    virtual void SetPieceTranslation(int, int, int) = 0;
+    virtual void SetPieceRotation(int, int, int) = 0;
+    virtual void SetPieceVisible(int, int) = 0;
+    virtual void SetPieceCached(int, int) = 0;
+    virtual void SetPieceShaded(int, int) = 0;
+    virtual int GetPieceTranslation(int, int) = 0;
+    virtual int GetPieceRotation(int, int) = 0;
+    virtual int IsPieceVisible(int);
+    virtual int IsPieceCached(int);
+    virtual int IsPieceShaded(int);
     virtual void FUN_004b1e80(int, int, int);
     virtual void FUN_004b1e90(int);
-    virtual void FUN_004b1ea0(int, int);
-    virtual void FUN_004b1eb0(int, int);
-    virtual void FUN_004b0650(int, int, int);
-    virtual void FUN_004b0660(int);
-    virtual void FUN_004b0670(int, int);
-    virtual int FUN_004b0680(int, int, int, int, int);
-    virtual int FUN_004b0690(int);
-    virtual int FUN_004b06a0(void);
-    void FUN_004b0da0(unsigned int, int);
+    virtual void EmitSfx(int, int);
+    virtual void ExplodePiece(int, int);
+    virtual void AttachUnit(int, int, int);
+    virtual void DropUnit(int);
+    virtual void SetUnitValue(int, int);
+    virtual int GetUnitValue(int, int, int, int, int);
+    virtual int IsCarryingUnit(int);
+    virtual int GetTransporterId(void);
+    void RunThread(unsigned int, int);
     void Wake(unsigned int);
 };
 

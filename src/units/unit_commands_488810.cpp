@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// A quicksort of a range of item pointers ordered by FUN_00485940 through a
+// A quicksort of a range of item pointers ordered by ComparePlayers through a
 // __stdcall function pointer (the same family as 0x488920 and 0x488960). It
 // takes the median of the first, middle and last element, partitions the range
 // in place around it, then recurses on the smaller half only and loops on the

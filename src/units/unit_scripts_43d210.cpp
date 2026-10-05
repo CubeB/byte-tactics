@@ -12,7 +12,7 @@ struct Vec3 {
 
 class Class_0048b090 {
 public:
-    void FUN_0048b090(int param_1, int param_2);
+    void SetStateBits(int param_1, int param_2);
 };
 
 class Class_0043d210 {
@@ -24,24 +24,24 @@ public:
     char unknown_24[0x2e - 0x24];
     unsigned char state : 2;           // +0x2e bits 0-1
 
-    void FUN_0043d0d0(Class_0048b090* owner, Vec3* v);
-    void FUN_0043d210(Class_0048b090* owner, int state);
+    void ApplyBankAndPitch(Class_0048b090* owner, Vec3* v);
+    void SetFlightMode(Class_0048b090* owner, int state);
 };
 
 // field_20 must be cleared before the zero vector is built: it is stored
 // with an immediate while the vector uses zeroed registers.
 // FUNCTION: 0x43d210
-void Class_0043d210::FUN_0043d210(Class_0048b090* owner, int newState)
+void Class_0043d210::SetFlightMode(Class_0048b090* owner, int newState)
 {
     if (state != newState) {
         if (newState == 1) {
             field_20 = 0;
             Vec3 zero(0, 0, 0);
             velocity = zero;
-            FUN_0043d0d0(owner, &zero);
-            owner->FUN_0048b090(1, 0);
+            ApplyBankAndPitch(owner, &zero);
+            owner->SetStateBits(1, 0);
         } else {
-            owner->FUN_0048b090(1, 1);
+            owner->SetStateBits(1, 1);
         }
         state = newState;
     }

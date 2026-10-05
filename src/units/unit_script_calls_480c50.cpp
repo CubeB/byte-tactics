@@ -20,16 +20,16 @@ struct Data_00480c50 {
 };
 #pragma pack(pop)
 
-class Class_00480c50 {
+class UnitScript {
 public:
     char unknown_0[0x540];
     Data_00480c50* data;               // +0x540
 
-    void FUN_00480c50(int index, int slot, int v);
+    void SetPieceTranslation(int index, int slot, int v);
 };
 
 // FUNCTION: 0x480c50
-void Class_00480c50::FUN_00480c50(int index, int slot, int v)
+void UnitScript::SetPieceTranslation(int index, int slot, int v)
 {
     if (data->entries[index].values[slot] != v) {
         data->entries[index].values[slot] = v;

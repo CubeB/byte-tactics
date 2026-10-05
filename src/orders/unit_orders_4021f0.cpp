@@ -14,7 +14,7 @@ public:
     int value;                         // +0xc
 
     virtual ~Class_004895c0();
-    void FUN_00489690(Unit* o);
+    void SetUnit(Unit* o);
 };
 
 class Class_00439e80 {
@@ -24,12 +24,12 @@ public:
 
 class Class_00489800 {
 public:
-    void FUN_00489800(int param);
+    void ReleaseWeapons(int param);
 };
 
 class Class_004898b0 {
 public:
-    void FUN_004898b0(int param);
+    void ClaimWeapons(int param);
 };
 
 struct Vec_004021f0 {
@@ -60,8 +60,8 @@ struct Order {
 #pragma pack(pop)
 
 int __stdcall FUN_004b6c30(int range);
-Unit* __stdcall FUN_0048a190(Unit* unit, int index);
-void __stdcall FUN_0048a060(Unit* unit, Unit* target, int weapon);
+Unit* __stdcall GetWeaponTargetUnit(Unit* unit, int index);
+void __stdcall SetWeaponTargetUnit(Unit* unit, Unit* target, int weapon);
 int __stdcall FUN_0049abb0(Unit* unit, Unit* target, int param_3);
 void __stdcall FUN_0040ad80(int player, Vec_004021f0* pos, int radius, int flags,
                             std::vector<Unit*>* out);
@@ -75,16 +75,16 @@ int __stdcall FUN_004021f0(Unit* unit, Order* order, int flags)
     }
     switch (order->state) {
     case 0:
-        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_00489800*)unit)->ReleaseWeapons(3);
         ((Class_00439e80*)order)->FUN_00439e80(0x1e);
         return 1;
     case 1: {
-        order->target.FUN_00489690(FUN_0048a190(unit, 0));
+        order->target.SetUnit(GetWeaponTargetUnit(unit, 0));
         Unit* t = order->target.owner;
         if (t != 0 && (t->flags & 0x10000000)) {
             order->pos = t->pos;
-            ((Class_004898b0*)unit)->FUN_004898b0(0);
-            FUN_0048a060(unit, order->target.owner, 0);
+            ((Class_004898b0*)unit)->ClaimWeapons(0);
+            SetWeaponTargetUnit(unit, order->target.owner, 0);
             order->wait = 0;
             order->waitLimit = FUN_004b6c30(3) + 3;
             return 1;
@@ -110,8 +110,8 @@ int __stdcall FUN_004021f0(Unit* unit, Order* order, int flags)
         std::vector<Unit*> units;
         FUN_0040ad80(unit->player, &order->pos, 0x280, 0, &units);
         if (!units.empty()) {
-            order->target.FUN_00489690(units[FUN_004b6c30(units.size())]);
-            FUN_0048a060(unit, order->target.owner, 0);
+            order->target.SetUnit(units[FUN_004b6c30(units.size())]);
+            SetWeaponTargetUnit(unit, order->target.owner, 0);
             order->state = 1;
             return 2;
         }

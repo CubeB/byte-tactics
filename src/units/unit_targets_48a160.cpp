@@ -10,13 +10,13 @@ struct Entry_0048a160 {
     char unknown_4[0x1c - 4];
 };
 
-struct Class_0048a160 {
+struct Unit {
     int unknown_0;
     Entry_0048a160 entries[1];         // +0x4
 };
 
 // FUNCTION: 0x48a160
-void __stdcall FUN_0048a160(Class_0048a160* obj, int index)
+void __stdcall ResetWeaponTarget(Unit* obj, int index)
 {
     Point_0048a160* p = &obj->entries[index].point;
     p->a = 0;

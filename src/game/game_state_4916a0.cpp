@@ -42,7 +42,7 @@ void __cdecl FUN_004d85a0(int* param_1);
 void __stdcall FUN_004c61f0(int param_1);
 void FUN_004c62c0();
 void FUN_0043c350();
-void FUN_0042bcc0();
+void FreeUnitInfo();
 void __stdcall ReleasePacketData(Class_00452370* obj);
 void FUN_00434b90();
 
@@ -70,7 +70,7 @@ void FUN_004916a0(void)
     FUN_0043c350();
     FUN_004d85a0(*(int**)(g_game + 0x29a0));
     *(int*)(g_game + 0x29a0) = 0;
-    FUN_0042bcc0();
+    FreeUnitInfo();
     ReleasePacketData((Class_00452370*)(g_game + 0x12ef));
     FUN_00434b90();
 }

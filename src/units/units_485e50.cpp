@@ -4,11 +4,11 @@
 
 struct Unit;
 
-class Class_0043dc00 {
+class UnitMotion {
 public:
     char unknown_0[0x2f];
 
-    Class_0043dc00(Unit* unit);
+    UnitMotion(Unit* unit);
 };
 
 #pragma pack(push, 1)
@@ -18,7 +18,7 @@ struct UnitType_00485e50 {
 };
 
 struct Unit {
-    Class_0043dc00* obj;               // +0x0
+    UnitMotion* obj;                   // +0x0
     char unknown_4[0x66 - 0x4];
     short field_66;                    // +0x66
     char unknown_68[0x92 - 0x68];
@@ -27,8 +27,8 @@ struct Unit {
 #pragma pack(pop)
 
 // FUNCTION: 0x485e50
-void __stdcall FUN_00485e50(Unit* unit)
+void __stdcall CreateUnitMotion(Unit* unit)
 {
-    unit->obj = new Class_0043dc00(unit);
+    unit->obj = new UnitMotion(unit);
     unit->field_66 = unit->type->field_210;
 }

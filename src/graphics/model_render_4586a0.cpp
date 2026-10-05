@@ -61,10 +61,10 @@ struct List_004586a0 {
 };
 #pragma pack(pop)
 
-class Class_00437a30 {
+class CMemoryCache {
 public:
-    int FUN_00437b50(Bitmap_004586a0** handle, int w, int h);
-    int FUN_00437be0(Bitmap_004586a0** handle, int w, int h);
+    int AllocBitmap(Bitmap_004586a0** handle, int w, int h);
+    int AllocTwoPlaneBitmap(Bitmap_004586a0** handle, int w, int h);
 };
 
 class Class_004581e0 {
@@ -85,9 +85,9 @@ int Class_004581e0::FUN_004586a0(List_004586a0* list, int param_2, int param_3)
     Owner_004586a0* owner = list->owner;
     FUN_004581e0(&w, &h, &oy, &ox, list, 0);
     if (param_2 == 0 && (owner->field_114 & 1) == 0 && owner->field_104 == 0.0f) {
-        ((Class_00437a30*)this)->FUN_00437b50(&list->bitmap, w, h);
+        ((CMemoryCache*)this)->AllocBitmap(&list->bitmap, w, h);
     } else {
-        ((Class_00437a30*)this)->FUN_00437be0(&list->bitmap, w, h);
+        ((CMemoryCache*)this)->AllocTwoPlaneBitmap(&list->bitmap, w, h);
     }
     Bitmap_004586a0* bitmap = list->bitmap;
     if (bitmap != 0) {

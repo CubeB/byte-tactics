@@ -27,23 +27,23 @@ public:
     ~Class_004c91b0() { FUN_004c9390(); }
 };
 
-class Class_00489260 {
+class UnitCategory {
 public:
     Class_004c91a0 name;               // +0x0
     void* value;                       // +0x4
 
-    Class_00489260(const Class_004c91a0& n, void* v) : name(n) { value = v; }
-    ~Class_00489260() { name.FUN_004c9390(); }
+    UnitCategory(const Class_004c91a0& n, void* v) : name(n) { value = v; }
+    ~UnitCategory() { name.FUN_004c9390(); }
 };
 
-class Class_00488c50 {
+class UnitTypeSet {
 public:
     int unknown_0[0x10];               // the object is 0x40 bytes
 
-    Class_00488c50() { memset(this, 0, sizeof(Class_00488c50)); }
+    UnitTypeSet() { memset(this, 0, sizeof(UnitTypeSet)); }
 };
 
-// The global std::vector<Class_00489260>, written by hand so that insert
+// The global std::vector<UnitCategory>, written by hand so that insert
 // (0x488fb0, which has its own file) stays an out-of-line call under its real
 // name, as the original has it.
 namespace std {
@@ -62,16 +62,16 @@ public:
 };
 }
 
-extern std::vector<Class_00489260> DAT_0051e6b0;
+extern std::vector<UnitCategory> DAT_0051e6b0;
 
 // FUNCTION: 0x488c50
-void* __stdcall FUN_00488c50(char* name)
+void* __stdcall GetCategoryMask(char* name)
 {
-    Class_00489260* first = DAT_0051e6b0.begin();
+    UnitCategory* first = DAT_0051e6b0.begin();
     int n = DAT_0051e6b0.size();
     for (; 0 < n; ) {
         int n2 = n / 2;
-        Class_00489260* m = first + n2;
+        UnitCategory* m = first + n2;
         if (_strcmpi(m->name.data, name) < 0)
             first = ++m, n -= n2 + 1;
         else
@@ -80,7 +80,7 @@ void* __stdcall FUN_00488c50(char* name)
     if (first != DAT_0051e6b0.end() && _strcmpi(first->name.data, name) == 0)
         return first->value;
 
-    Class_00488c50* p = new Class_00488c50;
-    DAT_0051e6b0.insert(first, 1, Class_00489260(Class_004c91b0(name), p));
+    UnitTypeSet* p = new UnitTypeSet;
+    DAT_0051e6b0.insert(first, 1, UnitCategory(Class_004c91b0(name), p));
     return p;
 }

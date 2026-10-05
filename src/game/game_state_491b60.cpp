@@ -34,7 +34,7 @@ extern Game* g_game;
 
 void __cdecl FUN_0041dc20();
 void FUN_00437d30();
-void FUN_00485980();
+void FreeUnitMemory();
 void FUN_00471de0();
 void FUN_00420960();
 void FUN_0044f6e0();
@@ -42,13 +42,13 @@ void FUN_00464a00();
 void FUN_00466aa0();
 void FUN_00483dd0();
 void __cdecl FUN_004d85a0(void* param_1);
-void FUN_0042e120();
-void FUN_0042db90();
+void FreeDownloadMenus();
+void FreeUnitTypes();
 void FUN_0042f3a0();
 void FUN_0042a570();
 void FUN_00499a80();
-void FUN_00440a00();
-void FUN_00488bf0();
+void FreeMovementClasses();
+void FreeUnitCategories();
 void CloseNetSession();
 
 // FUNCTION: 0x491b60
@@ -59,7 +59,7 @@ void FUN_00491b60()
     g_game->field_10->FUN_004ce690(4);
     FUN_0041dc20();
     FUN_00437d30();
-    FUN_00485980();
+    FreeUnitMemory();
     FUN_00471de0();
     FUN_00420960();
     FUN_0044f6e0();
@@ -72,13 +72,13 @@ void FUN_00491b60()
     g_game->field_1438b = 0;
     g_game->field_14387 = 0;
     g_game->field_14383 = 0;
-    FUN_0042e120();
-    FUN_0042db90();
+    FreeDownloadMenus();
+    FreeUnitTypes();
     FUN_0042f3a0();
     FUN_0042a570();
     FUN_00499a80();
-    FUN_00440a00();
-    FUN_00488bf0();
+    FreeMovementClasses();
+    FreeUnitCategories();
     if (g_game->field_391e9->FUN_00435100() == 3) {
         CloseNetSession();
     }

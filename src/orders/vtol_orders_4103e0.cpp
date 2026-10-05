@@ -25,13 +25,13 @@ class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_00489800 { public: void FUN_00489800(int); };
+class Class_00489800 { public: void ReleaseWeapons(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
 struct UnitDef { char pad0[0x1fa]; unsigned int maxHealth; char pad1fe[0x21c-0x1fe]; short altitude; char pad21e[0x231-0x21e]; unsigned int* weaponCategories[3]; unsigned int* categories; unsigned int flags; };
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
-class Class_0043d210 { public: char pad0[0x2e]; unsigned char flags; void FUN_0043d210(Unit*, int); };
+class Class_0043d210 { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
 struct Unit {
     Class_0043d210* motion; char pad4[4]; Weapon weapons[3]; Order* order;
     char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int terrain; int busy;
@@ -47,11 +47,11 @@ struct Game { char pad0[0x1422b]; int width, height; char pad14233[0x142b7-0x142
 extern Game* g_game;
 class Class_0044e730 { public: void FUN_0044e730(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
-class Class_004899b0 { public: int FUN_004899b0(Unit*); };
-class Class_004898b0 { public: void FUN_004898b0(int); };
-class Class_0048b090 { public: void FUN_0048b090(int, int); };
-void __stdcall FUN_0048aac0(Unit*, Unit*, char, char);
-short __stdcall FUN_0048a980(Vec3*, Vec3*);
+class Class_004899b0 { public: int CanRepair(Unit*); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
+class Class_0048b090 { public: void SetStateBits(int, int); };
+void __stdcall AttachUnitToPiece(Unit*, Unit*, char, char);
+short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 union Fixed { int value; struct { unsigned short frac; short whole; } parts; };
 Vec3 __stdcall FUN_004103a0(short, Fixed);
 static inline Vec3 Direction(short angle, int range) { Fixed distance; distance.value=range; return FUN_004103a0(angle,distance); }
@@ -59,9 +59,9 @@ Vec3 __stdcall FUN_0040f790(const Vec3&, const Vec3&);
 void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
 
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
-Unit* __stdcall FUN_0048a190(Unit*, int);
+Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
-void __stdcall FUN_0048a060(Unit*, Unit*, int);
+void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
 int __stdcall FUN_004b6c30(int);
@@ -81,7 +81,7 @@ int __stdcall FUN_004103e0(Unit* unit, Order* order, int flags)
         Vec3 center;
         center.x=(g_game->width/2)<<16;
         center.z=(g_game->height/2)<<16;
-        short angle=FUN_0048a980(&unit->pos,&center);
+        short angle=GetHeadingBetween(&unit->pos,&center);
         Vec3 pos=FUN_0040f790(unit->pos,Offset(angle,0x3200000));
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->FUN_0044e730(128);
@@ -99,11 +99,11 @@ int __stdcall FUN_004103e0(Unit* unit, Order* order, int flags)
                 if (!order->pos.x && !order->pos.z && !order->pos.y) order->pos=unit->pos;
                 order->angle=FUN_004b6c30(0x10000);
                 order->parity=order->angle&1;
-                ((Class_004898b0*)unit)->FUN_004898b0(3);
-                if (unit->busy) FUN_0048aac0(unit,0,-1,2);
-                ((Class_0048b090*)unit)->FUN_0048b090(1,1);
+                ((Class_004898b0*)unit)->ClaimWeapons(3);
+                if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
+                ((Class_0048b090*)unit)->SetStateBits(1,1);
                 if ((unit->motion->flags&3)==1) {
-                    unit->motion->FUN_0043d210(unit,2);
+                    unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                     ((Class_0044e6c0*)move)->FUN_0044e6c0(unit->def->altitude/2);
                     ((Class_004388d0*)order)->FUN_004388d0((int)move);
@@ -114,7 +114,7 @@ int __stdcall FUN_004103e0(Unit* unit, Order* order, int flags)
         }
         break;
     case 1: {
-        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_00489800*)unit)->ReleaseWeapons(3);
         if ((unsigned int)unit->health < (unit->def->maxHealth>>2)*3) {
             Class_00410830 pads;
             FUN_0040b530(unit->owner->index,&unit->pos,0xf00,&pads);

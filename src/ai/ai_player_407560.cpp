@@ -5,7 +5,7 @@
 // takes one unit from it when this group is empty, sends the unit farthest
 // from the group's centre to that kind while its squared distance is at least
 // limit * group size, then takes over every unit of the other group that lies
-// closer than that. FUN_00480250(unit, id) moves a unit to a group.
+// closer than that. SetUnitSquad(unit, id) moves a unit to a group.
 // In the last scan the squared distance must be its own statement (`int d`);
 // written inside the comparison, MSVC computes the size() ternary first.
 #include <vector>
@@ -35,7 +35,7 @@ struct Owner_00407560 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_00480250(Unit* u, int id);
+void __stdcall SetUnitSquad(Unit* u, int id);
 
 class Class_00407560 {
 public:
@@ -55,7 +55,7 @@ void Class_00407560::FUN_00407560(int kind, int limit)
     if (group->units.empty()) {
         if (other->group->units.empty())
             return;
-        FUN_00480250(other->group->units[0], group->id);
+        SetUnitSquad(other->group->units[0], group->id);
     }
     int sx = 0, sz = 0;
     std::vector<Unit*>::iterator it;
@@ -83,7 +83,7 @@ void Class_00407560::FUN_00407560(int kind, int limit)
         }
         if (maxd < limit * (int)g->units.size())
             break;
-        FUN_00480250(*best, kind);
+        SetUnitSquad(*best, kind);
         sx -= (*best)->x;
         sz -= (*best)->z;
     }
@@ -96,5 +96,5 @@ void Class_00407560::FUN_00407560(int kind, int limit)
             list.push_back(*it);
     }
     for (it = list.begin(); it != list.end(); ++it)
-        FUN_00480250(*it, group->id);
+        SetUnitSquad(*it, group->id);
 }

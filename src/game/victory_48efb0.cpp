@@ -53,7 +53,7 @@ struct Game {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-short __stdcall FUN_00488b10(char* name);
+short __stdcall FindUnitTypeId(char* name);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 
 class Condition_48efb0 {
@@ -79,7 +79,7 @@ public:
 void Class_0048efb0::FUN_0048ea10(Unit* unit)
 {
     if (done == 0 && unit->kind == 1 && _strcmpi(name, unit->info->name) == 0) {
-        id = FUN_00488b10(name);
+        id = FindUnitTypeId(name);
         count = 0;
         g_game->units.ForEach(this);
         if (count <= 1) {

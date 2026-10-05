@@ -2,7 +2,7 @@
 
 class Class_00437c80 {
 public:
-    void FUN_00437c80();
+    void FlushCache();
 };
 
 #pragma pack(push, 1)
@@ -25,6 +25,6 @@ void FUN_00430f00();
 void __stdcall FUN_00416420(int unused)
 {
     g_game->toggle = !g_game->toggle;
-    g_game->obj->FUN_00437c80();
+    g_game->obj->FlushCache();
     FUN_00430f00();
 }

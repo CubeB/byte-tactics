@@ -46,7 +46,7 @@ struct Player_00401360;
 
 class Class_0048b090 {
 public:
-    void FUN_0048b090(int which, int on);
+    void SetStateBits(int which, int on);
 };
 
 #pragma pack(push, 1)
@@ -387,11 +387,11 @@ void __stdcall FUN_00401360(Player_00401360* p)
             if (u->bit11) {
                 if (!(u->flags & 0x1000) && u->nextTick <= g_game->ticks) {
                     int cost = (int)((u->flags & 0xc) > 0 ? u->def->costActive : u->def->cost);
-                    ((Class_0048b090*)u)->FUN_0048b090(4, u->econ.FUN_00401220(cost));
+                    ((Class_0048b090*)u)->SetStateBits(4, u->econ.FUN_00401220(cost));
                 } else
-                    ((Class_0048b090*)u)->FUN_0048b090(4, 0);
+                    ((Class_0048b090*)u)->SetStateBits(4, 0);
             } else
-                ((Class_0048b090*)u)->FUN_0048b090(4, 0);
+                ((Class_0048b090*)u)->SetStateBits(4, 0);
         }
         producedA[0] += u->econ.res[0].produced;
         usedA[0] += u->econ.res[0].used;

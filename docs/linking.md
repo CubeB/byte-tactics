@@ -154,7 +154,7 @@ What stands out:
   `operator delete`s repeated in each file of a class family
   (`Class_00407350`'s constructor in 8 files, `Class_00471cc0`'s destructor and
   `operator delete` in 6). The 3 globals defined twice are `DAT_00512340`,
-  `DAT_00512358` and `g_packetManager`.
+  `g_movementClasses` and `g_packetManager`.
 - **53 folds are silent hazards.** Inline functions and vtables that differ
   between objects link without complaint and the linker keeps any one. Most
   come from files standing in for a helper differently: `vector<Unit*>::_Ucopy`
@@ -507,7 +507,7 @@ placeholder class. Each override is now named after the virtual it
 overrides, with the base's parameter types and declared virtual, which binds
 the slot with no function's bytes changed (`Class_0043a1f0`, the
 `Class_00471cc0`, `Class_0044ef20` and condition families,
-`Class_00485e30`); `tools/vtablecheck.py` checks a file's slots so. The compiled image differs from the
+`UnitScript`); `tools/vtablecheck.py` checks a file's slots so. The compiled image differs from the
 original only under the two rows of `data/exe_patches.csv`, where it has the
 compiler's bytes rather than GOG's no-CD music patch, and after the link
 `tools/exepatch.py` writes the patch over them, so `build/place/TotalA.exe` is

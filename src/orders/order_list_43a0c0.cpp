@@ -66,7 +66,7 @@ public:
     void SetValue(void* v) { value = v; }
 
     Class_004895c0(ListOwner_0043a1f0* o, int v);
-    void FUN_00489690(ListOwner_0043a1f0* o);
+    void SetUnit(ListOwner_0043a1f0* o);
 };
 
 // The base class: one virtual slot, its vtable at 0x4fd2cc.
@@ -124,5 +124,5 @@ Class_0043a1f0::Class_0043a1f0(int k, ListOwner_0043a1f0* o, Vec3_0043a1f0* p, i
     if (p == 0)
         flags &= ~0x400;
     if (!(flags & 0x200))
-        link.FUN_00489690(0);
+        link.SetUnit(0);
 }

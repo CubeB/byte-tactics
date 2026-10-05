@@ -12,7 +12,7 @@
 // What made this match (the previous 79.4 percent version had the maximum in
 // ebp and the index in ebx, i.e. the opposite of the original):
 //
-// - The third argument of FUN_0043e240 / FUN_0043e2e0 is the loop index, not
+// - The third argument of GetWeaponPiecePosition / GetAimFromPosition is the loop index, not
 //   the reload-time maximum. The parameters are `unsigned char` (see
 //   0x43e240.cpp and 0x49d910.cpp), and for a char parameter MSVC 5 passes the
 //   dword at the char's stack slot without widening it, so the original's
@@ -39,9 +39,9 @@ struct Vec3_0049e070 {
     int z;
 };
 
-class Class_004b0a70 {
+class CobScript {
 public:
-    int FUN_004b0a70(char* name, void* param_2, int param_3, int param_4,
+    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4,
                      int param_5, int param_6, int param_7, int param_8);
 };
 
@@ -69,7 +69,7 @@ struct Unit {
     char unknown_64[0x92 - 0x64];
     UnitType_0049e070* type;         // +0x92
     char unknown_96[0x9a - 0x96];
-    Class_004b0a70* script;          // +0x9a
+    CobScript* script;               // +0x9a
     char unknown_9e[0xe4 - 0x9e];
     unsigned short field_e4;         // +0xe4
     char unknown_e6[0x10a - 0xe6];
@@ -84,8 +84,8 @@ struct Frame_0049e070 {
     int maxTime;                      // +0x4
 };
 
-void __stdcall FUN_0043e240(Unit*, Vec3_0049e070*, unsigned char, int);
-void __stdcall FUN_0043e2e0(Unit*, Vec3_0049e070*, unsigned char);
+void __stdcall GetWeaponPiecePosition(Unit*, Vec3_0049e070*, unsigned char, int);
+void __stdcall GetAimFromPosition(Unit*, Vec3_0049e070*, unsigned char);
 
 // FUNCTION: 0x49e070
 void __stdcall FUN_0049e070(Unit* unit)
@@ -99,12 +99,12 @@ void __stdcall FUN_0049e070(Unit* unit)
         s->flags = (s->flags & 0xfd) | (((unit->type->attached[frame.i]->team != 0) & 1 | 8) * 2);
         s->field_e = 0;
         Vec3_0049e070 a;
-        FUN_0043e240(unit, &a, frame.i, -1);
+        GetWeaponPiecePosition(unit, &a, frame.i, -1);
         Vec3_0049e070 b;
-        FUN_0043e2e0(unit, &b, frame.i);
+        GetAimFromPosition(unit, &b, frame.i);
         s->field_4 = (a.z - b.z) * 1.25;
         if (s->attached->field_e4 > frame.maxTime)
             frame.maxTime = s->attached->field_e4;
     }
-    unit->script->FUN_004b0a70("SetMaxReloadTime", 0, 0, 1, frame.maxTime * 1000 / 30, 0, 0, 0);
+    unit->script->StartScriptWithArgs("SetMaxReloadTime", 0, 0, 1, frame.maxTime * 1000 / 30, 0, 0, 0);
 }

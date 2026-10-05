@@ -38,7 +38,7 @@ struct Pos_00485070 {
 extern Game* g_game;
 
 // FUNCTION: 0x485070
-int __stdcall FUN_00485070(Pos_00485070* p)
+int __stdcall GetGroundHeight(Pos_00485070* p)
 {
     int x = p->x.whole;
     int z = p->z.whole;

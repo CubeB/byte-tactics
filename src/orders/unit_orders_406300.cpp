@@ -164,7 +164,7 @@ class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_00489800 { public: void FUN_00489800(int); };
+class Class_00489800 { public: void ReleaseWeapons(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0x111]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
@@ -181,9 +181,9 @@ struct Order { Unit* Target() { return target; } Vec3* Position() { return &pos;
 class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, Unit*, Vec3*, int, int, int); };
 #pragma pack(pop)
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
-Unit* __stdcall FUN_0048a190(Unit*, int);
+Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
-void __stdcall FUN_0048a060(Unit*, Unit*, int);
+void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
 int __stdcall FUN_004b6c30(int);
@@ -201,7 +201,7 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
     switch(state) {
     case 0: {
         ((Class_00438880*)order)->FUN_00438880("Guarding");
-        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_00489800*)unit)->ReleaseWeapons(3);
         order->radius=(unit->width + order->target->width + 2) << 4;
         int distance=order->radius << 16;
         short angle=FUN_004b6c30(0x10000);
@@ -217,9 +217,9 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
                 for (unsigned char i=0;i<3;++i) {
                     Weapon* weapon=&unit->weapons[i];
                     if ((weapon->flags&2) && (weapon->flags&0x10) && !((unsigned char)(weapon->def->flags >> 26)&1)) {
-                        Unit* target=FUN_0048a190(unit,i);
+                        Unit* target=GetWeaponTargetUnit(unit,i);
                         if (!target || !FUN_0049abb0(unit,target,i) || Contains(unit->def->weaponCategories[i],target->category))
-                            FUN_0048a060(unit,attacker,i);
+                            SetWeaponTargetUnit(unit,attacker,i);
                     }
                 }
             }

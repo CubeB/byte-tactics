@@ -152,7 +152,7 @@ extern char DAT_00504904[];           // "Radar Image"
 void __stdcall FUN_004c6f10(void* surface, void* file);
 void __stdcall FUN_0041d360(void* file);
 void __stdcall FUN_004662f0(void* file);
-void __stdcall FUN_004876c0(void* file);
+void __stdcall SaveUnits(void* file);
 void __stdcall FUN_00484f50(void* file);
 void __stdcall FUN_00424890(void* file);
 void __stdcall FUN_00484df0(void* file);
@@ -205,7 +205,7 @@ int __stdcall FUN_004326b0(char* param_1, char* param_2, int param_3)
         FUN_004c6f10(g_game->finalSurface, &file);
         FUN_0041d360(&file);
         FUN_004662f0(&file);
-        FUN_004876c0(&file);
+        SaveUnits(&file);
         FUN_00484f50(&file);
         FUN_00424890(&file);
         FUN_00484df0(&file);

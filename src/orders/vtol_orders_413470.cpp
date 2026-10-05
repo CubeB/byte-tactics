@@ -43,11 +43,11 @@ class Class_0043d210 {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
-    void FUN_0043d210(Unit* unit, int state);
+    void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void FUN_004898b0(int); };
-class Class_00489800 { public: void FUN_00489800(int); };
-class Class_0048b090 { public: void FUN_0048b090(int, int); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
+class Class_00489800 { public: void ReleaseWeapons(int); };
+class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
@@ -116,9 +116,9 @@ extern Game* g_game;
 int __stdcall FUN_004b6c30(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
-int __stdcall FUN_0048a980(Vec3*, Vec3*);
-void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4);
-void __stdcall FUN_0048a060(Unit*, Unit*, int);
+int __stdcall GetHeadingBetween(Vec3*, Vec3*);
+void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
+void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 int __stdcall FUN_0049abb0(Unit*, Unit*, int);
 void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
 void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
@@ -151,12 +151,12 @@ static inline Vec3 Add(const Vec3& a, const Vec3& b)
 
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->FUN_004898b0(3);
+    ((Class_004898b0*)unit)->ClaimWeapons(3);
     if (unit->field_86)
-        FUN_0048aac0(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->FUN_0048b090(1, 1);
+        AttachUnitToPiece(unit, 0, -1, 2);
+    ((Class_0048b090*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
-        unit->type->FUN_0043d210(unit, 2);
+        unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
@@ -181,7 +181,7 @@ int __stdcall FUN_00413470(Unit* unit, Order* order, int flags)
         Vec3 centre;
         centre.x = g_game->width / 2 << 16;
         centre.z = g_game->height / 2 << 16;
-        short angle = FUN_0048a980(&unit->pos, &centre);
+        short angle = GetHeadingBetween(&unit->pos, &centre);
         Vec3 dest = FUN_0040f790(unit->pos, Offset(angle, 0x3200000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->FUN_0044e730(0x80);
@@ -205,9 +205,9 @@ int __stdcall FUN_00413470(Unit* unit, Order* order, int flags)
         }
         break;
     case 1: {
-        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_00489800*)unit)->ReleaseWeapons(3);
         int dist = (int)_hypot(order->target->pos.x - unit->pos.x, order->target->pos.z - unit->pos.z);
-        int angle = FUN_0048a980(&unit->pos, &order->target->pos);
+        int angle = GetHeadingBetween(&unit->pos, &order->target->pos);
         Vec3 off = Offset(FUN_004b6c30(0x4000) + angle - 0x2000, dist / 2);
         Vec3 p = unit->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
@@ -217,8 +217,8 @@ int __stdcall FUN_00413470(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 2: {
-        ((Class_004898b0*)unit)->FUN_004898b0(0);
-        FUN_0048a060(unit, order->target, 0);
+        ((Class_004898b0*)unit)->ClaimWeapons(0);
+        SetWeaponTargetUnit(unit, order->target, 0);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target->pos);
         ((Class_0044e730*)obj)->FUN_0044e730(speed);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
@@ -240,7 +240,7 @@ int __stdcall FUN_00413470(Unit* unit, Order* order, int flags)
             order->flags |= 0x110e8;
             return 2;
         }
-        int a = FUN_0048a980(&unit->pos, &order->target->pos);
+        int a = GetHeadingBetween(&unit->pos, &order->target->pos);
         int angle;
         if (order->side) {
             angle = a + 0x2000;

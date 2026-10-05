@@ -6,7 +6,7 @@
 // energy share of the step and only proceeds when the store accepts it.
 // Unbuilding adds the energy share to the unit's float at +0xd4 (times 0.5 or
 // 0.7 for a type 2 player when g_game+0x37eee is 0 or 1) and destroys the
-// unit through FUN_00489bb0 once nothing is left. Either way the unit's hit
+// unit through DamageUnit once nothing is left. Either way the unit's hit
 // points follow the progress, and a finished unit goes to FUN_0041b8d0.
 // Notes: min/max are the <windows.h> macros (the clamp evaluates max twice).
 // The +0xd4 updates go through a `float&`: written as unit->field_d4, MSVC
@@ -67,7 +67,7 @@ struct Builder_0041ba60 {
 
 extern Game* g_game;
 
-void __stdcall FUN_00489bb0(Unit* obj, Unit* unit, int n, int kind, int flag);
+void __stdcall DamageUnit(Unit* obj, Unit* unit, int n, int kind, int flag);
 void __stdcall FUN_0041b8d0(Builder_0041ba60* builder, Unit* unit);
 
 // FUNCTION: 0x41ba60
@@ -109,7 +109,7 @@ int __stdcall FUN_0041ba60(Builder_0041ba60* builder, Unit* unit, float amount)
         unit->remaining = next;
         unit->flags |= 0x2000;
         if (next >= 1.0f)
-            FUN_00489bb0(unit, unit, 30000, 9, 0);
+            DamageUnit(unit, unit, 30000, 9, 0);
     } else if (builder->store.FUN_004011c0(metal, energy)) {
         unit->hp = min(hp + unit->hp, unit->type->maxHp);
         unit->remaining = next;

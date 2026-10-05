@@ -36,7 +36,7 @@ struct Pos_00484b50 {
     Coord_00484b50 z;                  // +0x8
 };
 
-int __stdcall FUN_00485070(Pos_00484b50* pos);
+int __stdcall GetGroundHeight(Pos_00484b50* pos);
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -60,7 +60,7 @@ void __stdcall FUN_00484b50(int x, int y, Pos_00484b50* out)
     int i;
     for (i = 0x80; i >= 0; i -= 0x10) {
         p.z.value = (t + i) << 16;
-        p.y.value = max(FUN_00485070(&p), g_game->seaLevel) << 16;
+        p.y.value = max(GetGroundHeight(&p), g_game->seaLevel) << 16;
         s1 = p.z.parts.whole - (p.y.parts.whole >> 1);
         if (s1 <= y)
             goto found;
@@ -71,11 +71,11 @@ found:
     {
         Pos_00484b50 q = p;
         q.z.value = p.z.value + 0x100000;
-        q.y.value = max(FUN_00485070(&q), g_game->seaLevel) << 16;
+        q.y.value = max(GetGroundHeight(&q), g_game->seaLevel) << 16;
         s2 = q.z.parts.whole - (q.y.parts.whole >> 1);
         if ((s1 < s2 && y >= s1) || y <= s2) {
             p.z.value = p.z.value + ((y - s1) << 20) / (s2 - s1);
-            p.y.value = max(FUN_00485070(&p), g_game->seaLevel) << 16;
+            p.y.value = max(GetGroundHeight(&p), g_game->seaLevel) << 16;
         }
     }
 done:

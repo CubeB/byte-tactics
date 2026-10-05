@@ -30,12 +30,12 @@ public:
     int FUN_004b4c80(void* buf, int size);
 };
 
-Unit* __stdcall FUN_00487080(unsigned short index, void* file);
+Unit* __stdcall LoadUnit(unsigned short index, void* file);
 
 class Class_004895c0 {
 public:
     Class_004895c0(void* o = 0, int v = 0);
-    void FUN_00489690(void* o);
+    void SetUnit(void* o);
     virtual ~Class_004895c0();
 
     void* owner;                       // +0x4
@@ -43,7 +43,7 @@ public:
     int value;                         // +0xc
 };
 
-class Class_00489650 {
+class UnitRef {
 public:
     void FUN_00489650();
 };
@@ -108,8 +108,8 @@ Class_0044de80::Class_0044de80(int owner, Class_004b4ba0* file, char* name)
     file->FUN_004b4ba0(name);
     ((Class_004b4c10*)file)->FUN_004b4c10(0);
     if (((Class_004b4c80*)file)->FUN_004b4c80(&rec, 0x36) == 0x36) {
-        field_12 = FUN_00487080(rec.id1, file);
-        ref.FUN_00489690(FUN_00487080(rec.id2, file));
+        field_12 = LoadUnit(rec.id1, file);
+        ref.SetUnit(LoadUnit(rec.id2, file));
         field_8 = rec.f1;
         field_a = rec.f2;
         field_c = rec.f3;
@@ -118,5 +118,5 @@ Class_0044de80::Class_0044de80(int owner, Class_004b4ba0* file, char* name)
         pos = rec.pos;
         field_32 = rec.i4;
     }
-    ((Class_00489650*)&rec.ref_vt)->FUN_00489650();
+    ((UnitRef*)&rec.ref_vt)->FUN_00489650();
 }

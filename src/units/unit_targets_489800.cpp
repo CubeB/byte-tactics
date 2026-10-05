@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Clears the unit's target entry `index` (the same reset as FUN_0048a0f0) and
+// Clears the unit's target entry `index` (the same reset as ClearWeaponTarget) and
 // tells the unit's script "StartBuilding" and "TargetCleared", but only when
 // the entry's flag byte at +0x1b has bit 1 and bit 4 both set, and the entry
 // is not already clear. Note that bit 4 is *cleared* again on entry, so a set
@@ -13,12 +13,12 @@
 // address (`lea ecx, [edi + eax*4 + 0x1f]`, `mov [ecx], al`) instead.
 class Class_004b07c0 {
 public:
-    int FUN_004b07c0(char* name);
+    int FindScript(char* name);
 };
 
-class Class_004b0a70 {
+class CobScript {
 public:
-    int FUN_004b0a70(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
+    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
 };
 
 #pragma pack(push, 1)
@@ -52,16 +52,16 @@ public:
     char unknown_90[0x9a - 0x90];
     Class_004b07c0* script;             // +0x9a
 
-    void FUN_00489800(unsigned char index);
+    void ReleaseWeapons(unsigned char index);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x489800
-void Class_00489800::FUN_00489800(unsigned char index)
+void Class_00489800::ReleaseWeapons(unsigned char index)
 {
     if (index == 3) {
-        this->FUN_00489800(0);
-        this->FUN_00489800(1);
+        this->ReleaseWeapons(0);
+        this->ReleaseWeapons(1);
         index = 2;
     }
     Entry_004898b0* e = &entries[index];
@@ -72,8 +72,8 @@ void Class_00489800::FUN_00489800(unsigned char index)
         if (p->a != 0 || p->b != (short)0x8000) {
             p->a = 0;
             p->b = (short)0x8000;
-            script->FUN_004b07c0("StartBuilding");
-            ((Class_004b0a70*)script)->FUN_004b0a70("TargetCleared", 0, 0, 1, i, 0, 0, 0);
+            script->FindScript("StartBuilding");
+            ((CobScript*)script)->StartScriptWithArgs("TargetCleared", 0, 0, 1, i, 0, 0, 0);
         }
     }
     // The guard only fires when bit 4 is *set* and then clears it, so this

@@ -15,7 +15,7 @@ struct Unit_004894f0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4894f0
-int __stdcall FUN_004894f0(Unit_004894f0* unit, short id)
+int __stdcall UnitCanBuild(Unit_004894f0* unit, short id)
 {
     for (int i = 0; i < unit->def->count; i++) {
         if (unit->def->ids[i] == id)

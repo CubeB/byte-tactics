@@ -6,7 +6,7 @@
 //
 // MATCH. What it took, largest first:
 // - Two functions of this file that have no callers are inlined here and are
-//   defined above, unannotated: the map check 0x440cd0 (FUN_00440cd0) and the
+//   defined above, unannotated: the map check 0x440cd0 (CheckMapCrc) and the
 //   SIDE%d update 0x448bf0 (FUN_00448bf0). Both still compile to their own
 //   original bytes out of line.
 // - <windows.h> (the file's other functions use it too): it gives the
@@ -24,7 +24,7 @@
 //   term of an `||` chain (as in ALLY); the plain IsWatching test gives the 0
 //   first. `|| 0` emits no code and gives that layout; it is probably a term
 //   that the release build compiled to 0.
-// - In FUN_00440cd0 the version test is `if (major >= 2) check = 1; else if
+// - In CheckMapCrc the version test is `if (major >= 2) check = 1; else if
 //   (major == 1 && minor >= 2) check = 1;`. Same bytes out of line, but inlined
 //   it gives the original's edi/edx for g_game/check.
 #include <windows.h>
@@ -247,7 +247,7 @@ static inline int IsLocal_00448c70(Player_00448c70* p)
 }
 
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
-int FUN_00440cd0()
+int CheckMapCrc()
 {
     if (!g_game->map->FUN_004358f0()) {
         return 0;
@@ -329,7 +329,7 @@ void FUN_00448c70()
             else
                 ((Class_00435a20*)g_game->map)->FUN_00435a20(map);
         }
-        if (!FUN_00440cd0()) {
+        if (!CheckMapCrc()) {
             mapname->colour = (FUN_004b6340() / 30 & 1) ? 0xc : 0;
             if (differs) {
                 SendChatMessage(me, FUN_004c5740("does not have this map"), 4, 0);

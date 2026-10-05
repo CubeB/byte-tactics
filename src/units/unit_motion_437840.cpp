@@ -18,9 +18,9 @@ struct Point16_437840 {
     short y;
 };
 
-class Class_004b0a70 {
+class CobScript {
 public:
-    int FUN_004b0a70(char* name, void* param_2, int param_3, int param_4,
+    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4,
                      int param_5, int param_6, int param_7, int param_8);
 };
 
@@ -40,7 +40,7 @@ struct Unit {
     char unknown_82[0x92 - 0x82];
     UnitType_437840* type;             // +0x92
     char unknown_96[0x9a - 0x96];
-    Class_004b0a70* script;            // +0x9a
+    CobScript* script;                 // +0x9a
 };
 #pragma pack(pop)
 
@@ -55,7 +55,7 @@ union Fixed_437840 {
 Cell_437840* __stdcall FUN_00481550(int x, int y);
 
 // FUNCTION: 0x437840
-void __stdcall FUN_00437840(Unit* unit)
+void __stdcall UpdateMetalExtraction(Unit* unit)
 {
     if (unit->type->extractsMetal > 0.0f) {
         Fixed_437840 total;
@@ -71,6 +71,6 @@ void __stdcall FUN_00437840(Unit* unit)
         }
         unit->extraction = unit->type->extractsMetal * 1.52587890625e-05 * (float)total.value;
         if (unit->script)
-            unit->script->FUN_004b0a70("SetSpeed", 0, 0, 1, total.parts.whole, 0, 0, 0);
+            unit->script->StartScriptWithArgs("SetSpeed", 0, 0, 1, total.parts.whole, 0, 0, 0);
     }
 }

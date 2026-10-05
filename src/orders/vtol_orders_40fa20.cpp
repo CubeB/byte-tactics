@@ -13,11 +13,11 @@ class Class_0043d210 {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
-    void FUN_0043d210(Unit* unit, int state);
+    void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void FUN_004898b0(int); };
-class Class_00489800 { public: void FUN_00489800(int); };
-class Class_0048b090 { public: void FUN_0048b090(int, int); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
+class Class_00489800 { public: void ReleaseWeapons(int); };
+class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
@@ -46,7 +46,7 @@ public:
 };
 #pragma pack(pop)
 
-void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4);
+void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
 
 static inline Point WorldToCell(Vec3 v, Point origin)
@@ -70,12 +70,12 @@ static inline void Snap(Vec3* v, Point size)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->FUN_004898b0(3);
+    ((Class_004898b0*)unit)->ClaimWeapons(3);
     if (unit->field_86)
-        FUN_0048aac0(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->FUN_0048b090(1, 1);
+        AttachUnitToPiece(unit, 0, -1, 2);
+    ((Class_0048b090*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
-        unit->type->FUN_0043d210(unit, 2);
+        unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
@@ -97,7 +97,7 @@ int __stdcall FUN_0040fa20(Unit* unit, Order* order, int flags)
         break;
     case 1:
         ((Class_00438880*)order)->FUN_00438880(0);
-        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_00489800*)unit)->ReleaseWeapons(3);
         Snap(&order->pos, unit->footprint);
         ((Class_004388d0*)order)->FUN_004388d0((int)new Class_0044e2d0(order, order->pos));
         order->flags = 0xe0;

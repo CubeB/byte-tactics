@@ -4,7 +4,7 @@ class Class_00438760 { public: unsigned char index; Class_00438760(const char*);
 class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, int, void*, int, int, int); };
 #pragma pack(pop)
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_00489800 { public: void FUN_00489800(int); };
+class Class_00489800 { public: void ReleaseWeapons(int); };
 #pragma pack(push, 1)
 struct Unit { char pad[0x110]; union { unsigned flags; struct { unsigned mode:2; unsigned rest:30; }; }; };
 struct Order { char pad[5]; unsigned char state; unsigned flags; };
@@ -18,7 +18,7 @@ int __stdcall FUN_00406090(Unit* unit, Order* order, int unused)
     switch (order->state) {
     case 0:
         if (!(unit->flags & 0x20000000)) return 7;
-        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_00489800*)unit)->ReleaseWeapons(3);
         order->flags |= 0x10000;
         ((Class_00439e80*)order)->FUN_00439e80(1);
         return 1;

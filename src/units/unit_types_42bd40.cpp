@@ -45,7 +45,7 @@ void __cdecl FUN_004d8780(void* param_1);
 void __cdecl FUN_004d8710(void* param_1);
 
 // FUNCTION: 0x42bd40
-void FUN_0042bd40()
+void CheckDownloadableFlags()
 {
     Def_0042bd40* def = g_game->defs;
     for (int i = 0; i < g_game->count;

@@ -3,12 +3,12 @@ class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438930 { public: void FUN_00438930(void*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004b0a70 { public: int FUN_004b0a70(char*, void*, int, int, int, int, int, int); };
+class CobScript { public: int StartScriptWithArgs(char*, void*, int, int, int, int, int, int); };
 #pragma pack(push, 1)
 struct Def { char pad[0x22a]; unsigned char capacity; char pad22b[0x245-0x22b]; unsigned flags; };
 struct Unit {
     int valid; char pad4[0x6a-4]; int pos[3]; char pad76[8]; short size;
-    char pad80[6]; int owner; char pad8a[8]; Def* def; int pad96; Class_004b0a70* script;
+    char pad80[6]; int owner; char pad8a[8]; Def* def; int pad96; CobScript* script;
     char pad9e[0xa8-0x9e]; unsigned short id;
 };
 struct Order { char pad[5]; unsigned char state; unsigned flags; char pada[12]; Unit* target; char pad1a[0x36-0x1a]; int attempts; };
@@ -33,7 +33,7 @@ int __stdcall FUN_00406780(Unit* unit, Order* order, unsigned char flags)
         case 2:
             {
             int id = target->id;
-            unit->script->FUN_004b0a70("TransportPickup", 0, 1, 1, id, 0, 0, 0);
+            unit->script->StartScriptWithArgs("TransportPickup", 0, 1, 1, id, 0, 0, 0);
             FUN_0047f780(unit, 12, 0);
             ++order->attempts;
             ((Class_00439e80*)order)->FUN_00439e80(15); return 1;

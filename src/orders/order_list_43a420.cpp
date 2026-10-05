@@ -121,8 +121,8 @@ int __stdcall FUN_0043a940(int param_1, char* param_2);
 Entry_0043a420* __stdcall FUN_0043c6b0(Entry_0043a420* first, Entry_0043a420* last,
                                        char* const& value, int(__stdcall* pred)(int, char*),
                                        int* unused);
-Unit* __stdcall FUN_00487080(unsigned short id, void* file);
-unsigned short __stdcall FUN_00488b10(const char* name);
+Unit* __stdcall LoadUnit(unsigned short id, void* file);
+unsigned short __stdcall FindUnitTypeId(const char* name);
 
 extern Game* g_game;
 extern Entry_0043a420* DAT_00512344;
@@ -138,7 +138,7 @@ public:
     void SetValue(void* v) { value = v; }
 
     Class_004895c0(void* o, int v);
-    void FUN_00489690(void* v);
+    void SetUnit(void* v);
 };
 
 class Class_0044de80 {
@@ -217,7 +217,7 @@ short __stdcall FUN_0043a360(Class_004b48f0* file, unsigned short id)
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);
     if (file->FUN_004b48f0(key))
-        return FUN_00488b10(((Class_004b48a0*)file)->FUN_004b48a0(key, 0));
+        return FindUnitTypeId(((Class_004b48a0*)file)->FUN_004b48a0(key, 0));
     int i, n = 0;
     unsigned short k = 0;
     for (i = 1; i < g_game->unitTypeCount; i++, n++) {
@@ -258,7 +258,7 @@ Class_0043a1f0::Class_0043a1f0(Unit* punit, Class_004b4ba0* file, char* name)
     : link(0, 0)
 {
     link.SetValue(this);
-    link.FUN_00489690(0);
+    link.SetUnit(0);
     field_4a = 0;
     attached = 0;
     created = g_game->ticks;
@@ -296,7 +296,7 @@ Class_0043a1f0::Class_0043a1f0(Unit* punit, Class_004b4ba0* file, char* name)
         return;
 
     unit = punit;
-    link.FUN_00489690(FUN_00487080(desc.ownerType, file));
+    link.SetUnit(LoadUnit(desc.ownerType, file));
 
     kind = desc.kind;
     flag5 = desc.flag5;

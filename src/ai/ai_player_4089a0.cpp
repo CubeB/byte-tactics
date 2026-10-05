@@ -84,12 +84,12 @@ public:
 
 extern Game* g_game;
 
-Unit* __stdcall FUN_0048a190(Unit* unit, int weapon);
+Unit* __stdcall GetWeaponTargetUnit(Unit* unit, int weapon);
 int* __stdcall FUN_0049d120(Unit* unit, unsigned int weapon);
 int __stdcall FUN_0040b7b0(Unit* unit, unsigned int weapon, int param_3);
-void __stdcall FUN_0048a060(Unit* unit, int param_2, unsigned int weapon);
-void __stdcall FUN_0048a0a0(Unit* unit, int* param_2, unsigned int weapon);
-void __stdcall FUN_0048a0f0(Unit* unit, unsigned int weapon);
+void __stdcall SetWeaponTargetUnit(Unit* unit, int param_2, unsigned int weapon);
+void __stdcall SetWeaponTargetPos(Unit* unit, int* param_2, unsigned int weapon);
+void __stdcall ClearWeaponTarget(Unit* unit, unsigned int weapon);
 
 static inline int Contains(unsigned int* bits, unsigned short index)
 {
@@ -102,15 +102,15 @@ void __stdcall FUN_00408920(Unit* unit, unsigned int weapon)
     if (unit->weapons[weapon].def->flag30) {
         int* p = FUN_0049d120(unit, weapon);
         if (p)
-            FUN_0048a0a0(unit, p + 1, weapon);
+            SetWeaponTargetPos(unit, p + 1, weapon);
         else
-            FUN_0048a0f0(unit, weapon);
+            ClearWeaponTarget(unit, weapon);
     } else if ((unit->flags & 0x300000) == 0x200000) {
         int r = FUN_0040b7b0(unit, weapon, 1);
         if (r)
-            FUN_0048a060(unit, r, weapon);
+            SetWeaponTargetUnit(unit, r, weapon);
         else
-            FUN_0048a0f0(unit, weapon);
+            ClearWeaponTarget(unit, weapon);
     }
 }
 
@@ -128,7 +128,7 @@ void Class_004089a0::FUN_004089a0(int force)
                 if ((cursor->weapons[w].flags & 2) && (cursor->weapons[w].flags & 0x10)
                     && !(unsigned char)cursor->weapons[w].def->flag8
                     && (force || !cursor->weapons[w].def->flag26)) {
-                    Unit* target = FUN_0048a190(cursor, w);
+                    Unit* target = GetWeaponTargetUnit(cursor, w);
                     if (target && (player->allied[target->owner->index]
                         || Contains(cursor->def->weaponCategories[w], target->category)
                         || (cursor->weapons[w].def->flag7 && (target->field_10e & 0x10))))

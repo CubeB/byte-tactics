@@ -166,7 +166,7 @@ void __stdcall FUN_0049b090(ProjType_0049b720* type, Proj_0049b720* p);
 Vec3_0049b720* __stdcall FUN_0049b3e0(Proj_0049b720* p);
 int __stdcall FUN_0049b520(Proj_0049b720* p, Vec3_0049b720* target);
 void __stdcall FUN_00499eb0(Proj_0049b720* p, void* unit);
-void __stdcall FUN_0043e240(Unit* unit, Vec3_0049b720* out, unsigned char weapon, int piece);
+void __stdcall GetWeaponPiecePosition(Unit* unit, Vec3_0049b720* out, unsigned char weapon, int piece);
 int __stdcall FUN_0047f300(int sound, Vec3_0049b720* pos, int flag);
 void __stdcall FUN_00472810(Vec3_0049b720* pos, short kind);
 Cell_0049b720* __stdcall FUN_004815a0(Vec3_0049b720* pos);
@@ -220,7 +220,7 @@ void FUN_0049b720()
                         if (p->unit->weapons[w].type == type)
                             break;
                     }
-                    FUN_0043e240(p->unit, &p->pos, w, p->piece);
+                    GetWeaponPiecePosition(p->unit, &p->pos, w, p->piece);
                 }
                 p->counter--;
                 p->f42 += type->burstRate;

@@ -430,7 +430,7 @@ void __cdecl FUN_004b7173(unsigned short deg, Pos2_0048a490* p);
 // there is no second shift). The sea-level block then adds a jitter that fades
 // out over 60 frames.
 // FUNCTION: 0x48a490
-void __stdcall FUN_0048a490(Unit* u)
+void __stdcall AlignUnitToGround(Unit* u)
 {
     MapInfo_0048a490* m = g_game->maps[u->map];
     MapRow_0048a490* row = m->rows + m->count;

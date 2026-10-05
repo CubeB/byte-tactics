@@ -10,7 +10,7 @@ struct NameTable_004b0bc0 {
 
 class Class_004b0c40 {
 public:
-    int FUN_004b0c40(int index, int* param_2, int* param_3, int* param_4, int* param_5);
+    int QueryScriptByIndex(int index, int* param_2, int* param_3, int* param_4, int* param_5);
 };
 
 class Class_004b0bc0 {
@@ -19,7 +19,7 @@ public:
     int unknown_4;
     NameTable_004b0bc0* table;         // +0x8
 
-    int FUN_004b0bc0(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
+    int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
 };
 
 static inline int FindName(Class_004b0bc0* obj, char* name)
@@ -34,7 +34,7 @@ static inline int FindName(Class_004b0bc0* obj, char* name)
 }
 
 // FUNCTION: 0x4b0bc0
-int Class_004b0bc0::FUN_004b0bc0(char* name, int* param_2, int* param_3, int* param_4, int* param_5)
+int Class_004b0bc0::QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5)
 {
-    return ((Class_004b0c40*)this)->FUN_004b0c40(FindName(this, name), param_2, param_3, param_4, param_5);
+    return ((Class_004b0c40*)this)->QueryScriptByIndex(FindName(this, name), param_2, param_3, param_4, param_5);
 }

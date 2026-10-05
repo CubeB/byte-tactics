@@ -1,11 +1,11 @@
 // Decompiled by space-bunny-free, finished by mimo-v2.6-flash. Names are provisional.
 // Builds the unit list of a recorded game (g_game->net->list) in two passes:
 // one entry per list slot, then the per-unit "extra" strings through
-// FUN_00487bf0, which walks the same list again and looks units up in the
+// RunInitialMission, which walks the same list again and looks units up in the
 // vector passed as its third argument.
 // The 0x80-byte frame is [the constructor's dead _Al slot][its _V temporary]
 // [the player byte][the vector][the sprintf buffer], so the vector has to be
-// 16 bytes with the empty allocator at +0: that is what FUN_00487bf0 and
+// 16 bytes with the empty allocator at +0: that is what RunInitialMission and
 // 0x487af0 read as Table_00488310's +0 and +4.
 // Two apparently cosmetic things decide the byte match, so do not tidy them
 // away: the mask on e->flags is 0xffffff80, not 0x80, because MSVC 5 narrows a
@@ -125,7 +125,7 @@ struct Game {
     Class_004904b0* mission;          // +0x391ed
 };
 
-// FUN_00487bf0's third argument is the container itself: +0 is the empty
+// RunInitialMission's third argument is the container itself: +0 is the empty
 // allocator and +4 is _First.
 struct Table_00488310 {
     char allocator_byte;
@@ -136,15 +136,15 @@ struct Table_00488310 {
 
 extern Game* g_game;
 
-Item_00488310* __stdcall FUN_00488a50(const char* name);
+Item_00488310* __stdcall FindUnitType(const char* name);
 void __stdcall FUN_0047ddc0(Item_00488310* type, Pos_00488310* pos);
-Unit* __stdcall FUN_00485f50(unsigned char player, unsigned short id,
+Unit* __stdcall CreateUnit(unsigned char player, unsigned short id,
                                       Pos_00488310 pos, int a, int b, int c);
-void __stdcall FUN_00487bf0(Unit* unit, char* text, Table_00488310* table);
+void __stdcall RunInitialMission(Unit* unit, char* text, Table_00488310* table);
 void __stdcall FUN_004b6290(char* message);
 
 // FUNCTION: 0x488310
-void __cdecl FUN_00488310()
+void __cdecl CreateMissionUnits()
 {
     Player_00488310* p;
     char buf[100];
@@ -152,7 +152,7 @@ void __cdecl FUN_00488310()
     std::vector<Unit*> units(n);       // loops re-read net->count themselves
     for (int i = 0; i < g_game->net->count; i++) {
         Entry_00488310* e = &g_game->net->list[i];
-        Item_00488310* item = FUN_00488a50(e->name);
+        Item_00488310* item = FindUnitType(e->name);
         if (item == 0) {
             units[i] = 0;
             continue;
@@ -166,7 +166,7 @@ void __cdecl FUN_00488310()
             FUN_004b6290(buf);
         }
         FUN_0047ddc0(item, &e->pos);
-        Unit* u = FUN_00485f50((unsigned char)(e->player - 1), item->id, e->pos, 1, 1, 0);
+        Unit* u = CreateUnit((unsigned char)(e->player - 1), item->id, e->pos, 1, 1, 0);
         if (u) {
             u->flags = (u->flags & ~0x8000) | ((e->flags & 0xffffff80) << 8);
             u->f108 = (unsigned short)((unsigned)(u->def->f1fa * e->f1a) / 100);
@@ -177,7 +177,7 @@ void __cdecl FUN_00488310()
     for (int j = 0; j < g_game->net->count; j++) {
         Entry_00488310* e = &g_game->net->list[j];
         if (e->extra && units[j])
-            FUN_00487bf0(units[j], e->extra, (Table_00488310*)&units);
+            RunInitialMission(units[j], e->extra, (Table_00488310*)&units);
     }
     if (g_game->net->count <= 0)
         g_game->mission->FUN_004904b0();

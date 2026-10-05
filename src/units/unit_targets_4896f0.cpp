@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-class Class_004896f0;
+class UnitRef;
 
 class Listener_004896f0 {
 public:
@@ -9,27 +9,27 @@ public:
 #pragma pack(push, 2)
 struct Owner_004896f0 {
     char unknown_0[0xa2];
-    Class_004896f0* head;   // +0xa2
+    UnitRef* head;          // +0xa2
 };
 #pragma pack(pop)
 
-class Class_004896f0 {
+class UnitRef {
 public:
     char unknown_0[4];
     Owner_004896f0* owner;          // +0x4
-    Class_004896f0* next;           // +0x8
+    UnitRef* next;                  // +0x8
     Listener_004896f0* listener;    // +0xc
-    void FUN_004896f0(void);
+    void ClearRef(void);
 };
 
 // FUNCTION: 0x4896f0
-void Class_004896f0::FUN_004896f0(void)
+void UnitRef::ClearRef(void)
 {
     Owner_004896f0* saved = owner;
     if (listener)
         listener->Notify(8);
     if (owner == saved && owner) {
-        Class_004896f0** pp = &owner->head;
+        UnitRef** pp = &owner->head;
         while (*pp != this)
             pp = &(*pp)->next;
         *pp = next;

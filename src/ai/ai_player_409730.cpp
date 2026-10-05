@@ -290,7 +290,7 @@ public:
 
 extern Game* g_game;
 
-float __stdcall FUN_00488f30(Def_00409730* def);
+float __stdcall GetEnergyUse(Def_00409730* def);
 
 // 0x409520 and 0x4095d0 (matched in their own files): no callers in the
 // exe, both inlined into the loop below.
@@ -320,7 +320,7 @@ int __stdcall FUN_004095d0(Def_00409730* p)
         result = 0xb;
     if (p->field_22d != 0)
         result += 10;
-    if (FUN_00488f30(p) < 0.0f)
+    if (GetEnergyUse(p) < 0.0f)
         result += 10;
     result = (int)((int)(result - p->field_18a * -0.01f) - p->field_186 * -0.002f);
     result += (signed char)FUN_00409520(p);
@@ -351,7 +351,7 @@ void Class_00409730::FUN_00409730()
             a = 21;
         if (def->flags_241.flag_6 && n < 3)
             a += 30;
-        if (FUN_00488f30(def) < 0.0f)
+        if (GetEnergyUse(def) < 0.0f)
             a += 50;
         if (def->HasField1ce())
             a += 50;
@@ -382,7 +382,7 @@ void Class_00409730::FUN_00409730()
             x = 0;
         x = min(x, 100);
         e->a = x;
-        e->c = (char)max(0.0f, min(100.0f, def->field_186 * -0.0025f - FUN_00488f30(def) * 5.0f));
+        e->c = (char)max(0.0f, min(100.0f, def->field_186 * -0.0025f - GetEnergyUse(def) * 5.0f));
         e->b = (char)max(0.0f, min(100.0f, (float)(def->field_18a * -0.02f) + (def->field_22d ? 25 : 0) + (def->field_1ce != 0.0f ? 100 : 0)));
     }
 }

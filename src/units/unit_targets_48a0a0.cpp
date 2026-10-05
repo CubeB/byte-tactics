@@ -4,7 +4,7 @@
 // then clears bits 10-14 of the flags at +0xba.
 
 // FUNCTION: 0x48a0a0
-void __stdcall FUN_0048a0a0(char* param_1, int* param_2, int param_3)
+void __stdcall SetWeaponTargetPos(char* param_1, int* param_2, int param_3)
 {
     short* elem = (short*)(param_1 + param_3 * 0x1c + 4);
     elem[0] = (short)(param_2[0] >> 16);

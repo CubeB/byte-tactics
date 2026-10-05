@@ -2,7 +2,7 @@
 // Builds the local player's selected-unit list, drops the unit at
 // g_game->units[g_game->field_2cba] from it, and returns an order code.
 // With no other selected unit it returns 0xf when arg is 1 and that unit is
-// finished and valid, else 0x13; otherwise it folds 0x13 with FUN_0043e490
+// finished and valid, else 0x13; otherwise it folds 0x13 with GetOrderCursor
 // over the remaining units and returns the minimum.
 //
 // The selection loop uses push_back, not insert(end(), u): push_back puts the
@@ -70,7 +70,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0043e490(unsigned char type, Unit* unit, Unit* target, int* out);
+int __stdcall GetOrderCursor(unsigned char type, Unit* unit, Unit* target, int* out);
 
 class Class_00480100 {
 public:
@@ -111,7 +111,7 @@ int __stdcall FUN_0048d220(char arg)
 
     int result = 0x13;
     for (std::vector<Unit*>::iterator it = vec.begin(); it != vec.end(); ++it) {
-        int r = FUN_0043e490(g_game->field_2cc3, *it, target, &g_game->field_2caa);
+        int r = GetOrderCursor(g_game->field_2cc3, *it, target, &g_game->field_2caa);
         if (r < result)
             result = r;
     }

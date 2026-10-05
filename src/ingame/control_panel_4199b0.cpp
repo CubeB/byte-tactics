@@ -2,7 +2,7 @@
 // Refreshes the text of the menu entries owned by the unit's owner. The menu
 // keeps a table of 0x15b-byte entries whose first entry stores the entry count
 // as a short at +0xb6 (the same offset entry 1..n use for their text). Entries
-// whose byte at +0 is 1 have either a name at +2 looked up with FUN_00488b10
+// whose byte at +0 is 1 have either a name at +2 looked up with FindUnitTypeId
 // (printing "+<amount>") or show the unit's own count at +0x1e. Entry 0 holds
 // only the count, so the loop starts at entry 1. The "count" field is read as
 // an int so MSVC sign-extends it once and keeps the decrementing loop counter
@@ -43,7 +43,7 @@ struct Unit {
 
 extern char* g_game;
 
-unsigned short __stdcall FUN_00488b10(void* name);
+unsigned short __stdcall FindUnitTypeId(void* name);
 int __stdcall FUN_00439d80(void* owner, int index);
 void __stdcall FUN_0049fa90(void* obj);
 
@@ -57,7 +57,7 @@ void __stdcall FUN_004199b0(Menu_004199b0* menu, Unit* unit)
         char* text = e->u.text;
         if (e->type == 1) {
             if (e->flags & 4) {
-                unsigned short v = FUN_00488b10(e->name);
+                unsigned short v = FindUnitTypeId(e->name);
                 if (v != 0) {
                     int r = FUN_00439d80(unit, v);
                     if (r != 0)

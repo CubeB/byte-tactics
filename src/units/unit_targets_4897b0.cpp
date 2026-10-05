@@ -20,7 +20,7 @@ struct Obj_004897b0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4897b0
-void __stdcall FUN_004897b0(Obj_004897b0* obj, int event)
+void __stdcall NotifyUnitRefs(Obj_004897b0* obj, int event)
 {
     for (Node_004897b0* n = obj->head; n != 0; n = n->next) {
         if (n->listener != 0)

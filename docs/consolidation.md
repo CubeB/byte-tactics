@@ -93,11 +93,11 @@ the tool.
 - `Class_004c91a0` (copy constructor, 0x4c91a0), `Class_004c9390` (destructor:
   decrement and free, 0x4c9390) and `Class_004c93b0` (assignment,
   0x4c93b0) are the same reference-counted string handle.
-- `Class_00485e30` (vtable 0x4fd698, created by 0x485d40) derives from
-  `Class_004b0610`; its 20 overrides (0x480770-0x481470) are matched under
+- `UnitScript` (vtable 0x4fd698, created by 0x485d40) derives from
+  `CobScript`; its 20 overrides (0x480770-0x481470) are matched under
   separate placeholder classes. 0x485e30.cpp keeps a static `new` to emit its
   `??_G` until 0x485d40 is decompiled. The run 0x4b0720-0x4b1c00 is probably
-  more non-virtual methods of `Class_004b0610` (0x485d40 calls 0x4b0940).
+  more non-virtual methods of `CobScript` (0x485d40 calls 0x4b0940).
 - `Class_00470ae0` (vtable 0x4fd580, `??_G` at 0x470ae0): its constructor is
   0x470a90 (`Class_00470a90::FUN_00470a90`) and its destructor 0x470b80
   (`Class_00470b80::FUN_00470b80`).
@@ -169,7 +169,7 @@ revisit them once the surrounding code is known.
   elsewhere; its getter 0x4e1e30 is `Class_004e1e30::FUN_004e1e30`.
 
 - `Class_004402e0` (constructor 0x4402e0) is the class 0x440290.cpp calls
-  `Class_00440320`, while 0x440320 is recorded as the free function
+  `MovementClass`, while 0x440320 is recorded as the free function
   `FUN_00440320`.
 
 - `Class_0046e4d0::AllowUnit` and `Class_0046e450` are the same object's
@@ -284,7 +284,7 @@ can disagree on types (a real link would fail). Known cases:
   0x412d40.cpp declares it as a union. Settle on the struct.
 
 - 0x4118e0 passes the landing pad index as a full dword to
-  `Class_0044e250::Class_0044e250` and `FUN_0048aac0`, whose own files declare
+  `Class_0044e250::Class_0044e250` and `AttachUnitToPiece`, whose own files declare
   that parameter `short` and `char`; 0x4118e0.cpp declares them `int`. The
   real parameters are probably `int`. 0x44e190 (unnamed) is a constructor
   (stores vtables, returns `this`, called on `operator new(0x36)`); 0x4118e0
@@ -307,7 +307,7 @@ can disagree on types (a real link would fail). Known cases:
   that class. 0x462860 and 0x4628a0 are methods of the channel class (a
   timeout and the send pacing), matched under separate placeholder classes.
 
-- FUN_00485e90's unit type parameter is `int` in 0x485e90.cpp but must be
+- InitUnit's unit type parameter is `int` in 0x485e90.cpp but must be
   `unsigned short` where 0x4861d0 inlines it (#333); 0x485e90 also matches
   with `unsigned short`, so settle on that.
 

@@ -7,7 +7,7 @@
 // down to the piece's height, state 4 ends the pickup (EndTransport when
 // cancelled) and state 5 finishes.
 // Match notes: the sea level test needs an inline helper that re-reads
-// order->target (see BelowSeaLevel), FUN_0048aac0 takes an int p3, and the
+// order->target (see BelowSeaLevel), AttachUnitToPiece takes an int p3, and the
 // sea level sum's register order needs a header before the declarations
 // (<math.h>, which the file's neighbours use for _hypot; tools/headers.py
 // lists the others that work, but <vector> alone does not).
@@ -24,17 +24,17 @@ class Class_0043d210 {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
-    void FUN_0043d210(Unit* unit, int state);
+    void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void FUN_004898b0(int); };
-class Class_0048b090 { public: void FUN_0048b090(int, int); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
+class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(short); };
-class Class_004b0940 { public: void FUN_004b0940(const char*, int, int); };
-class Class_004b0bc0 { public: int FUN_004b0bc0(char* name, int* p2, int* p3, int* p4, int* p5); };
-class Class_004b0a70 { public: int FUN_004b0a70(char*, void*, int, int, int, int, int, int); };
+class Class_004b0940 { public: void StartScript(const char*, int, int); };
+class Class_004b0bc0 { public: int QueryScript(char* name, int* p2, int* p3, int* p4, int* p5); };
+class CobScript { public: int StartScriptWithArgs(char*, void*, int, int, int, int, int, int); };
 
 #pragma pack(push, 1)
 struct UnitDef {
@@ -49,7 +49,7 @@ struct Unit {
     char pad76[0x7e - 0x76]; short size;
     char pad80[0x86 - 0x80]; int field_86; int field_8a;
     char pad8e[4]; UnitDef* def;
-    char pad96[4]; Class_004b0a70* script;
+    char pad96[4]; CobScript* script;
 };
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
@@ -81,19 +81,19 @@ extern Game* g_game;
 void __stdcall FUN_0047f780(Unit*, int, const char*);
 // p3 is int here (its own file says char): the original pushes order->piece
 // as a dword, which a char parameter would load as a byte.
-void __stdcall FUN_0048aac0(Unit* unit, Unit* target, int p3, char p4);
+void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, int p3, char p4);
 int __stdcall SendScriptCallByName(Unit* unit, char* name, char p3, int p4, int p5, int p6, int p7);
-Vec3 __stdcall FUN_0043def0(Unit* unit, int piece);
+Vec3 __stdcall GetPieceOffset(Unit* unit, int piece);
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->FUN_004898b0(3);
+    ((Class_004898b0*)unit)->ClaimWeapons(3);
     if (unit->field_86)
-        FUN_0048aac0(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->FUN_0048b090(1, 1);
+        AttachUnitToPiece(unit, 0, -1, 2);
+    ((Class_0048b090*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
-        unit->type->FUN_0043d210(unit, 2);
+        unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
@@ -144,14 +144,14 @@ int __stdcall FUN_004111b0(Unit* unit, Order* order, int flags)
         case 2:
             ((Class_00438880*)order)->FUN_00438880("Preparing for transport");
             order->piece = -1;
-            ((Class_004b0bc0*)unit->script)->FUN_004b0bc0("QueryTransport", &order->piece, 0, 0, 0);
+            ((Class_004b0bc0*)unit->script)->QueryScript("QueryTransport", &order->piece, 0, 0, 0);
             order->flags = 0x100e8;
             return 1;
         case 3: {
             int height = target->def->field_16e;
-            unit->script->FUN_004b0a70("BeginTransport", 0, 1, 1, height, 0, 0, 0);
+            unit->script->StartScriptWithArgs("BeginTransport", 0, 1, 1, height, 0, 0, 0);
             SendScriptCallByName(unit, "BeginTransport", 1, height, 0, 0, 0);
-            Vec3 offset = FUN_0043def0(unit, order->piece);
+            Vec3 offset = GetPieceOffset(unit, order->piece);
             Class_0044e250* obj = new Class_0044e250(order, order->target, -1);
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(-offset.yw);
             ((Class_004388d0*)order)->FUN_004388d0((int)obj);
@@ -162,10 +162,10 @@ int __stdcall FUN_004111b0(Unit* unit, Order* order, int flags)
             // Suspected original bug: the waypoint built below is never
             // handed to the order (no FUN_004388d0 call), so it leaks.
             if (flags & 0x42) {
-                ((Class_004b0940*)unit->script)->FUN_004b0940("EndTransport", 0, 0);
+                ((Class_004b0940*)unit->script)->StartScript("EndTransport", 0, 0);
                 return 8;
             }
-            FUN_0048aac0(target, unit, order->piece, 0);
+            AttachUnitToPiece(target, unit, order->piece, 0);
             FUN_0047f780(unit, 12, 0);
             Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);

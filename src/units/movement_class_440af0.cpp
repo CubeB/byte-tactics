@@ -48,7 +48,7 @@ extern Game* g_game;
 
 class Class_00440830 {
 public:
-    void FUN_00440830(Point_00440af0 a, Point_00440af0 b);
+    void RefreshPassMap(Point_00440af0 a, Point_00440af0 b);
 };
 
 class Class_00440af0 {
@@ -57,11 +57,11 @@ public:
     char unknown_4[0x1c - 0x4];
     unsigned int lastTick;             // +0x1c
 
-    void FUN_00440af0(Object_00440af0* p);
+    void RefreshMovedUnits(Object_00440af0* p);
 };
 
 // FUNCTION: 0x440af0
-void Class_00440af0::FUN_00440af0(Object_00440af0* p)
+void Class_00440af0::RefreshMovedUnits(Object_00440af0* p)
 {
     unsigned int now = g_game->ticks;
     unsigned int old = lastTick;
@@ -73,14 +73,14 @@ void Class_00440af0::FUN_00440af0(Object_00440af0* p)
     unsigned int prev = p->unit->lastTick;
     p->unit->lastTick = g_game->ticks;
     if (prev < old) {
-        ((Class_00440830*)this)->FUN_00440830(p->a, p->b);
+        ((Class_00440830*)this)->RefreshPassMap(p->a, p->b);
     }
     if (start != old) {
         for (Record_00440af0* r = &g_game->units[1]; r <= g_game->units_end; r++) {
             if ((r->flags & 0x10000000) != 0 && r->unit != 0) {
                 unsigned int t = r->unit->lastTick;
                 if (t >= old && t < start) {
-                    ((Class_00440830*)this)->FUN_00440830(r->a, r->b);
+                    ((Class_00440830*)this)->RefreshPassMap(r->a, r->b);
                 }
             }
         }

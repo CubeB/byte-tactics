@@ -12,7 +12,7 @@ extern Game* g_game;
 void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x42e120
-void FUN_0042e120()
+void FreeDownloadMenus()
 {
     FUN_004d85a0(g_game->field_391cb);
 }

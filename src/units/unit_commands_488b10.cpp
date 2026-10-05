@@ -28,7 +28,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x488b10
-unsigned short __stdcall FUN_00488b10(const char* name)
+unsigned short __stdcall FindUnitTypeId(const char* name)
 {
     UnitType_00488b10* last = g_game->types + g_game->count;
     UnitType_00488b10* first = g_game->types + 1;

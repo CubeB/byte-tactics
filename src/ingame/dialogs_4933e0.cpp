@@ -2,7 +2,7 @@
 // FUN_0048ca20 clears the vector and fills it with the local player's units
 // that have bit 4 of +0x110 set (probably the selected units); each one whose
 // low two flag bits are not 2, with +0x86 and +0x8a clear and whose type is
-// not in the "Commander" set, is handed to the given player with FUN_00488570.
+// not in the "Commander" set, is handed to the given player with GiveUnitToPlayer.
 // The list is a real std::vector<Unit*> (0x48ca20 calls the vector's _Ucopy,
 // _Ufill and _Destroy). Its default constructor copies the empty allocator
 // byte from an uninitialised temporary, which MSVC places in the parameter's
@@ -34,8 +34,8 @@ struct Game {
 
 extern Game* g_game;
 void __stdcall FUN_0048ca20(std::vector<Unit*>* list);
-unsigned int* __stdcall FUN_00488c50(char* name);
-void __stdcall FUN_00488570(Unit* unit, void* player, int arg);
+unsigned int* __stdcall GetCategoryMask(char* name);
+void __stdcall GiveUnitToPlayer(Unit* unit, void* player, int arg);
 
 // The same inlined bit-set test as 0x41c310.
 static inline int TestBit(unsigned int* set, unsigned short n)
@@ -49,12 +49,12 @@ void __stdcall FUN_004933e0(unsigned char player)
     std::vector<Unit*> list;
     FUN_0048ca20(&list);
     Player_004933e0* p = &g_game->players[player];
-    unsigned int* set = FUN_00488c50("Commander");
+    unsigned int* set = GetCategoryMask("Commander");
     for (std::vector<Unit*>::iterator it = list.begin(); it != list.end(); it++) {
         Unit* unit = *it;
         if ((unit->flags & 3) != 2 && unit->field_8a == 0 && unit->field_86 == 0
             && !TestBit(set, unit->type)) {
-            FUN_00488570(unit, p, 0);
+            GiveUnitToPlayer(unit, p, 0);
         }
     }
 }

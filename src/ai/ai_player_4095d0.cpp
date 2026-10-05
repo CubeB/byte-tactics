@@ -29,7 +29,7 @@ struct Class_004095d0 {
 
 #define MIN(a, b) (((a) > (b)) ? (b) : (a))
 
-extern float __stdcall FUN_00488f30(Class_004095d0* p);
+extern float __stdcall GetEnergyUse(Class_004095d0* p);
 
 // FUNCTION: 0x4095d0
 int __stdcall FUN_004095d0(Class_004095d0* p)
@@ -39,7 +39,7 @@ int __stdcall FUN_004095d0(Class_004095d0* p)
         result = 0xb;
     if (p->field_22d != 0)
         result += 10;
-    if (FUN_00488f30(p) < 0.0f)
+    if (GetEnergyUse(p) < 0.0f)
         result += 10;
     result = (int)((int)(result - p->field_18a * -0.01f) - p->field_186 * -0.002f);
     int extra = 1;

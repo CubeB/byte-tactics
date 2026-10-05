@@ -2,7 +2,7 @@
 
 extern "C" void __cdecl FUN_004d85a0(void* p);
 
-class Class_00437a20 {
+class CMemoryCache {
 public:
     void FUN_00437a20();
 };
@@ -21,5 +21,5 @@ void Class_004581c0::FUN_004581c0()
     if (ptr) {
         FUN_004d85a0(ptr);
     }
-    ((Class_00437a20*)this)->FUN_00437a20();
+    ((CMemoryCache*)this)->FUN_00437a20();
 }

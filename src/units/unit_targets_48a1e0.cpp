@@ -3,12 +3,12 @@
 
 class Class_004b07c0 {
 public:
-    int FUN_004b07c0(char* name);
+    int FindScript(char* name);
 };
 
-class Class_004b0a70 {
+class CobScript {
 public:
-    int FUN_004b0a70(char* name, void* param_2, int param_3, int param_4,
+    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4,
                      int param_5, int param_6, int param_7, int param_8);
 };
 
@@ -68,8 +68,8 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_00485070(Vec3_0048a1e0* pos);
-void __stdcall FUN_0043e3c0(UnitDef_0048a1e0* def, int pos);
+int __stdcall GetGroundHeight(Vec3_0048a1e0* pos);
+void __stdcall GetSweetSpot(UnitDef_0048a1e0* def, int pos);
 
 // The intact tail block was the last diff. Writing the three adds in their
 // natural x,y,z order made MSVC sink the first product to its use (products
@@ -89,13 +89,13 @@ static Vec3_0048a1e0 offset_0048a1e0(Muzzle_0048a1e0* m, __int64 s)
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 // FUNCTION: 0x48a1e0
-int __stdcall FUN_0048a1e0(Unit* unit, Vec3_0048a1e0* pos, int index)
+int __stdcall GetWeaponTargetPos(Unit* unit, Vec3_0048a1e0* pos, int index)
 {
     Entry_0048a1e0* e = &unit->entries[index];
     if (e->z != (short)0x8000) {
         pos->x = e->x << 16;
         pos->z = e->z << 16;
-        pos->y = max(FUN_00485070(pos), g_game->seaLevel) << 16;
+        pos->y = max(GetGroundHeight(pos), g_game->seaLevel) << 16;
         return 1;
     }
     if (e->x == 0) {
@@ -107,12 +107,12 @@ int __stdcall FUN_0048a1e0(Unit* unit, Vec3_0048a1e0* pos, int index)
         if (f->x != 0 || f->z != (short)0x8000) {
             e->x = 0;
             e->z = (short)0x8000;
-            unit->script->FUN_004b07c0("StartBuilding");
-            ((Class_004b0a70*)unit->script)->FUN_004b0a70("TargetCleared", 0, 0, 1, index, 0, 0, 0);
+            unit->script->FindScript("StartBuilding");
+            ((CobScript*)unit->script)->StartScriptWithArgs("TargetCleared", 0, 0, 1, index, 0, 0, 0);
         }
         return 0;
     }
-    FUN_0043e3c0(def, (int)pos);
+    GetSweetSpot(def, (int)pos);
     if ((e->flags & 2) && !(e->target->field_111 & 0x2000000) && def->muzzle != 0
         && unit->field_b8 > 5 && e->target->radius != 0) {
         Vec3_0048a1e0 d;

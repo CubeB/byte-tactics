@@ -26,14 +26,14 @@ struct Rect_0046b9d0 {
 
 extern Game* g_game;
 
-int __stdcall FUN_00485010(void* p);
+int __stdcall GetCellHeight(void* p);
 void __stdcall FUN_004bf8c0(void* surface, void* rect, int color);
 
 // FUNCTION: 0x46b9d0
 void __stdcall FUN_0046b9d0(void* surface, short* pos, Size_0046b9d0 size, int kind)
 {
     unsigned char* colors = (unsigned char*)g_game + 0xdcb;
-    int h = FUN_00485010(pos);
+    int h = GetCellHeight(pos);
     int y1 = (pos[1] << 4) - g_game->scroll_y;
     int x1 = ((pos[0] + 8) << 4) - g_game->scroll_x;
     Rect_0046b9d0 rect;

@@ -37,7 +37,7 @@
 // 0x4386e9 vs 0x4386ef).
 //
 // deepseek-v4.1 retest in #1995: the "twin at 0x437a50" note above is wrong.
-// 0x437a50 sits inside Class_00437a30 (a container grow routine) and the whole
+// 0x437a50 sits inside CMemoryCache (a container grow routine) and the whole
 // exe has exactly one "fcomp dword [0x4fd2a4]" site, at 0x438665, so there is
 // no second copy of this function to copy a mask-free shape from. New variants
 // tried this session (signed int field_1fa with an unsigned third parameter,

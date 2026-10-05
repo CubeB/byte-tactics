@@ -8,7 +8,7 @@
 
 class Class_00437c80 {
 public:
-    void FUN_00437c80();
+    void FlushCache();
 };
 
 class Class_004d0070 {
@@ -136,7 +136,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
         FUN_0047f1a0("Options", 0);
         g_game->flags_37f06.b1 = FUN_004a0f60(gui, "ANTI") & 1;
         if (g_game->flags_37ebe.b0)
-            g_game->ptr_1437b->FUN_00437c80();
+            g_game->ptr_1437b->FlushCache();
         FUN_0049fa90(gui);
         FUN_004ab0a0(gui);
         return;
@@ -148,7 +148,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
         g_game->flags_37f06.b3 = g_game->flags_37f06.b4;
         g_game->flags_37f06.b2 = g_game->flags_37f06.b3;
         if (g_game->flags_37ebe.b0)
-            g_game->ptr_1437b->FUN_00437c80();
+            g_game->ptr_1437b->FlushCache();
         FUN_0049fa90(gui);
         FUN_004ab0a0(gui);
         return;
@@ -158,7 +158,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
         FUN_0047f1a0("Options", 0);
         g_game->flags_37f06.b5 = FUN_004a0f60(gui, "SHADING") & 1;
         if (g_game->flags_37ebe.b0)
-            g_game->ptr_1437b->FUN_00437c80();
+            g_game->ptr_1437b->FlushCache();
         FUN_0049fa90(gui);
         FUN_004ab0a0(gui);
         return;

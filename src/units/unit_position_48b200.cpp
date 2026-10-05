@@ -70,7 +70,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x48b200
-void __stdcall FUN_0048b200(BitWriter* stream, Unit* u)
+void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
 {
     stream->WriteBits(u->field_a6, g_game->field_14393);
     if (u->field_a6 == 0)

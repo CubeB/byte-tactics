@@ -17,8 +17,8 @@ struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004898b0 { public: void FUN_004898b0(int); };
-class Class_004895c0 { public: void FUN_00489690(Unit*); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
+class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x14a]; Point origin;
@@ -57,13 +57,13 @@ void __stdcall FUN_0047f780(Unit*, int, const char*);
 void __stdcall FUN_0041c110(Unit*);
 int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
 void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
-Unit* __stdcall FUN_00485f50(unsigned char, short, Vec3, int, int, int);
+Unit* __stdcall CreateUnit(unsigned char, short, Vec3, int, int, int);
 void __stdcall FUN_0043adc0(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
-short __stdcall FUN_0048a980(Vec3*, Vec3*);
+short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall FUN_00438590(Unit*, Order*, short);
 int __stdcall FUN_00438700(Unit*, Order*, int);
 int __stdcall FUN_0041ba60(Unit*, Unit*, float);
-void __stdcall FUN_0043e400(Unit*, Vec3*);
+void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall FUN_004720d0(Vec3*, Vec3*, int);
 class Class_00438a00 { public: void FUN_00438a00(Vec3*, int, int); };
 // The original radius expression adds the second dimension twice rather than
@@ -97,8 +97,8 @@ int __stdcall FUN_00403f70(Unit* unit, Order* order, int flags)
             return 8;
         }
         if (target->progress == 0.0f) return 5;
-        ((Class_004898b0*)unit)->FUN_004898b0(3);
-        FUN_00438590(unit, order, FUN_0048a980(&unit->pos, &order->target->pos) - unit->angle);
+        ((Class_004898b0*)unit)->ClaimWeapons(3);
+        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
         FUN_0041c110(unit);
         return 1;
     case 2:
@@ -108,7 +108,7 @@ int __stdcall FUN_00403f70(Unit* unit, Order* order, int flags)
         rate = unit->def->buildRate;
         if (FUN_0041ba60(unit, target, (float)(rate / 30))) {
             Vec3 start;
-            FUN_0043e400(unit, &start);
+            GetNanoPiecePosition(unit, &start);
             Vec3 bounds[2];
             bounds[0] = order->target->pos + order->target->def->min;
             bounds[1] = order->target->pos + order->target->def->max;

@@ -21,7 +21,7 @@ static inline void FreeC(int p)
 }
 
 // FUNCTION: 0x440a00
-void FUN_00440a00(void)
+void FreeMovementClasses(void)
 {
     int p = (int)DAT_00512370;
     do {

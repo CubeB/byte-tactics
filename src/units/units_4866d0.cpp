@@ -15,7 +15,7 @@
 //  - `float health = 1.0f - x104; float f = health; f *= info->x18a;`: the copy into f
 //    matters. `(1.0f - x104) * info->x18a`, `info->x18a * health` and inline helpers taking
 //    the health all put info in eax (97.7 at best).
-//  - `int flag = cmd->kind != 7;` inside the count block, passed to FUN_00486360: without
+//  - `int flag = cmd->kind != 7;` inside the count block, passed to CreateUnitCorpse: without
 //    it everything else matched but the virtual delete's vtable went to edx (97.7).
 // The register choices of the three spots were coupled: every single change above that
 // fixed one of them broke another, so they were found by scoring all combinations of the
@@ -52,14 +52,14 @@ public:
     int FUN_00435100();
 };
 
-class Class_0043dd10 {
+class UnitMotion {
 public:
     void FUN_0043dd10();
 };
 
-class Class_004b0a70 {
+class CobScript {
 public:
-    int FUN_004b0a70(char* name, void* a, int b, int c, int d, int e, int f, int g);
+    int StartScriptWithArgs(char* name, void* a, int b, int c, int d, int e, int f, int g);
 };
 
 // The unit's script object; deleting it calls the virtual destructor in slot 0x50.
@@ -142,7 +142,7 @@ struct UnitInfo_004866d0 {
 };
 
 struct Unit {
-    Class_0043dd10* head;               // +0x0
+    UnitMotion* head;                   // +0x0
     char unknown_4[0x66];
     char pos[0x1c];                     // +0x6a
     int x86;                            // +0x86
@@ -208,10 +208,10 @@ void __stdcall FUN_00482910(void* pos, int a, int b, int c);
 unsigned char __stdcall FindSlotByDpid(int id);
 void __stdcall FUN_00439eb0(void* unit, int flag);
 void __stdcall FUN_0047f8c0(void* unit);
-void __stdcall FUN_00480250(void* unit, int flag);
+void __stdcall SetUnitSquad(void* unit, int flag);
 void __stdcall FUN_0049c880(void* unit);
-void __stdcall FUN_0048aac0(void* unit, void* builder, int a, int c);
-void __stdcall FUN_00489bb0(void* a, void* b, int c, int d, int e);
+void __stdcall AttachUnitToPiece(void* unit, void* builder, int a, int c);
+void __stdcall DamageUnit(void* a, void* b, int c, int d, int e);
 void __stdcall FUN_0047cbd0(void* unit);
 void __stdcall FUN_00482090(void* unit);
 void __stdcall FUN_00494ff0(int flag);
@@ -219,15 +219,15 @@ char* __stdcall FUN_004c5740(char* text);
 void __stdcall AddMessage(char* text, int a, int b, int c);
 void __stdcall FUN_004948b0(int a, int b);
 void __stdcall FUN_0049b000(void* unit, int flag);
-void __stdcall FUN_00486360(void* unit, int a, int b);
-void __stdcall FUN_00489740(void* unit);
+void __stdcall CreateUnitCorpse(void* unit, int a, int b);
+void __stdcall ClearUnitRefs(void* unit);
 void __stdcall FUN_0045aaa0(void* state);
 void __cdecl operator delete(void* p);
 void __stdcall AnnouncePlayerLeft(int id);
 void __stdcall FUN_0047bd70(void* player);
 
 // FUNCTION: 0x4866d0
-void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
+void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
 {
     Unit* unit;
     if (cmd->unitId == 0)
@@ -249,20 +249,20 @@ void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
     g_game->x391ed->FUN_004904c0(unit);
     FUN_00439eb0(unit, 1);
     FUN_0047f8c0(unit);
-    FUN_00480250(unit, -1);
+    SetUnitSquad(unit, -1);
     FUN_0049c880(unit);
     if (unit->x86 != 0)
-        FUN_0048aac0(unit, 0, -1, 1);
+        AttachUnitToPiece(unit, 0, -1, 1);
     while (unit->x8a != 0) {
         unsigned char depth = cmd->kind != 3 ? 6 : 3;
-        FUN_00489bb0(unit->parent, unit->x8a, 30000, depth, 0);
-        FUN_0048aac0(unit->x8a, 0, -1, 1);
+        DamageUnit(unit->parent, unit->x8a, 30000, depth, 0);
+        AttachUnitToPiece(unit->x8a, 0, -1, 1);
     }
     FUN_0047cbd0(unit);
     if ((g_game->x14281 & 2) == 2)
         FUN_00482090(unit);
     if (local == 0 && cmd->amount > 0)
-        ((Class_004b0a70*)unit->script)->FUN_004b0a70(DAT_00508be8, 0, 1, 1, cmd->amount, 0, 0, 0);
+        ((CobScript*)unit->script)->StartScriptWithArgs(DAT_00508be8, 0, 1, 1, cmd->amount, 0, 0, 0);
 
     int credited = 0;
     switch (cmd->kind) {
@@ -376,10 +376,10 @@ void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
         FUN_0049b000(unit, cmd->kind == 3);
     if (cmd->count > 0) {
         int flag = cmd->kind != 7;
-        FUN_00486360(unit, cmd->count, flag);
+        CreateUnitCorpse(unit, cmd->count, flag);
     }
 
-    FUN_00489740(unit);
+    ClearUnitRefs(unit);
     if (unit->script != 0) {
         delete unit->script;
         unit->script = 0;
@@ -388,7 +388,7 @@ void __stdcall FUN_004866d0(Cmd_004866d0* cmd, int local)
         FUN_0045aaa0(unit->x9e);
         unit->x9e = 0;
     }
-    Class_0043dd10* head = unit->head;
+    UnitMotion* head = unit->head;
     if (head != 0) {
         head->FUN_0043dd10();
         operator delete(head);

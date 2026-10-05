@@ -2,7 +2,7 @@
 // Removes the feature standing on a map cell: if the cell is part of a
 // footprint (0xfffe), step back to the feature's origin cell first, release
 // its spot, then clear the origin cell and every footprint cell of the
-// feature, and tell FUN_00440a40 which area changed.
+// feature, and tell RefreshAllPassMaps which area changed.
 //
 // The two clears are one inline helper (feature first, then flags). Written
 // out by hand in the inner loop, MSVC either keeps the stores in source order
@@ -63,7 +63,7 @@ extern Game* g_game;
 
 void __stdcall FUN_004232f0(int index, int* head);
 void __stdcall FUN_0045aaa0(void* state);
-void __stdcall FUN_00440a40(Point16_004246b0 a, Point16_004246b0 b);
+void __stdcall RefreshAllPassMaps(Point16_004246b0 a, Point16_004246b0 b);
 
 static inline void ClearCell(Cell_004246b0* c)
 {
@@ -101,6 +101,6 @@ int __stdcall FUN_004246b0(Cell_004246b0* cell, int flag)
     Point16_004246b0 p;
     p.x = index % g_game->width;
     p.z = index / g_game->width;
-    FUN_00440a40(p, f->footprint);
+    RefreshAllPassMaps(p, f->footprint);
     return 1;
 }

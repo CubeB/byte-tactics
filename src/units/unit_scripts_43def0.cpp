@@ -84,7 +84,7 @@ struct Object_0043def0 {
 
 
 // FUNCTION: 0x43def0
-Vec3 __stdcall FUN_0043def0(Object_0043def0* obj, int index)
+Vec3 __stdcall GetPieceOffset(Object_0043def0* obj, int index)
 {
     if (obj == 0 || obj->recs == 0) {
         Vec3 v;

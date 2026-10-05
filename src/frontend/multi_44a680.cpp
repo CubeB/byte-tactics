@@ -153,7 +153,7 @@ void __stdcall UpdateNetGameInfo();
 int __stdcall FUN_00456760();
 
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
-int FUN_00440cd0()
+int CheckMapCrc()
 {
     if (!((Class_004358f0*)g_game->map)->FUN_004358f0()) {
         return 0;
@@ -269,7 +269,7 @@ void FUN_0044a680()
 
     if (HandleNetPackets())
         g_game->dirty = 1;
-    else if (!FUN_00440cd0())
+    else if (!CheckMapCrc())
         g_game->dirty = 1;
 
     pl = &g_game->players[g_game->localPlayer];

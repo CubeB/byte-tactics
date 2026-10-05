@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 
-class Class_004b0940 { public: void FUN_004b0940(const char*, int, int); };
+class Class_004b0940 { public: void StartScript(const char*, int, int); };
 
 #pragma pack(push, 1)
 struct Type_0043da70 {
@@ -27,12 +27,12 @@ public:
     short field_24;                // +0x24
     char unknown_26[0x2e - 0x26];
     unsigned char field_2e;        // +0x2e
-    void FUN_0043da70(Unit* unit);
+    void UpdateMoveRate(Unit* unit);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x43da70
-void Class_0043da70::FUN_0043da70(Unit* unit)
+void Class_0043da70::UpdateMoveRate(Unit* unit)
 {
     int rate;
     if ((field_2e & 4) == 0 && unit->field_86 == 0
@@ -48,19 +48,19 @@ void Class_0043da70::FUN_0043da70(Unit* unit)
     if (rate == (int)((unit->flags >> 2) & 3))
         return;
     if (rate == 0) {
-        unit->script->FUN_004b0940("StopMoving", rate, 1);
+        unit->script->StartScript("StopMoving", rate, 1);
     } else if ((unit->flags & 0xc) == 0) {
-        unit->script->FUN_004b0940("StartMoving", 0, 1);
+        unit->script->StartScript("StartMoving", 0, 1);
     }
     switch (rate) {
     case 1:
-        unit->script->FUN_004b0940("MoveRate1", 0, 1);
+        unit->script->StartScript("MoveRate1", 0, 1);
         break;
     case 2:
-        unit->script->FUN_004b0940("MoveRate2", 0, 1);
+        unit->script->StartScript("MoveRate2", 0, 1);
         break;
     case 3:
-        unit->script->FUN_004b0940("MoveRate3", 0, 1);
+        unit->script->StartScript("MoveRate3", 0, 1);
         break;
     }
     unit->flags = (unit->flags & 0xfffffff3) | ((rate & 3) << 2);

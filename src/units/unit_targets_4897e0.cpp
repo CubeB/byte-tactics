@@ -12,11 +12,11 @@ public:
     char unknown_3c[0x57 - 0x3c];
     unsigned char flags_57;            // +0x57
 
-    unsigned char FUN_004897e0();
+    unsigned char ChooseWeapon();
 };
 
 // FUNCTION: 0x4897e0
-unsigned char Class_004897e0::FUN_004897e0()
+unsigned char Class_004897e0::ChooseWeapon()
 {
     unsigned char result;
     if (flags_1f & 2)

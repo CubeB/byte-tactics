@@ -33,22 +33,22 @@ public:
 };
 
 // 0x40-byte set (512 bits).
-class Class_00488d30 {
+class UnitTypeSet {
 public:
     int bits[16];
-    void FUN_00488d30(char* text, int* out);
+    void AddTypeOrCategory(char* text, int* out);
 };
 
-void __stdcall FUN_00409dc0(int player, Class_00488d30* set, float value, int count);
+void __stdcall FUN_00409dc0(int player, UnitTypeSet* set, float value, int count);
 
 // FUNCTION: 0x406db0
 void __stdcall FUN_00406db0(Class_004b7410* args)
 {
     if (DAT_00501774 != 0) {
         int count;
-        Class_00488d30 set;
+        UnitTypeSet set;
         memset(&set, 0, sizeof(set));
-        set.FUN_00488d30(((Class_004b73c0*)args)->FUN_004b73c0(1, DAT_005119b8), &count);
+        set.AddTypeOrCategory(((Class_004b73c0*)args)->FUN_004b73c0(1, DAT_005119b8), &count);
         float value = args->FUN_004b7410(2, 0);
         // A narrow index, as in 0x406e40: MSVC then counts the loop down in a
         // separate register.

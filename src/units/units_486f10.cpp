@@ -1,7 +1,7 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 // Walks one player slot's unit list and either damages every unit whose owner
-// is a human or computer player (FUN_00489bb0) or fires its second weapon and
-// flags it (FUN_0049b000 / FUN_004864b0).
+// is a human or computer player (DamageUnit) or fires its second weapon and
+// flags it (FUN_0049b000 / KillUnit).
 // The unit range is read from a second indexing of the array rather than from
 // p: that keeps MSVC's index base free of the 0x1b63 array offset, which is
 // what the original does (disp 0x1bca off eax, element address in ecx).
@@ -41,13 +41,13 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004864b0(Unit* unit, int param_2);
-void __stdcall FUN_00489bb0(Unit* unit, Unit* unit2, int param_3,
+void __stdcall KillUnit(Unit* unit, int param_2);
+void __stdcall DamageUnit(Unit* unit, Unit* unit2, int param_3,
                             int param_4, int param_5);
 void __stdcall FUN_0049b000(Unit* unit, int second);
 
 // FUNCTION: 0x486f10
-void __stdcall FUN_00486f10(unsigned char player)
+void __stdcall KillPlayerUnits(unsigned char player)
 {
     Player_00486f10* p = &g_game->players[player];
     if (p != 0) {
@@ -62,11 +62,11 @@ void __stdcall FUN_00486f10(unsigned char player)
                             PlayerData_00486f10* d = u->owner;
                             if (d->field_0 != 0 &&
                                 (d->field_73 == 1 || d->field_73 == 2)) {
-                                FUN_00489bb0(u, u, 0x7530, 3, 0);
+                                DamageUnit(u, u, 0x7530, 3, 0);
                             } else {
                                 FUN_0049b000(u, 1);
                                 u->flags |= 0x4000;
-                                FUN_004864b0(u, 3);
+                                KillUnit(u, 3);
                             }
                         }
                     }

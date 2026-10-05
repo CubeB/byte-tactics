@@ -2,7 +2,7 @@
 // Resolves a unit definition slot number to a unit type id. The parsed text
 // file can name the type of each slot with the key "UTYPENAME<id>"; when that
 // key is present the name it holds is looked up in the unit type table by
-// FUN_00488b10. Otherwise the id'th unit type whose +0x241 flags do not have
+// FindUnitTypeId. Otherwise the id'th unit type whose +0x241 flags do not have
 // bit 5 set is taken, and its table index minus one is returned.
 #include <stdio.h>
 
@@ -33,7 +33,7 @@ public:
     char* FUN_004b48a0(char* name, char* def);
 };
 
-short __stdcall FUN_00488b10(char* name);
+short __stdcall FindUnitTypeId(char* name);
 
 // FUNCTION: 0x43a360
 short __stdcall FUN_0043a360(Class_004b48f0* file, unsigned short id)
@@ -41,7 +41,7 @@ short __stdcall FUN_0043a360(Class_004b48f0* file, unsigned short id)
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);
     if (file->FUN_004b48f0(key))
-        return FUN_00488b10(((Class_004b48a0*)file)->FUN_004b48a0(key, 0));
+        return FindUnitTypeId(((Class_004b48a0*)file)->FUN_004b48a0(key, 0));
     int i, n = 0;                     // n counts every table entry, k only the
     unsigned short k = 0;             // ones without flag bit 5
     for (i = 1; i < g_game->unitTypeCount; i++, n++) {

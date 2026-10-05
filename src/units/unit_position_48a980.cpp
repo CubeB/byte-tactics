@@ -9,7 +9,7 @@ struct Vec3_0048a980 {
 int __cdecl FUN_004b715a(int x, int z);
 
 // FUNCTION: 0x48a980
-int __stdcall FUN_0048a980(Vec3_0048a980* from, Vec3_0048a980* to)
+int __stdcall GetHeadingBetween(Vec3_0048a980* from, Vec3_0048a980* to)
 {
     return FUN_004b715a(from->x - to->x, from->z - to->z);
 }

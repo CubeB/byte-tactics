@@ -18,7 +18,7 @@ public:
 
 struct Unit;
 
-class Class_004898b0 { public: void FUN_004898b0(int); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
@@ -83,7 +83,7 @@ int __stdcall FUN_0040f7d0(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Class_004898b0*)unit)->FUN_004898b0(3);
+            ((Class_004898b0*)unit)->ClaimWeapons(3);
             order->flags |= 0x10000;
             ((Class_00439e80*)order)->FUN_00439e80(1);
             order->x = order->unit->posX;

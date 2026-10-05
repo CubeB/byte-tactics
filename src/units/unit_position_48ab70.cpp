@@ -121,7 +121,7 @@ void __stdcall FUN_004384a0(Beacon_0048ab70* beacon);
 void __stdcall FUN_0048c9b0(Unit* u);
 
 // FUNCTION: 0x48ab70
-void __stdcall FUN_0048ab70(Order_0048ab70* order)
+void __stdcall ApplyAttachUnit(Order_0048ab70* order)
 {
     Unit* u = !order->id1 ? 0 : &g_game->units[order->id1];
     Unit* t = !order->id2 ? 0 : &g_game->units[order->id2];

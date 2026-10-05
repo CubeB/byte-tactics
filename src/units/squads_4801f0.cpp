@@ -2,7 +2,7 @@
 // Destroys the owner's ten squads allocated by 0x480190 and frees them.
 #include <vector>
 
-class Class_00480160 {
+class Squad {
 public:
     int field_0;                       // +0x0
     int field_4;                       // +0x4
@@ -13,13 +13,13 @@ public:
 
 struct Owner_004801f0 {
     char unknown_0[0x78];
-    Class_00480160* squads;            // +0x78
+    Squad* squads;                     // +0x78
 };
 
 void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x4801f0
-void __stdcall FUN_004801f0(Owner_004801f0* owner)
+void __stdcall FreeSquads(Owner_004801f0* owner)
 {
     if (owner->squads) {
         for (int i = 0; i < 10; i++)

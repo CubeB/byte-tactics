@@ -60,7 +60,7 @@ struct Rec2_004b2040 {
     int h[3];
 };
 
-class Class_004b0610 {
+class CobScript {
 public:
     int field_4;
     Table_004b2040* field_8;
@@ -71,19 +71,19 @@ public:
     Rec_004b2040 arr[8];
     int field_53c;
 
-    virtual void FUN_00480c50(int, int, int) = 0;
-    virtual void FUN_00480ce0(int, int, int) = 0;
-    virtual int FUN_00480d50(int, int) = 0;
-    virtual int FUN_00480db0(int, int) = 0;
-    virtual int FUN_00480df0(int, int) = 0;
-    virtual int FUN_00480c30(int, int) = 0;
-    virtual int FUN_00480cb0(int, int) = 0;
+    virtual void SetPieceTranslation(int, int, int) = 0;
+    virtual void SetPieceRotation(int, int, int) = 0;
+    virtual int SetPieceVisible(int, int) = 0;
+    virtual int SetPieceCached(int, int) = 0;
+    virtual int SetPieceShaded(int, int) = 0;
+    virtual int GetPieceTranslation(int, int) = 0;
+    virtual int GetPieceRotation(int, int) = 0;
 
-    int FUN_004b2040(Class_004b4c80* file);
+    int LoadScriptState(Class_004b4c80* file);
 };
 
 // FUNCTION: 0x4b2040
-int Class_004b0610::FUN_004b2040(Class_004b4c80* file)
+int CobScript::LoadScriptState(Class_004b4c80* file)
 {
     int size = field_8->size * 4;
     int bytes = field_8->count * 0x6c;
@@ -112,9 +112,9 @@ int Class_004b0610::FUN_004b2040(Class_004b4c80* file)
     }
     for (int i = 0; i < field_8->count; i++) {
         ptr14[i].flag = 1;
-        FUN_00480d50(i, buffer[i].h[0]);
-        FUN_00480db0(i, buffer[i].h[1]);
-        FUN_00480df0(i, buffer[i].h[2]);
+        SetPieceVisible(i, buffer[i].h[0]);
+        SetPieceCached(i, buffer[i].h[1]);
+        SetPieceShaded(i, buffer[i].h[2]);
         for (int j = 0; j <= 2; j++) {
             ptr14[i].e[0][j] = buffer[i].e[0][j];
             ptr14[i].e[1][j] = buffer[i].e[1][j];
@@ -122,8 +122,8 @@ int Class_004b0610::FUN_004b2040(Class_004b4c80* file)
             ptr14[i].e[3][j] = buffer[i].e[3][j];
             ptr14[i].e[4][j] = buffer[i].e[4][j];
             ptr14[i].e[5][j] = buffer[i].e[5][j];
-            FUN_00480c50(i, j, buffer[i].a[j]);
-            FUN_00480ce0(i, j, buffer[i].b[j]);
+            SetPieceTranslation(i, j, buffer[i].a[j]);
+            SetPieceRotation(i, j, buffer[i].b[j]);
         }
     }
     field_18 = 1;

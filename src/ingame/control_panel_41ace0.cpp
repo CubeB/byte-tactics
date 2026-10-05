@@ -316,7 +316,7 @@ void __stdcall FUN_0041a120(Unit* unit);
 void __stdcall FUN_004199b0(Menu_0041ace0* menu, Unit* unit);
 int __stdcall FUN_0049fe60(Entry_0041ace0* entries, char* name);
 void __stdcall FUN_004a11c0(Menu_0041ace0* menu, int index, int value);
-short __stdcall FUN_00488b10(Entry_0041ace0* entry);
+short __stdcall FindUnitTypeId(Entry_0041ace0* entry);
 void __stdcall FUN_004a1200(Menu_0041ace0* menu, int index, int flag);
 
 // Inlined copy of FUN_0041a920.
@@ -347,7 +347,7 @@ static inline void UpdateCounts(Menu_0041ace0* menu)
     entry = (Entry_0041ace0*)((char*)entry + 2);
     do {
         if (entry[i].flags & 4)
-            FUN_004a1200(menu, i, FUN_00488b10(&entry[i]) == 0);
+            FUN_004a1200(menu, i, FindUnitTypeId(&entry[i]) == 0);
     } while (++i < n);
 }
 

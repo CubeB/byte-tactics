@@ -41,7 +41,7 @@ class Class_0044f570 { public: char unknown[0x1c]; Class_0044f570(Unit* unit); }
 class Class_0044f010 { public: char unknown[0x65]; Class_0044f010(Unit* unit); };
 
 #pragma pack(push, 1)
-class Class_0043dc00 {
+class UnitMotion {
 public:
     void* obj;                         // +0x0
     int field_4;                       // +0x4
@@ -55,12 +55,12 @@ public:
     unsigned char flag : 1;            // bit 2
     unsigned char rest : 5;
 
-    Class_0043dc00(Unit* unit);
+    UnitMotion(Unit* unit);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x43dc00
-Class_0043dc00::Class_0043dc00(Unit* unit)
+UnitMotion::UnitMotion(Unit* unit)
 {
     p1 = Vec3_0043dc00(0, 0, 0);
     field_20 = 0;

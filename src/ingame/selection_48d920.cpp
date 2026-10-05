@@ -34,7 +34,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00480250(Unit* unit, int arg);
+void __stdcall SetUnitSquad(Unit* unit, int arg);
 
 // FUNCTION: 0x48d920
 void __stdcall FUN_0048d920(int param_1)
@@ -43,9 +43,9 @@ void __stdcall FUN_0048d920(int param_1)
     for (Unit* u = player->units.begin; u <= player->units.end; u++) {
         if (u->field_a6 != 0) {
             if (u->field_110_4) {
-                FUN_00480250(u, param_1);
+                SetUnitSquad(u, param_1);
             } else if (u->field_ac == param_1) {
-                FUN_00480250(u, 0);
+                SetUnitSquad(u, 0);
             }
         }
     }

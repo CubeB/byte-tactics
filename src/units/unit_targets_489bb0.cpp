@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Works out how much damage one unit does to another and hands the result to
-// FUN_00489ce0 as a 9 byte record. Damage type 10 skips the whole calculation
+// ApplyUnitDamage as a 9 byte record. Damage type 10 skips the whole calculation
 // and passes the amount through; any other type scales the amount by the
 // target's 16.16 damage scale and then takes off armour, four percent per
 // point of (armour / 5), capped at five points.
@@ -30,7 +30,7 @@ struct Kind_00489bb0 {
     unsigned char f73;             // +0x73, 3 lets the damage spread to the kind
 };
 
-class Class_00489a70 {
+class Unit {
 public:
     char unknown_0[0x92];
     Def_00489bb0* def;             // +0x92
@@ -43,7 +43,7 @@ public:
     unsigned char f10e;            // +0x10e, bit 1 applies the damage scale
 };
 
-struct Dmg_00489bb0 {              // 9 bytes, the record FUN_00489ce0 takes
+struct Dmg_00489bb0 {              // 9 bytes, the record ApplyUnitDamage takes
     unsigned char kind;            // +0x0, 11 here, never read by that callee
     short team_target;             // +0x1
     short team_source;             // +0x3
@@ -53,12 +53,12 @@ struct Dmg_00489bb0 {              // 9 bytes, the record FUN_00489ce0 takes
 };
 #pragma pack(pop)
 
-void __stdcall FUN_00489ce0(Dmg_00489bb0* dmg);
+void __stdcall ApplyUnitDamage(Dmg_00489bb0* dmg);
 void __stdcall BroadcastPacket(int who, Dmg_00489bb0* dmg, int size);
 int __cdecl GetLocalDpid(void);
 
 // FUNCTION: 0x489bb0
-void __stdcall FUN_00489bb0(Class_00489a70* source, Class_00489a70* target, int amount, int type, unsigned short extra)
+void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type, unsigned short extra)
 {
     int dmg;
     if (type != 10) {
@@ -78,7 +78,7 @@ void __stdcall FUN_00489bb0(Class_00489a70* source, Class_00489a70* target, int 
     d.amount = dmg;
     d.extra = (unsigned char)(extra >> 8);
     d.type = type;
-    FUN_00489ce0(&d);
+    ApplyUnitDamage(&d);
     if (target->kind->f0 != 0 && target->kind->f73 == 3 && type != 11) {
         if (source)
             BroadcastPacket(source->kind->f4, &d, 9);

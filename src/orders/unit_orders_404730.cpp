@@ -17,7 +17,7 @@ extern const float DAT_004fc930, DAT_004fc934, DAT_004fc938, DAT_004fc93c;
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004898b0 { public: void FUN_004898b0(int); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x15e]; Vec3 min, max;
@@ -51,16 +51,16 @@ struct Game { char pad0[0x38a47]; int tick; };
 #pragma pack(pop)
 extern Game* g_game;
 void __stdcall FUN_0047f780(Unit*, int, const char*);
-short __stdcall FUN_0048a980(Vec3*, Vec3*);
+short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall FUN_00438590(Unit*, Order*, short);
 void __stdcall FUN_004385f0(Unit*, Order*);
 int __stdcall FUN_00438700(Unit*, Order*, int);
-void __stdcall FUN_0043e400(Unit*, Vec3*);
+void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall FUN_00472200(Vec3*, Vec3*, int);
-void __stdcall FUN_00488570(Unit*, void*, int);
-class Class_00489960 { public: int FUN_00489960(Unit*); };
+void __stdcall GiveUnitToPlayer(Unit*, void*, int);
+class Class_00489960 { public: int CanReclaim(Unit*); };
 int __stdcall FUN_00438650(Unit*, Unit*, int);
-void __stdcall FUN_00489bb0(Unit*, Unit*, int, int, int);
+void __stdcall DamageUnit(Unit*, Unit*, int, int, int);
 static inline int SquaredDistance(int dx, int dz)
 {
     __int64 x = dx;
@@ -77,13 +77,13 @@ int __stdcall FUN_00404730(Unit* unit, Order* order, unsigned int flags)
     switch (state) {
     case 0:
         if (unit->active && (unit->def->flags & 0x400)) {
-            if (!((Class_00489960*)unit)->FUN_00489960(target)) {
+            if (!((Class_00489960*)unit)->CanReclaim(target)) {
                 FUN_0047f780(unit, 7, "That unit cannot be reclaimed");
                 FUN_0047f780(unit, 7, "Reclamation failed");
                 return 8;
             }
             ((Class_00438880*)order)->FUN_00438880("Reclaiming");
-            ((Class_004898b0*)unit)->FUN_004898b0(3);
+            ((Class_004898b0*)unit)->ClaimWeapons(3);
             return 1;
         }
         FUN_0047f780(unit, 7, "Reclamation failed");
@@ -98,7 +98,7 @@ int __stdcall FUN_00404730(Unit* unit, Order* order, unsigned int flags)
         return 2;
     case 2:
         if (flags & 0x40) return 9;
-        FUN_00438590(unit, order, FUN_0048a980(&unit->pos, &target->pos) - unit->angle);
+        FUN_00438590(unit, order, GetHeadingBetween(&unit->pos, &target->pos) - unit->angle);
         return 1;
     case 3:
         return FUN_00438700(unit, order, 0x10008);
@@ -111,14 +111,14 @@ int __stdcall FUN_00404730(Unit* unit, Order* order, unsigned int flags)
         range = unit->def->buildRange;
         range += target->def->radius;
         int square = delta.Square();
-        if (square <= range * range && ((Class_00489960*)unit)->FUN_00489960(order->target.Get())) {
+        if (square <= range * range && ((Class_00489960*)unit)->CanReclaim(order->target.Get())) {
             if (order->duration >= 15) {
-                FUN_00489bb0(unit, order->target.Get(), order->elapsed, 5, 0);
+                DamageUnit(unit, order->target.Get(), order->elapsed, 5, 0);
                 order->duration = 0;
             }
             unit->timeout = g_game->tick + 900;
             Vec3 start;
-            FUN_0043e400(order->source, &start);
+            GetNanoPiecePosition(order->source, &start);
             Vec3 bounds[2];
             bounds[1] = order->target.Get()->pos;
             bounds[0] = order->target.Get()->pos;

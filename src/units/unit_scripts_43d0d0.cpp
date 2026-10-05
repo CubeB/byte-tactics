@@ -67,11 +67,11 @@ public:
     char unknown_0[0x14];
     Vec3 pos;                          // +0x14
 
-    void FUN_0043d0d0(Owner_0043d0d0* owner, Vec3* v);
+    void ApplyBankAndPitch(Owner_0043d0d0* owner, Vec3* v);
 };
 
 // FUNCTION: 0x43d0d0
-void Class_0043d210::FUN_0043d0d0(Owner_0043d0d0* owner, Vec3* v)
+void Class_0043d210::ApplyBankAndPitch(Owner_0043d0d0* owner, Vec3* v)
 {
     pos.Scale(0xf333);
     pos.Add(v);

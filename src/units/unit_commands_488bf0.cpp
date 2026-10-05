@@ -10,20 +10,20 @@ public:
     void FUN_004c9390();
 };
 
-struct Elem_00488a00 {
+struct UnitCategory {
     Class_004c9390 name;               // +0x0
     void* value;                       // +0x4
 
-    ~Elem_00488a00() { name.FUN_004c9390(); }
+    ~UnitCategory() { name.FUN_004c9390(); }
 };
 
-static std::vector<Elem_00488a00> DAT_0051e6b0;
+static std::vector<UnitCategory> DAT_0051e6b0;
 extern int DAT_0051e6c0;
 
 // FUNCTION: 0x488bf0
-void FUN_00488bf0()
+void FreeUnitCategories()
 {
-    for (std::vector<Elem_00488a00>::iterator it = DAT_0051e6b0.begin(); it != DAT_0051e6b0.end(); it++)
+    for (std::vector<UnitCategory>::iterator it = DAT_0051e6b0.begin(); it != DAT_0051e6b0.end(); it++)
         delete it->value;
     DAT_0051e6b0.clear();
     DAT_0051e6c0 = 0;

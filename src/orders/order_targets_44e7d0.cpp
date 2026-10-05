@@ -20,7 +20,7 @@ public:
 struct Unit_0044e7d0;
 
 extern void* DAT_004fd3f8[];
-extern Unit_0044e7d0* __stdcall FUN_00487080(int unit, Class_004b4ba0* file);
+extern Unit_0044e7d0* __stdcall LoadUnit(int unit, Class_004b4ba0* file);
 
 #pragma pack(push, 2)
 struct Vec3_0044e7d0 {
@@ -74,7 +74,7 @@ Class_0044e740::Class_0044e740(int owner, Class_004b4ba0* file, char* name)
     ((Class_004b4c10*)file)->FUN_004b4c10(0);
     Header_0044e7d0 hdr;
     if (((Class_004b4c80*)file)->FUN_004b4c80(&hdr, 0x2a) == 0x2a) {
-        self = FUN_00487080(hdr.id, file);
+        self = LoadUnit(hdr.id, file);
         flag = hdr.id_flag.flag;
         target = hdr.target;
         other = hdr.other;

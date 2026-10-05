@@ -50,7 +50,7 @@ class Class_004c4630 {
 };
 class Class_00488e70 {
   public:
-    void FUN_00488e70(char* category);
+    void AddToCategories(char* category);
 };
 class Class_004402e0 {
   public:
@@ -58,13 +58,13 @@ class Class_004402e0 {
     Class_004402e0();
     ~Class_004402e0();
 };
-class Class_00440320 {
+class MovementClass {
   public:
-    void FUN_00440340(void* parser);
+    void ReadMoveInfo(void* parser);
 };
 extern char* g_game;
 short __stdcall FUN_00422e40(char* name);
-void* __stdcall FUN_00440420(char* name);
+void* __stdcall FindMovementClass(char* name);
 char* __stdcall FUN_0049e5b0(char* name);
 void* __cdecl FUN_004d83b0(char* name, int size);
 
@@ -142,7 +142,7 @@ extern char DAT_005119b8[];
 extern char DAT_00503ea0[];
 
 void __stdcall FUN_004c58a0(void* parser, char* dst, char* key, int size, char* def);
-void* __stdcall FUN_00488c50(char* text);
+void* __stdcall GetCategoryMask(char* text);
 
 struct Vec3 {
     int x, y, z;
@@ -249,7 +249,7 @@ struct UnitDef {
 
 
 // FUNCTION: 0x42bf40
-void __stdcall FUN_0042bf40(char* fbi_file, UnitDef* unitdef) {
+void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
     Class_004c2ea0 parser;
     char buf[100];
     char weapon[128];
@@ -271,16 +271,16 @@ void __stdcall FUN_0042bf40(char* fbi_file, UnitDef* unitdef) {
             unitdef->defaultmissiontype = m.mission.value;
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(buf, "wpri_badTargetCategory", 100, DAT_00503ea0);
-            unitdef->wpri_badtargetcategory = FUN_00488c50(buf);
+            unitdef->wpri_badtargetcategory = GetCategoryMask(buf);
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(buf, "wsec_badTargetCategory", 100, DAT_00503ea0);
-            unitdef->wsec_badtargetcategory = FUN_00488c50(buf);
+            unitdef->wsec_badtargetcategory = GetCategoryMask(buf);
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(buf, "wspe_badTargetCategory", 100, DAT_00503ea0);
-            unitdef->wspe_badtargetcategory = FUN_00488c50(buf);
+            unitdef->wspe_badtargetcategory = GetCategoryMask(buf);
             ((Class_004c48c0*)parser.current)
                 ->FUN_004c48c0(buf, "noChaseCategory", 100, DAT_00503ea0);
-            unitdef->nochasecategory = FUN_00488c50(buf);
+            unitdef->nochasecategory = GetCategoryMask(buf);
             if (((Class_004c48c0*)parser.current)
                     ->FUN_004c48c0(unitdef->objectname, "objectname", 0x20, DAT_005119b8) == 0) {
                 strcpy(unitdef->objectname, unitdef->unitname);
@@ -501,7 +501,7 @@ void __stdcall FUN_0042bf40(char* fbi_file, UnitDef* unitdef) {
             else
                 unitdef->selfdestructcountdown = 5;
             ((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "category", 100, DAT_005119b8);
-            ((Class_00488e70*)unitdef)->FUN_00488e70(buf);
+            ((Class_00488e70*)unitdef)->AddToCategories(buf);
             int found = ((Class_004c48c0*)parser.current)
                     ->FUN_004c48c0(buf, "soundcategory", 100, DAT_005119b8);
             if (found) {
@@ -523,11 +523,11 @@ void __stdcall FUN_0042bf40(char* fbi_file, UnitDef* unitdef) {
             unitdef->movementclass = 0;
             if (((Class_004c48c0*)parser.current)
                     ->FUN_004c48c0(buf, "movementclass", 100, DAT_005119b8))
-                unitdef->movementclass = FUN_00440420(buf);
+                unitdef->movementclass = FindMovementClass(buf);
             Class_004402e0 movement;
             char* move = (char*)unitdef->movementclass;
             if (move == 0) {
-                ((Class_00440320*)&movement)->FUN_00440340(&parser);
+                ((MovementClass*)&movement)->ReadMoveInfo(&parser);
                 move = (char*)&movement;
             }
             unitdef->footprintx = *(short*)(move + 4);

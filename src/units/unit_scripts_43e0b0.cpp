@@ -36,7 +36,7 @@ struct Obj_0043e0b0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x43e0b0
-void __stdcall FUN_0043e0b0(Obj_0043e0b0* obj, Vec3* out, int value)
+void __stdcall GetPieceCenter(Obj_0043e0b0* obj, Vec3* out, int value)
 {
     int minx = 0, miny = 0, minz = 0;
     int maxx = 0, maxy = 0, maxz = 0;

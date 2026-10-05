@@ -58,14 +58,14 @@ public:
     char unknown_10a[0x110 - 0x10a];
     int f110;                      // +0x110
 
-    int FUN_004899b0(Class_004899b0* other);
+    int CanRepair(Class_004899b0* other);
 };
 #pragma pack(pop)
 
 extern Game* g_game;
 
 // FUNCTION: 0x4899b0
-int Class_004899b0::FUN_004899b0(Class_004899b0* other)
+int Class_004899b0::CanRepair(Class_004899b0* other)
 {
     if (other
         && (def->f245 & 0x200)

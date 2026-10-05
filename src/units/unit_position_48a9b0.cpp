@@ -10,7 +10,7 @@ struct Vec3_0048a9b0 {
 int __cdecl FUN_004b715a(int x, int z);
 
 // FUNCTION: 0x48a9b0
-unsigned short __stdcall FUN_0048a9b0(Vec3_0048a9b0* from, Vec3_0048a9b0* to, unsigned short def)
+unsigned short __stdcall GetHeadingBetweenOrDefault(Vec3_0048a9b0* from, Vec3_0048a9b0* to, unsigned short def)
 {
     int dx = from->x - to->x;
     int dz = from->z - to->z;

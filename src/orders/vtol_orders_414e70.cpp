@@ -31,15 +31,15 @@ class Class_0043d210 {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
-    void FUN_0043d210(Unit* unit, int state);
+    void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void FUN_004898b0(int); };
-class Class_0048b090 { public: void FUN_0048b090(int, int); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
+class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004899b0 { public: int FUN_004899b0(Unit*); };
+class Class_004899b0 { public: int CanRepair(Unit*); };
 
 #pragma pack(push, 1)
 struct UnitType {
@@ -101,19 +101,19 @@ public:
 
 void __stdcall FUN_0047f780(Unit* unit, int kind, const char* text);
 int __stdcall FUN_0041bd10(Unit* builder, Unit* unit, float amount);
-void __stdcall FUN_0043e400(Unit* unit, Vec3* out);
+void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall FUN_004720d0(Vec3* from, Box* to, int count);
-void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4);
+void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->FUN_004898b0(3);
+    ((Class_004898b0*)unit)->ClaimWeapons(3);
     if (unit->field_86)
-        FUN_0048aac0(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->FUN_0048b090(1, 1);
+        AttachUnitToPiece(unit, 0, -1, 2);
+    ((Class_0048b090*)unit)->SetStateBits(1, 1);
     if ((unit->active->field_2e & 3) == 1) {
-        unit->active->FUN_0043d210(unit, 2);
+        unit->active->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->type->field_21c / 2);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
@@ -146,7 +146,7 @@ int __stdcall FUN_00414e70(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->active && (unit->type->flags & 0x800)) {
-            if (!((Class_004899b0*)unit)->FUN_004899b0(order->target)) {
+            if (!((Class_004899b0*)unit)->CanRepair(order->target)) {
                 FUN_0047f780(unit, 7, "Repair mission failed");
                 return 8;
             }
@@ -176,7 +176,7 @@ int __stdcall FUN_00414e70(Unit* unit, Order* order, int flags)
         {
             FUN_0041bd10(unit, order->target, (float)(unit->type->workerTime / 30));
             Vec3 nano;
-            FUN_0043e400(order->source, &nano);
+            GetNanoPiecePosition(order->source, &nano);
             Box box;
             box.hi = order->target->pos;
             box.lo = order->target->pos;

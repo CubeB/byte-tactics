@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004379a0 {
+class CMemoryCache {
 public:
     void FUN_004379a0(void);
 };
@@ -16,7 +16,7 @@ public:
 // FUNCTION: 0x458160
 Class_00458160* Class_00458160::FUN_00458160(void)
 {
-    ((Class_004379a0*)this)->FUN_004379a0();
+    ((CMemoryCache*)this)->FUN_004379a0();
     field_10 = 0;
     return this;
 }

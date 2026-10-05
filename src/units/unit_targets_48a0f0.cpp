@@ -1,15 +1,15 @@
 // Decompiled by Opus. Names are provisional.
-// Clears target entry `index` (the same reset as FUN_0048a160) unless it is
+// Clears target entry `index` (the same reset as ResetWeaponTarget) unless it is
 // already clear, then tells the unit's script "StartBuilding" and
 // "TargetCleared".
 class Class_004b07c0 {
 public:
-    int FUN_004b07c0(char* name);
+    int FindScript(char* name);
 };
 
-class Class_004b0a70 {
+class CobScript {
 public:
-    int FUN_004b0a70(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
+    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
 };
 
 struct Point_0048a0f0 {
@@ -32,13 +32,13 @@ struct Unit {
 #pragma pack(pop)
 
 // FUNCTION: 0x48a0f0
-void __stdcall FUN_0048a0f0(Unit* unit, int index)
+void __stdcall ClearWeaponTarget(Unit* unit, int index)
 {
     Point_0048a0f0* p = &unit->entries[index].point;
     if (p->a != 0 || p->b != (short)0x8000) {
         p->a = 0;
         p->b = (short)0x8000;
-        unit->script->FUN_004b07c0("StartBuilding");
-        ((Class_004b0a70*)unit->script)->FUN_004b0a70("TargetCleared", 0, 0, 1, index, 0, 0, 0);
+        unit->script->FindScript("StartBuilding");
+        ((CobScript*)unit->script)->StartScriptWithArgs("TargetCleared", 0, 0, 1, index, 0, 0, 0);
     }
 }

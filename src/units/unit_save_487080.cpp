@@ -208,12 +208,12 @@ public:
 extern void* g_game;
 
 
-unsigned short __stdcall FUN_00488b10(const char* name);
-Unit* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId,
+unsigned short __stdcall FindUnitTypeId(const char* name);
+Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
                                       Vec3_00487080 pos, int param_5, int mode,
                                       unsigned short id);
-void __stdcall FUN_0048aac0(Unit* unit, Unit* builder, int piece, int p4);
-void __stdcall FUN_00480250(Unit* unit, int id);
+void __stdcall AttachUnitToPiece(Unit* unit, Unit* builder, int piece, int p4);
+void __stdcall SetUnitSquad(Unit* unit, int id);
 #pragma pack(push, 1)
 // An order (0x56 bytes); 0x43a420 is its constructor from a saved record.
 class Class_0043a420 {
@@ -229,12 +229,12 @@ public:
 class Class_004388b0 { public: void FUN_004388b0(); };
 void __stdcall FUN_0047db20(Unit* unit);
 class Class_00401110 { public: void FUN_00401110(Unit*, Class_004b4560*); };
-class Class_0043d210 { public: void FUN_0043de30(Unit*, Class_004b4560*); };
-class Class_004b0610 { public: void FUN_004b2040(Class_004b4560*); };
+class Class_0043d210 { public: void LoadMotion(Unit*, Class_004b4560*); };
+class CobScript { public: void LoadScriptState(Class_004b4560*); };
 
 
 // FUNCTION: 0x487080
-Unit* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
+Unit* __stdcall LoadUnit(unsigned short id, Class_004b4560* file)
 {
     Unit* unit;
     if (id == 0)
@@ -264,7 +264,7 @@ Unit* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     if (!found)
         return 0;
 
-    unit = FUN_00485f50(rec.player, FUN_00488b10(rec.name), *(Vec3_00487080*)&rec.f2b, 1, rec.flags.b & 3, rec.id);
+    unit = CreateUnit(rec.player, FindUnitTypeId(rec.name), *(Vec3_00487080*)&rec.f2b, 1, rec.flags.b & 3, rec.id);
     if (unit != 0) {
 
     unit->field_64 = *(Pair_00487080*)&rec.f37;
@@ -273,11 +273,11 @@ Unit* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     unit->field_6e = rec.f2f;
 
     if (rec.childA != 0) {
-        Unit* child = FUN_00487080(rec.childA, file);
+        Unit* child = LoadUnit(rec.childA, file);
         if (child != 0)
-            FUN_0048aac0(unit, child, rec.b8d, rec.flags.b & 3);
+            AttachUnitToPiece(unit, child, rec.b8d, rec.flags.b & 3);
     }
-    unit->child = FUN_00487080(rec.childB, file);
+    unit->child = LoadUnit(rec.childB, file);
     unit->b_f9 = rec.b8d;
     unit->b_f4 = rec.b8e;
     unit->field_58 = rec.f8f;
@@ -285,7 +285,7 @@ Unit* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     unit->field_7a = rec.f97;
     unit->field_7e = rec.f9b;
     unit->field_ac = rec.f9f;
-    FUN_00480250(unit, rec.f9f);
+    SetUnitSquad(unit, rec.f9f);
     unit->field_104 = rec.fa7;
     unit->b_f5 = rec.bab;
     unit->b_f6 = rec.bac;
@@ -320,7 +320,7 @@ Unit* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
 
     ((Class_00401110*)&unit->info)->FUN_00401110(unit, file);
     if (rec.f27 != 0)
-        ((Class_0043d210*)unit->vtable)->FUN_0043de30(unit, file);
+        ((Class_0043d210*)unit->vtable)->LoadMotion(unit, file);
 
     Class_0043a420** normal = (Class_0043a420**)&unit->listHead;
     Class_0043a420** special = (Class_0043a420**)&unit->listTail;
@@ -343,7 +343,7 @@ Unit* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
         ((Class_004388b0*)unit->listHead)->FUN_004388b0();
     sprintf(script, "Script%i", i);
     ((Class_004b4ba0*)file)->FUN_004b4ba0(script);
-    ((Class_004b0610*)unit->field_9a)->FUN_004b2040(file);
+    ((CobScript*)unit->field_9a)->LoadScriptState(file);
 
     for (int j = 0; j < 3; j++) {
         unit->pieces[j].f0 = rec.pieces[j].f0;

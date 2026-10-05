@@ -13,14 +13,14 @@
 //     jmp` / `mov [esp+0x3c],eax; lea eax,[esp+0x3c]`, then one load) is a
 //     MAX macro over the Fixed union with a prvalue second operand; an int
 //     max hoists the lea and folds the shift chain.
-//   - the path branch is `Vec3 v; v = FUN_0043e060(...)`: the copy through the
+//   - the path branch is `Vec3 v; v = GetPiecePosition(...)`: the copy through the
 //     returned pointer. It only lands right once the no-path branch gives the
 //     frame its real layout.
 //   - the new position is `pos = p1 + u->pos` through an inline
 //     `operator+(const Vec3&, const Vec3&)`, assigned (not initialised): the
 //     operator's result temporary is the 12-byte object at frame+0x1c whose y
 //     the exe spills to its own home and reloads later (the "ny inside the
-//     dead FUN_0043e060 temp" the old notes could not place), and its
+//     dead GetPiecePosition temp" the old notes could not place), and its
 //     reference to p1 is the `lea ecx,[ebp+8]` the exe keeps at frame+0x8 for
 //     the later `p1 = vec`. Separate int sums, a named n, `Vec3 pos = ...`
 //     and a `Vec3* pp` all schedule the three adds differently.
@@ -151,9 +151,9 @@ struct Unit {
 #pragma pack(pop)
 
 
-Vec3 __stdcall FUN_0043e060(Path_0043d6d0* obj, int index);
-Short3 __stdcall FUN_0043e180(Path_0043d6d0* obj, int index);
-void __stdcall FUN_0048a9f0(Unit* unit, Vec3 pos, int mode);
+Vec3 __stdcall GetPiecePosition(Path_0043d6d0* obj, int index);
+Short3 __stdcall GetPieceAngles(Path_0043d6d0* obj, int index);
+void __stdcall SetUnitPosition(Unit* unit, Vec3 pos, int mode);
 int __stdcall FUN_0047db70(UnitType_0043d6d0* type, short a8, Point cell, int mode);
 void __stdcall FUN_0047d0e0(Unit* unit);
 void __stdcall FUN_0047cc30(Unit* unit);
@@ -174,7 +174,7 @@ public:
     unsigned char flag : 1;                         // bit 2
     unsigned char unknown_2f : 5;
 
-    void FUN_0043d6d0(Unit* unit);
+    void UpdatePosition(Unit* unit);
 };
 #pragma pack(pop)
 
@@ -202,16 +202,16 @@ inline Vec3 operator+(const Vec3& a, const Vec3& b)
 }
 
 // FUNCTION: 0x43d6d0
-void Class_0043d6d0::FUN_0043d6d0(Unit* u)
+void Class_0043d6d0::UpdatePosition(Unit* u)
 {
     if (u->obj != 0) {
         Vec3 v;
-        v = FUN_0043e060(u->obj, u->index);
+        v = GetPiecePosition(u->obj, u->index);
         if (u->type->b19) {
             v.y = MAXM_0043d6d0(v.y, MakeFixed_0043d6d0(u->type->draft * 0xffff + g_game->seaLevel));
         }
-        FUN_0048a9f0(u, v, mode);
-        Short3 o = FUN_0043e180(u->obj, u->index);
+        SetUnitPosition(u, v, mode);
+        Short3 o = GetPieceAngles(u->obj, u->index);
         u->f64 = o;
         if (u->obj->field_0 != 0) {
             field_20 = u->obj->field_0->field_20;

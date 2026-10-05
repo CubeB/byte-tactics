@@ -4,7 +4,7 @@ struct Unit { int active; };
 struct Order { char pad[5]; unsigned char state; unsigned flags; };
 #pragma pack(pop)
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_00489800 { public: void FUN_00489800(int); };
+class Class_00489800 { public: void ReleaseWeapons(int); };
 Order* __stdcall FUN_0043b700(Unit*);
 int __stdcall FUN_0043b1f0(Unit*,Order*,int);
 int __stdcall FUN_004b6c30(int);
@@ -15,7 +15,7 @@ int __stdcall FUN_00405fe0(Unit* unit,Order* order,int flags)
     switch(state) {
     case 0:
         if(!unit->active) return 7;
-        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_00489800*)unit)->ReleaseWeapons(3);
         order->flags|=0x10000;
         ((Class_00439e80*)order)->FUN_00439e80(1); return 1;
     case 1:

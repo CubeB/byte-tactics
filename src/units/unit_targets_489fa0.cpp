@@ -50,7 +50,7 @@ struct Unit {
 void __stdcall FUN_0043acb0(Unit* owner, Class_0043a1f0* node);
 
 // FUNCTION: 0x489fa0
-void __stdcall FUN_00489fa0(Unit* unit, int ticks)
+void __stdcall ParalyzeUnit(Unit* unit, int ticks)
 {
     if (!(unit->flags & 0x10000000))
         return;

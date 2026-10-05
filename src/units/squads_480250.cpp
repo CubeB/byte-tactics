@@ -2,7 +2,7 @@
 // Moves a unit to the unit group (squad) `index`: first removes it from the
 // group it is currently in (unit+0xac, -1 means none), then adds it to the
 // new group, then records the new group index. Each player owns ten
-// 0x20-byte Class_00480160 squads at player+0x78 (built by 0x480190); the
+// 0x20-byte Squad squads at player+0x78 (built by 0x480190); the
 // squad holds its units in the std::vector<Unit*> at +0x10.
 //
 // The removal (`RemoveFast`) is a separate inline helper: inlining it is what
@@ -18,12 +18,12 @@
 #include <vector>
 #include <algorithm>
 
-class Class_00480160;
+class Squad;
 
 #pragma pack(push, 1)
 struct Player_00480250 {
     char unknown_0[0x78];
-    Class_00480160* squads;            // +0x78
+    Squad* squads;                     // +0x78
 };
 
 struct Unit {
@@ -34,7 +34,7 @@ struct Unit {
 };
 #pragma pack(pop)
 
-class Class_00480160 {
+class Squad {
 public:
     int field_0;                       // +0x0
     int field_4;                       // +0x4
@@ -57,7 +57,7 @@ static inline void RemoveFast(std::vector<Unit*>& v, Unit* u)
 }
 
 // FUNCTION: 0x480250
-void __stdcall FUN_00480250(Unit* unit, int index)
+void __stdcall SetUnitSquad(Unit* unit, int index)
 {
     if (unit->group != -1)
         RemoveFast(unit->owner->squads[unit->group].items, unit);

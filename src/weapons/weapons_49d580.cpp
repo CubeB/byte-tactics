@@ -117,8 +117,8 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0043e2e0(Unit* obj, Vec3_0049d580* out, unsigned char weapon);
-void __stdcall FUN_0043e240(Unit* obj, Vec3_0049d580* out, unsigned char weapon, int piece);
+void __stdcall GetAimFromPosition(Unit* obj, Vec3_0049d580* out, unsigned char weapon);
+void __stdcall GetWeaponPiecePosition(Unit* obj, Vec3_0049d580* out, unsigned char weapon, int piece);
 int __cdecl FUN_004b715a(int x, int z);
 int __stdcall FUN_0049a890(int dx, int dy, int dz, int speed, float pitch);
 int __stdcall FUN_0049d910(Unit* unit, Weapon_0049d580* target, short* out_heading,
@@ -142,7 +142,7 @@ int __stdcall FUN_0049d580(Unit* fire, Unit* unit,
         int ok;
         if (def->flags.b.f1) {
             Vec3_0049d580 p;
-            FUN_0043e2e0(fire, &p, unit->f_1b >> 2 & 3);
+            GetAimFromPosition(fire, &p, unit->f_1b >> 2 & 3);
             int dx = p.x - point->x;
             int dy = p.y - point->y;
             int dz = p.z - point->z;
@@ -165,7 +165,7 @@ int __stdcall FUN_0049d580(Unit* fire, Unit* unit,
             return 0;
         }
         Vec3_0049d580 gunpos;
-        FUN_0043e240(fire, &gunpos, unit->f_1b >> 2 & 3, -1);
+        GetWeaponPiecePosition(fire, &gunpos, unit->f_1b >> 2 & 3, -1);
         unit->f_16 += fire->f_66;
         short spread = unit->f_c->f_104 - (short)((fire->f_108 << 11) / fire->f_92->divisor) + 0x800;
         int parts = fire->f_b8 / 12;

@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Index-taking twin of 0x4b0a70 (the name lookup version): FUN_004b08c0 claims
+// Index-taking twin of 0x4b0a70 (the name lookup version): StartThread claims
 // one of the 8 channel slots, this stores the value plus a four-deep call
 // frame on the slot's own stack, truncates the slot's stack pointer to
 // param_4 - 1 and refreshes the channels when asked. Compare 0x4b0a10 (same
@@ -19,7 +19,7 @@ struct Channel_004b0b00 {              // 0xa4 bytes, indexed from this + i*0xa4
     int stack[0x19];                   // +0x40
 };
 
-class Class_004b0b00_param2;
+class ScriptCallback;
 
 class Class_004b0b00 {
 public:
@@ -27,40 +27,40 @@ public:
     char unknown_520[0x1c];
     int activeCount;                   // +0x53c
 
-    int FUN_004b0b00(int index, Class_004b0b00_param2* param_2, int param_3,
+    int StartScriptWithArgsByIndex(int index, ScriptCallback* param_2, int param_3,
                      int param_4, int param_5, int param_6, int param_7,
                      int param_8);
 };
 
-class Class_004b0b00_param2 {
+class ScriptCallback {
 public:
-    virtual void FUN_004b0b00(int param);
+    virtual void Complete(int result);
 };
 
-class Class_004b08c0 {
+class CobScript {
 public:
-    int FUN_004b08c0(int id);
+    int StartThread(int id);
 };
 
 class Class_004b0da0 {
 public:
-    void FUN_004b0da0(int channel, int param_2);
+    void RunThread(int channel, int param_2);
 };
 
 class Class_004b1c00 {
 public:
-    void FUN_004b1c00(int param_1);
+    void AnimatePieces(int param_1);
 };
 
 // FUNCTION: 0x4b0b00
-int Class_004b0b00::FUN_004b0b00(int index, Class_004b0b00_param2* param_2,
+int Class_004b0b00::StartScriptWithArgsByIndex(int index, ScriptCallback* param_2,
                                  int param_3, int param_4, int param_5,
                                  int param_6, int param_7, int param_8)
 {
-    int i = ((Class_004b08c0*)this)->FUN_004b08c0(index);
+    int i = ((CobScript*)this)->StartThread(index);
     if (i < 0) {
         if (param_2)
-            param_2->FUN_004b0b00(0);
+            param_2->Complete(0);
         return 0;
     }
     Channel_004b0b00* c = &channels[i];
@@ -75,9 +75,9 @@ int Class_004b0b00::FUN_004b0b00(int index, Class_004b0b00_param2* param_2,
     if (param_3) {
         if (activeCount) {
             for (int j = 0; j < 8; j++)
-                ((Class_004b0da0*)this)->FUN_004b0da0(j, 0);
+                ((Class_004b0da0*)this)->RunThread(j, 0);
         }
-        ((Class_004b1c00*)this)->FUN_004b1c00(0);
+        ((Class_004b1c00*)this)->AnimatePieces(0);
     }
     return 1;
 }

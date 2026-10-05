@@ -7,16 +7,16 @@ struct Record_00437c90 {
     int size;                          // +0x4
 };
 
-class Class_00437c90 {
+class CMemoryCache {
 public:
     int length;                        // +0x0
     Record_00437c90* records;          // +0x4
 
-    void FUN_00437c90(int id);
+    void ReleaseHandle(int id);
 };
 
 // FUNCTION: 0x437c90
-void Class_00437c90::FUN_00437c90(int id)
+void CMemoryCache::ReleaseHandle(int id)
 {
     Record_00437c90* r = records;
     for (int offset = 0; offset < length; ) {

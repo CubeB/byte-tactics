@@ -58,7 +58,7 @@ start,folder,module,evidence
 0x47c790,map,terrain,ground height under a footprint; whether a unit can sit at a position; map cells
 0x47ed40,sound,sound,Sound system initialization / UseWindowsSound / WAV / Speech Text / honk
 0x480190,units,squads,SQUADS: the ten unit groups
-0x4804e0,units,unit_script_calls,Class_00485e30 slots 1 to 19 (the unit's script object) and their helpers
+0x4804e0,units,unit_script_calls,UnitScript slots 1 to 19 (the unit's script object) and their helpers
 0x4814c0,map,line_of_sight,EYEBALL MEMORY / SORT UNIT LIST / MAPPED MEMORY; map cells by grid and world position
 0x484ce0,map,plot_map,Plotmap / PlayerFeatures / Mapping
 0x485010,units,units,HOT RADAR UNITS / HOT UNITS / UNIT MEMORY / Create / Killed / %s has taken the lead
@@ -84,7 +84,7 @@ start,folder,module,evidence
 0x4acd00,gui,gui_file,[%s] / %s=%s; / defaultfocus / grayedout / quickkey / knobsize: GUI files written and read
 0x4aefa0,gui,file_list,PTR LIST1 / SORTED LIST1 / <DIR> / FILETIMES / FILE NAMES / BlinkWords
 0x4b0090,gui,listbox,Listbox; bevelled and sunken frames
-0x4b0610,units,cob,Class_004b0610 (the unit's script object at +0x9a): Static Varibles / Object States / Piece States
+0x4b0610,units,cob,CobScript (the unit's script object at +0x9a): Static Varibles / Object States / Piece States
 0x4b2290,util,int_map,the file-local std::map<int,int> and its tree members
 0x4b3630,util,hapibank,[HapiBank::OpenBank] / [HapiBank::LoadAccount] / Safe-Deposit Box
 0x4b4f10,util,operator_new,Cavedog's replacement global operator new and delete

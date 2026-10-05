@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Command callback: calls FUN_00486f10 with 0 when the local player's byte
+// Command callback: calls KillPlayerUnits with 0 when the local player's byte
 // at +0x95 of its data block is 1, otherwise with 1, and sets game flags at
 // +0x3923b; compare 0x416a30.
 
@@ -36,15 +36,15 @@ extern Game* g_game;
 // Command arguments.
 class Class_004b73e0;
 
-void __stdcall FUN_00486f10(unsigned char player);
+void __stdcall KillPlayerUnits(unsigned char player);
 
 // FUNCTION: 0x4169d0
 void __stdcall FUN_004169d0(Class_004b73e0* args)
 {
     if (g_game->players[g_game->localPlayer].data->field_95 == 1)
-        FUN_00486f10(0);
+        KillPlayerUnits(0);
     else
-        FUN_00486f10(1);
+        KillPlayerUnits(1);
     g_game->flag4 = 1;
     g_game->flag5 = 1;
     g_game->flag2 = 1;

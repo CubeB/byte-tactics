@@ -30,13 +30,13 @@ public:
     unsigned int height;               // +0x14
     unsigned int* data;                // +0x18
 
-    void FUN_00440830(Point_00440830 a, Point_00440830 b);
+    void RefreshPassMap(Point_00440830 a, Point_00440830 b);
 };
 
 unsigned int __stdcall FUN_0047e1f0(Class_00440830* obj, int x, int y);
 
 // FUNCTION: 0x440830
-void Class_00440830::FUN_00440830(Point_00440830 a, Point_00440830 b)
+void Class_00440830::RefreshPassMap(Point_00440830 a, Point_00440830 b)
 {
     int left = a.x - field_4;
     int top = a.y - field_6;

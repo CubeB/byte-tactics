@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Destructor of the 32-byte entry whose out-of-line constructor is 0x4402e0
-// (0x440290.cpp inlines both for its array of entries, as Class_00440320).
+// (0x440290.cpp inlines both for its array of entries, as MovementClass).
 // Its one caller (0x42bf40) constructs a local entry with 0x4402e0 and calls
 // this on it (ecx) when the local goes out of scope.
 

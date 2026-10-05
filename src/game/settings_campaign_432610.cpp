@@ -42,7 +42,7 @@ void __stdcall FUN_00424c00(Class_004b4560* file);
 void __stdcall FUN_00484d60(Class_004b4560* file);
 void __stdcall FUN_00484e80(Class_004b4560* file);
 void __stdcall FUN_00484fa0(Class_004b4560* file);
-void __stdcall FUN_00486fd0(Class_004b4560* file);
+void __stdcall LoadUnits(Class_004b4560* file);
 void __stdcall FUN_00438250(Class_004b4560* file);
 
 // Reads the game summary section and every subsystem's saved state.
@@ -58,7 +58,7 @@ int __stdcall FUN_00432610(Class_004b4560* file)
     FUN_00484d60(file);
     FUN_00484e80(file);
     FUN_00484fa0(file);
-    FUN_00486fd0(file);
+    LoadUnits(file);
     FUN_00438250(file);
     g_game->unknown_391ed->FUN_0048fe60(file);
     g_game->loaded = 1;

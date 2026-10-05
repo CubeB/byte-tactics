@@ -15,7 +15,7 @@ public:
     int value;                         // +0xc
 
     Class_004895c0(void* o, int v);
-    void FUN_00489690(void* o);
+    void SetUnit(void* o);
 };
 
 struct Owner_0044e080;
@@ -75,7 +75,7 @@ Class_0044e080::Class_0044e080(Owner_0044e080* owner_, BitReader* reader)
     if (flags & 1) {
         field_10 = reader->ReadBits(0x10);
         unsigned short index = reader->ReadBits(0x10);
-        ref.FUN_00489690(index == 0 ? 0 : (void*)&g_game->units[index]);
+        ref.SetUnit(index == 0 ? 0 : (void*)&g_game->units[index]);
     }
     if (flags & 0x10)
         field_a = reader->ReadBits(0x10);

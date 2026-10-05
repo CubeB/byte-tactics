@@ -96,16 +96,16 @@ void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit* owner,
                             int id, Vec3_00487bf0* pos, int param_6, int param_7);
 void __stdcall FUN_0043f0e0(Class_00438760* out, int mode, Unit* unit,
                             int target, Vec3_00487bf0* pos);
-int __stdcall FUN_00487af0(char* name, Table_00487bf0* table, int value);
-unsigned short __stdcall FUN_00488b10(char* name);
-void __stdcall FUN_0048aac0(Unit* unit, int target, int a, int b);
+int __stdcall FindMissionUnit(char* name, Table_00487bf0* table, int value);
+unsigned short __stdcall FindUnitTypeId(char* name);
+void __stdcall AttachUnitToPiece(Unit* unit, int target, int a, int b);
 
 struct Outs_t {
     Class_00438760 g, a, m, u, p;
 };
 
 // FUNCTION: 0x487bf0
-void __stdcall FUN_00487bf0(Unit* unit, char* text, Table_00487bf0* table)
+void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
 {
     int count;
     struct { float f1, f2; int n; Vec3_00487bf0 pos; int move; } L;
@@ -163,7 +163,7 @@ void __stdcall FUN_00487bf0(Unit* unit, char* text, Table_00487bf0* table)
         case 'G':
         case 'g': {
             sscanf(buf + 1, " %[a-zA-Z0-9_.]", buf);
-            int target = FUN_00487af0(buf, table, 0);
+            int target = FindMissionUnit(buf, table, 0);
             if (target != 0) {
                 FUN_0043f0e0(&out.g, 7, unit, target, 0);
                 FUN_0043adc0(out.g, 1, unit, target, 0, 0, 0);
@@ -196,7 +196,7 @@ void __stdcall FUN_00487bf0(Unit* unit, char* text, Table_00487bf0* table)
                 processed = 1;
             } else {
                 sscanf(buf + 1, " %[a-zA-Z0-9_.]", buf);
-                unsigned short id = FUN_00488b10(buf);
+                unsigned short id = FindUnitTypeId(buf);
                 if (id != 0) {
                     FUN_0043adc0("ATTACKUTYPE", 1, unit, 0, 0, id, 0);
                     processed = 1;
@@ -215,7 +215,7 @@ void __stdcall FUN_00487bf0(Unit* unit, char* text, Table_00487bf0* table)
                 L.pos.x = (int)(L.f1 * 65536.0);
                 L.pos.y = 0;
                 L.pos.z = (int)(65536.0 * L.f2);
-                unsigned short id = FUN_00488b10(buf);
+                unsigned short id = FindUnitTypeId(buf);
                 if (id != 0) {
                     if (unit->field_0 != 0)
                         FUN_0043adc0("MOBILEBUILD", 1, unit, 0,
@@ -234,7 +234,7 @@ void __stdcall FUN_00487bf0(Unit* unit, char* text, Table_00487bf0* table)
                 count = sscanf(buf + 2, " %[a-zA-Z0-9.]", buf);
                 int target = 0;
                 if (count == 1)
-                    target = FUN_00487af0(buf, table, 0);
+                    target = FindMissionUnit(buf, table, 0);
                 if (target == 0)
                     target = (int)unit;
                 FUN_0043adc0("WAITFORATTACK", 1, unit, target,
@@ -263,9 +263,9 @@ void __stdcall FUN_00487bf0(Unit* unit, char* text, Table_00487bf0* table)
         case 'I':
         case 'i': {
             sscanf(buf + 1, " %[a-zA-Z0-9_.]", buf);
-            int target = FUN_00487af0(buf, table, 0);
+            int target = FindMissionUnit(buf, table, 0);
             if (target != 0)
-                FUN_0048aac0(unit, target, -1, 0);
+                AttachUnitToPiece(unit, target, -1, 0);
             break;
         }
         }

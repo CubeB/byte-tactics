@@ -51,7 +51,7 @@ extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 
 void HandleNetPackets(void);
-void FUN_0048ad30(void);
+void UpdateAllUnits(void);
 void FUN_0049b720(void);
 void FUN_00420f30(void);
 void FUN_00464f80(void);
@@ -81,7 +81,7 @@ void __stdcall FUN_00495490(int showStats)
             HandleNetPackets();
             g_game->prof.FUN_0046a400(0);
         }
-        FUN_0048ad30();
+        UpdateAllUnits();
         g_game->prof.FUN_0046a400(1);
         FUN_0049b720();
         g_game->prof.FUN_0046a400(7);

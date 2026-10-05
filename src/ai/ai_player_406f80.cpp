@@ -22,20 +22,20 @@ struct Unit {
 struct Game { char pad0[0x38a47]; int tick; };
 #pragma pack(pop)
 extern Game* g_game;
-void __stdcall FUN_004897b0(Unit*, int);
+void __stdcall NotifyUnitRefs(Unit*, int);
 int __stdcall FUN_004b6c30(int);
 void __stdcall FUN_00439eb0(Unit*, int);
 int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
-Unit* __stdcall FUN_0048a190(Unit*, int);
-void __stdcall FUN_0048a060(Unit*, Unit*, int);
+Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
+void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 unsigned int __stdcall FUN_00438be0(Unit*);
 void __stdcall FUN_0047f850(Unit*, int, int);
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
 // FUNCTION: 0x406f80
 void __stdcall FUN_00406f80(Unit* attacker, Unit* unit, int unused)
 {
-    FUN_004897b0(unit,16);
+    NotifyUnitRefs(unit,16);
     if (attacker && !attacker->category) attacker=0;
     if ((unit->def->flags2&0x1000) && unit->owner->active && unit->owner->control==2) {
         unit->owner->ai->nextAction=FUN_004b6c30(300)+g_game->tick+30;
@@ -53,9 +53,9 @@ void __stdcall FUN_00406f80(Unit* attacker, Unit* unit, int unused)
                 Weapon* weapon=&unit->weapons[i];
                 if ((weapon->flags&2) && (weapon->flags&0x10) && FUN_0049abb0(unit,attacker,i) &&
                     !((unsigned char)(weapon->def->flags>>26)&1)) {
-                    Unit* target=FUN_0048a190(unit,i);
+                    Unit* target=GetWeaponTargetUnit(unit,i);
                     if (!target || !FUN_0049abb0(unit,target,i) || Contains(unit->def->weaponCategories[i],target->category))
-                        FUN_0048a060(unit,attacker,i);
+                        SetWeaponTargetUnit(unit,attacker,i);
                 }
             }
         }

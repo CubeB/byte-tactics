@@ -17,7 +17,7 @@ static inline Diff_00480570 Sub(Point_00480570 a, Point_00480570 b)
 }
 
 // FUNCTION: 0x480570
-int __stdcall FUN_00480570(Point_00480570 a, Point_00480570 b)
+int __stdcall ChebyshevDistance(Point_00480570 a, Point_00480570 b)
 {
     Diff_00480570 d = Sub(a, b);
     int dx = abs(d.dx);

@@ -90,7 +90,7 @@ struct Callback_0043b7c0 {
 extern Game* g_game;
 extern Callback_0043b7c0* DAT_00512344;
 
-void __stdcall FUN_0048a0f0(Unit* unit, int index);
+void __stdcall ClearWeaponTarget(Unit* unit, int index);
 int __stdcall FUN_004b6c30(int n);
 void __stdcall FUN_00439f80(Unit* owner, Class_0043a1f0* node);
 
@@ -189,7 +189,7 @@ static void Wait_0043b7c0(Class_0043a1f0* node, int n)
 static void ClearTargets_0043b7c0(Unit* unit)
 {
     for (char i = 0; i < 3; i++)
-        FUN_0048a0f0(unit, i);
+        ClearWeaponTarget(unit, i);
 }
 
 // FUNCTION: 0x43b7c0

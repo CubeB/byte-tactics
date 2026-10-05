@@ -2,7 +2,7 @@
 // The out-of-line destructor of Class_004895c0 (vtable 0x4fd754): unlinks
 // the object from its owner's list (head at +0xa2) and clears the link.
 // Its ??_G (0x489600) inlines the same body. Callers already call it as
-// Class_00489650::FUN_00489650, so it is written as that method, which runs
+// UnitRef::FUN_00489650, so it is written as that method, which runs
 // the real destructor non-virtually.
 
 class Class_004895c0;
@@ -35,13 +35,13 @@ public:
     }
 };
 
-class Class_00489650 {
+class UnitRef {
 public:
     void FUN_00489650();
 };
 
 // FUNCTION: 0x489650
-void Class_00489650::FUN_00489650()
+void UnitRef::FUN_00489650()
 {
     ((Class_004895c0*)this)->Class_004895c0::~Class_004895c0();
 }

@@ -32,12 +32,12 @@ struct Game {
 
 extern Game* g_game;
 
-unsigned short __stdcall FUN_00488b10(char* name);
+unsigned short __stdcall FindUnitTypeId(char* name);
 void __cdecl FUN_004d8710(void* p);
 void __cdecl FUN_004d8780(void* p);
 
 // FUNCTION: 0x42be30
-void FUN_0042be30()
+void AddDownloadBuildOptions()
 {
     FUN_004d8780(g_game->entries);
     Entry_0042be30* e = g_game->entries;
@@ -46,7 +46,7 @@ void FUN_0042be30()
             for (int b = 0; b < g_game->count2; b++) {
                 for (int c = 0; c < g_game->recs[b].count; c++) {
                     if (a == g_game->recs[b].elems[c].index && e->count <= 0x1e) {
-                        unsigned short id = FUN_00488b10(g_game->recs[b].elems[c].name);
+                        unsigned short id = FindUnitTypeId(g_game->recs[b].elems[c].name);
                         if (id != 0) {
                             e->items[e->count] = id;
                             e->count++;

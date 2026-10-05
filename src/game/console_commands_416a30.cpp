@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Command callback: passes the local player's byte at +0x95 of its data
-// block to FUN_00486f10 and updates the game flags at +0x3923b; compare
+// block to KillPlayerUnits and updates the game flags at +0x3923b; compare
 // 0x4169d0.
 
 #pragma pack(push, 1)
@@ -36,12 +36,12 @@ extern Game* g_game;
 // Command arguments.
 class Class_004b73e0;
 
-void __stdcall FUN_00486f10(unsigned char player);
+void __stdcall KillPlayerUnits(unsigned char player);
 
 // FUNCTION: 0x416a30
 void __stdcall FUN_00416a30(Class_004b73e0* args)
 {
-    FUN_00486f10(g_game->players[g_game->localPlayer].data->field_95);
+    KillPlayerUnits(g_game->players[g_game->localPlayer].data->field_95);
     g_game->flag4 = 0;
     g_game->flag6 = 1;
     g_game->flag2 = 1;

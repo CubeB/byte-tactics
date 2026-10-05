@@ -87,13 +87,13 @@ class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_00489800 { public: void FUN_00489800(int); };
+class Class_00489800 { public: void ReleaseWeapons(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
 struct UnitDef { char pad0[0x1fa]; unsigned int maxHealth; char pad1fe[4]; short searchRange; char pad204[0x21c-0x204]; short altitude; char pad21e[0x231-0x21e]; unsigned int* weaponCategories[3]; unsigned int* categories; unsigned int flags; };
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
-class Class_0043d210 { public: char pad0[0x2e]; unsigned char flags; void FUN_0043d210(Unit*, int); };
+class Class_0043d210 { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
 struct Unit {
     Class_0043d210* motion; char pad4[4]; Weapon weapons[3]; Order* order;
     char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int terrain; int busy;
@@ -108,7 +108,7 @@ struct Game { char pad0[0x1422b]; int width, height; char pad14233[0x142b7-0x142
 #pragma pack(pop)
 extern Game* g_game;
 class Class_0044e730 { public: void FUN_0044e730(int); };
-short __stdcall FUN_0048a980(Vec3*, Vec3*);
+short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
 int __stdcall FUN_004b6c30(int);
@@ -184,7 +184,7 @@ int __stdcall FUN_00410850(Unit* unit, Order* order, int flags)
         Vec3 center;
         center.x=(g_game->width/2)<<16;
         center.z=(g_game->height/2)<<16;
-        short angle=FUN_0048a980(&unit->pos,&center);
+        short angle=GetHeadingBetween(&unit->pos,&center);
         Vec3 pos=FUN_0040f790(unit->pos,Direction(angle,0x3200000));
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->FUN_0044e730(128);

@@ -92,7 +92,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_0043e1e0(Unit* unit, unsigned char weapon);
+int __stdcall QueryWeaponPiece(Unit* unit, unsigned char weapon);
 void __stdcall FUN_0047f300(int sound, Vec3_0049c740* pos, int param_3);
 
 // FUNCTION: 0x49c740
@@ -120,7 +120,7 @@ void __stdcall FUN_0049c740(Proj_0049c740* proj, Shot_0049c740* shot, Vec3_0049c
         for (i = 0; i < 3; i++)
             if (unit->slots[i].shot == shot)
                 break;
-        proj->piece = (short)FUN_0043e1e0(unit, i);
+        proj->piece = (short)QueryWeaponPiece(unit, i);
         unit->field_b0 = g_game->field_38a47 + 0x258;
     } else {
         proj->player = 0xa;

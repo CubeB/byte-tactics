@@ -7,7 +7,7 @@ struct Order { char pad[5]; unsigned char state; unsigned flags; char pada[0x22-
 class Class_00438880 { public: void FUN_00438880(int); };
 class Class_00438930 { public: void FUN_00438930(Vec*,int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_00489800 { public: void FUN_00489800(int); };
+class Class_00489800 { public: void ReleaseWeapons(int); };
 void __stdcall FUN_0043a020(Unit*,Order*);
 Order* __stdcall FUN_0043b700(Unit*);
 int __stdcall FUN_0043b1f0(Unit*,Order*,int);
@@ -23,7 +23,7 @@ int __stdcall FUN_004033a0(Unit* unit,Order* order,int flags)
         FUN_0043a020(unit,order);
         ((Class_00439e80*)order)->FUN_00439e80(1); return 1;
     case 1:
-        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_00489800*)unit)->ReleaseWeapons(3);
         ((Class_00438930*)order)->FUN_00438930(&order->pos,0);
         ((Class_00439e80*)order)->FUN_00439e80(15);
         order->flags|=0xe0; return 1;

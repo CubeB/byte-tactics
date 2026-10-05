@@ -65,10 +65,10 @@ public:
 
 class Class_00489800 {
 public:
-    void FUN_00489800(unsigned char index);
+    void ReleaseWeapons(unsigned char index);
 };
 
-class Class_0043dc00;
+class UnitMotion;
 
 struct Pos_485a40 {
     int x, y, z;
@@ -115,7 +115,7 @@ union Flags114_485a40 {
 };
 
 struct Unit {
-    Class_0043dc00* obj;               // +0x0
+    UnitMotion* obj;                   // +0x0
     char unknown_4[0x64 - 0x4];
     short field_64;                    // +0x64
     unsigned short field_66;           // +0x66
@@ -174,12 +174,12 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0048a160(Unit* unit, int index);
-void __stdcall FUN_00480250(Unit* unit, int param_2);
+void __stdcall ResetWeaponTarget(Unit* unit, int index);
+void __stdcall SetUnitSquad(Unit* unit, int param_2);
 int __stdcall FUN_004b6c30(int range);
 
 // FUNCTION: 0x485a40
-void __stdcall FUN_00485a40(Unit* unit, Pos_485a40 pos, int param_5)
+void __stdcall InitUnitFromType(Unit* unit, Pos_485a40 pos, int param_5)
 {
     unit->type = &g_game->unitTypes[(unsigned short)unit->id];
     unit->flags.bits.b28 = 1;
@@ -234,8 +234,8 @@ void __stdcall FUN_00485a40(Unit* unit, Pos_485a40 pos, int param_5)
     unit->flags.bits.b8 = 0;
 
     for (int i = 0; i < 3; i++) {
-        FUN_0048a160(unit, i);
-        ((Class_00489800*)unit)->FUN_00489800(i);
+        ResetWeaponTarget(unit, i);
+        ((Class_00489800*)unit)->ReleaseWeapons(i);
     }
 
     unit->field_ba = 0;
@@ -258,5 +258,5 @@ void __stdcall FUN_00485a40(Unit* unit, Pos_485a40 pos, int param_5)
     unit->playerRef.Reset(unit->field_ff);
     unit->field_f9 = 0xff;
     unit->field_aa = (short)FUN_004b6c30(0x10000);
-    FUN_00480250(unit, 0);
+    SetUnitSquad(unit, 0);
 }

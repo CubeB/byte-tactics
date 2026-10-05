@@ -20,7 +20,7 @@ struct Player {
 
 class Class_00437c80 {
 public:
-    void FUN_00437c80();
+    void FlushCache();
 };
 
 struct Game {
@@ -60,7 +60,7 @@ void __stdcall FUN_004168d0(Class_004b73e0* args)
                     int v = args->FUN_004b73e0(1, 0);
                     int j = args->FUN_004b73e0(2, 0);
                     g_game->players[j].data->field_96 = v;
-                    g_game->obj->FUN_00437c80();
+                    g_game->obj->FlushCache();
                     return;
                 }
             }

@@ -5,7 +5,7 @@
 
 void __cdecl FUN_004d85a0(int* param_1);
 
-struct Class_00440320 {
+struct MovementClass {
     int* field_0;
     short field_4;
     short field_6;
@@ -20,7 +20,7 @@ struct Class_00440320 {
     void* field_18;
     int field_1c;
 
-    Class_00440320()
+    MovementClass()
     {
         field_0 = 0;
         field_4 = 0;
@@ -38,12 +38,12 @@ struct Class_00440320 {
     }
 };
 
-struct Class_00440290 {
-    Class_00440320 entries[32];
+struct MovementClassTable {
+    MovementClass entries[32];
 
-    ~Class_00440290()
+    ~MovementClassTable()
     {
-        Class_00440320* p = &entries[32];
+        MovementClass* p = &entries[32];
         int n = 32;
         do {
             --p;
@@ -52,16 +52,16 @@ struct Class_00440290 {
         } while (--n);
     }
 
-    static Class_00440290 DAT_00512358;
+    static MovementClassTable g_movementClasses;
 };
 
 // FUNCTION: 0x440420
-Class_00440320* __stdcall FUN_00440420(char* name)
+MovementClass* __stdcall FindMovementClass(char* name)
 {
     for (int i = 0; i < 32; i++) {
-        if (Class_00440290::DAT_00512358.entries[i].field_0 != 0
-            && _strcmpi((char*)Class_00440290::DAT_00512358.entries[i].field_0, name) == 0) {
-            return &Class_00440290::DAT_00512358.entries[i];
+        if (MovementClassTable::g_movementClasses.entries[i].field_0 != 0
+            && _strcmpi((char*)MovementClassTable::g_movementClasses.entries[i].field_0, name) == 0) {
+            return &MovementClassTable::g_movementClasses.entries[i];
         }
     }
     return 0;

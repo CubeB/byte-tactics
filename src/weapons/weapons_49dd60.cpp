@@ -84,7 +84,7 @@ struct Packet_0049dd60 {
 
 extern Game* g_game;
 
-void __stdcall FUN_0043e240(Unit*, Vec3_0049dd60*, unsigned char, int);
+void __stdcall GetWeaponPiecePosition(Unit*, Vec3_0049dd60*, unsigned char, int);
 void __stdcall FUN_0049c740(Projectile_0049dd60*, Type_0049dd60*, Vec3_0049dd60*, int, int, Unit*);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
@@ -95,7 +95,7 @@ int __stdcall FUN_0049dd60(Unit* unit, Aim_0049dd60* aim,
                            Unit* target, Vec3_0049dd60* point)
 {
     Vec3_0049dd60 p;
-    FUN_0043e240(unit, &p, aim->weapon >> 2 & 3, -1);
+    GetWeaponPiecePosition(unit, &p, aim->weapon >> 2 & 3, -1);
     Projectile_0049dd60* projectile = 0;
     if (g_game->projectile_count < 300) {
         projectile = &g_game->projectiles[g_game->projectile_count++];

@@ -4,13 +4,13 @@ struct Vec3 { int x, y, z; };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004895c0 { public: void FUN_00489690(Unit*); };
-class Class_004b0a70 { public: int FUN_004b0a70(char*, void*, int, int, int, int, int, int); };
+class Class_004895c0 { public: void SetUnit(Unit*); };
+class CobScript { public: int StartScriptWithArgs(char*, void*, int, int, int, int, int, int); };
 #pragma pack(push, 1)
 struct Def { char pad0[0x180]; short height; char pad182[0x241-0x182]; unsigned int flags, flags2; };
 struct Unit {
     int valid; char pad4[0x86-4]; Unit* transport; Unit* cargo; char pad8e[4]; Def* def;
-    int pad96; Class_004b0a70* script; char pad9e[10]; unsigned short id;
+    int pad96; CobScript* script; char pad9e[10]; unsigned short id;
 };
 struct Order { char pad0[5]; unsigned char state; unsigned int flags; char pada[8]; int ref; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int attempts; };
 #pragma pack(pop)
@@ -27,10 +27,10 @@ int __stdcall FUN_00406900(Unit* unit, Order* order, int flags)
     case 0:
         if (!unit->valid) break;
         if (!(unit->def->flags2&0x100)) break;
-        ((Class_004895c0*)&order->ref)->FUN_00489690(unit->cargo);
+        ((Class_004895c0*)&order->ref)->SetUnit(unit->cargo);
         if (!order->target) return 5;
         ((Class_00438880*)order)->FUN_00438880("Unloading");
-        unit->script->FUN_004b0a70("TransportDrop",0,1,1,order->target->id,
+        unit->script->StartScriptWithArgs("TransportDrop",0,1,1,order->target->id,
             (order->pos.x&0xffff0000)+(order->pos.z>>16),0,0);
         ++order->attempts;
         ((Class_00439e80*)order)->FUN_00439e80(15);

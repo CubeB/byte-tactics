@@ -48,7 +48,7 @@ extern Game* g_game;
 Cell_004239c0* __stdcall FUN_00481550(int x, int y);
 int __stdcall FUN_004b6c30(int range);
 void __stdcall FUN_004233a0(int x, int z, int flag);
-int __stdcall FUN_00485070(Vec3_004239c0* pos);
+int __stdcall GetGroundHeight(Vec3_004239c0* pos);
 void __stdcall FUN_0049a0c0(void* owner, Vec3_004239c0* pos);
 
 // Inlined copy of FUN_00421eb0: the 16.16 world position of the centre of a
@@ -60,7 +60,7 @@ static inline Vec3_004239c0 FootprintCentre_00421eb0(Point16_004239c0* cell, Fea
     Vec3_004239c0 p;
     p.x = (f.x + c.x * 2) << 19;
     p.z = (f.z + c.z * 2) << 19;
-    p.y = FUN_00485070(&p) << 16;
+    p.y = GetGroundHeight(&p) << 16;
     return p;
 }
 

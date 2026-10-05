@@ -22,10 +22,10 @@ struct Object {
 };
 #pragma pack(pop)
 
-Vec3 __stdcall FUN_0043def0(Object* obj, int param);
+Vec3 __stdcall GetPieceOffset(Object* obj, int param);
 
 // FUNCTION: 0x43e060
-Vec3 __stdcall FUN_0043e060(Object* obj, int param)
+Vec3 __stdcall GetPiecePosition(Object* obj, int param)
 {
-    return obj->pos + FUN_0043def0(obj, param);
+    return obj->pos + GetPieceOffset(obj, param);
 }

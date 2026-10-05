@@ -1,5 +1,5 @@
 // Decompiled by Space Bunny Free. Names are provisional.
-// Slot 16 of Class_00485e30 (vtable 0x4fd698); see src/units/units_485e30.cpp
+// Slot 16 of UnitScript (vtable 0x4fd698); see src/units/units_485e30.cpp
 // and the sibling slots 0x480ce0, 0x480d50, 0x480db0, 0x480df0.
 //
 // The flag at +0xba is a 1-bit `unsigned short` bitfield at bit 2, not a whole
@@ -33,26 +33,26 @@ struct Data_00480b20 {
 
 class Class_0048b090 {
 public:
-    void FUN_0048b090(int which, int on);
+    void SetStateBits(int which, int on);
 };
 
-class Class_00485e30 {
+class UnitScript {
 public:
     char unknown_0[0x540];
     Data_00480b20* data;                // +0x540
 
-    void FUN_004b0670(int which, int value);
+    void SetUnitValue(int which, int value);
 };
 
 void __stdcall FUN_0047dac0(Unit* unit, int flag);
 
 // FUNCTION: 0x480b20
-void Class_00485e30::FUN_004b0670(int which, int value)
+void UnitScript::SetUnitValue(int which, int value)
 {
     Unit* unit = data->unit;
     switch (which) {
     case 1:
-        ((Class_0048b090*)unit)->FUN_0048b090(1, value);
+        ((Class_0048b090*)unit)->SetStateBits(1, value);
         break;
     case 5:
         unit->bit0 = value;
@@ -67,7 +67,7 @@ void Class_00485e30::FUN_004b0670(int which, int value)
         unit->bit3 = value;
         break;
     case 20:
-        ((Class_0048b090*)unit)->FUN_0048b090(2, value);
+        ((Class_0048b090*)unit)->SetStateBits(2, value);
         break;
     }
     unit->dirty = true;

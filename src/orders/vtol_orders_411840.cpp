@@ -4,7 +4,7 @@
 
 class Class_004b0bc0 {
 public:
-    int FUN_004b0bc0(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
+    int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
 };
 
 #pragma pack(push, 1)
@@ -27,7 +27,7 @@ int __stdcall FUN_00411840(Unit* unit, int pad)
     pads[1] = -1;
     pads[2] = -1;
     pads[3] = -1;
-    unit->script->FUN_004b0bc0("QueryLandingPad", &pads[0], &pads[1], &pads[2], &pads[3]);
+    unit->script->QueryScript("QueryLandingPad", &pads[0], &pads[1], &pads[2], &pads[3]);
     for (int i = 0; i < 4; i++) {
         if (pads[i] != -1 && FUN_0047e570(unit, pads[i])) {
             return pads[i];

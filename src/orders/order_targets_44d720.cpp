@@ -31,7 +31,7 @@ struct Owner_0044d720 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_0048a980(Vec3_0044d720* from, Vec3_0044d720* to);
+int __stdcall GetHeadingBetween(Vec3_0044d720* from, Vec3_0044d720* to);
 
 // Fixed-point trig helpers written in assembly.
 int __cdecl FUN_004b70ef(short angle, int scale);
@@ -74,7 +74,7 @@ int Class_0044d720::FUN_0044d720(Vec3_0044d720* out)
 {
     Inner_0044d720* inner = owner->inner;
     ToWorld(out, pos, inner->cell);
-    short angle = FUN_0048a980(&inner->pos, out);
+    short angle = GetHeadingBetween(&inner->pos, out);
     Vec3_0044d720 d = Direction(angle, MeanRadius(this) << 16);
     out->x -= d.x;
     out->y -= d.y;

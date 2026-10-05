@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Slot 13 of Class_00485e30 (vtable 0x4fd698), overriding
-// Class_004b0610::FUN_004b1eb0; see 0x485e30.cpp and the sibling slots
+// Slot 13 of UnitScript (vtable 0x4fd698), overriding
+// CobScript::ExplodePiece; see 0x485e30.cpp and the sibling slots
 // 0x480ce0 / 0x480b20 for the class and its +0x540 data. The class views
 // below declare only this slot's virtual: with all 21 of the base's virtuals
 // declared (as in 0x485e30.cpp) the merge block's registers come out
@@ -11,11 +11,11 @@
 //    FUN_00421620 consumes) from the data->unit pointer at +0x0c, the first
 //    argument and six FUN_004b6c30 random draws, then hands it to
 //    FUN_00421620.
-//  - (b & 0x3f00): computes the unit's position with FUN_0043e060 and appends
+//  - (b & 0x3f00): computes the unit's position with GetPiecePosition and appends
 //    it to up to six tables in g_game (+0x147f7, a six-pointer array) with
 //    FUN_00420a30(&v, table, 2, 0).
 //
-// `b` must be unsigned (so Class_004b0610 declares the slot with an unsigned
+// `b` must be unsigned (so CobScript declares the slot with an unsigned
 // int too): the merge block's `(b >> 2)` / `(b >> 4)` are `shr`, not `sar`.
 // The header's flag dword at +0x28 is a plain unsigned int, not a bitfield:
 // assigning `(b & 2) << 4` to a 1-bit field would truncate it to zero, while
@@ -80,7 +80,7 @@ extern Game* g_game;
 
 int __stdcall FUN_004b6c30(int range);
 void __stdcall FUN_00421620(Header_00481140* h);
-Vec3_00481140 __stdcall FUN_0043e060(Unit* obj, int param);
+Vec3_00481140 __stdcall GetPiecePosition(Unit* obj, int param);
 void __stdcall FUN_00420a30(void* pos, void* src, int index, int flag);
 
 struct Elem_4b0610 {
@@ -88,7 +88,7 @@ struct Elem_4b0610 {
     char pad[0xa0];    // pad to stride 0xa4
 };
 
-class Class_004b0610 {
+class CobScript {
 public:
     int field_4;                   // +0x4
     int field_8;                   // +0x8
@@ -99,18 +99,18 @@ public:
     Elem_4b0610 arr[8];            // +0x1c
     int field_53c;                 // +0x53c
 
-    virtual void FUN_004b1eb0(int, unsigned int);     // slot 13
+    virtual void ExplodePiece(int, unsigned int);     // slot 13
 };
 
-class Class_00485e30 : public Class_004b0610 {
+class UnitScript : public CobScript {
 public:
     Data_00481140* data;           // +0x540
 
-    virtual void FUN_004b1eb0(int, unsigned int);     // slot 13, 0x481140
+    virtual void ExplodePiece(int, unsigned int);     // slot 13, 0x481140
 };
 
 // FUNCTION: 0x481140
-void Class_00485e30::FUN_004b1eb0(int a, unsigned int b)
+void UnitScript::ExplodePiece(int a, unsigned int b)
 {
     if (!(b & 0x20)) {
         Header_00481140 h;
@@ -138,7 +138,7 @@ void Class_00485e30::FUN_004b1eb0(int a, unsigned int b)
     }
     if (b & 0x3f00) {
         Vec3_00481140 v;
-        v = FUN_0043e060(data->unit, a);
+        v = GetPiecePosition(data->unit, a);
         if (b & 0x100)
             FUN_00420a30(&v, g_game->sources[0], 2, 0);
         if (b & 0x200)

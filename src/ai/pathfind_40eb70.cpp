@@ -128,9 +128,9 @@ extern int DAT_00511a38;
 extern int DAT_00511a10[10];
 extern int DAT_005119e8[10];
 
-class Dummy_00440be0 {
+class MovementClass {
 public:
-    void FUN_00440be0(Unit* p);
+    void RefreshUnitIfStale(Unit* p);
 };
 
 #pragma pack(push, 1)
@@ -156,7 +156,7 @@ public:
     Unit* object;                      // +0x58
     Class_0044f010* path;              // +0x5c
     Target_0040eb70* target;           // +0x60
-    Dummy_00440be0* owner;             // +0x64
+    MovementClass* owner;              // +0x64
     char unknown_68[0x78 - 0x68];
     unsigned char player;              // +0x78
     Unit* cursor[10];                  // +0x79
@@ -168,7 +168,7 @@ public:
     }
     void Release()
     {
-        owner->FUN_00440be0(object);
+        owner->RefreshUnitIfStale(object);
         object = 0;
         owner = 0;
     }

@@ -38,7 +38,7 @@ struct MobHdr_43dd70 {
     unsigned char f2 : 1;            // +0x22
 };
 
-class Class_0043dd70 {
+class UnitMotion {
 public:
     char unknown_0[8];               // +0x00
     Vec3i_43dd70 a;                  // +0x08
@@ -49,12 +49,12 @@ public:
     int unknown_2a;                  // +0x2a
     unsigned char f1 : 2;            // +0x2e
     unsigned char f2 : 1;            // +0x2e
-    void FUN_0043dd70(UnitInfo_43dd70* info, Class_004b4ba0* file);
+    void SaveMotion(UnitInfo_43dd70* info, Class_004b4ba0* file);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x43dd70
-void Class_0043dd70::FUN_0043dd70(UnitInfo_43dd70* info, Class_004b4ba0* file)
+void UnitMotion::SaveMotion(UnitInfo_43dd70* info, Class_004b4ba0* file)
 {
     char name[32];
     MobHdr_43dd70 hdr;

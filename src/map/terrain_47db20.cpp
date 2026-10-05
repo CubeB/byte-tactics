@@ -22,7 +22,7 @@ struct Obj_0047db20 {
 #pragma pack(pop)
 
 void __stdcall FUN_0047e5c0(Pt_0047db20 pos, Pt_0047db20 size, Class_0047db20* visitor);
-void __stdcall FUN_00440a40(Pt_0047db20 pos, Pt_0047db20 size);
+void __stdcall RefreshAllPassMaps(Pt_0047db20 pos, Pt_0047db20 size);
 
 // The visitor is declared after the flag update so that it reuses obj's
 // stack slot; size and pos go through locals (in that order) so that pos is
@@ -35,5 +35,5 @@ void __stdcall FUN_0047db20(Obj_0047db20* obj)
     Pt_0047db20 size = obj->size;
     Pt_0047db20 pos = obj->pos;
     FUN_0047e5c0(pos, size, &visitor);
-    FUN_00440a40(obj->pos, obj->size);
+    RefreshAllPassMaps(obj->pos, obj->size);
 }

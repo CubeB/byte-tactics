@@ -36,11 +36,11 @@ struct State_0045a790 {
     char unknown_18[0x22 - 0x18];
 };
 
-class Class_00437a30 {
+class CMemoryCache {
 public:
     int unknown_0[4];
     Image_0045a790* scratch;            // +0x10 scratch image
-    int FUN_00437b50(Bitmap_00437b50** handle, int w, int h);
+    int AllocBitmap(Bitmap_00437b50** handle, int w, int h);
     void FUN_0045a790(State_0045a790* obj, Image_0045a790* dest);
 };
 
@@ -58,7 +58,7 @@ void __stdcall FUN_004b9d70(Image_0045a790* dst, Image_0045a790* src, int x, int
 int __stdcall FUN_004b9e60(unsigned char* dest, Image_0045a790* img);
 
 // FUNCTION: 0x45a790
-void Class_00437a30::FUN_0045a790(State_0045a790* obj, Image_0045a790* dest)
+void CMemoryCache::FUN_0045a790(State_0045a790* obj, Image_0045a790* dest)
 {
     int w, h, x, y;
     ((Class_0045a510*)this)->FUN_0045a510(&w, &h, &x, &y, obj);
@@ -71,7 +71,7 @@ void Class_00437a30::FUN_0045a790(State_0045a790* obj, Image_0045a790* dest)
     ((Class_0045a610*)this)->FUN_0045a610(scratch, obj);
     FUN_004b9d70(dest, scratch, 5, 0);
     int size = FUN_004b9e60(scratch->compressed, scratch);
-    FUN_00437b50(&obj->sprite, size, 1);
+    AllocBitmap(&obj->sprite, size, 1);
     Bitmap_00437b50* bmp = obj->sprite;
     memcpy(bmp->pixels, scratch->compressed, size);
     bmp->width = scratch->width;

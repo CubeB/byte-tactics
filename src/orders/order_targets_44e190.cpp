@@ -57,7 +57,7 @@ public:
 
     Class_004895c0(Owner_004895c0* o, int v);
     virtual ~Class_004895c0();
-    void FUN_00489690(Owner_004895c0* o);
+    void SetUnit(Owner_004895c0* o);
 };
 
 extern void* DAT_004fd2f8[];
@@ -97,7 +97,7 @@ Class_0044e190::Class_0044e190(Order* order, Unit* unit)
     : Class_0044ce20(order), ref(0, 0)
 {
     vtable = DAT_004fd3b8;
-    ref.FUN_00489690((Owner_004895c0*)unit);
+    ref.SetUnit((Owner_004895c0*)unit);
     field_a = 0;
     field_c = 0;
     field_12 = order->unit;

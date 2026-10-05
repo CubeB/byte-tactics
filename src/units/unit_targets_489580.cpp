@@ -2,30 +2,30 @@
 // Unlinks the link from its owner's list (head at +0xa2); the counterpart of
 // 0x489540, which links it in.
 
-class Class_00489540;
+class UnitRef;
 
 #pragma pack(push, 2)
 struct Owner_00489540 {
     char unknown_0[0xa2];
-    Class_00489540* head;  // +0xa2
+    UnitRef* head;         // +0xa2
     short flag;            // +0xa6
 };
 #pragma pack(pop)
 
-class Class_00489540 {
+class UnitRef {
 public:
     char unknown_0[4];
     Owner_00489540* owner;  // +4
-    Class_00489540* next;   // +8
+    UnitRef* next;          // +8
 
-    void FUN_00489580();
+    void UnlinkFromUnit();
 };
 
 // FUNCTION: 0x489580
-void Class_00489540::FUN_00489580()
+void UnitRef::UnlinkFromUnit()
 {
     if (owner != 0) {
-        Class_00489540** link = &owner->head;
+        UnitRef** link = &owner->head;
         while (*link != this)
             link = &(*link)->next;
         *link = next;

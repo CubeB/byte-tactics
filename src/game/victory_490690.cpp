@@ -122,7 +122,7 @@ public:
     virtual void FUN_0044efb0();                    // slot 2, 0x490690
 };
 
-unsigned short __stdcall FUN_0048a980(Vec3_004907e0* from, Vec3_004907e0* to);
+unsigned short __stdcall GetHeadingBetween(Vec3_004907e0* from, Vec3_004907e0* to);
 
 // FUNCTION: 0x490690
 void Class_00490630::FUN_0044efb0()
@@ -140,7 +140,7 @@ void Class_00490630::FUN_0044efb0()
             pos.y = (owner->def->field_21c + owner->field_82[1]) << 16;
     }
     if (dist > 0x1400000 || (!field_4->FUN_0044efd0(&field_24) && dist > 0x100000))
-        field_24 = (short)FUN_0048a980(&owner->pos, &pos);
+        field_24 = (short)GetHeadingBetween(&owner->pos, &pos);
     if (field_4->FUN_0044f000(owner)) {
         field_4->FUN_0044ced0(0x20);
         if (!field_4->FUN_0044ef50_11())

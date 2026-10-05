@@ -2,11 +2,11 @@
 
 class Class_00489960 {
 public:
-    int FUN_00489960(void *param_1);
+    int CanReclaim(void *param_1);
 };
 
 // FUNCTION: 0x489960
-int Class_00489960::FUN_00489960(void *param_1)
+int Class_00489960::CanReclaim(void *param_1)
 {
     void *ptr = *(void **)((char *)this + 0x92);
     unsigned int val1 = *(unsigned int *)((char *)ptr + 0x245);

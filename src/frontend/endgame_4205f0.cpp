@@ -1,12 +1,12 @@
 // Decompiled by Haiku. Names are provisional.
 #include <stdlib.h>
 
-struct Class_004379a0
+struct CMemoryCache
 {
     void FUN_004379a0();
 };
 
-extern Class_004379a0 DAT_00511f80;
+extern CMemoryCache DAT_00511f80;
 extern void __cdecl FUN_00420610();
 
 // FUNCTION: 0x4205f0

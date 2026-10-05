@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Out-of-line constructor of the 32-byte entry that 0x440290.cpp declares
-// with the same inline body (Class_00440320 there).
+// with the same inline body (MovementClass there).
 
 struct Class_004402e0 {
     int* field_0;

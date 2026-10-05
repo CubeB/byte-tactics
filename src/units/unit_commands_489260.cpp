@@ -8,16 +8,16 @@ public:
     Class_004c91a0(const Class_004c91a0& other);
 };
 
-class Class_00489260 {
+class UnitCategory {
 public:
     Class_004c91a0 handle;
     int field_4;
 
-    Class_00489260(const Class_00489260& other);
+    UnitCategory(const UnitCategory& other);
 };
 
 // FUNCTION: 0x489260
-Class_00489260::Class_00489260(const Class_00489260& other)
+UnitCategory::UnitCategory(const UnitCategory& other)
     : handle(other.handle), field_4(other.field_4)
 {
 }

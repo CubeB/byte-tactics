@@ -11,13 +11,13 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_0042a8d0();
+void LoadUnitInfo();
 
 // FUNCTION: 0x42bd10
-void FUN_0042bd10()
+void RefreshUnitInfo()
 {
     if (g_game->field_1438f == 0 || g_game->field_14397 != 0) {
-        FUN_0042a8d0();
+        LoadUnitInfo();
         g_game->field_14397 = 0;
     }
 }

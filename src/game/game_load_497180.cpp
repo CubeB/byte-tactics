@@ -154,7 +154,7 @@ void FUN_004917d0();
 void FUN_00465e30();
 void __stdcall FUN_004816a0(int x);
 void __stdcall FUN_00432610(void* mission);
-void FUN_00488310();
+void CreateMissionUnits();
 void FUN_0041d1f0();
 void __stdcall FUN_004288d0(int a, int b, int c, int d);
 void BroadcastPlayerInfo();
@@ -163,9 +163,9 @@ void FUN_00464f80();
 void __stdcall ReportGameEvent(int x);
 void FUN_004649d0();
 void __stdcall FUN_0041c4c0(int x, int y, int z);
-unsigned short __stdcall FUN_00488b10(const char* name);
+unsigned short __stdcall FindUnitTypeId(const char* name);
 void __stdcall FUN_00496ee0(int team, int startpos);
-void __stdcall FUN_00485f50(unsigned char team, unsigned short id, FixedPos_497180 pos, int a,
+void __stdcall CreateUnit(unsigned char team, unsigned short id, FixedPos_497180 pos, int a,
     int b, int c);
 Gadget_497180* __stdcall FUN_004aa8f0(Sub_497180* sub, const char* name, int flags);
 void __stdcall FUN_00494890(Gadget_497180* gadget);
@@ -313,8 +313,8 @@ void __cdecl FUN_00497180(void*)
                 if (*(int*)rec != 0 && *(unsigned char*)(rec + 0x73) == 1)
                     start = pos;
                 unsigned short id =
-                    FUN_00488b10(g_game + 0x37f5f + 0x232 * side);
-                FUN_00485f50(*(unsigned char*)(rec + 0x146), id, pos, 1, 1, 0);
+                    FindUnitTypeId(g_game + 0x37f5f + 0x232 * side);
+                CreateUnit(*(unsigned char*)(rec + 0x146), id, pos, 1, 1, 0);
                 int s1 = *(unsigned short*)(pl + 0xa1) * 100;
                 int s2 = *(unsigned short*)(pl + 0xa3) * 100;
                 ((RecFlag_497180*)(rec + 0x149))->started = 1;
@@ -398,7 +398,7 @@ void __cdecl FUN_00497180(void*)
     } else if (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100() != 1) {
         goto tail;
     }
-    FUN_00488310();
+    CreateMissionUnits();
     FUN_0041d1f0();
 
 tail:

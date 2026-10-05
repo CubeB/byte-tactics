@@ -22,9 +22,9 @@ class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
 class Class_00438a00 { public: void FUN_00438a00(Vec3*, int, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004897e0 { public: unsigned char FUN_004897e0(); };
-class Class_00489800 { public: void FUN_00489800(int); };
-class Class_004898b0 { public: void FUN_004898b0(int); };
+class Class_004897e0 { public: unsigned char ChooseWeapon(); };
+class Class_00489800 { public: void ReleaseWeapons(int); };
+class Class_004898b0 { public: void ClaimWeapons(int); };
 #pragma pack(push, 1)
 struct UnitDef { char pad[0x241]; unsigned int flags; };
 struct Unit {
@@ -52,9 +52,9 @@ struct Order {
 };
 #pragma pack(pop)
 int __stdcall FUN_0049abb0(Unit*, Unit*, int);
-void __stdcall FUN_0048a060(Unit*, Unit*, int);
+void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 int __stdcall FUN_0049adf0(Unit*, int);
-int __stdcall FUN_0048a980(Vec3*, Vec3*);
+int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 int __stdcall FUN_004b6c30(int);
 int __cdecl FUN_004b70ef(int, int);
 int __cdecl FUN_004b7123(int, int);
@@ -74,15 +74,15 @@ int __stdcall FUN_004034a0(Unit* unit, Order* order, unsigned int flags)
         ((Class_00438880*)order)->FUN_00438880(0);
         order->pos = unit->pos;
         order->step = 0;
-        if (!weapon) order->weapon = ((Class_004897e0*)unit)->FUN_004897e0();
+        if (!weapon) order->weapon = ((Class_004897e0*)unit)->ChooseWeapon();
         return 1;
     case 1:
         ((Class_004388d0*)order)->FUN_004388d0(0);
         if (flags & 0x3000) return 1;
         if (!FUN_0049abb0(unit, order->target, weapon)) return 1;
-        ((Class_004898b0*)unit)->FUN_004898b0(0);
-        ((Class_004898b0*)unit)->FUN_004898b0(2);
-        FUN_0048a060(unit, order->target, weapon);
+        ((Class_004898b0*)unit)->ClaimWeapons(0);
+        ((Class_004898b0*)unit)->ClaimWeapons(2);
+        SetWeaponTargetUnit(unit, order->target, weapon);
         order->flags = 0x13808;
         return 2;
     case 2:
@@ -96,7 +96,7 @@ int __stdcall FUN_004034a0(Unit* unit, Order* order, unsigned int flags)
                 order->step = 6;
                 return 1;
             } else {
-                int angle = FUN_0048a980(&order->target->pos, &unit->pos);
+                int angle = GetHeadingBetween(&order->target->pos, &unit->pos);
                 angle += FUN_004b6c30(0x8000) - 0x4000;
                 int distance = weapon << 16;
                 int dx = -FUN_004b70ef(angle, distance);
@@ -125,14 +125,14 @@ int __stdcall FUN_004034a0(Unit* unit, Order* order, unsigned int flags)
     case 3:
         if (flags & 0x40e0) { order->state = 1; return 4; }
         if (FUN_0049abb0(unit, order->target, weapon)) {
-            ((Class_004898b0*)unit)->FUN_004898b0(0);
-            ((Class_004898b0*)unit)->FUN_004898b0(2);
-            FUN_0048a060(unit, order->target, weapon);
+            ((Class_004898b0*)unit)->ClaimWeapons(0);
+            ((Class_004898b0*)unit)->ClaimWeapons(2);
+            SetWeaponTargetUnit(unit, order->target, weapon);
             order->flags = 0x148e8;
             ((Class_00439e80*)order)->FUN_00439e80(30);
             return 2;
         }
-        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_00489800*)unit)->ReleaseWeapons(3);
         order->flags = 0x100e8;
         ((Class_00439e80*)order)->FUN_00439e80(30);
         return 2;

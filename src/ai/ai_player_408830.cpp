@@ -8,7 +8,7 @@ struct Def {
 struct Unit { char pad[0x92]; Def* def; char pad96[0xac-0x96]; int group; char padb0[0x110-0xb0]; unsigned flags; int pad114; };
 struct Player { char pad[0x67]; Unit* first; Unit* last; };
 #pragma pack(pop)
-void __stdcall FUN_00480250(Unit*,int);
+void __stdcall SetUnitSquad(Unit*,int);
 class Class_00408830 { public: Player* player; void FUN_00408830(); };
 // FUNCTION: 0x408830
 void Class_00408830::FUN_00408830()
@@ -20,12 +20,12 @@ void Class_00408830::FUN_00408830()
             u->flags=(u->flags&~0x100000)|0x200000;
             if(!u->group) {
                 if(u->flags&0x20000000) {
-                    if(u->flags&0x80000000) FUN_00480250(u,5);
-                    else FUN_00480250(u,1);
-                } else if(u->def->builder) FUN_00480250(u,4);
-                else if(u->def->flying) FUN_00480250(u,8);
-                else if(u->def->height>0) FUN_00480250(u,7);
-                else if(u->flags&0x80000000) FUN_00480250(u,3);
+                    if(u->flags&0x80000000) SetUnitSquad(u,5);
+                    else SetUnitSquad(u,1);
+                } else if(u->def->builder) SetUnitSquad(u,4);
+                else if(u->def->flying) SetUnitSquad(u,8);
+                else if(u->def->height>0) SetUnitSquad(u,7);
+                else if(u->flags&0x80000000) SetUnitSquad(u,3);
             }
         }
     }

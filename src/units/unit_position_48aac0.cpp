@@ -22,10 +22,10 @@ struct Packet_0048aac0 {
 
 int __cdecl GetLocalDpid();
 int __stdcall BroadcastPacket(int player, void* data, int size);
-void __stdcall FUN_0048ab70(Packet_0048aac0* packet);
+void __stdcall ApplyAttachUnit(Packet_0048aac0* packet);
 
 // FUNCTION: 0x48aac0
-void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4)
+void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4)
 {
     Packet_0048aac0 packet;
     if ((unit->flags & 0x10000000) && !(unit->flags & 0x20000000) && unit->field_8a == 0
@@ -43,6 +43,6 @@ void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4)
         packet.field_5 = p3;
         packet.field_6 = p4;
         BroadcastPacket(GetLocalDpid(), &packet, 7);
-        FUN_0048ab70(&packet);
+        ApplyAttachUnit(&packet);
     }
 }

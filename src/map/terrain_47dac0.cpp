@@ -21,7 +21,7 @@ struct Obj_0047dac0 {
 
 int __stdcall FUN_0047d970(Obj_0047dac0* obj, int flag);
 void __stdcall FUN_0047c790(Obj_0047dac0* obj);
-void __stdcall FUN_00440a40(Pt_0047dac0 pos, Pt_0047dac0 size);
+void __stdcall RefreshAllPassMaps(Pt_0047dac0 pos, Pt_0047dac0 size);
 
 // FUNCTION: 0x47dac0
 void __stdcall FUN_0047dac0(Obj_0047dac0* obj, int flag)
@@ -30,6 +30,6 @@ void __stdcall FUN_0047dac0(Obj_0047dac0* obj, int flag)
         obj->bit2 = flag;
         obj->flags |= 0x8000000;
         FUN_0047c790(obj);
-        FUN_00440a40(obj->pos, obj->size);
+        RefreshAllPassMaps(obj->pos, obj->size);
     }
 }

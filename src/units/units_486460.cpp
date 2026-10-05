@@ -36,7 +36,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x486460
-int __stdcall FUN_00486460(Unit* unit)
+int __stdcall IsUnitCommander(Unit* unit)
 {
     return _strcmpi(g_game->players[unit->link->owner->playerIndex].name, unit->info->name) == 0;
 }

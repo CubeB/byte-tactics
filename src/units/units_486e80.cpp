@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-void __stdcall FUN_004864b0(void* unit, int param_2);
+void __stdcall KillUnit(void* unit, int param_2);
 
 #pragma pack(push, 1)
 struct Unit {
@@ -19,14 +19,14 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x486e80
-void __stdcall FUN_00486e80(short id)
+void __stdcall KillUnitsOfType(short id)
 {
     Unit* u = g_game->units;
     Unit* end = g_game->units_end;
     if (id != 0 && u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
             if (u->field_a6 == id) {
-                FUN_004864b0(u, 8);
+                KillUnit(u, 8);
             }
         }
     }

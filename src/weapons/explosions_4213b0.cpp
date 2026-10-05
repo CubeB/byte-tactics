@@ -2,7 +2,7 @@
 // One tick of a projectile (slot of DAT_00511df0, see 0x421170/0x420f30).
 // obj is the 0x30-byte header 0x481140 builds; inner (+0x2c) holds the
 // position at +0x16 and the three rotation shorts at +0x10. The timer at
-// +0x20 counts down. Above sea level the projectile moves and FUN_00485140
+// +0x20 counts down. Above sea level the projectile moves and GetCellMeanHeight
 // (map height under the point) decides whether it hit the ground: on a hit it
 // damps the velocity and, when the ground is above +0x20000, stops.
 #pragma pack(push, 1)
@@ -70,7 +70,7 @@ struct Pos_004213b0 {
 
 extern Game* g_game;
 
-int __stdcall FUN_00485140(Pos_004213b0* pos);
+int __stdcall GetCellMeanHeight(Pos_004213b0* pos);
 void __stdcall FUN_00420a30(Pos_004213b0* pos, void* src, int index, int flag);
 
 // FUNCTION: 0x4213b0
@@ -103,7 +103,7 @@ int __stdcall FUN_004213b0(Obj_004213b0* obj)
     pos.x = inner->f16;
     pos.y = inner->f1a;
     pos.z = inner->f1e;
-    int limit = FUN_00485140(&pos) << 16;
+    int limit = GetCellMeanHeight(&pos) << 16;
     if (vy + inner->f1a <= limit) {
         int ny = -(vy >> 1);
         int nx = obj->f14 >> 1;

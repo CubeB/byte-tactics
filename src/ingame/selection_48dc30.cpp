@@ -48,15 +48,15 @@ struct Game {
 extern Game* g_game;
 
 // 0x40-byte set of unit type ids, as in 0x488d30.
-class Class_00488d30 {
+class UnitTypeSet {
 public:
     int bits[16];
 };
 
-Class_00488d30* __stdcall FUN_00488c50(char* name);
+UnitTypeSet* __stdcall GetCategoryMask(char* name);
 
 // The bit test was an inlined helper taking the type as unsigned short.
-static inline int TestBit(Class_00488d30* set, unsigned short n)
+static inline int TestBit(UnitTypeSet* set, unsigned short n)
 {
     return set->bits[n >> 5] & (1 << (n & 0x1f));
 }
@@ -64,7 +64,7 @@ static inline int TestBit(Class_00488d30* set, unsigned short n)
 // FUNCTION: 0x48dc30
 int __stdcall FUN_0048dc30(int id)
 {
-    Class_00488d30* set = FUN_00488c50("CTRL_F");
+    UnitTypeSet* set = GetCategoryMask("CTRL_F");
     Player_0048dc30* p = &g_game->players[g_game->localPlayer];
     Unit* u = p->unitsBegin;
     Unit* end = p->unitsEnd;

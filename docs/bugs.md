@@ -87,11 +87,11 @@ sent towards address 0x6a. Found by Claude Opus 5.5 in #54.
 
 ## Group centre may drift after moving a unit (possible)
 
-**0x407560**. After `FUN_00480250(*best, kind)` moves the farthest unit to the
+**0x407560**. After `SetUnitSquad(*best, kind)` moves the farthest unit to the
 other group, the code re-reads `*best` to subtract that unit's position from
-the running sums. If FUN_00480250 erases the unit from this group's vector,
+the running sums. If SetUnitSquad erases the unit from this group's vector,
 `*best` then names the next unit and the centre drifts. Not verified until
-FUN_00480250 is decompiled. Found by Claude Opus 5.5 in #54.
+SetUnitSquad is decompiled. Found by Claude Opus 5.5 in #54.
 
 ## Base height overwritten while measuring flat distances (likely)
 
@@ -491,7 +491,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   deepseek-v4.1-flash in #2274.
 
 - **0x43e490** (case 2, 0x43ea36 to 0x43ea7c): calls the predicate
-  FUN_004899b0 and returns 6 if it holds and `target->field_104 != 0`, then
+  CanRepair and returns 6 if it holds and `target->field_104 != 0`, then
   calls it again and returns 6 if it holds, so the first test adds nothing; the
   predicate only reads. Found by ozgb's Cline / deepseek-v4.1 in #2142.
 
@@ -574,6 +574,11 @@ Things that look wrong in the original but have no effect, kept for the record.
 
 - **0x4d89b0**: `out[0] = 0;` (0x4d89cd) just before `strcpy(out, "\n")`.
   Found by ozgb's Cline / deepseek-v4.1 in #2242.
+
+- **0x440940** (`BuildAllPassMaps`): the load progress starts at 100 and
+  adds 100 before each store of `progress / count`, so after movement class k
+  of n it shows (k + 1) * 100 / n: one class ahead, and past 100 on the last
+  class until the final store of 100.
 
 ## Possible leaks and unchecked inputs
 
@@ -838,7 +843,7 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x4861d0** (possible): when a spawn record's id is 0 the unit pointer is
   null, but `unit->field_a6` is still read (`cmp word ptr [esi+0xa6], 0` right
   after `xor esi, esi`), then written, and the null pointer is passed to every
-  callee; only the loop inlined from FUN_00485e90 checks for null. Harmless if
+  callee; only the loop inlined from InitUnit checks for null. Harmless if
   id 0 never occurs. Found by Claude Opus 5.5 in #333.
 - **0x421700** (possible): increments the debris counter at g_game+0x1491b
   and writes the entry's position before searching the 300-slot object pool;
@@ -1009,3 +1014,15 @@ Things that look wrong in the original but have no effect, kept for the record.
   `[end+0x2c]` (0x46d7b3). Harmless if messages only come from tracked players.
   Found while checking the other 0x46d6c0 claim in #2132 (Space Bunny Free,
   CubeB), which did not hold.
+- **0x481140** (`UnitScript::ExplodePiece`, possible): builds the debris
+  record for FUN_00421620 on the stack and updates its flags dword at +0x28
+  with read-modify-writes (`h.bits & ~0x30` and the four merges after it)
+  that are never preceded by a plain store, so bits 6 to 31 keep whatever the
+  stack held and are copied into the debris object, as in 0x420e50 above. The
+  dword at +0x2c is never written either. Harmless if nothing reads those
+  bits.
+- **0x4b2040** (`CobScript::LoadScriptState`, possible): allocates the
+  "Piece States" buffer and returns 0 without freeing it when the read that
+  fills it comes back short (`cmp eax, edi; je` at 0x4b2161). The total size
+  is checked against the record's length first, so only a failed read can
+  get there.

@@ -2,7 +2,7 @@
 // Moves `value` towards `target` by `step` without overshooting.
 
 // FUNCTION: 0x4804e0
-int __stdcall FUN_004804e0(int value, int target, int step)
+int __stdcall StepTowards(int value, int target, int step)
 {
     if (value < target) {
         value += step;

@@ -47,12 +47,12 @@ struct Block_00421620 {
 
 #pragma pack(pop)
 
-class Class_00437a30 {
+class CMemoryCache {
 public:
-    int FUN_00437a30(int* slot, int size);
+    int AllocHandle(int* slot, int size);
 };
 
-extern Class_00437a30 DAT_00511f80;
+extern CMemoryCache DAT_00511f80;
 extern int* DAT_00511df0[];
 
 void __stdcall FUN_00421700(Header_00421620* param_1);
@@ -82,7 +82,7 @@ void __stdcall FUN_00421620(Header_00421620* param_1)
         return;
     }
     int num = rec->desc->field_4;
-    if (DAT_00511f80.FUN_00437a30((int*)&DAT_00511df0[index], num * 12 + 0x66) == 0) {
+    if (DAT_00511f80.AllocHandle((int*)&DAT_00511df0[index], num * 12 + 0x66) == 0) {
         return;
     }
     Block_00421620* block = (Block_00421620*)DAT_00511df0[index];

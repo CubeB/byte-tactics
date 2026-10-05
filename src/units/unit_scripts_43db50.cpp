@@ -1,8 +1,8 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 
-class Class_004b0a70 {
+class CobScript {
 public:
-    int FUN_004b0a70(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
+    int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
 };
 
 #pragma pack(push, 1)
@@ -19,7 +19,7 @@ struct Unit {
     char unknown_72[0x92 - 0x72];
     UnitDef_0043db50* type;            // +0x92
     char unknown_96[0x9a - 0x96];
-    Class_004b0a70* script;            // +0x9a
+    CobScript* script;                 // +0x9a
     char unknown_9e[0x10a - 0x9e];
     int state;                         // +0x10a
     char unknown_10e[0x110 - 0x10e];
@@ -36,11 +36,11 @@ extern Game* g_game;
 
 class Class_0043db50 {
 public:
-    void FUN_0043db50(Unit* unit);
+    void UpdateSfxOccupy(Unit* unit);
 };
 
 // FUNCTION: 0x43db50
-void Class_0043db50::FUN_0043db50(Unit* unit)
+void Class_0043db50::UpdateSfxOccupy(Unit* unit)
 {
     int seaLevel = g_game->seaLevel;
     int y = unit->field_70;
@@ -60,7 +60,7 @@ void Class_0043db50::FUN_0043db50(Unit* unit)
         newState = 0;
     }
     if (unit->state != newState) {
-        unit->script->FUN_004b0a70("setSFXoccupy", 0, 1, 1, newState, 0, 0, 0);
+        unit->script->StartScriptWithArgs("setSFXoccupy", 0, 1, 1, newState, 0, 0, 0);
         unit->state = newState;
     }
 }

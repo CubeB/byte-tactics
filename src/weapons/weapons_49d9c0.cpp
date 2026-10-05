@@ -88,7 +88,7 @@ union Fixed {
 
 extern Game* g_game;
 
-void __stdcall FUN_0043e240(Unit* obj, Vec3* out, unsigned char weapon, int piece);
+void __stdcall GetWeaponPiecePosition(Unit* obj, Vec3* out, unsigned char weapon, int piece);
 int __cdecl FUN_004b715a(int x, int z);
 int __stdcall FUN_0049d880(Unit* unit, Aim_0049d9c0* aim, short angle1, short angle2);
 int __stdcall FUN_0049c9c0(Aim_0049d9c0* aim, Unit* unit, Vec3* aimPos,
@@ -100,7 +100,7 @@ int __stdcall FUN_0049d9c0(Unit* unit, Aim_0049d9c0* aim,
                            Unit* target, Vec3* point)
 {
     Vec3 p;
-    FUN_0043e240(unit, &p, aim->weapon >> 2 & 3, -1);
+    GetWeaponPiecePosition(unit, &p, aim->weapon >> 2 & 3, -1);
     int dx = p.x - point->x;
     Fixed dy;
     dy.value = p.y - point->y;

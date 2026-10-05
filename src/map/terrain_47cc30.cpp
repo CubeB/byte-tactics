@@ -116,7 +116,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_00483210(Point_0047cc30 pos, Point_0047cc30 size);
-void __stdcall FUN_00440a40(Point_0047cc30 pos, Point_0047cc30 size);
+void __stdcall RefreshAllPassMaps(Point_0047cc30 pos, Point_0047cc30 size);
 
 static void SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
 {
@@ -199,7 +199,7 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
             pad.x = obj->pos.x - 1;
             pad.y = obj->pos.y - 1;
             FUN_00483210(pad, grown);
-            FUN_00440a40(obj->pos, obj->size);
+            RefreshAllPassMaps(obj->pos, obj->size);
             return;
         }
         if ((f & 3) == 1) {

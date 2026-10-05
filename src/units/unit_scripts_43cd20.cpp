@@ -324,8 +324,8 @@
 // delta args use one slot pair in ours, 8-bytes-apart in the original.
 //
 // Sixth pass (deepseek-v4.1, 4 more runs, 72.0%, 962 bytes): naming the
-// FUN_0048a980 result first is the big lever,
-//   short ang = (short)FUN_0048a980(ppos, &p[1]);
+// GetHeadingBetween result first is the big lever,
+//   short ang = (short)GetHeadingBetween(ppos, &p[1]);
 //   short diff = ang - unit->heading;
 // lifts 61.1 to 72.0 and rotates the callee-saved assignment from
 // unit=ebp/ppos=ebx to unit=EBX/ppos=EDI (original unit=edi/ppos=ebx), so the
@@ -403,7 +403,7 @@
 //   -0x48           the spill of `this` (the top-of-function
 //                   `mov [esp+0x10], esi`); ours spills it at -0x44
 //   the parameter slot itself (0x00) holds, in turn, dx, ndx, p[1].z - pos.z
-//   and the FUN_0048a980 result
+//   and the GetHeadingBetween result
 // So the original needs 8 more bytes than ours, and it gets them from two more
 // live slots below the array plus one dword more above it.
 //
@@ -521,7 +521,7 @@ int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 
 // Hand-written fixed-point atan2 in the gap at 0x4b70a0.
-int __stdcall FUN_0048a980(Vec3* from, Vec3* to);
+int __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 
 // The path object: slot 5 (vtable +0x14) says whether a path is active, slot 3
 // (vtable +0xc) copies `count` points out starting at `first`.
@@ -558,7 +558,7 @@ public:
     int field_20;                     // +0x20
     short turn;                       // +0x24
 
-    void FUN_0043cd20(Unit* unit);
+    void SteerGroundUnit(Unit* unit);
 };
 
 // The preceding function in the original object file (0x43cc20, matched in
@@ -591,7 +591,7 @@ void Class_0043cc20::FUN_0043cc20(Unit* unit, int amount)
 }
 
 // FUNCTION: 0x43cd20
-void Class_0043cd20::FUN_0043cd20(Unit* unit)
+void Class_0043cd20::SteerGroundUnit(Unit* unit)
 {
     if (obj->v5() == 0) {
         turn = 0;
@@ -627,7 +627,7 @@ void Class_0043cd20::FUN_0043cd20(Unit* unit)
     int ax = p[1].x - unit->pos.x;
     int d1 = (int)(((__int64)ax * ax) >> 32) + (int)(((__int64)az * az) >> 32);
 
-    short ang = (short)FUN_0048a980(ppos, &p[1]);
+    short ang = (short)GetHeadingBetween(ppos, &p[1]);
     short diff = ang - unit->heading;
     int sdiff = diff;
     int adiff = abs(sdiff);

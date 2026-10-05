@@ -20,6 +20,7 @@ uv run tools/place.py --write-layout   # rewrite data/layout.csv after a change 
 uv run tools/resources.py              # compile src/res/ and compare it with the original's .rsrc
 uv run tools/link.py --carve           # an ordinary LINK.EXE link that runs: build/link/TotalA.exe
 uv run tools/linkcmp.py                # does every reference in it reach what the original's does?
+uv run tools/imagecmp.py               # the whole image's placement and data against the original
 uv run tools/gapcheck.py [0x...]       # the gap regions' source (src/gap/) against the original
 uv run tools/vtablecheck.py src/unsorted/0x48e010.cpp   # does each vtable slot name the original's function?
 uv run tools/playtest.py --exe orig,carve --scenario full   # play both under Wine, PASS or FAIL
@@ -786,6 +787,62 @@ literal of another object, or the library's data (its vtables and throw
 information lead to `LIBCPMT.LIB`'s functions where the original's lead to
 the copies Cavedog's objects instantiated). It exits non-zero on any
 difference, so a change that rebinds a name shows up before the game is run.
+
+## The whole image: tools/imagecmp.py
+
+`linkcmp.py` checks references one field at a time. `tools/imagecmp.py` asks
+the two questions that only make sense for the whole image, the placement and
+data compares of #4869 (ideas from LEGO Island's reccmp `roadmap` and
+`datacmp`):
+
+```sh
+uv run tools/imagecmp.py              # the placement and data reports
+uv run tools/imagecmp.py --verbose    # every boundary, unit and difference
+```
+
+It reads `build/link/TotalA.exe` and its map; `--exe` names another build, and
+`build/place/TotalA.exe` works too (its map says every piece already sits at
+the original's address). In an ordinary link every function sits where LINK
+puts it, so the placement report compares the order, not the addresses:
+
+- **Runs.** The game and gap functions are sorted by their linked address; a
+  run is a stretch whose displacement (linked - original) is constant, an
+  island of the original's layout that LINK kept together. A change of
+  displacement is an inferred object-file boundary, where a whole object sits
+  somewhere else in the link order; a boundary whose displacement jumps
+  backwards is an object placed out of the original's order.
+- **Units.** Each of `tools/unitmap.py`'s units is checked: one whose members
+  are not in the original's address order in the link is listed, with the
+  members around its first inversion.
+- **Areas.** Each inferred boundary is grouped by the 64 KB window of
+  `data/areas.csv` it falls in, so the numbers say which of those area guesses
+  the link order disagrees with.
+
+The data report compares every global `data/globals.csv` lists in `.rdata` or
+`.data` with the original's initialised bytes. A pointer field is compared by
+where it leads, not by value, so a pointer to a global or a literal is checked
+as the symbol it names, and a pointer the link folded into an identical string
+elsewhere agrees. A string or float that differs is printed in readable form.
+This is `tools/globals.py --check` extended to the linked image: `globals.py`
+only covers `link/data.cpp`, while this reaches the globals game files define
+and the data static initialisers build.
+
+The placement report is a guide for the link order and does not fail the
+command. The data report does: the tool exits non-zero when any global differs
+(`--strict` also fails on a placement difference), so the phase 2+ steps can
+gate on it.
+
+On 2026-10-05 the ordinary link takes its data from source, so its data report
+is clean: 312 of the 312 globals in `.rdata`/`.data` hold the original's bytes
+(451 pointer fields agree, 3 reach an identical string elsewhere), and it
+exits 0. The placement report of the ordinary link, whose order LINK chooses,
+shows 3,296 game and gap functions in 383 runs (382 inferred boundaries, 92 of
+them backwards) and 6 of 116 units with a member out of order
+(`IURect_0046e160`, `PAUUnit`, `Class_00407350`, `Class_00407a90`,
+`Class_00407d40`, `Class_004079d0`); those are the first candidates for a
+`/ORDER` or a link-order file. Against `build/place/TotalA.exe` the same tool
+reports one run, no boundary and no out-of-order unit, as it must: that build
+is `orig/TotalA.exe` byte for byte.
 
 ## Play tests: tools/playtest.py
 

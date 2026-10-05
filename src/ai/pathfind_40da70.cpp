@@ -193,15 +193,10 @@ public:
     }
 };
 
-class Class_0040d7b0 {
-public:
-    unsigned int GetCellState(int x, int y);
-};
-
 extern signed char DAT_004fd670[];
 extern signed char DAT_004fd678[];
 
-class Class_0040da70 : public OpenHeap {
+class Pathfinder : public OpenHeap {
 public:
     Grid_0040da70 grid;                   // +0x1c
     char unknown_30[0x40 - 0x30];
@@ -231,10 +226,13 @@ public:
     }
 
     void ExpandNeighbour(NodeData_0040da70* from, Cell_0040da70* fromCell, int turn);
+    unsigned int GetCellState(int x, int y);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void MarkGoalCell(unsigned int, unsigned int);
 };
 
 // FUNCTION: 0x40da70
-void Class_0040da70::ExpandNeighbour(NodeData_0040da70* from, Cell_0040da70* fromCell, int turn)
+void Pathfinder::ExpandNeighbour(NodeData_0040da70* from, Cell_0040da70* fromCell, int turn)
 {
     int dir = (fromCell->dir + turn) & 7;
     unsigned int x = from->x + DAT_004fd670[dir];
@@ -246,7 +244,7 @@ void Class_0040da70::ExpandNeighbour(NodeData_0040da70* from, Cell_0040da70* fro
     switch (cell->flags & 3) {
     case 0: {
         grid.dirty[i >> 8] |= 1 << ((i >> 3) & 0x1f);
-        unsigned int r = ((Class_0040d7b0*)this)->GetCellState(x, y);
+        unsigned int r = ((Pathfinder*)this)->GetCellState(x, y);
         if (r < 1 && !(cell->flags & 8)) {
             cell->flags |= 3;
             return;

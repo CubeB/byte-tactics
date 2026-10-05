@@ -18,21 +18,17 @@ struct AccountList {
     int current;                       // +0x8
 };
 
-class Class_004b49d0 {
-public:
-    int FindNumberedBox(int a, int b);
-};
-
-class Class_004b4b50 {
+class HapiBank {
 public:
     AccountList* table;                // +0x0
     int OpenNumberedBox(int a);
+    int FindNumberedBox(int a, int b);
 };
 
 // FUNCTION: 0x4b4b50
-int Class_004b4b50::OpenNumberedBox(int a)
+int HapiBank::OpenNumberedBox(int a)
 {
-    int r = ((Class_004b49d0*)this)->FindNumberedBox(a, 1);
+    int r = ((HapiBank*)this)->FindNumberedBox(a, 1);
     table->entries[table->current].selected = r;
     return table->entries[table->current].items[r].value != 0;
 }

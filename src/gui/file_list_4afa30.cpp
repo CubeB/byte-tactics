@@ -12,7 +12,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Class_004af5b0 {
+struct FileRequester {
     char* gui;                       // +0x00
     void* field_4;                   // +0x04
     char* field_8;                   // +0x08
@@ -29,7 +29,7 @@ struct Class_004af5b0 {
     int field_244;                   // +0x244
 };
 
-struct Class_004afa30 {
+struct Dialog {
     char path[0x13];                 // +0x00
     short field_13;                  // +0x13
     char unknown_15[0x18 - 0x15];   // +0x15
@@ -38,7 +38,7 @@ struct Class_004afa30 {
     int field_cca;                   // +0xcca
 
     // self is really the first stack argument, not `this`.
-    Class_004af5b0* OpenFileRequester(Class_004afa30* self, char* arg2, char* arg3, char* arg4);
+    FileRequester* OpenFileRequester(Dialog* self, char* arg2, char* arg3, char* arg4);
 };
 
 struct Entry_004a0010 {
@@ -59,20 +59,20 @@ Entry_004a0010* __stdcall FUN_004a0010(Entry_004a0010* entries, char* name);
 Entry_004a0010* __stdcall FUN_004a0180(Entry_004a0010* entries, char* name);
 Entry_004a0010* __stdcall FUN_004a0200(Entry_004a0010* entries, char* name);
 Entry_004a0010* __stdcall FindGadgetOrNull(Entry_004a0010* entries, char* name);
-void __stdcall FUN_0049fa90(Class_004afa30* obj);
-void __stdcall FUN_004af5b0(Class_004af5b0* obj);
+void __stdcall FUN_0049fa90(Dialog* obj);
+void __stdcall FUN_004af5b0(FileRequester* obj);
 void* __stdcall LoadGuiLayer(void* param_1, char* param_2, int param_3);
 void FileRequesterHandler();
 
 // FUNCTION: 0x4afa30
-Class_004af5b0* Class_004afa30::OpenFileRequester(Class_004afa30* self, char* arg2, char* arg3, char* arg4)
+FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, char* arg4)
 {
     void* gui = LoadGuiLayer(self, "FILEREQ.GUI", 0);
     if (gui == NULL) {
         return NULL;
     }
 
-    Class_004af5b0* obj = (Class_004af5b0*)FUN_004d83b0((unsigned int)"FILE REQUESTER DATA", 0x24c);
+    FileRequester* obj = (FileRequester*)FUN_004d83b0((unsigned int)"FILE REQUESTER DATA", 0x24c);
     obj->gui = (char*)self;
     strcpy(obj->cwd, arg2);
     StripFileName(obj->cwd);

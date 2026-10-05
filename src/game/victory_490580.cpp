@@ -10,7 +10,7 @@ public:
     virtual void Slot3(int param_1);
 };
 
-class Class_00490520 {
+class MissionConditions {
 public:
     Item_00490520* first[16];          // +0x0
     int firstCount;                    // +0x40
@@ -22,7 +22,7 @@ public:
 };
 
 // FUNCTION: 0x490580
-void Class_00490520::NotifyUnitCreated(int param_1)
+void MissionConditions::NotifyUnitCreated(int param_1)
 {
     int i;
     for (i = 0; i < firstCount; i++) {

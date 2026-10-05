@@ -121,13 +121,8 @@ struct Piece
     int spin[3];
     int acceleration[3];
 };
-class CobScript
-{
-  public:
-    int StartThread(int);
-};
 int __stdcall RandomInt(int);
-class Class_004b0da0
+class CobScript
 {
   public:
     int scale;
@@ -165,10 +160,11 @@ class Class_004b0da0
             if ((channels[i].state & 0xfff00000) == 0x2800000 && channels[i].waiting == index)
                 channels[i].state = 0x1000000;
     }
+    int StartThread(int);
 };
 
 // FUNCTION: 0x4b0da0
-void Class_004b0da0::RunThread(unsigned int channel, int elapsed)
+void CobScript::RunThread(unsigned int channel, int elapsed)
 {
     Channel *c = &channels[channel];
     if ((c->state & 0xff000000) == 0)

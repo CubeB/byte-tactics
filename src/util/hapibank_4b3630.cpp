@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// The out-of-line destructor of Class_004b3630 (see 0x432590.cpp): frees the
+// The out-of-line destructor of HapiBank (see 0x432590.cpp): frees the
 // slot table at +0x0 and everything hanging off its slots.
 
 struct SafeDepositBox {             // 0x14 bytes
@@ -32,14 +32,14 @@ struct AccountList {
 
 void __cdecl FUN_004d85a0(void* p);
 
-class Class_004b3630 {
+class HapiBank {
 public:
     AccountList* table;             // +0x00
     void CloseBank();
 };
 
 // FUNCTION: 0x4b3630
-void Class_004b3630::CloseBank()
+void HapiBank::CloseBank()
 {
     if (table != 0) {
         for (int i = 0; i < table->count; i++) {

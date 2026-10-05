@@ -14,20 +14,16 @@ struct Surface_004c6f10 {
     char* data;                        // +0xc
 };
 
-class Class_004b4c10 {
+class HapiBank {
 public:
     void SeekBox(int pos);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* src, int len);
 };
 
 // FUNCTION: 0x4c6f10
-void __stdcall SaveSurface(Surface_004c6f10* surface, Class_004b4cf0* file)
+void __stdcall SaveSurface(Surface_004c6f10* surface, HapiBank* file)
 {
-    ((Class_004b4c10*)file)->SeekBox(0);
+    ((HapiBank*)file)->SeekBox(0);
     int header[2];
     header[0] = surface->width;
     header[1] = surface->height;

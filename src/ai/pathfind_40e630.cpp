@@ -53,11 +53,6 @@ public:
     void SiftDown(int i);
 };
 
-class Class_0040f110 {
-public:
-    void GrowNodes(int n);
-};
-
 struct Heap_0040e630 {
     Node_0040e630* pool;               // +0x0
     Node_0040e630** items;             // +0x4
@@ -74,29 +69,7 @@ struct Heap_0040e630 {
         used = 0;
         topPopped = 0;
     }
-    int Push(const NodeData_0040e630& d)
-    {
-        if (topPopped) {
-            Node_0040e630* n = items[0];
-            n->data = d;
-            ((OpenHeap*)this)->SiftDown(0);
-            topPopped = 0;
-            return n - pool;
-        }
-        if (count == capacity)
-            ((Class_0040f110*)this)->GrowNodes(-1);
-        int i = count++;
-        int k = freeHead;
-        if (k == -1)
-            k = used++;
-        else
-            freeHead = pool[k].index;
-        pool[k].data = d;
-        pool[k].index = i;
-        items[i] = &pool[k];
-        ((OpenHeap*)this)->SiftUp(i);
-        return k;
-    }
+    int Push(const NodeData_0040e630& d);
 };
 
 class Target_0040e630 {
@@ -139,16 +112,7 @@ struct Object_0040e630 {
 class MovementClass {
 public:
     void RefreshUnitIfStale(Object_0040e630* p);
-};
-
-class Class_00440af0 {
-public:
     void RefreshMovedUnits(Object_0040e630* p);
-};
-
-class Pathfinder {
-public:
-    void ClearDirtyCells();
 };
 
 class Class_0040e160 {
@@ -190,7 +154,7 @@ struct Grid_0040e630 {
     }
 };
 
-class Class_0040e630 {
+class Pathfinder {
 public:
     Heap_0040e630 heap;                // +0x0
     Grid_0040e630 grid;                // +0x1c
@@ -240,15 +204,41 @@ public:
     }
 
     void StartSearch(Target_0040e630* t);
+    void GrowNodes(int n);
+    void ClearDirtyCells();
 };
 
+inline int Heap_0040e630::Push(const NodeData_0040e630& d)
+{
+    if (topPopped) {
+        Node_0040e630* n = items[0];
+        n->data = d;
+        ((OpenHeap*)this)->SiftDown(0);
+        topPopped = 0;
+        return n - pool;
+    }
+    if (count == capacity)
+        ((Pathfinder*)this)->GrowNodes(-1);
+    int i = count++;
+    int k = freeHead;
+    if (k == -1)
+        k = used++;
+    else
+        freeHead = pool[k].index;
+    pool[k].data = d;
+    pool[k].index = i;
+    items[i] = &pool[k];
+    ((OpenHeap*)this)->SiftUp(i);
+    return k;
+}
+
 // FUNCTION: 0x40e630
-void Class_0040e630::StartSearch(Target_0040e630* t)
+void Pathfinder::StartSearch(Target_0040e630* t)
 {
     owner = (MovementClass*)object->unit->field_4;
     target = t;
     start = object->pos;
-    ((Class_00440af0*)owner)->RefreshMovedUnits(object);
+    ((MovementClass*)owner)->RefreshMovedUnits(object);
     ResetTable();
     ((Pathfinder*)this)->ClearDirtyCells();
 

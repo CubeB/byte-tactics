@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-struct Class_00450010 {
+struct Player {
     char unknown_0[4];
     void* field_4;
     char unknown_8[0x6b];
@@ -8,7 +8,7 @@ struct Class_00450010 {
 };
 
 // FUNCTION: 0x450010
-int __stdcall GetPlayerDpid(Class_00450010* obj)
+int __stdcall GetPlayerDpid(Player* obj)
 {
     if (obj != 0 && obj->field_73 != 0) {
         return (int)obj->field_4;

@@ -3,14 +3,14 @@
 // result goes through an int local; assigning it directly keeps the old field
 // value in a separate register (esi).
 
-class Class_004c46c0 {
+class TdfRecord {
 public:
     int GetFieldInt(const char* name, int def);
 };
 
 struct Source_004ae410 {
     char unknown_0[4];
-    Class_004c46c0* tdf;               // +0x4
+    TdfRecord* tdf;                    // +0x4
 };
 
 struct Obj_004ae410 {

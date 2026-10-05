@@ -89,7 +89,7 @@ struct Entry_0046d970 {                // 0x5c bytes
     char unknown_1c[0x5c - 0x1c];
 };
 
-class Class_0046d860 {
+class UnitSync {
 public:
     char unknown_0[0x14];
     Entry_0046d970* begin;             // +0x14
@@ -105,7 +105,7 @@ int __stdcall FUN_0042a610(Def_0046d970* def);
 Player_0046d970* __stdcall FindPlayerByDpid(int id);
 
 // FUNCTION: 0x46d970
-void Class_0046d860::CheckUnitAvailable(unsigned int key, int y)
+void UnitSync::CheckUnitAvailable(unsigned int key, int y)
 {
     if (field_64 != 0)
         return;

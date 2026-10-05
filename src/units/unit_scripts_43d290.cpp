@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
-// Steering update for the mover object (Class_0043d210): in mode 2 it asks the
+// Steering update for the mover object (UnitMotion): in mode 2 it asks the
 // path object for a target position `a`, a target velocity `b` and a heading,
 // damps the velocity p1, clamps its horizontal speed (bleeding the excess off
 // along the unit's heading), turns the unit towards the heading, then steers
@@ -92,7 +92,7 @@ struct Game {
     int field_142b7; // +0x142b7
 };
 
-class Class_0043d210 {
+class UnitMotion {
   public:
     void* obj;              // +0x0
     int field_4;            // +0x4
@@ -107,11 +107,6 @@ class Class_0043d210 {
     unsigned char rest : 5;
 
     void ApplyBankAndPitch(Unit* unit, Vec3* v);
-};
-
-// data/symbols.csv knows this method by the name its caller 0x43dd20 uses.
-class Class_0043d290 : public Class_0043d210 {
-  public:
     void SteerAircraft(Unit* unit);
 };
 
@@ -148,7 +143,7 @@ static inline Vec3 Offset(short angle, int distance)
 }
 
 // FUNCTION: 0x43d290
-void Class_0043d290::SteerAircraft(Unit* unit) {
+void UnitMotion::SteerAircraft(Unit* unit) {
     if (mode != 2) {
         p1 = Vec3(0, 0, 0);
         field_20 = 0;

@@ -38,7 +38,7 @@ static inline Vec3_00474760 operator-(const Vec3_00474760& p, const Vec3_0047476
     return r;
 }
 
-class Class_00471d70 {
+class ParticleSystem {
 public:
     char unknown_0[4];
     int field_4;                    // +0x04
@@ -46,7 +46,7 @@ public:
     void SetLifetime(int param_1);
 };
 
-class Class_00474760 {
+class WakeParticles {
 public:
     virtual void unused0();                      // slot 0
     virtual void unused1();                      // slot 1
@@ -67,10 +67,10 @@ public:
 };
 
 // FUNCTION: 0x474760
-void Class_00474760::FUN_00474760(Vec3_00474760* a, Vec3_00474760* b, int param_3,
+void WakeParticles::FUN_00474760(Vec3_00474760* a, Vec3_00474760* b, int param_3,
                                   int param_4, int param_5)
 {
-    ((Class_00471d70*)this)->SetLifetime(param_4);
+    ((ParticleSystem*)this)->SetLifetime(param_4);
     field_1c = param_3;
     pos_a = *a;
     pos_b = *b;

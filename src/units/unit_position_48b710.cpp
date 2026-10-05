@@ -18,13 +18,7 @@
 
 #pragma pack(push, 1)
 
-class Class_00415b60 {
-public:
-    void GrowBuffer();
-    Class_00415b60();
-};
-
-class BitWriter : public Class_00415b60 {
+class BitWriter {
 public:
     int bit;                           // +0x0 current word index
     int index;                         // +0x4 bits used in the current word
@@ -32,20 +26,11 @@ public:
     unsigned int* data;                // +0xc
     unsigned int buffer[0x100];        // +0x10
 
-    void WriteBits(int value, int bits);
-};
-
-// The same object seen as the byte writer of 0x415da0 and the free of 0x415b90.
-struct Class_00415da0 {
-    char unknown_0[0xc];
-    unsigned char* data;               // +0xc
+    void GrowBuffer();
+    BitWriter();
     void SetByteAt(int index, unsigned char value);
-};
-
-struct Class_00415b90 {
-    char unknown_0[0xc];
-    void* data;                        // +0xc
     void FreeBuffer();
+    void WriteBits(int value, int bits);
 };
 
 struct Link_0048b710 {
@@ -152,10 +137,10 @@ void __stdcall SendUnitStates(Player_0048b710* p)
     // The packet's length, little-endian at bytes 1 and 2, is only known here.
     // The `char` cast is what makes MSVC 5 narrow the first sum to a byte and
     // push the register unmasked; the second is pushed as a dword.
-    ((Class_00415da0*)&stream)->SetByteAt(
+    stream.SetByteAt(
         1, (char)(((stream.index + 7) >> 3) + (unsigned char)stream.bit * 4));
-    ((Class_00415da0*)&stream)->SetByteAt(
+    stream.SetByteAt(
         2, (char)((((stream.index + 7) >> 3) + stream.bit * 4) >> 8));
     BroadcastPacket(p->id, stream.data, ((stream.index + 7) >> 3) + stream.bit * 4);
-    ((Class_00415b90*)&stream)->FreeBuffer();
+    stream.FreeBuffer();
 }

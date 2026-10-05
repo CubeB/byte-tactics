@@ -2,7 +2,7 @@
 // Order handler: state 0 calls ClaimWeapons(3) on the unit, state 1 waits
 // ten ticks.
 
-class Class_004898b0 {
+class Unit {
 public:
     void ClaimWeapons(int param);
 };
@@ -32,7 +32,7 @@ int __stdcall BeCarriedOrder(Unit_00402fc0* unit, Order* order, int unused)
     }
     switch (order->state) {
     case 0:
-        ((Class_004898b0*)unit)->ClaimWeapons(3);
+        ((Unit*)unit)->ClaimWeapons(3);
         return 1;
     case 1:
         ((Class_00439e80*)order)->FUN_00439e80(10);

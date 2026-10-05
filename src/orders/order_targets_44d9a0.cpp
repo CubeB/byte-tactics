@@ -3,18 +3,10 @@
 // header whose last four dwords are the stored values (the first dword is
 // left uninitialised, as in the original), like 0x44d090.
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* src, int len);
 };
 
@@ -36,11 +28,11 @@ public:
     int field_4;                       // +0x4
     Rect_0044d930 r;                   // +0x8
 
-    int FUN_0044d9a0(int unused, Class_004b4ba0* file, char* name);
+    int FUN_0044d9a0(int unused, HapiBank* file, char* name);
 };
 
 // FUNCTION: 0x44d9a0
-int Class_0044d930::FUN_0044d9a0(int unused, Class_004b4ba0* file, char* name)
+int Class_0044d930::FUN_0044d9a0(int unused, HapiBank* file, char* name)
 {
     Header_0044d930 hdr;
     hdr.r.a = r.a;
@@ -48,7 +40,7 @@ int Class_0044d930::FUN_0044d9a0(int unused, Class_004b4ba0* file, char* name)
     hdr.r.c = r.c;
     hdr.r.d = r.d;
     file->OpenNamedBox(name);
-    ((Class_004b4c10*)file)->SeekBox(0);
-    ((Class_004b4cf0*)file)->WriteBox(&hdr, 20);
+    ((HapiBank*)file)->SeekBox(0);
+    ((HapiBank*)file)->WriteBox(&hdr, 20);
     return 1;
 }

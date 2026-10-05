@@ -6,7 +6,7 @@ struct Entry_0040f1e0 {
     char unknown_4[0x10];
 };
 
-class Class_0040f1e0 {
+class Pathfinder {
 public:
     Entry_0040f1e0* entries;           // +0x0
     int field_4;                       // +0x4
@@ -16,7 +16,7 @@ public:
 };
 
 // FUNCTION: 0x40f1e0
-void Class_0040f1e0::FreeNode(int index)
+void Pathfinder::FreeNode(int index)
 {
     entries[index].next = free_head;
     free_head = index;

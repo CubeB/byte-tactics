@@ -21,15 +21,15 @@ struct Unit {
 // The call site sets ecx to the resource block and also pushes it, so
 // FUN_00401180 is a __thiscall method that takes the block explicitly too
 // (its body never reads ecx).
-class Class_00401180 {
+class UnitResources {
 public:
     char unknown_0[0x10];
-    int FUN_00401180(Class_00401180* r, float amount);
+    int FUN_00401180(UnitResources* r, float amount);
 };
 
 struct Obj_0041bd10 {
     char unknown_0[0xbc];
-    Class_00401180 field_bc;           // +0xbc
+    UnitResources field_bc;            // +0xbc
 };
 
 void __stdcall DamageUnit(Obj_0041bd10* obj, Unit* unit, int n, int kind, int flag);

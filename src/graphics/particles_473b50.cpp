@@ -8,7 +8,7 @@
 // does. Each component has to read its start into v first and then subtract
 // the field again (`d = e - s`, a CSE use of v: `mov edx, esi; sub ecx, edx`
 // in the z part); `d = e - v` drops 4 bytes and the CSE copy.
-class Class_00471d70 {
+class ParticleSystem {
 public:
     void SetLifetime(int param_1);
 };
@@ -48,7 +48,7 @@ struct Seg_00473b50 {
         (g).end.z -= (g).start.z;            \
     }
 
-class Class_00473b50 {
+class NanoParticles {
 public:
     virtual void v0();
     virtual void v1();
@@ -62,9 +62,9 @@ public:
 };
 
 // FUNCTION: 0x473b50
-void Class_00473b50::FUN_00473b50(Seg_00473b50* a, Seg_00473b50* b, int c)
+void NanoParticles::FUN_00473b50(Seg_00473b50* a, Seg_00473b50* b, int c)
 {
-    ((Class_00471d70*)this)->SetLifetime(c);
+    ((ParticleSystem*)this)->SetLifetime(c);
     seg_1c = *a;
     seg_34 = *b;
     SPLIT_SEG(seg_34);

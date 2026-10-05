@@ -5,10 +5,6 @@
 class HapiBank {
 public:
     void OpenAccount(const char* name);
-};
-
-class Class_004b4800 {
-public:
     int GetIntegerItem(char* name, int def);
 };
 
@@ -26,7 +22,7 @@ public:
 void DefeatUnitTypeKilled::LoadState(HapiBank* obj)
 {
     obj->OpenAccount("DefeatCondition_UnitTypeKilled");
-    numLeftToKill = ((Class_004b4800*)obj)->GetIntegerItem("NumLeftToKill", 0);
-    satisfied = ((Class_004b4800*)obj)->GetIntegerItem("Satisfied", 0);
-    celebrated = ((Class_004b4800*)obj)->GetIntegerItem("Celebrated", 0);
+    numLeftToKill = ((HapiBank*)obj)->GetIntegerItem("NumLeftToKill", 0);
+    satisfied = ((HapiBank*)obj)->GetIntegerItem("Satisfied", 0);
+    celebrated = ((HapiBank*)obj)->GetIntegerItem("Celebrated", 0);
 }

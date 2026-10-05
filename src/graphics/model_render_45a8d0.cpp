@@ -4,10 +4,10 @@
 // level), then fills it in with AddStateEntries.
 #include <string.h>
 
-struct Class_0045ae80 {
+struct Object3do {
     char unknown_0[0x2c];
-    Class_0045ae80* unknown_2c;        // +0x2c
-    Class_0045ae80* unknown_30;        // +0x30
+    Object3do* unknown_2c;             // +0x2c
+    Object3do* unknown_30;             // +0x30
 };
 
 #pragma pack(push, 1)
@@ -19,12 +19,12 @@ struct ObjectState_0045a8d0 {
 };
 #pragma pack(pop)
 
-int __stdcall CountObjects(Class_0045ae80* obj);
-int __stdcall AddStateEntries(ObjectState_0045a8d0* state, Class_0045ae80* obj, int parent);
+int __stdcall CountObjects(Object3do* obj);
+int __stdcall AddStateEntries(ObjectState_0045a8d0* state, Object3do* obj, int parent);
 void* __cdecl FUN_004d83b0(char* name, int size);
 
 // FUNCTION: 0x45a8d0
-ObjectState_0045a8d0* __stdcall CreateObjectState(Class_0045ae80* obj)
+ObjectState_0045a8d0* __stdcall CreateObjectState(Object3do* obj)
 {
     int count = 1;
     if (obj->unknown_30 != 0) {

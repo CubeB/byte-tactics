@@ -62,64 +62,26 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_004b3620 {
-public:
-    int field_0;
-
-    Class_004b3620* InitBank();
-};
-
-class Class_004b3630 {
-public:
-    void CloseBank();
-};
-
-class Class_004b3750 {
+class HapiBank {
 public:
     void* field_0;                     // +0x0
     char buf[256];                     // +0x4
 
     void NewBank();
     int SaveBank(char* name, char* ext, int a, int b);
-};
-
-class HapiBank {
-public:
+    HapiBank* InitBank();
+    void CloseBank();
     void OpenAccount(const char* section);
-};
-
-class Class_004b4630 {
-public:
     void SetIntegerItem(const char* name, int value);
-};
-
-class Class_004b4750 {
-public:
     void SetStringItem(const char* name, char* value);
-};
-
-class Class_004b4ba0 {
-public:
     int OpenNamedBox(const char* name);
 };
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
-};
-
-class Class_004352b0 {
-public:
     char* FUN_004352b0();
-};
-
-class Class_00435c30 {
-public:
     char* FUN_00435c30();
-};
-
-class Class_00435c00 {
-public:
     void AdvanceMission();
     int FUN_00435c00(int param_1);
 };
@@ -162,46 +124,46 @@ void __stdcall SaveMeteors(void* file);
 // FUNCTION: 0x4326b0
 int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
 {
-    Class_004b3750 file;
+    HapiBank file;
 
-    ((Class_004b3620*)&file)->InitBank();
+    ((HapiBank*)&file)->InitBank();
     file.NewBank();
     ((HapiBank*)&file)->OpenAccount(DAT_00503320);
 
     sprintf(file.buf, DAT_005049ac, g_game->buildDate);
-    ((Class_004b4630*)&file)->SetIntegerItem(file.buf, 0);
+    ((HapiBank*)&file)->SetIntegerItem(file.buf, 0);
     sprintf(file.buf, DAT_0050499c, g_game->buildTime);
-    ((Class_004b4630*)&file)->SetIntegerItem(file.buf, 0);
-    ((Class_004b4630*)&file)->SetIntegerItem(DAT_005048f8, g_game->maxUnits);
-    ((Class_004b4750*)&file)->SetStringItem(DAT_005028f8, ((Class_004352b0*)g_game->campaign)->FUN_004352b0());
+    ((HapiBank*)&file)->SetIntegerItem(file.buf, 0);
+    ((HapiBank*)&file)->SetIntegerItem(DAT_005048f8, g_game->maxUnits);
+    ((HapiBank*)&file)->SetStringItem(DAT_005028f8, ((Mission*)g_game->campaign)->FUN_004352b0());
     if (g_game->state != 6) {
-        ((Class_00435c00*)g_game->campaign)->AdvanceMission();
+        ((Mission*)g_game->campaign)->AdvanceMission();
     }
-    ((Class_004b4750*)&file)->SetStringItem(DAT_00504994, ((Class_00435c30*)g_game->campaign)->FUN_00435c30());
-    ((Class_004b4750*)&file)->SetStringItem(DAT_00504990, ((Class_00435c30*)g_game->campaign)->FUN_00435c30());
-    ((Class_004b4630*)&file)->SetIntegerItem(DAT_00502a78, g_game->difficulty);
-    ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504988, g_game->players[g_game->localPlayer].unit->side);
-    ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504980, g_game->numPlayers);
-    ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504974, ((Class_00435100*)g_game->campaign)->FUN_00435100());
-    ((Class_004b4750*)&file)->SetStringItem(DAT_0050496c, g_game->thumbs);
-    if (((Class_00435100*)g_game->campaign)->FUN_00435100() == 2) {
-        ((Class_004b4630*)&file)->SetIntegerItem(DAT_0050495c, g_game->options->commanderDeath);
-        ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504950, g_game->options->location);
-        ((Class_004b4630*)&file)->SetIntegerItem(DAT_00502288, g_game->options->mapping);
-        ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504944, g_game->options->lineOfSight);
-        ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504934, g_game->options->lineOfSightType);
+    ((HapiBank*)&file)->SetStringItem(DAT_00504994, ((Mission*)g_game->campaign)->FUN_00435c30());
+    ((HapiBank*)&file)->SetStringItem(DAT_00504990, ((Mission*)g_game->campaign)->FUN_00435c30());
+    ((HapiBank*)&file)->SetIntegerItem(DAT_00502a78, g_game->difficulty);
+    ((HapiBank*)&file)->SetIntegerItem(DAT_00504988, g_game->players[g_game->localPlayer].unit->side);
+    ((HapiBank*)&file)->SetIntegerItem(DAT_00504980, g_game->numPlayers);
+    ((HapiBank*)&file)->SetIntegerItem(DAT_00504974, ((Mission*)g_game->campaign)->FUN_00435100());
+    ((HapiBank*)&file)->SetStringItem(DAT_0050496c, g_game->thumbs);
+    if (((Mission*)g_game->campaign)->FUN_00435100() == 2) {
+        ((HapiBank*)&file)->SetIntegerItem(DAT_0050495c, g_game->options->commanderDeath);
+        ((HapiBank*)&file)->SetIntegerItem(DAT_00504950, g_game->options->location);
+        ((HapiBank*)&file)->SetIntegerItem(DAT_00502288, g_game->options->mapping);
+        ((HapiBank*)&file)->SetIntegerItem(DAT_00504944, g_game->options->lineOfSight);
+        ((HapiBank*)&file)->SetIntegerItem(DAT_00504934, g_game->options->lineOfSightType);
     }
     if (g_game->state != 6) {
-        ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504924, 1);
-        ((Class_00435c00*)g_game->campaign)->FUN_00435c00(g_game->mission);
+        ((HapiBank*)&file)->SetIntegerItem(DAT_00504924, 1);
+        ((Mission*)g_game->campaign)->FUN_00435c00(g_game->mission);
     }
     if (param_2 != 0) {
-        ((Class_004b4750*)&file)->SetStringItem(DAT_00502e78, param_2);
+        ((HapiBank*)&file)->SetStringItem(DAT_00502e78, param_2);
     }
-    ((Class_004b4630*)&file)->SetIntegerItem(DAT_0050491c, param_3);
-    ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504910, g_game->ticks);
+    ((HapiBank*)&file)->SetIntegerItem(DAT_0050491c, param_3);
+    ((HapiBank*)&file)->SetIntegerItem(DAT_00504910, g_game->ticks);
     if (g_game->state == 6) {
-        ((Class_004b4ba0*)&file)->OpenNamedBox(DAT_00504904);
+        ((HapiBank*)&file)->OpenNamedBox(DAT_00504904);
         SaveSurface(g_game->finalSurface, &file);
         WriteCameraPosition(&file);
         SavePlayers(&file);
@@ -214,6 +176,6 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
         g_game->field_391ed->SaveConditions(&file);
     }
     int result = file.SaveBank(param_1, DAT_0050331c, 1, 0);
-    ((Class_004b3630*)&file)->CloseBank();
+    ((HapiBank*)&file)->CloseBank();
     return result;
 }

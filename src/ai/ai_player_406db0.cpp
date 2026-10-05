@@ -22,14 +22,10 @@ extern Game* g_game;
 extern int g_aiCommandsEnabled;
 extern char DAT_005119b8[];
 
-class Class_004b73c0 {
-public:
-    char* GetArg(int index, char* fallback);
-};
-
 class CommandArgs {
 public:
     float GetFloatArg(int index, float default_val);
+    char* GetArg(int index, char* fallback);
 };
 
 // 0x40-byte set (512 bits).
@@ -48,7 +44,7 @@ void __stdcall CmdWeight(CommandArgs* args)
         int count;
         UnitTypeSet set;
         memset(&set, 0, sizeof(set));
-        set.AddTypeOrCategory(((Class_004b73c0*)args)->GetArg(1, DAT_005119b8), &count);
+        set.AddTypeOrCategory(((CommandArgs*)args)->GetArg(1, DAT_005119b8), &count);
         float value = args->GetFloatArg(2, 0);
         // A narrow index, as in 0x406e40: MSVC then counts the loop down in a
         // separate register.

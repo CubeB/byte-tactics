@@ -17,7 +17,7 @@ struct Smack_0047c330 {
 extern "C" __declspec(dllimport) unsigned int __stdcall SmackSoundOnOff(Smack_0047c330* smk, unsigned int on);
 extern "C" __declspec(dllimport) void __stdcall SmackGoto(Smack_0047c330* smk, unsigned int frame);
 
-class Class_0047c330 {
+class MoviePlayer {
 public:
     Smack_0047c330* smack;             // +0x0
     unsigned int frame;                // +0x4
@@ -26,7 +26,7 @@ public:
 };
 
 // FUNCTION: 0x47c330
-void Class_0047c330::OnPaint(HWND hwnd)
+void MoviePlayer::OnPaint(HWND hwnd)
 {
     PAINTSTRUCT ps;
     HDC dc = BeginPaint(hwnd, &ps);

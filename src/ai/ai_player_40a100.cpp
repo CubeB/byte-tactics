@@ -18,12 +18,12 @@ struct Game {
 
 extern Game* g_game;
 
-class Class_00409470 {
+class PlayerAI {
 public:
     void InitUnitTables();
 };
 
-extern Class_00409470* g_playerAI[];
+extern PlayerAI* g_playerAI[];
 
 void FUN_004648e0();
 

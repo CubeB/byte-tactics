@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004cfe90 {
+class Sound {
 public:
     char unknown_0[0x4];
     int field_4;
@@ -9,7 +9,7 @@ public:
 };
 
 // FUNCTION: 0x4cfe90
-void Class_004cfe90::Disable3D()
+void Sound::Disable3D()
 {
     field_4 = 0;
 }

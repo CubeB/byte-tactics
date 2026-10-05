@@ -5,13 +5,9 @@
 // the index arithmetic below is a plain gadgets[i], not a double addition (see
 // 0x45f800, which reaches the same addresses with a 0x15a record).
 
-class Class_004353a0 {
+class Mission {
 public:
     char* FUN_004353a0();
-};
-
-class Class_004356c0 {
-public:
     char* FUN_004356c0(int param_1);
 };
 
@@ -44,7 +40,7 @@ struct Game {
     char unknown_535[0x37ef2 - 0x535];
     unsigned char field_37ef2;
     char unknown_37ef3[0x391e9 - 0x37ef3];
-    Class_004353a0* net;              // +0x391e9
+    Mission* net;                     // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
     int field_391f1;                  // +0x391f1
 };
@@ -80,7 +76,7 @@ void FUN_00476d80()
         DrawHelpPage();
     }
     if (g_game->field_391f1 != 6) {
-        char* name = ((Class_004356c0*)g_game->net)->FUN_004356c0(3);
+        char* name = ((Mission*)g_game->net)->FUN_004356c0(3);
         if (name) {
             StreamSoundDelayed(name, 0, 0x3c);
         }

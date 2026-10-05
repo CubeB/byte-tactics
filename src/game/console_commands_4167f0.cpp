@@ -8,7 +8,7 @@ public:
     int GetIntArg(int, int);
 };
 
-class Class_004ceb60 {
+class Sound {
 public:
     void PlayCdTrack(int index, int flag);
 };
@@ -16,5 +16,5 @@ public:
 // FUNCTION: 0x4167f0
 void __stdcall CmdCDPlay(CommandArgs* param_1)
 {
-    (*(Class_004ceb60**)((char*)g_game + 0x10))->PlayCdTrack(param_1->GetIntArg(1, 0), 1);
+    (*(Sound**)((char*)g_game + 0x10))->PlayCdTrack(param_1->GetIntArg(1, 0), 1);
 }

@@ -4,7 +4,7 @@
 
 void __cdecl FUN_004d85a0(void* p);
 
-class Class_004cf4d0 {
+class Sound {
 public:
     char unknown_0[0x30];
     int count;                              // +0x30
@@ -17,7 +17,7 @@ public:
 };
 
 // FUNCTION: 0x4cf4d0
-void Class_004cf4d0::ReleaseSampleSet(IDirectSoundBuffer** set)
+void Sound::ReleaseSampleSet(IDirectSoundBuffer** set)
 {
     if (set == 0)
         return;

@@ -51,7 +51,7 @@ struct MissionName_00467e50 {
     char* name;                    // +0x15
 };
 
-struct Class_00438830 {
+struct OrderType {
     MissionName_00467e50* FUN_00438830();
 };
 #pragma pack(pop)
@@ -153,11 +153,11 @@ int __stdcall DrawUnitStateProbe(void* surface)
                  m = (Mission_00467e50*)m->next) {
                 if (m->target != 0)
                     sprintf(buf, "    '%s' state: %d  tgt: '%s'\n",
-                            ((Class_00438830*)((char*)m + 4))->FUN_00438830()->name,
+                            ((OrderType*)((char*)m + 4))->FUN_00438830()->name,
                             m->state, *(char**)((char*)m->target + 0x92));
                 else
                     sprintf(buf, "    '%s' state: %d\n",
-                            ((Class_00438830*)((char*)m + 4))->FUN_00438830()->name,
+                            ((OrderType*)((char*)m + 4))->FUN_00438830()->name,
                             m->state);
                 DrawString(surface, buf, 0x86, y, -1);
                 y += lineH;
@@ -170,11 +170,11 @@ int __stdcall DrawUnitStateProbe(void* surface)
                  m = (Mission_00467e50*)m->next) {
                 if (m->target != 0)
                     sprintf(buf, "    '%s' state: %d  tgt: '%s'\n",
-                            ((Class_00438830*)((char*)m + 4))->FUN_00438830()->name,
+                            ((OrderType*)((char*)m + 4))->FUN_00438830()->name,
                             m->state, *(char**)((char*)m->target + 0x92));
                 else
                     sprintf(buf, "    '%s' state: %d\n",
-                            ((Class_00438830*)((char*)m + 4))->FUN_00438830()->name,
+                            ((OrderType*)((char*)m + 4))->FUN_00438830()->name,
                             m->state);
                 DrawString(surface, buf, 0x86, y, -1);
                 y += lineH;

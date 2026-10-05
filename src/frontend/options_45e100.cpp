@@ -6,7 +6,7 @@
 // valid entry (state 1) closes the screen and runs the next screen's handler.
 // The selection -1 branch frees the screen's object and clears flag bit 0.
 
-class Class_00437c80 {
+class CMemoryCache {
 public:
     void FlushCache();
 };
@@ -83,7 +83,7 @@ struct Game {
     unsigned short flag_2a44 : 1;
     unsigned short rest_2a44 : 13;
     char unknown_2a46[0x1437b - 0x2a46];
-    Class_00437c80* ptr_1437b;         // +0x1437b
+    CMemoryCache* ptr_1437b;           // +0x1437b
     char unknown_1437f[0x37ebe - 0x1437f];
     Flags_37ebe flags_37ebe;           // +0x37ebe
     char unknown_37ec0[0x37f06 - 0x37ec0];

@@ -2,17 +2,7 @@
 #include <windows.h>
 #include <dsound.h>
 
-class Class_004cf4d0 {
-public:
-    void ReleaseSampleSet(IDirectSoundBuffer** set);
-};
-
-class Class_004cfb40 {
-public:
-    void UpdateStream();
-};
-
-class Class_004cf0b0 {
+class Sound {
 public:
     char unknown_0[0x30];
     int count;                              // +0x30
@@ -23,18 +13,20 @@ public:
     int field_1e4;                          // +0x1e4
 
     void ReapFinishedBuffers();
+    void ReleaseSampleSet(IDirectSoundBuffer** set);
+    void UpdateStream();
 };
 
 // Releases every sound buffer (and buffer set) that has stopped playing.
 // FUNCTION: 0x4cf0b0
-void Class_004cf0b0::ReapFinishedBuffers()
+void Sound::ReapFinishedBuffers()
 {
     DWORD status;
     int i;
     for (i = 0; i < 8; i++) {
         if (sets[i] != 0) {
             if (sets[i][0]->GetStatus(&status) != 0 || status == 0) {
-                ((Class_004cf4d0*)this)->ReleaseSampleSet(sets[i]);
+                ((Sound*)this)->ReleaseSampleSet(sets[i]);
                 sets[i] = 0;
             }
         }
@@ -48,5 +40,5 @@ void Class_004cf0b0::ReapFinishedBuffers()
         }
     }
     if (field_1e4 != 0)
-        ((Class_004cfb40*)this)->UpdateStream();
+        ((Sound*)this)->UpdateStream();
 }

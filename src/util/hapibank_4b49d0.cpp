@@ -22,14 +22,14 @@ struct AccountList {
 
 void* __cdecl FUN_004d8580(void* ptr, int size);
 
-class Class_004b49d0 {
+class HapiBank {
 public:
     AccountList* table;             // +0x00
     int FindNumberedBox(int value, int flag);
 };
 
 // FUNCTION: 0x4b49d0
-int Class_004b49d0::FindNumberedBox(int value, int flag)
+int HapiBank::FindNumberedBox(int value, int flag)
 {
     AccountList* t = table;
     if (!t || t->index < 0)

@@ -12,7 +12,7 @@
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
-class Class_004cf230 {
+class Sound {
 public:
     char unknown_0[0x24];
     IDirectSound* field_24;                 // +0x24
@@ -22,7 +22,7 @@ public:
 };
 
 // FUNCTION: 0x4cf230
-IDirectSoundBuffer** Class_004cf230::CreateSampleFromMemory(void* src, DWORD bytes,
+IDirectSoundBuffer** Sound::CreateSampleFromMemory(void* src, DWORD bytes,
                                                   int sampleRate, int bits, int channels)
 {
     WAVEFORMATEX wfx;

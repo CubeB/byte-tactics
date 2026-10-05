@@ -4,7 +4,7 @@
 // taken out of `from`'s economy object (only when `flag` is set) and added to
 // `to`'s economy object. An AI player (type 2) on easy or medium only counts
 // 0.5 or 0.7 of it, and the transfer is announced over the network when `flag`
-// is set. Same shape as 0x464c60, which moves energy with Class_00401260.
+// is set. Same shape as 0x464c60, which moves energy with UnitResources.
 //
 // Two things were needed, both of them read off the already-matched energy
 // twin 0x464c60:
@@ -21,7 +21,7 @@
 //    fadd [econ->metal]`, whereas the original loads the destination first
 //    (`fld [eax]; fadd [esp+0x1c]`). Going through a local forces that.
 
-class Class_00401220;
+class UnitResources;
 
 #pragma pack(push, 1)
 struct Player_00464b30 {
@@ -31,7 +31,7 @@ struct Player_00464b30 {
     char unknown_74[0x8c - 0x74];
     float metal;                       // +0x8c
     char unknown_90[0xec - 0x90];
-    Class_00401220* econ;              // +0xec
+    UnitResources* econ;               // +0xec
     char unknown_f0[0x14b - 0xf0];
 };
 
@@ -43,13 +43,13 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_00401220 {
+class UnitResources {
 public:
     float metal;                       // +0x0
     char unknown_4[0x30 - 0x4];
     Player_00464b30* player;           // +0x30
 
-    int SpendMetal(float amount);
+    int SpendEnergy(float amount);
 };
 
 extern Game* g_game;
@@ -71,7 +71,7 @@ void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount,
     if (amount == 0.0f)
         return;
     Player_00464b30* player;
-    player = flag ? (g_game->players[from].econ->SpendMetal(amount),
+    player = flag ? (g_game->players[from].econ->SpendEnergy(amount),
                      g_game->players[to].econ->player)
                   : g_game->players[to].econ->player;
     if (player->active != 0 && player->type == 2) {

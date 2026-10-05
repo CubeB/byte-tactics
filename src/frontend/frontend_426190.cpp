@@ -19,14 +19,14 @@ struct Gadget_00426190 {
 // g_game+0x10 just before the call. data/symbols.csv names it as the free
 // function CloseCdPlayerWindow (its body never reads ecx), so the checker reports
 // this reference as wrong although the bytes match.
-class Class_004ce190 {
+class Sound {
 public:
     void CloseCdPlayerWindow();
 };
 
 struct Game {
     char unknown_0[0x10];
-    Class_004ce190* field_10;          // +0x10
+    Sound* field_10;                   // +0x10
 };
 
 extern Game* g_game;

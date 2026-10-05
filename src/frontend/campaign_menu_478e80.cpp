@@ -12,7 +12,7 @@ extern int DAT_0051e654;
 extern int DAT_0051e670;
 extern int DAT_0051e640;
 
-class Class_00435910 {
+class Mission {
 public:
     char unknown_0[0xd34];
     int field_d34;                      // +0xd34
@@ -64,7 +64,7 @@ struct Game {
     char unknown_2a43[0x37ef2 - 0x2a43];
     int flag_37ef2;                     // +0x37ef2
     char unknown_37ef6[0x391e9 - 0x37ef6];
-    Class_00435910* net;                // +0x391e9
+    Mission* net;                       // +0x391e9
 };
 
 #pragma pack(pop)

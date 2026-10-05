@@ -6,7 +6,7 @@
 // its insert is 0x4340f0, the column's operator= 0x434770 and destructor
 // 0x433a80, and the held vector's _Destroy 0x433d90 and deallocate 0x433da0.
 //
-// Class_00433270::FUN_00433270(short): resizes the vector at +0 (its _First at
+// LosTables::FUN_00433270(short): resizes the vector at +0 (its _First at
 // +4, 16-byte elements) through the inlined std::vector<Column>::resize(_N, _X),
 // with _X the default-constructed Column temporary in this frame (which is why
 // its destructor runs here and why the function pops 4 argument bytes). The
@@ -30,13 +30,13 @@ struct Elem_00434360 {
 
 typedef std::vector<Elem_00434360> Column_00433270;
 
-class Class_00433270 : public std::vector<Column_00433270> {
+class LosTables : public std::vector<Column_00433270> {
 public:
     void FUN_00433270(short n);
 };
 
 // FUNCTION: 0x433270
-void Class_00433270::FUN_00433270(short n)
+void LosTables::FUN_00433270(short n)
 {
     Column_00433270 x;
     resize(n, x);

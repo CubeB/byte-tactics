@@ -8,7 +8,7 @@ public:
     void FUN_004e0520(int param);
 };
 
-class Class_004e05c0 {
+class MemoryStatusDialog {
 public:
     void CreateMemoryStatusDialog();
 };
@@ -49,5 +49,5 @@ Class_004e0570::Class_004e0570()
     flag_78 = 0;
     time = GetTimeSeconds();
     ((Class_004e0520*)this)->FUN_004e0520(1);
-    ((Class_004e05c0*)this)->CreateMemoryStatusDialog();
+    ((MemoryStatusDialog*)this)->CreateMemoryStatusDialog();
 }

@@ -57,7 +57,7 @@ struct Holder_004a53c0 {
     Entry_004a53c0* entries;
 };
 
-struct Class_004a53c0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a53c0* holder;
 };
@@ -97,7 +97,7 @@ static inline int Measure_004a53c0(char* text)
 }
 
 // FUNCTION: 0x4a53c0
-void __stdcall FUN_004a53c0(Class_004a53c0* obj, int index)
+void __stdcall FUN_004a53c0(Dialog* obj, int index)
 {
     Entry_004a53c0* entries = obj->holder->entries;
     Entry_004a53c0* entry = &entries[index];

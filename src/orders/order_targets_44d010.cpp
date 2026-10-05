@@ -2,18 +2,10 @@
 // Constructor of a Class_0044ce20 subclass that reads a 16-byte header from
 // a named entry of an open file and keeps its last three dwords.
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4c80 {
-public:
     int ReadBox(void* buf, int size);
 };
 
@@ -48,11 +40,11 @@ class Class_0044d010 : public Class_0044ce20 {
 public:
     Vec3_0044d010 v;                   // +0x8
 
-    Class_0044d010(int owner, Class_004b4ba0* file, char* name);
+    Class_0044d010(int owner, HapiBank* file, char* name);
 };
 
 // FUNCTION: 0x44d010
-Class_0044d010::Class_0044d010(int owner, Class_004b4ba0* file, char* name)
+Class_0044d010::Class_0044d010(int owner, HapiBank* file, char* name)
     : Class_0044ce20(owner)
 {
     vtable = DAT_004fd328;
@@ -63,9 +55,9 @@ Class_0044d010::Class_0044d010(int owner, Class_004b4ba0* file, char* name)
         bad = 1;
     if (!bad) {
         file->OpenNamedBox(name);
-        ((Class_004b4c10*)file)->SeekBox(0);
+        ((HapiBank*)file)->SeekBox(0);
         Header_0044d010 hdr;
-        if (((Class_004b4c80*)file)->ReadBox(&hdr, 16) == 16) {
+        if (((HapiBank*)file)->ReadBox(&hdr, 16) == 16) {
             v.x = hdr.v.x;
             v.y = hdr.v.y;
             v.z = hdr.v.z;

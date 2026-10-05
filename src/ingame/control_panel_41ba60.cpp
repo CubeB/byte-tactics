@@ -55,14 +55,14 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_004011c0 {
+class UnitResources {
 public:
     int FUN_004011c0(float dx, float dy);
 };
 
 struct Builder_0041ba60 {
     char unknown_0[0xbc];
-    Class_004011c0 store;              // +0xbc
+    UnitResources store;               // +0xbc
 };
 
 extern Game* g_game;

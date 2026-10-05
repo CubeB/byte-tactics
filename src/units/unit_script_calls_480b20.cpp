@@ -21,6 +21,7 @@ struct Unit {
     unsigned char bit1 : 1;             // +0x10f bit 1
     unsigned char bit2 : 1;             // +0x10f bit 2
     unsigned char bit3 : 1;             // +0x10f bit 3
+    void SetStateBits(int which, int on);
 };
 
 struct Data_00480b20 {
@@ -30,11 +31,6 @@ struct Data_00480b20 {
     Unit* unit;                         // +0xc
 };
 #pragma pack(pop)
-
-class Class_0048b090 {
-public:
-    void SetStateBits(int which, int on);
-};
 
 class UnitScript {
 public:
@@ -52,7 +48,7 @@ void UnitScript::SetUnitValue(int which, int value)
     Unit* unit = data->unit;
     switch (which) {
     case 1:
-        ((Class_0048b090*)unit)->SetStateBits(1, value);
+        ((Unit*)unit)->SetStateBits(1, value);
         break;
     case 5:
         unit->bit0 = value;
@@ -67,7 +63,7 @@ void UnitScript::SetUnitValue(int which, int value)
         unit->bit3 = value;
         break;
     case 20:
-        ((Class_0048b090*)unit)->SetStateBits(2, value);
+        ((Unit*)unit)->SetStateBits(2, value);
         break;
     }
     unit->dirty = true;

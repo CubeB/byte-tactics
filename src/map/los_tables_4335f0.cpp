@@ -27,13 +27,13 @@ struct Elem_00434360 {
     std::vector<Elem_00434020> v;      // +0x0
 };
 
-class Class_004335f0 : public std::vector<Elem_00434360> {
+class LosTable : public std::vector<Elem_00434360> {
 public:
     void FUN_004335f0(short n);
 };
 
 // FUNCTION: 0x4335f0
-void Class_004335f0::FUN_004335f0(short n)
+void LosTable::FUN_004335f0(short n)
 {
     Elem_00434360 x;
     resize(n * 4, x);

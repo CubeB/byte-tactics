@@ -12,7 +12,7 @@ struct Player { char pad[0x108]; unsigned char allied[0x3e]; unsigned char index
 struct Def { char pad[0x156]; int builder; char pad15a[0x241-0x15a]; unsigned flags; };
 struct Unit { char pad[0x6a]; int x,y,z; char pad76[0x92-0x76]; Def* def; Player* owner; char pad9a[12]; unsigned short id; char pada8[0x104-0xa8]; float progress; char pad108[6]; unsigned char active; char pad10f; unsigned flags; int pad114; unsigned char PlayerIndex() const { return owner->index; } int Ready() const { return (flags&0x10000000) && !(flags&0x4000); } };
 struct Game { char pad[0x14357]; Unit* units; Unit* end; };
-class Class_0040aa40 {
+class PlayerAI {
 public:
     Player* owner; char pad4;
     List<Unit*> visible, known, factories;
@@ -28,7 +28,7 @@ public:
 extern Game* g_game;
 int __stdcall FUN_00465ac0(Player*,Unit*);
 // FUNCTION: 0x40aa40
-void Class_0040aa40::RefreshUnitLists()
+void PlayerAI::RefreshUnitLists()
 {
     visible.Clear();
     factories.Clear();

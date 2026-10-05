@@ -12,7 +12,7 @@ struct DisplaySurface {
     IDirectDrawPalette* palette;        // +0x10
 };
 
-class Class_0047c2a0 {
+class MoviePlayer {
 public:
     PaletteSource* source;              // +0x00
     char unknown_4[0xc];
@@ -23,7 +23,7 @@ public:
 };
 
 // FUNCTION: 0x47c2a0
-void Class_0047c2a0::UpdatePalette(void)
+void MoviePlayer::UpdatePalette(void)
 {
     unsigned char* src = source->rgb[0];
     for (int i = 0; i < 256; i++) {

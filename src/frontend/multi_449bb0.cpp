@@ -24,7 +24,7 @@
 //   not matter. ta_protos.h before the externs instead wraps g_game too.
 // - Clashes with the headers, resolved by using the headers' declarations:
 //   Class_00435920, Class_00435c40, Class_00435d30, Class_004373a0 and
-//   Class_0046e000 are the header's classes; FUN_004455b0 is the header's
+//   UnitSync are the header's classes; FUN_004455b0 is the header's
 //   `__cdecl` one (the same call, it has no parameters) and HandleBattleRoomClick the
 //   header's, so `layer->handler = HandleBattleRoomClick` has one candidate. The
 //   other prototypes stay, since they take this file's views (the header's
@@ -396,9 +396,9 @@ void OpenBattleRoom()
     }
     isHost = g_game->players[g_game->localPlayer].info->f97_0;
     CreateUnitSync(isHost);
-    FUN_004a0570(&g_game->gui, "START", ((Class_0046e000*)g_game->net)->AllPlayersSynced());
+    FUN_004a0570(&g_game->gui, "START", ((UnitSync*)g_game->net)->AllPlayersSynced());
     FUN_004a1250(&g_game->gui, "START",
-                 host && FUN_00456760() && ((Class_0046e000*)g_game->net)->AllPlayersSynced() ? 0 : 1);
+                 host && FUN_00456760() && ((UnitSync*)g_game->net)->AllPlayersSynced() ? 0 : 1);
     FUN_004a1250(&g_game->gui, "RESTRICTIONS", 0);
     FUN_004a32a0(&g_game->gui, "OUTPUT", g_game->chatter, 0, 0);
     {

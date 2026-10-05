@@ -1,7 +1,7 @@
 // Decompiled by Haiku. Names are provisional.
 
 #pragma pack(push, 1)
-struct Class_00463c60
+struct Player
 {
     char unknown_0[0x27];
     int field_27;
@@ -12,7 +12,7 @@ struct Class_00463c60
 #pragma pack(pop)
 
 // FUNCTION: 0x463c60
-void Class_00463c60::SetType(int param_1)
+void Player::SetType(int param_1)
 {
     field_73 = (char)param_1;
     if (param_1 != 3) {

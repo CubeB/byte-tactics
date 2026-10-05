@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Slot of Class_004743a0 (same 0x3c-byte record family as 0x474df0 and
+// Slot of ThrustParticles (same 0x3c-byte record family as 0x474df0 and
 // 0x4751c0): reserves room for the frames between g_game->frame and field_4,
 // then appends one record holding the three positions at +0x20/+0x2c/+0x38,
 // a pointer out of the game structure and field_4, and pushes the clock to
@@ -53,7 +53,7 @@ public:
     void* FUN_00475bd0(Record_004743a0* at, unsigned int n, const Record_004743a0& x);
 };
 
-class Class_004743a0 {
+class ThrustParticles {
 public:
     virtual void FUN_004743a0();                  // slot 0
     int field_4;                                  // +0x04
@@ -69,7 +69,7 @@ public:
 // position and the address of the vector into ebp and esi, in that order,
 // before the loop.
 // FUNCTION: 0x4743a0
-void Class_004743a0::FUN_004743a0()
+void ThrustParticles::FUN_004743a0()
 {
     int extra = field_4 - g_game->frame + 1;
     if (extra > 0) {

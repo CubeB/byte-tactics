@@ -41,17 +41,7 @@ public:
     void FUN_00439e80(int ticks);
 };
 
-class Class_004898b0 {
-public:
-    void ClaimWeapons(int param);
-};
-
-class Class_0048b090 {
-public:
-    void SetStateBits(int which, int on);
-};
-
-class Class_004b0bc0 {
+class CobScript {
 public:
     int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
 };
@@ -63,7 +53,7 @@ public:
 };
 
 #pragma pack(push, 1)
-struct UnitType {
+struct UnitDef {
     char unknown_0[0x14a];
     Point16 footprint;                 // +0x14a
     char unknown_14e[0x15e - 0x14e];
@@ -88,9 +78,9 @@ struct Unit {
     char unknown_0[0x6a];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
-    UnitType* type;                    // +0x92
+    UnitDef* type;                     // +0x92
     char unknown_96[0x9a - 0x96];
-    Class_004b0bc0* script;            // +0x9a
+    CobScript* script;                 // +0x9a
     char unknown_9e[0xb0 - 0x9e];
     int repairTime;                    // +0xb0
     char unknown_b4[0xd4 - 0xb4];
@@ -115,6 +105,8 @@ struct Unit {
             unsigned int unknown_22 : 10;
         } bits;
     };
+    void ClaimWeapons(int param);
+    void SetStateBits(int which, int on);
 };
 
 struct Order {
@@ -131,7 +123,7 @@ struct Order {
 
 struct Game {
     char unknown_0[0x1439b];
-    UnitType* unitTypes;               // +0x1439b
+    UnitDef* unitTypes;                // +0x1439b
     char unknown_1439f[0x37eee - 0x1439f];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x38a47 - 0x37ef2];
@@ -147,7 +139,7 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target);
 void __stdcall DamageUnit(Unit* unit, Unit* target, int n, int kind, int flag);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
 Vec3 __stdcall GetPiecePosition(Unit* unit, int piece);
-int __stdcall FUN_0047db70(UnitType* type, short a, Point16 cell, int b);
+int __stdcall FUN_0047db70(UnitDef* type, short a, Point16 cell, int b);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec3 pos, int a, int b, int c);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* builder, char piece, char p4);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, int flags, int param_6, int param_7);
@@ -171,7 +163,7 @@ int __stdcall SelfRepairOrder(Unit* unit, Order* order, int unused)
         if (!(order->target.owner->type->flags & 0x40))
             return 7;
         if (order->target.owner->buildLeft == 0.0f && (unit->flags10e & 1)) {
-            ((Class_004898b0*)unit)->ClaimWeapons(3);
+            ((Unit*)unit)->ClaimWeapons(3);
             return 1;
         }
         return 8;
@@ -244,7 +236,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
             FinishConstruction(unit, order->target.owner);
             DamageUnit(unit, order->target.owner, 30000, 9, 0);
         }
-        ((Class_0048b090*)unit)->SetStateBits(9, 0);
+        ((Unit*)unit)->SetStateBits(9, 0);
         FUN_0041c150(unit);
         return 5;
     }
@@ -259,10 +251,10 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         order->target.SetUnit(0);
         if (unit->flags & 0x20000000) {
             if (order->count <= 0) {
-                ((Class_0048b090*)unit)->SetStateBits(1, 0);
+                ((Unit*)unit)->SetStateBits(1, 0);
                 return 5;
             }
-            ((Class_0048b090*)unit)->SetStateBits(1, 1);
+            ((Unit*)unit)->SetStateBits(1, 1);
             return 1;
         }
         break;
@@ -272,7 +264,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         int piece = -1;
         unit->script->QueryScript("QueryBuildInfo", &piece, 0, 0, 0);
         order->pos = GetPiecePosition(unit, piece);
-        UnitType* ut = &g_game->unitTypes[order->unitType];
+        UnitDef* ut = &g_game->unitTypes[order->unitType];
         Point16 cell = GridCell(order->pos, ut->footprint);
         if (!FUN_0047db70(ut, 0, cell, unit->flags & 3)) {
             ((Class_00439e80*)order)->FUN_00439e80(15);
@@ -291,7 +283,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         order->target.owner->bits.bits18 = unit->bits.bits18;
         order->target.owner->bits.bits20 = unit->bits.bits20;
         AddOrder("getbuilt", 1, order->target.owner, unit, 0, 0, 0);
-        ((Class_0048b090*)unit)->SetStateBits(8, 1);
+        ((Unit*)unit)->SetStateBits(8, 1);
         FUN_0041c150(unit);
         return 1;
     }
@@ -320,7 +312,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         break;
     case 4:
         QueueUnitSpeech(unit, 8, 0);
-        ((Class_0048b090*)unit)->SetStateBits(8, 0);
+        ((Unit*)unit)->SetStateBits(8, 0);
         FinishConstruction(unit, order->target.owner);
         order->target.SetUnit(0);
         order->count--;

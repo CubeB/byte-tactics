@@ -92,28 +92,12 @@ struct SaveDesc_0043a420 {             // the 0x3a-byte snapshot, read raw
 
 // Every file method is a slot of the same parsed-text object, but each is
 // named after its own address, so one class apiece.
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(const char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4c80 {
-public:
     int ReadBox(void* buf, int len);
-};
-
-class Class_004b48a0 {
-public:
     char* GetStringItem(const char* name, char* def);
-};
-
-class Class_004b48f0 {
-public:
     int HasItem(const char* key);
 };
 
@@ -144,31 +128,31 @@ public:
 class Class_0044de80 {
 public:
     char pad[0x36];
-    Class_0044de80(int owner, Class_004b4ba0* file, char* name);
+    Class_0044de80(int owner, HapiBank* file, char* name);
 };
 
 class Class_0044e740 {
 public:
     char pad[0x2c];
-    Class_0044e740(int owner, Class_004b4ba0* file, char* name);
+    Class_0044e740(int owner, HapiBank* file, char* name);
 };
 
 class Class_0044d010 {
 public:
     char pad[0x14];
-    Class_0044d010(int owner, Class_004b4ba0* file, char* name);
+    Class_0044d010(int owner, HapiBank* file, char* name);
 };
 
 class Class_0044d470 {
 public:
     char pad[0x1c];
-    Class_0044d470(int owner, Class_004b4ba0* file, char* name);
+    Class_0044d470(int owner, HapiBank* file, char* name);
 };
 
 class Class_0044d930 {
 public:
     char pad[0x18];
-    Class_0044d930(int owner, Class_004b4ba0* file, char* name);
+    Class_0044d930(int owner, HapiBank* file, char* name);
 };
 
 class Class_0043a1e0 {
@@ -206,18 +190,18 @@ public:
     int field_4e;                      // +0x4e
     void* attached;                    // +0x52
 
-    Class_0043a1f0(Unit* punit, Class_004b4ba0* file, char* name);
+    Class_0043a1f0(Unit* punit, HapiBank* file, char* name);
 };
 #pragma pack(pop)
 
 // The real resolver at 0x43a360 (matched in its own file), defined here without
 // its annotation as in the original file, which /Ob2 inlines into the constructor.
-short __stdcall ResolveUnitTypeKey(Class_004b48f0* file, unsigned short id)
+short __stdcall ResolveUnitTypeKey(HapiBank* file, unsigned short id)
 {
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);
     if (file->HasItem(key))
-        return FindUnitTypeId(((Class_004b48a0*)file)->GetStringItem(key, 0));
+        return FindUnitTypeId(((HapiBank*)file)->GetStringItem(key, 0));
     int i, n = 0;
     unsigned short k = 0;
     for (i = 1; i < g_game->unitTypeCount; i++, n++) {
@@ -254,7 +238,7 @@ static unsigned char KindByIndex_0043a420(unsigned char want)
 }
 
 // FUNCTION: 0x43a420
-Class_0043a1f0::Class_0043a1f0(Unit* punit, Class_004b4ba0* file, char* name)
+Class_0043a1f0::Class_0043a1f0(Unit* punit, HapiBank* file, char* name)
     : link(0, 0)
 {
     link.SetValue(this);
@@ -270,15 +254,15 @@ Class_0043a1f0::Class_0043a1f0(Unit* punit, Class_004b4ba0* file, char* name)
         return;
 
     file->OpenNamedBox(name);
-    ((Class_004b4c10*)file)->SeekBox(0);
+    ((HapiBank*)file)->SeekBox(0);
     SaveDesc_0043a420 desc;
-    if (((Class_004b4c80*)file)->ReadBox(&desc, 0x3a) != 0x3a)
+    if (((HapiBank*)file)->ReadBox(&desc, 0x3a) != 0x3a)
         return;
 
     char buf1[0x80];
     sprintf(buf1, "%s%s", name, "_name");
     {
-        char* s = ((Class_004b48a0*)file)->GetStringItem(buf1, 0);
+        char* s = ((HapiBank*)file)->GetStringItem(buf1, 0);
         if (s != 0)
             desc.kind = KindByName_0043a420(s);
         else
@@ -314,7 +298,7 @@ Class_0043a1f0::Class_0043a1f0(Unit* punit, Class_004b4ba0* file, char* name)
     char* sname = DAT_00512344[desc.kind].name;
     if (strcmp(sname, "MobileBuild") == 0 || strcmp(sname, "VTOL_MobileBuild") == 0 ||
         strcmp(sname, "BuildingBuild") == 0) {
-        field_36 = (unsigned short)ResolveUnitTypeKey((Class_004b48f0*)file, (unsigned short)field_36);
+        field_36 = (unsigned short)ResolveUnitTypeKey((HapiBank*)file, (unsigned short)field_36);
     }
 
     char buf3[0x20];

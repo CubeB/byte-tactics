@@ -116,33 +116,23 @@
 
 #pragma pack(push, 1)
 
-class Class_004c2ea0 {
+class TdfFile {
   public:
     int field_0;
     void* current;
     int field_8;
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-  public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* file);
-};
-
-class Class_004c3e10 {
-  public:
     void ResetCurrentRecord();
-};
-
-class Class_004c3410 {
-  public:
     int SelectRecord(char* name);
-};
-
-class Class_004c3240 {
-  public:
     void Unload();
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    int GetCurrentRecord();
+    void StripComments(char* text);
+    int SelectRecordAt(int index);
+    void SetCurrentRecord(int record);
+    void LoadBuffer(char* buffer, int size, int flags, char* name);
 };
 
 class TdfRecord {
@@ -201,7 +191,7 @@ union UType_0042b370_flags {
     } bits;
 };
 
-class Class_0042b370 {
+class UnitDef {
   public:
     char unknown_0[0x20];
     char name[0x60];
@@ -225,7 +215,7 @@ class Class_0042b370 {
     UType_0042b370_flags flags;
     char unknown_245[0x249 - 0x245];
 
-    Class_0042b370& operator=(const Class_0042b370& other);
+    UnitDef& operator=(const UnitDef& other);
 };
 
 struct MovementClass {
@@ -265,7 +255,7 @@ struct Game {
     };
     int field_14393;
     int field_14397;
-    Class_0042b370* field_1439b;
+    UnitDef* field_1439b;
     char unknown_1439f[0x37e1f - 0x1439f];
     int field_37e1f;
     int field_37e23;
@@ -278,7 +268,7 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-void __stdcall LoadUnitFbi(char* path, Class_0042b370* type);
+void __stdcall LoadUnitFbi(char* path, UnitDef* type);
 void __stdcall FUN_0042a140(void* obj, char* name);
 int __stdcall HAPI_FileLengthByName(char* path);
 void* __stdcall Load3do(char* path);
@@ -307,9 +297,9 @@ void LoadUnitTypes() {
     char valbuf[256];
 
     {
-        Class_004c2ea0 parser;
+        TdfFile parser;
         BuildDataPath(path, "gamedata", "moveinfo", "TDF");
-        if (!((Class_004c2f60*)&parser)->LoadFile(path))
+        if (!((TdfFile*)&parser)->LoadFile(path))
             FatalError("Can't load MOVEINFO.TDF");
 
         int i = 0;
@@ -317,8 +307,8 @@ void LoadUnitTypes() {
         MovementClass* cls_end = &MovementClassTable::g_movementClasses.entries[32];
         do {
             sprintf(classbuf, "CLASS%d", i);
-            ((Class_004c3e10*)&parser)->ResetCurrentRecord();
-            if (((Class_004c3410*)&parser)->SelectRecord(classbuf)) {
+            ((TdfFile*)&parser)->ResetCurrentRecord();
+            if (((TdfFile*)&parser)->SelectRecord(classbuf)) {
                 ((TdfRecord*)parser.current)
                     ->GetFieldString(classbuf, "name", 100, DAT_005119b8);
                 cls->field_0 = (int*)GameStrdup(classbuf);
@@ -327,7 +317,7 @@ void LoadUnitTypes() {
             cls++;
             i++;
         } while ((int)cls < (int)cls_end);
-        ((Class_004c3240*)&parser)->Unload();
+        ((TdfFile*)&parser)->Unload();
     }
 
     Class_00458160* obj = (Class_00458160*)operator new(0x14);
@@ -351,11 +341,11 @@ void LoadUnitTypes() {
 
     ProtectBlockReadWrite(g_game->field_1439b);
 
-    Class_0042b370* end = g_game->field_1439b + g_game->field_1438f;
-    Class_0042b370* start = g_game->field_1439b + 1;
+    UnitDef* end = g_game->field_1439b + g_game->field_1438f;
+    UnitDef* start = g_game->field_1439b + 1;
 
-    Class_0042b370* p = start;
-    Class_0042b370* d;
+    UnitDef* p = start;
+    UnitDef* d;
     if (p != end) {
         while (p != end && !(~(p->flags.value) & 0x800000))
             p++;
@@ -363,8 +353,8 @@ void LoadUnitTypes() {
     if (p == end) {
         d = p;
     } else {
-        Class_0042b370* w = p;
-        for (Class_0042b370* s = p + 1; s != end; s++) {
+        UnitDef* w = p;
+        for (UnitDef* s = p + 1; s != end; s++) {
             if (!(~(s->flags.value) & 0x800000)) {
                 *w++ = *s;
             }
@@ -374,17 +364,17 @@ void LoadUnitTypes() {
     g_game->field_1438f = (int)(d - g_game->field_1439b);
 
     start = g_game->field_1439b + 1;
-    Class_0042b370* last = d;
+    UnitDef* last = d;
     if (last - start <= 0x10) {
         FUN_00432fb0(start, last, (void*)CompareUnitTypeNames, 0);
     } else {
         FUN_00432d40(start, last, (void*)CompareUnitTypeNames, 0);
-        Class_0042b370* q = start + 0x10;
+        UnitDef* q = start + 0x10;
         FUN_00432fb0(start, q, (void*)CompareUnitTypeNames, 0);
         for (; q != last; q++) {
-            Class_0042b370 tmp = *q;
-            Class_0042b370* r = q - 1;
-            Class_0042b370* w = q;
+            UnitDef tmp = *q;
+            UnitDef* r = q - 1;
+            UnitDef* w = q;
             while (_strcmpi(tmp.name, r->name) < 0) {
                 *w = *r;
                 w = r;
@@ -415,7 +405,7 @@ void LoadUnitTypes() {
     g_game->field_14377 = (void**)FUN_004d83b0("MODEL PTRS", g_game->field_1438f * 4);
 
     for (unsigned short u = 1; u < g_game->field_1438f; u++) {
-        Class_0042b370* type = &g_game->field_1439b[u];
+        UnitDef* type = &g_game->field_1439b[u];
         Game* gp = g_game;
         g_game->field_38d71 = (unsigned char)((u * 100) / gp->field_1438f);
         type->field_21e = u;
@@ -471,20 +461,20 @@ void LoadUnitTypes() {
 
     ProtectBlockReadOnly(g_game->field_14377);
 
-    Class_004c2ea0 parser2;
+    TdfFile parser2;
     BuildDataPath(path, "gamedata", "sidedata", "TDF");
-    if (!((Class_004c2f60*)&parser2)->LoadFile(path)) {
+    if (!((TdfFile*)&parser2)->LoadFile(path)) {
         FatalError("Can't load GAMEDATA.TDF");
     } else {
         short* list = (short*)FUN_004d83b0("TEMP UTYPE LIST", 0x3c);
         for (unsigned short s = 1; s < g_game->field_1438f; s++) {
-            Class_0042b370* type = &g_game->field_1439b[s];
+            UnitDef* type = &g_game->field_1439b[s];
             type->field_152 = 0;
             type->field_156 = 0;
             if (type->flags.bits.canbuild) {
-                ((Class_004c3e10*)&parser2)->ResetCurrentRecord();
-                if (((Class_004c3410*)&parser2)->SelectRecord("CANBUILD") &&
-                    ((Class_004c3410*)&parser2)->SelectRecord(type->name)) {
+                ((TdfFile*)&parser2)->ResetCurrentRecord();
+                if (((TdfFile*)&parser2)->SelectRecord("CANBUILD") &&
+                    ((TdfFile*)&parser2)->SelectRecord(type->name)) {
                     int count = 0;
                     int k = 1;
                     sprintf(objpath, "canbuild%d", k);
@@ -506,7 +496,7 @@ void LoadUnitTypes() {
             }
         }
         FUN_004d85a0(list);
-        ((Class_004c3240*)&parser2)->Unload();
+        ((TdfFile*)&parser2)->Unload();
     }
 
     g_game->field_38d71 = 100;

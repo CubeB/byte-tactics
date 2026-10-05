@@ -20,8 +20,8 @@
 //    local: that drops one live-across-call variable, so the hoisted name temp lands
 //    in EDI (the `lea edi,[esi-0x221]` in the preheader) instead of competing for EBX.
 // Note 0x4c48c0 and 0x4c46c0 are two different classes in data/symbols.csv
-// (TdfRecord::GetFieldString and Class_004c46c0::GetFieldInt), so `current`
-// is a TdfRecord* and the int-arg calls cast it to Class_004c46c0*.
+// (TdfRecord::GetFieldString and TdfRecord::GetFieldInt), so `current`
+// is a TdfRecord* and the int-arg calls cast it to TdfRecord*.
 
 #include <math.h>
 #include <vector>
@@ -43,35 +43,19 @@ public:
 class TdfRecord {
 public:
     int GetFieldString(char* dst, const char* key, int size, char* def);
-};
-
-class Class_004c46c0 {
-public:
     int GetFieldInt(const char* name, int def);
 };
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;                       // +0x0
     TdfRecord* current;                // +0x4
     int field_8;                       // +0x8
 
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* file);
-};
-
-class Class_004c3e10 {
-public:
     void ResetCurrentRecord();
-};
-
-class Class_004c3490 {
-public:
     int SelectRecordAt(int index);
 };
 
@@ -141,13 +125,13 @@ void LoadDownloadMenus()
     g_game->buildLists = (BuildList_0042dcf0*)FUN_004d83b0("DOWNLOADMENU", n * 0xbd);
 
     for (i = 0; i < n; i++) {
-        Class_004c2ea0 parser;
+        TdfFile parser;
         BuildDataPath(path, "download", files[i].p, "TDF");
-        if (((Class_004c2f60*)&parser)->LoadFile(path)) {
+        if (((TdfFile*)&parser)->LoadFile(path)) {
             int j = 0;
             while (1) {
-                ((Class_004c3e10*)&parser)->ResetCurrentRecord();
-                if (!((Class_004c3490*)&parser)->SelectRecordAt(j))
+                ((TdfFile*)&parser)->ResetCurrentRecord();
+                if (!((TdfFile*)&parser)->SelectRecordAt(j))
                     break;
                 g_game->buildLists[i].count = j + 1;
                 char* buf = unitbuf;
@@ -155,8 +139,8 @@ void LoadDownloadMenus()
                     for (unsigned short u = 0; u < g_game->unitDefCount; u++) {
                         if (_strcmpi(g_game->unitDefs[u].name, buf) == 0) {
                             g_game->buildLists[i].entries[j].typeId = u;
-                            g_game->buildLists[i].entries[j].page = (unsigned char)((Class_004c46c0*)parser.current)->GetFieldInt("MENU", 0);
-                            g_game->buildLists[i].entries[j].slot = (unsigned char)((Class_004c46c0*)parser.current)->GetFieldInt("BUTTON", 0);
+                            g_game->buildLists[i].entries[j].page = (unsigned char)((TdfRecord*)parser.current)->GetFieldInt("MENU", 0);
+                            g_game->buildLists[i].entries[j].slot = (unsigned char)((TdfRecord*)parser.current)->GetFieldInt("BUTTON", 0);
                             parser.current->GetFieldString(g_game->buildLists[i].entries[j].name, "UNITNAME", 0x20, DAT_005119b8);
                             break;
                         }

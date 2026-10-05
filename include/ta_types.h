@@ -127,7 +127,7 @@ class Class_00401110;
 class Class_00401180;
 class Class_004011c0;
 class Class_00405d90;
-class Class_00406f50;
+class SquadManager;
 class Class_004071f0;
 class Class_00407560;
 class Class_00407930;
@@ -202,16 +202,16 @@ class Class_00436c30;
 class Class_00437280;
 class Class_00437300;
 class Class_004373a0;
-class Class_00437580;
+class MapCache;
 class Class_00437800;
-class Class_00437820;
+class MapCacheEntry;
 class Class_004379a0;
 class Class_004379a0_2;
 class Class_004379b0;
 class Class_00437a20;
 class CMemoryCache;
 class Class_00437c80;
-class Class_00438320;
+class MeteorParams;
 class Class_00438760;
 class Class_00438760_2;
 struct Class_00438870;
@@ -311,7 +311,7 @@ class Class_0044f650;
 class Class_0044f8a0;
 class Class_0044f940;
 class Class_0044f9c0_2;
-class Class_0044fc10;
+class NetCondenser;
 class Class_0044fda0;
 class Class_00451fd0;
 struct Class_00452370;
@@ -335,7 +335,7 @@ struct Class_004615f0;
 class Class_00461620;
 class Class_00461630;
 class Class_00461750;
-class Class_00461820;
+class PacketManager;
 class Class_00461860;
 class Class_004618a0;
 class Class_00461900;
@@ -368,10 +368,10 @@ struct Class_00463730;
 class Class_00463be0;
 class Class_00463c40;
 struct Class_00464ac0;
-class Class_00467840;
-class Class_00467960;
-class Class_00467980;
-struct Class_0046a400;
+class DetectionVisitor;
+class RadarJamVisitor;
+class SonarJamVisitor;
+struct FrameTimers;
 struct Class_0046c620;
 class Class_0046cc10;
 class Class_0046cec0;
@@ -382,7 +382,7 @@ class Class_0046d630;
 class Class_0046d6c0;
 class Class_0046d860;
 class UnitSyncPlayer;
-class Class_0046e000;
+class UnitSync;
 class Class_0046e160;
 class Class_0046e330;
 class Class_0046e3c0;
@@ -480,7 +480,7 @@ class Class_0047db20;
 class Class_0047f960;
 class Class_0047f990;
 class Class_0047fa30;
-class Class_0047fca0;
+class SpeechQueue;
 class Class_0047ffa0;
 class Class_00480020;
 class Class_004800c0;
@@ -503,7 +503,7 @@ struct Class_00482110;
 class UnitScript;
 class Class_00488c50;
 class UnitTypeSet;
-struct Class_00488e70;
+struct UnitType;
 class Class_00489240;
 class UnitCategory;
 class Class_00489540;
@@ -611,7 +611,7 @@ struct Class_004ab040;
 struct Class_004ab2b0;
 struct Class_004ac610;
 struct Class_004acc70;
-struct Class_004af5b0;
+struct FileRequester;
 struct Class_004afc60;
 struct Class_004aff00;
 class CobScript;
@@ -738,7 +738,7 @@ class Class_004cf0b0;
 struct Class_004cf150;
 class Class_004cf180;
 class Class_004cf210;
-class Class_004cf220;
+class Sound;
 class Class_004cf230;
 class Class_004cf370;
 class Class_004cf540;
@@ -763,23 +763,23 @@ class Class_004d06c0;
 class Class_004d0720;
 class Class_004d07f0;
 class Class_004d0910;
-class Class_004d87f0;
+class BlockInfo;
 class Class_004d87f0_2;
 class Class_004d8820;
 class Class_004d8850;
-class Class_004d8870;
+class TraceRecord;
 class Class_004d88d0;
-class Class_004d89b0;
+class CallSite;
 struct Class_004d8b30;
 class Class_004d8b60;
 class Class_004d8bd0;
 class Class_004d8c00;
 class Class_004d8d40;
-class Class_004d9c60;
+class StackTrace;
 class Class_004d9ca0;
 class Class_004d9fe0;
 class Class_004da040;
-class Class_004db000;
+class FreeBlockMap;
 class Class_004db450;
 class Class_004dbd00;
 class Class_004dbd20;
@@ -828,10 +828,10 @@ class Class_004e0b90;
 class MappedFile;
 class Class_004e1590;
 class Class_004e1650_2;
-class Class_004e17c0;
+class NameTable;
 class Class_004e18c0;
 class Class_004e1990;
-class Class_004e1a30;
+class NameKey;
 class Class_004e1d20;
 class Class_004e1d60;
 class Class_004e1e30;
@@ -1486,7 +1486,7 @@ struct Name_0046c620;
 struct Name_004866d0;
 struct Name_0048d630;
 struct Named_004c4450;
-class Net;
+class Mission;
 struct Net2_4517b0;
 struct Net_00443100;
 struct Net_004c9920;
@@ -1750,7 +1750,7 @@ struct PlayerFlags_497180;
 struct PlayerGrid;
 struct PlayerInfo_00466dc0;
 struct PlayerInfo_0046dad0;
-class PlayerRef;
+class UnitResources;
 struct PlayerRes_00401360;
 struct PlayerSlots_00497f40;
 struct Player_00407ae0;
@@ -2143,14 +2143,14 @@ public:
     char unknown_0[1];
 };
 
-class PlayerRef {  // 0x34 bytes, 10 views
+class UnitResources {  // 0x34 bytes, 10 views
 public:
     int unknown[12];  // +0x0
     Player* store;  // +0x30
-    int FUN_00401180(PlayerRef*, float);
-    int SpendMetal(float);
+    int FUN_00401180(UnitResources*, float);
     int SpendEnergy(float);
-    int SpendMetalAndEnergy(float, float);
+    int SpendMetal(float);
+    int SpendEnergyAndMetal(float, float);
     void Reset(unsigned char);
     int FUN_004011c0(float, float);
 };
@@ -2973,7 +2973,7 @@ public:
     int GetIntArg(int, int);
 };
 
-class Class_00406f50 {  // 0x1 bytes, 3 views
+class SquadManager {    // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
     void FUN_00406f50(Obj_00406f50*, int, int);
@@ -3106,7 +3106,7 @@ struct Player {  // 0x14b bytes, 312 views
     float height;  // +0xe0
     float share_metal;  // +0xe4
     float share_energy;  // +0xe8
-    PlayerRef* econ;  // +0xec
+    UnitResources* econ;  // +0xec
     int field_f0;  // +0xf0
     int ff4;  // +0xf4
     int ff8;  // +0xf8
@@ -4554,7 +4554,7 @@ struct Amount {  // 0x8 bytes, 2 views
     int required;  // +0x4
 };
 
-struct Class_004af5b0 {  // 0x248 bytes, 8 views
+struct FileRequester {   // 0x248 bytes, 8 views
     void* gui;  // +0x0
     Mode_00446310* modes;  // +0x4
     char* field_8;  // +0x8
@@ -5475,7 +5475,7 @@ struct MovementClass {   // 0x20 bytes, 9 views
     void ReadMoveInfo(Source_00440340*);
 };
 
-struct Class_00488e70 {  // 0x220 bytes, 2 views
+struct UnitType {        // 0x220 bytes, 2 views
     char unknown_0[542];
     unsigned short team;  // +0x21e
     void AddToCategories(char*);
@@ -5667,7 +5667,7 @@ struct SkirmishPlayer {  // 0x18 bytes, 2 views
     int color;  // +0x14
 };
 
-class Class_004cf220 {  // 0x1 bytes, 2 views
+class Sound {           // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
     int GetMaxBuffers(void);
@@ -5984,7 +5984,7 @@ struct Buffer_00434ff0 {  // 0x8 bytes, 3 views
     int size;  // +0x4
 };
 
-class Net {  // 0xec4 bytes, 139 views
+class Mission {  // 0xec4 bytes, 139 views
 public:
     int unknown_0;  // +0x0
     char campaign[256];  // +0x4
@@ -6022,8 +6022,8 @@ public:
     Buffer_00434ff0 buffer2;  // +0xdbc
     char memory[128];  // +0xdc4
     char numPlayers[128];  // +0xe44
-    Net(int);
-    ~Net(void);
+    Mission(int);
+    ~Mission(void);
     char* FUN_00435c30(int);
     char* GetName(int);
     int FUN_00435100(void);
@@ -6133,7 +6133,7 @@ public:
     void LoadMissionData(char*, Class_004c2ea0*);
 };
 
-class Class_00438320 {  // 0x30 bytes, 3 views
+class MeteorParams {    // 0x30 bytes, 3 views
 public:
     char name[32];  // +0x0
     int radius;  // +0x20
@@ -6214,19 +6214,19 @@ public:
     char* GetName(int);
 };
 
-class Class_00437580 {  // 0x4 bytes, 1 view
+class MapCache {        // 0x4 bytes, 1 view
 public:
     char unknown_0[4];
-    void FUN_00437580(Class_00437820*, int, Class_00437820&);
+    void FUN_00437580(MapCacheEntry*, int, MapCacheEntry&);
 };
 
-class Class_00437820 {  // 0x8 bytes, 3 views
+class MapCacheEntry {   // 0x8 bytes, 3 views
 public:
     Class_004c9390 handle;  // +0x0
     int field_4;  // +0x4
-    Class_00437820(Class_00437820&);
-    Class_00437820& operator=(Class_00437820&);
-    Class_00437820& SetChecksum(Class_004373a0*);
+    MapCacheEntry(MapCacheEntry&);
+    MapCacheEntry& operator=(MapCacheEntry&);
+    MapCacheEntry& SetChecksum(Class_004373a0*);
 };
 
 class Class_00437800 {  // 0x8 bytes, 1 view
@@ -7020,7 +7020,7 @@ struct Message_00447150 {  // 0x164a bytes, 1 view
     char unknown_0[5706];
 };
 
-class Class_0046e000 {  // 0x68 bytes, 3 views
+class UnitSync {        // 0x68 bytes, 3 views
 public:
     char unknown_0[20];
     Entry_0046e000* begin;  // +0x14
@@ -7952,7 +7952,7 @@ public:
     ~Class_0044f8a0(void);
 };
 
-class Class_0044fc10 {  // 0x25 bytes, 4 views
+class NetCondenser {    // 0x25 bytes, 4 views
 public:
     char unknown_0[16];
     char* sendBuffer;  // +0x10
@@ -8891,7 +8891,7 @@ struct Class_004615f0 {  // 0xb2fc bytes, 1 view
     void ClearSendBuffer(void);
 };
 
-class Class_00461820 {  // 0x1 bytes, 1 view
+class PacketManager {   // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
     void ReleaseChannel(int);
@@ -9403,7 +9403,7 @@ struct Player_00466dc0 {  // 0x97 bytes, 1 view
     unsigned char field_96;  // +0x96
 };
 
-class Class_00467840 {  // 0x18 bytes, 2 views
+class DetectionVisitor {  // 0x18 bytes, 2 views
 public:
     int field_4;  // +0x4
     int field_8;  // +0x8
@@ -9411,12 +9411,12 @@ public:
     virtual void FUN_00467840(Unit*);
 };
 
-class Class_00467960 {  // 0x4 bytes, 1 view
+class RadarJamVisitor {  // 0x4 bytes, 1 view
 public:
     virtual void FUN_00467960(Unit*);
 };
 
-class Class_00467980 {  // 0x4 bytes, 1 view
+class SonarJamVisitor {  // 0x4 bytes, 1 view
 public:
     virtual void FUN_00467980(Unit*);
 };
@@ -9489,7 +9489,7 @@ struct Player_004689c0 {  // 0x14b bytes, 1 view
     char unknown_11b[48];
 };
 
-struct Class_0046a400 {  // 0x50 bytes, 4 views
+struct FrameTimers {     // 0x50 bytes, 4 views
     int last;  // +0x0
     int total;  // +0x4
     int values[9];  // +0x8
@@ -9899,7 +9899,7 @@ struct Game {  // 0x3924d bytes, 904 views
     void* field_38d7b;  // +0x38d7b
     unsigned short flags_38d7f;  // +0x38d7f
     int playerCount;  // +0x38d81
-    Class_0046a400 timers;  // +0x38d85
+    FrameTimers timers;     // +0x38d85
     int field_38dd5;  // +0x38dd5
     Slot_0041e420 slots_38dd9[10];  // +0x38dd9
     char unknown_3901d[58];
@@ -9932,7 +9932,7 @@ struct Game {  // 0x3924d bytes, 904 views
     char field_391cf[24];  // +0x391cf
     char field_391e7;  // +0x391e7
     char field_391e8;  // +0x391e8
-    Net* net;  // +0x391e9
+    Mission* net;  // +0x391e9
     MissionConditions* list_391ed;  // +0x391ed
     int mode_391f1;  // +0x391f1
     void (__stdcall *handler)(void);  // +0x391f5
@@ -12043,7 +12043,7 @@ struct Entry_0047fca0 {  // 0x11 bytes, 1 view
     char field_10;  // +0x10
 };
 
-class Class_0047fca0 {  // 0xa5 bytes, 1 view
+class SpeechQueue {     // 0xa5 bytes, 1 view
 public:
     Entry_0047fca0 entries[9];  // +0x0
     int count;  // +0x99
@@ -18786,12 +18786,12 @@ public:
     Class_004d8820(void);
 };
 
-class Class_004d87f0 {  // 0xc bytes, 2 views
+class BlockInfo {       // 0xc bytes, 2 views
 public:
     int field_0;  // +0x0
     int field_4;  // +0x4
     int field_8;  // +0x8
-    Class_004d87f0(void);
+    BlockInfo(void);
 };
 
 class Class_004d8850 {  // 0x2c bytes, 3 views
@@ -18806,7 +18806,7 @@ struct Stack_004d89b0 {  // 0x3c bytes, 1 view
     int count;  // +0x38
 };
 
-class Class_004d89b0 {  // 0x80 bytes, 2 views
+class CallSite {        // 0x80 bytes, 2 views
 public:
     char name[64];  // +0x0
     int line;  // +0x40
@@ -18839,17 +18839,17 @@ public:
     void FUN_004d8b60(unsigned int);
 };
 
-class Class_004d8870 {  // 0x8c bytes, 2 views
+class TraceRecord {     // 0x8c bytes, 2 views
 public:
     char data[140];  // +0x0
-    Class_004d8870(void);
+    TraceRecord(void);
 };
 
-class Class_004d8bd0 : public Class_004d87f0 {  // 0x14c bytes, 1 view
+class Class_004d8bd0 : public BlockInfo {       // 0x14c bytes, 1 view
 public:
     char unknown_c[36];
-    Class_004d8870 member_30;  // +0x30
-    Class_004d8870 member_bc;  // +0xbc
+    TraceRecord member_30;     // +0x30
+    TraceRecord member_bc;     // +0xbc
     char unknown_148[4];
     Class_004d8bd0(void);
 };
@@ -18864,7 +18864,7 @@ class Class_004d8c00 {  // 0x149 bytes, 1 view
 public:
     char unknown_0[48];
     Class_004d88d0 field_30;  // +0x30
-    Class_004d8870 field_bc;  // +0xbc
+    TraceRecord field_bc;     // +0xbc
     char field_148;  // +0x148
     Class_004d8c00(Class_004d87f0_2&, char*, int, int);
 };
@@ -18887,7 +18887,7 @@ struct TlsBlock {  // 0xc bytes, 1 view
     void* limit;  // +0x8
 };
 
-class Class_004d9c60 {  // 0xc4d0 bytes, 2 views
+class StackTrace {      // 0xc4d0 bytes, 2 views
 public:
     char unknown_0[120];
     int field_78;  // +0x78
@@ -18942,7 +18942,7 @@ public:
     LiveNode*& _Root(void);
     static int& _Color(LiveNode*);
     static void* operator new(unsigned int);
-    static Class_004e1a30& _Key(LiveNode*);
+    static NameKey& _Key(LiveNode*);
     LiveNode*& _Lmost(void);
     static LiveNode*& _Left(LiveNode*);
     LiveNode*& _Rmost(void);
@@ -18952,7 +18952,7 @@ public:
     Class_004e0450 begin(void);
     static LiveNode*& _Right(LiveNode*);
     Class_004e0450 end(void);
-    static std::pair<Class_004e1a30, Value_004e2250>& _Value(LiveNode*);
+    static std::pair<NameKey, Value_004e2250>& _Value(LiveNode*);
     Class_004e0450 erase(Class_004e0450, Class_004e0450);
     static LiveNode* _Max(LiveNode*);
 };
@@ -19022,7 +19022,7 @@ struct Less_004db000 {  // 0x1 bytes, 1 view
     unsigned char operator()(unsigned int&, unsigned int&);
 };
 
-class Class_004db000 {  // 0x14 bytes, 5 views
+class FreeBlockMap {    // 0x14 bytes, 5 views
 public:
     Less_004db000 key_compare;  // +0x0
     char unknown_1[3];
@@ -19031,8 +19031,8 @@ public:
     char unknown_9[3];
     unsigned int count;  // +0xc
     unsigned int total;  // +0x10
-    Class_004db000(Class_004db000&);
-    Class_004db000(void);
+    FreeBlockMap(FreeBlockMap&);
+    FreeBlockMap(void);
     Class_004dd2a0 Begin(void);
     Class_004dd2a0 begin(void);
     Class_004dd2a0 End(void);
@@ -19591,11 +19591,11 @@ struct Map_004df590 {  // 0x14 bytes, 1 view
     char unknown_11[3];
 };
 
-class Class_004e17c0 {  // 0x14 bytes, 4 views
+class NameTable {       // 0x14 bytes, 4 views
 public:
     Map_004df590 names;  // +0x0
-    Class_004e17c0(Class_004e17c0&);
-    Class_004e17c0(void);
+    NameTable(NameTable&);
+    NameTable(void);
 };
 
 class Class_004df1e0 {  // 0x230 bytes, 2 views
@@ -19610,7 +19610,7 @@ public:
     char flag_20;  // +0x20
     char unknown_21[3];
     Id_004df1e0 ident;  // +0x24
-    Class_004e17c0 map;  // +0x21c
+    NameTable map;       // +0x21c
     Class_004df1e0(void);
     ~Class_004df1e0(void);
 };
@@ -19787,17 +19787,17 @@ public:
     int* FUN_004e2240(int*);
 };
 
-class Class_004e1a30 {  // 0x4 bytes, 4 views
+class NameKey {         // 0x4 bytes, 4 views
 public:
     char* name;  // +0x0
-    int FUN_004e1a30(Class_004e1a30&);
+    int FUN_004e1a30(NameKey&);
 };
 
 class Class_004e2250 {  // 0x10 bytes, 2 views
 public:
     char unknown_0[16];
     Class_004e0450 begin(void);
-    Class_004e2a10 FUN_004e2250(std::pair<Class_004e1a30, Value_004e2250>&);
+    Class_004e2a10 FUN_004e2250(std::pair<NameKey, Value_004e2250>&);
 };
 
 class Class_004e2a10 {  // 0x8 bytes, 3 views
@@ -19812,7 +19812,7 @@ public:
 
 struct Less_004e1990 {  // 0x1 bytes, 1 view
     char unknown_0[1];
-    unsigned char operator()(Class_004e1a30&, Class_004e1a30&);
+    unsigned char operator()(NameKey&, NameKey&);
 };
 
 class Class_004e1990 {  // 0x14 bytes, 2 views
@@ -19826,8 +19826,8 @@ public:
     unsigned char changed;  // +0x10
     char unknown_11[3];
     Class_004e0450 End(void);
-    void FUN_004e1990(Class_004e1a30&);
-    Class_004e0450 Find(Class_004e1a30&);
+    void FUN_004e1990(NameKey&);
+    Class_004e0450 Find(NameKey&);
 };
 
 class Class_004e2e20 {  // 0x8 bytes, 2 views
@@ -19968,17 +19968,17 @@ public:
 class Class_004e2a30 : public Class_004e2950 {  // 0x10 bytes, 2 views
 public:
     LiveNode* FUN_004e2a30(int, int);
-    void _Consval(std::pair<Class_004e1a30, Value_004e2250>*, std::pair<Class_004e1a30, Value_004e2250>&);
+    void _Consval(std::pair<NameKey, Value_004e2250>*, std::pair<NameKey, Value_004e2250>&);
 };
 
 struct Kfn_004e2250 {  // 0x1 bytes, 1 view
     char unknown_0[1];
-    Class_004e1a30& operator()(std::pair<Class_004e1a30, Value_004e2250>&);
+    NameKey& operator()(std::pair<NameKey, Value_004e2250>&);
 };
 
 struct Less_004e2250 {  // 0x1 bytes, 1 view
     char unknown_0[1];
-    unsigned char operator()(Class_004e1a30&, Class_004e1a30&);
+    unsigned char operator()(NameKey&, NameKey&);
 };
 
 struct Value_004e2250 {  // 0x1f4 bytes, 1 view
@@ -20001,7 +20001,7 @@ public:
 
 struct Less_004e2620 {  // 0x1 bytes, 1 view
     char unknown_0[1];
-    unsigned char operator()(Class_004e1a30&, Class_004e1a30&);
+    unsigned char operator()(NameKey&, NameKey&);
 };
 
 class Class_004e2620 {  // 0x10 bytes, 2 views

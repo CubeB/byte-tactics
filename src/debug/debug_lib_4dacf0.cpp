@@ -95,7 +95,7 @@ class Class_004dce60 { public: Class_004ddbe0 FUN_004dbbc0(const Pair_004db000& 
 class Class_004db450 { public: bool GrowReservation(unsigned int); };
 class Class_004dc680 { public: Class_004ddbe0 FUN_004dc680(const Class_004d8820& v); };
 
-class Class_004db000 {
+class FreeBlockMap {
 public:
     char unknown_0[4];     // +0x0
     Node_004dacf0* head;   // +0x4
@@ -113,7 +113,7 @@ public:
 CRITICAL_SECTION* FUN_004da780();
 unsigned int __cdecl FUN_004da8a0(unsigned int size);
 unsigned int __cdecl RoundUpToPage(unsigned int size);
-Class_004db000* GetFreeBlockSet();
+FreeBlockMap* GetFreeBlockSet();
 Class_004dc680* GetBlockMap();
 void __cdecl CountAlloc(unsigned int size);
 char IsBackAlign();
@@ -123,7 +123,7 @@ void __cdecl FillPattern(void* at, int value, unsigned int count);
 // The allocator's alloc() (0x4db1c0, see the notes above): find a free block
 // of `bytes`, preferring the one the last allocation came from, and hand back
 // the leftovers around the request as new free blocks.
-inline unsigned int Class_004db000::TakeFreeBlock(unsigned int bytes)
+inline unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
 {
     if (size() > 0) {
         Pair_004db000 k;
@@ -190,7 +190,7 @@ unsigned int __cdecl AllocDebugBlock(unsigned int n, unsigned int arg2)
     if (base != 0) {
         res = (unsigned int)VirtualAlloc((void*)base, need, MEM_COMMIT, PAGE_READWRITE);
         if (res == 0) {
-            Class_004db000* pool = GetFreeBlockSet();
+            FreeBlockMap* pool = GetFreeBlockSet();
             pool->AddFreeBlock(Pair_004db000(base, want));
         }
     }

@@ -27,7 +27,7 @@ struct Data_004b1c00 {
     int e[6][3];                       // +0x4
 };
 
-class Class_004b1c00 {
+class CobScript {
 public:
     int field_4;                       // +0x4
     Table_004b1c00* field_8;           // +0x8
@@ -52,7 +52,7 @@ public:
 // e[4] limit, e[3] the current angle, e[2] the wanted angle (-1 means none). Each
 // element that still moves leaves its record's flag set, and any such flag keeps
 // field_18 (the "something is still animating" flag) at 1.
-void Class_004b1c00::AnimatePieces(int param_1)
+void CobScript::AnimatePieces(int param_1)
 {
     if (param_1 == 0)
         return;

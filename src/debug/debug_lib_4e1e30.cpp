@@ -6,7 +6,7 @@
 
 extern double GetTimeSeconds();
 
-class Class_004e1e30 {
+class Timer {
 public:
     double time;                       // +0x0
     char unknown_8[0x40];
@@ -16,7 +16,7 @@ public:
 };
 
 // FUNCTION: 0x4e1e30
-double Class_004e1e30::GetElapsedSeconds()
+double Timer::GetElapsedSeconds()
 {
     if (stopped) {
         return time;

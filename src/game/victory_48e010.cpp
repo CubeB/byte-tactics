@@ -80,14 +80,10 @@ public:
     virtual void VisitUnit(Unit* unit) = 0;
 };
 
-class Class_004c46c0 {
-public:
-    int GetFieldInt(const char* name, int def);
-};
-
 class TdfRecord {
 public:
     int GetFieldString(char* buf, const char* name, int size, void* def);
+    int GetFieldInt(const char* name, int def);
 };
 
 // The registration parameter: the command reader lives at +0x4.
@@ -370,17 +366,17 @@ void MissionConditions::RegisterConditions(Param_0048e010* p)
     char buf[0x100];
     char stype[0x100];
 
-    int r1 = ((Class_004c46c0*)p->reader)->GetFieldInt("KillEnemyCommander", 0);
+    int r1 = ((TdfRecord*)p->reader)->GetFieldInt("KillEnemyCommander", 0);
     if (r1 != 0) {
         victory[victoryCount] = new VictoryKillEnemyCommander;
         victoryCount++;
     }
-    int r2 = ((Class_004c46c0*)p->reader)->GetFieldInt("DestroyAllUnits", 0);
+    int r2 = ((TdfRecord*)p->reader)->GetFieldInt("DestroyAllUnits", 0);
     if (r2 != 0) {
         victory[victoryCount] = new VictoryDestroyAllUnits;
         victoryCount++;
     }
-    int r3 = ((Class_004c46c0*)p->reader)->GetFieldInt("KillAllMobileUnits", 0);
+    int r3 = ((TdfRecord*)p->reader)->GetFieldInt("KillAllMobileUnits", 0);
     if (r3 != 0) {
         victory[victoryCount] = new VictoryKillAllMobileUnits;
         victoryCount++;
@@ -429,18 +425,18 @@ void MissionConditions::RegisterConditions(Param_0048e010* p)
         victoryCount++;
     }
     {
-        int t = ((Class_004c46c0*)p->reader)->GetFieldInt("VictoryTimerRunsOut", 0);
+        int t = ((TdfRecord*)p->reader)->GetFieldInt("VictoryTimerRunsOut", 0);
         if (t > 0) {
             victory[victoryCount] = new VictoryTimerRunsOut(t);
             victoryCount++;
         }
     }
-    int r11 = ((Class_004c46c0*)p->reader)->GetFieldInt("CommanderKilled", 0);
+    int r11 = ((TdfRecord*)p->reader)->GetFieldInt("CommanderKilled", 0);
     if (r11 != 0) {
         defeat[defeatCount] = new DefeatCommanderKilled;
         defeatCount++;
     }
-    int r12 = ((Class_004c46c0*)p->reader)->GetFieldInt("AllUnitsKilled", 0);
+    int r12 = ((TdfRecord*)p->reader)->GetFieldInt("AllUnitsKilled", 0);
     if (r12 != 0) {
         defeat[defeatCount] = new DefeatAllUnitsKilled;
         defeatCount++;
@@ -458,21 +454,21 @@ void MissionConditions::RegisterConditions(Param_0048e010* p)
         defeatCount++;
     }
     {
-        int t = ((Class_004c46c0*)p->reader)->GetFieldInt("DeathTimerRunsOut", 0);
+        int t = ((TdfRecord*)p->reader)->GetFieldInt("DeathTimerRunsOut", 0);
         if (t > 0) {
             defeat[defeatCount] = new DefeatDeathTimerRunsOut(t);
             defeatCount++;
         }
     }
     {
-        int t = ((Class_004c46c0*)p->reader)->GetFieldInt("AnyUnitPassesX", -1);
+        int t = ((TdfRecord*)p->reader)->GetFieldInt("AnyUnitPassesX", -1);
         if (t >= 0) {
             defeat[defeatCount] = new DefeatAnyUnitPassesX(t);
             defeatCount++;
         }
     }
     {
-        int t = ((Class_004c46c0*)p->reader)->GetFieldInt("AnyUnitPassesZ", -1);
+        int t = ((TdfRecord*)p->reader)->GetFieldInt("AnyUnitPassesZ", -1);
         if (t >= 0) {
             defeat[defeatCount] = new DefeatAnyUnitPassesZ(t);
             defeatCount++;

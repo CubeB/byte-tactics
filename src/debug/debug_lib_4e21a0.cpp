@@ -2,7 +2,7 @@
 
 // A timer: while stopped, `time` holds the elapsed time; while running, it
 // holds the start time (see the neighbouring methods at 0x4e2160..0x4e21f0).
-struct Class_004e21a0 {
+struct Timer {
     double time;           // +0x00
     char unknown_8[0x40];
     char stopped;          // +0x48
@@ -11,7 +11,7 @@ struct Class_004e21a0 {
 };
 
 // FUNCTION: 0x4e21a0
-void Class_004e21a0::FUN_004e21a0(double delta)
+void Timer::FUN_004e21a0(double delta)
 {
     if (stopped) {
         time -= delta;

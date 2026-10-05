@@ -18,7 +18,7 @@ static inline Vec3 operator+(const Vec3& a, const Vec3& b)
     return r;
 }
 
-class Class_004b0bc0 {
+class CobScript {
 public:
     int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
 };
@@ -28,7 +28,7 @@ struct Object {
     char unknown_0[0x6a];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x9a - 0x76];
-    Class_004b0bc0* script;            // +0x9a
+    CobScript* script;                 // +0x9a
 };
 #pragma pack(pop)
 

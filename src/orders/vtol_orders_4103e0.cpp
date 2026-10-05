@@ -18,26 +18,28 @@ struct Vec3 {
     int x, y, z;
     Vec3 operator+(const Vec3& v) const { Vec3 r; r.x=x+v.x; r.y=y+v.y; r.z=z+v.z; return r; }
 };
-struct Unit;
 struct Order;
 class Class_00438760 { public: unsigned char index; Class_00438760() {} Class_00438760(const char*); int operator==(const Class_00438760& v) const { return index==v.index; } };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_00489800 { public: void ReleaseWeapons(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
 struct UnitDef { char pad0[0x1fa]; unsigned int maxHealth; char pad1fe[0x21c-0x1fe]; short altitude; char pad21e[0x231-0x21e]; unsigned int* weaponCategories[3]; unsigned int* categories; unsigned int flags; };
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
-class Class_0043d210 { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
+class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
 struct Unit {
-    Class_0043d210* motion; char pad4[4]; Weapon weapons[3]; Order* order;
+    UnitMotion* motion; char pad4[4]; Weapon weapons[3]; Order* order;
     char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int terrain; int busy;
     char pad8a[8]; UnitDef* def; Owner* owner; char pad9a[12]; unsigned short category;
     char pada8[0xf0-0xa8]; Unit* attacker; char padf4[0x108-0xf4]; short health;
     char pad10a[6]; unsigned int flags;
+    void ReleaseWeapons(int);
+    int CanRepair(Unit*);
+    void ClaimWeapons(int);
+    void SetStateBits(int, int);
 };
 struct Order { char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; };
 class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, Unit*, Vec3*, int, int, int); };
@@ -47,9 +49,6 @@ struct Game { char pad0[0x1422b]; int width, height; char pad14233[0x142b7-0x142
 extern Game* g_game;
 class Class_0044e730 { public: void FUN_0044e730(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
-class Class_004899b0 { public: int CanRepair(Unit*); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
 void __stdcall AttachUnitToPiece(Unit*, Unit*, char, char);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 union Fixed { int value; struct { unsigned short frac; short whole; } parts; };
@@ -99,9 +98,9 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
                 if (!order->pos.x && !order->pos.z && !order->pos.y) order->pos=unit->pos;
                 order->angle=RandomInt(0x10000);
                 order->parity=order->angle&1;
-                ((Class_004898b0*)unit)->ClaimWeapons(3);
+                ((Unit*)unit)->ClaimWeapons(3);
                 if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
-                ((Class_0048b090*)unit)->SetStateBits(1,1);
+                ((Unit*)unit)->SetStateBits(1,1);
                 if ((unit->motion->flags&3)==1) {
                     unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
@@ -114,7 +113,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
         }
         break;
     case 1: {
-        ((Class_00489800*)unit)->ReleaseWeapons(3);
+        ((Unit*)unit)->ReleaseWeapons(3);
         if ((unsigned int)unit->health < (unit->def->maxHealth>>2)*3) {
             Class_00410830 pads;
             GetFactoriesInRadius(unit->owner->index,&unit->pos,0xf00,&pads);

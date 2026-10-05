@@ -2,7 +2,7 @@
 
 extern double GetTimeSeconds();
 
-class Class_004e2160 {
+class Timer {
 public:
     double value;
     char unknown_8[0x40];
@@ -12,7 +12,7 @@ public:
 };
 
 // FUNCTION: 0x4e2160
-void Class_004e2160::ResumeTimer()
+void Timer::ResumeTimer()
 {
     if (flag_48 != 0) {
         double fVar1 = GetTimeSeconds();

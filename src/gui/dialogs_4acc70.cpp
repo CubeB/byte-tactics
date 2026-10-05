@@ -14,7 +14,7 @@ struct Slider_004acc70 {
 };
 
 #pragma pack(push, 1)
-struct Class_004acc70 {
+struct Dialog {
     char unknown_0[0x9b2];
     int index;                         // +0x9b2
     char unknown_9b6[0xcb6 - 0x9b6];
@@ -27,7 +27,7 @@ struct Class_004acc70 {
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 
 // FUNCTION: 0x4acc70
-void __stdcall ApplySlidersToPaletteEntry(Class_004acc70* obj, Color_004acc70* palette)
+void __stdcall ApplySlidersToPaletteEntry(Dialog* obj, Color_004acc70* palette)
 {
     Color_004acc70 c;
     c.r = obj->red->value;

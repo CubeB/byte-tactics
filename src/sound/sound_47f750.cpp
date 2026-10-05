@@ -4,7 +4,7 @@ extern void* g_noDirectSound;
 extern void* g_useWindowsSound;
 extern char* g_game;
 
-class Class_004cf150 {
+class Sound {
 public:
     void StopAllBuffers();
 };
@@ -15,7 +15,7 @@ extern void StopWindowsSound();
 void StopAllSounds()
 {
     if (g_noDirectSound == 0) {
-        Class_004cf150* obj = *(Class_004cf150**)((char*)g_game + 0x10);
+        Sound* obj = *(Sound**)((char*)g_game + 0x10);
         obj->StopAllBuffers();
     }
     if (g_useWindowsSound != 0) {

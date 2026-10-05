@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_00480d40 {
+class UnitScript {
 public:
     char unknown_0[0x540];
     int field_540;
@@ -9,7 +9,7 @@ public:
 };
 
 // FUNCTION: 0x480d40
-void Class_00480d40::SetObjectState(int param_1)
+void UnitScript::SetObjectState(int param_1)
 {
     field_540 = param_1;
 }

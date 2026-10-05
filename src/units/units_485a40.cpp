@@ -49,7 +49,7 @@ struct Player_485a40 {
     unsigned char field_146;           // +0x146
 };
 
-class PlayerRef {
+class UnitResources {
 public:
     int unknown[12];
     void* player;
@@ -61,11 +61,6 @@ public:
     char unknown_0[6];
     void* head;
     void FUN_0047cb00(void* node);
-};
-
-class Class_00489800 {
-public:
-    void ReleaseWeapons(unsigned char index);
 };
 
 class UnitMotion;
@@ -140,7 +135,7 @@ struct Unit {
     char unknown_b4[0xb8 - 0xb4];
     short field_b8;                    // +0xb8
     short field_ba;                    // +0xba
-    PlayerRef playerRef;               // +0xbc
+    UnitResources playerRef;           // +0xbc
     int field_f0;                      // +0xf0
     unsigned char field_f4;            // +0xf4
     char unknown_f5[1];
@@ -162,6 +157,7 @@ struct Unit {
     } field_10f;
     Flags_485a40 flags;                // +0x110
     Flags114_485a40 field_114;         // +0x114
+    void ReleaseWeapons(unsigned char index);
 };
 
 struct Game {
@@ -235,7 +231,7 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_485a40 pos, int param_5)
 
     for (int i = 0; i < 3; i++) {
         ResetWeaponTarget(unit, i);
-        ((Class_00489800*)unit)->ReleaseWeapons(i);
+        ((Unit*)unit)->ReleaseWeapons(i);
     }
 
     unit->field_ba = 0;

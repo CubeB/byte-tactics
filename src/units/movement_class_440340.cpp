@@ -3,14 +3,14 @@
 // 32-byte entry whose layout 0x440290.cpp declares as MovementClass. The four
 // slope fields are clamped so that each is never larger than its limit.
 
-class Class_004c46c0 {
+class TdfRecord {
 public:
     int GetFieldInt(const char* name, int def);
 };
 
 struct Source_00440340 {
     char unknown_0[4];
-    Class_004c46c0* tdf;               // +0x4
+    TdfRecord* tdf;                    // +0x4
 };
 
 struct MovementClass {

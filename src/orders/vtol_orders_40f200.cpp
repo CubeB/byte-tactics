@@ -4,16 +4,6 @@
 // +0x2e, also attaches a new Class_0044e2d0 at the unit's position to the
 // order and sets flags on it.
 
-class Class_004898b0 {
-public:
-    void ClaimWeapons(int param);
-};
-
-class Class_0048b090 {
-public:
-    void SetStateBits(int param_1, int param_2);
-};
-
 class Class_004388d0 {
 public:
     void FUN_004388d0(int param);
@@ -26,7 +16,7 @@ public:
 
 struct Unit;
 
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
@@ -51,13 +41,15 @@ struct Source_0044e2d0 {
 };
 
 struct Unit {
-    Class_0043d210* type;              // +0x0
+    UnitMotion* type;                  // +0x0
     char unknown_4[0x6a - 0x4];
     Vec3_0044e2d0 pos;                 // +0x6a
     char unknown_76[0x86 - 0x76];
     int field_86;                      // +0x86
     char unknown_8a[0x92 - 0x8a];
     Info_0040f200* info;               // +0x92
+    void ClaimWeapons(int param);
+    void SetStateBits(int param_1, int param_2);
 };
 
 class Class_0044e2d0 {
@@ -73,10 +65,10 @@ void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 // FUNCTION: 0x40f200
 void __stdcall FUN_0040f200(Unit* unit, Source_0044e2d0* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);

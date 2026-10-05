@@ -12,6 +12,8 @@ class PlayerAI {
 public:
     char unknown_0[0xed];
     unsigned int lastTick;             // +0xed
+    void RefreshUnitLists();
+    void ComputeBaseWeights();
 };
 #pragma pack(pop)
 
@@ -20,25 +22,15 @@ extern PlayerAI* g_playerAI[];
 
 int __stdcall RandomInt(int range);
 
-class Class_0040aa40 {
-public:
-    void RefreshUnitLists();
-};
-
-class Class_00409730 {
-public:
-    void ComputeBaseWeights();
-};
-
 // FUNCTION: 0x40b2c0
 void __stdcall UpdatePlayerAI(int player)
 {
     PlayerAI* p = g_playerAI[player];
     if (p && g_game->ticks >= p->lastTick + 0x1e) {
-        ((Class_0040aa40*)p)->RefreshUnitLists();
+        ((PlayerAI*)p)->RefreshUnitLists();
         p->lastTick = g_game->ticks;
         if (RandomInt(0x1e) == 0) {
-            ((Class_00409730*)p)->ComputeBaseWeights();
+            ((PlayerAI*)p)->ComputeBaseWeights();
         }
     }
 }

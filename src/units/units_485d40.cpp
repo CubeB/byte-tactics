@@ -23,7 +23,7 @@ struct ObjectState_00485d40 {
     int field_10;                      // +0x10
 };
 
-struct Class_0045ae80;                 // object definition, only passed on
+struct Object3do;                      // object definition, only passed on
 
 #pragma pack(push, 1)
 struct Data_00485d40 {                // the definition data at type+0x18e
@@ -37,7 +37,7 @@ struct Unit_00485d40 {
 
 struct Game {
     char unknown_0[0x14377];
-    Class_0045ae80** definitions;      // +0x14377
+    Object3do** definitions;           // +0x14377
 };
 #pragma pack(pop)
 
@@ -82,6 +82,7 @@ public:
     virtual ~CobScript();                             // slot 20
 
     void SetCob(Data_00485d40* data);
+    void StartScript(const char* name, int a, int b);
 };
 
 class UnitScript : public CobScript {
@@ -108,19 +109,6 @@ public:
     virtual int GetUnitValue(int, int, int, int, int); // slot 17, 0x480770
     virtual int IsCarryingUnit(int);                  // slot 18, 0x481430
     virtual int GetTransporterId();                   // slot 19, 0x481470
-};
-
-// The two names below are the ones data/symbols.csv gives 0x480d40 and
-// 0x4b0940, but both are called on the variable block here, through casts.
-class Class_004b0940 {
-public:
-    void StartScript(const char* name, int a, int b);
-};
-
-class Class_00480d40 {
-public:
-    char unknown_0[0x540];
-    void* field_540;               // +0x540, the state block
 
     void SetObjectState(ObjectState_00485d40* state);
 };
@@ -140,19 +128,19 @@ struct Object_00485d40 {
 extern Game* g_game;
 
 void* __cdecl operator new(size_t size);
-ObjectState_00485d40* __stdcall CreatePlayerObjectState(Class_0045ae80* obj, Data_00485d40* data, int player);
-ObjectState_00485d40* __stdcall CreateObjectState(Class_0045ae80* obj);
+ObjectState_00485d40* __stdcall CreatePlayerObjectState(Object3do* obj, Data_00485d40* data, int player);
+ObjectState_00485d40* __stdcall CreateObjectState(Object3do* obj);
 
 // FUNCTION: 0x485d40
 void __stdcall InitUnitScript(Object_00485d40* self)
 {
-    Class_0045ae80* obj = g_game->definitions[self->id];
+    Object3do* obj = g_game->definitions[self->id];
     if (self->unit->data) {
         self->vars = new UnitScript;
         self->vars->SetCob(self->unit->data);
         self->state = CreatePlayerObjectState(obj, self->unit->data, (int)self);  // the owner, as an int
-        ((Class_00480d40*)self->vars)->SetObjectState(self->state);
-        ((Class_004b0940*)self->vars)->StartScript("Create", 0, 1);
+        self->vars->SetObjectState(self->state);
+        ((CobScript*)self->vars)->StartScript("Create", 0, 1);
     } else {
         self->vars = 0;
         self->state = CreateObjectState(obj);

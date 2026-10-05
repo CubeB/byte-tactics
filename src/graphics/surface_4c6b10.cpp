@@ -8,7 +8,7 @@ struct Rect_004c6b10 {
     int bottom;                        // +0xc
 };
 
-class Class_004c6b10 {
+class Surface {
 public:
     char unknown_0[0x1c];
     Rect_004c6b10 rect;                // +0x1c
@@ -17,7 +17,7 @@ public:
 };
 
 // FUNCTION: 0x4c6b10
-void Class_004c6b10::SetClipRect(Rect_004c6b10 r)
+void Surface::SetClipRect(Rect_004c6b10 r)
 {
     rect = r;
 }

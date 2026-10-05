@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-class Class_004d0640 {
+class Sound {
 public:
     void PlaySample(const char* param1, int param2, int param3);
 };
@@ -53,7 +53,7 @@ struct Table_0047fd70 {
 
 struct Game {
     char unknown_0[0x10];
-    Class_004d0640* sound;                 // +0x10
+    Sound* sound;                          // +0x10
     char unknown_14[0x37e13 - 0x14];
     SoundCat_0047fd70* categories;         // +0x37e13
     char unknown_37e17[0x37f0c - 0x37e17];
@@ -76,7 +76,7 @@ struct Entry_0047fd70 {                    // 0x11 bytes
     unsigned char field_10;                // +0x10
 };
 
-class Class_0047f960 {
+class SpeechQueue {
 public:
     Entry_0047fd70 entries[9];             // +0x0
     int count;                             // +0x99
@@ -99,7 +99,7 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
 int __stdcall PlayWavFromDisk(char* path);
 
 // FUNCTION: 0x47fd70
-void Class_0047f960::PlaySpeech(int index, int param_2, int param_3)
+void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
 {
     Entry_0047fd70* e = &entries[index];
     int slot = entries[index].field_0;

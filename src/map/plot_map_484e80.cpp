@@ -26,33 +26,21 @@ extern Game* g_game;
 class HapiBank {
 public:
     int OpenAccount(char* name);
-};
-
-class Class_004b4ba0 {
-public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4bf0 {
-public:
     int GetBoxSize();
-};
-
-class Class_004b4c80 {
-public:
     unsigned int ReadBox(void* buf, int size);
 };
 
 // FUNCTION: 0x484e80
 void __stdcall LoadPlayerFeaturesPlotmap(HapiBank* file)
 {
-    if (file->OpenAccount("PlayerFeatures") && ((Class_004b4ba0*)file)->OpenNamedBox("Plotmap")) {
+    if (file->OpenAccount("PlayerFeatures") && ((HapiBank*)file)->OpenNamedBox("Plotmap")) {
         int size = g_game->width * g_game->height / 2;
-        if (((Class_004b4bf0*)file)->GetBoxSize() == size) {
+        if (((HapiBank*)file)->GetBoxSize() == size) {
             unsigned char* buf = new unsigned char[size];
             if (buf) {
                 Cell_00484e80* cells = g_game->cells;
-                if (((Class_004b4c80*)file)->ReadBox(buf, size) >= size) {
+                if (((HapiBank*)file)->ReadBox(buf, size) >= size) {
                     Cell_00484e80* c = cells;
                     for (int i = 0; i < size; i++, c += 2) {
                         c->feature = buf[i] >> 4;

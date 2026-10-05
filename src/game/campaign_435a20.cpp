@@ -28,34 +28,21 @@
 // top of the function, kept as the original has it.
 #include <string.h>
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;
     void* current;                      // +4
     int field_8;
-};
-
-class Class_004c3e10 {
-public:
     void ResetCurrentRecord();
 };
 
-class Class_00435760 {
-public:
-    int unknown_0;
-    char name[0xa08 - 4];               // +0x4
-    Class_004c3e10 list;                // +0xa08
-
-    int BuildMissionList(char** param_1);
-};
-
-class Class_00435c00 {
+class Mission {
 public:
     int type;                           // +0x0
     char campaign[0x100];               // +0x4
     char names[9][0x100];               // +0x104
     int exists;                         // +0xa04
-    Class_004c2ea0 list;                // +0xa08
+    TdfFile list;                       // +0xa08
     char missionName[0x100];            // +0xa14
     char text_b14[0x100];               // +0xb14
     char* briefing;                     // +0xc14
@@ -63,10 +50,7 @@ public:
     int field_c1c;                      // +0xc1c
 
     int LoadMission(char* map);
-};
-
-class Class_00435a20 : public Class_00435c00 {
-public:
+    int BuildMissionList(char** param_1);
     int LoadMissionByName(char* map);
 };
 
@@ -75,7 +59,7 @@ char* __stdcall Translate(char* text);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x435a20
-int Class_00435a20::LoadMissionByName(char* map)
+int Mission::LoadMissionByName(char* map)
 {
     int res;
 
@@ -96,7 +80,7 @@ int Class_00435a20::LoadMissionByName(char* map)
             return res;
         }
     } else {
-        int count = ((Class_00435760*)this)->BuildMissionList((char**)&res);
+        int count = BuildMissionList((char**)&res);
         if (count > 0) {
             char* p = (char*)res;
             for (int i = 0; i < count; i++) {

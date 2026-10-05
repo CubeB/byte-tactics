@@ -5,11 +5,11 @@
 // calls the out-of-line destructor body FUN_004330b0.
 #include <memory>
 
-class Class_004330b0 {
+class LosTables {
 public:
-    explicit Class_004330b0(const std::allocator<int>& al = std::allocator<int>())
+    explicit LosTables(const std::allocator<int>& al = std::allocator<int>())
         : allocator(al), first(0), last(0), end(0) {}
-    ~Class_004330b0() { FUN_004330b0(); }
+    ~LosTables() { FUN_004330b0(); }
 
     void FUN_004330b0();
 
@@ -20,4 +20,4 @@ public:
 };
 
 // FUNCTION: 0x4814c0 _$E4
-Class_004330b0 g_losTables;
+LosTables g_losTables;

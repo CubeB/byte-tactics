@@ -13,7 +13,7 @@ struct Stack_004d89b0 {
     int count;                  // +0x38
 };
 
-class Class_004d89b0 {
+class CallSite {
 public:
     char name[0x40];            // +0x00
     int field_40;               // +0x40
@@ -25,7 +25,7 @@ void __cdecl GetSourceFilePath(char* out, char* name);
 void __cdecl FormatCallStack(char* dest, int space, int per, int n, unsigned long* addrs);
 
 // FUNCTION: 0x4d89b0
-void Class_004d89b0::FormatCallSite(char* out, int size)
+void CallSite::FormatCallSite(char* out, int size)
 {
     char path[1000];
 

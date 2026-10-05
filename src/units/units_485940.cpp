@@ -2,7 +2,7 @@
 // Ordering of two items: by the key at +4 when the mode object reports 3,
 // otherwise by address.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -10,7 +10,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x391e9];
-    Class_00435100* mode;              // +0x391e9
+    Mission* mode;                     // +0x391e9
 };
 #pragma pack(pop)
 

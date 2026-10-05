@@ -217,7 +217,7 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_00467840 {
+class DetectionVisitor {
 public:
     virtual void FUN_00467840(Unit* unit);
     int field_4;                       // +0x4
@@ -225,12 +225,12 @@ public:
     Vec3_00467440 pos;                 // +0xc
 };
 
-class Class_00467960 {
+class RadarJamVisitor {
 public:
     virtual void FUN_00467960(Unit* unit);
 };
 
-class Class_00467980 {
+class SonarJamVisitor {
 public:
     virtual void FUN_00467980(Unit* unit);
 };
@@ -299,7 +299,7 @@ void FUN_00467440(void)
                     a = b;
                 }
                 Vec3_00467440* pp = &u->pos.vec;
-                Class_00467840 v;
+                DetectionVisitor v;
                 v.field_4 = t;
                 v.field_8 = s;
                 v.pos = u->pos.vec;
@@ -314,13 +314,13 @@ void FUN_00467440(void)
             if (u->def->field_20a != 0) {
                 int r = (int)u->def->field_20a << 16;
                 Vec3_00467440* pp = &u->pos.vec;
-                Class_00467960 v;
+                RadarJamVisitor v;
                 VisitObjectsInRange(pp, r, &v);
             }
             if (u->def->field_20c != 0) {
                 int r2 = (int)u->def->field_20c << 16;
                 Vec3_00467440* pp2 = &u->pos.vec;
-                Class_00467980 v;
+                SonarJamVisitor v;
                 VisitObjectsInRange(pp2, r2, &v);
             }
         }

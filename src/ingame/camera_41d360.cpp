@@ -4,10 +4,6 @@
 class HapiBank {
 public:
     void OpenAccount(const char* name);
-};
-
-class Class_004b4630 {
-public:
     void SetIntegerItem(const char* name, int value);
 };
 
@@ -21,6 +17,6 @@ extern char* g_game;
 void __stdcall WriteCameraPosition(HapiBank* file)
 {
     file->OpenAccount(DAT_00502890);
-    ((Class_004b4630*)file)->SetIntegerItem(DAT_00502878, *(int*)(g_game + 0x1431f));
-    ((Class_004b4630*)file)->SetIntegerItem(DAT_00502884, *(int*)(g_game + 0x14323));
+    ((HapiBank*)file)->SetIntegerItem(DAT_00502878, *(int*)(g_game + 0x1431f));
+    ((HapiBank*)file)->SetIntegerItem(DAT_00502884, *(int*)(g_game + 0x14323));
 }

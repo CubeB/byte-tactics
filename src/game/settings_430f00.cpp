@@ -107,7 +107,7 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_004cf220 {
+class Sound {
 public:
     int GetMaxBuffers();
 };
@@ -148,7 +148,7 @@ void SaveSettings()
     WriteRegistryDword("Total Annihilation", "Sound Mode", g_game->soundFlags.soundMode);
     WriteRegistryDword("Total Annihilation", "RestoreVolume", g_game->soundFlags.restoreVolume);
     WriteRegistryDword("Total Annihilation", "MixingBuffers",
-                 ((Class_004cf220*)g_game->sound)->GetMaxBuffers());
+                 ((Sound*)g_game->sound)->GetMaxBuffers());
     if (g_game->soundFlags.restoreVolume) {
         WriteRegistryDword("Total Annihilation", "WaveOutVolume",
                      ((Class_004cfff0*)g_game->sound)->QueryWaveVolume());

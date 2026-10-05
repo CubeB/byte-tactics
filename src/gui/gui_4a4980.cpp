@@ -28,7 +28,7 @@ struct Holder_004a4980 {
 };
 
 #pragma pack(push, 1)
-struct Class_004a4980 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a4980* holder;           // +0x18
     char unknown_1c[0x8b9 - 0x1c];
@@ -67,7 +67,7 @@ void __stdcall FillRectangle(void* surface, Rect_004a4980* rect, int color);
 void __stdcall DrawFrameQuad(void* surf, void* entry, Quad_004a4980* dst, Quad_004a4980* src);
 
 // FUNCTION: 0x4a4980
-void __stdcall FUN_004a4980(Class_004a4980* obj, int index)
+void __stdcall FUN_004a4980(Dialog* obj, int index)
 {
     Entry_004a4980* entries = obj->holder->entries;
     Entry_004a4980* e = &entries[index];

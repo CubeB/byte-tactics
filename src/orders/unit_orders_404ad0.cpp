@@ -42,7 +42,7 @@ struct Feature {
     char unknown_ff[0x100 - 0xff];
 };
 
-struct UnitType {
+struct UnitDef {
     char unknown_0[0x245];
     unsigned int flags;                // +0x245
 };
@@ -54,7 +54,7 @@ struct Unit {
     char unknown_68[0x6a - 0x68];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
-    UnitType* type;                    // +0x92
+    UnitDef* type;                     // +0x92
     char unknown_96[0xb0 - 0x96];
     int workTime;                      // +0xb0
 };

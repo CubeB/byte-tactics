@@ -15,15 +15,10 @@ public:
     void CloseCdAudio();
 };
 
-class Class_004cf4d0 {
-public:
-    void ReleaseSampleSet(IDirectSoundBuffer** set);
-};
-
 int __stdcall RemoveTimer(int i);
 int __stdcall HAPI_CloseFile(FileHandle* file);
 
-class Class_004ceee0 {
+class Sound {
 public:
     char unknown_0[0x24];
     IDirectSoundBuffer* field_24;      // +0x24
@@ -36,15 +31,16 @@ public:
     int handle;                        // +0x288
 
     void ReleaseDirectSound();
+    void ReleaseSampleSet(IDirectSoundBuffer** set);
 };
 
 // FUNCTION: 0x4ceee0
-void Class_004ceee0::ReleaseDirectSound()
+void Sound::ReleaseDirectSound()
 {
     int i;
     for (i = 0; i < 8; i++) {
         if (sets[i] != 0) {
-            ((Class_004cf4d0*)this)->ReleaseSampleSet(sets[i]);
+            ((Sound*)this)->ReleaseSampleSet(sets[i]);
             sets[i] = 0;
         }
     }

@@ -10,7 +10,7 @@ public:
     int SelectTrack(int index);
 };
 
-class Class_004ceb60 {
+class Sound {
 public:
     void PlayCdTrack(int index, int flag);
 };
@@ -23,7 +23,7 @@ int Class_004ce8c0::SelectTrack(int index)
     if (index > count)
         index = index % count;
     if (mode == 1) {
-        ((Class_004ceb60*)this)->PlayCdTrack(index, 1);
+        ((Sound*)this)->PlayCdTrack(index, 1);
         return current;
     }
     current = index;

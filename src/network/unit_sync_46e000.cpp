@@ -43,7 +43,7 @@ struct Entry_0046e000 {                // 0x5c bytes
     char unknown_4[0x5c - 0x4];
 };
 
-class Class_0046e000 {
+class UnitSync {
 public:
     char unknown_0[0x14];
     Entry_0046e000* begin;             // +0x14
@@ -59,7 +59,7 @@ public:
 Player_0046e000* __stdcall FindPlayerByDpid(int id);
 
 // FUNCTION: 0x46e000
-int Class_0046e000::AllPlayersSynced()
+int UnitSync::AllPlayersSynced()
 {
     if (field_64 != 0)
         return 1;

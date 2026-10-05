@@ -1,9 +1,14 @@
 // Decompiled by GPT-6. Names are provisional.
 #include <windows.h>
 #include <string.h>
-class Class_00435100 { public: int FUN_00435100(); };
-class Class_00435980 { public: int MissionExists(int); };
-class Class_004cfb40 { public: void StopStream(); };
+class Mission {
+public:
+    int FUN_00435100();
+    int MissionExists(int);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void LoadCampaign(char* name);
+};
+class Sound { public: void StopStream(); };
 #pragma pack(push,1)
 struct Amount { int current,required; };
 struct Entry {
@@ -12,14 +17,14 @@ struct Entry {
     char padc2[0x15b-0xc2];
 };
 struct Layer { int unknown; Entry* entries; void (__stdcall* handler)(void*); };
-struct Menu { char pad[0x18]; Layer* layer; };
+struct Dialog { char pad[0x18]; Layer* layer; };
 struct Owner { char pad[0x95]; unsigned char flag; };
 struct Player { char pad[0x22]; unsigned char message; char pad23[4]; Owner* owner; char pad2b[0x14b-0x2b]; };
 struct Slot { unsigned char active; char pad[0x39]; };
 struct Engine { char pad[0xd4]; int width,height; char paddc[0xf0-0xdc]; unsigned short low:1; unsigned short network:1; unsigned short high:14; };
 struct Game {
-    char pad[0x10]; Class_004cfb40* input;
-    char pad14[0x519-0x14]; Menu menu;
+    char pad[0x10]; Sound* input;
+    char pad14[0x519-0x14]; Dialog menu;
     char pad535[0xdcb-0x535]; unsigned char textColor;
     char paddcc[0xdda-0xdcc]; unsigned char shadowColor;
     char padddb[0x1b63-0xddb]; Player players[10];
@@ -30,7 +35,7 @@ struct Game {
     char pad3901d[0x39057-0x3901d]; int state; unsigned deadline,tick; int complete,fade,bar;
     int unknown3906f,skip; void* lastFrame; void* image; void* palette;
     char pad39083[0x391ab-0x39083]; int mission;
-    char pad391af[0x391e9-0x391af]; Class_00435100* campaign;
+    char pad391af[0x391e9-0x391af]; Mission* campaign;
     char pad391ed[0x3923b-0x391ed]; unsigned char flags;
 };
 #pragma pack(pop)
@@ -44,14 +49,14 @@ void __stdcall DrawSurface(void*,void*,int,int);
 void __stdcall ReportGameEvent(int);
 const char* __stdcall GetRejectReasonText(unsigned);
 const char* __stdcall Translate(const char*);
-void __stdcall OpenMessageBox(Menu*,const char*,int,int,int);
-void __stdcall FUN_0049fa90(Menu*);
-void __stdcall FUN_0049fad0(Menu*);
+void __stdcall OpenMessageBox(Dialog*,const char*,int,int,int);
+void __stdcall FUN_0049fa90(Dialog*);
+void __stdcall FUN_0049fad0(Dialog*);
 void FlipScreen();
-int __stdcall IsScreenNamed(Menu*,const char*);
+int __stdcall IsScreenNamed(Dialog*,const char*);
 void __stdcall DrawMessages(void*);
-void __stdcall UpdateMenu(Menu*);
-void __stdcall FUN_004ab170(Menu*,void*,void*);
+void __stdcall UpdateMenu(Dialog*);
+void __stdcall FUN_004ab170(Dialog*,void*,void*);
 void FUN_004c2870();
 unsigned GetTicks();
 int GetTickRate();
@@ -59,10 +64,10 @@ void __stdcall FUN_004c22d0(int);
 void FUN_00491a70();
 void __stdcall FadeRectangle(void*,int*,int);
 char __stdcall FindGameCdDrive(int);
-Layer* __stdcall LoadGuiLayer(Menu*,const char*,int);
+Layer* __stdcall LoadGuiLayer(Dialog*,const char*,int);
 void __stdcall HandleCdCheckClick(void*);
-void __stdcall FUN_0049fb10(Menu*,int);
-void __stdcall RenderLayer(Menu*,int);
+void __stdcall FUN_0049fb10(Dialog*,int);
+void __stdcall RenderLayer(Dialog*,int);
 void SetUpEndMissionScreen();
 void __stdcall SetFrontendState(int,int,const char*);
 void __stdcall SetGameMode(int);
@@ -75,9 +80,9 @@ void FUN_00476ca0();
 void __stdcall FUN_004c2340(int*);
 int PopKey();
 void __stdcall DrawOutlinedString(void*,const char*,int,int,int);
-void __stdcall FUN_0049fa50(Menu*);
+void __stdcall FUN_0049fa50(Dialog*);
 void __stdcall FUN_00491c80(int);
-void __stdcall FUN_004a0570(Menu*,const char*,int);
+void __stdcall FUN_004a0570(Dialog*,const char*,int);
 void __stdcall PlaySoundByName(const char*,int);
 void __stdcall SendPlayerEconomy(Player*,int,int);
 void FUN_004c2470();
@@ -172,7 +177,7 @@ void __stdcall RunEndGameState()
         break;
     case 5: {
         SetUpEndMissionScreen();
-        int next=((Class_00435980*)g_game->campaign)->MissionExists(g_game->mission+1);
+        int next=((Mission*)g_game->campaign)->MissionExists(g_game->mission+1);
         if(g_game->campaign->FUN_00435100()==1 && (g_game->flags&0x10) && !next && !g_game->skip) {
             if((unsigned char)GetDisplay()->network) {
                 if(!g_game->players[0].owner->flag) SetFrontendState(4,0x4ce,"c:\\cavedog\\wargame\\endgame.cpp");

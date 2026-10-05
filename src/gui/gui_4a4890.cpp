@@ -24,16 +24,16 @@ struct Table_004a4890 {
     Entry_004a4890* entries;           // +0x4
 };
 
-struct Class_004a4890 {
+struct Dialog {
     char unknown_0[0x18];
     Table_004a4890* table;             // +0x18
 };
 
 int __cdecl GetTicks();
-void __stdcall FUN_004a4660(Class_004a4890* obj, int i);
+void __stdcall FUN_004a4660(Dialog* obj, int i);
 
 // FUNCTION: 0x4a4890
-void __stdcall FUN_004a4890(Class_004a4890* obj, int i)
+void __stdcall FUN_004a4890(Dialog* obj, int i)
 {
     Entry_004a4890* e = &obj->table->entries[i];
     if (e->active && e->value < e->max) {

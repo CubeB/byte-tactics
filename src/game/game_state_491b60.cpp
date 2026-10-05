@@ -1,11 +1,11 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
 
-class Class_004ce690 {
+class Sound {
 public:
     void SetTrackCategory(int param_1);
 };
@@ -18,7 +18,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x10];
-    Class_004ce690* field_10;             // +0x10
+    Sound* field_10;                      // +0x10
     char unknown_14[0x2a44 - 0x14];
     unsigned short flags_2a44;            // +0x2a44
     char unknown_2a46[0x14383 - 0x2a46];
@@ -26,7 +26,7 @@ struct Game {
     void* field_14387;                    // +0x14387
     void* field_1438b;                    // +0x1438b
     char unknown_1438f[0x391e9 - 0x1438f];
-    Class_00435100* field_391e9;          // +0x391e9
+    Mission* field_391e9;                 // +0x391e9
 };
 #pragma pack(pop)
 

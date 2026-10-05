@@ -6,14 +6,14 @@
 
 void __cdecl FUN_004d85a0(int* param_1);
 
-class Class_004cf4d0 {
+class Sound {
 public:
     void ReleaseSampleSet(IDirectSoundBuffer** set);
 };
 
 struct Game {
     char unknown_0[0x10];
-    Class_004cf4d0* sound;             // +0x10
+    Sound* sound;                      // +0x10
 };
 
 extern Game* g_game;

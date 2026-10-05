@@ -4,13 +4,9 @@
 // whose entry field +0x15 is set to 0x1a0. Then focuses Missions or
 // MainMenu and refreshes the menu.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
-};
-
-class Class_00435980 {
-public:
     int MissionExists(int index);
 };
 
@@ -38,7 +34,7 @@ struct Game {
     int mission;                         // +0x391ab
     int field_391af;                     // +0x391af
     char unknown_391b3[0x391e9 - 0x391b3];
-    Class_00435100* campaign;            // +0x391e9
+    Mission* campaign;                   // +0x391e9
 };
 #pragma pack(pop)
 
@@ -55,8 +51,8 @@ static inline int HasNextMission()
 {
     if (g_game->campaign->FUN_00435100() == 1 &&
         ((g_game->field_391af == 0 &&
-          ((Class_00435980*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
-         ((Class_00435980*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {
+          ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
+         ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {
         return 1;
     }
     return 0;

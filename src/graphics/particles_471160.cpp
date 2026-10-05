@@ -4,7 +4,7 @@
 // allocator at +0, then _First +4, _Last +8, _End +0xc), so the index is
 // multiplied by 0x10. When the list already holds more than 400 entries its
 // oldest element is deleted and erased first, exactly as the sibling
-// Class_00471340::Add in 0x471340.cpp does for std::vector<ParticleSystem*>.
+// ParticleLists::Add in 0x471340.cpp does for std::vector<ParticleSystem*>.
 // The append is MSVC 5's inlined vector::insert(end(), 1, x) (push_back is
 // insert(end(), _X) in this <vector>), which is why the three out-of-line
 // helpers of that vector are called: 0x473500 (_Ucopy), 0x473530 (_Ufill) and
@@ -41,7 +41,7 @@ struct Elem_00473500 {                // one entry, a pointer to a listener
     Listener_00471120* p;             // +0x0
 };
 
-class Class_00471120 {
+class ParticleLists {
 public:
     std::vector<Elem_00473500> lists[1];
 
@@ -50,7 +50,7 @@ public:
 };
 
 // FUNCTION: 0x471160
-void Class_00471120::AddToList(Elem_00473500 x, short index)
+void ParticleLists::AddToList(Elem_00473500 x, short index)
 {
     if (lists[index].size() > 400) {
         delete lists[index][0].p;

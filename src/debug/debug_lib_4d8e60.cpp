@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 
-class Class_004d9c60 {
+class StackTrace {
 public:
     char unknown_0[0x2084];
     char dump_text[0xa44c];
@@ -52,7 +52,7 @@ int __cdecl ReportException(EXCEPTION_POINTERS* ep, char* handlerName)
 {
     HANDLE file;
     char* dot, * base, name[1000], path[1000], log[0x7358], exe[1000];
-    Class_004d9c60 obj;
+    StackTrace obj;
     DWORD written;
     char* reason;
 

@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_00437c80 {
+class CMemoryCache {
 public:
     void FlushCache();
 };
@@ -8,7 +8,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x1437b];
-    Class_00437c80* field_1437b;       // +0x1437b
+    CMemoryCache* field_1437b;         // +0x1437b
 };
 #pragma pack(pop)
 

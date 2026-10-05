@@ -41,23 +41,11 @@ struct Layer_00444ea0 {
     Data_00444ea0* data;               // +0x0c
 };
 
-class Class_00435a20 {
+class Mission {
 public:
     int LoadMissionByName(char* name);
-};
-
-class Class_00435c30 {
-public:
     char* FUN_00435c30();
-};
-
-class Class_00435c40 {
-public:
     bool FUN_00435c40();
-};
-
-class Class_00435d30 {
-public:
     void FUN_00435d30(int param_1);
 };
 
@@ -91,12 +79,12 @@ void __stdcall FUN_0049fb10(Menu_00444ea0* menu, int value);
 void __stdcall RenderLayer(Menu_00444ea0* menu, int value);
 void __stdcall FUN_004a0570(Menu_00444ea0* menu, char* name, int value);
 
-// The call to Class_00435d30::FUN_00435d30(0) is compiled without its
+// The call to Mission::FUN_00435d30(0) is compiled without its
 // argument push, although the callee ends in "ret 4" (see 0x435d30) and every
 // other call site of it does push (0x430b98, 0x4446d7, 0x44a49e). That leaves
 // the stack 4 bytes short, so this call is kept exactly as the original has
 // it. It is never reached: the only caller (0x4488ea) calls this function
-// precisely when Class_00435c40::FUN_00435c40() is false, and the test at the
+// precisely when Mission::FUN_00435c40() is false, and the test at the
 // top of this function then returns early.
 
 // FUNCTION: 0x444ea0
@@ -104,7 +92,7 @@ void OpenMultiMapSelector()
 {
     DAT_00512990 = (char*)FUN_004d83b0("OLDMAPNAME", 0xc8);
 
-    if (!((Class_00435c40*)g_game->field_391e9)->FUN_00435c40()) {
+    if (!((Mission*)g_game->field_391e9)->FUN_00435c40()) {
         OpenMessageBox(&g_game->menu,
                      Translate("There are no multiplayer maps to choose from"),
                      0x140, 1, 1);
@@ -112,8 +100,8 @@ void OpenMultiMapSelector()
     }
 
     strcpy(DAT_00512990,
-           ((Class_00435c30*)g_game->field_391e9)->FUN_00435c30());
-    ((Class_00435d30*)g_game->field_391e9)->FUN_00435d30(0);
+           ((Mission*)g_game->field_391e9)->FUN_00435c30());
+    ((Mission*)g_game->field_391e9)->FUN_00435d30(0);
 
     int n = LoadMapList(0, 0, 0);
     if (n == 0) {
@@ -142,7 +130,7 @@ void OpenMultiMapSelector()
 
     Menu_00444ea0* menu = &g_game->menu;
     Entry_00444ea0* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
-    if (((Class_00435a20*)g_game->field_391e9)->LoadMissionByName(
+    if (((Mission*)g_game->field_391e9)->LoadMissionByName(
             SkipTextLines(g->text, g->selected)) == 0) {
         FUN_004a0570(menu, "MAPPIC", 0);
     } else {

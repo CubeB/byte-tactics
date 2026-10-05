@@ -4,7 +4,7 @@
 // vtable, unregisters the object, then the empty inline base destructor
 // stores 0x4fd428. Its scalar deleting destructor 0x44f040 inlines it.
 
-class Class_0040e9c0 {
+class Pathfinder {
 public:
     void FUN_0040e9c0(void* param);
 };
@@ -12,7 +12,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14207];
-    Class_0040e9c0* field_14207;        // +0x14207
+    Pathfinder* field_14207;            // +0x14207
 };
 #pragma pack(pop)
 

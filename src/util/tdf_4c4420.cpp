@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-class Class_004c4420 {
+class TdfRecord {
 public:
     const char* field_0;
 
@@ -10,6 +10,6 @@ public:
 };
 
 // FUNCTION: 0x4c4420
-void Class_004c4420::CopyRecordName(char* dest, size_t count) {
+void TdfRecord::CopyRecordName(char* dest, size_t count) {
     strncpy(dest, field_0, count);
 }

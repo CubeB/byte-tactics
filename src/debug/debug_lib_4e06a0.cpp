@@ -4,7 +4,7 @@
 // then forwards every message to that object's handler. Same shape as 0x4df330.
 #include <windows.h>
 
-class Class_004e0b90 {
+class MemoryStatusDialog {
 public:
     HWND hwnd;
 
@@ -16,9 +16,9 @@ BOOL __stdcall MemoryStatusDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 {
     if (msg == WM_INITDIALOG) {
         SetWindowLongA(hwnd, GWL_USERDATA, lParam);
-        ((Class_004e0b90*)lParam)->hwnd = hwnd;
+        ((MemoryStatusDialog*)lParam)->hwnd = hwnd;
     }
-    Class_004e0b90* obj = (Class_004e0b90*)GetWindowLongA(hwnd, GWL_USERDATA);
+    MemoryStatusDialog* obj = (MemoryStatusDialog*)GetWindowLongA(hwnd, GWL_USERDATA);
     if (obj)
         return obj->HandleMemoryStatusMessage(msg, wParam, lParam);
     return 0;

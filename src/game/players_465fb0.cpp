@@ -24,14 +24,10 @@ struct Game {
 
 extern Game* g_game;
 
-class Class_004b4800 {
-public:
-    int GetIntegerItem(char* name, int def);
-};
-
 class HapiBank {
 public:
     int OpenAccount(char* name);
+    int GetIntegerItem(char* name, int def);
 };
 
 // FUNCTION: 0x465fb0
@@ -43,7 +39,7 @@ void __stdcall LoadPlayerControllers(HapiBank* file)
         int* slot = &g_game->slots[i].controller;
         sprintf(name, "Player%i", i);
         if (file->OpenAccount(name)) {
-            *slot = ((Class_004b4800*)file)->GetIntegerItem("Controller", 0);
+            *slot = ((HapiBank*)file)->GetIntegerItem("Controller", 0);
             player->controller = *slot;
         } else {
             *slot = 0;

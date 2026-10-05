@@ -26,15 +26,7 @@ extern Game* g_game;
 class HapiBank {
 public:
     int OpenAccount(char* name);
-};
-
-class Class_004b4ba0 {
-public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* src, int len);
 };
 
@@ -48,7 +40,7 @@ void __stdcall SaveMetalPlotmap(HapiBank* file)
     for (int i = 0; i < size; i++) {
         buf[i] = cells[i].metal;
     }
-    ((Class_004b4ba0*)file)->OpenNamedBox("Plotmap");
-    ((Class_004b4cf0*)file)->WriteBox(buf, size);
+    ((HapiBank*)file)->OpenNamedBox("Plotmap");
+    ((HapiBank*)file)->WriteBox(buf, size);
     delete[] buf;
 }

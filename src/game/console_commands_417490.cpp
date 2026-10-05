@@ -6,7 +6,7 @@
 extern char DAT_005119b8[];
 
 // Command arguments.
-class Class_004b73c0 {
+class CommandArgs {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
@@ -18,7 +18,7 @@ void __stdcall KillUnitsOfType(short id);
 void __stdcall ReloadUnitType(unsigned short id);
 
 // FUNCTION: 0x417490
-void __stdcall CmdReload(Class_004b73c0* args)
+void __stdcall CmdReload(CommandArgs* args)
 {
     if (args->count > 1) {
         short id = FindUnitTypeId(args->GetArg(1, DAT_005119b8));

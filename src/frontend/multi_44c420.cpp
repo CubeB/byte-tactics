@@ -57,16 +57,10 @@ struct Menu_0044c420 {
     int field_60;                      // +0x60 current gadget, -1 for none
 };
 
-struct Class_0046e450 {
-    int DisallowUnit(Item_0044c420* unit);
-};
-
-struct Class_0046e4d0 {
-    int AllowUnit(Item_0044c420* unit);
-};
-
 struct UnitSync {
     void SetUnitLimit(Item_0044c420* unit, int value);
+    int DisallowUnit(Item_0044c420* unit);
+    int AllowUnit(Item_0044c420* unit);
 };
 
 struct Game {
@@ -138,9 +132,9 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
                     if (item->field_245.bits.flag) {
                     } else {
                         if (DAT_005129b4[i].field_5a == 0)
-                            ((Class_0046e450*)g_game->queue)->DisallowUnit(item);
+                            ((UnitSync*)g_game->queue)->DisallowUnit(item);
                         else
-                            ((Class_0046e4d0*)g_game->queue)->AllowUnit(item);
+                            ((UnitSync*)g_game->queue)->AllowUnit(item);
                     }
                 }
             }

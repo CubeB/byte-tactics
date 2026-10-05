@@ -15,7 +15,7 @@
 // Point* so its two loads stay after the focus store, as in the original.
 #pragma pack(push, 1)
 
-struct Class_004a4b50;
+struct Dialog;
 struct Point_004a4b50 { int x, y; };
 
 struct Entry_004a4b50 {                       // 0x15b bytes
@@ -26,7 +26,7 @@ struct Entry_004a4b50 {                       // 0x15b bytes
     short width;                              // +0x17
     short height;                             // +0x19
     char unknown_1b[0xb6 - 0x1b];
-    void (__stdcall* callback)(Class_004a4b50*, Entry_004a4b50*);  // +0xb6
+    void (__stdcall* callback)(Dialog*, Entry_004a4b50*);          // +0xb6
     char unknown_ba[0xc8 - 0xba];
     unsigned char flags;                      // +0xc8
     char unknown_c9[0x15b - 0xc9];
@@ -37,7 +37,7 @@ struct Table_004a4b50 {
     Entry_004a4b50* entries;                  // +0x4
 };
 
-struct Class_004a4b50 {
+struct Dialog {
     char unknown_0[0x18];
     Table_004a4b50* table;                    // +0x18
     char unknown_1c[0x3c - 0x1c];
@@ -47,13 +47,13 @@ struct Class_004a4b50 {
 };
 #pragma pack(pop)
 
-extern int __stdcall IsMouseButtonMessage(Class_004a4b50* obj, unsigned char buttons);
-extern int __stdcall FUN_004ab5b0(Class_004a4b50* obj, unsigned int mask);
-extern void __stdcall FUN_004ab690(Class_004a4b50* obj, int value);
-extern int __stdcall FUN_0049fc50(Class_004a4b50* obj, int index);
+extern int __stdcall IsMouseButtonMessage(Dialog* obj, unsigned char buttons);
+extern int __stdcall FUN_004ab5b0(Dialog* obj, unsigned int mask);
+extern void __stdcall FUN_004ab690(Dialog* obj, int value);
+extern int __stdcall FUN_0049fc50(Dialog* obj, int index);
 
 // FUNCTION: 0x4a4b50
-int __stdcall FUN_004a4b50(Class_004a4b50* obj, int index)
+int __stdcall FUN_004a4b50(Dialog* obj, int index)
 {
     Entry_004a4b50* entries = obj->table->entries;
     struct Rect { int left, top, right, bottom; } r;

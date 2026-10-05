@@ -15,7 +15,7 @@ struct Word_004afd80 {                 // 0xa4 bytes
     int value;                         // +0xa0
 };
 
-struct Class_004afd80 {
+struct Dialog {
     char unknown_0[0xa6];
     Word_004afd80* words;              // +0xa6
     int count;                         // +0xaa
@@ -27,7 +27,7 @@ int GetTickRate();
 unsigned int GetTicks();
 
 // FUNCTION: 0x4afd80
-int __stdcall FUN_004afd80(Class_004afd80* obj, const char* text, int p2, int p3,
+int __stdcall FUN_004afd80(Dialog* obj, const char* text, int p2, int p3,
                            int p4, int p5, float f6, float f7)
 {
     Word_004afd80* p = obj->words;

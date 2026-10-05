@@ -11,30 +11,26 @@
 // `mov ecx, ebx` (0x435d00) before the call, so 0x435da0 is a __thiscall method
 // of this class; a free declaration drops that instruction and cannot match.
 // Fix: keep the existing entry and add
-//   0x435da0,Class_00435c00::LoadMission
+//   0x435da0,Mission::LoadMission
 // to data/symbols.csv. That is the name its own author will use, since this
-// object's class is already recorded as Class_00435c00 by 0x435c00.cpp.
+// object's class is already recorded as Mission by 0x435c00.cpp.
 #include <stdio.h>
 #include <string.h>
 
-class Class_004c3e10 {
+class TdfFile {
 public:
     char unknown_0[4];
     int field_0x4;
 
     void ResetCurrentRecord();
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
 };
 
-class Class_00435c00 {
+class Mission {
 public:
     int unknown_0;                      // +0x0
     char name[0xa08 - 4];               // +0x4
-    Class_004c3e10 list;                // +0xa08
+    TdfFile list;                       // +0xa08
     char unknown_a10[0xc18 - 0xa10];
     int field_c18;                      // +0xc18
     int field_c1c;                      // +0xc1c
@@ -44,7 +40,7 @@ public:
 };
 
 // FUNCTION: 0x435c60
-int Class_00435c00::AdvanceMission()
+int Mission::AdvanceMission()
 {
     char buf[128];
     int n;
@@ -55,7 +51,7 @@ int Class_00435c00::AdvanceMission()
         n = 0;
         sprintf(buf, "MISSION%d", n);
         list.ResetCurrentRecord();
-        while (((Class_004c3410*)&list)->SelectRecord(buf)) {
+        while (((TdfFile*)&list)->SelectRecord(buf)) {
             n++;
             sprintf(buf, "MISSION%d", n);
             list.ResetCurrentRecord();

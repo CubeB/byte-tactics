@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // std::_Tree<...>::erase(iterator) for the 500-byte-value name map that lives
-// at Class_004e17c0+0x21c (tree at 0x5294ec, _Nil at 0x5292c4). Transcribed by
+// at NameTable+0x21c (tree at 0x5294ec, _Nil at 0x5292c4). Transcribed by
 // hand from MSVC 5's <xtree> (erase, and the inlined _Min/_Max/_Lrotate/
 // _Rrotate/_Freenode) rather than instantiated through <map>, because the
 // callees 0x4e0450 and 0x4dfea0 already carry the literal names

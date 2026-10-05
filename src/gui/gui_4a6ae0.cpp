@@ -18,7 +18,7 @@
 // because that spelling happened to give the right homes.
 #pragma pack(push, 1)
 
-struct Class_004a6ae0;
+struct Dialog;
 
 union Field136_004a6ae0 {              // 2 bytes at +0x136
     short value;
@@ -47,7 +47,7 @@ struct Entry_004a6ae0 {                // 0x15b bytes
     char unknown_13d[0x140 - 0x13d];
     short field_140;                   // +0x140
     char unknown_142[0x144 - 0x142];
-    void (__stdcall* callback)(Class_004a6ae0*, int);  // +0x144
+    void (__stdcall* callback)(Dialog*, int);          // +0x144
     char unknown_148[0x14a - 0x148];
     int callbackArg;                   // +0x14a
     char unknown_14e[0x15b - 0x14e];
@@ -66,7 +66,7 @@ struct Point_004a6ae0 {                // 24 bytes, copied with rep movsd
     int unknown_08[4];
 };
 
-struct Class_004a6ae0 {
+struct Dialog {
     char unknown_00[0x18];
     Holder_004a6ae0* holder;           // +0x18
     char unknown_1c[0x3c - 0x1c];
@@ -84,14 +84,14 @@ struct Class_004a6ae0 {
 extern int DAT_0051fbb0;
 extern int DAT_0051fbac;
 
-int __stdcall IsMouseButtonMessage(Class_004a6ae0* obj, unsigned char buttons);
-int __stdcall FUN_004ab5b0(Class_004a6ae0* obj, unsigned int mask);
-void __stdcall FUN_004ab690(Class_004a6ae0* obj, int value);
-int __stdcall FUN_0049fc50(Class_004a6ae0* obj, int index);
-void __stdcall DrawButton(Class_004a6ae0* obj, int index);
-void __stdcall FUN_004a0340(Class_004a6ae0* obj, int index);
-void __stdcall FUN_004a2580(Class_004a6ae0* obj, int index);
-void __stdcall FUN_004a2be0(Class_004a6ae0* obj, int index);
+int __stdcall IsMouseButtonMessage(Dialog* obj, unsigned char buttons);
+int __stdcall FUN_004ab5b0(Dialog* obj, unsigned int mask);
+void __stdcall FUN_004ab690(Dialog* obj, int value);
+int __stdcall FUN_0049fc50(Dialog* obj, int index);
+void __stdcall DrawButton(Dialog* obj, int index);
+void __stdcall FUN_004a0340(Dialog* obj, int index);
+void __stdcall FUN_004a2580(Dialog* obj, int index);
+void __stdcall FUN_004a2be0(Dialog* obj, int index);
 int GetTicks();
 int __stdcall IsKeyDown(int param);
 void PopKey();
@@ -108,7 +108,7 @@ static inline int FindKind_004a6ae0(Entry_004a6ae0* entries, unsigned char kind)
 }
 
 // FUNCTION: 0x4a6ae0
-int __stdcall HandleButtonInput(Class_004a6ae0* obj, int index, int param_3)
+int __stdcall HandleButtonInput(Dialog* obj, int index, int param_3)
 {
     Entry_004a6ae0* entries = obj->holder->entries;
     Entry_004a6ae0* entry = &entries[index];

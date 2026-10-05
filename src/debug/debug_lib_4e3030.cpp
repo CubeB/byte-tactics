@@ -11,7 +11,7 @@ public:
 };
 
 // Unsigned byte version of the setting accessor in 0x4e2f90.cpp.
-class Class_004e3030 {
+class CavedogRegistryKey {
 public:
     void* key;                       // +0x0
     char reading;                    // +0x4
@@ -19,7 +19,7 @@ public:
 };
 
 // FUNCTION: 0x4e3030
-void Class_004e3030::FUN_004e3030(char* name, unsigned char* value, unsigned char minValue, unsigned char maxValue, unsigned char defaultValue)
+void CavedogRegistryKey::FUN_004e3030(char* name, unsigned char* value, unsigned char minValue, unsigned char maxValue, unsigned char defaultValue)
 {
     if (reading) {
         *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);

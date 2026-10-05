@@ -2,7 +2,7 @@
 // Returns `pad` if it is usable, otherwise the first usable pad the unit's
 // script reports from QueryLandingPad, or -1.
 
-class Class_004b0bc0 {
+class CobScript {
 public:
     int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
 };
@@ -10,7 +10,7 @@ public:
 #pragma pack(push, 1)
 struct Unit {
     char unknown_0[0x9a];
-    Class_004b0bc0* script;            // +0x9a
+    CobScript* script;                 // +0x9a
 };
 #pragma pack(pop)
 

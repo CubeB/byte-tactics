@@ -13,7 +13,7 @@
 //    statement (`if (!bitmap) ... else if (...)`): MSVC merges the two stores
 //    in the output, but the extra block lowers the bitmap temp from 16 to 14,
 //    below the flags temp (15), so flags take edx and the bitmap ebx.
-//  - The class is Class_00437c80, the name data/symbols.csv and the caller
+//  - The class is CMemoryCache, the name data/symbols.csv and the caller
 //    0x45ac20 use.
 // The doubled `test eax, eax` still needs the last conjunct spelled through the
 // `bitmap` local and the one before it through `list->bitmap`.
@@ -85,7 +85,7 @@ public:
     int BuildObjectPicture(List_458810* list, int param_2, int param_3);
 };
 
-class Class_00437c80 {
+class CMemoryCache {
 public:
     void DrawObjectState(List_458810* list, Vec3_458810* result);
 };
@@ -112,7 +112,7 @@ void Class_00458430::DrawObjectPieces(Vec3_458810* result, List_458810* list, Ve
 }
 
 // FUNCTION: 0x458810
-void Class_00437c80::DrawObjectState(List_458810* list, Vec3_458810* result)
+void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
 {
     int rebuild = 0;
     int x = *(int*)(g_game + 0x1431f) << 16;

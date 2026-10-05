@@ -11,22 +11,14 @@
 // name pointer in a stack slot, which is the original's allocation.
 #include <string.h>
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;
     void* current;                      // +0x4
     int field_8;
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* file);
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
 };
 
@@ -62,7 +54,7 @@ static inline char* AppendName_00476a60(char* p, char* s)
 int __stdcall BuildCampaignNameList(char** out, int side)
 {
     int found = 0;
-    Class_004c2ea0 parser;
+    TdfFile parser;
     char name[0x40];
     char path[0x100];
     name[0] = '0';
@@ -75,8 +67,8 @@ int __stdcall BuildCampaignNameList(char** out, int side)
     char* p = *out;
     for (int i = 0; i < n; i++) {
         BuildDataPath(path, "camps", q, "tdf");
-        if (((Class_004c2f60*)&parser)->LoadFile(path)) {
-            if (((Class_004c3410*)&parser)->SelectRecord("HEADER")) {
+        if (((TdfFile*)&parser)->LoadFile(path)) {
+            if (((TdfFile*)&parser)->SelectRecord("HEADER")) {
                 ((TdfRecord*)parser.current)->GetFieldString(name, "campaignside", 0x40, DAT_005119b8);
                 if (strcmp(g_game->names[side], name) == 0 || strcmp("ALL", name) == 0) {
                     found++;

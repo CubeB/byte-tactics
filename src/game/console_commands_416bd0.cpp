@@ -25,10 +25,6 @@ extern char DAT_005119b8[];
 class CommandArgs {
 public:
     int GetIntArg(int index, int fallback);
-};
-
-class Class_004b73c0 {
-public:
     char* GetArg(int index, char* fallback);
 };
 
@@ -43,11 +39,11 @@ void __stdcall CmdGive(CommandArgs* args)
         Player_00416bd0* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
             && p->field_146 != 10) {
-            if (_strcmpi(((Class_004b73c0*)args)->GetArg(3, DAT_005119b8), "metal") == 0) {
+            if (_strcmpi(((CommandArgs*)args)->GetArg(3, DAT_005119b8), "metal") == 0) {
                 TransferEnergy(g_game->localPlayer, args->GetIntArg(1, 0),
                              (float)args->GetIntArg(2, 0), 1);
             }
-            if (_strcmpi(((Class_004b73c0*)args)->GetArg(3, DAT_005119b8), "energy") == 0) {
+            if (_strcmpi(((CommandArgs*)args)->GetArg(3, DAT_005119b8), "energy") == 0) {
                 TransferMetal(g_game->localPlayer, args->GetIntArg(1, 0),
                              (float)args->GetIntArg(2, 0), 1);
             }

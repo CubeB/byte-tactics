@@ -12,12 +12,12 @@ struct Font_004a50b0 {
     void* glyphs;                      // +0xc
 };
 
-struct Class_0051fba4 {
+struct Dialog {
     char unknown_0[0x14];
     Font_004a50b0* font;               // +0x14
 };
 
-extern Class_0051fba4* g_guiContext;
+extern Dialog* g_guiContext;
 
 void* __stdcall GetGafFrame(void* a, int b);
 int GetFontHeight();

@@ -18,21 +18,17 @@ struct AccountList {
     int index;                      // +0x08
 };
 
-class Class_004b4a80 {
-public:
-    int FindNamedBox(char* name, int flag);
-};
-
-class Class_004b4ba0 {
+class HapiBank {
 public:
     AccountList* table;             // +0x00
     int OpenNamedBox(char* name);
+    int FindNamedBox(char* name, int flag);
 };
 
 // FUNCTION: 0x4b4ba0
-int Class_004b4ba0::OpenNamedBox(char* name)
+int HapiBank::OpenNamedBox(char* name)
 {
-    int i = ((Class_004b4a80*)this)->FindNamedBox(name, 1);
+    int i = ((HapiBank*)this)->FindNamedBox(name, 1);
     table->slots[table->index].current = i;
     return table->slots[table->index].entries[i].field_10 != 0;
 }

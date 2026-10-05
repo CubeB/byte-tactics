@@ -16,20 +16,16 @@ struct Point {
 
 struct Unit;
 
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_00489960 { public: int CanReclaim(Unit*); };
-
 #pragma pack(push, 1)
 struct UnitDef {
     char unknown_0[0x15e];
@@ -45,7 +41,7 @@ struct UnitDef {
 };
 
 struct Unit {
-    Class_0043d210* type;              // +0x0
+    UnitMotion* type;                  // +0x0
     char unknown_4[0x6a - 0x4];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x7e - 0x76];
@@ -54,6 +50,9 @@ struct Unit {
     int field_86;                      // +0x86
     char unknown_8a[0x92 - 0x8a];
     UnitDef* def;                      // +0x92
+    void ClaimWeapons(int);
+    void SetStateBits(int, int);
+    int CanReclaim(Unit*);
 };
 
 struct UnitRef {
@@ -102,10 +101,10 @@ static inline Point WorldToCell(Vec3 v, Point origin)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -132,7 +131,7 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
                 QueueUnitSpeech(unit, 7, "Reclamation failed");
                 return 7;
             }
-            if (!((Class_00489960*)unit)->CanReclaim(target)) {
+            if (!((Unit*)unit)->CanReclaim(target)) {
                 QueueUnitSpeech(unit, 7, "That unit cannot be reclaimed");
                 return 8;
             }
@@ -161,7 +160,7 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         int range = 0;
         range = unit->def->buildRange;
         int square = delta.Square();
-        if (square <= range * range && ((Class_00489960*)unit)->CanReclaim(order->target.Get())) {
+        if (square <= range * range && ((Unit*)unit)->CanReclaim(order->target.Get())) {
             if (order->duration >= 15) {
                 DamageUnit(unit, order->target.Get(), order->elapsed, 5, 0);
                 order->duration = 0;

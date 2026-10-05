@@ -18,13 +18,13 @@ struct Elem_00434360 {
 typedef std::vector<Elem_00434360> Middle_004330b0;
 typedef std::vector<Middle_004330b0> Outer_004330b0;
 
-class Class_004330b0 {
+class LosTables {
 public:
     void FUN_004330b0();
 };
 
 // FUNCTION: 0x4330b0
-void Class_004330b0::FUN_004330b0()
+void LosTables::FUN_004330b0()
 {
     ((Outer_004330b0*)this)->~vector();
 }

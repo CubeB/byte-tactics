@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-struct Class_0045ba20
+struct Gadget
 {
     char unknown_0[0x136];
     short field_136;              // +0x136
@@ -10,7 +10,7 @@ struct Class_0045ba20
 };
 
 // FUNCTION: 0x45ba20
-int __stdcall ReadSliderValue(Class_0045ba20* param_1)
+int __stdcall ReadSliderValue(Gadget* param_1)
 {
     if (param_1->field_136 <= 1)
         return 0;

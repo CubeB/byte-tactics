@@ -19,13 +19,13 @@ struct Message_0047f780 {              // 0x18 bytes
     char unknown_4[0x14];
 };
 
-class Class_0047fad0 {
+class SpeechQueue {
 public:
     void EnqueueSpeech(Unit* unit, int kind, char* text);
 };
 
 extern Game* g_game;
-extern Class_0047fad0* DAT_0051e68c;
+extern SpeechQueue* DAT_0051e68c;
 extern Message_0047f780 DAT_005086e8[];
 
 char* __stdcall Translate(char* text);

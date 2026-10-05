@@ -15,13 +15,13 @@ struct Obj_00406f50 {
 };
 #pragma pack(pop)
 
-class Class_00406f50 {
+class SquadManager {
 public:
     void FUN_00406f50(Obj_00406f50* obj, int a, int b);
 };
 
 // FUNCTION: 0x406f50
-void Class_00406f50::FUN_00406f50(Obj_00406f50* obj, int a, int b)
+void SquadManager::FUN_00406f50(Obj_00406f50* obj, int a, int b)
 {
     Target_00406f50* t = obj->target;
     if (t) {

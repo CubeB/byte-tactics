@@ -11,14 +11,10 @@
 // with the store through the element pointer (`[ecx + 0x1b]`), while the same
 // thing written as a mask on a plain byte folds the element offset into the
 // address (`lea ecx, [edi + eax*4 + 0x1f]`, `mov [ecx], al`) instead.
-class Class_004b07c0 {
-public:
-    int FindScript(char* name);
-};
-
 class CobScript {
 public:
     int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
+    int FindScript(char* name);
 };
 
 #pragma pack(push, 1)
@@ -45,19 +41,19 @@ struct Entry_004898b0 {                // 0x1c bytes
     Flags_004898b0 flags;              // +0x1b
 };
 
-class Class_00489800 {
+class Unit {
 public:
     int unknown_0;
     Entry_004898b0 entries[5];          // +0x4
     char unknown_90[0x9a - 0x90];
-    Class_004b07c0* script;             // +0x9a
+    CobScript* script;             // +0x9a
 
     void ReleaseWeapons(unsigned char index);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x489800
-void Class_00489800::ReleaseWeapons(unsigned char index)
+void Unit::ReleaseWeapons(unsigned char index)
 {
     if (index == 3) {
         this->ReleaseWeapons(0);

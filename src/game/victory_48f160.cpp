@@ -3,10 +3,6 @@
 class HapiBank {
 public:
     void OpenAccount(const char* name);
-};
-
-class Class_004b4630 {
-public:
     void SetIntegerItem(const char* name, int value);
 };
 
@@ -29,7 +25,7 @@ public:
 void VictoryKillUnitType::SaveState(HapiBank* obj)
 {
     obj->OpenAccount(DAT_00509028);
-    ((Class_004b4630*)obj)->SetIntegerItem(DAT_00509018, numLeftToKill);
-    ((Class_004b4630*)obj)->SetIntegerItem(DAT_00508f30, satisfied);
-    ((Class_004b4630*)obj)->SetIntegerItem(DAT_00508f24, celebrated);
+    ((HapiBank*)obj)->SetIntegerItem(DAT_00509018, numLeftToKill);
+    ((HapiBank*)obj)->SetIntegerItem(DAT_00508f30, satisfied);
+    ((HapiBank*)obj)->SetIntegerItem(DAT_00508f24, celebrated);
 }

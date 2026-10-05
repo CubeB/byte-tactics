@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
-class Class_004356c0 { public: const char* FUN_004356c0(int); };
+class Mission { public: const char* FUN_004356c0(int); };
 #pragma pack(push, 1)
 struct Player { char name[0x48]; unsigned char control; char pad49[331-0x49]; };
-struct UnitType { char name[32]; char description[585-32]; };
+struct UnitDef { char name[32]; char description[585-32]; };
 struct Base { signed char value, metal, energy; };
 struct AI {
     char pad0[0x65]; std::vector<Base> base; char pad75[0xad-0x75]; std::vector<unsigned char> result;
@@ -13,10 +13,10 @@ struct AI {
 };
 struct Game {
     char pad0[0x1b8e]; Player players[10];
-    char padPlayers[0x1438f-0x1b8e-3310]; int typeCount; char pad14393[8]; UnitType* types;
+    char padPlayers[0x1438f-0x1b8e-3310]; int typeCount; char pad14393[8]; UnitDef* types;
     char pad1439f[0x37eee-0x1439f]; int difficulty;
     char pad37ef2[0x38a47-0x37ef2]; unsigned int tick;
-    char pad38a4b[0x391e9-0x38a4b]; Class_004356c0* net;
+    char pad38a4b[0x391e9-0x38a4b]; Mission* net;
 };
 #pragma pack(pop)
 extern Game* g_game;
@@ -46,7 +46,7 @@ void __stdcall DumpPlayerAI(int player, FILE* file)
     fprintf(file,"================================================\r\n");
     fprintf(file,"<limit> - <base:baseML:baseEL> : <end result - before economy-based tweaks> - <unit name>\r\n");
     for (unsigned short i=1;i<g_game->typeCount;++i) {
-        UnitType* type=&g_game->types[i];
+        UnitDef* type=&g_game->types[i];
         if (ai->limits[i]<0) fprintf(file,"n/a ");
         else fprintf(file,"%4d",ai->limits[i]);
         sprintf(buffer," - %3d : %3d : %3d = %3d - '%s\t\t:%s'\r\n",ai->base[i].value,ai->base[i].metal,ai->base[i].energy,ai->result[i],type->description,type->name);

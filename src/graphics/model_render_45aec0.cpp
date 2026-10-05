@@ -14,18 +14,18 @@ void* __cdecl FUN_004d83b0(char* name, int size);
 
 #pragma pack(push, 2)
 
-struct Class_0045ae80 {
+struct Object3do {
     char unknown_0[0x4];
     int unknown_4;                       // +0x4, point count
     char unknown_8[0x24 - 0x8];
     void* points;                        // +0x24
     char unknown_28[0x2c - 0x28];
-    Class_0045ae80* unknown_2c;          // +0x2c, sibling
-    Class_0045ae80* unknown_30;          // +0x30, child
+    Object3do* unknown_2c;               // +0x2c, sibling
+    Object3do* unknown_30;               // +0x30, child
 };
 
 struct Entry_0045aec0 {
-    Class_0045ae80* object;              // +0x0
+    Object3do* object;                   // +0x0
     char unknown_4[0x22 - 0x4];
     void* points;                        // +0x22
     short unknown_26;                    // +0x26
@@ -44,7 +44,7 @@ struct ObjectState_0045aec0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x45aec0
-Entry_0045aec0* __stdcall AddStateEntries(ObjectState_0045aec0* state, Class_0045ae80* obj,
+Entry_0045aec0* __stdcall AddStateEntries(ObjectState_0045aec0* state, Object3do* obj,
                                        Entry_0045aec0* parent)
 {
     Entry_0045aec0* e = &state->entries[state->count];

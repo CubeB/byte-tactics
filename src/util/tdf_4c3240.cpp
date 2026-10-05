@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Destructor-shaped method: frees the TDF section tree hanging off root and
-// zeroes the 12-byte object. Same body as Class_004c2ea0's destructor
+// zeroes the 12-byte object. Same body as TdfFile's destructor
 // (0x4c2eb0, in 0x4c51b0.cpp), but the entry vector here is a direct
 // std::vector<TdfField> member, so its destroy loop calls ~Elem
 // out of line (0x4c5190) instead of the scalar deleting destructor 0x4c51b0.
@@ -53,7 +53,7 @@ public:
 };
 #pragma pack(pop)
 
-class Class_004c3240 {
+class TdfFile {
 public:
     TdfRecord* root;                 // +0x0
     int field_4;                       // +0x4
@@ -63,7 +63,7 @@ public:
 };
 
 // FUNCTION: 0x4c3240
-void Class_004c3240::Unload()
+void TdfFile::Unload()
 {
     if (root)
         delete root;

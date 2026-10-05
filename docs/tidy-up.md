@@ -204,8 +204,11 @@ What could have moved and does not:
 
 Cavedog's own names, where the exe keeps them, win: `PlayerFrameInfo::Initialize`,
 `HapiBank::OpenBank`, `HapiBank::LoadAccount`, `CMemoryCache`,
-`SJE_CdPlayerClass`, `m_defaultSendPacing`, the `HAPINET_*` and `HAPI_*`
-functions and the `ONL*` exports of online.dll. Elsewhere:
+`m_defaultSendPacing`, the `HAPINET_*` and `HAPI_*` functions and the `ONL*`
+exports of online.dll. Not every name in the exe is Cavedog's:
+`SJE_CdPlayerClass` is the window class of the Windows 95 CD Player, which
+the game looks for (FindCdPlayerWindow, 0x4ce1e0) and closes so that it can
+open the CD itself. Elsewhere:
 
 | What | Convention | Example |
 | --- | --- | --- |

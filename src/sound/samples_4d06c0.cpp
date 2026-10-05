@@ -9,7 +9,7 @@ int __stdcall AddTimer(int delay, int param, void (__stdcall* callback)(int));
 extern int DAT_0051ff58;
 extern char DAT_0051ff60[];
 
-class Class_004d06c0 {
+class Sound {
 public:
     char unknown_0[0x288];
     int timer;                           // +0x288
@@ -18,7 +18,7 @@ public:
 };
 
 // FUNCTION: 0x4d06c0
-int Class_004d06c0::StreamSampleDelayed(char* name, int value, int delay)
+int Sound::StreamSampleDelayed(char* name, int value, int delay)
 {
     strcpy(DAT_0051ff60, name);
     DAT_0051ff58 = value;

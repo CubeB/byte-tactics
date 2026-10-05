@@ -15,17 +15,17 @@ public:
 CritSec_004e1ac0* FUN_004e1ac0();
 
 // The key: a C string ordered by strcmp.
-class Class_004e1a30 {
+class NameKey {
 public:
     char* name;                        // +0x0
-    bool FUN_004e1a30(const Class_004e1a30& other) const;
+    bool FUN_004e1a30(const NameKey& other) const;
 };
 
 struct Node_004e1990 {
     Node_004e1990* left;               // +0x0
     Node_004e1990* parent;             // +0x4
     Node_004e1990* right;              // +0x8
-    Class_004e1a30 key;                // +0xc
+    NameKey key;                       // +0xc
 };
 
 class Iter_004e1990 {
@@ -46,7 +46,7 @@ struct InsertResult_004e1990 {
 };
 
 struct Less_004e1990 {
-    bool operator()(const Class_004e1a30& a, const Class_004e1a30& b) const
+    bool operator()(const NameKey& a, const NameKey& b) const
     {
         return a.FUN_004e1a30(b);
     }
@@ -54,7 +54,7 @@ struct Less_004e1990 {
 
 class Class_004e2580 {
 public:
-    Iter_004e1990 FUN_004e2580(const Class_004e1a30& key);
+    Iter_004e1990 FUN_004e2580(const NameKey& key);
 };
 
 class Class_004dfea0 {
@@ -64,7 +64,7 @@ public:
 
 class Class_004e2250 {
 public:
-    InsertResult_004e1990 FUN_004e2250(const Class_004e1a30& key);
+    InsertResult_004e1990 FUN_004e2250(const NameKey& key);
 };
 
 class Class_004e1990 {
@@ -76,16 +76,16 @@ public:
     bool changed;                      // +0x10
 
     Iter_004e1990 End() { return Iter_004e1990(head); }
-    Iter_004e1990 Find(const Class_004e1a30& key)
+    Iter_004e1990 Find(const NameKey& key)
     {
         Iter_004e1990 p = ((Class_004e2580*)this)->FUN_004e2580(key);
         return (p == End() || compare(key, p.ptr->key)) ? End() : p;
     }
-    void FUN_004e1990(const Class_004e1a30& key);
+    void FUN_004e1990(const NameKey& key);
 };
 
 // FUNCTION: 0x4e1990
-void Class_004e1990::FUN_004e1990(const Class_004e1a30& key)
+void Class_004e1990::FUN_004e1990(const NameKey& key)
 {
     CritSec_004e1ac0* lock = FUN_004e1ac0();
     EnterCriticalSection(&lock->cs);

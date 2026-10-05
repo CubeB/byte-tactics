@@ -46,7 +46,7 @@ struct Holder_004a99c0 {
     List_004a99c0* list;               // +0x14
 };
 
-struct Class_004a99c0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a99c0* holder;           // +0x18
 };
@@ -58,12 +58,12 @@ void __stdcall SetFont(int id);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 int GetFontHeight();
 char* __stdcall SkipTextLines(char* text, int line);
-void __stdcall DrawListBox(Class_004a99c0* param_1, int param_2);
-void __stdcall FUN_004a2be0(Class_004a99c0* param_1, int param_2);
-void __stdcall FUN_004a2e40(Class_004a99c0* param_1, char* name, int line);
+void __stdcall DrawListBox(Dialog* param_1, int param_2);
+void __stdcall FUN_004a2be0(Dialog* param_1, int param_2);
+void __stdcall FUN_004a2e40(Dialog* param_1, char* name, int line);
 
 // FUNCTION: 0x4a99c0
-void __stdcall FUN_004a99c0(Class_004a99c0* param_1, int index)
+void __stdcall FUN_004a99c0(Dialog* param_1, int index)
 {
     Entry_004a99c0* entries = param_1->holder->entries;
     Entry_004a99c0* me = &entries[index];

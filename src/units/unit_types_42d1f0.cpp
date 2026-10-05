@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Reads the unit definition and script of a unit type from disk, both under
-// "units/<TypeName>/", and stores the script at UnitType+0x18e: first the
+// "units/<TypeName>/", and stores the script at UnitDef+0x18e: first the
 // definition file ("FBI") when it exists, then the script file ("COB").
 // The whole table at g_game+0x1439b (0x249-byte entries) is locked while the
 // files are read.

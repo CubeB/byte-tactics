@@ -80,7 +80,7 @@ struct AccountHeader {               // 0x20 bytes
     int unknown_1c;                  // +0x1c
 };
 
-class Class_004b3750 {
+class HapiBank {
 public:
     AccountList* field_0;
     char unknown_4[4];
@@ -97,7 +97,7 @@ int __stdcall SquashMaxPackedSize(int size, int level);
 int __stdcall SquashPack(void* dest, int* destSize, void* src, int srcSize, int param_5, int param_6);
 
 // FUNCTION: 0x4b3c60
-void Class_004b3750::SaveAccount(int index, FILE* file, Buffer_004b3c60* buf, int compress)
+void HapiBank::SaveAccount(int index, FILE* file, Buffer_004b3c60* buf, int compress)
 {
     BankAccount* slot = &((BankAccount*)field_0->slots)[index];
     if (slot->count1 <= 0 && slot->count2 <= 0) {

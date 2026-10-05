@@ -10,7 +10,7 @@ public:
     int SendAllQueued(int param_1);
 };
 
-class Class_0046a400 {                 // frame-time profile, embedded at g_game+0x38d85
+class FrameTimers {                    // frame-time profile, embedded at g_game+0x38d85
 public:
     int last;                           // +0x00
     int total;                          // +0x04
@@ -42,7 +42,7 @@ struct Game {
     char unknown_38a3f[0x38a47 - 0x38a3f];
     int ticks;                          // +0x38a47
     char unknown_38a4b[0x38d85 - 0x38a4b];
-    Class_0046a400 prof;                // +0x38d85
+    FrameTimers prof;                   // +0x38d85
 };
 #pragma pack(pop)
 

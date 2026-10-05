@@ -12,7 +12,7 @@ extern void __stdcall SetMediaNotifyCallback(void (__stdcall*)(int, int, int));
 extern void __stdcall HandleCdMessage(int, int, int);
 extern BOOL __stdcall FindCdPlayerWindow(HWND, LPARAM);
 
-class Class_004cda00 {
+class Sound {
 public:
     int QueryDisc();
 };
@@ -88,7 +88,7 @@ int Class_004ce260::OpenCdAudio()
         return 0;
     }
     field_210 = 0;
-    field_200 = ((Class_004cda00*)this)->QueryDisc();
+    field_200 = ((Sound*)this)->QueryDisc();
     SetMediaNotifyCallback(HandleCdMessage);
     open = 1;
     field_204 = 1;

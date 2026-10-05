@@ -53,19 +53,19 @@ struct Map_004df590 {
     char changed;                      // +0x10
 };
 
-class Class_004e17c0 {
+class NameTable {
 public:
     Map_004df590 names;                // +0x0
 };
 
-Class_004e17c0* GetNameTable();
+NameTable* GetNameTable();
 
-class Class_004e1ac0 {
+class CriticalSection {
 public:
     CRITICAL_SECTION cs;
 };
 
-Class_004e1ac0* FUN_004e1ac0();
+CriticalSection* FUN_004e1ac0();
 
 class Class_004e18c0 {
 public:
@@ -120,7 +120,7 @@ void __cdecl SyncPerformanceSettings(int flag);
 void __cdecl SaveWindowPosition(HWND hwnd, char* name);
 void __cdecl OpenUrl(HWND hwnd, const char* url, const char* ext);
 
-class Class_004df590 {
+class PerformanceDialog {
 public:
     HWND hwnd;                         // +0x00
     int left;                          // +0x04
@@ -147,7 +147,7 @@ static inline Node_004df590* Min_004df590(Node_004df590* p)
 static inline bool NamesEqual_004df590(const char* a, const char* b) { return a == b || strcmp(a,b) == 0; }
 
 // FUNCTION: 0x4df590
-BOOL Class_004df590::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg) {
     case 0x111: {
@@ -268,9 +268,9 @@ BOOL Class_004df590::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM lP
             top = rect.top;
             SaveWindowPosition(hwnd, DAT_0050d660);
         }
-        Class_004e1ac0* cs = FUN_004e1ac0();
+        CriticalSection* cs = FUN_004e1ac0();
         EnterCriticalSection(&cs->cs);
-        Class_004e17c0* info = GetNameTable();
+        NameTable* info = GetNameTable();
         if (info->names.changed) {
             int sel = -1;
             int n = 0;

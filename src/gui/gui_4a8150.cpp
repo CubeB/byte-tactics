@@ -19,13 +19,13 @@ struct Holder_004a8150 {
     Entry_004a8150* entries;           // +0x4
 };
 
-struct Class_004a8150 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a8150* holder;           // +0x18
 };
 
 // FUNCTION: 0x4a8150
-int __stdcall AddGadgetEntry(Class_004a8150* obj, unsigned char type)
+int __stdcall AddGadgetEntry(Dialog* obj, unsigned char type)
 {
     Entry_004a8150* entries = obj->holder->entries;
     entries->count++;

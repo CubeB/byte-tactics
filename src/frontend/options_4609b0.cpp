@@ -6,7 +6,7 @@
 // LOADGAME / SAVEGAME / PREFS / HELP / MISSION / EXIT / OK, and anything else
 // falls through to the default handler FUN_004ab0a0.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -48,7 +48,7 @@ struct Game {
     char unknown_37ec0[0x38a51 - 0x37ec0];
     unsigned short flags_38a51;        // +0x38a51
     char unknown_38a53[0x391e9 - 0x38a53];
-    Class_00435100* mode;              // +0x391e9
+    Mission* mode;                     // +0x391e9
 };
 #pragma pack(pop)
 

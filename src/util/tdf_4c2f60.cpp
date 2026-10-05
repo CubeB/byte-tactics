@@ -1,12 +1,12 @@
 // Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
 // Loads a .TDF file: opens it, takes the file length, reads the whole file
 // into a fresh block, copies it into a "TDF file" block that is NUL
-// terminated, blanks out comments in that copy (Class_004c33a0::StripComments,
+// terminated, blanks out comments in that copy (TdfFile::StripComments,
 // reached through a base class of the object that holds the tree) and parses
 // it into a new root section named "root" (FUN_004c3e40). The tree parsed by
 // the previous load is deleted first. Returns 1 on success, 0 when the file
 // cannot be opened or the read fails. The tail of the function is the same
-// code as Class_004c2f60::LoadBuffer (0x4c3120), written out again here.
+// code as TdfFile::LoadBuffer (0x4c3120), written out again here.
 //
 // Two things decide the register allocation and the stack layout, and both
 // are needed for a byte match:
@@ -80,18 +80,14 @@ public:
 };
 #pragma pack(pop)
 
-class Class_004c33a0 {
-public:
-    void StripComments(char* p);
-};
-
-class Class_004c2f60 {
+class TdfFile {
 public:
     TdfRecord* root;                     // +0x0
     int field_4;                         // +0x4
     int field_8;                         // +0x8
 
     int LoadFile(char* path);
+    void StripComments(char* p);
 };
 
 char* __stdcall HAPI_OpenFileRead(char* path);
@@ -102,7 +98,7 @@ int __stdcall HAPI_readfromfile(char* file, void* buf, int size);
 int __stdcall HAPI_FileLength(char* file);
 
 // FUNCTION: 0x4c2f60
-int Class_004c2f60::LoadFile(char* path)
+int TdfFile::LoadFile(char* path)
 {
     char* file = HAPI_OpenFileRead(path);
     if (!file)
@@ -124,7 +120,7 @@ int Class_004c2f60::LoadFile(char* path)
             char* text = (char*)FUN_004d83b0("TDF file", size + 1);
             memcpy(text, buf, size);
             text[size] = 0;
-            ((Class_004c33a0*)this)->StripComments(text);
+            ((TdfFile*)this)->StripComments(text);
             TdfRecord* node = (TdfRecord*)operator new(0x29);
             root = node ? node->FUN_004c3e40("root", text, 0, path) : 0;
             FUN_004d85a0((int*)text);

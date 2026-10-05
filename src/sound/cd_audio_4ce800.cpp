@@ -6,13 +6,13 @@
 #include <mmsystem.h>
 #include <string.h>
 
-class Class_004ce800 {
+class Sound {
 public:
     int IsCdPlaying();
 };
 
 // FUNCTION: 0x4ce800
-int Class_004ce800::IsCdPlaying()
+int Sound::IsCdPlaying()
 {
     char buf[64];
     if (mciSendStringA("status cdaudio mode", buf, 64, 0) == 0)

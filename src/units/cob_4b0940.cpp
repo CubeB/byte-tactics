@@ -19,7 +19,7 @@ struct Channel_004b0940 {              // 0xa4 bytes
     char unknown_24[0xa4 - 0x24];
 };
 
-class Class_004b0940 {
+class CobScript {
 public:
     char unknown_0[8];
     NameTable_004b0940* table;         // +0x8
@@ -28,34 +28,15 @@ public:
     int activeCount;                   // +0x53c
 
     int StartScript(const char* name, int value, int update);
-};
-
-class Class_004b07c0 {
-public:
-    char unknown_0[8];
-    NameTable_004b0940* table;         // +0x8
-
     int FindScript(const char* name);
-};
-
-class CobScript {
-public:
     int StartThread(int id);
-};
-
-class Class_004b0da0 {
-public:
     void RunThread(int channel, int param_2);
-};
-
-class Class_004b1c00 {
-public:
     void AnimatePieces(int param_1);
 };
 
 // The name lookup just before this function in the original file, defined here
 // so /Ob2 inlines it as the original did (the same helper as in 0x4b0830.cpp).
-int Class_004b07c0::FindScript(const char* name)
+int CobScript::FindScript(const char* name)
 {
     for (int i = 0; i < table->count; i++) {
         if (strcmp(name, table->names[i]) == 0) {
@@ -66,18 +47,18 @@ int Class_004b07c0::FindScript(const char* name)
 }
 
 // FUNCTION: 0x4b0940
-int Class_004b0940::StartScript(const char* name, int value, int update)
+int CobScript::StartScript(const char* name, int value, int update)
 {
-    int i = ((CobScript*)this)->StartThread(((Class_004b07c0*)this)->FindScript(name));
+    int i = ((CobScript*)this)->StartThread(((CobScript*)this)->FindScript(name));
     if (i < 0)
         return 0;
     channels[i].value = value;
     if (update) {
         if (activeCount) {
             for (int j = 0; j < 8; j++)
-                ((Class_004b0da0*)this)->RunThread(j, 0);
+                ((CobScript*)this)->RunThread(j, 0);
         }
-        ((Class_004b1c00*)this)->AnimatePieces(0);
+        ((CobScript*)this)->AnimatePieces(0);
     }
     return 1;
 }

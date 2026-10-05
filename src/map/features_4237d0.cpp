@@ -64,7 +64,7 @@ struct Packet_004237d0 {
 };
 #pragma pack(pop)
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -80,7 +80,7 @@ struct Game {
     char unknown_14273[0x37eee - 0x14273];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x391e9 - 0x37ef2];
-    Class_00435100* net;               // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 #pragma pack(pop)
 

@@ -12,10 +12,6 @@ struct MovementClass {
     int* field_0;                      // +0x0
     char unknown_4[0x1c - 0x4];
     unsigned int field_1c;             // +0x1c
-};
-
-class Class_00440830 {
-public:
     void RefreshPassMap(Point_00440a70 a, Point_00440a70 b);
 };
 
@@ -53,7 +49,7 @@ static inline void UpdateAll(Point_00440a70 a, Point_00440a70 b)
 {
     for (int i = 0; i < 32; i++) {
         if (MovementClassTable::g_movementClasses.entries[i].field_0 != 0) {
-            ((Class_00440830*)&MovementClassTable::g_movementClasses.entries[i])->RefreshPassMap(a, b);
+            ((MovementClass*)&MovementClassTable::g_movementClasses.entries[i])->RefreshPassMap(a, b);
         }
     }
 }
@@ -66,7 +62,7 @@ void __stdcall RefreshPassMapsForUnit(Struct_00440a70* p)
         p->unit->lastTick = g_game->ticks;
         for (int i = 0; i < 32; i++) {
             if (last < MovementClassTable::g_movementClasses.entries[i].field_1c) {
-                ((Class_00440830*)&MovementClassTable::g_movementClasses.entries[i])->RefreshPassMap(p->a, p->b);
+                ((MovementClass*)&MovementClassTable::g_movementClasses.entries[i])->RefreshPassMap(p->a, p->b);
             }
         }
         return;

@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004339c0 {
+class LosLine {
 public:
     char unknown_0[4];
     int field_4;
@@ -10,7 +10,7 @@ public:
 };
 
 // FUNCTION: 0x4339c0
-int Class_004339c0::GetLosLineStepCount()
+int LosLine::GetLosLineStepCount()
 {
     if (field_4 == 0) {
         return 0;

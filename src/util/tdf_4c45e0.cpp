@@ -6,7 +6,7 @@ struct Pair_004c45e0 {
 };
 
 #pragma pack(push, 1)
-class Class_004c45e0 {
+class TdfRecord {
 public:
     char unknown_0[0x15];
     std::vector<Pair_004c45e0> pairs;   // +0x15 (_First at +0x19)
@@ -16,7 +16,7 @@ public:
 #pragma pack(pop)
 
 // FUNCTION: 0x4c45e0
-char* Class_004c45e0::GetFieldName(int index)
+char* TdfRecord::GetFieldName(int index)
 {
     if (index < 0 || (unsigned int)index >= pairs.size())
         return 0;

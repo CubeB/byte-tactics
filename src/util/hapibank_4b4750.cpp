@@ -23,27 +23,23 @@ struct AccountList {
     int current;                       // +0x8
 };
 
-class Class_004b48f0 {
-public:
-    int HasItem(const char* param_1);
-    int FindItem(const char* param_1, int param_2);
-};
-
 void __cdecl FUN_004d85a0(int* param_1);
 char* __cdecl GameStrdup(char* s);
 
-class Class_004b4750 {
+class HapiBank {
 public:
     AccountList* file;                 // +0x0
 
     int SetStringItem(const char* name, char* value);
+    int HasItem(const char* param_1);
+    int FindItem(const char* param_1, int param_2);
 };
 
 // FUNCTION: 0x4b4750
-int Class_004b4750::SetStringItem(const char* name, char* value)
+int HapiBank::SetStringItem(const char* name, char* value)
 {
     if (file && file->current >= 0 && value) {
-        int i = ((Class_004b48f0*)this)->FindItem(name, 1);
+        int i = ((HapiBank*)this)->FindItem(name, 1);
         if (file->sections[file->current].values[i].type == 3)
             FUN_004d85a0((int*)file->sections[file->current].values[i].value);
         file->sections[file->current].values[i].value = GameStrdup(value);

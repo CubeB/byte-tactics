@@ -185,9 +185,15 @@ void* __stdcall AllocSurface(char*, int, int);
 void __stdcall DrawSurface(void*, void*, int, int);
 void __stdcall HAPINET_guaranteepackets(int);
 class Class_004cdb40 { public: void PlayNextTrack(); };
-class Class_004ce690 { public: void SetTrackCategory(int); };
-class Class_004ce800 { public: int IsCdPlaying(); };
-
+class Sound {
+public:
+    void SetTrackCategory(int);
+    int IsCdPlaying();
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    int QueryDisc();
+    void PlayLooping(int sample, int volume);
+    void Set3DDistances(int minimum, int maximum);
+};
 int __cdecl GetScreenWidth();
 int __cdecl GetScreenHeight();
 int __cdecl GetTextKeyColor();
@@ -196,14 +202,15 @@ int __cdecl FUN_004568c0();
 unsigned int __cdecl GetTicks();
 char* __cdecl FUN_0049f580();
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
-};
-
-class Class_00435c30 {
-public:
     char* FUN_00435c30();
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void LoadCampaign(char* name);
+    int LoadMission(char* name);
+    int LoadMissionByName(char* name);
+    void BuildCampaignFilePath(int index, char* path, char* dir, char* ext);
 };
 
 class PacketManager {
@@ -239,7 +246,7 @@ void LoadingScreenFrame(void)
         }
         SetFont(g_game->field_391f9);
         SetPaletteColors(SURFACE_143a7, 0, 0x100);
-        if (((Class_00435100*)g_game->field_391e9)->FUN_00435100() != 2) {
+        if (((Mission*)g_game->field_391e9)->FUN_00435100() != 2) {
             SaveSettings();
         }
         while (g_game->field_531 != 0) {
@@ -320,8 +327,8 @@ void LoadingScreenFrame(void)
         SetCloseHandler(FUN_004609a0, 0);
         g_game->field_589 = 0;
         memset((void*)g_game->progress, 0, 8);
-        ((Class_004ce690*)g_game->field_10)->SetTrackCategory(0);
-        if (!((Class_004ce800*)g_game->field_10)->IsCdPlaying()) {
+        ((Sound*)g_game->field_10)->SetTrackCategory(0);
+        if (!((Sound*)g_game->field_10)->IsCdPlaying()) {
             ((Class_004cdb40*)g_game->field_10)->PlayNextTrack();
         }
         for (i = 0; i < 10; i++) {
@@ -364,9 +371,9 @@ void LoadingScreenFrame(void)
         }
         SetFont(g_game->field_391f9);
         DrawSurface(&gadget, (void*)g_game->field_11eb, 0, 0);
-        if (((Class_00435100*)g_game->field_391e9)->FUN_00435100() != 1) {
+        if (((Mission*)g_game->field_391e9)->FUN_00435100() != 1) {
             SetTextColors(color, 0xfe);
-            char* name = ((Class_00435c30*)g_game->field_391e9)->FUN_00435c30();
+            char* name = ((Mission*)g_game->field_391e9)->FUN_00435c30();
             strncpy(namebuf, name, 100);
             namebuf[99] = 0;
             if (FUN_0049f580() != 0 && _strcmpi((const char*)FUN_0049f580(), "english") != 0) {
@@ -472,7 +479,7 @@ void LoadingScreenFrame(void)
             FillRectangle(&gadget, rect, color);
             DrawFrame(&gadget, lightbar, rect[0], rect[1]);
         }
-        if (((Class_00435100*)g_game->field_391e9)->FUN_00435100() == 3) {
+        if (((Mission*)g_game->field_391e9)->FUN_00435100() == 3) {
             DrawSyncStatus(&gadget);
             SendLoadProgress();
         }

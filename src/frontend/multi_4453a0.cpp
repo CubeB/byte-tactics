@@ -15,7 +15,7 @@ struct Player_004453a0 {
     char unknown_147[0x14b - 0x147];
 };
 
-class Class_00463c60 {
+class Player {
 public:
     void SetType(int param_1);
 };
@@ -34,7 +34,7 @@ void __stdcall SwapPlayerSlots(Player_004453a0* param_1, Player_004453a0* param_
     Player_004453a0 tmp = *param_2;
     *param_2 = *param_1;
     *param_1 = tmp;
-    ((Class_00463c60*)param_1)->SetType(0);
+    ((Player*)param_1)->SetType(0);
     param_1->active = 0;
     // The original bound is i <= 10, not i < 10: the offset test is
     // "cmp eax, 0xcee; jle" (0xcee is 10 * 0x14b, the size of players), so

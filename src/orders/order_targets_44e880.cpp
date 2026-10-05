@@ -33,18 +33,10 @@ struct Header_0044e880 {
 
 #pragma pack(pop)
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* src, int len);
 };
 
@@ -60,12 +52,12 @@ public:
     unsigned short value_26;           // +0x26
     Object_0044e880* self;             // +0x28
 
-    int FUN_0044e880(int unused, Class_004b4ba0* file, char* name);
+    int FUN_0044e880(int unused, HapiBank* file, char* name);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x44e880
-int Class_0044e740::FUN_0044e880(int unused, Class_004b4ba0* file, char* name)
+int Class_0044e740::FUN_0044e880(int unused, HapiBank* file, char* name)
 {
     Header_0044e880 hdr;
     if (!self) {
@@ -80,7 +72,7 @@ int Class_0044e740::FUN_0044e880(int unused, Class_004b4ba0* file, char* name)
     hdr.heading = heading;
     hdr.value_28 = value_26;
     file->OpenNamedBox(name);
-    ((Class_004b4c10*)file)->SeekBox(0);
-    ((Class_004b4cf0*)file)->WriteBox(&hdr, 0x2a);
+    ((HapiBank*)file)->SeekBox(0);
+    ((HapiBank*)file)->WriteBox(&hdr, 0x2a);
     return 1;
 }

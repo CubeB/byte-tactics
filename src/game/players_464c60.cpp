@@ -16,7 +16,7 @@
 //   `amount + energy` path is then `fld amount; fadd [field]`, the other way
 //   round from a simple field destination.
 
-class Class_00401260;
+class UnitResources;
 
 #pragma pack(push, 1)
 struct Player_00464c60 {
@@ -26,7 +26,7 @@ struct Player_00464c60 {
     char unknown_74[0x98 - 0x74];
     float energy;                      // +0x98
     char unknown_9c[0xec - 0x9c];
-    Class_00401260* econ;              // +0xec
+    UnitResources* econ;               // +0xec
     char unknown_f0[0x14b - 0xf0];
 };
 
@@ -38,14 +38,14 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_00401260 {
+class UnitResources {
 public:
     char unknown_0[0x18];
     float energy;                      // +0x18
     char unknown_1c[0x30 - 0x1c];
     Player_00464c60* player;           // +0x30
 
-    int SpendEnergy(float amount);
+    int SpendMetal(float amount);
 };
 
 extern Game* g_game;
@@ -67,7 +67,7 @@ void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount
     if (amount == 0.0f)
         return;
     Player_00464c60* player;
-    player = flag ? (g_game->players[from].econ->SpendEnergy(amount), g_game->players[to].econ->player)
+    player = flag ? (g_game->players[from].econ->SpendMetal(amount), g_game->players[to].econ->player)
                   : g_game->players[to].econ->player;
     if (player->active != 0 && player->type == 2) {
         switch (g_game->difficulty) {

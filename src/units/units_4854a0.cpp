@@ -88,7 +88,7 @@ template<class _RI, class _Ty, class _Pr> void __stdcall FUN_00488810(_RI _F, _R
 
 #include <algorithm>
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -122,7 +122,7 @@ struct Game {
     char unknown_1439f[0x37ee6 - 0x1439f];
     unsigned short unitsPerPlayer;      // +0x37ee6
     char unknown_37ee8[0x391e9 - 0x37ee8];
-    Class_00435100* mode;               // +0x391e9
+    Mission* mode;                      // +0x391e9
 };
 #pragma pack(pop)
 

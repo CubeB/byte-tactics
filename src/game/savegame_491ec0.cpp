@@ -60,18 +60,10 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_004b4800 {
+class HapiBank {
 public:
     int GetIntegerItem(char* name, char* def);
-};
-
-class Class_004b48a0 {
-public:
     char* GetStringItem(char* name, char* def);
-};
-
-class Class_004b4ba0 {
-public:
     void OpenNamedBox(char* name);
 };
 
@@ -94,9 +86,9 @@ void __stdcall FUN_004a0bf0(Menu_00491ec0* menu, char* name, char* text, int par
 char* __stdcall SkipTextLines(char* table, int index);
 void __stdcall FrameFromSurface(void* dst, void* src);
 void __stdcall FreeSurface(void* image);
-void* __stdcall LoadSurface(Class_004b48a0* obj);
-Class_004b48a0* __stdcall FUN_00432520(char* name);
-void __stdcall FUN_00432590(Class_004b48a0* obj);
+void* __stdcall LoadSurface(HapiBank* obj);
+HapiBank* __stdcall FUN_00432520(char* name);
+void __stdcall FUN_00432590(HapiBank* obj);
 
 // FUNCTION: 0x491ec0
 void __stdcall ShowSavedGameInfo()
@@ -122,9 +114,9 @@ void __stdcall ShowSavedGameInfo()
         SetGadgetText(menu, index, desc);
         char* fname = SkipTextLines(DAT_0051f2e0, games->field_ba);
         sprintf(path, "%s\\%s", DAT_005091c8, fname);
-        Class_004b48a0* file = FUN_00432520(path);
+        HapiBank* file = FUN_00432520(path);
         if (file != 0) {
-            ((Class_004b4ba0*)file)->OpenNamedBox("Radar Image");
+            ((HapiBank*)file)->OpenNamedBox("Radar Image");
             Entry_00491ec0* radar = FUN_004a0280(menu->layer->entries, "RADAR");
             if (DAT_0051f2ec != 0)
                 FreeSurface(DAT_0051f2ec);
@@ -135,8 +127,8 @@ void __stdcall ShowSavedGameInfo()
             }
             FUN_004a0570(menu, "RADAR", DAT_0051f2ec != 0);
 
-            int players = ((Class_004b4800*)file)->GetIntegerItem("Players", 0);
-            gametype = ((Class_004b4800*)file)->GetIntegerItem("Gametype", 0);
+            int players = ((HapiBank*)file)->GetIntegerItem("Players", 0);
+            gametype = ((HapiBank*)file)->GetIntegerItem("Gametype", 0);
             if (players != 0) {
                 if (gametype == 1)
                     strcpy(name, "Single");
@@ -148,14 +140,14 @@ void __stdcall ShowSavedGameInfo()
             FUN_004a0bf0(menu, "GAMETYPE", name, 0);
 
             if (gametype == 1) {
-                char* campaign = ((Class_004b48a0*)file)->GetStringItem("Campaign", 0);
+                char* campaign = ((HapiBank*)file)->GetStringItem("Campaign", 0);
                 if (campaign != 0) {
                     strcpy(name, campaign);
                     FUN_004a0bf0(menu, "CAMPAIGN", name, 0);
                     FUN_004a0570(menu, "CAMPTEXT", 1);
                     FUN_004a0570(menu, "CAMPAIGN", 1);
                 }
-                char* mission = ((Class_004b48a0*)file)->GetStringItem("Mission", 0);
+                char* mission = ((HapiBank*)file)->GetStringItem("Mission", 0);
                 if (mission != 0) {
                     strcpy(name, mission);
                     FUN_004a0bf0(menu, "MISSION", name, 0);
@@ -163,20 +155,20 @@ void __stdcall ShowSavedGameInfo()
             } else {
                 FUN_004a0570(menu, "CAMPTEXT", 0);
                 FUN_004a0570(menu, "CAMPAIGN", 0);
-                char* mission = ((Class_004b48a0*)file)->GetStringItem("Map", 0);
+                char* mission = ((HapiBank*)file)->GetStringItem("Map", 0);
                 if (mission != 0) {
                     strcpy(name, mission);
                     FUN_004a0bf0(menu, "MISSION", name, 0);
                 }
             }
 
-            int time = ((Class_004b4800*)file)->GetIntegerItem("Game Time", 0);
+            int time = ((HapiBank*)file)->GetIntegerItem("Game Time", 0);
             sprintf(name, "%02d:%02d:%02d", time / 108000, time / 1800 % 60,
                     time / 30 % 60);
             FUN_004a0bf0(menu, "TIME", name, 0);
 
             if (DAT_0051f2e8 != 0) {
-                int side = ((Class_004b4800*)file)->GetIntegerItem("Side", 0);
+                int side = ((HapiBank*)file)->GetIntegerItem("Side", 0);
                 strcpy(name, SkipTextLines(DAT_0051f2e8, side));
             } else {
                 strcpy(name, "???");
@@ -187,7 +179,7 @@ void __stdcall ShowSavedGameInfo()
             diffs[1] = "Medium";
             diffs[2] = "Hard";
             sprintf(name, "%s",
-                    diffs[((Class_004b4800*)file)->GetIntegerItem("Difficulty", 0)]);
+                    diffs[((HapiBank*)file)->GetIntegerItem("Difficulty", 0)]);
             FUN_004a0bf0(menu, "DIFF", name, 0);
             FUN_00432590(file);
             goto done;

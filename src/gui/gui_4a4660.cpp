@@ -45,7 +45,7 @@ struct Holder_004a4660 {
     Entry_004a4660 *entries;
 };
 
-struct Class_004a4660 {
+struct Dialog {
     char unknown_0[0xc];
     void *surface;
     int unknown_10;
@@ -99,7 +99,7 @@ static inline int Measure_004a4660(char *text)
 }
 
 // FUNCTION: 0x4a4660
-void __stdcall FUN_004a4660(Class_004a4660 *obj, int index)
+void __stdcall FUN_004a4660(Dialog *obj, int index)
 {
     Entry_004a4660 *entries = obj->holder->entries;
     Entry_004a4660 *entry = (Entry_004a4660 *)((char *)entries + index * 0x15b);

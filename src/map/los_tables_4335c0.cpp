@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004335c0
+class LosTable
 {
 public:
     char unknown_0[0x4];
@@ -11,7 +11,7 @@ public:
 };
 
 // FUNCTION: 0x4335c0
-int Class_004335c0::GetLosLineCount()
+int LosTable::GetLosLineCount()
 {
     if (field_4 == 0) {
         return 0;

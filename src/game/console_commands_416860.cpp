@@ -20,17 +20,13 @@ extern char DAT_005119b8[];
 class CommandArgs {
 public:
     int GetIntArg(int index, int fallback);
-};
-
-class Class_004b73c0 {
-public:
     char* GetArg(int index, char* fallback);
 };
 
 // FUNCTION: 0x416860
 void __stdcall CmdMove(CommandArgs* args)
 {
-    if (_strcmpi(((Class_004b73c0*)args)->GetArg(0, DAT_005119b8), "move") == 0) {
+    if (_strcmpi(((CommandArgs*)args)->GetArg(0, DAT_005119b8), "move") == 0) {
         int dx = args->GetIntArg(1, 0);
         g_game->x += dx << 20;
         int dz = args->GetIntArg(2, 0);

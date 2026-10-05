@@ -26,7 +26,7 @@ struct Vec3 {
 };
 
 struct Unit;
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
@@ -46,14 +46,7 @@ class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(short); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
-class Class_004b0940 { public: void StartScript(const char*, int, int); };
-class Class_004b0bc0 {
-public:
-    int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
-};
-
+class CobScript { public: void StartScript(const char*, int, int); int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x170]; short field_170;
@@ -65,17 +58,26 @@ struct Class_Unit10 {
     char pad0[0xdc]; int field_dc;
 };
 struct Unit {
-    Class_0043d210* type;
+    UnitMotion* type;
     char pad4[0x10 - 4]; Class_Unit10* field_10;
     char pad14[0x6a - 0x14]; Vec3 pos;
     char pad76[8]; Point footprint;
     int field_82; int field_86;
     Unit* cargo;
     char pad8e[4]; UnitDef* def;
-    char pad96[4]; Class_004b0940* script;
+    char pad96[4]; CobScript* script;
     char pad9e[0x104 - 0x9e]; float buildLeft;
     short health;
+    void ClaimWeapons(int);
+    void SetStateBits(int, int);
 };
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+unsigned short __stdcall ChooseBuildOption(unsigned int, Unit*);
+void __stdcall ClearWeaponTarget(Unit*, int);
+void __stdcall DetonateUnitWeapon(Unit*, int);
+void __stdcall DrawUnit(void*, Unit*);
+void __stdcall KillUnit(Unit*, int);
+
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
     char padA[0x12 - 0xa]; Class_004895c0 target;
@@ -122,10 +124,10 @@ static inline Vec3 Offset(short angle, int distance)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -146,7 +148,7 @@ int __stdcall FindLandingPad(Unit* unit, int pad)
     pads[1] = -1;
     pads[2] = -1;
     pads[3] = -1;
-    ((Class_004b0bc0*)unit->script)->QueryScript("QueryLandingPad", &pads[0], &pads[1], &pads[2], &pads[3]);
+    ((CobScript*)unit->script)->QueryScript("QueryLandingPad", &pads[0], &pads[1], &pads[2], &pads[3]);
     for (int i = 0; i < 4; i++) {
         if (pads[i] != -1 && FUN_0047e570(unit, pads[i])) {
             return pads[i];

@@ -22,19 +22,14 @@
 // param_3 is set, and picks the near (-585) or far (-1585) variant depending on
 // whether the position is inside the screen rectangle.
 
-class Class_004cf570 {
-public:
-    int PlaySampleSet(int a, int b, void* c);
-};
-
-class Class_004cfea0 {
-public:
-    int Is3DEnabled();
-};
-
-class Class_004cfeb0 {
+class Sound {
 public:
     void Set3DDistances(float a, float b);
+    int PlaySampleSet(int a, int b, void* c);
+    int Is3DEnabled();
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void SetMaxBuffers(int count);
+    void PlayLooping(int sample, int volume);
 };
 
 struct Vector3_0047f300 {
@@ -75,7 +70,7 @@ struct Player_0047f300 {
 
 struct Game {
     char unknown_0[0x10];
-    Class_004cf570* sound;             // +0x10
+    Sound* sound;             // +0x10
     char unknown_14[0x1b63 - 0x14];
     Player_0047f300 players[10];       // +0x1b63
     char unknown_2851[0x2a43 - 0x2851];
@@ -379,13 +374,13 @@ int __stdcall PlaySoundAt(int index, Pos_0047f300* pos, int param_3)
                 & (1 << pi)) ? 1 : 0;
     }
     if (vis != 0) {
-        if (((Class_004cfea0*)g_game->sound)->Is3DEnabled()) {
+        if (((Sound*)g_game->sound)->Is3DEnabled()) {
             Vector3_0047f300 p;
             p.x = pos->x - g_game->scrollX - (g_game->screenTilesX / 2) * 16;
             p.z = g_game->scrollY + (g_game->screenTilesY / 2) * 16
                 + (pos->y >> 1) - pos->z;
             p.y = 0;
-            ((Class_004cfeb0*)g_game->sound)->Set3DDistances(
+            ((Sound*)g_game->sound)->Set3DDistances(
                 (float)(((g_game->screenTilesX + g_game->screenTilesY) / 2) * 16),
                 (float)((g_game->width + g_game->height) * 16));
             return g_game->sound->PlaySampleSet(sound, -585, &p);

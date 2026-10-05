@@ -53,39 +53,27 @@ struct Elem_00434360 {
 typedef std::vector<Elem_00434360> W1_00433130;
 typedef std::vector<W1_00433130> W2_00433130;
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;                       // +0x0
     int field_4;                       // +0x4
     int field_8;                       // +0x8
 
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* path);
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
+    void Unload();
 };
 
-class Class_004c46c0 {
+class TdfRecord {
 public:
     int GetFieldInt(const char* name, int def);
 };
 
-class Class_004c3240 {
+class LosTables {
 public:
-    void Unload();
-};
-
-class Class_00433380 {
-public:
-    void LoadLosTable(Class_004c2ea0* tdf, short index);
+    void LoadLosTable(TdfFile* tdf, short index);
 };
 
 class Class_00433130 {
@@ -100,12 +88,12 @@ void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const
 // FUNCTION: 0x433130
 void Class_00433130::LoadLosTables()
 {
-    Class_004c2ea0 tdf;
+    TdfFile tdf;
     char path[256];
     BuildDataPath(path, "gamedata", "los", "TDF");
-    if (((Class_004c2f60*)&tdf)->LoadFile(path) != 0) {
-        if (((Class_004c3410*)&tdf)->SelectRecord("TABLEINFO") != 0) {
-            short numtables = (short)((Class_004c46c0*)tdf.field_4)->GetFieldInt("numtables", 0);
+    if (((TdfFile*)&tdf)->LoadFile(path) != 0) {
+        if (((TdfFile*)&tdf)->SelectRecord("TABLEINFO") != 0) {
+            short numtables = (short)((TdfRecord*)tdf.field_4)->GetFieldInt("numtables", 0);
             {
                 W1_00433130 temp;
                 unsigned n = (unsigned)numtables;
@@ -115,8 +103,8 @@ void Class_00433130::LoadLosTables()
                     tables.erase(tables.begin() + n, tables.end());
             }
             for (short i = 0; i < numtables; i++)
-                ((Class_00433380*)this)->LoadLosTable(&tdf, i);
+                ((LosTables*)this)->LoadLosTable(&tdf, i);
         }
-        ((Class_004c3240*)&tdf)->Unload();
+        ((TdfFile*)&tdf)->Unload();
     }
 }

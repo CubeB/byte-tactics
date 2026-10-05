@@ -12,7 +12,7 @@ struct Gadget_004605c0 {
     int field_60;                      // +0x60
 };
 
-class Class_004ce690 {
+class Sound {
 public:
     void SetTrackCategory(int);
 };
@@ -20,7 +20,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x10];
-    Class_004ce690* field_10;          // +0x10
+    Sound* field_10;                   // +0x10
     char unknown_14[0x519 - 0x14];
     char field_519[0x3923b - 0x519];   // +0x519
     unsigned char flags_3923b;         // +0x3923b

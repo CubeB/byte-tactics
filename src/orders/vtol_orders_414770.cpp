@@ -19,14 +19,12 @@ struct Point16 {
 
 struct Unit;
 
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
@@ -55,7 +53,7 @@ struct UnitDef {
 };
 
 struct Unit {
-    Class_0043d210* type;              // +0x0
+    UnitMotion* type;                  // +0x0
     char unknown_4[0x6a - 0x4];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x86 - 0x76];
@@ -64,7 +62,16 @@ struct Unit {
     UnitDef* def;                      // +0x92
     char unknown_96[0xb0 - 0x96];
     int workTime;                      // +0xb0
+    void ClaimWeapons(int);
+    void SetStateBits(int, int);
 };
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int __stdcall FindLandingPad(Unit*, int);
+unsigned short __stdcall ChooseBuildOption(unsigned int, Unit*);
+void __stdcall ClearWeaponTarget(Unit*, int);
+void __stdcall DetonateUnitWeapon(Unit*, int);
+void __stdcall DrawUnit(void*, Unit*);
+
 
 struct Order {
     char unknown_0[5];
@@ -103,10 +110,10 @@ void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);

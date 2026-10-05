@@ -11,12 +11,7 @@
 // `& 0xffff` is redundant on an unsigned short but the original keeps it.
 
 #pragma pack(push, 1)
-class Class_00415b60 {
-public:
-    void GrowBuffer();
-};
-
-class BitWriter : public Class_00415b60 {
+class BitWriter {
 public:
     int bit;                           // +0x0 current word index
     int index;                         // +0x4 bits used in the current word
@@ -24,6 +19,7 @@ public:
     unsigned int* data;                // +0xc
     unsigned int buffer[0x100];        // +0x10
 
+    void GrowBuffer();
     void WriteBits(int value, int bits);
 };
 

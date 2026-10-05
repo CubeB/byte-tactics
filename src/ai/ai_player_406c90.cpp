@@ -1,6 +1,6 @@
 // Decompiled by GPT-6. Names are provisional.
 #include <string.h>
-struct Class_004b73c0 {
+struct CommandArgs {
     char pad[0xd0]; int count;
     const char* GetArg(int, const char*);
 };
@@ -9,7 +9,7 @@ extern char DAT_005119b8[];
 extern char* g_game;
 // The original checks argument 1 for "any" on every iteration.
 // FUNCTION: 0x406c90
-void __stdcall CmdPlan(Class_004b73c0* args)
+void __stdcall CmdPlan(CommandArgs* args)
 {
     g_aiCommandsEnabled = 0;
     for (int i = 1; i < args->count; ++i) {

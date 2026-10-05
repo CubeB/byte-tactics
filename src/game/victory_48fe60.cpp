@@ -17,7 +17,7 @@ public:
     virtual void LoadState(HapiBank* file) = 0;            // Load
 };
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -25,14 +25,14 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x391e9];
-    Class_00435100* field_391e9;         // +0x391e9
+    Mission* field_391e9;                // +0x391e9
 };
 #pragma pack(pop)
 
 extern Game* g_game;
 
 // The mission's victory and defeat conditions (same layout as MissionConditions).
-class Class_0048fe60 {
+class MissionConditions {
 public:
     MissionCondition* victory[16];       // +0x00
     int victoryCount;                    // +0x40
@@ -44,7 +44,7 @@ public:
 
 // Loads every condition (the save counterpart is 0x48fdf0).
 // FUNCTION: 0x48fe60
-void Class_0048fe60::LoadConditions(HapiBank* file)
+void MissionConditions::LoadConditions(HapiBank* file)
 {
     if (g_game->field_391e9->FUN_00435100() == 1) {
         int i;

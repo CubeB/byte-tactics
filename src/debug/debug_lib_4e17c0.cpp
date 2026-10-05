@@ -90,15 +90,15 @@ public:
 typedef std::map<const char*, Value_004e17c0, Less_004e17c0, Class_004e2b60>
     Map_004e17c0;
 
-class Class_004e17c0 {
+class NameTable {
 public:
     Map_004e17c0 names;                // +0x0
     bool changed;                      // +0x10
 
-    Class_004e17c0();
+    NameTable();
 };
 
 // FUNCTION: 0x4e17c0
-Class_004e17c0::Class_004e17c0() : changed(0)
+NameTable::NameTable() : changed(0)
 {
 }

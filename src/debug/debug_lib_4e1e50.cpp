@@ -25,12 +25,12 @@ extern char DAT_00529e20[];             // the indent of the current report
 extern char DAT_005119b8[];             // ""
 
 // A report for the log: its name and its text.
-class Class_004e1a30 {
+class NameKey {
 public:
     const char* name;                   // +0x0
     char text[500];                     // +0x4
 
-    Class_004e1a30(const char* name_)
+    NameKey(const char* name_)
     {
         name = name_;
         if (!name_)
@@ -39,16 +39,16 @@ public:
     }
 };
 
-class Class_004e17c0;
-Class_004e17c0* GetNameTable();
+class NameTable;
+NameTable* GetNameTable();
 
 class Class_004e1990 {
 public:
-    void FUN_004e1990(const Class_004e1a30& key);
+    void FUN_004e1990(const NameKey& key);
 };
 
 // A named timer that also reads the two performance counters.
-class Class_004e1e30 {
+class Timer {
 public:
     double time;                        // +0x0, elapsed when stopped, else the start time
     __int64 start0;                     // +0x8, counter 0 at the start
@@ -66,7 +66,7 @@ public:
 // Reports the elapsed time and the counters since the start, to the
 // debugger and to the log.
 // FUNCTION: 0x4e1e50
-void Class_004e1e30::ReportElapsedTime(const char* label)
+void Timer::ReportElapsedTime(const char* label)
 {
     __int64 count1;
     __int64 count0;
@@ -108,7 +108,7 @@ void Class_004e1e30::ReportElapsedTime(const char* label)
     if (DAT_00529ddc && (flags & 2))
         OutputDebugStringA(text);
     if (DAT_00529e64) {
-        Class_004e1a30 report(label);
+        NameKey report(label);
         strcpy(report.text, text);
         ((Class_004e1990*)GetNameTable())->FUN_004e1990(report);
     }
@@ -116,7 +116,7 @@ void Class_004e1e30::ReportElapsedTime(const char* label)
 
 // Starts the timer (again) and the counters; the time it had run.
 // FUNCTION: 0x4e20a0
-double Class_004e1e30::RestartTimer()
+double Timer::RestartTimer()
 {
     double elapsed;
     __int64 count0;

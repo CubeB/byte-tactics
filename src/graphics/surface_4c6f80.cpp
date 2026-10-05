@@ -32,13 +32,9 @@ struct Surface_004c6f80 {
     unsigned char pixels[1];           // +0x30
 };
 
-class Class_004b4c10 {
+class HapiBank {
 public:
     void SeekBox(int pos);
-};
-
-class Class_004b4c80 {
-public:
     int ReadBox(void* dst, int len);
 };
 
@@ -65,14 +61,14 @@ static inline Surface_004c6f80* NewSurface(char* name, int w, int h)
 // FUNCTION: 0x4c6f80
 Surface_004c6f80* __stdcall LoadSurface(void* file)
 {
-    ((Class_004b4c10*)file)->SeekBox(0);
+    ((HapiBank*)file)->SeekBox(0);
     int header[2];
-    if (((Class_004b4c80*)file)->ReadBox(header, 8) < 8u) {
+    if (((HapiBank*)file)->ReadBox(header, 8) < 8u) {
         return 0;
     }
     Surface_004c6f80* s = NewSurface("Loaded Surface", header[0], header[1]);
     for (int i = 0; i < header[1]; i++) {
-        if (((Class_004b4c80*)file)->ReadBox(s->data + i * s->pitch, header[0]) < header[0]) {
+        if (((HapiBank*)file)->ReadBox(s->data + i * s->pitch, header[0]) < header[0]) {
             FUN_004d85a0(s);
             return 0;
         }

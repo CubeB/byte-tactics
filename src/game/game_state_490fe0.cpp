@@ -37,19 +37,15 @@ public:
     int GetTrackCategory();
 };
 
-class Class_004ce690 {
+class Sound {
 public:
     int SetTrackCategory(int param_1);
+    int FUN_004cd9c0();
 };
 
 class Class_004ce7a0 {
 public:
     int SetPlaybackOrder(int param_1);
-};
-
-class Class_004cd9c0 {
-public:
-    int FUN_004cd9c0();
 };
 
 class Class_004cdb40 {
@@ -104,9 +100,9 @@ void FUN_00490fe0()
     mciSendStringA("open cdaudio", 0, 0, 0);
     ((Class_004cedc0*)g_game->cd)->EnableCdAudio(g_game->field_37f14 & 1);
     ((Class_004ce7a0*)g_game->cd)->SetPlaybackOrder(g_game->field_37f16);
-    ((Class_004ce690*)g_game->cd)->SetTrackCategory(saved);
+    ((Sound*)g_game->cd)->SetTrackCategory(saved);
 
-    int id = ((Class_004cd9c0*)g_game->cd)->FUN_004cd9c0();
+    int id = ((Sound*)g_game->cd)->FUN_004cd9c0();
     int index = 0;
     int* slot = &DAT_0051e848;
     while (1) {

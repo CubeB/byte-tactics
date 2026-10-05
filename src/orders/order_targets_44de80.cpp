@@ -15,18 +15,10 @@ struct Unit {
     short id;                          // +0xa8
 };
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4c80 {
-public:
     int ReadBox(void* buf, int size);
 };
 
@@ -94,20 +86,20 @@ public:
     Vec3_0044de80 pos;                 // +0x26
     int field_32;                      // +0x32
 
-    Class_0044de80(int owner, Class_004b4ba0* file, char* name);
+    Class_0044de80(int owner, HapiBank* file, char* name);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x44de80
-Class_0044de80::Class_0044de80(int owner, Class_004b4ba0* file, char* name)
+Class_0044de80::Class_0044de80(int owner, HapiBank* file, char* name)
     : Class_0044ce20(owner), ref(0, 0)
 {
     vtable = DAT_004fd3b8;
     Rec_0044de80 rec;
     ((Class_004895c0*)&rec.ref_vt)->Class_004895c0::Class_004895c0(0, 0);
     file->OpenNamedBox(name);
-    ((Class_004b4c10*)file)->SeekBox(0);
-    if (((Class_004b4c80*)file)->ReadBox(&rec, 0x36) == 0x36) {
+    ((HapiBank*)file)->SeekBox(0);
+    if (((HapiBank*)file)->ReadBox(&rec, 0x36) == 0x36) {
         field_12 = LoadUnit(rec.id1, file);
         ref.SetUnit(LoadUnit(rec.id2, file));
         field_8 = rec.f1;

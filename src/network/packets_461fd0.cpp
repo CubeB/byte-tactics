@@ -29,7 +29,7 @@ void __cdecl operator delete(void* ptr);
 unsigned int GetTicks();
 void __cdecl PacketTrace(const char* fmt, ...);
 
-class Class_00461fd0;
+class PacketChannel;
 
 struct Packet_00461fd0;
 
@@ -45,7 +45,7 @@ struct Entry_00461fd0 {
 };
 
 struct Packet_00461fd0 {
-    Class_00461fd0* pool;           // +0x00
+    PacketChannel* pool;            // +0x00
     int start;                      // +0x04
     int count;                      // +0x08
     int field_c;                    // +0x0c
@@ -98,7 +98,7 @@ public:
     }
 };
 
-class Class_00461fd0 {
+class PacketChannel {
 public:
     int field_0;                    // +0x00
     int field_4;                    // +0x04
@@ -121,7 +121,7 @@ public:
     void EnqueuePacket(Entry_00461fd0* item);
 };
 
-void Class_00461fd0::DequeuePacket(Entry_00461fd0* item)
+void PacketChannel::DequeuePacket(Entry_00461fd0* item)
 {
     item->field_10 = -1;
     item->field_14 = GetTicks();
@@ -135,7 +135,7 @@ void Class_00461fd0::DequeuePacket(Entry_00461fd0* item)
     field_20 -= item->field_8;
 }
 
-void Class_00461fd0::EnqueuePacket(Entry_00461fd0* item)
+void PacketChannel::EnqueuePacket(Entry_00461fd0* item)
 {
     queue.Push(item);
     item->field_10 = 0;
@@ -144,7 +144,7 @@ void Class_00461fd0::EnqueuePacket(Entry_00461fd0* item)
 
 
 // FUNCTION: 0x461fd0
-int Class_00461fd0::GrowPools(int growbufs, int growpackets)
+int PacketChannel::GrowPools(int growbufs, int growpackets)
 {
     PacketTrace("current buffer pool count: %d, current packet pool count: %d\n",
                  field_c, count);

@@ -64,7 +64,7 @@ struct Holder_004a4d70 {
     void* surface;                     // +0x24
 };
 
-struct Class_004a4d70 {
+struct Dialog {
     char unknown_00[0x18];
     Holder_004a4d70* holder;           // +0x18
     char unknown_1c[0x64 - 0x1c];
@@ -95,7 +95,7 @@ int GetFontHeight();
 int __stdcall GetGafFrame(unsigned short* glyphs, int c);
 void __stdcall SetTextColors(int colour, int font);
 int GetTextKeyColor();
-int __stdcall DrawListboxFrame(Class_004a4d70* obj, int index, void* bmp);
+int __stdcall DrawListboxFrame(Dialog* obj, int index, void* bmp);
 void __stdcall CopySurfaceRect(void* dst, void* src, Rect_004a4d70* rect, int* pos);
 int __stdcall FillRectangle(void* surface, Rect_004a4d70* rect, int colour);
 int __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
@@ -127,7 +127,7 @@ static inline int Measure_004a4d70(char* text)
 }
 
 // FUNCTION: 0x4a4d70
-void __stdcall DrawTextInput(Class_004a4d70* obj, int index)
+void __stdcall DrawTextInput(Dialog* obj, int index)
 {
     Entry_004a4d70* entries = obj->holder->entries;
     int i = 1;

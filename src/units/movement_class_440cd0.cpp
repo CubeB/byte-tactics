@@ -1,12 +1,8 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_004358f0 {
+class Mission {
 public:
     int FUN_004358f0();
-};
-
-class Class_004373a0 {
-public:
     unsigned int ComputeMapChecksum();
 };
 
@@ -28,7 +24,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player_00440cd0 players[10];       // +0x1b63
     char unknown_2851[0x391e9 - 0x2851];
-    Class_004358f0* field_391e9;       // +0x391e9
+    Mission* field_391e9;              // +0x391e9
 };
 #pragma pack(pop)
 
@@ -54,5 +50,5 @@ int CheckMapCrc()
     if (!check) {
         return 1;
     }
-    return ((Class_004373a0*)g_game->field_391e9)->ComputeMapChecksum() == data->field_a9;
+    return ((Mission*)g_game->field_391e9)->ComputeMapChecksum() == data->field_a9;
 }

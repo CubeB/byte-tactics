@@ -28,7 +28,7 @@ struct Grid_0040d8b0 {
     }
 };
 
-class Class_0040d8b0 {
+class Pathfinder {
 public:
     char unknown_0[0x1c];
     Grid_0040d8b0 grid;                // +0x1c
@@ -37,7 +37,7 @@ public:
 };
 
 // FUNCTION: 0x40d8b0
-void Class_0040d8b0::MarkGoalCell(unsigned int x, unsigned int y)
+void Pathfinder::MarkGoalCell(unsigned int x, unsigned int y)
 {
     if (grid.InBounds(x, y))
         grid.Set(x, y, 4);

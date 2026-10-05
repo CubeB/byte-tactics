@@ -2,12 +2,7 @@
 #include <windows.h>
 #include <dsound.h>
 
-class Class_004ceee0 {
-public:
-    void ReleaseDirectSound();
-};
-
-class Class_004cef90 {
+class Sound {
 public:
     char unknown_0[0x24];
     IDirectSound* field_24;             // +0x24
@@ -20,10 +15,11 @@ public:
     int field_290;                      // +0x290
 
     int InitDirectSound(int rate, int bits, int channels, HWND handle);
+    void ReleaseDirectSound();
 };
 
 // FUNCTION: 0x4cef90
-int Class_004cef90::InitDirectSound(int rate, int bits, int channels, HWND handle)
+int Sound::InitDirectSound(int rate, int bits, int channels, HWND handle)
 {
     WAVEFORMATEX wfx;
     DSBUFFERDESC desc;
@@ -62,6 +58,6 @@ int Class_004cef90::InitDirectSound(int rate, int bits, int channels, HWND handl
 error:
     if (hr == (HRESULT)0x88780078)
         field_290 = 1;
-    ((Class_004ceee0*)this)->ReleaseDirectSound();
+    ((Sound*)this)->ReleaseDirectSound();
     return 0;
 }

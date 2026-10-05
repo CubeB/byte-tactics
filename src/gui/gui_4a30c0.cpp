@@ -38,13 +38,13 @@ struct Font_004a30c0 {
     void* glyphs;                      // +0x0c
 };
 
-struct Class_0051fba4 {
+struct Dialog {
     int group;                         // +0x00
     char unknown_04[0x14 - 0x04];
     Font_004a30c0* font;               // +0x14
 };
 
-extern Class_0051fba4* g_guiContext;
+extern Dialog* g_guiContext;
 
 void __stdcall SetFont(int id);
 int GetFontHeight();

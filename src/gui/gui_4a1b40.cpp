@@ -79,7 +79,7 @@ struct Holder_004a1b40 {
     void* surface;                      // +0x24
 };
 
-struct Class_004a1b40 {
+struct Dialog {
     char unknown_00[0x18];
     Holder_004a1b40* holder;            // +0x18
     char unknown_1c[0x8b2 - 0x1c];
@@ -130,9 +130,6 @@ struct Item_004a1b40 {
 
 struct Surface {
     void GetClipRect(Rect_004a1b40* rect);
-};
-
-struct Class_004c6b10 {
     void SetClipRect(Rect_004a1b40 rect);
 };
 
@@ -140,7 +137,7 @@ struct Class_004c6b10 {
 
 extern LanguageRoot_004a1b40* g_guiContext;
 
-void __stdcall DrawListboxFrame(Class_004a1b40* obj, int index, void* bmp);
+void __stdcall DrawListboxFrame(Dialog* obj, int index, void* bmp);
 void __stdcall CopySurfaceRect(void* dst, void* src, Rect_004a1b40* rect, Rect_004a1b40* pos);
 void __stdcall SetFont(int id);
 int GetFont();
@@ -200,7 +197,7 @@ void __stdcall GetGadgetRect(Entry_004a1b40* entry, Rect_004a1b40* rect)
 }
 
 // FUNCTION: 0x4a1b40
-void __stdcall DrawListBox(Class_004a1b40* obj, int index)
+void __stdcall DrawListBox(Dialog* obj, int index)
 {
     unsigned char font;
     int yoff;
@@ -320,7 +317,7 @@ void __stdcall DrawListBox(Class_004a1b40* obj, int index)
         unsigned int bp = (flags >> 7) & 1;
         void* surf = entries->surface;
         ((Surface*)surf)->GetClipRect(&clip);
-        ((Class_004c6b10*)surf)->SetClipRect(bounds);
+        ((Surface*)surf)->SetClipRect(bounds);
         int k = me->field_bc;
         if (!bp) {
             colPtr = &((Item_004a1b40**)me->field_c6)[k];
@@ -391,6 +388,6 @@ void __stdcall DrawListBox(Class_004a1b40* obj, int index)
             if (yy >= bounds.bottom || k >= me->field_c0)
                 break;
         }
-        ((Class_004c6b10*)surf)->SetClipRect(clip);
+        ((Surface*)surf)->SetClipRect(clip);
     }
 }

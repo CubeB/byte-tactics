@@ -3,7 +3,7 @@
 // stack object in 0x48b710; WriteBits writes to it and FreeBuffer frees
 // a grown buffer).
 
-class Class_00415b60 {
+class BitWriter {
 public:
     int bit;                           // +0x0
     int index;                         // +0x4
@@ -11,11 +11,11 @@ public:
     unsigned int* data;                // +0xc
     unsigned int buffer[0x100];        // +0x10
 
-    Class_00415b60();
+    BitWriter();
 };
 
 // FUNCTION: 0x415b60
-Class_00415b60::Class_00415b60()
+BitWriter::BitWriter()
 {
     bit = 0;
     index = 0;

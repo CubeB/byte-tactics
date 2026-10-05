@@ -13,11 +13,6 @@ public:
     void FreePackets();
 };
 
-class Class_00461fd0 {
-public:
-    void GrowPools(int a, int b);
-};
-
 struct Packet_00461c20;
 
 struct Buffer_00461c20 {
@@ -47,6 +42,11 @@ public:
     unsigned int poolSize;              // +0x2c
 
     Packet_00461c20* AllocPacket(int param_1);
+    void GrowPools(int a, int b);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    int GetPacketEntry(int);
+    int AddPacket(int, void*, unsigned int);
+    int InitPools(int, unsigned int, int, int);
 };
 
 static inline int IsReusable(Buffer_00461c20* buf, int minRetain)
@@ -94,7 +94,7 @@ Packet_00461c20* PacketChannel::AllocPacket(int param_1)
             ((PacketBuffer*)owner)->FreePackets();
             break;
         }
-        ((Class_00461fd0*)this)->GrowPools(0, 0x320);
+        ((PacketChannel*)this)->GrowPools(0, 0x320);
     }
     index = idx;
     PacketTrace("current packet pool index set to: %ld\n", idx);

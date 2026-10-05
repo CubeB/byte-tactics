@@ -7,7 +7,7 @@
 // completely free, 1 when something is in the way and 0 when the rectangle
 // leaves the map, so the first failure is passed straight back to the caller
 // while any later failure is reported as a plain 1.
-class Class_00440830 {
+class MovementClass {
 public:
     int* field_0;                      // +0x0
     short field_4;                     // +0x4
@@ -18,14 +18,14 @@ public:
     unsigned int* data;                // +0x18
 };
 
-int __stdcall FUN_0047dfc0(Class_00440830* obj, int x, int y, int w, int h);
+int __stdcall FUN_0047dfc0(MovementClass* obj, int x, int y, int w, int h);
 
 // The two footprint fields are copied into locals before the first call: that
 // keeps them in registers across the five calls instead of loading each field
 // again, and it is what puts the `h + 1` and `x - 1` values of the third and
 // second calls into the two stack slots the last call reads back.
 // FUNCTION: 0x47e1f0
-unsigned int __stdcall FUN_0047e1f0(Class_00440830* obj, int x, int y)
+unsigned int __stdcall FUN_0047e1f0(MovementClass* obj, int x, int y)
 {
     int h = obj->field_6;
     int w = obj->field_4;

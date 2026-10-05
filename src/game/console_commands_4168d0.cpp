@@ -18,7 +18,7 @@ struct Player {
     char unknown_147[0x4];
 };
 
-class Class_00437c80 {
+class CMemoryCache {
 public:
     void FlushCache();
 };
@@ -27,7 +27,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player players[10];                // +0x1b63
     char unknown_2851[0x1437b - 0x2851];
-    Class_00437c80* obj;               // +0x1437b
+    CMemoryCache* obj;                 // +0x1437b
     char unknown_1437f[0x148db - 0x1437f];
     void* logos32;                     // +0x148db
 };

@@ -11,7 +11,7 @@ struct Entry_0047ffa0 {
     char field_10;                     // +0x10
 };
 
-class Class_0047ffa0 {
+class SpeechQueue {
 public:
     Entry_0047ffa0 entries[9];         // +0x00
     int count;                         // +0x99
@@ -20,7 +20,7 @@ public:
 #pragma pack(pop)
 
 // FUNCTION: 0x47ffa0
-void Class_0047ffa0::RemoveSpeechAt(int index)
+void SpeechQueue::RemoveSpeechAt(int index)
 {
     Entry_0047ffa0* e = &entries[index];
     if (e->data != 0) {

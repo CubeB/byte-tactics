@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // size() of the std::vector of pointers held at +4 (_First at +8), the same
-// layout as Class_004c4470's entries.
+// layout as TdfRecord's entries.
 #include <vector>
 
 struct Named_004c4450 {

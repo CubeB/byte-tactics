@@ -120,7 +120,7 @@ struct Weapon_0049a120 {
     unsigned short flags;              // +0x69
 };
 
-class Class_00406f50 {
+class SquadManager {
 public:
     void FUN_00406f50(Weapon_0049a120* weapon, int enemyDamage, int friendlyDamage);
 };
@@ -129,7 +129,7 @@ struct Holder_0049a120 {
     char unknown_0[4];
     int playerId;                      // +0x4
     char unknown_8[0x74 - 8];
-    Class_00406f50* object;            // +0x74
+    SquadManager* object;              // +0x74
 };
 
 struct Cell_0049a120 {

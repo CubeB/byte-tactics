@@ -14,7 +14,7 @@ struct Obj_403010 {
 };
 #pragma pack(pop)
 
-class Class_0048b090 {
+class Unit {
 public:
     void SetStateBits(int param_1, int param_2);
 };
@@ -23,7 +23,7 @@ public:
 int __stdcall ActivateOrder(Obj_403010* param_1, int unused1, int unused2)
 {
     if (param_1->sub->flag) {
-        ((Class_0048b090*)param_1)->SetStateBits(1, 1);
+        ((Unit*)param_1)->SetStateBits(1, 1);
     }
     return 5;
 }

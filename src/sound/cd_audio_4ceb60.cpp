@@ -41,7 +41,7 @@ public:
     int SetAuxVolume(int volume, int temporary);
 };
 
-class Class_004ceb60 {
+class Sound {
 public:
     char unknown_0[0x20];
     int field_20;                      // +0x20
@@ -64,7 +64,7 @@ public:
 };
 
 // FUNCTION: 0x4ceb60
-int Class_004ceb60::PlayCdTrack(int index, int flag)
+int Sound::PlayCdTrack(int index, int flag)
 {
     char to[20];
     char status[64];

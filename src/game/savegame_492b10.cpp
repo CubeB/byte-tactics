@@ -9,20 +9,12 @@
 #include <string.h>
 #include <stdio.h>
 
-class Class_004b3630 {
-public:
-    void CloseBank();
-};
-
-class Class_004b48a0 {
-public:
-    char* GetStringItem(char* name, char* def);
-};
-
-class Class_004b3620 {
+class HapiBank {
 public:
     int field_0;
-    Class_004b3620* InitBank();
+    HapiBank* InitBank();
+    void CloseBank();
+    char* GetStringItem(char* name, char* def);
 };
 
 struct Game {
@@ -37,7 +29,7 @@ extern char* DAT_0051f2e0;
 extern char* DAT_0051f2e4;
 
 char* __stdcall BuildDataPath(char* buf, char* dir, char* name, char* ext);
-Class_004b3620* __stdcall FUN_00432520(char* name);
+HapiBank* __stdcall FUN_00432520(char* name);
 void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int value, int flag);
 void __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int flag, int what);
 char* __stdcall SkipTextLines(char* text, int n);
@@ -73,16 +65,16 @@ char* __stdcall ListSavedGames(int* count)
     memcpy(copy, DAT_0051f2e0, *count << 8);
     for (i = 0; i < *count; i++) {
         sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(copy, i));
-        Class_004b3620* file = FUN_00432520(buf);
+        HapiBank* file = FUN_00432520(buf);
         char* desc = 0;
         if (file)
-            desc = ((Class_004b48a0*)file)->GetStringItem("Description", 0);
+            desc = ((HapiBank*)file)->GetStringItem("Description", 0);
         if (file && desc) {
             strcpy(buf, desc);
             strcpy(dp, buf);
             dp += strlen(buf) + 1;
             found++;
-            ((Class_004b3630*)file)->CloseBank();
+            ((HapiBank*)file)->CloseBank();
             delete file;
         } else {
             char* d = SkipTextLines(DAT_0051f2e0, found);

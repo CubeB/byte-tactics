@@ -62,7 +62,7 @@ extern Game* g_game;
 void __cdecl FUN_004b7173(short angle, int* xz);
 int __cdecl FUN_004b715a(int x, int z);
 
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x14];
     Vec3 pos;                          // +0x14
@@ -71,7 +71,7 @@ public:
 };
 
 // FUNCTION: 0x43d0d0
-void Class_0043d210::ApplyBankAndPitch(Owner_0043d0d0* owner, Vec3* v)
+void UnitMotion::ApplyBankAndPitch(Owner_0043d0d0* owner, Vec3* v)
 {
     pos.Scale(0xf333);
     pos.Add(v);

@@ -23,8 +23,6 @@ class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
 class Class_00438a00 { public: void FUN_00438a00(Vec3*, int, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_004897e0 { public: unsigned char ChooseWeapon(); };
-class Class_00489800 { public: void ReleaseWeapons(int); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
 #pragma pack(push, 1)
 struct UnitDef { char pad[0x241]; unsigned int flags; };
 struct Unit {
@@ -35,7 +33,17 @@ struct Unit {
     UnitDef* def;
     char pad96[0x110-0x96];
     unsigned int flags;
+    void ReleaseWeapons(int);
+    void ClaimWeapons(int);
 };
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int __stdcall IsUnitCommander(Unit*);
+void __stdcall AlignUnitToGround(Unit*);
+int __stdcall FindLandingPad(Unit*, int);
+unsigned short __stdcall ChooseBuildOption(unsigned int, Unit*);
+void __stdcall ClearWeaponTarget(Unit*, int);
+void __stdcall DetonateUnitWeapon(Unit*, int);
+
 struct Order {
     char pad0[5]; unsigned char state;
     unsigned int flags;
@@ -80,8 +88,8 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
         ((Class_004388d0*)order)->FUN_004388d0(0);
         if (flags & 0x3000) return 1;
         if (!WeaponCanReachUnit(unit, order->target, weapon)) return 1;
-        ((Class_004898b0*)unit)->ClaimWeapons(0);
-        ((Class_004898b0*)unit)->ClaimWeapons(2);
+        ((Unit*)unit)->ClaimWeapons(0);
+        ((Unit*)unit)->ClaimWeapons(2);
         SetWeaponTargetUnit(unit, order->target, weapon);
         order->flags = 0x13808;
         return 2;
@@ -125,14 +133,14 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
     case 3:
         if (flags & 0x40e0) { order->state = 1; return 4; }
         if (WeaponCanReachUnit(unit, order->target, weapon)) {
-            ((Class_004898b0*)unit)->ClaimWeapons(0);
-            ((Class_004898b0*)unit)->ClaimWeapons(2);
+            ((Unit*)unit)->ClaimWeapons(0);
+            ((Unit*)unit)->ClaimWeapons(2);
             SetWeaponTargetUnit(unit, order->target, weapon);
             order->flags = 0x148e8;
             ((Class_00439e80*)order)->FUN_00439e80(30);
             return 2;
         }
-        ((Class_00489800*)unit)->ReleaseWeapons(3);
+        ((Unit*)unit)->ReleaseWeapons(3);
         order->flags = 0x100e8;
         ((Class_00439e80*)order)->FUN_00439e80(30);
         return 2;

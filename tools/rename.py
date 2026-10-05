@@ -235,11 +235,15 @@ class Tree:
         self.headers = {p for p in texts if p.suffix == ".h"}
         self.codes = {p: code_of(t) for p, t in texts.items()}
         self.tokens = {p: set(TOKEN.findall(c)) for p, c in self.codes.items()}
-        # A file that includes one of the generated headers sees its names too.
+        # A file that includes one of the generated headers sees its names too,
+        # unless it includes it inside a namespace (`namespace ta { #include ... }`,
+        # for the header's symbol count alone), where they cannot clash with its own.
         self.included: dict[Path, set[str]] = defaultdict(set)
         for p, text in texts.items():
-            for inc in re.findall(r'^\s*#\s*include\s*["<]([^">]+)[">]', text, re.M):
-                header = ROOT / "include" / inc
+            for m in re.finditer(r'^\s*#\s*include\s*["<]([^">]+)[">]', text, re.M):
+                if re.search(r"\bnamespace\s+\w+\s*\{\s*$", text[:m.start()]):
+                    continue
+                header = ROOT / "include" / m.group(1)
                 if header in self.tokens and header != p:
                     self.included[p] |= self.tokens[header]
         self.frames = {p: b for p, t in texts.items() if (b := frame_bodies(t, self.codes[p]))}

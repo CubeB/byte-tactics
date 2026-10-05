@@ -19,7 +19,7 @@ struct Holder_4a1530 {
 };
 
 #pragma pack(push, 1)
-struct Class_004a1530 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_4a1530* holder;           // +0x18
     char unknown_1c[0xcca - 0x1c];
@@ -38,7 +38,7 @@ static inline int FindEntry(Entry_4a1530* entries, char* name)
 }
 
 // FUNCTION: 0x4a1530
-void __stdcall FUN_004a1530(Class_004a1530* obj, char* name, char value)
+void __stdcall FUN_004a1530(Dialog* obj, char* name, char value)
 {
     int i = FindEntry(obj->holder->entries, name);
     obj->holder->entries[i].f_13a = value;

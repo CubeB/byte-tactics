@@ -167,8 +167,8 @@ int __stdcall InitScoreReporting(void);
 void __stdcall ShowEndMissionScreen(void);
 void __stdcall FUN_004c2470(void);
 void __stdcall FUN_004c2870(void);
-struct Class_00463c60 { void SetType(int param); };
-struct Class_00435a20 { void LoadMissionByName(int param); };
+struct Player { void SetType(int param); };
+struct Mission { void LoadMissionByName(int param); };
 
 void __stdcall CheckFrontendStateChange(int line, char* file);
 void __stdcall SetFrontendSubState(char state, int line, char* file);
@@ -667,7 +667,7 @@ void RunFrontendStateMachine(void)
             unsigned char* q = (unsigned char*)(g_game + 0x14b * (unsigned char)g_game[0x2a42] + 0x1b84);
             *q = (((Bits_00426e80*)(g_game + 0x2b4c))->b4 << 1) | (*q & 0xfd);
             if (((Bits_00426e80*)(g_game + 0x2b4c))->b4) {
-                ((Class_00435a20*)*(int*)(g_game + 0x391e9))->LoadMissionByName((int)(g_game + 0x2ab1));
+                ((Mission*)*(int*)(g_game + 0x391e9))->LoadMissionByName((int)(g_game + 0x2ab1));
                 for (int i = 0; i < 10; i++) {
                     if (*(int*)(g_game + i * 0x14b + 0x1b63)) {
                         char t = g_game[i * 0x14b + 0x1bd6];
@@ -716,7 +716,7 @@ void RunFrontendStateMachine(void)
             char* p = g_game + 0x1b63;
             for (int i = 0; i < 10; i++) {
                 if (p[0x73] == 4)
-                    ((Class_00463c60*)p)->SetType(0);
+                    ((Player*)p)->SetType(0);
                 p += 0x14b;
             }
             FinishUnitSync();

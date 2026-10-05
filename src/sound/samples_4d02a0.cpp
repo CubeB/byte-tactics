@@ -18,17 +18,11 @@
 
 struct FileHandle;
 
-class Class_004cf370 {
-  public:
-    void* CreateSampleFromFile(FileHandle* file, int bytes, int sampleRate, int bits, int channels);
-};
-class Class_004cf8a0 {
+class Sound {
   public:
     int PlayFileSample(FileHandle* file, int bytes, int sampleRate, int bits, int channels, int f,
                      int g);
-};
-class Class_004cfb40 {
-  public:
+    void* CreateSampleFromFile(FileHandle* file, int bytes, int sampleRate, int bits, int channels);
     void StartStream(FileHandle* file, int sampleRate, int bits, int channels, int volume);
 };
 class Class_004d02a0 {
@@ -86,13 +80,13 @@ int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
         HAPI_SeekFile(file, 0);
         switch (mode) {
         case 0:
-            result = (int)((Class_004cf370*)this)->CreateSampleFromFile(file, size, 0x2b11, 8, 1);
+            result = (int)((Sound*)this)->CreateSampleFromFile(file, size, 0x2b11, 8, 1);
             break;
         case 1:
-            result = ((Class_004cf8a0*)this)->PlayFileSample(file, size, 0x2b11, 8, 1, p3, p4);
+            result = ((Sound*)this)->PlayFileSample(file, size, 0x2b11, 8, 1, p3, p4);
             break;
         case 2:
-            ((Class_004cfb40*)this)->StartStream(file, 0x2b11, 8, 1, p3);
+            ((Sound*)this)->StartStream(file, 0x2b11, 8, 1, p3);
             return 1;
         }
         break;
@@ -105,13 +99,13 @@ int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
         HAPI_SeekFile(file, 0x28);
         switch (mode) {
         case 0:
-            result = (int)((Class_004cf370*)this)->CreateSampleFromFile(file, size - 0x28, x, 8, 1);
+            result = (int)((Sound*)this)->CreateSampleFromFile(file, size - 0x28, x, 8, 1);
             break;
         case 1:
-            result = ((Class_004cf8a0*)this)->PlayFileSample(file, size - 0x28, x, 8, 1, p3, p4);
+            result = ((Sound*)this)->PlayFileSample(file, size - 0x28, x, 8, 1, p3, p4);
             break;
         case 2:
-            ((Class_004cfb40*)this)->StartStream(file, x, 8, 1, p3);
+            ((Sound*)this)->StartStream(file, x, 8, 1, p3);
             return 1;
         }
         break;
@@ -129,15 +123,15 @@ int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
             goto end;
         switch (mode) {
         case 0:
-            result = (int)((Class_004cf370*)this)
+            result = (int)((Sound*)this)
                          ->CreateSampleFromFile(file, len, wfx.nSamplesPerSec, bits, chans);
             break;
         case 1:
-            result = ((Class_004cf8a0*)this)
+            result = ((Sound*)this)
                          ->PlayFileSample(file, len, wfx.nSamplesPerSec, bits, chans, p3, p4);
             break;
         case 2:
-            ((Class_004cfb40*)this)->StartStream(file, wfx.nSamplesPerSec, bits, chans, p3);
+            ((Sound*)this)->StartStream(file, wfx.nSamplesPerSec, bits, chans, p3);
             return 1;
         }
         break;

@@ -21,7 +21,7 @@ struct Channel_004b0b00 {              // 0xa4 bytes, indexed from this + i*0xa4
 
 class ScriptCallback;
 
-class Class_004b0b00 {
+class CobScript {
 public:
     Channel_004b0b00 channels[8];      // +0x0 (see the note above)
     char unknown_520[0x1c];
@@ -30,6 +30,9 @@ public:
     int StartScriptWithArgsByIndex(int index, ScriptCallback* param_2, int param_3,
                      int param_4, int param_5, int param_6, int param_7,
                      int param_8);
+    int StartThread(int id);
+    void RunThread(int channel, int param_2);
+    void AnimatePieces(int param_1);
 };
 
 class ScriptCallback {
@@ -37,23 +40,8 @@ public:
     virtual void Complete(int result);
 };
 
-class CobScript {
-public:
-    int StartThread(int id);
-};
-
-class Class_004b0da0 {
-public:
-    void RunThread(int channel, int param_2);
-};
-
-class Class_004b1c00 {
-public:
-    void AnimatePieces(int param_1);
-};
-
 // FUNCTION: 0x4b0b00
-int Class_004b0b00::StartScriptWithArgsByIndex(int index, ScriptCallback* param_2,
+int CobScript::StartScriptWithArgsByIndex(int index, ScriptCallback* param_2,
                                  int param_3, int param_4, int param_5,
                                  int param_6, int param_7, int param_8)
 {
@@ -75,9 +63,9 @@ int Class_004b0b00::StartScriptWithArgsByIndex(int index, ScriptCallback* param_
     if (param_3) {
         if (activeCount) {
             for (int j = 0; j < 8; j++)
-                ((Class_004b0da0*)this)->RunThread(j, 0);
+                ((CobScript*)this)->RunThread(j, 0);
         }
-        ((Class_004b1c00*)this)->AnimatePieces(0);
+        ((CobScript*)this)->AnimatePieces(0);
     }
     return 1;
 }

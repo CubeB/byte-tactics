@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-struct Class_004b73c0 {
+struct CommandArgs {
     int array[0x34];  // +0x0 to +0xcf
     int size;         // +0xd0
 
@@ -8,7 +8,7 @@ struct Class_004b73c0 {
 };
 
 // FUNCTION: 0x4b73c0
-int Class_004b73c0::GetArg(int index, int default_val)
+int CommandArgs::GetArg(int index, int default_val)
 {
     if (index < 0 || index >= size) {
         return default_val;

@@ -15,7 +15,7 @@ int __stdcall HAPINET_sendpacket(void* net, unsigned long from, unsigned long to
 void __stdcall CountPacket(int size, int overhead, int sent);
 
 #pragma pack(push, 1)
-class Class_0044fc10 {
+class NetCondenser {
 public:
     char unknown_0[0x10];
     char* sendBuffer;                  // +0x10
@@ -30,7 +30,7 @@ public:
 #pragma pack(pop)
 
 // FUNCTION: 0x44fc10
-int Class_0044fc10::SendPacket(void* session, int from)
+int NetCondenser::SendPacket(void* session, int from)
 {
     unsigned int compressed;
     if (size_1d > 12) {

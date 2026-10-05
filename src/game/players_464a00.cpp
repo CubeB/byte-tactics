@@ -20,7 +20,7 @@
 // that; see the note on the original bug below.
 
 #pragma pack(push, 1)
-class Class_00408f10 {
+class SquadManager {
 public:
     char unknown_0[0x11];
     void* ptrs[10];
@@ -30,7 +30,7 @@ public:
 
 struct Player_00464a00 {
     char unknown_0[0x74];
-    Class_00408f10* unit;               // +0x74
+    SquadManager* unit;                 // +0x74
     char unknown_78[0x7c - 0x78];
     void* buffer;                       // +0x7c
     int field_80;                       // +0x80
@@ -65,13 +65,13 @@ void FreePlayers()
         q[1] = 0;
         ((void**)q)[-2] = 0;
         FreeSquads(p);
-        if (((Class_00408f10**)q)[-4]) {
+        if (((SquadManager**)q)[-4]) {
             DestroyPlayerAI(((unsigned char*)q)[0xc2]);
-            if (Class_00408f10* u = ((Class_00408f10**)q)[-4]) {
+            if (SquadManager* u = ((SquadManager**)q)[-4]) {
                 u->DeleteTimers();
                 delete u;
             }
-            ((Class_00408f10**)q)[-4] = 0;
+            ((SquadManager**)q)[-4] = 0;
         }
         if (((void**)q)[0x1a]) {
             delete[] ((void**)q)[0x1a];

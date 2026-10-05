@@ -112,7 +112,7 @@ public:
 };
 
 // The owner of the per-index lists.
-class Class_00471a50 {
+class ParticleLists {
 public:
     std::vector<Elem_00473500> lists[1];                // 0x10 bytes each
 
@@ -130,7 +130,7 @@ public:
 };
 
 // FUNCTION: 0x471a50
-void Class_00471a50::FUN_00471a50(Vec3_00475150* param_1, int param_2,
+void ParticleLists::FUN_00471a50(Vec3_00475150* param_1, int param_2,
                                   int param_3, int param_4, short index)
 {
     Class_004750b0* e = new Class_004750b0;

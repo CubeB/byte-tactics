@@ -9,7 +9,7 @@ void __stdcall HAPI_ReadFileAt(char* filename, void* buffer, int offset, int siz
 void* __cdecl FUN_004d83b0(const char* tag, int size);
 void __cdecl FUN_004d85a0(void* p);
 
-class Class_00435320 {
+class Mission {
 public:
     char unknown_0[0x304];
     char text_304[0x910];              // +0x304
@@ -19,7 +19,7 @@ public:
 };
 
 // FUNCTION: 0x435320
-void Class_00435320::LoadBriefing()
+void Mission::LoadBriefing()
 {
     if (field_c14)
         FUN_004d85a0(field_c14);

@@ -18,7 +18,6 @@ public:
 
 struct Unit;
 
-class Class_004898b0 { public: void ClaimWeapons(int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
@@ -37,6 +36,7 @@ struct Unit {
     char pad76[0x8a - 0x76]; int field_8a;
     char pad8e[4]; UnitDef* def;
     char pad96[0x110 - 0x96]; unsigned int flags;
+    void ClaimWeapons(int);
 };
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
@@ -83,7 +83,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
     switch (state) {
     case 0:
         if (unit->type && (unit->def->flags & 0x800)) {
-            ((Class_004898b0*)unit)->ClaimWeapons(3);
+            ((Unit*)unit)->ClaimWeapons(3);
             order->flags |= 0x10000;
             ((Class_00439e80*)order)->FUN_00439e80(1);
             order->x = order->unit->posX;

@@ -7,13 +7,13 @@ extern void* DAT_00529df8;
 extern double GetTimeSeconds();
 void InitPerformanceEvents();
 
-class Class_004e17c0 {
+class NameTable {
 public:
     char unknown_0[0x14];
-    Class_004e17c0();                  // 0x4e17c0
+    NameTable();                       // 0x4e17c0
 };
 
-class Class_004df250 {
+class PerformanceDialog {
 public:
     void CreatePerformanceDialog();
 };
@@ -42,7 +42,7 @@ public:
     void* table;                       // +0x1c
     char flag_20;                      // +0x20
     Id_004df1e0 ident;                 // +0x24
-    Class_004e17c0 map;                // +0x21c
+    NameTable map;                     // +0x21c
 
     Class_004df1e0();
 };
@@ -59,5 +59,5 @@ Class_004df1e0::Class_004df1e0()
     count = DAT_00529dcc;
     table = DAT_00529df8;
     time = GetTimeSeconds();
-    ((Class_004df250*)this)->CreatePerformanceDialog();
+    ((PerformanceDialog*)this)->CreatePerformanceDialog();
 }

@@ -27,12 +27,12 @@ struct Game {
 extern Game* g_game;
 extern int g_usePacketManager;
 
-class Class_00462f30 {
+class PacketReceiver {
 public:
     int ReceiveFrame(void* net, unsigned char* data, int* size);
 };
 
-extern Class_00462f30 DAT_0051e300;
+extern PacketReceiver DAT_0051e300;
 
 int __stdcall HAPINET_receivepacket(void* net, void* data, int* size);
 void __stdcall CountMessage(unsigned char kind, int amount, int player);

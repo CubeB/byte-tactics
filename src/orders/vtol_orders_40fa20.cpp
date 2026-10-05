@@ -9,15 +9,12 @@ struct Vec3 {
 };
 
 struct Unit;
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_00489800 { public: void ReleaseWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
@@ -28,11 +25,14 @@ struct UnitDef {
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
 struct Unit {
-    Class_0043d210* type;
+    UnitMotion* type;
     char pad4[0x6a - 4]; Vec3 pos;
     char pad76[8]; Point footprint;
     int field_82; int field_86;
     char pad8a[8]; UnitDef* def;
+    void ClaimWeapons(int);
+    void ReleaseWeapons(int);
+    void SetStateBits(int, int);
 };
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
@@ -70,10 +70,10 @@ static inline void Snap(Vec3* v, Point size)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -97,7 +97,7 @@ int __stdcall VtolMoveOrder(Unit* unit, Order* order, int flags)
         break;
     case 1:
         ((Class_00438880*)order)->FUN_00438880(0);
-        ((Class_00489800*)unit)->ReleaseWeapons(3);
+        ((Unit*)unit)->ReleaseWeapons(3);
         Snap(&order->pos, unit->footprint);
         ((Class_004388d0*)order)->FUN_004388d0((int)new Class_0044e2d0(order, order->pos));
         order->flags = 0xe0;

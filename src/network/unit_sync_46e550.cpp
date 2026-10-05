@@ -45,11 +45,6 @@ public:
     Node_0046e330* FUN_0046fe60(const unsigned int* key);
 };
 
-class Class_0046d860 {
-public:
-    void NotifyEntryChanged(unsigned int key);
-};
-
 class UnitSync {
 public:
     Less_0046e330 compare;
@@ -62,6 +57,7 @@ public:
         return (p == End() || compare(*key, p.ptr->key)) ? End() : p;
     }
     void SetUnitLimit(Unit_0046e330* unit, int value);
+    void NotifyEntryChanged(unsigned int key);
 };
 
 
@@ -71,6 +67,6 @@ void UnitSync::SetUnitLimit(Unit_0046e330* unit, int value)
     Iter_0046e330 it = Find(&unit->key);
     if (!(it == End())) {
         it.ptr->value.unknown_c = value;
-        ((Class_0046d860*)this)->NotifyEntryChanged(unit->key);
+        ((UnitSync*)this)->NotifyEntryChanged(unit->key);
     }
 }

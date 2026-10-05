@@ -21,13 +21,13 @@ struct Holder_004ab2b0 {
     Entry_004ab2b0* entries;           // +0x4
 };
 
-struct Class_004ab2b0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004ab2b0* holder;           // +0x18
 };
 
 // FUNCTION: 0x4ab2b0
-int __stdcall AddButtonGadget(Class_004ab2b0* obj, Record_004ab2b0* record)
+int __stdcall AddButtonGadget(Dialog* obj, Record_004ab2b0* record)
 {
     Entry_004ab2b0* entries = obj->holder->entries;
     if (entries->record.count == 200) {

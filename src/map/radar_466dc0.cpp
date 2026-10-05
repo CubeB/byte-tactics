@@ -13,7 +13,7 @@
 //     field accesses on derived induction temporaries (the dropped `temp`
 //     candidates c2prio lists over the loop's lines) once `u->type` was read
 //     in two or more blocks after calls. Reading the type through a reference
-//     taken at the top of the loop body, `UnitType*& type = u->type;`, emits
+//     taken at the top of the loop body, `UnitDef*& type = u->type;`, emits
 //     the same loads but leaves the x multiply on `u`, so it follows the ids.
 //   - <windows.h> then supplies the declaration count that gives the
 //     original's order (g_game's id near 29000).

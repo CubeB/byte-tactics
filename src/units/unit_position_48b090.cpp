@@ -20,7 +20,7 @@
 //   recommends), which is what the passes above were looking for.
 // - what the getter really does is only make the file contain one more
 //   function: the same 97.4% comes out of the free `static inline unsigned
-//   char StateOf(const Class_0048b090* u) { return u->state; }` with `old =
+//   char StateOf(const Unit* u) { return u->state; }` with `old =
 //   StateOf(this)`, out of a used `static inline unsigned char AndByte(unsigned
 //   char a, unsigned char b)` for `lost`, and out of one unused
 //   `static inline unsigned char H1(int a) { return (unsigned char)a; }`
@@ -391,17 +391,17 @@ public:
     Class_0043a1e0* value;              // +0xc
 };
 
-class Class_004b0940 {
+class CobScript {
 public:
     void StartScript(const char* name, int a, int b);
 };
 
 #pragma pack(push, 1)
-class Class_0048b090 {
+class Unit {
 public:
     char unknown_0[0x96];
     Player_0048b090* player;            // +0x96
-    Class_004b0940* vars;               // +0x9a, the script
+    CobScript* vars;                    // +0x9a, the script
     void* block;                        // +0x9e
     Class_004895c0* head;               // +0xa2, the link list
     char unknown_a6[0xa8 - 0xa6];
@@ -415,8 +415,8 @@ public:
 };
 #pragma pack(pop)
 
-void __stdcall QueueUnitSpeech(Class_0048b090* unit, int kind, char* text);
-void __stdcall FUN_0041c110(Class_0048b090* unit);
+void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
+void __stdcall FUN_0041c110(Unit* unit);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 
 static inline int HasBit(unsigned char bits) { return 1 & bits; }
@@ -428,7 +428,7 @@ static inline unsigned char GainedBits(unsigned char was, int is) { return (unsi
 static inline unsigned char AsByte(unsigned char bits) { return (unsigned char)bits; }
 
 // FUNCTION: 0x48b090
-void Class_0048b090::SetStateBits(int mask, int set)
+void Unit::SetStateBits(int mask, int set)
 {
     unsigned char lost, gained, old = GetState();
     int isOne, active;

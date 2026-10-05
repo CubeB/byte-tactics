@@ -27,17 +27,11 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 // Command-line arguments, as used by GetArg and GetIntArg.
-class Class_004b73c0 {
-public:
-    char* args[0x34];                  // +0x00
-    int count;                         // +0xd0
-    char* GetArg(int index, char* fallback);
-};
-
 class CommandArgs {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
+    char* GetArg(int index, char* fallback);
     int GetIntArg(int index, int fallback);
 };
 
@@ -46,7 +40,7 @@ void __stdcall WriteScreenshot(char* name, char* description, int x, int y, int 
 unsigned int GetTicks();
 
 // FUNCTION: 0x417600
-void __stdcall CmdMakePoster(Class_004b73c0* args)
+void __stdcall CmdMakePoster(CommandArgs* args)
 {
     int w = 0xc80;
     int h = 0x960;

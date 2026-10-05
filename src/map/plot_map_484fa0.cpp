@@ -17,20 +17,8 @@ extern Game* g_game;
 class HapiBank {
 public:
     int OpenAccount(char* name);
-};
-
-class Class_004b4ba0 {
-public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4bf0 {
-public:
     int GetBoxSize();
-};
-
-class Class_004b4c80 {
-public:
     unsigned int ReadBox(void* buf, int size);
 };
 
@@ -39,9 +27,9 @@ public:
 // FUNCTION: 0x484fa0
 void __stdcall LoadMappingData(HapiBank* file)
 {
-    if (file->OpenAccount("Mapping") && ((Class_004b4ba0*)file)->OpenNamedBox("Data")) {
+    if (file->OpenAccount("Mapping") && ((HapiBank*)file)->OpenNamedBox("Data")) {
         unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;
-        if (((Class_004b4bf0*)file)->GetBoxSize() == size)
-            ((Class_004b4c80*)file)->ReadBox(g_game->mapping, size);
+        if (((HapiBank*)file)->GetBoxSize() == size)
+            ((HapiBank*)file)->ReadBox(g_game->mapping, size);
     }
 }

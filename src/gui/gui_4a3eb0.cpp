@@ -20,7 +20,7 @@ struct Table_004a3eb0 {
     Entry_004a3eb0* entries;           // +0x4
 };
 
-struct Class_004a3eb0 {
+struct Dialog {
     char unknown_0[0x18];
     Table_004a3eb0* table;             // +0x18
 };
@@ -33,7 +33,7 @@ static inline void ClearEntry(Entry_004a3eb0* e)
 }
 
 // FUNCTION: 0x4a3eb0
-void __stdcall FUN_004a3eb0(Class_004a3eb0* obj, int i)
+void __stdcall FUN_004a3eb0(Dialog* obj, int i)
 {
     ClearEntry(&obj->table->entries[i]);
 }

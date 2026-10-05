@@ -105,14 +105,15 @@ struct Game {
 };
 #pragma pack(pop)
 
-struct Class_004358f0 { int FUN_004358f0(); };
-struct Class_004373a0 { int ComputeMapChecksum(); };
-struct Class_00435a20 { void LoadMissionByName(PlayerInfo_0044a680* info); };
-struct Class_00435c30 { char* FUN_00435c30(); };
-struct Class_0046e000 { int AllPlayersSynced(); };
-struct Class_00463c60 { void SetType(int param); };
-class Class_0046d860 { public: void ProcessSync(); };
-
+struct Mission { int FUN_004358f0(); int ComputeMapChecksum(); void LoadMissionByName(PlayerInfo_0044a680* info); char* FUN_00435c30(); };
+struct UnitSync {
+    int AllPlayersSynced();
+    void ProcessSync();
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    char* GetSyncStatusText();
+    void CheckUnitAvailable(unsigned int, int);
+};
+struct Player { void SetType(int param); };
 
 extern Game* g_game;
 extern int DAT_00512994;
@@ -155,7 +156,7 @@ int __stdcall FUN_00456760();
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
 int CheckMapCrc()
 {
-    if (!((Class_004358f0*)g_game->map)->FUN_004358f0()) {
+    if (!((Mission*)g_game->map)->FUN_004358f0()) {
         return 0;
     }
     unsigned char me = FindHostSlot();
@@ -171,7 +172,7 @@ int CheckMapCrc()
     if (!check) {
         return 1;
     }
-    if (((Class_004373a0*)g_game->map)->ComputeMapChecksum() != data->mapCrc)
+    if (((Mission*)g_game->map)->ComputeMapChecksum() != data->mapCrc)
         return 0;
     return 1;
 }
@@ -183,7 +184,7 @@ inline void __stdcall SwapPlayerSlots(Player_0044a680* param_1, Player_0044a680*
     Player_0044a680 tmp = *param_2;
     *param_2 = *param_1;
     *param_1 = tmp;
-    ((Class_00463c60*)param_1)->SetType(0);
+    ((Player*)param_1)->SetType(0);
     param_1->active = 0;
     for (int i = 0; i <= 10; i++) {
         Player_0044a680* p = &g_game->players[i];
@@ -302,7 +303,7 @@ void UpdateBattleRoom()
             if (host != 10) {
                 if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
                     PlayerInfo_0044a680* info = g_game->players[host].info;
-                    ((Class_00435a20*)g_game->map)->LoadMissionByName(info);
+                    ((Mission*)g_game->map)->LoadMissionByName(info);
                     FUN_00445e20(&g_game->gui, "MAXUNITS", g_game->players[host].info->maxUnits - 0x14);
                     FUN_00445e20(&g_game->gui, "METAL", g_game->players[host].info->metal * 100);
                     FUN_00445e20(&g_game->gui, "ENERGY", g_game->players[host].info->energy * 100);
@@ -311,8 +312,8 @@ void UpdateBattleRoom()
                     UpdateMetalText(&g_game->gui, 0);
                 } else if (IsScreenNamed(&g_game->gui, "viewmap.gui") != 0) {
                     PlayerInfo_0044a680* info = g_game->players[host].info;
-                    if (strcmp(((Class_00435c30*)g_game->map)->FUN_00435c30(), info->map) != 0) {
-                        ((Class_00435a20*)g_game->map)->LoadMissionByName(g_game->players[host].info);
+                    if (strcmp(((Mission*)g_game->map)->FUN_00435c30(), info->map) != 0) {
+                        ((Mission*)g_game->map)->LoadMissionByName(g_game->players[host].info);
                         ShowSelectedMapInfo();
                         FUN_0049fad0(&g_game->gui);
                     }
@@ -322,7 +323,7 @@ void UpdateBattleRoom()
         g_game->dirty = 0;
         if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
             if (pl->info->flags & 1) {
-                int synched = ((Class_0046e000*)g_game->net)->AllPlayersSynced();
+                int synched = ((UnitSync*)g_game->net)->AllPlayersSynced();
                 int ready = FUN_00456760();
                 Gadget_0044a680* start;
 
@@ -395,7 +396,7 @@ void UpdateBattleRoom()
         FUN_004a5d30(&g_game->gui, 0);
     }
 
-    ((Class_0046d860*)g_game->net)->ProcessSync();
+    ((UnitSync*)g_game->net)->ProcessSync();
     if (DAT_005129a8 < (unsigned int)GetTicks()) {
         unsigned char r;
         PlayerInfo_0044a680* info;

@@ -13,7 +13,7 @@ struct Pair_0040d880 {
 
 extern const Table_0040d880 DAT_004fca10;
 
-class Class_0040d880 {
+class Pathfinder {
 public:
     char unknown_0[0x68];
     Table_0040d880 table;              // +0x68
@@ -23,7 +23,7 @@ public:
 };
 
 // FUNCTION: 0x40d880
-void Class_0040d880::InitCostTables()
+void Pathfinder::InitCostTables()
 {
     table = DAT_004fca10;
     pairs[0].a = pairs[1].a = pairs[2].a = pairs[3].a = 0x10;

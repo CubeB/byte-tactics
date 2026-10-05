@@ -1,13 +1,13 @@
 // Decompiled by Sonnet. Names are provisional.
 
-class Class_004c46c0 {
+class TdfRecord {
 public:
     int GetFieldInt(const char* name, int flag);
 };
 
 struct Param2_004addf0 {
     char unknown_0[4];
-    Class_004c46c0* obj;
+    TdfRecord* obj;
 };
 
 #pragma pack(push, 2)

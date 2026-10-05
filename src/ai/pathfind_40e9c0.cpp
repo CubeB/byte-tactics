@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_0040e9c0 {
+class Pathfinder {
 public:
     char unknown_0[0x58];
     int field_58;
@@ -12,7 +12,7 @@ public:
 };
 
 // FUNCTION: 0x40e9c0
-void Class_0040e9c0::FUN_0040e9c0(int param_1) {
+void Pathfinder::FUN_0040e9c0(int param_1) {
     if (param_1 == field_5c) {
         field_58 = 0;
         field_5c = 0;

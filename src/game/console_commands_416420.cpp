@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-class Class_00437c80 {
+class CMemoryCache {
 public:
     void FlushCache();
 };
@@ -8,7 +8,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char pad0[0x1437b];
-    Class_00437c80* obj;         // +0x1437b
+    CMemoryCache* obj;           // +0x1437b
     char pad1[0x23b87];
     unsigned short pad_bits : 5; // +0x37f06
     unsigned short toggle : 1;

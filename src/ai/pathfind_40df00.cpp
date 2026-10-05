@@ -28,12 +28,7 @@ public:
     void SiftDown(int pos);
 };
 
-class Class_0040da70 {
-public:
-    void ExpandNeighbour(short* p, Cell_0040df00* cell, int dir);
-};
-
-class Class_0040df00 {
+class Pathfinder {
 public:
     Node_0040df00* nodes;               // +0x00
     Node_0040df00** heap;               // +0x04
@@ -65,10 +60,11 @@ public:
     }
 
     int ExpandBestNode();
+    void ExpandNeighbour(short* p, Cell_0040df00* cell, int dir);
 };
 
 // FUNCTION: 0x40df00
-int Class_0040df00::ExpandBestNode()
+int Pathfinder::ExpandBestNode()
 {
     if (this->field_18 != 0) {
         this->field_18 = 0;
@@ -89,6 +85,6 @@ int Class_0040df00::ExpandBestNode()
     }
     c->kind = 2;
     for (int d = -this->field_44; d <= this->field_44; d++)
-        ((Class_0040da70*)this)->ExpandNeighbour((short*)&local, c, d & 7);
+        ((Pathfinder*)this)->ExpandNeighbour((short*)&local, c, d & 7);
     return 0;
 }

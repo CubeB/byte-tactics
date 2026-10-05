@@ -20,7 +20,7 @@ struct Node_004c3410 {
     }
 };
 
-class Class_004c3410 {
+class TdfFile {
 public:
     Node_004c3410* root;                // +0x0
     Node_004c3410* current;             // +0x4
@@ -29,7 +29,7 @@ public:
 };
 
 // FUNCTION: 0x4c3410
-int Class_004c3410::SelectRecord(char* name)
+int TdfFile::SelectRecord(char* name)
 {
     Node_004c3410* node = current;
     if (node == 0)

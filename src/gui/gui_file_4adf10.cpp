@@ -1,14 +1,10 @@
 // Decompiled by Opus. Names are provisional.
 #include <string.h>
 
-class Class_004c46c0 {
-public:
-    int GetFieldInt(const char* name, int def);
-};
-
 class TdfRecord {
 public:
     int GetFieldString(char* dst, char* key, size_t size, char* def);
+    int GetFieldInt(const char* name, int def);
 };
 
 struct Source_004adf10 {
@@ -31,7 +27,7 @@ char* __stdcall Translate(char* text);
 // FUNCTION: 0x4adf10
 void __stdcall ReadTextInputFields(Obj_004adf10* obj, Source_004adf10* src)
 {
-    obj->maxchars = ((Class_004c46c0*)src->tdf)->GetFieldInt("maxchars", 0);
+    obj->maxchars = ((TdfRecord*)src->tdf)->GetFieldInt("maxchars", 0);
     if (obj->maxchars > 0x80)
         obj->maxchars = 0x80;
     src->tdf->GetFieldString(obj->text, "text", 0x80, DAT_005119b8);

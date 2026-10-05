@@ -37,15 +37,11 @@ struct Vec3_0049c9c0 {
     int z;
 };
 
-class Class_004b0940 {
-public:
-    int StartScript(char* name, int param_2, int param_3);
-};
-
 class CobScript {
 public:
     int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5,
                     int param_6, int param_7, int param_8);
+    int StartScript(char* name, int param_2, int param_3);
 };
 
 #pragma pack(push, 1)
@@ -97,7 +93,7 @@ struct Unit {
     short heading;                     // +0x66
     unsigned int f_68;                // +0x68
     char unknown_6c[0x9a - 0x6c];
-    Class_004b0940* anims;             // +0x9a
+    CobScript* anims;             // +0x9a
     char unknown_9e[0xdc - 0x9e];
     int f_dc;                          // +0xdc
     char unknown_e0[0xe6 - 0xe0];

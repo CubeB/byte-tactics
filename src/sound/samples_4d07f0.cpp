@@ -25,13 +25,13 @@
 int __stdcall HAPI_SeekFile(void* file, int pos);
 int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
 
-class Class_004d07f0 {
+class Sound {
 public:
     int ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSample, int* channels);
 };
 
 // FUNCTION: 0x4d07f0
-int Class_004d07f0::ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSample, int* channels)
+int Sound::ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSample, int* channels)
 {
     unsigned int total;
     char tag[4];

@@ -57,18 +57,10 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_00435a20 {
+class Mission {
 public:
     int LoadMissionByName(char* name);
-};
-
-class Class_00435c30 {
-public:
     char* FUN_00435c30();
-};
-
-class Class_004373a0 {
-public:
     unsigned int ComputeMapChecksum();
 };
 
@@ -108,14 +100,14 @@ void __stdcall HandleMapSelectClick(Gadget_00444cb0* param_1)
     if (IsCurrentGadgetNamed(param_1, "MAPNAMES") || IsCurrentGadgetNamed(param_1, "LOAD")) {
         PlaySoundByName("Multi", 0);
         Entry_00444cb0* g = FindGadgetChecked(entries, "MAPNAMES");
-        ((Class_00435a20*)g_game->field_391e9)->LoadMissionByName(
+        ((Mission*)g_game->field_391e9)->LoadMissionByName(
             SkipTextLines(g->text, g->selected));
 
         Player_00444cb0* player = &g_game->players[g_game->localPlayer];
         strcpy(player->data->name,
-               ((Class_00435c30*)g_game->field_391e9)->FUN_00435c30());
+               ((Mission*)g_game->field_391e9)->FUN_00435c30());
         player->data->field_a9 =
-            ((Class_004373a0*)g_game->field_391e9)->ComputeMapChecksum();
+            ((Mission*)g_game->field_391e9)->ComputeMapChecksum();
 
         BroadcastPlayerInfo();
         ReportGameEvent(5);
@@ -132,7 +124,7 @@ void __stdcall HandleMapSelectClick(Gadget_00444cb0* param_1)
 
     if (IsCurrentGadgetNamed(param_1, "PREVMENU")) {
         PlaySoundByName("Previous", 0);
-        ((Class_00435a20*)g_game->field_391e9)->LoadMissionByName(DAT_00512990);
+        ((Mission*)g_game->field_391e9)->LoadMissionByName(DAT_00512990);
         BroadcastPlayerInfo();
         return;
     }

@@ -1,22 +1,14 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 #include <string.h>
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;
     void* current;                      // +0x4
     int field_8;
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* file);
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
 };
 
@@ -35,14 +27,14 @@ void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, 
 // FUNCTION: 0x429000
 void CheckGpfVersion()
 {
-    Class_004c2ea0 parser;
+    TdfFile parser;
     char buf[64];
     char path[256];
     int found = 0;
 
     BuildDataPath(path, "gamedata", "version", "tdf");
-    if (((Class_004c2f60*)&parser)->LoadFile(path)) {
-        if (((Class_004c3410*)&parser)->SelectRecord("Version")) {
+    if (((TdfFile*)&parser)->LoadFile(path)) {
+        if (((TdfFile*)&parser)->SelectRecord("Version")) {
             if (((TdfRecord*)parser.current)->GetFieldString(buf, "GPFVersion", 0x40, DAT_005119b8)) {
                 found = 1;
                 if (_strcmpi("v3.0", buf) != 0) {

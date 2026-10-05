@@ -23,14 +23,14 @@ struct AccountList {
 
 int* __cdecl FUN_004d8580(int* param_1, int param_2);
 
-class Class_004b4cf0 {
+class HapiBank {
 public:
     AccountList* table;             // +0x00
     int WriteBox(void* src, int len);
 };
 
 // FUNCTION: 0x4b4cf0
-int Class_004b4cf0::WriteBox(void* src, int len)
+int HapiBank::WriteBox(void* src, int len)
 {
     SafeDepositBox* c = &table->slots[table->index].chunks[table->slots[table->index].current];
     int need = len + c->size;

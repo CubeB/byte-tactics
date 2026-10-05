@@ -22,13 +22,13 @@
 int __stdcall HAPI_SeekFile(void* file, int pos);
 int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
 
-class Class_004d0720 {
+class Sound {
 public:
     int FindChunkSize(void* file, char* target);
 };
 
 // FUNCTION: 0x4d0720
-int Class_004d0720::FindChunkSize(void* file, char* target)
+int Sound::FindChunkSize(void* file, char* target)
 {
     char name[4];
     unsigned int total;

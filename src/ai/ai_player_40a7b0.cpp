@@ -57,7 +57,7 @@ struct Game {
     Feature* features;                 // +0x1426f
 };
 
-class Class_0040a7b0 {
+class PlayerAI {
 public:
     char unknown_0[0x4d];
     ElemVec cells;                     // +0x4d
@@ -70,7 +70,7 @@ extern Game* g_game;
 Cell* __stdcall GetMapCell(int x, int y);
 
 // FUNCTION: 0x40a7b0
-void Class_0040a7b0::BuildFeatureCells()
+void PlayerAI::BuildFeatureCells()
 {
     cells.clear();
     int w = g_game->width;

@@ -15,7 +15,7 @@ struct NameLess_004c4630 {
 };
 
 #pragma pack(push, 1)
-class Class_004c4630 {
+class TdfRecord {
 public:
     char unknown_0[0x19];
     Pair_004c4630* first;           // +0x19
@@ -38,7 +38,7 @@ static inline Pair_004c4630* LowerBound(Pair_004c4630* first, Pair_004c4630* las
     return first;
 }
 
-static inline int* Find(Class_004c4630* table, char* name)
+static inline int* Find(TdfRecord* table, char* name)
 {
     NameLess_004c4630 less;
     Pair_004c4630* it = LowerBound(table->first, table->last, name);
@@ -48,7 +48,7 @@ static inline int* Find(Class_004c4630* table, char* name)
 }
 
 // FUNCTION: 0x4c4630
-int Class_004c4630::FindFieldValue(char* name)
+int TdfRecord::FindFieldValue(char* name)
 {
     int* p = Find(this, name);
     if (p)

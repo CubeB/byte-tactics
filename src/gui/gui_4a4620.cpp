@@ -15,7 +15,7 @@ struct Table_004a4620 {
     Entry_004a4620* entries;           // +0x4
 };
 
-struct Class_004a4620 {
+struct Dialog {
     char unknown_0[0x18];
     Table_004a4620* table;             // +0x18
 };
@@ -23,7 +23,7 @@ struct Class_004a4620 {
 unsigned int __cdecl GetTicks();
 
 // FUNCTION: 0x4a4620
-void __stdcall FUN_004a4620(Class_004a4620* obj, int i)
+void __stdcall FUN_004a4620(Dialog* obj, int i)
 {
     Entry_004a4620* e = &obj->table->entries[i];
     e->end = GetTicks() + e->duration;

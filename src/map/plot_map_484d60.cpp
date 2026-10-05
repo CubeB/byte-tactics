@@ -23,20 +23,8 @@ extern Game* g_game;
 class HapiBank {
 public:
     int OpenAccount(char* name);
-};
-
-class Class_004b4ba0 {
-public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4bf0 {
-public:
     int GetBoxSize();
-};
-
-class Class_004b4c80 {
-public:
     unsigned int ReadBox(void* buf, int size);
 };
 
@@ -44,12 +32,12 @@ public:
 // FUNCTION: 0x484d60
 void __stdcall LoadMetalPlotmap(HapiBank* file)
 {
-    if (file->OpenAccount("Metal") && ((Class_004b4ba0*)file)->OpenNamedBox("Plotmap")) {
+    if (file->OpenAccount("Metal") && ((HapiBank*)file)->OpenNamedBox("Plotmap")) {
         int size = g_game->width * g_game->height;
-        if (((Class_004b4bf0*)file)->GetBoxSize() == size) {
+        if (((HapiBank*)file)->GetBoxSize() == size) {
             unsigned char* buf = new unsigned char[size];
             Cell_00484d60* cells = g_game->cells;
-            if (((Class_004b4c80*)file)->ReadBox(buf, size) >= size) {
+            if (((HapiBank*)file)->ReadBox(buf, size) >= size) {
                 for (int i = 0; i < size; i++) {
                     cells[i].metal = buf[i];
                 }

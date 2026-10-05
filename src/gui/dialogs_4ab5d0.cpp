@@ -49,7 +49,7 @@ struct Flags_004ab5d0 {
 };
 
 #pragma pack(push, 2)
-struct Class_004ab5d0 {
+struct Dialog {
     char unknown_0[0x18];
     Sub_004ab5d0* sub;                 // +0x18
     char unknown_1c[0x30 - 0x1c];
@@ -64,7 +64,7 @@ struct Class_004ab5d0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4ab5d0
-void __stdcall FUN_004ab5d0(Class_004ab5d0* p)
+void __stdcall FUN_004ab5d0(Dialog* p)
 {
     if (p->flags.active) {
         int old = p->ref.index;

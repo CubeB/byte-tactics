@@ -27,22 +27,18 @@ struct FixedVec3 {
 
 struct Unit;
 
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004899b0 { public: int CanRepair(Unit*); };
-
 #pragma pack(push, 1)
-struct UnitType {
+struct UnitDef {
     char unknown_0[0x15e];
     Box bounds;                        // +0x15e
     char unknown_176[0x1fa - 0x176];
@@ -55,7 +51,7 @@ struct UnitType {
 };
 
 struct Unit {
-    Class_0043d210* active;            // +0x0
+    UnitMotion* active;                // +0x0
     char unknown_4[0x6a - 0x4];
     union {
         Vec3 pos;                      // +0x6a
@@ -64,7 +60,7 @@ struct Unit {
     char unknown_76[0x86 - 0x76];
     int field_86;                      // +0x86
     char unknown_8a[0x92 - 0x8a];
-    UnitType* type;                    // +0x92
+    UnitDef* type;                     // +0x92
     char unknown_96[0x108 - 0x96];
     short health;                      // +0x108
     char unknown_10a[0x110 - 0x10a];
@@ -75,6 +71,9 @@ struct Unit {
             unsigned int unknown_2 : 30;
         } bits;
     };
+    void ClaimWeapons(int);
+    void SetStateBits(int, int);
+    int CanRepair(Unit*);
 };
 
 struct Order {
@@ -108,10 +107,10 @@ void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->active->field_2e & 3) == 1) {
         unit->active->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -146,7 +145,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
     switch (order->state) {
     case 0:
         if (unit->active && (unit->type->flags & 0x800)) {
-            if (!((Class_004899b0*)unit)->CanRepair(order->target)) {
+            if (!((Unit*)unit)->CanRepair(order->target)) {
                 QueueUnitSpeech(unit, 7, "Repair mission failed");
                 return 8;
             }

@@ -13,17 +13,15 @@ struct Vec3 {
     }
 };
 struct Unit;
-class Class_0043d210 { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*,int); };
+class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*,int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_0044e730 { public: void FUN_0044e730(int); };
 class Class_0044e720 { public: void FUN_0044e720(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
-class Class_0048b090 { public: void SetStateBits(int,int); };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
 class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -34,13 +32,17 @@ struct UnitDef {
     char pad214[8]; short altitude; char pad21e[0x241-0x21e]; unsigned int flags,flags2;
 };
 struct Unit {
-    Class_0043d210* motion; char pad4[0x66-4]; short angle;
+    UnitMotion* motion; char pad4[0x66-4]; short angle;
     char pad68[2]; Vec3 pos;
     char pad76[8]; Point footprint;
     char pad82[4]; int busy; char pad8a[8]; UnitDef* def;
     char pad96[0xb0-0x96]; int timeout;
     char padb4[0xff-0xb4]; unsigned char player;
     char pad100[4]; float progress;
+    void SetStateBits(int,int);
+    void ClaimWeapons(int);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    int CanReclaim(void*);
 };
 struct Order {
     char pad0[5]; unsigned char state;
@@ -101,9 +103,9 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
     case 0:
         if (unit->motion && (unit->def->flags&0x800)) {
             ((Class_00438880*)order)->FUN_00438880("Building");
-            ((Class_004898b0*)unit)->ClaimWeapons(3);
+            ((Unit*)unit)->ClaimWeapons(3);
             if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
-            ((Class_0048b090*)unit)->SetStateBits(1,1);
+            ((Unit*)unit)->SetStateBits(1,1);
             if ((unit->motion->flags&3)==1) {
                 unit->motion->SetFlightMode(unit,2);
                 Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);

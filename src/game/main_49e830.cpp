@@ -36,10 +36,12 @@
 #include <time.h>
 #include <new>
 
-class Class_004cee50 {
+class Sound {
 public:
     char pad[0x294];
-    Class_004cee50();
+    Sound();
+    void SetTrackCategory(int param_1);
+    void ReapFinishedBuffers();
 };
 
 class Class_004ce680 {
@@ -70,16 +72,6 @@ public:
 class Class_004ce7a0 {
 public:
     void SetPlaybackOrder(int param_1);
-};
-
-class Class_004ce690 {
-public:
-    void SetTrackCategory(int param_1);
-};
-
-class Class_004cf0b0 {
-public:
-    void ReapFinishedBuffers();
 };
 
 #pragma pack(push, 1)
@@ -261,7 +253,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             strcpy(DAT_0051fb50, DAT_00504ab8);
     }
     LoadTranslations(DAT_005097d0, DAT_0051fb50);
-    g_game->field_10 = new Class_004cee50;
+    g_game->field_10 = new Sound;
     FUN_00428bb0();
     InitGame();
 
@@ -297,7 +289,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                 ((Class_004cd9d0*)g_game->field_10)->SetCdCallback(FUN_00490fe0);
                 ((Class_004cedc0*)g_game->field_10)->EnableCdAudio(g_game->field_37f14 & 1);
                 ((Class_004ce7a0*)g_game->field_10)->SetPlaybackOrder(g_game->field_37f16);
-                ((Class_004ce690*)g_game->field_10)->SetTrackCategory(DAT_0051fb90);
+                ((Sound*)g_game->field_10)->SetTrackCategory(DAT_0051fb90);
                 FUN_00490fe0();
                 DAT_00509720 = 0;
             }
@@ -309,7 +301,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             {
                 DWORD tick = GetTickCount();
                 if ((int)(tick - DAT_0051fb94) >= 100) {
-                    ((Class_004cf0b0*)g_game->field_10)->ReapFinishedBuffers();
+                    ((Sound*)g_game->field_10)->ReapFinishedBuffers();
                     DAT_0051fb94 = tick;
                 }
             }

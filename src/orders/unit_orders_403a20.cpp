@@ -16,7 +16,6 @@ struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
 class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -34,6 +33,9 @@ struct Unit {
     char pad96[0xb0-0x96]; int timeout;
     char padb4[0xff-0xb4]; unsigned char player;
     char pad100[4]; float progress;
+    void ClaimWeapons(int);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void SetStateBits(int, int);
 };
 struct Order {
     char pad0[5]; unsigned char state;
@@ -124,7 +126,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             ((Class_00439e80*)order)->FUN_00439e80(30);
             return 2;
         }
-        ((Class_004898b0*)unit)->ClaimWeapons(3);
+        ((Unit*)unit)->ClaimWeapons(3);
         FUN_0047ddc0(def, &order->pos);
         ((Class_004895c0*)((char*)order + 0x12))->SetUnit(
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));

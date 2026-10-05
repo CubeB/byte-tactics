@@ -6,18 +6,10 @@ struct UnitInfo_43dd70 {
     unsigned short id;               // +0xa8
 };
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* src, int len);
 };
 
@@ -49,12 +41,12 @@ public:
     int unknown_2a;                  // +0x2a
     unsigned char f1 : 2;            // +0x2e
     unsigned char f2 : 1;            // +0x2e
-    void SaveMotion(UnitInfo_43dd70* info, Class_004b4ba0* file);
+    void SaveMotion(UnitInfo_43dd70* info, HapiBank* file);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x43dd70
-void UnitMotion::SaveMotion(UnitInfo_43dd70* info, Class_004b4ba0* file)
+void UnitMotion::SaveMotion(UnitInfo_43dd70* info, HapiBank* file)
 {
     char name[32];
     MobHdr_43dd70 hdr;
@@ -67,6 +59,6 @@ void UnitMotion::SaveMotion(UnitInfo_43dd70* info, Class_004b4ba0* file)
     hdr.f2 = f2;
     sprintf(name, "u%04xmob", info->id);
     file->OpenNamedBox(name);
-    ((Class_004b4c10*)file)->SeekBox(0);
-    ((Class_004b4cf0*)file)->WriteBox(&hdr, 0x23);
+    ((HapiBank*)file)->SeekBox(0);
+    ((HapiBank*)file)->WriteBox(&hdr, 0x23);
 }

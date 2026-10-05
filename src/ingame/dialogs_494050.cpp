@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -39,7 +39,7 @@ struct Game {
     char unknown_2bf1[0x37ebe - 0x2bf1];
     unsigned short flags_37ebe;        // +0x37ebe
     char unknown_37ec0[0x391e9 - 0x37ec0];
-    Class_00435100* net;               // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 #pragma pack(pop)
 

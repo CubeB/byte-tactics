@@ -19,7 +19,7 @@ struct Menu_0047aaa0 {
     Inner_0047aaa0* inner;             // +0x18
 };
 
-class Class_00435a20 {
+class Mission {
 public:
     int LoadMissionByName(char* name);
 };
@@ -27,7 +27,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x391e9];
-    Class_00435a20* field_391e9;       // +0x391e9
+    Mission* field_391e9;              // +0x391e9
 };
 #pragma pack(pop)
 

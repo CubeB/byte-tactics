@@ -42,7 +42,7 @@ struct Player_0047a910 {
     char name[0x100];                  // +0x11c
 };
 
-class Class_00435a20 {
+class Mission {
 public:
     int LoadMissionByName(char* name);
 };
@@ -54,7 +54,7 @@ struct Game {
     char unknown_57d[0x29a0 - 0x57d];
     Player_0047a910* player;           // +0x29a0
     char unknown_29a4[0x391e9 - 0x29a4];
-    Class_00435a20* field_391e9;       // +0x391e9
+    Mission* field_391e9;              // +0x391e9
 };
 #pragma pack(pop)
 

@@ -8,7 +8,7 @@ struct Entry_004c4800 {
 };
 
 #pragma pack(push, 1)
-class Class_004c4800 {
+class TdfRecord {
 public:
     char unknown_0[0x19];
     Entry_004c4800* first;           // +0x19
@@ -24,7 +24,7 @@ static inline bool Less_004c4800(const char* a, const char* b)
 }
 
 // FUNCTION: 0x4c4800
-int* Class_004c4800::GetFieldFixed(int* dst, char* key, int def)
+int* TdfRecord::GetFieldFixed(int* dst, char* key, int def)
 {
     Entry_004c4800* lo = first;
     Entry_004c4800* hi = last;

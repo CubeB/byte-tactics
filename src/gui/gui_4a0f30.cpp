@@ -13,18 +13,18 @@ struct Holder_4a0f30 {
     Entry_4a0f30* entries;           // +0x04
 };
 
-struct Class_004a0f30 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_4a0f30* holder;           // +0x18
 };
 
-static inline Entry_4a0f30* GetEntries(Class_004a0f30* obj)
+static inline Entry_4a0f30* GetEntries(Dialog* obj)
 {
     return obj->holder->entries;
 }
 
 // FUNCTION: 0x4a0f30
-int __stdcall GetGadgetStatus(Class_004a0f30* obj, int index)
+int __stdcall GetGadgetStatus(Dialog* obj, int index)
 {
     return GetEntries(obj)[index].f_138;
 }

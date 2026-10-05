@@ -61,7 +61,7 @@ struct LanguageRoot_004a56b0 {
     List_004a56b0* language;           // +0x14
 };
 
-struct Class_004a56b0 {
+struct Dialog {
     char unknown_00[0x08];
     void* field_08;                    // +0x08
     void* field_0c;                    // +0x0c
@@ -123,7 +123,7 @@ static inline int LineHeight_004a56b0()
 }
 
 // FUNCTION: 0x4a56b0
-void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
+void __stdcall FUN_004a56b0(Dialog* obj, int index)
 {
     obj->field_14 = obj->field_0c;
     Entry_004a56b0* entries = obj->holder->entries;

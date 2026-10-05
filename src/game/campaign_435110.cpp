@@ -24,30 +24,22 @@ extern char* g_game;
 int __stdcall HAPI_FileLengthByName(char* path);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;
     void* current;                      // +4
     int field_8;
-};
-
-class Class_004c2f60 {
-public:
     int LoadFile(char* file);
-};
-
-class Class_004c3240 {
-public:
     void Unload();
 };
 
-class Class_00435c00 {
+class Mission {
 public:
     int type;                          // +0x0
     char campaign[0x100];              // +0x4
     char names[9][0x100];              // +0x104
     int exists;                        // +0xa04
-    Class_004c2ea0 list;               // +0xa08
+    TdfFile list;                      // +0xa08
     char unknown_a14[0xc18 - 0xa14];
     int missionIndex;                  // +0xc18
     int field_c1c;                     // +0xc1c
@@ -75,26 +67,22 @@ public:
 
     void BuildCampaignFilePath(int index, char* dir, char* name, char* ext);
     int LoadMission(char* map);
-};
-
-class Class_00435110 : public Class_00435c00 {
-public:
     void LoadCampaign(char* file);
 };
 
 // FUNCTION: 0x435110
-void Class_00435110::LoadCampaign(char* file)
+void Mission::LoadCampaign(char* file)
 {
     char msg[0x80];
 
-    ((Class_004c3240*)&list)->Unload();
+    ((TdfFile*)&list)->Unload();
     strcpy(campaign, file);
     for (int i = 0; i < 9; i++)
         SetName(i, DAT_005119b8);
     if (strlen(file) != 0) {
         BuildCampaignFilePath(0, "camps", campaign, "TDF");
         if (strlen(file) != 0) {
-            if (!((Class_004c2f60*)&list)->LoadFile(GetName(0))) {
+            if (!((TdfFile*)&list)->LoadFile(GetName(0))) {
                 wsprintfA(msg, "The requested campaign file, %s, does not exist.", GetName(0));
                 OpenMessageBox(g_game + 0x519, msg, 0x1e0, 1, 1);
                 LoadCampaign(DAT_005119b8);

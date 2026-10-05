@@ -5,7 +5,7 @@ public:
     int GetIntArg(int, int);
 };
 
-class Class_004ce690 {
+class Sound {
 public:
     void SetTrackCategory(int);
 };
@@ -18,5 +18,5 @@ void __stdcall CmdMusicMode(void* param_1)
     CommandArgs* obj = (CommandArgs*)param_1;
     int result = obj->GetIntArg(1, 0);
     void* p = *(void**)((char*)g_game + 0x10);
-    ((Class_004ce690*)p)->SetTrackCategory(result);
+    ((Sound*)p)->SetTrackCategory(result);
 }

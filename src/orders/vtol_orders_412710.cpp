@@ -43,15 +43,12 @@ public:
 };
 
 struct Unit;
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_00489800 { public: void ReleaseWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
@@ -71,7 +68,7 @@ struct Player {
     char pad0[0x146]; unsigned char index;
 };
 struct Unit {
-    Class_0043d210* type;
+    UnitMotion* type;
     char pad4[0x10 - 4]; Mover* mover;
     char pad14[0x66 - 0x14]; short heading;
     char pad68[2];
@@ -85,7 +82,14 @@ struct Unit {
     Player* player;
     char pad9a[0x108 - 0x9a]; short field_108;
     char pad10a[0x110 - 0x10a]; unsigned int flags;
+    void ClaimWeapons(int);
+    void ReleaseWeapons(int);
+    void SetStateBits(int, int);
 };
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int __stdcall IsUnitCommander(Unit*);
+void __stdcall AlignUnitToGround(Unit*);
+
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
     char padA[0x16 - 0xa]; Unit* target;
@@ -150,10 +154,10 @@ static inline int GetSpeed(Unit* unit)
 
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -196,7 +200,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
         }
         break;
     case 1: {
-        ((Class_00489800*)unit)->ReleaseWeapons(3);
+        ((Unit*)unit)->ReleaseWeapons(3);
         int dist = (int)_hypot(order->pos.x - unit->pos.x, order->pos.z - unit->pos.z);
         int angle = GetHeadingBetween(&unit->pos, &order->pos);
         Vec3 off = Offset(RandomInt(0x4000) + angle - 0x2000, dist / 2);
@@ -208,7 +212,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 2: {
-        ((Class_004898b0*)unit)->ClaimWeapons(0);
+        ((Unit*)unit)->ClaimWeapons(0);
         if (order->target)
             SetWeaponTargetUnit(unit, order->target, 0);
         else

@@ -4,13 +4,9 @@
 // at ptr10, then one 0x6c-byte record per element of the array at ptr14.
 
 // Chunked file writer / seeker (see src/util/hapibank_4b4cf0.cpp).
-class Class_004b4c10 {
+class HapiBank {
 public:
     void SeekBox(int pos);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* src, int len);
 };
 
@@ -83,13 +79,13 @@ public:
     virtual int IsPieceCached(int);                   // slot 8
     virtual int IsPieceShaded(int);                   // slot 9
 
-    void SaveScriptState(Class_004b4cf0* file);
+    void SaveScriptState(HapiBank* file);
 };
 
 // FUNCTION: 0x4b1ec0
-void CobScript::SaveScriptState(Class_004b4cf0* file)
+void CobScript::SaveScriptState(HapiBank* file)
 {
-    ((Class_004b4c10*)file)->SeekBox(0);
+    ((HapiBank*)file)->SeekBox(0);
 
     Big_004b1ec0 big;
     big.magic = unknown_c;

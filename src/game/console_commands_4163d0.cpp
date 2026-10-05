@@ -11,7 +11,7 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];
 
-class Class_004b73c0 {
+class CommandArgs {
 public:
     char* GetArg(int index, char* fallback);
 };
@@ -21,7 +21,7 @@ void* __stdcall GetMapCell(int x, int y);
 void* __stdcall PlaceFeature(void* target, unsigned short id, void* pos, void* field_64, unsigned char owner);
 
 // FUNCTION: 0x4163d0
-void __stdcall CmdFeature(Class_004b73c0* args)
+void __stdcall CmdFeature(CommandArgs* args)
 {
     unsigned short id = FindFeatureType(args->GetArg(1, DAT_005119b8));
     if (id != 0xffff) {

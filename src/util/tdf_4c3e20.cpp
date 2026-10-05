@@ -1,12 +1,12 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004c3e20 {
+class TdfFile {
 public:
     int GetCurrentRecord();
 };
 
 // FUNCTION: 0x4c3e20
-int Class_004c3e20::GetCurrentRecord()
+int TdfFile::GetCurrentRecord()
 {
     return *(int*)((char*)this + 4);
 }

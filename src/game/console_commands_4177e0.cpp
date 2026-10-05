@@ -16,7 +16,7 @@ extern char* g_game;                   // 0x511de8
 extern char DAT_005119b8[];
 
 // Command arguments.
-class Class_004b73c0 {
+class CommandArgs {
 public:
     char* GetArg(int index, char* fallback);
 };
@@ -28,7 +28,7 @@ void __cdecl FUN_004d85a0(void* data);
 int __stdcall HAPI_CloseFile(void* file);
 
 // FUNCTION: 0x4177e0
-void __stdcall CmdInclude(Class_004b73c0* args)
+void __stdcall CmdInclude(CommandArgs* args)
 {
     Vec3_004177e0 pos;
     int info;

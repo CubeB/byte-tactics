@@ -14,7 +14,7 @@
 // which costs more bytes than the SIB saves. An unsigned char copy keeps the
 // zero-extension where the original has it.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -60,7 +60,7 @@ struct Game {
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char player;                 // +0x2a42
     char unknown_2a43[0x391e9 - 0x2a43];
-    Class_00435100* mode;                 // +0x391e9
+    Mission* mode;                        // +0x391e9
 };
 #pragma pack(pop)
 

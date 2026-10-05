@@ -1,15 +1,11 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
 #include <math.h>
 
-class Class_004b07c0 {
-public:
-    int FindScript(char* name);
-};
-
 class CobScript {
 public:
     int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4,
                      int param_5, int param_6, int param_7, int param_8);
+    int FindScript(char* name);
 };
 
 struct Vec3_0048a1e0 {
@@ -53,7 +49,7 @@ struct Unit {
     char unknown_58[0x6a - 0x58];
     Vec3_0048a1e0 pos;                 // +0x6a
     char unknown_76[0x9a - 0x76];
-    Class_004b07c0* script;            // +0x9a
+    CobScript* script;            // +0x9a
     char unknown_9e[0xb8 - 0x9e];
     unsigned short field_b8;           // +0xb8
 };

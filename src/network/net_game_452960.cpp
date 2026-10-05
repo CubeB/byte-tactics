@@ -53,7 +53,7 @@ struct Packet_00452960 {
     int extra;                         // +0xa
 };
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -64,7 +64,7 @@ struct Game {
     char unknown_2851[0x2a38 - 0x2851];
     unsigned char* buffer;             // +0x2a38
     char unknown_2a3c[0x391e9 - 0x2a3c];
-    Class_00435100* net;               // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 
 #pragma pack(pop)

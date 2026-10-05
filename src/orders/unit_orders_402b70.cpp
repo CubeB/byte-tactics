@@ -5,7 +5,7 @@ public:
     void FUN_00439e80(int ticks);
 };
 
-class Class_004011c0 {
+class UnitResources {
 public:
     char unknown_0[0x28];
     int FUN_004011c0(float metal, float energy);
@@ -31,7 +31,7 @@ struct Unit {
     char unknown_0[0x10];
     Weapon weapons[3];                 // +0x10
     char unknown_64[0xbc - 0x64];
-    Class_004011c0 resources;          // +0xbc
+    UnitResources resources;           // +0xbc
 };
 
 struct Order {

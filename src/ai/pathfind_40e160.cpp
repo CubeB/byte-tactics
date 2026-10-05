@@ -31,7 +31,7 @@ public:
     virtual int Cost(int x, int y);
 };
 
-class Class_0040d7b0 {
+class Pathfinder {
 public:
     unsigned int GetCellState(int x, int y);
 };
@@ -75,7 +75,7 @@ public:
     }
     unsigned int Passable(int x, int y)
     {
-        return ((Class_0040d7b0*)this)->GetCellState(x, y);
+        return ((Pathfinder*)this)->GetCellState(x, y);
     }
     unsigned char Visit(unsigned int x, unsigned int y, char dir)
     {

@@ -10,24 +10,24 @@
 #include <algorithm>
 
 #pragma pack(push, 1)
-class Class_0042b370 {
+class UnitDef {
 public:
     char unknown_0[0x249];
-    Class_0042b370& operator=(const Class_0042b370& src);
+    UnitDef& operator=(const UnitDef& src);
 };
 #pragma pack(pop)
 
-typedef int (__stdcall* Compare)(const Class_0042b370&, const Class_0042b370&);
+typedef int (__stdcall* Compare)(const UnitDef&, const UnitDef&);
 
 // FUNCTION: 0x432d40
-void __stdcall FUN_00432d40(Class_0042b370* first, Class_0042b370* last,
+void __stdcall FUN_00432d40(UnitDef* first, UnitDef* last,
                             Compare comp, int unused)
 {
     for (; std::_SORT_MAX < last - first; ) {
-        Class_0042b370* _M = std::_Unguarded_partition(first, last,
-            std::_Median(Class_0042b370(*first),
-                Class_0042b370(*(first + (last - first) / 2)),
-                Class_0042b370(*(last - 1)), comp), comp);
+        UnitDef* _M = std::_Unguarded_partition(first, last,
+            std::_Median(UnitDef(*first),
+                UnitDef(*(first + (last - first) / 2)),
+                UnitDef(*(last - 1)), comp), comp);
         if (last - _M <= _M - first)
             FUN_00432d40(_M, last, comp, 0), last = _M;
         else

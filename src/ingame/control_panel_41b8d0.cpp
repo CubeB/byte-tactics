@@ -7,7 +7,7 @@
 // compiler reuses the OR result for the 0x20000000 test, keeping it in ecx
 // while the player pointer is loaded into eax.
 
-struct Unit;
+class Unit;
 
 #pragma pack(push, 1)
 struct UnitType_0041b8d0 {
@@ -75,7 +75,7 @@ void __stdcall RefreshBuildCountTexts(void* a, void* b);
 void __stdcall AttachUnitToPiece(Unit_0041b8d0* unit, Unit_0041b8d0* target, char p3, char p4);
 void __stdcall FUN_004560c0(Unit_0041b8d0* obj, Unit_0041b8d0* target);
 
-class Class_0048b090 {
+class Unit {
 public:
     void SetStateBits(int a, int b);
 };
@@ -99,7 +99,7 @@ void __stdcall FinishConstruction(Unit_0041b8d0* unit, Unit_0041b8d0* target)
             }
         }
         if (target->type->flag_18)
-            ((Class_0048b090*)target)->SetStateBits(1, 1);
+            ((Unit*)target)->SetStateBits(1, 1);
         if (g_game->unitIndex == unit->id)
             RefreshBuildCountTexts(&g_game->menu, unit);
         if (target->type->flag_24) {

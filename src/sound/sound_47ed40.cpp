@@ -4,19 +4,15 @@
 
 #include <stddef.h>
 
-class Class_004cef90 {
+class Sound {
 public:
     int InitDirectSound(int rate, int bits, int channels, int handle);
+    int HasNoDriver();
 };
 
 class Class_004ce260 {
 public:
     void OpenCdAudio();
-};
-
-class Class_004cff20 {
-public:
-    int HasNoDriver();
 };
 
 class SoundParams_0047ed40 {
@@ -28,7 +24,7 @@ public:
 struct Game {
     char unknown_0[0xc];
     SoundParams_0047ed40* field_0c;
-    Class_004cef90* field_10;
+    Sound* field_10;
 };
 
 #pragma pack(push, 1)
@@ -82,7 +78,7 @@ void InitSound(void)
     if (!g_noDirectSound) {
         int hr = g_game->field_10->InitDirectSound(0x2b11, 0x10, 2, g_game->field_0c->field_40);
         if (hr == 0) {
-            if (((Class_004cff20*)g_game->field_10)->HasNoDriver())
+            if (((Sound*)g_game->field_10)->HasNoDriver())
                 g_noDirectSound = 1;
             else
                 FatalError(DAT_00508a78);

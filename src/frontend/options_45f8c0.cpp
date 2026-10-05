@@ -64,22 +64,14 @@ public:
     int GetFieldString(char* dst, char* key, size_t size, char* def);
 };
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;
     TdfRecord* current;               // +0x4
     int field_8;
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* file);
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
 };
 
@@ -116,14 +108,14 @@ void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
 {
     Layer_0045f8c0* layer = sub->layer;
     ((Table_0045f8c0*)layer->entries)->count = DAT_00512ef0;
-    Class_004c2ea0 parser;
+    TdfFile parser;
     char path[256];
     char key[12];
     char value[0x80];
     BuildDataPath(path, "gamedata", "help", "TDF");
-    if (((Class_004c2f60*)&parser)->LoadFile(path)) {
+    if (((TdfFile*)&parser)->LoadFile(path)) {
         int y = 0x32;
-        if (((Class_004c3410*)&parser)->SelectRecord("Help")) {
+        if (((TdfFile*)&parser)->SelectRecord("Help")) {
             Page_0045f8c0 lines;
             Page_0045f8c0* pp = &lines;
             int p2 = (page ? page : page);

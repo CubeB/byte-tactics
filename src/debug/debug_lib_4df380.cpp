@@ -78,12 +78,12 @@ public:
 };
 
 // The global name table singleton; the tree is its first member (0x4e1a90).
-class Class_004e17c0 {
+class NameTable {
 public:
     Map_004df380 names;                // +0x00
 };
 
-Class_004e17c0* GetNameTable();
+NameTable* GetNameTable();
 
 class Class_004df380 {
 public:

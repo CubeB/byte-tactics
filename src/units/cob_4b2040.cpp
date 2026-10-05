@@ -10,18 +10,10 @@
 // The three virtual calls before the j loop read the record's h[3] at 0x60; the two in the
 // j loop read a[j] at 0x48 and b[j] at 0x54.
 
-class Class_004b4bf0 {
+class HapiBank {
 public:
     int GetBoxSize();
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4c80 {
-public:
     int ReadBox(void* dst, int len);
 };
 
@@ -79,18 +71,18 @@ public:
     virtual int GetPieceTranslation(int, int) = 0;
     virtual int GetPieceRotation(int, int) = 0;
 
-    int LoadScriptState(Class_004b4c80* file);
+    int LoadScriptState(HapiBank* file);
 };
 
 // FUNCTION: 0x4b2040
-int CobScript::LoadScriptState(Class_004b4c80* file)
+int CobScript::LoadScriptState(HapiBank* file)
 {
     int size = field_8->size * 4;
     int bytes = field_8->count * 0x6c;
-    if (((Class_004b4bf0*)file)->GetBoxSize() != bytes + 0x528 + size) {
+    if (((HapiBank*)file)->GetBoxSize() != bytes + 0x528 + size) {
         return 0;
     }
-    ((Class_004b4c10*)file)->SeekBox(0);
+    ((HapiBank*)file)->SeekBox(0);
     Big_004b2040 big;
     if (file->ReadBox(&big, 0x528) != 0x528) {
         return 0;

@@ -4,10 +4,6 @@
 class HapiBank {
 public:
     void OpenAccount(const char* name);
-};
-
-class Class_004b4630 {
-public:
     void SetIntegerItem(const char* name, int value);
 };
 
@@ -28,13 +24,13 @@ extern Point16_00438180 g_meteorTarget;
 void __stdcall SaveMeteors(HapiBank* file)
 {
     file->OpenAccount("Meteor");
-    ((Class_004b4630*)file)->SetIntegerItem("Enabled", g_meteorsEnabled);
-    ((Class_004b4630*)file)->SetIntegerItem("Active", g_meteorActive);
-    ((Class_004b4630*)file)->SetIntegerItem("Next Strike Time", g_meteorNextStrikeTime);
-    ((Class_004b4630*)file)->SetIntegerItem("Time Strike Ends", g_meteorStrikeEndTime);
-    ((Class_004b4630*)file)->SetIntegerItem("Next Hit Time", g_meteorNextHitTime);
-    ((Class_004b4630*)file)->SetIntegerItem("Origin X", g_meteorOrigin.x);
-    ((Class_004b4630*)file)->SetIntegerItem("Origin Z", g_meteorOrigin.y);
-    ((Class_004b4630*)file)->SetIntegerItem("Target X", g_meteorTarget.x);
-    ((Class_004b4630*)file)->SetIntegerItem("Target Z", g_meteorTarget.y);
+    ((HapiBank*)file)->SetIntegerItem("Enabled", g_meteorsEnabled);
+    ((HapiBank*)file)->SetIntegerItem("Active", g_meteorActive);
+    ((HapiBank*)file)->SetIntegerItem("Next Strike Time", g_meteorNextStrikeTime);
+    ((HapiBank*)file)->SetIntegerItem("Time Strike Ends", g_meteorStrikeEndTime);
+    ((HapiBank*)file)->SetIntegerItem("Next Hit Time", g_meteorNextHitTime);
+    ((HapiBank*)file)->SetIntegerItem("Origin X", g_meteorOrigin.x);
+    ((HapiBank*)file)->SetIntegerItem("Origin Z", g_meteorOrigin.y);
+    ((HapiBank*)file)->SetIntegerItem("Target X", g_meteorTarget.x);
+    ((HapiBank*)file)->SetIntegerItem("Target Z", g_meteorTarget.y);
 }

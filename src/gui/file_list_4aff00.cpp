@@ -22,7 +22,7 @@ struct Word_004aff00 {                 // 0xa4 bytes
     int value;                         // +0xa0
 };
 
-struct Class_004aff00 {
+struct Dialog {
     char unknown_0[0x18];
     Obj18_004aff00* field_18;          // +0x18
     char unknown_1c[0xa6 - 0x1c];
@@ -41,7 +41,7 @@ void __stdcall DrawString(void* surface, const char* text, int x, int y,
                             int maxWidth);
 
 // FUNCTION: 0x4aff00
-void __stdcall DrawBlinkWords(Class_004aff00* obj)
+void __stdcall DrawBlinkWords(Dialog* obj)
 {
     if (obj->active == 0)
         return;

@@ -104,7 +104,7 @@ struct Rect_00495a30 {
     int bottom;                             // +0xc
 };
 
-struct Class_004c6b10 {
+struct Surface {
     char unknown_0[0x1c];
     void SetClipRect(Rect_00495a30 r);
 };
@@ -203,7 +203,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
                         box.top = 0;
                         box.right = right;
                         box.bottom = bh - 1;
-                        ((Class_004c6b10*)&surf)->SetClipRect(box);
+                        ((Surface*)&surf)->SetClipRect(box);
                         DrawFrame(&surf, &pal, g_game->scrollX - x - off27,
                                      g_game->scrollY - row - y - off2b);
                     } while (((col += bw), (col < w)));

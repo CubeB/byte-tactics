@@ -20,21 +20,17 @@ struct Game {
 
 extern Game* g_game;
 
-class Class_004b48f0 {
+class HapiBank {
 public:
     int HasItem(const char* param_1);
-};
-
-class Class_004b4750 {
-public:
     void SetStringItem(char* key, char* value);
 };
 
 // FUNCTION: 0x43a2d0
-void __stdcall WriteUnitTypeNameKey(Class_004b48f0* file, unsigned short id)
+void __stdcall WriteUnitTypeNameKey(HapiBank* file, unsigned short id)
 {
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);
     if (!file->HasItem(key) && id >= 1 && id < g_game->unitTypeCount)
-        ((Class_004b4750*)file)->SetStringItem(key, g_game->unitTypes[id].name);
+        ((HapiBank*)file)->SetStringItem(key, g_game->unitTypes[id].name);
 }

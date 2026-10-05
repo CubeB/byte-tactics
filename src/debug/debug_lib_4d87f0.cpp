@@ -5,17 +5,17 @@ public:
     void FUN_004d8850(int);
 };
 
-class Class_004d87f0 {
+class BlockInfo {
 public:
     int field_0;
     int field_4;
     int field_8;
 
-    Class_004d87f0(void);
+    BlockInfo(void);
 };
 
 // FUNCTION: 0x4d87f0
-Class_004d87f0::Class_004d87f0(void)
+BlockInfo::BlockInfo(void)
 {
     field_0 = 0;
     field_4 = 0;

@@ -25,14 +25,14 @@
 
 #pragma pack(push, 2)
 
-struct Class_0045ae80 {
+struct Object3do {
     char unknown_0[4];
     int point_count;                    // +0x4
     char unknown_8[0x24 - 0x8];
     void* points;                       // +0x24
     char unknown_28[0x2c - 0x28];
-    Class_0045ae80* sibling;            // +0x2c
-    Class_0045ae80* child;              // +0x30
+    Object3do* sibling;                 // +0x2c
+    Object3do* child;                   // +0x30
 };
 
 struct Flags_0045ab10 {
@@ -41,7 +41,7 @@ struct Flags_0045ab10 {
 };
 
 struct Entry_0045ab10 {
-    Class_0045ae80* object;             // +0x00
+    Object3do* object;                  // +0x00
     char unknown_4[0x16 - 0x4];
     int offset_x;                       // +0x16
     int offset_y;                       // +0x1a

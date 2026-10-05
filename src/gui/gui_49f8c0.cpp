@@ -17,13 +17,13 @@ struct Holder_0049f8c0 {
     Entry_0049f8c0* entries;         // +0x04
 };
 
-struct Class_0049f8c0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_0049f8c0* holder;         // +0x18
 };
 
 // FUNCTION: 0x49f8c0
-int __stdcall HasGadgetNamed(Class_0049f8c0* obj, char* name, int unused)
+int __stdcall HasGadgetNamed(Dialog* obj, char* name, int unused)
 {
     Entry_0049f8c0* entries = obj->holder->entries;
     for (int i = 1; i < entries->count + 1; i++) {

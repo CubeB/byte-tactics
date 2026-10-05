@@ -116,32 +116,14 @@ struct Gadget_00448c70 {
 };
 #pragma pack(pop)
 
-class Class_004358f0 {
+class Mission {
 public:
     int FUN_004358f0();
-};
-class Class_00435920 {
-public:
     int FUN_00435920();
-};
-class Class_00435a20 {
-public:
     int LoadMissionByName(char* map);
-};
-class Class_00435c20 {
-public:
     char* FUN_00435c20();
-};
-class Class_00435c30 {
-public:
     char* FUN_00435c30();
-};
-class Class_00435c40 {
-public:
     bool FUN_00435c40();
-};
-class Class_004373a0 {
-public:
     unsigned int ComputeMapChecksum();
 };
 class UnitSync {
@@ -174,7 +156,7 @@ struct Game {
     char unknown_2a9f[0x148db - 0x2a9f];
     int field_148db;                    // +0x148db
     char unknown_148df[0x391e9 - 0x148df];
-    Class_004358f0* map;                // +0x391e9
+    Mission* map;                       // +0x391e9
 };
 #pragma pack(pop)
 
@@ -265,7 +247,7 @@ int CheckMapCrc()
     if (!check) {
         return 1;
     }
-    if (((Class_004373a0*)g_game->map)->ComputeMapChecksum() != data->mapCrc)
+    if (((Mission*)g_game->map)->ComputeMapChecksum() != data->mapCrc)
         return 0;
     return 1;
 }
@@ -315,19 +297,19 @@ void RefreshBattleRoomRows()
     output->list.count = count;
 
     Gadget_00448c70* mapname = FUN_004a0180(g_game->table->entries, "MAPNAME");
-    char* map = ((Class_00435c30*)g_game->map)->FUN_00435c30();
-    if (!((Class_00435c40*)g_game->map)->FUN_00435c40()) {
+    char* map = ((Mission*)g_game->map)->FUN_00435c30();
+    if (!((Mission*)g_game->map)->FUN_00435c40()) {
         mapname->colour = 0xc;
         FUN_004a0bf0(g_game->gui, "MAPNAME", "NOT SELECTED", 0);
     } else {
-        char* cur = ((Class_00435c20*)g_game->map)->FUN_00435c20();
+        char* cur = ((Mission*)g_game->map)->FUN_00435c20();
         str = mapname->text;
         int differs = strcmp(str, cur);
         if (differs) {
             if (IsScreenNamed(g_game->gui, "viewmap.gui"))
                 ShowSelectedMapInfo();
             else
-                ((Class_00435a20*)g_game->map)->LoadMissionByName(map);
+                ((Mission*)g_game->map)->LoadMissionByName(map);
         }
         if (!CheckMapCrc()) {
             mapname->colour = (GetTicks() / 30 & 1) ? 0xc : 0;
@@ -344,7 +326,7 @@ void RefreshBattleRoomRows()
             mapname->colour = 0;
             FUN_004a1450(g_game->gui, "MAP", 0);
         }
-        strcpy(str, ((Class_00435c20*)g_game->map)->FUN_00435c20());
+        strcpy(str, ((Mission*)g_game->map)->FUN_00435c20());
     }
 
     int i;
@@ -509,11 +491,11 @@ void RefreshBattleRoomRows()
             e = FUN_004a0180(entries, name);
             if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p)) {
                 sprintf(e->text, "%s", "n/a");
-                e->colour = p->info->memory < ((Class_00435920*)g_game->map)->FUN_00435920() ? 0xc : 0;
+                e->colour = p->info->memory < ((Mission*)g_game->map)->FUN_00435920() ? 0xc : 0;
                 e->visible = 1;
             } else {
                 sprintf(e->text, "%d", p->info->memory);
-                e->colour = p->info->memory < ((Class_00435920*)g_game->map)->FUN_00435920() ? 0xc : 0;
+                e->colour = p->info->memory < ((Mission*)g_game->map)->FUN_00435920() ? 0xc : 0;
                 e->visible = 1;
             }
             sprintf(name, "READY%d", n);

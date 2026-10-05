@@ -27,14 +27,14 @@ struct AccountList {
 void* __cdecl FUN_004d8580(void* ptr, int size);
 char* __cdecl GameStrdup(char* s);
 
-class Class_004b48f0 {
+class HapiBank {
 public:
     AccountList* file;                 // +0x00
     int FindItem(char* name, int flag);
 };
 
 // FUNCTION: 0x4b4910
-int Class_004b48f0::FindItem(char* name, int flag)
+int HapiBank::FindItem(char* name, int flag)
 {
     AccountList* f = file;
     if (!f || f->current < 0)

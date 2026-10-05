@@ -127,7 +127,7 @@ public:
     int SelectTrack(int value);
 };
 
-class Class_004ceb60 {
+class Sound {
 public:
     void PlayCdTrack(int value, int flag);
 };
@@ -281,7 +281,7 @@ void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
     }
     if (IsCurrentGadgetNamed(obj, DAT_0050696c)) {      // "CDPLAY"
         PlaySoundByName(DAT_00502b38, 0);
-        ((Class_004ceb60*)g_game->sound)->PlayCdTrack(DAT_00512fe0, 1);
+        ((Sound*)g_game->sound)->PlayCdTrack(DAT_00512fe0, 1);
         FUN_004ab0a0(obj);
         return;
     } else if (IsCurrentGadgetNamed(obj, DAT_00506964)) {  // "CDNEXT"

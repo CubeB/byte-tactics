@@ -8,14 +8,9 @@
 // for the new owner with 0x485f50 and filled either from the record passed in
 // or from the old unit, and the old unit's state bits are moved across.
 
-class Class_00490520 {
+class MissionConditions {
 public:
     void NotifyUnitCaptured(struct Unit* unit);
-};
-
-class Class_0048b090 {
-public:
-    void SetStateBits(unsigned char mask, int set);
 };
 
 struct Pos_00488570 {
@@ -81,11 +76,12 @@ struct Unit {                          // 0x118 bytes
     char unknown_10f[0x110 - 0x10f];
     unsigned int flags;                // +0x110
     char unknown_114[0x118 - 0x114];
+    void SetStateBits(unsigned char mask, int set);
 };
 
 struct Game {
     char unknown_0[0x391ed];
-    Class_00490520* list;              // +0x391ed
+    MissionConditions* list;           // +0x391ed
 };
 #pragma pack(pop)
 
@@ -163,6 +159,6 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488570* other, Packet_00488
             n->b56 = unit->b56;
         DamageUnit(0, unit, 30000, 4, 0);
     }
-    ((Class_0048b090*)n)->SetStateBits(unit->state, 1);
-    ((Class_0048b090*)n)->SetStateBits(~unit->state, 0);
+    ((Unit*)n)->SetStateBits(unit->state, 1);
+    ((Unit*)n)->SetStateBits(~unit->state, 0);
 }

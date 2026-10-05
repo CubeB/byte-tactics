@@ -14,7 +14,7 @@ struct Image_00459170 {
     void* mask;                        // +0x14
 };
 
-class Class_00459170 {
+class CMemoryCache {
 public:
     char unknown_0[0x10];
     Image_00459170* image;             // +0x10
@@ -23,7 +23,7 @@ public:
 };
 
 // FUNCTION: 0x459170
-void Class_00459170::CopyPicture(Image_00459170* source)
+void CMemoryCache::CopyPicture(Image_00459170* source)
 {
     image->width = source->width;
     image->height = source->height;

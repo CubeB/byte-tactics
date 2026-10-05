@@ -18,7 +18,7 @@ struct Holder_004ac610 {
     void* entries;                     // +0x04
 };
 
-struct Class_004ac610 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004ac610* holder;           // +0x18
 };
@@ -36,7 +36,7 @@ static inline int Measure_004ac610(unsigned char* text, int charset)
 }
 
 // FUNCTION: 0x4ac610
-void __stdcall TruncateTextWithEllipsis(Class_004ac610* obj, unsigned char* text, int limit,
+void __stdcall TruncateTextWithEllipsis(Dialog* obj, unsigned char* text, int limit,
                             int charset, int flag)
 {
     void* entries = obj->holder->entries;

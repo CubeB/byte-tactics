@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // The compiler-generated atexit term function for the function-local static
 // object at 0x5292d0 (guard byte 0x5292c8, constructor 0x4df1e0, registered by
-// the guard function 0x4dfd10). Only that object's Class_004e17c0 member (a
+// the guard function 0x4dfd10). Only that object's NameTable member (a
 // 500-byte-value name map at +0x21c, tree at 0x5294ec) has a non-trivial
 // destructor, so the whole body is the inlined std::_Tree destructor chain:
 //

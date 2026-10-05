@@ -23,14 +23,14 @@ struct AccountList {
     int index;                      // +0x08
 };
 
-class Class_004b4c80 {
+class HapiBank {
 public:
     AccountList* table;             // +0x00
     int ReadBox(void* dst, int len);
 };
 
 // FUNCTION: 0x4b4c80
-int Class_004b4c80::ReadBox(void* dst, int len)
+int HapiBank::ReadBox(void* dst, int len)
 {
     SafeDepositBox* c = &table->slots[table->index].chunks[table->slots[table->index].current];
     int avail = c->size - c->pos;

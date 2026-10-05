@@ -9,7 +9,7 @@ struct Game {
 
 extern Game* g_game;
 
-class Class_00475440 {
+class SmokeParticles {
 public:
     char unknown_0[4];
     int field_4;                       // +0x4
@@ -19,7 +19,7 @@ public:
 };
 
 // FUNCTION: 0x475440
-int Class_00475440::FUN_00475440()
+int SmokeParticles::FUN_00475440()
 {
     if (field_8 <= field_4 && (unsigned int)field_8 <= g_game->ticks) {
         return 1;

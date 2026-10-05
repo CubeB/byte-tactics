@@ -15,7 +15,7 @@
 
 #pragma pack(push, 1)
 
-class Class_00435100 {
+class Mission {
 public:
     char unknown_0[0xd5c];
     float pos_x[10];                   // +0xd5c
@@ -54,7 +54,7 @@ struct Game {
     char unknown_29a4[0x38d6b - 0x29a4];
     int field_38d6b;                   // +0x38d6b
     char unknown_38d6f[0x391e9 - 0x38d6f];
-    Class_00435100* net;               // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 
 #pragma pack(pop)

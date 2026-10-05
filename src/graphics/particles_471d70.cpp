@@ -2,7 +2,7 @@
 
 extern void* g_game;
 
-class Class_00471d70 {
+class ParticleSystem {
 public:
     char unknown_0[4];
     int field_4;
@@ -11,7 +11,7 @@ public:
 };
 
 // FUNCTION: 0x471d70
-void Class_00471d70::SetLifetime(int param_1)
+void ParticleSystem::SetLifetime(int param_1)
 {
     int edx = *(int*)((char*)g_game + 0x38a47);
     edx += param_1;

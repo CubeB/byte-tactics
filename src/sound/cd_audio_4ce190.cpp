@@ -7,13 +7,13 @@ void __stdcall SleepMilliseconds(unsigned int param_1);
 
 // A method of the object at g_game+0x10 (its only caller, 0x426190, loads ecx
 // from there) that never uses `this`.
-class Class_004ce190 {
+class Sound {
 public:
     void CloseCdPlayerWindow();
 };
 
 // FUNCTION: 0x4ce190
-void Class_004ce190::CloseCdPlayerWindow()
+void Sound::CloseCdPlayerWindow()
 {
     if (g_cdPlayerWindow) {
         SendMessageA(g_cdPlayerWindow, WM_CLOSE, 0, 0);

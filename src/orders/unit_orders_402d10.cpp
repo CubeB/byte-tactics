@@ -1,12 +1,8 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_0048b090 {
+class Unit {
 public:
     void SetStateBits(int param_1, int param_2);
-};
-
-class Class_004898b0 {
-public:
     void ClaimWeapons(int param);
 };
 
@@ -37,17 +33,17 @@ void __stdcall ClearWeaponTarget(Unit_00402d10* unit, int weapon);
 int __stdcall ParalyzeOrder(Unit_00402d10* unit, Order* order, int unused)
 {
     if (order->ticks == 0) {
-        ((Class_0048b090*)unit)->SetStateBits(0x10, 0);
+        ((Unit*)unit)->SetStateBits(0x10, 0);
         return 5;
     }
     if (order->ticks > 0x708)
         order->ticks = 0x708;
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     for (char i = 0; i < 3; i++)
         ClearWeaponTarget(unit, i);
     ((Class_004388d0*)order)->FUN_004388d0(0);
     ((Class_00439e80*)order)->FUN_00439e80(order->ticks);
     order->ticks = 0;
-    ((Class_0048b090*)unit)->SetStateBits(0x10, 1);
+    ((Unit*)unit)->SetStateBits(0x10, 1);
     return 1;
 }

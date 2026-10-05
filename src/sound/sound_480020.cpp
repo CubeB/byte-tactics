@@ -10,7 +10,7 @@ struct Entry_00480020 {                // 0x11 bytes
     char field_10;                     // +0x10
 };
 
-class Class_00480020 {
+class SpeechQueue {
 public:
     Entry_00480020 entries[9];         // +0x0
     int count;                         // +0x99
@@ -20,7 +20,7 @@ public:
 #pragma pack(pop)
 
 // FUNCTION: 0x480020
-void Class_00480020::RemoveSpeechOfId(int id)
+void SpeechQueue::RemoveSpeechOfId(int id)
 {
     int i = 0;
     while (i < count) {

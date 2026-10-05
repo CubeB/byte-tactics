@@ -162,7 +162,7 @@ union Flags_0048b3f0 {
     unsigned int all;
 };
 
-class Class_0048b090 {
+class Unit {
 public:
     void* vptr;                        // +0x00
     char unknown_4[0x64 - 0x4];
@@ -200,14 +200,14 @@ struct Game {
 extern Game* g_game;
 extern float DAT_004fd750;
 
-Class_0048b090* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_0048b3f0* spawn);
+Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_0048b3f0* spawn);
 void __stdcall ApplyAttachUnit(Order_0048b3f0* order);
-void __stdcall RemoveUnitFromMap(Class_0048b090* u);
-void __stdcall AddUnitToMap(Class_0048b090* u);
-void __stdcall UpdateUnitLineOfSight(Class_0048b090* u);
+void __stdcall RemoveUnitFromMap(Unit* u);
+void __stdcall AddUnitToMap(Unit* u);
+void __stdcall UpdateUnitLineOfSight(Unit* u);
 
 // FUNCTION: 0x48b3f0
-void __stdcall ReadUnitState(BitReader* reader, Class_0048b090* u)
+void __stdcall ReadUnitState(BitReader* reader, Unit* u)
 {
     unsigned short type = (unsigned short)reader->ReadBits(g_game->field_14393);
     int zero = 0;

@@ -193,25 +193,9 @@ public:
 class HapiBank {
 public:
     int OpenAccount(char* name);
-};
-
-class Class_004b4ba0 {
-public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4b50 {
-public:
     int OpenNumberedBox(int index);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* buf, int len);
-};
-
-class Class_004b4630 {
-public:
     int SetIntegerItem(char* name, int value);
 };
 
@@ -236,7 +220,7 @@ void __stdcall SaveUnits(HapiBank* file)
             char bufHead[32];
 
             sprintf(script, "Script%i", count);
-            ((Class_004b4ba0*)file)->OpenNamedBox(script);
+            ((HapiBank*)file)->OpenNamedBox(script);
             ((CobScript*)unit->f9a)->SaveScriptState(file);
 
             int n = 0;
@@ -324,13 +308,13 @@ void __stdcall SaveUnits(HapiBank* file)
                 rec.pieces[k].flags.d = unit->pieces[k].flags.d;
             }
 
-            ((Class_004b4b50*)file)->OpenNumberedBox(count);
-            ((Class_004b4cf0*)file)->WriteBox(&rec, 0xb8);
+            ((HapiBank*)file)->OpenNumberedBox(count);
+            ((HapiBank*)file)->WriteBox(&rec, 0xb8);
             count++;
         }
     }
     if (count > 0) {
-        ((Class_004b4630*)file)->SetIntegerItem("Number of Units", count);
-        ((Class_004b4630*)file)->SetIntegerItem("Version", 0x11);
+        ((HapiBank*)file)->SetIntegerItem("Number of Units", count);
+        ((HapiBank*)file)->SetIntegerItem("Version", 0x11);
     }
 }

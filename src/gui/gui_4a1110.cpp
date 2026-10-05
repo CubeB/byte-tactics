@@ -22,7 +22,7 @@ struct Holder_004a1110 {
 };
 
 #pragma pack(push, 1)
-struct Class_004a1110 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a1110* holder;         // +0x18
     char unknown_1c[0xcca - 0x1c];
@@ -40,10 +40,10 @@ static inline int FindEntry(Entry_004a1110* entries, char* name)
     return -1;
 }
 
-void __stdcall FUN_004a0340(Class_004a1110* obj, int index);
+void __stdcall FUN_004a0340(Dialog* obj, int index);
 
 // FUNCTION: 0x4a1110
-int __stdcall SetGadgetStatusByName(Class_004a1110* obj, char* name, int value)
+int __stdcall SetGadgetStatusByName(Dialog* obj, char* name, int value)
 {
     Entry_004a1110* entries = obj->holder->entries;
     int i = FindEntry(entries, name);

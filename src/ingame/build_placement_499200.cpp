@@ -58,44 +58,24 @@ union Flags16_00499200 {
     BitFlags16_00499200 bits;
 };
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
-};
-
-class Class_00435c50 {
-public:
     int FUN_00435c50();
-};
-
-class Class_004352b0 {
-public:
     char* FUN_004352b0();
-};
-
-class Class_00435110 {
-public:
     void LoadCampaign(void* p);
-};
-
-class Class_00435c00 {
-public:
     int FUN_00435c00(int a);
-};
-
-class Class_00435a20 {
-public:
     void LoadMissionByName(void* p);
 };
 
-class Class_004ce690 {
+class Sound {
 public:
     void SetTrackCategory(int a);
 };
 
 struct Game {
     char unknown_0[0x10];
-    Class_004ce690* field_10;          // +0x10
+    Sound* field_10;                   // +0x10
     char unknown_14[0x519 - 0x14];
     char field_519[0x18];              // +0x519
     Struct_00499200_531* field_531;    // +0x531
@@ -139,7 +119,7 @@ struct Game {
     char unknown_37e9e[0x37efa - 0x37e9e];
     int field_37efa;                   // +0x37efa
     char unknown_37efe[0x391e9 - 0x37efe];
-    Class_00435100* net;               // +0x391e9
+    Mission* net;                      // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
     int field_391f1;                   // +0x391f1
     void (*field_391f5)(void);         // +0x391f5
@@ -292,7 +272,7 @@ void FUN_00499200(void)
 
     if (g_game->field_3923b.bits.b2 || g_game->field_3923b.bits.b4) {
         if (g_game->net->FUN_00435100() != 3 ||
-            (((Class_00435100*)g_game->net)->FUN_00435100() == 3 &&
+            (((Mission*)g_game->net)->FUN_00435100() == 3 &&
              FUN_004572a0() != 0)) {
             SetCursor(0x13);
             FUN_00491d70(1);
@@ -317,10 +297,10 @@ void FUN_00499200(void)
             FUN_00491d70(1);
             CloseTopScreen(g_game->field_519);
             BlankScreen();
-            int a = ((Class_00435c50*)g_game->net)->FUN_00435c50();
-            char* b = ((Class_004352b0*)g_game->net)->FUN_004352b0();
-            ((Class_00435110*)g_game->net)->LoadCampaign(b);
-            if (((Class_00435c00*)g_game->net)->FUN_00435c00(a) != 0) {
+            int a = ((Mission*)g_game->net)->FUN_00435c50();
+            char* b = ((Mission*)g_game->net)->FUN_004352b0();
+            ((Mission*)g_game->net)->LoadCampaign(b);
+            if (((Mission*)g_game->net)->FUN_00435c00(a) != 0) {
                 g_game->field_2a44.bits.b3 = 1;
                 g_game->field_2a44.value |= 4;
             }
@@ -335,7 +315,7 @@ void FUN_00499200(void)
             BlankScreen();
             SetCursor(0x14);
             g_game->field_2a3c = saved;
-            ((Class_00435a20*)g_game->net)->LoadMissionByName(g_game->field_29a0 + 0x11c);
+            ((Mission*)g_game->net)->LoadMissionByName(g_game->field_29a0 + 0x11c);
             FUN_0047a760();
             g_game->field_2a44.value |= 4;
             g_game->field_391f1 = 2;

@@ -70,11 +70,6 @@ public:
 
 class UnitSync {
 public:
-    void SendSyncPacket(Player_0046d860* target, Packet_0046d860* packet, int unused);
-};
-
-class Class_0046d860 {
-public:
     std::map<unsigned int, Event_0046d860> map;     // +0x00
     std::vector<Player_0046d860> players;           // +0x10
     std::list<unsigned int> queue;                  // +0x20
@@ -84,10 +79,11 @@ public:
     int disabled;                                   // +0x64
 
     void NotifyEntryChanged(unsigned int param_1);
+    void SendSyncPacket(Player_0046d860* target, Packet_0046d860* packet, int unused);
 };
 
 // FUNCTION: 0x46d860
-void Class_0046d860::NotifyEntryChanged(unsigned int param_1)
+void UnitSync::NotifyEntryChanged(unsigned int param_1)
 {
     if (disabled != 0) {
         return;

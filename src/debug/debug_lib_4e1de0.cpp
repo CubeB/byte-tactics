@@ -10,7 +10,7 @@ public:
     void ReportElapsedTime(char* text);
 };
 
-class Class_004e1d20 {
+class Timer {
 public:
     char unknown_0[0x44];
     char* name;                        // +0x44
@@ -20,14 +20,14 @@ public:
     DWORD oldPriorityClass;            // +0x4c
     int oldThreadPriority;             // +0x50
 
-    ~Class_004e1d20();
+    ~Timer();
 };
 
 extern int DAT_00529dd0;
 extern char DAT_00529e20[];
 
 // FUNCTION: 0x4e1de0
-Class_004e1d20::~Class_004e1d20()
+Timer::~Timer()
 {
     DAT_00529e20[--DAT_00529dd0] = 0;
     if (name) {

@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 //
-// Class_004cff30 is a prefix of Class_004cee50 (the 0x294-byte sound object);
+// Class_004cff30 is a prefix of Sound (the 0x294-byte sound object);
 // 0x4cff30 is its "open the devices and cache the volumes" method. The exe's
 // 0x4cfff0 (wave volume) and 0x4d0040 (aux volume) are inlined here by /Ob2,
 // which is what produces the shared `or eax,-1` store and the two epilogues.

@@ -35,7 +35,7 @@ struct Store_0049e1a0 {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-class Class_004012a0 {
+class UnitResources {
   public:
     char unknown_0[0x4];
     float x0;
@@ -43,7 +43,7 @@ class Class_004012a0 {
     float y0;
     char unknown_20[0x30 - 0x20];
     Store_0049e1a0* store; // +0x30
-    int SpendMetalAndEnergy(float dx, float dy);
+    int SpendEnergyAndMetal(float dx, float dy);
 };
 #pragma pack(pop)
 
@@ -111,7 +111,7 @@ struct Unit {
         unsigned short w;
         unsigned char b[2];
     } f_ba;
-    Class_004012a0 f_bc; // +0xbc
+    UnitResources f_bc; // +0xbc
     char unknown_f0[0x108 - 0xf0];
     short f_108; // +0x108
 };
@@ -229,7 +229,7 @@ void __stdcall UpdateUnitWeapons(Unit* unit) {
             int m = (attached->f_111.b26) ? 0x800 : 0x400;
             unit->f_ba.w |= m;
             if (!attached->f_111.b28)
-                unit->f_bc.SpendMetalAndEnergy(attached->f_c0, attached->f_c4);
+                unit->f_bc.SpendEnergyAndMetal(attached->f_c0, attached->f_c4);
         } else {
             unit->f_ba.b[1] |= 0x10;
         }

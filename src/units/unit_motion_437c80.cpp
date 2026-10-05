@@ -4,20 +4,16 @@
 
 class CMemoryCache {
 public:
-    int AllocHandle(void** handle, int size);
-};
-
-class Class_00437c80 {
-public:
     int length;                        // +0x0
     char unknown_4[8];
     void* handle;                      // +0xc
 
     void FlushCache();
+    int AllocHandle(void** handle, int size);
 };
 
 // FUNCTION: 0x437c80
-void Class_00437c80::FlushCache()
+void CMemoryCache::FlushCache()
 {
     ((CMemoryCache*)this)->AllocHandle(&handle, length - 8);
 }

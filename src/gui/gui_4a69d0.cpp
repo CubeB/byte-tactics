@@ -17,7 +17,7 @@ struct Holder_004a69d0 {
 };
 
 #pragma pack(push, 1)
-struct Class_004a69d0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a69d0* holder;           // +0x18
     char unknown_1c[0xcca - 0x1c];
@@ -25,10 +25,10 @@ struct Class_004a69d0 {
 };
 #pragma pack(pop)
 
-void __stdcall DrawButton(Class_004a69d0* param_1, int param_2);
+void __stdcall DrawButton(Dialog* param_1, int param_2);
 
 // FUNCTION: 0x4a69d0
-void __stdcall FUN_004a69d0(Class_004a69d0* param_1)
+void __stdcall FUN_004a69d0(Dialog* param_1)
 {
     Entry_004a69d0* entries = param_1->holder->entries;
     Entry_004a69d0* e = &entries[1];

@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <dsound.h>
 
-class Class_004cf180 {
+class Sound {
 public:
     char unknown_0[0x30];
     int count;                              // +0x30
@@ -18,7 +18,7 @@ public:
 };
 
 // FUNCTION: 0x4cf180
-void Class_004cf180::StopOldestBuffer()
+void Sound::StopOldestBuffer()
 {
     int i;
     for (i = 0; i < 0x20; i++) {

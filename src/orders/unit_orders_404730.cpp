@@ -17,7 +17,6 @@ extern const float DAT_004fc930, DAT_004fc934, DAT_004fc938, DAT_004fc93c;
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x15e]; Vec3 min, max;
@@ -39,6 +38,8 @@ struct Unit {
     char padb4[4]; unsigned short experience;
     char padba[0x104-0xba]; float progress;
     short health; char pad10a[6]; unsigned int flags;
+    void ClaimWeapons(int);
+    int CanReclaim(Unit*);
 };
 struct UnitRef { int vtable; Unit* ptr; Unit* Get() { return ptr; } };
 struct Order {
@@ -58,7 +59,6 @@ int __stdcall FUN_00438700(Unit*, Order*, int);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitReverseNanoParticles(Vec3*, Vec3*, int);
 void __stdcall GiveUnitToPlayer(Unit*, void*, int);
-class Class_00489960 { public: int CanReclaim(Unit*); };
 int __stdcall FUN_00438650(Unit*, Unit*, int);
 void __stdcall DamageUnit(Unit*, Unit*, int, int, int);
 static inline int SquaredDistance(int dx, int dz)
@@ -77,13 +77,13 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
     switch (state) {
     case 0:
         if (unit->active && (unit->def->flags & 0x400)) {
-            if (!((Class_00489960*)unit)->CanReclaim(target)) {
+            if (!((Unit*)unit)->CanReclaim(target)) {
                 QueueUnitSpeech(unit, 7, "That unit cannot be reclaimed");
                 QueueUnitSpeech(unit, 7, "Reclamation failed");
                 return 8;
             }
             ((Class_00438880*)order)->FUN_00438880("Reclaiming");
-            ((Class_004898b0*)unit)->ClaimWeapons(3);
+            ((Unit*)unit)->ClaimWeapons(3);
             return 1;
         }
         QueueUnitSpeech(unit, 7, "Reclamation failed");
@@ -111,7 +111,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         range = unit->def->buildRange;
         range += target->def->radius;
         int square = delta.Square();
-        if (square <= range * range && ((Class_00489960*)unit)->CanReclaim(order->target.Get())) {
+        if (square <= range * range && ((Unit*)unit)->CanReclaim(order->target.Get())) {
             if (order->duration >= 15) {
                 DamageUnit(unit, order->target.Get(), order->elapsed, 5, 0);
                 order->duration = 0;

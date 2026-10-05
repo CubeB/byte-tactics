@@ -15,7 +15,7 @@ struct Game {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-class PlayerRef {
+class UnitResources {
 public:
     int unknown[12];
     PlayerStruct* player;
@@ -24,7 +24,7 @@ public:
 };
 
 // FUNCTION: 0x401070
-void PlayerRef::Reset(unsigned char playerIndex)
+void UnitResources::Reset(unsigned char playerIndex)
 {
     memset(this, 0, sizeof(*this));
     player = &g_game->players[playerIndex];

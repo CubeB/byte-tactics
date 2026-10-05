@@ -10,7 +10,7 @@ struct Entry_0047f990 {                // 0x11 bytes
     char field_10;                     // +0x10
 };
 
-class Class_0047f990 {
+class SpeechQueue {
 public:
     Entry_0047f990 entries[9];         // +0x0
     int count;                         // +0x99
@@ -32,7 +32,7 @@ public:
 #pragma pack(pop)
 
 // FUNCTION: 0x47f990
-void Class_0047f990::ClearSpeechList(void)
+void SpeechQueue::ClearSpeechList(void)
 {
     while (count > 0)
         Remove(count - 1);

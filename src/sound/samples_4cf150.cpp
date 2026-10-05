@@ -2,7 +2,7 @@
 
 typedef void (__stdcall *ReleaseFn_004cf150)(void*);
 
-struct Class_004cf150 {
+struct Sound {
     char unknown_0[0x30];
     int count;          // +0x30
     char unknown_1[4];   // +0x34
@@ -12,7 +12,7 @@ struct Class_004cf150 {
 };
 
 // FUNCTION: 0x4cf150
-void Class_004cf150::StopAllBuffers()
+void Sound::StopAllBuffers()
 {
     void** slot = items;
     for (int i = 0x20; i != 0; i--) {

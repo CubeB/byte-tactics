@@ -35,11 +35,11 @@ struct Game {
 extern Game* g_game;
 extern int g_usePacketManager;
 
-class Class_004619b0 {
+class PacketManager {
 public:
     int QueuePacket(int param_1, int param_2, void* param_3, unsigned int param_4);
 };
-extern Class_004619b0 g_packetManager;
+extern PacketManager g_packetManager;
 
 int __stdcall GetSlotDpid(unsigned char index);
 unsigned char __stdcall FindSlotByDpid(int id);

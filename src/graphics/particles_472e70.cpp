@@ -7,7 +7,7 @@ struct Elem_00472e70 {
     char unknown_0[0x34];
 };
 
-struct Class_00472e70 {
+struct TeleportParticles {
     char unknown_0[0xc];
     std::vector<Elem_00472e70> items;   // +0xc (_First +0x10, _Last +0x14)
 
@@ -15,7 +15,7 @@ struct Class_00472e70 {
 };
 
 // FUNCTION: 0x472e70
-int Class_00472e70::FUN_00472e70()
+int TeleportParticles::FUN_00472e70()
 {
     return items.empty();
 }

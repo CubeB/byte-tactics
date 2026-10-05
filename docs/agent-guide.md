@@ -87,7 +87,7 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
 
 - If `ctx.py` shows a name for a callee or global (anything other than
   `FUN_...`/`DAT_...`), use exactly that name, including the class
-  (`PlayerRef::Reset`); the checker fails references that disagree with names
+  (`UnitResources::Reset`); the checker fails references that disagree with names
   already established.
 - Otherwise use `FUN_<8 hex digits>` for functions and `DAT_<8 hex digits>` for
   globals, e.g. `FUN_00401200`, `DAT_00511de8`. Name your own function

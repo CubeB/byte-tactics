@@ -72,7 +72,7 @@ struct Game {
     unsigned short field_37ee6;        // +0x37ee6
 };
 
-class Class_004089a0 {                 // 0x3d bytes, laid out in 0x408cb0.cpp
+class SquadManager {                   // 0x3d bytes, laid out in 0x408cb0.cpp
 public:
     Player_004089a0* player;           // +0x0
     char unknown_4[0x39 - 0x4];
@@ -115,7 +115,7 @@ void __stdcall RetargetWeapon(Unit* unit, unsigned int weapon)
 }
 
 // FUNCTION: 0x4089a0
-void Class_004089a0::RetargetWeapons(int force)
+void SquadManager::RetargetWeapons(int force)
 {
     for (int i = 0; i <= g_game->field_37ee6 / 30; i++) {
         if (cursor && cursor != player->lastUnit)

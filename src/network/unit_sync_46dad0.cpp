@@ -145,11 +145,6 @@ class Class_0046cec0 {
     }
 };
 
-class UnitSync {
-  public:
-    void SendSyncPacket(void* target, Packet_0046dad0* packet, int unused);
-};
-
 extern char* g_game;
 extern int DAT_00000000;
 
@@ -164,7 +159,7 @@ class Vec_0046d860 : public std::vector<Class_0046eaa0> {
     void Push(const Class_0046eaa0& x) { FUN_0046f7a0(end(), 1, x); }
 };
 
-class Class_0046d860 {
+class UnitSync {
   public:
     std::map<unsigned int, UnitSyncEntry> map; // +0x00
     std::vector<Class_0046eaa0> players;       // +0x10
@@ -177,10 +172,11 @@ class Class_0046d860 {
 
     void ProcessSync();
     void CheckUnitAvailable(unsigned int key, int y);
+    void SendSyncPacket(void* target, Packet_0046dad0* packet, int unused);
 };
 
 // FUNCTION: 0x46dad0
-void Class_0046d860::ProcessSync() {
+void UnitSync::ProcessSync() {
     if (disabled != 0)
         return;
 

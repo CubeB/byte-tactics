@@ -51,7 +51,7 @@ int __stdcall FormatNetStats(int);
 int __stdcall FUN_00417f30(int,int);
 int __stdcall FUN_00418310(int);
 int __stdcall DrawExplosions(int);
-struct Class_00435100 { int FUN_00435100(); };
+struct Mission { int FUN_00435100(); };
 int __stdcall DrawUnit(int,int);
 int __stdcall DrawOptionsScrollBar(int);
 int __stdcall DrawMessages(int);
@@ -101,20 +101,20 @@ int __stdcall SetOffscreenSurface(int);
 int __stdcall ResetClipRect(int);
 
 struct OverlayRect { int left, top, right, bottom; };
-struct Class_004c6b10 { int data[12]; int SetClipRect(OverlayRect); };
+struct Surface { int data[12]; int SetClipRect(OverlayRect); };
 
-// The frame-time profile at g_game+0x38d85 (Class_0046a400): last tick at +0,
+// The frame-time profile at g_game+0x38d85 (FrameTimers): last tick at +0,
 // one accumulator per phase at +0x2c. AccumulateProfileTime itself is defined after
 // this function in the original file, so only the hand-inlined copies below
 // were expanded; the last call stays out of line.
-struct Class_0046a400 {
+struct FrameTimers {
   unsigned long last;
   int total;
   int values[9];
   int acc[9];
   void AccumulateProfileTime(int i);
 };
-static inline void ProfileMark(Class_0046a400 *p, int i)
+static inline void ProfileMark(FrameTimers *p, int i)
 {
   unsigned long t = GetMilliseconds();
   p->acc[i] += t - p->last;
@@ -158,7 +158,7 @@ static inline float Approach(float fcur, float ftarget)
   return (float)(d + cur);
 }
 
-static void DrawResourcePanel(Class_004c6b10 *ctx, int pl, Resources *res)
+static void DrawResourcePanel(Surface *ctx, int pl, Resources *res)
 {
   OverlayRect bar, box;
   char text[32];
@@ -248,7 +248,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
 {
   char debugText[80];
   int y2;
-  Class_004c6b10 ctx;
+  Surface ctx;
   char gameTime[256];
   int y;
   byte idx;
@@ -263,11 +263,11 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   cx = (*(int *)(g_game + 0x37e1f) + 0x80) / 2;
   cy = *(int *)(g_game + 0x37e23) / 2;
   SetOffscreenSurface(*(int *)(g_game + 0x37e1b));
-  ctx = **(Class_004c6b10 **)(g_game + 0x37e1b);
+  ctx = **(Surface **)(g_game + 0x37e1b);
   colors = (byte *)(g_game + 0xdcb);
   FUN_004c2470();
   ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
-  ProfileMark((Class_0046a400 *)(g_game + 0x38d85), 8);
+  ProfileMark((FrameTimers *)(g_game + 0x38d85), 8);
   DrawMapTiles((int)&ctx);
   FUN_00418310((int)&ctx);
   x = *(short *)(g_game + 0x2cac) - *(int *)(g_game + 0x1431f) + 0x80;
@@ -310,7 +310,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   DrawUnitInfoPanel((int)&ctx);
   DrawRadar((int)&ctx);
   ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
-  ProfileMark((Class_0046a400 *)(g_game + 0x38d85), 3);
+  ProfileMark((FrameTimers *)(g_game + 0x38d85), 3);
 
   // features and units on the visible part of the map
   idx = *(byte *)(g_game + 0x2a43);
@@ -475,12 +475,12 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     }
     DrawParticleList((int)&ctx, 9);
   }
-  ProfileMark((Class_0046a400 *)(g_game + 0x38d85), 4);
+  ProfileMark((FrameTimers *)(g_game + 0x38d85), 4);
   if ((*(ushort *)(g_game + 0x3923b) & 1) && (*(ushort *)(g_game + 0x3923b) & 2) && param_1 != 0)
     FUN_00417f30((int)&ctx, FindNextSelectedUnit(0, 0));
   if (param_1 != 0)
     DrawFogOfWar((int)&ctx);
-  ProfileMark((Class_0046a400 *)(g_game + 0x38d85), 5);
+  ProfileMark((FrameTimers *)(g_game + 0x38d85), 5);
 
   // selection box
   if (ShowSelectBox(param_1)) {
@@ -520,8 +520,8 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     else
       DrawRectangle((int)&ctx, (int)&box, *colors);
   }
-  if ((*(Class_00435100 **)(g_game + 0x391e9))->FUN_00435100() == 3 ||
-      (*(Class_00435100 **)(g_game + 0x391e9))->FUN_00435100() == 2) {
+  if ((*(Mission **)(g_game + 0x391e9))->FUN_00435100() == 3 ||
+      (*(Mission **)(g_game + 0x391e9))->FUN_00435100() == 2) {
     ResetClipRect((int)&ctx);
     FUN_004948e0((int)&ctx);
     ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
@@ -584,5 +584,5 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   FUN_004c2870();
   if (param_1 != 0 && param_2 != 0)
     FlipScreen();
-  ((Class_0046a400 *)(g_game + 0x38d85))->AccumulateProfileTime(3);
+  ((FrameTimers *)(g_game + 0x38d85))->AccumulateProfileTime(3);
 }

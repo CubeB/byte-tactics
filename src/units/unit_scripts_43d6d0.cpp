@@ -162,7 +162,7 @@ int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 
 #pragma pack(push, 1)
-class Class_0043d6d0 {
+class UnitMotion {
 public:
     char unknown_0[8];
     Vec3 p1;                                        // +0x8
@@ -202,7 +202,7 @@ inline Vec3 operator+(const Vec3& a, const Vec3& b)
 }
 
 // FUNCTION: 0x43d6d0
-void Class_0043d6d0::UpdatePosition(Unit* u)
+void UnitMotion::UpdatePosition(Unit* u)
 {
     if (u->obj != 0) {
         Vec3 v;

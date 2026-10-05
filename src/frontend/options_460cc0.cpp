@@ -4,7 +4,7 @@
 // campaign mission, fills in the mission settings gadget, and marks the
 // options as changed.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -40,7 +40,7 @@ struct Game {
     char unknown_11e7[0x38a51 - 0x11e7];
     unsigned char flags_38a51;         // +0x38a51
     char unknown_38a52[0x391e9 - 0x38a52];
-    Class_00435100* mode;              // +0x391e9
+    Mission* mode;                     // +0x391e9
 };
 #pragma pack(pop)
 

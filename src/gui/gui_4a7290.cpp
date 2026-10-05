@@ -87,11 +87,11 @@ struct Out_4a15c0 {
     int y1;
 };
 
-struct Class_0051fba4 {
+struct Dialog {
     int current;                       // +0x00
 };
 
-extern Class_0051fba4* g_guiContext;
+extern Dialog* g_guiContext;
 
 int GetTextKeyColor();
 void __stdcall SetTextColors(int colour, int font);

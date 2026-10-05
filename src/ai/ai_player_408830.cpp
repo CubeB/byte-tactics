@@ -9,9 +9,9 @@ struct Unit { char pad[0x92]; Def* def; char pad96[0xac-0x96]; int group; char p
 struct Player { char pad[0x67]; Unit* first; Unit* last; };
 #pragma pack(pop)
 void __stdcall SetUnitSquad(Unit*,int);
-class Class_00408830 { public: Player* player; void AssignSquads(); };
+class SquadManager { public: Player* player; void AssignSquads(); };
 // FUNCTION: 0x408830
-void Class_00408830::AssignSquads()
+void SquadManager::AssignSquads()
 {
     for(Unit* u=player->first;u<=player->last;++u) {
         if(u->flags&0x20) {

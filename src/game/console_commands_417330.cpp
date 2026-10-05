@@ -13,7 +13,7 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 // Command arguments.
-class Class_004b73c0 {
+class CommandArgs {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
@@ -23,7 +23,7 @@ public:
 void SaveSettings();
 
 // FUNCTION: 0x417330
-void __stdcall CmdFilm(Class_004b73c0* args)
+void __stdcall CmdFilm(CommandArgs* args)
 {
     if (args->count > 1) {
         strcpy(g_game->path, args->GetArg(1, DAT_005119b8));

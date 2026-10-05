@@ -3,7 +3,7 @@
 // STARTOPT.GUI), loads it, sets the music gadget and the mode flag.
 #include <string.h>
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -33,7 +33,7 @@ struct Game {
     char unknown_37ec0[0x38a51 - 0x37ec0];
     unsigned char flags_38a51;           // +0x38a51
     char unknown_38a52[0x391e9 - 0x38a52];
-    Class_00435100* mode;                // +0x391e9
+    Mission* mode;                       // +0x391e9
 };
 #pragma pack(pop)
 

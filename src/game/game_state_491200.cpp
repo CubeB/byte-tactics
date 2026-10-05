@@ -38,7 +38,7 @@
 #include <string.h>
 #include <windows.h>
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -58,7 +58,7 @@ public:
     void SetCdCallback(void (*param_1)());
 };
 
-class Class_004ce690 {
+class Sound {
 public:
     void SetTrackCategory(int param_1);
 };
@@ -119,7 +119,7 @@ struct Game {
     char unknown_38d6f[0x38d7b - 0x38d6f];
     int field_38d7b;                         // +0x38d7b
     char unknown_38d7f[0x391e9 - 0x38d7f];
-    Class_00435100* field_391e9;             // +0x391e9
+    Mission* field_391e9;                    // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
     int field_391f1;                         // +0x391f1
     void (*field_391f5)();                   // +0x391f5
@@ -243,7 +243,7 @@ void InitGame()
     ((Class_004ce7a0*)g_game->field_10)->SetPlaybackOrder(g_game->field_37f16);
     ((Class_004cd9d0*)g_game->field_10)->SetCdCallback(FUN_00490fe0);
     FUN_00490fe0();
-    ((Class_004ce690*)g_game->field_10)->SetTrackCategory(0);
+    ((Sound*)g_game->field_10)->SetTrackCategory(0);
     ApplyBrightnessAndVolume();
     LoadSideData();
     LoadLogos();

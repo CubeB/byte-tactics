@@ -13,7 +13,7 @@ struct FileHandle;
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 int __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
 
-class Class_004cf370 {
+class Sound {
 public:
     char unknown_0[0x24];
     IDirectSound* field_24;                 // +0x24
@@ -23,7 +23,7 @@ public:
 };
 
 // FUNCTION: 0x4cf370
-IDirectSoundBuffer** Class_004cf370::CreateSampleFromFile(FileHandle* file, DWORD bytes,
+IDirectSoundBuffer** Sound::CreateSampleFromFile(FileHandle* file, DWORD bytes,
                                                   int sampleRate, int bits, int channels)
 {
     WAVEFORMATEX wfx;

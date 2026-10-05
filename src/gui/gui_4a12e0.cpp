@@ -34,13 +34,13 @@ struct Holder_004a12e0 {
     Entry_004a12e0* entries;           // +0x04
 };
 
-struct Class_004a12e0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a12e0* holder;           // +0x18
 };
 
 // FUNCTION: 0x4a12e0
-void __stdcall FUN_004a12e0(Class_004a12e0* obj, int index, int value)
+void __stdcall FUN_004a12e0(Dialog* obj, int index, int value)
 {
     Entry_004a12e0* entries = obj->holder->entries;
     if (index == -1) {

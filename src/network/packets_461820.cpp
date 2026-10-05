@@ -4,6 +4,7 @@
 class PacketManager {
 public:
     void* FindChannel(int param_1, int param_2);
+    void ReleaseChannel(int id);
 };
 
 class PacketChannel {
@@ -17,13 +18,8 @@ public:
     void InitPools(int a1, int a2, int a3, int a4);
 };
 
-class Class_00461820 {
-public:
-    void ReleaseChannel(int id);
-};
-
 // FUNCTION: 0x461820
-void Class_00461820::ReleaseChannel(int id)
+void PacketManager::ReleaseChannel(int id)
 {
     PacketChannel* e = (PacketChannel*)((PacketManager*)this)->FindChannel(id, 0);
     if (e != 0) {

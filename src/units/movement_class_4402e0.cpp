@@ -2,7 +2,7 @@
 // Out-of-line constructor of the 32-byte entry that 0x440290.cpp declares
 // with the same inline body (MovementClass there).
 
-struct Class_004402e0 {
+struct MovementClass {
     int* field_0;
     short field_4;
     short field_6;
@@ -17,11 +17,11 @@ struct Class_004402e0 {
     void* field_18;
     int field_1c;
 
-    Class_004402e0();
+    MovementClass();
 };
 
 // FUNCTION: 0x4402e0
-Class_004402e0::Class_004402e0()
+MovementClass::MovementClass()
 {
     field_0 = 0;
     field_4 = 0;

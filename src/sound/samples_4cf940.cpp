@@ -36,7 +36,7 @@ struct FileHandle;
 int __stdcall RemoveTimer(int i);
 int __stdcall HAPI_CloseFile(FileHandle* file);
 
-class Class_004cfb40 {
+class Sound {
 public:
     char unknown_0[0x24];
     IDirectSound* field_24;                 // +0x24
@@ -56,7 +56,7 @@ public:
 };
 
 // FUNCTION: 0x4cf940
-void Class_004cfb40::StartStream(FileHandle* file, int sampleRate, int bits,
+void Sound::StartStream(FileHandle* file, int sampleRate, int bits,
                                   int channels, LONG volume)
 {
     WAVEFORMATEX wfx;

@@ -22,18 +22,8 @@ public:
 
 extern Game* g_game;
 
-class Class_00408830 {
-public:
-    void AssignSquads();
-};
-
-class Class_004089a0 {
-public:
-    void RetargetWeapons(int param_1);
-};
-
 #pragma pack(push, 1)
-class Class_00408c40 {
+class SquadManager {
 public:
     Target_00408c40* target;           // +0x0
     char unknown_4;
@@ -42,24 +32,26 @@ public:
     Timer_00408c40* timers[10];        // +0x11
 
     void TickIfActive();
+    void AssignSquads();
+    void RetargetWeapons(int param_1);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x408c40
-void Class_00408c40::TickIfActive()
+void SquadManager::TickIfActive()
 {
     if (target->unknown_0 != 0 && target->state == 2) {
         if (--countdown <= 0) {
             countdown = 30;
-            ((Class_00408830*)this)->AssignSquads();
+            ((SquadManager*)this)->AssignSquads();
         }
         for (int i = 0; i < 10; i++) {
             if (timers[i] != 0 && timers[i]->time <= g_game->now) {
                 timers[i]->Fire();
             }
         }
-        ((Class_004089a0*)this)->RetargetWeapons(1);
+        ((SquadManager*)this)->RetargetWeapons(1);
         return;
     }
-    ((Class_004089a0*)this)->RetargetWeapons(0);
+    ((SquadManager*)this)->RetargetWeapons(0);
 }

@@ -16,12 +16,12 @@ struct Entry_004a1810 {               // 0x15b bytes
 };
 #pragma pack(pop)
 
-struct Class_0051fba4 {
+struct Dialog {
     int group;                        // +0x00
     char unknown_04[0x14 - 0x04];
 };
 
-extern Class_0051fba4* g_guiContext;
+extern Dialog* g_guiContext;
 
 void __stdcall SetFont(int id);
 

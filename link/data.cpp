@@ -387,8 +387,8 @@ int DAT_00512294;  // 0x512294 .bss
 int DAT_0051229c;  // 0x51229c .bss
 unsigned char DAT_005122a0[4];  // 0x5122a0 .bss
 unsigned char DAT_005122c0[4];  // 0x5122c0 .bss
-Class_00437820* DAT_005122c4;  // 0x5122c4 .bss
-Class_00437820* DAT_005122c8;  // 0x5122c8 .bss
+MapCacheEntry* DAT_005122c4;  // 0x5122c4 .bss
+MapCacheEntry* DAT_005122c8;  // 0x5122c8 .bss
 unsigned char DAT_005122cc[4];  // 0x5122cc .bss
 int DAT_005122d8;  // 0x5122d8 .bss
 int DAT_005122dc;  // 0x5122dc .bss
@@ -625,7 +625,7 @@ unsigned int DAT_0051e67c;  // 0x51e67c .bss
 unsigned int DAT_0051e680;  // 0x51e680 .bss
 int DAT_0051e684;  // 0x51e684 .bss
 int DAT_0051e688;  // 0x51e688 .bss
-List_0047f8c0* DAT_0051e68c;  // 0x51e68c .bss
+SpeechQueue* DAT_0051e68c;  // 0x51e68c .bss
 int g_noDirectSound;  // 0x51e690 .bss
 int g_useWindowsSound;  // 0x51e694 .bss
 int DAT_0051e698;  // 0x51e698 .bss
@@ -664,7 +664,7 @@ int DAT_0051fb90;  // 0x51fb90 .bss
 unsigned long DAT_0051fb94;  // 0x51fb94 .bss
 unsigned char DAT_0051fb98[4];  // 0x51fb98 .bss
 int* g_diskWav;  // 0x51fba0 .bss
-Class_0051fba4* g_guiContext;  // 0x51fba4 .bss
+Dialog* g_guiContext;  // 0x51fba4 .bss
 int DAT_0051fba8;  // 0x51fba8 .bss
 int DAT_0051fbac;  // 0x51fbac .bss
 int DAT_0051fbb0;  // 0x51fbb0 .bss
@@ -730,7 +730,7 @@ unsigned char DAT_00528a0c[4];  // 0x528a0c .bss
 unsigned char DAT_00528a14[8];  // 0x528a14 .bss
 unsigned int DAT_00528a1c;  // 0x528a1c .bss
 unsigned char DAT_00528a20[8];  // 0x528a20 .bss
-Class_004db000* DAT_00528a40;  // 0x528a40 .bss
+FreeBlockMap* DAT_00528a40;  // 0x528a40 .bss
 void* DAT_00528a44;  // 0x528a44 .bss
 unsigned char DAT_00528a48[4];  // 0x528a48 .bss
 int DAT_00528a4c;  // 0x528a4c .bss
@@ -780,7 +780,7 @@ unsigned char DAT_00529e6c;  // 0x529e6c .bss
 unsigned char DAT_00529e70;  // 0x529e70 .bss
 char DAT_00529e74;  // 0x529e74 .bss
 char DAT_00529e78;  // 0x529e78 .bss
-Class_004e17c0* DAT_00529e7c;  // 0x529e7c .bss
+NameTable* DAT_00529e7c;  // 0x529e7c .bss
 char* DAT_00529e80;  // 0x529e80 .bss
 unsigned char DAT_00529e84[4];  // 0x529e84 .bss
 char DAT_00529e88[13];  // 0x529e88 .bss

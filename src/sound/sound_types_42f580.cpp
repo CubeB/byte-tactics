@@ -13,37 +13,21 @@
 #include <stdio.h>
 #include <string.h>
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;                        // +0x0 (parsed tree root)
     int field_4;                        // +0x4 (current node)
     int field_8;                        // +0x8
 
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* path);
-};
-
-class Class_004c3240 {
-public:
     void Unload();
-};
-
-class Class_004c3490 {
-public:
     int SelectRecordAt(int index);
-};
-
-class Class_004c3e10 {
-public:
     void ResetCurrentRecord();
 };
 
-class Class_004c4420 {
+class TdfRecord {
 public:
     void CopyRecordName(char* dest, unsigned int count);
 };
@@ -70,22 +54,22 @@ void LoadSoundCategories()
 {
     *(int*)(g_game + 0x37e17) = 0;
     *(int*)(g_game + 0x37e13) = 0;
-    Class_004c2ea0 obj;
+    TdfFile obj;
     char name[32];
     char path[256];
     SoundInfo_005086fc* p;
 
     BuildDataPath(path, "gamedata", "sound", "TDF");
-    if (((Class_004c2f60*)&obj)->LoadFile(path)) {
+    if (((TdfFile*)&obj)->LoadFile(path)) {
         *(int*)(g_game + 0x37e17) = ((Class_004c4450*)obj.field_0)->GetSubRecordCount();
         int size = *(int*)(g_game + 0x37e17) * 0x160;
         *(int*)(g_game + 0x37e13) = (int)FUN_004d83b0("Sound Categories", size);
         memset((void*)*(int*)(g_game + 0x37e13), 0, size);
         for (int i = 0; i < *(int*)(g_game + 0x37e17); i++) {
             char* rec = (char*)*(int*)(g_game + 0x37e13) + i * 0x160;
-            ((Class_004c3e10*)&obj)->ResetCurrentRecord();
-            if (((Class_004c3490*)&obj)->SelectRecordAt(i)) {
-                ((Class_004c4420*)obj.field_4)->CopyRecordName(rec, 0x3f);
+            ((TdfFile*)&obj)->ResetCurrentRecord();
+            if (((TdfFile*)&obj)->SelectRecordAt(i)) {
+                ((TdfRecord*)obj.field_4)->CopyRecordName(rec, 0x3f);
                 p = DAT_005086fc;
                 int* vals = (int*)(rec + 0x4c);
                 while ((int)p < (int)(DAT_005086fc + 23)) {
@@ -100,6 +84,6 @@ void LoadSoundCategories()
                 }
             }
         }
-        ((Class_004c3240*)&obj)->Unload();
+        ((TdfFile*)&obj)->Unload();
     }
 }

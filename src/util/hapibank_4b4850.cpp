@@ -22,24 +22,20 @@ struct AccountList {
     int current;                       // +0x8
 };
 
-class Class_004b48f0 {
-public:
-    int HasItem(const char* param_1);
-    int FindItem(const char* param_1, int param_2);
-};
-
-class Class_004b4850 {
+class HapiBank {
 public:
     AccountList* file;                 // +0x0
 
     double GetDoubleItem(char* name, double def);
+    int HasItem(const char* param_1);
+    int FindItem(const char* param_1, int param_2);
 };
 
 // FUNCTION: 0x4b4850
-double Class_004b4850::GetDoubleItem(char* name, double def)
+double HapiBank::GetDoubleItem(char* name, double def)
 {
     if (file && file->current >= 0) {
-        int i = ((Class_004b48f0*)this)->FindItem(name, 0);
+        int i = ((HapiBank*)this)->FindItem(name, 0);
         if (i >= 0 && file->sections[file->current].values[i].type == 2)
             return file->sections[file->current].values[i].value;
     }

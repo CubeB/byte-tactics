@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
 // The allocator singleton getter, with the constructor of the class it builds
-// inlined. Class_004db000 is a std::map<unsigned int, int> of free blocks
+// inlined. FreeBlockMap is a std::map<unsigned int, int> of free blocks
 // (keyed by base offset, valued by length) whose allocator hands out its 0x18
 // byte nodes from the pool at 0x4ddd70, plus a running total of reserved bytes
 // at +0x10. The constructor is the real std::map one: the two one-byte loads
@@ -10,7 +10,7 @@
 // creating the shared _Nil node (DAT_00528a54, counted in DAT_00528a58) and the
 // head node. The class's own operator new is GlobalAlloc, which is why the
 // constructor is skipped when it fails and why both exits store the result
-// through eax: `DAT_00528a40 = new Class_004db000;` is a conditional
+// through eax: `DAT_00528a40 = new FreeBlockMap;` is a conditional
 // expression yielding the pointer or 0.
 //
 // The constructor body reserves up to four address-space regions of 256 MB,
@@ -48,7 +48,7 @@ struct Pair_004db610 {
 typedef std::map<unsigned int, int, std::less<unsigned int>, PoolAlloc_004db610>
     Map_004db610;
 
-class Class_004db000 {
+class FreeBlockMap {
 public:
     Map_004db610 freeMap;              // +0x0
     int total;                         // +0x10
@@ -57,7 +57,7 @@ public:
 
     void* operator new(size_t n) { return GlobalAlloc(0, n); }
 
-    Class_004db000() : total(0)
+    FreeBlockMap() : total(0)
     {
         int n = 4;
         do {
@@ -84,12 +84,12 @@ public:
     }
 };
 
-extern Class_004db000* DAT_00528a40;
+extern FreeBlockMap* DAT_00528a40;
 
 // FUNCTION: 0x4db610
-Class_004db000* GetFreeBlockSet()
+FreeBlockMap* GetFreeBlockSet()
 {
     if (DAT_00528a40 == 0)
-        DAT_00528a40 = new Class_004db000;
+        DAT_00528a40 = new FreeBlockMap;
     return DAT_00528a40;
 }

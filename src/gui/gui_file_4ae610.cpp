@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_004c46c0 {
+class TdfRecord {
 public:
     int GetFieldInt(const char* name, int def);
 };
@@ -14,7 +14,7 @@ struct StructA_004ae610 {
 
 struct StructB_004ae610 {
     char unknown_0[4];
-    Class_004c46c0* field_4;           // +0x4
+    TdfRecord* field_4;                // +0x4
 };
 
 // FUNCTION: 0x4ae610

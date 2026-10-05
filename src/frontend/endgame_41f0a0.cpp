@@ -12,24 +12,15 @@
 // other way round.
 #include <string.h>
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
-};
-
-class Class_00435980 {
-public:
     int MissionExists(int index);
-};
-
-class Class_00435c00 {
-public:
     void FUN_00435c00(int param_1);
-};
-
-class Class_00435760 {
-public:
     int BuildMissionList(int* param_1);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    void LoadBriefing();
+    void BuildCampaignFilePath(int index, char* path, char* dir, char* ext);
 };
 
 #pragma pack(push, 1)
@@ -98,7 +89,7 @@ struct Game {
     char unknown_391b3[0x391cf - 0x391b3];
     char missionFlags[0x19];             // +0x391cf
     char unknown_391e8[0x391e9 - 0x391e8];
-    Class_00435100* campaign;            // +0x391e9
+    Mission* campaign;                   // +0x391e9
 };
 #pragma pack(pop)
 
@@ -130,8 +121,8 @@ static inline int HasNextMission()
 {
     if (g_game->campaign->FUN_00435100() == 1 &&
         ((g_game->field_391af == 0 &&
-          ((Class_00435980*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
-         ((Class_00435980*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {
+          ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
+         ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {
         return 1;
     }
     return 0;
@@ -151,7 +142,7 @@ void __stdcall OpenEndMissionScreen()
     char* entries = layer->entries;
     char next = HasNextMission();
     if (next) {
-        ((Class_00435c00*)g_game->campaign)->FUN_00435c00(g_game->mission);
+        ((Mission*)g_game->campaign)->FUN_00435c00(g_game->mission);
         LoadPictureCached("outcome1", 1, 1, 0);
         strcpy(layer->entries + 0xcc, "Start");
     } else {
@@ -160,7 +151,7 @@ void __stdcall OpenEndMissionScreen()
     }
     next = HasNextMission();
     if (next) {
-        int count = ((Class_00435760*)g_game->campaign)->BuildMissionList(&data->items);
+        int count = ((Mission*)g_game->campaign)->BuildMissionList(&data->items);
         data->items = BuildScrollItems1(data->items, g_game->missionFlags, count);
         // Suspected original bug: this finds the first 'U' mission flag but
         // the index is never used (perhaps a lost "select the first

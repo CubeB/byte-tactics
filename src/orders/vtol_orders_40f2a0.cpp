@@ -19,18 +19,16 @@ struct Vec3 {
 };
 
 struct Unit;
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(short); };
-class Class_004b0940 { public: void StartScript(const char*, int, int); };
+class CobScript { public: void StartScript(const char*, int, int); };
 
 #pragma pack(push, 1)
 struct UnitDef {
@@ -38,12 +36,14 @@ struct UnitDef {
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
 struct Unit {
-    Class_0043d210* type;
+    UnitMotion* type;
     char pad4[0x6a - 4]; Vec3 pos;
     char pad76[8]; Point footprint;
     int field_82; int field_86;
     char pad8a[8]; UnitDef* def;
-    char pad96[4]; Class_004b0940* script;
+    char pad96[4]; CobScript* script;
+    void ClaimWeapons(int);
+    void SetStateBits(int, int);
 };
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
@@ -98,10 +98,10 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -152,7 +152,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
             ((Class_0044e6c0*)obj)->FUN_0044e6c0(h <= g_game->seaLevel ? GetGroundHeight(&unit->pos) - g_game->seaLevel : 0);
             ((Class_004388d0*)order)->FUN_004388d0((int)obj);
             order->flags = 0xe0;
-            ((Class_0048b090*)unit)->SetStateBits(1, 0);
+            ((Unit*)unit)->SetStateBits(1, 0);
             return 1;
         }
         for (int r = 0x40; r < 0x100; r += 0x10) {

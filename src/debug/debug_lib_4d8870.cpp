@@ -33,18 +33,18 @@ struct Trace_004d8870 {
 
 // A named record of where it was made: the name, an id and the stack trace
 // of the code that made it.
-class Class_004d8870 {
+class TraceRecord {
 public:
     char name[0x40];                    // +0x0
     int id;                             // +0x40
     Trace_004d8870 trace;               // +0x44
 
-    Class_004d8870(void);
-    Class_004d8870(const char* name_, int id_, int skip);
+    TraceRecord(void);
+    TraceRecord(const char* name_, int id_, int skip);
 };
 
-// FUNCTION: 0x4d8870 ??0Class_004d8870@@QAE@XZ
-Class_004d8870::Class_004d8870(void)
+// FUNCTION: 0x4d8870 ??0TraceRecord@@QAE@XZ
+TraceRecord::TraceRecord(void)
 {
     trace.Capture(0);
     name[0] = 0;
@@ -52,8 +52,8 @@ Class_004d8870::Class_004d8870(void)
 }
 
 // The name keeps its last 63 characters.
-// FUNCTION: 0x4d88d0 ??0Class_004d8870@@QAE@PBDHH@Z
-Class_004d8870::Class_004d8870(const char* name_, int id_, int skip)
+// FUNCTION: 0x4d88d0 ??0TraceRecord@@QAE@PBDHH@Z
+TraceRecord::TraceRecord(const char* name_, int id_, int skip)
 {
     trace.Capture(skip + 1);
     if (name_) {

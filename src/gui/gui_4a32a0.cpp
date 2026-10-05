@@ -55,7 +55,7 @@ struct Root_004a32a0 { // g_guiContext
     Holder_004a32a0* holder; // +0x18
 };
 
-struct Class_004a32a0 {
+struct Dialog {
     char unknown_00[0x18];
     Holder_004a32a0* holder; // +0x18
 };
@@ -96,7 +96,7 @@ static inline int FindType_004a32a0(Entry_004a32a0* entries, unsigned char kind)
 }
 
 // FUNCTION: 0x4a32a0
-void __stdcall FUN_004a32a0(Class_004a32a0* param_1, char* name, int bitmap, int count, int flag) {
+void __stdcall FUN_004a32a0(Dialog* param_1, char* name, int bitmap, int count, int flag) {
     Holder_004a32a0* holder = param_1->holder;
     Entry_004a32a0* entries = holder->entries;
     int index = FindName_004a32a0(entries, name);

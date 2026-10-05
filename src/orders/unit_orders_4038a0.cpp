@@ -2,13 +2,11 @@
 struct Vec { int x,y,z; };
 #pragma pack(push,1)
 struct Def { char pad[0x241]; unsigned low:11; unsigned flying:1; unsigned high:20; };
-struct Unit { int active; char pad4[0x92-4]; Def* def; };
+struct Unit { int active; char pad4[0x92-4]; Def* def; void ReleaseWeapons(int); void ClaimWeapons(int); };
 struct Order { char pad[5]; unsigned char state; unsigned flags; char pada[0x22-10]; Vec pos; char pad2e[8]; int weapon; int radius; };
 #pragma pack(pop)
 class Class_00438880 { public: void FUN_00438880(int); };
 class Class_00438930 { public: void FUN_00438930(Vec*,int); };
-class Class_00489800 { public: void ReleaseWeapons(int); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
 void __stdcall SetWeaponTargetPos(Unit*,Vec*,int);
 int __stdcall FUN_0049adf0(Unit*,unsigned char);
 int __stdcall RandomInt(int);
@@ -24,17 +22,17 @@ int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
         order->radius=FUN_0049adf0(unit,order->weapon); return 1;
     case 1:
         if(order->weapon==2) {
-            ((Class_004898b0*)unit)->ClaimWeapons(3);
+            ((Unit*)unit)->ClaimWeapons(3);
             SetWeaponTargetPos(unit,&order->pos,2);
             order->flags=0x1c00; return 1;
         }
-        ((Class_004898b0*)unit)->ClaimWeapons(0);
-        ((Class_004898b0*)unit)->ClaimWeapons(1);
+        ((Unit*)unit)->ClaimWeapons(0);
+        ((Unit*)unit)->ClaimWeapons(1);
         SetWeaponTargetPos(unit,&order->pos,0);
         SetWeaponTargetPos(unit,&order->pos,1);
         order->flags=0x1c00; return 1;
     case 2:
-        ((Class_00489800*)unit)->ReleaseWeapons(3);
+        ((Unit*)unit)->ReleaseWeapons(3);
         if(flags&0x400) { order->state=1; return 6; }
         if(unit->active) {
             if(order->radius<=0) return 9;

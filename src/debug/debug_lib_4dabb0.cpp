@@ -9,13 +9,13 @@
 #include <windows.h>
 #include <string.h>
 
-class Class_004d87f0 {
+class BlockInfo {
 public:
     int field_0;                 // +0x00
     int field_4;                 // +0x04
     int field_8;                 // +0x08
     char unknown_c[0x24];        // +0x0c
-    Class_004d87f0(void);
+    BlockInfo(void);
 };
 
 struct Container_004da9f0 {
@@ -27,7 +27,7 @@ struct Container_004da9f0 {
 extern Container_004da9f0* GetFreedBlockRing();
 extern char IsMemFussy();
 extern CRITICAL_SECTION* FUN_004da780();
-extern void __cdecl FormatBlockInfo(Class_004d87f0 info, char* buf, int unused);
+extern void __cdecl FormatBlockInfo(BlockInfo info, char* buf, int unused);
 
 // FUNCTION: 0x4dabb0
 char __cdecl FUN_004dabb0(unsigned int address, char* buf, unsigned int n)
@@ -36,11 +36,11 @@ char __cdecl FUN_004dabb0(unsigned int address, char* buf, unsigned int n)
     EnterCriticalSection(cs);
     *buf = 0;
     if (IsMemFussy()) {
-        Class_004d87f0* p = (Class_004d87f0*)GetFreedBlockRing()->field_8;
+        BlockInfo* p = (BlockInfo*)GetFreedBlockRing()->field_8;
         char found = 0;
-        while (p != (Class_004d87f0*)GetFreedBlockRing()->field_4 && n > 100) {
-            p = (Class_004d87f0*)((char*)p - 0x30);
-            Class_004d87f0 info = *p;
+        while (p != (BlockInfo*)GetFreedBlockRing()->field_4 && n > 100) {
+            p = (BlockInfo*)((char*)p - 0x30);
+            BlockInfo info = *p;
             bool inRange = address >= (unsigned int)info.field_0
                         && address < (unsigned int)info.field_4 + (unsigned int)info.field_0;
             if (inRange) {

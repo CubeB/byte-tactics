@@ -1,12 +1,12 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004cff20 {
+class Sound {
 public:
     int HasNoDriver();
 };
 
 // FUNCTION: 0x4cff20
-int Class_004cff20::HasNoDriver()
+int Sound::HasNoDriver()
 {
     return *(int*)((char*)this + 0x290);
 }

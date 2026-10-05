@@ -3,7 +3,7 @@
 // sound object, more flag bits, then brightness and the two volume levels
 // scaled by 1024 (same tail as 0x45bcc0).
 
-class Class_004cfe90 {
+class Sound {
 public:
     void Disable3D();
 };
@@ -61,7 +61,7 @@ void FUN_0045c570()
     g_game->soundFlags.bits.bit4 = 1;
     g_game->soundFlags.bits.bit5 = 1;
     g_game->soundFlags.bits.bit6 = 1;
-    ((Class_004cfe90*)g_game->sound)->Disable3D();
+    ((Sound*)g_game->sound)->Disable3D();
     g_game->soundFlags.word = (g_game->soundFlags.word & 0xfff9) | 1;
     g_game->f37f17 = 10;
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);

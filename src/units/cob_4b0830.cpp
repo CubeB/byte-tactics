@@ -10,24 +10,13 @@ struct NameTable_004b0830 {
     char** names;                      // +0x1c
 };
 
-class Class_004b07c0 {
+class CobScript {
 public:
     char unknown_0[8];
     NameTable_004b0830* table;         // +0x8
 
     int FindScript(const char* name);
-};
-
-class CobScript {
-public:
     int StartThread(int id);
-};
-
-class Class_004b0830 {
-public:
-    char unknown_0[8];
-    NameTable_004b0830* table;         // +0x8
-
     int StartThreadByName(const char* name);
 };
 
@@ -37,7 +26,7 @@ public:
 // gives the loop guard its own copy of the "-1" call instead of sharing the
 // loop exit.
 // FUNCTION: 0x4b07c0
-int Class_004b07c0::FindScript(const char* name)
+int CobScript::FindScript(const char* name)
 {
     for (int i = 0; i < table->count; i++) {
         if (strcmp(name, table->names[i]) == 0) {
@@ -48,10 +37,10 @@ int Class_004b07c0::FindScript(const char* name)
 }
 
 // FUNCTION: 0x4b0830
-int Class_004b0830::StartThreadByName(const char* name)
+int CobScript::StartThreadByName(const char* name)
 {
     if (table == 0) {
         return -1;
     }
-    return ((CobScript*)this)->StartThread(((Class_004b07c0*)this)->FindScript(name));
+    return ((CobScript*)this)->StartThread(((CobScript*)this)->FindScript(name));
 }

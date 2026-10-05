@@ -7,7 +7,7 @@ public:
 };
 
 #pragma pack(push, 1)
-class Class_00408f10 {
+class SquadManager {
 public:
     char unknown_0[0x11];
     Base* ptrs[10];
@@ -17,7 +17,7 @@ public:
 #pragma pack(pop)
 
 // FUNCTION: 0x408f10
-void Class_00408f10::DeleteTimers()
+void SquadManager::DeleteTimers()
 {
     for (int i = 0; i < 10; i++) {
         if (ptrs[i] != 0) {

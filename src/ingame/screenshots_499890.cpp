@@ -7,7 +7,7 @@
 // through it.
 #include <stdio.h>
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -40,7 +40,7 @@ struct Game {
     unsigned short otherFlags;
     char path[0x20c];
     char unknown_38c5f[0x391e9 - 0x38c5f];
-    Class_00435100* manager;
+    Mission* manager;
     char unknown_391ed[0x391f5 - 0x391ed];
     void (__cdecl* callback)();
 };

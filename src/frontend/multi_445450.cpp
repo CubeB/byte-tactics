@@ -42,7 +42,7 @@ public:
     char unknown_147[0x14b - 0x147];
 };
 
-class Class_00463c60 {
+class Player {
 public:
     void SetType(int param_1);
 };
@@ -93,7 +93,7 @@ void FUN_00445450()
         Player_00445450 tmp = *p;
         *p = *q;
         *q = tmp;
-        ((Class_00463c60*)q)->SetType(0);
+        ((Player*)q)->SetType(0);
         q->active = 0;
         for (int i = 0; i <= 10; i++) {
             Game* g = g_game;

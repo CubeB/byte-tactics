@@ -1,6 +1,6 @@
 // Decompiled by GPT-6 Astra. Names are provisional.
 #include <string.h>
-class Class_004b73c0 {
+class CommandArgs {
 public:
     char data[0xd0]; int count;
     const char* GetArg(int,const char*);
@@ -11,7 +11,7 @@ struct Game { char pad0[0x37f2f]; unsigned short flags; };
 extern Game* g_game;
 extern char DAT_005119b8[];
 // FUNCTION: 0x416e90
-void __stdcall CmdNow(Class_004b73c0* args)
+void __stdcall CmdNow(CommandArgs* args)
 {
     if (args->count==6 && !strcmp(args->GetArg(1,DAT_005119b8),"Film") &&
         !strcmp(args->GetArg(2,DAT_005119b8),"Chris") &&

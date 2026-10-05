@@ -2,18 +2,10 @@
 #include <string.h>
 #include <stdio.h>
 
-class Class_004ce1d0 {
+class Sound {
 public:
     int HasCdPlayerWindow();
-};
-
-class Class_004ce690 {
-public:
     void SetTrackCategory(int value);
-};
-
-class Class_004cff20 {
-public:
     int HasNoDriver();
 };
 
@@ -127,7 +119,7 @@ void __stdcall OpenMainMenu()
 
     LoadPictureCached("FrontendX", 1, 1, 0);
     PlayLoopingSoundByName("BGM", 0);
-    ((Class_004ce690*)g_game->field_10)->SetTrackCategory(4);
+    ((Sound*)g_game->field_10)->SetTrackCategory(4);
     FUN_0049fa50(&g_game->sub);
 
     char* name = "FrontendX";
@@ -163,7 +155,7 @@ void __stdcall OpenMainMenu()
     memset(DAT_00512298, 0, 0x145 * 4);
 
     if (DAT_0051229c == 0) {
-        if (((Class_004ce1d0*)g_game->field_10)->HasCdPlayerWindow()) {
+        if (((Sound*)g_game->field_10)->HasCdPlayerWindow()) {
             OpenCloseCdPlayerDialog();
             DAT_0051229c = 1;
         }
@@ -180,7 +172,7 @@ void __stdcall OpenMainMenu()
     }
 
     if (DAT_00512294 == 0) {
-        if (((Class_004cff20*)g_game->field_10)->HasNoDriver()) {
+        if (((Sound*)g_game->field_10)->HasNoDriver()) {
             OpenMessageBox(&g_game->sub, Translate("No sound driver is available for use.\n"), 500, 1, 1);
             DAT_00512294 = 1;
         }

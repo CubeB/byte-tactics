@@ -40,18 +40,18 @@ struct Holder_004a2be0 {
     void* list;                        // +0x14
 };
 
-struct Class_004a2be0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a2be0* holder;           // +0x18
 };
 
-void __stdcall DrawListBox(Class_004a2be0* param_1, int param_2);
-void __stdcall FUN_004a2580(Class_004a2be0* param_1, int param_2);
-void __stdcall DrawTextInput(Class_004a2be0* param_1, int param_2);
+void __stdcall DrawListBox(Dialog* param_1, int param_2);
+void __stdcall FUN_004a2580(Dialog* param_1, int param_2);
+void __stdcall DrawTextInput(Dialog* param_1, int param_2);
 char* __stdcall SkipTextLines(char* text, int line);
 
 // FUNCTION: 0x4a2be0
-void __stdcall FUN_004a2be0(Class_004a2be0* param_1, int param_2)
+void __stdcall FUN_004a2be0(Dialog* param_1, int param_2)
 {
     Entry_004a2be0* entries = param_1->holder->entries;
     int i = 1;

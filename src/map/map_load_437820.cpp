@@ -8,16 +8,16 @@ public:
     Class_004c91a0(const Class_004c91a0& other);
 };
 
-class Class_00437820 {
+class MapCacheEntry {
 public:
     Class_004c91a0 handle;
     int field_4;
 
-    Class_00437820(const Class_00437820& other);
+    MapCacheEntry(const MapCacheEntry& other);
 };
 
 // FUNCTION: 0x437820
-Class_00437820::Class_00437820(const Class_00437820& other)
+MapCacheEntry::MapCacheEntry(const MapCacheEntry& other)
     : handle(other.handle), field_4(other.field_4)
 {
 }

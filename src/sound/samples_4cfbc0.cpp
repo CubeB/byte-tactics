@@ -11,7 +11,7 @@ struct FileHandle;
 int __stdcall RemoveTimer(int i);
 int __stdcall HAPI_CloseFile(FileHandle* file);
 
-class Class_004cfb40 {
+class Sound {
 public:
     char unknown_0[0x1e4];
     IDirectSoundBuffer* stream;             // +0x1e4
@@ -28,7 +28,7 @@ public:
 };
 
 // FUNCTION: 0x4cfbc0
-void Class_004cfb40::UpdateStream()
+void Sound::UpdateStream()
 {
     unsigned long play;
     unsigned long write;

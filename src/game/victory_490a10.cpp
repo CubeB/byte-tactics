@@ -7,13 +7,13 @@ public:
 
 struct Owner_00490a10;
 
-class Class_0043d210 {
+class UnitMotion {
 public:
     void SetFlightMode(Owner_00490a10* owner, int state);
 };
 
 struct Owner_00490a10 {
-    Class_0043d210* obj;               // +0x0
+    UnitMotion* obj;                   // +0x0
 };
 
 class Base_00490a10 {

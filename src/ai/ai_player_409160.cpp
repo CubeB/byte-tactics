@@ -103,6 +103,7 @@ public:
     int field_109;                     // +0x109
 
     PlayerAI(unsigned char player);
+    void InitUnitTables();
 };
 #pragma pack(pop)
 
@@ -111,11 +112,6 @@ extern Game* g_game;
 class Class_0040a150 {
 public:
     void InitPlacementGrid();
-};
-
-class Class_00409470 {
-public:
-    void InitUnitTables();
 };
 
 // FUNCTION: 0x409160
@@ -150,5 +146,5 @@ PlayerAI::PlayerAI(unsigned char p)
         g.unknown_0 = 0;
         locked.resize(n, g);
     }
-    ((Class_00409470*)this)->InitUnitTables();
+    ((PlayerAI*)this)->InitUnitTables();
 }

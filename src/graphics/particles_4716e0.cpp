@@ -78,7 +78,7 @@ public:
 };
 
 // The owner of the per-index lists.
-class Class_004716e0 {
+class ParticleLists {
 public:
     std::vector<ParticleSystem*> lists[1];              // 0x10 bytes each
 
@@ -96,7 +96,7 @@ public:
 };
 
 // FUNCTION: 0x4716e0
-void Class_004716e0::AddWakeParticles(int param_1, int param_2, int param_3,
+void ParticleLists::AddWakeParticles(int param_1, int param_2, int param_3,
                                   int param_4, short index, int param_6)
 {
     WakeParticles* p = new WakeParticles;

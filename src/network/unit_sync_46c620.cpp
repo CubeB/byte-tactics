@@ -19,7 +19,7 @@ struct Class_0046c620 {                 // the object at g_game+0x14
     char unknown_4cd[4];
 };
 
-class Class_00435c30 {
+class Mission {
 public:
     int FUN_00435c30();
 };
@@ -31,7 +31,7 @@ struct Game {
     char unknown_25[0x2a42 - 0x14 - sizeof(Class_0046c620)];
     unsigned char player;               // +0x2a42
     char unknown_2a43[0x391e9 - 0x2a43];
-    Class_00435c30* field_391e9;        // +0x391e9
+    Mission* field_391e9;               // +0x391e9
     char unknown_391ed[0x39201 - 0x391ed];
     char field_39201[1];                // +0x39201
 };

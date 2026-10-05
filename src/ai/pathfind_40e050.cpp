@@ -58,7 +58,7 @@ public:
 extern const char DAT_004fd670[];    // dx per direction
 extern const char DAT_004fd678[];    // dy per direction
 
-class Class_0040e050 {
+class Pathfinder {
 public:
     char unknown_0[0x1c];
     Grid_0040e050 grid;         // +0x1c
@@ -73,7 +73,7 @@ public:
 };
 
 // FUNCTION: 0x40e050
-void Class_0040e050::TracePath()
+void Pathfinder::TracePath()
 {
     Point_0040e050 cur = found;
     int dir = grid.At(found.x, found.y)->dir;

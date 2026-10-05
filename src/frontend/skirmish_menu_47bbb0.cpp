@@ -23,19 +23,12 @@ void __stdcall RenderLayer(void *, int);
 void __stdcall FUN_00491c80(int);
 void __stdcall HandleSkirmishCheatText(void *);
 
-class Class_00435a20 {
+class Mission {
 public:
     int LoadMissionByName(char *);
-};
-class Class_00435d30 {
-public:
     void FUN_00435d30(int);
-};
-class Class_00435c30 {
-public:
     char *FUN_00435c30();
 };
-
 // FUNCTION: 0x47bbb0
 void OpenSkirmishMenu(void)
 {
@@ -64,10 +57,10 @@ void OpenSkirmishMenu(void)
     }
     FUN_0049fa90(g_game + 0x519);
 
-    if (!((Class_00435a20 *)*(int *)(g_game + 0x391e9))->LoadMissionByName(*(char **)(g_game + 0x29a0) + 0x11c)) {
-        ((Class_00435d30 *)*(int *)(g_game + 0x391e9))->FUN_00435d30(0);
+    if (!((Mission *)*(int *)(g_game + 0x391e9))->LoadMissionByName(*(char **)(g_game + 0x29a0) + 0x11c)) {
+        ((Mission *)*(int *)(g_game + 0x391e9))->FUN_00435d30(0);
         strncpy(*(char **)(g_game + 0x29a0) + 0x11c,
-                ((Class_00435c30 *)*(int *)(g_game + 0x391e9))->FUN_00435c30(), 0x100);
+                ((Mission *)*(int *)(g_game + 0x391e9))->FUN_00435c30(), 0x100);
     }
 
     RefreshSkirmishSetup();

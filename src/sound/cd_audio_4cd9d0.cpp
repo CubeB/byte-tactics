@@ -2,7 +2,7 @@
 // Stores a callback, refreshes the CD audio state (0x4cda00) and runs the
 // callback.
 
-class Class_004cda00 {
+class Sound {
 public:
     void QueryDisc();
 };
@@ -19,7 +19,7 @@ public:
 int Class_004cd9d0::SetCdCallback(void (*cb)())
 {
     callback = cb;
-    ((Class_004cda00*)this)->QueryDisc();
+    ((Sound*)this)->QueryDisc();
     if (callback != 0)
         callback();
     return 1;

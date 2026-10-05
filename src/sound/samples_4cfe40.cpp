@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-class Class_004cfe40 {
+class Sound {
 public:
     char unknown_0[0x1ec];
     int format; // +0x1ec
@@ -11,7 +11,7 @@ public:
 };
 
 // FUNCTION: 0x4cfe40
-void Class_004cfe40::FillSilence(void* dest, unsigned int size)
+void Sound::FillSilence(void* dest, unsigned int size)
 {
     if (format != 8) {
         if (format != 0x10) {

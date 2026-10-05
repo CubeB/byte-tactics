@@ -9,7 +9,7 @@ struct Fpo_004de020 {
     unsigned short flags;              // +0xe
 };
 
-class Class_004ddfa0 {
+class LoadedImage {
 public:
     Fpo_004de020* GetFpoRecords();
 };
@@ -30,7 +30,7 @@ public:
 // FUNCTION: 0x4de020
 Fpo_004de020* Class_004de020::FindFpoRecord(unsigned int address)
 {
-    Fpo_004de020* first = ((Class_004ddfa0*)this)->GetFpoRecords();
+    Fpo_004de020* first = ((LoadedImage*)this)->GetFpoRecords();
     if (first == 0)
         return 0;
     int n = ((Class_004ddfe0*)this)->GetFpoRecordCount();

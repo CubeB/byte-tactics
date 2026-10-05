@@ -6,7 +6,7 @@
 
 void __cdecl FUN_004d85a0(int*);
 
-struct Class_004402e0 {
+struct MovementClass {
     int* field_0;
     short field_4;
     short field_6;
@@ -21,12 +21,12 @@ struct Class_004402e0 {
     void* field_18;
     int field_1c;
 
-    Class_004402e0();
-    ~Class_004402e0();
+    MovementClass();
+    ~MovementClass();
 };
 
 // FUNCTION: 0x440320
-Class_004402e0::~Class_004402e0()
+MovementClass::~MovementClass()
 {
     FUN_004d85a0(field_0);
     operator delete(field_18);

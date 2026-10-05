@@ -3,7 +3,7 @@
 // view, then closes the mapping and file handles.
 #include <windows.h>
 
-class Class_004e1650 {
+class MappedFile {
 public:
     HANDLE hFile;                      // +0x0
     HANDLE hMapping;                   // +0x4
@@ -13,7 +13,7 @@ public:
 };
 
 // FUNCTION: 0x4e1650
-void Class_004e1650::CloseMappedFile()
+void MappedFile::CloseMappedFile()
 {
     if (view != 0) {
         UnmapViewOfFile(view);

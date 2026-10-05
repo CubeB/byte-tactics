@@ -5,25 +5,25 @@
 
 struct Store_00401220 {
     char unknown_0[0x8c];
-    float metal;                       // +0x8c
+    float energy;                      // +0x8c
 };
 
-class Class_00401220 {
+class UnitResources {
 public:
     char unknown_0[0x4];
-    float x0;                          // +0x04
+    float energyUsed;                  // +0x04
     char unknown_8[0x30 - 0x8];
     Store_00401220* store;             // +0x30
 
-    int SpendMetal(float amount);
+    int SpendEnergy(float amount);
 };
 
 // FUNCTION: 0x401220
-int Class_00401220::SpendMetal(float amount)
+int UnitResources::SpendEnergy(float amount)
 {
-    if (store->metal >= amount) {
-        store->metal -= amount;
-        x0 += amount;
+    if (store->energy >= amount) {
+        store->energy -= amount;
+        energyUsed += amount;
         return 1;
     }
     return 0;

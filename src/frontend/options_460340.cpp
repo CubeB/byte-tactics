@@ -3,7 +3,7 @@
 // after checking that the right CD is in the drive, "Difficulty" and "CANCEL"
 // just close the dialog.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -19,7 +19,7 @@ struct Game {
     char message[0x37eee - 0x519];     // +0x519
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x391e9 - 0x37ef2];
-    Class_00435100* mode;              // +0x391e9
+    Mission* mode;                     // +0x391e9
     char unknown_391ed[0x39249 - 0x391ed];
     int field_39249;                   // +0x39249
 };

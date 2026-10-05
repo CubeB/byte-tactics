@@ -42,7 +42,7 @@ void __stdcall FUN_00467c00(void* surf, void* player, void* rect, int dy);
 unsigned short __stdcall FindUnitTypeId(const char* name);
 int __stdcall FillRectangle(void* surface, void* rect, int color);
 
-class Class_00435100 {
+class Mission {
   public:
     int FUN_00435100();
 };
@@ -247,7 +247,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                 char* definition = *(char**)(unit + 0x92);
                 unsigned int unitFlags = *(unsigned int*)(definition + 0x245);
                 int flagsOk = ((unitFlags & 0x20000) | ((unitFlags >> 1) & 0x20000)) >> 0x11;
-                int gameMode = ((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100();
+                int gameMode = ((Mission*)*(void**)(g_game + 0x391e9))->FUN_00435100();
                 if (gameMode == 3 && flagsOk)
                     strcpy(text, *(char**)(unit + 0x96) + 0x2b);
                 else

@@ -26,7 +26,7 @@
 //    do/while for prevName emits the mirrored `jg exit; jmp body`).
 //  * Other load-bearing shapes: `entry[i].name` indexing in the name
 //    searches, `base[1].field_28`, focusName searched with a `while` and
-//    `i < entry->count + 1`, the Menu field at +0x60 as a second field
+//    `i < entry->count + 1`, the Dialog field at +0x60 as a second field
 //    (field_64 at +0x64), `if (ret == 1) { ...; return layer; }` with the
 //    free path last, and SetTextColors declared `(int, int)` with a zeroed
 //    `unsigned int v` before the byte load.

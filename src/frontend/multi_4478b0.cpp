@@ -10,7 +10,7 @@
 
 struct Class_004a1080;
 struct Class_004a1450;
-struct Class_004a81e0;
+struct Dialog;
 struct Class_0049fb10;
 
 #pragma pack(push, 1)
@@ -71,7 +71,7 @@ int __stdcall FindGadgetIndex(char* entries, const char* name, int flag);
 int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_004a1450(Class_004a1450* obj, char* name, int value);
 void __stdcall FUN_0049fb10(Class_0049fb10* obj, int value);
-void __stdcall RenderLayer(Class_004a81e0* obj, int value);
+void __stdcall RenderLayer(Dialog* obj, int value);
 void __stdcall RefreshAlliesScreen(int value);
 void RebuildAllyList();
 void RefreshTeamIcons();
@@ -136,5 +136,5 @@ void OpenAlliesDialog()
     FUN_004a1450((Class_004a1450*)g_game->gui, "VICTORY",
                  (count > 1 || win) ? 1 : 0);
     FUN_0049fb10((Class_0049fb10*)g_game->gui, 1);
-    RenderLayer((Class_004a81e0*)g_game->gui, 0x40);
+    RenderLayer((Dialog*)g_game->gui, 0x40);
 }

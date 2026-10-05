@@ -7,11 +7,6 @@ struct Point_00440be0 {
     short y;
 };
 
-class Class_00440830 {
-public:
-    void RefreshPassMap(Point_00440be0 a, Point_00440be0 b);
-};
-
 #pragma pack(push, 2)
 struct Unit_00440be0 {
     char unknown_0[0x26];
@@ -34,12 +29,13 @@ public:
     unsigned int field_1c;             // +0x1c
 
     void RefreshUnitIfStale(Struct_00440be0* p);
+    void RefreshPassMap(Point_00440be0 a, Point_00440be0 b);
 };
 
 // FUNCTION: 0x440be0
 void MovementClass::RefreshUnitIfStale(Struct_00440be0* p)
 {
     if (p->unit->lastTick < field_1c) {
-        ((Class_00440830*)this)->RefreshPassMap(p->a, p->b);
+        ((MovementClass*)this)->RefreshPassMap(p->a, p->b);
     }
 }

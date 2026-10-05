@@ -5,14 +5,14 @@
 #include <string.h>
 #include <yvals.h>
 
-class Class_004e1a30 {
+class NameKey {
 public:
     char* name;                        // +0x0
-    bool FUN_004e1a30(const Class_004e1a30& other) const;
+    bool FUN_004e1a30(const NameKey& other) const;
 };
 
 struct Value_004e2620 {
-    Class_004e1a30 key;                // +0x0
+    NameKey key;                       // +0x0
     char text[500];                    // +0x4
 
     Value_004e2620& operator=(const Value_004e2620& v)
@@ -39,7 +39,7 @@ public:
 };
 
 struct Less_004e2620 {
-    bool operator()(const Class_004e1a30& a, const Class_004e1a30& b) const
+    bool operator()(const NameKey& a, const NameKey& b) const
     {
         return a.FUN_004e1a30(b);
     }

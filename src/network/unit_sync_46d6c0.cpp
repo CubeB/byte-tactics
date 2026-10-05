@@ -140,12 +140,6 @@ struct Entry_0046d6c0 {               // 0x5c bytes
     char unknown_30[0x5c - 0x30];
 };
 
-class Class_0046d860 {
-public:
-    void NotifyEntryChanged(unsigned int key);
-    void CheckUnitAvailable(unsigned int key, int y);
-};
-
 class UnitSync {
 public:
     Map_0046d6c0 map;                            // +0x00
@@ -159,6 +153,8 @@ public:
     void HandleSyncPacket(Packet_0046d6c0* packet, unsigned char player);
 
 
+    void NotifyEntryChanged(unsigned int key);
+    void CheckUnitAvailable(unsigned int key, int y);
 };
 
 // FUNCTION: 0x46d6c0
@@ -208,7 +204,7 @@ void UnitSync::HandleSyncPacket(Packet_0046d6c0* packet, unsigned char player)
                 Vec_0046d6c0& w = i->pairs;
                 w.insert(w.end(), 1, packet->field_a.all);
             }
-            ((Class_0046d860*)this)->CheckUnitAvailable(packet->field_6, packet->field_a.all);
+            ((UnitSync*)this)->CheckUnitAvailable(packet->field_6, packet->field_a.all);
             break;
 
         case 3:
@@ -229,7 +225,7 @@ void UnitSync::HandleSyncPacket(Packet_0046d6c0* packet, unsigned char player)
             r.h = packet->field_a.part.hi;
             r.unknown_c = packet->field_a.part.top;
             map[packet->field_6] = r;
-            ((Class_0046d860*)this)->NotifyEntryChanged(packet->field_6);
+            ((UnitSync*)this)->NotifyEntryChanged(packet->field_6);
         }
     }
 }

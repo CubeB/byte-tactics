@@ -86,14 +86,14 @@ struct Entry_00488310 {               // 0x24 bytes
     unsigned char flags;              // +0x23
 };
 
-class Class_00435100 {
+class Mission {
 public:
     char unknown_0[0xdac];
     Entry_00488310* list;             // +0xdac
     int count;                        // +0xdb0
 };
 
-class Class_004904b0 {
+class MissionConditions {
 public:
     char unknown_0[0x88];
     int field_88;
@@ -121,8 +121,8 @@ struct Game {
     char unknown_0[0x1b63];
     Player_00488310 players[10];      // +0x1b63
     char unknown_2851[0x391e9 - 0x2851];
-    Class_00435100* net;              // +0x391e9
-    Class_004904b0* mission;          // +0x391ed
+    Mission* net;                     // +0x391e9
+    MissionConditions* mission;       // +0x391ed
 };
 
 // RunInitialMission's third argument is the container itself: +0 is the empty

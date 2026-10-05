@@ -2,16 +2,16 @@
 
 extern int DAT_00512344;
 
-struct Class_00438830;
+struct OrderType;
 
-struct Class_00438830
+struct OrderType
 {
 public:
     int FUN_00438830();
 };
 
 // FUNCTION: 0x438830
-int Class_00438830::FUN_00438830()
+int OrderType::FUN_00438830()
 {
     unsigned int result = 0;
     result = *(unsigned char*)this;

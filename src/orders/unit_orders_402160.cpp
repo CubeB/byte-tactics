@@ -1,12 +1,8 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 
-class Class_00489800 {
+class Unit {
 public:
     void ReleaseWeapons(int param);
-};
-
-class Class_004898b0 {
-public:
     void ClaimWeapons(int param);
 };
 
@@ -39,12 +35,12 @@ int __stdcall AttackNoMoveOrder(Unit_00402160* unit, Order* order, int flags)
         ((Class_00438880*)order)->FUN_00438880(0);
         return 1;
     case 1:
-        ((Class_004898b0*)unit)->ClaimWeapons(0);
+        ((Unit*)unit)->ClaimWeapons(0);
         SetWeaponTargetUnit((char*)unit, (char*)order->field_16, 0);
         order->field_6 = 0x11808;
         return 1;
     case 2:
-        ((Class_00489800*)unit)->ReleaseWeapons(3);
+        ((Unit*)unit)->ReleaseWeapons(3);
         return 9;
     default:
         return 7;

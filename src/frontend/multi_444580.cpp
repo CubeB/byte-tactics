@@ -41,7 +41,7 @@ struct Conn_00444580 {
     int size;
 };
 
-class Class_00435d30 {
+class Mission {
 public:
     void FUN_00435d30(int param_1);
 };
@@ -60,7 +60,7 @@ struct Game_00444580 {
     Conn_00444580* conns;               // +0x2aa3
     char unknown_2aa7[0x143a7 - 0x2aa7];
     unsigned char palette[0x391e9 - 0x143a7];   // +0x143a7
-    Class_00435d30* field_391e9;        // +0x391e9
+    Mission* field_391e9;               // +0x391e9
 };
 #pragma pack(pop)
 

@@ -5,30 +5,26 @@
 #include <stdio.h>
 #include <string.h>
 
-class Class_004c3e10 {
+class TdfFile {
 public:
     char unknown_0[4];
     int field_0x4;
 
     void ResetCurrentRecord();
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
 };
 
-class Class_00435980 {
+class Mission {
 public:
     int unknown_0;
     char name[0xa08 - 4];              // +0x4
-    Class_004c3e10 list;               // +0xa08
+    TdfFile list;                      // +0xa08
 
     int MissionExists(int index);
 };
 
 // FUNCTION: 0x435980
-int Class_00435980::MissionExists(int index)
+int Mission::MissionExists(int index)
 {
     char buf[128];
     int n;
@@ -38,7 +34,7 @@ int Class_00435980::MissionExists(int index)
         n = 0;
         sprintf(buf, "MISSION%d", n);
         list.ResetCurrentRecord();
-        while (((Class_004c3410*)&list)->SelectRecord(buf)) {
+        while (((TdfFile*)&list)->SelectRecord(buf)) {
             n++;
             sprintf(buf, "MISSION%d", n);
             list.ResetCurrentRecord();

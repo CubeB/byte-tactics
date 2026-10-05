@@ -1,24 +1,20 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 #include <string.h>
 
-class Class_004c3410 {
+class TdfFile {
 public:
     int SelectRecord(char* name);
-};
-
-class Class_004c46c0 {
-public:
-    int GetFieldInt(const char* name, int def);
 };
 
 class TdfRecord {
 public:
     int GetFieldString(char* dst, char* key, size_t size, char* def);
+    int GetFieldInt(const char* name, int def);
 };
 
 struct Tree_004ad350 {
     char unknown_0[4];
-    Class_004c46c0* current;           // +0x4
+    TdfRecord* current;           // +0x4
 };
 
 #pragma pack(push, 1)
@@ -50,7 +46,7 @@ char* __stdcall Translate(char* text);
 // FUNCTION: 0x4ad350
 void __stdcall ReadCommonSection(Common_004ad350* obj, Tree_004ad350* tree)
 {
-    if (((Class_004c3410*)tree)->SelectRecord("COMMON") == 1) {
+    if (((TdfFile*)tree)->SelectRecord("COMMON") == 1) {
         obj->id = (unsigned char)tree->current->GetFieldInt("id", 0);
         obj->assoc = (unsigned char)tree->current->GetFieldInt("assoc", 0);
         ((TdfRecord*)tree->current)->GetFieldString(obj->name, "name", 0x10, DAT_005119b8);

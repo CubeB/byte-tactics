@@ -17,15 +17,7 @@ extern Game* g_game;
 class HapiBank {
 public:
     int OpenAccount(char* name);
-};
-
-class Class_004b4ba0 {
-public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* src, int len);
 };
 
@@ -36,6 +28,6 @@ void __stdcall SaveMappingData(HapiBank* file)
 {
     file->OpenAccount("Mapping");
     unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;
-    ((Class_004b4ba0*)file)->OpenNamedBox("Data");
-    ((Class_004b4cf0*)file)->WriteBox(g_game->mapping, size);
+    ((HapiBank*)file)->OpenNamedBox("Data");
+    ((HapiBank*)file)->WriteBox(g_game->mapping, size);
 }

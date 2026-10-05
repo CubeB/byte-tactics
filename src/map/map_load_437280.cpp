@@ -11,7 +11,7 @@ struct Buffer_00437280 {
     int size;
 };
 
-class Class_00437280 {
+class Mission {
 public:
     char unknown_0[0xc14];
     int* field_c14;                    // +0xc14
@@ -24,7 +24,7 @@ public:
 };
 
 // FUNCTION: 0x437280
-void Class_00437280::FreeMissionData()
+void Mission::FreeMissionData()
 {
     if (buffer0.data)
         FUN_004d85a0(buffer0.data);

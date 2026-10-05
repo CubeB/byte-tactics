@@ -24,7 +24,7 @@ public:
 };
 #pragma pack(pop)
 
-class Class_004c3490 {
+class TdfFile {
 public:
     TdfRecord* root;                                // +0x0
     TdfRecord* current;                             // +0x4
@@ -33,7 +33,7 @@ public:
 };
 
 // FUNCTION: 0x4c3490
-int Class_004c3490::SelectRecordAt(int index)
+int TdfFile::SelectRecordAt(int index)
 {
     TdfRecord* n = current ? current : root;
     TdfRecord* node = n->GetChild(index);

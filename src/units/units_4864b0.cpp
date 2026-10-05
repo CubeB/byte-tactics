@@ -38,7 +38,7 @@ struct Info_4864b0 {
     unsigned int field_1fa;            // +0x1fa
 };
 
-class Class_004b0bc0 {
+class CobScript {
 public:
     int QueryScript(char* name, int* a, int* b, int c, int d);
 };
@@ -47,7 +47,7 @@ struct Unit {
     char unknown_0[0x92];
     Info_4864b0* info;                 // +0x92
     Link_4864b0* link;                 // +0x96
-    Class_004b0bc0* field_9a;          // +0x9a
+    CobScript* field_9a;               // +0x9a
     char unknown_9e[0xa8 - 0x9e];
     unsigned short field_a8;           // +0xa8
     char unknown_aa[0xf0 - 0xaa];

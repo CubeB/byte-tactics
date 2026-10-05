@@ -49,7 +49,7 @@ static inline void ClampToZero(int& value)
         value = 0;
 }
 
-class Class_0043cc20 {
+class UnitMotion {
 public:
     char unknown_0[8];
     Vec3_0043cc20 pos;                 // +0x8
@@ -60,7 +60,7 @@ public:
 };
 
 // FUNCTION: 0x43cc20
-void Class_0043cc20::FUN_0043cc20(Unit* unit, int amount)
+void UnitMotion::FUN_0043cc20(Unit* unit, int amount)
 {
     field_20 = field_20 + amount;
     ClampToZero(field_20);

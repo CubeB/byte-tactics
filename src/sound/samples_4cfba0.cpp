@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004cfba0 {
+class Sound {
 public:
     char unknown_0[0x1e4];
     int field_1e4;
@@ -11,7 +11,7 @@ public:
 };
 
 // FUNCTION: 0x4cfba0
-int Class_004cfba0::IsStreamActive(void)
+int Sound::IsStreamActive(void)
 {
     if (field_1e4 == 0 && field_288 == -1) {
         return 0;

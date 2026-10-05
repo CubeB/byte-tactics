@@ -12,14 +12,14 @@ struct CommandArgs {
     int GetIntArg(int param_1, int param_2);
 };
 
-class Class_004904b0 {
+class MissionConditions {
 public:
     void FUN_004904b0();
 };
 
 struct Game {
     char unknown_0[0x391ed];
-    Class_004904b0* field_391ed;       // +0x391ed
+    MissionConditions* field_391ed;    // +0x391ed
 };
 #pragma pack(pop)
 

@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004cfeb0 {
+class Sound {
 public:
     char unknown_0[8];
     int field_8;                              // +0x8
@@ -10,7 +10,7 @@ public:
 };
 
 // FUNCTION: 0x4cfeb0
-void Class_004cfeb0::Set3DDistances(int param_1, int param_2)
+void Sound::Set3DDistances(int param_1, int param_2)
 {
     field_8 = param_1;
     field_c = param_2;

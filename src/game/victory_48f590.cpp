@@ -5,10 +5,6 @@
 class HapiBank {
 public:
     void OpenAccount(const char* name);
-};
-
-class Class_004b4630 {
-public:
     void SetIntegerItem(const char* name, int value);
 };
 
@@ -24,6 +20,6 @@ public:
 void VictoryUnitTypePassesZ::SaveState(HapiBank* obj)
 {
     obj->OpenAccount("VictoryCondition_UnitTypePassesZ");
-    ((Class_004b4630*)obj)->SetIntegerItem("Satisfied", satisfied);
-    ((Class_004b4630*)obj)->SetIntegerItem("Celebrated", celebrated);
+    ((HapiBank*)obj)->SetIntegerItem("Satisfied", satisfied);
+    ((HapiBank*)obj)->SetIntegerItem("Celebrated", celebrated);
 }

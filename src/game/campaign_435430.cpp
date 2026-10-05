@@ -15,7 +15,7 @@ void* __stdcall HAPI_OpenFileRead(char* path);
 int __stdcall HAPI_CloseFile(void* file);
 int __stdcall HAPI_FileLengthByName(char* path);
 
-class Class_00435c00 {
+class Mission {
 public:
     char unknown_0[0x104];
     char names[9][0x100];              // +0x104
@@ -37,7 +37,7 @@ public:
 };
 
 // FUNCTION: 0x435430
-void Class_00435c00::BuildCampaignFilePath(int index, char* dir, char* name, char* ext)
+void Mission::BuildCampaignFilePath(int index, char* dir, char* name, char* ext)
 {
     char path[256];
     if (strlen(name) == 0) {

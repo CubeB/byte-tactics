@@ -53,28 +53,12 @@ public:
     char unknown_0[1];
 };
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* src, int len);
-};
-
-class Class_004b4750 {
-public:
     int SetStringItem(char* name, char* value);
-};
-
-class Class_004b48f0 {
-public:
     int HasItem(char* name);
 };
 
@@ -168,13 +152,13 @@ int Class_0043a1f0::FUN_0043a970(Unit* punit, File_0043a970* file, char* name)
     desc.flags = flags;
     desc.field_36 = field_4e;
 
-    ((Class_004b4ba0*)file)->OpenNamedBox(name);
-    ((Class_004b4c10*)file)->SeekBox(0);
-    ((Class_004b4cf0*)file)->WriteBox(&desc, 0x3a);
+    ((HapiBank*)file)->OpenNamedBox(name);
+    ((HapiBank*)file)->SeekBox(0);
+    ((HapiBank*)file)->WriteBox(&desc, 0x3a);
 
     char buf1[0x80];
     sprintf(buf1, "%s%s", name, "_name");
-    ((Class_004b4750*)file)->SetStringItem(buf1, DAT_00512344[kind].name);
+    ((HapiBank*)file)->SetStringItem(buf1, DAT_00512344[kind].name);
 
     char* s = DAT_00512344[kind].name;
     if (strcmp(s, "MobileBuild") == 0 || strcmp(s, "VTOL_MobileBuild") == 0 ||
@@ -182,8 +166,8 @@ int Class_0043a1f0::FUN_0043a970(Unit* punit, File_0043a970* file, char* name)
         unsigned short id = field_36;
         char buf2[0x80];
         sprintf(buf2, "UTYPENAME%4d", id);
-        if (!((Class_004b48f0*)file)->HasItem(buf2) && id >= 1 && id < g_game->unitTypeCount)
-            ((Class_004b4750*)file)->SetStringItem(buf2, g_game->unitTypes[id].name);
+        if (!((HapiBank*)file)->HasItem(buf2) && id >= 1 && id < g_game->unitTypeCount)
+            ((HapiBank*)file)->SetStringItem(buf2, g_game->unitTypes[id].name);
     }
 
     if (desc.field_4 != 0) {

@@ -9,19 +9,12 @@
 // the compiler then keeps it in bl and emits the xor/and/xor bitfield-merge
 // idiom the original used. The low-three-bit test reads it as a byte again.
 
-class Class_004cfe80 {
+class Sound {
 public:
     char unknown_0[4];
     int field_4;
 
     void Enable3D();
-};
-
-class Class_004cfe90 {
-public:
-    char unknown_0[4];
-    int field_4;
-
     void Disable3D();
 };
 
@@ -65,9 +58,9 @@ void FUN_0045c820()
     g_game->field_37f19 = (g_game->field_37f19 & ~0x20) | (DAT_00512f4b & 0x20);
     g_game->field_37f19 = (g_game->field_37f19 & ~0x40) | ((DAT_00512f4b & 0x20) << 1);
     if ((((unsigned char)DAT_00512f4b) & 7) == 2)
-        ((Class_004cfe80*)g_game->sound)->Enable3D();
+        ((Sound*)g_game->sound)->Enable3D();
     else
-        ((Class_004cfe90*)g_game->sound)->Disable3D();
+        ((Sound*)g_game->sound)->Disable3D();
     g_game->field_37f19 = (g_game->field_37f19 & ~7) | (DAT_00512f4b & 7);
     g_game->field_37f17 = DAT_00512f49;
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);

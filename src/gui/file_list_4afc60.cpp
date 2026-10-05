@@ -5,7 +5,7 @@ struct BlinkWord_004afc60 {
 };
 
 #pragma pack(push, 2)
-struct Class_004afc60 {
+struct Dialog {
     char unknown_0[0xa6];
     BlinkWord_004afc60* words;         // +0xa6
     int count;                         // +0xaa
@@ -17,7 +17,7 @@ void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4afc60
-void __stdcall AllocBlinkWords(Class_004afc60* obj, int count)
+void __stdcall AllocBlinkWords(Dialog* obj, int count)
 {
     if (obj->words) {
         FUN_004d85a0(obj->words);

@@ -82,7 +82,7 @@ public:
 };
 
 // The owner of the per-index lists.
-class Class_004715a0 {
+class ParticleLists {
 public:
     std::vector<ParticleSystem*> lists[1];              // 0x10 bytes each
 
@@ -99,7 +99,7 @@ public:
 };
 
 // FUNCTION: 0x4715a0
-void Class_004715a0::AddThrustParticles(int param_1, int param_2, int param_3, int param_4, short index)
+void ParticleLists::AddThrustParticles(int param_1, int param_2, int param_3, int param_4, short index)
 {
     ThrustParticles* p = new ThrustParticles;
     if (p) {

@@ -4,30 +4,26 @@
 #include <stdio.h>
 #include <string.h>
 
-class Class_004c3e10 {
+class TdfFile {
 public:
     char unknown_0[4];
     int field_0x4;
 
     void ResetCurrentRecord();
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
 };
 
-class Class_004356f0 {
+class Mission {
 public:
     int unknown_0;
     char name[0xa08 - 4];              // +0x4
-    Class_004c3e10 list;               // +0xa08
+    TdfFile list;                      // +0xa08
 
     int CountMissions();
 };
 
 // FUNCTION: 0x4356f0
-int Class_004356f0::CountMissions()
+int Mission::CountMissions()
 {
     char buf[128];
     if (strlen(name) == 0)
@@ -36,7 +32,7 @@ int Class_004356f0::CountMissions()
     while (1) {
         sprintf(buf, "MISSION%d", n);
         list.ResetCurrentRecord();
-        if (((Class_004c3410*)&list)->SelectRecord(buf) == 0)
+        if (((TdfFile*)&list)->SelectRecord(buf) == 0)
             break;
         n++;
     }

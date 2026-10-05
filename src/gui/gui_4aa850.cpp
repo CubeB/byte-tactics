@@ -3,7 +3,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-class Class_0051fba4 {
+class Dialog {
 public:
     char unknown_0[0x4];
     int field_4;                       // +0x4
@@ -30,12 +30,12 @@ public:
 };
 #pragma pack(pop)
 
-extern Class_0051fba4* g_guiContext;
+extern Dialog* g_guiContext;
 
 unsigned int __cdecl GetTicks();
 
 // FUNCTION: 0x4aa850
-void __stdcall SetCurrentGuiContext(Class_0051fba4* ctx)
+void __stdcall SetCurrentGuiContext(Dialog* ctx)
 {
     g_guiContext = ctx;
     ctx->field_18 = 0;

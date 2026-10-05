@@ -41,32 +41,7 @@ public:
     void SiftDown(int i);
 };
 
-class Class_0040f1e0 {
-public:
-    void FreeNode(int index);
-};
-
-class Class_0040ef20 {
-public:
-    void RemoveNode(int k);
-};
-
-class Class_0040da70 {
-public:
-    void ExpandNeighbour(NodeData_0040eb70* from, Cell_0040eb70* cell, int turn);
-};
-
-class Class_0040e050 {
-public:
-    void TracePath();
-};
-
 class Target_0040eb70;
-
-class Class_0040e630 {
-public:
-    void StartSearch(Target_0040eb70* t);
-};
 
 class Class_0044f010 {
 public:
@@ -134,7 +109,7 @@ public:
 };
 
 #pragma pack(push, 1)
-class Class_0040eb70 {
+class Pathfinder {
 public:
     Node_0040eb70* pool;               // +0x0
     Node_0040eb70** items;             // +0x4
@@ -174,6 +149,11 @@ public:
     }
 
     void RunSearches();
+    void FreeNode(int index);
+    void RemoveNode(int k);
+    void ExpandNeighbour(NodeData_0040eb70* from, Cell_0040eb70* cell, int turn);
+    void TracePath();
+    void StartSearch(Target_0040eb70* t);
 };
 #pragma pack(pop)
 
@@ -189,7 +169,7 @@ static int IsPlaying(unsigned char i)
 }
 
 // FUNCTION: 0x40eb70
-void Class_0040eb70::RunSearches()
+void Pathfinder::RunSearches()
 {
     unsigned short players = g_game->field_2a3c;
     if (players == 0)
@@ -239,7 +219,7 @@ void Class_0040eb70::RunSearches()
                     object = u;
                     steps += 100;
                     costScale = DAT_005119e8[player];
-                    ((Class_0040e630*)this)->StartSearch(path->target);
+                    ((Pathfinder*)this)->StartSearch(path->target);
                 }
             }
         } else if (Size() != 0) {
@@ -251,7 +231,7 @@ void Class_0040eb70::RunSearches()
                     topPopped = 0;
                     int k = items[0] - pool;
                     int idx = pool[k].index;
-                    ((Class_0040f1e0*)this)->FreeNode(k);
+                    ((Pathfinder*)this)->FreeNode(k);
                     count--;
                     if (idx < count) {
                         items[idx] = items[count];
@@ -263,17 +243,17 @@ void Class_0040eb70::RunSearches()
                 if (!topPopped)
                     topPopped = 1;
                 else
-                    ((Class_0040ef20*)this)->RemoveNode(items[0] - pool);
+                    ((Pathfinder*)this)->RemoveNode(items[0] - pool);
                 Cell_0040eb70* cell = &cells[width * d.pos.y + d.pos.x];
                 if (cell->flags & 4) {
                     found = d.pos;
-                    ((Class_0040e050*)this)->TracePath();
+                    ((Pathfinder*)this)->TracePath();
                     Release();
                     break;
                 }
                 cell->flags = 2;
                 for (int k = -range; k <= range; k++)
-                    ((Class_0040da70*)this)->ExpandNeighbour(&d, cell, k & 7);
+                    ((Pathfinder*)this)->ExpandNeighbour(&d, cell, k & 7);
                 range = 2;
                 if (steps >= 100)
                     break;

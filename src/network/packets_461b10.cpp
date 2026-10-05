@@ -33,12 +33,7 @@ struct Packet_004629b0 {
     Packet_004629b0* next;              // +0x1c
 };
 
-class Class_00461fd0 {
-public:
-    int GrowPools(int unused, int size);
-};
-
-class Class_00461b10 {
+class PacketChannel {
 public:
     int head;                           // +0x0
     char unknown_4[4];
@@ -48,6 +43,10 @@ public:
     int minRetain;                      // +0x18
 
     PacketBuffer* AllocBuffer();
+    int GrowPools(int unused, int size);
+    // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+    int GetMinRetainMs();
+    int InitPools(int, unsigned int, int, int);
 };
 
 static inline int IsReusable(PacketBuffer* buf, int minRetain)
@@ -73,7 +72,7 @@ static inline int IsReusable(PacketBuffer* buf, int minRetain)
 }
 
 // FUNCTION: 0x461b10
-PacketBuffer* Class_00461b10::AllocBuffer()
+PacketBuffer* PacketChannel::AllocBuffer()
 {
     for (;;) {
         if (count > 0) {
@@ -95,7 +94,7 @@ PacketBuffer* Class_00461b10::AllocBuffer()
                 return buf;
             }
         }
-        if (((Class_00461fd0*)this)->GrowPools(0x10, 0x320) == 0)
+        if (((PacketChannel*)this)->GrowPools(0x10, 0x320) == 0)
             return 0;
     }
 }

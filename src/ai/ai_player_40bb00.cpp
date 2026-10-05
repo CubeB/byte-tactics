@@ -23,11 +23,11 @@
 #include <minmax.h>
 #include <math.h>
 struct Rating { signed char normal,metal,energy; };
-class Class_00435100 { public: int FUN_00435100(); };
+class Mission { public: int FUN_00435100(); };
 #pragma pack(push,1)
 struct Player { char pad[0x8c]; float energy; char pad90[8]; float metal; char pad9c[8]; float energyCapacity,metalCapacity; char padac[0x14b-0xac]; };
 struct Def { char pad[0x241]; unsigned flags; char pad245[4]; };
-struct Game { char pad[0x1b63]; Player players[10]; char pad2851[0x1439b-0x1b63-10*0x14b]; Def* defs; char pad1439f[0x391e9-0x1439f]; Class_00435100* mode; };
+struct Game { char pad[0x1b63]; Player players[10]; char pad2851[0x1439b-0x1b63-10*0x14b]; Def* defs; char pad1439f[0x391e9-0x1439f]; Mission* mode; };
 struct Owner { char pad[0x69]; Rating* ratings; char pad6d[0x81-0x6d]; short* counts; char pad85[0xb1-0x85]; unsigned char* weights; };
 #pragma pack(pop)
 extern Game* g_game;

@@ -19,7 +19,7 @@ public:
     int SetAuxVolume(int volume, int temporary);
 };
 
-class Class_004ce690 {
+class Sound {
 public:
     char unknown_0[0x20];
     int field_20;                      // +0x20
@@ -36,7 +36,7 @@ public:
 };
 
 // FUNCTION: 0x4ce690
-void Class_004ce690::SetTrackCategory(int mode)
+void Sound::SetTrackCategory(int mode)
 {
     int old = field_278;
     if (old == mode)

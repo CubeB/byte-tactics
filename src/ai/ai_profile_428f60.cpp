@@ -4,7 +4,7 @@
 // sets the "error reported" flag.
 #include <stdio.h>
 
-class Class_004356c0 {
+class Mission {
 public:
     int FUN_004356c0(int param_1);
 };
@@ -12,13 +12,13 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x391e9];
-    Class_004356c0* field_391e9;       // +0x391e9
+    Mission* field_391e9;              // +0x391e9
 };
 #pragma pack(pop)
 
 extern Game* g_game;
 
-class Class_00428f60 {
+class AIProfileParser {
 public:
     char unknown_0[0x8c];
     int errorReported;                 // +0x8c
@@ -27,7 +27,7 @@ public:
 };
 
 // FUNCTION: 0x428f60
-void Class_00428f60::ReportParseError(char* text)
+void AIProfileParser::ReportParseError(char* text)
 {
     char buffer[256];
     if (!errorReported) {

@@ -1,12 +1,12 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004cfea0 {
+class Sound {
 public:
     int Is3DEnabled();
 };
 
 // FUNCTION: 0x4cfea0
-int Class_004cfea0::Is3DEnabled()
+int Sound::Is3DEnabled()
 {
     return *(int*)((char*)this + 4);
 }

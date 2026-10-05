@@ -12,7 +12,7 @@ struct Elem_0040f110 {
     int field_10;
 };
 
-class Class_0040f110 {
+class Pathfinder {
 public:
     Elem_0040f110* elems;              // +0x0
     Elem_0040f110** ptrs;              // +0x4
@@ -25,7 +25,7 @@ public:
 };
 
 // FUNCTION: 0x40f110
-void Class_0040f110::GrowNodes(int param_1)
+void Pathfinder::GrowNodes(int param_1)
 {
     int cap = capacity;
     if (param_1 < cap)

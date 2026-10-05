@@ -3,7 +3,7 @@
 // back to the shipped ai\default.txt, then re-runs the two unit-name loops for
 // every player whose type byte is 2.
 
-class Class_004356c0 {
+class Mission {
 public:
     char* FUN_004356c0(int index);
 };
@@ -20,7 +20,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player_004648e0 players[10];       // +0x1b63
     char unknown_2851[0x391e9 - 0x2851];
-    Class_004356c0* net;               // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 #pragma pack(pop)
 

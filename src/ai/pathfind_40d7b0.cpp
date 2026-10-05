@@ -39,7 +39,7 @@ struct Map_0040d7b0 {
     }
 };
 
-struct Class_0040d7b0 {
+struct Pathfinder {
     char unknown_0[0x64];
     Map_0040d7b0* map;                 // +0x64
     char unknown_68[0x78 - 0x68];
@@ -49,7 +49,7 @@ struct Class_0040d7b0 {
 };
 
 // FUNCTION: 0x40d7b0
-int Class_0040d7b0::GetCellState(int x, int y)
+int Pathfinder::GetCellState(int x, int y)
 {
     if (!map->InBounds(x, y))
         return 0;

@@ -30,13 +30,13 @@ struct Font_004a5d50 {
     void* glyphs;                      // +0x0c
 };
 
-struct Class_0051fba4 {
+struct Dialog {
     char unknown_0[0x14];
     Font_004a5d50* font;               // +0x14
 };
 #pragma pack(pop)
 
-extern Class_0051fba4* g_guiContext;
+extern Dialog* g_guiContext;
 
 char* __stdcall GetGadgetText(Menu_004a5d50* menu, char* name, char* buf);
 void* __stdcall GetGafFrame(void* glyphs, int c);

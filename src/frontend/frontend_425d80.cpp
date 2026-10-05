@@ -6,18 +6,14 @@
 #include <stdio.h>
 #include <windows.h>
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;                       // +0x0
     int field_4;                       // +0x4
     int field_8;                       // +0x8
 
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* file);
 };
 
@@ -73,8 +69,8 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
         FUN_00491c80(0x14);
         RegisterDataArchives();
         BuildDataPath(buf, "maps", "multiplay", "tdf");
-        Class_004c2ea0 obj;
-        if (((Class_004c2f60*)&obj)->LoadFile(buf) != 0) {
+        TdfFile obj;
+        if (((TdfFile*)&obj)->LoadFile(buf) != 0) {
             g_game[0x2bc0] = 6;
             SetOffscreenSurface(*(int*)(g_game + 0x37e1b));
             FillSurface(0, 0);

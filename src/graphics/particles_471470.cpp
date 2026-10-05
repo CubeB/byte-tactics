@@ -76,7 +76,7 @@ public:
 };
 
 // The owner of the per-index lists.
-class Class_00471470 {
+class ParticleLists {
 public:
     std::vector<ParticleSystem*> lists[1];              // 0x10 bytes each
 
@@ -93,7 +93,7 @@ public:
 };
 
 // FUNCTION: 0x471470
-void Class_00471470::AddNanoParticles(int param_1, int param_2, int param_3, short index)
+void ParticleLists::AddNanoParticles(int param_1, int param_2, int param_3, short index)
 {
     NanoParticles* p = new NanoParticles;
     if (p) {

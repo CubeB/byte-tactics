@@ -18,7 +18,7 @@ struct Holder_004a6a40 {
 };
 
 #pragma pack(push, 1)
-struct Class_004a6a40 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a6a40* holder;           // +0x18
     char unknown_1c[0xcca - 0x1c];
@@ -26,11 +26,11 @@ struct Class_004a6a40 {
 };
 #pragma pack(pop)
 
-void __stdcall DrawButton(Class_004a6a40* param_1, int param_2);
+void __stdcall DrawButton(Dialog* param_1, int param_2);
 
 // Sibling of 0x4a69d0, limited to the entries on the same team as `index`.
 // FUNCTION: 0x4a6a40
-void __stdcall FUN_004a6a40(Class_004a6a40* param_1, int index)
+void __stdcall FUN_004a6a40(Dialog* param_1, int index)
 {
     Entry_004a6a40* entries = param_1->holder->entries;
     Entry_004a6a40* e = &entries[1];

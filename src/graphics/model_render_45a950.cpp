@@ -7,12 +7,12 @@
 // AddStateEntries result went into, because a swap can have moved that entry.
 #include <string.h>
 
-struct Class_0045ae80 {
+struct Object3do {
     char unknown_0[0x1c];
     const char* name;                  // +0x1c
     char unknown_20[0x2c - 0x20];
-    Class_0045ae80* unknown_2c;         // +0x2c
-    Class_0045ae80* unknown_30;         // +0x30
+    Object3do* unknown_2c;              // +0x2c
+    Object3do* unknown_30;              // +0x30
 };
 
 struct BuildList_0045a950 {
@@ -25,7 +25,7 @@ struct BuildList_0045a950 {
 #pragma pack(push, 2)
 
 struct Entry_0045a950 {
-    Class_0045ae80* object;             // +0x0
+    Object3do* object;                  // +0x0
     char unknown_4[0x32];
 };
 
@@ -41,13 +41,13 @@ struct ObjectState_0045a950 {
 
 #pragma pack(pop)
 
-int __stdcall CountObjects(Class_0045ae80* obj);
-void* __stdcall AddStateEntries(ObjectState_0045a950* state, Class_0045ae80* obj, int parent);
-void* __stdcall LinkStateEntries(ObjectState_0045a950* state, Class_0045ae80* obj, void* parent);
+int __stdcall CountObjects(Object3do* obj);
+void* __stdcall AddStateEntries(ObjectState_0045a950* state, Object3do* obj, int parent);
+void* __stdcall LinkStateEntries(ObjectState_0045a950* state, Object3do* obj, void* parent);
 void* __cdecl FUN_004d83b0(char* name, int size);
 
 // FUNCTION: 0x45a950
-ObjectState_0045a950* __stdcall CreatePlayerObjectState(Class_0045ae80* obj, BuildList_0045a950* list, int player)
+ObjectState_0045a950* __stdcall CreatePlayerObjectState(Object3do* obj, BuildList_0045a950* list, int player)
 {
     int count = 1;
     if (obj->unknown_30 != 0) {

@@ -165,7 +165,7 @@ class Class_004dbeb0 { public: Class_004dbe10 FUN_004dbeb0(); };
 class Class_004dbd00 { public: Class_004dbe10 FUN_004dbd00(Class_004dbe10 it); };
 class Class_004dce60 { public: Class_004ddbe0 FUN_004dbbc0(const Pair_004db000& v); };
 
-class Class_004db000 {
+class FreeBlockMap {
 public:
     char unknown_0[4];     // +0x0
     Node_004dacf0* head;   // +0x4
@@ -212,7 +212,7 @@ public:
 CRITICAL_SECTION* FUN_004da780();
 Class_004dce00* GetBlockMap();
 Arena_004da9f0* GetFreedBlockRing();
-Class_004db000* GetFreeBlockSet();
+FreeBlockMap* GetFreeBlockSet();
 char IsBackAlign();
 int FUN_004db7c0();
 void __cdecl CheckFillPattern(void* at, int value, unsigned int count);
@@ -256,7 +256,7 @@ void __cdecl FreeDebugBlock(void* p, int flags)
     unsigned int commit = RoundUpToPage(size);
     VirtualFree(p, commit, MEM_DECOMMIT);
     unsigned int reserve = FUN_004da8a0(size);
-    Class_004db000* blocks = GetFreeBlockSet();
+    FreeBlockMap* blocks = GetFreeBlockSet();
     blocks->AddFreeBlock(Pair_004db000((unsigned int)p, reserve));
     LeaveCriticalSection(lock);
 }

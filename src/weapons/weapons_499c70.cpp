@@ -2,14 +2,14 @@
 
 struct Weapon_499c70;
 
-class Class_00406f50 {
+class SquadManager {
 public:
     void FUN_00406f50(Weapon_499c70* weapon, int a, int b);
 };
 
 struct Player_499c70 {
     char unknown_0[0x74];
-    Class_00406f50* field_74;          // +0x74
+    SquadManager* field_74;            // +0x74
 };
 
 #pragma pack(push, 1)

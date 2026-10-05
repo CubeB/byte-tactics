@@ -25,7 +25,7 @@ class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(short); };
-class Class_004b0940 { public: void StartScript(const char*, int, int); };
+class CobScript { public: void StartScript(const char*, int, int); };
 
 #pragma pack(push, 1)
 struct UnitDef {
@@ -39,7 +39,7 @@ struct Unit {
     char pad76[8]; Point footprint;
     char pad82[8]; Unit* cargo;
     char pad8e[4]; UnitDef* def;
-    char pad96[4]; Class_004b0940* script;
+    char pad96[4]; CobScript* script;
 };
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;

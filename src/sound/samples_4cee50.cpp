@@ -12,7 +12,7 @@ public:
     int QueryAuxVolume();
 };
 
-class Class_004cee50 {
+class Sound {
 public:
     int field_0;                       // +0x0
     int field_4;                       // +0x4
@@ -40,11 +40,11 @@ public:
     char unknown_28c[0x290 - 0x28c];
     int field_290;                     // +0x290
 
-    Class_004cee50();
+    Sound();
 };
 
 // FUNCTION: 0x4cee50
-Class_004cee50::Class_004cee50()
+Sound::Sound()
 {
     field_0 = 0;
     field_4 = 0;

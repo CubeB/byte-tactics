@@ -23,14 +23,14 @@
 
 #pragma pack(push, 2)
 
-struct Class_0045ac20 {
+struct Object3do {
     char unknown_0[4];
     int point_count;                    // +0x4
     char unknown_8[0x24 - 0x8];
     void* points;                       // +0x24
     char unknown_28[0x2c - 0x28];
-    Class_0045ac20* sibling;            // +0x2c
-    Class_0045ac20* child;              // +0x30
+    Object3do* sibling;                 // +0x2c
+    Object3do* child;                   // +0x30
 };
 
 struct Flags_0045ac20 {
@@ -39,7 +39,7 @@ struct Flags_0045ac20 {
 };
 
 struct Entry_0045ac20 {
-    Class_0045ac20* object;             // +0x00
+    Object3do* object;                  // +0x00
     char unknown_4[0x16 - 0x4];
     int offset_x;                       // +0x16
     int offset_y;                       // +0x1a
@@ -107,7 +107,7 @@ int __fastcall RestorePieceVertices(Entry_0045ac20* piece, int force)
 
 void __fastcall PoseModel(State_0045ac20* state, Entry_0045ac20* entry, int flag);
 
-class Class_00437c80 {
+class CMemoryCache {
 public:
     void DrawObjectState(State_0045ac20* state, void* context);
 };
@@ -115,7 +115,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char pad0[0x1437b];
-    Class_00437c80* obj;                // +0x1437b
+    CMemoryCache* obj;                  // +0x1437b
 };
 #pragma pack(pop)
 

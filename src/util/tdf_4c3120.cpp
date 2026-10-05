@@ -2,7 +2,7 @@
 // Loads a .TDF document from an in-memory buffer: throws away the tree parsed
 // from the previous load and parses the buffer again. The buffer is copied
 // into a fresh "TDF file" block that is NUL terminated, comments are blanked
-// out in that copy (Class_004c33a0::StripComments), and the text is parsed
+// out in that copy (TdfFile::StripComments), and the text is parsed
 // into a new root section named "root" (FUN_004c3e40). The class holding the
 // tree is the same one 0x4c2f60 loads files into.
 #include <vector>
@@ -60,21 +60,17 @@ public:
 };
 #pragma pack(pop)
 
-class Class_004c33a0 {
-public:
-    void StripComments(char* p);
-};
-
-class Class_004c2f60 {
+class TdfFile {
 public:
     TdfRecord* root;                     // +0x0
     int field_4;                           // +0x4
     int field_8;                           // +0x8
     void LoadBuffer(char* data, int size, int flag, char* path);
+    void StripComments(char* p);
 };
 
 // FUNCTION: 0x4c3120
-void Class_004c2f60::LoadBuffer(char* data, int size, int flag, char* path)
+void TdfFile::LoadBuffer(char* data, int size, int flag, char* path)
 {
     delete root;
     root = 0;
@@ -83,7 +79,7 @@ void Class_004c2f60::LoadBuffer(char* data, int size, int flag, char* path)
     char* text = (char*)FUN_004d83b0("TDF file", size + 1);
     memcpy(text, data, size);
     text[size] = 0;
-    ((Class_004c33a0*)this)->StripComments(text);
+    ((TdfFile*)this)->StripComments(text);
     TdfRecord* node = (TdfRecord*)operator new(0x29);
     root = node ? node->FUN_004c3e40("root", text, 0, path) : 0;
     FUN_004d85a0((int*)text);

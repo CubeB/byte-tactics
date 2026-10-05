@@ -2,7 +2,7 @@
 
 extern void __cdecl operator delete(void*);
 
-struct Class_00415b90 {
+struct BitWriter {
     char unknown_0[0xc];
     void* ptr;          // +0xc
     char unknown_10[4];
@@ -11,7 +11,7 @@ struct Class_00415b90 {
 };
 
 // FUNCTION: 0x415b90
-void Class_00415b90::FreeBuffer()
+void BitWriter::FreeBuffer()
 {
     if (ptr != (void*)((char*)this + 0x10)) {
         operator delete(ptr);

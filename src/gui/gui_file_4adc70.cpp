@@ -6,14 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-class Class_004c46c0 {
-public:
-    int GetFieldInt(const char* name, int def);
-};
-
 class TdfRecord {
 public:
     int GetFieldString(char* dst, char* key, size_t size, char* def);
+    int GetFieldInt(const char* name, int def);
 };
 
 struct Source_004adc70 {
@@ -39,7 +35,7 @@ char* __stdcall Translate(char* text);
 // FUNCTION: 0x4adc70
 void __stdcall ReadButtonFields(Obj_004adc70* obj, Source_004adc70* src)
 {
-    obj->status = (short)((Class_004c46c0*)src->tdf)->GetFieldInt("status", 0);
+    obj->status = (short)((TdfRecord*)src->tdf)->GetFieldInt("status", 0);
     memset(obj->text, 0, 0x80);
     src->tdf->GetFieldString(obj->text, "text", 0x80, DAT_005119b8);
     strncpy(obj->text, Translate(obj->text), 0x80);
@@ -49,7 +45,7 @@ void __stdcall ReadButtonFields(Obj_004adc70* obj, Source_004adc70* src)
         obj->quickkey = (unsigned char)local[0];
     else
         obj->quickkey = (unsigned char)atoi(local);
-    int gray = ((Class_004c46c0*)src->tdf)->GetFieldInt("grayedout", 0);
+    int gray = ((TdfRecord*)src->tdf)->GetFieldInt("grayedout", 0);
     obj->grayedout = (gray ^ obj->grayedout) & 1 ^ obj->grayedout;
-    obj->stages = (unsigned char)((Class_004c46c0*)src->tdf)->GetFieldInt("stages", 0);
+    obj->stages = (unsigned char)((TdfRecord*)src->tdf)->GetFieldInt("stages", 0);
 }

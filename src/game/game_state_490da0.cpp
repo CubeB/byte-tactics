@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -13,7 +13,7 @@ struct Game {
     short field_38a4b;                 // +0x38a4b
     short field_38a4d;                 // +0x38a4d
     char unknown_38a4f[0x391e9 - 0x38a4f];
-    Class_00435100* field_391e9;       // +0x391e9
+    Mission* field_391e9;              // +0x391e9
 };
 #pragma pack(pop)
 

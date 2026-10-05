@@ -264,7 +264,7 @@ struct UnitList_00409730 {
     std::vector<Unit*> units;
 };
 
-class Class_00409730 {
+class PlayerAI {
 public:
     Player_00409730* player;           // +0x00
     unsigned char index;               // +0x04
@@ -330,7 +330,7 @@ int __stdcall RateUnitType(Def_00409730* p)
 }
 
 // FUNCTION: 0x409730
-void Class_00409730::ComputeBaseWeights()
+void PlayerAI::ComputeBaseWeights()
 {
     vec_8d.resize(g_game->count, 0);
     {

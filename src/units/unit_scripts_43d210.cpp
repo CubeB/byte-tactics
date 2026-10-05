@@ -10,12 +10,12 @@ struct Vec3 {
     Vec3(int x_, int y_, int z_) : x(x_), y(y_), z(z_) {}
 };
 
-class Class_0048b090 {
+class Unit {
 public:
     void SetStateBits(int param_1, int param_2);
 };
 
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[8];
     Vec3 velocity;                     // +0x8
@@ -24,14 +24,14 @@ public:
     char unknown_24[0x2e - 0x24];
     unsigned char state : 2;           // +0x2e bits 0-1
 
-    void ApplyBankAndPitch(Class_0048b090* owner, Vec3* v);
-    void SetFlightMode(Class_0048b090* owner, int state);
+    void ApplyBankAndPitch(Unit* owner, Vec3* v);
+    void SetFlightMode(Unit* owner, int state);
 };
 
 // field_20 must be cleared before the zero vector is built: it is stored
 // with an immediate while the vector uses zeroed registers.
 // FUNCTION: 0x43d210
-void Class_0043d210::SetFlightMode(Class_0048b090* owner, int newState)
+void UnitMotion::SetFlightMode(Unit* owner, int newState)
 {
     if (state != newState) {
         if (newState == 1) {

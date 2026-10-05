@@ -2,25 +2,17 @@
 // Load constructor of Class_0044e740 (vtable 0x4fd3f8): reads a 0x2a-byte
 // header from a named entry of an open file, then looks up the unit it names.
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4c80 {
-public:
     int ReadBox(void* buf, int size);
 };
 
 struct Unit_0044e7d0;
 
 extern void* DAT_004fd3f8[];
-extern Unit_0044e7d0* __stdcall LoadUnit(int unit, Class_004b4ba0* file);
+extern Unit_0044e7d0* __stdcall LoadUnit(int unit, HapiBank* file);
 
 #pragma pack(push, 2)
 struct Vec3_0044e7d0 {
@@ -61,19 +53,19 @@ public:
     unsigned short value_26;           // +0x26
     Unit_0044e7d0* self;               // +0x28
 
-    Class_0044e740(int owner, Class_004b4ba0* file, char* name);
+    Class_0044e740(int owner, HapiBank* file, char* name);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x44e7d0
-Class_0044e740::Class_0044e740(int owner, Class_004b4ba0* file, char* name)
+Class_0044e740::Class_0044e740(int owner, HapiBank* file, char* name)
 {
     field_4 = owner;
     vtable = DAT_004fd3f8;
     file->OpenNamedBox(name);
-    ((Class_004b4c10*)file)->SeekBox(0);
+    ((HapiBank*)file)->SeekBox(0);
     Header_0044e7d0 hdr;
-    if (((Class_004b4c80*)file)->ReadBox(&hdr, 0x2a) == 0x2a) {
+    if (((HapiBank*)file)->ReadBox(&hdr, 0x2a) == 0x2a) {
         self = LoadUnit(hdr.id, file);
         flag = hdr.id_flag.flag;
         target = hdr.target;

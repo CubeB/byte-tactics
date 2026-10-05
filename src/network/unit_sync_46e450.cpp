@@ -44,12 +44,7 @@ public:
     Node_0046e450* FUN_0046fe60(const unsigned int* key);
 };
 
-class Class_0046d860 {
-public:
-    void NotifyEntryChanged(unsigned int key);
-};
-
-class Class_0046e450 {
+class UnitSync {
 public:
     Less_0046e450 compare;
     Node_0046e450* head;               // +0x4
@@ -61,13 +56,14 @@ public:
         return (p == End() || compare(*key, p.ptr->key)) ? End() : p;
     }
     int DisallowUnit(Unit_0046e450* unit);
+    void NotifyEntryChanged(unsigned int key);
 };
 
 // FUNCTION: 0x46e450
-int Class_0046e450::DisallowUnit(Unit_0046e450* unit)
+int UnitSync::DisallowUnit(Unit_0046e450* unit)
 {
     Node_0046e450* n = Find(&unit->key).ptr;
     n->value.w = 0;
-    ((Class_0046d860*)this)->NotifyEntryChanged(unit->key);
+    ((UnitSync*)this)->NotifyEntryChanged(unit->key);
     return n->value.w != 0 && n->value.h != 0;
 }

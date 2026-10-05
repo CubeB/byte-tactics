@@ -32,7 +32,7 @@ public:
 };
 
 struct Unit;
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[8];
     Vec3 v;                            // +0x8
@@ -40,9 +40,6 @@ public:
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_00489800 { public: void ReleaseWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
@@ -56,7 +53,7 @@ struct UnitDef {
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
 struct Unit {
-    Class_0043d210* type;
+    UnitMotion* type;
     char pad4[0x66 - 4]; short heading;
     char pad68[2];
     union {
@@ -67,6 +64,9 @@ struct Unit {
     int field_82; int field_86;
     char pad8a[8]; UnitDef* def;
     char pad96[0x110 - 0x96]; unsigned int flags;
+    void ClaimWeapons(int);
+    void ReleaseWeapons(int);
+    void SetStateBits(int, int);
 };
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
@@ -138,10 +138,10 @@ static inline Vec3 Add(const Vec3& a, const Vec3& b)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -198,8 +198,8 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
         }
         break;
     case 1:
-        ((Class_00489800*)unit)->ReleaseWeapons(3);
-        ((Class_004898b0*)unit)->ClaimWeapons(0);
+        ((Unit*)unit)->ReleaseWeapons(3);
+        ((Unit*)unit)->ClaimWeapons(0);
         SetWeaponTargetUnit(unit, order->target, 0);
         if (flags & 0xe0) {
             if (IsAhead(unit, order)) {

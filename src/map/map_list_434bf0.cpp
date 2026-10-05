@@ -19,7 +19,7 @@
 #include <string.h>
 #include <vector>
 
-class Class_004c2ea0;
+class TdfFile;
 
 class Class_004c9390 {
 public:
@@ -33,23 +33,19 @@ public:
     ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;
     void* current;
     int field_8;
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* file);
 };
 
-class Class_00435c00 {
+class Mission {
 public:
-    int FUN_00436860(int type, Class_004c2ea0* parser, char* schema);
+    int FUN_00436860(int type, TdfFile* parser, char* schema);
 };
 
 class PacketManager {
@@ -114,9 +110,9 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
     for (s.i = 0; s.i < s.count; s.i++) {
         struct A { char name[256]; char lower[256]; char path[256]; } a;
         BuildDataPath(a.path, "Maps", files[s.i].ptr, "OTA");
-        Class_004c2ea0 parser;
-        if (((Class_004c2f60*)&parser)->LoadFile(a.path) != 0
-            && ((Class_00435c00*)(*(int*)(g_game + 0x391e9)))
+        TdfFile parser;
+        if (((TdfFile*)&parser)->LoadFile(a.path) != 0
+            && ((Mission*)(*(int*)(g_game + 0x391e9)))
                    ->FUN_00436860(3, &parser, 0) != 0) {
             strcpy(a.name, files[s.i].ptr);
             StripExtension(a.name);

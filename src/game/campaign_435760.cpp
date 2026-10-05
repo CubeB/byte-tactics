@@ -7,34 +7,30 @@
 #include <stdio.h>
 #include <string.h>
 
-class Class_004c3e10 {
+class TdfFile {
 public:
     char unknown_0[4];
     int field_0x4;
 
     void ResetCurrentRecord();
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
 };
 
 char* __stdcall SkipTextLines(int list, int index);
-int __stdcall GetLocalizedString(Class_004c3e10* obj, char* buf, const char* key, int size, int def);
+int __stdcall GetLocalizedString(TdfFile* obj, char* buf, const char* key, int size, int def);
 void* __cdecl FUN_004d83b0(const char* name, int size);
 
-class Class_00435760 {
+class Mission {
 public:
     int unknown_0;
     char name[0xa08 - 4];              // +0x4
-    Class_004c3e10 list;               // +0xa08
+    TdfFile list;                      // +0xa08
 
     int BuildMissionList(int* param_1);
 };
 
 // FUNCTION: 0x435760
-int Class_00435760::BuildMissionList(int* param_1)
+int Mission::BuildMissionList(int* param_1)
 {
     char buf[128];
     char temp[256];
@@ -48,7 +44,7 @@ int Class_00435760::BuildMissionList(int* param_1)
         while (1) {
             sprintf(buf, "MISSION%d", m);
             list.ResetCurrentRecord();
-            if (((Class_004c3410*)&list)->SelectRecord(buf) == 0)
+            if (((TdfFile*)&list)->SelectRecord(buf) == 0)
                 break;
             m++;
         }
@@ -61,7 +57,7 @@ int Class_00435760::BuildMissionList(int* param_1)
         for (int i = 0; i < n; i++) {
             sprintf(buf, "MISSION%d", i);
             list.ResetCurrentRecord();
-            if (((Class_004c3410*)&list)->SelectRecord(buf) == 0)
+            if (((TdfFile*)&list)->SelectRecord(buf) == 0)
                 return 0;
             if (GetLocalizedString(&list, temp, "missionname", 0x100, 0) != 0)
                 strcpy(SkipTextLines(*param_1, i), temp);

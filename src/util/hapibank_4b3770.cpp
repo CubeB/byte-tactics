@@ -287,12 +287,6 @@ struct AccountList {
     void* slots;
 };
 
-class Class_004b3630 {
-public:
-    AccountList* table;
-    void CloseBank();
-};
-
 struct FileHandle;
 
 void* __stdcall HAPI_OpenFileRead(void* param1);
@@ -330,17 +324,19 @@ struct BankFileHeader {          // 0x24 bytes
     char unknown_19[0x0b];
 };
 
-class Class_004b3770 : public Class_004b3630 {
+class HapiBank {
 public:
+    AccountList* table;
     char unknown_4[4];
     int field_8;
 
+    void CloseBank();
     void LoadAccount(FileHandle* file, void** buf, void* arg3);
     int OpenBank(char* filename, char* name, void* arg3);
 };
 
 // FUNCTION: 0x4b3770
-int Class_004b3770::OpenBank(char* filename, char* name, void* arg3)
+int HapiBank::OpenBank(char* filename, char* name, void* arg3)
 {
     void* raw;
     BankFileHeader h;

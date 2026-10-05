@@ -8,14 +8,8 @@
 // two flag bits are written as 1-bit bitfields: assigning the mode as an int
 // value gives `and/or` instead.
 
-// The bit writer of 0x415c10; 0x415bb0 is the same class's grow routine, which
-// data/symbols.csv still names after the class of 0x415b60.
-class Class_00415b60 {
-public:
-    void GrowBuffer();
-};
-
-class BitWriter : public Class_00415b60 {
+// The bit writer of 0x415c10.
+class BitWriter {
 public:
     int bit;                           // +0x0 current word index
     int index;                         // +0x4 bits used in the current word
@@ -23,6 +17,7 @@ public:
     unsigned int* data;                // +0xc
     unsigned int buffer[0x100];        // +0x10
 
+    void GrowBuffer();
     void WriteBits(int value, int bits);
 };
 

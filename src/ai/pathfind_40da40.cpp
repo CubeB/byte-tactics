@@ -12,7 +12,7 @@ public:
     virtual int Func(int param1, int param2);
 };
 
-class Class_0040da40 {
+class Pathfinder {
 public:
     char unknown_0[0x50];
     int field_50;                       // +0x50
@@ -23,7 +23,7 @@ public:
 };
 
 // FUNCTION: 0x40da40
-__int64 Class_0040da40::Estimate(int param1, int param2)
+__int64 Pathfinder::Estimate(int param1, int param2)
 {
     int a = field_50;
     return ((__int64)field_60->Func(param1, param2) * (__int64)a) >> 0x10;

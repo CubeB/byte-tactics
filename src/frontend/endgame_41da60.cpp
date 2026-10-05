@@ -6,13 +6,9 @@
 // Outcome0 screen.
 #include <string.h>
 
-class Class_004356c0 {
+class Mission {
 public:
     char* FUN_004356c0(int index);
-};
-
-class Class_00435100 {
-public:
     int FUN_00435100();
 };
 
@@ -32,7 +28,7 @@ struct Game {
     void* desiredPalette;              // +0x39087
     void* fadeTable;                   // +0x3908b
     char glamour[0x391e9 - 0x3908f];   // +0x3908f
-    Class_004356c0* campaign;          // +0x391e9
+    Mission* campaign;                 // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     unsigned char flags_3923b;         // +0x3923b
 };
@@ -61,7 +57,7 @@ void SetUpEndMissionScreen()
     char* name = g_game->campaign->FUN_004356c0(5);
     if (name == 0)
         g_game->image_3907b = 0;
-    if (((Class_00435100*)g_game->campaign)->FUN_00435100() == 1
+    if (((Mission*)g_game->campaign)->FUN_00435100() == 1
         && (g_game->flags_3923b & 0x10) && name != 0) {
         BuildDataPath(path, "bitmaps\\glamour", name + 1, "PCX");
         if (HAPI_FileLengthByName(path) == 0)
@@ -72,7 +68,7 @@ void SetUpEndMissionScreen()
         g_game->palette_3907f = palette;
         return;
     }
-    if (((Class_00435100*)g_game->campaign)->FUN_00435100() == 1)
+    if (((Mission*)g_game->campaign)->FUN_00435100() == 1)
         LoadPictureCached("Outcome1", 0, 0, 1);
     else
         LoadPictureCached("Outcome0", 0, 0, 1);

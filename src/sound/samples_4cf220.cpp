@@ -1,12 +1,12 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004cf220 {
+class Sound {
 public:
     int GetMaxBuffers();
 };
 
 // FUNCTION: 0x4cf220
-int Class_004cf220::GetMaxBuffers()
+int Sound::GetMaxBuffers()
 {
     return *(int*)((char*)this + 0x2c);
 }

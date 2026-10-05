@@ -6,7 +6,7 @@ struct Entry_004618a0 {
     char unknown_18[0x1044 - 0x18];
 };
 
-class Class_004624a0 {
+class PacketChannel {
 public:
     int SendQueued(int param_1);
 };
@@ -29,7 +29,7 @@ int PacketManager::SendAllQueued(int param_1)
     }
     for (unsigned int i = 0; i <= 10; i++) {
         if (entries[i].field_14 != -1) {
-            if (((Class_004624a0*)&entries[i])->SendQueued(param_1) == 0) {
+            if (((PacketChannel*)&entries[i])->SendQueued(param_1) == 0) {
                 return 0;
             }
         }

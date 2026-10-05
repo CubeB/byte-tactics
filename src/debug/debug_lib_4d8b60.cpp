@@ -2,7 +2,7 @@
 // Adds a sample to running statistics: count, minimum, maximum and a 64-bit
 // total.
 
-class Class_004d8b60 {
+class RunningStats {
 public:
     char unknown_0[0x8c];
     int count;                         // +0x8c
@@ -15,7 +15,7 @@ public:
 };
 
 // FUNCTION: 0x4d8b60
-void Class_004d8b60::FUN_004d8b60(unsigned int value)
+void RunningStats::FUN_004d8b60(unsigned int value)
 {
     if (count == 0) {
         min = max = value;

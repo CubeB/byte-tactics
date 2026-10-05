@@ -19,7 +19,7 @@ struct AccountList {
     int index;                          // +0x8
 };
 
-class Class_004b4bf0 {
+class HapiBank {
 public:
     AccountList* table;                 // +0x0
 
@@ -27,7 +27,7 @@ public:
 };
 
 // FUNCTION: 0x4b4bf0
-int Class_004b4bf0::GetBoxSize()
+int HapiBank::GetBoxSize()
 {
     AccountList* p = table;
     BankAccount* a = &p->base[p->index];

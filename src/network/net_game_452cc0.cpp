@@ -29,12 +29,12 @@
 
 #pragma pack(push, 1)
 
-class Class_00463c60 {
+class Player {
 public:
     void SetType(int param_1);
 };
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -81,7 +81,7 @@ struct Game {
         };
     } flags;
     char unknown_2a46[0x391e9 - 0x2a46];
-    Class_00435100* net;               // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 #pragma pack(pop)
 
@@ -148,7 +148,7 @@ static inline int IsType3(Player_00452cc0* p)
 
 static inline void Remove(Player_00452cc0* p)
 {
-    ((Class_00463c60*)p)->SetType(0);
+    ((Player*)p)->SetType(0);
     p->active = 0;
     p->id = -1;
     p->field_c = 0;

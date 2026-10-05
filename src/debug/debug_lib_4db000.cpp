@@ -86,7 +86,7 @@ struct Less_004db000 {
     bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
 };
 
-class Class_004db000 {
+class FreeBlockMap {
 public:
     Less_004db000 key_compare;                  // +0x0
     Node_004db000* head;                        // +0x4
@@ -104,7 +104,7 @@ public:
 };
 
 // FUNCTION: 0x4db000
-void Class_004db000::AddFreeBlock(Pair_004db000 p)
+void FreeBlockMap::AddFreeBlock(Pair_004db000 p)
 {
     Class_004dd2a0 it;
     Class_004dd2a0 it2;

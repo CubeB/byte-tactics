@@ -10,7 +10,7 @@ struct Game {
 
 extern Game* g_game;
 
-class Class_00473220 {
+class WakeParticles {
 public:
     char unknown_0[4];
     int field_4;                       // +0x4
@@ -20,7 +20,7 @@ public:
 };
 
 // FUNCTION: 0x473220
-int Class_00473220::FUN_00473220()
+int WakeParticles::FUN_00473220()
 {
     if (field_8 <= field_4 && field_8 <= g_game->now) {
         return 1;

@@ -21,7 +21,7 @@ struct Fpo_004de020 {
     unsigned short flags;              // +0xe
 };
 
-class Class_004ddfa0 {
+class LoadedImage {
 public:
     char unknown_0[0x8];
     char* base;                        // +0x08, the mapped file
@@ -35,7 +35,7 @@ public:
 // Returns the image's FPO records (debug directory type 3,
 // IMAGE_DEBUG_TYPE_FPO), or 0 if it has none.
 // FUNCTION: 0x4ddfa0
-Fpo_004de020* Class_004ddfa0::GetFpoRecords()
+Fpo_004de020* LoadedImage::GetFpoRecords()
 {
     if (debugDirs == 0)
         return 0;

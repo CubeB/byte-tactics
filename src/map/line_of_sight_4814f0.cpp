@@ -1,11 +1,11 @@
 // Decompiled by Sonnet. Names are provisional.
 
-class Class_004330b0 {
+class LosTables {
 public:
     void FUN_004330b0();
 };
 
-extern Class_004330b0 g_losTables;
+extern LosTables g_losTables;
 
 // FUNCTION: 0x4814f0
 void FUN_004814f0()

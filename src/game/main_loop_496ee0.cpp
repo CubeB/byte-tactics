@@ -65,7 +65,7 @@ struct Vec3_00437320 {
     int z;
 };
 
-class Class_00437320 {
+class Mission {
 public:
     int GetStartPosition(Vec3_00437320* out, int id);
 };
@@ -83,7 +83,7 @@ struct Game {
     char unknown_37e3f[0x37f5f - 0x37e3f];
     PlayerName_00496ee0 names[8];        // +0x37f5f
     char unknown_390ef[0x391e9 - 0x390ef];
-    Class_00437320* net;                // +0x391e9
+    Mission* net;                       // +0x391e9
 };
 #pragma pack(pop)
 

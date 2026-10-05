@@ -47,20 +47,16 @@ public:
 struct Unit;
 class Class_00410830 : public std::vector<Unit*> {};
 
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
-class Class_004899b0 { public: int CanRepair(Unit*); };
-
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x1fa]; unsigned int maxHealth;
@@ -78,13 +74,16 @@ struct Owner {
     char padac[0x146 - 0xac]; unsigned char index;
 };
 struct Unit {
-    Class_0043d210* type;
+    UnitMotion* type;
     char pad4[0x6a - 4]; Vec3 pos;
     char pad76[0x86 - 0x76]; int field_86;
     char pad8a[8]; UnitDef* def;
     Owner* owner;
     char pad9a[0x104 - 0x9a]; float progress;
     short health;
+    void ClaimWeapons(int);
+    void SetStateBits(int, int);
+    int CanRepair(Unit*);
 };
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
@@ -127,10 +126,10 @@ int __stdcall FUN_0047ea40(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
 
 inline void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
@@ -199,12 +198,12 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                 VisitObjectsInRange(&unit->pos, range, Class_004158d0(unit->owner, &units, unit));
                 if (!units.empty()) {
                     Unit* target = units[RandomInt(units.size())];
-                    if (((Class_004899b0*)unit)->CanRepair(target) && target->progress == 0.0f) {
+                    if (((Unit*)unit)->CanRepair(target) && target->progress == 0.0f) {
                         if (FUN_0043b400(unit, target, 0))
                             return 6;
                         return 3;
                     }
-                    if (((Class_004899b0*)unit)->CanRepair(target) && target->progress != 0.0f) {
+                    if (((Unit*)unit)->CanRepair(target) && target->progress != 0.0f) {
                         ((Class_004388d0*)order)->FUN_004388d0(0);
                         AppendOrder(unit, new Class_0043a1f0("VTOL_HELPBUILD", target, 0, 0, 0, 0));
                         order->flags = 0;

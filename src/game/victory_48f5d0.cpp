@@ -3,10 +3,6 @@
 class HapiBank {
 public:
     void OpenAccount(const char* name);
-};
-
-class Class_004b4800 {
-public:
     int GetIntegerItem(char* name, int def);
 };
 
@@ -23,6 +19,6 @@ public:
 void VictoryUnitTypePassesZ::LoadState(HapiBank* obj)
 {
     obj->OpenAccount("VictoryCondition_UnitTypePassesZ");
-    satisfied = ((Class_004b4800*)obj)->GetIntegerItem("Satisfied", 0);
-    celebrated = ((Class_004b4800*)obj)->GetIntegerItem("Celebrated", 0);
+    satisfied = ((HapiBank*)obj)->GetIntegerItem("Satisfied", 0);
+    celebrated = ((HapiBank*)obj)->GetIntegerItem("Celebrated", 0);
 }

@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Looks a name up in the class-name list at Class_00435100+0xdac (one entry
+// Looks a name up in the class-name list at Mission+0xdac (one entry
 // per team, each entry holding two names at +0 and +4) and returns the caller's
 // parallel int array (param_2+4) at the same index, skipping entries whose int
 // is 0. When the caller passes a nonzero value the search for the entry
@@ -9,7 +9,7 @@
 // already 1, and a match on array[0] leaves i = 1.
 #include <string.h>
 
-// One entry of the class list at Class_00435100+0xdac: two names.
+// One entry of the class list at Mission+0xdac: two names.
 class Entry_00487af0 {
 public:
     char* field_0;                     // +0x0
@@ -17,7 +17,7 @@ public:
     char unknown_8[0x24 - 8];
 };
 
-class Class_00435100 {
+class Mission {
 public:
     char unknown_0[0xdac];
     Entry_00487af0* list;              // +0xdac
@@ -27,7 +27,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x391e9];
-    Class_00435100* field_391e9;       // +0x391e9
+    Mission* field_391e9;              // +0x391e9
 };
 #pragma pack(pop)
 

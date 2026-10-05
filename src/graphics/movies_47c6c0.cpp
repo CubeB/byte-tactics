@@ -19,7 +19,7 @@ struct Game {
 
 extern Game* g_game;
 
-class Class_0047c3a0 {
+class MoviePlayer {
 public:
     void* smack;                        // +0x00
     int unknown_4;                      // +0x04
@@ -58,7 +58,7 @@ void Class_0047c6c0::Play()
             TranslateMessage(&msg);
             DispatchMessageA(&msg);
         } else if (!DAT_004fc40c(smack)) {
-            ((Class_0047c3a0*)this)->PlayFrame(hwnd);
+            ((MoviePlayer*)this)->PlayFrame(hwnd);
         }
     }
 }

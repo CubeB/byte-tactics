@@ -2,7 +2,7 @@
 
 extern char* g_game;
 
-class Class_00472f60 {
+class NanoParticles {
 public:
     char unknown_0[4];
     int field_4;
@@ -12,7 +12,7 @@ public:
 };
 
 // FUNCTION: 0x472f60
-int Class_00472f60::FUN_00472f60()
+int NanoParticles::FUN_00472f60()
 {
     if (field_8 <= field_4) {
         unsigned int game_val = *(unsigned int*)((char*)g_game + 0x38a47);

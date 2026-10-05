@@ -4,13 +4,13 @@
 
 extern int g_cdPlayerWindow;
 
-class Class_004ce1d0 {
+class Sound {
 public:
     bool HasCdPlayerWindow();
 };
 
 // FUNCTION: 0x4ce1d0
-bool Class_004ce1d0::HasCdPlayerWindow()
+bool Sound::HasCdPlayerWindow()
 {
     return g_cdPlayerWindow != 0;
 }

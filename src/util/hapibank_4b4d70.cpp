@@ -30,14 +30,14 @@ struct AccountList {
     BankAccount* accounts;
 };
 
-class Class_004b4d70 {
+class HapiBank {
 public:
     AccountList* bank;
     void WriteAuditFile(char* filename);
 };
 
 // FUNCTION: 0x4b4d70
-void Class_004b4d70::WriteAuditFile(char* filename)
+void HapiBank::WriteAuditFile(char* filename)
 {
     FILE* file = fopen(filename, "w");
     int i;

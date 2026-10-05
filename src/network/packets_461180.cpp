@@ -5,10 +5,6 @@ void __cdecl PacketTrace(const char* fmt, ...);
 class NetCondenser {
 public:
     void Accumulate(void* data, int size);
-};
-
-class Class_0044fc10 {
-public:
     int SendPacket(void* session, int from);
 };
 
@@ -30,6 +26,6 @@ int __stdcall SendToDPID(int from, int to, void* data, int size)
     void* session = g_game->session;
     DAT_005129f1 = to;
     g_sendCondenser.Accumulate(data, size);
-    int result = ((Class_0044fc10*)&g_sendCondenser)->SendPacket(session, from);
+    int result = ((NetCondenser*)&g_sendCondenser)->SendPacket(session, from);
     return result == 0 ? 1 : 0;
 }

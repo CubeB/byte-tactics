@@ -7,7 +7,7 @@
 // allocates the registers the original uses. A plain if/else-if puts the
 // main-menu block first and comes out 4 bytes different.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -29,7 +29,7 @@ struct Game {
     char unknown_535[0x2bee - 0x535];
     Flags_004608b0 flags;              // +0x2bee
     char unknown_2bf0[0x391e9 - 0x2bf0];
-    Class_00435100* field_391e9;       // +0x391e9
+    Mission* field_391e9;              // +0x391e9
 };
 #pragma pack(pop)
 

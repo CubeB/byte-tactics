@@ -3,7 +3,7 @@
 // 0x415c10; see docs/consolidation.md). The original allocates with
 // `new unsigned int(n)` (one dword holding n) instead of `new unsigned int[n]`.
 
-class Class_00415b60 {
+class BitWriter {
 public:
     int bit;                           // +0x0
     int index;                         // +0x4
@@ -23,7 +23,7 @@ static inline void CopyWords(unsigned int* first, unsigned int* last, unsigned i
 }
 
 // FUNCTION: 0x415bb0
-void Class_00415b60::GrowBuffer()
+void BitWriter::GrowBuffer()
 {
     int newCapacity = capacity * 2;
     unsigned int* grown = new unsigned int(newCapacity);

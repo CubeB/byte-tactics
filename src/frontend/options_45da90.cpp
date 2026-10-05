@@ -74,13 +74,9 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_004cfe80 {
+class Sound {
 public:
     void Enable3D();
-};
-
-class Class_004cfe90 {
-public:
     void Disable3D();
 };
 
@@ -144,9 +140,9 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         if ((g_game->soundFlags.word & 7) == 0)
             StopAllSounds();
         if ((g_game->soundFlags.word & 7) == 2)
-            ((Class_004cfe80*)g_game->sound)->Enable3D();
+            ((Sound*)g_game->sound)->Enable3D();
         else
-            ((Class_004cfe90*)g_game->sound)->Disable3D();
+            ((Sound*)g_game->sound)->Disable3D();
         if ((g_game->soundFlags.word & 7) == 1 && !g_game->prefs)
             PlayLoopingSoundByName(DAT_005031d4, 0);
         SetButtonStageByName(&g_game->gui, DAT_005069d0, g_game->soundFlags.word & 7);
@@ -170,7 +166,7 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         g_game->soundFlags.bits.bit4 = 1;
         g_game->soundFlags.bits.bit5 = 1;
         g_game->soundFlags.bits.bit6 = 1;
-        ((Class_004cfe90*)g_game->sound)->Disable3D();
+        ((Sound*)g_game->sound)->Disable3D();
         g_game->soundFlags.word = (g_game->soundFlags.word & 0xfff9) | 1;
         g_game->field_37f17 = 10;
         SetBrightness(0.5 - g_game->brightness * -0.041666668f);

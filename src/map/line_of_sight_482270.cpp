@@ -45,7 +45,7 @@
 
 #pragma pack(push, 1)
 
-class Class_00433500 {
+class LosTables {
 public:
     void* GetLosTable(int n);
 };
@@ -55,7 +55,7 @@ public:
     short GetLosTableCount();
 };
 
-class Class_004335c0 {
+class LosTable {
 public:
     short GetLosLineCount();
 };
@@ -65,7 +65,7 @@ public:
     void* GetLosLine(short i);
 };
 
-class Class_004339c0 {
+class LosLine {
 public:
     short GetLosLineStepCount();
 };
@@ -168,7 +168,7 @@ void __stdcall AddLineOfSight(Params_482270* params)
             return;
         if ((unsigned)y >= grid->height)
             return;
-        void* table = ((Class_00433500*)g_losTables)
+        void* table = ((LosTables*)g_losTables)
                           ->GetLosTable(
                               (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
                                       < ((Class_00433520*)g_losTables)
@@ -176,13 +176,13 @@ void __stdcall AddLineOfSight(Params_482270* params)
                                   ? (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
                                   : ((Class_00433520*)g_losTables)
                                         ->GetLosTableCount() - 1);
-        short count = ((Class_004335c0*)table)->GetLosLineCount();
+        short count = ((LosTable*)table)->GetLosLineCount();
         short i = 0;
         ((Player_482270*)params->field_0)->grid.at(x, y)++;
         int ref = *params->field_c;
         for (i = 0; i < count; i++) {
             void* line = ((Class_4335e0*)table)->GetLosLine(i);
-            short num = ((Class_004339c0*)line)->GetLosLineStepCount();
+            short num = ((LosLine*)line)->GetLosLineStepCount();
             int bestIdx = 0;
             int j1;
             int bestDiff = -1;

@@ -4,7 +4,7 @@
 extern char DAT_005119b8[];
 
 // Command arguments.
-class Class_004b73c0 {
+class CommandArgs {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
@@ -15,7 +15,7 @@ void __stdcall MakeDirectoryPath(char* dir);
 void __stdcall SaveGameFile(char* path, char* description, int param_3);
 
 // FUNCTION: 0x417430
-void __stdcall CmdSave(Class_004b73c0* args)
+void __stdcall CmdSave(CommandArgs* args)
 {
     char path[256];
     if (args->count > 1) {

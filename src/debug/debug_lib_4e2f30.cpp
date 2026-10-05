@@ -10,7 +10,7 @@ public:
     void WriteDword(void* param1, unsigned int param2);
 };
 
-class Class_004e2f30 {
+class CavedogRegistryKey {
 public:
     void* key;                       // +0x0
     char reading;                    // +0x4
@@ -18,7 +18,7 @@ public:
 };
 
 // FUNCTION: 0x4e2f30
-void Class_004e2f30::FUN_004e2f30(char* name, unsigned short* value, unsigned short minValue, unsigned short maxValue, unsigned short defaultValue)
+void CavedogRegistryKey::FUN_004e2f30(char* name, unsigned short* value, unsigned short minValue, unsigned short maxValue, unsigned short defaultValue)
 {
     if (reading) {
         *value = ((Class_004e2d00*)this)->ReadInt(name, minValue, maxValue, defaultValue);

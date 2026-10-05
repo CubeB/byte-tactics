@@ -12,15 +12,15 @@ public:
     double RestartTimer();
 };
 
-class Class_004e1d20 {
+class Timer {
 public:
     char unknown_0[0x54];
 
-    Class_004e1d20(int param_1);
+    Timer(int param_1);
 };
 
 // FUNCTION: 0x4e1d20
-Class_004e1d20::Class_004e1d20(int param_1)
+Timer::Timer(int param_1)
 {
     ((Class_004e1d60*)this)->FUN_004e1d60(0, param_1);
     ((Class_004e20a0*)this)->RestartTimer();

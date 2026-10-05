@@ -10,7 +10,7 @@
 //
 // Two things in the tail are load-bearing: the parser local (and buf) must be
 // declared at its point of use, not at the top, or MSVC hoists the
-// Class_004c2ea0 constructor above the whole head block; and the loop must be
+// TdfFile constructor above the whole head block; and the loop must be
 // `while (1)` with a mid-body break (a `for (;;)` gets rotated). The
 // GetFieldString result goes into an `int` local before the test, which is what
 // makes MSVC emit `cmp eax, ebx` instead of `test eax, eax`.
@@ -97,43 +97,23 @@ void* __stdcall LoadAnimGaf(char* name);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;
     void* current;                      // +0x4
     int field_8;
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* file);
-};
-
-class Class_004c3e10 {
-public:
     void ResetCurrentRecord();
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
-};
-
-class Class_004c46c0 {
-public:
-    int GetFieldInt(const char* name, int def);
+    void Unload();
 };
 
 class TdfRecord {
 public:
     int GetFieldString(char* dst, char* key, int size, char* def);
-};
-
-class Class_004c3240 {
-public:
-    void Unload();
+    int GetFieldInt(const char* name, int def);
 };
 
 struct Frame_00429870 {
@@ -227,15 +207,15 @@ void LoadGameResources()
     g_game->pathIcon = (int)FindGafEntry(gaf, "pathicon");
     g_game->cursorRevive = (int)FindGafEntry(gaf, "cursorrevive");
 
-    Class_004c2ea0 parser;
+    TdfFile parser;
     char buf[256];
 
     BuildDataPath(buf, "gamedata", "sidedata", "TDF");
-    ((Class_004c2f60*)&parser)->LoadFile(buf);
+    ((TdfFile*)&parser)->LoadFile(buf);
     sprintf(buf, "GENERAL");
-    ((Class_004c3e10*)&parser)->ResetCurrentRecord();
-    if (((Class_004c3410*)&parser)->SelectRecord(buf) == 1) {
-        g_game->baseHeight = ((Class_004c46c0*)parser.current)->GetFieldInt("baseheight", 0x1e0);
+    ((TdfFile*)&parser)->ResetCurrentRecord();
+    if (((TdfFile*)&parser)->SelectRecord(buf) == 1) {
+        g_game->baseHeight = ((TdfRecord*)parser.current)->GetFieldInt("baseheight", 0x1e0);
     } else {
         g_game->baseHeight = 0x1e0;
     }
@@ -243,8 +223,8 @@ void LoadGameResources()
     int i = 0;
     while (1) {
         sprintf(buf, "SIDE%d", i);
-        ((Class_004c3e10*)&parser)->ResetCurrentRecord();
-        if (!((Class_004c3410*)&parser)->SelectRecord(buf))
+        ((TdfFile*)&parser)->ResetCurrentRecord();
+        if (!((TdfFile*)&parser)->SelectRecord(buf))
             break;
         int intgaf = ((TdfRecord*)parser.current)->GetFieldString(buf, "intgaf", 0x1e, DAT_005119b8);
         if (intgaf != 0) {
@@ -258,5 +238,5 @@ void LoadGameResources()
         }
         i++;
     }
-    ((Class_004c3240*)&parser)->Unload();
+    ((TdfFile*)&parser)->Unload();
 }

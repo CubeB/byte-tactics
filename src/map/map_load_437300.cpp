@@ -8,7 +8,7 @@ struct Entry_00437300 {
     short z;                           // +0xa
 };
 
-class Class_00437300 {
+class Mission {
 public:
     char unknown_0[0xdb4];
     Entry_00437300* entries;           // +0xdb4
@@ -18,7 +18,7 @@ public:
 };
 
 // FUNCTION: 0x437300
-int Class_00437300::CountStartPositions()
+int Mission::CountStartPositions()
 {
     int n = 0;
     for (int i = 0; i < entry_count; i++) {

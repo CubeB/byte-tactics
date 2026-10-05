@@ -1,14 +1,14 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004b3620 {
+class HapiBank {
 public:
     int field_0;
 
-    Class_004b3620* InitBank();
+    HapiBank* InitBank();
 };
 
 // FUNCTION: 0x4b3620
-Class_004b3620* Class_004b3620::InitBank()
+HapiBank* HapiBank::InitBank()
 {
     field_0 = 0;
     return this;

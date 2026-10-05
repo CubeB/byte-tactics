@@ -47,7 +47,7 @@ extern "C" __declspec(dllimport) int __stdcall SmackToBufferRect(Smk_0047c3a0* s
 void __stdcall SetOffscreenSurface(Display_0047c3a0* display);
 void FlipScreen();
 
-class Class_0047c3a0 {
+class MoviePlayer {
 public:
     Smk_0047c3a0* video;                // +0x00
     int counter;                        // +0x04
@@ -61,7 +61,7 @@ public:
 };
 
 // FUNCTION: 0x47c3a0
-void Class_0047c3a0::PlayFrame(HWND hwnd)
+void MoviePlayer::PlayFrame(HWND hwnd)
 {
     if (GetFocus() != hwnd)
         return;

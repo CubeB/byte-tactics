@@ -7,7 +7,7 @@ public:
     virtual void Slot1(int param);
 };
 
-class Class_004904c0 {
+class MissionConditions {
 public:
     Item_004904c0* a[16];               // +0x0
     int count_a;                        // +0x40
@@ -18,7 +18,7 @@ public:
 };
 
 // FUNCTION: 0x4904c0
-void Class_004904c0::NotifyUnitDied(int param)
+void MissionConditions::NotifyUnitDied(int param)
 {
     int i;
     for (i = 0; i < count_a; i++)

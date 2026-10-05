@@ -40,7 +40,7 @@
 
 #pragma pack(push, 1)
 
-class Class_00435100;
+class Mission;
 class Class_00438760;
 
 struct Sub_495e90 {
@@ -137,14 +137,14 @@ struct Game {
     int field_391b9;                    // +0x391b9
     unsigned short field_391bd;         // +0x391bd
     char unknown_391bf[0x391e9 - 0x391bf];
-    Class_00435100* net;                // +0x391e9
+    Mission* net;                       // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     Flags_00495e90_3923b flags_3923b;   // +0x3923b
 };
 
 #pragma pack(pop)
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };

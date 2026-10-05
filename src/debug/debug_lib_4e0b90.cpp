@@ -73,7 +73,7 @@ static void __inline rate_add(Rate_004e0b90* r, int delta, double dt)
         r->index = 0;
 }
 
-class Class_004e0b90 {
+class MemoryStatusDialog {
 public:
     HWND hwnd;                         // +0x00
     int field_4;                       // +0x04
@@ -122,7 +122,7 @@ static void __inline fmt_004e0b90(char* buf, unsigned int n)
 }
 
 // FUNCTION: 0x4e0b90
-int Class_004e0b90::HandleMemoryStatusMessage(unsigned int msg, int wParam, int lParam)
+int MemoryStatusDialog::HandleMemoryStatusMessage(unsigned int msg, int wParam, int lParam)
 {
     switch (msg) {
     case 0x312:

@@ -26,13 +26,9 @@ struct Table_004779e0 {
     Layout_004779e0* entries;          // +0x4
 };
 
-class Class_00435110 {
+class Mission {
 public:
     int LoadCampaign(char* name);
-};
-
-class Class_00435760 {
-public:
     int BuildMissionList(int* list);
 };
 
@@ -44,7 +40,7 @@ struct Game {
     char unknown_519[0x531 - 0x519];
     Table_004779e0* table;             // +0x531
     char unknown_535[0x391e9 - 0x535];
-    Class_00435110* net;               // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 #pragma pack(pop)
 
@@ -70,7 +66,7 @@ void __stdcall FillMissionList(Menu_004779e0* menu, int unused)
     Layout_004779e0* layout =
         FindGadgetChecked(g_game->table->entries, "Campaign");
     g_game->net->LoadCampaign(SkipTextLines(layout->text, layout->selected));
-    int count = ((Class_00435760*)g_game->net)->BuildMissionList((int*)&DAT_0051e660);
+    int count = ((Mission*)g_game->net)->BuildMissionList((int*)&DAT_0051e660);
     FUN_004a32a0(menu, "Missions", DAT_0051e660, count, 0);
     FUN_004a2be0((char*)g_game + 0x519,
                  FindGadgetIndex(gadgets->gadgets, "Missions", 2));

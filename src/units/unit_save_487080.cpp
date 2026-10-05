@@ -183,28 +183,12 @@ struct Unit {
 class HapiBank {
 public:
     int OpenAccount(char* name);
-};
-class Class_004b4800 {
-public:
     int GetIntegerItem(char* name, int def);
-};
-class Class_004b4b50 {
-public:
     int OpenNumberedBox(int a);
-};
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-class Class_004b4c80 {
-public:
     int ReadBox(void* buf, int len);
-};
-class Class_004b4ba0 {
-public:
     int OpenNamedBox(char* name);
 };
-
 extern void* g_game;
 
 
@@ -229,7 +213,7 @@ public:
 class Class_004388b0 { public: void FUN_004388b0(); };
 void __stdcall FUN_0047db20(Unit* unit);
 class Class_00401110 { public: void LoadUnitAccounts(Unit*, HapiBank*); };
-class Class_0043d210 { public: void LoadMotion(Unit*, HapiBank*); };
+class UnitMotion { public: void LoadMotion(Unit*, HapiBank*); };
 class CobScript { public: void LoadScriptState(HapiBank*); };
 
 
@@ -247,14 +231,14 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     SaveRec_00487080 rec;
     char name[32];
     char script[32];
-    int n = ((Class_004b4800*)file)->GetIntegerItem("Number of Units", 0);
+    int n = ((HapiBank*)file)->GetIntegerItem("Number of Units", 0);
     int found = 0;
     int i;
     for (i = 0; i < n; i++) {
-        if (!((Class_004b4b50*)file)->OpenNumberedBox(i))
+        if (!((HapiBank*)file)->OpenNumberedBox(i))
             return 0;
-        ((Class_004b4c10*)file)->SeekBox(0);
-        if (((Class_004b4c80*)file)->ReadBox(&rec, 0xb8) != 0xb8)
+        ((HapiBank*)file)->SeekBox(0);
+        if (((HapiBank*)file)->ReadBox(&rec, 0xb8) != 0xb8)
             return 0;
         if (rec.id == id) {
             found = 1;
@@ -320,7 +304,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
 
     ((Class_00401110*)&unit->info)->LoadUnitAccounts(unit, file);
     if (rec.f27 != 0)
-        ((Class_0043d210*)unit->vtable)->LoadMotion(unit, file);
+        ((UnitMotion*)unit->vtable)->LoadMotion(unit, file);
 
     Class_0043a420** normal = (Class_0043a420**)&unit->listHead;
     Class_0043a420** special = (Class_0043a420**)&unit->listTail;
@@ -342,7 +326,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     if (unit->listHead != 0)
         ((Class_004388b0*)unit->listHead)->FUN_004388b0();
     sprintf(script, "Script%i", i);
-    ((Class_004b4ba0*)file)->OpenNamedBox(script);
+    ((HapiBank*)file)->OpenNamedBox(script);
     ((CobScript*)unit->field_9a)->LoadScriptState(file);
 
     for (int j = 0; j < 3; j++) {

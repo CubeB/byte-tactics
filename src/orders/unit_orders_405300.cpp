@@ -48,13 +48,8 @@ public:
     void FUN_00438880(char* text);
 };
 
-class Class_004898b0 {
-public:
-    void ClaimWeapons(int param);
-};
-
 #pragma pack(push, 1)
-struct UnitType {
+struct UnitDef {
     char unknown_0[0x15e];
     Box bounds;                        // +0x15e
     char unknown_176[0x1fa - 0x176];
@@ -79,7 +74,7 @@ struct Unit {
     char unknown_7a[0x7e - 0x7a];
     Point16 footprint;                 // +0x7e
     char unknown_82[0x92 - 0x82];
-    UnitType* type;                    // +0x92
+    UnitDef* type;                     // +0x92
     char unknown_96[0xb0 - 0x96];
     int repairTime;                    // +0xb0
     char unknown_b4[0x104 - 0xb4];
@@ -93,6 +88,7 @@ struct Unit {
             unsigned int unknown_2 : 30;
         } bits;
     };
+    void ClaimWeapons(int param);
 };
 
 struct Order {
@@ -164,7 +160,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             order->flags |= 0xe8;
             return 2;
         }
-        ((Class_004898b0*)unit)->ClaimWeapons(3);
+        ((Unit*)unit)->ClaimWeapons(3);
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
         return 1;
     }

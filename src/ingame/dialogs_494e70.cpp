@@ -5,7 +5,7 @@ public:
     int GetTrackCategory();
 };
 
-class Class_004ce690 {
+class Sound {
 public:
     void SetTrackCategory(int param_1);
 };
@@ -109,7 +109,7 @@ void FUN_00494e70()
             else if (state == 1 && total < 10 && recent == 0 && DAT_0051f2fc > 0x3c)
                 newstate = 0;
             if (newstate != DAT_005091d0) {
-                ((Class_004ce690*)g_game->field_10)->SetTrackCategory(newstate);
+                ((Sound*)g_game->field_10)->SetTrackCategory(newstate);
                 DAT_0051f2fc = 0;
                 DAT_005091d0 = newstate;
             }

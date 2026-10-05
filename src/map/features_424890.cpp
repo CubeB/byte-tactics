@@ -21,30 +21,10 @@
 class HapiBank {
 public:
     void OpenAccount(char* name);
-};
-
-class Class_004b4630 {
-public:
     int SetIntegerItem(const char* name, int value);
-};
-
-class Class_004b4ba0 {
-public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4bf0 {
-public:
     int GetBoxSize();
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* src, int len);
 };
 
@@ -144,7 +124,7 @@ struct Model_00424890 {
 extern Game* g_game;
 
 // FUNCTION: 0x424890
-void __stdcall SaveFeatures(Class_004b4ba0* file)
+void __stdcall SaveFeatures(HapiBank* file)
 {
     ((HapiBank*)file)->OpenAccount("Features");
     std::vector<FeatureName_00424890> names(g_game->featureCount);
@@ -153,7 +133,7 @@ void __stdcall SaveFeatures(Class_004b4ba0* file)
     for (int i = 0; i < g_game->featureCount; i++, dst++, src++)
         strncpy(dst->name, src->name, 0x80);
     file->OpenNamedBox("Feature Type Names");
-    ((Class_004b4cf0*)file)->WriteBox(names.begin(), g_game->featureCount * sizeof(FeatureName_00424890));
+    ((HapiBank*)file)->WriteBox(names.begin(), g_game->featureCount * sizeof(FeatureName_00424890));
 
     Cell_00424890* c = g_game->cells;
     Cell_00424890* end = g_game->cells + g_game->width * g_game->height;
@@ -175,8 +155,8 @@ void __stdcall SaveFeatures(Class_004b4ba0* file)
                 rec.pos = s->pos;
                 rec.rot = s->rot;
                 file->OpenNamedBox("3D Features");
-                ((Class_004b4c10*)file)->SeekBox(((Class_004b4bf0*)file)->GetBoxSize());
-                ((Class_004b4cf0*)file)->WriteBox(&rec, 0x1a);
+                ((HapiBank*)file)->SeekBox(((HapiBank*)file)->GetBoxSize());
+                ((HapiBank*)file)->WriteBox(&rec, 0x1a);
                 modelCount++;
             } else if (c->flags & 1) {
                 Anim_00424890 rec;
@@ -196,8 +176,8 @@ void __stdcall SaveFeatures(Class_004b4ba0* file)
                 else
                     goto next;
                 file->OpenNamedBox("Animating Features");
-                ((Class_004b4c10*)file)->SeekBox(((Class_004b4bf0*)file)->GetBoxSize());
-                ((Class_004b4cf0*)file)->WriteBox(&rec, 10);
+                ((HapiBank*)file)->SeekBox(((HapiBank*)file)->GetBoxSize());
+                ((HapiBank*)file)->WriteBox(&rec, 10);
                 animCount++;
             } else {
                 Normal_00424890 rec;
@@ -206,8 +186,8 @@ void __stdcall SaveFeatures(Class_004b4ba0* file)
                 rec.feature = c->feature;
                 rec.spot = c->spot;
                 file->OpenNamedBox("Normal Features");
-                ((Class_004b4c10*)file)->SeekBox(((Class_004b4bf0*)file)->GetBoxSize());
-                ((Class_004b4cf0*)file)->WriteBox(&rec, 8);
+                ((HapiBank*)file)->SeekBox(((HapiBank*)file)->GetBoxSize());
+                ((HapiBank*)file)->WriteBox(&rec, 8);
                 normalCount++;
             }
         }
@@ -218,7 +198,7 @@ void __stdcall SaveFeatures(Class_004b4ba0* file)
             y++;
         }
     }
-    ((Class_004b4630*)file)->SetIntegerItem("Number of Normal Features", normalCount);
-    ((Class_004b4630*)file)->SetIntegerItem("Number of 3D Features", modelCount);
-    ((Class_004b4630*)file)->SetIntegerItem("Number of Animating Features", animCount);
+    ((HapiBank*)file)->SetIntegerItem("Number of Normal Features", normalCount);
+    ((HapiBank*)file)->SetIntegerItem("Number of 3D Features", modelCount);
+    ((HapiBank*)file)->SetIntegerItem("Number of Animating Features", animCount);
 }

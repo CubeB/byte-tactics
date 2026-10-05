@@ -62,7 +62,7 @@
 
 #pragma pack(push, 1)
 
-class Class_00433500 {
+class LosTables {
 public:
     void* GetLosTable(int n);
 };
@@ -72,7 +72,7 @@ public:
     short GetLosTableCount();
 };
 
-class Class_004335c0 {
+class LosTable {
 public:
     short GetLosLineCount();
 };
@@ -82,7 +82,7 @@ public:
     void* GetLosLine(short i);
 };
 
-class Class_004339c0 {
+class LosLine {
 public:
     short GetLosLineStepCount();
 };
@@ -187,13 +187,13 @@ void __stdcall FUN_00481930(Params_00481930* params)
         Grid_00481930* grid = &g_game->grid1;
         if ((unsigned)x < grid->width && (unsigned)y < grid->height) {
             void* table =
-                ((Class_00433500*)g_losTables)
+                ((LosTables*)g_losTables)
                     ->GetLosTable(
                         (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32) <
                                 ((Class_00433520*)g_losTables)->GetLosTableCount() - 1
                             ? (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
                             : ((Class_00433520*)g_losTables)->GetLosTableCount() - 1);
-            short count = ((Class_004335c0*)table)->GetLosLineCount();
+            short count = ((LosTable*)table)->GetLosLineCount();
             unsigned short* cell = &g_game->visibilityMask[halfW * y + x];
             if ((unsigned short)(bit & *cell) == 0) {
                 *cell ^= bit;
@@ -202,7 +202,7 @@ void __stdcall FUN_00481930(Params_00481930* params)
             int ref = *params->field_c;
             for (short i = 0; (short)i < count; i++) {
                 void* line = ((Class_4335e0*)table)->GetLosLine(i);
-                short num = ((Class_004339c0*)line)->GetLosLineStepCount();
+                short num = ((LosLine*)line)->GetLosLineStepCount();
                 int bestIdx = 0;
                 int j1;
                 int bestDiff = -1;

@@ -43,7 +43,7 @@ struct Vec3_00467840 {
     int x, y, z;
 };
 
-class Class_00467840 {
+class DetectionVisitor {
 public:
     char unknown_0[4];
     int field_4;                       // +0x4
@@ -56,7 +56,7 @@ public:
 extern Game* g_game;
 
 // FUNCTION: 0x467840
-void Class_00467840::FUN_00467840(Unit* unit)
+void DetectionVisitor::FUN_00467840(Unit* unit)
 {
     if (unit->field_a6 == 0 || unit->field_ff == g_game->playerIndex) {
         return;

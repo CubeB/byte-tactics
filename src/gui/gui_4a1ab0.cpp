@@ -23,7 +23,7 @@ struct Holder_004a1ab0 {
     Entry_004a1ab0* entries;           // +0x4
 };
 
-struct Class_004a1ab0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a1ab0* holder;           // +0x18
 };
@@ -39,7 +39,7 @@ void __stdcall GrayRectangle(Surface_004a1ab0* dst, Rect_004a1ab0* rect);
 void __stdcall FadeRectangle(Surface_004a1ab0* dst, Rect_004a1ab0* rect, int level);
 
 // FUNCTION: 0x4a1ab0
-void __stdcall RedrawGadgetRect(Class_004a1ab0* obj, int index)
+void __stdcall RedrawGadgetRect(Dialog* obj, int index)
 {
     Entry_004a1ab0* entries = obj->holder->entries;
     Entry_004a1ab0* e = &entries[index];

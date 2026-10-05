@@ -84,7 +84,7 @@
 //     so the flip comes from the operand needing an extra instruction, not
 //     from the bitfield node. The bitfield mask is unavoidable for that type.
 //   * compiler state: 128 header sets, N = 0..600 dummy extern ints, N = 0..300
-//     dummy structs and the full UnitType/Unit declarations from 0x402640 all
+//     dummy structs and the full UnitDef/Unit declarations from 0x402640 all
 //     leave the no-cast expression at 77.3% (161 bytes, but the chain
 //     reassociated to F*A, q, n and b->type in ecx), and drop the cast version
 //     to 74.2%. No state tried flips the no-cast expression to the original's
@@ -136,7 +136,7 @@
 //    accumulator in edi. It is lower than 96.6% so it is not in the file. Its
 //    one fault is the a->type pointer landing in edx instead of ecx and A in ax
 //    instead of edx, because the sum statement runs first. Hoisting
-//    `UnitType* at = a->type` and using it for BOTH field_1fe and field_1fa
+//    `UnitDef* at = a->type` and using it for BOTH field_1fe and field_1fa
 //    moves A into edx and reaches 84.1% at 161 bytes, but then a->type sits in
 //    esi and the second +0x92 load moves. Roughly 60 spellings of the sum
 //    split, the pointer hoists, the barrier, the conversion and the statement

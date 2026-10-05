@@ -60,10 +60,6 @@ struct Shot_0049cde0 {
 class CobScript {
 public:
     int StartScriptWithArgs(char* name, void* param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8);
-};
-
-class Class_004b0940 {
-public:
     void StartScript(const char* name, int param_2, int param_3);
 };
 
@@ -149,7 +145,7 @@ int __stdcall FireBallisticProjectile(Shot_0049cde0* shot, Unit* unit, Vec3_0049
         }
         proj->active = shot->def->f_ea;
         proj->field_4e = param_5;
-        ((Class_004b0940*)unit->anims)->StartScript(DAT_00509678[(shot->field_1b >> 2) & 3], 0, 0);
+        ((CobScript*)unit->anims)->StartScript(DAT_00509678[(shot->field_1b >> 2) & 3], 0, 0);
         short angle = unit->aim[(shot->field_1b >> 2) & 3][0] - unit->heading.heading;
         int a = -FUN_004b70ef(angle, 800);
         int b = -FUN_004b7123(angle, 800);

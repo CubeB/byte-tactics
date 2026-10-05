@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_0040e9a0 {
+class Pathfinder {
 public:
     char unknown_0[0x58];
     void* field_0x58;
@@ -16,7 +16,7 @@ public:
 };
 
 // FUNCTION: 0x40e9a0
-void Class_0040e9a0::FUN_0040e9a0()
+void Pathfinder::FUN_0040e9a0()
 {
     ((MovementClass*)field_0x64)->RefreshUnitIfStale((int)field_0x58);
     field_0x58 = 0;

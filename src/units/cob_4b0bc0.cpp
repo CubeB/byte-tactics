@@ -8,21 +8,17 @@ struct NameTable_004b0bc0 {
     char** names;                      // +0x1c
 };
 
-class Class_004b0c40 {
-public:
-    int QueryScriptByIndex(int index, int* param_2, int* param_3, int* param_4, int* param_5);
-};
-
-class Class_004b0bc0 {
+class CobScript {
 public:
     int unknown_0;
     int unknown_4;
     NameTable_004b0bc0* table;         // +0x8
 
     int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
+    int QueryScriptByIndex(int index, int* param_2, int* param_3, int* param_4, int* param_5);
 };
 
-static inline int FindName(Class_004b0bc0* obj, char* name)
+static inline int FindName(CobScript* obj, char* name)
 {
     NameTable_004b0bc0* t = obj->table;
     for (int i = 0; i < t->count; i++) {
@@ -34,7 +30,7 @@ static inline int FindName(Class_004b0bc0* obj, char* name)
 }
 
 // FUNCTION: 0x4b0bc0
-int Class_004b0bc0::QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5)
+int CobScript::QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5)
 {
-    return ((Class_004b0c40*)this)->QueryScriptByIndex(FindName(this, name), param_2, param_3, param_4, param_5);
+    return ((CobScript*)this)->QueryScriptByIndex(FindName(this, name), param_2, param_3, param_4, param_5);
 }

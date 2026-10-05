@@ -16,10 +16,6 @@ public:
     char unknown_0[0xd0];
     int field_d0;
     CommandArgs* InitArgs();
-};
-
-class Class_004b7440 {
-public:
     void Tokenize(char* start, char* end);
 };
 
@@ -49,7 +45,7 @@ int __stdcall ExecuteCommandText(char* text, int len, Class_004b74f0* vars, int 
         if (n > len)
             break;
         char* end = text + n;
-        ((Class_004b7440*)&cmd)->Tokenize(text, end);
+        ((CommandArgs*)&cmd)->Tokenize(text, end);
         cmd.SubstituteArgs(vars);
         result |= ExecuteCommand(&cmd, param_4);
         text = end + 1;

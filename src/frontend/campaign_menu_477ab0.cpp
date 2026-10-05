@@ -36,18 +36,10 @@ struct Menu_00477ab0 {
 };
 #pragma pack(pop)
 
-class Class_00435110 {
+class Mission {
 public:
     void LoadCampaign(char* name);
-};
-
-class Class_00435760 {
-public:
     int BuildMissionList(int** out);
-};
-
-class Class_00435c00 {
-public:
     int FUN_00435c00(int index);
 };
 
@@ -102,9 +94,9 @@ void __stdcall FillMissionList(Menu_00477ab0* menu, Entry_00477ab0* unused)
     }
     Entry_00477ab0* layout =
         FindGadgetChecked((*(Holder_00477ab0**)(g_game + 0x531))->entries, "Campaign");
-    ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign(
+    ((Mission*)*(void**)(g_game + 0x391e9))->LoadCampaign(
         SkipTextLines(layout->text, layout->selected));
-    int count = ((Class_00435760*)*(void**)(g_game + 0x391e9))->BuildMissionList(&DAT_0051e660);
+    int count = ((Mission*)*(void**)(g_game + 0x391e9))->BuildMissionList(&DAT_0051e660);
     FUN_004a32a0(menu, "Missions", DAT_0051e660, count, 0);
     FUN_004a2be0(g_game + 0x519,
                  FindGadgetIndex(gadgets->entries, "Missions", 2));
@@ -144,18 +136,18 @@ void __stdcall HandleNewGameClick(Menu_00477ab0* menu)
             if (DAT_00507b6c == 0) {
                 Entry_00477ab0* e = FindGadgetChecked(entries, "Campaign");
                 name = SkipTextLines(e->text, e->selected);
-                ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign(name);
+                ((Mission*)*(void**)(g_game + 0x391e9))->LoadCampaign(name);
             } else if (*(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) == 0) {
-                ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign("Arm Campaign");
+                ((Mission*)*(void**)(g_game + 0x391e9))->LoadCampaign("Arm Campaign");
             } else {
-                ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign("Core Campaign");
+                ((Mission*)*(void**)(g_game + 0x391e9))->LoadCampaign("Core Campaign");
             }
         }
         if (DAT_0051e668 != 0) {
             Entry_00477ab0* e = FindGadgetChecked(entries, "Missions");
             index = e->selected;
         }
-        if (((Class_00435c00*)*(void**)(g_game + 0x391e9))->FUN_00435c00(index) != 0) {
+        if (((Mission*)*(void**)(g_game + 0x391e9))->FUN_00435c00(index) != 0) {
             FUN_00491c80(0x14);
             *(unsigned char*)(*(int*)(g_game + 0x1b8a) + 0x96) = 0;
             *(unsigned char*)(*(int*)(g_game + 0x1cd5) + 0x96) = 1;

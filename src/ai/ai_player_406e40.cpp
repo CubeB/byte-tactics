@@ -19,14 +19,10 @@ extern Game* g_game;
 extern int g_aiCommandsEnabled;
 extern char DAT_005119b8[];
 
-class Class_004b73c0 {
-public:
-    char* GetArg(int index, char* fallback);
-};
-
 class CommandArgs {
 public:
     int GetIntArg(int index, int fallback);
+    char* GetArg(int index, char* fallback);
 };
 
 // 0x40-byte set (512 bits).
@@ -45,7 +41,7 @@ void __stdcall CmdLimit(CommandArgs* args)
         int count;
         UnitTypeSet set;
         memset(&set, 0, sizeof(set));
-        set.AddTypeOrCategory(((Class_004b73c0*)args)->GetArg(1, DAT_005119b8), &count);
+        set.AddTypeOrCategory(((CommandArgs*)args)->GetArg(1, DAT_005119b8), &count);
         int value = args->GetIntArg(2, 0);
         // A narrow index: MSVC then counts the loop down in a separate
         // register instead of testing the player offset.

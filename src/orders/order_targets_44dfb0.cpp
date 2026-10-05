@@ -3,25 +3,17 @@
 // 0x44e330 / 0x44e250. Builds a 0x36-byte record on the stack, writing the
 // referenced unit's id, the embedded link's owner id, five flag shorts and
 // the stored position, then writes it to the file via
-// Class_004b4cf0::WriteBox. The read counterpart is 0x44de80.
+// HapiBank::WriteBox. The read counterpart is 0x44de80.
 //
 // The record's first 8 bytes are never assigned and are still written out:
 // 0x36 bytes of stack, 8 of them uninitialised, go to the save file. The read
 // counterpart (0x44de80) reads all 0x36 bytes but never looks at 0..7, so the
 // bytes are only leaked, never used. Kept as the original does it.
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4cf0 {
-public:
     int WriteBox(void* src, int len);
 };
 
@@ -82,12 +74,12 @@ public:
     Vec3_0044dfb0 pos;              // +0x26
     int i4;                         // +0x32
 
-    int FUN_0044dfb0(int unused, Class_004b4ba0* file, char* name);
+    int FUN_0044dfb0(int unused, HapiBank* file, char* name);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x44dfb0
-int Class_0044dfb0::FUN_0044dfb0(int unused, Class_004b4ba0* file, char* name)
+int Class_0044dfb0::FUN_0044dfb0(int unused, HapiBank* file, char* name)
 {
     Rec_0044dfb0 rec;
     Class_004895c0* ref = (Class_004895c0*)&rec.ref_vt;
@@ -108,8 +100,8 @@ int Class_0044dfb0::FUN_0044dfb0(int unused, Class_004b4ba0* file, char* name)
     rec.pos = pos;
     rec.i4 = i4;
     file->OpenNamedBox(name);
-    ((Class_004b4c10*)file)->SeekBox(0);
-    ((Class_004b4cf0*)file)->WriteBox(&rec, 0x36);
+    ((HapiBank*)file)->SeekBox(0);
+    ((HapiBank*)file)->WriteBox(&rec, 0x36);
     ((UnitRef*)&rec.ref_vt)->FUN_00489650();
     return 1;
 }

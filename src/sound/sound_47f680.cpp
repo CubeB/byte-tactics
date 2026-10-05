@@ -21,7 +21,7 @@ struct Entry_0047f680 {               // 0x11 bytes
     char field_10;                    // +0x10
 };
 
-class Class_0047f960 {
+class SpeechQueue {
 public:
     Entry_0047f680 entries[9];        // +0x0
     int count;                        // +0x99
@@ -34,7 +34,7 @@ public:
 #pragma pack(pop)
 
 extern Game* g_game;
-extern Class_0047f960* DAT_0051e68c;
+extern SpeechQueue* DAT_0051e68c;
 extern int g_useWindowsSound;
 
 // The count is reached through a reference and the entries through the local
@@ -43,7 +43,7 @@ extern int g_useWindowsSound;
 // FUNCTION: 0x47f680
 void PlayNextSpeech()
 {
-    Class_0047f960* driver = DAT_0051e68c;
+    SpeechQueue* driver = DAT_0051e68c;
     int& count = DAT_0051e68c->count;
     if (count) {
         if (g_game->frame >= DAT_0051e68c->field_9d + DAT_0051e68c->field_a1) {

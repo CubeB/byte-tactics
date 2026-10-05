@@ -27,10 +27,6 @@ extern char DAT_00502878[]; // "X Position"
 class HapiBank {
 public:
     void OpenAccount(const char* name);
-};
-
-class Class_004b4800 {
-public:
     int GetIntegerItem(char* name, int def);
 };
 
@@ -38,8 +34,8 @@ public:
 void __stdcall ReadCameraPosition(HapiBank* file)
 {
     file->OpenAccount(DAT_00502890);
-    int z = ((Class_004b4800*)file)->GetIntegerItem(DAT_00502884, g_game->y);
-    int x = ((Class_004b4800*)file)->GetIntegerItem(DAT_00502878, g_game->x);
+    int z = ((HapiBank*)file)->GetIntegerItem(DAT_00502884, g_game->y);
+    int x = ((HapiBank*)file)->GetIntegerItem(DAT_00502878, g_game->x);
     g_game->x = x;
     g_game->y = z;
     g_game->flags_142f1 |= 2;

@@ -10,7 +10,7 @@ struct Sub_004095d0 {
 };
 
 #pragma pack(push, 1)
-struct Class_004095d0 {
+struct UnitDef {
     char unknown_0[0x186];
     float field_186;               // +0x186
     float field_18a;               // +0x18a
@@ -29,10 +29,10 @@ struct Class_004095d0 {
 
 #define MIN(a, b) (((a) > (b)) ? (b) : (a))
 
-extern float __stdcall GetEnergyUse(Class_004095d0* p);
+extern float __stdcall GetEnergyUse(UnitDef* p);
 
 // FUNCTION: 0x4095d0
-int __stdcall RateUnitType(Class_004095d0* p)
+int __stdcall RateUnitType(UnitDef* p)
 {
     int result = 1;
     if (p->field_1ce != 0.0f)

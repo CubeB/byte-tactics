@@ -35,7 +35,7 @@
 //   assigned once from the `||` keeps a test of the materialised value
 //   (99.0%). The earlier passes' C2 traces of that region (FUN_00438f79) are
 //   in the git history of this file.
-// - SetType is Class_00463c60's method in data/symbols.csv, so it is
+// - SetType is Player's method in data/symbols.csv, so it is
 //   called through a cast of the player pointer, as 0x445450 does.
 #include <windows.h>
 #include <stdio.h>
@@ -123,20 +123,14 @@ struct Options_00447b10 {
 };
 #pragma pack(pop)
 
-class Class_00463c60 {
+class Player {
 public:
     void SetType(int state);
 };
-class Class_004358f0 {
+class Mission {
 public:
     int FUN_004358f0();
-};
-class Class_00435c40 {
-public:
     bool FUN_00435c40();
-};
-class Class_004373a0 {
-public:
     unsigned int ComputeMapChecksum();
 };
 class UnitSync {
@@ -179,7 +173,7 @@ struct Game {
     char unknown_37ef2[0x37f39 - 0x37ef2];
     int sides;                          // +0x37f39
     char unknown_37f3d[0x391e9 - 0x37f3d];
-    Class_004358f0* map;                // +0x391e9
+    Mission* map;                       // +0x391e9
     char unknown_391ed[0x39229 - 0x391ed];
     int commander;                      // +0x39229
     int mapping;                        // +0x3922d
@@ -325,7 +319,7 @@ int CheckMapCrc()
     if (!check) {
         return 1;
     }
-    if (((Class_004373a0*)g_game->map)->ComputeMapChecksum() != data->mapCrc)
+    if (((Mission*)g_game->map)->ComputeMapChecksum() != data->mapCrc)
         return 0;
     return 1;
 }
@@ -376,25 +370,25 @@ void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
             PlaySoundByName("Multi", 0);
             char type = p->type;
             if (type == 0 && canAdd) {
-                ((Class_00463c60*)p)->SetType(4);
+                ((Player*)p)->SetType(4);
                 p->id = -1;
                 g_game->field_499--;
             } else if (type != 4 && type != 0) {
                 if (p->active != 0 && type == 2 && GetTicks() - p->time > 30) {
                     RejectPlayer(p->id, 1);
-                    ((Class_00463c60*)p)->SetType(0);
+                    ((Player*)p)->SetType(0);
                 } else if (canAdd && p->active != 0 && p->type == 3) {
                     OpenRejectDialog(i);
                 }
             } else {
                 if (type == 4) {
-                    ((Class_00463c60*)p)->SetType(0);
+                    ((Player*)p)->SetType(0);
                     g_game->field_499++;
                     UpdateNetGameInfo();
                 }
                 if (g_game->players[FindHostSlot()].info->b.closed) {
                     OpenMessageBox(g_game->gui, Translate("Can't add another player when game is closed."), 500, 1, 1);
-                    ((Class_00463c60*)p)->SetType(0);
+                    ((Player*)p)->SetType(0);
                     g_game->dirty = 1;
                     break;
                 }
@@ -597,7 +591,7 @@ void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
                 return;
             }
         }
-        if (!((Class_00435c40*)g_game->map)->FUN_00435c40()) {
+        if (!((Mission*)g_game->map)->FUN_00435c40()) {
             PlaySoundByName("Multi", 0);
             OpenMultiMapSelector();
             goto done;

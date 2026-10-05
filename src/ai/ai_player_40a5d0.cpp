@@ -25,24 +25,24 @@ struct Vec3 {
 };
 
 #pragma pack(push, 1)
-struct UnitType {
+struct UnitDef {
     char unknown_0[0x14a];
     Point16 origin;                    // +0x14a
     char unknown_14e[0x1c0 - 0x14e];
     short field_1c0;                   // +0x1c0
 };
 
-struct Net {
+struct Mission {
     char unknown_0[0xd30];
     int field_d30;                     // +0xd30
 };
 
 struct Game {
     char unknown_0[0x391e9];
-    Net* net;                          // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 
-class Class_0040a7b0 {
+class PlayerAI {
 public:
     char unknown_0[0xf1];
     Point16 spacing0;                  // +0xf1
@@ -51,7 +51,7 @@ public:
     Point16 spacing1;                  // +0xfd
     Point16 offset1;                   // +0x101
     int margin1;                       // +0x105
-    bool FindRandomPlacementCell(UnitType* type, Vec3* pos, int range, Point16* out);
+    bool FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Point16* out);
 };
 #pragma pack(pop)
 
@@ -60,7 +60,7 @@ extern Game* g_game;
 int __stdcall RandomInt(int range);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
-int __stdcall FUN_0047db70(UnitType* type, short a, Point16 cell, int b);
+int __stdcall FUN_0047db70(UnitDef* type, short a, Point16 cell, int b);
 int GetBuildSiteMetal(void);
 
 static inline Point16 WorldToCell(Vec3 v, Point16 origin)
@@ -82,7 +82,7 @@ static inline Vec3 Direction(short angle, int scale)
 }
 
 // FUNCTION: 0x40a5d0
-bool Class_0040a7b0::FindRandomPlacementCell(UnitType* type, Vec3* pos, int range, Point16* out)
+bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Point16* out)
 {
     int threshold = g_game->net->field_d30 * type->origin.y * type->origin.x * 2;
     Point16 spacing = type->field_1c0 < 0 ? spacing0 : spacing1;

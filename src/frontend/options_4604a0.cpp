@@ -32,7 +32,7 @@ struct Menu_004604a0 {
     char unknown_18[0x1c - 0x18];
 };
 
-class Class_00435c30 {
+class Mission {
 public:
     char* FUN_00435c30(int player);
 };
@@ -42,7 +42,7 @@ struct Game {
     char unknown_0[0x519];
     Menu_004604a0 menu;               // +0x519
     char unknown_535[0x391e9 - 0x535];
-    Class_00435c30* texts;            // +0x391e9
+    Mission* texts;                   // +0x391e9
 };
 #pragma pack(pop)
 

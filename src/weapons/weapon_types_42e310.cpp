@@ -18,28 +18,16 @@ public:
     ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int root;                          // +0x0
     int current;                       // +0x4
     int field_8;                       // +0x8
 
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* file);
-};
-
-class Class_004c3e10 {
-public:
     void ResetCurrentRecord();
-};
-
-class Class_004c3490 {
-public:
     int SelectRecordAt(int index);
 };
 
@@ -79,14 +67,14 @@ void LoadWeaponTypes()
     ListDirectory("Weapons\\*.tdf", 0, &files);
 
     for (Class_004c91a0* p = files.begin(); p < files.end(); p++) {
-        Class_004c2ea0 parser;
+        TdfFile parser;
         BuildDataPath(path, "Weapons", p->p, "TDF");
-        if (((Class_004c2f60*)&parser)->LoadFile(path)
+        if (((TdfFile*)&parser)->LoadFile(path)
             && (parser.field_8 || FUN_0041d8a0() == 0)) {
             int i = 0;
             while (1) {
-                ((Class_004c3e10*)&parser)->ResetCurrentRecord();
-                if (!((Class_004c3490*)&parser)->SelectRecordAt(i))
+                ((TdfFile*)&parser)->ResetCurrentRecord();
+                if (!((TdfFile*)&parser)->SelectRecordAt(i))
                     break;
                 LoadWeaponType(parser.current);
                 i++;

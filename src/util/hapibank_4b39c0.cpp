@@ -20,15 +20,15 @@ struct AccountList { int count; void* slots; };
 struct BankFileHeader { char name[8]; int nameOffset; int dataOffset; int headerSize; int version; bool compressed; char unused_19[9]; };
 #pragma pack(pop)
 struct Buffer_004b39c0 { char* data; int len; int csize; };
-class Class_004b3750 {
+class HapiBank {
 public:
     AccountList* field_0;
     char unknown_4[4];
     int field_8;
     int SaveBank(char* name, char* ext, int param_3, int param_4);
     void SaveAccount(int index, FILE* file, Buffer_004b39c0* buf, int param_3);
+    void WriteAuditFile(char* name);
 };
-class Class_004b4d70 { public: void* field_0; void WriteAuditFile(char* name); };
 char* __stdcall StripExtension(char* name);
 void* __cdecl FUN_004d8450(int size);
 void* __cdecl FUN_004d8580(void* ptr, int size);
@@ -37,7 +37,7 @@ int __cdecl SetOutOfMemoryHandler(int handle);
 int __stdcall SquashMaxPackedSize(int size, int level);
 int __stdcall SquashPack(void* dest, int* destSize, void* src, int srcSize, int param_5, int param_6);
 // FUNCTION: 0x4b39c0
-int Class_004b3750::SaveBank(char* name, char* ext, int param_3, int param_4)
+int HapiBank::SaveBank(char* name, char* ext, int param_3, int param_4)
 {
     char path[256];
     BankFileHeader header;
@@ -51,7 +51,7 @@ int Class_004b3750::SaveBank(char* name, char* ext, int param_3, int param_4)
         strcpy(path, name);
         StripExtension(path);
         strcat(path, ".cpa");
-        ((Class_004b4d70*)this)->WriteAuditFile(path);
+        ((HapiBank*)this)->WriteAuditFile(path);
     }
     file = fopen(name, "w+b");
     if (file == 0) { return 0; }

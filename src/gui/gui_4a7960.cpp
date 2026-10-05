@@ -82,10 +82,10 @@ struct Menu_004a7960 {
 };
 #pragma pack(pop)
 
-struct Class_0051fba4 {
+struct Dialog {
     int group;                         // +0x00
 };
-extern Class_0051fba4* g_guiContext;
+extern Dialog* g_guiContext;
 
 int GetTextKeyColor();
 void __stdcall SetTextColors(int colour, int font);

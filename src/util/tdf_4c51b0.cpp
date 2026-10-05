@@ -3,7 +3,7 @@
 // and a value, both reference-counted string handles; the vector<entry>
 // _Ucopy is 0x4c5bc0). The entry's destructor is implicit, so MSVC only
 // emits this ??_G, and calls it with flag 0 where the inline depth runs out:
-// in the destroy loop of the entry vector inside Class_004c2ea0's destructor
+// in the destroy loop of the entry vector inside TdfFile's destructor
 // (0x4c2eb0), which `delete`s the root section.
 //
 // That destructor is defined again below, unannotated, to emit this COMDAT;
@@ -62,18 +62,18 @@ public:
 };
 #pragma pack(pop)
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     TdfRecord* root;
     int field_4;
     int field_8;
 
-    ~Class_004c2ea0();
+    ~TdfFile();
 };
 
 // FUNCTION: 0x4c2eb0
 // FUNCTION: 0x4c51b0 ??_GTdfField@@QAEPAXI@Z
-Class_004c2ea0::~Class_004c2ea0()
+TdfFile::~TdfFile()
 {
     delete root;
     root = 0;

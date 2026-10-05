@@ -16,7 +16,7 @@ struct Elem_00434020 {
 
 typedef std::vector<Elem_00434020> Inner_00433500;
 
-class Class_00433500 {
+class LosTables {
 public:
     std::vector<Inner_00433500> items;  // +0x0 (_First at +0x4)
 
@@ -24,7 +24,7 @@ public:
 };
 
 // FUNCTION: 0x433500
-Inner_00433500* Class_00433500::GetLosTable(int n)
+Inner_00433500* LosTables::GetLosTable(int n)
 {
     return &items[(short)(n - 1)];
 }

@@ -300,17 +300,14 @@
 struct Unit;
 struct Player_00464f80;
 
-struct Class_0040eb70 { void RunSearches(); };
-struct Class_00408c40 { void TickIfActive(); };
-struct Class_00435100 {
+struct Pathfinder { void RunSearches(); };
+struct SquadManager { void TickIfActive(); };
+struct Mission {
     char unknown_0[0xd44];
     int field_d44;                     // +0xd44
     int FUN_00435100();
 };
-struct MissionConditions { int CheckVictory(); };
-struct Class_00490360 { int CheckDefeat(); };
-class Class_0048b090 { public: void SetStateBits(int which, int on); };
-
+struct MissionConditions { int CheckVictory(); int CheckDefeat(); };
 #pragma pack(push, 1)
 
 // The player-controlled object (g_game+0x1b8a+0x14b*n), stored in
@@ -369,6 +366,7 @@ struct Unit {
     char unknown_f0[0x110 - 0xf0];
     unsigned int flags_110;            // +0x110
     char unknown_114[0x118 - 0x114];
+    void SetStateBits(int which, int on);
 };
 
 struct PlayerInfo_00464f80 {           // +0x1b63, stride 0x14b
@@ -382,7 +380,7 @@ struct PlayerInfo_00464f80 {           // +0x1b63, stride 0x14b
     Unit* units_end;                   // +0x6b
     char unknown_6f[0x73 - 0x6f];
     unsigned char type;                // +0x73
-    Class_00408c40* field_74;          // +0x74
+    SquadManager* field_74;            // +0x74
     char unknown_78[0xf0 - 0x78];
     int field_f0;                      // +0xf0
     char unknown_f4[0x140 - 0xf4];
@@ -426,7 +424,7 @@ struct Game {
     unsigned char localPlayer;         // +0x2a42
     unsigned char field_2a43;          // +0x2a43
     char unknown_2a44[0x14207 - 0x2a44];
-    Class_0040eb70* field_14207;       // +0x14207
+    Pathfinder* field_14207;           // +0x14207
     char unknown_1420b[0x14223 - 0x1420b];
     int screen_x;                      // +0x14223
     int screen_y;                      // +0x14227
@@ -447,7 +445,7 @@ struct Game {
     char startPos[0x38a47 - 0x37f5f];  // +0x37f5f, 0x232-byte records
     unsigned int tick;                 // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Class_00435100* mode;              // +0x391e9
+    Mission* mode;                     // +0x391e9
     MissionConditions* list;           // +0x391ed
     char unknown_391f1[0x39239 - 0x391f1];
     short field_39239;                 // +0x39239
@@ -581,7 +579,7 @@ void __stdcall FUN_00464f80()
         if (bl == g_game->localPlayer) {
             if (g_game->mode->FUN_00435100() == 1) {
                 if (g_game->list->CheckVictory() == 0) {
-                    if (((Class_00490360*)g_game->list)->CheckDefeat() != 0) {
+                    if (((MissionConditions*)g_game->list)->CheckDefeat() != 0) {
                         if (g_game->field_39239 < 0) {
                             g_game->field_39239 = 4;
                         } else {
@@ -614,7 +612,7 @@ void __stdcall FUN_00464f80()
                 }
             } else if ((pi->active == 0 ||
                         (pi->data->flags_9b & 0x40) == 0) &&
-                       ((Class_00490360*)g_game->list)->CheckDefeat() != 0) {
+                       ((MissionConditions*)g_game->list)->CheckDefeat() != 0) {
                 if (g_game->field_39239 < 0) {
                     g_game->field_39239 = 4;
                 } else {

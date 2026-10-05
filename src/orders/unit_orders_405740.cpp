@@ -3,7 +3,6 @@
 struct Vec3 { int x, y, z; };
 struct Unit;
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x15e]; Vec3 min, max;
@@ -18,6 +17,7 @@ struct Unit {
     char padb4[0x104-0xb4]; float progress;
     short health; char pad10a[4]; unsigned short flags10e;
     unsigned int flags;
+    void ClaimWeapons(int);
 };
 struct UnitRef { int vtable; Unit* ptr; Unit* Get() { return ptr; } };
 struct Order {
@@ -45,7 +45,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
     case 0:
         if (!(unit->def->flags & 0x40)) return 7;
         if (target->progress == 0.0f && (unit->flags10e & 1)) {
-            ((Class_004898b0*)unit)->ClaimWeapons(3);
+            ((Unit*)unit)->ClaimWeapons(3);
             return 1;
         }
         return 8;

@@ -1,5 +1,5 @@
 start,folder,module,evidence
-0x401000,game,economy,PlayerRef::Reset; u%04xacc save and load; per-tick energy and metal update (0x401360)
+0x401000,game,economy,UnitResources::Reset; u%04xacc save and load; per-tick energy and metal update (0x401360)
 0x401c20,orders,unit_orders,the ground order handlers g_unitOrders names (Stop 0x401c20); Repair / Capture / Reclaim / Transport texts
 0x406c90,ai,ai_player,hard / medium / easy and plan / weight / limit commands; the player AI object 0x409160 and its 0x4fc980 family (0x407350 to 0x40d5b0)
 0x40d5e0,ai,pathfind,AISearch touched mapentries (0x40e9e0); the pathfinder class of docs/consolidation.md

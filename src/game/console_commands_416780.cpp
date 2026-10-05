@@ -26,10 +26,6 @@ public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
     int GetIntArg(int index, int fallback);
-};
-
-class Class_004b73c0 {
-public:
     char* GetArg(int index, char* fallback);
 };
 
@@ -40,6 +36,6 @@ void __stdcall CmdSearch(CommandArgs* args)
         g_game->obj->value = args->GetIntArg(1, 0);
     }
     if (args->count == 3) {
-        g_game->obj->fixed = (int)(atof(((Class_004b73c0*)args)->GetArg(2, DAT_005119b8)) * 65536.0);
+        g_game->obj->fixed = (int)(atof(((CommandArgs*)args)->GetArg(2, DAT_005119b8)) * 65536.0);
     }
 }

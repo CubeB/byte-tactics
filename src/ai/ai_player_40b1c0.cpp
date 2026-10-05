@@ -19,7 +19,7 @@ struct Unit {
     unsigned short id;                 // +0xa6
 };
 
-class Class_0040b1c0 {
+class PlayerAI {
 public:
     char unknown_0[5];
     std::vector<Unit*> units; // +0x5
@@ -28,13 +28,13 @@ public:
 };
 #pragma pack(pop)
 
-extern Class_0040b1c0* g_playerAI[];
+extern PlayerAI* g_playerAI[];
 
 // FUNCTION: 0x40b1c0
 int __stdcall SumUnitRatingsInRange(int player, Vec_0040b1c0* pos, int range)
 {
     int total = 0;
-    Class_0040b1c0* p = g_playerAI[player];
+    PlayerAI* p = g_playerAI[player];
     int r2 = range * range;
     std::vector<Unit*>& units = p->units;
     for (std::vector<Unit*>::iterator it = units.begin(); it != units.end(); it++) {

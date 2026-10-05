@@ -316,16 +316,22 @@ struct Thing_0043f0e0 {
 extern Game* g_game;
 
 Cell_0043f0e0* __stdcall GetMapCellAtPosition(Pos_0043f0e0* pos);
-class Class_004899b0 {
-  public:
-    int CanRepair(Unit_0043f0e0* other);
-    int CanRepair(Unit_0043e490* other);
-};
 class Unit {
   public:
     int CanLoad(Unit_0043f0e0* other);
     int CanLoad(Unit_0043e490* other);
+    int CanRepair(Unit_0043f0e0* other);
+    int CanRepair(Unit_0043e490* other);
+    int CanReclaim(Unit_0043e490* other);
 };
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int __stdcall IsUnitCommander(Unit*);
+int __stdcall FindLandingPad(Unit*, int);
+unsigned short __stdcall ChooseBuildOption(unsigned int, Unit*);
+void __stdcall ClearWeaponTarget(Unit*, int);
+void __stdcall DetonateUnitWeapon(Unit*, int);
+void __stdcall DrawUnit(void*, Unit*);
+
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                                       Unit_0043f0e0* target, Pos_0043f0e0* pos);
 
@@ -334,10 +340,6 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
 Cell_0043e490* __stdcall GetMapCellAtPosition(Pos_0043e490* pos);
 int __stdcall WeaponCanReachPos(Unit_0043e490* unit, void* slot, Pos_0043e490* pos, int which);
 int __stdcall WeaponCanReachUnit(Unit_0043e490* unit, Unit_0043e490* target, int which);
-class Class_00489960 {
-  public:
-    int CanReclaim(Unit_0043e490* other);
-};
 int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e490* target,
                            Pos_0043e490* pos);
 
@@ -428,7 +430,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
     case 9:
         return def->f245b.b6 ? 7 : 0x13;
     case 8:
-        return ((Class_004899b0*)unit)->CanRepair(target) ? 6 : 0x13;
+        return ((Unit*)unit)->CanRepair(target) ? 6 : 0x13;
     case 7:
         if (!(def->f245 & 0x20) || !friendly)
             break;
@@ -437,7 +439,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
         break;
     case 12:
         RECLAIM_CHECK(def, unit, pos, 0x400, 0xb);
-        if (target && ((Class_00489960*)unit)->CanReclaim(target))
+        if (target && ((Unit*)unit)->CanReclaim(target))
             return 0xb;
         break;
     case 13:
@@ -473,11 +475,11 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return 0xe;
         if ((def->f245 & 0x1000) && enemy)
             return 4;
-        if (enemy && ((Class_00489960*)unit)->CanReclaim(target))
+        if (enemy && ((Unit*)unit)->CanReclaim(target))
             return 0xb;
-        if (friendly && ((Class_004899b0*)unit)->CanRepair(target) && target->f104 != 0.0f)
+        if (friendly && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
             return 6;
-        if (friendly && ((Class_004899b0*)unit)->CanRepair(target))
+        if (friendly && ((Unit*)unit)->CanRepair(target))
             return 6;
         if ((def->f241 & 0x800) && (target->def->f241 & 0x200))
             return 0xd;
@@ -502,7 +504,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return GetOrderCursor(3, unit, target, pos);
         if ((def->f245 & 0x400) && enemy)
             return GetOrderCursor(0xc, unit, target, pos);
-        if (target && ((Class_004899b0*)unit)->CanRepair(target) && target->f104 != 0.0f)
+        if (target && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
             return 6;
         if (Selectable(target))
             return 0xf;
@@ -641,7 +643,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
         }
         break;
     case 8:
-        if (!((Class_004899b0*)unit)->CanRepair(target))
+        if (!((Unit*)unit)->CanRepair(target))
             break;
         if (target->f104 != 0.0f)
             return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
@@ -703,9 +705,9 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
             return Class_00438760("CAPTURE");
         if ((def->f245 & 0x400) && enemy)
             return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
-        if (friendly && ((Class_004899b0*)unit)->CanRepair(target) && target->f104 != 0.0f)
+        if (friendly && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
             return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
-        if (friendly && ((Class_004899b0*)unit)->CanRepair(target) &&
+        if (friendly && ((Unit*)unit)->CanRepair(target) &&
             (unsigned int)target->f108 < target->def->f1fa)
             return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
         if ((def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
@@ -721,9 +723,9 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 return FUN_0043f0e0(3, unit, target, pos);
             if ((def->f245 & 0x400) && enemy)
                 return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
-            if (friendly && ((Class_004899b0*)unit)->CanRepair(target) && target->f104 != 0.0f)
+            if (friendly && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
                 return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
-            if (friendly && ((Class_004899b0*)unit)->CanRepair(target))
+            if (friendly && ((Unit*)unit)->CanRepair(target))
                 return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
             if ((def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
                 return Class_00438760("VTOL_LANDING");
@@ -741,7 +743,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 return FUN_0043f0e0(3, unit, target, pos);
             if ((def->f245 & 0x400) && enemy)
                 return FUN_0043f0e0(0xc, unit, target, pos);
-            if (target && ((Class_004899b0*)unit)->CanRepair(target) && target->f104 != 0.0f)
+            if (target && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
                 return FUN_0043f0e0(8, unit, target, pos);
             if (target && target->unknown_ff[0] == g_game->localPlayer && (target->f110 & 0x20) &&
                 target->f104 == 0.0f && target->ffb == 0 &&

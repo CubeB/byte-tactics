@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-class Class_004c46c0 {
+class TdfRecord {
 public:
     char unknown_0[0x21];
     int GetFieldInt(const char* name, int def);
@@ -13,7 +13,7 @@ struct StructA_004ada10 {
 
 struct StructB_004ada10 {
     char unknown_0[4];
-    Class_004c46c0* field_4;
+    TdfRecord* field_4;
 };
 
 // FUNCTION: 0x4ada10

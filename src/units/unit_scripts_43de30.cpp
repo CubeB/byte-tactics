@@ -15,18 +15,10 @@ struct Unit {
     unsigned short id;               // +0xa8
 };
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4c80 {
-public:
     int ReadBox(void* buf, int size);
 };
 
@@ -41,7 +33,7 @@ struct Record_0043de30 {
     unsigned char flag : 1;          // +0x22 bit 2
 };
 
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[8];
     Vec3 velocity;                   // +0x08
@@ -53,19 +45,19 @@ public:
     unsigned char state : 2;         // +0x2e bits 0-1
     unsigned char flag : 1;          // +0x2e bit 2
 
-    void LoadMotion(Unit* unit, Class_004b4ba0* file);
+    void LoadMotion(Unit* unit, HapiBank* file);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x43de30
-void Class_0043d210::LoadMotion(Unit* unit, Class_004b4ba0* file)
+void UnitMotion::LoadMotion(Unit* unit, HapiBank* file)
 {
     char name[32];
     Record_0043de30 rec;
     sprintf(name, "u%04xmob", unit->id);
     file->OpenNamedBox(name);
-    ((Class_004b4c10*)file)->SeekBox(0);
-    ((Class_004b4c80*)file)->ReadBox(&rec, 0x23);
+    ((HapiBank*)file)->SeekBox(0);
+    ((HapiBank*)file)->ReadBox(&rec, 0x23);
     velocity = rec.velocity;
     v2 = rec.v2;
     field_20 = rec.d6;

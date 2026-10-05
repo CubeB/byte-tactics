@@ -19,7 +19,7 @@ long __stdcall HAPI_TellFile(FileHandle* file);
 long __stdcall HAPI_FileLength(FileHandle* file);
 int __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
 
-class Class_004cfb40 {
+class Sound {
 public:
     char unknown_0[0x1e4];
     IDirectSoundBuffer* stream;             // +0x1e4
@@ -35,7 +35,7 @@ public:
 };
 
 // FUNCTION: 0x4cfca0
-void Class_004cfb40::FillStreamHalf()
+void Sound::FillStreamHalf()
 {
     unsigned long flags;
     char* buffer;

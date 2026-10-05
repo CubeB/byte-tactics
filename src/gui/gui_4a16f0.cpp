@@ -27,7 +27,7 @@ struct Holder_004a16f0 {
 };
 
 #pragma pack(push, 1)
-struct Class_004a16f0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a16f0* holder;          // +0x18
     char unknown_1c[0xcca - 0x1c];
@@ -45,7 +45,7 @@ struct Rect_004a16f0 {
 void __stdcall DrawLitRectangle(int surface, Rect_004a16f0* rect, int level);
 
 // FUNCTION: 0x4a16f0
-void __stdcall FUN_004a16f0(Class_004a16f0* obj, int index, int param_3)
+void __stdcall FUN_004a16f0(Dialog* obj, int index, int param_3)
 {
     Entry_004a16f0* entries = obj->holder->entries;
     int i;

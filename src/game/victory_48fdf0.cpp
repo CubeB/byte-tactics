@@ -17,7 +17,7 @@ public:
     virtual void LoadState(HapiBank* file) = 0;            // Load
 };
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -25,7 +25,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x391e9];
-    Class_00435100* field_391e9;         // +0x391e9
+    Mission* field_391e9;                // +0x391e9
 };
 #pragma pack(pop)
 

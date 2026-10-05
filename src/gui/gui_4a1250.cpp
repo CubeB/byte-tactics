@@ -20,7 +20,7 @@ struct Holder_4a1250 {
     Entry_4a1250* entries;           // +0x04
 };
 
-struct Class_004a1250 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_4a1250* holder;           // +0x18
 };
@@ -36,7 +36,7 @@ static inline int FindEntry(Entry_4a1250* entries, char* name)
 }
 
 // FUNCTION: 0x4a1250
-void __stdcall FUN_004a1250(Class_004a1250* obj, char* name, int value)
+void __stdcall FUN_004a1250(Dialog* obj, char* name, int value)
 {
     Entry_4a1250* entries = obj->holder->entries;
     int i = FindEntry(entries, name);

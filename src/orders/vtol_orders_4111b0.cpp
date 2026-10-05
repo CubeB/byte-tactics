@@ -20,21 +20,17 @@ struct Vec3 {
 };
 
 struct Unit;
-class Class_0043d210 {
+class UnitMotion {
 public:
     char unknown_0[0x2e];
     unsigned char field_2e;            // +0x2e
     void SetFlightMode(Unit* unit, int state);
 };
-class Class_004898b0 { public: void ClaimWeapons(int); };
-class Class_0048b090 { public: void SetStateBits(int, int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
 class Class_0044e730 { public: void FUN_0044e730(short); };
-class Class_004b0940 { public: void StartScript(const char*, int, int); };
-class Class_004b0bc0 { public: int QueryScript(char* name, int* p2, int* p3, int* p4, int* p5); };
-class CobScript { public: int StartScriptWithArgs(char*, void*, int, int, int, int, int, int); };
+class CobScript { public: int StartScriptWithArgs(char*, void*, int, int, int, int, int, int); void StartScript(const char*, int, int); int QueryScript(char* name, int* p2, int* p3, int* p4, int* p5); };
 
 #pragma pack(push, 1)
 struct UnitDef {
@@ -44,12 +40,14 @@ struct UnitDef {
     char pad22b[0x241 - 0x22b]; unsigned int flags;
 };
 struct Unit {
-    Class_0043d210* type;
+    UnitMotion* type;
     char pad4[0x6a - 4]; Vec3 pos;
     char pad76[0x7e - 0x76]; short size;
     char pad80[0x86 - 0x80]; int field_86; int field_8a;
     char pad8e[4]; UnitDef* def;
     char pad96[4]; CobScript* script;
+    void ClaimWeapons(int);
+    void SetStateBits(int, int);
 };
 struct Order {
     char pad0[5]; unsigned char state; unsigned int flags;
@@ -88,10 +86,10 @@ Vec3 __stdcall GetPieceOffset(Unit* unit, int piece);
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Class_004898b0*)unit)->ClaimWeapons(3);
+    ((Unit*)unit)->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Class_0048b090*)unit)->SetStateBits(1, 1);
+    ((Unit*)unit)->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -144,7 +142,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
         case 2:
             ((Class_00438880*)order)->FUN_00438880("Preparing for transport");
             order->piece = -1;
-            ((Class_004b0bc0*)unit->script)->QueryScript("QueryTransport", &order->piece, 0, 0, 0);
+            ((CobScript*)unit->script)->QueryScript("QueryTransport", &order->piece, 0, 0, 0);
             order->flags = 0x100e8;
             return 1;
         case 3: {
@@ -162,7 +160,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             // Suspected original bug: the waypoint built below is never
             // handed to the order (no FUN_004388d0 call), so it leaks.
             if (flags & 0x42) {
-                ((Class_004b0940*)unit->script)->StartScript("EndTransport", 0, 0);
+                ((CobScript*)unit->script)->StartScript("EndTransport", 0, 0);
                 return 8;
             }
             AttachUnitToPiece(target, unit, order->piece, 0);

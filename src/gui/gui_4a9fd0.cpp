@@ -152,13 +152,13 @@ struct Menu_004a9fd0 {
     int field_cca;                    // +0xcca
 };
 
-struct Class_0051fba4 {
+struct Dialog {
     int group;                        // +0x00
     char unknown_04[0x14 - 0x04];
 };
 #pragma pack(pop)
 
-extern Class_0051fba4* g_guiContext;
+extern Dialog* g_guiContext;
 extern int DAT_0051fbb4;
 extern char DAT_005119b8[];
 

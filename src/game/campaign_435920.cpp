@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_00435920 {
+class Mission {
 public:
     char unknown_0[0xa04];
     int field_a04;                      // +0xa04
@@ -9,7 +9,7 @@ public:
 };
 
 // FUNCTION: 0x435920
-int Class_00435920::FUN_00435920()
+int Mission::FUN_00435920()
 {
     int v = field_a04;
     if (v < 0x3e6666)

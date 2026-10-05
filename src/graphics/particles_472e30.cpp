@@ -21,7 +21,7 @@ struct Game {
 
 extern Game* g_game;
 
-struct Class_00472e30 {
+struct TeleportParticles {
     char unknown_0[0xc];
     std::vector<Class_00473590> items;  // +0xc (_First +0x10, _Last +0x14)
 
@@ -29,7 +29,7 @@ struct Class_00472e30 {
 };
 
 // FUNCTION: 0x472e30
-void Class_00472e30::FUN_00472e30(void* p)
+void TeleportParticles::FUN_00472e30(void* p)
 {
     for (std::vector<Class_00473590>::iterator it = items.begin(); it != items.end(); ++it) {
         it->DrawParticle(p, g_game->field_1431f, g_game->field_14323);

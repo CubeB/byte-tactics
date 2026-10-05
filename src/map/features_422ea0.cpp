@@ -4,16 +4,12 @@
 // updating the load progress byte as it goes.
 #include <string.h>
 
-class Class_004c3e10 {
+class TdfFile {
 public:
     char unknown_0[4];
     void* parser;                       // +0x4
 
     void ResetCurrentRecord();
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
 };
 
@@ -24,8 +20,8 @@ public:
 
 struct List_00422ea0 {
     int unknown_0;
-    Class_004c3e10** first;             // +0x4
-    Class_004c3e10** last;              // +0x8
+    TdfFile** first;                    // +0x4
+    TdfFile** last;                     // +0x8
 };
 
 struct FeatureDef_00422ea0 {
@@ -54,11 +50,11 @@ extern char DAT_005119b8[];
 unsigned short __stdcall LoadFeatureType(char* name);
 
 // FindFeatureFile, inlined
-static inline Class_004c3e10* FindEntry(char* name)
+static inline TdfFile* FindEntry(char* name)
 {
-    for (Class_004c3e10** p = DAT_00511fb4->first; p < DAT_00511fb4->last; p++) {
+    for (TdfFile** p = DAT_00511fb4->first; p < DAT_00511fb4->last; p++) {
         (*p)->ResetCurrentRecord();
-        if (((Class_004c3410*)*p)->SelectRecord(name))
+        if (((TdfFile*)*p)->SelectRecord(name))
             return *p;
     }
     return 0;

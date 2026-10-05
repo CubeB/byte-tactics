@@ -8,7 +8,7 @@ extern int g_cdFadeTimer;
 
 extern void __stdcall RemoveTimer(int);
 
-class Class_004cda00 {
+class Sound {
 public:
     void QueryDisc();
 };
@@ -51,7 +51,7 @@ void __cdecl HandleCdMessage(int param_1, int param_2, int param_3)
         RemoveTimer(g_cdFadeTimer);
         g_cdNextTrackTimer = g_cdFadeTimer = -1;
         if (param_2 == 0x8000) {
-            ((Class_004cda00*)g_cdPlayer)->QueryDisc();
+            ((Sound*)g_cdPlayer)->QueryDisc();
             if (g_cdPlayer->callback)
                 g_cdPlayer->callback();
         }

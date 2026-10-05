@@ -30,11 +30,6 @@ struct Queue_00462710 {
     }
 };
 
-class Class_00461b10 {
-public:
-    void* AllocBuffer();
-};
-
 class PacketBuffer {
 public:
     int AppendPacket(Packet_00462710* packet, int number, void* data, unsigned int length, void* prev);
@@ -43,11 +38,6 @@ public:
 class Class_00462ae0 {
 public:
     void RemovePacket(void* param);
-};
-
-class Class_004624a0 {
-public:
-    void SendQueued(int param_1);
 };
 
 class PacketChannel {
@@ -65,13 +55,15 @@ public:
     Queue_00462710 queue;              // +0x38
 
     int AddPacket(int param_1, void* param_2, unsigned int param_3);
+    void* AllocBuffer();
+    void SendQueued(int param_1);
 };
 
 // FUNCTION: 0x462710
 int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
 {
     if (field_20 >= 0x42a || queue.count == 0x400) {
-        ((Class_004624a0*)this)->SendQueued(1);
+        ((PacketChannel*)this)->SendQueued(1);
         if (queue.count != 0)
             return 0;
     }
@@ -80,7 +72,7 @@ int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
     if (idx >= 0)
         block = (Class_00462ae0*)field_08[idx];
     if (block == 0) {
-        block = (Class_00462ae0*)((Class_00461b10*)this)->AllocBuffer();
+        block = (Class_00462ae0*)((PacketChannel*)this)->AllocBuffer();
         if (block == 0)
             return 0;
     }
@@ -90,7 +82,7 @@ int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
     int r = ((PacketBuffer*)block)->AppendPacket(pkt, field_1c, param_2, param_3, field_34);
     if (r == 0) {
         field_1c = field_1c - 1;
-        block = (Class_00462ae0*)((Class_00461b10*)this)->AllocBuffer();
+        block = (Class_00462ae0*)((PacketChannel*)this)->AllocBuffer();
         if (block != 0) {
             pkt = AllocPacket(param_1);
             if (pkt != 0)

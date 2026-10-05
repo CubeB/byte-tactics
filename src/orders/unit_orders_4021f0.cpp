@@ -22,16 +22,6 @@ public:
     void FUN_00439e80(int ticks);
 };
 
-class Class_00489800 {
-public:
-    void ReleaseWeapons(int param);
-};
-
-class Class_004898b0 {
-public:
-    void ClaimWeapons(int param);
-};
-
 struct Vec_004021f0 {
     int x, y, z;
 };
@@ -44,6 +34,8 @@ struct Unit {
     unsigned char player;              // +0xff
     char unknown_100[0x110 - 0x100];
     unsigned int flags;                // +0x110
+    void ReleaseWeapons(int param);
+    void ClaimWeapons(int param);
 };
 
 struct Order {
@@ -75,7 +67,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
     }
     switch (order->state) {
     case 0:
-        ((Class_00489800*)unit)->ReleaseWeapons(3);
+        ((Unit*)unit)->ReleaseWeapons(3);
         ((Class_00439e80*)order)->FUN_00439e80(0x1e);
         return 1;
     case 1: {
@@ -83,7 +75,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
         Unit* t = order->target.owner;
         if (t != 0 && (t->flags & 0x10000000)) {
             order->pos = t->pos;
-            ((Class_004898b0*)unit)->ClaimWeapons(0);
+            ((Unit*)unit)->ClaimWeapons(0);
             SetWeaponTargetUnit(unit, order->target.owner, 0);
             order->wait = 0;
             order->waitLimit = RandomInt(3) + 3;

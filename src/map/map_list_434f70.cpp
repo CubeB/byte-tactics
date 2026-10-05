@@ -2,28 +2,23 @@
 // Constructor: clears the state, stores the owner and resets the object with
 // an empty name through LoadCampaign (which copies the name to +0x4).
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;
     int field_4;
     int field_8;
 
-    Class_004c2ea0();
-};
-
-class Class_00435110 {
-public:
-    void LoadCampaign(char* name);
+    TdfFile();
 };
 
 extern char DAT_005119b8[];
 
-class Class_00434f70 {
+class Mission {
 public:
     int owner;                          // +0x0
     char unknown_4[0xa04 - 0x4];
     int field_a04;                      // +0xa04
-    Class_004c2ea0 field_a08;           // +0xa08
+    TdfFile field_a08;                  // +0xa08
     char text_a14[0x100];               // +0xa14
     char text_b14[0x100];               // +0xb14
     int field_c14;                      // +0xc14
@@ -39,11 +34,12 @@ public:
     int field_dbc;                      // +0xdbc
     int field_dc0;                      // +0xdc0
 
-    Class_00434f70(int owner_);
+    Mission(int owner_);
+    void LoadCampaign(char* name);
 };
 
 // FUNCTION: 0x434f70
-Class_00434f70::Class_00434f70(int owner_)
+Mission::Mission(int owner_)
 {
     field_db8 = 0;
     field_db0 = 0;
@@ -59,5 +55,5 @@ Class_00434f70::Class_00434f70(int owner_)
     text_a14[0] = 0;
     text_b14[0] = 0;
     owner = owner_;
-    ((Class_00435110*)this)->LoadCampaign(DAT_005119b8);
+    ((Mission*)this)->LoadCampaign(DAT_005119b8);
 }

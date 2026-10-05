@@ -88,13 +88,13 @@ struct Font_004a2580 {
     void* glyphs;                      // +0x0c
 };
 
-struct Class_0051fba4 {
+struct Dialog {
     int group;                         // +0x00
     char unknown_04[0x14 - 0x04];
     Font_004a2580* font;               // +0x14
 };
 
-extern Class_0051fba4* g_guiContext;
+extern Dialog* g_guiContext;
 
 void __stdcall SetFont(int id);
 void __stdcall FUN_004a23b0(Entry_004a2580* base, int index, int* r1, int* r2);

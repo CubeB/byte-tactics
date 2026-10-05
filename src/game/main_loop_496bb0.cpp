@@ -13,7 +13,7 @@ struct Sub_00496bb0 {
     char unknown_0[0xa6];
 };
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -36,7 +36,7 @@ struct Game {
     unsigned char state_2bbe;          // +0x2bbe
     unsigned char state_2bbf;          // +0x2bbf
     char unknown_2bc0[0x391e9 - 0x2bc0];
-    Class_00435100* obj_391e9;         // +0x391e9
+    Mission* obj_391e9;                // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
     int mode;                          // +0x391f1
     void (*handler)();                 // +0x391f5

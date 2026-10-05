@@ -2,7 +2,7 @@
 // Looks up the "SweetSpot" entry in the object's name table at +0x9a and
 // passes the value found on to GetPieceCenter.
 
-class Class_004b0bc0 {
+class CobScript {
 public:
     int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
 };
@@ -10,7 +10,7 @@ public:
 #pragma pack(push, 2)
 struct Obj_0043e3c0 {
     char unknown_0[0x9a];
-    Class_004b0bc0* table;             // +0x9a
+    CobScript* table;                  // +0x9a
 };
 #pragma pack(pop)
 

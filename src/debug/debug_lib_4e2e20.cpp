@@ -3,7 +3,7 @@
 // (compare 0x4e2ee0, the short version).
 #include <windows.h>
 
-class Class_004e2d90 {
+class CavedogRegistryKey {
 public:
     DWORD ReadDword(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue);
 };
@@ -24,7 +24,7 @@ public:
 void Class_004e2e20::FUN_004e2e20(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue)
 {
     if (reading) {
-        *value = ((Class_004e2d90*)this)->ReadDword(name, minValue, maxValue, defaultValue);
+        *value = ((CavedogRegistryKey*)this)->ReadDword(name, minValue, maxValue, defaultValue);
     } else {
         ((Class_004e2e00*)this)->WriteInt(name, *value);
     }

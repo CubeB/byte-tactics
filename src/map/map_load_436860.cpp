@@ -41,30 +41,22 @@ public:
     TdfRecord* GetSubRecord(int index);
 };
 
-class Class_004c3410 {
-public:
-    int SelectRecord(char* name);
-};
-
-class Class_004c3e10 {
-public:
-    void ResetCurrentRecord();
-};
-
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;
     TdfRecord* current;                 // +0x4
     int field_8;
+    int SelectRecord(char* name);
+    void ResetCurrentRecord();
 };
 
-class Class_00435c00 {
+class Mission {
 public:
-    int FUN_00436860(int type, Class_004c2ea0* parser, char* schema);
+    int FUN_00436860(int type, TdfFile* parser, char* schema);
 };
 
 // FUNCTION: 0x436860
-int Class_00435c00::FUN_00436860(int type, Class_004c2ea0* parser, char* schema)
+int Mission::FUN_00436860(int type, TdfFile* parser, char* schema)
 {
     int order[4];
     char name[0x10];
@@ -138,11 +130,11 @@ int Class_00435c00::FUN_00436860(int type, Class_004c2ea0* parser, char* schema)
         if (d == -1)
             break;
         for (int n = 0; ; n++) {
-            ((Class_004c3e10*)parser)->ResetCurrentRecord();
-            if (!((Class_004c3410*)parser)->SelectRecord("GlobalHeader"))
+            ((TdfFile*)parser)->ResetCurrentRecord();
+            if (!((TdfFile*)parser)->SelectRecord("GlobalHeader"))
                 FatalError("Very bad news!  No MSG!");
             sprintf(name, "Schema %i", n);
-            if (!((Class_004c3410*)parser)->SelectRecord(name))
+            if (!((TdfFile*)parser)->SelectRecord(name))
                 break;
             if (!parser->current->GetFieldString(kind, "type", 0x20, DAT_005119b8))
                 continue;
@@ -155,7 +147,7 @@ int Class_00435c00::FUN_00436860(int type, Class_004c2ea0* parser, char* schema)
             }
             TdfRecord* section = parser->current;
             int count = 0;
-            if (((Class_004c3410*)parser)->SelectRecord("specials")) {
+            if (((TdfFile*)parser)->SelectRecord("specials")) {
                 Class_004c44c0* specials = (Class_004c44c0*)parser->current;
                 TdfRecord* s;
                 for (int i = 0; (s = specials->GetSubRecord(i)) != 0; i++) {

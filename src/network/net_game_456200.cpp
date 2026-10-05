@@ -9,7 +9,7 @@ struct Game {
 
 extern Game* g_game;
 
-class Class_004b07c0 {
+class CobScript {
 public:
     int FindScript(char* name);
 };
@@ -23,7 +23,7 @@ struct Player_00456200 {
 struct Object_00456200 {
     char unknown_0[0x96];
     Player_00456200* player;           // +0x96
-    Class_004b07c0* names;             // +0x9a
+    CobScript* names;                  // +0x9a
     char unknown_9e[0xa8 - 0x9e];
     short field_a8;                    // +0xa8
 };

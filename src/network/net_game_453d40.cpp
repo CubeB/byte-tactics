@@ -86,21 +86,29 @@ public:
     unsigned char index;               // +0x146
     unsigned char field_147;           // +0x147
     char unknown_148[3];
+    void SetType(int);
 };
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+int __stdcall GetPlayerDpid(Player*);
+int __stdcall CountHumanPlayers();
+int __stdcall CountComputerPlayers();
+int __stdcall IsHostLocal();
+int __stdcall FindFreeSlot();
+
 
 struct Feature {
     char data[0x115];
 };
 
-class Class_004b0b00 {
+class CobScript {
 public:
     int StartScriptWithArgsByIndex(int, int, int, int, int, int, int, int);
 };
 
-class Class_0048b090 {
+class Unit {
 public:
     char unknown_0[0x9a];
-    Class_004b0b00* field_9a;          // +0x9a
+    CobScript* field_9a;               // +0x9a
     char unknown_9e[0x110 - 0x9e];
     unsigned int flags_110;            // +0x110
     char unknown_114[4];
@@ -147,7 +155,7 @@ struct Game {
     char unknown_2c50[0x2cf3 - 0x2c50];
     Feature features[256];             // +0x2cf3
     char unknown_after_features[0x14357 - (0x2cf3 + 0x115 * 256)];
-    Class_0048b090* units;             // +0x14357
+    Unit* units;                       // +0x14357
     char unknown_1435b[0x38a51 - 0x1435b];
     unsigned short bit_38a51 : 1;      // +0x38a51
     unsigned short : 15;
@@ -203,11 +211,6 @@ public:
     void FUN_00463c40();
 };
 
-class Class_00463c60 {
-public:
-    void SetType(int);
-};
-
 class Class_00456030 {
 public:
     int FUN_00456030();
@@ -257,10 +260,10 @@ void __stdcall KillFeature(int, int, int);
 void __stdcall StartFeatureBurning(int, int, int);
 int __stdcall GetMapCell(int, int);
 void __stdcall DamageFeature(int, int, int, Feature*);
-void __stdcall FinishConstruction(Class_0048b090*, Class_0048b090*);
+void __stdcall FinishConstruction(Unit*, Unit*);
 void __stdcall PlaySoundByIndex(int, int);
 void __stdcall PlaySoundAt(int, void*, int);
-void __stdcall GiveUnitToPlayer(Class_0048b090*, Player*, void*);
+void __stdcall GiveUnitToPlayer(Unit*, Player*, void*);
 void __stdcall TransferMetal(unsigned char, unsigned char, int, int);
 void __stdcall TransferEnergy(unsigned char, unsigned char, int, int);
 void __stdcall ShareMapInfo(unsigned char, unsigned char);
@@ -388,7 +391,7 @@ static inline Player* LocalPlayer()
     return &g_game->players[g_game->local];
 }
 
-static inline Class_0048b090* UnitAt(unsigned short index)
+static inline Unit* UnitAt(unsigned short index)
 {
     if (index == 0)
         return 0;
@@ -473,11 +476,11 @@ int HandleNetPackets()
                 if (!(g_game->flags_2a44 & 4) && (p->info->flags_97 & 1) && p->state == 3) {
                     RejectPlayer(p->id, 1);
                     RejectPlayer(LocalPlayer()->id, 10);
-                    ((Class_00463c60*)p)->SetType(0);
-                    ((Class_00463c60*)LocalPlayer())->SetType(0);
+                    ((Player*)p)->SetType(0);
+                    ((Player*)LocalPlayer())->SetType(0);
                 } else {
                     RejectPlayer(p->id, 1);
-                    ((Class_00463c60*)p)->SetType(0);
+                    ((Player*)p)->SetType(0);
                 }
                 g_game->dirty = 1;
                 if (LocalPlayer()->info->flags_97 & 1) {
@@ -750,7 +753,7 @@ int HandleNetPackets()
             }
             break;
         case 16: {
-            Class_0048b090* unit = UnitAt(*(unsigned short*)(packet + 1));
+            Unit* unit = UnitAt(*(unsigned short*)(packet + 1));
             if (unit->flags_110 & 0x10000000)
                 unit->field_9a->StartScriptWithArgsByIndex(*(short*)(packet + 3), 0, 0, packet[5],
                                              *(int*)(packet + 6), *(int*)(packet + 10),
@@ -758,7 +761,7 @@ int HandleNetPackets()
             break;
         }
         case 17: {
-            Class_0048b090* unit = UnitAt(*(unsigned short*)(packet + 1));
+            Unit* unit = UnitAt(*(unsigned short*)(packet + 1));
             if (unit->flags_110 & 0x10000000) {
                 unit->SetStateBits(packet[3], 1);
                 unit->SetStateBits(~packet[3], 0);
@@ -766,7 +769,7 @@ int HandleNetPackets()
             break;
         }
         case 18: {
-            Class_0048b090* a = UnitAt(*(unsigned short*)(packet + 1));
+            Unit* a = UnitAt(*(unsigned short*)(packet + 1));
             FinishConstruction(UnitAt(*(unsigned short*)(packet + 3)), a);
             break;
         }
@@ -777,7 +780,7 @@ int HandleNetPackets()
                 PlaySoundAt(*(int*)(packet + 2), packet + 6, 0);
             break;
         case 20: {
-            Class_0048b090* unit = UnitAt(*(unsigned short*)(packet + 1));
+            Unit* unit = UnitAt(*(unsigned short*)(packet + 1));
             if (!unit || !(unit->flags_110 & 0x10000000))
                 break;
             int id = *(int*)(packet + 3);

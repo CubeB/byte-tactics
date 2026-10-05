@@ -2,13 +2,9 @@
 #include <windows.h>
 #include <string.h>
 
-class Class_00435110 {
+class Mission {
 public:
     void LoadCampaign(char* name);
-};
-
-class Class_00435c00 {
-public:
     int FUN_00435c00(int value);
 };
 
@@ -25,7 +21,7 @@ struct Game {
     char unknown_0[0x2a44];
     Flags_004268b0 flags;              // +0x2a44
     char unknown_2a46[0x391e9 - 0x2a46];
-    Class_00435110* level;             // +0x391e9
+    Mission* level;                    // +0x391e9
 };
 #pragma pack(pop)
 
@@ -49,7 +45,7 @@ void __stdcall LoadWarpLevel(int param_1)
     int n = GetPrivateProfileIntA("WARPLEVELS", key, 0, path);
     FUN_00434ab0(1);
     g_game->level->LoadCampaign(value);
-    if (((Class_00435c00*)g_game->level)->FUN_00435c00(n)) {
+    if (((Mission*)g_game->level)->FUN_00435c00(n)) {
         g_game->flags.b3 = 1;
         g_game->flags.b2 = 1;
     }

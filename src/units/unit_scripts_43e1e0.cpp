@@ -2,7 +2,7 @@
 // Asks the unit's script which piece the weapon (0..2) aims from
 // ("QueryPrimary", "QuerySecondary", "QueryTertiary") and returns it.
 
-class Class_004b0bc0 {
+class CobScript {
 public:
     int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
 };
@@ -10,7 +10,7 @@ public:
 #pragma pack(push, 1)
 struct Object {
     char unknown_0[0x9a];
-    Class_004b0bc0* script;            // +0x9a
+    CobScript* script;                 // +0x9a
 };
 #pragma pack(pop)
 

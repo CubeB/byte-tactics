@@ -75,7 +75,7 @@ public:
 };
 
 // The owner of the per-index lists.
-class Class_00471340 {
+class ParticleLists {
 public:
     std::vector<ParticleSystem*> lists[1];              // 0x10 bytes each
 
@@ -92,7 +92,7 @@ public:
 };
 
 // FUNCTION: 0x471340
-void Class_00471340::AddTeleportParticles(int param_1, int param_2, int param_3, short index)
+void ParticleLists::AddTeleportParticles(int param_1, int param_2, int param_3, short index)
 {
     TeleportParticles* p = new TeleportParticles;
     if (p) {

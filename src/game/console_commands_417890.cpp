@@ -7,18 +7,17 @@ struct Game { char pad0[0x2caa]; Vec3 pos; char pad2cb6[0x1422b-0x2cb6]; int wid
 #pragma pack(pop)
 extern Game* g_game;
 extern char DAT_005119b8[];
-class Class_004b73c0 { public: char* GetArg(int,char*); };
-class CommandArgs { public: int GetIntArg(int,int); };
+class CommandArgs { public: int GetIntArg(int,int); char* GetArg(int,char*); };
 int __stdcall MatchWildcard(const char*,const char*);
 void __stdcall FUN_0047ddc0(UnitDef*,Vec3*);
 void* __stdcall CreateUnit(unsigned char,short,Vec3,int,int,int);
 void* __stdcall HAPI_OpenFileRead(char*);
 void* __stdcall HAPI_LoadOpenFile(char*,void*,int*);
-unsigned int __stdcall ExecuteCommandText(char*,int,Class_004b73c0*,unsigned int);
+unsigned int __stdcall ExecuteCommandText(char*,int,CommandArgs*,unsigned int);
 void __cdecl FUN_004d85a0(void*);
 int __stdcall HAPI_CloseFile(void*);
 // FUNCTION: 0x417890
-void __stdcall FUN_00417890(Class_004b73c0* args)
+void __stdcall FUN_00417890(CommandArgs* args)
 {
     Vec3 pos=g_game->pos;
     int count=0;

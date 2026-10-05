@@ -19,12 +19,12 @@ extern Game* g_game;
 // Declared returning int: the original uses the full eax without masking it.
 int __stdcall GetGafFrameCount(void* ptr);
 
-class Class_00471d70 {
+class ParticleSystem {
 public:
     void SetLifetime(int param_1);
 };
 
-class Class_00474d50 {
+class SmokeParticles {
 public:
     virtual void v0();
     virtual void v1();
@@ -41,9 +41,9 @@ public:
 };
 
 // FUNCTION: 0x474d50
-void Class_00474d50::FUN_00474d50(Vec3_00474d50* p, int limit, int a, int b, int c, int alt)
+void SmokeParticles::FUN_00474d50(Vec3_00474d50* p, int limit, int a, int b, int c, int alt)
 {
-    ((Class_00471d70*)this)->SetLifetime(c);
+    ((ParticleSystem*)this)->SetLifetime(c);
     pos = *p;
     unknown_1c = a;
     unknown_28 = alt;

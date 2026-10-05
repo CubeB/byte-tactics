@@ -46,7 +46,7 @@ struct Holder_004a2e40 {
 };
 
 #pragma pack(push, 1)
-struct Class_004a2e40 {
+struct Dialog {
     char unknown_00[0x18];
     Holder_004a2e40* holder; // +0x18
     char unknown_1c[0xcca - 0x1c];
@@ -79,7 +79,7 @@ static inline int FindKind(Entry_004a2e40* entries, unsigned char kind) {
 }
 
 // FUNCTION: 0x4a2e40
-void __stdcall FUN_004a2e40(Class_004a2e40* param_1, char* param_2, int param_3) {
+void __stdcall FUN_004a2e40(Dialog* param_1, char* param_2, int param_3) {
     Entry_004a2e40* entries = param_1->holder->entries;
     int found = FindEntry(entries, param_2);
     if (found == -1)

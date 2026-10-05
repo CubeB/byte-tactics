@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by DeepSeek V4.1 Flash, verified by GPT-6, finished by claude-opus-5-5. Names are provisional.
 // Per player slot init: stamps the current tick into three fields, clears 22
-// dwords and six shorts, allocates the 0x34-byte PlayerRef and the squads table,
+// dwords and six shorts, allocates the 0x34-byte UnitResources and the squads table,
 // sizes and clears the map-cell buffer at (width/2) * (height/2) rounded up to
 // eight, and gives an inactive or non-network (type 3) player a SquadManager.
 //
@@ -46,7 +46,7 @@
 // over it, which is the `||` with both tests left as they are.
 #include <string.h>
 
-class PlayerRef {
+class UnitResources {
 public:
     int unknown[12];
     void* player;
@@ -101,7 +101,7 @@ struct Player_00464700 {
     char unknown_dc[0xe4 - 0xdc];
     int fe4;                           // +0xe4
     int fe8;                           // +0xe8
-    PlayerRef* ref;                    // +0xec
+    UnitResources* ref;                // +0xec
     int ff0;                           // +0xf0
     int ff4;                           // +0xf4
     int ff8;                           // +0xf8
@@ -169,7 +169,7 @@ stamp:
     goto back;
 guard:
     if (!p->ref) {
-        p->ref = new PlayerRef;
+        p->ref = new UnitResources;
     }
     p->ref->Reset(p->team);
     p->flags &= 0xfffe;

@@ -69,9 +69,7 @@ struct Menu_0047ae60 {
     int field_60;                      // +0x60
 };
 
-class Class_00435a20 { public: int LoadMissionByName(char* name); };
-class Class_00437300 { public: int CountStartPositions(); };
-
+class Mission { public: int LoadMissionByName(char* name); int CountStartPositions(); };
 struct Frame_0047ae60 {
     char sA[0xc];
     char sB[0xc];
@@ -143,7 +141,7 @@ void __stdcall HandleSkirmishClick(Menu_0047ae60* menu)
         }
         *(short*)(g_game + 0x2a3c) = n + 1;
 
-        if ((*(Class_00435a20**)(g_game + 0x391e9))->LoadMissionByName((*(Table_0047ae60**)(g_game + 0x29a0))->mapName) == 0) {
+        if ((*(Mission**)(g_game + 0x391e9))->LoadMissionByName((*(Table_0047ae60**)(g_game + 0x29a0))->mapName) == 0) {
             OpenMessageBox(g_game + 0x519,
                          Translate("The terrain for the selected map does not exist."),
                          0x1e0, 1, 1);
@@ -172,7 +170,7 @@ void __stdcall HandleSkirmishClick(Menu_0047ae60* menu)
                 }
             }
             if (c1 >= 1) {
-                int maxPlayers = (*(Class_00437300**)(g_game + 0x391e9))->CountStartPositions();
+                int maxPlayers = (*(Mission**)(g_game + 0x391e9))->CountStartPositions();
                 if ((int)(unsigned short)*(short*)(g_game + 0x2a3c) > maxPlayers) {
                     OpenMessageBox(g_game + 0x519,
                                  Translate("There are too many players enabled for this map"),

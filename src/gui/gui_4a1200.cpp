@@ -15,7 +15,7 @@ struct Holder_4a1200 {
 };
 
 #pragma pack(push, 1)
-struct Class_004a1200 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_4a1200* holder;           // +0x18
     char unknown_1c[0xcca - 0x1c];
@@ -23,13 +23,13 @@ struct Class_004a1200 {
 };
 #pragma pack(pop)
 
-static inline Entry_4a1200* GetEntries(Class_004a1200* obj)
+static inline Entry_4a1200* GetEntries(Dialog* obj)
 {
     return obj->holder->entries;
 }
 
 // FUNCTION: 0x4a1200
-void __stdcall FUN_004a1200(Class_004a1200* obj, int index, int value)
+void __stdcall FUN_004a1200(Dialog* obj, int index, int value)
 {
     GetEntries(obj)[index].flag = value;
     obj->dirty = 1;

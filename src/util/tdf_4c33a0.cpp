@@ -36,13 +36,13 @@ static inline char* SkipComment(char* p)
     return p;
 }
 
-class Class_004c33a0 {
+class TdfFile {
 public:
     void StripComments(char* p);
 };
 
 // FUNCTION: 0x4c33a0
-void Class_004c33a0::StripComments(char* p)
+void TdfFile::StripComments(char* p)
 {
     while (*p)
         p = SkipComment(p);

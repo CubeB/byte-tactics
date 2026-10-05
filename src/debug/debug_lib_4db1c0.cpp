@@ -103,7 +103,7 @@ class Class_004dd250 { public: Node_004db000* FUN_004dd250(const Pair_004db000& 
 class Class_004dc130 { public: Class_004dd2a0 FUN_004dc130(Class_004dd2a0 it); };
 class Class_004dbec0 { public: Class_004ddbe0 FUN_004dbec0(const Pair_004db000& v); };
 
-class Class_004db000 {
+class FreeBlockMap {
 public:
     char unknown_0[4];                 // +0x0
     Node_004db000* head;               // +0x4
@@ -152,7 +152,7 @@ public:
 };
 
 // FUNCTION: 0x4db1c0
-unsigned int Class_004db000::TakeFreeBlock(unsigned int bytes)
+unsigned int FreeBlockMap::TakeFreeBlock(unsigned int bytes)
 {
     Pair_004db000 k;
     if (size() > 0) {

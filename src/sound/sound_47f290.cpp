@@ -15,7 +15,7 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_004d0640 {
+class Sound {
 public:
     int PlaySample(const char* param1, int param2, int param3);
 };
@@ -32,6 +32,6 @@ int __stdcall PlaySoundFile(char* name)
     if (g_useWindowsSound)
         return PlayWavFromDisk(name);
     if (name && strlen(name) && g_game->volume1 && (g_game->soundFlags & 7) && !g_noDirectSound)
-        return ((Class_004d0640*)g_game->sound)->PlaySample(name, -0x249, 0);
+        return ((Sound*)g_game->sound)->PlaySample(name, -0x249, 0);
     return 0;
 }

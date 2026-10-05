@@ -8,18 +8,10 @@ struct UnitInfo_401110 {
     unsigned short id;               // +0xa8
 };
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4c80 {
-public:
     int ReadBox(void* buf, int size);
 };
 
@@ -27,17 +19,17 @@ class Class_00401110 {
 public:
     char acc0[0x18];                 // +0x00
     char acc1[0x18];                 // +0x18
-    void LoadUnitAccounts(UnitInfo_401110* info, Class_004b4ba0* file);
+    void LoadUnitAccounts(UnitInfo_401110* info, HapiBank* file);
 };
 
 // FUNCTION: 0x401110
-void Class_00401110::LoadUnitAccounts(UnitInfo_401110* info, Class_004b4ba0* file)
+void Class_00401110::LoadUnitAccounts(UnitInfo_401110* info, HapiBank* file)
 {
     char name[32];
     sprintf(name, "u%04xacc", info->id);
     if (file->OpenNamedBox(name)) {
-        ((Class_004b4c10*)file)->SeekBox(0);
-        ((Class_004b4c80*)file)->ReadBox(acc0, 0x18);
-        ((Class_004b4c80*)file)->ReadBox(acc1, 0x18);
+        ((HapiBank*)file)->SeekBox(0);
+        ((HapiBank*)file)->ReadBox(acc0, 0x18);
+        ((HapiBank*)file)->ReadBox(acc1, 0x18);
     }
 }

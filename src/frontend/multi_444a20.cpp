@@ -29,18 +29,10 @@ struct Game {
 };
 #pragma pack(pop)
 
-class Class_004356c0 {
+class Mission {
 public:
     int FUN_004356c0(int param_1);
-};
-
-class Class_00435c20 {
-public:
     int FUN_00435c20();
-};
-
-class Class_00435900 {
-public:
     int FUN_00435900();
 };
 
@@ -64,7 +56,7 @@ void ShowSelectedMapInfo()
 
     if (FindGadgetIndex(g_game->sub.holder->entries, "MAPNAME", 5) != -1) {
         FUN_004a0bf0(&g_game->sub, "MAPNAME",
-                     ((Class_00435c20*)g_game->field_391e9)->FUN_00435c20(), 0);
+                     ((Mission*)g_game->field_391e9)->FUN_00435c20(), 0);
     }
 
     sprintf(buffer, "%s  %s: %s",
@@ -79,13 +71,13 @@ void ShowSelectedMapInfo()
         entry->field_c2 = 0;
     }
     void* bmp = FUN_004295b0(
-        (char*)((Class_004356c0*)g_game->field_391e9)->FUN_004356c0(1), &outX, &outY);
+        (char*)((Mission*)g_game->field_391e9)->FUN_004356c0(1), &outX, &outY);
     entry->field_c2 = bmp;
     if (bmp != 0) {
         ResizeRadarPicture(bmp, entry->field_17, entry->field_19, outX << 4, outY << 4);
     }
 
     FUN_004a0bf0(&g_game->sub, "DESCRIPTION",
-                 ((Class_00435900*)g_game->field_391e9)->FUN_00435900(), 0);
+                 ((Mission*)g_game->field_391e9)->FUN_00435900(), 0);
     FUN_0049fa90(&g_game->sub);
 }

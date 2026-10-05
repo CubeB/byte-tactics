@@ -126,53 +126,25 @@ void __stdcall WriteGuiFile(char* obj, char* name)
     HAPI_CloseFile(out);
 }
 
-class Class_004c46c0 {
-public:
-    int GetFieldInt(const char* name, int def);
-};
-
 class TdfRecord {
 public:
     int GetFieldString(char* dst, char* key, size_t size, char* def);
+    int GetFieldInt(const char* name, int def);
 };
 
-class Class_004c2f60 {
-public:
-    int LoadFile(char* file);
-};
-
-class Class_004c3e10 {
-public:
-    void ResetCurrentRecord();
-};
-
-class Class_004c3e20 {
-public:
-    void* GetCurrentRecord();
-};
-
-class Class_004c3e30 {
-public:
-    void SetCurrentRecord(void* p);
-};
-
-class Class_004c3240 {
-public:
-    void Unload();
-};
-
-class Class_004c3490 {
-public:
-    int SelectRecordAt(int index);
-};
-
-class Class_004c2ea0 {
+class TdfFile {
 public:
     void* field_0;
-    Class_004c46c0* current;            // +0x4
+    TdfRecord* current;            // +0x4
     void* field_8;
-    Class_004c2ea0();
-    ~Class_004c2ea0();
+    TdfFile();
+    ~TdfFile();
+    int LoadFile(char* file);
+    void ResetCurrentRecord();
+    void* GetCurrentRecord();
+    void SetCurrentRecord(void* p);
+    void Unload();
+    int SelectRecordAt(int index);
 };
 
 extern char DAT_005119b8[];
@@ -234,29 +206,29 @@ struct Elem_004aeac0 {
 };
 #pragma pack(pop)
 
-void __stdcall ReadCommonSection(Elem_004aeac0* obj, Class_004c2ea0* tree);
-void __stdcall ReadPanelFields(Elem_004aeac0* obj, Class_004c2ea0* tree);
-void __stdcall ReadButtonFields(Elem_004aeac0* obj, Class_004c2ea0* tree);
+void __stdcall ReadCommonSection(Elem_004aeac0* obj, TdfFile* tree);
+void __stdcall ReadPanelFields(Elem_004aeac0* obj, TdfFile* tree);
+void __stdcall ReadButtonFields(Elem_004aeac0* obj, TdfFile* tree);
 
 // FUNCTION: 0x4aeac0
 int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
 {
-    Class_004c2ea0 parser;
+    TdfFile parser;
     int i;
     int ret = 0;
     char path[256];
     ChangeExtension(name, path, "GUI");
-    if (((Class_004c2f60*)&parser)->LoadFile(path) == 1) {
+    if (((TdfFile*)&parser)->LoadFile(path) == 1) {
         ret = 1;
         i = 0;
         while (1) {
-            ((Class_004c3e10*)&parser)->ResetCurrentRecord();
-            if (!((Class_004c3490*)&parser)->SelectRecordAt(i))
+            ((TdfFile*)&parser)->ResetCurrentRecord();
+            if (!((TdfFile*)&parser)->SelectRecordAt(i))
                 break;
-            void* cur = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+            void* cur = ((TdfFile*)&parser)->GetCurrentRecord();
             Elem_004aeac0* e = obj + i;
             ReadCommonSection(e, &parser);
-            ((Class_004c3e30*)&parser)->SetCurrentRecord(cur);
+            ((TdfFile*)&parser)->SetCurrentRecord(cur);
             switch (e->type) {
             case 0:
                 ReadPanelFields(e, &parser);
@@ -312,7 +284,7 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
             i++;
         }
         obj->body.total = (short)(i - 1);
-        ((Class_004c3240*)&parser)->Unload();
+        ((TdfFile*)&parser)->Unload();
     }
     return ret;
 }

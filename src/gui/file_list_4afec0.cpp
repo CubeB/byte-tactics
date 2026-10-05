@@ -6,7 +6,7 @@ struct Item_4afec0 {
 };
 
 #pragma pack(push, 1)
-struct Class_004afec0 {
+struct Dialog {
     char unknown_0[0xa6];
     Item_4afec0* items;              // +0xa6
     int itemCount;                   // +0xaa
@@ -14,7 +14,7 @@ struct Class_004afec0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4afec0
-void __stdcall FUN_004afec0(Class_004afec0* obj)
+void __stdcall FUN_004afec0(Dialog* obj)
 {
     if (obj->items != 0) {
         for (int i = 0; i < obj->itemCount; i++) {

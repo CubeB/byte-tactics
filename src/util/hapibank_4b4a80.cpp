@@ -25,14 +25,14 @@ struct AccountList {
 void* __cdecl FUN_004d8580(void* ptr, int size);
 char* __cdecl GameStrdup(char* s);
 
-class Class_004b4a80 {
+class HapiBank {
 public:
     AccountList* table;             // +0x00
     int FindNamedBox(char* name, int flag);
 };
 
 // FUNCTION: 0x4b4a80
-int Class_004b4a80::FindNamedBox(char* name, int flag)
+int HapiBank::FindNamedBox(char* name, int flag)
 {
     AccountList* t = table;
     if (!t || t->index < 0)

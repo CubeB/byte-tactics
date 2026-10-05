@@ -3,7 +3,7 @@
 // (10 at each end) as plain and the 236 in between as PC_NOCOLLAPSE.
 #include <windows.h>
 
-class Class_0047c230 {
+class MoviePlayer {
 public:
     char unknown_0[0xc];
     HWND hwnd;                          // +0x0c
@@ -13,7 +13,7 @@ public:
 };
 
 // FUNCTION: 0x47c230
-void Class_0047c230::ReadSystemPalette(int unused)
+void MoviePlayer::ReadSystemPalette(int unused)
 {
     HDC hdc = GetDC(hwnd);
     GetSystemPaletteEntries(hdc, 0, 256, entries);

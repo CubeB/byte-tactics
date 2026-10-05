@@ -27,7 +27,7 @@
 // No volatile field here: the flags word at +0x2bee is written once per branch
 // and never re-read, so it is a plain unsigned short.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -65,7 +65,7 @@ struct Game {
     char unknown_2bf0[0x2c74 - 0x2bf0];
     unsigned char field_2c74;          // +0x2c74
     char unknown_2c75[0x391e9 - 0x2c75];
-    Class_00435100* net;               // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 #pragma pack(pop)
 

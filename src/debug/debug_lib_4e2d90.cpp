@@ -1,14 +1,14 @@
 // Decompiled by Opus. Names are provisional.
 #include <windows.h>
 
-class Class_004e2d90 {
+class CavedogRegistryKey {
 public:
     HKEY key;                        // +0x00
     DWORD ReadDword(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue);
 };
 
 // FUNCTION: 0x4e2d90
-DWORD Class_004e2d90::ReadDword(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue)
+DWORD CavedogRegistryKey::ReadDword(LPCSTR name, DWORD minValue, DWORD maxValue, DWORD defaultValue)
 {
     DWORD value;
     DWORD size = 4;

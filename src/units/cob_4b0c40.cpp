@@ -20,25 +20,17 @@ struct Channel_004b0c40 {
     char unknown_54[0xa4 - 0x54];
 };
 
-class Class_004b0c40 {
+class CobScript {
 public:
     Channel_004b0c40 channels[8];
     int activeCount;
     int QueryScriptByIndex(int index, int* p2, int* p3, int* p4, int* p5);
-};
-
-class CobScript {
-public:
     int StartThread(int id);
-};
-
-class Class_004b0da0 {
-public:
     void RunThread(int channel, int param_2);
 };
 
 // FUNCTION: 0x4b0c40
-int Class_004b0c40::QueryScriptByIndex(int index, int* p2, int* p3, int* p4, int* p5)
+int CobScript::QueryScriptByIndex(int index, int* p2, int* p3, int* p4, int* p5)
 {
     int i = ((CobScript*)this)->StartThread(index);
     if (i < 0)
@@ -51,7 +43,7 @@ int Class_004b0c40::QueryScriptByIndex(int index, int* p2, int* p3, int* p4, int
     c->values[++cnt] = p4 ? *p4 : 0;
     c->values[++cnt] = p5 ? *p5 : 0;
     c->count = 3;
-    ((Class_004b0da0*)this)->RunThread(i, 0);
+    ((CobScript*)this)->RunThread(i, 0);
     if (p2) *p2 = c->values[0];
     if (p3) *p3 = c->values[1];
     if (p4) *p4 = c->values[2];

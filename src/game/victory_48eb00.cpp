@@ -5,10 +5,6 @@
 class HapiBank {
 public:
     void OpenAccount(const char* name);
-};
-
-class Class_004b4800 {
-public:
     int GetIntegerItem(char* name, int def);
 };
 
@@ -28,6 +24,6 @@ public:
 void VictoryKillEnemyCommander::LoadState(HapiBank* obj)
 {
     obj->OpenAccount(DAT_00508f3c);
-    satisfied = ((Class_004b4800*)obj)->GetIntegerItem(DAT_00508f30, 0);
-    celebrated = ((Class_004b4800*)obj)->GetIntegerItem(DAT_00508f24, 0);
+    satisfied = ((HapiBank*)obj)->GetIntegerItem(DAT_00508f30, 0);
+    celebrated = ((HapiBank*)obj)->GetIntegerItem(DAT_00508f24, 0);
 }

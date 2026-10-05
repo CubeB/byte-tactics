@@ -71,9 +71,7 @@ struct RuleSet_0045f1d0 {                // +0x118 startType, read from element 
     int startType;                       // +0x118
 };
 
-struct Class_00435100 { int FUN_00435100(); };
-struct Class_00435c30 { char* FUN_00435c30(); };
-
+struct Mission { int FUN_00435100(); char* FUN_00435c30(); };
 struct Game {
     char unknown_0[0x519];
     Layer_0045f1d0 menu;                 // +0x519
@@ -99,7 +97,7 @@ struct Game {
     char unknown_37ef2[0x37ef6 - 0x37ef2];
     int commanderDeath;                  // +0x37ef6
     char unknown_37efa[0x391e9 - 0x37efa];
-    Class_00435100* net;                   // +0x391e9
+    Mission* net;                          // +0x391e9
 };
 #pragma pack(pop)
 
@@ -172,7 +170,7 @@ void FUN_0045f1d0()
     }
     AddTextGadget(layer, "TEXT", Translate("Map:"), 0x12, y, 0x6e, 2);
     AddTextGadget(layer, "TEXT",
-                 Translate(((Class_00435c30*)g_game->net)->FUN_00435c30()), 0x8c, y,
+                 Translate(((Mission*)g_game->net)->FUN_00435c30()), 0x8c, y,
                  0x78, 2);
     y += 0x12;
     AddTextGadget(layer, "TEXT", Translate("Starting Metal:"), 0x12, y, 0x6e, 2);

@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -21,7 +21,7 @@ extern unsigned int DAT_00512788;
 // FUNCTION: 0x4436e0
 int InitScoreReporting(void)
 {
-    if ((*(Class_00435100**)(g_game + 0x391e9))->FUN_00435100() != 3)
+    if ((*(Mission**)(g_game + 0x391e9))->FUN_00435100() != 3)
         return 0;
     int saved = *(signed char*)(g_game + 0x2cbe);
     FUN_00491c80(0x14);

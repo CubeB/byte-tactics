@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 #include <string.h>
 
-class Class_00435c30 {
+class Mission {
 public:
     int FUN_00435c30();
 };
@@ -34,7 +34,7 @@ struct Game {
     char unknown_2a43[0x2bc1 - 0x2a43];
     char gameName[0x10];              // +0x2bc1
     char unknown_2bd1[0x391e9 - 0x2bd1];
-    Class_00435c30* field_391e9;      // +0x391e9
+    Mission* field_391e9;             // +0x391e9
 };
 #pragma pack(pop)
 

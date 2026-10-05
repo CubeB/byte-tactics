@@ -1,12 +1,12 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004ce7f0 {
+class Sound {
 public:
     int GetCurrentTrack();
 };
 
 // FUNCTION: 0x4ce7f0
-int Class_004ce7f0::GetCurrentTrack()
+int Sound::GetCurrentTrack()
 {
     return *(int*)((char*)this + 0x208);
 }

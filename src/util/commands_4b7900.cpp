@@ -47,7 +47,7 @@ public:
     char* data;                        // +0x0
     Class_004c9290* MakeLower();
 };
-class Class_004b73c0 {
+class CommandArgs {
 public:
     char* args[0x34];                  // +0x0
     int count;                         // +0xd0
@@ -86,7 +86,7 @@ static inline HandlerSlot_004b7900* Find_004b7900(const char* key)
 }
 
 // FUNCTION: 0x4b7900
-int __stdcall ExecuteCommand(Class_004b73c0* obj, int param_2)
+int __stdcall ExecuteCommand(CommandArgs* obj, int param_2)
 {
     int result = 0;
     if (obj->count >= 1) {

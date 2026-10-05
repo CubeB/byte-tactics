@@ -5,7 +5,7 @@
 // history.
 #include <string.h>
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -78,7 +78,7 @@ struct Game {
     short field_38a4b;   // +0x38a4b
     short field_38a4d;   // +0x38a4d
     char unknown_38a4f[0x391e9 - 0x38a4f];
-    Class_00435100* net;   // +0x391e9
+    Mission* net;          // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     unsigned short pad0_3923b : 2;
     unsigned short bit2_3923b : 1;

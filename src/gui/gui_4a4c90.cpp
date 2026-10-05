@@ -33,7 +33,7 @@ struct Holder_004a4c90 {
     Entry_004a4c90* entries;           // +0x4
 };
 
-struct Class_004a4c90 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a4c90* holder;           // +0x18
 };
@@ -59,7 +59,7 @@ static inline void FillRect_004a4c90(Entry_004a4c90* e, Rect_004a4c90* r)
 }
 
 // FUNCTION: 0x4a4c90
-void __stdcall FUN_004a4c90(Class_004a4c90* obj, int index, unsigned char param_3)
+void __stdcall FUN_004a4c90(Dialog* obj, int index, unsigned char param_3)
 {
     Entry_004a4c90* entries = obj->holder->entries;
     Entry_004a4c90* e = (Entry_004a4c90*)((char*)entries + index * 0x15b);

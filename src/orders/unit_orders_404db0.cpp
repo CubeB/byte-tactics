@@ -55,7 +55,7 @@ public:
     void FUN_00439e80(int ticks);
 };
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -84,7 +84,7 @@ struct Cell {
     char unknown_c;
 };
 
-struct UnitType {
+struct UnitDef {
     char unknown_0[0x1ea];
     int buildTime;                     // +0x1ea
     char unknown_1ee[0x1fe - 0x1ee];
@@ -104,7 +104,7 @@ struct Unit {
     Rot16 rot;                         // +0x64
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
-    UnitType* type;                    // +0x92
+    UnitDef* type;                     // +0x92
     PlayerInfo* player;                // +0x96
     char unknown_9a[0xb0 - 0x9a];
     int workTime;                      // +0xb0
@@ -137,11 +137,11 @@ struct Game {
     char unknown_14273[0x14287 - 0x14273];
     Cell* cells;                       // +0x14287
     char unknown_1428b[0x1439b - 0x1428b];
-    UnitType* unitTypes;               // +0x1439b
+    UnitDef* unitTypes;                // +0x1439b
     char unknown_1439f[0x38a47 - 0x1439f];
     int ticks;                         // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Class_00435100* net;               // +0x391e9
+    Mission* net;                      // +0x391e9
 };
 
 struct Packet {

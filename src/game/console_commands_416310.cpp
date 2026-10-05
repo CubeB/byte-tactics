@@ -8,15 +8,11 @@ public:
     Class_00438760(const char* name);
 };
 
-class Class_004b73c0 {
-public:
-    char* GetArg(int index, char* fallback);
-};
-
 // Command arguments.
 class CommandArgs {
 public:
     int GetIntArg(int index, int fallback);
+    char* GetArg(int index, char* fallback);
 };
 
 extern char DAT_005119b8[];
@@ -27,7 +23,7 @@ void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, int d,
 // FUNCTION: 0x416310
 void __stdcall CmdAssign(CommandArgs* args)
 {
-    Class_00438760 kind(((Class_004b73c0*)args)->GetArg(1, DAT_005119b8));
+    Class_00438760 kind(((CommandArgs*)args)->GetArg(1, DAT_005119b8));
     if (kind.index) {
         int a = args->GetIntArg(1, 0);
         int b = args->GetIntArg(2, 0);

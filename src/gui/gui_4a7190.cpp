@@ -23,7 +23,7 @@ struct Holder_004a7190 {
     int field_20;                     // +0x20
 };
 
-struct Class_004a7190 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a7190* holder;          // +0x18
     char unknown_1c[0x8b2 - 0x1c];
@@ -37,12 +37,12 @@ int GetTextKeyColor();
 void __stdcall SetTextColors(int colour, int font);
 void __stdcall SetFont(int id);
 void ClearKeyQueue();
-int __stdcall FUN_0049fc50(Class_004a7190* obj, int index);
-void __stdcall FUN_004ab6c0(Class_004a7190* obj, void* param_2, char* text,
+int __stdcall FUN_0049fc50(Dialog* obj, int index);
+void __stdcall FUN_004ab6c0(Dialog* obj, void* param_2, char* text,
                             int maxLength, int clear);
 
 // FUNCTION: 0x4a7190
-void __stdcall FUN_004a7190(Class_004a7190* obj, int index)
+void __stdcall FUN_004a7190(Dialog* obj, int index)
 {
     Entry_004a7190* entries = obj->holder->entries;
     Entry_004a7190* target = &entries[index];

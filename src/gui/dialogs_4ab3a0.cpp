@@ -22,13 +22,13 @@ struct Holder_004ab3a0 {
     Entry_004ab3a0* entries;           // +0x4
 };
 
-struct Class_004ab3a0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004ab3a0* holder;           // +0x18
 };
 
 // FUNCTION: 0x4ab3a0
-int __stdcall FUN_004ab3a0(Class_004ab3a0* obj, Record_004ab3a0* record)
+int __stdcall FUN_004ab3a0(Dialog* obj, Record_004ab3a0* record)
 {
     Entry_004ab3a0* entries = obj->holder->entries;
     if (entries->record.count == 200) {

@@ -11,32 +11,20 @@ struct Channel_004b0a10 {
     char unknown_24[0xa4 - 0x24];
 };
 
-class Class_004b0a10 {
+class CobScript {
 public:
     char unknown_0[0x1c];
     Channel_004b0a10 channels[8];      // +0x1c
     int activeCount;                   // +0x53c
 
     int StartScriptByIndex(int id, int value, int update);
-};
-
-class CobScript {
-public:
     int StartThread(int id);
-};
-
-class Class_004b0da0 {
-public:
     void RunThread(int channel, int param_2);
-};
-
-class Class_004b1c00 {
-public:
     void AnimatePieces(int param_1);
 };
 
 // FUNCTION: 0x4b0a10
-int Class_004b0a10::StartScriptByIndex(int id, int value, int update)
+int CobScript::StartScriptByIndex(int id, int value, int update)
 {
     int i = ((CobScript*)this)->StartThread(id);
     if (i < 0)
@@ -45,9 +33,9 @@ int Class_004b0a10::StartScriptByIndex(int id, int value, int update)
     if (update) {
         if (activeCount) {
             for (int j = 0; j < 8; j++)
-                ((Class_004b0da0*)this)->RunThread(j, 0);
+                ((CobScript*)this)->RunThread(j, 0);
         }
-        ((Class_004b1c00*)this)->AnimatePieces(0);
+        ((CobScript*)this)->AnimatePieces(0);
     }
     return 1;
 }

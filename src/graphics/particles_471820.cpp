@@ -110,7 +110,7 @@ public:
 };
 
 // The owner of the per-index lists.
-class Class_00471820 {
+class ParticleLists {
 public:
     std::vector<Elem_00473500> lists[1];                // 0x10 bytes each
 
@@ -128,7 +128,7 @@ public:
 };
 
 // FUNCTION: 0x471820
-void Class_00471820::AddSmoke(Vec3_00474d50* param_1, int param_2, int param_3,
+void ParticleLists::AddSmoke(Vec3_00474d50* param_1, int param_2, int param_3,
                                   int param_4, int param_5, short index, int param_7)
 {
     SmokeParticles* p = new SmokeParticles;

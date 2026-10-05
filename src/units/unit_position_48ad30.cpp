@@ -30,7 +30,7 @@
 // `if (k3 == 1 || k3 == 2)` (Claude Opus 5.5, #5106).
 #pragma pack(push, 1)
 
-class Class_00435100 {
+class Mission {
 public:
     char unknown_0[0xd4c];
     int waterDoesDamage;               // +0xd4c
@@ -143,7 +143,7 @@ struct Game {
     char unknown_14377[0x38a47 - 0x14377];
     unsigned int ticks;                // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Class_00435100* mode;              // +0x391e9
+    Mission* mode;                     // +0x391e9
 };
 #pragma pack(pop)
 

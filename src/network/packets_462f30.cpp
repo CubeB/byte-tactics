@@ -4,7 +4,7 @@
 // 98.6%; pass 19 (Opus, #5583): 98.9%; passes 20 to 26 (Opus, #5585, #5587, #5610, #5625,
 // #5650, #5666, #5675): no change; pass 27 (Opus, #5678): MATCH.
 // The class name is data/symbols.csv's
-// Class_00462f30 (the caller 0x4534e0 uses it); Find (0x462d90) is called through
+// PacketReceiver (the caller 0x4534e0 uses it); Find (0x462d90) is called through
 // PacketReceiver, its own file's class, and returns PlayerFrameInfo*.
 //
 // Pass 27 (#5678), what matched it: a dead `if (entry == 0) tick = 0;` right after the
@@ -209,11 +209,6 @@ static int Next_00462f30(int n)
 
 class PacketReceiver {
 public:
-    PlayerFrameInfo* FindPlayerFrameInfo(long id);
-};
-
-class Class_00462f30 {
-public:
     void* vtable;                      // +0x00
     int field_4;                       // +0x04
     void* owner;                       // +0x08
@@ -230,10 +225,11 @@ public:
     int field_238;                     // +0x238
 
     int ReceiveFrame(void* net, unsigned char* data, int* size);
+    PlayerFrameInfo* FindPlayerFrameInfo(long id);
 };
 
 // FUNCTION: 0x462f30
-int Class_00462f30::ReceiveFrame(void* net, unsigned char* data, int* size)
+int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
 {
     int tick = g_game->tick;
     PlayerFrameInfo* entry;

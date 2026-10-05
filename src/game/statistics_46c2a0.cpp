@@ -8,7 +8,7 @@
 // unsigned-to-float conversion needs an 8-byte stack temporary.
 
 // The campaign object at g_game+0x391e9 (see 0x435da0.cpp).
-class Class_00435c00 {
+class Mission {
 public:
     char unknown_0[0xd54];
     float killMul;                     // +0xd54
@@ -63,7 +63,7 @@ struct Game_0046c2a0 {
     char unknown_2a43[0x38a47 - 0x2a43];
     unsigned int ticks;                // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Class_00435c00* campaign;          // +0x391e9
+    Mission* campaign;                 // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     unsigned short bits0_3923b : 2;    // +0x3923b
     unsigned short bit2_3923b : 1;
@@ -135,7 +135,7 @@ int FillScoreTables()
             DAT_0051e574[i]->numAllies = n;
             for (; n < 10; n++)
                 allies[n] = 0;
-            Class_00435c00* c = g_game->campaign;
+            Mission* c = g_game->campaign;
             int score = (int)(g_game->ticks / 60 * c->timeMul);
             score += (int)(p->kills * c->killMul);
             DAT_0051e57c[i]->score = score;

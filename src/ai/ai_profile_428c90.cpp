@@ -12,7 +12,7 @@ public:
 #include <stdio.h>
 #include <stdlib.h>
 
-class Class_004356c0 {
+class Mission {
 public:
     int FUN_004356c0(int param_1);
 };
@@ -20,7 +20,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x391e9];
-    Class_004356c0* field_391e9;       // +0x391e9
+    Mission* field_391e9;              // +0x391e9
 };
 #pragma pack(pop)
 extern Game* g_game;

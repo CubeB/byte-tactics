@@ -32,7 +32,6 @@ struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
 class Class_004895c0 { public: void SetUnit(Unit*); };
 #pragma pack(push, 1)
 struct UnitDef {
@@ -51,6 +50,7 @@ struct Unit {
     char pad96[0xb0-0x96]; int timeout;
     char padb4[0xff-0xb4]; unsigned char player;
     char pad100[4]; float progress;
+    void ClaimWeapons(int);
 };
 struct Order {
     char pad0[5]; unsigned char state;
@@ -142,7 +142,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             ((Class_00439e80*)order)->FUN_00439e80(30);
             return 2;
         }
-        ((Class_004898b0*)unit)->ClaimWeapons(3);
+        ((Unit*)unit)->ClaimWeapons(3);
         FUN_0047ddc0(def, &order->pos);
         ((Class_004895c0*)((char*)order + 0x12))->SetUnit(
             CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
@@ -214,7 +214,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
             return 8;
         }
         if (target->progress == 0.0f) return 5;
-        ((Class_004898b0*)unit)->ClaimWeapons(3);
+        ((Unit*)unit)->ClaimWeapons(3);
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
         FUN_0041c110(unit);
         return 1;
@@ -255,7 +255,6 @@ struct Unit;
 class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x15e]; Vec3 min, max;
@@ -277,6 +276,7 @@ struct Unit {
     char padb4[4]; unsigned short experience;
     char padba[0x104-0xba]; float progress;
     short health; char pad10a[6]; unsigned int flags;
+    void ClaimWeapons(int);
 };
 struct UnitRef { int vtable; Unit* ptr; Unit* Get() { return ptr; } };
 struct Order {
@@ -325,7 +325,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         int experience = 0;
         experience = order->target.Get()->experience;
         order->duration = ((experience / 5 + 10) * order->duration * 10) / 100;
-        ((Class_004898b0*)unit)->ClaimWeapons(3);
+        ((Unit*)unit)->ClaimWeapons(3);
         ((Class_00438ad0*)order)->FUN_00438ad0(order->target.Get()->cell, order->target.Get()->footprint);
         order->flags = 0x100e8;
         return 1;

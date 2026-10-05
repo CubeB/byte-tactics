@@ -2,8 +2,8 @@
 // std::_Tree<...>::insert(const value_type&) from MSVC 5's <xtree>, for the
 // name map whose key is a C-string class and whose value is a 500-byte
 // buffer (pair<const key, value> is 0x1f8 bytes, the node 0x208). The <map>
-// instantiation, std::map<Class_004e1a30, Value_004e2250,
-// std::less<Class_004e1a30>, pooled allocator>, compiles to these 801 bytes
+// instantiation, std::map<NameKey, Value_004e2250,
+// std::less<NameKey>, pooled allocator>, compiles to these 801 bytes
 // exactly; this file transcribes it member for member so that every
 // out-of-line callee keeps the name it already has in data/symbols.csv.
 // Each _Tree member lives on the class that names its address, chained by
@@ -27,11 +27,11 @@
 
 // The key: a C string ordered by strcmp. Its operator< is the out-of-line
 // 0x4e1a30.
-class Class_004e1a30 {
+class NameKey {
 public:
     char* name;                        // +0x0
 
-    bool FUN_004e1a30(const Class_004e1a30& o) const
+    bool FUN_004e1a30(const NameKey& o) const
     {
         return name != o.name && strcmp(name, o.name) < 0;
     }
@@ -41,19 +41,19 @@ struct Value_004e2250 {
     char text[500];
 };
 
-typedef std::pair<const Class_004e1a30, Value_004e2250> Pair_004e2250;
+typedef std::pair<const NameKey, Value_004e2250> Pair_004e2250;
 
 // std::less<key>.
-struct Less_004e2250 : public std::binary_function<Class_004e1a30, Class_004e1a30, bool> {
-    bool operator()(const Class_004e1a30& _X, const Class_004e1a30& _Y) const
+struct Less_004e2250 : public std::binary_function<NameKey, NameKey, bool> {
+    bool operator()(const NameKey& _X, const NameKey& _Y) const
     {
         return (_X.FUN_004e1a30(_Y));
     }
 };
 
 // std::map<...>::_Kfn.
-struct Kfn_004e2250 : public std::unary_function<Pair_004e2250, Class_004e1a30> {
-    const Class_004e1a30& operator()(const Pair_004e2250& _X) const
+struct Kfn_004e2250 : public std::unary_function<Pair_004e2250, NameKey> {
+    const NameKey& operator()(const Pair_004e2250& _X) const
     {
         return (_X.first);
     }
@@ -83,7 +83,7 @@ class Tree_004e2250 {
 public:
     static _Redbl_004e2250& _Color(_Nodeptr _P)
         {return ((_Redbl_004e2250&)(*_P)._Color); }
-    static const Class_004e1a30& _Key(_Nodeptr _P)
+    static const NameKey& _Key(_Nodeptr _P)
         {return (Kfn_004e2250()(_Value(_P))); }
     static _Nodeptr& _Left(_Nodeptr _P)
         {return ((_Nodeptr&)(*_P)._Left); }

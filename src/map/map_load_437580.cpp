@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
-// std::vector<Class_00437820>::insert(iterator, size_type, const T&) from
+// std::vector<MapCacheEntry>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, for the 8-byte {string handle, int} element of the
 // static vector at 0x5122c0 (see 0x434a30.cpp); its only caller, 0x4373a0,
 // does a push_back. The element's copy constructor (0x437820) and operator=
@@ -46,13 +46,13 @@ public:
     ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
-class Class_00437820 {
+class MapCacheEntry {
 public:
     Class_004c91a0 handle;             // +0x0
     int field_4;                       // +0x4
 
-    Class_00437820(const Class_00437820& other);
-    Class_00437820& operator=(const Class_00437820& other);
+    MapCacheEntry(const MapCacheEntry& other);
+    MapCacheEntry& operator=(const MapCacheEntry& other);
 };
 
 namespace std {
@@ -116,9 +116,9 @@ protected:
 
 } // namespace std
 
-typedef std::vector<Class_00437820> Vec_00437580;
+typedef std::vector<MapCacheEntry> Vec_00437580;
 typedef void (Vec_00437580::*InsertFn_00437580)(
-    Vec_00437580::iterator, Vec_00437580::size_type, const Class_00437820&);
+    Vec_00437580::iterator, Vec_00437580::size_type, const MapCacheEntry&);
 
-// FUNCTION: 0x437580 ?insert@?$vector@VClass_00437820@@V?$allocator@VClass_00437820@@@std@@@std@@QAEXPAVClass_00437820@@IABV3@@Z
+// FUNCTION: 0x437580 ?insert@?$vector@VMapCacheEntry@@V?$allocator@VMapCacheEntry@@@std@@@std@@QAEXPAVMapCacheEntry@@IABV3@@Z
 InsertFn_00437580 g_insert_00437580 = &Vec_00437580::insert;

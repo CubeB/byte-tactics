@@ -14,7 +14,7 @@ extern int g_cdFadeTimer;
 
 extern int __stdcall RemoveTimer(int);
 
-class Class_004ceb60 {
+class Sound {
 public:
     int PlayCdTrack(int index, int flag);
 };
@@ -110,7 +110,7 @@ void Class_004cdb40::PlayNextTrack()
                 field_208 = one;
             else
                 field_208++;
-            ((Class_004ceb60*)this)->PlayCdTrack(field_208, field_200 - field_208 + 1);
+            ((Sound*)this)->PlayCdTrack(field_208, field_200 - field_208 + 1);
             if (field_208 > field_200)
                 field_208 = one;
             goto done;
@@ -121,7 +121,7 @@ void Class_004cdb40::PlayNextTrack()
             playing = res == zero ? strcmp(buf, "playing") == zero : zero;
             if (playing != zero)
                 goto done;
-            ((Class_004ceb60*)this)->PlayCdTrack(rand() % field_200 + 1, one);
+            ((Sound*)this)->PlayCdTrack(rand() % field_200 + 1, one);
             goto done;
             }
         case 3:
@@ -130,7 +130,7 @@ void Class_004cdb40::PlayNextTrack()
             playing = res == zero ? strcmp(buf, "playing") == zero : zero;            if (playing == zero || field_208 != field_204) {
                 if (field_204 == zero)
                     field_204 = one;
-                ((Class_004ceb60*)this)->PlayCdTrack(field_204, one);
+                ((Sound*)this)->PlayCdTrack(field_204, one);
             }
             goto done;
             }
@@ -156,7 +156,7 @@ void Class_004cdb40::PlayNextTrack()
                     j = i;
                     while (j <= field_200 && arr_214[j] == field_278)
                         j++;
-                    ((Class_004ceb60*)this)->PlayCdTrack(i, j - i);
+                    ((Sound*)this)->PlayCdTrack(i, j - i);
                     break;
                 }
             }

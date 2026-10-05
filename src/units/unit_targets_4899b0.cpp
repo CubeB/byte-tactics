@@ -47,7 +47,7 @@ struct Game {
     unsigned char f1427f;          // +0x1427f
 };
 
-class Class_004899b0 {
+class Unit {
 public:
     char unknown_0[0x70];
     short f70;                     // +0x70, compared signed
@@ -58,14 +58,14 @@ public:
     char unknown_10a[0x110 - 0x10a];
     int f110;                      // +0x110
 
-    int CanRepair(Class_004899b0* other);
+    int CanRepair(Unit* other);
 };
 #pragma pack(pop)
 
 extern Game* g_game;
 
 // FUNCTION: 0x4899b0
-int Class_004899b0::CanRepair(Class_004899b0* other)
+int Unit::CanRepair(Unit* other)
 {
     if (other
         && (def->f245 & 0x200)

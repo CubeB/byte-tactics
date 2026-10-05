@@ -14,13 +14,13 @@ struct Holder_4a1030 {
     Entry_4a1030* entries;           // +0x04
 };
 
-struct Class_004a1030 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_4a1030* holder;           // +0x18
 };
 
 // FUNCTION: 0x4a1030
-int __stdcall SetButtonStage(Class_004a1030* obj, int index, char value)
+int __stdcall SetButtonStage(Dialog* obj, int index, char value)
 {
     Entry_4a1030* entries = obj->holder->entries;
     if (entries[index].type == 1) {

@@ -87,19 +87,19 @@ class Class_00438880 { public: void FUN_00438880(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_00489800 { public: void ReleaseWeapons(int); };
 #pragma pack(push, 1)
 struct WeaponDef { char pad0[0xdc]; int range; char pade0[0x111-0xe0]; unsigned int flags; };
 struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags; char pad18[4]; };
 struct UnitDef { char pad0[0x1fa]; unsigned int maxHealth; char pad1fe[4]; short searchRange; char pad204[0x21c-0x204]; short altitude; char pad21e[0x231-0x21e]; unsigned int* weaponCategories[3]; unsigned int* categories; unsigned int flags; };
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
-class Class_0043d210 { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
+class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
 struct Unit {
-    Class_0043d210* motion; char pad4[4]; Weapon weapons[3]; Order* order;
+    UnitMotion* motion; char pad4[4]; Weapon weapons[3]; Order* order;
     char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int terrain; int busy;
     char pad8a[8]; UnitDef* def; Owner* owner; char pad9a[12]; unsigned short category;
     char pada8[0xf0-0xa8]; Unit* attacker; char padf4[0x108-0xf4]; short health;
     char pad10a[6]; unsigned int flags;
+    void ReleaseWeapons(int);
 };
 struct Order { char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; };
 class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, Unit*, Vec3*, int, int, int); };

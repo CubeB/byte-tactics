@@ -64,13 +64,13 @@ struct Player_00499eb0 {
     char unknown_74[0x14b - 0x74];
 };
 
-struct Class_00406f50 {
+struct SquadManager {
     void FUN_00406f50(Projectile_00499eb0* projectile, int a, int b);
 };
 
 struct Holder_00499eb0 {
     char unknown_0[0x74];
-    Class_00406f50* object;
+    SquadManager* object;
 };
 
 #pragma pack(pop)

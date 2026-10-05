@@ -10,7 +10,7 @@ struct Sub_00409520 {
 };
 
 #pragma pack(push, 1)
-struct Class_00409520 {
+struct UnitDef {
     char unknown_0[0x1ee];
     Sub_00409520* arr[3];          // +0x1ee
     char unknown_1fa[0x4b];
@@ -28,7 +28,7 @@ struct Class_00409520 {
 // clamped to [-100, 100]; the upper clamp is a MIN() macro used twice, which
 // is why the compare-and-select appears twice.
 // FUNCTION: 0x409520
-int __stdcall RateWeapons(Class_00409520* p)
+int __stdcall RateWeapons(UnitDef* p)
 {
     int result = 1;
     if (p->flag)

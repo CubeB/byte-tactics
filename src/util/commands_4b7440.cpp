@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 
-class Class_004b7440 {
+class CommandArgs {
 public:
     char* field_0[0x14];               // +0x00  token pointers
     char field_50[0x7e];               // +0x50  token text buffer
@@ -12,7 +12,7 @@ public:
 };
 
 // FUNCTION: 0x4b7440
-void Class_004b7440::Tokenize(char* text, char* end)
+void CommandArgs::Tokenize(char* text, char* end)
 {
     char* p = field_50;
 

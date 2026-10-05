@@ -15,7 +15,7 @@ struct Unit_00408670 {
 };
 #pragma pack(pop)
 
-class Class_0048b090 {
+class Unit {
 public:
     void SetStateBits(int param_1, int param_2);
 };
@@ -29,9 +29,9 @@ void __stdcall UpdateConverter(Unit_00408670* unit)
     Info_00408670* info = unit->info;
     if (info->field_98 + info->field_98 < info->field_8c) {
         if (FUN_00464ad0(info) > 0.0f && RandomInt(5) != 0) {
-            ((Class_0048b090*)unit)->SetStateBits(1, 1);
+            ((Unit*)unit)->SetStateBits(1, 1);
         }
     } else {
-        ((Class_0048b090*)unit)->SetStateBits(1, 0);
+        ((Unit*)unit)->SetStateBits(1, 0);
     }
 }

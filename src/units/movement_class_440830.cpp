@@ -20,7 +20,7 @@ struct Point_00440830 {
     short y;
 };
 
-class Class_00440830 {
+class MovementClass {
 public:
     int* field_0;                      // +0x0
     short field_4;                     // +0x4
@@ -33,10 +33,10 @@ public:
     void RefreshPassMap(Point_00440830 a, Point_00440830 b);
 };
 
-unsigned int __stdcall FUN_0047e1f0(Class_00440830* obj, int x, int y);
+unsigned int __stdcall FUN_0047e1f0(MovementClass* obj, int x, int y);
 
 // FUNCTION: 0x440830
-void Class_00440830::RefreshPassMap(Point_00440830 a, Point_00440830 b)
+void MovementClass::RefreshPassMap(Point_00440830 a, Point_00440830 b)
 {
     int left = a.x - field_4;
     int top = a.y - field_6;

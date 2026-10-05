@@ -6,7 +6,7 @@ struct Vec3 {
     int z;
 };
 
-struct Class_0045b150;   // owning object, only ever passed through
+struct SpotState;        // owning object, only ever passed through
 
 struct Object_0045b150 {
     char unknown_0[4];
@@ -29,7 +29,7 @@ struct Piece_0045b150 {
 void __stdcall RotateByAngles(Vec3* in, Vec3* out, short* angles);
 
 // FUNCTION: 0x45b150
-void __fastcall TransformPieces(Class_0045b150* owner, Piece_0045b150* piece,
+void __fastcall TransformPieces(SpotState* owner, Piece_0045b150* piece,
                              short* angles, Vec3* delta, int deep)
 {
     for (;;) {

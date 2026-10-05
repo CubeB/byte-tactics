@@ -8,7 +8,7 @@
 // two points taken from the owner and the object's position.
 #include <math.h>
 
-class Class_0040e9c0 {
+class Pathfinder {
 public:
     void FUN_0040e9c0(void* param);
 };
@@ -16,7 +16,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14207];
-    Class_0040e9c0* field_14207;       // +0x14207
+    Pathfinder* field_14207;           // +0x14207
     char unknown_1420b[0x38a47 - 0x1420b];
     unsigned int field_38a47;          // +0x38a47
 };

@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 
-class Class_00435100 {
+class Mission {
 public:
     int FUN_00435100();
 };
@@ -78,7 +78,7 @@ struct Game {
     char unknown_10[0x1b63 - 0x10];
     Player_00464290 players[10];      // +0x1b63
     char unknown_2851[0x391e9 - 0x2851];
-    Class_00435100* campaign;         // +0x391e9
+    Mission* campaign;                // +0x391e9
 };
 #pragma pack(pop)
 

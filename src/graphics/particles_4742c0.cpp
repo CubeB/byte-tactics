@@ -29,12 +29,12 @@ struct Vec3_004742c0 {
     }
 };
 
-class Class_00471d70 {
+class ParticleSystem {
 public:
     void SetLifetime(int param_1);
 };
 
-class Class_004742c0 {
+class ThrustParticles {
 public:
     virtual void v0();
     virtual void v1();
@@ -50,9 +50,9 @@ public:
 };
 
 // FUNCTION: 0x4742c0
-void Class_004742c0::FUN_004742c0(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b)
+void ThrustParticles::FUN_004742c0(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b)
 {
-    ((Class_00471d70*)this)->SetLifetime(b);
+    ((ParticleSystem*)this)->SetLifetime(b);
     unknown_1c = a;
     unknown_20 = *p;
     unknown_2c = *q;

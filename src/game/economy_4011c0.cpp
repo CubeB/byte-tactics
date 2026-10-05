@@ -3,7 +3,7 @@
 // the float parameter first (fld dx; fadd [ecx+4]) instead of the field.
 #include <math.h>
 
-class Class_004011c0 {
+class UnitResources {
 public:
     char unknown_0[0x4];
     float x0;                          // +0x04
@@ -17,7 +17,7 @@ public:
 };
 
 // FUNCTION: 0x4011c0
-int Class_004011c0::FUN_004011c0(float dx, float dy)
+int UnitResources::FUN_004011c0(float dx, float dy)
 {
     x0 += dx;
     y0 += dy;

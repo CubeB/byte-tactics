@@ -83,7 +83,7 @@
 extern char __stdcall FindNextCdDrive(char drive);
 extern int __stdcall GetVolumeSerial(char drive);
 
-class Class_004cda00 {
+class Sound {
 public:
     char unknown_0[0x200];
     int field_200;                     // +0x200  number of CD audio tracks
@@ -98,7 +98,7 @@ public:
 };
 
 // FUNCTION: 0x4cda00
-int Class_004cda00::QueryDisc()
+int Sound::QueryDisc()
 {
     int other;
     int i;

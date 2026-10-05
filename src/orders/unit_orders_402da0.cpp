@@ -20,7 +20,6 @@ public:
     int operator==(Class_00438760 o) const { return index == o.index; }
 };
 class Class_00439e80 { public: void FUN_00439e80(int); };
-class Class_004898b0 { public: void ClaimWeapons(int); };
 #pragma pack(push, 1)
 struct Unit;
 struct Order {
@@ -61,6 +60,7 @@ struct Unit {
         struct { unsigned int low:18; unsigned int fire:2; unsigned int move:2; unsigned int high:10; };
     };
     int Ready() { return (flags & 0x10000000) && !(flags & 0x4000); }
+    void ClaimWeapons(int);
 };
 #pragma pack(pop)
 void __stdcall FUN_0041c110(Unit*);
@@ -104,7 +104,7 @@ int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
     state = order->state;
     switch (state) {
     case 0:
-        ((Class_004898b0*)unit)->ClaimWeapons(3);
+        ((Unit*)unit)->ClaimWeapons(3);
         ((Class_00439e80*)order)->FUN_00439e80(300);
         order->Wait();
         return 1;

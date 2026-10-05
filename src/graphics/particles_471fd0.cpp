@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// The same shape as 0x471340 (Class_00471340::AddTeleportParticles), but a free
+// The same shape as 0x471340 (ParticleLists::AddTeleportParticles), but a free
 // function: the owner of the ten lists comes from g_game->lists (+0x38d77)
 // instead of `this`, and it is read into ebp before anything else. The list is
 // picked by the fourth argument, a short; the first three go to the virtual

@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-class Class_004352b0 {
+class Mission {
 public:
     char unknown_0[0x4];
     char name[1];       // +0x4
@@ -11,7 +11,7 @@ public:
 };
 
 // FUNCTION: 0x4352b0
-char* Class_004352b0::FUN_004352b0()
+char* Mission::FUN_004352b0()
 {
     char* ptr = name;
     if (strlen(ptr) > 0) {

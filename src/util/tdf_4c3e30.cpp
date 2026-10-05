@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-class Class_004c3e30 {
+class TdfFile {
 public:
     char unknown_0[0x4];
     int field_4;
@@ -9,7 +9,7 @@ public:
 };
 
 // FUNCTION: 0x4c3e30
-void Class_004c3e30::SetCurrentRecord(int val)
+void TdfFile::SetCurrentRecord(int val)
 {
     field_4 = val;
 }

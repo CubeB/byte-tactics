@@ -14,7 +14,7 @@ public:
     int GetFieldString(char* dst, char* key, size_t size, char* def);
 };
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int root;                            // +0x0
     TdfRecord* current;                  // +0x4
@@ -25,7 +25,7 @@ extern char g_language[256];
 extern char DAT_005119b8[];
 
 // FUNCTION: 0x4c58a0
-int __stdcall GetLocalizedString(Class_004c2ea0* file, char* dst, char* key, size_t size,
+int __stdcall GetLocalizedString(TdfFile* file, char* dst, char* key, size_t size,
                            char* def)
 {
     char full[256];

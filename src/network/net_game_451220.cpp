@@ -37,7 +37,7 @@ struct PlayerInfo_00451220 {
     unsigned char field_a8;                  // +0xa8
 };
 
-class Class_00463c60 {
+class Player {
 public:
     int field_0;                             // +0x0
     int field_4;                             // +0x4
@@ -60,7 +60,7 @@ struct Game {
     char unknown_3[0x14 - 3];
     char net_14[0x519 - 0x14];               // +0x14
     char menu[0x1b63 - 0x519];               // +0x519
-    Class_00463c60 players[10];              // +0x1b63
+    Player players[10];                      // +0x1b63
     char unknown_2851[0x2a3c - 0x2851];
     short field_2a3c;                        // +0x2a3c
     char unknown_2a3e[0x2a42 - 0x2a3e];
@@ -98,7 +98,7 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
 {
     char buf[256];
 
-    Class_00463c60* player = &g_game->players[playerIndex];
+    Player* player = &g_game->players[playerIndex];
     player->SetType(flag);
 
     int same = (playerIndex == FindPlayerInUse());
@@ -128,7 +128,7 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
     if (r == 0) {
         g_game->players[playerIndex].SetType(0);
         unsigned char i = FindPlayerInUse();
-        Class_00463c60* slot = &g_game->players[i];
+        Player* slot = &g_game->players[i];
         if (slot->field_0 != 0 && (slot->field_73 == 1 || slot->field_73 == 2)) {
             OpenMessageBox(g_game->menu,
                 Translate("Direct Play failed to add new player.\n\nRecommended you go to previous screen and re-create the game session.\n"),

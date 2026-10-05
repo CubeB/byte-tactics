@@ -2,18 +2,10 @@
 // Constructor of a Class_0044ce20 subclass that reads a 24-byte header from
 // a named entry of an open file and keeps its last five dwords.
 
-class Class_004b4ba0 {
+class HapiBank {
 public:
     int OpenNamedBox(char* name);
-};
-
-class Class_004b4c10 {
-public:
     void SeekBox(int pos);
-};
-
-class Class_004b4c80 {
-public:
     int ReadBox(void* buf, int size);
 };
 
@@ -50,11 +42,11 @@ class Class_0044d470 : public Class_0044ce20 {
 public:
     Data_0044d470 data;                // +0x8
 
-    Class_0044d470(int owner, Class_004b4ba0* file, char* name);
+    Class_0044d470(int owner, HapiBank* file, char* name);
 };
 
 // FUNCTION: 0x44d470
-Class_0044d470::Class_0044d470(int owner, Class_004b4ba0* file, char* name)
+Class_0044d470::Class_0044d470(int owner, HapiBank* file, char* name)
     : Class_0044ce20(owner)
 {
     vtable = DAT_004fd358;
@@ -65,9 +57,9 @@ Class_0044d470::Class_0044d470(int owner, Class_004b4ba0* file, char* name)
         bad = 1;
     if (!bad) {
         file->OpenNamedBox(name);
-        ((Class_004b4c10*)file)->SeekBox(0);
+        ((HapiBank*)file)->SeekBox(0);
         Header_0044d470 hdr;
-        if (((Class_004b4c80*)file)->ReadBox(&hdr, 24) == 24) {
+        if (((HapiBank*)file)->ReadBox(&hdr, 24) == 24) {
             data.a = hdr.data.a;
             data.b = hdr.data.b;
             data.c = hdr.data.c;

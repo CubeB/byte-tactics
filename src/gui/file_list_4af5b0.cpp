@@ -6,7 +6,7 @@ struct Sub_004af5b0 {
     short field_140;                 // +0x140
 };
 
-struct Class_004af5b0 {
+struct FileRequester {
     void* gui;                       // +0x00
     Sub_004af5b0* field_4;           // +0x04
     char unknown_8[4];               // +0x08
@@ -26,7 +26,7 @@ void __stdcall SortFileList(int a, int b, int c, int d);
 void __stdcall FUN_004a32a0(void* gui, const char* name, int x, int y, int z);
 
 // FUNCTION: 0x4af5b0
-void __stdcall FUN_004af5b0(Class_004af5b0* obj)
+void __stdcall FUN_004af5b0(FileRequester* obj)
 {
     GetCurrentDriveLetter(obj->drive);
     GetDriveDirectory(obj->drive, obj->cwd, 0x100);

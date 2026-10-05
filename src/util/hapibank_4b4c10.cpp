@@ -22,7 +22,7 @@ struct AccountList {
     int index;                      // +0x08
 };
 
-class Class_004b4c10 {
+class HapiBank {
 public:
     AccountList* table;             // +0x00
 
@@ -30,7 +30,7 @@ public:
 };
 
 // FUNCTION: 0x4b4c10
-void Class_004b4c10::SeekBox(int pos)
+void HapiBank::SeekBox(int pos)
 {
     BankAccount* s = &table->slots[table->index];
     SafeDepositBox* c = &s->chunks[s->current];

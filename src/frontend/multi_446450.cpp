@@ -3,10 +3,10 @@
 // flags and marks the GUI for redraw. SetButtonStageByName's value is widened as an
 // int here (its own file says char; the checker compares names only).
 struct Class_004a1080;
-struct Class_0049fa90;
+struct Dialog;
 
 int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
-void __stdcall FUN_0049fa90(Class_0049fa90* obj);
+void __stdcall FUN_0049fa90(Dialog* obj);
 
 #pragma pack(push, 1)
 struct PlayerInfo_00446450 {
@@ -42,5 +42,5 @@ void UpdateWatchingGadgets()
     PlayerInfo_00446450* info = g_game->players[g_game->localPlayer].info;
     SetButtonStageByName((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
     SetButtonStageByName((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
-    FUN_0049fa90((Class_0049fa90*)g_game->gui);
+    FUN_0049fa90((Dialog*)g_game->gui);
 }

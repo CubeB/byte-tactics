@@ -6,14 +6,14 @@ extern int g_useWindowsSound;
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall HAPI_LoadFile(char* path, int flags);
 
-class Class_004d0620 {
+class Sound {
 public:
     void* LoadSample(char* path);
 };
 
 struct Game {
     char unknown_0[0x10];
-    Class_004d0620* sound;             // +0x10
+    Sound* sound;                      // +0x10
 };
 
 extern Game* g_game;

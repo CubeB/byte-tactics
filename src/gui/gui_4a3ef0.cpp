@@ -75,7 +75,7 @@ struct Holder_004a3ef0 {
     List_004a3ef0* list;               // +0x14
 };
 
-struct Class_004a3ef0 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a3ef0* holder;           // +0x18
 };
@@ -85,7 +85,7 @@ extern Holder_004a3ef0* g_guiContext;
 void __stdcall SetFont(int id);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 int GetFontHeight();
-void __stdcall FUN_004a2580(Class_004a3ef0* param_1, int param_2);
+void __stdcall FUN_004a2580(Dialog* param_1, int param_2);
 
 static inline Glyph_004a3ef0* GetGlyph_004a3ef0(unsigned char c)
 {
@@ -112,7 +112,7 @@ static inline int LineSize_004a3ef0(Entry_004a3ef0* e)
 }
 
 // FUNCTION: 0x4a3ef0
-void __stdcall DrawSlider(Class_004a3ef0* param_1, int param_2)
+void __stdcall DrawSlider(Dialog* param_1, int param_2)
 {
     Entry_004a3ef0* entries = param_1->holder->entries;
     Entry_004a3ef0* me = &entries[param_2];

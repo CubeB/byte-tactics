@@ -40,7 +40,7 @@ struct Holder_004a0e00 {
     Entry_004a0e00* entries;            // +0x04
 };
 
-struct Class_004a0e00 {
+struct Dialog {
     char unknown_0[0x18];
     Holder_004a0e00* holder;            // +0x18
     char unknown_1c[0x64 - 0x1c];
@@ -64,7 +64,7 @@ int FindEntry(Entry_004a0e00* entries, char* name)
 }
 
 // FUNCTION: 0x4a0e00
-void __stdcall FUN_004a0e00(Class_004a0e00* obj, char* name, char* text)
+void __stdcall FUN_004a0e00(Dialog* obj, char* name, char* text)
 {
     // Loaded before the null test on purpose: the original loads the entries
     // pointer before the `je`.

@@ -29,10 +29,6 @@ public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
     int GetIntArg(int index, int fallback);
-};
-
-class Class_004b73c0 {
-public:
     char* GetArg(int index, char* fallback);
 };
 
@@ -47,7 +43,7 @@ void __stdcall CmdPrintWeights(CommandArgs* args)
             Player_00418bb0* p = &g_game->players[i];
             if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
                 && p->field_146 != 10) {
-                FILE* f = fopen(((Class_004b73c0*)args)->GetArg(2, DAT_005119b8), "w+b");
+                FILE* f = fopen(((CommandArgs*)args)->GetArg(2, DAT_005119b8), "w+b");
                 if (f != 0) {
                     DumpPlayerAI(args->GetIntArg(1, 0), f);
                     fclose(f);

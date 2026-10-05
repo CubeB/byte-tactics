@@ -29,7 +29,7 @@ struct Node_0040ef20 {
     NodeData_0040ef20 data;             // +0x4
 };
 
-class Class_0040ef20 {
+class Pathfinder {
 public:
     Node_0040ef20* pool;                // +0x0
     Node_0040ef20** items;              // +0x4, the heap
@@ -86,7 +86,7 @@ public:
 };
 
 // FUNCTION: 0x40ef20
-void Class_0040ef20::RemoveNode(int k)
+void Pathfinder::RemoveNode(int k)
 {
     int idx = pool[k].index;
     Free(k);

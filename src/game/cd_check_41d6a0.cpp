@@ -1,28 +1,20 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 #include <stdio.h>
 
-class Class_004c46c0;
+class TdfRecord;
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     int field_0;
-    Class_004c46c0* current;            // +0x4
+    TdfRecord* current;                 // +0x4
     int field_8;
-    Class_004c2ea0();
-    ~Class_004c2ea0();
-};
-
-class Class_004c2f60 {
-public:
+    TdfFile();
+    ~TdfFile();
     int LoadFile(char* file);
-};
-
-class Class_004c3410 {
-public:
     int SelectRecord(char* name);
 };
 
-class Class_004c46c0 {
+class TdfRecord {
 public:
     int GetFieldInt(const char* name, int def);
 };
@@ -61,9 +53,9 @@ char __stdcall FindGameCdDrive(int side)
         sprintf(path, "%c:\\TOTALA.ID", drive);
         if (path[0] != drive)
             DAT_00511de4 = 1;
-        Class_004c2ea0 parser;
-        if (((Class_004c2f60*)&parser)->LoadFile(path)
-            && ((Class_004c3410*)&parser)->SelectRecord("Contents")
+        TdfFile parser;
+        if (((TdfFile*)&parser)->LoadFile(path)
+            && ((TdfFile*)&parser)->SelectRecord("Contents")
             && parser.current->GetFieldInt(name, 0))
             return drive;
     } while (drive);

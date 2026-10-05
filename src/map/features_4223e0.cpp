@@ -12,24 +12,24 @@
 // for &_First and &_Last, the immediate zeros and `test esi,esi` in the loop.
 #include <vector>
 
-class Class_004c2ea0 {
+class TdfFile {
 public:
     void* data;                        // +0x0
     int field_4;                       // +0x4
     int field_8;                       // +0x8
 
-    Class_004c2ea0();
-    ~Class_004c2ea0();
+    TdfFile();
+    ~TdfFile();
 };
 
-typedef std::vector<Class_004c2ea0*> FeatureList;
+typedef std::vector<TdfFile*> FeatureList;
 
 static FeatureList* DAT_00511fb4;
 
 // FUNCTION: 0x4223e0
 void FreeFeatureFileList()
 {
-    for (Class_004c2ea0** p = DAT_00511fb4->begin(); p < DAT_00511fb4->end(); p++)
+    for (TdfFile** p = DAT_00511fb4->begin(); p < DAT_00511fb4->end(); p++)
         delete *p;
     delete DAT_00511fb4;
     DAT_00511fb4 = 0;

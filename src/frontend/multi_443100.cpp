@@ -179,7 +179,7 @@ struct Len { unsigned int v; };
 // Settled and kept: "frame pointer: yes" is a false positive (sub esp,0x28
 // plus four pushes, ebp is a general register), every struct needs
 // `#pragma pack(push,1)` or `menu` lands at g_game+0x51c, the DirectPlay local
-// must be the 8-byte `{void* dp; void* dp3;}` rather than the big `Net` type,
+// must be the 8-byte `{void* dp; void* dp3;}` rather than the big `Mission` type,
 // `g_game->menu` must be a struct member so MSVC emits `mov ecx,[g_game]; add
 // ecx,0x519`, and each HRESULT must be assigned to a local before it is
 // compared (`r = f(...); if (r >= 0)` gives `cmp eax,ebx; jl` where

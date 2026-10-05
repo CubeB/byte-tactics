@@ -29,13 +29,13 @@ public:
     int AppendToSendBuffer(unsigned char* data, unsigned int len);
 };
 
-class Class_004626e0 {
+class NetCondenser {
 public:
     void SendPacketTo(void* session, int from, int value, void* data, int size);
 };
 
 extern PacketManager g_packetManager;
-extern Class_004626e0 g_sendCondenser;
+extern NetCondenser g_sendCondenser;
 
 struct Buffer_004624a0 {
     char unknown_0[0x14];
@@ -94,7 +94,7 @@ public:
     }
 };
 
-class Class_004624a0 {
+class PacketChannel {
 public:
     int field_00;                     // +0x0
     unsigned int ticks;               // +0x4
@@ -112,7 +112,7 @@ public:
 };
 
 // FUNCTION: 0x4624a0
-int Class_004624a0::SendQueued(int force)
+int PacketChannel::SendQueued(int force)
 {
     unsigned int now = GetTicks();
     PacketTrace("player: %ld, ticks betw sends=%lu, nextsend=%lu, gametimereal=%lu\n",

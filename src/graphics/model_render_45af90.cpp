@@ -8,14 +8,14 @@
 
 #pragma pack(push, 2)
 
-struct Class_0045ae80 {
+struct Object3do {
     char unknown_0[0x2c];
-    Class_0045ae80* unknown_2c;      // +0x2c
-    Class_0045ae80* unknown_30;      // +0x30
+    Object3do* unknown_2c;           // +0x2c
+    Object3do* unknown_30;           // +0x30
 };
 
 struct Entry_0045af90 {
-    Class_0045ae80* object;          // +0x0
+    Object3do* object;               // +0x0
     char unknown_4[0x1e];
     void* points;                    // +0x22
     short unknown_26;                // +0x26
@@ -34,7 +34,7 @@ struct ObjectState_0045af90 {
 #pragma pack(pop)
 
 // FUNCTION: 0x45af90
-Entry_0045af90* __stdcall LinkStateEntries(ObjectState_0045af90* state, Class_0045ae80* obj, Entry_0045af90* parent)
+Entry_0045af90* __stdcall LinkStateEntries(ObjectState_0045af90* state, Object3do* obj, Entry_0045af90* parent)
 {
     int i = state->count - 1;
     if (i >= 0) {

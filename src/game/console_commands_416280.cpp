@@ -26,7 +26,7 @@ public:
     int GetIntArg(int index, int fallback);
 };
 
-class Class_00463c60 {
+class Player {
 public:
     void SetType(int param_1);
 };
@@ -43,9 +43,9 @@ void __stdcall CmdAI(CommandArgs* args)
             // reusing the values tested above.
             Player_00416280* q = &g_game->players[i];
             if (q->active != 0 && q->type == 1)
-                ((Class_00463c60*)q)->SetType(2);
+                ((Player*)q)->SetType(2);
             else
-                ((Class_00463c60*)q)->SetType(1);
+                ((Player*)q)->SetType(1);
         }
     }
 }

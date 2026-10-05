@@ -38,7 +38,7 @@ static inline int TestBit(unsigned int* set, unsigned short n)
 }
 
 // FUNCTION: 0x41c310
-void FUN_0041c310()
+void FindLocalCommander()
 {
     Player_0041c310* p = &g_game->players[g_game->localPlayer];
     unsigned int* set = GetCategoryMask("Commander");

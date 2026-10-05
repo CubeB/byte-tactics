@@ -43,7 +43,7 @@ extern Game* g_game;
 
 void __stdcall GetGadgetName(Entry_00419be0* entries, char* name, int index);
 void __stdcall PlaySoundByName(char* name, int param_2);
-void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
+void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, int d, int e, int f);
 
 static inline void SetOrderMode(unsigned char mode)
 {
@@ -52,7 +52,7 @@ static inline void SetOrderMode(unsigned char mode)
 }
 
 // FUNCTION: 0x419be0
-int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
+int __stdcall HandleOrderButtonClick(Entry_00419be0* button, Entry_00419be0* entries)
 {
     char name[32];
     void* orders = g_game->orders;
@@ -72,7 +72,7 @@ int __stdcall FUN_00419be0(Entry_00419be0* button, Entry_00419be0* entries)
     GetGadgetName(entries, name, button->index);
     if (strstr(name, "STOP")) {
         SetOrderMode(1);
-        FUN_0048cf30(orders, 0, "STOP", 0, 0, 0);
+        IssueOrderToSelection(orders, 0, "STOP", 0, 0, 0);
         PlaySoundByName("immediateorders", 0);
         return 1;
     }

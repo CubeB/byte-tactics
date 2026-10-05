@@ -69,7 +69,7 @@ void __stdcall DrawRectangle(void* surface, Rect_004b0510* rect, int color);
 void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
 
 // FUNCTION: 0x467e50
-int __stdcall FUN_00467e50(void* surface)
+int __stdcall DrawUnitStateProbe(void* surface)
 {
     char buf[0x80];
     char* names[3];

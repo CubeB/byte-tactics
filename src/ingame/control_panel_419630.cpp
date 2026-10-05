@@ -7,7 +7,7 @@ struct Entry_0045ba60;
 void __stdcall GetGadgetName(Entry_0045ba60* entries, char* name, int index);
 
 // FUNCTION: 0x419630
-int __stdcall FUN_00419630(Entry_0045ba60* entries, char* text, int index)
+int __stdcall MenuEntryNameContains(Entry_0045ba60* entries, char* text, int index)
 {
     char name[32];
     GetGadgetName(entries, name, index);

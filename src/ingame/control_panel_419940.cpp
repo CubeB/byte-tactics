@@ -37,7 +37,7 @@ extern Game* g_game;
 Entry_49ff10* __stdcall FindGadgetOrNull(Entry_49ff10* entries, char* name);
 
 // FUNCTION: 0x419940
-void __stdcall FUN_00419940(Object_00419940* obj, unsigned short index, int n)
+void __stdcall SetBuildCountText(Object_00419940* obj, unsigned short index, int n)
 {
     Entry_49ff10* e = FindGadgetOrNull(obj->data->entries, g_game->items[index].name);
     if (e) {

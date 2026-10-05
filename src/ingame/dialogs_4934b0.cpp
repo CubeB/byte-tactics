@@ -64,7 +64,7 @@ int __stdcall FUN_0045ba20(Entry_4934b0* entry);
 void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount, int flag);
 void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount, int flag);
 int __stdcall GetButtonStageByName(Gadget_4934b0* obj, char* name);
-void __stdcall FUN_004933e0(unsigned char player);
+void __stdcall GiveSelectedUnitsToPlayer(unsigned char player);
 unsigned char __stdcall FindSlotByDpid(int id);
 void __stdcall ShareMapInfo(unsigned char from, unsigned char to);
 void __stdcall SendShareMapInfo(unsigned char from, unsigned char to);
@@ -82,7 +82,7 @@ static inline int IsCounted_4934b0(Player_4934b0* p)
 }
 
 // FUNCTION: 0x4934b0
-void __stdcall FUN_004934b0(Gadget_4934b0* obj)
+void __stdcall HandleShareDialogEvent(Gadget_4934b0* obj)
 {
     Entry_4934b0* data = obj->layer->entries;
 
@@ -118,7 +118,7 @@ void __stdcall FUN_004934b0(Gadget_4934b0* obj)
             TransferMetal(g_game->localPlayer, pi,
                          (float)FUN_0045ba20(FUN_004a0200(data, "ENERGY")), 1);
             if (GetButtonStageByName(obj, "SHARUNIT"))
-                FUN_004933e0(pi);
+                GiveSelectedUnitsToPlayer(pi);
             if (GetButtonStageByName(obj, "MAPINFO")) {
                 ShareMapInfo(g_game->localPlayer, pi);
                 SendShareMapInfo(g_game->localPlayer, pi);

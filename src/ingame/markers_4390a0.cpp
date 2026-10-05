@@ -90,11 +90,11 @@ struct View_004390a0;
 
 extern Game* g_game;
 
-void __stdcall FUN_00438ea0(void* surface, View_004390a0* view, Pos_004390a0* pos,
+void __stdcall DrawRangeCircle(void* surface, View_004390a0* view, Pos_004390a0* pos,
                             int value, int color, const char* text, int index);
 
 // FUNCTION: 0x4390a0
-void __stdcall FUN_004390a0(void* surface, View_004390a0* view, Node_004390a0* node,
+void __stdcall DrawUnitRangeRings(void* surface, View_004390a0* view, Node_004390a0* node,
                             int unused1, int unused2)
 {
     Unit* unit = node->unit;
@@ -103,7 +103,7 @@ void __stdcall FUN_004390a0(void* surface, View_004390a0* view, Node_004390a0* n
     if (g_game->field_391bf == 0) {
         short mincloak = def->minCloakDistance;
         if (mincloak != 0 && (unit->field_10e & 4)) {
-            FUN_00438ea0(surface, view, &node->unit->pos, mincloak, g_game->field_dda, 0, 0);
+            DrawRangeCircle(surface, view, &node->unit->pos, mincloak, g_game->field_dda, 0, 0);
         }
         if ((def->flags & 0x10000000) && def->weapon_220 != 0) {
             int r = def->weapon_220->field_d6;
@@ -112,51 +112,51 @@ void __stdcall FUN_004390a0(void* surface, View_004390a0* view, Node_004390a0* n
             int radius = (t < 8) ? 8 : t;
             if (radius >= r)
                 radius = r;
-            FUN_00438ea0(surface, view, &node->unit->pos, radius, g_game->field_dd7, 0, 0);
+            DrawRangeCircle(surface, view, &node->unit->pos, radius, g_game->field_dd7, 0, 0);
             if (unit->field_0 != 0) {
-                FUN_00438ea0(surface, view, &node->unit->pos, def->kamikazeDistance,
+                DrawRangeCircle(surface, view, &node->unit->pos, def->kamikazeDistance,
                              g_game->field_dd7, 0, 0);
                 return;
             }
-            FUN_00438ea0(surface, view, &node->unit->pos, def->sight, g_game->field_dd7, 0, 0);
+            DrawRangeCircle(surface, view, &node->unit->pos, def->sight, g_game->field_dd7, 0, 0);
             return;
         }
     } else {
         short mincloak = def->minCloakDistance;
         if (mincloak != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, mincloak, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &node->unit->pos, mincloak, g_game->field_dd9,
                          "mincloak", index++);
         }
         if (def->sight != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, def->sight, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &node->unit->pos, def->sight, g_game->field_dd9,
                          "sight", index++);
         }
         if (def->radar != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, def->radar, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &node->unit->pos, def->radar, g_game->field_dd9,
                          "radar", index++);
         }
         if (def->sonar != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, def->sonar, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &node->unit->pos, def->sonar, g_game->field_dd9,
                          "sonar", index++);
         }
         if (def->radarJam != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, def->radarJam, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &node->unit->pos, def->radarJam, g_game->field_dd9,
                          "radarjam", index++);
         }
         if (def->sonarJam != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, def->sonarJam, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &node->unit->pos, def->sonarJam, g_game->field_dd9,
                          "sonarjam", index++);
         }
         if (def->buildDistance != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, def->buildDistance, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &node->unit->pos, def->buildDistance, g_game->field_dd9,
                          "build distance", index++);
         }
         if (def->maneuver != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, def->maneuver, g_game->field_dd9,
+            DrawRangeCircle(surface, view, &node->unit->pos, def->maneuver, g_game->field_dd9,
                          "maneuver", index++);
         }
         if (def->kamikazeDistance != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, def->kamikazeDistance,
+            DrawRangeCircle(surface, view, &node->unit->pos, def->kamikazeDistance,
                          g_game->field_dd9, "kamikazedistance", index);
         }
         int color;
@@ -165,17 +165,17 @@ void __stdcall FUN_004390a0(void* surface, View_004390a0* view, Node_004390a0* n
         else
             color = g_game->field_dd7;
         if ((unit->slots[0].flags & 2) && unit->slots[0].weapon->range != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, unit->slots[0].weapon->range, color,
+            DrawRangeCircle(surface, view, &node->unit->pos, unit->slots[0].weapon->range, color,
                          "weapon1 range", 0);
         }
         if ((unit->slots[1].flags & 2) && unit->slots[1].weapon->range != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, unit->slots[1].weapon->range, color,
+            DrawRangeCircle(surface, view, &node->unit->pos, unit->slots[1].weapon->range, color,
                          "weapon2 range", 1);
         }
         // Original bug: tests slots[0].flags (unit+0x1f) but reads slots[2].weapon
         // (unit+0x48); slots[2].flags is at unit+0x57.
         if ((unit->slots[0].flags & 2) && unit->slots[2].weapon->range != 0) {
-            FUN_00438ea0(surface, view, &node->unit->pos, unit->slots[2].weapon->range, color,
+            DrawRangeCircle(surface, view, &node->unit->pos, unit->slots[2].weapon->range, color,
                          "weapon3 range", 2);
         }
     }

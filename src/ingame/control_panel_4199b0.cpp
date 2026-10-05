@@ -48,7 +48,7 @@ int __stdcall FUN_00439d80(void* owner, int index);
 void __stdcall FUN_0049fa90(void* obj);
 
 // FUNCTION: 0x4199b0
-void __stdcall FUN_004199b0(Menu_004199b0* menu, Unit* unit)
+void __stdcall RefreshBuildCountTexts(Menu_004199b0* menu, Unit* unit)
 {
     Entry_004199b0* e = menu->data->entries;
     int count = e->u.count;

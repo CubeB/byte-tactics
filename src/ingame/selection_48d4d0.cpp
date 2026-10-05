@@ -51,7 +51,7 @@ struct Pos_0048d4d0 {
 
 extern Game* g_game;
 
-void __stdcall FUN_0041c8e0(Pos_0048d4d0* p, int param_2);
+void __stdcall CenterCameraOnMapPosition(Pos_0048d4d0* p, int param_2);
 void FUN_0048bae0(void);
 
 static inline Unit* PickUnit(Player_0048d4d0* player)
@@ -87,7 +87,7 @@ void FUN_0048d4d0(void)
     if (u == 0)
         return;
     g_game->field_1436f = u->field_a8;
-    FUN_0041c8e0((Pos_0048d4d0*)&u->pos_x, 1);
+    CenterCameraOnMapPosition((Pos_0048d4d0*)&u->pos_x, 1);
     FUN_0048bae0();
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {

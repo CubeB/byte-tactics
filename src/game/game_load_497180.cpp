@@ -162,7 +162,7 @@ void UpdateNetGameInfo();
 void FUN_00464f80();
 void __stdcall ReportGameEvent(int x);
 void FUN_004649d0();
-void __stdcall FUN_0041c4c0(int x, int y, int z);
+void __stdcall SetCameraPosition(int x, int y, int z);
 unsigned short __stdcall FindUnitTypeId(const char* name);
 void __stdcall FUN_00496ee0(int team, int startpos);
 void __stdcall CreateUnit(unsigned char team, unsigned short id, FixedPos_497180 pos, int a,
@@ -335,7 +335,7 @@ void __cdecl LoadMatch(void*)
                 cx = start.x.h.whole - *(int*)(g_game + 0x37e37) / 2;
                 cz = start.z.h.whole - *(int*)(g_game + 0x37e3b) / 2;
             }
-            FUN_0041c4c0(cx, cz, 0);
+            SetCameraPosition(cx, cz, 0);
             ReportGameEvent(6);
         } else if (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100() == 2 &&
             *(void**)(g_game + 0x38d6b) == 0) {

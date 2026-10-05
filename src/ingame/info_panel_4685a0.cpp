@@ -99,7 +99,7 @@ static void Bar_004685a0(void* surface, Rect_004685a0* rect, int percent)
 }
 
 // FUNCTION: 0x4685a0
-int __stdcall FUN_004685a0(void* surface)
+int __stdcall DrawUnitBuilderProbe(void* surface)
 {
     if (g_game->f_391b9 == 0 || g_game->f_391bd == 0)
         return 0;

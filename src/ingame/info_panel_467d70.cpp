@@ -46,7 +46,7 @@ void __stdcall FillSurface(void* surf, int mode);
 void FlipScreen();
 
 // FUNCTION: 0x467d70
-void FUN_00467d70()
+void DrawLightBars()
 {
     void* surf = g_game->surface;
     SetOffscreenSurface(surf);

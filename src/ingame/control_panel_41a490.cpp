@@ -52,13 +52,13 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall GetGadgetName(Entry_0041a490* entries, char* name, int index);
-void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
+void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, int d, int e, int f);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall SetGadgetStatus(Sub_0041a490* menu, int index, int value);
-void __stdcall FUN_0041a120(Unit* unit);
+void __stdcall RefreshOrderButtons(Unit* unit);
 void __stdcall RenderLayer(Sub_0041a490* menu, int value);
 
-// Inlined copy of FUN_00419630.
+// Inlined copy of MenuEntryNameContains.
 static inline int Contains(Entry_0041a490* entries, char* text, int index)
 {
     char name[32];
@@ -67,7 +67,7 @@ static inline int Contains(Entry_0041a490* entries, char* text, int index)
 }
 
 // FUNCTION: 0x41a490
-int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
+int __stdcall HandleOrdersPanelClick(Menu_0041a490* menu, Entry_0041a490* entries)
 {
     Unit* unit = &g_game->units[g_game->unitIndex];
     void* orders = g_game->orders;
@@ -76,16 +76,16 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
     if (Contains(entries, "MOVEORD", index)) {
         switch (g_game->moveOrder) {
         case 0:
-            FUN_0048cf30(orders, 0, "STANDING_MOVEORDER", 0, 1, 0);
+            IssueOrderToSelection(orders, 0, "STANDING_MOVEORDER", 0, 1, 0);
             g_game->moveOrder = 1;
             break;
         case 1:
-            FUN_0048cf30(orders, 0, "STANDING_MOVEORDER", 0, 2, 0);
+            IssueOrderToSelection(orders, 0, "STANDING_MOVEORDER", 0, 2, 0);
             g_game->moveOrder = 2;
             break;
         case 2:
         case 3:
-            FUN_0048cf30(orders, 0, "STANDING_MOVEORDER", 0, 0, 0);
+            IssueOrderToSelection(orders, 0, "STANDING_MOVEORDER", 0, 0, 0);
             g_game->moveOrder = 0;
             break;
         }
@@ -94,16 +94,16 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
     } else if (Contains(entries, "FIREORD", index)) {
         switch (g_game->fireOrder) {
         case 0:
-            FUN_0048cf30(orders, 0, "STANDING_FIREORDER", 0, 1, 0);
+            IssueOrderToSelection(orders, 0, "STANDING_FIREORDER", 0, 1, 0);
             g_game->fireOrder = 1;
             break;
         case 1:
-            FUN_0048cf30(orders, 0, "STANDING_FIREORDER", 0, 2, 0);
+            IssueOrderToSelection(orders, 0, "STANDING_FIREORDER", 0, 2, 0);
             g_game->fireOrder = 2;
             break;
         case 2:
         case 3:
-            FUN_0048cf30(orders, 0, "STANDING_FIREORDER", 0, 0, 0);
+            IssueOrderToSelection(orders, 0, "STANDING_FIREORDER", 0, 0, 0);
             g_game->fireOrder = 0;
             break;
         }
@@ -112,15 +112,15 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
     } else if (Contains(entries, "STATUS", index) || Contains(entries, "ONOFF", index)) {
         switch (g_game->activation) {
         case 0:
-            FUN_0048cf30(orders, 0, "ACTIVATE", 0, 0, 0);
+            IssueOrderToSelection(orders, 0, "ACTIVATE", 0, 0, 0);
             g_game->activation = 1;
             break;
         case 1:
-            FUN_0048cf30(orders, 0, "DEACTIVATE", 0, 0, 0);
+            IssueOrderToSelection(orders, 0, "DEACTIVATE", 0, 0, 0);
             g_game->activation = 0;
             break;
         case 2:
-            FUN_0048cf30(orders, 0, "ACTIVATE", 0, 0, 0);
+            IssueOrderToSelection(orders, 0, "ACTIVATE", 0, 0, 0);
             g_game->activation = 1;
             break;
         }
@@ -128,10 +128,10 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
         SetGadgetStatus(&g_game->menu, index, g_game->activation);
     } else if (Contains(entries, "CLOAK", index)) {
         if (g_game->cloak) {
-            FUN_0048cf30(orders, 0, "CLOAK_OFF", 0, 0, 0);
+            IssueOrderToSelection(orders, 0, "CLOAK_OFF", 0, 0, 0);
             g_game->cloak = 0;
         } else {
-            FUN_0048cf30(orders, 0, "CLOAK_ON", 0, 0, 0);
+            IssueOrderToSelection(orders, 0, "CLOAK_ON", 0, 0, 0);
             g_game->cloak = 1;
         }
         PlaySoundByName("specialorders", 0);
@@ -139,7 +139,7 @@ int __stdcall FUN_0041a490(Menu_0041a490* menu, Entry_0041a490* entries)
     } else {
         return 0;
     }
-    FUN_0041a120(g_game->unitIndex ? unit : 0);
+    RefreshOrderButtons(g_game->unitIndex ? unit : 0);
     RenderLayer(&g_game->menu, 0x40);
     return 1;
 }

@@ -40,7 +40,7 @@ int GetScreenHeight();
 void __stdcall SetCursorPosition(int x, int y);
 
 // FUNCTION: 0x41cc60
-void FUN_0041cc60()
+void BeginMouseScroll()
 {
     g_game->field_1434b = 0;
     g_game->field_142f3 = 0;

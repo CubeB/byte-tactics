@@ -24,7 +24,7 @@ extern Guid_0046bf30 DAT_004fcdb8;
 extern Guid_0046bf30 DAT_004fcdc8;
 
 void __stdcall FUN_0046bc60(int param_1);
-int __stdcall FUN_0046bc70(char* text, int mode);
+int __stdcall ShowGameMessage(char* text, int mode);
 
 typedef int (__stdcall *EnableFn_0046bf30)(int);
 typedef int (__stdcall *VersionFn_0046bf30)(char*);
@@ -84,7 +84,7 @@ int __stdcall FUN_0046bf30(int* param_1, int param_2)
     }
 
     DAT_0051e590 = 1;
-    RISetCallbacks((int)FUN_0046bc60, (int)FUN_0046bc70);
+    RISetCallbacks((int)FUN_0046bc60, (int)ShowGameMessage);
 
     if (DAT_0051e58c == 0) {
         DAT_0051e58c = LoadLibraryA("reporter.dll");
@@ -114,7 +114,7 @@ int __stdcall FUN_0046bf30(int* param_1, int param_2)
                                                 FreeLibrary(DAT_0051e58c);
                                                 DAT_0051e58c = 0;
                                             } else {
-                                                DAT_0051e578(FUN_0046bc60, FUN_0046bc70);
+                                                DAT_0051e578(FUN_0046bc60, ShowGameMessage);
                                             }
                                             goto tail;
                                         }

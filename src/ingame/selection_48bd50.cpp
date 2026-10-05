@@ -37,7 +37,7 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_00495860(void);
+void SelectStopOrder(void);
 
 // FUNCTION: 0x48bd50
 void FUN_0048bd50(void)
@@ -54,6 +54,6 @@ void FUN_0048bd50(void)
             u = (Unit*)((char*)u + 0x118);
         } while (u <= pl->unitsEnd);
     }
-    FUN_00495860();
+    SelectStopOrder();
     g_game->field_37ebe |= 0x10;
 }

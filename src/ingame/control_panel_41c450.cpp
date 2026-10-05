@@ -16,9 +16,9 @@ struct Game {
 
 extern Game* g_game;
 
-// Same clamp as FUN_0041c3c0, on the second position pair.
+// Same clamp as ClampCameraPosition, on the second position pair.
 // FUNCTION: 0x41c450
-void FUN_0041c450()
+void ClampCameraTarget()
 {
     int maxX = g_game->mapWidth - g_game->viewWidth;
     int maxY = g_game->mapHeight - g_game->viewHeight;

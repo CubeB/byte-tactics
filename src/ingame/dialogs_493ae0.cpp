@@ -36,7 +36,7 @@ void __stdcall FUN_004a0570(Object_004a0570* obj, char* name, int value);
 int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, char value);
 
 // FUNCTION: 0x493ae0
-void FUN_00493ae0(void)
+void ResetPlayerGadgets(void)
 {
     char buf[52];
     unsigned char* p = g_game->players[g_game->localPlayer].allied;

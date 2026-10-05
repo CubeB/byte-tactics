@@ -22,10 +22,10 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_0041c3c0(void);
+void ClampCameraPosition(void);
 
 // FUNCTION: 0x41c7c0
-void __stdcall FUN_0041c7c0(int a, int b, int c)
+void __stdcall CenterCameraOnPoint(int a, int b, int c)
 {
     int cy = b - g_game->viewHeight / 2;
     int cx = a - g_game->viewWidth / 2;
@@ -48,7 +48,7 @@ void __stdcall FUN_0041c7c0(int a, int b, int c)
         g_game->x = cx;
         g_game->y = cy;
         g_game->flags_142f1 |= 2;
-        FUN_0041c3c0();
+        ClampCameraPosition();
         g_game->x2 = g_game->x;
         g_game->y2 = g_game->y;
     }

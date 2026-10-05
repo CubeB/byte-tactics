@@ -10,7 +10,7 @@ struct Point_0046ba80 {
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, unsigned char color);
 
 // FUNCTION: 0x46ba80
-void __stdcall FUN_0046ba80(void* surface, Point_0046ba80* points, int count, int color)
+void __stdcall DrawClosedPolygon(void* surface, Point_0046ba80* points, int count, int color)
 {
     Point_0046ba80* p = points;
     for (int i = count - 1; i > 0; i--) {

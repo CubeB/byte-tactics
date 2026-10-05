@@ -43,7 +43,7 @@ static inline unsigned int StepPage(unsigned int f)
 }
 
 // FUNCTION: 0x41bf10
-void __stdcall FUN_0041bf10(int param_1)
+void __stdcall StepBuildMenuPageBack(int param_1)
 {
     unsigned short index = g_game->unitIndex;
     Unit* u;

@@ -57,10 +57,10 @@ struct Unit {
 
 extern Entry_00439b30* DAT_00512344;
 
-void __stdcall FUN_00438c00(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
-void __stdcall FUN_004390a0(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
+void __stdcall DrawBuildFootprint(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
+void __stdcall DrawUnitRangeRings(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
 void __stdcall FUN_004394e0(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
-void __stdcall FUN_00439740(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
+void __stdcall DrawWeaponCoverage(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
 void __stdcall FUN_004399f0(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
 
 // FUNCTION: 0x439b30
@@ -73,7 +73,7 @@ void __stdcall FUN_00439b30(Unit* unit, unsigned int mask, void* obj,
     for (Obj_00439b30* e = unit->first; e != 0; e = e->next) {
         if (DAT_00512344[e->kind].flags & mask & 1) {
             pos = base;
-            FUN_00438c00(obj, sel, e, &pos, flag);
+            DrawBuildFootprint(obj, sel, e, &pos, flag);
         }
         if (DAT_00512344[e->kind].flags & mask & 2) {
             pos = base;
@@ -85,11 +85,11 @@ void __stdcall FUN_00439b30(Unit* unit, unsigned int mask, void* obj,
         }
         if (DAT_00512344[e->kind].flags & mask & 8) {
             pos = base;
-            FUN_00439740(obj, sel, e, &pos, flag);
+            DrawWeaponCoverage(obj, sel, e, &pos, flag);
         }
         if (DAT_00512344[e->kind].flags & mask & 0x10) {
             if (!done) {
-                FUN_004390a0(obj, sel, e, &pos, flag);
+                DrawUnitRangeRings(obj, sel, e, &pos, flag);
                 done = true;
             }
         }

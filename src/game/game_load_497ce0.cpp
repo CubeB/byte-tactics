@@ -6,7 +6,7 @@
 //   (same translation unit) uses. That makes the state 3 block byte exact, but
 //   on its own it ties `range` and `order` at priority 130 (c2prio), and range
 //   wins the tie on its +0x40 key, so order and range trade esi and edi.
-// - `int ok = FUN_0041ba60(...); if (ok)` adds a candidate to a block that
+// - `int ok = AddBuildProgress(...); if (ok)` adds a candidate to a block that
 //   references order, which raises order to 134 and gives it esi again (97.1%
 //   with <stdlib.h>; only the six bounds adds were left).
 // - The operand order of the six bounds adds (pos.x + min.x and so on) follows

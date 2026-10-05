@@ -92,7 +92,7 @@ static float Positive_0046a860(float value) {
 struct Flags46b_3923b { unsigned short b0:1; unsigned short b1:1; };
 
 // FUNCTION: 0x46a860
-void __stdcall FUN_0046a860(void* surface) {
+void __stdcall DrawUnitInfoPanel(void* surface) {
     int yOffset = *(int*)(g_game + 0x37e23) - *(int*)(g_game + 0x147a7);
     Snapshot_0046a860 snapshot;
     memset(&snapshot, 0, sizeof(snapshot));

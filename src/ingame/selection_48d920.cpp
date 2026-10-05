@@ -37,7 +37,7 @@ extern Game* g_game;
 void __stdcall SetUnitSquad(Unit* unit, int arg);
 
 // FUNCTION: 0x48d920
-void __stdcall FUN_0048d920(int param_1)
+void __stdcall CreateSquad(int param_1)
 {
     Player_0048d920* player = &g_game->players[g_game->player];
     for (Unit* u = player->units.begin; u <= player->units.end; u++) {

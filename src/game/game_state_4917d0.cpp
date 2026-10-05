@@ -98,7 +98,7 @@ extern unsigned int DAT_0051f2dc;
 extern int DAT_0051e710[30];
 
 void FUN_00463c80();
-void FUN_004679a0();
+void LoadLightBar();
 void ResetSpeech();
 void LoadTextureGafs();
 void FUN_004222e0();
@@ -141,7 +141,7 @@ void FUN_004917d0()
     g_game->bit9_37f2f = 0;
     g_game->bit7_37f2f = 0;
     g_game->bit8_37f2f = 0;
-    FUN_004679a0();
+    LoadLightBar();
     ResetSpeech();
     LoadTextureGafs();
     FUN_004222e0();

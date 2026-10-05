@@ -20,14 +20,14 @@ void __stdcall FUN_0049fa70(void* menu);
 int __stdcall IsCurrentGadgetNamed(Gadget_00494740* gadget, char* name);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void FUN_00460cc0();
-void FUN_004936f0();
+void OpenShareDialog();
 void FUN_004466b0();
 void FUN_004478b0();
 void __stdcall CloseTopScreen(Gadget_00494740* gadget);
 void __stdcall FUN_004ab0a0(Gadget_00494740* gadget);
 
 // FUNCTION: 0x494740
-void __stdcall FUN_00494740(Gadget_00494740* gadget)
+void __stdcall HandleTabMenuEvent(Gadget_00494740* gadget)
 {
     if (gadget->field_60 == -1) {
         g_game->flags &= 0xff1f;
@@ -43,7 +43,7 @@ void __stdcall FUN_00494740(Gadget_00494740* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "SHARE")) {
         PlaySoundByName("BigButton", 0);
-        FUN_004936f0();
+        OpenShareDialog();
         FUN_004ab0a0(gadget);
         return;
     }

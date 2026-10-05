@@ -23,7 +23,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x41cd20
-void FUN_0041cd20()
+void EndMouseScroll()
 {
     CursorState_0041cd20* cursor = &g_game->cursor;
     cursor->flag = 0;

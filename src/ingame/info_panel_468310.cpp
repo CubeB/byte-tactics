@@ -21,7 +21,7 @@ void __stdcall DrawRectangle(void* param_1, void* param_2, int param_3);
 void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 
 // FUNCTION: 0x468310
-void __stdcall FUN_00468310(void* surface, Rect_004b0510* rect, int percent)
+void __stdcall DrawPercentBar(void* surface, Rect_004b0510* rect, int percent)
 {
     unsigned char& color = g_game->color;
     DrawRectangle(surface, rect, color);

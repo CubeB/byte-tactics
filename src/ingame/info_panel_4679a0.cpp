@@ -32,7 +32,7 @@ unsigned short* __stdcall FindGafEntry(void* gaf, const char* name);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 
 // FUNCTION: 0x4679a0
-void FUN_004679a0()
+void LoadLightBar()
 {
     Sub_004679a0_a* a = &g_game->a;
     a->field_1 = a->field_d = a->field_19 = a->field_1d = 0;

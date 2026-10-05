@@ -16,7 +16,7 @@ int __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, i
 int GetScreenWidth();
 
 // FUNCTION: 0x46bc70
-int __stdcall FUN_0046bc70(char* text, int mode)
+int __stdcall ShowGameMessage(char* text, int mode)
 {
     int result = 1;
     if (mode == 0) {

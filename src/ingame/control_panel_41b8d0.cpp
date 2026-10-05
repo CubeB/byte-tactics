@@ -71,7 +71,7 @@ extern Game* g_game;
 
 int __stdcall IsScreenNamed(void* obj, const char* name);
 void __stdcall FUN_0049fa90(void* obj);
-void __stdcall FUN_004199b0(void* a, void* b);
+void __stdcall RefreshBuildCountTexts(void* a, void* b);
 void __stdcall AttachUnitToPiece(Unit_0041b8d0* unit, Unit_0041b8d0* target, char p3, char p4);
 void __stdcall FUN_004560c0(Unit_0041b8d0* obj, Unit_0041b8d0* target);
 
@@ -81,7 +81,7 @@ public:
 };
 
 // FUNCTION: 0x41b8d0
-void __stdcall FUN_0041b8d0(Unit_0041b8d0* unit, Unit_0041b8d0* target)
+void __stdcall FinishConstruction(Unit_0041b8d0* unit, Unit_0041b8d0* target)
 {
     if (unit && (unit->flags & 0x10000000) && unit->type->field_156 != 0
         && target && (target->flags & 0x10000000)) {
@@ -101,7 +101,7 @@ void __stdcall FUN_0041b8d0(Unit_0041b8d0* unit, Unit_0041b8d0* target)
         if (target->type->flag_18)
             ((Class_0048b090*)target)->SetStateBits(1, 1);
         if (g_game->unitIndex == unit->id)
-            FUN_004199b0(&g_game->menu, unit);
+            RefreshBuildCountTexts(&g_game->menu, unit);
         if (target->type->flag_24) {
             target->field_f5 = 7;
             target->flags |= 0x4000;

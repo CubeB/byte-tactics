@@ -44,7 +44,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall FUN_00491d70(int force);
-void FUN_00495860(void);
+void SelectStopOrder(void);
 
 // FUNCTION: 0x48c030
 void FUN_0048c030(void)
@@ -65,7 +65,7 @@ void FUN_0048c030(void)
         }
     }
     if (found) {
-        FUN_00495860();
+        SelectStopOrder();
         g_game->field_37e9c = 0;
         g_game->flags_37ebe |= 0x10;
     }

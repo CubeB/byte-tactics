@@ -31,7 +31,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0041c7c0(int a, int b, int c);
+void __stdcall CenterCameraOnPoint(int a, int b, int c);
 
 // FUNCTION: 0x463f60
 int ScrollToNextMessageUnit(void)
@@ -46,7 +46,7 @@ int ScrollToNextMessageUnit(void)
             Unit* u = &g->units[id];
             if (u->flags & 0x10000000) {
                 e->flags |= 0x30;
-                FUN_0041c7c0(u->field_6c, u->field_74, 1);
+                CenterCameraOnPoint(u->field_6c, u->field_74, 1);
                 return 1;
             }
         }

@@ -41,11 +41,11 @@ public:
 
 extern Game* g_game;
 
-void __stdcall FUN_00419670(Arg_00498f70* arg);
+void __stdcall IssueMobileBuildOrders(Arg_00498f70* arg);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void FUN_0048bd00(void);
 void __stdcall FUN_0048c7f0(Arg_00498f70* arg);
-void __stdcall FUN_0048cf30(void* a, unsigned char b, Class_00438760 kind,
+void __stdcall IssueOrderToSelection(void* a, unsigned char b, Class_00438760 kind,
                             int d, int e, int f);
 void __stdcall FUN_00491d70(int value);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
@@ -58,7 +58,7 @@ void __stdcall FUN_00498f70(Arg_00498f70* param_1)
 
     if (g_game->orderMode == 0xe) {
         if (g_game->flags_2cc6 & 0x40) {
-            FUN_00419670(param_1);
+            IssueMobileBuildOrders(param_1);
             PlaySoundByName("oktobuild", 0);
             if (param_1->field_8 & 4) {
                 g_game->flags_2cc6 |= 0x20;
@@ -89,7 +89,7 @@ void __stdcall FUN_00498f70(Arg_00498f70* param_1)
     {
         Class_00438760 kind;
         kind.index = 0;
-        FUN_0048cf30(param_1, g_game->orderMode, kind, (int)&g_game->pos, 0, 0);
+        IssueOrderToSelection(param_1, g_game->orderMode, kind, (int)&g_game->pos, 0, 0);
     }
     if (param_1->field_8 & 4) {
         g_game->flags_2cc6 |= 0x20;

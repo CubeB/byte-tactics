@@ -41,7 +41,7 @@ void __stdcall PlaySoundByName(char* str, int flag);
 void __stdcall FUN_004ab0a0(Menu_00494220* menu);
 
 // FUNCTION: 0x494220
-void __stdcall FUN_00494220(Gadget_00494220* gadget)
+void __stdcall HandleUnitInfoDialogEvent(Gadget_00494220* gadget)
 {
     if (gadget->field_60 == -1) {
         Entry_00494220* e = FUN_004a0280(gadget->inner->entries, "HOTR");

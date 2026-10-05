@@ -59,7 +59,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00494220(void* gadget);
+void __stdcall HandleUnitInfoDialogEvent(void* gadget);
 void __stdcall FUN_00494290(void* gadget, void* entry);
 
 Holder_004942e0* __stdcall LoadGuiLayer(Menu_004942e0* menu, const char* name, int flags);
@@ -77,7 +77,7 @@ int __stdcall FUN_00465ac0(void* player, void* unit);
 unsigned short __stdcall FindUnitTypeId(char* name);
 
 // FUNCTION: 0x4942e0
-void __stdcall FUN_004942e0(void)
+void __stdcall OpenUnitInfoDialog(void)
 {
     if (g_game->flags.bits.b11)
         return;
@@ -109,7 +109,7 @@ void __stdcall FUN_004942e0(void)
 
     Holder_004942e0* layer = LoadGuiLayer(&g_game->menu, "UNITINFOx.GUI", 0x1000);
     Entry_004942e0* entries = layer->entries;
-    layer->handler = (void*)FUN_00494220;
+    layer->handler = (void*)HandleUnitInfoDialogEvent;
     layer->data = g_game;
     Entry_004942e0* hotr = FUN_004a0280(entries, "HOTR");
     hotr->u.callback = (void*)FUN_00494290;

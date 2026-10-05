@@ -132,8 +132,8 @@ extern PacketManager g_packetManager;
 extern int DAT_0051f300;
 
 int GetMilliseconds();
-void FUN_00495230();
-void __stdcall FUN_00495490(int param_1);
+void UpdateFramePacing();
+void __stdcall RunGameSteps(int param_1);
 void FUN_00428c00();
 void FUN_00428c10();
 void FUN_00428c20();
@@ -145,10 +145,10 @@ void HandleNetPackets();
 unsigned int GetTicks();
 int GetLocalDpid();
 void __stdcall FUN_00453320(int a, int b);
-void FUN_00495e90();
-void FUN_0041ce90();
+void HandleGameKey();
+void UpdateEdgeScroll();
 void FUN_0048bae0();
-void FUN_0041b2e0();
+void RefreshSelectionOrders();
 void __stdcall FUN_00468cf0(int a, int b);
 void __stdcall SaveScreenshot(char* buf, char* name);
 
@@ -176,9 +176,9 @@ void FUN_00496790()
     t->last = GetMilliseconds();
 
     if (g_game->bit0_2a44) {
-        FUN_00495230();
+        UpdateFramePacing();
         if (g_game->frames != 0) {
-            FUN_00495490(1);
+            RunGameSteps(1);
             CHARGE(8);
             FUN_00428c00();
             FUN_00428c10();
@@ -203,16 +203,16 @@ void FUN_00496790()
         }
     } else if (!g_game->bit0_37ebe) {
         if (!g_game->paused) {
-            FUN_00495230();
+            UpdateFramePacing();
             if (g_game->frames != 0) {
-                FUN_00495490(0);
+                RunGameSteps(0);
                 CHARGE(8);
             }
         }
     }
     if (!g_game->bit0_37ebe) {
-        FUN_00495e90();
-        FUN_0041ce90();
+        HandleGameKey();
+        UpdateEdgeScroll();
     }
     FUN_0048bae0();
     unsigned short flags = g_game->word_37ebe;
@@ -222,7 +222,7 @@ void FUN_00496790()
     } else {
         if (g_game->bit4_37ebe) {
             g_game->bit4_37ebe = 0;
-            FUN_0041b2e0();
+            RefreshSelectionOrders();
         }
     }
     FUN_00468cf0(1, 1);

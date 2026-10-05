@@ -39,7 +39,7 @@ extern Game* g_game;
 void __stdcall PlaySoundByName(char* name, int param);
 
 // FUNCTION: 0x41bde0
-void __stdcall FUN_0041bde0(int param_1)
+void __stdcall StepBuildMenuPage(int param_1)
 {
     unsigned short index = g_game->unitIndex;
     if (index != 0) {

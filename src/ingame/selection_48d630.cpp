@@ -6,7 +6,7 @@
 // Layout notes for the neighbours 0x48d4d0 and 0x48d790 (same structs):
 // - the 10 team records at g_game+0x1b63 are 0x14b bytes: +0x27 the player
 //   (its +0x95 is the index), +0x67 / +0x6b the unit list bounds, +0x6a a
-//   Pos for FUN_0041c8e0, +0xa8 a word copied to g_game+0x1436f.
+//   Pos for CenterCameraOnMapPosition, +0xa8 a word copied to g_game+0x1436f.
 // - a unit is 0x118 bytes: +0x6a Pos, +0x86 a pointer to a struct with a
 //   flags dword at +0x110, +0x92 the type (name at +0x20), +0xa6 a type
 //   index, +0xfb an int, +0x104 the build fraction, +0x110 the flags dword.
@@ -103,8 +103,8 @@ struct Game {
 extern Game* g_game;
 
 void __cdecl FUN_0041c390(void);
-void __stdcall FUN_0041c8e0(Pos_0048d630* pos, int centre);
-void FUN_00495860(void);
+void __stdcall CenterCameraOnMapPosition(Pos_0048d630* pos, int centre);
+void SelectStopOrder(void);
 int __stdcall FUN_00491d70(int force);
 
 // FUNCTION: 0x48d630
@@ -118,10 +118,10 @@ void __stdcall FUN_0048d630(int param_1)
             && (u->attached == 0 || u->attached->bit30)) {
             if (strcmp(u->type->name, playerName) == 0) {
                 FUN_0041c390();
-                FUN_0041c8e0(&u->pos, 1);
+                CenterCameraOnMapPosition(&u->pos, 1);
                 if (param_1 == 0)
                     return;
-                FUN_00495860();
+                SelectStopOrder();
                 for (Unit* v = g_game->units; v <= g_game->unitsEnd; v++) {
                     v->flags.selected = 0;
                     v->flags.bit6 = 0;

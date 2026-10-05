@@ -5,7 +5,7 @@
 // whose dword at +0xfb is 0, that has either no attached unit at +0x86 or one
 // whose flags carry 0x40000000, and whose type index is in the bitmap. It then
 // drops the current selection (+0x37e9c) to none, issues the STOP order
-// (FUN_00495860) and sets order flag 0x10 at +0x37ebe. It is the mirror image
+// (SelectStopOrder) and sets order flag 0x10 at +0x37ebe. It is the mirror image
 // of 0x48c9b0, which clears the same bit under the opposite conditions, and it
 // repeats the loop 0x48bd50 does without the two-pass bitmap.
 //
@@ -66,7 +66,7 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_00495860(void);
+void SelectStopOrder(void);
 
 // The flags word at +0x110 is read whole in the second loop and through the
 // bitfield view in the first, which is what the original does: bit 4 through
@@ -78,7 +78,7 @@ static inline unsigned int* FlagsPtr(Unit* u)
 }
 
 // FUNCTION: 0x48be00
-void FUN_0048be00(void)
+void SelectUnitsOfSameTypes(void)
 {
     Player_0048be00* player = &g_game->players[g_game->localPlayer];
     unsigned int selected[16];
@@ -106,6 +106,6 @@ void FUN_0048be00(void)
         }
     }
     g_game->field_37e9c = 0;
-    FUN_00495860();
+    SelectStopOrder();
     g_game->orderFlag = 1;
 }

@@ -41,7 +41,7 @@ static inline Unit* GetUnit_0048c190(unsigned short i)
 }
 
 // FUNCTION: 0x48c190
-Unit* __stdcall FUN_0048c190(Unit* unit, int dir)
+Unit* __stdcall FindNextSelectedUnit(Unit* unit, int dir)
 {
     Player_0048c190* p = &g_game->players[g_game->player];
     unsigned short x = unit == 0 ? 0 : unit->index;

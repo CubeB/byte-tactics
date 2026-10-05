@@ -9494,7 +9494,7 @@ struct Class_0046a400 {  // 0x50 bytes, 4 views
     int total;  // +0x4
     int values[9];  // +0x8
     int acc[9];  // +0x2c
-    void FUN_0046a400(int);
+    void AccumulateProfileTime(int);
 };
 
 struct Game {  // 0x3924d bytes, 904 views

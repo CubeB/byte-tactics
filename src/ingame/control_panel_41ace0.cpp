@@ -309,17 +309,17 @@ extern Game* g_game;
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bbc40(char* path);
 Layer_0041ace0* __stdcall LoadGuiLayer(Menu_0041ace0* menu, const char* name, int flags);
-void __stdcall FUN_0041aa00(void* menu);
+void __stdcall HandleBuildPanelClick(void* menu);
 void __stdcall RenderLayer(Menu_0041ace0* menu, int value);
 void __stdcall FUN_004a0570(Menu_0041ace0* menu, char* name, int param_3);
-void __stdcall FUN_0041a120(Unit* unit);
-void __stdcall FUN_004199b0(Menu_0041ace0* menu, Unit* unit);
+void __stdcall RefreshOrderButtons(Unit* unit);
+void __stdcall RefreshBuildCountTexts(Menu_0041ace0* menu, Unit* unit);
 int __stdcall FindGadgetIndexBySubstring(Entry_0041ace0* entries, char* name);
 void __stdcall SetGadgetStatus(Menu_0041ace0* menu, int index, int value);
 short __stdcall FindUnitTypeId(Entry_0041ace0* entry);
 void __stdcall FUN_004a1200(Menu_0041ace0* menu, int index, int flag);
 
-// Inlined copy of FUN_0041a920.
+// Inlined copy of SetPrevNextGadgetNames.
 static inline void SetPrevNext(Unit* unit)
 {
     char buf[256];
@@ -352,7 +352,7 @@ static inline void UpdateCounts(Menu_0041ace0* menu)
 }
 
 // FUNCTION: 0x41ace0
-void __stdcall FUN_0041ace0(Unit* unit, char* guiName, int page)
+void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
 {
     if (unit->field_104 == 0.0f) {
         Player_0041ace0* player = &g_game->players[g_game->localPlayer];
@@ -366,7 +366,7 @@ void __stdcall FUN_0041ace0(Unit* unit, char* guiName, int page)
             strcpy(name, guiName);
         Layer_0041ace0* layer = LoadGuiLayer(&g_game->menu, name, 0);
         if (layer != 0) {
-            layer->handler = FUN_0041aa00;
+            layer->handler = HandleBuildPanelClick;
             layer->field_c = 0;
             for (int i = 0; i < g_game->buildListCount; i++) {
                 for (int j = 0; j < g_game->buildLists[i].count; j++) {
@@ -388,8 +388,8 @@ void __stdcall FUN_0041ace0(Unit* unit, char* guiName, int page)
                 RenderLayer(&g_game->menu, 1);
             }
             SetPrevNext(unit);
-            FUN_0041a120(unit);
-            FUN_004199b0(&g_game->menu, unit);
+            RefreshOrderButtons(unit);
+            RefreshBuildCountTexts(&g_game->menu, unit);
             if (unit->flags & 0x20000000) {
                 int index = FindGadgetIndexBySubstring(g_game->menu.layer->entries, "ONOFF");
                 if (index != -1)

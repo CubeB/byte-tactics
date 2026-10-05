@@ -101,12 +101,12 @@ extern Game* g_game;
 extern Entry_00439740* DAT_00512344;
 
 int __stdcall FUN_00465ac0(Player_00439740* owner, Unit* unit);
-void __stdcall FUN_00438ea0(void* surface, View_00439740* view, Pos_00439740* pos,
+void __stdcall DrawRangeCircle(void* surface, View_00439740* view, Pos_00439740* pos,
                             int radius, int color, const char* text, int index);
 void __stdcall DrawFrameBlended(void* dest, void* bmp, int x, int y);
 
 // FUNCTION: 0x439740
-void __stdcall FUN_00439740(void* surface, View_00439740* view, Node_00439740* node,
+void __stdcall DrawWeaponCoverage(void* surface, View_00439740* view, Node_00439740* node,
                             Pos_00439740* out, int unused)
 {
     char buf[0x40];
@@ -141,17 +141,17 @@ void __stdcall FUN_00439740(void* surface, View_00439740* view, Node_00439740* n
             if (u->slots[(unsigned char)i].flags & 2) {
                 if (u->slots[i].weapon->field_d6 != 0) {
                     sprintf(buf, "weapon %d - area of effect", i);
-                    FUN_00438ea0(surface, view, &pos, u->slots[i].weapon->field_d6, color, buf, 0);
+                    DrawRangeCircle(surface, view, &pos, u->slots[i].weapon->field_d6, color, buf, 0);
                 }
                 if (u->slots[i].weapon->field_e0 != 0) {
                     sprintf(buf, "weapon %d - coverage", i);
-                    FUN_00438ea0(surface, view, &pos, u->slots[i].weapon->field_e0, color, buf, 1);
+                    DrawRangeCircle(surface, view, &pos, u->slots[i].weapon->field_e0, color, buf, 1);
                 }
             }
         }
         unsigned short len = u->def->attackLength;
         if (len != 0)
-            FUN_00438ea0(surface, view, &pos, len, color, "attack length", 2);
+            DrawRangeCircle(surface, view, &pos, len, color, "attack length", 2);
     }
     Anim_00439740* anim = g_game->anims[DAT_00512344[node->kind].field_10];
     unsigned int n = g_game->frame / ((unsigned int)anim->field_2c * 2);

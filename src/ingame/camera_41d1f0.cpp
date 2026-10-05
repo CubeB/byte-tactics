@@ -35,7 +35,7 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_0041c3c0(void);
+void ClampCameraPosition(void);
 
 static inline void SetPos(int x, int y)
 {
@@ -53,7 +53,7 @@ void FUN_0041d1f0()
         if (e->type == 1 && e->id == 0) {
             SetPos(e->x - g_game->viewWidth / 2, e->z - g_game->viewHeight / 2);
             g_game->flags_142f1 |= 2;
-            FUN_0041c3c0();
+            ClampCameraPosition();
             g_game->x2 = g_game->x;
             g_game->y2 = g_game->y;
             g_game->flags_14281 &= 0xfff7;

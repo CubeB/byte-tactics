@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. , edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Claude Opus 5.5. Names are provisional.
 // MATCH. What it does: snapshots the position the caller passed in `out`,
-// calls FUN_00439740 (which draws the order's icon and writes the new position
+// calls DrawWeaponCoverage (which draws the order's icon and writes the new position
 // to `out`), and when `flag` is set walks the line from the snapshot to the
 // new position in 0x300000 steps, drawing frame `idx` of g_game->anims[21] at
 // each step. idx starts at (frames since order->timestamp, clamped at 0) /
@@ -88,7 +88,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00439740(void* surface, View_004394e0* view,
+void __stdcall DrawWeaponCoverage(void* surface, View_004394e0* view,
                             Node_004394e0* node, Pos_004394e0* out, int unused);
 void __stdcall DrawFrame(void* surface, void* bmp, int x, int y);
 
@@ -142,7 +142,7 @@ void __stdcall FUN_004394e0(void* surface, View_004394e0* view,
                             Node_004394e0* order, Pos_004394e0* out, int flag)
 {
     Pos_004394e0 start = *out;
-    FUN_00439740(surface, view, order, out, flag);
+    DrawWeaponCoverage(surface, view, order, out, flag);
     if (flag == 0)
         return;
 

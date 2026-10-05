@@ -37,7 +37,7 @@ extern Game* g_game;
 extern char* DAT_00503320;           // "Summary"
 
 void __stdcall LoadPlayers(Class_004b4560* file);
-void __stdcall FUN_0041d2b0(Class_004b4560* file);
+void __stdcall ReadCameraPosition(Class_004b4560* file);
 void __stdcall FUN_00424c00(Class_004b4560* file);
 void __stdcall FUN_00484d60(Class_004b4560* file);
 void __stdcall FUN_00484e80(Class_004b4560* file);
@@ -53,7 +53,7 @@ int __stdcall LoadSavedGameState(Class_004b4560* file)
     if (((Class_004b48f0*)file)->FUN_004b48f0("maxunits"))
         g_game->maxUnits = ((Class_004b4800*)file)->FUN_004b4800("maxunits", 0);
     LoadPlayers(file);
-    FUN_0041d2b0(file);
+    ReadCameraPosition(file);
     FUN_00424c00(file);
     FUN_00484d60(file);
     FUN_00484e80(file);

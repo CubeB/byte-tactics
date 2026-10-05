@@ -20,7 +20,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x41c6f0
-void FUN_0041c6f0()
+void UpdateScreenShake()
 {
     if ((g_game->flags_1434e & 1) != 0) {
         int count = g_game->value_14333;

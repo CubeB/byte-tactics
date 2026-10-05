@@ -21,7 +21,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x4195f0
-void __stdcall FUN_004195f0(char* dest, unsigned short index)
+void __stdcall CopyMenuEntryName(char* dest, unsigned short index)
 {
     strncpy(dest, g_game->entries[index].name, 0x20);
     dest[0x1f] = 0;

@@ -116,7 +116,7 @@ int __stdcall QueueUnitSpeech(Unit* unit, int a, int b);
 int __stdcall PlaySoundByName(char* msg, int a);
 
 // FUNCTION: 0x48c390
-int __stdcall FUN_0048c390(void* param_1)
+int __stdcall SelectUnitsInBox(void* param_1)
 {
     int found = 0;
     int ymin = (g_game->rect_x1 - g_game->scroll_x) + 0x80;

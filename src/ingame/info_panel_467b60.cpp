@@ -19,7 +19,7 @@ struct Colors_00467b60 {
 void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 
 // FUNCTION: 0x467b60
-void __stdcall FUN_00467b60(void* surface, int value, int max, Rect_004b0510* rect, Colors_00467b60* colors, int dy)
+void __stdcall DrawProgressBar(void* surface, int value, int max, Rect_004b0510* rect, Colors_00467b60* colors, int dy)
 {
     Rect_004b0510 r = *rect;
     r.y1 += dy;

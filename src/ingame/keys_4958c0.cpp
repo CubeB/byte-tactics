@@ -22,7 +22,7 @@ extern Game* g_game;
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);
 
-// The else branch is the body of FUN_00495860.
+// The else branch is the body of SelectStopOrder.
 // FUNCTION: 0x4958c0
 void __stdcall FUN_004958c0(int set)
 {

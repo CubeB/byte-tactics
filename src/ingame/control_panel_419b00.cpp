@@ -31,7 +31,7 @@ void __stdcall FUN_0043b0b0(Class_00438760 kind, Unit* unit, int id, int count);
 short __stdcall FindUnitTypeId(char* name);
 
 // FUNCTION: 0x419b00
-void __stdcall FUN_00419b00(char* name, Unit* unit, int count)
+void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
 {
     if (unit->field_ff == g_game->field_2a43) {
         if (count > 0)

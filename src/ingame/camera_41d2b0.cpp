@@ -18,7 +18,7 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_0041c3c0(void);
+void ClampCameraPosition(void);
 
 extern char DAT_00502890[]; // "Camera"
 extern char DAT_00502884[]; // "Z Position"
@@ -35,7 +35,7 @@ public:
 };
 
 // FUNCTION: 0x41d2b0
-void __stdcall FUN_0041d2b0(Class_004b4560* file)
+void __stdcall ReadCameraPosition(Class_004b4560* file)
 {
     file->FUN_004b4560(DAT_00502890);
     int z = ((Class_004b4800*)file)->FUN_004b4800(DAT_00502884, g_game->y);
@@ -43,7 +43,7 @@ void __stdcall FUN_0041d2b0(Class_004b4560* file)
     g_game->x = x;
     g_game->y = z;
     g_game->flags_142f1 |= 2;
-    FUN_0041c3c0();
+    ClampCameraPosition();
     g_game->x2 = g_game->x;
     g_game->y2 = g_game->y;
     g_game->flags_14281 &= 0xfff7;

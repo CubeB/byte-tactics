@@ -104,11 +104,11 @@ extern Game* g_game;
 extern int DAT_0051e6d0[10];
 
 Layer_004936f0* __stdcall LoadGuiLayer(Menu_004936f0* menu, const char* name, int flags);
-void __stdcall FUN_004934b0(void* gadget);
+void __stdcall HandleShareDialogEvent(void* gadget);
 int __stdcall FindGadgetIndex(char* entries, char* name, int type);
 Entry_004936f0* __stdcall FUN_004a0200(char* entries, char* name);
-void __stdcall FUN_00493340(void* entry, int param_2);
-void __stdcall FUN_00493390(void* entry, int param_2);
+void __stdcall UpdateMetalReadout(void* entry, int param_2);
+void __stdcall UpdateEnergyReadout(void* entry, int param_2);
 void __stdcall FUN_0045b9b0(void* entry, int param_2);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall CloseTopScreen(Menu_004936f0* menu);
@@ -120,14 +120,14 @@ void __stdcall FUN_0049fb10(Menu_004936f0* menu, int value);
 void __stdcall RenderLayer(Menu_004936f0* menu, int value);
 
 // FUNCTION: 0x4936f0
-void FUN_004936f0()
+void OpenShareDialog()
 {
     if (g_game->players[g_game->localPlayer].owner->bit6)
         return;
     Layer_004936f0* layer = LoadGuiLayer(&g_game->menu, "SHARE.GUI", 0x800);
     g_game->bit6_37ebe = 1;
     char* entries = layer->entries;
-    layer->handler = FUN_004934b0;
+    layer->handler = HandleShareDialogEvent;
     layer->data = g_game;
     int idx = FindGadgetIndex(entries, "METAL", 0xe);
     if (idx != -1) {
@@ -135,7 +135,7 @@ void FUN_004936f0()
         e->field_142 = ((Entry_004936f0*)(layer->entries + idx * 0x15b))->field_19;
         e->field_136 = ((Entry_004936f0*)(layer->entries + idx * 0x15b))->field_17 - e->field_142;
         e->field_13c = (int)g_game->players[g_game->localPlayer].energy;
-        e->handler = FUN_00493340;
+        e->handler = UpdateMetalReadout;
         e->field_140 = 0;
         FUN_0045b9b0(e, 0);
         e->field_14a = g_game;
@@ -146,7 +146,7 @@ void FUN_004936f0()
         e->field_142 = ((Entry_004936f0*)(layer->entries + idx * 0x15b))->field_19;
         e->field_136 = ((Entry_004936f0*)(layer->entries + idx * 0x15b))->field_17 - e->field_142;
         e->field_13c = (int)g_game->players[g_game->localPlayer].metal;
-        e->handler = FUN_00493390;
+        e->handler = UpdateEnergyReadout;
         e->field_140 = 0;
         FUN_0045b9b0(e, 0);
         e->field_14a = g_game;

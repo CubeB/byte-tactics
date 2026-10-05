@@ -22,7 +22,7 @@ void __stdcall SetTextColors(int color, int font);
 void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
 
 // FUNCTION: 0x467cb0
-void __stdcall FUN_00467cb0(void* surface, Player_00467cb0* player, int x, int y)
+void __stdcall DrawKillCount(void* surface, Player_00467cb0* player, int x, int y)
 {
     char buf[100];
     char* kills = FUN_004c5740("kills");

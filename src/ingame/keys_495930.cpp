@@ -16,7 +16,7 @@ int __stdcall FUN_004bc640(int handle, FindData_00495930* fd);
 void __stdcall FUN_004bc8d0(int handle);
 
 // FUNCTION: 0x495930
-void __stdcall FUN_00495930(char* out, const char* dir, const char* name, const char* ext)
+void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name, const char* ext)
 {
     bool needSep = false;
     FindData_00495930 fd;

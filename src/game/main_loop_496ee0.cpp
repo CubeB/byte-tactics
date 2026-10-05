@@ -91,7 +91,7 @@ extern Game* g_game;
 
 unsigned short __stdcall FindUnitTypeId(const char* name);
 void __stdcall FatalError(char* message);
-void __stdcall FUN_0041c4c0(int x, int y, int instant);
+void __stdcall SetCameraPosition(int x, int y, int instant);
 
 union Fixed_00496ee0 {
     int i;                              // 16.16
@@ -136,6 +136,6 @@ void __stdcall FUN_00496ee0(int team, int startpos)
     }
 
     if (team == g_game->localPlayer)
-        FUN_0041c4c0(pos.x.h.whole - g_game->viewWidth / 2,
+        SetCameraPosition(pos.x.h.whole - g_game->viewWidth / 2,
             pos.z.h.whole - g_game->viewHeight / 2, 0);
 }

@@ -2,7 +2,7 @@
 // Order-button handler: when the game is not in order mode, selects the STOP
 // order (inlined body of 0x495860); otherwise dispatches on the order flags
 // (+0x2cc6): bit 1 cancels the current order, bit 0 switches to the 0x13
-// (STOP) selection, bit 2 hands a zero order kind to FUN_0048cf30.
+// (STOP) selection, bit 2 hands a zero order kind to IssueOrderToSelection.
 
 struct Obj_004ab400;
 struct Src_004ab400;
@@ -52,13 +52,13 @@ struct Arg_00499100 {
 
 extern Game* g_game;
 
-void FUN_0041cc60();
+void BeginMouseScroll();
 void FUN_0048bd00(void);
 int __stdcall FUN_00491d70(int force);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);
 void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src);
-void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, Vec3_00499100* d, int e, int f);
+void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, Vec3_00499100* d, int e, int f);
 
 // FUNCTION: 0x499100
 void __stdcall FUN_00499100(Arg_00499100* param_1)
@@ -75,7 +75,7 @@ void __stdcall FUN_00499100(Arg_00499100* param_1)
     if (g_game->field_37efa == 0) {
         if (g_game->field_2cc6 & 2) {
             if (param_1->field_8 & 8) {
-                FUN_0041cc60();
+                BeginMouseScroll();
                 return;
             }
             FUN_0048bd00();
@@ -92,6 +92,6 @@ void __stdcall FUN_00499100(Arg_00499100* param_1)
         }
     } else if (g_game->field_2cc6 & 4) {
         Class_00438760 kind;
-        FUN_0048cf30(param_1, 1, kind, &g_game->pos, 0, 0);
+        IssueOrderToSelection(param_1, 1, kind, &g_game->pos, 0, 0);
     }
 }

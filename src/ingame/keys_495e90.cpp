@@ -167,32 +167,32 @@ void __stdcall FUN_004a6a40(Sub_495e90* gui, int handle);
 int __stdcall IsScreenNamed(Sub_495e90* gui, char* name);
 void SaveSettings(void);
 void __stdcall PlaySoundByName(const char* name, int param);
-void FUN_00494050(void);
-void __stdcall FUN_0041bf10(int param);
-void __stdcall FUN_0041bde0(int param);
-void __stdcall FUN_0041c060(int param);
-void __stdcall FUN_0048d9a0(int index, int key);
+void OpenTalkDialog(void);
+void __stdcall StepBuildMenuPageBack(int param);
+void __stdcall StepBuildMenuPage(int param);
+void __stdcall OpenBuildMenuPage(int param);
+void __stdcall SelectSquad(int index, int key);
 void __stdcall FUN_0041c2e0(int param);
 void __stdcall FUN_00417b50(int param_1, int param_2);
-void FUN_004942e0(void);
-void FUN_004936f0(void);
+void OpenUnitInfoDialog(void);
+void OpenShareDialog(void);
 void FUN_0048d4d0(void);
 void FUN_0048bd50(void);
-void FUN_0048be00(void);
-void __stdcall FUN_0048bf30(const char* name, int key);
-void FUN_0041c310(void);
+void SelectUnitsOfSameTypes(void);
+void __stdcall SelectUnitsByCategory(const char* name, int key);
+void FindLocalCommander(void);
 void FUN_0048c030(void);
-void __stdcall FUN_0048ca20(void* param);
-void __stdcall FUN_0048d920(int param);
-void __stdcall FUN_0041d3b0(int param);
-void __stdcall FUN_0041d3f0(int param);
+void __stdcall CollectSelectedUnits(void* param);
+void __stdcall CreateSquad(int param);
+void __stdcall SaveCameraPosition(int param);
+void __stdcall RestoreCameraPosition(int param);
 void CycleMessageUnits(void);
 void FUN_00463c80(void);
 void __stdcall SetGameSpeed(int param_1, int param_2);
 void __stdcall FUN_004ab190(Sub_495e90* gui, int param);
 int GetLocalDpid(void);
 void __stdcall BroadcastPacket(int param_1, void* param_2, int param_3);
-void FUN_00495010(void);
+void ToggleTabMenu(void);
 void __stdcall FUN_004956c0(int eventType);
 void __stdcall FUN_00460cc0(void);
 int __stdcall FUN_004bc4b0(char* path, void* findData, int param_3, int param_4);
@@ -201,13 +201,13 @@ void __stdcall FUN_004bc8d0(int handle);
 void __stdcall FUN_004bcf00(char* path);
 void __stdcall FUN_00468cf0(int param_1, int param_2);
 void __stdcall SaveScreenshot(char* param_1, const char* param_2);
-void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
+void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, int d, int e, int f);
 int __stdcall FUN_00439e30(int unit, Class_00438760 kind);
 void __stdcall DeleteOrder(int unit, int arg);
 void __cdecl operator delete(void* p);
 
 // FUNCTION: 0x495e90
-void FUN_00495e90(void)
+void HandleGameKey(void)
 {
     int event = PopKey();
     if (event == 0)
@@ -247,7 +247,7 @@ void FUN_00495e90(void)
     case 0xcb:
     case 0xcc:
     case 0xcd:
-        FUN_0048d920(event - 0xc4);
+        CreateSquad(event - 0xc4);
         PlaySoundByName("CreateSquad", 0);
         break;
 
@@ -262,17 +262,17 @@ void FUN_00495e90(void)
     case 0x39:
         if (g_game->flags_37f06.b8) {
             if (IsKeyDown(0xfb) != 0) {
-                FUN_0041c060(event - 0x31);
+                OpenBuildMenuPage(event - 0x31);
             } else {
-                FUN_0048d9a0(event - 0x30, key);
+                SelectSquad(event - 0x30, key);
                 PlaySoundByName("SelectSquad", 0);
             }
         } else {
             if (IsKeyDown(0xfb) != 0) {
-                FUN_0048d9a0(event - 0x30, key);
+                SelectSquad(event - 0x30, key);
                 PlaySoundByName("SelectSquad", 0);
             } else
-                FUN_0041c060(event - 0x31);
+                OpenBuildMenuPage(event - 0x31);
         }
         break;
 
@@ -281,7 +281,7 @@ void FUN_00495e90(void)
     case 0xd4:
     case 0xd5:
         PlaySoundByName("SelectSquad", 0);
-        FUN_0041d3b0(event - 0xd2);
+        SaveCameraPosition(event - 0xd2);
         break;
 
     case 0xe6:
@@ -289,7 +289,7 @@ void FUN_00495e90(void)
     case 0xe8:
     case 0xe9:
         PlaySoundByName("SelectSquad", 0);
-        FUN_0041d3f0(event - 0xe6);
+        RestoreCameraPosition(event - 0xe6);
         break;
 
     case 0x21:
@@ -302,11 +302,11 @@ void FUN_00495e90(void)
         break;
 
     case 0x2c:
-        FUN_0041bf10(1);
+        StepBuildMenuPageBack(1);
         break;
 
     case 0x2e:
-        FUN_0041bde0(1);
+        StepBuildMenuPage(1);
         break;
 
     case 0xf8: {
@@ -328,14 +328,14 @@ void FUN_00495e90(void)
                 g_game->field_391b3 = 0;
             }
         } else {
-            FUN_004942e0();
+            OpenUnitInfoDialog();
         }
         break;
 
     case 9:
         if (g_game->net->FUN_00435100() == 3) {
             if (!g_game->flags_37ebe.b2)
-                FUN_00495010();
+                ToggleTabMenu();
             break;
         }
         // fall through
@@ -442,22 +442,22 @@ void FUN_00495e90(void)
     case 0xc2: {
         char buf[7];
         sprintf(buf, "CTRL_%c", event - 0x69);
-        FUN_0048bf30(buf, key);
+        SelectUnitsByCategory(buf, key);
         break;
     }
 
     case 0xac:
-        FUN_0048bf30("CTRL_C", key);
-        FUN_0041c310();
+        SelectUnitsByCategory("CTRL_C", key);
+        FindLocalCommander();
         break;
 
     case 0xc3:
-        FUN_0048be00();
+        SelectUnitsOfSameTypes();
         break;
 
     case 0xad: {
         std::vector<int> sel;
-        FUN_0048ca20(&sel);
+        CollectSelectedUnits(&sel);
         int found = 0;
         Class_00438760 order("SELFDESTRUCT");
         for (std::vector<int>::iterator it = sel.begin(); it != sel.end(); ++it) {
@@ -468,13 +468,13 @@ void FUN_00495e90(void)
             }
         }
         if (found == 0)
-            FUN_0048cf30(g_game->orders_2c76, 0, order, 0, 0, 0);
+            IssueOrderToSelection(g_game->orders_2c76, 0, order, 0, 0, 0);
         break;
     }
 
     case 0x68:
         if (g_game->net->FUN_00435100() == 3)
-            FUN_004936f0();
+            OpenShareDialog();
         break;
 
     case 0x6e:
@@ -495,7 +495,7 @@ void FUN_00495e90(void)
 
     case 0xd:
         PlaySoundByName("SmallButton", 0);
-        FUN_00494050();
+        OpenTalkDialog();
         break;
 
     case 0x2d:

@@ -96,7 +96,7 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
 }
 
 // FUNCTION: 0x419670
-void __stdcall FUN_00419670(Arg_00419670* arg)
+void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
 {
     unsigned int remove = (arg->field_8 >> 2) & 1;
     unsigned short index = g_game->field_2cc4;

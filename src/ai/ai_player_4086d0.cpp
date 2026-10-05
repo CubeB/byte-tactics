@@ -13,7 +13,7 @@ class Class_0048b090 { public: void SetStateBits(int,int); };
 float __stdcall FUN_00464ad0(Economy*);
 int __stdcall FUN_004b6c30(int);
 unsigned short __stdcall FUN_0040bdb0(unsigned,Unit*);
-void __stdcall FUN_00419b00(char*,Unit*,int);
+void __stdcall QueueBuildOrder(char*,Unit*,int);
 // FUNCTION: 0x4086d0
 void Class_00408810::FUN_00407380()
 {
@@ -28,7 +28,7 @@ void Class_00408810::FUN_00407380()
                 } else ((Class_0048b090*)u)->SetStateBits(1,0);
             } else if(u->def->building && !u->orders) {
                 unsigned short id=FUN_0040bdb0(player,u);
-                if(id) FUN_00419b00((char*)&g_game->defs[id]+0x20,u,1);
+                if(id) QueueBuildOrder((char*)&g_game->defs[id]+0x20,u,1);
             }
         }
     }

@@ -84,7 +84,7 @@ static inline Pos_00438ea0 operator-(const Pos_00438ea0& p, const Vec3_00438ea0&
 }
 
 // FUNCTION: 0x438ea0
-void __stdcall FUN_00438ea0(void* surface, View_00438ea0* view, Pos_00438ea0* pos, int radius,
+void __stdcall DrawRangeCircle(void* surface, View_00438ea0* view, Pos_00438ea0* pos, int radius,
                             int color, const char* text, int index)
 {
     int angle = 0;

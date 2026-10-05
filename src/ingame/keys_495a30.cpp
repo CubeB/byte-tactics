@@ -109,14 +109,14 @@ struct Class_004c6b10 {
     void SetClipRect(Rect_00495a30 r);
 };
 
-void __stdcall FUN_00495930(char* out, const char* dir, const char* name, const char* ext);
+void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name, const char* ext);
 Class_004b8da0* __stdcall AllocFrame(const char* name, int width, int height);
 void __cdecl FUN_004d8e50(int param);
 void __stdcall FUN_0049e6f0();
 void __stdcall SurfaceFromFrame(Surface_00495a30* dst, void* src);
 void* __stdcall GetDisplay();
 void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Src_004b8ae0* src);
-void __stdcall FUN_0041c4c0(int x, int y, int z);
+void __stdcall SetCameraPosition(int x, int y, int z);
 void __stdcall FUN_0048bae0();
 void __stdcall FUN_00468cf0(int a, int b);
 void __stdcall DrawFrame(Surface_00495a30* surf, Dst_004b8ae0* pal, int x, int y);
@@ -125,14 +125,14 @@ void __stdcall FUN_004816a0(int param);
 void __cdecl FUN_004d85a0(void* b);
 
 // FUNCTION: 0x495a30
-void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
+void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h)
 {
     int var24;
     unsigned int savedC;
     unsigned short fl;
     char filename[260];
     int bw, off27, sy;
-    FUN_00495930(filename, dir, name, "bmp");
+    BuildScreenshotPath(filename, dir, name, "bmp");
 
     int y2;
     Class_004cb7f0 bmp;
@@ -195,7 +195,7 @@ void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
                         int right;
                         Rect_00495a30 box;
                         box.left = col;
-                        FUN_0041c4c0(x + col, y + row, 0);
+                        SetCameraPosition(x + col, y + row, 0);
                         FUN_0048bae0();
                         FUN_00468cf0(1, 0);
                         right = (col + bw) - 1;
@@ -237,7 +237,7 @@ void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
             bit6 = (savedB & 1) << 6;
             g_game->field_37f2f = (unsigned short)((((unsigned short)g_game->field_37f2f) & ~0x40) | bit6);
             g_game->field_37f27 = savedC;
-            FUN_0041c4c0(scrollX, scrollY, 0);
+            SetCameraPosition(scrollX, scrollY, 0);
             g_game->viewFlags = (unsigned short)(g_game->viewFlags ^ ((savedbit0 ^ g_game->viewFlags) & 1));
             g_game->viewFlags = (unsigned short)((unsigned short)((g_game->viewFlags & ~2) | ((savedbit1 & 1) << 1)));
             FUN_004816a0(1);

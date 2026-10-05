@@ -17,7 +17,7 @@ public:
     int values[9];                      // +0x08
     int acc[9];                         // +0x2c
 
-    void FUN_0046a400(int i) {
+    void AccumulateProfileTime(int i) {
         unsigned int t = GetMilliseconds();
         int d = t - last;
         int v = acc[i];
@@ -59,7 +59,7 @@ void FUN_00424050(void);
 void FUN_00415b30(void);
 void UpdateWind(void);
 void FUN_00437de0(void);
-void FUN_0041ca10(void);
+void UpdateCameraFollow(void);
 void UpdateParticles(void);
 void FUN_00466580(void);
 void FUN_00428bd0(void);
@@ -70,7 +70,7 @@ void FUN_00482130(void);
 void __stdcall UpdateResourceSharing(Player_495490* player);
 
 // FUNCTION: 0x495490
-void __stdcall FUN_00495490(int showStats)
+void __stdcall RunGameSteps(int showStats)
 {
     int n = g_game->steps;
 
@@ -79,33 +79,33 @@ void __stdcall FUN_00495490(int showStats)
 
         if (showStats) {
             HandleNetPackets();
-            g_game->prof.FUN_0046a400(0);
+            g_game->prof.AccumulateProfileTime(0);
         }
         UpdateAllUnits();
-        g_game->prof.FUN_0046a400(1);
+        g_game->prof.AccumulateProfileTime(1);
         UpdateProjectiles();
-        g_game->prof.FUN_0046a400(7);
+        g_game->prof.AccumulateProfileTime(7);
         UpdateExplosions();
-        g_game->prof.FUN_0046a400(8);
+        g_game->prof.AccumulateProfileTime(8);
         FUN_00464f80();
-        g_game->prof.FUN_0046a400(2);
+        g_game->prof.AccumulateProfileTime(2);
 
         FUN_00424050();
         FUN_00415b30();
         UpdateWind();
         FUN_00437de0();
-        FUN_0041ca10();
-        g_game->prof.FUN_0046a400(8);
+        UpdateCameraFollow();
+        g_game->prof.AccumulateProfileTime(8);
 
         UpdateParticles();
-        g_game->prof.FUN_0046a400(6);
+        g_game->prof.AccumulateProfileTime(6);
         FUN_00466580();
-        g_game->prof.FUN_0046a400(8);
+        g_game->prof.AccumulateProfileTime(8);
 
         if (showStats && g_usePacketManager != 0) {
             UpdateResourceSharing(&g_game->players[g_game->localPlayer]);
             g_packetManager.SendAllQueued(0);
-            g_game->prof.FUN_0046a400(0);
+            g_game->prof.AccumulateProfileTime(0);
         }
     }
 
@@ -114,5 +114,5 @@ void __stdcall FUN_00495490(int showStats)
     FUN_00428bf0();
     ExpireOldestMessage();
     FUN_00482130();
-    g_game->prof.FUN_0046a400(8);
+    g_game->prof.AccumulateProfileTime(8);
 }

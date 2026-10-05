@@ -62,7 +62,7 @@ void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
 int __stdcall FUN_00438700(Unit*, Order*, int);
-int __stdcall FUN_0041ba60(Unit*, Unit*, float);
+int __stdcall AddBuildProgress(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
 class Class_00438a00 { public: void FUN_00438a00(Vec3*, int, int); };
@@ -106,7 +106,7 @@ int __stdcall HelpBuildOrder(Unit* unit, Order* order, int flags)
     case 3: {
         int rate = 0;
         rate = unit->def->buildRate;
-        if (FUN_0041ba60(unit, target, (float)(rate / 30))) {
+        if (AddBuildProgress(unit, target, (float)(rate / 30))) {
             Vec3 start;
             GetNanoPiecePosition(unit, &start);
             Vec3 bounds[2];

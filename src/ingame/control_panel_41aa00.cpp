@@ -2,7 +2,7 @@
 // Click handler of the unit build/orders panel (installed by 0x41ace0 and
 // 0x41b0f0): PREV/NEXT/ORDERS/BUILD buttons set request flags, a unit-type
 // entry whose type has field_22f == 0 switches to mode 0xe with that type,
-// the orders buttons go to FUN_0041a490, and any other entry adds or removes
+// the orders buttons go to HandleOrdersPanelClick, and any other entry adds or removes
 // build queue entries (5 at a time when IsKeyDown(0xf9) is set).
 // Notes: the per-button FUN_004ab0a0 calls are one call after an if/else-if
 // chain (MSVC duplicates it into every branch; writing it in each branch puts
@@ -85,16 +85,16 @@ void __stdcall GetGadgetName(Entry_0041aa00* entries, char* name, int index);
 unsigned short __stdcall FindUnitTypeId(char* name);
 void __stdcall FUN_004ab0a0(Menu_0041aa00* menu);
 void __stdcall PlaySoundByName(char* name, int param_2);
-int __stdcall FUN_0041a490(Menu_0041aa00* menu, Entry_0041aa00* entries);
-int __stdcall FUN_00419be0(Menu_0041aa00* menu, Entry_0041aa00* entries);
+int __stdcall HandleOrdersPanelClick(Menu_0041aa00* menu, Entry_0041aa00* entries);
+int __stdcall HandleOrderButtonClick(Menu_0041aa00* menu, Entry_0041aa00* entries);
 int __stdcall IsKeyDown(int key);
 int __stdcall FUN_004ab6b0(Menu_0041aa00* menu);
-void __stdcall FUN_00419b00(char* name, Unit* unit, int count);
-void __stdcall FUN_004199b0(Menu_0041aa00* menu, Unit* unit);
+void __stdcall QueueBuildOrder(char* name, Unit* unit, int count);
+void __stdcall RefreshBuildCountTexts(Menu_0041aa00* menu, Unit* unit);
 void __stdcall FUN_0049fa90(Sub_0041aa00* menu);
 
 // FUNCTION: 0x41aa00
-void __stdcall FUN_0041aa00(Menu_0041aa00* menu)
+void __stdcall HandleBuildPanelClick(Menu_0041aa00* menu)
 {
     if (menu->index != -1) {
         Entry_0041aa00* entries = menu->layer->entries;
@@ -119,23 +119,23 @@ void __stdcall FUN_0041aa00(Menu_0041aa00* menu)
             g_game->field_2cc3 = 0xe;
             g_game->field_2cc4 = id;
             PlaySoundByName("addbuild", 0);
-        } else if (!FUN_0041a490(menu, entries) && !FUN_00419be0(menu, entries)) {
+        } else if (!HandleOrdersPanelClick(menu, entries) && !HandleOrderButtonClick(menu, entries)) {
             if (unit->canBuild) {
                 char text[256];
                 GetGadgetName(entries, text, menu->index);
                 if (IsKeyDown(0xf9)) {
                     if (FUN_004ab6b0(menu) == 1)
-                        FUN_00419b00(text, unit, 5);
+                        QueueBuildOrder(text, unit, 5);
                     else
-                        FUN_00419b00(text, unit, -5);
+                        QueueBuildOrder(text, unit, -5);
                 } else {
                     if (FUN_004ab6b0(menu) == 1)
-                        FUN_00419b00(text, unit, 1);
+                        QueueBuildOrder(text, unit, 1);
                     else
-                        FUN_00419b00(text, unit, -1);
+                        QueueBuildOrder(text, unit, -1);
                 }
                 if (unit->flag_29 || (unit->type->flags & 0x10000000))
-                    FUN_004199b0(menu, unit);
+                    RefreshBuildCountTexts(menu, unit);
                 FUN_0049fa90(&g_game->menu);
             }
         }

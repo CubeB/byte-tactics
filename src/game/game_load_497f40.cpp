@@ -145,7 +145,7 @@ void __cdecl SaveSettings();
 void __cdecl HandleNetPackets();
 void __cdecl SendLoadProgress();
 void __cdecl OnlineUnload();
-void __cdecl FUN_00467d70();
+void __cdecl DrawLightBars();
 void __cdecl StopAllSounds();
 void __cdecl FUN_00496790();
 void __cdecl FUN_004c2870();
@@ -312,7 +312,7 @@ void LoadingScreenFrame(void)
             g_game->field_37e1b = (int)AllocSurface("OFFSCREEN", g_game->field_37e1f, g_game->field_37e23);
             SetRestoreSurface(g_game->field_37e1b);
         }
-        FUN_00467d70();
+        DrawLightBars();
         FUN_00496790();
         FUN_004c2870();
         g_game->field_391f1 = 6;

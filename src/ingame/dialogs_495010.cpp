@@ -82,7 +82,7 @@ int __stdcall IsScreenNamed(Sub_00495010* sub, const char* name);
 void __stdcall CloseTopScreen(Sub_00495010* sub);
 void FUN_004c2470();
 Gadget_00495010* __stdcall LoadGuiLayer(Sub_00495010* sub, const char* name, int flags);
-void __stdcall FUN_00494740(Gadget_00495010* gadget);
+void __stdcall HandleTabMenuEvent(Gadget_00495010* gadget);
 int IsHostLocal();
 void __stdcall FUN_004a0570(Sub_00495010* sub, char* name, int value);
 void __stdcall FUN_0049fa50(Sub_00495010* sub);
@@ -90,7 +90,7 @@ void __stdcall RenderLayer(Sub_00495010* sub, int value);
 void FUN_004c2870();
 
 // FUNCTION: 0x495010
-void FUN_00495010()
+void ToggleTabMenu()
 {
     PlaySoundByName("SmallButton", 0);
     unsigned short f = g_game->flags;
@@ -104,7 +104,7 @@ void FUN_00495010()
     FUN_004c2470();
     Gadget_00495010* d = LoadGuiLayer(&g_game->sub, "TABMENU.GUI", 0x800);
     d->owner = g_game;
-    d->handler = FUN_00494740;
+    d->handler = HandleTabMenuEvent;
 
     int count = 0;
     Player_00495010* p = g_game->players;

@@ -106,7 +106,7 @@ extern int DAT_00511dd0;
 extern unsigned char DAT_004fcc68[];
 extern signed char DAT_004fd670[], DAT_004fd678[];
 
-Unit* __stdcall FUN_0048c190(int, int);
+Unit* __stdcall FindNextSelectedUnit(int, int);
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 void __stdcall SetFont(int font);
 int __stdcall GetTextKeyColor();
@@ -123,7 +123,7 @@ void __stdcall FUN_00418310(void* surface)
     Movement* movement = 0;
     Player* player = &g_game->players[g_game->playerIndex];
     if (g_game->mode == 1) {
-        Unit* unit = FUN_0048c190(0, 0);
+        Unit* unit = FindNextSelectedUnit(0, 0);
         if (unit) movement = unit->def->movement;
     }
     int firstY = g_game->scrollY / 16;

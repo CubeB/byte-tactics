@@ -57,8 +57,8 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_0041c6f0();
-void FUN_0041c3c0();
+void UpdateScreenShake();
+void ClampCameraPosition();
 
 static inline void SetTarget(int x, int y)
 {
@@ -96,7 +96,7 @@ static inline int Approach(int cur, int target)
 }
 
 // FUNCTION: 0x41ca10
-void FUN_0041ca10()
+void UpdateCameraFollow()
 {
     Pos_0041ca10* p = 0;
     if (g_game->jumpCount != 0) {
@@ -129,6 +129,6 @@ void FUN_0041ca10()
         g_game->flags_14281 &= 0xfff7;
         g_game->y = Approach(g_game->y, g_game->y2);
     }
-    FUN_0041c6f0();
-    FUN_0041c3c0();
+    UpdateScreenShake();
+    ClampCameraPosition();
 }

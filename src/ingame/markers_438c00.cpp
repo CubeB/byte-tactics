@@ -127,7 +127,7 @@ static int ScreenY(View_00438c00* v, int z, int y)
 }
 
 // FUNCTION: 0x438c00
-void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order* order,
+void __stdcall DrawBuildFootprint(void* surface, View_00438c00* view, Order* order,
                             Pos_00438c00* out, int unused)
 {
     if (order->type == 0)

@@ -133,8 +133,8 @@ void __stdcall GetGadgetText(Gadget_00493bf0* obj, char* name, char* text);
 void __stdcall CloseTopScreen(Gadget_00493bf0* obj);
 void __stdcall FUN_0049fa90(void* obj);
 void __stdcall FUN_004ab0a0(Gadget_00493bf0* obj);
-void FUN_00493ae0();
-void FUN_00494050();
+void ResetPlayerGadgets();
+void OpenTalkDialog();
 int __stdcall FUN_00417b50(char* cmd, int flags);
 int __stdcall IsCurrentGadgetNamed(Gadget_00493bf0* gadget, char* name);
 int __stdcall FindGadgetIndex(Entry_00493bf0* entries, char* name, int type);
@@ -142,7 +142,7 @@ void __stdcall FUN_0049fc50(Gadget_00493bf0* obj, int index);
 void __stdcall SendChatMessage(Player_00493bf0* from, char* text, int param_3, char* to);
 
 // FUNCTION: 0x493bf0
-void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
+void __stdcall HandleTalkDialogEvent(Gadget_00493bf0* gadget)
 {
     char buf2[0x12c];
     char buf[0x100];
@@ -179,7 +179,7 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
         g_game->field_2bee.bit8 = v & 1;
         GetGadgetText(gadget, DAT_00506578, DAT_0051e788);
         CloseTopScreen(gadget);
-        FUN_00494050();
+        OpenTalkDialog();
         FUN_004ab0a0(gadget);
         return;
     }
@@ -188,7 +188,7 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
         g_game->mode_2bf0 = (unsigned char)GetButtonStageByName(gadget, DAT_00509400);
         if (g_game->mode_2bf0 >= 4)
             g_game->mode_2bf0 = 0;
-        FUN_00493ae0();
+        ResetPlayerGadgets();
         FUN_004ab0a0(gadget);
         goto tail;
     }

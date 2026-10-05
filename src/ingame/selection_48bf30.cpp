@@ -54,10 +54,10 @@ struct Game {
 extern Game* g_game;
 
 void* __stdcall GetCategoryMask(char* name);
-void __stdcall FUN_00495860(void);
+void __stdcall SelectStopOrder(void);
 
 // FUNCTION: 0x48bf30
-void __stdcall FUN_0048bf30(char* name, int param_2)
+void __stdcall SelectUnitsByCategory(char* name, int param_2)
 {
     int* mask = (int*)GetCategoryMask(name);
     int player = g_game->localPlayer;
@@ -79,6 +79,6 @@ void __stdcall FUN_0048bf30(char* name, int param_2)
         }
     }
     g_game->unitIndex = 0;
-    FUN_00495860();
+    SelectStopOrder();
     g_game->orders.flag_4 = 1;
 }

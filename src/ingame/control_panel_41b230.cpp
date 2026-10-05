@@ -22,7 +22,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x41b230
-void __stdcall FUN_0041b230(char* dest, unsigned short index, int n)
+void __stdcall BuildEntryGuiName(char* dest, unsigned short index, int n)
 {
     char name[256];
     strncpy(name, g_game->entries[index].name, 0x20);

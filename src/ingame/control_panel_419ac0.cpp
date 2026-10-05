@@ -30,7 +30,7 @@ int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall SetGadgetStatus(Menu_00419ac0* menu, int index, short value);
 
 // FUNCTION: 0x419ac0
-void __stdcall FUN_00419ac0(Unit_00419ac0* unit)
+void __stdcall UpdateOnOffButton(Unit_00419ac0* unit)
 {
     int index = FindGadgetIndexBySubstring(g_game->menu.layer->value, "ONOFF");
     if (index != -1) {

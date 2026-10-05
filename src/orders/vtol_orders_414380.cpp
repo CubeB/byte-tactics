@@ -6,7 +6,7 @@
 //   (same translation unit) uses. That makes the state 3 block byte exact, but
 //   on its own it ties `range` and `order` at priority 130 (c2prio), and range
 //   wins the tie on its +0x40 key, so order and range trade esi and edi.
-// - `int ok = FUN_0041ba60(...); if (ok)` adds a candidate to a block that
+// - `int ok = AddBuildProgress(...); if (ok)` adds a candidate to a block that
 //   references order, which raises order to 134 and gives it esi again (97.1%
 //   with <stdlib.h>; only the six bounds adds were left).
 // - The operand order of the six bounds adds (pos.x + min.x and so on) follows
@@ -93,7 +93,7 @@ void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
 void __stdcall StartBuildingScript(Unit*, Order*, short);
 int __stdcall FUN_00438700(Unit*, Order*, int);
-int __stdcall FUN_0041ba60(Unit*, Unit*, float);
+int __stdcall AddBuildProgress(Unit*, Unit*, float);
 void __stdcall GetNanoPiecePosition(Unit*, Vec3*);
 void __stdcall EmitNanoParticles(Vec3*, Vec3*, int);
 static inline Point WorldToCell(Vec3 v, Point origin)
@@ -166,7 +166,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
             ((Class_004388d0*)order)->FUN_004388d0((int)move);
         }
         int rate=0; rate=unit->def->buildRate;
-        int ok=FUN_0041ba60(unit,order->target.Get(),(float)(rate/30));
+        int ok=AddBuildProgress(unit,order->target.Get(),(float)(rate/30));
         if (ok) {
             Vec3 start;
             GetNanoPiecePosition(unit,&start);

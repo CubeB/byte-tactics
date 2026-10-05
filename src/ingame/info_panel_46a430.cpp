@@ -34,7 +34,7 @@ extern Game* g_game;
 void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 
 // FUNCTION: 0x46a430
-void __stdcall FUN_0046a430(void* surface, Unit* unit, int x, int y)
+void __stdcall DrawHitPointBar(void* surface, Unit* unit, int x, int y)
 {
     if (unit->health <= 0)
         return;

@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Network statistics: two rows, each a "Send"/"Receive" rate label with a
 // 64x8 bar under it. The bar is full at 56 K/s (the rate times 100 over 5600,
-// capped at 100 inside the bar helper, which is FUN_00468310 inlined twice).
+// capped at 100 inside the bar helper, which is DrawPercentBar inlined twice).
 // Both rows sit at x 0x81..0xc1; the first row's y comes from the game,
 // the second one starts just under the first bar.
 #include <stdio.h>
@@ -30,7 +30,7 @@ void __stdcall DrawString(void* surface, const char* text, int x, int y, int max
 void __stdcall DrawRectangle(void* surface, Rect_004b0510* rect, int color);
 void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 
-// FUN_00468310, the out-of-line bar, written here so both calls inline.
+// DrawPercentBar, the out-of-line bar, written here so both calls inline.
 static void Bar(void* surface, Rect_004b0510* rect, int percent)
 {
     unsigned char& color = g_game->color;
@@ -44,7 +44,7 @@ static void Bar(void* surface, Rect_004b0510* rect, int percent)
 }
 
 // FUNCTION: 0x468380
-void __stdcall FUN_00468380(void* surface)
+void __stdcall DrawNetworkStats(void* surface)
 {
     unsigned int sent;
     unsigned int received;

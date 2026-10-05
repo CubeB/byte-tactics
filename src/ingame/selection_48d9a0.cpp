@@ -87,7 +87,7 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_00495860(void);
+void SelectStopOrder(void);
 
 class UnitTypeSet {
 public:
@@ -102,7 +102,7 @@ static inline int TestBit(UnitTypeSet* set, unsigned short n)
 }
 
 // FUNCTION: 0x48d9a0
-bool __stdcall FUN_0048d9a0(int id, int param_2)
+bool __stdcall SelectSquad(int id, int param_2)
 {
     UnitTypeSet* setA = GetCategoryMask("CTRL_F");
     int cnt = 0;
@@ -159,7 +159,7 @@ select_units:
             }
         }
     }
-    FUN_00495860();
+    SelectStopOrder();
     g_game->field_37e9c = 0;
     g_game->orderFlag = 1;
     return cnt > 0;

@@ -18,7 +18,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x41c5e0
-void __stdcall FUN_0041c5e0(int dx, int dy, int value)
+void __stdcall StartScreenShake(int dx, int dy, int value)
 {
     if ((g_game->flags_37f2f & 0x10) == 0) {
         g_game->value_1432f = value;

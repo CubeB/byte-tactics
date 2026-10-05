@@ -20,7 +20,7 @@ extern Game* g_game;
 void __stdcall FUN_00466b70(void* param_1);
 
 // FUNCTION: 0x41c3c0
-void FUN_0041c3c0()
+void ClampCameraPosition()
 {
     int maxX = g_game->mapWidth - g_game->viewWidth;
     int maxY = g_game->mapHeight - g_game->viewHeight;

@@ -38,7 +38,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x48ca20
-void __stdcall FUN_0048ca20(std::vector<Unit*>* list)
+void __stdcall CollectSelectedUnits(std::vector<Unit*>* list)
 {
     list->clear();
     Team* team = &g_game->teams[g_game->player];

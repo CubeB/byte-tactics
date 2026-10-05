@@ -5,7 +5,7 @@
 // visible map rows (first bucketed per row into the unit lists at
 // g_game+0x141fb), the unit group numbers, the selection box and the debug and
 // timing text. Profile marks go to g_game+0x38d85 (phases 8, 3, 4 and 5); the
-// last mark (phase 3) is the out-of-line FUN_0046a400, which the original file
+// last mark (phase 3) is the out-of-line AccumulateProfileTime, which the original file
 // defines after this function.
 //
 // Claude Opus 5.5 pass (#4765): 84.2 percent -> MATCH. The old version kept
@@ -63,17 +63,17 @@ int __stdcall FUN_004658e0(int,int,int,int,int,int);
 int __stdcall FUN_00466b00(int);
 int __stdcall FUN_00467a20(int,int,int,int);
 int __stdcall FUN_00467c00(int,int,int,int);
-int __stdcall FUN_00468380(int);
-int __stdcall FUN_004689c0(int);
-int __stdcall FUN_0046a430(int,int,int,int);
-int __stdcall FUN_0046a530(int,int);
+int __stdcall DrawNetworkStats(int);
+int __stdcall DrawStatusPanel(int);
+int __stdcall DrawHitPointBar(int,int,int,int);
+int __stdcall DrawSelectionBox(int,int);
 int __stdcall FUN_0046a610(int,int,int,int);
-int __stdcall FUN_0046a860(int);
+int __stdcall DrawUnitInfoPanel(int);
 int __stdcall FUN_0046b900(int,int,int);
 int __stdcall DrawParticleList(int,int);
 int __stdcall FUN_00483fa0(int);
 int __stdcall FUN_004848e0(int);
-int __stdcall FUN_0048c190(int,int);
+int __stdcall FindNextSelectedUnit(int,int);
 int __stdcall FUN_0048cc30(int,int);
 int __stdcall FUN_004948e0(int);
 int __stdcall DrawProjectiles(int);
@@ -104,7 +104,7 @@ struct OverlayRect { int left, top, right, bottom; };
 struct Class_004c6b10 { int data[12]; int SetClipRect(OverlayRect); };
 
 // The frame-time profile at g_game+0x38d85 (Class_0046a400): last tick at +0,
-// one accumulator per phase at +0x2c. FUN_0046a400 itself is defined after
+// one accumulator per phase at +0x2c. AccumulateProfileTime itself is defined after
 // this function in the original file, so only the hand-inlined copies below
 // were expanded; the last call stays out of line.
 struct Class_0046a400 {
@@ -112,7 +112,7 @@ struct Class_0046a400 {
   int total;
   int values[9];
   int acc[9];
-  void FUN_0046a400(int i);
+  void AccumulateProfileTime(int i);
 };
 static inline void ProfileMark(Class_0046a400 *p, int i)
 {
@@ -307,7 +307,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
       DrawResourcePanel(&ctx, pl, &res);
     }
   }
-  FUN_0046a860((int)&ctx);
+  DrawUnitInfoPanel((int)&ctx);
   FUN_00466b00((int)&ctx);
   ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
   ProfileMark((Class_0046a400 *)(g_game + 0x38d85), 3);
@@ -403,7 +403,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
         int u = *pUnit;
         if (((UnitFlags *)(u + 0x110))->kind == 1 && param_1 != 0) {
           if (((UnitFlags *)(u + 0x110))->b4)
-            FUN_0046a530((int)&ctx, u);
+            DrawSelectionBox((int)&ctx, u);
           if (*(int *)(u + 0x9a) != 0)
             DrawUnit((int)&ctx, u);
         }
@@ -437,7 +437,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
         int u = *pUnit;
         if (((UnitFlags *)(u + 0x110))->kind != 1) {
           if (((UnitFlags *)(u + 0x110))->b4)
-            FUN_0046a530((int)&ctx, u);
+            DrawSelectionBox((int)&ctx, u);
           if (*(int *)(u + 0x9a) != 0)
             DrawUnit((int)&ctx, u);
         }
@@ -465,7 +465,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
         y = *(short *)(unit + 0x74) - *(int *)(g_game + 0x14323) - (*(short *)(unit + 0x70) >> 1) + 0x20;
         if (*(byte *)(g_game + 0x37f06) & 1) {
           if (*(char *)(*(int *)(unit + 0x96) + 0x146) == (char)idx)
-            FUN_0046a430((int)&ctx, unit, x, y + 10);
+            DrawHitPointBar((int)&ctx, unit, x, y + 10);
           if (*(char *)(*(int *)(unit + 0x96) + 0x146) == (char)idx && *(int *)(unit + 0xac) != 0) {
             str[0] = *(char *)(unit + 0xac) + '0';
             DrawString((int)&ctx, (int)str, x, y + 0xe, -1);
@@ -477,7 +477,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   }
   ProfileMark((Class_0046a400 *)(g_game + 0x38d85), 4);
   if ((*(ushort *)(g_game + 0x3923b) & 1) && (*(ushort *)(g_game + 0x3923b) & 2) && param_1 != 0)
-    FUN_00417f30((int)&ctx, FUN_0048c190(0, 0));
+    FUN_00417f30((int)&ctx, FindNextSelectedUnit(0, 0));
   if (param_1 != 0)
     FUN_004848e0((int)&ctx);
   ProfileMark((Class_0046a400 *)(g_game + 0x38d85), 5);
@@ -526,9 +526,9 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     FUN_004948e0((int)&ctx);
     ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));
   }
-  FUN_004689c0((int)&ctx);
+  DrawStatusPanel((int)&ctx);
   if (*(int *)(g_game + 0x391c3) != 0)
-    FUN_00468380((int)&ctx);
+    DrawNetworkStats((int)&ctx);
   if (param_1 != 0)
     DrawMessages((int)&ctx);
   if ((*(byte *)(g_game + 0x3923b) & 2) && param_1 != 0) {
@@ -584,5 +584,5 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
   FUN_004c2870();
   if (param_1 != 0 && param_2 != 0)
     FlipScreen();
-  ((Class_0046a400 *)(g_game + 0x38d85))->FUN_0046a400(3);
+  ((Class_0046a400 *)(g_game + 0x38d85))->AccumulateProfileTime(3);
 }

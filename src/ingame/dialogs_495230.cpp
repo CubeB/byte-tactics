@@ -75,7 +75,7 @@ extern Game* g_game;
 unsigned int GetTicks();
 
 // FUNCTION: 0x495230
-void FUN_00495230()
+void UpdateFramePacing()
 {
     unsigned int now = GetTicks();
     g_game->elapsed = now - g_game->lastTick;

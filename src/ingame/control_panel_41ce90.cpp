@@ -58,10 +58,10 @@ void __stdcall FUN_004c2340(Mouse_0041ce90* mouse);
 Display_0041ce90* GetDisplay();
 int __stdcall IsScreenNamed(void* obj, const char* name);
 int __stdcall IsKeyDown(int key);
-void FUN_0041c3c0();
+void ClampCameraPosition();
 
 // FUNCTION: 0x41ce90
-void FUN_0041ce90()
+void UpdateEdgeScroll()
 {
     Mouse_0041ce90 mouse;
     POINT pt;
@@ -108,7 +108,7 @@ void FUN_0041ce90()
         g_game->x = x;
         g_game->y = y;
         g_game->flags_142f1 |= 2;
-        FUN_0041c3c0();
+        ClampCameraPosition();
         g_game->x2 = g_game->x;
         g_game->y2 = g_game->y;
         g_game->flags_14281 &= 0xfff7;

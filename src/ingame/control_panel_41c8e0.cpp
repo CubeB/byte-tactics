@@ -30,10 +30,10 @@ struct Pos_41c8e0 {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-void FUN_0041c3c0(void);
+void ClampCameraPosition(void);
 
 // FUNCTION: 0x41c8e0
-void __stdcall FUN_0041c8e0(Pos_41c8e0* p, int param_2)
+void __stdcall CenterCameraOnMapPosition(Pos_41c8e0* p, int param_2)
 {
     int cy = (short)((p->z - (p->y >> 1)) >> 16) - g_game->viewHeight / 2;
     int cx = (short)(p->x >> 16) - g_game->viewWidth / 2;
@@ -56,7 +56,7 @@ void __stdcall FUN_0041c8e0(Pos_41c8e0* p, int param_2)
         g_game->x = cx;
         g_game->y = cy;
         g_game->flags_142f1 |= 2;
-        FUN_0041c3c0();
+        ClampCameraPosition();
         g_game->x2 = g_game->x;
         g_game->y2 = g_game->y;
     }

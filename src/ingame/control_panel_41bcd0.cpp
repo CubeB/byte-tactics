@@ -16,11 +16,11 @@ struct Obj_41bcd0 {
 };
 #pragma pack(pop)
 
-extern void __stdcall FUN_0041ba60(void* param_1, void* param_2, float param_3);
+extern void __stdcall AddBuildProgress(void* param_1, void* param_2, float param_3);
 
 // FUNCTION: 0x41bcd0
 void __stdcall FUN_0041bcd0(Obj_41bcd0* param_1, int param_2)
 {
     float val = -((float)(param_1->sub->field_1ea * param_2) / param_1->sub->divisor);
-    FUN_0041ba60(param_1, param_1, val);
+    AddBuildProgress(param_1, param_1, val);
 }

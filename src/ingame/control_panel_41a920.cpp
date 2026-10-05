@@ -47,7 +47,7 @@ extern Game* g_game;
 void __stdcall FUN_004a0570(Object_0041a920* obj, char* name, int param_3);
 
 // FUNCTION: 0x41a920
-void __stdcall FUN_0041a920(Unit* unit)
+void __stdcall SetPrevNextGadgetNames(Unit* unit)
 {
     char buf[256];
     if (unit->info->field_22e < 2) {

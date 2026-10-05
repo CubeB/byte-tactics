@@ -16,7 +16,7 @@ int __stdcall FUN_0045ba20(char* text);
 void __stdcall FUN_004a0bf0(Object_00493390* obj, char* name, int param_3, int param_4);
 
 // FUNCTION: 0x493390
-void __stdcall FUN_00493390(Object_00493390* obj, int unused)
+void __stdcall UpdateEnergyReadout(Object_00493390* obj, int unused)
 {
     char buf[52];
     char* value = FUN_004a0200(obj->holder->data, "ENERGY");

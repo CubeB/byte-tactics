@@ -44,7 +44,7 @@ struct Game {
 extern Game* g_game;
 void __stdcall SetCursorPosition(int x, int y);
 void FUN_004c2870();
-void FUN_0041c3c0();
+void ClampCameraPosition();
 
 // The same scroll-and-clamp sequence is written out in 0x41c7c0, 0x41c8e0,
 // 0x41d0f0 and 0x41d1f0.
@@ -53,7 +53,7 @@ static inline void ScrollTo(int x, int y)
     g_game->x = x;
     g_game->y = y;
     g_game->flags_142f1 |= 2;
-    FUN_0041c3c0();
+    ClampCameraPosition();
     g_game->x2 = g_game->x;
     g_game->y2 = g_game->y;
     g_game->flags_14281 &= 0xfff7;
@@ -65,7 +65,7 @@ static inline void ScrollTo(int x, int y)
 // give the same lea's but no such knowledge. The quarter offsets need their
 // own locals (dx, dy) for savedScroll to get esi/ebp and center.x the spill.
 // FUNCTION: 0x41cd50
-void FUN_0041cd50()
+void UpdateMouseScroll()
 {
     CursorState_0041cd50* c = &g_game->cursor;
     Rect_0041cd50 r = g_game->view;

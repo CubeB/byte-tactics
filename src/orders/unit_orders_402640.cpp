@@ -143,7 +143,7 @@ extern Game* g_game;
 
 void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
 void __stdcall FUN_0041c150(Unit* unit);
-void __stdcall FUN_0041b8d0(Unit* unit, Unit* target);
+void __stdcall FinishConstruction(Unit* unit, Unit* target);
 void __stdcall DamageUnit(Unit* unit, Unit* target, int n, int kind, int flag);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
 Vec3 __stdcall GetPiecePosition(Unit* unit, int piece);
@@ -152,7 +152,7 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec3 pos, 
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* builder, char piece, char p4);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner, Unit* id, int flags, int param_6, int param_7);
 int __stdcall FUN_0041bd10(Unit* builder, Unit* unit, float amount);
-int __stdcall FUN_0041ba60(Unit* unit, Unit* target, float amount);
+int __stdcall AddBuildProgress(Unit* unit, Unit* target, float amount);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitNanoParticles(Vec3* from, Box* to, int count);
 
@@ -241,7 +241,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
             } else {
                 unit->metal += (double)refund;
             }
-            FUN_0041b8d0(unit, order->target.owner);
+            FinishConstruction(unit, order->target.owner);
             DamageUnit(unit, order->target.owner, 30000, 9, 0);
         }
         ((Class_0048b090*)unit)->SetStateBits(9, 0);
@@ -297,7 +297,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
     }
     case 3:
         if (order->target.owner != 0) {
-            if (FUN_0041ba60(unit, order->target.owner, (float)(unit->type->workerTime / 30))) {
+            if (AddBuildProgress(unit, order->target.owner, (float)(unit->type->workerTime / 30))) {
                 Vec3 nano;
                 GetNanoPiecePosition(unit, &nano);
                 Box box;
@@ -321,7 +321,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
     case 4:
         QueueUnitSpeech(unit, 8, 0);
         ((Class_0048b090*)unit)->SetStateBits(8, 0);
-        FUN_0041b8d0(unit, order->target.owner);
+        FinishConstruction(unit, order->target.owner);
         order->target.SetUnit(0);
         order->count--;
         FUN_0041c150(unit);

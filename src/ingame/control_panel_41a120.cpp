@@ -67,7 +67,7 @@ void __stdcall FUN_004a1200(Menu_0041a120* menu, int index, int value);
 void __stdcall FUN_004a03f0(Menu_0041a120* menu, int index, char value);
 
 // FUNCTION: 0x41a120
-void __stdcall FUN_0041a120(Unit* unit)
+void __stdcall RefreshOrderButtons(Unit* unit)
 {
     Menu_0041a120* menu = &g_game->menu;
     int layer = g_game->menu.layer->value;

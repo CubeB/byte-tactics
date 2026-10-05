@@ -150,7 +150,7 @@ extern char DAT_00504910[];           // "Game Time"
 extern char DAT_00504904[];           // "Radar Image"
 
 void __stdcall SaveSurface(void* surface, void* file);
-void __stdcall FUN_0041d360(void* file);
+void __stdcall WriteCameraPosition(void* file);
 void __stdcall SavePlayers(void* file);
 void __stdcall SaveUnits(void* file);
 void __stdcall FUN_00484f50(void* file);
@@ -203,7 +203,7 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
     if (g_game->state == 6) {
         ((Class_004b4ba0*)&file)->FUN_004b4ba0(DAT_00504904);
         SaveSurface(g_game->finalSurface, &file);
-        FUN_0041d360(&file);
+        WriteCameraPosition(&file);
         SavePlayers(&file);
         SaveUnits(&file);
         FUN_00484f50(&file);

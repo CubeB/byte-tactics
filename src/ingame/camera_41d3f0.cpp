@@ -24,7 +24,7 @@ struct Game {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-void FUN_0041c3c0(void);
+void ClampCameraPosition(void);
 
 static inline void SetPos(int x, int y)
 {
@@ -33,7 +33,7 @@ static inline void SetPos(int x, int y)
 }
 
 // FUNCTION: 0x41d3f0
-void __stdcall FUN_0041d3f0(int index)
+void __stdcall RestoreCameraPosition(int index)
 {
     if (g_game->valid != 0) {
         g_game->value_1434b = 0;
@@ -41,7 +41,7 @@ void __stdcall FUN_0041d3f0(int index)
         g_game->value_142f7 = 0;
         SetPos(g_game->xs[index], g_game->ys[index]);
         g_game->flags_142f1 |= 2;
-        FUN_0041c3c0();
+        ClampCameraPosition();
         g_game->x2 = g_game->x;
         g_game->y2 = g_game->y;
         g_game->flags_14281 &= 0xfff7;

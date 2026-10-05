@@ -36,8 +36,8 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_0041bde0(int param_1);
-void __stdcall FUN_0041bf10(int param_1);
+void __stdcall StepBuildMenuPage(int param_1);
+void __stdcall StepBuildMenuPageBack(int param_1);
 
 // The unit at g_game->unitIndex, or 0 when the index is empty or the slot is
 // not live (field_a6 == 0). Inlined at both call sites below.
@@ -57,12 +57,12 @@ void FUN_0041c180()
 {
     if (g_game->b7) {
         g_game->b7 = 0;
-        FUN_0041bde0(0);
+        StepBuildMenuPage(0);
         return;
     }
     if (g_game->b8) {
         g_game->b8 = 0;
-        FUN_0041bf10(0);
+        StepBuildMenuPageBack(0);
         return;
     }
     if (g_game->b10) {

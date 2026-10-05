@@ -42,7 +42,7 @@ public:
 };
 
 void __stdcall FUN_004bcf00(char* path);
-void __stdcall FUN_00495a30(char* name, char* description, int x, int y, int w, int h);
+void __stdcall WriteScreenshot(char* name, char* description, int x, int y, int w, int h);
 unsigned int GetTicks();
 
 // FUNCTION: 0x417600
@@ -73,6 +73,6 @@ void __stdcall CmdMakePoster(Class_004b73c0* args)
     char buf[256];
     sprintf(buf, "%s\\screenshots", g_game->installPath);
     FUN_004bcf00(buf);
-    FUN_00495a30(buf, "BIGSHOT", x, y, w, h);
+    WriteScreenshot(buf, "BIGSHOT", x, y, w, h);
     g_game->lastShotTime = GetTicks();
 }

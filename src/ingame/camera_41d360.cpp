@@ -18,7 +18,7 @@ extern char DAT_00502884[]; // "Z Position"
 extern char* g_game;
 
 // FUNCTION: 0x41d360
-void __stdcall FUN_0041d360(Class_004b4560* file)
+void __stdcall WriteCameraPosition(Class_004b4560* file)
 {
     file->FUN_004b4560(DAT_00502890);
     ((Class_004b4630*)file)->FUN_004b4630(DAT_00502878, *(int*)(g_game + 0x1431f));

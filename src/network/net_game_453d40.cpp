@@ -257,7 +257,7 @@ void __stdcall FUN_00423550(int, int, int);
 void __stdcall FUN_004233a0(int, int, int);
 int __stdcall FUN_00481550(int, int);
 void __stdcall FUN_004244b0(int, int, int, Feature*);
-void __stdcall FUN_0041b8d0(Class_0048b090*, Class_0048b090*);
+void __stdcall FinishConstruction(Class_0048b090*, Class_0048b090*);
 void __stdcall PlaySoundByIndex(int, int);
 void __stdcall PlaySoundAt(int, void*, int);
 void __stdcall GiveUnitToPlayer(Class_0048b090*, Player*, void*);
@@ -767,7 +767,7 @@ int HandleNetPackets()
         }
         case 18: {
             Class_0048b090* a = UnitAt(*(unsigned short*)(packet + 1));
-            FUN_0041b8d0(UnitAt(*(unsigned short*)(packet + 3)), a);
+            FinishConstruction(UnitAt(*(unsigned short*)(packet + 3)), a);
             break;
         }
         case 19:

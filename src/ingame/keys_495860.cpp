@@ -23,7 +23,7 @@ int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);
 
 // FUNCTION: 0x495860
-void FUN_00495860(void)
+void SelectStopOrder(void)
 {
     int index;
 

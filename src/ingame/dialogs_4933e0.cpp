@@ -1,5 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
-// FUN_0048ca20 clears the vector and fills it with the local player's units
+// CollectSelectedUnits clears the vector and fills it with the local player's units
 // that have bit 4 of +0x110 set (probably the selected units); each one whose
 // low two flag bits are not 2, with +0x86 and +0x8a clear and whose type is
 // not in the "Commander" set, is handed to the given player with GiveUnitToPlayer.
@@ -33,7 +33,7 @@ struct Game {
 };
 
 extern Game* g_game;
-void __stdcall FUN_0048ca20(std::vector<Unit*>* list);
+void __stdcall CollectSelectedUnits(std::vector<Unit*>* list);
 unsigned int* __stdcall GetCategoryMask(char* name);
 void __stdcall GiveUnitToPlayer(Unit* unit, void* player, int arg);
 
@@ -44,10 +44,10 @@ static inline int TestBit(unsigned int* set, unsigned short n)
 }
 
 // FUNCTION: 0x4933e0
-void __stdcall FUN_004933e0(unsigned char player)
+void __stdcall GiveSelectedUnitsToPlayer(unsigned char player)
 {
     std::vector<Unit*> list;
-    FUN_0048ca20(&list);
+    CollectSelectedUnits(&list);
     Player_004933e0* p = &g_game->players[player];
     unsigned int* set = GetCategoryMask("Commander");
     for (std::vector<Unit*>::iterator it = list.begin(); it != list.end(); it++) {

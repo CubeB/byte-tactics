@@ -7,7 +7,7 @@
 // Unbuilding adds the energy share to the unit's float at +0xd4 (times 0.5 or
 // 0.7 for a type 2 player when g_game+0x37eee is 0 or 1) and destroys the
 // unit through DamageUnit once nothing is left. Either way the unit's hit
-// points follow the progress, and a finished unit goes to FUN_0041b8d0.
+// points follow the progress, and a finished unit goes to FinishConstruction.
 // Notes: min/max are the <windows.h> macros (the clamp evaluates max twice).
 // The +0xd4 updates go through a `float&`: written as unit->field_d4, MSVC
 // hoists the hit point load above the store and moves the `next >= 1.0f`
@@ -68,10 +68,10 @@ struct Builder_0041ba60 {
 extern Game* g_game;
 
 void __stdcall DamageUnit(Unit* obj, Unit* unit, int n, int kind, int flag);
-void __stdcall FUN_0041b8d0(Builder_0041ba60* builder, Unit* unit);
+void __stdcall FinishConstruction(Builder_0041ba60* builder, Unit* unit);
 
 // FUNCTION: 0x41ba60
-int __stdcall FUN_0041ba60(Builder_0041ba60* builder, Unit* unit, float amount)
+int __stdcall AddBuildProgress(Builder_0041ba60* builder, Unit* unit, float amount)
 {
     int result = 0;
     if (unit->remaining == 0.0f)
@@ -117,6 +117,6 @@ int __stdcall FUN_0041ba60(Builder_0041ba60* builder, Unit* unit, float amount)
         result = 1;
     }
     if (unit->remaining == 0.0f)
-        FUN_0041b8d0(builder, unit);
+        FinishConstruction(builder, unit);
     return result;
 }

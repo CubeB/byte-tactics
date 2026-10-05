@@ -181,7 +181,7 @@ inline void __stdcall FUN_00496e10(Settings_00496e10* s)
 }
 
 // FUNCTION: 0x497180
-void __cdecl FUN_00497180(void)
+void __cdecl FUN_00497180(void*)
 {
     LARGE_INTEGER perfCount;
     FixedPos_497180 pos;

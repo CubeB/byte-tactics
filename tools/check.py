@@ -44,6 +44,11 @@ FORBIDDEN = re.compile(r"\b(__asm|_asm|_emit|__emit)\b|#\s*pragma\s+(optimize|co
 # only, and so are the flags their functions were evidently compiled with.
 GAP_DIR = ROOT / "src/gap"
 GAP_FORBIDDEN = re.compile(r"#\s*pragma\s+(optimize|code_seg)")
+# Runtime library code (data/functions.csv's `library` rows) that no library
+# member holds, compiled from the toolchain's own headers with the game's
+# options: the basic_string members Cavedog's objects instantiated. Checked
+# like any other file; tools/place.py places it as library code.
+LIB_DIR = ROOT / "src/lib"
 
 
 # --- the original exe -------------------------------------------------------

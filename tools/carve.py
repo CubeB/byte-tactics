@@ -697,8 +697,11 @@ def carve(objects: list[Path], verbose: bool = False) -> Carved:
             continue
         target = targets.most_common(1)[0][0]
         named = namer.name(target, f"the name {name}")
-        if named and named[0].startswith("__orig"):
-            truth[name] = target                 # data: origdata.obj names it
+        if named and (named[0].startswith("__orig") or named[0] in placer.commons):
+            # Data: origdata.obj names it. A communal variable too (the guard
+            # 0x463ba0 and string.obj's _$E50 share): LINK 5.10 crashes on a
+            # weak external whose default is a communal symbol.
+            truth[name] = target
         elif named and named[1] == 0 and named[0] != name:
             truth[name] = named
     data_names = carve_data(img, placer, namer, compiled_data,

@@ -16,7 +16,7 @@ kind is one of:
 import argparse
 import csv
 import struct
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import capstone
@@ -69,6 +69,8 @@ class References:
                         for imp in entry.imports if imp.name}
         # (object for a static, else "", symbol) -> addresses some member's code matched at
         self.at: dict[tuple[str, str], set[int]] = defaultdict(set)
+        # address -> the names the chosen members' code uses for it (note_calls)
+        self.called: dict[int, Counter] = defaultdict(Counter)
 
     @staticmethod
     def key(obj, name: str) -> tuple[str, str]:
@@ -83,11 +85,14 @@ class References:
         o = va - self.base
         return struct.unpack_from("<I", self.image, o)[0] if 0 <= o <= len(self.image) - 4 else None
 
-    def same_data(self, obj, sym, offset: int, va: int) -> bool | None:
+    def same_data(self, obj, sym, offset: int, va: int, depth: int = 3) -> bool | None:
         """Whether the exe holds sym's section's bytes from offset (up to 16, a
         string up to its terminator) at va, ignoring the fields the linker
         fills; None when there is nothing fixed to compare (uninitialised
-        data, or a pointer)."""
+        data, or a pointer). A field that points at the object's own data
+        must lead to the same contents again: length_error's and failure's
+        throw information differ only in the type names their tables lead
+        to."""
         sec = obj.sections[sym.section - 1]
         o = va - self.base
         if sec.characteristics & 0x80:
@@ -96,10 +101,25 @@ class References:
         if b"\0" in ours and sym.name.startswith(("??_C@", "$SG")):
             ours = ours[:ours.index(b"\0") + 1]
         mask = sec.mask()[offset:offset + len(ours)]
-        if not any(mask):
-            return None
-        theirs = self.image[o:o + len(ours)] if 0 <= o else b""
-        return len(theirs) == len(ours) and all(not m or a == b for a, b, m in zip(ours, theirs, mask))
+        result = None
+        if any(mask):
+            theirs = self.image[o:o + len(ours)] if 0 <= o else b""
+            if len(theirs) != len(ours) or not all(not m or a == b for a, b, m in zip(ours, theirs, mask)):
+                return False
+            result = True
+        for r in sec.relocs if depth else ():
+            if r.type != REL_I386_DIR32 or not offset <= r.offset <= offset + len(ours) - 4:
+                continue
+            target = next((s for s in obj.symbols if s.name == r.symbol and s.section > 0), None)
+            pointer = self.u32(va + r.offset - offset)
+            if target is None or pointer is None or obj.sections[target.section - 1].is_code:
+                continue
+            (addend,) = struct.unpack_from("<I", sec.data, r.offset)
+            same = self.same_data(obj, target, target.value + addend, pointer, depth - 1)
+            if same is False:
+                return False
+            result = result or same
+        return result
 
     def score(self, obj, sec, va: int) -> tuple[int, int]:
         """(references that disagree with the exe's, references that agree)
@@ -137,13 +157,36 @@ class References:
                 bad, good = (bad, good + 1) if target in known else (bad + 1, good)
         return bad, good
 
+    def note_calls(self, obj, sec, va: int) -> None:
+        """Record the names sec's code (placed at va) calls or points at,
+        where the exe's code there points: what callers call each address."""
+        for r in sec.relocs:
+            if r.type not in (REL_I386_DIR32, REL_I386_REL32) or r.offset + 4 > len(sec.data):
+                continue
+            site = va + r.offset
+            theirs = self.u32(site)
+            if theirs is None:
+                continue
+            (ours,) = struct.unpack_from("<I", sec.data, r.offset)
+            target = (theirs - ours + (site + 4 if r.type == REL_I386_REL32 else 0)) & 0xFFFFFFFF
+            if not va <= target < va + len(sec.data):
+                self.called[target][r.symbol] += 1
+
+    def called_by_name(self, obj, sec, va: int) -> int:
+        """How often the chosen members' code calls sec's functions (at va)
+        by their own names."""
+        return sum(self.called.get(va + s.value, {}).get(s.name, 0) for s in obj.symbols_in(sec))
+
     def best(self, members: list) -> list:
         """members (obj, sec, address of sec, ...) that match at one address,
-        the one whose references agree best first; equals keep their order."""
+        the one whose references agree best first; then the one the chosen
+        callers call by name (_strdup and _mbsdup are the same code, and
+        only copy_environ's call says which is there); equals keep their
+        order."""
         if len(members) < 2:
             return members
-        scores = [self.score(m[0], m[1], m[2]) for m in members]
-        return [m for _, m in sorted(zip(scores, members), key=lambda x: (x[0][0], -x[0][1]))]
+        scores = [self.score(m[0], m[1], m[2]) + (self.called_by_name(m[0], m[1], m[2]),) for m in members]
+        return [m for _, m in sorted(zip(scores, members), key=lambda x: (x[0][0], -x[0][1], -x[0][2]))]
 
     def winners(self, found: list) -> set[int]:
         """The ids of the entries of found (obj, sec, address of sec, address,
@@ -185,15 +228,20 @@ def library_names(pe: pefile.PE, refs: References) -> dict[int, str]:
             matches[text_va + off].append((obj, sec, text_va + off, order))
             refs.add(obj, sec, text_va + off)
     # Where several members match, the one whose references agree is there,
-    # and one that loses may be at another address of its own.
-    chosen = {va: refs.best(members)[0] for va, members in matches.items()}
-    moved: dict[int, list] = defaultdict(list)
-    for members in matches.values():
-        for obj, sec, _, order in refs.best(members)[1:]:
-            for other in refs.elsewhere(obj, sec, hay, text_va, chosen):
-                moved[other].append((obj, sec, other, order))
-    for va, members in moved.items():
-        chosen[va] = refs.best(members)[0]
+    # and one that loses may be at another address of its own. A second round
+    # also asks what the first round's choices call each address.
+    for _ in range(2):
+        chosen = {va: refs.best(members)[0] for va, members in matches.items()}
+        moved: dict[int, list] = defaultdict(list)
+        for members in matches.values():
+            for obj, sec, _, order in refs.best(members)[1:]:
+                for other in refs.elsewhere(obj, sec, hay, text_va, chosen):
+                    moved[other].append((obj, sec, other, order))
+        for va, members in moved.items():
+            chosen[va] = refs.best(members)[0]
+        refs.called.clear()
+        for obj, sec, va, _ in chosen.values():
+            refs.note_calls(obj, sec, va)
     names = {}
     for va, (obj, sec, _, _) in sorted(chosen.items(), key=lambda c: (c[1][3], c[0])):
         syms = obj.symbols_in(sec)
@@ -226,6 +274,12 @@ def cpp_library_names(pe: pefile.PE, refs: References) -> dict[int, str]:
                 found.append((obj, sec, text_va + off, text_va + off + syms[0].value, len(sec.data), syms[0].name))
                 refs.add(obj, sec, text_va + off)
     strong = [f for f in found if f[4] >= SUBSTANTIAL]
+    best = refs.winners(found)
+    # Again, with what the winners call each address (the copy constructor
+    # length_error::_Doraise calls is length_error's, not failure's).
+    for f in found:
+        if id(f) in best:
+            refs.note_calls(f[0], f[1], f[2])
     best = refs.winners(found)
     names = {}
     for f in found:

@@ -20,8 +20,8 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from check import (DEFAULT_FLAGS, GAP_DIR, ROOT, SYMBOLS, Original, annotations, base_name, compare,
-                   compile_source)
+from check import (DEFAULT_FLAGS, GAP_DIR, LIB_DIR, ROOT, SYMBOLS, Original, annotations, base_name,
+                   compare, compile_source)
 from coff import parse_object
 from issues import BANDS
 
@@ -177,6 +177,8 @@ def main() -> None:
     for src in sorted((ROOT / "src").rglob("*.cpp")):
         if src.is_relative_to(GAP_DIR):
             continue        # gap regions: tools/gapcheck.py
+        if src.is_relative_to(LIB_DIR):
+            continue        # runtime library code, not game functions: tools/place.py places it
         for address, qualname in annotations(src):
             work.append((address, qualname, src))
     work.sort()

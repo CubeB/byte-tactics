@@ -30,10 +30,11 @@ they expect it, and every call reaches the one function at its address:
     their addresses, one global at a time;
   * the runtime library comes from the members of LIBCMT.LIB, LIBCPMT.LIB and
     zlib that the original links, each where the original holds its bytes and
-    refers to the same functions, imports and data contents;
+    refers to the same functions, imports and data contents, and from
+    src/lib/ (the basic_string members compiled with the game's options);
   * what has no source yet is copied from the original and counted as copied:
-    the other gap regions, the few library functions no member matches, data no
-    object defines, the import tables, the headers and the resources.
+    the other gap regions, data no object defines, the import tables, the
+    headers and the resources.
 
 Every relocation is checked against the address the original uses at that
 spot, and the image is compared with the original byte for byte (the
@@ -54,7 +55,8 @@ from pathlib import Path
 
 import pefile
 
-from check import ROOT, base_name, load_symbols
+from check import LIB_DIR, ROOT, base_name, load_symbols
+from crtmatch import MIN_SIZE
 from gapcheck import gap_objects
 from link import build_data, compile_all
 from linkcheck import address_of
@@ -338,14 +340,23 @@ class Placer:
                 self.aliases[row["name"]].add(int(row["address"], 16))
         self.import_slots = img.imports()
         # The linker's `jmp [slot]` stubs, for callers that call an import directly.
+        # A stub in one of the runs of them (place_import_thunks) comes first:
+        # ___threadid is `jmp [GetCurrentThreadId]` too, and the same bytes
+        # turn up inside other instructions.
         slot_name = {a: n for (_, n), a in self.import_slots.items()}
         self.thunks: dict[str, int] = {}
+        in_runs: dict[str, int] = {}
+        runs = thunk_runs()
         text = next(s for s in img.sections if s[0] == ".text")
         lo = text[1] - img.base
         for m in re.finditer(rb"\xff\x25(....)", bytes(img.pristine[lo:lo + text[2]])):
             (slot,) = struct.unpack("<I", m.group(1))
             if slot in slot_name and m.start() % 2 == 0:
-                self.thunks.setdefault(slot_name[slot], img.base + lo + m.start())
+                va = img.base + lo + m.start()
+                self.thunks.setdefault(slot_name[slot], va)
+                if any(a <= va < a + n for a, n in runs):
+                    in_runs.setdefault(slot_name[slot], va)
+        self.thunks.update(in_runs)
         self.library: dict[str, list[int]] = defaultdict(list)   # runtime library symbol -> addresses
         self.stats = Counter()
         self.mismatches: list[str] = []
@@ -360,6 +371,8 @@ class Placer:
         for row in load_rows(FUNCTIONS):
             if row["kind"] == "library" and row["name"]:
                 self.named_at[int(row["address"], 16)] = row["name"].split(": ", 1)[-1]
+        # Library code sections by their size without padding (place_library).
+        self.by_size: dict[int, list[tuple[Obj, Sym]]] = defaultdict(list)
 
     def add_definer(self, obj: Obj) -> None:
         for name, sym in obj.externals.items():
@@ -433,6 +446,11 @@ class Placer:
             ours = struct.unpack_from("<I", sec.data, off)[0]
             if rtype == REL_REL32:
                 target = (site + 4 + img.u32(site) - ours) & 0xFFFFFFFF
+                if self.globals.get(sym.name) == target:
+                    # A function of that name is placed there, a game function
+                    # too: Cavedog's operator new, which the exception
+                    # constructors call.
+                    continue
                 if target in self.named_at:
                     if self.named_at[target] != sym.name:
                         return False
@@ -790,18 +808,27 @@ def body_size(sec: Sec) -> int:
     return len(sec.data.rstrip(b"\x90\xcc")) or len(sec.data)
 
 
-def place_library(placer: Placer) -> None:
+def place_library(placer: Placer, sources: list[Path] = ()) -> None:
     """The runtime library and zlib code, from the members of the libraries
-    the original links, at the addresses data/functions.csv gives.
+    the original links, at the addresses data/functions.csv gives, and the
+    library code built from src/lib/ (`sources`, which go first).
 
     A member goes where the original holds its bytes (ignoring the fields the
     linker fills in) and its calls reach functions of the right names: the
     locking wrappers _read, _write and _lseek are byte-identical apart from
-    the function they call, so the bytes alone cannot tell them apart."""
-    members = [m for lib in LIBRARIES if lib.exists() for m in read_library(lib)]
+    the function they call, so the bytes alone cannot tell them apart. A
+    static function (string.obj's initialiser _$E50) is taken from a member
+    already placed, the one placed nearest. Code shorter than MIN_SIZE that
+    data/functions.csv has no name for is left to placer.relocate(), which
+    puts what the placed code calls where the original's code points
+    (__matherr, ___init_collate and setlocale's __init_dummy are the same three
+    bytes), and to place_unreferenced_library for anything nothing calls."""
+    members = [parse(p, library=True) for p in sources]
+    members += [m for lib in LIBRARIES if lib.exists() for m in read_library(lib)]
     members += [parse(p, library=True) for p in sorted(THIRD_PARTY.glob("*.obj"))]
     by_name: dict[str, list[tuple[Obj, Sym]]] = defaultdict(list)
     by_size: dict[int, list[tuple[Obj, Sym]]] = defaultdict(list)
+    statics: dict[str, list[tuple[Obj, Sym]]] = defaultdict(list)
     for m in members:
         placer.objects.append(m)
         placer.add_definer(m)
@@ -811,9 +838,22 @@ def place_library(placer: Placer) -> None:
                 by_name[name].append((m, sym))
                 if sym.value == 0:
                     by_size[body_size(sec)].append((m, sym))
+        for sym in m.syms.values():
+            if sym.sclass == 3 and sym.section > 0 and sym.value == 0 and m.secs[sym.section - 1].is_code:
+                statics[sym.name].append((m, sym))
+    placer.by_size = by_size
     img = placer.img
     rows = [r for r in load_rows(FUNCTIONS) if r["kind"] == "library"]
     named_at = placer.named_at
+
+    def placed_statics(name: str, addr: int) -> list[tuple[Obj, Sym]]:
+        """Static functions of that name in members already placed, nearest first."""
+        near = []
+        for obj, sym in statics.get(name, ()):
+            vas = [p.va for sec in obj.secs for p in placer.placed.get((id(obj), sec.index), ())]
+            if vas:
+                near.append((min(abs(va - addr) for va in vas), obj, sym))
+        return [(obj, sym) for _, obj, sym in sorted(near, key=lambda t: t[0])]
 
     pending = rows
     while pending:
@@ -823,7 +863,8 @@ def place_library(placer: Placer) -> None:
             if not img.free(addr):
                 continue          # placed with an earlier function of the same section
             name = row["name"].split(": ", 1)[-1]
-            for obj, sym in by_name.get(name, []) + by_size.get(size, []):
+            sized = by_size.get(size, []) if name or size >= MIN_SIZE else []
+            for obj, sym in by_name.get(name, []) + placed_statics(name, addr) + sized:
                 sec = obj.secs[sym.section - 1]
                 start, body = addr - sym.value, body_size(sec)
                 if not masked_match(img, sec, start, max(body, sym.value + size)):
@@ -853,29 +894,57 @@ def place_library(placer: Placer) -> None:
     placer.stats["library functions with no matching member by name"] += len(pending)
 
     # Functions with no FPO record of their own hide inside other functions'
-    # rows (__allshr and __allshl follow __ftol): try every member at each free
-    # 16-byte boundary of the library rows, by its first fixed bytes.
-    by_prefix: dict[bytes, list[tuple[Obj, Sym]]] = defaultdict(list)
+    # rows (__allshr and __allshl follow __ftol, _acos follows _strcspn): try
+    # every member at each free 16-byte boundary of the library rows, by its
+    # first fixed bytes (6 to 8, up to its first relocation). A member whose
+    # first public symbol is not at its start goes too (87tran.obj's .text
+    # opens with a private routine).
+    by_prefix: dict[bytes, list[tuple[Obj, Sec, str]]] = defaultdict(list)
     for m in members:
-        for sym in m.externals.values():
-            sec = m.secs[sym.section - 1]
-            if sec.is_code and sym.value == 0 and body_size(sec) >= 8:
-                fixed = sec.data[:8]
-                if not any(off < 8 for off, _, _ in sec.relocs):
-                    by_prefix[fixed].append((m, sym))
+        for sec in m.secs:
+            if not sec.is_code or body_size(sec) < 8:
+                continue
+            fixed = min([off for off, _, _ in sec.relocs] + [8])
+            names = sorted((s.value, s.name) for s in m.externals.values() if s.section == sec.index)
+            if fixed >= 6 and names:
+                by_prefix[sec.data[:fixed]].append((m, sec, names[0][1]))
     for row in rows:
         addr, size = int(row["address"], 16), int(row["size"])
         for at in range((addr + 15) & ~15, addr + size, 16):
             if not img.free(at):
                 continue
-            for obj, sym in by_prefix.get(bytes(img.pristine[at - img.base: at - img.base + 8]), ()):
-                sec = obj.secs[sym.section - 1]
+            o = at - img.base
+            found = [c for k in (8, 7, 6) for c in by_prefix.get(bytes(img.pristine[o:o + k]), ())]
+            for obj, sec, label in found:
                 if (id(obj), sec.index) in placer.placed:
                     continue
                 if masked_match(img, sec, at, body_size(sec)) and placer.refs_agree(obj, sec, at):
-                    placer.place(obj, sec, 0, body_size(sec), at, LIBCODE, sym.name)
+                    placer.place(obj, sec, 0, body_size(sec), at, LIBCODE, label)
                     placer.stats["library sections placed inside other rows"] += 1
                     break
+
+
+def place_unreferenced_library(placer: Placer) -> None:
+    """The short library rows data/functions.csv has no name for that nothing
+    placed refers to (place_library leaves them to placer.relocate): by size
+    and bytes, the first member that matches."""
+    img = placer.img
+    for row in load_rows(FUNCTIONS):
+        addr, size = int(row["address"], 16), int(row["size"])
+        if row["kind"] != "library" or row["name"] or size >= MIN_SIZE or not img.free(addr):
+            continue
+        for obj, sym in placer.by_size.get(size, []):
+            sec = obj.secs[sym.section - 1]
+            body = body_size(sec)
+            if not masked_match(img, sec, addr, body) or not placer.refs_agree(obj, sec, addr):
+                continue
+            if (id(obj), sec.index) in placer.placed:
+                obj = parse(obj.path, obj.raw, library=True)
+                placer.objects.append(obj)
+                sec = obj.secs[sym.section - 1]
+            placer.place(obj, sec, 0, body, addr, LIBCODE, sym.name)
+            placer.stats["library sections placed by size, with nothing referring to them"] += 1
+            break
 
 
 def import_libraries() -> list[Path]:
@@ -897,11 +966,20 @@ def import_libraries() -> list[Path]:
     return out
 
 
+def thunk_runs() -> list[tuple[int, int]]:
+    """(address, size) of the rows that can hold the linker's import stubs:
+    the gap rows, and the library rows with no name."""
+    return [(int(r["address"], 16), int(r["size"])) for r in load_rows(FUNCTIONS)
+            if r["kind"] == "gap" or (r["kind"] == "library" and not r["name"])]
+
+
 def place_import_thunks(placer: Placer) -> None:
     """The linker's `jmp [slot]` stubs for calls to imports declared without
     __declspec(dllimport). They are the .text of the import libraries'
-    members, and the original keeps a run of them in the gap row 0x49f710:
-    each member goes where the original has its stub."""
+    members, and the original keeps two runs of them: in the gap row 0x49f710,
+    and after the runtime library in the unnamed library row 0x4faff0 (the
+    import libraries LINK searched last). Each member goes where the original
+    has its stub."""
     by_name: dict[str, tuple[Obj, Sec]] = {}
     for lib in import_libraries():
         for member in read_library(lib):
@@ -912,8 +990,9 @@ def place_import_thunks(placer: Placer) -> None:
                 if target.startswith("__imp_"):
                     by_name.setdefault(undecorate(target[len("__imp_"):]), (member, sec))
     gaps = [(int(r["address"], 16), int(r["size"])) for r in load_rows(FUNCTIONS) if r["kind"] == "gap"]
+    runs = thunk_runs()
     for name, addr in sorted(placer.thunks.items(), key=lambda kv: kv[1]):
-        if not any(a <= addr < a + n for a, n in gaps) or not placer.img.free(addr) or name not in by_name:
+        if not any(a <= addr < a + n for a, n in runs) or not placer.img.free(addr) or name not in by_name:
             continue
         member, sec = by_name[name]
         member = parse(member.path, member.raw, library=True)     # each placed once
@@ -925,9 +1004,10 @@ def place_import_thunks(placer: Placer) -> None:
         placer.place(member, member.secs[sec.index - 1], 0, len(sec.data), addr, LIBCODE,
                      f"{name} (import thunk)")
         placer.stats["import thunks placed from the import libraries"] += 1
-    for addr, size in gaps:
+    for addr, size in runs:
         if all(not placer.img.free(a) for a in range(addr, addr + size)):
-            placer.built_regions.add(addr)
+            if (addr, size) in gaps:
+                placer.built_regions.add(addr)
             img = placer.img
             for o in range(addr + size - img.base, ((addr + size + 15) & ~15) - img.base):
                 if img.src[o] == UNSET and img.pristine[o] in (0x90, 0xCC):
@@ -942,14 +1022,29 @@ def library_names(placer: Placer) -> None:
 
 
 def copy_unbuilt(img: Image) -> None:
+    _, text_start, text_size, _, _ = next(s for s in img.sections if s[0] == ".text")
     for row in load_rows(FUNCTIONS):
         addr, size = int(row["address"], 16), int(row["size"])
-        size = ((addr + size + 15) & ~15) - addr      # with its alignment padding
+        # With its alignment padding, up to the end of .text's contents (the
+        # zero fill after them is the linker's, below).
+        size = min((addr + size + 15) & ~15, text_start + text_size) - addr
         if row["kind"] == "gap":
             img.copy(addr, size, GAP)
         elif row["kind"] == "library":
             if img.free(addr):
                 img.copied_library.append((addr, row["name"]))
+            # Alignment padding: nops (the compiler's) or int3s (the linker's,
+            # after assembler code) up to a 16-byte boundary, after the row's
+            # functions and after the ones placed inside it.
+            run = None
+            for o in range(addr - img.base, addr + size - img.base + 1):
+                pad = o < addr + size - img.base and img.src[o] == UNSET and img.pristine[o] in (0x90, 0xCC)
+                if pad and run is None:
+                    run = o
+                elif not pad and run is not None:
+                    if (img.base + o) % 16 == 0 or o == addr + size - img.base:
+                        img.out[run:o], img.src[run:o] = img.pristine[run:o], bytes([PADDING]) * (o - run)
+                    run = None
             img.copy(addr, size, LIBRARY)
     for va, size in img.fixed_ranges():
         img.copy(va, size, FIXED)
@@ -1065,6 +1160,10 @@ def layout(jobs: int | None = None) -> tuple[Image, Placer]:
     if failed:
         raise SystemExit(f"{len(failed)} file(s) did not compile; tools/link.py lists them")
     symbols = load_symbols()
+    # src/lib/ is runtime library code: placed with the library members.
+    lib_objs = ROOT / "build/progress" / LIB_DIR.relative_to(ROOT / "src")
+    lib_paths = [p for p in paths if p.is_relative_to(lib_objs)]
+    paths = [p for p in paths if not p.is_relative_to(lib_objs)]
     objects = [parse(p) for p in paths]
     by_src = {}
     for p, obj in zip(paths, objects):
@@ -1075,10 +1174,12 @@ def layout(jobs: int | None = None) -> tuple[Image, Placer]:
     library_names(placer)
     place_functions(placer, by_src)
     place_gaps(placer, gap_objects())
-    place_library(placer)
+    place_library(placer, lib_paths)
     place_import_thunks(placer)
     data_objs, data_addr = build_data(symbols)
     place_globals(placer, data_objs, data_addr)
+    placer.relocate()
+    place_unreferenced_library(placer)
     placer.relocate()
     copy_unbuilt(img)
     return img, placer

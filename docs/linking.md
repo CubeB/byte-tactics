@@ -242,7 +242,9 @@ How it places things:
   would.
 - **The linker's import thunks** (`jmp [slot]`, for calls to imports declared
   without `__declspec(dllimport)`) are the `.text` of the import libraries'
-  members, each placed where the original has its stub.
+  members, each placed where the original has its stub: 70 in the gap row
+  0x49f710 and 184 in the unnamed library row 0x4faff0, after the runtime
+  library.
 - **Gap regions with matching source** (`src/gap/`, see below) are placed
   function by function from the objects `tools/gapcheck.py` checks, and
   counted as gap code. The padding between their functions is the
@@ -274,18 +276,40 @@ How it places things:
   wrappers `_read`, `_write` and `_lseek`, `_Xlen` and `_Xran`, or zlib's
   `get_crc_table` and `zlibVersion` differ only in what they refer to.
   `tools/functions.py` makes the same check when it names the library
-  functions, so `data/functions.csv` gives each the half of such a pair that
-  is really there, and the report lists any member placed under another
-  name. Functions with no FPO record of their own that sit inside
-  another's row (`__allshr` and `__allshl` after `__ftol`) are found by their
-  first bytes at each free 16-byte boundary. Static functions and the
-  members' data follow where the placed code refers to them, and communal
-  (`.bss`) data where the original has it.
+  functions, following pointers into the member's own data (`length_error`'s
+  throw information differs from `failure`'s only in the type names its
+  tables lead to), and where references cannot tell a pair apart, by what the
+  chosen callers call the address (`_strdup` and `_mbsdup` are the same code;
+  `copy_environ` calls `_strdup`). So `data/functions.csv` gives each the half
+  of such a pair that is really there, and the report lists any member placed
+  under another name. A call from a library member may also reach a game
+  function of that name: the `exception` constructors call Cavedog's
+  `operator new`. Functions with no FPO record of their own that sit inside
+  another's row (`__allshr` and `__allshl` after `__ftol`, `_acos` after
+  `_strcspn`, 87tran.obj's routines) are found by their first bytes (up to
+  the first relocation) at each free 16-byte boundary. A static function a
+  row names (string.obj's initialiser `_$E50`) comes from the placed member
+  nearest it; other static functions and the members' data follow where the
+  placed code refers to them, and communal (`.bss`) data where the original
+  has it. The three-byte `return 0` functions (`_matherr`, `__init_collate`,
+  setlocale's `__init_dummy`) have no name in `data/functions.csv`, so they go
+  where the placed code and tables refer to them, not by size. Alignment
+  padding (nops, or int3s after assembler code) is counted as padding.
+- **`basic_string` members compiled from source** (`src/lib/`): six members of
+  `std::basic_string<char>` that no `LIBCPMT.LIB` member matches, because the
+  original's copies were compiled with the game's options. Five sit among
+  Cavedog's functions (the copies one of Cavedog's objects instantiated, at
+  0x4c4ac0 to 0x4c50a0, with `_Copy` between them as the gap region 0x4c4fa0)
+  and `assign` (0x4e3c00) among the original's `string.obj`. The file
+  explicitly instantiates them from the compiler's own `<xstring>`, each
+  annotated and checked by `tools/check.py`; `tools/place.py` places them as
+  library code, before the library members, and `tools/link.py` links the
+  object like any other (`tools/progress.py` leaves `src/lib/` out: these are
+  not `game` rows).
 - **What has no source** is copied from the original and counted as copied:
-  the gap regions without matching source, 11 runtime library functions no
-  member matches (four `basic_string` members Cavedog's objects instantiated,
-  the `exception` constructors, three without a name), data no object
-  defines, the linker's import tables, the headers, `.tls` and the resources.
+  the gap regions without matching source, data no object defines, the
+  linker's import tables, the headers, `.tls` and the resources. No runtime
+  library code is copied any more.
 
 Every relocation is checked against the address the original's bytes give at
 that spot, and the finished image is compared with the original byte for
@@ -294,13 +318,19 @@ counts where each section's bytes came from. On 2026-10-05:
 
 | Section | Bytes | Built | Copied |
 | --- | ---: | --- | --- |
-| `.text` | 1,026,560 | 850,853 game code, 22,933 gap code, 116,963 runtime library and import thunks, 25,704 padding | 1,840 gap region (0x49a120), 8,267 runtime library |
+| `.text` | 1,026,560 | 850,853 game code, 22,933 gap code, 120,848 runtime library and import thunks, 30,086 padding | 1,840 gap region (0x49a120) |
 | `.rdata` | 18,432 | 3,182 compiled data, 3,771 library data, 3,028 `link/` globals, 372 padding | 6,529 import tables, 1,550 other data |
-| `.data` | 173,660 | 35,498 compiled data, 24,845 library data, 78,609 `link/` globals | 34,708 |
+| `.data` | 173,660 | 35,498 compiled data, 24,891 library data, 78,609 `link/` globals | 34,662 |
 
-Of the 38,407 relocations in placed pieces, every one in code agrees with the
+Before the runtime library's last functions were built (#2662), 8,267 bytes
+of `.text` were copied as library code: 11 functions (3,163 bytes, among
+them the second run of import thunks), two runs of code with no FPO record
+(`_acos` and 87tran.obj, 722 bytes) and the alignment padding between
+library functions.
+
+Of the 38,715 relocations in placed pieces, every one in code agrees with the
 original (136 of them reach the second copy of a function `data/aliases.csv`
-lists, such as the two `std::_Lockit`). 94 vtable entries in compiled data
+lists, such as the two `std::_Lockit`). 92 vtable entries in compiled data
 disagree and keep the original's value. The compiled image differs from the
 original only under the two rows of `data/exe_patches.csv`, where it has the
 compiler's bytes rather than GOG's no-CD music patch, and after the link
@@ -403,10 +433,12 @@ and `link.py` applies that to patched copies of the objects under
   0x51fbc0 was never freed at exit.
 - Every other file's definition of an annotated game function is made
   static, so the name binds to the annotated one (590 copies).
-- Only the original's 17 C++ static initialisers run, in its order (see
-  `fix_initialisers` in `link.py`): files that define global objects only so
-  that a function matches would otherwise construct them with the wrong
-  constructors at start-up.
+- Of the tree's own objects, only the original's 17 C++ static initialisers
+  run, in its order (see `fix_initialisers` in `link.py`): files that define
+  global objects only so that a function matches would otherwise construct
+  them with the wrong constructors at start-up. The gap regions' objects and
+  `src/lib/` add none either (those that include `<string>` carry an
+  initialiser for a `locale::id` guard).
 - zlib comes from the objects `tools/setup_toolchain.sh` builds, and the
   runtime library from `LIBCMT.LIB` and `LIBCPMT.LIB`, as LINK picks them.
 - GOG's no-CD music fix has two parts, and the link makes both. The exe
@@ -421,9 +453,14 @@ and `link.py` applies that to patched copies of the objects under
   (`tools/exepatch.py`; `--no-exe-patches` leaves it out). The map is always
   written in this mode, since the patch needs it.
 
-Eleven names are still stubbed (constructors, destructors and operators that
-only unplaced copies or the dropped initialisers call), and 37 addresses in
-dead data no symbol names.
+Ten names are still stubbed (constructors, destructors and operators that
+only unplaced copies or the dropped initialisers call), and 27 references
+reach addresses no symbol names: dead data, and the absolute offsets
+`__except_list` and `__tls_array`. A name whose address the layout gives to
+communal data (0x52a4e4, the guard of `ctype<unsigned short>::id`, which
+string.obj's `_$E50` and Cavedog's 0x463ba0 both test) is defined by
+`origdata.obj` rather than aliased to the communal symbol: LINK 5.10 stops
+with an internal error on a weak external whose default is communal.
 
 `uv run tools/linkcmp.py` checks the result, the placement compare #4869 asks
 for in the form an ordinary link needs: comparing addresses says little once

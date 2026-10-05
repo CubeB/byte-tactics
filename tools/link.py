@@ -431,7 +431,10 @@ def fix_initialisers(objects: list[Path]) -> list[Path]:
     result: list[Path] = []
     kept = removed = added = 0
     for obj in objects:
-        src = str(Path("src") / obj.relative_to(ROOT / "build/progress").with_suffix(".cpp"))
+        if obj.is_relative_to(ROOT / "build/progress"):
+            src = str(Path("src") / obj.relative_to(ROOT / "build/progress").with_suffix(".cpp"))
+        else:
+            src = ""        # a gap region's object (build/gap/): the original runs none of its own
         data = bytearray(obj.read_bytes())
         _, nsects, _, symptr, nsyms, opthdr, _ = struct.unpack_from("<HHIIIHH", data, 0)
         strtab = bytes(data[symptr + nsyms * 18:])
@@ -744,7 +747,7 @@ def main() -> None:
 
     # The carved data goes first: where a compiled object defines a global too,
     # LINK keeps the first definition, the original's, at its full size.
-    game = (fix_initialisers(objects) if stub_mode else list(objects)) + gaps
+    game = fix_initialisers(objects + gaps) if stub_mode else list(objects) + gaps
     if args.carve:
         from carve import patch_objects
         game = patch_objects(game, result)

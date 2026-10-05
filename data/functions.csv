@@ -3352,9 +3352,9 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4e3c00,515,library,?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z,3,0,0,1,8,2,2
 0x4e3e10,6,game,,0,0,0,0,0,0,1
 0x4e3e20,75,library,??1runtime_error@std@@UAE@XZ,0,0,0,0,2,1,1
-0x4e3e70,32,library,?_Doraise@failure@ios_base@std@@MBEXXZ,0,7,0,0,2,0,0
+0x4e3e70,32,library,?_Doraise@length_error@std@@MBEXXZ,0,7,0,0,2,0,0
 0x4e3e90,30,library,??_Gruntime_error@std@@UAEPAXI@Z,1,0,0,0,2,1,0
-0x4e3eb0,337,library,??0failure@ios_base@std@@QAE@ABV012@@Z,1,4,0,1,6,0,1
+0x4e3eb0,337,library,??0length_error@std@@QAE@ABV01@@Z,1,4,0,1,6,0,1
 0x4e4010,290,library,?_Xran@std@@YAXXZ,0,16,0,1,6,1,9
 0x4e4140,152,library,_$E50,0,0,0,0,7,7,0
 0x4e41e0,14,game,,0,0,0,0,1,0,1
@@ -3823,7 +3823,7 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4fa3b0,101,library,__store_number,3,0,0,1,0,0,1
 0x4fa420,844,library,__store_winword,5,1,0,1,1,0,1
 0x4fa770,428,library,___getlocaleinfo,4,33,0,1,6,0,5
-0x4fa920,6,library,,0,0,0,0,0,0,0
+0x4fa920,6,library,_localeconv,0,0,0,0,0,0,0
 0x4fa930,61,library,__itoa,3,0,0,0,1,0,25
 0x4fa970,97,library,_xtoa,4,0,0,1,0,0,3
 0x4fa9e0,65,library,__ltoa,3,0,0,0,1,0,0
@@ -3833,7 +3833,7 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4fab30,32,library,__ui64toa,4,0,0,0,1,0,0
 0x4fab50,257,library,__strnicmp,,,,,1,0,0
 0x4fac60,194,library,__mbschr,2,0,0,0,1,0,1
-0x4fad30,80,library,__mbsdup,1,0,0,0,1,0,1
+0x4fad30,80,library,__strdup,1,0,0,0,1,0,1
 0x4fad80,304,library,___crtGetLocaleInfoW,5,0,0,1,2,0,1
 0x4faeb0,319,library,___crtGetLocaleInfoA,5,0,0,1,2,0,1
 0x4faff0,1104,library,,,,,,0,0,0

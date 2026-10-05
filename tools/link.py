@@ -382,12 +382,14 @@ def build_win32_lib() -> Path:
     names are the same length, so the archive's offsets still hold."""
     from linkcheck import LIBDIR
     lib = BUILD / "WIN32.LIB"
+    lib.parent.mkdir(parents=True, exist_ok=True)
     lib.write_bytes((LIBDIR / "WINMM.LIB").read_bytes().replace(b"WINMM.dll", b"WIN32.dll"))
     return lib
 
 
 def build_import_libs() -> list[Path]:
     """Build SMACKW32.LIB and DPLAYX.LIB from .def files with LIB.EXE, and WIN32.LIB."""
+    BUILD.mkdir(parents=True, exist_ok=True)
     out = [build_win32_lib()]
     for name, exports in (("SMACKW32", SMACKW32_EXPORTS), ("DPLAYX", DPLAYX_EXPORTS)):
         def_ = BUILD / f"{name}.def"

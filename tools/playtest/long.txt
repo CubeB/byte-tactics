@@ -6,7 +6,10 @@
 # 100 units (shift-click queues five) with its rally point on the enemy
 # corner. The AIs build up to the unit limit too. After about 45 minutes +iwin (a
 # debug command, see arm) ends the game on the score screen. If the game ends
-# before that, the run goes straight to the score screen.
+# before that, the run goes straight to the score screen. The Hard AIs sometimes
+# destroy the player's base first: the run then notes it and leaves through the
+# score screen or the single player menu (the chat steps' Enter can dismiss the
+# score screen before a watch sees it).
 reg DisplaymodeDepth dword 256
 reg Games dword 1
 reg PlayMovie dword 0
@@ -50,6 +53,8 @@ sleep 2
 alive
 shot start
 on skirmish_end goto over
+on defeat goto lost
+on single_title goto lost
 chat +nowisee
 chat +atm
 
@@ -170,13 +175,29 @@ repeat 30 chat +atm ; sleep 10
 alive
 shot base_45
 note played the full 45 minutes
+on defeat off
+on single_title off
 chat +iwin
 waitfor skirmish_end 60
+goto over
+
+label lost
+on skirmish_end off
+on defeat off
+on single_title off
+note the AIs destroyed the player's base before the 45 minutes were up
+shot lost
+until mainmenu 120 ifmatch skirmish_end click 520 424 ; ifmatch single_title click 506 355 ; sleep 2
+goto quit
+
 label over
 on skirmish_end off
+on defeat off
+on single_title off
 waitfor skirmish_end 30
 shot score
 click 520 424
 waitfor mainmenu 30
+label quit
 click 457 438
 waitexit 30

@@ -229,16 +229,34 @@ take their module's name in phase 3.
 
 A rename changes a function's or a class's mangled name, so every file that
 spells it must change at once, with its rows in `data/symbols.csv` (one name per
-address) and `data/aliases.csv`. Phase 2 starts with a tool for this,
-`tools/rename.py OLD NEW`, that:
+address) and `data/aliases.csv`. `uv run tools/rename.py OLD NEW [OLD NEW ...]`
+does it:
 
-1. rewrites the identifier in every file under `src/` (whole words only, not in
-   string literals), in `include/ta_types.h` and `include/ta_protos.h`, and in
-   `data/symbols.csv` and `data/aliases.csv`;
-2. refuses a rename to a name that already exists (that is a merge of two types,
-   phase 3) and a rename of a local in a function with a try block or built
-   with `/Od` (below);
-3. runs `tools/progress.py` and reports any function that stops matching.
+1. It rewrites the identifier in every file under `src/` (whole words, in code
+   and comments, never in string literals; inside the decorated symbol of an
+   annotation too), in `include/ta_types.h` and `include/ta_protos.h`, in
+   `data/symbols.csv` and `data/aliases.csv` (inside decorated names), and in
+   `data/modules.csv` and the docs.
+2. It refuses:
+   - a name that a file spelling OLD already uses: two things would share the
+     name there, and merging two types in one file is phase 3;
+   - a name `data/symbols.csv` gives another address;
+   - a local of a function whose frame follows its locals' names (below);
+   - a gap entry label;
+   - a name that is already a type elsewhere, unless `--join` says OLD's views
+     are views of that type (`uv run tools/gametypes.py --explain NEW` gives
+     the evidence).
+3. It runs the checks: `tools/progress.py` (any function that stops matching
+   fails the rename), `tools/place.py --write-layout` and `--no-orig` (the
+   shipped MD5 both ways), `tools/globals.py`, and with `--full`
+   `tools/link.py --carve` and `tools/linkcmp.py`. A rename of one class in
+   four files takes about 40 seconds.
+
+Many placeholder classes cannot simply take one name yet: the pathfinder's
+methods, say, are matched under several placeholder classes, and a file that
+calls two of them defines both, so they can only become one class where the
+files' views are merged (phase 3). Phase 2 names what it can without a merge;
+`tools/rename.py` says which renames need one.
 
 What a rename can and cannot move:
 

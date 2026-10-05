@@ -38,7 +38,7 @@ extern Game* g_game;
 
 void __cdecl ProtectBlockReadWrite(void* param_1);
 void __cdecl FUN_004d85a0(int* param_1);
-void __stdcall FUN_004b2540(void* param_1);
+void __stdcall FreeCobScript(void* param_1);
 
 // FUNCTION: 0x42db90
 void FreeUnitTypes()
@@ -58,7 +58,7 @@ void FreeUnitTypes()
             type->field_14e = 0;
         }
         if (type->field_18e != 0) {
-            FUN_004b2540(type->field_18e);
+            FreeCobScript(type->field_18e);
             type->field_18e = 0;
         }
         if (type->field_156 != 0) {

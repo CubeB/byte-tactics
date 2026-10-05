@@ -36,7 +36,7 @@ void __cdecl operator delete(void* p);
 
 void* __stdcall GetMapCellAtPosition(Vec3* pos);
 unsigned short __stdcall GetCellFeature(void* cell);
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 
 // FUNCTION: 0x47ea40
 int __stdcall FUN_0047ea40(Vec3* center, Fixed radius, Vec3** out1, float* val1, Vec3** out2, float* val2)
@@ -78,7 +78,7 @@ int __stdcall FUN_0047ea40(Vec3* center, Fixed radius, Vec3** out1, float* val1,
         int best = 0;
         float bestVal = 0.0f;
         for (int k = 0; k < 3; k++) {
-            int i = FUN_004b6c30(countB);
+            int i = RandomInt(countB);
             if (bestVal < b[i].val) {
                 bestVal = b[i].val;
                 best = i;
@@ -95,7 +95,7 @@ int __stdcall FUN_0047ea40(Vec3* center, Fixed radius, Vec3** out1, float* val1,
         float bestVal = 0.0f;
         int best = 0;
         for (int k = 0; k < 3; k++) {
-            int i = FUN_004b6c30(countA);
+            int i = RandomInt(countA);
             if (bestVal < a[i].val) {
                 bestVal = a[i].val;
                 best = i;

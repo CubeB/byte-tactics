@@ -27,7 +27,7 @@ void __stdcall FUN_00491c80(int n);
 void ShowLoadGameScreen();
 void OpenOptionsPanel();
 void __stdcall FUN_004ab0a0(void* param_1);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 
 // FUNCTION: 0x4775a0
@@ -42,7 +42,7 @@ void __stdcall HandleSingleMenuClick(Gadget_004775a0* gadget)
             g_game->field_2bc0 = 10;
             FUN_00491c80(0x14);
         } else {
-            OpenMessageBox(g_game->message, FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"), 200, 1, 1);
+            OpenMessageBox(g_game->message, Translate("Please insert the Campaign CD (Disc 2) and try again"), 200, 1, 1);
             FUN_004ab0a0(g_game->message);
         }
         return;
@@ -54,7 +54,7 @@ void __stdcall HandleSingleMenuClick(Gadget_004775a0* gadget)
             g_game->field_2bc0 = 11;
             FUN_00491c80(0x14);
         } else {
-            OpenMessageBox(g_game->message, FUN_004c5740("Please insert the Multiplayer CD (Disc 1) and try again"), 200, 1, 1);
+            OpenMessageBox(g_game->message, Translate("Please insert the Multiplayer CD (Disc 1) and try again"), 200, 1, 1);
             FUN_004ab0a0(g_game->message);
         }
         return;
@@ -86,7 +86,7 @@ void __stdcall HandleSingleMenuClick(Gadget_004775a0* gadget)
             g_game->field_2bc0 = 14;
             FUN_00491c80(0x14);
         } else {
-            OpenMessageBox(g_game->message, FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"), 200, 1, 1);
+            OpenMessageBox(g_game->message, Translate("Please insert the Campaign CD (Disc 2) and try again"), 200, 1, 1);
             FUN_004ab0a0(g_game->message);
         }
         return;

@@ -48,7 +48,7 @@ struct Class_004a2be0 {
 void __stdcall DrawListBox(Class_004a2be0* param_1, int param_2);
 void __stdcall FUN_004a2580(Class_004a2be0* param_1, int param_2);
 void __stdcall DrawTextInput(Class_004a2be0* param_1, int param_2);
-char* __stdcall FUN_004b6af0(char* text, int line);
+char* __stdcall SkipTextLines(char* text, int line);
 
 // FUNCTION: 0x4a2be0
 void __stdcall FUN_004a2be0(Class_004a2be0* param_1, int param_2)
@@ -89,7 +89,7 @@ void __stdcall FUN_004a2be0(Class_004a2be0* param_1, int param_2)
                     break;
                 case 3:
                     if (type == 2 && field_1b & 8) {
-                        char* line = FUN_004b6af0(*(char**)(me + 0xc2), *(short*)(me + 0xba));
+                        char* line = SkipTextLines(*(char**)(me + 0xc2), *(short*)(me + 0xba));
                         strcpy(entry - 0x8a, line);
                         DrawTextInput(param_1, i);
                     }

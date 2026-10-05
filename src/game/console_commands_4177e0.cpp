@@ -18,14 +18,14 @@ extern char DAT_005119b8[];
 // Command arguments.
 class Class_004b73c0 {
 public:
-    char* FUN_004b73c0(int index, char* fallback);
+    char* GetArg(int index, char* fallback);
 };
 
-void* __stdcall FUN_004bb5b0(char* path);
-void* __stdcall FUN_004bbff0(char* path, void* file, int* out);
-unsigned int __stdcall FUN_004b7a30(char* data, int size, int param_3, unsigned int param_4);
+void* __stdcall HAPI_OpenFileRead(char* path);
+void* __stdcall HAPI_LoadOpenFile(char* path, void* file, int* out);
+unsigned int __stdcall ExecuteCommandText(char* data, int size, int param_3, unsigned int param_4);
 void __cdecl FUN_004d85a0(void* data);
-int __stdcall FUN_004bb5d0(void* file);
+int __stdcall HAPI_CloseFile(void* file);
 
 // FUNCTION: 0x4177e0
 void __stdcall CmdInclude(Class_004b73c0* args)
@@ -34,16 +34,16 @@ void __stdcall CmdInclude(Class_004b73c0* args)
     int info;
     char path[60];
 
-    sprintf(path, "debugdat\\%s.txt", args->FUN_004b73c0(0, DAT_005119b8));
-    void* file = FUN_004bb5b0(path);
+    sprintf(path, "debugdat\\%s.txt", args->GetArg(0, DAT_005119b8));
+    void* file = HAPI_OpenFileRead(path);
     if (file != 0) {
         pos = *(Vec3_004177e0*)(g_game + 0x2caa);
-        void* data = FUN_004bbff0(path, file, &info);
+        void* data = HAPI_LoadOpenFile(path, file, &info);
         if (data != 0) {
-            FUN_004b7a30((char*)data, info, (int)args, 0xffffffff);
+            ExecuteCommandText((char*)data, info, (int)args, 0xffffffff);
             FUN_004d85a0(data);
         }
-        FUN_004bb5d0(file);
+        HAPI_CloseFile(file);
         *(Vec3_004177e0*)(g_game + 0x2caa) = pos;
     }
 }

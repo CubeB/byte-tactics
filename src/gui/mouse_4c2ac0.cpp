@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-void __stdcall FUN_004b6b50(unsigned int param_1);
+void __stdcall SleepMilliseconds(unsigned int param_1);
 
 #pragma pack(push, 1)
 struct Struct_004c2ac0 {
@@ -21,7 +21,7 @@ int __stdcall StopMouseThread(Struct_004c2ac0* s)
     while (s->pending != 0) {
         if (++tries > 20)
             return 0;
-        FUN_004b6b50(100);
+        SleepMilliseconds(100);
     }
     s->active = 0;
     return 1;

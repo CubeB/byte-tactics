@@ -1,23 +1,23 @@
 // Decompiled by Opus. Names are provisional.
 
-struct List_004be3b0;
+struct ArchiveDirectory;
 
 #pragma pack(push, 1)
-struct Entry_004be3b0 {
+struct ArchiveEntry {
     int unknown_0;
-    List_004be3b0* child;           // +0x4
+    ArchiveDirectory* child;        // +0x4
     unsigned char flags;            // +0x8
 };
 #pragma pack(pop)
 
-struct List_004be3b0 {
+struct ArchiveDirectory {
     int count;
-    Entry_004be3b0* entries;        // +0x4
+    ArchiveEntry* entries;          // +0x4
 };
 
 struct Node_004be320 {
     char unknown_0[0x10];
-    List_004be3b0* list;            // +0x10
+    ArchiveDirectory* list;         // +0x10
 };
 
 struct Item_004be320 {
@@ -34,22 +34,22 @@ struct State_004be320 {
 extern char DAT_005119b8[];
 
 State_004be320* GetDisplay(void);
-void __stdcall FUN_004be3b0(List_004be3b0* list);
-void __stdcall FUN_004be400(char* name, int a, int b);
+void __stdcall HAPI_ClearShadowFlags(ArchiveDirectory* list);
+void __stdcall HAPI_MarkShadowedFiles(char* name, int a, int b);
 
 // FUNCTION: 0x4be320
-void FUN_004be320(void)
+void HAPI_ResolveShadowedFiles(void)
 {
     State_004be320* state = GetDisplay();
     if (state->itemCount > 0) {
         for (int i = 0; i < state->itemCount; i++) {
-            List_004be3b0* list = state->items[i]->node->list;
+            ArchiveDirectory* list = state->items[i]->node->list;
             for (int j = list->count - 1; j >= 0; j--) {
                 list->entries[j].flags &= ~2;
                 if (list->entries[j].flags & 1)
-                    FUN_004be3b0(list->entries[j].child);
+                    HAPI_ClearShadowFlags(list->entries[j].child);
             }
         }
-        FUN_004be400(DAT_005119b8, -1, 1);
+        HAPI_MarkShadowedFiles(DAT_005119b8, -1, 1);
     }
 }

@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 
-struct Record_004be180 {
+struct OPENHAPIFILE {
     FILE* file;             // +0x0
     int unknown_4;          // +0x4
     void* data;             // +0x8
@@ -20,14 +20,14 @@ struct Record_004be180 {
 
 struct State_004be180 {
     char unknown_0[0x618];
-    Record_004be180** records;   // +0x618
+    OPENHAPIFILE** records;      // +0x618
     int numRecords;              // +0x61c
 };
 
 State_004be180* GetDisplay(void);
 void __cdecl FUN_004d85a0(void* p);
 
-static void FreeRecord_004be180(Record_004be180* p)
+static void FreeRecord_004be180(OPENHAPIFILE* p)
 {
     if (p != 0) {
         if (p->file != 0)
@@ -38,14 +38,14 @@ static void FreeRecord_004be180(Record_004be180* p)
 }
 
 // FUNCTION: 0x4be180
-void FUN_004be180(void)
+void HAPI_DropMissingArchives(void)
 {
     State_004be180* state = GetDisplay();
     int i;
     for (i = 0; i < state->numRecords; i++) {
         if (state->records[i]->file == 0) {
             state->records[i]->file = fopen(state->records[i]->name, "rb");
-            Record_004be180* rec = state->records[i];
+            OPENHAPIFILE* rec = state->records[i];
             if (rec->file == 0) {
                 FreeRecord_004be180(state->records[i]);
                 state->records[i] = 0;

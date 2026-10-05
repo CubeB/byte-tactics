@@ -128,7 +128,7 @@ void __stdcall FUN_0049fad0(Window_00478790* window);
 unsigned int __cdecl GetTicks();
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 void __stdcall DrawFrame(void* surface, Frame_00478790* frame, int x, int y);
-char* __stdcall FUN_004c5740(const char* key);
+char* __stdcall Translate(const char* key);
 int GetTextKeyColor();
 void __stdcall SetTextColors(int param_1, int param_2);
 void __stdcall FillRectangle(void* surface, Rect_00478790* rect, int colour);
@@ -166,12 +166,12 @@ void __stdcall UpdateSolarSystem(Window_00478790* arg1, Item_00478790* arg2)
     SelectFontForEntry(arg1->table->entries, i);
 
     char text[0x34];
-    sprintf(text, "%s : %d", FUN_004c5740("Wind Speed"), DAT_0051e654);
+    sprintf(text, "%s : %d", Translate("Wind Speed"), DAT_0051e654);
     SetTextColors(DAT_00507b70[g_game->flag_37ef2].colour, GetTextKeyColor());
     DrawString(surface, text, rect.x1 + 0x50, rect.y1 + 0x14,
                  rect.x2 - rect.x1 - 0x50);
 
-    sprintf(text, "%s : %.1f", FUN_004c5740("Gravity"),
+    sprintf(text, "%s : %.1f", Translate("Gravity"),
             (double)g_game->net->field_d3c * 0.008928571428571428);
     DrawString(surface, text, rect.x1 + 0x50, rect.y1 + 0x28,
                  rect.x2 - rect.x1 - 0x50);

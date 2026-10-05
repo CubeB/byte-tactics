@@ -10,7 +10,7 @@ void __cdecl FUN_004b7173(short angle, int* xy);
 
 // Rotates a vector by three angles (one per axis pair).
 // FUNCTION: 0x4b6cc0
-void __stdcall FUN_004b6cc0(Vec3_004b6cc0* in, Vec3_004b6cc0* out, short* angles)
+void __stdcall RotateByAngles(Vec3_004b6cc0* in, Vec3_004b6cc0* out, short* angles)
 {
     int a[2];
     int b[2];

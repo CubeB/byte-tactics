@@ -25,7 +25,7 @@ public:
     void SetCob(Data_004b0720* data);
 };
 
-int __stdcall FUN_004b26f0(void* param);
+int __stdcall GetCobChecksum(void* param);
 void* __cdecl FUN_004d84a0(void* param_1, const char* name, unsigned int param_3);
 
 // FUNCTION: 0x4b0720
@@ -33,7 +33,7 @@ void CobScript::SetCob(Data_004b0720* data)
 {
     field_8 = (int)data;
     if (data != 0) {
-        field_c = (void*)FUN_004b26f0(data);
+        field_c = (void*)GetCobChecksum(data);
         ptr14 = FUN_004d84a0(ptr14, "Object States", data->countStates * 0x4c);
         ptr10 = FUN_004d84a0(ptr10, "Static Varibles", data->countVars * 4);
         memset(ptr14, 0, data->countStates * 0x4c);

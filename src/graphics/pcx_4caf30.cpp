@@ -22,10 +22,10 @@ struct Image_004caf30 {
     unsigned char* pixels;   // +0xc
 };
 
-void* __stdcall FUN_004bb5b0(char* path);
-int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
-void __stdcall FUN_004bb710(void* file, int pos);
-void __stdcall FUN_004bb5d0(void* file);
+void* __stdcall HAPI_OpenFileRead(char* path);
+int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
+void __stdcall HAPI_SeekFile(void* file, int pos);
+void __stdcall HAPI_CloseFile(void* file);
 int __stdcall DecodePcx(void* file, PCX_004caf30* pcx);
 Image_004caf30* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall FreeSurface(void* p);
@@ -34,26 +34,26 @@ void __cdecl FUN_004d85a0(void* p);
 // FUNCTION: 0x4caf30
 Image_004caf30* __stdcall LoadPcx(char* path, unsigned char* outPalette)
 {
-    void* file = FUN_004bb5b0(path);
+    void* file = HAPI_OpenFileRead(path);
     if (file == 0)
         return 0;
     int ok;
     PCX_004caf30 pcx;
     unsigned char header[0x80];
-    if (FUN_004bb7c0(file, header, 0x80) != 0x80 || header[0] != 0x0a || header[1] != 5) {
-        FUN_004bb5d0(file);
+    if (HAPI_readfromfile(file, header, 0x80) != 0x80 || header[0] != 0x0a || header[1] != 5) {
+        HAPI_CloseFile(file);
         return 0;
     }
     int width = *(unsigned short*)(header + 8) - *(unsigned short*)(header + 4) + 1;
     int height = *(unsigned short*)(header + 10) - *(unsigned short*)(header + 6) + 1;
     Image_004caf30* image = AllocSurface(path, width, height);
     if (image == 0) {
-        FUN_004bb5d0(file);
+        HAPI_CloseFile(file);
         return 0;
     }
-    FUN_004bb710(file, 0);
+    HAPI_SeekFile(file, 0);
     ok = DecodePcx(file, &pcx);
-    FUN_004bb5d0(file);
+    HAPI_CloseFile(file);
     if (ok) {
         memcpy(image->pixels, pcx.data, height * width);
     }

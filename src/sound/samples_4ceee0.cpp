@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <dsound.h>
 
-struct File_004bb5d0;
+struct FileHandle;
 
 class Class_004ce410 {
 public:
@@ -21,7 +21,7 @@ public:
 };
 
 int __stdcall RemoveTimer(int i);
-int __stdcall FUN_004bb5d0(File_004bb5d0* file);
+int __stdcall HAPI_CloseFile(FileHandle* file);
 
 class Class_004ceee0 {
 public:
@@ -31,7 +31,7 @@ public:
     char unknown_2c[0x1c4 - 0x2c];
     IDirectSoundBuffer** sets[8];      // +0x1c4
     IDirectSoundBuffer* stream;        // +0x1e4
-    File_004bb5d0* file;               // +0x1e8
+    FileHandle* file;                  // +0x1e8
     char unknown_1ec[0x288 - 0x1ec];
     int handle;                        // +0x288
 
@@ -56,7 +56,7 @@ void Class_004ceee0::ReleaseDirectSound()
         stream->Stop();
         stream->Release();
         stream = 0;
-        FUN_004bb5d0(file);
+        HAPI_CloseFile(file);
     }
     ((Class_004ce410*)this)->CloseCdAudio();
     if (field_28 != 0)

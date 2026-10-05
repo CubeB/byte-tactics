@@ -4,8 +4,8 @@
 // When the text is empty the buffer is cleared instead.
 #include <string.h>
 
-int __stdcall FUN_004bbc40(char* path);
-void __stdcall FUN_004bbd30(char* filename, void* buffer, int offset, int size);
+int __stdcall HAPI_FileLengthByName(char* path);
+void __stdcall HAPI_ReadFileAt(char* filename, void* buffer, int offset, int size);
 void* __cdecl FUN_004d83b0(const char* tag, int size);
 void __cdecl FUN_004d85a0(void* p);
 
@@ -28,10 +28,10 @@ void Class_00435320::LoadBriefing()
         field_c14 = 0;
         return;
     }
-    int size = FUN_004bbc40(name);
+    int size = HAPI_FileLengthByName(name);
     if (size != 0) {
         field_c14 = (char*)FUN_004d83b0("Briefing", size + 1);
-        FUN_004bbd30(name, field_c14, 0, size);
+        HAPI_ReadFileAt(name, field_c14, 0, size);
         field_c14[size] = 0;
     }
 }

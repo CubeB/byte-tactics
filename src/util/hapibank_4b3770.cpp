@@ -43,7 +43,7 @@
 //                        0x4b3914 and 0x4b398e reload it, 0x4b396e takes &it)
 //   E0+0x04 img.size     (zeroed at 0x4b37ff, then only ever written: dsize at
 //                        0x4b3886, remaining at 0x4b38df.  Never read, so it
-//                        only survives because &img escapes to FUN_004b4270)
+//                        only survives because &img escapes to LoadAccount)
 //   E0+0x08 raw          (the decompression scratch: 0x4b3849 stores it,
 //                        0x4b38a5 frees it)
 //   E0+0x0c this         (spilled at the top by 0x4b3784, reloaded by
@@ -57,7 +57,7 @@
 // choices buy that, and both were needed:
 //   * `file` and `name` must be DIFFERENT parameters (param1 is the file name
 //     for the open and the bank name for the strcmpi, param2 is only ever the
-//     bank name, param3 goes to FUN_004b4270).  Reusing one variable for both
+//     bank name, param3 goes to LoadAccount).  Reusing one variable for both
 //     strings made it live across the whole function, and MSVC then hoisted it
 //     into ebp before the prologue and demoted the file to ebx.
 //   * `img.size = dsize;` has to come BEFORE the memcpy.  After the memcpy the
@@ -189,7 +189,7 @@
 //    have changed the operand's IR subtree size; a cast on the whole sum and
 //    on the base through a second type; `char*` for Image_004b3770::buf so
 //    the PTRADD carries no cast node at all (this needs the two allocator
-//    results cast and FUN_004b4270's second parameter declared `char**`);
+//    results cast and LoadAccount's second parameter declared `char**`);
 //    `int`/`unsigned`/`long` for the nameoff field; `(int)`, `(unsigned)`,
 //    `(long)` casts of either operand; `offset + base` and
 //    `base + offset` as plain int adds; `+(0 - off)` so the IR is a SUB;
@@ -282,45 +282,45 @@
 #include <string.h>
 #include <stdio.h>
 
-struct Table_004b3630 {
+struct AccountList {
     int count;
     void* slots;
 };
 
 class Class_004b3630 {
 public:
-    Table_004b3630* table;
-    void FUN_004b3630();
+    AccountList* table;
+    void CloseBank();
 };
 
-struct File_004bb5d0;
+struct FileHandle;
 
-void* __stdcall FUN_004bb5b0(void* param1);
-int __stdcall FUN_004bb5d0(File_004bb5d0* file);
-long __stdcall FUN_004bb710(File_004bb5d0* file, long pos);
-long __stdcall FUN_004bb7a0(File_004bb5d0* file);
-void __stdcall FUN_004bb7c0(File_004bb5d0* file, void* buf, int size);
-long __stdcall FUN_004bbd00(File_004bb5d0* file);
+void* __stdcall HAPI_OpenFileRead(void* param1);
+int __stdcall HAPI_CloseFile(FileHandle* file);
+long __stdcall HAPI_SeekFile(FileHandle* file, long pos);
+long __stdcall HAPI_TellFile(FileHandle* file);
+void __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
+long __stdcall HAPI_FileLength(FileHandle* file);
 void* __cdecl FUN_004d8450(unsigned int size);
 void* __cdecl GameCalloc(unsigned int count, unsigned int size);
 void* __cdecl FUN_004d8580(void* ptr, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
-int __stdcall FUN_004d1b40(unsigned char* src);
-int __stdcall FUN_004d1970(void* dest, void* source);
-void* __stdcall FUN_004d1c60(int code);
+int __stdcall SquashUnpackedSize(unsigned char* src);
+int __stdcall SquashUnpack(void* dest, void* source);
+void* __stdcall SquashErrorString(int code);
 void __stdcall FatalError(char* message);
 int __cdecl _strcmpi(const char* s1, const char* s2);
 int __cdecl sprintf(char* buf, const char* fmt, ...);
 
 // The 0x8-byte image handle the original keeps at the bottom of its frame and
-// hands by address to FUN_004b4270.
+// hands by address to LoadAccount.
 struct Image_004b3770 {          // 0x08 bytes
     void* buf;                   // +0x00
     int size;                    // +0x04
 };
 
 // The 0x24-byte bank header. 0x22 bytes of it are read from the file.
-struct Header_004b3770 {         // 0x24 bytes
+struct BankFileHeader {          // 0x24 bytes
     char magic[8];               // +0x00 "HAPIBANK"
     int nameoff;                 // +0x08, of the bank name inside the image
     int dataoff;                 // +0x0c, end of the compressed data
@@ -335,54 +335,54 @@ public:
     char unknown_4[4];
     int field_8;
 
-    void FUN_004b4270(File_004bb5d0* file, void** buf, void* arg3);
-    int FUN_004b3770(char* filename, char* name, void* arg3);
+    void LoadAccount(FileHandle* file, void** buf, void* arg3);
+    int OpenBank(char* filename, char* name, void* arg3);
 };
 
 // FUNCTION: 0x4b3770
-int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
+int Class_004b3770::OpenBank(char* filename, char* name, void* arg3)
 {
     void* raw;
-    Header_004b3770 h;
+    BankFileHeader h;
     Image_004b3770 img;
     char errmsg[0x80];
-    File_004bb5d0* file;
+    FileHandle* file;
     long remaining;
     long pos;
 
-    file = (File_004bb5d0*)FUN_004bb5b0(filename);
+    file = (FileHandle*)HAPI_OpenFileRead(filename);
     if (file == 0) {
         return 0;
     }
 
-    FUN_004bb7c0(file, &h, 0x22);
+    HAPI_readfromfile(file, &h, 0x22);
     if (strncmp(h.magic, "HAPIBANK", 8) != 0) {
-        FUN_004bb5d0(file);
+        HAPI_CloseFile(file);
         return 0;
     }
 
     if (h.version != 1) {
-        FUN_004bb5d0(file);
+        HAPI_CloseFile(file);
         return 0;
     }
 
     img.buf = 0;
     img.size = 0;
-    remaining = FUN_004bbd00(file) - h.dataoff;
-    FUN_004bb710(file, h.dataoff);
+    remaining = HAPI_FileLength(file) - h.dataoff;
+    HAPI_SeekFile(file, h.dataoff);
 
     if (h.compressed != 0) {
         void* src = FUN_004d8450(remaining);
         int dsize;
         int err;
 
-        FUN_004bb7c0(file, src, remaining);
-        dsize = FUN_004d1b40((unsigned char*)src);
+        HAPI_readfromfile(file, src, remaining);
+        dsize = SquashUnpackedSize((unsigned char*)src);
         raw = FUN_004d8450(dsize);
-        err = FUN_004d1970(raw, src);
+        err = SquashUnpack(raw, src);
         if (err != 0) {
             sprintf(errmsg, "[HapiBank::OpenBank] Decompression Error: %s",
-                    (char*)FUN_004d1c60(err));
+                    (char*)SquashErrorString(err));
             FatalError(errmsg);
         }
         img.buf = FUN_004d8580(img.buf, dsize);
@@ -396,12 +396,12 @@ int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
         }
         img.buf = FUN_004d8450(remaining);
         img.size = remaining;
-        FUN_004bb7c0(file, img.buf, remaining);
+        HAPI_readfromfile(file, img.buf, remaining);
     }
 
     if (name != 0) {
         if (_strcmpi(name, (char*)img.buf + h.nameoff) != 0) {
-            FUN_004bb5d0(file);
+            HAPI_CloseFile(file);
             if (img.buf != 0) {
                 FUN_004d85a0(img.buf);
             }
@@ -409,20 +409,20 @@ int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
         }
     }
 
-    FUN_004b3630();
-    table = (Table_004b3630*)GameCalloc(1, 0xc);
+    CloseBank();
+    table = (AccountList*)GameCalloc(1, 0xc);
     ((int*)table)[2] = -1;
 
-    FUN_004bb710(file, h.seekoff);
-    pos = FUN_004bb7a0(file);
+    HAPI_SeekFile(file, h.seekoff);
+    pos = HAPI_TellFile(file);
     if (pos < h.dataoff) {
         do {
-            FUN_004b4270(file, &img.buf, arg3);
-            pos = FUN_004bb7a0(file);
+            LoadAccount(file, &img.buf, arg3);
+            pos = HAPI_TellFile(file);
         } while (pos < h.dataoff);
     }
 
-    FUN_004bb5d0(file);
+    HAPI_CloseFile(file);
     if (img.buf != 0) {
         FUN_004d85a0(img.buf);
     }

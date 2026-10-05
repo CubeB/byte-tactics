@@ -26,14 +26,14 @@ struct Tree_004d0f60 {
 extern HANDLE DAT_0052a4f8;
 extern long DAT_0052a4fc;
 extern int DAT_0052a4f4;
-extern int DAT_00526ff8;
-extern int DAT_00526ffc;
-extern char DAT_0051ffd0[];
-extern char DAT_00520fe8[];
+extern int g_lzssPresetReady;
+extern int g_lzssUsePreset;
+extern char g_lzssPresetWindow[];
+extern char g_lzssPresetTree[];
 extern char *DAT_00526ff4;
 extern Tree_004d0f60 *DAT_00526ff0;
 
-inline void __stdcall FUN_004d0b10(int oldNode, int newNode) {
+inline void __stdcall LzssContractNode(int oldNode, int newNode) {
     DAT_00526ff0->nodes[newNode].parent = DAT_00526ff0->nodes[oldNode].parent;
     if (DAT_00526ff0->nodes[DAT_00526ff0->nodes[oldNode].parent].larger == (unsigned short)oldNode)
         DAT_00526ff0->nodes[DAT_00526ff0->nodes[oldNode].parent].larger = (unsigned short)newNode;
@@ -42,13 +42,13 @@ inline void __stdcall FUN_004d0b10(int oldNode, int newNode) {
     DAT_00526ff0->nodes[oldNode].parent = 0;
 }
 
-int __stdcall FUN_004d0b80(int oldNode, int newNode);
-int __stdcall FUN_004d0c10(int index);
-void __stdcall FUN_004d0c50(int t);
-int __stdcall FUN_004d0de0(int pos, int *out);
+int __stdcall LzssReplaceNode(int oldNode, int newNode);
+int __stdcall LzssFindNextNode(int index);
+void __stdcall LzssDeleteString(int t);
+int __stdcall LzssAddString(int pos, int *out);
 
 // FUNCTION: 0x4d0f60
-int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
+int __stdcall LzssCompress(unsigned char *dest, unsigned char *src, int len) {
     unsigned char flags;
     unsigned int mask;
     int accum;
@@ -100,9 +100,9 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
         return -1;
     }
     state.pos = 1;
-    if (DAT_00526ff8 != 0 && DAT_00526ffc != 0) {
-        memcpy(DAT_00526ff4, DAT_0051ffd0, 0x1011);
-        memcpy(DAT_00526ff0, DAT_00520fe8, 0x6006);
+    if (g_lzssPresetReady != 0 && g_lzssUsePreset != 0) {
+        memcpy(DAT_00526ff4, g_lzssPresetWindow, 0x1011);
+        memcpy(DAT_00526ff0, g_lzssPresetTree, 0x6006);
     } else {
         DAT_00526ff0->nodes[0x1000].parent = 0;
         DAT_00526ff0->nodes[0x1000].larger = 1;
@@ -157,13 +157,13 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
                 int p17 = (state.pos + 0x11) & 0xfff;
                 if (DAT_00526ff0->nodes[p17].parent != 0) {
                     if (DAT_00526ff0->nodes[p17].larger == 0) {
-                        FUN_004d0b10(p17, DAT_00526ff0->nodes[p17].smaller);
+                        LzssContractNode(p17, DAT_00526ff0->nodes[p17].smaller);
                     } else if (DAT_00526ff0->nodes[p17].smaller == 0) {
-                        FUN_004d0b10(p17, DAT_00526ff0->nodes[p17].larger);
+                        LzssContractNode(p17, DAT_00526ff0->nodes[p17].larger);
                     } else {
-                        int q = FUN_004d0c10(p17);
-                        FUN_004d0c50(q);
-                        FUN_004d0b80(p17, q);
+                        int q = LzssFindNextNode(p17);
+                        LzssDeleteString(q);
+                        LzssReplaceNode(p17, q);
                     }
                 }
                 if (src >= end)
@@ -172,7 +172,7 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
                     DAT_00526ff4[(state.pos + 0x11) & 0xfff] = *src++;
                 state.pos = (state.pos + 1) & 0xfff;
                 if (state.count != 0)
-                    state.cur = FUN_004d0de0(state.pos, &accum);
+                    state.cur = LzssAddString(state.pos, &accum);
             n--;
         }
     }

@@ -2,14 +2,14 @@
 // Same shape as 0x48ef40: reads the "commander killed" defeat condition's
 // state from a section.
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* name);
+    void OpenAccount(const char* name);
 };
 
 class Class_004b4800 {
 public:
-    int FUN_004b4800(char* name, int def);
+    int GetIntegerItem(char* name, int def);
 };
 
 class DefeatCommanderKilled {
@@ -17,13 +17,13 @@ public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    virtual void LoadState(Class_004b4560* obj);
+    virtual void LoadState(HapiBank* obj);
 };
 
 // FUNCTION: 0x48f750
-void DefeatCommanderKilled::LoadState(Class_004b4560* obj)
+void DefeatCommanderKilled::LoadState(HapiBank* obj)
 {
-    obj->FUN_004b4560("DefeatCondition_CommanderKilled");
-    satisfied = ((Class_004b4800*)obj)->FUN_004b4800("Satisfied", 0);
-    celebrated = ((Class_004b4800*)obj)->FUN_004b4800("Celebrated", 0);
+    obj->OpenAccount("DefeatCondition_CommanderKilled");
+    satisfied = ((Class_004b4800*)obj)->GetIntegerItem("Satisfied", 0);
+    celebrated = ((Class_004b4800*)obj)->GetIntegerItem("Celebrated", 0);
 }

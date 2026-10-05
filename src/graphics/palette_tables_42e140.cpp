@@ -4,21 +4,21 @@
 // Returns the table (freed again in the load case). Same shape as 0x42e1d0.
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-int __stdcall FUN_004bbc40(char* path);
-void* __stdcall FUN_004bbe50(char* path, int flags);
+int __stdcall HAPI_FileLengthByName(char* path);
+void* __stdcall HAPI_LoadFile(char* path, int flags);
 void __stdcall FatalError(char* path);
 void __stdcall SetAlphaTable(unsigned int* param_1);
 void __cdecl FUN_004d85a0(void* p);
 unsigned int* __stdcall BuildAlphaTable(void* palette);
-int __stdcall FUN_004bc290(char* filename, void* data, int size);
+int __stdcall WriteBufferToFile(char* filename, void* data, int size);
 
 // FUNCTION: 0x42e140
 unsigned int* __stdcall LoadAlphaTable(void* palette)
 {
     char path[256];
     BuildDataPath(path, "palettes", "PALETTE", "ALP");
-    if (FUN_004bbc40(path)) {
-        unsigned int* table = (unsigned int*)FUN_004bbe50(path, 0);
+    if (HAPI_FileLengthByName(path)) {
+        unsigned int* table = (unsigned int*)HAPI_LoadFile(path, 0);
         if (table == 0) {
             FatalError(path);
         }
@@ -27,6 +27,6 @@ unsigned int* __stdcall LoadAlphaTable(void* palette)
         return table;
     }
     unsigned int* table = BuildAlphaTable(palette);
-    FUN_004bc290(path, table, 0x10000);
+    WriteBufferToFile(path, table, 0x10000);
     return table;
 }

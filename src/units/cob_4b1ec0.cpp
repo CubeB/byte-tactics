@@ -6,12 +6,12 @@
 // Chunked file writer / seeker (see src/util/hapibank_4b4cf0.cpp).
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* src, int len);
+    int WriteBox(void* src, int len);
 };
 
 struct Elem_4b0610 {
@@ -89,7 +89,7 @@ public:
 // FUNCTION: 0x4b1ec0
 void CobScript::SaveScriptState(Class_004b4cf0* file)
 {
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
+    ((Class_004b4c10*)file)->SeekBox(0);
 
     Big_004b1ec0 big;
     big.magic = unknown_c;
@@ -98,8 +98,8 @@ void CobScript::SaveScriptState(Class_004b4cf0* file)
         big.recs[n].field_20 = 0;
     }
     big.tail = field_53c;
-    file->FUN_004b4cf0(&big, 0x528);
-    file->FUN_004b4cf0(ptr10, field_8->size * 4);
+    file->WriteBox(&big, 0x528);
+    file->WriteBox(ptr10, field_8->size * 4);
 
     for (int i = 0; i < field_8->count; i++) {
         Rec2_004b1ec0 rec;
@@ -116,6 +116,6 @@ void CobScript::SaveScriptState(Class_004b4cf0* file)
             rec.a[j] = GetPieceTranslation(i, j);
             rec.b[j] = GetPieceRotation(i, j);
         }
-        file->FUN_004b4cf0(&rec, 0x6c);
+        file->WriteBox(&rec, 0x6c);
     }
 }

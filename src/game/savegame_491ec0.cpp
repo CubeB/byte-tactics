@@ -62,17 +62,17 @@ struct Game {
 
 class Class_004b4800 {
 public:
-    int FUN_004b4800(char* name, char* def);
+    int GetIntegerItem(char* name, char* def);
 };
 
 class Class_004b48a0 {
 public:
-    char* FUN_004b48a0(char* name, char* def);
+    char* GetStringItem(char* name, char* def);
 };
 
 class Class_004b4ba0 {
 public:
-    void FUN_004b4ba0(char* name);
+    void OpenNamedBox(char* name);
 };
 
 extern Game* g_game;
@@ -91,7 +91,7 @@ void __stdcall SetGadgetText(Menu_00491ec0* menu, int index, char* text);
 Entry_00491ec0* __stdcall FUN_004a0280(Entry_00491ec0* entries, char* name);
 void __stdcall FUN_004a0570(Menu_00491ec0* menu, char* name, int value);
 void __stdcall FUN_004a0bf0(Menu_00491ec0* menu, char* name, char* text, int param_4);
-char* __stdcall FUN_004b6af0(char* table, int index);
+char* __stdcall SkipTextLines(char* table, int index);
 void __stdcall FrameFromSurface(void* dst, void* src);
 void __stdcall FreeSurface(void* image);
 void* __stdcall LoadSurface(Class_004b48a0* obj);
@@ -117,14 +117,14 @@ void __stdcall ShowSavedGameInfo()
 
     char* desc;
     if (games->field_ba > -1
-        && (desc = FUN_004b6af0(DAT_0051f2e4, games->field_ba)) != 0
+        && (desc = SkipTextLines(DAT_0051f2e4, games->field_ba)) != 0
         && strlen(desc) != 0) {
         SetGadgetText(menu, index, desc);
-        char* fname = FUN_004b6af0(DAT_0051f2e0, games->field_ba);
+        char* fname = SkipTextLines(DAT_0051f2e0, games->field_ba);
         sprintf(path, "%s\\%s", DAT_005091c8, fname);
         Class_004b48a0* file = FUN_00432520(path);
         if (file != 0) {
-            ((Class_004b4ba0*)file)->FUN_004b4ba0("Radar Image");
+            ((Class_004b4ba0*)file)->OpenNamedBox("Radar Image");
             Entry_00491ec0* radar = FUN_004a0280(menu->layer->entries, "RADAR");
             if (DAT_0051f2ec != 0)
                 FreeSurface(DAT_0051f2ec);
@@ -135,8 +135,8 @@ void __stdcall ShowSavedGameInfo()
             }
             FUN_004a0570(menu, "RADAR", DAT_0051f2ec != 0);
 
-            int players = ((Class_004b4800*)file)->FUN_004b4800("Players", 0);
-            gametype = ((Class_004b4800*)file)->FUN_004b4800("Gametype", 0);
+            int players = ((Class_004b4800*)file)->GetIntegerItem("Players", 0);
+            gametype = ((Class_004b4800*)file)->GetIntegerItem("Gametype", 0);
             if (players != 0) {
                 if (gametype == 1)
                     strcpy(name, "Single");
@@ -148,14 +148,14 @@ void __stdcall ShowSavedGameInfo()
             FUN_004a0bf0(menu, "GAMETYPE", name, 0);
 
             if (gametype == 1) {
-                char* campaign = ((Class_004b48a0*)file)->FUN_004b48a0("Campaign", 0);
+                char* campaign = ((Class_004b48a0*)file)->GetStringItem("Campaign", 0);
                 if (campaign != 0) {
                     strcpy(name, campaign);
                     FUN_004a0bf0(menu, "CAMPAIGN", name, 0);
                     FUN_004a0570(menu, "CAMPTEXT", 1);
                     FUN_004a0570(menu, "CAMPAIGN", 1);
                 }
-                char* mission = ((Class_004b48a0*)file)->FUN_004b48a0("Mission", 0);
+                char* mission = ((Class_004b48a0*)file)->GetStringItem("Mission", 0);
                 if (mission != 0) {
                     strcpy(name, mission);
                     FUN_004a0bf0(menu, "MISSION", name, 0);
@@ -163,21 +163,21 @@ void __stdcall ShowSavedGameInfo()
             } else {
                 FUN_004a0570(menu, "CAMPTEXT", 0);
                 FUN_004a0570(menu, "CAMPAIGN", 0);
-                char* mission = ((Class_004b48a0*)file)->FUN_004b48a0("Map", 0);
+                char* mission = ((Class_004b48a0*)file)->GetStringItem("Map", 0);
                 if (mission != 0) {
                     strcpy(name, mission);
                     FUN_004a0bf0(menu, "MISSION", name, 0);
                 }
             }
 
-            int time = ((Class_004b4800*)file)->FUN_004b4800("Game Time", 0);
+            int time = ((Class_004b4800*)file)->GetIntegerItem("Game Time", 0);
             sprintf(name, "%02d:%02d:%02d", time / 108000, time / 1800 % 60,
                     time / 30 % 60);
             FUN_004a0bf0(menu, "TIME", name, 0);
 
             if (DAT_0051f2e8 != 0) {
-                int side = ((Class_004b4800*)file)->FUN_004b4800("Side", 0);
-                strcpy(name, FUN_004b6af0(DAT_0051f2e8, side));
+                int side = ((Class_004b4800*)file)->GetIntegerItem("Side", 0);
+                strcpy(name, SkipTextLines(DAT_0051f2e8, side));
             } else {
                 strcpy(name, "???");
             }
@@ -187,7 +187,7 @@ void __stdcall ShowSavedGameInfo()
             diffs[1] = "Medium";
             diffs[2] = "Hard";
             sprintf(name, "%s",
-                    diffs[((Class_004b4800*)file)->FUN_004b4800("Difficulty", 0)]);
+                    diffs[((Class_004b4800*)file)->GetIntegerItem("Difficulty", 0)]);
             FUN_004a0bf0(menu, "DIFF", name, 0);
             FUN_00432590(file);
             goto done;

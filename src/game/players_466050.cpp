@@ -56,89 +56,89 @@ struct Game_00466050 {
 
 extern Game_00466050* g_game;
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    int FUN_004b4560(char* name);
+    int OpenAccount(char* name);
 };
 
 class Class_004b4630 {
 public:
-    int FUN_004b4630(const char* name, int value);
+    int SetIntegerItem(const char* name, int value);
 };
 
 class Class_004b46c0 {
 public:
-    int FUN_004b46c0(const char* name, double value);
+    int SetDoubleItem(const char* name, double value);
 };
 
 class Class_004b4800 {
 public:
-    int FUN_004b4800(char* name, int def);
+    int GetIntegerItem(char* name, int def);
 };
 
 class Class_004b4850 {
 public:
-    double FUN_004b4850(char* name, double def);
+    double GetDoubleItem(char* name, double def);
 };
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4bf0 {
 public:
-    int FUN_004b4bf0();
+    int GetBoxSize();
 };
 
 class Class_004b4c80 {
 public:
-    int FUN_004b4c80(void* dst, int len);
+    int ReadBox(void* dst, int len);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* src, int len);
+    int WriteBox(void* src, int len);
 };
 
 // Loads the "Players" section of a saved game: the human player, the game
 // clock, and each player's resources, statistics, logo, side and alliances
 // from its "Player%i" section (a player without one gets no controller).
 // FUNCTION: 0x466050
-void __stdcall LoadPlayers(Class_004b4560* file)
+void __stdcall LoadPlayers(HapiBank* file)
 {
     char name[16];
-    file->FUN_004b4560("Players");
-    g_game->localPlayer = ((Class_004b4800*)file)->FUN_004b4800("Human Player", 10);
+    file->OpenAccount("Players");
+    g_game->localPlayer = ((Class_004b4800*)file)->GetIntegerItem("Human Player", 10);
     g_game->field_2a43 = g_game->localPlayer;
-    ((Class_004b4ba0*)file)->FUN_004b4ba0("GameTime");
-    if (((Class_004b4c80*)file)->FUN_004b4c80(g_game->gameTime, 0x1c) != 0x1c)
+    ((Class_004b4ba0*)file)->OpenNamedBox("GameTime");
+    if (((Class_004b4c80*)file)->ReadBox(g_game->gameTime, 0x1c) != 0x1c)
         return;
     for (int i = 0; i < 10; i++) {
         Player_00466050* p = &g_game->players[i];
         sprintf(name, "Player%i", i);
-        if (file->FUN_004b4560(name)) {
-            p->energy = ((Class_004b4850*)file)->FUN_004b4850("Energy", 0);
-            p->metal = ((Class_004b4850*)file)->FUN_004b4850("Metal", 0);
-            p->totalEnergyProduced = ((Class_004b4850*)file)->FUN_004b4850("TotalEnergyProduced", 0);
-            p->totalMetalProduced = ((Class_004b4850*)file)->FUN_004b4850("TotalMetalProduced", 0);
-            p->totalEnergyConsumed = ((Class_004b4850*)file)->FUN_004b4850("TotalEnergyConsumed", 0);
-            p->totalMetalConsumed = ((Class_004b4850*)file)->FUN_004b4850("TotalMetalConsumed", 0);
-            p->energyWasted = ((Class_004b4850*)file)->FUN_004b4850("EnergyWasted", 0);
-            p->metalWasted = ((Class_004b4850*)file)->FUN_004b4850("MetalWasted", 0);
-            p->energyStorage = ((Class_004b4850*)file)->FUN_004b4850("PlayerEnergyStorage", 0);
-            p->metalStorage = ((Class_004b4850*)file)->FUN_004b4850("PlayerMetalStorage", 0);
-            p->addStorage = ((Class_004b4800*)file)->FUN_004b4800("AddPlayerStorage", 0);
-            p->kills = ((Class_004b4800*)file)->FUN_004b4800("Kills", 0);
-            p->losses = ((Class_004b4800*)file)->FUN_004b4800("Losses", 0);
-            p->updateTime = ((Class_004b4800*)file)->FUN_004b4800("UpdateTime", 0);
-            p->winLoseTime = ((Class_004b4800*)file)->FUN_004b4800("WinLoseTime", 0);
-            p->displayTimer = ((Class_004b4800*)file)->FUN_004b4800("DisplayTimer", 0);
-            p->data->logo = ((Class_004b4800*)file)->FUN_004b4800("Logo", 0);
-            p->data->side = ((Class_004b4800*)file)->FUN_004b4800("Side", 0);
-            ((Class_004b4ba0*)file)->FUN_004b4ba0("Alliances");
-            if (((Class_004b4bf0*)file)->FUN_004b4bf0() == 11)
-                ((Class_004b4c80*)file)->FUN_004b4c80(p->allied, 11);
+        if (file->OpenAccount(name)) {
+            p->energy = ((Class_004b4850*)file)->GetDoubleItem("Energy", 0);
+            p->metal = ((Class_004b4850*)file)->GetDoubleItem("Metal", 0);
+            p->totalEnergyProduced = ((Class_004b4850*)file)->GetDoubleItem("TotalEnergyProduced", 0);
+            p->totalMetalProduced = ((Class_004b4850*)file)->GetDoubleItem("TotalMetalProduced", 0);
+            p->totalEnergyConsumed = ((Class_004b4850*)file)->GetDoubleItem("TotalEnergyConsumed", 0);
+            p->totalMetalConsumed = ((Class_004b4850*)file)->GetDoubleItem("TotalMetalConsumed", 0);
+            p->energyWasted = ((Class_004b4850*)file)->GetDoubleItem("EnergyWasted", 0);
+            p->metalWasted = ((Class_004b4850*)file)->GetDoubleItem("MetalWasted", 0);
+            p->energyStorage = ((Class_004b4850*)file)->GetDoubleItem("PlayerEnergyStorage", 0);
+            p->metalStorage = ((Class_004b4850*)file)->GetDoubleItem("PlayerMetalStorage", 0);
+            p->addStorage = ((Class_004b4800*)file)->GetIntegerItem("AddPlayerStorage", 0);
+            p->kills = ((Class_004b4800*)file)->GetIntegerItem("Kills", 0);
+            p->losses = ((Class_004b4800*)file)->GetIntegerItem("Losses", 0);
+            p->updateTime = ((Class_004b4800*)file)->GetIntegerItem("UpdateTime", 0);
+            p->winLoseTime = ((Class_004b4800*)file)->GetIntegerItem("WinLoseTime", 0);
+            p->displayTimer = ((Class_004b4800*)file)->GetIntegerItem("DisplayTimer", 0);
+            p->data->logo = ((Class_004b4800*)file)->GetIntegerItem("Logo", 0);
+            p->data->side = ((Class_004b4800*)file)->GetIntegerItem("Side", 0);
+            ((Class_004b4ba0*)file)->OpenNamedBox("Alliances");
+            if (((Class_004b4bf0*)file)->GetBoxSize() == 11)
+                ((Class_004b4c80*)file)->ReadBox(p->allied, 11);
             p->allied[i] = 1;
         } else {
             p->controller = 0;
@@ -148,39 +148,39 @@ void __stdcall LoadPlayers(Class_004b4560* file)
 
 // Saves what LoadPlayers loads, for every player that has a controller.
 // FUNCTION: 0x4662f0
-void __stdcall SavePlayers(Class_004b4560* file)
+void __stdcall SavePlayers(HapiBank* file)
 {
     char name[16];
-    file->FUN_004b4560("Players");
-    ((Class_004b4630*)file)->FUN_004b4630("Human Player", g_game->localPlayer);
-    ((Class_004b4ba0*)file)->FUN_004b4ba0("GameTime");
-    ((Class_004b4cf0*)file)->FUN_004b4cf0(g_game->gameTime, 0x1c);
+    file->OpenAccount("Players");
+    ((Class_004b4630*)file)->SetIntegerItem("Human Player", g_game->localPlayer);
+    ((Class_004b4ba0*)file)->OpenNamedBox("GameTime");
+    ((Class_004b4cf0*)file)->WriteBox(g_game->gameTime, 0x1c);
     for (int i = 0; i < 10; i++) {
         Player_00466050* p = &g_game->players[i];
         if (p->controller) {
             sprintf(name, "Player%i", i);
-            file->FUN_004b4560(name);
-            ((Class_004b46c0*)file)->FUN_004b46c0("Energy", p->energy);
-            ((Class_004b46c0*)file)->FUN_004b46c0("Metal", p->metal);
-            ((Class_004b46c0*)file)->FUN_004b46c0("TotalEnergyProduced", p->totalEnergyProduced);
-            ((Class_004b46c0*)file)->FUN_004b46c0("TotalMetalProduced", p->totalMetalProduced);
-            ((Class_004b46c0*)file)->FUN_004b46c0("TotalEnergyConsumed", p->totalEnergyConsumed);
-            ((Class_004b46c0*)file)->FUN_004b46c0("TotalMetalConsumed", p->totalMetalConsumed);
-            ((Class_004b46c0*)file)->FUN_004b46c0("EnergyWasted", p->energyWasted);
-            ((Class_004b46c0*)file)->FUN_004b46c0("MetalWasted", p->metalWasted);
-            ((Class_004b46c0*)file)->FUN_004b46c0("PlayerEnergyStorage", p->energyStorage);
-            ((Class_004b46c0*)file)->FUN_004b46c0("PlayerMetalStorage", p->metalStorage);
-            ((Class_004b4630*)file)->FUN_004b4630("AddPlayerStorage", p->addStorage);
-            ((Class_004b4630*)file)->FUN_004b4630("Kills", p->kills);
-            ((Class_004b4630*)file)->FUN_004b4630("Losses", p->losses);
-            ((Class_004b4630*)file)->FUN_004b4630("UpdateTime", p->updateTime);
-            ((Class_004b4630*)file)->FUN_004b4630("WinLoseTime", p->winLoseTime);
-            ((Class_004b4630*)file)->FUN_004b4630("DisplayTimer", p->displayTimer);
-            ((Class_004b4630*)file)->FUN_004b4630("Controller", p->controller);
-            ((Class_004b4630*)file)->FUN_004b4630("Logo", p->data->logo);
-            ((Class_004b4630*)file)->FUN_004b4630("Side", p->data->side);
-            ((Class_004b4ba0*)file)->FUN_004b4ba0("Alliances");
-            ((Class_004b4cf0*)file)->FUN_004b4cf0(p->allied, 11);
+            file->OpenAccount(name);
+            ((Class_004b46c0*)file)->SetDoubleItem("Energy", p->energy);
+            ((Class_004b46c0*)file)->SetDoubleItem("Metal", p->metal);
+            ((Class_004b46c0*)file)->SetDoubleItem("TotalEnergyProduced", p->totalEnergyProduced);
+            ((Class_004b46c0*)file)->SetDoubleItem("TotalMetalProduced", p->totalMetalProduced);
+            ((Class_004b46c0*)file)->SetDoubleItem("TotalEnergyConsumed", p->totalEnergyConsumed);
+            ((Class_004b46c0*)file)->SetDoubleItem("TotalMetalConsumed", p->totalMetalConsumed);
+            ((Class_004b46c0*)file)->SetDoubleItem("EnergyWasted", p->energyWasted);
+            ((Class_004b46c0*)file)->SetDoubleItem("MetalWasted", p->metalWasted);
+            ((Class_004b46c0*)file)->SetDoubleItem("PlayerEnergyStorage", p->energyStorage);
+            ((Class_004b46c0*)file)->SetDoubleItem("PlayerMetalStorage", p->metalStorage);
+            ((Class_004b4630*)file)->SetIntegerItem("AddPlayerStorage", p->addStorage);
+            ((Class_004b4630*)file)->SetIntegerItem("Kills", p->kills);
+            ((Class_004b4630*)file)->SetIntegerItem("Losses", p->losses);
+            ((Class_004b4630*)file)->SetIntegerItem("UpdateTime", p->updateTime);
+            ((Class_004b4630*)file)->SetIntegerItem("WinLoseTime", p->winLoseTime);
+            ((Class_004b4630*)file)->SetIntegerItem("DisplayTimer", p->displayTimer);
+            ((Class_004b4630*)file)->SetIntegerItem("Controller", p->controller);
+            ((Class_004b4630*)file)->SetIntegerItem("Logo", p->data->logo);
+            ((Class_004b4630*)file)->SetIntegerItem("Side", p->data->side);
+            ((Class_004b4ba0*)file)->OpenNamedBox("Alliances");
+            ((Class_004b4cf0*)file)->WriteBox(p->allied, 11);
         }
     }
 }

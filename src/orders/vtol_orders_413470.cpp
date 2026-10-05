@@ -113,7 +113,7 @@ public:
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
@@ -208,7 +208,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         ((Class_00489800*)unit)->ReleaseWeapons(3);
         int dist = (int)_hypot(order->target->pos.x - unit->pos.x, order->target->pos.z - unit->pos.z);
         int angle = GetHeadingBetween(&unit->pos, &order->target->pos);
-        Vec3 off = Offset(FUN_004b6c30(0x4000) + angle - 0x2000, dist / 2);
+        Vec3 off = Offset(RandomInt(0x4000) + angle - 0x2000, dist / 2);
         Vec3 p = unit->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->FUN_0044e730(0x80);
@@ -232,7 +232,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
             order->misses++;
         if (order->misses >= 2) {
             order->misses = 0;
-            Vec3 off = Offset(FUN_004b6c30(0x10000), speed << 16);
+            Vec3 off = Offset(RandomInt(0x10000), speed << 16);
             Vec3 p = Add(order->target->pos, off);
             // The new waypoint is never given to the order (see the header).
             Class_0044e2d0* obj = new Class_0044e2d0(order, p);
@@ -261,7 +261,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                int target = (int)v[FUN_004b6c30(v.size())];
+                int target = (int)v[RandomInt(v.size())];
                 AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", target, 0, 0, 0, 0));
                 order->flags = 0;
                 return 0;

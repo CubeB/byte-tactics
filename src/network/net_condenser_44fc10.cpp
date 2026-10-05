@@ -8,9 +8,9 @@
 
 extern char* g_game;
 
-int __stdcall FUN_004d0f60(char* out, char* in, int size);
-void FUN_004d1800();
-void FUN_004d1810();
+int __stdcall LzssCompress(char* out, char* in, int size);
+void LzssDisablePreset();
+void LzssEnablePreset();
 int __stdcall HAPINET_sendpacket(void* net, unsigned long from, unsigned long to, void* data, unsigned long size);
 void __stdcall CountPacket(int size, int overhead, int sent);
 
@@ -34,9 +34,9 @@ int Class_0044fc10::SendPacket(void* session, int from)
 {
     unsigned int compressed;
     if (size_1d > 12) {
-        FUN_004d1810();
-        compressed = FUN_004d0f60(packet + 3, sendBuffer, size_1d);
-        FUN_004d1800();
+        LzssEnablePreset();
+        compressed = LzssCompress(packet + 3, sendBuffer, size_1d);
+        LzssDisablePreset();
     } else {
         compressed = 0xffff;
     }

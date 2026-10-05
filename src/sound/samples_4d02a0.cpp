@@ -16,32 +16,32 @@
 // the class-qualified name for 0x4d01b0 to data/symbols.csv.
 #include <string.h>
 
-struct File_004bb5d0;
+struct FileHandle;
 
 class Class_004cf370 {
   public:
-    void* CreateSampleFromFile(File_004bb5d0* file, int bytes, int sampleRate, int bits, int channels);
+    void* CreateSampleFromFile(FileHandle* file, int bytes, int sampleRate, int bits, int channels);
 };
 class Class_004cf8a0 {
   public:
-    int PlayFileSample(File_004bb5d0* file, int bytes, int sampleRate, int bits, int channels, int f,
+    int PlayFileSample(FileHandle* file, int bytes, int sampleRate, int bits, int channels, int f,
                      int g);
 };
 class Class_004cfb40 {
   public:
-    void StartStream(File_004bb5d0* file, int sampleRate, int bits, int channels, int volume);
+    void StartStream(FileHandle* file, int sampleRate, int bits, int channels, int volume);
 };
 class Class_004d02a0 {
   public:
     int OpenSample(char* path, int mode, int p3, int p4);
 };
 
-struct Class_004d01b0 { int DetectSampleFormat(File_004bb5d0* file); };
-File_004bb5d0* __stdcall FUN_004bb5b0(char* path);
-int __stdcall FUN_004bb5d0(File_004bb5d0* file);
-int __stdcall FUN_004bb710(File_004bb5d0* file, int pos);
-int __stdcall FUN_004bb7c0(File_004bb5d0* file, void* buf, int size);
-int __stdcall FUN_004bbd00(File_004bb5d0* file);
+struct Class_004d01b0 { int DetectSampleFormat(FileHandle* file); };
+FileHandle* __stdcall HAPI_OpenFileRead(char* path);
+int __stdcall HAPI_CloseFile(FileHandle* file);
+int __stdcall HAPI_SeekFile(FileHandle* file, int pos);
+int __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
+int __stdcall HAPI_FileLength(FileHandle* file);
 
 struct WaveFormat {
     unsigned short wFormatTag;
@@ -52,38 +52,38 @@ struct WaveFormat {
     unsigned short wBitsPerSample;
 };
 
-static inline unsigned int FindChunk(File_004bb5d0* file, const char* tag) {
+static inline unsigned int FindChunk(FileHandle* file, const char* tag) {
     unsigned int limit, id, offset, size;
-    FUN_004bb710(file, 4);
-    FUN_004bb7c0(file, &limit, 4);
+    HAPI_SeekFile(file, 4);
+    HAPI_readfromfile(file, &limit, 4);
     limit += 8;
-    FUN_004bb710(file, 12);
-    FUN_004bb7c0(file, &id, 4);
-    FUN_004bb7c0(file, &size, 4);
+    HAPI_SeekFile(file, 12);
+    HAPI_readfromfile(file, &id, 4);
+    HAPI_readfromfile(file, &size, 4);
     offset = 20;
     for (;;) {
         if (strncmp((char*)&id, tag, 4) == 0)
             return size;
-        FUN_004bb710(file, size + offset);
+        HAPI_SeekFile(file, size + offset);
         offset += size;
         if (offset >= limit)
             return 0;
-        FUN_004bb7c0(file, &id, 4);
-        FUN_004bb7c0(file, &size, 4);
+        HAPI_readfromfile(file, &id, 4);
+        HAPI_readfromfile(file, &size, 4);
         offset += 8;
     }
 }
 // FUNCTION: 0x4d02a0
 int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
     int result = 0;
-    File_004bb5d0* file = FUN_004bb5b0(path);
+    FileHandle* file = HAPI_OpenFileRead(path);
     if (file == 0)
         return result;
     int kind = ((Class_004d01b0*)this)->DetectSampleFormat(file);
-    int size = FUN_004bbd00(file);
+    int size = HAPI_FileLength(file);
     switch (kind) {
     case 0:
-        FUN_004bb710(file, 0);
+        HAPI_SeekFile(file, 0);
         switch (mode) {
         case 0:
             result = (int)((Class_004cf370*)this)->CreateSampleFromFile(file, size, 0x2b11, 8, 1);
@@ -98,11 +98,11 @@ int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
         break;
     case 1: {
         unsigned int x;
-        FUN_004bb710(file, 0x16);
-        FUN_004bb7c0(file, &x, 4);
+        HAPI_SeekFile(file, 0x16);
+        HAPI_readfromfile(file, &x, 4);
         if (x == 0x2af8)
             x = 0x2b11;
-        FUN_004bb710(file, 0x28);
+        HAPI_SeekFile(file, 0x28);
         switch (mode) {
         case 0:
             result = (int)((Class_004cf370*)this)->CreateSampleFromFile(file, size - 0x28, x, 8, 1);
@@ -121,7 +121,7 @@ int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
         if (len < 0x10)
             goto end;
         WaveFormat wfx;
-        FUN_004bb7c0(file, &wfx, 0x10);
+        HAPI_readfromfile(file, &wfx, 0x10);
         int bits = wfx.wBitsPerSample;
         int chans = wfx.nChannels;
         len = FindChunk(file, "data");
@@ -144,6 +144,6 @@ int Class_004d02a0::OpenSample(char* path, int mode, int p3, int p4) {
     }
     }
 end:
-    FUN_004bb5d0(file);
+    HAPI_CloseFile(file);
     return result;
 }

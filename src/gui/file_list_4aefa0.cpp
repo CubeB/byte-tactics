@@ -17,7 +17,7 @@
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
-char* __stdcall FUN_004b6af0(char* list, int index);
+char* __stdcall SkipTextLines(char* list, int index);
 int __cdecl _strcmpi(const char* a, const char* b);
 
 // FUNCTION: 0x4aefa0
@@ -39,9 +39,9 @@ void __stdcall SortFileList(char* list1, char* list2, int* keys, int count)
     ptr2 = (char**)FUN_004d83b0("PTR LIST2", 0x2ee0);
     n = -1;
     for (i = 0; i < count; i++) {
-        ptr1[i] = FUN_004b6af0(list1, i);
+        ptr1[i] = SkipTextLines(list1, i);
         if (list2)
-            ptr2[i] = FUN_004b6af0(list2, i);
+            ptr2[i] = SkipTextLines(list2, i);
         if (ptr1[i][0] == '\\')
             n = i;
     }

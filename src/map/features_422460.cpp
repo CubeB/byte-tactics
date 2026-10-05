@@ -7,12 +7,12 @@ public:
     char unknown_0[4];
     int field_0x4;
 
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 struct Class_00422460 {
@@ -27,8 +27,8 @@ extern Class_00422460* DAT_00511fb4;
 Class_004c3e10* __stdcall FindFeatureFile(char* name)
 {
     for (Class_004c3e10** p = DAT_00511fb4->first; p < DAT_00511fb4->last; p++) {
-        (*p)->FUN_004c3e10();
-        if (((Class_004c3410*)*p)->FUN_004c3410(name))
+        (*p)->ResetCurrentRecord();
+        if (((Class_004c3410*)*p)->SelectRecord(name))
             return *p;
     }
     return 0;

@@ -35,17 +35,17 @@ struct Header_0044e880 {
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* src, int len);
+    int WriteBox(void* src, int len);
 };
 
 #pragma pack(push, 2)
@@ -79,8 +79,8 @@ int Class_0044e740::FUN_0044e880(int unused, Class_004b4ba0* file, char* name)
     hdr.value_24 = value_22;
     hdr.heading = heading;
     hdr.value_28 = value_26;
-    file->FUN_004b4ba0(name);
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
-    ((Class_004b4cf0*)file)->FUN_004b4cf0(&hdr, 0x2a);
+    file->OpenNamedBox(name);
+    ((Class_004b4c10*)file)->SeekBox(0);
+    ((Class_004b4cf0*)file)->WriteBox(&hdr, 0x2a);
     return 1;
 }

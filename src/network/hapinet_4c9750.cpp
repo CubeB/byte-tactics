@@ -7,7 +7,7 @@
 extern int g_enumSessionsResult;
 
 char* __stdcall HAPINET_GetDPErrorString(int error);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 
 // FUNCTION: 0x4c9750
 char* GetEnumSessionsErrorText()
@@ -18,5 +18,5 @@ char* GetEnumSessionsErrorText()
     s = strstr(s, " - ");
     if (s == 0)
         return HAPINET_GetDPErrorString(0x80004005);
-    return FUN_004c5740(s + 3);
+    return Translate(s + 3);
 }

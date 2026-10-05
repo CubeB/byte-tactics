@@ -53,8 +53,8 @@ struct Entry_004a0010 {
 void* __cdecl FUN_004d83b0(unsigned int param_1, unsigned int param_2);
 void __stdcall StripFileName(char* path);
 void __stdcall StripPath(char* path);
-void __stdcall FUN_004bc2e0(char* buf);
-char* __stdcall FUN_004bc320(char* drive, char* buf, int size);
+void __stdcall GetCurrentDriveLetter(char* buf);
+char* __stdcall GetDriveDirectory(char* drive, char* buf, int size);
 Entry_004a0010* __stdcall FUN_004a0010(Entry_004a0010* entries, char* name);
 Entry_004a0010* __stdcall FUN_004a0180(Entry_004a0010* entries, char* name);
 Entry_004a0010* __stdcall FUN_004a0200(Entry_004a0010* entries, char* name);
@@ -112,8 +112,8 @@ Class_004af5b0* Class_004afa30::OpenFileRequester(Class_004afa30* self, char* ar
     strcpy((char*)obj->field_8 + 0xb6, arg2);
     strcpy((char*)obj->field_c + 0xb6, arg3);
 
-    FUN_004bc2e0(obj->drive);
-    FUN_004bc320(obj->drive, obj->unknown_134, 0x100);
+    GetCurrentDriveLetter(obj->drive);
+    GetDriveDirectory(obj->drive, obj->unknown_134, 0x100);
     FUN_004af5b0(obj);
 
     FUN_0049fa90(self);

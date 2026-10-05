@@ -47,9 +47,9 @@ Gadget_0044bc10* __stdcall LoadGuiLayer(Menu_0044bc10* menu, const char* name, i
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void* __stdcall ListSaveGameFiles(int* out);
 void __stdcall CloseTopScreen(Menu_0044bc10* menu);
-char* __stdcall FUN_004c5740(const char* text);
+char* __stdcall Translate(const char* text);
 int __stdcall OpenMessageBox(Menu_0044bc10* menu, const char* text, int a, int b, int c);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall FUN_004a32a0(Menu_0044bc10* menu, char* name, void* text, int count, int flag);
 void __stdcall FUN_004a0570(Menu_0044bc10* menu, const char* name, int value);
 Entry_0044bc10* __stdcall FindGadgetChecked(void* gadgets, char* name);
@@ -74,14 +74,14 @@ void OpenLoadListDialog()
     if (ListSaveGameFiles(&count) == 0) {
         CloseTopScreen(&g_game->menu);
         OpenMessageBox(&g_game->menu,
-                     FUN_004c5740("There are no saved lists to choose from"),
+                     Translate("There are no saved lists to choose from"),
                      0x140, 1, 1);
         return;
     }
     char* p = DAT_005129b0;
     for (int i = 0; i < count; i++) {
-        strcpy(p, FUN_004b6af0(DAT_005129ac, i));
-        p += strlen(FUN_004b6af0(DAT_005129ac, i));
+        strcpy(p, SkipTextLines(DAT_005129ac, i));
+        p += strlen(SkipTextLines(DAT_005129ac, i));
         char c = *p;
         while (c != '.') {
             c = *--p;
@@ -101,7 +101,7 @@ void OpenLoadListDialog()
     Entry_0044bc10* games = FindGadgetChecked(gadgets, "GAMES");
     int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
     char* name;
-    if (games->selected > -1 && (name = FUN_004b6af0(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
+    if (games->selected > -1 && (name = SkipTextLines(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
         SetGadgetText(menu, index, name);
     else
         SetGadgetText(menu, index, DAT_005119b8);

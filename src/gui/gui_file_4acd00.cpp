@@ -5,25 +5,25 @@
 #include <stdio.h>
 #include <string.h>
 
-struct Class_004bbbe0;
+struct FileHandle;
 
-extern unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* file, void* data, unsigned int size);
+extern unsigned int __stdcall HAPI_WriteFile(FileHandle* file, void* data, unsigned int size);
 
-static inline void WriteTabs(Class_004bbbe0* file, int depth)
+static inline void WriteTabs(FileHandle* file, int depth)
 {
     char tab = '\t';
     for (int i = 0; i < depth; i++)
-        FUN_004bbbe0(file, &tab, 1);
+        HAPI_WriteFile(file, &tab, 1);
 }
 
 // FUNCTION: 0x4acd00
-void __stdcall WriteSectionHeader(Class_004bbbe0* file, char* name, int depth)
+void __stdcall WriteSectionHeader(FileHandle* file, char* name, int depth)
 {
     char line[100];
     sprintf(line, "[%s]", name);
     WriteTabs(file, depth - 1);
-    FUN_004bbbe0(file, line, strlen(line));
-    FUN_004bbbe0(file, "\n", 1);
+    HAPI_WriteFile(file, line, strlen(line));
+    HAPI_WriteFile(file, "\n", 1);
     WriteTabs(file, depth);
-    FUN_004bbbe0(file, "{\n", 2);
+    HAPI_WriteFile(file, "{\n", 2);
 }

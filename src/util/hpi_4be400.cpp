@@ -12,14 +12,14 @@
 // Walks a directory tree (the search 0x4bc4b0 allocates, the same one 0x4bcb50
 // uses) and, for every plain file, marks the matching entry of every open
 // HAPI archive: the entry named "path + file name" is looked up with
-// FUN_004bb4e0 in each archive's directory (from the search's current archive
+// HAPI_FindEntry in each archive's directory (from the search's current archive
 // index on) and gets bit 2 set unless bit 1 is already set. Sub directories
 // other than "." and ".." are entered with the path extended by "name\\".
 //
 // NOT MATCHED: 99.2%, size exact. Exactly one instruction differs, the target
 // of the file loop's entry test at 0x4be5d4. When the loop has nothing to do
 // (`i >= d->count` on entry) the original jumps PAST the reload of the search
-// handle into esi at 0x4be66d and lands on the FUN_004bc640 argument setup at
+// handle into esi at 0x4be66d and lands on the HAPI_FindNext argument setup at
 // 0x4be672; here the guard jumps to the reload. The join block 0x4be66d has
 // four predecessors (the two strcmp matches at 0x4be4dd and 0x4be51a, the
 // recursion at 0x4be5ba and the loop latch falling through from 0x4be667), and
@@ -57,7 +57,7 @@
 // session left open. Every one of these compiles to the same graph, with the
 // guard still jumping to the reload at 0x4be66d:
 //   - the shape of the MATCHED neighbour 0x4bca30, `if (h != -1) { do { } while
-//     (FUN_004bc640(h, &fd) != -1); if (h != 0) { Find* f = (Find*)h; ... } }`,
+//     (HAPI_FindNext(h, &fd) != -1); if (h != 0) { Find* f = (Find*)h; ... } }`,
 //     with the handle block scoped, the whole tail in a block, the epilogue in a
 //     block, `Find* f` assigned in the file branch, and `int t = ...; int h = t;`
 //     or `int hh = h;` for a second name on the handle;
@@ -169,7 +169,7 @@
 // guard's target is still a back end copy-insertion choice.
 // A tenth session (deepseek-v4.1-flash, 10 minute timebox) re-ran the baseline
 // and probed the register-allocation angle the 0x4bcb50 solution used: a dead
-// `int r` assigned to the outer `while`'s FUN_004bc640 call (99.2), an `int r`
+// `int r` assigned to the outer `while`'s HAPI_FindNext call (99.2), an `int r`
 // declared at the top with the same assignment, and the handle passed as a
 // `Find*` with an early `f` used in the clamp, the recursion and the condition
 // (99.2). New spellings of the inner loop (`if (i < d->count) do {} while
@@ -185,7 +185,7 @@
 // the compiler could have reloaded only on the latch), a `do {} while` with the
 // same top break, an `if (i < d->count) do {} while`, a `goto`-based guard with
 // a label at the outer condition, a dead `else { i = i; }` on the guard path,
-// a labelled else, `(i = FUN_004bc640(...))` and `(r = ...)` spellings of the
+// a labelled else, `(i = HAPI_FindNext(...))` and `(r = ...)` spellings of the
 // condition, `(int)(Find*)h`/`>= 0`/`-1 !=`/`!==` comparisons and the guard as
 // `!(i >= d->count)`. Every one that keeps the 699 bytes is byte-identical to
 // this file with the same single `jge` byte; the rest are 97 to 74 or 701
@@ -198,7 +198,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Find_004be400 {
+struct FindFiles {
     char dir[0x100];         // +0x000
     char pattern[0x100];     // +0x100
     int state;               // +0x200
@@ -207,42 +207,42 @@ struct Find_004be400 {
     int index;               // +0x209
 };
 
-struct Entry_004be400 {                // 9 bytes
+struct ArchiveEntry {                  // 9 bytes
     int field_0;
     int field_4;
     unsigned char flags;               // +0x8
 };
 
-struct Table_004be400 {
+struct ArchiveDirectory {
     int count;
-    Entry_004be400* entries;
+    ArchiveEntry* entries;
 };
 
 struct Header_004be400 {
     char unknown_0[0x10];
-    Table_004be400* table;             // +0x10
+    ArchiveDirectory* table;           // +0x10
 };
 
-struct File_004be400 {
+struct OPENHAPIFILE {
     char unknown_0[8];
     Header_004be400* header;           // +0x8
 };
 
 struct Display_004be400 {
     char unknown_0[0x618];
-    File_004be400** files;             // +0x618
+    OPENHAPIFILE** files;              // +0x618
     int count;                         // +0x61c
 };
 #pragma pack(pop)
 
 Display_004be400* GetDisplay();
-Entry_004be400* __stdcall FUN_004bb4e0(Table_004be400* table, char* name);
-int __stdcall FUN_004bc4b0(const char* path, struct _finddata_t* fd, int state, char recursive);
-int __stdcall FUN_004bc640(int handle, struct _finddata_t* fd);
+ArchiveEntry* __stdcall HAPI_FindEntry(ArchiveDirectory* table, char* name);
+int __stdcall HAPI_FindFirst(const char* path, struct _finddata_t* fd, int state, char recursive);
+int __stdcall HAPI_FindNext(int handle, struct _finddata_t* fd);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4be400
-void __stdcall FUN_004be400(char* path, int state, int recursive)
+void __stdcall HAPI_MarkShadowedFiles(char* path, int state, int recursive)
 {
     Display_004be400* d = GetDisplay();
     char buf[0x100];
@@ -251,7 +251,7 @@ void __stdcall FUN_004be400(char* path, int state, int recursive)
 
     strcpy(buf, path);
     strcat(buf, "*");
-    int h = FUN_004bc4b0(buf, &fd, state, recursive);
+    int h = HAPI_FindFirst(buf, &fd, state, recursive);
     if (h == -1)
         return;
     do {
@@ -261,11 +261,11 @@ void __stdcall FUN_004be400(char* path, int state, int recursive)
                     strcpy(buf, path);
                     strcat(buf, fd.name);
                     strcat(buf, "\\");
-                    FUN_004be400(buf, ((Find_004be400*)h)->state, 0);
+                    HAPI_MarkShadowedFiles(buf, ((FindFiles*)h)->state, 0);
                 }
             }
         } else {
-            i = ((Find_004be400*)h)->state;
+            i = ((FindFiles*)h)->state;
             if (i < 0)
                 i = 0;
             else
@@ -273,13 +273,13 @@ void __stdcall FUN_004be400(char* path, int state, int recursive)
             for (; i < d->count; i++) {
                 strcpy(buf, path);
                 strcat(buf, fd.name);
-                Entry_004be400* e = FUN_004bb4e0(d->files[i]->header->table, buf);
+                ArchiveEntry* e = HAPI_FindEntry(d->files[i]->header->table, buf);
                 if (e && !(e->flags & 1))
                     e->flags |= 2;
             }
         }
-    } while (FUN_004bc640(h, &fd) != -1);
-    Find_004be400* f = (Find_004be400*)h;
+    } while (HAPI_FindNext(h, &fd) != -1);
+    FindFiles* f = (FindFiles*)h;
     if (f) {
         if (f->state < 0)
             _findclose(f->handle);

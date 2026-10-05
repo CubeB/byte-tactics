@@ -59,7 +59,7 @@ public:
 #pragma pack(pop)
 extern Game* g_game;
 extern Class_0040a7b0* g_playerAI[];
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 static inline void CellToWorld(Vec3* out, Point p, Point origin) {
     out->x=(origin.x+p.x*2)<<19;
     out->z=(origin.y+p.y*2)<<19;
@@ -73,7 +73,7 @@ int __stdcall FindBuildPosition(int player, const Vec3* from, UnitType* type, Ve
     Vec3 pos=MoveTowards(from,&ai->pos,ai->range<<16);
     Point cell;
     int result;
-    if (type->value!=0.0f && g_game->net->threshold<FUN_004b6c30(255))
+    if (type->value!=0.0f && g_game->net->threshold<RandomInt(255))
         result=ai->FindCellNearFeatures(type,&pos,ai->cells,ai->range*4,&cell);
     else result=ai->FindRandomPlacementCell(type,&pos,ai->range,&cell);
     if (result) {

@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 struct Unit;
-class Class_004b4560;
+class HapiBank;
 
 // Mission victory/defeat condition (see 0x48ff40.cpp).
 class MissionCondition {
@@ -13,8 +13,8 @@ public:
     virtual void OnUnitDied(Unit* unit);     // Slot1
     virtual void OnUnitCaptured(Unit* unit);  // Slot2
     virtual void OnUnitCreated(Unit* unit);  // Slot3
-    virtual void SaveState(Class_004b4560* file) = 0;      // Save
-    virtual void LoadState(Class_004b4560* file) = 0;      // Load
+    virtual void SaveState(HapiBank* file) = 0;            // Save
+    virtual void LoadState(HapiBank* file) = 0;            // Load
 };
 
 class Class_00435100 {
@@ -38,12 +38,12 @@ public:
     MissionCondition* defeat[16];        // +0x44
     int defeatCount;                     // +0x84
 
-    void SaveConditions(Class_004b4560* file);
+    void SaveConditions(HapiBank* file);
 };
 
 // Saves every condition.
 // FUNCTION: 0x48fdf0
-void MissionConditions::SaveConditions(Class_004b4560* file)
+void MissionConditions::SaveConditions(HapiBank* file)
 {
     if (g_game->field_391e9->FUN_00435100() == 1) {
         int i;

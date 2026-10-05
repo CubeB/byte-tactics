@@ -66,9 +66,9 @@ struct Flags_37f06 {
 
 struct Vec3f { float x; float y; float z; };
 
-Vec3f __stdcall FUN_004b6f00(Vec3 a, Vec3 b);
-Vec3f __stdcall FUN_004b6f70(Vec3f a, Vec3f b);
-Vec3f __stdcall FUN_004b6ff0(Vec3f v);
+Vec3f __stdcall VectorFromToInt(Vec3 a, Vec3 b);
+Vec3f __stdcall CrossProduct(Vec3f a, Vec3f b);
+Vec3f __stdcall NormalizeVector(Vec3f v);
 void* __stdcall GetGafSequenceFrame(void* pic);
 void* __stdcall GetGafFrame(unsigned short* table, int index);
 void __stdcall DownsampleFrame(Bitmap_459c70* dst, Bitmap_459c70* src);
@@ -249,11 +249,11 @@ void Class_004581e0::DrawLitPieces(Bitmap_459c70* bitmap, List_459c70* list,
                         Vec3 p0 = verts[idx[1]];
                         Vec3 p1 = verts[idx[0]];
                         Vec3 p2 = verts[idx[2]];
-                        Vec3f a = FUN_004b6f00(p0, p1);
-                        Vec3f b = FUN_004b6f00(p0, p2);
-                        Vec3f c = FUN_004b6f70(a, b);
+                        Vec3f a = VectorFromToInt(p0, p1);
+                        Vec3f b = VectorFromToInt(p0, p2);
+                        Vec3f c = CrossProduct(a, b);
                         normal[fi] = c;
-                        c = FUN_004b6ff0(c);
+                        c = NormalizeVector(c);
                         normal[fi] = c;
                     } else {
                         normal[fi].x = 0.0f;

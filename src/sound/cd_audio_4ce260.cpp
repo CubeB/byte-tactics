@@ -8,7 +8,7 @@ extern int g_cdNextTrackTimer;
 extern int g_cdFadeTimer;
 
 extern void __stdcall RemoveTimer(int);
-extern void __stdcall FUN_004b6b60(void (__stdcall*)(int, int, int));
+extern void __stdcall SetMediaNotifyCallback(void (__stdcall*)(int, int, int));
 extern void __stdcall HandleCdMessage(int, int, int);
 extern BOOL __stdcall FindCdPlayerWindow(HWND, LPARAM);
 
@@ -89,7 +89,7 @@ int Class_004ce260::OpenCdAudio()
     }
     field_210 = 0;
     field_200 = ((Class_004cda00*)this)->QueryDisc();
-    FUN_004b6b60(HandleCdMessage);
+    SetMediaNotifyCallback(HandleCdMessage);
     open = 1;
     field_204 = 1;
     field_208 = 0;

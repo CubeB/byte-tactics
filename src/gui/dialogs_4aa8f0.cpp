@@ -31,7 +31,7 @@
 //    free path last, and SetTextColors declared `(int, int)` with a zeroed
 //    `unsigned int v` before the byte load.
 //
-// Suspected original bug: when FUN_004bbc40(layerName) returns 0 (GUI file
+// Suspected original bug: when HAPI_FileLengthByName(layerName) returns 0 (GUI file
 // missing) the code jumps to 0x4aac2d, which loads `layer` from [S+0x10]
 // before it was ever stored (the only store is the mask-path one at
 // 0x4aaa3b) and then writes layer->entries/field_1c/field_24/field_3b
@@ -99,7 +99,7 @@ struct Menu_004aa8f0 {
 extern void __stdcall FadeRectangle(int handle, int* rect, int mode);
 extern char* __stdcall StripPath(char* path);
 extern char* __stdcall ChangeExtension(char* out, char* in, char* ext);
-extern int __stdcall FUN_004bbc40(char* path);
+extern int __stdcall HAPI_FileLengthByName(char* path);
 extern void* __cdecl FUN_004d83b0(const char* path, unsigned int size);
 extern int __stdcall ReadGuiFile(void* entry, char* path);
 extern void __cdecl FUN_004d85a0(void* p);
@@ -164,7 +164,7 @@ Layer_004aa8f0* __stdcall LoadGuiLayer(Menu_004aa8f0* menu, const char* name,
     strncpy(guiName, name, 0x100);
     StripPath(guiName);
     ChangeExtension(layerName, layerName, "GUI");
-    if (FUN_004bbc40(layerName) != 0) {
+    if (HAPI_FileLengthByName(layerName) != 0) {
         int mask = flags & 0x200;
         if (mask != 0) {
             layer = menu->layer;

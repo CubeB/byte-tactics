@@ -86,7 +86,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fdaf0,DAT_004fdaf0,.rdata,16,gap,data,V4i,1,1,2,conflicting: struct names only,2,0xc,,,,00000000000000000000000000000000
 0x4fdbe0,DAT_004fdbe0,.rdata,4,type,data,const unsigned char*,1,0,1,one type,1,,,,src/data/unused.cpp,00000000
 0x4fdbe8,DAT_004fdbe8,.rdata,8,type,float,double,1,0,1,one type,1,,,,,9a9999999999b1bf
-0x4fdbf0,DAT_004fdbf0,.rdata,40,gap,string,char[],1,0,1,one type,1,,,,,436f7079726967687420303030302043617665646f6720456e7465727461696e6d656e7400000000
+0x4fdbf0,g_hapiCopyright,.rdata,40,gap,string,char[],1,0,1,one type,1,,,,,436f7079726967687420303030302043617665646f6720456e7465727461696e6d656e7400000000
 0x501774,g_aiCommandsEnabled,.data,4,type,data,int,4,0,1,one type,4,,INT_00501774,,,01000000
 0x501d18,DAT_00501d18,.data,32,gap,data,unsigned char[],1,0,1,one type,1,,s__00501d18,,,000000000000000000006f6e6d6c6b6a585756555453525150ffffffffffffff
 0x501d38,g_consoleCommands,.data,528,gap,data,Option_00419560,1,1,2,conflicting: shape,2,,PTR_s_NoShake_00501d38,86,src/game/console_commands.cpp,44245000606e4100010000003c245000b06d41000100000030245000f06c41000100000028245000206d41000100000020245000d06b41000100000018245000
@@ -278,7 +278,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5097d0,DAT_005097d0,.data,24,gap,string,const char[],1,0,1,one type,1,,s_gamedata_translate_tdf_005097d0,,,67616d65646174615c7472616e736c6174652e7464660000
 0x5097e8,DAT_005097e8,.data,12,gap,string,const char[],1,0,1,one type,1,,s_language_005097e8,,,6c616e677561676500000000
 0x5097f4,DAT_005097f4,.data,8,gap,string,const char[],1,0,1,one type,1,,,,,57617267616d6500
-0x509edc,DAT_00509edc,.data,20,gap,string,const char[],1,0,1,one type,1,,s_Error_00509edc,,,4572726f72000000000000000000000000000000
+0x509edc,g_errorCaption,.data,20,gap,string,const char[],1,0,1,one type,1,,s_Error_00509edc,,,4572726f72000000000000000000000000000000
 0x509ef0,DAT_00509ef0,.data,8,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,8ac7c96d305fc440
 0x509ef8,DAT_00509ef8,.data,8,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,5a2c4454fb21193f
 0x509f00,DAT_00509f00,.data,256,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,,,,,00006500c9002e019201f6015b02bf0223038703eb034e04b20415057905db053e06a10603076507c60728088908ea084a09aa090a0a690ac80a260b840be20b
@@ -297,7 +297,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50b540,g_cdNextTrackTimer,.data,4,type,data,int,8,0,1,one type,8,,INT_0050b540,,,ffffffff
 0x50b544,g_cdFadeTimer,.data,4,type,data,int,7,0,1,one type,7,,INT_0050b544,,,ffffffff
 0x50b6e0,DAT_0050b6e0,.data,4,type,data,WaveFormatName*,1,0,1,one type,1,,,,src/data/unused.cpp,01000000
-0x50b9e0,DAT_0050b9e0,.data,28,gap,data,void*[],1,0,1,one type,1,,PTR_s_SQUASHERR_OK_0050b9e0,6,,84ba500070ba500058ba500040ba500028ba5000fcb9500000000000
+0x50b9e0,g_squashErrorNames,.data,28,gap,data,void*[],1,0,1,one type,1,,PTR_s_SQUASHERR_OK_0050b9e0,6,,84ba500070ba500058ba500040ba500028ba5000fcb9500000000000
 0x50c8ac,DAT_0050c8ac,.data,8,gap,string,char[],1,0,1,one type,1,,s_Cavedog_0050c8ac,,,43617665646f6700
 0x50c908,DAT_0050c908,.data,76,type,data,char*[19],1,0,1,one type,1,0x4c,PTR_s__memfussy_0050c908,19,,68c2500074c2500080c2500098c25000acc25000b4c2500060d2500054d2500048d250003cd2500030d2500020d250000cd25000f8d15000e8d15000d0d15000
 0x50c958,g_assertDialog,.data,1,type,data,char,1,1,2,conflicting: shape,2,,CHAR_C0h_0050c958,,src/debug/debug_dialogs.cpp,c0
@@ -769,22 +769,22 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51fc7c,g_closeHandlerArg,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051fc7c,,in DAT_0051fbd8+0xa4,
 0x51fc80,g_timerCount,.bss,4,type,data,int,5,0,1,one type,5,,INT_0051fc80,,in DAT_0051fbd8+0xa8,
 0x51fc84,DAT_0051fc84,.bss,4,type,data,unsigned int,4,0,1,one type,4,,UINT_0051fc84,,,
-0x51fc88,DAT_0051fc88,.bss,4,type,data,unsigned int,2,0,1,one type,2,,UINT_0051fc88,,,
+0x51fc88,g_randomSeed,.bss,4,type,data,unsigned int,2,0,1,one type,2,,UINT_0051fc88,,,
 0x51fc8c,DAT_0051fc8c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x51fc90,DAT_0051fc90,.bss,4,type,data,int,3,0,1,one type,3,,INT_0051fc90,,,
-0x51fc94,DAT_0051fc94,.bss,4,type,data,int,3,0,1,one type,3,,INT_0051fc94,,,
+0x51fc90,g_defaultCommandHandler,.bss,4,type,data,int,3,0,1,one type,3,,INT_0051fc90,,,
+0x51fc94,g_defaultCommandMask,.bss,4,type,data,int,3,0,1,one type,3,,INT_0051fc94,,,
 0x51fcb0,DAT_0051fcb0,.bss,256,gap,data,unsigned char[],2,0,1,one type,2,,s__0051fcb0,,,
 0x51fdb0,DAT_0051fdb0,.bss,4,type,data,int,3,0,1,one type,3,,INT_0051fdb0,,,
 0x51fdb4,DAT_0051fdb4,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x51fdb8,DAT_0051fdb8,.bss,4,type,data,Class_004c5840*,2,1,2,conflicting: struct names only,3,,DAT_0051fdb8,,,
+0x51fdb8,g_translations,.bss,4,type,data,TranslationTable*,3,0,1,one type,3,,DAT_0051fdb8,,,
 0x51fdbc,DAT_0051fdbc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x51fdc0,DAT_0051fdc0,.bss,304,parts,data,char[256],2,0,1,one type,2,,s__0051fdc0,,,
-0x51fe00,g_screenLockCount,.bss,4,type>gap,data,int,14,0,1,one type,14,,,,in DAT_0051fdc0+0x40,
-0x51fe08,g_screenLocks,.bss,56,gap,data,LockEntry_004c5e70[],1,2,3,conflicting: struct names only,3,0x4,,,in DAT_0051fdc0+0x48,
-0x51fe40,DAT_0051fe40,.bss,4,type,data,int,1,0,1,one type,1,,,,in DAT_0051fdc0+0x80,
-0x51fe48,DAT_0051fe48,.bss,80,gap,data,int[],2,0,1,one type,2,,,,in DAT_0051fdc0+0x88,
-0x51fe98,DAT_0051fe98,.bss,4,type,data,int,1,0,1,one type,1,,,,in DAT_0051fdc0+0xd8,
-0x51fea0,DAT_0051fea0,.bss,80,gap,data,int[],2,0,1,one type,2,,,,in DAT_0051fdc0+0xe0,
+0x51fdc0,g_language,.bss,304,parts,data,char[256],2,0,1,one type,2,,s__0051fdc0,,,
+0x51fe00,g_screenLockCount,.bss,4,type>gap,data,int,14,0,1,one type,14,,,,in g_language+0x40,
+0x51fe08,g_screenLocks,.bss,56,gap,data,LockEntry_004c5e70[],1,2,3,conflicting: struct names only,3,0x4,,,in g_language+0x48,
+0x51fe40,DAT_0051fe40,.bss,4,type,data,int,1,0,1,one type,1,,,,in g_language+0x80,
+0x51fe48,DAT_0051fe48,.bss,80,gap,data,int[],2,0,1,one type,2,,,,in g_language+0x88,
+0x51fe98,DAT_0051fe98,.bss,4,type,data,int,1,0,1,one type,1,,,,in g_language+0xd8,
+0x51fea0,DAT_0051fea0,.bss,80,gap,data,int[],2,0,1,one type,2,,,,in g_language+0xe0,
 0x51fef0,DAT_0051fef0,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051fef0,,,
 0x51fef4,DAT_0051fef4,.bss,4,type,data,int,1,0,1,one type,1,,INT_0051fef4,,,
 0x51fef8,DAT_0051fef8,.bss,4,type,data,Chunk*,2,0,1,one type,2,,DAT_0051fef8,,,
@@ -803,13 +803,13 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51ff58,DAT_0051ff58,.bss,4,type,data,int,2,0,1,one type,2,,INT_0051ff58,,,
 0x51ff5c,DAT_0051ff5c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51ff60,DAT_0051ff60,.bss,112,gap,data,char[],2,0,1,one type,2,,s__0051ff60,,,
-0x51ffd0,DAT_0051ffd0,.bss,176,gap,data,char[],3,0,1,one type,3,,s__0051ffd0,,,
+0x51ffd0,g_lzssPresetWindow,.bss,176,gap,data,char[],3,0,1,one type,3,,s__0051ffd0,,,
 0x520080,DAT_00520080,.bss,3944,gap,unreferenced,unsigned char[3944],0,0,0,,0,,,,,
-0x520fe8,DAT_00520fe8,.bss,24584,gap,data,char[],2,0,1,one type,2,,s__00520fe8,,,
+0x520fe8,g_lzssPresetTree,.bss,24584,gap,data,char[],2,0,1,one type,2,,s__00520fe8,,,
 0x526ff0,DAT_00526ff0,.bss,4,type,data,Struct_00526ff0*,2,8,9,conflicting: shape,10,,DAT_00526ff0,,,
 0x526ff4,DAT_00526ff4,.bss,4,type,data,char*,4,2,2,conflicting: shape,6,,DAT_00526ff4,,,
-0x526ff8,DAT_00526ff8,.bss,4,type,data,int,3,0,1,one type,3,,INT_00526ff8,,,
-0x526ffc,DAT_00526ffc,.bss,4,type>gap,data,int,4,0,1,one type,4,,INT_00526ffc,,,
+0x526ff8,g_lzssPresetReady,.bss,4,type,data,int,3,0,1,one type,3,,INT_00526ff8,,,
+0x526ffc,g_lzssUsePreset,.bss,4,type>gap,data,int,4,0,1,one type,4,,INT_00526ffc,,,
 0x5289b4,DAT_005289b4,.bss,1,type,data,char,2,0,1,one type,2,,CHAR_00h_005289b4,,,
 0x5289b8,DAT_005289b8,.bss,1,type,data,char,2,0,1,one type,2,,CHAR_00h_005289b8,,,
 0x5289bc,DAT_005289bc,.bss,4,type,data,void (__stdcall*)(void),12,1,2,conflicting: shape,13,,DAT_005289bc,,,

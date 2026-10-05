@@ -95,7 +95,7 @@ int __stdcall DrawString(int,int,int,int,int);
 int __stdcall IsKeyDown(int);
 int FUN_004c2470();
 int FUN_004c2870();
-int __stdcall FUN_004c5740(int);
+int __stdcall Translate(int);
 int FlipScreen();
 int __stdcall SetOffscreenSurface(int);
 int __stdcall ResetClipRect(int);
@@ -561,7 +561,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     int rest = ticks - hours * 108000;
     int minutes = rest / 1800;
     int seconds = (rest - minutes * 1800) / 30;
-    sprintf(gameTime, "%s : %02d:%02d:%02d", (char *)FUN_004c5740((int)"Game Time"), hours, minutes, seconds);
+    sprintf(gameTime, "%s : %02d:%02d:%02d", (char *)Translate((int)"Game Time"), hours, minutes, seconds);
     SetTextColors(colors[0xf], GetTextKeyColor());
     DrawString((int)&ctx, (int)gameTime, 0x82, -0x22 - GetFontHeight() + GetScreenHeight(), -1);
   }

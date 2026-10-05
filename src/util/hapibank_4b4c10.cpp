@@ -2,38 +2,38 @@
 // Sets the position (+0xc) of the current chunk of the current slot, clamped
 // to 0..size (+0x8); the seek counterpart of 0x4b4c50.
 
-struct Chunk_004b4c10 {             // 0x14 bytes
+struct SafeDepositBox {             // 0x14 bytes
     char unknown_0[8];
     int size;                       // +0x08
     int pos;                        // +0x0c
     char* data;                     // +0x10
 };
 
-struct Slot_004b4c10 {              // 0x18 bytes
+struct BankAccount {                // 0x18 bytes
     char unknown_0[0xc];
     int current;                    // +0x0c
     char unknown_10[4];
-    Chunk_004b4c10* chunks;         // +0x14
+    SafeDepositBox* chunks;         // +0x14
 };
 
-struct Table_004b4c10 {
+struct AccountList {
     char unknown_0[4];
-    Slot_004b4c10* slots;           // +0x04
+    BankAccount* slots;             // +0x04
     int index;                      // +0x08
 };
 
 class Class_004b4c10 {
 public:
-    Table_004b4c10* table;          // +0x00
+    AccountList* table;             // +0x00
 
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 // FUNCTION: 0x4b4c10
-void Class_004b4c10::FUN_004b4c10(int pos)
+void Class_004b4c10::SeekBox(int pos)
 {
-    Slot_004b4c10* s = &table->slots[table->index];
-    Chunk_004b4c10* c = &s->chunks[s->current];
+    BankAccount* s = &table->slots[table->index];
+    SafeDepositBox* c = &s->chunks[s->current];
     if (pos < 0) {
         pos = 0;
     }

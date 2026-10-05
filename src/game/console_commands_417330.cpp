@@ -17,7 +17,7 @@ class Class_004b73c0 {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
-    char* FUN_004b73c0(int index, char* fallback);
+    char* GetArg(int index, char* fallback);
 };
 
 void SaveSettings();
@@ -26,7 +26,7 @@ void SaveSettings();
 void __stdcall CmdFilm(Class_004b73c0* args)
 {
     if (args->count > 1) {
-        strcpy(g_game->path, args->FUN_004b73c0(1, DAT_005119b8));
+        strcpy(g_game->path, args->GetArg(1, DAT_005119b8));
         if (g_game->path[strlen(g_game->path) - 1] == '\\' ||
             g_game->path[strlen(g_game->path) - 1] == '/')
             g_game->path[strlen(g_game->path) - 1] = 0;

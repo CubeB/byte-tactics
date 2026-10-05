@@ -149,7 +149,7 @@ int GetFontHeight();
 int __stdcall GetGafFrame(unsigned short* glyphs, int c);
 void __stdcall SetTextColors(int colour, int font);
 int GetTextKeyColor();
-char* __stdcall FUN_004b6af0(char* text, int line);
+char* __stdcall SkipTextLines(char* text, int line);
 void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw,
                             int style);
 void __stdcall FUN_004a51d0(void* surface, char* text, int x, int y, int maxw,
@@ -248,7 +248,7 @@ void __stdcall DrawListBox(Class_004a1b40* obj, int index)
         if (i == entries->count + 1) { SetFont(g_guiContext->current); }
         GetFont();
         font = GetTextKeyColor();
-        char* q = FUN_004b6af0(me->text, me->field_bc);
+        char* q = SkipTextLines(me->text, me->field_bc);
         int line = 0;
         int y = me->field_bc;
         yoff = 0;
@@ -286,7 +286,7 @@ void __stdcall DrawListBox(Class_004a1b40* obj, int index)
                 FUN_004a51d0(entries->surface, q, xx, ty, xw, bounds.bottom - bounds.top, 0);
             else
                 FUN_004a50e0(entries->surface, q, xx, ty, xw, 0);
-            q = FUN_004b6af0(q, 1);
+            q = SkipTextLines(q, 1);
             if (flag) {
                 flag = 0;
                 FadeRectangle(entries->surface, &rowRect, -0x13);

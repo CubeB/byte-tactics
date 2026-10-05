@@ -2,7 +2,7 @@
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
 #pragma pack(push, 1)
@@ -20,5 +20,5 @@ struct StructB_004ae610 {
 // FUNCTION: 0x4ae610
 void __stdcall ReadNuttinField(StructA_004ae610* a, StructB_004ae610* b)
 {
-    a->field_b6 = b->field_4->FUN_004c46c0("nuttin", 0);
+    a->field_b6 = b->field_4->GetFieldInt("nuttin", 0);
 }

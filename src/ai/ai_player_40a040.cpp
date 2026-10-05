@@ -25,11 +25,11 @@ public:
 };
 #pragma pack(pop)
 
-class Class_004b73b0 {
+class CommandArgs {
 public:
     char unknown_0[0xd0];
     int field_d0;
-    Class_004b73b0* FUN_004b73b0();
+    CommandArgs* InitArgs();
 };
 
 class Class_004b74f0 {
@@ -42,7 +42,7 @@ extern Game* g_game;
 extern PlayerAI* g_playerAI[];
 
 void EnableAICommands();
-int __stdcall FUN_004b7a30(char* text, int len, Class_004b74f0* vars, int param_4);
+int __stdcall ExecuteCommandText(char* text, int len, Class_004b74f0* vars, int param_4);
 
 // FUNCTION: 0x40a040
 void __stdcall FUN_0040a040(int player)
@@ -56,8 +56,8 @@ void __stdcall FUN_0040a040(int player)
                 int len = strlen(def->name);
                 if (len != 0) {
                     Class_004b74f0 vars;
-                    ((Class_004b73b0*)&vars)->FUN_004b73b0();
-                    FUN_004b7a30(def->name, len, &vars, -1);
+                    ((CommandArgs*)&vars)->InitArgs();
+                    ExecuteCommandText(def->name, len, &vars, -1);
                 }
             }
         }

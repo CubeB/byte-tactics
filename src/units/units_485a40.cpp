@@ -176,7 +176,7 @@ extern Game* g_game;
 
 void __stdcall ResetWeaponTarget(Unit* unit, int index);
 void __stdcall SetUnitSquad(Unit* unit, int param_2);
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 
 // FUNCTION: 0x485a40
 void __stdcall InitUnitFromType(Unit* unit, Pos_485a40 pos, int param_5)
@@ -223,7 +223,7 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_485a40 pos, int param_5)
     screen.y = (short)((pos.z - off.y * 0x80000 + 0x80000) >> 20);
     unit->screen = screen;
 
-    unit->field_66 = (short)(FUN_004b6c30(unit->type->field_210)
+    unit->field_66 = (short)(RandomInt(unit->type->field_210)
                              + (0x8000 - unit->type->field_210 / 2));
     unit->field_64 = 0;
     unit->field_7a = 0;
@@ -257,6 +257,6 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_485a40 pos, int param_5)
     unit->field_f8 = 0;
     unit->playerRef.Reset(unit->field_ff);
     unit->field_f9 = 0xff;
-    unit->field_aa = (short)FUN_004b6c30(0x10000);
+    unit->field_aa = (short)RandomInt(0x10000);
     SetUnitSquad(unit, 0);
 }

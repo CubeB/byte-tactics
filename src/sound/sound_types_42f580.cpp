@@ -25,32 +25,32 @@ public:
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* path);
+    int LoadFile(char* path);
 };
 
 class Class_004c3240 {
 public:
-    void FUN_004c3240();
+    void Unload();
 };
 
 class Class_004c3490 {
 public:
-    int FUN_004c3490(int index);
+    int SelectRecordAt(int index);
 };
 
 class Class_004c3e10 {
 public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c4420 {
 public:
-    void FUN_004c4420(char* dest, unsigned int count);
+    void CopyRecordName(char* dest, unsigned int count);
 };
 
 class Class_004c4450 {
 public:
-    int FUN_004c4450();
+    int GetSubRecordCount();
 };
 
 struct SoundInfo_005086fc {
@@ -76,16 +76,16 @@ void LoadSoundCategories()
     SoundInfo_005086fc* p;
 
     BuildDataPath(path, "gamedata", "sound", "TDF");
-    if (((Class_004c2f60*)&obj)->FUN_004c2f60(path)) {
-        *(int*)(g_game + 0x37e17) = ((Class_004c4450*)obj.field_0)->FUN_004c4450();
+    if (((Class_004c2f60*)&obj)->LoadFile(path)) {
+        *(int*)(g_game + 0x37e17) = ((Class_004c4450*)obj.field_0)->GetSubRecordCount();
         int size = *(int*)(g_game + 0x37e17) * 0x160;
         *(int*)(g_game + 0x37e13) = (int)FUN_004d83b0("Sound Categories", size);
         memset((void*)*(int*)(g_game + 0x37e13), 0, size);
         for (int i = 0; i < *(int*)(g_game + 0x37e17); i++) {
             char* rec = (char*)*(int*)(g_game + 0x37e13) + i * 0x160;
-            ((Class_004c3e10*)&obj)->FUN_004c3e10();
-            if (((Class_004c3490*)&obj)->FUN_004c3490(i)) {
-                ((Class_004c4420*)obj.field_4)->FUN_004c4420(rec, 0x3f);
+            ((Class_004c3e10*)&obj)->ResetCurrentRecord();
+            if (((Class_004c3490*)&obj)->SelectRecordAt(i)) {
+                ((Class_004c4420*)obj.field_4)->CopyRecordName(rec, 0x3f);
                 p = DAT_005086fc;
                 int* vals = (int*)(rec + 0x4c);
                 while ((int)p < (int)(DAT_005086fc + 23)) {
@@ -100,6 +100,6 @@ void LoadSoundCategories()
                 }
             }
         }
-        ((Class_004c3240*)&obj)->FUN_004c3240();
+        ((Class_004c3240*)&obj)->Unload();
     }
 }

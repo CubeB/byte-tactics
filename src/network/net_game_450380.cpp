@@ -30,7 +30,7 @@ struct Game {
 extern Game* g_game;
 extern char* g_leftGameTexts[8];
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall AddMessage(char* text, int param_2, int param_3, char param_4);
 
 static inline int GetPlayerField_00450380(unsigned char i)
@@ -64,6 +64,6 @@ void __stdcall AnnouncePlayerLeft(int id)
         p = &g_game->players[FindPlayerIndex_00450380(id)];
     if (p == 0)
         return;
-    sprintf(buf, "%s %s", p->name, FUN_004c5740(g_leftGameTexts[rand() & 7]));
+    sprintf(buf, "%s %s", p->name, Translate(g_leftGameTexts[rand() & 7]));
     AddMessage(buf, 4, 0, p->field_146);
 }

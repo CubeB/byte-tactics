@@ -12,7 +12,7 @@ class Class_0044e2d0 { public: char data[0x36]; Class_0044e2d0(Order*,const Vec3
 #pragma pack(pop)
 class Class_0044e730 { public: void FUN_0044e730(int); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short,int);
 int __cdecl FUN_004b7123(short,int);
 static inline Vec3 Offset(short angle,int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
@@ -25,7 +25,7 @@ int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
     switch(state) {
     case 0:
         if (unit->motion && (unit->def->flags&0x800)) {
-            order->side=FUN_004b6c30(2);
+            order->side=RandomInt(2);
             Vec3 pos;
         if (order->side) pos=unit->pos+Offset(unit->heading-0x4000,range<<16);
         else pos=unit->pos+Offset(unit->heading+0x4000,range<<16);

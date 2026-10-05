@@ -3,7 +3,7 @@
 #include <string.h>
 
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall TruncateTextWithEllipsis(int a1, char* text, int a3, int a4, int a5);
 
 // Builds a block of NUL-terminated item strings from the text blob at a3
@@ -16,7 +16,7 @@ void __stdcall FUN_004a31c0(int a1, int a2, char* a3, int a4)
     char* out = items;
     for (int i = 0; i < a4; i++) {
         char buf[100];
-        strncpy(buf, FUN_004b6af0(a3, i), 100);
+        strncpy(buf, SkipTextLines(a3, i), 100);
         TruncateTextWithEllipsis(a1, buf, a2, -1, 0);
         strcpy(out, buf);
         out += strlen(buf);

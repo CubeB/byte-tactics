@@ -11,9 +11,9 @@ struct FindData_00495930 {
 extern char DAT_00503374[];
 extern char DAT_005119b8[];
 
-int __stdcall FUN_004bc4b0(const char* path, FindData_00495930* fd, int a, int b);
-int __stdcall FUN_004bc640(int handle, FindData_00495930* fd);
-void __stdcall FUN_004bc8d0(int handle);
+int __stdcall HAPI_FindFirst(const char* path, FindData_00495930* fd, int a, int b);
+int __stdcall HAPI_FindNext(int handle, FindData_00495930* fd);
+void __stdcall HAPI_FindClose(int handle);
 
 // FUNCTION: 0x495930
 void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name, const char* ext)
@@ -28,15 +28,15 @@ void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name,
         }
     }
     sprintf(out, "%s%s%s*.%s", dir, needSep ? DAT_00503374 : DAT_005119b8, name, ext);
-    int handle = FUN_004bc4b0(out, &fd, -1, 1);
+    int handle = HAPI_FindFirst(out, &fd, -1, 1);
     if (handle >= 0) {
         do {
             int val = atoi(fd.name + strlen(name));
             if (val > max) {
                 max = val;
             }
-        } while (FUN_004bc640(handle, &fd) == 0);
-        FUN_004bc8d0(handle);
+        } while (HAPI_FindNext(handle, &fd) == 0);
+        HAPI_FindClose(handle);
     }
     sprintf(out, "%s%s%s%04i.%s", dir, needSep ? DAT_00503374 : DAT_005119b8, name, max + 1, ext);
 }

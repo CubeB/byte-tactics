@@ -18,34 +18,34 @@
 #include <string.h>
 #include <vector>
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(char* name);
+    void OpenAccount(char* name);
 };
 
 class Class_004b4630 {
 public:
-    int FUN_004b4630(const char* name, int value);
+    int SetIntegerItem(const char* name, int value);
 };
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4bf0 {
 public:
-    int FUN_004b4bf0();
+    int GetBoxSize();
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* src, int len);
+    int WriteBox(void* src, int len);
 };
 
 struct Vec3_00424890 {
@@ -146,14 +146,14 @@ extern Game* g_game;
 // FUNCTION: 0x424890
 void __stdcall SaveFeatures(Class_004b4ba0* file)
 {
-    ((Class_004b4560*)file)->FUN_004b4560("Features");
+    ((HapiBank*)file)->OpenAccount("Features");
     std::vector<FeatureName_00424890> names(g_game->featureCount);
     FeatureName_00424890* dst = names.begin();
     Feature_00424890* src = g_game->features;
     for (int i = 0; i < g_game->featureCount; i++, dst++, src++)
         strncpy(dst->name, src->name, 0x80);
-    file->FUN_004b4ba0("Feature Type Names");
-    ((Class_004b4cf0*)file)->FUN_004b4cf0(names.begin(), g_game->featureCount * sizeof(FeatureName_00424890));
+    file->OpenNamedBox("Feature Type Names");
+    ((Class_004b4cf0*)file)->WriteBox(names.begin(), g_game->featureCount * sizeof(FeatureName_00424890));
 
     Cell_00424890* c = g_game->cells;
     Cell_00424890* end = g_game->cells + g_game->width * g_game->height;
@@ -174,9 +174,9 @@ void __stdcall SaveFeatures(Class_004b4ba0* file)
                 rec.damage = s->damage;
                 rec.pos = s->pos;
                 rec.rot = s->rot;
-                file->FUN_004b4ba0("3D Features");
-                ((Class_004b4c10*)file)->FUN_004b4c10(((Class_004b4bf0*)file)->FUN_004b4bf0());
-                ((Class_004b4cf0*)file)->FUN_004b4cf0(&rec, 0x1a);
+                file->OpenNamedBox("3D Features");
+                ((Class_004b4c10*)file)->SeekBox(((Class_004b4bf0*)file)->GetBoxSize());
+                ((Class_004b4cf0*)file)->WriteBox(&rec, 0x1a);
                 modelCount++;
             } else if (c->flags & 1) {
                 Anim_00424890 rec;
@@ -195,9 +195,9 @@ void __stdcall SaveFeatures(Class_004b4ba0* file)
                     rec.anim = 2;
                 else
                     goto next;
-                file->FUN_004b4ba0("Animating Features");
-                ((Class_004b4c10*)file)->FUN_004b4c10(((Class_004b4bf0*)file)->FUN_004b4bf0());
-                ((Class_004b4cf0*)file)->FUN_004b4cf0(&rec, 10);
+                file->OpenNamedBox("Animating Features");
+                ((Class_004b4c10*)file)->SeekBox(((Class_004b4bf0*)file)->GetBoxSize());
+                ((Class_004b4cf0*)file)->WriteBox(&rec, 10);
                 animCount++;
             } else {
                 Normal_00424890 rec;
@@ -205,9 +205,9 @@ void __stdcall SaveFeatures(Class_004b4ba0* file)
                 rec.y = y;
                 rec.feature = c->feature;
                 rec.spot = c->spot;
-                file->FUN_004b4ba0("Normal Features");
-                ((Class_004b4c10*)file)->FUN_004b4c10(((Class_004b4bf0*)file)->FUN_004b4bf0());
-                ((Class_004b4cf0*)file)->FUN_004b4cf0(&rec, 8);
+                file->OpenNamedBox("Normal Features");
+                ((Class_004b4c10*)file)->SeekBox(((Class_004b4bf0*)file)->GetBoxSize());
+                ((Class_004b4cf0*)file)->WriteBox(&rec, 8);
                 normalCount++;
             }
         }
@@ -218,7 +218,7 @@ void __stdcall SaveFeatures(Class_004b4ba0* file)
             y++;
         }
     }
-    ((Class_004b4630*)file)->FUN_004b4630("Number of Normal Features", normalCount);
-    ((Class_004b4630*)file)->FUN_004b4630("Number of 3D Features", modelCount);
-    ((Class_004b4630*)file)->FUN_004b4630("Number of Animating Features", animCount);
+    ((Class_004b4630*)file)->SetIntegerItem("Number of Normal Features", normalCount);
+    ((Class_004b4630*)file)->SetIntegerItem("Number of 3D Features", modelCount);
+    ((Class_004b4630*)file)->SetIntegerItem("Number of Animating Features", animCount);
 }

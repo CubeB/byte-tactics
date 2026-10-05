@@ -7,13 +7,13 @@ struct Entry_004c48c0 {
 };
 
 #pragma pack(push, 1)
-class Class_004c48c0 {
+class TdfRecord {
 public:
     char unknown_0[0x19];
     Entry_004c48c0* first;           // +0x19
     Entry_004c48c0* last;            // +0x1d
 
-    int FUN_004c48c0(char* dst, char* key, size_t size, char* def);
+    int GetFieldString(char* dst, char* key, size_t size, char* def);
 };
 #pragma pack(pop)
 
@@ -23,7 +23,7 @@ static inline bool Less_004c48c0(const char* a, const char* b)
 }
 
 // FUNCTION: 0x4c48c0
-int Class_004c48c0::FUN_004c48c0(char* dst, char* key, size_t size, char* def)
+int TdfRecord::GetFieldString(char* dst, char* key, size_t size, char* def)
 {
     Entry_004c48c0* lo = first;
     Entry_004c48c0* hi = last;

@@ -22,8 +22,8 @@
 // what makes the late one reachable.
 #include <string.h>
 
-int __stdcall FUN_004bb710(void* file, int pos);
-int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
+int __stdcall HAPI_SeekFile(void* file, int pos);
+int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
 
 class Class_004d07f0 {
 public:
@@ -40,31 +40,31 @@ int Class_004d07f0::ReadWaveFormat(void* file, int* sampleRate, int* bitsPerSamp
     unsigned int n;
     char fmt[0x10];
 
-    FUN_004bb710(file, 4);
-    FUN_004bb7c0(file, &total, 4);
+    HAPI_SeekFile(file, 4);
+    HAPI_readfromfile(file, &total, 4);
     total = total + 8;
-    FUN_004bb710(file, 0xc);
-    FUN_004bb7c0(file, tag, 4);
-    FUN_004bb7c0(file, &len, 4);
+    HAPI_SeekFile(file, 0xc);
+    HAPI_readfromfile(file, tag, 4);
+    HAPI_readfromfile(file, &len, 4);
     pos = 0x14;
     for (;;) {
         if (strncmp(tag, "fmt ", 4) == 0) {
             n = len;
             break;
         }
-        FUN_004bb710(file, pos + len);
+        HAPI_SeekFile(file, pos + len);
         pos += len;
         if (pos >= total) {
             n = 0;
             break;
         }
-        FUN_004bb7c0(file, tag, 4);
-        FUN_004bb7c0(file, &len, 4);
+        HAPI_readfromfile(file, tag, 4);
+        HAPI_readfromfile(file, &len, 4);
         pos += 8;
     }
     if (n < 0x10)
         return 0;
-    FUN_004bb7c0(file, fmt, 0x10);
+    HAPI_readfromfile(file, fmt, 0x10);
     *sampleRate = *(int*)(fmt + 4);
     *bitsPerSample = *(unsigned short*)(fmt + 14);
     *channels = *(unsigned short*)(fmt + 2);

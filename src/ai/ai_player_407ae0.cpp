@@ -24,7 +24,7 @@
 // the original has; shifting inside the sum does not. Both `dx` and `dz` have
 // to be named.
 //
-// `field_c = g_game->ticks + FUN_004b6c30(900) + 30` in one expression folds
+// `field_c = g_game->ticks + RandomInt(900) + 30` in one expression folds
 // to `lea eax, [eax+edx+0x1e]`; the delay has to be computed first. The final
 // MakeFixed ternaries give the `lea eax, [tmp]; mov ecx, [eax]` selection.
 // Group::Send is the inline from the matched sibling 0x4077e0 (calling
@@ -140,7 +140,7 @@ public:
     virtual void OnTimer();                         // slot 0, 0x407ae0
 };
 
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 
 // Copies the 12-byte position at +0x35 of g_playerAI[index] into *out.
 void __stdcall GetBasePosition(int index, Pos_00407ae0* out);
@@ -156,7 +156,7 @@ static inline Pos_00407ae0 GetRallyPoint(int index)
 void Class_00407a90::OnTimer()
 {
     Vec3_00407410 dest;
-    int delay = FUN_004b6c30(900) + 30;
+    int delay = RandomInt(900) + 30;
     field_c = g_game->ticks + delay;
     if ((int)group->units.size() < 5) {
         Pos_00407ae0 pos = GetRallyPoint(field_10);
@@ -165,13 +165,13 @@ void Class_00407a90::OnTimer()
             Unit* target = ((Class_004071f0*)owner)->FindNearestEnemyUnit(dest);
             group->Send(9, 1, 0, &target->pos, 0, 0);
         } else {
-            int n = FUN_004b6c30(2) + 2;
+            int n = RandomInt(2) + 2;
             int w = g_game->baseX / 8, h = g_game->baseY / 8;
             for (int i = 0; i < n; i++) {
-                int dx = (FUN_004b6c30(w) - w / 2) << 16;
+                int dx = (RandomInt(w) - w / 2) << 16;
                 dest.x = pos.x.value + dx;
                 dest.y = pos.y.value;
-                int dz = (FUN_004b6c30(h) - h / 2) << 16;
+                int dz = (RandomInt(h) - h / 2) << 16;
                 dest.z = pos.z.value + dz;
                 if (i == 0)
                     group->Send(2, 0, 0, &dest, 0, 0);
@@ -181,12 +181,12 @@ void Class_00407a90::OnTimer()
         }
     } else {
         dest.y = 0;
-        if (FUN_004b6c30(2)) {
-            dest.x = FUN_004b6c30(g_game->baseX) << 16;
-            dest.z = (FUN_004b6c30(2) ? MakeFixed(0) : MakeFixed(g_game->baseY - 1)).value;
+        if (RandomInt(2)) {
+            dest.x = RandomInt(g_game->baseX) << 16;
+            dest.z = (RandomInt(2) ? MakeFixed(0) : MakeFixed(g_game->baseY - 1)).value;
         } else {
-            dest.x = (FUN_004b6c30(2) ? MakeFixed(0) : MakeFixed(g_game->baseX - 1)).value;
-            dest.z = FUN_004b6c30(g_game->baseY) << 16;
+            dest.x = (RandomInt(2) ? MakeFixed(0) : MakeFixed(g_game->baseX - 1)).value;
+            dest.z = RandomInt(g_game->baseY) << 16;
         }
         group->Send(9, 0, 0, &dest, 0, 0);
     }

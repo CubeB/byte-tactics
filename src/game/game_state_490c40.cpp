@@ -44,7 +44,7 @@ extern Game* g_game;
 // Fixed-point trig helpers, written in assembly: the angle is a short.
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 
 // FUNCTION: 0x490c40
 void __cdecl UpdateWind()
@@ -53,10 +53,10 @@ void __cdecl UpdateWind()
         g_game->windCounter += ((int)((__int64)rand() * 10 / 0x8000) + 5) * 30;
 
         int range = g_game->field_1425f - g_game->field_1425b;
-        int n = FUN_004b6c30(range);
+        int n = RandomInt(range);
         g_game->windSpeed = g_game->field_1425b + n;
         if (g_game->windSpeed != 0)
-            g_game->windDirection = FUN_004b6c30(0x10000);
+            g_game->windDirection = RandomInt(0x10000);
 
         g_game->windX = -FUN_004b70ef(g_game->windDirection, g_game->windSpeed) * 2;
         g_game->windZ = -FUN_004b7123(g_game->windDirection, g_game->windSpeed) * 2;

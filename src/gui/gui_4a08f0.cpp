@@ -20,7 +20,7 @@ struct Object_004a08f0 {
     Holder_004a08f0* holder;           // +0x18
 };
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 
 static inline Entry_004a08f0* GetEntry(Object_004a08f0* obj, int index)
 {
@@ -36,7 +36,7 @@ void __stdcall FUN_004a08f0(Object_004a08f0* obj, int index)
     char* src = entry->text;
     int i = 0;
     while (i < entry->count) {
-        strcpy(dst, FUN_004c5740(src));
+        strcpy(dst, Translate(src));
         dst += strlen(dst) + 1;
         src += strlen(src) + 1;
         i++;

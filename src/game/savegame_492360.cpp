@@ -7,7 +7,7 @@
 // as jump targets one byte off: the store `g_game->p38d6b = 0;` after freeing
 // the save object used ecx for the g_game load where the original used the
 // 5-byte `mov eax, [g_game]`. The original source called the already-matched
-// helper 0x432590 (FUN_00432590, "if (obj) { obj->FUN_004b3630(); operator
+// helper 0x432590 (FUN_00432590, "if (obj) { obj->CloseBank(); operator
 // delete(obj); }") and /Ob2 inlined it; reproducing that call through an
 // inline helper, with the field test outside it, gives the original's
 // registers at both delete sites. A bare local pointer could not.
@@ -104,11 +104,11 @@ struct Game {
 struct Class_00435100 { int FUN_00435100(); };
 struct Class_00435110 { void LoadCampaign(char* name); };
 struct Class_00435a20 { void* LoadMissionByName(char* name); };
-struct Class_004b3630 { void FUN_004b3630(); };
-struct Class_004b4560 { void FUN_004b4560(char* name); };
-struct Class_004b4800 { int FUN_004b4800(char* name, int def); };
-struct Class_004b48a0 { char* FUN_004b48a0(char* name, int def); };
-struct Class_004b48f0 { int FUN_004b48f0(char* name); };
+struct Class_004b3630 { void CloseBank(); };
+struct HapiBank { void OpenAccount(char* name); };
+struct Class_004b4800 { int GetIntegerItem(char* name, int def); };
+struct Class_004b48a0 { char* GetStringItem(char* name, int def); };
+struct Class_004b48f0 { int HasItem(char* name); };
 
 extern Game* g_game;
 extern char* DAT_005091c8;
@@ -138,15 +138,15 @@ void __stdcall FUN_004ab0a0(Gadget_00492360* menu);
 void __stdcall FUN_004ab400(void* menu, void* data);
 void __stdcall OpenMessageBox(void* menu, char* message, int a, int b, int c);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 void __cdecl LeaveNetGameCallback(int param);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __cdecl FUN_004d85a0(void* p);
 
 __inline void DeleteSave_00492360(Class_004b3630* obj)
 {
     if (obj) {
-        obj->FUN_004b3630();
+        obj->CloseBank();
         operator delete(obj);
     }
 }
@@ -184,16 +184,16 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         return;
     }
     Entry_00492360* e = FindGadgetChecked(entries, "GAMES");
-    sprintf(buf, "%s\\%s", DAT_005091c8, FUN_004b6af0(DAT_0051f2e0, e->field_ba));
+    sprintf(buf, "%s\\%s", DAT_005091c8, SkipTextLines(DAT_0051f2e0, e->field_ba));
     void* save = FUN_00432520(buf);
     if (save != 0) {
-        int type = ((Class_004b4800*)save)->FUN_004b4800("Gametype", 0);
+        int type = ((Class_004b4800*)save)->GetIntegerItem("Gametype", 0);
         FUN_00432590(save);
         switch (type) {
         case 1:
             if (!FindGameCdDrive(0)) {
                 OpenMessageBox(g_game->message,
-                    FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
+                    Translate("Please insert the Campaign CD (Disc 2) and try again"),
                     200, 1, 1);
                 FUN_004ab0a0((Gadget_00492360*)g_game->message);
                 return;
@@ -202,7 +202,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         case 2:
             if (!FindGameCdDrive(1)) {
                 OpenMessageBox(g_game->message,
-                    FUN_004c5740("Please insert the Multiplayer CD (Disc 1) and try again"),
+                    Translate("Please insert the Multiplayer CD (Disc 1) and try again"),
                     200, 1, 1);
                 FUN_004ab0a0((Gadget_00492360*)g_game->message);
                 return;
@@ -222,7 +222,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         PlaySoundByName("SMLBUTTON", 0);
         e = FindGadgetChecked(entries, "GAMES");
         sprintf(g_game->saveName, "%s\\%s", DAT_005091c8,
-                FUN_004b6af0(DAT_0051f2e0, e->field_ba));
+                SkipTextLines(DAT_0051f2e0, e->field_ba));
         if (g_game->flags_2a44.b2)
             FUN_00491b60();
         g_game->flags_3923b.b3 = 1;
@@ -230,13 +230,13 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         g_game->p38d6b = FUN_004325b0(g_game->saveName);
         if (g_game->p38d6b == 0)
             goto invalid;
-        ((Class_004b4560*)g_game->p38d6b)->FUN_004b4560("summary");
-        FUN_00434ab0(((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("Gametype", 0));
-        char* campaign = ((Class_004b48a0*)g_game->p38d6b)->FUN_004b48a0("Campaign", 0);
+        ((HapiBank*)g_game->p38d6b)->OpenAccount("summary");
+        FUN_00434ab0(((Class_004b4800*)g_game->p38d6b)->GetIntegerItem("Gametype", 0));
+        char* campaign = ((Class_004b48a0*)g_game->p38d6b)->GetStringItem("Campaign", 0);
         if (campaign != 0)
             ((Class_00435110*)g_game->p391e9)->LoadCampaign(campaign);
-        g_game->field_37ef2 = ((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("Side", 0);
-        g_game->field_37eee = ((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("Difficulty", 0);
+        g_game->field_37ef2 = ((Class_004b4800*)g_game->p38d6b)->GetIntegerItem("Side", 0);
+        g_game->field_37eee = ((Class_004b4800*)g_game->p38d6b)->GetIntegerItem("Difficulty", 0);
         if (((Class_00435100*)g_game->p391e9)->FUN_00435100() == 1) {
             if (g_game->field_37ef2 == 0) {
                 *(unsigned char*)((char*)g_game->p1b8a + 0x95) = 0;
@@ -246,7 +246,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
                 *(unsigned char*)((char*)g_game->p1cd5 + 0x95) = 0;
             }
         }
-        char* mission = ((Class_004b48a0*)g_game->p38d6b)->FUN_004b48a0("Mission", 0);
+        char* mission = ((Class_004b48a0*)g_game->p38d6b)->GetStringItem("Mission", 0);
         if (mission == 0)
             goto invalid;
         if (strlen(mission) == 0)
@@ -254,24 +254,24 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         if (((Class_00435a20*)g_game->p391e9)->LoadMissionByName(mission) == 0)
             goto invalid;
         strcpy((char*)g_game->p29a0 + 0x11c, mission);
-        char* thumbs = ((Class_004b48a0*)g_game->p38d6b)->FUN_004b48a0("Thumbs", 0);
+        char* thumbs = ((Class_004b48a0*)g_game->p38d6b)->GetStringItem("Thumbs", 0);
         strncpy(g_game->buf391cf, thumbs, 0x19);
         if (strlen(g_game->buf391cf) != 0x19)
             FUN_0041da30();
         if (((Class_00435100*)g_game->p391e9)->FUN_00435100() == 2) {
-            ((Class_004b4560*)g_game->p38d6b)->FUN_004b4560("summary");
+            ((HapiBank*)g_game->p38d6b)->OpenAccount("summary");
             g_game->field_2a3c =
-                (short)((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("Players", 0);
+                (short)((Class_004b4800*)g_game->p38d6b)->GetIntegerItem("Players", 0);
             g_game->p29a0->field_108 =
-                ((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("CommanderDeath", 1);
+                ((Class_004b4800*)g_game->p38d6b)->GetIntegerItem("CommanderDeath", 1);
             g_game->p29a0->field_118 =
-                ((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("Location", 1);
+                ((Class_004b4800*)g_game->p38d6b)->GetIntegerItem("Location", 1);
             g_game->p29a0->field_10c =
-                ((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("Mapping", 1);
+                ((Class_004b4800*)g_game->p38d6b)->GetIntegerItem("Mapping", 1);
             g_game->p29a0->field_110 =
-                ((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("LineOfSight", 1);
+                ((Class_004b4800*)g_game->p38d6b)->GetIntegerItem("LineOfSight", 1);
             g_game->p29a0->field_114 =
-                ((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("LineOfSightType", 1);
+                ((Class_004b4800*)g_game->p38d6b)->GetIntegerItem("LineOfSightType", 1);
         }
         g_game->flags_2a44.b2 = 1;
         g_game->field_391f1 = 2;
@@ -291,7 +291,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         DAT_0051f2ec = 0;
         FUN_00491d70(1);
         if (((Class_00435100*)g_game->p391e9)->FUN_00435100() == 1 &&
-            ((Class_004b48f0*)g_game->p38d6b)->FUN_004b48f0("BetweenMissions")) {
+            ((Class_004b48f0*)g_game->p38d6b)->HasItem("BetweenMissions")) {
             g_game->flags_2a44.b3 = 1;
             if (g_game->p38d6b) {
                 DeleteSave_00492360((Class_004b3630*)g_game->p38d6b);
@@ -311,6 +311,6 @@ invalid:
         DeleteSave_00492360((Class_004b3630*)g_game->p38d6b);
     }
     g_game->p38d6b = 0;
-    OpenMessageBox(gadget, FUN_004c5740("Invalid savegame file"), 0x140, 1, 1);
+    OpenMessageBox(gadget, Translate("Invalid savegame file"), 0x140, 1, 1);
     FUN_004ab0a0(gadget);
 }

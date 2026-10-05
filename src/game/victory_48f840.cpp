@@ -1,13 +1,13 @@
 // Decompiled by Sonnet. Names are provisional.
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* name);
+    void OpenAccount(const char* name);
 };
 
 class Class_004b4630 {
 public:
-    void FUN_004b4630(const char* name, int value);
+    void SetIntegerItem(const char* name, int value);
 };
 
 extern char DAT_005090fc[]; // "DefeatCondition_AllUnitsKilled"
@@ -19,13 +19,13 @@ public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    virtual void SaveState(Class_004b4560* obj);
+    virtual void SaveState(HapiBank* obj);
 };
 
 // FUNCTION: 0x48f840
-void DefeatAllUnitsKilled::SaveState(Class_004b4560* obj)
+void DefeatAllUnitsKilled::SaveState(HapiBank* obj)
 {
-    obj->FUN_004b4560(DAT_005090fc);
-    ((Class_004b4630*)obj)->FUN_004b4630(DAT_00508f30, satisfied);
-    ((Class_004b4630*)obj)->FUN_004b4630(DAT_00508f24, celebrated);
+    obj->OpenAccount(DAT_005090fc);
+    ((Class_004b4630*)obj)->SetIntegerItem(DAT_00508f30, satisfied);
+    ((Class_004b4630*)obj)->SetIntegerItem(DAT_00508f24, celebrated);
 }

@@ -39,7 +39,7 @@ extern Guid_4ca100* DAT_0050a788[4];
 
 void __cdecl HapinetTrace(int);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 
 // FUNCTION: 0x4ca100
 int __stdcall HAPINET_enumconnections(Guid_4ca100* guid, void* connection, unsigned long size,
@@ -58,7 +58,7 @@ int __stdcall HAPINET_enumconnections(Guid_4ca100* guid, void* connection, unsig
     memcpy(net->conns[net->field_4e5].data, connection, size);
     net->conns[net->field_4e5].size = size;
     sprintf(local, "%s", name->lpszShortNameA);
-    char* dest = FUN_004b6af0(net->names, net->field_4e5);
+    char* dest = SkipTextLines(net->names, net->field_4e5);
     strcpy(dest, local);
     net->field_4e5++;
     return 1;

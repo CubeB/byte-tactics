@@ -244,7 +244,7 @@ void __stdcall RemovePlayer(int);
 int __stdcall IsColorFree(int, int);
 void __stdcall AssignPlayerColor(int, int, int);
 void __stdcall SetAlliance(int, int, unsigned char, int);
-char* __stdcall FUN_004c5740(char*);
+char* __stdcall Translate(char*);
 void __stdcall PlaySoundByName(char*, int);
 void __stdcall CreateUnitFromPacket(unsigned char, void*);
 void __stdcall ReceiveUnitStates(Player*, void*);
@@ -660,7 +660,7 @@ int HandleNetPackets()
             if (FindPlayerIndex(id) == 10)
                 break;
             char text[200];
-            sprintf(text, FUN_004c5740(DAT_005065c4), PlayerBySlot(id)->name);
+            sprintf(text, Translate(DAT_005065c4), PlayerBySlot(id)->name);
             AddMessage(text, 4, 0, from);
             DropPlayer(*(int*)(packet + 1));
             if (*(int*)(packet + 1) == FirstJoinedId()) {
@@ -693,7 +693,7 @@ int HandleNetPackets()
                 break;
             from = p->index;
             char text[256];
-            sprintf(text, DAT_00506290, p->name, FUN_004c5740(DAT_0050658c));
+            sprintf(text, DAT_00506290, p->name, Translate(DAT_0050658c));
             for (int i = 0; i < 12; i++)
                 AddMessage(text, 8, 0, from);
             break;

@@ -4,7 +4,7 @@
 // (mask 2) works only once cheats are on, a debug command (mask 4) only in a
 // debug build. Each table ends with a record whose name is null.
 
-struct CommandArgs;     // the parsed command line (Class_004b73e0)
+struct CommandArgs;     // the parsed command line (CommandArgs)
 
 struct ConsoleCommand {
     const char* name;                             // +0x0

@@ -14,7 +14,7 @@ static inline int NotDone(int wanted, int current)
 
 // Returns a pointer to the start of line `n` of `text`; lines end at '\n' or '\0'.
 // FUNCTION: 0x4b6af0
-char* __stdcall FUN_004b6af0(char* text, int n)
+char* __stdcall SkipTextLines(char* text, int n)
 {
     int i = 0;
     int lines = 0;

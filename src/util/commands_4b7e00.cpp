@@ -10,11 +10,11 @@ public:
     int field1;                 // +0x4
     int field2;                 // +0x8
 
-    void* FUN_004b7e00(int* param_1);
+    void* AssignEntry(int* param_1);
 };
 
 // FUNCTION: 0x4b7e00
-void* Class_004b7e00::FUN_004b7e00(int* param_1)
+void* Class_004b7e00::AssignEntry(int* param_1)
 {
     obj0.Assign((int)param_1);
     field1 = param_1[1];

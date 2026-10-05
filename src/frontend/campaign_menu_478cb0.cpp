@@ -41,7 +41,7 @@ char __stdcall FindGameCdDrive(int param_1);
 void RegisterDataArchives();
 void __stdcall FUN_00491c80(int param_1);
 void BlankScreen();
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(char* menu, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);
 int __stdcall GetButtonStageByName(Menu_00478cb0* menu, char* name);
@@ -71,7 +71,7 @@ void __stdcall HandleMissionBriefingClick(Menu_00478cb0* menu)
             return;
         }
         OpenMessageBox(g_game->menu,
-                     FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
+                     Translate("Please insert the Campaign CD (Disc 2) and try again"),
                      200, 1, 1);
         FUN_004ab0a0(g_game->menu);
         return;

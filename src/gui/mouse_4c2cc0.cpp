@@ -26,7 +26,7 @@ struct Input_004c2cc0 {
 #pragma pack(pop)
 
 Input_004c2cc0* GetDisplay(void);
-void __stdcall FUN_004b6b50(unsigned int param_1);
+void __stdcall SleepMilliseconds(unsigned int param_1);
 void __stdcall FreeSurface(void* param_1);
 void __cdecl FUN_004d85a0(void* p);
 
@@ -42,7 +42,7 @@ void ShutdownMouse(void)
                 while (1) {
                     if (++i > 20)
                         break;
-                    FUN_004b6b50(100);
+                    SleepMilliseconds(100);
                     if (!o->stopping) {
                         o->running = 0;
                         break;

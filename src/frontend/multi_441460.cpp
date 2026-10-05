@@ -120,7 +120,7 @@ extern Guid_00441460 DAT_004fcda8;
 extern Guid_00441460 DAT_004fcd98;
 extern Guid_00441460 DAT_004fcdb8;
 
-char* __stdcall FUN_004c5740(const char* text);
+char* __stdcall Translate(const char* text);
 void __stdcall OpenMessageBox(Sub_00441460* sub, char* text, int a, int b, int c);
 void __stdcall FUN_004ab170(Sub_00441460* sub, int a, int b);
 void __stdcall SetOffscreenSurface(int a);
@@ -171,7 +171,7 @@ upd:
 conn:
     msg = "Connecting  (ESC to abort)";
 shown:
-    OpenMessageBox(&g_game->sub, FUN_004c5740(msg), 0x96, 0, 1);
+    OpenMessageBox(&g_game->sub, Translate(msg), 0x96, 0, 1);
     FUN_004ab170(&g_game->sub, g_game->field_37e1b, 0);
     SetOffscreenSurface(g_game->field_37e1b);
     FlipScreen();
@@ -216,7 +216,7 @@ shown:
             if (FUN_0049f580() != 0) {
                 if (_strcmpi(FUN_0049f580(), "english") != 0) {
                     _strlwr(temp);
-                    lang = FUN_004c5740(temp);
+                    lang = Translate(temp);
                     strncpy(temp, lang, 0x80);
                     temp[0x7f] = 0;
                 }
@@ -231,9 +231,9 @@ shown:
                     msg = "Play";
                 else
                     msg = "Open";
-                sprintf(p[4], "%s", FUN_004c5740(msg));
+                sprintf(p[4], "%s", Translate(msg));
             } else {
-                sprintf(p[4], "%s", FUN_004c5740("VER!"));
+                sprintf(p[4], "%s", Translate("VER!"));
             }
             p[4] += strlen(p[4]) + 1;
             sprintf(p[5], "%d", sb.s.field_0);
@@ -253,12 +253,12 @@ shown:
             } else {
                 msg = "No";
             }
-            sprintf(p[9], "%s", FUN_004c5740(msg));
+            sprintf(p[9], "%s", Translate(msg));
             p[9] += strlen(p[9]) + 1;
 
-            sprintf(p[10], "%s", FUN_004c5740(sb.s.black ? "Blk" : "Gray"));
+            sprintf(p[10], "%s", Translate(sb.s.black ? "Blk" : "Gray"));
             p[10] += strlen(p[10]) + 1;
-            sprintf(p[11], "%s", FUN_004c5740(sb.s.nocmd ? "No" : "Yes"));
+            sprintf(p[11], "%s", Translate(sb.s.nocmd ? "No" : "Yes"));
             p[11] += strlen(p[11]) + 1;
 
             p[0] += 0x54;

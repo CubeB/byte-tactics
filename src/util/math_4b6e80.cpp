@@ -1,7 +1,7 @@
 // Decompiled by Sonnet. Names are provisional.
 
 // FUNCTION: 0x4b6e80
-double __stdcall FUN_004b6e80(float param_1, float param_2, float param_3,
+double __stdcall DotProduct(float param_1, float param_2, float param_3,
                                float param_4, float param_5, float param_6)
 {
     double result = param_4 * param_1;

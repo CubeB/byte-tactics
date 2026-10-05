@@ -11,7 +11,7 @@
 //
 //   The base piece's offset (p->+0x10/+0x14/+0x18 plus x/y/z) seeds the
 //   result; each node of the `next` chain rotates the result by its angles
-//   (FUN_004b6cc0), adding the object's base angles on the last node, then
+//   (RotateByAngles), adding the object's base angles on the last node, then
 //   adds its own offset.
 //
 // MATCH (Claude Opus 5.5, #5127). Eleven earlier passes reached 99.2%. They
@@ -42,7 +42,7 @@ struct Vec3 {
     int z;
 };
 
-void __stdcall FUN_004b6cc0(Vec3* in, Vec3* out, short* angles);
+void __stdcall RotateByAngles(Vec3* in, Vec3* out, short* angles);
 
 struct Ptr_0043def0 {
     char unknown_0[0x10];
@@ -115,7 +115,7 @@ Vec3 __stdcall GetPieceOffset(Object_0043def0* obj, int index)
                 angles[2] = angles[2] + obj->f68;
                 angles[1] = angles[1] + obj->f66;
             }
-            FUN_004b6cc0(&result, &result, angles);
+            RotateByAngles(&result, &result, angles);
             result.x += n->p->f10 + n->x;
             result.y += n->p->f14 + n->y;
             result.z += n->p->f18 + n->z;

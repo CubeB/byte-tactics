@@ -2,9 +2,9 @@
 
 extern void* g_game;
 
-class Class_004b73e0 {
+class CommandArgs {
 public:
-    unsigned char FUN_004b73e0(int arg1, int arg2);
+    unsigned char GetIntArg(int arg1, int arg2);
 };
 
 extern void SaveSettings(void);
@@ -12,7 +12,7 @@ extern void SaveSettings(void);
 // FUNCTION: 0x416cf0
 void __stdcall CmdScrollSpeed(void* param_1)
 {
-    unsigned char result = ((Class_004b73e0*)param_1)->FUN_004b73e0(1, 0);
+    unsigned char result = ((CommandArgs*)param_1)->GetIntArg(1, 0);
     *(unsigned char*)((char*)g_game + 0x1434d) = result;
     SaveSettings();
 }

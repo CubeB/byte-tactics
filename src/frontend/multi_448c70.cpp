@@ -181,7 +181,7 @@ struct Game {
 extern Game* g_game;
 
 int GetFontLineHeight();
-char* __stdcall FUN_004b6af0(int list, int index);
+char* __stdcall SkipTextLines(int list, int index);
 void UpdateBattleRoomFlags();
 void ShowSelectedMapInfo();
 void RefreshTeamIcons();
@@ -194,7 +194,7 @@ int GetTicks();
 int __stdcall GetSlotDpid(unsigned char player);
 void __stdcall RejectPlayer(int id, unsigned char msg);
 void __stdcall SendChatMessage(Player_00448c70* p, char* text, int a, int b);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 Gadget_00448c70* __stdcall FindGadgetChecked(char* entries, char* name);
 Gadget_00448c70* __stdcall FindGadgetOrNull(char* entries, char* name);
 Gadget_00448c70* __stdcall FUN_004a0180(char* entries, char* name);
@@ -303,7 +303,7 @@ void RefreshBattleRoomRows()
     }
     if (g_game->scrollEnd != g_game->scrollStart) {
         for (int i = g_game->scrollStart; g_game->scrollEnd != i; ) {
-            char* line = FUN_004b6af0(g_game->list, count);
+            char* line = SkipTextLines(g_game->list, count);
             strcpy(line, g_game->messages[i]);
             count++;
             i++;
@@ -332,7 +332,7 @@ void RefreshBattleRoomRows()
         if (!CheckMapCrc()) {
             mapname->colour = (GetTicks() / 30 & 1) ? 0xc : 0;
             if (differs) {
-                SendChatMessage(me, FUN_004c5740("does not have this map"), 4, 0);
+                SendChatMessage(me, Translate("does not have this map"), 4, 0);
                 me->info->b.ready = 0;
                 sprintf(name, "READY%d", g_game->localPlayer);
                 SetGadgetStatusByName(g_game->gui, name, 0);
@@ -389,7 +389,7 @@ void RefreshBattleRoomRows()
             sprintf(name, "PLAYER%d", n);
             char* s = "UNUSED";
             if (p->type == 4) {
-                sprintf(blocked, "[%s]", FUN_004c5740("BLOCKED"));
+                sprintf(blocked, "[%s]", Translate("BLOCKED"));
                 s = blocked;
             }
             strncpy(text, s, 0x1e);

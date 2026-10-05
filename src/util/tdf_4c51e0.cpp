@@ -6,11 +6,11 @@
 // instantiation, as in 0x488fb0.cpp.
 #include <vector>
 
-struct Elem_004c5bc0 {
+struct TdfField {
     char* a;
     char* b;
 
-    ~Elem_004c5bc0();
+    ~TdfField();
 };
 
 class Class_004c5470 {
@@ -21,7 +21,7 @@ public:
 
 class Class_004c54a0 {
 public:
-    Elem_004c5bc0 pair;                // +0x0
+    TdfField pair;                     // +0x0
 
     Class_004c54a0(const Class_004c54a0& other);
     Class_004c54a0& operator=(const Class_004c54a0& other)

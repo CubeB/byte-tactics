@@ -68,7 +68,7 @@ class Weapon {                       // fields at the offsets the code uses
 public:
     char unknown_0[0x10];
     int damage;                      // +0x10
-    int FUN_004b4ba0(char* name);    // callee declared, not defined
+    int OpenNamedBox(char* name);    // callee declared, not defined
     void FUN_00401234(Unit* target);
 };
 
@@ -90,7 +90,7 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
   (`PlayerRef::Reset`); the checker fails references that disagree with names
   already established.
 - Otherwise use `FUN_<8 hex digits>` for functions and `DAT_<8 hex digits>` for
-  globals, e.g. `FUN_004b4ba0`, `DAT_00511de8`. Name your own function
+  globals, e.g. `OpenNamedBox`, `DAT_00511de8`. Name your own function
   `FUN_<addr>` too unless its purpose is obvious.
 - If your function is a method and its class has no known name yet, call the
   class `Class_<8 hex digits of your function's address>`, e.g.
@@ -639,7 +639,7 @@ effect, the missing piece is usually a helper that was inlined:
   inlining five zero-caller neighbours (0x440cd0, 0x445450, 0x4453a0,
   0x445d60, 0x445e20), and the two with loops needed the keyword (#5472).
 - **A helper returning a fixed-point value by value**: 0x42bf40's shared frame
-  slot at `[esp+0x1c]` came out right only once FUN_004c4800 returned its
+  slot at `[esp+0x1c]` came out right only once GetFieldFixed returned its
   16.16 value by value through a hidden pointer (#5473).
 - **Case order in a big switch decides ties elsewhere**: in 0x4df590 the
   order of the cases in the source decided register and stack-slot ties in
@@ -1544,7 +1544,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **`fild` operands from a Vec3 temporary in memory**, with a literal 0 stored
   for one component: the length helper takes `const Vec3&` and is called on a
   temporary, `Length(a - b)` (0x408100).
-- **`field = g_game->ticks + FUN_004b6c30(n) + K` folds into `lea eax,
+- **`field = g_game->ticks + RandomInt(n) + K` folds into `lea eax,
   [eax+edx+K]`**: when the original does `add eax, K; mov edx, [ticks]; add
   edx, eax`, compute the delay into a local first (0x407ae0, 0x407e90).
 - **A comparison with an inlined `vector::size()` on the right is evaluated
@@ -2478,7 +2478,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Two values tied for a register can be separated by one more use**: when
   the original gives a handle ebx and a path ebp and yours swaps them, a
   trivial inline wrapper around a call that takes the handle
-  (`static inline int Next(int h, ...) { int r = FUN_004bc640(h, ...); return r; }`)
+  (`static inline int Next(int h, ...) { int r = HAPI_FindNext(h, ...); return r; }`)
   adds a use without adding bytes and flips the tie (0x4bcb50). Dummy uses
   such as `h = h` are folded away first and do nothing.
 - **Byte-wide `xor cl, cl` and `not cl`** come from an `unsigned char` local

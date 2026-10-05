@@ -30,17 +30,17 @@ public:
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3e10 {
 public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3490 {
 public:
-    int FUN_004c3490(int index);
+    int SelectRecordAt(int index);
 };
 
 #pragma pack(push, 1)
@@ -60,7 +60,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-void __stdcall FUN_004bca30(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
+void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
 void __stdcall LoadWeaponType(int section);
 int FUN_0041d8a0(void);
 
@@ -76,17 +76,17 @@ void LoadWeaponTypes()
 
     char path[256];
     std::vector<Class_004c91a0> files;
-    FUN_004bca30("Weapons\\*.tdf", 0, &files);
+    ListDirectory("Weapons\\*.tdf", 0, &files);
 
     for (Class_004c91a0* p = files.begin(); p < files.end(); p++) {
         Class_004c2ea0 parser;
         BuildDataPath(path, "Weapons", p->p, "TDF");
-        if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)
+        if (((Class_004c2f60*)&parser)->LoadFile(path)
             && (parser.field_8 || FUN_0041d8a0() == 0)) {
             int i = 0;
             while (1) {
-                ((Class_004c3e10*)&parser)->FUN_004c3e10();
-                if (!((Class_004c3490*)&parser)->FUN_004c3490(i))
+                ((Class_004c3e10*)&parser)->ResetCurrentRecord();
+                if (!((Class_004c3490*)&parser)->SelectRecordAt(i))
                     break;
                 LoadWeaponType(parser.current);
                 i++;

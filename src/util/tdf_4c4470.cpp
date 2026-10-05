@@ -11,11 +11,11 @@ public:
     int unknown_0;
     std::vector<Named_004c4470*> entries;   // +0x4 (_First at +0x8)
 
-    Named_004c4470* FUN_004c4470(const char* name);
+    Named_004c4470* FindSubRecord(const char* name);
 };
 
 // FUNCTION: 0x4c4470
-Named_004c4470* Class_004c4470::FUN_004c4470(const char* name)
+Named_004c4470* Class_004c4470::FindSubRecord(const char* name)
 {
     for (std::vector<Named_004c4470*>::iterator p = entries.begin(); p < entries.end(); p++) {
         if (_strcmpi((*p)->name, name) == 0)

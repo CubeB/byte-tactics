@@ -8,7 +8,7 @@
 // 1024 entries of sin * 0x2000 (the cosine table is the same, a quarter turn
 // on), so a lookup is the angle's top 10 bits.
 //
-// int  FUN_004b70a0(unsigned short angle)        sine table entry (sin * 0x2000)
+// int  FixedSine(unsigned short angle)        sine table entry (sin * 0x2000)
 // int  FUN_004b70c0(unsigned short angle)        cosine table entry
 // int  FUN_004b70e0(int a, int b)                (a * b) >> 32
 // int  FUN_004b70ef(short angle, int scale)      scale * sin(angle), rounded
@@ -27,7 +27,7 @@ extern "C" double DAT_00509ef8;         // pi / 0x8000: angle units to radians
 extern "C" int DAT_0050a400[9];         // the rotation matrix FUN_004b71a7 builds
 
 // FUNCTION: 0x4b70a0
-extern "C" __declspec(naked) int __cdecl FUN_004b70a0(unsigned short angle)
+extern "C" __declspec(naked) int __cdecl FixedSine(unsigned short angle)
 {
     __asm {
         push ebp
@@ -177,18 +177,18 @@ extern "C" __declspec(naked) int __cdecl FUN_004b70a0(unsigned short angle)
         mov [ebp - 4], eax
         mov edi, eax
         push word ptr [esi + 0x10]
-        call FUN_004b70a0
+        call FixedSine
         add sp, 4
         mov [ebp - 0x18], eax
         imul edi
         shrd eax, edx, 13
         push eax
         push word ptr [esi + 0xc]
-        call FUN_004b70a0
+        call FixedSine
         mov [ebp - 0x10], eax
         mov edi, eax
         push word ptr [esi + 0xe]
-        call FUN_004b70a0
+        call FixedSine
         add sp, 4
         mov [ebp - 0x14], eax
         imul edi

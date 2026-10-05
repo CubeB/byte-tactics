@@ -17,17 +17,17 @@ struct Unit {
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4c80 {
 public:
-    int FUN_004b4c80(void* buf, int size);
+    int ReadBox(void* buf, int size);
 };
 
 Unit* __stdcall LoadUnit(unsigned short index, void* file);
@@ -105,9 +105,9 @@ Class_0044de80::Class_0044de80(int owner, Class_004b4ba0* file, char* name)
     vtable = DAT_004fd3b8;
     Rec_0044de80 rec;
     ((Class_004895c0*)&rec.ref_vt)->Class_004895c0::Class_004895c0(0, 0);
-    file->FUN_004b4ba0(name);
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
-    if (((Class_004b4c80*)file)->FUN_004b4c80(&rec, 0x36) == 0x36) {
+    file->OpenNamedBox(name);
+    ((Class_004b4c10*)file)->SeekBox(0);
+    if (((Class_004b4c80*)file)->ReadBox(&rec, 0x36) == 0x36) {
         field_12 = LoadUnit(rec.id1, file);
         ref.SetUnit(LoadUnit(rec.id2, file));
         field_8 = rec.f1;

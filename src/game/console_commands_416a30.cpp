@@ -34,12 +34,12 @@ struct Game {
 extern Game* g_game;
 
 // Command arguments.
-class Class_004b73e0;
+class CommandArgs;
 
 void __stdcall KillPlayerUnits(unsigned char player);
 
 // FUNCTION: 0x416a30
-void __stdcall CmdILose(Class_004b73e0* args)
+void __stdcall CmdILose(CommandArgs* args)
 {
     KillPlayerUnits(g_game->players[g_game->localPlayer].data->field_95);
     g_game->flag4 = 0;

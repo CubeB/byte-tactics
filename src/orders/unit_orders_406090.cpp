@@ -11,7 +11,7 @@ struct Order { char pad[5]; unsigned char state; unsigned flags; };
 #pragma pack(pop)
 Unit* __stdcall FUN_0043b700(Unit*);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 // FUNCTION: 0x406090
 int __stdcall StandbyMineOrder(Unit* unit, Order* order, int unused)
 {
@@ -30,7 +30,7 @@ int __stdcall StandbyMineOrder(Unit* unit, Order* order, int unused)
                 return 5;
             }
             order->flags |= 0x10000;
-            ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(30) + 30);
+            ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30) + 30);
             return 2;
         }
     default: return 7;

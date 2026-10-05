@@ -54,7 +54,7 @@
 #include <ctype.h>
 
 // FUNCTION: 0x4bc370
-int __stdcall FUN_004bc370(const char* str, const char* pat)
+int __stdcall MatchWildcard(const char* str, const char* pat)
 {
     int stack[100];
     int n;

@@ -19,8 +19,8 @@
 // named marker, or 0 when the table runs out.
 #include <string.h>
 
-int __stdcall FUN_004bb710(void* file, int pos);
-int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
+int __stdcall HAPI_SeekFile(void* file, int pos);
+int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
 
 class Class_004d0720 {
 public:
@@ -35,22 +35,22 @@ int Class_004d0720::FindChunkSize(void* file, char* target)
     unsigned int pos;
     unsigned int off;
 
-    FUN_004bb710(file, 4);
-    FUN_004bb7c0(file, &total, 4);
+    HAPI_SeekFile(file, 4);
+    HAPI_readfromfile(file, &total, 4);
     total += 8;
-    FUN_004bb710(file, 0xc);
-    FUN_004bb7c0(file, name, 4);
-    FUN_004bb7c0(file, &off, 4);
+    HAPI_SeekFile(file, 0xc);
+    HAPI_readfromfile(file, name, 4);
+    HAPI_readfromfile(file, &off, 4);
     pos = 0x14;
     for (;;) {
         if (strncmp(name, target, 4) == 0)
             return off;
-        FUN_004bb710(file, pos + off);
+        HAPI_SeekFile(file, pos + off);
         pos += off;
         if (pos >= total)
             return 0;
-        FUN_004bb7c0(file, name, 4);
-        FUN_004bb7c0(file, &off, 4);
+        HAPI_readfromfile(file, name, 4);
+        HAPI_readfromfile(file, &off, 4);
         pos += 8;
     }
 }

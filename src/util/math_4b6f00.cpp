@@ -13,7 +13,7 @@ struct Vec3i_004b6f00 {
 };
 
 // FUNCTION: 0x4b6f00
-Vec3f_004b6f00 __stdcall FUN_004b6f00(Vec3i_004b6f00 from, Vec3i_004b6f00 to)
+Vec3f_004b6f00 __stdcall VectorFromToInt(Vec3i_004b6f00 from, Vec3i_004b6f00 to)
 {
     Vec3f_004b6f00 r;
     r.x = (float)(to.x - from.x);

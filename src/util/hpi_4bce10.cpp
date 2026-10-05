@@ -14,7 +14,7 @@ extern Class_004bce10* GetDisplay();
 // single `d - '@'` after the if picks edx and interleaves the subtraction
 // with the argument pushes.
 // FUNCTION: 0x4bce10
-void FUN_004bce10()
+void SaveStartDirectory()
 {
     Class_004bce10* g = GetDisplay();
     char buf[12];

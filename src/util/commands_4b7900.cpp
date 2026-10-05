@@ -7,7 +7,7 @@
 //
 // The element is declared with plain ints at +4/+8 exactly as 0x4b7ad0.cpp
 // does, which is also what fixes the compiler's file-local name for the vector
-// (DAT_0051fc99$S4554): only the declarations above the vector affect it, so
+// (s_commandTable$S4554): only the declarations above the vector affect it, so
 // every other class is declared after it. The handler is called through a
 // reinterpreted HandlerSlot view of those two fields.
 #include <string.h>
@@ -19,19 +19,19 @@ public:
     void ReleaseRef();
 };
 
-struct Elem_004b75d0 {
+struct CommandEntry {
     Class_004c9390 name;               // +0x0
     int value1;                        // +0x4
     int value2;                        // +0x8
 
-    ~Elem_004b75d0() { name.ReleaseRef(); }
+    ~CommandEntry() { name.ReleaseRef(); }
 };
 
-static std::vector<Elem_004b75d0> DAT_0051fc99;
+static std::vector<CommandEntry> s_commandTable;
 
 extern char DAT_005119b8[];
-extern int DAT_0051fc90;
-extern int DAT_0051fc94;
+extern int g_defaultCommandHandler;
+extern int g_defaultCommandMask;
 
 class Class_004c91a0 : public Class_004c9390 {
 public:
@@ -51,7 +51,7 @@ class Class_004b73c0 {
 public:
     char* args[0x34];                  // +0x0
     int count;                         // +0xd0
-    char* FUN_004b73c0(int index, const char* def);
+    char* GetArg(int index, const char* def);
 };
 
 typedef void (__stdcall *Handler_004b7900)(void*);
@@ -71,34 +71,34 @@ struct NameLess_004b7900 {
 static inline HandlerSlot_004b7900* Find_004b7900(const char* key)
 {
     NameLess_004b7900 less;
-    Elem_004b75d0* first = DAT_0051fc99.begin();
-    Elem_004b75d0* last = DAT_0051fc99.end();
+    CommandEntry* first = s_commandTable.begin();
+    CommandEntry* last = s_commandTable.end();
     while (first != last) {
-        Elem_004b75d0* mid = first + (last - first) / 2;
+        CommandEntry* mid = first + (last - first) / 2;
         if (less(mid->name.data, key))
             first = mid + 1;
         else
             last = mid;
     }
-    if (first == DAT_0051fc99.end() || less(key, first->name.data))
+    if (first == s_commandTable.end() || less(key, first->name.data))
         return 0;
     return (HandlerSlot_004b7900*)&first->value1;
 }
 
 // FUNCTION: 0x4b7900
-int __stdcall FUN_004b7900(Class_004b73c0* obj, int param_2)
+int __stdcall ExecuteCommand(Class_004b73c0* obj, int param_2)
 {
     int result = 0;
     if (obj->count >= 1) {
-        Class_004c91b0 key(obj->FUN_004b73c0(0, DAT_005119b8));
+        Class_004c91b0 key(obj->GetArg(0, DAT_005119b8));
         ((Class_004c9290*)&key)->MakeLower();
         HandlerSlot_004b7900* h = Find_004b7900(key.data);
         if (h != 0 && (h->mask & param_2)) {
             result = h->mask;
             h->fn(obj);
-        } else if (DAT_0051fc90 != 0 && (DAT_0051fc94 & param_2)) {
-            result = DAT_0051fc94;
-            ((void (__stdcall *)(void*))DAT_0051fc90)(obj);
+        } else if (g_defaultCommandHandler != 0 && (g_defaultCommandMask & param_2)) {
+            result = g_defaultCommandMask;
+            ((void (__stdcall *)(void*))g_defaultCommandHandler)(obj);
         }
     }
     return result;

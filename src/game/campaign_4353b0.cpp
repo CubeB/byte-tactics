@@ -1,9 +1,9 @@
 // Decompiled by Opus. Names are provisional.
 // Stores a name in slot `index`; for slot 1 also records whether a file of
-// that name exists (FUN_004bbc40), or 0 when the name is empty.
+// that name exists (HAPI_FileLengthByName), or 0 when the name is empty.
 #include <string.h>
 
-int __stdcall FUN_004bbc40(char* path);
+int __stdcall HAPI_FileLengthByName(char* path);
 
 class Class_004353b0 {
 public:
@@ -20,7 +20,7 @@ void Class_004353b0::FUN_004353b0(int index, char* text)
     strcpy(names[index], text);
     if (index == 1) {
         if (strlen(text) != 0)
-            exists = FUN_004bbc40(text);
+            exists = HAPI_FileLengthByName(text);
         else
             exists = 0;
     }

@@ -131,7 +131,7 @@ int __stdcall HAPINET_enumplayers(void* net, void* session, void* callback, void
 void __stdcall EnumPlayersCallback(int, int, int, int, int);
 Obj_4517b0* GetDisplay(void);
 void ToggleFullScreen(void);
-char* __stdcall FUN_004c5740(char* s);
+char* __stdcall Translate(char* s);
 void __stdcall FatalError(char* msg);
 
 // FUNCTION: 0x4517b0
@@ -205,7 +205,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
                     ToggleFullScreen();
                     Sleep(500);
                 }
-                FatalError(FUN_004c5740("Unable to connect to DirectPlay lobby."));
+                FatalError(Translate("Unable to connect to DirectPlay lobby."));
             }
         } else {
             result = HAPINET_joingame((Net_4517b0*)((char*)g_game + 0x14), guid);

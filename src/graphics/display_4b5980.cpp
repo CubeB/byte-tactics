@@ -124,7 +124,7 @@ struct App_4b5980 {
 
 extern App_4b5980* g_display;
 
-void FUN_004bce10(void);
+void SaveStartDirectory(void);
 void __stdcall FUN_004c2360(int* p);
 void __stdcall InitKeyQueue(int size);
 void __stdcall InitMouse(int count, int start);
@@ -169,7 +169,7 @@ int __stdcall InitEnvironment(App_4b5980* d)
     view.y = 0;
     view.z = 0;
     d->unknown_728 = 0;
-    FUN_004bce10();
+    SaveStartDirectory();
     FUN_004c2360((int *)&view);
 
     d->items = 0;

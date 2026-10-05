@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-struct Class_004bbbe0 {
+struct FileHandle {
     FILE* file;                        // +0x0
     int error;                         // +0x4
 };
@@ -16,23 +16,23 @@ struct Obj_004ae230 {
     char link[0x80];                   // +0x136
 };
 
-unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* param_1, void* param_2, unsigned int param_3);
+unsigned int __stdcall HAPI_WriteFile(FileHandle* param_1, void* param_2, unsigned int param_3);
 
-static inline void WriteTabs(Class_004bbbe0* out, int indent)
+static inline void WriteTabs(FileHandle* out, int indent)
 {
     char tab = '\t';
     for (int i = 0; i < indent; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
 }
 
 // FUNCTION: 0x4ae230
-void __stdcall WriteTextLinkFields(Obj_004ae230* obj, Class_004bbbe0* out, int indent)
+void __stdcall WriteTextLinkFields(Obj_004ae230* obj, FileHandle* out, int indent)
 {
     char line[100];
     WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "text", obj->text);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
     WriteTabs(out, indent);
     sprintf(line, "%s=%s;\n", "link", obj->link);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 }

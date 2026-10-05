@@ -21,11 +21,11 @@ struct FindData_0042a440 {
 extern Game* g_game;
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-int __stdcall FUN_004bc930(const char* path, int flag);
+int __stdcall CountDirectoryEntries(const char* path, int flag);
 void* __cdecl FUN_004d83b0(const char* tag, int size);
-int __stdcall FUN_004bc4b0(const char* path, FindData_0042a440* fd, int a, int b);
-int __stdcall FUN_004bc640(int handle, FindData_0042a440* fd);
-void __stdcall FUN_004bc8d0(int handle);
+int __stdcall HAPI_FindFirst(const char* path, FindData_0042a440* fd, int a, int b);
+int __stdcall HAPI_FindNext(int handle, FindData_0042a440* fd);
+void __stdcall HAPI_FindClose(int handle);
 void* __stdcall LoadGaf(char* path);
 
 // FUNCTION: 0x42a440
@@ -35,11 +35,11 @@ void LoadTextureGafs()
     FindData_0042a440 fd;
 
     BuildDataPath(path, "textures", "*", "GAF");
-    int count = FUN_004bc930(path, 0);
+    int count = CountDirectoryEntries(path, 0);
     g_game->count = count - 1;
     int* texturePtrs = (int*)FUN_004d83b0("TEXTURE PTRS", count * 4);
     g_game->texturePtrs = texturePtrs;
-    int handle = FUN_004bc4b0(path, &fd, -1, 1);
+    int handle = HAPI_FindFirst(path, &fd, -1, 1);
     if (handle != -1) {
         int progress = 0;
         int r;
@@ -51,12 +51,12 @@ void LoadTextureGafs()
                 *texturePtrs = (int)LoadGaf(path);
                 g_game->progress = (char)(progress / (count - 1));
             }
-            r = FUN_004bc640(handle, &fd);
+            r = HAPI_FindNext(handle, &fd);
             texturePtrs++;
             progress += 100;
         } while (r == 0);
         g_game->progress = 100;
-        FUN_004bc8d0(handle);
+        HAPI_FindClose(handle);
     }
     g_game->unknown_148e7 = 0;
     g_game->unknown_148eb = 0;

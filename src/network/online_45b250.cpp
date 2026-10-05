@@ -10,7 +10,7 @@
 extern char DAT_00512dd0[MAX_PATH + 1];
 extern HMODULE g_onlineDll;
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OnlineTranslate(char* text);
 
 typedef unsigned int (__stdcall* OnlGetVersion)(void);
@@ -73,13 +73,13 @@ int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int
     } catch (...) {
         if (message && size > 0) {
             *message = 0;
-            strncat(message, FUN_004c5740("Fault while trying to execute button action."), size - 1);
+            strncat(message, Translate("Fault while trying to execute button action."), size - 1);
         }
         result = 2;
     }
     if (result == 1) {
         char text[0x78];
-        char* format = FUN_004c5740("Please insert the Installation CD (Disc 1) and select%s\"%s\" again.");
+        char* format = Translate("Please insert the Installation CD (Disc 1) and select%s\"%s\" again.");
         if (_snprintf(text, sizeof(text), format, "\n\n", message) < 0)
             text[sizeof(text) - 1] = 0;
         *message = 0;

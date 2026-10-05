@@ -57,7 +57,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004b6b50(unsigned int param_1);
+void __stdcall SleepMilliseconds(unsigned int param_1);
 void __stdcall SendPlayerEconomy(Player_004572a0* from, Player_004572a0* to,
                             unsigned char param_3);
 
@@ -99,6 +99,6 @@ int FUN_004572a0()
             }
         }
     }
-    FUN_004b6b50(0xfa);
+    SleepMilliseconds(0xfa);
     return result;
 }

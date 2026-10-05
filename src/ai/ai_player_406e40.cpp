@@ -21,12 +21,12 @@ extern char DAT_005119b8[];
 
 class Class_004b73c0 {
 public:
-    char* FUN_004b73c0(int index, char* fallback);
+    char* GetArg(int index, char* fallback);
 };
 
-class Class_004b73e0 {
+class CommandArgs {
 public:
-    int FUN_004b73e0(int index, int fallback);
+    int GetIntArg(int index, int fallback);
 };
 
 // 0x40-byte set (512 bits).
@@ -39,14 +39,14 @@ public:
 void __stdcall SetUnitLimits(int player, UnitTypeSet* set, int value, int param_4);
 
 // FUNCTION: 0x406e40
-void __stdcall CmdLimit(Class_004b73e0* args)
+void __stdcall CmdLimit(CommandArgs* args)
 {
     if (g_aiCommandsEnabled != 0) {
         int count;
         UnitTypeSet set;
         memset(&set, 0, sizeof(set));
-        set.AddTypeOrCategory(((Class_004b73c0*)args)->FUN_004b73c0(1, DAT_005119b8), &count);
-        int value = args->FUN_004b73e0(2, 0);
+        set.AddTypeOrCategory(((Class_004b73c0*)args)->GetArg(1, DAT_005119b8), &count);
+        int value = args->GetIntArg(2, 0);
         // A narrow index: MSVC then counts the loop down in a separate
         // register instead of testing the player offset.
         for (char i = 0; i < 10; i++) {

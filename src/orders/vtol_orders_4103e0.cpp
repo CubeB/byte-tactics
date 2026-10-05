@@ -64,7 +64,7 @@ int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
@@ -97,7 +97,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
                 if (FUN_0043b1f0(unit,order->target,0)) { order->flags=0; return 0; }
             } else {
                 if (!order->pos.x && !order->pos.z && !order->pos.y) order->pos=unit->pos;
-                order->angle=FUN_004b6c30(0x10000);
+                order->angle=RandomInt(0x10000);
                 order->parity=order->angle&1;
                 ((Class_004898b0*)unit)->ClaimWeapons(3);
                 if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
@@ -120,7 +120,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
             GetFactoriesInRadius(unit->owner->index,&unit->pos,0xf00,&pads);
             if (!pads.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                Unit* pad=pads[FUN_004b6c30(pads.count())];
+                Unit* pad=pads[RandomInt(pads.count())];
                 AppendOrder(unit,new Class_0043a1f0("VTOL_LANDING",pad,0,0,0,0));
                 order->flags=0;
                 return 0;
@@ -128,12 +128,12 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
         }
         Unit* target=FUN_0043b700(unit);
         if (target && FUN_0043b1f0(unit,target,0)) return 5;
-        if (flags&0xe0) order->angle+=-FUN_004b6c30(0x2000)-0x5555;
+        if (flags&0xe0) order->angle+=-RandomInt(0x2000)-0x5555;
         Vec3 pos=FUN_0040f790(order->pos,Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16));
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->FUN_0044e730(128);
         ((Class_004388d0*)order)->FUN_004388d0((int)move);
-        ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(30)+30);
+        ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30)+30);
         order->flags|=0xe0;
         return 2;
     }

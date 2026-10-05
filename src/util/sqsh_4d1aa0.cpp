@@ -3,7 +3,7 @@
 // mode gives 0.
 
 // FUNCTION: 0x4d1aa0
-unsigned int __stdcall FUN_004d1aa0(unsigned int value, int mode)
+unsigned int __stdcall SquashMaxPackedSize(unsigned int value, int mode)
 {
     unsigned int result;
     switch (mode) {

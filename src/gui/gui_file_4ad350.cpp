@@ -3,17 +3,17 @@
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, char* key, size_t size, char* def);
+    int GetFieldString(char* dst, char* key, size_t size, char* def);
 };
 
 struct Tree_004ad350 {
@@ -45,30 +45,30 @@ struct Common_004ad350 {
 
 extern char DAT_005119b8[];
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 
 // FUNCTION: 0x4ad350
 void __stdcall ReadCommonSection(Common_004ad350* obj, Tree_004ad350* tree)
 {
-    if (((Class_004c3410*)tree)->FUN_004c3410("COMMON") == 1) {
-        obj->id = (unsigned char)tree->current->FUN_004c46c0("id", 0);
-        obj->assoc = (unsigned char)tree->current->FUN_004c46c0("assoc", 0);
-        ((Class_004c48c0*)tree->current)->FUN_004c48c0(obj->name, "name", 0x10, DAT_005119b8);
-        obj->xpos = (short)tree->current->FUN_004c46c0("xpos", 0);
-        obj->ypos = (short)tree->current->FUN_004c46c0("ypos", 0);
-        obj->width = (short)tree->current->FUN_004c46c0("width", 0);
-        obj->height = (short)tree->current->FUN_004c46c0("height", 0);
-        obj->attribs = tree->current->FUN_004c46c0("attribs", 0);
-        obj->colorf = (unsigned short)tree->current->FUN_004c46c0("colorf", 0);
-        obj->colorb = (unsigned short)tree->current->FUN_004c46c0("colorb", 0);
-        obj->texturenumber = (unsigned char)tree->current->FUN_004c46c0("texturenumber", 0);
-        obj->fontnumber = (unsigned char)tree->current->FUN_004c46c0("fontnumber", 0);
-        obj->active = (unsigned char)tree->current->FUN_004c46c0("active", 0);
-        obj->commonattribs = (unsigned char)tree->current->FUN_004c46c0("commonattribs", 0);
-        ((Class_004c48c0*)tree->current)->FUN_004c48c0(obj->help, "help", 0x80, DAT_005119b8);
+    if (((Class_004c3410*)tree)->SelectRecord("COMMON") == 1) {
+        obj->id = (unsigned char)tree->current->GetFieldInt("id", 0);
+        obj->assoc = (unsigned char)tree->current->GetFieldInt("assoc", 0);
+        ((TdfRecord*)tree->current)->GetFieldString(obj->name, "name", 0x10, DAT_005119b8);
+        obj->xpos = (short)tree->current->GetFieldInt("xpos", 0);
+        obj->ypos = (short)tree->current->GetFieldInt("ypos", 0);
+        obj->width = (short)tree->current->GetFieldInt("width", 0);
+        obj->height = (short)tree->current->GetFieldInt("height", 0);
+        obj->attribs = tree->current->GetFieldInt("attribs", 0);
+        obj->colorf = (unsigned short)tree->current->GetFieldInt("colorf", 0);
+        obj->colorb = (unsigned short)tree->current->GetFieldInt("colorb", 0);
+        obj->texturenumber = (unsigned char)tree->current->GetFieldInt("texturenumber", 0);
+        obj->fontnumber = (unsigned char)tree->current->GetFieldInt("fontnumber", 0);
+        obj->active = (unsigned char)tree->current->GetFieldInt("active", 0);
+        obj->commonattribs = (unsigned char)tree->current->GetFieldInt("commonattribs", 0);
+        ((TdfRecord*)tree->current)->GetFieldString(obj->help, "help", 0x80, DAT_005119b8);
         memset(obj->help, 0, 0x81);
-        strncpy(obj->help, FUN_004c5740(obj->help), 0x80);
-        int gf = tree->current->FUN_004c46c0("gaffile", 0);
+        strncpy(obj->help, Translate(obj->help), 0x80);
+        int gf = tree->current->GetFieldInt("gaffile", 0);
         obj->gaffile = (gf ^ obj->gaffile) & 1 ^ obj->gaffile;
     }
 }

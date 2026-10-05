@@ -1,9 +1,9 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern void __stdcall FUN_004bb2e0(void* param1, const char* param2);
+extern void __stdcall HAPI_OpenFile(void* param1, const char* param2);
 
 // FUNCTION: 0x4bb5b0
-void __stdcall FUN_004bb5b0(void* param1)
+void __stdcall HAPI_OpenFileRead(void* param1)
 {
-    FUN_004bb2e0(param1, "rb");
+    HAPI_OpenFile(param1, "rb");
 }

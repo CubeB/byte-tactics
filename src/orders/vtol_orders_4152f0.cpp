@@ -115,7 +115,7 @@ public:
     virtual void FUN_004158d0(Unit*);
 };
 
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 void __stdcall FUN_0043a020(Unit*, Order*);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
@@ -147,7 +147,7 @@ static inline int Land(Unit* unit, Order* order)
         GetFactoriesInRadius(unit->owner->index, &unit->pos, 0xf00, &pads);
         if (!pads.empty()) {
             ((Class_004388d0*)order)->FUN_004388d0(0);
-            Unit* pad = pads[FUN_004b6c30(pads.size())];
+            Unit* pad = pads[RandomInt(pads.size())];
             AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", pad, 0, 0, 0, 0));
             order->flags = 0;
             return 1;
@@ -198,7 +198,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                 int range = unit->def->range << 16;
                 VisitObjectsInRange(&unit->pos, range, Class_004158d0(unit->owner, &units, unit));
                 if (!units.empty()) {
-                    Unit* target = units[FUN_004b6c30(units.size())];
+                    Unit* target = units[RandomInt(units.size())];
                     if (((Class_004899b0*)unit)->CanRepair(target) && target->progress == 0.0f) {
                         if (FUN_0043b400(unit, target, 0))
                             return 6;

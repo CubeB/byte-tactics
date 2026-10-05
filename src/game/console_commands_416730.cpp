@@ -13,14 +13,14 @@ struct Game {
 extern Game* g_game;
 
 // Command arguments.
-class Class_004b73e0 {
+class CommandArgs {
 public:
-    int FUN_004b73e0(int index, int fallback);
+    int GetIntArg(int index, int fallback);
 };
 
 // FUNCTION: 0x416730
-void __stdcall CmdEdge(Class_004b73e0* args)
+void __stdcall CmdEdge(CommandArgs* args)
 {
-    g_game->offsetX = g_game->baseX - args->FUN_004b73e0(1, 0x20);
-    g_game->offsetY = g_game->baseY - args->FUN_004b73e0(2, 0x80);
+    g_game->offsetX = g_game->baseX - args->GetIntArg(1, 0x20);
+    g_game->offsetY = g_game->baseY - args->GetIntArg(2, 0x80);
 }

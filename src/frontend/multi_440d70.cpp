@@ -50,7 +50,7 @@ Entry_00440d70* __stdcall FUN_004a0010(Entry_00440d70* entries, const char* name
 void __stdcall CloseTopScreen(Gadget_00440d70* gadget);
 void OpenSelectGameDialog();
 int InitScoreReporting();
-char* __stdcall FUN_004c5740(const char* text);
+char* __stdcall Translate(const char* text);
 void __stdcall OpenMessageBox(char* dest, const char* text, int a, int b, int c);
 
 // FUNCTION: 0x440d70
@@ -98,7 +98,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         if (strlen(namebuf) == 0) {
             FUN_004a7190(gadget, gi);
             FUN_004ab0a0(gadget);
-            OpenMessageBox((char*)gadget, FUN_004c5740("You must enter a game name"), 0x140, 1, 1);
+            OpenMessageBox((char*)gadget, Translate("You must enter a game name"), 0x140, 1, 1);
             return;
         }
         ni = FindGadgetIndex(entries, "NICKNAME", 3);
@@ -106,7 +106,7 @@ void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
         if (strlen(nickbuf) == 0) {
             FUN_004a7190(gadget, ni);
             FUN_004ab0a0(gadget);
-            OpenMessageBox((char*)gadget, FUN_004c5740("You must enter your name"), 0x140, 1, 1);
+            OpenMessageBox((char*)gadget, Translate("You must enter your name"), 0x140, 1, 1);
             return;
         }
         strcpy(g_game->gameName, namebuf);

@@ -19,22 +19,22 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Entry_004bb2e0 {
+struct ArchiveEntry {
     char* name;                          // +0x0
     void* child;                         // +0x4
     unsigned char flags;                 // +0x8
 };
 #pragma pack(pop)
 
-struct List_004bb2e0 {
+struct ArchiveDirectory {
     int count;                           // +0x0
-    Entry_004bb2e0* entries;             // +0x4
+    ArchiveEntry* entries;               // +0x4
 };
 
 struct Node_004bb2e0 {
     char unknown_0[0xc];
     unsigned char obfuscate;             // +0xc
-    List_004bb2e0* list;                 // +0x10
+    ArchiveDirectory* list;              // +0x10
 };
 
 struct Tex_004bb2e0 {
@@ -43,7 +43,7 @@ struct Tex_004bb2e0 {
     unsigned char is_texture;            // +0x8
 };
 
-struct Item_004bb2e0 {
+struct OPENHAPIFILE {
     FILE* fp;                            // +0x0
     int pos;                             // +0x4, read position
     Node_004bb2e0* node;                 // +0x8
@@ -54,14 +54,14 @@ struct Item_004bb2e0 {
 
 struct State_004bb2e0 {
     char unknown_0[0x618];
-    Item_004bb2e0** items;               // +0x618
+    OPENHAPIFILE** items;                // +0x618
     int itemCount;                       // +0x61c
 };
 
 // The same class as 0x4bb6a0, whose file has these field names.
-struct File_004bb2e0 {
+struct FileHandle {
     FILE* fp;                            // +0x0
-    Item_004bb2e0* shared;               // +0x4
+    OPENHAPIFILE* shared;                // +0x4
     Tex_004bb2e0* info;                  // +0x8
     int pos;                             // +0xc
     void* buffer;                        // +0x10, the block just read
@@ -72,7 +72,7 @@ struct File_004bb2e0 {
 State_004bb2e0* GetDisplay(void);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
-Entry_004bb2e0* __stdcall FUN_004bb4e0(List_004bb2e0* list, char* name);
+ArchiveEntry* __stdcall HAPI_FindEntry(ArchiveDirectory* list, char* name);
 
 // Whole pixels of a 16.16 size, rounded up.
 static inline int nblocks(int w)
@@ -81,14 +81,14 @@ static inline int nblocks(int w)
 }
 
 // FUNCTION: 0x4bb2e0
-File_004bb2e0* __stdcall FUN_004bb2e0(char* filename, const char* mode)
+FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode)
 {
     int size;
     int off;
     int k;
     unsigned char* p;
     State_004bb2e0* state = GetDisplay();
-    File_004bb2e0* h = (File_004bb2e0*)FUN_004d83b0("File Handle", 0x118);
+    FileHandle* h = (FileHandle*)FUN_004d83b0("File Handle", 0x118);
     memset(h, 0, 0x118);
     strncpy(h->name, filename, 0x100);
     h->name[0xff] = 0;
@@ -98,7 +98,7 @@ File_004bb2e0* __stdcall FUN_004bb2e0(char* filename, const char* mode)
         return h;
     }
     for (int i = 0; i < state->itemCount; i++) {
-        Entry_004bb2e0* e = FUN_004bb4e0(state->items[i]->node->list, filename);
+        ArchiveEntry* e = HAPI_FindEntry(state->items[i]->node->list, filename);
         if (e == 0 || (e->flags & 1))
             continue;
         if (state->items[i]->fp == 0) {

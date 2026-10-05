@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-void* __stdcall FUN_004bbe50(char* name, int flags);
+void* __stdcall HAPI_LoadFile(char* name, int flags);
 
 // A block of the root object: a count, a sub-count, then a run of 8-byte
 // entries whose first int is an offset that is rebased in place.
@@ -15,7 +15,7 @@ struct Blk {
 // FUNCTION: 0x4b8c60
 void* __stdcall LoadGaf(char* name)
 {
-    int* base = (int*)FUN_004bbe50(name, 0);
+    int* base = (int*)HAPI_LoadFile(name, 0);
     if (base == 0)
         return 0;
 

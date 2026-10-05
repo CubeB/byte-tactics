@@ -50,10 +50,10 @@ extern char DAT_005119b8[];
 Layer_0044b990* __stdcall LoadGuiLayer(Menu_0044b990* menu, const char* name, int flags);
 void __stdcall HandleSaveGameClick(int a, int b);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
-void __stdcall FUN_004bcf00(char* path);
+void __stdcall MakeDirectoryPath(char* path);
 void* __stdcall ListSaveGameFiles(int* out);
 void __stdcall FUN_004a0bf0(Menu_0044b990* menu, char* name, char* text, int param_4);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall FUN_004a32a0(Menu_0044b990* menu, char* name, void* text, int value, int flag);
 void __stdcall FUN_004a0570(Menu_0044b990* menu, char* name, int param_3);
 Entry_0044b990* __stdcall FindGadgetChecked(Entry_0044b990* entries, char* name);
@@ -80,14 +80,14 @@ void __stdcall OpenSaveGameDialog()
     layer->handler = HandleSaveGameClick;
     layer->data = g_game;
     LoadPictureCached("DSaveList", 0, 0, 0);
-    FUN_004bcf00(DAT_005091c8);
+    MakeDirectoryPath(DAT_005091c8);
     ListSaveGameFiles(&count);
     FUN_004a0bf0(&g_game->menu, "TITLE", "Save Game", 0);
     char* ptr = GetSaveDescriptions();
     int i = 0;
     for (; i < count; i++) {
-        strcpy(ptr, FUN_004b6af0(DAT_005129ac, i));
-        ptr += strlen(FUN_004b6af0(DAT_005129ac, i));
+        strcpy(ptr, SkipTextLines(DAT_005129ac, i));
+        ptr += strlen(SkipTextLines(DAT_005129ac, i));
         while (*ptr != '.')
             ptr--;
         *ptr = 0;
@@ -107,7 +107,7 @@ void __stdcall OpenSaveGameDialog()
     Entry_0044b990* games2 = FindGadgetChecked(entries, "GAMES");
     int index2 = FindGadgetIndex(entries, "GAMENAME", 3);
     char* name;
-    if (games2->selected > -1 && (name = FUN_004b6af0(DAT_005129b0, games2->selected)) != 0 && strlen(name) != 0)
+    if (games2->selected > -1 && (name = SkipTextLines(DAT_005129b0, games2->selected)) != 0 && strlen(name) != 0)
         SetGadgetText(menu, index2, name);
     else
         SetGadgetText(menu, index2, DAT_005119b8);

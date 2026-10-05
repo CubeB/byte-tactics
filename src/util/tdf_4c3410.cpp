@@ -25,11 +25,11 @@ public:
     Node_004c3410* root;                // +0x0
     Node_004c3410* current;             // +0x4
 
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 // FUNCTION: 0x4c3410
-int Class_004c3410::FUN_004c3410(char* name)
+int Class_004c3410::SelectRecord(char* name)
 {
     Node_004c3410* node = current;
     if (node == 0)

@@ -22,14 +22,14 @@ struct Tree_004d1670 {
 
 extern char* DAT_00526ff4;
 extern Tree_004d1670* DAT_00526ff0;
-extern int DAT_00526ff8;
-extern char DAT_0051ffd0[];
-extern char DAT_00520fe8[];
+extern int g_lzssPresetReady;
+extern char g_lzssPresetWindow[];
+extern char g_lzssPresetTree[];
 
-int __stdcall FUN_004d0de0(int pos, int* out);
+int __stdcall LzssAddString(int pos, int* out);
 
 // FUNCTION: 0x4d1670
-int __stdcall FUN_004d1670(unsigned char* src, int len)
+int __stdcall LzssSetPreset(unsigned char* src, int len)
 {
     int out;
     int n;
@@ -55,11 +55,11 @@ int __stdcall FUN_004d1670(unsigned char* src, int len)
     DAT_00526ff0->entries[0x12].c = 0;
     DAT_00526ff0->entries[0x12].b = 0;
     memcpy(DAT_00526ff4 + 0x13, src, n);
-    memcpy(DAT_0051ffd0, DAT_00526ff4, 0x1011);
+    memcpy(g_lzssPresetWindow, DAT_00526ff4, 0x1011);
     for (i = 0; i < n; i++)
-        FUN_004d0de0(i + 0x13, &out);
-    memcpy(DAT_00520fe8, DAT_00526ff0, 0x6006);
-    DAT_00526ff8 = 1;
+        LzssAddString(i + 0x13, &out);
+    memcpy(g_lzssPresetTree, DAT_00526ff0, 0x6006);
+    g_lzssPresetReady = 1;
     if (DAT_00526ff4 == 0) {
         printf("Hey!  The window buffer ptr is not pointing to anything!\n");
     } else {

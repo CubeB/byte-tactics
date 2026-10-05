@@ -14,7 +14,7 @@
 // call, so `int doRead = read;` has to be a register copy, and the allocator
 // then splits the parameter's web into an early one (eax) and a late one (ebp).
 //
-// The sibling that decided it is 0x4b4cf0 (Class_004b4cf0::FUN_004b4cf0, MATCH,
+// The sibling that decided it is 0x4b4cf0 (Class_004b4cf0::WriteBox, MATCH,
 // 115 bytes), found by scanning the exe for `mov ebp,[esp+d]` followed by
 // `push esi ; mov esi,ebp`: there `len` is a parameter whose address is never
 // taken, so MSVC promotes it into ebp and copies it to esi for `len + c->size`,
@@ -86,7 +86,7 @@
 #include <windows.h>
 
 // FUNCTION: 0x4b6880
-int __stdcall FUN_004b6880(char* subKey, char* valueName, LPBYTE data, LPDWORD size,
+int __stdcall AccessRegistryValue(char* subKey, char* valueName, LPBYTE data, LPDWORD size,
                            DWORD type, DWORD read)
 {
     int result;

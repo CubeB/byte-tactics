@@ -12,7 +12,7 @@
 // block. It is dead in the source (nothing reads the slot again) and MSVC
 // deletes such a store, so it has to be kept by making the variable's ADDRESS
 // escape. The only addresses of locals that escape in this function are the
-// path buffer (sprintf and FUN_004bbc30) and the count (ListSavedGames), and
+// path buffer (sprintf and RemoveFile) and the count (ListSavedGames), and
 // the store is at frame+0 while `&count` is at frame+4 and the buffer at
 // frame+8, so all three cannot be separate locals: they are ONE local
 // aggregate, {int, int, char[0x100]}, and taking the buffer's address
@@ -24,7 +24,7 @@
 //   * `int` + `int` + `char[0x100]` as separate locals: 0x104 frame, no store.
 //   * the same with the path padded to 0x104: 0x108 frame, no store (98.4%).
 //   * one local struct {int, int, char[0x100]}, `&save.count` to
-//     ListSavedGames, `save.path` to sprintf and FUN_004bbc30: MATCH.
+//     ListSavedGames, `save.path` to sprintf and RemoveFile: MATCH.
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -83,8 +83,8 @@ void __stdcall FUN_0049fa70(void* menu);
 void __stdcall PlaySoundByName(char* name, int param_2);
 Entry_00492df0* __stdcall FindGadgetChecked(Entry_00492df0* entries, char* name);
 int __stdcall FindGadgetIndex(Entry_00492df0* entries, char* name, int type);
-char* __stdcall FUN_004b6af0(char* text, int n);
-void __stdcall FUN_004bbc30(char* path);
+char* __stdcall SkipTextLines(char* text, int n);
+void __stdcall RemoveFile(char* path);
 char* __stdcall ListSavedGames(int* count);
 void __stdcall FUN_004ab0a0(Gadget_00492df0* menu);
 void ShowSavedGameInfo();
@@ -121,8 +121,8 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     if (IsCurrentGadgetNamed(gadget, "DELETE")) {
         PlaySoundByName("SmallButton", 0);
         Entry_00492df0* e = FindGadgetChecked(entries, "GAMES");
-        sprintf(save.path, "%s\\%s", DAT_005091c8, FUN_004b6af0(DAT_0051f2e0, e->field_ba));
-        FUN_004bbc30(save.path);
+        sprintf(save.path, "%s\\%s", DAT_005091c8, SkipTextLines(DAT_0051f2e0, e->field_ba));
+        RemoveFile(save.path);
         ListSavedGames(&save.count);
         FUN_004ab0a0(gadget);
         ShowSavedGameInfo();

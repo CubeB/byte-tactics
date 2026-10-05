@@ -4,17 +4,17 @@
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4c80 {
 public:
-    int FUN_004b4c80(void* buf, int size);
+    int ReadBox(void* buf, int size);
 };
 
 struct Data_0044d470 {
@@ -64,10 +64,10 @@ Class_0044d470::Class_0044d470(int owner, Class_004b4ba0* file, char* name)
     if (name == 0)
         bad = 1;
     if (!bad) {
-        file->FUN_004b4ba0(name);
-        ((Class_004b4c10*)file)->FUN_004b4c10(0);
+        file->OpenNamedBox(name);
+        ((Class_004b4c10*)file)->SeekBox(0);
         Header_0044d470 hdr;
-        if (((Class_004b4c80*)file)->FUN_004b4c80(&hdr, 24) == 24) {
+        if (((Class_004b4c80*)file)->ReadBox(&hdr, 24) == 24) {
             data.a = hdr.data.a;
             data.b = hdr.data.b;
             data.c = hdr.data.c;

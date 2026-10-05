@@ -5,7 +5,7 @@
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
 struct Source_004ae410 {
@@ -21,6 +21,6 @@ struct Obj_004ae410 {
 // FUNCTION: 0x4ae410
 void __stdcall ReadHotOrNotField(Obj_004ae410* obj, Source_004ae410* src)
 {
-    int value = src->tdf->FUN_004c46c0("hotornot", 0);
+    int value = src->tdf->GetFieldInt("hotornot", 0);
     obj->hotornot = value;
 }

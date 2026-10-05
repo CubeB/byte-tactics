@@ -38,11 +38,11 @@ static inline char* SkipComment(char* p)
 
 class Class_004c33a0 {
 public:
-    void FUN_004c33a0(char* p);
+    void StripComments(char* p);
 };
 
 // FUNCTION: 0x4c33a0
-void Class_004c33a0::FUN_004c33a0(char* p)
+void Class_004c33a0::StripComments(char* p)
 {
     while (*p)
         p = SkipComment(p);

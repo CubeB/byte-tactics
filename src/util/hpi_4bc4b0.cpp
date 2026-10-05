@@ -2,7 +2,7 @@
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Find_004bc4b0 {
+struct FindFiles {
     char dir[0x100];      // +0x000
     char name[0x100];     // +0x100
     int state;            // +0x200
@@ -14,7 +14,7 @@ struct Find_004bc4b0 {
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
-int __stdcall FUN_004bc640(Find_004bc4b0* f, void* fd);
+int __stdcall HAPI_FindNext(FindFiles* f, void* fd);
 long __cdecl _findfirst(const char* spec, void* fileinfo);
 
 // Strips the directory from a path in place ("a\\b\\c.txt" -> "c.txt").
@@ -34,9 +34,9 @@ static char* StripDir(char* path)
 }
 
 // FUNCTION: 0x4bc4b0
-int __stdcall FUN_004bc4b0(const char* path, void* fd, int state, char recursive)
+int __stdcall HAPI_FindFirst(const char* path, void* fd, int state, char recursive)
 {
-    Find_004bc4b0* f = (Find_004bc4b0*)FUN_004d83b0("Find Files structure", 0x20d);
+    FindFiles* f = (FindFiles*)FUN_004d83b0("Find Files structure", 0x20d);
     strcpy(f->dir, path);
     for (int i = strlen(f->dir); i >= 0; i--) {
         if (f->dir[i] == '\\') {
@@ -59,7 +59,7 @@ int __stdcall FUN_004bc4b0(const char* path, void* fd, int state, char recursive
         f->state = 0;
     }
     f->index = -1;
-    if (FUN_004bc640(f, fd) != -1)
+    if (HAPI_FindNext(f, fd) != -1)
         return (int)f;
 fail:
     FUN_004d85a0(f);

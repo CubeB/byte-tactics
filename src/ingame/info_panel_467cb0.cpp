@@ -16,7 +16,7 @@ struct Game {
 
 extern Game* g_game;
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 int GetTextKeyColor();
 void __stdcall SetTextColors(int color, int font);
 void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
@@ -25,11 +25,11 @@ void __stdcall DrawString(void* surface, const char* text, int x, int y, int max
 void __stdcall DrawKillCount(void* surface, Player_00467cb0* player, int x, int y)
 {
     char buf[100];
-    char* kills = FUN_004c5740("kills");
-    char* kill = FUN_004c5740("kill");
+    char* kills = Translate("kills");
+    char* kill = Translate("kill");
     if (player->kills > 4) {
         sprintf(buf, "%d %s - %s", player->kills,
-                player->kills == 1 ? kill : kills, FUN_004c5740("Veteran"));
+                player->kills == 1 ? kill : kills, Translate("Veteran"));
     } else {
         sprintf(buf, "%d %s", player->kills,
                 player->kills == 1 ? kill : kills);

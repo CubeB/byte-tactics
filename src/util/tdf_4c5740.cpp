@@ -12,21 +12,21 @@ struct Elem_004c5740 {
     char* value;                        // +4
 };
 
-struct Class_004c5740 {
+struct TranslationTable {
     char unknown_0[5];
     Elem_004c5740* first;               // +5
     Elem_004c5740* last;                // +9
 };
 #pragma pack(pop)
 
-extern Class_004c5740* DAT_0051fdb8;
+extern TranslationTable* g_translations;
 
 // FUNCTION: 0x4c5740
-char* __stdcall FUN_004c5740(char* key)
+char* __stdcall Translate(char* key)
 {
     if (key == 0)
         return 0;
-    Class_004c5740* c = DAT_0051fdb8;
+    TranslationTable* c = g_translations;
     if (c == 0)
         return key;
 

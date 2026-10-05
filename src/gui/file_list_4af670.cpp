@@ -58,9 +58,9 @@ Entry_004af670* __stdcall FindGadgetChecked(Entry_004af670* entries, char* name)
 void __stdcall FUN_0049fa90(Gadget_004af670* gadget);
 void __stdcall FUN_004ab0a0(Gadget_004af670* gadget);
 void __stdcall FUN_004af5b0(Req_004af670* req);
-char* __stdcall FUN_004b6af0(char* text, int n);
-int __stdcall FUN_004bc300(char* drive);
-void __stdcall FUN_004bc360(const char* path);
+char* __stdcall SkipTextLines(char* text, int n);
+int __stdcall ChangeDrive(char* drive);
+void __stdcall ChangeDirectory(const char* path);
 void __cdecl FUN_004d85a0(void* data);
 
 // FUNCTION: 0x4af670
@@ -74,8 +74,8 @@ void __stdcall FileRequesterHandler(Gadget_004af670* gadget)
     Req_004af670* req;
     req = gadget->layer->req;
     if (gadget->field_60 == -1) {
-        FUN_004bc300(req->save_drive);
-        FUN_004bc360(req->save_cwd);
+        ChangeDrive(req->save_drive);
+        ChangeDirectory(req->save_cwd);
         FUN_004d85a0(req);
         return;
     }
@@ -86,7 +86,7 @@ void __stdcall FileRequesterHandler(Gadget_004af670* gadget)
 
     if (IsGadgetNamed(entries, gadget->field_60, "LOAD")
         || IsGadgetNamed(entries, gadget->field_60, "SWIN")) {
-        char* name = FUN_004b6af0(req->names,
+        char* name = SkipTextLines(req->names,
                                   FindGadgetChecked(entries, "SWIN")->field_ba);
         if (name[0] == '\\') {
             strcpy(req->selected, name);
@@ -102,7 +102,7 @@ void __stdcall FileRequesterHandler(Gadget_004af670* gadget)
                 tail++;
             }
             strcat(req->cwd, tail);
-            FUN_004bc360(req->cwd);
+            ChangeDirectory(req->cwd);
         } else {
             result = 1;
             strcpy(req->selected, req->cwd);
@@ -118,10 +118,10 @@ void __stdcall FileRequesterHandler(Gadget_004af670* gadget)
                 if (req->cwd[n] == '\\') {
                     if (req->cwd[n - 1] == ':') {
                         req->cwd[n + 1] = 0;
-                        FUN_004bc360(req->cwd);
+                        ChangeDirectory(req->cwd);
                     } else {
                         req->cwd[n] = 0;
-                        FUN_004bc360(req->cwd);
+                        ChangeDirectory(req->cwd);
                     }
                     break;
                 }
@@ -135,19 +135,19 @@ void __stdcall FileRequesterHandler(Gadget_004af670* gadget)
         strcpy(req->selected, entries[n].value);
     } else if (IsGadgetNamed(entries, gadget->field_60, "ADRV")) {
         drive[0] = 'A';
-        FUN_004bc300(drive);
+        ChangeDrive(drive);
     } else if (IsGadgetNamed(entries, gadget->field_60, "BDRV")) {
         drive[0] = 'B';
-        FUN_004bc300(drive);
+        ChangeDrive(drive);
     } else if (IsGadgetNamed(entries, gadget->field_60, "CDRV")) {
         drive[0] = 'C';
-        FUN_004bc300(drive);
+        ChangeDrive(drive);
     } else if (IsGadgetNamed(entries, gadget->field_60, "DDRV")) {
         drive[0] = 'D';
-        FUN_004bc300(drive);
+        ChangeDrive(drive);
     } else if (IsGadgetNamed(entries, gadget->field_60, "VDRV")) {
         drive[0] = 'R';
-        FUN_004bc300(drive);
+        ChangeDrive(drive);
     }
 
     if (result == 1) {

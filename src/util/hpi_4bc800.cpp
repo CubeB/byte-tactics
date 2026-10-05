@@ -3,19 +3,19 @@
 #include <string.h>
 
 // An archive's directory tree (0x4bc640.cpp names the same structs).
-struct List_004bc800;
+struct ArchiveDirectory;
 
 #pragma pack(push, 1)
-struct Entry_004bc800 {
+struct ArchiveEntry {
     char* name;                          // +0x0
-    List_004bc800* child;                // +0x4, the directory's own list
+    ArchiveDirectory* child;             // +0x4, the directory's own list
     unsigned char flags;                 // +0x8, bit 0: a directory
 };
 #pragma pack(pop)
 
-struct List_004bc800 {
+struct ArchiveDirectory {
     int count;                           // +0x0
-    Entry_004bc800* entries;             // +0x4
+    ArchiveEntry* entries;               // +0x4
 };
 
 // The list of the directory a backslash-separated path ends in (everything up
@@ -27,7 +27,7 @@ struct List_004bc800 {
 // later of two operands of an add goes first: [len + name]), and `path` is
 // advanced before `list` (otherwise ecx and edx swap).
 // FUNCTION: 0x4bc800
-List_004bc800* __stdcall FUN_004bc800(List_004bc800* list, char* path)
+ArchiveDirectory* __stdcall HAPI_FindDirectory(ArchiveDirectory* list, char* path)
 {
     char* sep;
     while ((sep = strchr(path, '\\')) != 0) {

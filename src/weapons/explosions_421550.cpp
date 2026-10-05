@@ -36,7 +36,7 @@ struct Obj_00421170 {
 
 void __stdcall EmitWhiteSmoke(void* buf, int arg);
 void __stdcall FUN_00472ab0(void* buf, int arg);
-void __stdcall FUN_004b6cc0(Vec3_004b6cc0* in, Vec3_004b6cc0* out, short* angles);
+void __stdcall RotateByAngles(Vec3_004b6cc0* in, Vec3_004b6cc0* out, short* angles);
 void __stdcall DrawExplodedPieceFaces(int param_1, Obj_00421170* obj, Inner_00421550* inner);
 
 // FUNCTION: 0x421550
@@ -65,7 +65,7 @@ int __stdcall DrawExplodedPiece(int param_1, Obj_00421170* obj)
 
     int n = inner->f0->count;
     for (int i = n - 1; i >= 0; i--) {
-        FUN_004b6cc0(&inner->f0->items[i], &inner->f22[i], angles);
+        RotateByAngles(&inner->f0->items[i], &inner->f22[i], angles);
     }
 
     DrawExplodedPieceFaces(param_1, obj, inner);

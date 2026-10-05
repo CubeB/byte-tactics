@@ -59,7 +59,7 @@ void __stdcall FUN_004a0bf0(Gui_00460cc0* sub, const char* name, const char* val
 void __stdcall FUN_0049fa50(Gui_00460cc0* sub);
 void __stdcall FUN_0049fb10(Gui_00460cc0* sub, int value);
 void __stdcall RenderLayer(Gui_00460cc0* sub, int value);
-const char* __stdcall FUN_004c5740(const char* text);
+const char* __stdcall Translate(const char* text);
 void __stdcall HandleInGameOptionsClick(void* gadget);
 
 // FUNCTION: 0x460cc0
@@ -72,7 +72,7 @@ void OpenInGameOptions()
     FUN_004a1200(&g_game->sub, FindGadgetIndex(gadget->info, "LOADGAME", 1),
                  g_game->mode->FUN_00435100() == 3);
     if (g_game->mode->FUN_00435100() == 3 || g_game->mode->FUN_00435100() == 2) {
-        FUN_004a0bf0(&g_game->sub, "MISSION", FUN_004c5740("Settings"), 0x80);
+        FUN_004a0bf0(&g_game->sub, "MISSION", Translate("Settings"), 0x80);
     }
     FUN_0049fa50(&g_game->sub);
     FUN_0049fb10(&g_game->sub, 1);

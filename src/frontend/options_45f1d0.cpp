@@ -108,7 +108,7 @@ extern Game* g_game;
 Layer_0045f1d0* __stdcall LoadGuiLayer(Layer_0045f1d0* menu, const char* name, int flags);
 void __stdcall LoadPictureCached(const char* name, int, int, int);
 int FindHostSlot();
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall AddTextGadget(Layer_0045f1d0* layer, char* type, char* text, int x, int y,
                             int width, int attr);
 void __stdcall FUN_0045f190(void*);
@@ -138,44 +138,44 @@ void FUN_0045f1d0()
     char* cheatStrs[2] = { "Disallowed", "Allowed" };
     char* watchStrs[2] = { "Disallowed", "Allowed" };
     char* diffStrs[3] = { "Easy", "Medium", "Hard" };
-    AddTextGadget(layer, "TEXT", FUN_004c5740("Commander Death:"), 0x12, 0x5a, 0x6e, 2);
-    AddTextGadget(layer, "TEXT", FUN_004c5740(deathStrs[g_game->commanderDeath]), 0x8c,
+    AddTextGadget(layer, "TEXT", Translate("Commander Death:"), 0x12, 0x5a, 0x6e, 2);
+    AddTextGadget(layer, "TEXT", Translate(deathStrs[g_game->commanderDeath]), 0x8c,
                  0x5a, 0x78, 2);
-    AddTextGadget(layer, "TEXT", FUN_004c5740("Starting Locations:"), 0x12, 0x6c, 0x6e, 2);
+    AddTextGadget(layer, "TEXT", Translate("Starting Locations:"), 0x12, 0x6c, 0x6e, 2);
     if (g_game->net->FUN_00435100() == 2) {
-        AddTextGadget(layer, "TEXT", FUN_004c5740(locStrs[g_game->rules->startType]), 0x8c,
+        AddTextGadget(layer, "TEXT", Translate(locStrs[g_game->rules->startType]), 0x8c,
                      0x6c, 0x78, 2);
     } else {
-        AddTextGadget(layer, "TEXT", FUN_004c5740(locStrs[opts->u.b.b14]), 0x8c, 0x6c,
+        AddTextGadget(layer, "TEXT", Translate(locStrs[opts->u.b.b14]), 0x8c, 0x6c,
                      0x78, 2);
     }
-    AddTextGadget(layer, "TEXT", FUN_004c5740("Mapping Mode:"), 0x12, 0x7e, 0x6e, 2);
-    AddTextGadget(layer, "TEXT", FUN_004c5740(mapStrs[g_game->los.lb.l0]), 0x8c, 0x7e, 0x78, 2);
-    AddTextGadget(layer, "TEXT", FUN_004c5740("Line of Sight:"), 0x12, 0x90, 0x6e, 2);
+    AddTextGadget(layer, "TEXT", Translate("Mapping Mode:"), 0x12, 0x7e, 0x6e, 2);
+    AddTextGadget(layer, "TEXT", Translate(mapStrs[g_game->los.lb.l0]), 0x8c, 0x7e, 0x78, 2);
+    AddTextGadget(layer, "TEXT", Translate("Line of Sight:"), 0x12, 0x90, 0x6e, 2);
     unsigned short losFlags = g_game->los.losFlags;
     int losIdx = !(losFlags & 2) ? 2 : (int)(((unsigned char)~losFlags >> 2) & 1);
-    AddTextGadget(layer, "TEXT", FUN_004c5740(losStrs[losIdx]), 0x8c, 0x90, 0x78, 2);
+    AddTextGadget(layer, "TEXT", Translate(losStrs[losIdx]), 0x8c, 0x90, 0x78, 2);
     int y;
     if (g_game->net->FUN_00435100() == 3) {
-        AddTextGadget(layer, "TEXT", FUN_004c5740("Cheat Codes:"), 0x12, 0xa2, 0x6e, 2);
-        AddTextGadget(layer, "TEXT", FUN_004c5740(cheatStrs[opts->u.b.b13]), 0x8c,
+        AddTextGadget(layer, "TEXT", Translate("Cheat Codes:"), 0x12, 0xa2, 0x6e, 2);
+        AddTextGadget(layer, "TEXT", Translate(cheatStrs[opts->u.b.b13]), 0x8c,
                      0xa2, 0x78, 2);
-        AddTextGadget(layer, "TEXT", FUN_004c5740("Watching:"), 0x12, 0xb4, 0x6e, 2);
-        AddTextGadget(layer, "TEXT", FUN_004c5740(watchStrs[opts->u.b.b7]), 0x8c, 0xb4,
+        AddTextGadget(layer, "TEXT", Translate("Watching:"), 0x12, 0xb4, 0x6e, 2);
+        AddTextGadget(layer, "TEXT", Translate(watchStrs[opts->u.b.b7]), 0x8c, 0xb4,
                      0x78, 2);
         y = 0xc6;
     } else {
-        AddTextGadget(layer, "TEXT", FUN_004c5740("Difficulty:"), 0x12, 0xa2, 0x6e, 2);
-        AddTextGadget(layer, "TEXT", FUN_004c5740(diffStrs[g_game->difficulty]), 0x8c, 0xa2,
+        AddTextGadget(layer, "TEXT", Translate("Difficulty:"), 0x12, 0xa2, 0x6e, 2);
+        AddTextGadget(layer, "TEXT", Translate(diffStrs[g_game->difficulty]), 0x8c, 0xa2,
                      0x78, 2);
         y = 0xb4;
     }
-    AddTextGadget(layer, "TEXT", FUN_004c5740("Map:"), 0x12, y, 0x6e, 2);
+    AddTextGadget(layer, "TEXT", Translate("Map:"), 0x12, y, 0x6e, 2);
     AddTextGadget(layer, "TEXT",
-                 FUN_004c5740(((Class_00435c30*)g_game->net)->FUN_00435c30()), 0x8c, y,
+                 Translate(((Class_00435c30*)g_game->net)->FUN_00435c30()), 0x8c, y,
                  0x78, 2);
     y += 0x12;
-    AddTextGadget(layer, "TEXT", FUN_004c5740("Starting Metal:"), 0x12, y, 0x6e, 2);
+    AddTextGadget(layer, "TEXT", Translate("Starting Metal:"), 0x12, y, 0x6e, 2);
     if (g_game->net->FUN_00435100() == 3) {
         AddTextGadget(layer, "TEXT", _itoa(opts->startMetal * 100, num, 10), 0x8c, y, 0x78,
                      2);
@@ -183,7 +183,7 @@ void FUN_0045f1d0()
         AddTextGadget(layer, "TEXT", _itoa(rule->startMetal, num, 10), 0x8c, y, 0x78, 2);
     }
     y += 0x12;
-    AddTextGadget(layer, "TEXT", FUN_004c5740("Starting Energy:"), 0x12, y, 0x6e, 2);
+    AddTextGadget(layer, "TEXT", Translate("Starting Energy:"), 0x12, y, 0x6e, 2);
     if (g_game->net->FUN_00435100() == 3) {
         AddTextGadget(layer, "TEXT", _itoa(opts->startEnergy * 100, num, 10), 0x8c, y,
                      0x78, 2);
@@ -191,7 +191,7 @@ void FUN_0045f1d0()
         AddTextGadget(layer, "TEXT", _itoa(rule->startEnergy, num, 10), 0x8c, y, 0x78, 2);
     }
     y += 0x12;
-    AddTextGadget(layer, "TEXT", FUN_004c5740("Max Units:"), 0x12, y, 0x6e, 2);
+    AddTextGadget(layer, "TEXT", Translate("Max Units:"), 0x12, y, 0x6e, 2);
     AddTextGadget(layer, "TEXT", _itoa(g_game->maxUnits, num, 10), 0x8c, y, 0x78, 2);
     int i;
     for (i = count + 1; i <= layer->entries->u.count; i++)

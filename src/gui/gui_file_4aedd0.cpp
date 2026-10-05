@@ -21,7 +21,7 @@ struct Object_004aedd0 {
 };
 
 void __stdcall ChangeExtension(char* out, char* in, const char* ext);
-int __stdcall FUN_004bbc40(char* path);
+int __stdcall HAPI_FileLengthByName(char* path);
 void* __stdcall LoadGaf(char* path);
 void* __stdcall GetGafFrame(void* table, int index);
 
@@ -36,7 +36,7 @@ void __stdcall LoadGafIntoSlot(Object_004aedd0* obj, char* name, int index)
     strncpy(path, obj->dir, 0x100);
     strcat(path, name);
     ChangeExtension(path, path, "GAF");
-    if (FUN_004bbc40(path)) {
+    if (HAPI_FileLengthByName(path)) {
         void* gaf = LoadGaf(path);
         obj->items[index] = gaf;
         Table_004aedd0* table = *(Table_004aedd0**)((char*)gaf + 0xc);

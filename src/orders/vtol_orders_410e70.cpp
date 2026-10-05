@@ -77,7 +77,7 @@ public:
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
@@ -144,7 +144,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                Unit* target = v[FUN_004b6c30(v.size())];
+                Unit* target = v[RandomInt(v.size())];
                 AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
                 order->flags = 0;
                 return 0;

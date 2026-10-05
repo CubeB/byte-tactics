@@ -111,7 +111,7 @@ class Class_0044e730 { public: void FUN_0044e730(int); };
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b);
@@ -150,7 +150,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
         FindPads(unit,&pads);
         if (!pads.empty()) {
             ((Class_004388d0*)order)->FUN_004388d0(0);
-            Unit* pad=pads[FUN_004b6c30(pads.size())];
+            Unit* pad=pads[RandomInt(pads.size())];
             AppendOrder(unit,new Class_0043a1f0("VTOL_LANDING",pad,0,0,0,0));
             order->flags=0;
             return 0;
@@ -167,7 +167,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
         order->flags=0;
         return 3;
     }
-    if (flags&0xe0) order->angle+=-FUN_004b6c30(0x2000)-0x4000;
+    if (flags&0xe0) order->angle+=-RandomInt(0x2000)-0x4000;
     Vec3 pos=order->pos+Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16);
     Class_0044e2d0* move=new Class_0044e2d0(order,pos);
     ((Class_0044e730*)move)->FUN_0044e730(128);
@@ -197,7 +197,7 @@ int __stdcall VtolSeekGuardOrder(Unit* unit, Order* order, int flags)
         if (unit->motion && (unit->def->flags&0x800)) {
             Vec3* pos=&order->pos;
             if (!pos->x && !pos->z && !pos->y) *pos=unit->pos;
-            order->angle=FUN_004b6c30(0x10000);
+            order->angle=RandomInt(0x10000);
             order->parity=order->angle&1;
             return 1;
         }

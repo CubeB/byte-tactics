@@ -77,42 +77,42 @@
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3240 {
 public:
-    void FUN_004c3240();
+    void Unload();
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c3e10 {
 public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3e20 {
 public:
-    int FUN_004c3e20();
+    int GetCurrentRecord();
 };
 
 class Class_004c3e30 {
 public:
-    void FUN_004c3e30(int saved);
+    void SetCurrentRecord(int saved);
 };
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, const char* key, size_t size, const char* def);
+    int GetFieldString(char* dst, const char* key, size_t size, const char* def);
 };
 
 class Class_004c2ea0 {
@@ -183,7 +183,7 @@ extern char DAT_005119b8[];
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FatalError(char* message);
-void* __stdcall FUN_004bbe50(char* path, int flags);
+void* __stdcall HAPI_LoadFile(char* path, int flags);
 void __stdcall ReadSideRect(void* parser, int* out, const char* name, const char* side);
 
 // FUNCTION: 0x431a60
@@ -207,175 +207,175 @@ void __stdcall LoadSideData(void)
     Side_00431a60* s;
 
     BuildDataPath(name, "gamedata", "sidedata", "TDF");
-    ((Class_004c2f60*)&parser)->FUN_004c2f60(name);
+    ((Class_004c2f60*)&parser)->LoadFile(name);
     s = g_game->sides;
     side = 0;
     while (1) {
         int saved;
         s->sideNumber = side;
         sprintf(name, "SIDE%d", side);
-        ((Class_004c3e10*)&parser)->FUN_004c3e10();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410(name))
+        ((Class_004c3e10*)&parser)->ResetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord(name))
             break;
-        if (((Class_004c48c0*)parser.current)->FUN_004c48c0(name, "name", 0x1e, DAT_005119b8))
+        if (((TdfRecord*)parser.current)->GetFieldString(name, "name", 0x1e, DAT_005119b8))
             strcpy(s->name, name);
-        if (((Class_004c48c0*)parser.current)->FUN_004c48c0(name, "nameprefix", 4, DAT_005119b8))
+        if (((TdfRecord*)parser.current)->GetFieldString(name, "nameprefix", 4, DAT_005119b8))
             strcpy(s->nameprefix, name);
-        if (((Class_004c48c0*)parser.current)->FUN_004c48c0(name, "commander", 0x20, DAT_005119b8))
+        if (((TdfRecord*)parser.current)->GetFieldString(name, "commander", 0x20, DAT_005119b8))
             strcpy(s->commander, name);
-        if (((Class_004c48c0*)parser.current)->FUN_004c48c0(name, "font", 0x100, DAT_005119b8)) {
+        if (((TdfRecord*)parser.current)->GetFieldString(name, "font", 0x100, DAT_005119b8)) {
             void* font;
             BuildDataPath(fontPath, "fonts", name, "FNT");
-            font = FUN_004bbe50(fontPath, 0);
+            font = HAPI_LoadFile(fontPath, 0);
             if (font == 0)
                 FatalError(fontPath);
             s->font = font;
         }
-        s->energyColor = ((Class_004c46c0*)parser.current)->FUN_004c46c0("energycolor", 0);
-        s->metalColor = ((Class_004c46c0*)parser.current)->FUN_004c46c0("metalcolor", 0);
+        s->energyColor = ((Class_004c46c0*)parser.current)->GetFieldInt("energycolor", 0);
+        s->metalColor = ((Class_004c46c0*)parser.current)->GetFieldInt("metalcolor", 0);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("LOGO")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("LOGO")) {
             sprintf(msgLogo, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "LOGO", s->name);
             FatalError(msgLogo);
         } else {
             int* r = &s->logo.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("ENERGYBAR")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("ENERGYBAR")) {
             sprintf(msgEnergybar, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGYBAR", s->name);
             FatalError(msgEnergybar);
         } else {
             int* r = &s->energyBar.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("ENERGYNUM")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("ENERGYNUM")) {
             sprintf(msgEnergynum, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGYNUM", s->name);
             FatalError(msgEnergynum);
         } else {
             int* r = &s->energyNum.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("METALBAR")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("METALBAR")) {
             sprintf(msgMetalbar, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METALBAR", s->name);
             FatalError(msgMetalbar);
         } else {
             int* r = &s->metalBar.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("METALNUM")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("METALNUM")) {
             sprintf(msgMetalnum, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METALNUM", s->name);
             FatalError(msgMetalnum);
         } else {
             int* r = &s->metalNum.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("TOTALUNITS")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("TOTALUNITS")) {
             sprintf(msgTotalunits, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "TOTALUNITS", s->name);
             FatalError(msgTotalunits);
         } else {
             int* r = &s->totalUnits.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("TOTALTIME")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("TOTALTIME")) {
             sprintf(msgTotaltime, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "TOTALTIME", s->name);
             FatalError(msgTotaltime);
         } else {
             int* r = &s->totalTime.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("ENERGY0")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("ENERGY0")) {
             sprintf(msgEnergy0, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGY0", s->name);
             FatalError(msgEnergy0);
         } else {
             int* r = &s->energy0.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("METAL0")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("METAL0")) {
             sprintf(msgMetal0, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METAL0", s->name);
             FatalError(msgMetal0);
         } else {
             int* r = &s->metal0.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("ENERGYMAX")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("ENERGYMAX")) {
             sprintf(msgEnergymax, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGYMAX", s->name);
             FatalError(msgEnergymax);
         } else {
             int* r = &s->energyMax.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
-        saved = ((Class_004c3e20*)&parser)->FUN_004c3e20();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("METALMAX")) {
+        saved = ((Class_004c3e20*)&parser)->GetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord("METALMAX")) {
             sprintf(msgMetalmax, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METALMAX", s->name);
             FatalError(msgMetalmax);
         } else {
             int* r = &s->metalMax.x1;
-            r[0] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x1", 0);
-            r[1] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y1", 0);
-            r[2] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("x2", 0);
-            r[3] = ((Class_004c46c0*)parser.current)->FUN_004c46c0("y2", 0);
+            r[0] = ((Class_004c46c0*)parser.current)->GetFieldInt("x1", 0);
+            r[1] = ((Class_004c46c0*)parser.current)->GetFieldInt("y1", 0);
+            r[2] = ((Class_004c46c0*)parser.current)->GetFieldInt("x2", 0);
+            r[3] = ((Class_004c46c0*)parser.current)->GetFieldInt("y2", 0);
         }
-        ((Class_004c3e30*)&parser)->FUN_004c3e30(saved);
+        ((Class_004c3e30*)&parser)->SetCurrentRecord(saved);
 
         ReadSideRect(&parser, &s->energyProduced.x1, "ENERGYPRODUCED", s->name);
         ReadSideRect(&parser, &s->energyConsumed.x1, "ENERGYCONSUMED", s->name);
@@ -406,6 +406,6 @@ void __stdcall LoadSideData(void)
         side++;
         s++;
     }
-    ((Class_004c3240*)&parser)->FUN_004c3240();
+    ((Class_004c3240*)&parser)->Unload();
     g_game->sideCount = side;
 }

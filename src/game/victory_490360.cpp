@@ -6,7 +6,7 @@ extern int FUN_0041d8b0();
 extern unsigned int DAT_0051e6c4;
 
 struct Unit;
-class Class_004b4560;
+class HapiBank;
 
 // Mission victory/defeat condition (see 0x48ff40.cpp).
 class MissionCondition {
@@ -19,8 +19,8 @@ public:
     virtual void OnUnitDied(Unit* unit);     // Slot1
     virtual void OnUnitCaptured(Unit* unit);  // Slot2
     virtual void OnUnitCreated(Unit* unit);  // Slot3
-    virtual void SaveState(Class_004b4560* file) = 0;      // Save
-    virtual void LoadState(Class_004b4560* file) = 0;      // Load
+    virtual void SaveState(HapiBank* file) = 0;            // Save
+    virtual void LoadState(HapiBank* file) = 0;            // Load
 };
 
 // Secondary interface of a condition that visits units.
@@ -33,8 +33,8 @@ public:
 class DefeatAllUnitsKilled : public MissionCondition, public Listener_0048ff40 {
 public:
     virtual int IsSatisfied();
-    virtual void SaveState(Class_004b4560* file);      // Save
-    virtual void LoadState(Class_004b4560* file);      // Load
+    virtual void SaveState(HapiBank* file);            // Save
+    virtual void LoadState(HapiBank* file);            // Load
     virtual int VisitUnit(Unit* unit);
 };
 

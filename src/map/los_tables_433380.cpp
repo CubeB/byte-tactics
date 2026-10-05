@@ -58,7 +58,7 @@ public:
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
 class Class_004c3410 {
@@ -66,12 +66,12 @@ public:
     void* root;                        // +0x0
     Class_004c46c0* current;           // +0x4
 
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c3e10 {
 public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_00433380 {
@@ -92,10 +92,10 @@ void Class_00433380::LoadLosTable(Class_004c3410* file, short table)
 {
     char name[32];
     sprintf(name, "TABLE%d", table + 1);
-    ((Class_004c3e10*)file)->FUN_004c3e10();
-    if (file->FUN_004c3410(name)) {
+    ((Class_004c3e10*)file)->ResetCurrentRecord();
+    if (file->SelectRecord(name)) {
         Class_004335f0* t = GetTable(table + 1);
-        short numlines = (short)file->current->FUN_004c46c0("numlines", 0);
+        short numlines = (short)file->current->GetFieldInt("numlines", 0);
         t->SetNumLines(numlines);
         short n2 = numlines * 2;
         short n3 = numlines * 3;

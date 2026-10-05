@@ -8,17 +8,17 @@ struct UnitInfo_43dd70 {
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* src, int len);
+    int WriteBox(void* src, int len);
 };
 
 struct Vec3i_43dd70 {
@@ -66,7 +66,7 @@ void UnitMotion::SaveMotion(UnitInfo_43dd70* info, Class_004b4ba0* file)
     hdr.f1 = f1;
     hdr.f2 = f2;
     sprintf(name, "u%04xmob", info->id);
-    file->FUN_004b4ba0(name);
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
-    ((Class_004b4cf0*)file)->FUN_004b4cf0(&hdr, 0x23);
+    file->OpenNamedBox(name);
+    ((Class_004b4c10*)file)->SeekBox(0);
+    ((Class_004b4cf0*)file)->WriteBox(&hdr, 0x23);
 }

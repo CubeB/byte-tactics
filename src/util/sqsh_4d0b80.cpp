@@ -15,7 +15,7 @@ struct Node_004d0b80 {
 extern Node_004d0b80* DAT_00526ff0;
 
 // FUNCTION: 0x4d0b80
-void __stdcall FUN_004d0b80(int oldNode, int newNode)
+void __stdcall LzssReplaceNode(int oldNode, int newNode)
 {
     int parent = DAT_00526ff0[oldNode].parent;
     if (DAT_00526ff0[parent].smaller == (unsigned short)oldNode)

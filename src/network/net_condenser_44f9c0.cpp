@@ -34,9 +34,9 @@ struct Net_0044f9c0 {
 
 int __stdcall HAPINET_receivepacket(void* net, void* data, int* size);
 void __stdcall CountPacket(int size, int overhead, int sent);
-int __stdcall FUN_004d1480(char* out, char* in);
-void FUN_004d1800();
-void FUN_004d1810();
+int __stdcall LzssExpand(char* out, char* in);
+void LzssDisablePreset();
+void LzssEnablePreset();
 
 // FUNCTION: 0x44f9c0
 int NetCondenser::ReceivePacket(void* net, char* data, int* size)
@@ -76,9 +76,9 @@ int NetCondenser::ReceivePacket(void* net, char* data, int* size)
             if (*(unsigned short*)(data + 1) != sum)
                 return 0x887700be;
             if (data[0] == 4) {
-                FUN_004d1810();
-                unknown_c = FUN_004d1480(buffer, data + 3);
-                FUN_004d1800();
+                LzssEnablePreset();
+                unknown_c = LzssExpand(buffer, data + 3);
+                LzssDisablePreset();
             } else {
                 memcpy(buffer, data + 3, n);
                 unknown_c = n;

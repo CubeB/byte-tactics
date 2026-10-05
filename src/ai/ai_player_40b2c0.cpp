@@ -18,7 +18,7 @@ public:
 extern Game* g_game;
 extern PlayerAI* g_playerAI[];
 
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 
 class Class_0040aa40 {
 public:
@@ -37,7 +37,7 @@ void __stdcall UpdatePlayerAI(int player)
     if (p && g_game->ticks >= p->lastTick + 0x1e) {
         ((Class_0040aa40*)p)->RefreshUnitLists();
         p->lastTick = g_game->ticks;
-        if (FUN_004b6c30(0x1e) == 0) {
+        if (RandomInt(0x1e) == 0) {
             ((Class_00409730*)p)->ComputeBaseWeights();
         }
     }

@@ -64,7 +64,7 @@ void __stdcall RefreshAllyIcons(void);
 int __stdcall FindGadgetIndex(Entry_004797e0* entries, char* name, int type);
 void __stdcall FUN_004a0570(Menu_004797e0* menu, char* name, int value);
 void __stdcall FUN_004a0bf0(Menu_004797e0* menu, char* key, char* text, int flag);
-char* __stdcall FUN_004c5740(char* key);
+char* __stdcall Translate(char* key);
 
 // 0x479500: the number of players with controller 1.
 int __cdecl CountHumanSlots()
@@ -131,19 +131,19 @@ void __stdcall CycleSlotController(int playerIndex)
     switch (g_game->players[playerIndex].controller) {
     case 0:
         g_game->players[playerIndex].controller = 2;
-        FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Computer"), 0);
+        FUN_004a0bf0(&g_game->menu, buffer, Translate("Computer"), 0);
         break;
     case 1:
         g_game->players[playerIndex].controller = 0;
-        FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Open"), 0);
+        FUN_004a0bf0(&g_game->menu, buffer, Translate("Open"), 0);
         break;
     case 2:
         if (CountHumanSlots() == 0) {
             g_game->players[playerIndex].controller = 1;
-            FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Player"), 0);
+            FUN_004a0bf0(&g_game->menu, buffer, Translate("Player"), 0);
         } else {
             g_game->players[playerIndex].controller = 0;
-            FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Open"), 0);
+            FUN_004a0bf0(&g_game->menu, buffer, Translate("Open"), 0);
         }
         break;
     }

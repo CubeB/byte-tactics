@@ -1,29 +1,29 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Creates a DirectSound buffer for a block of a sound file. FP exceptions are
 // masked while the buffer is created, the buffer is locked, its contents are
-// read from the file with FUN_004bb7c0, and it is unlocked again. The buffer
+// read from the file with HAPI_readfromfile, and it is unlocked again. The buffer
 // is then wrapped in a 4-slot set (only slot 0 is used) allocated with the
 // tagged allocator. Releases the buffer and returns 0 on any failure.
 #include <windows.h>
 #include <dsound.h>
 #include <float.h>
 
-struct File_004bb5d0;
+struct FileHandle;
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-int __stdcall FUN_004bb7c0(File_004bb5d0* file, void* buf, int size);
+int __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
 
 class Class_004cf370 {
 public:
     char unknown_0[0x24];
     IDirectSound* field_24;                 // +0x24
 
-    IDirectSoundBuffer** CreateSampleFromFile(File_004bb5d0* file, DWORD bytes,
+    IDirectSoundBuffer** CreateSampleFromFile(FileHandle* file, DWORD bytes,
                                       int sampleRate, int bits, int channels);
 };
 
 // FUNCTION: 0x4cf370
-IDirectSoundBuffer** Class_004cf370::CreateSampleFromFile(File_004bb5d0* file, DWORD bytes,
+IDirectSoundBuffer** Class_004cf370::CreateSampleFromFile(FileHandle* file, DWORD bytes,
                                                   int sampleRate, int bits, int channels)
 {
     WAVEFORMATEX wfx;
@@ -56,7 +56,7 @@ IDirectSoundBuffer** Class_004cf370::CreateSampleFromFile(File_004bb5d0* file, D
         hr = buf->Lock(0, bytes, &ptr, &size, 0, 0, 0);
         if (hr != 0)
             goto error;
-        unsigned copied = (unsigned)FUN_004bb7c0(file, ptr, size);
+        unsigned copied = (unsigned)HAPI_readfromfile(file, ptr, size);
         hr = buf->Unlock(ptr, size, 0, 0);
         if (hr != 0)
             goto error;

@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 // FUNCTION: 0x4bb200
-DWORD __stdcall FUN_004bb200(char drive, LPSTR volumeName, DWORD volumeNameSize)
+DWORD __stdcall GetVolumeNameAndSerial(char drive, LPSTR volumeName, DWORD volumeNameSize)
 {
     char root[4];
     DWORD serial;

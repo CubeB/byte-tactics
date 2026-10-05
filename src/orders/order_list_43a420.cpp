@@ -94,27 +94,27 @@ struct SaveDesc_0043a420 {             // the 0x3a-byte snapshot, read raw
 // named after its own address, so one class apiece.
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(const char* name);
+    int OpenNamedBox(const char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4c80 {
 public:
-    int FUN_004b4c80(void* buf, int len);
+    int ReadBox(void* buf, int len);
 };
 
 class Class_004b48a0 {
 public:
-    char* FUN_004b48a0(const char* name, char* def);
+    char* GetStringItem(const char* name, char* def);
 };
 
 class Class_004b48f0 {
 public:
-    int FUN_004b48f0(const char* key);
+    int HasItem(const char* key);
 };
 
 int __stdcall OrderTypeNameLess(int param_1, char* param_2);
@@ -216,8 +216,8 @@ short __stdcall ResolveUnitTypeKey(Class_004b48f0* file, unsigned short id)
 {
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);
-    if (file->FUN_004b48f0(key))
-        return FindUnitTypeId(((Class_004b48a0*)file)->FUN_004b48a0(key, 0));
+    if (file->HasItem(key))
+        return FindUnitTypeId(((Class_004b48a0*)file)->GetStringItem(key, 0));
     int i, n = 0;
     unsigned short k = 0;
     for (i = 1; i < g_game->unitTypeCount; i++, n++) {
@@ -269,16 +269,16 @@ Class_0043a1f0::Class_0043a1f0(Unit* punit, Class_004b4ba0* file, char* name)
     if (strlen(name) > 0x1f)
         return;
 
-    file->FUN_004b4ba0(name);
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
+    file->OpenNamedBox(name);
+    ((Class_004b4c10*)file)->SeekBox(0);
     SaveDesc_0043a420 desc;
-    if (((Class_004b4c80*)file)->FUN_004b4c80(&desc, 0x3a) != 0x3a)
+    if (((Class_004b4c80*)file)->ReadBox(&desc, 0x3a) != 0x3a)
         return;
 
     char buf1[0x80];
     sprintf(buf1, "%s%s", name, "_name");
     {
-        char* s = ((Class_004b48a0*)file)->FUN_004b48a0(buf1, 0);
+        char* s = ((Class_004b48a0*)file)->GetStringItem(buf1, 0);
         if (s != 0)
             desc.kind = KindByName_0043a420(s);
         else

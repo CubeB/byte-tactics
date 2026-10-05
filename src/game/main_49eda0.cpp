@@ -46,7 +46,7 @@ void __stdcall FUN_0045b820(int flag, char* text);
 void __stdcall SetDirectConnectAddress(char* param_1);
 void __stdcall FUN_0045b860(int param_1);
 void __stdcall SetPacketRate(int param_1);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void SetNoDirectSound();
 void SetUseWindowsSound();
 
@@ -248,7 +248,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                 }
                 if (!registered) {
                     MessageBeep(MB_ICONHAND);
-                    p = FUN_004c5740("DirectPlay registration failed.");
+                    p = Translate("DirectPlay registration failed.");
                     MessageBoxA(NULL, p, appName, MB_ICONHAND);
                 }
                 return 0;

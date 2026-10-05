@@ -11,12 +11,12 @@ public:
     char unknown_0[0x15];
     std::vector<Pair_004c45e0> pairs;   // +0x15 (_First at +0x19)
 
-    char* FUN_004c45e0(int index);
+    char* GetFieldName(int index);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x4c45e0
-char* Class_004c45e0::FUN_004c45e0(int index)
+char* Class_004c45e0::GetFieldName(int index)
 {
     if (index < 0 || (unsigned int)index >= pairs.size())
         return 0;

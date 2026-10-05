@@ -203,10 +203,10 @@ void* __stdcall GetGafFrame(void* gaf, int index);
 void* __stdcall LoadGaf(char* name);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 char* __stdcall ChangeExtension(char* a, char* b, char* c);
-long __stdcall FUN_004bbc40(char* name);
-char* __stdcall FUN_004bbe50(char* name, int* size);
+long __stdcall HAPI_FileLengthByName(char* name);
+char* __stdcall HAPI_LoadFile(char* name, int* size);
 void __stdcall SetFont(int id);
-char* __stdcall FUN_004c5740(char* key);
+char* __stdcall Translate(char* key);
 void* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall FreeSurface(void* obj);
 void __stdcall DrawSurface(void* dst, void* bmp, int x, int y);
@@ -312,7 +312,7 @@ int __stdcall RenderLayer(Menu_004a81e0* menu, unsigned int flags)
             strcat(buf1, entries[i].name);
             strcat(buf1, "_gadget");
             ChangeExtension(buf1, buf1, "GAF");
-            if (FUN_004bbc40(buf1)) {
+            if (HAPI_FileLengthByName(buf1)) {
                 entries[i].archive = LoadGaf(buf1);
                 if (entries[i].archive)
                     entries[i].gaf = (GafEntry_004a81e0*)FindGafEntry(entries[i].archive, entries[i].name);
@@ -329,7 +329,7 @@ int __stdcall RenderLayer(Menu_004a81e0* menu, unsigned int flags)
             strcat(buf1, textbuf);
             ChangeExtension(buf1, buf1, "GAF");
             if (!entries[0].u.assets.archive) {
-                if (FUN_004bbc40(buf1))
+                if (HAPI_FileLengthByName(buf1))
                     entries[0].u.assets.archive = LoadGaf(buf1);
             }
             strncpy(textbuf, entries[0].u.text + 0x46, 0x10);
@@ -546,7 +546,7 @@ int __stdcall RenderLayer(Menu_004a81e0* menu, unsigned int flags)
                 char* src = cur->u.text;
                 int k = 0;
                 for (; k < cur->stage; k++) {
-                    strcpy(dst, FUN_004c5740(src));
+                    strcpy(dst, Translate(src));
                     dst += strlen(dst) + 1;
                     src += strlen(src) + 1;
                 }
@@ -560,12 +560,12 @@ int __stdcall RenderLayer(Menu_004a81e0* menu, unsigned int flags)
             strcpy(buf2, menu->str_bb6);
             strcat(buf2, entries[i].u.text);
             strcat(buf2, ".FNT");
-            entries[i].u.list.filebuf = FUN_004bbe50(buf2, 0);
+            entries[i].u.list.filebuf = HAPI_LoadFile(buf2, 0);
             break;
 
         case 8:
             strcat(buf2, entries[i].u.text);
-            entries[i].u.list.filebuf = FUN_004bbe50(buf2, 0);
+            entries[i].u.list.filebuf = HAPI_LoadFile(buf2, 0);
             break;
 
         case 13: {

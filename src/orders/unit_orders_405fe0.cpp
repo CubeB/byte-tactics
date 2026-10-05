@@ -7,7 +7,7 @@ class Class_00439e80 { public: void FUN_00439e80(int); };
 class Class_00489800 { public: void ReleaseWeapons(int); };
 Order* __stdcall FUN_0043b700(Unit*);
 int __stdcall FUN_0043b1f0(Unit*,Order*,int);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 // FUNCTION: 0x405fe0
 int __stdcall StandbyOrder(Unit* unit,Order* order,int flags)
 {
@@ -24,7 +24,7 @@ int __stdcall StandbyOrder(Unit* unit,Order* order,int flags)
             if(next && FUN_0043b1f0(unit,next,0)) return 5;
         }
         order->flags|=0x10000;
-        ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(30)+30); return 2;
+        ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30)+30); return 2;
     default: return 7;
     }
 }

@@ -115,7 +115,7 @@ public:
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __cdecl FUN_004b715a(int x, int z);
@@ -199,7 +199,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
         ((Class_00489800*)unit)->ReleaseWeapons(3);
         int dist = (int)_hypot(order->pos.x - unit->pos.x, order->pos.z - unit->pos.z);
         int angle = GetHeadingBetween(&unit->pos, &order->pos);
-        Vec3 off = Offset(FUN_004b6c30(0x4000) + angle - 0x2000, dist / 2);
+        Vec3 off = Offset(RandomInt(0x4000) + angle - 0x2000, dist / 2);
         Vec3 p = unit->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
         ((Class_0044e730*)obj)->FUN_0044e730(0x80);
@@ -224,7 +224,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
         Vec3 off = Offset(angle, speed * 0x30000);
         Vec3 p = order->pos + off;
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
-        ((Class_0044e730*)obj)->FUN_0044e730(FUN_004b6c30(0x80) + 0x80);
+        ((Class_0044e730*)obj)->FUN_0044e730(RandomInt(0x80) + 0x80);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         order->flags = 0x100ea;
         return 1;
@@ -235,13 +235,13 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
             GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                Unit* target = v[FUN_004b6c30(v.size())];
+                Unit* target = v[RandomInt(v.size())];
                 AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
                 order->flags = 0;
                 return 0;
             }
         }
-        short angle = FUN_004b6c30(2) ? unit->heading + 0x4000 : unit->heading - 0x4000;
+        short angle = RandomInt(2) ? unit->heading + 0x4000 : unit->heading - 0x4000;
         Vec3 off = Offset(angle, speed << 16);
         Vec3 sum;
         sum.x = unit->pos.x + off.x;

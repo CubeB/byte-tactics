@@ -75,7 +75,7 @@ extern char* DAT_00512990;
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 int __stdcall LoadMapList(char** out, int param_2, int param_3);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(Menu_00444ea0* menu, char* text, int width, int a, int b);
 Layer_00444ea0* __stdcall LoadGuiLayer(Menu_00444ea0* menu, const char* name, int flags);
 void __stdcall HandleMapSelectClick(void* gadget);
@@ -84,7 +84,7 @@ void __stdcall SortFileList(char* items, int b, int c, int count);
 void __stdcall FUN_004a32a0(Menu_00444ea0* menu, char* name, char* items, int count, int flag);
 Entry_00444ea0* __stdcall FindGadgetChecked(Entry_00444ea0* entries, char* name);
 void __stdcall UpdateMapSelection(void* menu, int unused);
-char* __stdcall FUN_004b6af0(char* text, int line);
+char* __stdcall SkipTextLines(char* text, int line);
 void __stdcall FUN_004a2e40(Menu_00444ea0* menu, char* name, int index);
 void ShowSelectedMapInfo();
 void __stdcall FUN_0049fb10(Menu_00444ea0* menu, int value);
@@ -106,7 +106,7 @@ void OpenMultiMapSelector()
 
     if (!((Class_00435c40*)g_game->field_391e9)->FUN_00435c40()) {
         OpenMessageBox(&g_game->menu,
-                     FUN_004c5740("There are no multiplayer maps to choose from"),
+                     Translate("There are no multiplayer maps to choose from"),
                      0x140, 1, 1);
         return;
     }
@@ -118,7 +118,7 @@ void OpenMultiMapSelector()
     int n = LoadMapList(0, 0, 0);
     if (n == 0) {
         OpenMessageBox(&g_game->menu,
-                     FUN_004c5740("There are no multiplayer maps to choose from"),
+                     Translate("There are no multiplayer maps to choose from"),
                      0x140, 1, 1);
         return;
     }
@@ -134,7 +134,7 @@ void OpenMultiMapSelector()
     FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = UpdateMapSelection;
 
     for (int i = 0; i < n; i++) {
-        if (strcmp(DAT_00512990, FUN_004b6af0(data->items, i)) == 0) {
+        if (strcmp(DAT_00512990, SkipTextLines(data->items, i)) == 0) {
             FUN_004a2e40(&g_game->menu, "MAPNAMES", i);
             break;
         }
@@ -143,7 +143,7 @@ void OpenMultiMapSelector()
     Menu_00444ea0* menu = &g_game->menu;
     Entry_00444ea0* g = FindGadgetChecked(menu->holder->entries, "MAPNAMES");
     if (((Class_00435a20*)g_game->field_391e9)->LoadMissionByName(
-            FUN_004b6af0(g->text, g->selected)) == 0) {
+            SkipTextLines(g->text, g->selected)) == 0) {
         FUN_004a0570(menu, "MAPPIC", 0);
     } else {
         FUN_004a0570(menu, "MAPPIC", 1);

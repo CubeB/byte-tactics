@@ -22,17 +22,17 @@ public:
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, char* key, int size, char* def);
+    int GetFieldString(char* dst, char* key, int size, char* def);
 };
 
 #pragma pack(push, 1)
@@ -46,7 +46,7 @@ extern Game* g_game;
 extern char DAT_005119b8[];             // ""
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-int __stdcall FUN_004bc930(const char* path, int flag);
+int __stdcall CountDirectoryEntries(const char* path, int flag);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* data);
 int __stdcall ScanDirectory(char* path, char* buffer, char* p3, int p4, int p5, int p6);
@@ -67,7 +67,7 @@ int __stdcall BuildCampaignNameList(char** out, int side)
     char path[0x100];
     name[0] = '0';
     BuildDataPath(path, "camps", "*", "TDF");
-    int n = FUN_004bc930(path, 0);
+    int n = CountDirectoryEntries(path, 0);
     char* names = (char*)FUN_004d83b0("CAMPAIGN NAMES1", n << 8);
     *out = (char*)FUN_004d83b0("CAMPAIGN NAMES2", n << 8);
     ScanDirectory(path, names, 0, 0, 1, 2);
@@ -75,9 +75,9 @@ int __stdcall BuildCampaignNameList(char** out, int side)
     char* p = *out;
     for (int i = 0; i < n; i++) {
         BuildDataPath(path, "camps", q, "tdf");
-        if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
-            if (((Class_004c3410*)&parser)->FUN_004c3410("HEADER")) {
-                ((Class_004c48c0*)parser.current)->FUN_004c48c0(name, "campaignside", 0x40, DAT_005119b8);
+        if (((Class_004c2f60*)&parser)->LoadFile(path)) {
+            if (((Class_004c3410*)&parser)->SelectRecord("HEADER")) {
+                ((TdfRecord*)parser.current)->GetFieldString(name, "campaignside", 0x40, DAT_005119b8);
                 if (strcmp(g_game->names[side], name) == 0 || strcmp("ALL", name) == 0) {
                     found++;
                     p = AppendName_00476a60(p, q);

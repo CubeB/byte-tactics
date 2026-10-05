@@ -21,7 +21,7 @@ public:
     Pair_004c4630* first;           // +0x19
     Pair_004c4630* last;            // +0x1d
 
-    int FUN_004c4630(char* name);
+    int FindFieldValue(char* name);
 };
 #pragma pack(pop)
 
@@ -48,7 +48,7 @@ static inline int* Find(Class_004c4630* table, char* name)
 }
 
 // FUNCTION: 0x4c4630
-int Class_004c4630::FUN_004c4630(char* name)
+int Class_004c4630::FindFieldValue(char* name)
 {
     int* p = Find(this, name);
     if (p)

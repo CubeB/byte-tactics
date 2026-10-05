@@ -15,9 +15,9 @@
 //    parentheses, or any plain `x * k`, serialises them (the wall every
 //    earlier pass hit). `* (1.0f / 65535.0f)` compiles the same. Only the
 //    a, b, c / x, y, z statement order gives the original's schedule.
-//  * The second difference goes into n itself: `ab = FUN_004b6eb0(b, a);
-//    n = FUN_004b6eb0(b, c); n = FUN_004b6ff0(FUN_004b6f70(n, ab));`. Nested
-//    as FUN_004b6f70(FUN_004b6eb0(b, c), ab), b's three loads were CSEd
+//  * The second difference goes into n itself: `ab = VectorFromTo(b, a);
+//    n = VectorFromTo(b, c); n = NormalizeVector(CrossProduct(n, ab));`. Nested
+//    as CrossProduct(VectorFromTo(b, c), ab), b's three loads were CSEd
 //    across the first call, which made C2 split d and the loop invariants as
 //    soon as o took esi (the whole head allocation changed: 51.6%). This
 //    form also gives ab its own frame slot, as in the original.
@@ -160,10 +160,10 @@ struct Header_00421700 {
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int range);
-Vec3f_00421700 __stdcall FUN_004b6eb0(Vec3f_00421700 from, Vec3f_00421700 to);
-Vec3f_00421700 __stdcall FUN_004b6f70(Vec3f_00421700 a, Vec3f_00421700 b);
-Vec3f_00421700 __stdcall FUN_004b6ff0(Vec3f_00421700 v);
+int __stdcall RandomInt(int range);
+Vec3f_00421700 __stdcall VectorFromTo(Vec3f_00421700 from, Vec3f_00421700 to);
+Vec3f_00421700 __stdcall CrossProduct(Vec3f_00421700 a, Vec3f_00421700 b);
+Vec3f_00421700 __stdcall NormalizeVector(Vec3f_00421700 v);
 int __stdcall GetGafFrame(unsigned short* list, int index);
 
 #define FIX2F(x) (((float)(x)) / 65535.0f)
@@ -205,12 +205,12 @@ void __stdcall BreakPieceIntoDebris(Header_00421700* param)
                 d->size_z = unit->size->z >> 1;
                 d->size_y = unit->size->y >> 1;
             }
-            d->vel.x = (0x50 - FUN_004b6c30(0xa0)) << 9;
-            d->vel.z = (0x50 - FUN_004b6c30(0xa0)) << 9;
-            d->vel.y = ((0x50 - FUN_004b6c30(0xa0)) << 9) + g_game->ticks * 30;
-            d->spin.x = 800 - FUN_004b6c30(0x640);
-            d->spin.y = 800 - FUN_004b6c30(0x640);
-            d->spin.z = 800 - FUN_004b6c30(0x640);
+            d->vel.x = (0x50 - RandomInt(0xa0)) << 9;
+            d->vel.z = (0x50 - RandomInt(0xa0)) << 9;
+            d->vel.y = ((0x50 - RandomInt(0xa0)) << 9) + g_game->ticks * 30;
+            d->spin.x = 800 - RandomInt(0x640);
+            d->spin.y = 800 - RandomInt(0x640);
+            d->spin.z = 800 - RandomInt(0x640);
             d->angle_x = 0;
             d->angle_y = 0;
             d->angle_z = 0;
@@ -234,11 +234,11 @@ void __stdcall BreakPieceIntoDebris(Header_00421700* param)
             c.y = FIX2F(v[2].y);
             c.z = FIX2F(v[2].z);
             Vec3f_00421700 ab, n;
-            ab = FUN_004b6eb0(b, a);
-            n = FUN_004b6eb0(b, c);
-            n = FUN_004b6ff0(FUN_004b6f70(n, ab));
-            d->vel.x += FUN_004b6c30(200) * (short)(n.x * 512.0f);
-            d->vel.z -= FUN_004b6c30(200) * (short)(n.z * 512.0f);
+            ab = VectorFromTo(b, a);
+            n = VectorFromTo(b, c);
+            n = NormalizeVector(CrossProduct(n, ab));
+            d->vel.x += RandomInt(200) * (short)(n.x * 512.0f);
+            d->vel.z -= RandomInt(200) * (short)(n.z * 512.0f);
             int nx = (int)(n.x * 65535.0f);
             int ny = (int)(n.y * 65535.0f);
             int nz = (int)(n.z * 65535.0f);

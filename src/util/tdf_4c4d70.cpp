@@ -14,8 +14,8 @@
 // The element type is a guess and only the size matters for the code: the three
 // (finish - start) >> 2 shifts fix it at 4 bytes, and any trivially copyable
 // 4-byte element type gives these bytes. The pointer reading in the caller's
-// neighbourhood (it stores the pointer a new Class_004c3e40 returned, and
-// 0x4c3e40 itself has a vector at +0x4) makes Class_004c3e40* the natural pick.
+// neighbourhood (it stores the pointer a new TdfRecord returned, and
+// 0x4c3e40 itself has a vector at +0x4) makes TdfRecord* the natural pick.
 // The name follows 0x4732e0.cpp, which is the same template instantiated on
 // vector<ParticleSystem*>: taking the member's address is what makes the
 // compiler emit the instantiation out of line, as the original file did, and
@@ -25,13 +25,13 @@
 // register assignment a plain file produces: this in ebx, the count in ebp.
 #include <vector>
 
-class Class_004c3e40 {                 // the element, only its size is used
+class TdfRecord {                      // the element, only its size is used
 public:
     int field_0;
 };
 
-typedef std::vector<Class_004c3e40*> Vec_004c4d70;
-typedef void (Vec_004c4d70::*InsertFn_004c4d70)(Vec_004c4d70::iterator, Vec_004c4d70::size_type, Class_004c3e40* const&);
+typedef std::vector<TdfRecord*> Vec_004c4d70;
+typedef void (Vec_004c4d70::*InsertFn_004c4d70)(Vec_004c4d70::iterator, Vec_004c4d70::size_type, TdfRecord* const&);
 
-// FUNCTION: 0x4c4d70 ?insert@?$vector@PAVClass_004c3e40@@V?$allocator@PAVClass_004c3e40@@@std@@@std@@QAEXPAPAVClass_004c3e40@@IABQAV3@@Z
+// FUNCTION: 0x4c4d70 ?insert@?$vector@PAVTdfRecord@@V?$allocator@PAVTdfRecord@@@std@@@std@@QAEXPAPAVTdfRecord@@IABQAV3@@Z
 InsertFn_004c4d70 g_insert_004c4d70 = &Vec_004c4d70::insert;

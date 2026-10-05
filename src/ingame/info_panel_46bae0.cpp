@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 //
 // Draws a piece of a 3D model: projects obj->count vertices through
-// FUN_004b6cc0 (the same rotate/project idiom as the matched 0x467a50) into
+// RotateByAngles (the same rotate/project idiom as the matched 0x467a50) into
 // screen points, then draws each primitive in obj->prims (from index 1 when
 // obj->field_c is not -1, otherwise from 0). A primitive whose bit 0 is set
 // is a flat filled polygon (FillPolygon); otherwise a 4-vertex textured quad
@@ -68,7 +68,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004b6cc0(Vec3_0046bae0* in, Vec3_0046bae0* out, short* angles);
+void __stdcall RotateByAngles(Vec3_0046bae0* in, Vec3_0046bae0* out, short* angles);
 int __stdcall GetGafSequenceFrame(short* ref);
 void __stdcall FillPolygon(void* surface, Point_0046bae0* points, int count, int color);
 void __stdcall DrawFrameQuad(void* surface, void* texture, Point_0046bae0* points, void* src);
@@ -82,7 +82,7 @@ void __stdcall FUN_0046bae0(void* surface, Vec3_0046bae0* offset,
     Point_0046bae0* points = g_game->points;
     int i = 0;
     for (; i < obj->count; i++, v++, scratch++, points++) {
-        FUN_004b6cc0(v, scratch, angles);
+        RotateByAngles(v, scratch, angles);
         int y = (short)((scratch->y + offset->y) >> 16);
         int z = (short)((offset->z - scratch->z) >> 16);
         int x = (short)((scratch->x + offset->x) >> 16);

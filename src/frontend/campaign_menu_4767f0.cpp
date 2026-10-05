@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-int __stdcall FUN_004bc930(const char* path, int flag);
+int __stdcall CountDirectoryEntries(const char* path, int flag);
 
 // Counts the campaign files (camps\*.TDF); compare 0x4769f0.
 // FUNCTION: 0x4767f0
@@ -9,5 +9,5 @@ void CountCampaignFiles()
 {
     char path[0x100];
     BuildDataPath(path, "camps", "*", "TDF");
-    FUN_004bc930(path, 0);
+    CountDirectoryEntries(path, 0);
 }

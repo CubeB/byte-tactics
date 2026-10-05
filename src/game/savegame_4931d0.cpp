@@ -22,7 +22,7 @@ Gadget_004931d0* __stdcall LoadGuiLayer(char* sub, const char* name, int flags);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 int __stdcall ListSavedGames(int* out);
 void __stdcall CloseTopScreen(char* sub);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int a, int b, int c);
 char* BuildSideList();
 void __stdcall FUN_004a32a0(char* menu, char* name, void* text, int count, int flag);
@@ -47,7 +47,7 @@ void ShowLoadGameScreen()
     if (ListSavedGames(&count) == 0) {
         CloseTopScreen(g_game + 0x519);
         OpenMessageBox(g_game + 0x519,
-                     FUN_004c5740("There are no saved games to choose from"),
+                     Translate("There are no saved games to choose from"),
                      0x140, 1, 1);
         return;
     }

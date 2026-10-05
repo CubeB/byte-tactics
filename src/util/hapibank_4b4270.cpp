@@ -38,18 +38,18 @@ struct File_004b4270 {            // the open archive
     char name[0x100];             // +0x18
 };
 
-long __stdcall FUN_004bb7a0(File_004b4270* file);
-void __stdcall FUN_004bb7c0(File_004b4270* file, void* buf, int size);
-void __stdcall FUN_004bb710(File_004b4270* file, long pos);
+long __stdcall HAPI_TellFile(File_004b4270* file);
+void __stdcall HAPI_readfromfile(File_004b4270* file, void* buf, int size);
+void __stdcall HAPI_SeekFile(File_004b4270* file, long pos);
 void* __cdecl FUN_004d8450(unsigned int size);
-int __stdcall FUN_004d1b40(unsigned char* src);
-int __stdcall FUN_004d1970(void* dest, void* src);
-char* __stdcall FUN_004d1c60(int code);
+int __stdcall SquashUnpackedSize(unsigned char* src);
+int __stdcall SquashUnpack(void* dest, void* src);
+char* __stdcall SquashErrorString(int code);
 void* __cdecl FUN_004d8580(void* ptr, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall FatalError(char* message);
 
-struct Entry_004b4270 {           // 0x14 bytes, one box of a section
+struct SafeDepositBox {           // 0x14 bytes, one box of a section
     int used;                     // +0x00
     int value;                    // +0x04, string offset or integer
     int size;                     // +0x08
@@ -57,81 +57,81 @@ struct Entry_004b4270 {           // 0x14 bytes, one box of a section
     char* buffer;                 // +0x10
 };
 
-struct Slot_004b4270 {            // 0x18 bytes, one section
+struct BankAccount {              // 0x18 bytes, one section
     char unknown_0[8];
     int count;                    // +0x08
     int current;                  // +0x0c
     char unknown_10[4];
-    Entry_004b4270* entries;      // +0x14
+    SafeDepositBox* entries;      // +0x14
 };
 
-struct Table_004b4270 {
+struct AccountList {
     char unknown_0[4];
-    Slot_004b4270* slots;         // +0x04
+    BankAccount* slots;           // +0x04
     int index;                    // +0x08
 };
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    Table_004b4270* table;
-    int FUN_004b4560(char* name);
+    AccountList* table;
+    int OpenAccount(char* name);
 };
 
 class Class_004b4630 {
 public:
-    Table_004b4270* table;
-    int FUN_004b4630(const char* name, int value);
+    AccountList* table;
+    int SetIntegerItem(const char* name, int value);
 };
 
 class Class_004b46c0 {
 public:
-    Table_004b4270* table;
-    int FUN_004b46c0(const char* name, double value);
+    AccountList* table;
+    int SetDoubleItem(const char* name, double value);
 };
 
 class Class_004b4750 {
 public:
-    Table_004b4270* table;
-    int FUN_004b4750(const char* name, char* value);
+    AccountList* table;
+    int SetStringItem(const char* name, char* value);
 };
 
 class Class_004b49d0 {
 public:
-    Table_004b4270* table;
-    int FUN_004b49d0(int value, int flag);
+    AccountList* table;
+    int FindNumberedBox(int value, int flag);
 };
 
 class Class_004b4a80 {
 public:
-    Table_004b4270* table;
-    int FUN_004b4a80(char* name, int flag);
+    AccountList* table;
+    int FindNamedBox(char* name, int flag);
 };
 
 class Class_004b4b50 {            // open a box by id
 public:
-    Table_004b4270* table;
-    int FUN_004b4b50(int id);
+    AccountList* table;
+    int OpenNumberedBox(int id);
 };
 
 class Class_004b4ba0 {            // open a box by name
 public:
-    Table_004b4270* table;
-    int FUN_004b4ba0(char* name);
+    AccountList* table;
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {            // seek the current box
 public:
-    Table_004b4270* table;
-    void FUN_004b4c10(int pos);
+    AccountList* table;
+    void SeekBox(int pos);
 };
 
 class Class_004b4cf0 {            // append to the current box
 public:
-    Table_004b4270* table;
-    int FUN_004b4cf0(void* src, int len);
+    AccountList* table;
+    int WriteBox(void* src, int len);
 };
 
-struct Header_004b4270 {          // 0x20 bytes, read from the file
+struct AccountHeader {            // 0x20 bytes, read from the file
     int size;                     // +0x00, of the whole section
     char* strOffset;              // +0x04, of the section name (an offset stored as a pointer)
     int nInts;                    // +0x08
@@ -163,60 +163,60 @@ struct BlobRec_004b4270 {         // 16 bytes, one blob record of the body
 
 class Class_004b3770 {
 public:
-    Table_004b4270* table;
+    AccountList* table;
 
-    void FUN_004b4270(File_004b4270* fh, int* image, char* name);
+    void LoadAccount(File_004b4270* fh, int* image, char* name);
 };
 
 // FUNCTION: 0x4b4270
-void Class_004b3770::FUN_004b4270(File_004b4270* fh, int* image, char* name)
+void Class_004b3770::LoadAccount(File_004b4270* fh, int* image, char* name)
 {
     int buf;
     int len;
     int base;
     int end;
     int* p;
-    Header_004b4270 h;
+    AccountHeader h;
     char message[1000];
 
-    base = (int)FUN_004bb7a0(fh);
-    FUN_004bb7c0(fh, &h, 0x20);
+    base = (int)HAPI_TellFile(fh);
+    HAPI_readfromfile(fh, &h, 0x20);
     end = base + h.size;
     if (name != 0 && _strcmpi(name, h.strOffset + *image) != 0) {
-        FUN_004bb710(fh, end);
+        HAPI_SeekFile(fh, end);
         return;
     }
     len = h.size - 0x20;
     if (len > 0) {
         if (h.compressed == 1) {
             char* tmp = (char*)FUN_004d8450(len);
-            FUN_004bb7c0(fh, tmp, len);
-            buf = (int)FUN_004d8450(FUN_004d1b40((unsigned char*)tmp));
-            int err = FUN_004d1970((void*)buf, tmp);
+            HAPI_readfromfile(fh, tmp, len);
+            buf = (int)FUN_004d8450(SquashUnpackedSize((unsigned char*)tmp));
+            int err = SquashUnpack((void*)buf, tmp);
             if (err != 0) {
                 sprintf(message, "[HapiBank::LoadAccount] Decompression Error: %s\nFile: %s",
-                        FUN_004d1c60(err), fh->name);
+                        SquashErrorString(err), fh->name);
                 FatalError(message);
             }
             FUN_004d85a0(tmp);
         } else {
             buf = (int)FUN_004d8450(len);
-            FUN_004bb7c0(fh, (void*)buf, len);
+            HAPI_readfromfile(fh, (void*)buf, len);
         }
-        ((Class_004b4560*)this)->FUN_004b4560(h.strOffset + *image);
+        ((HapiBank*)this)->OpenAccount(h.strOffset + *image);
         p = (int*)buf;
         {
             for (int i = 0; i < h.nInts; i++) {
                 IntRec_004b4270 rec = *(IntRec_004b4270*)p;
                 p += 2;
-                ((Class_004b4630*)this)->FUN_004b4630(rec.name + *image, rec.value);
+                ((Class_004b4630*)this)->SetIntegerItem(rec.name + *image, rec.value);
             }
         }
         {
             for (int i = 0; i < h.nDoubles; i++) {
                 DblRec_004b4270 rec = *(DblRec_004b4270*)p;
                 p += 3;
-                ((Class_004b46c0*)this)->FUN_004b46c0(rec.name + *image, rec.value);
+                ((Class_004b46c0*)this)->SetDoubleItem(rec.name + *image, rec.value);
             }
         }
         {
@@ -224,7 +224,7 @@ void Class_004b3770::FUN_004b4270(File_004b4270* fh, int* image, char* name)
                 int a = p[0];
                 int b = p[1];
                 p += 2;
-                ((Class_004b4750*)this)->FUN_004b4750((char*)a + *image, (char*)b + *image);
+                ((Class_004b4750*)this)->SetStringItem((char*)a + *image, (char*)b + *image);
             }
         }
         {
@@ -232,39 +232,39 @@ void Class_004b3770::FUN_004b4270(File_004b4270* fh, int* image, char* name)
                 BlobRec_004b4270 rec = *(BlobRec_004b4270*)p;
                 p += 4;
                 if ((int)rec.name < 0)
-                    ((Class_004b4b50*)this)->FUN_004b4b50(rec.id);
+                    ((Class_004b4b50*)this)->OpenNumberedBox(rec.id);
                 else
-                    ((Class_004b4ba0*)this)->FUN_004b4ba0(rec.name + *image);
+                    ((Class_004b4ba0*)this)->OpenNamedBox(rec.name + *image);
                 char* src = (char*)(buf + (rec.offset - base) - 0x20);
-                ((Class_004b4cf0*)this)->FUN_004b4cf0(src, rec.len);
-                ((Class_004b4c10*)this)->FUN_004b4c10(0);
+                ((Class_004b4cf0*)this)->WriteBox(src, rec.len);
+                ((Class_004b4c10*)this)->SeekBox(0);
             }
         }
-        FUN_004bb710(fh, end);
+        HAPI_SeekFile(fh, end);
         FUN_004d85a0((void*)buf);
     }
 }
 
 // The four helpers the blob loop inlines (each matched in its own file).
 
-int Class_004b4b50::FUN_004b4b50(int id)
+int Class_004b4b50::OpenNumberedBox(int id)
 {
-    int r = ((Class_004b49d0*)this)->FUN_004b49d0(id, 1);
+    int r = ((Class_004b49d0*)this)->FindNumberedBox(id, 1);
     table->slots[table->index].current = r;
     return table->slots[table->index].entries[r].buffer != 0;
 }
 
-int Class_004b4ba0::FUN_004b4ba0(char* name)
+int Class_004b4ba0::OpenNamedBox(char* name)
 {
-    int i = ((Class_004b4a80*)this)->FUN_004b4a80(name, 1);
+    int i = ((Class_004b4a80*)this)->FindNamedBox(name, 1);
     table->slots[table->index].current = i;
     return table->slots[table->index].entries[i].buffer != 0;
 }
 
-void Class_004b4c10::FUN_004b4c10(int pos)
+void Class_004b4c10::SeekBox(int pos)
 {
-    Slot_004b4270* s = &table->slots[table->index];
-    Entry_004b4270* c = &s->entries[s->current];
+    BankAccount* s = &table->slots[table->index];
+    SafeDepositBox* c = &s->entries[s->current];
     if (pos < 0) {
         pos = 0;
     }
@@ -274,9 +274,9 @@ void Class_004b4c10::FUN_004b4c10(int pos)
     c->pos = pos;
 }
 
-int Class_004b4cf0::FUN_004b4cf0(void* src, int len)
+int Class_004b4cf0::WriteBox(void* src, int len)
 {
-    Entry_004b4270* c = &table->slots[table->index].entries[table->slots[table->index].current];
+    SafeDepositBox* c = &table->slots[table->index].entries[table->slots[table->index].current];
     int need = len + c->pos;
     if (need > c->size) {
         c->buffer = (char*)FUN_004d8580(c->buffer, need);

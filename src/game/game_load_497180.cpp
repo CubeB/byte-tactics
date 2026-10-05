@@ -28,7 +28,7 @@
 //   that puts g_game in the SIB base. A hand-written `off += 0x14b` loop swaps
 //   the base and index.
 // - QueryPerformanceCounter's halves: `int hi = HighPart; int lo = LowPart;
-//   FUN_004b6ca0(lo + hi)` loads LowPart first; declaration order decides the
+//   SeedRandom(lo + hi)` loads LowPart first; declaration order decides the
 //   load order.
 // Earlier passes fixed: the network flags at +0x38d75 written as volatile
 // (the field the guide names); the +0x9b bit-6 test as a 1-bit bitfield; the
@@ -121,19 +121,19 @@ public:
     void SendAllQueued(int a);
 };
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* name);
+    void OpenAccount(const char* name);
 };
 
 class Class_004b48f0 {
 public:
-    int FUN_004b48f0(const char* name);
+    int HasItem(const char* name);
 };
 
 class Class_004b3630 {
 public:
-    void FUN_004b3630();
+    void CloseBank();
 };
 
 extern char* g_game;
@@ -142,9 +142,9 @@ extern int DAT_005091cc;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 
-void __stdcall FUN_004b6ca0(int x);
-void __stdcall FUN_004b6b50(int x);
-int __stdcall FUN_004b6c30(int x);
+void __stdcall SeedRandom(int x);
+void __stdcall SleepMilliseconds(int x);
+int __stdcall RandomInt(int x);
 unsigned char __stdcall FindHostSlot();
 void FUN_00431740();
 void HandleNetPackets();
@@ -191,7 +191,7 @@ void __cdecl LoadMatch(void*)
     QueryPerformanceCounter(&perfCount);
     int hi = perfCount.HighPart;
     int lo = perfCount.LowPart;
-    FUN_004b6ca0(lo + hi);
+    SeedRandom(lo + hi);
     srand((unsigned)time(NULL));
     *(int*)(g_game + 0x38a47) = 0;
 
@@ -220,7 +220,7 @@ void __cdecl LoadMatch(void*)
                     g_packetManager.SendAllQueued(1);
                 HandleNetPackets();
                 sel = FindHostSlot();
-                FUN_004b6b50(0x32);
+                SleepMilliseconds(0x32);
                 if (sel == 10)
                     continue;
                 if (*(unsigned char*)(p + 0x96) == 0xff)
@@ -229,7 +229,7 @@ void __cdecl LoadMatch(void*)
                     continue;
                 break;
             } while (1);
-            FUN_004b6b50(0x32);
+            SleepMilliseconds(0x32);
         }
 
         ((Class_00435a20*)*(void**)(g_game + 0x391e9))
@@ -253,8 +253,8 @@ void __cdecl LoadMatch(void*)
     }
 
     if (*(void**)(g_game + 0x38d6b) != 0) {
-        ((Class_004b4560*)*(void**)(g_game + 0x38d6b))->FUN_004b4560("summary");
-        if (((Class_004b48f0*)*(void**)(g_game + 0x38d6b))->FUN_004b48f0("BetweenMissions") ==
+        ((HapiBank*)*(void**)(g_game + 0x38d6b))->OpenAccount("summary");
+        if (((Class_004b48f0*)*(void**)(g_game + 0x38d6b))->HasItem("BetweenMissions") ==
             0) {
             LoadPlayerControllers(*(void**)(g_game + 0x38d6b));
             if (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100() == 2) {
@@ -282,7 +282,7 @@ void __cdecl LoadMatch(void*)
         if (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100() == 3) {
             *(volatile unsigned short*)(g_game + 0x38d75) |= 4;
             while ((*(unsigned short*)(g_game + 0x38d75) & 8) == 0)
-                FUN_004b6b50(0x32);
+                SleepMilliseconds(0x32);
 
             int sel = FindHostSlot();
             char* pl = *(char**)(g_game + 0x1b63 + 0x14b * sel + 0x27);
@@ -299,9 +299,9 @@ void __cdecl LoadMatch(void*)
                 unsigned char st = *(unsigned char*)(rec + 0x73);
                 if (st != 1 && st != 2)
                     continue;
-                pos.x.i = (FUN_004b6c30(*(int*)(g_game + 0x14223) - 0xa0) + 0x50) << 16;
+                pos.x.i = (RandomInt(*(int*)(g_game + 0x14223) - 0xa0) + 0x50) << 16;
                 pos.y.i = 0;
-                pos.z.i = (FUN_004b6c30(*(int*)(g_game + 0x14227) - 0xa0) + 0x50) << 16;
+                pos.z.i = (RandomInt(*(int*)(g_game + 0x14227) - 0xa0) + 0x50) << 16;
                 if (*(int*)rec != 0 &&
                     (*(unsigned char*)(*(char**)(rec + 0x27) + 0x9b) & 0x40))
                     continue;
@@ -389,8 +389,8 @@ void __cdecl LoadMatch(void*)
     RecalculateLineOfSight(1);
 
     if (*(void**)(g_game + 0x38d6b) != 0) {
-        ((Class_004b4560*)*(void**)(g_game + 0x38d6b))->FUN_004b4560("summary");
-        if (((Class_004b48f0*)*(void**)(g_game + 0x38d6b))->FUN_004b48f0("BetweenMissions") ==
+        ((HapiBank*)*(void**)(g_game + 0x38d6b))->OpenAccount("summary");
+        if (((Class_004b48f0*)*(void**)(g_game + 0x38d6b))->HasItem("BetweenMissions") ==
             0) {
             LoadSavedGameState(*(void**)(g_game + 0x38d6b));
             goto tail;
@@ -424,7 +424,7 @@ tail:
 
     void* mission = *(void**)(g_game + 0x38d6b);
     if (mission != 0) {
-        ((Class_004b3630*)mission)->FUN_004b3630();
+        ((Class_004b3630*)mission)->CloseBank();
         operator delete(mission);
         *(void**)(g_game + 0x38d6b) = 0;
     }

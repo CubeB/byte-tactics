@@ -44,7 +44,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004b6cc0(Vec3_00467a50* in, Vec3_00467a50* out, short* angles);
+void __stdcall RotateByAngles(Vec3_00467a50* in, Vec3_00467a50* out, short* angles);
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 
 // FUNCTION: 0x467a50
@@ -57,7 +57,7 @@ void __stdcall FUN_00467a50(void* surface, Vec3_00467a50* offset,
     Vec3_00467a50* c = corners;
 
     for (int i = 0; i < 4; i++) {
-        FUN_004b6cc0(c, scratch, angles);
+        RotateByAngles(c, scratch, angles);
         int y = (short)((scratch->y + offset->y) >> 16);
         int z = (short)((offset->z - scratch->z) >> 16);
         int x = (short)((scratch->x + offset->x) >> 16);

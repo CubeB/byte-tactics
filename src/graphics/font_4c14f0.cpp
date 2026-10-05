@@ -3,7 +3,7 @@
 // `dst`, or into the locked screen when `dst` is null. When `maxWidth` is not
 // -1 and the text is wider, a copy is cut back one character at a time until
 // it fits. The text's rectangle is checked against the surface's clip rect
-// with FUN_004b6750 and only then drawn by the glyph blitter BlitText,
+// with RectInsideRect and only then drawn by the glyph blitter BlitText,
 // which takes the surface's pixels and pitch, the font, the text, the
 // position and the game's three colour fields at +0x208, +0x20c, +0x210.
 //
@@ -20,7 +20,7 @@
 //     the original's 0x184. With no local the store lands in the dead
 //     parameter slot and the frame is 0x184.
 //  2. `r.bottom = r.top + height`, not `r.bottom = y + height`. `r` is
-//     address-taken (it is passed to FUN_004b6750), so writing the second
+//     address-taken (it is passed to RectInsideRect), so writing the second
 //     rectangle field from the first makes MSVC reload it after the
 //     GetDisplay() call: that is the original's `mov ecx, [esp+0x1c]` /
 //     `add edx, ecx` at 0x4c165b and 0x4c165f, where reading `y` kept it live
@@ -85,7 +85,7 @@ public:
 };
 
 Game_004c14f0* GetDisplay(void);
-int __stdcall FUN_004b6750(Rect_004c14f0* a, Rect_004c14f0* b);
+int __stdcall RectInsideRect(Rect_004c14f0* a, Rect_004c14f0* b);
 int __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
 void __cdecl BlitText(unsigned char* pixels, int pitch, Font_004c14f0* font, unsigned char* text,
@@ -140,7 +140,7 @@ void __stdcall DrawString(Surface* dst, unsigned char* text, int x, int y, int m
         if (LockScreen(&screen) != 0) {
             Rect_004c14f0 clip;
             screen.GetClipRect(&clip);
-            if (FUN_004b6750(&r, &clip))
+            if (RectInsideRect(&r, &clip))
                 BlitText(screen.pixels, screen.pitch, game->font, text, x, y, game->colour1,
                              game->colour2, game->colour3);
             UnlockScreen(&screen);
@@ -148,7 +148,7 @@ void __stdcall DrawString(Surface* dst, unsigned char* text, int x, int y, int m
     } else {
         Rect_004c14f0 clip;
         dst->GetClipRect(&clip);
-        if (FUN_004b6750(&r, &clip))
+        if (RectInsideRect(&r, &clip))
             BlitText(dst->pixels, dst->pitch, game->font, text, x, y, game->colour1,
                          game->colour2, game->colour3);
     }

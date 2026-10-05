@@ -126,7 +126,7 @@ class CobScript
   public:
     int StartThread(int);
 };
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 class Class_004b0da0
 {
   public:
@@ -452,7 +452,7 @@ void Class_004b0da0::RunThread(unsigned int channel, int elapsed)
             case 0x10041000: {
                 int a = c->Pop();
                 int b = c->Pop();
-                c->Push(FUN_004b6c30(a - b + 1) + b);
+                c->Push(RandomInt(a - b + 1) + b);
                 c->pc++;
                 break;
             }

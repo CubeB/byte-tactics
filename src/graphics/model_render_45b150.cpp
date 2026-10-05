@@ -26,7 +26,7 @@ struct Piece_0045b150 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_004b6cc0(Vec3* in, Vec3* out, short* angles);
+void __stdcall RotateByAngles(Vec3* in, Vec3* out, short* angles);
 
 // FUNCTION: 0x45b150
 void __fastcall TransformPieces(Class_0045b150* owner, Piece_0045b150* piece,
@@ -35,10 +35,10 @@ void __fastcall TransformPieces(Class_0045b150* owner, Piece_0045b150* piece,
     for (;;) {
         if (piece->modified == 0) {
             Vec3* offset = &piece->offset;
-            FUN_004b6cc0(offset, offset, angles);
+            RotateByAngles(offset, offset, angles);
             int count = piece->object->count;
             for (int i = count - 1; i >= 0; i--)
-                FUN_004b6cc0(&piece->points[i], &piece->points[i], angles);
+                RotateByAngles(&piece->points[i], &piece->points[i], angles);
             offset->x += delta->x;
             offset->y += delta->y;
             offset->z += delta->z;

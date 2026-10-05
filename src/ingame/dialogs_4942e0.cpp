@@ -67,7 +67,7 @@ Entry_004942e0* __stdcall FUN_004a0280(Entry_004942e0* entries, char* name);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall LoadPcx(char* path, int param);
 char* __stdcall MakePropList(void* obj);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall AddTextGadget(Holder_004942e0* obj, char* name, char* text, int x,
                             short y, int w, int flags);
 void __cdecl FUN_004d85a0(void* data);
@@ -119,28 +119,28 @@ void __stdcall OpenUnitInfoDialog(void)
     stats = MakePropList(def);
     int n = entries->u.count;
 
-    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Cost"), 0x82, 0x20, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", Translate("Cost"), 0x82, 0x20, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Energy"), 0x8c, 0x2f, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", Translate("Energy"), 0x8c, 0x2f, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Metal"), 0x8c, 0x3e, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", Translate("Metal"), 0x8c, 0x3e, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Build Time"), 0x8c, 0x4d, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", Translate("Build Time"), 0x8c, 0x4d, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Statistics"), 0x82, 0x5c, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", Translate("Statistics"), 0x82, 0x5c, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Max Velocity"), 0x8c, 0x6b, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", Translate("Max Velocity"), 0x8c, 0x6b, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Acceleration"), 0x8c, 0x7a, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", Translate("Acceleration"), 0x8c, 0x7a, -1, 2);
     n++;
     entries[n].attr = 0x411;
-    AddTextGadget(g_game->menu.holder, "TEXT", FUN_004c5740("Turn Rate"), 0x8c, 0x89, -1, 2);
+    AddTextGadget(g_game->menu.holder, "TEXT", Translate("Turn Rate"), 0x8c, 0x89, -1, 2);
     n++;
     entries[n].attr = 0x411;
 

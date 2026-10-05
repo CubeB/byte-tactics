@@ -13,20 +13,20 @@ struct Game {
 extern Game* g_game;
 
 // Command arguments.
-class Class_004b73e0 {
+class CommandArgs {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
-    int FUN_004b73e0(int index, int fallback);
+    int GetIntArg(int index, int fallback);
 };
 
 void SaveSettings();
 
 // FUNCTION: 0x4173e0
-void __stdcall CmdFilmSpeed(Class_004b73e0* args)
+void __stdcall CmdFilmSpeed(CommandArgs* args)
 {
-    if (args->count > 1 && args->FUN_004b73e0(1, 0) > 0) {
-        g_game->value = args->FUN_004b73e0(1, 0);
+    if (args->count > 1 && args->GetIntArg(1, 0) > 0) {
+        g_game->value = args->GetIntArg(1, 0);
         g_game->valueSet = 1;
         SaveSettings();
     }

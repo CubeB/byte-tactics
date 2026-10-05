@@ -1,13 +1,13 @@
 // Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash, checked by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 //
 // MATCH (Claude Opus 5.5, #5252). Writes an HPI package: a 20-byte "HAPI"
-// header in a growing buffer {size, buf}, the directory built by FUN_004bd3b0,
-// the file data from FUN_004bd830, the directory encrypted with the key, and
+// header in a growing buffer {size, buf}, the directory built by HAPI_BuildArchiveDirectory,
+// the file data from HAPI_WriteArchiveData, the directory encrypted with the key, and
 // a copyright line at the end.
 //
 // The buffer setup (`xor ecx,ecx / mov eax,ecx / mov [buf],ecx / mov eax,0x14`)
 // that held this file at 99.3% for many passes is the inlined Grow helper of
-// the matched FUN_004bd3b0 on a memset-cleared buffer: the dead `mov eax,ecx`
+// the matched HAPI_BuildArchiveDirectory on a memset-cleared buffer: the dead `mov eax,ecx`
 // is Grow's unused `old = b->size`, the zero is memset's (so it is not the
 // `extra = 0` constant in ebp), and `size += 20` folds to `mov eax,0x14`.
 
@@ -17,7 +17,7 @@
 
 void* __cdecl FUN_004d84a0(void* p, const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(int* p);
-int __stdcall FUN_004bd830(char* path, void* buf, int off, FILE* f,
+int __stdcall HAPI_WriteArchiveData(char* path, void* buf, int off, FILE* f,
                            void (__cdecl* cb)(int), char* extra, int key, int flags);
 
 struct HapiBuf {
@@ -25,7 +25,7 @@ struct HapiBuf {
     char* buf;
 };
 
-int __stdcall FUN_004bd3b0(char* path, HapiBuf* out, char** extra);
+int __stdcall HAPI_BuildArchiveDirectory(char* path, HapiBuf* out, char** extra);
 
 struct Hapi_004bd160 {
     char magic[4];
@@ -49,7 +49,7 @@ static inline unsigned int Grow(HapiBuf* b, unsigned int n)
 }
 
 // FUNCTION: 0x4bd160
-int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int),
+int __stdcall HAPI_PackDirectory(char* srcname, char* dstname, void (__cdecl* cb)(int),
                            unsigned int key, int flags)
 {
     char* extra = 0;
@@ -65,7 +65,7 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
     struct HapiBuf sb;
     memset(&sb, 0, sizeof(sb));
     Grow(&sb, 20);
-    off = FUN_004bd3b0(srcname, &sb, &extra);
+    off = HAPI_BuildArchiveDirectory(srcname, &sb, &extra);
 
     {
         struct Hapi_004bd160* h = (struct Hapi_004bd160*)sb.buf;
@@ -100,7 +100,7 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
     fwrite(sb.buf, sb.size, 1, f);
     if (cb)
         cb(5);
-    FUN_004bd830(srcname, sb.buf, off, f, cb, extra, key, flags);
+    HAPI_WriteArchiveData(srcname, sb.buf, off, f, cb, extra, key, flags);
     if (cb)
         cb(0x5f);
     n = (int)sb.size - 20;

@@ -2,7 +2,7 @@
 // Click handler of the save game dialog (opened by ShowSaveGameScreen). On close
 // (field +0x60 == -1) it clears the save game name lists and the dialog flag;
 // CANCEL goes back to "Previous", DELETE removes the selected entry's path
-// ("dir\name" through FUN_004bbc30, the CRT _rmdir) and rebuilds the "GAMES"
+// ("dir\name" through RemoveFile, the CRT _rmdir) and rebuilds the "GAMES"
 // list from the remaining names, stripping their extensions, GAMES/LOAD/
 // GAMENAME write the name field to a .LST file, anything else resets the
 // gadget.
@@ -53,12 +53,12 @@ int __stdcall IsCurrentGadgetNamed(Menu_0044b690* menu, char* name);
 void __stdcall PlaySoundByName(char* name, int flag);
 Gadget_0044b690* __stdcall FindGadgetChecked(Entry_0044b690* entries, char* name);
 int __stdcall FindGadgetIndex(Entry_0044b690* entries, const char* name, int flag);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall SetGadgetText(Menu_0044b690* menu, int index, char* text);
 void __stdcall FUN_0049fa90(Menu_0044b690* menu);
 void __stdcall FUN_004ab0a0(Menu_0044b690* menu);
 void __stdcall FUN_004ab190(Menu_0044b690* menu, int flag);
-void __stdcall FUN_004bbc30(char* path);
+void __stdcall RemoveFile(char* path);
 void* __stdcall ListSaveGameFiles(int* out);
 void __stdcall FUN_004a32a0(Menu_0044b690* menu, char* name, char* text, int value, int flag);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
@@ -88,14 +88,14 @@ void __stdcall HandleSaveGameClick(Menu_0044b690* menu)
         Gadget_0044b690* games = FindGadgetChecked(entries, "GAMES");
         char buf[0x100];
         sprintf(buf, "%s\\%s", DAT_005091c8,
-                FUN_004b6af0(DAT_005129ac, games->selected));
-        FUN_004bbc30(buf);
+                SkipTextLines(DAT_005129ac, games->selected));
+        RemoveFile(buf);
         int count;
         ListSaveGameFiles(&count);
         char* p = DAT_005129b0;
         for (int i = 0; i < count; i++) {
-            strcpy(p, FUN_004b6af0(DAT_005129ac, i));
-            p += strlen(FUN_004b6af0(DAT_005129ac, i));
+            strcpy(p, SkipTextLines(DAT_005129ac, i));
+            p += strlen(SkipTextLines(DAT_005129ac, i));
             while (*p != '.')
                 p--;
             *p++ = 0;
@@ -108,7 +108,7 @@ void __stdcall HandleSaveGameClick(Menu_0044b690* menu)
         int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
         char* name;
         if (games2->selected > -1 &&
-            (name = FUN_004b6af0(DAT_005129b0, games2->selected)) != 0 &&
+            (name = SkipTextLines(DAT_005129b0, games2->selected)) != 0 &&
             strlen(name) != 0)
             SetGadgetText(menu2, index, name);
         else

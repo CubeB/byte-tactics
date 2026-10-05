@@ -180,29 +180,29 @@ struct Unit {
 };
 
 #pragma pack(pop)
-class Class_004b4560 {
+class HapiBank {
 public:
-    int FUN_004b4560(char* name);
+    int OpenAccount(char* name);
 };
 class Class_004b4800 {
 public:
-    int FUN_004b4800(char* name, int def);
+    int GetIntegerItem(char* name, int def);
 };
 class Class_004b4b50 {
 public:
-    int FUN_004b4b50(int a);
+    int OpenNumberedBox(int a);
 };
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 class Class_004b4c80 {
 public:
-    int FUN_004b4c80(void* buf, int len);
+    int ReadBox(void* buf, int len);
 };
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 extern void* g_game;
@@ -223,18 +223,18 @@ public:
     char gap_46[4];
     Class_0043a420* next;               // +0x4a
     char gap_4e[8];
-    Class_0043a420(Unit* unit, Class_004b4560* file, char* name);
+    Class_0043a420(Unit* unit, HapiBank* file, char* name);
 };
 #pragma pack(pop)
 class Class_004388b0 { public: void FUN_004388b0(); };
 void __stdcall FUN_0047db20(Unit* unit);
-class Class_00401110 { public: void LoadUnitAccounts(Unit*, Class_004b4560*); };
-class Class_0043d210 { public: void LoadMotion(Unit*, Class_004b4560*); };
-class CobScript { public: void LoadScriptState(Class_004b4560*); };
+class Class_00401110 { public: void LoadUnitAccounts(Unit*, HapiBank*); };
+class Class_0043d210 { public: void LoadMotion(Unit*, HapiBank*); };
+class CobScript { public: void LoadScriptState(HapiBank*); };
 
 
 // FUNCTION: 0x487080
-Unit* __stdcall LoadUnit(unsigned short id, Class_004b4560* file)
+Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
 {
     Unit* unit;
     if (id == 0)
@@ -247,14 +247,14 @@ Unit* __stdcall LoadUnit(unsigned short id, Class_004b4560* file)
     SaveRec_00487080 rec;
     char name[32];
     char script[32];
-    int n = ((Class_004b4800*)file)->FUN_004b4800("Number of Units", 0);
+    int n = ((Class_004b4800*)file)->GetIntegerItem("Number of Units", 0);
     int found = 0;
     int i;
     for (i = 0; i < n; i++) {
-        if (!((Class_004b4b50*)file)->FUN_004b4b50(i))
+        if (!((Class_004b4b50*)file)->OpenNumberedBox(i))
             return 0;
-        ((Class_004b4c10*)file)->FUN_004b4c10(0);
-        if (((Class_004b4c80*)file)->FUN_004b4c80(&rec, 0xb8) != 0xb8)
+        ((Class_004b4c10*)file)->SeekBox(0);
+        if (((Class_004b4c80*)file)->ReadBox(&rec, 0xb8) != 0xb8)
             return 0;
         if (rec.id == id) {
             found = 1;
@@ -342,7 +342,7 @@ Unit* __stdcall LoadUnit(unsigned short id, Class_004b4560* file)
     if (unit->listHead != 0)
         ((Class_004388b0*)unit->listHead)->FUN_004388b0();
     sprintf(script, "Script%i", i);
-    ((Class_004b4ba0*)file)->FUN_004b4ba0(script);
+    ((Class_004b4ba0*)file)->OpenNamedBox(script);
     ((CobScript*)unit->field_9a)->LoadScriptState(file);
 
     for (int j = 0; j < 3; j++) {

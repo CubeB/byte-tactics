@@ -7,7 +7,7 @@
 #include <stddef.h>
 
 // FUNCTION: 0x4bc320
-char* __stdcall FUN_004bc320(char* drive, char* buf, int size)
+char* __stdcall GetDriveDirectory(char* drive, char* buf, int size)
 {
     int n;
     if (drive == NULL)

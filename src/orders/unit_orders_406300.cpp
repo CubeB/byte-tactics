@@ -186,7 +186,7 @@ int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
@@ -204,7 +204,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
         ((Class_00489800*)unit)->ReleaseWeapons(3);
         order->radius=(unit->width + order->target->width + 2) << 4;
         int distance=order->radius << 16;
-        short angle=FUN_004b6c30(0x10000);
+        short angle=RandomInt(0x10000);
         order->pos=Offset(angle,distance);
         return 1;
     }

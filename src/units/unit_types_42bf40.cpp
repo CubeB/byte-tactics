@@ -13,7 +13,7 @@
 //      the counter share esi, as in the original (81.0 -> 89.9).
 //   2. The YardMap pointer is cleared twice: once before `if (bmcode == 0)`
 //      and again in its else branch (the original has both stores).
-//   3. FUN_004c4800 returns its 16.16 value by value through a hidden
+//   3. GetFieldFixed returns its 16.16 value by value through a hidden
 //      pointer (`Fixed` has constructors), so its result temporaries, the
 //      fild temporaries and the yard loop's y all share the frame slot at
 //      [esp+0x1c], as in the original; no `scratch` local is needed
@@ -33,7 +33,7 @@
 //      fstp lands after the next call's pushes and `this` load, as in the
 //      original; `(float)call` alone stores right after the call. The same
 //      parentheses inside an inline helper (`return ((float)value);`) work
-//      too, and FUN_004c4760 is declared with its real double return. This
+//      too, and GetFieldDouble is declared with its real double return. This
 //      also fixed the six flag-word statements, which no longer differ.
 //   8. The YardMap stores read the map through `char*& map =
 //      unitdef->yardmap;` declared after the loop locals, so map has the
@@ -46,7 +46,7 @@
 #include <list>
 class Class_004c4630 {
   public:
-    char* FUN_004c4630(char* key);
+    char* FindFieldValue(char* key);
 };
 class Class_00488e70 {
   public:
@@ -79,30 +79,30 @@ class Class_004c2ea0 {
 
 class Class_004c2f60 {
   public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3410 {
   public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c3240 {
   public:
-    void FUN_004c3240();
+    void Unload();
 };
 
-class Class_004c48c0 {
+class TdfRecord {
   public:
-    int FUN_004c48c0(char* dst, char* key, int size, char* def);
+    int GetFieldString(char* dst, char* key, int size, char* def);
 };
 
 class Class_004c46c0 {
   public:
-    int FUN_004c46c0(char* key, int def);
+    int GetFieldInt(char* key, int def);
 };
 
-// The game's 16.16 fixed-point value. FUN_004c4800 returns it by value (through
+// The game's 16.16 fixed-point value. GetFieldFixed returns it by value (through
 // a hidden pointer, since it has a constructor) and takes the default by value.
 class Fixed {
   public:
@@ -112,16 +112,16 @@ class Fixed {
 
 class Class_004c4800 {
   public:
-    Fixed FUN_004c4800(char* key, Fixed def);
+    Fixed GetFieldFixed(char* key, Fixed def);
 };
 
 class Class_004c4760 {
   public:
-    double FUN_004c4760(const char* key, double def);
+    double GetFieldDouble(const char* key, double def);
 };
 
 // The float fields' getter. The outer parentheses matter (note 7).
-#define GETFLOAT(section, key) ((float)((Class_004c4760*)(section))->FUN_004c4760(key, 0.0))
+#define GETFLOAT(section, key) ((float)((Class_004c4760*)(section))->GetFieldDouble(key, 0.0))
 
 class Class_00438760 {
   public:
@@ -141,7 +141,7 @@ struct MissionHolder {
 extern char DAT_005119b8[];
 extern char DAT_00503ea0[];
 
-void __stdcall FUN_004c58a0(void* parser, char* dst, char* key, int size, char* def);
+void __stdcall GetLocalizedString(void* parser, char* dst, char* key, int size, char* def);
 void* __stdcall GetCategoryMask(char* text);
 
 struct Vec3 {
@@ -255,255 +255,255 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
     char weapon[128];
     char yard[1024];
 
-    if (((Class_004c2f60*)&parser)->FUN_004c2f60(fbi_file)) {
-        if (!((Class_004c3410*)&parser)->FUN_004c3410("UNITINFO")) {
-            ((Class_004c3240*)&parser)->FUN_004c3240();
+    if (((Class_004c2f60*)&parser)->LoadFile(fbi_file)) {
+        if (!((Class_004c3410*)&parser)->SelectRecord("UNITINFO")) {
+            ((Class_004c3240*)&parser)->Unload();
             goto FINISH;
         }
         {
-            ((Class_004c48c0*)parser.current)
-                ->FUN_004c48c0(unitdef->unitname, "unitname", 0x20, DAT_005119b8);
-            FUN_004c58a0(&parser, unitdef->name, "name", 0x20, 0);
-            FUN_004c58a0(&parser, unitdef->description, "description", 0x40, 0);
-            ((Class_004c48c0*)parser.current)
-                ->FUN_004c48c0(buf, "defaultmissiontype", 100, DAT_005119b8);
+            ((TdfRecord*)parser.current)
+                ->GetFieldString(unitdef->unitname, "unitname", 0x20, DAT_005119b8);
+            GetLocalizedString(&parser, unitdef->name, "name", 0x20, 0);
+            GetLocalizedString(&parser, unitdef->description, "description", 0x40, 0);
+            ((TdfRecord*)parser.current)
+                ->GetFieldString(buf, "defaultmissiontype", 100, DAT_005119b8);
             MissionHolder m(buf);
             unitdef->defaultmissiontype = m.mission.value;
-            ((Class_004c48c0*)parser.current)
-                ->FUN_004c48c0(buf, "wpri_badTargetCategory", 100, DAT_00503ea0);
+            ((TdfRecord*)parser.current)
+                ->GetFieldString(buf, "wpri_badTargetCategory", 100, DAT_00503ea0);
             unitdef->wpri_badtargetcategory = GetCategoryMask(buf);
-            ((Class_004c48c0*)parser.current)
-                ->FUN_004c48c0(buf, "wsec_badTargetCategory", 100, DAT_00503ea0);
+            ((TdfRecord*)parser.current)
+                ->GetFieldString(buf, "wsec_badTargetCategory", 100, DAT_00503ea0);
             unitdef->wsec_badtargetcategory = GetCategoryMask(buf);
-            ((Class_004c48c0*)parser.current)
-                ->FUN_004c48c0(buf, "wspe_badTargetCategory", 100, DAT_00503ea0);
+            ((TdfRecord*)parser.current)
+                ->GetFieldString(buf, "wspe_badTargetCategory", 100, DAT_00503ea0);
             unitdef->wspe_badtargetcategory = GetCategoryMask(buf);
-            ((Class_004c48c0*)parser.current)
-                ->FUN_004c48c0(buf, "noChaseCategory", 100, DAT_00503ea0);
+            ((TdfRecord*)parser.current)
+                ->GetFieldString(buf, "noChaseCategory", 100, DAT_00503ea0);
             unitdef->nochasecategory = GetCategoryMask(buf);
-            if (((Class_004c48c0*)parser.current)
-                    ->FUN_004c48c0(unitdef->objectname, "objectname", 0x20, DAT_005119b8) == 0) {
+            if (((TdfRecord*)parser.current)
+                    ->GetFieldString(unitdef->objectname, "objectname", 0x20, DAT_005119b8) == 0) {
                 strcpy(unitdef->objectname, unitdef->unitname);
             }
-            unitdef->buildcostenergy = (float)((Class_004c46c0*)parser.current)->FUN_004c46c0("buildcostenergy", 0);
-            unitdef->buildcostmetal = (float)((Class_004c46c0*)parser.current)->FUN_004c46c0("buildcostmetal", 0);
+            unitdef->buildcostenergy = (float)((Class_004c46c0*)parser.current)->GetFieldInt("buildcostenergy", 0);
+            unitdef->buildcostmetal = (float)((Class_004c46c0*)parser.current)->GetFieldInt("buildcostmetal", 0);
             unitdef->maxvelocity =
-                ((Class_004c4800*)parser.current)->FUN_004c4800("maxvelocity", Fixed(0)).value;
+                ((Class_004c4800*)parser.current)->GetFieldFixed("maxvelocity", Fixed(0)).value;
             unitdef->brakerate =
-                ((Class_004c4800*)parser.current)->FUN_004c4800("brakerate", Fixed(0)).value;
+                ((Class_004c4800*)parser.current)->GetFieldFixed("brakerate", Fixed(0)).value;
             unitdef->acceleration =
-                ((Class_004c4800*)parser.current)->FUN_004c4800("acceleration", Fixed(0)).value;
+                ((Class_004c4800*)parser.current)->GetFieldFixed("acceleration", Fixed(0)).value;
             unitdef->bankscale =
-                ((Class_004c4800*)parser.current)->FUN_004c4800("bankscale", Fixed(0x10000)).value;
+                ((Class_004c4800*)parser.current)->GetFieldFixed("bankscale", Fixed(0x10000)).value;
             unitdef->pitchscale =
-                ((Class_004c4800*)parser.current)->FUN_004c4800("pitchscale", Fixed(0)).value;
+                ((Class_004c4800*)parser.current)->GetFieldFixed("pitchscale", Fixed(0)).value;
             unitdef->damagemodifier = ((Class_004c4800*)parser.current)
-                                            ->FUN_004c4800("damagemodifier", Fixed(0x10000)).value;
+                                            ->GetFieldFixed("damagemodifier", Fixed(0x10000)).value;
             unitdef->moverate1 =
                 ((Class_004c4800*)parser.current)
-                     ->FUN_004c4800("moverate1", Fixed(unitdef->maxvelocity * 2)).value;
+                     ->GetFieldFixed("moverate1", Fixed(unitdef->maxvelocity * 2)).value;
             unitdef->moverate2 =
                 ((Class_004c4800*)parser.current)
-                     ->FUN_004c4800("moverate2", Fixed(unitdef->maxvelocity * 2)).value;
+                     ->GetFieldFixed("moverate2", Fixed(unitdef->maxvelocity * 2)).value;
             unitdef->turnrate =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("turnrate", 0);
-            unitdef->waterline = (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("waterline", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("turnrate", 0);
+            unitdef->waterline = (char)((Class_004c46c0*)parser.current)->GetFieldInt("waterline", 0);
             unitdef->transportsize =
-                (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("transportsize", 0);
+                (char)((Class_004c46c0*)parser.current)->GetFieldInt("transportsize", 0);
             unitdef->transportcapacity =
-                (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("transportcapacity", 0);
+                (char)((Class_004c46c0*)parser.current)->GetFieldInt("transportcapacity", 0);
             unitdef->energymake = GETFLOAT(parser.current, "energymake");
             unitdef->energyuse = GETFLOAT(parser.current, "energyuse");
             unitdef->metalmake = GETFLOAT(parser.current, "metalmake");
             unitdef->extractsmetal = GETFLOAT(parser.current, "extractsmetal");
-            unitdef->makesmetal = (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("makesmetal", 0);
+            unitdef->makesmetal = (char)((Class_004c46c0*)parser.current)->GetFieldInt("makesmetal", 0);
             unitdef->windgenerator = GETFLOAT(parser.current, "windgenerator");
             unitdef->tidalgenerator = GETFLOAT(parser.current, "tidalgenerator");
             unitdef->energystorage = GETFLOAT(parser.current, "energystorage");
             unitdef->metalstorage = GETFLOAT(parser.current, "metalstorage");
             unitdef->buildtime =
-                ((Class_004c46c0*)parser.current)->FUN_004c46c0("buildtime", 0);
+                ((Class_004c46c0*)parser.current)->GetFieldInt("buildtime", 0);
             unitdef->workertime =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("workertime", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("workertime", 0);
             unitdef->healtime =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("healtime", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("healtime", 0);
             unitdef->maxdamage =
-                ((Class_004c46c0*)parser.current)->FUN_004c46c0("maxdamage", 0);
+                ((Class_004c46c0*)parser.current)->GetFieldInt("maxdamage", 0);
             unitdef->sightdistance =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sightdistance", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("sightdistance", 0);
             unitdef->radardistance =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("radardistance", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("radardistance", 0);
             unitdef->sonardistance =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sonardistance", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("sonardistance", 0);
             unitdef->radardistancejam =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("radardistancejam", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("radardistancejam", 0);
             unitdef->sonardistancejam =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sonardistancejam", 0);
-            unitdef->bmcode = (char)((Class_004c46c0*)parser.current)->FUN_004c46c0("bmcode", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("sonardistancejam", 0);
+            unitdef->bmcode = (char)((Class_004c46c0*)parser.current)->GetFieldInt("bmcode", 0);
             unsigned int value2;
             unsigned int value;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("standingmoveorder", 2);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("standingmoveorder", 2);
             unitdef->flags1 =
                 (value ^ unitdef->flags1) & 3 ^ unitdef->flags1;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("standingfireorder", 2);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("standingfireorder", 2);
             unitdef->flags1 =
                 (value & 3) << 2 | unitdef->flags1 & 0xfffffff3;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("init_cloaked", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("init_cloaked", 0);
             unitdef->flags1 =
                 (value & 1) << 4 | unitdef->flags1 & 0xffffffef;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("downloadable", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("downloadable", 0);
             unitdef->flags1 =
                 (value & 1) << 5 | unitdef->flags1 & 0xffffffdf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("builder", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("builder", 0);
             unitdef->flags1 =
                 (value & 1) << 6 | unitdef->flags1 & 0xffffffbf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("stealth", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("stealth", 0);
             unitdef->flags1 =
                 (value & 1) << 8 | unitdef->flags1 & 0xfffffeff;
-            unitdef->cloakcost = (float)((Class_004c46c0*)parser.current)->FUN_004c46c0("cloakcost", 0);
-            unitdef->cloakcostmoving = (float)((Class_004c46c0*)parser.current)->FUN_004c46c0("cloakcostmoving", (int)unitdef->cloakcost);
+            unitdef->cloakcost = (float)((Class_004c46c0*)parser.current)->GetFieldInt("cloakcost", 0);
+            unitdef->cloakcostmoving = (float)((Class_004c46c0*)parser.current)->GetFieldInt("cloakcostmoving", (int)unitdef->cloakcost);
             unitdef->mincloakdistance =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("mincloakdistance", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("mincloakdistance", 0);
             unitdef->buildangle =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("buildangle", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("buildangle", 0);
             unitdef->builddistance =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("builddistance", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("builddistance", 0);
             unitdef->sortbias =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("sortbias", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("sortbias", 0);
             unitdef->cruisealt =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("cruisealt", 0);
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("zbuffer", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("cruisealt", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("zbuffer", 0);
             unitdef->flags1 =
                 (value & 1) << 7 | unitdef->flags1 & 0xffffff7f;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("isairbase", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("isairbase", 0);
             unitdef->flags1 =
                 (value & 1) << 9 | unitdef->flags1 & 0xfffffdff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("istargetingupgrade", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("istargetingupgrade", 0);
             unitdef->flags1 =
                 (value & 1) << 10 | unitdef->flags1 & 0xfffffbff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("teleporter", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("teleporter", 0);
             unitdef->flags1 =
                 unitdef->flags1 & 0xffffdfff | (value & 1) << 0xd;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("hidedamage", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("hidedamage", 0);
             unitdef->flags1 =
                 unitdef->flags1 & 0xffffbfff | (value & 1) << 0xe;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("shootme", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("shootme", 0);
             unitdef->flags1 =
                 unitdef->flags1 & 0xffff7fff | (value & 1) << 0xf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("armoredstate", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("armoredstate", 0);
             unitdef->flags1 =
                 (value & 1) << 0x11 | unitdef->flags1 & 0xfffdffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("activatewhenbuilt", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("activatewhenbuilt", 0);
             unitdef->flags1 =
                 (value & 1) << 0x12 | unitdef->flags1 & 0xfffbffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canfly", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("canfly", 0);
             unitdef->flags1 =
                 (value & 1) << 0xb | unitdef->flags1 & 0xfffff7ff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canhover", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("canhover", 0);
             unitdef->flags1 =
                 unitdef->flags1 & 0xffffefff | (value & 1) << 0xc;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("upright", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("upright", 0);
             unitdef->flags1 =
                 (value & 1) << 0x14 | unitdef->flags1 & 0xffefffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("floater", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("floater", 0);
             unitdef->flags1 =
                 (value & 1) << 0x13 | unitdef->flags1 & 0xfff7ffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("amphibious", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("amphibious", 0);
             unitdef->flags1 =
                 (value & 1) << 0x15 | unitdef->flags1 & 0xffdfffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("isfeature", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("isfeature", 0);
             unitdef->flags1 =
                 (value & 1) << 0x18 | unitdef->flags1 & 0xfeffffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("noshadow", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("noshadow", 0);
             unitdef->flags1 =
                 (value & 1) << 0x19 | unitdef->flags1 & 0xfdffffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("immunetoparalyzer", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("immunetoparalyzer", 0);
             unitdef->flags1 =
                 (value & 1) << 0x1a | unitdef->flags1 & 0xfbffffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("hoverattack", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("hoverattack", 0);
             unitdef->flags1 =
                 (value & 1) << 0x1b | unitdef->flags1 & 0xf7ffffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("antiweapons", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("antiweapons", 0);
             unitdef->flags1 =
                 unitdef->flags1 & 0xdfffffff | (value & 1) << 0x1d;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("digger", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("digger", 0);
             unitdef->flags1 =
                 unitdef->flags1 & 0xbfffffff | (value & 1) << 0x1e;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("onoffable", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("onoffable", 0);
             unitdef->flags2 =
                 (value & 1) << 2 | unitdef->flags2 & 0xfffffffb;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("mobilestandorders", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("mobilestandorders", 0);
             unitdef->flags2 =
                 (value ^ unitdef->flags2) & 1 ^ unitdef->flags2;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("firestandorders", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("firestandorders", 0);
             unitdef->flags2 =
                 (value & 1) << 1 | unitdef->flags2 & 0xfffffffd;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canstop", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("canstop", 0);
             unitdef->flags2 =
                 (value & 1) << 3 | unitdef->flags2 & 0xfffffff7;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canattack", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("canattack", 0);
             unitdef->flags2 =
                 (value & 1) << 4 | unitdef->flags2 & 0xffffffef;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canguard", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("canguard", 0);
             unitdef->flags2 =
                 (value & 1) << 5 | unitdef->flags2 & 0xffffffdf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canpatrol", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("canpatrol", 0);
             unitdef->flags2 =
                 (value & 1) << 6 | unitdef->flags2 & 0xffffffbf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canmove", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("canmove", 0);
             unitdef->flags2 =
                 (value & 1) << 7 | unitdef->flags2 & 0xffffff7f;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canload", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("canload", 0);
             unitdef->flags2 =
                 (value & 1) << 8 | unitdef->flags2 & 0xfffffeff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canreclamate", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("canreclamate", 0);
             unitdef->flags2 =
                 (value & 1) << 10 | unitdef->flags2 & 0xfffffbff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("canresurrect", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("canresurrect", 0);
             value2 = (value & 1) << 0xb | unitdef->flags2 & 0xfffff7ff;
             unitdef->flags2 = value2 & 0xfffffdff | (value2 & 0x400) >> 1;
-            value2 = ((Class_004c46c0*)parser.current)->FUN_004c46c0("cancapture", 0);
+            value2 = ((Class_004c46c0*)parser.current)->GetFieldInt("cancapture", 0);
             value = unitdef->flags2;
             value2 = (value2 & 1) << 0xc;
             value = value & 0xffffefff | value2;
             unitdef->flags2 = value;
             value2 = (unsigned int)(unitdef->cloakcost > 0.0f);
             unitdef->flags2 = value & 0xffffdfff | (value2 & 1) << 0xd;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("candgun", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("candgun", 0);
             unitdef->flags2 =
                 unitdef->flags2 & 0xffffbfff | (value & 1) << 0xe;
             unitdef->maneuverleashlength =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("maneuverleashlength", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("maneuverleashlength", 0);
             unitdef->attackrunlength =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("attackrunlength", 0);
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("kamikaze", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("attackrunlength", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("kamikaze", 0);
             unitdef->flags1 =
                 unitdef->flags1 & 0xefffffff | (value & 1) << 0x1c;
             unitdef->kamikazedistance =
-                (short)((Class_004c46c0*)parser.current)->FUN_004c46c0("kamikazedistance", 0);
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("norestrict", 0);
+                (short)((Class_004c46c0*)parser.current)->GetFieldInt("kamikazedistance", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("norestrict", 0);
             unitdef->flags2 =
                 unitdef->flags2 & 0xffff7fff | (value & 1) << 0xf;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("showplayername", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("showplayername", 0);
             unitdef->flags2 =
                 (value & 1) << 0x11 | unitdef->flags2 & 0xfffdffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("commander", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("commander", 0);
             unitdef->flags2 =
                 (value & 1) << 0x12 | unitdef->flags2 & 0xfffbffff;
-            value = ((Class_004c46c0*)parser.current)->FUN_004c46c0("cantbetransported", 0);
+            value = ((Class_004c46c0*)parser.current)->GetFieldInt("cantbetransported", 0);
             unitdef->flags2 =
                 (value & 1) << 0x13 | unitdef->flags2 & 0xfff7ffff;
 
             char* countdown =
-                ((Class_004c4630*)parser.current)->FUN_004c4630("selfdestructcountdown");
+                ((Class_004c4630*)parser.current)->FindFieldValue("selfdestructcountdown");
             if (countdown != (char*)0)
                 unitdef->selfdestructcountdown = atoi(countdown);
             else
                 unitdef->selfdestructcountdown = 5;
-            ((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "category", 100, DAT_005119b8);
+            ((TdfRecord*)parser.current)->GetFieldString(buf, "category", 100, DAT_005119b8);
             ((Class_00488e70*)unitdef)->AddToCategories(buf);
-            int found = ((Class_004c48c0*)parser.current)
-                    ->FUN_004c48c0(buf, "soundcategory", 100, DAT_005119b8);
+            int found = ((TdfRecord*)parser.current)
+                    ->GetFieldString(buf, "soundcategory", 100, DAT_005119b8);
             if (found) {
                 int sound;
                 for (sound = 0; sound < *(int*)(g_game + 0x37e17); sound++) {
@@ -518,11 +518,11 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             }
         SOUND_DONE:
             unitdef->corpse = -1;
-            if (((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "corpse", 100, DAT_005119b8))
+            if (((TdfRecord*)parser.current)->GetFieldString(buf, "corpse", 100, DAT_005119b8))
                 unitdef->corpse = FindOrLoadFeatureType(buf);
             unitdef->movementclass = 0;
-            if (((Class_004c48c0*)parser.current)
-                    ->FUN_004c48c0(buf, "movementclass", 100, DAT_005119b8))
+            if (((TdfRecord*)parser.current)
+                    ->GetFieldString(buf, "movementclass", 100, DAT_005119b8))
                 unitdef->movementclass = FindMovementClass(buf);
             Class_004402e0 movement;
             char* move = (char*)unitdef->movementclass;
@@ -539,20 +539,20 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             unitdef->maxslopevelocity = (int)(((__int64)unitdef->maxvelocity << 16) /
                                              ((unitdef->maxslope + 1) * 0x10000));
             char* defaultWeapon = g_game + 0x2cf3;
-            ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "weapon1", 128, DAT_005119b8);
+            ((TdfRecord*)parser.current)->GetFieldString(weapon, "weapon1", 128, DAT_005119b8);
             char* weapon1 = FindWeaponByName(weapon);
             unitdef->weapon1 = weapon1 ? weapon1 : defaultWeapon;
-            ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "weapon2", 128, DAT_005119b8);
+            ((TdfRecord*)parser.current)->GetFieldString(weapon, "weapon2", 128, DAT_005119b8);
             char* weapon2 = FindWeaponByName(weapon);
             unitdef->weapon2 = weapon2 ? weapon2 : defaultWeapon;
-            ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "weapon3", 128, DAT_005119b8);
+            ((TdfRecord*)parser.current)->GetFieldString(weapon, "weapon3", 128, DAT_005119b8);
             char* weapon3 = FindWeaponByName(weapon);
             unitdef->weapon3 = weapon3 ? weapon3 : defaultWeapon;
-            ((Class_004c48c0*)parser.current)->FUN_004c48c0(weapon, "explodeas", 128, DAT_005119b8);
+            ((TdfRecord*)parser.current)->GetFieldString(weapon, "explodeas", 128, DAT_005119b8);
             char* explodeas = FindWeaponByName(weapon);
             unitdef->explodeas = explodeas ? explodeas : defaultWeapon;
-            ((Class_004c48c0*)parser.current)
-                ->FUN_004c48c0(weapon, "selfdestructas", 128, DAT_005119b8);
+            ((TdfRecord*)parser.current)
+                ->GetFieldString(weapon, "selfdestructas", 128, DAT_005119b8);
             char* selfdestructas = FindWeaponByName(weapon);
             unitdef->selfdestructas = selfdestructas ? selfdestructas : defaultWeapon;
             if (unitdef->weapon1 == defaultWeapon &&
@@ -563,8 +563,8 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
                 unitdef->flags1 |= 0x10000;
             unitdef->yardmap = 0;
             if (unitdef->bmcode == 0) {
-                ((Class_004c48c0*)parser.current)
-                    ->FUN_004c48c0(yard, "YardMap", 1024, DAT_005119b8);
+                ((TdfRecord*)parser.current)
+                    ->GetFieldString(yard, "YardMap", 1024, DAT_005119b8);
                 unitdef->yardmap = (char*)FUN_004d83b0(
                     "BUILDING YARD", unitdef->footprintx * unitdef->footprintz);
                 int cell = 0;
@@ -624,7 +624,7 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             unitdef->extentmax.z = (unitdef->footprintz << 20) / 2;
             unitdef->extentsize = unitdef->extentmax - unitdef->extentmin;
             unitdef->radius = (unitdef->extentsize.z + unitdef->extentsize.x) / 3;
-            ((Class_004c3240*)&parser)->FUN_004c3240();
+            ((Class_004c3240*)&parser)->Unload();
             // cancloak with no mincloakdistance: default to 80
             if ((unitdef->flags2 & 0x2000) && unitdef->mincloakdistance == 0)
                 unitdef->mincloakdistance = 80;

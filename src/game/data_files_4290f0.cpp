@@ -7,8 +7,8 @@
 
 int FUN_0049f580(void);
 char* __stdcall StripExtension(char* name);
-void* __stdcall FUN_004bb5b0(char* path);
-int __stdcall FUN_004bb5d0(void* file);
+void* __stdcall HAPI_OpenFileRead(char* path);
+int __stdcall HAPI_CloseFile(void* file);
 
 // FUNCTION: 0x4290f0
 char* __stdcall BuildDataPath(char* buf, char* dir, char* name, char* ext)
@@ -21,9 +21,9 @@ char* __stdcall BuildDataPath(char* buf, char* dir, char* name, char* ext)
             strcat(buf, ".");
             strcat(buf, ext);
         }
-        void* file = FUN_004bb5b0(buf);
+        void* file = HAPI_OpenFileRead(buf);
         if (file) {
-            FUN_004bb5d0(file);
+            HAPI_CloseFile(file);
             return buf;
         }
     }

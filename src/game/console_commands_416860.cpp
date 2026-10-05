@@ -17,23 +17,23 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 // Command arguments.
-class Class_004b73e0 {
+class CommandArgs {
 public:
-    int FUN_004b73e0(int index, int fallback);
+    int GetIntArg(int index, int fallback);
 };
 
 class Class_004b73c0 {
 public:
-    char* FUN_004b73c0(int index, char* fallback);
+    char* GetArg(int index, char* fallback);
 };
 
 // FUNCTION: 0x416860
-void __stdcall CmdMove(Class_004b73e0* args)
+void __stdcall CmdMove(CommandArgs* args)
 {
-    if (_strcmpi(((Class_004b73c0*)args)->FUN_004b73c0(0, DAT_005119b8), "move") == 0) {
-        int dx = args->FUN_004b73e0(1, 0);
+    if (_strcmpi(((Class_004b73c0*)args)->GetArg(0, DAT_005119b8), "move") == 0) {
+        int dx = args->GetIntArg(1, 0);
         g_game->x += dx << 20;
-        int dz = args->FUN_004b73e0(2, 0);
+        int dz = args->GetIntArg(2, 0);
         g_game->z += dz << 20;
     }
 }

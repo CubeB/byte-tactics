@@ -25,11 +25,11 @@ public:
     int unknown_0;
     std::vector<Named_004c44c0*> entries;   // +0x4 (_First at +0x8)
 
-    Named_004c44c0* FUN_004c44c0(int index);
+    Named_004c44c0* GetSubRecord(int index);
 };
 
 // FUNCTION: 0x4c44c0
-Named_004c44c0* Class_004c44c0::FUN_004c44c0(int index)
+Named_004c44c0* Class_004c44c0::GetSubRecord(int index)
 {
     if ((unsigned int)index >= entries.size())
         return 0;

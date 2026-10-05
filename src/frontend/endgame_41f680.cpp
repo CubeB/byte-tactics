@@ -18,7 +18,7 @@ extern Game* g_game;
 int __stdcall IsCurrentGadgetNamed(Gadget_41f680* gadget, char* name);
 void __stdcall PlaySoundByName(char* str, int flag);
 char __stdcall FindGameCdDrive(int param_1);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(Gadget_41f680* gadget);
 
@@ -33,7 +33,7 @@ void __stdcall HandleCdCheckClick(Gadget_41f680* gadget)
                 return;
             }
             OpenMessageBox(g_game->message,
-                         FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
+                         Translate("Please insert the Campaign CD (Disc 2) and try again"),
                          200, 1, 1);
         }
         FUN_004ab0a0(gadget);

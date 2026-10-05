@@ -13,7 +13,7 @@ extern char DAT_005119b8[];
 
 class Class_004b73c0 {
 public:
-    char* FUN_004b73c0(int index, char* fallback);
+    char* GetArg(int index, char* fallback);
 };
 
 short __stdcall FindFeatureType(char* name);
@@ -23,7 +23,7 @@ void* __stdcall PlaceFeature(void* target, unsigned short id, void* pos, void* f
 // FUNCTION: 0x4163d0
 void __stdcall CmdFeature(Class_004b73c0* args)
 {
-    unsigned short id = FindFeatureType(args->FUN_004b73c0(1, DAT_005119b8));
+    unsigned short id = FindFeatureType(args->GetArg(1, DAT_005119b8));
     if (id != 0xffff) {
         void* target = GetMapCell(g_game->x, g_game->y);
         PlaceFeature(target, id, 0, 0, 10);

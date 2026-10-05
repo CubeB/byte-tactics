@@ -9,27 +9,27 @@ extern char DAT_005119b8[];
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, char* key, size_t size, char* def);
+    int GetFieldString(char* dst, char* key, size_t size, char* def);
 };
 
 class Class_004c4760 {
 public:
-    double FUN_004c4760(const char* name, double def);
+    double GetFieldDouble(const char* name, double def);
 };
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c2ea0 {
@@ -57,13 +57,13 @@ void Class_00438320::LoadMeteorDefaults()
     Class_004c2ea0 parser;
     char path[256];
     BuildDataPath(path, "gamedata", "meteor", DAT_0050310c);
-    if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)
-        && ((Class_004c3410*)&parser)->FUN_004c3410("Default")) {
-        if (((Class_004c48c0*)parser.current)->FUN_004c48c0((char*)this, "MeteorWeapon", 0x20, DAT_005119b8)) {
-            radius = parser.current->FUN_004c46c0("MeteorRadius", 0);
-            density = (float)((Class_004c4760*)parser.current)->FUN_004c4760("MeteorDensity", 0.0);
-            duration = (float)((Class_004c4760*)parser.current)->FUN_004c4760("MeteorDuration", 0.0);
-            float intervalTime = (float)((Class_004c4760*)parser.current)->FUN_004c4760("MeteorInterval", 0.0);
+    if (((Class_004c2f60*)&parser)->LoadFile(path)
+        && ((Class_004c3410*)&parser)->SelectRecord("Default")) {
+        if (((TdfRecord*)parser.current)->GetFieldString((char*)this, "MeteorWeapon", 0x20, DAT_005119b8)) {
+            radius = parser.current->GetFieldInt("MeteorRadius", 0);
+            density = (float)((Class_004c4760*)parser.current)->GetFieldDouble("MeteorDensity", 0.0);
+            duration = (float)((Class_004c4760*)parser.current)->GetFieldDouble("MeteorDuration", 0.0);
+            float intervalTime = (float)((Class_004c4760*)parser.current)->GetFieldDouble("MeteorInterval", 0.0);
             interval = intervalTime;
             if (radius != 0 && density != 0.0f && duration != 0.0f && intervalTime != 0.0f)
                 return;

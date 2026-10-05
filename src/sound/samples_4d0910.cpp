@@ -18,8 +18,8 @@
 // walk runs past the table.
 #include <string.h>
 
-int __stdcall FUN_004bb710(void* file, int pos);
-int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
+int __stdcall HAPI_SeekFile(void* file, int pos);
+int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
 
 class Class_004d0910 {
 public:
@@ -34,22 +34,22 @@ int Class_004d0910::FindDataChunkSize(void* file)
     unsigned int pos;
     unsigned int len;
 
-    FUN_004bb710(file, 4);
-    FUN_004bb7c0(file, &size, 4);
+    HAPI_SeekFile(file, 4);
+    HAPI_readfromfile(file, &size, 4);
     size += 8;
-    FUN_004bb710(file, 0xc);
-    FUN_004bb7c0(file, tag, 4);
-    FUN_004bb7c0(file, &len, 4);
+    HAPI_SeekFile(file, 0xc);
+    HAPI_readfromfile(file, tag, 4);
+    HAPI_readfromfile(file, &len, 4);
     pos = 0x14;
     for (;;) {
         if (strncmp(tag, "data", 4) == 0)
             return len;
-        FUN_004bb710(file, pos + len);
+        HAPI_SeekFile(file, pos + len);
         pos += len;
         if (pos >= size)
             return 0;
-        FUN_004bb7c0(file, tag, 4);
-        FUN_004bb7c0(file, &len, 4);
+        HAPI_readfromfile(file, tag, 4);
+        HAPI_readfromfile(file, &len, 4);
         pos += 8;
     }
 }

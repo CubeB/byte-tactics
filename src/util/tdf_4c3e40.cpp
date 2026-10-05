@@ -25,11 +25,11 @@
 //  * `strchr(eq + 1, ';')` rather than `strchr(current, ';')` after
 //    `current = eq + 1` is the original's `lea eax, [esi+1]` (82.0% to 91.3%).
 //
-// The name: data/symbols.csv calls 0x4c3e40 Class_004c42a0::FUN_004c3e40 (from
+// The name: data/symbols.csv calls 0x4c3e40 TdfRecord::FUN_004c3e40 (from
 // the callers 0x4c2f60 and 0x4c3120, which call it on operator new's result),
 // but it is a constructor, and 0x4c4d70's symbol names the children's element
-// type Class_004c3e40, so the class has to be called that here for the
-// push_back call to resolve. Class_004c42a0 and Class_004c3e40 are one class.
+// type TdfRecord, so the class has to be called that here for the
+// push_back call to resolve. TdfRecord and TdfRecord are one class.
 #include <vector>
 #include <string.h>
 #include <stdio.h>
@@ -135,23 +135,23 @@ public:
 
 class Class_004c4340 {
 public:
-    Class_004c91a0 FUN_004c4340(char* start, char* end);
+    Class_004c91a0 MakeTrimmedString(char* start, char* end);
 };
 
 // A section of a .TDF file: its name, its sub-sections and its entries.
-class Class_004c3e40 {
+class TdfRecord {
 public:
     char* name;                            // +0x0
-    std::vector<Class_004c3e40*> children; // +0x4
+    std::vector<TdfRecord*> children; // +0x4
     Map_004c3e40 entries;                  // +0x14
     char* text;                            // +0x25
 
-    Class_004c3e40(char* name, char* text, char** nextblock, char* filename);
+    TdfRecord(char* name, char* text, char** nextblock, char* filename);
 };
 #pragma pack(pop)
 
 char* __cdecl GameStrdup(char* text);
-char* FUN_004b6ba0(char* text, int len);
+char* ComputeChecksum(char* text, int len);
 void FatalError(char* text);
 
 static inline char* SkipSpace(char* p)
@@ -162,7 +162,7 @@ static inline char* SkipSpace(char* p)
 }
 
 // FUNCTION: 0x4c3e40
-Class_004c3e40::Class_004c3e40(char* name, char* text, char** nextblock, char* filename)
+TdfRecord::TdfRecord(char* name, char* text, char** nextblock, char* filename)
 {
     char error[2000] = "Parse error in .TDF File! ";
     this->name = GameStrdup(name);
@@ -176,13 +176,13 @@ Class_004c3e40::Class_004c3e40(char* name, char* text, char** nextblock, char* f
                 strcat(error, "Sub-record - closing ']' not found");
                 goto fail;
             }
-            Class_004c91a0 subname = ((Class_004c4340*)this)->FUN_004c4340(current + 1, close);
+            Class_004c91a0 subname = ((Class_004c4340*)this)->MakeTrimmedString(current + 1, close);
             current = SkipSpace(close + 1);
             if (*current != '{') {
                 strcat(error, "Sub-record - opening '{' not found");
                 goto fail;
             }
-            children.push_back(new Class_004c3e40(subname.ptr, current + 1, &current, filename));
+            children.push_back(new TdfRecord(subname.ptr, current + 1, &current, filename));
             break;
         }
         case '}': {
@@ -190,7 +190,7 @@ Class_004c3e40::Class_004c3e40(char* name, char* text, char** nextblock, char* f
                 *nextblock = current + 1;
             char* end = current - 1;
             if (text <= end)
-                this->text = FUN_004b6ba0(text, end - text - 1);
+                this->text = ComputeChecksum(text, end - text - 1);
             else
                 this->text = 0;
             return;
@@ -202,7 +202,7 @@ Class_004c3e40::Class_004c3e40(char* name, char* text, char** nextblock, char* f
             }
             char* end = current - 1;
             if (text <= end)
-                this->text = FUN_004b6ba0(text, end - text - 1);
+                this->text = ComputeChecksum(text, end - text - 1);
             else
                 this->text = 0;
             return;
@@ -213,14 +213,14 @@ Class_004c3e40::Class_004c3e40(char* name, char* text, char** nextblock, char* f
                 strcat(error, "Data field - '=' not found");
                 goto fail;
             }
-            Class_004c91a0 key = ((Class_004c4340*)this)->FUN_004c4340(current, eq);
+            Class_004c91a0 key = ((Class_004c4340*)this)->MakeTrimmedString(current, eq);
             current = eq + 1;
             char* semi = strchr(eq + 1, ';');
             if (!semi) {
                 strcat(error, "Data field - ';' not found");
                 goto fail;
             }
-            Class_004c91a0 value = ((Class_004c4340*)this)->FUN_004c4340(current, semi);
+            Class_004c91a0 value = ((Class_004c4340*)this)->MakeTrimmedString(current, semi);
             current = semi + 1;
             Class_004c54a0* e = entries.LowerBound(key.ptr);
             Class_004c91a0* r;

@@ -477,7 +477,7 @@ void FUN_00467440();
 void UpdateRadarMapped();
 unsigned char __stdcall FindHostSlot();
 unsigned short __stdcall FindUnitTypeId(const char* name);
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 int __stdcall FUN_0047db70(UnitDef_00464f80* type, int a, Point16 cell, int c);
 short __stdcall FindFeatureAtPos(Pos_00464f80* pos, int a, int b);
 int __stdcall GetCellMeanHeight(Pos_00464f80* pos);
@@ -495,7 +495,7 @@ void* __stdcall LoadGuiLayer(char* gui, const char* file, int flags);
 void __stdcall FUN_0049fb10(char* gui, int a);
 void __stdcall FUN_004a0bf0(char* gui, const char* gadget, const char* text, int a);
 void __stdcall RenderLayer(char* gui, int a);
-const char* __stdcall FUN_004c5740(const char* text);
+const char* __stdcall Translate(const char* text);
 void __stdcall OpenMessageBox(char* gui, const char* text, int a, int b, int c);
 void __stdcall FUN_00464de0(void* gadget);
 
@@ -633,9 +633,9 @@ void __stdcall FUN_00464f80()
                             do {
                                 int cx = g_game->screen_x / 10;
                                 int cy = g_game->screen_y / 10;
-                                pos.x = (FUN_004b6c30(g_game->screen_x - 2 * cx) + cx) << 16;
+                                pos.x = (RandomInt(g_game->screen_x - 2 * cx) + cx) << 16;
                                 pos.y = 0;
-                                pos.z = (FUN_004b6c30(g_game->screen_y - 2 * cy) + cy) << 16;
+                                pos.z = (RandomInt(g_game->screen_y - 2 * cy) + cy) << 16;
                                 int hh = g_game->screen_hh << 16;
                                 int hits = 0;
                                 unsigned int zacc =
@@ -780,7 +780,7 @@ void __stdcall FUN_00464f80()
                     if (FUN_00457cb0() <= 0)
                         goto skip508;
                     OpenMessageBox(g_game->gui,
-                                 FUN_004c5740("You are placed in watch mode because you are hosting AI players which are still alive.  If you exit, they will be terminated."),
+                                 Translate("You are placed in watch mode because you are hosting AI players which are still alive.  If you exit, they will be terminated."),
                                  500, 1, 1);
                     g_game->flags_3923b.w &= 0xffef;
                     goto skip508;

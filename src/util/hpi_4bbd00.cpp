@@ -13,7 +13,7 @@ struct Class_004bbd00_File
     int fd; // +0x10
 };
 
-struct Class_004bbd00
+struct FileHandle
 {
     Class_004bbd00_File* file; // +0x0
     int flag;                  // +0x4
@@ -21,7 +21,7 @@ struct Class_004bbd00
 };
 
 // FUNCTION: 0x4bbd00
-long __stdcall FUN_004bbd00(Class_004bbd00* param_1)
+long __stdcall HAPI_FileLength(FileHandle* param_1)
 {
     if (param_1->flag != 0)
         return param_1->other->value;

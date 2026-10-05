@@ -634,7 +634,7 @@ class Class_004b3590;
 class Class_004b3630;
 class Class_004b3750;
 class Class_004b3770;
-class Class_004b4560;
+class HapiBank;
 class Class_004b4630;
 class Class_004b46c0;
 class Class_004b4750;
@@ -691,11 +691,11 @@ class Class_004c45e0;
 class Class_004c4630;
 class Class_004c4760;
 class Class_004c4800;
-class Class_004c48c0;
+class TdfRecord;
 class Class_004c5470;
 class Class_004c54a0;
 class Class_004c54d0;
-class Class_004c5840;
+class TranslationTable;
 class Class_004c5ba0;
 struct Class_004c5c60;
 struct Class_004c61f0;
@@ -1030,9 +1030,9 @@ struct Elem_004b75d0;
 struct Elem_004b75d0_2;
 struct Elem_004b75d0_3;
 struct Elem_004b75d0_4;
-struct Elem_004be010;
+struct ArchiveEntry;
 struct Elem_004c5740;
-struct Elem_004c5bc0;
+struct TdfField;
 struct Elem_004cb4c0;
 struct Elem_004cb5f0;
 struct Elem_004dd8c0;
@@ -1839,7 +1839,7 @@ struct Rec_00421620;
 struct Rec_0043e180;
 struct Rec_0044de80;
 struct Rec_0044dfb0;
-struct Rec_004b7760;
+struct ConsoleCommand;
 struct Rec_004c7580;
 struct Record_0043de30;
 struct Record_0044c0d0;
@@ -2159,34 +2159,34 @@ class Class_004010b0 {  // 0x30 bytes, 2 views
 public:
     char acc0[24];  // +0x0
     char acc1[24];  // +0x18
-    void SaveUnitAccounts(Unit*, Class_004b4560*);
+    void SaveUnitAccounts(Unit*, HapiBank*);
 };
 
-class Class_004b4560 {  // 0x4 bytes, 106 views
+class HapiBank {        // 0x4 bytes, 106 views
 public:
     Table_004b3630* table;  // +0x0
-    int FUN_004b4560(char*);
-    int FUN_004b4ba0(char*);
-    int FUN_004b4c80(void*, int);
+    int OpenAccount(char*);
+    int OpenNamedBox(char*);
+    int ReadBox(void*, int);
 };
 
 class Class_004b4c10 {  // 0x4 bytes, 26 views
 public:
     Table_004b3630* table;  // +0x0
-    void FUN_004b4c10(int);
+    void SeekBox(int);
 };
 
 class Class_004b4cf0 {  // 0x4 bytes, 17 views
 public:
     Table_004b3630* table;  // +0x0
-    int FUN_004b4cf0(void*, int);
+    int WriteBox(void*, int);
 };
 
 class Class_00401110 {  // 0x30 bytes, 2 views
 public:
     char acc0[24];  // +0x0
     char acc1[24];  // +0x18
-    void LoadUnitAccounts(Unit*, Class_004b4560*);
+    void LoadUnitAccounts(Unit*, HapiBank*);
 };
 
 class Class_00401180 {  // 0x10 bytes, 2 views
@@ -2364,7 +2364,7 @@ struct Point16 {  // 0x4 bytes, 113 views
 
 struct Unit {  // 0x118 bytes, 462 views
     int field_0;  // +0x0
-    Class_004c48c0* current;  // +0x4
+    TdfRecord* current;       // +0x4
     int field_8;  // +0x8
     UnitMotion* type;      // +0xc
     Mover* f10;  // +0x10
@@ -2452,7 +2452,7 @@ struct Unit {  // 0x118 bytes, 462 views
     int pad114;  // +0x114
     Unit(void);
     ~Unit(void);
-    int FUN_004c3410(char*);
+    int SelectRecord(char*);
     int Ready(void);
     unsigned char GetState(void);
     unsigned char PlayerIndex(void);
@@ -2581,7 +2581,7 @@ struct Order {  // 0x56 bytes, 87 views
     Order(int, ListOwner_0043a1f0*, Vec3*, int, int, int);
     ~Order(void);
     Order(Order&);
-    Order(Unit*, Class_004b4560*, char*);
+    Order(Unit*, HapiBank*, char*);
     void FUN_0043a1e0(unsigned int);
     Unit* Target(void);
     int FUN_0043a970(Unit*, File_0043a970*, char*);
@@ -2951,7 +2951,7 @@ public:
     int count;  // +0xd0
     char* GetArg(int, char*);
     int FUN_004b73c0(int, int);
-    void FUN_004b74f0(Class_004b73c0*);
+    void SubstituteArgs(Class_004b73c0*);
 };
 
 class UnitTypeSet {     // 0x40 bytes, 5 views
@@ -2963,14 +2963,14 @@ public:
 class Class_004b7410 {  // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
-    float FUN_004b7410(int, float);
+    float GetFloatArg(int, float);
 };
 
 class Class_004b73e0 {  // 0xd4 bytes, 32 views
 public:
     char* args[52];  // +0x0
     int count;  // +0xd0
-    int FUN_004b73e0(int, int);
+    int GetIntArg(int, int);
 };
 
 class Class_00406f50 {  // 0x1 bytes, 3 views
@@ -3235,7 +3235,7 @@ class Class_004b73b0 {  // 0xd4 bytes, 6 views
 public:
     char unknown_0[208];
     int field_d0;  // +0xd0
-    Class_004b73b0* FUN_004b73b0(void);
+    Class_004b73b0* InitArgs(void);
 };
 
 class Class_004800c0 {  // 0x10 bytes, 2 views
@@ -3801,7 +3801,7 @@ public:
     unsigned char rest : 5;
     void ApplyBankAndPitch(Unit*, Vec3*);
     void SetFlightMode(Unit*, int);
-    void LoadMotion(Unit*, Class_004b4560*);
+    void LoadMotion(Unit*, HapiBank*);
 };
 
 class Class_0044e6c0 {  // 0x32 bytes, 21 views
@@ -3978,7 +3978,7 @@ public:
     int CheckVictory(void);
     void RegisterConditions(Class_004c2ea0*);
     void SaveConditions(void*);
-    void LoadConditions(Class_004b4560*);
+    void LoadConditions(HapiBank*);
     void FUN_004904b0(void);
     void NotifyUnitDied(int);
     void NotifyUnitCaptured(int);
@@ -4177,7 +4177,7 @@ public:
     char unknown_ce;  // +0xce
     char unknown_cf[1];
     int field_d0;  // +0xd0
-    void FUN_004b7440(char*, char*);
+    void Tokenize(char*, char*);
 };
 
 class Class_00417e00 {  // 0x68 bytes, 1 view
@@ -4451,13 +4451,13 @@ struct Mouse_0041ce90 {  // 0x18 bytes, 1 view
 class Class_004b4800 {  // 0x4 bytes, 28 views
 public:
     File_004b4800* file;  // +0x0
-    int FUN_004b4800(char*, int);
+    int GetIntegerItem(char*, int);
 };
 
 class Class_004b4630 {  // 0x4 bytes, 25 views
 public:
     Table_004b3630* table;  // +0x0
-    int FUN_004b4630(char*, int);
+    int SetIntegerItem(char*, int);
 };
 
 struct FindData_0041d4c0 {  // 0x118 bytes, 1 view
@@ -4470,23 +4470,23 @@ public:
     Class_004c42a0* root;  // +0x0
     int field_4;  // +0x4
     int field_8;  // +0x8
-    int FUN_004c2f60(char*);
-    void FUN_004c3120(char*, int, int, char*);
+    int LoadFile(char*);
+    void LoadBuffer(char*, int, int, char*);
 };
 
-class Class_004c48c0 {  // 0x21 bytes, 66 views
+class TdfRecord {       // 0x21 bytes, 66 views
 public:
     char* name;  // +0x0
     int unknown_4;  // +0x4
-    Class_004c48c0** first;  // +0x8
-    Class_004c48c0** last;  // +0xc
+    TdfRecord** first;       // +0x8
+    TdfRecord** last;       // +0xc
     char unknown_10[9];
     Entry* first_19;  // +0x19
     Entry* last_1d;  // +0x1d
-    Class_004c48c0* FindChild(char*);
-    int FUN_004c46c0(char*, int);
-    int FUN_004c48c0(char*, char*, unsigned int, char*);
-    void FUN_004c4420(char*, unsigned int);
+    TdfRecord* FindChild(char*);
+    int GetFieldInt(char*, int);
+    int GetFieldString(char*, char*, unsigned int, char*);
+    void CopyRecordName(char*, unsigned int);
 };
 
 struct Grid {  // 0x10 bytes, 9 views
@@ -5006,7 +5006,7 @@ class Class_004c3e10 {  // 0x8 bytes, 22 views
 public:
     char unknown_0[4];
     int field_0x4;  // +0x4
-    void FUN_004c3e10(void);
+    void ResetCurrentRecord(void);
 };
 
 class Class_00435980 {  // 0xa10 bytes, 5 views
@@ -5039,7 +5039,7 @@ public:
     char unknown_0[25];
     Pair_00419560* first;  // +0x19
     Pair_00419560* last;  // +0x1d
-    double FUN_004c4760(char*, double);
+    double GetFieldDouble(char*, double);
 };
 
 struct Placement {  // 0x88 bytes, 1 view
@@ -5208,7 +5208,7 @@ struct Anim_00424890 {  // 0xa bytes, 2 views
 class Class_004b4bf0 {  // 0x4 bytes, 7 views
 public:
     Table_004b3630* table;  // +0x0
-    int FUN_004b4bf0(void);
+    int GetBoxSize(void);
 };
 
 struct FeatureName_00424890 {  // 0x80 bytes, 1 view
@@ -5414,7 +5414,7 @@ public:
     Class_004c42a0* root;  // +0x0
     int field_4;  // +0x4
     int field_8;  // +0x8
-    void FUN_004c3240(void);
+    void Unload(void);
 };
 
 struct Elem_0042a140 {  // 0x20 bytes, 1 view
@@ -5486,7 +5486,7 @@ public:
     char unknown_0[25];
     Pair_00419560* first;  // +0x19
     Pair_00419560* last;  // +0x1d
-    int FUN_004c4630(char*);
+    int FindFieldValue(char*);
 };
 
 class Class_004c4800 {  // 0x21 bytes, 2 views
@@ -5494,8 +5494,8 @@ public:
     char unknown_0[25];
     Entry* first;  // +0x19
     Entry* last;  // +0x1d
-    Fixed_6 FUN_004c4800(char*, Fixed_6);
-    int* FUN_004c4800(int*, char*, int);
+    Fixed_6 GetFieldFixed(char*, Fixed_6);
+    int* GetFieldFixed(int*, char*, int);
 };
 
 class Fixed_6 {  // 0x4 bytes, 1 view
@@ -5551,27 +5551,27 @@ class Class_004c3490 {  // 0x8 bytes, 8 views
 public:
     Class_004c42a0* root;  // +0x0
     int field_4;  // +0x4
-    int FUN_004c3490(int);
+    int SelectRecordAt(int);
 };
 
 class Class_004c4440 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    int FUN_004c4440(void);
+    int GetRecordName(void);
 };
 
 class Class_004c4470 {  // 0x14 bytes, 3 views
 public:
     int unknown_0;  // +0x0
-    std::vector<Class_004c48c0*> entries;  // +0x4
-    Class_004c48c0* FUN_004c4470(char*);
+    std::vector<TdfRecord*> entries;       // +0x4
+    TdfRecord* FindSubRecord(char*);
 };
 
 class Class_004c45e0 {  // 0x25 bytes, 2 views
 public:
     char unknown_0[21];
     std::vector<Pair_00419560> pairs;  // +0x15
-    char* FUN_004c45e0(int);
+    char* GetFieldName(int);
 };
 
 class Class_004c91b0 : public Class_004c9390 {  // 0x4 bytes, 11 views
@@ -5589,14 +5589,14 @@ public:
 
 struct Source_0042f450 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* tdf;  // +0x4
+    TdfRecord* tdf;       // +0x4
 };
 
 class Class_004c4450 {  // 0x14 bytes, 3 views
 public:
     int unknown_0;  // +0x0
     std::vector<Named_004c4450*> entries;  // +0x4
-    int FUN_004c4450(void);
+    int GetSubRecordCount(void);
 };
 
 struct SoundInfo_005086fc {  // 0x18 bytes, 1 view
@@ -5690,19 +5690,19 @@ public:
 class Class_004c3e20 {  // 0x1 bytes, 4 views
 public:
     char unknown_0[1];
-    int FUN_004c3e20(void);
+    int GetCurrentRecord(void);
 };
 
 class Class_004c3e30 {  // 0x8 bytes, 4 views
 public:
     char unknown_0[4];
     int field_4;  // +0x4
-    void FUN_004c3e30(int);
+    void SetCurrentRecord(int);
 };
 
 struct Obj_00431950 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* table;  // +0x4
+    TdfRecord* table;       // +0x4
 };
 
 struct Entry_00431a20 {  // 0x232 bytes, 1 view
@@ -5751,24 +5751,24 @@ struct Side_00431a60 {  // 0x232 bytes, 1 view
 class Class_004b3630 {  // 0x4 bytes, 21 views
 public:
     int field_0;  // +0x0
-    Class_004b3630* FUN_004b3620(void);
-    char* FUN_004b48a0(char*, char*);
-    void FUN_004b3630(void);
+    Class_004b3630* InitBank(void);
+    char* GetStringItem(char*, char*);
+    void CloseBank(void);
 };
 
 class Class_004b3770 : public Class_004b3630 {  // 0xc bytes, 4 views
 public:
     char unknown_4[4];
     int field_8;  // +0x8
-    int FUN_004b3770(char*, char*, void*);
-    void FUN_004b4270(Class_004bbbe0*, int*, char*);
+    int OpenBank(char*, char*, void*);
+    void LoadAccount(Class_004bbbe0*, int*, char*);
 };
 
 class Class_004b48f0 {  // 0x4 bytes, 15 views
 public:
     File_004b4910* file;  // +0x0
-    int FUN_004b48f0(char*);
-    int FUN_004b4910(char*, int);
+    int HasItem(char*);
+    int FindItem(char*, int);
 };
 
 class Class_004352b0 {  // 0x5 bytes, 3 views
@@ -5783,15 +5783,15 @@ public:
     void* field_0;  // +0x0
     char unknown_4[4];
     int field_8;  // +0x8
-    int FUN_004b39c0(char*, char*, int, int);
-    void FUN_004b3750(void);
-    void FUN_004b3c60(int, _iobuf*, Buffer_004b39c0*, int);
+    int SaveBank(char*, char*, int, int);
+    void NewBank(void);
+    void SaveAccount(int, _iobuf*, Buffer_004b39c0*, int);
 };
 
 class Class_004b4750 {  // 0x4 bytes, 5 views
 public:
     Table_004b3630* table;  // +0x0
-    int FUN_004b4750(char*, char*);
+    int SetStringItem(char*, char*);
 };
 
 struct Elem_00432be0 {  // 0x4 bytes, 1 view
@@ -6099,7 +6099,7 @@ public:
 class Class_004c3e10_2 {  // 0x1 bytes, 1 view
 public:
     char unknown_0[1];
-    void FUN_004c3e10(void);
+    void ResetCurrentRecord(void);
 };
 
 class Class_00435c20 {  // 0x1 bytes, 3 views
@@ -6146,8 +6146,8 @@ public:
 class Class_004c44c0 {  // 0x14 bytes, 3 views
 public:
     int unknown_0;  // +0x0
-    std::vector<Class_004c48c0*> entries;  // +0x4
-    Class_004c48c0* FUN_004c44c0(int);
+    std::vector<TdfRecord*> entries;       // +0x4
+    TdfRecord* GetSubRecord(int);
 };
 
 struct MissionFeature_00436c30 {  // 0x88 bytes, 1 view
@@ -6669,7 +6669,7 @@ public:
     unsigned char f2 : 1;
     unsigned char : 5;
     char unknown_2f[1];
-    void SaveMotion(Unit*, Class_004b4560*);
+    void SaveMotion(Unit*, HapiBank*);
 };
 
 struct MobHdr_43dd70 {  // 0x24 bytes, 1 view
@@ -6781,7 +6781,7 @@ struct Thing_0043f0e0 {  // 0xff bytes, 1 view
 
 struct Source_00440340 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* tdf;  // +0x4
+    TdfRecord* tdf;       // +0x4
 };
 
 class Class_00440470 {  // 0x1c bytes, 1 view
@@ -7133,8 +7133,8 @@ public:
     unsigned short heading;  // +0x24
     unsigned short value_26;  // +0x26
     Object_0044e880* self;  // +0x28
-    Class_0044e740(int, Class_004b4560*, char*);
-    int FUN_0044e880(int, Class_004b4560*, char*);
+    Class_0044e740(int, HapiBank*, char*);
+    int FUN_0044e880(int, HapiBank*, char*);
     int FUN_0044eb60(Object_0044e880*);
     void FUN_0044e930(BitWriter*);
     void FUN_0044ec10(int);
@@ -7158,15 +7158,15 @@ public:
 class Class_0044d010 : public Class_0044ce20 {  // 0x14 bytes, 3 views
 public:
     Vec3 v;  // +0x8
-    Class_0044d010(int, Class_004b4560*, char*);
-    int FUN_0044d090(int, Class_004b4560*, char*);
+    Class_0044d010(int, HapiBank*, char*);
+    int FUN_0044d090(int, HapiBank*, char*);
 };
 
 class Class_0044d930 : public Class_0044ce20 {  // 0x18 bytes, 3 views
 public:
     Rect r;  // +0x8
-    Class_0044d930(int, Class_004b4560*, char*);
-    int FUN_0044d9a0(int, Class_004b4560*, char*);
+    Class_0044d930(int, HapiBank*, char*);
+    int FUN_0044d9a0(int, HapiBank*, char*);
 };
 
 class Class_0044de80 : public Class_0044ce20 {  // 0x36 bytes, 2 views
@@ -7181,7 +7181,7 @@ public:
     Vec3 pos;  // +0x26
     int field_32;  // +0x32
     Class_0044de80(Class_0044de80&);
-    Class_0044de80(int, Class_004b4560*, char*);
+    Class_0044de80(int, HapiBank*, char*);
 };
 
 class Class_0044ce50 {  // 0x4 bytes, 1 view
@@ -7310,8 +7310,8 @@ struct Data_0044d470 {  // 0x14 bytes, 2 views
 class Class_0044d470 : public Class_0044ce20 {  // 0x1c bytes, 3 views
 public:
     Data_0044d470 data;  // +0x8
-    Class_0044d470(int, Class_004b4560*, char*);
-    int FUN_0044d500(int, Class_004b4560*, char*);
+    Class_0044d470(int, HapiBank*, char*);
+    int FUN_0044d500(int, HapiBank*, char*);
 };
 
 struct Header_0044d470 {  // 0x18 bytes, 1 view
@@ -7516,7 +7516,7 @@ public:
     int ref_value;  // +0x22
     Vec3 pos;  // +0x26
     int i4;  // +0x32
-    int FUN_0044dfb0(int, Class_004b4560*, char*);
+    int FUN_0044dfb0(int, HapiBank*, char*);
 };
 
 struct Rec_0044dfb0 {  // 0x36 bytes, 1 view
@@ -12184,7 +12184,7 @@ public:
     virtual int GetUnitValue(int, int, int, int, int);
     virtual int IsCarryingUnit(int);
     virtual int GetTransporterId(void);
-    int LoadScriptState(Class_004b4560*);
+    int LoadScriptState(HapiBank*);
     void SetCob(BuildList_0045a950*);
     void SaveScriptState(Class_004b4cf0*);
 };
@@ -12541,7 +12541,7 @@ struct Name_004866d0 {  // 0x232 bytes, 2 views
 class Class_004b4b50 {  // 0x4 bytes, 5 views
 public:
     Table_004b3630* table;  // +0x0
-    int FUN_004b4b50(int);
+    int OpenNumberedBox(int);
 };
 
 struct UnitRecord_00486fd0 {  // 0xb8 bytes, 1 view
@@ -12565,7 +12565,7 @@ public:
     char unknown_46[4];
     Class_0043a420* next;  // +0x4a
     char unknown_4e[8];
-    Class_0043a420(Unit*, Class_004b4560*, char*);
+    Class_0043a420(Unit*, HapiBank*, char*);
 };
 
 struct FlagBits_00487080 {  // 0x4 bytes, 1 view
@@ -13149,7 +13149,7 @@ public:
     char unknown_c[4];
     int FUN_0048ea00(void);
     int FUN_0048f7e0(void);
-    void SaveState(Class_004b4560*);
+    void SaveState(HapiBank*);
     void LoadState(void*);
     void VisitUnit(void*);
 };
@@ -13292,7 +13292,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048eac0(Class_004b4560*);
+    void FUN_0048eac0(HapiBank*);
 };
 
 class Class_0048eb00 {  // 0xc bytes, 1 view
@@ -13300,7 +13300,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048eb00(Class_004b4560*);
+    void FUN_0048eb00(HapiBank*);
 };
 
 class Class_0048eb80 {  // 0xc bytes, 1 view
@@ -13308,7 +13308,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048eb80(Class_004b4560*);
+    void FUN_0048eb80(HapiBank*);
 };
 
 class Class_0048ebc0 {  // 0xc bytes, 1 view
@@ -13316,7 +13316,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048ebc0(Class_004b4560*);
+    void FUN_0048ebc0(HapiBank*);
 };
 
 class Class_0048ec00 {  // 0x8 bytes, 1 view
@@ -13356,7 +13356,7 @@ public:
     int celebrated;  // +0x8
     char unknown_c[4];
     int numUnits;  // +0x10
-    void FUN_0048ecb0(Class_004b4560*);
+    void FUN_0048ecb0(HapiBank*);
 };
 
 class Class_0048ed00 {  // 0x14 bytes, 1 view
@@ -13366,7 +13366,7 @@ public:
     int celebrated;  // +0x8
     char unknown_c[4];
     int numUnits;  // +0x10
-    void FUN_0048ed00(Class_004b4560*);
+    void FUN_0048ed00(HapiBank*);
 };
 
 class Class_0048ed50 {  // 0x32 bytes, 1 view
@@ -13392,7 +13392,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048ee30(Class_004b4560*);
+    void FUN_0048ee30(HapiBank*);
 };
 
 class Class_0048ee70 {  // 0xc bytes, 1 view
@@ -13400,7 +13400,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048ee70(Class_004b4560*);
+    void FUN_0048ee70(HapiBank*);
 };
 
 struct Info_0048eeb0 {  // 0x40 bytes, 1 view
@@ -13420,7 +13420,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048ef00(Class_004b4560*);
+    void FUN_0048ef00(HapiBank*);
 };
 
 class Class_0048ef40 {  // 0xc bytes, 1 view
@@ -13428,7 +13428,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048ef40(Class_004b4560*);
+    void FUN_0048ef40(HapiBank*);
 };
 
 class Class_0048ef80 {  // 0x2a bytes, 1 view
@@ -13461,7 +13461,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f070(Class_004b4560*);
+    void FUN_0048f070(HapiBank*);
 };
 
 class Class_0048f0b0 {  // 0xc bytes, 1 view
@@ -13469,7 +13469,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f0b0(Class_004b4560*);
+    void FUN_0048f0b0(HapiBank*);
 };
 
 struct Info_0048f0f0 {  // 0x40 bytes, 1 view
@@ -13491,7 +13491,7 @@ public:
     int celebrated;  // +0x8
     char unknown_c[32];
     int numLeftToKill;  // +0x2c
-    void FUN_0048f160(Class_004b4560*);
+    void FUN_0048f160(HapiBank*);
 };
 
 class Class_0048f1b0 {  // 0x30 bytes, 1 view
@@ -13501,7 +13501,7 @@ public:
     int celebrated;  // +0x8
     char unknown_c[32];
     int numLeftToKill;  // +0x2c
-    void FUN_0048f1b0(Class_004b4560*);
+    void FUN_0048f1b0(HapiBank*);
 };
 
 class UnitVisitor_0048f200 {  // 0x4 bytes, 1 view
@@ -13519,7 +13519,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f2f0(Class_004b4560*);
+    void FUN_0048f2f0(HapiBank*);
 };
 
 class Class_0048f330 {  // 0xc bytes, 1 view
@@ -13527,7 +13527,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f330(Class_004b4560*);
+    void FUN_0048f330(HapiBank*);
 };
 
 class Class_0048f370 {  // 0x34 bytes, 1 view
@@ -13553,7 +13553,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f440(Class_004b4560*);
+    void FUN_0048f440(HapiBank*);
 };
 
 class Class_0048f480 {  // 0xc bytes, 1 view
@@ -13561,7 +13561,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f480(Class_004b4560*);
+    void FUN_0048f480(HapiBank*);
 };
 
 class Class_0048f4c0 {  // 0x34 bytes, 1 view
@@ -13587,7 +13587,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f590(Class_004b4560*);
+    void FUN_0048f590(HapiBank*);
 };
 
 class Class_0048f5d0 {  // 0xc bytes, 1 view
@@ -13595,7 +13595,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f5d0(Class_004b4560*);
+    void FUN_0048f5d0(HapiBank*);
 };
 
 class Class_0048f630 {  // 0xc bytes, 1 view
@@ -13603,7 +13603,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f630(Class_004b4560*);
+    void FUN_0048f630(HapiBank*);
 };
 
 class Class_0048f670 {  // 0xc bytes, 1 view
@@ -13611,7 +13611,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f670(Class_004b4560*);
+    void FUN_0048f670(HapiBank*);
 };
 
 class Class_0048f710 {  // 0xc bytes, 1 view
@@ -13619,7 +13619,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f710(Class_004b4560*);
+    void FUN_0048f710(HapiBank*);
 };
 
 class Class_0048f750 {  // 0xc bytes, 1 view
@@ -13627,7 +13627,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048f750(Class_004b4560*);
+    void FUN_0048f750(HapiBank*);
 };
 
 class Class_0048f7e0 {  // 0x10 bytes, 2 views
@@ -13652,7 +13652,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void LoadState(Class_004b4560*);
+    void LoadState(HapiBank*);
 };
 
 struct Info_0048f8c0 {  // 0x40 bytes, 1 view
@@ -13672,7 +13672,7 @@ public:
     int celebrated;  // +0x8
     char unknown_c[32];
     int numLeftToKill;  // +0x2c
-    void FUN_0048f900(Class_004b4560*);
+    void FUN_0048f900(HapiBank*);
 };
 
 class Class_0048f950 {  // 0x30 bytes, 1 view
@@ -13682,7 +13682,7 @@ public:
     int celebrated;  // +0x8
     char unknown_c[32];
     int numLeftToKill;  // +0x2c
-    void FUN_0048f950(Class_004b4560*);
+    void FUN_0048f950(HapiBank*);
 };
 
 struct Class_0048f9a0 {  // 0x2a bytes, 1 view
@@ -13717,7 +13717,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048fab0(Class_004b4560*);
+    void FUN_0048fab0(HapiBank*);
 };
 
 class Class_0048faf0 {  // 0xc bytes, 1 view
@@ -13725,7 +13725,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048faf0(Class_004b4560*);
+    void FUN_0048faf0(HapiBank*);
 };
 
 struct Class_0048fb30 {  // 0x8 bytes, 1 view
@@ -13749,7 +13749,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048fbc0(Class_004b4560*);
+    void FUN_0048fbc0(HapiBank*);
 };
 
 class Class_0048fc00 {  // 0xc bytes, 1 view
@@ -13757,7 +13757,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048fc00(Class_004b4560*);
+    void FUN_0048fc00(HapiBank*);
 };
 
 struct Class_0048fc40 {  // 0x8 bytes, 1 view
@@ -13781,7 +13781,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048fcd0(Class_004b4560*);
+    void FUN_0048fcd0(HapiBank*);
 };
 
 class Class_0048fd10 {  // 0xc bytes, 1 view
@@ -13789,7 +13789,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048fd10(Class_004b4560*);
+    void FUN_0048fd10(HapiBank*);
 };
 
 class Class_0048fd70 {  // 0xc bytes, 1 view
@@ -13797,7 +13797,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048fd70(Class_004b4560*);
+    void FUN_0048fd70(HapiBank*);
 };
 
 class Class_0048fdb0 {  // 0xc bytes, 1 view
@@ -13805,7 +13805,7 @@ public:
     char unknown_0[4];
     int satisfied;  // +0x4
     int celebrated;  // +0x8
-    void FUN_0048fdb0(Class_004b4560*);
+    void FUN_0048fdb0(HapiBank*);
 };
 
 class Listener_0048ff40_2 {  // 0x4 bytes, 1 view
@@ -15105,7 +15105,7 @@ struct StructA_004ada10 {  // 0xb8 bytes, 1 view
 
 struct StructB_004ada10 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* field_4;  // +0x4
+    TdfRecord* field_4;       // +0x4
 };
 
 struct Obj_004ada40 {  // 0x13e bytes, 1 view
@@ -15127,7 +15127,7 @@ struct Struct_004add60 {  // 0xdc bytes, 1 view
 
 struct Param2_004addf0 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* obj;  // +0x4
+    TdfRecord* obj;       // +0x4
 };
 
 struct Struct_004addf0 {  // 0xdc bytes, 1 view
@@ -15152,7 +15152,7 @@ struct Obj_004adf10 {  // 0x13a bytes, 1 view
 
 struct Source_004adf10 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* tdf;  // +0x4
+    TdfRecord* tdf;       // +0x4
 };
 
 struct Obj_004ae170 {  // 0x148 bytes, 1 view
@@ -15179,7 +15179,7 @@ struct Obj_004ae170_2 {  // 0x148 bytes, 1 view
 
 struct Source_004ae170 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* tdf;  // +0x4
+    TdfRecord* tdf;       // +0x4
 };
 
 struct Obj_004ae230 {  // 0x1b6 bytes, 1 view
@@ -15197,7 +15197,7 @@ struct Obj_004ae300 {  // 0x148 bytes, 1 view
 
 struct Source_004ae300 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* tdf;  // +0x4
+    TdfRecord* tdf;       // +0x4
 };
 
 struct Obj_004ae380 {  // 0xcc bytes, 1 view
@@ -15214,7 +15214,7 @@ struct Obj_004ae410 {  // 0xcc bytes, 1 view
 
 struct Source_004ae410 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* tdf;  // +0x4
+    TdfRecord* tdf;       // +0x4
 };
 
 struct Obj_004ae440 {  // 0x136 bytes, 1 view
@@ -15229,7 +15229,7 @@ struct Obj_004ae4b0 {  // 0x136 bytes, 1 view
 
 struct Source_004ae4b0 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* tdf;  // +0x4
+    TdfRecord* tdf;       // +0x4
 };
 
 struct Obj_004ae4e0 {  // 0x136 bytes, 1 view
@@ -15244,7 +15244,7 @@ struct Obj_004ae550 {  // 0x136 bytes, 1 view
 
 struct Source_004ae550 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* tdf;  // +0x4
+    TdfRecord* tdf;       // +0x4
 };
 
 struct Obj_004ae580 {  // 0xba bytes, 1 view
@@ -15259,7 +15259,7 @@ struct StructA_004ae610 {  // 0xba bytes, 1 view
 
 struct StructB_004ae610 {  // 0x8 bytes, 1 view
     char unknown_0[4];
-    Class_004c48c0* field_4;  // +0x4
+    TdfRecord* field_4;       // +0x4
 };
 
 struct Sub2_004aeac0 {  // 0x80 bytes, 1 view
@@ -15784,7 +15784,7 @@ struct Buffer_004b39c0 {  // 0xc bytes, 2 views
 class Class_004b4d70 {  // 0x4 bytes, 2 views
 public:
     void* field_0;  // +0x0
-    void FUN_004b4d70(char*);
+    void WriteAuditFile(char*);
 };
 
 struct BlobRec_004b4270 {  // 0x10 bytes, 1 view
@@ -15797,19 +15797,19 @@ struct BlobRec_004b4270 {  // 0x10 bytes, 1 view
 class Class_004b46c0 {  // 0x4 bytes, 2 views
 public:
     Table_004b3630* table;  // +0x0
-    int FUN_004b46c0(char*, double);
+    int SetDoubleItem(char*, double);
 };
 
 class Class_004b49d0 {  // 0x4 bytes, 3 views
 public:
     Table_004b3630* table;  // +0x0
-    int FUN_004b49d0(int, int);
+    int FindNumberedBox(int, int);
 };
 
 class Class_004b4a80 {  // 0x4 bytes, 3 views
 public:
     Table_004b3630* table;  // +0x0
-    int FUN_004b4a80(char*, int);
+    int FindNamedBox(char*, int);
 };
 
 struct DblRec_004b4270 {  // 0xc bytes, 1 view
@@ -15837,7 +15837,7 @@ struct Section_004b4800 {  // 0x18 bytes, 1 view
 class Class_004b4850 {  // 0x4 bytes, 1 view
 public:
     File_004b4850* file;  // +0x0
-    double FUN_004b4850(char*, double);
+    double GetDoubleItem(char*, double);
 };
 
 struct File_004b4850 {  // 0xc bytes, 1 view
@@ -15867,7 +15867,7 @@ struct ArrayB {  // 0x14 bytes, 1 view
 class Class_004b4c50 {  // 0x4 bytes, 1 view
 public:
     BuildList_0045a950* data;  // +0x0
-    int FUN_004b4c50(void);
+    int SeekBoxEnd(void);
 };
 
 struct Account_004b4d70 {  // 0x18 bytes, 1 view
@@ -16075,7 +16075,7 @@ class Class_004b7540 {  // 0xd4 bytes, 1 view
 public:
     char* args[52];  // +0x0
     int count;  // +0xd0
-    void FUN_004b7540(int);
+    void ShiftArgs(int);
 };
 
 struct Elem_004b75d0 {  // 0xc bytes, 1 view
@@ -16123,7 +16123,7 @@ struct NameNe_004b7760 {  // 0x1 bytes, 1 view
     unsigned char operator()(Class_004c9390&, Class_004c9390&);
 };
 
-struct Rec_004b7760 {  // 0xc bytes, 1 view
+struct ConsoleCommand {  // 0xc bytes, 1 view
     char* name;  // +0x0
     void (__stdcall *fn)(void*);  // +0x4
     int mask;  // +0x8
@@ -16165,7 +16165,7 @@ public:
     char unknown_0[4];
     int field1;  // +0x4
     int field2;  // +0x8
-    void* FUN_004b7e00(int*);
+    void* AssignEntry(int*);
 };
 
 struct Entry_004b7ee0 {  // 0x8 bytes, 1 view
@@ -16469,7 +16469,7 @@ class Class_004bb670 {  // 0x118 bytes, 1 view
 public:
     char unknown_0[24];
     char name[256];  // +0x18
-    void FUN_004bb670(char*);
+    void SetFileName(char*);
 };
 
 struct Class_004bbc40 {  // 0x18 bytes, 1 view
@@ -16601,7 +16601,7 @@ struct Class_004be010 {  // 0x8 bytes, 1 view
     int base;  // +0x4
 };
 
-struct Elem_004be010 {  // 0xc bytes, 1 view
+struct ArchiveEntry {   // 0xc bytes, 1 view
     int a;  // +0x0
     int b;  // +0x4
     unsigned char flags;  // +0x8
@@ -16936,13 +16936,13 @@ struct Queue_4c2e30 {  // 0x1ae bytes, 1 view
 class Class_004c33a0 {  // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
-    void FUN_004c33a0(char*);
+    void StripComments(char*);
 };
 
-struct Elem_004c5bc0 {  // 0x8 bytes, 17 views
+struct TdfField {       // 0x8 bytes, 17 views
     Class_004c9390 a;  // +0x0
     Class_004c9390 b;  // +0x4
-    ~Elem_004c5bc0(void);
+    ~TdfField(void);
 };
 
 class Class_004c42a0 {  // 0x25 bytes, 7 views
@@ -16950,14 +16950,14 @@ public:
     int* name;  // +0x0
     std::vector<Class_004c42a0*> children;  // +0x4
     char unknown_14;  // +0x14
-    std::vector<Elem_004c5bc0> entries;  // +0x15
+    std::vector<TdfField> entries;       // +0x15
     ~Class_004c42a0(void);
     Class_004c42a0* FUN_004c3e40(char*, char*, int, char*);
     Class_004c42a0* GetChild(int);
 };
 
 struct Inner_004c51b0 {  // 0x10 bytes, 2 views
-    std::vector<Elem_004c5bc0> v;  // +0x0
+    std::vector<TdfField> v;       // +0x0
 };
 
 struct Entries_004c51b0 {  // 0x10 bytes, 2 views
@@ -16978,8 +16978,8 @@ public:
 class Class_004c4340 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    Class_004c9390 FUN_004c4340(char*, char*);
-    Class_004c9390* FUN_004c4340(Class_004c9390*, char*, char*);
+    Class_004c9390 MakeTrimmedString(char*, char*);
+    Class_004c9390* MakeTrimmedString(Class_004c9390*, char*, char*);
 };
 
 class Class_004c54a0 {  // 0x8 bytes, 3 views
@@ -17027,7 +17027,7 @@ class Class_004c43f0 {  // 0x29 bytes, 1 view
 public:
     char unknown_0[37];
     int field_25;  // +0x25
-    void FUN_004c43f0(unsigned int, unsigned int);
+    void ComputeRecordChecksum(unsigned int, unsigned int);
 };
 
 struct Named_004c4450 {  // 0x4 bytes, 1 view
@@ -17039,7 +17039,7 @@ public:
     char unknown_0[25];
     int field_19;  // +0x19
     int field_1d;  // +0x1d
-    int FUN_004c45c0(void);
+    int GetFieldCount(void);
 };
 
 struct NameLess_004c4630 {  // 0x1 bytes, 1 view
@@ -17063,11 +17063,11 @@ public:
     void* FUN_004c5470(int*);
 };
 
-class Class_004c5840 {  // 0x11 bytes, 3 views
+class TranslationTable {  // 0x11 bytes, 3 views
 public:
     char unknown_0;  // +0x0
     std::vector<Pair_00419560> pairs;  // +0x1
-    Class_004c5840(char);
+    TranslationTable(char);
 };
 
 class Class_004c5ba0 {  // 0x10 bytes, 3 views
@@ -17076,16 +17076,16 @@ public:
     char unknown_1[3];
     int field_4;  // +0x4
     int field_8;  // +0x8
-    Elem_004c5bc0* end;  // +0xc
-    Elem_004c5bc0* FUN_004c59d0(Elem_004c5bc0*, Elem_004c5bc0&);
+    TdfField* end;       // +0xc
+    TdfField* FUN_004c59d0(TdfField*, TdfField&);
     int FUN_004c5ba0(void);
 };
 
 struct Class_004c5c60 {  // 0xd bytes, 2 views
     char unknown_0[5];
-    Elem_004c5bc0* first;  // +0x5
-    Elem_004c5bc0* last;  // +0x9
-    Elem_004c5bc0* FUN_004c5c60(char*);
+    TdfField* first;       // +0x5
+    TdfField* last;       // +0x9
+    TdfField* FindLowerBound(char*);
 };
 
 class Class_004c93f0 {  // 0x4 bytes, 2 views

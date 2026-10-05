@@ -7,7 +7,7 @@ struct Order { char pad[6]; unsigned flags; char pada[0x36-10]; int done; unsign
 class Class_00439e80 { public: void FUN_00439e80(int); };
 void __stdcall QueueUnitSpeech(Unit*,int,void*);
 void __stdcall DamageUnit(Unit*,Unit*,int,int,int);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 // FUNCTION: 0x402010
 int __stdcall SelfDestructOrder(Unit* unit,Order* order,int flags)
 {
@@ -27,7 +27,7 @@ int __stdcall SelfDestructOrder(Unit* unit,Order* order,int flags)
                     order->flags|=2; return 1;
                 }
                 if(count==0) {
-                    ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(15));
+                    ((Class_00439e80*)order)->FUN_00439e80(RandomInt(15));
                     order->flags|=2; return 1;
                 }
             }

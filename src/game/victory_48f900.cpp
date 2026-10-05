@@ -1,13 +1,13 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* name);
+    void OpenAccount(const char* name);
 };
 
 class Class_004b4630 {
 public:
-    void FUN_004b4630(const char* name, int value);
+    void SetIntegerItem(const char* name, int value);
 };
 
 // The "unit type killed" defeat condition; writes its state to a section.
@@ -18,14 +18,14 @@ public:
     char unknown_c[0x2c - 0xc];
     int numLeftToKill;                   // +0x2c
 
-    virtual void SaveState(Class_004b4560* obj);
+    virtual void SaveState(HapiBank* obj);
 };
 
 // FUNCTION: 0x48f900
-void DefeatUnitTypeKilled::SaveState(Class_004b4560* obj)
+void DefeatUnitTypeKilled::SaveState(HapiBank* obj)
 {
-    obj->FUN_004b4560("DefeatCondition_UnitTypeKilled");
-    ((Class_004b4630*)obj)->FUN_004b4630("NumLeftToKill", numLeftToKill);
-    ((Class_004b4630*)obj)->FUN_004b4630("Satisfied", satisfied);
-    ((Class_004b4630*)obj)->FUN_004b4630("Celebrated", celebrated);
+    obj->OpenAccount("DefeatCondition_UnitTypeKilled");
+    ((Class_004b4630*)obj)->SetIntegerItem("NumLeftToKill", numLeftToKill);
+    ((Class_004b4630*)obj)->SetIntegerItem("Satisfied", satisfied);
+    ((Class_004b4630*)obj)->SetIntegerItem("Celebrated", celebrated);
 }

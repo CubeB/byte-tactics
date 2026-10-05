@@ -13,15 +13,15 @@
 
 
 #pragma pack(push, 1)
-struct Entry_004bdd70 {                // 9 bytes
+struct ArchiveEntry {                  // 9 bytes
     int field_0;                       // +0x0
     int field_4;                       // +0x4
     unsigned char flags;               // +0x8
 };
 
-struct Table_004bdd70 {
+struct ArchiveDirectory {
     int count;                         // +0x0
-    Entry_004bdd70* entries;           // +0x4
+    ArchiveEntry* entries;             // +0x4
 };
 
 struct Header_004bdd70 {
@@ -30,10 +30,10 @@ struct Header_004bdd70 {
     unsigned int size;                 // +0x8
     unsigned char key;                 // +0xc
     char unknown_d[3];
-    Table_004bdd70* table;             // +0x10
+    ArchiveDirectory* table;           // +0x10
 };
 
-struct File_004bdd70 {                 // 0x118 bytes
+struct OPENHAPIFILE {                  // 0x118 bytes
     FILE* fp;                          // +0x0
     int field_4;                       // +0x4
     Header_004bdd70* header;           // +0x8
@@ -43,34 +43,34 @@ struct File_004bdd70 {                 // 0x118 bytes
 };
 #pragma pack(pop)
 
-extern char DAT_004fdbf0[];            // "Copyright 0000 Cavedog Entertainment"
+extern char g_hapiCopyright[];         // "Copyright 0000 Cavedog Entertainment"
 
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
-void __stdcall FUN_004be010(int name, int base);
+void __stdcall HAPI_RelocateDirectory(int name, int base);
 
 static inline int Bad_004bdd70(FILE* f, Header_004bdd70* hdr, char* copyright)
 {
     if (strncmp(hdr->magic, "HAPI", 4) != 0 || hdr->version[0] != 0 || hdr->version[1] != 0 ||
         hdr->version[2] != 1 || hdr->version[3] != 0)
         return 1;
-    int len = strlen(DAT_004fdbf0);
+    int len = strlen(g_hapiCopyright);
     fseek(f, -len, 2);
     fread(copyright, 1, len, f);
     copyright[len] = 0;
-    strncpy(copyright + (strstr(DAT_004fdbf0, "0000") - DAT_004fdbf0), "0000", 4);
-    if (strcmp(copyright, DAT_004fdbf0) == 0)
+    strncpy(copyright + (strstr(g_hapiCopyright, "0000") - g_hapiCopyright), "0000", 4);
+    if (strcmp(copyright, g_hapiCopyright) == 0)
         return 0;
     return 1;
 }
 
 // FUNCTION: 0x4bdd70
-File_004bdd70* __stdcall FUN_004bdd70(const char* name, int mode)
+OPENHAPIFILE* __stdcall HAPI_OpenArchive(const char* name, int mode)
 {
     FILE* f = fopen(name, "rb");
     if (f == 0)
         return 0;
-    File_004bdd70* h = (File_004bdd70*)FUN_004d83b0("OPENHAPIFILE structure", 0x118);
+    OPENHAPIFILE* h = (OPENHAPIFILE*)FUN_004d83b0("OPENHAPIFILE structure", 0x118);
     char* filePart;
     h->fp = f;
     h->field_4 = -1;
@@ -111,16 +111,16 @@ File_004bdd70* __stdcall FUN_004bdd70(const char* name, int mode)
         }
         }
         base = h->header;
-        base->table = (Table_004bdd70*)((char*)base->table + (int)base);
+        base->table = (ArchiveDirectory*)((char*)base->table + (int)base);
         Header_004bdd70* b = h->header;
-        Table_004bdd70* t = b->table;
-        t->entries = (Entry_004bdd70*)((char*)t->entries + (int)b);
+        ArchiveDirectory* t = b->table;
+        t->entries = (ArchiveEntry*)((char*)t->entries + (int)b);
         for (int i = t->count - 1; i >= 0; i--) {
-            Entry_004bdd70* e = &t->entries[i];
+            ArchiveEntry* e = &t->entries[i];
             e->field_0 += (int)b;
             e->field_4 += (int)b;
             if (e->flags & 1)
-                FUN_004be010(e->field_4, (int)b);
+                HAPI_RelocateDirectory(e->field_4, (int)b);
         }
     }
     if (mode == 0) {

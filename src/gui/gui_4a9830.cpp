@@ -75,7 +75,7 @@ extern char DAT_00502a20[];
 void __stdcall SetFont(int id);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
 int GetFontHeight();
-char* __stdcall FUN_004b6af0(char* text, int line);
+char* __stdcall SkipTextLines(char* text, int line);
 void __stdcall DrawListBox(Class_004a9830* param_1, int param_2);
 void __stdcall FUN_004a2be0(Class_004a9830* param_1, int param_2);
 void __stdcall FUN_004a2e40(Class_004a9830* param_1, char* name, int line);
@@ -125,7 +125,7 @@ void __stdcall FUN_004a9830(Class_004a9830* param_1, int index)
             me->field_bc = last;
         }
         if (me->field_c2 != 0) {
-            char* line = FUN_004b6af0(me->field_c2, prev);
+            char* line = SkipTextLines(me->field_c2, prev);
             if (strncmp(DAT_00502a20, line, 2) == 0) {
                 me->field_ba = isel;
             }

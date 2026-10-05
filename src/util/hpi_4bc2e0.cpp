@@ -3,7 +3,7 @@
 #include <direct.h>
 
 // FUNCTION: 0x4bc2e0
-void __stdcall FUN_004bc2e0(char* buf)
+void __stdcall GetCurrentDriveLetter(char* buf)
 {
     buf[0] = _getdrive() + '@';
     buf[1] = 0;

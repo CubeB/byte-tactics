@@ -3,7 +3,7 @@
 // 0x44e330 / 0x44e250. Builds a 0x36-byte record on the stack, writing the
 // referenced unit's id, the embedded link's owner id, five flag shorts and
 // the stored position, then writes it to the file via
-// Class_004b4cf0::FUN_004b4cf0. The read counterpart is 0x44de80.
+// Class_004b4cf0::WriteBox. The read counterpart is 0x44de80.
 //
 // The record's first 8 bytes are never assigned and are still written out:
 // 0x36 bytes of stack, 8 of them uninitialised, go to the save file. The read
@@ -12,17 +12,17 @@
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* src, int len);
+    int WriteBox(void* src, int len);
 };
 
 struct Unit_0044dfb0 {
@@ -107,9 +107,9 @@ int Class_0044dfb0::FUN_0044dfb0(int unused, Class_004b4ba0* file, char* name)
     rec.f5 = f10;
     rec.pos = pos;
     rec.i4 = i4;
-    file->FUN_004b4ba0(name);
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
-    ((Class_004b4cf0*)file)->FUN_004b4cf0(&rec, 0x36);
+    file->OpenNamedBox(name);
+    ((Class_004b4c10*)file)->SeekBox(0);
+    ((Class_004b4cf0*)file)->WriteBox(&rec, 0x36);
     ((UnitRef*)&rec.ref_vt)->FUN_00489650();
     return 1;
 }

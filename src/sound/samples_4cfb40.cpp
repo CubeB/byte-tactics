@@ -4,16 +4,16 @@
 #include <windows.h>
 #include <dsound.h>
 
-struct File_004bb5d0;
+struct FileHandle;
 
 int __stdcall RemoveTimer(int i);
-int __stdcall FUN_004bb5d0(File_004bb5d0* file);
+int __stdcall HAPI_CloseFile(FileHandle* file);
 
 class Class_004cfb40 {
 public:
     char unknown_0[0x1e4];
     IDirectSoundBuffer* stream;        // +0x1e4
-    File_004bb5d0* file;               // +0x1e8
+    FileHandle* file;                  // +0x1e8
     char unknown_1ec[0x288 - 0x1ec];
     int handle;                        // +0x288
 
@@ -31,6 +31,6 @@ void Class_004cfb40::StopStream()
         stream->Stop();
         stream->Release();
         stream = 0;
-        FUN_004bb5d0(file);
+        HAPI_CloseFile(file);
     }
 }

@@ -4,7 +4,7 @@
 #include <direct.h>
 
 // FUNCTION: 0x4bcf00
-void __stdcall FUN_004bcf00(char* path)
+void __stdcall MakeDirectoryPath(char* path)
 {
     char buf[260];
     strcpy(buf, path);

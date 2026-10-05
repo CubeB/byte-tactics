@@ -57,7 +57,7 @@ public:
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 int __stdcall FUN_0047db70(UnitType* type, short a, Point16 cell, int b);
@@ -89,12 +89,12 @@ bool Class_0040a7b0::FindRandomPlacementCell(UnitType* type, Vec3* pos, int rang
     Point16 offset = type->field_1c0 < 0 ? offset0 : offset1;
     int margin = type->field_1c0 < 0 ? margin0 : margin1;
     for (int i = 0; i < 30; i++) {
-        int dist = FUN_004b6c30(range) << 16;
-        int angle = FUN_004b6c30(0x10000);
+        int dist = RandomInt(range) << 16;
+        int angle = RandomInt(0x10000);
         Vec3 v = Direction(angle, dist) + *pos;
         Point16 cell = WorldToCell(v, type->origin);
-        cell.x = cell.x / spacing.x * spacing.x + offset.x + FUN_004b6c30(spacing.x - margin - type->origin.x);
-        cell.y = cell.y / spacing.y * spacing.y + offset.y + FUN_004b6c30(spacing.y - margin - type->origin.y);
+        cell.x = cell.x / spacing.x * spacing.x + offset.x + RandomInt(spacing.x - margin - type->origin.x);
+        cell.y = cell.y / spacing.y * spacing.y + offset.y + RandomInt(spacing.y - margin - type->origin.y);
         if (FUN_0047db70(type, 0, cell, 1) && GetBuildSiteMetal() <= threshold) {
             if (out)
                 *out = cell;

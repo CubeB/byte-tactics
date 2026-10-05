@@ -19,8 +19,8 @@ struct Class_004af5b0 {
     int field_238;                   // +0x238
 };
 
-void __stdcall FUN_004bc2e0(char* buf);
-char* __stdcall FUN_004bc320(char* drive, char* buf, int size);
+void __stdcall GetCurrentDriveLetter(char* buf);
+char* __stdcall GetDriveDirectory(char* drive, char* buf, int size);
 int __stdcall ScanDirectory(char* path, int a, int b, int c, int d, int e);
 void __stdcall SortFileList(int a, int b, int c, int d);
 void __stdcall FUN_004a32a0(void* gui, const char* name, int x, int y, int z);
@@ -28,8 +28,8 @@ void __stdcall FUN_004a32a0(void* gui, const char* name, int x, int y, int z);
 // FUNCTION: 0x4af5b0
 void __stdcall FUN_004af5b0(Class_004af5b0* obj)
 {
-    FUN_004bc2e0(obj->drive);
-    FUN_004bc320(obj->drive, obj->cwd, 0x100);
+    GetCurrentDriveLetter(obj->drive);
+    GetDriveDirectory(obj->drive, obj->cwd, 0x100);
     int n = ScanDirectory(obj->field_c + 0xb6, obj->field_234, obj->field_238, 1, 0, 0);
     SortFileList(obj->field_234, obj->field_238, 0, n);
     FUN_004a32a0(obj->gui, "SWIN", obj->field_234, n, 0);

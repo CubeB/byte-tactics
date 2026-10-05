@@ -59,7 +59,7 @@ struct Order {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 Unit* __stdcall GetWeaponTargetUnit(Unit* unit, int index);
 void __stdcall SetWeaponTargetUnit(Unit* unit, Unit* target, int weapon);
 int __stdcall WeaponCanReachUnit(Unit* unit, Unit* target, int param_3);
@@ -86,7 +86,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
             ((Class_004898b0*)unit)->ClaimWeapons(0);
             SetWeaponTargetUnit(unit, order->target.owner, 0);
             order->wait = 0;
-            order->waitLimit = FUN_004b6c30(3) + 3;
+            order->waitLimit = RandomInt(3) + 3;
             return 1;
         }
         ((Class_00439e80*)order)->FUN_00439e80(0x1e);
@@ -101,7 +101,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
             order->flags |= 0x7008;
             return 2;
         }
-        if (FUN_004b6c30(100) < 0x50) {
+        if (RandomInt(100) < 0x50) {
             order->wait = 0;
             return 1;
         }
@@ -110,7 +110,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
         std::vector<Unit*> units;
         GetVisibleEnemiesInRadius(unit->player, &order->pos, 0x280, 0, &units);
         if (!units.empty()) {
-            order->target.SetUnit(units[FUN_004b6c30(units.size())]);
+            order->target.SetUnit(units[RandomInt(units.size())]);
             SetWeaponTargetUnit(unit, order->target.owner, 0);
             order->state = 1;
             return 2;

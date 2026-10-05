@@ -41,7 +41,7 @@ struct UnitType_00489280 {
 #pragma pack(pop)
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-char* __stdcall FUN_004c5740(const char* text);
+char* __stdcall Translate(const char* text);
 int GetTickRate();
 
 static inline float spd(int v)
@@ -73,24 +73,24 @@ char* __stdcall MakePropList(UnitType_00489280* obj)
 
     if (obj->field_22f) {
         sprintf(p, "%.1f %s ", (double)GetTickRate() * spd(obj->field_192) * 0.4,
-                FUN_004c5740("m/s"));
+                Translate("m/s"));
         p += strlen(p) + 1;
 
         sprintf(p, "%.2f %s", (double)GetTickRate() * spd(obj->field_19e) * 0.4,
-                FUN_004c5740("m/s/s"));
+                Translate("m/s/s"));
         p += strlen(p) + 1;
 
         sprintf(p, "%.0f %s",
                 (double)GetTickRate() * obj->field_1ba * 0.0054931640625,
-                FUN_004c5740("deg/s"));
+                Translate("deg/s"));
     } else {
-        sprintf(p, "%s", FUN_004c5740("N/A"));
+        sprintf(p, "%s", Translate("N/A"));
         p += strlen(p) + 1;
 
-        sprintf(p, "%s", FUN_004c5740("N/A"));
+        sprintf(p, "%s", Translate("N/A"));
         p += strlen(p) + 1;
 
-        sprintf(p, "%s", FUN_004c5740("N/A"));
+        sprintf(p, "%s", Translate("N/A"));
     }
 
     return buf;

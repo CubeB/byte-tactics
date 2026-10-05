@@ -4,7 +4,7 @@
 extern void* GetDisplay();
 
 // FUNCTION: 0x4bcec0
-void __stdcall FUN_004bcec0(char* param)
+void __stdcall GetStartDirectory(char* param)
 {
     void* p = GetDisplay();
     char* src = (char*)p + 0x628;

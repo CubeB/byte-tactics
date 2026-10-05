@@ -23,32 +23,32 @@ struct Game {
 extern Game* g_game;
 
 // Chunked file writer.
-class Class_004b4560 {
+class HapiBank {
 public:
-    int FUN_004b4560(char* name);
+    int OpenAccount(char* name);
 };
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* src, int len);
+    int WriteBox(void* src, int len);
 };
 
 // FUNCTION: 0x484ce0
-void __stdcall SaveMetalPlotmap(Class_004b4560* file)
+void __stdcall SaveMetalPlotmap(HapiBank* file)
 {
-    file->FUN_004b4560("Metal");
+    file->OpenAccount("Metal");
     int size = g_game->width * g_game->height;
     unsigned char* buf = new unsigned char[size];
     Cell_00484ce0* cells = g_game->cells;
     for (int i = 0; i < size; i++) {
         buf[i] = cells[i].metal;
     }
-    ((Class_004b4ba0*)file)->FUN_004b4ba0("Plotmap");
-    ((Class_004b4cf0*)file)->FUN_004b4cf0(buf, size);
+    ((Class_004b4ba0*)file)->OpenNamedBox("Plotmap");
+    ((Class_004b4cf0*)file)->WriteBox(buf, size);
     delete[] buf;
 }

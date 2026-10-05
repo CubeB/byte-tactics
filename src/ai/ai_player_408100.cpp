@@ -120,7 +120,7 @@ int __stdcall FindBuildPosition(unsigned int player, Vec3* from, Item_00408100* 
 int __stdcall GetBuilderCount(unsigned int player);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_00408100* unit, Unit_00408100* target, Vec3* pos);
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit_00408100* unit, Unit_00408100* target, Vec3* pos, int param_6, int param_7);
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 
 // Fixed-point trig helpers written in assembly.
 int __cdecl FUN_004b70ef(short angle, int scale);
@@ -202,7 +202,7 @@ void Class_004085d0::OnTimer()
                 origin.y = u->pos.y;
                 Vec3 d = origin - u->pos;
                 if (Length(d) > 0x2800000)
-                    d = Direction(FUN_004b6c30(0x10000), 0x2800000);
+                    d = Direction(RandomInt(0x10000), 0x2800000);
                 target = origin + d;
                 Class_00438760 kind;
                 kind = FUN_0043f0e0(2, u, 0, &target);
@@ -214,7 +214,7 @@ void Class_004085d0::OnTimer()
                 int len = Length(d);
                 if (len < 0x1400000) {
                     if (len < 0x100000) {
-                        d = Direction(FUN_004b6c30(0x10000), 0x1400000);
+                        d = Direction(RandomInt(0x10000), 0x1400000);
                     } else {
                         int s = FixDiv(0x1400000, len);
                         d.x = FixMul(s, d.x);

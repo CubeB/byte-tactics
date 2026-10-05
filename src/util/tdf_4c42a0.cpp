@@ -27,22 +27,22 @@ struct Elem_004c42a0 {
 void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
-class Class_004c42a0 {
+class TdfRecord {
 public:
     int* name;                              // +0x0
-    std::vector<Class_004c42a0*> children;  // +0x4
+    std::vector<TdfRecord*> children;       // +0x4
     char unknown_14;                        // +0x14
     std::vector<Elem_004c42a0> entries;     // +0x15
 
-    ~Class_004c42a0();
+    ~TdfRecord();
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x4c42a0
-Class_004c42a0::~Class_004c42a0()
+TdfRecord::~TdfRecord()
 {
     if (name)
         FUN_004d85a0(name);
-    for (std::vector<Class_004c42a0*>::iterator p = children.begin(); p < children.end(); p++)
+    for (std::vector<TdfRecord*>::iterator p = children.begin(); p < children.end(); p++)
         delete *p;
 }

@@ -72,7 +72,7 @@ void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsKeyDown(int key);
 int GetMilliseconds();
 void __stdcall DrawFrame(void* dst, void* bmp, int x, int y);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall FUN_004a50e0(void* surf, void* text, int x, int y, int color, int just);
 
 // FUNCTION: 0x4689c0
@@ -122,17 +122,17 @@ void __stdcall DrawStatusPanel(Surface* win)
     int rest = tick - hours * 108000;
     int minutes = rest / 1800;
     int seconds = (rest - minutes * 1800) / 30;
-    sprintf(buf, "%s : %02d:%02d:%02d", FUN_004c5740("Game Time"), hours, minutes, seconds);
+    sprintf(buf, "%s : %02d:%02d:%02d", Translate("Game Time"), hours, minutes, seconds);
     FUN_004a50e0(win, buf, left + 0x19, bottom + 0xa, -1, 0);
     int team = g_game->team_number;
-    sprintf(buf, "%s : %d  (Max %d)", FUN_004c5740("Total Units"),
+    sprintf(buf, "%s : %d  (Max %d)", Translate("Total Units"),
             g_game->players[team].field_119, g_game->max_units);
     FUN_004a50e0(win, buf, left + 0xbe, bottom + 0xa, -1, 0);
     if (g_game->speed2 == 10)
-        sprintf(num, FUN_004c5740("Normal"));
+        sprintf(num, Translate("Normal"));
     else
         sprintf(num, "%+d", (int)g_game->speed2 - 10);
-    sprintf(buf, "%s %s", FUN_004c5740("Game Speed"), num);
+    sprintf(buf, "%s %s", Translate("Game Speed"), num);
     if (g_game->speed2 != g_game->speed)
         sprintf(buf + strlen(buf), " (%+d)", (int)g_game->speed - 10);
     FUN_004a50e0(win, buf, left + 0x17c, bottom + 0xa, -1, 0);

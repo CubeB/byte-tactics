@@ -28,7 +28,7 @@ void __cdecl MouseThreadProc(void* param_1);
 int GetDisplay(void);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void* __stdcall AllocSurface(char* name, int width, int height);
-int __stdcall FUN_004b6b20(void* param_1, unsigned int param_2, void* param_3);
+int __stdcall StartThread(void* param_1, unsigned int param_2, void* param_3);
 
 // FUNCTION: 0x4c2bd0
 void __stdcall InitMouse(int count, int start)
@@ -49,7 +49,7 @@ void __stdcall InitMouse(int count, int start)
     p->pending = 0;
     if (start == 1) {
         p->pending = 0;
-        p->running = FUN_004b6b20((void*)MouseThreadProc, 0x8000, p);
+        p->running = StartThread((void*)MouseThreadProc, 0x8000, p);
         if (p->running != 0)
             p->unknown_1ce = 1;
     } else {

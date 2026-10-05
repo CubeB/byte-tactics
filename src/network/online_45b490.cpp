@@ -6,7 +6,7 @@
 extern char DAT_00512dd0[MAX_PATH + 1];
 extern HMODULE g_onlineDll;
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 
 struct LinkInfo {
     int id;             // -1: unused
@@ -70,7 +70,7 @@ unsigned int __stdcall OnlineGetLinkInfo(LinkInfo* links)
             count = GetLinkInfo(links);
             for (unsigned int i = 0; i < count; i++) {
                 if (links[i].id != -1) {
-                    char* name = FUN_004c5740(links[i].name);
+                    char* name = Translate(links[i].name);
                     if (name != links[i].name) {
                         strncpy(links[i].name, name, sizeof(links[i].name));
                         links[i].name[sizeof(links[i].name) - 1] = 0;

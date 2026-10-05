@@ -2,14 +2,14 @@
 // Reads the "unit type killed" defeat condition's state from a section;
 // the writing counterpart is 0x48f900, compare 0x48f880.
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* name);
+    void OpenAccount(const char* name);
 };
 
 class Class_004b4800 {
 public:
-    int FUN_004b4800(char* name, int def);
+    int GetIntegerItem(char* name, int def);
 };
 
 class DefeatUnitTypeKilled {
@@ -19,14 +19,14 @@ public:
     char unknown_c[0x2c - 0xc];
     int numLeftToKill;                   // +0x2c
 
-    virtual void LoadState(Class_004b4560* obj);
+    virtual void LoadState(HapiBank* obj);
 };
 
 // FUNCTION: 0x48f950
-void DefeatUnitTypeKilled::LoadState(Class_004b4560* obj)
+void DefeatUnitTypeKilled::LoadState(HapiBank* obj)
 {
-    obj->FUN_004b4560("DefeatCondition_UnitTypeKilled");
-    numLeftToKill = ((Class_004b4800*)obj)->FUN_004b4800("NumLeftToKill", 0);
-    satisfied = ((Class_004b4800*)obj)->FUN_004b4800("Satisfied", 0);
-    celebrated = ((Class_004b4800*)obj)->FUN_004b4800("Celebrated", 0);
+    obj->OpenAccount("DefeatCondition_UnitTypeKilled");
+    numLeftToKill = ((Class_004b4800*)obj)->GetIntegerItem("NumLeftToKill", 0);
+    satisfied = ((Class_004b4800*)obj)->GetIntegerItem("Satisfied", 0);
+    celebrated = ((Class_004b4800*)obj)->GetIntegerItem("Celebrated", 0);
 }

@@ -105,7 +105,7 @@ int __stdcall IsKeyDown(int key);
 void __stdcall FadeRectangle(void* surface, Rect_004948e0* rect, int level);
 void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw, int style);
 int __stdcall GetTextPixelWidth(char* text);
-char* __stdcall FUN_004c5740(char* name);
+char* __stdcall Translate(char* name);
 void* __stdcall GetGafFrame(void* glyphs, int c);
 void __stdcall DrawFrameQuad(void* surface, void* pic, Quad_004948e0* dst, Quad_004948e0* src);
 int __cdecl sprintf(char* buf, char* fmt, ...);
@@ -165,9 +165,9 @@ void __stdcall FUN_004948e0(void* surface)
     char buf[100];
     Quad_004948e0 src;
     src.p[0].x=1; src.p[0].y=1; src.p[3].x=1; src.p[1].y=1;
-    strcpy(buf, FUN_004c5740("Kills"));
+    strcpy(buf, Translate("Kills"));
     FUN_004a50e0(surface, buf, panel.left + 2, y, maxw, 0);
-    strcpy(buf, FUN_004c5740("Losses"));
+    strcpy(buf, Translate("Losses"));
     FUN_004a50e0(surface, buf, panel.right - GetTextPixelWidth(buf) - 2, y, maxw, 0);
     y += 0xf;
 

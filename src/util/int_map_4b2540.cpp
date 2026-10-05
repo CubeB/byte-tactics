@@ -171,7 +171,7 @@ static Map_004b2540 DAT_0051fbc0;
 extern void __cdecl FUN_004d85a0(void* x);
 
 // FUNCTION: 0x4b2540
-void __stdcall FUN_004b2540(int key)
+void __stdcall FreeCobScript(int key)
 {
     if (key != 0) {
         int local_key = key;

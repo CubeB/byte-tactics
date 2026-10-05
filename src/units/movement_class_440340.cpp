@@ -5,7 +5,7 @@
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
 struct Source_00440340 {
@@ -34,14 +34,14 @@ struct MovementClass {
 // FUNCTION: 0x440340
 void MovementClass::ReadMoveInfo(Source_00440340* src)
 {
-    field_4 = src->tdf->FUN_004c46c0("FootPrintX", 0);
-    field_6 = src->tdf->FUN_004c46c0("FootPrintZ", 0);
-    field_8 = src->tdf->FUN_004c46c0("maxwaterdepth", field_8);
-    field_a = src->tdf->FUN_004c46c0("minwaterdepth", field_a);
-    field_c = src->tdf->FUN_004c46c0("maxslope", field_c);
-    field_d = src->tdf->FUN_004c46c0("badslope", field_c / 2);
-    field_e = src->tdf->FUN_004c46c0("maxwaterslope", field_e);
-    field_f = src->tdf->FUN_004c46c0("badwaterslope", field_e / 2);
+    field_4 = src->tdf->GetFieldInt("FootPrintX", 0);
+    field_6 = src->tdf->GetFieldInt("FootPrintZ", 0);
+    field_8 = src->tdf->GetFieldInt("maxwaterdepth", field_8);
+    field_a = src->tdf->GetFieldInt("minwaterdepth", field_a);
+    field_c = src->tdf->GetFieldInt("maxslope", field_c);
+    field_d = src->tdf->GetFieldInt("badslope", field_c / 2);
+    field_e = src->tdf->GetFieldInt("maxwaterslope", field_e);
+    field_f = src->tdf->GetFieldInt("badwaterslope", field_e / 2);
     if (field_c > field_e)
         field_c = field_e;
     if (field_d > field_c)

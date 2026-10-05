@@ -65,22 +65,22 @@ public:
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* path);
+    int LoadFile(char* path);
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
 class Class_004c3240 {
 public:
-    void FUN_004c3240();
+    void Unload();
 };
 
 class Class_00433380 {
@@ -103,9 +103,9 @@ void Class_00433130::LoadLosTables()
     Class_004c2ea0 tdf;
     char path[256];
     BuildDataPath(path, "gamedata", "los", "TDF");
-    if (((Class_004c2f60*)&tdf)->FUN_004c2f60(path) != 0) {
-        if (((Class_004c3410*)&tdf)->FUN_004c3410("TABLEINFO") != 0) {
-            short numtables = (short)((Class_004c46c0*)tdf.field_4)->FUN_004c46c0("numtables", 0);
+    if (((Class_004c2f60*)&tdf)->LoadFile(path) != 0) {
+        if (((Class_004c3410*)&tdf)->SelectRecord("TABLEINFO") != 0) {
+            short numtables = (short)((Class_004c46c0*)tdf.field_4)->GetFieldInt("numtables", 0);
             {
                 W1_00433130 temp;
                 unsigned n = (unsigned)numtables;
@@ -117,6 +117,6 @@ void Class_00433130::LoadLosTables()
             for (short i = 0; i < numtables; i++)
                 ((Class_00433380*)this)->LoadLosTable(&tdf, i);
         }
-        ((Class_004c3240*)&tdf)->FUN_004c3240();
+        ((Class_004c3240*)&tdf)->Unload();
     }
 }

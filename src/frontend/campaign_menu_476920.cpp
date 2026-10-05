@@ -2,11 +2,11 @@
 #include <string.h>
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-int __stdcall FUN_004bc930(const char* path, int flag);
+int __stdcall CountDirectoryEntries(const char* path, int flag);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* data);
 int __stdcall ScanDirectory(char* path, void* buffer, char* p3, int p4, int p5, int p6);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 
 // FUNCTION: 0x476920
 int __stdcall CampaignExists(const char* name)
@@ -14,12 +14,12 @@ int __stdcall CampaignExists(const char* name)
     int found;
     char path[256];
     BuildDataPath(path, "camps", "*", "TDF");
-    int count = FUN_004bc930(path, 0);
+    int count = CountDirectoryEntries(path, 0);
     char* names = (char*)FUN_004d83b0("CAMPAIGN NAMES", count << 8);
     ScanDirectory(path, names, 0, 0, 1, 2);
     found = 0;
     for (int i = 0; i < count; i++) {
-        if (strcmp(name, FUN_004b6af0(names, i)) == 0) {
+        if (strcmp(name, SkipTextLines(names, i)) == 0) {
             found = 1;
         }
     }

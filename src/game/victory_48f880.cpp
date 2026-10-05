@@ -2,14 +2,14 @@
 // Reads the "all units killed" defeat condition's state from a section;
 // the writing counterpart is 0x48f840, compare 0x48ef40.
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* name);
+    void OpenAccount(const char* name);
 };
 
 class Class_004b4800 {
 public:
-    int FUN_004b4800(char* name, int def);
+    int GetIntegerItem(char* name, int def);
 };
 
 class DefeatAllUnitsKilled {
@@ -17,13 +17,13 @@ public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    virtual void LoadState(Class_004b4560* obj);
+    virtual void LoadState(HapiBank* obj);
 };
 
 // FUNCTION: 0x48f880
-void DefeatAllUnitsKilled::LoadState(Class_004b4560* obj)
+void DefeatAllUnitsKilled::LoadState(HapiBank* obj)
 {
-    obj->FUN_004b4560("DefeatCondition_AllUnitsKilled");
-    satisfied = ((Class_004b4800*)obj)->FUN_004b4800("Satisfied", 0);
-    celebrated = ((Class_004b4800*)obj)->FUN_004b4800("Celebrated", 0);
+    obj->OpenAccount("DefeatCondition_AllUnitsKilled");
+    satisfied = ((Class_004b4800*)obj)->GetIntegerItem("Satisfied", 0);
+    celebrated = ((Class_004b4800*)obj)->GetIntegerItem("Celebrated", 0);
 }

@@ -22,10 +22,10 @@ struct Game {
 extern Game* g_game;
 
 // Command arguments.
-class Class_004b73e0;
+class CommandArgs;
 
 // FUNCTION: 0x4170c0
-void __stdcall CmdATM(Class_004b73e0* args)
+void __stdcall CmdATM(CommandArgs* args)
 {
     g_game->players[g_game->localPlayer].metal += 1000.0f;
     g_game->players[g_game->localPlayer].energy += 1000.0f;

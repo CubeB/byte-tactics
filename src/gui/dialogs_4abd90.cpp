@@ -56,7 +56,7 @@ struct Menu_004abd90 {
 };
 
 Layer_004abd90* __stdcall LoadGuiLayer(Menu_004abd90* menu, const char* name, int flags);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 char* __stdcall WordWrapText(Menu_004abd90* menu, char* text, int width, int index);
 void __stdcall RenderLayer(Menu_004abd90* menu, int flag);
 void __stdcall AddTextGadget(Layer_004abd90* layer, char* type, char* text, int x, short y,
@@ -80,7 +80,7 @@ int __stdcall OpenMessageBox(Menu_004abd90* gui, char* text, int wrapWidth, int 
     if (layer) {
         char name[0x100];
         char buf[0x100];
-        strcpy(name, FUN_004c5740(text));
+        strcpy(name, Translate(text));
         char* wrapped = WordWrapText(gui, name, wrapWidth, -1);
         RenderLayer(gui, 2);
         strncpy(buf, wrapped, 0xfe);

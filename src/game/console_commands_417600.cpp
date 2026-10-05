@@ -26,22 +26,22 @@ struct Game {
 extern Game* g_game;
 extern char DAT_005119b8[];
 
-// Command-line arguments, as used by FUN_004b73c0 and FUN_004b73e0.
+// Command-line arguments, as used by GetArg and GetIntArg.
 class Class_004b73c0 {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
-    char* FUN_004b73c0(int index, char* fallback);
+    char* GetArg(int index, char* fallback);
 };
 
-class Class_004b73e0 {
+class CommandArgs {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
-    int FUN_004b73e0(int index, int fallback);
+    int GetIntArg(int index, int fallback);
 };
 
-void __stdcall FUN_004bcf00(char* path);
+void __stdcall MakeDirectoryPath(char* path);
 void __stdcall WriteScreenshot(char* name, char* description, int x, int y, int w, int h);
 unsigned int GetTicks();
 
@@ -51,10 +51,10 @@ void __stdcall CmdMakePoster(Class_004b73c0* args)
     int w = 0xc80;
     int h = 0x960;
     if (args->count > 1)
-        w = ((Class_004b73e0*)args)->FUN_004b73e0(1, 0);
+        w = ((CommandArgs*)args)->GetIntArg(1, 0);
     if (args->count > 2)
-        h = ((Class_004b73e0*)args)->FUN_004b73e0(2, 0);
-    if (_strcmpi(args->FUN_004b73c0(1, DAT_005119b8), "all") == 0) {
+        h = ((CommandArgs*)args)->GetIntArg(2, 0);
+    if (_strcmpi(args->GetArg(1, DAT_005119b8), "all") == 0) {
         w = g_game->mapWidth;
         h = g_game->mapHeight;
     }
@@ -72,7 +72,7 @@ void __stdcall CmdMakePoster(Class_004b73c0* args)
     y = min(y, g_game->mapHeight - h);
     char buf[256];
     sprintf(buf, "%s\\screenshots", g_game->installPath);
-    FUN_004bcf00(buf);
+    MakeDirectoryPath(buf);
     WriteScreenshot(buf, "BIGSHOT", x, y, w, h);
     g_game->lastShotTime = GetTicks();
 }

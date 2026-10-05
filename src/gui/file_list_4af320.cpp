@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free, finished by space-bunny-free, finished by Sonnet 5.5. Names are provisional.
 // MATCH. What the earlier 92.9 percent versions missed: the entry counter
 // (num++) sits inside the "is a wanted entry" if of each loop (the name and
-// attribute tests jump past it), and the close call FUN_004bc8d0 sits inside
+// attribute tests jump past it), and the close call HAPI_FindClose sits inside
 // the `find != -1` guard together with the do/while (a failed search jumps
 // over the close). The check.py diff normalises jump targets, so both showed
 // up only as different jump distances (0x4af418 against 0x4af40b).
@@ -14,11 +14,11 @@
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall SortFileList(char* names, char* sizes, void* times, int count);
-int __stdcall FUN_004bc4b0(const char* path, struct _finddata_t* fd, int state, char recursive);
-int __stdcall FUN_004bc640(int handle, struct _finddata_t* fd);
-void __stdcall FUN_004bc8d0(int handle);
+int __stdcall HAPI_FindFirst(const char* path, struct _finddata_t* fd, int state, char recursive);
+int __stdcall HAPI_FindNext(int handle, struct _finddata_t* fd);
+void __stdcall HAPI_FindClose(int handle);
 char* __stdcall StripExtension(char* name);
-long __stdcall FUN_004bbc40(char* name);
+long __stdcall HAPI_FileLengthByName(char* name);
 
 // FUNCTION: 0x4af320
 int __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int flag, int what)
@@ -32,7 +32,7 @@ int __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int f
     int find;
 
     if (mode == 1) {
-        find = FUN_004bc4b0("*.", &fd, -1, 1);
+        find = HAPI_FindFirst("*.", &fd, -1, 1);
         if (find != -1) {
             do {
                 if (fd.name[0] != '.' && fd.attrib == 0x10) {
@@ -47,12 +47,12 @@ int __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int f
                     }
                     num++;
                 }
-            } while (FUN_004bc640(find, &fd) != -1);
-            FUN_004bc8d0(find);
+            } while (HAPI_FindNext(find, &fd) != -1);
+            HAPI_FindClose(find);
         }
     }
     {
-        find = FUN_004bc4b0(path, &fd, -1, 1);
+        find = HAPI_FindFirst(path, &fd, -1, 1);
         if (find != -1) {
             do {
                 if (fd.name[0] != '.' && fd.attrib != 0x10) {
@@ -63,14 +63,14 @@ int __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int f
                     list += strlen(list) + 1;
                     *tp++ = fd.time_write;
                     if (sizes) {
-                        _itoa(FUN_004bbc40(fd.name), text, 10);
+                        _itoa(HAPI_FileLengthByName(fd.name), text, 10);
                         strcpy(sizes, text);
                         sizes += strlen(text) + 1;
                     }
                     num++;
                 }
-            } while (FUN_004bc640(find, &fd) != -1);
-            FUN_004bc8d0(find);
+            } while (HAPI_FindNext(find, &fd) != -1);
+            HAPI_FindClose(find);
         }
     }
     if (what) {

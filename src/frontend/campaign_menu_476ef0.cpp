@@ -77,7 +77,7 @@ void __stdcall SelectFontForEntry(Entry_476ef0* gadgets, int index);
 void* __cdecl GetFont();
 int __stdcall FontHeight(void* font);
 int __stdcall GetTextWidth(void* font, const char* text);
-char* __stdcall FUN_004c5740(const char* key);
+char* __stdcall Translate(const char* key);
 void __stdcall AddTextGadget(Holder_476ef0* dialog, const char* name, char* text,
                             int x, int y, int w, int flags);
 void __stdcall FUN_004a0bf0(Menu_476ef0* menu, const char* name, char* text,
@@ -152,9 +152,9 @@ void DrawHelpPage()
             FUN_004a0bf0(&g_game->menu, "MOREBAR", &DAT_005119b8, 0);
         else
             FUN_004a0bf0(&g_game->menu, "MOREBAR",
-                         FUN_004c5740("BACK TO START"), 0);
+                         Translate("BACK TO START"), 0);
     } else {
-        FUN_004a0bf0(&g_game->menu, "MOREBAR", FUN_004c5740("MORE..."), 0);
+        FUN_004a0bf0(&g_game->menu, "MOREBAR", Translate("MORE..."), 0);
     }
     FUN_004a0c70(&g_game->menu, "MOREBAR",
                  DAT_00507b70[g_game->field_37ef2 * 4 + 1]);

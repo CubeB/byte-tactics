@@ -12,11 +12,11 @@ public:
     int unknown_0;
     std::vector<Named_004c4450*> entries;   // +0x4 (_First at +0x8)
 
-    int FUN_004c4450();
+    int GetSubRecordCount();
 };
 
 // FUNCTION: 0x4c4450
-int Class_004c4450::FUN_004c4450()
+int Class_004c4450::GetSubRecordCount()
 {
     return entries.size();
 }

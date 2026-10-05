@@ -190,29 +190,29 @@ public:
     void SaveMotion(Unit* unit, void* file);
 };
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    int FUN_004b4560(char* name);
+    int OpenAccount(char* name);
 };
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4b50 {
 public:
-    int FUN_004b4b50(int index);
+    int OpenNumberedBox(int index);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* buf, int len);
+    int WriteBox(void* buf, int len);
 };
 
 class Class_004b4630 {
 public:
-    int FUN_004b4630(char* name, int value);
+    int SetIntegerItem(char* name, int value);
 };
 
 class CobScript {
@@ -221,12 +221,12 @@ public:
 };
 
 // FUNCTION: 0x4876c0
-void __stdcall SaveUnits(Class_004b4560* file)
+void __stdcall SaveUnits(HapiBank* file)
 {
     int count = 0;
     Unit* end = 0;
     Unit* unit;
-    file->FUN_004b4560("Units");
+    file->OpenAccount("Units");
     end = *(Unit**)((char*)g_game + 0x1435b);
     unit = *(Unit**)((char*)g_game + 0x14357);
     for (; unit <= end; unit = (Unit*)((char*)unit + 0x118)) {
@@ -236,7 +236,7 @@ void __stdcall SaveUnits(Class_004b4560* file)
             char bufHead[32];
 
             sprintf(script, "Script%i", count);
-            ((Class_004b4ba0*)file)->FUN_004b4ba0(script);
+            ((Class_004b4ba0*)file)->OpenNamedBox(script);
             ((CobScript*)unit->f9a)->SaveScriptState(file);
 
             int n = 0;
@@ -324,13 +324,13 @@ void __stdcall SaveUnits(Class_004b4560* file)
                 rec.pieces[k].flags.d = unit->pieces[k].flags.d;
             }
 
-            ((Class_004b4b50*)file)->FUN_004b4b50(count);
-            ((Class_004b4cf0*)file)->FUN_004b4cf0(&rec, 0xb8);
+            ((Class_004b4b50*)file)->OpenNumberedBox(count);
+            ((Class_004b4cf0*)file)->WriteBox(&rec, 0xb8);
             count++;
         }
     }
     if (count > 0) {
-        ((Class_004b4630*)file)->FUN_004b4630("Number of Units", count);
-        ((Class_004b4630*)file)->FUN_004b4630("Version", 0x11);
+        ((Class_004b4630*)file)->SetIntegerItem("Number of Units", count);
+        ((Class_004b4630*)file)->SetIntegerItem("Version", 0x11);
     }
 }

@@ -37,7 +37,7 @@ public:
 
 class Class_004c3e10 {
 public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_00435760 {
@@ -71,7 +71,7 @@ public:
 };
 
 int FUN_0049f580(void);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x435a20
@@ -87,7 +87,7 @@ int Class_00435a20::LoadMissionByName(char* map)
                 char lower[200];
                 strcpy(lower, map);
                 _strlwr(lower);
-                strncpy(text_b14, FUN_004c5740(lower), 0xff);
+                strncpy(text_b14, Translate(lower), 0xff);
                 if (_strcmpi(text_b14, map) == 0)
                     strcpy(text_b14, map);
             } else {

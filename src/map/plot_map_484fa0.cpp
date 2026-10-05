@@ -14,34 +14,34 @@ struct Game {
 extern Game* g_game;
 
 // Chunked file reader.
-class Class_004b4560 {
+class HapiBank {
 public:
-    int FUN_004b4560(char* name);
+    int OpenAccount(char* name);
 };
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4bf0 {
 public:
-    int FUN_004b4bf0();
+    int GetBoxSize();
 };
 
 class Class_004b4c80 {
 public:
-    unsigned int FUN_004b4c80(void* buf, int size);
+    unsigned int ReadBox(void* buf, int size);
 };
 
 // Reads the "Mapping" "Data" chunk into the map's mapping buffer.
 // <string.h> decides which of width and height is loaded before the imul.
 // FUNCTION: 0x484fa0
-void __stdcall LoadMappingData(Class_004b4560* file)
+void __stdcall LoadMappingData(HapiBank* file)
 {
-    if (file->FUN_004b4560("Mapping") && ((Class_004b4ba0*)file)->FUN_004b4ba0("Data")) {
+    if (file->OpenAccount("Mapping") && ((Class_004b4ba0*)file)->OpenNamedBox("Data")) {
         unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;
-        if (((Class_004b4bf0*)file)->FUN_004b4bf0() == size)
-            ((Class_004b4c80*)file)->FUN_004b4c80(g_game->mapping, size);
+        if (((Class_004b4bf0*)file)->GetBoxSize() == size)
+            ((Class_004b4c80*)file)->ReadBox(g_game->mapping, size);
     }
 }

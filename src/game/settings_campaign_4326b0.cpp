@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Writes the game summary file named by argument 1 (the "Summary" section of
 // a freshly built parse tree, plus the radar image and every subsystem's save
-// state when the game is in state 6) and hands it to FUN_004b39c0, which
+// state when the game is in state 6) and hands it to SaveBank, which
 // writes the ",3P" file and returns its result. Argument 2 is an optional
 // description string, argument 3 the game id.
 // check.py: MATCH (976 bytes, both).
@@ -66,12 +66,12 @@ class Class_004b3620 {
 public:
     int field_0;
 
-    Class_004b3620* FUN_004b3620();
+    Class_004b3620* InitBank();
 };
 
 class Class_004b3630 {
 public:
-    void FUN_004b3630();
+    void CloseBank();
 };
 
 class Class_004b3750 {
@@ -79,28 +79,28 @@ public:
     void* field_0;                     // +0x0
     char buf[256];                     // +0x4
 
-    void FUN_004b3750();
-    int FUN_004b39c0(char* name, char* ext, int a, int b);
+    void NewBank();
+    int SaveBank(char* name, char* ext, int a, int b);
 };
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* section);
+    void OpenAccount(const char* section);
 };
 
 class Class_004b4630 {
 public:
-    void FUN_004b4630(const char* name, int value);
+    void SetIntegerItem(const char* name, int value);
 };
 
 class Class_004b4750 {
 public:
-    void FUN_004b4750(const char* name, char* value);
+    void SetStringItem(const char* name, char* value);
 };
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(const char* name);
+    int OpenNamedBox(const char* name);
 };
 
 class Class_00435100 {
@@ -164,44 +164,44 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
 {
     Class_004b3750 file;
 
-    ((Class_004b3620*)&file)->FUN_004b3620();
-    file.FUN_004b3750();
-    ((Class_004b4560*)&file)->FUN_004b4560(DAT_00503320);
+    ((Class_004b3620*)&file)->InitBank();
+    file.NewBank();
+    ((HapiBank*)&file)->OpenAccount(DAT_00503320);
 
     sprintf(file.buf, DAT_005049ac, g_game->buildDate);
-    ((Class_004b4630*)&file)->FUN_004b4630(file.buf, 0);
+    ((Class_004b4630*)&file)->SetIntegerItem(file.buf, 0);
     sprintf(file.buf, DAT_0050499c, g_game->buildTime);
-    ((Class_004b4630*)&file)->FUN_004b4630(file.buf, 0);
-    ((Class_004b4630*)&file)->FUN_004b4630(DAT_005048f8, g_game->maxUnits);
-    ((Class_004b4750*)&file)->FUN_004b4750(DAT_005028f8, ((Class_004352b0*)g_game->campaign)->FUN_004352b0());
+    ((Class_004b4630*)&file)->SetIntegerItem(file.buf, 0);
+    ((Class_004b4630*)&file)->SetIntegerItem(DAT_005048f8, g_game->maxUnits);
+    ((Class_004b4750*)&file)->SetStringItem(DAT_005028f8, ((Class_004352b0*)g_game->campaign)->FUN_004352b0());
     if (g_game->state != 6) {
         ((Class_00435c00*)g_game->campaign)->AdvanceMission();
     }
-    ((Class_004b4750*)&file)->FUN_004b4750(DAT_00504994, ((Class_00435c30*)g_game->campaign)->FUN_00435c30());
-    ((Class_004b4750*)&file)->FUN_004b4750(DAT_00504990, ((Class_00435c30*)g_game->campaign)->FUN_00435c30());
-    ((Class_004b4630*)&file)->FUN_004b4630(DAT_00502a78, g_game->difficulty);
-    ((Class_004b4630*)&file)->FUN_004b4630(DAT_00504988, g_game->players[g_game->localPlayer].unit->side);
-    ((Class_004b4630*)&file)->FUN_004b4630(DAT_00504980, g_game->numPlayers);
-    ((Class_004b4630*)&file)->FUN_004b4630(DAT_00504974, ((Class_00435100*)g_game->campaign)->FUN_00435100());
-    ((Class_004b4750*)&file)->FUN_004b4750(DAT_0050496c, g_game->thumbs);
+    ((Class_004b4750*)&file)->SetStringItem(DAT_00504994, ((Class_00435c30*)g_game->campaign)->FUN_00435c30());
+    ((Class_004b4750*)&file)->SetStringItem(DAT_00504990, ((Class_00435c30*)g_game->campaign)->FUN_00435c30());
+    ((Class_004b4630*)&file)->SetIntegerItem(DAT_00502a78, g_game->difficulty);
+    ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504988, g_game->players[g_game->localPlayer].unit->side);
+    ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504980, g_game->numPlayers);
+    ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504974, ((Class_00435100*)g_game->campaign)->FUN_00435100());
+    ((Class_004b4750*)&file)->SetStringItem(DAT_0050496c, g_game->thumbs);
     if (((Class_00435100*)g_game->campaign)->FUN_00435100() == 2) {
-        ((Class_004b4630*)&file)->FUN_004b4630(DAT_0050495c, g_game->options->commanderDeath);
-        ((Class_004b4630*)&file)->FUN_004b4630(DAT_00504950, g_game->options->location);
-        ((Class_004b4630*)&file)->FUN_004b4630(DAT_00502288, g_game->options->mapping);
-        ((Class_004b4630*)&file)->FUN_004b4630(DAT_00504944, g_game->options->lineOfSight);
-        ((Class_004b4630*)&file)->FUN_004b4630(DAT_00504934, g_game->options->lineOfSightType);
+        ((Class_004b4630*)&file)->SetIntegerItem(DAT_0050495c, g_game->options->commanderDeath);
+        ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504950, g_game->options->location);
+        ((Class_004b4630*)&file)->SetIntegerItem(DAT_00502288, g_game->options->mapping);
+        ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504944, g_game->options->lineOfSight);
+        ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504934, g_game->options->lineOfSightType);
     }
     if (g_game->state != 6) {
-        ((Class_004b4630*)&file)->FUN_004b4630(DAT_00504924, 1);
+        ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504924, 1);
         ((Class_00435c00*)g_game->campaign)->FUN_00435c00(g_game->mission);
     }
     if (param_2 != 0) {
-        ((Class_004b4750*)&file)->FUN_004b4750(DAT_00502e78, param_2);
+        ((Class_004b4750*)&file)->SetStringItem(DAT_00502e78, param_2);
     }
-    ((Class_004b4630*)&file)->FUN_004b4630(DAT_0050491c, param_3);
-    ((Class_004b4630*)&file)->FUN_004b4630(DAT_00504910, g_game->ticks);
+    ((Class_004b4630*)&file)->SetIntegerItem(DAT_0050491c, param_3);
+    ((Class_004b4630*)&file)->SetIntegerItem(DAT_00504910, g_game->ticks);
     if (g_game->state == 6) {
-        ((Class_004b4ba0*)&file)->FUN_004b4ba0(DAT_00504904);
+        ((Class_004b4ba0*)&file)->OpenNamedBox(DAT_00504904);
         SaveSurface(g_game->finalSurface, &file);
         WriteCameraPosition(&file);
         SavePlayers(&file);
@@ -213,7 +213,7 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
         SaveMeteors(&file);
         g_game->field_391ed->SaveConditions(&file);
     }
-    int result = file.FUN_004b39c0(param_1, DAT_0050331c, 1, 0);
-    ((Class_004b3630*)&file)->FUN_004b3630();
+    int result = file.SaveBank(param_1, DAT_0050331c, 1, 0);
+    ((Class_004b3630*)&file)->CloseBank();
     return result;
 }

@@ -16,25 +16,25 @@ public:
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3e10 {
 public:
     char unknown_0[4];
     void* field_0x4;
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3490 {
 public:
-    int FUN_004c3490(int index);
+    int SelectRecordAt(int index);
 };
 
 class Class_004c4420 {
 public:
     const char* field_0;
-    void FUN_004c4420(char* dest, size_t count);
+    void CopyRecordName(char* dest, size_t count);
 };
 
 class Class_004356c0 {
@@ -73,15 +73,15 @@ void FUN_00431740()
     char* file = ((Class_004356c0*)g_game->field_391e9)->FUN_004356c0(6);
     if (file == 0)
         return;
-    if (!((Class_004c2f60*)&parser)->FUN_004c2f60(file))
+    if (!((Class_004c2f60*)&parser)->LoadFile(file))
         return;
     {
         ProtectBlockReadWrite(g_game->defs);
         for (int i = 1; i < g_game->count; i++)
             g_game->defs[i].flags &= 0xff7fffff;
-        ((Class_004c3e10*)&parser)->FUN_004c3e10();
-        for (int j = 0; ((Class_004c3490*)&parser)->FUN_004c3490(j); j++, ((Class_004c3e10*)&parser)->FUN_004c3e10()) {
-            ((Class_004c4420*)parser.current)->FUN_004c4420(name, 0x100);
+        ((Class_004c3e10*)&parser)->ResetCurrentRecord();
+        for (int j = 0; ((Class_004c3490*)&parser)->SelectRecordAt(j); j++, ((Class_004c3e10*)&parser)->ResetCurrentRecord()) {
+            ((Class_004c4420*)parser.current)->CopyRecordName(name, 0x100);
             for (int k = 0; k < g_game->count; k++) {
                 if (_strcmpi(g_game->defs[k].name, name) == 0) {
                     g_game->defs[k].flags |= 0x800000;

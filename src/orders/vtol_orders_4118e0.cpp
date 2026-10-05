@@ -102,7 +102,7 @@ public:
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall FUN_0047e570(Unit* unit, int id);
@@ -171,7 +171,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         if (unit->type && (unit->def->flags & 0x800)) {
             ((Class_00438880*)order)->FUN_00438880("Landing");
             FUN_0040f200(unit, order, 0);
-            order->angle = FUN_004b6c30(0x10000);
+            order->angle = RandomInt(0x10000);
             return 1;
         }
         break;

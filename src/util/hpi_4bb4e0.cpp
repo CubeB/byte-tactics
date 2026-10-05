@@ -3,19 +3,19 @@
 #include <string.h>
 
 // An archive's directory tree (0x4bb2e0.cpp names the same structs).
-struct List_004bb2e0;
+struct ArchiveDirectory;
 
 #pragma pack(push, 1)
-struct Entry_004bb2e0 {
+struct ArchiveEntry {
     char* name;                          // +0x0
-    List_004bb2e0* child;                // +0x4, the directory's own list
+    ArchiveDirectory* child;             // +0x4, the directory's own list
     unsigned char flags;                 // +0x8, bit 0: a directory
 };
 #pragma pack(pop)
 
-struct List_004bb2e0 {
+struct ArchiveDirectory {
     int count;                           // +0x0
-    Entry_004bb2e0* entries;             // +0x4
+    ArchiveEntry* entries;               // +0x4
 };
 
 // The entry a backslash-separated path names, walking down from `list`, or 0.
@@ -26,7 +26,7 @@ struct List_004bb2e0 {
 // local makes `name` a copy with few references of its own, so `buf` and `i`
 // are coloured before `path`.
 // FUNCTION: 0x4bb4e0
-Entry_004bb2e0* __stdcall FUN_004bb4e0(List_004bb2e0* list, char* path)
+ArchiveEntry* __stdcall HAPI_FindEntry(ArchiveDirectory* list, char* path)
 {
     int len;
     char* name;

@@ -9,7 +9,7 @@
 // Two independent blocks selected by bits of the second argument `b`:
 //  - !(b & 0x20): builds a 0x30-byte header on the stack (the same record
 //    StartExplodePiece consumes) from the data->unit pointer at +0x0c, the first
-//    argument and six FUN_004b6c30 random draws, then hands it to
+//    argument and six RandomInt random draws, then hands it to
 //    StartExplodePiece.
 //  - (b & 0x3f00): computes the unit's position with GetPiecePosition and appends
 //    it to up to six tables in g_game (+0x147f7, a six-pointer array) with
@@ -78,7 +78,7 @@ struct Vec3_00481140 { int x, y, z; };
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 void __stdcall StartExplodePiece(Header_00481140* h);
 Vec3_00481140 __stdcall GetPiecePosition(Unit* obj, int param);
 void __stdcall AddExplosionEffect(void* pos, void* src, int index, int flag);
@@ -116,12 +116,12 @@ void UnitScript::ExplodePiece(int a, unsigned int b)
         Header_00481140 h;
         h.obj = data->unit;
         h.index = a;
-        h.r1 = FUN_004b6c30(3000);
-        h.r2 = FUN_004b6c30(3000);
-        h.r3 = FUN_004b6c30(3000);
-        h.x = (0x14 - FUN_004b6c30(0x28)) << 14;
-        h.y = FUN_004b6c30(10) << 16;
-        h.z = (0x14 - FUN_004b6c30(0x28)) << 14;
+        h.r1 = RandomInt(3000);
+        h.r2 = RandomInt(3000);
+        h.r3 = RandomInt(3000);
+        h.x = (0x14 - RandomInt(0x28)) << 14;
+        h.y = RandomInt(10) << 16;
+        h.z = (0x14 - RandomInt(0x28)) << 14;
         h.f20 = 900;
         if (b & 1) {
             h.bits = (h.bits & ~0x30) | ((b & 2) << 4);

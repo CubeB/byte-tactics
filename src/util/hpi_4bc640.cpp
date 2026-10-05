@@ -21,21 +21,21 @@
 // One entry of a group's list: the name, the node that carries the size, and a
 // flag byte (1 for a directory, 2 to skip the entry).
 #pragma pack(push, 1)
-struct Entry_004bc640 {
+struct ArchiveEntry {
     char* name;              // +0
     void* node;              // +4
     char flags;              // +8
 };
 
-struct List_004bc640 {
+struct ArchiveDirectory {
     int count;               // +0
-    Entry_004bc640* entries; // +4, 9 bytes each
+    ArchiveEntry* entries; // +4, 9 bytes each
 };
 #pragma pack(pop)
 
 struct Path_004bc640 {
     char pad_0[0x10];
-    List_004bc640* list;     // +0x10
+    ArchiveDirectory* list;  // +0x10
 };
 
 struct Group_004bc640 {
@@ -53,7 +53,7 @@ struct Groups_004bc640 {
 // The search 0x4bc4b0 allocates: the path being walked, the pattern to match,
 // the group being read and the entry index inside that group.
 #pragma pack(push, 1)
-struct Find_004bc640 {
+struct FindFiles {
     char dir[0x100];         // +0x000
     char pattern[0x100];     // +0x100
     int state;               // +0x200
@@ -64,15 +64,15 @@ struct Find_004bc640 {
 #pragma pack(pop)
 
 int GetDisplay(void);
-int __stdcall FUN_004bc370(const char* str, const char* pat);
-int __stdcall FUN_004bc800(List_004bc640* list, Find_004bc640* f);
+int __stdcall MatchWildcard(const char* str, const char* pat);
+int __stdcall HAPI_FindDirectory(ArchiveDirectory* list, FindFiles* f);
 
 // The state +0x205 doubles as the raw _findnext handle and as the group list
 // the walk is reading, so it only holds a group list once the state is >= 0.
 // FUNCTION: 0x4bc640
-int __stdcall FUN_004bc640(Find_004bc640* f, struct _finddata_t* fd)
+int __stdcall HAPI_FindNext(FindFiles* f, struct _finddata_t* fd)
 {
-    if (f == (Find_004bc640*)-1 || f == 0)
+    if (f == (FindFiles*)-1 || f == 0)
         return -1;
     if (f->state < 0) {
         if (_findnext(f->handle, fd) != -1)
@@ -86,14 +86,14 @@ int __stdcall FUN_004bc640(Find_004bc640* f, struct _finddata_t* fd)
     Groups_004bc640* g = (Groups_004bc640*)GetDisplay();
     for (; f->state < g->count; f->index = -1, f->state++) {
         if (f->index < 0) {
-            f->handle = (long)FUN_004bc800(((Path_004bc640*)((Group_004bc640*)g->group[f->state])->path)->list, f);
+            f->handle = (long)HAPI_FindDirectory(((Path_004bc640*)((Group_004bc640*)g->group[f->state])->path)->list, f);
             if (f->handle == 0)
                 continue;
         }
-        while (++f->index < ((List_004bc640*)f->handle)->count) {
+        while (++f->index < ((ArchiveDirectory*)f->handle)->count) {
             int i = f->index;
-            Entry_004bc640* e = &((List_004bc640*)f->handle)->entries[i];
-            if (FUN_004bc370(e->name, f->pattern) && !(e->flags & 2)) {
+            ArchiveEntry* e = &((ArchiveDirectory*)f->handle)->entries[i];
+            if (MatchWildcard(e->name, f->pattern) && !(e->flags & 2)) {
                 if (e->flags & 1) {
                     fd->attrib = 0x11;
                     fd->size = 0;

@@ -16,23 +16,23 @@ struct Surface_004c6f10 {
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* src, int len);
+    int WriteBox(void* src, int len);
 };
 
 // FUNCTION: 0x4c6f10
 void __stdcall SaveSurface(Surface_004c6f10* surface, Class_004b4cf0* file)
 {
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
+    ((Class_004b4c10*)file)->SeekBox(0);
     int header[2];
     header[0] = surface->width;
     header[1] = surface->height;
-    file->FUN_004b4cf0(header, 8);
+    file->WriteBox(header, 8);
     for (int i = 0; i < header[1]; i++) {
-        file->FUN_004b4cf0(surface->data + i * surface->pitch, header[0]);
+        file->WriteBox(surface->data + i * surface->pitch, header[0]);
     }
 }

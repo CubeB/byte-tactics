@@ -2,7 +2,7 @@
 
 void StopAllSounds();
 void __stdcall FUN_0041d7b0(char* dest, const char* a, const char* b, const char* c);
-int __stdcall FUN_004bbc40(char* path);
+int __stdcall HAPI_FileLengthByName(char* path);
 void __stdcall SetOffscreenSurface(int param);
 void __stdcall FillSurface(int a, int b);
 void FlipScreen();
@@ -47,7 +47,7 @@ void __stdcall PlayMovie(char* param_1)
 
     StopAllSounds();
     FUN_0041d7b0(path, "Data", param_1, "zrb");
-    if (FUN_004bbc40(path) != 0) {
+    if (HAPI_FileLengthByName(path) != 0) {
         SetOffscreenSurface(g_game->field_37e1b);
         FillSurface(0, 0);
         FlipScreen();

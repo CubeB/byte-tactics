@@ -118,7 +118,7 @@ struct Game {
 extern Game* g_game;
 
 void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
 int __stdcall FUN_00438700(Unit* unit, Order* order, int flags);
@@ -160,7 +160,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
         range = unit->type->buildDistance;
         if (gap > (int)range) {
             ((Class_00438ad0*)order)->FUN_00438ad0(order->target->cell, order->target->footprint);
-            ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(30) + 30);
+            ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30) + 30);
             order->flags |= 0xe8;
             return 2;
         }

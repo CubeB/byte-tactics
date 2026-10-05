@@ -1,10 +1,10 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern int DAT_00526ffc;
+extern int g_lzssUsePreset;
 
 // FUNCTION: 0x4d1800
-int FUN_004d1800()
+int LzssDisablePreset()
 {
-    DAT_00526ffc = 0;
+    g_lzssUsePreset = 0;
     return 0;
 }

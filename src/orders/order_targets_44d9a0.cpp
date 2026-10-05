@@ -5,17 +5,17 @@
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* src, int len);
+    int WriteBox(void* src, int len);
 };
 
 struct Rect_0044d930 {
@@ -47,8 +47,8 @@ int Class_0044d930::FUN_0044d9a0(int unused, Class_004b4ba0* file, char* name)
     hdr.r.b = r.b;
     hdr.r.c = r.c;
     hdr.r.d = r.d;
-    file->FUN_004b4ba0(name);
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
-    ((Class_004b4cf0*)file)->FUN_004b4cf0(&hdr, 20);
+    file->OpenNamedBox(name);
+    ((Class_004b4c10*)file)->SeekBox(0);
+    ((Class_004b4cf0*)file)->WriteBox(&hdr, 20);
     return 1;
 }

@@ -24,22 +24,22 @@ extern char DAT_00502890[]; // "Camera"
 extern char DAT_00502884[]; // "Z Position"
 extern char DAT_00502878[]; // "X Position"
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* name);
+    void OpenAccount(const char* name);
 };
 
 class Class_004b4800 {
 public:
-    int FUN_004b4800(char* name, int def);
+    int GetIntegerItem(char* name, int def);
 };
 
 // FUNCTION: 0x41d2b0
-void __stdcall ReadCameraPosition(Class_004b4560* file)
+void __stdcall ReadCameraPosition(HapiBank* file)
 {
-    file->FUN_004b4560(DAT_00502890);
-    int z = ((Class_004b4800*)file)->FUN_004b4800(DAT_00502884, g_game->y);
-    int x = ((Class_004b4800*)file)->FUN_004b4800(DAT_00502878, g_game->x);
+    file->OpenAccount(DAT_00502890);
+    int z = ((Class_004b4800*)file)->GetIntegerItem(DAT_00502884, g_game->y);
+    int x = ((Class_004b4800*)file)->GetIntegerItem(DAT_00502878, g_game->x);
     g_game->x = x;
     g_game->y = z;
     g_game->flags_142f1 |= 2;

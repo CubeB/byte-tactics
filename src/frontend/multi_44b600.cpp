@@ -34,7 +34,7 @@ extern char DAT_005119b8[];
 
 Gadget_0044b600* __stdcall FindGadgetChecked(void* gadgets, char* name);
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall SetGadgetText(Menu_0044b600* menu, int index, char* text);
 void __stdcall FUN_0049fa90(Menu_0044b600* menu);
 
@@ -46,7 +46,7 @@ void __stdcall FUN_0044b600(int unused1, int unused2)
     Gadget_0044b600* games = FindGadgetChecked(gadgets, "GAMES");
     int index = FindGadgetIndex(gadgets, "GAMENAME", 3);
     char* name;
-    if (games->selected > -1 && (name = FUN_004b6af0(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
+    if (games->selected > -1 && (name = SkipTextLines(DAT_005129b0, games->selected)) != 0 && strlen(name) != 0)
         SetGadgetText(menu, index, name);
     else
         SetGadgetText(menu, index, DAT_005119b8);

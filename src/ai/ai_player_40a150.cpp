@@ -22,19 +22,19 @@ struct Class_0040a150 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 
 // FUNCTION: 0x40a150
 void Class_0040a150::InitPlacementGrid()
 {
     s0.v4 = 3;
-    s0.v0 = FUN_004b6c30(10) + s0.v4 + 8;
-    s0.v1 = FUN_004b6c30(3) + s0.v4 + 8;
-    s0.v2 = FUN_004b6c30(s0.v0) - s0.v0 / 2;
-    s0.v3 = FUN_004b6c30(s0.v1) - s0.v1 / 2;
+    s0.v0 = RandomInt(10) + s0.v4 + 8;
+    s0.v1 = RandomInt(3) + s0.v4 + 8;
+    s0.v2 = RandomInt(s0.v0) - s0.v0 / 2;
+    s0.v3 = RandomInt(s0.v1) - s0.v1 / 2;
     s1.v4 = 6;
-    s1.v0 = FUN_004b6c30(0x14) + s1.v4 + 8;
-    s1.v1 = FUN_004b6c30(3) + s1.v4 + 8;
-    s1.v2 = FUN_004b6c30(s1.v0) - s1.v0 / 2;
-    s1.v3 = FUN_004b6c30(s1.v1) - s1.v1 / 2;
+    s1.v0 = RandomInt(0x14) + s1.v4 + 8;
+    s1.v1 = RandomInt(3) + s1.v4 + 8;
+    s1.v2 = RandomInt(s1.v0) - s1.v0 / 2;
+    s1.v3 = RandomInt(s1.v1) - s1.v1 / 2;
 }

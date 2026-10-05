@@ -9,7 +9,7 @@ struct FindData_004bc930 {
 };
 
 #pragma pack(push, 1)
-struct FindHandle_004bc930 {
+struct FindFiles {
     char unknown_0[0x200];
     int field_200;                     // +0x200
     unsigned char field_204;           // +0x204
@@ -17,16 +17,16 @@ struct FindHandle_004bc930 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004bc4b0(const char* path, FindData_004bc930* fd, int a, int b);
-int __stdcall FUN_004bc640(int handle, FindData_004bc930* fd);
+int __stdcall HAPI_FindFirst(const char* path, FindData_004bc930* fd, int a, int b);
+int __stdcall HAPI_FindNext(int handle, FindData_004bc930* fd);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4bc930
-int __stdcall FUN_004bc930(const char* path, int flag)
+int __stdcall CountDirectoryEntries(const char* path, int flag)
 {
     FindData_004bc930 fd;
     int count = 0;
-    int handle = FUN_004bc4b0(path, &fd, -1, 1);
+    int handle = HAPI_FindFirst(path, &fd, -1, 1);
 
     if (handle != -1) {
         do {
@@ -34,9 +34,9 @@ int __stdcall FUN_004bc930(const char* path, int flag)
                 && (flag == 0 || (fd.attributes & 0x10))) {
                 count++;
             }
-        } while (FUN_004bc640(handle, &fd) != -1);
+        } while (HAPI_FindNext(handle, &fd) != -1);
         if (handle != 0) {
-            FindHandle_004bc930* h = (FindHandle_004bc930*)handle;
+            FindFiles* h = (FindFiles*)handle;
             if (h->field_200 < 0)
                 _findclose(h->field_205);
             FUN_004d85a0(h);

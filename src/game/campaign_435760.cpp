@@ -12,16 +12,16 @@ public:
     char unknown_0[4];
     int field_0x4;
 
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
-char* __stdcall FUN_004b6af0(int list, int index);
-int __stdcall FUN_004c58a0(Class_004c3e10* obj, char* buf, const char* key, int size, int def);
+char* __stdcall SkipTextLines(int list, int index);
+int __stdcall GetLocalizedString(Class_004c3e10* obj, char* buf, const char* key, int size, int def);
 void* __cdecl FUN_004d83b0(const char* name, int size);
 
 class Class_00435760 {
@@ -47,8 +47,8 @@ int Class_00435760::BuildMissionList(int* param_1)
         int m = 0;
         while (1) {
             sprintf(buf, "MISSION%d", m);
-            list.FUN_004c3e10();
-            if (((Class_004c3410*)&list)->FUN_004c3410(buf) == 0)
+            list.ResetCurrentRecord();
+            if (((Class_004c3410*)&list)->SelectRecord(buf) == 0)
                 break;
             m++;
         }
@@ -60,13 +60,13 @@ int Class_00435760::BuildMissionList(int* param_1)
         *p = 0;
         for (int i = 0; i < n; i++) {
             sprintf(buf, "MISSION%d", i);
-            list.FUN_004c3e10();
-            if (((Class_004c3410*)&list)->FUN_004c3410(buf) == 0)
+            list.ResetCurrentRecord();
+            if (((Class_004c3410*)&list)->SelectRecord(buf) == 0)
                 return 0;
-            if (FUN_004c58a0(&list, temp, "missionname", 0x100, 0) != 0)
-                strcpy(FUN_004b6af0(*param_1, i), temp);
+            if (GetLocalizedString(&list, temp, "missionname", 0x100, 0) != 0)
+                strcpy(SkipTextLines(*param_1, i), temp);
             else
-                strcpy(FUN_004b6af0(*param_1, i), "Error -- Unnamed Mission");
+                strcpy(SkipTextLines(*param_1, i), "Error -- Unnamed Mission");
         }
     }
     return n;

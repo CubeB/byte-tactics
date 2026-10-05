@@ -22,9 +22,9 @@ struct PCX_004caa40 {
     int height;              // +0xc
 };
 
-int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
-void __stdcall FUN_004bb710(void* file, int pos);
-int __stdcall FUN_004bbd00(void* file);
+int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
+void __stdcall HAPI_SeekFile(void* file, int pos);
+int __stdcall HAPI_FileLength(void* file);
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 
 static inline void FUN_row(void* file, unsigned char* p, int x)
@@ -32,13 +32,13 @@ static inline void FUN_row(void* file, unsigned char* p, int x)
     unsigned char b;
     unsigned char run;
     while (x > 0) {
-        FUN_004bb7c0(file, &b, 1);
+        HAPI_readfromfile(file, &b, 1);
         if ((b & 0xc0) == 0xc0) {
             run = b & 0x3f;
             x -= run;
             if (x < 0)
                 run += x;             // a run longer than the row is cut short
-            FUN_004bb7c0(file, &b, 1);
+            HAPI_readfromfile(file, &b, 1);
             if (run == 1) {
                 *p = b;
                 p++;
@@ -59,14 +59,14 @@ int __stdcall DecodePcx(void* file, PCX_004caa40* pcx)
 {
     unsigned char header[0x80];
     memset(pcx, 0, 16);
-    if (FUN_004bb7c0(file, header, 0x80) == 0x80 && header[0] == 0x0a && header[1] == 5) {
+    if (HAPI_readfromfile(file, header, 0x80) == 0x80 && header[0] == 0x0a && header[1] == 5) {
         pcx->width = *(unsigned short*)(header + 8) - *(unsigned short*)(header + 4) + 1;
         pcx->height = *(unsigned short*)(header + 10) - *(unsigned short*)(header + 6) + 1;
         pcx->data = (unsigned char*)FUN_004d83b0("PCX BODY", pcx->width * pcx->height);
         pcx->palette = (unsigned char*)FUN_004d83b0("COLOR MAP", 0x300);
-        FUN_004bb710(file, FUN_004bbd00(file) - 0x300);
-        FUN_004bb7c0(file, pcx->palette, 0x300);
-        FUN_004bb710(file, 0x80);
+        HAPI_SeekFile(file, HAPI_FileLength(file) - 0x300);
+        HAPI_readfromfile(file, pcx->palette, 0x300);
+        HAPI_SeekFile(file, 0x80);
         {
             unsigned char* p = pcx->data;
             int rows;

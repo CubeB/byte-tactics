@@ -44,7 +44,7 @@ extern Game* g_game;
 Dialog_004608b0* __stdcall LoadGuiLayer(Sub_004608b0* sub, const char* name, int flags);
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int type);
 void __stdcall FUN_004a0570(Sub_004608b0* sub, const char* name, int value);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall FUN_004a0bf0(Sub_004608b0* sub, const char* name, int value, int param_4);
 void __stdcall FUN_0049fb10(Sub_004608b0* sub, int value);
 void __stdcall RenderLayer(Sub_004608b0* sub, int value);
@@ -58,12 +58,12 @@ void OpenExitMenu()
     FindGadgetIndex(dialog->gadgets, "RESTART", 1);
     if (g_game->field_391e9->FUN_00435100() == 1) {
         FUN_004a0570(&g_game->sub, "RESTART", 1);
-        FUN_004a0bf0(&g_game->sub, "RESTART", (int)FUN_004c5740("Restart"), 0x80);
+        FUN_004a0bf0(&g_game->sub, "RESTART", (int)Translate("Restart"), 0x80);
         goto tail;
     }
     if (g_game->field_391e9->FUN_00435100() == 2) {
         FUN_004a0570(&g_game->sub, "RESTART", 1);
-        FUN_004a0bf0(&g_game->sub, "RESTART", (int)FUN_004c5740("Restart"), 0x80);
+        FUN_004a0bf0(&g_game->sub, "RESTART", (int)Translate("Restart"), 0x80);
         goto tail;
     }
     if (g_game->flags.flag4) {

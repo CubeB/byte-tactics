@@ -21,25 +21,25 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 // Command arguments.
-class Class_004b73e0 {
+class CommandArgs {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
-    int FUN_004b73e0(int index, int fallback);
+    int GetIntArg(int index, int fallback);
 };
 
 class Class_004b73c0 {
 public:
-    char* FUN_004b73c0(int index, char* fallback);
+    char* GetArg(int index, char* fallback);
 };
 
 // FUNCTION: 0x416780
-void __stdcall CmdSearch(Class_004b73e0* args)
+void __stdcall CmdSearch(CommandArgs* args)
 {
-    if (args->FUN_004b73e0(1, 0)) {
-        g_game->obj->value = args->FUN_004b73e0(1, 0);
+    if (args->GetIntArg(1, 0)) {
+        g_game->obj->value = args->GetIntArg(1, 0);
     }
     if (args->count == 3) {
-        g_game->obj->fixed = (int)(atof(((Class_004b73c0*)args)->FUN_004b73c0(2, DAT_005119b8)) * 65536.0);
+        g_game->obj->fixed = (int)(atof(((Class_004b73c0*)args)->GetArg(2, DAT_005119b8)) * 65536.0);
     }
 }

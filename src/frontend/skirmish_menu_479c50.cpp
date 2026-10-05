@@ -18,7 +18,7 @@ struct GafEntry_004b8d40;
 struct Gaf_004b8d40;
 GafEntry_004b8d40* __stdcall FindGafEntry(Gaf_004b8d40* gaf, const char* name);
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
-char* __stdcall FUN_004c5740(char* key);
+char* __stdcall Translate(char* key);
 int __stdcall AddButtonGadget(void* obj, void* record);
 int __stdcall FUN_004ab310(void* obj, void* record);
 
@@ -147,7 +147,7 @@ void BuildSkirmishPlayerRows(void)
         rec2.h.x = 0xf1;
         rec2.h.w = 0x28;
         rec2.h.h = 0x14;
-        strcpy(rec2.text, FUN_004c5740("Click to select an allegiance symbol."));
+        strcpy(rec2.text, Translate("Click to select an allegiance symbol."));
         FUN_004ab310(&g_game->menu, &rec2);
 
         wsprintfA(rec1.h.name, "Metal%d", i);
@@ -159,14 +159,14 @@ void BuildSkirmishPlayerRows(void)
         rec1.f138 = 0;
         rec1.entry = 0;
         SetEntry_00479c50(&rec1, "skirmmet");
-        strcpy(rec1.text, FUN_004c5740("Left click to increase metal. Right click to decrease metal."));
+        strcpy(rec1.text, Translate("Left click to increase metal. Right click to decrease metal."));
         AddButtonGadget(&g_game->menu, &rec1);
 
         wsprintfA(rec1.h.name, "Energy%d", i);
         rec1.h.x = 0x151;
         rec1.h.w = 0x2d;
         SetEntry_00479c50(&rec1, "skirmmet");
-        strcpy(rec1.text, FUN_004c5740("Left click to increase energy. Right click to decrease energy."));
+        strcpy(rec1.text, Translate("Left click to increase energy. Right click to decrease energy."));
         AddButtonGadget(&g_game->menu, &rec1);
         y += step;
         ++i;

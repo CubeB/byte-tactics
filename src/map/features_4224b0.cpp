@@ -12,27 +12,27 @@ public:
     char unknown_0[4];
     void* parser;                       // +0x4
 
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, char* key, int size, char* def);
+    int GetFieldString(char* dst, char* key, int size, char* def);
 };
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
 class Class_004c4760 {
 public:
-    double FUN_004c4760(const char* name, double def);
+    double GetFieldDouble(const char* name, double def);
 };
 
 struct List_004224b0 {
@@ -128,8 +128,8 @@ void __stdcall InitGafSequence(Ref_004224b0* ref, Seq_004224b0* src, int index);
 static inline Class_004c3e10* FindEntry(char* name)
 {
     for (Class_004c3e10** p = DAT_00511fb4->first; p < DAT_00511fb4->last; p++) {
-        (*p)->FUN_004c3e10();
-        if (((Class_004c3410*)*p)->FUN_004c3410(name))
+        (*p)->ResetCurrentRecord();
+        if (((Class_004c3410*)*p)->SelectRecord(name))
             return *p;
     }
     return 0;
@@ -170,17 +170,17 @@ int __stdcall LoadFeatureType(char* name)
                                                           (g_game->featureCount + 1) * 0x100);
     FeatureDef_004224b0* def = &g_game->features[g_game->featureCount];
     strncpy(def->name, name, 0x80);
-    ((Class_004c48c0*)entry->parser)->FUN_004c48c0(def->description, "Description", 0x14, DAT_005119b8);
-    def->footprintx = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("footprintx", 0);
-    def->footprintz = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("footprintz", 0);
-    def->height = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("height", 0);
-    ok = ((Class_004c48c0*)entry->parser)->FUN_004c48c0(file, "object", 0x100, DAT_005119b8);
+    ((TdfRecord*)entry->parser)->GetFieldString(def->description, "Description", 0x14, DAT_005119b8);
+    def->footprintx = ((Class_004c46c0*)entry->parser)->GetFieldInt("footprintx", 0);
+    def->footprintz = ((Class_004c46c0*)entry->parser)->GetFieldInt("footprintz", 0);
+    def->height = ((Class_004c46c0*)entry->parser)->GetFieldInt("height", 0);
+    ok = ((TdfRecord*)entry->parser)->GetFieldString(file, "object", 0x100, DAT_005119b8);
     if (ok) {
         def->noobject = 0;
         def->object = LoadObject3d(file);
     } else {
         def->noobject = 1;
-        ((Class_004c48c0*)entry->parser)->FUN_004c48c0(file, "filename", 0x100, DAT_005119b8);
+        ((TdfRecord*)entry->parser)->GetFieldString(file, "filename", 0x100, DAT_005119b8);
         for (j = 0; j < g_game->featureCount; j++) {
             if (strncmp(g_game->features[j].filename, file, 0x10) == 0) {
                 def->anims = 0;
@@ -195,17 +195,17 @@ int __stdcall LoadFeatureType(char* name)
             strncpy(def->filename, file, 0x10);
             anims = def->anims;
         }
-        ok = ((Class_004c48c0*)entry->parser)->FUN_004c48c0(seqname, "seqname", 0x100, DAT_005119b8);
+        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqname", 0x100, DAT_005119b8);
         if (ok)
             def->seq = SeqByName(anims, 0, seqname);
         else
             def->seq = 0;
-        ok = ((Class_004c48c0*)entry->parser)->FUN_004c48c0(seqname, "seqnameshad", 0x100, DAT_005119b8);
+        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnameshad", 0x100, DAT_005119b8);
         if (ok)
             def->seqshad = SeqByName(anims, 0, seqname);
         else
             def->seqshad = 0;
-        ok = ((Class_004c48c0*)entry->parser)->FUN_004c48c0(seqname, "seqnameburn", 0x100, DAT_005119b8);
+        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnameburn", 0x100, DAT_005119b8);
         if (ok) {
             def->seqburn = SeqByName(anims, 0, seqname);
             if (def->seqburn)
@@ -213,7 +213,7 @@ int __stdcall LoadFeatureType(char* name)
         } else {
             def->seqburn = 0;
         }
-        ok = ((Class_004c48c0*)entry->parser)->FUN_004c48c0(seqname, "seqnameburnshad", 0x100, DAT_005119b8);
+        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnameburnshad", 0x100, DAT_005119b8);
         if (ok) {
             def->seqburnshad = SeqByName(anims, 0, seqname);
             if (def->seqburnshad)
@@ -221,7 +221,7 @@ int __stdcall LoadFeatureType(char* name)
         } else {
             def->seqburnshad = 0;
         }
-        ok = ((Class_004c48c0*)entry->parser)->FUN_004c48c0(seqname, "seqnamedie", 0x100, DAT_005119b8);
+        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnamedie", 0x100, DAT_005119b8);
         if (ok) {
             def->seqdie = SeqByName(anims, 0, seqname);
             if (def->seqdie)
@@ -229,7 +229,7 @@ int __stdcall LoadFeatureType(char* name)
         } else {
             def->seqdie = 0;
         }
-        ok = ((Class_004c48c0*)entry->parser)->FUN_004c48c0(seqname, "seqnamedieshad", 0x100, DAT_005119b8);
+        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnamedieshad", 0x100, DAT_005119b8);
         if (ok) {
             def->seqdieshad = SeqByName(anims, 0, seqname);
             if (def->seqdieshad)
@@ -237,7 +237,7 @@ int __stdcall LoadFeatureType(char* name)
         } else {
             def->seqdieshad = 0;
         }
-        ok = ((Class_004c48c0*)entry->parser)->FUN_004c48c0(seqname, "seqnamereclamate", 0x100, DAT_005119b8);
+        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnamereclamate", 0x100, DAT_005119b8);
         if (ok) {
             def->seqreclamate = SeqByName(anims, 0, seqname);
             if (def->seqreclamate)
@@ -245,7 +245,7 @@ int __stdcall LoadFeatureType(char* name)
         } else {
             def->seqreclamate = 0;
         }
-        ok = ((Class_004c48c0*)entry->parser)->FUN_004c48c0(seqname, "seqnamereclamateshad", 0x100, DAT_005119b8);
+        ok = ((TdfRecord*)entry->parser)->GetFieldString(seqname, "seqnamereclamateshad", 0x100, DAT_005119b8);
         if (ok) {
             def->seqreclamateshad = SeqByName(anims, 0, seqname);
             if (def->seqreclamateshad)
@@ -254,23 +254,23 @@ int __stdcall LoadFeatureType(char* name)
             def->seqreclamateshad = 0;
         }
     }
-    def->spreadchance = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("spreadchance", 0);
-    def->reproduce = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("reproduce", 0);
-    def->reproducearea = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("reproducearea", 0);
-    def->metal = (unsigned short)((Class_004c46c0*)entry->parser)->FUN_004c46c0("metal", 0);
-    def->energy = (unsigned short)((Class_004c46c0*)entry->parser)->FUN_004c46c0("energy", 0);
-    def->damage = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("damage", 0);
-    def->animating = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("animating", 0);
-    def->animtrans = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("animtrans", 0);
-    def->shadtrans = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("shadtrans", 0);
-    def->flamable = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("flamable", 0);
-    def->geothermal = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("geothermal", 0);
-    def->blocking = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("blocking", 0);
-    def->reclaimable = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("reclaimable", 0);
-    def->autoreclaimable = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("autoreclaimable", 1);
-    def->indestructible = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("indestructible", 0);
-    def->nodisplayinfo = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("nodisplayinfo", 0);
-    def->nodrawundergray = ((Class_004c46c0*)entry->parser)->FUN_004c46c0("nodrawundergray", 0);
+    def->spreadchance = ((Class_004c46c0*)entry->parser)->GetFieldInt("spreadchance", 0);
+    def->reproduce = ((Class_004c46c0*)entry->parser)->GetFieldInt("reproduce", 0);
+    def->reproducearea = ((Class_004c46c0*)entry->parser)->GetFieldInt("reproducearea", 0);
+    def->metal = (unsigned short)((Class_004c46c0*)entry->parser)->GetFieldInt("metal", 0);
+    def->energy = (unsigned short)((Class_004c46c0*)entry->parser)->GetFieldInt("energy", 0);
+    def->damage = ((Class_004c46c0*)entry->parser)->GetFieldInt("damage", 0);
+    def->animating = ((Class_004c46c0*)entry->parser)->GetFieldInt("animating", 0);
+    def->animtrans = ((Class_004c46c0*)entry->parser)->GetFieldInt("animtrans", 0);
+    def->shadtrans = ((Class_004c46c0*)entry->parser)->GetFieldInt("shadtrans", 0);
+    def->flamable = ((Class_004c46c0*)entry->parser)->GetFieldInt("flamable", 0);
+    def->geothermal = ((Class_004c46c0*)entry->parser)->GetFieldInt("geothermal", 0);
+    def->blocking = ((Class_004c46c0*)entry->parser)->GetFieldInt("blocking", 0);
+    def->reclaimable = ((Class_004c46c0*)entry->parser)->GetFieldInt("reclaimable", 0);
+    def->autoreclaimable = ((Class_004c46c0*)entry->parser)->GetFieldInt("autoreclaimable", 1);
+    def->indestructible = ((Class_004c46c0*)entry->parser)->GetFieldInt("indestructible", 0);
+    def->nodisplayinfo = ((Class_004c46c0*)entry->parser)->GetFieldInt("nodisplayinfo", 0);
+    def->nodrawundergray = ((Class_004c46c0*)entry->parser)->GetFieldInt("nodrawundergray", 0);
     if (_strcmpi(name, "DragonsTeeth") == 0)
         def->nodrawundergray = 1;
     if (_strcmpi(name, "DragonsTeeth_Core") == 0)
@@ -279,8 +279,8 @@ int __stdcall LoadFeatureType(char* name)
         def->nodrawundergray = 1;
     if (_strcmpi(name, "Fortification_Core") == 0)
         def->nodrawundergray = 1;
-    def->sparktime = (short)(((Class_004c4760*)entry->parser)->FUN_004c4760("sparktime", 0.0) * 30.0);
-    ((Class_004c48c0*)entry->parser)->FUN_004c48c0(seqname, "burnweapon", 0x100, DAT_005119b8);
+    def->sparktime = (short)(((Class_004c4760*)entry->parser)->GetFieldDouble("sparktime", 0.0) * 30.0);
+    ((TdfRecord*)entry->parser)->GetFieldString(seqname, "burnweapon", 0x100, DAT_005119b8);
     def->burnweapon = FindWeaponByName(seqname);
     def->ref.index = 0;
     def->ref.value = 0;

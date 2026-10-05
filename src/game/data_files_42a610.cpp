@@ -36,14 +36,14 @@ extern Game* g_game;
 struct File_0042a610;
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-void* __stdcall FUN_004bbe50(char* path, int* outSize);
-int __stdcall FUN_004b6ba0(unsigned char* data, int len);
+void* __stdcall HAPI_LoadFile(char* path, int* outSize);
+int __stdcall ComputeChecksum(unsigned char* data, int len);
 void __cdecl FUN_004d85a0(void* p);
-void __stdcall FUN_004bca30(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
-File_0042a610* __stdcall FUN_004bb5b0(char* path);
-long __stdcall FUN_004bbd00(File_0042a610* f);
-void* __stdcall FUN_004bbff0(char* name, File_0042a610* f, unsigned int* outSize);
-int __stdcall FUN_004bb5d0(File_0042a610* f);
+void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
+File_0042a610* __stdcall HAPI_OpenFileRead(char* path);
+long __stdcall HAPI_FileLength(File_0042a610* f);
+void* __stdcall HAPI_LoadOpenFile(char* name, File_0042a610* f, unsigned int* outSize);
+int __stdcall HAPI_CloseFile(File_0042a610* f);
 void __cdecl ProtectBlockReadWrite(void* p);
 void __cdecl ProtectBlockReadOnly(void* p);
 
@@ -63,9 +63,9 @@ void __stdcall FUN_0042a610(Def_0042a610* def)
     char path[256];
     int size;
     BuildDataPath(path, "scripts", def->name, "cob");
-    void* data = FUN_004bbe50(path, &size);
+    void* data = HAPI_LoadFile(path, &size);
     if (data) {
-        def->field_142 ^= FUN_004b6ba0((unsigned char*)data, size);
+        def->field_142 ^= ComputeChecksum((unsigned char*)data, size);
         FUN_004d85a0(data);
     }
 
@@ -75,29 +75,29 @@ void __stdcall FUN_0042a610(Def_0042a610* def)
     strcat(name, "*");
 
     BuildDataPath(path, "guis", name, "gui");
-    FUN_004bca30(path, 0, &files);
+    ListDirectory(path, 0, &files);
 
     for (unsigned int i = 0; i < files.size(); i++) {
         BuildDataPath(path, "guis", files[i].p, "gui");
-        void* data2 = FUN_004bbe50(path, &size);
+        void* data2 = HAPI_LoadFile(path, &size);
         if (data2) {
-            def->field_142 ^= FUN_004b6ba0((unsigned char*)data2, size);
+            def->field_142 ^= ComputeChecksum((unsigned char*)data2, size);
             FUN_004d85a0(data2);
         }
     }
 
     BuildDataPath(path, "download", def->name, "tdf");
-    File_0042a610* f = FUN_004bb5b0(path);
+    File_0042a610* f = HAPI_OpenFileRead(path);
     if (f) {
-        size = FUN_004bbd00(f);
+        size = HAPI_FileLength(f);
         if (size > 0) {
-            void* data3 = FUN_004bbff0(path, f, 0);
+            void* data3 = HAPI_LoadOpenFile(path, f, 0);
             if (data3) {
-                def->field_142 ^= FUN_004b6ba0((unsigned char*)data3, size);
+                def->field_142 ^= ComputeChecksum((unsigned char*)data3, size);
                 FUN_004d85a0(data3);
             }
         }
-        FUN_004bb5d0(f);
+        HAPI_CloseFile(f);
     }
 
     def->field_142 ^= def->field_146;

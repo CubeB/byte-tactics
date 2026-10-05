@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by mimo-v2.6-pro, retried by space-bunny-free, finished by claude-sonnet-5-5. Names are provisional.
-// MATCH, 415/415 bytes. std::vector<Elem_004c5bc0>::insert(iterator, const Elem&)
+// MATCH, 415/415 bytes. std::vector<TdfField>::insert(iterator, const Elem&)
 // from MSVC 5's <vector> (insert(_P, 1, _X) inlined into insert(_P, _X)), for
 // the reallocating, shift-up and in-place arms. It is the out-of-line
 // instantiation the 0x4c54f0 map code calls.
@@ -39,7 +39,7 @@ public:
     Class_004c91a0(const Class_004c91a0& other);
 };
 
-struct Elem_004c5bc0 {
+struct TdfField {
     Class_004c91a0 a;                  // +0x0
     Class_004c91a0 b;                  // +0x4
 };
@@ -89,19 +89,19 @@ namespace std {
 
 // The game's vector of entries. size() is also reached through the out-of-line
 // copy at 0x4c5ba0 for the last use below.
-class Class_004c5ba0 : public std::vector<Elem_004c5bc0> {
+class Class_004c5ba0 : public std::vector<TdfField> {
 public:
     int FUN_004c5ba0(void);
 
-    iterator FUN_004c59d0(iterator p, const Elem_004c5bc0& x);
+    iterator FUN_004c59d0(iterator p, const TdfField& x);
 };
 
-void __stdcall FUN_004c5d60(Elem_004c5bc0* p, const Elem_004c5bc0& value);
-void __stdcall FUN_004c5cd0(Elem_004c5bc0* first, Elem_004c5bc0* last, const Elem_004c5bc0& x);
-Elem_004c5bc0* __stdcall FUN_004c5d10(Elem_004c5bc0* first, Elem_004c5bc0* last, Elem_004c5bc0* dest);
+void __stdcall FUN_004c5d60(TdfField* p, const TdfField& value);
+void __stdcall FUN_004c5cd0(TdfField* first, TdfField* last, const TdfField& x);
+TdfField* __stdcall FUN_004c5d10(TdfField* first, TdfField* last, TdfField* dest);
 
 // FUNCTION: 0x4c59d0
-Elem_004c5bc0* Class_004c5ba0::FUN_004c59d0(iterator p, const Elem_004c5bc0& x)
+TdfField* Class_004c5ba0::FUN_004c59d0(iterator p, const TdfField& x)
 {
     size_type off = (size_type)(p - begin());
 

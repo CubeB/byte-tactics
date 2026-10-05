@@ -6,7 +6,7 @@ struct Struct_00526ff0;
 extern Struct_00526ff0* DAT_00526ff0;
 
 // FUNCTION: 0x4d0ae0
-int FUN_004d0ae0()
+int LzssFreeTree()
 {
     if (DAT_00526ff0 == 0) {
         printf("Hey!  The tree ptr is not pointing to anything!\n");

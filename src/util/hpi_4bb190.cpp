@@ -6,7 +6,7 @@
 #include <ctype.h>
 
 // FUNCTION: 0x4bb190
-char __stdcall FUN_004bb190(char drive)
+char __stdcall FindNextCdDrive(char drive)
 {
     char letter = toupper(drive);
     if (letter >= 'A' && letter <= 'Z')

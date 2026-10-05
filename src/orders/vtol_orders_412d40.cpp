@@ -105,7 +105,7 @@ public:
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
@@ -208,7 +208,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 Class_0044e740* obj = new Class_0044e740(order, from, to);
                 obj->FUN_0044ec10(unit->def->field_21c);
                 ((Class_004388d0*)order)->FUN_004388d0((int)obj);
-                ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(0x1e) + 0x3c);
+                ((Class_00439e80*)order)->FUN_00439e80(RandomInt(0x1e) + 0x3c);
                 order->field_36 = 0;
                 return 2;
             }

@@ -20,36 +20,36 @@ struct Game {
 extern Game* g_game;
 
 // Chunked file reader.
-class Class_004b4560 {
+class HapiBank {
 public:
-    int FUN_004b4560(char* name);
+    int OpenAccount(char* name);
 };
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4bf0 {
 public:
-    int FUN_004b4bf0();
+    int GetBoxSize();
 };
 
 class Class_004b4c80 {
 public:
-    unsigned int FUN_004b4c80(void* buf, int size);
+    unsigned int ReadBox(void* buf, int size);
 };
 
 // Reads the "Metal" "Plotmap" chunk into the metal byte of every map cell.
 // FUNCTION: 0x484d60
-void __stdcall LoadMetalPlotmap(Class_004b4560* file)
+void __stdcall LoadMetalPlotmap(HapiBank* file)
 {
-    if (file->FUN_004b4560("Metal") && ((Class_004b4ba0*)file)->FUN_004b4ba0("Plotmap")) {
+    if (file->OpenAccount("Metal") && ((Class_004b4ba0*)file)->OpenNamedBox("Plotmap")) {
         int size = g_game->width * g_game->height;
-        if (((Class_004b4bf0*)file)->FUN_004b4bf0() == size) {
+        if (((Class_004b4bf0*)file)->GetBoxSize() == size) {
             unsigned char* buf = new unsigned char[size];
             Cell_00484d60* cells = g_game->cells;
-            if (((Class_004b4c80*)file)->FUN_004b4c80(buf, size) >= size) {
+            if (((Class_004b4c80*)file)->ReadBox(buf, size) >= size) {
                 for (int i = 0; i < size; i++) {
                     cells[i].metal = buf[i];
                 }

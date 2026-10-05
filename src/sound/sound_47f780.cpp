@@ -28,7 +28,7 @@ extern Game* g_game;
 extern Class_0047fad0* DAT_0051e68c;
 extern Message_0047f780 DAT_005086e8[];
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 
 // FUNCTION: 0x47f780
 void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text)
@@ -37,6 +37,6 @@ void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text)
         if (text == 0) {
             text = DAT_005086e8[kind].text;
         }
-        DAT_0051e68c->EnqueueSpeech(unit, kind, FUN_004c5740(text));
+        DAT_0051e68c->EnqueueSpeech(unit, kind, Translate(text));
     }
 }

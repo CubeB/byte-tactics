@@ -33,7 +33,7 @@ void __stdcall SetFont(int param_1);
 int GetFontHeight();
 int __stdcall GetTextWidth(void* font, unsigned char* text);
 void __stdcall DrawString(void* dst, unsigned char* text, int x, int y, int maxWidth);
-char* __stdcall FUN_004c5740(char* key);
+char* __stdcall Translate(char* key);
 int __stdcall FUN_00439d20(void* owner);
 int __stdcall FUN_00439dd0(void* unit);
 int __stdcall FUN_00439df0(void* obj);
@@ -283,12 +283,12 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                                  *(int*)(panel + 0x176) + yOffset, -1);
                     if ((*(unsigned int*)(unit + 0x110) & 0x80000000) && *(unsigned short*)(unit + 0xb8)) {
                         int killsY = *(int*)(panel + 0x15e) + yOffset + 2, killsX = *(int*)(panel + 0x152);
-                        char* plural = FUN_004c5740("kills");
-                        char* singular = FUN_004c5740("kill");
+                        char* plural = Translate("kills");
+                        char* singular = Translate("kill");
                         if (*(unsigned short*)(unit + 0xb8) > 4)
                             sprintf(killsText, "%d %s - %s", *(unsigned short*)(unit + 0xb8),
                                     *(unsigned short*)(unit + 0xb8) == 1 ? singular : plural,
-                                    FUN_004c5740("Veteran"));
+                                    Translate("Veteran"));
                         else
                             sprintf(killsText, "%d %s", *(unsigned short*)(unit + 0xb8),
                                     *(unsigned short*)(unit + 0xb8) == 1 ? singular : plural);
@@ -296,7 +296,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                         DrawString(surface, (unsigned char*)killsText, killsX, killsY, -1);
                     }
                     if (snapshot.orderName) {
-                        strcpy(amount, FUN_004c5740((char*)snapshot.orderName));
+                        strcpy(amount, Translate((char*)snapshot.orderName));
                         int orderX = *(int*)(panel + 0x1a2) -
                                      GetTextWidth((void*)*(int*)(panel + 0x22e), (unsigned char*)amount) / 2;
                         SetTextColors(0x53, GetTextKeyColor());
@@ -307,7 +307,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                 if (progress) {
                     if (*(unsigned char*)(*(char**)(unit + 0x96) + 0x146) != *(unsigned char*)(g_game + 0x2a43))
                         return;
-                    char* weaponText = FUN_004c5740("Weapon");
+                    char* weaponText = Translate("Weapon");
                     int progressX = *(int*)(panel + 0x1b2) -
                                     GetTextWidth((void*)*(int*)(panel + 0x22e), (unsigned char*)weaponText) / 2;
                     SetTextColors(0x53, GetTextKeyColor());
@@ -334,7 +334,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                 }
             } else {
                 char* prefix = ((unsigned char)(*(unsigned int*)(unit + 0x110) >> 9) & 1) != 0 ? "S: " : "R: ";
-                char* s = FUN_004c5740("Unidentified object");
+                char* s = Translate("Unidentified object");
                 sprintf(text, "%s%s", prefix, s);
                 int w = GetTextWidth((void*)*(int*)(panel + 0x22e), (unsigned char*)text);
                 int x = *(int*)(panel + 0x142) - w / 2;
@@ -358,9 +358,9 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                 eText[0] = 0;
             char* name = ((Flags46b_3923b*)(g_game + 0x3923b))->b1 ? feature : feature + 0x80;
             if ((*(unsigned char*)(feature + 0xff) & 2) == 0)
-                sprintf(text, "%s %s%s", FUN_004c5740(name), mText, eText);
+                sprintf(text, "%s %s%s", Translate(name), mText, eText);
             else
-                strcpy(text, FUN_004c5740(name));
+                strcpy(text, Translate(name));
             SetTextColors(0x53, GetTextKeyColor());
             DrawString(surface, (unsigned char*)text, *(int*)(panel + 0x1d2), *(int*)(panel + 0x1d6) + yOffset, -1);
         }

@@ -86,14 +86,14 @@
 // stored around every operator= call). What still differs is only the cursor/end register swap:
 // ours keeps the cursor in ebp and `end` in edi, the original has d in edi and `end` in ebp,
 // which cascades into the unit-loop hunks. Rejected this pass: `for(;;) { ...; if
-// (!FUN_004bbc40(path)) break; ... }` for the suffix loop (rotated, 2240 bytes, 87.2), inert
+// (!HAPI_FileLengthByName(path)) break; ... }` for the suffix loop (rotated, 2240 bytes, 87.2), inert
 // file-scope extern declarations (16 / 48 / 80 -> 91.2 / 90.8 / 91.2), moving the w or end
 // declaration, `end` declared last (87.7), making w span both branches with `d = w` after the
 // if/else (91.2), `d += 1`, `d = 0` initialiser, `last` alias removed, while-copy with s
 // declared outside.
 // Best 91.2% (2183 bytes against 2173) shape: the GUI suffix loop must be written as a do-while
-// whose condition re-reads the FUN_004bbc40 result from a local:
-//   more = FUN_004bbc40(path); if (more) { suffix++; found = 1; } while (more);
+// whose condition re-reads the HAPI_FileLengthByName result from a local:
+//   more = HAPI_FileLengthByName(path); if (more) { suffix++; found = 1; } while (more);
 // That stops /O2 from peeling the first iteration; for(;;), while(1) and a goto loop all score
 // 86.2 (2240 bytes) because MSVC duplicates the loop body ahead of a rotated loop.
 // The compaction keeps the earlier winning shape: keep bit-23-set elements, scan loop and copy
@@ -127,27 +127,27 @@ class Class_004c2ea0 {
 
 class Class_004c2f60 {
   public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3e10 {
   public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3410 {
   public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c3240 {
   public:
-    void FUN_004c3240();
+    void Unload();
 };
 
-class Class_004c48c0 {
+class TdfRecord {
   public:
-    int FUN_004c48c0(char* dst, char* key, int size, char* def);
+    int GetFieldString(char* dst, char* key, int size, char* def);
 };
 
 class Class_00458160 {
@@ -280,12 +280,12 @@ extern char DAT_005119b8[];
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall LoadUnitFbi(char* path, Class_0042b370* type);
 void __stdcall FUN_0042a140(void* obj, char* name);
-int __stdcall FUN_004bbc40(char* path);
+int __stdcall HAPI_FileLengthByName(char* path);
 void* __stdcall Load3do(char* path);
 void __stdcall MirrorObject(void* obj);
 int __stdcall GetObjectHeight(void* obj);
 void __stdcall FatalError(const char* msg);
-void* __stdcall FUN_004b2450(char* path);
+void* __stdcall LoadCobScript(char* path);
 void __stdcall StripExtension(char* text);
 short __stdcall FindUnitTypeId(char* text);
 int __cdecl GameStrdup(char* name);
@@ -309,7 +309,7 @@ void LoadUnitTypes() {
     {
         Class_004c2ea0 parser;
         BuildDataPath(path, "gamedata", "moveinfo", "TDF");
-        if (!((Class_004c2f60*)&parser)->FUN_004c2f60(path))
+        if (!((Class_004c2f60*)&parser)->LoadFile(path))
             FatalError("Can't load MOVEINFO.TDF");
 
         int i = 0;
@@ -317,17 +317,17 @@ void LoadUnitTypes() {
         MovementClass* cls_end = &MovementClassTable::g_movementClasses.entries[32];
         do {
             sprintf(classbuf, "CLASS%d", i);
-            ((Class_004c3e10*)&parser)->FUN_004c3e10();
-            if (((Class_004c3410*)&parser)->FUN_004c3410(classbuf)) {
-                ((Class_004c48c0*)parser.current)
-                    ->FUN_004c48c0(classbuf, "name", 100, DAT_005119b8);
+            ((Class_004c3e10*)&parser)->ResetCurrentRecord();
+            if (((Class_004c3410*)&parser)->SelectRecord(classbuf)) {
+                ((TdfRecord*)parser.current)
+                    ->GetFieldString(classbuf, "name", 100, DAT_005119b8);
                 cls->field_0 = (int*)GameStrdup(classbuf);
                 cls->ReadMoveInfo(&parser);
             }
             cls++;
             i++;
         } while ((int)cls < (int)cls_end);
-        ((Class_004c3240*)&parser)->FUN_004c3240();
+        ((Class_004c3240*)&parser)->Unload();
     }
 
     Class_00458160* obj = (Class_00458160*)operator new(0x14);
@@ -420,7 +420,7 @@ void LoadUnitTypes() {
         g_game->field_38d71 = (unsigned char)((u * 100) / gp->field_1438f);
         type->field_21e = u;
         BuildDataPath(path, "units", type->name, "FBI");
-        if (FUN_004bbc40(path))
+        if (HAPI_FileLengthByName(path))
             LoadUnitFbi(path, type);
 
         strncpy(namebuf, type->model, 0x20);
@@ -440,7 +440,7 @@ void LoadUnitTypes() {
         StripExtension(namebuf);
         sprintf(section, "%s0", namebuf);
         BuildDataPath(path, "guis", section, "GUI");
-        if (FUN_004bbc40(path))
+        if (HAPI_FileLengthByName(path))
             type->flags.bits.gui = 1;
         else
             type->flags.bits.gui = 0;
@@ -451,7 +451,7 @@ void LoadUnitTypes() {
         do {
             sprintf(section, "%s%d", namebuf, suffix);
             BuildDataPath(path, "guis", section, "GUI");
-            more = FUN_004bbc40(path);
+            more = HAPI_FileLengthByName(path);
             if (more) {
                 suffix++;
                 found = 1;
@@ -466,14 +466,14 @@ void LoadUnitTypes() {
             type->field_22e = 0;
 
         BuildDataPath(path, "scripts", type->name, "COB");
-        type->field_18e = FUN_004b2450(path);
+        type->field_18e = LoadCobScript(path);
     }
 
     ProtectBlockReadOnly(g_game->field_14377);
 
     Class_004c2ea0 parser2;
     BuildDataPath(path, "gamedata", "sidedata", "TDF");
-    if (!((Class_004c2f60*)&parser2)->FUN_004c2f60(path)) {
+    if (!((Class_004c2f60*)&parser2)->LoadFile(path)) {
         FatalError("Can't load GAMEDATA.TDF");
     } else {
         short* list = (short*)FUN_004d83b0("TEMP UTYPE LIST", 0x3c);
@@ -482,14 +482,14 @@ void LoadUnitTypes() {
             type->field_152 = 0;
             type->field_156 = 0;
             if (type->flags.bits.canbuild) {
-                ((Class_004c3e10*)&parser2)->FUN_004c3e10();
-                if (((Class_004c3410*)&parser2)->FUN_004c3410("CANBUILD") &&
-                    ((Class_004c3410*)&parser2)->FUN_004c3410(type->name)) {
+                ((Class_004c3e10*)&parser2)->ResetCurrentRecord();
+                if (((Class_004c3410*)&parser2)->SelectRecord("CANBUILD") &&
+                    ((Class_004c3410*)&parser2)->SelectRecord(type->name)) {
                     int count = 0;
                     int k = 1;
                     sprintf(objpath, "canbuild%d", k);
-                    while (((Class_004c48c0*)parser2.current)
-                               ->FUN_004c48c0(valbuf, objpath, 0x20, DAT_005119b8)) {
+                    while (((TdfRecord*)parser2.current)
+                               ->GetFieldString(valbuf, objpath, 0x20, DAT_005119b8)) {
                         short val = FindUnitTypeId(valbuf);
                         if (val != 0) {
                             list[count] = val;
@@ -506,7 +506,7 @@ void LoadUnitTypes() {
             }
         }
         FUN_004d85a0(list);
-        ((Class_004c3240*)&parser2)->FUN_004c3240();
+        ((Class_004c3240*)&parser2)->Unload();
     }
 
     g_game->field_38d71 = 100;

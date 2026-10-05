@@ -12,17 +12,17 @@
 
 class Class_004b4bf0 {
 public:
-    int FUN_004b4bf0();
+    int GetBoxSize();
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4c80 {
 public:
-    int FUN_004b4c80(void* dst, int len);
+    int ReadBox(void* dst, int len);
 };
 
 char* __cdecl FUN_004d83b0(const char* text, int value);
@@ -87,12 +87,12 @@ int CobScript::LoadScriptState(Class_004b4c80* file)
 {
     int size = field_8->size * 4;
     int bytes = field_8->count * 0x6c;
-    if (((Class_004b4bf0*)file)->FUN_004b4bf0() != bytes + 0x528 + size) {
+    if (((Class_004b4bf0*)file)->GetBoxSize() != bytes + 0x528 + size) {
         return 0;
     }
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
+    ((Class_004b4c10*)file)->SeekBox(0);
     Big_004b2040 big;
-    if (file->FUN_004b4c80(&big, 0x528) != 0x528) {
+    if (file->ReadBox(&big, 0x528) != 0x528) {
         return 0;
     }
     if (unknown_c != big.magic) {
@@ -103,11 +103,11 @@ int CobScript::LoadScriptState(Class_004b4c80* file)
         arr[n].field_20 = 0;
     }
     field_53c = big.tail;
-    if (file->FUN_004b4c80(ptr10, size) != size) {
+    if (file->ReadBox(ptr10, size) != size) {
         return 0;
     }
     Rec2_004b2040* buffer = (Rec2_004b2040*)FUN_004d83b0("Piece States", bytes);
-    if (file->FUN_004b4c80(buffer, bytes) != bytes) {
+    if (file->ReadBox(buffer, bytes) != bytes) {
         return 0;
     }
     for (int i = 0; i < field_8->count; i++) {

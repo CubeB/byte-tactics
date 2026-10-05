@@ -4,7 +4,7 @@
 // whether every victory condition is satisfied.
 
 struct Unit;
-class Class_004b4560;
+class HapiBank;
 
 // Mission victory/defeat condition (see 0x48e010.cpp). The "destroy all
 // units" victory condition's vtable names the base's defaults and the
@@ -19,16 +19,16 @@ public:
     virtual void OnUnitDied(Unit* unit);         // Slot1
     virtual void OnUnitCaptured(Unit* unit);     // Slot2
     virtual void OnUnitCreated(Unit* unit);      // Slot3
-    virtual void SaveState(Class_004b4560* file) = 0;      // Save
-    virtual void LoadState(Class_004b4560* file) = 0;      // Load
+    virtual void SaveState(HapiBank* file) = 0;            // Save
+    virtual void LoadState(HapiBank* file) = 0;            // Load
 };
 
 // VictoryCondition_DestroyAllUnits.
 class VictoryDestroyAllUnits : public MissionCondition {
 public:
     virtual int IsSatisfied();
-    virtual void SaveState(Class_004b4560* file);
-    virtual void LoadState(Class_004b4560* file);
+    virtual void SaveState(HapiBank* file);
+    virtual void LoadState(HapiBank* file);
 };
 
 class MissionConditions {

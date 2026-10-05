@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 // FUNCTION: 0x4bbc30
-void __stdcall FUN_004bbc30(const char* path)
+void __stdcall RemoveFile(const char* path)
 {
     remove(path);
 }

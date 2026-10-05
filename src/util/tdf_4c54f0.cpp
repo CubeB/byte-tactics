@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol, edited by deepseek-v4.1, further tried by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
-// MATCH, 583/583 bytes. Reloads one TDF file into the global map (DAT_0051fdb8):
+// MATCH, 583/583 bytes. Reloads one TDF file into the global map (g_translations):
 // frees the old map when the section name changed, builds a new one and inserts
 // every (name, value) pair of the file's sections.
 //
@@ -19,13 +19,13 @@
 //    The pair is passed as `const Elem&`, so the call is the real member
 //    Class_004c5ba0::FUN_004c59d0 (same class as 0x4c59d0).
 //  * Freeing the old map is written out in the caller as
-//        if (DAT_0051fdb8) { Class_004c5840* old = DAT_0051fdb8;
-//                            DestroyVec(&DAT_0051fdb8->v); ::operator delete(old); }
+//        if (g_translations) { TranslationTable* old = g_translations;
+//                            DestroyVec(&g_translations->v); ::operator delete(old); }
 //    DestroyVec is a static inline taking the vector pointer. Reading the
 //    global once for the vector and once into `old` keeps the vector pointer
 //    (edi) and the map pointer (ebx) in separate registers, and the plain
 //    pointer test gives `test eax,eax` instead of a materialised bool.
-//    Written with a local `s = DAT_0051fdb8` for both, or with a destructor,
+//    Written with a local `s = g_translations` for both, or with a destructor,
 //    MSVC folds the vector onto the map pointer (59 percent).
 //  * `index` is an ordinary local now (the old int idx[1] was not needed).
 //  * `flag` is deliberately uninitialised: it is the stack byte the exe's
@@ -34,7 +34,7 @@
 #include <memory.h>
 #include <stdio.h>
 
-extern char DAT_0051fdc0[256];
+extern char g_language[256];
 extern char DAT_005119b8[];
 
 void __cdecl FUN_004d83a0(int);
@@ -84,14 +84,14 @@ static inline bool Ne(const Class_004c91a0& a, const Class_004c91a0& b)
 }
 
 // One entry of the global map: a key and a value, both string handles.
-struct Elem_004c5bc0 {
+struct TdfField {
     Class_004c91a0 key;                  // +0x0
     Class_004c91a0 value;                // +0x4
 
-    ~Elem_004c5bc0();
+    ~TdfField();
 };
 
-class Class_004c54d0 : public Elem_004c5bc0 {
+class Class_004c54d0 : public TdfField {
 public:
     Class_004c54d0(const Class_004c91a0& a, const Class_004c91a0& b);
 };
@@ -108,19 +108,19 @@ class Class_004c5ba0 {
 public:
     char count;                          // +0x0
     char pad[3];
-    Elem_004c5bc0* first;                // +0x4
-    Elem_004c5bc0* last;                 // +0x8
-    Elem_004c5bc0* end;                  // +0xc
+    TdfField* first;                     // +0x4
+    TdfField* last;                      // +0x8
+    TdfField* end;                       // +0xc
 
-    Elem_004c5bc0* FUN_004c59d0(Elem_004c5bc0* pos, const Elem_004c5bc0& val);
+    TdfField* FUN_004c59d0(TdfField* pos, const TdfField& val);
 };
 
 static inline void DestroyVec(Class_004c5ba0* w)
 {
-    Elem_004c5bc0* e = w->last;
-    Elem_004c5bc0* p = w->first;
+    TdfField* e = w->last;
+    TdfField* p = w->first;
     while (p != e) {
-        p->~Elem_004c5bc0();
+        p->~TdfField();
         p++;
     }
     ::operator delete(w->first);
@@ -134,24 +134,24 @@ static inline void DestroyVec(Class_004c5ba0* w)
 class Class_004c5c60 {
 public:
     char unknown_0[5];
-    Elem_004c5bc0* first;               // +0x5
-    Elem_004c5bc0* last;                // +0x9
+    TdfField* first;                    // +0x5
+    TdfField* last;                     // +0x9
 
-    Elem_004c5bc0* FUN_004c5c60(const char* key);
+    TdfField* FindLowerBound(const char* key);
 };
 
-class Class_004c5840 {
+class TranslationTable {
 public:
     char unknown_0;                      // +0x0
     Class_004c5ba0 v;                      // +0x1 (_First at +0x5)
 
-    Class_004c5840(char count);
+    TranslationTable(char count);
 };
 #pragma pack(pop)
 
-extern Class_004c5840* DAT_0051fdb8;
+extern TranslationTable* g_translations;
 
-Class_004c5840::Class_004c5840(char count)
+TranslationTable::TranslationTable(char count)
 {
     v.first = 0;
     v.count = count;
@@ -162,7 +162,7 @@ Class_004c5840::Class_004c5840(char count)
 // Inserts a new entry for the key at e, with an empty value, and returns its
 // value handle. The temporaries (the empty handle and the entry) live until
 // the end of the return statement.
-static inline Class_004c93f0* InsertNew(Class_004c5840* s, Elem_004c5bc0* e, const Class_004c91a0& key)
+static inline Class_004c93f0* InsertNew(TranslationTable* s, TdfField* e, const Class_004c91a0& key)
 {
     return (Class_004c93f0*)&((Class_004c5ba0*)(1 + (char*)s))->FUN_004c59d0(e, MakeElem(key, Class_004c9180()))->value;
 }
@@ -172,14 +172,14 @@ class Class_004c4420 {
 public:
     const char* name;                    // +0x0
 
-    void FUN_004c4420(char* dest, size_t count);
+    void CopyRecordName(char* dest, size_t count);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
     char unknown_0[0x19];
 
-    int FUN_004c48c0(char* dst, const char* key, size_t size, const char* def);
+    int GetFieldString(char* dst, const char* key, size_t size, const char* def);
 };
 
 class Class_004c2ea0 {
@@ -197,7 +197,7 @@ public:
     char unknown_0[4];
     int field_4;
 
-    int FUN_004c2f60(char* filename);
+    int LoadFile(char* filename);
 };
 
 class Class_004c3490 {
@@ -205,7 +205,7 @@ public:
     char unknown_0[4];
     int field_4;
 
-    Class_004c4420* FUN_004c3490(int index);
+    Class_004c4420* SelectRecordAt(int index);
 };
 
 class Class_004c3e10 {
@@ -213,7 +213,7 @@ public:
     char unknown_0[4];
     int field_4;
 
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3240 {
@@ -222,27 +222,27 @@ public:
     int field_4;
     int field_8;
 
-    void FUN_004c3240();
+    void Unload();
 };
 
 static inline void LoadMap(char flag, char* section)
 {
-    DAT_0051fdb8 = new Class_004c5840(flag);
-    FUN_004d83a0((int)DAT_0051fdb8);
-    strcpy(DAT_0051fdc0, section);
+    g_translations = new TranslationTable(flag);
+    FUN_004d83a0((int)g_translations);
+    strcpy(g_language, section);
 }
 
 // FUNCTION: 0x4c54f0
-void __stdcall FUN_004c54f0(char* filename, char* section)
+void __stdcall LoadTranslations(char* filename, char* section)
 {
     char flag;
-    Class_004c5840* s;
+    TranslationTable* s;
 
-    if (_strcmpi(section, DAT_0051fdc0) == 0)
+    if (_strcmpi(section, g_language) == 0)
         return;
-    if (DAT_0051fdb8) {
-        Class_004c5840* old = DAT_0051fdb8;
-        DestroyVec(&DAT_0051fdb8->v);
+    if (g_translations) {
+        TranslationTable* old = g_translations;
+        DestroyVec(&g_translations->v);
         ::operator delete(old);
     }
     LoadMap(flag, section);
@@ -250,17 +250,17 @@ void __stdcall FUN_004c54f0(char* filename, char* section)
         Class_004c2ea0 f;
         char value[256];
         char name[256];
-        if (((Class_004c2f60*)&f)->FUN_004c2f60(filename)) {
+        if (((Class_004c2f60*)&f)->LoadFile(filename)) {
             int index;
             index = 0;
-            while (((Class_004c3490*)&f)->FUN_004c3490(index)) {
-                f.current->FUN_004c4420(name, 0xff);
-                ((Class_004c48c0*)f.current)->FUN_004c48c0(value, DAT_0051fdc0, 0xff, DAT_005119b8);
+            while (((Class_004c3490*)&f)->SelectRecordAt(index)) {
+                f.current->CopyRecordName(name, 0xff);
+                ((TdfRecord*)f.current)->GetFieldString(value, g_language, 0xff, DAT_005119b8);
                 if (strlen(value) != 0) {
                     Class_004c91b0 key(name);
-                    Elem_004c5bc0* e;
-                    s = DAT_0051fdb8;
-                    e = ((Class_004c5c60*)DAT_0051fdb8)->FUN_004c5c60(key.ptr);
+                    TdfField* e;
+                    s = g_translations;
+                    e = ((Class_004c5c60*)g_translations)->FindLowerBound(key.ptr);
                     Class_004c93f0* r;
                     if (e == ((Class_004c5c60*)s)->last || Ne(e->key, key)) {
                         r = InsertNew(s, e, key);
@@ -269,10 +269,10 @@ void __stdcall FUN_004c54f0(char* filename, char* section)
                     }
                     r->AssignText(value);
                 }
-                ((Class_004c3e10*)&f)->FUN_004c3e10();
+                ((Class_004c3e10*)&f)->ResetCurrentRecord();
                 index++;
             }
-            ((Class_004c3240*)&f)->FUN_004c3240();
+            ((Class_004c3240*)&f)->Unload();
         }
     }
 }

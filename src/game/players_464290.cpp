@@ -9,7 +9,7 @@
 // `mov byte [eax+ebp+0x113], 1` wants, and writing the side test as
 // `side == 0` puts the "Arm" arm inline and jumps to the "Core" arm, which
 // is the original's block layout. The second name block really does pass the
-// raw "Core" and "Arm" strings while the first wraps them in FUN_004c5740.
+// raw "Core" and "Arm" strings while the first wraps them in Translate.
 
 #include <stdio.h>
 #include <string.h>
@@ -84,7 +84,7 @@ struct Game {
 
 extern Game* g_game;
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 
 // FUNCTION: 0x464290
 void __stdcall FUN_00464290(int player, char type)
@@ -121,7 +121,7 @@ void __stdcall FUN_00464290(int player, char type)
 
     if (g_game->campaign->FUN_00435100() == 1) {
         if (type == 1) {
-            sprintf(p->name, FUN_004c5740("Player"));
+            sprintf(p->name, Translate("Player"));
         } else if (type == 2) {
             if (p->info->side == 0) {
                 sprintf(p->name, "Arm");
@@ -134,12 +134,12 @@ void __stdcall FUN_00464290(int player, char type)
 
     if (g_game->campaign->FUN_00435100() == 2) {
         if (type == 1) {
-            sprintf(p->name, FUN_004c5740("Player"));
+            sprintf(p->name, Translate("Player"));
         } else if (type == 2) {
             if (p->info->side == 0) {
-                sprintf(p->name, FUN_004c5740("Arm"));
+                sprintf(p->name, Translate("Arm"));
             } else {
-                sprintf(p->name, FUN_004c5740("Core"));
+                sprintf(p->name, Translate("Core"));
             }
         }
         strcpy(p->fullName, p->name);

@@ -53,7 +53,7 @@ extern char* DAT_0051e660;
 
 void __cdecl FUN_004d85a0(int* param_1);
 Layout_004779e0* __stdcall FindGadgetChecked(Layout_004779e0* entries, char* name);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int count, int flag);
 int __stdcall FindGadgetIndex(void* gadgets, char* name, int type);
 void __stdcall FUN_004a2be0(void* menu, int index);
@@ -69,7 +69,7 @@ void __stdcall FillMissionList(Menu_004779e0* menu, int unused)
     }
     Layout_004779e0* layout =
         FindGadgetChecked(g_game->table->entries, "Campaign");
-    g_game->net->LoadCampaign(FUN_004b6af0(layout->text, layout->selected));
+    g_game->net->LoadCampaign(SkipTextLines(layout->text, layout->selected));
     int count = ((Class_00435760*)g_game->net)->BuildMissionList((int*)&DAT_0051e660);
     FUN_004a32a0(menu, "Missions", DAT_0051e660, count, 0);
     FUN_004a2be0((char*)g_game + 0x519,

@@ -4,17 +4,17 @@
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4c80 {
 public:
-    int FUN_004b4c80(void* buf, int size);
+    int ReadBox(void* buf, int size);
 };
 
 struct Unit_0044e7d0;
@@ -70,10 +70,10 @@ Class_0044e740::Class_0044e740(int owner, Class_004b4ba0* file, char* name)
 {
     field_4 = owner;
     vtable = DAT_004fd3f8;
-    file->FUN_004b4ba0(name);
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
+    file->OpenNamedBox(name);
+    ((Class_004b4c10*)file)->SeekBox(0);
     Header_0044e7d0 hdr;
-    if (((Class_004b4c80*)file)->FUN_004b4c80(&hdr, 0x2a) == 0x2a) {
+    if (((Class_004b4c80*)file)->ReadBox(&hdr, 0x2a) == 0x2a) {
         self = LoadUnit(hdr.id, file);
         flag = hdr.id_flag.flag;
         target = hdr.target;

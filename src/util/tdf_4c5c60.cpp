@@ -17,12 +17,12 @@ struct Class_004c5c60 {
     Elem_004c5c60* first;              // +0x5
     Elem_004c5c60* last;               // +0x9
 
-    Elem_004c5c60* FUN_004c5c60(const char* key);
+    Elem_004c5c60* FindLowerBound(const char* key);
 };
 #pragma pack(pop)
 
 // FUNCTION: 0x4c5c60
-Elem_004c5c60* Class_004c5c60::FUN_004c5c60(const char* key)
+Elem_004c5c60* Class_004c5c60::FindLowerBound(const char* key)
 {
     Elem_004c5c60* first = this->first;
     Elem_004c5c60* last = this->last;

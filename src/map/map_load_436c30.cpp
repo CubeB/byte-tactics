@@ -13,37 +13,37 @@ class Section_00436c30;
 
 class Class_004c3e10 {
 public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c4470 {
 public:
-    Section_00436c30* FUN_004c4470(const char* name);
+    Section_00436c30* FindSubRecord(const char* name);
 };
 
 class Class_004c4450 {
 public:
-    int FUN_004c4450();
+    int GetSubRecordCount();
 };
 
 class Class_004c44c0 {
 public:
-    Section_00436c30* FUN_004c44c0(int index);
+    Section_00436c30* GetSubRecord(int index);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, char* key, size_t size, char* def);
+    int GetFieldString(char* dst, char* key, size_t size, char* def);
 };
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
 class Section_00436c30 {
@@ -115,25 +115,25 @@ void Class_00436c30::LoadMissionData(char* name, Parser_00436c30* parser)
     int count;
     int total = 0;
 
-    ((Class_004c3e10*)parser)->FUN_004c3e10();
-    if (!((Class_004c3410*)parser)->FUN_004c3410("globalheader"))
+    ((Class_004c3e10*)parser)->ResetCurrentRecord();
+    if (!((Class_004c3410*)parser)->SelectRecord("globalheader"))
         return;
-    if (!((Class_004c3410*)parser)->FUN_004c3410(name))
+    if (!((Class_004c3410*)parser)->SelectRecord(name))
         return;
     Section_00436c30* root = parser->current;
 
-    Section_00436c30* list = ((Class_004c4470*)root)->FUN_004c4470("units");
+    Section_00436c30* list = ((Class_004c4470*)root)->FindSubRecord("units");
     if (list)
-        count = ((Class_004c4450*)list)->FUN_004c4450();
+        count = ((Class_004c4450*)list)->GetSubRecordCount();
     else
         count = 0;
     for (i = 0; i < count; i++) {
-        Section_00436c30* s = ((Class_004c44c0*)list)->FUN_004c44c0(i);
-        if (((Class_004c48c0*)s)->FUN_004c48c0(buf, "Unitname", 0x400, DAT_005119b8))
+        Section_00436c30* s = ((Class_004c44c0*)list)->GetSubRecord(i);
+        if (((TdfRecord*)s)->GetFieldString(buf, "Unitname", 0x400, DAT_005119b8))
             total += strlen(buf) + 1;
-        if (((Class_004c48c0*)s)->FUN_004c48c0(buf, "Ident", 0x400, DAT_005119b8))
+        if (((TdfRecord*)s)->GetFieldString(buf, "Ident", 0x400, DAT_005119b8))
             total += strlen(buf) + 1;
-        if (((Class_004c48c0*)s)->FUN_004c48c0(buf, "InitialMission", 0x400, DAT_005119b8))
+        if (((TdfRecord*)s)->GetFieldString(buf, "InitialMission", 0x400, DAT_005119b8))
             total += strlen(buf) + 1;
     }
     int unitBytes = count * sizeof(MissionUnit_00436c30);
@@ -143,45 +143,45 @@ void Class_00436c30::LoadMissionData(char* name, Parser_00436c30* parser)
     char* strings = (char*)units + unitBytes;
     for (i = 0; i < count; i++) {
         MissionUnit_00436c30* u = &units[i];
-        Section_00436c30* s = ((Class_004c44c0*)list)->FUN_004c44c0(i);
-        if (((Class_004c48c0*)s)->FUN_004c48c0(strings, "Unitname", 0x400, DAT_005119b8)) {
+        Section_00436c30* s = ((Class_004c44c0*)list)->GetSubRecord(i);
+        if (((TdfRecord*)s)->GetFieldString(strings, "Unitname", 0x400, DAT_005119b8)) {
             u->name = strings;
             strings += strlen(strings) + 1;
         } else {
             u->name = 0;
         }
-        if (((Class_004c48c0*)s)->FUN_004c48c0(strings, "Ident", 0x400, DAT_005119b8)) {
+        if (((TdfRecord*)s)->GetFieldString(strings, "Ident", 0x400, DAT_005119b8)) {
             u->ident = strings;
             strings += strlen(strings) + 1;
         } else {
             u->ident = 0;
         }
-        if (((Class_004c48c0*)s)->FUN_004c48c0(strings, "InitialMission", 0x400, DAT_005119b8)) {
+        if (((TdfRecord*)s)->GetFieldString(strings, "InitialMission", 0x400, DAT_005119b8)) {
             u->initialMission = strings;
             strings += strlen(strings) + 1;
         } else {
             u->initialMission = 0;
         }
-        u->x = ((Class_004c46c0*)s)->FUN_004c46c0("XPos", 0) << 16;
-        u->y = ((Class_004c46c0*)s)->FUN_004c46c0("YPos", 0) << 16;
-        u->z = ((Class_004c46c0*)s)->FUN_004c46c0("ZPos", 0) << 16;
-        u->angle = (((Class_004c46c0*)s)->FUN_004c46c0("Angle", 0) << 16) / 360;
-        u->player = ((Class_004c46c0*)s)->FUN_004c46c0("Player", 0);
+        u->x = ((Class_004c46c0*)s)->GetFieldInt("XPos", 0) << 16;
+        u->y = ((Class_004c46c0*)s)->GetFieldInt("YPos", 0) << 16;
+        u->z = ((Class_004c46c0*)s)->GetFieldInt("ZPos", 0) << 16;
+        u->angle = (((Class_004c46c0*)s)->GetFieldInt("Angle", 0) << 16) / 360;
+        u->player = ((Class_004c46c0*)s)->GetFieldInt("Player", 0);
         if (!u->player)
             u->player = 1;
-        u->health = ((Class_004c46c0*)s)->FUN_004c46c0("HealthPercentage", 100);
-        u->buildPriority = ((Class_004c46c0*)s)->FUN_004c46c0("BuildPriority", 0);
-        u->creationCountdown = ((Class_004c46c0*)s)->FUN_004c46c0("CreationCountdown", 0);
-        u->missionCritical = ((Class_004c46c0*)s)->FUN_004c46c0("MissionCriticalUnit", 0);
-        u->aiIgnore = ((Class_004c46c0*)s)->FUN_004c46c0("AiIgnore", 0);
-        u->aiPriorityTarget = ((Class_004c46c0*)s)->FUN_004c46c0("AiPriorityTarget", 0);
-        u->initialGroup = ((Class_004c46c0*)s)->FUN_004c46c0("InitialGroup", 0);
-        u->immunity = ((Class_004c46c0*)s)->FUN_004c46c0("Immunity", 0);
+        u->health = ((Class_004c46c0*)s)->GetFieldInt("HealthPercentage", 100);
+        u->buildPriority = ((Class_004c46c0*)s)->GetFieldInt("BuildPriority", 0);
+        u->creationCountdown = ((Class_004c46c0*)s)->GetFieldInt("CreationCountdown", 0);
+        u->missionCritical = ((Class_004c46c0*)s)->GetFieldInt("MissionCriticalUnit", 0);
+        u->aiIgnore = ((Class_004c46c0*)s)->GetFieldInt("AiIgnore", 0);
+        u->aiPriorityTarget = ((Class_004c46c0*)s)->GetFieldInt("AiPriorityTarget", 0);
+        u->initialGroup = ((Class_004c46c0*)s)->GetFieldInt("InitialGroup", 0);
+        u->immunity = ((Class_004c46c0*)s)->GetFieldInt("Immunity", 0);
     }
 
-    list = ((Class_004c4470*)root)->FUN_004c4470("specials");
+    list = ((Class_004c4470*)root)->FindSubRecord("specials");
     if (list)
-        count = ((Class_004c4450*)list)->FUN_004c4450();
+        count = ((Class_004c4450*)list)->GetSubRecordCount();
     else
         count = 0;
     ruleCount = count;
@@ -190,13 +190,13 @@ void Class_00436c30::LoadMissionData(char* name, Parser_00436c30* parser)
     for (i = 0; i < count; i++) {
         MissionRule_00436c30* r = &rules[i];
         r->type = 0;
-        Section_00436c30* s = ((Class_004c44c0*)list)->FUN_004c44c0(i);
-        if (((Class_004c48c0*)s)->FUN_004c48c0(text, "specialwhat", 0x100, DAT_005119b8)) {
+        Section_00436c30* s = ((Class_004c44c0*)list)->GetSubRecord(i);
+        if (((TdfRecord*)s)->GetFieldString(text, "specialwhat", 0x100, DAT_005119b8)) {
             static int len = strlen("StartPos");
             if (_strnicmp(text, "StartPos", len) == 0) {
                 r->type = 1;
-                r->x = ((Class_004c46c0*)s)->FUN_004c46c0("XPos", 0);
-                r->z = ((Class_004c46c0*)s)->FUN_004c46c0("ZPos", 0);
+                r->x = ((Class_004c46c0*)s)->GetFieldInt("XPos", 0);
+                r->z = ((Class_004c46c0*)s)->GetFieldInt("ZPos", 0);
                 int id;
                 if (!isdigit(text[len]))
                     id = ++startPos;
@@ -209,9 +209,9 @@ void Class_00436c30::LoadMissionData(char* name, Parser_00436c30* parser)
         }
     }
 
-    list = ((Class_004c4470*)root)->FUN_004c4470("features");
+    list = ((Class_004c4470*)root)->FindSubRecord("features");
     if (list)
-        count = ((Class_004c4450*)list)->FUN_004c4450();
+        count = ((Class_004c4450*)list)->GetSubRecordCount();
     else
         count = 0;
     featureCount = count;
@@ -220,11 +220,11 @@ void Class_00436c30::LoadMissionData(char* name, Parser_00436c30* parser)
     features = (MissionFeature_00436c30*)FUN_004d83b0("MISSIONFEATURE DATA", count * sizeof(MissionFeature_00436c30));
     for (i = 0; i < count; i++) {
         MissionFeature_00436c30* f = &features[i];
-        Section_00436c30* s = ((Class_004c44c0*)list)->FUN_004c44c0(i);
-        if (!((Class_004c48c0*)s)->FUN_004c48c0(f->name, "Featurename", 0x80, DAT_005119b8))
+        Section_00436c30* s = ((Class_004c44c0*)list)->GetSubRecord(i);
+        if (!((TdfRecord*)s)->GetFieldString(f->name, "Featurename", 0x80, DAT_005119b8))
             f->name[0] = 0;
-        f->x = ((Class_004c46c0*)s)->FUN_004c46c0("XPos", -1);
-        f->z = ((Class_004c46c0*)s)->FUN_004c46c0("ZPos", -1);
+        f->x = ((Class_004c46c0*)s)->GetFieldInt("XPos", -1);
+        f->z = ((Class_004c46c0*)s)->GetFieldInt("ZPos", -1);
         if (f->x < 0 || f->z < 0)
             f->name[0] = 0;
     }

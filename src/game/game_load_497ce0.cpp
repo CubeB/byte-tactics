@@ -70,7 +70,7 @@ void __stdcall FUN_0049fad0(Menu_00497ce0* menu);
 void __stdcall FUN_004ab170(Menu_00497ce0* menu, int a, int b);
 void __stdcall FillRectangle(void* surface, Rect_00497ce0* rect, int color);
 void __stdcall FUN_004a50e0(void* surface, const char* text, int x, int y, int len, int flag);
-char* __stdcall FUN_004c5740(char* s);
+char* __stdcall Translate(char* s);
 
 // FUNCTION: 0x497ce0
 void __stdcall DrawSyncStatus(void* surface)
@@ -84,7 +84,7 @@ void __stdcall DrawSyncStatus(void* surface)
 
     const char* text;
     if (g_game->netBits.synced) {
-        text = FUN_004c5740("Synchronization complete");
+        text = Translate("Synchronization complete");
     } else {
         int countA = 0;
         int countB = 0;
@@ -123,11 +123,11 @@ void __stdcall DrawSyncStatus(void* surface)
 
         const char* pr;
         if (countB == 1)
-            pr = FUN_004c5740("player ready");
+            pr = Translate("player ready");
         else
-            pr = FUN_004c5740("players ready");
+            pr = Translate("players ready");
         char buf[128];
-        sprintf(buf, "%s.  %i %s", FUN_004c5740("Waiting for other players"), countB, pr);
+        sprintf(buf, "%s.  %i %s", Translate("Waiting for other players"), countB, pr);
         text = buf;
     }
 

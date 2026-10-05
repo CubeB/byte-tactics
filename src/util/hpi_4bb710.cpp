@@ -6,7 +6,7 @@ struct Info_004bb710 {
     int size;                          // +0x4
 };
 
-struct File_004bb710 {
+struct FileHandle {
     FILE* fp;                          // +0x0
     void* shared;                      // +0x4
     Info_004bb710* info;               // +0x8
@@ -18,7 +18,7 @@ struct File_004bb710 {
 void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x4bb710
-long __stdcall FUN_004bb710(File_004bb710* file, long pos)
+long __stdcall HAPI_SeekFile(FileHandle* file, long pos)
 {
     if (file->shared != 0) {
         unsigned int old = file->pos;

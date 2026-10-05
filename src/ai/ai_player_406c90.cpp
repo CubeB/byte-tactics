@@ -2,7 +2,7 @@
 #include <string.h>
 struct Class_004b73c0 {
     char pad[0xd0]; int count;
-    const char* FUN_004b73c0(int, const char*);
+    const char* GetArg(int, const char*);
 };
 extern int g_aiCommandsEnabled;
 extern char DAT_005119b8[];
@@ -13,9 +13,9 @@ void __stdcall CmdPlan(Class_004b73c0* args)
 {
     g_aiCommandsEnabled = 0;
     for (int i = 1; i < args->count; ++i) {
-        if (!_strcmpi(args->FUN_004b73c0(1, DAT_005119b8), "any")) g_aiCommandsEnabled = 1;
-        if (*(int*)(g_game + 0x37eee) == 0 && !_strcmpi(args->FUN_004b73c0(i, DAT_005119b8), "easy")) g_aiCommandsEnabled = 1;
-        if (*(int*)(g_game + 0x37eee) == 1 && !_strcmpi(args->FUN_004b73c0(i, DAT_005119b8), "medium")) g_aiCommandsEnabled = 1;
-        if (*(int*)(g_game + 0x37eee) == 2 && !_strcmpi(args->FUN_004b73c0(i, DAT_005119b8), "hard")) g_aiCommandsEnabled = 1;
+        if (!_strcmpi(args->GetArg(1, DAT_005119b8), "any")) g_aiCommandsEnabled = 1;
+        if (*(int*)(g_game + 0x37eee) == 0 && !_strcmpi(args->GetArg(i, DAT_005119b8), "easy")) g_aiCommandsEnabled = 1;
+        if (*(int*)(g_game + 0x37eee) == 1 && !_strcmpi(args->GetArg(i, DAT_005119b8), "medium")) g_aiCommandsEnabled = 1;
+        if (*(int*)(g_game + 0x37eee) == 2 && !_strcmpi(args->GetArg(i, DAT_005119b8), "hard")) g_aiCommandsEnabled = 1;
     }
 }

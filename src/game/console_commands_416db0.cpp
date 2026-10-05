@@ -1,16 +1,16 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_004b7410 {
+class CommandArgs {
 public:
-    float FUN_004b7410(int index, float def);
+    float GetFloatArg(int index, float def);
 };
 
 extern int DAT_00511dd0;
 extern int DAT_00511dd4;
 
 // FUNCTION: 0x416db0
-void __stdcall CmdContour(Class_004b7410* args)
+void __stdcall CmdContour(CommandArgs* args)
 {
-    DAT_00511dd0 = (int)(args->FUN_004b7410(1, 0.0f) * 256.0f);
-    DAT_00511dd4 = (int)(args->FUN_004b7410(2, 0.75f) * 256.0f);
+    DAT_00511dd0 = (int)(args->GetFloatArg(1, 0.0f) * 256.0f);
+    DAT_00511dd4 = (int)(args->GetFloatArg(2, 0.75f) * 256.0f);
 }

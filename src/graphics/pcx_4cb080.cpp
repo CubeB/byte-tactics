@@ -14,33 +14,33 @@ struct PCX_004cb080 {
     int height;              // +0xc
 };
 
-void* __stdcall FUN_004bb5b0(char* path);
-int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
-int __stdcall FUN_004bb710(void* file, int pos);
-int __stdcall FUN_004bb5d0(void* file);
+void* __stdcall HAPI_OpenFileRead(char* path);
+int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
+int __stdcall HAPI_SeekFile(void* file, int pos);
+int __stdcall HAPI_CloseFile(void* file);
 void __stdcall DecodePcx(void* file, PCX_004cb080* pcx);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4cb080
 int __stdcall LoadPcxPalette(char* path, unsigned int* out)
 {
-    void* file = FUN_004bb5b0(path);
+    void* file = HAPI_OpenFileRead(path);
     if (file == 0)
         return 0;
     PCX_004cb080 pcx;
     unsigned char header[0x80];
     PALETTEENTRY pal[0x100];
-    if (FUN_004bb7c0(file, header, 0x80) != 0x80) {
-        FUN_004bb5d0(file);
+    if (HAPI_readfromfile(file, header, 0x80) != 0x80) {
+        HAPI_CloseFile(file);
         return 0;
     }
     if (header[0] != 0x0a || header[1] != 5) {
-        FUN_004bb5d0(file);
+        HAPI_CloseFile(file);
         return 0;
     }
-    FUN_004bb710(file, 0);
+    HAPI_SeekFile(file, 0);
     DecodePcx(file, &pcx);
-    FUN_004bb5d0(file);
+    HAPI_CloseFile(file);
     unsigned char* s = pcx.palette;
     for (int i = 0; i < 0x100; i++) {
         pal[i].peRed = s[0];

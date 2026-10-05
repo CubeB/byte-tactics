@@ -67,7 +67,7 @@ Entry_0047a910* __stdcall FindGadgetChecked(Entry_0047a910* entries, char* name)
 Entry_0047a910* __stdcall FUN_004a0280(Entry_0047a910* entries, char* name);
 void __stdcall FUN_004a0e00(Menu_0047a910* menu, char* name, char* value);
 void __stdcall FUN_004ab0a0(Menu_0047a910* menu);
-char* __stdcall FUN_004b6af0(char* text, int line);
+char* __stdcall SkipTextLines(char* text, int line);
 
 // FUNCTION: 0x47a910
 void __stdcall HandleSkirmishMapClick(Menu_0047a910* menu)
@@ -99,7 +99,7 @@ void __stdcall HandleSkirmishMapClick(Menu_0047a910* menu)
         PlaySoundByName("SmallButton", 0);
     }
     Entry_0047a910* g = FindGadgetChecked(entries, "MAPNAMES");
-    strncpy(g_game->player->name, FUN_004b6af0(g->text, g->selected), 0x100);
+    strncpy(g_game->player->name, SkipTextLines(g->text, g->selected), 0x100);
     g_game->field_391e9->LoadMissionByName(g_game->player->name);
     strncpy(buffer, g_game->player->name, 0x100);
     FUN_004a0e00(menu, "MapName", buffer);

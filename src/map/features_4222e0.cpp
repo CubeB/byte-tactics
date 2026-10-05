@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 //
-// Loads every features/*.tdf through FUN_004bcb50 into a local
+// Loads every features/*.tdf through FindFilesRecursive into a local
 // std::vector<Elem_004222e0>, then parses each file name into a new
 // Class_004c2ea0 and appends it to the global vector DAT_00511fb4.
 //
@@ -25,7 +25,7 @@ public:
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* name);
+    int LoadFile(char* name);
 };
 
 class Class_004c9390 {
@@ -42,17 +42,17 @@ struct Elem_004222e0 {
 
 extern std::vector<Class_004c2ea0*>* DAT_00511fb4;
 
-void __stdcall FUN_004bcb50(char* dir, char* pattern, void* list, int flags, char recurse);
+void __stdcall FindFilesRecursive(char* dir, char* pattern, void* list, int flags, char recurse);
 
 // FUNCTION: 0x4222e0
 void __stdcall LoadFeatureFileList()
 {
     DAT_00511fb4 = new std::vector<Class_004c2ea0*>;
     std::vector<Elem_004222e0> list;
-    FUN_004bcb50("features", "*.tdf", &list, -1, 1);
+    FindFilesRecursive("features", "*.tdf", &list, -1, 1);
     for (std::vector<Elem_004222e0>::iterator it = list.begin(); it < list.end(); it++) {
         Class_004c2ea0* obj = new Class_004c2ea0;
-        if (((Class_004c2f60*)obj)->FUN_004c2f60(it->name.data)) {
+        if (((Class_004c2f60*)obj)->LoadFile(it->name.data)) {
             DAT_00511fb4->push_back(obj);
         } else {
             delete obj;

@@ -126,7 +126,7 @@
 // original subtracts (`sub edx, ecx; sub eax, edx`), this adds the negated
 // term (`add ecx, edx; add eax, ecx`).
 
-extern unsigned int DAT_0051fc88;
+extern unsigned int g_randomSeed;
 
 // claude-opus-5-5 (#4406): still 95.0%. `q * 0x7fffffff` alone reproduces the
 // original's neg / shl 31 / sub correction exactly, but every spelling without
@@ -214,18 +214,18 @@ extern unsigned int DAT_0051fc88;
 //     lea chain and the original schedule; its two-instruction tail (`sub edx,
 //     ecx; sub eax, edx` vs our `add ecx, edx; add eax, ecx`) remains.
 // FUNCTION: 0x4b6c30
-int __stdcall FUN_004b6c30(int range)
+int __stdcall RandomInt(int range)
 {
     if (range < 2)
         return 0;
 
-    unsigned int seed = DAT_0051fc88;
+    unsigned int seed = g_randomSeed;
     unsigned int q = seed / 127773;
     unsigned int correction = (q << 31) - seed / 127773;
     seed = seed * 16807 - correction;
     if ((int)seed <= 0)
         seed += 2147483647;
-    DAT_0051fc88 = seed;
+    g_randomSeed = seed;
     return seed % range;
 }
 // GPT-6.1-sol refinement (issue 3121): rechecked the retained shift form; 91.1% remains the best. The only difference is the quotient correction sequence and the resulting short-branch offset.

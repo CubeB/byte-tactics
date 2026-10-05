@@ -12,7 +12,7 @@ struct PackHeader_004d1c00 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4d1c00
-void __stdcall FUN_004d1c00(PackHeader_004d1c00* header)
+void __stdcall SquashDumpHeader(PackHeader_004d1c00* header)
 {
     printf("\nheader.packType     = %d\n", header->packType);
     printf("header.encryptType  = %d\n", header->encryptType);

@@ -4,9 +4,9 @@ struct Game;
 extern Game* g_game;
 
 // Command arguments.
-class Class_004b73e0 {
+class CommandArgs {
 public:
-    int FUN_004b73e0(int index, int fallback);
+    int GetIntArg(int index, int fallback);
 };
 
 class Class_00437c80 {
@@ -17,8 +17,8 @@ public:
 void __stdcall SetLightVector(int param_1, int param_2, int param_3);
 
 // FUNCTION: 0x4166c0
-void __stdcall CmdLight(Class_004b73e0* args)
+void __stdcall CmdLight(CommandArgs* args)
 {
-    SetLightVector(args->FUN_004b73e0(1, 0), args->FUN_004b73e0(2, 0), args->FUN_004b73e0(3, 0));
+    SetLightVector(args->GetIntArg(1, 0), args->GetIntArg(2, 0), args->GetIntArg(3, 0));
     (*(Class_00437c80**)((char*)g_game + 0x1437b))->FlushCache();
 }

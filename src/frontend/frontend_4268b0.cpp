@@ -31,7 +31,7 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_004bcec0(char* param);
+void __stdcall GetStartDirectory(char* param);
 void __stdcall FUN_00434ab0(int param);
 
 // FUNCTION: 0x4268b0
@@ -41,7 +41,7 @@ void __stdcall LoadWarpLevel(int param_1)
     char path[256];
     char value[256];
 
-    FUN_004bcec0(path);
+    GetStartDirectory(path);
     strcat(path, "\\Warp.ini");
     wsprintfA(key, "warp%dcampaign", param_1);
     GetPrivateProfileStringA("WARPLEVELS", key, "default", value, 0x100, path);

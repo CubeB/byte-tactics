@@ -45,7 +45,7 @@ public:
 };
 void __stdcall FUN_0043a020(Unit*, Order*);
 void __stdcall VisitObjectsInRange(Vec3*, int, const Class_00405d90&);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 int __stdcall FUN_0043b400(Unit*, Unit*, int);
 int __stdcall FUN_0047ea40(Vec3*, int, Vec3**, float*, Vec3**, float*);
@@ -70,7 +70,7 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                 int range = unit->def->range << 16;
                 VisitObjectsInRange(&unit->pos, range, Class_00405d90(unit->owner, &units, unit));
                 if (!units.empty()) {
-                    Unit* target = units[FUN_004b6c30(units.size())];
+                    Unit* target = units[RandomInt(units.size())];
                     if (unit->owner->allied[target->owner->index]) {
                         Class_00438760 kind = FUN_0043f0e0(8, unit, target, 0);
                         if (kind.index) {

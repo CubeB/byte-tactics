@@ -80,8 +80,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern char __stdcall FUN_004bb190(char drive);
-extern int __stdcall FUN_004bb260(char drive);
+extern char __stdcall FindNextCdDrive(char drive);
+extern int __stdcall GetVolumeSerial(char drive);
 
 class Class_004cda00 {
 public:
@@ -107,9 +107,9 @@ int Class_004cda00::QueryDisc()
 
     field_208 = 0;
     field_20c = 0;
-    int drive = FUN_004bb190(0);
+    int drive = FindNextCdDrive(0);
     if (drive != 0)
-        field_210 = FUN_004bb260(drive);
+        field_210 = GetVolumeSerial(drive);
     int hr = mciSendStringA("status cdaudio number of tracks", buf, 0x20, 0);
     if (hr == 0) {
         field_200 = atoi(buf);

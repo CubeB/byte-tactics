@@ -167,17 +167,17 @@ void __stdcall FUN_004ac7d0(void*, void*, void*);
 void __stdcall SetCloseHandler(void (__cdecl *)(int), int);
 void __stdcall SetResolution(int, int);
 void __stdcall FatalError(char*);
-int __stdcall FUN_004b6b20(void (*)(void), int, int);
-void __stdcall FUN_004b6b50(int);
+int __stdcall StartThread(void (*)(void), int, int);
+void __stdcall SleepMilliseconds(int);
 void* __stdcall GetGafFrame(void*, int);
 void __stdcall DrawFrame(void*, void*, int, int);
 void* __stdcall FindGafEntry(int, char*);
 void __stdcall SetPaletteColors(void*, int, int);
-void* __stdcall FUN_004bbe50(void*, unsigned int*);
+void* __stdcall HAPI_LoadFile(void*, unsigned int*);
 void __stdcall FillRectangle(void*, void*, unsigned char);
 void __stdcall SetTextColors(int, int);
 void __stdcall SetFont(int);
-char* __stdcall FUN_004c5740(char*);
+char* __stdcall Translate(char*);
 int __stdcall LockScreen(void*);
 void __stdcall SetRestoreSurface(int);
 void __stdcall SetOffscreenSurface(void*);
@@ -260,7 +260,7 @@ void LoadingScreenFrame(void)
             SetOffscreenSurface((void*)g_game->field_37e1b);
         }
         BuildDataPath(aux, "palettes", "guipal", "PAL");
-        surfaceHandle = FUN_004bbe50((unsigned int*)aux, 0);
+        surfaceHandle = HAPI_LoadFile((unsigned int*)aux, 0);
         FUN_004ac7d0(&g_game->field_519, SURFACE_143a7, surfaceHandle);
         FUN_004d85a0(surfaceHandle);
         g_game->field_38a37 = GetTicks();
@@ -287,7 +287,7 @@ void LoadingScreenFrame(void)
             }
             g_game->slots.flag40[i] = (pi->active != 0 && (pi->data->flags & 0x40) != 0) ? 1 : 0;
         }
-        if (!FUN_004b6b20(LoadThreadMain, 0, 0)) {
+        if (!StartThread(LoadThreadMain, 0, 0)) {
             FatalError("Unable to start the loading thread!");
         }
         memset(DAT_0051f2c8, 0, 10);
@@ -372,7 +372,7 @@ void LoadingScreenFrame(void)
             if (FUN_0049f580() != 0 && _strcmpi((const char*)FUN_0049f580(), "english") != 0) {
                 _strlwr(namebuf);
             }
-            wsprintfA(buf, "%s: %s", (char*)FUN_004c5740("Map"), (char*)FUN_004c5740(namebuf));
+            wsprintfA(buf, "%s: %s", (char*)Translate("Map"), (char*)Translate(namebuf));
             textWidth = GetTextPixelWidth(buf);
             {
                 int x = gadget.width / 2 - textWidth / 2;
@@ -392,7 +392,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&DAT_0051e6c8)[0];
             DAT_0051e820 = g_game->progress[0];
-            FUN_004a50e0(&gadget, (char*)FUN_004c5740("Textures"), 0x5a, 0x87, -1, flash);
+            FUN_004a50e0(&gadget, (char*)Translate("Textures"), 0x5a, 0x87, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[0] * 7) / 2 + 0xcd;
             rect[1] = 0x87;
@@ -406,7 +406,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&DAT_0051e6c8)[1];
             DAT_0051e821 = g_game->progress[1];
-            FUN_004a50e0(&gadget, (char*)FUN_004c5740("Terrain"), 0x5a, 0xb1, -1, flash);
+            FUN_004a50e0(&gadget, (char*)Translate("Terrain"), 0x5a, 0xb1, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[1] * 7) / 2 + 0xcd;
             rect[1] = 0xb1;
@@ -420,7 +420,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&DAT_0051e6c8)[2];
             DAT_0051e822 = g_game->progress[2];
-            FUN_004a50e0(&gadget, (char*)FUN_004c5740("Units"), 0x5a, 0xda, -1, flash);
+            FUN_004a50e0(&gadget, (char*)Translate("Units"), 0x5a, 0xda, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[2] * 7) / 2 + 0xcd;
             rect[1] = 0xda;
@@ -434,7 +434,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&DAT_0051e6c8)[3];
             DAT_0051e823 = g_game->progress[3];
-            FUN_004a50e0(&gadget, (char*)FUN_004c5740("Animation"), 0x5a, 0x106, -1, flash);
+            FUN_004a50e0(&gadget, (char*)Translate("Animation"), 0x5a, 0x106, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[3] * 7) / 2 + 0xcd;
             rect[1] = 0x106;
@@ -448,7 +448,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&DAT_0051e6cc)[0];
             DAT_0051e824 = g_game->progress[4];
-            FUN_004a50e0(&gadget, (char*)FUN_004c5740("3D Data"), 0x5a, 0x130, -1, flash);
+            FUN_004a50e0(&gadget, (char*)Translate("3D Data"), 0x5a, 0x130, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[4] * 7) / 2 + 0xcd;
             rect[1] = 0x130;
@@ -464,7 +464,7 @@ void LoadingScreenFrame(void)
             }
             flash = ((unsigned char*)&DAT_0051e6cc)[1];
             DAT_0051e825 = g_game->progress[5];
-            FUN_004a50e0(&gadget, (char*)FUN_004c5740("Explosions"), 0x5a, 0x15b, -1, flash);
+            FUN_004a50e0(&gadget, (char*)Translate("Explosions"), 0x5a, 0x15b, -1, flash);
             rect[0] = 0xcd;
             rect[2] = ((int)g_game->progress[5] * 7) / 2 + 0xcd;
             rect[1] = 0x15b;
@@ -479,5 +479,5 @@ void LoadingScreenFrame(void)
         UnlockScreen(&gadget);
         FlipScreen();
     }
-    FUN_004b6b50(200);
+    SleepMilliseconds(200);
 }

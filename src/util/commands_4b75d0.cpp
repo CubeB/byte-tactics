@@ -13,13 +13,13 @@ public:
     void ReleaseRef();
 };
 
-struct Elem_004b75d0 {
+struct CommandEntry {
     Class_004c9390 name;               // +0x0
     int value1;                        // +0x4
     int value2;                        // +0x8
 
-    ~Elem_004b75d0() { name.ReleaseRef(); }
+    ~CommandEntry() { name.ReleaseRef(); }
 };
 
 // FUNCTION: 0x4b75d0 _$E3
-static std::vector<Elem_004b75d0> DAT_0051fc99;
+static std::vector<CommandEntry> s_commandTable;

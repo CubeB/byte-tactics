@@ -30,7 +30,7 @@ extern Tree_004d0de0* DAT_00526ff0;
 extern char* DAT_00526ff4;
 
 // FUNCTION: 0x4d0de0
-int __stdcall FUN_004d0de0(int pos, int* out)
+int __stdcall LzssAddString(int pos, int* out)
 {
     if (pos == 0)
         return 0;

@@ -9,7 +9,7 @@ struct Object_004aeee0 {
 };
 
 void __stdcall ChangeExtension(char* out, char* in, const char* ext);
-int __stdcall FUN_004bbc40(char* path);
+int __stdcall HAPI_FileLengthByName(char* path);
 void* __stdcall LoadGaf(char* path);
 
 // FUNCTION: 0x4aeee0
@@ -19,7 +19,7 @@ void __stdcall LoadGafFile(Object_004aeee0* obj, char* name)
     strncpy(path, obj->dir, 0x100);
     strcat(path, name);
     ChangeExtension(path, path, "GAF");
-    if (FUN_004bbc40(path)) {
+    if (HAPI_FileLengthByName(path)) {
         obj->gaf = LoadGaf(path);
     }
 }

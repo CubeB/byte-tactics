@@ -2,11 +2,11 @@
 
 class Class_004c4440 {
 public:
-    int FUN_004c4440();
+    int GetRecordName();
 };
 
 // FUNCTION: 0x4c4440
-int Class_004c4440::FUN_004c4440()
+int Class_004c4440::GetRecordName()
 {
     return *(int*)this;
 }

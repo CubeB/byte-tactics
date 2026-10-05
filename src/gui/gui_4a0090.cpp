@@ -33,7 +33,7 @@ struct Data_004a0090 {
 
 extern char DAT_005119b8[];
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 
 static inline int FindEntry(Entry_004a0090* entries, char* name)
 {
@@ -56,7 +56,7 @@ void __stdcall UpdateHelpText(Object_004a0090* obj)
     int found = FindEntry(obj->data->entries, "HELPTEXT");
     if (found != -1) {
         // re-read the entry pointer here: the original reloads it after the call
-        strcpy((char*)&obj->data->entries[found].count, FUN_004c5740(text));
+        strcpy((char*)&obj->data->entries[found].count, Translate(text));
         obj->changed = 1;
     }
 }

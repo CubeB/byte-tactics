@@ -12,7 +12,7 @@ struct Game {
 
 extern Game* g_game;
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 int GetLocalDpid();
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall AddMessage(char* text, int param_2, int param_3, int param_4);
@@ -28,9 +28,9 @@ void __stdcall SetGameSpeed(int speed, int param_2)
         char buf[100];
         int d = speed - 10;
         if (d == 0) {
-            strcpy(buf, FUN_004c5740("Game Speed Normal"));
+            strcpy(buf, Translate("Game Speed Normal"));
         } else {
-            sprintf(buf, "%s  %c%d\n", FUN_004c5740("Game Speed"),
+            sprintf(buf, "%s  %c%d\n", Translate("Game Speed"),
                     (d > 0) ? '+' : ' ', d);
         }
         AddMessage(buf, 2, 0, 10);

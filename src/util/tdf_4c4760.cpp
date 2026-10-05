@@ -23,7 +23,7 @@ public:
     Pair_004c4760* first;           // +0x19
     Pair_004c4760* last;            // +0x1d
 
-    double FUN_004c4760(const char* name, double def);
+    double GetFieldDouble(const char* name, double def);
 };
 #pragma pack(pop)
 
@@ -58,7 +58,7 @@ static inline char* GetString(Class_004c4760* table, const char* name)
 }
 
 // FUNCTION: 0x4c4760
-double Class_004c4760::FUN_004c4760(const char* name, double def)
+double Class_004c4760::GetFieldDouble(const char* name, double def)
 {
     char* s = GetString(this, name);
     if (s)

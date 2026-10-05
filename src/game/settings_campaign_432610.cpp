@@ -1,23 +1,23 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(char* section);
+    void OpenAccount(char* section);
 };
 
 class Class_004b48f0 {
 public:
-    int FUN_004b48f0(char* name);
+    int HasItem(char* name);
 };
 
 class Class_004b4800 {
 public:
-    int FUN_004b4800(char* name, int def);
+    int GetIntegerItem(char* name, int def);
 };
 
 class Class_0048fe60 {
 public:
-    void LoadConditions(Class_004b4560* file);
+    void LoadConditions(HapiBank* file);
 };
 
 #pragma pack(push, 1)
@@ -36,22 +36,22 @@ struct Game {
 extern Game* g_game;
 extern char* DAT_00503320;           // "Summary"
 
-void __stdcall LoadPlayers(Class_004b4560* file);
-void __stdcall ReadCameraPosition(Class_004b4560* file);
-void __stdcall LoadFeatures(Class_004b4560* file);
-void __stdcall LoadMetalPlotmap(Class_004b4560* file);
-void __stdcall LoadPlayerFeaturesPlotmap(Class_004b4560* file);
-void __stdcall LoadMappingData(Class_004b4560* file);
-void __stdcall LoadUnits(Class_004b4560* file);
-void __stdcall LoadMeteors(Class_004b4560* file);
+void __stdcall LoadPlayers(HapiBank* file);
+void __stdcall ReadCameraPosition(HapiBank* file);
+void __stdcall LoadFeatures(HapiBank* file);
+void __stdcall LoadMetalPlotmap(HapiBank* file);
+void __stdcall LoadPlayerFeaturesPlotmap(HapiBank* file);
+void __stdcall LoadMappingData(HapiBank* file);
+void __stdcall LoadUnits(HapiBank* file);
+void __stdcall LoadMeteors(HapiBank* file);
 
 // Reads the game summary section and every subsystem's saved state.
 // FUNCTION: 0x432610
-int __stdcall LoadSavedGameState(Class_004b4560* file)
+int __stdcall LoadSavedGameState(HapiBank* file)
 {
-    file->FUN_004b4560(DAT_00503320);
-    if (((Class_004b48f0*)file)->FUN_004b48f0("maxunits"))
-        g_game->maxUnits = ((Class_004b4800*)file)->FUN_004b4800("maxunits", 0);
+    file->OpenAccount(DAT_00503320);
+    if (((Class_004b48f0*)file)->HasItem("maxunits"))
+        g_game->maxUnits = ((Class_004b4800*)file)->GetIntegerItem("maxunits", 0);
     LoadPlayers(file);
     ReadCameraPosition(file);
     LoadFeatures(file);

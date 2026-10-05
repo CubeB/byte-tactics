@@ -91,7 +91,7 @@ extern Game* g_game;
 extern Callback_0043b7c0* DAT_00512344;
 
 void __stdcall ClearWeaponTarget(Unit* unit, int index);
-int __stdcall FUN_004b6c30(int n);
+int __stdcall RandomInt(int n);
 void __stdcall DeleteOrder(Unit* owner, Class_0043a1f0* node);
 
 // 0x439eb0: deletes the nodes of the +0x5c list (all of them, or only those
@@ -176,11 +176,11 @@ void __stdcall FUN_0043b730(Unit* p, unsigned char type)
     FUN_0043ac60(p, child, (child->flags & 0x40000) ? p->list2 : p->list);
 }
 
-// Puts the node to sleep: it is due again a random delay (FUN_004b6c30(n))
+// Puts the node to sleep: it is due again a random delay (RandomInt(n))
 // plus 30 frames from now.
 static void Wait_0043b7c0(Class_0043a1f0* node, int n)
 {
-    unsigned int when = FUN_004b6c30(n) + 0x1e;
+    unsigned int when = RandomInt(n) + 0x1e;
     node->flags6 |= 1;
     node->wakeFrame = g_game->frame + when;
 }

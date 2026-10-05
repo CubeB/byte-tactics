@@ -14,8 +14,8 @@
 //   put it at 64979. The same three headers match 0x471de0 (file total
 //   65433, window 65257 to 65554).
 // - The file uses the header's types where they hold what the function
-//   reads: Game, Feature, Class_004b4560 (the file object; FUN_004b4ba0 and
-//   FUN_004b4c80 are its members there, so data/aliases.csv names them),
+//   reads: Game, Feature, HapiBank (the file object; OpenNamedBox and
+//   ReadBox are its members there, so data/aliases.csv names them),
 //   Class_004b4800, Class_004b4bf0, Class_004b4c10, Class_004c2ea0,
 //   FeatureName_00424c00, Normal_00424890 and Rot16. It keeps its own views
 //   of the cell (the header's Cell has two bytes at +0xa), the feature spot
@@ -133,17 +133,17 @@ static inline void FreeFeatureList()
 }
 
 // FUNCTION: 0x424c00
-void __stdcall LoadFeatures(Class_004b4560* file)
+void __stdcall LoadFeatures(HapiBank* file)
 {
     int j;
-    file->FUN_004b4560("Features");
+    file->OpenAccount("Features");
     std::vector<unsigned short> remap;
     LoadFeatureFileList();
-    if (file->FUN_004b4ba0("Feature Type Names")) {
-        int count = ((Class_004b4bf0*)file)->FUN_004b4bf0() / sizeof(FeatureName_00424c00);
+    if (file->OpenNamedBox("Feature Type Names")) {
+        int count = ((Class_004b4bf0*)file)->GetBoxSize() / sizeof(FeatureName_00424c00);
         remap.resize(count);
         std::vector<FeatureName_00424c00> names(count);
-        file->FUN_004b4c80(names.begin(), count * (int)sizeof(FeatureName_00424c00));
+        file->ReadBox(names.begin(), count * (int)sizeof(FeatureName_00424c00));
         for (int i = 0; i < count; i++) {
             if (i < g_game->featureCount && _strcmpi(names[i].name, g_game->features[i].name) == 0) {
                 remap[i] = i;
@@ -167,12 +167,12 @@ void __stdcall LoadFeatures(Class_004b4560* file)
     FreeFeatureList();
 
     int k, n;
-    n = ((Class_004b4800*)file)->FUN_004b4800("Number of Normal Features", 0);
-    file->FUN_004b4ba0("Normal Features");
+    n = ((Class_004b4800*)file)->GetIntegerItem("Number of Normal Features", 0);
+    file->OpenNamedBox("Normal Features");
     for (k = 0; k < n; k++) {
         Normal_00424890 rec;
-        ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Normal_00424890));
-        int got = file->FUN_004b4c80(&rec, sizeof(Normal_00424890));
+        ((Class_004b4c10*)file)->SeekBox(k * sizeof(Normal_00424890));
+        int got = file->ReadBox(&rec, sizeof(Normal_00424890));
         if (got >= sizeof(Normal_00424890)) {
             Cell_00424c00* c = GetMapCell(rec.x, rec.y);
             unsigned short type = remap[rec.feature];
@@ -181,12 +181,12 @@ void __stdcall LoadFeatures(Class_004b4560* file)
         }
     }
 
-    n = ((Class_004b4800*)file)->FUN_004b4800("Number of Animating Features", 0);
-    file->FUN_004b4ba0("Animating Features");
+    n = ((Class_004b4800*)file)->GetIntegerItem("Number of Animating Features", 0);
+    file->OpenNamedBox("Animating Features");
     for (k = 0; k < n; k++) {
         Anim_00424c00 rec;
-        ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Anim_00424c00));
-        int got = file->FUN_004b4c80(&rec, sizeof(Anim_00424c00));
+        ((Class_004b4c10*)file)->SeekBox(k * sizeof(Anim_00424c00));
+        int got = file->ReadBox(&rec, sizeof(Anim_00424c00));
         if (got >= sizeof(Anim_00424c00)) {
             Cell_00424c00* c = GetMapCell(rec.x, rec.y);
             unsigned short type = remap[rec.feature];
@@ -210,12 +210,12 @@ void __stdcall LoadFeatures(Class_004b4560* file)
         }
     }
 
-    n = ((Class_004b4800*)file)->FUN_004b4800("Number of 3D Features", 0);
-    file->FUN_004b4ba0("3D Features");
+    n = ((Class_004b4800*)file)->GetIntegerItem("Number of 3D Features", 0);
+    file->OpenNamedBox("3D Features");
     for (k = 0; k < n; k++) {
         Model3D_00424c00 rec;
-        ((Class_004b4c10*)file)->FUN_004b4c10(k * sizeof(Model3D_00424c00));
-        int got = file->FUN_004b4c80(&rec, sizeof(Model3D_00424c00));
+        ((Class_004b4c10*)file)->SeekBox(k * sizeof(Model3D_00424c00));
+        int got = file->ReadBox(&rec, sizeof(Model3D_00424c00));
         if (got >= sizeof(Model3D_00424c00)) {
             Cell_00424c00* c = GetMapCell(rec.x, rec.y);
             unsigned short type = remap[rec.feature];

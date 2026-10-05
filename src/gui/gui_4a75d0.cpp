@@ -21,7 +21,7 @@ struct Obj_004a75d0 {
 };
 
 void __stdcall ChangeExtension(char* out, char* in, const char* ext);
-int __stdcall FUN_004bbc40(char* path);
+int __stdcall HAPI_FileLengthByName(char* path);
 void* __stdcall LoadGaf(char* path);
 
 // FUNCTION: 0x4a75d0
@@ -33,7 +33,7 @@ int __stdcall LoadScreenGaf(Obj_004a75d0* obj, char* name)
         strncpy(path, obj->name, 0x100);
     strcat(path, name);
     ChangeExtension(path, path, "GAF");
-    if (FUN_004bbc40(path)) {
+    if (HAPI_FileLengthByName(path)) {
         obj->screen->holder->gaf = LoadGaf(path);
         if (obj->screen->holder->gaf != 0)
             return 1;

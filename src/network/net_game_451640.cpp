@@ -41,7 +41,7 @@ void __cdecl FUN_004d85a0(void* p);
 unsigned __stdcall JoinLobbyGameThread(void* args);
 Obj_00451640* GetDisplay();
 void ToggleFullScreen();
-char* __stdcall FUN_004c5740(char* s);
+char* __stdcall Translate(char* s);
 void __stdcall FatalError(char* msg);
 
 // FUNCTION: 0x451640
@@ -81,7 +81,7 @@ int __stdcall JoinLobbyGame(Player_00451640* p)
                     ToggleFullScreen();
                     Sleep(500);
                 }
-                FatalError(FUN_004c5740("Timed out while connecting to DirectPlay lobby!"));
+                FatalError(Translate("Timed out while connecting to DirectPlay lobby!"));
             } else {
                 result = args->result;
             }

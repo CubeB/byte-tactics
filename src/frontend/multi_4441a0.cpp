@@ -57,7 +57,7 @@ void __stdcall PlaySoundByName(char* name, int flag);
 void __stdcall FUN_00491c80(int value);
 int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int size);
 void OnlineUnload();
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(void* menu, char* text, int size, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);
 void OpenOptionsPanel();
@@ -119,7 +119,7 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
         if (message[0] == 0)
             sprintf(message, "The %s service failed or took%stoo long. Please see the readme%sfile for more information.",
                     DAT_005127c8[link].name, "\n\n", "\n\n");
-        char* msg = FUN_004c5740(message);
+        char* msg = Translate(message);
         OpenMessageBox(menu, msg, sizeof(message), 1, 1);
         FUN_004ab0a0(menu);
         return;

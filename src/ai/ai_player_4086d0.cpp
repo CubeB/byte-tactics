@@ -11,7 +11,7 @@ struct Group { char pad[0x10]; std::vector<Unit*> units; };
 class Class_00408810 { public: char pad[8]; Group* group; int next; unsigned player; void OnTimer(); };
 class Class_0048b090 { public: void SetStateBits(int,int); };
 float __stdcall FUN_00464ad0(Economy*);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 unsigned short __stdcall ChooseBuildOption(unsigned,Unit*);
 void __stdcall QueueBuildOrder(char*,Unit*,int);
 // FUNCTION: 0x4086d0
@@ -23,7 +23,7 @@ void Class_00408810::OnTimer()
         if((u->flags&0x20000000) && (u->flags&0x10000000) && !(u->flags&0x4000)) {
             if(u->def->converter) {
                 if(u->economy->cost+u->economy->cost < u->economy->energy) {
-                    if(FUN_00464ad0(u->economy)>0.0f && FUN_004b6c30(5))
+                    if(FUN_00464ad0(u->economy)>0.0f && RandomInt(5))
                         ((Class_0048b090*)u)->SetStateBits(1,1);
                 } else ((Class_0048b090*)u)->SetStateBits(1,0);
             } else if(u->def->building && !u->orders) {

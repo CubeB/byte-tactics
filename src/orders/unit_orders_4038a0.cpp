@@ -11,7 +11,7 @@ class Class_00489800 { public: void ReleaseWeapons(int); };
 class Class_004898b0 { public: void ClaimWeapons(int); };
 void __stdcall SetWeaponTargetPos(Unit*,Vec*,int);
 int __stdcall FUN_0049adf0(Unit*,unsigned char);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 // FUNCTION: 0x4038a0
 int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
 {
@@ -40,7 +40,7 @@ int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
             if(order->radius<=0) return 9;
             ((Class_00438930*)order)->FUN_00438930(&order->pos,order->radius);
             order->flags=0xe0;
-            order->radius-=FUN_004b6c30(FUN_0049adf0(unit,order->weapon)/3);
+            order->radius-=RandomInt(FUN_0049adf0(unit,order->weapon)/3);
             order->state=1; return 4;
         }
         return 9;

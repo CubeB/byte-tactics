@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 #include <string.h>
 
-extern void __stdcall FUN_004b6a20(const char* app, const char* key, const char* value);
+extern void __stdcall WriteRegistryString(const char* app, const char* key, const char* value);
 
 // FUNCTION: 0x432b00
 void __stdcall SaveCampaignRegistryName(int core, char* name)
@@ -12,5 +12,5 @@ void __stdcall SaveCampaignRegistryName(int core, char* name)
     else
         strcpy(key, "ArmCamp");
     name[0x19] = 0;
-    FUN_004b6a20("Total Annihilation", key, name);
+    WriteRegistryString("Total Annihilation", key, name);
 }

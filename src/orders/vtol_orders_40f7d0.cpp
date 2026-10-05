@@ -59,7 +59,7 @@ public:
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 Unit* __stdcall FUN_0043b700(Unit*);
@@ -103,17 +103,17 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
     case 2:
         if ((unit->def->flags & 0x800) && (unit->flags & 3) == 2) {
             if (unit->field_8a) {
-                short angle = FUN_004b6c30(0x10000);
+                short angle = RandomInt(0x10000);
                 Vec3 p;
                 p.x = order->x << 16;
                 p.y = 0;
                 p.z = order->z << 16;
-                int distance = (FUN_004b6c30(0x20) + 8) << 16;
+                int distance = (RandomInt(0x20) + 8) << 16;
                 p += Offset(angle, distance);
                 Class_0044e2d0* obj = new Class_0044e2d0(order, p);
                 ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c);
                 ((Class_004388d0*)order)->FUN_004388d0((int)obj);
-                ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(0xf) + 0x1e);
+                ((Class_00439e80*)order)->FUN_00439e80(RandomInt(0xf) + 0x1e);
                 order->state = 1;
                 return 2;
             }
@@ -121,7 +121,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
             return 5;
         }
         order->flags |= 0x10000;
-        ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(0x1e) + 0x1e);
+        ((Class_00439e80*)order)->FUN_00439e80(RandomInt(0x1e) + 0x1e);
         order->state = 1;
         return 2;
     }

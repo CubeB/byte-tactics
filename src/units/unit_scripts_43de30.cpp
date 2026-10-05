@@ -17,17 +17,17 @@ struct Unit {
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4c80 {
 public:
-    int FUN_004b4c80(void* buf, int size);
+    int ReadBox(void* buf, int size);
 };
 
 #pragma pack(push, 1)
@@ -63,9 +63,9 @@ void Class_0043d210::LoadMotion(Unit* unit, Class_004b4ba0* file)
     char name[32];
     Record_0043de30 rec;
     sprintf(name, "u%04xmob", unit->id);
-    file->FUN_004b4ba0(name);
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
-    ((Class_004b4c80*)file)->FUN_004b4c80(&rec, 0x23);
+    file->OpenNamedBox(name);
+    ((Class_004b4c10*)file)->SeekBox(0);
+    ((Class_004b4c80*)file)->ReadBox(&rec, 0x23);
     velocity = rec.velocity;
     v2 = rec.v2;
     field_20 = rec.d6;

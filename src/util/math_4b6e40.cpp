@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 // FUNCTION: 0x4b6e40
-int __stdcall FUN_004b6e40(int dx, int dy)
+int __stdcall ApproxDistance(int dx, int dy)
 {
     int a = abs(dx);
     int b = abs(dy);

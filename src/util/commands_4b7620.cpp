@@ -25,8 +25,8 @@
 //
 // Load-bearing details kept from earlier passes (see 0x4b7760.cpp for the
 // declaration-counter work): the whole preamble must stay counter-equivalent
-// to the original's so the file-local vector mangles as DAT_0051fc99$S4554;
-// std::vector<Class_004b7e30> lifts the index division above the insert; the
+// to the original's so the file-local vector mangles as s_commandTable$S4554;
+// std::vector<CommandEntry> lifts the index division above the insert; the
 // NameLess functor spelling puts the lower_bound result in edx; the `int* slot`
 // pointer gives `lea esi, [eax+edx*4+4]` with stores [esi]/[esi+4].
 #include <string.h>
@@ -42,17 +42,17 @@ struct Pair_004b7620;
 
 typedef int Fwd_004b7620;
 
-class Class_004b7e30 {
+class CommandEntry {
 public:
     Class_004c91a0 handle;             // +0x0
     int value1;                        // +0x4
     int value2;                        // +0x8
 
-    Class_004b7e30(const Class_004c91a0& h, Pair_004b7620 pp);
-    ~Class_004b7e30();
+    CommandEntry(const Class_004c91a0& h, Pair_004b7620 pp);
+    ~CommandEntry();
 };
 
-static std::vector<Class_004b7e30> DAT_0051fc99;
+static std::vector<CommandEntry> s_commandTable;
 
 extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 
@@ -72,11 +72,11 @@ struct Pair_004b7620 {
     Pair_004b7620(int f, int m) : fn(f), mask(m) {}
 };
 
-Class_004b7e30::Class_004b7e30(const Class_004c91a0& h, Pair_004b7620 pp) : handle(h)
+CommandEntry::CommandEntry(const Class_004c91a0& h, Pair_004b7620 pp) : handle(h)
 {
     *(Pair_004b7620*)&value1 = pp;
 }
-Class_004b7e30::~Class_004b7e30() { ((Class_004c9390*)&handle)->ReleaseRef(); }
+CommandEntry::~CommandEntry() { ((Class_004c9390*)&handle)->ReleaseRef(); }
 
 class Class_004c91b0 : public Class_004c91a0 {
 public:
@@ -101,27 +101,27 @@ struct NameNe_004b7620 {
 typedef void (__stdcall *Handler_004b7620)(void*);
 
 // FUNCTION: 0x4b7620
-void __stdcall FUN_004b7620(const char* name, Handler_004b7620 fn, int mask)
+void __stdcall RegisterCommand(const char* name, Handler_004b7620 fn, int mask)
 {
     Pair_004b7620 p((int)fn, mask);
     Class_004c91b0 key(name);
-    Class_004b7e30* first = DAT_0051fc99.begin();
-    Class_004b7e30* last = DAT_0051fc99.end();
+    CommandEntry* first = s_commandTable.begin();
+    CommandEntry* last = s_commandTable.end();
     NameLess_004b7620 less;
     const char* k = key.data;
     while (first != last) {
-        Class_004b7e30* mid = first + (last - first) / 2;
+        CommandEntry* mid = first + (last - first) / 2;
         if (less(mid->handle.data, k))
             first = mid + 1;
         else
             last = mid;
     }
     int* slot;
-    if (first == DAT_0051fc99.end() || NameNe_004b7620()(first->handle, key)) {
-        Class_004b7e30 e(key, Pair_004b7620(0, 0));
-        int index = first - DAT_0051fc99.begin();
-        DAT_0051fc99.insert(first, e);
-        slot = &(DAT_0051fc99.begin() + index)->value1;
+    if (first == s_commandTable.end() || NameNe_004b7620()(first->handle, key)) {
+        CommandEntry e(key, Pair_004b7620(0, 0));
+        int index = first - s_commandTable.begin();
+        s_commandTable.insert(first, e);
+        slot = &(s_commandTable.begin() + index)->value1;
     } else {
         slot = &first->value1;
     }

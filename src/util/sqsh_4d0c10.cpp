@@ -12,7 +12,7 @@ extern Rec_004d0c10* DAT_00526ff0;
 // of the chain. The caller at 0x4d12eb uses the result (mov edi, eax); without
 // the return value MSVC is free to keep the index out of eax.
 // FUNCTION: 0x4d0c10
-int __stdcall FUN_004d0c10(int index)
+int __stdcall LzssFindNextNode(int index)
 {
     unsigned int cur;
     unsigned short nxt;

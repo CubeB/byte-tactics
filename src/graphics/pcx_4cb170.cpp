@@ -31,9 +31,9 @@ extern char DAT_00503374[];
 extern char DAT_005119b8[];
 
 Game_004cb170* GetDisplay();
-int __stdcall FUN_004bc4b0(const char* path, FindData_004cb170* fd, int a, int b);
-int __stdcall FUN_004bc640(int handle, FindData_004cb170* fd);
-void __stdcall FUN_004bc8d0(int handle);
+int __stdcall HAPI_FindFirst(const char* path, FindData_004cb170* fd, int a, int b);
+int __stdcall HAPI_FindNext(int handle, FindData_004cb170* fd);
+void __stdcall HAPI_FindClose(int handle);
 int __stdcall WritePcx(char* name, unsigned char* data, int width, int height, unsigned char* palette);
 
 // FUNCTION: 0x4cb170
@@ -58,14 +58,14 @@ int __stdcall SaveScreenshot(char* param_1, char* param_2)
     const char* sep = flag ? DAT_00503374 : DAT_005119b8;
     sprintf(filename, "%s%s%s*.pcx", param_1, sep, param_2);
 
-    int handle = FUN_004bc4b0(filename, &fd, -1, 1);
+    int handle = HAPI_FindFirst(filename, &fd, -1, 1);
     if (handle >= 0) {
         do {
             int n = atoi(fd.name + strlen(param_2));
             if (n > best)
                 best = n;
-        } while (FUN_004bc640(handle, &fd) == 0);
-        FUN_004bc8d0(handle);
+        } while (HAPI_FindNext(handle, &fd) == 0);
+        HAPI_FindClose(handle);
     }
 
     sep = flag ? DAT_00503374 : DAT_005119b8;

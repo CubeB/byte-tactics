@@ -79,7 +79,7 @@ void __stdcall FUN_004a0bf0(Menu_0047a0e0* menu, char* key, char* value, int fla
 void __stdcall FUN_004a0570(Menu_0047a0e0* menu, char* name, int value);
 int __stdcall SetButtonStageByName(Menu_0047a0e0* menu, char* name, int value);
 void __stdcall FUN_0049fa90(Menu_0047a0e0* menu);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void BuildSkirmishPlayerRows();
 void RefreshAllyIcons();
 
@@ -132,10 +132,10 @@ void RefreshSkirmishSetup()
             int type = g_game->table->players[i].active;
             switch (type) {
             case 2:
-                FUN_004a0bf0(&g_game->menu, buf, FUN_004c5740("Computer"), 0);
+                FUN_004a0bf0(&g_game->menu, buf, Translate("Computer"), 0);
                 break;
             case 1:
-                FUN_004a0bf0(&g_game->menu, buf, FUN_004c5740("Player"), 0);
+                FUN_004a0bf0(&g_game->menu, buf, Translate("Player"), 0);
                 break;
             case 0:
                 FUN_004a0bf0(&g_game->menu, buf, "Open", 0);
@@ -193,10 +193,10 @@ void RefreshSkirmishSetup()
         Entry_0047a0e0* g = &entries[index];
         if (g_game->table->field_118 != 0) {
             g->field_137 = 0;
-            strcpy(g->text, FUN_004c5740("Commanders are placed at pre-determined locations."));
+            strcpy(g->text, Translate("Commanders are placed at pre-determined locations."));
         } else {
             g->field_137 = 1;
-            strcpy(g->text, FUN_004c5740("Commanders are randomly placed on the battle field."));
+            strcpy(g->text, Translate("Commanders are randomly placed on the battle field."));
         }
     }
 
@@ -205,10 +205,10 @@ void RefreshSkirmishSetup()
         Entry_0047a0e0* g = &entries[index];
         if (g_game->table->field_108 != 0) {
             g->field_137 = 0;
-            strcpy(g->text, FUN_004c5740("Game ends when commander is destroyed."));
+            strcpy(g->text, Translate("Game ends when commander is destroyed."));
         } else {
             g->field_137 = 1;
-            strcpy(g->text, FUN_004c5740("Game continues after Commander is destroyed."));
+            strcpy(g->text, Translate("Game continues after Commander is destroyed."));
         }
     }
 
@@ -217,10 +217,10 @@ void RefreshSkirmishSetup()
         Entry_0047a0e0* g = &entries[index];
         if (g_game->table->field_10c != 0) {
             g->field_137 = 0;
-            strcpy(g->text, FUN_004c5740("Terrain is blacked out until explored."));
+            strcpy(g->text, Translate("Terrain is blacked out until explored."));
         } else {
             g->field_137 = 1;
-            strcpy(g->text, FUN_004c5740("Terrain is visible."));
+            strcpy(g->text, Translate("Terrain is visible."));
         }
     }
 
@@ -229,13 +229,13 @@ void RefreshSkirmishSetup()
         Entry_0047a0e0* g = &entries[index];
         if (g_game->table->field_110 == 0) {
             g->field_137 = 0;
-            strcpy(g->text, FUN_004c5740("All mapped terrain is visible."));
+            strcpy(g->text, Translate("All mapped terrain is visible."));
         } else if (g_game->table->field_114 == 1) {
             g->field_137 = 1;
-            strcpy(g->text, FUN_004c5740("Terrain elevations affect a unit's view."));
+            strcpy(g->text, Translate("Terrain elevations affect a unit's view."));
         } else {
             g->field_137 = 2;
-            strcpy(g->text, FUN_004c5740("Terrain elevations do not affect a unit's view."));
+            strcpy(g->text, Translate("Terrain elevations do not affect a unit's view."));
         }
     }
 

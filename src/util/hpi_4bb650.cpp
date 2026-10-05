@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-struct Class_004bb650
+struct FileHandle
 {
 public:
     char unknown_0[4];
@@ -8,7 +8,7 @@ public:
 };
 
 // FUNCTION: 0x4bb650
-bool __stdcall FUN_004bb650(Class_004bb650* obj)
+bool __stdcall HAPI_IsInArchive(FileHandle* obj)
 {
     return obj->field_4 != 0;
 }

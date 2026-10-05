@@ -1,7 +1,7 @@
 // Decompiled by Haiku. Names are provisional.
 
 // FUNCTION: 0x4d1ba0
-int __stdcall FUN_004d1ba0(unsigned char* param_1, unsigned int param_2)
+int __stdcall SquashDecrypt(unsigned char* param_1, unsigned int param_2)
 {
     unsigned int i = 0;
     if (param_2 > 0) {

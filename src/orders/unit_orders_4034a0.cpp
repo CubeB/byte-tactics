@@ -55,7 +55,7 @@ int __stdcall WeaponCanReachUnit(Unit*, Unit*, int);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 int __stdcall FUN_0049adf0(Unit*, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(int, int);
 int __cdecl FUN_004b7123(int, int);
 // FUNCTION: 0x4034a0
@@ -97,7 +97,7 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
                 return 1;
             } else {
                 int angle = GetHeadingBetween(&order->target->pos, &unit->pos);
-                angle += FUN_004b6c30(0x8000) - 0x4000;
+                angle += RandomInt(0x8000) - 0x4000;
                 int distance = weapon << 16;
                 int dx = -FUN_004b70ef(angle, distance);
                 int dz = -FUN_004b7123(angle, distance);

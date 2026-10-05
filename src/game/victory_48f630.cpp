@@ -2,14 +2,14 @@
 // Same shape as 0x48fd70: writes the "victory timer runs out" victory
 // condition's state to a section (its reader is 0x48f670).
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* name);
+    void OpenAccount(const char* name);
 };
 
 class Class_004b4630 {
 public:
-    void FUN_004b4630(const char* name, int value);
+    void SetIntegerItem(const char* name, int value);
 };
 
 class VictoryTimerRunsOut {
@@ -17,13 +17,13 @@ public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    virtual void SaveState(Class_004b4560* obj);
+    virtual void SaveState(HapiBank* obj);
 };
 
 // FUNCTION: 0x48f630
-void VictoryTimerRunsOut::SaveState(Class_004b4560* obj)
+void VictoryTimerRunsOut::SaveState(HapiBank* obj)
 {
-    obj->FUN_004b4560("VictoryCondition_VictoryTimerRunsOut");
-    ((Class_004b4630*)obj)->FUN_004b4630("Satisfied", satisfied);
-    ((Class_004b4630*)obj)->FUN_004b4630("Celebrated", celebrated);
+    obj->OpenAccount("VictoryCondition_VictoryTimerRunsOut");
+    ((Class_004b4630*)obj)->SetIntegerItem("Satisfied", satisfied);
+    ((Class_004b4630*)obj)->SetIntegerItem("Celebrated", celebrated);
 }

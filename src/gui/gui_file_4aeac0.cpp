@@ -18,18 +18,18 @@
 
 // The real preceding function, 0x4ae630, matched in its own file (see the
 // note above). It has no annotation here to avoid a duplicate.
-struct Class_004bbbe0;
+struct FileHandle;
 char* __stdcall ChangeExtension(char*, char*, const char*);
-int __stdcall FUN_004bbc40(char*);
-void __stdcall FUN_004bbc30(char*);
-void __stdcall FUN_004bbc10(char*, char*);
-Class_004bbbe0* __stdcall FUN_004bb6a0(char*);
-void __stdcall FUN_004bb5d0(Class_004bbbe0*);
-unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0*, void*, unsigned int);
-void __stdcall WriteTabs(Class_004bbbe0*, int);
-void __stdcall WriteKeyValue(Class_004bbbe0*, char*, char*, int);
-void __stdcall WriteCommonFields(void*, Class_004bbbe0*, int);
-void __stdcall WritePanelFields(void*, Class_004bbbe0*, int);
+int __stdcall HAPI_FileLengthByName(char*);
+void __stdcall RemoveFile(char*);
+void __stdcall RenameFile(char*, char*);
+FileHandle* __stdcall HAPI_CreateFile(char*);
+void __stdcall HAPI_CloseFile(FileHandle*);
+unsigned int __stdcall HAPI_WriteFile(FileHandle*, void*, unsigned int);
+void __stdcall WriteTabs(FileHandle*, int);
+void __stdcall WriteKeyValue(FileHandle*, char*, char*, int);
+void __stdcall WriteCommonFields(void*, FileHandle*, int);
+void __stdcall WritePanelFields(void*, FileHandle*, int);
 
 void __stdcall WriteGuiFile(char* obj, char* name)
 {
@@ -46,36 +46,36 @@ void __stdcall WriteGuiFile(char* obj, char* name)
     char empty[100];
     char list[100];
     ChangeExtension(name, path, "GUI");
-    if (FUN_004bbc40(path)) {
+    if (HAPI_FileLengthByName(path)) {
         ChangeExtension(name, backup, "BGU");
-        FUN_004bbc30(backup);
-        FUN_004bbc10(path, backup);
+        RemoveFile(backup);
+        RenameFile(path, backup);
     }
-    Class_004bbbe0* out = FUN_004bb6a0(path);
+    FileHandle* out = HAPI_CreateFile(path);
     char* p = obj;
     for (index = 0; index < *(short*)(obj + 0xb6) + 1; index++, p += 0x15b) {
         sprintf(gadget, "GADGET%d", index);
         sprintf(header, "[%s]", gadget);
-        FUN_004bbbe0(out, header, strlen(header));
-        FUN_004bbbe0(out, "\n", 1);
+        HAPI_WriteFile(out, header, strlen(header));
+        HAPI_WriteFile(out, "\n", 1);
         WriteTabs(out, 1);
-        FUN_004bbbe0(out, "{\n", 2);
+        HAPI_WriteFile(out, "{\n", 2);
         sprintf(common, "[%s]", "COMMON");
         {
             char t1 = '\t';
-            for (int i = 0; i < 1; i++) FUN_004bbbe0(out, &t1, 1);
+            for (int i = 0; i < 1; i++) HAPI_WriteFile(out, &t1, 1);
         }
-        FUN_004bbbe0(out, common, strlen(common));
-        FUN_004bbbe0(out, "\n", 1);
+        HAPI_WriteFile(out, common, strlen(common));
+        HAPI_WriteFile(out, "\n", 1);
         WriteTabs(out, 2);
-        FUN_004bbbe0(out, "{\n", 2);
+        HAPI_WriteFile(out, "{\n", 2);
         WriteCommonFields(p, out, 2);
         {
             int j = 2;
             char t2 = '\t';
-            do { FUN_004bbbe0(out, &t2, 1); } while (--j);
+            do { HAPI_WriteFile(out, &t2, 1); } while (--j);
         }
-        FUN_004bbbe0(out, "}\n", 2);
+        HAPI_WriteFile(out, "}\n", 2);
         switch (*(unsigned char*)p) {
         case 0:
             WritePanelFields(p, out, 1);
@@ -119,51 +119,51 @@ void __stdcall WriteGuiFile(char* obj, char* name)
         }
         {
             char t3 = '\t';
-            for (int i = 0; i < 1; i++) FUN_004bbbe0(out, &t3, 1);
+            for (int i = 0; i < 1; i++) HAPI_WriteFile(out, &t3, 1);
         }
-        FUN_004bbbe0(out, "}\n", 2);
+        HAPI_WriteFile(out, "}\n", 2);
     }
-    FUN_004bb5d0(out);
+    HAPI_CloseFile(out);
 }
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, char* key, size_t size, char* def);
+    int GetFieldString(char* dst, char* key, size_t size, char* def);
 };
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3e10 {
 public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3e20 {
 public:
-    void* FUN_004c3e20();
+    void* GetCurrentRecord();
 };
 
 class Class_004c3e30 {
 public:
-    void FUN_004c3e30(void* p);
+    void SetCurrentRecord(void* p);
 };
 
 class Class_004c3240 {
 public:
-    void FUN_004c3240();
+    void Unload();
 };
 
 class Class_004c3490 {
 public:
-    int FUN_004c3490(int index);
+    int SelectRecordAt(int index);
 };
 
 class Class_004c2ea0 {
@@ -178,7 +178,7 @@ public:
 extern char DAT_005119b8[];
 
 char* __stdcall ChangeExtension(char* name, char* out, const char* ext);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 
 #pragma pack(push, 1)
 struct Sub2_004aeac0 {
@@ -246,17 +246,17 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
     int ret = 0;
     char path[256];
     ChangeExtension(name, path, "GUI");
-    if (((Class_004c2f60*)&parser)->FUN_004c2f60(path) == 1) {
+    if (((Class_004c2f60*)&parser)->LoadFile(path) == 1) {
         ret = 1;
         i = 0;
         while (1) {
-            ((Class_004c3e10*)&parser)->FUN_004c3e10();
-            if (!((Class_004c3490*)&parser)->FUN_004c3490(i))
+            ((Class_004c3e10*)&parser)->ResetCurrentRecord();
+            if (!((Class_004c3490*)&parser)->SelectRecordAt(i))
                 break;
-            void* cur = ((Class_004c3e20*)&parser)->FUN_004c3e20();
+            void* cur = ((Class_004c3e20*)&parser)->GetCurrentRecord();
             Elem_004aeac0* e = obj + i;
             ReadCommonSection(e, &parser);
-            ((Class_004c3e30*)&parser)->FUN_004c3e30(cur);
+            ((Class_004c3e30*)&parser)->SetCurrentRecord(cur);
             switch (e->type) {
             case 0:
                 ReadPanelFields(e, &parser);
@@ -267,52 +267,52 @@ int __stdcall ReadGuiFile(Elem_004aeac0* obj, char* name)
             case 2:
                 e->body.s2.field_ce = 0;
                 e->body.s2.field_d6 = 0;
-                e->body.s2.itemheight = (short)parser.current->FUN_004c46c0("itemheight", 0);
+                e->body.s2.itemheight = (short)parser.current->GetFieldInt("itemheight", 0);
                 break;
             case 3:
-                e->tail.s34.maxchars = (short)parser.current->FUN_004c46c0("maxchars", 0);
+                e->tail.s34.maxchars = (short)parser.current->GetFieldInt("maxchars", 0);
                 if (e->tail.s34.maxchars > 0x80)
                     e->tail.s34.maxchars = 0x80;
-                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "text", 0x80, DAT_005119b8);
-                strcpy(e->body.text, FUN_004c5740(e->body.text));
+                ((TdfRecord*)parser.current)->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
+                strcpy(e->body.text, Translate(e->body.text));
                 break;
             case 4:
-                e->tail.s34.range = (short)parser.current->FUN_004c46c0("range", 0);
-                e->tail.s34.thick = (short)parser.current->FUN_004c46c0("thick", 0);
-                e->tail.s34.knobpos = (short)parser.current->FUN_004c46c0("knobpos", 0);
-                e->tail.s34.knobsize = (short)parser.current->FUN_004c46c0("knobsize", 0);
+                e->tail.s34.range = (short)parser.current->GetFieldInt("range", 0);
+                e->tail.s34.thick = (short)parser.current->GetFieldInt("thick", 0);
+                e->tail.s34.knobpos = (short)parser.current->GetFieldInt("knobpos", 0);
+                e->tail.s34.knobsize = (short)parser.current->GetFieldInt("knobsize", 0);
                 e->tail.s34.field_144 = 0;
-                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "text", 0x80, DAT_005119b8);
-                strcpy(e->body.text, FUN_004c5740(e->body.text));
+                ((TdfRecord*)parser.current)->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
+                strcpy(e->body.text, Translate(e->body.text));
                 break;
             case 5:
                 e->tail.s5.link[0] = 0;
                 e->tail.s5.field_147 = 0;
                 memset(e->body.text, 0, sizeof(e->body.text));
-                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "text", 0x80, DAT_005119b8);
-                strncpy(e->body.text, FUN_004c5740(e->body.text), 0x7f);
-                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->tail.s5.link, "link", 0x10, DAT_005119b8);
+                ((TdfRecord*)parser.current)->GetFieldString(e->body.text, "text", 0x80, DAT_005119b8);
+                strncpy(e->body.text, Translate(e->body.text), 0x7f);
+                ((TdfRecord*)parser.current)->GetFieldString(e->tail.s5.link, "link", 0x10, DAT_005119b8);
                 break;
             case 6:
                 {
-                    int value = parser.current->FUN_004c46c0("hotornot", 0);
+                    int value = parser.current->GetFieldInt("hotornot", 0);
                     e->body.s6.hotornot = value;
                 }
                 break;
             case 7:
-                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "filename", 0x20, DAT_005119b8);
+                ((TdfRecord*)parser.current)->GetFieldString(e->body.text, "filename", 0x20, DAT_005119b8);
                 break;
             case 8:
-                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "filename", 0x20, DAT_005119b8);
+                ((TdfRecord*)parser.current)->GetFieldString(e->body.text, "filename", 0x20, DAT_005119b8);
                 break;
             case 10:
-                e->body.nuttin = parser.current->FUN_004c46c0("nuttin", 0);
+                e->body.nuttin = parser.current->GetFieldInt("nuttin", 0);
                 break;
             }
             i++;
         }
         obj->body.total = (short)(i - 1);
-        ((Class_004c3240*)&parser)->FUN_004c3240();
+        ((Class_004c3240*)&parser)->Unload();
     }
     return ret;
 }

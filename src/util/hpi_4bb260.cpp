@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 // FUNCTION: 0x4bb260
-DWORD __stdcall FUN_004bb260(char drive)
+DWORD __stdcall GetVolumeSerial(char drive)
 {
     char root[4];
     char volumeName[64];

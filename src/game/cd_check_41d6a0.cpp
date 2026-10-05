@@ -14,24 +14,24 @@ public:
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
 extern int DAT_0050289c;
 extern int DAT_00511de0;
 extern int DAT_00511de4;
 
-char __stdcall FUN_004bb190(char c);
+char __stdcall FindNextCdDrive(char c);
 
 // FUNCTION: 0x41d6a0
 char __stdcall FindGameCdDrive(int side)
@@ -54,7 +54,7 @@ char __stdcall FindGameCdDrive(int side)
         if (DAT_00511de0 != 0)
             drive = drive ? '\0' : 'h';
         else
-            drive = FUN_004bb190(drive);
+            drive = FindNextCdDrive(drive);
         if (drive == 0)
             continue;
         char path[256];
@@ -62,9 +62,9 @@ char __stdcall FindGameCdDrive(int side)
         if (path[0] != drive)
             DAT_00511de4 = 1;
         Class_004c2ea0 parser;
-        if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)
-            && ((Class_004c3410*)&parser)->FUN_004c3410("Contents")
-            && parser.current->FUN_004c46c0(name, 0))
+        if (((Class_004c2f60*)&parser)->LoadFile(path)
+            && ((Class_004c3410*)&parser)->SelectRecord("Contents")
+            && parser.current->GetFieldInt(name, 0))
             return drive;
     } while (drive);
     return 0;

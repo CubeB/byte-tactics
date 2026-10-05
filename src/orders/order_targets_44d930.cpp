@@ -4,17 +4,17 @@
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4c80 {
 public:
-    int FUN_004b4c80(void* buf, int size);
+    int ReadBox(void* buf, int size);
 };
 
 struct Rect_0044d930 {
@@ -57,10 +57,10 @@ Class_0044d930::Class_0044d930(int owner, Class_004b4ba0* file, char* name)
     : Class_0044ce20(owner)
 {
     vtable = DAT_004fd388;
-    file->FUN_004b4ba0(name);
-    ((Class_004b4c10*)file)->FUN_004b4c10(0);
+    file->OpenNamedBox(name);
+    ((Class_004b4c10*)file)->SeekBox(0);
     Header_0044d930 hdr;
-    if (((Class_004b4c80*)file)->FUN_004b4c80(&hdr, 20) == 20) {
+    if (((Class_004b4c80*)file)->ReadBox(&hdr, 20) == 20) {
         r.a = hdr.r.a;
         r.b = hdr.r.b;
         r.c = hdr.r.c;

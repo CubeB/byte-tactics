@@ -8,17 +8,17 @@
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, char* key, size_t size, char* def);
+    int GetFieldString(char* dst, char* key, size_t size, char* def);
 };
 
 struct Source_004adc70 {
     char unknown_0[4];
-    Class_004c48c0* tdf;               // +0x4
+    TdfRecord* tdf;                    // +0x4
 };
 
 struct Obj_004adc70 {
@@ -34,22 +34,22 @@ struct Obj_004adc70 {
 
 extern char DAT_005119b8[];
 
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 
 // FUNCTION: 0x4adc70
 void __stdcall ReadButtonFields(Obj_004adc70* obj, Source_004adc70* src)
 {
-    obj->status = (short)((Class_004c46c0*)src->tdf)->FUN_004c46c0("status", 0);
+    obj->status = (short)((Class_004c46c0*)src->tdf)->GetFieldInt("status", 0);
     memset(obj->text, 0, 0x80);
-    src->tdf->FUN_004c48c0(obj->text, "text", 0x80, DAT_005119b8);
-    strncpy(obj->text, FUN_004c5740(obj->text), 0x80);
+    src->tdf->GetFieldString(obj->text, "text", 0x80, DAT_005119b8);
+    strncpy(obj->text, Translate(obj->text), 0x80);
     char local[20];
-    src->tdf->FUN_004c48c0(local, "quickkey", 0x13, DAT_005119b8);
+    src->tdf->GetFieldString(local, "quickkey", 0x13, DAT_005119b8);
     if (IsCharAlphaA(local[0]))
         obj->quickkey = (unsigned char)local[0];
     else
         obj->quickkey = (unsigned char)atoi(local);
-    int gray = ((Class_004c46c0*)src->tdf)->FUN_004c46c0("grayedout", 0);
+    int gray = ((Class_004c46c0*)src->tdf)->GetFieldInt("grayedout", 0);
     obj->grayedout = (gray ^ obj->grayedout) & 1 ^ obj->grayedout;
-    obj->stages = (unsigned char)((Class_004c46c0*)src->tdf)->FUN_004c46c0("stages", 0);
+    obj->stages = (unsigned char)((Class_004c46c0*)src->tdf)->GetFieldInt("stages", 0);
 }

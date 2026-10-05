@@ -11,19 +11,19 @@
 #include <dsound.h>
 #include <string.h>
 
-struct File_004bb5d0;
+struct FileHandle;
 
 int __stdcall RemoveTimer(int i);
-int __stdcall FUN_004bb5d0(File_004bb5d0* file);
-long __stdcall FUN_004bb7a0(File_004bb5d0* file);
-long __stdcall FUN_004bbd00(File_004bb5d0* file);
-int __stdcall FUN_004bb7c0(File_004bb5d0* file, void* buf, int size);
+int __stdcall HAPI_CloseFile(FileHandle* file);
+long __stdcall HAPI_TellFile(FileHandle* file);
+long __stdcall HAPI_FileLength(FileHandle* file);
+int __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
 
 class Class_004cfb40 {
 public:
     char unknown_0[0x1e4];
     IDirectSoundBuffer* stream;             // +0x1e4
-    File_004bb5d0* file;                    // +0x1e8
+    FileHandle* file;                       // +0x1e8
     int bits;                               // +0x1ec  wBitsPerSample
     int size;                               // +0x1f0  bytes per buffer
     int pos;                                // +0x1f4  file offset of the next byte
@@ -48,7 +48,7 @@ void Class_004cfb40::FillStreamHalf()
             stream->Stop();
             stream->Release();
             stream = 0;
-            FUN_004bb5d0(file);
+            HAPI_CloseFile(file);
         }
         return;
     }
@@ -63,10 +63,10 @@ void Class_004cfb40::FillStreamHalf()
             memset(buffer, 0x80, n);
         }
     } else {
-        long seek = FUN_004bb7a0(file);
-        long avail = FUN_004bbd00(file) - seek;
+        long seek = HAPI_TellFile(file);
+        long avail = HAPI_FileLength(file) - seek;
         unsigned n = (unsigned)avail < (unsigned)size ? (unsigned)avail : (unsigned)size;
-        FUN_004bb7c0(file, buffer, n);
+        HAPI_readfromfile(file, buffer, n);
         if (n < (unsigned)size) {
             off = n + pos;
             unsigned len = size - n;

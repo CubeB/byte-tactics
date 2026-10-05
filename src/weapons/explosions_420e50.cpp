@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 void __stdcall StartExplodePiece(void* spawn);
 
 struct Spawn_00420e50 {
@@ -41,15 +41,15 @@ void __stdcall ExplodeUnitPieces(Unit_00420e50* unit)
     s.x20 = 900;
     s.x24 = 1;
     for (int i = 0; i < *unit->records; i++) {
-        s.b1 = FUN_004b6c30(100) & 1;
+        s.b1 = RandomInt(100) & 1;
         s.b2 = 1;
         s.b3 = 1;
-        s.x08 = FUN_004b6c30(3000);
-        s.x0c = FUN_004b6c30(3000);
-        s.x10 = FUN_004b6c30(3000);
-        s.x14 = (20 - FUN_004b6c30(40)) << 14;
-        s.x18 = FUN_004b6c30(10) << 16;
-        s.x1c = (20 - FUN_004b6c30(40)) << 14;
+        s.x08 = RandomInt(3000);
+        s.x0c = RandomInt(3000);
+        s.x10 = RandomInt(3000);
+        s.x14 = (20 - RandomInt(40)) << 14;
+        s.x18 = RandomInt(10) << 16;
+        s.x1c = (20 - RandomInt(40)) << 14;
         s.index = i;
         StartExplodePiece(&s);
     }

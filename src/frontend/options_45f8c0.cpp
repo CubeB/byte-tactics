@@ -58,16 +58,16 @@ struct Page_0045f8c0 {
     int last;                         // +0x8
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
     char unknown_0[0x19];
-    int FUN_004c48c0(char* dst, char* key, size_t size, char* def);
+    int GetFieldString(char* dst, char* key, size_t size, char* def);
 };
 
 class Class_004c2ea0 {
 public:
     int field_0;
-    Class_004c48c0* current;          // +0x4
+    TdfRecord* current;               // +0x4
     int field_8;
     Class_004c2ea0();
     ~Class_004c2ea0();
@@ -75,12 +75,12 @@ public:
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 extern int DAT_00512ef0;
@@ -90,8 +90,8 @@ void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const
 void __stdcall FUN_0049fa90(Sub_0045f8c0* sub);
 int __stdcall AddTextGadget(Layer_0045f8c0* layer, char* type, char* text, int x, int y,
                            int width, int attr);
-char* __stdcall FUN_004b6af0(char* text, int n);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall SkipTextLines(char* text, int n);
+char* __stdcall Translate(char* text);
 
 // Emits one help line as its two text fields, left of the '|' and right of it,
 // and marks both entries as used.
@@ -105,9 +105,9 @@ static inline void AddLine(Page_0045f8c0* page, Layer_0045f8c0* layer, char* val
         } while (*p++ != '|');
         p[-1] = 0;
     }
-    AddTextGadget(layer, "TEXT", FUN_004c5740(FUN_004b6af0(value, 0)), 0x28, y, 0x4e, 2);
+    AddTextGadget(layer, "TEXT", Translate(SkipTextLines(value, 0)), 0x28, y, 0x4e, 2);
     ((Entry_0045f8c0*)layer->entries)[((Table_0045f8c0*)layer->entries)->count].field_1b = 1;
-    AddTextGadget(layer, "TEXT", FUN_004c5740(FUN_004b6af0(value, 1)), 0x7d, y, 0x12c, 2);
+    AddTextGadget(layer, "TEXT", Translate(SkipTextLines(value, 1)), 0x7d, y, 0x12c, 2);
     ((Entry_0045f8c0*)layer->entries)[((Table_0045f8c0*)layer->entries)->count].field_1b = 1;
 }
 
@@ -121,9 +121,9 @@ void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
     char key[12];
     char value[0x80];
     BuildDataPath(path, "gamedata", "help", "TDF");
-    if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
+    if (((Class_004c2f60*)&parser)->LoadFile(path)) {
         int y = 0x32;
-        if (((Class_004c3410*)&parser)->FUN_004c3410("Help")) {
+        if (((Class_004c3410*)&parser)->SelectRecord("Help")) {
             Page_0045f8c0 lines;
             Page_0045f8c0* pp = &lines;
             int p2 = (page ? page : page);
@@ -139,7 +139,7 @@ void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
             if (pp->first < pp->last) {
                 do {
                     wsprintfA(key, "Line%d", pp->first);
-                    if (parser.current->FUN_004c48c0(value, key, 0x80, DAT_005119b8)) {
+                    if (parser.current->GetFieldString(value, key, 0x80, DAT_005119b8)) {
                         AddLine(pp, layer, value, y);
                         y += 0x12;
                     }

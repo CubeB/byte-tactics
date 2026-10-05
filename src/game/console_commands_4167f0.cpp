@@ -3,9 +3,9 @@
 struct Game;
 extern Game* g_game;
 
-class Class_004b73e0 {
+class CommandArgs {
 public:
-    int FUN_004b73e0(int, int);
+    int GetIntArg(int, int);
 };
 
 class Class_004ceb60 {
@@ -14,7 +14,7 @@ public:
 };
 
 // FUNCTION: 0x4167f0
-void __stdcall CmdCDPlay(Class_004b73e0* param_1)
+void __stdcall CmdCDPlay(CommandArgs* param_1)
 {
-    (*(Class_004ceb60**)((char*)g_game + 0x10))->PlayCdTrack(param_1->FUN_004b73e0(1, 0), 1);
+    (*(Class_004ceb60**)((char*)g_game + 0x10))->PlayCdTrack(param_1->GetIntArg(1, 0), 1);
 }

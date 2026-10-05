@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct Class_004bbbe0 {
+struct FileHandle {
     FILE* file;                        // +0x0
     int error;                         // +0x4
 };
@@ -23,10 +23,10 @@ struct Obj_004ada40 {
 };
 #pragma pack(pop)
 
-unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* param_1, void* param_2, unsigned int param_3);
+unsigned int __stdcall HAPI_WriteFile(FileHandle* param_1, void* param_2, unsigned int param_3);
 
 // FUNCTION: 0x4ada40
-void __stdcall WriteButtonFields(Obj_004ada40* obj, Class_004bbbe0* out, int indent)
+void __stdcall WriteButtonFields(Obj_004ada40* obj, FileHandle* out, int indent)
 {
     char tab;
     char line[100];
@@ -37,34 +37,34 @@ void __stdcall WriteButtonFields(Obj_004ada40* obj, Class_004bbbe0* out, int ind
     value = _itoa(obj->status, num, 10);
     tab = '\t';
     for (i = 0; i < indent; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "status", value);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 
     tab = '\t';
     for (i = 0; i < indent; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "text", obj->text);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 
     value = _itoa(obj->quickkey, num, 10);
     tab = '\t';
     for (i = 0; i < indent; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "quickkey", value);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 
     value = _itoa(obj->grayedout & 1, num, 10);
     tab = '\t';
     for (i = 0; i < indent; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "grayedout", value);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 
     value = _itoa(obj->stages, num, 10);
     tab = '\t';
     for (i = 0; i < indent; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "stages", value);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 }

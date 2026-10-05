@@ -6,7 +6,7 @@
 extern void* DAT_00526ff4;
 
 // FUNCTION: 0x4d0ab0
-int __cdecl FUN_004d0ab0(void)
+int __cdecl LzssFreeWindow(void)
 {
     if (DAT_00526ff4 == 0) {
         printf("Hey!  The window buffer ptr is not pointing to anything!\n");

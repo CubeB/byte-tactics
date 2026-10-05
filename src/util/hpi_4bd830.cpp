@@ -2,10 +2,10 @@
 // MATCH. Writes the file data of one package directory, recursing into
 // subdirectories. For each file entry it records the data offset, size and
 // compression flag in the directory buffer, then copies the file, either as
-// 64K blocks packed by FUN_004d1820 behind a table of block sizes, or raw in
+// 64K blocks packed by SquashPack behind a table of block sizes, or raw in
 // 4K pieces, scrambling the bytes when a key is set.
 // What made it match, after sessions stuck between 66 and 81 percent:
-//  - FUN_004bbd00 (the handle's file size) is defined in this file, as in the
+//  - HAPI_FileLength (the handle's file size) is defined in this file, as in the
 //    original translation unit, and /Ob2 inlines it. Its result goes straight
 //    into info->size, so the size lives in a scratch register (ecx) and every
 //    later use re-reads info->size: the block loop's remaining count is
@@ -27,10 +27,10 @@
 //    declaration of this function, the Node struct behind Shared::node and
 //    the casts in nblocks are each needed, and dropping any one of them
 //    scores 94 to 97 percent (1334 bytes).
-// FUN_004bb5d0 (the handle close) is not inlined by MSVC 5 even when defined
+// HAPI_CloseFile (the handle close) is not inlined by MSVC 5 even when defined
 // here, so the close sequence near the end is written out by hand.
-// Earlier notes called the FUN_004d1820 size argument a bug (a heap address
-// passed as the limit). It is not: 0x4bda5e stores FUN_004d1aa0's result
+// Earlier notes called the SquashPack size argument a bug (a heap address
+// passed as the limit). It is not: 0x4bda5e stores SquashMaxPackedSize's result
 // (packlen) before the "Pack Buffer" call, and the loop copies packlen into
 // clen before passing &clen.
 #include <stdio.h>
@@ -43,7 +43,7 @@ struct Node_004bd830 {
     unsigned char obfuscate;             // +0xc
 };
 
-struct Shared_004bd830 {
+struct OPENHAPIFILE {
     FILE* fp;                            // +0x0
     int pos;                             // +0x4
     Node_004bd830* node;                 // +0x8
@@ -58,9 +58,9 @@ struct Info_004bd830 {
     unsigned char compressed;            // +0x8
 };
 
-struct File_004bd830 {
+struct FileHandle {
     FILE* fp;                            // +0x0
-    Shared_004bd830* shared;             // +0x4
+    OPENHAPIFILE* shared;                // +0x4
     Info_004bd830* info;                 // +0x8
     unsigned int pos;                    // +0xc
     int* buffer;                         // +0x10
@@ -68,27 +68,27 @@ struct File_004bd830 {
     char name[0x100];                    // +0x18
 };
 
-struct Entry_004bd830 {
+struct ArchiveEntry {
     int name;                            // +0x0, offset of the name string
     int offset;                          // +0x4, offset of the record data
     unsigned char flags;                 // +0x8
 };
 #pragma pack(pop)
 
-File_004bd830* __stdcall FUN_004bb2e0(char* filename, const char* mode);
-int __stdcall FUN_004bb7c0(File_004bd830* file, unsigned char* buf, int size);
-int __stdcall FUN_004d1820(void* chunk, int* chunkSize, char* data,
+FileHandle* __stdcall HAPI_OpenFile(char* filename, const char* mode);
+int __stdcall HAPI_readfromfile(FileHandle* file, unsigned char* buf, int size);
+int __stdcall SquashPack(void* chunk, int* chunkSize, char* data,
                            int size, int method, int encrypt);
-unsigned int __stdcall FUN_004d1aa0(unsigned int value, int mode);
+unsigned int __stdcall SquashMaxPackedSize(unsigned int value, int mode);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
-void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
+void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
                             void (__cdecl* cb)(unsigned), unsigned extra,
                             int key, int flags);
 
 // The handle's file size, from the same translation unit (its own file is
 // src/util/hpi_4bbd00.cpp), so it is inlined below.
-long __stdcall FUN_004bbd00(File_004bd830* file)
+long __stdcall HAPI_FileLength(FileHandle* file)
 {
     if (file->shared != 0)
         return file->info->size;
@@ -104,13 +104,13 @@ static inline int nblocks(unsigned w)
 }
 
 // FUNCTION: 0x4bd830
-void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
+void __stdcall HAPI_WriteArchiveData(char* path, char* base, int off, FILE* f,
                             void (__cdecl* cb)(unsigned), unsigned extra,
                             int key, int flags)
 {
     Info_004bd830* info;
     int len;
-    Entry_004bd830* e;
+    ArchiveEntry* e;
     unsigned size;
     char name[260];
     char full[260];
@@ -118,7 +118,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
     int n, * table;
     int clen;
     unsigned remaining, i;
-    File_004bd830* file;
+    FileHandle* file;
     unsigned char* pack;
     int j;
     unsigned char* data;
@@ -131,31 +131,31 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
     long pos2;
     long pos;
     for (i = 0; i < *(unsigned*)(off + base); i++) {
-        e = (Entry_004bd830*)(base + *(int*)(off + base + 4)) + i;
+        e = (ArchiveEntry*)(base + *(int*)(off + base + 4)) + i;
         strcpy(full, name);
         strcat(full, base + e->name);
         if ((e->flags & 1) != 0) {
-            FUN_004bd830(full, base, e->offset, f, cb, extra, key, flags);
+            HAPI_WriteArchiveData(full, base, e->offset, f, cb, extra, key, flags);
         } else {
-            file = FUN_004bb2e0(full, "rb");
+            file = HAPI_OpenFile(full, "rb");
             info = (Info_004bd830*)(base + e->offset);
             info->offset = ftell(f);
-            info->size = FUN_004bbd00(file);
+            info->size = HAPI_FileLength(file);
             info->compressed = (char)flags;
             if ((char)flags) {
                 int blocks = nblocks(info->size);
                 table = (int*)FUN_004d83b0("Block Sizes", blocks * 4);
                 fwrite(table, blocks, 4, f);
-                packlen = FUN_004d1aa0(0x10000, flags & 0xff);
+                packlen = SquashMaxPackedSize(0x10000, flags & 0xff);
                 pack = (unsigned char*)FUN_004d83b0("Pack Buffer", packlen);
                 data = (unsigned char*)FUN_004d83b0("Data Buffer", 0x10000);
                 remaining = info->size;
                 for (n = 0; n < blocks; n++, remaining -= 0x10000) {
                     int chunk;
                     chunk = remaining >= 0x10000 ? 0x10000 : remaining;
-                    FUN_004bb7c0(file, data, chunk);
+                    HAPI_readfromfile(file, data, chunk);
                     clen = packlen;
-                    FUN_004d1820(pack, &clen, (char*)data, chunk, flags & 0xff, 1);
+                    SquashPack(pack, &clen, (char*)data, chunk, flags & 0xff, 1);
                     table[n] = clen;
                     pos = ftell(f);
                     len = clen;
@@ -181,7 +181,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                 size = info->size;
                 while (size > 0) {
                     int chunk = size >= 0x1000 ? 0x1000 : size;
-                    FUN_004bb7c0(file, buffer, chunk);
+                    HAPI_readfromfile(file, buffer, chunk);
                     pos = ftell(f);
                     if ((char)key) {
                         for (j = 0; j < chunk; j++)

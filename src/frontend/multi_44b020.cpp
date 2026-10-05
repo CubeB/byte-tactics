@@ -38,7 +38,7 @@ void __stdcall FreeSurface(void* image);
 void FlipScreen();
 Gadget_0044b020* __stdcall LoadGuiLayer(Sub_0044b020* sub, const char* name, int flags);
 void __stdcall HandleEndMultiClick(void* gadget);
-int __stdcall FUN_004c5740(const char* str);
+int __stdcall Translate(const char* str);
 void __stdcall FUN_004a0bf0(Sub_0044b020* sub, char* name, int param_3, int param_4);
 void __stdcall RenderLayer(Sub_0044b020* sub, int value);
 void FUN_004c2870();
@@ -58,7 +58,7 @@ void OpenEndMultiScreen()
     FlipScreen();
     LoadGuiLayer(&g_game->sub, "ENDMULTI.GUI", 0x80)->handler = HandleEndMultiClick;
     FUN_004a0bf0(&g_game->sub, "RESULT",
-                 FUN_004c5740(g_game->flag4_3923b ? "Victory" : "Failure"), 0);
+                 Translate(g_game->flag4_3923b ? "Victory" : "Failure"), 0);
     RenderLayer(&g_game->sub, 0xc0);
     FUN_004c2870();
 }

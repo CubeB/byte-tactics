@@ -140,7 +140,7 @@ void __stdcall FUN_0049fa90(Gui_0044c7e0* gui);
 void __stdcall FUN_0049fb10(Gui_0044c7e0* gui, int value);
 void __stdcall SetSliderFromValue(Gadget_0044c7e0* gadget, int value);
 void __stdcall UpdateUnitSliders(Gui_0044c7e0* gui, int index);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall FUN_0044c370(void* panel, UnitType_0044c7e0* type);
 void FUN_0044c220();
 void __stdcall HandleRestrictionsClick(Gui_0044c7e0* gui);
@@ -226,7 +226,7 @@ void OpenUnitRestrictions()
             Info_0044c7e0 info;
             int count;
             sprintf(DAT_005129b4[n].name, "%s\r%s %dM  %dE",
-                    g_game->unitTypes[i].unitName, FUN_004c5740(type->description),
+                    g_game->unitTypes[i].unitName, Translate(type->description),
                     (int)type->metalCost, (int)type->energyCost);
             DAT_005129b4[n].type = i;
             g_game->queue->GetUnitEntry(&g_game->unitTypes[i], &info);

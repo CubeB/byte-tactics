@@ -9,7 +9,7 @@ struct Rect_004b6750 {
 
 // Returns 1 when rectangle a lies entirely inside rectangle b.
 // FUNCTION: 0x4b6750
-int __stdcall FUN_004b6750(Rect_004b6750* a, Rect_004b6750* b)
+int __stdcall RectInsideRect(Rect_004b6750* a, Rect_004b6750* b)
 {
     if (a->x1 < b->x1) {
         return 0;

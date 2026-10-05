@@ -8,11 +8,11 @@ public:
     char field_50[0x7e];               // +0x50  token text buffer
     char unknown_ce;                   // +0xce
     int field_d0;                      // +0xd0  token count
-    void FUN_004b7440(char* text, char* end);
+    void Tokenize(char* text, char* end);
 };
 
 // FUNCTION: 0x4b7440
-void Class_004b7440::FUN_004b7440(char* text, char* end)
+void Class_004b7440::Tokenize(char* text, char* end)
 {
     char* p = field_50;
 

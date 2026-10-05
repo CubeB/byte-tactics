@@ -3,7 +3,7 @@
 class Class_004b73c0 {
 public:
     char data[0xd0]; int count;
-    const char* FUN_004b73c0(int,const char*);
+    const char* GetArg(int,const char*);
 };
 #pragma pack(push,1)
 struct Game { char pad0[0x37f2f]; unsigned short flags; };
@@ -13,11 +13,11 @@ extern char DAT_005119b8[];
 // FUNCTION: 0x416e90
 void __stdcall CmdNow(Class_004b73c0* args)
 {
-    if (args->count==6 && !strcmp(args->FUN_004b73c0(1,DAT_005119b8),"Film") &&
-        !strcmp(args->FUN_004b73c0(2,DAT_005119b8),"Chris") &&
-        !strcmp(args->FUN_004b73c0(3,DAT_005119b8),"Include") &&
-        !strcmp(args->FUN_004b73c0(4,DAT_005119b8),"Reload") &&
-        !strcmp(args->FUN_004b73c0(5,DAT_005119b8),"Assert"))
+    if (args->count==6 && !strcmp(args->GetArg(1,DAT_005119b8),"Film") &&
+        !strcmp(args->GetArg(2,DAT_005119b8),"Chris") &&
+        !strcmp(args->GetArg(3,DAT_005119b8),"Include") &&
+        !strcmp(args->GetArg(4,DAT_005119b8),"Reload") &&
+        !strcmp(args->GetArg(5,DAT_005119b8),"Assert"))
         g_game->flags|=2;
     else g_game->flags&=~2;
 }

@@ -50,32 +50,32 @@
 
 class Class_004c4440 {
   public:
-    char* FUN_004c4440();
+    char* GetRecordName();
 };
 
 class Class_004c46c0 {
   public:
-    int FUN_004c46c0(const char* key, int def);
+    int GetFieldInt(const char* key, int def);
 };
 
 class Class_004c4760 {
   public:
-    double FUN_004c4760(const char* key, double def);
+    double GetFieldDouble(const char* key, double def);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
   public:
-    int FUN_004c48c0(char* dst, const char* key, int size, char* def);
+    int GetFieldString(char* dst, const char* key, int size, char* def);
 };
 
 class Class_004c4470 {
   public:
-    void* FUN_004c4470(const char* key);
+    void* FindSubRecord(const char* key);
 };
 
 class Class_004c45e0 {
   public:
-    char* FUN_004c45e0(int index);
+    char* GetFieldName(int index);
 };
 
 class Class_004c9390 {
@@ -244,83 +244,83 @@ int __stdcall FUN_00429470(void* a, char* b);
 
 // FUNCTION: 0x42e440
 void __stdcall LoadWeaponType(Class_004c4440* parser) {
-    char* id = parser->FUN_004c4440();
-    Weapon_0042e440* w = &g_game->weapons[((Class_004c46c0*)parser)->FUN_004c46c0("ID", -1)];
+    char* id = parser->GetRecordName();
+    Weapon_0042e440* w = &g_game->weapons[((Class_004c46c0*)parser)->GetFieldInt("ID", -1)];
     strcpy(w->name, id);
-    ((Class_004c48c0*)parser)->FUN_004c48c0(w->name2, "name", 0x40, DAT_005119b8);
+    ((TdfRecord*)parser)->GetFieldString(w->name2, "name", 0x40, DAT_005119b8);
 
     w->weaponvelocity =
-        (int)(((Class_004c4760*)parser)->FUN_004c4760("weaponvelocity", 0.0) * 2184.5333333333333);
+        (int)(((Class_004c4760*)parser)->GetFieldDouble("weaponvelocity", 0.0) * 2184.5333333333333);
     w->startvelocity =
-        (int)(((Class_004c4760*)parser)->FUN_004c4760("startvelocity", 0.0) * 2184.5333333333333);
+        (int)(((Class_004c4760*)parser)->GetFieldDouble("startvelocity", 0.0) * 2184.5333333333333);
     w->weaponacceleration =
-        (int)(((Class_004c4760*)parser)->FUN_004c4760("weaponacceleration", 0.0) *
+        (int)(((Class_004c4760*)parser)->GetFieldDouble("weaponacceleration", 0.0) *
               72.81777777777778);
-    w->range = ((Class_004c46c0*)parser)->FUN_004c46c0("range", 0x7fff);
-    w->coverage = ((Class_004c46c0*)parser)->FUN_004c46c0("coverage", 0);
-    w->reloadtime = (short)(((Class_004c4760*)parser)->FUN_004c4760("reloadtime", 0.0) * 30.0);
-    w->energypershot = (float)((Class_004c4760*)parser)->FUN_004c4760("energypershot", 0.0);
-    w->metalpershot = (float)((Class_004c4760*)parser)->FUN_004c4760("metalpershot", 0.0);
-    w->areaofeffect = (short)((Class_004c46c0*)parser)->FUN_004c46c0("areaofeffect", 0);
-    w->edgeeffectiveness = (float)((Class_004c4760*)parser)->FUN_004c4760("edgeeffectiveness", 0.0);
-    w->weapontimer = (short)(((Class_004c4760*)parser)->FUN_004c4760("weapontimer", 0.0) * 30.0);
-    w->noautorange = ((Class_004c46c0*)parser)->FUN_004c46c0("noautorange", 0);
+    w->range = ((Class_004c46c0*)parser)->GetFieldInt("range", 0x7fff);
+    w->coverage = ((Class_004c46c0*)parser)->GetFieldInt("coverage", 0);
+    w->reloadtime = (short)(((Class_004c4760*)parser)->GetFieldDouble("reloadtime", 0.0) * 30.0);
+    w->energypershot = (float)((Class_004c4760*)parser)->GetFieldDouble("energypershot", 0.0);
+    w->metalpershot = (float)((Class_004c4760*)parser)->GetFieldDouble("metalpershot", 0.0);
+    w->areaofeffect = (short)((Class_004c46c0*)parser)->GetFieldInt("areaofeffect", 0);
+    w->edgeeffectiveness = (float)((Class_004c4760*)parser)->GetFieldDouble("edgeeffectiveness", 0.0);
+    w->weapontimer = (short)(((Class_004c4760*)parser)->GetFieldDouble("weapontimer", 0.0) * 30.0);
+    w->noautorange = ((Class_004c46c0*)parser)->GetFieldInt("noautorange", 0);
     w->turnrate =
-        (short)(((Class_004c4760*)parser)->FUN_004c4760("turnrate", 0.0) * 0.03333333333333333);
-    w->burst = (short)((Class_004c46c0*)parser)->FUN_004c46c0("burst", 0);
-    w->burstrate = (short)(((Class_004c4760*)parser)->FUN_004c4760("burstrate", 0.0) * 30.0);
-    w->sprayangle = (short)((Class_004c46c0*)parser)->FUN_004c46c0("sprayangle", 0);
-    w->duration = (short)(((Class_004c4760*)parser)->FUN_004c4760("duration", 0.0) * 30.0);
-    w->randomdecay = (short)(((Class_004c4760*)parser)->FUN_004c4760("randomdecay", 0.0) * 30.0);
-    w->smokedelay = (short)(((Class_004c4760*)parser)->FUN_004c4760("smokedelay", 0.0) * 30.0);
-    w->flighttime = (short)(((Class_004c4760*)parser)->FUN_004c4760("flighttime", 0.0) * 30.0);
-    w->holdtime = (short)(((Class_004c4760*)parser)->FUN_004c4760("holdtime", 0.0) * 30.0);
+        (short)(((Class_004c4760*)parser)->GetFieldDouble("turnrate", 0.0) * 0.03333333333333333);
+    w->burst = (short)((Class_004c46c0*)parser)->GetFieldInt("burst", 0);
+    w->burstrate = (short)(((Class_004c4760*)parser)->GetFieldDouble("burstrate", 0.0) * 30.0);
+    w->sprayangle = (short)((Class_004c46c0*)parser)->GetFieldInt("sprayangle", 0);
+    w->duration = (short)(((Class_004c4760*)parser)->GetFieldDouble("duration", 0.0) * 30.0);
+    w->randomdecay = (short)(((Class_004c4760*)parser)->GetFieldDouble("randomdecay", 0.0) * 30.0);
+    w->smokedelay = (short)(((Class_004c4760*)parser)->GetFieldDouble("smokedelay", 0.0) * 30.0);
+    w->flighttime = (short)(((Class_004c4760*)parser)->GetFieldDouble("flighttime", 0.0) * 30.0);
+    w->holdtime = (short)(((Class_004c4760*)parser)->GetFieldDouble("holdtime", 0.0) * 30.0);
     w->minbarrelangle =
-        ((Class_004c4760*)parser)->FUN_004c4760("minbarrelangle", -11.25) * (PI / 180);
-    w->firestarter = (unsigned char)((Class_004c46c0*)parser)->FUN_004c46c0("firestarter", 0);
-    w->rendertype = (unsigned char)((Class_004c46c0*)parser)->FUN_004c46c0("rendertype", 0);
-    w->color = (unsigned char)((Class_004c46c0*)parser)->FUN_004c46c0("color", 0);
-    w->color2 = (unsigned char)((Class_004c46c0*)parser)->FUN_004c46c0("color2", 0);
-    w->soundtrigger = ((Class_004c46c0*)parser)->FUN_004c46c0("soundtrigger", 0);
-    w->guidance = ((Class_004c46c0*)parser)->FUN_004c46c0("guidance", 0);
-    w->tracks = ((Class_004c46c0*)parser)->FUN_004c46c0("tracks", 0);
-    w->lineofsight = ((Class_004c46c0*)parser)->FUN_004c46c0("lineofsight", 0);
-    int ballistic = ((Class_004c46c0*)parser)->FUN_004c46c0("ballistic", 0);
+        ((Class_004c4760*)parser)->GetFieldDouble("minbarrelangle", -11.25) * (PI / 180);
+    w->firestarter = (unsigned char)((Class_004c46c0*)parser)->GetFieldInt("firestarter", 0);
+    w->rendertype = (unsigned char)((Class_004c46c0*)parser)->GetFieldInt("rendertype", 0);
+    w->color = (unsigned char)((Class_004c46c0*)parser)->GetFieldInt("color", 0);
+    w->color2 = (unsigned char)((Class_004c46c0*)parser)->GetFieldInt("color2", 0);
+    w->soundtrigger = ((Class_004c46c0*)parser)->GetFieldInt("soundtrigger", 0);
+    w->guidance = ((Class_004c46c0*)parser)->GetFieldInt("guidance", 0);
+    w->tracks = ((Class_004c46c0*)parser)->GetFieldInt("tracks", 0);
+    w->lineofsight = ((Class_004c46c0*)parser)->GetFieldInt("lineofsight", 0);
+    int ballistic = ((Class_004c46c0*)parser)->GetFieldInt("ballistic", 0);
     w->ballistic = ballistic;
-    w->unitsonly = ((Class_004c46c0*)parser)->FUN_004c46c0("unitsonly", 0);
-    w->groundbounce = ((Class_004c46c0*)parser)->FUN_004c46c0("groundbounce", 0);
-    w->waterweapon = ((Class_004c46c0*)parser)->FUN_004c46c0("waterweapon", 0);
-    w->toairweapon = ((Class_004c46c0*)parser)->FUN_004c46c0("toairweapon", 0);
-    w->smoketrail = ((Class_004c46c0*)parser)->FUN_004c46c0("smoketrail", 0);
-    w->turret = ((Class_004c46c0*)parser)->FUN_004c46c0("turret", 0);
-    w->selfprop = ((Class_004c46c0*)parser)->FUN_004c46c0("selfprop", 0);
-    w->propeller = ((Class_004c46c0*)parser)->FUN_004c46c0("propeller", 0);
-    w->noexplode = ((Class_004c46c0*)parser)->FUN_004c46c0("noexplode", 0);
-    w->burnblow = ((Class_004c46c0*)parser)->FUN_004c46c0("burnblow", 0);
-    w->twophase = ((Class_004c46c0*)parser)->FUN_004c46c0("twophase", 0);
-    w->cruise = ((Class_004c46c0*)parser)->FUN_004c46c0("cruise", 0);
-    w->commandfire = ((Class_004c46c0*)parser)->FUN_004c46c0("commandfire", 0);
-    w->stockpile = ((Class_004c46c0*)parser)->FUN_004c46c0("stockpile", 0);
-    w->targetable = ((Class_004c46c0*)parser)->FUN_004c46c0("targetable", 0);
-    w->interceptor = ((Class_004c46c0*)parser)->FUN_004c46c0("interceptor", 0);
-    w->beamweapon = ((Class_004c46c0*)parser)->FUN_004c46c0("beamweapon", 0);
-    w->shellweapon = ((Class_004c46c0*)parser)->FUN_004c46c0("shellweapon", 0);
-    int dropped = ((Class_004c46c0*)parser)->FUN_004c46c0("dropped", 0);
+    w->unitsonly = ((Class_004c46c0*)parser)->GetFieldInt("unitsonly", 0);
+    w->groundbounce = ((Class_004c46c0*)parser)->GetFieldInt("groundbounce", 0);
+    w->waterweapon = ((Class_004c46c0*)parser)->GetFieldInt("waterweapon", 0);
+    w->toairweapon = ((Class_004c46c0*)parser)->GetFieldInt("toairweapon", 0);
+    w->smoketrail = ((Class_004c46c0*)parser)->GetFieldInt("smoketrail", 0);
+    w->turret = ((Class_004c46c0*)parser)->GetFieldInt("turret", 0);
+    w->selfprop = ((Class_004c46c0*)parser)->GetFieldInt("selfprop", 0);
+    w->propeller = ((Class_004c46c0*)parser)->GetFieldInt("propeller", 0);
+    w->noexplode = ((Class_004c46c0*)parser)->GetFieldInt("noexplode", 0);
+    w->burnblow = ((Class_004c46c0*)parser)->GetFieldInt("burnblow", 0);
+    w->twophase = ((Class_004c46c0*)parser)->GetFieldInt("twophase", 0);
+    w->cruise = ((Class_004c46c0*)parser)->GetFieldInt("cruise", 0);
+    w->commandfire = ((Class_004c46c0*)parser)->GetFieldInt("commandfire", 0);
+    w->stockpile = ((Class_004c46c0*)parser)->GetFieldInt("stockpile", 0);
+    w->targetable = ((Class_004c46c0*)parser)->GetFieldInt("targetable", 0);
+    w->interceptor = ((Class_004c46c0*)parser)->GetFieldInt("interceptor", 0);
+    w->beamweapon = ((Class_004c46c0*)parser)->GetFieldInt("beamweapon", 0);
+    w->shellweapon = ((Class_004c46c0*)parser)->GetFieldInt("shellweapon", 0);
+    int dropped = ((Class_004c46c0*)parser)->GetFieldInt("dropped", 0);
     w->dropped = dropped;
-    w->vlaunch = ((Class_004c46c0*)parser)->FUN_004c46c0("vlaunch", 0);
-    w->meteor = ((Class_004c46c0*)parser)->FUN_004c46c0("meteor", 0);
-    w->noradar = ((Class_004c46c0*)parser)->FUN_004c46c0("noradar", 0);
-    w->paralyzer = ((Class_004c46c0*)parser)->FUN_004c46c0("paralyzer", 0);
-    w->startsmoke = ((Class_004c46c0*)parser)->FUN_004c46c0("startsmoke", 0);
-    w->endsmoke = ((Class_004c46c0*)parser)->FUN_004c46c0("endsmoke", 0);
-    w->accuracy = (short)((Class_004c46c0*)parser)->FUN_004c46c0("accuracy", 0);
-    w->tolerance = (short)((Class_004c46c0*)parser)->FUN_004c46c0("tolerance", 0);
-    w->pitchtolerance = (short)((Class_004c46c0*)parser)->FUN_004c46c0("pitchtolerance", 0);
-    w->shakemagnitude = ((Class_004c46c0*)parser)->FUN_004c46c0("shakemagnitude", 0);
-    w->shakeduration = (int)(((Class_004c4760*)parser)->FUN_004c4760("shakeduration", 0.0) * 30.0);
+    w->vlaunch = ((Class_004c46c0*)parser)->GetFieldInt("vlaunch", 0);
+    w->meteor = ((Class_004c46c0*)parser)->GetFieldInt("meteor", 0);
+    w->noradar = ((Class_004c46c0*)parser)->GetFieldInt("noradar", 0);
+    w->paralyzer = ((Class_004c46c0*)parser)->GetFieldInt("paralyzer", 0);
+    w->startsmoke = ((Class_004c46c0*)parser)->GetFieldInt("startsmoke", 0);
+    w->endsmoke = ((Class_004c46c0*)parser)->GetFieldInt("endsmoke", 0);
+    w->accuracy = (short)((Class_004c46c0*)parser)->GetFieldInt("accuracy", 0);
+    w->tolerance = (short)((Class_004c46c0*)parser)->GetFieldInt("tolerance", 0);
+    w->pitchtolerance = (short)((Class_004c46c0*)parser)->GetFieldInt("pitchtolerance", 0);
+    w->shakemagnitude = ((Class_004c46c0*)parser)->GetFieldInt("shakemagnitude", 0);
+    w->shakeduration = (int)(((Class_004c4760*)parser)->GetFieldDouble("shakeduration", 0.0) * 30.0);
 
     char model[0x100];
-    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "model", 0x100, DAT_005119b8) != 0) {
+    if (((TdfRecord*)parser)->GetFieldString(model, "model", 0x100, DAT_005119b8) != 0) {
         unsigned char i;
         unsigned char count = w->id;
         for (i = 0; i < count; i++) {
@@ -345,8 +345,8 @@ void __stdcall LoadWeaponType(Class_004c4440* parser) {
 model_done:
     w->anim1 = 0;
     char gaf[0x100];
-    if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "explosiongaf", 0x100, DAT_005119b8) != 0 &&
-        ((Class_004c48c0*)parser)->FUN_004c48c0(model, "explosionart", 0x100, DAT_005119b8) != 0) {
+    if (((TdfRecord*)parser)->GetFieldString(gaf, "explosiongaf", 0x100, DAT_005119b8) != 0 &&
+        ((TdfRecord*)parser)->GetFieldString(model, "explosionart", 0x100, DAT_005119b8) != 0) {
         void* a = LoadAnimGaf(gaf);
         void* r = FindGafEntry(a, model);
         *(unsigned char*)((char*)r + 2) = 0;
@@ -354,49 +354,49 @@ model_done:
     }
     w->anim2 = 0;
     if (*(int*)(*(char**)((char*)g_game + 0x391e9) + 0xd44) != 0) {
-        if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "lavaexplosiongaf", 0x100, DAT_005119b8) !=
+        if (((TdfRecord*)parser)->GetFieldString(gaf, "lavaexplosiongaf", 0x100, DAT_005119b8) !=
                 0 &&
-            ((Class_004c48c0*)parser)
-                    ->FUN_004c48c0(model, "lavaexplosionart", 0x100, DAT_005119b8) != 0) {
+            ((TdfRecord*)parser)
+                    ->GetFieldString(model, "lavaexplosionart", 0x100, DAT_005119b8) != 0) {
             void* a = LoadAnimGaf(gaf);
             void* r = FindGafEntry(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
             w->anim2 = r;
         }
     } else {
-        if (((Class_004c48c0*)parser)
-                    ->FUN_004c48c0(gaf, "waterexplosiongaf", 0x100, DAT_005119b8) != 0 &&
-            ((Class_004c48c0*)parser)
-                    ->FUN_004c48c0(model, "waterexplosionart", 0x100, DAT_005119b8) != 0) {
+        if (((TdfRecord*)parser)
+                    ->GetFieldString(gaf, "waterexplosiongaf", 0x100, DAT_005119b8) != 0 &&
+            ((TdfRecord*)parser)
+                    ->GetFieldString(model, "waterexplosionart", 0x100, DAT_005119b8) != 0) {
             void* a = LoadAnimGaf(gaf);
             void* r = FindGafEntry(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
             w->anim2 = r;
         }
     }
-    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundstart", 0x100, DAT_005119b8) != 0) {
+    if (((TdfRecord*)parser)->GetFieldString(model, "soundstart", 0x100, DAT_005119b8) != 0) {
         w->soundstart = (unsigned short)FUN_00429470(0, model);
     } else {
         w->soundstart = 0xffff;
     }
-    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundhit", 0x100, DAT_005119b8) != 0) {
+    if (((TdfRecord*)parser)->GetFieldString(model, "soundhit", 0x100, DAT_005119b8) != 0) {
         w->soundhit = (unsigned short)FUN_00429470(0, model);
     } else {
         w->soundhit = 0xffff;
     }
-    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundwater", 0x100, DAT_005119b8) != 0) {
+    if (((TdfRecord*)parser)->GetFieldString(model, "soundwater", 0x100, DAT_005119b8) != 0) {
         w->soundwater = (unsigned short)FUN_00429470(0, model);
     } else {
         w->soundwater = 0xffff;
     }
-    void* damage = ((Class_004c4470*)parser)->FUN_004c4470("DAMAGE");
+    void* damage = ((Class_004c4470*)parser)->FindSubRecord("DAMAGE");
     if (damage != 0) {
-        w->damage = (short)((Class_004c46c0*)damage)->FUN_004c46c0("default", 0);
+        w->damage = (short)((Class_004c46c0*)damage)->GetFieldInt("default", 0);
         int index = 0;
-        char* key = ((Class_004c45e0*)damage)->FUN_004c45e0(index);
+        char* key = ((Class_004c45e0*)damage)->GetFieldName(index);
         while (key) {
             if (_strcmpi(key, "default") != 0) {
-                int value = ((Class_004c46c0*)damage)->FUN_004c46c0(key, 0);
+                int value = ((Class_004c46c0*)damage)->GetFieldInt(key, 0);
                 if (!w->sub)
                     w->sub = new Map_0042e440;
                 Class_004c91b0 name(key);
@@ -411,7 +411,7 @@ model_done:
                 }
                 *r = value;
             }
-            key = ((Class_004c45e0*)damage)->FUN_004c45e0(++index);
+            key = ((Class_004c45e0*)damage)->GetFieldName(++index);
         }
     } else {
         w->damage = 0;

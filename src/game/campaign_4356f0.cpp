@@ -9,12 +9,12 @@ public:
     char unknown_0[4];
     int field_0x4;
 
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004356f0 {
@@ -35,8 +35,8 @@ int Class_004356f0::CountMissions()
     int n = 0;
     while (1) {
         sprintf(buf, "MISSION%d", n);
-        list.FUN_004c3e10();
-        if (((Class_004c3410*)&list)->FUN_004c3410(buf) == 0)
+        list.ResetCurrentRecord();
+        if (((Class_004c3410*)&list)->SelectRecord(buf) == 0)
             break;
         n++;
     }

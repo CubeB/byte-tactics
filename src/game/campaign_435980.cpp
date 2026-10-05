@@ -10,12 +10,12 @@ public:
     char unknown_0[4];
     int field_0x4;
 
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_00435980 {
@@ -37,11 +37,11 @@ int Class_00435980::MissionExists(int index)
     } else {
         n = 0;
         sprintf(buf, "MISSION%d", n);
-        list.FUN_004c3e10();
-        while (((Class_004c3410*)&list)->FUN_004c3410(buf)) {
+        list.ResetCurrentRecord();
+        while (((Class_004c3410*)&list)->SelectRecord(buf)) {
             n++;
             sprintf(buf, "MISSION%d", n);
-            list.FUN_004c3e10();
+            list.ResetCurrentRecord();
         }
     }
     return n > index;

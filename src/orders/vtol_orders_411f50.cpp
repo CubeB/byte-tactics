@@ -141,7 +141,7 @@ public:
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
@@ -231,7 +231,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         int dist = (int)_hypot(order->pos.x - unit->pos.x, order->pos.z - unit->pos.z);
         int angle = GetHeadingBetween(up2, op2);
         int radius = dist / 2;
-        Vec3 dest = unit->pos + Offset(FUN_004b6c30(0x4000) + angle - 0x2000, radius);
+        Vec3 dest = unit->pos + Offset(RandomInt(0x4000) + angle - 0x2000, radius);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->FUN_0044e730(0x1e0);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
@@ -285,7 +285,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
             GetFactoriesInRadius(unit->field_96->field_146, &unit->pos, 0xf00, &pads);
             if (!pads.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                Unit* pad = pads[FUN_004b6c30(pads.size())];
+                Unit* pad = pads[RandomInt(pads.size())];
                 AppendOrder(unit, new Class_0043a1f0("VTOL_LANDING", pad, 0, 0, 0, 0));
                 order->flags = 0;
                 return 0;

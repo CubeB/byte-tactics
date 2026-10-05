@@ -156,7 +156,7 @@ extern Game* g_game;
 
 unsigned short __stdcall FindFeatureAtPos(Vec3* pos, Point16* cell, Point16* size);
 void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text);
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 int __stdcall GetGroundHeight(Vec3* pos);
 unsigned short __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 void __stdcall StartBuildingScript(Unit* unit, Order* order, short turn);
@@ -210,7 +210,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         Vec3 pos;
         pos.x = (size.x + cell.x * 2) << 19;
         pos.z = (size.z + cell.z * 2) << 19;
-        pos.y = (FUN_004b6c30(f->height) + GetGroundHeight(&pos)) << 16;
+        pos.y = (RandomInt(f->height) + GetGroundHeight(&pos)) << 16;
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->rot.y);
         return 1;
     }

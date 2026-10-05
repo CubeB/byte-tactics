@@ -62,7 +62,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall LoadMapList(char** out, int param_2, int param_3);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(Menu_0047aaf0* menu, char* text, int width, int a, int b);
 Layer_0047aaf0* __stdcall LoadGuiLayer(Menu_0047aaf0* menu, const char* name, int flags);
 void __stdcall HandleSkirmishMapClick(void* gadget);
@@ -72,7 +72,7 @@ void __stdcall SortFileList(char* items, int b, int c, int count);
 void __stdcall FUN_004a32a0(Menu_0047aaf0* menu, char* name, char* items, int count, int flag);
 Entry_0047aaf0* __stdcall FindGadgetChecked(Entry_0047aaf0* entries, char* name);
 void __stdcall FUN_0047aaa0(void* menu, int unused);
-char* __stdcall FUN_004b6af0(char* text, int line);
+char* __stdcall SkipTextLines(char* text, int line);
 void __stdcall FUN_004a2e40(Menu_0047aaf0* menu, char* name, int index);
 void ShowSelectedMapInfo();
 void __stdcall FUN_0049fb10(Menu_0047aaf0* menu, int value);
@@ -85,7 +85,7 @@ void OpenSkirmishMapSelector()
     int n = LoadMapList(0, 0, 0);
     if (n == 0) {
         OpenMessageBox(&g_game->menu,
-                     FUN_004c5740("There are no skirmish maps to choose from"),
+                     Translate("There are no skirmish maps to choose from"),
                      0x140, 1, 1);
         return;
     }
@@ -100,14 +100,14 @@ void OpenSkirmishMapSelector()
     FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = FUN_0047aaa0;
 
     for (int i = 0; i < n; i++) {
-        if (strcmp(g_game->player->name, FUN_004b6af0(data->items, i)) == 0) {
+        if (strcmp(g_game->player->name, SkipTextLines(data->items, i)) == 0) {
             FUN_004a2e40(&g_game->menu, "MAPNAMES", i);
             break;
         }
     }
 
     Entry_0047aaf0* g = FindGadgetChecked(g_game->menu.holder->entries, "MAPNAMES");
-    if (g_game->field_391e9->LoadMissionByName(FUN_004b6af0(g->text, g->selected)) != 0) {
+    if (g_game->field_391e9->LoadMissionByName(SkipTextLines(g->text, g->selected)) != 0) {
         ShowSelectedMapInfo();
     }
     FUN_0049fb10(&g_game->menu, 1);

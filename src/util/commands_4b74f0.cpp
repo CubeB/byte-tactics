@@ -15,11 +15,11 @@ public:
         return args[index];
     }
 
-    void FUN_004b74f0(Class_004b74f0* other);
+    void SubstituteArgs(Class_004b74f0* other);
 };
 
 // FUNCTION: 0x4b74f0
-void Class_004b74f0::FUN_004b74f0(Class_004b74f0* other)
+void Class_004b74f0::SubstituteArgs(Class_004b74f0* other)
 {
     for (int i = 0; i < count; i++) {
         if (*args[i] == '%') {

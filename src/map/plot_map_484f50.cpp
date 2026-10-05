@@ -14,28 +14,28 @@ struct Game {
 extern Game* g_game;
 
 // Chunked file writer.
-class Class_004b4560 {
+class HapiBank {
 public:
-    int FUN_004b4560(char* name);
+    int OpenAccount(char* name);
 };
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4cf0 {
 public:
-    int FUN_004b4cf0(void* src, int len);
+    int WriteBox(void* src, int len);
 };
 
 // Writes the "Mapping" "Data" chunk from the map's mapping buffer; the
 // reading counterpart is 0x484fa0.
 // FUNCTION: 0x484f50
-void __stdcall SaveMappingData(Class_004b4560* file)
+void __stdcall SaveMappingData(HapiBank* file)
 {
-    file->FUN_004b4560("Mapping");
+    file->OpenAccount("Mapping");
     unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;
-    ((Class_004b4ba0*)file)->FUN_004b4ba0("Data");
-    ((Class_004b4cf0*)file)->FUN_004b4cf0(g_game->mapping, size);
+    ((Class_004b4ba0*)file)->OpenNamedBox("Data");
+    ((Class_004b4cf0*)file)->WriteBox(g_game->mapping, size);
 }

@@ -54,7 +54,7 @@ int PeekKey();
 void PopKey();
 void ToggleFullScreen();
 void __stdcall FUN_00491d70(int);
-void __stdcall FUN_004bcf00(char*);
+void __stdcall MakeDirectoryPath(char*);
 int __stdcall GetTicks();
 void __stdcall PeekMouseEvent(Input_00499890*);
 void __stdcall UpdateMenu(void*);
@@ -87,9 +87,9 @@ void FUN_00499890()
     }
     if (key == 0xd6) {
         PopKey();
-        FUN_004bcf00(g_game->path);
+        MakeDirectoryPath(g_game->path);
         sprintf(path, DAT_005024fc, g_game->path);
-        FUN_004bcf00(path);
+        MakeDirectoryPath(path);
         SaveScreenshot(path, DAT_0050966c);
         g_game->screenshot = GetTicks();
     }

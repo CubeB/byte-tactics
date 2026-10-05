@@ -36,29 +36,29 @@ struct Game {
 extern Game* g_game;
 
 // Command arguments.
-class Class_004b73e0 {
+class CommandArgs {
 public:
-    int FUN_004b73e0(int index, int fallback);
+    int GetIntArg(int index, int fallback);
 };
 
 void __stdcall AddMessage(char* text, int param_2, int param_3, int param_4);
 
 // FUNCTION: 0x4168d0
-void __stdcall CmdLogo(Class_004b73e0* args)
+void __stdcall CmdLogo(CommandArgs* args)
 {
-    int n = args->FUN_004b73e0(1, 0);
+    int n = args->GetIntArg(1, 0);
     if (n >= 0) {
-        int m = args->FUN_004b73e0(1, 0);
+        int m = args->GetIntArg(1, 0);
         unsigned int limit = 0;
         limit = *(unsigned short*)g_game->logos32;
         if (m < (int)limit) {
-            unsigned char i = args->FUN_004b73e0(2, 0);
+            unsigned char i = args->GetIntArg(2, 0);
             if (i < 10) {
                 Player* p = &g_game->players[i];
                 if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
                     && p->field_146 != 10) {
-                    int v = args->FUN_004b73e0(1, 0);
-                    int j = args->FUN_004b73e0(2, 0);
+                    int v = args->GetIntArg(1, 0);
+                    int j = args->GetIntArg(2, 0);
                     g_game->players[j].data->field_96 = v;
                     g_game->obj->FlushCache();
                     return;

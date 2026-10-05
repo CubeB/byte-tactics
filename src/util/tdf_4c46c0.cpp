@@ -23,7 +23,7 @@ public:
     Pair_004c46c0* first;           // +0x19
     Pair_004c46c0* last;            // +0x1d
 
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 #pragma pack(pop)
 
@@ -58,7 +58,7 @@ static inline char* GetString(Class_004c46c0* table, const char* name)
 }
 
 // FUNCTION: 0x4c46c0
-int Class_004c46c0::FUN_004c46c0(const char* name, int def)
+int Class_004c46c0::GetFieldInt(const char* name, int def)
 {
     char* s = GetString(this, name);
     if (s)

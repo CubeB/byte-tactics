@@ -20,7 +20,7 @@
 // The dead std::vector local is the `push 0; call operator delete` after the
 // loop. `delay` must be computed first or the sum folds into one lea (as in
 // 0x407ae0); Offset() as in 0x406300 keeps the call order and the zero y in
-// ebp; `FUN_004b6c30(r) > FUN_004b6c30(field_38)` calls the field_38 roll
+// ebp; `RandomInt(r) > RandomInt(field_38)` calls the field_38 roll
 // first.
 #include <vector>
 
@@ -155,7 +155,7 @@ public:
     virtual void OnTimer();                         // slot 0, 0x407e90
 };
 
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 int __cdecl FUN_004b70ef(int angle, int distance);
 int __cdecl FUN_004b7123(int angle, int distance);
 
@@ -178,20 +178,20 @@ void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* unit,
 // FUNCTION: 0x407e90
 void Class_00407d40::OnTimer()
 {
-    int delay = FUN_004b6c30(150) + 30;
+    int delay = RandomInt(150) + 30;
     field_c = g_game->ticks + delay;
     if (((Group_00407e90*)field_8)->units.empty())
         return;
     std::vector<Unit*> unused;
-    if (FUN_004b6c30(10) == 0) {
+    if (RandomInt(10) == 0) {
         b = a;
-        int angle = FUN_004b6c30(0x10000);
+        int angle = RandomInt(0x10000);
         c = Offset(angle, 0x1400000);
     }
     b += c;
     if (IsVisible(((Group_00407e90*)field_8)->player, (Position_00408090*)&b)) {
         int r = SumUnitRatingsInRange(field_10, &b, 0xa0);
-        if (FUN_004b6c30(r) > FUN_004b6c30(field_38)) {
+        if (RandomInt(r) > RandomInt(field_38)) {
             field_38 = r;
             a = b;
         }

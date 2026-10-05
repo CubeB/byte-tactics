@@ -28,8 +28,8 @@ extern Option_00419560 DAT_00501d38;
 extern Option_00419560 DAT_00501f48;
 extern Option_00419560 DAT_00501fd0;
 
-void __stdcall FUN_004b7760(Option_00419560* option);
-void __stdcall FUN_004b78e0(void (__stdcall* callback)(int), int param_2);
+void __stdcall RegisterCommands(Option_00419560* option);
+void __stdcall SetDefaultCommandHandler(void (__stdcall* callback)(int), int param_2);
 void __stdcall FUN_00417890(int param_1);
 
 // FUNCTION: 0x419560
@@ -52,8 +52,8 @@ void FUN_00419560()
     DAT_00511bc8 = 0;
     DAT_00511c48 = 0;
     DAT_00511c50 = 0;
-    FUN_004b7760(&DAT_00501d38);
-    FUN_004b7760(&DAT_00501f48);
-    FUN_004b7760(&DAT_00501fd0);
-    FUN_004b78e0(FUN_00417890, 4);
+    RegisterCommands(&DAT_00501d38);
+    RegisterCommands(&DAT_00501f48);
+    RegisterCommands(&DAT_00501fd0);
+    SetDefaultCommandHandler(FUN_00417890, 4);
 }

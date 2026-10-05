@@ -22,7 +22,7 @@ typedef std::map<int, int> Map_004b26f0;
 extern Map_004b26f0 DAT_0051fbc0;
 
 // FUNCTION: 0x4b26f0
-int __stdcall FUN_004b26f0(int key)
+int __stdcall GetCobChecksum(int key)
 {
     return DAT_0051fbc0[key];
 }

@@ -14,7 +14,7 @@ extern Game* g_game;
 class Class_004800c0 { public: void FUN_004800c0(Unit**); };
 int __stdcall FUN_0049adf0(Unit*,unsigned char);
 int __stdcall WeaponCanReachUnit(Unit*,Unit*,unsigned char);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 void __stdcall GetVisibleEnemiesInRadius(int,Vec*,int,int,std::vector<Unit*>*);
 // FUNCTION: 0x40b7b0
 Unit* __stdcall FindWeaponTarget(Unit* unit,unsigned char weapon,int useRange)
@@ -29,7 +29,7 @@ Unit* __stdcall FindWeaponTarget(Unit* unit,unsigned char weapon,int useRange)
     else GetVisibleEnemiesInRadius(unit->player,&unit->pos,unit->def->range,0,&candidates);
     for(int count=0;count<50;++count) {
         if(candidates.empty()) break;
-        std::vector<Unit*>::iterator it=candidates.begin()+FUN_004b6c30(candidates.size());
+        std::vector<Unit*>::iterator it=candidates.begin()+RandomInt(candidates.size());
         Unit* target=*it;
         ((Class_004800c0*)&candidates)->FUN_004800c0(it);
         if((target->flags&0x10000000) && !(target->flags&0x4000) &&
@@ -39,7 +39,7 @@ Unit* __stdcall FindWeaponTarget(Unit* unit,unsigned char weapon,int useRange)
            (!(unit->weapons[weapon].weapon->flags&0x80) || !(target->status&0x10))) {
             int dz=unit->pos.z-target->pos.z;
             int dx=unit->pos.x-target->pos.x;
-            int d=FUN_004b6c30((int)(((__int64)dx*dx)>>32)+(int)(((__int64)dz*dz)>>32));
+            int d=RandomInt((int)(((__int64)dx*dx)>>32)+(int)(((__int64)dz*dz)>>32));
             if(unit->def->bad[weapon].Test(target->id)) {
                 if(d<fallbackDistance) { fallbackDistance=d; fallback=target; }
             } else if(d<bestDistance) { bestDistance=d; best=target; }

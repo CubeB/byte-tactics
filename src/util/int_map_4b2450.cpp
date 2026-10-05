@@ -47,20 +47,20 @@ typedef std::_Tree<int, std::pair<int, int>, std::map<int, int>::_Kfn,
 
 extern char DAT_0051fbc0;
 
-extern Data_004b2450* __stdcall FUN_004bbe50(char* name, int reserved);
-extern int __stdcall FUN_004bbc40(char* name);
-extern int __stdcall FUN_004b6ba0(unsigned char* data, int len);
+extern Data_004b2450* __stdcall HAPI_LoadFile(char* name, int reserved);
+extern int __stdcall HAPI_FileLengthByName(char* name);
+extern int __stdcall ComputeChecksum(unsigned char* data, int len);
 
 // The original's map lookup (`DAT_0051fbc0[(int)data] = sum`) inlined
 // map::operator[] but left _Tree::insert (0x4b2850) out of line, so the
 // insert is called explicitly here instead of through <map>.
 // FUNCTION: 0x4b2450
-Data_004b2450* __stdcall FUN_004b2450(char* name)
+Data_004b2450* __stdcall LoadCobScript(char* name)
 {
-    Data_004b2450* data = FUN_004bbe50(name, 0);
+    Data_004b2450* data = HAPI_LoadFile(name, 0);
     if (data == 0)
         return 0;
-    int sum = FUN_004b6ba0((unsigned char*)data, FUN_004bbc40(name));
+    int sum = ComputeChecksum((unsigned char*)data, HAPI_FileLengthByName(name));
     std::pair<int, int> value;
     value.first = (int)data;
     value.second = 0;

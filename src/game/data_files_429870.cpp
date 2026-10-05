@@ -12,7 +12,7 @@
 // declared at its point of use, not at the top, or MSVC hoists the
 // Class_004c2ea0 constructor above the whole head block; and the loop must be
 // `while (1)` with a mid-body break (a `for (;;)` gets rotated). The
-// FUN_004c48c0 result goes into an `int` local before the test, which is what
+// GetFieldString result goes into an `int` local before the test, which is what
 // makes MSVC emit `cmp eax, ebx` instead of `test eax, eax`.
 #include <stdio.h>
 
@@ -108,32 +108,32 @@ public:
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3e10 {
 public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, char* key, int size, char* def);
+    int GetFieldString(char* dst, char* key, int size, char* def);
 };
 
 class Class_004c3240 {
 public:
-    void FUN_004c3240();
+    void Unload();
 };
 
 struct Frame_00429870 {
@@ -231,11 +231,11 @@ void LoadGameResources()
     char buf[256];
 
     BuildDataPath(buf, "gamedata", "sidedata", "TDF");
-    ((Class_004c2f60*)&parser)->FUN_004c2f60(buf);
+    ((Class_004c2f60*)&parser)->LoadFile(buf);
     sprintf(buf, "GENERAL");
-    ((Class_004c3e10*)&parser)->FUN_004c3e10();
-    if (((Class_004c3410*)&parser)->FUN_004c3410(buf) == 1) {
-        g_game->baseHeight = ((Class_004c46c0*)parser.current)->FUN_004c46c0("baseheight", 0x1e0);
+    ((Class_004c3e10*)&parser)->ResetCurrentRecord();
+    if (((Class_004c3410*)&parser)->SelectRecord(buf) == 1) {
+        g_game->baseHeight = ((Class_004c46c0*)parser.current)->GetFieldInt("baseheight", 0x1e0);
     } else {
         g_game->baseHeight = 0x1e0;
     }
@@ -243,10 +243,10 @@ void LoadGameResources()
     int i = 0;
     while (1) {
         sprintf(buf, "SIDE%d", i);
-        ((Class_004c3e10*)&parser)->FUN_004c3e10();
-        if (!((Class_004c3410*)&parser)->FUN_004c3410(buf))
+        ((Class_004c3e10*)&parser)->ResetCurrentRecord();
+        if (!((Class_004c3410*)&parser)->SelectRecord(buf))
             break;
-        int intgaf = ((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "intgaf", 0x1e, DAT_005119b8);
+        int intgaf = ((TdfRecord*)parser.current)->GetFieldString(buf, "intgaf", 0x1e, DAT_005119b8);
         if (intgaf != 0) {
             char* side = (char*)LoadAnimGaf(buf);
             if (side) {
@@ -258,5 +258,5 @@ void LoadGameResources()
         }
         i++;
     }
-    ((Class_004c3240*)&parser)->FUN_004c3240();
+    ((Class_004c3240*)&parser)->Unload();
 }

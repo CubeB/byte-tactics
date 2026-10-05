@@ -2,7 +2,7 @@
 // Starts the worker thread (0x4c2990) that 0x4c2ac0 stops.
 
 void __cdecl MouseThreadProc(void* param_1);
-int __stdcall FUN_004b6b20(void* param_1, unsigned int param_2, void* param_3);
+int __stdcall StartThread(void* param_1, unsigned int param_2, void* param_3);
 
 #pragma pack(push, 1)
 struct Struct_004c2ac0 {
@@ -18,7 +18,7 @@ struct Struct_004c2ac0 {
 int __stdcall StartMouseThread(Struct_004c2ac0* s)
 {
     s->pending = 0;
-    s->active = FUN_004b6b20((void*)MouseThreadProc, 0x8000, s);
+    s->active = StartThread((void*)MouseThreadProc, 0x8000, s);
     if (s->active) {
         s->running = 1;
         return 1;

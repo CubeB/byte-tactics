@@ -8,9 +8,9 @@
 #define LINK_GLOBALS_H
 
 class Class_00437820;
-class Class_004c5840;
 class Class_004db000;
 class Class_004e17c0;
+class TranslationTable;
 struct Chunk;
 struct Class_0051fba4;
 struct Entry_00443100;
@@ -30,7 +30,7 @@ extern const float DAT_004fd4cc;                                                
 extern float DAT_004fd750;                                                                    // 0x4fd750, 4 bytes; 1 of 1 files
 extern unsigned char DAT_004fdaf0[16];                                                        // 0x4fdaf0, 16 bytes; V4i by value in 1 of 2 files (conflicting: struct names only)
 extern double DAT_004fdbe8;                                                                   // 0x4fdbe8, 8 bytes; 1 of 1 files
-extern char DAT_004fdbf0[40];                                                                 // 0x4fdbf0, 40 bytes; 1 of 1 files
+extern char g_hapiCopyright[40];                                                              // 0x4fdbf0, 40 bytes; 1 of 1 files
 extern int g_aiCommandsEnabled;                                                               // 0x501774, 4 bytes; 4 of 4 files
 extern unsigned char DAT_00501d18[32];                                                        // 0x501d18, 32 bytes; 1 of 1 files
 extern char DAT_00502288[8];                                                                  // 0x502288, 8 bytes; 1 of 1 files
@@ -201,7 +201,7 @@ extern const char DAT_005097b0[32];                                             
 extern const char DAT_005097d0[24];                                                           // 0x5097d0, 24 bytes; 1 of 1 files
 extern const char DAT_005097e8[12];                                                           // 0x5097e8, 12 bytes; 1 of 1 files
 extern const char DAT_005097f4[8];                                                            // 0x5097f4, 8 bytes; 1 of 1 files
-extern const char DAT_00509edc[20];                                                           // 0x509edc, 20 bytes; 1 of 1 files
+extern const char g_errorCaption[20];                                                         // 0x509edc, 20 bytes; 1 of 1 files
 extern "C" double DAT_00509ef0;                                                               // 0x509ef0, 8 bytes; declared extern "C" in 1 of 1 files
 extern "C" double DAT_00509ef8;                                                               // 0x509ef8, 8 bytes; declared extern "C" in 1 of 1 files
 extern "C" short DAT_00509f00[128];                                                           // 0x509f00, 256 bytes; declared extern "C" in 1 of 1 files
@@ -218,7 +218,7 @@ extern void* g_emptyString;                                                     
 extern int g_guaranteePackets;                                                                // 0x50a780, 4 bytes; 4 of 4 files
 extern int g_cdNextTrackTimer;                                                                // 0x50b540, 4 bytes; 8 of 8 files
 extern int g_cdFadeTimer;                                                                     // 0x50b544, 4 bytes; 7 of 7 files
-extern void* DAT_0050b9e0[7];                                                                 // 0x50b9e0, 28 bytes; 1 of 1 files
+extern void* g_squashErrorNames[7];                                                           // 0x50b9e0, 28 bytes; 1 of 1 files
 extern char DAT_0050c8ac[8];                                                                  // 0x50c8ac, 8 bytes; 1 of 1 files
 extern char* DAT_0050c908[19];                                                                // 0x50c908, 76 bytes; 1 of 1 files
 extern char DAT_0050d220[16];                                                                 // 0x50d220, 16 bytes; 1 of 1 files
@@ -576,16 +576,16 @@ extern int DAT_0051fbb8;                                                        
 extern unsigned char DAT_0051fbd4[4];                                                         // 0x51fbd4, 4 bytes; nothing refers to it
 extern unsigned char DAT_0051fbd8[172];                                                       // 0x51fbd8, 172 bytes; Timer_4b63f0[] by value in 1 of 1 files
 extern unsigned int DAT_0051fc84;                                                             // 0x51fc84, 4 bytes; 4 of 4 files
-extern unsigned int DAT_0051fc88;                                                             // 0x51fc88, 4 bytes; 2 of 2 files
+extern unsigned int g_randomSeed;                                                             // 0x51fc88, 4 bytes; 2 of 2 files
 extern unsigned char DAT_0051fc8c[4];                                                         // 0x51fc8c, 4 bytes; nothing refers to it
-extern int DAT_0051fc90;                                                                      // 0x51fc90, 4 bytes; 3 of 3 files
-extern int DAT_0051fc94;                                                                      // 0x51fc94, 4 bytes; 3 of 3 files
+extern int g_defaultCommandHandler;                                                           // 0x51fc90, 4 bytes; 3 of 3 files
+extern int g_defaultCommandMask;                                                              // 0x51fc94, 4 bytes; 3 of 3 files
 extern unsigned char DAT_0051fcb0[256];                                                       // 0x51fcb0, 256 bytes; 2 of 2 files
 extern int DAT_0051fdb0;                                                                      // 0x51fdb0, 4 bytes; 3 of 3 files
 extern unsigned char DAT_0051fdb4[4];                                                         // 0x51fdb4, 4 bytes; nothing refers to it
-extern Class_004c5840* DAT_0051fdb8;                                                          // 0x51fdb8, 4 bytes; 2 of 3 files (conflicting: struct names only)
+extern TranslationTable* g_translations;                                                      // 0x51fdb8, 4 bytes; 3 of 3 files
 extern unsigned char DAT_0051fdbc[4];                                                         // 0x51fdbc, 4 bytes; nothing refers to it
-extern char DAT_0051fdc0[304];                                                                // 0x51fdc0, 304 bytes (declared char[256]); 2 of 2 files
+extern char g_language[304];                                                                  // 0x51fdc0, 304 bytes (declared char[256]); 2 of 2 files
 extern int DAT_0051fef0;                                                                      // 0x51fef0, 4 bytes; 1 of 1 files
 extern int DAT_0051fef4;                                                                      // 0x51fef4, 4 bytes; 1 of 1 files
 extern Chunk* DAT_0051fef8;                                                                   // 0x51fef8, 4 bytes; 2 of 2 files
@@ -603,12 +603,12 @@ extern unsigned char DAT_0051ff4c[12];                                          
 extern int DAT_0051ff58;                                                                      // 0x51ff58, 4 bytes; 2 of 2 files
 extern unsigned char DAT_0051ff5c[4];                                                         // 0x51ff5c, 4 bytes; nothing refers to it
 extern char DAT_0051ff60[112];                                                                // 0x51ff60, 112 bytes; 2 of 2 files
-extern char DAT_0051ffd0[176];                                                                // 0x51ffd0, 176 bytes; 3 of 3 files
+extern char g_lzssPresetWindow[176];                                                          // 0x51ffd0, 176 bytes; 3 of 3 files
 extern unsigned char DAT_00520080[3944];                                                      // 0x520080, 3944 bytes; nothing refers to it
-extern char DAT_00520fe8[24584];                                                              // 0x520fe8, 24584 bytes; 2 of 2 files
+extern char g_lzssPresetTree[24584];                                                          // 0x520fe8, 24584 bytes; 2 of 2 files
 extern Struct_00526ff0* DAT_00526ff0;                                                         // 0x526ff0, 4 bytes; 2 of 10 files (conflicting: shape)
-extern int DAT_00526ff8;                                                                      // 0x526ff8, 4 bytes; 3 of 3 files
-extern int DAT_00526ffc;                                                                      // 0x526ffc, 4 bytes; 4 of 4 files
+extern int g_lzssPresetReady;                                                                 // 0x526ff8, 4 bytes; 3 of 3 files
+extern int g_lzssUsePreset;                                                                   // 0x526ffc, 4 bytes; 4 of 4 files
 extern char DAT_005289b4;                                                                     // 0x5289b4, 1 bytes; 2 of 2 files
 extern char DAT_005289b8;                                                                     // 0x5289b8, 1 bytes; 2 of 2 files
 extern void (__stdcall* DAT_005289bc)(void);                                                  // 0x5289bc, 4 bytes; 12 of 13 files (conflicting: shape)
@@ -708,7 +708,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51fbbc std::HH::HU?$pair::?$_Tree::_Nil: defined in src/util/int_map_4b26f0.cpp
 //   0x4fd2f8 DAT_004fd2f8: defined in src/data/vtables.cpp
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4e17c0.cpp
-//   0x51fe00 g_screenLockCount: part of another global: DAT_0051fdc0+0x40
+//   0x51fe00 g_screenLockCount: part of another global: g_language+0x40
 //   0x4fcdc8 DPSPGUID_MODEM: defined in src/data/guids.cpp
 //   0x4fcdb8 DPSPGUID_SERIAL: defined in src/data/guids.cpp
 //   0x4fd3b8 DAT_004fd3b8: defined in src/data/vtables.cpp
@@ -778,7 +778,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e660 DAT_0051e660: int* (2), char* (1)
 //   0x51fb50 DAT_0051fb50: char[] (2), const char[] (1)
 //   0x51fb9c g_loopingWav: const char* (1), int (1), char* (1)
-//   0x51fe08 g_screenLocks: part of another global: DAT_0051fdc0+0x48
+//   0x51fe08 g_screenLocks: part of another global: g_language+0x48
 //   0x528a10 DAT_00528a10: void* (2), Node_004ddc00* (1)
 //   0x528ac0 DAT_00528ac0: void* (1), void (__stdcall*)(void) (1), int (__stdcall*)(unsigned long, void*, void*, void*, void*, void*, void*, void*, void*) (1)
 //   0x528ac4 DAT_00528ac4: void* (2), void (__stdcall*)(void) (1)
@@ -826,8 +826,8 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e640 DAT_0051e640: Anim_00478b40 (1), int (1)
 //   0x51fc78 g_closeHandler: part of another global: DAT_0051fbd8+0xa0
 //   0x51fc7c g_closeHandlerArg: part of another global: DAT_0051fbd8+0xa4
-//   0x51fe48 DAT_0051fe48: part of another global: DAT_0051fdc0+0x88
-//   0x51fea0 DAT_0051fea0: part of another global: DAT_0051fdc0+0xe0
+//   0x51fe48 DAT_0051fe48: part of another global: g_language+0x88
+//   0x51fea0 DAT_0051fea0: part of another global: g_language+0xe0
 //   0x528ab8 DAT_00528ab8: void* (1), int (__stdcall*)(void*, char*, unsigned long) (1)
 //   0x528abc DAT_00528abc: int (__stdcall*)(void*) (1), void (__stdcall*)(void) (1)
 //   0x528ad0 DAT_00528ad0: int (1), unsigned long (__stdcall*)(unsigned long) (1)
@@ -937,8 +937,8 @@ extern long DAT_0052a4fc;                                                       
 //   0x51e854 DAT_0051e854: part of another global: DAT_0051e828+0x2c
 //   0x51e858 DAT_0051e858: part of another global: DAT_0051e828+0x30
 //   0x51f310 DAT_0051f310: defined in src/weapons/weapons_49e610.cpp
-//   0x51fe40 DAT_0051fe40: part of another global: DAT_0051fdc0+0x80
-//   0x51fe98 DAT_0051fe98: part of another global: DAT_0051fdc0+0xd8
+//   0x51fe40 DAT_0051fe40: part of another global: g_language+0x80
+//   0x51fe98 DAT_0051fe98: part of another global: g_language+0xd8
 //   0x528a58 std::IH::IU?$pair::?$_Tree::_Nilrefs: defined in src/debug/debug_lib_4db610.cpp
 
 #endif

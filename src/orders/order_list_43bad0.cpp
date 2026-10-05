@@ -53,7 +53,7 @@ struct Game {
 extern Callback_0043bad0* DAT_00512344;
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int n);
+int __stdcall RandomInt(int n);
 
 // Takes the node out of the parent's list and frees it. The search can fail,
 // when the node is not in the list at all, and then nothing is freed. The head
@@ -88,7 +88,7 @@ void __stdcall FUN_0043bad0(Parent_0043bad0* p)
             case 3: {
                 // Ask again in a while. The temporary keeps the sum from being
                 // folded into one lea, which is what the original does.
-                unsigned int when = FUN_004b6c30(0xf) + 0x1e;
+                unsigned int when = RandomInt(0xf) + 0x1e;
                 child->flags_6 |= 1;
                 child->wakeFrame = g_game->frame + when;
                 break;

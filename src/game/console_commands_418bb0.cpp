@@ -24,32 +24,32 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 // Command arguments.
-class Class_004b73e0 {
+class CommandArgs {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
-    int FUN_004b73e0(int index, int fallback);
+    int GetIntArg(int index, int fallback);
 };
 
 class Class_004b73c0 {
 public:
-    char* FUN_004b73c0(int index, char* fallback);
+    char* GetArg(int index, char* fallback);
 };
 
 void __stdcall DumpPlayerAI(int player, FILE* file);
 
 // FUNCTION: 0x418bb0
-void __stdcall CmdPrintWeights(Class_004b73e0* args)
+void __stdcall CmdPrintWeights(CommandArgs* args)
 {
     if (args->count == 3) {
-        unsigned char i = args->FUN_004b73e0(1, 0);
+        unsigned char i = args->GetIntArg(1, 0);
         if (i < 10) {
             Player_00418bb0* p = &g_game->players[i];
             if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
                 && p->field_146 != 10) {
-                FILE* f = fopen(((Class_004b73c0*)args)->FUN_004b73c0(2, DAT_005119b8), "w+b");
+                FILE* f = fopen(((Class_004b73c0*)args)->GetArg(2, DAT_005119b8), "w+b");
                 if (f != 0) {
-                    DumpPlayerAI(args->FUN_004b73e0(1, 0), f);
+                    DumpPlayerAI(args->GetIntArg(1, 0), f);
                     fclose(f);
                 }
             }

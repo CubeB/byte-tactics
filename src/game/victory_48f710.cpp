@@ -2,14 +2,14 @@
 // Writes the "commander killed" defeat condition's state to a section; the
 // reading counterpart is 0x48f750, compare 0x48ef00.
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* name);
+    void OpenAccount(const char* name);
 };
 
 class Class_004b4630 {
 public:
-    void FUN_004b4630(const char* name, int value);
+    void SetIntegerItem(const char* name, int value);
 };
 
 class DefeatCommanderKilled {
@@ -17,13 +17,13 @@ public:
     int satisfied;                       // +0x4
     int celebrated;                      // +0x8
 
-    virtual void SaveState(Class_004b4560* obj);
+    virtual void SaveState(HapiBank* obj);
 };
 
 // FUNCTION: 0x48f710
-void DefeatCommanderKilled::SaveState(Class_004b4560* obj)
+void DefeatCommanderKilled::SaveState(HapiBank* obj)
 {
-    obj->FUN_004b4560("DefeatCondition_CommanderKilled");
-    ((Class_004b4630*)obj)->FUN_004b4630("Satisfied", satisfied);
-    ((Class_004b4630*)obj)->FUN_004b4630("Celebrated", celebrated);
+    obj->OpenAccount("DefeatCondition_CommanderKilled");
+    ((Class_004b4630*)obj)->SetIntegerItem("Satisfied", satisfied);
+    ((Class_004b4630*)obj)->SetIntegerItem("Celebrated", celebrated);
 }

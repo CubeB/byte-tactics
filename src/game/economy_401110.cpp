@@ -10,17 +10,17 @@ struct UnitInfo_401110 {
 
 class Class_004b4ba0 {
 public:
-    int FUN_004b4ba0(char* name);
+    int OpenNamedBox(char* name);
 };
 
 class Class_004b4c10 {
 public:
-    void FUN_004b4c10(int pos);
+    void SeekBox(int pos);
 };
 
 class Class_004b4c80 {
 public:
-    int FUN_004b4c80(void* buf, int size);
+    int ReadBox(void* buf, int size);
 };
 
 class Class_00401110 {
@@ -35,9 +35,9 @@ void Class_00401110::LoadUnitAccounts(UnitInfo_401110* info, Class_004b4ba0* fil
 {
     char name[32];
     sprintf(name, "u%04xacc", info->id);
-    if (file->FUN_004b4ba0(name)) {
-        ((Class_004b4c10*)file)->FUN_004b4c10(0);
-        ((Class_004b4c80*)file)->FUN_004b4c80(acc0, 0x18);
-        ((Class_004b4c80*)file)->FUN_004b4c80(acc1, 0x18);
+    if (file->OpenNamedBox(name)) {
+        ((Class_004b4c10*)file)->SeekBox(0);
+        ((Class_004b4c80*)file)->ReadBox(acc0, 0x18);
+        ((Class_004b4c80*)file)->ReadBox(acc1, 0x18);
     }
 }

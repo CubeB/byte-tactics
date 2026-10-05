@@ -113,7 +113,7 @@ void BlankScreen();
 void OpenNewMultiDialog();
 void __stdcall CloseTopScreen(Sub_004437c0* sub);
 void __stdcall FUN_004a7190(Sub_004437c0* sub, char* text);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(Sub_004437c0* sub, char* text, int a, int b, int c);
 unsigned char FindHostSlot();
 int __stdcall IsCurrentGadgetNamed(Sub_004437c0* sub, const char* name);
@@ -188,7 +188,7 @@ void __stdcall HandleSelectGameClick(Sub_004437c0* param_1)
             if (strlen(g_game->nickname) == 0) {
                 FUN_004a7190(param_1, (char*)FindGadgetIndex(entries, "NICKNAME", 3));
                 FUN_004ab0a0(param_1);
-                OpenMessageBox(param_1, FUN_004c5740("You must enter your name"), 0xc8, 1, 1);
+                OpenMessageBox(param_1, Translate("You must enter your name"), 0xc8, 1, 1);
                 return;
             }
             pass = FUN_004a0010(entries, "PASSWORD");

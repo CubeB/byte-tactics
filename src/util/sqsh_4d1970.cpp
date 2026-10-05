@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
-// Unpacks a "SQSH" chunk (see FUN_004d1820 for the packer).
+// Unpacks a "SQSH" chunk (see SquashPack for the packer).
 // Two things made this match. `data` is advanced past the header (`data += 0x13`)
 // while a separate `chunk` pointer keeps the original address, which gives the
 // original's edx/ebx split: edx walks the payload, ebx is the chunk for the case-2
@@ -19,11 +19,11 @@ struct Chunk_4d1970 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004d1480(unsigned char* dest, unsigned char* src);
+int __stdcall LzssExpand(unsigned char* dest, unsigned char* src);
 int __stdcall _uncompress(unsigned char* dest, unsigned long* destLen, unsigned char* source, unsigned long sourceLen);
 
 // FUNCTION: 0x4d1970
-int __stdcall FUN_004d1970(char* dest, char* data)
+int __stdcall SquashUnpack(char* dest, char* data)
 {
     Chunk_4d1970 header;
     Chunk_4d1970* chunk = (Chunk_4d1970*)data;
@@ -51,7 +51,7 @@ int __stdcall FUN_004d1970(char* dest, char* data)
     int length;
     switch (header.method) {
     case 1:
-        length = FUN_004d1480((unsigned char*)dest, (unsigned char*)data);
+        length = LzssExpand((unsigned char*)dest, (unsigned char*)data);
         break;
     case 2:
         { int t = memcmp(chunk, "SQSH", 4) ? 0 : chunk->size;

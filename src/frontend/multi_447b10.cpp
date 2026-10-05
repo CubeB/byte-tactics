@@ -236,7 +236,7 @@ void __stdcall RenderLayer(char* gui, int value);
 Gadget_00447b10* __stdcall LoadGuiLayer(char* gui, char* name, int flags);
 void __stdcall FUN_004ab0a0(void* gadget);
 void __stdcall OpenMessageBox(void* gadget, char* text, int a, int b, int c);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 
 static inline int IsPlaying_00447b10(Player_00447b10* p)
 {
@@ -393,7 +393,7 @@ void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
                     UpdateNetGameInfo();
                 }
                 if (g_game->players[FindHostSlot()].info->b.closed) {
-                    OpenMessageBox(g_game->gui, FUN_004c5740("Can't add another player when game is closed."), 500, 1, 1);
+                    OpenMessageBox(g_game->gui, Translate("Can't add another player when game is closed."), 500, 1, 1);
                     ((Class_00463c60*)p)->SetType(0);
                     g_game->dirty = 1;
                     break;
@@ -454,7 +454,7 @@ void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
             else
                 PlaySoundByName("Multi", 0);
             sprintf(text, " %s %s",
-                    FUN_004c5740(me->ally[i] ? "allied with" : "broke alliance with"),
+                    Translate(me->ally[i] ? "allied with" : "broke alliance with"),
                     g_game->players[i].name);
             SendChatMessage(me, text, 4, 0);
             g_game->dirty = 1;
@@ -586,14 +586,14 @@ void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
         }
         if (count < 1 || (count < 2 && CountHumanPlayers() > 3) || (count < 3 && CountHumanPlayers() > 6)) {
             FUN_004ab0a0(g_game->gui);
-            OpenMessageBox(gadget, FUN_004c5740("There are not enough game CDs present to play"), 200, 1, 1);
+            OpenMessageBox(gadget, Translate("There are not enough game CDs present to play"), 200, 1, 1);
             return;
         }
         int total = CountComputerPlayers() + CountHumanPlayers();
         for (int t = 0; t < 5; t++) {
             if (CountAlliance_00447b10(t) == total) {
                 FUN_004ab0a0(g_game->gui);
-                OpenMessageBox(gadget, FUN_004c5740("Can not start game with all players on the same team."), 200, 1, 1);
+                OpenMessageBox(gadget, Translate("Can not start game with all players on the same team."), 200, 1, 1);
                 return;
             }
         }

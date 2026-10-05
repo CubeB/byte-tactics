@@ -187,7 +187,7 @@ int __stdcall FUN_0049fc50(Menu_004a9fd0*, int);
 void __stdcall FUN_004ab6c0(Menu_004a9fd0*, int, char*, int, int);
 void ClearKeyQueue();
 void __stdcall SetFont(int);
-char* __stdcall FUN_004c5740(void*);
+char* __stdcall Translate(void*);
 void FUN_004c2470();
 void FUN_004c2870();
 void __cdecl FUN_004d85a0(Layer_004a9fd0*);
@@ -224,7 +224,7 @@ static inline void UpdateHelpText(Menu_004a9fd0* obj)
     }
     int found = FindEntry(obj->layer->entries, "HELPTEXT");
     if (found != -1) {
-        strcpy(obj->layer->entries[found].u_b6.text, FUN_004c5740(text));
+        strcpy(obj->layer->entries[found].u_b6.text, Translate(text));
         obj->field_cca = 1;
     }
 }

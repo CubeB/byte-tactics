@@ -31,7 +31,7 @@
 //    pair through `goto finish` (MSVC 5 does not merge return blocks, so
 //    the first arm's exits are gotos too).
 //  - The 0x10 line computation stores straight into me->field_ba and tests
-//    the field; the FUN_004b6af0 result goes through `char* s`; the sync
+//    the field; the SkipTextLines result goes through `char* s`; the sync
 //    loop clamp is min().
 //  - The 0x20 test is `flags & 0x20 | 0x80`, an original bug kept as is: it
 //    parses as `(flags & 0x20) | 0x80` and is always true (docs/bugs.md).
@@ -110,7 +110,7 @@ extern char DAT_00502a20[];
 void __stdcall SetFont(int id);
 int GetFontHeight();
 int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 int GetTicks();
 int __stdcall IsDoubleClickMessage(Object_004a3780* obj, unsigned char buttons);
 int __stdcall IsMouseButtonMessage(Object_004a3780* obj, unsigned char buttons);
@@ -206,7 +206,7 @@ int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
                 me->field_ba = me->field_bc + step - 1;
             if (me->field_ba >= me->field_c0 - 1)
                 me->field_ba = me->field_c0 - 1;
-            s = FUN_004b6af0(me->field_c2, me->field_ba);
+            s = SkipTextLines(me->field_c2, me->field_ba);
             if (strncmp(DAT_00502a20, s, 2) != 0)
                 goto ret1;
             me->field_ba = orig_sel;
@@ -242,7 +242,7 @@ skip0:;
                 if (me->field_ba < 0)
                     me->field_ba = 0;
                 if (flags & 0x200) {
-                    s = FUN_004b6af0(me->field_c2, me->field_ba);
+                    s = SkipTextLines(me->field_c2, me->field_ba);
                     if (strncmp(DAT_00502a20, s, 2) == 0)
                         me->field_ba = orig_sel;
                 }
@@ -306,7 +306,7 @@ ret1:
             me->field_ba--;
             short sel = me->field_ba;
             if (me->field_c2 != 0) {
-                s = FUN_004b6af0(me->field_c2, sel < 0 ? 0 : sel);
+                s = SkipTextLines(me->field_c2, sel < 0 ? 0 : sel);
                 if (strncmp(DAT_00502a20, s, 2) == 0)
                     me->field_ba = orig_sel;
             }
@@ -322,7 +322,7 @@ ret1:
             me->field_bc++;
             me->field_ba = me->field_bc + step - 1;
             if (me->field_c2 != 0) {
-                s = FUN_004b6af0(me->field_c2, me->field_ba);
+                s = SkipTextLines(me->field_c2, me->field_ba);
                 if (strncmp(DAT_00502a20, s, 2) == 0)
                     me->field_ba = orig_sel;
             }

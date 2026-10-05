@@ -60,7 +60,7 @@ void __stdcall FUN_00434ab0(int param);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 int GetTicks(void);
-void __stdcall FUN_004bcec0(char* dest);
+void __stdcall GetStartDirectory(char* dest);
 int PopKey(void);
 
 // FUNCTION: 0x4269d0
@@ -94,7 +94,7 @@ void HandleFrontendDebugKey(void)
         return;
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
-        FUN_004bcec0(path);
+        GetStartDirectory(path);
         strcat(path, "\\Warp.ini");
         wsprintfA(key, "warp%dcampaign", event - 0x30);
         GetPrivateProfileStringA("WARPLEVELS", key, "default", buf, 0x100, path);

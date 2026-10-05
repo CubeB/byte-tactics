@@ -17,10 +17,10 @@ struct Node_004d0c50 {
 
 extern Node_004d0c50* DAT_00526ff0;
 
-void __stdcall FUN_004d0c50(int t);
+void __stdcall LzssDeleteString(int t);
 
 // FUNCTION: 0x4d0c50
-void __stdcall FUN_004d0c50(int t)
+void __stdcall LzssDeleteString(int t)
 {
     if (DAT_00526ff0[t].parent == 0) {
         return;
@@ -51,7 +51,7 @@ void __stdcall FUN_004d0c50(int t)
     while (DAT_00526ff0[q].larger != 0) {
         q = DAT_00526ff0[q].larger;
     }
-    FUN_004d0c50(q);
+    LzssDeleteString(q);
     if (DAT_00526ff0[DAT_00526ff0[t].parent].smaller == (unsigned short)t) {
         DAT_00526ff0[DAT_00526ff0[t].parent].smaller = q;
     } else {

@@ -65,7 +65,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
                                        Unit* target, int flags);
 void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
@@ -79,7 +79,7 @@ int __stdcall AttackUTypeOrder(Unit* unit, Order_00401e00* order, int unused)
     case 0:
         if (!(unit->def->flags & 0x10))
             return 7;
-        ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(0x5a) + 1);
+        ((Class_00439e80*)order)->FUN_00439e80(RandomInt(0x5a) + 1);
         return 1;
     case 1: {
         Unit* best = 0;
@@ -89,7 +89,7 @@ int __stdcall AttackUTypeOrder(Unit* unit, Order_00401e00* order, int unused)
                 int dz = u->z - unit->z;
                 int dx = u->x - unit->x;
                 int d = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dz * dz) >> 32);
-                d -= FUN_004b6c30(d / 2);
+                d -= RandomInt(d / 2);
                 if (d <= bestDist) {
                     best = u;
                     bestDist = d;

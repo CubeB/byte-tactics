@@ -60,7 +60,7 @@ struct Chunk_4d1820 {
 };
 #pragma pack(pop)
 
-int __stdcall FUN_004d0f60(char* out, char* in, int size);
+int __stdcall LzssCompress(char* out, char* in, int size);
 void __stdcall FUN_004d1c80(char* out, int* outSize, char* in, int size);
 
 static inline unsigned int encryptByte(unsigned int i, char* out) { return (i ^ out[i]) + i; }
@@ -75,7 +75,7 @@ static inline unsigned int encryptByte(unsigned int i, char* out) { return (i ^ 
 // as int 98.5%. The include change the permuter also made (memory.h) is not
 // needed. The reason the wrappers matter is not understood (compiler state).
 // FUNCTION: 0x4d1820
-int __stdcall FUN_004d1820(Chunk_4d1820* chunk, int* chunkSize, char* data, int size, int method, int encrypt)
+int __stdcall SquashPack(Chunk_4d1820* chunk, int* chunkSize, char* data, int size, int method, int encrypt)
 {
     Chunk_4d1820 header, * payload = chunk + 1;
     char* out = (char*)payload;
@@ -94,7 +94,7 @@ int __stdcall FUN_004d1820(Chunk_4d1820* chunk, int* chunkSize, char* data, int 
     int length;
     switch (method) {
     case 1:
-        length = FUN_004d0f60(out, data, size);
+        length = LzssCompress(out, data, size);
         break;
     case 2:
         length = *chunkSize;

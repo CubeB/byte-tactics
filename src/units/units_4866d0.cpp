@@ -215,7 +215,7 @@ void __stdcall DamageUnit(void* a, void* b, int c, int d, int e);
 void __stdcall FUN_0047cbd0(void* unit);
 void __stdcall RemoveUnitLineOfSight(void* unit);
 void __stdcall FUN_00494ff0(int flag);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall AddMessage(char* text, int a, int b, int c);
 void __stdcall FUN_004948b0(int a, int b);
 void __stdcall DetonateUnitWeapon(void* unit, int flag);
@@ -342,7 +342,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
                 rec->rank = best;
                 if (best == 0) {
                     char text[100];
-                    sprintf(text, FUN_004c5740(DAT_00508bf0), rec->name,
+                    sprintf(text, Translate(DAT_00508bf0), rec->name,
                             g_game->mode == 2 ? rec->kills2 : rec->kills);
                     AddMessage(text, 2, 0, 10);
                 }

@@ -7,7 +7,7 @@ struct Order { char pad[5]; unsigned char state; char pad6[0x36-6]; int wait; in
 #pragma pack(pop)
 class Class_00439e80 { public: void FUN_00439e80(int); };
 void __stdcall GetVisibleEnemiesInRadius(int,Vec*,int,int,std::vector<Unit*>*);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 // FUNCTION: 0x401ce0
 int __stdcall WaitOrder(Unit* unit,Order* order,int flags)
 {
@@ -16,7 +16,7 @@ int __stdcall WaitOrder(Unit* unit,Order* order,int flags)
         GetVisibleEnemiesInRadius(unit->player,&unit->pos,order->radius,0,&units);
         if(!units.empty()) return 5;
         if(order->wait<=0) return 5;
-        int delay=FUN_004b6c30(30)+150;
+        int delay=RandomInt(30)+150;
         order->wait-=delay;
         ((Class_00439e80*)order)->FUN_00439e80(delay);
         return 2;

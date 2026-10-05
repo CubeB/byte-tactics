@@ -177,7 +177,7 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int n);
+int __stdcall RandomInt(int n);
 
 static void RemoveAndDelete(Parent_0043bad0* p, Class_0043a1f0* child)
 {
@@ -205,7 +205,7 @@ void __stdcall FUN_0043bad0(Parent_0043bad0* p)
             child->flags_6 = 0;
             switch (DAT_00512340[child->kind].notify(child->unit, child, 0)) {
             case 3: {
-                unsigned int when = FUN_004b6c30(0xf) + 0x1e;
+                unsigned int when = RandomInt(0xf) + 0x1e;
                 child->flags_6 |= 1;
                 child->wakeFrame = g_game->frame + when;
                 break;

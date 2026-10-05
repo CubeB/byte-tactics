@@ -3,7 +3,7 @@
 #include <string.h>
 
 // FUNCTION: 0x4b6a80
-int __stdcall FUN_004b6a80(char* out)
+int __stdcall GetWindowsUserName(char* out)
 {
     DWORD size;
     char name[256];

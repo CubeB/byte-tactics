@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct Class_004bbbe0 {
+struct FileHandle {
     FILE* file;                        // +0x0
     int error;                         // +0x4
 };
@@ -42,12 +42,12 @@ struct Obj_004ad4f0 {
     char panel[16];                    // +0xfc
 };
 
-unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* out, void* buf, unsigned int len);
-void __stdcall WriteTabs(Class_004bbbe0* out, int indent);
-void __stdcall WriteKeyValue(Class_004bbbe0* out, char* name, char* value, int indent);
+unsigned int __stdcall HAPI_WriteFile(FileHandle* out, void* buf, unsigned int len);
+void __stdcall WriteTabs(FileHandle* out, int indent);
+void __stdcall WriteKeyValue(FileHandle* out, char* name, char* value, int indent);
 
 // FUNCTION: 0x4ad4f0
-void __stdcall WritePanelFields(Obj_004ad4f0* obj, Class_004bbbe0* out, int indent)
+void __stdcall WritePanelFields(Obj_004ad4f0* obj, FileHandle* out, int indent)
 {
     char tab;
     char line[100];
@@ -59,63 +59,63 @@ void __stdcall WritePanelFields(Obj_004ad4f0* obj, Class_004bbbe0* out, int inde
     value = _itoa(obj->totalgadgets, num, 10);
     tab = '\t';
     for (i = 0; i < indent; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "totalgadgets", value);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 
     d++;
     sprintf(line, "[%s]", "VERSION");
     tab = '\t';
     for (i = 0; i < d - 1; i++)
-        FUN_004bbbe0(out, &tab, 1);
-    FUN_004bbbe0(out, line, strlen(line));
-    FUN_004bbbe0(out, "\n", 1);
+        HAPI_WriteFile(out, &tab, 1);
+    HAPI_WriteFile(out, line, strlen(line));
+    HAPI_WriteFile(out, "\n", 1);
     WriteTabs(out, d);
-    FUN_004bbbe0(out, "{\n", 2);
+    HAPI_WriteFile(out, "{\n", 2);
 
     value = _itoa(obj->major, num, 10);
     tab = '\t';
     for (i = 0; i < d; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "major", value);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 
     value = _itoa(obj->minor, num, 10);
     tab = '\t';
     for (i = 0; i < d; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "minor", value);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 
     value = _itoa(obj->revision, num, 10);
     tab = '\t';
     for (i = 0; i < d; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "revision", value);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 
     tab = '\t';
     for (i = 0; i < d; i++)
-        FUN_004bbbe0(out, &tab, 1);
-    FUN_004bbbe0(out, "}\n", 2);
+        HAPI_WriteFile(out, &tab, 1);
+    HAPI_WriteFile(out, "}\n", 2);
 
     strncpy(num, obj->panel, 16);
     num[16] = 0;
     tab = '\t';
     for (i = 0; i < indent; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "panel", num);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 
     tab = '\t';
     for (i = 0; i < indent; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "crdefault", obj->crdefault);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
     WriteTabs(out, indent);
 
     sprintf(line, "%s=%s;\n", "escdefault", obj->escdefault);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 
     WriteKeyValue(out, "defaultfocus", obj->defaultfocus, indent);
 }

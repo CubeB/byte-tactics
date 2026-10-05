@@ -16,7 +16,7 @@ struct Point_0048c6a0 {
     int y;
 };
 
-void __stdcall FUN_004b6cc0(Vec3_0048c6a0* in, Vec3_0048c6a0* out, short* angles);
+void __stdcall RotateByAngles(Vec3_0048c6a0* in, Vec3_0048c6a0* out, short* angles);
 void __stdcall GetObjectBounds(void* obj, Vec3_0048c6a0* lo, Vec3_0048c6a0* hi, int arg);
 int __stdcall PointInPolygon(Point_0048c6a0* pts, int n, int px, int py);
 
@@ -64,7 +64,7 @@ int __stdcall FUN_0048c6a0(Object_0048c6a0* obj, Point_0048c6a0* p)
     short* angles = obj->angles;
     for (i = 0; i < 4; i++) {
         Vec3_0048c6a0 v;
-        FUN_004b6cc0(&corners[i], &v, angles);
+        RotateByAngles(&corners[i], &v, angles);
         pts[i].x = (short)((v.x + o.x) >> 16) + 0x80;
         pts[i].y = ((short)((o.z - v.z) >> 16) - ((short)((v.y + o.y) >> 16) >> 1)) + 0x20;
     }

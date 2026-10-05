@@ -4,7 +4,7 @@
 #include <string.h>
 
 // FUNCTION: 0x4d1b00
-int __stdcall FUN_004d1b00(unsigned char* header)
+int __stdcall SquashGetPackType(unsigned char* header)
 {
     if (memcmp(header, "SQSH", 4) != 0) {
         return 1;

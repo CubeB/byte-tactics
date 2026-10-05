@@ -12,7 +12,7 @@ struct Vec3_004b6d50 {
 void __cdecl FUN_004b7173(int angle, int* xy);
 
 // FUNCTION: 0x4b6d50
-void __stdcall FUN_004b6d50(Vec3_004b6d50* in, Vec3_004b6d50* out, int angle)
+void __stdcall RotateAboutZ(Vec3_004b6d50* in, Vec3_004b6d50* out, int angle)
 {
     int xy[2];
     xy[0] = in->x;

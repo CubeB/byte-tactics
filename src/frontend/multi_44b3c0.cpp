@@ -26,7 +26,7 @@ extern char* DAT_005091c8;             // savegame directory
 int __stdcall IsCurrentGadgetNamed(void* menu, char* name);
 void __stdcall PlaySoundByName(char* name, int flag);
 Gadget_44b3c0* __stdcall FindGadgetChecked(void* gadgets, char* name);
-char* __stdcall FUN_004b6af0(char* text, int n);
+char* __stdcall SkipTextLines(char* text, int n);
 void __stdcall FUN_0044b140(char* path);
 void __stdcall UpdateUnitSliders(void* menu, int flag);
 void __stdcall FUN_004ab0a0(void* menu);
@@ -46,7 +46,7 @@ void __stdcall HandleLoadListClick(Menu_44b3c0* menu)
         PlaySoundByName("Options", 0);
         Gadget_44b3c0* games = FindGadgetChecked(gadgets, "GAMES");
         sprintf(g_game + 0x38c6b, "%s\\%s", DAT_005091c8,
-                FUN_004b6af0(DAT_005129ac, games->selected));
+                SkipTextLines(DAT_005129ac, games->selected));
         FUN_0044b140(g_game + 0x38c6b);
         Inner_44b3c0* inner = menu->inner;
         menu->inner = inner->unknown_0;

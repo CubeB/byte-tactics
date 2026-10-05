@@ -66,7 +66,7 @@ void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_00491c80(int value);
 Entry_00477ab0* __stdcall FindGadgetChecked(Entry_00477ab0* entries, char* name);
 int __stdcall FindGadgetIndex(Entry_00477ab0* entries, char* name, int type);
-char* __stdcall FUN_004b6af0(char* text, int line);
+char* __stdcall SkipTextLines(char* text, int line);
 void __stdcall FUN_004a2be0(void* menu, int index);
 void __stdcall FUN_0049fa90(void* menu);
 void __stdcall SetGadgetStatusByName(void* menu, char* name, int flag);
@@ -74,7 +74,7 @@ int __stdcall BuildCampaignNameList(int** out, int side);
 void __stdcall FUN_004a32a0(void* menu, char* name, int* data, int count, int flag);
 void __stdcall FUN_004a0570(void* menu, char* name, int flag);
 void __cdecl FUN_004d85a0(void* ptr);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);
 
@@ -103,7 +103,7 @@ void __stdcall FillMissionList(Menu_00477ab0* menu, Entry_00477ab0* unused)
     Entry_00477ab0* layout =
         FindGadgetChecked((*(Holder_00477ab0**)(g_game + 0x531))->entries, "Campaign");
     ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign(
-        FUN_004b6af0(layout->text, layout->selected));
+        SkipTextLines(layout->text, layout->selected));
     int count = ((Class_00435760*)*(void**)(g_game + 0x391e9))->BuildMissionList(&DAT_0051e660);
     FUN_004a32a0(menu, "Missions", DAT_0051e660, count, 0);
     FUN_004a2be0(g_game + 0x519,
@@ -132,7 +132,7 @@ void __stdcall HandleNewGameClick(Menu_00477ab0* menu)
         PlaySoundByName("bigButton", 0);
         if (!FindGameCdDrive(0)) {
             OpenMessageBox(g_game + 0x519,
-                         FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
+                         Translate("Please insert the Campaign CD (Disc 2) and try again"),
                          200, 1, 1);
             FUN_004ab0a0(g_game + 0x519);
             return;
@@ -143,7 +143,7 @@ void __stdcall HandleNewGameClick(Menu_00477ab0* menu)
             char* name;
             if (DAT_00507b6c == 0) {
                 Entry_00477ab0* e = FindGadgetChecked(entries, "Campaign");
-                name = FUN_004b6af0(e->text, e->selected);
+                name = SkipTextLines(e->text, e->selected);
                 ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign(name);
             } else if (*(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) == 0) {
                 ((Class_00435110*)*(void**)(g_game + 0x391e9))->LoadCampaign("Arm Campaign");

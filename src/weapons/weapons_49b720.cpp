@@ -171,7 +171,7 @@ int __stdcall PlaySoundAt(int sound, Vec3_0049b720* pos, int flag);
 void __stdcall EmitWhiteSmoke(Vec3_0049b720* pos, short kind);
 Cell_0049b720* __stdcall GetMapCellAtPosition(Vec3_0049b720* pos);
 void __stdcall AddExplosionEffect(Vec3_0049b720* pos, void* src, int index, int flag);
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 int __cdecl FUN_004b70ef(short angle, int scale);
 int __cdecl FUN_004b7123(short angle, int scale);
 
@@ -235,10 +235,10 @@ void UpdateProjectiles()
                     else
                         q->f46 = (p->range + 0x100000) / p->speed + g_game->time;
                     if (type->lifeRand != 0)
-                        q->f46 += FUN_004b6c30(type->lifeRand) - (type->lifeRand >> 1);
+                        q->f46 += RandomInt(type->lifeRand) - (type->lifeRand >> 1);
                     q->counter = 0;
                     if (type->spread != 0) {
-                        short ang = FUN_004b6c30(type->spread) + (short)(p->heading - (type->spread >> 1));
+                        short ang = RandomInt(type->spread) + (short)(p->heading - (type->spread >> 1));
                         int t = FUN_004b7123(p->pitch, type->maxSpeed);
                         p->vel.x = -FUN_004b70ef(ang, t);
                         p->vel.z = -FUN_004b7123(ang, t);

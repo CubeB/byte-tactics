@@ -124,8 +124,8 @@ public:
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6a50(char* section, char* name, int value);
-int __stdcall FUN_004b6a20(char* section, char* name, char* value);
+int __stdcall WriteRegistryDword(char* section, char* name, int value);
+int __stdcall WriteRegistryString(char* section, char* name, char* value);
 
 // FUNCTION: 0x430f00
 void SaveSettings()
@@ -133,93 +133,93 @@ void SaveSettings()
     char name[32];
     int i;
 
-    FUN_004b6a50("Total Annihilation", "Interface Type", g_game->interfaceType);
-    FUN_004b6a50("Total Annihilation", "DisplaymodeWidth", g_game->displaymodeWidth);
-    FUN_004b6a50("Total Annihilation", "DisplaymodeHeight", g_game->displaymodeHeight);
-    FUN_004b6a50("Total Annihilation", "side", g_game->side);
-    FUN_004b6a50("Total Annihilation", "FixedLocations", g_game->options->fixedLocations);
-    FUN_004b6a50("Total Annihilation", "scrollspeed", g_game->scrollspeed);
-    FUN_004b6a50("Total Annihilation", "SingleCommanderDeath", g_game->singleCommanderDeath);
-    FUN_004b6a50("Total Annihilation", "SingleMapping", g_game->singleMapping);
-    FUN_004b6a50("Total Annihilation", "SingleLineOfSight", g_game->singleLineOfSight);
-    FUN_004b6a50("Total Annihilation", "SingleLOSType", g_game->singleLOSType);
-    FUN_004b6a50("Total Annihilation", "screenchat", g_game->screenchat);
-    FUN_004b6a50("Total Annihilation", "damagebars", g_game->flags_37f06.damagebars);
-    FUN_004b6a50("Total Annihilation", "Sound Mode", g_game->soundFlags.soundMode);
-    FUN_004b6a50("Total Annihilation", "RestoreVolume", g_game->soundFlags.restoreVolume);
-    FUN_004b6a50("Total Annihilation", "MixingBuffers",
+    WriteRegistryDword("Total Annihilation", "Interface Type", g_game->interfaceType);
+    WriteRegistryDword("Total Annihilation", "DisplaymodeWidth", g_game->displaymodeWidth);
+    WriteRegistryDword("Total Annihilation", "DisplaymodeHeight", g_game->displaymodeHeight);
+    WriteRegistryDword("Total Annihilation", "side", g_game->side);
+    WriteRegistryDword("Total Annihilation", "FixedLocations", g_game->options->fixedLocations);
+    WriteRegistryDword("Total Annihilation", "scrollspeed", g_game->scrollspeed);
+    WriteRegistryDword("Total Annihilation", "SingleCommanderDeath", g_game->singleCommanderDeath);
+    WriteRegistryDword("Total Annihilation", "SingleMapping", g_game->singleMapping);
+    WriteRegistryDword("Total Annihilation", "SingleLineOfSight", g_game->singleLineOfSight);
+    WriteRegistryDword("Total Annihilation", "SingleLOSType", g_game->singleLOSType);
+    WriteRegistryDword("Total Annihilation", "screenchat", g_game->screenchat);
+    WriteRegistryDword("Total Annihilation", "damagebars", g_game->flags_37f06.damagebars);
+    WriteRegistryDword("Total Annihilation", "Sound Mode", g_game->soundFlags.soundMode);
+    WriteRegistryDword("Total Annihilation", "RestoreVolume", g_game->soundFlags.restoreVolume);
+    WriteRegistryDword("Total Annihilation", "MixingBuffers",
                  ((Class_004cf220*)g_game->sound)->GetMaxBuffers());
     if (g_game->soundFlags.restoreVolume) {
-        FUN_004b6a50("Total Annihilation", "WaveOutVolume",
+        WriteRegistryDword("Total Annihilation", "WaveOutVolume",
                      ((Class_004cfff0*)g_game->sound)->QueryWaveVolume());
-        FUN_004b6a50("Total Annihilation", "CDAudioVolume",
+        WriteRegistryDword("Total Annihilation", "CDAudioVolume",
                      ((Class_004d0040*)g_game->sound)->QueryAuxVolume());
     }
-    FUN_004b6a50("Total Annihilation", "Anti-Alias", g_game->flags_37f06.antiAlias);
-    FUN_004b6a50("Total Annihilation", "Shadows", g_game->flags_37f06.shadows);
-    FUN_004b6a50("Total Annihilation", "FeatureShadows", g_game->flags_37f06.featureShadows);
-    FUN_004b6a50("Total Annihilation", "VehicleShadows", g_game->flags_37f06.vehicleShadows);
-    FUN_004b6a50("Total Annihilation", "Shading", g_game->flags_37f06.shading);
-    FUN_004b6a50("Total Annihilation", "DitheredFog", g_game->flags_37f06.ditheredFog);
-    FUN_004b6a50("Total Annihilation", "Difficulty", g_game->difficulty);
-    FUN_004b6a50("Total Annihilation", "Gamma", g_game->gamma);
-    FUN_004b6a50("Total Annihilation", "SwitchAlt", g_game->flags_37f06.switchAlt);
-    FUN_004b6a20("Total Annihilation", "Password", g_game->password);
-    FUN_004b6a20("Total Annihilation", "Nickname", g_game->nickname);
-    FUN_004b6a20("Total Annihilation", "Game Name", g_game->gameName);
+    WriteRegistryDword("Total Annihilation", "Anti-Alias", g_game->flags_37f06.antiAlias);
+    WriteRegistryDword("Total Annihilation", "Shadows", g_game->flags_37f06.shadows);
+    WriteRegistryDword("Total Annihilation", "FeatureShadows", g_game->flags_37f06.featureShadows);
+    WriteRegistryDword("Total Annihilation", "VehicleShadows", g_game->flags_37f06.vehicleShadows);
+    WriteRegistryDword("Total Annihilation", "Shading", g_game->flags_37f06.shading);
+    WriteRegistryDword("Total Annihilation", "DitheredFog", g_game->flags_37f06.ditheredFog);
+    WriteRegistryDword("Total Annihilation", "Difficulty", g_game->difficulty);
+    WriteRegistryDword("Total Annihilation", "Gamma", g_game->gamma);
+    WriteRegistryDword("Total Annihilation", "SwitchAlt", g_game->flags_37f06.switchAlt);
+    WriteRegistryString("Total Annihilation", "Password", g_game->password);
+    WriteRegistryString("Total Annihilation", "Nickname", g_game->nickname);
+    WriteRegistryString("Total Annihilation", "Game Name", g_game->gameName);
     if (g_game->imageOutputDirty) {
-        FUN_004b6a20("Total Annihilation", "Image Output Directory",
+        WriteRegistryString("Total Annihilation", "Image Output Directory",
                      g_game->imageOutputDirectory);
         g_game->imageOutputDirty = 0;
     }
     if (g_game->movieOutputDirty) {
-        FUN_004b6a50("Total Annihilation", "Movie Output Rate", g_game->movieOutputRate);
+        WriteRegistryDword("Total Annihilation", "Movie Output Rate", g_game->movieOutputRate);
         g_game->movieOutputDirty = 0;
     }
-    FUN_004b6a50("Total Annihilation", "unitchat", g_game->unitchat);
-    FUN_004b6a50("Total Annihilation", "unitchattext", g_game->unitchattext);
-    FUN_004b6a50("Total Annihilation", "textlines", g_game->textlines);
-    FUN_004b6a50("Total Annihilation", "textscroll", g_game->textscroll);
-    FUN_004b6a50("Total Annihilation", "mousespeed", g_game->mousespeed);
-    FUN_004b6a50("Total Annihilation", "gamespeed", g_game->gamespeed);
-    FUN_004b6a50("Total Annihilation", "clock", g_game->clockFlags.clock);
-    FUN_004b6a50("Total Annihilation", "musicmode", g_game->musicmode & 1);
-    FUN_004b6a50("Total Annihilation", "cdmode", g_game->cdmode);
-    FUN_004b6a50("Total Annihilation", "ackfx", g_game->soundFlags.ackfx);
-    FUN_004b6a50("Total Annihilation", "buildfx", g_game->soundFlags.buildfx);
-    FUN_004b6a50("Total Annihilation", "speechfx", g_game->soundFlags.speechfx);
-    FUN_004b6a50("Total Annihilation", "fxvol", g_game->fxvol);
-    FUN_004b6a50("Total Annihilation", "musicvol", g_game->musicvol);
-    FUN_004b6a50("Total Annihilation", "MultiCommanderDeath", g_game->multiCommanderDeath);
-    FUN_004b6a50("Total Annihilation", "MultiMapping", g_game->multiMapping);
-    FUN_004b6a50("Total Annihilation", "MultiLineOfSight", g_game->multiLineOfSight);
-    FUN_004b6a50("Total Annihilation", "MultiLOSType", g_game->multiLOSType);
-    FUN_004b6a50("Total Annihilation", "SkirmishCommanderDeath",
+    WriteRegistryDword("Total Annihilation", "unitchat", g_game->unitchat);
+    WriteRegistryDword("Total Annihilation", "unitchattext", g_game->unitchattext);
+    WriteRegistryDword("Total Annihilation", "textlines", g_game->textlines);
+    WriteRegistryDword("Total Annihilation", "textscroll", g_game->textscroll);
+    WriteRegistryDword("Total Annihilation", "mousespeed", g_game->mousespeed);
+    WriteRegistryDword("Total Annihilation", "gamespeed", g_game->gamespeed);
+    WriteRegistryDword("Total Annihilation", "clock", g_game->clockFlags.clock);
+    WriteRegistryDword("Total Annihilation", "musicmode", g_game->musicmode & 1);
+    WriteRegistryDword("Total Annihilation", "cdmode", g_game->cdmode);
+    WriteRegistryDword("Total Annihilation", "ackfx", g_game->soundFlags.ackfx);
+    WriteRegistryDword("Total Annihilation", "buildfx", g_game->soundFlags.buildfx);
+    WriteRegistryDword("Total Annihilation", "speechfx", g_game->soundFlags.speechfx);
+    WriteRegistryDword("Total Annihilation", "fxvol", g_game->fxvol);
+    WriteRegistryDword("Total Annihilation", "musicvol", g_game->musicvol);
+    WriteRegistryDword("Total Annihilation", "MultiCommanderDeath", g_game->multiCommanderDeath);
+    WriteRegistryDword("Total Annihilation", "MultiMapping", g_game->multiMapping);
+    WriteRegistryDword("Total Annihilation", "MultiLineOfSight", g_game->multiLineOfSight);
+    WriteRegistryDword("Total Annihilation", "MultiLOSType", g_game->multiLOSType);
+    WriteRegistryDword("Total Annihilation", "SkirmishCommanderDeath",
                  g_game->options->skirmishCommanderDeath);
-    FUN_004b6a50("Total Annihilation", "SkirmishMapping", g_game->options->skirmishMapping);
-    FUN_004b6a50("Total Annihilation", "SkirmishLineOfSight",
+    WriteRegistryDword("Total Annihilation", "SkirmishMapping", g_game->options->skirmishMapping);
+    WriteRegistryDword("Total Annihilation", "SkirmishLineOfSight",
                  g_game->options->skirmishLineOfSight);
-    FUN_004b6a50("Total Annihilation", "SkirmishLOSType", g_game->options->skirmishLOSType);
-    FUN_004b6a50("Total Annihilation", "SkirmishLocation", g_game->options->fixedLocations);
-    FUN_004b6a50("Total Annihilation", "SkirmishDifficulty",
+    WriteRegistryDword("Total Annihilation", "SkirmishLOSType", g_game->options->skirmishLOSType);
+    WriteRegistryDword("Total Annihilation", "SkirmishLocation", g_game->options->fixedLocations);
+    WriteRegistryDword("Total Annihilation", "SkirmishDifficulty",
                  g_game->options->skirmishDifficulty);
-    FUN_004b6a20("Total Annihilation", "SkirmishMap", g_game->options->skirmishMap);
+    WriteRegistryString("Total Annihilation", "SkirmishMap", g_game->options->skirmishMap);
     for (i = 0; i < g_game->numSkirmishPlayers; i++) {
         wsprintfA(name, "Player%dController", i);
-        FUN_004b6a50("Total Annihilation\\Skirmish", name,
+        WriteRegistryDword("Total Annihilation\\Skirmish", name,
                      g_game->options->players[i].controller);
         wsprintfA(name, "Player%dSide", i);
-        FUN_004b6a50("Total Annihilation\\Skirmish", name, g_game->options->players[i].side);
+        WriteRegistryDword("Total Annihilation\\Skirmish", name, g_game->options->players[i].side);
         wsprintfA(name, "Player%dColor", i);
-        FUN_004b6a50("Total Annihilation\\Skirmish", name, g_game->options->players[i].color);
+        WriteRegistryDword("Total Annihilation\\Skirmish", name, g_game->options->players[i].color);
         wsprintfA(name, "Player%dAllyGroup", i);
-        FUN_004b6a50("Total Annihilation\\Skirmish", name,
+        WriteRegistryDword("Total Annihilation\\Skirmish", name,
                      g_game->options->players[i].allyGroup);
         wsprintfA(name, "Player%dMetal", i);
-        FUN_004b6a50("Total Annihilation\\Skirmish", name, g_game->options->players[i].metal);
+        WriteRegistryDword("Total Annihilation\\Skirmish", name, g_game->options->players[i].metal);
         wsprintfA(name, "Player%dEnergy", i);
-        FUN_004b6a50("Total Annihilation\\Skirmish", name,
+        WriteRegistryDword("Total Annihilation\\Skirmish", name,
                      g_game->options->players[i].energy);
     }
-    FUN_004b6a50("Total Annihilation", "PlayMovie", g_game->playMovie);
+    WriteRegistryDword("Total Annihilation", "PlayMovie", g_game->playMovie);
 }

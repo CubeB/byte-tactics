@@ -30,7 +30,7 @@ struct Context_004a09c0 {
 };
 #pragma pack(pop)
 
-char* __stdcall FUN_004c5740(void*);
+char* __stdcall Translate(void*);
 void __stdcall FUN_004a05e0(Context_004a09c0*, int);
 
 // FUNCTION: 0x4a09c0
@@ -39,7 +39,7 @@ void __stdcall FUN_004a09c0(Context_004a09c0* context, int index, char* source, 
     if (index == -1 || context->data == 0)
         return;
     Entry_004a09c0* entries = context->data->entries;
-    char* text = FUN_004c5740(source);
+    char* text = Translate(source);
 
     switch (entries[index].state) {
     case 5:
@@ -72,7 +72,7 @@ void __stdcall FUN_004a09c0(Context_004a09c0* context, int index, char* source, 
             char* src = entry->text;
             int i = 0;
             while (i < entry->count) {
-                strcpy(dst, FUN_004c5740(src));
+                strcpy(dst, Translate(src));
                 dst += strlen(dst) + 1;
                 src += strlen(src) + 1;
                 i++;

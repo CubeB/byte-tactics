@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct Class_004bbbe0 {
+struct FileHandle {
     FILE* file;                        // +0x0
     int error;                         // +0x4
 };
@@ -15,10 +15,10 @@ struct Struct_004ad980 {
     short status;                      // +0xb6
 };
 
-unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* param_1, void* param_2, unsigned int param_3);
+unsigned int __stdcall HAPI_WriteFile(FileHandle* param_1, void* param_2, unsigned int param_3);
 
 // FUNCTION: 0x4ad980
-void __stdcall WriteStatusField(Struct_004ad980* obj, Class_004bbbe0* out, int indent)
+void __stdcall WriteStatusField(Struct_004ad980* obj, FileHandle* out, int indent)
 {
     char tab;
     char line[100];
@@ -26,7 +26,7 @@ void __stdcall WriteStatusField(Struct_004ad980* obj, Class_004bbbe0* out, int i
     char* value = _itoa(obj->status, num, 10);
     tab = '\t';
     for (int i = 0; i < indent; i++)
-        FUN_004bbbe0(out, &tab, 1);
+        HAPI_WriteFile(out, &tab, 1);
     sprintf(line, "%s=%s;\n", "status", value);
-    FUN_004bbbe0(out, line, strlen(line));
+    HAPI_WriteFile(out, line, strlen(line));
 }

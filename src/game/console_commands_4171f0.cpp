@@ -26,26 +26,26 @@ struct Game {
 extern Game* g_game;
 
 // Command arguments.
-class Class_004b73e0 {
+class CommandArgs {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
-    int FUN_004b73e0(int index, int fallback);
+    int GetIntArg(int index, int fallback);
 };
 
 // FUNCTION: 0x4171f0
-void __stdcall CmdNoEnergy(Class_004b73e0* args)
+void __stdcall CmdNoEnergy(CommandArgs* args)
 {
     unsigned char i;
     if (args->count == 1)
         i = g_game->localPlayer;
     else
-        i = args->FUN_004b73e0(1, 0);
+        i = args->GetIntArg(1, 0);
     if (i < 10) {
         Player_004171f0* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
             && p->field_146 != 10) {
-            g_game->players[i].field_8c = args->FUN_004b73e0(2, 0);
+            g_game->players[i].field_8c = args->GetIntArg(2, 0);
         }
     }
 }

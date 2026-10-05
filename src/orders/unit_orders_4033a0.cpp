@@ -11,7 +11,7 @@ class Class_00489800 { public: void ReleaseWeapons(int); };
 void __stdcall FUN_0043a020(Unit*,Order*);
 Order* __stdcall FUN_0043b700(Unit*);
 int __stdcall FUN_0043b1f0(Unit*,Order*,int);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 // FUNCTION: 0x4033a0
 int __stdcall PatrolOrder(Unit* unit,Order* order,int flags)
 {
@@ -33,7 +33,7 @@ int __stdcall PatrolOrder(Unit* unit,Order* order,int flags)
             Order* next=FUN_0043b700(unit);
             if(next && FUN_0043b1f0(unit,next,0)) { order->flags=0; order->state=1; return 3; }
         }
-        ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(30)+30);
+        ((Class_00439e80*)order)->FUN_00439e80(RandomInt(30)+30);
         order->state=1; return 4;
     default: return 7;
     }

@@ -63,7 +63,7 @@ public:
     void ReleaseRef();
 };
 
-// One file name of FUN_004bca30's list (a reference-counted string handle).
+// One file name of ListDirectory's list (a reference-counted string handle).
 struct Elem_00432be0 {
     char* data;                        // +0x0
 
@@ -73,42 +73,42 @@ struct Elem_00432be0 {
 
 typedef std::vector<Elem_00432be0> FileList;
 
-void __stdcall FUN_004bca30(const char* pattern, int dirs, FileList* out);
+void __stdcall ListDirectory(const char* pattern, int dirs, FileList* out);
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* path);
-    void FUN_004c3120(char* data, int size, int flag, char* name);
+    int LoadFile(char* path);
+    void LoadBuffer(char* data, int size, int flag, char* name);
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
 class Class_004c3e10 {
 public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c4630 {
 public:
-    char* FUN_004c4630(char* key);
+    char* FindFieldValue(char* key);
 };
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(char* key, int def);
+    int GetFieldInt(char* key, int def);
 };
 
 class Class_004c4760 {
 public:
-    double FUN_004c4760(char* key, double def);
+    double GetFieldDouble(char* key, double def);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, char* key, int size, char* def);
+    int GetFieldString(char* dst, char* key, int size, char* def);
 };
 
 // A parsed TDF file; the getters read the current section.
@@ -122,46 +122,46 @@ public:
 
     int GetString(char* dst, char* key, int size, char* def)
     {
-        return ((Class_004c48c0*)current)->FUN_004c48c0(dst, key, size, def);
+        return ((TdfRecord*)current)->GetFieldString(dst, key, size, def);
     }
-    int GetInt(char* key, int def) { return ((Class_004c46c0*)current)->FUN_004c46c0(key, def); }
-    double GetDouble(char* key, double def) { return ((Class_004c4760*)current)->FUN_004c4760(key, def); }
-    char* GetValue(char* key) { return ((Class_004c4630*)current)->FUN_004c4630(key); }
+    int GetInt(char* key, int def) { return ((Class_004c46c0*)current)->GetFieldInt(key, def); }
+    double GetDouble(char* key, double def) { return ((Class_004c4760*)current)->GetFieldDouble(key, def); }
+    char* GetValue(char* key) { return ((Class_004c4630*)current)->FindFieldValue(key); }
 };
 
 // The override file (units\NAME.OVR).
 class Class_004b3620 {
 public:
     int field_0;
-    Class_004b3620* FUN_004b3620();
+    Class_004b3620* InitBank();
 };
 
 class Class_004b3630 {
 public:
-    void FUN_004b3630();
+    void CloseBank();
 };
 
 class Class_004b3770 {
 public:
-    int FUN_004b3770(char* path, char* type, int flag);
+    int OpenBank(char* path, char* type, int flag);
 };
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    int FUN_004b4560(char* name);
+    int OpenAccount(char* name);
 };
 
 class Class_004b4800 {
 public:
-    int FUN_004b4800(char* name, int def);
+    int GetIntegerItem(char* name, int def);
 };
 
 // The override file object: 0x4b3620 builds it and 0x4b3630 frees it.
 class OvrFile {
 public:
     void* table;
-    OvrFile() { ((Class_004b3620*)this)->FUN_004b3620(); }
-    ~OvrFile() { ((Class_004b3630*)this)->FUN_004b3630(); }
+    OvrFile() { ((Class_004b3620*)this)->InitBank(); }
+    ~OvrFile() { ((Class_004b3630*)this)->CloseBank(); }
 };
 
 #pragma pack(push, 1)
@@ -225,15 +225,15 @@ void* __cdecl FUN_004d83b0(char* name, int size);
 void __cdecl FUN_004d85a0(void* p);
 void __cdecl ProtectBlockReadOnly(void* p);
 void __cdecl ProtectBlockReadWrite(void* p);
-void* __stdcall FUN_004bb5b0(char* path);
-int __stdcall FUN_004bb5d0(void* file);
-int __stdcall FUN_004bb650(void* file);
-int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
-int __stdcall FUN_004bbd00(void* file);
-unsigned int __stdcall FUN_004b6ba0(char* data, int len);
-void __stdcall FUN_004b6b80(const char* text, const char* caption);
-char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_004c58a0(void* parser, char* dst, char* key, int size, char* def);
+void* __stdcall HAPI_OpenFileRead(char* path);
+int __stdcall HAPI_CloseFile(void* file);
+int __stdcall HAPI_IsInArchive(void* file);
+int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
+int __stdcall HAPI_FileLength(void* file);
+unsigned int __stdcall ComputeChecksum(char* data, int len);
+void __stdcall ShowErrorBox(const char* text, const char* caption);
+char* __stdcall Translate(char* text);
+void __stdcall GetLocalizedString(void* parser, char* dst, char* key, int size, char* def);
 
 #define COPYRIGHT "Copyright 0000 Humongous Entertainment. All rights reserved."
 
@@ -241,7 +241,7 @@ void __stdcall FUN_004c58a0(void* parser, char* dst, char* key, int size, char* 
 static inline void LoadWeaponTDFs()
 {
     FileList files;
-    FUN_004bca30("Weapons\\*.tdf", 0, &files);
+    ListDirectory("Weapons\\*.tdf", 0, &files);
     if (files.size() == 0)
         return;
     DAT_005122a8 = files.size();
@@ -250,7 +250,7 @@ static inline void LoadWeaponTDFs()
         char path[256];
         Class_004c2ea0* tdf = &DAT_005122a0[DAT_005122a4];
         BuildDataPath(path, "Weapons", it->data, "TDF");
-        if (((Class_004c2f60*)tdf)->FUN_004c2f60(path)) {
+        if (((Class_004c2f60*)tdf)->LoadFile(path)) {
             if (tdf->field_8 != 0 || FUN_0041d8a0() == 0)
                 DAT_005122a4++;
         }
@@ -263,8 +263,8 @@ static inline int FindWeapon(char* name)
     if (name != 0 && *name != 0) {
         for (int k = 0; k < DAT_005122a4; k++) {
             Class_004c2ea0* tdf = &DAT_005122a0[k];
-            ((Class_004c3e10*)tdf)->FUN_004c3e10();
-            if (((Class_004c3410*)tdf)->FUN_004c3410(name))
+            ((Class_004c3e10*)tdf)->ResetCurrentRecord();
+            if (((Class_004c3410*)tdf)->SelectRecord(name))
                 return *(int*)((char*)tdf->current + 0x25);
         }
         return 0;
@@ -288,7 +288,7 @@ int LoadUnitInfo()
 
     BuildDataPath(path, "units", "*", "FBI");
     FileList files;
-    FUN_004bca30(path, 0, &files);
+    ListDirectory(path, 0, &files);
     int count = files.size() + 1;
     g_game->unit_count = count;
     int size = count * sizeof(Class_0042b370);
@@ -302,32 +302,32 @@ int LoadUnitInfo()
         Class_0042b370* u = &g_game->unitinfo[i];
         u->id = i;
         BuildDataPath(path, "units", files[i - 1], "FBI");
-        void* f = FUN_004bb5b0(path);
+        void* f = HAPI_OpenFileRead(path);
         if (f) {
-            int len = FUN_004bbd00(f);
+            int len = HAPI_FileLength(f);
             char* buf = (char*)FUN_004d83b0(path, len);
-            FUN_004bb7c0(f, buf, len);
-            u->checksum = FUN_004b6ba0(buf, len);
+            HAPI_readfromfile(f, buf, len);
+            u->checksum = ComputeChecksum(buf, len);
             OvrFile ovr;
             char ovrpath[256];
             BuildDataPath(ovrpath, "units", files[i - 1], "OVR");
-            if (((Class_004b3770*)&ovr)->FUN_004b3770(ovrpath, "TA Unit Override", 0)) {
-                if (((Class_004b4560*)&ovr)->FUN_004b4560("Compatability")) {
+            if (((Class_004b3770*)&ovr)->OpenBank(ovrpath, "TA Unit Override", 0)) {
+                if (((HapiBank*)&ovr)->OpenAccount("Compatability")) {
                     char num[16];
                     sprintf(num, "%u", u->checksum);
-                    u->checksum = ((Class_004b4800*)&ovr)->FUN_004b4800(num, u->checksum);
+                    u->checksum = ((Class_004b4800*)&ovr)->GetIntegerItem(num, u->checksum);
                 }
             }
             Class_004c2ea0 parser;
-            ((Class_004c2f60*)&parser)->FUN_004c3120(buf, len, 0, "<NO FILE>");
-            if (!((Class_004c3410*)&parser)->FUN_004c3410("UNITINFO")) {
+            ((Class_004c2f60*)&parser)->LoadBuffer(buf, len, 0, "<NO FILE>");
+            if (!((Class_004c3410*)&parser)->SelectRecord("UNITINFO")) {
                 // Original bug: this exit leaves the FBI file open (no
-                // FUN_004bb5d0), the weapon TDF table allocated and the unit
+                // HAPI_CloseFile), the weapon TDF table allocated and the unit
                 // table locked (no ProtectBlockReadOnly).
                 FUN_004d85a0(buf);
                 return 0;
             }
-            FUN_004c58a0(&parser, u->name, "name", 0x20, 0);
+            GetLocalizedString(&parser, u->name, "name", 0x20, 0);
             parser.GetString(u->unitname, "unitname", 0x20, DAT_005119b8);
             parser.GetString(u->side, "side", 0x1e, DAT_005119b8);
             parser.GetString(u->ai_weight, "ai_weight", 0x40, DAT_005119b8);
@@ -352,7 +352,7 @@ int LoadUnitInfo()
                 u->flags1 |= 0x800000;
             else
                 u->flags1 &= ~0x800000;
-            if ((FUN_004bb650(f) == 0 && FUN_0041d8a0() != 0) || FUN_0041d8b0() != 0) {
+            if ((HAPI_IsInArchive(f) == 0 && FUN_0041d8a0() != 0) || FUN_0041d8b0() != 0) {
                 u->flags1 &= ~0x800000;
                 bad = 1;
             }
@@ -364,7 +364,7 @@ int LoadUnitInfo()
                 bad = 1;
             }
             u->field_15a = -1;
-            FUN_004bb5d0(f);
+            HAPI_CloseFile(f);
             FUN_004d85a0(buf);
         }
     }
@@ -390,7 +390,7 @@ int LoadUnitInfo()
     }
     g_game->unit_count = count;
     if (oldcount != count && !bad)
-        FUN_004b6b80(FUN_004c5740("Incompatible units found.  They will be ignored.  Please download the latest version of the game."), DAT_005119b8);
+        ShowErrorBox(Translate("Incompatible units found.  They will be ignored.  Please download the latest version of the game."), DAT_005119b8);
     ProtectBlockReadOnly(g_game->unitinfo);
     return 1;
 }

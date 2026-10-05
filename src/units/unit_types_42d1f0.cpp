@@ -27,10 +27,10 @@ struct CobFile_0042d1f0 {
 extern Game* g_game;
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-int __stdcall FUN_004bbc40(char* path);
+int __stdcall HAPI_FileLengthByName(char* path);
 void __stdcall LoadUnitFbi(char* path, UnitType_0042d1f0* type);
-void __stdcall FUN_004b2540(CobFile_0042d1f0* cob);
-CobFile_0042d1f0* __stdcall FUN_004b2450(char* path);
+void __stdcall FreeCobScript(CobFile_0042d1f0* cob);
+CobFile_0042d1f0* __stdcall LoadCobScript(char* path);
 void __cdecl ProtectBlockReadWrite(void* param_1);
 void __cdecl ProtectBlockReadOnly(void* param_1);
 
@@ -45,11 +45,11 @@ void __stdcall ReloadUnitType(unsigned short index)
     ProtectBlockReadWrite(g_game->unitTypes);
     char path[256];
     BuildDataPath(path, "units", type->name, "FBI");
-    if (FUN_004bbc40(path)) {
+    if (HAPI_FileLengthByName(path)) {
         LoadUnitFbi(path, type);
-        FUN_004b2540(*(CobFile_0042d1f0**)((char*)type + 0x18e));
+        FreeCobScript(*(CobFile_0042d1f0**)((char*)type + 0x18e));
         BuildDataPath(path, "scripts", type->name, "COB");
-        CobFile_0042d1f0* cob = FUN_004b2450(path);
+        CobFile_0042d1f0* cob = LoadCobScript(path);
         *(CobFile_0042d1f0**)((char*)type + 0x18e) = cob;
         ProtectBlockReadOnly(g_game->unitTypes);
     } else {

@@ -10,7 +10,7 @@ struct Vec3f_004b6f70 {
 // differences emit nothing, but without them MSVC copies r to the return
 // buffer with the stores interleaved (three registers instead of four).
 // FUNCTION: 0x4b6f70
-Vec3f_004b6f70 __stdcall FUN_004b6f70(Vec3f_004b6f70 a, Vec3f_004b6f70 b)
+Vec3f_004b6f70 __stdcall CrossProduct(Vec3f_004b6f70 a, Vec3f_004b6f70 b)
 {
     float yz = a.y * b.z;
     float zy = a.z * b.y;

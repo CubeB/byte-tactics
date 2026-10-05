@@ -4,7 +4,7 @@ extern int g_noDirectSound;
 extern int g_useWindowsSound;
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-void* __stdcall FUN_004bbe50(char* path, int flags);
+void* __stdcall HAPI_LoadFile(char* path, int flags);
 
 class Class_004d0620 {
 public:
@@ -28,7 +28,7 @@ void* __stdcall LoadSoundFile(const char* name)
     }
     BuildDataPath(path, "sounds", name, "WAV");
     if (g_useWindowsSound != 0) {
-        return FUN_004bbe50(path, 0);
+        return HAPI_LoadFile(path, 0);
     }
     return g_game->sound->LoadSample(path);
 }

@@ -33,7 +33,7 @@ void __stdcall FreeShadeTable(Display_004b6110* obj);
 void __stdcall FreeLightTable(Display_004b6110* obj);
 void __stdcall FreeGrayTable(Display_004b6110* obj);
 void __stdcall FreeBlueTable(Display_004b6110* obj);
-void __stdcall FUN_004be070(void* item);
+void __stdcall HAPI_CloseArchive(void* item);
 void __stdcall ReleaseDirectDraw(Display_004b6110* obj);
 void __cdecl FUN_004d85a0(void* p);
 
@@ -43,7 +43,7 @@ void __stdcall ShutdownEnvironment(Display_004b6110* d)
     FUN_004c1aa0();
     ShutdownMouse();
     for (int i = 0; i < d->item_count; i++)
-        FUN_004be070(d->items[i]);
+        HAPI_CloseArchive(d->items[i]);
     if (d->items)
         FUN_004d85a0(d->items);
     if (d->has_obj_c4)

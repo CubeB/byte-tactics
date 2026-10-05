@@ -5,15 +5,15 @@
 
 #include <stdio.h>
 
-struct Record_004be270;
+struct OPENHAPIFILE;
 
 struct State_004be270 {
     char unknown_0[0x618];
-    Record_004be270** records;      // +0x618
+    OPENHAPIFILE** records;         // +0x618
     int numRecords;                 // +0x61c
 };
 
-struct Record_004be270 {
+struct OPENHAPIFILE {
     FILE* file;                     // +0x0
     int unknown_4;                  // +0x4
     void* data;                     // +0x8
@@ -23,13 +23,13 @@ State_004be270* GetDisplay(void);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4be270
-void __stdcall FUN_004be270(Record_004be270* pRecord)
+void __stdcall HAPI_RemoveArchive(OPENHAPIFILE* pRecord)
 {
     State_004be270* state = GetDisplay();
     int i;
     for (i = 0; i < state->numRecords; i++) {
         if (state->records[i] == pRecord) {
-            Record_004be270* p = state->records[i];
+            OPENHAPIFILE* p = state->records[i];
             if (p != 0) {
                 if (p->file != 0)
                     fclose(p->file);

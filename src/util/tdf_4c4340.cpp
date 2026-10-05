@@ -30,11 +30,11 @@ public:
 
 class Class_004c4340 {
 public:
-    Class_004c91a0* FUN_004c4340(Class_004c91a0* out, char* start, char* end);
+    Class_004c91a0* MakeTrimmedString(Class_004c91a0* out, char* start, char* end);
 };
 
 // FUNCTION: 0x4c4340
-Class_004c91a0* Class_004c4340::FUN_004c4340(Class_004c91a0* out, char* start, char* end)
+Class_004c91a0* Class_004c4340::MakeTrimmedString(Class_004c91a0* out, char* start, char* end)
 {
     char* p = start;
     while (*p && (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'))

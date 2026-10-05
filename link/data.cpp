@@ -19,7 +19,7 @@ const float DAT_004fd4cc = 5.0f;  // 0x4fd4cc .rdata
 float DAT_004fd750 = 0.003921568859368563f;  // 0x4fd750 .rdata
 unsigned char DAT_004fdaf0[16] = {0};  // 0x4fdaf0 .rdata
 double DAT_004fdbe8 = -0.06875;  // 0x4fdbe8 .rdata
-char DAT_004fdbf0[40] = "Copyright 0000 Cavedog Entertainment";  // 0x4fdbf0 .rdata
+char g_hapiCopyright[40] = "Copyright 0000 Cavedog Entertainment";  // 0x4fdbf0 .rdata
 int g_aiCommandsEnabled = 1;  // 0x501774 .data
 // 0x501d18 .data
 unsigned char DAT_00501d18[32] = {
@@ -209,7 +209,7 @@ const char DAT_005097b0[32] = "SOFTWARE\\Classes\\AudioCD\\shell";  // 0x5097b0 
 const char DAT_005097d0[24] = "gamedata\\translate.tdf";  // 0x5097d0 .data
 const char DAT_005097e8[12] = "language";  // 0x5097e8 .data
 const char DAT_005097f4[8] = "Wargame";  // 0x5097f4 .data
-const char DAT_00509edc[20] = "Error";  // 0x509edc .data
+const char g_errorCaption[20] = "Error";  // 0x509edc .data
 double DAT_00509ef0 = 10430.37835047;  // 0x509ef0 .data
 double DAT_00509ef8 = 9.587379924285e-05;  // 0x509ef8 .data
 // 0x509f00 .data
@@ -310,7 +310,7 @@ void* g_emptyString = 0;  // 0x50a77c .data
 int g_guaranteePackets = 1;  // 0x50a780 .data
 int g_cdNextTrackTimer = -1;  // 0x50b540 .data
 int g_cdFadeTimer = -1;  // 0x50b544 .data
-void* DAT_0050b9e0[7] = {(void*)"SQUASHERR_OK", (void*)"SQUASHERR_BADHEADER", (void*)"SQUASHERR_BADCHECKSUM", (void*)"SQUASHERR_BADUNPACKSIZE", (void*)"SQUASHERR_BADUNPACKTYPE", (void*)"SQUASHERR_BADPACKTYPESQUASHERR_BADPARAMS"};  // 0x50b9e0 .data
+void* g_squashErrorNames[7] = {(void*)"SQUASHERR_OK", (void*)"SQUASHERR_BADHEADER", (void*)"SQUASHERR_BADCHECKSUM", (void*)"SQUASHERR_BADUNPACKSIZE", (void*)"SQUASHERR_BADUNPACKTYPE", (void*)"SQUASHERR_BADPACKTYPESQUASHERR_BADPARAMS"};  // 0x50b9e0 .data
 char DAT_0050c8ac[8] = "Cavedog";  // 0x50c8ac .data
 // 0x50c908 .data
 char* DAT_0050c908[19] = {
@@ -673,16 +673,16 @@ int DAT_0051fbb8;  // 0x51fbb8 .bss
 unsigned char DAT_0051fbd4[4];  // 0x51fbd4 .bss
 unsigned char DAT_0051fbd8[172];  // 0x51fbd8 .bss
 unsigned int DAT_0051fc84;  // 0x51fc84 .bss
-unsigned int DAT_0051fc88;  // 0x51fc88 .bss
+unsigned int g_randomSeed;  // 0x51fc88 .bss
 unsigned char DAT_0051fc8c[4];  // 0x51fc8c .bss
-int DAT_0051fc90;  // 0x51fc90 .bss
-int DAT_0051fc94;  // 0x51fc94 .bss
+int g_defaultCommandHandler;  // 0x51fc90 .bss
+int g_defaultCommandMask;  // 0x51fc94 .bss
 unsigned char DAT_0051fcb0[256];  // 0x51fcb0 .bss
 int DAT_0051fdb0;  // 0x51fdb0 .bss
 unsigned char DAT_0051fdb4[4];  // 0x51fdb4 .bss
-Class_004c5840* DAT_0051fdb8;  // 0x51fdb8 .bss
+TranslationTable* g_translations;  // 0x51fdb8 .bss
 unsigned char DAT_0051fdbc[4];  // 0x51fdbc .bss
-char DAT_0051fdc0[304];  // 0x51fdc0 .bss
+char g_language[304];  // 0x51fdc0 .bss
 int DAT_0051fef0;  // 0x51fef0 .bss
 int DAT_0051fef4;  // 0x51fef4 .bss
 Chunk* DAT_0051fef8;  // 0x51fef8 .bss
@@ -700,12 +700,12 @@ unsigned char DAT_0051ff4c[12];  // 0x51ff4c .bss
 int DAT_0051ff58;  // 0x51ff58 .bss
 unsigned char DAT_0051ff5c[4];  // 0x51ff5c .bss
 char DAT_0051ff60[112];  // 0x51ff60 .bss
-char DAT_0051ffd0[176];  // 0x51ffd0 .bss
+char g_lzssPresetWindow[176];  // 0x51ffd0 .bss
 unsigned char DAT_00520080[3944];  // 0x520080 .bss
-char DAT_00520fe8[24584];  // 0x520fe8 .bss
+char g_lzssPresetTree[24584];  // 0x520fe8 .bss
 Struct_00526ff0* DAT_00526ff0;  // 0x526ff0 .bss
-int DAT_00526ff8;  // 0x526ff8 .bss
-int DAT_00526ffc;  // 0x526ffc .bss (the type runs past the next known address, 0x526ffc+0x3)
+int g_lzssPresetReady;  // 0x526ff8 .bss
+int g_lzssUsePreset;  // 0x526ffc .bss (the type runs past the next known address, 0x526ffc+0x3)
 char DAT_005289b4;  // 0x5289b4 .bss
 char DAT_005289b8;  // 0x5289b8 .bss
 void (__stdcall* DAT_005289bc)(void);  // 0x5289bc .bss

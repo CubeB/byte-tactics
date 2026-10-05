@@ -31,10 +31,10 @@
 #include <stdio.h>
 #include <dsound.h>
 
-struct File_004bb5d0;
+struct FileHandle;
 
 int __stdcall RemoveTimer(int i);
-int __stdcall FUN_004bb5d0(File_004bb5d0* file);
+int __stdcall HAPI_CloseFile(FileHandle* file);
 
 class Class_004cfb40 {
 public:
@@ -42,7 +42,7 @@ public:
     IDirectSound* field_24;                 // +0x24
     char unknown_28[0x1e4 - 0x28];
     IDirectSoundBuffer* stream;             // +0x1e4
-    File_004bb5d0* file;                    // +0x1e8
+    FileHandle* file;                       // +0x1e8
     int bits;                               // +0x1ec
     int size;                               // +0x1f0
     int pos;                                // +0x1f4
@@ -51,12 +51,12 @@ public:
     int handle;                             // +0x288
 
     void FillStreamHalf();
-    void StartStream(File_004bb5d0* file, int sampleRate, int bits,
+    void StartStream(FileHandle* file, int sampleRate, int bits,
                       int channels, LONG volume);
 };
 
 // FUNCTION: 0x4cf940
-void Class_004cfb40::StartStream(File_004bb5d0* file, int sampleRate, int bits,
+void Class_004cfb40::StartStream(FileHandle* file, int sampleRate, int bits,
                                   int channels, LONG volume)
 {
     WAVEFORMATEX wfx;
@@ -71,7 +71,7 @@ void Class_004cfb40::StartStream(File_004bb5d0* file, int sampleRate, int bits,
         stream->Stop();
         stream->Release();
         stream = 0;
-        FUN_004bb5d0(this->file);
+        HAPI_CloseFile(this->file);
     }
     if (handle != -1) {
         RemoveTimer(handle);
@@ -112,7 +112,7 @@ void Class_004cfb40::StartStream(File_004bb5d0* file, int sampleRate, int bits,
             stream->Stop();
             stream->Release();
             stream = 0;
-            FUN_004bb5d0(this->file);
+            HAPI_CloseFile(this->file);
         }
         return;
     }
@@ -125,7 +125,7 @@ void Class_004cfb40::StartStream(File_004bb5d0* file, int sampleRate, int bits,
             stream->Stop();
             stream->Release();
             stream = 0;
-            FUN_004bb5d0(this->file);
+            HAPI_CloseFile(this->file);
         }
     }
 }

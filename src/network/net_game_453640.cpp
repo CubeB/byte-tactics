@@ -63,7 +63,7 @@ extern int g_timeoutPlayerDpid;
 int GetTicks();
 Entry_00453640* __stdcall FindGadgetChecked(void* entries, char* name);
 void __stdcall FUN_0049fa90(void* obj);
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall FUN_004a0bf0(void* obj, char* name, char* text, int param_4);
 void __stdcall CloseTopScreen(void* obj);
 void __stdcall RejectPlayer(int param_1, int param_2);
@@ -132,7 +132,7 @@ void UpdateTimeoutDialog()
     if (player != 0 && player->active != 0 && player->state == 3) {
         int elapsed = (GetTicks() - player->lastHeard) / 30;
         char buf[200];
-        sprintf(buf, FUN_004c5740("will be rejected in %d seconds"),
+        sprintf(buf, Translate("will be rejected in %d seconds"),
                 g_game->field_37f31 - elapsed + 0x78);
         FUN_004a0bf0(g_game->message, "TIMETEXT", buf, 0);
         FUN_0049fa90(g_game->message);

@@ -4,8 +4,8 @@
 // read into one local buffer that MSVC lays over the dead parameter slot.
 #include <string.h>
 
-int __stdcall FUN_004bb710(void* file, int pos);
-int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
+int __stdcall HAPI_SeekFile(void* file, int pos);
+int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
 
 // The only caller (0x4d02a0) passes its object in ecx, so this is a method
 // that ignores `this` (it compiles the same as a __stdcall free function).
@@ -15,22 +15,22 @@ struct Class_004d01b0 { int DetectSampleFormat(void* file); };
 int Class_004d01b0::DetectSampleFormat(void* file)
 {
     char tag[4];
-    FUN_004bb710(file, 0);
-    FUN_004bb7c0(file, tag, 4);
+    HAPI_SeekFile(file, 0);
+    HAPI_readfromfile(file, tag, 4);
     if (strncmp(tag, "DIGI", 4) == 0) {
-        FUN_004bb710(file, 8);
-        FUN_004bb7c0(file, tag, 4);
+        HAPI_SeekFile(file, 8);
+        HAPI_readfromfile(file, tag, 4);
         if (strncmp(tag, "HSHD", 4) == 0) {
-            FUN_004bb710(file, 0x20);
-            FUN_004bb7c0(file, tag, 4);
+            HAPI_SeekFile(file, 0x20);
+            HAPI_readfromfile(file, tag, 4);
             if (strncmp(tag, "SDAT", 4) == 0) {
                 return 1;
             }
         }
     }
     if (strncmp(tag, "RIFF", 4) == 0) {
-        FUN_004bb710(file, 8);
-        FUN_004bb7c0(file, tag, 4);
+        HAPI_SeekFile(file, 8);
+        HAPI_readfromfile(file, tag, 4);
         if (strncmp(tag, "WAVE", 4) == 0) {
             return 2;
         }

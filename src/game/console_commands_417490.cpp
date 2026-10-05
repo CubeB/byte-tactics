@@ -10,7 +10,7 @@ class Class_004b73c0 {
 public:
     char* args[0x34];                  // +0x00
     int count;                         // +0xd0
-    char* FUN_004b73c0(int index, char* fallback);
+    char* GetArg(int index, char* fallback);
 };
 
 short __stdcall FindUnitTypeId(char* name);
@@ -21,7 +21,7 @@ void __stdcall ReloadUnitType(unsigned short id);
 void __stdcall CmdReload(Class_004b73c0* args)
 {
     if (args->count > 1) {
-        short id = FindUnitTypeId(args->FUN_004b73c0(1, DAT_005119b8));
+        short id = FindUnitTypeId(args->GetArg(1, DAT_005119b8));
         if (id) {
             KillUnitsOfType(id);
             ReloadUnitType(id);

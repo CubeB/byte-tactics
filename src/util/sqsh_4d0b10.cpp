@@ -11,7 +11,7 @@ struct Node_004d0b10 {
 extern Node_004d0b10* DAT_00526ff0;
 
 // FUNCTION: 0x4d0b10
-void __stdcall FUN_004d0b10(int oldNode, int newNode)
+void __stdcall LzssContractNode(int oldNode, int newNode)
 {
     DAT_00526ff0[newNode].parent = DAT_00526ff0[oldNode].parent;
     if (DAT_00526ff0[DAT_00526ff0[oldNode].parent].larger == (unsigned short)oldNode)

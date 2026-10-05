@@ -46,7 +46,7 @@ struct Game {
 extern Game* g_game;
 
 Cell_004239c0* __stdcall GetMapCell(int x, int y);
-int __stdcall FUN_004b6c30(int range);
+int __stdcall RandomInt(int range);
 void __stdcall StartFeatureBurning(int x, int z, int flag);
 int __stdcall GetGroundHeight(Vec3_004239c0* pos);
 void __stdcall ApplyAreaDamageAt(void* owner, Vec3_004239c0* pos);
@@ -92,7 +92,7 @@ void __stdcall SpreadFire(Feature_004239c0* f, Point16_004239c0* cell)
                 if (c && c->feature < 0xfffb && !(c->flags & 1)) {
                     Feature_004239c0* g = &g_game->features[c->feature];
                     if (g->flammable) {
-                        if (FUN_004b6c30(100) < g->spreadChance)
+                        if (RandomInt(100) < g->spreadChance)
                             StartFeatureBurning(x, z, 0);
                     }
                 }
@@ -115,7 +115,7 @@ void __stdcall SpreadFire(Feature_004239c0* f, Point16_004239c0* cell)
             if (c && c->feature < 0xfffb && !(c->flags & 1)) {
                 Feature_004239c0* g = &g_game->features[c->feature];
                 if (g->flammable) {
-                    if (FUN_004b6c30(100) < g->spreadChance)
+                    if (RandomInt(100) < g->spreadChance)
                         StartFeatureBurning(x, z, 0);
                 }
             }

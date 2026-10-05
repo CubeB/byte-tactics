@@ -585,7 +585,7 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x42a8d0** (the unit type loader, a gap region; likely): when an FBI file
   has no UNITINFO section it returns 0 at once (`je 0x42b1bc` from 0x42ac78),
   freeing that file's buffer but not closing the file (the normal path calls
-  FUN_004bb5d0 at 0x42b173) and not freeing the weapon TDF table at
+  HAPI_CloseFile at 0x42b173) and not freeing the weapon TDF table at
   DAT_005122a0 (only the normal end does, from 0x42b20a). Found by a Claude
   Code / Opus 5.5 subagent in #2662.
 - **0x413470** (an order handler), state 3 (likely): after two misses it
@@ -610,7 +610,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   3, so bit 0 and bits 6 to 31 keep stack garbage, and the whole structure is
   then copied into the spawned object (StartExplodePiece's inlined `rep movsd`).
   Harmless if nothing reads those bits. Found by DeepSeek V4.1 Flash in #22.
-- **0x43de30** (possible): its chunked read `FUN_004b4c80(buf, 0x23)` is not
+- **0x43de30** (possible): its chunked read `ReadBox(buf, 0x23)` is not
   checked, so a short read copies a partly uninitialised record into the unit
   type; its sibling loader 0x44d930 does check. Found by DeepSeek V4.1 Flash
   in #33.
@@ -779,7 +779,7 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x45f8c0** (likely): when a line value does not start with '|', the
   split scans from `value + 1` for the next '|' with no test for '\0', so a
   value with no second '|' runs off the end of the 0x80-byte buffer. When it
-  does start with '|', the two `FUN_004b6af0(value, 0/1)` calls read
+  does start with '|', the two `SkipTextLines(value, 0/1)` calls read
   uninitialised stack at `value + 0x10` and `+0x14`. Read from the
   disassembly of a partial match. Found by Space Bunny Free in #411.
 - **0x45ffb0** (likely, from the compiler): the matched source is valid C++,
@@ -878,7 +878,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   later glyph lookups (0x4a271a, 0x4a292b) are not tested at all. A font
   missing that glyph crashes the scrollbar draw. Found by ozgb's Codex / GPT-6
   in #1968 (the horizontal site was found while checking it).
-- **0x4aa8f0** (likely): when FUN_004bbc40 reports the GUI file missing or
+- **0x4aa8f0** (likely): when HAPI_FileLengthByName reports the GUI file missing or
   empty (returns 0), `je 0x4aac2d` at 0x4aaa17 skips both stores of the
   `layer` local (0x4aaa3b and 0x4aaa87), so the code at 0x4aac2d loads that
   stack slot uninitialised, writes its `+4`, `+0x1c`, `+0x24` and `+0x3b`, links
@@ -1001,7 +1001,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   without the count check. Found by ozgb's Codex / GPT-6 in #1898.
 - **0x49be60** (likely): for a kind-3 projectile it passes a stack local
   (`lea ecx, [esp+0x38]` at 0x49c252) as the rotation argument of
-  FUN_0046bae0, which hands it to FUN_004b6cc0 for every vertex, and that reads
+  FUN_0046bae0, which hands it to RotateByAngles for every vertex, and that reads
   three angles from it (0x4b6cd6, 0x4b6cf6, 0x4b6d1b); nothing in 0x49be60
   writes those bytes, so the model is rotated by whatever the stack held. Kind
   1 builds its angles from the shot's +0x34 to +0x38 (0x49c0fd) and another arm

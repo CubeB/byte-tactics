@@ -65,7 +65,7 @@ public:
 
 extern Game* g_game;
 
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 int __stdcall GetHeadingBetween(Vec3*, Vec3*);
@@ -137,7 +137,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         if (unit->type && (unit->def->flags & 0x800)) {
             if (order->pos.x == 0 && order->pos.z == 0 && order->pos.y == 0)
                 order->pos = unit->pos;
-            int a = FUN_004b6c30(0x10000);
+            int a = RandomInt(0x10000);
             order->angle = a;
             order->field_3a = a & 1;
             FUN_0040f200(unit, order, 0);
@@ -157,8 +157,8 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         }
         for (int r = 0x40; r < 0x100; r += 0x10) {
             Vec3 p = unit->pos;
-            p.x += (FUN_004b6c30(r * 2 + 1) - r) << 16;
-            p.z += (FUN_004b6c30(r * 2 + 1) - r) << 16;
+            p.x += (RandomInt(r * 2 + 1) - r) << 16;
+            p.z += (RandomInt(r * 2 + 1) - r) << 16;
             Point fp = unit->footprint;
             Point cell = WorldToCell(p, fp);
             CellToWorld(fp, cell, &p);

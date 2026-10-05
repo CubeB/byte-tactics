@@ -20,8 +20,8 @@
 //    local: that drops one live-across-call variable, so the hoisted name temp lands
 //    in EDI (the `lea edi,[esi-0x221]` in the preheader) instead of competing for EBX.
 // Note 0x4c48c0 and 0x4c46c0 are two different classes in data/symbols.csv
-// (Class_004c48c0::FUN_004c48c0 and Class_004c46c0::FUN_004c46c0), so `current`
-// is a Class_004c48c0* and the int-arg calls cast it to Class_004c46c0*.
+// (TdfRecord::GetFieldString and Class_004c46c0::GetFieldInt), so `current`
+// is a TdfRecord* and the int-arg calls cast it to Class_004c46c0*.
 
 #include <math.h>
 #include <vector>
@@ -40,20 +40,20 @@ public:
     ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, const char* key, int size, char* def);
+    int GetFieldString(char* dst, const char* key, int size, char* def);
 };
 
 class Class_004c46c0 {
 public:
-    int FUN_004c46c0(const char* name, int def);
+    int GetFieldInt(const char* name, int def);
 };
 
 class Class_004c2ea0 {
 public:
     int field_0;                       // +0x0
-    Class_004c48c0* current;           // +0x4
+    TdfRecord* current;                // +0x4
     int field_8;                       // +0x8
 
     Class_004c2ea0();
@@ -62,17 +62,17 @@ public:
 
 class Class_004c2f60 {
 public:
-    int FUN_004c2f60(char* file);
+    int LoadFile(char* file);
 };
 
 class Class_004c3e10 {
 public:
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3490 {
 public:
-    int FUN_004c3490(int index);
+    int SelectRecordAt(int index);
 };
 
 struct Flags_0042dcf0 {
@@ -119,7 +119,7 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-void __stdcall FUN_004bca30(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
+void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
 void* __cdecl FUN_004d83b0(const char* name, int size);
 void __cdecl ProtectBlockReadWrite(void* p);
 void __cdecl ProtectBlockReadOnly(void* p);
@@ -134,7 +134,7 @@ void LoadDownloadMenus()
     char unitbuf[256];
     std::vector<Class_004c91a0> files;
     BuildDataPath(path, "download", "*", "TDF");
-    FUN_004bca30(path, 0, &files);
+    ListDirectory(path, 0, &files);
 
     int n = files.size();
     g_game->buildListCount = n;
@@ -143,21 +143,21 @@ void LoadDownloadMenus()
     for (i = 0; i < n; i++) {
         Class_004c2ea0 parser;
         BuildDataPath(path, "download", files[i].p, "TDF");
-        if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
+        if (((Class_004c2f60*)&parser)->LoadFile(path)) {
             int j = 0;
             while (1) {
-                ((Class_004c3e10*)&parser)->FUN_004c3e10();
-                if (!((Class_004c3490*)&parser)->FUN_004c3490(j))
+                ((Class_004c3e10*)&parser)->ResetCurrentRecord();
+                if (!((Class_004c3490*)&parser)->SelectRecordAt(j))
                     break;
                 g_game->buildLists[i].count = j + 1;
                 char* buf = unitbuf;
-                if (parser.current->FUN_004c48c0(unitbuf, "UNITMENU", 0x20, DAT_005119b8)) {
+                if (parser.current->GetFieldString(unitbuf, "UNITMENU", 0x20, DAT_005119b8)) {
                     for (unsigned short u = 0; u < g_game->unitDefCount; u++) {
                         if (_strcmpi(g_game->unitDefs[u].name, buf) == 0) {
                             g_game->buildLists[i].entries[j].typeId = u;
-                            g_game->buildLists[i].entries[j].page = (unsigned char)((Class_004c46c0*)parser.current)->FUN_004c46c0("MENU", 0);
-                            g_game->buildLists[i].entries[j].slot = (unsigned char)((Class_004c46c0*)parser.current)->FUN_004c46c0("BUTTON", 0);
-                            parser.current->FUN_004c48c0(g_game->buildLists[i].entries[j].name, "UNITNAME", 0x20, DAT_005119b8);
+                            g_game->buildLists[i].entries[j].page = (unsigned char)((Class_004c46c0*)parser.current)->GetFieldInt("MENU", 0);
+                            g_game->buildLists[i].entries[j].slot = (unsigned char)((Class_004c46c0*)parser.current)->GetFieldInt("BUTTON", 0);
+                            parser.current->GetFieldString(g_game->buildLists[i].entries[j].name, "UNITNAME", 0x20, DAT_005119b8);
                             break;
                         }
                     }

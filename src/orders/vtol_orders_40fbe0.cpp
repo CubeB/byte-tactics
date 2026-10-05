@@ -66,7 +66,7 @@ int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
-int __stdcall FUN_004b6c30(int);
+int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
@@ -106,7 +106,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
                     ((Class_004388d0*)order)->FUN_004388d0((int)move);
                     order->flags|=0xe0;
                 }
-                order->angle=FUN_004b6c30(0x10000);
+                order->angle=RandomInt(0x10000);
                 order->parity=order->angle&1;
                 return 1;
             }
@@ -176,7 +176,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
                     order->flags=0; return 3;
                 }
             }
-            if (flags&0xe0) order->angle += -FUN_004b6c30(0x2000)-0x4000;
+            if (flags&0xe0) order->angle += -RandomInt(0x2000)-0x4000;
             short angle=order->angle;
             Vec3 pos;
             if ((unsigned char)(unit->flags>>31)&1)

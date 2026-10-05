@@ -9,17 +9,17 @@ public:
     char unknown_0[4];
     void* parser;                       // +0x4
 
-    void FUN_004c3e10();
+    void ResetCurrentRecord();
 };
 
 class Class_004c3410 {
 public:
-    int FUN_004c3410(char* name);
+    int SelectRecord(char* name);
 };
 
-class Class_004c48c0 {
+class TdfRecord {
 public:
-    int FUN_004c48c0(char* dst, char* key, int size, char* def);
+    int GetFieldString(char* dst, char* key, int size, char* def);
 };
 
 struct List_00422ea0 {
@@ -57,8 +57,8 @@ unsigned short __stdcall LoadFeatureType(char* name);
 static inline Class_004c3e10* FindEntry(char* name)
 {
     for (Class_004c3e10** p = DAT_00511fb4->first; p < DAT_00511fb4->last; p++) {
-        (*p)->FUN_004c3e10();
-        if (((Class_004c3410*)*p)->FUN_004c3410(name))
+        (*p)->ResetCurrentRecord();
+        if (((Class_004c3410*)*p)->SelectRecord(name))
             return *p;
     }
     return 0;
@@ -99,16 +99,16 @@ void ResolveFeatureLinks()
     if (*count > 0) {
         features = &g_game->features;
         do {
-            Class_004c48c0* parser = (Class_004c48c0*)FindEntry((*features)[i].name)->parser;
-            if (parser->FUN_004c48c0(buf, "featuredead", 0x100, DAT_005119b8))
+            TdfRecord* parser = (TdfRecord*)FindEntry((*features)[i].name)->parser;
+            if (parser->GetFieldString(buf, "featuredead", 0x100, DAT_005119b8))
                 (*features)[i].dead = FeatureIndex(buf);
             else
                 (*features)[i].dead = 0xffff;
-            if (parser->FUN_004c48c0(buf, "featurereclamate", 0x100, DAT_005119b8))
+            if (parser->GetFieldString(buf, "featurereclamate", 0x100, DAT_005119b8))
                 (*features)[i].reclamate = FeatureIndex(buf);
             else
                 (*features)[i].reclamate = 0xffff;
-            if (parser->FUN_004c48c0(buf, "featureburnt", 0x100, DAT_005119b8))
+            if (parser->GetFieldString(buf, "featureburnt", 0x100, DAT_005119b8))
                 (*features)[i].burnt = FeatureIndex(buf);
             else
                 (*features)[i].burnt = 0xffff;

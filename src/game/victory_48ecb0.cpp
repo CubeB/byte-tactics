@@ -1,13 +1,13 @@
 // Decompiled by Opus. Names are provisional.
 
-class Class_004b4560 {
+class HapiBank {
 public:
-    void FUN_004b4560(const char* name);
+    void OpenAccount(const char* name);
 };
 
 class Class_004b4630 {
 public:
-    void FUN_004b4630(const char* name, int value);
+    void SetIntegerItem(const char* name, int value);
 };
 
 extern char DAT_00508f90[]; // "VictoryCondition_KillAllMobileUnits"
@@ -22,14 +22,14 @@ public:
     char unknown_c[4];                   // +0xc, the listener's vtable
     int numUnits;                        // +0x10
 
-    virtual void SaveState(Class_004b4560* obj);
+    virtual void SaveState(HapiBank* obj);
 };
 
 // FUNCTION: 0x48ecb0
-void VictoryKillAllMobileUnits::SaveState(Class_004b4560* obj)
+void VictoryKillAllMobileUnits::SaveState(HapiBank* obj)
 {
-    obj->FUN_004b4560(DAT_00508f90);
-    ((Class_004b4630*)obj)->FUN_004b4630(DAT_00508f84, numUnits);
-    ((Class_004b4630*)obj)->FUN_004b4630(DAT_00508f30, satisfied);
-    ((Class_004b4630*)obj)->FUN_004b4630(DAT_00508f24, celebrated);
+    obj->OpenAccount(DAT_00508f90);
+    ((Class_004b4630*)obj)->SetIntegerItem(DAT_00508f84, numUnits);
+    ((Class_004b4630*)obj)->SetIntegerItem(DAT_00508f30, satisfied);
+    ((Class_004b4630*)obj)->SetIntegerItem(DAT_00508f24, celebrated);
 }

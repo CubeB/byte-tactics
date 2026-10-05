@@ -43,7 +43,7 @@ void* __stdcall AllocSurface(const char*,int,int);
 void __stdcall DrawSurface(void*,void*,int,int);
 void __stdcall ReportGameEvent(int);
 const char* __stdcall GetRejectReasonText(unsigned);
-const char* __stdcall FUN_004c5740(const char*);
+const char* __stdcall Translate(const char*);
 void __stdcall OpenMessageBox(Menu*,const char*,int,int,int);
 void __stdcall FUN_0049fa90(Menu*);
 void __stdcall FUN_0049fad0(Menu*);
@@ -118,7 +118,7 @@ void __stdcall RunEndGameState()
             Player* player=&g_game->players[g_game->localPlayer];
             if(player->message && player->message!=2) {
                 const char* name=GetRejectReasonText(player->message);
-                OpenMessageBox(&g_game->menu,FUN_004c5740(name),320,1,1);
+                OpenMessageBox(&g_game->menu,Translate(name),320,1,1);
                 FUN_0049fa90(&g_game->menu);
                 FUN_0049fad0(&g_game->menu);
                 player->message=0;
@@ -211,7 +211,7 @@ void __stdcall RunEndGameState()
                 }
                 unsigned deadline=GetTickRate()*5+g_game->deadline;
                 if(deadline<GetTicks())
-                    DrawOutlinedString(g_game->surface,FUN_004c5740("Click to continue."),g_game->textColor,g_game->shadowColor,g_game->height-20);
+                    DrawOutlinedString(g_game->surface,Translate("Click to continue."),g_game->textColor,g_game->shadowColor,g_game->height-20);
             }
         }
         break;

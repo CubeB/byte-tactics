@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free, improved by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Claude Opus 5.5. Names are provisional.
 //
-// Writes a PCX file: opens `filename` through FUN_004bb2c0, writes the 128
+// Writes a PCX file: opens `filename` through HAPI_OpenFileAppend, writes the 128
 // byte header (manufacturer 10, version 5, RLE encoding, 8 bits per pixel,
 // the first 0x30 bytes of `block` as the 16-colour palette, one plane),
 // run length compresses `height` rows of `width` bytes from `data`, then
@@ -24,14 +24,14 @@
 #include <stdio.h>
 #include <string.h>
 
-struct Class_004bbbe0 {
+struct FileHandle {
     FILE* file;
     int error;
 };
 
-extern void* __stdcall FUN_004bb2c0(void* thing);
-extern void __stdcall FUN_004bb5d0(Class_004bbbe0* file);
-extern unsigned int __stdcall FUN_004bbbe0(Class_004bbbe0* file, void* buf, unsigned int size);
+extern void* __stdcall HAPI_OpenFileAppend(void* thing);
+extern void __stdcall HAPI_CloseFile(FileHandle* file);
+extern unsigned int __stdcall HAPI_WriteFile(FileHandle* file, void* buf, unsigned int size);
 
 // PCX file header (128 bytes).
 struct Header_004cac40 {
@@ -57,7 +57,7 @@ struct Header_004cac40 {
 int __stdcall WritePcx(void* filename, unsigned char* data, int width, int height, unsigned char* block)
 {
     Header_004cac40 hdr;
-    Class_004bbbe0* file = (Class_004bbbe0*)FUN_004bb2c0(filename);
+    FileHandle* file = (FileHandle*)HAPI_OpenFileAppend(filename);
     int total;
     int rows;
     int n;
@@ -89,7 +89,7 @@ int __stdcall WritePcx(void* filename, unsigned char* data, int width, int heigh
     hdr.n = 0;
     hdr.l = 1;
     hdr.m = (unsigned short)width;
-    if (FUN_004bbbe0(file, &hdr, 0x80) != 0x80)
+    if (HAPI_WriteFile(file, &hdr, 0x80) != 0x80)
         goto out;
 
     rows = height - 1;
@@ -112,15 +112,15 @@ int __stdcall WritePcx(void* filename, unsigned char* data, int width, int heigh
                         wrote = 0;
                         if (run == 1 && (cur & 0xc0) != 0xc0) {
                             lit = cur;
-                            FUN_004bbbe0(file, &lit, 1);
+                            HAPI_WriteFile(file, &lit, 1);
                             wrote = run;
                         } else {
                             while (run > 0) {
                                 int chunk = run > 0x3f ? 0x3f : run;
                                 cnt = (unsigned char)(chunk | 0xc0);
-                                FUN_004bbbe0(file, &cnt, 1);
+                                HAPI_WriteFile(file, &cnt, 1);
                                 rep = cur;
-                                FUN_004bbbe0(file, &rep, 1);
+                                HAPI_WriteFile(file, &rep, 1);
                                 run -= chunk;
                                 wrote += 2;
                             }
@@ -133,15 +133,15 @@ int __stdcall WritePcx(void* filename, unsigned char* data, int width, int heigh
             }
             if (run == 1 && (cur & 0xc0) != 0xc0) {
                 t = cur;
-                FUN_004bbbe0(file, &t, 1);
+                HAPI_WriteFile(file, &t, 1);
             } else {
                 unsigned char ocnt;
                 while (run > 0) {
                     int chunk = run > 0x3f ? 0x3f : run;
                     ocnt = (unsigned char)(chunk | 0xc0);
-                    FUN_004bbbe0(file, &ocnt, 1);
+                    HAPI_WriteFile(file, &ocnt, 1);
                     rep = cur;
-                    FUN_004bbbe0(file, &rep, 1);
+                    HAPI_WriteFile(file, &rep, 1);
                     run -= chunk;
                 }
             }
@@ -151,15 +151,15 @@ int __stdcall WritePcx(void* filename, unsigned char* data, int width, int heigh
 
     {
         unsigned char marker = 0x0c;
-        FUN_004bbbe0(file, &marker, 1);
+        HAPI_WriteFile(file, &marker, 1);
     }
-    if (FUN_004bbbe0(file, block, 0x300) != 0x300)
+    if (HAPI_WriteFile(file, block, 0x300) != 0x300)
         goto out;
-    FUN_004bb5d0(file);
+    HAPI_CloseFile(file);
     return 1;
 
 out:
     if (file)
-        FUN_004bb5d0(file);
+        HAPI_CloseFile(file);
     return 0;
 }

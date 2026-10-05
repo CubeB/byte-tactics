@@ -86,7 +86,7 @@ void __stdcall HandleMainMenuClick(void* gadget);
 void __stdcall UpdateMenuSparks();
 
 void __stdcall BuildDataPath(char* dest, const char* a, const char* b, const char* c);
-void* __stdcall FUN_004bbe50(char* name, int flag);
+void* __stdcall HAPI_LoadFile(char* name, int flag);
 void __stdcall FUN_004ac7d0(Sub_004263b0* sub, int value, void* palette);
 void __cdecl FUN_004d85a0(void* palette);
 void __stdcall RenderLayer(Sub_004263b0* sub, int value);
@@ -103,7 +103,7 @@ void FUN_004c2bb0();
 void* __cdecl FUN_004d83b0(const char* name, int size);
 void __stdcall OpenCloseCdPlayerDialog();
 int __stdcall CheckDirectXVersion(int a, int b, int c, int d, int e);
-char* __stdcall FUN_004c5740(const char* text);
+char* __stdcall Translate(const char* text);
 void __stdcall OpenMessageBox(Sub_004263b0* sub, char* text, int a, int b, int c);
 void __stdcall CheckGpfVersion();
 
@@ -138,7 +138,7 @@ void __stdcall OpenMainMenu()
     char text[300];
 
     BuildDataPath(palpath, "palettes", "guipal", "PAL");
-    void* palette = FUN_004bbe50(palpath, 0);
+    void* palette = HAPI_LoadFile(palpath, 0);
     FUN_004ac7d0(&g_game->sub, (int)found, palette);
     FUN_004d85a0(palette);
     RenderLayer(&g_game->sub, 0xc0);
@@ -172,7 +172,7 @@ void __stdcall OpenMainMenu()
     if (DAT_0051228c == 0) {
         DAT_0051228c = 1;
         if (CheckDirectXVersion(4, 5, 0, 0x9b, 3) == 0) {
-            if (_snprintf(text, 300, FUN_004c5740(DAT_004fd050), "\n", "\n", "\n", "\n") < 0) {
+            if (_snprintf(text, 300, Translate(DAT_004fd050), "\n", "\n", "\n", "\n") < 0) {
                 text[299] = 0;
             }
             OpenMessageBox(&g_game->sub, text, 200, 1, 1);
@@ -181,7 +181,7 @@ void __stdcall OpenMainMenu()
 
     if (DAT_00512294 == 0) {
         if (((Class_004cff20*)g_game->field_10)->HasNoDriver()) {
-            OpenMessageBox(&g_game->sub, FUN_004c5740("No sound driver is available for use.\n"), 500, 1, 1);
+            OpenMessageBox(&g_game->sub, Translate("No sound driver is available for use.\n"), 500, 1, 1);
             DAT_00512294 = 1;
         }
     }

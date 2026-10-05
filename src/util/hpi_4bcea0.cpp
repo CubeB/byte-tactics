@@ -9,7 +9,7 @@ struct Struct_004bcea0 {
 Struct_004bcea0* GetDisplay(void);
 
 // FUNCTION: 0x4bcea0
-void __stdcall FUN_004bcea0(char* dst)
+void __stdcall GetLastDirectory(char* dst)
 {
     Struct_004bcea0* s = GetDisplay();
     strncpy(dst, s->name, 0x100);

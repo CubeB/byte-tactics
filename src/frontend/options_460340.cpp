@@ -32,7 +32,7 @@ void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall GetButtonStageByName(Gadget_00460340* gadget, char* name);
 char __stdcall FindGameCdDrive(int disc);
 void __stdcall RegisterDataArchives();
-char* __stdcall FUN_004c5740(char* text);
+char* __stdcall Translate(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* gadget);
 
@@ -49,7 +49,7 @@ void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
         case 1:
             if (!FindGameCdDrive(0)) {
                 OpenMessageBox(g_game->message,
-                             FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
+                             Translate("Please insert the Campaign CD (Disc 2) and try again"),
                              200, 1, 1);
                 FUN_004ab0a0(g_game->message);
                 return;
@@ -59,7 +59,7 @@ void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
         case 2:
             if (!FindGameCdDrive(1)) {
                 OpenMessageBox(g_game->message,
-                             FUN_004c5740("Please insert the Multiplayer CD (Disc 1) and try again"),
+                             Translate("Please insert the Multiplayer CD (Disc 1) and try again"),
                              200, 1, 1);
                 FUN_004ab0a0(g_game->message);
                 return;

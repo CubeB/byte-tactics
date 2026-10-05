@@ -28,7 +28,7 @@ struct Rect_004ab0b0 {
     int y2;                            // +0xc
 };
 
-int __stdcall FUN_004b67d0(Rect_004ab0b0* a, Rect_004ab0b0* b);
+int __stdcall RectsOverlap(Rect_004ab0b0* a, Rect_004ab0b0* b);
 void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 
 // FUNCTION: 0x4ab0b0
@@ -50,7 +50,7 @@ int __stdcall FUN_004ab0b0(Node_004ab0b0* node, void* param_2, Rect_004ab0b0* pa
             DrawSurface(param_2, g->surface, g->x, g->y);
         }
     } else {
-        if (node->state != 1 && FUN_004b67d0(&rect, param_3) == 0) {
+        if (node->state != 1 && RectsOverlap(&rect, param_3) == 0) {
             goto finish;
         }
         node->state = 0;

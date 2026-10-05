@@ -25,12 +25,12 @@ extern Game* g_game;
 
 class Class_004b48f0 {
 public:
-    int FUN_004b48f0(char* name);
+    int HasItem(char* name);
 };
 
 class Class_004b48a0 {
 public:
-    char* FUN_004b48a0(char* name, char* def);
+    char* GetStringItem(char* name, char* def);
 };
 
 short __stdcall FindUnitTypeId(char* name);
@@ -40,8 +40,8 @@ short __stdcall ResolveUnitTypeKey(Class_004b48f0* file, unsigned short id)
 {
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);
-    if (file->FUN_004b48f0(key))
-        return FindUnitTypeId(((Class_004b48a0*)file)->FUN_004b48a0(key, 0));
+    if (file->HasItem(key))
+        return FindUnitTypeId(((Class_004b48a0*)file)->GetStringItem(key, 0));
     int i, n = 0;                     // n counts every table entry, k only the
     unsigned short k = 0;             // ones without flag bit 5
     for (i = 1; i < g_game->unitTypeCount; i++, n++) {

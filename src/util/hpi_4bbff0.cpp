@@ -23,7 +23,7 @@ struct Info_004bbff0 {
     int size;                          // +0x4
 };
 
-struct File_004bbff0 {
+struct FileHandle {
     Fp_004bbff0* fp;                   // +0x0
     void* shared;                      // +0x4
     Info_004bbff0* info;               // +0x8
@@ -32,13 +32,13 @@ struct File_004bbff0 {
     void* buffer2;                     // +0x14
 };
 
-long __stdcall FUN_004bb710(File_004bbff0* file, long pos);
-int __stdcall FUN_004bb7c0(File_004bbff0* file, void* buf, int size);
+long __stdcall HAPI_SeekFile(FileHandle* file, long pos);
+int __stdcall HAPI_readfromfile(FileHandle* file, void* buf, int size);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4bbff0
-void* __stdcall FUN_004bbff0(char* name, File_004bbff0* file, unsigned int* outSize)
+void* __stdcall HAPI_LoadOpenFile(char* name, FileHandle* file, unsigned int* outSize)
 {
     long len;
     char buf[256];
@@ -61,7 +61,7 @@ void* __stdcall FUN_004bbff0(char* name, File_004bbff0* file, unsigned int* outS
     if (len <= 0) {
         return 0;
     }
-    if (FUN_004bb710(file, 0) == -1) {
+    if (HAPI_SeekFile(file, 0) == -1) {
         return 0;
     }
     strcpy(buf, name);
@@ -77,7 +77,7 @@ void* __stdcall FUN_004bbff0(char* name, File_004bbff0* file, unsigned int* outS
         k++;
     } while (buf[j++] != 0);
     data = FUN_004d83b0(buf, len);
-    if (FUN_004bb7c0(file, data, len) <= 0) {
+    if (HAPI_readfromfile(file, data, len) <= 0) {
         FUN_004d85a0(data);
         return 0;
     }

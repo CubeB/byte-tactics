@@ -11,9 +11,9 @@ extern char DAT_005119b8[];
 
 int FUN_0049f580(void);
 char* __stdcall StripExtension(char* name);
-void* __stdcall FUN_004bb5b0(char* path);
-int __stdcall FUN_004bb5d0(void* file);
-int __stdcall FUN_004bbc40(char* path);
+void* __stdcall HAPI_OpenFileRead(char* path);
+int __stdcall HAPI_CloseFile(void* file);
+int __stdcall HAPI_FileLengthByName(char* path);
 
 class Class_00435c00 {
 public:
@@ -27,7 +27,7 @@ public:
         strcpy(names[index], text);
         if (index == 1) {
             if (strlen(text) != 0)
-                exists = FUN_004bbc40(text);
+                exists = HAPI_FileLengthByName(text);
             else
                 exists = 0;
         }
@@ -50,9 +50,9 @@ void Class_00435c00::BuildCampaignFilePath(int index, char* dir, char* name, cha
         StripExtension(path);
         strcat(path, ".");
         strcat(path, ext);
-        void* file = FUN_004bb5b0(path);
+        void* file = HAPI_OpenFileRead(path);
         if (file) {
-            FUN_004bb5d0(file);
+            HAPI_CloseFile(file);
             SetName(index, path);
             return;
         }

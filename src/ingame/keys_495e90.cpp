@@ -195,10 +195,10 @@ void __stdcall BroadcastPacket(int param_1, void* param_2, int param_3);
 void ToggleTabMenu(void);
 void __stdcall FUN_004956c0(int eventType);
 void __stdcall OpenInGameOptions(void);
-int __stdcall FUN_004bc4b0(char* path, void* findData, int param_3, int param_4);
-int __stdcall FUN_004bc640(int handle, void* findData);
-void __stdcall FUN_004bc8d0(int handle);
-void __stdcall FUN_004bcf00(char* path);
+int __stdcall HAPI_FindFirst(char* path, void* findData, int param_3, int param_4);
+int __stdcall HAPI_FindNext(int handle, void* findData);
+void __stdcall HAPI_FindClose(int handle);
+void __stdcall MakeDirectoryPath(char* path);
 void __stdcall FUN_00468cf0(int param_1, int param_2);
 void __stdcall SaveScreenshot(char* param_1, const char* param_2);
 void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, int d, int e, int f);
@@ -368,19 +368,19 @@ void HandleGameKey(void)
                 char path[0x100];
                 char findData[0x118];
                 sprintf(path, "%s\\MOVIE*", g_game->field_38a53);
-                int h = FUN_004bc4b0(path, findData, -1, 1);
+                int h = HAPI_FindFirst(path, findData, -1, 1);
                 if (h >= 0) {
                     do {
                         int n = atoi(&findData[0x19]);
                         if (n > g_game->field_38c53)
                             g_game->field_38c53 = n;
-                    } while (FUN_004bc640(h, findData) == 0);
-                    FUN_004bc8d0(h);
+                    } while (HAPI_FindNext(h, findData) == 0);
+                    HAPI_FindClose(h);
                 }
                 g_game->field_38c53++;
                 sprintf(g_game->field_38b53, "%s\\MOVIE%03i",
                         g_game->field_38a53, g_game->field_38c53);
-                FUN_004bcf00(g_game->field_38b53);
+                MakeDirectoryPath(g_game->field_38b53);
                 FUN_00468cf0(0, 1);
                 SaveScreenshot(g_game->field_38b53, "FRAM");
                 g_game->field_38c5b = g_game->field_38a47;

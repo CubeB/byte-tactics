@@ -301,8 +301,8 @@ named and the counts the ids come from. Part of 0x424c00:
       name                               kind           id  low 16  bit 14  bit 15
       LoadFeatures (this function)       function    32883  0x8073       0       1
       g_game                             data        32690  0x7fb2       1       0
-      Class_004b4560: a type, which never reaches C2. It was numbered before its members; the first one C2 has:
-        Class_004b4560::FUN_004b4560     function    32542  0x7f1e       1       0
+      HapiBank: a type, which never reaches C2. It was numbered before its members; the first one C2 has:
+        HapiBank::OpenAccount     function    32542  0x7f1e       1       0
 
 Where the numbers come from, read out of C2.EXE:
 

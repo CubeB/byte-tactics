@@ -107,11 +107,11 @@ struct Header_004373a0 {
     char unknown_24[0x40 - 0x24];
 };
 
-void* __stdcall FUN_004bb5b0(char* path);
-int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
-int __stdcall FUN_004bb710(void* file, int pos);
-int __stdcall FUN_004bb5d0(void* file);
-int __stdcall FUN_004b6ba0(unsigned char* data, int len);
+void* __stdcall HAPI_OpenFileRead(char* path);
+int __stdcall HAPI_readfromfile(void* file, void* buf, int size);
+int __stdcall HAPI_SeekFile(void* file, int pos);
+int __stdcall HAPI_CloseFile(void* file);
+int __stdcall ComputeChecksum(unsigned char* data, int len);
 void* __cdecl FUN_004d83b0(const char* tag, int size);
 void __cdecl FUN_004d85a0(void* p);
 
@@ -129,31 +129,31 @@ int Class_004373a0::ComputeMapChecksum()
             return field_c20 ^ field_c1c;
         }
     }
-    void* file = FUN_004bb5b0(name);
+    void* file = HAPI_OpenFileRead(name);
     if (file == 0) {
         return 0;
     }
     Header_004373a0 header;
-    FUN_004bb7c0(file, &header, 0x40);
+    HAPI_readfromfile(file, &header, 0x40);
     if (header.magic != 0x2000) {
         return 0;
     }
-    field_c1c = field_c1c ^ FUN_004b6ba0((unsigned char*)&header, 0x40);
+    field_c1c = field_c1c ^ ComputeChecksum((unsigned char*)&header, 0x40);
     int size = header.width * header.height * 4;
     void* data = FUN_004d83b0("Raw Plot Data", size);
-    FUN_004bb710(file, header.plotOffset);
-    FUN_004bb7c0(file, data, size);
-    field_c1c = field_c1c ^ FUN_004b6ba0((unsigned char*)data, size);
+    HAPI_SeekFile(file, header.plotOffset);
+    HAPI_readfromfile(file, data, size);
+    field_c1c = field_c1c ^ ComputeChecksum((unsigned char*)data, size);
     FUN_004d85a0(data);
     size = header.features * 0x84;
     if (size > 0) {
         data = FUN_004d83b0("Raw Feature Data", size);
-        FUN_004bb710(file, header.featureOffset);
-        FUN_004bb7c0(file, data, size);
-        field_c1c = field_c1c ^ FUN_004b6ba0((unsigned char*)data, size);
+        HAPI_SeekFile(file, header.featureOffset);
+        HAPI_readfromfile(file, data, size);
+        field_c1c = field_c1c ^ ComputeChecksum((unsigned char*)data, size);
         FUN_004d85a0(data);
     }
-    FUN_004bb5d0(file);
+    HAPI_CloseFile(file);
     DAT_005122c0.FUN_00437580(DAT_005122c8, 1, Class_00437820(Class_004c91b0(name)).SetChecksum(this));
     return field_c20 ^ field_c1c;
 }

@@ -82,10 +82,6 @@ def write_readme(game: dict[int, int], rows: list[dict]) -> float:
         "",
         f"`[{bar(pct, 40)}]`",
         "",
-        f"By count that is {len(matched):,} of the game's {len(game):,} functions "
-        f"({100 * len(matched) / len(game):.1f}%). The headline counts bytes, because the "
-        "functions left are mostly the longest ones.",
-        "",
         "| | Functions | Bytes |",
         "| --- | ---: | ---: |",
         f"| Matched byte-for-byte | {len(matched):,} | {done_bytes:,} |",

@@ -1,4 +1,4 @@
-name: Build
+name: Build from source
 
 # Builds TotalA.exe from the source tree alone (no original exe) with the
 # original compiler under Wine, and checks that it is the shipped v3.1 exe byte

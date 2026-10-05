@@ -867,8 +867,9 @@ between the two builds). Every pair of scenario and exe is a run, `--parallel` s
 three, by default), and the game data comes from the Steam install
 (`--game-dir` for another, such as GOG's). Each run is fenced off:
 
-- its own nested X server (Xephyr, a window on the desktop), so its pointer
-  and keyboard are nobody else's;
+- its own X server, an invisible Xvfb display, so nothing opens on the
+  desktop and its pointer and keyboard are nobody else's (`--window` shows it
+  in a nested Xephyr window instead, to watch the game);
 - its own Wine prefix, a copy of a template that `wineboot` makes once
   (`build/playtest/prefix`, made again when the Wine version changes), with
   Wine's crash dialog off, so a crash ends the game and leaves winedbg's
@@ -892,7 +893,7 @@ the named screenshots as PNG and one JPEG every few seconds. A run fails when
 a step fails (a screen not seen in time, the game gone when it should run),
 when the game exits with a non-zero code or does not exit when told to, or
 when `wine.log` reports an unhandled exception. Everything a run starts
-(Xephyr, Wine and its server, `parec`, the sink) is stopped when it ends,
+(the X server, Wine and its server, `parec`, the sink) is stopped when it ends,
 also on Ctrl-C (the run is then INTERRUPTED and the summary still written),
 and the prefix and game directory are deleted unless `--keep` is given.
 
@@ -977,7 +978,7 @@ outline. `--signature NAME WxH+X+Y SCREENSHOT...` prints a new line (several
 screenshots of text over different terrain make a better mask) and
 `--match SCREENSHOT...` lists the screens a screenshot shows.
 
-The harness needs Xephyr, xdotool, ImageMagick (`import`, `convert`,
+The harness needs Xvfb (Xephyr for `--window`), xdotool, ImageMagick (`import`, `convert`,
 `compare`), Wine, PulseAudio's `pactl` and `parec` (PipeWire's work), and
 winetricks for `directplay`.
 

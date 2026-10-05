@@ -15,8 +15,9 @@ a copy of an ordinary link whose stubs fault when reached (see stub_traps).
 
 Each run has its own:
 
-- X server: a nested Xephyr window on the desktop, so its pointer and
-  keyboard belong to nobody else;
+- X server: an invisible Xvfb display, so nothing opens on the desktop and
+  its pointer and keyboard belong to nobody else (`--window` makes it a
+  nested Xephyr window instead, to watch the game);
 - Wine prefix: a copy of a template made once with wineboot
   (build/playtest/prefix);
 - game directory: the game's small files copied from the Steam (or GOG)
@@ -28,7 +29,7 @@ The run's logs and screenshots go to build/playtest/<session>/<run>/:
 steps.log (each step with its time), wine.log, audio.log (the sink's level
 every second), files.log (the music files the game opened), the named
 screenshots as PNG and the periodic ones as JPEG. Everything the run started
-(Xephyr, Wine and its server, parec, the null sink) is stopped at the end,
+(the X server, Wine and its server, parec, the null sink) is stopped at the end,
 also on Ctrl-C, and the prefix and game directory are deleted unless
 `--keep` is given. The summary (build/playtest/<session>/summary.md) has one
 line per run, PASS or FAIL with the reason, and how each named screenshot
@@ -321,7 +322,7 @@ def copy_game(src: Path, dst: Path) -> None:
 
 
 class Instance:
-    """One copy of the game: Xephyr, a prefix, a game directory and a null sink."""
+    """One copy of the game: an X server, a prefix, a game directory and a null sink."""
 
     def __init__(self, run: "Run", index: int):
         self.run = run
@@ -331,7 +332,7 @@ class Instance:
         self.prefix = self.base / "prefix"
         self.game = self.base / "game"
         self.display = ""
-        self.xephyr: subprocess.Popen | None = None
+        self.xserver: subprocess.Popen | None = None
         self.wine: subprocess.Popen | None = None
         self.parec: subprocess.Popen | None = None
         self.sink = ""
@@ -375,19 +376,23 @@ class Instance:
             subprocess.run(["wineserver", "-w"], env=env)
 
     def start_x(self) -> None:
-        if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
-            raise RuntimeError("Xephyr needs a desktop to open its window on (DISPLAY is not set)")
         r, w = os.pipe()
-        self.xephyr = subprocess.Popen(
-            ["Xephyr", "-displayfd", str(w), "-screen", "800x600x24", "-ac", "-br", "-noreset",
-             "-title", f"TA play test: {self.run.name}{self.suffix}"],
-            pass_fds=(w,), stdout=(self.run.out / f"xephyr{self.suffix}.log").open("w"), stderr=subprocess.STDOUT,
-            start_new_session=True)
+        if self.run.window:
+            if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
+                raise RuntimeError("Xephyr needs a desktop to open its window on (DISPLAY is not set)")
+            cmd = ["Xephyr", "-displayfd", str(w), "-screen", "800x600x24", "-ac", "-br", "-noreset",
+                   "-title", f"TA play test: {self.run.name}{self.suffix}"]
+        else:
+            cmd = ["Xvfb", "-displayfd", str(w), "-screen", "0", "640x480x24", "-ac", "-br", "-noreset",
+                   "-nolisten", "tcp"]
+        self.xserver = subprocess.Popen(
+            cmd, pass_fds=(w,), stdout=(self.run.out / f"xserver{self.suffix}.log").open("w"),
+            stderr=subprocess.STDOUT, start_new_session=True)
         os.close(w)
         with os.fdopen(r) as f:
             num = f.readline().strip()
         if not num.isdigit():
-            raise RuntimeError("Xephyr did not start (see xephyr.log)")
+            raise RuntimeError(f"{cmd[0]} did not start (see xserver.log)")
         self.display = f":{num}"
         deadline = time.time() + 10
         while subprocess.run(["xdpyinfo"], env={**os.environ, "DISPLAY": self.display},
@@ -551,7 +556,7 @@ class Instance:
             except subprocess.TimeoutExpired:
                 pass
         # The game first, so that it is gone before its X server.
-        for p in (self.wine, self.parec, self.xephyr):
+        for p in (self.wine, self.parec, self.xserver):
             if p and p.poll() is None:
                 try:
                     p.wait(3 if p is self.wine else 0.1)
@@ -729,7 +734,7 @@ class GotoLabel(Exception):
 
 class Run:
     def __init__(self, number: int, name: str, scenario: Scenario, exes: list[Path], exe_tag: str, session: Path,
-                 screens: dict[str, Screen], debug: str):
+                 screens: dict[str, Screen], debug: str, window: bool = False):
         self.number = number
         self.name = name
         self.scenario = scenario
@@ -739,6 +744,7 @@ class Run:
         self.work = OUT / "work" / f"{session.name}-{name}"
         self.screens = screens
         self.debug = debug
+        self.window = window         # a visible Xephyr window instead of an invisible Xvfb display
         self.instances = [Instance(self, i + 1) for i in range(scenario.instances)]
         self.t0 = time.time()
         self.log = None
@@ -1190,6 +1196,8 @@ def main() -> None:
     ap.add_argument("--parallel", type=int, default=0, help="runs at once (default: all of them, at most 3)")
     ap.add_argument("--game-dir", help="the game's install (default: Steam's)")
     ap.add_argument("--debug", default="-all,err+seh", help="WINEDEBUG for the game (default -all,err+seh)")
+    ap.add_argument("--window", action="store_true",
+                    help="show each game in a Xephyr window on the desktop (default: an invisible Xvfb display)")
     ap.add_argument("--keep", action="store_true", help="keep each run's prefix and game directory")
     ap.add_argument("--trap-stubs", action="store_true",
                     help="play copies of ordinary links (an exe with a map) whose stubs fault when reached")
@@ -1221,7 +1229,7 @@ def main() -> None:
         return
     if not args.exe or not args.scenario:
         ap.error("--exe and --scenario are required")
-    for tool in ("Xephyr", "xdotool", "import", "wine", "pactl", "parec"):
+    for tool in ("Xephyr" if args.window else "Xvfb", "xdotool", "import", "wine", "pactl", "parec"):
         if not shutil.which(tool):
             raise SystemExit(f"{tool} is not installed")
     exes = resolve_exes(args.exe)
@@ -1255,7 +1263,7 @@ def main() -> None:
             for k in range(args.repeat):
                 name = f"{sc.name}-{tag}" + (f"-{k + 1}" if args.repeat > 1 else "")
                 runs.append(Run(len(runs) + 1, name, sc, [p for _, p in parts], tag, session, screens,
-                                args.debug))
+                                args.debug, args.window))
     parallel = args.parallel or min(3, len(runs))
     template = template_prefix()
     dplay = directplay_prefix() if any(sc.directplay for sc in scenarios) else None

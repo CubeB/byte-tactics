@@ -50,7 +50,7 @@ struct Game {
 extern Game* g_game;
 
 Dialog_004604a0* __stdcall LoadGuiLayer(Menu_004604a0* menu, const char* name, int flags);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 int __stdcall FindGadgetIndex(Gadget_004604a0* gadgets, const char* name, int flag);
 // Called with three arguments here, but the function itself pops four, so the
 // declaration the original was compiled against must have been a three
@@ -61,16 +61,16 @@ void __stdcall FUN_0049fb10(Menu_004604a0* menu, int value);
 void __stdcall RenderLayer(Menu_004604a0* menu, int value);
 int __stdcall FUN_00491c80(int value);
 void FUN_00477410();
-void __stdcall FUN_00460340(void* dialog);
+void __stdcall HandleRestartDialogClick(void* dialog);
 
 // FUNCTION: 0x4604a0
-void FUN_004604a0()
+void OpenRestartDialog()
 {
     Menu_004604a0* menu = &g_game->menu;
     Dialog_004604a0* dialog = LoadGuiLayer(menu, "RESTART.GUI", 0x1000);
     Gadget_004604a0* gadgets = dialog->gadgets;
-    dialog->handler = FUN_00460340;
-    FUN_004288d0("drestart", 0, 0, 0);
+    dialog->handler = HandleRestartDialogClick;
+    LoadPictureCached("drestart", 0, 0, 0);
     int index = FindGadgetIndex(gadgets, "MISSIONNAME", 5);
     menu->field_14 = menu->field_c;
     char* text = WordWrapText(&g_game->menu,

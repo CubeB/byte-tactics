@@ -18,7 +18,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x479590
-int __stdcall FUN_00479590(int owner, int skip)
+int __stdcall IsColorTaken(int owner, int skip)
 {
     for (int i = 0; i < g_game->itemCount; i++) {
         if (g_game->items[i].owner == owner && g_game->items[i].id != 0 && i != skip) {

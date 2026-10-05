@@ -36,7 +36,7 @@ struct Display_00425d80 {
 extern char* g_game;
 extern void* DAT_00512298;
 
-int FUN_00428bc0(void);
+int CodeChecksumFailed(void);
 void RegisterDataArchives();
 char __stdcall FindGameCdDrive(int param_1);
 int PopKey(void);
@@ -54,7 +54,7 @@ void __stdcall SetOffscreenSurface(int param_1);
 Display_00425d80* GetDisplay(void);
 
 // FUNCTION: 0x425d80
-void __stdcall FUN_00425d80(Gadget_00425d80* gadget)
+void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
 {
     char buf[256];
 
@@ -112,13 +112,13 @@ void __stdcall FUN_00425d80(Gadget_00425d80* gadget)
         }
         while (PopKey()) {
         }
-        if (FUN_00428bc0()) {
+        if (CodeChecksumFailed()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     580, "c:\\cavedog\\wargame\\frontend.cpp");
             OpenMessageBox(g_game + 0x519, buf, 500, 1, 1);
         }
         g_game[0x2bbe] = 1;
-        if (FUN_00428bc0()) {
+        if (CodeChecksumFailed()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     155, "c:\\cavedog\\wargame\\frontend.cpp");
             OpenMessageBox(g_game + 0x519, buf, 500, 1, 1);

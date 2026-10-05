@@ -34,7 +34,7 @@ extern Guid_443ff0 DAT_004fcdb8;
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 int IsOnlineConfigLoaded();
 // FUNCTION: 0x443ff0
-int __stdcall FUN_00443ff0(int index)
+int __stdcall SelectConnection(int index)
 {
     if (index < 0) {
         Guid_443ff0* guid = 0;

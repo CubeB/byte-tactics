@@ -21,7 +21,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x479760
-int FUN_00479760(void)
+int AreAllPlayersInOneAllyGroup(void)
 {
     int type;
     int i;

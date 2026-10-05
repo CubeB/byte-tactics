@@ -32,7 +32,7 @@ void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 // The last used entry is moved to the front of the modem number list, which is
 // then written to the registry under "MODEMNUMBERS".
 // FUNCTION: 0x442970
-void FUN_00442970(void)
+void SaveModemNumbers(void)
 {
     if (DAT_00512988 != 0) {
         short count = FindGadgetChecked(g_game->holder->gadgets, "ACCOUNTS")->count;

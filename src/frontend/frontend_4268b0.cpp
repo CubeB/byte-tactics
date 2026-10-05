@@ -35,7 +35,7 @@ void __stdcall FUN_004bcec0(char* param);
 void __stdcall FUN_00434ab0(int param);
 
 // FUNCTION: 0x4268b0
-void __stdcall FUN_004268b0(int param_1)
+void __stdcall LoadWarpLevel(int param_1)
 {
     char key[128];
     char path[256];

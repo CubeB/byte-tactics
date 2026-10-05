@@ -109,11 +109,11 @@ int __stdcall FindGadgetIndex(char* entries, char* name, int type);
 Entry_004936f0* __stdcall FUN_004a0200(char* entries, char* name);
 void __stdcall UpdateMetalReadout(void* entry, int param_2);
 void __stdcall UpdateEnergyReadout(void* entry, int param_2);
-void __stdcall FUN_0045b9b0(void* entry, int param_2);
+void __stdcall SetSliderFromValue(void* entry, int param_2);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall CloseTopScreen(Menu_004936f0* menu);
 void __stdcall FUN_004a32a0(Menu_004936f0* menu, char* name, char* text, int count, int flag);
-int __stdcall FUN_0045ba20(Entry_004936f0* entry);
+int __stdcall ReadSliderValue(Entry_004936f0* entry);
 void __stdcall FUN_004a0bf0(Menu_004936f0* menu, char* name, char* text, int param_4);
 void __stdcall FUN_0049fa90(Menu_004936f0* menu);
 void __stdcall FUN_0049fb10(Menu_004936f0* menu, int value);
@@ -137,7 +137,7 @@ void OpenShareDialog()
         e->field_13c = (int)g_game->players[g_game->localPlayer].energy;
         e->handler = UpdateMetalReadout;
         e->field_140 = 0;
-        FUN_0045b9b0(e, 0);
+        SetSliderFromValue(e, 0);
         e->field_14a = g_game;
     }
     idx = FindGadgetIndex(layer->entries, "ENERGY", 0xe);
@@ -148,7 +148,7 @@ void OpenShareDialog()
         e->field_13c = (int)g_game->players[g_game->localPlayer].metal;
         e->handler = UpdateEnergyReadout;
         e->field_140 = 0;
-        FUN_0045b9b0(e, 0);
+        SetSliderFromValue(e, 0);
         e->field_14a = g_game;
     }
 
@@ -180,7 +180,7 @@ void OpenShareDialog()
     char* ents = lyr->entries;
     Entry_004936f0* e = FUN_004a0200(ents, "METAL");
     if (e) {
-        sprintf(text, "%d", FUN_0045ba20(e));
+        sprintf(text, "%d", ReadSliderValue(e));
         FUN_004a0bf0(menu, "METAL#", text, 0);
     }
     menu = &g_game->menu;
@@ -188,7 +188,7 @@ void OpenShareDialog()
     ents = lyr->entries;
     e = FUN_004a0200(ents, "ENERGY");
     if (e) {
-        sprintf(text, "%d", FUN_0045ba20(e));
+        sprintf(text, "%d", ReadSliderValue(e));
         FUN_004a0bf0(menu, "ENERGY#", text, 0);
     }
     FUN_0049fa90(&g_game->menu);

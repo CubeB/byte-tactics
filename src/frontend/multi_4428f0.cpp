@@ -30,7 +30,7 @@ int __stdcall FUN_0049fc50(Menu_004428f0* obj, int index);
 void __stdcall FUN_0049fa90(Menu_004428f0* menu);
 
 // FUNCTION: 0x4428f0
-void __stdcall FUN_004428f0(Menu_004428f0* menu, Player_004428f0* player)
+void __stdcall ShowSelectedAccount(Menu_004428f0* menu, Player_004428f0* player)
 {
     int entry = player->entry;
     if (entry >= 0) {

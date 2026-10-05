@@ -54,12 +54,12 @@ extern char* DAT_00512980;
 extern Entry_00442a30* DAT_00512988;
 extern char* DAT_0051298c;
 
-int __stdcall FUN_00441c30(int* a, int* b);
-void FUN_004426e0(void);
+int __stdcall BuildCompoundAddress(int* a, int* b);
+void FillAccountList(void);
 void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 void __stdcall PlaySoundByName(const char* name, int param_2);
-void FUN_004257a0(void);
-void __stdcall FUN_00425860(int state, int line, const char* file);
+void BlankScreen(void);
+void __stdcall SetFrontendState(int state, int line, const char* file);
 Layout_00442a30* __stdcall FindGadgetChecked(void* entries, const char* name);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 int __stdcall IsCurrentGadgetNamed(Gadget_00442a30* gadget, const char* name);
@@ -83,7 +83,7 @@ static inline void LoadAccount_00442a30()
                      DAT_00512988[entry->selected].name);
         GetGadgetText((char*)g_game + 0x519, "NUMBER",
                      DAT_00512988[entry->selected].number);
-        FUN_004426e0();
+        FillAccountList();
     }
 }
 
@@ -108,7 +108,7 @@ static inline int TryConnect_00442a30()
 {
     int a = 0;
     int b = 0;
-    int result = FUN_00441c30(&a, &b);
+    int result = BuildCompoundAddress(&a, &b);
     if (result >= 0) {
         g_game->field_39211 = a;
         g_game->field_39215 = b;
@@ -117,7 +117,7 @@ static inline int TryConnect_00442a30()
 }
 
 // FUNCTION: 0x442a30
-void __stdcall FUN_00442a30(Gadget_00442a30* gadget)
+void __stdcall HandleModemDialogClick(Gadget_00442a30* gadget)
 {
     Layout_00442a30* entries = gadget->layer->entries;
     if (gadget->field_60 == -1) {
@@ -158,13 +158,13 @@ void __stdcall FUN_00442a30(Gadget_00442a30* gadget)
         g_game->bit1 = 1;
         TryConnect_00442a30();
         PlaySoundByName("SMLBUTTON", 0);
-        FUN_004257a0();
+        BlankScreen();
         return;
     }
     if (FindGadgetIndex(entries, "JOIN", 0xe) != gadget->field_60) {
         if (IsCurrentGadgetNamed(gadget, "ACCOUNTS") == 0) {
             if (IsCurrentGadgetNamed(gadget, "PREV")) {
-                FUN_00425860(0xf, 0x47f, "c:\\cavedog\\wargame\\multi.cpp");
+                SetFrontendState(0xf, 0x47f, "c:\\cavedog\\wargame\\multi.cpp");
                 PlaySoundByName("Previous", 0);
                 return;
             }

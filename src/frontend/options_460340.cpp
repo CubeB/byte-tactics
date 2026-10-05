@@ -37,7 +37,7 @@ void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, 
 void __stdcall FUN_004ab0a0(void* gadget);
 
 // FUNCTION: 0x460340
-void __stdcall FUN_00460340(Gadget_00460340* gadget)
+void __stdcall HandleRestartDialogClick(Gadget_00460340* gadget)
 {
     if (gadget->field_60 == -1)
         return;

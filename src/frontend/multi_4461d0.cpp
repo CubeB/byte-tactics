@@ -74,7 +74,7 @@ void SaveSettings(void);
 void BroadcastPlayerInfo(void);
 
 // FUNCTION: 0x4461d0
-void __stdcall FUN_004461d0(Gui_004461d0* gui)
+void __stdcall HandleDisplayModesClick(Gui_004461d0* gui)
 {
     Holder_004461d0* holder = gui->holder;
     Gadget_004461d0* gadgets = holder->gadgets;

@@ -39,7 +39,7 @@ void __stdcall SetGadgetText(Menu_0044b330* menu, int index, char* text);
 void __stdcall FUN_0049fa90(Menu_0044b330* menu);
 
 // FUNCTION: 0x44b330
-void FUN_0044b330()
+void CopySelectedGameName()
 {
     Menu_0044b330* menu = &g_game->menu;
     void* gadgets = g_game->menu.inner->gadgets;

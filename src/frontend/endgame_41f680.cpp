@@ -23,7 +23,7 @@ void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, 
 void __stdcall FUN_004ab0a0(Gadget_41f680* gadget);
 
 // FUNCTION: 0x41f680
-void __stdcall FUN_0041f680(Gadget_41f680* gadget)
+void __stdcall HandleCdCheckClick(Gadget_41f680* gadget)
 {
     if (gadget->field_60 != -1) {
         if (IsCurrentGadgetNamed(gadget, "OK")) {

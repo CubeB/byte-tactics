@@ -4,7 +4,7 @@
 int PopKey(void);
 
 // FUNCTION: 0x4257c0
-void FUN_004257c0(void)
+void FlushKeyQueue(void)
 {
     while (PopKey() != 0) {
     }

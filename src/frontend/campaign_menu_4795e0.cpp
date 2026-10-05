@@ -19,7 +19,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x4795e0
-int FUN_004795e0()
+int FindFreeColor()
 {
     for (int owner = 0; owner < 10; owner++) {
         int i;

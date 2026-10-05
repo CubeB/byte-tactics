@@ -28,12 +28,12 @@ void __stdcall PlaySoundByName(char* name, int flag);
 Gadget_44b3c0* __stdcall FindGadgetChecked(void* gadgets, char* name);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_0044b140(char* path);
-void __stdcall FUN_0044bfd0(void* menu, int flag);
+void __stdcall UpdateUnitSliders(void* menu, int flag);
 void __stdcall FUN_004ab0a0(void* menu);
 void __cdecl FUN_004d85a0(void* param_1);
 
 // FUNCTION: 0x44b3c0
-void __stdcall FUN_0044b3c0(Menu_44b3c0* menu)
+void __stdcall HandleLoadListClick(Menu_44b3c0* menu)
 {
     void* gadgets = menu->inner->gadgets;
     if (menu->current == -1)
@@ -50,7 +50,7 @@ void __stdcall FUN_0044b3c0(Menu_44b3c0* menu)
         FUN_0044b140(g_game + 0x38c6b);
         Inner_44b3c0* inner = menu->inner;
         menu->inner = inner->unknown_0;
-        FUN_0044bfd0(menu, 0);
+        UpdateUnitSliders(menu, 0);
         menu->inner = inner;
         if (DAT_005129ac)
             FUN_004d85a0(DAT_005129ac);

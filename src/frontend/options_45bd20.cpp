@@ -61,7 +61,7 @@ static inline void ApplySound()
 }
 
 // FUNCTION: 0x45bd20
-void __stdcall FUN_0045bd20(Object_0045bd20* obj, int unused)
+void __stdcall HandleGammaSlider(Object_0045bd20* obj, int unused)
 {
     Entry_4a0200* e = FUN_004a0200(obj->holder->entries, "GAMMA");
     if (e != 0) {

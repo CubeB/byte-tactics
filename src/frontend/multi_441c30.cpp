@@ -73,7 +73,7 @@ void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 // `[esp+4],ebx` in the prologue.
 //
 // FUNCTION: 0x441c30
-int __stdcall FUN_00441c30(HGLOBAL* addressOut, unsigned long* sizeOut)
+int __stdcall BuildCompoundAddress(HGLOBAL* addressOut, unsigned long* sizeOut)
 {
     HGLOBAL block = 0;
     unsigned long size = 0;

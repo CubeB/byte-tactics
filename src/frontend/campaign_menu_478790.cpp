@@ -138,7 +138,7 @@ void* __stdcall FindGafEntry(void* gaf, const char* name);
 void __stdcall DrawBlinkWords(void* menu);
 
 // FUNCTION: 0x478790
-void __stdcall FUN_00478790(Window_00478790* arg1, Item_00478790* arg2)
+void __stdcall UpdateSolarSystem(Window_00478790* arg1, Item_00478790* arg2)
 {
     int windMin = g_game->net->field_d34;
     int windMax = g_game->net->field_d38;

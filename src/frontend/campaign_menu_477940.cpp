@@ -9,7 +9,7 @@ extern int* DAT_0051e65c;                   // 0x51e65c
 
 void __cdecl FUN_004d85a0(int* param_1);
 void __stdcall PlaySoundByName(char* name, int param_2);
-int __stdcall FUN_00476a60(int** param_1, char* param_2);
+int __stdcall BuildCampaignNameList(int** param_1, char* param_2);
 void __stdcall FUN_004a32a0(Menu_00477940* menu, char* name, int* data,
                             int count, int flag);
 int __stdcall FindGadgetIndex(Entry_00477940* entries, char* name, int type);
@@ -17,7 +17,7 @@ void __stdcall FUN_004a2be0(Menu_00477940* menu, int index);
 void __stdcall FUN_0049fa90(Menu_00477940* menu);
 
 // FUNCTION: 0x477940
-void __stdcall FUN_00477940(char* param_1)
+void __stdcall FillCampaignList(char* param_1)
 {
     Gadget_00477940* gadget = (Gadget_00477940*)(*(int*)(g_game + 0x531));
     if (DAT_0051e65c != 0) {
@@ -25,7 +25,7 @@ void __stdcall FUN_00477940(char* param_1)
         DAT_0051e65c = 0;
     }
     PlaySoundByName("smlbutton", 0);
-    int count = FUN_00476a60(&DAT_0051e65c, param_1);
+    int count = BuildCampaignNameList(&DAT_0051e65c, param_1);
     FUN_004a32a0((Menu_00477940*)(g_game + 0x519), "Campaign",
                  DAT_0051e65c, count, 0);
     int index = FindGadgetIndex((Entry_00477940*)(*(int*)((char*)gadget + 4)),

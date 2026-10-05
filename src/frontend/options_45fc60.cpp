@@ -104,20 +104,20 @@ void __stdcall SetOffscreenSurface(int value);
 void FlipScreen();
 int __stdcall IsCurrentGadgetNamed(Gadget_0045fc60* gadget, char* name);
 void __stdcall PlaySoundByName(char* str, int flag);
-void FUN_0045ed50();
-void __stdcall FUN_0045e5e0(int flag);
-void FUN_0045d7c0();
+void OpenSpeedOptions();
+void __stdcall OpenVisualOptions(int flag);
+void OpenMusicOptions();
 void SaveSettings();
 void __stdcall FUN_0045c820();
 void FUN_0045cae0();
-void FUN_0045de30();
+void OpenSoundOptions();
 void __stdcall FUN_004ab0a0(Gadget_0045fc60* gadget);
 void __stdcall SetBrightness(float value);
 void __stdcall DrawSurface(int a, void* surface, int b, int c);
 void __stdcall FreeSurface(void* surface);
 
 // FUNCTION: 0x45fc60
-void __stdcall FUN_0045fc60(Gadget_0045fc60* gadget)
+void __stdcall HandleOptionsPanelClick(Gadget_0045fc60* gadget)
 {
     if (gadget->field_60 == -1)
         goto cleanup;
@@ -133,13 +133,13 @@ void __stdcall FUN_0045fc60(Gadget_0045fc60* gadget)
         }
         if (IsCurrentGadgetNamed(gadget, "SPEEDS")) {
             PlaySoundByName("Options", 0);
-            FUN_0045ed50();
+            OpenSpeedOptions();
         } else if (IsCurrentGadgetNamed(gadget, "VISUALS")) {
             PlaySoundByName("Options", 0);
-            FUN_0045e5e0(0);
+            OpenVisualOptions(0);
         } else if (IsCurrentGadgetNamed(gadget, "MUSIC")) {
             PlaySoundByName("Options", 0);
-            FUN_0045d7c0();
+            OpenMusicOptions();
         } else if (IsCurrentGadgetNamed(gadget, "PREV")) {
             PlaySoundByName("Options", 0);
             SaveSettings();
@@ -174,7 +174,7 @@ void __stdcall FUN_0045fc60(Gadget_0045fc60* gadget)
             return;
         } else if (IsCurrentGadgetNamed(gadget, "SOUND")) {
             PlaySoundByName("Options", 0);
-            FUN_0045de30();
+            OpenSoundOptions();
         } else {
             if (gadget->field_60 != -1)
                 FUN_004ab0a0(gadget);

@@ -103,14 +103,14 @@ int __stdcall FindGadgetIndex(Entry_004437c0* entries, const char* name, int typ
 Entry_004437c0* __stdcall FindGadgetChecked(Entry_004437c0* entries, const char* name);
 char* __stdcall FUN_004a0010(Entry_004437c0* entries, const char* name);
 void __stdcall PlaySoundByName(char* str, int flag);
-int __stdcall FUN_00441460(void* holder);
+int __stdcall ConnectToGame(void* holder);
 void __stdcall FUN_0049fa90(Sub_004437c0* sub);
 void __stdcall FUN_004ab0a0(Sub_004437c0* sub);
 void __cdecl FUN_004d85a0(void* p);
 void __stdcall GetGadgetText(Sub_004437c0* sub, const char* name, char* text);
-void __stdcall FUN_00425730(char* msg);
-void FUN_004257a0();
-void FUN_00441080();
+void __stdcall SetFrontendErrorText(char* msg);
+void BlankScreen();
+void OpenNewMultiDialog();
 void __stdcall CloseTopScreen(Sub_004437c0* sub);
 void __stdcall FUN_004a7190(Sub_004437c0* sub, char* text);
 char* __stdcall FUN_004c5740(char* text);
@@ -119,7 +119,7 @@ unsigned char FindHostSlot();
 int __stdcall IsCurrentGadgetNamed(Sub_004437c0* sub, const char* name);
 
 // FUNCTION: 0x4437c0
-void __stdcall FUN_004437c0(Sub_004437c0* param_1)
+void __stdcall HandleSelectGameClick(Sub_004437c0* param_1)
 {
     Entry_004437c0* entries = param_1->holder->entries;
     int i;
@@ -151,7 +151,7 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
             strcpy((char*)g_game->players[cur].data + 0x80, pass + 0xb6);
         }
         PlaySoundByName("Multi", 0);
-        FUN_00441460(param_1->holder);
+        ConnectToGame(param_1->holder);
         FUN_0049fa90(param_1);
         FUN_004ab0a0(param_1);
         return;
@@ -212,16 +212,16 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
             g_game->field_2bc0 = 0x12;
             return;
         }
-        FUN_00425730("You do not have a compatible version for this game.");
+        SetFrontendErrorText("You do not have a compatible version for this game.");
     } else if (FindGadgetIndex(entries, "STARTNEW", 0xe) == param_1->field_60) {
 startnew:
         cur = g_game->cur_conn;
         *(unsigned short*)((char*)g_game->players[cur].data + 0x9b) &= 0xffbf;
         PlaySoundByName("BigButton", 0);
         GetGadgetText(param_1, "NICKNAME", g_game->nickname);
-        FUN_004257a0();
+        BlankScreen();
         CloseTopScreen(param_1);
-        FUN_00441080();
+        OpenNewMultiDialog();
         FUN_004ab0a0(param_1);
         return;
     }

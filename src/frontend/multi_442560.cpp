@@ -34,7 +34,7 @@ struct Entry_00442560 {
 extern Game* g_game;
 
 Gadget_00442560* __stdcall LoadGuiLayer(Menu_00442560* menu, const char* name, int flags);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 int __stdcall HAPINET_initlobbiedconnection(char* p);
 void __stdcall FUN_004a32a0(Menu_00442560* menu, char* name, char* text, int value, int flag);
 int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* size);
@@ -42,18 +42,18 @@ void __stdcall FUN_004a2e40(Menu_00442560* menu, char* name, int index);
 Entry_00442560* __stdcall FindGadgetChecked(void* gadgets, char* name);
 void __stdcall FUN_004423a0(Menu_00442560* menu, Entry_00442560* entry);
 void __stdcall FUN_00442380(Menu_00442560* menu, Entry_00442560* entry);
-void __stdcall FUN_004423c0(void* gadget);
+void __stdcall HandleSerialDialogClick(void* gadget);
 void __stdcall FUN_0049fb10(Menu_00442560* menu, int value);
 void __stdcall RenderLayer(Menu_00442560* menu, int value);
 
 // FUNCTION: 0x442560
-void FUN_00442560()
+void OpenSerialDialog()
 {
     Gadget_00442560* gadget = LoadGuiLayer(&g_game->menu, "SERIAL.GUI", 0x800);
-    gadget->handler = FUN_004423c0;
+    gadget->handler = HandleSerialDialogClick;
     gadget->game = g_game;
     gadget->field_1c = 0;
-    FUN_004288d0(0, 0, 0, 0);
+    LoadPictureCached(0, 0, 0, 0);
     HAPINET_initlobbiedconnection((char*)g_game + 0x14);
     FUN_004a32a0(&g_game->menu, "PORTS", "COM1\0COM2\0COM3\0COM4", 4, 0);
     FUN_004a32a0(&g_game->menu, "SPEEDS", "115200\0" "57600\0" "38400\0" "19200\0" "14400\0" "9600", 6, 0);

@@ -59,7 +59,7 @@ static inline char* AppendName_00476a60(char* p, char* s)
 }
 
 // FUNCTION: 0x476a60
-int __stdcall FUN_00476a60(char** out, int side)
+int __stdcall BuildCampaignNameList(char** out, int side)
 {
     int found = 0;
     Class_004c2ea0 parser;

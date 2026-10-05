@@ -87,7 +87,7 @@ void BroadcastPlayerInfo(void);
 void UpdateNetGameInfo(void);
 
 // FUNCTION: 0x444cb0
-void __stdcall FUN_00444cb0(Gadget_00444cb0* param_1)
+void __stdcall HandleMapSelectClick(Gadget_00444cb0* param_1)
 {
     void* entries = param_1->holder->entries;
     Layout_00444cb0* layout = param_1->holder->layout;

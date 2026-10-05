@@ -69,7 +69,7 @@ struct Game {
 
 #pragma pack(pop)
 
-void __stdcall FUN_004288d0(char* name, int param_2, int param_3, int param_4);
+void __stdcall LoadPictureCached(char* name, int param_2, int param_3, int param_4);
 Dialog* __stdcall LoadGuiLayer(char* menu, char* name, int param_3);
 void __stdcall FUN_004ac7d0(char* menu, void* param_2, void* param_3);
 int __stdcall FindGadgetIndex(Gadget* gadgets, char* name, int param_3);
@@ -83,13 +83,13 @@ void __stdcall FUN_0049fb10(char* menu, int param_2);
 void __stdcall RenderLayer(char* menu, int param_2);
 void __stdcall FUN_00491c80(int param_1);
 void FUN_00476d80();
-void FUN_00478cb0();
-void FUN_00478790();
+void HandleMissionBriefingClick();
+void UpdateSolarSystem();
 void FUN_00478b40();
 int __cdecl rand();
 
 // FUNCTION: 0x478e80
-void FUN_00478e80(void)
+void OpenMissionBriefing(void)
 {
     char* names[16];
     char* briefs[16];
@@ -106,10 +106,10 @@ void FUN_00478e80(void)
     sprintf(buf, "mbrief%s", g_game + 0x37f5b + side * 0x232);
 
     dialog = LoadGuiLayer(g_game + 0x519, "MSNBRIEF.GUI", 0x80);
-    dialog->handler = (void*)FUN_00478cb0;
+    dialog->handler = (void*)HandleMissionBriefingClick;
     dialog->context = g_game;
 
-    FUN_004288d0(buf, 1, 1, 0);
+    LoadPictureCached(buf, 1, 1, 0);
     FUN_004ac7d0(g_game + 0x519, g_game + 0x143a7, g_game + 0x5cb);
 
     gadgets = (*(Dialog**)(g_game + 0x531))->gadgets;
@@ -214,7 +214,7 @@ void FUN_00478e80(void)
             void* gaf = FindGafEntry(((GadgetRoot*)gadgets)->surface, pans[i]);
             if (gaf != 0) {
                 g->field_be = gaf;
-                g->field_b6 = (void*)FUN_00478790;
+                g->field_b6 = (void*)UpdateSolarSystem;
             }
         }
         idx = FindGadgetIndex(gadgets, "PLANET", 6);

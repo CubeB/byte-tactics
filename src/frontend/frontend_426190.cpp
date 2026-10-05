@@ -36,7 +36,7 @@ int __stdcall IsGadgetNamed(int param1, int param2, char* name);
 void __stdcall FUN_004ab0a0(Gadget_00426190* gadget);
 
 // FUNCTION: 0x426190
-void __stdcall FUN_00426190(Gadget_00426190* gadget)
+void __stdcall HandleCloseCdPlayerChoice(Gadget_00426190* gadget)
 {
     int owner = gadget->owner->field_4;
     if (gadget->field_60 == -1)

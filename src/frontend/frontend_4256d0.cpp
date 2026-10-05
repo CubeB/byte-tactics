@@ -3,14 +3,14 @@
 
 extern char* g_game;
 
-int FUN_00428bc0(void);
+int CodeChecksumFailed(void);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 
 // FUNCTION: 0x4256d0
-void __stdcall FUN_004256d0(int line, char* file)
+void __stdcall CheckFrontendStateChange(int line, char* file)
 {
     char buf[256];
-    if (FUN_00428bc0()) {
+    if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]", line, file);
         OpenMessageBox(g_game + 0x519, buf, 500, 1, 1);
     }

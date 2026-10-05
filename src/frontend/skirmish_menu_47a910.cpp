@@ -70,7 +70,7 @@ void __stdcall FUN_004ab0a0(Menu_0047a910* menu);
 char* __stdcall FUN_004b6af0(char* text, int line);
 
 // FUNCTION: 0x47a910
-void __stdcall FUN_0047a910(Menu_0047a910* menu)
+void __stdcall HandleSkirmishMapClick(Menu_0047a910* menu)
 {
     char buffer[0x100];
     Holder_0047a910* holder = menu->holder;

@@ -39,7 +39,7 @@ void __stdcall FUN_004a32a0(void* menu, char* name, char* text,
 void __stdcall FUN_004a2e40(void* menu, char* name, int player);
 
 // FUNCTION: 0x4427a0
-void FUN_004427a0(void)
+void RefreshAccountList(void)
 {
     Layout_004427a0* entry = FindGadgetChecked(g_game->table->entries, "ACCOUNTS");
     if (entry != 0 && DAT_00512988 != 0) {

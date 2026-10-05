@@ -43,7 +43,7 @@ void __stdcall FUN_0045b670(char* param_1);
 void __stdcall FUN_0041d4b0(int val);
 void __stdcall FUN_0041d4a0(int val);
 void __stdcall FUN_0045b820(int flag, char* text);
-void __stdcall FUN_0045b800(char* param_1);
+void __stdcall SetDirectConnectAddress(char* param_1);
 void __stdcall FUN_0045b860(int param_1);
 void __stdcall SetPacketRate(int param_1);
 char* __stdcall FUN_004c5740(char* text);
@@ -185,7 +185,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                     char* colon = strchr(p, ':');
                     int n = atoi(p);
                     if (n == 1 && colon)
-                        FUN_0045b800(colon + 1);
+                        SetDirectConnectAddress(colon + 1);
                     FUN_0045b860(n);
                 }
                 g_game->field_39245 = 1;

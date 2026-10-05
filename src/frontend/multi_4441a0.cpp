@@ -52,7 +52,7 @@ void __cdecl FUN_004d85a0(void* p);
 int __stdcall IsCurrentGadgetNamed(void* menu, char* name);
 Entry_004441a0* __stdcall FindGadgetChecked(void* entries, char* name);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
-int __stdcall FUN_00443ff0(int index);
+int __stdcall SelectConnection(int index);
 void __stdcall PlaySoundByName(char* name, int flag);
 void __stdcall FUN_00491c80(int value);
 int __stdcall OnlineProcessButtonCommand(int button, char* message, unsigned int size);
@@ -60,7 +60,7 @@ void OnlineUnload();
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(void* menu, char* text, int size, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);
-void FUN_00460160();
+void OpenOptionsPanel();
 
 // The SELPROV.GUI menu's handler. A function with a try block, built without
 // /GX, gives every local a stack slot, used or not: `id` and `cur` (unused, as
@@ -93,7 +93,7 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
         return;
     }
     if (IsCurrentGadgetNamed(menu, "DPLAY") || IsCurrentGadgetNamed(menu, "SELECT")) {
-        FUN_00443ff0(FindGadgetChecked(entries, "DPLAY")->field_ba);
+        SelectConnection(FindGadgetChecked(entries, "DPLAY")->field_ba);
         g_game->field_2bc0 = 2;
         PlaySoundByName("BigButton", 0);
         return;
@@ -132,7 +132,7 @@ void __stdcall FUN_004441a0(Menu_004441a0* menu)
     if (IsCurrentGadgetNamed(menu, "SETTINGS")) {
         PlaySoundByName("Options", 0);
         FUN_004ab0a0(menu);
-        FUN_00460160();
+        OpenOptionsPanel();
         return;
     }
     FUN_004ab0a0(menu);

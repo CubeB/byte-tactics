@@ -60,7 +60,7 @@ void __stdcall FUN_0049fa90(Gadget_4934b0* obj);
 void __stdcall PlaySoundByName(char* name, int flag);
 void __stdcall FUN_004ab0a0(Gadget_4934b0* obj);
 Entry_4934b0* __stdcall FUN_004a0200(Entry_4934b0* entries, char* name);
-int __stdcall FUN_0045ba20(Entry_4934b0* entry);
+int __stdcall ReadSliderValue(Entry_4934b0* entry);
 void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount, int flag);
 void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount, int flag);
 int __stdcall GetButtonStageByName(Gadget_4934b0* obj, char* name);
@@ -114,9 +114,9 @@ void __stdcall HandleShareDialogEvent(Gadget_4934b0* obj)
         Player_4934b0* p = &g_game->players[pi];
         if (IsPlaying_4934b0(p) && !(p->info->flags & 0x40) && IsCounted_4934b0(p)) {
             TransferEnergy(g_game->localPlayer, pi,
-                         (float)FUN_0045ba20(FUN_004a0200(data, "METAL")), 1);
+                         (float)ReadSliderValue(FUN_004a0200(data, "METAL")), 1);
             TransferMetal(g_game->localPlayer, pi,
-                         (float)FUN_0045ba20(FUN_004a0200(data, "ENERGY")), 1);
+                         (float)ReadSliderValue(FUN_004a0200(data, "ENERGY")), 1);
             if (GetButtonStageByName(obj, "SHARUNIT"))
                 GiveSelectedUnitsToPlayer(pi);
             if (GetButtonStageByName(obj, "MAPINFO")) {

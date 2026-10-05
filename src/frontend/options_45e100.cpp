@@ -101,7 +101,7 @@ extern Game* g_game;
 
 void __cdecl FUN_004d85a0(void* p);
 void FUN_0045cae0();
-void __stdcall FUN_0045e5e0(int param_1);
+void __stdcall OpenVisualOptions(int param_1);
 int __stdcall IsCurrentGadgetNamed(Gui_0045e100* gui, char* name);
 void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall GetButtonStageByName(Gui_0045e100* gui, char* name);
@@ -112,7 +112,7 @@ void __stdcall CloseTopScreen(Gui_0045e100* gui);
 void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45e100
-void __stdcall FUN_0045e100(Gui_0045e100* gui)
+void __stdcall HandleVisualOptionsClick(Gui_0045e100* gui)
 {
     int save = gui->field_60;
     Screen_0045e100* top = gui->top;
@@ -168,7 +168,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
         PlaySoundByName("Options", 0);
         FUN_0045cae0();
         CloseTopScreen(gui);
-        FUN_0045e5e0(0);
+        OpenVisualOptions(0);
         return;
     }
 
@@ -189,7 +189,7 @@ void __stdcall FUN_0045e100(Gui_0045e100* gui)
         ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
         ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
         CloseTopScreen(gui);
-        FUN_0045e5e0(0);
+        OpenVisualOptions(0);
         return;
     }
 

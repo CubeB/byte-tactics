@@ -1,8 +1,8 @@
 // Decompiled by mimo-v2.6-pro. Names are provisional.
-// Sets up the single player menu: opens "SINGLE.GUI" with FUN_004775a0 as its
+// Sets up the single player menu: opens "SINGLE.GUI" with HandleSingleMenuClick as its
 // handler and g_game as its data, paints the "singlebg" background, marks which
 // of the two side objects shows which side from the flag at +0x37ef2, installs
-// FUN_00477510 on the layer at +0x531 and pushes the menu.
+// ToggleAnyMission on the layer at +0x531 and pushes the menu.
 //
 // Suspected original oddity, kept exactly as the original has it: the test of
 // bit 0 of g_game+0x38d7f guards an |= 1 of the very same bit, so the OR can
@@ -52,12 +52,12 @@ struct Game {
 extern Game* g_game;
 
 Layer_004777a0* __stdcall LoadGuiLayer(Menu_004777a0* menu, const char* name, int flags);
-void __stdcall FUN_004775a0(void* layer);
-void FUN_004257a0();
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall HandleSingleMenuClick(void* layer);
+void BlankScreen();
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall FUN_00434ab0(int owner);
 void __stdcall FUN_004a0570(Menu_004777a0* menu, const char* name, int value);
-void __stdcall FUN_00477510(void* gadget);
+void __stdcall ToggleAnyMission(void* gadget);
 int FUN_0049f580();
 void __stdcall FUN_004a1530(Menu_004777a0* menu, const char* name, char value);
 void __stdcall FUN_0049fb10(Menu_004777a0* menu, int value);
@@ -65,13 +65,13 @@ void __stdcall FUN_00491c80(int value);
 void __stdcall RenderLayer(Menu_004777a0* menu, int value);
 
 // FUNCTION: 0x4777a0
-void FUN_004777a0()
+void OpenSingleMenu()
 {
     Layer_004777a0* gui = LoadGuiLayer(&g_game->menu, "SINGLE.GUI", 0);
-    gui->handler = FUN_004775a0;
+    gui->handler = HandleSingleMenuClick;
     gui->field_c = g_game;
-    FUN_004257a0();
-    FUN_004288d0("singlebg", 0, 0, 0);
+    BlankScreen();
+    LoadPictureCached("singlebg", 0, 0, 0);
     switch (g_game->flag_37ef2) {
     case 0:
         g_game->players[g_game->localPlayer].unit->side = 0;
@@ -87,7 +87,7 @@ void FUN_004777a0()
         FUN_004a0570(&g_game->menu, "AnyMsn", 1);
         g_game->flags_38d7f |= 1;
     }
-    g_game->menu.layer->field_3b = FUN_00477510;
+    g_game->menu.layer->field_3b = ToggleAnyMission;
     if (FUN_0049f580() && _strcmpi((char*)FUN_0049f580(), "spanish") == 0) {
         FUN_004a1530(&g_game->menu, "Skirmish", 0x73);
     }

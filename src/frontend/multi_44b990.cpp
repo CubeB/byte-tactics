@@ -48,10 +48,10 @@ extern char* DAT_005129b0;             // savegame descriptions
 extern char DAT_005119b8[];
 
 Layer_0044b990* __stdcall LoadGuiLayer(Menu_0044b990* menu, const char* name, int flags);
-void __stdcall FUN_0044b690(int a, int b);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall HandleSaveGameClick(int a, int b);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall FUN_004bcf00(char* path);
-void* __stdcall FUN_0044b4e0(int* out);
+void* __stdcall ListSaveGameFiles(int* out);
 void __stdcall FUN_004a0bf0(Menu_0044b990* menu, char* name, char* text, int param_4);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_004a32a0(Menu_0044b990* menu, char* name, void* text, int value, int flag);
@@ -73,15 +73,15 @@ static char* GetSaveDescriptions()
 }
 
 // FUNCTION: 0x44b990
-void __stdcall FUN_0044b990()
+void __stdcall OpenSaveGameDialog()
 {
     int count;
     Layer_0044b990* layer = LoadGuiLayer(&g_game->menu, "SAVELIST.GUI", 0x880);
-    layer->handler = FUN_0044b690;
+    layer->handler = HandleSaveGameClick;
     layer->data = g_game;
-    FUN_004288d0("DSaveList", 0, 0, 0);
+    LoadPictureCached("DSaveList", 0, 0, 0);
     FUN_004bcf00(DAT_005091c8);
-    FUN_0044b4e0(&count);
+    ListSaveGameFiles(&count);
     FUN_004a0bf0(&g_game->menu, "TITLE", "Save Game", 0);
     char* ptr = GetSaveDescriptions();
     int i = 0;

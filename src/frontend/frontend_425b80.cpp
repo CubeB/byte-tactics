@@ -71,7 +71,7 @@ extern Smoke_00425b80* DAT_00512298;
 void __stdcall FUN_0049fad0(void* menu);
 
 // FUNCTION: 0x425b80
-void FUN_00425b80()
+void UpdateMenuSparks()
 {
     Terrain_00425b80* terrain = g_game->terrain;
     if (terrain->smoke != 0) {

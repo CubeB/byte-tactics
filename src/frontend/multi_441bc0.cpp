@@ -19,7 +19,7 @@ extern Guid_00441bc0 DAT_004fcd98;
 extern Guid_00441bc0 DAT_004fcdb8;
 
 // FUNCTION: 0x441bc0
-int FUN_00441bc0()
+int GetServiceProviderIndex()
 {
     Guid_00441bc0* guid = (Guid_00441bc0*)(g_game + 0x39201);
     if (memcmp(guid, &DAT_004fcdc8, sizeof(Guid_00441bc0)) == 0) {

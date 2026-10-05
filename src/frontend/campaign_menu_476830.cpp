@@ -18,7 +18,7 @@ extern Game* g_game;
 char* __cdecl FUN_004d83b0(char* name, int size);
 
 // FUNCTION: 0x476830
-char* FUN_00476830()
+char* BuildSideList()
 {
     char* buf = FUN_004d83b0("SideList", g_game->count * 30);
     char* p = buf;

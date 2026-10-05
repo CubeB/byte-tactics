@@ -32,7 +32,7 @@ void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
     }
 
 // FUNCTION: 0x41dfc0
-void __stdcall FUN_0041dfc0(unsigned char* target, unsigned char* current, int steps)
+void __stdcall StartPaletteFade(unsigned char* target, unsigned char* current, int steps)
 {
     memcpy(g_game->target, target, 0x400);
     memcpy(g_game->current, current, 0x400);

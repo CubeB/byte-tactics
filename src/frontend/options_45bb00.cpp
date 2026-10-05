@@ -5,7 +5,7 @@
 // is searched for the mode matching the current screen size (width compared
 // against a local read before the loop, height re-read every iteration), and
 // the index of that mode is turned into a step index in field_140, the same
-// arithmetic as FUN_0045b9b0.
+// arithmetic as SetSliderFromValue.
 
 #pragma pack(push, 1)
 struct Mode_0045bb00 {

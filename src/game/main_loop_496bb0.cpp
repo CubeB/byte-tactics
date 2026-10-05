@@ -46,7 +46,7 @@ struct Game {
 extern Game* g_game;
 
 void RefreshUnitInfo();
-void FUN_00426e80();
+void RunFrontendStateMachine();
 void FUN_004c2470();
 void FUN_004c2870();
 void FUN_00496ce0();
@@ -60,7 +60,7 @@ void __stdcall FUN_004ab170(Sub_00496bb0* sub, unsigned int* param_2, int* param
 void FUN_00496bb0()
 {
     RefreshUnitInfo();
-    FUN_00426e80();
+    RunFrontendStateMachine();
     if (g_game->bit2 && g_game->obj_391e9->FUN_00435100() == 1) {
         FUN_004c2470();
         g_game->mode = 4;

@@ -45,7 +45,7 @@ void __stdcall FUN_004a0bf0(void* obj, char* name, int param_3, int param_4);
 void __stdcall FUN_004a1450(void* obj, char* name, int param_3);
 
 // FUNCTION: 0x45c3f0
-void FUN_0045c3f0()
+void UpdateTrackGadgets()
 {
     char buf[12];
     Menu_45c3f0* menu = &g_game->menu;

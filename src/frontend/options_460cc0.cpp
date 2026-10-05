@@ -1,5 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// Opens the options menu (ARMOPT.GUI): wires FUN_004609b0 as its handler,
+// Opens the options menu (ARMOPT.GUI): wires HandleInGameOptionsClick as its handler,
 // enables the SAVEGAME/LOADGAME gadgets unless the game is playing a
 // campaign mission, fills in the mission settings gadget, and marks the
 // options as changed.
@@ -60,13 +60,13 @@ void __stdcall FUN_0049fa50(Gui_00460cc0* sub);
 void __stdcall FUN_0049fb10(Gui_00460cc0* sub, int value);
 void __stdcall RenderLayer(Gui_00460cc0* sub, int value);
 const char* __stdcall FUN_004c5740(const char* text);
-void __stdcall FUN_004609b0(void* gadget);
+void __stdcall HandleInGameOptionsClick(void* gadget);
 
 // FUNCTION: 0x460cc0
-void FUN_00460cc0()
+void OpenInGameOptions()
 {
     Gadget_00460cc0* gadget = LoadGuiLayer(&g_game->sub, "ARMOPT.GUI", 0x800);
-    gadget->handler = FUN_004609b0;
+    gadget->handler = HandleInGameOptionsClick;
     FUN_004a1200(&g_game->sub, FindGadgetIndex(gadget->info, "SAVEGAME", 1),
                  g_game->mode->FUN_00435100() == 3);
     FUN_004a1200(&g_game->sub, FindGadgetIndex(gadget->info, "LOADGAME", 1),

@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Loads the music GUI (MUSICRT.GUI when bit 0 of g_game+0x37ebe is set, else
 // MUSIC plus the optmusic4x DLL), fills in the two callbacks of the object
-// returned by FUN_0045cfc0, positions the MUSICVOL slider from the stored
+// returned by OpenOptionsLayout, positions the MUSICVOL slider from the stored
 // volume and hands the track type on to the sound object.
 class Class_004ce5a0 {
 public:
@@ -62,45 +62,45 @@ struct Game {
 extern Game* g_game;
 extern int DAT_00512fe0;
 
-Object_0045d7c0* FUN_0045cfc0();
+Object_0045d7c0* OpenOptionsLayout();
 void __stdcall RenderLayer(void* obj, int n);
 void __cdecl FUN_0045ce80();
 int __stdcall LoadGuiLayer(void* obj, char* name, int size);
-void __stdcall FUN_004288d0(char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(char* name, int a, int b, int c);
 void __stdcall FUN_0049fa50(void* obj);
 void __stdcall SetGadgetStatusByName(void* obj, char* name, int flag);
 int __stdcall FindGadgetIndex(void* list, char* name, int flag);
 Entry_0045d7c0* __stdcall FUN_004a0200(Entry_0045d7c0* list, char* name);
-void __cdecl FUN_0045d130();
-void __cdecl FUN_0045c3f0();
+void __cdecl UpdateMusicGadgets();
+void __cdecl UpdateTrackGadgets();
 void __stdcall FUN_0049fa90(void* obj);
 void __stdcall FUN_0049fb10(void* obj, int n);
 void __cdecl FUN_00428b60();
 
-void __stdcall FUN_0045d280(int value);
+void __stdcall HandleMusicOptionsClick(int value);
 void __cdecl FUN_0045d0c0();
-void __stdcall FUN_0045bea0(void* obj, int value);
+void __stdcall HandleMusicVolumeSlider(void* obj, int value);
 
 // FUNCTION: 0x45d7c0
-void FUN_0045d7c0()
+void OpenMusicOptions()
 {
-    Object_0045d7c0* obj = FUN_0045cfc0();
+    Object_0045d7c0* obj = OpenOptionsLayout();
     RenderLayer(g_game->menu, 2);
     FUN_0045ce80();
     if (g_game->flag_37ebe & 1) {
         LoadGuiLayer(g_game->menu, "MUSICRT.GUI", 0x280);
     } else {
         LoadGuiLayer(g_game->menu, "MUSIC", 0x200);
-        FUN_004288d0("optmusic4x", 0, 0, 0);
+        LoadPictureCached("optmusic4x", 0, 0, 0);
     }
-    obj->callback8 = FUN_0045d280;
+    obj->callback8 = HandleMusicOptionsClick;
     FUN_0049fa50(g_game->menu);
     obj->callback1c = FUN_0045d0c0;
     SetGadgetStatusByName(g_game->menu, "MUSIC", 1);
     if (FindGadgetIndex(obj->gadgets, "MUSICVOL", 0xe) != -1) {
         Entry_0045d7c0* e = FUN_004a0200(obj->gadgets, "MUSICVOL");
         e->max = 0x40;
-        e->callback = FUN_0045bea0;
+        e->callback = HandleMusicVolumeSlider;
         e->pos = g_game->volume2;
         int value = e->pos;
         if (value > 0x40) {
@@ -112,11 +112,11 @@ void FUN_0045d7c0()
         }
         e->pos = (short)f;
     }
-    FUN_0045d130();
+    UpdateMusicGadgets();
     if (g_game->state == 3) {
         DAT_00512fe0 = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
     }
-    FUN_0045c3f0();
+    UpdateTrackGadgets();
     Gadget_0045d7c0* gadgets = g_game->holder->gadgets;
     if (g_game->state == 4) {
         int index = FindGadgetIndex(gadgets, "TRACKTYPE", 1);

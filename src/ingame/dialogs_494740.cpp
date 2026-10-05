@@ -19,10 +19,10 @@ extern Game* g_game;
 void __stdcall FUN_0049fa70(void* menu);
 int __stdcall IsCurrentGadgetNamed(Gadget_00494740* gadget, char* name);
 void __stdcall PlaySoundByName(char* name, int param_2);
-void FUN_00460cc0();
+void OpenInGameOptions();
 void OpenShareDialog();
-void FUN_004466b0();
-void FUN_004478b0();
+void OpenControlDialog();
+void OpenAlliesDialog();
 void __stdcall CloseTopScreen(Gadget_00494740* gadget);
 void __stdcall FUN_004ab0a0(Gadget_00494740* gadget);
 
@@ -37,7 +37,7 @@ void __stdcall HandleTabMenuEvent(Gadget_00494740* gadget)
     if (IsCurrentGadgetNamed(gadget, "OPTIONS")) {
         g_game->field_37ebe |= 1;
         PlaySoundByName("BigButton", 0);
-        FUN_00460cc0();
+        OpenInGameOptions();
         FUN_004ab0a0(gadget);
         return;
     }
@@ -49,13 +49,13 @@ void __stdcall HandleTabMenuEvent(Gadget_00494740* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "CONTROL")) {
         PlaySoundByName("BigButton", 0);
-        FUN_004466b0();
+        OpenControlDialog();
         FUN_004ab0a0(gadget);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "ALLIES")) {
         PlaySoundByName("BigButton", 0);
-        FUN_004478b0();
+        OpenAlliesDialog();
         FUN_004ab0a0(gadget);
         return;
     }

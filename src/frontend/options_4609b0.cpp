@@ -74,8 +74,8 @@ void __stdcall PlaySoundByName(char* str, int flag);
 void __stdcall FUN_0049fa70(Sub_004609b0* sub);
 void __stdcall FreeSurface(Class_004c6a60* surface);
 Info_004609b0* __stdcall LoadGuiLayer(Sub_004609b0* sub, const char* name, int flags);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-int __stdcall FUN_0045f8c0(Sub_004609b0* sub, int a, int b);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
+int __stdcall FillHelpPage(Sub_004609b0* sub, int a, int b);
 int __stdcall FindGadgetIndex(Entry_004609b0* info, const char* name, int type);
 void __stdcall AllocBlinkWords(Sub_004609b0* sub, int value);
 void __stdcall FUN_0049fb10(Sub_004609b0* sub, int value);
@@ -83,15 +83,15 @@ void __stdcall RenderLayer(Sub_004609b0* sub, int value);
 void __stdcall FUN_004ab0a0(Gadget_004609b0* gadget);
 void ShowLoadGameScreen();
 void ShowSaveGameScreen();
-void FUN_00460160();
+void OpenOptionsPanel();
 void FUN_0045f1d0();
 void FUN_00476d80();
-void FUN_004608b0();
-int __stdcall FUN_0045fac0(void* gadget);
-int __stdcall FUN_0045f770(void* gadget);
+void OpenExitMenu();
+int __stdcall HandleHelpClick(void* gadget);
+int __stdcall HandleBriefingClick(void* gadget);
 
 // FUNCTION: 0x4609b0
-void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
+void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
 {
     if (gadget->field_60 == -1) {
         FUN_0049fa70(&g_game->sub);
@@ -124,16 +124,16 @@ void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "PREFS")) {
         PlaySoundByName("Options", 0);
-        FUN_00460160();
+        OpenOptionsPanel();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "HELP")) {
         PlaySoundByName("Options", 0);
         Info_004609b0* g = LoadGuiLayer(&g_game->sub, "HELP.GUI", 0x1881);
-        g->handler = FUN_0045fac0;
-        FUN_004288d0("dhelp", 0, 0, 0);
+        g->handler = HandleHelpClick;
+        LoadPictureCached("dhelp", 0, 0, 0);
         DAT_00512ef0 = g->info->count;
-        FUN_0045f8c0(&g_game->sub, 0, 0x11);
+        FillHelpPage(&g_game->sub, 0, 0x11);
         FUN_0049fb10(&g_game->sub, 1);
         RenderLayer(&g_game->sub, 0x40);
         return;
@@ -143,7 +143,7 @@ void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
         if (g_game->mode->FUN_00435100() == 1) {
             Info_004609b0* g = LoadGuiLayer(&g_game->sub, "BRIEFING.GUI", 0);
             Entry_004609b0* gadgets = g->info;
-            g->handler = FUN_0045f770;
+            g->handler = HandleBriefingClick;
             int i = FindGadgetIndex(gadgets, "MOREBAR", 0xe);
             // The entry is reached as gadgets + i + i * 0x15a, not gadgets +
             // i * 0x15a, so this clears the flag of a gadget one stride past
@@ -151,7 +151,7 @@ void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
             ((Entry_004609b0*)((char*)gadgets + i))[i].flags &= ~0x10;
             i = FindGadgetIndex(gadgets, "TextRegion", 0xe);
             ((Entry_004609b0*)((char*)gadgets + i))[i].flags &= ~0x10;
-            FUN_004288d0("igmbrief", 0, 0, 0);
+            LoadPictureCached("igmbrief", 0, 0, 0);
             AllocBlinkWords(&g_game->sub, 0xf);
             FUN_00476d80();
             RenderLayer(&g_game->sub, 0x40);
@@ -162,7 +162,7 @@ void __stdcall FUN_004609b0(Gadget_004609b0* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "EXIT")) {
         PlaySoundByName("Options", 0);
-        FUN_004608b0();
+        OpenExitMenu();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "OK")) {

@@ -224,7 +224,7 @@ void __stdcall ClearUnitRefs(void* unit);
 void __stdcall FreeObjectState(void* state);
 void __cdecl operator delete(void* p);
 void __stdcall AnnouncePlayerLeft(int id);
-void __stdcall FUN_0047bd70(void* player);
+void __stdcall AnnounceForcesDestroyed(void* player);
 
 // FUNCTION: 0x4866d0
 void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
@@ -403,6 +403,6 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
         if (g_game->x391e9->FUN_00435100() == 3)
             AnnouncePlayerLeft(unit->player->dpid);
         if (g_game->x391e9->FUN_00435100() == 2)
-            FUN_0047bd70(unit->player);
+            AnnounceForcesDestroyed(unit->player);
     }
 }

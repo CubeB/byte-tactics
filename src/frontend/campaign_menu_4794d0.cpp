@@ -9,7 +9,7 @@ struct Item_004794d0
 };
 
 // FUNCTION: 0x4794d0
-int FUN_004794d0()
+int CountComputerSlots()
 {
     int count = 0;
     int num_items = *(int*)((char*)g_game + 0x38d81);

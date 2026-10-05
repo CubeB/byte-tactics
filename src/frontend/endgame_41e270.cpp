@@ -33,7 +33,7 @@ void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
     }
 
 // FUNCTION: 0x41e270
-void FUN_0041e270(void)
+void StepPaletteFade(void)
 {
     if (g_game->nextTime <= GetTicks()) {
         for (int i = 0; i < 0x100; i++) {

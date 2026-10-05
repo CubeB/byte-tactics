@@ -7,7 +7,7 @@
 // MATCH. What it took, largest first:
 // - Two functions of this file that have no callers are inlined here and are
 //   defined above, unannotated: the map check 0x440cd0 (CheckMapCrc) and the
-//   SIDE%d update 0x448bf0 (FUN_00448bf0). Both still compile to their own
+//   SIDE%d update 0x448bf0 (UpdateSideGadget). Both still compile to their own
 //   original bytes out of line.
 // - <windows.h> (the file's other functions use it too): it gives the
 //   original's base/index order and the loop-head shape.
@@ -182,9 +182,9 @@ extern Game* g_game;
 
 int GetFontLineHeight();
 char* __stdcall FUN_004b6af0(int list, int index);
-void FUN_00445ed0();
-void FUN_00444a20();
-void FUN_00446a50();
+void UpdateBattleRoomFlags();
+void ShowSelectedMapInfo();
+void RefreshTeamIcons();
 void FUN_00446c70();
 void BroadcastPlayerInfo();
 void UpdateNetGameInfo();
@@ -271,7 +271,7 @@ int CheckMapCrc()
 }
 
 // The SIDE%d update at 0x448bf0, which has no callers: /Ob2 inlined it.
-void __stdcall FUN_00448bf0(int side)
+void __stdcall UpdateSideGadget(int side)
 {
     char name[20];
     Player_00448c70* p = &g_game->players[side];
@@ -282,7 +282,7 @@ void __stdcall FUN_00448bf0(int side)
 }
 
 // FUNCTION: 0x448c70
-void FUN_00448c70()
+void RefreshBattleRoomRows()
 {
     char name[20];
     char* str;
@@ -311,7 +311,7 @@ void FUN_00448c70()
                 i = 0;
         }
     }
-    FUN_00445ed0();
+    UpdateBattleRoomFlags();
     output->list.count = count;
 
     Gadget_00448c70* mapname = FUN_004a0180(g_game->table->entries, "MAPNAME");
@@ -325,7 +325,7 @@ void FUN_00448c70()
         int differs = strcmp(str, cur);
         if (differs) {
             if (IsScreenNamed(g_game->gui, "viewmap.gui"))
-                FUN_00444a20();
+                ShowSelectedMapInfo();
             else
                 ((Class_00435a20*)g_game->map)->LoadMissionByName(map);
         }
@@ -372,7 +372,7 @@ void FUN_00448c70()
         }
     }
     FUN_00446c70();
-    FUN_00446a50();
+    RefreshTeamIcons();
 
     char* entries = g_game->table->entries;
     Player_00448c70* local = &g_game->players[g_game->localPlayer];
@@ -455,7 +455,7 @@ void FUN_00448c70()
             sprintf(name, "SIDE%d", n);
             e = FindGadgetOrNull(entries, name);
             if (e) {
-                FUN_00448bf0(n);
+                UpdateSideGadget(n);
                 e->visible = 1;
                 FUN_004a1450(g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
             }

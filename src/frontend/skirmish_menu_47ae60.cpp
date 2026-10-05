@@ -90,12 +90,12 @@ char __stdcall FindGameCdDrive(int param_1);
 void RegisterDataArchives();
 void FUN_0041da30();
 void SaveSettings();
-void FUN_00479660();
-int FUN_00479760();
-void __stdcall FUN_004797e0(int param_1);
+void RefreshAllyIcons();
+int AreAllPlayersInOneAllyGroup();
+void __stdcall CycleSlotController(int param_1);
 void FUN_0047a760();
-void FUN_0047aaf0();
-void __stdcall FUN_0047acd0(int param_1);
+void OpenSkirmishMapSelector();
+void __stdcall CyclePlayerColor(int param_1);
 void __stdcall FUN_00491c80(int param_1);
 void __stdcall UpdateHelpText(void* param_1);
 void __stdcall FUN_004a0bf0(Menu_0047ae60* menu, char* key, char* value, int flag);
@@ -105,7 +105,7 @@ void __stdcall FUN_004c2340(int* out);
 char* __stdcall FUN_004c5740(char* text);
 
 // FUNCTION: 0x47ae60
-void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
+void __stdcall HandleSkirmishClick(Menu_0047ae60* menu)
 {
     Frame_0047ae60 frame;
 
@@ -181,7 +181,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
                     return;
                 }
 
-                if (FUN_00479760() != 0) {
+                if (AreAllPlayersInOneAllyGroup() != 0) {
                     OpenMessageBox(g_game + 0x519,
                                  FUN_004c5740("All players may not be in the same allied group."),
                                  0x1e0, 1, 1);
@@ -235,7 +235,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
 
     if (strcmp(frame.bf, "Player") == 0) {
         PlaySoundByName("Skirmish", 0);
-        FUN_004797e0(player);
+        CycleSlotController(player);
     } else if (strcmp(frame.bf, "Side") == 0) {
         PlaySoundByName("Skirmish", 0);
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
@@ -246,15 +246,15 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         int* p = (int*)((char*)t + t->field_224 * 24 + 8);
         *p = (*p + 1) % 6;
-        FUN_00479660();
+        RefreshAllyIcons();
     } else if (strcmp(frame.bf, "Color") == 0) {
         PlaySoundByName("Skirmish", 0);
         FUN_004c2340(frame.ev);
         if (menu->holder->field_37 == 1) {
-            FUN_0047acd0(0);
+            CyclePlayerColor(0);
         }
         if (menu->holder->field_37 == 2) {
-            FUN_0047acd0(1);
+            CyclePlayerColor(1);
         }
     } else if (strcmp(frame.bf, "Energy") == 0) {
         FUN_004c2340(frame.ev);
@@ -357,7 +357,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
     } else if (IsCurrentGadgetNamed(menu, "SelectMap")) {
         PlaySoundByName("Skirmish", 0);
         FUN_00491c80(0x14);
-        FUN_0047aaf0();
+        OpenSkirmishMapSelector();
     } else if (IsCurrentGadgetNamed(menu, "Difficulty")) {
         PlaySoundByName("SKirmish", 0);
         int d = *(int*)(g_game + 0x37eee);

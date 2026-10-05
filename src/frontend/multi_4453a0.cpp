@@ -29,7 +29,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x4453a0
-void __stdcall FUN_004453a0(Player_004453a0* param_1, Player_004453a0* param_2)
+void __stdcall SwapPlayerSlots(Player_004453a0* param_1, Player_004453a0* param_2)
 {
     Player_004453a0 tmp = *param_2;
     *param_2 = *param_1;

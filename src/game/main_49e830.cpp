@@ -179,7 +179,7 @@ void OutOfMemoryHandler();
 void __cdecl FUN_0049ed90();
 void __cdecl InitDebugSupport(int param_1);
 void __cdecl SetOutOfMemoryHandler(void (*param_1)());
-void FUN_0041d920();
+void CreateGameObject();
 void RegisterDataArchives();
 void FUN_00428bb0();
 void InitGame();
@@ -220,7 +220,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         DAT_0051f31c |= 1;
         atexit(FUN_0049ed90);
     }
-    FUN_0041d920();
+    CreateGameObject();
     HANDLE hSem = OpenSemaphoreA(0x1f0003, lzero, DAT_0050971c);
     if (hSem != (HANDLE)lzero)
         return -1;

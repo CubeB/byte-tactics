@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Click handler of the TCP dialog (TCP.GUI, opened by FUN_004421f0). OK and a
+// Click handler of the TCP dialog (TCP.GUI, opened by OpenTcpDialog). OK and a
 // direct-connect address both set the multiplayer connection-mode bits of
 // g_game (+0x2aaf) and connect; JOIN sets only the second bit; ADDRESS selects
 // the address gadget; PREV goes back; anything else resets the gadget. The
@@ -38,13 +38,13 @@ extern Game* g_game;
 extern int DAT_00512c84;
 extern char DAT_00512d90[];
 
-int __stdcall FUN_00441c30(int* a, int* b);
+int __stdcall BuildCompoundAddress(int* a, int* b);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 int __stdcall IsCurrentGadgetNamed(Gadget_00442050* gadget, const char* name);
 void __stdcall PlaySoundByName(const char* name, int param_2);
-void FUN_004257a0();
+void BlankScreen();
 void __stdcall FUN_004ab0a0(Gadget_00442050* gadget);
-void __stdcall FUN_00425860(int state, int line, const char* file);
+void __stdcall SetFrontendState(int state, int line, const char* file);
 void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 char* __stdcall GetGadgetText(Gadget_00442050* gadget, const char* key, void* out);
 
@@ -53,12 +53,12 @@ char* __stdcall GetGadgetText(Gadget_00442050* gadget, const char* key, void* ou
 // Writing the two zero stores inside the helper, rather than inline in the
 // caller, is what makes MSVC 5 schedule the first store after the argument
 // push (`mov [esp+0x1c], ebx`), matching the original. Spelling the same
-// statements inline in FUN_00442050 hoists that store one instruction early.
+// statements inline in HandleTcpDialogClick hoists that store one instruction early.
 static int TryConnect_00442050()
 {
     int a = 0;
     int b = 0;
-    int result = FUN_00441c30(&a, &b);
+    int result = BuildCompoundAddress(&a, &b);
     if (result >= 0) {
         g_game->field_39211 = a;
         g_game->field_39215 = b;
@@ -67,7 +67,7 @@ static int TryConnect_00442050()
 }
 
 // FUNCTION: 0x442050
-void __stdcall FUN_00442050(Gadget_00442050* gadget)
+void __stdcall HandleTcpDialogClick(Gadget_00442050* gadget)
 {
     Entry_00442050* entries = gadget->layer->entries;
     if (DAT_00512d90[0] != 0) {
@@ -91,7 +91,7 @@ void __stdcall FUN_00442050(Gadget_00442050* gadget)
     }
     else {
         if (IsCurrentGadgetNamed(gadget, "PREV") != 0) {
-            FUN_00425860(0xf, 0x305, "c:\\cavedog\\wargame\\multi.cpp");
+            SetFrontendState(0xf, 0x305, "c:\\cavedog\\wargame\\multi.cpp");
             PlaySoundByName("Previous", 0);
             return;
         }
@@ -103,7 +103,7 @@ connect:
     g_game->bit1 = 1;
     TryConnect_00442050();
     PlaySoundByName("Smlbutton", 0);
-    FUN_004257a0();
+    BlankScreen();
 tcpaddr:
     WriteGameRegistryValue("TCPADDR", GetGadgetText(gadget, "ADDRESS", 0), 0x80);
 }

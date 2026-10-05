@@ -64,7 +64,7 @@ void __stdcall FUN_0049fa90(void* menu);
 void __stdcall DrawFrameQuad(void* surf, void* entry, Quad_45ffb0* dst, Quad_45ffb0* src);
 
 // FUNCTION: 0x45ffb0
-void __stdcall FUN_0045ffb0(void* surf)
+void __stdcall DrawOptionsScrollBar(void* surf)
 {
     if (DAT_00512fe4) {
         if (DAT_00512fec < 0x115) {

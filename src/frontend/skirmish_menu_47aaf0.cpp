@@ -65,22 +65,22 @@ int __stdcall LoadMapList(char** out, int param_2, int param_3);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(Menu_0047aaf0* menu, char* text, int width, int a, int b);
 Layer_0047aaf0* __stdcall LoadGuiLayer(Menu_0047aaf0* menu, const char* name, int flags);
-void __stdcall FUN_0047a910(void* gadget);
+void __stdcall HandleSkirmishMapClick(void* gadget);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall SortFileList(char* items, int b, int c, int count);
 void __stdcall FUN_004a32a0(Menu_0047aaf0* menu, char* name, char* items, int count, int flag);
 Entry_0047aaf0* __stdcall FindGadgetChecked(Entry_0047aaf0* entries, char* name);
 void __stdcall FUN_0047aaa0(void* menu, int unused);
 char* __stdcall FUN_004b6af0(char* text, int line);
 void __stdcall FUN_004a2e40(Menu_0047aaf0* menu, char* name, int index);
-void FUN_00444a20();
+void ShowSelectedMapInfo();
 void __stdcall FUN_0049fb10(Menu_0047aaf0* menu, int value);
 void __stdcall RenderLayer(Menu_0047aaf0* menu, int value);
 void __stdcall FUN_00491c80(int value);
 
 // FUNCTION: 0x47aaf0
-void FUN_0047aaf0()
+void OpenSkirmishMapSelector()
 {
     int n = LoadMapList(0, 0, 0);
     if (n == 0) {
@@ -90,10 +90,10 @@ void FUN_0047aaf0()
         return;
     }
     Layer_0047aaf0* layer = LoadGuiLayer(&g_game->menu, "SELMAP.GUI", 0x880);
-    layer->handler = FUN_0047a910;
+    layer->handler = HandleSkirmishMapClick;
     Data_0047aaf0* data = (Data_0047aaf0*)FUN_004d83b0("SELECT MAP DATA", 0x20);
     layer->data = data;
-    FUN_004288d0("DSELECTMAP2", 0, 0, 0);
+    LoadPictureCached("DSELECTMAP2", 0, 0, 0);
     LoadMapList(&data->items, 0, 0);
     SortFileList(data->items, 0, 0, n);
     FUN_004a32a0(&g_game->menu, "MAPNAMES", data->items, n, 0);
@@ -108,7 +108,7 @@ void FUN_0047aaf0()
 
     Entry_0047aaf0* g = FindGadgetChecked(g_game->menu.holder->entries, "MAPNAMES");
     if (g_game->field_391e9->LoadMissionByName(FUN_004b6af0(g->text, g->selected)) != 0) {
-        FUN_00444a20();
+        ShowSelectedMapInfo();
     }
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);

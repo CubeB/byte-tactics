@@ -30,7 +30,7 @@ int __stdcall FUN_004ab290(int param_1, int param_2);
 int __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 
 // FUNCTION: 0x4288d0
-int __stdcall FUN_004288d0(const char* name, int param_2, int param_3, int param_4)
+int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int param_4)
 {
     void* surface = 0;
     int* data = 0;

@@ -57,7 +57,7 @@ void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall SetAlliance(int, int, unsigned char, int);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall SendChatMessage(void* from, char* text, int param_3, void* to);
-void FUN_00446fb0();
+void RebuildAllyList();
 void __stdcall DrawButton(void* sub, int param_2);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 int __stdcall GetButtonStage(void* gadget, int index);
@@ -65,7 +65,7 @@ void __stdcall FUN_004ab0a0(void* gadget);
 void BroadcastPlayerInfo();
 
 // FUNCTION: 0x447150
-void __stdcall FUN_00447150(Gadget_00447150* gadget)
+void __stdcall HandleAlliesClick(Gadget_00447150* gadget)
 {
     void* entries = gadget->layer->entries;
     char buf[100];
@@ -90,7 +90,7 @@ void __stdcall FUN_00447150(Gadget_00447150* gadget)
             sprintf(buf, " %s %s", FUN_004c5740(verb),
                     (char*)g_game + 0x1b8e + i * 0x14b);
             SendChatMessage(local, buf, 4, 0);
-            FUN_00446fb0();
+            RebuildAllyList();
             DrawButton(&g_game->message, gadget->field_60);
         }
     }

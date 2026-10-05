@@ -3,7 +3,7 @@
 // player (a non-empty player slot whose info has bit 6 of the byte at +0x9b
 // set), it reads the "GAME" slider, clamps the slider value to at least 1 and
 // pushes it into the game setting at g_game+0x38a4b, then applies the control.
-// The clamped value comes from the inlined slider reader (FUN_0045ba20), which
+// The clamped value comes from the inlined slider reader (ReadSliderValue), which
 // is expanded a second time for the "not clamped" branch, so it is written
 // twice in the source too.
 
@@ -64,7 +64,7 @@ static inline int SliderValue(Entry_45c070* e)
 }
 
 // FUNCTION: 0x45c070
-void __stdcall FUN_0045c070(Object_45c070* obj, int unused)
+void __stdcall HandleGameSpeedSlider(Object_45c070* obj, int unused)
 {
     Player_45c070* player = &g_game->players[g_game->localPlayer];
     if (player->field_0 == 0 || !player->info->flag_9b_6) {

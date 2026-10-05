@@ -8,7 +8,7 @@ int __stdcall ScanDirectory(char* path, void* buffer, char* p3, int p4, int p5, 
 // Lists the campaign files (camps\*.TDF) into a buffer of 256-byte names and
 // returns how many there are.
 // FUNCTION: 0x4769f0
-int __stdcall FUN_004769f0(void** names)
+int __stdcall ListCampaignFiles(void** names)
 {
     char path[0x100];
     BuildDataPath(path, "camps", "*", "TDF");

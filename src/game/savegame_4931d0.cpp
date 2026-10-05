@@ -19,12 +19,12 @@ extern void* DAT_0051f2e4;
 extern void* DAT_0051f2e8;
 
 Gadget_004931d0* __stdcall LoadGuiLayer(char* sub, const char* name, int flags);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 int __stdcall ListSavedGames(int* out);
 void __stdcall CloseTopScreen(char* sub);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int a, int b, int c);
-char* FUN_00476830();
+char* BuildSideList();
 void __stdcall FUN_004a32a0(char* menu, char* name, void* text, int count, int flag);
 void __stdcall FUN_004a0570(char* menu, char* name, int value);
 Entry_004931d0* __stdcall FindGadgetChecked(void* entries, char* name);
@@ -42,7 +42,7 @@ void ShowLoadGameScreen()
     Gadget_004931d0* gadget = LoadGuiLayer(g_game + 0x519, "LOADGAME.GUI", 0x980);
     gadget->handler = LoadGameScreenHandler;
     gadget->context = g_game;
-    FUN_004288d0("DLOADGAME2", 0, 0, 0);
+    LoadPictureCached("DLOADGAME2", 0, 0, 0);
     int count;
     if (ListSavedGames(&count) == 0) {
         CloseTopScreen(g_game + 0x519);
@@ -51,7 +51,7 @@ void ShowLoadGameScreen()
                      0x140, 1, 1);
         return;
     }
-    DAT_0051f2e8 = FUN_00476830();
+    DAT_0051f2e8 = BuildSideList();
     FUN_004a32a0(g_game + 0x519, "GAMES", DAT_0051f2e4, count, 0);
     FUN_004a0570(g_game + 0x519, "DELETE", 0);
     FUN_004a0570(g_game + 0x519, "GAMENAME", 0);

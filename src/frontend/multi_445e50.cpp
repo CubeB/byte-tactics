@@ -39,7 +39,7 @@ extern Game* g_game;
 
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 Gadget_00445e50* __stdcall FUN_004a0200(void* data, char* key);
-void __stdcall FUN_0045b9b0(Gadget_00445e50* gadget, int value);
+void __stdcall SetSliderFromValue(Gadget_00445e50* gadget, int value);
 void __stdcall FUN_0049fa90(Menu_00445e50* menu);
 
 // FUNCTION: 0x445e50
@@ -53,7 +53,7 @@ void __stdcall FUN_00445e50(char* name, int param_2, int param_3, Callback_00445
         gadget->field_13c = param_2;
         gadget->callback = callback;
         gadget->field_140 = param_3;
-        FUN_0045b9b0(gadget, gadget->field_140);
+        SetSliderFromValue(gadget, gadget->field_140);
         gadget->game = g_game;
     }
     callback(menu, index);

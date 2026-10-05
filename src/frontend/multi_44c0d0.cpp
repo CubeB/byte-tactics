@@ -103,7 +103,7 @@ void __stdcall FrameFromSurface(void* dst, void* src);
 void __stdcall FUN_0049fa90(void* obj);
 
 // FUNCTION: 0x44c0d0
-void FUN_0044c0d0()
+void LoadUnitPortrait()
 {
     Record_0044c0d0 rec;
     char path[256];

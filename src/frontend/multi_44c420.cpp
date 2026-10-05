@@ -95,15 +95,15 @@ void __stdcall FUN_004ab0a0(Menu_0044c420* obj);
 void __stdcall FUN_004ab190(int param_1, int param_2);
 void __stdcall FUN_0049fa90(Menu_0044c420* obj);
 void __stdcall PlaySoundByName(char* name, int param_2);
-void __stdcall FUN_0044bfd0(Menu_0044c420* menu, int value);
-void FUN_0044bc10();
-void FUN_0044b990();
+void __stdcall UpdateUnitSliders(Menu_0044c420* menu, int value);
+void OpenLoadListDialog();
+void OpenSaveGameDialog();
 void __stdcall FreeSurface(Struct_004c6ac0* obj);
 void __cdecl FUN_004d85a0(void* p);
 int IsHostLocal();
 
 // FUNCTION: 0x44c420
-void __stdcall FUN_0044c420(Menu_0044c420* menu)
+void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
 {
     int i;
     int n;
@@ -157,13 +157,13 @@ void __stdcall FUN_0044c420(Menu_0044c420* menu)
 
     if (IsCurrentGadgetNamed(menu, "Load") != 0) {
         PlaySoundByName("Options", 0);
-        FUN_0044bc10();
+        OpenLoadListDialog();
         FUN_004ab0a0(menu);
         return;
     }
     if (IsCurrentGadgetNamed(menu, "Save") != 0) {
         PlaySoundByName("Options", 0);
-        FUN_0044b990();
+        OpenSaveGameDialog();
         FUN_004ab0a0(menu);
         return;
     }
@@ -183,7 +183,7 @@ void __stdcall FUN_0044c420(Menu_0044c420* menu)
                 }
             }
         }
-        FUN_0044bfd0(menu, 0);
+        UpdateUnitSliders(menu, 0);
         FUN_0049fa90(menu);
         FUN_004ab0a0(menu);
         return;

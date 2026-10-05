@@ -41,7 +41,7 @@ static inline int SliderValue(Entry_45c170* e)
 }
 
 // FUNCTION: 0x45c170
-void __stdcall FUN_0045c170(Object_45c170* obj, int unused)
+void __stdcall HandleScreenSlider(Object_45c170* obj, int unused)
 {
     Entry_45c170* e = FUN_004a0200(obj->holder->entries, "SCREEN");
     if (e != 0) {

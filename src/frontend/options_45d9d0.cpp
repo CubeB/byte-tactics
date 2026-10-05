@@ -25,7 +25,7 @@ void __stdcall FUN_004a0570(Object_004a0570* obj, char* name, int value);
 void __stdcall FUN_004a1450(Object_004a1450* obj, char* name, int value);
 
 // FUNCTION: 0x45d9d0
-void FUN_0045d9d0()
+void UpdateSoundGadgets()
 {
     SetButtonStageByName((Class_004a1080*)g_game->gui, DAT_005069d0, g_game->soundFlags & 7);
     FUN_004a0570((Object_004a0570*)g_game->gui, DAT_005069c8, (g_game->soundFlags & 7) != 0);

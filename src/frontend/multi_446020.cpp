@@ -22,7 +22,7 @@ int __stdcall GetSlotDpid(unsigned char player);
 void __stdcall RejectPlayer(int param_1, int param_2);
 
 // FUNCTION: 0x446020
-void __stdcall FUN_00446020(Gadget_00446020* gadget)
+void __stdcall HandleRejectChoice(Gadget_00446020* gadget)
 {
     int owner = gadget->owner->field_4;
     if (gadget->field_60 == -1)

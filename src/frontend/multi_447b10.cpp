@@ -195,15 +195,15 @@ extern PacketManager g_packetManager;
 
 void __cdecl FUN_004d85a0(void* data);
 void SaveSettings();
-void FUN_00444a20();
-void __stdcall FUN_00444ba0(void* gadget);
-void FUN_00444ea0();
-void __stdcall FUN_00446080(int index);
+void ShowSelectedMapInfo();
+void __stdcall HandleViewMapClick(void* gadget);
+void OpenMultiMapSelector();
+void __stdcall OpenRejectDialog(int index);
 void FUN_00446310();
-void FUN_00446a50();
+void RefreshTeamIcons();
 void FUN_00446c70();
 void __stdcall FUN_00446e90(Player_00447b10* player);
-void FUN_0044c7e0();
+void OpenUnitRestrictions();
 void BroadcastPlayerInfo();
 void UpdateNetGameInfo();
 int __stdcall CreateLocalPlayer(unsigned char player, int state);
@@ -221,7 +221,7 @@ void __stdcall AddMessage(char* text, int a, int b, int c);
 void __stdcall SendChatMessage(Player_00447b10* p, char* text, int a, int b);
 void __stdcall ReportGameEvent(int sound);
 void __stdcall PlaySoundByName(char* sound, int b);
-int __stdcall FUN_004288d0(char* name, int a, int b, int c);
+int __stdcall LoadPictureCached(char* name, int a, int b, int c);
 void __stdcall FUN_0049fb10(char* gui, int value);
 int __stdcall IsCurrentGadgetNamed(Gadget_00447b10* gadget, char* name);
 int __stdcall FindGadgetIndex(Entry_00447b10* entries, char* name, int type);
@@ -331,7 +331,7 @@ int CheckMapCrc()
 }
 
 // The colour cycle at 0x446f50, which has no callers: /Ob2 inlined it.
-void __stdcall FUN_00446f50(int index)
+void __stdcall CyclePlayerAlliance(int index)
 {
     Player_00447b10* player = &g_game->players[index];
     int colour = g_game->players[index].colour;
@@ -339,11 +339,11 @@ void __stdcall FUN_00446f50(int index)
     player->colour = (colour + 1) % 6;
     FUN_00452bd0(player);
     FUN_00446c70();
-    FUN_00446a50();
+    RefreshTeamIcons();
 }
 
 // FUNCTION: 0x447b10
-void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
+void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
 {
     char text[250];
     Entry_00447b10* entries = gadget->table->entries;
@@ -384,7 +384,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
                     RejectPlayer(p->id, 1);
                     ((Class_00463c60*)p)->SetType(0);
                 } else if (canAdd && p->active != 0 && p->type == 3) {
-                    FUN_00446080(i);
+                    OpenRejectDialog(i);
                 }
             } else {
                 if (type == 4) {
@@ -464,7 +464,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         sprintf(text, "TEAMICONS%d", i);
         if (IsCurrentGadgetNamed(gadget, text)) {
             PlaySoundByName("Ally", 0);
-            FUN_00446f50(i);
+            CyclePlayerAlliance(i);
             FUN_00452bd0(p);
         }
 
@@ -599,7 +599,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         }
         if (!((Class_00435c40*)g_game->map)->FUN_00435c40()) {
             PlaySoundByName("Multi", 0);
-            FUN_00444ea0();
+            OpenMultiMapSelector();
             goto done;
         }
         if (!me->info->b.watching) {
@@ -628,7 +628,7 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         g_game->dirty = 1;
     } else if (IsCurrentGadgetNamed(gadget, "RESTRICTIONS")) {
         PlaySoundByName("Options", 0);
-        FUN_0044c7e0();
+        OpenUnitRestrictions();
         FUN_004ab0a0(gadget);
     } else {
         // MAP and MAPNAME through a local, not `MAP || MAPNAME` in the
@@ -640,12 +640,12 @@ void __stdcall FUN_00447b10(Gadget_00447b10* gadget)
         if (hit) {
             PlaySoundByName("Multi", 0);
             if (me->info->f97_0) {
-                FUN_00444ea0();
+                OpenMultiMapSelector();
             } else {
                 Gadget_00447b10* view = LoadGuiLayer(g_game->gui, "VIEWMAP.GUI", 0x900);
-                view->handler = FUN_00444ba0;
-                FUN_004288d0("DVIEWMAP", 0, 0, 0);
-                FUN_00444a20();
+                view->handler = HandleViewMapClick;
+                LoadPictureCached("DVIEWMAP", 0, 0, 0);
+                ShowSelectedMapInfo();
                 FUN_0049fb10(g_game->gui, 1);
                 RenderLayer(g_game->gui, 0x40);
             }

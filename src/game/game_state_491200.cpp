@@ -153,7 +153,7 @@ void __stdcall SetPageFlipping(int param_1);
 void __stdcall FUN_00434ab0(int param_1);
 void LoadGameResources();
 void InitSound();
-void FUN_004259b0();
+void ResetFrontendState();
 void __stdcall InitPacketTables(void* param_1);
 void RegisterAllOrderTypes();
 void LoadGameFonts();
@@ -168,7 +168,7 @@ void* __cdecl FUN_004d83b0(const char* name, int size);
 void LoadSettings();
 int __stdcall ReadGameRegistryValue(const char* name, void* buf, int* size);
 void FUN_00490fe0();
-void FUN_0045bcc0();
+void ApplyBrightnessAndVolume();
 void LoadSideData();
 void LoadLogos();
 void __stdcall SetBrightness(float param_1);
@@ -184,7 +184,7 @@ void __stdcall LoadGafIntoSlot(void* param_1, const char* name, int param_3);
 void __stdcall SetTextKeyColor(int param_1);
 void __stdcall SetFont(int param_1);
 void __stdcall SetCloseHandler(void (__cdecl *param_1)(), int param_2);
-void FUN_004287b0();
+void ClearPictureCache();
 int __stdcall GetPreferenceInt(const char* name, int param_2);
 void FUN_00496a60();
 void __cdecl LeaveNetGameCallback();
@@ -222,7 +222,7 @@ void InitGame()
     SetPageFlipping(0);
     LoadGameResources();
     InitSound();
-    FUN_004259b0();
+    ResetFrontendState();
     InitPacketTables(g_game->field_12ef);
     RegisterAllOrderTypes();
     LoadGameFonts();
@@ -244,7 +244,7 @@ void InitGame()
     ((Class_004cd9d0*)g_game->field_10)->SetCdCallback(FUN_00490fe0);
     FUN_00490fe0();
     ((Class_004ce690*)g_game->field_10)->SetTrackCategory(0);
-    FUN_0045bcc0();
+    ApplyBrightnessAndVolume();
     LoadSideData();
     LoadLogos();
     SetBrightness(0.5 - g_game->field_37f08 * -0.041666668f);
@@ -275,7 +275,7 @@ void InitGame()
         mem2.dwLength = 0x20;
         GlobalMemoryStatus(&mem2);
     }
-    FUN_004287b0();
+    ClearPictureCache();
     g_game->field_589 = 1;
     int limit = GetPreferenceInt(DAT_00509238, 0xfa);
     if (limit > 500)

@@ -118,12 +118,12 @@ int __stdcall SetButtonStageByName(void* obj, char* name, int value);
 void __stdcall FUN_004a0570(void* obj, char* name, int value);
 void __stdcall FUN_004a1450(void* obj, char* name, int value);
 void __stdcall CloseTopScreen(void* obj);
-void FUN_0045de30();
+void OpenSoundOptions();
 void FUN_0045c820();
 void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45da90
-void __stdcall FUN_0045da90(Object_0045da90* obj)
+void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
 {
     Entry_0045da90* entries = obj->holder->entries;
     if (obj->field_60 == -1) {
@@ -161,7 +161,7 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
     if (IsCurrentGadgetNamed(obj, DAT_00506998)) {
         FUN_0045c820();
         CloseTopScreen(obj);
-        FUN_0045de30();
+        OpenSoundOptions();
         PlaySoundByName(DAT_00502b38, 0);
         return;
     }
@@ -177,7 +177,7 @@ void __stdcall FUN_0045da90(Object_0045da90* obj)
         ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
         ((Class_004d00d0*)g_game->sound)->SetAuxVolume(g_game->volume2 << 10, 0);
         CloseTopScreen(obj);
-        FUN_0045de30();
+        OpenSoundOptions();
         PlaySoundByName(DAT_00502b38, 0);
         return;
     }

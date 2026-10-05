@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Opens the CONTROL.GUI dialog (with FUN_004464d0 as its handler) when the
+// Opens the CONTROL.GUI dialog (with HandleControlDialogClick as its handler) when the
 // local player's info does not have bit 6 set, then sets the WATCHING and
 // GAMEOPEN controls from that player's flags.
 
@@ -10,8 +10,8 @@ int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_0049fa90(Class_0049fa90* obj);
 void __stdcall FUN_0049fb10(Class_0049fa90* obj, int value);
 void __stdcall RenderLayer(Class_0049fa90* obj, int value);
-void __stdcall FUN_00447380(int value);
-void __stdcall FUN_004464d0(void* gadget);
+void __stdcall RefreshAlliesScreen(int value);
+void __stdcall HandleControlDialogClick(void* gadget);
 
 #pragma pack(push, 1)
 struct PlayerInfo_004466b0 {
@@ -50,16 +50,16 @@ extern Game* g_game;
 Gadget_004466b0* __stdcall LoadGuiLayer(char* sub, const char* name, int flags);
 
 // FUNCTION: 0x4466b0
-void FUN_004466b0()
+void OpenControlDialog()
 {
     PlayerInfo_004466b0* info = g_game->players[g_game->localPlayer].info;
     if (info->bit6) {
         return;
     }
     Gadget_004466b0* gadget = LoadGuiLayer(g_game->gui, "CONTROL.GUI", 0x800);
-    gadget->handler = FUN_004464d0;
+    gadget->handler = HandleControlDialogClick;
     gadget->field_c = (int)g_game;
-    FUN_00447380(1);
+    RefreshAlliesScreen(1);
     info = g_game->players[g_game->localPlayer].info;
     SetButtonStageByName((Class_004a1080*)g_game->gui, "WATCHING", info->watching);
     SetButtonStageByName((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);

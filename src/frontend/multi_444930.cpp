@@ -67,7 +67,7 @@ extern "C" void __stdcall RequestPlayerColor(int value);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x444930
-void __stdcall FUN_00444930(Gadget_00444930* param_1)
+void __stdcall HandleLogoSelectClick(Gadget_00444930* param_1)
 {
     Entry_00444930* entries = param_1->holder->entries;
     Layout_00444930* layout = param_1->holder->layout;

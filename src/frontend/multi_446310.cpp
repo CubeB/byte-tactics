@@ -52,7 +52,7 @@ extern Game* g_game;
 void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 int __stdcall GetDisplayModes(Class_00446310* obj);
-void __stdcall FUN_0045e4c0(Class_00446310* obj);
+void __stdcall SortDisplayModes(Class_00446310* obj);
 void BroadcastPlayerInfo(void);
 
 // FUNCTION: 0x446310
@@ -63,7 +63,7 @@ void FUN_00446310(void)
     obj->modes = (Mode_00446310*)FUN_004d83b0("DISPLAY MODES", 0x4b0);
 
     if (GetDisplayModes(obj) != 0) {
-        FUN_0045e4c0(obj);
+        SortDisplayModes(obj);
         obj->available = (char*)FUN_004d83b0("AVAILABLE MODES", obj->count << 8);
         obj->available[0] = 0;
 

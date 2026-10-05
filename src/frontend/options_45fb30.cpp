@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Opens the help dialog (HELP.GUI) with FUN_0045fac0 as its handler.
+// Opens the help dialog (HELP.GUI) with HandleHelpClick as its handler.
 
 struct Sub_0045fb30 {
     char unknown_0[0x10];
@@ -27,20 +27,20 @@ extern Game* g_game;
 extern int DAT_00512ef0;
 
 Gadget_0045fb30* __stdcall LoadGuiLayer(Sub_0045fb30* sub, const char* name, int flags);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-void __stdcall FUN_0045f8c0(Sub_0045fb30* sub, int a, int b);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
+void __stdcall FillHelpPage(Sub_0045fb30* sub, int a, int b);
 void __stdcall FUN_0049fb10(Sub_0045fb30* sub, int value);
 void __stdcall RenderLayer(Sub_0045fb30* sub, int value);
-int __stdcall FUN_0045fac0(void* gadget);
+int __stdcall HandleHelpClick(void* gadget);
 
 // FUNCTION: 0x45fb30
-void FUN_0045fb30()
+void OpenHelpDialog()
 {
     Gadget_0045fb30* g = LoadGuiLayer(&g_game->sub, "HELP.GUI", 0x1881);
-    g->handler = FUN_0045fac0;
-    FUN_004288d0("dhelp", 0, 0, 0);
+    g->handler = HandleHelpClick;
+    LoadPictureCached("dhelp", 0, 0, 0);
     DAT_00512ef0 = g->info->field_b6;
-    FUN_0045f8c0(&g_game->sub, 0, 0x11);
+    FillHelpPage(&g_game->sub, 0, 0x11);
     FUN_0049fb10(&g_game->sub, 1);
     RenderLayer(&g_game->sub, 0x40);
 }

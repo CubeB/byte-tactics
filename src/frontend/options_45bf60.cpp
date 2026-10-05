@@ -11,7 +11,7 @@ struct Object_004a0bf0;
 void __stdcall FUN_004a0bf0(Object_004a0bf0* obj, char* name, int param_3, int param_4);
 
 // FUNCTION: 0x45bf60
-void __stdcall FUN_0045bf60(char* name, char* label, int speed, int normal)
+void __stdcall SetGameSpeedLabel(char* name, char* label, int speed, int normal)
 {
     char buf[200];
     char* text;

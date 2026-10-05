@@ -157,7 +157,7 @@ void FUN_0041c180();
 void UpdateMouseScroll();
 void FUN_0041d0f0();
 void __stdcall FUN_0041d9f0(int a);
-void FUN_004257a0();
+void BlankScreen();
 int FUN_004572a0();
 void FUN_00463c80();
 void FUN_0047a760();
@@ -316,7 +316,7 @@ void FUN_00499200(void)
             FUN_00491b60();
             FUN_00491d70(1);
             CloseTopScreen(g_game->field_519);
-            FUN_004257a0();
+            BlankScreen();
             int a = ((Class_00435c50*)g_game->net)->FUN_00435c50();
             char* b = ((Class_004352b0*)g_game->net)->FUN_004352b0();
             ((Class_00435110*)g_game->net)->LoadCampaign(b);
@@ -332,7 +332,7 @@ void FUN_00499200(void)
             FUN_00491b60();
             FUN_00491d70(1);
             CloseTopScreen(g_game->field_519);
-            FUN_004257a0();
+            BlankScreen();
             SetCursor(0x14);
             g_game->field_2a3c = saved;
             ((Class_00435a20*)g_game->net)->LoadMissionByName(g_game->field_29a0 + 0x11c);

@@ -76,11 +76,11 @@ extern int* DAT_0051e65c;
 extern int* DAT_0051e660;
 extern int DAT_00507b6c;
 
-void FUN_004257a0();
+void BlankScreen();
 Layer_00478240* __stdcall LoadGuiLayer(void* menu, const char* name, int flags);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name,
                             const char* ext);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 int __stdcall FUN_004bc930(char* name, int flag);
 int __stdcall FindGadgetIndex(Entry_00478240* entries, const char* name, int type);
 void FUN_004c2470();
@@ -98,7 +98,7 @@ Entry_00478240* __stdcall FindGadgetChecked(Entry_00478240* entries,
                                        const char* name);
 void __cdecl FUN_004d85a0(int* p);
 void __stdcall PlaySoundByName(const char* name, int value);
-int __stdcall FUN_00476a60(int** p, int value);
+int __stdcall BuildCampaignNameList(int** p, int value);
 void __stdcall FUN_004a32a0(void* menu, const char* name, int* data, int count,
                             int flag);
 void __stdcall FUN_004a2be0(void* menu, int index);
@@ -114,35 +114,35 @@ public:
     int BuildMissionList(int* param_1);
 };
 
-void __stdcall FUN_004779e0();
-void __stdcall FUN_00477ab0();
+void __stdcall FillMissionList();
+void __stdcall HandleNewGameClick();
 void __stdcall SelectGadgetByName(void* menu, const char* name);
 void __stdcall FUN_0049fb10(void* menu, int value);
 void __stdcall FUN_00491c80(int value);
 
 // FUNCTION: 0x478240
-void __stdcall FUN_00478240(int param_1)
+void __stdcall OpenNewGameMenu(int param_1)
 {
     char buf[256];
 
-    FUN_004257a0();
+    BlankScreen();
     DAT_0051e668 = param_1;
     Layer_00478240* layer =
         LoadGuiLayer(&g_game->menu, "NEWGAME.GUI", 0x400);
     Entry_00478240* entries = layer->entries;
-    layer->handler = FUN_00477ab0;
+    layer->handler = HandleNewGameClick;
     layer->data = g_game;
 
     if (param_1 != 0) {
-        FUN_004288d0("playanygame4", 0, 0, 0);
+        LoadPictureCached("playanygame4", 0, 0, 0);
         DAT_00507b6c = 0;
     } else {
         BuildDataPath(buf, "camps", "*", "TDF");
         if (FUN_004bc930(buf, 0) <= 2) {
-            FUN_004288d0("newcampaign4x", 0, 0, 0);
+            LoadPictureCached("newcampaign4x", 0, 0, 0);
             DAT_00507b6c = 1;
         } else {
-            FUN_004288d0("newcampaign4", 0, 0, 0);
+            LoadPictureCached("newcampaign4", 0, 0, 0);
             DAT_00507b6c = 0;
         }
     }
@@ -211,7 +211,7 @@ void __stdcall FUN_00478240(int param_1)
         FUN_004a0570(&g_game->menu, "CampaignKnob", 1);
         Entry_00478240* c = FindGadgetChecked(entries, "Campaign");
         if (c != 0 && DAT_0051e668 != 0)
-            c->callback = FUN_004779e0;
+            c->callback = FillMissionList;
         else
             c->callback = 0;
 
@@ -222,7 +222,7 @@ void __stdcall FUN_00478240(int param_1)
             DAT_0051e65c = 0;
         }
         PlaySoundByName("smlbutton", 0);
-        int count = FUN_00476a60(&DAT_0051e65c, side);
+        int count = BuildCampaignNameList(&DAT_0051e65c, side);
         FUN_004a32a0(&g_game->menu, "Campaign", DAT_0051e65c, count, 0);
         int ci = FindGadgetIndex(cur->entries, "Campaign", 2);
         FUN_004a2be0(&g_game->menu, ci);

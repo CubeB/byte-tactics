@@ -29,7 +29,7 @@ struct Obj_004aef80;
 struct Class_00452370;
 
 void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
-void FUN_00428730();
+void FreePictureCache();
 void __stdcall FUN_004aeda0(Obj_004aeda0* obj, int i);
 void __stdcall FUN_004aef80(Obj_004aef80* obj);
 void FUN_00431920();
@@ -53,7 +53,7 @@ void ShutdownGame(void)
         DAT_0051e828.tracks[i] = ((Class_004ce7e0*)*(void**)(g_game + 0x10))->GetCategoryOfTrack(i + 1);
     }
     WriteGameRegistryValue("CDLISTS", &DAT_0051e828, 0xaa0);
-    FUN_00428730();
+    FreePictureCache();
     FUN_004aeda0((Obj_004aeda0*)(g_game + 0x519), 1);
     FUN_004aeda0((Obj_004aeda0*)(g_game + 0x519), 0);
     FUN_004aef80((Obj_004aef80*)(g_game + 0x519));

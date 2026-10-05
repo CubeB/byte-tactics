@@ -30,7 +30,7 @@ extern Game* g_game;
 int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, char value);
 
 // FUNCTION: 0x448bf0
-void __stdcall FUN_00448bf0(int side)
+void __stdcall UpdateSideGadget(int side)
 {
     char name[20];
     Player_448bf0* p = &g_game->players[side];

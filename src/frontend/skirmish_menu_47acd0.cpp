@@ -72,7 +72,7 @@ static inline int color_taken(int me)
 }
 
 // FUNCTION: 0x47acd0
-void __stdcall FUN_0047acd0(int param_1)
+void __stdcall CyclePlayerColor(int param_1)
 {
     char buf[0x40];
     Entry_0047acd0* entries = g_game->holder->entries;

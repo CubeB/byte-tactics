@@ -77,7 +77,7 @@ void FUN_0045cae0();
 void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45cc50
-void FUN_0045cc50()
+void LoadSavedSettings()
 {
     FUN_0045c820();
     g_game->volume2 = DAT_00512f42;

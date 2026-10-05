@@ -123,10 +123,10 @@ extern unsigned int DAT_0050550c;
 int __stdcall HandleNetPackets();
 unsigned char __stdcall FindHostSlot();
 void __stdcall FUN_004455b0();
-void __stdcall FUN_00448c70();
-void FUN_00444a20();
-void __stdcall FUN_00445b70(Gui_0044a680* gui, int index);
-void __stdcall FUN_00445c70(Gui_0044a680* gui, int index);
+void __stdcall RefreshBattleRoomRows();
+void ShowSelectedMapInfo();
+void __stdcall UpdateMaxUnitsText(Gui_0044a680* gui, int index);
+void __stdcall UpdateMetalText(Gui_0044a680* gui, int index);
 void __stdcall PlaySoundByName(char* name, int param);
 void __stdcall FUN_0049fa90(Gui_0044a680* gui);
 void __stdcall FUN_0049fad0(Gui_0044a680* gui);
@@ -143,8 +143,8 @@ void __stdcall FUN_004a50e0(int a, char* text, int x, int y, int w, int h);
 void __stdcall FUN_004a5d30(Gui_0044a680* gui, int flag);
 void __stdcall CloseTopScreen(void* gui);
 int __stdcall IsScreenNamed(Gui_0044a680* gui, char* name);
-void __stdcall FUN_0045b9b0(Gadget_0044a680* gadget, int value);
-int __stdcall FUN_0045ba20(Gadget_0044a680* gadget);
+void __stdcall SetSliderFromValue(Gadget_0044a680* gadget, int value);
+int __stdcall ReadSliderValue(Gadget_0044a680* gadget);
 int __stdcall GetTicks();
 unsigned char __stdcall FindGameCdDrive(int param);
 void __stdcall SendNetHeartbeat();
@@ -178,7 +178,7 @@ int CheckMapCrc()
 
 // The slot swap at 0x4453a0, which has no callers. MSVC inlines it only when
 // it is declared inline (it has a loop).
-inline void __stdcall FUN_004453a0(Player_0044a680* param_1, Player_0044a680* param_2)
+inline void __stdcall SwapPlayerSlots(Player_0044a680* param_1, Player_0044a680* param_2)
 {
     Player_0044a680 tmp = *param_2;
     *param_2 = *param_1;
@@ -227,18 +227,18 @@ inline void FUN_00445450()
             break;
         if (p >= end)
             break;
-        FUN_004453a0(q, p);
+        SwapPlayerSlots(q, p);
     }
 }
 
 // The ENERGY slider handler at 0x445d60, which has no callers: /Ob2 inlined it.
-void __stdcall FUN_00445d60(Gui_0044a680* gui, int unused)
+void __stdcall UpdateEnergyText(Gui_0044a680* gui, int unused)
 {
     char text[20];
     Gadget_0044a680* value = FUN_004a0200(gui->table->entries, "ENERGY");
 
     if (value != 0) {
-        int shown = FUN_0045ba20(value) / 100 * 100;
+        int shown = ReadSliderValue(value) / 100 * 100;
         PlayerInfo_0044a680* info;
 
         _itoa(shown, text, 10);
@@ -256,11 +256,11 @@ void __stdcall FUN_00445d60(Gui_0044a680* gui, int unused)
 void __stdcall FUN_00445e20(Gui_0044a680* gui, char* name, int value)
 {
     Gadget_0044a680* gadget = FUN_004a0200(gui->table->entries, name);
-    FUN_0045b9b0(gadget, value);
+    SetSliderFromValue(gadget, value);
 }
 
 // FUNCTION: 0x44a680
-void FUN_0044a680()
+void UpdateBattleRoom()
 {
     Player_0044a680* pl;
     Gadget_0044a680* entries;
@@ -306,14 +306,14 @@ void FUN_0044a680()
                     FUN_00445e20(&g_game->gui, "MAXUNITS", g_game->players[host].info->maxUnits - 0x14);
                     FUN_00445e20(&g_game->gui, "METAL", g_game->players[host].info->metal * 100);
                     FUN_00445e20(&g_game->gui, "ENERGY", g_game->players[host].info->energy * 100);
-                    FUN_00445b70(&g_game->gui, 0);
-                    FUN_00445d60(&g_game->gui, 0);
-                    FUN_00445c70(&g_game->gui, 0);
+                    UpdateMaxUnitsText(&g_game->gui, 0);
+                    UpdateEnergyText(&g_game->gui, 0);
+                    UpdateMetalText(&g_game->gui, 0);
                 } else if (IsScreenNamed(&g_game->gui, "viewmap.gui") != 0) {
                     PlayerInfo_0044a680* info = g_game->players[host].info;
                     if (strcmp(((Class_00435c30*)g_game->map)->FUN_00435c30(), info->map) != 0) {
                         ((Class_00435a20*)g_game->map)->LoadMissionByName(g_game->players[host].info);
-                        FUN_00444a20();
+                        ShowSelectedMapInfo();
                         FUN_0049fad0(&g_game->gui);
                     }
                 }
@@ -361,7 +361,7 @@ void FUN_0044a680()
                 FUN_004a0570(&g_game->gui, "START", synched);
                 FUN_004a0570(&g_game->gui, "SYNCHING", synched == 0);
             }
-            FUN_00448c70();
+            RefreshBattleRoomRows();
             FUN_0049fa90(&g_game->gui);
         }
     }

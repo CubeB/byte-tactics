@@ -43,7 +43,7 @@
 // IsLive is a separate helper (not a shared IsPlaying/IsCounted): the original
 // runs ONE type chain inside it, where a shared IsCounted would run two.
 //
-// Not the calling convention: FUN_00446fb0 is __cdecl with no arguments and
+// Not the calling convention: RebuildAllyList is __cdecl with no arguments and
 // the four callees' ret N values are already consistent with their
 // declarations.
 #include <stdio.h>
@@ -136,7 +136,7 @@ __inline int IsLive_00446fb0(Player_00446fb0* p)
 }
 
 // FUNCTION: 0x446fb0
-void FUN_00446fb0()
+void RebuildAllyList()
 {
     char text[52];
     unsigned char* a = &g_game->players[g_game->localPlayer].field_108[0];

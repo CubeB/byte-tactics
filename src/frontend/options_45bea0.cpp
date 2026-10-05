@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Reads the "MUSICVOL" slider into the music volume setting, then applies the
-// brightness and both volume levels (inlined FUN_0045ba20 and FUN_0045bcc0).
+// brightness and both volume levels (inlined ReadSliderValue and ApplyBrightnessAndVolume).
 
 class Class_004d0070 {
 public:
@@ -61,7 +61,7 @@ static inline void ApplySound()
 }
 
 // FUNCTION: 0x45bea0
-void __stdcall FUN_0045bea0(Object_0045bea0* obj, int unused)
+void __stdcall HandleMusicVolumeSlider(Object_0045bea0* obj, int unused)
 {
     Entry_4a0200* e = FUN_004a0200(obj->holder->entries, "MUSICVOL");
     if (e != 0) {

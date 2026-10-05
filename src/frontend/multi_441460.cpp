@@ -133,7 +133,7 @@ int __stdcall FindGadgetIndex(void* entries, const char* name, int type);
 void __stdcall FUN_00441220(Sub_00441460* sub, char* entry);
 
 // FUNCTION: 0x441460
-int __stdcall FUN_00441460(Gadget_00441460* gadget) {
+int __stdcall ConnectToGame(Gadget_00441460* gadget) {
     int count;
     int left;
     int i;

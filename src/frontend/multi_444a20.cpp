@@ -56,7 +56,7 @@ void __stdcall FUN_0049fa90(Sub_00444a20* obj);
 char* __stdcall FUN_004c5740(char* text);
 
 // FUNCTION: 0x444a20
-void FUN_00444a20()
+void ShowSelectedMapInfo()
 {
     int outX;
     int outY;

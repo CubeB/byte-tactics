@@ -48,13 +48,13 @@ char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004a0bf0(Sub_004608b0* sub, const char* name, int value, int param_4);
 void __stdcall FUN_0049fb10(Sub_004608b0* sub, int value);
 void __stdcall RenderLayer(Sub_004608b0* sub, int value);
-void __stdcall FUN_00460800(void* gadget);
+void __stdcall HandleExitMenuClick(void* gadget);
 
 // FUNCTION: 0x4608b0
-void FUN_004608b0()
+void OpenExitMenu()
 {
     Dialog_004608b0* dialog = LoadGuiLayer(&g_game->sub, "EXITMENU.GUI", 0x1800);
-    dialog->handler = FUN_00460800;
+    dialog->handler = HandleExitMenuClick;
     FindGadgetIndex(dialog->gadgets, "RESTART", 1);
     if (g_game->field_391e9->FUN_00435100() == 1) {
         FUN_004a0570(&g_game->sub, "RESTART", 1);

@@ -78,15 +78,15 @@ int __stdcall LoadMapList(char** out, int param_2, int param_3);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(Menu_00444ea0* menu, char* text, int width, int a, int b);
 Layer_00444ea0* __stdcall LoadGuiLayer(Menu_00444ea0* menu, const char* name, int flags);
-void __stdcall FUN_00444cb0(void* gadget);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall HandleMapSelectClick(void* gadget);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall SortFileList(char* items, int b, int c, int count);
 void __stdcall FUN_004a32a0(Menu_00444ea0* menu, char* name, char* items, int count, int flag);
 Entry_00444ea0* __stdcall FindGadgetChecked(Entry_00444ea0* entries, char* name);
-void __stdcall FUN_00444c40(void* menu, int unused);
+void __stdcall UpdateMapSelection(void* menu, int unused);
 char* __stdcall FUN_004b6af0(char* text, int line);
 void __stdcall FUN_004a2e40(Menu_00444ea0* menu, char* name, int index);
-void FUN_00444a20();
+void ShowSelectedMapInfo();
 void __stdcall FUN_0049fb10(Menu_00444ea0* menu, int value);
 void __stdcall RenderLayer(Menu_00444ea0* menu, int value);
 void __stdcall FUN_004a0570(Menu_00444ea0* menu, char* name, int value);
@@ -100,7 +100,7 @@ void __stdcall FUN_004a0570(Menu_00444ea0* menu, char* name, int value);
 // top of this function then returns early.
 
 // FUNCTION: 0x444ea0
-void FUN_00444ea0()
+void OpenMultiMapSelector()
 {
     DAT_00512990 = (char*)FUN_004d83b0("OLDMAPNAME", 0xc8);
 
@@ -124,14 +124,14 @@ void FUN_00444ea0()
     }
 
     Layer_00444ea0* layer = LoadGuiLayer(&g_game->menu, "SELMAP.GUI", 0x980);
-    layer->handler = FUN_00444cb0;
+    layer->handler = HandleMapSelectClick;
     Data_00444ea0* data = (Data_00444ea0*)FUN_004d83b0("SELECT MAP DATA", 0x20);
     layer->data = data;
-    FUN_004288d0("DSELECTMAP2", 0, 0, 0);
+    LoadPictureCached("DSELECTMAP2", 0, 0, 0);
     LoadMapList(&data->items, 0, 0);
     SortFileList(data->items, 0, 0, n);
     FUN_004a32a0(&g_game->menu, "MAPNAMES", data->items, n, 0);
-    FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = FUN_00444c40;
+    FindGadgetChecked(layer->entries, "MAPNAMES")->onSelect = UpdateMapSelection;
 
     for (int i = 0; i < n; i++) {
         if (strcmp(DAT_00512990, FUN_004b6af0(data->items, i)) == 0) {
@@ -147,7 +147,7 @@ void FUN_00444ea0()
         FUN_004a0570(menu, "MAPPIC", 0);
     } else {
         FUN_004a0570(menu, "MAPPIC", 1);
-        FUN_00444a20();
+        ShowSelectedMapInfo();
     }
     FUN_0049fb10(&g_game->menu, 1);
     RenderLayer(&g_game->menu, 0x40);

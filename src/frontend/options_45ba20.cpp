@@ -10,7 +10,7 @@ struct Class_0045ba20
 };
 
 // FUNCTION: 0x45ba20
-int __stdcall FUN_0045ba20(Class_0045ba20* param_1)
+int __stdcall ReadSliderValue(Class_0045ba20* param_1)
 {
     if (param_1->field_136 <= 1)
         return 0;

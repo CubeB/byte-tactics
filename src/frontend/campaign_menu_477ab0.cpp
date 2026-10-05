@@ -3,10 +3,10 @@
 //
 // What made it match:
 //  * The two blocks written out twice are the zero-caller neighbours
-//    FUN_00477940 (rebuild the campaign list for a side) and FUN_004779e0
+//    FillCampaignList (rebuild the campaign list for a side) and FillMissionList
 //    (rebuild the missions list), matched in their own files and defined
 //    here unannotated so /Ob2 inlines them. Each compiles to its own file's
-//    bytes on its own. Inlined, FUN_004779e0 re-reads the campaign holder
+//    bytes on its own. Inlined, FillMissionList re-reads the campaign holder
 //    from g_game after FUN_004d85a0 and takes the menu at g_game + 0x519 as
 //    its parameter, which gave the original's esi/edi choice. Its second
 //    parameter is unused; the caller passes FindGadgetChecked(entries,
@@ -70,7 +70,7 @@ char* __stdcall FUN_004b6af0(char* text, int line);
 void __stdcall FUN_004a2be0(void* menu, int index);
 void __stdcall FUN_0049fa90(void* menu);
 void __stdcall SetGadgetStatusByName(void* menu, char* name, int flag);
-int __stdcall FUN_00476a60(int** out, int side);
+int __stdcall BuildCampaignNameList(int** out, int side);
 void __stdcall FUN_004a32a0(void* menu, char* name, int* data, int count, int flag);
 void __stdcall FUN_004a0570(void* menu, char* name, int flag);
 void __cdecl FUN_004d85a0(void* ptr);
@@ -78,7 +78,7 @@ char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);
 
-void __stdcall FUN_00477940(int side)
+void __stdcall FillCampaignList(int side)
 {
     Holder_00477ab0* gadget = *(Holder_00477ab0**)(g_game + 0x531);
     if (DAT_0051e65c != 0) {
@@ -86,14 +86,14 @@ void __stdcall FUN_00477940(int side)
         DAT_0051e65c = 0;
     }
     PlaySoundByName("smlbutton", 0);
-    int count = FUN_00476a60(&DAT_0051e65c, side);
+    int count = BuildCampaignNameList(&DAT_0051e65c, side);
     FUN_004a32a0(g_game + 0x519, "Campaign", DAT_0051e65c, count, 0);
     int index = FindGadgetIndex(gadget->entries, "Campaign", 2);
     FUN_004a2be0(g_game + 0x519, index);
     FUN_0049fa90(g_game + 0x519);
 }
 
-void __stdcall FUN_004779e0(Menu_00477ab0* menu, Entry_00477ab0* unused)
+void __stdcall FillMissionList(Menu_00477ab0* menu, Entry_00477ab0* unused)
 {
     Holder_00477ab0* gadgets = menu->holder;
     if (DAT_0051e660 != 0) {
@@ -112,7 +112,7 @@ void __stdcall FUN_004779e0(Menu_00477ab0* menu, Entry_00477ab0* unused)
 }
 
 // FUNCTION: 0x477ab0
-void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
+void __stdcall HandleNewGameClick(Menu_00477ab0* menu)
 {
     Entry_00477ab0* entries = menu->holder->entries;
     char* playerInfo = g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42);
@@ -204,9 +204,9 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
         *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 1;
         *(unsigned char*)(*(int*)(playerInfo + 0x1cd5) + 0x95) = 0;
         if (DAT_00507b6c == 0)
-            FUN_00477940(*(unsigned char*)(*(int*)(g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42) + 0x1b8a) + 0x95));
+            FillCampaignList(*(unsigned char*)(*(int*)(g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42) + 0x1b8a) + 0x95));
         if (DAT_0051e668 != 0) {
-            FUN_004779e0((Menu_00477ab0*)(g_game + 0x519), FindGadgetChecked(entries, "Campaign"));
+            FillMissionList((Menu_00477ab0*)(g_game + 0x519), FindGadgetChecked(entries, "Campaign"));
             FUN_004ab0a0(menu);
             return;
         }
@@ -221,10 +221,10 @@ ArmSide:
         *(int*)(g_game + 0x37ef2) = 0;
         *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 0;
         *(unsigned char*)(*(int*)(playerInfo + 0x1cd5) + 0x95) = 1;
-        FUN_00477940(*(unsigned char*)(*(int*)(g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42) + 0x1b8a) + 0x95));
+        FillCampaignList(*(unsigned char*)(*(int*)(g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42) + 0x1b8a) + 0x95));
         FUN_004a0570(menu, "Campaign", DAT_00507b6c == 0);
         if (DAT_0051e668 != 0)
-            FUN_004779e0((Menu_00477ab0*)(g_game + 0x519), FindGadgetChecked(entries, "Campaign"));
+            FillMissionList((Menu_00477ab0*)(g_game + 0x519), FindGadgetChecked(entries, "Campaign"));
 
     }
 End:

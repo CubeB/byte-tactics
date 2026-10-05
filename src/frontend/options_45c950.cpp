@@ -59,7 +59,7 @@ extern int DAT_00512fd9;
 void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45c950
-void FUN_0045c950()
+void LoadSavedAudioSettings()
 {
     g_game->volume2 = DAT_00512f42;
     ((Class_004ce3e0*)g_game->field_10)->FUN_004ce3e0(&DAT_00512f75);

@@ -64,7 +64,7 @@ void __stdcall FUN_004a0570(Sub_00494050* sub, char* name, int value);
 int __stdcall FindGadgetIndex(void* entries, char* name, int type);
 void __stdcall FUN_0049fc50(Sub_00494050* sub, int index);
 void __stdcall RenderLayer(Sub_00494050* sub, int value);
-void __stdcall FUN_00447380(int value);
+void __stdcall RefreshAlliesScreen(int value);
 void ResetPlayerGadgets();
 
 // FUNCTION: 0x494050
@@ -93,7 +93,7 @@ void OpenTalkDialog()
         FUN_004a0570(&g_game->sub, "SENDTO", 0);
     } else if (multi) {
         SetButtonStageByName(&g_game->sub, "SENDTYPE", g_game->mode_2bf0);
-        FUN_00447380(1);
+        RefreshAlliesScreen(1);
         ResetPlayerGadgets();
     }
     FUN_0049fc50(&g_game->sub, FindGadgetIndex(entries, "TALK", 3));

@@ -8,7 +8,7 @@
 // count guard rather than before it.
 // Builds the visual / video-mode options page (SELVMODE.GUI when param_1 is
 // set, otherwise the VISUALS or VISUALRT page next to the normal menu),
-// installs FUN_0045e100 as its handler, fills the video mode list and the
+// installs HandleVisualOptionsClick as its handler, fills the video mode list and the
 // VIDSLDR / GAMMA sliders, then writes the ANTISHADING, BSHADOWS and SHADING
 // checkboxes back from the flags word at g_game+0x37f06.
 #include <stdio.h>
@@ -81,21 +81,21 @@ struct Game {
 
 extern Game* g_game;
 
-Layer_0045e5e0* __cdecl FUN_0045cfc0();
+Layer_0045e5e0* __cdecl OpenOptionsLayout();
 void FUN_0045ce80();
 void FUN_00428b60();
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 Layer_0045e5e0* __stdcall LoadGuiLayer(Menu_0045e5e0* menu, char* name, int flags);
-void __stdcall FUN_004288d0(char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(char* name, int a, int b, int c);
 void __stdcall FUN_0049fa50(Menu_0045e5e0* menu);
 int __stdcall FindGadgetIndex(Entry_0045e5e0* entries, char* name, int type);
 Entry_0045e5e0* __stdcall FUN_004a0200(Entry_0045e5e0* entries, char* name);
 char* __stdcall FUN_004a0180(Entry_0045e5e0* entries, char* name);
-void __stdcall FUN_0045e4c0(List_0045e5e0* list);
+void __stdcall SortDisplayModes(List_0045e5e0* list);
 int __stdcall GetDisplayModes(List_0045e5e0* list);
-void __stdcall FUN_0045e100(void* layer);
-void __stdcall FUN_0045bbf0(void* obj, int value);
-void __stdcall FUN_0045bd20(void* obj, int value);
+void __stdcall HandleVisualOptionsClick(void* layer);
+void __stdcall HandleVideoModeSlider(void* obj, int value);
+void __stdcall HandleGammaSlider(void* obj, int value);
 void __stdcall SetGadgetStatusByName(Menu_0045e5e0* menu, char* name, int value);
 void __stdcall SetButtonStage(Menu_0045e5e0* menu, int index, int value);
 void __stdcall FUN_004a0570(Menu_0045e5e0* menu, char* name, int value);
@@ -103,7 +103,7 @@ void __stdcall FUN_0049fb10(Menu_0045e5e0* menu, int value);
 void __stdcall RenderLayer(Menu_0045e5e0* menu, int value);
 
 // FUNCTION: 0x45e5e0
-void __stdcall FUN_0045e5e0(int param_1)
+void __stdcall OpenVisualOptions(int param_1)
 {
     int i = 0;
     Layer_0045e5e0* layer;
@@ -112,31 +112,31 @@ void __stdcall FUN_0045e5e0(int param_1)
     if (param_1 != i) {
         layer = LoadGuiLayer(&g_game->menu, "SELVMODE.GUI", 0x800);
     } else {
-        layer = FUN_0045cfc0();
+        layer = OpenOptionsLayout();
         RenderLayer(&g_game->menu, 2);
         FUN_0045ce80();
         if (g_game->flags_37ebe & 1) {
             LoadGuiLayer(&g_game->menu, "VISUALRT.GUI", 0x200);
         } else {
             LoadGuiLayer(&g_game->menu, "VISUALS.GUI", 0x200);
-            FUN_004288d0("optvisual4x", i, i, i);
+            LoadPictureCached("optvisual4x", i, i, i);
         }
     }
     FUN_0049fa50(&g_game->menu);
-    layer->handler = FUN_0045e100;
+    layer->handler = HandleVisualOptionsClick;
 
     if (!(g_game->flags_37ebe & 1)) {
         List_0045e5e0* list = (List_0045e5e0*)FUN_004d83b0("SELECT VIDEO MODE", 0x20);
         layer->data = list;
         list->modes = (Mode_0045e5e0*)FUN_004d83b0("DISPLAY MODES", 0x4b0);
         if (GetDisplayModes(list) != 0) {
-            FUN_0045e4c0(list);
+            SortDisplayModes(list);
             list->buffer = (char*)FUN_004d83b0("AVAILABLE MODES", list->count << 8);
             list->buffer[0] = 0;
             if (FindGadgetIndex(layer->entries, "VIDSLDR", 0xe) != -1) {
                 Entry_0045e5e0* e = FUN_004a0200(layer->entries, "VIDSLDR");
                 e->max = list->count - 1;
-                e->fn = FUN_0045bbf0;
+                e->fn = HandleVideoModeSlider;
                 e->data = list;
                 menu = &g_game->menu;
                 for (int j = 0; j < list->count; j++) {
@@ -194,7 +194,7 @@ void __stdcall FUN_0045e5e0(int param_1)
         if (found != -1) {
             Entry_0045e5e0* e = FUN_004a0200(layer->entries, "GAMMA");
             e->max = 0x14;
-            e->fn = FUN_0045bd20;
+            e->fn = HandleGammaSlider;
             int value = g_game->brightness;
             if (value > 0x14)
                 value = 0x14;

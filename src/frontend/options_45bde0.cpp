@@ -61,7 +61,7 @@ static inline void ApplySound()
 }
 
 // FUNCTION: 0x45bde0
-void __stdcall FUN_0045bde0(Object_0045bde0* obj, int unused)
+void __stdcall HandleEffectsVolumeSlider(Object_0045bde0* obj, int unused)
 {
     Entry_4a0200* e = FUN_004a0200(obj->holder->entries, "FXVOL");
     if (e != 0) {

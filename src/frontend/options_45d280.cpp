@@ -7,11 +7,11 @@
 //
 // MATCH (claude-opus-5-5, from 93.1%). The UNDO flag flip every earlier pass
 // fought (f in ebp, a widened byte xor) was never a spelling problem: UNDO and
-// RESTORE are the zero-caller neighbours FUN_0045c950 and FUN_0045c630, and
-// TRACKMODE's lookup is FUN_0045c510, all defined here without FUNCTION lines
-// and left to /Ob2. Both settings helpers end in FUN_0045bcc0 (the brightness
+// RESTORE are the zero-caller neighbours LoadSavedAudioSettings and FUN_0045c630, and
+// TRACKMODE's lookup is ApplyTrackType, all defined here without FUNCTION lines
+// and left to /Ob2. Both settings helpers end in ApplyBrightnessAndVolume (the brightness
 // and volume tail), and that matters: with the tail written out,
-// FUN_0045c950's IL size is 197, which /Ob2 never even considers (145 is), so
+// LoadSavedAudioSettings's IL size is 197, which /Ob2 never even considers (145 is), so
 // it stays a call. The remaining `lea eax,[edi*8]` in the tail came from
 // indexing with `obj->field_60` itself rather than the saved copy, as the
 // sibling handler 0x45e100 does. The NOTRAK test still needs its result in a
@@ -179,12 +179,12 @@ void __stdcall PlaySoundByName(char* name, int value);
 void __stdcall FUN_004ab0a0(void* obj);
 void __stdcall CloseTopScreen(void* obj);
 void __stdcall SetBrightness(float value);
-void FUN_0045c3f0();
-void FUN_0045d130();
-void FUN_0045d7c0();
+void UpdateTrackGadgets();
+void UpdateMusicGadgets();
+void OpenMusicOptions();
 
 // 0x45bcc0 (matched in its own file).
-void FUN_0045bcc0()
+void ApplyBrightnessAndVolume()
 {
     SetBrightness(0.5 - g_game->field_37f08 * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);
@@ -192,7 +192,7 @@ void FUN_0045bcc0()
 }
 
 // 0x45c510 (matched in its own file).
-void FUN_0045c510()
+void ApplyTrackType()
 {
     Entry_0045d280* gadgets = ((Holder_0045d280*)g_game->table_531)->entries;
     if (g_game->field_37f16 == 4) {
@@ -210,11 +210,11 @@ void FUN_0045c630()
         g_game->flags.word |= 1;
         ((Class_004cdb40*)g_game->sound)->PlayNextTrack();
     }
-    FUN_0045bcc0();
+    ApplyBrightnessAndVolume();
 }
 
 // 0x45c950 (matched in its own file).
-void FUN_0045c950()
+void LoadSavedAudioSettings()
 {
     g_game->volume2 = DAT_00512f42;
     ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(DAT_00512f75);
@@ -227,11 +227,11 @@ void FUN_0045c950()
     f = f ^ ((f ^ DAT_00512f46) & 1);
     g_game->flags.word = f;
     ((Class_004ce580*)g_game->sound)->FUN_004ce580(DAT_00512fd9);
-    FUN_0045bcc0();
+    ApplyBrightnessAndVolume();
 }
 
 // FUNCTION: 0x45d280
-void __stdcall FUN_0045d280(Object_0045d280* obj)
+void __stdcall HandleMusicOptionsClick(Object_0045d280* obj)
 {
     Entry_0045d280* entries = obj->holder->entries;
     if (obj->field_60 == -1) {
@@ -253,7 +253,7 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         g_game->flags.word = f ^ ((f ^ v) & 1);
         ((Class_004cedc0*)g_game->sound)->EnableCdAudio(g_game->flags.word & 1);
         FUN_004ab0a0(obj);
-        FUN_0045d130();
+        UpdateMusicGadgets();
     } else if (IsCurrentGadgetNamed(obj, DAT_00506984)) {  // "TRACKMODE"
         PlaySoundByName(DAT_00502b38, 0);
         g_game->field_37f16 = GetButtonStageByName(obj, DAT_00506984) + 1;
@@ -261,21 +261,21 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         if (g_game->field_37f16 == 3) {
             DAT_00512fe0 = ((Class_004ce5a0*)g_game->sound)->FUN_004ce5a0();
             FUN_004ab0a0(obj);
-            FUN_0045c3f0();
+            UpdateTrackGadgets();
             return;
         }
         if (g_game->field_37f16 == 4) {
             SetButtonStageByName(obj, DAT_0050692c, (unsigned char)((Class_004ce7e0*)g_game->sound)->GetCategoryOfTrack(DAT_00512fe0));
-            FUN_0045c510();
+            ApplyTrackType();
         }
         FUN_004ab0a0(obj);
-        FUN_0045c3f0();
+        UpdateTrackGadgets();
         return;
     } else if (IsCurrentGadgetNamed(obj, DAT_0050692c)) {  // "TRACKTYPE"
         PlaySoundByName(DAT_00502b38, 0);
         int i = obj->field_60;
         ((Class_004ce7c0*)g_game->sound)->SetCategoryOfTrack(DAT_00512fe0, entries[i].value);
-        FUN_0045c3f0();
+        UpdateTrackGadgets();
         FUN_004ab0a0(obj);
         return;
     }
@@ -291,7 +291,7 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         if (DAT_00512fe0 > n)
             DAT_00512fe0 = 1;
         DAT_00512fe0 = ((Class_004ce8c0*)g_game->sound)->SelectTrack(DAT_00512fe0);
-        FUN_0045c3f0();
+        UpdateTrackGadgets();
         FUN_004ab0a0(obj);
         return;
     } else if (IsCurrentGadgetNamed(obj, DAT_0050697c)) {  // "CDPREV"
@@ -300,29 +300,29 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         if (DAT_00512fe0 < 1)
             DAT_00512fe0 = ((Class_004ce450*)g_game->sound)->GetTrackCount();
         DAT_00512fe0 = ((Class_004ce8c0*)g_game->sound)->SelectTrack(DAT_00512fe0);
-        FUN_0045c3f0();
+        UpdateTrackGadgets();
         FUN_004ab0a0(obj);
         return;
     } else if (IsCurrentGadgetNamed(obj, DAT_00506974)) {  // "CDSTOP"
         PlaySoundByName(DAT_00502b38, 0);
         ((Class_004ced40*)g_game->sound)->StopCdAudio();
         DAT_00512fe0 = ((Class_004ce8c0*)g_game->sound)->SelectTrack(1);
-        FUN_0045c3f0();
+        UpdateTrackGadgets();
         FUN_004ab0a0(obj);
         return;
     }
     if (IsCurrentGadgetNamed(obj, DAT_00506998)) {      // "UNDO"
         PlaySoundByName(DAT_00502b38, 0);
-        FUN_0045c950();
+        LoadSavedAudioSettings();
         CloseTopScreen(obj);
-        FUN_0045d7c0();
+        OpenMusicOptions();
         return;
     }
     if (IsCurrentGadgetNamed(obj, DAT_00506990)) {      // "RESTORE"
         PlaySoundByName(DAT_00502b38, 0);
         FUN_0045c630();
         CloseTopScreen(obj);
-        FUN_0045d7c0();
+        OpenMusicOptions();
         return;
     }
     int save = obj->field_60;

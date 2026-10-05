@@ -53,7 +53,7 @@ extern int DAT_00512fd9;
 extern char DAT_00512f75[];
 
 // FUNCTION: 0x45cde0
-void FUN_0045cde0()
+void SaveGameSettings()
 {
     memcpy(DAT_00512f18.block, (char*)g_game + 0x37ee6, 0x53);
     DAT_00512f18.bit0 = g_game->bit1;

@@ -63,7 +63,7 @@ static inline int HasNextMission()
 }
 
 // FUNCTION: 0x41f400
-void FUN_0041f400()
+void EnableEndMissionButtons()
 {
     char next = HasNextMission();
     if (next) {

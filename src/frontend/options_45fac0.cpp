@@ -10,11 +10,11 @@ struct Gadget_0045fac0 {
 int __stdcall IsCurrentGadgetNamed(Gadget_0045fac0* gadget, char* name);
 void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall GetButtonStageByName(Gadget_0045fac0* gadget, char* name);
-void __stdcall FUN_0045f8c0(Gadget_0045fac0* gadget, int a, int b);
+void __stdcall FillHelpPage(Gadget_0045fac0* gadget, int a, int b);
 void __stdcall FUN_004ab0a0(Gadget_0045fac0* gadget);
 
 // FUNCTION: 0x45fac0
-void __stdcall FUN_0045fac0(Gadget_0045fac0* gadget)
+void __stdcall HandleHelpClick(Gadget_0045fac0* gadget)
 {
     if (gadget->field_60 != -1) {
         if (IsCurrentGadgetNamed(gadget, "OK")) {
@@ -23,7 +23,7 @@ void __stdcall FUN_0045fac0(Gadget_0045fac0* gadget)
         }
         if (IsCurrentGadgetNamed(gadget, "Page")) {
             PlaySoundByName("Options", 0);
-            FUN_0045f8c0(gadget, GetButtonStageByName(gadget, "Page"), 0x11);
+            FillHelpPage(gadget, GetButtonStageByName(gadget, "Page"), 0x11);
         }
         FUN_004ab0a0(gadget);
     }

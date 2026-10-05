@@ -51,7 +51,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall IsCurrentGadgetNamed(Gui_004464d0* gui, char* name);
-void __stdcall FUN_00446080(int player);
+void __stdcall OpenRejectDialog(int player);
 void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall FUN_0049fa90(Class_004a1080* obj);
@@ -61,7 +61,7 @@ void __stdcall RejectPlayer(int obj, int value);
 void __stdcall FUN_004ab0a0(Gui_004464d0* gui);
 
 // FUNCTION: 0x4464d0
-void __stdcall FUN_004464d0(Gui_004464d0* gui)
+void __stdcall HandleControlDialogClick(Gui_004464d0* gui)
 {
     PlayerInfo_004464d0* info = g_game->players[g_game->localPlayer].info;
     if (gui->current != -1) {
@@ -69,7 +69,7 @@ void __stdcall FUN_004464d0(Gui_004464d0* gui)
         for (int i = 0; i < 10; i++) {
             sprintf(buf, "LIVEPLYR%d", i);
             if (IsCurrentGadgetNamed(gui, buf)) {
-                FUN_00446080(i);
+                OpenRejectDialog(i);
                 return;
             }
         }

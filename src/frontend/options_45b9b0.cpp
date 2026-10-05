@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Sets field_140 (a step index out of field_136 steps) from a value in the
-// range 0..field_13c, rounding up; the inverse of FUN_0045ba20.
+// range 0..field_13c, rounding up; the inverse of ReadSliderValue.
 
 struct Class_0045b9b0
 {
@@ -12,7 +12,7 @@ struct Class_0045b9b0
 };
 
 // FUNCTION: 0x45b9b0
-void __stdcall FUN_0045b9b0(Class_0045b9b0* param_1, int value)
+void __stdcall SetSliderFromValue(Class_0045b9b0* param_1, int value)
 {
     int max = param_1->field_13c;
     if (value > max)

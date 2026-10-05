@@ -28,7 +28,7 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_00425a90();
+void EnterMainMenuState();
 void __stdcall FUN_00434ab0(int param);
 void ClearKeyQueue();
 void __stdcall FUN_0049fa50(Sub_00496b10* p);
@@ -39,7 +39,7 @@ void FUN_00496bb0();
 // FUNCTION: 0x496b10
 void FUN_00496b10()
 {
-    FUN_00425a90();
+    EnterMainMenuState();
     g_game->bit2 = 0;
     g_game->bit3 = 0;
     g_game->bit0 = 0;

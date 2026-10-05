@@ -18,7 +18,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x4469c0
-int __stdcall FUN_004469c0(int player, int start)
+int __stdcall FindNextAlly(int player, int start)
 {
     Player_004469c0* players = g_game->players;
     if (start == 10)

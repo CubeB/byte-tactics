@@ -36,16 +36,16 @@ extern Game* g_game;
 Gadget_00444c40* __stdcall FindGadgetChecked(void* gadgets, char* name);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_004a0570(Menu_00444c40* menu, char* name, int value);
-void FUN_00444a20();
+void ShowSelectedMapInfo();
 
 // FUNCTION: 0x444c40
-void __stdcall FUN_00444c40(Menu_00444c40* menu, int unused)
+void __stdcall UpdateMapSelection(Menu_00444c40* menu, int unused)
 {
     Gadget_00444c40* g = FindGadgetChecked(menu->inner->gadgets, "MAPNAMES");
     if (g_game->field_391e9->LoadMissionByName(FUN_004b6af0(g->text, g->selected)) == 0) {
         FUN_004a0570(menu, "MAPPIC", 0);
     } else {
         FUN_004a0570(menu, "MAPPIC", 1);
-        FUN_00444a20();
+        ShowSelectedMapInfo();
     }
 }

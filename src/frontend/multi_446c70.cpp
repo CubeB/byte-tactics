@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Recomputes the per-player ally marks. For every active player it walks the
-// players that share its alliance colour (FUN_004469c0, inlined), sets the
+// players that share its alliance colour (FindNextAlly, inlined), sets the
 // corresponding bytes of field_108/field_113 and bit 1 of the player info
 // flags, then keeps that bit only when at least two players share the
 // alliance (CountAlliance, inlined from 0x4468c0).
@@ -77,8 +77,8 @@ static inline int CountAlliance(int alliance)
     return count;
 }
 
-// The original's out-of-line FUN_004469c0, inlined at its only call site.
-static inline int FUN_004469c0(int player, int start)
+// The original's out-of-line FindNextAlly, inlined at its only call site.
+static inline int FindNextAlly(int player, int start)
 {
     Player_00446c70* players = g_game->players;
     if (start == 10)
@@ -108,7 +108,7 @@ void FUN_00446c70()
         if (type == 4)
             continue;
         j = 0;
-        while ((k = FUN_004469c0(i, j)) != -1) {
+        while ((k = FindNextAlly(i, j)) != -1) {
             j = k + 1;
             p->field_113[k] = 1;
             p->field_108[k] = 1;

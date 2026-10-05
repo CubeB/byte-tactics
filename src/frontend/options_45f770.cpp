@@ -17,10 +17,10 @@ void __stdcall PlaySoundByName(char* str, int flag);
 void __stdcall FUN_0049fa90(Gadget_0045f770* gadget);
 void __stdcall FUN_004ab0a0(Gadget_0045f770* gadget);
 void __stdcall FUN_004afcf0(int param_1);
-void FUN_00476ef0();
+void DrawHelpPage();
 
 // FUNCTION: 0x45f770
-void __stdcall FUN_0045f770(Gadget_0045f770* gadget)
+void __stdcall HandleBriefingClick(Gadget_0045f770* gadget)
 {
     if (gadget->field_60 == -1) {
         FUN_004afcf0((int)g_game->field_519);
@@ -32,7 +32,7 @@ void __stdcall FUN_0045f770(Gadget_0045f770* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "TextRegion") || IsCurrentGadgetNamed(gadget, "MOREBAR")) {
         PlaySoundByName("Options", 0);
-        FUN_00476ef0();
+        DrawHelpPage();
         FUN_0049fa90(gadget);
         FUN_004ab0a0(gadget);
     }

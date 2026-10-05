@@ -156,7 +156,7 @@ void __stdcall RecalculateLineOfSight(int x);
 void __stdcall LoadSavedGameState(void* mission);
 void CreateMissionUnits();
 void FUN_0041d1f0();
-void __stdcall FUN_004288d0(int a, int b, int c, int d);
+void __stdcall LoadPictureCached(int a, int b, int c, int d);
 void BroadcastPlayerInfo();
 void UpdateNetGameInfo();
 void FUN_00464f80();
@@ -405,7 +405,7 @@ tail:
     {
         int pnum = *(unsigned char*)(g_game + 0x2a43);
         char* rec = g_game + 0x1b63 + 0x14b * pnum;
-        FUN_004288d0(0, 0, 0, 0);
+        LoadPictureCached(0, 0, 0, 0);
         char* pl = *(char**)(rec + 0x27);
         int side = *(unsigned char*)(pl + 0x95);
         sprintf(g_game + 0x37ea0, "%sMAIN2.GUI", g_game + 0x37f5b + 0x232 * side);

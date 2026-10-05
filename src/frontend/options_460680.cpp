@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 // Opens the YESORNO.GUI dialog and fills its CHOICE1 / CHOICE2 / TITLE
-// fields; FUN_004605c0 is installed as the handler.
+// fields; HandleSurrenderChoice is installed as the handler.
 #include <string.h>
 
 struct Sub_00460680 {
@@ -37,10 +37,10 @@ int __stdcall FindGadgetIndex(void* entries, const char* name, int type);
 void __stdcall FUN_004a0bf0(Sub_00460680* sub, const char* name, const char* text, int param_4);
 void __stdcall SelectGadgetByName(Sub_00460680* sub, const char* name);
 void __stdcall RenderLayer(Sub_00460680* sub, int value);
-void __stdcall FUN_004605c0(void* gadget);
+void __stdcall HandleSurrenderChoice(void* gadget);
 
 // FUNCTION: 0x460680
-void FUN_00460680()
+void OpenSurrenderDialog()
 {
     Gadget_00460680* gadget = LoadGuiLayer(&g_game->sub, "YESORNO.GUI", 0x1000);
     if (gadget == 0) {
@@ -65,6 +65,6 @@ void FUN_00460680()
         FUN_004a0bf0(&g_game->sub, "TITLE", title, 0);
     }
     SelectGadgetByName(&g_game->sub, "CHOICE2");
-    gadget->handler = FUN_004605c0;
+    gadget->handler = HandleSurrenderChoice;
     RenderLayer(&g_game->sub, 0x40);
 }

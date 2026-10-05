@@ -62,7 +62,7 @@ void __stdcall PlaySoundByName(char* str, int flag);
 int __stdcall GetButtonStageByName(Gadget_0045ead0* gadget, char* name);
 void __stdcall CloseTopScreen(Gadget_0045ead0* gadget);
 void __stdcall FUN_004ab0a0(Gadget_0045ead0* gadget);
-void FUN_0045ed50();
+void OpenSpeedOptions();
 
 // FUNCTION: 0x45ead0
 void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
@@ -95,7 +95,7 @@ void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
         g_game->field_37f18 = DAT_00512f4a;
         g_game->field_37f27 = DAT_00512f59;
         CloseTopScreen(gadget);
-        FUN_0045ed50();
+        OpenSpeedOptions();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "RESTORE")) {
@@ -109,7 +109,7 @@ void __stdcall FUN_0045ead0(Gadget_0045ead0* gadget)
         g_game->field_37f17 = 10;
         g_game->field_37f18 = 5;
         CloseTopScreen(gadget);
-        FUN_0045ed50();
+        OpenSpeedOptions();
         return;
     }
     int i = gadget->field_60;

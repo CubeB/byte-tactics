@@ -35,7 +35,7 @@ extern int DAT_00512fe0;
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 
 // FUNCTION: 0x45c510
-void FUN_0045c510()
+void ApplyTrackType()
 {
     Gadget_0045c510* gadgets = g_game->holder->gadgets;
     if (g_game->state == 4) {

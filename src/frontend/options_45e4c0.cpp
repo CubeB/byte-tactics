@@ -2,7 +2,7 @@
 
 // A display mode (width, height, refresh rate), and the list of the 8-bit
 // modes the driver reports (see EnumModesCallback, the EnumDisplayModes callback
-// that fills one in). FUN_0045e4c0 sorts the list by (width, height) with a
+// that fills one in). SortDisplayModes sorts the list by (width, height) with a
 // selection sort, then drops every mode smaller than 640x480.
 struct Mode_0045e4c0 {
     int width;                       // +0x0
@@ -16,7 +16,7 @@ struct ModeList_0045e4c0 {
 };
 
 // FUNCTION: 0x45e4c0
-void __stdcall FUN_0045e4c0(ModeList_0045e4c0* list)
+void __stdcall SortDisplayModes(ModeList_0045e4c0* list)
 {
     int i;
     int j;

@@ -14,7 +14,7 @@ void __stdcall FillSurface(int param_1, int param_2);
 void FlipScreen();
 
 // FUNCTION: 0x4257a0
-void FUN_004257a0()
+void BlankScreen()
 {
     SetOffscreenSurface(g_game->field_37e1b);
     FillSurface(0, 0);

@@ -81,11 +81,11 @@ struct Game {
 
 extern Game* g_game;
 
-Object_0045de30* __cdecl FUN_0045cfc0();
+Object_0045de30* __cdecl OpenOptionsLayout();
 void FUN_0045ce80();
 void __stdcall RenderLayer(Menu_0045de30* obj, int value);
 int __stdcall LoadGuiLayer(Menu_0045de30* obj, char* name, int size);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall FUN_0049fa50(Menu_0045de30* obj);
 void __stdcall SetGadgetStatusByName(Menu_0045de30* obj, char* name, int value);
 int __stdcall FindGadgetIndex(Entry_0045de30* entries, char* name, int type);
@@ -97,30 +97,30 @@ void __stdcall FUN_0049fa90(Menu_0045de30* obj);
 void __stdcall FUN_0049fb10(Menu_0045de30* obj, int value);
 void FUN_00428b60();
 
-void __stdcall FUN_0045da90(void* obj, int arg);
-void __stdcall FUN_0045bde0(void* obj, int arg);
+void __stdcall HandleSoundOptionsClick(void* obj, int arg);
+void __stdcall HandleEffectsVolumeSlider(void* obj, int arg);
 
 // FUNCTION: 0x45de30
-void FUN_0045de30()
+void OpenSoundOptions()
 {
-    Object_0045de30* obj = FUN_0045cfc0();
+    Object_0045de30* obj = OpenOptionsLayout();
     RenderLayer(&g_game->menu, 2);
     FUN_0045ce80();
     if (g_game->flags_37ebe & 1) {
         LoadGuiLayer(&g_game->menu, "SOUNDSRT.GUI", 0x200);
     } else {
         LoadGuiLayer(&g_game->menu, "SOUNDS", 0x200);
-        FUN_004288d0("optsound4x", 0, 0, 0);
+        LoadPictureCached("optsound4x", 0, 0, 0);
     }
     Entry_0045de30* entries = obj->entries;
-    obj->fn = FUN_0045da90;
+    obj->fn = HandleSoundOptionsClick;
     FUN_0049fa50(&g_game->menu);
     SetGadgetStatusByName(&g_game->menu, "SOUND", 1);
     int found = FindGadgetIndex(obj->entries, "FXVOL", 0xe);
     if (found != -1) {
         Entry_0045de30* e = FUN_004a0200(entries, "FXVOL");
         e->max = 0x40;
-        e->fn = FUN_0045bde0;
+        e->fn = HandleEffectsVolumeSlider;
         e->pos = g_game->volume1;
         int value = e->pos;
         if (value > 0x40) {

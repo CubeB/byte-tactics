@@ -121,8 +121,8 @@ void __cdecl operator delete(void* p);
 void __stdcall RegisterDataArchives();
 char __stdcall FindGameCdDrive(int flag);
 void __stdcall FUN_0041da30();
-void __stdcall FUN_004257a0();
-void __stdcall FUN_00425860(int code, int line, char* file);
+void __stdcall BlankScreen();
+void __stdcall SetFrontendState(int code, int line, char* file);
 void* __stdcall FUN_00432520(char* path);
 void __stdcall FUN_00432590(void* handle);
 void* __stdcall FUN_004325b0(char* path);
@@ -212,7 +212,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             goto invalid;
         }
         RegisterDataArchives();
-        FUN_004257a0();
+        BlankScreen();
         if (g_game->field_2cbe != 20) {
             g_game->field_2cbe = 20;
             FUN_004ab400(g_game->message, g_game->p148cf);
@@ -301,9 +301,9 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             g_game->field_391f1 = 2;
             g_game->field_391f5 = FUN_00496bb0;
             SetCloseHandler(LeaveNetGameCallback, 0);
-            FUN_00425860(0xe, 0x48c, "c:\\cavedog\\wargame\\wargame.cpp");
+            SetFrontendState(0xe, 0x48c, "c:\\cavedog\\wargame\\wargame.cpp");
         }
-        FUN_004257a0();
+        BlankScreen();
         return;
     }
 invalid:

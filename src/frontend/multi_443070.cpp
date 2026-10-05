@@ -19,7 +19,7 @@ static inline char* NameSlot(char* buffer)
 }
 
 // FUNCTION: 0x443070
-BOOL __stdcall FUN_00443070(REFGUID guidDataType, DWORD dataSize, LPCVOID data, LPVOID context)
+BOOL __stdcall EnumModemAddressCallback(REFGUID guidDataType, DWORD dataSize, LPCVOID data, LPVOID context)
 {
     char* name = (char*)data;
     if (IsEqualGUID(guidDataType, DAT_004fcec8)) {

@@ -79,11 +79,11 @@ void __stdcall FillSurface(int a, int b);
 void FlipScreen();
 void FUN_00491a70();
 Dialog_004263b0* __stdcall LoadGuiLayer(Sub_004263b0* sub, const char* name, int flags);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall PlayLoopingSoundByName(const char* name, int a);
 void __stdcall FUN_0049fa50(Sub_004263b0* sub);
-void __stdcall FUN_00425d80(void* gadget);
-void __stdcall FUN_00425b80();
+void __stdcall HandleMainMenuClick(void* gadget);
+void __stdcall UpdateMenuSparks();
 
 void __stdcall BuildDataPath(char* dest, const char* a, const char* b, const char* c);
 void* __stdcall FUN_004bbe50(char* name, int flag);
@@ -101,14 +101,14 @@ void __stdcall SetTextColors(unsigned int a, int b);
 void FUN_004c2870();
 void FUN_004c2bb0();
 void* __cdecl FUN_004d83b0(const char* name, int size);
-void __stdcall FUN_00426200();
+void __stdcall OpenCloseCdPlayerDialog();
 int __stdcall CheckDirectXVersion(int a, int b, int c, int d, int e);
 char* __stdcall FUN_004c5740(const char* text);
 void __stdcall OpenMessageBox(Sub_004263b0* sub, char* text, int a, int b, int c);
 void __stdcall CheckGpfVersion();
 
 // FUNCTION: 0x4263b0
-void __stdcall FUN_004263b0()
+void __stdcall OpenMainMenu()
 {
     while (g_game->sub.current != 0) {
         CloseTopScreen(&g_game->sub);
@@ -121,11 +121,11 @@ void __stdcall FUN_004263b0()
     FUN_00491a70();
 
     Dialog_004263b0* dialog = LoadGuiLayer(&g_game->sub, "MAINMENU.GUI", 0x80);
-    dialog->handler = FUN_00425d80;
+    dialog->handler = HandleMainMenuClick;
     dialog->field_c = 0;
-    dialog->field_1c = FUN_00425b80;
+    dialog->field_1c = UpdateMenuSparks;
 
-    FUN_004288d0("FrontendX", 1, 1, 0);
+    LoadPictureCached("FrontendX", 1, 1, 0);
     PlayLoopingSoundByName("BGM", 0);
     ((Class_004ce690*)g_game->field_10)->SetTrackCategory(4);
     FUN_0049fa50(&g_game->sub);
@@ -164,7 +164,7 @@ void __stdcall FUN_004263b0()
 
     if (DAT_0051229c == 0) {
         if (((Class_004ce1d0*)g_game->field_10)->HasCdPlayerWindow()) {
-            FUN_00426200();
+            OpenCloseCdPlayerDialog();
             DAT_0051229c = 1;
         }
     }

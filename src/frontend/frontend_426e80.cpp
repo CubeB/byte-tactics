@@ -1,30 +1,30 @@
 // Decompiled by longcat-2.5-preview-free, edited and finished by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 //
 // The front-end state machine of frontend.cpp (line numbers in the
-// FUN_004256d0 calls are the original __LINE__ values). MATCH.
+// CheckFrontendStateChange calls are the original __LINE__ values). MATCH.
 //
 // What made it match, after many attempts that wrote every inlined helper out
 // by hand (86.9% best):
 //  - The case bodies are calls of small frontend.cpp helpers that /Ob2
-//    inlined: FUN_004256d0 (log a state change), FUN_004257e0 (set the
-//    sub-state), FUN_00425860 (set the state, then the sub-state to 0, from
-//    its own line 155 = 0x9b), FUN_00425930 (apply a pending sub-state),
-//    FUN_00425730 / FUN_00425750 (set / show the error text), FUN_004257a0 and
-//    FUN_00425b60 (redraw), FUN_00426d20 (use the service or set the error
+//    inlined: CheckFrontendStateChange (log a state change), SetFrontendSubState (set the
+//    sub-state), SetFrontendState (set the state, then the sub-state to 0, from
+//    its own line 155 = 0x9b), ApplyPendingSubState (apply a pending sub-state),
+//    SetFrontendErrorText / ShowFrontendErrorText (set / show the error text), BlankScreen and
+//    FUN_00425b60 (redraw), ConnectToService (use the service or set the error
 //    state). Writing them as calls instead of expanded code fixed every
 //    register rotation the hand-expanded version had.
 //  - In this huge function MSVC's inline budget ran out, so the same helper is
 //    inlined at one site and called at another, and an inlined helper's own
 //    callees are sometimes left as calls. Defining the real helpers here lets
 //    MSVC choose for itself, and it chooses differently from the original (it
-//    inlines FUN_004256d0 at most of the early sites, where the exe calls it,
+//    inlines CheckFrontendStateChange at most of the early sites, where the exe calls it,
 //    and grows the function by 1-2 KB). So the helpers are static
 //    copies, one per inlining outcome the exe shows, and the calls that stayed
 //    out of line call the real functions: SetState and SetSubState call
-//    FUN_004256d0, SetStateSubCall calls FUN_004257e0, the *Logged forms have
+//    CheckFrontendStateChange, SetStateSubCall calls SetFrontendSubState, the *Logged forms have
 //    the log inlined too (lines 0x5ea, 0x5f0, 0x613, 0x640, 0x643), and the two
-//    FUN_00426d20 expansions differ (UseService in case 15, UseServiceCalls in
-//    case 20, where its FUN_00425860 call stayed out of line).
+//    ConnectToService expansions differ (UseService in case 15, UseServiceCalls in
+//    case 20, where its SetFrontendState call stayed out of line).
 //  - Case 15's draw-only case 1 sits between cases 13 and 2. Its code is
 //    entirely cross-jumped into case 20's redraw tail, but its position decides
 //    the register of case 20's bit test (dl, not cl) and all of case 20 after.
@@ -112,15 +112,15 @@ struct Pd_00426e80 {
 };
 #pragma pack(pop)
 
-int FUN_00428bc0(void);
+int CodeChecksumFailed(void);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004c22d0(int param);
 void __stdcall FUN_00434ab0(int param);
-void __stdcall FUN_00426780(char* param);
-void __stdcall FUN_00478240(int param);
+void __stdcall PlayMovie(char* param);
+void __stdcall OpenNewGameMenu(int param);
 void __stdcall SetGameMode(int param);
 void __stdcall FUN_0041d9f0(int param);
-int __stdcall FUN_00443ff0(int param);
+int __stdcall SelectConnection(int param);
 int __stdcall CreateLocalPlayer(unsigned char playerIndex, int param2);
 int __stdcall JoinNetGame(V4i v, int idx);
 int __stdcall GetTextPixelWidth(char* param);
@@ -136,59 +136,59 @@ void __stdcall HAPINET_quitgame(int param);
 void __stdcall InitPacketManager(int param1, int param2);
 void __stdcall PopKey(void);
 Obj_00426e80* __stdcall GetDisplay(void);
-void __stdcall FUN_004263b0(void);
+void __stdcall OpenMainMenu(void);
 void __stdcall SaveSettings(void);
 int __stdcall InitLobbiedConnection(void);
 void __stdcall ResetPlayerSlots(void);
-void __stdcall FUN_004777a0(void);
+void __stdcall OpenSingleMenu(void);
 void __stdcall LoadSettings(void);
-void __stdcall FUN_00478e80(void);
-void __stdcall FUN_0047bbb0(void);
-void __stdcall FUN_00444580(void);
-void __stdcall FUN_00443100(void);
-void __stdcall FUN_00442560(void);
-void __stdcall FUN_004421f0(void);
-void __stdcall FUN_00443cb0(void);
+void __stdcall OpenMissionBriefing(void);
+void __stdcall OpenSkirmishMenu(void);
+void __stdcall FillProviderList(void);
+void __stdcall OpenModemDialog(void);
+void __stdcall OpenSerialDialog(void);
+void __stdcall OpenTcpDialog(void);
+void __stdcall OpenSelectGameDialog(void);
 void __stdcall CloseNetSession(void);
 void __stdcall CreateNetGame(void);
 int __stdcall InitNetConnection(void);
 void __stdcall LeaveNetGame(void);
 void __stdcall BroadcastPlayerInfo(void);
-void __stdcall FUN_00460160(void);
+void __stdcall OpenOptionsPanel(void);
 void __stdcall FinishUnitSync(void);
-void __stdcall FUN_00449bb0(void);
-void __stdcall FUN_0044a680(void);
-int __stdcall FUN_00441bc0(void);
+void __stdcall OpenBattleRoom(void);
+void __stdcall UpdateBattleRoom(void);
+int __stdcall GetServiceProviderIndex(void);
 void __stdcall ReportGameEvent(int param);
 void __stdcall DeleteUnitSync(void);
 void __stdcall ShutdownScoreTables(void);
 void __stdcall FUN_00491a70(void);
-int __stdcall FUN_004436e0(void);
-void __stdcall FUN_0041f630(void);
+int __stdcall InitScoreReporting(void);
+void __stdcall ShowEndMissionScreen(void);
 void __stdcall FUN_004c2470(void);
 void __stdcall FUN_004c2870(void);
 struct Class_00463c60 { void SetType(int param); };
 struct Class_00435a20 { void LoadMissionByName(int param); };
 
-void __stdcall FUN_004256d0(int line, char* file);
-void __stdcall FUN_004257e0(char state, int line, char* file);
-void __stdcall FUN_00425860(char state, int line, char* file);
+void __stdcall CheckFrontendStateChange(int line, char* file);
+void __stdcall SetFrontendSubState(char state, int line, char* file);
+void __stdcall SetFrontendState(char state, int line, char* file);
 
 // Inlined copies of the front-end state helpers, one per inlining outcome
-// (see the top of the file). LogStateChange is FUN_004256d0.
+// (see the top of the file). LogStateChange is CheckFrontendStateChange.
 static void LogStateChange(int line, char* file)
 {
     char buf[256];
-    if (FUN_00428bc0()) {
+    if (CodeChecksumFailed()) {
         sprintf(buf, DAT_00502f9c, line, file);
         OpenMessageBox(g_game + 0x519, buf, 500, 1, 1);
     }
 }
 
-// FUN_004257e0 with its log call left out of line.
+// SetFrontendSubState with its log call left out of line.
 static void SetSubState(char state, int line, char* file)
 {
-    FUN_004256d0(line, file);
+    CheckFrontendStateChange(line, file);
     g_game[0x2bbf] = state;
     g_game[0x2bc0] = state;
 }
@@ -200,30 +200,30 @@ static void SetSubStateLogged(char state, int line, char* file)
     g_game[0x2bc0] = state;
 }
 
-// FUN_00425860 with the sub-state change inlined too.
+// SetFrontendState with the sub-state change inlined too.
 static void SetState(char state, int line, char* file)
 {
-    FUN_004256d0(line, file);
+    CheckFrontendStateChange(line, file);
     g_game[0x2bbe] = state;
     SetSubState(0, 0x9b, DAT_00503004);
 }
 
-// FUN_00425860 with the sub-state change left out of line.
+// SetFrontendState with the sub-state change left out of line.
 static void SetStateSubCall(char state, int line, char* file)
 {
-    FUN_004256d0(line, file);
+    CheckFrontendStateChange(line, file);
     g_game[0x2bbe] = state;
-    FUN_004257e0(0, 0x9b, DAT_00503004);
+    SetFrontendSubState(0, 0x9b, DAT_00503004);
 }
 
 static void SetStateLogged(char state, int line, char* file)
 {
     LogStateChange(line, file);
     g_game[0x2bbe] = state;
-    FUN_004257e0(0, 0x9b, DAT_00503004);
+    SetFrontendSubState(0, 0x9b, DAT_00503004);
 }
 
-// FUN_00425930.
+// ApplyPendingSubState.
 static void UpdateSubState()
 {
     char next = g_game[0x2bc0];
@@ -233,12 +233,12 @@ static void UpdateSubState()
 
 // Real frontend.cpp helpers that are always inlined here; they have their own
 // files, so they are defined without annotations.
-void __stdcall FUN_00425730(char* text)
+void __stdcall SetFrontendErrorText(char* text)
 {
     strncpy(DAT_00511fb8, text, 0xf9);
 }
 
-void FUN_00425750()
+void ShowFrontendErrorText()
 {
     if (strlen(DAT_00511fb8) != 0) {
         OpenMessageBox(g_game + 0x519, DAT_00511fb8, GetTextPixelWidth(DAT_00511fb8) + 0x14, 1, 1);
@@ -246,7 +246,7 @@ void FUN_00425750()
     }
 }
 
-void FUN_004257a0()
+void BlankScreen()
 {
     SetOffscreenSurface(*(int*)(g_game + 0x37e1b));
     FillSurface(0, 0);
@@ -261,16 +261,16 @@ void FUN_00425b60()
     FlipScreen();
 }
 
-// FUN_00426d20, as inlined in case 15 and in case 20.
+// ConnectToService, as inlined in case 15 and in case 20.
 static int UseService(void)
 {
     if (InitNetConnection()) {
         ((Bits_00426e80*)(g_game + 0x2a44))->b0 = 1;
         return 1;
     }
-    FUN_00425730(DAT_0050324c);
+    SetFrontendErrorText(DAT_0050324c);
     SetStateSubCall(0xf, 0x3bc, DAT_00503004);
-    FUN_004257e0(0, 0x3bd, DAT_00503004);
+    SetFrontendSubState(0, 0x3bd, DAT_00503004);
     return 0;
 }
 
@@ -280,14 +280,14 @@ static int UseServiceCalls(void)
         ((Bits_00426e80*)(g_game + 0x2a44))->b0 = 1;
         return 1;
     }
-    FUN_00425730(DAT_0050324c);
-    FUN_00425860(0xf, 0x3bc, DAT_00503004);
-    FUN_004257e0(0, 0x3bd, DAT_00503004);
+    SetFrontendErrorText(DAT_0050324c);
+    SetFrontendState(0xf, 0x3bc, DAT_00503004);
+    SetFrontendSubState(0, 0x3bd, DAT_00503004);
     return 0;
 }
 
 // FUNCTION: 0x426e80
-void FUN_00426e80(void)
+void RunFrontendStateMachine(void)
 {
     UpdateSubState();
 
@@ -297,14 +297,14 @@ void FUN_00426e80(void)
         FUN_004c22d0(0);
         if (p->flag) {
             if (*(int*)(g_game + 0x3923d)) {
-                FUN_00426780(DAT_0050329c);
+                PlayMovie(DAT_0050329c);
                 SetState(1, 0x3dc, DAT_00503004);
                 *(int*)(g_game + 0x3923d) = 0;
                 SaveSettings();
                 return;
             }
             if (*(int*)(g_game + 0x39245) == 0) {
-                FUN_00426780(DAT_0050329c);
+                PlayMovie(DAT_0050329c);
                 SetState(2, 0x3e6, DAT_00503004);
             } else
                 SetState(2, 0x3e9, DAT_00503004);
@@ -327,7 +327,7 @@ void FUN_00426e80(void)
             }
             FUN_00434ab0(0);
             ((Bits_00426e80*)(g_game + 0x2bee))->b4 = 0;
-            FUN_004263b0();
+            OpenMainMenu();
             if (DAT_00512c80 == 0) {
                 SetSubState(1, 0x40d, DAT_00503004);
                 FUN_004c22d0(1);
@@ -355,19 +355,19 @@ void FUN_00426e80(void)
             SetState(3, 0x429, DAT_00503004);
             return;
         case 8:
-            FUN_004257a0();
+            BlankScreen();
             QuitApp(0);
             return;
         }
         break;
 
     case 1:
-        FUN_00426780(DAT_00503294);
+        PlayMovie(DAT_00503294);
         SetState(2, 0x437, DAT_00503004);
         break;
 
     case 3:
-        FUN_00426780(DAT_0050328c);
+        PlayMovie(DAT_0050328c);
         SetState(2, 0x43c, DAT_00503004);
         break;
 
@@ -377,8 +377,8 @@ void FUN_00426e80(void)
             SetSubState(1, 0x443, DAT_00503004);
             return;
         case 1:
-            FUN_00426780(DAT_00503284);
-            FUN_00426780(DAT_0050328c);
+            PlayMovie(DAT_00503284);
+            PlayMovie(DAT_0050328c);
             ((Bits_00426e80*)(g_game + 0x2a44))->b2 = 0;
             SetState(2, 0x44a, DAT_00503004);
             SetGameMode(2);
@@ -392,8 +392,8 @@ void FUN_00426e80(void)
             SetSubState(1, 0x454, DAT_00503004);
             return;
         case 1:
-            FUN_00426780(DAT_0050327c);
-            FUN_00426780(DAT_0050328c);
+            PlayMovie(DAT_0050327c);
+            PlayMovie(DAT_0050328c);
             ((Bits_00426e80*)(g_game + 0x2a44))->b2 = 0;
             SetState(2, 0x45b, DAT_00503004);
             SetGameMode(2);
@@ -405,7 +405,7 @@ void FUN_00426e80(void)
         PopKey();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
-            FUN_004777a0();
+            OpenSingleMenu();
             ResetPlayerSlots();
             SetSubState(1, 0x47c, DAT_00503004);
             return;
@@ -413,7 +413,7 @@ void FUN_00426e80(void)
             FUN_00425b60();
             return;
         case 10:
-            FUN_00478240(1);
+            OpenNewGameMenu(1);
             SetState(8, 0x485, DAT_00503004);
             SetSubState(1, 0x486, DAT_00503004);
             return;
@@ -424,14 +424,14 @@ void FUN_00426e80(void)
             return;
         case 13:
             SetState(0xa, 0x497, DAT_00503004);
-            FUN_00460160();
+            OpenOptionsPanel();
             SetSubState(1, 0x499, DAT_00503004);
             return;
         case 3:
             SetState(2, 0x49d, DAT_00503004);
             return;
         case 14:
-            FUN_00478240(1);
+            OpenNewGameMenu(1);
             SetState(8, 0x4a2, DAT_00503004);
             SetSubState(1, 0x4a3, DAT_00503004);
             return;
@@ -473,7 +473,7 @@ void FUN_00426e80(void)
         PopKey();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
-            FUN_0047bbb0();
+            OpenSkirmishMenu();
             SetSubState(1, 0x4d9, DAT_00503004);
             return;
         case 1:
@@ -495,7 +495,7 @@ void FUN_00426e80(void)
         PopKey();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
-            FUN_00478e80();
+            OpenMissionBriefing();
             SetSubState(1, 0x4f5, DAT_00503004);
             return;
         case 1:
@@ -507,18 +507,18 @@ void FUN_00426e80(void)
         case 3:
             switch ((unsigned char)g_game[0x2bbe]) {
             case 0xb:
-                FUN_00478240(0);
+                OpenNewGameMenu(0);
                 SetState(8, 0x505, DAT_00503004);
                 SetSubState(1, 0x506, DAT_00503004);
                 return;
             case 0xc:
-                FUN_00478240(1);
+                OpenNewGameMenu(1);
                 SetState(8, 0x50a, DAT_00503004);
                 SetSubState(1, 0x50b, DAT_00503004);
                 return;
             case 0xd:
                 FUN_004c2470();
-                FUN_0041f630();
+                ShowEndMissionScreen();
                 SetGameMode(7);
                 FUN_0041d9f0(7);
                 FUN_004c2870();
@@ -544,15 +544,15 @@ void FUN_00426e80(void)
                 SetSubState(0x12, 0x52e, DAT_00503004);
                 return;
             }
-            FUN_00444580();
-            if (FUN_00443ff0(-1))
+            FillProviderList();
+            if (SelectConnection(-1))
                 SetSubState(2, 0x534, DAT_00503004);
             else
                 SetSubState(1, 0x536, DAT_00503004);
             return;
         case 13:
             SetState(0xa, 0x53b, DAT_00503004);
-            FUN_00460160();
+            OpenOptionsPanel();
             SetSubState(1, 0x53d, DAT_00503004);
             return;
         case 1:
@@ -562,19 +562,19 @@ void FUN_00426e80(void)
             if (memcmp(g_game + 0x39201, DAT_004fcdc8, 0x10) == 0) {
                 SetState(0x14, 0x547, DAT_00503004);
                 SetSubState(1, 0x548, DAT_00503004);
-                FUN_00443100();
+                OpenModemDialog();
                 return;
             }
             if (memcmp(g_game + 0x39201, DAT_004fcdb8, 0x10) == 0) {
                 SetState(0x14, 0x54e, DAT_00503004);
                 SetSubState(1, 0x54f, DAT_00503004);
-                FUN_00442560();
+                OpenSerialDialog();
                 return;
             }
             if (memcmp(g_game + 0x39201, DAT_004fcda8, 0x10) == 0) {
                 SetState(0x14, 0x555, DAT_00503004);
                 SetSubState(1, 0x556, DAT_00503004);
-                FUN_004421f0();
+                OpenTcpDialog();
                 return;
             }
             if (UseService()) {
@@ -622,12 +622,12 @@ void FUN_00426e80(void)
                 }
                 *(V4i*)(g_game + 0x2ba2) = DAT_004fdaf0;
             }
-            FUN_00443cb0();
-            FUN_00425750();
+            OpenSelectGameDialog();
+            ShowFrontendErrorText();
             return;
         case 1:
             FUN_00425b60();
-            FUN_00425750();
+            ShowFrontendErrorText();
             return;
         case 17:
             CreateNetGame();
@@ -643,9 +643,9 @@ void FUN_00426e80(void)
                 return;
             }
             if (g_game[0x2bbf] == 0x12) {
-                FUN_004257a0();
+                BlankScreen();
                 FUN_00491a70();
-                if (FUN_004436e0()) {
+                if (InitScoreReporting()) {
                     FUN_004ab0a0((int)(g_game + 0x519));
                     SetSubState(0x14, 0x5c1, DAT_00503004);
                 } else
@@ -692,7 +692,7 @@ void FUN_00426e80(void)
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
             if (!((Bits_00426e80*)(g_game + 0x2a44))->b2) {
-                FUN_00449bb0();
+                OpenBattleRoom();
                 ReportGameEvent(1);
                 ReportGameEvent(2);
                 SetSubState(1, 0x5ff, DAT_00503004);
@@ -704,7 +704,7 @@ void FUN_00426e80(void)
             BroadcastPlayerInfo();
             return;
         case 1:
-            FUN_0044a680();
+            UpdateBattleRoom();
             FUN_00425b60();
             if (((Bits_00426e80*)(g_game + 0x2a44))->b2) {
                 FinishUnitSync();
@@ -734,7 +734,7 @@ void FUN_00426e80(void)
                 LeaveNetGame();
                 return;
             }
-            switch (FUN_00441bc0()) {
+            switch (GetServiceProviderIndex()) {
             case 0:
             case 3:
                 SetStateLogged(0xf, 0x640, DAT_00503004);

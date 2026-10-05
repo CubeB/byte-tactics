@@ -39,19 +39,19 @@ struct Game {
 extern Game* g_game;
 
 void* __stdcall FUN_004a0200(void* entries, char* name);
-int __stdcall FUN_0045ba20(void* gadget);
+int __stdcall ReadSliderValue(void* gadget);
 void __stdcall FUN_004a0bf0(Sub_00445d60* obj, char* name, char* text, int param_4);
 void BroadcastPlayerInfo(void);
 void UpdateNetGameInfo(void);
 
 // FUNCTION: 0x445d60
-void __stdcall FUN_00445d60(Sub_00445d60* sub, int unused)
+void __stdcall UpdateEnergyText(Sub_00445d60* sub, int unused)
 {
     char text[20];
     void* value = FUN_004a0200(sub->holder->entries, "ENERGY");
 
     if (value != 0) {
-        int shown = FUN_0045ba20(value) / 100 * 100;
+        int shown = ReadSliderValue(value) / 100 * 100;
         Unit* unit;
 
         _itoa(shown, text, 10);

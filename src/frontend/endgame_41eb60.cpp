@@ -10,7 +10,7 @@ void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x41eb60
-char* __stdcall FUN_0041eb60(char* names, int a, int b)
+char* __stdcall BuildScrollItems2(char* names, int a, int b)
 {
     char* items = (char*)FUN_004d83b0("ScrollItems2", b * 0x102);
     if (a > b) {

@@ -48,11 +48,11 @@ extern SliderInfo_005129b4* DAT_005129b4;
 Entry_0044bfd0* __stdcall FindGadgetChecked(void* gadgets, char* name);
 Entry_0044bfd0* __stdcall FUN_004a0200(void* gadgets, char* name);
 int IsHostLocal();
-void __stdcall FUN_0045b9b0(Entry_0044bfd0* slider, int value);
+void __stdcall SetSliderFromValue(Entry_0044bfd0* slider, int value);
 void __stdcall FUN_004a1450(Menu_0044bfd0* obj, char* name, int param_3);
 
 // FUNCTION: 0x44bfd0
-void __stdcall FUN_0044bfd0(Menu_0044bfd0* param_1, int unused)
+void __stdcall UpdateUnitSliders(Menu_0044bfd0* param_1, int unused)
 {
     int i;
     Entry_0044bfd0* desc;
@@ -79,7 +79,7 @@ void __stdcall FUN_0044bfd0(Menu_0044bfd0* param_1, int unused)
             value = DAT_005129b4[base + i].value;
             if (value == -1)
                 value = slider->field_13c;
-            FUN_0045b9b0(slider, value);
+            SetSliderFromValue(slider, value);
             FUN_004a1450(param_1, name, en);
             slider->field_144(param_1, slider->field_14a);
         }

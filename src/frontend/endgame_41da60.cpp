@@ -1,7 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // Sets up the end-of-mission screen: allocates the fade table and palette
 // buffers, forces the display's +0x614 value to 1.0 (saving the old one for
-// FUN_0041ec50 to restore), then either loads the campaign's "glamour"
+// HandleEndMissionClick to restore), then either loads the campaign's "glamour"
 // picture (falling back to glamour\Arm01.PCX) or opens the Outcome1 or
 // Outcome0 screen.
 #include <string.h>
@@ -45,10 +45,10 @@ Display_0041da60* GetDisplay();
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bbc40(char* path);
 void* __stdcall LoadBitmapByName(char* name, unsigned char* palette);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 
 // FUNCTION: 0x41da60
-void FUN_0041da60()
+void SetUpEndMissionScreen()
 {
     char path[256];
     g_game->fadeTable = FUN_004d83b0("FadeTable", 0x400);
@@ -73,7 +73,7 @@ void FUN_0041da60()
         return;
     }
     if (((Class_00435100*)g_game->campaign)->FUN_00435100() == 1)
-        FUN_004288d0("Outcome1", 0, 0, 1);
+        LoadPictureCached("Outcome1", 0, 0, 1);
     else
-        FUN_004288d0("Outcome0", 0, 0, 1);
+        LoadPictureCached("Outcome0", 0, 0, 1);
 }

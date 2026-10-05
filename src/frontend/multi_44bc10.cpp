@@ -44,8 +44,8 @@ extern char* DAT_005129ac;
 extern char* DAT_005129b0;
 
 Gadget_0044bc10* __stdcall LoadGuiLayer(Menu_0044bc10* menu, const char* name, int flags);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-void* __stdcall FUN_0044b4e0(int* out);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
+void* __stdcall ListSaveGameFiles(int* out);
 void __stdcall CloseTopScreen(Menu_0044bc10* menu);
 char* __stdcall FUN_004c5740(const char* text);
 int __stdcall OpenMessageBox(Menu_0044bc10* menu, const char* text, int a, int b, int c);
@@ -60,18 +60,18 @@ void __stdcall FUN_0049fb10(Menu_0044bc10* menu, int value);
 void FUN_00428b60();
 void __stdcall FUN_0049fa50(Menu_0044bc10* menu);
 void __stdcall RenderLayer(Menu_0044bc10* menu, int value);
-void __stdcall FUN_0044b3c0(Menu_0044bc10* menu);
+void __stdcall HandleLoadListClick(Menu_0044bc10* menu);
 void __stdcall FUN_0044b600(int unused1, int unused2);
 
 // FUNCTION: 0x44bc10
-void FUN_0044bc10()
+void OpenLoadListDialog()
 {
     Gadget_0044bc10* gadget = LoadGuiLayer(&g_game->menu, "LOADLIST.GUI", 0x981);
-    gadget->handler = FUN_0044b3c0;
+    gadget->handler = HandleLoadListClick;
     gadget->context = g_game;
-    FUN_004288d0("DLoadList", 0, 0, 0);
+    LoadPictureCached("DLoadList", 0, 0, 0);
     int count;
-    if (FUN_0044b4e0(&count) == 0) {
+    if (ListSaveGameFiles(&count) == 0) {
         CloseTopScreen(&g_game->menu);
         OpenMessageBox(&g_game->menu,
                      FUN_004c5740("There are no saved lists to choose from"),

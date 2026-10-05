@@ -17,7 +17,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x479530
-int FUN_00479530()
+int FindOpenSlot()
 {
     for (int i = 0; i < g_game->itemCount; i++) {
         if (g_game->items[i].id == 0) {

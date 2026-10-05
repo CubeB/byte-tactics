@@ -106,7 +106,7 @@ struct Game {
 extern Game* g_game;
 
 Layer_0045f1d0* __stdcall LoadGuiLayer(Layer_0045f1d0* menu, const char* name, int flags);
-void __stdcall FUN_004288d0(const char* name, int, int, int);
+void __stdcall LoadPictureCached(const char* name, int, int, int);
 int FindHostSlot();
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall AddTextGadget(Layer_0045f1d0* layer, char* type, char* text, int x, int y,
@@ -124,7 +124,7 @@ void FUN_0045f1d0()
     Layer_0045f1d0* layer = LoadGuiLayer(&g_game->menu, "GAMEOPTIONS.GUI", 0x1881);
     Entry_0045f1d0* entries = layer->entries;
     layer->handler = FUN_0045f190;
-    FUN_004288d0("GameSettings", 0, 0, 0);
+    LoadPictureCached("GameSettings", 0, 0, 0);
     int count = layer->entries->u.count;
     unsigned int index = FindHostSlot();
     index &= 0xff;

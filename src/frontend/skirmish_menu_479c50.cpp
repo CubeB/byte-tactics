@@ -104,7 +104,7 @@ static void __stdcall SetEntry_00479c50(Rec1_00479c50* obj, char* name)
 }
 
 // FUNCTION: 0x479c50
-void FUN_00479c50(void)
+void BuildSkirmishPlayerRows(void)
 {
     Rec1_00479c50 rec1;
     Rec2_00479c50 rec2;

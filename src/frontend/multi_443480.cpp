@@ -30,7 +30,7 @@ void __stdcall FUN_0046bf00(int value);
 void __stdcall FUN_004ab0a0(Gadget_00443480* obj);
 
 // FUNCTION: 0x443480
-void __stdcall FUN_00443480(Gadget_00443480* obj)
+void __stdcall HandleReportClick(Gadget_00443480* obj)
 {
     int i;
     int iVar1;

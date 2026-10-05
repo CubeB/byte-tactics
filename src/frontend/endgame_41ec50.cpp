@@ -1,6 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // Click handler of the end-of-mission screen (ENDMSN.GUI, opened by
-// FUN_0041f0a0). On close (field +0x60 == -1) it frees the outcome images
+// OpenEndMissionScreen). On close (field +0x60 == -1) it frees the outcome images
 // and the Missions list; otherwise it handles LoadGame, SaveGame,
 // Start/Missions (checks the campaign CD and starts the chosen mission),
 // MainMenu and Difficulty (cycles easy, medium, hard).
@@ -93,7 +93,7 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_004257a0();
+void BlankScreen();
 void __stdcall FreeSurface(void* image);
 void __cdecl FUN_004d85a0(void* p);
 void LeaveNetGame();
@@ -103,7 +103,7 @@ void __stdcall PlaySoundByName(char* name, int param_2);
 void ShowLoadGameScreen();
 void ShowSaveGameScreen();
 void __stdcall FUN_004ab0a0(void* param_1);
-void __stdcall FUN_00425860(int state, int line, char* file);
+void __stdcall SetFrontendState(int state, int line, char* file);
 void __stdcall SetGameMode(int a);
 void __stdcall FUN_004c22d0(int param);
 void __stdcall FUN_00491c80(int n);
@@ -112,16 +112,16 @@ char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 void RegisterDataArchives();
 Entry_0041ec50* __stdcall FindGadgetChecked(Entry_0041ec50* entries, char* name);
-void FUN_00425a90();
+void EnterMainMenuState();
 void __stdcall FUN_00434ab0(int param);
 
 // FUNCTION: 0x41ec50
-void __stdcall FUN_0041ec50(Gadget_0041ec50* gadget)
+void __stdcall HandleEndMissionClick(Gadget_0041ec50* gadget)
 {
     Entry_0041ec50* entries = gadget->layer->entries;
     Data_0041ec50* data = gadget->layer->data;
     if (gadget->field_60 == -1) {
-        FUN_004257a0();
+        BlankScreen();
         if (g_game->image_39077 != 0)
             FreeSurface(g_game->image_39077);
         if (g_game->image_3907b != 0)
@@ -178,20 +178,20 @@ void __stdcall FUN_0041ec50(Gadget_0041ec50* gadget)
         FUN_004c22d0(1);
         FUN_00491c80(0x14);
         if (g_game->campaign->FUN_00435c00(FindGadgetChecked(entries, "Missions")->field_ba)) {
-            FUN_00425a90();
+            EnterMainMenuState();
             g_game->bit2_2a44 = 0;
             g_game->bit3_2a44 = 1;
             g_game->bit0_2a44 = 0;
             FUN_00434ab0(1);
             g_game->bit4_3923b = 0;
             g_game->bit2_3923b = 0;
-            FUN_00425860(13, 757, "c:\\cavedog\\wargame\\endgame.cpp");
+            SetFrontendState(13, 757, "c:\\cavedog\\wargame\\endgame.cpp");
             SetGameMode(2);
             return;
         }
     } else if (IsCurrentGadgetNamed(gadget, "MainMenu")) {
         PlaySoundByName("BigButton", 0);
-        FUN_00425860(2, 770, "c:\\cavedog\\wargame\\endgame.cpp");
+        SetFrontendState(2, 770, "c:\\cavedog\\wargame\\endgame.cpp");
         SetGameMode(1);
         FUN_004c22d0(1);
         FUN_00491c80(0x14);

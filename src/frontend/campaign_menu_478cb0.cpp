@@ -40,19 +40,19 @@ void __stdcall PlaySoundByName(char* str, int flag);
 char __stdcall FindGameCdDrive(int param_1);
 void RegisterDataArchives();
 void __stdcall FUN_00491c80(int param_1);
-void FUN_004257a0();
+void BlankScreen();
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(char* menu, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);
 int __stdcall GetButtonStageByName(Menu_00478cb0* menu, char* name);
 void __stdcall StreamSoundDelayed(char* text, int param_2, int param_3);
 void __stdcall FUN_0049fa90(Menu_00478cb0* menu);
-void FUN_00476ef0();
+void DrawHelpPage();
 void __stdcall FUN_004afcf0(char* menu);
 void __cdecl FUN_004d85a0(void* param_1);
 
 // FUNCTION: 0x478cb0
-void __stdcall FUN_00478cb0(Menu_00478cb0* menu)
+void __stdcall HandleMissionBriefingClick(Menu_00478cb0* menu)
 {
     if (menu->field_60 == -1) {
         FUN_004afcf0(g_game->menu);
@@ -66,7 +66,7 @@ void __stdcall FUN_00478cb0(Menu_00478cb0* menu)
             RegisterDataArchives();
             FUN_00491c80(0x14);
             g_game->input->StopStream();
-            FUN_004257a0();
+            BlankScreen();
             g_game->field_2bc0 = 2;
             return;
         }
@@ -93,7 +93,7 @@ void __stdcall FUN_00478cb0(Menu_00478cb0* menu)
     if (IsCurrentGadgetNamed(menu, "PrevMenu")) {
         g_game->input->StopStream();
         PlaySoundByName("Previous", 0);
-        FUN_004257a0();
+        BlankScreen();
         g_game->field_2bc0 = 3;
         FUN_00491c80(0x14);
         return;
@@ -101,7 +101,7 @@ void __stdcall FUN_00478cb0(Menu_00478cb0* menu)
     if (IsCurrentGadgetNamed(menu, "TextRegion") || IsCurrentGadgetNamed(menu, "MOREBAR")) {
         if (DAT_0051e63c) {
             PlaySoundByName("More", 0);
-            FUN_00476ef0();
+            DrawHelpPage();
             FUN_0049fa90(menu);
         }
     }

@@ -28,7 +28,7 @@ void __stdcall FUN_0049fa90(Menu_00477510* menu);
 void SaveAllMissionsSetting();
 
 // FUNCTION: 0x477510
-void __stdcall FUN_00477510(Object_00477510* obj)
+void __stdcall ToggleAnyMission(Object_00477510* obj)
 {
     if (strncmp(obj->info->name, "DRDEATH", 7) == 0) {
         if (!(g_game->flags_38d7f & 1)) {

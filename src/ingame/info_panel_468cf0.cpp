@@ -53,7 +53,7 @@ int __stdcall FUN_00418310(int);
 int __stdcall DrawExplosions(int);
 struct Class_00435100 { int FUN_00435100(); };
 int __stdcall DrawUnit(int,int);
-int __stdcall FUN_0045ffb0(int);
+int __stdcall DrawOptionsScrollBar(int);
 int __stdcall DrawMessages(int);
 float __stdcall FUN_00464ab0(int);
 float __stdcall FUN_00464ac0(int);
@@ -580,7 +580,7 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     FUN_0046b900((int)&ctx, (int)"Weapon", 7);
     FUN_0046b900((int)&ctx, (int)"Misc", 8);
   }
-  FUN_0045ffb0((int)&ctx);
+  DrawOptionsScrollBar((int)&ctx);
   FUN_004c2870();
   if (param_1 != 0 && param_2 != 0)
     FlipScreen();

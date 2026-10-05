@@ -10,14 +10,14 @@ struct Game {
 
 extern Game* g_game;
 
-int __stdcall FUN_00441c30(int* a, int* b);
+int __stdcall BuildCompoundAddress(int* a, int* b);
 
 // FUNCTION: 0x442000
 int __stdcall FUN_00442000(int unused)
 {
     int a = 0;
     int b = 0;
-    int result = FUN_00441c30(&a, &b);
+    int result = BuildCompoundAddress(&a, &b);
     if (result >= 0) {
         g_game->field_39211 = a;
         result = 0;

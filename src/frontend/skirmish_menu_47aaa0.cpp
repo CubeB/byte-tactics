@@ -35,7 +35,7 @@ extern Game* g_game;
 
 Gadget_0047aaa0* __stdcall FindGadgetChecked(void* gadgets, char* name);
 char* __stdcall FUN_004b6af0(char* text, int n);
-void FUN_00444a20();
+void ShowSelectedMapInfo();
 
 // Like 0x444c40, without the MAPPIC update.
 // FUNCTION: 0x47aaa0
@@ -43,6 +43,6 @@ void __stdcall FUN_0047aaa0(Menu_0047aaa0* menu, int unused)
 {
     Gadget_0047aaa0* g = FindGadgetChecked(menu->inner->gadgets, "MAPNAMES");
     if (g_game->field_391e9->LoadMissionByName(FUN_004b6af0(g->text, g->selected)) != 0) {
-        FUN_00444a20();
+        ShowSelectedMapInfo();
     }
 }

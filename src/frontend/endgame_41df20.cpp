@@ -27,7 +27,7 @@ unsigned int __cdecl GetTicks();
 void __stdcall FadeRectangle(Surface_0041df20* dst, Rect_0041df20* rect, int level);
 
 // FUNCTION: 0x41df20
-void FUN_0041df20(void)
+void StepScreenFade(void)
 {
     Rect_0041df20 rect;
     rect.left = rect.top = 0;

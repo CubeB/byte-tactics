@@ -46,7 +46,7 @@ static inline int SliderValue(Entry_4a0200* e)
 }
 
 // FUNCTION: 0x45c220
-void __stdcall FUN_0045c220(Object_0045c220* obj, int unused)
+void __stdcall HandleMaxLinesSlider(Object_0045c220* obj, int unused)
 {
     char text[20];
     Entry_4a0200* e = FUN_004a0200(obj->holder->entries, "MAXLINES");

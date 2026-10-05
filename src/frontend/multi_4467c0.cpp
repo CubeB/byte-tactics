@@ -9,7 +9,7 @@ struct Player_004467c0 {
 #pragma pack(pop)
 
 // FUNCTION: 0x4467c0
-bool __stdcall FUN_004467c0(Player_004467c0* a, Player_004467c0* b)
+bool __stdcall ArePlayersAllied(Player_004467c0* a, Player_004467c0* b)
 {
     if (a->alliance == 5)
         return false;

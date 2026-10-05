@@ -59,14 +59,14 @@ void __stdcall FUN_0049fa90(Menu_0044b690* menu);
 void __stdcall FUN_004ab0a0(Menu_0044b690* menu);
 void __stdcall FUN_004ab190(Menu_0044b690* menu, int flag);
 void __stdcall FUN_004bbc30(char* path);
-void* __stdcall FUN_0044b4e0(int* out);
+void* __stdcall ListSaveGameFiles(int* out);
 void __stdcall FUN_004a32a0(Menu_0044b690* menu, char* name, char* text, int value, int flag);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_0044b230(char* filename);
 void __cdecl FUN_004d85a0(char* p);
 
 // FUNCTION: 0x44b690
-void __stdcall FUN_0044b690(Menu_0044b690* menu)
+void __stdcall HandleSaveGameClick(Menu_0044b690* menu)
 {
     Entry_0044b690* entries = menu->layer->entries;
     if (menu->current == -1) {
@@ -91,7 +91,7 @@ void __stdcall FUN_0044b690(Menu_0044b690* menu)
                 FUN_004b6af0(DAT_005129ac, games->selected));
         FUN_004bbc30(buf);
         int count;
-        FUN_0044b4e0(&count);
+        ListSaveGameFiles(&count);
         char* p = DAT_005129b0;
         for (int i = 0; i < count; i++) {
             strcpy(p, FUN_004b6af0(DAT_005129ac, i));

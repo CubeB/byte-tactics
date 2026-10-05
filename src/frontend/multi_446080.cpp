@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Opens the YESORNO.GUI dialog for player DAT_00505510, fills its CHOICE1 /
-// CHOICE2 / TITLE fields and installs FUN_00446020 as the handler. The title
+// CHOICE2 / TITLE fields and installs HandleRejectChoice as the handler. The title
 // is "Reject <player name>?".
 #include <stdio.h>
 
@@ -37,10 +37,10 @@ void __stdcall FindGadgetIndex(void* entries, const char* name, int type);
 void __stdcall FUN_004a0bf0(Sub_00446080* sub, const char* name, const char* text, int param_4);
 void __stdcall RenderLayer(Sub_00446080* sub, int value);
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_00446020(void* gadget);
+void __stdcall HandleRejectChoice(void* gadget);
 
 // FUNCTION: 0x446080
-void __stdcall FUN_00446080(int player)
+void __stdcall OpenRejectDialog(int player)
 {
     char buf[100];
     DAT_00505510 = player;
@@ -56,7 +56,7 @@ void __stdcall FUN_00446080(int player)
         sprintf(buf, "%s %s?", FUN_004c5740("Reject"),
                 g_game->players[DAT_00505510].name);
         FUN_004a0bf0(&g_game->sub, "TITLE", buf, 0);
-        gadget->handler = FUN_00446020;
+        gadget->handler = HandleRejectChoice;
         gadget->owner = g_game;
         FUN_0049fb10(&g_game->sub, 1);
         RenderLayer(&g_game->sub, 0x40);

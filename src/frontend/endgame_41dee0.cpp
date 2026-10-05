@@ -16,7 +16,7 @@ extern Game* g_game;
 unsigned int __cdecl GetTicks();
 
 // FUNCTION: 0x41dee0
-void FUN_0041dee0(void)
+void StartScreenFade(void)
 {
     g_game->steps = 10;
     g_game->nextTime = GetTicks() + 1;

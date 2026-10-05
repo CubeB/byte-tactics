@@ -62,8 +62,8 @@ extern int DAT_005129c8;
 
 Entry_44c220* __stdcall FindGadgetChecked(void* entries, const char* name);
 int GetTicks();
-void FUN_0044c0d0();
-void __stdcall FUN_0044bfd0(void* menu, int value);
+void LoadUnitPortrait();
+void __stdcall UpdateUnitSliders(void* menu, int value);
 void __stdcall FUN_0049fa90(void* menu);
 
 // FUNCTION: 0x44c220
@@ -75,7 +75,7 @@ void FUN_0044c220()
 
     if (DAT_005129c8 < GetTicks()) {
         DAT_005129c8 = GetTicks() + 2;
-        FUN_0044c0d0();
+        LoadUnitPortrait();
     }
 
     while (g_game->queue->PopChangedEntry(&event) != 0) {
@@ -91,7 +91,7 @@ void FUN_0044c220()
     }
 
     if (n != 0) {
-        FUN_0044bfd0((char*)g_game + 0x519, 0);
+        UpdateUnitSliders((char*)g_game + 0x519, 0);
         FUN_0049fa90((char*)g_game + 0x519);
     }
 }

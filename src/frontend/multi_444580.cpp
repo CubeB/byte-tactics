@@ -78,7 +78,7 @@ void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
 void __stdcall FUN_004ac7d0(void* menu, void* palette, void* param_3);
 Gadget_00444580* __stdcall LoadGuiLayer(void* menu, char* name, int size);
 void __stdcall FUN_004441a0(void* menu);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall HAPINET_uninitmultiplay(void* param_1);
 void __stdcall HAPINET_getconnections(void* param_1, void* guids, void* conns, void* descriptions, void* param_5);
@@ -115,7 +115,7 @@ static int __stdcall FUN_004444d0(Entry_00444580* entries, int from, short y, in
 // but it makes `n` the first of the loop's variables the compiler meets, which
 // decides the order of the reloads at the end of the loop body.
 // FUNCTION: 0x444580
-void FUN_00444580()
+void FillProviderList()
 {
     if (g_game->menu.holder != 0 && strcmp(g_game->menu.holder->entries->name, "SELPROV.GUI") == 0)
         CloseTopScreen(&g_game->menu);
@@ -124,7 +124,7 @@ void FUN_00444580()
     Gadget_00444580* menu = LoadGuiLayer(&g_game->menu, "SELPROV.GUI", 0x80);
     menu->handler = FUN_004441a0;
     menu->field_c = (int)g_game;
-    FUN_004288d0("selconnect2", 1, 0, 0);
+    LoadPictureCached("selconnect2", 1, 0, 0);
     g_game->descriptions = FUN_004d83b0("PROVIDER DESCRIPTIONS", 0x500);
     g_game->guids = FUN_004d83b0("PROVIDER GUIDS", 0xa0);
     g_game->conns = (Conn_00444580*)FUN_004d83b0("DPLAY CONNECTIONS", 0x50);

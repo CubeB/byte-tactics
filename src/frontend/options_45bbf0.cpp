@@ -56,7 +56,7 @@ static inline int SliderValue(Slider_0045bbf0* e)
 }
 
 // FUNCTION: 0x45bbf0
-void __stdcall FUN_0045bbf0(Object_0045bbf0* obj, int unused)
+void __stdcall HandleVideoModeSlider(Object_0045bbf0* obj, int unused)
 {
     // The original reads e->list before testing e for null, so this load must
     // stay above the if. If FUN_004a0200 ever returned 0 the original would

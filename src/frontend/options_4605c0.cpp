@@ -37,11 +37,11 @@ void FUN_00491b60();
 void FUN_00491c60();
 int __stdcall FUN_00491d70(int force);
 void __stdcall CloseTopScreen(void* queue);
-void FUN_004257a0();
+void BlankScreen();
 void __stdcall SetGameMode(int a);
 
 // FUNCTION: 0x4605c0
-void __stdcall FUN_004605c0(Gadget_004605c0* gadget)
+void __stdcall HandleSurrenderChoice(Gadget_004605c0* gadget)
 {
     int owner = gadget->owner->field_4;
     if (gadget->field_60 == -1)
@@ -55,7 +55,7 @@ void __stdcall FUN_004605c0(Gadget_004605c0* gadget)
             FUN_00491b60();
             FUN_00491d70(1);
             CloseTopScreen(g_game->field_519);
-            FUN_004257a0();
+            BlankScreen();
             SetGameMode(1);
             return;
         case 2:

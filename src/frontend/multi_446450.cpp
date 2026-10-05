@@ -37,7 +37,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x446450
-void FUN_00446450()
+void UpdateWatchingGadgets()
 {
     PlayerInfo_00446450* info = g_game->players[g_game->localPlayer].info;
     SetButtonStageByName((Class_004a1080*)g_game->gui, "WATCHING", info->watching);

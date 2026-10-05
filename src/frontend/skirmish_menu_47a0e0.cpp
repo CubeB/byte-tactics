@@ -80,11 +80,11 @@ void __stdcall FUN_004a0570(Menu_0047a0e0* menu, char* name, int value);
 int __stdcall SetButtonStageByName(Menu_0047a0e0* menu, char* name, int value);
 void __stdcall FUN_0049fa90(Menu_0047a0e0* menu);
 char* __stdcall FUN_004c5740(char* text);
-void FUN_00479c50();
-void FUN_00479660();
+void BuildSkirmishPlayerRows();
+void RefreshAllyIcons();
 
 // FUNCTION: 0x47a0e0
-void FUN_0047a0e0()
+void RefreshSkirmishSetup()
 {
     void* teamIcons;
     char buf[0x40];
@@ -93,7 +93,7 @@ void FUN_0047a0e0()
 
     Entry_0047a0e0* entries = g_game->holder->entries;
     g_game->table->field_220 = entries[0].field_b6;
-    FUN_00479c50();
+    BuildSkirmishPlayerRows();
 
     int empty = 1;
     if (g_game->playerCount > 0) {
@@ -186,7 +186,7 @@ void FUN_0047a0e0()
         }
     }
 
-    FUN_00479660();
+    RefreshAllyIcons();
 
     index = FindGadgetIndex(entries, "StartLocation", 1);
     {

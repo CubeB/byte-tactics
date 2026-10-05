@@ -10,7 +10,7 @@ struct Entry_00428850 {
 extern Entry_00428850 DAT_005120b8[10];
 
 // FUNCTION: 0x428850
-int __stdcall FUN_00428850(char* name)
+int __stdcall FindCachedPicture(char* name)
 {
     if (name == 0)
         return 0;

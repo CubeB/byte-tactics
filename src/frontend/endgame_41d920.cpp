@@ -44,7 +44,7 @@ public:
 extern Game* g_game;
 
 // FUNCTION: 0x41d920
-void FUN_0041d920()
+void CreateGameObject()
 {
     unsigned int offset = GetTickCount() % 1000 * 7;
     unsigned int size = offset + sizeof(Game);

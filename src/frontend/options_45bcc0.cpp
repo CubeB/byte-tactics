@@ -28,7 +28,7 @@ extern Game* g_game;
 void __stdcall SetBrightness(float value);
 
 // FUNCTION: 0x45bcc0
-void FUN_0045bcc0()
+void ApplyBrightnessAndVolume()
 {
     SetBrightness(0.5 - g_game->brightness * -0.041666668f);
     ((Class_004d0070*)g_game->sound)->SetWaveVolume(g_game->volume1 << 10);

@@ -86,7 +86,7 @@ static inline int CountAlliance_00446a50(int alliance)
 }
 
 // FUNCTION: 0x446a50
-void FUN_00446a50()
+void RefreshTeamIcons()
 {
     int i = 0;
     int teamIcon = 0;

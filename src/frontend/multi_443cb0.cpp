@@ -5,7 +5,7 @@
 // then a table of (size, offset) pairs (0xb9 bytes each) in the descriptions
 // block pointing into the shared block. Every GUI entry from 1 up whose type
 // byte is 2 gets FUN_00441220 as its handler and the descriptions block as its
-// data. FUN_00441460 then connects; on failure an "Invalid TCP/IP Address"
+// data. ConnectToGame then connects; on failure an "Invalid TCP/IP Address"
 // message box is shown, g_game->field_2bc0 is set to 3 and the function
 // returns. On success the game name is put on the menu, and a connection that
 // came back with an error status (neither 0 nor 2) is reported and cleared.
@@ -85,11 +85,11 @@ extern Game* g_game;
 extern unsigned char DAT_00512d90;
 extern int DAT_00512c84;
 
-void FUN_004257a0();
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void BlankScreen();
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void FUN_00428b60();
-int __stdcall FUN_00441460(Gadget_00443cb0* gadget);
-void __stdcall FUN_004437c0(Sub_00443cb0* sub);
+int __stdcall ConnectToGame(Gadget_00443cb0* gadget);
+void __stdcall HandleSelectGameClick(Sub_00443cb0* sub);
 char* __stdcall GetRejectReasonText(int value);
 void __stdcall FUN_0049fa90(Sub_00443cb0* sub);
 void __stdcall FUN_0049fad0(Sub_00443cb0* sub);
@@ -107,17 +107,17 @@ void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 void __stdcall FUN_00441220(void* gadget);
 
 // FUNCTION: 0x443cb0
-void FUN_00443cb0()
+void OpenSelectGameDialog()
 {
     char name[0x14];
     int i;
     int j;
 
-    FUN_004257a0();
+    BlankScreen();
     Gadget_00443cb0* gadget = LoadGuiLayer(&g_game->sub, "SELGAME.GUI", 0x80);
-    gadget->handler = FUN_004437c0;
+    gadget->handler = HandleSelectGameClick;
     gadget->field_c = (int)g_game;
-    FUN_004288d0("selectgame2x", 0, 0, 0);
+    LoadPictureCached("selectgame2x", 0, 0, 0);
     g_game->desc = (Desc_00443cb0*)FUN_004d83b0("GAME DESCRIPTIONS", 0x690);
     g_game->shared = (char*)FUN_004d83b0("PLAYER SHARED", 0xe74);
     for (i = 0; i < 0xf; i++) {
@@ -140,7 +140,7 @@ void FUN_00443cb0()
         }
     }
     RenderLayer(&g_game->sub, 0x40);
-    if (!FUN_00441460(gadget)) {
+    if (!ConnectToGame(gadget)) {
         CloseTopScreen(&g_game->sub);
         OpenMessageBox(&g_game->sub, FUN_004c5740("Invalid TCP/IP Address"), 0xc8, 1, 1);
         g_game->field_2bc0 = 3;
@@ -161,6 +161,6 @@ void FUN_00443cb0()
     }
     if (DAT_00512d90 != 0 && DAT_00512c84 != 0) {
         if (strlen(g_game->nickname) != 0)
-            FUN_004437c0(&g_game->sub);
+            HandleSelectGameClick(&g_game->sub);
     }
 }

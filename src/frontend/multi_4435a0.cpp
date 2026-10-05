@@ -26,7 +26,7 @@ struct Gadget_004435a0 {
 extern Game* g_game;
 
 Gadget_004435a0* __stdcall LoadGuiLayer(Sub_004435a0* sub, const char* name, int flags);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall FUN_004a0570(Sub_004435a0* sub, char* name, int value);
 void __stdcall FUN_004a0bf0(Sub_004435a0* sub, char* name, char* text, int size);
 void __stdcall FUN_0049fb10(Sub_004435a0* sub, int value);
@@ -34,18 +34,18 @@ void __stdcall RenderLayer(Sub_004435a0* sub, int value);
 void __stdcall FUN_00491c80(int n);
 void __stdcall FUN_0049fa90(Sub_004435a0* sub);
 void __stdcall FUN_0049fad0(Sub_004435a0* sub);
-void __stdcall FUN_00443480(void* gadget);
+void __stdcall HandleReportClick(void* gadget);
 void __stdcall FUN_00443590();
 
 // FUNCTION: 0x4435a0
-void __stdcall FUN_004435a0(unsigned int* count, char** names)
+void __stdcall OpenReportDialog(unsigned int* count, char** names)
 {
     char name[16];
     Gadget_004435a0* gadget = LoadGuiLayer(&g_game->sub, "REPORT.GUI", 0x800);
-    gadget->handler = FUN_00443480;
+    gadget->handler = HandleReportClick;
     gadget->field_c = g_game;
     gadget->field_1c = FUN_00443590;
-    FUN_004288d0("scorebg", 0, 1, 0);
+    LoadPictureCached("scorebg", 0, 1, 0);
     for (unsigned int i = 0; i < *count; i++) {
         wsprintfA(name, "CHK%d", i);
         FUN_004a0570(&g_game->sub, name, 1);

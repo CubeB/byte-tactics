@@ -87,14 +87,14 @@ int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 void __stdcall SetGadgetItems(Gui_00445110* gui, const char* name, void** items, int count);
 void __stdcall FUN_0049fb10(Sub_00445110* sub, int value);
 void __stdcall RenderLayer(Sub_00445110* sub, int value);
-void __stdcall FUN_00444930(Gui_00445110* gui);
+void __stdcall HandleLogoSelectClick(Gui_00445110* gui);
 void __stdcall FUN_00444910(void* gadget);
 
 // FUNCTION: 0x445110
-void FUN_00445110()
+void OpenLogoSelectDialog()
 {
     Gui_00445110* gui = LoadGuiLayer(&g_game->sub, "LOGOSEL.GUI", 0x800);
-    gui->handler = FUN_00444930;
+    gui->handler = HandleLogoSelectClick;
     Layout_00445110* layout = (Layout_00445110*)FUN_004d83b0("SELECT TEAM LOGO", 0x20);
     gui->layout = layout;
     int count = g_game->logos32->count;

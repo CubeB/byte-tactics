@@ -9,9 +9,9 @@ struct Entry_004287d0 {
 
 extern Entry_004287d0 DAT_005120b8[10];
 
-// Looks an entry of the table cleared by FUN_00428730 up by name.
+// Looks an entry of the table cleared by FreePictureCache up by name.
 // FUNCTION: 0x4287d0
-int* __stdcall FUN_004287d0(const char* name)
+int* __stdcall FindCachedPicturePalette(const char* name)
 {
     if (name == 0)
         return 0;

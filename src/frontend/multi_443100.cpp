@@ -71,8 +71,8 @@ extern Entry_00443100* DAT_00512988;
 extern char* DAT_0051298c;
 
 Gadget_00443100* __stdcall LoadGuiLayer(void* gui, const char* name, int flags);
-void __stdcall FUN_00442a30(void*);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall HandleModemDialogClick(void*);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 int __stdcall HAPINET_initlobbiedconnection(Net_00443100* net);
 int __stdcall HAPINET_createdplayinterface(Guid_00443100* sp, Net_00443100* net);
 int __stdcall HAPINET_getplayeraddress(Net_00443100* net, unsigned long player, void* data, unsigned long* size);
@@ -84,14 +84,14 @@ int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* si
 Layout_00443100* __stdcall FindGadgetChecked(Layout_00443100* entries, char* name);
 void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int count, int flag);
 void __stdcall FUN_004a2e40(void* menu, char* name, int index);
-void __stdcall FUN_004428f0(void* menu, Layout_00443100* entry);
+void __stdcall ShowSelectedAccount(void* menu, Layout_00443100* entry);
 void __stdcall CloseTopScreen(void* gui);
 void __stdcall FUN_0049fb10(void* gui, int value);
 void __stdcall RenderLayer(void* gui, int value);
-void __stdcall FUN_00425730(char* text);
-void __stdcall FUN_00425860(int state, int line, const char* file);
-void __stdcall FUN_004257e0(char state, int line, char* file);
-int __stdcall FUN_00443070(void* guid, unsigned long size, void* data, void* context);
+void __stdcall SetFrontendErrorText(char* text);
+void __stdcall SetFrontendState(int state, int line, const char* file);
+void __stdcall SetFrontendSubState(char state, int line, char* file);
+int __stdcall EnumModemAddressCallback(void* guid, unsigned long size, void* data, void* context);
 
 
 struct Len { unsigned int v; };
@@ -237,7 +237,7 @@ struct Len { unsigned int v; };
 //     literal, `*&`, a pointer-to-pointer local, and a nested block.
 // deepseek-v4.1-flash, final pass: MATCH. The one remaining instruction swap
 // was NOT compiler state; it was the calling convention. Declaring the function
-// `void __stdcall FUN_00443100()` makes MSVC 5 keep the ESP-relative `gadget`
+// `void __stdcall OpenModemDialog()` makes MSVC 5 keep the ESP-relative `gadget`
 // load after the `push "ACCOUNTS"`, giving the original's
 // `push <addr>; mov ecx,[esp+0x20]; mov edx,[ecx+4]`. A zero-argument
 // __stdcall is byte-identical to __cdecl everywhere else (both end in a plain
@@ -248,7 +248,7 @@ struct Len { unsigned int v; };
 // Also fixed a latent symbol-name typo here (FUN_00449fb10 -> FUN_0049fb10)
 // that the checker only surfaces once the bytes match.
 // FUNCTION: 0x443100
-void __stdcall FUN_00443100()
+void __stdcall OpenModemDialog()
 {
     char* addr = 0;
     unsigned long size = 0;
@@ -259,9 +259,9 @@ void __stdcall FUN_00443100()
     Guid_00443100 iid = DAT_004fcdc8;
 
     gadget = LoadGuiLayer(&g_game->menu, "MODEM.GUI", 0x800);
-    gadget->handler = FUN_00442a30;
+    gadget->handler = HandleModemDialogClick;
     gadget->owner = g_game;
-    FUN_004288d0(0, 0, 0, 0);
+    LoadPictureCached(0, 0, 0, 0);
     HAPINET_initlobbiedconnection(&g_game->net);
     r = HAPINET_createdplayinterface(&iid, (Net_00443100*)&net);
     if (r >= 0) {
@@ -274,12 +274,12 @@ void __stdcall FUN_00443100()
                     DAT_00512980 = (char*)FUN_004d83b0("MODEMINFO", 0xc8);
                     memset(DAT_00512980, 0, 0xc8);
                     DAT_00512984 = 0;
-                    r = HAPINET_enumaddress(&g_game->net, (void*)FUN_00443070, addr, size, 0);
+                    r = HAPINET_enumaddress(&g_game->net, (void*)EnumModemAddressCallback, addr, size, 0);
                     if (DAT_00512984 == 0) {
                         CloseTopScreen(&g_game->menu);
-                        FUN_00425730("Unable to find any modems");
-                        FUN_00425860(0xf, 0x4e4, "c:\\cavedog\\wargame\\multi.cpp");
-                        FUN_004257e0(0, 0x4e5, "c:\\cavedog\\wargame\\multi.cpp");
+                        SetFrontendErrorText("Unable to find any modems");
+                        SetFrontendState(0xf, 0x4e4, "c:\\cavedog\\wargame\\multi.cpp");
+                        SetFrontendSubState(0, 0x4e5, "c:\\cavedog\\wargame\\multi.cpp");
                         FUN_004d85a0(DAT_00512980);
                         FUN_004d85a0(addr);
                         HAPINET_releasedplayinterface((Net_00443100*)&net);
@@ -310,8 +310,8 @@ void __stdcall FUN_00443100()
                         FUN_004a32a0(&g_game->menu, "ACCOUNTS", DAT_0051298c, 20, 0);
                         FUN_004a2e40(&g_game->menu, "ACCOUNTS", player);
                         entry = FindGadgetChecked(gadget->entries, "ACCOUNTS");
-                        entry->callback = FUN_004428f0;
-                        FUN_004428f0(&g_game->menu, entry);
+                        entry->callback = ShowSelectedAccount;
+                        ShowSelectedAccount(&g_game->menu, entry);
                     }
                 }
             }

@@ -60,14 +60,14 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall FUN_00479660(void);
+void __stdcall RefreshAllyIcons(void);
 int __stdcall FindGadgetIndex(Entry_004797e0* entries, char* name, int type);
 void __stdcall FUN_004a0570(Menu_004797e0* menu, char* name, int value);
 void __stdcall FUN_004a0bf0(Menu_004797e0* menu, char* key, char* text, int flag);
 char* __stdcall FUN_004c5740(char* key);
 
 // 0x479500: the number of players with controller 1.
-int __cdecl FUN_00479500()
+int __cdecl CountHumanSlots()
 {
     int n = 0;
     for (int i = 0; i < g_game->numPlayers; i++) {
@@ -78,7 +78,7 @@ int __cdecl FUN_00479500()
 }
 
 // 0x479590: whether another active player uses this colour.
-int __stdcall FUN_00479590(int color, int skip)
+int __stdcall IsColorTaken(int color, int skip)
 {
     for (int i = 0; i < g_game->numPlayers; i++) {
         if (g_game->players[i].color == color && g_game->players[i].controller != 0 && i != skip) {
@@ -89,7 +89,7 @@ int __stdcall FUN_00479590(int color, int skip)
 }
 
 // 0x4795e0: the first colour no player uses.
-int FUN_004795e0()
+int FindFreeColor()
 {
     int color = 0;
     do {
@@ -110,7 +110,7 @@ static void NewColour(int playerIndex)
 {
     char name[64];
     Entry_004797e0* entries = g_game->holder->entries;
-    g_game->players[playerIndex].color = FUN_004795e0();
+    g_game->players[playerIndex].color = FindFreeColor();
     wsprintfA(name, "Color%d", playerIndex);
     int index = FindGadgetIndex(entries, name, 6);
     if (index != -1) {
@@ -123,7 +123,7 @@ static void NewColour(int playerIndex)
 }
 
 // FUNCTION: 0x4797e0
-void __stdcall FUN_004797e0(int playerIndex)
+void __stdcall CycleSlotController(int playerIndex)
 {
     char buffer[64];
 
@@ -138,7 +138,7 @@ void __stdcall FUN_004797e0(int playerIndex)
         FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Open"), 0);
         break;
     case 2:
-        if (FUN_00479500() == 0) {
+        if (CountHumanSlots() == 0) {
             g_game->players[playerIndex].controller = 1;
             FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Player"), 0);
         } else {
@@ -162,7 +162,7 @@ void __stdcall FUN_004797e0(int playerIndex)
         wsprintfA(buffer, "Color%d", playerIndex);
         FUN_004a0570(&g_game->menu, buffer, 0);
     } else {
-        if (FUN_00479590(g_game->players[playerIndex].color, playerIndex))
+        if (IsColorTaken(g_game->players[playerIndex].color, playerIndex))
             NewColour(playerIndex);
         wsprintfA(buffer, "Player%d", playerIndex);
         FUN_004a0570(&g_game->menu, buffer, 1);
@@ -177,5 +177,5 @@ void __stdcall FUN_004797e0(int playerIndex)
         wsprintfA(buffer, "Color%d", playerIndex);
         FUN_004a0570(&g_game->menu, buffer, 1);
     }
-    FUN_00479660();
+    RefreshAllyIcons();
 }

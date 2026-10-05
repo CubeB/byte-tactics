@@ -228,7 +228,7 @@ void FUN_00450980();
 void CheckPlayerTimeouts();
 int GetTicks();
 void FUN_00450530();
-void FUN_00446fb0();
+void RebuildAllyList();
 int __stdcall GetSlotDpid(unsigned char);
 unsigned char __stdcall FindSlotByDpid(int);
 int __stdcall AddNetPlayer(int);
@@ -636,7 +636,7 @@ int HandleNetPackets()
                 if (!(g_game->flags_2a44 & 4))
                     g_game->dirty = 1;
                 else
-                    FUN_00446fb0();
+                    RebuildAllyList();
             }
             g_game->players[a->index].allies[b->index] = packet[9];
             break;

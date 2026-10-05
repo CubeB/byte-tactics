@@ -3,10 +3,10 @@
 #include <windows.h>
 
 // Click handler of the "create new game" dialog (NEWMULTI.GUI, opened by
-// FUN_00441080). Clicking a text field gives it the focus and loads its
+// OpenNewMultiDialog). Clicking a text field gives it the focus and loads its
 // contents; OK copies the password (bounded to 11 characters) into g_game and
 // the game and player names into two stack buffers, complains if either is
-// empty, then starts the game (FUN_004436e0) and sets the pending front-end
+// empty, then starts the game (InitScoreReporting) and sets the pending front-end
 // state at g_game+0x2bc0 to 17. CANCEL goes back to the previous dialog.
 
 #pragma pack(push, 1)
@@ -48,13 +48,13 @@ void __stdcall FUN_004ab0a0(Gadget_00440d70* gadget);
 void __stdcall PlaySoundByName(const char* name, int flag);
 Entry_00440d70* __stdcall FUN_004a0010(Entry_00440d70* entries, const char* name);
 void __stdcall CloseTopScreen(Gadget_00440d70* gadget);
-void FUN_00443cb0();
-int FUN_004436e0();
+void OpenSelectGameDialog();
+int InitScoreReporting();
 char* __stdcall FUN_004c5740(const char* text);
 void __stdcall OpenMessageBox(char* dest, const char* text, int a, int b, int c);
 
 // FUNCTION: 0x440d70
-void __stdcall FUN_00440d70(Gadget_00440d70* gadget)
+void __stdcall HandleNewMultiClick(Gadget_00440d70* gadget)
 {
     Entry_00440d70* entries = gadget->layer->entries;
     if (gadget->field_60 == -1)
@@ -111,7 +111,7 @@ void __stdcall FUN_00440d70(Gadget_00440d70* gadget)
         }
         strcpy(g_game->gameName, namebuf);
         strcpy(g_game->nickName, nickbuf);
-        if (!FUN_004436e0()) {
+        if (!InitScoreReporting()) {
             g_game->field_2bc0 = 0x11;
             return;
         }
@@ -121,7 +121,7 @@ void __stdcall FUN_00440d70(Gadget_00440d70* gadget)
     if (FindGadgetIndex(entries, "CANCEL", 0xe) == gadget->field_60) {
         PlaySoundByName("Previous", 0);
         CloseTopScreen(gadget);
-        FUN_00443cb0();
+        OpenSelectGameDialog();
         return;
     }
     FUN_004ab0a0(gadget);

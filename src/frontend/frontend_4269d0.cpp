@@ -55,7 +55,7 @@ struct Game {
 extern Game* g_game;
 extern int DAT_00512288;
 
-int FUN_00428bc0(void);
+int CodeChecksumFailed(void);
 void __stdcall FUN_00434ab0(int param);
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
@@ -64,7 +64,7 @@ void __stdcall FUN_004bcec0(char* dest);
 int PopKey(void);
 
 // FUNCTION: 0x4269d0
-void FUN_004269d0(void)
+void HandleFrontendDebugKey(void)
 {
     char key[128];
     char buf[256];
@@ -114,13 +114,13 @@ void FUN_004269d0(void)
             && DAT_00512288 >= (int)GetTicks())
             return;
         PlaySoundByName("MAINMENU", 0);
-        if (FUN_00428bc0()) {
+        if (CodeChecksumFailed()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     938, "c:\\cavedog\\wargame\\frontend.cpp");
             OpenMessageBox((char*)g_game + 0x519, buf, 500, 1, 1);
         }
         g_game->field_2bbe = 2;
-        if (FUN_00428bc0()) {
+        if (CodeChecksumFailed()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     155, "c:\\cavedog\\wargame\\frontend.cpp");
             OpenMessageBox((char*)g_game + 0x519, buf, 500, 1, 1);

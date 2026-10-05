@@ -28,7 +28,7 @@ void __stdcall FreeSurface(void* param_1);
 void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x428730
-void FUN_00428730()
+void FreePictureCache()
 {
     for (int i = 0; i < 10; i++) {
         if (DAT_005120b8[i].surface != 0) {

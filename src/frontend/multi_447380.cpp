@@ -105,7 +105,7 @@ static inline int IsActive_00447380(Player_00447380* p)
 }
 
 // FUNCTION: 0x447380
-void __stdcall FUN_00447380(int param_1)
+void __stdcall RefreshAlliesScreen(int param_1)
 {
     Entry_00447380* entries = g_game->table->entries;
     int i;

@@ -58,7 +58,7 @@ int __stdcall FindGadgetIndex(Gadget_00476d80* gadgets, const char* name, int ty
 void __stdcall SelectFontForEntry(Gadget_00476d80* gadgets, int index);
 char* __stdcall WordWrapText(Menu_00476d80* menu, char* text, int value, int index);
 char* __stdcall FUN_00476cd0(char* text);
-void FUN_00476ef0();
+void DrawHelpPage();
 void __stdcall StreamSoundDelayed(char* text, int a, int b);
 
 // FUNCTION: 0x476d80
@@ -77,7 +77,7 @@ void FUN_00476d80()
         DAT_0051e650 = 1;
         DAT_0051e63c = WordWrapText(&g_game->menu, text, gadgets[j].field_17, j);
         DAT_0051e63c = FUN_00476cd0(DAT_0051e63c);
-        FUN_00476ef0();
+        DrawHelpPage();
     }
     if (g_game->field_391f1 != 6) {
         char* name = ((Class_004356c0*)g_game->net)->FUN_004356c0(3);

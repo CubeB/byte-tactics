@@ -9,7 +9,7 @@
 // g_game + 0x519, which drops to 64.5%.
 // Opens the YESORNO.GUI dialog asking "Close Windows CD Player?", relabels
 // the CHOICE1 / CHOICE2 gadgets, puts the localised "Yes" and "No" on the two
-// gadgets the lookups found, and installs FUN_00426190 as the gadget handler.
+// gadgets the lookups found, and installs HandleCloseCdPlayerChoice as the gadget handler.
 // SelectGadgetByName is then told about "CHOICE1".
 //
 // Not a MATCH yet: 97.9% (411 of 420 bytes), same length as the original and
@@ -69,10 +69,10 @@ void __stdcall FUN_004a0bf0(char* sub, const char* name, const char* text, int p
 void __stdcall SelectGadgetByName(char* sub, const char* name);
 void __stdcall RenderLayer(char* sub, int value);
 char* __stdcall FUN_004c5740(char* text);
-void __stdcall FUN_00426190(void* gadget);
+void __stdcall HandleCloseCdPlayerChoice(void* gadget);
 
 // FUNCTION: 0x426200
-void __stdcall FUN_00426200()
+void __stdcall OpenCloseCdPlayerDialog()
 {
     Gadget_00426200* gadget = LoadGuiLayer(g_game + 0x519, "YESORNO.GUI", 0x100);
     if (gadget != 0) {
@@ -86,7 +86,7 @@ void __stdcall FUN_00426200()
         strcpy(choice2 + 0xb6, FUN_004c5740("No"));
         FUN_004a0bf0(g_game + 0x519, "TITLE", FUN_004c5740("Close Windows CD Player?"), 0);
         SelectGadgetByName(g_game + 0x519, "CHOICE1");
-        gadget->handler = FUN_00426190;
+        gadget->handler = HandleCloseCdPlayerChoice;
         RenderLayer(g_game + 0x519, 0x40);
     }
 }

@@ -60,7 +60,7 @@ void __stdcall FUN_004a2be0(void* menu, int index);
 void __stdcall FUN_0049fa90(void* menu);
 
 // FUNCTION: 0x4779e0
-void __stdcall FUN_004779e0(Menu_004779e0* menu, int unused)
+void __stdcall FillMissionList(Menu_004779e0* menu, int unused)
 {
     Gadgets_004779e0* gadgets = menu->gadgets;
     if (DAT_0051e660 != 0) {

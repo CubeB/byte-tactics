@@ -25,8 +25,8 @@
 // - Clashes with the headers, resolved by using the headers' declarations:
 //   Class_00435920, Class_00435c40, Class_00435d30, Class_004373a0 and
 //   Class_0046e000 are the header's classes; FUN_004455b0 is the header's
-//   `__cdecl` one (the same call, it has no parameters) and FUN_00447b10 the
-//   header's, so `layer->handler = FUN_00447b10` has one candidate. The
+//   `__cdecl` one (the same call, it has no parameters) and HandleBattleRoomClick the
+//   header's, so `layer->handler = HandleBattleRoomClick` has one candidate. The
 //   other prototypes stay, since they take this file's views (the header's
 //   Game, PlayerInfo and gadget types have plain words where this function
 //   uses bitfields).
@@ -212,20 +212,20 @@ extern char* DAT_005054b0[];
 #include "ta_protos.h"
 
 char __stdcall FindGameCdDrive(int side);
-int __stdcall FUN_004288d0(const char* name, int param_2, int param_3, int param_4);
+int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int param_4);
 void FUN_00428b60();
-void __stdcall FUN_00445b70(Gui_00449bb0* gui, int index);
-void __stdcall FUN_00445c70(Gui_00449bb0* gui, int index);
-void FUN_00445ed0();
-void FUN_00446a50();
-void FUN_00448c70();
+void __stdcall UpdateMaxUnitsText(Gui_00449bb0* gui, int index);
+void __stdcall UpdateMetalText(Gui_00449bb0* gui, int index);
+void UpdateBattleRoomFlags();
+void RefreshTeamIcons();
+void RefreshBattleRoomRows();
 void BroadcastPlayerInfo();
 void UpdateNetGameInfo();
 int FUN_00456760();
 int IsHostLocal();
 int IsOnlineConfigLoaded();
-void __stdcall FUN_0045b9b0(Gadget_00449bb0* gadget, int value);
-int __stdcall FUN_0045ba20(Gadget_00449bb0* gadget);
+void __stdcall SetSliderFromValue(Gadget_00449bb0* gadget, int value);
+int __stdcall ReadSliderValue(Gadget_00449bb0* gadget);
 void __stdcall CreateUnitSync(int param_1);
 void __stdcall FUN_0049fa90(Gui_00449bb0* gui);
 void __stdcall FUN_0049fb10(Gui_00449bb0* gui, int value);
@@ -248,13 +248,13 @@ void* __stdcall FindGafEntry(void* gaf, const char* name);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // The ENERGY slider handler at 0x445d60, which has no callers: /Ob2 inlined it.
-void __stdcall FUN_00445d60(Gui_00449bb0* gui, int unused)
+void __stdcall UpdateEnergyText(Gui_00449bb0* gui, int unused)
 {
     char text[20];
     Gadget_00449bb0* value = FUN_004a0200(gui->table->entries, "ENERGY");
 
     if (value != 0) {
-        int shown = FUN_0045ba20(value) / 100 * 100;
+        int shown = ReadSliderValue(value) / 100 * 100;
         PlayerInfo_00449bb0* info;
 
         _itoa(shown, text, 10);
@@ -279,7 +279,7 @@ void __stdcall FUN_00445e50(char* name, int max, int value, Callback_00449bb0 ca
         gadget->max = max;
         gadget->callback = callback;
         gadget->value = value;
-        FUN_0045b9b0(gadget, gadget->value);
+        SetSliderFromValue(gadget, gadget->value);
         gadget->game = g_game;
     }
     callback(gui, index);
@@ -287,7 +287,7 @@ void __stdcall FUN_00445e50(char* name, int max, int value, Callback_00449bb0 ca
 }
 
 // FUNCTION: 0x449bb0
-void FUN_00449bb0()
+void OpenBattleRoom()
 {
     int energy = 1000;
     int metal = 1000;
@@ -314,9 +314,9 @@ void FUN_00449bb0()
     info->f9d_2 = FindGameCdDrive(1) != 0;
 
     layer = LoadGuiLayer(&g_game->gui, "LOUNGE2.GUI", 0);
-    layer->handler = FUN_00447b10;
+    layer->handler = HandleBattleRoomClick;
     layer->game = g_game;
-    FUN_004288d0("battleroom", 0, 1, 0);
+    LoadPictureCached("battleroom", 0, 1, 0);
     entries = g_game->gui.table->entries;
     DAT_00512764 = layer->entries->head.count;
 
@@ -386,7 +386,7 @@ void FUN_00449bb0()
             FUN_004a1250(&g_game->gui, *p, 1);
     }
 
-    FUN_00445ed0();
+    UpdateBattleRoomFlags();
     g_game->chatter = (char*)FUN_004d83b0("LOUNGE CHATTER", 0xa00);
     *g_game->chatter = 0;
     {
@@ -408,16 +408,16 @@ void FUN_00449bb0()
     FUN_004a0bf0(&g_game->gui, "METALTEXT", "0", 0);
     FUN_004a0bf0(&g_game->gui, "ENERGYTEXT", "0", 0);
 
-    FUN_00445e50("METAL", 0x2711, metal, FUN_00445c70);
+    FUN_00445e50("METAL", 0x2711, metal, UpdateMetalText);
     {
-        FUN_00445e50("MAXUNITS", g_game->maxUnits - 20, g_game->maxUnits - 20, FUN_00445b70);
+        FUN_00445e50("MAXUNITS", g_game->maxUnits - 20, g_game->maxUnits - 20, UpdateMaxUnitsText);
     }
     if (!isHost || g_game->locked) {
         FUN_004a1450(&g_game->gui, "MAXUNITS", 1);
         FUN_004a1450(&g_game->gui, "ENERGY", 1);
         FUN_004a1450(&g_game->gui, "METAL", 1);
     }
-    FUN_00445e50("ENERGY", 0x2711, energy, FUN_00445d60);
+    FUN_00445e50("ENERGY", 0x2711, energy, UpdateEnergyText);
 
     ((Class_00435d30*)g_game->map)->FUN_00435d30(1);
     if (isHost && IsOnlineConfigLoaded() && DAT_00512ce8[0])
@@ -436,8 +436,8 @@ void FUN_00449bb0()
     }
 
     FUN_004455b0();
-    FUN_00446a50();
-    FUN_00448c70();
+    RefreshTeamIcons();
+    RefreshBattleRoomRows();
     FUN_00428b60();
 
     if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI")) {

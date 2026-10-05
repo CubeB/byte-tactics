@@ -48,9 +48,9 @@ struct Game {
 extern Game* g_game;
 extern char DAT_00512d48;
 
-void __stdcall FUN_00440d70(void* gadget);
+void __stdcall HandleNewMultiClick(void* gadget);
 Layer_441080* __stdcall LoadGuiLayer(Menu_441080* menu, const char* name, int flags);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 int IsOnlineConfigLoaded(void);
 Entry_441080* __stdcall FUN_004a0010(Entry_441080* entries, char* name);
 void __stdcall FUN_004a0bf0(Menu_441080* menu, char* name, char* text, int param_4);
@@ -59,13 +59,13 @@ void __stdcall FUN_0049fb10(Menu_441080* menu, int value);
 void __stdcall RenderLayer(Menu_441080* menu, int value);
 
 // FUNCTION: 0x441080
-void FUN_00441080()
+void OpenNewMultiDialog()
 {
     DWORD size;
     Layer_441080* layer = LoadGuiLayer(&g_game->menu, "NEWMULTI.GUI", 0x80);
-    layer->handler = FUN_00440d70;
+    layer->handler = HandleNewMultiClick;
     layer->data = g_game;
-    FUN_004288d0("createnew", 0, 0, 0);
+    LoadPictureCached("createnew", 0, 0, 0);
     Entry_441080* entries = layer->entries;
     if (IsOnlineConfigLoaded() && DAT_00512d48 != 0) {
         g_game->nickName[0] = 0;

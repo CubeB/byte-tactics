@@ -60,17 +60,17 @@ void FUN_00491a70();
 void __stdcall FadeRectangle(void*,int*,int);
 char __stdcall FindGameCdDrive(int);
 Layer* __stdcall LoadGuiLayer(Menu*,const char*,int);
-void __stdcall FUN_0041f680(void*);
+void __stdcall HandleCdCheckClick(void*);
 void __stdcall FUN_0049fb10(Menu*,int);
 void __stdcall RenderLayer(Menu*,int);
-void FUN_0041da60();
-void __stdcall FUN_00425860(int,int,const char*);
+void SetUpEndMissionScreen();
+void __stdcall SetFrontendState(int,int,const char*);
 void __stdcall SetGameMode(int);
-void __stdcall FUN_0041dfc0(void*,void*,int);
-void FUN_0041f0a0();
-void FUN_0041e420();
-void FUN_0041f400();
-void FUN_0041e270();
+void __stdcall StartPaletteFade(void*,void*,int);
+void OpenEndMissionScreen();
+void FillEndGameStatistics();
+void EnableEndMissionButtons();
+void StepPaletteFade();
 void FUN_00476ca0();
 void __stdcall FUN_004c2340(int*);
 int PopKey();
@@ -100,7 +100,7 @@ static inline int StatsComplete()
     return 1;
 }
 // FUNCTION: 0x41f7f0
-void __stdcall FUN_0041f7f0()
+void __stdcall RunEndGameState()
 {
     char text[64];
     int event[6];
@@ -163,7 +163,7 @@ void __stdcall FUN_0041f7f0()
     case 4:
         if(g_game->campaign->FUN_00435100()==1 && !FindGameCdDrive(0)) {
             Layer* l=LoadGuiLayer(&g_game->menu,"CDCHECK.GUI",0x101);
-            l->handler=FUN_0041f680;
+            l->handler=HandleCdCheckClick;
             FUN_004c22d0(1);
             FUN_0049fb10(&g_game->menu,1);
             RenderLayer(&g_game->menu,0x40);
@@ -171,22 +171,22 @@ void __stdcall FUN_0041f7f0()
         } else g_game->state=5;
         break;
     case 5: {
-        FUN_0041da60();
+        SetUpEndMissionScreen();
         int next=((Class_00435980*)g_game->campaign)->MissionExists(g_game->mission+1);
         if(g_game->campaign->FUN_00435100()==1 && (g_game->flags&0x10) && !next && !g_game->skip) {
             if((unsigned char)GetDisplay()->network) {
-                if(!g_game->players[0].owner->flag) FUN_00425860(4,0x4ce,"c:\\cavedog\\wargame\\endgame.cpp");
-                else FUN_00425860(5,0x4d3,"c:\\cavedog\\wargame\\endgame.cpp");
-            } else FUN_00425860(2,0x4d9,"c:\\cavedog\\wargame\\endgame.cpp");
+                if(!g_game->players[0].owner->flag) SetFrontendState(4,0x4ce,"c:\\cavedog\\wargame\\endgame.cpp");
+                else SetFrontendState(5,0x4d3,"c:\\cavedog\\wargame\\endgame.cpp");
+            } else SetFrontendState(2,0x4d9,"c:\\cavedog\\wargame\\endgame.cpp");
             SetGameMode(2);
         } else if(g_game->campaign->FUN_00435100()==1 && (g_game->flags&0x10) && g_game->image) {
             memset(palette,0,sizeof(palette));
-            FUN_0041dfc0(g_game->palette,palette,5);
+            StartPaletteFade(g_game->palette,palette,5);
             g_game->tick=GetTicks()+1;
             g_game->state=6;
             DrawSurface(g_game->surface,g_game->image,0,0);
         } else {
-            FUN_0041f0a0(); FUN_0041e420(); FUN_0041f400();
+            OpenEndMissionScreen(); FillEndGameStatistics(); EnableEndMissionButtons();
             FUN_0049fad0(&g_game->menu); FUN_0049fa90(&g_game->menu);
             g_game->state=7;
         }
@@ -194,7 +194,7 @@ void __stdcall FUN_0041f7f0()
     }
     case 6:
         if(!g_game->complete) {
-            FUN_0041e270();
+            StepPaletteFade();
             unsigned now=GetTicks();
             now+=GetTickRate();
             g_game->deadline=now;
@@ -205,7 +205,7 @@ void __stdcall FUN_0041f7f0()
                 FUN_004c2340(event);
                 if(PopKey() || g_game->advance) {
                     g_game->input->StopStream();
-                    FUN_0041f0a0(); FUN_0041f400(); FUN_0041e420();
+                    OpenEndMissionScreen(); EnableEndMissionButtons(); FillEndGameStatistics();
                     FUN_0049fad0(&g_game->menu); FUN_0049fa90(&g_game->menu);
                     g_game->state=7;
                 }

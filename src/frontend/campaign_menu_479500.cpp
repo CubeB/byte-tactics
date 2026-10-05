@@ -3,7 +3,7 @@
 extern int DAT_00511de8;
 
 // FUNCTION: 0x479500
-int __cdecl FUN_00479500()
+int __cdecl CountHumanSlots()
 {
     int* g_game = (int*)DAT_00511de8;
     int count = 0;

@@ -44,7 +44,7 @@ void __stdcall FUN_004a1250(void* obj, char* name, int value);
 void __stdcall FUN_0049fa50(void* obj);
 
 // FUNCTION: 0x45cfc0
-int __cdecl FUN_0045cfc0()
+int __cdecl OpenOptionsLayout()
 {
     char buf[256];
     if (g_game->prefs) {

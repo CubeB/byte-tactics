@@ -24,7 +24,7 @@ char* __stdcall FUN_004c5740(char* text);
 void __stdcall AddMessage(char* text, int param_2, int param_3, unsigned char param_4);
 
 // FUNCTION: 0x47bd70
-void __stdcall FUN_0047bd70(Player_0047bd70* player)
+void __stdcall AnnounceForcesDestroyed(Player_0047bd70* player)
 {
     char buf[200];
     const char* side = "Core";

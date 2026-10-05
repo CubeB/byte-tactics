@@ -139,8 +139,8 @@ extern "C" unsigned char DAT_0051e823, DAT_0051e824, DAT_0051e825;
 void LoadThreadMain();
 void FUN_00499200();
 void __cdecl FUN_004609a0(int);
-void __cdecl FUN_004257a0();
-void __cdecl FUN_00428730();
+void __cdecl BlankScreen();
+void __cdecl FreePictureCache();
 void __cdecl SaveSettings();
 void __cdecl HandleNetPackets();
 void __cdecl SendLoadProgress();
@@ -154,7 +154,7 @@ void __cdecl RestoreScreen();
 void __cdecl FlipScreen();
 int __cdecl IsCdPlaying();
 void __cdecl FUN_004d85a0(void*);
-void __stdcall FUN_004288d0(char*, int, int, int);
+void __stdcall LoadPictureCached(char*, int, int, int);
 void __stdcall BuildDataPath(void*, char*, char*, char*);
 void __stdcall FUN_00453320(unsigned int, int);
 void __stdcall DrawSyncStatus(void*);
@@ -245,7 +245,7 @@ void LoadingScreenFrame(void)
         while (g_game->field_531 != 0) {
             CloseTopScreen(&g_game->field_519);
         }
-        FUN_004257a0();
+        BlankScreen();
         g_game->field_37e1f = 0x280;
         g_game->field_37e23 = 0x1e0;
         if (GetScreenWidth() != 0x280 || GetScreenHeight() != 0x1e0) {
@@ -276,7 +276,7 @@ void LoadingScreenFrame(void)
         g_game->field_37e33 = g_game->field_37e23 - 0x21;
         g_game->field_37e37 = g_game->field_37e2f - g_game->field_37e27 + 1;
         g_game->field_37e3b = g_game->field_37e33 - g_game->field_37e2b + 1;
-        FUN_004288d0("loadgame2bg", 0, 0, 0);
+        LoadPictureCached("loadgame2bg", 0, 0, 0);
         memset(&g_game->slots, 0, sizeof(g_game->slots));
         for (i = 0; i < 10; i++) {
             pi = &g_game->players[i];
@@ -299,8 +299,8 @@ void LoadingScreenFrame(void)
     }
     if (g_game->flags38d75.bits.loaded) {
         StopAllSounds();
-        FUN_004257a0();
-        FUN_00428730();
+        BlankScreen();
+        FreePictureCache();
         if (GetScreenWidth() != g_game->field_37f1b || GetScreenHeight() != g_game->field_37f1f) {
             FUN_004d85a0((void*)g_game->field_37e1b);
             g_game->field_37e1b = 0;

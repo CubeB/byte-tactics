@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Builds the "FLIPSURFACE" and "BKUPSURFACE" surfaces for the layer at
-// g_game+0x531, opens the panel layer (FUN_0045cfc0) with FUN_0045fc60 as its
-// handler, saves the game settings the same way FUN_0045cde0 does, then pushes
+// g_game+0x531, opens the panel layer (OpenOptionsLayout) with HandleOptionsPanelClick as its
+// handler, saves the game settings the same way SaveGameSettings does, then pushes
 // the panel menu. The bit at g_game+0x2a44 bit 2 suppresses the two video
 // calls.
 // The holder at g_game+0x531 is a local, but its +4 layer pointer is not: the
@@ -103,10 +103,10 @@ extern int DAT_00512ff0;
 extern int DAT_00512fd9;
 extern char DAT_00512f75[];
 
-void FUN_004257a0();
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-Layer_00460160* FUN_0045cfc0();
-int __stdcall FUN_0045fc60(void* gadget);
+void BlankScreen();
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
+Layer_00460160* OpenOptionsLayout();
+int __stdcall HandleOptionsPanelClick(void* gadget);
 void __stdcall PlaySoundByName(char* str, int flag);
 void __stdcall FUN_0049fb10(Menu_00460160* menu, int value);
 void __stdcall RenderLayer(Menu_00460160* menu, int value);
@@ -115,11 +115,11 @@ Class_004c6a60* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall DrawSurface(Class_004c6a60* surface, int a, int b, int c);
 
 // FUNCTION: 0x460160
-void FUN_00460160()
+void OpenOptionsPanel()
 {
     Holder_00460160* holder = g_game->holder;
     if (!g_game->flags.bit2) {
-        FUN_004257a0();
+        BlankScreen();
     }
     DAT_00512fe8 = AllocSurface("FLIPSURFACE", holder->field_4->field_17, holder->field_4->field_19);
     memcpy(DAT_00512fe8->pixels, holder->field_4->field_bc->pixels,
@@ -132,11 +132,11 @@ void FUN_00460160()
     DAT_00512ff4 = AllocSurface("BKUPSURFACE", 300, 480);
     DrawSurface(DAT_00512ff4, 0, 0, 0);
     DAT_00512ff0 = 0;
-    Layer_00460160* panel = FUN_0045cfc0();
+    Layer_00460160* panel = OpenOptionsLayout();
     if (!g_game->flags.bit2) {
-        FUN_004288d0("options4x", 0, 0, 0);
+        LoadPictureCached("options4x", 0, 0, 0);
     }
-    panel->handler = FUN_0045fc60;
+    panel->handler = HandleOptionsPanelClick;
     memcpy(DAT_00512f18.block, (char*)g_game + 0x37ee6, 0x53);
     DAT_00512f18.bit0 = g_game->bit1;
     DAT_00512f18.bit1 = g_game->bit2;

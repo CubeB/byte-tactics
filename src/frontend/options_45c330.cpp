@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 // Reads the "TXTSCROL" slider into the text scroll time and shows it as
-// "<n> secs" (the slider value is the inlined FUN_0045ba20, as in 0x45bea0).
+// "<n> secs" (the slider value is the inlined ReadSliderValue, as in 0x45bea0).
 #include <stdio.h>
 
 #pragma pack(push, 1)
@@ -42,7 +42,7 @@ static inline int SliderValue(Entry_4a0200* e)
 }
 
 // FUNCTION: 0x45c330
-void __stdcall FUN_0045c330(Object_0045c330* obj, int unused)
+void __stdcall HandleTextScrollSlider(Object_0045c330* obj, int unused)
 {
     char text[20];
     Entry_4a0200* e = FUN_004a0200(obj->holder->entries, "TXTSCROL");

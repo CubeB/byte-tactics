@@ -41,7 +41,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x426780
-void __stdcall FUN_00426780(char* param_1)
+void __stdcall PlayMovie(char* param_1)
 {
     char path[256];
 

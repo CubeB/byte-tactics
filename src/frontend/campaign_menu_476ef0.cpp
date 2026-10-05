@@ -108,7 +108,7 @@ char* __stdcall FUN_00476e90(char* start, int lines, int page)
 }
 
 // FUNCTION: 0x476ef0
-void FUN_00476ef0()
+void DrawHelpPage()
 {
     Holder_476ef0* dialog = g_game->dialog;
     Entry_476ef0* gadgets = dialog->entries;

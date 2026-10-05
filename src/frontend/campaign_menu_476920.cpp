@@ -9,7 +9,7 @@ int __stdcall ScanDirectory(char* path, void* buffer, char* p3, int p4, int p5, 
 char* __stdcall FUN_004b6af0(char* text, int n);
 
 // FUNCTION: 0x476920
-int __stdcall FUN_00476920(const char* name)
+int __stdcall CampaignExists(const char* name)
 {
     int found;
     char path[256];

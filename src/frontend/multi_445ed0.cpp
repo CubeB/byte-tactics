@@ -40,7 +40,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x445ed0
-void FUN_00445ed0()
+void UpdateBattleRoomFlags()
 {
     int i = FindHostSlot();
     if (i == 10) {

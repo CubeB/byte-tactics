@@ -25,13 +25,13 @@ void RegisterDataArchives();
 void __stdcall PlaySoundByName(char* name, int param_2);
 void __stdcall FUN_00491c80(int n);
 void ShowLoadGameScreen();
-void FUN_00460160();
+void OpenOptionsPanel();
 void __stdcall FUN_004ab0a0(void* param_1);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
 
 // FUNCTION: 0x4775a0
-void __stdcall FUN_004775a0(Gadget_004775a0* gadget)
+void __stdcall HandleSingleMenuClick(Gadget_004775a0* gadget)
 {
     if (gadget->field_60 == -1)
         return;
@@ -70,7 +70,7 @@ void __stdcall FUN_004775a0(Gadget_004775a0* gadget)
         PlaySoundByName("options", 0);
         FUN_004ab0a0(gadget);
         FUN_00491c80(0x14);
-        FUN_00460160();
+        OpenOptionsPanel();
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "PrevMenu")) {

@@ -35,13 +35,13 @@ extern const char DAT_00508460[];
 void SaveSettings();
 void SaveNumSkirmishPlayers();
 void LoadSettings();
-void FUN_0047a0e0();
+void RefreshSkirmishSetup();
 void __stdcall PlaySoundByName(const char*, int);
 void __stdcall FUN_004a7960(Cheat_0047b9f0*, int);
 void __stdcall FUN_0049fa90(void*);
 
 // FUNCTION: 0x47b9f0
-void __stdcall FUN_0047b9f0(Cheat_0047b9f0* cheat)
+void __stdcall HandleSkirmishCheatText(Cheat_0047b9f0* cheat)
 {
     int zero = 0;
     int code = 0;
@@ -73,7 +73,7 @@ void __stdcall FUN_0047b9f0(Cheat_0047b9f0* cheat)
         LoadSettings();
         *(short*)((char*)cheat->text->target + 0xb6) =
             *(short*)((char*)g_game->field_29a0 + 0x220);
-        FUN_0047a0e0();
+        RefreshSkirmishSetup();
         PlaySoundByName(DAT_00508460, 0);
         FUN_004a7960(cheat, 1);
         FUN_0049fa90((char*)g_game + 0x519);

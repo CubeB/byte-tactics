@@ -47,11 +47,11 @@ extern Game* g_game;
 void* __stdcall FUN_004a0200(void* entries, char* name);
 void __stdcall FUN_004a0bf0(Gui_445b70* gui, char* name, char* data, int param_4);
 unsigned char FindHostSlot();
-int __stdcall FUN_0045ba20(Entry_445b70* entry);
+int __stdcall ReadSliderValue(Entry_445b70* entry);
 void BroadcastPlayerInfo();
 
 // FUNCTION: 0x445b70
-void __stdcall FUN_00445b70(Gui_445b70* gui, int index)
+void __stdcall UpdateMaxUnitsText(Gui_445b70* gui, int index)
 {
     char text[0x14];
     int count;
@@ -59,7 +59,7 @@ void __stdcall FUN_00445b70(Gui_445b70* gui, int index)
     if (maxunits != 0) {
         int player = FindHostSlot();
         if (player == g_game->localPlayer || player == 10) {
-            count = FUN_0045ba20(maxunits) + 0x14;
+            count = ReadSliderValue(maxunits) + 0x14;
         } else {
             count = g_game->players[player].data->maxunits;
         }

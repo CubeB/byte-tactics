@@ -19,7 +19,7 @@ int __stdcall ScanDirectory(char* path, void* buffer, char* p3, int p4, int p5, 
 void __stdcall FUN_004a32a0(void* menu, char* name, void* text, int value, int flag);
 
 // FUNCTION: 0x44b4e0
-void* __stdcall FUN_0044b4e0(int* out)
+void* __stdcall ListSaveGameFiles(int* out)
 {
     char path[0x100];
     BuildDataPath(path, DAT_005091c8, DAT_0050372c, DAT_00505f40);

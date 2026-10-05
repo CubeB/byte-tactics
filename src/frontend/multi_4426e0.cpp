@@ -38,7 +38,7 @@ void __stdcall FUN_004a32a0(void* menu, char* name, char* text,
 void __stdcall FUN_004a2e40(void* menu, char* name, int player);
 
 // FUNCTION: 0x4426e0
-void FUN_004426e0(void)
+void FillAccountList(void)
 {
     char* buffer = DAT_0051298c;
     *buffer = 0;

@@ -46,11 +46,11 @@ struct Game {
 
 extern Game* g_game;
 
-Object_0045ed50* __cdecl FUN_0045cfc0();
+Object_0045ed50* __cdecl OpenOptionsLayout();
 void FUN_0045ce80();
 void __stdcall RenderLayer(void* obj, int value);
 int __stdcall LoadGuiLayer(void* obj, char* name, int size);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall FUN_0049fa50(void* obj);
 int __stdcall FindGadgetIndex(Entry_0045ed50* entries, char* name, int type);
 Entry_0045ed50* __stdcall FUN_004a0200(Entry_0045ed50* entries, char* name);
@@ -61,22 +61,22 @@ void __stdcall FUN_0049fb10(void* obj, int value);
 void FUN_00428b60();
 
 void __stdcall FUN_0045ead0(void* obj, int arg);
-void __stdcall FUN_0045c070(void* obj, int arg);
-void __stdcall FUN_0045c170(void* obj, int arg);
-void __stdcall FUN_0045c220(void* obj, int arg);
-void __stdcall FUN_0045c330(void* obj, int arg);
+void __stdcall HandleGameSpeedSlider(void* obj, int arg);
+void __stdcall HandleScreenSlider(void* obj, int arg);
+void __stdcall HandleMaxLinesSlider(void* obj, int arg);
+void __stdcall HandleTextScrollSlider(void* obj, int arg);
 
 // FUNCTION: 0x45ed50
-void FUN_0045ed50()
+void OpenSpeedOptions()
 {
-    Object_0045ed50* obj = FUN_0045cfc0();
+    Object_0045ed50* obj = OpenOptionsLayout();
     RenderLayer(&g_game->menu, 2);
     FUN_0045ce80();
     if (g_game->flag_37ebe & 1) {
         LoadGuiLayer(&g_game->menu, "SPEEDSRT.GUI", 0x200);
     } else {
         LoadGuiLayer(&g_game->menu, "SPEEDS.GUI", 0x200);
-        FUN_004288d0("optinterface4x", 0, 0, 0);
+        LoadPictureCached("optinterface4x", 0, 0, 0);
     }
     obj->fn = FUN_0045ead0;
     FUN_0049fa50(&g_game->menu);
@@ -85,7 +85,7 @@ void FUN_0045ed50()
     if (found != -1) {
         Entry_0045ed50* e = FUN_004a0200(obj->entries, "GAME");
         e->max = 0x15;
-        e->fn = FUN_0045c070;
+        e->fn = HandleGameSpeedSlider;
         int value = g_game->field_38a4b;
         if (value > 0x15) {
             value = 0x15;
@@ -108,7 +108,7 @@ void FUN_0045ed50()
             f += 1.0;
         }
         e->pos = (short)f;
-        e->fn = FUN_0045c170;
+        e->fn = HandleScreenSlider;
     }
     SetButtonStageByName(&g_game->menu, "UNITCHAT", g_game->field_37f18 / 5);
     SetButtonStageByName(&g_game->menu, "LEFTCLICK", g_game->field_37efa);
@@ -127,7 +127,7 @@ void FUN_0045ed50()
             f += 1.0;
         }
         e->pos = (short)f;
-        e->fn = FUN_0045c220;
+        e->fn = HandleMaxLinesSlider;
     }
     if (FindGadgetIndex(obj->entries, "TXTSCROL", 0xe) != -1) {
         Entry_0045ed50* e = FUN_004a0200(obj->entries, "TXTSCROL");
@@ -141,7 +141,7 @@ void FUN_0045ed50()
             f += 1.0;
         }
         e->pos = (short)f;
-        e->fn = FUN_0045c330;
+        e->fn = HandleTextScrollSlider;
     }
     for (int i = 1; i <= obj->entries->count; i++) {
         if (obj->entries[i].type == 4)

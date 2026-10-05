@@ -25,7 +25,7 @@ void __stdcall FUN_004a1250(Class_004a1250* obj, char* name, int value);
 void __stdcall FUN_004a1450(Object_004a1450* obj, char* name, int value);
 
 // FUNCTION: 0x45d130
-void FUN_0045d130()
+void UpdateMusicGadgets()
 {
     SetButtonStageByName((Class_004a1080*)g_game->gui, "NOTRAK", g_game->notrak & 1);
     SetButtonStageByName((Class_004a1080*)g_game->gui, "TRACKMODE", g_game->state - 1);

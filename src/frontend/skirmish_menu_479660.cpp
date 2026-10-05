@@ -41,7 +41,7 @@ int __stdcall FindGadgetIndex(Layout_00479660* entries, const char* name, int fl
 void __stdcall FUN_0049fa90(Menu_00479660* menu);
 
 // FUNCTION: 0x479660
-void FUN_00479660(void)
+void RefreshAllyIcons(void)
 {
     int i = 0;
     Layout_00479660* entries = g_game->table->entries;

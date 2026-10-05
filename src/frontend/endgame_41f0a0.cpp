@@ -1,5 +1,5 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-// Opens the end-of-mission screen (ENDMSN.GUI) with FUN_0041ec50 as its
+// Opens the end-of-mission screen (ENDMSN.GUI) with HandleEndMissionClick as its
 // handler. When the campaign goes on to another mission (the inlined
 // FUN_0041f040) it plays "outcome1", makes Start the default button and
 // fills the Missions list; otherwise it plays "outcome0" and focuses
@@ -104,15 +104,15 @@ struct Game {
 
 extern Game* g_game;
 
-void FUN_004257a0();
+void BlankScreen();
 void __stdcall FillSurface(int param_1, int param_2);
 void FlipScreen();
 Layer_0041f0a0* __stdcall LoadGuiLayer(Menu_0041f0a0* menu, const char* name, int flags);
-void __stdcall FUN_0041ec50(void* gadget);
+void __stdcall HandleEndMissionClick(void* gadget);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
-void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall SelectGadgetByName(Menu_0041f0a0* menu, const char* name);
-int __stdcall FUN_0041eaa0(int names, char* flags, int count);
+int __stdcall BuildScrollItems1(int names, char* flags, int count);
 void __stdcall FUN_004a32a0(Menu_0041f0a0* menu, char* name, int items, int count, int flag);
 Entry_0041f0a0* __stdcall FUN_004a0200(char* entries, char* name);
 void __stdcall FUN_004a2e40(Menu_0041f0a0* menu, char* name, int index);
@@ -138,13 +138,13 @@ static inline int HasNextMission()
 }
 
 // FUNCTION: 0x41f0a0
-void __stdcall FUN_0041f0a0()
+void __stdcall OpenEndMissionScreen()
 {
-    FUN_004257a0();
+    BlankScreen();
     FillSurface(g_game->surface, 0);
     FlipScreen();
     Layer_0041f0a0* layer = LoadGuiLayer(&g_game->menu, "ENDMSN.GUI", 0x80);
-    layer->handler = FUN_0041ec50;
+    layer->handler = HandleEndMissionClick;
     Data_0041f0a0* data = (Data_0041f0a0*)FUN_004d83b0("EndMsnGUI", 0x20);
     data->items = 0;
     layer->data = data;
@@ -152,16 +152,16 @@ void __stdcall FUN_0041f0a0()
     char next = HasNextMission();
     if (next) {
         ((Class_00435c00*)g_game->campaign)->FUN_00435c00(g_game->mission);
-        FUN_004288d0("outcome1", 1, 1, 0);
+        LoadPictureCached("outcome1", 1, 1, 0);
         strcpy(layer->entries + 0xcc, "Start");
     } else {
-        FUN_004288d0("outcome0", 1, 1, 0);
+        LoadPictureCached("outcome0", 1, 1, 0);
         SelectGadgetByName(&g_game->menu, "MainMenu");
     }
     next = HasNextMission();
     if (next) {
         int count = ((Class_00435760*)g_game->campaign)->BuildMissionList(&data->items);
-        data->items = FUN_0041eaa0(data->items, g_game->missionFlags, count);
+        data->items = BuildScrollItems1(data->items, g_game->missionFlags, count);
         // Suspected original bug: this finds the first 'U' mission flag but
         // the index is never used (perhaps a lost "select the first
         // unplayed mission" step).

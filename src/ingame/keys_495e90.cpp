@@ -194,7 +194,7 @@ int GetLocalDpid(void);
 void __stdcall BroadcastPacket(int param_1, void* param_2, int param_3);
 void ToggleTabMenu(void);
 void __stdcall FUN_004956c0(int eventType);
-void __stdcall FUN_00460cc0(void);
+void __stdcall OpenInGameOptions(void);
 int __stdcall FUN_004bc4b0(char* path, void* findData, int param_3, int param_4);
 int __stdcall FUN_004bc640(int handle, void* findData);
 void __stdcall FUN_004bc8d0(int handle);
@@ -349,7 +349,7 @@ void HandleGameKey(void)
             }
         } else {
             if (!g_game->flags_37ebe.b0) {
-                FUN_00460cc0();
+                OpenInGameOptions();
                 g_game->flags_37ebe.b0 = 1;
             }
         }

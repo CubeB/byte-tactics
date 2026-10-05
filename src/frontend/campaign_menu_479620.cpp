@@ -20,7 +20,7 @@ struct Game {
 extern Game* g_game;
 
 // FUNCTION: 0x479620
-int __stdcall FUN_00479620(int owner)
+int __stdcall CountPlayersInAllyGroup(int owner)
 {
     int n = 0;
     for (int i = 0; i < g_game->count; i++) {

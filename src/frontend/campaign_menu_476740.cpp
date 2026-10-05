@@ -10,7 +10,7 @@ struct Game {
 extern Game* g_game;
 
 void FUN_004c2470();
-void FUN_004257a0();
+void BlankScreen();
 void FUN_004c2870();
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 void* __stdcall LoadBitmapByName(char* name, unsigned char* palette);
@@ -20,7 +20,7 @@ void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 void __stdcall FreeSurface(void* param_1);
 
 // FUNCTION: 0x476740
-void __stdcall FUN_00476740(char* name, int lock)
+void __stdcall DrawBitmapBackground(char* name, int lock)
 {
     char path[0x100];
     unsigned char palette[0x400];
@@ -28,7 +28,7 @@ void __stdcall FUN_00476740(char* name, int lock)
 
     if (lock) {
         FUN_004c2470();
-        FUN_004257a0();
+        BlankScreen();
     }
     BuildDataPath(path, "bitmaps", name, "PCX");
     image = LoadBitmapByName(name, palette);

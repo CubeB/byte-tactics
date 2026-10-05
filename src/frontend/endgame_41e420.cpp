@@ -125,7 +125,7 @@ int __stdcall FUN_004ab3a0(Menu_0041e420* menu, Bar_0041e420* record);
     FUN_004ab3a0(&g_game->menu, &bar);
 
 // FUNCTION: 0x41e420
-void FUN_0041e420(void)
+void FillEndGameStatistics(void)
 {
     Bar_0041e420 bar;
     Button_0041e420 button;

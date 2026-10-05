@@ -112,7 +112,7 @@ static inline void AddLine(Page_0045f8c0* page, Layer_0045f8c0* layer, char* val
 }
 
 // FUNCTION: 0x45f8c0
-void __stdcall FUN_0045f8c0(Sub_0045f8c0* sub, int page, int lineCount)
+void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
 {
     Layer_0045f8c0* layer = sub->layer;
     ((Table_0045f8c0*)layer->entries)->count = DAT_00512ef0;

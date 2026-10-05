@@ -9,7 +9,7 @@
 // MATCH. What it took (from 85.2%):
 // - The SCROLLSLIDER block is the slider set-up 0x445e50, which has no
 //   callers, defined above unannotated and inlined (0x449bb0 calls it too).
-//   It keeps the menu in esi and the index in edi for the FUN_0044bfd0 and
+//   It keeps the menu in esi and the index in edi for the UpdateUnitSliders and
 //   FUN_0049fa90 calls, which the older file could not reproduce.
 // - SetGadgetRows takes the menu's table (g_game+0x531), not its entries.
 // - The scan loop skips with `continue` on the unit type's bit 15 (an int
@@ -126,7 +126,7 @@ extern int DAT_00512768;
 extern int DAT_005129c0;
 
 Layer_0044c7e0* __stdcall LoadGuiLayer(Gui_0044c7e0* gui, const char* name, int size);
-int __stdcall FUN_004288d0(const char* name, int a, int b, int c);
+int __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 Gadget_0044c7e0* __stdcall FindGadgetChecked(Gadget_0044c7e0* entries, char* name);
 int __stdcall FindGadgetIndex(Gadget_0044c7e0* entries, char* name, int type);
@@ -138,13 +138,13 @@ void __stdcall SetGadgetRows(Layer_0044c7e0* table, char* name, int* pics, int c
 void __stdcall RenderLayer(Gui_0044c7e0* gui, int value);
 void __stdcall FUN_0049fa90(Gui_0044c7e0* gui);
 void __stdcall FUN_0049fb10(Gui_0044c7e0* gui, int value);
-void __stdcall FUN_0045b9b0(Gadget_0044c7e0* gadget, int value);
-void __stdcall FUN_0044bfd0(Gui_0044c7e0* gui, int index);
+void __stdcall SetSliderFromValue(Gadget_0044c7e0* gadget, int value);
+void __stdcall UpdateUnitSliders(Gui_0044c7e0* gui, int index);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_0044c370(void* panel, UnitType_0044c7e0* type);
 void FUN_0044c220();
-void __stdcall FUN_0044c420(Gui_0044c7e0* gui);
-void __stdcall FUN_0044be70(void* obj, char* gadget);
+void __stdcall HandleRestrictionsClick(Gui_0044c7e0* gui);
+void __stdcall HandleUnitCountSlider(void* obj, char* gadget);
 int __cdecl FUN_0044c7a0(const char* a, const char* b);
 
 // The slider set-up at 0x445e50, which has no callers: /Ob2 inlined it.
@@ -158,7 +158,7 @@ void __stdcall FUN_00445e50(char* name, int max, int value, Callback_0044c7e0 ca
         gadget->max = max;
         gadget->callback = callback;
         gadget->value = value;
-        FUN_0045b9b0(gadget, gadget->value);
+        SetSliderFromValue(gadget, gadget->value);
         gadget->game = g_game;
     }
     callback(gui, index);
@@ -166,7 +166,7 @@ void __stdcall FUN_00445e50(char* name, int max, int value, Callback_0044c7e0 ca
 }
 
 // FUNCTION: 0x44c7e0
-void FUN_0044c7e0()
+void OpenUnitRestrictions()
 {
     int host = g_game->players[g_game->localPlayer].info->f97_0 & 1;
     Layer_0044c7e0* layer;
@@ -181,11 +181,11 @@ void FUN_0044c7e0()
     int i;
 
     layer = LoadGuiLayer(&g_game->gui, "RESTRICT2.GUI", 0x880);
-    layer->handler = FUN_0044c420;
+    layer->handler = HandleRestrictionsClick;
     layer->field_c = 0;
     layer->field_1c = FUN_0044c220;
     DAT_00512768 = 0;
-    FUN_004288d0("UnitRestrict5x", 0, 0, 0);
+    LoadPictureCached("UnitRestrict5x", 0, 0, 0);
 
     entries = layer->entries;
     flags = (char*)FUN_004d83b0("FLAGS", g_game->numUnitTypes);
@@ -253,14 +253,14 @@ void FUN_0044c7e0()
         slider = FUN_004a0200(entries, name);
         slider->game = slider;
         slider->max = 0x65;
-        slider->callback = FUN_0044be70;
+        slider->callback = HandleUnitCountSlider;
     }
 
-    FUN_00445e50("SCROLLSLIDER", 0xd2, 0, FUN_0044bfd0);
+    FUN_00445e50("SCROLLSLIDER", 0xd2, 0, UpdateUnitSliders);
 
     FUN_004a32a0(&g_game->gui, "DESCLIST", text, n, 0);
     SetGadgetRows(g_game->gui.table, "PICLIST", pics, n);
-    FUN_0044bfd0(&g_game->gui, 0);
+    UpdateUnitSliders(&g_game->gui, 0);
 
     {
         Gui_0044c7e0* gui = &g_game->gui;

@@ -694,7 +694,8 @@ def host_main() -> None:
     from pathlib import Path
 
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from check import (DEFAULT_FLAGS, FILE_FLAGS, FILE_FLAGS_LINE, FORBIDDEN, annotations, find_source,
+    from check import (DEFAULT_FLAGS, FILE_FLAGS, FILE_FLAGS_LINE, FORBIDDEN, GAP_FILE_FLAGS, GAP_FORBIDDEN,
+                       annotations, find_source, is_gap_source,
                        mangled_prefixes, select_function, winpath)
     from coff import parse_object
 
@@ -741,13 +742,15 @@ def host_main() -> None:
         sys.exit(f"no file under src/ has '// FUNCTION: {args.address:#x}'")
     qualname = next((q for a, q in annotations(src) if a == args.address), None)
     text = src.read_text(errors="replace")
-    bad = FORBIDDEN.search(text)
+    gap = is_gap_source(src)      # src/gap/ allows inline asm and its own flags
+    bad = (GAP_FORBIDDEN if gap else FORBIDDEN).search(text)
     if bad:
         sys.exit(f"{src}: '{bad.group(0)}' is not allowed; write the function in plain C++")
     flags = args.flags.split()
     m = FILE_FLAGS_LINE.search(text)
     if m:
-        flags += [f for f in m.group(1).split() if f in FILE_FLAGS and f not in flags]
+        allowed = GAP_FILE_FLAGS if gap else FILE_FLAGS
+        flags += [f for f in m.group(1).split() if f in allowed and f not in flags]
 
     if args.sym:
         match = ["substr", [args.sym]]

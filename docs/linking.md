@@ -363,8 +363,9 @@ none, so `carve.py` finds them itself:
   symbols). Its relocations come from disassembly:
   every `rel32` branch that leaves its region, and every 32-bit immediate or
   displacement that holds an address in the image. Each entry point the tree
-  calls gets its `FUN_<address>` name, and WinMain (0x49eda0, a gap region)
-  its `_WinMain@16`.
+  calls gets its `FUN_<address>` name, and a carved WinMain its
+  `_WinMain@16` (WinMain's region, 0x49eda0, now has source, which defines
+  it).
 - **`origdata.obj`** holds the original's `.rdata` and `.data` byte for byte,
   apart from the tables LINK builds itself (imports, the TLS and debug
   directories, the `.CRT$X*` tables). Its relocations come from `place.py`'s
@@ -530,16 +531,16 @@ compares the gap functions' references too.
 | 0x466050 | 1,326 | aligned frames: a saved game's player section, loaded and saved | matches |
 | 0x46c2a0 | 882 | aligned frame: the score tables for the statistics DLL | matches |
 | 0x497c70 | 101 | `__try`/`__except`: the loading thread | matches |
-| 0x49a120 | 1,829 | aligned frame | |
+| 0x49a120 | 1,829 | aligned frame: a weapon's area damage | 97.0% |
 | 0x49e680 | 106 | `__try`/`__except`, inline `div`: a deliberate fault to report a message | matches |
-| 0x49eda0 | 1,942 | WinMain (`__try`/`__except`); command line (`try`/`catch`, `_alloca`) | |
+| 0x49eda0 | 1,942 | WinMain (`__try`/`__except`); command line (`try`/`catch`, `_alloca`) | matches |
 | 0x49f710 | 419 | the linker's import thunks | placed from the import libraries |
 | 0x4b70a0 | 772 | hand-written: fixed-point trigonometry, 10 entry points | matches |
-| 0x4bb4e0 | 198 | `_alloca` | |
+| 0x4bb4e0 | 198 | `_alloca`: the archive entry a path names | 85.2% (one register swap) |
 | 0x4bc800 | 197 | `_alloca`: the archive directory a path ends in | matches |
 | 0x4c4fa0 | 255 | `basic_string::_Copy`, `try`/`catch` | matches |
 | 0x4cbbe0 | 7,622 | hand-written: surface drawing, five modules with 23 more entry points | matches |
-| 0x4d8310 | 67 | inline `int 3` | |
+| 0x4d8310 | 67 | inline `int 3`: a fill-pattern check | 80.6% |
 | 0x4d8870 | 318 | inline asm: two constructors that record a stack trace | matches |
 | 0x4d8d70 | 125 | inline asm: stack bounds, in three thread-local variables | matches |
 | 0x4d9ab0 | 420 | `__try`/`__except`, inline `int 3`: the fatal error handler | matches |

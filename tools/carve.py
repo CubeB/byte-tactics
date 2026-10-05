@@ -45,7 +45,12 @@ which tools/link.py --carve applies to copies of them (patch_objects):
     own file (copies kept so that they inline) point at the original's data
     and at the real function, where the original's code points;
   * every other file's definition of a game function becomes static, so the
-    name binds to the annotated one.
+    name binds to the annotated one;
+  * a placed function the compiler made static (the `_$E<n>` initialisers of
+    global objects and the destructors they register with atexit) gets a
+    public name, __static_<address>, so that the references above can reach
+    it: 0x4b2290 registers 0x4b2340, the destructor in another file, where
+    its own object would register its own, which calls a stub.
 """
 
 import argparse
@@ -178,6 +183,12 @@ def data_symbol(section: str) -> str:
     return "__orig" + section.replace(".", "_")
 
 
+def static_alias(addr: int) -> str:
+    """The public name patch_objects gives the placed function at addr when
+    its object has only a static one."""
+    return f"__static_{addr:08x}"
+
+
 def external_at(piece, offset: int) -> str | None:
     """The external symbol of a piece's section that starts exactly at offset
     (slices of one section are placed apart, so no other offset is safe)."""
@@ -198,6 +209,9 @@ class Namer:
         self.gaps: list[tuple[int, int]] = []                # the regions to carve
         self.regions: list[tuple[int, int]] = []             # every gap region, with source or not
         self.library_starts: set[int] = set()
+        # Object file name -> (section, offset, name): the public names to add
+        # for placed functions that only have static ones (see static_alias).
+        self.published: dict[str, list[tuple[int, int, str]]] = defaultdict(list)
         sizes = {}
         for row in load_rows(FUNCTIONS):
             addr, size = int(row["address"], 16), int(row["size"])
@@ -230,10 +244,14 @@ class Namer:
                 for i, (value, name) in enumerate(syms):
                     end = syms[i + 1][0] if i + 1 < len(syms) else p.hi
                     self.spans.append((p.va + value, p.va + end, name))
+                if p.source == CODE and not any(value == 0 for value, _ in syms):
+                    self.publish(p)
                 continue
             name = external_at(p, p.lo)
             if name and p.source in (CODE, LIBCODE):
                 self.spans.append((p.va, p.va + p.hi - p.lo, name))
+            elif p.source == CODE and not p.sec.name.startswith(".text$x"):
+                self.publish(p)
             elif name and p.source == LIBDATA:
                 self.data_spans.append((p.va, p.va + max(p.hi - p.lo, 1), name))
         for addr, name in img.copied_library:
@@ -248,6 +266,12 @@ class Namer:
         self.data_starts = [s for s, _, _ in self.data_spans]
         self.imports = import_symbols(img)
         self.missing: Counter = Counter()
+
+    def publish(self, p) -> None:
+        """Name a placed function whose object has no public name for it."""
+        name = static_alias(p.va)
+        self.spans.append((p.va, p.va + p.hi - p.lo, name))
+        self.published[p.obj.path.name].append((p.sec.index, p.lo, name))
 
     def add_handler_stubs(self) -> None:
         """The compiler's exception handler stubs for the gap regions' own
@@ -624,6 +648,7 @@ class Carved:
     aliases: dict[str, str]                      # names no object defines -> what they mean
     retargets: dict[str, list] = field(default_factory=dict)
     private: dict[str, set[int]] = field(default_factory=dict)
+    published: dict[str, list] = field(default_factory=dict)
 
 
 def carve(objects: list[Path], verbose: bool = False) -> Carved:
@@ -682,7 +707,8 @@ def carve(objects: list[Path], verbose: bool = False) -> Carved:
                if isinstance(t, tuple) or t in data_names}
     carved = Carved([OUT / "origdata.obj", OUT / "gaps.obj"], gap_sources, gap_names, data_names,
                     {start: name for start, _, name in namer.spans if start in namer.library_starts},
-                    aliases, retargets(img, placer, namer, copies), private_copies(placer))
+                    aliases, retargets(img, placer, namer, copies), private_copies(placer),
+                    dict(namer.published))
     print(f"carve: {len(namer.gaps):,} regions carved, {len(gap_sources):,} gap regions built from source; "
           f"{len(copies):,} identical copies of placed functions, {len(aliases):,} names "
           f"resolved by the layout", file=sys.stderr)
@@ -711,15 +737,16 @@ def library_aliases(objects: list[Path], symbols: dict[str, int], carved: Carved
 
 
 def patch_objects(paths: list[Path], carved: Carved) -> list[Path]:
-    """Copies, under build/link/objs/, of the objects with carved.retargets and
-    carved.private applied."""
+    """Copies, under build/link/objs/, of the objects with carved.retargets,
+    carved.private and carved.published applied."""
     out_dir = OUT / "objs"
     out_dir.mkdir(parents=True, exist_ok=True)
-    result, count, private = [], 0, 0
+    result, count, private, published = [], 0, 0, 0
     for path in paths:
         sites = carved.retargets.get(path.name, [])
         hidden = carved.private.get(path.name, set())
-        if not sites and not hidden:
+        names = carved.published.get(path.name, [])
+        if not sites and not hidden and not names:
             result.append(path)
             continue
         data = bytearray(path.read_bytes())
@@ -727,6 +754,15 @@ def patch_objects(paths: list[Path], carved: Carved) -> list[Path]:
         strtab = bytearray(data[symptr + nsyms * 18:])
         new_syms = bytearray()
         index: dict[str, int] = {}
+        # Public names for its static functions first, then the names its
+        # retargeted references need (undefined, unless it defines them).
+        for sec, value, name in names:
+            raw = name.encode("latin-1")
+            new_syms += b"\0\0\0\0" + struct.pack("<I", len(strtab))
+            strtab += raw + b"\0"
+            new_syms += struct.pack("<IhHBB", value, sec, 0x20, IMAGE_SYM_CLASS_EXTERNAL, 0)
+            index[name] = nsyms + len(index)
+            published += 1
         for _, _, name, _ in sites:
             if name in index:
                 continue
@@ -758,7 +794,7 @@ def patch_objects(paths: list[Path], carved: Carved) -> list[Path]:
         target.write_bytes(bytes(data[:symptr + nsyms * 18]) + bytes(new_syms) + bytes(strtab))
         result.append(target)
     print(f"objects: {count:,} references pointed where the original's point, {private:,} copies of game "
-          f"functions made static", file=sys.stderr)
+          f"functions made static, {published:,} static game functions given public names", file=sys.stderr)
     return result
 
 

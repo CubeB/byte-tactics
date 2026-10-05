@@ -389,13 +389,20 @@ and `link.py` applies that to patched copies of the objects under
   keeps one copy of each: the original's, at its full size and with every
   slot (the tree's vtables are partial views of their classes).
 - A placed function's references to file statics, and to other functions of
-  its own file, point where the original's code points (1,159 references).
+  its own file, point where the original's code points (1,176 references).
   Many files keep a global as a file-scope `static` because that makes their
   function match (0x4223e0.cpp's `static FeatureList* DAT_00511fb4`), and
   copies of callees kept so that they inline (`docs/consolidation.md`) would
   otherwise be called instead of the real function.
+- The 22 placed functions the compiler made static, the `_$E<n>` initialisers
+  of global objects and the destructors they register with `atexit`, get a
+  public name each, `__static_<address>`, so that those references can reach
+  them. Six initialisers register a destructor that another file defines
+  (0x4b2290 registers 0x4b2340); linked as they are, each would register its
+  own object's copy, and 0x4b2290's calls a stub, so the original's map at
+  0x51fbc0 was never freed at exit.
 - Every other file's definition of an annotated game function is made
-  static, so the name binds to the annotated one (586 copies).
+  static, so the name binds to the annotated one (590 copies).
 - Only the original's 17 C++ static initialisers run, in its order (see
   `fix_initialisers` in `link.py`): files that define global objects only so
   that a function matches would otherwise construct them with the wrong
@@ -424,8 +431,9 @@ every function has moved, so it compares where each reference leads. For
 every placed game function it reads each relocated field of
 `build/link/TotalA.exe`, maps the address back to the original through the
 map file (`link.py --carve --map`), and compares it with what the original's
-code holds in that field. On 2026-10-05 all 25,713 references it can place
-agree, apart from 128 calls that reach the other copy of `std::_Lockit`. It
+code holds in that field. On 2026-10-05 all 26,513 references it can place,
+in all 3,305 placed functions, agree, apart from 134 calls that reach the
+other copy of `std::_Lockit`. It
 exits non-zero on any difference, so a change that rebinds a name shows up
 before the game is run.
 

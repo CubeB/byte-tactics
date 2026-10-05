@@ -287,6 +287,56 @@ has one cause. The order: the classes with the most files (`Unit`, `Game`,
 `Order`, the player AI object, the pathfinder), then each module's own
 functions, then globals and fields.
 
+The first classes are done:
+
+- `Unit`: 191 views (#5723);
+- `Game`: 796 views, so 907 of the 1,042 files that use `g_game` now agree on its type (#5725);
+- `Order`, `PlayerAI` with `g_playerAI`, and `Pathfinder` (#5726).
+
+In each, the names a file shares with another of the type's names wait for
+phase 3.
+
+### Renaming a module
+
+One worker takes one module of `data/modules.csv`
+(`uv run tools/modules.py --summary` lists them) and names what the module
+defines:
+
+- the functions whose files are in it (`FUN_<address>`, and the method part
+  of `Class_<address>::FUN_<address>`);
+- the placeholder classes whose constructor or most of whose methods are in it;
+- the globals only its functions use.
+
+1. **Find the evidence for each name.**
+   - `uv run tools/ctx.py <address>` shows a function's strings, callers and
+     callees.
+   - The module's row in `data/modules.csv`, the file's own comments and
+     `docs/consolidation.md` say what a class is.
+   - `uv run tools/gametypes.py --explain <Type>` lists the views of a type
+     and what joins them.
+   - Trust a join through a declaration the files share. Do not trust one
+     through a `std::` template: MSVC 5 names every instantiation of a
+     function template alike, so those joins reach unrelated element types.
+   - Size is no evidence on its own: the `_finddata_t` views are as big as a
+     unit.
+   - A name with no evidence stays a placeholder.
+2. **Write the pairs** in a CSV of `old,new,evidence` rows. Follow the
+   conventions above. A method keeps its class: renaming `FUN_00401234`
+   renames `Class_X::FUN_00401234`, and a constructor takes its class's
+   name. Views of a type that already has a name take that name with
+   `--join`.
+3. **Dry-run, then rename**: `uv run tools/rename.py --from pairs.csv
+   [--join] --keep-going --dry-run`, then again with `--full` instead of
+   `--dry-run`. A pair the tool refuses waits for phase 3; say which in the
+   pull request. The tool compares words, not scopes. So it also refuses a
+   method name that a file already uses for another class's member (two
+   `Reset`s, say): a more specific name usually passes.
+4. **Open the pull request against main**, with the pairs and their evidence in
+   its body. A rename rewrites every file that spells the name, in other
+   modules too, so rebase onto main first. If the rebase conflicts, reset to
+   main and run `tools/rename.py` again with the same pairs rather than merging
+   by hand.
+
 ## Phase 3: shared types, then one file per module
 
 This is #2662's phases 2 to 4, now in the tidied tree:

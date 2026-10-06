@@ -13,16 +13,7 @@
 // placeholder Class_00425480::FUN_00425480 that stood for it.
 #include <vector>
 
-class TdfFile {
-public:
-    void* field_0;                     // +0x0
-    void* field_4;                     // +0x4
-    void* field_8;                     // +0x8
-
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* name);
-};
+#include "../util/tdf.h"
 
 class Class_004c9390 {
 public:
@@ -48,7 +39,7 @@ void __stdcall LoadFeatureFileList()
     FindFilesRecursive("features", "*.tdf", &list, -1, 1);
     for (std::vector<Elem_004222e0>::iterator it = list.begin(); it < list.end(); it++) {
         TdfFile* obj = new TdfFile;
-        if (((TdfFile*)obj)->LoadFile(it->name.data)) {
+        if (obj->LoadFile(it->name.data)) {
             DAT_00511fb4->push_back(obj);
         } else {
             delete obj;

@@ -5,26 +5,8 @@
 
 class TdfFile;
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, const char* key, size_t size, const char* def);
-    int GetFieldInt(const char* name, int def);
-};
+#include "../util/tdf.h"
 
-class TdfFile {
-public:
-    int field_0;
-    TdfRecord* current;            // +0x4
-    int field_8;
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    void Unload();
-    int SelectRecord(char* name);
-    void ResetCurrentRecord();
-    int GetCurrentRecord();
-    void SetCurrentRecord(int saved);
-};
 
 struct Obj_00431950 {
     char unknown_0[4];

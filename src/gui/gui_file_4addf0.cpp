@@ -1,9 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-class TdfRecord {
-public:
-    int GetFieldInt(const char* name, int flag);
-};
+#include "../util/tdf.h"
 
 struct Param2_004addf0 {
     char unknown_0[4];

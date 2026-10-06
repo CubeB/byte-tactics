@@ -9,15 +9,7 @@
 // The global below exists only to make the compiler emit the COMDAT here; the
 // real `new[]` sits in 0x42a8d0, which is not decompiled yet.
 
-class TdfFile {
-public:
-    void* data;                        // +0x0
-    int field_4;                       // +0x4
-    int field_8;                       // +0x8
-
-    TdfFile();
-    ~TdfFile();
-};
+#include "../util/tdf.h"
 
 // FUNCTION: 0x42a870 ??_ETdfFile@@QAEPAXI@Z
 static TdfFile* s_array = new TdfFile[1];

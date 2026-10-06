@@ -1,16 +1,8 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 #include <string.h>
 
-class TdfFile {
-public:
-    int SelectRecord(char* name);
-};
+#include "../util/tdf.h"
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, size_t size, char* def);
-    int GetFieldInt(const char* name, int def);
-};
 
 struct Tree_004ad350 {
     char unknown_0[4];
@@ -49,7 +41,7 @@ void __stdcall ReadCommonSection(Common_004ad350* obj, Tree_004ad350* tree)
     if (((TdfFile*)tree)->SelectRecord("COMMON") == 1) {
         obj->id = (unsigned char)tree->current->GetFieldInt("id", 0);
         obj->assoc = (unsigned char)tree->current->GetFieldInt("assoc", 0);
-        ((TdfRecord*)tree->current)->GetFieldString(obj->name, "name", 0x10, DAT_005119b8);
+        tree->current->GetFieldString(obj->name, "name", 0x10, DAT_005119b8);
         obj->xpos = (short)tree->current->GetFieldInt("xpos", 0);
         obj->ypos = (short)tree->current->GetFieldInt("ypos", 0);
         obj->width = (short)tree->current->GetFieldInt("width", 0);
@@ -61,7 +53,7 @@ void __stdcall ReadCommonSection(Common_004ad350* obj, Tree_004ad350* tree)
         obj->fontnumber = (unsigned char)tree->current->GetFieldInt("fontnumber", 0);
         obj->active = (unsigned char)tree->current->GetFieldInt("active", 0);
         obj->commonattribs = (unsigned char)tree->current->GetFieldInt("commonattribs", 0);
-        ((TdfRecord*)tree->current)->GetFieldString(obj->help, "help", 0x80, DAT_005119b8);
+        tree->current->GetFieldString(obj->help, "help", 0x80, DAT_005119b8);
         memset(obj->help, 0, 0x81);
         strncpy(obj->help, Translate(obj->help), 0x80);
         int gf = tree->current->GetFieldInt("gaffile", 0);

@@ -42,23 +42,8 @@ public:
     int GetIntegerItem(char* name, int def);
 };
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, size_t size, char* def);
-    int GetFieldInt(const char* name, int def);
-    double GetFieldDouble(const char* name, double def);
-};
+#include "../util/tdf.h"
 
-class TdfFile {
-public:
-    int field_0;
-    TdfRecord* current;            // +0x4
-    int field_8;
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    int SelectRecord(char* name);
-};
 
 class MeteorParams {
 public:

@@ -77,8 +77,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fd488,DAT_004fd488,.rdata,4,type,data,void (__stdcall* const const*)(void),1,0,1,one type,1,,PTR_FUN_004fd488,1,src/data/vtables.cpp,90f54400
 0x4fd4c0,DAT_004fd4c0,.rdata,4,type,float,const float,1,0,1,one type,1,,,,,00000000
 0x4fd4cc,DAT_004fd4cc,.rdata,4,type,float,const float,1,0,1,one type,1,,,,,0000a040
-0x4fd670,DAT_004fd670,.rdata,8,gap,data,signed char[],3,0,1,one type,3,,DAT_004fd670,,,00ffffff00010101
-0x4fd678,DAT_004fd678,.rdata,8,gap,data,signed char[],3,0,1,one type,3,,DAT_004fd678,,,ffff0001010100ff
+0x4fd670,DAT_004fd670,.rdata,8,gap,data,signed char[],2,0,1,one type,2,,DAT_004fd670,,,00ffffff00010101
+0x4fd678,DAT_004fd678,.rdata,8,gap,data,signed char[],2,0,1,one type,2,,DAT_004fd678,,,ffff0001010100ff
 0x4fd6f0,DAT_004fd6f0,.rdata,8,gap,vtable,void*[],3,1,2,conflicting: shape,4,,PTR_FUN_004fd6f0,2,src/data/vtables.cpp,90144800b0144800
 0x4fd750,DAT_004fd750,.rdata,4,type,float,float,1,0,1,one type,1,,,,,8180803b
 0x4fda70,DAT_004fda70,.rdata,8,type,float,const double,1,0,1,one type,1,,,,src/data/unused.cpp,0000000000000040
@@ -95,11 +95,11 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x502288,DAT_00502288,.data,8,gap,string,char[],1,0,1,one type,1,,s_Mapping_00502288,,,4d617070696e6700
 0x5024fc,DAT_005024fc,.data,16,gap,string,char[],1,0,1,one type,1,,s__s_screenshots_005024fc,,,25735c73637265656e73686f74730000
 0x502820,DAT_00502820,.data,8,gap,string,const char[],1,0,1,one type,1,,DAT_00502820,,,6775697300000000
-0x502878,DAT_00502878,.data,12,gap,string,char[],2,0,1,one type,2,,s_X_Position_00502878,,,5820506f736974696f6e0000
-0x502884,DAT_00502884,.data,12,gap,string,char[],2,0,1,one type,2,,s_Z_Position_00502884,,,5a20506f736974696f6e0000
-0x502890,DAT_00502890,.data,8,gap,string,char[],2,0,1,one type,2,,s_Camera_00502890,,,43616d6572610000
+0x502878,DAT_00502878,.data,12,gap,string,char[],1,0,1,one type,1,,s_X_Position_00502878,,,5820506f736974696f6e0000
+0x502884,DAT_00502884,.data,12,gap,string,char[],1,0,1,one type,1,,s_Z_Position_00502884,,,5a20506f736974696f6e0000
+0x502890,DAT_00502890,.data,8,gap,string,char[],1,0,1,one type,1,,s_Camera_00502890,,,43616d6572610000
 0x502898,DAT_00502898,.data,4,type,data,int,1,0,1,one type,1,,_DAT_00502898,,,01000000
-0x50289c,DAT_0050289c,.data,4,type,data,int,4,0,1,one type,4,,DAT_0050289c,,,01000000
+0x50289c,DAT_0050289c,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050289c,,,01000000
 0x5028f8,DAT_005028f8,.data,12,gap,string,char[],1,0,1,one type,1,,s_Campaign_005028f8,,,43616d706169676e00000000
 0x502910,DAT_00502910,.data,4,gap,data,char[],1,0,1,one type,1,,DAT_00502910,,,2e000000
 0x502a20,DAT_00502a20,.data,4,gap,string,char[],3,0,1,one type,3,,DAT_00502a20,,,26470000
@@ -127,8 +127,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50328c,DAT_0050328c,.data,8,gap,string,char[],1,0,1,one type,1,,s_5_zrb_0050328c,,,352e7a7262000000
 0x503294,DAT_00503294,.data,8,gap,string,char[],1,0,1,one type,1,,s_2_zrb_00503294,,,322e7a7262000000
 0x50329c,DAT_0050329c,.data,8,gap,string,char[],1,0,1,one type,1,,s_1_zrb_0050329c,,,312e7a7262000000
-0x50331c,DAT_0050331c,.data,4,type,string,char*,3,0,1,one type,3,,PTR_s_Total_Annihilation_3_0_0050331c,1,,2c335000
-0x503320,DAT_00503320,.data,4,type,string,char*,3,0,1,one type,3,,PTR_s_Summary_00503320,1,,24335000
+0x50331c,DAT_0050331c,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Total_Annihilation_3_0_0050331c,1,,2c335000
+0x503320,DAT_00503320,.data,4,type,string,char*,1,0,1,one type,1,,PTR_s_Summary_00503320,1,,24335000
 0x503374,DAT_00503374,.data,4,gap,data,char[],3,0,1,one type,3,,DAT_00503374,,,5c000000
 0x50338c,DAT_0050338c,.data,8,gap,string,const char[],1,0,1,one type,1,,s_fonts_0050338c,,,666f6e7473000000
 0x50341c,DAT_0050341c,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050341c,1,,54444600
@@ -201,7 +201,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5069c8,DAT_005069c8,.data,8,gap,string,char[],2,0,1,one type,2,,s_VOLTEXT_005069c8,,,564f4c5445585400
 0x5069d0,DAT_005069d0,.data,8,gap,string,char[],2,0,1,one type,2,,DAT_005069d0,,,4d4f444500000000
 0x5069d8,DAT_005069d8,.data,20,gap,string,char[],1,0,1,one type,1,,s_sounds_explode_wav_005069d8,,,736f756e64735c6578706c6f64652e7761760000
-0x506dbc,g_usePacketManager,.data,4,type,data,int,24,1,2,"one type, plus extern ""C"" references",25,,DAT_00506dbc,,,01000000
+0x506dbc,g_usePacketManager,.data,4,type,data,int,24,0,1,one type,24,,DAT_00506dbc,,,01000000
 0x507318,DAT_00507318,.data,32,gap,string,char[],1,0,1,one type,1,,s_You_re_out__Continue_Watching__00507318,,,596f75277265206f7574212020436f6e74696e7565205761746368696e673f00
 0x5074e8,DAT_005074e8,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADARPIC_TEMP_005074e8,,,52414441525049432054454d50000000
 0x5074f8,DAT_005074f8,.data,16,gap,string,char[],1,0,1,one type,1,,s_RADAR_PICTURE_005074f8,,,52414441522050494354555245000000
@@ -250,7 +250,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x509018,DAT_00509018,.data,16,gap,string,char[],1,0,1,one type,1,,s_NumLeftToKill_00509018,,,4e756d4c656674546f4b696c6c000000
 0x509028,DAT_00509028,.data,32,gap,string,char[],1,0,1,one type,1,,s_VictoryCondition_KillUnitType_00509028,,,566963746f7279436f6e646974696f6e5f4b696c6c556e697454797065000000
 0x5090fc,DAT_005090fc,.data,32,gap,string,char[],1,0,1,one type,1,,s_DefeatCondition_AllUnitsKilled_005090fc,,,446566656174436f6e646974696f6e5f416c6c556e6974734b696c6c65640000
-0x5091c8,DAT_005091c8,.data,4,type,data,char*,9,0,1,one type,9,,PTR_s_SAVEGAME_005091c8,1,,8c6d5000
+0x5091c8,DAT_005091c8,.data,4,type,data,char*,5,0,1,one type,5,,PTR_s_SAVEGAME_005091c8,1,,8c6d5000
 0x5091cc,DAT_005091cc,.data,4,type,data,int,2,0,1,one type,2,,DAT_005091cc,,,01000000
 0x5091d0,DAT_005091d0,.data,4,type,data,int,1,0,1,one type,1,,DAT_005091d0,,,ffffffff
 0x5091d4,DAT_005091d4,.data,12,gap,string,const char[],3,0,1,one type,3,,s_OFFSCREEN_005091d4,,,4f464653435245454e000000
@@ -310,7 +310,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50d72c,DAT_0050d72c,.data,4,type,data,char*,3,0,1,one type,3,,PTR_s_Memory_Status_0050d72c,1,,30d75000
 0x50d980,g_pentiumEvents,.data,128,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050d980,8,src/debug/perf_counters.cpp,000300500cdd5000030000000000000000030150f8dc5000030000000000000000030b50d4dc5000030000000003285000032250b8dc50000300000000000000
 0x50da00,g_pentiumProEvents,.data,272,gap,data,EventEntry[],1,1,2,conflicting: array or pointer,2,,DAT_0050da00,17,src/debug/perf_counters.cpp,00030560d4dc500003000000000343600001106048dc500001000000000000000002116030dc500002000000000000000002126024dc50000200000000000000
-0x5119b8,DAT_005119b8,.bss,8,gap,data,char[],72,5,3,conflicting: shape,77,,DAT_005119b8,,,
+0x5119b8,DAT_005119b8,.bss,8,gap,data,char[],67,5,3,conflicting: shape,72,,DAT_005119b8,,,
 0x5119c0,g_playerAI,.bss,40,gap,data,PlayerAI*[],11,11,6,conflicting: shape,22,0x28,DAT_005119c0,,,
 0x5119e8,DAT_005119e8,.bss,40,type,data,int[10],1,0,1,one type,1,0x28,DAT_005119e8,,,
 0x511a10,DAT_00511a10,.bss,40,type,data,int[10],1,0,1,one type,1,,DAT_00511a10,,,
@@ -323,10 +323,10 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511a50,g_bytesReceivedPerSecond,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511a50,,,
 0x511a54,DAT_00511a54,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x511a58,g_messageCountByType,.bss,360,type>gap,data,int[45][2],1,0,1,one type,1,,DAT_00511a58,,,
-0x511a60,DAT_00511a60,.bss,352,gap,data,Pair_00419560[44],4,0,1,one type,4,0x4,DAT_00511a60,,in g_messageCountByType+0x8,
-0x511bc0,DAT_00511bc0,.bss,4,type,data,int,4,1,2,conflicting: shape,5,,DAT_00511bc0,,,
-0x511bc4,DAT_00511bc4,.bss,4,type,data,int,4,0,1,one type,4,,DAT_00511bc4,,,
-0x511bc8,DAT_00511bc8,.bss,4,type,data,int,6,0,1,one type,6,,DAT_00511bc8,,,
+0x511a60,DAT_00511a60,.bss,352,gap,data,Pair_00419560[44],3,0,1,one type,3,0x4,DAT_00511a60,,in g_messageCountByType+0x8,
+0x511bc0,DAT_00511bc0,.bss,4,type,data,int,3,0,1,one type,3,,DAT_00511bc0,,,
+0x511bc4,DAT_00511bc4,.bss,4,type,data,int,3,0,1,one type,3,,DAT_00511bc4,,,
+0x511bc8,DAT_00511bc8,.bss,4,type,data,int,4,0,1,one type,4,,DAT_00511bc8,,,
 0x511bcc,g_lastPacketBytesReceived,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511bcc,,,
 0x511bd0,DAT_00511bd0,.bss,80,gap,data,char[],1,0,1,one type,1,,DAT_00511bd0,,,
 0x511c20,DAT_00511c20,.bss,4,type,data,int,3,0,1,one type,3,,_DAT_00511c20,,,
@@ -334,28 +334,28 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511c28,g_lastPacketsReceived,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511c28,,,
 0x511c2c,g_byteRatesLastSent,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511c2c,,,
 0x511c30,g_packetBytesReceivedRate,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511c30,,,
-0x511c34,DAT_00511c34,.bss,4,type,data,int,5,0,1,one type,5,,DAT_00511c34,,,
+0x511c34,DAT_00511c34,.bss,4,type,data,int,3,0,1,one type,3,,DAT_00511c34,,,
 0x511c38,g_messageBytesReceivedRate,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511c38,,,
 0x511c3c,g_messageBytesSentRate,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511c3c,,,
 0x511c40,g_lastMessageBytesReceived,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511c40,,,
 0x511c44,g_lastMessageBytesSent,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511c44,,,
-0x511c48,DAT_00511c48,.bss,4,type,data,int,5,0,1,one type,5,,DAT_00511c48,,,
+0x511c48,DAT_00511c48,.bss,4,type,data,int,3,0,1,one type,3,,DAT_00511c48,,,
 0x511c4c,g_packetBytesSentRate,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511c4c,,,
-0x511c50,DAT_00511c50,.bss,4,type,data,int,6,0,1,one type,6,,DAT_00511c50,,,
+0x511c50,DAT_00511c50,.bss,4,type,data,int,4,0,1,one type,4,,DAT_00511c50,,,
 0x511c54,DAT_00511c54,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x511c58,g_messageBytesByType,.bss,360,type>gap,data,int[45][2],1,0,1,one type,1,,DAT_00511c58,,,
-0x511c60,DAT_00511c60,.bss,352,gap,data,Pair_00419560[44],4,0,1,one type,4,0x4,DAT_00511c60,,in g_messageBytesByType+0x8,
+0x511c60,DAT_00511c60,.bss,352,gap,data,Pair_00419560[44],3,0,1,one type,3,0x4,DAT_00511c60,,in g_messageBytesByType+0x8,
 0x511dc0,g_packetsReceivedRate,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511dc0,,,
 0x511dc4,g_packetsSentRate,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511dc4,,,
-0x511dc8,g_compressedBytesSent,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511dc8,,,
+0x511dc8,g_compressedBytesSent,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dc8,,,
 0x511dcc,g_lastCompressedBytesSent,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dcc,,,
 0x511dd0,DAT_00511dd0,.bss,4,type,data,int,3,0,1,one type,3,,DAT_00511dd0,,,
 0x511dd4,DAT_00511dd4,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511dd4,,,
 0x511dd8,g_netStatsTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511dd8,,,
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511ddc,,,
 0x511de0,DAT_00511de0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de0,,,
-0x511de4,DAT_00511de4,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de4,,,
-0x511de8,g_game,.bss,4,type,data,Game*,862,120,15,conflicting: shape,982,,DAT_00511de8,,,
+0x511de4,DAT_00511de4,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
+0x511de8,g_game,.bss,4,type,data,Game*,775,104,15,conflicting: shape,879,,DAT_00511de8,,,
 0x511dec,DAT_00511dec,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
 0x511df0,DAT_00511df0,.bss,400,type,data,int[100],2,5,6,conflicting: shape,7,0x190,DAT_00511df0,,,
 0x511f80,DAT_00511f80,.bss,16,gap,data,CMemoryCache,5,0,1,one type,5,,DAT_00511f80,,,
@@ -379,44 +379,41 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x512298,DAT_00512298,.bss,4,type,data,void*,1,2,3,conflicting: shape,3,,DAT_00512298,,,
 0x51229c,DAT_0051229c,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051229c,,,
 0x5122a0,DAT_005122a0,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x5122c0,DAT_005122c0$S4554,.bss,4,gap,data,MapCache,1,0,1,one type,1,,DAT_005122c0,,,
 0x5122c4,DAT_005122c4,.bss,4,type,data,MapCacheEntry*,1,0,1,one type,1,,DAT_005122c4,,,
 0x5122c8,DAT_005122c8,.bss,4,type,data,MapCacheEntry*,1,0,1,one type,1,,DAT_005122c8,,,
 0x5122cc,DAT_005122cc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,_DAT_005122cc,,,
-0x5122d4,DAT_005122d4,.bss,4,type,data,void*,1,1,2,conflicting: shape,2,,DAT_005122d4,,,
-0x5122d8,DAT_005122d8,.bss,4,type,data,int,2,0,1,one type,2,,DAT_005122d8,,,
-0x5122dc,DAT_005122dc,.bss,4,type,data,int,2,0,1,one type,2,,DAT_005122dc,,,
-0x5122e0,DAT_005122e0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_005122e0,,,
+0x5122d4,DAT_005122d4,.bss,4,type,data,char*,1,0,1,one type,1,,DAT_005122d4,,,
+0x5122d8,DAT_005122d8,.bss,4,type,data,int,1,0,1,one type,1,,DAT_005122d8,,,
+0x5122dc,DAT_005122dc,.bss,4,type,data,int,1,0,1,one type,1,,DAT_005122dc,,,
+0x5122e0,DAT_005122e0,.bss,4,type,data,int,1,0,1,one type,1,,DAT_005122e0,,,
 0x5122e4,DAT_005122e4,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x5122e8,g_meteorNextStrikeTime,.bss,4,type,data,int,4,1,2,conflicting: signedness or const,5,,DAT_005122e8,,,
+0x5122e8,g_meteorNextStrikeTime,.bss,4,type,data,int,1,0,1,one type,1,,DAT_005122e8,,,
 0x5122ec,DAT_005122ec,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x5122f0,DAT_005122f0,.bss,32,gap,data,char[],2,0,1,one type,2,,DAT_005122f0,,,
-0x512310,DAT_00512310,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00512310,,,
-0x512314,DAT_00512314,.bss,4,type,data,int,3,0,1,one type,3,,DAT_00512314,,,
-0x512318,g_meteorActive,.bss,4,type,data,int,5,0,1,one type,5,,DAT_00512318,,,
-0x51231c,g_meteorStrikeEndTime,.bss,4,type,data,int,3,1,2,conflicting: signedness or const,4,,DAT_0051231c,,,
-0x512320,g_meteorOrigin,.bss,4,gap>type,data,short,1,3,4,conflicting: shape,4,0x2,DAT_00512320,,,
-0x512322,DAT_00512322,.bss,2,type,data,short,1,0,1,one type,1,,DAT_00512322,,in g_meteorOrigin+0x2,
-0x512324,DAT_00512324,.bss,4,type,data,int,3,0,1,one type,3,,DAT_00512324,,,
-0x512328,DAT_00512328,.bss,4,type,data,void*,1,1,2,conflicting: shape,2,,DAT_00512328,,,
-0x51232c,g_meteorsEnabled,.bss,4,type,data,int,5,0,1,one type,5,,DAT_0051232c,,,
-0x512330,g_meteorNextHitTime,.bss,4,type,data,int,3,1,2,conflicting: signedness or const,4,,DAT_00512330,,,
-0x512334,g_meteorTarget,.bss,4,gap>type,data,short,1,3,4,conflicting: shape,4,0x2,_DAT_00512334,,,
-0x512336,DAT_00512336,.bss,2,type,data,short,1,0,1,one type,1,,DAT_00512336,,in g_meteorTarget+0x2,
-0x512338,DAT_00512338,.bss,4,type,data,int,3,0,1,one type,3,,DAT_00512338,,,
+0x5122f0,DAT_005122f0,.bss,32,gap,data,char[],1,0,1,one type,1,,DAT_005122f0,,,
+0x512310,DAT_00512310,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00512310,,,
+0x512314,DAT_00512314,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00512314,,,
+0x512318,g_meteorActive,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00512318,,,
+0x51231c,g_meteorStrikeEndTime,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051231c,,,
+0x512320,g_meteorOrigin,.bss,4,gap,data,Point16,1,0,1,one type,1,0x2,DAT_00512320,,,
+0x512324,DAT_00512324,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00512324,,,
+0x512328,DAT_00512328,.bss,4,type,data,Player_00437cd0*,1,0,1,one type,1,,DAT_00512328,,,
+0x51232c,g_meteorsEnabled,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051232c,,,
+0x512330,g_meteorNextHitTime,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00512330,,,
+0x512334,g_meteorTarget,.bss,4,gap,data,Point16,1,0,1,one type,1,0x2,_DAT_00512334,,,
+0x512338,DAT_00512338,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00512338,,,
 0x51233c,DAT_0051233c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x512340,DAT_00512340$S5516,.bss,16,definition,data,"Vector_00438480<int, std::allocator<int> >",2,0,1,one type,2,0xc,DAT_00512340,,src/map/meteors_438450.cpp,
-0x512344,DAT_00512344,.bss,4,type,data,int,3,11,11,conflicting: shape,14,,DAT_00512344,,in DAT_00512340$S5516+0x4,
+0x512340,DAT_00512340$S5516,.bss,16,definition,data,"Vector_00438480<int, std::allocator<int> >",1,0,1,one type,1,0xc,DAT_00512340,,src/map/meteors.cpp,
+0x512344,DAT_00512344,.bss,4,type,data,int,3,11,10,conflicting: shape,14,,DAT_00512344,,in DAT_00512340$S5516+0x4,
 0x512348,DAT_00512348,.bss,4,type,data,int,1,2,3,conflicting: shape,3,,DAT_00512348,,in DAT_00512340$S5516+0x8,
 0x512350,DAT_00512350,.bss,8,gap,unreferenced,unsigned char[8],0,0,0,,0,,,,,
-0x512358,MovementClassTable::g_movementClasses,.bss,1024,definition,data,MovementClassTable,7,0,1,one type,7,0x400,DAT_00512358,,src/units/movement_class_440230.cpp,
-0x512370,DAT_00512370,.bss,1000,gap,data,char[],2,0,1,one type,2,,DAT_00512370,,in MovementClassTable::g_movementClasses+0x18,
+0x512358,MovementClassTable::g_movementClasses,.bss,1024,definition,data,MovementClassTable,2,0,1,one type,2,0x400,DAT_00512358,,src/units/movement_class.cpp,
+0x512370,DAT_00512370,.bss,1000,gap,data,char[],1,0,1,one type,1,,DAT_00512370,,in MovementClassTable::g_movementClasses+0x18,
 0x512758,DAT_00512758,.bss,8,gap,unreferenced,unsigned char[8],0,0,0,,0,,DAT_00512758,,,
 0x512760,DAT_00512760,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_00512760,,,
 0x512764,DAT_00512764,.bss,4,type,data,short,1,1,2,conflicting: shape,2,,DAT_00512764,,,
 0x512768,DAT_00512768,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00512768,,,
 0x51276c,DAT_0051276c,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_0051276c,,,
-0x512770,DAT_00512770,.bss,16,gap,data,char[],2,2,3,conflicting: shape,4,0x10,DAT_00512770,,,
+0x512770,DAT_00512770,.bss,16,gap>type,data,int,1,2,3,conflicting: shape,3,0x10,DAT_00512770,,,
 0x512774,DAT_00512774,.bss,4,type,data,int,1,0,1,one type,1,,_DAT_00512774,,in DAT_00512770+0x4,
 0x512780,DAT_00512780,.bss,8,gap,unreferenced,unsigned char[8],0,0,0,,0,,_DAT_00512780,,,
 0x512788,DAT_00512788,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00512788,,,
@@ -442,9 +439,9 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5129c4,DAT_005129c4,.bss,4,type,data,int*,2,0,1,one type,2,,DAT_005129c4,,,
 0x5129c8,DAT_005129c8,.bss,4,type,data,int,1,0,1,one type,1,,DAT_005129c8,,,
 0x5129cc,DAT_005129cc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x5129d0,g_sendCondenser,.bss,37,definition,data,NetCondenser,4,0,1,one type,4,0x21,DAT_005129d0,,src/network/net_condenser_44f7e0.cpp,
+0x5129d0,g_sendCondenser,.bss,40,definition,data,NetCondenser,4,0,1,one type,4,0x21,DAT_005129d0,,src/network/net_condenser.cpp,
 0x5129f1,DAT_005129f1,.bss,4,type,data,int,2,0,1,one type,2,,_DAT_005129f1,,in g_sendCondenser+0x21,
-0x5129f8,g_receiveCondenser,.bss,37,definition,data,NetCondenser,2,0,1,one type,2,0x21,DAT_005129f8,,src/network/net_condenser_44f720.cpp,
+0x5129f8,g_receiveCondenser,.bss,37,definition,data,NetCondenser,2,0,1,one type,2,0x21,DAT_005129f8,,src/network/net_condenser.cpp,
 0x512a20,g_packetHandlers,.bss,8,gap,data,void (__stdcall*[])(void*),1,0,1,one type,1,,DAT_00512a20,,,
 0x512a28,DAT_00512a28,.bss,4,type,data,int (__stdcall*)(int),1,0,1,one type,1,,_DAT_00512a28,,,
 0x512a2c,DAT_00512a2c,.bss,4,type,data,int (__stdcall*)(int),1,0,1,one type,1,,_DAT_00512a2c,,,
@@ -640,7 +637,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x512ff4,DAT_00512ff4,.bss,4,type,data,Class_004c6a60*,2,1,2,conflicting: shape,3,,DAT_00512ff4,,,
 0x512ff8,DAT_00512ff8,.bss,4,type,data,int,4,0,1,one type,4,,DAT_00512ff8,,,
 0x512ffc,DAT_00512ffc,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x513000,g_packetManager,.bss,46396,definition,data,PacketManager,27,1,2,"one type, plus extern ""C"" references",28,0xb54c,DAT_00513000,,src/network/packets_460e20.cpp,
+0x513000,g_packetManager,.bss,46396,definition,data,PacketManager,27,0,1,one type,27,0xb54c,DAT_00513000,,src/network/packets_460e20.cpp,
 0x513008,DAT_00513008,.bss,4,gap,data,PacketChannel,1,0,1,one type,1,,DAT_00513008,,in g_packetManager+0x8,
 0x51e2f4,DAT_0051e2f4,.bss,4,type,data,int*,1,0,1,one type,1,,DAT_0051e2f4,,in g_packetManager+0xb2f4,
 0x51e2f8,DAT_0051e2f8,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_0051e2f8,,in g_packetManager+0xb2f8,
@@ -655,19 +652,19 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e544,DAT_0051e544,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051e544,,,
 0x51e548,DAT_0051e548,.bss,4,type,data,"int (__stdcall*)(int, int)",1,1,2,conflicting: shape,2,,DAT_0051e548,,,
 0x51e54c,DAT_0051e54c,.bss,4,type,data,"int (__stdcall*)(int*, int)",1,0,1,one type,1,,DAT_0051e54c,,,
-0x51e550,DAT_0051e550,.bss,4,type,data,void**,1,2,3,conflicting: shape,3,,DAT_0051e550,,,
+0x51e550,DAT_0051e550,.bss,4,type,data,int,1,1,2,conflicting: shape,2,,DAT_0051e550,,,
 0x51e554,DAT_0051e554,.bss,4,type,data,int (__stdcall*)(char*),1,0,1,one type,1,,DAT_0051e554,,,
-0x51e558,DAT_0051e558,.bss,4,type,data,void (__cdecl*)(void),2,0,1,one type,2,,DAT_0051e558,,,
+0x51e558,DAT_0051e558,.bss,4,type,data,void (__cdecl*)(void),1,0,1,one type,1,,DAT_0051e558,,,
 0x51e55c,DAT_0051e55c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
 0x51e560,g_reportPlayerName,.bss,20,gap,data,Name_0046c620,1,0,1,one type,1,0x10,DAT_0051e560,,,
-0x51e574,DAT_0051e574,.bss,4,type,data,void*,1,4,5,conflicting: shape,5,,DAT_0051e574,,,
+0x51e574,DAT_0051e574,.bss,4,type,data,void*,1,3,4,conflicting: shape,4,,DAT_0051e574,,,
 0x51e578,DAT_0051e578,.bss,4,type,data,"void (__stdcall*)(void (__stdcall*)(int), int (__stdcall*)(char*, int))",1,0,1,one type,1,,DAT_0051e578,,,
-0x51e57c,DAT_0051e57c,.bss,4,type,data,void*,1,3,4,conflicting: shape,4,,DAT_0051e57c,,,
+0x51e57c,DAT_0051e57c,.bss,4,type,data,void*,1,2,3,conflicting: shape,3,,DAT_0051e57c,,,
 0x51e580,DAT_0051e580,.bss,4,type,data,void (__stdcall*)(void),1,1,2,conflicting: shape,2,,_DAT_0051e580,,,
 0x51e584,DAT_0051e584,.bss,4,type,data,"int (__stdcall*)(int, int, int, int, int, int, int, int, int, int)",1,1,2,conflicting: shape,2,,DAT_0051e584,,,
-0x51e588,DAT_0051e588,.bss,4,type,data,int (__stdcall*)(int),2,0,1,one type,2,,DAT_0051e588,,,
-0x51e58c,DAT_0051e58c,.bss,4,type,data,int,4,2,2,conflicting: shape,6,,DAT_0051e58c,,,
-0x51e590,DAT_0051e590,.bss,4,type,data,int,4,0,1,one type,4,,DAT_0051e590,,,
+0x51e588,DAT_0051e588,.bss,4,type,data,int (__stdcall*)(int),1,0,1,one type,1,,DAT_0051e588,,,
+0x51e58c,DAT_0051e58c,.bss,4,type,data,int,3,1,2,conflicting: shape,4,,DAT_0051e58c,,,
+0x51e590,DAT_0051e590,.bss,4,type,data,int,3,0,1,one type,3,,DAT_0051e590,,,
 0x51e594,g_reportFlags,.bss,4,type,data,int,2,0,1,one type,2,,_DAT_0051e594,,,
 0x51e598,IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil,.bss,4,definition,template,"std::_Tree<unsigned int, std::pair<unsigned int, UnitSyncEntry>, std::map<unsigned int, UnitSyncEntry, std::less<unsigned int>, std::allocator<UnitSyncEntry> >::_Kfn, std::less<unsigned int>, std::allocator<UnitSyncEntry> >::_Node*",15,3,4,conflicting: struct names only,18,,DAT_0051e598,,src/network/unit_sync_46c920.cpp,
 0x51e59c,IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs,.bss,4,definition,template,unsigned int,6,1,2,conflicting: signedness or const,7,,DAT_0051e59c,,src/network/unit_sync_46c920.cpp,
@@ -730,10 +727,10 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51f2d2,DAT_0051f2d2,.bss,6,gap,unreferenced,unsigned char[6],0,0,0,,0,,,,,
 0x51f2d8,DAT_0051f2d8,.bss,4,type,data,unsigned int,1,1,2,conflicting: signedness or const,2,,DAT_0051f2d8,,,
 0x51f2dc,DAT_0051f2dc,.bss,4,type,data,int,2,1,2,conflicting: signedness or const,3,,DAT_0051f2dc,,,
-0x51f2e0,DAT_0051f2e0,.bss,4,type,data,char*,4,1,2,conflicting: shape,5,,DAT_0051f2e0,,,
-0x51f2e4,DAT_0051f2e4,.bss,4,type,data,char*,4,2,3,conflicting: shape,6,,DAT_0051f2e4,,,
-0x51f2e8,DAT_0051f2e8,.bss,4,type,data,char*,4,3,4,conflicting: shape,7,,DAT_0051f2e8,,,
-0x51f2ec,DAT_0051f2ec,.bss,4,type,data,char*,3,1,2,conflicting: shape,4,,DAT_0051f2ec,,,
+0x51f2e0,DAT_0051f2e0,.bss,4,type,data,int*,1,1,2,conflicting: shape,2,,DAT_0051f2e0,,,
+0x51f2e4,DAT_0051f2e4,.bss,4,type,data,int*,1,1,2,conflicting: shape,2,,DAT_0051f2e4,,,
+0x51f2e8,DAT_0051f2e8,.bss,4,type,data,int*,1,2,3,conflicting: shape,3,,DAT_0051f2e8,,,
+0x51f2ec,DAT_0051f2ec,.bss,4,type,data,int*,1,1,2,conflicting: shape,2,,DAT_0051f2ec,,,
 0x51f2f0,DAT_0051f2f0,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f2f0,,,
 0x51f2f4,DAT_0051f2f4,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051f2f4,,,
 0x51f2f8,DAT_0051f2f8,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_0051f2f8,,,
@@ -746,12 +743,12 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51f320,DAT_0051f320,.bss,2088,gap,data,App_0049e830,1,0,1,one type,1,0x202,DAT_0051f320,,,
 0x51fb48,DAT_0051fb48,.bss,4,type,data,int,2,0,1,one type,2,,DAT_0051fb48,,,
 0x51fb4c,DAT_0051fb4c,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x51fb50,DAT_0051fb50,.bss,64,gap,data,char[],2,1,2,conflicting: shape,3,,DAT_0051fb50,,,
+0x51fb50,DAT_0051fb50,.bss,64,gap,data,char[],2,0,1,one type,2,,DAT_0051fb50,,,
 0x51fb90,DAT_0051fb90,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fb90,,,
 0x51fb94,DAT_0051fb94,.bss,4,type,data,unsigned long,1,0,1,one type,1,,DAT_0051fb94,,,
 0x51fb98,DAT_0051fb98,.bss,4,gap,unreferenced,unsigned char[4],0,0,0,,0,,,,,
-0x51fb9c,g_loopingWav,.bss,4,type,data,int,1,2,3,conflicting: shape,3,,DAT_0051fb9c,,,
-0x51fba0,g_diskWav,.bss,4,type,data,int*,2,0,1,one type,2,,DAT_0051fba0,,,
+0x51fb9c,g_loopingWav,.bss,4,type,data,char*,1,0,1,one type,1,,DAT_0051fb9c,,,
+0x51fba0,g_diskWav,.bss,4,type,data,int*,1,0,1,one type,1,,DAT_0051fba0,,,
 0x51fba4,g_guiContext,.bss,4,type,data,Dialog*,15,16,17,conflicting: shape,31,,DAT_0051fba4,,,
 0x51fba8,DAT_0051fba8,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fba8,,,
 0x51fbac,DAT_0051fbac,.bss,4,type,data,int,1,0,1,one type,1,,DAT_0051fbac,,,

@@ -1,0 +1,857 @@
+// Decompiled by Opus, deepseek-v4.1-flash, GPT-6.1-sol, space-bunny-free, deepseek-v4.1 and Claude Fable 5.1. Names are provisional.
+// The in-game keyboard commands (0x495e90) and the screenshot writer
+// (0x495930/0x495a30) plus the STOP-order toggles (0x495860/0x4958c0), one
+// translation unit.
+//
+// The Game views: 0x495860/0x4958c0 read 0x531 as a struct pointer with
+// `value` at +0x4, while 0x495e90 reads the same pointer as an int and then
+// `*(int*)(field_531 + 4)`. One pointer type covers both. The two byte flags
+// 0x495a30 names as `field_37f2f`/`field_38a51` are anonymous unions with the
+// bitfield views 0x495e90 uses.
+//
+// <windows.h> is load-bearing for 0x495a30: without it the score drops to 83.3%.
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vector>
+
+#pragma pack(push, 1)
+
+// The object Game+0x531 points at, as 0x495860 named it.
+struct Struct_00495860 {
+    int unknown_0;
+    int value;                       // +0x4
+};
+
+// 0x4958c0's name for the same object; the Game field below uses it. The name
+// is load-bearing: without the extra front-end symbol, 0x495a30's frame puts
+// two locals the other way round (99.3%).
+typedef Struct_00495860 Struct_004958c0;
+
+class Mission;
+class Class_00438760;
+
+struct Sub_495e90 {
+    char unknown_0[0x10];
+};
+
+struct Flags_00495e90_37ebe {
+    unsigned short b0 : 1;
+    unsigned short b1 : 1;
+    unsigned short b2 : 1;
+    unsigned short rest : 13;
+};
+
+struct Flags_00495e90_37f06 {
+    unsigned short b0 : 1;      // mask 0x0001
+    unsigned short b1_6 : 6;
+    unsigned short b7 : 1;      // mask 0x0080
+    unsigned short b8 : 1;      // mask 0x0100
+    unsigned short rest : 7;
+};
+
+struct Flags_00495e90_37f2f {
+    unsigned short b0 : 1;
+    unsigned short b1 : 1;
+    unsigned short rest : 14;
+};
+
+struct Flags_00495e90_38a51 {
+    unsigned short b0 : 1;
+    unsigned short rest : 15;
+};
+
+union Flags_00495e90_3923b {
+    unsigned short raw;
+    struct {
+        unsigned short b0 : 1;
+        unsigned short b1 : 1;
+        unsigned short rest : 14;
+    };
+};
+
+struct PlayerData_495e90 {
+    char unknown_0[0x9b];
+    unsigned char field_9b;             // +0x9b
+};
+
+struct Player_495e90 {
+    int valid;                          // +0x00
+    char unknown_4[0x27 - 0x4];
+    PlayerData_495e90* data;            // +0x27
+    char unknown_2b[0x14b - 0x2b];
+};
+
+struct FindData_00495930 {
+    char unknown_0[0x14];
+    char name[260];                    // +0x14
+};
+
+struct Class_004b8da0;
+
+struct Class_004cb7c0 {
+    char unknown_0[0xc];
+    int field_c;                            // +0xc
+    Class_004cb7c0* Init();
+};
+
+struct Class_004cb7f0 : public Class_004cb7c0 {
+    bool Open(const char* name, int width, int height);
+};
+
+struct Class_004cb940 {
+    bool WriteRows(void* image, int x, int rows, int unused_4, int y, int unused_6, int srcY);
+};
+
+struct Class_004cb7d0 {
+    char unknown_0[0xc];
+    void* file;                             // +0xc
+    void Close();
+};
+
+struct Dst_004b8ae0 {
+    unsigned short a;                       // +0x0
+    unsigned short b;                       // +0x2
+    unsigned short e;                       // +0x4
+    unsigned short f;                       // +0x6
+    unsigned char flag8;                    // +0x8
+    unsigned char flag9;                    // +0x9
+    unsigned char flaga;                    // +0xa
+    unsigned char flagb;                    // +0xb
+    char unknown_c[4];
+    int d;                                  // +0x10
+    int field_14;                           // +0x14
+};
+
+struct Src_004b8ae0 {
+    char unknown_0[0xbc];
+};
+
+struct SrcHolder_00495a30 {
+    char unknown_0[0xbc];
+    Src_004b8ae0* frame;                    // +0xbc
+};
+
+struct Surface_00495a30 {
+    int width;                              // +0x0
+    int height;                             // +0x4
+    int pitch;                              // +0x8
+    unsigned char* bits;                    // +0xc
+    int field_10;                           // +0x10
+    int field_14;                           // +0x14
+    unsigned short x;                       // +0x18
+    unsigned short y;                       // +0x1a
+    char unknown_1c[0x10];
+    unsigned int flag0 : 1;                 // +0x2c
+    unsigned int flag1 : 1;
+};
+
+struct Rect_00495a30 {
+    int left;                               // +0x0
+    int top;                                // +0x4
+    int right;                              // +0x8
+    int bottom;                             // +0xc
+};
+
+struct Surface {
+    char unknown_0[0x1c];
+    void SetClipRect(Rect_00495a30 r);
+};
+
+struct Game {
+    char unknown_0[0x519];
+    Sub_495e90 gui;                     // +0x519
+    char unknown_529[0x531 - 0x529];
+    Struct_004958c0* field_531;         // +0x531
+    char unknown_535[0x1b63 - 0x535];
+    Player_495e90 players[10];          // +0x1b63
+    char unknown_2851[0x2a42 - 0x2851];
+    unsigned char localPlayer;          // +0x2a42
+    char unknown_2a43[0x2c76 - 0x2a43];
+    char orders_2c76[0x2cba - 0x2c76];  // +0x2c76
+    unsigned short field_2cba;          // +0x2cba
+    char unknown_2cbc[0x2cc3 - 0x2cbc];
+    unsigned char field_2cc3;           // +0x2cc3
+    char unknown_2cc4[0x2cc6 - 0x2cc4];
+    unsigned char field_2cc6;           // +0x2cc6
+    char unknown_2cc7[0x1423b - 0x2cc7];
+    int screenTilesX;                   // +0x1423b
+    int screenTilesY;                   // +0x1423f
+    char unknown_14243[0x14280 - 0x14243];
+    unsigned char field_14280;          // +0x14280
+    unsigned short viewFlags;           // +0x14281
+    char unknown_14283[0x1431f - 0x14283];
+    int scrollX;                        // +0x1431f
+    int scrollY;                        // +0x14323
+    char unknown_14327[0x37e27 - 0x14327];
+    int field_37e27;                    // +0x37e27
+    int field_37e2b;                    // +0x37e2b
+    char unknown_37e2f[0x37e9c - 0x37e2f];
+    unsigned short field_37e9c;         // +0x37e9c
+    char unknown_37e9e[0x37ea0 - 0x37e9e];
+    char field_37ea0[0x37ebe - 0x37ea0];
+    Flags_00495e90_37ebe flags_37ebe;   // +0x37ebe
+    char unknown_37ec0[0x37f06 - 0x37ec0];
+    Flags_00495e90_37f06 flags_37f06;   // +0x37f06
+    char unknown_37f08[0x37f27 - 0x37f08];
+    int field_37f27;                    // +0x37f27
+    char unknown_37f2b[0x37f2f - 0x37f2b];
+    union {
+        unsigned short field_37f2f;     // +0x37f2f
+        Flags_00495e90_37f2f flags_37f2f;
+    };
+    char unknown_37f31[0x38a47 - 0x37f31];
+    int field_38a47;                    // +0x38a47
+    unsigned short field_38a4b;         // +0x38a4b
+    char unknown_38a4d[0x38a51 - 0x38a4d];
+    union {
+        unsigned short field_38a51;     // +0x38a51
+        Flags_00495e90_38a51 flags_38a51;
+    };
+    char field_38a53[0x38b53 - 0x38a53];
+    char field_38b53[0x38c53 - 0x38b53];
+    int field_38c53;                    // +0x38c53
+    int unknown_38c57;
+    int field_38c5b;                    // +0x38c5b
+    char unknown_38c5f[0x391b3 - 0x38c5f];
+    int field_391b3;                    // +0x391b3
+    unsigned short field_391b7;         // +0x391b7
+    int field_391b9;                    // +0x391b9
+    unsigned short field_391bd;         // +0x391bd
+    char unknown_391bf[0x391e9 - 0x391bf];
+    Mission* net;                       // +0x391e9
+    char unknown_391ed[0x3923b - 0x391ed];
+    Flags_00495e90_3923b flags_3923b;   // +0x3923b
+};
+
+#pragma pack(pop)
+
+class Mission {
+public:
+    int FUN_00435100();
+};
+
+class Class_00438760 {
+public:
+    Class_00438760(const char* name);
+    unsigned char index;                // +0
+};
+
+extern Game* g_game;
+extern char DAT_00503374[];
+extern char DAT_005119b8[];
+
+int __stdcall FindGadgetIndexBySubstring(int value, const char* name);
+void __stdcall FUN_004a6a40(Sub_495e90* gui, int handle);
+int __stdcall HAPI_FindFirst(const char* path, void* findData, int a, int b);
+int __stdcall HAPI_FindNext(int handle, void* findData);
+void __stdcall HAPI_FindClose(int handle);
+void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name, const char* ext);
+Class_004b8da0* __stdcall AllocFrame(const char* name, int width, int height);
+void __cdecl SetOutOfMemoryHandler(int param);
+void __stdcall FUN_0049e6f0();
+void __stdcall SurfaceFromFrame(Surface_00495a30* dst, void* src);
+void* __stdcall GetDisplay();
+void __stdcall FrameFromSurface(Dst_004b8ae0* dst, Src_004b8ae0* src);
+void __stdcall SetCameraPosition(int x, int y, int z);
+void __stdcall FUN_0048bae0();
+void __stdcall FUN_00468cf0(int param_1, int param_2);
+void __stdcall DrawFrame(Surface_00495a30* surf, Dst_004b8ae0* pal, int x, int y);
+void __stdcall ClearFrame(void* b, int color);
+void __stdcall RecalculateLineOfSight(int param);
+void __cdecl FUN_004d85a0(void* b);
+int PopKey(void);
+int __stdcall IsKeyDown(int key);
+void FUN_0048bd00(void);
+void __stdcall FUN_00491d70(int param);
+void __stdcall CloseTopScreen(Sub_495e90* gui);
+int __stdcall IsScreenNamed(Sub_495e90* gui, char* name);
+void SaveSettings(void);
+void __stdcall PlaySoundByName(const char* name, int param);
+void OpenTalkDialog(void);
+void __stdcall StepBuildMenuPageBack(int param);
+void __stdcall StepBuildMenuPage(int param);
+void __stdcall OpenBuildMenuPage(int param);
+void __stdcall SelectSquad(int index, int key);
+void __stdcall FUN_0041c2e0(int param);
+void __stdcall FUN_00417b50(int param_1, int param_2);
+void OpenUnitInfoDialog(void);
+void OpenShareDialog(void);
+void FUN_0048d4d0(void);
+void FUN_0048bd50(void);
+void SelectUnitsOfSameTypes(void);
+void __stdcall SelectUnitsByCategory(const char* name, int key);
+void FindLocalCommander(void);
+void FUN_0048c030(void);
+void __stdcall CollectSelectedUnits(void* param);
+void __stdcall CreateSquad(int param);
+void __stdcall SaveCameraPosition(int param);
+void __stdcall RestoreCameraPosition(int param);
+void CycleMessageUnits(void);
+void FUN_00463c80(void);
+void __stdcall SetGameSpeed(int param_1, int param_2);
+void __stdcall FUN_004ab190(Sub_495e90* gui, int param);
+int GetLocalDpid(void);
+void __stdcall BroadcastPacket(int param_1, void* param_2, int param_3);
+void ToggleTabMenu(void);
+void __stdcall FUN_004956c0(int eventType);
+void __stdcall OpenInGameOptions(void);
+void __stdcall MakeDirectoryPath(char* path);
+void __stdcall SaveScreenshot(char* param_1, const char* param_2);
+void __stdcall IssueOrderToSelection(void* a, int b, Class_00438760 kind, int d, int e, int f);
+int __stdcall FUN_00439e30(int unit, Class_00438760 kind);
+void __stdcall DeleteOrder(int unit, int arg);
+void __cdecl operator delete(void* p);
+
+// FUNCTION: 0x495860
+void SelectStopOrder(void)
+{
+    int index;
+
+    g_game->field_2cc3 = 1;
+    g_game->field_2cc6 &= 0xdf;
+    index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+    if (index != -1) {
+        FUN_004a6a40(&g_game->gui, index);
+    }
+}
+
+// The else branch is the body of SelectStopOrder.
+// FUNCTION: 0x4958c0
+void __stdcall FUN_004958c0(int set)
+{
+    int index;
+
+    if (set) {
+        g_game->field_2cc6 |= 0x20;
+        return;
+    }
+    g_game->field_2cc3 = 1;
+    g_game->field_2cc6 &= 0xdf;
+    index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+    if (index != -1) {
+        FUN_004a6a40(&g_game->gui, index);
+    }
+}
+
+// FUNCTION: 0x495930
+void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name, const char* ext)
+{
+    bool needSep = false;
+    FindData_00495930 fd;
+    int max = 0;
+
+    if (*dir != 0) {
+        if (dir[strlen(dir) - 1] != '\\') {
+            needSep = true;
+        }
+    }
+    sprintf(out, "%s%s%s*.%s", dir, needSep ? DAT_00503374 : DAT_005119b8, name, ext);
+    int handle = HAPI_FindFirst(out, &fd, -1, 1);
+    if (handle >= 0) {
+        do {
+            int val = atoi(fd.name + strlen(name));
+            if (val > max) {
+                max = val;
+            }
+        } while (HAPI_FindNext(handle, &fd) == 0);
+        HAPI_FindClose(handle);
+    }
+    sprintf(out, "%s%s%s%04i.%s", dir, needSep ? DAT_00503374 : DAT_005119b8, name, max + 1, ext);
+}
+
+// Screenshot writer: renders the map in screen-sized tiles into an offscreen
+// bitmap and appends each band to a .bmp file.
+// The frame layout that stalled this at 93.9% is decided by MSVC 5's local
+// ordering rule (measured in build/scratch/0x495a30/model2.py): locals are
+// sorted by memory references divided by size, highest ratio nearest esp,
+// ties broken in favour of the earlier declared object. The clip rect is a
+// plain 16-byte Rect (2 refs, 0.125) and the sprite reference built by
+// FrameFromSurface is 24 bytes, not 20 (3 refs, 0.125): the tie puts the sprite
+// at 0x64 and the rect at 0x7c, under the 48-byte surface (5 refs, 0.104).
+// With a 20-byte sprite the rect would have to be 20 bytes to put its bottom
+// at 0x88, and a 20-byte rect (0.100) sorts above the surface. 0x44c0d0.cpp
+// records the same 24-byte record ("0x14-byte sprite reference plus 4
+// trailing bytes").
+// FUNCTION: 0x495a30
+void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h)
+{
+    int var24;
+    unsigned int savedC;
+    unsigned short fl;
+    char filename[260];
+    int bw, off27, sy;
+    BuildScreenshotPath(filename, dir, name, "bmp");
+
+    int y2;
+    Class_004cb7f0 bmp;
+    bmp.Init();
+    if (bmp.Open(filename, w, h)) {
+        Class_004b8da0* bm;
+        off27 = g_game->field_37e27;
+        int bh, off2b;
+        bw = g_game->screenTilesX * 16;
+        off2b = g_game->field_37e2b;
+        bh = (g_game->screenTilesY * 16) - 1;
+
+        SetOutOfMemoryHandler(0);
+        bm = AllocFrame("ScreenShot", w, bh);
+        if (bm == 0) {
+            bh /= 2;
+            bm = AllocFrame("ScreenShot", w, bh);
+        }
+        FUN_0049e6f0();
+        if (bm != 0) {
+            int scrollX;
+            Surface_00495a30 surf;
+            scrollX = g_game->scrollX;
+            Dst_004b8ae0 pal;
+            fl = g_game->viewFlags;
+            int savedbit0, scrollY = g_game->scrollY, bit6;
+            int savedbit1;
+            savedbit0 = fl & 1;
+            savedbit1 = (fl >> 1) & 1;
+
+            int savedA;
+            g_game->viewFlags = fl & ~1;
+            g_game->viewFlags &= ~2;
+            RecalculateLineOfSight(1);
+            savedA = g_game->field_38a51 & 1;
+            g_game->field_38a51 = (unsigned short)(g_game->field_38a51 & ~1);
+            int savedB = (g_game->field_37f2f >> 6) & 1;
+
+            g_game->field_37f2f = (unsigned short)(g_game->field_37f2f & ~0x40);
+            savedC = g_game->field_37f27;
+
+            g_game->field_37f27 = 0;
+            SurfaceFromFrame(&surf, bm);
+            FrameFromSurface(&pal, ((SrcHolder_00495a30*)GetDisplay())->frame);
+
+            pal.flag8 = 0;
+            int row = 0;
+
+            if (h > row) {
+                int var1c, negbh;
+                var24 = bh;
+                unsigned int var10 = 0;
+                negbh = -bh;
+                var1c = -1;
+                while (1) {
+                    ClearFrame(bm, 0);
+                    int col, rows;
+                    col = 0;
+                    if (col < w) do {
+                        int right;
+                        Rect_00495a30 box;
+                        box.left = col;
+                        SetCameraPosition(x + col, y + row, 0);
+                        FUN_0048bae0();
+                        FUN_00468cf0(1, 0);
+                        right = (col + bw) - 1;
+                        if (right >= surf.width) right = surf.width - 1;
+                        box.top = 0;
+                        box.right = right;
+                        box.bottom = bh - 1;
+                        ((Surface*)&surf)->SetClipRect(box);
+                        DrawFrame(&surf, &pal, g_game->scrollX - x - off27,
+                                     g_game->scrollY - row - y - off2b);
+                    } while (((col += bw), (col < w)));
+                    sy = var10;
+                    int srcY = 0;
+                    rows = bh;
+                    y2 = row;
+                    if (var1c < -1) {
+                        y2 = row + 1;
+                        sy = var1c;
+                        rows = bh - 1;
+                        srcY = 1;
+                    }
+                    if (y2 + rows > h) rows = h + sy;
+                    if (!((Class_004cb940*)&bmp)->WriteRows(&surf, w, rows, 0, row, 0, srcY)) break;
+                    if (var24 < h) {
+                        row = row - 1;
+                        var10++;
+                        var1c = var1c + 1;
+                        var24 = var24 - 1;
+                    }
+                    row += bh;
+                    var10 += negbh;
+                    var1c = var1c + negbh;
+                    var24 += bh;
+                    if (row >= h) break;
+                }
+            }
+            FUN_004d85a0(bm);
+            g_game->field_38a51 = (unsigned short)(g_game->field_38a51 ^ ((savedA ^ g_game->field_38a51) & 1));
+            bit6 = (savedB & 1) << 6;
+            g_game->field_37f2f = (unsigned short)((((unsigned short)g_game->field_37f2f) & ~0x40) | bit6);
+            g_game->field_37f27 = savedC;
+            SetCameraPosition(scrollX, scrollY, 0);
+            g_game->viewFlags = (unsigned short)(g_game->viewFlags ^ ((savedbit0 ^ g_game->viewFlags) & 1));
+            g_game->viewFlags = (unsigned short)((unsigned short)((g_game->viewFlags & ~2) | ((savedbit1 & 1) << 1)));
+            RecalculateLineOfSight(1);
+            FUN_0048bae0();
+            FUN_00468cf0(1, 1);
+        }
+    }
+    ((Class_004cb7d0*)&bmp)->Close();
+}
+
+// In-game keyboard command dispatcher: PopKey returns the event (0 means
+// return), IsKeyDown(0xf9) the "key down" flag. The switch is value sorted
+// into a 0xf0-byte index table and a 40-entry jump table; the case bodies are
+// written in the original's physical order so the jump table lines up.
+//
+// The two residues that held this at 79.6% for many passes:
+// - Case 0xd7 (movie recording toggle) is an if/else with the counter reset in
+//   BOTH arms: `if (counter != 0) counter = 0; else { counter = 0; ...start... }`.
+//   MSVC 5 hoists the common store above the compare, which gives the
+//   original's `mov ecx,[eax+0x38c53]; mov [eax+0x38c53],ebx; cmp ecx,ebx`
+//   with g_game in EAX (the 5-byte moffs load) and the flag byte in CL. Every
+//   `int old = counter; counter = 0; if (old == 0)` spelling, hoisted or not,
+//   mirrors the registers (pointer ECX, byte AL, old EAX) and loses one byte.
+// - The case 0xab CTRL buffer is 7 bytes ("CTRL_x" plus the NUL), not 16.
+//   MSVC 5 lays locals out by (memory references / size), highest ratio
+//   nearest esp; a 16-byte buffer (2/16) sorts after the vector case's
+//   locals and reuses the vector's dead 16-byte slot at esp+0x18, while a
+//   7-byte one (2/7) sorts before the vector's 4-byte allocator temporary
+//   (1/4) and lands at esp+0x10 with the frame unchanged at 0x230. Sizes 3 to
+//   7 are byte-identical; 8 ties the allocator temporary and moves the frame.
+//   (Rule measured in build/scratch/0x495a30/model2.py for issue 4408.)
+//
+// Other facts that matter:
+// - `char path[0x100]` in case 0xd7 and `unsigned char data[4]` in case 0xf8
+//   pin the frame at 0x230 and findData at esp+0x28.
+// - The 0x2d/0x5f and 0x2b/0x3d guards are a raw `& 2` test (test byte,2) while
+//   the tail and 0xec use the `b1` bitfield (mov al; shr; test); the union
+//   keeps both spellings.
+// - Case 0xf8: writing `BroadcastPacket(GetLocalDpid(), data, 3)` as one expression
+//   pushes the literal 3 before the toggle, as the original does.
+// - The `key == 0` arms are written as `if (key != 0) { ... } else`, so the
+//   `key == 0` arm is out of line.
+// - Class_00438760 is a one-byte order-type class passed by value (pushed as
+//   the containing dword).
+// FUNCTION: 0x495e90
+void HandleGameKey(void)
+{
+    int event = PopKey();
+    if (event == 0)
+        return;
+
+    int key = IsKeyDown(0xf9);
+
+    switch (event) {
+    case 0x1b:
+        if (g_game->flags_37ebe.b0) {
+            g_game->flags_37ebe.b0 = 0;
+            int r = IsScreenNamed(&g_game->gui, g_game->field_37ea0);
+            if (r == 0) {
+                g_game->field_37e9c = 0;
+                CloseTopScreen(&g_game->gui);
+            }
+        } else {
+            if (g_game->field_2cc3 != 1) {
+                g_game->field_2cc3 = 1;
+                g_game->field_2cc6 = g_game->field_2cc6 & 0xdf;
+                int handle = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+                if (handle != -1)
+                    FUN_004a6a40(&g_game->gui, handle);
+            } else {
+                FUN_0048bd00();
+                FUN_00491d70(1);
+            }
+        }
+        break;
+
+    case 0xc5:
+    case 0xc6:
+    case 0xc7:
+    case 0xc8:
+    case 0xc9:
+    case 0xca:
+    case 0xcb:
+    case 0xcc:
+    case 0xcd:
+        CreateSquad(event - 0xc4);
+        PlaySoundByName("CreateSquad", 0);
+        break;
+
+    case 0x31:
+    case 0x32:
+    case 0x33:
+    case 0x34:
+    case 0x35:
+    case 0x36:
+    case 0x37:
+    case 0x38:
+    case 0x39:
+        if (g_game->flags_37f06.b8) {
+            if (IsKeyDown(0xfb) != 0) {
+                OpenBuildMenuPage(event - 0x31);
+            } else {
+                SelectSquad(event - 0x30, key);
+                PlaySoundByName("SelectSquad", 0);
+            }
+        } else {
+            if (IsKeyDown(0xfb) != 0) {
+                SelectSquad(event - 0x30, key);
+                PlaySoundByName("SelectSquad", 0);
+            } else
+                OpenBuildMenuPage(event - 0x31);
+        }
+        break;
+
+    case 0xd2:
+    case 0xd3:
+    case 0xd4:
+    case 0xd5:
+        PlaySoundByName("SelectSquad", 0);
+        SaveCameraPosition(event - 0xd2);
+        break;
+
+    case 0xe6:
+    case 0xe7:
+    case 0xe8:
+    case 0xe9:
+        PlaySoundByName("SelectSquad", 0);
+        RestoreCameraPosition(event - 0xe6);
+        break;
+
+    case 0x21:
+    case 0x23:
+    case 0x2a:
+    case 0x60:
+    case 0x7e:
+        g_game->flags_37f06.b0 = !g_game->flags_37f06.b0;
+        SaveSettings();
+        break;
+
+    case 0x2c:
+        StepBuildMenuPageBack(1);
+        break;
+
+    case 0x2e:
+        StepBuildMenuPage(1);
+        break;
+
+    case 0xf8: {
+        unsigned char data[4];
+        data[0] = 0x19;
+        data[1] = 0;
+        g_game->flags_38a51.b0 = !g_game->flags_38a51.b0;
+        data[2] = (unsigned char)(g_game->flags_38a51.b0);
+        BroadcastPacket(GetLocalDpid(), data, 3);
+        break;
+    }
+
+    case 0xe2:
+        if (key != 0) {
+            if (g_game->field_2cba != 0) {
+                g_game->field_391b3 = 1;
+                g_game->field_391b7 = g_game->field_2cba;
+            } else {
+                g_game->field_391b3 = 0;
+            }
+        } else {
+            OpenUnitInfoDialog();
+        }
+        break;
+
+    case 9:
+        if (g_game->net->FUN_00435100() == 3) {
+            if (!g_game->flags_37ebe.b2)
+                ToggleTabMenu();
+            break;
+        }
+        // fall through
+    case 0xe3:
+        if (key != 0) {
+            if (g_game->field_2cba != 0) {
+                g_game->field_391b9 = 1;
+                g_game->field_391bd = g_game->field_2cba;
+            } else {
+                g_game->field_391b9 = 0;
+            }
+        } else {
+            if (!g_game->flags_37ebe.b0) {
+                OpenInGameOptions();
+                g_game->flags_37ebe.b0 = 1;
+            }
+        }
+        break;
+
+    case 0xe4:
+        CycleMessageUnits();
+        break;
+
+    case 0xd7: {
+        if (g_game->flags_37f2f.b1) {
+            if (g_game->field_38c53 != 0) {
+                g_game->field_38c53 = 0;
+            } else {
+                g_game->field_38c53 = 0;
+                char path[0x100];
+                char findData[0x118];
+                sprintf(path, "%s\\MOVIE*", g_game->field_38a53);
+                int h = HAPI_FindFirst(path, findData, -1, 1);
+                if (h >= 0) {
+                    do {
+                        int n = atoi(&findData[0x19]);
+                        if (n > g_game->field_38c53)
+                            g_game->field_38c53 = n;
+                    } while (HAPI_FindNext(h, findData) == 0);
+                    HAPI_FindClose(h);
+                }
+                g_game->field_38c53++;
+                sprintf(g_game->field_38b53, "%s\\MOVIE%03i",
+                        g_game->field_38a53, g_game->field_38c53);
+                MakeDirectoryPath(g_game->field_38b53);
+                FUN_00468cf0(0, 1);
+                SaveScreenshot(g_game->field_38b53, "FRAM");
+                g_game->field_38c5b = g_game->field_38a47;
+            }
+        }
+        break;
+    }
+
+    case 0xec:
+        if (g_game->flags_37f2f.b1) {
+            g_game->flags_3923b.b1 = !g_game->flags_3923b.b1;
+            if (g_game->flags_3923b.b1) {
+                FUN_004ab190(&g_game->gui, 0);
+            } else {
+                g_game->flags_3923b.b0 = 0;
+                g_game->field_14280 = 0;
+                FUN_004ab190(&g_game->gui, 1);
+            }
+        }
+        break;
+
+    case 0x5c:
+        if (g_game->flags_37f2f.b1)
+            FUN_00417b50(0, -1);
+        break;
+
+    case 0xe5:
+        g_game->flags_37f06.b7 = !g_game->flags_37f06.b7;
+        break;
+
+    case 0xed:
+        FUN_00463c80();
+        break;
+
+    case 0xaa:
+        FUN_0048bd50();
+        break;
+
+    case 0xab:
+    case 0xae:
+    case 0xaf:
+    case 0xb0:
+    case 0xb1:
+    case 0xb2:
+    case 0xb3:
+    case 0xb4:
+    case 0xb5:
+    case 0xb6:
+    case 0xb7:
+    case 0xb8:
+    case 0xb9:
+    case 0xba:
+    case 0xbb:
+    case 0xbd:
+    case 0xbe:
+    case 0xbf:
+    case 0xc0:
+    case 0xc1:
+    case 0xc2: {
+        char buf[7];
+        sprintf(buf, "CTRL_%c", event - 0x69);
+        SelectUnitsByCategory(buf, key);
+        break;
+    }
+
+    case 0xac:
+        SelectUnitsByCategory("CTRL_C", key);
+        FindLocalCommander();
+        break;
+
+    case 0xc3:
+        SelectUnitsOfSameTypes();
+        break;
+
+    case 0xad: {
+        std::vector<int> sel;
+        CollectSelectedUnits(&sel);
+        int found = 0;
+        Class_00438760 order("SELFDESTRUCT");
+        for (std::vector<int>::iterator it = sel.begin(); it != sel.end(); ++it) {
+            int r = FUN_00439e30(*it, order);
+            if (r != 0) {
+                found = 1;
+                DeleteOrder(*it, r);
+            }
+        }
+        if (found == 0)
+            IssueOrderToSelection(g_game->orders_2c76, 0, order, 0, 0, 0);
+        break;
+    }
+
+    case 0x68:
+        if (g_game->net->FUN_00435100() == 3)
+            OpenShareDialog();
+        break;
+
+    case 0x6e:
+        FUN_0048d4d0();
+        break;
+
+    case 0xbc:
+        FUN_0048c030();
+        break;
+
+    case 0x74:
+        FUN_0041c2e0(0);
+        break;
+
+    case 0x54:
+        FUN_0041c2e0(1);
+        break;
+
+    case 0xd:
+        PlaySoundByName("SmallButton", 0);
+        OpenTalkDialog();
+        break;
+
+    case 0x2d:
+    case 0x5f:
+        if (!(g_game->flags_3923b.raw & 2)) {
+            Player_495e90* pl = &g_game->players[g_game->localPlayer];
+            if (pl->valid != 0 && (pl->data->field_9b & 0x40) != 0)
+                break;
+            if (g_game->field_38a4b <= 1)
+                break;
+            SetGameSpeed(g_game->field_38a4b - 1, 1);
+        }
+        break;
+
+    case 0x2b:
+    case 0x3d:
+        if (!(g_game->flags_3923b.raw & 2)) {
+            Player_495e90* pl = &g_game->players[g_game->localPlayer];
+            if (pl->valid != 0 && (pl->data->field_9b & 0x40) != 0)
+                break;
+            if (g_game->field_38a4b >= 0x14)
+                break;
+            SetGameSpeed(g_game->field_38a4b + 1, 1);
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    if (g_game->flags_3923b.b1)
+        FUN_004956c0(event);
+}

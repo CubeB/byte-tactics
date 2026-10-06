@@ -17,7 +17,7 @@ take several rows when another one's code sits inside it.
 A file holding game or gap code is `src/<folder>/<module>_<address>.cpp`,
 where the address is the one the file is about (tools/sources.py's
 primary_address, without 0x). A named class's file holds all its methods and
-is named after the class (`src/network/bit_writer.cpp`): it keeps its name and
+is named after the class (`src/network/frame_queue.cpp`): it keeps its name and
 goes to the folder of its first method. Runtime library files go to src/runtime/ under
 their own names, and data files to the folder DATA_FOLDERS gives them. The
 tools find every file by its annotations (tools/sources.py), so a move never

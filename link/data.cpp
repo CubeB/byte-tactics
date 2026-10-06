@@ -388,7 +388,6 @@ int DAT_00512290;  // 0x512290 .bss
 int DAT_00512294;  // 0x512294 .bss
 int DAT_0051229c;  // 0x51229c .bss
 unsigned char DAT_005122a0[4];  // 0x5122a0 .bss
-unsigned char DAT_005122c0[4];  // 0x5122c0 .bss
 MapCacheEntry* DAT_005122c4;  // 0x5122c4 .bss
 MapCacheEntry* DAT_005122c8;  // 0x5122c8 .bss
 unsigned char DAT_005122cc[4];  // 0x5122cc .bss
@@ -404,9 +403,12 @@ int DAT_00512310;  // 0x512310 .bss
 int DAT_00512314;  // 0x512314 .bss
 int g_meteorActive;  // 0x512318 .bss
 int g_meteorStrikeEndTime;  // 0x51231c .bss
+unsigned char g_meteorOrigin[4];  // 0x512320 .bss
 int DAT_00512324;  // 0x512324 .bss
+Player_00437cd0* DAT_00512328;  // 0x512328 .bss
 int g_meteorsEnabled;  // 0x51232c .bss
 int g_meteorNextHitTime;  // 0x512330 .bss
+unsigned char g_meteorTarget[4];  // 0x512334 .bss
 int DAT_00512338;  // 0x512338 .bss
 unsigned char DAT_0051233c[4];  // 0x51233c .bss
 unsigned char DAT_00512350[8];  // 0x512350 .bss
@@ -603,6 +605,7 @@ unsigned char DAT_0051e55c[4];  // 0x51e55c .bss
 unsigned char g_reportPlayerName[20];  // 0x51e560 .bss
 void (__stdcall* DAT_0051e578)(void (__stdcall*)(int), int (__stdcall*)(char*, int));  // 0x51e578 .bss
 int (__stdcall* DAT_0051e588)(int);  // 0x51e588 .bss
+int DAT_0051e58c;  // 0x51e58c .bss
 int DAT_0051e590;  // 0x51e590 .bss
 int g_reportFlags;  // 0x51e594 .bss
 char g_unitSyncStatusText[104];  // 0x51e5a0 .bss
@@ -650,8 +653,6 @@ unsigned char DAT_0051f2c8[10];  // 0x51f2c8 .bss (the type runs past the next k
 unsigned char DAT_0051f2d2[6];  // 0x51f2d2 .bss
 unsigned int DAT_0051f2d8;  // 0x51f2d8 .bss
 int DAT_0051f2dc;  // 0x51f2dc .bss
-char* DAT_0051f2e0;  // 0x51f2e0 .bss
-char* DAT_0051f2ec;  // 0x51f2ec .bss
 int DAT_0051f2f0;  // 0x51f2f0 .bss
 int DAT_0051f2f4;  // 0x51f2f4 .bss
 unsigned int DAT_0051f2f8;  // 0x51f2f8 .bss
@@ -663,9 +664,11 @@ unsigned char DAT_0051f31c;  // 0x51f31c .bss
 unsigned char DAT_0051f320[2088];  // 0x51f320 .bss
 int DAT_0051fb48;  // 0x51fb48 .bss
 unsigned char DAT_0051fb4c[4];  // 0x51fb4c .bss
+char DAT_0051fb50[64];  // 0x51fb50 .bss
 int DAT_0051fb90;  // 0x51fb90 .bss
 unsigned long DAT_0051fb94;  // 0x51fb94 .bss
 unsigned char DAT_0051fb98[4];  // 0x51fb98 .bss
+char* g_loopingWav;  // 0x51fb9c .bss
 int* g_diskWav;  // 0x51fba0 .bss
 Dialog* g_guiContext;  // 0x51fba4 .bss
 int DAT_0051fba8;  // 0x51fba8 .bss

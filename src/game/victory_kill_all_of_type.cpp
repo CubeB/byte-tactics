@@ -55,12 +55,7 @@ extern Game* g_game;
 short __stdcall FindUnitTypeId(char* name);
 void __stdcall PlaySoundByName(char* str, int flag);
 
-class HapiBank {
-public:
-    void OpenAccount(const char* name);
-    int GetIntegerItem(char* name, int def);
-    void SetIntegerItem(const char* name, int value);
-};
+#include "../util/hapi_bank.h"
 
 class Condition_48efb0 {
 public:

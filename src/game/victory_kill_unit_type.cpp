@@ -26,12 +26,7 @@ public:
     int celebrated;                      // +0x08
 };
 
-class HapiBank {
-public:
-    void OpenAccount(const char* name);
-    void SetIntegerItem(const char* name, int value);
-    int GetIntegerItem(char* name, int def);
-};
+#include "../util/hapi_bank.h"
 
 extern char DAT_00509028[]; // "VictoryCondition_KillUnitType"
 extern char DAT_00509018[]; // "NumLeftToKill"

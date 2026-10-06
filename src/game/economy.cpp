@@ -50,13 +50,7 @@ struct Obj_00401320 {
     float prev1;                       // +0x14
 };
 
-class HapiBank {
-public:
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int WriteBox(void* data, int size);
-    int ReadBox(void* buf, int size);
-};
+#include "../util/hapi_bank.h"
 
 struct UnitInfo {
     char unknown_0[0xa8];

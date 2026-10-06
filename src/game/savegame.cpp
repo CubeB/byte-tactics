@@ -184,17 +184,7 @@ struct Game {
 
 struct Mission { int FUN_00435100(); void LoadCampaign(char* name); void* LoadMissionByName(char* name); };
 
-class HapiBank {
-public:
-    int field_0;
-    HapiBank* InitBank();
-    void OpenNamedBox(char* name);
-    void OpenAccount(char* name);
-    void CloseBank();
-    int GetIntegerItem(char* name, int def);
-    char* GetStringItem(char* name, int def);
-    int HasItem(char* name);
-};
+#include "../util/hapi_bank.h"
 
 extern Game* g_game;
 extern char* DAT_005091c8;

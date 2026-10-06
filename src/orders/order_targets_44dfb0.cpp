@@ -10,12 +10,7 @@
 // counterpart (0x44de80) reads all 0x36 bytes but never looks at 0..7, so the
 // bytes are only leaked, never used. Kept as the original does it.
 
-class HapiBank {
-public:
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int WriteBox(void* src, int len);
-};
+#include "../util/hapi_bank.h"
 
 struct Unit_0044dfb0 {
     char unknown_0[0xa8];

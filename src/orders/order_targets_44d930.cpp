@@ -1,12 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-class HapiBank {
-public:
-    int OpenNamedBox(char* name);
-    void SeekBox(int pos);
-    int ReadBox(void* buf, int size);
-    int WriteBox(void* src, int len);
-};
+#include "../util/hapi_bank.h"
 
 struct Rect_0044d930 {
     int a;

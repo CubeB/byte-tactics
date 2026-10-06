@@ -23,11 +23,7 @@ struct Game {
 
 extern Game* g_game;
 
-class HapiBank {
-public:
-    int HasItem(char* name);
-    char* GetStringItem(char* name, char* def);
-};
+#include "../util/hapi_bank.h"
 
 short __stdcall FindUnitTypeId(char* name);
 

@@ -40,12 +40,7 @@ extern Game* g_game;
 
 void __stdcall PlaySoundByName(char* str, int flag);
 
-class HapiBank {
-public:
-    void OpenAccount(const char* name);
-    void SetIntegerItem(const char* name, int value);
-    int GetIntegerItem(char* name, int def);
-};
+#include "../util/hapi_bank.h"
 
 extern char DAT_00508f3c[]; // "VictoryCondition_KillEnemyCommander"
 extern char DAT_00508f30[]; // "Satisfied"

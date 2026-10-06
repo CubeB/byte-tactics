@@ -41,7 +41,7 @@ void __stdcall CmdLimit(CommandArgs* args)
         int count;
         UnitTypeSet set;
         memset(&set, 0, sizeof(set));
-        set.AddTypeOrCategory(((CommandArgs*)args)->GetArg(1, DAT_005119b8), &count);
+        set.AddTypeOrCategory(args->GetArg(1, DAT_005119b8), &count);
         int value = args->GetIntArg(2, 0);
         // A narrow index: MSVC then counts the loop down in a separate
         // register instead of testing the player offset.

@@ -1,8 +1,11 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// A method of UnitSync, whose other methods are in unit_sync.cpp; this one
+// stays apart because it needs the real <map>, <list> or <vector>
+// instantiations its own way.
+//
 // The object begins with a std::map<unsigned int, Rect> (its find() is the
-// out-of-line 0x46e9b0; tree layout as in 0x46e3c0.cpp, field use as in
-// 0x46e550.cpp) and keeps a vector of 0x5c-byte entries at +0x14, as in
-// 0x46e000.cpp. Given the unit's key and a y value, it makes sure the entry's
+// out-of-line 0x46e9b0; tree layout and field use as in unit_sync.cpp) and
+// keeps a vector of 0x5c-byte entries at +0x14, as in unit_sync.cpp. Given the unit's key and a y value, it makes sure the entry's
 // Rect has that y (looking the unit type up in g_game when it has none),
 // checks that every entry lists the key, and then sets the Rect's height to
 // whether all of that held before letting NotifyEntryChanged recompute the entry.

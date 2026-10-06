@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
+// A method of UnitSync, whose other methods are in unit_sync.cpp; this one
+// stays apart because it needs the real <map>, <list> or <vector>
+// instantiations its own way.
+//
 // Handles one player-list packet. With `direct` set, the packet updates the
 // player's entry in the vector at +0x10 (arg 1 stores a word, arg 2 appends to
 // the entry's two std::vector<int> members through the out-of-line

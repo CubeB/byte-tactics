@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol
+// A method of UnitSync, whose other methods are in unit_sync.cpp; this one
+// stays apart because it needs the real <map>, <list> or <vector>
+// instantiations its own way.
+//
 // and space-bunny-free, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
 //
 // MATCH (space-bunny-free, issue 3009). The two blocks that every earlier pass

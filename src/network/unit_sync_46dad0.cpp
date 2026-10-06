@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
+// A method of UnitSync, whose other methods are in unit_sync.cpp; this one
+// stays apart because it needs the real <map>, <list> or <vector>
+// instantiations its own way.
+//
 // MATCH (was 29.8%). What made it match:
 // - The tail (field_5c > 0) is a nested if/else (field_60 < count, else the
 //   arg-4 packet last), with `for (n = 0; n < 4;) { ...; n++; field_60++; }`

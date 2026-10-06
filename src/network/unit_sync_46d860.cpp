@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// A method of UnitSync, whose other methods are in unit_sync.cpp; this one
+// stays apart because it needs the real <map>, <list> or <vector>
+// instantiations its own way.
+//
 // Sends the "units expected" (packet type 0x1a, sub-type 3) notice to every
 // player whose sync record this object holds, then queues the player's id on
 // the insertion-ordered list at +0x20 unless it is already there.  The class

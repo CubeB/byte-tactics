@@ -1,4 +1,8 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// A method of UnitSync, whose other methods are in unit_sync.cpp; this one
+// stays apart because it needs the real <map>, <list> or <vector>
+// instantiations its own way.
+//
 // Dequeues the front event of an insertion-ordered queue: the class holds a
 // std::map<unsigned int, Event> (key at map node +0xc, Event at +0x10) for
 // lookup and a std::list<Event> at +0x24 (_Head +0x24, _Size +0x28) for the

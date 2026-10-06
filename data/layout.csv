@@ -4537,9 +4537,9 @@ piece,0x4fd5b8,28,src/graphics/particles_472200.cpp,3,0,game data
 piece,0x4fd588,28,src/graphics/particles_471fd0.cpp,3,0,game data
 piece,0x4fd5a8,16,src/graphics/particle_system.cpp,3,0,game data
 piece,0x4fd580,4,src/graphics/particles_470b80.cpp,3,0,game data
-piece,0x507b40,35,src/network/unit_sync_46df40.cpp,5,0,game data
-piece,0x507b24,26,src/network/unit_sync_46df40.cpp,4,0,game data
-piece,0x507b08,25,src/network/unit_sync_46df40.cpp,3,0,game data
+piece,0x507b40,35,src/network/unit_sync.cpp,13,0,game data
+piece,0x507b24,26,src/network/unit_sync.cpp,12,0,game data
+piece,0x507b08,25,src/network/unit_sync.cpp,11,0,game data
 piece,0x507af8,13,src/game/statistics_46bf30.cpp,12,0,game data
 piece,0x507aec,12,src/game/statistics_46bf30.cpp,11,0,game data
 piece,0x507adc,16,src/game/statistics_46bf30.cpp,10,0,game data
@@ -12200,7 +12200,7 @@ same,0x504910,10,src/ingame/info_panel_4689c0.cpp,11,0,
 same,0x506290,6,src/ingame/info_panel_4689c0.cpp,4,0,
 same,0x4fd568,4,src/ingame/info_panel_468cf0.cpp,22,0,
 same,0x504910,10,src/ingame/info_panel_468cf0.cpp,13,0,
-same,0x502ae8,3,src/network/unit_sync_46df40.cpp,6,0,
+same,0x502ae8,3,src/network/unit_sync.cpp,14,0,
 same,0x470a40,80,src/network/packet_sequencer.cpp,16,0,
 same,0x50341c,4,src/frontend/campaign_menu_4767f0.cpp,5,0,
 same,0x50372c,2,src/frontend/campaign_menu_4767f0.cpp,4,0,

@@ -52,9 +52,9 @@ Class_0044d930::Class_0044d930(int owner, HapiBank* file, char* name)
 {
     vtable = DAT_004fd388;
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
+    file->SeekBox(0);
     Header_0044d930 hdr;
-    if (((HapiBank*)file)->ReadBox(&hdr, 20) == 20) {
+    if (file->ReadBox(&hdr, 20) == 20) {
         r.a = hdr.r.a;
         r.b = hdr.r.b;
         r.c = hdr.r.c;
@@ -74,7 +74,7 @@ int Class_0044d930::FUN_0044d9a0(int unused, HapiBank* file, char* name)
     hdr.r.c = r.c;
     hdr.r.d = r.d;
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
-    ((HapiBank*)file)->WriteBox(&hdr, 20);
+    file->SeekBox(0);
+    file->WriteBox(&hdr, 20);
     return 1;
 }

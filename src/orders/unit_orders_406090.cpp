@@ -17,7 +17,7 @@ int __stdcall StandbyMineOrder(Unit* unit, Order* order, int unused)
     switch (order->state) {
     case 0:
         if (!(unit->flags & 0x20000000)) return 7;
-        ((Unit*)unit)->ReleaseWeapons(3);
+        unit->ReleaseWeapons(3);
         order->flags |= 0x10000;
         ((Class_00439e80*)order)->FUN_00439e80(1);
         return 1;

@@ -603,14 +603,14 @@ void MovementClass::RefreshMovedUnits(Object_00440af0* p)
     unsigned int prev = p->unit->lastTick;
     p->unit->lastTick = g_game->ticks;
     if (prev < old) {
-        ((MovementClass*)this)->RefreshPassMap(p->a, p->b);
+        this->RefreshPassMap(p->a, p->b);
     }
     if (start != old) {
         for (Record_00440af0* r = &g_game->units[1]; r <= g_game->units_end; r++) {
             if ((r->flags & 0x10000000) != 0 && r->unit != 0) {
                 unsigned int t = r->unit->lastTick;
                 if (t >= old && t < start) {
-                    ((MovementClass*)this)->RefreshPassMap(r->a, r->b);
+                    this->RefreshPassMap(r->a, r->b);
                 }
             }
         }
@@ -624,7 +624,7 @@ void MovementClass::RefreshMovedUnits(Object_00440af0* p)
 void MovementClass::RefreshUnitIfStale(Object_00440af0* p)
 {
     if (p->unit->lastTick < lastTick) {
-        ((MovementClass*)this)->RefreshPassMap(p->a, p->b);
+        this->RefreshPassMap(p->a, p->b);
     }
 }
 

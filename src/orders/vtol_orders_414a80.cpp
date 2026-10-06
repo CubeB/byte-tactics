@@ -101,10 +101,10 @@ static inline Point WorldToCell(Vec3 v, Point origin)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Unit*)unit)->ClaimWeapons(3);
+    unit->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Unit*)unit)->SetStateBits(1, 1);
+    unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -131,7 +131,7 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
                 QueueUnitSpeech(unit, 7, "Reclamation failed");
                 return 7;
             }
-            if (!((Unit*)unit)->CanReclaim(target)) {
+            if (!unit->CanReclaim(target)) {
                 QueueUnitSpeech(unit, 7, "That unit cannot be reclaimed");
                 return 8;
             }
@@ -160,7 +160,7 @@ int __stdcall VtolReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         int range = 0;
         range = unit->def->buildRange;
         int square = delta.Square();
-        if (square <= range * range && ((Unit*)unit)->CanReclaim(order->target.Get())) {
+        if (square <= range * range && unit->CanReclaim(order->target.Get())) {
             if (order->duration >= 15) {
                 DamageUnit(unit, order->target.Get(), order->elapsed, 5, 0);
                 order->duration = 0;

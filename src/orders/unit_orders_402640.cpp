@@ -163,7 +163,7 @@ int __stdcall SelfRepairOrder(Unit* unit, Order* order, int unused)
         if (!(order->target.owner->type->flags & 0x40))
             return 7;
         if (order->target.owner->buildLeft == 0.0f && (unit->flags10e & 1)) {
-            ((Unit*)unit)->ClaimWeapons(3);
+            unit->ClaimWeapons(3);
             return 1;
         }
         return 8;
@@ -236,7 +236,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
             FinishConstruction(unit, order->target.owner);
             DamageUnit(unit, order->target.owner, 30000, 9, 0);
         }
-        ((Unit*)unit)->SetStateBits(9, 0);
+        unit->SetStateBits(9, 0);
         FUN_0041c150(unit);
         return 5;
     }
@@ -251,10 +251,10 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         order->target.SetUnit(0);
         if (unit->flags & 0x20000000) {
             if (order->count <= 0) {
-                ((Unit*)unit)->SetStateBits(1, 0);
+                unit->SetStateBits(1, 0);
                 return 5;
             }
-            ((Unit*)unit)->SetStateBits(1, 1);
+            unit->SetStateBits(1, 1);
             return 1;
         }
         break;
@@ -283,7 +283,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         order->target.owner->bits.bits18 = unit->bits.bits18;
         order->target.owner->bits.bits20 = unit->bits.bits20;
         AddOrder("getbuilt", 1, order->target.owner, unit, 0, 0, 0);
-        ((Unit*)unit)->SetStateBits(8, 1);
+        unit->SetStateBits(8, 1);
         FUN_0041c150(unit);
         return 1;
     }
@@ -312,7 +312,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         break;
     case 4:
         QueueUnitSpeech(unit, 8, 0);
-        ((Unit*)unit)->SetStateBits(8, 0);
+        unit->SetStateBits(8, 0);
         FinishConstruction(unit, order->target.owner);
         order->target.SetUnit(0);
         order->count--;

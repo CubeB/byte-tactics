@@ -22,7 +22,7 @@ int __stdcall PatrolOrder(Unit* unit,Order* order,int flags)
         FUN_0043a020(unit,order);
         ((Class_00439e80*)order)->FUN_00439e80(1); return 1;
     case 1:
-        ((Unit*)unit)->ReleaseWeapons(3);
+        unit->ReleaseWeapons(3);
         ((Class_00438930*)order)->FUN_00438930(&order->pos,0);
         ((Class_00439e80*)order)->FUN_00439e80(15);
         order->flags|=0xe0; return 1;

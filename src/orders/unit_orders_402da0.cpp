@@ -104,7 +104,7 @@ int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
     state = order->state;
     switch (state) {
     case 0:
-        ((Unit*)unit)->ClaimWeapons(3);
+        unit->ClaimWeapons(3);
         ((Class_00439e80*)order)->FUN_00439e80(300);
         order->Wait();
         return 1;

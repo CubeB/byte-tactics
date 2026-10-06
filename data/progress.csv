@@ -572,9 +572,9 @@ address,size,file,symbol,status,similarity
 0x42e260,144,src/graphics/palette_tables_42e260.cpp,?LoadLightTable@@YGPAIPAX@Z,matched,100.0
 0x42e2f0,13,src/graphics/palette_tables_42e2f0.cpp,?MakeGrayTable@@YGXI@Z,matched,100.0
 0x42e300,13,src/graphics/palette_tables_42e300.cpp,?MakeBlueTable@@YGXI@Z,matched,100.0
-0x42e310,289,src/weapons/weapon_types_42e310.cpp,?LoadWeaponTypes@@YGXXZ,matched,100.0
-0x42e440,3923,src/weapons/weapon_types_42e440.cpp,?LoadWeaponType@@YGXPAVClass_004c4440@@@Z,matched,100.0
-0x42f3a0,167,src/weapons/weapon_types_42f3a0.cpp,?FreeWeaponTypes@@YGXXZ,matched,100.0
+0x42e310,289,src/weapons/weapon_types.cpp,?LoadWeaponTypes@@YGXXZ,matched,100.0
+0x42e440,3923,src/weapons/weapon_types.cpp,?LoadWeaponType@@YGXPAVClass_004c4440@@@Z,matched,100.0
+0x42f3a0,167,src/weapons/weapon_types.cpp,?FreeWeaponTypes@@YGXXZ,matched,100.0
 0x42f450,297,src/sound/sound_types_42f450.cpp,?ReadSoundEntry@@YGHPAUSource_0042f450@@PADPAH@Z,matched,100.0
 0x42f580,448,src/sound/sound_types_42f580.cpp,?LoadSoundCategories@@YGXXZ,matched,100.0
 0x42f740,149,src/sound/sound_types_42f740.cpp,?FreeSoundCategories@@YGXXZ,matched,100.0
@@ -1037,10 +1037,10 @@ address,size,file,symbol,status,similarity
 0x44f650,74,src/orders/order_targets_44f650.cpp,?FUN_0044f650@Class_0044f650@@QAEXPAUVec3_0044f650@@HH@Z,matched,100.0
 0x44f6a0,52,src/orders/order_targets_44f6a0.cpp,?FUN_0044f6a0@@YGXXZ,matched,100.0
 0x44f6e0,50,src/orders/order_targets_44f6e0.cpp,?FUN_0044f6e0@@YGXXZ,matched,100.0
-0x44f720,126,src/network/net_condenser_44f720.cpp,_$E4,matched,100.0
-0x44f7a0,57,src/network/net_condenser_44f720.cpp,_$E2,matched,100.0
-0x44f7e0,126,src/network/net_condenser_44f7e0.cpp,_$E4,matched,100.0
-0x44f860,57,src/network/net_condenser_44f7e0.cpp,_$E2,matched,100.0
+0x44f720,126,src/network/net_condenser.cpp,_$E4,matched,100.0
+0x44f7a0,57,src/network/net_condenser.cpp,_$E2,matched,100.0
+0x44f7e0,126,src/network/net_condenser.cpp,_$E9,matched,100.0
+0x44f860,57,src/network/net_condenser.cpp,_$E7,matched,100.0
 0x44f8a0,92,src/network/net_condenser.cpp,??0NetCondenser@@QAE@XZ,matched,100.0
 0x44f900,52,src/network/net_condenser.cpp,??1NetCondenser@@QAE@XZ,matched,100.0
 0x44f940,125,src/network/net_condenser.cpp,?Accumulate@NetCondenser@@QAEXPAXH@Z,matched,100.0

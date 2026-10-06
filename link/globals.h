@@ -271,7 +271,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                          // 0x511ddc, 4 bytes; 1 of 1 files
 extern int DAT_00511de0;                                                                      // 0x511de0, 4 bytes; 2 of 2 files
 extern int DAT_00511de4;                                                                      // 0x511de4, 4 bytes; 2 of 2 files
-extern Game* g_game;                                                                          // 0x511de8, 4 bytes; 861 of 981 files (conflicting: shape)
+extern Game* g_game;                                                                          // 0x511de8, 4 bytes; 859 of 979 files (conflicting: shape)
 extern int DAT_00511dec;                                                                      // 0x511dec, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00511f80[16];                                                        // 0x511f80, 16 bytes; CMemoryCache by value in 5 of 5 files
 extern int DAT_00511f90;                                                                      // 0x511f90, 4 bytes; 1 of 1 files
@@ -743,7 +743,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x512320 g_meteorOrigin: Point16_00437de0 (1), Point16_00438070 (1), Point16_00438180 (1), short (1)
 //   0x512334 g_meteorTarget: Point16_00437de0 (1), Point16_00438070 (1), Point16_00438180 (1), short (1)
 //   0x512770 DAT_00512770: char[] (2), Serial_00441c30 (1), int (1)
-//   0x5129d0 g_sendCondenser: defined in src/network/net_condenser_44f7e0.cpp
+//   0x5129d0 g_sendCondenser: defined in src/network/net_condenser.cpp
 //   0x512f2c DAT_00512f2c: part of another global: DAT_00512f18+0x14
 //   0x512f42 DAT_00512f42: part of another global: DAT_00512f18+0x2a
 //   0x512f46 DAT_00512f46: part of another global: DAT_00512f18+0x2e
@@ -815,7 +815,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x512370 DAT_00512370: part of another global: MovementClassTable::g_movementClasses+0x18
 //   0x512764 DAT_00512764: short (1), int (1)
 //   0x5129f1 DAT_005129f1: part of another global: g_sendCondenser+0x21
-//   0x5129f8 g_receiveCondenser: defined in src/network/net_condenser_44f720.cpp
+//   0x5129f8 g_receiveCondenser: defined in src/network/net_condenser.cpp
 //   0x512c98 DAT_00512c98: part of another global: DAT_00512c80+0x18
 //   0x512d28 DAT_00512d28: part of another global: DAT_00512c80+0xa8
 //   0x51e548 DAT_0051e548: int (__stdcall*)(int, char*) (1), int (__stdcall*)(int, int) (1)

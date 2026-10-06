@@ -1649,8 +1649,8 @@ piece,0x52c010,4,LIBCMT.LIB#344,4,0,library data
 piece,0x4fdd58,24,LIBCMT.LIB#344,1,0,library data
 piece,0x512340,16,src/map/meteors_438450.cpp,3,0,game data
 piece,0x512358,1024,src/units/movement_class_440230.cpp,3,0,game data
-piece,0x5129d0,37,src/network/net_condenser_44f7e0.cpp,3,0,game data
-piece,0x5129f8,37,src/network/net_condenser_44f720.cpp,3,0,game data
+piece,0x5129d0,40,src/network/net_condenser.cpp,3,0,game data
+piece,0x5129f8,37,src/network/net_condenser.cpp,3,40,game data
 piece,0x513000,46396,src/network/packets_460e20.cpp,3,0,game data
 piece,0x51e598,4,src/network/unit_sync_46c920.cpp,3,0,game data
 piece,0x51e59c,4,src/network/unit_sync_46c920.cpp,4,0,game data
@@ -4828,10 +4828,10 @@ piece,0x5064b4,6,src/network/net_game_451220.cpp,5,0,game data
 piece,0x506444,110,src/network/net_game_451220.cpp,4,0,game data
 piece,0x5063d8,108,src/network/net_game_451220.cpp,3,0,game data
 piece,0x506284,9,src/network/net_game_450a10.cpp,3,0,game data
-piece,0x506178,64,src/network/net_condenser.cpp,12,0,game data
-piece,0x506138,64,src/network/net_condenser.cpp,11,0,game data
-piece,0x5060fc,58,src/network/net_condenser.cpp,10,0,game data
-piece,0x50609c,96,src/network/net_condenser.cpp,7,0,game data
+piece,0x506178,64,src/network/net_condenser.cpp,22,0,game data
+piece,0x506138,64,src/network/net_condenser.cpp,21,0,game data
+piece,0x5060fc,58,src/network/net_condenser.cpp,20,0,game data
+piece,0x50609c,96,src/network/net_condenser.cpp,17,0,game data
 piece,0x4fd458,44,src/orders/order_targets_44f010.cpp,3,0,game data
 piece,0x4fd3e8,4,src/orders/order_targets_44e740.cpp,11,0,game data
 piece,0x4fd3f0,4,src/orders/order_targets_44e740.cpp,11,4,game data
@@ -5310,83 +5310,83 @@ piece,0x50435c,9,src/sound/sound_types_42f7e0.cpp,5,0,game data
 piece,0x504354,6,src/sound/sound_types_42f7e0.cpp,3,0,game data
 piece,0x504340,17,src/sound/sound_types_42f580.cpp,4,0,game data
 piece,0x504338,5,src/sound/sound_types_42f580.cpp,3,0,game data
-piece,0x504310,3,src/weapons/weapon_types_42e440.cpp,80,0,game data
-piece,0x504300,15,src/weapons/weapon_types_42e440.cpp,78,0,game data
-piece,0x4fd240,8,src/weapons/weapon_types_42e440.cpp,56,0,game data
-piece,0x5042f0,14,src/weapons/weapon_types_42e440.cpp,77,0,game data
-piece,0x5042dc,19,src/weapons/weapon_types_42e440.cpp,76,0,game data
-piece,0x4fd248,8,src/weapons/weapon_types_42e440.cpp,56,8,game data
-piece,0x5042c8,9,src/weapons/weapon_types_42e440.cpp,74,0,game data
-piece,0x5042bc,11,src/weapons/weapon_types_42e440.cpp,73,0,game data
-piece,0x4fd250,8,src/weapons/weapon_types_42e440.cpp,56,16,game data
-piece,0x5042ac,14,src/weapons/weapon_types_42e440.cpp,72,0,game data
-piece,0x50429c,13,src/weapons/weapon_types_42e440.cpp,71,0,game data
-piece,0x50428c,13,src/weapons/weapon_types_42e440.cpp,70,0,game data
-piece,0x504278,18,src/weapons/weapon_types_42e440.cpp,69,0,game data
-piece,0x50426c,12,src/weapons/weapon_types_42e440.cpp,68,0,game data
-piece,0x504260,12,src/weapons/weapon_types_42e440.cpp,67,0,game data
-piece,0x503dd4,9,src/weapons/weapon_types_42e440.cpp,66,0,game data
-piece,0x4fd258,8,src/weapons/weapon_types_42e440.cpp,56,24,game data
-piece,0x504258,6,src/weapons/weapon_types_42e440.cpp,65,0,game data
-piece,0x50424c,10,src/weapons/weapon_types_42e440.cpp,64,0,game data
-piece,0x504240,11,src/weapons/weapon_types_42e440.cpp,63,0,game data
-piece,0x504234,9,src/weapons/weapon_types_42e440.cpp,62,0,game data
-piece,0x504228,12,src/weapons/weapon_types_42e440.cpp,61,0,game data
-piece,0x50421c,11,src/weapons/weapon_types_42e440.cpp,60,0,game data
-piece,0x504210,11,src/weapons/weapon_types_42e440.cpp,59,0,game data
-piece,0x504204,9,src/weapons/weapon_types_42e440.cpp,58,0,game data
-piece,0x5041f4,15,src/weapons/weapon_types_42e440.cpp,57,0,game data
-piece,0x4fd260,8,src/weapons/weapon_types_42e440.cpp,56,32,game data
-piece,0x5041e8,12,src/weapons/weapon_types_42e440.cpp,55,0,game data
-piece,0x5041dc,11,src/weapons/weapon_types_42e440.cpp,54,0,game data
-piece,0x5041d4,6,src/weapons/weapon_types_42e440.cpp,53,0,game data
-piece,0x5041cc,7,src/weapons/weapon_types_42e440.cpp,52,0,game data
-piece,0x5041bc,13,src/weapons/weapon_types_42e440.cpp,51,0,game data
-piece,0x5041b0,9,src/weapons/weapon_types_42e440.cpp,50,0,game data
-piece,0x5041a8,7,src/weapons/weapon_types_42e440.cpp,49,0,game data
-piece,0x504190,10,src/weapons/weapon_types_42e440.cpp,47,0,game data
-piece,0x504184,10,src/weapons/weapon_types_42e440.cpp,46,0,game data
-piece,0x504174,13,src/weapons/weapon_types_42e440.cpp,45,0,game data
-piece,0x504168,12,src/weapons/weapon_types_42e440.cpp,44,0,game data
-piece,0x50415c,12,src/weapons/weapon_types_42e440.cpp,43,0,game data
-piece,0x504150,11,src/weapons/weapon_types_42e440.cpp,42,0,game data
-piece,0x504148,7,src/weapons/weapon_types_42e440.cpp,41,0,game data
-piece,0x50413c,9,src/weapons/weapon_types_42e440.cpp,40,0,game data
-piece,0x504130,10,src/weapons/weapon_types_42e440.cpp,39,0,game data
-piece,0x504124,10,src/weapons/weapon_types_42e440.cpp,38,0,game data
-piece,0x504118,9,src/weapons/weapon_types_42e440.cpp,37,0,game data
-piece,0x50410c,9,src/weapons/weapon_types_42e440.cpp,36,0,game data
-piece,0x504104,7,src/weapons/weapon_types_42e440.cpp,35,0,game data
-piece,0x5040f8,12,src/weapons/weapon_types_42e440.cpp,34,0,game data
-piece,0x5040ec,10,src/weapons/weapon_types_42e440.cpp,33,0,game data
-piece,0x5040e0,11,src/weapons/weapon_types_42e440.cpp,32,0,game data
-piece,0x5040d4,12,src/weapons/weapon_types_42e440.cpp,31,0,game data
-piece,0x5040c8,11,src/weapons/weapon_types_42e440.cpp,30,0,game data
-piece,0x5040bc,12,src/weapons/weapon_types_42e440.cpp,29,0,game data
-piece,0x5040b4,8,src/weapons/weapon_types_42e440.cpp,28,0,game data
-piece,0x5040ac,8,src/weapons/weapon_types_42e440.cpp,27,0,game data
-piece,0x50409c,8,src/weapons/weapon_types_42e440.cpp,25,0,game data
-piece,0x504090,10,src/weapons/weapon_types_42e440.cpp,24,0,game data
-piece,0x504084,11,src/weapons/weapon_types_42e440.cpp,23,0,game data
-piece,0x504078,9,src/weapons/weapon_types_42e440.cpp,22,0,game data
-piece,0x50406c,9,src/weapons/weapon_types_42e440.cpp,21,0,game data
-piece,0x504060,10,src/weapons/weapon_types_42e440.cpp,20,0,game data
-piece,0x504050,15,src/weapons/weapon_types_42e440.cpp,19,0,game data
-piece,0x504040,15,src/weapons/weapon_types_42e440.cpp,18,0,game data
-piece,0x504030,14,src/weapons/weapon_types_42e440.cpp,17,0,game data
-piece,0x504028,6,src/weapons/weapon_types_42e440.cpp,16,0,game data
-piece,0x5036f0,4,src/weapons/weapon_types_42e440.cpp,15,0,game data
-piece,0x5036e4,10,src/weapons/weapon_types_42e440.cpp,14,0,game data
-piece,0x504018,13,src/weapons/weapon_types_42e440.cpp,13,0,game data
-piece,0x504008,13,src/weapons/weapon_types_42e440.cpp,12,0,game data
-piece,0x503ff4,17,src/weapons/weapon_types_42e440.cpp,11,0,game data
-piece,0x503fe0,17,src/weapons/weapon_types_42e440.cpp,10,0,game data
-piece,0x503fcc,18,src/weapons/weapon_types_42e440.cpp,9,0,game data
-piece,0x503fb8,18,src/weapons/weapon_types_42e440.cpp,8,0,game data
-piece,0x503fac,11,src/weapons/weapon_types_42e440.cpp,7,0,game data
-piece,0x503fa0,9,src/weapons/weapon_types_42e440.cpp,6,0,game data
-piece,0x503f94,11,src/weapons/weapon_types_42e440.cpp,5,0,game data
-piece,0x503f8c,7,src/weapons/weapon_types_42e440.cpp,4,0,game data
+piece,0x504310,3,src/weapons/weapon_types.cpp,85,0,game data
+piece,0x504300,15,src/weapons/weapon_types.cpp,83,0,game data
+piece,0x4fd240,8,src/weapons/weapon_types.cpp,61,0,game data
+piece,0x5042f0,14,src/weapons/weapon_types.cpp,82,0,game data
+piece,0x5042dc,19,src/weapons/weapon_types.cpp,81,0,game data
+piece,0x4fd248,8,src/weapons/weapon_types.cpp,61,8,game data
+piece,0x5042c8,9,src/weapons/weapon_types.cpp,79,0,game data
+piece,0x5042bc,11,src/weapons/weapon_types.cpp,78,0,game data
+piece,0x4fd250,8,src/weapons/weapon_types.cpp,61,16,game data
+piece,0x5042ac,14,src/weapons/weapon_types.cpp,77,0,game data
+piece,0x50429c,13,src/weapons/weapon_types.cpp,76,0,game data
+piece,0x50428c,13,src/weapons/weapon_types.cpp,75,0,game data
+piece,0x504278,18,src/weapons/weapon_types.cpp,74,0,game data
+piece,0x50426c,12,src/weapons/weapon_types.cpp,73,0,game data
+piece,0x504260,12,src/weapons/weapon_types.cpp,72,0,game data
+piece,0x503dd4,9,src/weapons/weapon_types.cpp,71,0,game data
+piece,0x4fd258,8,src/weapons/weapon_types.cpp,61,24,game data
+piece,0x504258,6,src/weapons/weapon_types.cpp,70,0,game data
+piece,0x50424c,10,src/weapons/weapon_types.cpp,69,0,game data
+piece,0x504240,11,src/weapons/weapon_types.cpp,68,0,game data
+piece,0x504234,9,src/weapons/weapon_types.cpp,67,0,game data
+piece,0x504228,12,src/weapons/weapon_types.cpp,66,0,game data
+piece,0x50421c,11,src/weapons/weapon_types.cpp,65,0,game data
+piece,0x504210,11,src/weapons/weapon_types.cpp,64,0,game data
+piece,0x504204,9,src/weapons/weapon_types.cpp,63,0,game data
+piece,0x5041f4,15,src/weapons/weapon_types.cpp,62,0,game data
+piece,0x4fd260,8,src/weapons/weapon_types.cpp,61,32,game data
+piece,0x5041e8,12,src/weapons/weapon_types.cpp,60,0,game data
+piece,0x5041dc,11,src/weapons/weapon_types.cpp,59,0,game data
+piece,0x5041d4,6,src/weapons/weapon_types.cpp,58,0,game data
+piece,0x5041cc,7,src/weapons/weapon_types.cpp,57,0,game data
+piece,0x5041bc,13,src/weapons/weapon_types.cpp,56,0,game data
+piece,0x5041b0,9,src/weapons/weapon_types.cpp,55,0,game data
+piece,0x5041a8,7,src/weapons/weapon_types.cpp,54,0,game data
+piece,0x504190,10,src/weapons/weapon_types.cpp,52,0,game data
+piece,0x504184,10,src/weapons/weapon_types.cpp,51,0,game data
+piece,0x504174,13,src/weapons/weapon_types.cpp,50,0,game data
+piece,0x504168,12,src/weapons/weapon_types.cpp,49,0,game data
+piece,0x50415c,12,src/weapons/weapon_types.cpp,48,0,game data
+piece,0x504150,11,src/weapons/weapon_types.cpp,47,0,game data
+piece,0x504148,7,src/weapons/weapon_types.cpp,46,0,game data
+piece,0x50413c,9,src/weapons/weapon_types.cpp,45,0,game data
+piece,0x504130,10,src/weapons/weapon_types.cpp,44,0,game data
+piece,0x504124,10,src/weapons/weapon_types.cpp,43,0,game data
+piece,0x504118,9,src/weapons/weapon_types.cpp,42,0,game data
+piece,0x50410c,9,src/weapons/weapon_types.cpp,41,0,game data
+piece,0x504104,7,src/weapons/weapon_types.cpp,40,0,game data
+piece,0x5040f8,12,src/weapons/weapon_types.cpp,39,0,game data
+piece,0x5040ec,10,src/weapons/weapon_types.cpp,38,0,game data
+piece,0x5040e0,11,src/weapons/weapon_types.cpp,37,0,game data
+piece,0x5040d4,12,src/weapons/weapon_types.cpp,36,0,game data
+piece,0x5040c8,11,src/weapons/weapon_types.cpp,35,0,game data
+piece,0x5040bc,12,src/weapons/weapon_types.cpp,34,0,game data
+piece,0x5040b4,8,src/weapons/weapon_types.cpp,33,0,game data
+piece,0x5040ac,8,src/weapons/weapon_types.cpp,32,0,game data
+piece,0x50409c,8,src/weapons/weapon_types.cpp,30,0,game data
+piece,0x504090,10,src/weapons/weapon_types.cpp,29,0,game data
+piece,0x504084,11,src/weapons/weapon_types.cpp,28,0,game data
+piece,0x504078,9,src/weapons/weapon_types.cpp,27,0,game data
+piece,0x50406c,9,src/weapons/weapon_types.cpp,26,0,game data
+piece,0x504060,10,src/weapons/weapon_types.cpp,25,0,game data
+piece,0x504050,15,src/weapons/weapon_types.cpp,24,0,game data
+piece,0x504040,15,src/weapons/weapon_types.cpp,23,0,game data
+piece,0x504030,14,src/weapons/weapon_types.cpp,22,0,game data
+piece,0x504028,6,src/weapons/weapon_types.cpp,21,0,game data
+piece,0x5036f0,4,src/weapons/weapon_types.cpp,20,0,game data
+piece,0x5036e4,10,src/weapons/weapon_types.cpp,19,0,game data
+piece,0x504018,13,src/weapons/weapon_types.cpp,18,0,game data
+piece,0x504008,13,src/weapons/weapon_types.cpp,17,0,game data
+piece,0x503ff4,17,src/weapons/weapon_types.cpp,16,0,game data
+piece,0x503fe0,17,src/weapons/weapon_types.cpp,15,0,game data
+piece,0x503fcc,18,src/weapons/weapon_types.cpp,14,0,game data
+piece,0x503fb8,18,src/weapons/weapon_types.cpp,13,0,game data
+piece,0x503fac,11,src/weapons/weapon_types.cpp,12,0,game data
+piece,0x503fa0,9,src/weapons/weapon_types.cpp,11,0,game data
+piece,0x503f94,11,src/weapons/weapon_types.cpp,10,0,game data
+piece,0x503f8c,7,src/weapons/weapon_types.cpp,9,0,game data
 piece,0x50339c,4,src/graphics/palette_tables_42e260.cpp,5,0,game data
 piece,0x5033a4,8,src/graphics/palette_tables_42e260.cpp,4,0,game data
 piece,0x503398,4,src/graphics/palette_tables_42e1d0.cpp,5,0,game data
@@ -5938,8 +5938,6 @@ piece,0x50e934,4,LIBCMT.LIB#126,1,0,library data
 piece,0x501008,4,src/map/map_list_434a30.cpp,2,0,game data
 piece,0x50100c,4,src/map/meteors_438450.cpp,2,0,game data
 piece,0x501010,4,src/units/movement_class_440230.cpp,2,0,game data
-piece,0x501014,4,src/network/net_condenser_44f720.cpp,2,0,game data
-piece,0x501018,4,src/network/net_condenser_44f7e0.cpp,2,0,game data
 piece,0x50101c,4,src/network/packets_460e20.cpp,2,0,game data
 piece,0x501028,4,src/map/line_of_sight_4814c0.cpp,2,0,game data
 piece,0x50102c,4,src/units/unit_commands_4889d0.cpp,2,0,game data
@@ -9877,6 +9875,14 @@ fill,0x4fef84,4,,,00,padding
 fill,0x4fefa4,4,,,00,padding
 fill,0x4fefd4,4,,,00,padding
 fill,0x4ff05c,4,,,00,padding
+fill,0x501014,1,,,20,data (copied)
+fill,0x501015,1,,,f7,data (copied)
+fill,0x501016,1,,,44,data (copied)
+fill,0x501017,1,,,00,data (copied)
+fill,0x501018,1,,,e0,data (copied)
+fill,0x501019,1,,,f7,data (copied)
+fill,0x50101a,1,,,44,data (copied)
+fill,0x50101b,1,,,00,data (copied)
 fill,0x501084,12,,,00,padding
 fill,0x501099,3,,,00,padding
 fill,0x5010aa,2,,,00,padding
@@ -11842,7 +11848,6 @@ fill,0x5116ec,4,,,00,padding
 fill,0x5119ac,4,,,00,padding
 fill,0x5122ac,4,,,00,padding
 fill,0x5122b9,7,,,00,padding
-fill,0x5129f5,3,,,00,padding
 fill,0x512a1d,3,,,00,padding
 fill,0x512fdd,3,,,00,padding
 fill,0x51e676,2,,,00,padding
@@ -12006,7 +12011,7 @@ same,0x50341c,4,src/units/unit_types_42d2e0.cpp,26,0,
 same,0x502820,5,src/units/unit_types_42d2e0.cpp,12,0,
 same,0x50341c,4,src/units/unit_types_42dcf0.cpp,11,0,
 same,0x50372c,2,src/units/unit_types_42dcf0.cpp,10,0,
-same,0x50341c,4,src/weapons/weapon_types_42e310.cpp,4,0,
+same,0x50341c,4,src/weapons/weapon_types.cpp,4,0,
 same,0x50341c,4,src/sound/sound_types_42f580.cpp,7,0,
 same,0x50341c,4,src/sound/sound_types_42f7e0.cpp,6,0,
 same,0x5032e8,19,src/game/settings_42f910.cpp,3,0,

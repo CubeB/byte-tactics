@@ -50,6 +50,16 @@ public:
 };
 #pragma pack(pop)
 
+// Two global instances; the compiler builds their initialisers (0x44f720,
+// 0x44f7e0) and atexit destructors (0x44f7a0, 0x44f860) with the bodies inlined.
+// FUNCTION: 0x44f720 _$E4
+// FUNCTION: 0x44f7a0 _$E2
+NetCondenser g_receiveCondenser;
+
+// FUNCTION: 0x44f7e0 _$E9
+// FUNCTION: 0x44f860 _$E7
+NetCondenser g_sendCondenser;
+
 // FUNCTION: 0x44f8a0
 NetCondenser::NetCondenser()
 {

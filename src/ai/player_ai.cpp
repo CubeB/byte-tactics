@@ -383,10 +383,10 @@ void PlayerAI::RefreshUnitLists()
 void PlayerAI::UpdateEveryThirtyTicks()
 {
     if (g_game->ticks >= lastTick + 0x1e) {
-        this->RefreshUnitLists();
+        ((PlayerAI*)this)->RefreshUnitLists();
         lastTick = g_game->ticks;
         if (RandomInt(0x1e) == 0) {
-            this->ComputeBaseWeights();
+            ((PlayerAI*)this)->ComputeBaseWeights();
         }
     }
 }

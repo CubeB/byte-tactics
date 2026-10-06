@@ -187,7 +187,7 @@ public:
 class Class_004c91a0 : public Class_004c9390 {
 public:
     Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { this->ReleaseRef(); }
+    ~Class_004c91a0() { ReleaseRef(); }
 };
 
 // 0x4c91b0 builds one of those handles from a C string. In the game this is a
@@ -339,7 +339,7 @@ Mission::Mission(int owner_)
     missionName[0] = 0;
     text_b14[0] = 0;
     type = owner_;
-    ((Mission*)this)->LoadCampaign(DAT_005119b8);
+    LoadCampaign(DAT_005119b8);
 }
 
 // Destructor of Mission (constructor 0x434f70, sibling 0x437280).
@@ -999,7 +999,7 @@ int Mission::LoadMission(char* map)
         meteor.LoadMeteorDefaults();
     }
     SetMeteorParams(&meteor);
-    ((Mission*)this)->LoadMissionData(schema, &parser);
+    LoadMissionData(schema, &parser);
     return 1;
 }
 
@@ -1314,7 +1314,7 @@ int Mission::GetStartPosition(Vec3_00437320* out, int id)
 // both the running checksum and the "already loaded" flag, so a second call
 // returns straight away. Otherwise name slot 1 is searched in the file-local
 // vector of {name, checksum} pairs at 0x5122c0 (its initialiser and atexit
-// destructor are map_list.cpp, its out-of-line insert is map_load.cpp): a hit
+// destructor are 0x434a30.cpp, its out-of-line insert is 0x437580.cpp): a hit
 // takes the stored checksum, a miss opens the file, checks the 0x2000 magic of
 // its 0x40-byte header and folds the checksums (0x4b6ba0) of the header, of
 // the plot data (width * height * 4 bytes at the offset in +0x10) and of the

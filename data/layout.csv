@@ -4319,9 +4319,9 @@ piece,0x508c6c,5,src/units/unit_commands_487bf0.cpp,7,0,game data
 piece,0x508c5c,15,src/units/unit_commands_487bf0.cpp,6,0,game data
 piece,0x508c4c,14,src/units/unit_commands_487bf0.cpp,5,0,game data
 piece,0x508c3c,15,src/units/unit_commands_487bf0.cpp,4,0,game data
-piece,0x508c24,9,src/units/unit_save_4876c0.cpp,6,0,game data
-piece,0x508c30,11,src/units/unit_save_4876c0.cpp,5,0,game data
-piece,0x508c14,16,src/units/unit_save_4876c0.cpp,4,0,game data
+piece,0x508c24,9,src/units/unit_save.cpp,8,0,game data
+piece,0x508c30,11,src/units/unit_save.cpp,9,0,game data
+piece,0x508c14,16,src/units/unit_save.cpp,3,0,game data
 piece,0x4fd6f8,4,src/units/units_4866d0.cpp,3,0,game data
 piece,0x4fd6fc,4,src/units/units_4866d0.cpp,3,4,game data
 piece,0x4fd700,8,src/units/units_4866d0.cpp,3,8,game data

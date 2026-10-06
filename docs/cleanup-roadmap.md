@@ -110,24 +110,46 @@ Each phase lists its goal, how, the gate, who does it, and when it is done.
 - Done when: the script finds nothing more to remove. The leftovers are phase 3's
   input: a list of casts that need a type fixed first.
 
-### Phase 3: one definition of each shared type (the hard one)
+### Phase 3: translation units and per-unit headers, leaf classes first
 
-- Goal: `Unit`, `Game`, `Player` and the other big types defined once, not per file.
-- Why it is hard: see limits 1 and 3. A merged header changes the symbol counter
-  for every file that includes it. `docs/tidy-up.md` estimates about 3% of
-  functions change; those 3% need individual work.
+The aim is source as close as possible to what Cavedog had in 1997, so this phase
+follows the evidence, not the file count. Cavedog had one `.cpp` per translation
+unit and headers per class or subsystem, each included in some order; they did not
+have one header of every type. What can be recovered, strongest first:
+
+| Layer | Confidence | Evidence |
+| --- | --- | --- |
+| Which functions shared a `.cpp` | high | the linker kept each unit's functions together in source order; four modules name their file in an assertion (`frontend.cpp`, `multi.cpp`, `endgame.cpp`, `wargame.cpp`) |
+| Layouts, offsets, hierarchy, inlining | certain | the exe |
+| Which headers a unit included, in what order | measurable | the compiler's symbol counter (`docs/c2-regalloc.md`) shows how many declarations preceded a function |
+| Names | medium to low | strings, vtables, assertion text, TDF key names (`GetFieldInt("energycolor")` stored in `energyColor`) |
+| Formatting, comments, local names | unknowable | no evidence survives |
+
+- Goal: each translation unit is one file with the header set it plausibly had;
+  types are defined once in the header that owns them, not once per file.
+- Why it is hard: see limits 1 and 3. A header changes the symbol counter for every
+  file that includes it; `docs/tidy-up.md` estimates about 3% of functions change.
+  A single header of every type is the wrong shape: it lands 2,000 to 12,000 ids
+  away from the windows that functions need (`docs/c2-regalloc.md`).
 - How, in this order:
-  1. Pick the 10 types with the most views (`Unit` 462, `Game`, `Point16` 113 and
-     similar, from the header comments in `include/ta_types.h`).
-  2. For one type, write its header from `tools/unitgen.py` or the existing
-     `ta_types.h` definition, then use `tools/stateprobe.py` to list which
-     functions change when it is force-included.
-  3. Include it in the files that survive; leave the rest on their old view with a
-     one-line note. Do the next type.
-- Gate: `stateprobe.py` before, `checkall` and `place.py` after, per type.
-- Who: me or a strong model, one type per PR. Not for small models.
-- Done when: the top 10 types are shared and the number of definitions of `Unit`
-  falls from 281 to one plus the documented exceptions.
+  1. Translation units: ozgb's class and module gathering (#5773 to #5775). Review
+     and merge his PRs here, and take modules he has not touched.
+  2. Leaf library classes first: `HapiBank`, then `TdfFile` and `TdfRecord`
+     (`util/`). Each is self-contained, widely used, and exactly where the casts
+     that could not be removed remain. One header each, included by the files that
+     use it. Measure with `tools/stateprobe.py` which functions change when it is
+     force-included, so the fallout rate is known cheaply before the big types.
+  3. Name members from evidence (TDF keys, COB script names, strings), then
+     `Unit` and `Game` last, because they touch every file.
+- Gate: `stateprobe.py` before, `checkall` and `place.py` after, per type; one type
+  per PR.
+- Who: me or a strong model designs; small models only for fully specified
+  mechanical steps with a pass/fail command.
+- Done when: every translation unit is one file, the leaf classes have headers, and
+  the number of definitions of `Unit` has fallen from 281 to one plus documented
+  exceptions.
+- Limit: names will be plausible, not original, except where strings give them.
+  Do not present a guess as a recovered name.
 
 ### Phase 4: real member names, then offset casts
 

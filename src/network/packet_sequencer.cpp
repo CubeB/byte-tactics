@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, Opus and Space Bunny Free. Names are provisional.
 // PacketSequencer::operator=: copies three ints, then assigns two vectors of a
 // 14-byte element type (Elem_0046faf0, packed to 2 bytes, so the three ints and
 // the short give 14 bytes and the copy loops move three dwords and a word).
@@ -145,21 +145,122 @@ struct Elem_0046faf0 {
 };
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+struct Packet_0046cef0 {         // 0xe bytes
+    unsigned char type;          // +0x0
+    unsigned char arg;           // +0x1
+    unsigned int id;             // +0x2
+    int field_6;                 // +0x6
+    int field_a;                 // +0xa
+};
+#pragma pack(pop)
+
+int __cdecl GetLocalHumanDpid();
+void __stdcall SendPacketToPlayer(int a, unsigned int b, void* c, int d);
+
+// A list seen as a std::vector of packets (allocator byte, _First, _Last,
+// _End): ReceiveSequenced reads the lists through it, and FUN_0046eba0 is that
+// vector's insert(end(), count, val), out of line.
+class Class_0046eba0 {
+public:
+    char unknown_0[4];
+    Packet_0046cef0* first;      // +0x4
+    Packet_0046cef0* last;       // +0x8
+    Packet_0046cef0* end;        // +0xc
+    void FUN_0046eba0(Packet_0046cef0* where, int count, Packet_0046cef0* val);
+};
+
+class UnitSync {
+public:
+    void HandleSyncPacket(void* param_1, int param_2);
+};
+
 struct PacketSequencer {
     int field_0;                       // +0x00
-    int field_4;                       // +0x04
-    int field_8;                       // +0x08
+    unsigned int cur;                  // +0x04
+    unsigned int max;                  // +0x08
     std::vector<Elem_0046faf0> list_c; // +0x0c (16 bytes, _First at +0x10)
     std::vector<Elem_0046faf0> list_d; // +0x1c (operator= is 0x4707a0)
+    PacketSequencer();
     PacketSequencer& operator=(const PacketSequencer& rhs);
+    // In unit_sync_46cc10.cpp: it needs a hand-written std::vector, which
+    // cannot share a file with <vector>.
+    void SendSequenced(Elem_0046faf0* param_1, Elem_0046faf0* param_2);
+    void ReceiveSequenced(Packet_0046cef0* packet, int param_2, void* param_3, unsigned int target);
 };
+
+// The constructor: two empty vectors (the allocator bytes are copied from an
+// uninitialised temporary) and three dwords zeroed in the body.
+// FUNCTION: 0x46cbe0
+PacketSequencer::PacketSequencer()
+{
+    field_0 = 0;
+    cur = 0;
+    max = 0;
+}
+
+// Dispatches a 0xe-byte command packet. arg 0x65 re-sends the stored copy that
+// has the same id; any other id widens the range and, when it is the one right
+// after cur, runs cur and then every queued entry that follows it,
+// asking the sender for the next one (packet 0x1a 0x65) whenever the queue runs
+// dry.
+// FUNCTION: 0x46cef0
+void PacketSequencer::ReceiveSequenced(Packet_0046cef0* packet, int param_2, void* param_3, unsigned int target)
+{
+    if (packet->arg == 0x65) {
+        for (Packet_0046cef0* p = ((Class_0046eba0*)&list_c)->first; p != ((Class_0046eba0*)&list_c)->last; p++) {
+            if (p->id == packet->id) {
+                SendPacketToPlayer(GetLocalHumanDpid(), target, p, 0xe);
+                break;
+            }
+        }
+        return;
+    }
+    if (packet->id > max) {
+        max = packet->id;
+    }
+    if (packet->id == cur + 1) {
+        cur = packet->id;
+        ((UnitSync*)param_3)->HandleSyncPacket(packet, param_2);
+        for (unsigned int i = cur + 1; i <= max; i++) {
+            Packet_0046cef0* p;
+            for (p = ((Class_0046eba0*)&list_d)->first; p != ((Class_0046eba0*)&list_d)->last; p++) {
+                if (p->id == i) break;
+            }
+            if (p == ((Class_0046eba0*)&list_d)->last) break;
+            cur = i;
+            ((UnitSync*)param_3)->HandleSyncPacket(p, param_2);
+        }
+        return;
+    }
+    if (packet->id <= cur) {
+        return;
+    }
+    // Through a reference, so the call sets up ecx before evaluating its
+    // arguments, as the original does.
+    Class_0046eba0& v = *(Class_0046eba0*)&list_d;
+    v.FUN_0046eba0(v.last, 1, packet);
+    for (unsigned int i = cur + 1; i <= max; i++) {
+        Packet_0046cef0* p;
+        for (p = ((Class_0046eba0*)&list_d)->first; p != ((Class_0046eba0*)&list_d)->last; p++) {
+            if (p->id == i) break;
+        }
+        if (p == ((Class_0046eba0*)&list_d)->last) {
+            Packet_0046cef0 msg;
+            msg.type = 0x1a;
+            msg.arg = 0x65;
+            msg.id = i;
+            SendPacketToPlayer(GetLocalHumanDpid(), target, &msg, 0xe);
+        }
+    }
+}
 
 // FUNCTION: 0x470560 ??4PacketSequencer@@QAEAAU0@ABU0@@Z
 PacketSequencer& PacketSequencer::operator=(const PacketSequencer& rhs)
 {
     field_0 = rhs.field_0;
-    field_4 = rhs.field_4;
-    field_8 = rhs.field_8;
+    cur = rhs.cur;
+    max = rhs.max;
     list_c = rhs.list_c;
     list_d = rhs.list_d;
     return *this;

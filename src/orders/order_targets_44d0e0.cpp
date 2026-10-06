@@ -32,7 +32,7 @@
 // inlining decisions and register allocation, dropping the result to 49%. The
 // fix belongs in 0x44ee70.cpp: declaring the vector there would give 0x44ee70
 // the name the other three helpers have, and this file would match as it
-// stands. This is the same situation as 0x471820.cpp and 0x470560.cpp.
+// stands. This is the same situation as 0x471820.cpp and packet_sequencer.cpp.
 #include <vector>
 
 struct Point_0044eec0 {

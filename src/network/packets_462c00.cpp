@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// The rest of PacketReceiver is in packet_receiver.cpp; this stays apart
+// because it builds the entries through their constructors, and there the
+// entries have a destructor.
+//
 // The real constructor of PacketReceiver (vtable 0x4fd518, scalar deleting
 // destructor 0x462cc0, destructor 0x462d30). 0x4611e0.cpp already matches this
 // same constructor inlined into PacketManager's constructor, so the member

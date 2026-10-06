@@ -3,7 +3,7 @@
 // deleting destructor is 0x461340, which has this body inlined). It first
 // destroys the PacketReceiver member at +0xb300, then the eleven big entries
 // at +0x10 in reverse order. The class declarations for PacketReceiver are
-// copied from 0x462cc0.cpp so its destructor is inlined here.
+// copied from packet_receiver.cpp so its destructor is inlined here.
 // The channels start at +0x08; the +0x10 here is each channel's own
 // items/count pair at its +0x08 (settled in #225, see 0x460e20.cpp).
 //

@@ -531,7 +531,7 @@ address,name
 0x428c60,AIProfileParser::AIProfileParser
 0x428c90,AIProfileParser::SetBuffer
 0x428cd0,AIProfileParser::NextToken
-0x428d10,Class_00428d10::ScanToken
+0x428d10,AIProfileParser::ScanToken
 0x428e90,AIProfileParser::ReadInt
 0x428f40,AIProfileParser::TokenEquals
 0x428f60,AIProfileParser::ReportParseError
@@ -693,7 +693,7 @@ address,name
 0x437320,Mission::GetStartPosition
 0x4373a0,Mission::ComputeMapChecksum
 0x437580,VMapCacheEntry::?$vector::insert
-0x437800,Class_00437800::Class_00437800
+0x437800,??4MapCacheEntry@@QAEAAV0@ABV0@@Z
 0x437820,MapCacheEntry::MapCacheEntry
 0x437840,UpdateMetalExtraction
 0x437910,UpdateWindGenerator
@@ -2376,7 +2376,7 @@ address,name
 0x4b06f0,CobScript::~CobScript
 0x4b0720,CobScript::SetCob
 0x4b07a0,CobScript::GetCob
-0x4b07b0,FUN_004b07b0
+0x4b07b0,CobScript::FUN_004b07b0
 0x4b07c0,CobScript::FindScript
 0x4b0830,CobScript::StartThreadByName
 0x4b08c0,CobScript::StartThread
@@ -4392,7 +4392,7 @@ address,name
 0x512294,DAT_00512294
 0x512298,DAT_00512298
 0x51229c,DAT_0051229c
-0x5122c0,DAT_005122c0$S4554
+0x5122c0,DAT_005122c0
 0x5122c4,DAT_005122c4
 0x5122c8,DAT_005122c8
 0x5122d4,DAT_005122d4

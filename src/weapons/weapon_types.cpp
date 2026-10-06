@@ -1,47 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-opus-5.5. Names are provisional.
-// Loads one weapon from a .TDF section: the numbers and flags, the model, the
-// explosion animations, the sounds and the DAMAGE sub-section, which goes into
-// a table sorted by unit name (w->sub).
-//
-// The bytes match (claude-opus-5.5, #4194, from 84.7%). Three changes did it:
-//
-// 1. 84.7% to 99.1%: the DAMAGE table is written on the real <vector>, in
-//    the shape of the matched TDF section map in 0x4c3e40 and 0x4c54f0 (a
-//    byte, then a std::vector of {name handle, int} at +1, a first != last
-//    binary search taking the key's char* by value, and the
-//    `e == end || Ne(e->name, key)` test). The old hand-made vector could not
-//    get the signed `(last - first) / 2`, the materialised `!(a == b)` or the
-//    inline decisions right. The insert must be called in the function body:
-//    `m->v.insert(e, Entry(name, 0))` at depth 1 leaves 555 budget for
-//    insert(P, 1, X)'s own sites, so the first two arms are inlined and the
-//    third arm's _Ucopy, copy_backward and fill stay out of line, as in the
-//    original (inside an InsertNew helper it is one level deeper: 71.7%).
-//    Assigning `e` first and taking `&e->value` in each arm puts the
-//    temporary's destructor before the `lea esi, [ebx+ecx*8+4]` (98.9% with
-//    `&insert(...)->value`).
-//
-// 2. 99.1% to 99.6%: ballistic and dropped are read into named locals. That
-//    makes their `or` take the shifted value as its destination (`or eax,
-//    ecx`, then the store from eax), as in the original; the permuter found
-//    the same. Without them those two statements differ.
-//
-// 3. 99.6% to 100%: minbarrelangle is assigned without a `(float)` cast. The
-//    old `float mba = (float)(...); w->minbarrelangle = mba;` (and a plain
-//    `(float)` cast) put the fstp in the same place but cost the scheduler
-//    one extra unit, and the scheduler treats every 8th bitfield statement
-//    after it differently depending on that count (tracks, turret and
-//    stockpile were one step off). Found by deleting each earlier statement
-//    and putting back as many one-instruction stores: only this statement
-//    did not come back to the same shapes.
-//
-// Names: the out-of-line callees of the inlined vector::insert are real
-// <vector>/<algorithm> instantiations that data/symbols.csv knows by other
-// names: 0x432cf0 is std::_Construct<Entry_00432cf0, Entry_00432cf0> (ecx is
-// never set at its call sites; symbols.csv says allocator::construct, which
-// compiles to the same bytes), 0x432c20 is ??_GEntry_00432cf0 (the scalar
-// deleting destructor, called with 0 from _Destroy), 0x432d20 is
-// Entry_00432cf0::operator=, 0x432c80 is std::fill and 0x432cb0 is
-// std::copy_backward. data/aliases.csv lets these names reach them.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-opus-5.5, space-bunny-free. Names are provisional.
+
 #include <string.h>
 #include <vector>
 
@@ -225,7 +183,101 @@ void __stdcall FUN_0042a140(void* a, char* b);
 void* __stdcall LoadAnimGaf(char* name);
 void* __stdcall FindGafEntry(void* a, char* b);
 int __stdcall FUN_00429470(void* a, char* b);
+class TdfFile {
+public:
+    int root;                          // +0x0
+    int current;                       // +0x4
+    int field_8;                       // +0x8
 
+    TdfFile();
+    ~TdfFile();
+    int LoadFile(char* file);
+    void ResetCurrentRecord();
+    int SelectRecordAt(int index);
+};
+
+void __stdcall ListDirectory(const char* pattern, int flags, std::vector<Class_004c91a0>* out);
+void __stdcall LoadWeaponType(int section);
+int FUN_0041d8a0(void);
+extern void __cdecl operator delete(void*);
+void __cdecl FUN_004d85a0(void* p);
+
+// Loads every "Weapons\\*.tdf" file, parses each with the TDF parser, and
+// calls LoadWeaponType once per top level section found in it.
+// FUNCTION: 0x42e310
+void LoadWeaponTypes()
+{
+    int n = 0;
+    for (int i = 0; i < 0x100; i++) {
+        Weapon_0042e440* p = &g_game->weapons[i];
+        p->id = n++;
+        p->name[0] = 0;
+    }
+
+    char path[256];
+    std::vector<Class_004c91a0> files;
+    ListDirectory("Weapons\\*.tdf", 0, &files);
+
+    for (Class_004c91a0* p = files.begin(); p < files.end(); p++) {
+        TdfFile parser;
+        BuildDataPath(path, "Weapons", p->ptr, "TDF");
+        if (((TdfFile*)&parser)->LoadFile(path)
+            && (parser.field_8 || FUN_0041d8a0() == 0)) {
+            int i = 0;
+            while (1) {
+                ((TdfFile*)&parser)->ResetCurrentRecord();
+                if (!((TdfFile*)&parser)->SelectRecordAt(i))
+                    break;
+                LoadWeaponType(parser.current);
+                i++;
+            }
+        }
+    }
+}
+
+// Loads one weapon from a .TDF section: the numbers and flags, the model, the
+// explosion animations, the sounds and the DAMAGE sub-section, which goes into
+// a table sorted by unit name (w->sub).
+//
+// The bytes match (claude-opus-5.5, #4194, from 84.7%). Three changes did it:
+//
+// 1. 84.7% to 99.1%: the DAMAGE table is written on the real <vector>, in
+//    the shape of the matched TDF section map in 0x4c3e40 and 0x4c54f0 (a
+//    byte, then a std::vector of {name handle, int} at +1, a first != last
+//    binary search taking the key's char* by value, and the
+//    `e == end || Ne(e->name, key)` test). The old hand-made vector could not
+//    get the signed `(last - first) / 2`, the materialised `!(a == b)` or the
+//    inline decisions right. The insert must be called in the function body:
+//    `m->v.insert(e, Entry(name, 0))` at depth 1 leaves 555 budget for
+//    insert(P, 1, X)'s own sites, so the first two arms are inlined and the
+//    third arm's _Ucopy, copy_backward and fill stay out of line, as in the
+//    original (inside an InsertNew helper it is one level deeper: 71.7%).
+//    Assigning `e` first and taking `&e->value` in each arm puts the
+//    temporary's destructor before the `lea esi, [ebx+ecx*8+4]` (98.9% with
+//    `&insert(...)->value`).
+//
+// 2. 99.1% to 99.6%: ballistic and dropped are read into named locals. That
+//    makes their `or` take the shifted value as its destination (`or eax,
+//    ecx`, then the store from eax), as in the original; the permuter found
+//    the same. Without them those two statements differ.
+//
+// 3. 99.6% to 100%: minbarrelangle is assigned without a `(float)` cast. The
+//    old `float mba = (float)(...); w->minbarrelangle = mba;` (and a plain
+//    `(float)` cast) put the fstp in the same place but cost the scheduler
+//    one extra unit, and the scheduler treats every 8th bitfield statement
+//    after it differently depending on that count (tracks, turret and
+//    stockpile were one step off). Found by deleting each earlier statement
+//    and putting back as many one-instruction stores: only this statement
+//    did not come back to the same shapes.
+//
+// Names: the out-of-line callees of the inlined vector::insert are real
+// <vector>/<algorithm> instantiations that data/symbols.csv knows by other
+// names: 0x432cf0 is std::_Construct<Entry_00432cf0, Entry_00432cf0> (ecx is
+// never set at its call sites; symbols.csv says allocator::construct, which
+// compiles to the same bytes), 0x432c20 is ??_GEntry_00432cf0 (the scalar
+// deleting destructor, called with 0 from _Destroy), 0x432d20 is
+// Entry_00432cf0::operator=, 0x432c80 is std::fill and 0x432cb0 is
+// std::copy_backward. data/aliases.csv lets these names reach them.
 // FUNCTION: 0x42e440
 void __stdcall LoadWeaponType(Class_004c4440* parser) {
     char* id = parser->GetRecordName();
@@ -401,4 +453,23 @@ model_done:
         w->damage = 0;
     }
     SetWeaponFireHandler(w);
+}
+
+// FUNCTION: 0x42f3a0
+void FreeWeaponTypes()
+{
+    int i = 0;
+    while (i < 256) {
+        Weapon_0042e440* o = &g_game->weapons[i];
+        if (strlen(o->model) != 0) {
+            FUN_004d85a0(o->text);
+            o->text = 0;
+            o->model[0] = 0;
+        }
+        if (o->sub) {
+            delete o->sub;
+            o->sub = 0;
+        }
+        i++;
+    }
 }

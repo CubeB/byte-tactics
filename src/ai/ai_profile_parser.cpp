@@ -2,11 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-class Class_00428d10 {
-public:
-    int ScanToken();
-};
+#include <ctype.h>
 
 class Mission {
 public:
@@ -27,12 +23,11 @@ extern Game* g_game;
 
 class AIProfileParser {
 public:
-    char flag;                          // +0
-    char unknown_1[0x7f];
+    char token[0x80];                   // +0
     char* field_80;                     // +0x80
     char* field_84;                     // +0x84
     char* field_88;                     // +0x88
-    int errorReported;                       // +0x8c
+    int errorReported;                  // +0x8c
     int field_90;                       // +0x90
     int field_94;                       // +0x94
 
@@ -41,13 +36,11 @@ public:
     int NextToken();
     int ReadInt();
     bool TokenEquals(char* param_1);
+    int ScanToken();
     void ReportParseError(char* text);
 };
 
 // The AI profile parser: reads values and keys out of an AI profile buffer.
-// AIProfileParser and Class_00428d10 are two views of one object (the token
-// scanner at 0x428d10 is called through `this` at offset 0), so the four
-// members are one class.
 // FUNCTION: 0x428c60
 AIProfileParser::AIProfileParser()
 {
@@ -57,7 +50,7 @@ AIProfileParser::AIProfileParser()
     errorReported = 0;
     field_90 = 0;
     field_94 = 0x102;
-    flag = 0;
+    token[0] = 0;
 }
 
 // FUNCTION: 0x428c90
@@ -69,7 +62,7 @@ void AIProfileParser::SetBuffer(char* param_1, int param_2)
     errorReported = 0;
     field_90 = 0;
     field_94 = 0x102;
-    flag = 0;
+    token[0] = 0;
 }
 
 // FUNCTION: 0x428cd0
@@ -81,8 +74,55 @@ int AIProfileParser::NextToken()
         field_90 = 0;
         return field_94;
     }
-    field_94 = ((Class_00428d10*)this)->ScanToken();
+    field_94 = ScanToken();
     return field_94;
+}
+
+// AI profile tokenizer. The number scan is written as
+// `char* q = field_88; field_88 = q + 1;` rather than `*++field_88` or a bare
+// `field_88++` statement: the two-register form (increment in edx, then a
+// `mov eax, edx` copy for the load) is what MSVC emits for every pre-increment
+// spelling, while going through a pointer local that is stored back to the
+// member makes it increment and store in eax directly, as the original does.
+// FUNCTION: 0x428d10
+int AIProfileParser::ScanToken()
+{
+    if (errorReported != 0)
+        return 0x102;
+
+    while (isspace(*field_88) && field_88 != field_84)
+        field_88++;
+
+    if (field_88 == field_84 || *field_88 == '\0')
+        return 0;
+
+    if (ispunct(*field_88))
+        return *field_88++;
+
+    int len = 0;
+    if (!isdigit(*field_88) && *field_88 != '-' && *field_88 != '.') {
+        while (isalnum(*field_88) && field_88 != field_84 && len < 0x7f) {
+            token[len] = *field_88;
+            len++;
+            field_88++;
+        }
+        token[len] = 0;
+        if (len != 0 && len != 0x7f)
+            return 0x100;
+        return 0x102;
+    }
+
+    token[0] = *field_88;
+    int i = 1;
+    for (;;) {
+        char* q = field_88;
+        field_88 = q + 1;
+        if (!(isdigit(*field_88) || *field_88 == '.'))
+            break;
+        token[i++] = *field_88;
+    }
+    token[i] = 0;
+    return 0x101;
 }
 
 // FUNCTION: 0x428e90
@@ -96,7 +136,7 @@ int AIProfileParser::ReadInt()
         token = field_94;
         field_90 = 0;
     } else {
-        token = ((Class_00428d10*)this)->ScanToken();
+        token = ScanToken();
         field_94 = token;
     }
     if (token != 0x101) {

@@ -1314,7 +1314,7 @@ int Mission::GetStartPosition(Vec3_00437320* out, int id)
 // both the running checksum and the "already loaded" flag, so a second call
 // returns straight away. Otherwise name slot 1 is searched in the file-local
 // vector of {name, checksum} pairs at 0x5122c0 (its initialiser and atexit
-// destructor are 0x434a30.cpp, its out-of-line insert is 0x437580.cpp): a hit
+// destructor are map_list.cpp, its out-of-line insert is map_load.cpp): a hit
 // takes the stored checksum, a miss opens the file, checks the 0x2000 magic of
 // its 0x40-byte header and folds the checksums (0x4b6ba0) of the header, of
 // the plot data (width * height * 4 bytes at the offset in +0x10) and of the

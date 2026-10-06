@@ -1116,7 +1116,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A `??_G` with the destructor inlined**: give the class an inline virtual
   destructor and add a static object whose constructor is only declared; MSVC
   then emits the vtable and the `??_G` (see 0x470ae0.cpp). Annotate the atexit
-  destructor of a global as `_$E2` next to its `_$E4` (see 0x44f720.cpp).
+  destructor of a global as `_$E2` next to its `_$E4` (see src/network/net_condenser.cpp).
 - **Ghidra's return value can be a leftover**: when `eax` only holds what a
   final `idiv` or call left there and no caller reads it (`called from 0
   place(s)`, or callers ignore `eax`), the function returns `void` (0x47a8e0:
@@ -2145,7 +2145,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   classes (the second with a pure virtual).
 - **Static vs external global objects**: if the atexit destructor of a global
   `std::vector` keeps `_First` in a callee-saved register on the empty path, the
-  vector is a file-scope `static` (see `0x434a30.cpp`); the checker accepts the
+  vector is a file-scope `static` (see `map_list.cpp`); the checker accepts the
   compiler's `$S`-suffixed name.
 - **Two pointers walking one struct array**, one at +0 and one into the middle
   of a group of fields: the group was accessed through an inlined helper taking

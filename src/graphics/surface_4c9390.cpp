@@ -3,7 +3,7 @@
 // (see the copy constructor at 0x4c91a0 and assignment at 0x4c93b0, which
 // share the same shape). data/symbols.csv already names this address and
 // class independently (Class_004c9390::ReleaseRef), and every existing
-// caller (0x434a30.cpp, 0x432c00.cpp, 0x488a00.cpp, 0x4b75d0.cpp) already
+// caller (map_list.cpp, 0x432c00.cpp, 0x488a00.cpp, 0x4b75d0.cpp) already
 // calls it that way as a plain method, so that established name is kept
 // here rather than renamed to Class_004c91a0::~Class_004c91a0.
 

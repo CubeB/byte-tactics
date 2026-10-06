@@ -1649,8 +1649,8 @@ piece,0x52c010,4,LIBCMT.LIB#344,4,0,library data
 piece,0x4fdd58,24,LIBCMT.LIB#344,1,0,library data
 piece,0x512340,16,src/map/meteors_438450.cpp,3,0,game data
 piece,0x512358,1024,src/units/movement_class_440230.cpp,3,0,game data
-piece,0x5129d0,37,src/network/net_condenser_44f7e0.cpp,3,0,game data
-piece,0x5129f8,37,src/network/net_condenser_44f720.cpp,3,0,game data
+piece,0x5129d0,40,src/network/net_condenser.cpp,3,0,game data
+piece,0x5129f8,37,src/network/net_condenser.cpp,3,40,game data
 piece,0x513000,46396,src/network/packets_460e20.cpp,3,0,game data
 piece,0x51e598,4,src/network/unit_sync_46c920.cpp,3,0,game data
 piece,0x51e59c,4,src/network/unit_sync_46c920.cpp,4,0,game data
@@ -2218,8 +2218,9 @@ piece,0x51fb98,4,link/data.obj,31,4448,global data
 piece,0x5122d8,4,link/data.obj,31,4444,global data
 piece,0x5122e4,4,link/data.obj,31,4440,global data
 piece,0x5122f0,32,link/data.obj,31,4408,global data
-piece,0x51fb94,4,link/data.obj,31,4400,global data
-piece,0x5122c8,4,link/data.obj,31,4396,global data
+piece,0x51fb94,4,link/data.obj,31,4404,global data
+piece,0x5122c8,4,link/data.obj,31,4400,global data
+piece,0x5122d4,4,link/data.obj,31,4396,global data
 piece,0x5122e0,4,link/data.obj,31,4392,global data
 piece,0x51fb90,4,link/data.obj,31,4388,global data
 piece,0x5122c4,4,link/data.obj,31,4384,global data
@@ -2437,46 +2438,45 @@ piece,0x5289f4,4,link/data.obj,31,0,global data
 piece,0x507b70,24,link/extra_data.obj,2,8,global data
 piece,0x505510,4,link/extra_data.obj,2,4,global data
 piece,0x502ae8,4,link/extra_data.obj,2,0,global data
-piece,0x529e00,32,link/extra_data.obj,3,3976,global data
-piece,0x526ff4,4,link/extra_data.obj,3,3972,global data
-piece,0x51f2e8,4,link/extra_data.obj,3,3968,global data
-piece,0x529e9c,1,link/extra_data.obj,3,3964,global data
-piece,0x51f2e4,4,link/extra_data.obj,3,3960,global data
-piece,0x528ac8,4,link/extra_data.obj,3,3956,global data
-piece,0x528ad4,4,link/extra_data.obj,3,3952,global data
-piece,0x528ab8,4,link/extra_data.obj,3,3948,global data
-piece,0x528ac4,4,link/extra_data.obj,3,3944,global data
-piece,0x528ad0,4,link/extra_data.obj,3,3940,global data
-piece,0x528ab4,4,link/extra_data.obj,3,3936,global data
-piece,0x528ac0,4,link/extra_data.obj,3,3932,global data
-piece,0x528acc,4,link/extra_data.obj,3,3928,global data
-piece,0x528abc,4,link/extra_data.obj,3,3924,global data
-piece,0x529df8,4,link/extra_data.obj,3,3920,global data
-piece,0x51fb9c,4,link/extra_data.obj,3,3916,global data
-piece,0x5129b8,4,link/extra_data.obj,3,3912,global data
-piece,0x5129ac,4,link/extra_data.obj,3,3908,global data
-piece,0x51e548,4,link/extra_data.obj,3,3904,global data
-piece,0x51e550,4,link/extra_data.obj,3,3900,global data
-piece,0x528a10,4,link/extra_data.obj,3,3896,global data
-piece,0x51fbd0,4,link/extra_data.obj,3,3892,global data
-piece,0x51e660,4,link/extra_data.obj,3,3888,global data
-piece,0x51e584,4,link/extra_data.obj,3,3884,global data
-piece,0x51e574,4,link/extra_data.obj,3,3880,global data
-piece,0x51e580,4,link/extra_data.obj,3,3876,global data
-piece,0x51e640,4,link/extra_data.obj,3,3872,global data
-piece,0x51e58c,4,link/extra_data.obj,3,3868,global data
-piece,0x51e57c,4,link/extra_data.obj,3,3864,global data
-piece,0x51e828,2720,link/extra_data.obj,3,1144,global data
-piece,0x512334,4,link/extra_data.obj,3,1136,global data
-piece,0x512328,4,link/extra_data.obj,3,1132,global data
-piece,0x512320,4,link/extra_data.obj,3,1128,global data
-piece,0x512fe8,4,link/extra_data.obj,3,1124,global data
-piece,0x512ff4,4,link/extra_data.obj,3,1120,global data
-piece,0x512298,4,link/extra_data.obj,3,1116,global data
-piece,0x512764,4,link/extra_data.obj,3,1112,global data
-piece,0x512770,16,link/extra_data.obj,3,1096,global data
-piece,0x5120b8,464,link/extra_data.obj,3,632,global data
-piece,0x5122d4,4,link/extra_data.obj,3,624,global data
+piece,0x529e00,32,link/extra_data.obj,3,3968,global data
+piece,0x526ff4,4,link/extra_data.obj,3,3964,global data
+piece,0x51f2e8,4,link/extra_data.obj,3,3960,global data
+piece,0x529e9c,1,link/extra_data.obj,3,3956,global data
+piece,0x51f2e4,4,link/extra_data.obj,3,3952,global data
+piece,0x528ac8,4,link/extra_data.obj,3,3948,global data
+piece,0x528ad4,4,link/extra_data.obj,3,3944,global data
+piece,0x528ab8,4,link/extra_data.obj,3,3940,global data
+piece,0x528ac4,4,link/extra_data.obj,3,3936,global data
+piece,0x528ad0,4,link/extra_data.obj,3,3932,global data
+piece,0x528ab4,4,link/extra_data.obj,3,3928,global data
+piece,0x528ac0,4,link/extra_data.obj,3,3924,global data
+piece,0x528acc,4,link/extra_data.obj,3,3920,global data
+piece,0x528abc,4,link/extra_data.obj,3,3916,global data
+piece,0x529df8,4,link/extra_data.obj,3,3912,global data
+piece,0x51fb9c,4,link/extra_data.obj,3,3908,global data
+piece,0x5129b8,4,link/extra_data.obj,3,3904,global data
+piece,0x5129ac,4,link/extra_data.obj,3,3900,global data
+piece,0x51e548,4,link/extra_data.obj,3,3896,global data
+piece,0x51e550,4,link/extra_data.obj,3,3892,global data
+piece,0x528a10,4,link/extra_data.obj,3,3888,global data
+piece,0x51fbd0,4,link/extra_data.obj,3,3884,global data
+piece,0x51e660,4,link/extra_data.obj,3,3880,global data
+piece,0x51e584,4,link/extra_data.obj,3,3876,global data
+piece,0x51e574,4,link/extra_data.obj,3,3872,global data
+piece,0x51e580,4,link/extra_data.obj,3,3868,global data
+piece,0x51e640,4,link/extra_data.obj,3,3864,global data
+piece,0x51e58c,4,link/extra_data.obj,3,3860,global data
+piece,0x51e57c,4,link/extra_data.obj,3,3856,global data
+piece,0x51e828,2720,link/extra_data.obj,3,1136,global data
+piece,0x512334,4,link/extra_data.obj,3,1128,global data
+piece,0x512328,4,link/extra_data.obj,3,1124,global data
+piece,0x512320,4,link/extra_data.obj,3,1120,global data
+piece,0x512fe8,4,link/extra_data.obj,3,1116,global data
+piece,0x512ff4,4,link/extra_data.obj,3,1112,global data
+piece,0x512298,4,link/extra_data.obj,3,1108,global data
+piece,0x512764,4,link/extra_data.obj,3,1104,global data
+piece,0x512770,16,link/extra_data.obj,3,1088,global data
+piece,0x5120b8,464,link/extra_data.obj,3,624,global data
 piece,0x51fb50,64,link/extra_data.obj,3,560,global data
 piece,0x5119c0,40,link/extra_data.obj,3,520,global data
 piece,0x51ff14,4,link/extra_data.obj,3,512,global data
@@ -3967,7 +3967,7 @@ piece,0x509ce8,57,src/util/hapi_bank.cpp,19,0,game data
 piece,0x509ce0,5,src/util/hapi_bank.cpp,14,0,game data
 piece,0x509cd4,9,src/util/hapi_bank.cpp,10,0,game data
 piece,0x509ca4,45,src/util/hapi_bank.cpp,9,0,game data
-piece,0x509c94,13,src/units/cob_script.cpp,66,0,game data
+piece,0x509c94,13,src/units/cob_script.cpp,68,0,game data
 piece,0x509c84,14,src/units/cob_script.cpp,23,0,game data
 piece,0x509c74,16,src/units/cob_script.cpp,22,0,game data
 piece,0x4fdb00,84,src/units/cob_script.cpp,3,0,game data
@@ -4099,9 +4099,9 @@ piece,0x4fda80,8,src/weapons/weapons_49a890.cpp,3,32,game data
 piece,0x4fda88,8,src/weapons/weapons_49a890.cpp,3,40,game data
 piece,0x4fda90,8,src/weapons/weapons_49a890.cpp,3,48,game data
 piece,0x5096e8,13,src/weapons/weapons_499a30.cpp,3,0,game data
-piece,0x502714,5,src/ingame/build_placement_499200.cpp,3,0,game data
-piece,0x509660,10,src/ingame/build_placement_498f70.cpp,5,0,game data
-piece,0x509650,13,src/ingame/build_placement_498f70.cpp,3,0,game data
+piece,0x502714,5,src/ingame/build_placement.cpp,4,0,game data
+piece,0x509660,10,src/ingame/build_placement.cpp,5,0,game data
+piece,0x509650,13,src/ingame/build_placement.cpp,3,0,game data
 piece,0x5031d0,4,src/game/game_load_497f40.cpp,18,0,game data
 piece,0x5031c8,7,src/game/game_load_497f40.cpp,17,0,game data
 piece,0x5031bc,9,src/game/game_load_497f40.cpp,16,0,game data
@@ -4319,9 +4319,9 @@ piece,0x508c6c,5,src/units/unit_commands_487bf0.cpp,7,0,game data
 piece,0x508c5c,15,src/units/unit_commands_487bf0.cpp,6,0,game data
 piece,0x508c4c,14,src/units/unit_commands_487bf0.cpp,5,0,game data
 piece,0x508c3c,15,src/units/unit_commands_487bf0.cpp,4,0,game data
-piece,0x508c24,9,src/units/unit_save_4876c0.cpp,6,0,game data
-piece,0x508c30,11,src/units/unit_save_4876c0.cpp,5,0,game data
-piece,0x508c14,16,src/units/unit_save_4876c0.cpp,4,0,game data
+piece,0x508c24,9,src/units/unit_save.cpp,8,0,game data
+piece,0x508c30,11,src/units/unit_save.cpp,9,0,game data
+piece,0x508c14,16,src/units/unit_save.cpp,3,0,game data
 piece,0x4fd6f8,4,src/units/units_4866d0.cpp,3,0,game data
 piece,0x4fd6fc,4,src/units/units_4866d0.cpp,3,4,game data
 piece,0x4fd700,8,src/units/units_4866d0.cpp,3,8,game data
@@ -4349,7 +4349,7 @@ piece,0x508b08,16,src/map/line_of_sight_483610.cpp,4,0,game data
 piece,0x508af8,15,src/map/line_of_sight_483610.cpp,3,0,game data
 piece,0x4fd668,4,src/units/unit_script.cpp,4,0,game data
 piece,0x4fd66c,4,src/units/unit_script.cpp,4,4,game data
-piece,0x508af0,7,src/units/squads_480190.cpp,3,0,game data
+piece,0x508af0,7,src/units/squads.cpp,3,0,game data
 piece,0x508ae8,5,src/sound/speech_queue.cpp,18,0,game data
 piece,0x508ae0,5,src/sound/speech_queue.cpp,17,0,game data
 piece,0x504cd4,4,src/sound/speech_queue.cpp,16,0,game data
@@ -4828,10 +4828,10 @@ piece,0x5064b4,6,src/network/net_game_451220.cpp,5,0,game data
 piece,0x506444,110,src/network/net_game_451220.cpp,4,0,game data
 piece,0x5063d8,108,src/network/net_game_451220.cpp,3,0,game data
 piece,0x506284,9,src/network/net_game_450a10.cpp,3,0,game data
-piece,0x506178,64,src/network/net_condenser.cpp,12,0,game data
-piece,0x506138,64,src/network/net_condenser.cpp,11,0,game data
-piece,0x5060fc,58,src/network/net_condenser.cpp,10,0,game data
-piece,0x50609c,96,src/network/net_condenser.cpp,7,0,game data
+piece,0x506178,64,src/network/net_condenser.cpp,22,0,game data
+piece,0x506138,64,src/network/net_condenser.cpp,21,0,game data
+piece,0x5060fc,58,src/network/net_condenser.cpp,20,0,game data
+piece,0x50609c,96,src/network/net_condenser.cpp,17,0,game data
 piece,0x4fd458,44,src/orders/order_targets_44f010.cpp,3,0,game data
 piece,0x4fd3e8,4,src/orders/order_targets_44e740.cpp,11,0,game data
 piece,0x4fd3f0,4,src/orders/order_targets_44e740.cpp,11,4,game data
@@ -5091,10 +5091,10 @@ piece,0x50503c,9,src/map/meteors_438250.cpp,4,0,game data
 piece,0x505030,9,src/map/meteors_438250.cpp,3,0,game data
 piece,0x4fd280,4,src/map/meteors_437d60.cpp,3,0,game data
 piece,0x50501c,17,src/units/c_memory_cache.cpp,7,0,game data
-piece,0x4fd270,4,src/units/unit_motion_437910.cpp,5,0,game data
-piece,0x50500c,13,src/units/unit_motion_437910.cpp,4,0,game data
-piece,0x505000,9,src/units/unit_motion_437910.cpp,3,0,game data
-piece,0x4fd278,8,src/units/unit_motion_437840.cpp,4,8,game data
+piece,0x4fd270,8,src/units/unit_motion.cpp,4,0,game data
+piece,0x50500c,13,src/units/unit_motion.cpp,7,0,game data
+piece,0x505000,9,src/units/unit_motion.cpp,3,0,game data
+piece,0x4fd278,8,src/units/unit_motion.cpp,4,8,game data
 piece,0x504ff0,14,src/map/mission.cpp,173,0,game data
 piece,0x504fdc,17,src/map/mission.cpp,172,0,game data
 piece,0x504fcc,13,src/map/mission.cpp,163,0,game data
@@ -5188,8 +5188,8 @@ piece,0x504aac,12,src/map/mission.cpp,35,0,game data
 piece,0x504a84,25,src/map/mission.cpp,33,0,game data
 piece,0x503378,9,src/map/mission.cpp,25,0,game data
 piece,0x504a30,49,src/map/mission.cpp,9,0,game data
-piece,0x504a24,11,src/map/map_list_434bf0.cpp,6,0,game data
-piece,0x504a18,11,src/map/map_list_434bf0.cpp,5,0,game data
+piece,0x504a24,11,src/map/map_list.cpp,16,0,game data
+piece,0x504a18,11,src/map/map_list.cpp,15,0,game data
 piece,0x504a04,7,src/map/los_line.cpp,4,0,game data
 piece,0x504a00,3,src/map/los_line.cpp,3,0,game data
 piece,0x5049f8,8,src/map/los_tables_433380.cpp,4,0,game data
@@ -5310,83 +5310,83 @@ piece,0x50435c,9,src/sound/sound_types_42f7e0.cpp,5,0,game data
 piece,0x504354,6,src/sound/sound_types_42f7e0.cpp,3,0,game data
 piece,0x504340,17,src/sound/sound_types_42f580.cpp,4,0,game data
 piece,0x504338,5,src/sound/sound_types_42f580.cpp,3,0,game data
-piece,0x504310,3,src/weapons/weapon_types_42e440.cpp,80,0,game data
-piece,0x504300,15,src/weapons/weapon_types_42e440.cpp,78,0,game data
-piece,0x4fd240,8,src/weapons/weapon_types_42e440.cpp,56,0,game data
-piece,0x5042f0,14,src/weapons/weapon_types_42e440.cpp,77,0,game data
-piece,0x5042dc,19,src/weapons/weapon_types_42e440.cpp,76,0,game data
-piece,0x4fd248,8,src/weapons/weapon_types_42e440.cpp,56,8,game data
-piece,0x5042c8,9,src/weapons/weapon_types_42e440.cpp,74,0,game data
-piece,0x5042bc,11,src/weapons/weapon_types_42e440.cpp,73,0,game data
-piece,0x4fd250,8,src/weapons/weapon_types_42e440.cpp,56,16,game data
-piece,0x5042ac,14,src/weapons/weapon_types_42e440.cpp,72,0,game data
-piece,0x50429c,13,src/weapons/weapon_types_42e440.cpp,71,0,game data
-piece,0x50428c,13,src/weapons/weapon_types_42e440.cpp,70,0,game data
-piece,0x504278,18,src/weapons/weapon_types_42e440.cpp,69,0,game data
-piece,0x50426c,12,src/weapons/weapon_types_42e440.cpp,68,0,game data
-piece,0x504260,12,src/weapons/weapon_types_42e440.cpp,67,0,game data
-piece,0x503dd4,9,src/weapons/weapon_types_42e440.cpp,66,0,game data
-piece,0x4fd258,8,src/weapons/weapon_types_42e440.cpp,56,24,game data
-piece,0x504258,6,src/weapons/weapon_types_42e440.cpp,65,0,game data
-piece,0x50424c,10,src/weapons/weapon_types_42e440.cpp,64,0,game data
-piece,0x504240,11,src/weapons/weapon_types_42e440.cpp,63,0,game data
-piece,0x504234,9,src/weapons/weapon_types_42e440.cpp,62,0,game data
-piece,0x504228,12,src/weapons/weapon_types_42e440.cpp,61,0,game data
-piece,0x50421c,11,src/weapons/weapon_types_42e440.cpp,60,0,game data
-piece,0x504210,11,src/weapons/weapon_types_42e440.cpp,59,0,game data
-piece,0x504204,9,src/weapons/weapon_types_42e440.cpp,58,0,game data
-piece,0x5041f4,15,src/weapons/weapon_types_42e440.cpp,57,0,game data
-piece,0x4fd260,8,src/weapons/weapon_types_42e440.cpp,56,32,game data
-piece,0x5041e8,12,src/weapons/weapon_types_42e440.cpp,55,0,game data
-piece,0x5041dc,11,src/weapons/weapon_types_42e440.cpp,54,0,game data
-piece,0x5041d4,6,src/weapons/weapon_types_42e440.cpp,53,0,game data
-piece,0x5041cc,7,src/weapons/weapon_types_42e440.cpp,52,0,game data
-piece,0x5041bc,13,src/weapons/weapon_types_42e440.cpp,51,0,game data
-piece,0x5041b0,9,src/weapons/weapon_types_42e440.cpp,50,0,game data
-piece,0x5041a8,7,src/weapons/weapon_types_42e440.cpp,49,0,game data
-piece,0x504190,10,src/weapons/weapon_types_42e440.cpp,47,0,game data
-piece,0x504184,10,src/weapons/weapon_types_42e440.cpp,46,0,game data
-piece,0x504174,13,src/weapons/weapon_types_42e440.cpp,45,0,game data
-piece,0x504168,12,src/weapons/weapon_types_42e440.cpp,44,0,game data
-piece,0x50415c,12,src/weapons/weapon_types_42e440.cpp,43,0,game data
-piece,0x504150,11,src/weapons/weapon_types_42e440.cpp,42,0,game data
-piece,0x504148,7,src/weapons/weapon_types_42e440.cpp,41,0,game data
-piece,0x50413c,9,src/weapons/weapon_types_42e440.cpp,40,0,game data
-piece,0x504130,10,src/weapons/weapon_types_42e440.cpp,39,0,game data
-piece,0x504124,10,src/weapons/weapon_types_42e440.cpp,38,0,game data
-piece,0x504118,9,src/weapons/weapon_types_42e440.cpp,37,0,game data
-piece,0x50410c,9,src/weapons/weapon_types_42e440.cpp,36,0,game data
-piece,0x504104,7,src/weapons/weapon_types_42e440.cpp,35,0,game data
-piece,0x5040f8,12,src/weapons/weapon_types_42e440.cpp,34,0,game data
-piece,0x5040ec,10,src/weapons/weapon_types_42e440.cpp,33,0,game data
-piece,0x5040e0,11,src/weapons/weapon_types_42e440.cpp,32,0,game data
-piece,0x5040d4,12,src/weapons/weapon_types_42e440.cpp,31,0,game data
-piece,0x5040c8,11,src/weapons/weapon_types_42e440.cpp,30,0,game data
-piece,0x5040bc,12,src/weapons/weapon_types_42e440.cpp,29,0,game data
-piece,0x5040b4,8,src/weapons/weapon_types_42e440.cpp,28,0,game data
-piece,0x5040ac,8,src/weapons/weapon_types_42e440.cpp,27,0,game data
-piece,0x50409c,8,src/weapons/weapon_types_42e440.cpp,25,0,game data
-piece,0x504090,10,src/weapons/weapon_types_42e440.cpp,24,0,game data
-piece,0x504084,11,src/weapons/weapon_types_42e440.cpp,23,0,game data
-piece,0x504078,9,src/weapons/weapon_types_42e440.cpp,22,0,game data
-piece,0x50406c,9,src/weapons/weapon_types_42e440.cpp,21,0,game data
-piece,0x504060,10,src/weapons/weapon_types_42e440.cpp,20,0,game data
-piece,0x504050,15,src/weapons/weapon_types_42e440.cpp,19,0,game data
-piece,0x504040,15,src/weapons/weapon_types_42e440.cpp,18,0,game data
-piece,0x504030,14,src/weapons/weapon_types_42e440.cpp,17,0,game data
-piece,0x504028,6,src/weapons/weapon_types_42e440.cpp,16,0,game data
-piece,0x5036f0,4,src/weapons/weapon_types_42e440.cpp,15,0,game data
-piece,0x5036e4,10,src/weapons/weapon_types_42e440.cpp,14,0,game data
-piece,0x504018,13,src/weapons/weapon_types_42e440.cpp,13,0,game data
-piece,0x504008,13,src/weapons/weapon_types_42e440.cpp,12,0,game data
-piece,0x503ff4,17,src/weapons/weapon_types_42e440.cpp,11,0,game data
-piece,0x503fe0,17,src/weapons/weapon_types_42e440.cpp,10,0,game data
-piece,0x503fcc,18,src/weapons/weapon_types_42e440.cpp,9,0,game data
-piece,0x503fb8,18,src/weapons/weapon_types_42e440.cpp,8,0,game data
-piece,0x503fac,11,src/weapons/weapon_types_42e440.cpp,7,0,game data
-piece,0x503fa0,9,src/weapons/weapon_types_42e440.cpp,6,0,game data
-piece,0x503f94,11,src/weapons/weapon_types_42e440.cpp,5,0,game data
-piece,0x503f8c,7,src/weapons/weapon_types_42e440.cpp,4,0,game data
+piece,0x504310,3,src/weapons/weapon_types.cpp,85,0,game data
+piece,0x504300,15,src/weapons/weapon_types.cpp,83,0,game data
+piece,0x4fd240,8,src/weapons/weapon_types.cpp,61,0,game data
+piece,0x5042f0,14,src/weapons/weapon_types.cpp,82,0,game data
+piece,0x5042dc,19,src/weapons/weapon_types.cpp,81,0,game data
+piece,0x4fd248,8,src/weapons/weapon_types.cpp,61,8,game data
+piece,0x5042c8,9,src/weapons/weapon_types.cpp,79,0,game data
+piece,0x5042bc,11,src/weapons/weapon_types.cpp,78,0,game data
+piece,0x4fd250,8,src/weapons/weapon_types.cpp,61,16,game data
+piece,0x5042ac,14,src/weapons/weapon_types.cpp,77,0,game data
+piece,0x50429c,13,src/weapons/weapon_types.cpp,76,0,game data
+piece,0x50428c,13,src/weapons/weapon_types.cpp,75,0,game data
+piece,0x504278,18,src/weapons/weapon_types.cpp,74,0,game data
+piece,0x50426c,12,src/weapons/weapon_types.cpp,73,0,game data
+piece,0x504260,12,src/weapons/weapon_types.cpp,72,0,game data
+piece,0x503dd4,9,src/weapons/weapon_types.cpp,71,0,game data
+piece,0x4fd258,8,src/weapons/weapon_types.cpp,61,24,game data
+piece,0x504258,6,src/weapons/weapon_types.cpp,70,0,game data
+piece,0x50424c,10,src/weapons/weapon_types.cpp,69,0,game data
+piece,0x504240,11,src/weapons/weapon_types.cpp,68,0,game data
+piece,0x504234,9,src/weapons/weapon_types.cpp,67,0,game data
+piece,0x504228,12,src/weapons/weapon_types.cpp,66,0,game data
+piece,0x50421c,11,src/weapons/weapon_types.cpp,65,0,game data
+piece,0x504210,11,src/weapons/weapon_types.cpp,64,0,game data
+piece,0x504204,9,src/weapons/weapon_types.cpp,63,0,game data
+piece,0x5041f4,15,src/weapons/weapon_types.cpp,62,0,game data
+piece,0x4fd260,8,src/weapons/weapon_types.cpp,61,32,game data
+piece,0x5041e8,12,src/weapons/weapon_types.cpp,60,0,game data
+piece,0x5041dc,11,src/weapons/weapon_types.cpp,59,0,game data
+piece,0x5041d4,6,src/weapons/weapon_types.cpp,58,0,game data
+piece,0x5041cc,7,src/weapons/weapon_types.cpp,57,0,game data
+piece,0x5041bc,13,src/weapons/weapon_types.cpp,56,0,game data
+piece,0x5041b0,9,src/weapons/weapon_types.cpp,55,0,game data
+piece,0x5041a8,7,src/weapons/weapon_types.cpp,54,0,game data
+piece,0x504190,10,src/weapons/weapon_types.cpp,52,0,game data
+piece,0x504184,10,src/weapons/weapon_types.cpp,51,0,game data
+piece,0x504174,13,src/weapons/weapon_types.cpp,50,0,game data
+piece,0x504168,12,src/weapons/weapon_types.cpp,49,0,game data
+piece,0x50415c,12,src/weapons/weapon_types.cpp,48,0,game data
+piece,0x504150,11,src/weapons/weapon_types.cpp,47,0,game data
+piece,0x504148,7,src/weapons/weapon_types.cpp,46,0,game data
+piece,0x50413c,9,src/weapons/weapon_types.cpp,45,0,game data
+piece,0x504130,10,src/weapons/weapon_types.cpp,44,0,game data
+piece,0x504124,10,src/weapons/weapon_types.cpp,43,0,game data
+piece,0x504118,9,src/weapons/weapon_types.cpp,42,0,game data
+piece,0x50410c,9,src/weapons/weapon_types.cpp,41,0,game data
+piece,0x504104,7,src/weapons/weapon_types.cpp,40,0,game data
+piece,0x5040f8,12,src/weapons/weapon_types.cpp,39,0,game data
+piece,0x5040ec,10,src/weapons/weapon_types.cpp,38,0,game data
+piece,0x5040e0,11,src/weapons/weapon_types.cpp,37,0,game data
+piece,0x5040d4,12,src/weapons/weapon_types.cpp,36,0,game data
+piece,0x5040c8,11,src/weapons/weapon_types.cpp,35,0,game data
+piece,0x5040bc,12,src/weapons/weapon_types.cpp,34,0,game data
+piece,0x5040b4,8,src/weapons/weapon_types.cpp,33,0,game data
+piece,0x5040ac,8,src/weapons/weapon_types.cpp,32,0,game data
+piece,0x50409c,8,src/weapons/weapon_types.cpp,30,0,game data
+piece,0x504090,10,src/weapons/weapon_types.cpp,29,0,game data
+piece,0x504084,11,src/weapons/weapon_types.cpp,28,0,game data
+piece,0x504078,9,src/weapons/weapon_types.cpp,27,0,game data
+piece,0x50406c,9,src/weapons/weapon_types.cpp,26,0,game data
+piece,0x504060,10,src/weapons/weapon_types.cpp,25,0,game data
+piece,0x504050,15,src/weapons/weapon_types.cpp,24,0,game data
+piece,0x504040,15,src/weapons/weapon_types.cpp,23,0,game data
+piece,0x504030,14,src/weapons/weapon_types.cpp,22,0,game data
+piece,0x504028,6,src/weapons/weapon_types.cpp,21,0,game data
+piece,0x5036f0,4,src/weapons/weapon_types.cpp,20,0,game data
+piece,0x5036e4,10,src/weapons/weapon_types.cpp,19,0,game data
+piece,0x504018,13,src/weapons/weapon_types.cpp,18,0,game data
+piece,0x504008,13,src/weapons/weapon_types.cpp,17,0,game data
+piece,0x503ff4,17,src/weapons/weapon_types.cpp,16,0,game data
+piece,0x503fe0,17,src/weapons/weapon_types.cpp,15,0,game data
+piece,0x503fcc,18,src/weapons/weapon_types.cpp,14,0,game data
+piece,0x503fb8,18,src/weapons/weapon_types.cpp,13,0,game data
+piece,0x503fac,11,src/weapons/weapon_types.cpp,12,0,game data
+piece,0x503fa0,9,src/weapons/weapon_types.cpp,11,0,game data
+piece,0x503f94,11,src/weapons/weapon_types.cpp,10,0,game data
+piece,0x503f8c,7,src/weapons/weapon_types.cpp,9,0,game data
 piece,0x50339c,4,src/graphics/palette_tables_42e260.cpp,5,0,game data
 piece,0x5033a4,8,src/graphics/palette_tables_42e260.cpp,4,0,game data
 piece,0x503398,4,src/graphics/palette_tables_42e1d0.cpp,5,0,game data
@@ -5587,8 +5587,8 @@ piece,0x50336c,8,src/game/data_files_429000.cpp,8,0,game data
 piece,0x50334c,11,src/game/data_files_429000.cpp,5,0,game data
 piece,0x503344,5,src/game/data_files_429000.cpp,4,0,game data
 piece,0x4fd118,235,src/game/data_files_429000.cpp,3,0,game data
-piece,0x5032a4,51,src/ai/ai_profile_parser.cpp,9,0,game data
-piece,0x5032d8,14,src/ai/ai_profile_parser.cpp,10,0,game data
+piece,0x5032a4,51,src/ai/ai_profile_parser.cpp,11,0,game data
+piece,0x5032d8,14,src/ai/ai_profile_parser.cpp,12,0,game data
 piece,0x503234,10,src/frontend/frontend_4269d0.cpp,10,0,game data
 piece,0x503224,15,src/frontend/frontend_4269d0.cpp,9,0,game data
 piece,0x503210,11,src/frontend/frontend_4269d0.cpp,7,0,game data
@@ -5935,11 +5935,9 @@ piece,0x5295b4,1,src/debug/debug_lib_4e1410.cpp,3,124,game data
 piece,0x50df30,4,LIBCMT.LIB#65,1,0,library data
 piece,0x50e3f0,4,LIBCMT.LIB#67,2,0,library data
 piece,0x50e934,4,LIBCMT.LIB#126,1,0,library data
-piece,0x501008,4,src/map/map_list_434a30.cpp,2,0,game data
+piece,0x501008,4,src/map/map_list.cpp,2,0,game data
 piece,0x50100c,4,src/map/meteors_438450.cpp,2,0,game data
 piece,0x501010,4,src/units/movement_class_440230.cpp,2,0,game data
-piece,0x501014,4,src/network/net_condenser_44f720.cpp,2,0,game data
-piece,0x501018,4,src/network/net_condenser_44f7e0.cpp,2,0,game data
 piece,0x50101c,4,src/network/packets_460e20.cpp,2,0,game data
 piece,0x501028,4,src/map/line_of_sight_4814c0.cpp,2,0,game data
 piece,0x50102c,4,src/units/unit_commands_4889d0.cpp,2,0,game data
@@ -9635,7 +9633,6 @@ fill,0x4fd203,5,,,00,padding
 fill,0x4fd214,4,,,00,padding
 fill,0x4fd23c,4,,,00,padding
 fill,0x4fd26c,4,,,00,padding
-fill,0x4fd274,4,,,00,padding
 fill,0x4fd2a1,3,,,00,padding
 fill,0x4fd2ac,4,,,00,padding
 fill,0x4fd2ec,4,,,00,padding
@@ -9877,6 +9874,14 @@ fill,0x4fef84,4,,,00,padding
 fill,0x4fefa4,4,,,00,padding
 fill,0x4fefd4,4,,,00,padding
 fill,0x4ff05c,4,,,00,padding
+fill,0x501014,1,,,20,data (copied)
+fill,0x501015,1,,,f7,data (copied)
+fill,0x501016,1,,,44,data (copied)
+fill,0x501017,1,,,00,data (copied)
+fill,0x501018,1,,,e0,data (copied)
+fill,0x501019,1,,,f7,data (copied)
+fill,0x50101a,1,,,44,data (copied)
+fill,0x50101b,1,,,00,data (copied)
 fill,0x501084,12,,,00,padding
 fill,0x501099,3,,,00,padding
 fill,0x5010aa,2,,,00,padding
@@ -11842,7 +11847,6 @@ fill,0x5116ec,4,,,00,padding
 fill,0x5119ac,4,,,00,padding
 fill,0x5122ac,4,,,00,padding
 fill,0x5122b9,7,,,00,padding
-fill,0x5129f5,3,,,00,padding
 fill,0x512a1d,3,,,00,padding
 fill,0x512fdd,3,,,00,padding
 fill,0x51e676,2,,,00,padding
@@ -12006,7 +12010,7 @@ same,0x50341c,4,src/units/unit_types_42d2e0.cpp,26,0,
 same,0x502820,5,src/units/unit_types_42d2e0.cpp,12,0,
 same,0x50341c,4,src/units/unit_types_42dcf0.cpp,11,0,
 same,0x50372c,2,src/units/unit_types_42dcf0.cpp,10,0,
-same,0x50341c,4,src/weapons/weapon_types_42e310.cpp,4,0,
+same,0x50341c,4,src/weapons/weapon_types.cpp,4,0,
 same,0x50341c,4,src/sound/sound_types_42f580.cpp,7,0,
 same,0x50341c,4,src/sound/sound_types_42f7e0.cpp,6,0,
 same,0x5032e8,19,src/game/settings_42f910.cpp,3,0,
@@ -12023,7 +12027,7 @@ same,0x5032e8,19,src/game/settings_campaign_432a80.cpp,3,0,
 same,0x5032e8,19,src/game/settings_campaign_432b00.cpp,3,0,
 same,0x5032e8,19,src/game/settings_campaign_432b60.cpp,3,0,
 same,0x50341c,4,src/map/los_tables_433130.cpp,7,0,
-same,0x5122c0,16,src/map/map_list_434a30.cpp,4,0,
+same,0x5122c0,16,src/map/map_list.cpp,6,0,
 same,0x50341c,4,src/map/mission.cpp,11,0,
 same,0x504a64,6,src/map/mission.cpp,10,0,
 same,0x50341c,4,src/game/campaign_4352d0.cpp,4,0,
@@ -12034,7 +12038,6 @@ same,0x5048f8,9,src/map/mission.cpp,116,0,
 same,0x504ea8,5,src/map/mission.cpp,138,0,
 same,0x504ea0,7,src/map/mission.cpp,137,0,
 same,0x504e98,5,src/map/mission.cpp,136,0,
-same,0x4fd270,8,src/units/unit_motion_437840.cpp,4,0,
 same,0x438480,32,src/map/meteors_438450.cpp,6,0,
 same,0x512340,16,src/orders/order_list_43bc90.cpp,4,0,
 same,0x512340,16,src/orders/order_list_43c050.cpp,4,0,

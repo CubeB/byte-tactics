@@ -142,6 +142,7 @@ class CobScript
 
     void SetCob(ScriptTable* data);
     ScriptTable* GetCob();
+    int FUN_004b07b0(int, int);
     int FindScript(const char* name);
     int StartThreadByName(const char* name);
     int StartThread(int id);
@@ -249,6 +250,12 @@ void CobScript::SetCob(ScriptTable* data)
 ScriptTable* CobScript::GetCob()
 {
     return table;
+}
+
+// FUNCTION: 0x4b07b0
+int CobScript::FUN_004b07b0(int, int)
+{
+    return 0;
 }
 
 // Looks a name up in the table at +8 and claims a channel slot for its index

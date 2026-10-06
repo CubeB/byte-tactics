@@ -24,14 +24,6 @@ struct Player_00437cd0 {
     unsigned char flags;            // +0x111
 };
 
-struct Params_00437d60 {
-    char name[0x20];                   // +0x00
-    int field_20;                      // +0x20
-    float rate;                        // +0x24
-    float field_28;                    // +0x28
-    float field_2c;                    // +0x2c
-};
-
 struct Point16 {
     short x;
     short y;
@@ -153,13 +145,13 @@ void DisableMeteors()
 }
 
 // FUNCTION: 0x437d60
-void __stdcall SetMeteorParams(Params_00437d60* p)
+void __stdcall SetMeteorParams(MeteorParams* p)
 {
     strcpy(DAT_005122f0, p->name);
-    DAT_00512310 = p->field_20;
-    DAT_00512314 = (int)(30.0f / p->rate);
-    DAT_00512324 = (int)(p->field_28 * 30.0f);
-    DAT_00512338 = (int)(p->field_2c * 30.0f);
+    DAT_00512310 = p->radius;
+    DAT_00512314 = (int)(30.0f / p->density);
+    DAT_00512324 = (int)(p->duration * 30.0f);
+    DAT_00512338 = (int)(p->interval * 30.0f);
 }
 
 // C-style helpers returning the struct by value; with a constructor and

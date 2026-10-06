@@ -708,7 +708,7 @@ address,size,file,symbol,status,similarity
 0x437d30,1,src/map/meteors.cpp,?FUN_00437d30@@YGXXZ,matched,100.0
 0x437d40,11,src/map/meteors.cpp,?EnableMeteors@@YGXXZ,matched,100.0
 0x437d50,11,src/map/meteors.cpp,?DisableMeteors@@YGXXZ,matched,100.0
-0x437d60,113,src/map/meteors.cpp,?SetMeteorParams@@YGXPAUParams_00437d60@@@Z,matched,100.0
+0x437d60,113,src/map/meteors.cpp,?SetMeteorParams@@YGXPAVMeteorParams@@@Z,matched,100.0
 0x437de0,653,src/map/meteors.cpp,?UpdateMeteors@@YGXXZ,matched,100.0
 0x438070,260,src/map/meteors.cpp,?StartMeteorShower@@YGXXZ,matched,100.0
 0x438180,194,src/map/meteors.cpp,?SaveMeteors@@YGXPAVHapiBank@@@Z,matched,100.0

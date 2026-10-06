@@ -972,7 +972,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   node pointer and wrap it in a small iterator class (returning the iterator by
   value adds a hidden return pointer). `cmp; sbb; neg; test al, al` needs a
   `less`-style functor with `bool operator()`; `(p == End() || cmp(...)) ? End() : p`
-  gives the `lea eax, [temp]` selection. See `src/network/unit_sync_46e330.cpp`.
+  gives the `lea eax, [temp]` selection. See `src/network/unit_sync.cpp` (GetUnitEntry).
 - **Assigning to a 1-bit bitfield**: an `int` value gives `xor/and 1/xor`; a
   `char` value gives `and/or`.
 - **An argument `push` in the middle of a run of field stores**: MSVC hoists the

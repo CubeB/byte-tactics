@@ -4537,9 +4537,9 @@ piece,0x4fd5b8,28,src/graphics/particles_472200.cpp,3,0,game data
 piece,0x4fd588,28,src/graphics/particles_471fd0.cpp,3,0,game data
 piece,0x4fd5a8,16,src/graphics/particle_system.cpp,3,0,game data
 piece,0x4fd580,4,src/graphics/particles_470b80.cpp,3,0,game data
-piece,0x507b40,35,src/network/unit_sync_46df40.cpp,5,0,game data
-piece,0x507b24,26,src/network/unit_sync_46df40.cpp,4,0,game data
-piece,0x507b08,25,src/network/unit_sync_46df40.cpp,3,0,game data
+piece,0x507b40,35,src/network/unit_sync.cpp,15,0,game data
+piece,0x507b24,26,src/network/unit_sync.cpp,14,0,game data
+piece,0x507b08,25,src/network/unit_sync.cpp,13,0,game data
 piece,0x507af8,13,src/game/statistics_46bf30.cpp,12,0,game data
 piece,0x507aec,12,src/game/statistics_46bf30.cpp,11,0,game data
 piece,0x507adc,16,src/game/statistics_46bf30.cpp,10,0,game data
@@ -4657,9 +4657,9 @@ piece,0x5072c8,12,src/network/net_chat_463e50.cpp,3,0,game data
 piece,0x5072b8,15,src/network/net_chat_463ca0.cpp,4,0,game data
 piece,0x506580,12,src/network/net_chat_463ca0.cpp,3,0,game data
 piece,0x507240,33,src/network/player_frame_info.cpp,5,0,game data
-piece,0x507288,46,src/network/packets_462f30.cpp,4,0,game data
-piece,0x507264,35,src/network/packets_462f30.cpp,3,0,game data
-piece,0x4fd518,4,src/network/packets_462d30.cpp,3,0,game data
+piece,0x507288,46,src/network/packet_receiver.cpp,22,0,game data
+piece,0x507264,35,src/network/packet_receiver.cpp,21,0,game data
+piece,0x4fd518,4,src/network/packet_receiver.cpp,7,0,game data
 piece,0x507210,47,src/network/packets_462ae0.cpp,4,0,game data
 piece,0x5071d4,59,src/network/packets_462ae0.cpp,3,0,game data
 piece,0x506e9c,58,src/network/packet_buffer.cpp,17,0,game data
@@ -5853,9 +5853,9 @@ piece,0x4fca00,4,src/ai/ai_player_40bb00.cpp,3,20,game data
 piece,0x4fca04,4,src/ai/ai_player_40bb00.cpp,3,24,game data
 piece,0x4fca08,4,src/ai/ai_player_40bb00.cpp,3,28,game data
 piece,0x4fc9cc,4,src/ai/ai_player_40bb00.cpp,3,32,game data
-piece,0x4fc9d8,8,src/ai/ai_player_40aa40.cpp,3,8,game data
-piece,0x4fc9e0,8,src/ai/ai_player_40aa40.cpp,3,16,game data
-piece,0x4fc9e8,8,src/ai/ai_player_40aa40.cpp,3,24,game data
+piece,0x4fc9d8,8,src/ai/player_ai.cpp,11,8,game data
+piece,0x4fc9e0,8,src/ai/player_ai.cpp,11,16,game data
+piece,0x4fc9e8,8,src/ai/player_ai.cpp,11,24,game data
 piece,0x4fc9bc,4,src/ai/ai_player_409730.cpp,5,4,game data
 piece,0x4fc9c0,4,src/ai/ai_player_409730.cpp,5,8,game data
 piece,0x4fc9c4,4,src/ai/ai_player_409730.cpp,5,12,game data
@@ -11939,8 +11939,7 @@ same,0x4fc9bc,4,src/ai/ai_player_4095d0.cpp,3,4,
 same,0x4fc9c0,4,src/ai/ai_player_4095d0.cpp,3,8,
 same,0x4fc9b8,4,src/ai/ai_player_409730.cpp,5,0,
 same,0x4fc9cc,4,src/ai/ai_player_409730.cpp,5,20,
-same,0x4fc9b8,4,src/ai/ai_player_40a7b0.cpp,3,0,
-same,0x4fc9b8,8,src/ai/ai_player_40aa40.cpp,3,0,
+same,0x4fc9b8,8,src/ai/player_ai.cpp,11,0,
 same,0x4fc9b8,4,src/ai/ai_player_40bb00.cpp,3,12,
 same,0x4fcc40,4,src/orders/vtol_orders_4118e0.cpp,9,0,
 same,0x4fcc50,4,src/orders/vtol_orders_411f50.cpp,5,8,
@@ -12200,8 +12199,8 @@ same,0x504910,10,src/ingame/info_panel_4689c0.cpp,11,0,
 same,0x506290,6,src/ingame/info_panel_4689c0.cpp,4,0,
 same,0x4fd568,4,src/ingame/info_panel_468cf0.cpp,22,0,
 same,0x504910,10,src/ingame/info_panel_468cf0.cpp,13,0,
-same,0x502ae8,3,src/network/unit_sync_46df40.cpp,6,0,
-same,0x470a40,80,src/network/unit_sync_470560.cpp,12,0,
+same,0x502ae8,3,src/network/unit_sync.cpp,16,0,
+same,0x470a40,80,src/network/packet_sequencer.cpp,16,0,
 same,0x50341c,4,src/frontend/campaign_menu_4767f0.cpp,5,0,
 same,0x50372c,2,src/frontend/campaign_menu_4767f0.cpp,4,0,
 same,0x504a64,6,src/frontend/campaign_menu_4767f0.cpp,3,0,

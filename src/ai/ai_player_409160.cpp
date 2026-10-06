@@ -1,4 +1,8 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// A method of PlayerAI, whose other methods are in player_ai.cpp; this one
+// stays apart because it builds the unit lists one and two wrapper levels
+// deep, to spend its inline budget as the original does.
+//
 // Constructor of a player's AI state object (g_playerAI[player], built by
 // 0x40b320; 0x40b390 destroys it). Its out-of-line STL callees are
 // std::vector<Unit*>::vector(const allocator&) (0x40c510),

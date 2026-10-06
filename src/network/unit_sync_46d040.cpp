@@ -1,4 +1,8 @@
 // Decompiled by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// A method of UnitSync, whose other methods are in unit_sync.cpp; this one
+// stays apart because it needs the real <map>, <list> or <vector>
+// instantiations its own way.
+//
 // The map at +0x00 is the std::map<unsigned int, UnitSyncEntry> whose tree
 // header lives at 0x46f720 (written out by hand there as
 // Class_0046f720::FUN_0046f720). Because that file named the tree's _Init

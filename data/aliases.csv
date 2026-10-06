@@ -50,4 +50,3 @@ Class_004c4760::GetFieldDouble,0x4c4760,"TdfRecord::GetFieldDouble under the vie
 Class_004b4bf0::GetBoxSize,0x4b4bf0,"HapiBank::GetBoxSize under its view class in include/ta_types.h, which 0x424c00 includes"
 Class_004b4c10::SeekBox,0x4b4c10,"HapiBank::SeekBox under its view class in include/ta_types.h, which 0x424c00 includes"
 Class_004c91a0::~Class_004c91a0,0x4c9390,"the string handle's destructor, Class_004c9390::ReleaseRef; TdfRecord's scalar deleting destructor (0x4c32f0) calls it out of line, its inline budget spent"
-DAT_005122c0$S4655,0x5122c0,"DAT_005122c0$S4554 when the static was alone in its file; its symbol id (the $S suffix) follows the file it is in"

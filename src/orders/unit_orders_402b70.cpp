@@ -8,14 +8,14 @@ public:
 class UnitResources {
 public:
     char unknown_0[0x28];
-    int FUN_004011c0(float metal, float energy);
+    int FUN_004011c0(float energy, float metal);
 };
 
 #pragma pack(push, 1)
 struct WeaponType {
     char unknown_0[0xc0];
-    float metalCost;                   // +0xc0
-    float energyCost;                  // +0xc4
+    float energyCost;                  // +0xc0 (TDF energypershot)
+    float metalCost;                   // +0xc4 (TDF metalpershot)
     char unknown_c8[0xe4 - 0xc8];
     unsigned short buildTime;          // +0xe4
 };
@@ -49,7 +49,8 @@ void __stdcall FUN_0041c150(Unit* unit);
 // Order handler "Nanolathing" of a building that stockpiles weapons (the
 // "BuildingBuild" entry of the order table at 0x4fc490): builds `count`
 // rounds for weapon `weapon`, 5 ticks of build time per step, paying the
-// metal and energy share of each step, up to 200 stockpiled rounds.
+// energy and metal share of each step (energy first, as FUN_004011c0 takes
+// them), up to 200 stockpiled rounds.
 // The float locals must be declared next, total, prev (the reverse of their
 // first use) for the fild order; `total` after the ternary gives the
 // lea ecx, [eax+5] temp.
@@ -74,9 +75,9 @@ int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
         float fnext = next;
         float ftotal = total;
         float fprev = prev;
-        int energy = (int)(fnext * t->energyCost / ftotal) - (int)(fprev * t->energyCost / ftotal);
-        int metal = (int)(fnext * t->metalCost / ftotal) - (int)(fprev * t->metalCost / ftotal);
-        if (unit->resources.FUN_004011c0(metal, energy)) {
+        int metalCharge = (int)(fnext * t->metalCost / ftotal) - (int)(fprev * t->metalCost / ftotal);
+        int energyCharge = (int)(fnext * t->energyCost / ftotal) - (int)(fprev * t->energyCost / ftotal);
+        if (unit->resources.FUN_004011c0(energyCharge, metalCharge)) {
             order->progress = next;
             if (next >= t->buildTime)
                 return 1;

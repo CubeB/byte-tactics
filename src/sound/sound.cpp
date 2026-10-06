@@ -506,7 +506,7 @@ void Sound::ReleaseDirectSound()
     int i;
     for (i = 0; i < 8; i++) {
         if (sets[i] != 0) {
-            ((Sound*)this)->ReleaseSampleSet(sets[i]);
+            this->ReleaseSampleSet(sets[i]);
             sets[i] = 0;
         }
     }
@@ -569,7 +569,7 @@ int Sound::InitDirectSound(int rate, int bits, int channels, HWND handle)
 error:
     if (hr == (HRESULT)0x88780078)
         noDriver = 1;
-    ((Sound*)this)->ReleaseDirectSound();
+    this->ReleaseDirectSound();
     return 0;
 }
 
@@ -582,7 +582,7 @@ void Sound::ReapFinishedBuffers()
     for (i = 0; i < 8; i++) {
         if (sets[i] != 0) {
             if (sets[i][0]->GetStatus(&status) != 0 || status == 0) {
-                ((Sound*)this)->ReleaseSampleSet(sets[i]);
+                this->ReleaseSampleSet(sets[i]);
                 sets[i] = 0;
             }
         }
@@ -596,7 +596,7 @@ void Sound::ReapFinishedBuffers()
         }
     }
     if (stream != 0)
-        ((Sound*)this)->UpdateStream();
+        this->UpdateStream();
 }
 
 // FUNCTION: 0x4cf150
@@ -829,7 +829,7 @@ int Sound::PlaySampleSet(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* po
         }
     }
     while (count >= maxBuffers)
-        ((Sound*)this)->StopOldestBuffer();
+        this->StopOldestBuffer();
     DWORD best = 0;
     if (set == 0)
         return 0;
@@ -899,14 +899,14 @@ int Sound::PlaySampleSet(IDirectSoundBuffer** set, LONG volume, Pos_004cf570* po
 // FUNCTION: 0x4cf800
 int Sound::PlayMemorySample(void* src, DWORD bytes, int sampleRate, int bits, int channels, LONG volume, Pos_004cf570* pos)
 {
-    ((Sound*)this)->ReapFinishedBuffers();
+    this->ReapFinishedBuffers();
     for (int i = 0; i < 8; i++) {
         if (sets[i] == 0) {
-            sets[i] = ((Sound*)this)->CreateSampleFromMemory(src, bytes, sampleRate, bits, channels);
+            sets[i] = this->CreateSampleFromMemory(src, bytes, sampleRate, bits, channels);
             if (sets[i] == 0)
                 return 0;
-            if (((Sound*)this)->PlaySampleSet(sets[i], volume, pos) == 0) {
-                ((Sound*)this)->ReleaseSampleSet(sets[i]);
+            if (this->PlaySampleSet(sets[i], volume, pos) == 0) {
+                this->ReleaseSampleSet(sets[i]);
                 sets[i] = 0;
                 return 0;
             }
@@ -922,14 +922,14 @@ int Sound::PlayMemorySample(void* src, DWORD bytes, int sampleRate, int bits, in
 // FUNCTION: 0x4cf8a0
 int Sound::PlayFileSample(FileHandle* file, DWORD bytes, int sampleRate, int bits, int channels, LONG volume, Pos_004cf570* pos)
 {
-    ((Sound*)this)->ReapFinishedBuffers();
+    this->ReapFinishedBuffers();
     for (int i = 0; i < 8; i++) {
         if (sets[i] == 0) {
-            sets[i] = ((Sound*)this)->CreateSampleFromFile(file, bytes, sampleRate, bits, channels);
+            sets[i] = this->CreateSampleFromFile(file, bytes, sampleRate, bits, channels);
             if (sets[i] == 0)
                 return 0;
-            if (((Sound*)this)->PlaySampleSet(sets[i], volume, pos) == 0) {
-                ((Sound*)this)->ReleaseSampleSet(sets[i]);
+            if (this->PlaySampleSet(sets[i], volume, pos) == 0) {
+                this->ReleaseSampleSet(sets[i]);
                 sets[i] = 0;
                 return 0;
             }

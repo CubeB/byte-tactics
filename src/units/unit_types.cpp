@@ -312,9 +312,9 @@ public:
     ~TdfFile();
     int GetString(char* dst, char* key, int size, char* def)
     {
-        return ((TdfRecord*)current)->GetFieldString(dst, key, size, def);
+        return current->GetFieldString(dst, key, size, def);
     }
-    int GetInt(char* key, int def) { return ((Class_004c46c0*)current)->GetFieldInt(key, def); }
+    int GetInt(char* key, int def) { return current->GetFieldInt(key, def); }
     double GetDouble(char* key, double def) { return ((Class_004c4760*)current)->GetFieldDouble(key, def); }
     char* GetValue(char* key) { return ((Class_004c4630*)current)->FindFieldValue(key); }
     int LoadFile(char* file);
@@ -393,7 +393,7 @@ char* __stdcall FindWeaponByName(char* name);
 void LoadUnitInfo();
 
 // The float fields' getter. The outer parentheses matter (note 7 of 0x42bf40).
-#define GETFLOAT(section, key) ((float)((TdfRecord*)(section))->GetFieldDouble(key, 0.0))
+#define GETFLOAT(section, key) ((float)(section)->GetFieldDouble(key, 0.0))
 
 static inline Vec3 operator-(const Vec3& a, const Vec3& b) {
     Vec3 r;
@@ -610,6 +610,9 @@ void AddDownloadBuildOptions()
 //      locals and the loops kept footprintx first (it moved only when
 //      distinct pointer-based memory expressions were added or removed
 //      before the footprint stores).
+//  10. The `(TdfRecord*)` casts left on parser.current change nothing in
+//      type, but each takes a symbol id; dropping any of them moves the
+//      register allocation.
 // FUNCTION: 0x42bf40
 void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
     TdfFile parser;
@@ -617,58 +620,50 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
     char weapon[128];
     char yard[1024];
 
-    if (((TdfFile*)&parser)->LoadFile(fbi_file)) {
-        if (!((TdfFile*)&parser)->SelectRecord("UNITINFO")) {
-            ((TdfFile*)&parser)->Unload();
+    if (parser.LoadFile(fbi_file)) {
+        if (!parser.SelectRecord("UNITINFO")) {
+            parser.Unload();
             goto FINISH;
         }
         {
-            ((TdfRecord*)parser.current)
-                ->GetFieldString(unitdef->unitname, "unitname", 0x20, DAT_005119b8);
+            parser.current->GetFieldString(unitdef->unitname, "unitname", 0x20, DAT_005119b8);
             GetLocalizedString(&parser, unitdef->name, "name", 0x20, 0);
             GetLocalizedString(&parser, unitdef->description, "description", 0x40, 0);
-            ((TdfRecord*)parser.current)
-                ->GetFieldString(buf, "defaultmissiontype", 100, DAT_005119b8);
+            parser.current->GetFieldString(buf, "defaultmissiontype", 100, DAT_005119b8);
             MissionHolder m(buf);
             unitdef->defaultmissiontype = m.mission.value;
-            ((TdfRecord*)parser.current)
-                ->GetFieldString(buf, "wpri_badTargetCategory", 100, DAT_00503ea0);
+            parser.current->GetFieldString(buf, "wpri_badTargetCategory", 100, DAT_00503ea0);
             unitdef->weaponCategories[0] = GetCategoryMask(buf);
-            ((TdfRecord*)parser.current)
-                ->GetFieldString(buf, "wsec_badTargetCategory", 100, DAT_00503ea0);
+            parser.current->GetFieldString(buf, "wsec_badTargetCategory", 100, DAT_00503ea0);
             unitdef->weaponCategories[1] = GetCategoryMask(buf);
-            ((TdfRecord*)parser.current)
-                ->GetFieldString(buf, "wspe_badTargetCategory", 100, DAT_00503ea0);
+            parser.current->GetFieldString(buf, "wspe_badTargetCategory", 100, DAT_00503ea0);
             unitdef->weaponCategories[2] = GetCategoryMask(buf);
-            ((TdfRecord*)parser.current)
-                ->GetFieldString(buf, "noChaseCategory", 100, DAT_00503ea0);
+            parser.current->GetFieldString(buf, "noChaseCategory", 100, DAT_00503ea0);
             unitdef->nochasecategory = GetCategoryMask(buf);
-            if (((TdfRecord*)parser.current)
+            if (parser.current
                     ->GetFieldString(unitdef->objectname, "objectname", 0x20, DAT_005119b8) == 0) {
                 strcpy(unitdef->objectname, unitdef->unitname);
             }
-            unitdef->buildcostenergy = (float)((TdfRecord*)parser.current)->GetFieldInt("buildcostenergy", 0);
-            unitdef->buildcostmetal = (float)((TdfRecord*)parser.current)->GetFieldInt("buildcostmetal", 0);
+            unitdef->buildcostenergy = (float)parser.current->GetFieldInt("buildcostenergy", 0);
+            unitdef->buildcostmetal = (float)parser.current->GetFieldInt("buildcostmetal", 0);
             unitdef->maxvelocity =
-                ((TdfRecord*)parser.current)->GetFieldFixed("maxvelocity", Fixed(0)).value;
+                parser.current->GetFieldFixed("maxvelocity", Fixed(0)).value;
             unitdef->brakerate =
-                ((TdfRecord*)parser.current)->GetFieldFixed("brakerate", Fixed(0)).value;
+                parser.current->GetFieldFixed("brakerate", Fixed(0)).value;
             unitdef->acceleration =
-                ((TdfRecord*)parser.current)->GetFieldFixed("acceleration", Fixed(0)).value;
+                parser.current->GetFieldFixed("acceleration", Fixed(0)).value;
             unitdef->bankscale =
-                ((TdfRecord*)parser.current)->GetFieldFixed("bankscale", Fixed(0x10000)).value;
+                parser.current->GetFieldFixed("bankscale", Fixed(0x10000)).value;
             unitdef->pitchscale =
-                ((TdfRecord*)parser.current)->GetFieldFixed("pitchscale", Fixed(0)).value;
-            unitdef->damagemodifier = ((TdfRecord*)parser.current)
-                                            ->GetFieldFixed("damagemodifier", Fixed(0x10000)).value;
+                parser.current->GetFieldFixed("pitchscale", Fixed(0)).value;
+            unitdef->damagemodifier =
+                parser.current->GetFieldFixed("damagemodifier", Fixed(0x10000)).value;
             unitdef->moverate1 =
-                ((TdfRecord*)parser.current)
-                     ->GetFieldFixed("moverate1", Fixed(unitdef->maxvelocity * 2)).value;
+                parser.current->GetFieldFixed("moverate1", Fixed(unitdef->maxvelocity * 2)).value;
             unitdef->moverate2 =
-                ((TdfRecord*)parser.current)
-                     ->GetFieldFixed("moverate2", Fixed(unitdef->maxvelocity * 2)).value;
+                parser.current->GetFieldFixed("moverate2", Fixed(unitdef->maxvelocity * 2)).value;
             unitdef->turnrate =
-                (short)((TdfRecord*)parser.current)->GetFieldInt("turnrate", 0);
+                (short)parser.current->GetFieldInt("turnrate", 0);
             unitdef->waterline = (char)((TdfRecord*)parser.current)->GetFieldInt("waterline", 0);
             unitdef->transportsize =
                 (char)((TdfRecord*)parser.current)->GetFieldInt("transportsize", 0);
@@ -986,7 +981,7 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             unitdef->extentmax.z = (unitdef->footprintz << 20) / 2;
             unitdef->extentsize = unitdef->extentmax - unitdef->extentmin;
             unitdef->radius = (unitdef->extentsize.z + unitdef->extentsize.x) / 3;
-            ((TdfFile*)&parser)->Unload();
+            parser.Unload();
             // cancloak with no mincloakdistance: default to 80
             if ((unitdef->flags2 & 0x2000) && unitdef->mincloakdistance == 0)
                 unitdef->mincloakdistance = 80;
@@ -1147,7 +1142,7 @@ void LoadUnitTypes() {
     {
         TdfFile parser;
         BuildDataPath(path, "gamedata", "moveinfo", "TDF");
-        if (!((TdfFile*)&parser)->LoadFile(path))
+        if (!parser.LoadFile(path))
             FatalError("Can't load MOVEINFO.TDF");
 
         int i = 0;
@@ -1155,17 +1150,16 @@ void LoadUnitTypes() {
         MovementClass* cls_end = &MovementClassTable::g_movementClasses.entries[32];
         do {
             sprintf(classbuf, "CLASS%d", i);
-            ((TdfFile*)&parser)->ResetCurrentRecord();
-            if (((TdfFile*)&parser)->SelectRecord(classbuf)) {
-                ((TdfRecord*)parser.current)
-                    ->GetFieldString(classbuf, "name", 100, DAT_005119b8);
+            parser.ResetCurrentRecord();
+            if (parser.SelectRecord(classbuf)) {
+                parser.current->GetFieldString(classbuf, "name", 100, DAT_005119b8);
                 cls->field_0 = (int*)GameStrdup(classbuf);
                 cls->ReadMoveInfo(&parser);
             }
             cls++;
             i++;
         } while ((int)cls < (int)cls_end);
-        ((TdfFile*)&parser)->Unload();
+        parser.Unload();
     }
 
     Class_00458160* obj = (Class_00458160*)operator new(0x14);
@@ -1311,7 +1305,7 @@ void LoadUnitTypes() {
 
     TdfFile parser2;
     BuildDataPath(path, "gamedata", "sidedata", "TDF");
-    if (!((TdfFile*)&parser2)->LoadFile(path)) {
+    if (!parser2.LoadFile(path)) {
         FatalError("Can't load GAMEDATA.TDF");
     } else {
         short* list = (short*)FUN_004d83b0("TEMP UTYPE LIST", 0x3c);
@@ -1320,14 +1314,13 @@ void LoadUnitTypes() {
             type->field_152 = 0;
             type->field_156 = 0;
             if (type->canbuild) {
-                ((TdfFile*)&parser2)->ResetCurrentRecord();
-                if (((TdfFile*)&parser2)->SelectRecord("CANBUILD") &&
-                    ((TdfFile*)&parser2)->SelectRecord(type->unitname)) {
+                parser2.ResetCurrentRecord();
+                if (parser2.SelectRecord("CANBUILD") &&
+                    parser2.SelectRecord(type->unitname)) {
                     int count = 0;
                     int k = 1;
                     sprintf(objpath, "canbuild%d", k);
-                    while (((TdfRecord*)parser2.current)
-                               ->GetFieldString(valbuf, objpath, 0x20, DAT_005119b8)) {
+                    while (parser2.current->GetFieldString(valbuf, objpath, 0x20, DAT_005119b8)) {
                         short val = FindUnitTypeId(valbuf);
                         if (val != 0) {
                             list[count] = val;
@@ -1344,7 +1337,7 @@ void LoadUnitTypes() {
             }
         }
         FUN_004d85a0(list);
-        ((TdfFile*)&parser2)->Unload();
+        parser2.Unload();
     }
 
     g_game->field_38d71 = 100;
@@ -1419,7 +1412,7 @@ void FreeUnitTypes()
 //    onto ESI, EDI, EBX, EBP (the four callee-saved registers live across the _strcmpi
 //    call here), so the offset has to be a real source variable created before the
 //    counter. Declaring `int off = 0;` and walking with it (`i++, off += 0xbd`,
-//    `((BuildList_0042dcf0*)((char*)g_game->buildLists + off))->entries[0].name`)
+//    `((char*)g_game->buildLists + off)->entries[0].name`)
 //    makes the strength-reduction temp disappear and gives offset EBX / counter EBP.
 // 3. `defs[c].name` is used directly at both call sites instead of a `char* name`
 //    local: that drops one live-across-call variable, so the hoisted name temp lands
@@ -1445,11 +1438,11 @@ void LoadDownloadMenus()
     for (i = 0; i < n; i++) {
         TdfFile parser;
         BuildDataPath(path, "download", files[i].p, "TDF");
-        if (((TdfFile*)&parser)->LoadFile(path)) {
+        if (parser.LoadFile(path)) {
             int j = 0;
             while (1) {
-                ((TdfFile*)&parser)->ResetCurrentRecord();
-                if (!((TdfFile*)&parser)->SelectRecordAt(j))
+                parser.ResetCurrentRecord();
+                if (!parser.SelectRecordAt(j))
                     break;
                 g_game->field_391cb[i].count = j + 1;
                 char* buf = unitbuf;
@@ -1457,8 +1450,8 @@ void LoadDownloadMenus()
                     for (unsigned short u = 0; u < g_game->field_1438f; u++) {
                         if (_strcmpi(g_game->field_1439b[u].unitname, buf) == 0) {
                             g_game->field_391cb[i].entries[j].typeId = u;
-                            g_game->field_391cb[i].entries[j].page = (unsigned char)((TdfRecord*)parser.current)->GetFieldInt("MENU", 0);
-                            g_game->field_391cb[i].entries[j].slot = (unsigned char)((TdfRecord*)parser.current)->GetFieldInt("BUTTON", 0);
+                            g_game->field_391cb[i].entries[j].page = (unsigned char)parser.current->GetFieldInt("MENU", 0);
+                            g_game->field_391cb[i].entries[j].slot = (unsigned char)parser.current->GetFieldInt("BUTTON", 0);
                             parser.current->GetFieldString(g_game->field_391cb[i].entries[j].name, "UNITNAME", 0x20, DAT_005119b8);
                             break;
                         }

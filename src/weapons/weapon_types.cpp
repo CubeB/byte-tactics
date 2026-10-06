@@ -221,12 +221,12 @@ void LoadWeaponTypes()
     for (Class_004c91a0* p = files.begin(); p < files.end(); p++) {
         TdfFile parser;
         BuildDataPath(path, "Weapons", p->ptr, "TDF");
-        if (((TdfFile*)&parser)->LoadFile(path)
+        if (parser.LoadFile(path)
             && (parser.field_8 || FUN_0041d8a0() == 0)) {
             int i = 0;
             while (1) {
-                ((TdfFile*)&parser)->ResetCurrentRecord();
-                if (!((TdfFile*)&parser)->SelectRecordAt(i))
+                parser.ResetCurrentRecord();
+                if (!parser.SelectRecordAt(i))
                     break;
                 LoadWeaponType(parser.current);
                 i++;

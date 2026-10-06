@@ -120,15 +120,15 @@ void LoadSoundCategories()
     SoundInfo_005086fc* p;
 
     BuildDataPath(path, "gamedata", "sound", "TDF");
-    if (((TdfFile*)&obj)->LoadFile(path)) {
+    if (obj.LoadFile(path)) {
         g_game->entry_count = ((Class_004c4450*)obj.field_0)->GetSubRecordCount();
         int size = g_game->entry_count * 0x160;
         g_game->entries = (Entry_0042f740*)FUN_004d83b0("Sound Categories", size);
         memset(g_game->entries, 0, size);
         for (int i = 0; i < g_game->entry_count; i++) {
             char* rec = (char*)g_game->entries + i * 0x160;
-            ((TdfFile*)&obj)->ResetCurrentRecord();
-            if (((TdfFile*)&obj)->SelectRecordAt(i)) {
+            obj.ResetCurrentRecord();
+            if (obj.SelectRecordAt(i)) {
                 ((TdfRecord*)obj.field_4)->CopyRecordName(rec, 0x3f);
                 p = DAT_005086fc;
                 int* vals = (int*)(rec + 0x4c);
@@ -144,7 +144,7 @@ void LoadSoundCategories()
                 }
             }
         }
-        ((TdfFile*)&obj)->Unload();
+        obj.Unload();
     }
 }
 
@@ -179,18 +179,18 @@ void LoadAllSound()
 
     g_game->soundCount = 0;
     BuildDataPath(path, "gamedata", "allsound", "TDF");
-    if (((TdfFile*)&obj)->LoadFile(path)) {
+    if (obj.LoadFile(path)) {
         int i = 0;
-        int more = ((TdfFile*)&obj)->SelectRecordAt(i);
+        int more = obj.SelectRecordAt(i);
         while (more) {
             ((TdfRecord*)obj.field_4)->CopyRecordName(name, 0x20);
             if (((TdfRecord*)obj.field_4)->GetFieldString(value, "sound", 0x100, DAT_005119b8))
                 FUN_00429470(name, value);
             i++;
-            ((TdfFile*)&obj)->ResetCurrentRecord();
-            more = ((TdfFile*)&obj)->SelectRecordAt(i);
+            obj.ResetCurrentRecord();
+            more = obj.SelectRecordAt(i);
         }
-        ((TdfFile*)&obj)->Unload();
+        obj.Unload();
     }
     LoadSoundCategories();
 }

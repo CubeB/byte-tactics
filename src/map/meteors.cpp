@@ -278,13 +278,13 @@ void MeteorParams::LoadMeteorDefaults()
     TdfFile parser;
     char path[256];
     BuildDataPath(path, "gamedata", "meteor", DAT_0050310c);
-    if (((TdfFile*)&parser)->LoadFile(path)
-        && ((TdfFile*)&parser)->SelectRecord("Default")) {
-        if (((TdfRecord*)parser.current)->GetFieldString((char*)this, "MeteorWeapon", 0x20, DAT_005119b8)) {
+    if (parser.LoadFile(path)
+        && parser.SelectRecord("Default")) {
+        if (parser.current->GetFieldString((char*)this, "MeteorWeapon", 0x20, DAT_005119b8)) {
             radius = parser.current->GetFieldInt("MeteorRadius", 0);
-            density = (float)((TdfRecord*)parser.current)->GetFieldDouble("MeteorDensity", 0.0);
-            duration = (float)((TdfRecord*)parser.current)->GetFieldDouble("MeteorDuration", 0.0);
-            float intervalTime = (float)((TdfRecord*)parser.current)->GetFieldDouble("MeteorInterval", 0.0);
+            density = (float)parser.current->GetFieldDouble("MeteorDensity", 0.0);
+            duration = (float)parser.current->GetFieldDouble("MeteorDuration", 0.0);
+            float intervalTime = (float)parser.current->GetFieldDouble("MeteorInterval", 0.0);
             interval = intervalTime;
             if (radius != 0 && density != 0.0f && duration != 0.0f && intervalTime != 0.0f)
                 return;

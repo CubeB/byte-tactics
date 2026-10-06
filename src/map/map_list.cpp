@@ -444,7 +444,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
         struct A { char name[256]; char lower[256]; char path[256]; } a;
         BuildDataPath(a.path, "Maps", files[s.i].data, "OTA");
         TdfFile parser;
-        if (((TdfFile*)&parser)->LoadFile(a.path) != 0
+        if (parser.LoadFile(a.path) != 0
             && g_game->field_391e9->FUN_00436860(3, &parser, 0) != 0) {
             strcpy(a.name, files[s.i].data);
             StripExtension(a.name);
@@ -567,14 +567,14 @@ void Mission::LoadCampaign(char* file)
 {
     char msg[0x80];
 
-    ((TdfFile*)&list)->Unload();
+    list.Unload();
     strcpy(campaign, file);
     for (int i = 0; i < 9; i++)
         FUN_004353b0(i, DAT_005119b8);
     if (strlen(file) != 0) {
         BuildCampaignFilePath(0, "camps", campaign, "TDF");
         if (strlen(file) != 0) {
-            if (!((TdfFile*)&list)->LoadFile(FUN_004356c0(0))) {
+            if (!list.LoadFile(FUN_004356c0(0))) {
                 wsprintfA(msg, "The requested campaign file, %s, does not exist.", FUN_004356c0(0));
                 OpenMessageBox(g_game->messages, msg, 0x1e0, 1, 1);
                 LoadCampaign(DAT_005119b8);
@@ -692,7 +692,7 @@ int Mission::CountMissions()
     while (1) {
         sprintf(buf, "MISSION%d", n);
         list.ResetCurrentRecord();
-        if (((TdfFile*)&list)->SelectRecord(buf) == 0)
+        if (list.SelectRecord(buf) == 0)
             break;
         n++;
     }
@@ -719,7 +719,7 @@ int Mission::BuildMissionList(char** out)
         while (1) {
             sprintf(buf, "MISSION%d", m);
             list.ResetCurrentRecord();
-            if (((TdfFile*)&list)->SelectRecord(buf) == 0)
+            if (list.SelectRecord(buf) == 0)
                 break;
             m++;
         }
@@ -732,7 +732,7 @@ int Mission::BuildMissionList(char** out)
         for (int i = 0; i < n; i++) {
             sprintf(buf, "MISSION%d", i);
             list.ResetCurrentRecord();
-            if (((TdfFile*)&list)->SelectRecord(buf) == 0)
+            if (list.SelectRecord(buf) == 0)
                 return 0;
             if (GetLocalizedString(&list, temp, "missionname", 0x100, 0) != 0)
                 strcpy(SkipTextLines(*out, i), temp);
@@ -792,7 +792,7 @@ int Mission::MissionExists(int index)
         n = 0;
         sprintf(buf, "MISSION%d", n);
         list.ResetCurrentRecord();
-        while (((TdfFile*)&list)->SelectRecord(buf)) {
+        while (list.SelectRecord(buf)) {
             n++;
             sprintf(buf, "MISSION%d", n);
             list.ResetCurrentRecord();
@@ -927,7 +927,7 @@ int Mission::AdvanceMission()
         n = 0;
         sprintf(buf, "MISSION%d", n);
         list.ResetCurrentRecord();
-        while (((TdfFile*)&list)->SelectRecord(buf)) {
+        while (list.SelectRecord(buf)) {
             n++;
             sprintf(buf, "MISSION%d", n);
             list.ResetCurrentRecord();
@@ -1027,28 +1027,28 @@ int Mission::LoadMission(char* map)
     case 1: {
         char key[0x100];
         sprintf(key, "MISSION%d", missionIndex);
-        ((TdfFile*)&list)->ResetCurrentRecord();
-        if (!((TdfFile*)&list)->SelectRecord(key)) {
+        list.ResetCurrentRecord();
+        if (!list.SelectRecord(key)) {
             char msg[0x100];
             wsprintfA(msg, "The requested mission file, %s, does not exist.", key);
             OpenMessageBox(g_game->messages, msg, 0x1e0, 1, 1);
             return 0;
         }
         GetLocalizedString(&list, missionName, "missionname", 0x100, 0);
-        int found = ((TdfRecord*)list.current)->GetFieldString(path, "missionfile", 0x100, DAT_005119b8);
+        int found = list.current->GetFieldString(path, "missionfile", 0x100, DAT_005119b8);
         if (found) {
             char file[0x100];
             BuildDataPath(file, "Maps", path, "OTA");
-            if (!((TdfFile*)&parser)->LoadFile(file)) {
+            if (!parser.LoadFile(file)) {
                 char msg[0x100];
                 sprintf(msg, "Hey, joker!  There is no mission defintion for this mission: %s", path);
                 OpenMessageBox(g_game->messages, msg, 0x1e0, 1, 1);
                 return 0;
             }
-            ((TdfFile*)&parser)->ResetCurrentRecord();
-            if (((TdfFile*)&parser)->SelectRecord("GlobalHeader")) {
+            parser.ResetCurrentRecord();
+            if (parser.SelectRecord("GlobalHeader")) {
                 g_game->maxUnits = parser.current->GetFieldInt("maxunits", 200);
-                ((TdfFile*)&parser)->ResetCurrentRecord();
+                parser.ResetCurrentRecord();
                 BuildCampaignFilePath(1, "Maps", path, "TNT");
             } else {
                 char msg[0x100];
@@ -1067,7 +1067,7 @@ int Mission::LoadMission(char* map)
         exists = 0;
         strcpy(missionName, map);
         BuildDataPath(path, "Maps", map, "OTA");
-        if (((TdfFile*)&parser)->LoadFile(path)) {
+        if (parser.LoadFile(path)) {
             BuildCampaignFilePath(1, "Maps", map, "TNT");
             break;
         }
@@ -1076,7 +1076,7 @@ int Mission::LoadMission(char* map)
             return 0;
         strcpy(missionName, map);
         BuildDataPath(path, "Maps", map, "OTA");
-        if (!((TdfFile*)&parser)->LoadFile(path))
+        if (!parser.LoadFile(path))
             return 0;
         BuildCampaignFilePath(1, "Maps", map, "TNT");
         break;
@@ -1086,7 +1086,7 @@ int Mission::LoadMission(char* map)
         return 0;
     }
 
-    if (!((TdfFile*)&parser)->SelectRecord("GlobalHeader")) {
+    if (!parser.SelectRecord("GlobalHeader")) {
         OpenMessageBox(g_game->messages, "No GlobalHeader block in mission file!", 0x1e0, 1, 1);
         return 0;
     }
@@ -1098,21 +1098,21 @@ int Mission::LoadMission(char* map)
     BuildCampaignFilePath(3, "camps\\briefs", value, "WAV");
     GetLocalizedString(&parser, value, "missionhint", 0x100, DAT_005119b8);
     BuildCampaignFilePath(4, "camps\\hints", value, "TXT");
-    ((TdfRecord*)parser.current)->GetFieldString(value, "glamour", 0x100, DAT_005119b8);
+    parser.current->GetFieldString(value, "glamour", 0x100, DAT_005119b8);
     BuildCampaignFilePath(5, DAT_005119b8, value, "PCX");
-    ((TdfRecord*)parser.current)->GetFieldString(value, "glamoursound", 0x100, DAT_005119b8);
+    parser.current->GetFieldString(value, "glamoursound", 0x100, DAT_005119b8);
     BuildCampaignFilePath(8, "camps\\briefs", value, "WAV");
-    ((TdfRecord*)parser.current)->GetFieldString(value, "UseOnlyUnits", 0x100, DAT_005119b8);
+    parser.current->GetFieldString(value, "UseOnlyUnits", 0x100, DAT_005119b8);
     BuildCampaignFilePath(6, "camps\\useonly", value, "TDF");
     g_game->mapping = parser.current->GetFieldInt("mapping", 0);
     g_game->lineOfSight = parser.current->GetFieldInt("lineofsight", 0);
     g_game->field_39225 = 1;
     g_game->field_39219 = 0;
-    ((TdfRecord*)parser.current)->GetFieldString(memory, "memory", 0x80, DAT_005119b8);
-    ((TdfRecord*)parser.current)->GetFieldString(numPlayers, "numplayers", 0x80, DAT_005119b8);
-    ((TdfRecord*)parser.current)->GetFieldString(planet, "Planet", 0x80, DAT_005119b8);
+    parser.current->GetFieldString(memory, "memory", 0x80, DAT_005119b8);
+    parser.current->GetFieldString(numPlayers, "numplayers", 0x80, DAT_005119b8);
+    parser.current->GetFieldString(planet, "Planet", 0x80, DAT_005119b8);
     g_game->noMovie = parser.current->GetFieldInt("nomovie", 0);
-    ((TdfRecord*)parser.current)->GetFieldString(desc, "missiondescription", 0x80, "No description available");
+    parser.current->GetFieldString(desc, "missiondescription", 0x80, "No description available");
     strcpy(lower, desc);
     _strlwr(lower);
     strcpy(description, Translate(lower));
@@ -1138,11 +1138,11 @@ int Mission::LoadMission(char* map)
     computerMetal = (float)parser.current->GetFieldInt("ComputerMetal", 0);
     computerEnergy = (float)parser.current->GetFieldInt("ComputerEnergy", 0);
     surfaceMetal = parser.current->GetFieldInt("SurfaceMetal", 0);
-    ((TdfRecord*)parser.current)->GetFieldString(value, "aiprofile", 0x100, DAT_005119b8);
+    parser.current->GetFieldString(value, "aiprofile", 0x100, DAT_005119b8);
     BuildCampaignFilePath(7, "ai", value, "txt");
     if (!FUN_004356c0(7))
         BuildCampaignFilePath(7, "ai", "default", "txt");
-    ((TdfRecord*)parser.current)->GetFieldString(meteor.name, "MeteorWeapon", 0x20, DAT_005119b8);
+    parser.current->GetFieldString(meteor.name, "MeteorWeapon", 0x20, DAT_005119b8);
     if (strlen(meteor.name) != 0) {
         meteor.radius = parser.current->GetFieldInt("MeteorRadius", 0);
         meteor.density = GetFloat(parser.current, "MeteorDensity");

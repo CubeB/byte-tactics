@@ -223,15 +223,15 @@ void __stdcall LoadSideData(void)
     Side_00431a60* s;
 
     BuildDataPath(name, "gamedata", "sidedata", "TDF");
-    ((TdfFile*)&parser)->LoadFile(name);
+    parser.LoadFile(name);
     s = g_game->sides;
     side = 0;
     while (1) {
         int saved;
         s->sideNumber = side;
         sprintf(name, "SIDE%d", side);
-        ((TdfFile*)&parser)->ResetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord(name))
+        parser.ResetCurrentRecord();
+        if (!parser.SelectRecord(name))
             break;
         if (parser.current->GetFieldString(name, "name", 0x1e, DAT_005119b8))
             strcpy(s->name, name);
@@ -250,8 +250,8 @@ void __stdcall LoadSideData(void)
         s->energyColor = parser.current->GetFieldInt("energycolor", 0);
         s->metalColor = parser.current->GetFieldInt("metalcolor", 0);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("LOGO")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("LOGO")) {
             sprintf(msgLogo, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "LOGO", s->name);
             FatalError(msgLogo);
         } else {
@@ -261,10 +261,10 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("ENERGYBAR")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("ENERGYBAR")) {
             sprintf(msgEnergybar, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGYBAR", s->name);
             FatalError(msgEnergybar);
         } else {
@@ -274,10 +274,10 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("ENERGYNUM")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("ENERGYNUM")) {
             sprintf(msgEnergynum, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGYNUM", s->name);
             FatalError(msgEnergynum);
         } else {
@@ -287,10 +287,10 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("METALBAR")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("METALBAR")) {
             sprintf(msgMetalbar, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METALBAR", s->name);
             FatalError(msgMetalbar);
         } else {
@@ -300,10 +300,10 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("METALNUM")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("METALNUM")) {
             sprintf(msgMetalnum, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METALNUM", s->name);
             FatalError(msgMetalnum);
         } else {
@@ -313,10 +313,10 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("TOTALUNITS")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("TOTALUNITS")) {
             sprintf(msgTotalunits, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "TOTALUNITS", s->name);
             FatalError(msgTotalunits);
         } else {
@@ -326,10 +326,10 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("TOTALTIME")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("TOTALTIME")) {
             sprintf(msgTotaltime, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "TOTALTIME", s->name);
             FatalError(msgTotaltime);
         } else {
@@ -339,10 +339,10 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("ENERGY0")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("ENERGY0")) {
             sprintf(msgEnergy0, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGY0", s->name);
             FatalError(msgEnergy0);
         } else {
@@ -352,10 +352,10 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("METAL0")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("METAL0")) {
             sprintf(msgMetal0, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METAL0", s->name);
             FatalError(msgMetal0);
         } else {
@@ -365,10 +365,10 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("ENERGYMAX")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("ENERGYMAX")) {
             sprintf(msgEnergymax, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "ENERGYMAX", s->name);
             FatalError(msgEnergymax);
         } else {
@@ -378,10 +378,10 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
-        saved = ((TdfFile*)&parser)->GetCurrentRecord();
-        if (!((TdfFile*)&parser)->SelectRecord("METALMAX")) {
+        saved = parser.GetCurrentRecord();
+        if (!parser.SelectRecord("METALMAX")) {
             sprintf(msgMetalmax, "No [%s] in GAMEDATA/SIDEDATA.TDF for side:%s", "METALMAX", s->name);
             FatalError(msgMetalmax);
         } else {
@@ -391,7 +391,7 @@ void __stdcall LoadSideData(void)
             r[2] = parser.current->GetFieldInt("x2", 0);
             r[3] = parser.current->GetFieldInt("y2", 0);
         }
-        ((TdfFile*)&parser)->SetCurrentRecord(saved);
+        parser.SetCurrentRecord(saved);
 
         ReadSideRect((Obj_00431950*)&parser, &s->energyProduced.x1, "ENERGYPRODUCED", s->name);
         ReadSideRect((Obj_00431950*)&parser, &s->energyConsumed.x1, "ENERGYCONSUMED", s->name);
@@ -422,6 +422,6 @@ void __stdcall LoadSideData(void)
         side++;
         s++;
     }
-    ((TdfFile*)&parser)->Unload();
+    parser.Unload();
     g_game->sideCount = side;
 }

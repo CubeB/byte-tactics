@@ -141,8 +141,8 @@ char __stdcall FindGameCdDrive(int side)
         if (path[0] != drive)
             DAT_00511de4 = 1;
         TdfFile parser;
-        if (((TdfFile*)&parser)->LoadFile(path)
-            && ((TdfFile*)&parser)->SelectRecord("Contents")
+        if (parser.LoadFile(path)
+            && parser.SelectRecord("Contents")
             && parser.current->GetFieldInt(name, 0))
             return drive;
     } while (drive);

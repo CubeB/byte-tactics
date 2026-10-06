@@ -187,7 +187,7 @@ public:
 class Class_004c91a0 : public Class_004c9390 {
 public:
     Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { this->ReleaseRef(); }
+    ~Class_004c91a0() { ReleaseRef(); }
 };
 
 // 0x4c91b0 builds one of those handles from a C string. In the game this is a
@@ -339,7 +339,7 @@ Mission::Mission(int owner_)
     missionName[0] = 0;
     text_b14[0] = 0;
     type = owner_;
-    ((Mission*)this)->LoadCampaign(DAT_005119b8);
+    LoadCampaign(DAT_005119b8);
 }
 
 // Destructor of Mission (constructor 0x434f70, sibling 0x437280).
@@ -999,7 +999,7 @@ int Mission::LoadMission(char* map)
         meteor.LoadMeteorDefaults();
     }
     SetMeteorParams(&meteor);
-    ((Mission*)this)->LoadMissionData(schema, &parser);
+    LoadMissionData(schema, &parser);
     return 1;
 }
 

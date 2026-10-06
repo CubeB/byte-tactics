@@ -906,7 +906,8 @@ Pathfinder::~Pathfinder()
 // Two oddities are kept as the original has them: the `r < 3` case and the
 // final `else` both reset the scale to baseScale, and the second
 // RemoveNode path can never run because the pop above already cleared
-// topPopped.
+// topPopped. The redundant `((Pathfinder*)this)->` casts stay: without
+// them ProbeStraightPath (0x40e160) drops to 90.3%.
 // FUNCTION: 0x40eb70
 void Pathfinder::RunSearches()
 {
@@ -975,7 +976,7 @@ void Pathfinder::RunSearches()
                     if (idx < count) {
                         items[idx] = items[count];
                         items[idx]->index = idx;
-                        this->SiftDown(idx);
+                        SiftDown(idx);
                     }
                 }
                 NodeData d = items[0]->data;

@@ -27,10 +27,10 @@ void __stdcall UpdatePlayerAI(int player)
 {
     PlayerAI* p = g_playerAI[player];
     if (p && g_game->ticks >= p->lastTick + 0x1e) {
-        ((PlayerAI*)p)->RefreshUnitLists();
+        p->RefreshUnitLists();
         p->lastTick = g_game->ticks;
         if (RandomInt(0x1e) == 0) {
-            ((PlayerAI*)p)->ComputeBaseWeights();
+            p->ComputeBaseWeights();
         }
     }
 }

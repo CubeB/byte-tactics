@@ -975,7 +975,7 @@ void Pathfinder::RunSearches()
                     if (idx < count) {
                         items[idx] = items[count];
                         items[idx]->index = idx;
-                        ((OpenHeap*)this)->SiftDown(idx);
+                        this->SiftDown(idx);
                     }
                 }
                 NodeData d = items[0]->data;

@@ -527,12 +527,12 @@ address,size,file,symbol,status,similarity
 0x428c60,47,src/ai/ai_profile_parser.cpp,??0AIProfileParser@@QAE@XZ,matched,100.0
 0x428c90,57,src/ai/ai_profile_parser.cpp,?SetBuffer@AIProfileParser@@QAEXPADH@Z,matched,100.0
 0x428cd0,63,src/ai/ai_profile_parser.cpp,?NextToken@AIProfileParser@@QAEHXZ,matched,100.0
-0x428d10,378,src/ai/ai_profile_428d10.cpp,?ScanToken@Class_00428d10@@QAEHXZ,matched,100.0
+0x428d10,378,src/ai/ai_profile_parser.cpp,?ScanToken@AIProfileParser@@QAEHXZ,matched,100.0
 0x428e90,164,src/ai/ai_profile_parser.cpp,?ReadInt@AIProfileParser@@QAEHXZ,matched,100.0
 0x428f40,22,src/ai/ai_profile_parser.cpp,?TokenEquals@AIProfileParser@@QAE_NPAD@Z,matched,100.0
 0x428f60,86,src/ai/ai_profile_parser.cpp,?ReportParseError@AIProfileParser@@QAEXPAD@Z,matched,100.0
-0x428fc0,21,src/ai/ai_profile_428fc0.cpp,?FUN_00428fc0@@YGXXZ,matched,100.0
-0x428fe0,21,src/ai/ai_profile_428fe0.cpp,?FUN_00428fe0@@YGXXZ,matched,100.0
+0x428fc0,21,src/ai/ai_profile.cpp,?FUN_00428fc0@@YGXXZ,matched,100.0
+0x428fe0,21,src/ai/ai_profile.cpp,?FUN_00428fe0@@YGXXZ,matched,100.0
 0x429000,235,src/game/data_files_429000.cpp,?CheckGpfVersion@@YGXXZ,matched,100.0
 0x4290f0,402,src/game/data_files_4290f0.cpp,?BuildDataPath@@YGPADPAD000@Z,matched,100.0
 0x429290,78,src/game/data_files_429290.cpp,?LoadBitmapByName@@YGPAXPBDH@Z,matched,100.0

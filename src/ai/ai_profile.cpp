@@ -1,5 +1,5 @@
 // Decompiled by Opus. Names are provisional.
-// Same shape as FUN_00428fc0, calling ProtectBlockReadWrite on the same game field.
+// Both toggle protection on the same game field, one read-only and one read-write.
 
 #pragma pack(push, 1)
 struct Game {
@@ -10,7 +10,14 @@ struct Game {
 
 extern Game* g_game;
 
+void __cdecl ProtectBlockReadOnly(void* param_1);
 void __cdecl ProtectBlockReadWrite(void* param_1);
+
+// FUNCTION: 0x428fc0
+void FUN_00428fc0()
+{
+    ProtectBlockReadOnly(g_game->field_1439b);
+}
 
 // FUNCTION: 0x428fe0
 void FUN_00428fe0()

@@ -531,7 +531,7 @@ address,name
 0x428c60,AIProfileParser::AIProfileParser
 0x428c90,AIProfileParser::SetBuffer
 0x428cd0,AIProfileParser::NextToken
-0x428d10,Class_00428d10::ScanToken
+0x428d10,AIProfileParser::ScanToken
 0x428e90,AIProfileParser::ReadInt
 0x428f40,AIProfileParser::TokenEquals
 0x428f60,AIProfileParser::ReportParseError

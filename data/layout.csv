@@ -5587,8 +5587,8 @@ piece,0x50336c,8,src/game/data_files_429000.cpp,8,0,game data
 piece,0x50334c,11,src/game/data_files_429000.cpp,5,0,game data
 piece,0x503344,5,src/game/data_files_429000.cpp,4,0,game data
 piece,0x4fd118,235,src/game/data_files_429000.cpp,3,0,game data
-piece,0x5032a4,51,src/ai/ai_profile_parser.cpp,9,0,game data
-piece,0x5032d8,14,src/ai/ai_profile_parser.cpp,10,0,game data
+piece,0x5032a4,51,src/ai/ai_profile_parser.cpp,11,0,game data
+piece,0x5032d8,14,src/ai/ai_profile_parser.cpp,12,0,game data
 piece,0x503234,10,src/frontend/frontend_4269d0.cpp,10,0,game data
 piece,0x503224,15,src/frontend/frontend_4269d0.cpp,9,0,game data
 piece,0x503210,11,src/frontend/frontend_4269d0.cpp,7,0,game data

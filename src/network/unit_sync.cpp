@@ -84,6 +84,23 @@ struct Unit_0046e330 {
 struct Data_0046e0b0 {
     char unknown_0[0x94];
     unsigned char field_94;              // +0x94
+    char unknown_95[0xa7 - 0x95];
+    unsigned char count_0;               // +0xa7
+    unsigned char count_1;               // +0xa8
+};
+
+struct Def_0046d970 {                    // 0x249 bytes
+    char unknown_0[0x13e];
+    unsigned int key;                    // +0x13e
+    int y;                               // +0x142
+    char unknown_146[0x249 - 0x146];
+};
+
+struct Game {
+    char unknown_0[0x1438f];
+    int count;                           // +0x1438f
+    char unknown_14393[8];
+    Def_0046d970* defs;                  // +0x1439b
 };
 
 struct Player_0046e0b0 {                // 0x14b bytes
@@ -98,6 +115,15 @@ struct Player_0046e0b0 {                // 0x14b bytes
 
 struct Less_0046e330 {
     bool operator()(const unsigned int& a, const unsigned int& b) const { return a < b; }
+};
+
+// The map's out-of-line find().
+class Class_0046e9b0 {
+public:
+    Less_0046e330 compare;
+    Node_0046e330* head;               // +0x4
+    Iter_0046e330 End() { return Iter_0046e330(head); }
+    Iter_0046e330 FUN_0046e9b0(const unsigned int& key);
 };
 
 class Class_0046fe60 {
@@ -133,6 +159,21 @@ struct Sub_0046e000 {
     char unknown_28[0x5c - 0x28];
 };
 
+struct Ids_0046d970 {
+    int* begin;                        // +0x0
+    int* end;                          // +0x4
+    int* capacity;                     // +0x8
+};
+
+struct Entry_0046d970 {                // 0x5c bytes
+    int id;                            // +0x0
+    char unknown_4[0x8 - 0x4];
+    Ids_0046d970 ids;                  // +0x8
+    char unknown_14[0x18 - 0x14];
+    int* pairs;                        // +0x18, parallel to ids
+    char unknown_1c[0x5c - 0x1c];
+};
+
 struct Entry_0046e000 {                // 0x5c bytes
     int id;                            // +0x0
     char unknown_4[0x5c - 0x4];
@@ -140,6 +181,8 @@ struct Entry_0046e000 {                // 0x5c bytes
 
 Player_0046e0b0* __stdcall FindPlayerByDpid(int id);
 extern char g_unitSyncStatusText[];
+extern Game* g_game;
+int __stdcall FUN_0042a610(Def_0046d970* def);
 
 class UnitSync {
 public:
@@ -175,11 +218,12 @@ public:
     void SendEntryTo(Target_0046d530* target, unsigned char arg, Source_0046d630* src, int unused);
     // The constructor (0x46d040), the destructor (0x46d1a0), ResetEntries
     // (0x46d2e0), HandleSyncPacket (0x46d6c0), this one (0x46d860),
-    // CheckUnitAvailable (0x46d970), ProcessSync (0x46dad0) and
+    // ProcessSync (0x46dad0) and
     // PopChangedEntry (0x46e280) are in unit_sync_<address>.cpp: each needs
     // the real <map>, <list> or <vector> instantiations its own way, which
     // this file's view of the unit map cannot share.
     void NotifyEntryChanged(unsigned int key);
+    void CheckUnitAvailable(unsigned int key, int y);
     char* GetSyncStatusText();
     int AllPlayersSynced();
     int IsPlayerSynced(int id);
@@ -264,6 +308,76 @@ void UnitSync::SendEntryTo(Target_0046d530* target, unsigned char arg, Source_00
         }
         target->sent++;
     }
+}
+
+// Given the unit's key and a y value, makes sure the entry has that y (looking
+// the unit type up in g_game when it has none), checks that every player
+// lists the key, and then sets the entry's height to whether all of that held
+// before letting NotifyEntryChanged recompute the entry.
+
+// FUNCTION: 0x46d970
+void UnitSync::CheckUnitAvailable(unsigned int key, int y)
+{
+    if (disabled != 0)
+        return;
+
+    Iter_0046e330 it = ((Class_0046e9b0*)this)->FUN_0046e9b0(key);
+    if (it == ((Class_0046e9b0*)this)->End())
+        return;
+
+    int h = 1;
+    if (y != 0) {
+        if (it.ptr->value.y == 0) {
+            int n = g_game->count;
+            for (int i = 1; i < n; i++) {
+                Def_0046d970* def = &g_game->defs[i];
+                if (def->key == key) {
+                    FUN_0042a610(def);
+                    it.ptr->value.y = def->y;
+                    break;
+                }
+            }
+        }
+    }
+    if (y != 0) {
+        if (y != it.ptr->value.y)
+            h = 0;
+    }
+
+    {
+        for (Entry_0046d970* e = (Entry_0046d970*)players.begin(); e != (Entry_0046d970*)players.end(); e++) {
+            int flag;
+            if (y != 0) {
+                Player_0046e0b0* pl = FindPlayerByDpid(e->id);
+                if (pl == 0)
+                    break;
+                flag = pl->data->count_0 >= 2 ? 1 : (pl->data->count_0 == 1 && pl->data->count_1 >= 2 ? 1 : 0);
+            } else {
+                flag = 0;
+            }
+            int* p2 = e->pairs;
+            int* p1 = e->ids.begin;
+            int* p3 = e->ids.end;
+            while (p1 != p3) {
+                if (*p1 == key) {
+                    if (flag && *p2 != y)
+                        break;
+                    // the entry lists the key, so go on with the next one
+                    goto next_entry;
+                }
+                p1++;
+                p2++;
+            }
+            // the key is missing, or its pair disagrees with y
+            h = 0;
+            break;
+        next_entry:
+            ;
+        }
+    }
+
+    it.ptr->value.h = h;
+    NotifyEntryChanged(key);
 }
 
 // The sync status line: the first player whose units or packets are not

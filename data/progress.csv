@@ -1407,7 +1407,7 @@ address,size,file,symbol,status,similarity
 0x46d630,134,src/network/unit_sync.cpp,?SendEntryTo@UnitSync@@QAEXPAUTarget_0046d530@@EPAUSource_0046d630@@H@Z,matched,100.0
 0x46d6c0,416,src/network/unit_sync_46d6c0.cpp,?HandleSyncPacket@UnitSync@@QAEXPAUPacket_0046d6c0@@E@Z,matched,100.0
 0x46d860,259,src/network/unit_sync_46d860.cpp,?NotifyEntryChanged@UnitSync@@QAEXI@Z,matched,100.0
-0x46d970,351,src/network/unit_sync_46d970.cpp,?CheckUnitAvailable@UnitSync@@QAEXIH@Z,matched,100.0
+0x46d970,351,src/network/unit_sync.cpp,?CheckUnitAvailable@UnitSync@@QAEXIH@Z,matched,100.0
 0x46dad0,1024,src/network/unit_sync_46dad0.cpp,?ProcessSync@UnitSync@@QAEXXZ,matched,100.0
 0x46ded0,111,src/network/unit_sync_player.cpp,??1UnitSyncPlayer@@QAE@XZ,matched,100.0
 0x46df40,185,src/network/unit_sync.cpp,?GetSyncStatusText@UnitSync@@QAEPADXZ,matched,100.0

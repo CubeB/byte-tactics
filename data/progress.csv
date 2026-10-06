@@ -692,14 +692,14 @@ address,size,file,symbol,status,similarity
 0x437580,639,src/map/map_load_437580.cpp,?insert@?$vector@VMapCacheEntry@@V?$allocator@VMapCacheEntry@@@std@@@std@@QAEXPAVMapCacheEntry@@IABV3@@Z,matched,100.0
 0x437800,27,src/map/map_load_437800.cpp,??0Class_00437800@@QAE@PAH@Z,matched,100.0
 0x437820,27,src/map/map_load_437820.cpp,??0MapCacheEntry@@QAE@ABV0@@Z,matched,100.0
-0x437840,207,src/units/unit_motion_437840.cpp,?UpdateMetalExtraction@@YGXPAUUnit@@@Z,matched,100.0
-0x437910,131,src/units/unit_motion_437910.cpp,?UpdateWindGenerator@@YGXPAUUnit@@@Z,matched,100.0
+0x437840,207,src/units/unit_motion.cpp,?UpdateMetalExtraction@@YGXPAUUnit@@@Z,matched,100.0
+0x437910,131,src/units/unit_motion.cpp,?UpdateWindGenerator@@YGXPAUUnit@@@Z,matched,100.0
 0x4379a0,11,src/units/c_memory_cache.cpp,?FUN_004379a0@CMemoryCache@@QAEPAV1@XZ,matched,100.0
 0x4379b0,77,src/units/c_memory_cache.cpp,?InitCache@CMemoryCache@@QAEHI@Z,matched,100.0
 0x437a00,28,src/units/c_memory_cache.cpp,?FreeCache@CMemoryCache@@QAEXXZ,matched,100.0
 0x437a20,13,src/units/c_memory_cache.cpp,?FUN_00437a20@CMemoryCache@@QAEXXZ,matched,100.0
 0x437a30,247,src/units/c_memory_cache.cpp,?AllocHandle@CMemoryCache@@QAEHPAPAXH@Z,matched,100.0
-0x437b30,17,src/units/unit_motion_437b30.cpp,?GetHandleSize@@YGHH@Z,matched,100.0
+0x437b30,17,src/units/unit_motion.cpp,?GetHandleSize@@YGHH@Z,matched,100.0
 0x437b50,133,src/units/c_memory_cache.cpp,?AllocBitmap@CMemoryCache@@QAEHPAPAUBitmap_00437b50@@HH@Z,matched,100.0
 0x437be0,158,src/units/c_memory_cache.cpp,?AllocTwoPlaneBitmap@CMemoryCache@@QAEHPAPAUBitmap_00437b50@@HH@Z,matched,100.0
 0x437c80,16,src/units/c_memory_cache.cpp,?FlushCache@CMemoryCache@@QAEXXZ,matched,100.0

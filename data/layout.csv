@@ -5091,10 +5091,10 @@ piece,0x50503c,9,src/map/meteors_438250.cpp,4,0,game data
 piece,0x505030,9,src/map/meteors_438250.cpp,3,0,game data
 piece,0x4fd280,4,src/map/meteors_437d60.cpp,3,0,game data
 piece,0x50501c,17,src/units/c_memory_cache.cpp,7,0,game data
-piece,0x4fd270,4,src/units/unit_motion_437910.cpp,5,0,game data
-piece,0x50500c,13,src/units/unit_motion_437910.cpp,4,0,game data
-piece,0x505000,9,src/units/unit_motion_437910.cpp,3,0,game data
-piece,0x4fd278,8,src/units/unit_motion_437840.cpp,4,8,game data
+piece,0x4fd270,8,src/units/unit_motion.cpp,4,0,game data
+piece,0x50500c,13,src/units/unit_motion.cpp,7,0,game data
+piece,0x505000,9,src/units/unit_motion.cpp,3,0,game data
+piece,0x4fd278,8,src/units/unit_motion.cpp,4,8,game data
 piece,0x504ff0,14,src/map/mission.cpp,173,0,game data
 piece,0x504fdc,17,src/map/mission.cpp,172,0,game data
 piece,0x504fcc,13,src/map/mission.cpp,163,0,game data
@@ -9633,7 +9633,6 @@ fill,0x4fd203,5,,,00,padding
 fill,0x4fd214,4,,,00,padding
 fill,0x4fd23c,4,,,00,padding
 fill,0x4fd26c,4,,,00,padding
-fill,0x4fd274,4,,,00,padding
 fill,0x4fd2a1,3,,,00,padding
 fill,0x4fd2ac,4,,,00,padding
 fill,0x4fd2ec,4,,,00,padding
@@ -12039,7 +12038,6 @@ same,0x5048f8,9,src/map/mission.cpp,116,0,
 same,0x504ea8,5,src/map/mission.cpp,138,0,
 same,0x504ea0,7,src/map/mission.cpp,137,0,
 same,0x504e98,5,src/map/mission.cpp,136,0,
-same,0x4fd270,8,src/units/unit_motion_437840.cpp,4,0,
 same,0x438480,32,src/map/meteors_438450.cpp,6,0,
 same,0x512340,16,src/orders/order_list_43bc90.cpp,4,0,
 same,0x512340,16,src/orders/order_list_43c050.cpp,4,0,

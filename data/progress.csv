@@ -1710,10 +1710,10 @@ address,size,file,symbol,status,similarity
 0x4800c0,60,src/sound/sound_4800c0.cpp,?FUN_004800c0@Class_004800c0@@QAEPAPAUUnit@@PAPAU2@@Z,matched,100.0
 0x480100,93,src/sound/sound_480100.cpp,?FUN_00480100@Class_00480100@@QAEHH@Z,matched,100.0
 0x480160,42,src/sound/sound_480160.cpp,??0Squad@@QAE@HH@Z,matched,100.0
-0x480190,86,src/units/squads_480190.cpp,?CreateSquads@@YGXPAUOwner_00480190@@@Z,matched,100.0
-0x4801f0,83,src/units/squads_4801f0.cpp,?FreeSquads@@YGXPAUOwner_004801f0@@@Z,matched,100.0
-0x480250,520,src/units/squads_480250.cpp,?SetUnitSquad@@YGXPAUUnit@@H@Z,matched,100.0
-0x480460,120,src/units/squads_480460.cpp,?OrderSquad@@YGXPAUOwner_00480460@@HEHPAUUnit@@HHH@Z,matched,100.0
+0x480190,86,src/units/squads.cpp,?CreateSquads@@YGXPAUOwner@@@Z,matched,100.0
+0x4801f0,83,src/units/squads.cpp,?FreeSquads@@YGXPAUOwner@@@Z,matched,100.0
+0x480250,520,src/units/squads.cpp,?SetUnitSquad@@YGXPAUUnit@@H@Z,matched,100.0
+0x480460,120,src/units/squads.cpp,?OrderSquad@@YGXPAUOwner@@HEHPAUUnit@@HHH@Z,matched,100.0
 0x4804e0,40,src/units/unit_script_calls_4804e0.cpp,?StepTowards@@YGHHHH@Z,matched,100.0
 0x480510,83,src/units/unit_script_calls_480510.cpp,?StepPointTowards@@YG?AUPoint_00480510@@U1@0F@Z,matched,100.0
 0x480570,49,src/units/unit_script_calls_480570.cpp,?ChebyshevDistance@@YGHUPoint_00480570@@0@Z,matched,100.0

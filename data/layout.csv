@@ -4349,7 +4349,7 @@ piece,0x508b08,16,src/map/line_of_sight_483610.cpp,4,0,game data
 piece,0x508af8,15,src/map/line_of_sight_483610.cpp,3,0,game data
 piece,0x4fd668,4,src/units/unit_script.cpp,4,0,game data
 piece,0x4fd66c,4,src/units/unit_script.cpp,4,4,game data
-piece,0x508af0,7,src/units/squads_480190.cpp,3,0,game data
+piece,0x508af0,7,src/units/squads.cpp,3,0,game data
 piece,0x508ae8,5,src/sound/speech_queue.cpp,18,0,game data
 piece,0x508ae0,5,src/sound/speech_queue.cpp,17,0,game data
 piece,0x504cd4,4,src/sound/speech_queue.cpp,16,0,game data

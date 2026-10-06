@@ -163,10 +163,10 @@ static inline Vec3 Offset(short angle, int distance)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Unit*)unit)->ClaimWeapons(3);
+    unit->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Unit*)unit)->SetStateBits(1, 1);
+    unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -205,8 +205,8 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         }
         break;
     case 1: {
-        ((Unit*)unit)->ReleaseWeapons(3);
-        ((Unit*)unit)->ClaimWeapons(0);
+        unit->ReleaseWeapons(3);
+        unit->ClaimWeapons(0);
         Vec3* op;
         Vec3* up;
         op = &order->pos;
@@ -262,7 +262,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         return 2;
     }
     case 5: {
-        ((Unit*)unit)->ClaimWeapons(0);
+        unit->ClaimWeapons(0);
         SetWeaponTargetPos(unit, &order->pos, 0);
         int angle = GetHeadingBetween(&unit->pos, &order->pos);
         Vec3 dest = unit->pos + Offset(angle, (unit->def->field_216 + 0x3c0) << 16);

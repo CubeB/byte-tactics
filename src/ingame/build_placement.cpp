@@ -1,32 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, edited by DeepSeek V4.1 Flash, verified by GPT-6, finished by opus. Names are provisional.
-// Main-loop frame handler. Copies the 24-byte view/input block off g_game,
-// feeds it to the camera update, then runs the order/selection state machine
-// off the flags byte at +0x2cc6 and the mouse message stored in the block.
-// Advances the frame queues and, on the network/skirmish paths, flips the
-// end-of-frame hooks.
-//
-// MATCH (#5290). The g_game loads in the last block take eax, ecx, edx in
-// turn from C2's scratch rotation (FUN_00435c37, pointer at 0x491120, reset
-// once per function), in code-generation order. Earlier files were stuck
-// because the else arm started one step off the original. Each arm of the
-// `FUN_00435100() == 1` test ends with its own copy of the
-// `field_391f1 = 2; field_391f5 = FUN_00496bb0; SetCloseHandler(...)` sequence:
-// the then arm's copy takes two rotation steps before the else arm is
-// generated, and MSVC then merges the two copies into one. The FUN_00435c00
-// call's g_game load is an ordinary rotating load again (edx), with no local.
-// The same two stores alone in both arms match too. `|= 4` in both arms is
-// what keeps the 4 in edi.
+// Decompiled by deepseek-v4.1-flash, space-bunny-free, GPT-6.1-sol and Haiku. Names are provisional.
+
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-
-struct View_00499200 {
+struct View {
     int x;                             // +0x0
     int y;                             // +0x4
-    int field_8;                       // +0x8
+    unsigned int field_8;              // +0x8
     int field_c;                       // +0xc
     int msg;                           // +0x10
     int field_14;                      // +0x14
+};
+
+struct Vec3 {
+    int x;
+    int y;
+    int z;
 };
 
 struct Struct_00499200_531 {
@@ -86,7 +75,7 @@ struct Game {
     char unknown_2a3e[0x2a44 - 0x2a3e];
     Flags16_00499200 field_2a44;       // +0x2a44
     char unknown_2a46[0x2c76 - 0x2a46];
-    View_00499200 view;                // +0x2c76
+    View view;                         // +0x2c76
     char unknown_2c8e[0x2c92 - 0x2c8e];
     int field_2c92;                    // +0x2c92
     int field_2c96;                    // +0x2c96
@@ -94,12 +83,17 @@ struct Game {
     int field_2c9e;                    // +0x2c9e
     int field_2ca2;                    // +0x2ca2
     int field_2ca6;                    // +0x2ca6
-    char unknown_2caa[0x2cac - 0x2caa];
-    short field_2cac;                  // +0x2cac
-    char unknown_2cae[0x2cb0 - 0x2cae];
-    short field_2cb0;                  // +0x2cb0
-    char unknown_2cb2[0x2cb4 - 0x2cb2];
-    short field_2cb4;                  // +0x2cb4
+    union {
+        Vec3 pos;                      // +0x2caa
+        struct {
+            char unknown_2caa[2];
+            short field_2cac;          // +0x2cac
+            char unknown_2cae[2];
+            short field_2cb0;          // +0x2cb0
+            char unknown_2cb2[2];
+            short field_2cb4;          // +0x2cb4
+        };
+    };
     int field_2cb6;                    // +0x2cb6
     unsigned short field_2cba;         // +0x2cba
     char unknown_2cbc[0x2cbe - 0x2cbc];
@@ -130,8 +124,16 @@ struct Game {
 };
 #pragma pack(pop)
 
+class Class_00438760 {
+public:
+    unsigned char index;
+    Class_00438760(const char* name);
+    Class_00438760() : index(0) {}
+};
+
 extern Game* g_game;
 
+void BeginMouseScroll();
 void FUN_004197d0();
 void FUN_0041c180();
 void UpdateMouseScroll();
@@ -148,9 +150,11 @@ int __stdcall FUN_0048d220(char mode);
 void FUN_00491b60();
 void __stdcall FUN_00491d70(int a);
 void FUN_00496790();
-void __stdcall FUN_00498da0(View_00499200* p);
-void __stdcall FUN_00498f70(View_00499200* p);
-void __stdcall FUN_00499100(View_00499200* p);
+void __stdcall FUN_00498da0(View* p);
+void __stdcall IssueMobileBuildOrders(View* arg);
+void __stdcall PlaySoundByName(char* name, int param_2);
+void __stdcall FUN_0048c7f0(View* arg);
+void __stdcall IssueOrderToSelection(void* a, unsigned char b, Class_00438760 kind, Vec3* d, int e, int f);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall FUN_004a6a40(void* obj, int index);
 void __stdcall CloseTopScreen(void* a);
@@ -160,8 +164,103 @@ int GetTicks();
 void ClearKeyQueue();
 int __stdcall IsKeyDown(int a);
 void FUN_00499880();
+void RunEndGameState(void);
 void FUN_00496bb0();
 void __cdecl LeaveNetGameCallback();
+
+// FUNCTION: 0x498f70
+void __stdcall FUN_00498f70(View* param_1)
+{
+    int index;
+
+    if (g_game->orderMode == 0xe) {
+        if (g_game->flags_2cc6 & 0x40) {
+            IssueMobileBuildOrders(param_1);
+            PlaySoundByName("oktobuild", 0);
+            if (param_1->field_8 & 4) {
+                g_game->flags_2cc6 |= 0x20;
+                return;
+            }
+            g_game->orderMode = 1;
+            g_game->flags_2cc6 &= 0xdf;
+            index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+            if (index != -1) {
+                FUN_004a6a40(g_game->field_519, index);
+            }
+        } else {
+            PlaySoundByName("notoktobuild", 0);
+        }
+        return;
+    }
+    if (g_game->selected == 0xf) {
+        FUN_0048c7f0(param_1);
+        return;
+    }
+    if (g_game->selected >= 0x11) {
+        if (g_game->field_37efa == 1 && g_game->orderMode == 1) {
+            FUN_0048bd00();
+            FUN_00491d70(1);
+        }
+        return;
+    }
+    {
+        Class_00438760 kind;
+        kind.index = 0;
+        IssueOrderToSelection(param_1, g_game->orderMode, kind, &g_game->pos, 0, 0);
+    }
+    if (param_1->field_8 & 4) {
+        g_game->flags_2cc6 |= 0x20;
+        return;
+    }
+    g_game->orderMode = 1;
+    g_game->flags_2cc6 &= 0xdf;
+    index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+    if (index != -1) {
+        FUN_004a6a40(g_game->field_519, index);
+    }
+}
+
+
+// Order-button handler: when the game is not in order mode, selects the STOP
+// order (inlined body of 0x495860); otherwise dispatches on the order flags
+// (+0x2cc6): bit 1 cancels the current order, bit 0 switches to the 0x13
+// (STOP) selection, bit 2 hands a zero order kind to IssueOrderToSelection.
+// FUNCTION: 0x499100
+void __stdcall FUN_00499100(View* param_1)
+{
+    if (g_game->orderMode != 1) {
+        g_game->orderMode = 1;
+        g_game->flags_2cc6 &= 0xdf;
+        int index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+        if (index != -1) {
+            FUN_004a6a40(g_game->field_519, index);
+        }
+        return;
+    }
+    if (g_game->field_37efa == 0) {
+        if (g_game->flags_2cc6 & 2) {
+            if (param_1->field_8 & 8) {
+                BeginMouseScroll();
+                return;
+            }
+            FUN_0048bd00();
+            FUN_00491d70(1);
+            return;
+        }
+        if (g_game->flags_2cc6 & 1) {
+            g_game->flags_2cc6 = g_game->flags_2cc6 | 0x10;
+            if (g_game->selected != 0x13) {
+                g_game->selected = 0x13;
+                FUN_004ab400((void*)g_game->field_519, g_game->table[0x13]);
+                return;
+            }
+        }
+    } else if (g_game->flags_2cc6 & 4) {
+        Class_00438760 kind;
+        IssueOrderToSelection(param_1, 1, kind, &g_game->pos, 0, 0);
+    }
+}
+
 
 static inline void SetCursor(int n)
 {
@@ -171,10 +270,27 @@ static inline void SetCursor(int n)
     }
 }
 
+// Main-loop frame handler. Copies the 24-byte view/input block off g_game,
+// feeds it to the camera update, then runs the order/selection state machine
+// off the flags byte at +0x2cc6 and the mouse message stored in the block.
+// Advances the frame queues and, on the network/skirmish paths, flips the
+// end-of-frame hooks.
+//
+// MATCH (#5290). The g_game loads in the last block take eax, ecx, edx in
+// turn from C2's scratch rotation (FUN_00435c37, pointer at 0x491120, reset
+// once per function), in code-generation order. Earlier files were stuck
+// because the else arm started one step off the original. Each arm of the
+// `FUN_00435100() == 1` test ends with its own copy of the
+// `field_391f1 = 2; field_391f5 = FUN_00496bb0; SetCloseHandler(...)` sequence:
+// the then arm's copy takes two rotation steps before the else arm is
+// generated, and MSVC then merges the two copies into one. The FUN_00435c00
+// call's g_game load is an ordinary rotating load again (edx), with no local.
+// The same two stores alone in both arms match too. `|= 4` in both arms is
+// what keeps the 4 in edi.
 // FUNCTION: 0x499200
 void FUN_00499200(void)
 {
-    View_00499200 view = g_game->view;
+    View view = g_game->view;
     FUN_00498da0(&view);
 
     unsigned char flags = g_game->flags_2cc6;
@@ -324,4 +440,10 @@ void FUN_00499200(void)
         }
         g_game->field_10->SetTrackCategory(4);
     }
+}
+
+// FUNCTION: 0x499880
+void FUN_00499880(void)
+{
+    RunEndGameState();
 }

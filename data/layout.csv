@@ -4099,9 +4099,9 @@ piece,0x4fda80,8,src/weapons/weapons_49a890.cpp,3,32,game data
 piece,0x4fda88,8,src/weapons/weapons_49a890.cpp,3,40,game data
 piece,0x4fda90,8,src/weapons/weapons_49a890.cpp,3,48,game data
 piece,0x5096e8,13,src/weapons/weapons_499a30.cpp,3,0,game data
-piece,0x502714,5,src/ingame/build_placement_499200.cpp,3,0,game data
-piece,0x509660,10,src/ingame/build_placement_498f70.cpp,5,0,game data
-piece,0x509650,13,src/ingame/build_placement_498f70.cpp,3,0,game data
+piece,0x502714,5,src/ingame/build_placement.cpp,4,0,game data
+piece,0x509660,10,src/ingame/build_placement.cpp,5,0,game data
+piece,0x509650,13,src/ingame/build_placement.cpp,3,0,game data
 piece,0x5031d0,4,src/game/game_load_497f40.cpp,18,0,game data
 piece,0x5031c8,7,src/game/game_load_497f40.cpp,17,0,game data
 piece,0x5031bc,9,src/game/game_load_497f40.cpp,16,0,game data

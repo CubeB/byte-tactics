@@ -5853,9 +5853,9 @@ piece,0x4fca00,4,src/ai/ai_player_40bb00.cpp,3,20,game data
 piece,0x4fca04,4,src/ai/ai_player_40bb00.cpp,3,24,game data
 piece,0x4fca08,4,src/ai/ai_player_40bb00.cpp,3,28,game data
 piece,0x4fc9cc,4,src/ai/ai_player_40bb00.cpp,3,32,game data
-piece,0x4fc9d8,8,src/ai/ai_player_40aa40.cpp,3,8,game data
-piece,0x4fc9e0,8,src/ai/ai_player_40aa40.cpp,3,16,game data
-piece,0x4fc9e8,8,src/ai/ai_player_40aa40.cpp,3,24,game data
+piece,0x4fc9d8,8,src/ai/player_ai.cpp,11,8,game data
+piece,0x4fc9e0,8,src/ai/player_ai.cpp,11,16,game data
+piece,0x4fc9e8,8,src/ai/player_ai.cpp,11,24,game data
 piece,0x4fc9bc,4,src/ai/ai_player_409730.cpp,5,4,game data
 piece,0x4fc9c0,4,src/ai/ai_player_409730.cpp,5,8,game data
 piece,0x4fc9c4,4,src/ai/ai_player_409730.cpp,5,12,game data
@@ -11939,8 +11939,7 @@ same,0x4fc9bc,4,src/ai/ai_player_4095d0.cpp,3,4,
 same,0x4fc9c0,4,src/ai/ai_player_4095d0.cpp,3,8,
 same,0x4fc9b8,4,src/ai/ai_player_409730.cpp,5,0,
 same,0x4fc9cc,4,src/ai/ai_player_409730.cpp,5,20,
-same,0x4fc9b8,4,src/ai/ai_player_40a7b0.cpp,3,0,
-same,0x4fc9b8,8,src/ai/ai_player_40aa40.cpp,3,0,
+same,0x4fc9b8,8,src/ai/player_ai.cpp,11,0,
 same,0x4fc9b8,4,src/ai/ai_player_40bb00.cpp,3,12,
 same,0x4fcc40,4,src/orders/vtol_orders_4118e0.cpp,9,0,
 same,0x4fcc50,4,src/orders/vtol_orders_411f50.cpp,5,8,

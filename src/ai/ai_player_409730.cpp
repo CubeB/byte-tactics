@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
+// A method of PlayerAI, whose other methods are in player_ai.cpp; this one
+// stays apart because it needs a cut-down <vector> for its symbol ids.
+//
 // MATCH (Claude Opus 5.5, #5541, 2026-10-04), after many passes at 99.8% with
 // one wrong byte, the store SIB at 0x4099f6. Two things together:
 // - The real neighbours. 0x409520 and 0x4095d0, just before this function,

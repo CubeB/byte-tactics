@@ -108,7 +108,7 @@ address,size,file,symbol,status,similarity
 0x408f10,32,src/ai/squad_manager.cpp,?DeleteTimers@SquadManager@@QAEXXZ,matched,100.0
 0x408f30,546,src/ai/ai_player_408f30.cpp,?insert@?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@QAEXPAPAUUnit@@IABQAU3@@Z,matched,100.0
 0x409160,783,src/ai/ai_player_409160.cpp,??0PlayerAI@@QAE@E@Z,matched,100.0
-0x409470,176,src/ai/ai_player_409470.cpp,?InitUnitTables@PlayerAI@@QAEXXZ,matched,100.0
+0x409470,176,src/ai/player_ai.cpp,?InitUnitTables@PlayerAI@@QAEXXZ,matched,100.0
 0x409520,166,src/ai/ai_player_409520.cpp,?RateWeapons@@YGHPAUUnitDef@@@Z,matched,100.0
 0x4095d0,346,src/ai/ai_player_4095d0.cpp,?RateUnitType@@YGHPAUUnitDef@@@Z,matched,100.0
 0x409730,1678,src/ai/ai_player_409730.cpp,?ComputeBaseWeights@PlayerAI@@QAEXXZ,matched,100.0
@@ -119,12 +119,12 @@ address,size,file,symbol,status,similarity
 0x40a040,185,src/ai/ai_player_40a040.cpp,?FUN_0040a040@@YGXH@Z,matched,100.0
 0x40a100,75,src/ai/ai_player_40a100.cpp,?ResetAIPlayers@@YGXXZ,matched,100.0
 0x40a150,265,src/ai/ai_player_40a150.cpp,?InitPlacementGrid@Class_0040a150@@QAEXXZ,matched,100.0
-0x40a260,834,src/ai/ai_player_40a260.cpp,?FindCellNearFeatures@PlayerAI@@QAE_NPAUUnitDef@@PAUVec3@@PAV?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@HPAUPoint16@@@Z,matched,100.0
+0x40a260,834,src/ai/player_ai.cpp,?FindCellNearFeatures@PlayerAI@@QAE_NPAUUnitDef@@PAUVec3@@PAV?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@HPAUPoint16@@@Z,matched,100.0
 0x40a5b0,19,src/ai/ai_player_40a5b0.cpp,??0Elem_0040cc40@@QAE@ABU0@@Z,matched,100.0
-0x40a5d0,473,src/ai/ai_player_40a5d0.cpp,?FindRandomPlacementCell@PlayerAI@@QAE_NPAUUnitDef@@PAUVec3@@HPAUPoint16@@@Z,matched,100.0
-0x40a7b0,644,src/ai/ai_player_40a7b0.cpp,?BuildFeatureCells@PlayerAI@@QAEXXZ,matched,100.0
-0x40aa40,725,src/ai/ai_player_40aa40.cpp,?RefreshUnitLists@PlayerAI@@QAEXXZ,matched,100.0
-0x40ad20,73,src/ai/ai_player_40ad20.cpp,?UpdateEveryThirtyTicks@PlayerAI@@QAEXXZ,matched,100.0
+0x40a5d0,473,src/ai/player_ai.cpp,?FindRandomPlacementCell@PlayerAI@@QAE_NPAUUnitDef@@PAUVec3@@HPAUPoint16@@@Z,matched,100.0
+0x40a7b0,644,src/ai/player_ai.cpp,?BuildFeatureCells@PlayerAI@@QAEXXZ,matched,100.0
+0x40aa40,725,src/ai/player_ai.cpp,?RefreshUnitLists@PlayerAI@@QAEXXZ,matched,100.0
+0x40ad20,73,src/ai/player_ai.cpp,?UpdateEveryThirtyTicks@PlayerAI@@QAEXXZ,matched,100.0
 0x40ad70,15,src/ai/ai_player_40ad70.cpp,?FUN_0040ad70@@YGXHHH@Z,matched,100.0
 0x40ad80,834,src/ai/ai_player_40ad80.cpp,?GetVisibleEnemiesInRadius@@YGXHPBUVec@@HHPAV?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@@Z,matched,100.0
 0x40b0d0,229,src/ai/ai_player_40b0d0.cpp,?HasReadyUnitInRange@@YG_NHPAUVec3_40b0d0@@H@Z,matched,100.0

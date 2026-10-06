@@ -44,7 +44,7 @@ void __stdcall CmdWeight(CommandArgs* args)
         int count;
         UnitTypeSet set;
         memset(&set, 0, sizeof(set));
-        set.AddTypeOrCategory(((CommandArgs*)args)->GetArg(1, DAT_005119b8), &count);
+        set.AddTypeOrCategory(args->GetArg(1, DAT_005119b8), &count);
         float value = args->GetFloatArg(2, 0);
         // A narrow index, as in 0x406e40: MSVC then counts the loop down in a
         // separate register.

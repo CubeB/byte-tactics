@@ -126,10 +126,10 @@ int __stdcall FUN_0047ea40(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
 
 inline void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Unit*)unit)->ClaimWeapons(3);
+    unit->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Unit*)unit)->SetStateBits(1, 1);
+    unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
@@ -198,12 +198,12 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
                 VisitObjectsInRange(&unit->pos, range, Class_004158d0(unit->owner, &units, unit));
                 if (!units.empty()) {
                     Unit* target = units[RandomInt(units.size())];
-                    if (((Unit*)unit)->CanRepair(target) && target->progress == 0.0f) {
+                    if (unit->CanRepair(target) && target->progress == 0.0f) {
                         if (FUN_0043b400(unit, target, 0))
                             return 6;
                         return 3;
                     }
-                    if (((Unit*)unit)->CanRepair(target) && target->progress != 0.0f) {
+                    if (unit->CanRepair(target) && target->progress != 0.0f) {
                         ((Class_004388d0*)order)->FUN_004388d0(0);
                         AppendOrder(unit, new Class_0043a1f0("VTOL_HELPBUILD", target, 0, 0, 0, 0));
                         order->flags = 0;

@@ -151,10 +151,10 @@ static inline Vec3 Add(const Vec3& a, const Vec3& b)
 
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Unit*)unit)->ClaimWeapons(3);
+    unit->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Unit*)unit)->SetStateBits(1, 1);
+    unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -205,7 +205,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         }
         break;
     case 1: {
-        ((Unit*)unit)->ReleaseWeapons(3);
+        unit->ReleaseWeapons(3);
         int dist = (int)_hypot(order->target->pos.x - unit->pos.x, order->target->pos.z - unit->pos.z);
         int angle = GetHeadingBetween(&unit->pos, &order->target->pos);
         Vec3 off = Offset(RandomInt(0x4000) + angle - 0x2000, dist / 2);
@@ -217,7 +217,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         return 1;
     }
     case 2: {
-        ((Unit*)unit)->ClaimWeapons(0);
+        unit->ClaimWeapons(0);
         SetWeaponTargetUnit(unit, order->target, 0);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target->pos);
         ((Class_0044e730*)obj)->FUN_0044e730(speed);

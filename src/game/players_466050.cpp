@@ -77,36 +77,36 @@ void __stdcall LoadPlayers(HapiBank* file)
 {
     char name[16];
     file->OpenAccount("Players");
-    g_game->localPlayer = ((HapiBank*)file)->GetIntegerItem("Human Player", 10);
+    g_game->localPlayer = file->GetIntegerItem("Human Player", 10);
     g_game->field_2a43 = g_game->localPlayer;
-    ((HapiBank*)file)->OpenNamedBox("GameTime");
-    if (((HapiBank*)file)->ReadBox(g_game->gameTime, 0x1c) != 0x1c)
+    file->OpenNamedBox("GameTime");
+    if (file->ReadBox(g_game->gameTime, 0x1c) != 0x1c)
         return;
     for (int i = 0; i < 10; i++) {
         Player_00466050* p = &g_game->players[i];
         sprintf(name, "Player%i", i);
         if (file->OpenAccount(name)) {
-            p->energy = ((HapiBank*)file)->GetDoubleItem("Energy", 0);
-            p->metal = ((HapiBank*)file)->GetDoubleItem("Metal", 0);
-            p->totalEnergyProduced = ((HapiBank*)file)->GetDoubleItem("TotalEnergyProduced", 0);
-            p->totalMetalProduced = ((HapiBank*)file)->GetDoubleItem("TotalMetalProduced", 0);
-            p->totalEnergyConsumed = ((HapiBank*)file)->GetDoubleItem("TotalEnergyConsumed", 0);
-            p->totalMetalConsumed = ((HapiBank*)file)->GetDoubleItem("TotalMetalConsumed", 0);
-            p->energyWasted = ((HapiBank*)file)->GetDoubleItem("EnergyWasted", 0);
-            p->metalWasted = ((HapiBank*)file)->GetDoubleItem("MetalWasted", 0);
-            p->energyStorage = ((HapiBank*)file)->GetDoubleItem("PlayerEnergyStorage", 0);
-            p->metalStorage = ((HapiBank*)file)->GetDoubleItem("PlayerMetalStorage", 0);
-            p->addStorage = ((HapiBank*)file)->GetIntegerItem("AddPlayerStorage", 0);
-            p->kills = ((HapiBank*)file)->GetIntegerItem("Kills", 0);
-            p->losses = ((HapiBank*)file)->GetIntegerItem("Losses", 0);
-            p->updateTime = ((HapiBank*)file)->GetIntegerItem("UpdateTime", 0);
-            p->winLoseTime = ((HapiBank*)file)->GetIntegerItem("WinLoseTime", 0);
-            p->displayTimer = ((HapiBank*)file)->GetIntegerItem("DisplayTimer", 0);
-            p->data->logo = ((HapiBank*)file)->GetIntegerItem("Logo", 0);
-            p->data->side = ((HapiBank*)file)->GetIntegerItem("Side", 0);
-            ((HapiBank*)file)->OpenNamedBox("Alliances");
-            if (((HapiBank*)file)->GetBoxSize() == 11)
-                ((HapiBank*)file)->ReadBox(p->allied, 11);
+            p->energy = file->GetDoubleItem("Energy", 0);
+            p->metal = file->GetDoubleItem("Metal", 0);
+            p->totalEnergyProduced = file->GetDoubleItem("TotalEnergyProduced", 0);
+            p->totalMetalProduced = file->GetDoubleItem("TotalMetalProduced", 0);
+            p->totalEnergyConsumed = file->GetDoubleItem("TotalEnergyConsumed", 0);
+            p->totalMetalConsumed = file->GetDoubleItem("TotalMetalConsumed", 0);
+            p->energyWasted = file->GetDoubleItem("EnergyWasted", 0);
+            p->metalWasted = file->GetDoubleItem("MetalWasted", 0);
+            p->energyStorage = file->GetDoubleItem("PlayerEnergyStorage", 0);
+            p->metalStorage = file->GetDoubleItem("PlayerMetalStorage", 0);
+            p->addStorage = file->GetIntegerItem("AddPlayerStorage", 0);
+            p->kills = file->GetIntegerItem("Kills", 0);
+            p->losses = file->GetIntegerItem("Losses", 0);
+            p->updateTime = file->GetIntegerItem("UpdateTime", 0);
+            p->winLoseTime = file->GetIntegerItem("WinLoseTime", 0);
+            p->displayTimer = file->GetIntegerItem("DisplayTimer", 0);
+            p->data->logo = file->GetIntegerItem("Logo", 0);
+            p->data->side = file->GetIntegerItem("Side", 0);
+            file->OpenNamedBox("Alliances");
+            if (file->GetBoxSize() == 11)
+                file->ReadBox(p->allied, 11);
             p->allied[i] = 1;
         } else {
             p->controller = 0;
@@ -120,35 +120,35 @@ void __stdcall SavePlayers(HapiBank* file)
 {
     char name[16];
     file->OpenAccount("Players");
-    ((HapiBank*)file)->SetIntegerItem("Human Player", g_game->localPlayer);
-    ((HapiBank*)file)->OpenNamedBox("GameTime");
-    ((HapiBank*)file)->WriteBox(g_game->gameTime, 0x1c);
+    file->SetIntegerItem("Human Player", g_game->localPlayer);
+    file->OpenNamedBox("GameTime");
+    file->WriteBox(g_game->gameTime, 0x1c);
     for (int i = 0; i < 10; i++) {
         Player_00466050* p = &g_game->players[i];
         if (p->controller) {
             sprintf(name, "Player%i", i);
             file->OpenAccount(name);
-            ((HapiBank*)file)->SetDoubleItem("Energy", p->energy);
-            ((HapiBank*)file)->SetDoubleItem("Metal", p->metal);
-            ((HapiBank*)file)->SetDoubleItem("TotalEnergyProduced", p->totalEnergyProduced);
-            ((HapiBank*)file)->SetDoubleItem("TotalMetalProduced", p->totalMetalProduced);
-            ((HapiBank*)file)->SetDoubleItem("TotalEnergyConsumed", p->totalEnergyConsumed);
-            ((HapiBank*)file)->SetDoubleItem("TotalMetalConsumed", p->totalMetalConsumed);
-            ((HapiBank*)file)->SetDoubleItem("EnergyWasted", p->energyWasted);
-            ((HapiBank*)file)->SetDoubleItem("MetalWasted", p->metalWasted);
-            ((HapiBank*)file)->SetDoubleItem("PlayerEnergyStorage", p->energyStorage);
-            ((HapiBank*)file)->SetDoubleItem("PlayerMetalStorage", p->metalStorage);
-            ((HapiBank*)file)->SetIntegerItem("AddPlayerStorage", p->addStorage);
-            ((HapiBank*)file)->SetIntegerItem("Kills", p->kills);
-            ((HapiBank*)file)->SetIntegerItem("Losses", p->losses);
-            ((HapiBank*)file)->SetIntegerItem("UpdateTime", p->updateTime);
-            ((HapiBank*)file)->SetIntegerItem("WinLoseTime", p->winLoseTime);
-            ((HapiBank*)file)->SetIntegerItem("DisplayTimer", p->displayTimer);
-            ((HapiBank*)file)->SetIntegerItem("Controller", p->controller);
-            ((HapiBank*)file)->SetIntegerItem("Logo", p->data->logo);
-            ((HapiBank*)file)->SetIntegerItem("Side", p->data->side);
-            ((HapiBank*)file)->OpenNamedBox("Alliances");
-            ((HapiBank*)file)->WriteBox(p->allied, 11);
+            file->SetDoubleItem("Energy", p->energy);
+            file->SetDoubleItem("Metal", p->metal);
+            file->SetDoubleItem("TotalEnergyProduced", p->totalEnergyProduced);
+            file->SetDoubleItem("TotalMetalProduced", p->totalMetalProduced);
+            file->SetDoubleItem("TotalEnergyConsumed", p->totalEnergyConsumed);
+            file->SetDoubleItem("TotalMetalConsumed", p->totalMetalConsumed);
+            file->SetDoubleItem("EnergyWasted", p->energyWasted);
+            file->SetDoubleItem("MetalWasted", p->metalWasted);
+            file->SetDoubleItem("PlayerEnergyStorage", p->energyStorage);
+            file->SetDoubleItem("PlayerMetalStorage", p->metalStorage);
+            file->SetIntegerItem("AddPlayerStorage", p->addStorage);
+            file->SetIntegerItem("Kills", p->kills);
+            file->SetIntegerItem("Losses", p->losses);
+            file->SetIntegerItem("UpdateTime", p->updateTime);
+            file->SetIntegerItem("WinLoseTime", p->winLoseTime);
+            file->SetIntegerItem("DisplayTimer", p->displayTimer);
+            file->SetIntegerItem("Controller", p->controller);
+            file->SetIntegerItem("Logo", p->data->logo);
+            file->SetIntegerItem("Side", p->data->side);
+            file->OpenNamedBox("Alliances");
+            file->WriteBox(p->allied, 11);
         }
     }
 }

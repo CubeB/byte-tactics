@@ -187,7 +187,7 @@ public:
 class Class_004c91a0 : public Class_004c9390 {
 public:
     Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
+    ~Class_004c91a0() { this->ReleaseRef(); }
 };
 
 // 0x4c91b0 builds one of those handles from a C string. In the game this is a

@@ -13,7 +13,7 @@
 // affine, as for its twin 0x46eba0 in this translation unit, but with the
 // real header it also leaves the sixth std::_Construct as an out-of-line call
 // (52%): that is MSVC's per-function inline budget under /Gi (see
-// 0x437580.cpp). Freeing one expansion fixes it, and which one decides the
+// map_load.cpp). Freeing one expansion fixes it, and which one decides the
 // last byte. Writing out a size() (as 0x437580 does) gives 99.7%, with the
 // third copy's destination `lea esi, [eax + ebx]` (_M*0x5c as the base);
 // which of the last three size() calls is written out, a full header-order

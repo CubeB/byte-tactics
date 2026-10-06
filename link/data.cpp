@@ -392,6 +392,7 @@ unsigned char DAT_005122c0[4];  // 0x5122c0 .bss
 MapCacheEntry* DAT_005122c4;  // 0x5122c4 .bss
 MapCacheEntry* DAT_005122c8;  // 0x5122c8 .bss
 unsigned char DAT_005122cc[4];  // 0x5122cc .bss
+char* DAT_005122d4;  // 0x5122d4 .bss
 int DAT_005122d8;  // 0x5122d8 .bss
 int DAT_005122dc;  // 0x5122dc .bss
 int DAT_005122e0;  // 0x5122e0 .bss

@@ -2145,7 +2145,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   classes (the second with a pure virtual).
 - **Static vs external global objects**: if the atexit destructor of a global
   `std::vector` keeps `_First` in a callee-saved register on the empty path, the
-  vector is a file-scope `static` (see `0x434a30.cpp`); the checker accepts the
+  vector is a file-scope `static` (see `map_list.cpp`); the checker accepts the
   compiler's `$S`-suffixed name.
 - **Two pointers walking one struct array**, one at +0 and one into the middle
   of a group of fields: the group was accessed through an inlined helper taking

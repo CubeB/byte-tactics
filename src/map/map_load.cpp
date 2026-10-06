@@ -2,7 +2,7 @@
 // FLAGS: /Gi
 // std::vector<MapCacheEntry>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, for the 8-byte {string handle, int} element of the
-// static vector at 0x5122c0 (see 0x434a30.cpp); its only caller, 0x4373a0,
+// static vector at 0x5122c0 (see map_list.cpp); its only caller, 0x4373a0,
 // does a push_back. The element's copy constructor (0x437820) and operator=
 // (0x437800) are out-of-line calls. Taking the member's address makes the
 // compiler emit the template instantiation out of line.

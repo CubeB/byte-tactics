@@ -2218,8 +2218,9 @@ piece,0x51fb98,4,link/data.obj,31,4448,global data
 piece,0x5122d8,4,link/data.obj,31,4444,global data
 piece,0x5122e4,4,link/data.obj,31,4440,global data
 piece,0x5122f0,32,link/data.obj,31,4408,global data
-piece,0x51fb94,4,link/data.obj,31,4400,global data
-piece,0x5122c8,4,link/data.obj,31,4396,global data
+piece,0x51fb94,4,link/data.obj,31,4404,global data
+piece,0x5122c8,4,link/data.obj,31,4400,global data
+piece,0x5122d4,4,link/data.obj,31,4396,global data
 piece,0x5122e0,4,link/data.obj,31,4392,global data
 piece,0x51fb90,4,link/data.obj,31,4388,global data
 piece,0x5122c4,4,link/data.obj,31,4384,global data
@@ -2437,46 +2438,45 @@ piece,0x5289f4,4,link/data.obj,31,0,global data
 piece,0x507b70,24,link/extra_data.obj,2,8,global data
 piece,0x505510,4,link/extra_data.obj,2,4,global data
 piece,0x502ae8,4,link/extra_data.obj,2,0,global data
-piece,0x529e00,32,link/extra_data.obj,3,3976,global data
-piece,0x526ff4,4,link/extra_data.obj,3,3972,global data
-piece,0x51f2e8,4,link/extra_data.obj,3,3968,global data
-piece,0x529e9c,1,link/extra_data.obj,3,3964,global data
-piece,0x51f2e4,4,link/extra_data.obj,3,3960,global data
-piece,0x528ac8,4,link/extra_data.obj,3,3956,global data
-piece,0x528ad4,4,link/extra_data.obj,3,3952,global data
-piece,0x528ab8,4,link/extra_data.obj,3,3948,global data
-piece,0x528ac4,4,link/extra_data.obj,3,3944,global data
-piece,0x528ad0,4,link/extra_data.obj,3,3940,global data
-piece,0x528ab4,4,link/extra_data.obj,3,3936,global data
-piece,0x528ac0,4,link/extra_data.obj,3,3932,global data
-piece,0x528acc,4,link/extra_data.obj,3,3928,global data
-piece,0x528abc,4,link/extra_data.obj,3,3924,global data
-piece,0x529df8,4,link/extra_data.obj,3,3920,global data
-piece,0x51fb9c,4,link/extra_data.obj,3,3916,global data
-piece,0x5129b8,4,link/extra_data.obj,3,3912,global data
-piece,0x5129ac,4,link/extra_data.obj,3,3908,global data
-piece,0x51e548,4,link/extra_data.obj,3,3904,global data
-piece,0x51e550,4,link/extra_data.obj,3,3900,global data
-piece,0x528a10,4,link/extra_data.obj,3,3896,global data
-piece,0x51fbd0,4,link/extra_data.obj,3,3892,global data
-piece,0x51e660,4,link/extra_data.obj,3,3888,global data
-piece,0x51e584,4,link/extra_data.obj,3,3884,global data
-piece,0x51e574,4,link/extra_data.obj,3,3880,global data
-piece,0x51e580,4,link/extra_data.obj,3,3876,global data
-piece,0x51e640,4,link/extra_data.obj,3,3872,global data
-piece,0x51e58c,4,link/extra_data.obj,3,3868,global data
-piece,0x51e57c,4,link/extra_data.obj,3,3864,global data
-piece,0x51e828,2720,link/extra_data.obj,3,1144,global data
-piece,0x512334,4,link/extra_data.obj,3,1136,global data
-piece,0x512328,4,link/extra_data.obj,3,1132,global data
-piece,0x512320,4,link/extra_data.obj,3,1128,global data
-piece,0x512fe8,4,link/extra_data.obj,3,1124,global data
-piece,0x512ff4,4,link/extra_data.obj,3,1120,global data
-piece,0x512298,4,link/extra_data.obj,3,1116,global data
-piece,0x512764,4,link/extra_data.obj,3,1112,global data
-piece,0x512770,16,link/extra_data.obj,3,1096,global data
-piece,0x5120b8,464,link/extra_data.obj,3,632,global data
-piece,0x5122d4,4,link/extra_data.obj,3,624,global data
+piece,0x529e00,32,link/extra_data.obj,3,3968,global data
+piece,0x526ff4,4,link/extra_data.obj,3,3964,global data
+piece,0x51f2e8,4,link/extra_data.obj,3,3960,global data
+piece,0x529e9c,1,link/extra_data.obj,3,3956,global data
+piece,0x51f2e4,4,link/extra_data.obj,3,3952,global data
+piece,0x528ac8,4,link/extra_data.obj,3,3948,global data
+piece,0x528ad4,4,link/extra_data.obj,3,3944,global data
+piece,0x528ab8,4,link/extra_data.obj,3,3940,global data
+piece,0x528ac4,4,link/extra_data.obj,3,3936,global data
+piece,0x528ad0,4,link/extra_data.obj,3,3932,global data
+piece,0x528ab4,4,link/extra_data.obj,3,3928,global data
+piece,0x528ac0,4,link/extra_data.obj,3,3924,global data
+piece,0x528acc,4,link/extra_data.obj,3,3920,global data
+piece,0x528abc,4,link/extra_data.obj,3,3916,global data
+piece,0x529df8,4,link/extra_data.obj,3,3912,global data
+piece,0x51fb9c,4,link/extra_data.obj,3,3908,global data
+piece,0x5129b8,4,link/extra_data.obj,3,3904,global data
+piece,0x5129ac,4,link/extra_data.obj,3,3900,global data
+piece,0x51e548,4,link/extra_data.obj,3,3896,global data
+piece,0x51e550,4,link/extra_data.obj,3,3892,global data
+piece,0x528a10,4,link/extra_data.obj,3,3888,global data
+piece,0x51fbd0,4,link/extra_data.obj,3,3884,global data
+piece,0x51e660,4,link/extra_data.obj,3,3880,global data
+piece,0x51e584,4,link/extra_data.obj,3,3876,global data
+piece,0x51e574,4,link/extra_data.obj,3,3872,global data
+piece,0x51e580,4,link/extra_data.obj,3,3868,global data
+piece,0x51e640,4,link/extra_data.obj,3,3864,global data
+piece,0x51e58c,4,link/extra_data.obj,3,3860,global data
+piece,0x51e57c,4,link/extra_data.obj,3,3856,global data
+piece,0x51e828,2720,link/extra_data.obj,3,1136,global data
+piece,0x512334,4,link/extra_data.obj,3,1128,global data
+piece,0x512328,4,link/extra_data.obj,3,1124,global data
+piece,0x512320,4,link/extra_data.obj,3,1120,global data
+piece,0x512fe8,4,link/extra_data.obj,3,1116,global data
+piece,0x512ff4,4,link/extra_data.obj,3,1112,global data
+piece,0x512298,4,link/extra_data.obj,3,1108,global data
+piece,0x512764,4,link/extra_data.obj,3,1104,global data
+piece,0x512770,16,link/extra_data.obj,3,1088,global data
+piece,0x5120b8,464,link/extra_data.obj,3,624,global data
 piece,0x51fb50,64,link/extra_data.obj,3,560,global data
 piece,0x5119c0,40,link/extra_data.obj,3,520,global data
 piece,0x51ff14,4,link/extra_data.obj,3,512,global data
@@ -5188,8 +5188,8 @@ piece,0x504aac,12,src/map/mission.cpp,35,0,game data
 piece,0x504a84,25,src/map/mission.cpp,33,0,game data
 piece,0x503378,9,src/map/mission.cpp,25,0,game data
 piece,0x504a30,49,src/map/mission.cpp,9,0,game data
-piece,0x504a24,11,src/map/map_list_434bf0.cpp,6,0,game data
-piece,0x504a18,11,src/map/map_list_434bf0.cpp,5,0,game data
+piece,0x504a24,11,src/map/map_list.cpp,16,0,game data
+piece,0x504a18,11,src/map/map_list.cpp,15,0,game data
 piece,0x504a04,7,src/map/los_line.cpp,4,0,game data
 piece,0x504a00,3,src/map/los_line.cpp,3,0,game data
 piece,0x5049f8,8,src/map/los_tables_433380.cpp,4,0,game data
@@ -5935,7 +5935,7 @@ piece,0x5295b4,1,src/debug/debug_lib_4e1410.cpp,3,124,game data
 piece,0x50df30,4,LIBCMT.LIB#65,1,0,library data
 piece,0x50e3f0,4,LIBCMT.LIB#67,2,0,library data
 piece,0x50e934,4,LIBCMT.LIB#126,1,0,library data
-piece,0x501008,4,src/map/map_list_434a30.cpp,2,0,game data
+piece,0x501008,4,src/map/map_list.cpp,2,0,game data
 piece,0x50100c,4,src/map/meteors_438450.cpp,2,0,game data
 piece,0x501010,4,src/units/movement_class_440230.cpp,2,0,game data
 piece,0x50101c,4,src/network/packets_460e20.cpp,2,0,game data
@@ -12027,7 +12027,7 @@ same,0x5032e8,19,src/game/settings_campaign_432a80.cpp,3,0,
 same,0x5032e8,19,src/game/settings_campaign_432b00.cpp,3,0,
 same,0x5032e8,19,src/game/settings_campaign_432b60.cpp,3,0,
 same,0x50341c,4,src/map/los_tables_433130.cpp,7,0,
-same,0x5122c0,16,src/map/map_list_434a30.cpp,4,0,
+same,0x5122c0,16,src/map/map_list.cpp,6,0,
 same,0x50341c,4,src/map/mission.cpp,11,0,
 same,0x504a64,6,src/map/mission.cpp,10,0,
 same,0x50341c,4,src/game/campaign_4352d0.cpp,4,0,

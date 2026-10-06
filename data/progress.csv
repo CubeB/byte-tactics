@@ -651,11 +651,11 @@ address,size,file,symbol,status,similarity
 0x434770,586,src/map/los_tables_434770.cpp,??4?$vector@UElem_00434360@@V?$allocator@UElem_00434360@@@std@@@std@@QAEAAV01@ABV01@@Z,matched,100.0
 0x4349c0,46,src/map/los_tables_4349c0.cpp,?_Ucopy@?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@IAEPAUElem_00434020@@PBU3@0PAU3@@Z,matched,100.0
 0x4349f0,55,src/map/los_tables_434470.cpp,??_GElem_00434360@@QAEPAXI@Z,matched,100.0
-0x434a30,42,src/map/map_list_434a30.cpp,_$E5,matched,100.0
-0x434a60,67,src/map/map_list_434a30.cpp,_$E3,matched,100.0
-0x434ab0,212,src/map/map_list_434ab0.cpp,?FUN_00434ab0@@YGXH@Z,matched,100.0
-0x434b90,92,src/map/map_list_434b90.cpp,?FUN_00434b90@@YGXXZ,matched,100.0
-0x434bf0,886,src/map/map_list_434bf0.cpp,?LoadMapList@@YGHPAPAXHH@Z,matched,100.0
+0x434a30,42,src/map/map_list.cpp,_$E5,matched,100.0
+0x434a60,67,src/map/map_list.cpp,_$E3,matched,100.0
+0x434ab0,212,src/map/map_list.cpp,?FUN_00434ab0@@YGXH@Z,matched,100.0
+0x434b90,92,src/map/map_list.cpp,?FUN_00434b90@@YGXXZ,matched,100.0
+0x434bf0,886,src/map/map_list.cpp,?LoadMapList@@YGHPAPAXHH@Z,matched,100.0
 0x434f70,118,src/map/mission.cpp,??0Mission@@QAE@H@Z,matched,100.0
 0x434ff0,259,src/map/mission.cpp,??1Mission@@QAE@XZ,matched,100.0
 0x435100,3,src/map/mission.cpp,?FUN_00435100@Mission@@QAEHXZ,matched,100.0

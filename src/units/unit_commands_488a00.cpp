@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // A file-local global std::vector: the compiler generates its initialiser
 // (0x4889d0) and the destructor it registers with atexit (0x488a00).
-// Same shape as 0x434a30.cpp: an 8-byte element whose destructor releases
+// Same shape as map_list.cpp: an 8-byte element whose destructor releases
 // the reference-counted string at +0 through ReleaseRef.
 #include <vector>
 

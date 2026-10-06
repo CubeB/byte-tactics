@@ -6,6 +6,9 @@
 // copied from 0x462cc0.cpp so its destructor is inlined here.
 // The channels start at +0x08; the +0x10 here is each channel's own
 // items/count pair at its +0x08 (settled in #225, see 0x460e20.cpp).
+//
+// The rest of PacketManager is in packet_manager.cpp; this view of the
+// channel cannot be shared with the constructor (see there).
 
 struct Obj_00462d30 {
     int a, b, c;

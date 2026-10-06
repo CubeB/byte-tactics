@@ -6,6 +6,9 @@
 // the PacketReceiver member (vtable 0x4fd518) and its ten entries first, then
 // the eleven big entries, then the deleting-destructor flag test.
 //
+// The rest of PacketManager is in packet_manager.cpp; this view of the
+// channel cannot be shared with the constructor (see there).
+//
 // The ten small entries are walked with the start pointer one element past the
 // end of the array, which is what MSVC 5 emits for an array of objects with
 // destructors; the first subtraction lines it up again, so the pointers freed

@@ -16,15 +16,11 @@ public:
     void Close();
 };
 
-class Class_0047c6c0 {
-public:
-    void Play();
-};
-
 class MoviePlayer {
 public:
     char pad[0x5b8];
     MoviePlayer(char* path, int a, int b, int c, int d, int e);
+    void Play();
 };
 
 #pragma pack(push, 1)
@@ -54,7 +50,7 @@ void __stdcall PlayMovie(char* param_1)
         FUN_004c22d0(0);
         do {
             g_game->field_38d7b = new MoviePlayer(path, 0, 600000, 1, 2000000, 1);
-            ((Class_0047c6c0*)g_game->field_38d7b)->Play();
+            ((MoviePlayer*)g_game->field_38d7b)->Play();
             Class_0047bf20* p = (Class_0047bf20*)g_game->field_38d7b;
             if (p != 0) {
                 p->Close();

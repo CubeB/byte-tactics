@@ -3,7 +3,7 @@
 // every node that is due (or not waiting) is offered to the callback table
 // DAT_00512344, and the answer decides what happens to it. The list is
 // restarted from the head after every node, so nodes added by the callback
-// are seen in the same pass. The field names follow 0x43a1f0.cpp and
+// are seen in the same pass. The field names follow order_queue_438870.cpp and
 // 0x43b730.cpp, which own Class_0043a1f0 and the list head at +0x5c/+0x60.
 // The switch cases are in the order the original emitted the bodies
 // (3, 1, 0, 2/4, 5/8/9, 6/7, default) and cases 6 and 7 return from the

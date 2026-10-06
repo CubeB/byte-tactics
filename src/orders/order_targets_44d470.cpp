@@ -1,12 +1,11 @@
-// Decompiled by Opus. Names are provisional.
-// Constructor of a Class_0044ce20 subclass that reads a 24-byte header from
-// a named entry of an open file and keeps its last five dwords.
+// Decompiled by Opus and DeepSeek V4.1 Flash. Names are provisional.
 
 class HapiBank {
 public:
     int OpenNamedBox(char* name);
     void SeekBox(int pos);
     int ReadBox(void* buf, int size);
+    int WriteBox(void* src, int len);
 };
 
 struct Data_0044d470 {
@@ -42,9 +41,12 @@ class Class_0044d470 : public Class_0044ce20 {
 public:
     Data_0044d470 data;                // +0x8
 
+    int FUN_0044d500(int unused, HapiBank* file, char* name);
     Class_0044d470(int owner, HapiBank* file, char* name);
 };
 
+// Constructor of a Class_0044ce20 subclass that reads a 24-byte header from
+// a named entry of an open file and keeps its last five dwords.
 // FUNCTION: 0x44d470
 Class_0044d470::Class_0044d470(int owner, HapiBank* file, char* name)
     : Class_0044ce20(owner)
@@ -67,4 +69,22 @@ Class_0044d470::Class_0044d470(int owner, HapiBank* file, char* name)
             data.e = hdr.data.e;
         }
     }
+}
+
+// Saving counterpart of Class_0044d470's constructor: writes a 24-byte header
+// whose last five dwords are the stored values. The first dword is left
+// uninitialised, exactly as in 0x44d090 and 0x44d9a0.
+// FUNCTION: 0x44d500
+int Class_0044d470::FUN_0044d500(int unused, HapiBank* file, char* name)
+{
+    Header_0044d470 hdr;
+    hdr.data.a = data.a;
+    hdr.data.b = data.b;
+    hdr.data.c = data.c;
+    hdr.data.d = data.d;
+    hdr.data.e = data.e;
+    file->OpenNamedBox(name);
+    ((HapiBank*)file)->SeekBox(0);
+    ((HapiBank*)file)->WriteBox(&hdr, 24);
+    return 1;
 }

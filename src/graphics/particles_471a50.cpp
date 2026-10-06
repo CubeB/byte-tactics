@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// A method of ParticleLists, whose other methods are in particles_470f80.cpp;
+// this one sees a list as a std::vector<Elem_00473500> and inlines its insert,
+// which comes out differently there.
+//
 // Creates a Class_004750b0 (vtable 0x4fd638) from the object pool, initialises
 // it through virtual slot 6 (0x475150) with the first four arguments, then
 // appends it to the std::vector of pointers selected by the short index in the
@@ -6,7 +10,7 @@
 // element is deleted and erased first. The append lives in an inlined member
 // helper, and here std::vector::insert is inlined too, so both its fast path
 // and its growth path (0x4b4f10 / 0x4b4f20) appear in the body; the class
-// declaration is the one in 0x4750b0.cpp, so the constructor stays an
+// declaration is the one in particles_4750b0.cpp, so the constructor stays an
 // out-of-line call. Closest match is 0x472c50.cpp, which builds the same
 // class; the differences are the owner (a member here, g_game there) and that
 // the insert is out of line there. Operator new (0x471d10) is inlined here as
@@ -91,7 +95,7 @@ struct Vec3_00475150 {
     int z;
 };
 
-struct Record_004750b0 {
+struct Class_00474fc0 {
     int unknown[8];
 };
 
@@ -99,7 +103,7 @@ struct Record_004750b0 {
 class Class_004750b0 : public ParticleSystem {
 public:
     int time;                                           // +0x8
-    std::vector<Record_004750b0> records;               // +0xc (_First +0x10)
+    std::vector<Class_00474fc0> records;               // +0xc (_First +0x10)
     char unknown_1c[0x34 - 0x1c];
 
     Class_004750b0();

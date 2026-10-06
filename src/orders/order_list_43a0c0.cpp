@@ -1,5 +1,7 @@
 // Decompiled by space-bunny-free, class hierarchy fixed by Claude Opus 5.5. Names are provisional.
 // The constructor of Class_0043a1f0 (destructor 0x43a1f0, vtable 0x4fd2c8).
+// The rest of the class is in order_queue_438870.cpp; this one stays apart
+// because it needs `kind(k)` as a plain member initialiser (see there).
 // It first stores 0x4fd2cc, the vtable of the inline constructor of the base
 // class Class_0043a1e0, then runs the member initialisers, then stores its
 // own vtable. Each vtable has one slot: the base's is the empty 0x43a1e0 and

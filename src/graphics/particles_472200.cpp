@@ -7,7 +7,7 @@
 // leaves std::vector::insert (0x4732e0) out of line. Same shape as the matched
 // 0x471470, but a free function that reads the list owner out of g_game.
 // The byte stored at +0xc is MSVC copying the vector's empty allocator
-// temporary, not a constructor parameter (see 0x471340.cpp).
+// temporary, not a constructor parameter (see particles_470f80.cpp).
 #include <stddef.h>
 #include <string.h>
 #include <vector>
@@ -55,7 +55,7 @@ public:
     }
 };
 
-class Class_00473a00 {                 // vector element (see 0x472f90.cpp)
+class Class_004739b0 {                 // see nano_particles.cpp
 public:
     char unknown_0[0x30];
 };
@@ -64,7 +64,7 @@ public:
 class NanoParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8
-    std::vector<Class_00473a00> items;                  // +0xc (_First +0x10)
+    std::vector<Class_004739b0> items;                  // +0xc (_First +0x10)
     char unknown_1c[0x4c - 0x1c];
 
     NanoParticles() {}

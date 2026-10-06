@@ -1,6 +1,8 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash, finished by GPT-6, finished by Claude Opus 5.5. Names are provisional.
 // MATCH (Claude Opus 5.5, #5644). Slot 0 of Class_004085d0 (vtable 0x4fc9a8),
-// derived from SquadTimer (family listed in 0x407350.cpp). Runs every 90
+// derived from SquadTimer (family listed in 0x407350.cpp; the rest of the
+// class is in ai_player_4085d0.cpp, this needs include/ta_types.h's view of
+// it). Runs every 90
 // ticks over the units of this object's group: first gives each unit that
 // ChooseBuildOption picks an item for an order (mode 0xe) at the place FindBuildPosition
 // finds, within a third of the map size of the player's base (GetBasePosition)

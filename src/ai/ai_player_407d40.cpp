@@ -12,8 +12,9 @@
 // one expression, `int ax = (int)(game->baseX / 2 * 65536.0);`, puts the pop
 // back between c.y and c.z, and so does every other spelling tried, which is
 // why the wall below held for a day.
-// The class still declares no virtual functions (its vtable slot is a plain
-// field at +0) and the constructor still stores both vtables by hand: the
+// The rest of the class is in ai_player_407e70.cpp; this stays apart because
+// the class here declares no virtual functions (its vtable slot is a plain
+// field at +0) and the constructor stores both vtables by hand: the
 // matched 0x407a90, a real derived class of the same base, keeps only its own
 // vtable store because the inlined base constructor's is dead, while the
 // original here stores 0x4fc980 early and 0x4fc9a0 late, so both stores come

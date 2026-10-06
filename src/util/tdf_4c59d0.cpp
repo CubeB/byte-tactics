@@ -1,5 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by mimo-v2.6-pro, retried by space-bunny-free, finished by claude-sonnet-5-5. Names are provisional.
-// MATCH, 415/415 bytes. std::vector<TdfField>::insert(iterator, const Elem&)
+// Decompiled by space-bunny-free, deepseek-v4.1-flash, deepseek-v4.1, mimo-v2.6-pro, claude-sonnet-5-5 and Haiku. Names are provisional.
+// std::vector<TdfField>::insert(iterator, const Elem&)
 // from MSVC 5's <vector> (insert(_P, 1, _X) inlined into insert(_P, _X)), for
 // the reallocating, shift-up and in-place arms. It is the out-of-line
 // instantiation the 0x4c54f0 map code calls.
@@ -138,3 +138,14 @@ TdfField* Class_004c5ba0::FUN_004c59d0(iterator p, const TdfField& x)
     }
     return begin() + off;
 }
+// The original calls this from 0x4c59d0 rather than inlining it.
+#pragma auto_inline(off)
+// FUNCTION: 0x4c5ba0
+int Class_004c5ba0::FUN_004c5ba0(void)
+{
+    if (_First == 0) {
+        return 0;
+    }
+    return _Last - _First;
+}
+#pragma auto_inline(on)

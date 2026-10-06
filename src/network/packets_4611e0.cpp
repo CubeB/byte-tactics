@@ -5,6 +5,9 @@
 // eleven 0x1044-byte channels from +0x08, a {pointer, used, capacity} triple at
 // +0xb2f4, and a PacketReceiver member at +0xb300 that is given the new object.
 //
+// The rest of PacketManager is in packet_manager.cpp; this view of the
+// channel cannot be shared with the destructors (see there).
+//
 // The eleven channels come from a hand-written loop that writes the first
 // field through the array index and the rest through a walking pointer: that
 // is what leaves the loop with the two induction variables the original has

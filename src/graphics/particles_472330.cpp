@@ -8,9 +8,9 @@
 // inlined member helper, which is what leaves std::vector::insert (0x4732e0)
 // out of line.
 // Class family listed in 0x471cc0.cpp; operator new (0x471d10) is inlined
-// here. Same shape as the matched 0x471340.cpp and 0x472430.cpp.
+// here. Same shape as the matched particles_470f80.cpp and 0x472430.cpp.
 // The byte stored at +0xc is MSVC copying the vector's empty allocator
-// temporary, not a constructor parameter (see 0x471340.cpp).
+// temporary, not a constructor parameter (see particles_470f80.cpp).
 // g_game->lists is bound to a local at the top: that is what makes the original
 // load g_game before the prologue pushes and keep the lists pointer in ebp for
 // the whole function instead of reloading it at the Add call.
@@ -61,7 +61,7 @@ public:
     }
 };
 
-class Class_00474170 {                 // vector element (see 0x4730f0.cpp)
+class Class_00474130 {                 // see thrust_particles.cpp
 public:
     char unknown_0[0x3c];
     void DrawParticle(int param_1, short param_2, short param_3);
@@ -71,7 +71,7 @@ public:
 class ThrustParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8
-    std::vector<Class_00474170> items;                  // +0xc (_First +0x10)
+    std::vector<Class_00474130> items;                  // +0xc (_First +0x10)
     char unknown_1c[0x44 - 0x1c];
 
     ThrustParticles() {}

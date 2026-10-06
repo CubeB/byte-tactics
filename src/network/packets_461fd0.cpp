@@ -3,6 +3,9 @@
 // packets and a new entry array of `growpackets` more entries, then moves every
 // entry that still belongs to a packet into the new entry array, re-queueing the
 // pending ones (the inlined 0x4623e0 and 0x461f90) and relinking the in-use list.
+// The rest of PacketChannel is in packet_channel.cpp; this stays apart because
+// its inlined DequeuePacket calls the ring's out-of-line pop and push, where
+// 0x4623e0 inlines them.
 //
 // MATCH (#5283). The earlier 99.0% file duplicated `j++` into both arms of the
 // head test, which got the global allocation right but left j's latch

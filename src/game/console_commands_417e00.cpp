@@ -1,6 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// Class_0044f010's override of slot 10 (vtable 0x4fd458, see 0x44f450.cpp),
-// although it sits far from the class's other methods in the exe.
+// Class_0044f010's override of slot 10 (vtable 0x4fd458). The rest of the
+// class is in order_targets_44f010.cpp; this one sits far from it in the exe,
+// compiled with the console code.
 // Draws an open polyline stored on the object as 16-bit map points: each
 // consecutive pair is converted to screen space (through the 16.16 fixed-point
 // helper of 0x417bb0) and one line is drawn. The colour byte comes from a

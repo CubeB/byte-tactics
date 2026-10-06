@@ -57,7 +57,7 @@ public:
     }
 };
 
-class Class_00473590 {                 // vector element (see 0x472e30.cpp)
+class Class_00473560 {                 // see teleport_particles.cpp
 public:
     char unknown_0[0x34];
     void DrawParticle(void* p, short a, short b);
@@ -67,7 +67,7 @@ public:
 class TeleportParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8
-    std::vector<Class_00473590> items;                  // +0xc (_First +0x10)
+    std::vector<Class_00473560> items;                  // +0xc (_First +0x10)
     char unknown_1c[0x44 - 0x1c];
 
     TeleportParticles() {}

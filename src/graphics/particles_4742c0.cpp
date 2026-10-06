@@ -1,5 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Sibling of 0x474d50 and 0x475150: same base call, same five virtuals, same
+// Slot 6 of ThrustParticles. The rest of the class is in thrust_particles.cpp;
+// there this function's fixed-point multiply pushes its operands in the other
+// order. Sibling of 0x474d50 and 0x475150: same base call, same five virtuals, same
 // trailing virtual call. It keeps the two points it is given, puts their
 // difference in a third one and scales that by the 16.16 reciprocal of the id
 // ((1 << 32) / (id << 16) is 65536 / id), so the offset ends up divided by it.

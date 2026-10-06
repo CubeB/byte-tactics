@@ -1,6 +1,6 @@
-// Decompiled by Sonnet, class family consolidated by Opus. Names are provisional.
-// Constructor of Class_004085d0 (vtable 0x4fc9a8), derived from
-// SquadTimer (the family is listed in 0x407350.cpp) without new fields.
+// Decompiled by Sonnet and Opus. Names are provisional.
+// Class_004085d0 (vtable 0x4fc9a8), derived from SquadTimer (the family is
+// listed in 0x407350.cpp) without new fields.
 
 struct SquadManager {                  // the owner (constructor 0x408cb0)
     char unknown_0[4];
@@ -24,6 +24,8 @@ public:
 class Class_004085d0 : public SquadTimer {
 public:
     Class_004085d0(SquadManager* p, void* q);
+    // In ai_player_408100.cpp: it needs the class as include/ta_types.h
+    // declares it.
     virtual void OnTimer();                         // slot 0, 0x408100
 };
 
@@ -34,7 +36,11 @@ SquadTimer::SquadTimer(SquadManager* p, void* q)
 {
 }
 
+// The constructor. Its vtable reference makes the compiler emit the scalar
+// deleting destructor here too: the destructor is trivial, so only the inlined
+// base destructor's store of 0x4fc980 is left.
 // FUNCTION: 0x4085d0
+// FUNCTION: 0x408600 ??_GClass_004085d0@@UAEPAXI@Z
 Class_004085d0::Class_004085d0(SquadManager* p, void* q)
     : SquadTimer(p, q)
 {

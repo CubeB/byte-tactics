@@ -8,7 +8,7 @@
 // first. The append lives in an inlined member helper, which is what leaves
 // std::vector::insert (0x4732e0) out of line. Twin of 0x472330, which takes the
 // four arguments of slot 6 as parameters instead of building them here; the
-// class family is listed in 0x471cc0.cpp and 0x4716a0.cpp, operator new
+// class family is listed in 0x471cc0.cpp and thrust_particles.cpp, operator new
 // (0x471d10) is inlined here and the constructor is inlined too.
 // The 12-byte point is three pairs of shorts: the three `add word ptr [..], ax`
 // land on the high half of each pair, at +2, +6 and +10, so the copy is one
@@ -70,7 +70,7 @@ public:
     }
 };
 
-class Class_00474170 {                 // vector element (see 0x4730f0.cpp)
+class Class_00474130 {                 // see thrust_particles.cpp
 public:
     char unknown_0[0x3c];
     void DrawParticle(int param_1, short param_2, short param_3);
@@ -90,7 +90,7 @@ struct Shape_00472ab0 {
 class ThrustParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8
-    std::vector<Class_00474170> items;                  // +0xc (_First +0x10)
+    std::vector<Class_00474130> items;                  // +0xc (_First +0x10)
     char unknown_1c[0x44 - 0x1c];
 
     ThrustParticles() {}

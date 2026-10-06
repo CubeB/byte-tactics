@@ -15,7 +15,7 @@
 // two struct copies (pos, tail) one after the other instead of interleaved.
 
 // Bit reader, the counterpart of the writer used by 0x48b710 (see
-// src/network/net_stats_415dc0.cpp). Fields are data, index (the dword), bit.
+// src/network/bit_reader.cpp). Fields are data, index (the dword), bit.
 class BitReader {
 public:
     unsigned int* data;                // +0x00
@@ -54,7 +54,7 @@ struct Unit;
 
 class UnitMotion {
 public:
-    Iface_0048b920* iface;             // +0x0, see src/units/unit_scripts_43dd20.cpp
+    Iface_0048b920* iface;             // +0x0, see src/orders/order_list_43cc20.cpp
     void UpdateMotion(Unit* u);
 };
 

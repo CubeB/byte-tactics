@@ -11,7 +11,8 @@
 // The byte copied to +0xc is MSVC copying the vector's empty allocator
 // temporary, not a constructor parameter: the fourth argument (the index) is
 // dead after that, as in 0x471340.
-// Class family listed in 0x4717e0.cpp; operator new (0x471d10) is inlined here.
+// Class family listed in wake_particles.cpp; operator new (0x471d10) is
+// inlined here.
 #include <stddef.h>
 #include <string.h>
 #include <vector>
@@ -59,7 +60,7 @@ public:
     }
 };
 
-class Class_004745e0 {                 // vector element (see 0x473250.cpp)
+class Class_00474580 {                 // see wake_particles.cpp
 public:
     char unknown_0[0x44];
     void DrawParticle(int param_1, short param_2, short param_3);
@@ -69,7 +70,7 @@ public:
 class WakeParticles : public ParticleSystem {
 public:
     int field_8;                                        // +0x8
-    std::vector<Class_004745e0> items;                  // +0xc (_First +0x10)
+    std::vector<Class_00474580> items;                  // +0xc (_First +0x10)
     char unknown_1c[0x48 - 0x1c];
 
     WakeParticles() {}

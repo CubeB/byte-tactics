@@ -158,7 +158,7 @@ revisit them once the surrounding code is known.
   `volatile int one = 1`; plausible for a deliberate crash, but check once
   its file's other functions are known.
 
-- The 0x4fd428 family is consolidated (table in 0x44ef60.cpp): base
+- The 0x4fd428 family is consolidated (table in order_targets_44ef20.cpp): base
   `Class_0044ef20`, derived `Class_0044f010`, `Class_0044f570`, middle
   `Class_00490630` and its children `Class_004907e0`, `Class_00490880`.
   Left over: 0x490880.cpp uses the name `Class_00490880` for what is

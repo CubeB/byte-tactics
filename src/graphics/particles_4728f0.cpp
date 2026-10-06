@@ -91,7 +91,7 @@ struct Vec3_00474cd0 {
     int z;
 };
 
-struct Record_00474cd0 {
+struct Class_00474b00 {
     void* image;
     Vec3_00474cd0 pos;
     int size;
@@ -104,7 +104,7 @@ struct Record_00474cd0 {
 class SmokeParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8
-    std::vector<Record_00474cd0> records;               // +0xc (_First +0x10)
+    std::vector<Class_00474b00> records;               // +0xc (_First +0x10)
     int unknown_1c;                                     // +0x1c
     int unknown_20;                                     // +0x20
     int unknown_24;                                     // +0x24

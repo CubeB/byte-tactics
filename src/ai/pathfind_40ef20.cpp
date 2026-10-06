@@ -1,4 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// The rest of Pathfinder is in pathfinder.cpp; this stays apart because it
+// inlines the sift-down (0x40f060) the rest of the class calls.
+//
 // Removes node `k` from the AI search's open heap: puts the node back on the
 // free list, shrinks the heap by one, moves the last heap element into the
 // freed slot and sifts it down the binary min-heap keyed on data.f (+0xc).

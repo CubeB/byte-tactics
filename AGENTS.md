@@ -172,7 +172,8 @@ Rules that matter most (the guide has the rest):
   orchestrator updates those after merging. Tell the orchestrator in the pull
   request if you think one of them is wrong.
 - Never use inline assembly, `#pragma optimize`, hard-coded addresses or
-  `volatile` tricks to force a match. (The one exception is a field the
+  `volatile` tricks to force a match (`#pragma auto_inline` has one allowed
+  use, in a class's file: `docs/agent-guide.md`). (The one exception is a field the
   original evidently declared `volatile`: every write to it in the exe goes
   through a register and every repeated read re-loads it. Say so in the pull
   request with the addresses; the orchestrator decides. The network flags at

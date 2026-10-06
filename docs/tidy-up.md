@@ -358,6 +358,41 @@ This is #2662's phases 2 to 4, now in the tidied tree:
 3. **One prototype per function** (`tools/protos.py`), and the link's aliases
    retired as the spellings agree.
 
+### One file per class
+
+A named class's methods are being gathered into one file named after the
+class, in the folder of its first method (`src/network/bit_writer.cpp`,
+`src/util/tdf_record.cpp`); a placeholder class's file takes the usual
+`<module>_<address>.cpp` name of its first method. `tools/modules.py --check`
+accepts a file whose name holds no address in that folder. Each merge
+unifies the files' views of every type into one, in address order, and is
+checked like any other change (every function, the MD5 both ways).
+
+What a merge can move, and what to do about it:
+
+- **Inlining.** A method defined in the same file can now be inlined into its
+  callers. Where the original inlined it (BitWriter::WriteBits and
+  GrowBuffer, MissionConditions::CheckDefeat), the copies kept for that
+  disappear. Where it did not (seen in the debug library: RunningStats,
+  BlockHistory), the callee's definition sits between
+  `#pragma auto_inline(off)` and `(on)` with a comment.
+- **Symbol ids.** A function that matches only at its old file's symbol count
+  may need its declarations reordered (PerformanceDialog), a standard header
+  included only for its symbols, with a comment saying so (`<stdlib.h>` in
+  `util/hapi_bank.cpp`, `<io.h>` in `sound/sound.cpp`; `tools/check.py` on
+  each function after adding one), or a file of its own with a note at its
+  declaration in the class (MissionConditions::CheckVictory,
+  `game/victory_490230.cpp`).
+- **Views that cannot agree.** TdfFile's methods that delete the root section
+  each need a different view of the section's entries, so four of them stay
+  in their own files (the note is in `util/tdf_file.cpp`).
+- **Compiler-generated functions.** A deleting destructor with a
+  `// FUNCTION: <address> ??_G...` annotation is emitted by whatever deletes
+  the class in the file; one emitted in another module stays there.
+- **Overloads** in one file need the decorated name on their annotation
+  (`// FUNCTION: 0x4e1d20 ??0Timer@@QAE@H@Z`).
+
+
 The CI build (an MD5 check of `tools/place.py` on GitHub Actions) can start
 after phase 1, since no tool depends on paths any more; it can also run
 `uv run tools/modules.py --check`, which fails when a file is not where

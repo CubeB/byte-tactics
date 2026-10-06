@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// A method of ParticleLists, whose other methods are in particles_470f80.cpp;
+// this one sees a list as a std::vector<Elem_00473500> and inlines its insert,
+// which comes out differently there.
+//
 // Creates a SmokeParticles (vtable 0x4fd618), whose constructor (0x474cd0) is
 // called out of line, initialises it through virtual slot 6 (0x474d50) with
 // the first five arguments and the last, then appends it to the
@@ -86,7 +90,7 @@ struct Elem_00473500 {                 // the vector's element (see 0x473500.cpp
     SmokeParticles* p;
 };
 
-struct Record_00474cd0 {
+struct Class_00474b00 {
     int unknown[8];
 };
 
@@ -96,7 +100,7 @@ struct Vec3_00474d50;
 class SmokeParticles : public ParticleSystem {
 public:
     int time;                                           // +0x8
-    std::vector<Record_00474cd0> records;               // +0xc (_First +0x10)
+    std::vector<Class_00474b00> records;               // +0xc (_First +0x10)
     char unknown_1c[0x38 - 0x1c];
 
     SmokeParticles();

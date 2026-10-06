@@ -1,7 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 //
-// Slot 4 of NanoParticles (vtable 0x4fd5b8, family in 0x471cc0.cpp): makes
-// room in the std::vector<Elem_00475880> at +0xc for five particles a beat,
+// Slot 4 of NanoParticles (vtable 0x4fd5b8, family in 0x471cc0.cpp; the rest
+// of the class is in nano_particles.cpp, which uses the real <vector>): makes
+// room in the std::vector<Class_004739b0> at +0xc for five particles a beat,
 // then per particle picks a random point in the box at +0x28 around the
 // centre at +0x1c and one in the box at +0x40 around the point at +0x34,
 // appends a record holding both points, the step that divides the segment
@@ -70,7 +71,7 @@ union Fix_00473d50 {
     short half[2];
 };
 
-struct Elem_00475880 {
+struct Class_004739b0 {
     Vec3_00473d50 pos;                 // +0x00
     Vec3_00473d50 tgt;                 // +0x0c
     Vec3_00473d50 vel;                 // +0x18
@@ -193,7 +194,7 @@ public:
     char unknown_0[4];                          // +0x00
     int field_4;                                // +0x04
     int time;                                   // +0x08
-    std::vector<Elem_00475880> records;         // +0x0c
+    std::vector<Class_004739b0> records;         // +0x0c
     Vec3_00473d50 center;                       // +0x1c
     Vec3_00473d50 radius;                       // +0x28
     Vec3_00473d50 target;                       // +0x34
@@ -211,7 +212,7 @@ void NanoParticles::Emit()
 
     int i = 0;
     for (int n = 5; n != 0; n--) {
-        Elem_00475880 e;
+        Class_004739b0 e;
         e.pos.x = (int)(((__int64)rand() * radius.x) / 0x8000) + center.x;
         e.pos.y = (int)(((__int64)rand() * radius.y) / 0x8000) + center.y;
         e.pos.z = (int)(((__int64)rand() * radius.z) / 0x8000) + center.z;

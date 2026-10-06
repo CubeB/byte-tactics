@@ -52,7 +52,11 @@ dispute where a file carries a `// +0xN` comment, so an empty dispute list means
   fixed (`/O2 /Ob2 /MT /Gz`: `/Ob2` means the compiler inlines small
   functions on its own); do not try to change them. The one exception is a
   `// FLAGS: /Gi` line, for the ties described under "When the registers or
-  the order won't budge".
+  the order won't budge". In a class's file (`docs/tidy-up.md`, "One file per
+  class"), `#pragma auto_inline(off)` and `(on)` around one method's
+  definition is allowed when the file would otherwise inline it into a caller
+  that the original calls it from; MSVC 5 has no `__declspec(noinline)`.
+  Say why in a comment above it.
 - Each file must compile on its own: define the structs/classes you need in the
   file, and declare (don't define) the functions and globals you call or use. Under /Gi a function that still has an unresolved tie can score differently depending on the length of the source file's path (0x408100 gave 98.5% in one directory and 99.0% in another), so check a /Gi partial from a second directory before trusting a gain. Matched /Gi files are stable: all 17 on 2026-10-03 match from four different path lengths.
 
@@ -1056,7 +1060,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   earlier function): define the real preceding function (`ctx.py` on the
   address just before yours) in the same file, above yours. That is how the
   original file was laid out, so it is not a trick; never define made-up
-  functions for this. See `src/units/cob_4b0830.cpp`. If that function
+  functions for this. See `src/units/cob_script.cpp` (StartThreadByName). If that function
   already has its own file under `src/`, define it **without** a
   `// FUNCTION:` line: an address annotated in two files stops the progress
   check ("duplicate of"). 0x43f0e0 (copying 0x43e490), 0x49b720 (0x49b6e0)
@@ -1166,7 +1170,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A derived class's `??_G` when its destructor is trivial**: the static
   object trick does not emit it (the derived vtable store is dead, so the
   vtable is never emitted). Define the real constructor again, unannotated, in
-  the `??_G` file (0x44f590, 0x490840, 0x490630); see 0x44ef60.cpp for the
+  the `??_G` file (0x44f590, 0x490840, 0x490630); see order_targets_44ef20.cpp for the
   whole family.
 - **Variants in one scratch file influence each other**: earlier functions in a
   file change how later ones compile. Recompile the winning variant alone (or

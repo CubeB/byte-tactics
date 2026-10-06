@@ -1,5 +1,150 @@
-// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
-// MATCH (311 of 311 bytes).
+// Decompiled by deepseek-v4.1, Sonnet 5.5, deepseek-v4.1-flash and space-bunny-free. Names are provisional.
+//
+// The debug allocator's free-block map, std::map<unsigned int, int> with a pool
+// allocator: its insert and the tree's _Insert. DAT_00528a54 is the tree's _Nil
+// node, head->left is begin() (the leftmost node), head->parent is the root and
+// head->right is the rightmost node.
+
+#include <yvals.h>
+#include <new.h>
+
+// The map's value_type: the block's base offset and its length, 8 bytes.
+struct Pair_004dbbc0 {
+    unsigned int offset;               // +0x0
+    int length;                        // +0x4
+};
+
+struct Node_004dbbc0 {
+    Node_004dbbc0* left;               // +0x0
+    Node_004dbbc0* parent;             // +0x4
+    Node_004dbbc0* right;              // +0x8
+    Pair_004dbbc0 value;               // +0xc
+    int color;                         // +0x14 (0 = red, 1 = black)
+};
+
+extern Node_004dbbc0* DAT_00528a54;   // the tree's _Nil node
+
+struct Kfn_004dbbc0 {
+    const unsigned int& operator()(const Pair_004dbbc0& x) const { return x.offset; }
+};
+
+// A method that ignores `this`: its caller sets ecx to the tree, which sits at
+// the allocator's +0, and pushes the node size.
+class Class_004ddd70 {
+public:
+    void* FUN_004ddd70(unsigned int n);
+};
+
+// The tree's key ordering, unsigned (as in 0x4db000).
+struct Less_004dbbc0 {
+    bool operator()(const unsigned int& a, const unsigned int& b) const
+    {
+        return a < b;
+    }
+};
+
+// The tree's iterator: one pointer, with constructors, so it is returned
+// through a hidden pointer.
+class Class_004dd2a0 {
+public:
+    Node_004dbbc0* ptr;
+
+    Class_004dd2a0() {}
+    Class_004dd2a0(Node_004dbbc0* p) : ptr(p) {}
+
+    bool operator==(const Class_004dd2a0& o) const { return ptr == o.ptr; }
+    Node_004dbbc0* Mynode() const { return ptr; }
+
+    void FUN_004dd2a0();
+};
+
+class Class_004ddbe0 {
+public:
+    Class_004dd2a0 first;
+    bool second;
+
+    Class_004ddbe0();
+    Class_004ddbe0(const Class_004dd2a0& f, const bool& s);
+    Class_004ddbe0(const Class_004ddbe0& o);
+
+    Class_004ddbe0* FUN_004ddbe0(const Class_004dd2a0& f, const bool& s);
+};
+
+inline Class_004ddbe0::Class_004ddbe0() {}
+// The byte is copied before the iterator on purpose. The implicit memberwise
+// copy gives MSVC 5 the first free register for `first`, so the return slot is
+// filled with ecx/dl where the original uses edx/cl; reversing the two
+// assignments puts the byte in cl and the iterator in edx at all four return
+// sites, which is what the original does. The two-argument constructor below
+// keeps its initialiser list, and with it the stores stay in member order.
+inline Class_004ddbe0::Class_004ddbe0(const Class_004ddbe0& o)
+{
+    second = o.second;
+    first = o.first;
+}
+inline Class_004ddbe0::Class_004ddbe0(const Class_004dd2a0& f, const bool& s)
+    : first(f), second(s) {}
+
+class Class_004dce60 {
+public:
+    unsigned char allocator;           // +0x0
+    Less_004dbbc0 key_compare;         // +0x1
+    Node_004dbbc0* head;               // +0x4
+    bool multi;                        // +0x8
+    int size;                          // +0xc
+
+    static Node_004dbbc0*& Left(Node_004dbbc0* p) { return p->left; }
+    static Node_004dbbc0*& Right(Node_004dbbc0* p) { return p->right; }
+    static const unsigned int& Key(Node_004dbbc0* p) { return Kfn_004dbbc0()(p->value); }
+    Node_004dbbc0*& Root() { return head->parent; }
+    Node_004dbbc0*& Lmost() { return Left(head); }
+    Class_004dd2a0 begin() { return Class_004dd2a0(Lmost()); }
+
+    // Left rotation of x, shaped like std::_Tree<...>::_Lrotate.
+    void Lrotate(Node_004dbbc0* x)
+    {
+        std::_Lockit lock;
+        Node_004dbbc0* y = x->right;
+        x->right = y->left;
+        if (y->left != DAT_00528a54)
+            y->left->parent = x;
+        y->parent = x->parent;
+        if (x == head->parent)
+            head->parent = y;
+        else if (x == x->parent->left)
+            x->parent->left = y;
+        else
+            x->parent->right = y;
+        y->left = x;
+        x->parent = y;
+    }
+
+    // Right rotation of x, shaped like std::_Tree<...>::_Rrotate.
+    void Rrotate(Node_004dbbc0* x)
+    {
+        std::_Lockit lock;
+        Node_004dbbc0* y = x->left;
+        x->left = y->right;
+        if (y->right != DAT_00528a54)
+            y->right->parent = x;
+        y->parent = x->parent;
+        if (x == head->parent)
+            head->parent = y;
+        else if (x == x->parent->right)
+            x->parent->right = y;
+        else
+            x->parent->left = y;
+        y->right = x;
+        x->parent = y;
+    }
+
+    Class_004dd2a0 FUN_004dce60(Node_004dbbc0* x, Node_004dbbc0* y,
+                                const Pair_004dbbc0* v);
+
+    Class_004ddbe0 TreeInsert(const Pair_004dbbc0& V);
+    Class_004ddbe0 FUN_004dbbc0(const Pair_004dbbc0& V);
+};
+
 // Space Bunny Free (2026-10-01): this closes the ecx/edx question every earlier
 // round was stuck on. The original copies the pair into the return slot with the
 // byte in cl and the dword in edx at all four exits; the implicit memberwise
@@ -96,96 +241,6 @@
 // budget by then. The hand-written classes here stand in for the template's so
 // that callee names match symbols.csv (Class_004dce60 = _Insert, Class_004dd2a0
 // = iterator::_Dec, Class_004ddbe0 = pair<iterator, bool>'s constructor).
-#include <yvals.h>
-
-struct Pair_004dbbc0 {
-    unsigned int offset;
-    int length;
-};
-
-struct Node_004dbbc0 {
-    Node_004dbbc0* left;
-    Node_004dbbc0* parent;
-    Node_004dbbc0* right;
-    Pair_004dbbc0 value;
-    int color;
-};
-
-extern Node_004dbbc0* DAT_00528a54;
-
-struct Kfn_004dbbc0 {
-    const unsigned int& operator()(const Pair_004dbbc0& x) const { return x.offset; }
-};
-
-struct Less_004dbbc0 {
-    bool operator()(const unsigned int& a, const unsigned int& b) const
-    {
-        return a < b;
-    }
-};
-
-class Class_004dd2a0 {
-public:
-    Node_004dbbc0* ptr;
-
-    Class_004dd2a0() {}
-    Class_004dd2a0(Node_004dbbc0* p) : ptr(p) {}
-
-    bool operator==(const Class_004dd2a0& o) const { return ptr == o.ptr; }
-    Node_004dbbc0* Mynode() const { return ptr; }
-
-    void FUN_004dd2a0();
-};
-
-class Class_004ddbe0 {
-public:
-    Class_004dd2a0 first;
-    bool second;
-
-    Class_004ddbe0();
-    Class_004ddbe0(const Class_004dd2a0& f, const bool& s);
-    Class_004ddbe0(const Class_004ddbe0& o);
-
-    Class_004ddbe0* FUN_004ddbe0(const Class_004dd2a0& f, const bool& s);
-};
-
-inline Class_004ddbe0::Class_004ddbe0() {}
-// The byte is copied before the iterator on purpose. The implicit memberwise
-// copy gives MSVC 5 the first free register for `first`, so the return slot is
-// filled with ecx/dl where the original uses edx/cl; reversing the two
-// assignments puts the byte in cl and the iterator in edx at all four return
-// sites, which is what the original does. The two-argument constructor below
-// keeps its initialiser list, and with it the stores stay in member order.
-inline Class_004ddbe0::Class_004ddbe0(const Class_004ddbe0& o)
-{
-    second = o.second;
-    first = o.first;
-}
-inline Class_004ddbe0::Class_004ddbe0(const Class_004dd2a0& f, const bool& s)
-    : first(f), second(s) {}
-
-class Class_004dce60 {
-public:
-    unsigned char allocator;
-    Less_004dbbc0 key_compare;
-    Node_004dbbc0* head;
-    bool multi;
-    int size;
-
-    static Node_004dbbc0*& Left(Node_004dbbc0* p) { return p->left; }
-    static Node_004dbbc0*& Right(Node_004dbbc0* p) { return p->right; }
-    static const unsigned int& Key(Node_004dbbc0* p) { return Kfn_004dbbc0()(p->value); }
-    Node_004dbbc0*& Root() { return head->parent; }
-    Node_004dbbc0*& Lmost() { return Left(head); }
-    Class_004dd2a0 begin() { return Class_004dd2a0(Lmost()); }
-
-    Class_004dd2a0 FUN_004dce60(Node_004dbbc0* x, Node_004dbbc0* y,
-                                const Pair_004dbbc0* v);
-
-    Class_004ddbe0 TreeInsert(const Pair_004dbbc0& V);
-    Class_004ddbe0 FUN_004dbbc0(const Pair_004dbbc0& V);
-};
-
 inline Class_004ddbe0 Class_004dce60::TreeInsert(const Pair_004dbbc0& V)
 {
     Node_004dbbc0* X = Root();
@@ -220,4 +275,108 @@ Class_004ddbe0 Class_004dce60::FUN_004dbbc0(const Pair_004dbbc0& V)
 {
     Class_004ddbe0 ans = TreeInsert(V);
     return Class_004ddbe0(ans.first, ans.second);
+}
+
+// The out-of-line tree insert for the allocator's free-block map, shaped like
+// std::_Tree<...>::_Insert from MSVC 5's <xtree> but written out by hand. The
+// caller passes the _Nil node its search stopped at, the node to hang the new
+// one off, and the map's value_type (a block's base offset and its length, 8
+// bytes) by pointer; the tree's iterator comes back through a hidden pointer,
+// so the callee hands the caller's buffer back in eax and does `ret 0x10`.
+//
+// Under the outer std::_Lockit a 0x18-byte node is carved from the pool
+// (0x4ddd70), the pair is placement-new'd into it, the map's size is bumped and
+// the node is linked in. Then the red-black fixup walks up from the new node
+// with a cursor z, colouring and rotating until z's parent is black or the root
+// is reached, and finally blackens the root. Lrotate and Rrotate are the tree's
+// own rotation methods (0x4dd150 and 0x4dd1f0 as separate functions); /Ob2
+// inlines them here, and each inlined copy brings its own std::_Lockit scope
+// with it, which is where the four extra lock objects come from.
+//
+// Three spellings are load-bearing for the code that comes out:
+//   * the link-in test is a POSITIVE disjunction, `y == head || x != _Nil ||
+//     key_compare(v->offset, y->value.offset)`, with the shared left-child block
+//     as its then-part. That puts the right-child block in the fallthrough and
+//     makes all three tests jump to the left-child block. Because the third
+//     operand goes through the bool-returning comparator, MSVC 5 materialises it
+//     (cmp; sbb; neg; test cl,cl) instead of branching on the flags; writing the
+//     comparison inline gives a plain `jb` instead.
+//   * inside the left-child block the empty-tree case is the FIRST `if`, and it
+//     updates head->right (the rightmost node), not head->left: the leftmost
+//     node is already covered by the `y->left = p` above it.
+//   * the fixup loop tests its exit through an explicit `break`, and the
+//     re-colouring and the rotation argument are written as
+//     `z->parent->...` expressions rather than through the parent and
+//     grandparent locals, so each is re-read from the cursor. Declaring those
+//     two as locals costs a register: the cursor then shares p's and the whole
+//     fixup changes shape.
+// FUNCTION: 0x4dce60
+Class_004dd2a0 Class_004dce60::FUN_004dce60(Node_004dbbc0* x, Node_004dbbc0* y,
+                                            const Pair_004dbbc0* v)
+{
+    std::_Lockit lock;
+    Node_004dbbc0* p = (Node_004dbbc0*)((Class_004ddd70*)this)->FUN_004ddd70(0x18);
+    p->parent = y;
+    p->color = 0;                      // red
+    p->left = DAT_00528a54;
+    p->right = DAT_00528a54;
+    new ((void*)&p->value) Pair_004dbbc0(*v);
+    ++size;
+
+    if (y == head || x != DAT_00528a54 || key_compare(v->offset, y->value.offset)) {
+        y->left = p;
+        if (y == head) {
+            head->parent = p;          // the root
+            head->right = p;           // the rightmost node
+        } else if (y == head->left) {
+            head->left = p;            // the leftmost node
+        }
+    } else {
+        y->right = p;
+        if (y == head->right)
+            head->right = p;
+    }
+
+    Node_004dbbc0* z = p;
+    while (z != head->parent) {
+        if (z->parent->color != 0)
+            break;
+
+        if (z->parent == z->parent->parent->left) {
+            Node_004dbbc0* u = z->parent->parent->right;
+            if (u->color == 0) {
+                // Red uncle: recolour and carry on two levels up.
+                z->parent->color = 1;
+                u->color = 1;
+                z->parent->parent->color = 0;
+                z = z->parent->parent;
+            } else {
+                if (z == z->parent->right) {
+                    z = z->parent;
+                    Lrotate(z);
+                }
+                z->parent->color = 1;
+                z->parent->parent->color = 0;
+                Rrotate(z->parent->parent);
+            }
+        } else {
+            Node_004dbbc0* u = z->parent->parent->left;
+            if (u->color == 0) {
+                z->parent->color = 1;
+                u->color = 1;
+                z->parent->parent->color = 0;
+                z = z->parent->parent;
+            } else {
+                if (z == z->parent->left) {
+                    z = z->parent;
+                    Rrotate(z);
+                }
+                z->parent->color = 1;
+                z->parent->parent->color = 0;
+                Lrotate(z->parent->parent);
+            }
+        }
+    }
+    head->parent->color = 1;
+    return Class_004dd2a0(p);
 }

@@ -1,10 +1,15 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// A method of ParticleLists, whose other methods are in particles_470f80.cpp;
+// this one sees a list as a std::vector<Elem_00473500> and inlines its insert,
+// which comes out differently there.
+//
 // Appends an entry to the std::vector<Elem_00473500> that the short index
 // picks out of the array: 0x10 bytes per entry (MSVC 5's vector has its empty
 // allocator at +0, then _First +4, _Last +8, _End +0xc), so the index is
 // multiplied by 0x10. When the list already holds more than 400 entries its
 // oldest element is deleted and erased first, exactly as the sibling
-// ParticleLists::Add in 0x471340.cpp does for std::vector<ParticleSystem*>.
+// ParticleLists::Add in particles_470f80.cpp does for
+// std::vector<ParticleSystem*>.
 // The append is MSVC 5's inlined vector::insert(end(), 1, x) (push_back is
 // insert(end(), _X) in this <vector>), which is why the three out-of-line
 // helpers of that vector are called: 0x473500 (_Ucopy), 0x473530 (_Ufill) and

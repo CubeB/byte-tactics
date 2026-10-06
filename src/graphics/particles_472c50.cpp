@@ -77,7 +77,7 @@ struct Vec3_00475150 {
     int z;
 };
 
-struct Record_004750b0 {
+struct Class_00474fc0 {
     int unknown[8];
 };
 
@@ -85,7 +85,7 @@ struct Record_004750b0 {
 class Class_004750b0 : public ParticleSystem {
 public:
     int time;                                           // +0x8
-    std::vector<Record_004750b0> records;               // +0xc (_First +0x10)
+    std::vector<Class_00474fc0> records;               // +0xc (_First +0x10)
     char unknown_1c[0x34 - 0x1c];
 
     Class_004750b0();

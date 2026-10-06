@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
+// The rest of Pathfinder is in pathfinder.cpp; this stays apart because it
+// inlines the node pool's growth (0x40f110), which StartSearch calls.
+//
 // Cache the heuristic scale before the virtual call, then use a separate fixed-point
 // multiply helper. Keeping these helper boundaries reproduces the original inlining.
 #include <windows.h>

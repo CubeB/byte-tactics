@@ -16,7 +16,9 @@ take several rows when another one's code sits inside it.
 
 A file holding game or gap code is `src/<folder>/<module>_<address>.cpp`,
 where the address is the one the file is about (tools/sources.py's
-primary_address, without 0x). Runtime library files go to src/runtime/ under
+primary_address, without 0x). A named class's file holds all its methods and
+is named after the class (`src/network/bit_writer.cpp`): it keeps its name and
+goes to the folder of its first method. Runtime library files go to src/runtime/ under
 their own names, and data files to the folder DATA_FOLDERS gives them. The
 tools find every file by its annotations (tools/sources.py), so a move never
 changes a build. --move runs `git mv`, then rewrites the old paths where the
@@ -35,7 +37,7 @@ from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 
-from sources import ROOT, SRC, kind_of, primary_address, relative, source_files
+from sources import NAME_ADDRESS, ROOT, SRC, kind_of, primary_address, relative, source_files
 
 MODULES = ROOT / "data/modules.csv"
 # The text that names source files by path: rewritten when a file moves.
@@ -81,6 +83,8 @@ def place(src: Path) -> Path:
     row = module_of(address)
     if row is None:
         return src
+    if not NAME_ADDRESS.search(src.stem):
+        return SRC / row["folder"] / src.name
     return SRC / row["folder"] / f"{row['module']}_{address:06x}.cpp"
 
 
@@ -125,7 +129,8 @@ def main() -> None:
         for s in source_files():
             p = place(s)
             folders[p.parent.name] += 1
-            modules[(p.parent.name, p.stem.rsplit("_", 1)[0] if kind_of(s) in ("game", "gap") else p.stem)] += 1
+            row = module_of(primary_address(s)) if kind_of(s) in ("game", "gap") else None
+            modules[(p.parent.name, row["module"] if row else p.stem)] += 1
         for folder, n in sorted(folders.items(), key=lambda kv: -kv[1]):
             mods = sorted(((m, c) for (f, m), c in modules.items() if f == folder), key=lambda kv: -kv[1])
             print(f"{folder:10s} {n:5d}  " + ", ".join(f"{m} {c}" for m, c in mods))

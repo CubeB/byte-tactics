@@ -12,7 +12,7 @@
 //    are called out of line here, and the "grow and retry" tail is a call to
 //    0x4db450 plus the recursive call to 0x4db1c0. It needs `inline`, since
 //    MSVC 5 does not inline the recursive member on its own, and it is
-//    defined here without a FUNCTION line because 0x4db1c0.cpp owns that
+//    defined here without a FUNCTION line because free_block_map.cpp owns that
 //    address.
 //  * `int tries = 0;` sits just before the loop, not at the top. At the top,
 //    MSVC counts the zero of tries and of the size() test together with the

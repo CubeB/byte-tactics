@@ -2376,7 +2376,7 @@ address,name
 0x4b06f0,CobScript::~CobScript
 0x4b0720,CobScript::SetCob
 0x4b07a0,CobScript::GetCob
-0x4b07b0,FUN_004b07b0
+0x4b07b0,CobScript::FUN_004b07b0
 0x4b07c0,CobScript::FindScript
 0x4b0830,CobScript::StartThreadByName
 0x4b08c0,CobScript::StartThread

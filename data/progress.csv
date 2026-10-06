@@ -2382,7 +2382,7 @@ address,size,file,symbol,status,similarity
 0x4b06f0,43,src/units/cob_script.cpp,??1CobScript@@UAE@XZ,matched,100.0
 0x4b0720,120,src/units/cob_script.cpp,?SetCob@CobScript@@QAEXPAUScriptTable@@@Z,matched,100.0
 0x4b07a0,4,src/units/cob_script.cpp,?GetCob@CobScript@@QAEPAUScriptTable@@XZ,matched,100.0
-0x4b07b0,5,src/units/cob_4b07b0.cpp,?FUN_004b07b0@@YGHHH@Z,matched,100.0
+0x4b07b0,5,src/units/cob_script.cpp,?FUN_004b07b0@CobScript@@QAEHHH@Z,matched,100.0
 0x4b07c0,107,src/units/cob_script.cpp,?FindScript@CobScript@@QAEHPBD@Z,matched,100.0
 0x4b0830,135,src/units/cob_script.cpp,?StartThreadByName@CobScript@@QAEHPBD@Z,matched,100.0
 0x4b08c0,116,src/units/cob_script.cpp,?StartThread@CobScript@@QAEHH@Z,matched,100.0

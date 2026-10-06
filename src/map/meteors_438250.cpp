@@ -21,13 +21,13 @@ extern short DAT_00512336;
 void __stdcall LoadMeteors(HapiBank* file)
 {
     file->OpenAccount("Meteor");
-    g_meteorsEnabled = ((HapiBank*)file)->GetIntegerItem("Enabled", 0);
-    g_meteorActive = ((HapiBank*)file)->GetIntegerItem("Active", 0);
-    g_meteorNextStrikeTime = ((HapiBank*)file)->GetIntegerItem("Next Strike Time", 0);
-    g_meteorStrikeEndTime = ((HapiBank*)file)->GetIntegerItem("Time Strike Ends", 0);
-    g_meteorNextHitTime = ((HapiBank*)file)->GetIntegerItem("Next Hit Time", 0);
-    g_meteorOrigin = ((HapiBank*)file)->GetIntegerItem("Origin X", 0);
-    DAT_00512322 = ((HapiBank*)file)->GetIntegerItem("Origin Z", 0);
-    g_meteorTarget = ((HapiBank*)file)->GetIntegerItem("Target X", 0);
-    DAT_00512336 = ((HapiBank*)file)->GetIntegerItem("Target Z", 0);
+    g_meteorsEnabled = file->GetIntegerItem("Enabled", 0);
+    g_meteorActive = file->GetIntegerItem("Active", 0);
+    g_meteorNextStrikeTime = file->GetIntegerItem("Next Strike Time", 0);
+    g_meteorStrikeEndTime = file->GetIntegerItem("Time Strike Ends", 0);
+    g_meteorNextHitTime = file->GetIntegerItem("Next Hit Time", 0);
+    g_meteorOrigin = file->GetIntegerItem("Origin X", 0);
+    DAT_00512322 = file->GetIntegerItem("Origin Z", 0);
+    g_meteorTarget = file->GetIntegerItem("Target X", 0);
+    DAT_00512336 = file->GetIntegerItem("Target Z", 0);
 }

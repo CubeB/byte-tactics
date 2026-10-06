@@ -96,9 +96,9 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
         case 0:
             if (unit->motion && (unit->def->flags&0x800)) {
                 ((Class_00438880*)order)->FUN_00438880("Guarding");
-                ((Unit*)unit)->ClaimWeapons(3);
+                unit->ClaimWeapons(3);
                 if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
-                ((Unit*)unit)->SetStateBits(1,1);
+                unit->SetStateBits(1,1);
                 if ((unit->motion->flags&3)==1) {
                     unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
@@ -112,7 +112,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             }
             return 7;
         case 1:
-            ((Unit*)unit)->ReleaseWeapons(3);
+            unit->ReleaseWeapons(3);
             return 1;
         case 2: {
             Unit* attacker=order->target->attacker;
@@ -140,7 +140,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
                     }
                 }
             }
-            if (((Unit*)unit)->CanRepair(order->target)) {
+            if (unit->CanRepair(order->target)) {
                 Class_00438760 kind=FUN_0043f0e0(8,unit,order->target,0);
                 if (kind.index) {
                     ((Class_004388d0*)order)->FUN_004388d0(0);
@@ -153,7 +153,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             // Class_00438760 constructor call, and what frees the callee-saved
             // register the block's zero constant ends up in.
             if (order->target->order && order->target->order->kind.index && (unit->def->flags&0x40) &&
-                ((Unit*)unit)->CanRepair(order->target->order->target) &&
+                unit->CanRepair(order->target->order->target) &&
                 (order->target->def->flags&0x40) && order->target->order &&
                 (order->target->order->capabilities&0x100000) && unit!=order->target->order->target) {
                 int building = order->target->order->kind=="MobileBuild" || order->target->order->kind=="BuildingBuild" || order->target->order->kind=="VTOL_MobileBuild";

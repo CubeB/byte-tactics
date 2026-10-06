@@ -78,7 +78,7 @@ void Tree_004da8d0::Init()
         nil->color = 1;
         DAT_00528a50 = nil;
         nil->left = 0;
-        ((Node_004da8d0*)DAT_00528a50)->right = 0;
+        DAT_00528a50->right = 0;
     }
     Node_004da8d0* nil = (Node_004da8d0*)DAT_00528a50;
     DAT_00528a4c++;

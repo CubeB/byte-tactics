@@ -86,10 +86,10 @@ Vec3 __stdcall GetPieceOffset(Unit* unit, int piece);
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Unit*)unit)->ClaimWeapons(3);
+    unit->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Unit*)unit)->SetStateBits(1, 1);
+    unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -142,7 +142,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
         case 2:
             ((Class_00438880*)order)->FUN_00438880("Preparing for transport");
             order->piece = -1;
-            ((CobScript*)unit->script)->QueryScript("QueryTransport", &order->piece, 0, 0, 0);
+            unit->script->QueryScript("QueryTransport", &order->piece, 0, 0, 0);
             order->flags = 0x100e8;
             return 1;
         case 3: {
@@ -160,7 +160,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             // Suspected original bug: the waypoint built below is never
             // handed to the order (no FUN_004388d0 call), so it leaks.
             if (flags & 0x42) {
-                ((CobScript*)unit->script)->StartScript("EndTransport", 0, 0);
+                unit->script->StartScript("EndTransport", 0, 0);
                 return 8;
             }
             AttachUnitToPiece(target, unit, order->piece, 0);

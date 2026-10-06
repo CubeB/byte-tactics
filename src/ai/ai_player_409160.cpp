@@ -150,5 +150,5 @@ PlayerAI::PlayerAI(unsigned char p)
         g.unknown_0 = 0;
         locked.resize(n, g);
     }
-    ((PlayerAI*)this)->InitUnitTables();
+    this->InitUnitTables();
 }

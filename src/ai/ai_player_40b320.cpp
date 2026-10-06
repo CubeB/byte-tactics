@@ -14,5 +14,5 @@ void __stdcall CreatePlayerAI(int player)
 {
     PlayerAI*& slot = g_playerAI[player];
     slot = new PlayerAI(player);
-    ((PlayerAI*)slot)->ComputeBaseWeights();
+    slot->ComputeBaseWeights();
 }

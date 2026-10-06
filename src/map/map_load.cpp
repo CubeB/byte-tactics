@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, Sonnet, Haiku, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
 // FLAGS: /Gi
 // std::vector<MapCacheEntry>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, for the 8-byte {string handle, int} element of the
@@ -7,13 +7,7 @@
 // (0x437800) are out-of-line calls. Taking the member's address makes the
 // compiler emit the template instantiation out of line.
 //
-// BYTES MATCH (Claude Opus 5.5, #4416). check.py still reports the three
-// operator= calls (fill and copy_backward, +0x1ec, +0x241, +0x25f) as a wrong
-// reference: data/symbols.csv names 0x437800 `Class_00437800::Class_00437800`,
-// but it is this element's operator= (??4Class_00437820@@QAEAAV0@ABV0@@Z):
-// it assigns the handle through Assign, copies field_4 and returns
-// *this, and insert calls it on existing elements. It needs a data/aliases.csv
-// row (or the rename), not a source change.
+// BYTES MATCH (Claude Opus 5.5, #4416).
 //
 // How it matched. Without /Gi the grow arm's third copy is always built dest
 // first and _P loses edi (79.3% was the best in eight earlier passes, notes
@@ -43,7 +37,13 @@ public:
 class Class_004c91a0 {
 public:
     char* ptr;
+    Class_004c91a0(const Class_004c91a0& other);
     ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
+};
+
+class Class_004c93b0 {
+public:
+    void Assign(const Class_004c91a0& param);
 };
 
 class MapCacheEntry {
@@ -122,3 +122,20 @@ typedef void (Vec_00437580::*InsertFn_00437580)(
 
 // FUNCTION: 0x437580 ?insert@?$vector@VMapCacheEntry@@V?$allocator@VMapCacheEntry@@@std@@@std@@QAEXPAVMapCacheEntry@@IABV3@@Z
 InsertFn_00437580 g_insert_00437580 = &Vec_00437580::insert;
+
+// Out of line, as insert calls them: with inlining they are expanded into it.
+#pragma auto_inline(off)
+// FUNCTION: 0x437800
+MapCacheEntry& MapCacheEntry::operator=(const MapCacheEntry& other)
+{
+    ((Class_004c93b0*)this)->Assign(other.handle);
+    field_4 = other.field_4;
+    return *this;
+}
+
+// FUNCTION: 0x437820
+MapCacheEntry::MapCacheEntry(const MapCacheEntry& other)
+    : handle(other.handle), field_4(other.field_4)
+{
+}
+#pragma auto_inline()

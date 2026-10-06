@@ -693,7 +693,7 @@ address,name
 0x437320,Mission::GetStartPosition
 0x4373a0,Mission::ComputeMapChecksum
 0x437580,VMapCacheEntry::?$vector::insert
-0x437800,Class_00437800::Class_00437800
+0x437800,??4MapCacheEntry@@QAEAAV0@ABV0@@Z
 0x437820,MapCacheEntry::MapCacheEntry
 0x437840,UpdateMetalExtraction
 0x437910,UpdateWindGenerator

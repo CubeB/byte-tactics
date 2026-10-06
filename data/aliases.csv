@@ -19,7 +19,6 @@ Class_00476210::FUN_00476210,0x476210,"std::vector<T>::insert, matched with /Gi 
 Class_00476490::FUN_00476490,0x476490,"std::vector<T>::insert, matched with /Gi under its real name (#5040); caller 0x4751c0 uses this view name"
 Class_0046eba0::FUN_0046eba0,0x46eba0,"std::vector<Packet>::insert, matched with /Gi under its real name (#5041); caller 0x46cef0 uses this view name"
 PAUUnit::?$vector::insert,0x48ddc0,"overload: insert(iterator, const T&); 0x408f30 (insert(iterator, size_type, const T&)) now matches with /Gi under the same checker name and takes it in data/symbols.csv; caller 0x48d220 uses it for this one"
-??4MapCacheEntry@@QAEAAV0@ABV0@@Z,0x437800,"MapCacheEntry::operator=, the element assignment the /Gi vector insert 0x437580 calls (#5056); matched as the 27-byte copy constructor Class_00437800::Class_00437800, same code"
 MapCache::FUN_00437580,0x437580,"std::vector<MapCacheEntry>::insert, matched with /Gi under its real name (#5056); caller 0x4373a0 uses this view name"
 Vec_0046d860::FUN_0046f7a0,0x46f7a0,"std::vector<UnitSyncPlayer>::insert, matched with /Gi under its real name (#5042); caller 0x46dad0 uses this view name"
 UElem_0043c390::?$vector::size,0x43c360,"std::vector<Elem_0043c390>::size, matched as Class_0043c360::FUN_0043c360; reserve in 0x43bc90 and 0x43c050 calls it under its real name"

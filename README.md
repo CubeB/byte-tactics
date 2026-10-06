@@ -173,7 +173,7 @@ run's summary lists the MD5 and SHA-256 it built.
 uv run tools/check.py 0x401070
 ```
 
-1. Finds the function's file (here `src/game/unit_resources.cpp`, which
+1. Finds the function's file (here `src/game/economy.cpp`, which
    defines `UnitResources::Reset`) and compiles it with `/O2 /Ob2 /MT /Gz`.
 2. Extracts the function from the object file.
 3. Compares it with the original, ignoring bytes the linker fills in.

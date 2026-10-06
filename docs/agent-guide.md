@@ -204,7 +204,7 @@ their whole budget.
 - **A global `std::vector`**: a function that copies one byte from an
   uninitialised stack slot (`push ecx; mov al, [esp+3]`), zeroes the next three
   dwords of a global, then calls `atexit` is the compiler-generated
-  initialiser for `std::vector<T> global;`. See `src/map/meteors_438450.cpp`.
+  initialiser for `std::vector<T> global;`. See `src/map/meteors.cpp`.
   Compiler-generated functions have no definition to annotate, so put the
   symbol after the address: `// FUNCTION: 0x438450 _$E5`.
 - **Division by a constant** compiles to a multiply by a "magic" number plus
@@ -858,7 +858,7 @@ Look for it instead of blaming the compiler:
   A plain `while` gets rotated and its identical branches merged.
 - **A global "vector" whose atexit destructor has no destroy loop** (no
   `push ecx`/dead store): a vector-shaped custom container, not `std::vector`.
-  See `src/map/meteors_438450.cpp` and `0x438480.cpp`.
+  See `src/map/meteors.cpp` (0x438450 and 0x438480).
 
 ## Saving check.py runs
 
@@ -1060,7 +1060,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   earlier function): define the real preceding function (`ctx.py` on the
   address just before yours) in the same file, above yours. That is how the
   original file was laid out, so it is not a trick; never define made-up
-  functions for this. See `src/units/cob_script.cpp` (StartThreadByName). If that function
+  functions for this. See `src/units/cob.cpp` (StartThreadByName). If that function
   already has its own file under `src/`, define it **without** a
   `// FUNCTION:` line: an address annotated in two files stops the progress
   check ("duplicate of"). 0x43f0e0 (copying 0x43e490), 0x49b720 (0x49b6e0)
@@ -1071,7 +1071,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   returning `this`**: a copy constructor of a class whose first member has that
   constructor. Write it with a member-initialiser list,
   `X::X(const X& o) : handle(o.handle), a(o.a) {}`; a constructor cannot be
-  called through a pointer. See `src/map/map_load_437820.cpp` and `0x4b7e30.cpp`.
+  called through a pointer. See `src/map/map_load.cpp` and `0x4b7e30.cpp`.
 - **Ordinal imports called directly** (`call [iat]` into smackw32 or DPLAYX):
   declare the real API as `extern "C" __declspec(dllimport) ... __stdcall`;
   `Original().pe.DIRECTORY_ENTRY_IMPORT` shows which DLL and ordinal a slot holds.
@@ -1116,7 +1116,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A `??_G` with the destructor inlined**: give the class an inline virtual
   destructor and add a static object whose constructor is only declared; MSVC
   then emits the vtable and the `??_G` (see 0x470ae0.cpp). Annotate the atexit
-  destructor of a global as `_$E2` next to its `_$E4` (see 0x44f720.cpp).
+  destructor of a global as `_$E2` next to its `_$E4` (see src/network/net_condenser.cpp).
 - **Ghidra's return value can be a leftover**: when `eax` only holds what a
   final `idiv` or call left there and no caller reads it (`called from 0
   place(s)`, or callers ignore `eax`), the function returns `void` (0x47a8e0:
@@ -2145,7 +2145,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   classes (the second with a pure virtual).
 - **Static vs external global objects**: if the atexit destructor of a global
   `std::vector` keeps `_First` in a callee-saved register on the empty path, the
-  vector is a file-scope `static` (see `0x434a30.cpp`); the checker accepts the
+  vector is a file-scope `static` (see `map_list.cpp`); the checker accepts the
   compiler's `$S`-suffixed name.
 - **Two pointers walking one struct array**, one at +0 and one into the middle
   of a group of fields: the group was accessed through an inlined helper taking

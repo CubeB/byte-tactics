@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 
-// Bit reader, see src/network/bit_reader.cpp.
+// Bit reader, see src/network/net_stats.cpp.
 class BitReader {
 public:
     int ReadBits(int bits);

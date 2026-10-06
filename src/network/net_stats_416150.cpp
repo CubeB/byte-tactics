@@ -3,6 +3,10 @@
 // sent and received byte counters (see 0x415f40) into per-second rates, and
 // returns the latest rates. Needs a header (headers.py: <stdlib.h>) for the
 // first rate's store to be scheduled after the second counter's update.
+//
+// It stays out of src/network/net_stats.cpp: it matches only without
+// <ddraw.h>, and FormatNetStats (0x415fa0) in that file matches only with it
+// (tools/headers.py).
 #include <stdlib.h>
 
 extern int DAT_00511bc8;

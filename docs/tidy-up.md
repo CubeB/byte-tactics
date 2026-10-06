@@ -361,7 +361,7 @@ This is #2662's phases 2 to 4, now in the tidied tree:
 ### One file per class
 
 A named class's methods are being gathered into one file named after the
-class, in the folder of its first method (`src/network/bit_writer.cpp`,
+class, in the folder of its first method (`src/network/frame_queue.cpp`,
 `src/util/tdf_record.cpp`); a placeholder class's file takes the usual
 `<module>_<address>.cpp` name of its first method. `tools/modules.py --check`
 accepts a file whose name holds no address in that folder. Each merge

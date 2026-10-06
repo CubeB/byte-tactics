@@ -1,6 +1,6 @@
 // Decompiled by Haiku and Opus. Names are provisional.
 // The compiler-generated scalar deleting destructor of UnitScript, the
-// only class derived from CobScript (src/units/cob_script.cpp). Its
+// only class derived from CobScript (src/units/cob.cpp). Its
 // vtable at 0x4fd698 has the base's 21 slots, all overridden; slot 20 holds
 // this function. The derived class has no destructor of its own, so the
 // implicit one only calls the base destructor.

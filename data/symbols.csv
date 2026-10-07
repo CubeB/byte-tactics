@@ -4166,7 +4166,7 @@ address,name
 0x50338c,DAT_0050338c
 0x50341c,DAT_0050341c
 0x50372c,DAT_0050372c
-0x503ea0,DAT_00503ea0
+0x503ea0,g_noneString
 0x504314,g_sayChoiceArrayName
 0x5048f8,g_maxUnitsKey
 0x504904,g_radarImageBoxName

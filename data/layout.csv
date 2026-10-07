@@ -3542,7 +3542,7 @@ piece,0x4fed68,24,src/frontend/multi_4441a0.cpp,14,48,game data
 piece,0x4fed80,16,src/frontend/multi_4441a0.cpp,14,72,game data
 piece,0x503934,14,src/units/unit_types_42a8d0.cpp,44,0,game data
 piece,0x5122a8,4,src/units/unit_types_42a8d0.cpp,43,8,game data
-piece,0x5122a4,4,src/units/unit_types_42a8d0.cpp,43,4,game data
+piece,0x5122a4,4,src/units/unit_types_42a8d0.cpp,43,0,game data
 piece,0x50392c,8,src/units/unit_types_42a8d0.cpp,41,0,game data
 piece,0x503928,4,src/units/unit_types_42a8d0.cpp,40,0,game data
 piece,0x503920,6,src/units/unit_types_42a8d0.cpp,38,0,game data
@@ -12522,7 +12522,7 @@ same,0x5295c4,1,src/debug/debug_lib_4e06f0.cpp,3,24,
 same,0x4e0730,16,src/debug/debug_lib_4e06f0.cpp,5,0,
 same,0x4e1450,16,src/debug/debug_lib_4e1410.cpp,5,0,
 same,0x4e1b00,16,src/debug/debug_lib_4e1ac0.cpp,5,0,
-same,0x5122a0,4,src/units/unit_types_42a8d0.cpp,43,0,
+same,0x5122a0,4,src/units/unit_types_42a8d0.cpp,43,4,
 same,0x50341c,4,src/units/unit_types_42a8d0.cpp,42,0,
 same,0x50372c,2,src/units/unit_types_42a8d0.cpp,39,0,
 same,0x502b38,8,src/frontend/multi_4441a0.cpp,3,0,

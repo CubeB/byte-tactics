@@ -180,7 +180,7 @@ struct Game {
 extern Game* g_game;
 // File statics, not externs: with an extern count new[] reads its own copy.
 static TdfFile* DAT_005122a0;
-static int DAT_005122a4;
+static int s_weaponTdfLoadedCount;
 static int DAT_005122a8;
 
 extern char DAT_005119b8[];
@@ -216,11 +216,11 @@ static inline void LoadWeaponTDFs()
     DAT_005122a0 = new TdfFile[DAT_005122a8];
     for (Elem_00432be0* it = files.begin(); it < files.end(); it++) {
         char path[256];
-        TdfFile* tdf = &DAT_005122a0[DAT_005122a4];
+        TdfFile* tdf = &DAT_005122a0[s_weaponTdfLoadedCount];
         BuildDataPath(path, "Weapons", it->data, "TDF");
         if (((TdfFile*)tdf)->LoadFile(path)) {
             if (tdf->field_8 != 0 || FUN_0041d8a0() == 0)
-                DAT_005122a4++;
+                s_weaponTdfLoadedCount++;
         }
     }
 }
@@ -229,7 +229,7 @@ static inline void LoadWeaponTDFs()
 static inline int FindWeapon(char* name)
 {
     if (name != 0 && *name != 0) {
-        for (int k = 0; k < DAT_005122a4; k++) {
+        for (int k = 0; k < s_weaponTdfLoadedCount; k++) {
             TdfFile* tdf = &DAT_005122a0[k];
             ((TdfFile*)tdf)->ResetCurrentRecord();
             if (((TdfFile*)tdf)->SelectRecord(name))
@@ -340,7 +340,7 @@ int LoadUnitInfo()
 
     delete[] DAT_005122a0;
     DAT_005122a0 = 0;
-    DAT_005122a4 = 0;
+    s_weaponTdfLoadedCount = 0;
     DAT_005122a8 = 0;
 
     // Drop the units marked incompatible, moving the last kept one into each

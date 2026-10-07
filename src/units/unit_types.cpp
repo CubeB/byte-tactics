@@ -362,7 +362,7 @@ struct MissionHolder {
 
 extern Game* g_game;
 extern char DAT_005119b8[];
-extern char DAT_00503ea0[];
+extern char g_noneString[];
 
 void* __stdcall GetCategoryMask(char* name);
 void __stdcall GetLocalizedString(void* parser, char* dst, char* key, int size, char* def);
@@ -585,13 +585,13 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             parser.current->GetFieldString(buf, "defaultmissiontype", 100, DAT_005119b8);
             MissionHolder m(buf);
             unitdef->defaultmissiontype = m.mission.value;
-            parser.current->GetFieldString(buf, "wpri_badTargetCategory", 100, DAT_00503ea0);
+            parser.current->GetFieldString(buf, "wpri_badTargetCategory", 100, g_noneString);
             unitdef->weaponCategories[0] = GetCategoryMask(buf);
-            parser.current->GetFieldString(buf, "wsec_badTargetCategory", 100, DAT_00503ea0);
+            parser.current->GetFieldString(buf, "wsec_badTargetCategory", 100, g_noneString);
             unitdef->weaponCategories[1] = GetCategoryMask(buf);
-            parser.current->GetFieldString(buf, "wspe_badTargetCategory", 100, DAT_00503ea0);
+            parser.current->GetFieldString(buf, "wspe_badTargetCategory", 100, g_noneString);
             unitdef->weaponCategories[2] = GetCategoryMask(buf);
-            parser.current->GetFieldString(buf, "noChaseCategory", 100, DAT_00503ea0);
+            parser.current->GetFieldString(buf, "noChaseCategory", 100, g_noneString);
             unitdef->nochasecategory = GetCategoryMask(buf);
             if (parser.current
                     ->GetFieldString(unitdef->objectname, "objectname", 0x20, DAT_005119b8) == 0) {

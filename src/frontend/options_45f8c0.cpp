@@ -58,22 +58,8 @@ struct Page_0045f8c0 {
     int last;                         // +0x8
 };
 
-class TdfRecord {
-public:
-    char unknown_0[0x19];
-    int GetFieldString(char* dst, char* key, size_t size, char* def);
-};
+#include "../util/tdf.h"
 
-class TdfFile {
-public:
-    int field_0;
-    TdfRecord* current;               // +0x4
-    int field_8;
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    int SelectRecord(char* name);
-};
 
 extern int DAT_00512ef0;
 extern char DAT_005119b8[];

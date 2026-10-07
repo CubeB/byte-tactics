@@ -6,16 +6,7 @@
 #include <stdio.h>
 #include <windows.h>
 
-class TdfFile {
-public:
-    int field_0;                       // +0x0
-    int field_4;                       // +0x4
-    int field_8;                       // +0x8
-
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-};
+#include "../util/tdf.h"
 
 struct Gadget_00425d80 {
     char unknown_0[0x60];

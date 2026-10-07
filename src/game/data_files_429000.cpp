@@ -1,21 +1,8 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 #include <string.h>
 
-class TdfFile {
-public:
-    int field_0;
-    void* current;                      // +0x4
-    int field_8;
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    int SelectRecord(char* name);
-};
+#include "../util/tdf.h"
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, int size, char* def);
-};
 
 extern char DAT_005119b8[];
 extern char* g_game;
@@ -35,7 +22,7 @@ void CheckGpfVersion()
     BuildDataPath(path, "gamedata", "version", "tdf");
     if (((TdfFile*)&parser)->LoadFile(path)) {
         if (((TdfFile*)&parser)->SelectRecord("Version")) {
-            if (((TdfRecord*)parser.current)->GetFieldString(buf, "GPFVersion", 0x40, DAT_005119b8)) {
+            if (parser.current->GetFieldString(buf, "GPFVersion", 0x40, DAT_005119b8)) {
                 found = 1;
                 if (_strcmpi("v3.0", buf) != 0) {
                     OpenMessageBox(g_game + 0x519,

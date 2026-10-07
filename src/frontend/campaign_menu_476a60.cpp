@@ -11,21 +11,8 @@
 // name pointer in a stack slot, which is the original's allocation.
 #include <string.h>
 
-class TdfFile {
-public:
-    int field_0;
-    void* current;                      // +0x4
-    int field_8;
-    TdfFile();
-    ~TdfFile();
-    int LoadFile(char* file);
-    int SelectRecord(char* name);
-};
+#include "../util/tdf.h"
 
-class TdfRecord {
-public:
-    int GetFieldString(char* dst, char* key, int size, char* def);
-};
 
 #pragma pack(push, 1)
 struct Game {
@@ -69,7 +56,7 @@ int __stdcall BuildCampaignNameList(char** out, int side)
         BuildDataPath(path, "camps", q, "tdf");
         if (((TdfFile*)&parser)->LoadFile(path)) {
             if (((TdfFile*)&parser)->SelectRecord("HEADER")) {
-                ((TdfRecord*)parser.current)->GetFieldString(name, "campaignside", 0x40, DAT_005119b8);
+                parser.current->GetFieldString(name, "campaignside", 0x40, DAT_005119b8);
                 if (strcmp(g_game->names[side], name) == 0 || strcmp("ALL", name) == 0) {
                     found++;
                     p = AppendName_00476a60(p, q);

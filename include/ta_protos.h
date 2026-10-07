@@ -1036,7 +1036,7 @@ struct _iobuf;
 struct tagPALETTEENTRY;
 struct tagRECT;
 
-void FUN_00401320(Obj_00401320*, float, float);
+void SettleResourceAccount(Obj_00401320*, float, float);
 void UpdatePlayerEconomy(Player_00401360*);
 int StopOrder(Unit_00401c20*, Class_00438880*, int);
 int MakeSelectableOrder(Unit_00401cc0*, Class_00438880*, int);

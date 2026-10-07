@@ -76,8 +76,8 @@ public:
     Player* player;                    // +0x30
 
     void Reset(unsigned char playerIndex);
-    int FUN_00401180(UnitResources* r, float amount);
-    int FUN_004011c0(float dx, float dy);
+    int RequestEnergy(UnitResources* r, float amount);
+    int RequestEnergyAndMetal(float dx, float dy);
     int SpendEnergy(float amount);
     int SpendMetal(float amount);
     int SpendEnergyAndMetal(float energy, float metal);
@@ -187,7 +187,7 @@ struct Holder_00401000 {
 Holder_00401000 g_holder_00401000;
 
 // FUNCTION: 0x401030
-void __stdcall FUN_00401030(Obj* base, int stride, int count, ThisFn func)
+void __stdcall CallOnEachReverse(Obj* base, int stride, int count, ThisFn func)
 {
     base = (Obj*)((char*)base + count * stride);
     while (--count >= 0) {
@@ -229,7 +229,7 @@ void Class_00401110::LoadUnitAccounts(UnitInfo* info, HapiBank* file)
 }
 
 // FUNCTION: 0x401180
-int UnitResources::FUN_00401180(UnitResources* r, float amount)
+int UnitResources::RequestEnergy(UnitResources* r, float amount)
 {
     r->res[0].used += amount;
     if (r->res[0].backlog > 0.0f)
@@ -239,7 +239,7 @@ int UnitResources::FUN_00401180(UnitResources* r, float amount)
 }
 
 // FUNCTION: 0x4011c0
-int UnitResources::FUN_004011c0(float dx, float dy)
+int UnitResources::RequestEnergyAndMetal(float dx, float dy)
 {
     res[0].used += dx;
     res[1].used += dy;
@@ -290,7 +290,7 @@ int UnitResources::SpendEnergyAndMetal(float energy, float metal)
 }
 
 // FUNCTION: 0x401320
-void __stdcall FUN_00401320(Obj_00401320* p, float a, float b)
+void __stdcall SettleResourceAccount(Obj_00401320* p, float a, float b)
 {
     p->prev1 = p->x1;
     p->prev0 = p->x0;

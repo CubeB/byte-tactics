@@ -33,7 +33,7 @@ public:
     char unknown_0[0x18];
     float metal;                       // +0x18
     char unknown_1c[0x28 - 0x1c];
-    int FUN_004011c0(float energy, float metal);
+    int RequestEnergyAndMetal(float energy, float metal);
 };
 
 class Class_00438760 {
@@ -713,7 +713,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
 // Order handler "Nanolathing" of a building that stockpiles weapons (the
 // "BuildingBuild" entry of the order table at 0x4fc490): builds `count`
 // rounds for weapon `weapon`, 5 ticks of build time per step, paying the
-// energy and metal share of each step (energy first, as FUN_004011c0 takes
+// energy and metal share of each step (energy first, as RequestEnergyAndMetal takes
 // them), up to 200 stockpiled rounds.
 // FUNCTION: 0x402b70
 int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
@@ -744,7 +744,7 @@ int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
         fprev = prev;
         int metalCharge = (int)(fnext * t->metalCost / ftotal) - (int)(fprev * t->metalCost / ftotal);
         energyCharge = (int)(fnext * t->energyCost / ftotal) - (int)(fprev * t->energyCost / ftotal);
-        if (unit->resources.FUN_004011c0(energyCharge, metalCharge)) {
+        if (unit->resources.RequestEnergyAndMetal(energyCharge, metalCharge)) {
             order->progress = next;
             if (next >= t->buildTime)
                 return 1;

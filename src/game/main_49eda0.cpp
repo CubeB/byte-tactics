@@ -40,8 +40,8 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 int __stdcall ExceptionFilter(EXCEPTION_POINTERS* exception, const char* thread);
 bool __cdecl FUN_004da0e0(const char* arg);
 void __stdcall FUN_0045b670(char* param_1);
-void __stdcall FUN_0041d4b0(int val);
-void __stdcall FUN_0041d4a0(int val);
+void __stdcall SetBypassDriveScan(int val);
+void __stdcall SetCommandLineUnusedFlagL(int val);
 void __stdcall FUN_0045b820(int flag, char* text);
 void __stdcall SetDirectConnectAddress(char* param_1);
 void __stdcall FUN_0045b860(int param_1);
@@ -148,7 +148,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
             }
             case 'F':
             case 'f':
-                FUN_0041d4b0(1);
+                SetBypassDriveScan(1);
                 break;
             case 'H':
             case 'h':
@@ -163,7 +163,7 @@ int __stdcall ParseCommandLine(char* cmdLine, char* appName)
                 break;
             case 'L':
             case 'l':
-                FUN_0041d4a0(0);
+                SetCommandLineUnusedFlagL(0);
                 break;
             case 'N':
             case 'n':

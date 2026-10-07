@@ -31,10 +31,10 @@ unsigned char DAT_00501d18[32] = {
 char DAT_00502288[8] = "Mapping";  // 0x502288 .data
 char DAT_005024fc[16] = "%s\\screenshots";  // 0x5024fc .data
 const char DAT_00502820[8] = "guis";  // 0x502820 .data
-char DAT_00502878[12] = "X Position";  // 0x502878 .data
-char DAT_00502884[12] = "Z Position";  // 0x502884 .data
-char DAT_00502890[8] = "Camera";  // 0x502890 .data
-int DAT_00502898 = 1;  // 0x502898 .data
+char g_cameraXPosition[12] = "X Position";  // 0x502878 .data
+char g_cameraZPosition[12] = "Z Position";  // 0x502884 .data
+char g_cameraAccount[8] = "Camera";  // 0x502890 .data
+int g_commandLineUnusedFlagL = 1;  // 0x502898 .data
 int DAT_0050289c = 1;  // 0x50289c .data
 char DAT_005028f8[12] = "Campaign";  // 0x5028f8 .data
 char DAT_00502910[4] = ".";  // 0x502910 .data
@@ -367,7 +367,7 @@ int DAT_00511dd4;  // 0x511dd4 .bss
 unsigned int g_netStatsTick;  // 0x511dd8 .bss
 unsigned int g_byteRatesTick;  // 0x511ddc .bss
 int DAT_00511de0;  // 0x511de0 .bss
-int DAT_00511de4;  // 0x511de4 .bss
+int g_cdPathMismatch;  // 0x511de4 .bss
 Game* g_game;  // 0x511de8 .bss
 int DAT_00511dec;  // 0x511dec .bss
 unsigned char DAT_00511f80[16];  // 0x511f80 .bss

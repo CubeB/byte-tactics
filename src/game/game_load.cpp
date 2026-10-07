@@ -408,7 +408,7 @@ void FUN_00465e30();
 void __stdcall RecalculateLineOfSight(int x);
 void __stdcall LoadSavedGameState(void* mission);
 void CreateMissionUnits();
-void FUN_0041d1f0();
+void CenterCameraOnStartPosition();
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void BroadcastPlayerInfo();
 void UpdateNetGameInfo();
@@ -750,7 +750,7 @@ void __cdecl LoadMatch(void*)
         goto tail;
     }
     CreateMissionUnits();
-    FUN_0041d1f0();
+    CenterCameraOnStartPosition();
 
 tail:
     {

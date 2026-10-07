@@ -61,11 +61,11 @@ struct Game {
 // GLOBAL: 0x511de8
 extern Game* g_game;
 
-extern char DAT_00502890[]; // "Camera"
-extern char DAT_00502884[]; // "Z Position"
-extern char DAT_00502878[]; // "X Position"
+extern char g_cameraAccount[]; // "Camera"
+extern char g_cameraZPosition[]; // "Z Position"
+extern char g_cameraXPosition[]; // "X Position"
 
-extern int DAT_00502898;
+extern int g_commandLineUnusedFlagL;
 extern int DAT_00511de0;
 
 void ClampCameraPosition(void);
@@ -78,7 +78,7 @@ static inline void SetPos(int x, int y)
 
 // Centres the camera on the screen position stored at +0x2c76, then clamps it.
 // FUNCTION: 0x41d0f0
-void FUN_0041d0f0()
+void CenterCameraOnRadarClick()
 {
     Rect_0041d0f0 r = g_game->view;
     int y = g_game->world_h * (r.y - g_game->origin_y) / g_game->screen_h - g_game->viewHeight / 2;
@@ -96,7 +96,7 @@ void FUN_0041d0f0()
 }
 
 // FUNCTION: 0x41d1f0
-void FUN_0041d1f0()
+void CenterCameraOnStartPosition()
 {
     int i = 0;
     Entry_0041d1f0* e = g_game->net->entries;
@@ -119,9 +119,9 @@ void FUN_0041d1f0()
 // FUNCTION: 0x41d2b0
 void __stdcall ReadCameraPosition(HapiBank* file)
 {
-    file->OpenAccount(DAT_00502890);
-    int z = ((HapiBank*)file)->GetIntegerItem(DAT_00502884, g_game->y);
-    int x = ((HapiBank*)file)->GetIntegerItem(DAT_00502878, g_game->x);
+    file->OpenAccount(g_cameraAccount);
+    int z = ((HapiBank*)file)->GetIntegerItem(g_cameraZPosition, g_game->y);
+    int x = ((HapiBank*)file)->GetIntegerItem(g_cameraXPosition, g_game->x);
     g_game->x = x;
     g_game->y = z;
     g_game->flags_142f1 |= 2;
@@ -135,9 +135,9 @@ void __stdcall ReadCameraPosition(HapiBank* file)
 // FUNCTION: 0x41d360
 void __stdcall WriteCameraPosition(HapiBank* file)
 {
-    file->OpenAccount(DAT_00502890);
-    ((HapiBank*)file)->SetIntegerItem(DAT_00502878, *(int*)((char*)g_game + 0x1431f));
-    ((HapiBank*)file)->SetIntegerItem(DAT_00502884, *(int*)((char*)g_game + 0x14323));
+    file->OpenAccount(g_cameraAccount);
+    ((HapiBank*)file)->SetIntegerItem(g_cameraXPosition, *(int*)((char*)g_game + 0x1431f));
+    ((HapiBank*)file)->SetIntegerItem(g_cameraZPosition, *(int*)((char*)g_game + 0x14323));
 }
 
 // FUNCTION: 0x41d3b0
@@ -165,13 +165,13 @@ void __stdcall RestoreCameraPosition(int index)
 }
 
 // FUNCTION: 0x41d4a0
-void __stdcall FUN_0041d4a0(int val)
+void __stdcall SetCommandLineUnusedFlagL(int val)
 {
-    DAT_00502898 = val;
+    g_commandLineUnusedFlagL = val;
 }
 
 // FUNCTION: 0x41d4b0
-void __stdcall FUN_0041d4b0(int val)
+void __stdcall SetBypassDriveScan(int val)
 {
     DAT_00511de0 = val;
 }

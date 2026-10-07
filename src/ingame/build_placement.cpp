@@ -137,7 +137,7 @@ void BeginMouseScroll();
 void FUN_004197d0();
 void FUN_0041c180();
 void UpdateMouseScroll();
-void FUN_0041d0f0();
+void CenterCameraOnRadarClick();
 void __stdcall FUN_0041d9f0(int a);
 void BlankScreen();
 int FUN_004572a0();
@@ -309,13 +309,13 @@ void BattleFrame(void)
             if (view.msg == 0x205) {
                 g_game->flags_2cc6 = flags & 0xef;
             } else {
-                FUN_0041d0f0();
+                CenterCameraOnRadarClick();
             }
         } else {
             if (view.msg == 0x202) {
                 g_game->flags_2cc6 = flags & 0xef;
             } else {
-                FUN_0041d0f0();
+                CenterCameraOnRadarClick();
             }
         }
     } else if (g_game->field_2cdf != 0) {

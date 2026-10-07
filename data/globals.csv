@@ -95,10 +95,10 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x502288,DAT_00502288,.data,8,gap,string,char[],1,0,1,one type,1,,s_Mapping_00502288,,,4d617070696e6700
 0x5024fc,DAT_005024fc,.data,16,gap,string,char[],1,0,1,one type,1,,s__s_screenshots_005024fc,,,25735c73637265656e73686f74730000
 0x502820,DAT_00502820,.data,8,gap,string,const char[],1,0,1,one type,1,,DAT_00502820,,,6775697300000000
-0x502878,DAT_00502878,.data,12,gap,string,char[],1,0,1,one type,1,,s_X_Position_00502878,,,5820506f736974696f6e0000
-0x502884,DAT_00502884,.data,12,gap,string,char[],1,0,1,one type,1,,s_Z_Position_00502884,,,5a20506f736974696f6e0000
-0x502890,DAT_00502890,.data,8,gap,string,char[],1,0,1,one type,1,,s_Camera_00502890,,,43616d6572610000
-0x502898,DAT_00502898,.data,4,type,data,int,1,0,1,one type,1,,_DAT_00502898,,,01000000
+0x502878,g_cameraXPosition,.data,12,gap,string,char[],1,0,1,one type,1,,s_X_Position_00502878,,,5820506f736974696f6e0000
+0x502884,g_cameraZPosition,.data,12,gap,string,char[],1,0,1,one type,1,,s_Z_Position_00502884,,,5a20506f736974696f6e0000
+0x502890,g_cameraAccount,.data,8,gap,string,char[],1,0,1,one type,1,,s_Camera_00502890,,,43616d6572610000
+0x502898,g_commandLineUnusedFlagL,.data,4,type,data,int,1,0,1,one type,1,,_DAT_00502898,,,01000000
 0x50289c,DAT_0050289c,.data,4,type,data,int,1,0,1,one type,1,,DAT_0050289c,,,01000000
 0x5028f8,DAT_005028f8,.data,12,gap,string,char[],1,0,1,one type,1,,s_Campaign_005028f8,,,43616d706169676e00000000
 0x502910,DAT_00502910,.data,4,gap,data,char[],1,0,1,one type,1,,DAT_00502910,,,2e000000
@@ -354,7 +354,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511dd8,g_netStatsTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511dd8,,,
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,DAT_00511ddc,,,
 0x511de0,DAT_00511de0,.bss,4,type,data,int,2,0,1,one type,2,,DAT_00511de0,,,
-0x511de4,DAT_00511de4,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
+0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511de4,,,
 0x511de8,g_game,.bss,4,type,data,Game*,775,104,15,conflicting: shape,879,,DAT_00511de8,,,
 0x511dec,DAT_00511dec,.bss,4,type,data,int,1,0,1,one type,1,,DAT_00511dec,,,
 0x511df0,DAT_00511df0,.bss,400,type,data,int[100],2,5,6,conflicting: shape,7,0x190,DAT_00511df0,,,

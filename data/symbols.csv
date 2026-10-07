@@ -2131,7 +2131,7 @@ address,name
 0x49f680,PlayWavMemory
 0x49f6a0,PlayLoopingWavMemory
 0x49f6c0,PlayWavFromDisk
-0x49f710,FUN_0049f710
+0x49f710,DirectDrawCreateThunk
 0x49f8c0,HasGadgetNamed
 0x49f930,SetGadgetName
 0x49f9c0,RunWhileScreenNamed

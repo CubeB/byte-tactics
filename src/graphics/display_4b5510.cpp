@@ -63,7 +63,7 @@ extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
 extern Display_004b5510 *g_display;
 
-int __stdcall FUN_0049f710(int guid, void *display, int zero);
+int __stdcall DirectDrawCreateThunk(int guid, void *display, int zero);
 void __stdcall ReleaseDirectDraw(Display_004b5510 *d);
 void __stdcall InitSurface(Class_004c6a60 *s, int width, int height, int a, int b);
 int __stdcall LockScreen(Surface *s);
@@ -119,7 +119,7 @@ int __stdcall SetFullScreen(int mode) {
     if (mode != 0) {
         g_display->field_f0 |= 2;
 
-        hr = FUN_0049f710(0, &dd->ddraw, 0);
+        hr = DirectDrawCreateThunk(0, &dd->ddraw, 0);
         if (hr == DD_OK) {
             hr = dd->ddraw->SetCooperativeLevel(d->hwnd, 0x53);
             if (hr == DD_OK) {

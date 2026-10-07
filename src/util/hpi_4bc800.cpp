@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// Stays in its own file: it is gap code (0x4bc800), and tools/gapcheck.py
+// sizes a region's functions by the next annotation in the file, so a file
+// that also holds functions outside the region cannot be its source.
 #include <malloc.h>
 #include <string.h>
 

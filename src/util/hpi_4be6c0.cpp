@@ -1,4 +1,7 @@
 // Decompiled by Sonnet 5.5. Names are provisional.
+// Stays in its own file: hpi_4bc4b0.cpp's hand-written std::vector keeps this
+// insert out of line at the call sites in ListDirectory and FindFilesRecursive
+// (0x4bca30 and 0x4bcb50), which the real <vector> would inline.
 // std::vector<Class_004c91a0>::insert(iterator, size_type, const T&), out of
 // line, for a vector of reference-counted string handles (4 bytes each). The
 // copy constructor is 0x4c91a0, the assignment 0x4c93b0 and the destructor

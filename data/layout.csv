@@ -3891,17 +3891,17 @@ piece,0x50a5f4,13,src/gui/mouse.cpp,30,0,game data
 piece,0x50a5e8,12,src/gui/mouse.cpp,29,0,game data
 piece,0x50a5dc,12,src/gui/mouse.cpp,28,0,game data
 piece,0x50a5d0,12,src/gui/mouse.cpp,27,0,game data
-piece,0x505f10,3,src/util/hpi_4be180.cpp,3,0,game data
-piece,0x50a5a8,23,src/util/hpi_4bdd70.cpp,6,0,game data
-piece,0x50a564,5,src/util/hpi_4bdd70.cpp,5,0,game data
-piece,0x50a598,16,src/util/hpi_4bdd70.cpp,3,0,game data
-piece,0x50a478,12,src/util/hpi_4bd830.cpp,7,0,game data
-piece,0x50a58c,12,src/util/hpi_4bd830.cpp,6,0,game data
-piece,0x50a580,12,src/util/hpi_4bd830.cpp,5,0,game data
-piece,0x50a560,3,src/util/hpi_4bd160.cpp,5,0,game data
-piece,0x50a554,12,src/util/hpi_4bcf80.cpp,3,0,game data
-piece,0x50a54c,5,src/util/hpi_4bcb50.cpp,6,0,game data
-piece,0x504594,6,src/util/hpi_4bcb50.cpp,3,0,game data
+piece,0x505f10,3,src/util/hpi_4bc4b0.cpp,37,0,game data
+piece,0x50a5a8,23,src/util/hpi_4bc4b0.cpp,61,0,game data
+piece,0x50a564,5,src/util/hpi_4bc4b0.cpp,46,0,game data
+piece,0x50a598,16,src/util/hpi_4bc4b0.cpp,60,0,game data
+piece,0x50a478,12,src/util/hpi_4bc4b0.cpp,56,0,game data
+piece,0x50a58c,12,src/util/hpi_4bc4b0.cpp,55,0,game data
+piece,0x50a580,12,src/util/hpi_4bc4b0.cpp,54,0,game data
+piece,0x50a560,3,src/util/hpi_4bc4b0.cpp,44,0,game data
+piece,0x50a554,12,src/util/hpi_4bc4b0.cpp,36,0,game data
+piece,0x50a54c,5,src/util/hpi_4bc4b0.cpp,19,0,game data
+piece,0x504594,6,src/util/hpi_4bc4b0.cpp,18,0,game data
 piece,0x50a530,21,src/util/hpi_4bc4b0.cpp,5,0,game data
 piece,0x50a52c,4,src/util/hpi_4bc4b0.cpp,4,0,game data
 piece,0x50a514,19,src/util/hpi_4bb190.cpp,39,0,game data
@@ -12440,21 +12440,11 @@ same,0x51fbc0,16,src/util/int_map_4b2340.cpp,6,0,
 same,0x51fbc0,16,src/util/int_map_4b2540.cpp,3,288,
 same,0x502910,2,src/graphics/palette_4baff0.cpp,3,0,
 same,0x50372c,2,src/util/hpi_4bc4b0.cpp,3,0,
-same,0x502910,2,src/util/hpi_4bc930.cpp,4,0,
-same,0x50a548,3,src/util/hpi_4bc930.cpp,3,0,
-same,0x502910,2,src/util/hpi_4bca30.cpp,4,0,
-same,0x50a548,3,src/util/hpi_4bca30.cpp,3,0,
-same,0x502910,2,src/util/hpi_4bcb50.cpp,5,0,
-same,0x50a548,3,src/util/hpi_4bcb50.cpp,4,0,
-same,0x502910,2,src/util/hpi_4bcd10.cpp,4,0,
-same,0x50a548,3,src/util/hpi_4bcd10.cpp,3,0,
-same,0x50a56c,13,src/util/hpi_4bd160.cpp,8,0,
-same,0x4fdbf0,37,src/util/hpi_4bd160.cpp,4,0,
-same,0x503374,2,src/util/hpi_4bd830.cpp,9,0,
-same,0x50372c,2,src/util/hpi_4be400.cpp,6,0,
-same,0x502910,2,src/util/hpi_4be400.cpp,5,0,
-same,0x50a548,3,src/util/hpi_4be400.cpp,4,0,
-same,0x503374,2,src/util/hpi_4be400.cpp,3,0,
+same,0x502910,2,src/util/hpi_4bc4b0.cpp,13,0,
+same,0x50a548,3,src/util/hpi_4bc4b0.cpp,12,0,
+same,0x50a56c,13,src/util/hpi_4bc4b0.cpp,47,0,
+same,0x4fdbf0,37,src/util/hpi_4bc4b0.cpp,43,0,
+same,0x503374,2,src/util/hpi_4bc4b0.cpp,57,0,
 same,0x5119b8,1,src/util/tdf_4c35c0.cpp,6,0,
 same,0x5119b8,1,src/util/tdf_4c44c0.cpp,12,0,
 same,0x50b530,16,src/debug/debug_helper_4cbb70.cpp,6,0,

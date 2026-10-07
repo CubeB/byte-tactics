@@ -1,7 +1,8 @@
 // Decompiled by GPT-6, Claude Opus 5.5, space-bunny-free, deepseek-v4.1, deepseek-v4.1-flash and DeepSeek V4.1 Flash. Names are provisional.
-// PlayerAI: one AI player's view of the game (g_playerAI[player]): its units
-// sorted into lists, per-unit-type tables, and where to place new buildings.
-// Needed: without a header like this, FindRandomPlacementCell's operand order changes.
+// PlayerAI's RefreshUnitLists, which matches only in a file of its own: the
+// addressing mode of its weight load follows this file's symbol ids. The rest
+// of the class, its constructor and its other methods are in
+// ai_player_406c90.cpp.
 #include <windows.h>
 #include <vector>
 #include <math.h>
@@ -130,7 +131,7 @@ public:
     int margin1;                       // +0x105
     int field_109;                     // +0x109
 
-    // In ai_player_409160.cpp: it builds the unit lists one and two wrapper
+    // In ai_player_406c90.cpp: it builds the unit lists one and two wrapper
     // levels deep to spend its inline budget as the original does.
     PlayerAI(unsigned char player);
     void InitUnitTables();
@@ -139,6 +140,8 @@ public:
     bool FindCellNearFeatures(UnitDef* type, Vec3* pos, ElemVec* list, int range, Point16* out);
     bool FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Point16* out);
     void BuildFeatureCells();
+    // Stays in this file: its weight load's addressing mode follows the file's
+    // symbol ids.
     void RefreshUnitLists();
     void UpdateEveryThirtyTicks();
 };
@@ -188,132 +191,6 @@ static inline Vec3 Direction(short angle, int scale)
     return v;
 }
 
-// Resets the per-unit-type tables: weights start at 40 for immobile types
-// plus 20 for the flagged ones.
-// FUNCTION: 0x409470
-void PlayerAI::InitUnitTables()
-{
-    int n = g_game->count;
-    for (int i = 0; i < n; ++i) {
-        Def* def = &g_game->defs[i];
-        weights[i] = 0;
-        if (!def->mobile)
-            weights[i] += 40;
-        if (def->builder)
-            weights[i] += 20;
-        counts[i] = 0;
-        vec_ad[i].value = 100;
-        vec_bd[i].unknown_0 = 0;
-        values[i].unknown_0 = -1;
-        locked[i].unknown_0 = 0;
-    }
-}
-
-// Picks a build cell near a world position: every candidate in `list` (a
-// vector of cells with a score) within `range` cells goes into a max-heap
-// keyed on minus the squared distance, then the cells are popped nearest
-// first and tried with CanBuildAt. The best-scoring cell (GetBuildSiteMetal)
-// wins; once one is found, candidates more than 160 beyond the first hit's
-// squared distance stop the search.
-// FUNCTION: 0x40a260
-bool PlayerAI::FindCellNearFeatures(UnitDef* type, Vec3* pos, ElemVec* list, int range, Point16* out)
-{
-    if (list->empty())
-        return false;
-    ElemVec heap;
-    heap.reserve(list->size());
-    int rangeSq = range * range;
-    Point16 center = WorldToCell(*pos, type->origin);
-    for (ElemVec::iterator p = list->begin(); p != list->end(); p++) {
-        int d = DistSq(p->pos, center);
-        if (d <= rangeSq) {
-            heap.push_back(*p);
-            heap.back().key = -d;
-        }
-    }
-    // Written out, not an inline make_heap helper: the inline count sets the budget.
-    if (2 <= heap.end() - heap.begin())
-        MakeHeap(heap.begin(), heap.end(), (int*)0, (Elem_0040cc40*)0);
-    int limit = -1;
-    int best = 0;
-    Point16 result;
-    while (!heap.empty()) {
-        Point16 cell = heap.front().pos;
-        cell.x -= (type->origin.x - 3) / 2;
-        cell.y -= (type->origin.y - 3) / 2;
-        int d = DistSq(cell, center);
-        if (limit >= 0 && d > limit + 160)
-            break;
-        if (CanBuildAt(type, cell, 0, 0) && GetBuildSiteMetal() > best) {
-            result = cell;
-            best = GetBuildSiteMetal();
-            if (limit == -1)
-                limit = d;
-        }
-        PopHeap(heap.begin(), heap.end());
-        heap.pop_back();
-    }
-    if (best == 0)
-        return false;
-    if (out)
-        *out = result;
-    return true;
-}
-
-// Picks a random build cell near a world position: up to 30 tries of a
-// random direction and distance (within `range` cells) from `pos`, snapped
-// to the class's placement grid (spacing, offset and a random jitter reduced
-// by a margin; the second grid is used for types whose field_1c0 is
-// non-negative). A cell is accepted when FUN_0047db70 allows the type there
-// and the score GetBuildSiteMetal is at most the type's footprint area times
-// twice net->field_d30.
-// FUNCTION: 0x40a5d0
-bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Point16* out)
-{
-    int threshold = g_game->net->field_d30 * type->origin.y * type->origin.x * 2;
-    Point16 spacing = type->field_1c0 < 0 ? spacing0 : spacing1;
-    Point16 offset = type->field_1c0 < 0 ? offset0 : offset1;
-    int margin = type->field_1c0 < 0 ? margin0 : margin1;
-    for (int i = 0; i < 30; i++) {
-        int dist = RandomInt(range) << 16;
-        int angle = RandomInt(0x10000);
-        Vec3 v = Direction(angle, dist) + *pos;
-        Point16 cell = WorldToCell(v, type->origin);
-        cell.x = cell.x / spacing.x * spacing.x + offset.x + RandomInt(spacing.x - margin - type->origin.x);
-        cell.y = cell.y / spacing.y * spacing.y + offset.y + RandomInt(spacing.y - margin - type->origin.y);
-        if (FUN_0047db70(type, 0, cell, 1) && GetBuildSiteMetal() <= threshold) {
-            if (out)
-                *out = cell;
-            return true;
-        }
-    }
-    return false;
-}
-
-// Rebuilds the list of candidate cells: clears the vector at +0x4d, then
-// walks every map cell and adds (x, y, feature value) for each cell whose
-// feature (index below 0xfffb) has a non-zero value at +0xf0 and bit 9 of
-// its flags word set. 0x40a260 later sorts these by distance.
-// The feature's flags are the 16-bit word at +0xfe, tested with 0x200, as in
-// 0x422040 (the same test) and 0x423160.
-// FUNCTION: 0x40a7b0
-void PlayerAI::BuildFeatureCells()
-{
-    cells.clear();
-    int w = g_game->width;
-    for (int y = 0; y < g_game->height; y++) {
-        Cell* row = GetMapCell(0, y);
-        for (int x = 0; x < w; x++) {
-            if (row[x].feature < 0xfffb) {
-                Feature* f = &g_game->features[row[x].feature];
-                // Keep flags a 16-bit word tested with 0x200, not a byte at +0xff.
-                if (f->value != 0.0f && (f->flags & 0x200))
-                    cells.push_back(Elem_0040cc40(x, y, f->value));
-            }
-        }
-    }
-}
-
 // Clears the three unit lists (+0x05, +0x15, +0x25) through
 // std::vector<Unit*>::erase (0x40c9f0) and refills them with insert
 // (0x408f30).
@@ -349,17 +226,4 @@ void PlayerAI::RefreshUnitLists()
     int iy=(int)(sum.y*65536.0);
     int iz=(int)(sum.z*65536.0);
     centre=Vec(ix,iy,iz);
-}
-
-// Every 30 ticks refreshes the unit lists, and now and then the base weights.
-// FUNCTION: 0x40ad20
-void PlayerAI::UpdateEveryThirtyTicks()
-{
-    if (g_game->ticks >= lastTick + 0x1e) {
-        ((PlayerAI*)this)->RefreshUnitLists();
-        lastTick = g_game->ticks;
-        if (RandomInt(0x1e) == 0) {
-            ((PlayerAI*)this)->ComputeBaseWeights();
-        }
-    }
 }

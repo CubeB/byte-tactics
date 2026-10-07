@@ -26,7 +26,7 @@ int __stdcall FillRectangle(void* surface, void* rect, int color);
 
 class Mission {
   public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -232,7 +232,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                 char* definition = *(char**)(unit + 0x92);
                 unsigned int unitFlags = *(unsigned int*)(definition + 0x245);
                 int flagsOk = ((unitFlags & 0x20000) | ((unitFlags >> 1) & 0x20000)) >> 0x11;
-                int gameMode = ((Mission*)*(void**)(g_game + 0x391e9))->FUN_00435100();
+                int gameMode = ((Mission*)*(void**)(g_game + 0x391e9))->GetGameType();
                 if (gameMode == 3 && flagsOk)
                     strcpy(text, *(char**)(unit + 0x96) + 0x2b);
                 else

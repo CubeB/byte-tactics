@@ -96,8 +96,8 @@ public:
 };
 class Mission {
 public:
-    int FUN_004358f0();
-    bool FUN_00435c40();
+    int GetTerrainLength();
+    bool HasMissionName();
     unsigned int ComputeMapChecksum();
 };
 class UnitSync {
@@ -271,7 +271,7 @@ inline int FindUnusedLogo()
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
 int CheckMapCrc()
 {
-    if (!g_game->map->FUN_004358f0()) {
+    if (!g_game->map->GetTerrainLength()) {
         return 0;
     }
     unsigned char me = FindHostSlot();
@@ -564,7 +564,7 @@ void __stdcall HandleBattleRoomClick(Gadget_00447b10* gadget)
                 return;
             }
         }
-        if (!((Mission*)g_game->map)->FUN_00435c40()) {
+        if (!((Mission*)g_game->map)->HasMissionName()) {
             PlaySoundByName("Multi", 0);
             OpenMultiMapSelector();
             // Emits no code, but keeps the gadget in esi for the button tests.

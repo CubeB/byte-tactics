@@ -5,7 +5,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -56,7 +56,7 @@ int __cdecl OpenOptionsLayout()
     int result = LoadGuiLayer(&g_game->menu, buf, 0x80);
     FUN_004a1250(&g_game->menu, "MUSIC", *(int*)g_game->field_10 == 0);
     FUN_0049fa50(&g_game->menu);
-    if (g_game->prefs && g_game->mode->FUN_00435100() != 3) {
+    if (g_game->prefs && g_game->mode->GetGameType() != 3) {
         g_game->flags_38a51 |= 1;
     }
     return result;

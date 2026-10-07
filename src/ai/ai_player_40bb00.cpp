@@ -4,7 +4,7 @@
 #include <minmax.h>
 #include <math.h>
 struct Rating { signed char normal,metal,energy; };
-class Mission { public: int FUN_00435100(); };
+class Mission { public: int GetGameType(); };
 #pragma pack(push,1)
 struct Player { char pad[0x8c]; float energy; char pad90[8]; float metal; char pad9c[8]; float energyCapacity,metalCapacity; char padac[0x14b-0xac]; };
 struct Def { char pad[0x241]; unsigned flags; char pad245[4]; };
@@ -26,7 +26,7 @@ int __stdcall GetBuildRating(int player,unsigned short type)
     Player* p=&g_game->players[player];
     if(p->energy<50.0f) return 0;
     if(p->metal<25.0f) return 0;
-    if(g_game->mode->FUN_00435100()==1 && (g_game->defs[type].flags&0x20)) return 0;
+    if(g_game->mode->GetGameType()==1 && (g_game->defs[type].flags&0x20)) return 0;
     int energyCap=min(1000,(int)p->energyCapacity);
     int metalCap=min(500,(int)p->metalCapacity);
     int energy=(int)Max(0.0f,(energyCap-p->energy)*0.125f);

@@ -52,7 +52,7 @@ union Slot_00483610 {
 
 class Mission {
 public:
-    int* FUN_004356c0(int index);
+    int* GetNameSlot(int index);
 };
 
 class Class_00433130 {
@@ -91,7 +91,7 @@ void LoadTntMap()
     int* tnt;
 
     // REGION r1 begin
-    tnt = ((Mission*)*(void**)(DAT_00511de8 + 0x391e9))->FUN_004356c0(1);
+    tnt = ((Mission*)*(void**)(DAT_00511de8 + 0x391e9))->GetNameSlot(1);
     tnt = FUN_00429660(tnt);
     info.version = *tnt;
     switch (info.version) {

@@ -10,7 +10,7 @@ public:
 
 class Mission {
 public:
-    int FUN_004356c0(int param_1);
+    int GetNameSlot(int param_1);
 };
 
 struct Menu_00478cb0 {
@@ -81,7 +81,7 @@ void __stdcall HandleMissionBriefingClick(Menu_00478cb0* menu)
         if (!GetButtonStageByName(menu, "SHUTUP")) {
             g_game->input->StopStream();
         } else if (g_game->field_391f1 != 6) {
-            char* text = (char*)g_game->net->FUN_004356c0(3);
+            char* text = (char*)g_game->net->GetNameSlot(3);
             if (text) {
                 StreamSoundDelayed(text, 0, 0x3c);
             }

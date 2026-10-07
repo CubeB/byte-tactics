@@ -41,7 +41,7 @@ struct Packet_00452960 {
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 struct Game {
@@ -176,7 +176,7 @@ int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
             g_packetManager.SendAllQueued(1);
         result = r;
     }
-    if (g_game->net->FUN_00435100() == 3)
+    if (g_game->net->GetGameType() == 3)
         ReportGameEvent(4);
     return result;
 }

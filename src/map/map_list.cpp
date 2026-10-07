@@ -284,27 +284,27 @@ public:
 
     Mission(int owner_);
     ~Mission();
-    int FUN_00435100();
+    int GetGameType();
     void LoadCampaign(char* file);
-    char* FUN_004352b0();
+    char* GetCampaignName();
     void LoadBriefing();
-    char* FUN_004353a0();
-    void FUN_004353b0(int index, char* text);
+    char* GetBriefing();
+    void SetNameSlot(int index, char* text);
     void BuildCampaignFilePath(int index, char* dir, char* name, char* ext);
-    char* FUN_004356c0(int index);
+    char* GetNameSlot(int index);
     int CountMissions();
     int BuildMissionList(char** out);
-    int FUN_004358f0();
-    int FUN_00435900();
-    int FUN_00435910();
-    int FUN_00435920();
+    int GetTerrainLength();
+    int GetDescription();
+    int GetPlanet();
+    int GetTerrainSizeTier();
     int MissionExists(int index);
     int LoadMissionByName(char* map);
-    void FUN_00435c00(int param_1);
-    int FUN_00435c20();
-    int FUN_00435c30();
-    bool FUN_00435c40();
-    int FUN_00435c50();
+    void SelectMission(int param_1);
+    int GetTranslatedName();
+    int GetMissionName();
+    bool HasMissionName();
+    int GetMissionIndex();
     int AdvanceMission();
     void RefreshMapList(int param_1);
     int LoadMission(char* map);
@@ -526,7 +526,7 @@ Mission::~Mission()
 }
 
 // FUNCTION: 0x435100
-int Mission::FUN_00435100()
+int Mission::GetGameType()
 {
     return *(int*)this;
 }
@@ -554,12 +554,12 @@ void Mission::LoadCampaign(char* file)
     list.Unload();
     strcpy(campaign, file);
     for (int i = 0; i < 9; i++)
-        FUN_004353b0(i, DAT_005119b8);
+        SetNameSlot(i, DAT_005119b8);
     if (strlen(file) != 0) {
         BuildCampaignFilePath(0, "camps", campaign, "TDF");
         if (strlen(file) != 0) {
-            if (!list.LoadFile(FUN_004356c0(0))) {
-                wsprintfA(msg, "The requested campaign file, %s, does not exist.", FUN_004356c0(0));
+            if (!list.LoadFile(GetNameSlot(0))) {
+                wsprintfA(msg, "The requested campaign file, %s, does not exist.", GetNameSlot(0));
                 OpenMessageBox(g_game->messages, msg, 0x1e0, 1, 1);
                 LoadCampaign(DAT_005119b8);
                 return;
@@ -572,7 +572,7 @@ void Mission::LoadCampaign(char* file)
 }
 
 // FUNCTION: 0x4352b0
-char* Mission::FUN_004352b0()
+char* Mission::GetCampaignName()
 {
     char* ptr = campaign;
     if (strlen(ptr) > 0) {
@@ -603,7 +603,7 @@ void Mission::LoadBriefing()
 }
 
 // FUNCTION: 0x4353a0
-char* Mission::FUN_004353a0()
+char* Mission::GetBriefing()
 {
     return briefing;
 }
@@ -611,7 +611,7 @@ char* Mission::FUN_004353a0()
 // Stores a name in slot `index`; for slot 1 also records whether a file of
 // that name exists (HAPI_FileLengthByName), or 0 when the name is empty.
 // FUNCTION: 0x4353b0
-void Mission::FUN_004353b0(int index, char* text)
+void Mission::SetNameSlot(int index, char* text)
 {
     strcpy(names[index], text);
     if (index == 1) {
@@ -632,7 +632,7 @@ void Mission::BuildCampaignFilePath(int index, char* dir, char* name, char* ext)
 {
     char path[256];
     if (strlen(name) == 0) {
-        FUN_004353b0(index, DAT_005119b8);
+        SetNameSlot(index, DAT_005119b8);
         return;
     }
     char* side = (char*)GetPreferredLanguage();
@@ -644,7 +644,7 @@ void Mission::BuildCampaignFilePath(int index, char* dir, char* name, char* ext)
         void* file = HAPI_OpenFileRead(path);
         if (file) {
             HAPI_CloseFile(file);
-            FUN_004353b0(index, path);
+            SetNameSlot(index, path);
             return;
         }
     }
@@ -652,11 +652,11 @@ void Mission::BuildCampaignFilePath(int index, char* dir, char* name, char* ext)
     StripExtension(path);
     strcat(path, ".");
     strcat(path, ext);
-    FUN_004353b0(index, path);
+    SetNameSlot(index, path);
 }
 
 // FUNCTION: 0x4356c0
-char* Mission::FUN_004356c0(int index)
+char* Mission::GetNameSlot(int index)
 {
     char* ptr = (char*)this + index * 0x100 + 0x104;
     if (strlen(ptr) > 0)
@@ -726,25 +726,25 @@ int Mission::BuildMissionList(char** out)
 }
 
 // FUNCTION: 0x4358f0
-int Mission::FUN_004358f0()
+int Mission::GetTerrainLength()
 {
     return *(int*)((char*)this + 0xa04);
 }
 
 // FUNCTION: 0x435900
-int Mission::FUN_00435900()
+int Mission::GetDescription()
 {
     return (int)((char*)this + 0xc24);
 }
 
 // FUNCTION: 0x435910
-int Mission::FUN_00435910()
+int Mission::GetPlanet()
 {
     return (int)((char*)this + 0xca4);
 }
 
 // FUNCTION: 0x435920
-int Mission::FUN_00435920()
+int Mission::GetTerrainSizeTier()
 {
     int v = exists;
     if (v < 0x3e6666)
@@ -835,7 +835,7 @@ int Mission::LoadMissionByName(char* map)
 }
 
 // FUNCTION: 0x435c00
-void Mission::FUN_00435c00(int param_1)
+void Mission::SelectMission(int param_1)
 {
     field_c1c = 0;
     missionIndex = param_1;
@@ -843,25 +843,25 @@ void Mission::FUN_00435c00(int param_1)
 }
 
 // FUNCTION: 0x435c20
-int Mission::FUN_00435c20()
+int Mission::GetTranslatedName()
 {
     return (int)((char*)this + 0xb14);
 }
 
 // FUNCTION: 0x435c30
-int Mission::FUN_00435c30()
+int Mission::GetMissionName()
 {
     return (int)((char*)this + 0xa14);
 }
 
 // FUNCTION: 0x435c40
-bool Mission::FUN_00435c40()
+bool Mission::HasMissionName()
 {
     return missionName[0] != 0;
 }
 
 // FUNCTION: 0x435c50
-int Mission::FUN_00435c50()
+int Mission::GetMissionIndex()
 {
     return *(int*)((char*)this + 0xc18);
 }
@@ -1080,7 +1080,7 @@ int Mission::LoadMission(char* map)
     surfaceMetal = parser.current->GetFieldInt("SurfaceMetal", 0);
     parser.current->GetFieldString(value, "aiprofile", 0x100, DAT_005119b8);
     BuildCampaignFilePath(7, "ai", value, "txt");
-    if (!FUN_004356c0(7))
+    if (!GetNameSlot(7))
         BuildCampaignFilePath(7, "ai", "default", "txt");
     parser.current->GetFieldString(meteor.name, "MeteorWeapon", 0x20, DAT_005119b8);
     if (strlen(meteor.name) != 0) {
@@ -1423,7 +1423,7 @@ int Mission::ComputeMapChecksum()
     if (field_c1c != 0) {
         return field_c20 ^ field_c1c;
     }
-    char* name = FUN_004356c0(1);
+    char* name = GetNameSlot(1);
     MapCacheEntry* it;
     // The two pointers stay separate globals: a single std::vector would
     // reference s_mapCache with a displacement, the wrong address.

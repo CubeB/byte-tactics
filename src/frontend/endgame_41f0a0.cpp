@@ -10,9 +10,9 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
     int MissionExists(int index);
-    void FUN_00435c00(int param_1);
+    void SelectMission(int param_1);
     int BuildMissionList(int* param_1);
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void LoadBriefing();
@@ -115,7 +115,7 @@ void __stdcall FUN_00491c80(int param_1);
 // Inlined copy of FUN_0041f040.
 static inline int HasNextMission()
 {
-    if (g_game->campaign->FUN_00435100() == 1 &&
+    if (g_game->campaign->GetGameType() == 1 &&
         ((g_game->field_391af == 0 &&
           ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
          ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {
@@ -139,7 +139,7 @@ void __stdcall OpenEndMissionScreen()
     char* entries = layer->entries;
     char next = HasNextMission();
     if (next) {
-        ((Mission*)g_game->campaign)->FUN_00435c00(g_game->mission);
+        ((Mission*)g_game->campaign)->SelectMission(g_game->mission);
         LoadPictureCached("outcome1", 1, 1, 0);
         strcpy(layer->entries + 0xcc, "Start");
     } else {

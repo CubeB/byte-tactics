@@ -27,7 +27,7 @@ class Mission {
 public:
     int LoadMissionByName(char *);
     void RefreshMapList(int);
-    char *FUN_00435c30();
+    char *GetMissionName();
 };
 // FUNCTION: 0x47bbb0
 void OpenSkirmishMenu(void)
@@ -60,7 +60,7 @@ void OpenSkirmishMenu(void)
     if (!((Mission *)*(int *)(g_game + 0x391e9))->LoadMissionByName(*(char **)(g_game + 0x29a0) + 0x11c)) {
         ((Mission *)*(int *)(g_game + 0x391e9))->RefreshMapList(0);
         strncpy(*(char **)(g_game + 0x29a0) + 0x11c,
-                ((Mission *)*(int *)(g_game + 0x391e9))->FUN_00435c30(), 0x100);
+                ((Mission *)*(int *)(g_game + 0x391e9))->GetMissionName(), 0x100);
     }
 
     RefreshSkirmishSetup();

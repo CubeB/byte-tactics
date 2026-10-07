@@ -5775,7 +5775,7 @@ class Class_004352b0 {  // 0x5 bytes, 3 views
 public:
     char unknown_0[4];
     char name[1];  // +0x4
-    char* FUN_004352b0(void);
+    char* GetCampaignName(void);
 };
 
 class Class_004b3750 {  // 0xc bytes, 4 views
@@ -6024,19 +6024,19 @@ public:
     char numPlayers[128];  // +0xe44
     Mission(int);
     ~Mission(void);
-    char* FUN_00435c30(int);
+    char* GetMissionName(int);
     char* GetName(int);
-    int FUN_00435100(void);
-    int FUN_004353a0(void);
-    int FUN_004356c0(int);
-    int FUN_004358f0(void);
+    int GetGameType(void);
+    int GetBriefing(void);
+    int GetNameSlot(int);
+    int GetTerrainLength(void);
     int LoadMissionByName(char*);
-    int FUN_00435c30(void);
+    int GetMissionName(void);
     int AdvanceMission(void);
     int SelectSchema(int, Unit*, char*);
     int GetStartPosition(Vec3*, int);
     void LoadCampaign(char*);
-    void FUN_00435c00(int);
+    void SelectMission(int);
     int LoadMission(char*);
     void LoadBriefing(void);
     void BuildCampaignFilePath(int, char*, char*, char*);
@@ -6064,7 +6064,7 @@ public:
     char unknown_0[260];
     char names[9][256];  // +0x104
     int exists;  // +0xa04
-    void FUN_004353b0(int, char*);
+    void SetNameSlot(int, char*);
 };
 
 class Class_004356f0 {  // 0xa10 bytes, 1 view
@@ -6078,7 +6078,7 @@ public:
 class Class_00435900 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    int FUN_00435900(void);
+    int GetDescription(void);
 };
 
 class Class_00435910 {  // 0xd3c bytes, 2 views
@@ -6086,14 +6086,14 @@ public:
     char unknown_0[3380];
     int field_d34;  // +0xd34
     int field_d38;  // +0xd38
-    int FUN_00435910(void);
+    int GetPlanet(void);
 };
 
 class Class_00435920 {  // 0xa08 bytes, 3 views
 public:
     char unknown_0[2564];
     int field_a04;  // +0xa04
-    int FUN_00435920(void);
+    int GetTerrainSizeTier(void);
 };
 
 class Class_004c3e10_2 {  // 0x1 bytes, 1 view
@@ -6105,20 +6105,20 @@ public:
 class Class_00435c20 {  // 0x1 bytes, 3 views
 public:
     char unknown_0[1];
-    int FUN_00435c20(void);
+    int GetTranslatedName(void);
 };
 
 class Class_00435c40 {  // 0xa15 bytes, 5 views
 public:
     char unknown_0[2580];
     unsigned char field_a14;  // +0xa14
-    bool FUN_00435c40(void);
+    bool HasMissionName(void);
 };
 
 class Class_00435c50 {  // 0x1 bytes, 2 views
 public:
     char unknown_0[1];
-    int FUN_00435c50(void);
+    int GetMissionIndex(void);
 };
 
 class Class_00436c30 {  // 0xdc4 bytes, 2 views

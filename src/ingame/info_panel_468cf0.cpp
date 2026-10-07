@@ -20,7 +20,7 @@ int __stdcall FormatNetStats(int);
 int __stdcall FUN_00417f30(int,int);
 int __stdcall FUN_00418310(int);
 int __stdcall DrawExplosions(int);
-struct Mission { int FUN_00435100(); };
+struct Mission { int GetGameType(); };
 int __stdcall DrawUnit(int,int);
 int __stdcall DrawOptionsScrollBar(int);
 int __stdcall DrawMessages(int);
@@ -498,8 +498,8 @@ void __stdcall FUN_00468cf0(int param_1, int param_2)
     else
       DrawRectangle((int)&ctx, (int)&box, *colors);
   }
-  if ((*(Mission **)(g_game + 0x391e9))->FUN_00435100() == 3 ||
-      (*(Mission **)(g_game + 0x391e9))->FUN_00435100() == 2) {
+  if ((*(Mission **)(g_game + 0x391e9))->GetGameType() == 3 ||
+      (*(Mission **)(g_game + 0x391e9))->GetGameType() == 2) {
     ResetClipRect((int)&ctx);
     FUN_004948e0((int)&ctx);
     ctx.SetClipRect(*(OverlayRect *)(g_game + 0x37e27));

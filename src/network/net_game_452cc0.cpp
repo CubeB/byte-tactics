@@ -16,7 +16,7 @@ public:
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 struct PlayerData_00452cc0 {
@@ -177,7 +177,7 @@ void __stdcall RemovePlayer(int id)
     p->data->word_9d &= 0xfffb;
     memset(&p->allies, 0, 11);
 
-    if (g_game->net->FUN_00435100() == 3)
+    if (g_game->net->GetGameType() == 3)
         ReportGameEvent(3);
 
     if ((g_game->flags.value & 4) && host != 0) {

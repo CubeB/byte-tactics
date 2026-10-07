@@ -60,7 +60,7 @@ struct Packet_004244b0 {
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -101,7 +101,7 @@ void __stdcall DamageFeature(Cell_004244b0* cell, int x, int z, Weapon_004244b0*
         return;
     Packet_004244b0 packet;
     int send;
-    if (g_game->net->FUN_00435100() == 3) {
+    if (g_game->net->GetGameType() == 3) {
         if (!(g_game->players[g_game->playerIndex].data->flags & 1)) {
             packet.type = 0xf;
             packet.sub = weapon->kind;

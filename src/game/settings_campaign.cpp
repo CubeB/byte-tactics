@@ -87,11 +87,11 @@ struct Game {
 
 class Mission {
 public:
-    int FUN_00435100();
-    char* FUN_004352b0();
-    char* FUN_00435c30();
+    int GetGameType();
+    char* GetCampaignName();
+    char* GetMissionName();
     void AdvanceMission();
-    int FUN_00435c00(int param_1);
+    int SelectMission(int param_1);
 };
 
 extern Game* g_game;
@@ -238,18 +238,18 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
     sprintf(buf, g_buildTimeFormat, g_game->buildTime);
     ((HapiBank*)&file)->SetIntegerItem(buf, 0);
     ((HapiBank*)&file)->SetIntegerItem(g_maxUnitsKey, g_game->maxUnits);
-    ((HapiBank*)&file)->SetStringItem(g_campaignKey, ((Mission*)g_game->campaign)->FUN_004352b0());
+    ((HapiBank*)&file)->SetStringItem(g_campaignKey, ((Mission*)g_game->campaign)->GetCampaignName());
     if (g_game->state != 6) {
         ((Mission*)g_game->campaign)->AdvanceMission();
     }
-    ((HapiBank*)&file)->SetStringItem(g_missionKey, ((Mission*)g_game->campaign)->FUN_00435c30());
-    ((HapiBank*)&file)->SetStringItem(g_mapKey, ((Mission*)g_game->campaign)->FUN_00435c30());
+    ((HapiBank*)&file)->SetStringItem(g_missionKey, ((Mission*)g_game->campaign)->GetMissionName());
+    ((HapiBank*)&file)->SetStringItem(g_mapKey, ((Mission*)g_game->campaign)->GetMissionName());
     ((HapiBank*)&file)->SetIntegerItem(DAT_00502a78, g_game->difficulty);
     ((HapiBank*)&file)->SetIntegerItem(g_sideKey, g_game->players[g_game->localPlayer].unit->side);
     ((HapiBank*)&file)->SetIntegerItem(g_playersKey, g_game->numPlayers);
-    ((HapiBank*)&file)->SetIntegerItem(g_gameTypeKey, ((Mission*)g_game->campaign)->FUN_00435100());
+    ((HapiBank*)&file)->SetIntegerItem(g_gameTypeKey, ((Mission*)g_game->campaign)->GetGameType());
     ((HapiBank*)&file)->SetStringItem(g_thumbsKey, g_game->thumbs);
-    if (((Mission*)g_game->campaign)->FUN_00435100() == 2) {
+    if (((Mission*)g_game->campaign)->GetGameType() == 2) {
         ((HapiBank*)&file)->SetIntegerItem(g_commanderDeathKey, g_game->options->commanderDeath);
         ((HapiBank*)&file)->SetIntegerItem(g_locationKey, g_game->options->location);
         ((HapiBank*)&file)->SetIntegerItem(g_mappingKey, g_game->options->mapping);
@@ -258,7 +258,7 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
     }
     if (g_game->state != 6) {
         ((HapiBank*)&file)->SetIntegerItem(g_betweenMissionsKey, 1);
-        ((Mission*)g_game->campaign)->FUN_00435c00(g_game->mission);
+        ((Mission*)g_game->campaign)->SelectMission(g_game->mission);
     }
     if (param_2 != 0) {
         ((HapiBank*)&file)->SetStringItem(g_descriptionKey, param_2);

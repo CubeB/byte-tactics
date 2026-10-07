@@ -8,7 +8,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 class Class_004ce910 {
@@ -105,7 +105,7 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
             DAT_00512ff4 = 0;
         }
         if (g_game->flags_2a44 & 4) {
-            if (g_game->mode->FUN_00435100() != 3)
+            if (g_game->mode->GetGameType() != 3)
                 g_game->flags_38a51 &= 0xfffe;
         }
         g_game->orders &= 0xfffe;
@@ -140,7 +140,7 @@ void __stdcall HandleInGameOptionsClick(Gadget_004609b0* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, "MISSION")) {
         PlaySoundByName("Options", 0);
-        if (g_game->mode->FUN_00435100() == 1) {
+        if (g_game->mode->GetGameType() == 1) {
             Info_004609b0* g = LoadGuiLayer(&g_game->sub, "BRIEFING.GUI", 0);
             Entry_004609b0* gadgets = g->info;
             g->handler = HandleBriefingClick;

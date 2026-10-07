@@ -11,7 +11,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -99,7 +99,7 @@ void ToggleTabMenu()
         count++;
     }
     // The players[localPlayer] scale by 0x14b is left to the compiler.
-    int mode = g_game->net->FUN_00435100();
+    int mode = g_game->net->GetGameType();
     if (mode == 3 && !g_game->players[g_game->localPlayer].info->flag_9b_6) {
         int v = count > 0;
         FUN_004a0570(&g_game->sub, "ALLIES", v);

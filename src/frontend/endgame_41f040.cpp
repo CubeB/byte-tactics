@@ -2,7 +2,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
     int MissionExists(int index);
 };
 
@@ -22,7 +22,7 @@ extern Game* g_game;
 // FUNCTION: 0x41f040
 int FUN_0041f040()
 {
-    if (((Mission*)g_game->ptr_391e9)->FUN_00435100() == 1 &&
+    if (((Mission*)g_game->ptr_391e9)->GetGameType() == 1 &&
         ((g_game->value_391af == 0 &&
           ((Mission*)g_game->ptr_391e9)->MissionExists(g_game->value_391ab + 1) == 0) ||
          ((Mission*)g_game->ptr_391e9)->MissionExists(g_game->value_391ab + 1) != 0)) {

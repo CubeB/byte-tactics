@@ -26,7 +26,7 @@ class Mission {
 public:
     void LoadCampaign(char* name);
     int BuildMissionList(int** out);
-    int FUN_00435c00(int index);
+    int SelectMission(int index);
 };
 
 extern char* g_game;                   // 0x511de8
@@ -135,7 +135,7 @@ void __stdcall HandleNewGameClick(Menu_00477ab0* menu)
             Entry_00477ab0* e = FindGadgetChecked(entries, "Missions");
             index = e->selected;
         }
-        if (((Mission*)*(void**)(g_game + 0x391e9))->FUN_00435c00(index) != 0) {
+        if (((Mission*)*(void**)(g_game + 0x391e9))->SelectMission(index) != 0) {
             FUN_00491c80(0x14);
             *(unsigned char*)(*(int*)(g_game + 0x1b8a) + 0x96) = 0;
             *(unsigned char*)(*(int*)(g_game + 0x1cd5) + 0x96) = 1;

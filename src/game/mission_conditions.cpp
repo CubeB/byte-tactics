@@ -315,7 +315,7 @@ public:
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -500,7 +500,7 @@ void MissionConditions::RegisterConditions(Param_0048e010* p)
 // FUNCTION: 0x48fdf0
 void MissionConditions::SaveConditions(HapiBank* file)
 {
-    if (g_game->mode->FUN_00435100() == 1) {
+    if (g_game->mode->GetGameType() == 1) {
         int i;
         for (i = 0; i < victoryCount; i++) {
             victory[i]->SaveState(file);
@@ -514,7 +514,7 @@ void MissionConditions::SaveConditions(HapiBank* file)
 // FUNCTION: 0x48fe60
 void MissionConditions::LoadConditions(HapiBank* file)
 {
-    if (g_game->mode->FUN_00435100() == 1) {
+    if (g_game->mode->GetGameType() == 1) {
         int i;
         for (i = 0; i < victoryCount; i++) {
             victory[i]->LoadState(file);
@@ -571,7 +571,7 @@ int MissionConditions::CheckDefeat()
         }
         // The two mode cases share one body, but writing them out separately
         // is what makes MSVC lower the switch to the dec/je chain.
-        switch (g_game->mode->FUN_00435100()) {
+        switch (g_game->mode->GetGameType()) {
         case 1:
             return AnyDefeatConditionMet();
         case 2:

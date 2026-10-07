@@ -5,7 +5,7 @@
 class Mission {
 public:
     void LoadCampaign(char* name);
-    int FUN_00435c00(int value);
+    int SelectMission(int value);
 };
 
 #pragma pack(push, 1)
@@ -45,7 +45,7 @@ void __stdcall LoadWarpLevel(int param_1)
     int n = GetPrivateProfileIntA("WARPLEVELS", key, 0, path);
     SetMissionType(1);
     g_game->level->LoadCampaign(value);
-    if (((Mission*)g_game->level)->FUN_00435c00(n)) {
+    if (((Mission*)g_game->level)->SelectMission(n)) {
         g_game->flags.b3 = 1;
         g_game->flags.b2 = 1;
     }

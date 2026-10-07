@@ -2,7 +2,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -22,7 +22,7 @@ extern Game* g_game;
 // FUNCTION: 0x490da0
 void FUN_00490da0()
 {
-    if (g_game->field_391e9->FUN_00435100() == 3) {
+    if (g_game->field_391e9->GetGameType() == 3) {
         g_game->field_38a4b = 10;
         g_game->field_38a4d = 10;
     }

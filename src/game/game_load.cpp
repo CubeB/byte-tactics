@@ -347,8 +347,8 @@ static inline ViewFlags_497180* g_game_view() { return (ViewFlags_497180*)((char
 
 class Mission {
 public:
-    int FUN_00435100();
-    char* FUN_00435c30();
+    int GetGameType();
+    char* GetMissionName();
     void LoadMissionByName(void* player);
     int GetStartPosition(FixedPos_497180* pos, int id);
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
@@ -546,7 +546,7 @@ void __cdecl LoadMatch(void*)
     srand((unsigned)time(NULL));
     *(int*)((char*)g_game + 0x38a47) = 0;
 
-    switch (((Mission*)*(void**)((char*)g_game + 0x391e9))->FUN_00435100()) {
+    switch (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType()) {
     case 1:
         DAT_005091cc = 0;
         ApplyMissionOptionFlags((Settings_00496e10*)((char*)g_game + 0x39219));
@@ -608,7 +608,7 @@ void __cdecl LoadMatch(void*)
         if (((HapiBank*)*(void**)((char*)g_game + 0x38d6b))->HasItem("BetweenMissions") ==
             0) {
             LoadPlayerControllers(*(void**)((char*)g_game + 0x38d6b));
-            if (((Mission*)*(void**)((char*)g_game + 0x391e9))->FUN_00435100() == 2) {
+            if (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType() == 2) {
                 int count = 0;
                 int* def = (int*)*(void**)((char*)g_game + 0x29a0);
                 int i = 0;
@@ -629,8 +629,8 @@ void __cdecl LoadMatch(void*)
 
     FUN_004917d0();
 
-    if (((Mission*)*(void**)((char*)g_game + 0x391e9))->FUN_00435100() != 1) {
-        if (((Mission*)*(void**)((char*)g_game + 0x391e9))->FUN_00435100() == 3) {
+    if (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType() != 1) {
+        if (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType() == 3) {
             *(volatile unsigned short*)((char*)g_game + 0x38d75) |= 4;
             while ((*(unsigned short*)((char*)g_game + 0x38d75) & 8) == 0)
                 SleepMilliseconds(0x32);
@@ -688,7 +688,7 @@ void __cdecl LoadMatch(void*)
             }
             SetCameraPosition(cx, cz, 0);
             ReportGameEvent(6);
-        } else if (((Mission*)*(void**)((char*)g_game + 0x391e9))->FUN_00435100() == 2 &&
+        } else if (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType() == 2 &&
             *(void**)((char*)g_game + 0x38d6b) == 0) {
             if (*(int*)((char*)*(void**)((char*)g_game + 0x29a0) + 0x118) != 0) {
                 for (int i1 = 0; i1 < 10; i1++) {
@@ -746,7 +746,7 @@ void __cdecl LoadMatch(void*)
             LoadSavedGameState(*(void**)((char*)g_game + 0x38d6b));
             goto tail;
         }
-    } else if (((Mission*)*(void**)((char*)g_game + 0x391e9))->FUN_00435100() != 1) {
+    } else if (((Mission*)*(void**)((char*)g_game + 0x391e9))->GetGameType() != 1) {
         goto tail;
     }
     CreateMissionUnits();
@@ -898,7 +898,7 @@ void LoadingScreenFrame(void)
         }
         SetFont(g_game->field_391f9);
         SetPaletteColors(SURFACE_143a7, 0, 0x100);
-        if (((Mission*)g_game->field_391e9)->FUN_00435100() != 2) {
+        if (((Mission*)g_game->field_391e9)->GetGameType() != 2) {
             SaveSettings();
         }
         while (g_game->field_531 != 0) {
@@ -1028,10 +1028,10 @@ void LoadingScreenFrame(void)
         }
         SetFont(g_game->field_391f9);
         DrawSurface(&gadget, (void*)g_game->field_11eb, 0, 0);
-        if (((Mission*)g_game->field_391e9)->FUN_00435100() != 1) {
+        if (((Mission*)g_game->field_391e9)->GetGameType() != 1) {
             SetTextColors(color, 0xfe);
             // Local for the strncpy source: the call comes before the length push.
-            char* name = ((Mission*)g_game->field_391e9)->FUN_00435c30();
+            char* name = ((Mission*)g_game->field_391e9)->GetMissionName();
             strncpy(namebuf, name, 100);
             namebuf[99] = 0;
             if (GetPreferredLanguage() != 0 && _strcmpi((const char*)GetPreferredLanguage(), "english") != 0) {
@@ -1138,7 +1138,7 @@ void LoadingScreenFrame(void)
             FillRectangle(&gadget, rect, color);
             DrawFrame(&gadget, lightbar, rect[0], rect[1]);
         }
-        if (((Mission*)g_game->field_391e9)->FUN_00435100() == 3) {
+        if (((Mission*)g_game->field_391e9)->GetGameType() == 3) {
             DrawSyncStatus(&gadget);
             SendLoadProgress();
         }

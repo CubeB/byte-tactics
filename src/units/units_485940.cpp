@@ -4,7 +4,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -24,7 +24,7 @@ struct Item_00485940 {
 // FUNCTION: 0x485940
 int __stdcall ComparePlayers(Item_00485940* a, Item_00485940* b)
 {
-    if (g_game->mode->FUN_00435100() == 3)
+    if (g_game->mode->GetGameType() == 3)
         return a->key < b->key;
     return a < b;
 }

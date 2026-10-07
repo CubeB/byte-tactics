@@ -60,7 +60,7 @@ struct RuleSet_0045f1d0 {                // +0x118 startType, read from element 
     int startType;                       // +0x118
 };
 
-struct Mission { int FUN_00435100(); char* FUN_00435c30(); };
+struct Mission { int GetGameType(); char* GetMissionName(); };
 struct Game {
     char unknown_0[0x519];
     Layer_0045f1d0 menu;                 // +0x519
@@ -131,7 +131,7 @@ void FUN_0045f1d0()
     AddTextGadget(layer, "TEXT", Translate(deathStrs[g_game->commanderDeath]), 0x8c,
                  0x5a, 0x78, 2);
     AddTextGadget(layer, "TEXT", Translate("Starting Locations:"), 0x12, 0x6c, 0x6e, 2);
-    if (g_game->net->FUN_00435100() == 2) {
+    if (g_game->net->GetGameType() == 2) {
         AddTextGadget(layer, "TEXT", Translate(locStrs[g_game->rules->startType]), 0x8c,
                      0x6c, 0x78, 2);
     } else {
@@ -145,7 +145,7 @@ void FUN_0045f1d0()
     int losIdx = !(losFlags & 2) ? 2 : (int)(((unsigned char)~losFlags >> 2) & 1);
     AddTextGadget(layer, "TEXT", Translate(losStrs[losIdx]), 0x8c, 0x90, 0x78, 2);
     int y;
-    if (g_game->net->FUN_00435100() == 3) {
+    if (g_game->net->GetGameType() == 3) {
         AddTextGadget(layer, "TEXT", Translate("Cheat Codes:"), 0x12, 0xa2, 0x6e, 2);
         AddTextGadget(layer, "TEXT", Translate(cheatStrs[opts->u.b.b13]), 0x8c,
                      0xa2, 0x78, 2);
@@ -161,11 +161,11 @@ void FUN_0045f1d0()
     }
     AddTextGadget(layer, "TEXT", Translate("Map:"), 0x12, y, 0x6e, 2);
     AddTextGadget(layer, "TEXT",
-                 Translate(((Mission*)g_game->net)->FUN_00435c30()), 0x8c, y,
+                 Translate(((Mission*)g_game->net)->GetMissionName()), 0x8c, y,
                  0x78, 2);
     y += 0x12;
     AddTextGadget(layer, "TEXT", Translate("Starting Metal:"), 0x12, y, 0x6e, 2);
-    if (g_game->net->FUN_00435100() == 3) {
+    if (g_game->net->GetGameType() == 3) {
         AddTextGadget(layer, "TEXT", _itoa(opts->startMetal * 100, num, 10), 0x8c, y, 0x78,
                      2);
     } else {
@@ -173,7 +173,7 @@ void FUN_0045f1d0()
     }
     y += 0x12;
     AddTextGadget(layer, "TEXT", Translate("Starting Energy:"), 0x12, y, 0x6e, 2);
-    if (g_game->net->FUN_00435100() == 3) {
+    if (g_game->net->GetGameType() == 3) {
         AddTextGadget(layer, "TEXT", _itoa(opts->startEnergy * 100, num, 10), 0x8c, y,
                      0x78, 2);
     } else {

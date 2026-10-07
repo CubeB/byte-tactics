@@ -230,7 +230,7 @@ struct Game {
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 class Class_00438760 {
@@ -620,7 +620,7 @@ void HandleGameKey(void)
         break;
 
     case 9:
-        if (g_game->net->FUN_00435100() == 3) {
+        if (g_game->net->GetGameType() == 3) {
             if (!g_game->flags_37ebe.b2)
                 ToggleTabMenu();
             break;
@@ -763,7 +763,7 @@ void HandleGameKey(void)
     }
 
     case 0x68:
-        if (g_game->net->FUN_00435100() == 3)
+        if (g_game->net->GetGameType() == 3)
             OpenShareDialog();
         break;
 

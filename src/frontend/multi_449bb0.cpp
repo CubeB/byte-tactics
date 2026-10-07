@@ -157,7 +157,7 @@ struct Game_00449bb0 {
 #pragma pack(pop)
 
 class Class_00435a20 { public: int LoadMissionByName(char* map); };
-class Class_00435c30 { public: char* FUN_00435c30(); };
+class Class_00435c30 { public: char* GetMissionName(); };
 
 extern Game_00449bb0* g_game;
 extern int DAT_00512994;
@@ -361,7 +361,7 @@ void OpenBattleRoom()
     *g_game->chatter = 0;
     {
         Gadget_00449bb0* mem = FUN_004a0180(g_game->gui.table->entries, "MEMx");
-        mem->colour = player->info->memory < ((Class_00435920*)g_game->map)->FUN_00435920() ? 0xc : 0;
+        mem->colour = player->info->memory < ((Class_00435920*)g_game->map)->GetTerrainSizeTier() ? 0xc : 0;
         sprintf(mem->text, "%d", g_game->players[g_game->localPlayer].info->memory);
     }
     isHost = g_game->players[g_game->localPlayer].info->f97_0;
@@ -393,9 +393,9 @@ void OpenBattleRoom()
     ((Class_00435d30*)g_game->map)->RefreshMapList(1);
     if (isHost && IsOnlineConfigLoaded() && DAT_00512ce8[0])
         ((Class_00435a20*)g_game->map)->LoadMissionByName(DAT_00512ce8);
-    if (!((Class_00435c40*)g_game->map)->FUN_00435c40())
+    if (!((Class_00435c40*)g_game->map)->HasMissionName())
         FatalError("Could not find the multiplayer map!!");
-    strcpy(info->map, ((Class_00435c30*)g_game->map)->FUN_00435c30());
+    strcpy(info->map, ((Class_00435c30*)g_game->map)->GetMissionName());
     info->mapCrc = ((Class_004373a0*)g_game->map)->ComputeMapChecksum();
     BroadcastPlayerInfo();
     FUN_004a7190(&g_game->gui, FindGadgetIndex(g_game->gui.table->entries, "MESSAGE", 0xe));

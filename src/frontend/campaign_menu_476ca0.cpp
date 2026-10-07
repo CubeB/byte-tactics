@@ -5,7 +5,7 @@ extern char* g_game;
 
 class Mission {
 public:
-    int FUN_004356c0(int param_1);
+    int GetNameSlot(int param_1);
 };
 
 void __stdcall StreamSoundDelayed(char* param_1, int param_2, int param_3);
@@ -14,7 +14,7 @@ void __stdcall StreamSoundDelayed(char* param_1, int param_2, int param_3);
 void FUN_00476ca0()
 {
     if (*(int*)(g_game + 0x391f1) != 6) {
-        char* name = (char*)(*(Mission**)(g_game + 0x391e9))->FUN_004356c0(8);
+        char* name = (char*)(*(Mission**)(g_game + 0x391e9))->GetNameSlot(8);
         if (name) {
             StreamSoundDelayed(name, 0, 0x3c);
         }

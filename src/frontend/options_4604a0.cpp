@@ -34,7 +34,7 @@ struct Menu_004604a0 {
 
 class Mission {
 public:
-    char* FUN_00435c30(int player);
+    char* GetMissionName(int player);
 };
 
 #pragma pack(push, 1)
@@ -74,7 +74,7 @@ void OpenRestartDialog()
     int index = FindGadgetIndex(gadgets, "MISSIONNAME", 5);
     menu->field_14 = menu->field_c;
     char* text = WordWrapText(&g_game->menu,
-                              g_game->texts->FUN_00435c30(gadgets[index].field_17),
+                              g_game->texts->GetMissionName(gadgets[index].field_17),
                               -1);
     menu->field_14 = menu->field_8;
     char* first = strtok(text, "\n");

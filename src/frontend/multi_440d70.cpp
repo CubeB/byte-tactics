@@ -225,7 +225,7 @@ struct LinkInfo {
 // The mission object's map list (defined in the game's own files).
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
     void RefreshMapList(int param_1);
 };
 
@@ -1253,7 +1253,7 @@ void __stdcall OpenReportDialog(unsigned int* count, char** names)
 // FUNCTION: 0x4436e0
 int InitScoreReporting(void)
 {
-    if (g_game->field_391e9->FUN_00435100() != 3)
+    if (g_game->field_391e9->GetGameType() != 3)
         return 0;
     int saved = g_game->field_2cbe;
     FUN_00491c80(0x14);

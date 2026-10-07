@@ -85,7 +85,7 @@ struct Game {
 };
 #pragma pack(pop)
 
-struct Mission { int FUN_004358f0(); int ComputeMapChecksum(); void LoadMissionByName(PlayerInfo_0044a680* info); char* FUN_00435c30(); };
+struct Mission { int GetTerrainLength(); int ComputeMapChecksum(); void LoadMissionByName(PlayerInfo_0044a680* info); char* GetMissionName(); };
 struct UnitSync {
     int AllPlayersSynced();
     void ProcessSync();
@@ -136,7 +136,7 @@ int __stdcall FUN_00456760();
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
 int CheckMapCrc()
 {
-    if (!((Mission*)g_game->map)->FUN_004358f0()) {
+    if (!((Mission*)g_game->map)->GetTerrainLength()) {
         return 0;
     }
     unsigned char me = FindHostSlot();
@@ -293,7 +293,7 @@ void UpdateBattleRoom()
                     UpdateMetalText(&g_game->gui, 0);
                 } else if (IsScreenNamed(&g_game->gui, "viewmap.gui") != 0) {
                     PlayerInfo_0044a680* info = g_game->players[host].info;
-                    if (strcmp(((Mission*)g_game->map)->FUN_00435c30(), info->map) != 0) {
+                    if (strcmp(((Mission*)g_game->map)->GetMissionName(), info->map) != 0) {
                         ((Mission*)g_game->map)->LoadMissionByName(g_game->players[host].info);
                         ShowSelectedMapInfo();
                         FUN_0049fad0(&g_game->gui);

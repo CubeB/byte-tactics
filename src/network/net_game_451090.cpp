@@ -3,7 +3,7 @@
 
 class Mission {
 public:
-    int FUN_00435c30();
+    int GetMissionName();
 };
 
 #pragma pack(push, 1)
@@ -59,7 +59,7 @@ void __stdcall BuildGameInfo(char* name, int* d, int* c, int* b, int* a)
     memset(name, ' ', 0x20);
     name[0x1f] = 0;
     strncpy(name, g_game->gameName, 0x10);
-    int src = g_game->field_391e9->FUN_00435c30();
+    int src = g_game->field_391e9->GetMissionName();
     strncpy(name + 0x10, (char*)src, 0xf);
     char* q = name;
     int n = 0x20;

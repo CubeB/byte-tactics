@@ -4,7 +4,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -80,7 +80,7 @@ void OpenTalkDialog()
     if (g_game->flags_37ebe & 0x800)
         return;
     int multi = (g_game->flags_2bee & 0x100)
-                && g_game->net->FUN_00435100() == 3;
+                && g_game->net->GetGameType() == 3;
     Gadget_00494050* d = LoadGuiLayer(&g_game->sub,
                                        multi ? "TALK2.GUI" : "TALK.GUI",
                                        multi ? 0x800 : 0x880);
@@ -89,7 +89,7 @@ void OpenTalkDialog()
     g_game->flags_37ebe |= 4;
     FUN_004a0bf0(&g_game->sub, "TALK", DAT_0051e788, 0);
     SetButtonStageByName(&g_game->sub, "SENDTO", multi);
-    if (g_game->net->FUN_00435100() != 3) {
+    if (g_game->net->GetGameType() != 3) {
         FUN_004a0570(&g_game->sub, "SENDTO", 0);
     } else if (multi) {
         SetButtonStageByName(&g_game->sub, "SENDTYPE", g_game->mode_2bf0);

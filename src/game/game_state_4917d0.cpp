@@ -7,7 +7,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 #pragma pack(push, 1)
@@ -166,7 +166,7 @@ void FUN_004917d0()
     g_game->assem = FUN_004d83b0("ASSEM PTS", 0xa0);
     g_game->field_38a37 = GetTicks();
     g_game->field_38a47 = 0;
-    if (g_game->net->FUN_00435100() == 3) {
+    if (g_game->net->GetGameType() == 3) {
         g_game->field_38a4b = 10;
         g_game->field_38a4d = 10;
     }

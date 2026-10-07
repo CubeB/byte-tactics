@@ -5,7 +5,7 @@
 
 class Mission {
 public:
-    char* FUN_004356c0(int index);
+    char* GetNameSlot(int index);
 };
 
 #pragma pack(push, 1)
@@ -49,7 +49,7 @@ void __stdcall FUN_0040a040(int player);
 void FUN_004648e0()
 {
     int size;
-    char* name = g_game->net->FUN_004356c0(7);
+    char* name = g_game->net->GetNameSlot(7);
     char* text = HAPI_LoadFile(name, &size);
     if (text == 0) {
         text = HAPI_LoadFile("ai\\default.txt", &size);

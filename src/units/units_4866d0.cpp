@@ -16,7 +16,7 @@ public:
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 class UnitMotion {
@@ -272,7 +272,7 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
         Player_004866d0* rec = &g_game->players[unit->killer];
         if (rec->active != 0 && (rec->state == 1 || rec->state == 2 || rec->state == 3)
             && rec->index != 10
-            && (g_game->x391e9->FUN_00435100() == 3 || g_game->x391e9->FUN_00435100() == 2)
+            && (g_game->x391e9->GetGameType() == 3 || g_game->x391e9->GetGameType() == 2)
             && rec->rank > 0) {
             int rank = rec->rank;
             int best = rank;
@@ -372,9 +372,9 @@ void __stdcall ApplyUnitDeath(Cmd_004866d0* cmd, int local)
     unit->flags &= ~0x30;
     unit->player->unitCount--;
     if (unit->player->unitCount == 0) {
-        if (g_game->x391e9->FUN_00435100() == 3)
+        if (g_game->x391e9->GetGameType() == 3)
             AnnouncePlayerLeft(unit->player->dpid);
-        if (g_game->x391e9->FUN_00435100() == 2)
+        if (g_game->x391e9->GetGameType() == 2)
             AnnounceForcesDestroyed(unit->player);
     }
 }

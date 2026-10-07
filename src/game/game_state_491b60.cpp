@@ -2,7 +2,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 class Sound {
@@ -79,7 +79,7 @@ void FUN_00491b60()
     FreeWeaponArray();
     FreeMovementClasses();
     FreeUnitCategories();
-    if (g_game->field_391e9->FUN_00435100() == 3) {
+    if (g_game->field_391e9->GetGameType() == 3) {
         CloseNetSession();
     }
 }

@@ -7,7 +7,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 struct Unit;
@@ -93,7 +93,7 @@ int MissionConditions::CheckVictory()
 {
     if (active == 0)
         return 0;
-    switch (g_game->mode->FUN_00435100()) {
+    switch (g_game->mode->GetGameType()) {
     case 1:
         return AllVictoryConditionsMet();
     case 2: {

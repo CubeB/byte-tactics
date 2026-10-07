@@ -44,8 +44,8 @@ struct Layer_00444ea0 {
 class Mission {
 public:
     int LoadMissionByName(char* name);
-    char* FUN_00435c30();
-    bool FUN_00435c40();
+    char* GetMissionName();
+    bool HasMissionName();
     void RefreshMapList(int param_1);
 };
 
@@ -84,7 +84,7 @@ void __stdcall FUN_004a0570(Menu_00444ea0* menu, char* name, int value);
 // other call site of it does push (0x430b98, 0x4446d7, 0x44a49e). That leaves
 // the stack 4 bytes short, so this call is kept exactly as the original has
 // it. It is never reached: the only caller (0x4488ea) calls this function
-// precisely when Mission::FUN_00435c40() is false, and the test at the
+// precisely when Mission::HasMissionName() is false, and the test at the
 // top of this function then returns early.
 
 // FUNCTION: 0x444ea0
@@ -92,7 +92,7 @@ void OpenMultiMapSelector()
 {
     DAT_00512990 = (char*)FUN_004d83b0("OLDMAPNAME", 0xc8);
 
-    if (!((Mission*)g_game->field_391e9)->FUN_00435c40()) {
+    if (!((Mission*)g_game->field_391e9)->HasMissionName()) {
         OpenMessageBox(&g_game->menu,
                      Translate("There are no multiplayer maps to choose from"),
                      0x140, 1, 1);
@@ -100,7 +100,7 @@ void OpenMultiMapSelector()
     }
 
     strcpy(DAT_00512990,
-           ((Mission*)g_game->field_391e9)->FUN_00435c30());
+           ((Mission*)g_game->field_391e9)->GetMissionName());
     ((Mission*)g_game->field_391e9)->RefreshMapList(0);
 
     int n = LoadMapList(0, 0, 0);

@@ -16,7 +16,7 @@ public:
     char unknown_0[0xd5c];
     float pos_x[10];                   // +0xd5c
     float pos_y[10];                   // +0xd84
-    int FUN_00435100();
+    int GetGameType();
 };
 
 struct PlayerInfo_00465e30 {
@@ -66,7 +66,7 @@ void FUN_00465e30()
     for (int i = 0; i < 10; i++) {
         Player_00465e30* player = &g_game->players[i];
         if (g_game->field_38d6b == 0) {
-            switch (g_game->net->FUN_00435100()) {
+            switch (g_game->net->GetGameType()) {
             case 1:
                 SetStartingStorageBonus(player, (int)g_game->net->pos_x[i],
                              (int)g_game->net->pos_y[i]);

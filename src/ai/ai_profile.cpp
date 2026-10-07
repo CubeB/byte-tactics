@@ -7,7 +7,7 @@
 
 class Mission {
 public:
-    int FUN_004356c0(int param_1);
+    int GetNameSlot(int param_1);
 };
 
 #pragma pack(push, 1)
@@ -142,7 +142,7 @@ int AIProfileParser::ReadInt()
     if (token != 0x101) {
         if (errorReported == 0) {
             sprintf(buffer, "parse error reading AI profile %s\n%s\nlast string =",
-                    (char*)g_game->field_391e9->FUN_004356c0(7),
+                    (char*)g_game->field_391e9->GetNameSlot(7),
                     "expecting int", this);
         }
         errorReported = 1;
@@ -166,7 +166,7 @@ void AIProfileParser::ReportParseError(char* text)
     char buffer[256];
     if (!errorReported) {
         sprintf(buffer, "parse error reading AI profile %s\n%s\nlast string =",
-                (char*)g_game->field_391e9->FUN_004356c0(7), text, this);
+                (char*)g_game->field_391e9->GetNameSlot(7), text, this);
     }
     errorReported = 1;
 }

@@ -8,7 +8,7 @@
 
 class Mission {
 public:
-    int FUN_00435100();
+    int GetGameType();
 };
 
 // One 0x48-byte message ring record. AddMessage, ScrollToNextMessageUnit and
@@ -157,7 +157,7 @@ void __stdcall SendChatMessage(Player_00463e50* from, char* text, int param_3, c
     sprintf(buf, "<%s%s%s> %s", from->name, to ? "->" : DAT_005119b8,
             to ? to : DAT_005119b8, text);
     SendChatPacket(buf);
-    if (g_game->field_391e9->FUN_00435100() == 3) {
+    if (g_game->field_391e9->GetGameType() == 3) {
         ReportGameChat(buf);
     }
     AddMessage(buf, param_3, 0, 10);

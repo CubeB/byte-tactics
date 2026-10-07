@@ -1094,3 +1094,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   zero, so two identical points raise a divide exception at 0x474811
   (`_alldiv`). Harmless if callers never pass coincident points. Found by
   OpenCode / deepseek-v4.1-flash in #6082.
+- **0x499ab0** (possible): the weapon packet is a 0x24-byte stack local and
+  its byte at +0x1a is a one-bit field; only bit 0 is written
+  (`packet.flag = unit->def->f111 >> 30`), so the other seven bits go over the
+  network as whatever the stack held. Harmless if receivers only test bit 0.
+  Found by OpenCode / deepseek-v4.1-flash in #6085.

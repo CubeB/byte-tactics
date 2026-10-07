@@ -8,7 +8,6 @@
 #define LINK_GLOBALS_H
 
 class FreeBlockMap;
-class MapCacheEntry;
 class NameTable;
 class SpeechQueue;
 class TranslationTable;
@@ -292,9 +291,6 @@ extern int DAT_00512290;                                                        
 extern int DAT_00512294;                                                                      // 0x512294, 4 bytes; 1 of 1 files
 extern int DAT_0051229c;                                                                      // 0x51229c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_005122a0[4];                                                         // 0x5122a0, 4 bytes; nothing refers to it
-extern MapCacheEntry* g_mapCacheBegin;                                                        // 0x5122c4, 4 bytes; 1 of 1 files
-extern MapCacheEntry* g_mapCacheEnd;                                                          // 0x5122c8, 4 bytes; 1 of 1 files
-extern unsigned char DAT_005122cc[4];                                                         // 0x5122cc, 4 bytes; nothing refers to it
 extern char* g_otaEnumFileList;                                                               // 0x5122d4, 4 bytes; 1 of 1 files
 extern int g_otaEnumCacheComplete;                                                            // 0x5122d8, 4 bytes; 1 of 1 files
 extern int g_otaEnumFileListBytes;                                                            // 0x5122dc, 4 bytes; 1 of 1 files
@@ -704,7 +700,7 @@ extern int DAT_0052a4f4;                                                        
 extern void* DAT_0052a4f8;                                                                    // 0x52a4f8, 4 bytes; 3 of 3 files
 extern long DAT_0052a4fc;                                                                     // 0x52a4fc, 4 bytes; 2 of 3 files (conflicting: signedness or const)
 
-// Not declared: 231 globals defined in a data file or whose type is not settled (see data/globals.csv).
+// Not declared: 233 globals defined in a data file or whose type is not settled (see data/globals.csv).
 //   0x513000 g_packetManager: defined in src/network/packets_460e20.cpp
 //   0x5119c0 g_playerAI: PlayerAI*[] (11), void*[] (5), Owner*[] (3), Player_40b0d0*[] (1), and 2 more
 //   0x51fbd0 g_display: void* (4), int (2), Display_004b4f50* (1), Display_004b5370* (1), and 14 more
@@ -891,6 +887,8 @@ extern long DAT_0052a4fc;                                                       
 //   0x5086fc DAT_005086fc: defined in src/units/unit_messages.cpp
 //   0x50b6e0 DAT_0050b6e0: defined in src/data/unused.cpp
 //   0x5120bc DAT_005120bc: part of another global: DAT_005120b8+0x4
+//   0x5122c4 g_mapCacheBegin: part of another global: src/map/map_list.cpp:0x5122c0+0x4
+//   0x5122c8 g_mapCacheEnd: part of another global: src/map/map_list.cpp:0x5122c0+0x8
 //   0x512340 DAT_00512340$S5516: defined in src/map/meteors.cpp
 //   0x512370 DAT_00512370: part of another global: MovementClassTable::g_movementClasses+0x18
 //   0x512774 DAT_00512774: part of another global: DAT_00512770+0x4

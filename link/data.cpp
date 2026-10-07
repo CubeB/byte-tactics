@@ -388,9 +388,6 @@ int DAT_00512290;  // 0x512290 .bss
 int DAT_00512294;  // 0x512294 .bss
 int DAT_0051229c;  // 0x51229c .bss
 unsigned char DAT_005122a0[4];  // 0x5122a0 .bss
-MapCacheEntry* g_mapCacheBegin;  // 0x5122c4 .bss
-MapCacheEntry* g_mapCacheEnd;  // 0x5122c8 .bss
-unsigned char DAT_005122cc[4];  // 0x5122cc .bss
 char* g_otaEnumFileList;  // 0x5122d4 .bss
 int g_otaEnumCacheComplete;  // 0x5122d8 .bss
 int g_otaEnumFileListBytes;  // 0x5122dc .bss

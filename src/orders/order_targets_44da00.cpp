@@ -3,6 +3,10 @@
 // std::vector<Point_0044eec0>: first the two vertical edges (for each x, the
 // bottom and top points), then the two horizontal edges (for each interior y,
 // the left and right points). Every point is appended with push_back.
+// Stays in its own file: the std::copy specialization below changes the
+// vector<Point_0044eec0> instantiations 0x44d0e0 and 0x44d560 share (their
+// inlined clear turns into a call to 0x44eef0), so it cannot join them in
+// the merged order_targets_44ce40.cpp.
 #include <string.h>
 #include <utility>
 

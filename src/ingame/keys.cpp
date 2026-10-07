@@ -319,7 +319,7 @@ void SelectStopOrder(void)
 
 // The else branch is the body of SelectStopOrder.
 // FUNCTION: 0x4958c0
-void __stdcall FUN_004958c0(int set)
+void __stdcall SetOrSelectStopOrder(int set)
 {
     int index;
 

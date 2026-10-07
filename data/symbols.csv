@@ -2039,7 +2039,7 @@ address,name
 0x495490,RunGameSteps
 0x4956c0,FUN_004956c0
 0x495860,SelectStopOrder
-0x4958c0,FUN_004958c0
+0x4958c0,SetOrSelectStopOrder
 0x495930,BuildScreenshotPath
 0x495a30,WriteScreenshot
 0x495e90,HandleGameKey

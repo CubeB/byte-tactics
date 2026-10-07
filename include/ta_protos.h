@@ -2301,7 +2301,7 @@ void UpdateFramePacing(void);
 void RunGameSteps(int);
 void FUN_004956c0(int);
 void SelectStopOrder(void);
-void FUN_004958c0(int);
+void SetOrSelectStopOrder(int);
 void BuildScreenshotPath(char*, const char*, const char*, const char*);
 void WriteScreenshot(char*, char*, int, int, int, int);
 void HandleGameKey(void);

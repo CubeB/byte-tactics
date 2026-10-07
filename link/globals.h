@@ -24,8 +24,8 @@ struct Struct_00526ff0;
 extern unsigned char DAT_004fca10[8];                                                         // 0x4fca10, 8 bytes; const Table_0040d880 by value in 1 of 1 files
 extern unsigned char DAT_004fcc68[8];                                                         // 0x4fcc68, 8 bytes; 1 of 1 files
 extern char DAT_004fd050[200];                                                                // 0x4fd050, 200 bytes; 1 of 1 files
-extern double DAT_004fd2b0;                                                                   // 0x4fd2b0, 8 bytes; 1 of 1 files
-extern double DAT_004fd2b8;                                                                   // 0x4fd2b8, 8 bytes; 1 of 1 files
+extern double TWO_PI;                                                                         // 0x4fd2b0, 8 bytes; 1 of 1 files
+extern double ONE_EIGHTH;                                                                     // 0x4fd2b8, 8 bytes; 1 of 1 files
 extern const float DAT_004fd4c0;                                                              // 0x4fd4c0, 4 bytes; 1 of 1 files
 extern const float DAT_004fd4cc;                                                              // 0x4fd4cc, 4 bytes; 1 of 1 files
 extern signed char DAT_004fd670[8];                                                           // 0x4fd670, 8 bytes; 2 of 2 files

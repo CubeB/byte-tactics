@@ -12,8 +12,8 @@
 unsigned char DAT_004fca10[8] = {0, 40, 60, 80, 100, 80, 60, 40};  // 0x4fca10 .rdata
 unsigned char DAT_004fcc68[8] = {4, 14, 10};  // 0x4fcc68 .rdata
 char DAT_004fd050[200] = "Warning! The currently installed version of Microsoft%sDirectX may not function properly with Total Annihilation.%sPlease install the version of DirectX included on the%sTotal Annihilation setup CD.";  // 0x4fd050 .rdata
-double DAT_004fd2b0 = 6.28318530717958;  // 0x4fd2b0 .rdata
-double DAT_004fd2b8 = 0.125;  // 0x4fd2b8 .rdata
+double TWO_PI = 6.28318530717958;  // 0x4fd2b0 .rdata
+double ONE_EIGHTH = 0.125;  // 0x4fd2b8 .rdata
 const float DAT_004fd4c0 = 0.0f;  // 0x4fd4c0 .rdata
 const float DAT_004fd4cc = 5.0f;  // 0x4fd4cc .rdata
 signed char DAT_004fd670[8] = {0, -1, -1, -1, 0, 1, 1, 1};  // 0x4fd670 .rdata

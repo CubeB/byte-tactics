@@ -737,9 +737,9 @@ address,size,file,symbol,status,similarity
 0x438c00,660,src/ingame/markers.cpp,?DrawBuildFootprint@@YGXPAXPAUView@@PAUOrder@@PAUPos@@H@Z,matched,100.0
 0x438ea0,505,src/ingame/markers.cpp,?DrawRangeCircle@@YGXPAXPAUView@@PAUPos@@HHPBDH@Z,matched,100.0
 0x4390a0,1073,src/ingame/markers.cpp,?DrawUnitRangeRings@@YGXPAXPAUView@@PAUOrder@@HH@Z,matched,100.0
-0x4394e0,601,src/ingame/markers.cpp,?FUN_004394e0@@YGXPAXPAUView@@PAUOrder@@PAUPos@@H@Z,matched,100.0
+0x4394e0,601,src/ingame/markers.cpp,?DrawPathAnim@@YGXPAXPAUView@@PAUOrder@@PAUPos@@H@Z,matched,100.0
 0x439740,674,src/ingame/markers.cpp,?DrawWeaponCoverage@@YGXPAXPAUView@@PAUOrder@@PAUPos@@H@Z,matched,100.0
-0x4399f0,312,src/ingame/markers.cpp,?FUN_004399f0@@YGXPAXPAUView@@PAUOrder@@PAUPos@@H@Z,matched,100.0
+0x4399f0,312,src/ingame/markers.cpp,?DrawOrderRangeRing@@YGXPAXPAUView@@PAUOrder@@PAUPos@@H@Z,matched,100.0
 0x439b30,441,src/orders/order_list_439b30.cpp,?FUN_00439b30@@YGXPAUUnit@@IPAX1H@Z,matched,100.0
 0x439cf0,40,src/orders/order_list_439cf0.cpp,?FUN_00439cf0@@YGHPAX@Z,matched,100.0
 0x439d20,81,src/orders/order_list_439d20.cpp,?FUN_00439d20@@YGHPAUOwner_439d20@@@Z,matched,100.0

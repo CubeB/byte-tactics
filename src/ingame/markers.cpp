@@ -184,8 +184,8 @@ struct Rect {
 
 extern Game* g_game;
 extern Entry* DAT_00512344;
-extern double DAT_004fd2b0;              // 6.28318530717958
-extern double DAT_004fd2b8;              // 0.125
+extern double TWO_PI;                    // 6.28318530717958
+extern double ONE_EIGHTH;                // 0.125
 
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 void __stdcall DrawString(void* surface, const char* text, int x, int y, int maxWidth);
@@ -314,8 +314,8 @@ void __stdcall DrawRangeCircle(void* surface, View* view, Pos* pos, int radius,
         int lx = 0;
         int ly = 0;
         // Product order d = radius * a, n = d * b: picks the right constants.
-        double d = radius * DAT_004fd2b0;
-        int n = (int)(d * DAT_004fd2b8);
+        double d = radius * TWO_PI;
+        int n = (int)(d * ONE_EIGHTH);
         int i = 0;
         // Uninitialised on purpose: when the ring has no segments the
         // original reloads both from their (never written) home slot.
@@ -499,7 +499,7 @@ struct Trail_004394e0 {
 // each step. idx starts at (frames since order->timestamp, clamped at 0) /
 // max(1, anim->field_2c) % anim->count.
 // FUNCTION: 0x4394e0
-void __stdcall FUN_004394e0(void* surface, View* view,
+void __stdcall DrawPathAnim(void* surface, View* view,
                             Order* order, Pos* out, int flag)
 {
     Pos start = *out;
@@ -598,7 +598,7 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
 // Draws an ellipse (radius `height`, 0.89 of it vertically) of 16 segments
 // around an object's screen position, then copies the position to `out`.
 // FUNCTION: 0x4399f0
-void __stdcall FUN_004399f0(void* surface, View* view, Order* order,
+void __stdcall DrawOrderRangeRing(void* surface, View* view, Order* order,
                             Pos* out, int unused)
 {
     Pos p;

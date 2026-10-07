@@ -738,9 +738,9 @@ address,name
 0x438c00,DrawBuildFootprint
 0x438ea0,DrawRangeCircle
 0x4390a0,DrawUnitRangeRings
-0x4394e0,FUN_004394e0
+0x4394e0,DrawPathAnim
 0x439740,DrawWeaponCoverage
-0x4399f0,FUN_004399f0
+0x4399f0,DrawOrderRangeRing
 0x439b30,FUN_00439b30
 0x439cf0,FUN_00439cf0
 0x439d20,FUN_00439d20
@@ -4045,8 +4045,8 @@ address,name
 0x4fcf68,DAT_004fcf68
 0x4fd050,DAT_004fd050
 0x4fd288,DAT_004fd288
-0x4fd2b0,DAT_004fd2b0
-0x4fd2b8,DAT_004fd2b8
+0x4fd2b0,TWO_PI
+0x4fd2b8,ONE_EIGHTH
 0x4fd2c8,??_7Class_0043a1f0@@6B@
 0x4fd2cc,??_7Class_0043a1e0@@6B@
 0x4fd2f8,DAT_004fd2f8

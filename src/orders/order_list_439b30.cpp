@@ -41,9 +41,9 @@ extern Entry_00439b30* DAT_00512344;
 
 void __stdcall DrawBuildFootprint(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
 void __stdcall DrawUnitRangeRings(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
-void __stdcall FUN_004394e0(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
+void __stdcall DrawPathAnim(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
 void __stdcall DrawWeaponCoverage(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
-void __stdcall FUN_004399f0(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
+void __stdcall DrawOrderRangeRing(void* a, void* b, Obj_00439b30* e, Pos_00439b30* p, int c);
 
 // FUNCTION: 0x439b30
 void __stdcall FUN_00439b30(Unit* unit, unsigned int mask, void* obj,
@@ -61,11 +61,11 @@ void __stdcall FUN_00439b30(Unit* unit, unsigned int mask, void* obj,
         }
         if (DAT_00512344[e->kind].flags & mask & 2) {
             pos = base;
-            FUN_004394e0(obj, sel, e, &pos, flag);
+            DrawPathAnim(obj, sel, e, &pos, flag);
         }
         if (DAT_00512344[e->kind].flags & mask & 4) {
             pos = base;
-            FUN_004399f0(obj, sel, e, &pos, flag);
+            DrawOrderRangeRing(obj, sel, e, &pos, flag);
         }
         if (DAT_00512344[e->kind].flags & mask & 8) {
             pos = base;

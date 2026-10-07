@@ -89,7 +89,7 @@ int __stdcall VtolGetRepairedOrder(Unit* unit, Order* order, int flags);
 int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, int flags);
 int __stdcall ReadyOrder(Unit* unit, Order* order, int flags);
 void __stdcall DrawBuildFootprint(void* surface, View* view, Order* order, Pos* out, int flag);
-void __stdcall FUN_004394e0(void* surface, View* view, Order* order, Pos* out, int flag);
+void __stdcall DrawPathAnim(void* surface, View* view, Order* order, Pos* out, int flag);
 void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order, Pos* out, int flag);
 
 // every unit's orders, registered by 0x403180.
@@ -116,8 +116,8 @@ extern const UnitOrderType g_unitOrders[23] = {
     {"Attacking", AttackUTypeOrder, 0, 0, 0x413, 0, "AttackUType"},
     {"Ready", GuardNoMoveOrder, 0, 0, 0x2013, 0, "Guard_NoMove"},
     {"Repairing", SelfRepairOrder, 0, 0, 0x20413, 1, "SelfRepair"},
-    {"Ready with orders", QMoveQPatrolOrder, FUN_004394e0, 2, 0x4000e, 0, "QMove"},
-    {"Ready with orders", QMoveQPatrolOrder, FUN_004394e0, 2, 0x40007, 0, "QPatrol"},
+    {"Ready with orders", QMoveQPatrolOrder, DrawPathAnim, 2, 0x4000e, 0, "QMove"},
+    {"Ready with orders", QMoveQPatrolOrder, DrawPathAnim, 2, 0x40007, 0, "QPatrol"},
 };
 
 // the orders of units that move on the ground, registered by 0x406bf0.
@@ -125,25 +125,25 @@ extern const UnitOrderType g_unitOrders[23] = {
 extern const UnitOrderType g_groundOrders[22] = {
     {"Standby", StandbyOrder, 0, 0x10, 0x200000f, 0, "Standby"},
     {"Standby", StandbyMineOrder, 0, 0x10, 0x200000f, 1, "Standby_Mine"},
-    {"Moving", MoveGroundOrder, FUN_004394e0, 0x12, 0x4020e, 0, "Move_Ground"},
-    {"Guarding", FollowGroundOrder, FUN_004394e0, 0x12, 0x20005, 0, "Follow_Ground"},
+    {"Moving", MoveGroundOrder, DrawPathAnim, 0x12, 0x4020e, 0, "Move_Ground"},
+    {"Guarding", FollowGroundOrder, DrawPathAnim, 0x12, 0x20005, 0, "Follow_Ground"},
     {"Suppressing fire", SuppressOrder, DrawWeaponCoverage, 8, 0x41001, 0, "Suppress"},
     {"Attacking", AttackChaseOrder, DrawWeaponCoverage, 8, 0x28001, 0, "Attack_Chase"},
     {"Attacking", AttackKamikazeOrder, DrawWeaponCoverage, 8, 0x60001, 0, "Attack_Kamikaze"},
     {"Annihilating", AttackSpecialOrder, DrawWeaponCoverage, 8, 0x68001, 0, "AttackSpecial"},
     {"Parking", ParkOrder, 0, 0, 0xe, 0, "Park"},
-    {"Patrolling", PatrolOrder, FUN_004394e0, 0x12, 0x41207, 0, "Patrol"},
+    {"Patrolling", PatrolOrder, DrawPathAnim, 0x12, 0x41207, 0, "Patrol"},
     {"Loading", GroundPickupOrder, DrawWeaponCoverage, 8, 0x2000c, 0, "Ground_Pickup"},
     {"Unloading", GroundUnloadOrder, DrawWeaponCoverage, 8, 0x4000d, 0, "Ground_Unload"},
     {"Teleporting", TeleportOrder, DrawWeaponCoverage, 8, 0x60009, 0, "Teleport"},
     {"Nanolathing", MobileBuildOrder, DrawBuildFootprint, 0x13, 0x10050800, 0, "MobileBuild"},
     {"Nanolathing", HelpBuildOrder, DrawWeaponCoverage, 0x18, 0x10020806, 0, "HelpBuild"},
-    {"Repair patrol", RepairPatrolOrder, FUN_004394e0, 0x12, 0x41207, 0, "RepairPatrol"},
-    {"Repairing", RepairUnitOrder, FUN_004394e0, 0x12, 0x10020006, 0, "RepairUnit"},
+    {"Repair patrol", RepairPatrolOrder, DrawPathAnim, 0x12, 0x41207, 0, "RepairPatrol"},
+    {"Repairing", RepairUnitOrder, DrawPathAnim, 0x12, 0x10020006, 0, "RepairUnit"},
     {"Capturing", CaptureOrder, DrawWeaponCoverage, 8, 0x20004, 0, "Capture"},
-    {"Resurrecting", ResurrectOrder, FUN_004394e0, 0x12, 0x2000b, 0, "Resurrect"},
-    {"Reclaiming", ReclaimOrder, FUN_004394e0, 0x12, 0x1008000b, 0, "Reclaim"},
-    {"Reclaiming", ReclaimUnitOrder, FUN_004394e0, 0x12, 0x1002000b, 0, "ReclaimUnit"},
+    {"Resurrecting", ResurrectOrder, DrawPathAnim, 0x12, 0x2000b, 0, "Resurrect"},
+    {"Reclaiming", ReclaimOrder, DrawPathAnim, 0x12, 0x1008000b, 0, "Reclaim"},
+    {"Reclaiming", ReclaimUnitOrder, DrawPathAnim, 0x12, 0x1002000b, 0, "ReclaimUnit"},
     {"Repairing", RepairUnitNoMoveOrder, DrawWeaponCoverage, 0x18, 0x20006, 0, "RepairUnitNoMove"},
 };
 
@@ -151,22 +151,22 @@ extern const UnitOrderType g_groundOrders[22] = {
 // GLOBAL: 0x4fca18
 extern const UnitOrderType g_vtolOrders[22] = {
     {"Standby", VtolStandbyOrder, 0, 0, 0x200000f, 0, "VTOL_Standby"},
-    {"Moving", VtolMoveOrder, FUN_004394e0, 2, 0x4020e, 0, "VTOL_Move"},
+    {"Moving", VtolMoveOrder, DrawPathAnim, 2, 0x4020e, 0, "VTOL_Move"},
     {"Landing", VtolLandingOrder, DrawWeaponCoverage, 8, 0x6000e, 0, "VTOL_Landing"},
     {"Loading", VtolPickupOrder, DrawWeaponCoverage, 8, 0x20008, 0, "VTOL_Pickup"},
     {"Unloading", VtolUnloadOrder, DrawWeaponCoverage, 8, 0x40009, 0, "VTOL_Unload"},
-    {"Guarding", VtolFollowOrder, FUN_004394e0, 2, 0x20005, 0, "VTOL_Follow"},
-    {"Patrolling", VtolPatrolOrder, FUN_004394e0, 2, 0x41207, 0, "VTOL_Patrol"},
+    {"Guarding", VtolFollowOrder, DrawPathAnim, 2, 0x20005, 0, "VTOL_Follow"},
+    {"Patrolling", VtolPatrolOrder, DrawPathAnim, 2, 0x41207, 0, "VTOL_Patrol"},
     {"Airstrike", AirStrikeOrder, DrawWeaponCoverage, 8, 0x60002, 0, "AirStrike"},
     {"Engaging target", AirToAirOrder, DrawWeaponCoverage, 8, 0x20001, 0, "AirToAir"},
     {"Engaging target", AirToGroundOrder, DrawWeaponCoverage, 8, 0x20001, 0, "AirToGround"},
     {"Engaging target", AirToGroundHoverOrder, DrawWeaponCoverage, 8, 0x20001, 0, "AirToGroundHover"},
     {"Nanolathing", VtolMobileBuildOrder, DrawBuildFootprint, 3, 0x10050800, 0, "VTOL_MobileBuild"},
     {"Nanolathing", VtolHelpBuildOrder, DrawWeaponCoverage, 8, 0x10020806, 0, "VTOL_HelpBuild"},
-    {"Repair patrol", VtolRepairPatrolOrder, FUN_004394e0, 2, 0x41207, 0, "VTOL_RepairPatrol"},
-    {"Repairing", VtolRepairUnitOrder, FUN_004394e0, 2, 0x10020006, 0, "VTOL_RepairUnit"},
-    {"Reclaiming", VtolReclaimOrder, FUN_004394e0, 2, 0x1008000b, 0, "VTOL_Reclaim"},
-    {"Reclaiming", VtolReclaimUnitOrder, FUN_004394e0, 2, 0x1002000b, 0, "VTOL_ReclaimUnit"},
+    {"Repair patrol", VtolRepairPatrolOrder, DrawPathAnim, 2, 0x41207, 0, "VTOL_RepairPatrol"},
+    {"Repairing", VtolRepairUnitOrder, DrawPathAnim, 2, 0x10020006, 0, "VTOL_RepairUnit"},
+    {"Reclaiming", VtolReclaimOrder, DrawPathAnim, 2, 0x1008000b, 0, "VTOL_Reclaim"},
+    {"Reclaiming", VtolReclaimUnitOrder, DrawPathAnim, 2, 0x1002000b, 0, "VTOL_ReclaimUnit"},
     {"Evading", VtolEvadeOrder, 0, 0, 0x13, 0, "VTOL_Evade"},
     {"Seeking to attack", VtolSeekAttackOrder, 0, 0, 0x60013, 0, "VTOL_SeekAttack"},
     {"Seeking to guard", VtolSeekGuardOrder, 0, 0, 0x60013, 0, "VTOL_SeekGuard"},

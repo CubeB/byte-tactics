@@ -65,8 +65,8 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x4fcff8,DAT_004fcff8,.rdata,16,gap,data,const _GUID,1,0,1,one type,1,,,,src/data/guids.cpp,80fd95454d1dd11199fc0060976abf5a
 0x4fd050,DAT_004fd050,.rdata,200,gap,data,char[],1,0,1,one type,1,,,,,5761726e696e6721205468652063757272656e746c7920696e7374616c6c65642076657273696f6e206f66204d6963726f736f6674257344697265637458206d
 0x4fd288,g_readyOrder,.rdata,28,gap,data,Elem_0043c390[],2,1,2,conflicting: array or pointer,3,0x19,PTR_s_Ready_004fd288,2,src/orders/unit_orders.cpp,e8105000a09e430000000000000000000f00000000b8195100000000
-0x4fd2b0,DAT_004fd2b0,.rdata,8,type,float,double,1,0,1,one type,1,,,,,112d4454fb211940
-0x4fd2b8,DAT_004fd2b8,.rdata,8,type,float,double,1,0,1,one type,1,,,,,000000000000c03f
+0x4fd2b0,TWO_PI,.rdata,8,type,float,double,1,0,1,one type,1,,,,,112d4454fb211940
+0x4fd2b8,ONE_EIGHTH,.rdata,8,type,float,double,1,0,1,one type,1,,,,,000000000000c03f
 0x4fd2e4,DAT_004fd2e4,.rdata,4,type,float,const float,1,0,1,one type,1,,,,src/data/unused.cpp,00000040
 0x4fd2f8,DAT_004fd2f8,.rdata,48,gap,vtable,void*[],11,4,3,conflicting: shape,15,,PTR_FUN_004fd2f8,12,src/data/vtables.cpp,50ce440080ce440040ce440030cf440000cf440020cf440090ce4400c0ce440010614e0040cf440050cf4400f0ce4400
 0x4fd328,DAT_004fd328,.rdata,48,gap,vtable,void*[],2,1,2,conflicting: shape,3,,PTR_FUN_004fd328,12,src/data/vtables.cpp,f0cf440090d04400e0cf440030cf440010d3440090d24400e0d0440050d34400c0d2440040cf440050cf4400f0ce4400

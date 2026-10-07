@@ -3939,7 +3939,7 @@ piece,0x4fdbc0,8,src/graphics/palette_4ba200.cpp,4,0,game data
 piece,0x4fdbc8,4,src/graphics/palette_4ba200.cpp,4,8,game data
 piece,0x502978,8,src/graphics/palette_4ba200.cpp,3,0,game data
 piece,0x50a424,10,src/graphics/gaf_4b91b0.cpp,5,0,game data
-piece,0x51fc99,16,src/util/commands_4b7ad0.cpp,4,0,game data
+piece,0x51fc99,16,src/util/commands.cpp,5,0,game data
 piece,0x509ed0,9,src/util/registry.cpp,14,0,game data
 piece,0x509eb8,22,src/util/registry.cpp,13,0,game data
 piece,0x509eac,9,src/graphics/display_4b6570.cpp,3,0,game data
@@ -5943,7 +5943,7 @@ piece,0x501028,4,src/map/line_of_sight_4814c0.cpp,2,0,game data
 piece,0x50102c,4,src/units/unit_commands_4889d0.cpp,2,0,game data
 piece,0x501030,4,src/weapons/weapons_49e610.cpp,2,0,game data
 piece,0x501034,4,src/util/int_map_4b2290.cpp,2,0,game data
-piece,0x50103c,4,src/util/commands_4b75a0.cpp,2,0,game data
+piece,0x50103c,4,src/util/commands.cpp,3,0,game data
 piece,0x50107c,4,LIBCMT.LIB#68,1,0,library data
 piece,0x50105c,4,LIBCMT.LIB#68,2,0,library data
 piece,0x501054,4,LIBCMT.LIB#296,1,0,library data
@@ -12346,12 +12346,6 @@ same,0x503374,2,src/gui/file_list.cpp,10,0,
 same,0x4b2340,16,src/util/int_map_4b2290.cpp,6,0,
 same,0x51fbc0,16,src/util/int_map_4b2340.cpp,6,0,
 same,0x51fbc0,16,src/util/int_map_4b2540.cpp,3,288,
-same,0x4b75d0,80,src/util/commands_4b75a0.cpp,6,0,
-same,0x51fc99,16,src/util/commands_4b75a0.cpp,4,0,
-same,0x51fc99,16,src/util/commands_4b75d0.cpp,4,0,
-same,0x51fc99,16,src/util/commands_4b7620.cpp,4,0,
-same,0x51fc99,16,src/util/commands_4b7760.cpp,4,0,
-same,0x51fc99,16,src/util/commands_4b7900.cpp,4,0,
 same,0x502910,2,src/graphics/palette_4baff0.cpp,3,0,
 same,0x50372c,2,src/util/hpi_4bc4b0.cpp,3,0,
 same,0x502910,2,src/util/hpi_4bc930.cpp,4,0,

@@ -22,8 +22,8 @@ void FUN_00496bb0();
 void FUN_00496ce0();
 void FUN_00496db0();
 void LoadingScreenFrame();
-void FUN_00499200();
-void FUN_00499880();
+void BattleFrame();
+void EndGameFrame();
 
 // FUNCTION: 0x490b30
 void __stdcall SetGameMode(int param)
@@ -49,10 +49,10 @@ void __stdcall SetGameMode(int param)
         g_game->handler = LoadingScreenFrame;
         break;
     case 6:
-        g_game->handler = FUN_00499200;
+        g_game->handler = BattleFrame;
         break;
     case 7:
-        g_game->handler = FUN_00499880;
+        g_game->handler = EndGameFrame;
         break;
     default:
         g_game->handler = 0;

@@ -76,7 +76,7 @@ extern const char DAT_0050338c[8];                                              
 extern char DAT_0050341c[4];                                                                  // 0x50341c, 4 bytes; 1 of 1 files
 extern char DAT_0050372c[4];                                                                  // 0x50372c, 4 bytes; 3 of 3 files
 extern char DAT_00503ea0[8];                                                                  // 0x503ea0, 8 bytes; 1 of 1 files
-extern char DAT_00504314[20];                                                                 // 0x504314, 20 bytes; 1 of 1 files
+extern char g_sayChoiceArrayName[20];                                                         // 0x504314, 20 bytes; 1 of 1 files
 extern char g_maxUnitsKey[12];                                                                // 0x5048f8, 12 bytes; 1 of 1 files
 extern char g_radarImageBoxName[12];                                                          // 0x504904, 12 bytes; 1 of 1 files
 extern char g_gameTimeKey[12];                                                                // 0x504910, 12 bytes; 1 of 1 files
@@ -888,7 +888,7 @@ extern long DAT_0052a4fc;                                                       
 //   0x507b68 DAT_00507b68: defined in src/data/unused.cpp
 //   0x5086d8 g_unitMessages: defined in src/units/unit_messages.cpp
 //   0x5086dc DAT_005086dc: defined in src/units/unit_messages.cpp
-//   0x5086fc DAT_005086fc: defined in src/units/unit_messages.cpp
+//   0x5086fc g_speechCategories: defined in src/units/unit_messages.cpp
 //   0x50b6e0 DAT_0050b6e0: defined in src/data/unused.cpp
 //   0x5120bc DAT_005120bc: part of another global: DAT_005120b8+0x4
 //   0x512340 DAT_00512340$S5516: defined in src/map/meteors.cpp

@@ -65,8 +65,8 @@ struct Game {
 
 extern Game* g_game;
 extern char DAT_005119b8[];
-extern char DAT_00504314[];
-extern SoundInfo_005086fc DAT_005086fc[];
+extern char g_sayChoiceArrayName[];
+extern SoundInfo_005086fc g_speechCategories[];
 
 int __cdecl FUN_004d84a0(int param_1, char* param_2, int param_3);
 void __cdecl FUN_004d85a0(int* param_1);
@@ -89,8 +89,8 @@ int __stdcall ReadSoundEntry(Source_0042f450* param_1, char* param_2, int* param
         sprintf(local_100, "%s%s", param_2, "text");
         if (param_1->tdf->GetFieldString(local_180, local_100, 0x40, DAT_005119b8) == 0)
             local_180[0] = 0;
-        param_3[1] = FUN_004d84a0(param_3[1], DAT_00504314, (param_3[0] + 1) * 0x40);
-        param_3[2] = FUN_004d84a0(param_3[2], DAT_00504314, (param_3[0] + 1) * 0x40);
+        param_3[1] = FUN_004d84a0(param_3[1], g_sayChoiceArrayName, (param_3[0] + 1) * 0x40);
+        param_3[2] = FUN_004d84a0(param_3[2], g_sayChoiceArrayName, (param_3[0] + 1) * 0x40);
         strcpy((char*)(param_3[1] + param_3[0] * 0x40), local_140);
         strcpy((char*)(param_3[2] + param_3[0] * 0x40), local_180);
         param_3[0]++;
@@ -103,7 +103,7 @@ int __stdcall ReadSoundEntry(Source_0042f450* param_1, char* param_2, int* param
 // g_game+0x37e13 (count at g_game+0x37e17). Each of the top level .TDF
 // sections becomes one 0x160 byte record: its name is copied into the first
 // 0x3f bytes and, at +0x4c, 23 groups of three dwords are filled from the
-// entries named after the rows of the global table DAT_005086fc ("select",
+// entries named after the rows of the global table g_speechCategories ("select",
 // "select1", "select2", ...); the second and third dwords of each group are
 // allocated by ReadSoundEntry as the values are added.
 // FUNCTION: 0x42f580
@@ -127,10 +127,10 @@ void LoadSoundCategories()
             obj.ResetCurrentRecord();
             if (obj.SelectRecordAt(i)) {
                 ((TdfRecord*)obj.field_4)->CopyRecordName(rec, 0x3f);
-                p = DAT_005086fc;
+                p = g_speechCategories;
                 int* vals = (int*)(rec + 0x4c);
                 // Compared as signed ints, not pointers: keeps jl instead of jb.
-                while ((int)p < (int)(DAT_005086fc + 23)) {
+                while ((int)p < (int)(g_speechCategories + 23)) {
                     ReadSoundEntry((Source_0042f450*)&obj, p->name, vals);
                     for (int n = 1; ; n++) {
                         sprintf(name, "%s%i", p->name, n);

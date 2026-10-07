@@ -134,7 +134,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x50341c,DAT_0050341c,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_0050341c,1,,54444600
 0x50372c,DAT_0050372c,.data,4,gap,data,char[],3,0,1,one type,3,,DAT_0050372c,,,2a000000
 0x503ea0,DAT_00503ea0,.data,8,gap,string,char[],1,0,1,one type,1,,DAT_00503ea0,,,6e6f6e6500000000
-0x504314,DAT_00504314,.data,20,gap,string,char[],1,0,1,one type,1,,s_Say_Choice_Array_00504314,,,5361792043686f69636520417272617900000000
+0x504314,g_sayChoiceArrayName,.data,20,gap,string,char[],1,0,1,one type,1,,s_Say_Choice_Array_00504314,,,5361792043686f69636520417272617900000000
 0x5048f8,g_maxUnitsKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_maxunits_005048f8,,,6d6178756e69747300000000
 0x504904,g_radarImageBoxName,.data,12,gap,string,char[],1,0,1,one type,1,,s_Radar_Image_00504904,,,526164617220496d61676500
 0x504910,g_gameTimeKey,.data,12,gap,string,char[],1,0,1,one type,1,,s_Game_Time_00504910,,,47616d652054696d65000000
@@ -230,7 +230,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x5086dc,DAT_005086dc,.data,32,gap,data,Message_0047fad0[],1,0,1,one type,1,0x10,DAT_005086dc,,src/units/unit_messages.cpp,0000000000000000000000000000000000000000010000000a00000000000000
 0x5086e0,DAT_005086e0,.data,596,gap,data,Table_0047fd70[24],1,1,2,conflicting: struct names only,2,0x24c,DAT_005086e0,36,src/units/unit_messages.cpp,00000000000000000000000000000000010000000a00000000000000708a50000000000000000000020000000900000014000000648a5000548a500000000000
 0x5086e8,DAT_005086e8,.data,4,gap,data,Message_0047f850[],1,2,3,conflicting: struct names only,3,,DAT_005086e8,,src/units/unit_messages.cpp,00000000
-0x5086fc,DAT_005086fc,.data,560,gap,data,SoundInfo_005086fc[],1,0,1,one type,1,0x228,PTR_s_select_005086fc,36,src/units/unit_messages.cpp,708a50000000000000000000020000000900000014000000648a5000548a500000000000030000000400000002000000488a5000000000000000000004000000
+0x5086fc,g_speechCategories,.data,560,gap,data,SoundInfo_005086fc[],1,0,1,one type,1,0x228,PTR_s_select_005086fc,36,src/units/unit_messages.cpp,708a50000000000000000000020000000900000014000000648a5000548a500000000000030000000400000002000000488a5000000000000000000004000000
 0x508a78,DAT_00508a78,.data,44,gap,string,char[],1,0,1,one type,1,,s_Error__Sound_system_initializati_00508a78,,,4572726f723a2020536f756e642073797374656d20696e697469616c697a6174696f6e206661696c65642e00
 0x508aa4,DAT_00508aa4,.data,16,gap,string,char[],1,0,1,one type,1,,s_UseWindowsSound_00508aa4,,,55736557696e646f7773536f756e6400
 0x508ab4,DAT_00508ab4,.data,16,gap,string,char[],1,0,1,one type,1,,s_NoDirectSound_00508ab4,,,4e6f446972656374536f756e64000000

@@ -599,7 +599,7 @@ static inline int Selectable(Unit_0043e490* t) {
 }
 
 // MATCH (3152 bytes). Returns the cursor/action code for an order of type
-// `mode` given by `unit` on `target` / `pos`; FUN_0043f0e0 is the sibling that
+// `mode` given by `unit` on `target` / `pos`; GetOrderType is the sibling that
 // returns the action's name. What the earlier 68.2% version was missing:
 //  - case 1 recurses with `return GetOrderCursor(3/0xc, unit, target, pos)`. MSVC
 //    turns the self tail calls into `mov byte [esp+0x18], 3; jmp` back to the

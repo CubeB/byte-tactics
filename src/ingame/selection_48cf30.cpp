@@ -8,7 +8,7 @@
 //      Class_00438760(name); }`). Such a byte's address is taken as a hidden
 //      return pointer (an ARGUMENT), so fire takes the dead entry-parameter
 //      slot at 0x48 exactly where the original puts it, and move pools at
-//      0x12 beside the FUN_0043f0e0 return temporary at 0x13. A named ctor
+//      0x12 beside the GetOrderType return temporary at 0x13. A named ctor
 //      object (`Class_00438760 fire("...")`) is a THIS pointer instead and
 //      always gets its own dword slot; a condition temporary pools but is
 //      then read through the constructor's returned this (`mov dl, [eax]`),
@@ -111,7 +111,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall FUN_0043e470(unsigned char type);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
+Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                        Unit* target, void* param_5);
 void __stdcall FUN_0043afc0(OrderType kind, int flag, Unit* unit,
                             Unit* target, int* pos, int param_5, int param_6);
@@ -157,7 +157,7 @@ void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mod
         if (!(u->flags & 0x10) || u == except)
             continue;
         if (mode)
-            kind.index = FUN_0043f0e0(mode, u, except, &g_game->field_2caa).index;
+            kind.index = GetOrderType(mode, u, except, &g_game->field_2caa).index;
         if (!kind.index)
             continue;
         Class_00438760 fire = Order("Standing_FireOrder");

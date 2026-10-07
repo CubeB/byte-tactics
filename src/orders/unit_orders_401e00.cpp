@@ -66,7 +66,7 @@ struct Game {
 extern Game* g_game;
 
 int __stdcall RandomInt(int range);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit* unit,
+Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit* unit,
                                        Unit* target, int flags);
 void __stdcall AppendOrder(Unit* owner, Class_0043a1f0* node);
 
@@ -97,7 +97,7 @@ int __stdcall AttackUTypeOrder(Unit* unit, Order_00401e00* order, int unused)
             }
         }
         if (best) {
-            Class_00438760 kind = FUN_0043f0e0(3, unit, best, 0);
+            Class_00438760 kind = GetOrderType(3, unit, best, 0);
             AppendOrder(unit, new Class_0043a1f0(kind, best, 0, 0, 0, 0));
             return 0;
         }

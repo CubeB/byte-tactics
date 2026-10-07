@@ -6,7 +6,7 @@
 //  - The real GetOrderCursor is compiled first in this file: an unannotated copy of 0x43e490.cpp
 //    (which stays the annotated, canonical file), with g_game's struct and the two callee classes
 //    shared between the two functions. The compiler state it leaves is what lets MSVC cross-jump
-//    case 1's two identical `return FUN_0043f0e0(3, ...)` blocks into the original's single block
+//    case 1's two identical `return GetOrderType(3, ...)` blocks into the original's single block
 //    (the multiplayer arm's `jne` into the other arm's copy). Without it this file keeps both
 //    copies: 28 bytes too long, 84.1%, with everything else identical.
 //  - Both of those recursions are written out. One statement reached by a goto merges them, but
@@ -332,10 +332,10 @@ void __stdcall ClearWeaponTarget(Unit*, int);
 void __stdcall DetonateUnitWeapon(Unit*, int);
 void __stdcall DrawUnit(void*, Unit*);
 
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
+Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                                       Unit_0043f0e0* target, Pos_0043f0e0* pos);
 
-// GetOrderCursor as in 0x43e490.cpp (the annotated copy). It precedes FUN_0043f0e0 in the
+// GetOrderCursor as in 0x43e490.cpp (the annotated copy). It precedes GetOrderType in the
 // original file and is compiled first here for the compiler state it leaves; see the top.
 Cell_0043e490* __stdcall GetMapCellAtPosition(Pos_0043e490* pos);
 int __stdcall WeaponCanReachPos(Unit_0043e490* unit, void* slot, Pos_0043e490* pos, int which);
@@ -554,7 +554,7 @@ static inline Thing_0043f0e0* Lookup(Pos_0043f0e0* pos) {
 }
 
 // FUNCTION: 0x43f0e0
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
+Class_00438760 __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                                       Unit_0043f0e0* target, Pos_0043f0e0* pos) {
     Def_0043f0e0* def;
     int friendly = 0;
@@ -720,7 +720,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
     case 1: {
         if (g_game->flag37efa == 1) {
             if ((def->f245 & 0x10) && enemy)
-                return FUN_0043f0e0(3, unit, target, pos);
+                return GetOrderType(3, unit, target, pos);
             if ((def->f245 & 0x400) && enemy)
                 return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
             if (friendly && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
@@ -740,11 +740,11 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
             return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
         } else {
             if ((def->f245 & 0x10) && enemy)
-                return FUN_0043f0e0(3, unit, target, pos);
+                return GetOrderType(3, unit, target, pos);
             if ((def->f245 & 0x400) && enemy)
-                return FUN_0043f0e0(0xc, unit, target, pos);
+                return GetOrderType(0xc, unit, target, pos);
             if (target && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
-                return FUN_0043f0e0(8, unit, target, pos);
+                return GetOrderType(8, unit, target, pos);
             if (target && target->unknown_ff[0] == g_game->localPlayer && (target->f110 & 0x20) &&
                 target->f104 == 0.0f && target->ffb == 0 &&
                 (!target->f86 || (target->f86->f110 & 0x40000000)))

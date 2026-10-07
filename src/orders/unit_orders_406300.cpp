@@ -186,7 +186,7 @@ int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
 Unit* __stdcall GetWeaponTargetUnit(Unit*, int);
 int __stdcall WeaponCanReachUnit(Unit*, Unit*, unsigned char);
 void __stdcall SetWeaponTargetUnit(Unit*, Unit*, int);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
+Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
@@ -227,7 +227,7 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
             }
         }
         if ((unsigned int)order->target->health < order->target->def->maxHealth && (unit->def->flags&0x40)) {
-            Class_00438760 kind=FUN_0043f0e0(8,unit,order->target,0);
+            Class_00438760 kind=GetOrderType(8,unit,order->target,0);
             if(kind.index) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 AppendOrder(unit,new Class_0043a1f0(kind,order->target,0,0,0,0));

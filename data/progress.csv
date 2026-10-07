@@ -812,7 +812,7 @@ address,size,file,symbol,status,similarity
 0x43e400,103,src/units/unit_scripts.cpp,?GetNanoPiecePosition@@YGXPAUObject@@PAUVec3@@@Z,matched,100.0
 0x43e470,29,src/units/unit_scripts.cpp,?FUN_0043e470@@YGHE@Z,matched,100.0
 0x43e490,3152,src/units/unit_scripts.cpp,?GetOrderCursor@@YGHEPAUUnit_0043e490@@0PAUPos_0043e490@@@Z,matched,100.0
-0x43f0e0,4420,src/orders/order_dispatch_43f0e0.cpp,?FUN_0043f0e0@@YG?AVClass_00438760@@EPAUUnit_0043f0e0@@0PAUPos_0043f0e0@@@Z,matched,100.0
+0x43f0e0,4420,src/orders/order_dispatch_43f0e0.cpp,?GetOrderType@@YG?AVClass_00438760@@EPAUUnit_0043f0e0@@0PAUPos_0043f0e0@@@Z,matched,100.0
 0x440230,92,src/units/movement_class.cpp,_$E6,matched,100.0
 0x440290,65,src/units/movement_class.cpp,_$E3,matched,100.0
 0x4402e0,53,src/units/movement_class.cpp,??0MovementClass@@QAE@XZ,matched,100.0

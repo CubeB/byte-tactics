@@ -94,7 +94,7 @@ public:
 
 void __stdcall AddOrder(Class_00438760 kind, int remove, Unit* owner,
                             int id, Vec3_00487bf0* pos, int param_6, int param_7);
-void __stdcall FUN_0043f0e0(Class_00438760* out, int mode, Unit* unit,
+void __stdcall GetOrderType(Class_00438760* out, int mode, Unit* unit,
                             int target, Vec3_00487bf0* pos);
 int __stdcall FindMissionUnit(char* name, Table_00487bf0* table, int value);
 unsigned short __stdcall FindUnitTypeId(char* name);
@@ -144,7 +144,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
             L.pos.x = (int)(L.f1 * 65536.0);
             L.pos.y = 0;
             L.pos.z = (int)(L.f2 * 65536.0);
-            FUN_0043f0e0(&out.m, 2, unit, 0, &L.pos);
+            GetOrderType(&out.m, 2, unit, 0, &L.pos);
             AddOrder(out.m, 1, unit, 0, &L.pos, 0, 0);
             processed = 1;
             break;
@@ -155,7 +155,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
             L.pos.x = (int)(L.f1 * 65536.0);
             L.pos.y = 0;
             L.pos.z = (int)(65536.0 * L.f2);
-            FUN_0043f0e0(&out.u, 5, unit, 0, &L.pos);
+            GetOrderType(&out.u, 5, unit, 0, &L.pos);
             AddOrder(out.u, 1, unit, 0, &L.pos, 0, 0);
             processed = 1;
             break;
@@ -165,7 +165,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
             sscanf(buf + 1, " %[a-zA-Z0-9_.]", buf);
             int target = FindMissionUnit(buf, table, 0);
             if (target != 0) {
-                FUN_0043f0e0(&out.g, 7, unit, target, 0);
+                GetOrderType(&out.g, 7, unit, target, 0);
                 AddOrder(out.g, 1, unit, target, 0, 0, 0);
                 processed = 1;
             }
@@ -178,7 +178,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
             L.pos.x = (int)(L.f1 * 65536.0);
             L.pos.y = 0;
             L.pos.z = (int)(L.f2 * 65536.0);
-            FUN_0043f0e0(&out.p, 9, unit, 0, &L.pos);
+            GetOrderType(&out.p, 9, unit, 0, &L.pos);
             AddOrder(out.p, 1, unit, 0, &L.pos, (int)(M2.pf * 30.0f), 0);
             processed = 1;
             selected = 1;
@@ -190,7 +190,7 @@ void __stdcall RunInitialMission(Unit* unit, char* text, Table_00487bf0* table)
                 L.pos.x = (int)(L.f1 * 65536.0);
                 L.pos.y = 0;
                 L.pos.z = (int)(L.f2 * 65536.0);
-                FUN_0043f0e0(&out.a, 3, unit, 0, &L.pos);
+                GetOrderType(&out.a, 3, unit, 0, &L.pos);
                 AddOrder(out.a, 1, unit, 0, &L.pos, 0, 0);
                 selected = 1;
                 processed = 1;

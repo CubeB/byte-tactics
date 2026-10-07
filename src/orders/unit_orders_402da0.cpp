@@ -64,7 +64,7 @@ struct Unit {
 };
 #pragma pack(pop)
 void __stdcall FUN_0041c110(Unit*);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, void*);
+Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, void*);
 void __stdcall AddOrder(Class_00438760, int, Unit*, Unit*, void*, int, int);
 void __stdcall FUN_0041bcd0(Unit*, int);
 // FUNCTION: 0x402da0
@@ -80,9 +80,9 @@ int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
                 for (Order* node = order->target->orders; node; node = node->next) {
                     Class_00438760 kind;
                     if (node->kind == move)
-                        kind = FUN_0043f0e0(2, unit, 0, node->Position());
+                        kind = GetOrderType(2, unit, 0, node->Position());
                     else if (node->kind.index == patrol.index)
-                        kind = FUN_0043f0e0(9, unit, 0, node->Position());
+                        kind = GetOrderType(9, unit, 0, node->Position());
                     if (kind.index) {
                         AddOrder(kind, 1, unit, 0, node->Position(), 0, 0);
                         queued = 1;

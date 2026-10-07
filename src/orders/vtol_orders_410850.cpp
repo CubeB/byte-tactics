@@ -109,7 +109,7 @@ struct Game { char pad0[0x1422b]; int width, height; char pad14233[0x142b7-0x142
 extern Game* g_game;
 class Class_0044e730 { public: void FUN_0044e730(int); };
 short __stdcall GetHeadingBetween(Vec3*, Vec3*);
-Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
+Class_00438760 __stdcall GetOrderType(unsigned char, Unit*, Unit*, int);
 void __stdcall AppendOrder(Unit*, Class_0043a1f0*);
 int __stdcall RandomInt(int);
 int __cdecl FUN_004b70ef(short, int);
@@ -162,7 +162,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
         ((Class_004388d0*)order)->FUN_004388d0(0);
-        Class_00438760 kind=FUN_0043f0e0(7,unit,units[0],0);
+        Class_00438760 kind=GetOrderType(7,unit,units[0],0);
         AppendOrder(unit,new Class_0043a1f0(kind,units[0],0,0,0,0));
         order->flags=0;
         return 3;

@@ -657,8 +657,8 @@ int DAT_0051f2f0;  // 0x51f2f0 .bss
 int DAT_0051f2f4;  // 0x51f2f4 .bss
 unsigned int DAT_0051f2f8;  // 0x51f2f8 .bss
 int DAT_0051f2fc;  // 0x51f2fc .bss
-int DAT_0051f300;  // 0x51f300 .bss
-int DAT_0051f304;  // 0x51f304 .bss
+int g_netProbeNextTick;  // 0x51f300 .bss
+int g_netHeartbeatNextTick;  // 0x51f304 .bss
 unsigned char g_loadingBarFlashDecayTick[8];  // 0x51f308 .bss
 unsigned char DAT_0051f31c;  // 0x51f31c .bss
 unsigned char DAT_0051f320[2088];  // 0x51f320 .bss

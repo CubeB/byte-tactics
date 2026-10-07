@@ -149,7 +149,7 @@ unsigned short __stdcall FUN_0048cd80();
 int __stdcall FUN_0048d220(char mode);
 void FUN_00491b60();
 void __stdcall FUN_00491d70(int a);
-void FUN_00496790();
+void MainLoopTick();
 void __stdcall UpdateCursorWorldPos(View* p);
 void __stdcall IssueMobileBuildOrders(View* arg);
 void __stdcall PlaySoundByName(char* name, int param_2);
@@ -165,7 +165,7 @@ void ClearKeyQueue();
 int __stdcall IsKeyDown(int a);
 void EndGameFrame();
 void RunEndGameState(void);
-void FUN_00496bb0();
+void MenuFrame();
 void __cdecl LeaveNetGameCallback();
 
 // FUNCTION: 0x498f70
@@ -366,7 +366,7 @@ void BattleFrame(void)
         }
     }
 
-    FUN_00496790();
+    MainLoopTick();
     {
         unsigned short unit = g_game->field_37e9c;
         if (unit != 0 && *(short*)(g_game->units + unit * 0x118 + 0xa6) == 0) {
@@ -383,7 +383,7 @@ void BattleFrame(void)
             CloseTopScreen(g_game->field_519);
             if (g_game->net->FUN_00435100() == 3) {
                 FUN_00463c80();
-                FUN_00496790();
+                MainLoopTick();
             }
             FUN_00491b60();
             ClearKeyQueue();
@@ -410,7 +410,7 @@ void BattleFrame(void)
                 g_game->field_2a44.value |= 4;
             }
             g_game->field_391f1 = 2;
-            g_game->field_391f5 = FUN_00496bb0;
+            g_game->field_391f5 = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         } else {
             unsigned int saved = g_game->field_2a3c;
@@ -424,7 +424,7 @@ void BattleFrame(void)
             FUN_0047a760();
             g_game->field_2a44.value |= 4;
             g_game->field_391f1 = 2;
-            g_game->field_391f5 = FUN_00496bb0;
+            g_game->field_391f5 = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         }
         g_game->field_10->SetTrackCategory(4);

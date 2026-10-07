@@ -152,7 +152,7 @@ void __stdcall SetFont(int param_1);
 void __stdcall SetCloseHandler(void (__cdecl *param_1)(), int param_2);
 void ClearPictureCache();
 int __stdcall GetPreferenceInt(const char* name, int param_2);
-void FUN_00496a60();
+void InitFrame();
 void __cdecl LeaveNetGameCallback();
 
 // FUNCTION: 0x491200
@@ -236,7 +236,7 @@ void InitGame()
     g_game->field_38d6b = 0;
     g_game->field_38d7b = 0;
     g_game->field_391f1 = 0;
-    g_game->field_391f5 = FUN_00496a60;
+    g_game->field_391f5 = InitFrame;
     SetCloseHandler(LeaveNetGameCallback, 0);
     {
         MEMORYSTATUS mem2;

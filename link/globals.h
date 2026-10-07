@@ -561,8 +561,8 @@ extern int DAT_0051f2f0;                                                        
 extern int DAT_0051f2f4;                                                                      // 0x51f2f4, 4 bytes; 1 of 1 files
 extern unsigned int DAT_0051f2f8;                                                             // 0x51f2f8, 4 bytes; 1 of 1 files
 extern int DAT_0051f2fc;                                                                      // 0x51f2fc, 4 bytes; 1 of 1 files
-extern int DAT_0051f300;                                                                      // 0x51f300, 4 bytes; 1 of 1 files
-extern int DAT_0051f304;                                                                      // 0x51f304, 4 bytes; 1 of 1 files
+extern int g_netProbeNextTick;                                                                // 0x51f300, 4 bytes; 1 of 1 files
+extern int g_netHeartbeatNextTick;                                                            // 0x51f304, 4 bytes; 1 of 1 files
 extern "C" unsigned char g_loadingBarFlashDecayTick[8];                                       // 0x51f308, 4 bytes; extern "C" (no type) in declared extern "C" in 1 of 1 files, but used past its end
 extern unsigned char DAT_0051f31c;                                                            // 0x51f31c, 1 bytes; 1 of 1 files
 extern unsigned char DAT_0051f320[2088];                                                      // 0x51f320, 2088 bytes; App_0049e830 by value in 1 of 1 files
@@ -698,9 +698,9 @@ extern void* DAT_00529e98;                                                      
 extern int DAT_00529ea0;                                                                      // 0x529ea0, 4 bytes; 3 of 3 files
 extern unsigned char DAT_00529ea4[4];                                                         // 0x529ea4, 4 bytes; nothing refers to it
 extern char DAT_0052a4e4;                                                                     // 0x52a4e4, 1 bytes; 1 of 1 files
-extern long DAT_0052a4e8;                                                                     // 0x52a4e8, 4 bytes; 6 of 7 files (conflicting: signedness or const)
-extern long DAT_0052a4ec;                                                                     // 0x52a4ec, 4 bytes; 6 of 6 files
-extern void* DAT_0052a4f0;                                                                    // 0x52a4f0, 4 bytes; 7 of 7 files
+extern long DAT_0052a4e8;                                                                     // 0x52a4e8, 4 bytes; 5 of 6 files (conflicting: signedness or const)
+extern long DAT_0052a4ec;                                                                     // 0x52a4ec, 4 bytes; 5 of 5 files
+extern void* DAT_0052a4f0;                                                                    // 0x52a4f0, 4 bytes; 6 of 6 files
 extern int DAT_0052a4f4;                                                                      // 0x52a4f4, 4 bytes; 2 of 2 files
 extern void* DAT_0052a4f8;                                                                    // 0x52a4f8, 4 bytes; 3 of 3 files
 extern long DAT_0052a4fc;                                                                     // 0x52a4fc, 4 bytes; 2 of 3 files (conflicting: signedness or const)

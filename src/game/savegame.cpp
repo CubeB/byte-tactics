@@ -222,7 +222,7 @@ void __stdcall FUN_00434ab0(int value);
 void __stdcall PlaySoundByName(char* name, int param);
 void __stdcall FUN_00491b60();
 void __stdcall FUN_00491d70(int flag);
-void FUN_00496bb0();
+void MenuFrame();
 void __stdcall FUN_0049fa70(void* menu);
 void __stdcall FUN_0049fa50(void* menu);
 void __stdcall FUN_0049fb10(void* menu, int value);
@@ -519,7 +519,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         }
         g_game->flags_2a44.b2 = 1;
         g_game->field_391f1 = 2;
-        g_game->field_391f5 = FUN_00496bb0;
+        g_game->field_391f5 = MenuFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
         if (DAT_0051f2e0)
             FUN_004d85a0(DAT_0051f2e0);
@@ -543,7 +543,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             }
             g_game->flags_2a44.b2 = 0;
             g_game->field_391f1 = 2;
-            g_game->field_391f5 = FUN_00496bb0;
+            g_game->field_391f5 = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
             SetFrontendState(0xe, 0x48c, "c:\\cavedog\\wargame\\wargame.cpp");
         }

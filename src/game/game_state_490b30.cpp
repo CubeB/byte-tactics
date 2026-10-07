@@ -16,11 +16,11 @@ extern Game* g_game;
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __cdecl LeaveNetGameCallback(int param);
 void __cdecl FUN_004609a0(int param);
-void FUN_00496a60();
-void FUN_00496b10();
-void FUN_00496bb0();
-void FUN_00496ce0();
-void FUN_00496db0();
+void InitFrame();
+void ReturnToMainMenuFrame();
+void MenuFrame();
+void PreBattleFrame();
+void CampaignSetupFrame();
 void LoadingScreenFrame();
 void BattleFrame();
 void EndGameFrame();
@@ -31,19 +31,19 @@ void __stdcall SetGameMode(int param)
     g_game->mode = param;
     switch (param) {
     case 0:
-        g_game->handler = FUN_00496a60;
+        g_game->handler = InitFrame;
         break;
     case 1:
-        g_game->handler = FUN_00496b10;
+        g_game->handler = ReturnToMainMenuFrame;
         break;
     case 2:
-        g_game->handler = FUN_00496bb0;
+        g_game->handler = MenuFrame;
         break;
     case 3:
-        g_game->handler = FUN_00496ce0;
+        g_game->handler = PreBattleFrame;
         break;
     case 4:
-        g_game->handler = FUN_00496db0;
+        g_game->handler = CampaignSetupFrame;
         break;
     case 5:
         g_game->handler = LoadingScreenFrame;

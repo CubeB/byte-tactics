@@ -191,7 +191,7 @@ short __stdcall FindFeatureAtPos(Pos_00464f80* pos, int a, int b);
 int __stdcall GetCellMeanHeight(Pos_00464f80* pos);
 Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId,
                                      Pos_00464f80 pos, int a, int b, int c);
-void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width);
+void __stdcall SetStartingStorageBonus(Struct_00496e90* obj, int height, int width);
 void __stdcall RecalculateLineOfSight(int on);
 void __stdcall FUN_0048d630(int on);
 void __stdcall UpdatePlayerEconomy(PlayerInfo_00464f80* player);
@@ -388,7 +388,7 @@ void __stdcall FUN_00464f80()
                             {
                                 Unit* unit = CreateUnit(
                                     g_game->localPlayer, typeId, pos, 1, 1, 0);
-                                FUN_00496e90((Struct_00496e90*)pi,
+                                SetStartingStorageBonus((Struct_00496e90*)pi,
                                              self->field_a3 * 100,
                                              self->field_a1 * 100);
                                 {

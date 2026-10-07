@@ -58,7 +58,7 @@ struct Game {
 extern Game* g_game;
 
 unsigned char FindHostSlot();
-void __stdcall FUN_00496e90(Player_00465e30* player, int x, int y);
+void __stdcall SetStartingStorageBonus(Player_00465e30* player, int x, int y);
 
 // FUNCTION: 0x465e30
 void FUN_00465e30()
@@ -68,7 +68,7 @@ void FUN_00465e30()
         if (g_game->field_38d6b == 0) {
             switch (g_game->net->FUN_00435100()) {
             case 1:
-                FUN_00496e90(player, (int)g_game->net->pos_x[i],
+                SetStartingStorageBonus(player, (int)g_game->net->pos_x[i],
                              (int)g_game->net->pos_y[i]);
                 player->x = g_game->net->pos_y[i];
                 player->y = g_game->net->pos_x[i];

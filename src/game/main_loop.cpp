@@ -287,8 +287,8 @@ struct Game {
 extern Game* g_game;
 extern int g_usePacketManager;
 extern PacketManager g_packetManager;
-extern int DAT_0051f300;
-extern int DAT_0051f304;
+extern int g_netProbeNextTick;
+extern int g_netHeartbeatNextTick;
 
 int GetMilliseconds();
 void UpdateFramePacing();
@@ -316,14 +316,14 @@ void __stdcall FUN_00434ab0(int param);
 void ClearKeyQueue();
 void __cdecl LeaveNetGameCallback(int param);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
-void FUN_00496bb0();
+void MenuFrame();
 void EnterMainMenuState();
 void __stdcall FUN_0049fa50(Sub_00496b10* p);
 void RefreshUnitInfo();
 void RunFrontendStateMachine();
 void FUN_004c2470();
-void FUN_00496ce0();
-void FUN_00496db0();
+void PreBattleFrame();
+void CampaignSetupFrame();
 void LoadingScreenFrame();
 void __stdcall FUN_004ab170(Sub_00496b10* sub, unsigned int* param_2, int* param_3);
 int __stdcall BroadcastPacket(int player, void* data, int size);
@@ -345,7 +345,7 @@ static inline void Charge(int bucket)
 #define CHARGE(bucket) Charge(bucket)
 
 // FUNCTION: 0x496790
-void FUN_00496790()
+void MainLoopTick()
 {
     Timers_00496790* t = &g_game->timers;
     t->total = 0;
@@ -378,8 +378,8 @@ void FUN_00496790()
             if (g_usePacketManager)
                 g_packetManager.SendAllQueued(0);
             HandleNetPackets();
-            if ((int)GetTicks() > DAT_0051f300) {
-                DAT_0051f300 = GetTicks() + 60;
+            if ((int)GetTicks() > g_netProbeNextTick) {
+                g_netProbeNextTick = GetTicks() + 60;
                 FUN_00453320(GetLocalDpid(), 0);
             }
             CHARGE(0);
@@ -423,7 +423,7 @@ void FUN_00496790()
 // Sets the game selection to 0x13 (inlined body of FUN_00491c80), resets the
 // input/UI state and installs the game's own handler.
 // FUNCTION: 0x496a60
-void FUN_00496a60()
+void InitFrame()
 {
     if (g_game->selected != 0x13) {
         g_game->selected = 0x13;
@@ -438,12 +438,12 @@ void FUN_00496a60()
     g_game->flag2_3923b = 0;
     ClearKeyQueue();
     g_game->mode = 2;
-    g_game->handler = FUN_00496bb0;
+    g_game->handler = MenuFrame;
     SetCloseHandler(LeaveNetGameCallback, 0);
 }
 
 // FUNCTION: 0x496b10
-void FUN_00496b10()
+void ReturnToMainMenuFrame()
 {
     EnterMainMenuState();
     g_game->bit2 = 0;
@@ -455,7 +455,7 @@ void FUN_00496b10()
     ClearKeyQueue();
     FUN_0049fa50(&g_game->sub);
     g_game->mode = 2;
-    g_game->handler = FUN_00496bb0;
+    g_game->handler = MenuFrame;
     SetCloseHandler(LeaveNetGameCallback, 0);
 }
 
@@ -463,14 +463,14 @@ void FUN_00496b10()
 // bit 2 of +0x2a44 is set, otherwise 3 for state 0x11 with that bit, or for
 // state 0x10 with bit 4 of +0x2b4c and a sub-state of 0x12 or 0x13.
 // FUNCTION: 0x496bb0
-void FUN_00496bb0()
+void MenuFrame()
 {
     RefreshUnitInfo();
     RunFrontendStateMachine();
     if (g_game->bit2 && g_game->obj_391e9->FUN_00435100() == 1) {
         FUN_004c2470();
         g_game->mode = 4;
-        g_game->handler = FUN_00496db0;
+        g_game->handler = CampaignSetupFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
     } else if (g_game->bit2 && g_game->obj_391e9->FUN_00435100() == 2) {
         FUN_004c2470();
@@ -483,7 +483,7 @@ void FUN_00496bb0()
         if (g_game->bit2) {
             FUN_004c2470();
             g_game->mode = 3;
-            g_game->handler = FUN_00496ce0;
+            g_game->handler = PreBattleFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         }
     } else if (g_game->state_2bbe == 0x10) {
@@ -491,7 +491,7 @@ void FUN_00496bb0()
             if (g_game->state_2bbf == 0x12 || g_game->state_2bbf == 0x13) {
                 FUN_004c2470();
                 g_game->mode = 3;
-                g_game->handler = FUN_00496ce0;
+                g_game->handler = PreBattleFrame;
                 SetCloseHandler(LeaveNetGameCallback, 0);
             }
         }
@@ -503,10 +503,10 @@ void FUN_00496bb0()
 
 // If the local player's info has bit 0 of +0x97 set, sends a one-byte
 // message 8 to its id; otherwise, with bit 4 of +0x2b4c set, calls
-// SendNetHeartbeat once GetTicks() passes DAT_0051f304 (then 0x3c later).
+// SendNetHeartbeat once GetTicks() passes g_netHeartbeatNextTick (then 0x3c later).
 // Every path then switches to state 5 (LoadingScreenFrame).
 // FUNCTION: 0x496ce0
-void FUN_00496ce0()
+void PreBattleFrame()
 {
     // Declared at function scope: keeps its store before the pushes.
     char msg;
@@ -519,8 +519,8 @@ void FUN_00496ce0()
         g_game->handler = LoadingScreenFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
     } else if (g_game->flags_2b4c.flag) {
-        if (DAT_0051f304 < GetTicks()) {
-            DAT_0051f304 = GetTicks() + 0x3c;
+        if (g_netHeartbeatNextTick < GetTicks()) {
+            g_netHeartbeatNextTick = GetTicks() + 0x3c;
             SendNetHeartbeat();
         }
         g_game->mode = 5;
@@ -534,7 +534,7 @@ void FUN_00496ce0()
 }
 
 // FUNCTION: 0x496db0
-void FUN_00496db0()
+void CampaignSetupFrame()
 {
     g_game->state_2a3c = 2;
     FUN_00464290(0, 1);
@@ -548,7 +548,7 @@ void FUN_00496db0()
 // Copies a settings block into the game: the first value to +0x37ef6 and
 // three flags into bits 2, 0 and 1 of the word at +0x14281.
 // FUNCTION: 0x496e10
-void __stdcall FUN_00496e10(Settings_00496e10* s)
+void __stdcall ApplyMissionOptionFlags(Settings_00496e10* s)
 {
     g_game->value_37ef6 = s->value;
     g_game->bit2_14281 = s->flag_c;
@@ -564,7 +564,7 @@ static inline int AtLeast200(int v)
 }
 
 // FUNCTION: 0x496e90
-void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width)
+void __stdcall SetStartingStorageBonus(Struct_00496e90* obj, int height, int width)
 {
     obj->flag_149 = 1;
     obj->width = (float)AtLeast200(width);
@@ -593,7 +593,7 @@ void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width)
 //   part of x and z, read as the high half of each fixed-point int through a
 //   `union Fixed`. x goes with the view width and z with the view height.
 // FUNCTION: 0x496ee0
-void __stdcall FUN_00496ee0(int team, int startpos)
+void __stdcall SpawnCommanderAtStartPos(int team, int startpos)
 {
     g_game->players[team].player->nameIndex = g_game->teams[team].nameIndex;
     g_game->players[team].player->index2 = g_game->teams[team].index2;
@@ -624,13 +624,13 @@ void __stdcall FUN_00496ee0(int team, int startpos)
 
 // Walks the ten player slots: for every player that is playing (the same
 // check as IsPlaying in 0x40eb70), folds that slot's +0xc and +0x10 values
-// into running maxima and passes them to an inlined copy of FUN_00496e90,
+// into running maxima and passes them to an inlined copy of SetStartingStorageBonus,
 // which sets the player's +0x149 flag and stores max(value, 200) as floats
 // at +0xdc (from the +0x10 maximum) and +0xe0 (from the +0xc maximum).
 //
 // The inlined copy needs the clamp spelled as a ternary,
 // `width >= 200 ? width : 200` (the standalone 0x496e90 matches with it too);
-// the AtLeast200 helper in FUN_00496e90 gives the two maxima more weight than
+// the AtLeast200 helper in SetStartingStorageBonus gives the two maxima more weight than
 // the player offset, so the offset is spilled instead of kept in edi. The
 // header only sets compiler state: without it the player address is
 // [edi+edx] instead of [edx+edi] (any single header from tools/headers.py
@@ -646,7 +646,7 @@ static int IsPlaying(unsigned char i)
     return 0;
 }
 
-// Inlined copy of FUN_00496e90.
+// Inlined copy of SetStartingStorageBonus.
 static inline void __stdcall SetSize_00496e90(Player_00496ce0* obj, int height, int width)
 {
     obj->flag_149 = 1;
@@ -658,7 +658,7 @@ static inline void __stdcall SetSize_00496e90(Player_00496ce0* obj, int height, 
 // player gets the maxima of the slots up to and including its own, not of all
 // ten slots (only the last playing player sees the true maximum).
 // FUNCTION: 0x497080
-void FUN_00497080()
+void InitStartingResourcesFromSkirmish()
 {
     int h = 0;
     int w = 0;

@@ -417,7 +417,7 @@ void __stdcall ReportGameEvent(int x);
 void FUN_004649d0();
 void __stdcall SetCameraPosition(int x, int y, int z);
 unsigned short __stdcall FindUnitTypeId(const char* name);
-void __stdcall FUN_00496ee0(int team, int startpos);
+void __stdcall SpawnCommanderAtStartPos(int team, int startpos);
 void __stdcall CreateUnit(unsigned char team, unsigned short id, FixedPos_497180 pos, int a,
     int b, int c);
 Gadget_497180* __stdcall LoadGuiLayer(Sub_497180* sub, const char* name, int flags);
@@ -441,7 +441,7 @@ void __cdecl SendLoadProgress();
 void __cdecl OnlineUnload();
 void __cdecl DrawLightBars();
 void __cdecl StopAllSounds();
-void __cdecl FUN_00496790();
+void __cdecl MainLoopTick();
 void __cdecl FUN_004c2870();
 void __stdcall UnlockScreen(void*);
 void __cdecl RestoreScreen();
@@ -495,7 +495,7 @@ unsigned short __stdcall GetCellFeature(Cell_00498da0* cell);
 // summary, spawns each player's commander and opens the MAIN2 GUI.
 //
 // What took this from 82.8% to MATCH (issue 4408):
-// - Cases 1 and 2 are inlined calls of FUN_00496e10 (matched on its own in
+// - Cases 1 and 2 are inlined calls of ApplyMissionOptionFlags (matched on its own in
 //   0x496e10.cpp, zero callers in the exe because /Ob2 inlined every call):
 //   it copies the settings block's first int to +0x37ef6 and three int flags
 //   into bits 2, 0 and 1 of the view-flags word at +0x14281. The inlined
@@ -525,7 +525,7 @@ unsigned short __stdcall GetCellFeature(Cell_00498da0* cell);
 // std::random_shuffle call; rec+0x149 as a 1-bit bitfield (direct `or byte`);
 // `pos.x.i` before `pos.y.i = 0`.
 // Inlined into cases 1 and 2 below (matched on its own in 0x496e10.cpp).
-inline void __stdcall FUN_00496e10(Settings_00496e10* s)
+inline void __stdcall ApplyMissionOptionFlags(Settings_00496e10* s)
 {
     *(int*)((char*)g_game + 0x37ef6) = s->value;
     g_game_view()->bit2 = s->flag_c;
@@ -549,13 +549,13 @@ void __cdecl LoadMatch(void*)
     switch (((Mission*)*(void**)((char*)g_game + 0x391e9))->FUN_00435100()) {
     case 1:
         DAT_005091cc = 0;
-        FUN_00496e10((Settings_00496e10*)((char*)g_game + 0x39219));
+        ApplyMissionOptionFlags((Settings_00496e10*)((char*)g_game + 0x39219));
         ApplyUseOnlyUnits();
         break;
     case 2:
         *(unsigned short*)((char*)g_game + 0x37ee6) = *(unsigned short*)((char*)g_game + 0x37eec);
         DAT_005091cc = 1;
-        FUN_00496e10((Settings_00496e10*)((char*)*(void**)((char*)g_game + 0x29a0) + 0x108));
+        ApplyMissionOptionFlags((Settings_00496e10*)((char*)*(void**)((char*)g_game + 0x29a0) + 0x108));
         break;
     case 3: {
         *(unsigned short*)((char*)g_game + 0x37ee6) = *(unsigned short*)((char*)g_game + 0x37eec);
@@ -698,7 +698,7 @@ void __cdecl LoadMatch(void*)
                             unsigned char st = *(unsigned char*)(rec + 0x73);
                             if ((st == 1 || st == 2 || st == 3) &&
                                 *(unsigned char*)(rec + 0x146) != 10)
-                                FUN_00496ee0(i1, i1);
+                                SpawnCommanderAtStartPos(i1, i1);
                         }
                     }
                 }
@@ -728,7 +728,7 @@ void __cdecl LoadMatch(void*)
                             unsigned char st = *(unsigned char*)(rec + 0x73);
                             if ((st == 1 || st == 2 || st == 3) &&
                                 *(unsigned char*)(rec + 0x146) != 10)
-                                FUN_00496ee0(i4, order[k++]);
+                                SpawnCommanderAtStartPos(i4, order[k++]);
                         }
                     }
                 }
@@ -973,7 +973,7 @@ void LoadingScreenFrame(void)
             SetRestoreSurface(g_game->field_37e1b);
         }
         DrawLightBars();
-        FUN_00496790();
+        MainLoopTick();
         FUN_004c2870();
         g_game->field_391f1 = 6;
         g_game->field_391f5 = BattleFrame;

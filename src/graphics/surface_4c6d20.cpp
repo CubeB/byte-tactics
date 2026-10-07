@@ -32,7 +32,7 @@ extern int g_screenLockCount;
 
 Display_004c6d20* GetDisplay(void);
 int __stdcall LockScreen(Surface* out);
-void __cdecl FUN_004cbdd1(Surface* dst, Surface* src, Rect_004c6d20* rect, Point_004c6d20* pos);
+void __cdecl BlitRect(Surface* dst, Surface* src, Rect_004c6d20* rect, Point_004c6d20* pos);
 
 // 0x4c5fa0, inlined here.
 static inline int UnlockScreenInline(Surface* s)
@@ -54,10 +54,10 @@ void __stdcall CopySurfaceRect(Surface* dst, Surface* src, Rect_004c6d20* rect, 
     if (dst == 0) {
         Surface screen;
         if (LockScreen(&screen)) {
-            FUN_004cbdd1(&screen, src, rect, pos);
+            BlitRect(&screen, src, rect, pos);
             UnlockScreenInline(&screen);
         }
     } else {
-        FUN_004cbdd1(dst, src, rect, pos);
+        BlitRect(dst, src, rect, pos);
     }
 }

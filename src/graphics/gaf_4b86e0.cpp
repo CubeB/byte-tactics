@@ -9,7 +9,7 @@
 // ClipRects, and when nothing is clipped off builds a 0x30-byte surface
 // description from the record (width, height, pitch = width, bits, 10000, -1,
 // dx, dy, flag bits), resets its clip rect with ResetClipRect and blits with
-// FUN_004cbfc4 using the palette at display +0xcc.
+// BlitRectRemapDest using the palette at display +0xcc.
 #include <windows.h>
 
 struct Rect_004b86e0 {
@@ -69,7 +69,7 @@ int __stdcall LockScreen(Surface_004b86e0* out);
 int __stdcall UnlockScreen(Surface_004b86e0* s);
 void __stdcall ClipRects(Rect_004b86e0* other, Rect_004b86e0* rect, Rect_004b86e0* bounds);
 void __stdcall ResetClipRect(int* param_1);
-void __cdecl FUN_004cbfc4(Surface* p, Surface_004b86e0* s, Rect_004b86e0* srect,
+void __cdecl BlitRectRemapDest(Surface* p, Surface_004b86e0* s, Rect_004b86e0* srect,
                           Rect_004b86e0* drect, int colour, unsigned char* palette);
 void __stdcall DrawFrameGray(Surface* param_1, Bitmap_004b86e0* param_2, int x, int y);
 
@@ -117,7 +117,7 @@ void __stdcall DrawFrameGray(Surface* param_1, Bitmap_004b86e0* param_2, int x, 
                     s.flag0 = 1;
                     s.flag1 = 0;
                     ResetClipRect((int*)&s);
-                    FUN_004cbfc4(param_1, &s, &other, &rect, param_2->colour, d->field_cc);
+                    BlitRectRemapDest(param_1, &s, &other, &rect, param_2->colour, d->field_cc);
                 }
             }
         }

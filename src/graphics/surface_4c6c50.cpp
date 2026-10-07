@@ -31,7 +31,7 @@ extern int g_screenLockCount;
 
 Display_004c6c50* GetDisplay(void);
 int __stdcall LockScreen(Surface* out);
-void __cdecl FUN_004cbcd5(Surface* dst, Surface* src, int x, int y, int color);
+void __cdecl BlitSurfaceKeyed(Surface* dst, Surface* src, int x, int y, int color);
 
 // 0x4c5fa0, inlined here.
 static inline void UnlockScreenInline(Surface* s)
@@ -52,10 +52,10 @@ void __stdcall DrawSurfaceKeyed(Surface* dst, Surface* src, int x, int y, int co
     if (dst == 0) {
         Surface screen;
         if (LockScreen(&screen)) {
-            FUN_004cbcd5(&screen, src, x - src->field_18, y - src->field_1a, color);
+            BlitSurfaceKeyed(&screen, src, x - src->field_18, y - src->field_1a, color);
             UnlockScreenInline(&screen);
         }
     } else {
-        FUN_004cbcd5(dst, src, x - src->field_18, y - src->field_1a, color);
+        BlitSurfaceKeyed(dst, src, x - src->field_18, y - src->field_1a, color);
     }
 }

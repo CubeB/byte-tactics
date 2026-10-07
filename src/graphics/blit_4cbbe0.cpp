@@ -5,32 +5,32 @@
 // MASM-style frames (`push ebp / mov ebp, esp / add esp, -N ... leave / ret`)
 // that save every register they use.
 //
-// 0x4cbbe0  BlitSurface(dst, src, x, y)                   blit a bitmap at (x, y), clipped
-// 0x4cbcd5  FUN_004cbcd5(dst, src, x, y, key)              the same, skipping the key colour
-// 0x4cbdd1  FUN_004cbdd1(dst, src, rect, pos)              copy a rectangle
-// 0x4cbe70  FUN_004cbe70(dst, src, rect, pos, key)         copy a rectangle, skipping the key colour
-// 0x4cbef1  FUN_004cbef1(dst, x, y, tile)                  copy a 32 x 32 tile to (x, y)
-// 0x4cbf2c  FUN_004cbf2c(dst, src, rect, pos, key, table)  dst = table[src][dst], skipping the key
-// 0x4cbfc4  FUN_004cbfc4(dst, src, rect, pos, key, table)  dst = table[dst] under each non-key pixel
-// 0x4cc057, 0x4cc1bf, 0x4cc3d0, 0x4cc51d                    run-length sprite blitters
+// 0x4cbbe0  BlitSurface(dst, src, x, y)                            blit a bitmap at (x, y), clipped
+// 0x4cbcd5  BlitSurfaceKeyed(dst, src, x, y, key)                  the same, skipping the key colour
+// 0x4cbdd1  BlitRect(dst, src, rect, pos)                          copy a rectangle
+// 0x4cbe70  BlitRectKeyed(dst, src, rect, pos, key)                copy a rectangle, skipping the key colour
+// 0x4cbef1  BlitTile32x32(dst, x, y, tile)                         copy a 32 x 32 tile to (x, y)
+// 0x4cbf2c  BlitRectBlended(dst, src, rect, pos, key, table)       dst = table[src][dst], skipping the key
+// 0x4cbfc4  BlitRectRemapDest(dst, src, rect, pos, key, table)     dst = table[dst] under each non-key pixel
+// 0x4cc057, 0x4cc1bf, 0x4cc3d0, 0x4cc51d                         run-length sprite blitters
 //           (pixels, pitch, drect, runs, srect[, table]): each row of runs follows
 //           its byte length (a word); a run's count byte says skip, copy or repeat
-// 0x4cc332  FUN_004cc332(dst, src, rect, pos, key, table)  dst = table[src - 0x4f][dst],
-//                                                           skipping the key
-// 0x4cc650  IsLineVisible(surface, x0, y0, x1, y1)          0 when the segment misses the surface
-// 0x4cc7ab  FUN_004cc7ab(surface, x0, y0, x1, y1, color)   draw a line
-// 0x4cc8df  FUN_004cc8df(surface, x0, y0, x1, y1, ..., table)   draw a line through a table
-// 0x4cca33  (x0, y0, x1, y1, color)                         16-bit line; no callers, and it
-//                                                           hands IsLineVisible no surface
-// 0x4ccb65  (surface in esi)                                 no callers
-// 0x4ccd1c  FUN_004ccd1c(surface, rect, color)             rectangle outline, four FUN_004cc7ab
-// 0x4ccd85  (rect, color)                                   the same through 0x4cca33; no callers
-// 0x4ccdea  FUN_004ccdea(surface, rect, color)             fill a rectangle
-// 0x4cce87  FUN_004cce87(surface, rect, value)             xor a rectangle with a byte
-// 0x4cced5  FUN_004cced5(pixels, pitch, w, h, table)       translate pixels through a table
-// 0x4ccf60  BlitText(pixels, pitch, font, text, x, y, c1, c2, c3)   glyph blitter
-// 0x4cd010  FUN_004cd010(dst, src, x0, y0, x1, y1, step)   no callers
-// 0x4cd896..0x4cd962  (dest, src, width, y, x, rowstep, colstep)  sample a span of src into dest
+// 0x4cc332  BlitRectShadow(dst, src, rect, pos, key, table)        dst = table[src - 0x4f][dst],
+//                                                                  skipping the key
+// 0x4cc650  IsLineVisible(surface, x0, y0, x1, y1)                 0 when the segment misses the surface
+// 0x4cc7ab  BlitLine(surface, x0, y0, x1, y1, color)               draw a line
+// 0x4cc8df  BlitLineRemapped(surface, x0, y0, x1, y1, ..., table)  draw a line through a table
+// 0x4cca33  (x0, y0, x1, y1, color)                                16-bit line; no callers, and it
+//                                                                  hands IsLineVisible no surface
+// 0x4ccb65  (surface in esi)                                       no callers
+// 0x4ccd1c  FUN_004ccd1c(surface, rect, color)                     rectangle outline, four BlitLine
+// 0x4ccd85  (rect, color)                                          the same through 0x4cca33; no callers
+// 0x4ccdea  FillSolidRect(surface, rect, color)                    fill a rectangle
+// 0x4cce87  XorRect(surface, rect, value)                          xor a rectangle with a byte
+// 0x4cced5  RemapRect(pixels, pitch, w, h, table)                  translate pixels through a table
+// 0x4ccf60  BlitText(pixels, pitch, font, text, x, y, c1, c2, c3)  glyph blitter
+// 0x4cd010  FUN_004cd010(dst, src, x0, y0, x1, y1, step)           no callers
+// 0x4cd896..0x4cd962  (dest, src, width, y, x, rowstep, colstep)   sample a span of src into dest
 
 // FUNCTION: 0x4cbbe0
 extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int x, int y)
@@ -149,7 +149,7 @@ extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int 
         leave
         ret
 
-        // ENTRY: 0x4cbcd5
+        // ENTRY: 0x4cbcd5 _BlitSurfaceKeyed
     L004cbcd5:
         push ebp
         mov ebp, esp
@@ -268,7 +268,7 @@ extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int 
         leave
         ret
 
-        // ENTRY: 0x4cbdd1
+        // ENTRY: 0x4cbdd1 _BlitRect
     L004cbdd1:
         push ebp
         mov ebp, esp
@@ -349,7 +349,7 @@ extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int 
         leave
         ret
 
-        // ENTRY: 0x4cbe70
+        // ENTRY: 0x4cbe70 _BlitRectKeyed
     L004cbe70:
         push ebp
         mov ebp, esp
@@ -417,7 +417,7 @@ extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int 
         leave
         ret
 
-        // ENTRY: 0x4cbef1
+        // ENTRY: 0x4cbef1 _BlitTile32x32
     L004cbef1:
         push ebp
         mov ebp, esp
@@ -453,7 +453,7 @@ extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int 
         leave
         ret
 
-        // ENTRY: 0x4cbf2c
+        // ENTRY: 0x4cbf2c _BlitRectBlended
     L004cbf2c:
         push ebp
         mov ebp, esp
@@ -528,7 +528,7 @@ extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int 
         leave
         ret
 
-        // ENTRY: 0x4cbfc4
+        // ENTRY: 0x4cbfc4 _BlitRectRemapDest
     L004cbfc4:
         push ebp
         mov ebp, esp
@@ -602,7 +602,7 @@ extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int 
         leave
         ret
 
-        // ENTRY: 0x4cc057
+        // ENTRY: 0x4cc057 _BlitCompressedBlended
     L004cc057:
         push ebp
         mov ebp, esp
@@ -813,7 +813,7 @@ extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int 
         jne L004cc1a0
         jmp L004cc114
 
-        // ENTRY: 0x4cc1bf
+        // ENTRY: 0x4cc1bf _BlitCompressedShadow
     L004cc1bf:
         push ebp
         mov ebp, esp
@@ -1024,7 +1024,7 @@ extern "C" __declspec(naked) void __cdecl BlitSurface(void* dst, void* src, int 
         jne L004cc310
         jmp L004cc27c
 
-        // ENTRY: 0x4cc332
+        // ENTRY: 0x4cc332 _BlitRectShadow
     L004cc332:
         push ebp
         mov ebp, esp
@@ -1302,7 +1302,7 @@ extern "C" __declspec(naked) void __cdecl BlitCompressedLit(unsigned char* pixel
         jne L004cc504
         jmp L004cc48c
 
-        // ENTRY: 0x4cc51d
+        // ENTRY: 0x4cc51d _BlitCompressed
     L004cc51d:
         push ebp
         mov ebp, esp
@@ -1645,7 +1645,7 @@ extern "C" __declspec(naked) int __cdecl IsLineVisible(void* surface, int x0, in
         xor eax, eax
         jmp L004cc7a0
 
-        // ENTRY: 0x4cc7ab
+        // ENTRY: 0x4cc7ab _BlitLine
     L004cc7ab:
         push ebp
         mov ebp, esp
@@ -1796,7 +1796,7 @@ extern "C" __declspec(naked) int __cdecl IsLineVisible(void* surface, int x0, in
         leave
         ret
 
-        // ENTRY: 0x4cc8df
+        // ENTRY: 0x4cc8df _BlitLineRemapped
     L004cc8df:
         push ebp
         mov ebp, esp
@@ -2409,7 +2409,7 @@ extern "C" __declspec(naked) int __cdecl IsLineVisible(void* surface, int x0, in
         leave
         ret
 
-        // ENTRY: 0x4ccdea
+        // ENTRY: 0x4ccdea _FillSolidRect
     L004ccdea:
         push ebp
         mov ebp, esp
@@ -2497,7 +2497,7 @@ extern "C" __declspec(naked) int __cdecl IsLineVisible(void* surface, int x0, in
         leave
         ret
 
-        // ENTRY: 0x4cce87
+        // ENTRY: 0x4cce87 _XorRect
     L004cce87:
         push ebp
         mov ebp, esp
@@ -2546,7 +2546,7 @@ extern "C" __declspec(naked) int __cdecl IsLineVisible(void* surface, int x0, in
         leave
         ret
 
-        // ENTRY: 0x4cced5
+        // ENTRY: 0x4cced5 _RemapRect
     L004cced5:
         push ebp
         mov ebp, esp
@@ -3724,7 +3724,7 @@ extern "C" __declspec(naked) void __cdecl FUN_004cd010(void* dst, void* src, int
         leave
         ret
 
-        // ENTRY: 0x4cd896
+        // ENTRY: 0x4cd896 _BlitSpan128
     L004cd896:
         push ebp
         mov ebp, esp
@@ -3764,7 +3764,7 @@ extern "C" __declspec(naked) void __cdecl FUN_004cd010(void* dst, void* src, int
         leave
         ret
 
-        // ENTRY: 0x4cd8da
+        // ENTRY: 0x4cd8da _BlitSpan64
     L004cd8da:
         push ebp
         mov ebp, esp
@@ -3804,7 +3804,7 @@ extern "C" __declspec(naked) void __cdecl FUN_004cd010(void* dst, void* src, int
         leave
         ret
 
-        // ENTRY: 0x4cd91e
+        // ENTRY: 0x4cd91e _BlitSpan32
     L004cd91e:
         push ebp
         mov ebp, esp
@@ -3844,7 +3844,7 @@ extern "C" __declspec(naked) void __cdecl FUN_004cd010(void* dst, void* src, int
         leave
         ret
 
-        // ENTRY: 0x4cd962
+        // ENTRY: 0x4cd962 _BlitSpan16
     L004cd962:
         push ebp
         mov ebp, esp

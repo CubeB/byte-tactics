@@ -2,7 +2,7 @@
 
 // Draws the polyline points[0..count-1] into `surface`, or into the screen
 // (locked with LockScreen, unlocked with UnlockScreen) when `surface` is
-// null. Every segment is clipped by ClipLine and drawn by FUN_004cc7ab.
+// null. Every segment is clipped by ClipLine and drawn by BlitLine.
 // Returns the lock result on the screen path, so a failed lock returns 0
 // without ever unlocking; the caller-surface path returns 1.
 //
@@ -52,7 +52,7 @@ struct Segment_004bf060 {
 int __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
 int __stdcall ClipLine(Surface* dst, int* x0, int* y0, int* x1, int* y1);
-void __cdecl FUN_004cc7ab(Surface* dst, int x0, int y0, int x1, int y1, int color);
+void __cdecl BlitLine(Surface* dst, int x0, int y0, int x1, int y1, int color);
 
 // FUNCTION: 0x4bf060
 int __stdcall DrawPolyline(Surface* surface, Point_004bf060* points,
@@ -77,12 +77,12 @@ int __stdcall DrawPolyline(Surface* surface, Point_004bf060* points,
                     Surface inner;
                     if (LockScreen(&inner)) {
                         if (ClipLine(&inner, &x0, &y0, &x1, &y1))
-                            FUN_004cc7ab(&inner, x0, y0, x1, y1, color);
+                            BlitLine(&inner, x0, y0, x1, y1, color);
                         UnlockScreen(&inner);
                     }
                 } else {
                     if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                        FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
+                        BlitLine(&screen, x0, y0, x1, y1, color);
                 }
                 seg.from++;
                 seg.to++;
@@ -102,7 +102,7 @@ int __stdcall DrawPolyline(Surface* surface, Point_004bf060* points,
             y0 = seg.from->y;
             x0 = seg.from->x;
             if (ClipLine(surface, &x0, &y0, &x1, &y1))
-                FUN_004cc7ab(surface, x0, y0, x1, y1, color);
+                BlitLine(surface, x0, y0, x1, y1, color);
             seg.from++;
             seg.to++;
             n--;

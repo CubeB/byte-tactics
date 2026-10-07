@@ -3,7 +3,7 @@
 // Draws the outline of `r` (top, right, bottom, left edges in that order) into
 // `surface`, or into the screen when `surface` is 0 (locked with
 // LockScreen, unlocked with UnlockScreen). Each edge is a segment drawer of the
-// same shape as DrawLine (clip with ClipLine, fill with FUN_004cc7ab).
+// same shape as DrawLine (clip with ClipLine, fill with BlitLine).
 //
 // Suspected original bug: the surface != 0 path returns an uninitialised
 // `result`.
@@ -25,7 +25,7 @@ struct Rect_004bf8c0 {
 int __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
 int __stdcall ClipLine(Surface* dst, int* x0, int* y0, int* x1, int* y1);
-void __cdecl FUN_004cc7ab(Surface* dst, int x0, int y0, int x1, int y1, int color);
+void __cdecl BlitLine(Surface* dst, int x0, int y0, int x1, int y1, int color);
 int __stdcall DrawLine(Surface* surface, int x0, int y0, int x1, int y1,
                            int color);
 
@@ -45,12 +45,12 @@ int __stdcall DrawRectangle(Surface* surface, Rect_004bf8c0* r, int color)
                     Surface inner;
                     if (LockScreen(&inner)) {
                         if (ClipLine(&inner, &x0, &y0, &x1, &y1))
-                            FUN_004cc7ab(&inner, x0, y0, x1, y1, color);
+                            BlitLine(&inner, x0, y0, x1, y1, color);
                         UnlockScreen(&inner);
                     }
                 } else {
                     if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                        FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
+                        BlitLine(&screen, x0, y0, x1, y1, color);
                 }
             }
             {
@@ -59,12 +59,12 @@ int __stdcall DrawRectangle(Surface* surface, Rect_004bf8c0* r, int color)
                     Surface inner;
                     if (LockScreen(&inner)) {
                         if (ClipLine(&inner, &x0, &y0, &x1, &y1))
-                            FUN_004cc7ab(&inner, x0, y0, x1, y1, color);
+                            BlitLine(&inner, x0, y0, x1, y1, color);
                         UnlockScreen(&inner);
                     }
                 } else {
                     if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                        FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
+                        BlitLine(&screen, x0, y0, x1, y1, color);
                 }
             }
             {
@@ -73,12 +73,12 @@ int __stdcall DrawRectangle(Surface* surface, Rect_004bf8c0* r, int color)
                     Surface inner;
                     if (LockScreen(&inner)) {
                         if (ClipLine(&inner, &x0, &y0, &x1, &y1))
-                            FUN_004cc7ab(&inner, x0, y0, x1, y1, color);
+                            BlitLine(&inner, x0, y0, x1, y1, color);
                         UnlockScreen(&inner);
                     }
                 } else {
                     if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                        FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
+                        BlitLine(&screen, x0, y0, x1, y1, color);
                 }
             }
             {
@@ -87,12 +87,12 @@ int __stdcall DrawRectangle(Surface* surface, Rect_004bf8c0* r, int color)
                     Surface inner;
                     if (LockScreen(&inner)) {
                         if (ClipLine(&inner, &x0, &y0, &x1, &y1))
-                            FUN_004cc7ab(&inner, x0, y0, x1, y1, color);
+                            BlitLine(&inner, x0, y0, x1, y1, color);
                         UnlockScreen(&inner);
                     }
                 } else {
                     if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                        FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
+                        BlitLine(&screen, x0, y0, x1, y1, color);
                 }
             }
             UnlockScreen(&screen);
@@ -101,12 +101,12 @@ int __stdcall DrawRectangle(Surface* surface, Rect_004bf8c0* r, int color)
         {
             int x0, y0, x1, y1; y1 = r->top; x1 = r->right; y0 = r->top; x0 = r->left;
             if (ClipLine(surface, &x0, &y0, &x1, &y1))
-                FUN_004cc7ab(surface, x0, y0, x1, y1, color);
+                BlitLine(surface, x0, y0, x1, y1, color);
         }
         {
             int x0, y0, x1, y1; y1 = r->bottom; x1 = r->right; y0 = r->top; x0 = r->right;
             if (ClipLine(surface, &x0, &y0, &x1, &y1))
-                FUN_004cc7ab(surface, x0, y0, x1, y1, color);
+                BlitLine(surface, x0, y0, x1, y1, color);
         }
         DrawLine(surface, r->left, r->bottom, r->right, r->bottom, color);
         DrawLine(surface, r->left, r->top, r->left, r->bottom, color);

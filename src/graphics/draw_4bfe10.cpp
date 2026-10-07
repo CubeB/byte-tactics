@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and claude-opus-5-5, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
 
 // Translates every pixel of `rect` in `surface` through the byte table at
-// g_game+0xcc (FUN_004cced5), or in the locked screen (LockScreen /
+// g_game+0xcc (RemapRect), or in the locked screen (LockScreen /
 // UnlockScreen) when `surface` is 0. The rect is copied to a local first
 // because the clip helper ClipRectangle clips it in place. The locked path
 // returns the lock result.
@@ -46,7 +46,7 @@
 // `Rect*` each as a local; declaration order of `result`/`status` (12 orders),
 // extra dummy locals, and an uninitialised local of each type; `#include
 // <windows.h>` and the header sets; `__cdecl`/variadic/extern "C" prototypes
-// for FUN_004cced5; and the two wrong-value shapes that reach the original's
+// for RemapRect; and the two wrong-value shapes that reach the original's
 // register allocation without being kept (`r.top * screen.pitch + r.left +
 // screen.pitch`, 93.3%, and `r.top * (int)screen.pixels + r.left + (int)
 // screen.pitch`, 94.9% and 267 bytes). The 94.9% shape matters as evidence:
@@ -90,7 +90,7 @@ Game_004bfe10* GetDisplay();
 int __stdcall LockScreen(Surface_004bfe10* out);
 int __stdcall UnlockScreen(Surface_004bfe10* s);
 int __stdcall ClipRectangle(void* s, Rect_004bfe10* r);
-void __cdecl FUN_004cced5(int dst, int pitch, int w, int h, int table);
+void __cdecl RemapRect(int dst, int pitch, int w, int h, int table);
 
 // FUNCTION: 0x4bfe10
 int __stdcall GrayRectangle(Surface_004bfe10* surface, Rect_004bfe10* rect)
@@ -106,14 +106,14 @@ int __stdcall GrayRectangle(Surface_004bfe10* surface, Rect_004bfe10* rect)
         result = LockScreen(&screen);
         if (result != 0) {
             if (ClipRectangle(&screen, &r))
-                FUN_004cced5(r.top * screen.pitch + r.left + (int)screen.pixels,
+                RemapRect(r.top * screen.pitch + r.left + (int)screen.pixels,
                              screen.pitch, r.right - r.left + 1,
                              r.bottom - r.top + 1, g->field_cc);
             UnlockScreen(&screen);
         }
     } else {
         if (ClipRectangle(surface, &r))
-            FUN_004cced5((int)surface->pixels + r.top * surface->pitch + r.left,
+            RemapRect((int)surface->pixels + r.top * surface->pitch + r.left,
                          surface->pitch, r.right - r.left + 1,
                          r.bottom - r.top + 1, g->field_cc);
         result = status;

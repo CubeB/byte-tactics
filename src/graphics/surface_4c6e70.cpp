@@ -32,7 +32,7 @@ extern int g_screenLockCount;
 
 Display_004c6e70* GetDisplay(void);
 int __stdcall LockScreen(Surface_004c6e70* out);
-void __cdecl FUN_004cbef1(Surface_004c6e70* dst, Surface_004c6e70* src, Rect_004c6e70* rect, Point_004c6e70* pos);
+void __cdecl BlitTile32x32(Surface_004c6e70* dst, Surface_004c6e70* src, Rect_004c6e70* rect, Point_004c6e70* pos);
 
 // 0x4c5fa0, inlined here.
 static inline int UnlockScreenInline(Surface_004c6e70* s)
@@ -54,10 +54,10 @@ void __stdcall DrawTile(Surface_004c6e70* dst, Surface_004c6e70* src, Rect_004c6
     if (dst == 0) {
         Surface_004c6e70 screen;
         if (LockScreen(&screen)) {
-            FUN_004cbef1(&screen, src, rect, pos);
+            BlitTile32x32(&screen, src, rect, pos);
             UnlockScreenInline(&screen);
         }
     } else {
-        FUN_004cbef1(dst, src, rect, pos);
+        BlitTile32x32(dst, src, rect, pos);
     }
 }

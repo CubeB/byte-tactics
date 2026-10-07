@@ -17,10 +17,10 @@ struct Surface_004c8020 {
 };
 struct Display_004c8020 { char pad[0xc4]; unsigned char* palette; };
 Display_004c8020* GetDisplay();
-void __cdecl FUN_004cd896(unsigned char*, unsigned char*, int, int, int, int, int);
-void __cdecl FUN_004cd8da(unsigned char*, unsigned char*, int, int, int, int, int);
-void __cdecl FUN_004cd91e(unsigned char*, unsigned char*, int, int, int, int, int);
-void __cdecl FUN_004cd962(unsigned char*, unsigned char*, int, int, int, int, int);
+void __cdecl BlitSpan128(unsigned char*, unsigned char*, int, int, int, int, int);
+void __cdecl BlitSpan64(unsigned char*, unsigned char*, int, int, int, int, int);
+void __cdecl BlitSpan32(unsigned char*, unsigned char*, int, int, int, int, int);
+void __cdecl BlitSpan16(unsigned char*, unsigned char*, int, int, int, int, int);
 
 // FUNCTION: 0x4c8020
 void __stdcall DrawLitTexturedSpan(int row, int* span, Surface_004c8020* target, Surface_004c8020* texture)
@@ -148,15 +148,15 @@ void __stdcall DrawLitTexturedSpan(int row, int* span, Surface_004c8020* target,
         }
         switch(texture->width) {
         case 128:
-            FUN_004cd896(dest, src, width, u, v, du, dv);
+            BlitSpan128(dest, src, width, u, v, du, dv);
         case 64:
-            FUN_004cd8da(dest, src, width, u, v, du, dv);
+            BlitSpan64(dest, src, width, u, v, du, dv);
             return;
         case 32:
-            FUN_004cd91e(dest, src, width, u, v, du, dv);
+            BlitSpan32(dest, src, width, u, v, du, dv);
             return;
         case 16:
-            FUN_004cd962(dest, src, width, u, v, du, dv);
+            BlitSpan16(dest, src, width, u, v, du, dv);
             return;
         case 8: {
             int n=width;

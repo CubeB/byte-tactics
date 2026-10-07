@@ -22,7 +22,7 @@ App_004bed70* GetDisplay();
 Surface* __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
 int __stdcall ClipLine(Surface* dst, int* a, int* b, int* c, int* d);
-void __cdecl FUN_004cc8df(Surface* dst, int a, int b, int c, int d, int e,
+void __cdecl BlitLineRemapped(Surface* dst, int a, int b, int c, int d, int e,
                           unsigned int* palette);
 
 // FUNCTION: 0x4bed70
@@ -36,12 +36,12 @@ Surface* __stdcall DrawBlendedLine(Surface* surface, int x0, int y0,
         ret = LockScreen(&screen);
         if (ret) {
             if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                FUN_004cc8df(&screen, x0, y0, x1, y1, color, app->palette);
+                BlitLineRemapped(&screen, x0, y0, x1, y1, color, app->palette);
             UnlockScreen(&screen);
         }
     } else {
         if (ClipLine(surface, &x0, &y0, &x1, &y1))
-            FUN_004cc8df(surface, x0, y0, x1, y1, color, app->palette);
+            BlitLineRemapped(surface, x0, y0, x1, y1, color, app->palette);
         ret = (Surface*)1;
     }
     return ret;

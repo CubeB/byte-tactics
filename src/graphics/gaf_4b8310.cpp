@@ -70,7 +70,7 @@ int __stdcall LockScreen(Surface_004b8310* out);
 int __stdcall UnlockScreen(Surface_004b8310* s);
 void __stdcall ClipRects(Rect_004b8310* other, Rect_004b8310* rect, Rect_004b8310* bounds);
 void __stdcall DrawFrameBlended(Surface* p, Sprite_004b8310* s, int x, int y);
-void __cdecl FUN_004cbf2c(Surface* p, Src_004b8310* src, Rect_004b8310* srect, Rect_004b8310* drect, int colour, unsigned char* palette);
+void __cdecl BlitRectBlended(Surface* p, Src_004b8310* src, Rect_004b8310* srect, Rect_004b8310* drect, int colour, unsigned char* palette);
 void __cdecl BlitCompressedLit(int linkid, int sprite, Rect_004b8310* drect, Sprite_004b8310** src, Rect_004b8310* srect, unsigned char* palette);
 
 // FUNCTION: 0x4b8310
@@ -111,7 +111,7 @@ void __stdcall DrawFrameLit(Surface* param_1, Sprite_004b8310* param_2, int x, i
                         src.field_1 = param_2->height;
                         src.field_2 = param_2->width;
                         src.field_3 = param_2->items;
-                        FUN_004cbf2c(param_1, &src, &sprite_rect, &screen_rect, param_5, d->field_c8);
+                        BlitRectBlended(param_1, &src, &sprite_rect, &screen_rect, param_5, d->field_c8);
                     } else {
                         BlitCompressedLit(param_1->field_c, param_1->field_8, &screen_rect,
                             param_2->items, &sprite_rect, d->field_c8 + (param_5 << 8));

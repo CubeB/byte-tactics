@@ -1,6 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // Draws one character of text: ClipLine clamps the position into the
-// surface and FUN_004cc7ab draws the glyph, taking both the clamped and the
+// surface and BlitLine draws the glyph, taking both the clamped and the
 // original coordinates. When `surface` is null the screen is locked with
 // LockScreen instead, and if that lock fails a second surface is tried.
 // UnlockScreen then unlocks whatever LockScreen left in `screen`, even on
@@ -16,7 +16,7 @@ struct Surface {
 int __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
 int __stdcall ClipLine(Surface* dst, int* x0, int* y0, int* x1, int* y1);
-void __cdecl FUN_004cc7ab(Surface* dst, int x0, int y0, int x1, int y1, int ch);
+void __cdecl BlitLine(Surface* dst, int x0, int y0, int x1, int y1, int ch);
 
 // FUNCTION: 0x4bee60
 int __stdcall DrawPixel(Surface* surface, int x, int y, int ch)
@@ -32,19 +32,19 @@ int __stdcall DrawPixel(Surface* surface, int x, int y, int ch)
                 Surface other;
                 if (LockScreen(&other)) {
                     if (ClipLine(&other, &x0, &y0, &x1, &y1))
-                        FUN_004cc7ab(&other, x0, y0, x1, y1, ch);
+                        BlitLine(&other, x0, y0, x1, y1, ch);
                     UnlockScreen(&other);
                 }
             } else {
                 if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                    FUN_004cc7ab(&screen, x0, y0, x1, y1, ch);
+                    BlitLine(&screen, x0, y0, x1, y1, ch);
             }
             UnlockScreen(&screen);
         }
     } else {
         int y1 = y, x1 = x, y0 = y, x0 = x;
         if (ClipLine(surface, &x0, &y0, &x1, &y1))
-            FUN_004cc7ab(surface, x0, y0, x1, y1, ch);
+            BlitLine(surface, x0, y0, x1, y1, ch);
         ret = 1;
     }
     return ret;

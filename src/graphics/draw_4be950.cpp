@@ -2,7 +2,7 @@
 
 // Draws into `surface`, or into the screen (locked with LockScreen and
 // unlocked with UnlockScreen) when `surface` is null. ClipLine clips the
-// rectangle and FUN_004cc7ab fills it. Returns the lock result on the screen
+// rectangle and BlitLine fills it. Returns the lock result on the screen
 // path, so a failed lock returns 0 without ever unlocking.
 
 struct Surface {
@@ -15,7 +15,7 @@ struct Surface {
 int __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
 int __stdcall ClipLine(Surface* dst, int* a, int* b, int* c, int* d);
-void __cdecl FUN_004cc7ab(Surface* dst, int a, int b, int c, int d, int e);
+void __cdecl BlitLine(Surface* dst, int a, int b, int c, int d, int e);
 
 // FUNCTION: 0x4be950
 int __stdcall DrawLine(Surface* surface, int x0, int y0, int x1, int y1,
@@ -27,12 +27,12 @@ int __stdcall DrawLine(Surface* surface, int x0, int y0, int x1, int y1,
         ret = LockScreen(&screen);
         if (ret) {
             if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
+                BlitLine(&screen, x0, y0, x1, y1, color);
             UnlockScreen(&screen);
         }
     } else {
         if (ClipLine(surface, &x0, &y0, &x1, &y1))
-            FUN_004cc7ab(surface, x0, y0, x1, y1, color);
+            BlitLine(surface, x0, y0, x1, y1, color);
         ret = 1;
     }
     return ret;

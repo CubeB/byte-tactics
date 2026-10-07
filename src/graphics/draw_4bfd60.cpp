@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 
 // Xor-fills `rect` on `surface` (or on the locked screen when `surface` is 0)
-// with the byte `value`, through FUN_004cce87. The rect is copied to a local
+// with the byte `value`, through XorRect. The rect is copied to a local
 // first because the clip helper ClipRectangle clips it in place. Returns the
 // lock result on the screen path and `value` on the caller-surface path.
 //
@@ -12,7 +12,7 @@
 // four bytes as `value` (the third parameter's stack slot, at surface+8),
 // but through a syntactically different expression, and that difference is
 // the whole trick: MSVC 5 unifies two reads of the same parameter into one
-// register-allocated value (live across the FUN_004cce87 call, so it needs a
+// register-allocated value (live across the XorRect call, so it needs a
 // callee-saved register, hence the extra `push edi`/`pop edi` and the two
 // bytes short). A differently spelled read of the same slot stays two
 // separate C1 values, so the else arm reloads it into esi, which is the
@@ -62,7 +62,7 @@ struct Surface {
 int __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
 int __stdcall ClipRectangle(Surface* s, Rect_004bfd60* r);
-void __cdecl FUN_004cce87(Surface* s, Rect_004bfd60* r, int value);
+void __cdecl XorRect(Surface* s, Rect_004bfd60* r, int value);
 
 // FUNCTION: 0x4bfd60
 int __stdcall XorRectangle(Surface* surface, Rect_004bfd60* rect, int value)
@@ -74,12 +74,12 @@ int __stdcall XorRectangle(Surface* surface, Rect_004bfd60* rect, int value)
         result = LockScreen(&screen);
         if (result != 0) {
             if (ClipRectangle(&screen, &r))
-                FUN_004cce87(&screen, &r, value);
+                XorRect(&screen, &r, value);
             UnlockScreen(&screen);
         }
     } else {
         if (ClipRectangle(surface, &r))
-            FUN_004cce87(surface, &r, value);
+            XorRect(surface, &r, value);
         result = ((int*)&surface)[2];
     }
     return result;

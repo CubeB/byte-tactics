@@ -23,7 +23,7 @@ int __cdecl FUN_004b7123(int angle, int distance);
 int __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
 int __stdcall ClipLine(Surface* dst, int* a, int* b, int* c, int* d);
-void __cdecl FUN_004cc7ab(Surface* dst, int a, int b, int c, int d, int color);
+void __cdecl BlitLine(Surface* dst, int a, int b, int c, int d, int color);
 
 static inline void Draw_004c0070(Surface* surface, int x0, int y0,
                                  int x1, int y1, int color)
@@ -32,12 +32,12 @@ static inline void Draw_004c0070(Surface* surface, int x0, int y0,
         Surface screen;
         if (LockScreen(&screen)) {
             if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                FUN_004cc7ab(&screen, x0, y0, x1, y1, color);
+                BlitLine(&screen, x0, y0, x1, y1, color);
             UnlockScreen(&screen);
         }
     } else {
         if (ClipLine(surface, &x0, &y0, &x1, &y1))
-            FUN_004cc7ab(surface, x0, y0, x1, y1, color);
+            BlitLine(surface, x0, y0, x1, y1, color);
     }
 }
 

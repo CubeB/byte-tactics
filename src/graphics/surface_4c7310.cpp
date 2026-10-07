@@ -31,10 +31,10 @@ public:
     Rect_4c7310* GetClipRect(Rect_4c7310* out);
 };
 
-void __cdecl FUN_004cd896(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
-void __cdecl FUN_004cd8da(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
-void __cdecl FUN_004cd91e(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
-void __cdecl FUN_004cd962(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
+void __cdecl BlitSpan128(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
+void __cdecl BlitSpan64(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
+void __cdecl BlitSpan32(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
+void __cdecl BlitSpan16(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
 
 // FUNCTION: 0x4c7310
 void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, Info_4c7310* info)
@@ -64,16 +64,16 @@ void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, Info_4c7310* i
         dest += surf->field_8 * param_1 + rect[0];
         switch (info->bits) {
         case 0x80:
-            FUN_004cd896(dest, src, width, y, x, rowstep, colstep);
+            BlitSpan128(dest, src, width, y, x, rowstep, colstep);
             return;
         case 0x40:
-            FUN_004cd8da(dest, src, width, y, x, rowstep, colstep);
+            BlitSpan64(dest, src, width, y, x, rowstep, colstep);
             return;
         case 0x20:
-            FUN_004cd91e(dest, src, width, y, x, rowstep, colstep);
+            BlitSpan32(dest, src, width, y, x, rowstep, colstep);
             return;
         case 0x10:
-            FUN_004cd962(dest, src, width, y, x, rowstep, colstep);
+            BlitSpan16(dest, src, width, y, x, rowstep, colstep);
             return;
         case 8: {
             int n = width;

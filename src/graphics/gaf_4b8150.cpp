@@ -5,11 +5,11 @@
 // comparison of `dst` with the address of the local surface).
 // A record with a child count draws each child, through DrawFrameBlended when the
 // child's kind byte is set and through DrawFrame otherwise (the same code as
-// here, but the one that blits with FUN_004cbe70).
+// here, but the one that blits with BlitRectKeyed).
 // A leaf builds the source rect (0, 0, w - 1, h - 1) and the destination rect
 // (x - dx, y - dy, ...), clips the destination to the destination's own clip
-// rect with ClipRects and blits through the hand-written FUN_004cbdd1, or,
-// when the mode byte at +9 is set, through FUN_004cc51d.
+// rect with ClipRects and blits through the hand-written BlitRect, or,
+// when the mode byte at +9 is set, through BlitCompressed.
 // Needed though unused: without a header the second lea gets the other base/index order.
 #include <windows.h>
 
@@ -59,8 +59,8 @@ struct Desc_004b8150 {
 int __stdcall LockScreen(Surface_004b8150* out);
 int __stdcall UnlockScreen(Surface_004b8150* s);
 void __stdcall ClipRects(Rect_004b8150* other, Rect_004b8150* rect, Rect_004b8150* bounds);
-void __cdecl FUN_004cbdd1(Surface* dst, Desc_004b8150* src, Rect_004b8150* srect, Rect_004b8150* drect);
-void __cdecl FUN_004cc51d(int param_1, int param_2, Rect_004b8150* rect, void* plane, Rect_004b8150* other);
+void __cdecl BlitRect(Surface* dst, Desc_004b8150* src, Rect_004b8150* srect, Rect_004b8150* drect);
+void __cdecl BlitCompressed(int param_1, int param_2, Rect_004b8150* rect, void* plane, Rect_004b8150* other);
 void __stdcall DrawFrameBlended(Surface* dst, Bitmap_004b8150* bmp, int x, int y);
 void __stdcall DrawFrame(Surface* dst, Bitmap_004b8150* bmp, int x, int y);
 
@@ -104,9 +104,9 @@ void __stdcall DrawFrameOpaque(Surface* dst, Bitmap_004b8150* bmp, int x, int y)
                     desc.field_8 = bmp->width;
                     desc.field_4 = bmp->height;
                     desc.field_c = bmp->field_10;
-                    FUN_004cbdd1(dst, &desc, &other, &rect);
+                    BlitRect(dst, &desc, &other, &rect);
                 } else {
-                    FUN_004cc51d(dst->field_c, dst->field_8, &rect, bmp->field_10, &other);
+                    BlitCompressed(dst->field_c, dst->field_8, &rect, bmp->field_10, &other);
                 }
             }
         }

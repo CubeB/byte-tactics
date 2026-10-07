@@ -7,8 +7,8 @@
 // child's kind byte is set and through this function (recursion) otherwise.
 // A leaf builds the source rect (0, 0, w - 1, h - 1) and the destination rect
 // (x - dx, y - dy, ...), clips the destination to the destination's own clip
-// rect with ClipRects and blits through FUN_004cbe70, or, when the mode
-// byte at +9 is set, through FUN_004cc51d.
+// rect with ClipRects and blits through BlitRectKeyed, or, when the mode
+// byte at +9 is set, through BlitCompressed.
 // Needed though unused: without a header the second lea gets the other base/index order.
 #include <windows.h>
 
@@ -58,8 +58,8 @@ struct Desc_004b7f90 {
 int __stdcall LockScreen(Surface_004b7f90* out);
 int __stdcall UnlockScreen(Surface_004b7f90* s);
 void __stdcall ClipRects(Rect_004b7f90* other, Rect_004b7f90* rect, Rect_004b7f90* bounds);
-void __cdecl FUN_004cbe70(Surface* dst, Desc_004b7f90* src, Rect_004b7f90* srect, Rect_004b7f90* drect, int colour);
-void __cdecl FUN_004cc51d(int param_1, int param_2, Rect_004b7f90* rect, void* plane, Rect_004b7f90* other);
+void __cdecl BlitRectKeyed(Surface* dst, Desc_004b7f90* src, Rect_004b7f90* srect, Rect_004b7f90* drect, int colour);
+void __cdecl BlitCompressed(int param_1, int param_2, Rect_004b7f90* rect, void* plane, Rect_004b7f90* other);
 void __stdcall DrawFrameBlended(Surface* dst, Bitmap_004b7f90* bmp, int x, int y);
 
 // FUNCTION: 0x4b7f90
@@ -102,9 +102,9 @@ void __stdcall DrawFrame(Surface* dst, Bitmap_004b7f90* bmp, int x, int y)
                     desc.field_8 = bmp->width;
                     desc.field_4 = bmp->height;
                     desc.field_c = bmp->field_10;
-                    FUN_004cbe70(dst, &desc, &other, &rect, bmp->colour);
+                    BlitRectKeyed(dst, &desc, &other, &rect, bmp->colour);
                 } else {
-                    FUN_004cc51d(dst->field_c, dst->field_8, &rect, bmp->field_10, &other);
+                    BlitCompressed(dst->field_c, dst->field_8, &rect, bmp->field_10, &other);
                 }
             }
         }

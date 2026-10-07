@@ -8,7 +8,7 @@
 // function (recursion). A leaf builds the source rect (0, 0, w - 1, h - 1) and
 // the destination rect (x - dx, y - dy, ...), clips the destination to the
 // destination's own clip rect with ClipRects and blits through
-// FUN_004cbf2c, or, when the mode byte at +9 is set, through FUN_004cc057.
+// BlitRectBlended, or, when the mode byte at +9 is set, through BlitCompressedBlended.
 
 struct Rect_004b8500 {
     int left;
@@ -74,8 +74,8 @@ int __stdcall LockScreen(Surface_004b8500* out);
 int __stdcall UnlockScreen(Surface_004b8500* s);
 void __stdcall ClipRects(Rect_004b8500* other, Rect_004b8500* rect, Rect_004b8500* bounds);
 void __stdcall DrawFrameBlended(Surface* p, Sprite_004b8500* s, int x, int y);
-void __cdecl FUN_004cbf2c(Surface* p, Src_004b8500* src, Rect_004b8500* srect, Rect_004b8500* drect, int colour, unsigned char* palette);
-void __cdecl FUN_004cc057(int linkid, int sprite, Rect_004b8500* drect, Sprite_004b8500** src, Rect_004b8500* srect, unsigned char* palette);
+void __cdecl BlitRectBlended(Surface* p, Src_004b8500* src, Rect_004b8500* srect, Rect_004b8500* drect, int colour, unsigned char* palette);
+void __cdecl BlitCompressedBlended(int linkid, int sprite, Rect_004b8500* drect, Sprite_004b8500** src, Rect_004b8500* srect, unsigned char* palette);
 
 // FUNCTION: 0x4b8500
 void __stdcall DrawFrameBlended(Surface* param_1, Sprite_004b8500* param_2, int x, int y)
@@ -113,10 +113,10 @@ void __stdcall DrawFrameBlended(Surface* param_1, Sprite_004b8500* param_2, int 
                         src.field_1 = param_2->height;
                         src.field_2 = param_2->width;
                         src.field_3 = param_2->items;
-                        FUN_004cbf2c(param_1, &src, &sprite_rect, &screen_rect,
+                        BlitRectBlended(param_1, &src, &sprite_rect, &screen_rect,
                             param_2->colour, d->field_c0);
                     } else {
-                        FUN_004cc057(param_1->field_c, param_1->field_8, &screen_rect,
+                        BlitCompressedBlended(param_1->field_c, param_1->field_8, &screen_rect,
                             param_2->items, &sprite_rect, d->field_c0);
                     }
                 }

@@ -256,8 +256,8 @@ by Claude Opus 5.5 in #275.
 
 **0x4c7a20**, a span renderer that switches on the texture width (the jump
 table at 0x4c7f88/0x4c7fa0). The unmasked case for width 0x80 calls
-FUN_004cd896 (0x4c7df3) and then runs straight on into the width 0x40 case,
-which calls FUN_004cd8da (0x4c7e0e) with the same arguments; nothing branches
+BlitSpan128 (0x4c7df3) and then runs straight on into the width 0x40 case,
+which calls BlitSpan64 (0x4c7e0e) with the same arguments; nothing branches
 between them. Both helpers fill the same destination span, the first with a
 128-byte texel row (`shl ebx, 7`) and the second with a 64-byte one
 (`shl ebx, 6`), so every unmasked span of a 128-wide texture is drawn

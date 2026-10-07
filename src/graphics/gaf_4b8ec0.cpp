@@ -8,8 +8,8 @@
 // count draws each child by recursion. A leaf with a data pointer builds the
 // source rect (0, 0, w - 1, h - 1) and the destination rect (x - dx, y - dy,
 // ...), clips the destination to the destination's own clip rect with
-// ClipRects and blits through FUN_004cc332 (a byte run shadow blitter), or,
-// when the mode byte at +9 is set, through FUN_004cc1bf (a word run shadow
+// ClipRects and blits through BlitRectShadow (a byte run shadow blitter), or,
+// when the mode byte at +9 is set, through BlitCompressedShadow (a word run shadow
 // blitter). Both blitters are hand-written assembly and take the display's
 // cached object at +0xc8 as their last argument.
 #include <windows.h>
@@ -71,8 +71,8 @@ Display_004b8ec0* GetDisplay(void);
 int __stdcall LockScreen(Surface_004b8ec0* out);
 int __stdcall UnlockScreen(Surface_004b8ec0* s);
 void __stdcall ClipRects(Rect_004b8ec0* other, Rect_004b8ec0* rect, Rect_004b8ec0* bounds);
-void __cdecl FUN_004cc332(Surface* dst, Desc_004b8ec0* src, Rect_004b8ec0* srect, Rect_004b8ec0* drect, int colour, int param_6);
-void __cdecl FUN_004cc1bf(int param_1, int param_2, Rect_004b8ec0* rect, void* plane, Rect_004b8ec0* other, int param_6);
+void __cdecl BlitRectShadow(Surface* dst, Desc_004b8ec0* src, Rect_004b8ec0* srect, Rect_004b8ec0* drect, int colour, int param_6);
+void __cdecl BlitCompressedShadow(int param_1, int param_2, Rect_004b8ec0* rect, void* plane, Rect_004b8ec0* other, int param_6);
 
 // FUNCTION: 0x4b8ec0
 void __stdcall DrawFrameShadow(Surface* dst, Bitmap_004b8ec0* bmp, int x, int y)
@@ -113,9 +113,9 @@ void __stdcall DrawFrameShadow(Surface* dst, Bitmap_004b8ec0* bmp, int x, int y)
                         desc.field_8 = bmp->width;
                         desc.field_4 = bmp->height;
                         desc.field_c = bmp->field_10;
-                        FUN_004cc332(dst, &desc, &other, &rect, bmp->colour, d->field_c8);
+                        BlitRectShadow(dst, &desc, &other, &rect, bmp->colour, d->field_c8);
                     } else {
-                        FUN_004cc1bf(dst->field_c, dst->field_8, &rect, bmp->field_10, &other, d->field_c8);
+                        BlitCompressedShadow(dst->field_c, dst->field_8, &rect, bmp->field_10, &other, d->field_c8);
                     }
                 }
             }

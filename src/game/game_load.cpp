@@ -431,7 +431,7 @@ void __stdcall FUN_004a50e0(void* surface, const char* text, int x, int y, int l
 char* __stdcall Translate(char* s);
 
 void LoadThreadMain();
-void FUN_00499200();
+void BattleFrame();
 void __cdecl FUN_004609a0(int);
 void __cdecl BlankScreen();
 void __cdecl FreePictureCache();
@@ -869,7 +869,7 @@ void __stdcall DrawSyncStatus(void* surface)
 // MATCH (claude-opus-5-5, #4267; was 84.3%). The loading-screen frame: on the
 // first call it starts the loader thread (LoadThreadMain), once the loader sets
 // the "loaded" bit it restores the game screen and installs the game frame
-// handler (FUN_00499200), and otherwise it draws the six progress bars.
+// handler (BattleFrame), and otherwise it draws the six progress bars.
 // What it took, from the earlier partial:
 //  - The six stage bytes at g_game+0x38d6f are volatile, like the flags word
 //    after them (the loader thread writes both; 0x456de0 reads the same bytes
@@ -995,7 +995,7 @@ void LoadingScreenFrame(void)
         FUN_00496790();
         FUN_004c2870();
         g_game->field_391f1 = 6;
-        g_game->field_391f5 = FUN_00499200;
+        g_game->field_391f5 = BattleFrame;
         SetCloseHandler(FUN_004609a0, 0);
         g_game->field_589 = 0;
         memset((void*)g_game->progress, 0, 8);

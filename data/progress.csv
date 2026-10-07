@@ -2068,10 +2068,10 @@ address,size,file,symbol,status,similarity
 0x498cd0,44,src/game/game_load.cpp,?FUN_00498cd0@@YGXPAUPoint_00498cd0@@PAUView_00498cd0@@H@Z,matched,100.0
 0x498d00,145,src/game/game_load.cpp,?FUN_00498d00@@YGXPAUPos_00498d00@@@Z,matched,100.0
 0x498da0,459,src/game/game_load.cpp,?FUN_00498da0@@YGXPAUView_00498da0@@@Z,matched,100.0
-0x498f70,395,src/ingame/build_placement.cpp,?FUN_00498f70@@YGXPAUView@@@Z,matched,100.0
-0x499100,254,src/ingame/build_placement.cpp,?FUN_00499100@@YGXPAUView@@@Z,matched,100.0
-0x499200,1655,src/ingame/build_placement.cpp,?FUN_00499200@@YGXXZ,matched,100.0
-0x499880,5,src/ingame/build_placement.cpp,?FUN_00499880@@YGXXZ,matched,100.0
+0x498f70,395,src/ingame/build_placement.cpp,?HandleLeftClick@@YGXPAUView@@@Z,matched,100.0
+0x499100,254,src/ingame/build_placement.cpp,?HandleRightClick@@YGXPAUView@@@Z,matched,100.0
+0x499200,1655,src/ingame/build_placement.cpp,?BattleFrame@@YGXXZ,matched,100.0
+0x499880,5,src/ingame/build_placement.cpp,?EndGameFrame@@YGXXZ,matched,100.0
 0x499890,411,src/ingame/screenshots_499890.cpp,?FUN_00499890@@YGXXZ,matched,100.0
 0x499a30,69,src/weapons/weapons_499a30.cpp,?AllocWeaponArray@@YGXXZ,matched,100.0
 0x499a80,37,src/weapons/weapons_499a80.cpp,?FreeWeaponArray@@YGXXZ,matched,100.0

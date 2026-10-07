@@ -163,13 +163,13 @@ void __stdcall SetCloseHandler(void* a, int b);
 int GetTicks();
 void ClearKeyQueue();
 int __stdcall IsKeyDown(int a);
-void FUN_00499880();
+void EndGameFrame();
 void RunEndGameState(void);
 void FUN_00496bb0();
 void __cdecl LeaveNetGameCallback();
 
 // FUNCTION: 0x498f70
-void __stdcall FUN_00498f70(View* param_1)
+void __stdcall HandleLeftClick(View* param_1)
 {
     int index;
 
@@ -226,7 +226,7 @@ void __stdcall FUN_00498f70(View* param_1)
 // (+0x2cc6): bit 1 cancels the current order, bit 0 switches to the 0x13
 // (STOP) selection, bit 2 hands a zero order kind to IssueOrderToSelection.
 // FUNCTION: 0x499100
-void __stdcall FUN_00499100(View* param_1)
+void __stdcall HandleRightClick(View* param_1)
 {
     if (g_game->orderMode != 1) {
         g_game->orderMode = 1;
@@ -288,7 +288,7 @@ static inline void SetCursor(int n)
 // The same two stores alone in both arms match too. `|= 4` in both arms is
 // what keeps the 4 in edi.
 // FUNCTION: 0x499200
-void FUN_00499200(void)
+void BattleFrame(void)
 {
     View view = g_game->view;
     FUN_00498da0(&view);
@@ -333,10 +333,10 @@ void FUN_00499200(void)
     } else if (g_game->field_2cdf != 0) {
         UpdateMouseScroll();
     } else if (view.msg == 0x204) {
-        FUN_00499100(&view);
+        HandleRightClick(&view);
     } else if (g_game->orderMode != 1) {
         if (view.msg == 0x201) {
-            FUN_00498f70(&view);
+            HandleLeftClick(&view);
         }
     } else if ((flags & 8) != 0) {
         if (view.msg == 0x202) {
@@ -347,7 +347,7 @@ void FUN_00499200(void)
             dz = abs(dz);
             int now = GetTicks();
             if (g_game->field_2cb6 + 0x19 > now && dx < 0x20 && dz < 0x20) {
-                FUN_00498f70(&view);
+                HandleLeftClick(&view);
             } else if (SelectUnitsInBox(&view) == 0) {
                 FUN_0048bd00();
                 FUN_00491d70(1);
@@ -374,7 +374,7 @@ void FUN_00499200(void)
                 SetCursor(0x13);
             }
         } else if ((flags & 1) != 0) {
-            FUN_00498f70(&view);
+            HandleLeftClick(&view);
         }
     }
 
@@ -401,7 +401,7 @@ void FUN_00499200(void)
             ClearKeyQueue();
             g_game->field_10->SetTrackCategory(4);
             g_game->field_391f1 = 7;
-            g_game->field_391f5 = FUN_00499880;
+            g_game->field_391f5 = EndGameFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
             FUN_0041d9f0(0);
         }
@@ -443,7 +443,7 @@ void FUN_00499200(void)
 }
 
 // FUNCTION: 0x499880
-void FUN_00499880(void)
+void EndGameFrame(void)
 {
     RunEndGameState();
 }

@@ -126,7 +126,7 @@ int __stdcall FindGadgetIndex(Entry* entries, char* name, int type);
 Entry* __stdcall FindGadgetChecked(Entry* entries, char* name);
 void __stdcall FUN_0049fa90(void* obj);
 void __stdcall FUN_004ab0a0(void* obj);
-void __stdcall FUN_004af5b0(FileRequester* obj);
+void __stdcall RefreshFileList(FileRequester* obj);
 void* __stdcall LoadGuiLayer(void* param_1, char* param_2, int param_3);
 void __stdcall SelectFontForEntry(Entry_004a1810* entries, int index);
 void __stdcall SetTextColors(int param_1, int param_2);
@@ -322,7 +322,7 @@ int __stdcall ScanDirectory(char* path, char* list, char* sizes, int mode, int f
 }
 
 // FUNCTION: 0x4af5b0
-void __stdcall FUN_004af5b0(FileRequester* obj)
+void __stdcall RefreshFileList(FileRequester* obj)
 {
     GetCurrentDriveLetter(obj->drive);
     GetDriveDirectory(obj->drive, obj->cwd, 0x100);
@@ -440,7 +440,7 @@ void __stdcall FileRequesterHandler(Gadget* gadget)
             req->callback(req);
         }
     } else {
-        FUN_004af5b0(req);
+        RefreshFileList(req);
         FUN_0049fa90(gadget);
         FUN_004ab0a0(gadget);
     }
@@ -506,7 +506,7 @@ FileRequester* Dialog::OpenFileRequester(Dialog* self, char* arg2, char* arg3, c
 
     GetCurrentDriveLetter(obj->save_drive);
     GetDriveDirectory(obj->save_drive, obj->save_cwd, 0x100);
-    FUN_004af5b0(obj);
+    RefreshFileList(obj);
 
     FUN_0049fa90(self);
 
@@ -529,7 +529,7 @@ void __stdcall AllocBlinkWords(Dialog* obj, int count)
 }
 
 // FUNCTION: 0x4afcf0
-void __stdcall FUN_004afcf0(int param_1)
+void __stdcall FreeBlinkWords(int param_1)
 {
     int ptr = *(int*)(param_1 + 0xa6);
     FUN_004d85a0((void*)ptr);
@@ -538,13 +538,13 @@ void __stdcall FUN_004afcf0(int param_1)
 }
 
 // FUNCTION: 0x4afd20
-void __stdcall FUN_004afd20(Dialog* obj, int value)
+void __stdcall SetBlinkGadget(Dialog* obj, int value)
 {
     obj->words->value = value;
 }
 
 // FUNCTION: 0x4afd40
-void __stdcall FUN_004afd40(int param_1)
+void __stdcall EnableBlinkWords(int param_1)
 {
     int ecx = *(int*)(param_1 + 0xa6);
     if (ecx != 0) {
@@ -553,7 +553,7 @@ void __stdcall FUN_004afd40(int param_1)
 }
 
 // FUNCTION: 0x4afd60
-void __stdcall FUN_004afd60(int param_1)
+void __stdcall DisableBlinkWords(int param_1)
 {
     if (*(int*)(param_1 + 0xa6) != 0) {
         *(int*)(param_1 + 0xae) = 0;
@@ -561,7 +561,7 @@ void __stdcall FUN_004afd60(int param_1)
 }
 
 // FUNCTION: 0x4afd80
-int __stdcall FUN_004afd80(Dialog* obj, const char* text, int p2, int p3,
+int __stdcall AddBlinkWord(Dialog* obj, const char* text, int p2, int p3,
                            int p4, int p5, float f6, float f7)
 {
     BlinkWord* p = obj->words;
@@ -594,7 +594,7 @@ int __stdcall FUN_004afd80(Dialog* obj, const char* text, int p2, int p3,
 }
 
 // FUNCTION: 0x4afe90
-void __stdcall FUN_004afe90(void* param1, int param2)
+void __stdcall ClearBlinkWord(void* param1, int param2)
 {
     int max = *(int*)((char*)param1 + 0xaa);
     if (param2 <= max) {
@@ -606,7 +606,7 @@ void __stdcall FUN_004afe90(void* param1, int param2)
 }
 
 // FUNCTION: 0x4afec0
-void __stdcall FUN_004afec0(Dialog* obj)
+void __stdcall ClearBlinkWords(Dialog* obj)
 {
     if (obj->words != 0) {
         for (int i = 0; i < obj->count; i++) {

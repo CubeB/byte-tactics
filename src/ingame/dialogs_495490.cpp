@@ -56,7 +56,7 @@ void UpdateProjectiles(void);
 void UpdateExplosions(void);
 void FUN_00464f80(void);
 void UpdateFeatures(void);
-void FUN_00415b30(void);
+void StepAllGafSequences(void);
 void UpdateWind(void);
 void UpdateMeteors(void);
 void UpdateCameraFollow(void);
@@ -91,7 +91,7 @@ void __stdcall RunGameSteps(int showStats)
         g_game->prof.AccumulateProfileTime(2);
 
         UpdateFeatures();
-        FUN_00415b30();
+        StepAllGafSequences();
         UpdateWind();
         UpdateMeteors();
         UpdateCameraFollow();

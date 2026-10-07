@@ -233,8 +233,8 @@ address,size,file,symbol,status,similarity
 0x415250,146,src/orders/vtol_orders_415250.cpp,?VtolGetRepairedOrder@@YGHPAUUnit@@PAVOrder@@H@Z,matched,100.0
 0x4152f0,1504,src/orders/vtol_orders_4152f0.cpp,?VtolRepairPatrolOrder@@YGHPAUUnit@@PAUOrder@@I@Z,matched,100.0
 0x4158d0,578,src/orders/vtol_orders_4158d0.cpp,?FUN_004158d0@Class_004158d0@@UAEXPAUUnit@@@Z,matched,100.0
-0x415b20,13,src/network/net_stats.cpp,?FUN_00415b20@@YGXXZ,matched,100.0
-0x415b30,41,src/network/net_stats.cpp,?FUN_00415b30@@YGXXZ,matched,100.0
+0x415b20,13,src/network/net_stats.cpp,?RegisterVtolOrders@@YGXXZ,matched,100.0
+0x415b30,41,src/network/net_stats.cpp,?StepAllGafSequences@@YGXXZ,matched,100.0
 0x415b60,35,src/network/net_stats.cpp,??0BitWriter@@QAE@XZ,matched,100.0
 0x415b90,20,src/network/net_stats.cpp,?FreeBuffer@BitWriter@@QAEXXZ,matched,100.0
 0x415bb0,92,src/network/net_stats.cpp,?GrowBuffer@BitWriter@@QAEXXZ,matched,100.0

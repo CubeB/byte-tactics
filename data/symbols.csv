@@ -235,8 +235,8 @@ address,name
 0x415250,VtolGetRepairedOrder
 0x4152f0,VtolRepairPatrolOrder
 0x4158d0,Class_004158d0::FUN_004158d0
-0x415b20,FUN_00415b20
-0x415b30,FUN_00415b30
+0x415b20,RegisterVtolOrders
+0x415b30,StepAllGafSequences
 0x415b60,BitWriter::BitWriter
 0x415b90,BitWriter::FreeBuffer
 0x415bb0,BitWriter::GrowBuffer
@@ -4026,7 +4026,7 @@ address,name
 0x4fc9a8,??_7Class_004085d0@@6B@
 0x4fc9b0,??_7Class_00408810@@6B@
 0x4fca10,DAT_004fca10
-0x4fca18,DAT_004fca18
+0x4fca18,g_vtolOrders
 0x4fcc60,??_7Class_00410c70@@6B@
 0x4fcc64,??_7Class_004158d0@@6B@
 0x4fcc68,DAT_004fcc68

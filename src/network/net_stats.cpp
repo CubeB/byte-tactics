@@ -61,7 +61,7 @@ unsigned int __cdecl GetTicks();
 
 // GLOBAL: 0x511de8
 extern Game* g_game;
-extern char DAT_004fca18[];
+extern char g_vtolOrders[];
 extern int DAT_00511bc0;
 extern int DAT_00511bc4;
 extern int DAT_00511bc8;
@@ -94,13 +94,13 @@ extern PacketManager g_packetManager;
 // Registers a table with RegisterOrderTypes under a numeric id; one of several
 // small functions doing the same for different tables.
 // FUNCTION: 0x415b20
-void FUN_00415b20()
+void RegisterVtolOrders()
 {
-    RegisterOrderTypes(DAT_004fca18, 0x16);
+    RegisterOrderTypes(g_vtolOrders, 0x16);
 }
 
 // FUNCTION: 0x415b30
-void FUN_00415b30(void)
+void StepAllGafSequences(void)
 {
     for (int i = g_game->count - 1; i >= 0; i--)
         StepGafSequence(g_game->items[i]);

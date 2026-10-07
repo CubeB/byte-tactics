@@ -4775,14 +4775,14 @@ piece,0x50688c,9,src/frontend/options_45d7c0.cpp,5,0,game data
 piece,0x506918,9,src/frontend/options_45d0c0.cpp,3,0,game data
 piece,0x506958,10,src/frontend/options_45cfc0.cpp,5,0,game data
 piece,0x506948,13,src/frontend/options_45cfc0.cpp,4,0,game data
-piece,0x506924,8,src/frontend/options_45c3f0.cpp,5,0,game data
-piece,0x506904,8,src/frontend/options_45c330.cpp,4,0,game data
-piece,0x5068f4,15,src/frontend/options_45c330.cpp,3,0,game data
-piece,0x5068b8,5,src/frontend/options_45bf60.cpp,7,0,game data
-piece,0x5068b0,7,src/frontend/options_45bf60.cpp,6,0,game data
-piece,0x5068a8,5,src/frontend/options_45bf60.cpp,5,0,game data
-piece,0x5068a0,7,src/frontend/options_45bf60.cpp,4,0,game data
-piece,0x506898,8,src/frontend/options_45bf60.cpp,3,0,game data
+piece,0x506924,8,src/frontend/options_45b800.cpp,70,0,game data
+piece,0x506904,8,src/frontend/options_45b800.cpp,63,0,game data
+piece,0x5068f4,15,src/frontend/options_45b800.cpp,62,0,game data
+piece,0x5068b8,5,src/frontend/options_45b800.cpp,44,0,game data
+piece,0x5068b0,7,src/frontend/options_45b800.cpp,43,0,game data
+piece,0x5068a8,5,src/frontend/options_45b800.cpp,42,0,game data
+piece,0x5068a0,7,src/frontend/options_45b800.cpp,41,0,game data
+piece,0x506898,8,src/frontend/options_45b800.cpp,40,0,game data
 piece,0x506624,11,src/graphics/model_render_45aec0.cpp,3,0,game data
 piece,0x506614,13,src/graphics/model_render_45a950.cpp,3,0,game data
 piece,0x4fd4c8,4,src/graphics/model_render_4597f0.cpp,3,0,game data
@@ -12203,35 +12203,14 @@ same,0x506578,5,src/network/net_game_4538f0.cpp,4,0,
 same,0x506578,5,src/network/net_game_453a50.cpp,4,0,
 same,0x4fd4c0,4,src/graphics/model_render_4581e0.cpp,3,0,
 same,0x4fd4c0,4,src/graphics/model_render_458d30.cpp,5,0,
-same,0x4fd4e0,8,src/frontend/options_45b9b0.cpp,3,0,
-same,0x4fd4e8,8,src/frontend/options_45b9b0.cpp,3,8,
-same,0x4fd4e0,8,src/frontend/options_45bb00.cpp,5,0,
-same,0x4fd4e8,8,src/frontend/options_45bb00.cpp,5,8,
-same,0x4fd4f0,8,src/frontend/options_45bcc0.cpp,3,0,
-same,0x4fd4f8,8,src/frontend/options_45bcc0.cpp,3,8,
-same,0x4fd4f0,8,src/frontend/options_45bd20.cpp,3,0,
-same,0x4fd4f8,8,src/frontend/options_45bd20.cpp,3,8,
-same,0x506884,6,src/frontend/options_45bde0.cpp,4,0,
-same,0x4fd4f0,8,src/frontend/options_45bde0.cpp,3,0,
-same,0x4fd4f8,8,src/frontend/options_45bde0.cpp,3,8,
-same,0x4fd4f0,8,src/frontend/options_45bea0.cpp,3,0,
-same,0x4fd4f8,8,src/frontend/options_45bea0.cpp,3,8,
-same,0x50692c,10,src/frontend/options_45c3f0.cpp,6,0,
-same,0x50692c,10,src/frontend/options_45c510.cpp,3,0,
-same,0x4fd4f0,8,src/frontend/options_45c570.cpp,3,0,
-same,0x4fd4f8,8,src/frontend/options_45c570.cpp,3,8,
-same,0x4fd4f0,8,src/frontend/options_45c630.cpp,3,0,
-same,0x4fd4f8,8,src/frontend/options_45c630.cpp,3,8,
-same,0x4fd4f0,8,src/frontend/options_45c740.cpp,3,0,
-same,0x4fd4f8,8,src/frontend/options_45c740.cpp,3,8,
+same,0x4fd4e0,8,src/frontend/options_45b800.cpp,13,0,
+same,0x4fd4e8,8,src/frontend/options_45b800.cpp,13,8,
+same,0x4fd4f0,8,src/frontend/options_45b800.cpp,13,16,
+same,0x4fd4f8,8,src/frontend/options_45b800.cpp,13,24,
+same,0x506884,6,src/frontend/options_45b800.cpp,34,0,
+same,0x50692c,10,src/frontend/options_45b800.cpp,71,0,
 same,0x4fd4f0,8,src/frontend/options_45c820.cpp,3,0,
 same,0x4fd4f8,8,src/frontend/options_45c820.cpp,3,8,
-same,0x4fd4f0,8,src/frontend/options_45c950.cpp,3,0,
-same,0x4fd4f8,8,src/frontend/options_45c950.cpp,3,8,
-same,0x4fd4f0,8,src/frontend/options_45cae0.cpp,3,0,
-same,0x4fd4f8,8,src/frontend/options_45cae0.cpp,3,8,
-same,0x4fd4f0,8,src/frontend/options_45cc50.cpp,3,0,
-same,0x4fd4f8,8,src/frontend/options_45cc50.cpp,3,8,
 same,0x5067bc,7,src/frontend/options_45d130.cpp,10,0,
 same,0x506984,10,src/frontend/options_45d130.cpp,9,0,
 same,0x50697c,7,src/frontend/options_45d130.cpp,7,0,

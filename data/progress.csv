@@ -2514,7 +2514,7 @@ address,size,file,symbol,status,similarity
 0x4b6f00,101,src/util/math.cpp,?VectorFromToInt@@YG?AUVec3f_004b6eb0@@UVec3_004b6cc0@@0@Z,matched,100.0
 0x4b6f70,115,src/util/math.cpp,?CrossProduct@@YG?AUVec3f_004b6eb0@@U1@0@Z,matched,100.0
 0x4b6ff0,113,src/util/math.cpp,?NormalizeVector@@YG?AUVec3f_004b6eb0@@U1@@Z,matched,100.0
-0x4b7070,41,src/util/math.cpp,?FUN_004b7070@@YGMMMM@Z,matched,100.0
+0x4b7070,41,src/util/math.cpp,?VectorLengthFloat@@YGMMMM@Z,matched,100.0
 0x4b73b0,13,src/util/commands.cpp,?InitArgs@CommandArgs@@QAEPAV1@XZ,matched,100.0
 0x4b73c0,29,src/util/commands.cpp,?GetArg@CommandArgs@@QAEHHH@Z,matched,100.0
 0x4b73e0,38,src/util/commands.cpp,?GetIntArg@CommandArgs@@QAEHHH@Z,matched,100.0

@@ -2506,7 +2506,7 @@ address,name
 0x4b6f00,VectorFromToInt
 0x4b6f70,CrossProduct
 0x4b6ff0,NormalizeVector
-0x4b7070,FUN_004b7070
+0x4b7070,VectorLengthFloat
 0x4b70ef,FUN_004b70ef
 0x4b7123,FUN_004b7123
 0x4b715a,FUN_004b715a

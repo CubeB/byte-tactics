@@ -194,7 +194,7 @@ const char DAT_00509244[12] = "hattfont11";  // 0x509244 .data
 const char DAT_00509250[12] = "hattfont12";  // 0x509250 .data
 const char DAT_0050925c[12] = "commongui";  // 0x50925c .data
 const char DAT_00509268[16] = "SkirmishInfo";  // 0x509268 .data
-const char DAT_00509310[24] = "Invalid savegame file";  // 0x509310 .data
+const char g_invalidSavegameText[24] = "Invalid savegame file";  // 0x509310 .data
 char DAT_005093ec[8] = "Enemies";  // 0x5093ec .data
 char DAT_005093f4[4] = ",:;";  // 0x5093f4 .data
 char DAT_005093f8[8] = "SENDTO";  // 0x5093f8 .data
@@ -641,7 +641,7 @@ int DAT_0051e6c0;  // 0x51e6c0 .bss
 unsigned int DAT_0051e6c4;  // 0x51e6c4 .bss
 unsigned char g_loadingBarFlashAlpha[8];  // 0x51e6c8 .bss
 int DAT_0051e6d0[10];  // 0x51e6d0 .bss
-char DAT_0051e6f8[24];  // 0x51e6f8 .bss
+char g_savegameRadarFrame[24];  // 0x51e6f8 .bss
 int DAT_0051e710[30];  // 0x51e710 .bss
 char DAT_0051e788[136];  // 0x51e788 .bss
 unsigned char DAT_0051e810[10];  // 0x51e810 .bss (the type runs past the next known address, 0x51e810+0x8)

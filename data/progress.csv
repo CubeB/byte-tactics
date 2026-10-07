@@ -2017,10 +2017,10 @@ address,size,file,symbol,status,similarity
 0x491e10,57,src/game/game_state_491e10.cpp,?FUN_00491e10@@YGXXZ,matched,100.0
 0x491e50,101,src/game/game_state_491e50.cpp,?FUN_00491e50@@YGXXZ,matched,100.0
 0x491ec0,1124,src/game/savegame.cpp,?ShowSavedGameInfo@@YGXXZ,matched,100.0
-0x492330,41,src/game/savegame.cpp,?FUN_00492330@@YGXPAX@Z,matched,100.0
+0x492330,41,src/game/savegame.cpp,?ShowInvalidSavegameDialog@@YGXPAX@Z,matched,100.0
 0x492360,1964,src/game/savegame.cpp,?LoadGameScreenHandler@@YGXPAUGadget_00492360@@@Z,matched,100.0
 0x492b10,715,src/game/savegame.cpp,?ListSavedGames@@YGPADPAH@Z,matched,100.0
-0x492de0,8,src/game/savegame.cpp,?FUN_00492de0@@YGXHH@Z,matched,100.0
+0x492de0,8,src/game/savegame.cpp,?SavedGameSelectHandler@@YGXHH@Z,matched,100.0
 0x492df0,618,src/game/savegame.cpp,?SaveGameScreenHandler@@YGXPAUGadget_00492df0@@@Z,matched,100.0
 0x493060,363,src/game/savegame.cpp,?ShowSaveGameScreen@@YGXXZ,matched,100.0
 0x4931d0,361,src/game/savegame.cpp,?ShowLoadGameScreen@@YGXXZ,matched,100.0

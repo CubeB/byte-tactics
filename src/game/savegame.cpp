@@ -191,8 +191,8 @@ struct Mission { int FUN_00435100(); void LoadCampaign(char* name); void* LoadMi
 extern Game* g_game;
 extern char* DAT_005091c8;
 extern char DAT_005119b8[];
-extern const char DAT_00509310[]; // "Invalid savegame file"
-extern char DAT_0051e6f8[];
+extern const char g_invalidSavegameText[]; // "Invalid savegame file"
+extern char g_savegameRadarFrame[];
 extern char* DAT_0051f2e0;
 extern char* DAT_0051f2e4;
 extern char* DAT_0051f2e8;
@@ -262,7 +262,7 @@ const char* __stdcall Translate(const char* key);
 void __stdcall OpenMessageBox(void* menu, const char* message, int a, int b, int c);
 void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget);
 void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget);
-void __stdcall FUN_00492de0(int a, int b);
+void __stdcall SavedGameSelectHandler(int a, int b);
 char* __stdcall ListSavedGames(int* count);
 void ShowSavedGameInfo();
 
@@ -308,8 +308,8 @@ void __stdcall ShowSavedGameInfo()
                 FreeSurface(DAT_0051f2ec);
             DAT_0051f2ec = (char*)LoadSurface(file);
             if (DAT_0051f2ec != 0) {
-                FrameFromSurface(DAT_0051e6f8, DAT_0051f2ec);
-                radar->field_c2 = DAT_0051e6f8;
+                FrameFromSurface(g_savegameRadarFrame, DAT_0051f2ec);
+                radar->field_c2 = g_savegameRadarFrame;
             }
             FUN_004a0570(menu, "RADAR", DAT_0051f2ec != 0);
 
@@ -388,9 +388,9 @@ done:
 }
 
 // FUNCTION: 0x492330
-void __stdcall FUN_00492330(void* param_1)
+void __stdcall ShowInvalidSavegameDialog(void* param_1)
 {
-    OpenMessageBox(param_1, Translate(DAT_00509310), 0x140, 1, 1);
+    OpenMessageBox(param_1, Translate(g_invalidSavegameText), 0x140, 1, 1);
     FUN_004ab0a0((Gadget_00492360*)param_1);
 }
 
@@ -619,7 +619,7 @@ char* __stdcall ListSavedGames(int* count)
 }
 
 // FUNCTION: 0x492de0
-void __stdcall FUN_00492de0(int arg1, int arg2)
+void __stdcall SavedGameSelectHandler(int arg1, int arg2)
 {
     ShowSavedGameInfo();
 }
@@ -702,7 +702,7 @@ void ShowSaveGameScreen()
     }
     Entry_00493060* games = FindGadgetChecked(layer->entries, "GAMES");
     if (games != 0) {
-        games->handler = FUN_00492de0;
+        games->handler = SavedGameSelectHandler;
     }
     int index = FindGadgetIndex(layer->entries, "GAMENAME", 3);
     layer->entries[index].flags |= 2;
@@ -737,7 +737,7 @@ void ShowLoadGameScreen()
     FUN_004a0570((char*)g_game + 0x519, "GAMENAME", 0);
     Entry_004931d0* entry = FindGadgetChecked(gadget->info, "GAMES");
     if (entry != 0) {
-        entry->field_ce = (void*)FUN_00492de0;
+        entry->field_ce = (void*)SavedGameSelectHandler;
     }
     ShowSavedGameInfo();
     FUN_0049fb10((char*)g_game + 0x519, 1);

@@ -187,7 +187,7 @@ extern const char DAT_00509244[12];                                             
 extern const char DAT_00509250[12];                                                           // 0x509250, 12 bytes; 1 of 1 files
 extern const char DAT_0050925c[12];                                                           // 0x50925c, 12 bytes; 1 of 1 files
 extern const char DAT_00509268[16];                                                           // 0x509268, 16 bytes; 1 of 1 files
-extern const char DAT_00509310[24];                                                           // 0x509310, 24 bytes; 1 of 1 files
+extern const char g_invalidSavegameText[24];                                                  // 0x509310, 24 bytes; 1 of 1 files
 extern char DAT_005093ec[8];                                                                  // 0x5093ec, 8 bytes; 1 of 1 files
 extern char DAT_005093f4[4];                                                                  // 0x5093f4, 4 bytes; 1 of 1 files
 extern char DAT_005093f8[8];                                                                  // 0x5093f8, 8 bytes; 1 of 1 files
@@ -545,7 +545,7 @@ extern int DAT_0051e6c0;                                                        
 extern unsigned int DAT_0051e6c4;                                                             // 0x51e6c4, 4 bytes; 1 of 1 files
 extern "C" unsigned char g_loadingBarFlashAlpha[8];                                           // 0x51e6c8, 4 bytes; extern "C" (no type) with the globals inside it
 extern int DAT_0051e6d0[10];                                                                  // 0x51e6d0, 40 bytes; 2 of 2 files
-extern char DAT_0051e6f8[24];                                                                 // 0x51e6f8, 24 bytes; 1 of 1 files
+extern char g_savegameRadarFrame[24];                                                         // 0x51e6f8, 24 bytes; 1 of 1 files
 extern int DAT_0051e710[30];                                                                  // 0x51e710, 120 bytes; 3 of 3 files
 extern char DAT_0051e788[136];                                                                // 0x51e788, 136 bytes; 2 of 2 files
 extern unsigned char DAT_0051e810[10];                                                        // 0x51e810, 10 bytes; 2 of 3 files (conflicting: signedness or const)

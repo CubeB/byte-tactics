@@ -2008,10 +2008,10 @@ address,name
 0x491e10,FUN_00491e10
 0x491e50,FUN_00491e50
 0x491ec0,ShowSavedGameInfo
-0x492330,FUN_00492330
+0x492330,ShowInvalidSavegameDialog
 0x492360,LoadGameScreenHandler
 0x492b10,ListSavedGames
-0x492de0,FUN_00492de0
+0x492de0,SavedGameSelectHandler
 0x492df0,SaveGameScreenHandler
 0x493060,ShowSaveGameScreen
 0x4931d0,ShowLoadGameScreen
@@ -4283,7 +4283,7 @@ address,name
 0x509250,DAT_00509250
 0x50925c,DAT_0050925c
 0x509268,DAT_00509268
-0x509310,DAT_00509310
+0x509310,g_invalidSavegameText
 0x5093ec,DAT_005093ec
 0x5093f4,DAT_005093f4
 0x5093f8,DAT_005093f8
@@ -4688,7 +4688,7 @@ address,name
 0x51e6c8,g_loadingBarFlashAlpha
 0x51e6cc,DAT_0051e6cc
 0x51e6d0,DAT_0051e6d0
-0x51e6f8,DAT_0051e6f8
+0x51e6f8,g_savegameRadarFrame
 0x51e710,DAT_0051e710
 0x51e788,DAT_0051e788
 0x51e810,DAT_0051e810

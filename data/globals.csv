@@ -260,7 +260,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x509250,DAT_00509250,.data,12,gap,string,const char[],1,0,1,one type,1,,s_hattfont12_00509250,,,68617474666f6e7431320000
 0x50925c,DAT_0050925c,.data,12,gap,string,const char[],1,0,1,one type,1,,s_commongui_0050925c,,,636f6d6d6f6e677569000000
 0x509268,DAT_00509268,.data,16,gap,string,const char[],1,0,1,one type,1,,s_SkirmishInfo_00509268,,,536b69726d697368496e666f00000000
-0x509310,DAT_00509310,.data,24,gap,string,const char[],1,0,1,one type,1,,s_Invalid_savegame_file_00509310,,,496e76616c6964207361766567616d652066696c65000000
+0x509310,g_invalidSavegameText,.data,24,gap,string,const char[],1,0,1,one type,1,,s_Invalid_savegame_file_00509310,,,496e76616c6964207361766567616d652066696c65000000
 0x5093ec,DAT_005093ec,.data,8,gap,string,char[],1,0,1,one type,1,,,,,456e656d69657300
 0x5093f4,DAT_005093f4,.data,4,gap,string,char[],1,0,1,one type,1,,DAT_005093f4,,,2c3a3b00
 0x5093f8,DAT_005093f8,.data,8,gap,string,char[],1,0,1,one type,1,,s_SENDTO_005093f8,,,53454e44544f0000
@@ -705,7 +705,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x51e6c8,g_loadingBarFlashAlpha,.bss,8,parts,data,"extern ""C"" (no type)",1,0,1,one type,1,0x4,DAT_0051e6c8,,,
 0x51e6cc,DAT_0051e6cc,.bss,4,gap,data,"extern ""C"" (no type)",1,0,1,one type,1,0x1,DAT_0051e6cc,,in g_loadingBarFlashAlpha+0x4,
 0x51e6d0,DAT_0051e6d0,.bss,40,type,data,int[10],2,0,2,one type,2,,DAT_0051e6d0,,,
-0x51e6f8,DAT_0051e6f8,.bss,24,gap,data,char[],1,0,1,one type,1,,DAT_0051e6f8,,,
+0x51e6f8,g_savegameRadarFrame,.bss,24,gap,data,char[],1,0,1,one type,1,,DAT_0051e6f8,,,
 0x51e710,DAT_0051e710,.bss,120,type,data,int[30],3,0,2,one type,3,,DAT_0051e710,,,
 0x51e788,DAT_0051e788,.bss,136,gap,data,char[],2,0,1,one type,2,,DAT_0051e788,,,
 0x51e810,DAT_0051e810,.bss,10,type>gap,data,unsigned char[10],2,1,2,conflicting: signedness or const,3,0x8,DAT_0051e810,,,

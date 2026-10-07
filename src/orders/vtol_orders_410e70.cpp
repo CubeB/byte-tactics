@@ -110,10 +110,10 @@ Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b)
 // 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
-    ((Unit*)unit)->ClaimWeapons(3);
+    unit->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Unit*)unit)->SetStateBits(1, 1);
+    unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
@@ -182,7 +182,7 @@ int __stdcall VtolPatrolOrder(Unit* unit, Order* order, int flags)
             FUN_0043a020(unit, order);
             ((Class_00438880*)order)->FUN_00438880("Patrolling");
             FUN_0040f200(unit, order, 0);
-            ((Unit*)unit)->ReleaseWeapons(3);
+            unit->ReleaseWeapons(3);
             return 1;
         }
         break;

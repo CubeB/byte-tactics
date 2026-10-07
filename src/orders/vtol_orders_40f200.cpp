@@ -65,10 +65,10 @@ void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4);
 // FUNCTION: 0x40f200
 void __stdcall FUN_0040f200(Unit* unit, Source_0044e2d0* order, unsigned int flags)
 {
-    ((Unit*)unit)->ClaimWeapons(3);
+    unit->ClaimWeapons(3);
     if (unit->field_86)
         AttachUnitToPiece(unit, 0, -1, 2);
-    ((Unit*)unit)->SetStateBits(1, 1);
+    unit->SetStateBits(1, 1);
     if ((unit->type->field_2e & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);

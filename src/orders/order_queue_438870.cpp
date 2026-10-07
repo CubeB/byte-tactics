@@ -248,7 +248,7 @@ Class_0043a1f0::~Class_0043a1f0()
     if (flags & 0x400000) {
         Unit* obj = unit;
         int index = obj->names->FindScript("StopBuilding");
-        ((CobScript*)obj->names)->StartScriptWithArgsByIndex(index, 0, 0, 0, 0, 0, 0, 0);
+        obj->names->StartScriptWithArgsByIndex(index, 0, 0, 0, 0, 0, 0, 0);
         SendScriptCallNoArgs(obj, index);
         flags &= ~0x400000;
     }
@@ -266,7 +266,7 @@ Class_0043a1f0::~Class_0043a1f0()
         }
     }
     if (!(flags & 0x10000)) {
-        ((Unit*)unit)->ReleaseWeapons(3);
+        unit->ReleaseWeapons(3);
     }
     ((UnitRef*)&link)->FUN_00489650();
 }

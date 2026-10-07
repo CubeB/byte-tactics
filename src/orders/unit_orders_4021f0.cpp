@@ -67,7 +67,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
     }
     switch (order->state) {
     case 0:
-        ((Unit*)unit)->ReleaseWeapons(3);
+        unit->ReleaseWeapons(3);
         ((Class_00439e80*)order)->FUN_00439e80(0x1e);
         return 1;
     case 1: {
@@ -75,7 +75,7 @@ int __stdcall GuardNoMoveOrder(Unit* unit, Order* order, int flags)
         Unit* t = order->target.owner;
         if (t != 0 && (t->flags & 0x10000000)) {
             order->pos = t->pos;
-            ((Unit*)unit)->ClaimWeapons(0);
+            unit->ClaimWeapons(0);
             SetWeaponTargetUnit(unit, order->target.owner, 0);
             order->wait = 0;
             order->waitLimit = RandomInt(3) + 3;

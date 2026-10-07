@@ -59,9 +59,9 @@ Class_0044d470::Class_0044d470(int owner, HapiBank* file, char* name)
         bad = 1;
     if (!bad) {
         file->OpenNamedBox(name);
-        ((HapiBank*)file)->SeekBox(0);
+        file->SeekBox(0);
         Header_0044d470 hdr;
-        if (((HapiBank*)file)->ReadBox(&hdr, 24) == 24) {
+        if (file->ReadBox(&hdr, 24) == 24) {
             data.a = hdr.data.a;
             data.b = hdr.data.b;
             data.c = hdr.data.c;
@@ -84,7 +84,7 @@ int Class_0044d470::FUN_0044d500(int unused, HapiBank* file, char* name)
     hdr.data.d = data.d;
     hdr.data.e = data.e;
     file->OpenNamedBox(name);
-    ((HapiBank*)file)->SeekBox(0);
-    ((HapiBank*)file)->WriteBox(&hdr, 24);
+    file->SeekBox(0);
+    file->WriteBox(&hdr, 24);
     return 1;
 }

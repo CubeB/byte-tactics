@@ -98,9 +98,9 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
                 if (!order->pos.x && !order->pos.z && !order->pos.y) order->pos=unit->pos;
                 order->angle=RandomInt(0x10000);
                 order->parity=order->angle&1;
-                ((Unit*)unit)->ClaimWeapons(3);
+                unit->ClaimWeapons(3);
                 if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
-                ((Unit*)unit)->SetStateBits(1,1);
+                unit->SetStateBits(1,1);
                 if ((unit->motion->flags&3)==1) {
                     unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
@@ -113,7 +113,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
         }
         break;
     case 1: {
-        ((Unit*)unit)->ReleaseWeapons(3);
+        unit->ReleaseWeapons(3);
         if ((unsigned int)unit->health < (unit->def->maxHealth>>2)*3) {
             Class_00410830 pads;
             GetFactoriesInRadius(unit->owner->index,&unit->pos,0xf00,&pads);

@@ -88,8 +88,8 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
         ((Class_004388d0*)order)->FUN_004388d0(0);
         if (flags & 0x3000) return 1;
         if (!WeaponCanReachUnit(unit, order->target, weapon)) return 1;
-        ((Unit*)unit)->ClaimWeapons(0);
-        ((Unit*)unit)->ClaimWeapons(2);
+        unit->ClaimWeapons(0);
+        unit->ClaimWeapons(2);
         SetWeaponTargetUnit(unit, order->target, weapon);
         order->flags = 0x13808;
         return 2;
@@ -133,14 +133,14 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
     case 3:
         if (flags & 0x40e0) { order->state = 1; return 4; }
         if (WeaponCanReachUnit(unit, order->target, weapon)) {
-            ((Unit*)unit)->ClaimWeapons(0);
-            ((Unit*)unit)->ClaimWeapons(2);
+            unit->ClaimWeapons(0);
+            unit->ClaimWeapons(2);
             SetWeaponTargetUnit(unit, order->target, weapon);
             order->flags = 0x148e8;
             ((Class_00439e80*)order)->FUN_00439e80(30);
             return 2;
         }
-        ((Unit*)unit)->ReleaseWeapons(3);
+        unit->ReleaseWeapons(3);
         order->flags = 0x100e8;
         ((Class_00439e80*)order)->FUN_00439e80(30);
         return 2;

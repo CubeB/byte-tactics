@@ -121,7 +121,7 @@
 // Rejected this round, none better than 96.19: both class accessors 95.1, raw
 // `->target` with the accessor pos 92.1, `other->Target()` 91.0, `other->target`
 // 91.0, `(Order*)((void*)T+0x5c)` (does not compile, void* has no size),
-// `*(Order**)((char*)T+0x5c)->target` 92.1, `&((Order*)T->order)->pos` in place of
+// `*(Order**)((char*)T+0x5c)->target` 92.1, `&T->order->pos` in place of
 // the accessor 93.0, const and __inline qualified accessors 96.19 (no change at all),
 // `(Unit*)`/`(Vec3*)` casts on the accessor returns 93.3, a 0..6 dummy inline function
 // sweep 93.0 to 96.19 and never 1152, `else if` instead of a second `if` 93.0, a
@@ -136,7 +136,7 @@
 // `->order` and EDX for the second, is exactly what a NON foldable second access
 // allocates to naturally, since EDX (the target pointer) is dead by then.
 // Round 7 (deepseek-v4.1, scratch sweep.py, 60 variants at once): a full 7x7 grid of
-// correct-semantics spellings (target: `->target`, `->Target()`, `((Order*)chain)->target`,
+// correct-semantics spellings (target: `->target`, `->Target()`, `chain->target`,
 // `(*(Order**)((char*)t+0x5c))->target`, `other->target`; pos: `->Position()`, `&->pos`,
 // the (Order*) cast, `(Vec3*)((char*)chain+0x22)`, `&(*(Order**)...)->pos`, `other->...`)
 // plus comma/deref exotics. Every one stays at 1145 or 1149 bytes with ONE `[reg+0x5c]`

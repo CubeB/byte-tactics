@@ -160,7 +160,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             order->flags |= 0xe8;
             return 2;
         }
-        ((Unit*)unit)->ClaimWeapons(3);
+        unit->ClaimWeapons(3);
         StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target->pos) - unit->angle);
         return 1;
     }
